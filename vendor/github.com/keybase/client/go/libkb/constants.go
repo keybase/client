@@ -47,11 +47,12 @@ const (
 
 	SecretKeyringTemplate = "secretkeys.%u.mpack"
 
-	APIVersion       = "1.0"
-	APIURIPathPrefix = "/_/api/" + APIVersion
-	DaemonPort       = 40933
-	GoClientID       = "keybase.io go client"
-	IdentifyAs       = GoClientID + " v" + Version + " " + runtime.GOOS
+	APIVersion           = "1.0"
+	APIURIPathPrefix     = "/_/api/" + APIVersion
+	DaemonPort           = 40933
+	GoClientID           = "keybase.io go client"
+	IdentifyAs           = GoClientID + " v" + Version + " " + runtime.GOOS
+	KeybaseSaltpackBrand = "KEYBASE"
 )
 
 var UserAgent = "Keybase/" + Version + " (" + runtime.Version() + " on " + runtime.GOOS + ")"
@@ -101,7 +102,7 @@ const (
 	PaperKeyMemoryTimeout = time.Hour
 )
 
-// Status codes.  This list should match keybase/lib/constants.iced.
+// Status codes.  This list should match keybase/lib/status_codes.iced.
 const (
 	SCOk                     = int(keybase1.StatusCode_SCOk)
 	SCLoginRequired          = int(keybase1.StatusCode_SCLoginRequired)

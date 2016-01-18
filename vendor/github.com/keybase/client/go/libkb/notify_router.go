@@ -114,6 +114,30 @@ func (n *NotifyRouter) HandleLogout() {
 	n.G().Log.Debug("- Logout notification sent")
 }
 
+// HandleLogin is called whenever a user logs in. It will broadcast
+// the message to all connections who care about such a mesasge.
+func (n *NotifyRouter) HandleLogin(u string) {
+	if n == nil {
+		return
+	}
+	n.G().Log.Debug("+ Sending login notfication, as user %q", u)
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Session` notification type
+		if n.getNotificationChannels(id).Session {
+			// In the background do...
+			go func() {
+				// A send of a `LoggedIn` RPC
+				(keybase1.NotifySessionClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
+				}).LoggedIn(context.TODO(), u)
+			}()
+		}
+		return true
+	})
+	n.G().Log.Debug("- Login notification sent")
+}
+
 // HandleUserChanged is called whenever we know that a given user has
 // changed (and must be cache-busted). It will broadcast the messages
 // to all curious listeners.

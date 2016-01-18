@@ -28,6 +28,10 @@ func expectUsernameCall(u keybase1.UID, config *ConfigMock) {
 	name := libkb.NewNormalizedUsername(fmt.Sprintf("user_%s", u))
 	config.mockKbpki.EXPECT().GetNormalizedUsername(gomock.Any(), u).AnyTimes().
 		Return(name, nil)
+	config.mockKbpki.EXPECT().Resolve(gomock.Any(), string(name)).AnyTimes().
+		Return(u, nil)
+	config.mockKbpki.EXPECT().Identify(gomock.Any(), string(name), gomock.Any()).AnyTimes().
+		Return(UserInfo{Name: name, UID: u}, nil)
 }
 
 func expectUsernameCalls(handle *TlfHandle, config *ConfigMock) {
@@ -42,14 +46,17 @@ func expectUsernameCalls(handle *TlfHandle, config *ConfigMock) {
 func testMdcachePut(t *testing.T, tlf TlfID, rev MetadataRevision,
 	mStatus MergeStatus, h *TlfHandle, config *ConfigMock) {
 	rmd := &RootMetadata{
-		ID:       tlf,
+		WriterMetadata: WriterMetadata{
+			ID:    tlf,
+			WKeys: make(TLFWriterKeyGenerations, 1, 1),
+		},
 		Revision: rev,
-		Keys:     make([]TLFKeyBundle, 1, 1),
+		RKeys:    make(TLFReaderKeyGenerations, 1, 1),
 	}
-	k := TLFKeyBundle{}
-	rmd.Keys[0] = k
+	k := NewTLFKeyBundle()
+	rmd.WKeys[0] = k.TLFWriterKeyBundle
 	if mStatus == Unmerged {
-		rmd.Flags |= MetadataFlagUnmerged
+		rmd.WFlags |= MetadataFlagUnmerged
 	}
 
 	// put the md

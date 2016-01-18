@@ -5,6 +5,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/logger"
+
 	"golang.org/x/net/context"
 )
 
@@ -13,6 +15,7 @@ import (
 // handlers that are go-routine-safe.
 type KBFSOpsStandard struct {
 	config  Config
+	log     logger.Logger
 	ops     map[FolderBranch]*folderBranchOps
 	opsLock sync.RWMutex
 }
@@ -21,8 +24,10 @@ var _ KBFSOps = (*KBFSOpsStandard)(nil)
 
 // NewKBFSOpsStandard constructs a new KBFSOpsStandard object.
 func NewKBFSOpsStandard(config Config) *KBFSOpsStandard {
+	log := config.MakeLogger("")
 	return &KBFSOpsStandard{
 		config: config,
+		log:    log,
 		ops:    make(map[FolderBranch]*folderBranchOps),
 	}
 }
@@ -102,27 +107,40 @@ func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context, handle *TlfHandle
 	return fs.getOps(fb), nil
 }
 
-// GetOrCreateRootNodeForHandle implements the KBFSOps interface for
+// GetOrCreateRootNode implements the KBFSOps interface for
 // KBFSOpsStandard
-func (fs *KBFSOpsStandard) GetOrCreateRootNodeForHandle(
-	ctx context.Context, handle *TlfHandle, branch BranchName) (
-	Node, EntryInfo, error) {
+func (fs *KBFSOpsStandard) GetOrCreateRootNode(
+	ctx context.Context, name string, public bool, branch BranchName) (
+	node Node, ei EntryInfo, err error) {
+	fs.log.CDebugf(ctx, "GetOrCreateRootNode(%s, %t, %v)",
+		name, public, branch)
+	defer func() { fs.log.CDebugf(ctx, "Done: %v", err) }()
+
+	h, err := ParseTlfHandle(ctx, fs.config.KBPKI(), name, public)
+	if err != nil {
+		return nil, EntryInfo{}, err
+	}
+
 	// Do GetForHandle() unlocked -- no cache lookups, should be fine
 	mdops := fs.config.MDOps()
 	// TODO: only do this the first time, cache the folder ID after that
-	md, err := mdops.GetUnmergedForHandle(ctx, handle)
+	md, err := mdops.GetUnmergedForHandle(ctx, h)
 	if err != nil {
 		return nil, EntryInfo{}, err
 	}
 	if md == nil {
-		md, err = mdops.GetForHandle(ctx, handle)
+		md, err = mdops.GetForHandle(ctx, h)
 		if err != nil {
 			return nil, EntryInfo{}, err
 		}
 	}
+	// we might not be able to read the metadata if we aren't in the key group yet.
+	if err := md.isReadableOrError(ctx, fs.config); err != nil {
+		return nil, EntryInfo{}, err
+	}
 
 	fb := FolderBranch{Tlf: md.ID, Branch: branch}
-	ops, err := fs.getOpsByHandle(ctx, handle, fb)
+	ops, err := fs.getOpsByHandle(ctx, h, fb)
 	if err != nil {
 		return nil, EntryInfo{}, err
 	}
@@ -135,18 +153,12 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNodeForHandle(
 		}
 	}
 
-	node, ei, _, err := ops.GetRootNode(ctx, fb)
+	node, ei, _, err = ops.getRootNode(ctx)
 	if err != nil {
 		return nil, EntryInfo{}, err
 	}
-	return node, ei, nil
-}
 
-// GetRootNode implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) GetRootNode(ctx context.Context,
-	folderBranch FolderBranch) (Node, EntryInfo, *TlfHandle, error) {
-	ops := fs.getOps(folderBranch)
-	return ops.GetRootNode(ctx, folderBranch)
+	return node, ei, nil
 }
 
 // GetDirChildren implements the KBFSOps interface for KBFSOpsStandard
@@ -281,12 +293,11 @@ func (fs *KBFSOpsStandard) UnstageForTesting(
 	return ops.UnstageForTesting(ctx, folderBranch)
 }
 
-// RekeyForTesting implements the KBFSOps interface for KBFSOpsStandard
-// TODO: remove once we have automatic rekeying
-func (fs *KBFSOpsStandard) RekeyForTesting(
-	ctx context.Context, folderBranch FolderBranch) error {
-	ops := fs.getOps(folderBranch)
-	return ops.RekeyForTesting(ctx, folderBranch)
+// Rekey implements the KBFSOps interface for KBFSOpsStandard
+func (fs *KBFSOpsStandard) Rekey(ctx context.Context, id TlfID) error {
+	// We currently only support rekeys of master branches.
+	ops := fs.getOps(FolderBranch{Tlf: id, Branch: MasterBranch})
+	return ops.Rekey(ctx, id)
 }
 
 // SyncFromServer implements the KBFSOps interface for KBFSOpsStandard
@@ -294,6 +305,13 @@ func (fs *KBFSOpsStandard) SyncFromServer(
 	ctx context.Context, folderBranch FolderBranch) error {
 	ops := fs.getOps(folderBranch)
 	return ops.SyncFromServer(ctx, folderBranch)
+}
+
+// GetUpdateHistory implements the KBFSOps interface for KBFSOpsStandard
+func (fs *KBFSOpsStandard) GetUpdateHistory(ctx context.Context,
+	folderBranch FolderBranch) (history TLFUpdateHistory, err error) {
+	ops := fs.getOps(folderBranch)
+	return ops.GetUpdateHistory(ctx, folderBranch)
 }
 
 // Notifier:

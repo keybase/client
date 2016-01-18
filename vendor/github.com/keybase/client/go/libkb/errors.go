@@ -88,7 +88,11 @@ func XapiError(err error, u string) *ProofAPIError {
 		case 3:
 			code = keybase1.ProofStatus_HTTP_300
 		case 4:
-			code = keybase1.ProofStatus_HTTP_400
+			if ae.Code == 429 {
+				code = keybase1.ProofStatus_HTTP_429
+			} else {
+				code = keybase1.ProofStatus_HTTP_400
+			}
 		case 5:
 			code = keybase1.ProofStatus_HTTP_500
 		default:
@@ -1285,6 +1289,14 @@ func (e TrackingBrokeError) Error() string {
 
 //=============================================================================
 
+type KeybaseSaltpackError struct{}
+
+func (e KeybaseSaltpackError) Error() string {
+	return "Bad use of saltpack for Keybase"
+}
+
+//=============================================================================
+
 type UnknownStreamError struct{}
 
 func (e UnknownStreamError) Error() string {
@@ -1299,13 +1311,13 @@ type WrongCryptoFormatError struct {
 func (e WrongCryptoFormatError) Error() string {
 	ret := "Wrong crypto message format"
 	switch {
-	case e.Wanted == CryptoMessageFormatPGP && e.Received == CryptoMessageFormatSaltPack:
-		ret += "; wanted PGP but got SaltPack"
+	case e.Wanted == CryptoMessageFormatPGP && e.Received == CryptoMessageFormatSaltpack:
+		ret += "; wanted PGP but got saltpack"
 		if len(e.Operation) > 0 {
 			ret += "; try `keybase " + e.Operation + "` instead"
 		}
-	case e.Wanted == CryptoMessageFormatSaltPack && e.Received == CryptoMessageFormatPGP:
-		ret += "; wanted SaltPack but got PGP"
+	case e.Wanted == CryptoMessageFormatSaltpack && e.Received == CryptoMessageFormatPGP:
+		ret += "; wanted saltpack but got PGP"
 		if len(e.Operation) > 0 {
 			ret += "; try `keybase pgp " + e.Operation + "` instead"
 		}

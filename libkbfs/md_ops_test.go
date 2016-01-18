@@ -42,10 +42,12 @@ func verifyMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
 		Return(nil)
 
 	packedData := []byte{4, 3, 2, 1}
-	config.mockCodec.EXPECT().Encode(rmds.MD).Return(packedData, nil)
+	config.mockCodec.EXPECT().Encode(rmds.MD).AnyTimes().Return(packedData, nil)
+	config.mockCodec.EXPECT().Encode(rmds.MD.WriterMetadata).Return(packedData, nil)
 	config.mockKbpki.EXPECT().HasVerifyingKey(gomock.Any(), gomock.Any(),
 		gomock.Any()).AnyTimes().Return(hasVerifyingKeyErr)
 	if hasVerifyingKeyErr == nil {
+		config.mockCrypto.EXPECT().Verify(packedData, rmds.MD.WriterMetadataSigInfo).Return(nil)
 		config.mockCrypto.EXPECT().Verify(packedData, rmds.SigInfo).Return(verifyErr)
 	}
 }
@@ -60,19 +62,22 @@ func verifyMDForPrivate(config *ConfigMock, rmds *RootMetadataSigned,
 
 	packedData := []byte{4, 3, 2, 1}
 	config.mockCodec.EXPECT().Encode(rmds.MD).Return(packedData, nil)
+	config.mockCodec.EXPECT().Encode(rmds.MD.WriterMetadata).Return(packedData, nil)
 	config.mockKbpki.EXPECT().HasVerifyingKey(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
 	config.mockCrypto.EXPECT().Verify(packedData, rmds.SigInfo).Return(nil)
+	config.mockCrypto.EXPECT().Verify(packedData, rmds.MD.WriterMetadataSigInfo).Return(nil)
 }
 
 func putMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
 	id TlfID) {
-	packedData := []byte{4, 3, 2, 1}
-	config.mockCodec.EXPECT().Encode(rmds.MD.data).Return(packedData, nil)
-	config.mockCodec.EXPECT().Encode(gomock.Any()).AnyTimes().
-		Return([]byte{0}, nil)
-
-	config.mockCrypto.EXPECT().Sign(gomock.Any(), gomock.Any()).
-		Return(SignatureInfo{}, nil)
+	// TODO make this more explicit. Currently can't because the `Put`
+	// call mutates `rmds.MD`, which makes the EXPECT() not match.
+	// Encodes:
+	// 1) rmds.MD.data
+	// 2) rmds.MD.WriterMetadata
+	// 3) rmds.MD
+	config.mockCodec.EXPECT().Encode(gomock.Any()).Times(3).Return([]byte{}, nil)
+	config.mockCrypto.EXPECT().Sign(gomock.Any(), gomock.Any()).Times(2).Return(SignatureInfo{}, nil)
 
 	config.mockMdserv.EXPECT().Put(gomock.Any(), gomock.Any()).Return(nil)
 }
@@ -84,9 +89,14 @@ func putMDForPrivate(config *ConfigMock, rmds *RootMetadataSigned,
 		&rmds.MD.data, TLFCryptKey{}).Return(EncryptedPrivateMetadata{}, nil)
 
 	packedData := []byte{4, 3, 2, 1}
-	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(packedData, nil).Times(2)
+	// TODO make these EXPECTs more specific.
+	// Encodes:
+	// 1) encrypted rmds.MD.data
+	// 2) rmds.MD.WriterMetadata
+	// 3) rmds.MD
+	config.mockCodec.EXPECT().Encode(gomock.Any()).Return(packedData, nil).Times(3).Return([]byte{}, nil)
 
-	config.mockCrypto.EXPECT().Sign(gomock.Any(), gomock.Any()).Return(SignatureInfo{}, nil)
+	config.mockCrypto.EXPECT().Sign(gomock.Any(), gomock.Any()).Times(2).Return(SignatureInfo{}, nil)
 
 	config.mockMdserv.EXPECT().Put(gomock.Any(), gomock.Any()).Return(nil)
 }

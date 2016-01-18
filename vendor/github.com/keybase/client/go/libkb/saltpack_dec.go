@@ -8,16 +8,16 @@ import (
 	"io"
 )
 
-func SaltPackDecrypt(
+func SaltpackDecrypt(
 	g *GlobalContext, source io.Reader, sink io.WriteCloser,
 	deviceEncryptionKey NaclDHKeyPair,
 	checkSender func(*saltpack.MessageKeyInfo) error) (*saltpack.MessageKeyInfo, error) {
 
 	if sc, newSource, err := ClassifyStream(source); err != nil {
 		return nil, err
-	} else if sc.Format != CryptoMessageFormatSaltPack {
+	} else if sc.Format != CryptoMessageFormatSaltpack {
 		return nil, WrongCryptoFormatError{
-			Wanted:    CryptoMessageFormatSaltPack,
+			Wanted:    CryptoMessageFormatSaltpack,
 			Received:  sc.Format,
 			Operation: "decrypt",
 		}
@@ -44,8 +44,12 @@ func SaltPackDecrypt(
 
 	// TODO: Check header inline, and only warn if the footer
 	// doesn't match.
-	err = saltpack.CheckArmor62Frame(frame, saltpack.EncryptionArmorHeader, saltpack.EncryptionArmorFooter)
+	var brand string
+	brand, err = saltpack.CheckArmor62Frame(frame, saltpack.MessageTypeEncryption)
 	if err != nil {
+		return mki, err
+	}
+	if err = checkSaltpackBrand(brand); err != nil {
 		return mki, err
 	}
 

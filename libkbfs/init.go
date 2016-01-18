@@ -10,7 +10,6 @@ import (
 	"runtime/pprof"
 	"sync"
 
-	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 )
@@ -296,6 +295,9 @@ func Init(params InitParams, onInterruptFn func(), log logger.Logger) (Config, e
 		return lg
 	})
 
+	kbfsOps := NewKBFSOpsStandard(config)
+	config.SetKBFSOps(kbfsOps)
+	config.SetNotifier(kbfsOps)
 	config.SetKeyManager(NewKeyManagerStandard(config))
 
 	mdServer, err := makeMDServer(
@@ -317,12 +319,6 @@ func Init(params InitParams, onInterruptFn func(), log logger.Logger) (Config, e
 	}
 
 	config.SetKeyServer(keyServer)
-
-	client.InitUI()
-	if err := client.GlobUI.Configure(); err != nil {
-		log.Warning("problem configuring UI: %s", err)
-		log.Warning("ignoring for now...")
-	}
 
 	daemon, err := makeKeybaseDaemon(config, params.ServerInMemory, params.ServerRootDir, localUser, config.Codec(), config.MakeLogger(""), params.Debug)
 	if err != nil {

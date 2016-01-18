@@ -10,10 +10,10 @@ import (
 )
 
 func readAndCompareData(t *testing.T, config Config, ctx context.Context,
-	h *TlfHandle, expectedData []byte, user libkb.NormalizedUsername) {
+	name string, expectedData []byte, user libkb.NormalizedUsername) {
 	kbfsOps := config.KBFSOps()
 	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps.GetOrCreateRootNode(ctx, name, false, MasterBranch)
 	if err != nil {
 		t.Errorf("Couldn't get folder: %v", err)
 	}
@@ -66,29 +66,23 @@ func checkStatus(t *testing.T, ctx context.Context, kbfsOps KBFSOps,
 func TestBasicMDUpdate(t *testing.T) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
 	defer CheckConfigAndShutdown(t, config1)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	defer CheckConfigAndShutdown(t, config2)
-	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
-	if err != nil {
-		t.Fatal(err)
-	}
 
-	h := NewTlfHandle()
-	h.Writers = append(h.Writers, uid1)
-	h.Writers = append(h.Writers, uid2)
+	name := userName1.String() + "," + userName2.String()
 
 	kbfsOps1 := config1.KBFSOps()
 	rootNode1, _, err :=
-		kbfsOps1.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps1.GetOrCreateRootNode(ctx, name, false, MasterBranch)
 	if err != nil {
 		t.Fatalf("Couldn't create folder: %v", err)
 	}
 	kbfsOps2 := config2.KBFSOps()
 	rootNode2, _, err :=
-		kbfsOps2.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
 	if err != nil {
 		t.Fatalf("Couldn't get root: %v", err)
 	}
@@ -133,15 +127,11 @@ func TestBasicMDUpdate(t *testing.T) {
 func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
 	defer CheckConfigAndShutdown(t, config1)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	defer CheckConfigAndShutdown(t, config2)
-	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	if unembedChanges {
 		bss1, ok1 := config1.BlockSplitter().(*BlockSplitterSimple)
@@ -153,13 +143,11 @@ func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 		bss2.blockChangeEmbedMaxSize = 3
 	}
 
-	h := NewTlfHandle()
-	h.Writers = append(h.Writers, uid1)
-	h.Writers = append(h.Writers, uid2)
+	name := userName1.String() + "," + userName2.String()
 
 	kbfsOps1 := config1.KBFSOps()
 	rootNode1, _, err :=
-		kbfsOps1.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps1.GetOrCreateRootNode(ctx, name, false, MasterBranch)
 	if err != nil {
 		t.Fatalf("Couldn't create folder: %v", err)
 	}
@@ -172,7 +160,7 @@ func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 	// user 2 looks up the directory (and sees the file)
 	kbfsOps2 := config2.KBFSOps()
 	rootNode2, _, err :=
-		kbfsOps2.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
 	if err != nil {
 		t.Errorf("Couldn't get root: %v", err)
 	}
@@ -222,24 +210,18 @@ func TestMultipleMDUpdatesUnembedChanges(t *testing.T) {
 func TestUnmergedAfterRestart(t *testing.T) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
 	defer CheckConfigAndShutdown(t, config1)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	defer CheckConfigAndShutdown(t, config2)
-	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
-	if err != nil {
-		t.Fatal(err)
-	}
 
-	h := NewTlfHandle()
-	h.Writers = append(h.Writers, uid1)
-	h.Writers = append(h.Writers, uid2)
+	name := userName1.String() + "," + userName2.String()
 
 	// user1 creates a file in a shared dir
 	kbfsOps1 := config1.KBFSOps()
 	rootNode1, _, err :=
-		kbfsOps1.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps1.GetOrCreateRootNode(ctx, name, false, MasterBranch)
 	if err != nil {
 		t.Fatalf("Couldn't create folder: %v", err)
 	}
@@ -251,7 +233,7 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	// then user2 write to the file
 	kbfsOps2 := config2.KBFSOps()
 	rootNode2, _, err :=
-		kbfsOps2.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
 	if err != nil {
 		t.Fatalf("Couldn't create folder: %v", err)
 	}
@@ -304,8 +286,8 @@ func TestUnmergedAfterRestart(t *testing.T) {
 
 	DisableCRForTesting(config1B, rootNode1.GetFolderBranch())
 
-	readAndCompareData(t, config1B, ctx, h, data1, userName1)
-	readAndCompareData(t, config2B, ctx, h, data2, userName2)
+	readAndCompareData(t, config1B, ctx, name, data1, userName1)
+	readAndCompareData(t, config2B, ctx, name, data2, userName2)
 
 	checkStatus(t, ctx, config1B.KBFSOps(), true, userName1, nil,
 		rootNode1.GetFolderBranch(), "Node 1")
@@ -344,11 +326,20 @@ func TestUnmergedAfterRestart(t *testing.T) {
 		}
 	}
 
-	readAndCompareData(t, config1B, ctx, h, data2, userName2)
-	readAndCompareData(t, config2B, ctx, h, data2, userName2)
-	checkStatus(t, ctx, config1B.KBFSOps(), false, userName2, nil,
+	if err := config1B.KBFSOps().
+		SyncFromServer(ctx, rootNode1.GetFolderBranch()); err != nil {
+		t.Fatal("Couldn't sync user 1 from server")
+	}
+	if err := config2B.KBFSOps().
+		SyncFromServer(ctx, rootNode2.GetFolderBranch()); err != nil {
+		t.Fatal("Couldn't sync user 2 from server")
+	}
+
+	readAndCompareData(t, config1B, ctx, name, data2, userName2)
+	readAndCompareData(t, config2B, ctx, name, data2, userName2)
+	checkStatus(t, ctx, config1B.KBFSOps(), false, userName1, nil,
 		rootNode1.GetFolderBranch(), "Node 1 (after unstage)")
-	checkStatus(t, ctx, config2B.KBFSOps(), false, userName2, nil,
+	checkStatus(t, ctx, config2B.KBFSOps(), false, userName1, nil,
 		rootNode2.GetFolderBranch(), "Node 2 (after unstage)")
 }
 
@@ -357,24 +348,18 @@ func TestUnmergedAfterRestart(t *testing.T) {
 func TestMultiUserWrite(t *testing.T) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
 	defer CheckConfigAndShutdown(t, config1)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	defer CheckConfigAndShutdown(t, config2)
-	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
-	if err != nil {
-		t.Fatal(err)
-	}
 
-	h := NewTlfHandle()
-	h.Writers = append(h.Writers, uid1)
-	h.Writers = append(h.Writers, uid2)
+	name := userName1.String() + "," + userName2.String()
 
 	// user1 creates a file in a shared dir
 	kbfsOps1 := config1.KBFSOps()
 	rootNode1, _, err :=
-		kbfsOps1.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps1.GetOrCreateRootNode(ctx, name, false, MasterBranch)
 	if err != nil {
 		t.Errorf("Couldn't create folder: %v", err)
 	}
@@ -386,7 +371,7 @@ func TestMultiUserWrite(t *testing.T) {
 	// then user2 write to the file
 	kbfsOps2 := config2.KBFSOps()
 	rootNode2, _, err :=
-		kbfsOps2.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
 	if err != nil {
 		t.Errorf("Couldn't create folder: %v", err)
 	}
@@ -407,6 +392,11 @@ func TestMultiUserWrite(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't lookup file: %v", err)
 	}
+
+	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
 	if de.GetWriter() != uid2 {
 		t.Errorf("After user 2's first write, Writer is wrong: %v",
 			de.GetWriter())
@@ -426,7 +416,7 @@ func TestMultiUserWrite(t *testing.T) {
 		t.Fatalf("Couldn't sync file: %v", err)
 	}
 
-	readAndCompareData(t, config2, ctx, h, data3, userName2)
+	readAndCompareData(t, config2, ctx, name, data3, userName2)
 }
 
 // Tests that two users can make independent writes while forked, and
@@ -434,24 +424,18 @@ func TestMultiUserWrite(t *testing.T) {
 func TestBasicCRNoConflict(t *testing.T) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
 	defer CheckConfigAndShutdown(t, config1)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	defer CheckConfigAndShutdown(t, config2)
-	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
-	if err != nil {
-		t.Fatal(err)
-	}
 
-	h := NewTlfHandle()
-	h.Writers = append(h.Writers, uid1)
-	h.Writers = append(h.Writers, uid2)
+	name := userName1.String() + "," + userName2.String()
 
 	// user1 creates a file in a shared dir
 	kbfsOps1 := config1.KBFSOps()
 	rootNode1, _, err :=
-		kbfsOps1.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps1.GetOrCreateRootNode(ctx, name, false, MasterBranch)
 	if err != nil {
 		t.Fatalf("Couldn't create folder: %v", err)
 	}
@@ -463,7 +447,7 @@ func TestBasicCRNoConflict(t *testing.T) {
 	// look it up on user2
 	kbfsOps2 := config2.KBFSOps()
 	rootNode2, _, err :=
-		kbfsOps2.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
 	if err != nil {
 		t.Fatalf("Couldn't create folder: %v", err)
 	}
@@ -535,27 +519,21 @@ func TestBasicCRNoConflict(t *testing.T) {
 func TestBasicCRFileConflict(t *testing.T) {
 	// simulate two users
 	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
-	config1, uid1, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
 	defer CheckConfigAndShutdown(t, config1)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	defer CheckConfigAndShutdown(t, config2)
-	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	now := time.Now()
 	config2.SetClock(&TestClock{now})
 
-	h := NewTlfHandle()
-	h.Writers = append(h.Writers, uid1)
-	h.Writers = append(h.Writers, uid2)
+	name := userName1.String() + "," + userName2.String()
 
 	// user1 creates a file in a shared dir
 	kbfsOps1 := config1.KBFSOps()
 	rootNode1, _, err :=
-		kbfsOps1.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps1.GetOrCreateRootNode(ctx, name, false, MasterBranch)
 	if err != nil {
 		t.Fatalf("Couldn't create folder: %v", err)
 	}
@@ -571,7 +549,7 @@ func TestBasicCRFileConflict(t *testing.T) {
 	// look it up on user2
 	kbfsOps2 := config2.KBFSOps()
 	rootNode2, _, err :=
-		kbfsOps2.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
 	if err != nil {
 		t.Fatalf("Couldn't create folder: %v", err)
 	}
@@ -652,5 +630,212 @@ func TestBasicCRFileConflict(t *testing.T) {
 	if !reflect.DeepEqual(children1, children2) {
 		t.Fatalf("Users 1 and 2 see different children: %v vs %v",
 			children1, children2)
+	}
+}
+
+// Tests that two users can make independent writes while forked, and
+// conflict resolution will merge them correctly and the rekey bit is
+// preserved until rekey.
+func TestBasicCRFileConflictWithRekey(t *testing.T) {
+	// simulate two users
+	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	defer CheckConfigAndShutdown(t, config1)
+	config1.MDServer().DisableRekeyUpdatesForTesting()
+
+	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	defer CheckConfigAndShutdown(t, config2)
+	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	config2.MDServer().DisableRekeyUpdatesForTesting()
+
+	now := time.Now()
+	config2.SetClock(&TestClock{now})
+	name := userName1.String() + "," + userName2.String()
+
+	// user1 creates a file in a shared dir
+	kbfsOps1 := config1.KBFSOps()
+	rootNode1, _, err :=
+		kbfsOps1.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+	dirA1, _, err := kbfsOps1.CreateDir(ctx, rootNode1, "a")
+	if err != nil {
+		t.Fatalf("Couldn't create dir: %v", err)
+	}
+	fileB1, _, err := kbfsOps1.CreateFile(ctx, dirA1, "b", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// look it up on user2
+	kbfsOps2 := config2.KBFSOps()
+	rootNode2, _, err :=
+		kbfsOps2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+	dirA2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
+	if err != nil {
+		t.Fatalf("Couldn't lookup dir: %v", err)
+	}
+	fileB2, _, err := kbfsOps2.Lookup(ctx, dirA2, "b")
+	if err != nil {
+		t.Fatalf("Couldn't lookup file: %v", err)
+	}
+
+	config2Dev2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	// we don't check the config because this device can't read all of the md blocks.
+	defer config2Dev2.Shutdown()
+	config2Dev2.MDServer().DisableRekeyUpdatesForTesting()
+
+	// Now give u2 a new device.  The configs don't share a Keybase
+	// Daemon so we have to do it in all places.
+	AddDeviceForLocalUserOrBust(t, config1, uid2)
+	AddDeviceForLocalUserOrBust(t, config2, uid2)
+	devIndex := AddDeviceForLocalUserOrBust(t, config2Dev2, uid2)
+	SwitchDeviceForLocalUserOrBust(t, config2Dev2, devIndex)
+
+	// user2 device 2 should be unable to read the data now since its device
+	// wasn't registered when the folder was originally created.
+	kbfsOps2Dev2 := config2Dev2.KBFSOps()
+	_, _, err =
+		kbfsOps2Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+	if _, ok := err.(ReadAccessError); !ok {
+		t.Fatalf("Got unexpected error when reading with new key: %v", err)
+	}
+
+	// User 2 syncs
+	err = kbfsOps2.SyncFromServer(ctx, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+
+	// disable updates on user2
+	c, err := DisableUpdatesForTesting(config2, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
+
+	// User 1 writes the file
+	data1 := []byte{1, 2, 3, 4, 5}
+	err = kbfsOps1.Write(ctx, fileB1, data1, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %v", err)
+	}
+	err = kbfsOps1.Sync(ctx, fileB1)
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
+	}
+
+	// User 2 dev 2 should set the rekey bit
+	err = kbfsOps2Dev2.Rekey(ctx, rootNode2.GetFolderBranch().Tlf)
+	if err != nil {
+		t.Fatalf("Couldn't set rekey bit: %v", err)
+	}
+
+	// User 1 syncs
+	err = kbfsOps1.SyncFromServer(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+
+	// User 2 makes a new different file
+	data2 := []byte{5, 4, 3, 2, 1}
+	err = kbfsOps2.Write(ctx, fileB2, data2, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %v", err)
+	}
+	err = kbfsOps2.Sync(ctx, fileB2)
+	if err != nil {
+		t.Fatalf("Couldn't sync file: %v", err)
+	}
+
+	// re-enable updates, and wait for CR to complete.
+	// this should also cause a rekey of the folder.
+	c <- struct{}{}
+	err = kbfsOps2.SyncFromServer(ctx, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+	// wait for the rekey to happen
+	waitForRekey(t, config2, rootNode2.GetFolderBranch().Tlf)
+
+	err = kbfsOps1.SyncFromServer(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+
+	err = kbfsOps2Dev2.SyncFromServer(ctx, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+
+	// look it up on user 2 dev 2
+	rootNode2Dev2, _, err :=
+		kbfsOps2Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+	dirA2Dev2, _, err := kbfsOps2Dev2.Lookup(ctx, rootNode2Dev2, "a")
+	if err != nil {
+		t.Fatalf("Couldn't lookup dir: %v", err)
+	}
+
+	// Make sure they all see the same set of children
+	expectedChildren := []string{
+		"b",
+		"b.conflict.u2." + now.Format(time.RFC3339Nano),
+	}
+	children1, err := kbfsOps1.GetDirChildren(ctx, dirA1)
+	if err != nil {
+		t.Fatalf("Couldn't get children: %v", err)
+	}
+
+	children2, err := kbfsOps2.GetDirChildren(ctx, dirA2)
+	if err != nil {
+		t.Fatalf("Couldn't get children: %v", err)
+	}
+
+	children2Dev2, err := kbfsOps2Dev2.GetDirChildren(ctx, dirA2Dev2)
+	if err != nil {
+		t.Fatalf("Couldn't get children: %v", err)
+	}
+
+	if g, e := len(children1), len(expectedChildren); g != e {
+		t.Errorf("Wrong number of children: %d vs %d", g, e)
+	}
+
+	for _, child := range expectedChildren {
+		if _, ok := children1[child]; !ok {
+			t.Errorf("Couldn't find child %s", child)
+		}
+	}
+
+	if !reflect.DeepEqual(children1, children2) {
+		t.Fatalf("Users 1 and 2 see different children: %v vs %v",
+			children1, children2)
+	}
+
+	if !reflect.DeepEqual(children2, children2Dev2) {
+		t.Fatalf("User 2 device 1 and 2 see different children: %v vs %v",
+			children2, children2Dev2)
+	}
+}
+
+// Helper to block on rekey of a given folder.
+func waitForRekey(t *testing.T, config Config, id TlfID) {
+	rekeyCh := config.RekeyQueue().GetRekeyChannel(id)
+	if rekeyCh != nil {
+		// rekey in progress still
+		if err := <-rekeyCh; err != nil {
+			t.Fatal(err)
+		}
 	}
 }

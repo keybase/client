@@ -42,7 +42,7 @@ func testKeyBundleCheckKeys(t *testing.T, config Config, uid keybase1.UID,
 	if err != nil {
 		t.Fatalf("Couldn't decrypt client key half for user %s: %v", uid, err)
 	}
-	serverHalf, ok := serverMap[uid][cryptPublicKey.KID]
+	serverHalf, ok := serverMap[uid][cryptPublicKey.kid]
 	if !ok {
 		t.Fatalf("No server half for user %s", uid)
 	}
@@ -78,11 +78,15 @@ func TestKeyBundleFillInDevices(t *testing.T) {
 		t.Fatalf("Couldn't get uid for user 3: %v", err)
 	}
 
-	// Make a tkb with empty UserCryptKeyBundles
+	// Make a tkb with empty reader and writer key maps
 	tkb := TLFKeyBundle{
-		WKeys: make(map[keybase1.UID]UserCryptKeyBundle),
-		RKeys: make(map[keybase1.UID]UserCryptKeyBundle),
-		TLFEphemeralPublicKeys: make([]TLFEphemeralPublicKey, 1),
+		TLFWriterKeyBundle: &TLFWriterKeyBundle{
+			WKeys: make(UserDeviceKeyInfoMap),
+			TLFEphemeralPublicKeys: make(TLFEphemeralPublicKeys, 1),
+		},
+		TLFReaderKeyBundle: &TLFReaderKeyBundle{
+			RKeys: make(UserDeviceKeyInfoMap),
+		},
 	}
 
 	// Generate keys

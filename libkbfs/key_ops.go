@@ -34,7 +34,7 @@ func (k *KeyOpsStandard) GetTLFCryptKeyServerHalf(ctx context.Context,
 
 	// verify we got the expected key
 	crypto := k.config.Crypto()
-	err = crypto.VerifyTLFCryptKeyServerHalfID(serverHalfID, uid, key.KID, serverHalf)
+	err = crypto.VerifyTLFCryptKeyServerHalfID(serverHalfID, uid, key.kid, serverHalf)
 	if err != nil {
 		return TLFCryptKeyServerHalf{}, err
 	}

@@ -97,8 +97,8 @@ func TestFBStatusAllFields(t *testing.T) {
 	// make a new root metadata
 	u, id, h := makeID(t, config, false)
 	md := NewRootMetadataForTest(h, id)
-	md.Flags = MetadataFlagUnmerged
-	md.data.LastWriter = u
+	md.WFlags = MetadataFlagUnmerged
+	md.LastModifyingWriter = u
 
 	// make two nodes with expected PathFromNode calls
 	n1 := newMockNode(mockCtrl)
@@ -111,6 +111,8 @@ func TestFBStatusAllFields(t *testing.T) {
 	fbsk.setRootMetadata(md)
 	fbsk.addDirtyNode(n1)
 	fbsk.addDirtyNode(n2)
+
+	config.mockRekeyQueue.EXPECT().IsRekeyPending(id)
 
 	// check the returned status for accuracy
 	status, _, err := fbsk.getStatus(ctx)

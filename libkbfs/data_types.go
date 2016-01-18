@@ -1,23 +1,19 @@
 package libkbfs
 
 import (
-	"bytes"
 	"encoding/hex"
 	"fmt"
 	"reflect"
-	"sort"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"golang.org/x/net/context"
 )
 
 const (
 	// ReaderSep is the string that separates readers from writers in a
-	// TlfHandle string representation.
+	// TLF name.
 	ReaderSep = "#"
 
 	// PublicUIDName is the name given to keybase1.PublicUID.
@@ -46,40 +42,6 @@ type SessionInfo struct {
 	VerifyingKey   VerifyingKey
 }
 
-// All section references below are to https://keybase.io/blog/crypto
-// (version 1.3).
-
-// A VerifyingKey is a public key that can be used to verify a
-// signature created by the corresponding private signing key. In
-// particular, VerifyingKeys are used to authenticate home and public
-// TLFs. (See 4.2, 4.3.)
-//
-// These are also sometimes known as sibkeys.
-type VerifyingKey struct {
-	// Exported only for serialization purposes. Should only be
-	// used by implementations of Crypto and KBPKI.
-	//
-	// Even though we currently use NaclSignatures, we use a KID
-	// here (which encodes the key type) as we may end up storing
-	// other kinds of signatures.
-	KID keybase1.KID
-}
-
-// IsNil returns true if the VerifyingKey is nil.
-func (k VerifyingKey) IsNil() bool {
-	return len(k.KID) == 0
-}
-
-// DeepCopy makes a copy of the VerifyingKey.
-func (k VerifyingKey) DeepCopy() VerifyingKey {
-	return VerifyingKey{k.KID[:]}
-}
-
-// String imlpements the fmt.Stringer interface for VerifyingKey.
-func (k VerifyingKey) String() string {
-	return k.KID.String()
-}
-
 // SigVer denotes a signature version.
 type SigVer int
 
@@ -96,9 +58,10 @@ func (v SigVer) IsNil() bool {
 // SignatureInfo contains all the info needed to verify a signature
 // for a message.
 type SignatureInfo struct {
-	Version      SigVer
-	Signature    []byte
-	VerifyingKey VerifyingKey
+	// Exported only for serialization purposes.
+	Version      SigVer       `codec:"v"`
+	Signature    []byte       `codec:"s"`
+	VerifyingKey VerifyingKey `codec:"k"`
 }
 
 // IsNil returns true if this SignatureInfo is nil.
@@ -110,7 +73,7 @@ func (s SignatureInfo) IsNil() bool {
 func (s SignatureInfo) DeepCopy() SignatureInfo {
 	signature := make([]byte, len(s.Signature))
 	copy(signature[:], s.Signature[:])
-	return SignatureInfo{s.Version, signature, s.VerifyingKey.DeepCopy()}
+	return SignatureInfo{s.Version, signature, s.VerifyingKey}
 }
 
 // String implements the fmt.Stringer interface for SignatureInfo.
@@ -120,94 +83,14 @@ func (s SignatureInfo) String() string {
 		&s.VerifyingKey)
 }
 
-// A TLFPrivateKey (m_f) is the private half of the permanent
-// keypair associated with a TLF. (See 4.1.1, 5.3.)
-type TLFPrivateKey struct {
-	// Exported only for serialization purposes. Should only be
-	// used by implementations of Crypto.
-	PrivateKey [32]byte
-}
+// TLFEphemeralPublicKeys stores a list of TLFEphemeralPublicKey
+type TLFEphemeralPublicKeys []TLFEphemeralPublicKey
 
-// DeepCopy makes a complete copy of the TLFPrivateKey
-func (k TLFPrivateKey) DeepCopy() TLFPrivateKey {
-	return k
-}
-
-// A TLFPublicKey (M_f) is the public half of the permanent keypair
-// associated with a TLF. It is included in the site-wide private-data
-// Merkle tree. (See 4.1.1, 5.3.)
-type TLFPublicKey struct {
-	// Exported only for serialization purposes. Should only be
-	// used by implementations of Crypto.
-	PublicKey [32]byte
-}
-
-// DeepCopy makes a complete copy of the TLFPublicKey
-func (k TLFPublicKey) DeepCopy() TLFPublicKey {
-	return k
-}
-
-// TLFEphemeralPrivateKey (m_e) is used (with a CryptPublicKey) to
-// encrypt TLFCryptKeyClientHalf objects (t_u^{f,0,i}) for non-public
-// directories. (See 4.1.1.)
-type TLFEphemeralPrivateKey struct {
-	// Exported only for serialization purposes. Should only be
-	// used by implementations of Crypto.
-	PrivateKey libkb.NaclDHKeyPrivate
-}
-
-// CryptPublicKey (M_u^i) is used (with a TLFEphemeralPrivateKey) to
-// encrypt TLFCryptKeyClientHalf objects (t_u^{f,0,i}) for non-public
-// directories. (See 4.1.1.)  These are also sometimes known as
-// subkeys.
-type CryptPublicKey struct {
-	// Exported only for serialization purposes. Should only be
-	// used by implementations of Crypto.
-	//
-	// Even though we currently use nacl/box, we use a KID here
-	// (which encodes the key type) as we may end up storing other
-	// kinds of keys.
-	KID keybase1.KID
-}
-
-func (k CryptPublicKey) String() string {
-	return k.KID.String()
-}
-
-// TLFEphemeralPublicKey (M_e) is used along with a crypt private key
-// to decrypt TLFCryptKeyClientHalf objects (t_u^{f,0,i}) for
-// non-public directories. (See 4.1.1.)
-type TLFEphemeralPublicKey struct {
-	// Exported only for serialization purposes. Should only be
-	// used by implementations of Crypto.
-	PublicKey libkb.NaclDHKeyPublic
-}
-
-// DeepCopy makes a complete copy of a TLFEphemeralPublicKey.
-func (k TLFEphemeralPublicKey) DeepCopy() TLFEphemeralPublicKey {
-	return k
-}
-
-func (k TLFEphemeralPublicKey) String() string {
-	return hex.EncodeToString(k.PublicKey[:])
-}
-
-// TLFCryptKeyServerHalf (s_u^{f,0,i}) is the masked, server-side half
-// of a TLFCryptKey, which can be recovered only with both
-// halves. (See 4.1.1.)
-type TLFCryptKeyServerHalf struct {
-	// Exported only for serialization purposes. Should only be
-	// used by implementations of Crypto.
-	ServerHalf [32]byte
-}
-
-// TLFCryptKeyClientHalf (t_u^{f,0,i}) is the masked, client-side half
-// of a TLFCryptKey, which can be recovered only with both
-// halves. (See 4.1.1.)
-type TLFCryptKeyClientHalf struct {
-	// Exported only for serialization purposes. Should
-	// only be used by implementations of Crypto.
-	ClientHalf [32]byte
+// DeepCopy makes a complete copy of a TLFEphemeralPublicKeys
+func (tepk TLFEphemeralPublicKeys) DeepCopy() TLFEphemeralPublicKeys {
+	keys := make(TLFEphemeralPublicKeys, len(tepk))
+	copy(keys, tepk)
+	return keys
 }
 
 // EncryptionVer denotes a version for the encryption method.
@@ -223,9 +106,9 @@ const (
 type encryptedData struct {
 	// Exported only for serialization purposes. Should only be
 	// used by implementations of Crypto.
-	Version       EncryptionVer
-	EncryptedData []byte
-	Nonce         []byte
+	Version       EncryptionVer `codec:"v"`
+	EncryptedData []byte        `codec:"e"`
+	Nonce         []byte        `codec:"n"`
 }
 
 // EncryptedTLFCryptKeyClientHalf is an encrypted
@@ -246,48 +129,6 @@ func (ech EncryptedTLFCryptKeyClientHalf) DeepCopy() (echCopy EncryptedTLFCryptK
 	echCopy.Nonce = make([]byte, len(ech.Nonce))
 	copy(echCopy.Nonce, ech.Nonce)
 	return
-}
-
-// TLFCryptKey (s^{f,0}) is used to encrypt/decrypt the private
-// portion of TLF metadata. It is also used to mask
-// BlockCryptKeys. (See 4.1.1, 4.1.2.)
-type TLFCryptKey struct {
-	// Exported only for serialization purposes. Should only be
-	// used by implementations of Crypto.
-	Key [32]byte
-}
-
-// PublicTLFCryptKey is the TLFCryptKey used for all public TLFs. That
-// means that anyone with just the block key for a public TLF can
-// decrypt that block. This is not the zero TLFCryptKey so that we can
-// distinguish it from an (erroneously?) unset TLFCryptKey.
-var PublicTLFCryptKey = TLFCryptKey{
-	Key: [32]byte{
-		0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18,
-		0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18,
-		0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18,
-		0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18,
-	},
-}
-
-// BlockCryptKeyServerHalf is a masked version of a BlockCryptKey,
-// which can be recovered only with the TLFCryptKey used to mask the
-// server half.
-type BlockCryptKeyServerHalf struct {
-	// Exported only for serialization purposes. Should only be
-	// used by implementations of Crypto.
-	ServerHalf [32]byte
-}
-
-func (serverHalf BlockCryptKeyServerHalf) String() string {
-	return hex.EncodeToString(serverHalf.ServerHalf[:])
-}
-
-// BlockCryptKey is used to encrypt/decrypt block data. (See 4.1.2.)
-type BlockCryptKey struct {
-	// Exported only for serialization purposes. Should only be
-	// used by implementations of Crypto.
-	Key [32]byte
 }
 
 // KeyGen is the type of a key generation for a top-level folder.
@@ -329,12 +170,12 @@ func (nonce BlockRefNonce) String() string {
 
 // BlockPointer contains the identifying information for a block in KBFS.
 type BlockPointer struct {
-	ID      BlockID
-	KeyGen  KeyGen  // if valid, which generation of the TLFKeyBundle to use.
-	DataVer DataVer // if valid, which version of the KBFS data structures is pointed to
+	ID      BlockID `codec:"i"`
+	KeyGen  KeyGen  `codec:"k"` // if valid, which generation of the TLFKeyBundle to use.
+	DataVer DataVer `codec:"d"` // if valid, which version of the KBFS data structures is pointed to
 	// Creator is the UID that was first charged for the initial
 	// reference to this block.
-	Creator keybase1.UID
+	Creator keybase1.UID `codec:"c"`
 	// Writer is the UID that should be charged for this reference to
 	// the block.  If empty, it defaults to Creator.
 	Writer keybase1.UID `codec:"w,omitempty"`
@@ -387,7 +228,7 @@ type BlockInfo struct {
 	// encrypted) data contained in the block. When non-zero,
 	// always at least the size of the plaintext data contained in
 	// the block.
-	EncodedSize uint32
+	EncodedSize uint32 `codec:"e"`
 }
 
 // GetCreator implements the BlockContext interface for BlockPointer.
@@ -441,291 +282,6 @@ type ReadyBlockData struct {
 // block data.
 func (r ReadyBlockData) GetEncodedSize() int {
 	return len(r.buf)
-}
-
-// TlfHandle uniquely identifies top-level folders by readers and
-// writers.  It is go-routine-safe.
-type TlfHandle struct {
-	Readers     []keybase1.UID `codec:"r,omitempty"`
-	Writers     []keybase1.UID `codec:"w,omitempty"`
-	cachedName  string
-	cachedBytes []byte
-	cacheMutex  sync.Mutex // control access to the "cached" values
-}
-
-// NewTlfHandle constructs a new, blank TlfHandle.
-func NewTlfHandle() *TlfHandle {
-	return &TlfHandle{}
-}
-
-// TlfHandleDecode decodes b into a TlfHandle.
-func TlfHandleDecode(b []byte, config Config) (*TlfHandle, error) {
-	var handle TlfHandle
-	err := config.Codec().Decode(b, &handle)
-	if err != nil {
-		return nil, err
-	}
-
-	return &handle, nil
-}
-
-func resolveUser(ctx context.Context, config Config, name, reason string,
-	errCh chan<- error, results chan<- keybase1.UID) {
-	// short-circuit if this is the special public user:
-	if name == PublicUIDName {
-		results <- keybase1.PublicUID
-		return
-	}
-
-	uid, err := config.KBPKI().ResolveAssertion(ctx, name, reason)
-	if err != nil {
-		select {
-		case errCh <- err:
-		default:
-			// another worker reported an error before us; first one wins
-		}
-		return
-	}
-	results <- uid
-}
-
-// UIDList can be used to lexicographically sort UIDs.
-type UIDList []keybase1.UID
-
-func (u UIDList) Len() int {
-	return len(u)
-}
-
-func (u UIDList) Less(i, j int) bool {
-	return u[i].Less(u[j])
-}
-
-func (u UIDList) Swap(i, j int) {
-	u[i], u[j] = u[j], u[i]
-}
-
-func sortUIDS(m map[keybase1.UID]struct{}) []keybase1.UID {
-	var s []keybase1.UID
-	for uid := range m {
-		s = append(s, uid)
-	}
-	sort.Sort(UIDList(s))
-	return s
-}
-
-func splitTLFNameIntoWritersAndReaders(name string) (
-	writerNames []string, readerNames []string, err error) {
-	splitNames := strings.SplitN(name, ReaderSep, 3)
-	if len(splitNames) > 2 {
-		return nil, nil, BadTLFNameError{name}
-	}
-	writerNames = strings.Split(splitNames[0], ",")
-	if len(splitNames) > 1 {
-		readerNames = strings.Split(splitNames[1], ",")
-	}
-	return writerNames, readerNames, nil
-}
-
-// NormalizeUserNamesInTLF parses the given TLF folder name and,
-// without doing any resolutions or identify calls, normalizes all
-// elements of the name that are bare user names.
-//
-// Note that this normalizes (i.e., lower-cases) any assertions in the
-// name as well, but doesn't resolve them.  This is safe since the
-// libkb assertion parser does that same thing.
-func NormalizeUserNamesInTLF(name string) (string, error) {
-	writerNames, readerNames, err := splitTLFNameIntoWritersAndReaders(name)
-	if err != nil {
-		return "", err
-	}
-	cWriterNames := make([]string, len(writerNames))
-	for i, w := range writerNames {
-		cWriterNames[i] = libkb.NewNormalizedUsername(w).String()
-	}
-	sort.Strings(cWriterNames)
-	ret := strings.Join(cWriterNames, ",")
-	if len(readerNames) > 0 {
-		cReaderNames := make([]string, len(readerNames))
-		for i, r := range readerNames {
-			cReaderNames[i] = libkb.NewNormalizedUsername(r).String()
-		}
-		sort.Strings(cReaderNames)
-		ret += ReaderSep + strings.Join(cReaderNames, ",")
-	}
-	return ret, nil
-}
-
-// ParseTlfHandle parses a TlfHandle from an encoded string. See
-// ToString for the opposite direction.
-func ParseTlfHandle(ctx context.Context, config Config, name string) (
-	*TlfHandle, error) {
-	writerNames, readerNames, err := splitTLFNameIntoWritersAndReaders(name)
-	if err != nil {
-		return nil, err
-	}
-	// parallelize the resolutions for each user
-	errCh := make(chan error, 1)
-	wc := make(chan keybase1.UID, len(writerNames))
-	rc := make(chan keybase1.UID, len(readerNames))
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-	for _, user := range writerNames {
-		reason := fmt.Sprintf("To confirm %s is a writer of folder %s", user, name)
-		go resolveUser(ctx, config, user, reason, errCh, wc)
-	}
-	for _, user := range readerNames {
-		reason := fmt.Sprintf("To confirm %s is a reader of folder %s", user, name)
-		go resolveUser(ctx, config, user, reason, errCh, rc)
-	}
-
-	usedWNames := make(map[keybase1.UID]struct{}, len(writerNames))
-	usedRNames := make(map[keybase1.UID]struct{}, len(readerNames))
-	for i := 0; i < len(writerNames)+len(readerNames); i++ {
-		select {
-		case err := <-errCh:
-			return nil, err
-		case uid := <-wc:
-			usedWNames[uid] = struct{}{}
-		case uid := <-rc:
-			usedRNames[uid] = struct{}{}
-		case <-ctx.Done():
-			return nil, ctx.Err()
-		}
-	}
-
-	for uid := range usedWNames {
-		delete(usedRNames, uid)
-	}
-
-	d := &TlfHandle{
-		Writers: sortUIDS(usedWNames),
-		Readers: sortUIDS(usedRNames),
-	}
-	return d, nil
-}
-
-// IsPublic returns whether or not this TlfHandle represents a public
-// top-level folder.
-func (h *TlfHandle) IsPublic() bool {
-	return len(h.Readers) == 1 && h.Readers[0].Equal(keybase1.PublicUID)
-}
-
-// IsPrivateShare returns whether or not this TlfHandle represents a
-// private share (some non-public directory with more than one writer).
-func (h *TlfHandle) IsPrivateShare() bool {
-	return !h.IsPublic() && len(h.Writers) > 1
-}
-
-// HasPublic represents whether this top-level folder should have a
-// corresponding public top-level folder.
-func (h *TlfHandle) HasPublic() bool {
-	return len(h.Readers) == 0
-}
-
-func (h *TlfHandle) findUserInList(user keybase1.UID,
-	users []keybase1.UID) bool {
-	// TODO: this could be more efficient with a cached map/set
-	for _, u := range users {
-		if u == user {
-			return true
-		}
-	}
-	return false
-}
-
-// IsWriter returns whether or not the given user is a writer for the
-// top-level folder represented by this TlfHandle.
-func (h *TlfHandle) IsWriter(user keybase1.UID) bool {
-	return h.findUserInList(user, h.Writers)
-}
-
-// IsReader returns whether or not the given user is a reader for the
-// top-level folder represented by this TlfHandle.
-func (h *TlfHandle) IsReader(user keybase1.UID) bool {
-	return h.IsPublic() || h.findUserInList(user, h.Readers) || h.IsWriter(user)
-}
-
-func resolveUids(ctx context.Context, config Config,
-	uids []keybase1.UID) string {
-	names := make([]string, 0, len(uids))
-	// TODO: parallelize?
-	for _, uid := range uids {
-		if uid.Equal(keybase1.PublicUID) {
-			// PublicUIDName is already normalized.
-			names = append(names, PublicUIDName)
-		} else if name, err := config.KBPKI().GetNormalizedUsername(ctx, uid); err == nil {
-			names = append(names, string(name))
-		} else {
-			config.Reporter().Report(RptE, WrapError{err})
-			names = append(names, fmt.Sprintf("uid:%s", uid))
-		}
-	}
-
-	sort.Strings(names)
-	return strings.Join(names, ",")
-}
-
-// ToString returns a string representation of this TlfHandle
-func (h *TlfHandle) ToString(ctx context.Context, config Config) string {
-	h.cacheMutex.Lock()
-	defer h.cacheMutex.Unlock()
-	if h.cachedName != "" {
-		// TODO: we should expire this cache periodically
-		return h.cachedName
-	}
-
-	// resolve every uid to a name
-	h.cachedName = resolveUids(ctx, config, h.Writers)
-
-	// assume only additional readers are listed
-	if len(h.Readers) > 0 {
-		h.cachedName += ReaderSep + resolveUids(ctx, config, h.Readers)
-	}
-
-	// TODO: don't cache if there were errors?
-	return h.cachedName
-}
-
-// ToBytes marshals this TlfHandle.
-func (h *TlfHandle) ToBytes(config Config) (out []byte, err error) {
-	h.cacheMutex.Lock()
-	defer h.cacheMutex.Unlock()
-	if len(h.cachedBytes) > 0 {
-		return h.cachedBytes, nil
-	}
-
-	if out, err = config.Codec().Encode(h); err != nil {
-		h.cachedBytes = out
-	}
-	return out, err
-}
-
-// ToKBFolder converts a TlfHandle into a keybase1.Folder,
-// suitable for KBPKI calls.
-func (h *TlfHandle) ToKBFolder(ctx context.Context, config Config) keybase1.Folder {
-	return keybase1.Folder{
-		Name:    h.ToString(ctx, config),
-		Private: !h.IsPublic(),
-	}
-}
-
-// Equal returns true if two TlfHandles are equal.
-func (h *TlfHandle) Equal(rhs *TlfHandle, config Config) bool {
-	hBytes, _ := h.ToBytes(config)
-	rhsBytes, _ := rhs.ToBytes(config)
-	return bytes.Equal(hBytes, rhsBytes)
-}
-
-// Users returns a list of all reader and writer UIDs for the tlf.
-func (h *TlfHandle) Users() []keybase1.UID {
-	var users []keybase1.UID
-	for _, uid := range h.Writers {
-		users = append(users, uid)
-	}
-	for _, uid := range h.Readers {
-		users = append(users, uid)
-	}
-	return users
 }
 
 // Favorite is a top-level favorited folder name.
@@ -1014,7 +570,7 @@ type IndirectDirPtr struct {
 	// TODO: Make sure that the block is not dirty when the EncodedSize
 	// field is non-zero.
 	BlockInfo
-	Off string
+	Off string `codec:"o"`
 }
 
 // IndirectFilePtr pairs an indirect file block with the start of that
@@ -1023,14 +579,14 @@ type IndirectFilePtr struct {
 	// When the EncodedSize field is non-zero, the block must not
 	// be dirty.
 	BlockInfo
-	Off int64
+	Off int64 `codec:"o"`
 }
 
 // CommonBlock holds block data that is common for both subdirectories
 // and files.
 type CommonBlock struct {
 	// IsInd indicates where this block is so big it requires indirect pointers
-	IsInd bool
+	IsInd bool `codec:"s"`
 	// cachedEncodedSize is the locally-cached (non-serialized)
 	// encoded size for this block.
 	cachedEncodedSize uint32
@@ -1055,9 +611,9 @@ func NewCommonBlock() Block {
 type DirBlock struct {
 	CommonBlock
 	// if not indirect, a map of path name to directory entry
-	Children map[string]DirEntry `codec:",omitempty"`
+	Children map[string]DirEntry `codec:"c,omitempty"`
 	// if indirect, contains the indirect pointers to the next level of blocks
-	IPtrs []IndirectDirPtr `codec:",omitempty"`
+	IPtrs []IndirectDirPtr `codec:"i,omitempty"`
 }
 
 // NewDirBlock creates a new, empty DirBlock.
@@ -1086,9 +642,9 @@ func (db DirBlock) DeepCopy() *DirBlock {
 type FileBlock struct {
 	CommonBlock
 	// if not indirect, the full contents of this block
-	Contents []byte `codec:",omitempty"`
+	Contents []byte `codec:"c,omitempty"`
 	// if indirect, contains the indirect pointers to the next level of blocks
-	IPtrs []IndirectFilePtr `codec:",omitempty"`
+	IPtrs []IndirectFilePtr `codec:"i,omitempty"`
 }
 
 // NewFileBlock creates a new, empty FileBlock.
@@ -1197,4 +753,30 @@ func UserQuotaInfoDecode(b []byte, config Config) (*UserQuotaInfo, error) {
 	}
 
 	return &info, nil
+}
+
+// OpSummary describes the changes performed by a single op, and is
+// suitable for encoding directly as JSON.
+type OpSummary struct {
+	Op      string
+	Refs    []string
+	Unrefs  []string
+	Updates map[string]string
+}
+
+// UpdateSummary describes the operations done by a single MD revision.
+type UpdateSummary struct {
+	Revision  MetadataRevision
+	Date      time.Time
+	Writer    string
+	LiveBytes uint64 // the "DiskUsage" for the TLF as of this revision
+	Ops       []OpSummary
+}
+
+// TLFUpdateHistory gives all the summaries of all updates in a TLF's
+// history.
+type TLFUpdateHistory struct {
+	ID      string
+	Name    string
+	Updates []UpdateSummary
 }

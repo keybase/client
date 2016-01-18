@@ -166,7 +166,6 @@ type ConfigWriter interface {
 	SetUpdatePreferenceSnoozeUntil(keybase1.Time) error
 	SetUpdateLastChecked(keybase1.Time) error
 	Reset()
-	Save() error
 	BeginTransaction() (ConfigWriterTransacter, error)
 }
 
@@ -300,9 +299,9 @@ type SecretUI interface {
 	GetPassphrase(pinentry keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error)
 }
 
-type SaltPackUI interface {
-	SaltPackPromptForDecrypt(context.Context, keybase1.SaltPackPromptForDecryptArg) error
-	SaltPackVerifySuccess(context.Context, keybase1.SaltPackVerifySuccessArg) error
+type SaltpackUI interface {
+	SaltpackPromptForDecrypt(context.Context, keybase1.SaltpackPromptForDecryptArg) error
+	SaltpackVerifySuccess(context.Context, keybase1.SaltpackVerifySuccessArg) error
 }
 
 type LogUI interface {

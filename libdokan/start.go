@@ -49,13 +49,15 @@ func Start(mounter Mounter, options StartOptions) *Error {
 		}
 	}
 
-	fs := NewFS(config, options.KbfsParams.Debug)
-	ctx := context.WithValue(context.Background(), CtxAppIDKey, &fs)
-	logTags := make(logger.CtxLogTags)
-	logTags[CtxIDKey] = CtxOpID
-	ctx = logger.NewContextWithLogTags(ctx, logTags)
-
-	fs.launchNotificationProcessor(ctx)
+	if options.KbfsParams.Debug {
+		// Turn on debugging.  TODO: allow a proper log file and
+		// style to be specified.
+		log.Configure("", true, "")
+	}
+	fs, err := NewFS(context.Background(), config, log)
+	if err != nil {
+		return InitError(err.Error())
+	}
 	err = mounter.Mount(fs)
 	if err != nil {
 		return MountError(err.Error())

@@ -83,7 +83,7 @@ func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(ctx context.Context,
 	}
 
 	err = ks.config.Crypto().VerifyTLFCryptKeyServerHalfID(
-		serverHalfID, uid, key.KID, serverHalf)
+		serverHalfID, uid, key.kid, serverHalf)
 	if err != nil {
 		ks.log.CDebugf(ctx, "error verifying server half ID: %s", err)
 		return TLFCryptKeyServerHalf{}, MDServerErrorUnauthorized{}

@@ -86,3 +86,10 @@ var _ fuse.ErrorNumber = DirTooBigError{}
 func (e DirTooBigError) Errno() fuse.Errno {
 	return fuse.Errno(syscall.EFBIG)
 }
+
+var _ fuse.ErrorNumber = NoCurrentSessionError{}
+
+// Errno implements the fuse.ErrorNumber interface for NoCurrentSessionError.
+func (e NoCurrentSessionError) Errno() fuse.Errno {
+	return fuse.Errno(syscall.EACCES)
+}

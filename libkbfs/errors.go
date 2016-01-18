@@ -789,3 +789,68 @@ func (e DirTooBigError) Error() string {
 		"bytes, which is over the supported limit of %d bytes", e.p,
 		e.size, e.maxAllowedBytes)
 }
+
+// TlfNameNotCanonical indicates that a name isn't a canonical, and
+// that another (not necessarily canonical) name should be tried.
+type TlfNameNotCanonical struct {
+	Name, NameToTry string
+}
+
+func (e TlfNameNotCanonical) Error() string {
+	return fmt.Sprintf("TLF name %s isn't canonical: try %s instead",
+		e.Name, e.NameToTry)
+}
+
+// NoCurrentSessionError indicates that the daemon has no current
+// session.  This is basically a wrapper for session.ErrNoSession,
+// needed to give the correct return error code to the OS.
+type NoCurrentSessionError struct {
+}
+
+// Error implements the error interface for NoCurrentSessionError.
+func (e NoCurrentSessionError) Error() string {
+	return "no current session"
+}
+
+// RekeyPermissionError indicates that the user tried to rekey a
+// top-level folder in a manner inconsistent with their permissions.
+type RekeyPermissionError struct {
+	User string
+	Dir  string
+}
+
+// Error implements the error interface for RekeyPermissionError
+func (e RekeyPermissionError) Error() string {
+	return fmt.Sprintf("%s is trying to rekey directory %s in a manner "+
+		"inconsistent with their role", e.User, e.Dir)
+}
+
+// NewRekeyPermissionError constructs a RekeyPermissionError for the given
+// directory and user.
+func NewRekeyPermissionError(ctx context.Context, config Config, dir *TlfHandle,
+	uid keybase1.UID) error {
+	dirname := dir.ToString(ctx, config)
+	if name, err2 := config.KBPKI().GetNormalizedUsername(ctx, uid); err2 == nil {
+		return RekeyPermissionError{string(name), dirname}
+	}
+	return RekeyPermissionError{uid.String(), dirname}
+}
+
+// InvalidKIDError is returned whenever an invalid KID is detected.
+type InvalidKIDError struct {
+	kid keybase1.KID
+}
+
+func (e InvalidKIDError) Error() string {
+	return fmt.Sprintf("Invalid KID %s", e.kid)
+}
+
+// InvalidByte32DataError is returned whenever invalid data for a
+// 32-byte type is detected.
+type InvalidByte32DataError struct {
+	data []byte
+}
+
+func (e InvalidByte32DataError) Error() string {
+	return fmt.Sprintf("Invalid byte32 data %v", e.data)
+}

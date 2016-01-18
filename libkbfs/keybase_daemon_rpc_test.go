@@ -75,8 +75,8 @@ func (c *fakeKeybaseClient) Call(ctx context.Context, s string, args interface{}
 			Uid:             c.session.UID,
 			Username:        "fake username",
 			Token:           c.session.Token,
-			DeviceSubkeyKid: c.session.CryptPublicKey.KID,
-			DeviceSibkeyKid: c.session.VerifyingKey.KID,
+			DeviceSubkeyKid: c.session.CryptPublicKey.kid,
+			DeviceSibkeyKid: c.session.VerifyingKey.kid,
 		}
 
 		c.currentSessionCalled = true

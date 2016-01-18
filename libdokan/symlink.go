@@ -8,7 +8,6 @@ package libdokan
 
 import (
 	"github.com/keybase/kbfs/dokan"
-	"golang.org/x/net/context"
 )
 
 // Symlink represents KBFS symlinks.
@@ -28,8 +27,7 @@ type Symlink struct {
 
 // GetFileInformation does stat for dokan.
 func (s *Symlink) GetFileInformation(*dokan.FileInfo) (a *dokan.Stat, err error) {
-	ctx := context.TODO()
-	ctx = NewContextWithOpID(ctx, s.parent.folder.fs.log)
+	ctx := NewContextWithOpID(s.parent.folder.fs)
 	s.parent.folder.fs.log.CDebugf(ctx, "Symlink Attr")
 	defer func() { s.parent.folder.fs.reportErr(ctx, err) }()
 

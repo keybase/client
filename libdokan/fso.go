@@ -7,9 +7,8 @@
 package libdokan
 
 import (
+	"sync/atomic"
 	"time"
-
-	"golang.org/x/net/context"
 
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libkbfs"
@@ -17,17 +16,17 @@ import (
 
 // FSO is a common type for file system objects, i.e. Dirs or Files.
 type FSO struct {
-	name   string
-	folder *Folder
-	node   libkbfs.Node
-	parent libkbfs.Node
+	refcount refcount
+	name     string
+	folder   *Folder
+	node     libkbfs.Node
+	parent   libkbfs.Node
 	emptyFile
 }
 
 // SetFileTime sets mtime for FSOs (File and Dir).
 func (f *FSO) SetFileTime(fi *dokan.FileInfo, creation time.Time, lastAccess time.Time, lastWrite time.Time) (err error) {
-	ctx := context.TODO()
-	ctx = NewContextWithOpID(ctx, f.folder.fs.log)
+	ctx := NewContextWithOpID(f.folder.fs)
 	f.folder.fs.log.CDebugf(ctx, "FSO SetFileTime")
 	defer func() { f.folder.fs.reportErr(ctx, err) }()
 
@@ -36,4 +35,16 @@ func (f *FSO) SetFileTime(fi *dokan.FileInfo, creation time.Time, lastAccess tim
 	}
 
 	return dokan.ErrNotSupported
+}
+
+type refcount struct {
+	x int32
+}
+
+func (rc *refcount) Increase() {
+	atomic.AddInt32(&rc.x, 1)
+}
+
+func (rc *refcount) Decrease() bool {
+	return atomic.AddInt32(&rc.x, -1) == 0
 }

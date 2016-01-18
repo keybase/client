@@ -146,10 +146,10 @@ func (km *KeyManagerStandard) updateKeyBundle(ctx context.Context,
 }
 
 func (km *KeyManagerStandard) checkForNewDevice(ctx context.Context,
-	md *RootMetadata, info map[keybase1.UID]UserCryptKeyBundle,
+	md *RootMetadata, keyInfoMap UserDeviceKeyInfoMap,
 	expectedKeys map[keybase1.UID][]CryptPublicKey) bool {
 	for u, keys := range expectedKeys {
-		kids, ok := info[u]
+		kids, ok := keyInfoMap[u]
 		if !ok {
 			// Currently there probably shouldn't be any new users
 			// in the handle, but don't error just in case we ever
@@ -158,9 +158,10 @@ func (km *KeyManagerStandard) checkForNewDevice(ctx context.Context,
 			return true
 		}
 		for _, k := range keys {
-			if _, ok := kids[k.KID]; !ok {
+			km.log.CDebugf(ctx, "Checking key %v", k.kid)
+			if _, ok := kids[k.kid]; !ok {
 				km.log.CInfof(ctx, "Rekey %s: adding new device %s for user %s",
-					md.ID, k.KID, u)
+					md.ID, k.kid, u)
 				return true
 			}
 		}
@@ -169,9 +170,9 @@ func (km *KeyManagerStandard) checkForNewDevice(ctx context.Context,
 }
 
 func (km *KeyManagerStandard) checkForRemovedDevice(ctx context.Context,
-	md *RootMetadata, info map[keybase1.UID]UserCryptKeyBundle,
+	md *RootMetadata, keyInfoMap UserDeviceKeyInfoMap,
 	expectedKeys map[keybase1.UID][]CryptPublicKey) bool {
-	for u, kids := range info {
+	for u, kids := range keyInfoMap {
 		keys, ok := expectedKeys[u]
 		if !ok {
 			// Currently there probably shouldn't be any users removed
@@ -182,7 +183,7 @@ func (km *KeyManagerStandard) checkForRemovedDevice(ctx context.Context,
 		}
 		keyLookup := make(map[keybase1.KID]bool)
 		for _, key := range keys {
-			keyLookup[key.KID] = true
+			keyLookup[key.kid] = true
 		}
 		for kid := range kids {
 			// Make sure every kid has an expected key
@@ -202,7 +203,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 	km.log.CDebugf(ctx, "Rekey %s", md.ID)
 	defer func() { km.log.CDebugf(ctx, "Rekey %s done: %v", md.ID, err) }()
 
-	currKeyGen := md.GetKeyGeneration()
+	currKeyGen := md.LatestKeyGeneration()
 	if md.ID.IsPublic() || currKeyGen == PublicKeyGen {
 		return false, InvalidPublicTLFOperation{md.ID, "rekey"}
 	}
@@ -216,6 +217,12 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 
 	// TODO: parallelize
 	for _, w := range handle.Writers {
+		// HACK: clear cache
+		if kdm, ok := km.config.KeybaseDaemon().(KeybaseDaemonMeasured); ok {
+			if kdr, ok := kdm.delegate.(*KeybaseDaemonRPC); ok {
+				kdr.setCachedUserInfo(w, UserInfo{})
+			}
+		}
 		publicKeys, err := km.config.KBPKI().GetCryptPublicKeys(ctx, w)
 		if err != nil {
 			return false, err
@@ -223,6 +230,12 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 		wKeys[w] = publicKeys
 	}
 	for _, r := range handle.Readers {
+		// HACK: clear cache
+		if kdm, ok := km.config.KeybaseDaemon().(KeybaseDaemonMeasured); ok {
+			if kdr, ok := kdm.delegate.(*KeybaseDaemonRPC); ok {
+				kdr.setCachedUserInfo(r, UserInfo{})
+			}
+		}
 		publicKeys, err := km.config.KBPKI().GetCryptPublicKeys(ctx, r)
 		if err != nil {
 			return false, err
@@ -292,16 +305,20 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 	}
 
 	newClientKeys := TLFKeyBundle{
-		WKeys:        make(map[keybase1.UID]UserCryptKeyBundle),
-		RKeys:        make(map[keybase1.UID]UserCryptKeyBundle),
-		TLFPublicKey: pubKey,
-		// TLFEphemeralPublicKeys will be filled in by updateKeyBundle
+		TLFWriterKeyBundle: &TLFWriterKeyBundle{
+			WKeys:        make(UserDeviceKeyInfoMap),
+			TLFPublicKey: pubKey,
+			// TLFEphemeralPublicKeys will be filled in by updateKeyBundle
+		},
+		TLFReaderKeyBundle: &TLFReaderKeyBundle{
+			RKeys: make(UserDeviceKeyInfoMap),
+		},
 	}
 	err = md.AddNewKeys(newClientKeys)
 	if err != nil {
 		return false, err
 	}
-	currKeyGen = md.GetKeyGeneration()
+	currKeyGen = md.LatestKeyGeneration()
 	err = km.updateKeyBundle(ctx, md, currKeyGen, wKeys, rKeys, ePubKey,
 		ePrivKey, tlfCryptKey)
 	if err != nil {

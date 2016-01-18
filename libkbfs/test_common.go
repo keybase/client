@@ -79,6 +79,10 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 	config := NewConfigLocal()
 	setTestLogger(config, t)
 
+	kbfsOps := NewKBFSOpsStandard(config)
+	config.SetKBFSOps(kbfsOps)
+	config.SetNotifier(kbfsOps)
+
 	config.SetBlockSplitter(&BlockSplitterSimple{64 * 1024, 8 * 1024})
 	config.SetKeyManager(NewKeyManagerStandard(config))
 
@@ -160,6 +164,10 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *ConfigLocal {
 	c := NewConfigLocal()
 	c.SetLoggerMaker(config.loggerFn)
+
+	kbfsOps := NewKBFSOpsStandard(c)
+	c.SetKBFSOps(kbfsOps)
+	c.SetNotifier(kbfsOps)
 
 	c.SetBlockSplitter(config.BlockSplitter())
 	c.SetKeyManager(NewKeyManagerStandard(c))
@@ -262,9 +270,10 @@ func NewFolderWithIDAndWriter(t *testing.T, id TlfID, revision MetadataRevision,
 
 	rmd := NewRootMetadataForTest(h, id)
 	rmd.Revision = revision
-	rmd.data.LastWriter = h.Writers[0]
+	rmd.LastModifyingWriter = h.Writers[0]
+	rmd.LastModifyingUser = h.Writers[0]
 	if !public {
-		AddNewKeysOrBust(t, rmd, TLFKeyBundle{})
+		AddNewKeysOrBust(t, rmd, *NewTLFKeyBundle())
 	}
 
 	rmds := &RootMetadataSigned{}
@@ -411,24 +420,33 @@ func testWithCanceledContext(t *testing.T, ctx context.Context,
 // MakeDirRKeyBundle creates a new bundle with a reader key.
 func MakeDirRKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) TLFKeyBundle {
 	return TLFKeyBundle{
-		RKeys: map[keybase1.UID]UserCryptKeyBundle{
-			uid: {
-				cryptPublicKey.KID: TLFCryptKeyInfo{},
+		TLFReaderKeyBundle: &TLFReaderKeyBundle{
+			RKeys: UserDeviceKeyInfoMap{
+				uid: {
+					cryptPublicKey.kid: TLFCryptKeyInfo{},
+				},
 			},
 		},
-		TLFEphemeralPublicKeys: make([]TLFEphemeralPublicKey, 1),
+		TLFWriterKeyBundle: &TLFWriterKeyBundle{
+			TLFEphemeralPublicKeys: make([]TLFEphemeralPublicKey, 1),
+		},
 	}
 }
 
 // MakeDirWKeyBundle creates a new bundle with a writer key.
 func MakeDirWKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) TLFKeyBundle {
 	return TLFKeyBundle{
-		WKeys: map[keybase1.UID]UserCryptKeyBundle{
-			uid: {
-				cryptPublicKey.KID: TLFCryptKeyInfo{},
+		TLFWriterKeyBundle: &TLFWriterKeyBundle{
+			WKeys: UserDeviceKeyInfoMap{
+				uid: {
+					cryptPublicKey.kid: TLFCryptKeyInfo{},
+				},
 			},
+			TLFEphemeralPublicKeys: make([]TLFEphemeralPublicKey, 1),
 		},
-		TLFEphemeralPublicKeys: make([]TLFEphemeralPublicKey, 1),
+		TLFReaderKeyBundle: &TLFReaderKeyBundle{
+			RKeys: make(UserDeviceKeyInfoMap, 0),
+		},
 	}
 }
 

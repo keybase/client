@@ -5,7 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/client"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -105,13 +104,13 @@ func (k *KeybaseDaemonRPC) filterKeys(ctx context.Context, uid keybase1.UID, key
 				ctx, "got verifying key %s for user %s",
 				key.VerboseDescription(), uid)
 			verifyingKeys = append(
-				verifyingKeys, VerifyingKey{key.GetKID()})
+				verifyingKeys, MakeVerifyingKey(key.GetKID()))
 		} else {
 			k.log.CDebugf(
 				ctx, "got crypt public key %s for user %s",
 				key.VerboseDescription(), uid)
 			cryptPublicKeys = append(
-				cryptPublicKeys, CryptPublicKey{key.GetKID()})
+				cryptPublicKeys, MakeCryptPublicKey(key.GetKID()))
 		}
 	}
 	return verifyingKeys, cryptPublicKeys, nil
@@ -150,6 +149,14 @@ func (k *KeybaseDaemonRPC) clearCaches() {
 	k.userCacheLock.Lock()
 	defer k.userCacheLock.Unlock()
 	k.userCache = make(map[keybase1.UID]UserInfo)
+}
+
+// LoggedIn implements keybase1.NotifySessionInterface.
+func (k *KeybaseDaemonRPC) LoggedIn(ctx context.Context, name string) error {
+	k.log.CDebugf(ctx, "Current session logged in: %s", name)
+	// Since we don't have the whole session, just clear the cache.
+	k.setCachedCurrentSession(SessionInfo{})
+	return nil
 }
 
 // LoggedOut implements keybase1.NotifySessionInterface.
@@ -195,13 +202,87 @@ func (l daemonLogUI) Log(ctx context.Context, arg keybase1.LogArg) error {
 	return nil
 }
 
+type daemonIdentifyUI struct {
+	log logger.Logger
+}
+
+var _ keybase1.IdentifyUiInterface = daemonIdentifyUI{}
+
+func (d daemonIdentifyUI) DelegateIdentifyUI(ctx context.Context) (int, error) {
+	d.log.CDebugf(ctx, "DelegateIdentifyUI() (returning 0, UIDelegationUnavailableError{}")
+	return 0, libkb.UIDelegationUnavailableError{}
+}
+
+func (d daemonIdentifyUI) Start(ctx context.Context, arg keybase1.StartArg) error {
+	d.log.CDebugf(ctx, "Start(%+v)", arg)
+	return nil
+}
+
+func (d daemonIdentifyUI) DisplayKey(ctx context.Context, arg keybase1.DisplayKeyArg) error {
+	d.log.CDebugf(ctx, "DisplayKey(%+v)", arg)
+	return nil
+}
+
+func (d daemonIdentifyUI) ReportLastTrack(ctx context.Context, arg keybase1.ReportLastTrackArg) error {
+	d.log.CDebugf(ctx, "ReportLastTrack(%+v)", arg)
+	return nil
+}
+
+func (d daemonIdentifyUI) LaunchNetworkChecks(ctx context.Context, arg keybase1.LaunchNetworkChecksArg) error {
+	d.log.CDebugf(ctx, "LaunchNetworkChecks(%+v)", arg)
+	return nil
+}
+
+func (d daemonIdentifyUI) DisplayTrackStatement(ctx context.Context, arg keybase1.DisplayTrackStatementArg) error {
+	d.log.CDebugf(ctx, "DisplayTrackStatement(%+v)", arg)
+	return nil
+}
+
+func (d daemonIdentifyUI) FinishWebProofCheck(ctx context.Context, arg keybase1.FinishWebProofCheckArg) error {
+	d.log.CDebugf(ctx, "FinishWebProofCheck(%+v)", arg)
+	return nil
+}
+
+func (d daemonIdentifyUI) FinishSocialProofCheck(ctx context.Context, arg keybase1.FinishSocialProofCheckArg) error {
+	d.log.CDebugf(ctx, "FinishSocialProofCheck(%+v)", arg)
+	return nil
+}
+
+func (d daemonIdentifyUI) DisplayCryptocurrency(ctx context.Context, arg keybase1.DisplayCryptocurrencyArg) error {
+	d.log.CDebugf(ctx, "DisplayCryptocurrency(%+v)", arg)
+	return nil
+}
+
+func (d daemonIdentifyUI) ReportTrackToken(ctx context.Context, arg keybase1.ReportTrackTokenArg) error {
+	d.log.CDebugf(ctx, "ReportTrackToken(%+v)", arg)
+	return nil
+}
+
+func (d daemonIdentifyUI) DisplayUserCard(ctx context.Context, arg keybase1.DisplayUserCardArg) error {
+	d.log.CDebugf(ctx, "DisplayUserCard(%+v)", arg)
+	return nil
+}
+
+func (d daemonIdentifyUI) Confirm(ctx context.Context, arg keybase1.ConfirmArg) (keybase1.ConfirmResult, error) {
+	d.log.CDebugf(ctx, "Confirm(%+v) (returning false)", arg)
+	return keybase1.ConfirmResult{
+		IdentityConfirmed: false,
+		RemoteConfirmed:   false,
+	}, nil
+}
+
+func (d daemonIdentifyUI) Finish(ctx context.Context, sessionID int) error {
+	d.log.CDebugf(ctx, "Finish(%d)", sessionID)
+	return nil
+}
+
 // OnConnect implements the ConnectionHandler interface.
 func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 	conn *Connection, rawClient keybase1.GenericClient,
 	server *rpc.Server) error {
 	protocols := []rpc.Protocol{
 		keybase1.LogUiProtocol(daemonLogUI{k.daemonLog}),
-		client.NewIdentifyUIProtocol(k.G()),
+		keybase1.IdentifyUiProtocol(daemonIdentifyUI{k.daemonLog}),
 		keybase1.NotifySessionProtocol(k),
 		keybase1.NotifyUsersProtocol(k),
 	}
@@ -252,6 +333,12 @@ func (k *KeybaseDaemonRPC) OnDisconnected(status DisconnectStatus) {
 // ShouldThrottle implements the ConnectionHandler interface.
 func (k *KeybaseDaemonRPC) ShouldThrottle(err error) bool {
 	return false
+}
+
+// Resolve implements the KeybaseDaemon interface for KeybaseDaemonRPC.
+func (k *KeybaseDaemonRPC) Resolve(ctx context.Context, assertion string) (
+	keybase1.UID, error) {
+	return k.identifyClient.Resolve(ctx, assertion)
 }
 
 // Identify implements the KeybaseDaemon interface for KeybaseDaemonRPC.
@@ -318,6 +405,10 @@ func (k *KeybaseDaemonRPC) CurrentSession(ctx context.Context, sessionID int) (
 
 	res, err := k.sessionClient.CurrentSession(ctx, sessionID)
 	if err != nil {
+		if ncs := (NoCurrentSessionError{}); err.Error() == ncs.Error() {
+			// Use an error with a proper OS error code attached to it.
+			err = ncs
+		}
 		return SessionInfo{}, err
 	}
 	// Import the KIDs to validate them.
@@ -329,8 +420,8 @@ func (k *KeybaseDaemonRPC) CurrentSession(ctx context.Context, sessionID int) (
 	if err != nil {
 		return SessionInfo{}, err
 	}
-	cryptPublicKey := CryptPublicKey{deviceSubkey.GetKID()}
-	verifyingKey := VerifyingKey{deviceSibkey.GetKID()}
+	cryptPublicKey := MakeCryptPublicKey(deviceSubkey.GetKID())
+	verifyingKey := MakeVerifyingKey(deviceSibkey.GetKID())
 	s := SessionInfo{
 		UID:            keybase1.UID(res.Uid),
 		Token:          res.Token,

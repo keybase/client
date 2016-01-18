@@ -37,8 +37,8 @@ func getEncodedStatus(ctx context.Context, folder *Folder) (
 func NewStatusFile(folder *Folder, resp *fuse.LookupResponse) *SpecialReadFile {
 	resp.EntryValid = 0
 	return &SpecialReadFile{
-		read: func() ([]byte, time.Time, error) {
-			return getEncodedStatus(context.TODO(), folder)
+		read: func(ctx context.Context) ([]byte, time.Time, error) {
+			return getEncodedStatus(ctx, folder)
 		},
 	}
 }

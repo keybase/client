@@ -34,31 +34,41 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 			k, err := md.config.KeyManager().
 				GetTLFCryptKeyForMDDecryption(ctx, &rmds.MD)
 
+			privateMetadata := &PrivateMetadata{}
 			if err != nil {
-				return err
+				// Get current UID.
+				uid, err := md.config.KBPKI().GetCurrentUID(ctx)
+				if err != nil {
+					return err
+				}
+				isReader := handle.IsReader(uid)
+				if _, isReadAccessError := err.(ReadAccessError); !isReader || !isReadAccessError {
+					// ReadAccessErrors are expected if this client is a valid
+					// folder participant but doesn't have the shared crypt key.
+					return err
+				}
+			} else {
+				privateMetadata, err = crypto.DecryptPrivateMetadata(encryptedPrivateMetadata, k)
+				if err != nil {
+					return err
+				}
 			}
-
-			privateMetadata, err := crypto.DecryptPrivateMetadata(encryptedPrivateMetadata, k)
-			if err != nil {
-				return err
-			}
-
 			rmds.MD.data = *privateMetadata
 		}
 
 		// Make sure the last writer is really a valid writer
-		writer := rmds.MD.data.LastWriter
+		writer := rmds.MD.LastModifyingWriter
 		if !handle.IsWriter(writer) {
 			return MDMismatchError{
 				handle.ToString(ctx, md.config),
-				fmt.Sprintf("MD (id=%s) was written by a non-writer %s",
+				fmt.Sprintf("Writer MD (id=%s) was written by a non-writer %s",
 					rmds.MD.ID, writer)}
 		}
 
-		// re-marshal the metadata
+		// re-marshal the WriterMetadata
 		// TODO: can we somehow avoid the re-marshaling by saving the
 		// marshalled metadata somewhere?
-		buf, err := codec.Encode(rmds.MD)
+		buf, err := codec.Encode(rmds.MD.WriterMetadata)
 		if err != nil {
 			return err
 		}
@@ -66,7 +76,37 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 		// TODO: what do we do if the signature is from a revoked
 		// key?
 		kbpki := md.config.KBPKI()
-		err = kbpki.HasVerifyingKey(ctx, writer, rmds.SigInfo.VerifyingKey)
+		err = kbpki.HasVerifyingKey(ctx, writer, rmds.MD.WriterMetadataSigInfo.VerifyingKey)
+		if err != nil {
+			return err
+		}
+
+		err = crypto.Verify(buf, rmds.MD.WriterMetadataSigInfo)
+		if err != nil {
+			return err
+		}
+
+		// Make sure the last user to change the blob is really a valid reader
+		user := rmds.MD.LastModifyingUser
+		if !handle.IsReader(user) {
+			return MDMismatchError{
+				handle.ToString(ctx, md.config),
+				fmt.Sprintf("MD (id=%s) was changed by a non-reader %s",
+					rmds.MD.ID, user),
+			}
+		}
+
+		// re-marshal the whole RootMetadata
+		// TODO: can we somehow avoid the re-marshaling by saving the
+		// marshalled metadata somewhere?
+		buf, err = codec.Encode(rmds.MD)
+		if err != nil {
+			return err
+		}
+
+		// TODO: what do we do if the signature is from a revoked
+		// key?
+		err = kbpki.HasVerifyingKey(ctx, user, rmds.SigInfo.VerifyingKey)
 		if err != nil {
 			return err
 		}
@@ -260,37 +300,56 @@ func (md *MDOpsStandard) readyMD(ctx context.Context, rmd *RootMetadata) (
 	if err != nil {
 		return nil, err
 	}
-	rmd.data.LastWriter = me
 
-	// First encode (and maybe encrypt) the root data
 	codec := md.config.Codec()
 	crypto := md.config.Crypto()
-	if rmd.ID.IsPublic() {
-		encodedPrivateMetadata, err := codec.Encode(rmd.data)
-		if err != nil {
-			return nil, err
+	handle := rmd.GetTlfHandle()
+
+	if rmd.ID.IsPublic() || handle.IsWriter(me) {
+		// Record the last writer to modify this writer metadata
+		rmd.LastModifyingWriter = me
+
+		if rmd.ID.IsPublic() {
+			// Encode the private metadata
+			encodedPrivateMetadata, err := codec.Encode(rmd.data)
+			if err != nil {
+				return nil, err
+			}
+			rmd.SerializedPrivateMetadata = encodedPrivateMetadata
+		} else if !rmd.IsWriterMetadataCopiedSet() {
+			// Encrypt and encode the private metadata
+			k, err := md.config.KeyManager().GetTLFCryptKeyForEncryption(ctx, rmd)
+			if err != nil {
+				return nil, err
+			}
+			encryptedPrivateMetadata, err := crypto.EncryptPrivateMetadata(&rmd.data, k)
+			if err != nil {
+				return nil, err
+			}
+			encodedEncryptedPrivateMetadata, err := codec.Encode(encryptedPrivateMetadata)
+			if err != nil {
+				return nil, err
+			}
+			rmd.SerializedPrivateMetadata = encodedEncryptedPrivateMetadata
 		}
-		rmd.SerializedPrivateMetadata = encodedPrivateMetadata
-	} else {
-		k, err := md.config.KeyManager().GetTLFCryptKeyForEncryption(ctx, rmd)
+
+		// Sign the writer metadata
+		buf, err := codec.Encode(rmd.WriterMetadata)
 		if err != nil {
 			return nil, err
 		}
 
-		encryptedPrivateMetadata, err := crypto.EncryptPrivateMetadata(&rmd.data, k)
+		sigInfo, err := crypto.Sign(ctx, buf)
 		if err != nil {
 			return nil, err
 		}
-
-		encodedEncryptedPrivateMetadata, err := codec.Encode(encryptedPrivateMetadata)
-		if err != nil {
-			return nil, err
-		}
-
-		rmd.SerializedPrivateMetadata = encodedEncryptedPrivateMetadata
+		rmd.WriterMetadataSigInfo = sigInfo
 	}
 
-	// encode the metadata and sign it
+	// Record the last user to modify this metadata
+	rmd.LastModifyingUser = me
+
+	// encode the root metadata and sign it
 	buf, err := codec.Encode(rmd)
 	if err != nil {
 		return nil, err
@@ -323,7 +382,7 @@ func (md *MDOpsStandard) Put(ctx context.Context, rmd *RootMetadata) error {
 
 // PutUnmerged implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) PutUnmerged(ctx context.Context, rmd *RootMetadata, bid BranchID) error {
-	rmd.Flags |= MetadataFlagUnmerged
+	rmd.WFlags |= MetadataFlagUnmerged
 	rmd.BID = bid
 	return md.Put(ctx, rmd)
 }

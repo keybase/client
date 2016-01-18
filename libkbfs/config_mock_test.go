@@ -28,26 +28,27 @@ type ConfigMock struct {
 	ConfigLocal
 
 	// local references to the proper mock type
-	mockKbfs     *MockKBFSOps
-	mockKbpki    *MockKBPKI
-	mockKeyman   *MockKeyManager
-	mockRep      *MockReporter
-	mockMdcache  *MockMDCache
-	mockKcache   *MockKeyCache
-	mockBcache   *MockBlockCache
-	mockCrypto   *MockCrypto
-	mockCodec    *MockCodec
-	mockMdops    *MockMDOps
-	mockKops     *MockKeyOps
-	mockBops     *MockBlockOps
-	mockMdserv   *MockMDServer
-	mockKserv    *MockKeyServer
-	mockBserv    *MockBlockServer
-	mockBsplit   *MockBlockSplitter
-	mockNotifier *MockNotifier
-	mockClock    *MockClock
-	observer     *FakeObserver
-	ctr          *SafeTestReporter
+	mockKbfs       *MockKBFSOps
+	mockKbpki      *MockKBPKI
+	mockKeyman     *MockKeyManager
+	mockRep        *MockReporter
+	mockMdcache    *MockMDCache
+	mockKcache     *MockKeyCache
+	mockBcache     *MockBlockCache
+	mockCrypto     *MockCrypto
+	mockCodec      *MockCodec
+	mockMdops      *MockMDOps
+	mockKops       *MockKeyOps
+	mockBops       *MockBlockOps
+	mockMdserv     *MockMDServer
+	mockKserv      *MockKeyServer
+	mockBserv      *MockBlockServer
+	mockBsplit     *MockBlockSplitter
+	mockNotifier   *MockNotifier
+	mockClock      *MockClock
+	mockRekeyQueue *MockRekeyQueue
+	observer       *FakeObserver
+	ctr            *SafeTestReporter
 }
 
 func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
@@ -92,6 +93,8 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	config.SetNotifier(config.mockNotifier)
 	config.mockClock = NewMockClock(c)
 	config.SetClock(config.mockClock)
+	config.mockRekeyQueue = NewMockRekeyQueue(c)
+	config.SetRekeyQueue(config.mockRekeyQueue)
 	config.observer = &FakeObserver{}
 	config.ctr = ctr
 	config.SetLoggerMaker(func(m string) logger.Logger {

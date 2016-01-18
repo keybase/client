@@ -321,12 +321,7 @@ func (c *Connection) waitForConnection(ctx context.Context) error {
 
 // Returns true if the error indicates we should retry the command.
 func (c *Connection) checkForRetry(err error) bool {
-	if err == nil {
-		return false
-	}
-	_, disconnected := err.(rpc.DisconnectedError)
-	eof := err == io.EOF
-	return disconnected || eof
+	return err == io.EOF
 }
 
 // IsConnected returns true if the connection is connected.
@@ -435,7 +430,6 @@ func (c *Connection) Shutdown() {
 		// close the connection
 		c.transport.Close()
 	}
-	c.handler = nil // drop the circular reference
 }
 
 type connectionClient struct {

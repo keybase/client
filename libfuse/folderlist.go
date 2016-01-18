@@ -7,7 +7,6 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
-	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -53,60 +52,36 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		return child, nil
 	}
 
-	// Before parsing the tlf handle (which results in identify calls
-	// that cause tracker popups, first see if there's any quick
-	// normalization of usernames we can do.  For example, this avoids
-	// an identify in the case of "HEAD" which might just be a shell
-	// trying to look for a git repo rather than a real user lookup
-	// for "head" (KBFS-531).  Note that the name might still contain
-	// assertions, which will result in another alias in a subsequent
-	// lookup.
-	normalizedName, err := libkbfs.NormalizeUserNamesInTLF(req.Name)
-	if err != nil {
-		return nil, err
-	}
-	if normalizedName != req.Name {
+	rootNode, _, err :=
+		fl.fs.config.KBFSOps().GetOrCreateRootNode(
+			ctx, req.Name, fl.public, libkbfs.MasterBranch)
+	switch err := err.(type) {
+	case nil:
+		// No error.
+		break
+
+	case libkbfs.TlfNameNotCanonical:
+		// Non-canonical name.
 		n := &Alias{
-			canon: normalizedName,
+			canon: err.NameToTry,
 		}
 		return n, nil
-	}
 
-	dh, err := libkbfs.ParseTlfHandle(ctx, fl.fs.config, req.Name)
-	if err != nil {
-		return nil, err
-	}
-
-	if fl.public && !dh.HasPublic() {
-		// no public folder exists for this folder
+	case libkbfs.NoSuchNameError:
+		// Invalid public TLF.
 		return nil, fuse.ENOENT
-	}
 
-	if canon := dh.ToString(ctx, fl.fs.config); canon != req.Name {
-		n := &Alias{
-			canon: canon,
-		}
-		return n, nil
-	}
-
-	if fl.public {
-		dh = &libkbfs.TlfHandle{
-			Writers: dh.Writers,
-			Readers: []keybase1.UID{keybase1.PublicUID},
-		}
-	}
-
-	rootNode, _, err := fl.fs.config.KBFSOps().GetOrCreateRootNodeForHandle(ctx, dh, libkbfs.MasterBranch)
-	if _, isWriteErr := err.(libkbfs.WriteAccessError); isWriteErr {
+	case libkbfs.WriteAccessError:
+		// No permissions to create TLF.
 		fl.fs.log.CDebugf(ctx, "Local user doesn't have permission to create "+
 			" %s and it doesn't exist yet, so making an empty folder", req.Name)
 		// Only cache this empty folder for a minute, in case a valid
 		// writer comes along and creates it.
 		resp.EntryValid = 60 * time.Second
 		return &EmptyFolder{fl.fs}, nil
-	}
-	if err != nil {
-		// TODO make errors aware of fuse
+
+	default:
+		// Some other error.
 		return nil, err
 	}
 
@@ -219,4 +194,11 @@ outer:
 		}
 	}
 	return res, nil
+}
+
+var _ fs.NodeRemover = (*Dir)(nil)
+
+// Remove implements the fs.NodeRemover interface for FolderList.
+func (fl *FolderList) Remove(ctx context.Context, req *fuse.RemoveRequest) (err error) {
+	return fuse.EPERM
 }

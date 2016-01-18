@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"errors"
 	"fmt"
+	"reflect"
 
 	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
@@ -112,16 +113,6 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 		return errors.New("Unexpected KBFSOps type")
 	}
 
-	// Before re-embedding, count the sizes of any block change blocks
-	actualSize := uint64(0)
-	for _, rmd := range rmds {
-		// Any unembedded block changes also count towards the actual size
-		if info := rmd.data.Changes.Info; info.BlockPointer != zeroPtr {
-			sc.log.CDebugf(ctx, "Unembedded block change: %d", info.EncodedSize)
-			actualSize += uint64(info.EncodedSize)
-		}
-	}
-
 	fb := FolderBranch{tlf, MasterBranch}
 	ops := kbfsOps.getOps(fb)
 	if err := ops.reembedBlockChanges(ctx, lState, rmds); err != nil {
@@ -131,20 +122,42 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 	// Build the expected block list.
 	expectedLiveBlocks := make(map[BlockPointer]bool)
 	expectedRef := uint64(0)
+	allKnownBlocks := make(map[BlockPointer]bool)
+	actualLiveBlocks := make(map[BlockPointer]uint32)
 	for _, rmd := range rmds {
+		// Don't process copies.
+		if rmd.IsWriterMetadataCopiedSet() {
+			continue
+		}
+		// Any unembedded block changes also count towards the actual size
+		if info := rmd.data.cachedChanges.Info; info.BlockPointer != zeroPtr {
+			sc.log.CDebugf(ctx, "Unembedded block change: %v, %d",
+				info.BlockPointer, info.EncodedSize)
+			allKnownBlocks[info.BlockPointer] = true
+			actualLiveBlocks[info.BlockPointer] = info.EncodedSize
+		}
+
 		for _, op := range rmd.data.Changes.Ops {
 			for _, ptr := range op.Refs() {
 				if ptr != zeroPtr {
 					expectedLiveBlocks[ptr] = true
+					allKnownBlocks[ptr] = true
 				}
 			}
 			for _, ptr := range op.Unrefs() {
 				delete(expectedLiveBlocks, ptr)
+				if ptr != zeroPtr {
+					allKnownBlocks[ptr] = true
+				}
 			}
 			for _, update := range op.AllUpdates() {
 				delete(expectedLiveBlocks, update.Unref)
+				if update.Unref != zeroPtr {
+					allKnownBlocks[update.Unref] = true
+				}
 				if update.Ref != zeroPtr {
 					expectedLiveBlocks[update.Ref] = true
+					allKnownBlocks[update.Ref] = true
 				}
 			}
 		}
@@ -164,7 +177,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 	// Then, using the current MD head, start at the root of the FS
 	// and recursively walk the directory tree to find all the blocks
 	// that are currently accessible.
-	rootNode, _, _, err := ops.GetRootNode(ctx, fb)
+	rootNode, _, _, err := ops.getRootNode(ctx)
 	if err != nil {
 		return err
 	}
@@ -173,7 +186,6 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 		return fmt.Errorf("Current MD root pointer %v doesn't match root "+
 			"node pointer %v", e, g)
 	}
-	actualLiveBlocks := make(map[BlockPointer]uint32)
 	actualLiveBlocks[rootPath.tailPointer()] = currMD.data.Dir.EncodedSize
 	if err := sc.findAllBlocksInPath(ctx, lState, ops, currMD, rootPath,
 		actualLiveBlocks); err != nil {
@@ -185,6 +197,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 	// Compare the two and see if there are any differences. Don't use
 	// reflect.DeepEqual so we can print out exactly what's wrong.
 	var extraBlocks []BlockPointer
+	actualSize := uint64(0)
 	for ptr, size := range actualLiveBlocks {
 		actualSize += uint64(size)
 		if !expectedLiveBlocks[ptr] {
@@ -211,6 +224,42 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 	if actualSize != expectedRef {
 		return fmt.Errorf("Actual size %d doesn't match expected size %d",
 			actualSize, expectedRef)
+	}
+
+	// Check that the set of referenced blocks matches exactly what
+	// the block server knows about.
+	bserverLocal, ok := sc.config.BlockServer().(*BlockServerLocal)
+	if !ok {
+		return errors.New("StateChecker only works against BlockServerLocal")
+	}
+	bserverKnownBlocks, err := bserverLocal.getAll(tlf)
+	if err != nil {
+		return err
+	}
+
+	blockRefsByID := make(map[BlockID]map[BlockRefNonce]bool)
+	for ptr := range allKnownBlocks {
+		if _, ok := blockRefsByID[ptr.ID]; !ok {
+			blockRefsByID[ptr.ID] = make(map[BlockRefNonce]bool)
+		}
+		blockRefsByID[ptr.ID][ptr.RefNonce] = true
+	}
+
+	if g, e := bserverKnownBlocks, blockRefsByID; !reflect.DeepEqual(g, e) {
+		for id, eRefs := range e {
+			if gRefs := g[id]; !reflect.DeepEqual(gRefs, eRefs) {
+				sc.log.CDebugf(ctx, "Refs for ID %v don't match.  "+
+					"Got %v, expected %v", id, gRefs, eRefs)
+			}
+		}
+		for id := range g {
+			if _, ok := e[id]; !ok {
+				sc.log.CDebugf(ctx, "Did not find matching expected "+
+					"ID for found block %v", id)
+			}
+		}
+
+		return fmt.Errorf("Folder %v has inconsistent state", tlf)
 	}
 
 	// TODO: Check the archived and deleted blocks as well.

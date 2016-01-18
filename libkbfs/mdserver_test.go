@@ -91,7 +91,7 @@ func TestMDServerBasics(t *testing.T) {
 		md.MD.PrevRoot = prevRoot
 		AddNewKeysOrBust(t, &md.MD, keys)
 		md.MD.ClearMetadataID()
-		md.MD.Flags |= MetadataFlagUnmerged
+		md.MD.WFlags |= MetadataFlagUnmerged
 		md.MD.BID = bid
 		err = mdServer.Put(ctx, md)
 		if err != nil {

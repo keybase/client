@@ -18,7 +18,6 @@ import (
 	"bazil.org/fuse/fs"
 	"bazil.org/fuse/fs/fstestutil"
 	"github.com/keybase/client/go/logger"
-	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 	"golang.org/x/sys/unix"
@@ -253,6 +252,24 @@ func TestStatAliasCausesNoIdentifies(t *testing.T) {
 	}
 }
 
+func TestRemoveAlias(t *testing.T) {
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	defer libkbfs.CheckConfigAndShutdown(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
+	defer mnt.Close()
+	defer cancelFn()
+
+	p := path.Join(mnt.Dir, PrivateName, "jdoe,jdoe")
+	switch err := os.Remove(p); err := err.(type) {
+	case *os.PathError:
+		if g, e := err.Err, syscall.EPERM; g != e {
+			t.Fatalf("wrong error: %v != %v", g, e)
+		}
+	default:
+		t.Fatalf("expected a PathError, got %T: %v", err, err)
+	}
+}
+
 func TestStatMyPublic(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(t, config)
@@ -293,12 +310,8 @@ func TestReaddirPrivate(t *testing.T) {
 		// Force FakeMDServer to have some TlfIDs it can present to us
 		// as favorites. Don't go through VFS to avoid caching causing
 		// false positives.
-		dh, err := libkbfs.ParseTlfHandle(context.Background(), config, "jdoe")
-		if err != nil {
-			t.Fatalf("cannot parse jdoe as folder: %v", err)
-		}
-		if _, _, err := config.KBFSOps().GetOrCreateRootNodeForHandle(
-			context.Background(), dh, libkbfs.MasterBranch); err != nil {
+		if _, _, err := config.KBFSOps().GetOrCreateRootNode(
+			context.Background(), "jdoe", false, libkbfs.MasterBranch); err != nil {
 			t.Fatalf("cannot set up a favorite: %v", err)
 		}
 	}
@@ -319,13 +332,8 @@ func TestReaddirPublic(t *testing.T) {
 		// Force FakeMDServer to have some TlfIDs it can present to us
 		// as favorites. Don't go through VFS to avoid caching causing
 		// false positives.
-		dh, err := libkbfs.ParseTlfHandle(context.Background(), config, "jdoe")
-		dh.Readers = append(dh.Readers, keybase1.PublicUID)
-		if err != nil {
-			t.Fatalf("cannot parse jdoe as folder: %v", err)
-		}
-		if _, _, err := config.KBFSOps().GetOrCreateRootNodeForHandle(
-			context.Background(), dh, libkbfs.MasterBranch); err != nil {
+		if _, _, err := config.KBFSOps().GetOrCreateRootNode(
+			context.Background(), "jdoe", true, libkbfs.MasterBranch); err != nil {
 			t.Fatalf("cannot set up a favorite: %v", err)
 		}
 	}
@@ -1344,13 +1352,9 @@ func TestSetattrFileMtimeAfterWrite(t *testing.T) {
 	const input2 = "second round of content"
 	{
 		ctx := context.Background()
-		dh, err := libkbfs.ParseTlfHandle(ctx, config, "jdoe")
-		if err != nil {
-			t.Fatalf("cannot parse folder for jdoe: %v", err)
-		}
 		ops := config.KBFSOps()
-		jdoe, _, err := ops.GetOrCreateRootNodeForHandle(ctx, dh,
-			libkbfs.MasterBranch)
+		jdoe, _, err := ops.GetOrCreateRootNode(
+			ctx, "jdoe", false, libkbfs.MasterBranch)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1753,14 +1757,9 @@ func TestReaddirOtherFolderAsAnyone(t *testing.T) {
 }
 
 func syncFolderToServer(t *testing.T, tlf string, fs *FS) {
-	dh, err := libkbfs.ParseTlfHandle(context.Background(), fs.config, tlf)
-	if err != nil {
-		t.Fatalf("cannot parse %s as folder: %v", tlf, err)
-	}
-
 	ctx := context.Background()
-	root, _, err := fs.config.KBFSOps().GetOrCreateRootNodeForHandle(
-		ctx, dh, libkbfs.MasterBranch)
+	root, _, err := fs.config.KBFSOps().GetOrCreateRootNode(
+		ctx, tlf, false, libkbfs.MasterBranch)
 	if err != nil {
 		t.Fatalf("cannot get root for %s: %v", tlf, err)
 	}
@@ -1977,12 +1976,9 @@ func TestInvalidateDataOnLocalWrite(t *testing.T) {
 	const input2 = "second round of content"
 	{
 		ctx := context.Background()
-		dh, err := libkbfs.ParseTlfHandle(ctx, config, "jdoe")
-		if err != nil {
-			t.Fatalf("cannot parse folder for jdoe: %v", err)
-		}
 		ops := config.KBFSOps()
-		jdoe, _, err := ops.GetOrCreateRootNodeForHandle(ctx, dh, libkbfs.MasterBranch)
+		jdoe, _, err := ops.GetOrCreateRootNode(
+			ctx, "jdoe", false, libkbfs.MasterBranch)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -2053,7 +2049,7 @@ func testForErrorText(t *testing.T, path string, expectedErr error,
 	fileType string) {
 	buf, err := ioutil.ReadFile(path)
 	if err != nil {
-		t.Fatalf("Bad error reading %s error file: %v", err, fileType)
+		t.Fatalf("Bad error reading %s error file: %v", path, err)
 	}
 
 	var errors []jsonReportedError
@@ -2242,13 +2238,9 @@ func TestInvalidateAppendAcrossMounts(t *testing.T) {
 	const input2 = "input round two"
 	{
 		ctx := context.Background()
-		dh, err := libkbfs.ParseTlfHandle(ctx, config1, "user1,user2")
-		if err != nil {
-			t.Fatalf("cannot parse folder for jdoe: %v", err)
-		}
 		ops := config1.KBFSOps()
-		jdoe, _, err := ops.GetOrCreateRootNodeForHandle(ctx, dh,
-			libkbfs.MasterBranch)
+		jdoe, _, err := ops.GetOrCreateRootNode(
+			ctx, "user1,user2", false, libkbfs.MasterBranch)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -2360,10 +2352,9 @@ func TestStatusFile(t *testing.T) {
 	defer cancelFn()
 
 	ctx := context.Background()
-	dh, err := libkbfs.ParseTlfHandle(ctx, config, "jdoe")
 	ops := config.KBFSOps()
-	jdoe, _, err := ops.GetOrCreateRootNodeForHandle(ctx, dh,
-		libkbfs.MasterBranch)
+	jdoe, _, err := ops.GetOrCreateRootNode(
+		ctx, "jdoe", false, libkbfs.MasterBranch)
 	status, _, err := ops.Status(ctx, jdoe.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't get KBFS status: %v", err)
@@ -2415,9 +2406,8 @@ func TestUnstageFile(t *testing.T) {
 	checkDir(t, myroot2, map[string]fileInfoCheck{})
 
 	// turn updates off for user 2
-	dh, err := libkbfs.ParseTlfHandle(ctx, config2, "user1,user2")
-	rootNode2, _, err := config2.KBFSOps().GetOrCreateRootNodeForHandle(ctx, dh,
-		libkbfs.MasterBranch)
+	rootNode2, _, err := config2.KBFSOps().GetOrCreateRootNode(
+		ctx, "user1,user2", false, libkbfs.MasterBranch)
 	_, err = libkbfs.DisableUpdatesForTesting(config2,
 		rootNode2.GetFolderBranch())
 	if err != nil {

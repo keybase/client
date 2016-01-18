@@ -8,7 +8,6 @@ package libdokan
 
 import (
 	"errors"
-	"os"
 	"strings"
 	"sync"
 	"syscall"
@@ -38,17 +37,27 @@ type FS struct {
 	notificationMutex sync.RWMutex
 
 	root *Root
+
+	// context is the top level context for this filesystem
+	context context.Context
+
+	// currentUserSID stores the Windows identity of the user running
+	// this process.
+	currentUserSID *syscall.SID
 }
 
 // NewFS creates an FS
-func NewFS(config libkbfs.Config, debug bool) *FS {
-	log := logger.New("kbfsfuse", os.Stderr)
-	if debug {
-		// Turn on debugging.  TODO: allow a proper log file and
-		// style to be specified.
-		log.Configure("", true, "")
+func NewFS(ctx context.Context, config libkbfs.Config, log logger.Logger) (*FS, error) {
+	sid, err := dokan.CurrentProcessUserSid()
+	if err != nil {
+		return nil, err
 	}
-	f := &FS{config: config, log: log}
+	f := &FS{
+		config:         config,
+		log:            log,
+		currentUserSID: sid,
+	}
+
 	f.root = &Root{
 		private: &FolderList{
 			fs:      f,
@@ -59,7 +68,16 @@ func NewFS(config libkbfs.Config, debug bool) *FS {
 			public:  true,
 			folders: make(map[string]*Dir),
 		}}
-	return f
+
+	ctx = context.WithValue(ctx, CtxAppIDKey, f)
+	logTags := make(logger.CtxLogTags)
+	logTags[CtxIDKey] = CtxOpID
+	ctx = logger.NewContextWithLogTags(ctx, logTags)
+	f.context = ctx
+
+	f.launchNotificationProcessor(ctx)
+
+	return f, nil
 }
 
 var vinfo = dokan.VolumeInformation{
@@ -72,11 +90,13 @@ var vinfo = dokan.VolumeInformation{
 
 // GetVolumeInformation returns information about the whole filesystem for dokan.
 func (f *FS) GetVolumeInformation() (dokan.VolumeInformation, error) {
+	// TODO should this be refused to other users?
 	return vinfo, nil
 }
 
 // GetDiskFreeSpace returns information about free space on the volume for dokan.
 func (*FS) GetDiskFreeSpace() (dokan.FreeSpace, error) {
+	// TODO should this be refused to other users?
 	return dokan.FreeSpace{}, nil
 }
 
@@ -145,7 +165,11 @@ func newSyntheticOpenContext() *openContext {
 
 // CreateFile called from dokan, may be a file or directory.
 func (f *FS) CreateFile(fi *dokan.FileInfo, cd *dokan.CreateData) (dokan.File, bool, error) {
-	ctx := context.TODO()
+	// Only allow the current user access
+	if !fi.IsRequestorUserSidEqualTo(f.currentUserSID) {
+		return nil, false, dokan.ErrAccessDenied
+	}
+	ctx := NewContextWithOpID(f)
 	return f.openRaw(ctx, fi, cd)
 }
 
@@ -200,8 +224,9 @@ func windowsPathSplit(raw string) ([]string, error) {
 
 // MoveFile tries to move a file.
 func (f *FS) MoveFile(source *dokan.FileInfo, targetPath string, replaceExisting bool) (err error) {
-	ctx := context.TODO()
-	ctx = NewContextWithOpID(ctx, f.log)
+	// User checking is handled by the opening of the source file
+
+	ctx := NewContextWithOpID(f)
 	f.log.CDebugf(ctx, "FS Rename start replaceExisting=%v", replaceExisting)
 	defer func() { f.reportErr(ctx, err) }()
 
@@ -211,6 +236,7 @@ func (f *FS) MoveFile(source *dokan.FileInfo, targetPath string, replaceExisting
 	if err != nil {
 		return err
 	}
+	defer src.Cleanup(nil)
 
 	// Destination directory, not the destination file
 	dstPath, err := windowsPathSplit(targetPath)
@@ -227,6 +253,7 @@ func (f *FS) MoveFile(source *dokan.FileInfo, targetPath string, replaceExisting
 	if err != nil {
 		return err
 	}
+	defer dst.Cleanup(nil)
 	if !dstIsDir {
 		return errors.New("Tried to move to a non-directory path")
 	}

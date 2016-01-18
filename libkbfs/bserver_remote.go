@@ -139,7 +139,7 @@ func (b *BlockServerRemote) ShouldThrottle(err error) bool {
 }
 
 // Get implements the BlockServer interface for BlockServerRemote.
-func (b *BlockServerRemote) Get(ctx context.Context, id BlockID,
+func (b *BlockServerRemote) Get(ctx context.Context, id BlockID, tlfID TlfID,
 	context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {
 	var err error
 	size := -1
@@ -148,12 +148,15 @@ func (b *BlockServerRemote) Get(ctx context.Context, id BlockID,
 			id, context.GetWriter(), size, err)
 	}()
 
-	bid := keybase1.BlockIdCombo{
-		BlockHash: id.String(),
-		ChargedTo: context.GetWriter(),
+	arg := keybase1.GetBlockArg{
+		Bid: keybase1.BlockIdCombo{
+			BlockHash: id.String(),
+			ChargedTo: context.GetWriter(),
+		},
+		Folder: tlfID.String(),
 	}
 
-	res, err := b.client.GetBlock(ctx, bid)
+	res, err := b.client.GetBlock(ctx, arg)
 	if err != nil {
 		return nil, BlockCryptKeyServerHalf{}, err
 	}
@@ -164,7 +167,7 @@ func (b *BlockServerRemote) Get(ctx context.Context, id BlockID,
 	if kbuf, err = hex.DecodeString(res.BlockKey); err != nil {
 		return nil, BlockCryptKeyServerHalf{}, err
 	}
-	copy(bk.ServerHalf[:], kbuf)
+	copy(bk.data[:], kbuf)
 	return res.Buf, bk, nil
 }
 

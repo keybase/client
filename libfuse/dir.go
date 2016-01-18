@@ -76,12 +76,6 @@ func (f *Folder) invalidateNodeDataRange(node fs.Node, write libkbfs.WriteRange)
 		// truncate, invalidate all data in the now-lost tail
 		size = -1
 	}
-
-	// XXX: Work around https://github.com/keybase/kbfs/issues/417 by
-	// just invalidating all data every time.
-	off = 0
-	size = -1
-
 	// Off=0 Len=0 is the same as calling InvalidateNodeDataAttr; we
 	// can just let that go through InvalidateNodeDataRange.
 	if err := f.fs.fuse.InvalidateNodeDataRange(node, off, size); err != nil {
@@ -236,6 +230,9 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 
 	case StatusFileName:
 		return NewStatusFile(d.folder, resp), nil
+
+	case UpdateHistoryFileName:
+		return NewUpdateHistoryFile(d.folder, resp), nil
 
 	case UnstageFileName:
 		resp.EntryValid = 0

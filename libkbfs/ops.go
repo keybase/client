@@ -389,14 +389,16 @@ type syncOp struct {
 }
 
 func newSyncOp(oldFile BlockPointer) *syncOp {
-	so := &syncOp{
-		OpCommon: OpCommon{
-			customUpdates: make(map[BlockPointer]*blockUpdate),
-		},
-	}
+	so := &syncOp{}
 	so.File.Unref = oldFile
-	so.customUpdates[oldFile] = &so.File
+	so.resetUpdateState()
 	return so
+}
+
+func (so *syncOp) resetUpdateState() {
+	so.Updates = nil
+	so.customUpdates = make(map[BlockPointer]*blockUpdate)
+	so.customUpdates[so.File.Unref] = &so.File
 }
 
 func (so *syncOp) addWrite(off uint64, length uint64) {

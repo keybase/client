@@ -87,13 +87,13 @@ func newDir(folder *Folder, node libkbfs.Node, name string, parent libkbfs.Node)
 		folder: folder,
 		node:   node,
 	}}
+	d.refcount.Increase()
 	return d
 }
 
 // GetFileInformation for dokan.
 func (d *Dir) GetFileInformation(*dokan.FileInfo) (st *dokan.Stat, err error) {
-	ctx := context.TODO()
-	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
+	ctx := NewContextWithOpID(d.folder.fs)
 	d.folder.fs.log.CDebugf(ctx, "Dir GetFileInformation")
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
 
@@ -188,6 +188,7 @@ func openDir(ctx context.Context, d *Dir, oc *openContext, path []string) (dokan
 				return nil, false, fmt.Errorf("unhandled node type: %T", f)
 			case nil:
 			case *File:
+				x.refcount.Increase()
 				return openFile(ctx, oc, path, x)
 			case *Dir:
 				d = x
@@ -217,6 +218,7 @@ func openDir(ctx context.Context, d *Dir, oc *openContext, path []string) (dokan
 	if oc.mayNotBeDirectory() {
 		return nil, true, dokan.ErrFileIsADirectory
 	}
+	d.refcount.Increase()
 	return d, true, nil
 }
 
@@ -265,7 +267,7 @@ func openSymlink(ctx context.Context, oc *openContext, parent *Dir, rootDir *Dir
 }
 
 func (d *Dir) create(ctx context.Context, oc *openContext, name string) (f dokan.File, isDir bool, err error) {
-	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
+	ctx = NewContextWithOpID(d.folder.fs)
 	d.folder.fs.log.CDebugf(ctx, "Dir Create %s", name)
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
 
@@ -282,7 +284,7 @@ func (d *Dir) create(ctx context.Context, oc *openContext, name string) (f dokan
 }
 
 func (d *Dir) mkdir(ctx context.Context, oc *openContext, name string) (f *Dir, isDir bool, err error) {
-	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
+	ctx = NewContextWithOpID(d.folder.fs)
 	d.folder.fs.log.CDebugf(ctx, "Dir Mkdir %s", name)
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
 
@@ -293,16 +295,13 @@ func (d *Dir) mkdir(ctx context.Context, oc *openContext, name string) (f *Dir, 
 	}
 
 	child := newDir(d.folder, newNode, name, d.node)
-	d.folder.mu.Lock()
-	d.folder.nodes[newNode.GetID()] = child
-	d.folder.mu.Unlock()
+	d.folder.lockedAddNode(newNode, child)
 	return child, true, nil
 }
 
 // FindFiles does readdir for dokan.
 func (d *Dir) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) (err error) {
-	ctx := context.TODO()
-	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
+	ctx := NewContextWithOpID(d.folder.fs)
 	d.folder.fs.log.CDebugf(ctx, "Dir ReadDirAll")
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
 
@@ -334,8 +333,7 @@ func (d *Dir) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedStat) erro
 // CanDeleteDirectory - return just nil
 // TODO check for permissions here.
 func (d *Dir) CanDeleteDirectory(*dokan.FileInfo) (err error) {
-	ctx := context.TODO()
-	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
+	ctx := NewContextWithOpID(d.folder.fs)
 	d.folder.fs.log.CDebugf(ctx, "Dir CanDeleteDirectory")
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
 
@@ -353,16 +351,18 @@ func (d *Dir) CanDeleteDirectory(*dokan.FileInfo) (err error) {
 // Cleanup - forget references, perform deletions etc.
 func (d *Dir) Cleanup(fi *dokan.FileInfo) {
 	var err error
-	ctx := context.TODO()
-	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
+	ctx := NewContextWithOpID(d.folder.fs)
 
-	if fi.DeleteOnClose() && d.parent != nil {
+	if fi != nil && fi.DeleteOnClose() && d.parent != nil {
 		d.folder.fs.log.CDebugf(ctx, "Removing dir in cleanup %s", d.name)
 		defer func() { d.folder.fs.reportErr(ctx, err) }()
 
 		err = d.folder.fs.config.KBFSOps().RemoveDir(ctx, d.parent, d.name)
 	}
-	d.folder.forgetNode(d.node)
+
+	if d.refcount.Decrease() {
+		d.folder.forgetNode(d.node)
+	}
 }
 
 func resolveSymlinkPath(ctx context.Context, origPath []string, targetPath string) ([]string, error) {
@@ -389,7 +389,10 @@ func resolveSymlinkIsDir(ctx context.Context, oc *openContext, rootDir *Dir, ori
 	if err != nil {
 		return false, err
 	}
-	_, isDir, err := rootDir.open(ctx, oc, dst)
+	obj, isDir, err := rootDir.open(ctx, oc, dst)
+	if err == nil {
+		obj.Cleanup(nil)
+	}
 	return isDir, err
 }
 func isPathSeparator(r rune) bool {

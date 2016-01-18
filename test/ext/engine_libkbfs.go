@@ -103,7 +103,7 @@ func (k *LibKBFS) GetUID(u User) (uid keybase1.UID) {
 	return uid
 }
 
-// GetRootDir impelements the Engine interface.
+// GetRootDir implements the Engine interface.
 func (k *LibKBFS) GetRootDir(u User, isPublic bool, writers []string, readers []string) (
 	dir Node, err error) {
 	config := u.(*libkbfs.ConfigLocal)
@@ -123,10 +123,15 @@ func (k *LibKBFS) GetRootDir(u User, isPublic bool, writers []string, readers []
 	sort.Sort(libkbfs.UIDList(h.Writers))
 	sort.Sort(libkbfs.UIDList(h.Readers))
 
+	ctx := context.Background()
+
+	name := h.ToString(ctx, config)
+
 	dir, _, err =
-		config.KBFSOps().GetOrCreateRootNodeForHandle(context.Background(), h, libkbfs.MasterBranch)
+		config.KBFSOps().GetOrCreateRootNode(
+			ctx, name, isPublic, libkbfs.MasterBranch)
 	if err != nil {
-		return dir, err
+		return nil, err
 	}
 	k.refs[config][dir.(libkbfs.Node)] = true
 	return dir, nil

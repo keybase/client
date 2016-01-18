@@ -12,9 +12,11 @@ import (
 // current status of a particular folder-branch.  It is suitable for
 // encoding directly as JSON.
 type FolderBranchStatus struct {
-	Staged     bool
-	HeadWriter libkb.NormalizedUsername
-	DiskUsage  uint64
+	Staged       bool
+	HeadWriter   libkb.NormalizedUsername
+	DiskUsage    uint64
+	RekeyPending bool
+
 	// DirtyPaths are files that have been written, but not flushed.
 	// They do not represent unstaged changes in your local instance.
 	DirtyPaths []string
@@ -141,13 +143,14 @@ func (fbsk *folderBranchStatusKeeper) getStatus(ctx context.Context) (
 	var fbs FolderBranchStatus
 
 	if fbsk.md != nil {
-		fbs.Staged = (fbsk.md.Flags & MetadataFlagUnmerged) != 0
-		name, err := fbsk.config.KBPKI().GetNormalizedUsername(ctx, fbsk.md.data.LastWriter)
+		fbs.Staged = (fbsk.md.WFlags & MetadataFlagUnmerged) != 0
+		name, err := fbsk.config.KBPKI().GetNormalizedUsername(ctx, fbsk.md.LastModifyingWriter)
 		if err != nil {
 			return FolderBranchStatus{}, nil, err
 		}
 		fbs.HeadWriter = name
 		fbs.DiskUsage = fbsk.md.DiskUsage
+		fbs.RekeyPending = fbsk.config.RekeyQueue().IsRekeyPending(fbsk.md.ID)
 	}
 
 	fbs.DirtyPaths = fbsk.convertNodesToPathsLocked(fbsk.dirtyNodes)

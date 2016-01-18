@@ -114,6 +114,17 @@ type KeybaseDaemonLocal struct {
 
 var _ KeybaseDaemon = KeybaseDaemonLocal{}
 
+// Resolve implements KeybaseDaemon for KeybaseDaemonLocal.
+func (k KeybaseDaemonLocal) Resolve(ctx context.Context, assertion string) (
+	keybase1.UID, error) {
+	uid, ok := k.asserts[assertion]
+	if !ok {
+		return keybase1.UID(""), NoSuchUserError{assertion}
+	}
+
+	return uid, nil
+}
+
 // Identify implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k KeybaseDaemonLocal) Identify(ctx context.Context, assertion, reason string) (
 	UserInfo, error) {

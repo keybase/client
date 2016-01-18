@@ -138,6 +138,12 @@ type crChains struct {
 	// final locations).
 	renamedOriginals map[BlockPointer]renameInfo
 
+	// Separately track pointers for unembedded block changes.
+	blockChangePointers map[BlockPointer]bool
+
+	// Pointers that should be explicitly cleaned up in the resolution.
+	toUnrefPointers map[BlockPointer]bool
+
 	// Also keep a reference to the most recent MD that's part of this
 	// chain.
 	mostRecentMD *RootMetadata
@@ -436,12 +442,14 @@ func (ccs *crChains) renamedParentAndName(original BlockPointer) (
 
 func newCRChainsEmpty() *crChains {
 	return &crChains{
-		byOriginal:       make(map[BlockPointer]*crChain),
-		byMostRecent:     make(map[BlockPointer]*crChain),
-		deletedOriginals: make(map[BlockPointer]bool),
-		createdOriginals: make(map[BlockPointer]bool),
-		renamedOriginals: make(map[BlockPointer]renameInfo),
-		originals:        make(map[BlockPointer]BlockPointer),
+		byOriginal:          make(map[BlockPointer]*crChain),
+		byMostRecent:        make(map[BlockPointer]*crChain),
+		deletedOriginals:    make(map[BlockPointer]bool),
+		createdOriginals:    make(map[BlockPointer]bool),
+		renamedOriginals:    make(map[BlockPointer]renameInfo),
+		blockChangePointers: make(map[BlockPointer]bool),
+		toUnrefPointers:     make(map[BlockPointer]bool),
+		originals:           make(map[BlockPointer]BlockPointer),
 	}
 }
 
@@ -453,9 +461,18 @@ func newCRChains(ctx context.Context, kbpki KBPKI, rmds []*RootMetadata) (
 	// entries and create chains for the BlockPointers that are
 	// affected directly by the operation.
 	for _, rmd := range rmds {
-		writerName, err := kbpki.GetNormalizedUsername(ctx, rmd.data.LastWriter)
+		// No new operations in these.
+		if rmd.IsWriterMetadataCopiedSet() {
+			continue
+		}
+
+		writerName, err := kbpki.GetNormalizedUsername(ctx, rmd.LastModifyingWriter)
 		if err != nil {
 			return nil, err
+		}
+
+		if ptr := rmd.data.cachedChanges.Info.BlockPointer; ptr != zeroPtr {
+			ccs.blockChangePointers[ptr] = true
 		}
 
 		for _, op := range rmd.data.Changes.Ops {

@@ -7,6 +7,7 @@ import (
 	"bazil.org/fuse"
 
 	"github.com/rcrowley/go-metrics"
+	"golang.org/x/net/context"
 )
 
 // MetricsFileName is the name of the KBFS metrics file -- it can be
@@ -27,7 +28,7 @@ func getEncodedMetrics(fs *FS) ([]byte, time.Time, error) {
 func NewMetricsFile(fs *FS, resp *fuse.LookupResponse) *SpecialReadFile {
 	resp.EntryValid = 0
 	return &SpecialReadFile{
-		read: func() ([]byte, time.Time, error) {
+		read: func(_ context.Context) ([]byte, time.Time, error) {
 			return getEncodedMetrics(fs)
 		},
 	}

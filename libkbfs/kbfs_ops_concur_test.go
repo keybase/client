@@ -60,8 +60,7 @@ func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 	ops.mdWriterLock.locker = cl
 	for i := 0; i < n; i++ {
 		go func() {
-			_, _, _, err := config.KBFSOps().
-				GetRootNode(ctx, FolderBranch{dir, MasterBranch})
+			_, _, _, err := ops.getRootNode(ctx)
 			c <- err
 		}()
 	}
@@ -94,10 +93,8 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
-	h := NewTlfHandle()
-	h.Writers = append(h.Writers, uid)
 	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
 	if err != nil {
 		t.Fatalf("Couldn't create folder: %v", err)
 	}
@@ -149,10 +146,8 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T, n int) {
 
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
-	h := NewTlfHandle()
-	h.Writers = append(h.Writers, uid)
 	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
 	if err != nil {
 		t.Fatalf("Couldn't create folder: %v", err)
 	}
@@ -316,7 +311,7 @@ func (f *stallingBlockOps) Archive(
 // Test that a block write can happen concurrently with a block
 // read. This is a regression test for KBFS-536.
 func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
-	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
+	config, _, ctx := kbfsOpsConcurInit(t, "test_user")
 	defer config.Shutdown()
 
 	// Turn off transient block caching.
@@ -324,10 +319,8 @@ func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
 
 	// Create a file.
 	kbfsOps := config.KBFSOps()
-	h := NewTlfHandle()
-	h.Writers = append(h.Writers, uid)
 	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
 	if err != nil {
 		t.Fatalf("Couldn't create folder: %v", err)
 	}
@@ -455,7 +448,7 @@ func (km *mdRecordingKeyManager) Rekey(
 // Test that a sync can happen concurrently with a write. This is a
 // regression test for KBFS-558.
 func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
-	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
+	config, _, ctx := kbfsOpsConcurInit(t, "test_user")
 	defer config.Shutdown()
 
 	km := &mdRecordingKeyManager{delegate: config.KeyManager()}
@@ -467,10 +460,8 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 
 	// Create a file.
 	kbfsOps := config.KBFSOps()
-	h := NewTlfHandle()
-	h.Writers = append(h.Writers, uid)
 	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
 	if err != nil {
 		t.Fatalf("Couldn't create folder: %v", err)
 	}
@@ -568,7 +559,7 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 // Test that a sync can happen concurrently with a truncate. This is a
 // regression test for KBFS-558.
 func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
-	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
+	config, _, ctx := kbfsOpsConcurInit(t, "test_user")
 	defer CheckConfigAndShutdown(t, config)
 
 	km := &mdRecordingKeyManager{delegate: config.KeyManager()}
@@ -580,10 +571,8 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 
 	// Create a file.
 	kbfsOps := config.KBFSOps()
-	h := NewTlfHandle()
-	h.Writers = append(h.Writers, uid)
 	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
 	if err != nil {
 		t.Fatalf("Couldn't create folder: %v", err)
 	}
@@ -684,7 +673,7 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 // up. This should pass with -race. This is a regression test for
 // KBFS-537.
 func TestKBFSOpsConcurBlockSyncReadIndirect(t *testing.T) {
-	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
+	config, _, ctx := kbfsOpsConcurInit(t, "test_user")
 	defer config.Shutdown()
 
 	// Turn off block caching.
@@ -699,10 +688,8 @@ func TestKBFSOpsConcurBlockSyncReadIndirect(t *testing.T) {
 
 	// Create a file.
 	kbfsOps := config.KBFSOps()
-	h := NewTlfHandle()
-	h.Writers = append(h.Writers, uid)
 	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
 	if err != nil {
 		t.Fatalf("Couldn't create folder: %v", err)
 	}
@@ -723,7 +710,9 @@ func TestKBFSOpsConcurBlockSyncReadIndirect(t *testing.T) {
 
 	// Read in a loop in a separate goroutine until we encounter
 	// an error or the test ends.
+	c := make(chan struct{})
 	go func() {
+		defer close(c)
 	outer:
 		for {
 			select {
@@ -744,19 +733,20 @@ func TestKBFSOpsConcurBlockSyncReadIndirect(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't sync file: %v", err)
 	}
+	cancel()
+	// Wait for the read loop to finish
+	<-c
 }
 
 // Test that a write can survive a folder BlockPointer update
 func TestKBFSOpsConcurWriteDuringFolderUpdate(t *testing.T) {
-	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
+	config, _, ctx := kbfsOpsConcurInit(t, "test_user")
 	defer config.Shutdown()
 
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
-	h := NewTlfHandle()
-	h.Writers = append(h.Writers, uid)
 	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
 	if err != nil {
 		t.Fatalf("Couldn't create folder: %v", err)
 	}
@@ -801,10 +791,8 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
-	h := NewTlfHandle()
-	h.Writers = append(h.Writers, uid)
 	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
 	if err != nil {
 		t.Fatalf("Couldn't create folder: %v", err)
 	}
@@ -907,7 +895,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	if maxParallelBlockPuts <= 1 {
 		t.Skip("Skipping because we are not putting blocks in parallel.")
 	}
-	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
+	config, _, ctx := kbfsOpsConcurInit(t, "test_user")
 	defer CheckConfigAndShutdown(t, config)
 
 	// give it a remote block server with a fake client
@@ -921,10 +909,8 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
-	h := NewTlfHandle()
-	h.Writers = append(h.Writers, uid)
 	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
 	if err != nil {
 		t.Fatalf("Couldn't create folder: %v", err)
 	}
@@ -1013,12 +999,29 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 		t.Error("Worker unexpectedly ready")
 	default:
 	}
+
+	// As a regression for KBFS-635, test that a second sync succeeds,
+	// and that future operations also succeed.
+	fc.readyChan = nil
+	fc.goChan = nil
+	fc.finishChan = nil
+	ctx = context.Background()
+	if err := kbfsOps.Sync(ctx, fileNode); err != nil {
+		t.Fatalf("Second sync failed: %v", err)
+	}
+
+	if _, _, err := kbfsOps.CreateFile(ctx, rootNode, "b", false); err != nil {
+		t.Fatalf("Couldn't create file after sync: %v", err)
+	}
+
+	// Avoid checking state when using a fake block server.
+	config.MDServer().Shutdown()
 }
 
 // Test that, when writing multiple blocks in parallel, one error will
 // cancel the remaining puts.
 func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
-	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
+	config, _, ctx := kbfsOpsConcurInit(t, "test_user")
 	defer CheckConfigAndShutdown(t, config)
 
 	// give it a mock'd block server
@@ -1041,10 +1044,8 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
-	h := NewTlfHandle()
-	h.Writers = append(h.Writers, uid)
 	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNodeForHandle(ctx, h, MasterBranch)
+		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
 	if err != nil {
 		t.Fatalf("Couldn't create folder: %v", err)
 	}
@@ -1100,7 +1101,10 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	// wait for proceedChan to close, so we know the errPtr has been set
 	<-proceedChan
 
-	// make sure the error'd file didn't make it to the cache
+	// Make sure the error'd file didn't make it to the actual cache
+	// -- it's still in the permanent cache because the file might
+	// still be read or sync'd later.
+	config.BlockCache().DeletePermanent(errPtr.ID)
 	if _, err := config.BlockCache().Get(errPtr, MasterBranch); err == nil {
 		t.Errorf("Failed block put for %v left block in cache", errPtr)
 	}

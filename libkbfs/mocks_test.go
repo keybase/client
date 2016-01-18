@@ -220,29 +220,16 @@ func (_mr *_MockKBFSOpsRecorder) GetFavorites(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetFavorites", arg0)
 }
 
-func (_m *MockKBFSOps) GetOrCreateRootNodeForHandle(ctx context.Context, handle *TlfHandle, branch BranchName) (Node, EntryInfo, error) {
-	ret := _m.ctrl.Call(_m, "GetOrCreateRootNodeForHandle", ctx, handle, branch)
+func (_m *MockKBFSOps) GetOrCreateRootNode(ctx context.Context, name string, public bool, branch BranchName) (Node, EntryInfo, error) {
+	ret := _m.ctrl.Call(_m, "GetOrCreateRootNode", ctx, name, public, branch)
 	ret0, _ := ret[0].(Node)
 	ret1, _ := ret[1].(EntryInfo)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
 
-func (_mr *_MockKBFSOpsRecorder) GetOrCreateRootNodeForHandle(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetOrCreateRootNodeForHandle", arg0, arg1, arg2)
-}
-
-func (_m *MockKBFSOps) GetRootNode(ctx context.Context, folderBranch FolderBranch) (Node, EntryInfo, *TlfHandle, error) {
-	ret := _m.ctrl.Call(_m, "GetRootNode", ctx, folderBranch)
-	ret0, _ := ret[0].(Node)
-	ret1, _ := ret[1].(EntryInfo)
-	ret2, _ := ret[2].(*TlfHandle)
-	ret3, _ := ret[3].(error)
-	return ret0, ret1, ret2, ret3
-}
-
-func (_mr *_MockKBFSOpsRecorder) GetRootNode(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRootNode", arg0, arg1)
+func (_mr *_MockKBFSOpsRecorder) GetOrCreateRootNode(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetOrCreateRootNode", arg0, arg1, arg2, arg3)
 }
 
 func (_m *MockKBFSOps) GetDirChildren(ctx context.Context, dir Node) (map[string]EntryInfo, error) {
@@ -427,14 +414,14 @@ func (_mr *_MockKBFSOpsRecorder) UnstageForTesting(arg0, arg1 interface{}) *gomo
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "UnstageForTesting", arg0, arg1)
 }
 
-func (_m *MockKBFSOps) RekeyForTesting(ctx context.Context, folderBranch FolderBranch) error {
-	ret := _m.ctrl.Call(_m, "RekeyForTesting", ctx, folderBranch)
+func (_m *MockKBFSOps) Rekey(ctx context.Context, id TlfID) error {
+	ret := _m.ctrl.Call(_m, "Rekey", ctx, id)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockKBFSOpsRecorder) RekeyForTesting(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "RekeyForTesting", arg0, arg1)
+func (_mr *_MockKBFSOpsRecorder) Rekey(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Rekey", arg0, arg1)
 }
 
 func (_m *MockKBFSOps) SyncFromServer(ctx context.Context, folderBranch FolderBranch) error {
@@ -445,6 +432,17 @@ func (_m *MockKBFSOps) SyncFromServer(ctx context.Context, folderBranch FolderBr
 
 func (_mr *_MockKBFSOpsRecorder) SyncFromServer(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SyncFromServer", arg0, arg1)
+}
+
+func (_m *MockKBFSOps) GetUpdateHistory(ctx context.Context, folderBranch FolderBranch) (TLFUpdateHistory, error) {
+	ret := _m.ctrl.Call(_m, "GetUpdateHistory", ctx, folderBranch)
+	ret0, _ := ret[0].(TLFUpdateHistory)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKBFSOpsRecorder) GetUpdateHistory(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUpdateHistory", arg0, arg1)
 }
 
 func (_m *MockKBFSOps) Shutdown() error {
@@ -476,6 +474,17 @@ func NewMockKeybaseDaemon(ctrl *gomock.Controller) *MockKeybaseDaemon {
 
 func (_m *MockKeybaseDaemon) EXPECT() *_MockKeybaseDaemonRecorder {
 	return _m.recorder
+}
+
+func (_m *MockKeybaseDaemon) Resolve(ctx context.Context, assertion string) (protocol.UID, error) {
+	ret := _m.ctrl.Call(_m, "Resolve", ctx, assertion)
+	ret0, _ := ret[0].(protocol.UID)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKeybaseDaemonRecorder) Resolve(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Resolve", arg0, arg1)
 }
 
 func (_m *MockKeybaseDaemon) Identify(ctx context.Context, assertion string, reason string) (UserInfo, error) {
@@ -625,15 +634,26 @@ func (_mr *_MockKBPKIRecorder) GetCurrentVerifyingKey(arg0 interface{}) *gomock.
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetCurrentVerifyingKey", arg0)
 }
 
-func (_m *MockKBPKI) ResolveAssertion(ctx context.Context, assertion string, reason string) (protocol.UID, error) {
-	ret := _m.ctrl.Call(_m, "ResolveAssertion", ctx, assertion, reason)
+func (_m *MockKBPKI) Resolve(ctx context.Context, assertion string) (protocol.UID, error) {
+	ret := _m.ctrl.Call(_m, "Resolve", ctx, assertion)
 	ret0, _ := ret[0].(protocol.UID)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKBPKIRecorder) ResolveAssertion(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "ResolveAssertion", arg0, arg1, arg2)
+func (_mr *_MockKBPKIRecorder) Resolve(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Resolve", arg0, arg1)
+}
+
+func (_m *MockKBPKI) Identify(ctx context.Context, assertion string, reason string) (UserInfo, error) {
+	ret := _m.ctrl.Call(_m, "Identify", ctx, assertion, reason)
+	ret0, _ := ret[0].(UserInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockKBPKIRecorder) Identify(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Identify", arg0, arg1, arg2)
 }
 
 func (_m *MockKBPKI) GetNormalizedUsername(ctx context.Context, uid protocol.UID) (libkb.NormalizedUsername, error) {
@@ -1675,6 +1695,14 @@ func (_mr *_MockMDServerRecorder) RegisterForUpdate(arg0, arg1, arg2 interface{}
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RegisterForUpdate", arg0, arg1, arg2)
 }
 
+func (_m *MockMDServer) DisableRekeyUpdatesForTesting() {
+	_m.ctrl.Call(_m, "DisableRekeyUpdatesForTesting")
+}
+
+func (_mr *_MockMDServerRecorder) DisableRekeyUpdatesForTesting() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DisableRekeyUpdatesForTesting")
+}
+
 func (_m *MockMDServer) Shutdown() {
 	_m.ctrl.Call(_m, "Shutdown")
 }
@@ -1704,16 +1732,16 @@ func (_m *MockBlockServer) EXPECT() *_MockBlockServerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockBlockServer) Get(ctx context.Context, id BlockID, context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {
-	ret := _m.ctrl.Call(_m, "Get", ctx, id, context)
+func (_m *MockBlockServer) Get(ctx context.Context, id BlockID, tlfID TlfID, context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {
+	ret := _m.ctrl.Call(_m, "Get", ctx, id, tlfID, context)
 	ret0, _ := ret[0].([]byte)
 	ret1, _ := ret[1].(BlockCryptKeyServerHalf)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
 
-func (_mr *_MockBlockServerRecorder) Get(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1, arg2)
+func (_mr *_MockBlockServerRecorder) Get(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0, arg1, arg2, arg3)
 }
 
 func (_m *MockBlockServer) Put(ctx context.Context, id BlockID, tlfID TlfID, context BlockContext, buf []byte, serverHalf BlockCryptKeyServerHalf) error {
@@ -2396,6 +2424,24 @@ func (_mr *_MockConfigRecorder) DataVersion() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DataVersion")
 }
 
+func (_m *MockConfig) RekeyQueue() RekeyQueue {
+	ret := _m.ctrl.Call(_m, "RekeyQueue")
+	ret0, _ := ret[0].(RekeyQueue)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) RekeyQueue() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RekeyQueue")
+}
+
+func (_m *MockConfig) SetRekeyQueue(_param0 RekeyQueue) {
+	_m.ctrl.Call(_m, "SetRekeyQueue", _param0)
+}
+
+func (_mr *_MockConfigRecorder) SetRekeyQueue(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetRekeyQueue", arg0)
+}
+
 func (_m *MockConfig) ReqsBufSize() int {
 	ret := _m.ctrl.Call(_m, "ReqsBufSize")
 	ret0, _ := ret[0].(int)
@@ -2699,4 +2745,63 @@ func (_m *MockcrAction) String() string {
 
 func (_mr *_MockcrActionRecorder) String() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "String")
+}
+
+// Mock of RekeyQueue interface
+type MockRekeyQueue struct {
+	ctrl     *gomock.Controller
+	recorder *_MockRekeyQueueRecorder
+}
+
+// Recorder for MockRekeyQueue (not exported)
+type _MockRekeyQueueRecorder struct {
+	mock *MockRekeyQueue
+}
+
+func NewMockRekeyQueue(ctrl *gomock.Controller) *MockRekeyQueue {
+	mock := &MockRekeyQueue{ctrl: ctrl}
+	mock.recorder = &_MockRekeyQueueRecorder{mock}
+	return mock
+}
+
+func (_m *MockRekeyQueue) EXPECT() *_MockRekeyQueueRecorder {
+	return _m.recorder
+}
+
+func (_m *MockRekeyQueue) Enqueue(_param0 TlfID) <-chan error {
+	ret := _m.ctrl.Call(_m, "Enqueue", _param0)
+	ret0, _ := ret[0].(<-chan error)
+	return ret0
+}
+
+func (_mr *_MockRekeyQueueRecorder) Enqueue(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Enqueue", arg0)
+}
+
+func (_m *MockRekeyQueue) IsRekeyPending(_param0 TlfID) bool {
+	ret := _m.ctrl.Call(_m, "IsRekeyPending", _param0)
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+func (_mr *_MockRekeyQueueRecorder) IsRekeyPending(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsRekeyPending", arg0)
+}
+
+func (_m *MockRekeyQueue) GetRekeyChannel(id TlfID) <-chan error {
+	ret := _m.ctrl.Call(_m, "GetRekeyChannel", id)
+	ret0, _ := ret[0].(<-chan error)
+	return ret0
+}
+
+func (_mr *_MockRekeyQueueRecorder) GetRekeyChannel(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRekeyChannel", arg0)
+}
+
+func (_m *MockRekeyQueue) Clear() {
+	_m.ctrl.Call(_m, "Clear")
+}
+
+func (_mr *_MockRekeyQueueRecorder) Clear() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Clear")
 }

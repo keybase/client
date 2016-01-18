@@ -348,6 +348,18 @@ func attributeList(attributes []Attribute) msi {
 	return b
 }
 
+func (q *Query) AddStartKey(t *Table, key *Key) {
+	k := t.Key
+	keymap := msi{
+		k.KeyAttribute.Name: msi{
+			k.KeyAttribute.Type: key.HashKey},
+	}
+	if k.HasRange() {
+		keymap[k.RangeAttribute.Name] = msi{k.RangeAttribute.Type: key.RangeKey}
+	}
+	q.buffer["ExclusiveStartKey"] = keymap
+}
+
 func (q *Query) addTable(t *Table) {
 	q.addTableByName(t.Name)
 }

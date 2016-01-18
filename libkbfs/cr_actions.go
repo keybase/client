@@ -408,20 +408,20 @@ func crActionCopyFile(ctx context.Context, copier fileBlockDeepCopier,
 		}}}}
 	}
 
-	var ptr BlockPointer
-	if toSymPath == "" {
-		// Fetch the top block for copyable files.
-		var err error
-		ptr, err = copier(ctx, toName, fromEntry.BlockPointer)
-		if err != nil {
-			return BlockPointer{}, "", err
-		}
-	}
-
 	// Make sure the name is unique.
 	name, err := uniquifyName(toBlock, toName)
 	if err != nil {
 		return BlockPointer{}, "", err
+	}
+
+	var ptr BlockPointer
+	if toSymPath == "" {
+		// Fetch the top block for copyable files.
+		var err error
+		ptr, err = copier(ctx, name, fromEntry.BlockPointer)
+		if err != nil {
+			return BlockPointer{}, "", err
+		}
 	}
 
 	// Set the entry with the new pointer.

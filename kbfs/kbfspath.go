@@ -5,7 +5,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/keybase/client/go/protocol"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -209,43 +208,32 @@ func (p kbfsPath) join(childName string) (childPath kbfsPath, err error) {
 
 // Returns a nil node if p doesn't have type tlfPath.
 func (p kbfsPath) getNode(ctx context.Context, config libkbfs.Config) (n libkbfs.Node, ei libkbfs.EntryInfo, err error) {
-	defer func() {
-		if err != nil {
-			n = nil
-			ei = libkbfs.EntryInfo{}
-		}
-	}()
-
 	if p.pathType != tlfPath {
-		ei = libkbfs.EntryInfo{
+		ei := libkbfs.EntryInfo{
 			Type: libkbfs.Dir,
 		}
-		return
+		return nil, ei, nil
 	}
 
-	dh, err := libkbfs.ParseTlfHandle(ctx, config, p.tlfName)
-	if err != nil {
-		return
-	}
+	name := p.tlfName
+outer:
+	for {
+		n, ei, err =
+			config.KBFSOps().GetOrCreateRootNode(
+				ctx, name, p.public, libkbfs.MasterBranch)
+		switch err := err.(type) {
+		case nil:
+			// No error.
+			break outer
 
-	if p.public && !dh.HasPublic() {
-		// No public folder exists for this folder.
-		err = libkbfs.NoSuchNameError{Name: p.String()}
-		return
-	}
+		case libkbfs.TlfNameNotCanonical:
+			// Non-canonical name, so try again.
+			name = err.NameToTry
 
-	// TODO: kbfsPath should just hold a tlfHandle, and the
-	// parsing should happen in makeKbfsPath.
-	if p.public {
-		dh = &libkbfs.TlfHandle{
-			Writers: dh.Writers,
-			Readers: []keybase1.UID{keybase1.PublicUID},
+		default:
+			// Some other error.
+			return nil, libkbfs.EntryInfo{}, err
 		}
-	}
-
-	n, ei, err = config.KBFSOps().GetOrCreateRootNodeForHandle(ctx, dh, libkbfs.MasterBranch)
-	if err != nil {
-		return
 	}
 
 	for _, component := range p.tlfComponents {
@@ -257,7 +245,7 @@ func (p kbfsPath) getNode(ctx context.Context, config libkbfs.Config) (n libkbfs
 		ei = cei
 	}
 
-	return
+	return n, ei, nil
 }
 
 func (p kbfsPath) getFileNode(ctx context.Context, config libkbfs.Config) (libkbfs.Node, error) {

@@ -134,7 +134,7 @@ func testCRChainsFillInWriter(t *testing.T, rmds []*RootMetadata) Config {
 		t.Fatalf("Couldn't get UID: %v", err)
 	}
 	for _, rmd := range rmds {
-		rmd.data.LastWriter = uid
+		rmd.LastModifyingWriter = uid
 	}
 	return config
 }

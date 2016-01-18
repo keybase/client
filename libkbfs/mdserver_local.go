@@ -87,7 +87,8 @@ func NewMDServerMemory(config Config) (*MDServerLocal, error) {
 }
 
 // Helper to aid in enforcement that only specified public keys can access TLF metdata.
-func (md *MDServerLocal) checkPerms(ctx context.Context, id TlfID, checkWrite bool) (bool, error) {
+func (md *MDServerLocal) checkPerms(ctx context.Context, id TlfID,
+	checkWrite bool, newMd *RootMetadataSigned) (bool, error) {
 	rmds, err := md.getHeadForTLF(ctx, id, NullBranchID, Merged)
 	if rmds == nil {
 		// TODO: the real mdserver will actually reverse lookup the folder handle
@@ -99,20 +100,31 @@ func (md *MDServerLocal) checkPerms(ctx context.Context, id TlfID, checkWrite bo
 		return false, err
 	}
 	isWriter := rmds.MD.GetTlfHandle().IsWriter(user)
+	isReader := rmds.MD.GetTlfHandle().IsReader(user)
 	if checkWrite {
+		// is this a reader simply setting the rekey bit?
+		if !isWriter && isReader && newMd != nil {
+			return newMd.MD.IsValidRekeyRequest(md.config, rmds.MD), nil
+		}
 		return isWriter, nil
 	}
-	return isWriter || rmds.MD.GetTlfHandle().IsReader(user), nil
+	return isWriter || isReader, nil
 }
 
 // Helper to aid in enforcement that only specified public keys can access TLF metdata.
 func (md *MDServerLocal) isReader(ctx context.Context, id TlfID) (bool, error) {
-	return md.checkPerms(ctx, id, false)
+	return md.checkPerms(ctx, id, false, nil)
 }
 
 // Helper to aid in enforcement that only specified public keys can access TLF metdata.
 func (md *MDServerLocal) isWriter(ctx context.Context, id TlfID) (bool, error) {
-	return md.checkPerms(ctx, id, true)
+	return md.checkPerms(ctx, id, true, nil)
+}
+
+// Helper to aid in enforcement that only specified public keys can access TLF metdata.
+func (md *MDServerLocal) isWriterOrValidRekey(ctx context.Context, id TlfID, newMd *RootMetadataSigned) (
+	bool, error) {
+	return md.checkPerms(ctx, id, true, newMd)
 }
 
 // GetForHandle implements the MDServer interface for MDServerLocal.
@@ -287,7 +299,7 @@ func (md *MDServerLocal) getCurrentDeviceKID(ctx context.Context) (keybase1.KID,
 	if err != nil {
 		return keybase1.KID(""), err
 	}
-	return key.KID, nil
+	return key.kid, nil
 }
 
 // GetRange implements the MDServer interface for MDServerLocal.
@@ -380,7 +392,7 @@ func (md *MDServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) erro
 	id := rmds.MD.ID
 
 	// Check permissions
-	ok, err := md.isWriter(ctx, id)
+	ok, err := md.isWriterOrValidRekey(ctx, id, rmds)
 	if err != nil {
 		return MDServerError{err}
 	}
@@ -429,7 +441,10 @@ func (md *MDServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) erro
 				Actual:   rmds.MD.PrevRoot,
 			}
 		}
-		expectedUsage := head.MD.DiskUsage + rmds.MD.RefBytes - rmds.MD.UnrefBytes
+		expectedUsage := head.MD.DiskUsage
+		if !rmds.MD.IsWriterMetadataCopiedSet() {
+			expectedUsage += rmds.MD.RefBytes - rmds.MD.UnrefBytes
+		}
 		if rmds.MD.DiskUsage != expectedUsage {
 			return MDServerErrorConflictDiskUsage{
 				Expected: expectedUsage,
@@ -639,4 +654,9 @@ func (md *MDServerLocal) isShutdown() bool {
 	md.shutdownLock.RLock()
 	defer md.shutdownLock.RUnlock()
 	return *md.shutdown
+}
+
+// DisableRekeyUpdatesForTesting implements the MDServer interface.
+func (md *MDServerLocal) DisableRekeyUpdatesForTesting() {
+	// Nothing to do.
 }

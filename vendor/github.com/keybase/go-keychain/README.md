@@ -1,8 +1,8 @@
 # Go Keychain
 
-A library for accessing the Keychain for OSX and iOS.
+A library for accessing the Keychain for OSX and iOS in Go (golang).
 
-Requires Mac OSX 9 or greater and iOS 7 or greater.
+Requires OS X 10.9 or greater and iOS 8 or greater.
 
 ## Usage
 
@@ -34,8 +34,8 @@ Query for multiple results, returning attributes:
 ```go
 query := keychain.NewItem()
 query.SetSecClass(keychain.SecClassGenericPassword)
-query.setService(service)
-query.setAccount(account)
+query.SetService(service)
+query.SetAccount(account)
 query.SetAccessGroup(accessGroup)
 query.SetMatchLimit(keychain.MatchLimitAll)
 query.SetReturnAttributes(true)
@@ -104,9 +104,9 @@ if err == keychain.ErrorNotFound {
 }
 ```
 
-### OSX
+### OS X
 
-Settings trusted applications for item (OSX only):
+Set a trusted applications for item (OS X only):
 
 ```go
 item := keychain.NewGenericPassword("MyService", "gabriel", "A label", []byte("toomanysecrets"), "A123456789.group.com.mycorp")
