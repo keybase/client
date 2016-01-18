@@ -79,6 +79,8 @@ const (
 	// Time between checks for dirty files to flush, in case Sync is
 	// never called.
 	secondsBetweenBackgroundFlushes = 10
+	// Cap the number of times we retry after a recoverable error
+	maxRetriesOnRecoverableErrors = 10
 )
 
 type fboMutexLevel mutexLevel
@@ -1811,6 +1813,11 @@ func isRecoverableBlockError(err error) bool {
 		isArchiveMissingError
 }
 
+func isRetriableError(err error, retries int) bool {
+	recoverable := isRecoverableBlockError(err)
+	return recoverable && retries < maxRetriesOnRecoverableErrors
+}
+
 func (fbo *folderBranchOps) doOneBlockPut(ctx context.Context,
 	md *RootMetadata, blockState blockState,
 	errChan chan error, blocksToRemoveChan chan *FileBlock) {
@@ -2204,11 +2211,10 @@ func (fbo *folderBranchOps) CreateDir(
 
 	fbo.mdWriterLock.Lock(lState)
 	defer fbo.mdWriterLock.Unlock(lState)
-	for {
+	for i := 0; ; i++ {
 		n, de, err := fbo.createEntryLocked(ctx, lState, dir, path, Dir)
-		if isRecoverableBlockError(err) {
-			fbo.log.CDebugf(ctx, "Trying again after recoverable "+
-				"block error: %v", err)
+		if isRetriableError(err, i) {
+			fbo.log.CDebugf(ctx, "Trying again after retriable error: %v", err)
 			continue
 		} else if err != nil {
 			return nil, EntryInfo{}, err
@@ -2245,11 +2251,10 @@ func (fbo *folderBranchOps) CreateFile(
 
 	fbo.mdWriterLock.Lock(lState)
 	defer fbo.mdWriterLock.Unlock(lState)
-	for {
+	for i := 0; ; i++ {
 		n, de, err := fbo.createEntryLocked(ctx, lState, dir, path, entryType)
-		if isRecoverableBlockError(err) {
-			fbo.log.CDebugf(ctx, "Trying again after recoverable "+
-				"block error: %v", err)
+		if isRetriableError(err, i) {
+			fbo.log.CDebugf(ctx, "Trying again after retriable error: %v", err)
 			continue
 		} else if err != nil {
 			return nil, EntryInfo{}, err
@@ -2342,11 +2347,10 @@ func (fbo *folderBranchOps) CreateLink(
 
 	fbo.mdWriterLock.Lock(lState)
 	defer fbo.mdWriterLock.Unlock(lState)
-	for {
+	for i := 0; ; i++ {
 		de, err := fbo.createLinkLocked(ctx, lState, dir, fromName, toPath)
-		if isRecoverableBlockError(err) {
-			fbo.log.CDebugf(ctx, "Trying again after recoverable "+
-				"block error: %v", err)
+		if isRetriableError(err, i) {
+			fbo.log.CDebugf(ctx, "Trying again after retriable error: %v", err)
 			continue
 		} else if err != nil {
 			return EntryInfo{}, err
@@ -2482,11 +2486,10 @@ func (fbo *folderBranchOps) RemoveDir(
 	fbo.mdWriterLock.Lock(lState)
 	defer fbo.mdWriterLock.Unlock(lState)
 
-	for {
+	for i := 0; ; i++ {
 		err := fbo.removeDirLocked(ctx, lState, dir, dirName)
-		if isRecoverableBlockError(err) {
-			fbo.log.CDebugf(ctx, "Trying again after recoverable "+
-				"block error: %v", err)
+		if isRetriableError(err, i) {
+			fbo.log.CDebugf(ctx, "Trying again after retriable error: %v", err)
 			continue
 		}
 		return err
@@ -2508,7 +2511,7 @@ func (fbo *folderBranchOps) RemoveEntry(ctx context.Context, dir Node,
 	fbo.mdWriterLock.Lock(lState)
 	defer fbo.mdWriterLock.Unlock(lState)
 
-	for {
+	for i := 0; ; i++ {
 		// verify we have permission to write
 		md, err := fbo.getMDForWriteLocked(ctx, lState)
 		if err != nil {
@@ -2521,9 +2524,8 @@ func (fbo *folderBranchOps) RemoveEntry(ctx context.Context, dir Node,
 		}
 
 		err = fbo.removeEntryLocked(ctx, lState, md, dirPath, name)
-		if isRecoverableBlockError(err) {
-			fbo.log.CDebugf(ctx, "Trying again after recoverable "+
-				"block error: %v", err)
+		if isRetriableError(err, i) {
+			fbo.log.CDebugf(ctx, "Trying again after retriable error: %v", err)
 			continue
 		}
 		return err
@@ -2740,12 +2742,11 @@ func (fbo *folderBranchOps) Rename(
 		return RenameAcrossDirsError{}
 	}
 
-	for {
+	for i := 0; ; i++ {
 		err := fbo.renameLocked(ctx, lState, oldParentPath, oldName,
 			newParentPath, newName, newParent)
-		if isRecoverableBlockError(err) {
-			fbo.log.CDebugf(ctx, "Trying again after recoverable "+
-				"block error: %v", err)
+		if isRetriableError(err, i) {
+			fbo.log.CDebugf(ctx, "Trying again after retriable error: %v", err)
 			continue
 		}
 		return err
@@ -3387,11 +3388,10 @@ func (fbo *folderBranchOps) SetEx(
 		return
 	}
 
-	for {
+	for i := 0; ; i++ {
 		err := fbo.setExLocked(ctx, lState, filePath, ex)
-		if isRecoverableBlockError(err) {
-			fbo.log.CDebugf(ctx, "Trying again after recoverable "+
-				"block error: %v", err)
+		if isRetriableError(err, i) {
+			fbo.log.CDebugf(ctx, "Trying again after retriable error: %v", err)
 			continue
 		}
 		return err
@@ -3451,11 +3451,10 @@ func (fbo *folderBranchOps) SetMtime(
 		return err
 	}
 
-	for {
+	for i := 0; ; i++ {
 		err := fbo.setMtimeLocked(ctx, lState, filePath, mtime)
-		if isRecoverableBlockError(err) {
-			fbo.log.CDebugf(ctx, "Trying again after recoverable "+
-				"block error: %v", err)
+		if isRetriableError(err, i) {
+			fbo.log.CDebugf(ctx, "Trying again after retriable error: %v", err)
 			continue
 		}
 		return err
@@ -3922,11 +3921,11 @@ func (fbo *folderBranchOps) Sync(ctx context.Context, file Node) (err error) {
 		return err
 	}
 
-	for {
+	for i := 0; ; i++ {
 		stillDirty, err := fbo.syncLocked(ctx, lState, filePath)
-		if isRecoverableBlockError(err) {
-			fbo.log.CDebugf(ctx, "Trying again after recoverable "+
-				"block error: %v", err)
+		if isRetriableError(err, i) {
+			fbo.log.CDebugf(ctx,
+				"Trying again after recoverable error: %v", err)
 			continue
 		} else if err != nil {
 			return err
@@ -4751,11 +4750,11 @@ func (fbo *folderBranchOps) UnstageForTesting(
 		fbo.mdWriterLock.Lock(lState)
 		defer fbo.mdWriterLock.Unlock(lState)
 
-		for {
+		for i := 0; ; i++ {
 			err := fbo.unstageForTestingLocked(freshCtx, lState)
-			if isRecoverableBlockError(err) {
-				fbo.log.CDebugf(ctx, "Trying again after recoverable "+
-					"block error: %v", err)
+			if isRetriableError(err, i) {
+				fbo.log.CDebugf(ctx,
+					"Trying again after retriable error: %v", err)
 				continue
 			}
 			c <- err
@@ -4844,11 +4843,10 @@ func (fbo *folderBranchOps) Rekey(ctx context.Context, tlf TlfID) (err error) {
 	fbo.mdWriterLock.Lock(lState)
 	defer fbo.mdWriterLock.Unlock(lState)
 
-	for {
+	for i := 0; ; i++ {
 		err := fbo.rekeyLocked(ctx, lState)
-		if isRecoverableBlockError(err) {
-			fbo.log.CDebugf(ctx, "Trying again after recoverable "+
-				"block error: %v", err)
+		if isRetriableError(err, i) {
+			fbo.log.CDebugf(ctx, "Trying again after retriable error: %v", err)
 			continue
 		} else if err != nil {
 			return err
