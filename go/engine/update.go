@@ -56,7 +56,7 @@ func (u *UpdateEngine) Run(ctx *Context) (err error) {
 	}
 
 	updr := updater.NewUpdater(u.options, source, u.G().Env, u.G().Log)
-	update, err := updr.Update(ctx.UpdateUI, u.options.Force, true)
+	update, err := updr.Update(ctx, u.options.Force, true)
 	if err != nil {
 		return
 	}

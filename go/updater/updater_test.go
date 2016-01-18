@@ -11,6 +11,7 @@ import (
 	"runtime"
 	"testing"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
@@ -30,6 +31,10 @@ func (u nullUpdateUI) UpdatePrompt(_ context.Context, _ keybase1.UpdatePromptArg
 
 func (u nullUpdateUI) UpdateQuit(_ context.Context) (keybase1.UpdateQuitRes, error) {
 	return keybase1.UpdateQuitRes{Quit: false}, nil
+}
+
+func (u nullUpdateUI) GetUpdateUI() (libkb.UpdateUI, error) {
+	return u, nil
 }
 
 func (u testUpdateSource) Description() string {
