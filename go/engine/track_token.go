@@ -61,31 +61,40 @@ func (e *TrackToken) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *TrackToken) Run(ctx *Context) error {
+func (e *TrackToken) Run(ctx *Context) (err error) {
+	e.G().Trace("TrackToken", func() error { return err })()
 	if len(e.arg.Token) == 0 {
-		return fmt.Errorf("missing TrackToken argument")
+		err = fmt.Errorf("missing TrackToken argument")
+		return err
 	}
-	if err := e.loadMe(); err != nil {
+	if err = e.loadMe(); err != nil {
 		e.G().Log.Info("loadme err: %s", err)
 		return err
 	}
 
-	outcome, err := e.G().TrackCache.Get(e.arg.Token)
+	var outcome *libkb.IdentifyOutcome
+	outcome, err = e.G().TrackCache.Get(e.arg.Token)
 	if err != nil {
 		return err
 	}
 
-	if outcome.TrackStatus() == keybase1.TrackStatus_UPDATE_OK {
+	if outcome.TrackStatus() == keybase1.TrackStatus_UPDATE_OK && !e.arg.Options.ForceRetrack {
 		e.G().Log.Debug("tracking statement up-to-date.")
 		return nil
 	}
 
-	if err := e.loadThem(outcome.Username); err != nil {
+	if err = e.loadThem(outcome.Username); err != nil {
 		return err
 	}
 
 	if e.arg.Me.Equal(e.them) {
-		return libkb.SelfTrackError{}
+		err = libkb.SelfTrackError{}
+		return err
+	}
+
+	if err = e.isTrackTokenStale(outcome); err != nil {
+		e.G().Log.Debug("Track statement is stale")
+		return err
 	}
 
 	ska := libkb.SecretKeyArg{
@@ -127,6 +136,29 @@ func (e *TrackToken) Run(ctx *Context) error {
 	}
 
 	return err
+}
+
+func (e *TrackToken) isTrackTokenStale(o *libkb.IdentifyOutcome) (err error) {
+	if idt := e.arg.Me.IDTable(); idt == nil {
+		return nil
+	} else if tm := idt.GetTrackMap(); tm == nil {
+		return nil
+	} else if v := tm[o.Username]; len(v) == 0 {
+		return nil
+	} else if lastTrack := v[len(v)-1]; lastTrack != nil && !lastTrack.IsRevoked() && o.TrackUsed == nil {
+		// If we had a valid track that we didn't use in the identification, then
+		// someone must have slipped in before us. Distinguish this case from the
+		// other case below for the purposes of testing, to make sure we hit
+		// both error cases in our tests.
+		return libkb.TrackStaleError{FirstTrack: true}
+	} else if o.TrackUsed == nil || lastTrack == nil {
+		return nil
+	} else if o.TrackUsed.GetTrackerSeqno() != lastTrack.GetSeqno() {
+		// Similarly, if there was a last track for this user that wasn't the
+		// one we were expecting, someone also must have intervened.
+		return libkb.TrackStaleError{FirstTrack: false}
+	}
+	return nil
 }
 
 func (e *TrackToken) loadMe() error {

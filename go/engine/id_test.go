@@ -175,6 +175,7 @@ type FakeIdentifyUI struct {
 	DisplayKeyCalls int
 	Outcome         *keybase1.IdentifyOutcome
 	StartCount      int
+	Token           keybase1.TrackToken
 	sync.Mutex
 }
 
@@ -235,7 +236,8 @@ func (ui *FakeIdentifyUI) DisplayTrackStatement(string) (err error) {
 }
 func (ui *FakeIdentifyUI) DisplayUserCard(keybase1.UserCard) {
 }
-func (ui *FakeIdentifyUI) ReportTrackToken(keybase1.TrackToken) error {
+func (ui *FakeIdentifyUI) ReportTrackToken(tok keybase1.TrackToken) error {
+	ui.Token = tok
 	return nil
 }
 func (ui *FakeIdentifyUI) SetStrict(b bool) {

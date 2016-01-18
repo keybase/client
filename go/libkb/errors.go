@@ -1297,6 +1297,16 @@ func (e KeybaseSaltpackError) Error() string {
 
 //=============================================================================
 
+type TrackStaleError struct {
+	FirstTrack bool
+}
+
+func (e TrackStaleError) Error() string {
+	return "Tracking statement was stale"
+}
+
+//=============================================================================
+
 type UnknownStreamError struct{}
 
 func (e UnknownStreamError) Error() string {

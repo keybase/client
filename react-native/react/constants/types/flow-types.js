@@ -1308,11 +1308,13 @@ export type TrackStatus = 1 /* 'NEW_OK_1' */ | 2 /* 'NEW_ZERO_PROOFS_2' */ | 3 /
 export type identify_TrackOptions = {
   localOnly: boolean;
   bypassConfirm: boolean;
+  forceRetrack: boolean;
 }
 
 export type TrackOptions = {
   localOnly: boolean;
   bypassConfirm: boolean;
+  forceRetrack: boolean;
 }
 
 export type identify_IdentifyReasonType = 0 /* 'NONE_0' */ | 1 /* 'ID_1' */ | 2 /* 'TRACK_2' */ | 3 /* 'ENCRYPT_3' */ | 4 /* 'DECRYPT_4' */ | 5 /* 'VERIFY_5' */ | 6 /* 'RESOURCE_6' */
@@ -1527,6 +1529,7 @@ export type identifyUi_TrackStatus = 1 /* 'NEW_OK_1' */ | 2 /* 'NEW_ZERO_PROOFS_
 export type identifyUi_TrackOptions = {
   localOnly: boolean;
   bypassConfirm: boolean;
+  forceRetrack: boolean;
 }
 
 export type identifyUi_IdentifyReasonType = 0 /* 'NONE_0' */ | 1 /* 'ID_1' */ | 2 /* 'TRACK_2' */ | 3 /* 'ENCRYPT_3' */ | 4 /* 'DECRYPT_4' */ | 5 /* 'VERIFY_5' */ | 6 /* 'RESOURCE_6' */
@@ -4882,6 +4885,7 @@ export type track_TrackStatus = 1 /* 'NEW_OK_1' */ | 2 /* 'NEW_ZERO_PROOFS_2' */
 export type track_TrackOptions = {
   localOnly: boolean;
   bypassConfirm: boolean;
+  forceRetrack: boolean;
 }
 
 export type track_IdentifyReasonType = 0 /* 'NONE_0' */ | 1 /* 'ID_1' */ | 2 /* 'TRACK_2' */ | 3 /* 'ENCRYPT_3' */ | 4 /* 'DECRYPT_4' */ | 5 /* 'VERIFY_5' */ | 6 /* 'RESOURCE_6' */

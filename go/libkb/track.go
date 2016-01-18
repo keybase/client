@@ -98,9 +98,10 @@ func (s TrackSummary) Username() string    { return s.username }
 //=====================================================================
 
 type TrackLookup struct {
-	link *TrackChainLink     // The original chain link that I signed
-	set  *TrackSet           // The total set of tracked identities
-	ids  map[string][]string // A http -> [foo.com, boo.com] lookup
+	link         *TrackChainLink     // The original chain link that I signed
+	set          *TrackSet           // The total set of tracked identities
+	ids          map[string][]string // A http -> [foo.com, boo.com] lookup
+	trackerSeqno Seqno               // The seqno in the tracker's sighcain
 }
 
 func (l TrackLookup) ToSummary() TrackSummary {
@@ -112,6 +113,10 @@ func (l TrackLookup) ToSummary() TrackSummary {
 
 func (l TrackLookup) GetProofState(id string) keybase1.ProofState {
 	return l.set.GetProofState(id)
+}
+
+func (l TrackLookup) GetTrackerSeqno() Seqno {
+	return l.trackerSeqno
 }
 
 func (l TrackLookup) GetTrackedKeys() []TrackedKey {
@@ -334,7 +339,7 @@ func NewTrackLookup(link *TrackChainLink) *TrackLookup {
 		k, v := sb.ToKeyValuePair()
 		ids[k] = append(ids[k], v)
 	}
-	ret := &TrackLookup{link: link, set: set, ids: ids}
+	ret := &TrackLookup{link: link, set: set, ids: ids, trackerSeqno: link.GetSeqno()}
 	return ret
 }
 

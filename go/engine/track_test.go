@@ -281,3 +281,67 @@ func TestTrackWithSecretStore(t *testing.T) {
 		untrackAlice(tc, fu)
 	})
 }
+
+// Test for Core-2196 identify/track race detection
+func TestIdentifyTrackRaceDetection(t *testing.T) {
+
+	user, dev1, dev2, cleanup := SetupTwoDevices(t, "track")
+	defer cleanup()
+
+	trackee := "t_tracy"
+
+	doID := func(tc libkb.TestContext, fui *FakeIdentifyUI) {
+		iarg := &keybase1.Identify2Arg{
+			UserAssertion: trackee,
+		}
+		eng := NewResolveThenIdentify2(tc.G, iarg)
+		ctx := Context{IdentifyUI: fui}
+		if err := RunEngine(eng, &ctx); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	track := func(tc libkb.TestContext, fui *FakeIdentifyUI) error {
+		arg := TrackTokenArg{
+			Token: fui.Token,
+			Options: keybase1.TrackOptions{
+				BypassConfirm: true,
+				ForceRetrack:  true,
+			},
+		}
+		ctx := &Context{
+			LogUI:    tc.G.UI.GetLogUI(),
+			SecretUI: user.NewSecretUI(),
+		}
+		eng := NewTrackToken(&arg, tc.G)
+		return RunEngine(eng, ctx)
+	}
+
+	trackSucceed := func(tc libkb.TestContext, fui *FakeIdentifyUI) {
+		if err := track(tc, fui); err != nil {
+			t.Fatal(err)
+		}
+		assertTracking(dev1, trackee)
+	}
+
+	trackFail := func(tc libkb.TestContext, fui *FakeIdentifyUI, firstTrack bool) {
+		if err := track(tc, fui); err == nil {
+			t.Fatal("wanted an error!")
+		} else if tse, ok := err.(libkb.TrackStaleError); !ok {
+			t.Fatal("wanted a track stale error")
+		} else if tse.FirstTrack != firstTrack {
+			t.Fatalf("first track disagreement: %v != %v", tse.FirstTrack, firstTrack)
+		}
+	}
+
+	for i := 0; i < 2; i++ {
+		fui1 := &FakeIdentifyUI{}
+		fui2 := &FakeIdentifyUI{}
+		doID(dev1, fui1)
+		doID(dev2, fui2)
+		trackSucceed(dev1, fui1)
+		trackFail(dev2, fui2, (i == 0))
+	}
+
+	runUntrack(dev1.G, user, trackee)
+}

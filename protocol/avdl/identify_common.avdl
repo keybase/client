@@ -55,6 +55,7 @@ protocol identifyCommon {
   record TrackOptions {
     boolean localOnly;
     boolean bypassConfirm;
+    boolean forceRetrack;
   }
 
   enum IdentifyReasonType {
