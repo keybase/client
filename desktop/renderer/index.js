@@ -60,7 +60,8 @@ class Keybase extends Component {
     ipcMain.on('dispatchAction', (event, action) => {
       // we MUST clone this else we'll run into issues with redux. See https://github.com/rackt/redux/issues/830
       // This is because we get a remote proxy object, instead of a normal object
-      setImmediate(() => store.dispatch(_.cloneDeep(action)))
+      // Using _.cloneDeep() creates a non-plain object
+      setImmediate(() => store.dispatch(_.merge({}, action)))
     })
 
     ipcMain.on('subscribeStore', event => {
