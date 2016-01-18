@@ -241,14 +241,21 @@ func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool
 			return
 		}
 	}
-	file, err := os.OpenFile(savePath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, libkb.PermFile)
-	if err != nil {
-		return
+
+	saveFile := func(savePath string) error {
+		file, err := os.OpenFile(savePath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, libkb.PermFile)
+		if err != nil {
+			return err
+		}
+		defer file.Close()
+
+		u.log.Info("Saving to %s", savePath)
+		n, err := io.Copy(file, resp.Body)
+		u.log.Info("Wrote %d bytes", n)
+		return err
 	}
-	defer file.Close()
-	u.log.Info("Saving to %s", savePath)
-	n, err := io.Copy(file, resp.Body)
-	u.log.Info("Wrote %d bytes", n)
+
+	err = saveFile(savePath)
 	if err != nil {
 		return
 	}
@@ -265,9 +272,10 @@ func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool
 			return
 		}
 	}
-	u.log.Info("Moving %s to %s", filepath.Base(savePath), filepath.Base(fpath))
-	err = os.Rename(savePath, fpath)
 
+	u.log.Info("Moving %s to %s", filepath.Base(savePath), filepath.Base(fpath))
+
+	err = os.Rename(savePath, fpath)
 	return
 }
 
@@ -362,7 +370,21 @@ func (u *Updater) update(ui UI, force bool, requested bool) (update *keybase1.Up
 		return
 	}
 
-	tmpFileName, err := u.applyUpdate(ui, *update)
+	if err = u.promptForUpdateAction(ui, *update); err != nil {
+		return
+	}
+
+	if update.Asset == nil {
+		u.log.Info("No update asset to apply")
+		return
+	}
+
+	if update.Asset.LocalPath == "" {
+		err = fmt.Errorf("No local asset path for update")
+		return
+	}
+
+	tmpFileName, err := u.applyUpdate(update.Asset.LocalPath)
 	if err != nil {
 		return
 	}
@@ -428,22 +450,8 @@ func (u *Updater) promptForUpdateAction(ui UI, update keybase1.Update) (err erro
 	return
 }
 
-func (u *Updater) applyUpdate(ui UI, update keybase1.Update) (tmpPath string, err error) {
-	if err = u.promptForUpdateAction(ui, update); err != nil {
-		return
-	}
-
-	if update.Asset == nil {
-		u.log.Info("No update asset to apply")
-		return
-	}
-
-	if update.Asset.LocalPath == "" {
-		err = fmt.Errorf("No local asset path for update")
-		return
-	}
-
-	unzipPath, err := u.unpack(update.Asset.LocalPath)
+func (u *Updater) applyZip(localPath string) (tmpPath string, err error) {
+	unzipPath, err := u.unpack(localPath)
 	if err != nil {
 		return
 	}
