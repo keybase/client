@@ -183,7 +183,7 @@ func (v *CmdLaunchdList) ParseArgv(ctx *cli.Context) error {
 
 func (v *CmdLaunchdList) Run() error {
 	if v.format == "json" {
-		servicesStatus, err := install.ListServices()
+		servicesStatus, err := install.ListServices(v.G())
 		if err != nil {
 			return err
 		}
