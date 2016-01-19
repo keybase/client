@@ -35,9 +35,9 @@ const font = {
     ...fontCommon,
     fontFamily: 'Noto Sans Italic'
   },
-  fontCourier: {
+  fontTerminal: {
     ...fontCommon,
-    fontFamily: 'Courier'
+    fontFamily: 'Source Code Pro'
   }
 }
 

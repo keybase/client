@@ -17,6 +17,15 @@ const shouldBuildAnArch = argv.arch || false
 const appVersion = argv.appVersion || '0.0.0'
 const comment = argv.comment || ''
 
+// Inject app version
+cfg.plugins.push(
+  new webpack.DefinePlugin({
+    '__VERSION__': JSON.stringify(appVersion)
+  })
+)
+
+console.log('Injecting __VERSION__: ', appVersion)
+
 del.sync('dist')
 del.sync('build')
 
@@ -64,11 +73,14 @@ if (version) {
   startPack()
 } else {
   // use the same version as the currently-installed electron-prebuilt
-  exec('npm list | grep electron-prebuilt', (err, stdout, stderr) => {
-    if (err) {
-      DEFAULT_OPTS.version = '0.35.4'
-    } else {
-      DEFAULT_OPTS.version = stdout.split('@')[1].split(' ')[0]
+  console.log('Finding electron version')
+  exec('npm list --dev electron-prebuilt', (err, stdout, stderr) => {
+    DEFAULT_OPTS.version = '0.36.3'
+
+    if (!err) {
+      try {
+        DEFAULT_OPTS.version = stdout.match(/electron-prebuilt@([0-9.]+)\n/)[1]
+      } catch (ignore) { }
     }
     startPack()
   })

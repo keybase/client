@@ -20,6 +20,9 @@ export default class Render extends Component {
   render () {
     return (
       <div style={{...commonStyles.flexBoxColumn, flex: 1, overflowY: 'auto'}}>
+        <Container title='Menubar'>
+          <Menubar/>
+        </Container>
         <Container title='Updater'>
           <Update
             isCritical
@@ -41,9 +44,6 @@ export default class Render extends Component {
         </Container>
         <Container title='Tracker'>
           <ConnectedTrackerDev/>
-        </Container>
-        <Container title='Menubar'>
-          <Menubar/>
         </Container>
         <Container title='Header No Close'>
           <Header icon title='Title'/>

@@ -24,3 +24,14 @@ export function getTLF (isPublic: boolean, basedir: string): string {
     return `/private/${basedir}`
   }
 }
+
+export function cleanup (folderName: string): string {
+  if (!folderName) {
+    return ''
+  }
+
+  return folderName.replace(/\s/g, '').replace(/\.\./g, '').replace(/\//g, '').replace(/\\/g, '')
+}
+
+// Set to true to allow logged out kbfs access
+export const allowLoggedOut = false

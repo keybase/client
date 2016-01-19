@@ -10,12 +10,17 @@ export default class Button extends Component {
 
   render () {
     const rootStyle = this.props.primary ? styles.buttonPrimary : styles.buttonSeconary
+    const smallStyle = this.props.small ? styles.buttonSmall : {}
+    const smallLabelStyle = this.props.small ? styles.buttonSmallLabel : {}
+    const moreStyle = this.props.more ? styles.buttonMore : {}
+    const moreLabelStyle = this.props.more ? styles.buttonMoreLabel : {}
+
     return (
       <FlatButton
         onClick={this.props.onClick}
-        style={{...rootStyle, ...this.props.style}}
-        labelStyle={styles.buttonLabel}
-        label={this.props.label}
+        style={{...rootStyle, ...smallStyle, ...moreStyle, ...this.props.style}}
+        labelStyle={{...styles.buttonLabel, ...smallLabelStyle, ...moreLabelStyle}}
+        label={this.props.label || this.props.more && '•••'}
         primary={this.props.primary} />
     )
   }
@@ -25,7 +30,9 @@ Button.propTypes = {
   onClick: React.PropTypes.func.isRequired,
   label: React.PropTypes.string,
   style: React.PropTypes.object,
-  primary: React.PropTypes.bool
+  primary: React.PropTypes.bool,
+  small: React.PropTypes.bool,
+  more: React.PropTypes.bool
 }
 
 const buttonCommon = {
@@ -33,9 +40,11 @@ const buttonCommon = {
   borderRadius: 61,
   color: globalColors.white,
   fontSize: 18,
-  height: 32,
+  paddingTop: 4,
+  paddingBottom: 4,
   lineHeight: '24px',
-  textTransform: 'none'
+  textTransform: 'none',
+  minWidth: 10
 }
 
 export const styles = {
@@ -48,9 +57,35 @@ export const styles = {
     backgroundColor: globalColors.lightBlue,
     marginRight: 10
   },
+  buttonSmall: {
+    fontSize: 13,
+    paddingTop: 3,
+    paddingBottom: 3,
+    lineHeight: '18px'
+  },
   buttonLabel: {
     paddingLeft: 24,
     paddingRight: 24
+  },
+  buttonSmallLabel: {
+    paddingLeft: 10,
+    paddingRight: 10
+  },
+  buttonMore: {
+    ...buttonCommon,
+    backgroundColor: globalColors.grey3,
+    paddingLeft: 2,
+    paddingRight: 2,
+    paddingTop: 2,
+    paddingBottom: 2,
+    height: 12,
+    lineHeight: '2px'
+  },
+  buttonMoreLabel: {
+    paddingLeft: 3,
+    paddingRight: 3,
+    paddingTop: 3,
+    paddingBottom: 3
   }
 }
 

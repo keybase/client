@@ -4,13 +4,22 @@ import React, {Component} from '../base-react'
 export default class Render extends Component {
   props: {
     debug?: boolean,
-    loading: boolean
+    loading: boolean,
+    loggedIn: ?boolean
   };
 }
 
 export type FolderInfo = {
-  folderName: string,
-  isPublic: boolean,
-  isEmpty: boolean,
-  openFolder: () => void
+    type: 'folder',
+    folderName: string,
+    isPublic: boolean,
+    isEmpty: boolean,
+    openFolder: () => void
+}
+
+export type FolderEntry = {
+    type: 'entry',
+    prefix: string,
+    isPublic: boolean,
+    openFolder: (val: string) => void
 }
