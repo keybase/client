@@ -975,6 +975,7 @@ type Config interface {
 	SetClock(Clock)
 	ConflictRenamer() ConflictRenamer
 	SetConflictRenamer(ConflictRenamer)
+	MetadataVersion() MetadataVer
 	DataVersion() DataVer
 	RekeyQueue() RekeyQueue
 	SetRekeyQueue(RekeyQueue)

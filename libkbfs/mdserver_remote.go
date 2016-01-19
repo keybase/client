@@ -252,6 +252,13 @@ func (md *MDServerRemote) get(ctx context.Context, id TlfID, handle *TlfHandle,
 	// deserialize blocks
 	rmdses := make([]*RootMetadataSigned, len(response.MdBlocks))
 	for i, block := range response.MdBlocks {
+		ver := MetadataVer(block.Version)
+		if ver < FirstValidMetadataVer {
+			return id, nil, InvalidMetadataVersionError{id, ver}
+		} else if ver > md.config.MetadataVersion() {
+			return id, nil, NewMetadataVersionError{id, ver}
+		}
+
 		var rmds RootMetadataSigned
 		err = md.config.Codec().Decode(block.Block, &rmds)
 		if err != nil {
@@ -308,13 +315,16 @@ func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned) err
 
 	// put request
 	arg := keybase1.PutMetadataArg{
-		MdBlock: keybase1.MDBlock{Block: rmdsBytes},
+		MdBlock: keybase1.MDBlock{
+			Version: int(md.config.MetadataVersion()),
+			Block:   rmdsBytes,
+		},
 		LogTags: LogTagsFromContextToMap(ctx),
 	}
 	return md.client.PutMetadata(ctx, arg)
 }
 
-// PruneBranch implementms the MDServer interface for MDServerRemote.
+// PruneBranch implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) PruneBranch(ctx context.Context, id TlfID, bid BranchID) error {
 	arg := keybase1.PruneBranchArg{
 		FolderID: id.String(),

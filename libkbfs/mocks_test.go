@@ -2434,6 +2434,16 @@ func (_mr *_MockConfigRecorder) SetConflictRenamer(arg0 interface{}) *gomock.Cal
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetConflictRenamer", arg0)
 }
 
+func (_m *MockConfig) MetadataDataVersion() MetadataVer {
+	ret := _m.ctrl.Call(_m, "MetadataDataVersion")
+	ret0, _ := ret[0].(MetadataVer)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) MetadataDataVersion() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MetadataDataVersion")
+}
+
 func (_m *MockConfig) DataVersion() DataVer {
 	ret := _m.ctrl.Call(_m, "DataVersion")
 	ret0, _ := ret[0].(DataVer)

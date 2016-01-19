@@ -144,6 +144,17 @@ const (
 	FirstValidKeyGen = 1
 )
 
+// MetadataVer is the type of a version for marshalled KBFS metadata
+// structures.
+type MetadataVer int
+
+const (
+	// FirstValidMetadataVer is the first value that is considered a
+	// valid data version. For historical reasons 0 is considered
+	// valid.
+	FirstValidMetadataVer = 0
+)
+
 // DataVer is the type of a version for marshalled KBFS data
 // structures.
 type DataVer int
