@@ -1,9 +1,7 @@
 #! /bin/bash
 
-# Invokes the build_debian.sh script in the Go client repo, copies the
-# resulting package here, and then updates the Debian repo hierarchy. Does not
-# check repo cleanliness or make a commit or anything; that's the caller's
-# responsibility.
+# Given a build root, invokes package_binaries.sh and then lays out the
+# resulting packages as they would be in a debian package server.
 #
 # Dependencies:
 #   - regular Go setup for building the client
@@ -50,7 +48,7 @@ for debian_arch in amd64 i386 ; do
   # described here: https://wiki.debian.org/RepositoryFormat We use the
   # reprepro tool to automatically generate this hierarchy and sign it, which
   # works on (at least) Debian or Arch.
-  debfile="$(ls "$build_root/$debian_arch"/debian/*.deb)"  # keybase, kbstage, or kbdev
+  debfile="$(ls "$build_root/deb/$debian_arch"/*.deb)"  # keybase, kbstage, or kbdev
   # reprepro reads "prod/linux/deb/repo/conf/distributions", which includes the
   # PGP fingerprint of our code signing key.
   reprepro --basedir "$repo_root/repo" includedeb stable "$debfile"

@@ -9,7 +9,7 @@ Keybase command line client
 
 %install
 mkdir -p "$RPM_BUILD_ROOT"
-cp -r "$RPM_BUILD_DIR"/../../layout/* "$RPM_BUILD_ROOT"
+cp -r "@@BINARIES_PATH@@"/* "$RPM_BUILD_ROOT"
 
 %files
 /*

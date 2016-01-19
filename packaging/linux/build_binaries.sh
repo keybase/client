@@ -55,9 +55,8 @@ if should_build_kbfs ; then
 fi
 
 build_one_architecture() {
-  layout_dir="$build_root/$debian_arch/layout"
+  layout_dir="$build_root/binaries/$debian_arch"
   mkdir -p "$layout_dir/usr/bin"
-  mkdir -p "$layout_dir/opt/keybase"
 
   # Always build with vendoring on.
   export GO15VENDOREXPERIMENT=1
@@ -85,6 +84,7 @@ build_one_architecture() {
   (
     cd "$here/../../desktop"
     node package.js --platform linux --arch $electron_arch
+    mkdir -p "$layout_dir/opt/keybase"
     rsync -a "release/linux-${electron_arch}/Keybase-linux-${electron_arch}/" \
       "$layout_dir/opt/keybase"
   )

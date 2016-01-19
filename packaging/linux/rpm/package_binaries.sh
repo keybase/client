@@ -27,11 +27,12 @@ name="$("$here/../../binary_name.sh" "$mode")"
 
 build_one_architecture() {
   echo "Making .rpm package for $rpm_arch."
-  # The folders in the build root use Debian arch names.
-  dest="$build_root/$debian_arch/rpm"
+  dest="$build_root/rpm/$rpm_arch"
   mkdir -p "$dest/SPECS"
 
-  # The spec file contains commands for copying binaries.
+  # The binaries fold uses debian arch names.
+  binaries_path="$(realpath "$build_root/binaries/$debian_arch")"
+  echo "binaries_path: $binaries_path"
 
   if [ "$mode" = "production" ] ; then
     repo_url="http://dist.keybase.io/linux/rpm/repo/$rpm_arch"
@@ -54,6 +55,7 @@ build_one_architecture() {
   cat "$here/spec.template" \
     | sed "s/@@NAME@@/$name/" \
     | sed "s/@@VERSION@@/$version/" \
+    | sed "s|@@BINARIES_PATH@@|$binaries_path|" \
     > "$spec"
   cat "$here/postinst.template" | sed "s|@@REPO_URL@@|$repo_url|" >> "$spec"
 
@@ -62,12 +64,8 @@ build_one_architecture() {
 
 export rpm_arch=i386
 export debian_arch=i386
-export electron_arch=ia32
-export GOARCH=386
 build_one_architecture
 
 export rpm_arch=x86_64
 export debian_arch=amd64
-export electron_arch=x64
-export GOARCH=amd64
 build_one_architecture
