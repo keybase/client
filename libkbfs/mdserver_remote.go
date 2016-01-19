@@ -89,7 +89,7 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 		md.log.Warning("MDServerRemote: authentication error: %v", err)
 		return err
 	}
-	md.log.Debug("MDServerRemote: authentication successful")
+	md.log.Debug("MDServerRemote: authentication successful; ping interval: %ds", pingIntervalSeconds)
 
 	// request a list of folders needing rekey action
 	if err := md.getFoldersForRekey(ctx, c, server); err != nil {
@@ -173,9 +173,7 @@ func (md *MDServerRemote) OnDoCommandError(err error, wait time.Duration) {
 
 // OnDisconnected implements the ConnectionHandler interface.
 func (md *MDServerRemote) OnDisconnected(status DisconnectStatus) {
-	if status == StartingNonFirstConnection {
-		md.log.Warning("MDServerRemote is disconnected")
-	}
+	md.log.Warning("MDServerRemote is disconnected: %v", status)
 	md.cancelObservers()
 	md.resetPingTicker(0)
 	if md.authToken != nil {
