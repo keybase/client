@@ -98,6 +98,11 @@
 			"revisionTime": "2015-09-01T19:20:23-04:00"
 		},
 		{
+			"path": "github.com/kardianos/osext",
+			"revision": "6e7f843663477789fac7c02def0d0909e969b4e5",
+			"revisionTime": "2015-05-28T07:23:15-07:00"
+		},
+		{
 			"path": "github.com/kballard/go-shellquote",
 			"revision": "e5c918b80c17694cbc49aab32a759f9a40067f5d",
 			"revisionTime": "2014-07-18T00:10:36-05:00"

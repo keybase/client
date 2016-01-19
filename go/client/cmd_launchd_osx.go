@@ -265,16 +265,11 @@ func (v *CmdLaunchdStatus) Run() error {
 		return fmt.Errorf("Invalid service name: %s", v.name)
 	}
 
-	if v.format == "json" {
-		out, err := json.MarshalIndent(st, "", "  ")
-		if err != nil {
-			return err
-		}
-		fmt.Fprintf(os.Stdout, "%s\n", out)
-	} else if v.format == "" {
-
-		fmt.Fprintf(os.Stdout, "%#v\n", st)
+	out, err := json.MarshalIndent(st, "", "  ")
+	if err != nil {
+		return err
 	}
+	fmt.Fprintf(os.Stdout, "%s\n", out)
 	return nil
 }
 
