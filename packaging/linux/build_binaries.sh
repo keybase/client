@@ -59,6 +59,9 @@ build_one_architecture() {
   mkdir -p "$layout_dir/usr/bin"
   mkdir -p "$layout_dir/opt/keybase"
 
+  # Always build with vendoring on.
+  export GO15VENDOREXPERIMENT=1
+
   # Build the client binary. Note that `go build` reads $GOARCH.
   echo "Building client for $GOARCH..."
   go build -tags "$go_tags" -ldflags "$ldflags" -o \
