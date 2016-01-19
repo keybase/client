@@ -23,10 +23,18 @@ mode="$(cat "$build_root/MODE")"
 
 name="$("$here/../../binary_name.sh" "$mode")"
 
-if [ "$mode" = "prerelease" ] ; then
-  repo_url="http://s3.amazonaws.com/prerelease.keybase.io/deb"
-else
+if [ "$mode" = "production" ] ; then
   repo_url="http://dist.keybase.io/linux/deb/repo"
+elif [ "$mode" = "prerelease" ] ; then
+  repo_url="http://s3.amazonaws.com/prerelease.keybase.io/deb"
+elif [ "$mode" = "staging" ] ; then
+  # Note: This doesn't exist yet. But we need to be distinct from the
+  # production URL, because we're moving to a model where we build a clean repo
+  # every time, rather than adding to an existing one. (For S3 compatibility.)
+  repo_url="http://dist.keybase.io/linux/deb_staging/repo"
+else
+  # We don't actually publish devel builds. This URL is a dream within a dream.
+  repo_url="http://dist.keybase.io/linux/deb_devel/repo"
 fi
 
 build_one_architecture() {
