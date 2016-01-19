@@ -25,8 +25,6 @@ mode="$(cat "$build_root/MODE")"
 
 name="$("$here/../../binary_name.sh" "$mode")"
 
-# TODO: Add a prerelease RPM repo URL.
-
 build_one_architecture() {
   echo "Making .rpm package for $rpm_arch."
   # The folders in the build root use Debian arch names.
@@ -35,13 +33,29 @@ build_one_architecture() {
 
   # The spec file contains commands for copying binaries.
 
+  if [ "$mode" = "production" ] ; then
+    repo_url="http://dist.keybase.io/linux/rpm/repo/$rpm_arch"
+  elif [ "$mode" = "prerelease" ] ; then
+    repo_url="http://s3.amazonaws.com/prerelease.keybase.io/rpm/$rpm_arch"
+  elif [ "$mode" = "staging" ] ; then
+    # Note: This doesn't exist yet. But we need to be distinct from the
+    # production URL, because we're moving to a model where we build a clean
+    # repo every time, rather than adding to an existing one. (For S3
+    # compatibility.)
+    repo_url="http://dist.keybase.io/linux/rpm_staging/repo/$rpm_arch"
+  else
+    # We don't actually publish devel builds. This URL is a dream within a
+    # dream.
+    repo_url="http://dist.keybase.io/linux/rpm_devel/repo/$rpm_arch"
+  fi
+
   spec="$dest/SPECS/keybase-$rpm_arch.spec"
   mkdir -p "$(dirname "$spec")"
   cat "$here/spec.template" \
     | sed "s/@@NAME@@/$name/" \
     | sed "s/@@VERSION@@/$version/" \
     > "$spec"
-  cat "$here/postinst.template" | sed "s/@@ARCH@@/$rpm_arch/" >> "$spec"
+  cat "$here/postinst.template" | sed "s|@@REPO_URL@@|$repo_url|" >> "$spec"
 
   rpmbuild --define "_topdir $dest" --target "$rpm_arch" -bb "$spec"
 }
