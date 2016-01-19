@@ -11,6 +11,7 @@ import (
 
 	"github.com/cenkalti/backoff"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
@@ -179,6 +180,7 @@ type Connection struct {
 	handler        ConnectionHandler
 	transport      ConnectionTransport
 	errorUnwrapper rpc.ErrorUnwrapper
+	log            logger.Logger
 
 	// protects everything below.
 	mutex             sync.Mutex
@@ -216,6 +218,7 @@ func newConnectionWithTransport(config Config,
 		handler:        handler,
 		transport:      transport,
 		errorUnwrapper: errorUnwrapper,
+		log:            config.MakeLogger(""),
 	}
 	if connectNow {
 		// start connecting now
@@ -226,9 +229,12 @@ func newConnectionWithTransport(config Config,
 
 // connect performs the actual connect() and rpc setup.
 func (c *Connection) connect(ctx context.Context) error {
+	c.log.Debug("Connection: dialing transport")
+
 	// connect
 	transport, err := c.transport.Dial(ctx)
 	if err != nil {
+		c.log.Warning("Connection: error dialing transport: %v", err)
 		return err
 	}
 
@@ -238,6 +244,7 @@ func (c *Connection) connect(ctx context.Context) error {
 	// call the connect handler
 	err = c.handler.OnConnect(ctx, c, client, server)
 	if err != nil {
+		c.log.Warning("Connection: error calling OnConnect handler: %v", err)
 		return err
 	}
 
@@ -250,6 +257,7 @@ func (c *Connection) connect(ctx context.Context) error {
 	c.server = server
 	c.transport.Finalize()
 
+	c.log.Debug("Connection: connected")
 	return nil
 }
 
@@ -340,6 +348,7 @@ func (c *Connection) IsConnected() bool {
 func (c *Connection) getReconnectChan() (
 	reconnectChan chan struct{}, disconnectStatus DisconnectStatus,
 	reconnectErrPtr *error) {
+	c.log.Debug("Connection: getReconnectChan")
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 	if c.reconnectChan == nil {

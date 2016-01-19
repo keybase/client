@@ -72,9 +72,12 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 	conn *Connection, client keybase1.GenericClient,
 	server *rpc.Server) error {
 
+	md.log.Debug("MDServerRemote: OnConnect called with a new connection")
+
 	// get a new signature
 	signature, err := md.authToken.Sign(ctx)
 	if err != nil {
+		md.log.Warning("MDServerRemote: error signing authentication token: %v", err)
 		return err
 	}
 
@@ -82,6 +85,7 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 	c := keybase1.MetadataClient{Cli: cancelableClient{client}}
 	pingIntervalSeconds, err := c.Authenticate(ctx, signature)
 	if err != nil {
+		md.log.Warning("MDServerRemote: authentication error: %v", err)
 		return err
 	}
 
