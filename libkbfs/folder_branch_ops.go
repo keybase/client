@@ -914,7 +914,7 @@ type makeNewBlock func() Block
 // blockLock should be taken for reading by the caller.
 func (fbo *folderBranchOps) getBlockHelperLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, ptr BlockPointer, branch BranchName,
-	newBlock makeNewBlock, doCache bool) (
+	newBlock makeNewBlock, doCache bool, notifyPath path) (
 	Block, error) {
 	if !ptr.IsValid() {
 		return nil, InvalidBlockPointerError{ptr}
@@ -932,6 +932,12 @@ func (fbo *folderBranchOps) getBlockHelperLocked(ctx context.Context,
 	block := newBlock()
 
 	bops := fbo.config.BlockOps()
+
+	if notifyPath.isValid() {
+		fbo.config.Reporter().Notify(ctx, readNotification(notifyPath, false))
+		defer fbo.config.Reporter().Notify(ctx,
+			readNotification(notifyPath, true))
+	}
 
 	// Unlock the blockLock while we wait for the network, only if
 	// it's locked for reading.  If it's locked for writing, that
@@ -971,7 +977,7 @@ func (fbo *folderBranchOps) getFileBlockHelperLocked(ctx context.Context,
 	branch BranchName, p path) (
 	*FileBlock, error) {
 	block, err := fbo.getBlockHelperLocked(
-		ctx, lState, md, ptr, branch, NewFileBlock, true)
+		ctx, lState, md, ptr, branch, NewFileBlock, true, p)
 	if err != nil {
 		return nil, err
 	}
@@ -998,7 +1004,7 @@ func (fbo *folderBranchOps) getBlockForReading(ctx context.Context,
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
 	return fbo.getBlockHelperLocked(ctx, lState, md, ptr, branch,
-		NewCommonBlock, false)
+		NewCommonBlock, false, path{})
 }
 
 // getDirBlockHelperLocked retrieves the block pointed to by ptr, which
@@ -1015,7 +1021,7 @@ func (fbo *folderBranchOps) getDirBlockHelperLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, ptr BlockPointer,
 	branch BranchName, p path) (*DirBlock, error) {
 	block, err := fbo.getBlockHelperLocked(
-		ctx, lState, md, ptr, branch, NewDirBlock, true)
+		ctx, lState, md, ptr, branch, NewDirBlock, true, path{})
 	if err != nil {
 		return nil, err
 	}
@@ -1096,9 +1102,6 @@ func (fbo *folderBranchOps) getFileBlockLocked(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-
-	fbo.config.Reporter().Notify(ctx, readNotification(file, false))
-	defer fbo.config.Reporter().Notify(ctx, readNotification(file, true))
 
 	if rtype == mdWrite {
 		// Copy the block if it's for writing, and either the
