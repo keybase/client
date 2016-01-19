@@ -3,7 +3,10 @@
 
 package service
 
-import keybase1 "github.com/keybase/client/go/protocol"
+import (
+	keybase1 "github.com/keybase/client/go/protocol"
+	"sync"
+)
 
 type logEntry struct {
 	level  keybase1.LogLevel
@@ -59,6 +62,20 @@ func (f *logFwd) Shutdown() {
 }
 
 func (f *logFwd) process() {
+	var wg sync.WaitGroup
+
+	shutdown := func(x extLogger) {
+		if _, ok := f.loggers[x.HandleID()]; !ok {
+			return
+		}
+		delete(f.loggers, x.HandleID())
+		wg.Add(1)
+		go func() {
+			x.Shutdown()
+			wg.Done()
+		}()
+	}
+
 	for {
 		select {
 		case x := <-f.addCh:
@@ -66,16 +83,16 @@ func (f *logFwd) process() {
 			x.SetHandleID(f.idSeq)
 			f.idSeq++
 		case x := <-f.removeCh:
-			x.Shutdown()
-			delete(f.loggers, x.HandleID())
+			shutdown(x)
 		case e := <-f.logCh:
 			for _, x := range f.loggers {
 				x.Log(e)
 			}
 		case <-f.doneCh:
 			for _, x := range f.loggers {
-				x.Shutdown()
+				shutdown(x)
 			}
+			wg.Wait()
 			return
 		}
 	}
