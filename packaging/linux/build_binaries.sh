@@ -11,6 +11,7 @@ binary_name="$("$here/../binary_name.sh" "$@")"
 # Take the second argument as the build root, or a tmp dir if there is no
 # second argument.
 build_root="${2:-$(mktemp -d)}"
+mkdir -p "$build_root"
 
 # Record the version now, and write it to the build root. Because it uses a
 # timestamp in prerelease mode, it's important that other scripts use this file
@@ -84,8 +85,6 @@ build_one_architecture() {
   # Build the kbfsfuse binary. Currently, this always builds from master.
   echo "Building kbfs for $GOARCH..."
   kbfs_repo="$(dirname "$this_repo")/kbfs"
-  # Make sure the kbfs repo is clean and up to date.
-  "$here/../check_status_and_pull.sh" "$kbfs_repo"
   ln -s "$kbfs_repo" "$GOPATH/src/github.com/keybase/kbfs"
   go build -tags "$go_tags" -ldflags "$ldflags" -o \
     "$layout_dir/usr/bin/kbfsfuse" github.com/keybase/kbfs/kbfsfuse

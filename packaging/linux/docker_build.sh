@@ -16,6 +16,11 @@
 
 set -e -u -o pipefail
 
+if [ "$#" -lt 1 ] ; then
+  echo Usage: docker_build.sh MODE TAG
+  exit 1
+fi
+
 here="$(dirname "$BASH_SOURCE")"
 
 clientdir="$(git -C "$here" rev-parse --show-toplevel)"
@@ -43,6 +48,10 @@ if [ -z "$(docker images -q "$image")" ] ; then
   echo "Docker image '$image' not yet built. Building..."
   docker build -t "$image" "$clientdir/packaging/linux"
 fi
+
+# Make sure KBFS is up to date.
+kbfsdir="$clientdir/../kbfs"
+"$here/../check_status_and_pull.sh" "$kbfsdir"
 
 # XXX: Avoid running out of disks space on OSX. OSX is a special snowflake.
 # Containers run inside a VirtualBox Linux VM, and disk writes wind up in a
@@ -85,10 +94,10 @@ gpg --export-secret-key --armor "$code_signing_fingerprint" > "$gpg_tempfile"
 docker run -ti \
   -v "$SERVEROPSDIR:/SERVEROPS:ro" \
   -v "$clientdir:/CLIENT:ro" \
-  -v "$clientdir/../kbfs":/KBFS:ro \
+  -v "$kbfsdir:/KBFS:ro" \
   -v "$HOME/.aws:/root/.aws:ro" \
   -v "$HOME/.ssh:/root/.ssh:ro" \
-  -v "$gpg_tempdir:/GPG:ro" \
+  -v "$gpg_tempdir:/GPG" \
   "${osx_args[@]:+${osx_args[@]}}" \
   -e GIT_AUTHOR_NAME="$git_name" \
   -e GIT_COMMITTER_NAME="$git_name" \
