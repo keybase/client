@@ -3,6 +3,7 @@
 set -e -u -o pipefail
 
 here="$(dirname "$BASH_SOURCE")"
+this_repo="$(git -C "$here" rev-parse --show-toplevel)"
 
 mode="$("$here/../build_mode.sh" "$@")"
 binary_name="$("$here/../binary_name.sh" "$@")"
@@ -61,6 +62,12 @@ build_one_architecture() {
   # Always build with vendoring on.
   export GO15VENDOREXPERIMENT=1
 
+  # Assemble a custom GOPATH. Symlinks work for us here, because both the
+  # client repo and the kbfs repo are fully vendored.
+  export GOPATH="$build_root/gopaths/$debian_arch"
+  mkdir -p "$GOPATH/src/github.com/keybase"
+  ln -s "$this_repo" "$GOPATH/src/github.com/keybase/client"
+
   # Build the client binary. Note that `go build` reads $GOARCH.
   echo "Building client for $GOARCH..."
   go build -tags "$go_tags" -ldflags "$ldflags" -o \
@@ -74,8 +81,12 @@ build_one_architecture() {
     return
   fi
 
-  # Build the kbfsfuse binary.
+  # Build the kbfsfuse binary. Currently, this always builds from master.
   echo "Building kbfs for $GOARCH..."
+  kbfs_repo="$(dirname "$this_repo")/kbfs"
+  # Make sure the kbfs repo is clean and up to date.
+  "$here/../check_status_and_pull.sh" "$kbfs_repo"
+  ln -s "$kbfs_repo" "$GOPATH/src/github.com/keybase/kbfs"
   go build -tags "$go_tags" -ldflags "$ldflags" -o \
     "$layout_dir/usr/bin/kbfsfuse" github.com/keybase/kbfs/kbfsfuse
 
