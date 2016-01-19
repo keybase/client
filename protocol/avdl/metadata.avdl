@@ -26,6 +26,7 @@ protocol metadata {
   void pruneBranch(string folderID, string branchID, map<string> logTags);
   void putKeys(array<KeyHalf> keyHalves, map<string> logTags);
   bytes getKey(bytes keyHalfID, string deviceKID, map<string> logTags);
+  void deleteKey(UID uid, KID deviceKID, bytes keyHalfID, map<string> logTags);
   boolean truncateLock(string folderID);
   boolean truncateUnlock(string folderID);
   bytes getFolderHandle(string folderID, string signature);
