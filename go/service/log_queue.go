@@ -68,18 +68,13 @@ func (q *logQueue) Log(e *logEntry) {
 }
 
 func (q *logQueue) Shutdown() {
-	if q.buffer == nil {
-		return
-	}
 	close(q.buffer)
 
 	// wait a little bit to flush the buffer
 	select {
 	case <-q.processDone:
-	case <-time.After(1 * time.Second):
+	case <-time.After(5 * time.Second):
 	}
-
-	q.buffer = nil
 }
 
 func (q *logQueue) processQueue() {
