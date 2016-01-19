@@ -16,7 +16,7 @@ here="$(dirname "$BASH_SOURCE")"
 
 build_root="${1:-}"
 if [ -z "$build_root" ] ; then
-  echo 'Usage:  ./package_binaries.sh <build_root>'
+  echo 'Usage:  ./layout_repo.sh <build_root>'
   exit 1
 fi
 
