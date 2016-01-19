@@ -69,7 +69,7 @@ func kbfsOpsInit(t *testing.T, changeMd bool) (mockCtrl *gomock.Controller,
 	// Use real caches, to avoid the overhead of tracking cache calls.
 	// Each test is expected to check the cache for correctness at the
 	// end of the test.
-	config.SetBlockCache(NewBlockCacheStandard(config, 100))
+	config.SetBlockCache(NewBlockCacheStandard(config, 100, 1<<30))
 	config.mockBcache = nil
 
 	if changeMd {

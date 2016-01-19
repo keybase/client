@@ -2,9 +2,10 @@ package libkbfs
 
 import "testing"
 
-func blockCacheTestInit(t *testing.T, capacity int) Config {
+func blockCacheTestInit(t *testing.T, capacity int,
+	bytesCapacity uint64) Config {
 	config := MakeTestConfigOrBust(t, "test")
-	b := NewBlockCacheStandard(config, capacity)
+	b := NewBlockCacheStandard(config, capacity, bytesCapacity)
 	config.SetBlockCache(b)
 	return config
 }
@@ -71,20 +72,20 @@ func testExpectedMissing(t *testing.T, id BlockID, bcache BlockCache) {
 }
 
 func TestBcachePut(t *testing.T) {
-	config := blockCacheTestInit(t, 100)
+	config := blockCacheTestInit(t, 100, 1<<30)
 	defer CheckConfigAndShutdown(t, config)
 	testBcachePut(t, fakeBlockID(1), config.BlockCache(), TransientEntry)
 	testBcachePut(t, fakeBlockID(2), config.BlockCache(), PermanentEntry)
 }
 
 func TestBcachePutDirty(t *testing.T) {
-	config := blockCacheTestInit(t, 100)
+	config := blockCacheTestInit(t, 100, 1<<30)
 	defer CheckConfigAndShutdown(t, config)
 	testBcachePutDirty(t, fakeBlockID(1), config.BlockCache())
 }
 
 func TestBcachePutPastCapacity(t *testing.T) {
-	config := blockCacheTestInit(t, 2)
+	config := blockCacheTestInit(t, 2, 1<<30)
 	defer CheckConfigAndShutdown(t, config)
 	bcache := config.BlockCache()
 	id1 := fakeBlockID(1)
@@ -117,7 +118,7 @@ func TestBcachePutPastCapacity(t *testing.T) {
 }
 
 func TestBcachePutDuplicateDirty(t *testing.T) {
-	config := blockCacheTestInit(t, 2)
+	config := blockCacheTestInit(t, 2, 1<<30)
 	defer CheckConfigAndShutdown(t, config)
 	bcache := config.BlockCache()
 	// put one under the default block pointer and branch name (clean)
@@ -165,7 +166,7 @@ func TestBcachePutDuplicateDirty(t *testing.T) {
 }
 
 func TestBcacheCheckPtrSuccess(t *testing.T) {
-	config := blockCacheTestInit(t, 100)
+	config := blockCacheTestInit(t, 100, 1<<30)
 	defer CheckConfigAndShutdown(t, config)
 	bcache := config.BlockCache()
 
@@ -189,7 +190,7 @@ func TestBcacheCheckPtrSuccess(t *testing.T) {
 }
 
 func TestBcacheCheckPtrPermanent(t *testing.T) {
-	config := blockCacheTestInit(t, 100)
+	config := blockCacheTestInit(t, 100, 1<<30)
 	defer config.Shutdown()
 	bcache := config.BlockCache()
 
@@ -213,7 +214,7 @@ func TestBcacheCheckPtrPermanent(t *testing.T) {
 }
 
 func TestBcacheCheckPtrNotFound(t *testing.T) {
-	config := blockCacheTestInit(t, 100)
+	config := blockCacheTestInit(t, 100, 1<<30)
 	defer CheckConfigAndShutdown(t, config)
 	bcache := config.BlockCache()
 
@@ -239,7 +240,7 @@ func TestBcacheCheckPtrNotFound(t *testing.T) {
 }
 
 func TestBcacheDeletePermanent(t *testing.T) {
-	config := blockCacheTestInit(t, 100)
+	config := blockCacheTestInit(t, 100, 1<<30)
 	defer CheckConfigAndShutdown(t, config)
 	bcache := config.BlockCache()
 
@@ -262,7 +263,7 @@ func TestBcacheDeletePermanent(t *testing.T) {
 }
 
 func TestBcacheDeleteDirty(t *testing.T) {
-	config := blockCacheTestInit(t, 100)
+	config := blockCacheTestInit(t, 100, 1<<30)
 	defer CheckConfigAndShutdown(t, config)
 	bcache := config.BlockCache()
 
@@ -281,7 +282,7 @@ func TestBcacheDeleteDirty(t *testing.T) {
 }
 
 func TestBcacheEmptyTransient(t *testing.T) {
-	config := blockCacheTestInit(t, 0)
+	config := blockCacheTestInit(t, 0, 1<<30)
 	defer config.Shutdown()
 
 	bcache := config.BlockCache()
@@ -316,5 +317,111 @@ func TestBcacheEmptyTransient(t *testing.T) {
 	_, err = bcache.CheckForKnownPtr(tlf, block.(*FileBlock))
 	if err != nil {
 		t.Errorf("Got unexpected error %v", err)
+	}
+}
+
+func TestBcacheEvictOnBytes(t *testing.T) {
+	// Make a cache that can only handle 5 bytes
+	config := blockCacheTestInit(t, 1000, 5)
+	defer config.Shutdown()
+
+	bcache := config.BlockCache()
+
+	tlf := FakeTlfID(1, false)
+	for i := byte(0); i < 8; i++ {
+		block := &FileBlock{
+			Contents: make([]byte, 1),
+		}
+		id := fakeBlockID(i)
+		ptr := BlockPointer{ID: id}
+
+		if err := bcache.Put(ptr, tlf, block, TransientEntry); err != nil {
+			t.Errorf("Got error on Put for block %s: %v", id, err)
+		}
+	}
+
+	// Only blocks 3 through 7 should be left
+	for i := byte(0); i < 3; i++ {
+		id := fakeBlockID(i)
+		testExpectedMissing(t, id, bcache)
+	}
+
+	branch := MasterBranch
+	for i := byte(3); i < 8; i++ {
+		id := fakeBlockID(i)
+		if _, err := bcache.Get(BlockPointer{ID: id}, branch); err != nil {
+			t.Errorf("Got unexpected error on get: %v", err)
+		}
+	}
+}
+
+func TestBcacheEvictIncludesPermanentSize(t *testing.T) {
+	// Make a cache that can only handle 5 bytes
+	config := blockCacheTestInit(t, 1000, 5)
+	defer config.Shutdown()
+
+	bcache := config.BlockCache()
+
+	tlf := FakeTlfID(1, false)
+	idPerm := fakeBlockID(0)
+	ptr := BlockPointer{ID: idPerm}
+	block := &FileBlock{
+		Contents: make([]byte, 2),
+	}
+	if err := bcache.Put(ptr, tlf, block, PermanentEntry); err != nil {
+		t.Errorf("Got error on Put for block %s: %v", idPerm, err)
+	}
+
+	for i := byte(1); i < 8; i++ {
+		block := &FileBlock{
+			Contents: make([]byte, 1),
+		}
+		id := fakeBlockID(i)
+		ptr := BlockPointer{ID: id}
+
+		if err := bcache.Put(ptr, tlf, block, TransientEntry); err != nil {
+			t.Errorf("Got error on Put for block %s: %v", id, err)
+		}
+	}
+
+	// The permanent block shouldn't be evicted
+	branch := MasterBranch
+	if _, err := bcache.Get(BlockPointer{ID: idPerm}, branch); err != nil {
+		t.Errorf("Got unexpected error on get: %v", err)
+	}
+
+	// Only transient blocks 5 through 7 should be left
+	for i := byte(1); i < 5; i++ {
+		id := fakeBlockID(i)
+		testExpectedMissing(t, id, bcache)
+	}
+
+	for i := byte(5); i < 8; i++ {
+		id := fakeBlockID(i)
+		if _, err := bcache.Get(BlockPointer{ID: id}, branch); err != nil {
+			t.Errorf("Got unexpected error on get: %v", err)
+		}
+	}
+
+	// Try putting in a block that's too big
+	block = &FileBlock{
+		CommonBlock: CommonBlock{IsInd: true},
+	}
+	block.SetEncodedSize(7)
+	id := fakeBlockID(8)
+	ptr = BlockPointer{ID: id}
+	if err := bcache.Put(ptr, tlf, block, TransientEntry); err != nil {
+		t.Errorf("Got error on Put for block %s: %v", id, err)
+	}
+
+	// All transient blocks should be gone (including the new one)
+	if _, err := bcache.Get(BlockPointer{ID: idPerm}, branch); err != nil {
+		t.Errorf("Got unexpected error on get: %v", err)
+	}
+
+	// Only transient blocks 5 through 7 should be left
+	for i := byte(1); i < 9; i++ {
+		id := fakeBlockID(i)
+		testExpectedMissing(t, id, bcache)
 	}
 }

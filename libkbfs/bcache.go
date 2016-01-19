@@ -26,7 +26,8 @@ type idCacheKey struct {
 // forked and modified on different branches and under different
 // references simultaneously.
 type BlockCacheStandard struct {
-	config Config
+	config             Config
+	cleanBytesCapacity uint64
 
 	ids *lru.Cache
 
@@ -35,34 +36,42 @@ type BlockCacheStandard struct {
 	cleanLock      sync.RWMutex
 	cleanPermanent map[BlockID]Block
 
+	bytesLock       sync.Mutex
+	cleanTotalBytes uint64
+
 	dirtyLock sync.RWMutex
 	dirty     map[dirtyBlockID]Block
 }
 
 // NewBlockCacheStandard constructs a new BlockCacheStandard instance
-// with the given transient capacity.
-func NewBlockCacheStandard(config Config, transientCapacity int) *BlockCacheStandard {
-	var transientCleanLRU, idLRU *lru.Cache
+// with the given transient capacity (in number of entries) and the
+// clean bytes capacity, which is the total of number of bytes allowed
+// between the transient and permanent clean caches.  If putting a
+// block will exceed this bytes capacity, transient entries are
+// evicted until the block will fit in capacity.
+func NewBlockCacheStandard(config Config, transientCapacity int,
+	cleanBytesCapacity uint64) *BlockCacheStandard {
+	b := &BlockCacheStandard{
+		config:             config,
+		cleanBytesCapacity: cleanBytesCapacity,
+		cleanPermanent:     make(map[BlockID]Block),
+		dirty:              make(map[dirtyBlockID]Block),
+	}
+
 	if transientCapacity > 0 {
 		var err error
 		// TODO: Plumb error up.
-		idLRU, err = lru.New(transientCapacity)
+		b.ids, err = lru.New(transientCapacity)
 		if err != nil {
 			return nil
 		}
 
-		transientCleanLRU, err = lru.New(transientCapacity)
+		b.cleanTransient, err = lru.NewWithEvict(transientCapacity, b.onEvict)
 		if err != nil {
 			return nil
 		}
 	}
-	return &BlockCacheStandard{
-		config:         config,
-		ids:            idLRU,
-		cleanTransient: transientCleanLRU,
-		cleanPermanent: make(map[BlockID]Block),
-		dirty:          make(map[dirtyBlockID]Block),
-	}
+	return b
 }
 
 // Get implements the BlockCache interface for BlockCacheStandard.
@@ -104,6 +113,32 @@ func (b *BlockCacheStandard) Get(ptr BlockPointer, branch BranchName) (
 	return nil, NoSuchBlockError{ptr.ID}
 }
 
+func getCachedBlockSize(block Block) uint32 {
+	// Get the size of the block.  For direct file blocks, use the
+	// length of the plaintext contents.  For everything else, just
+	// approximate the plaintext size using the encoding size.
+	switch b := block.(type) {
+	case *FileBlock:
+		if b.IsInd {
+			return b.GetEncodedSize()
+		}
+		return uint32(len(b.Contents))
+	default:
+		return block.GetEncodedSize()
+	}
+}
+
+func (b *BlockCacheStandard) onEvict(key interface{}, value interface{}) {
+	block, ok := value.(Block)
+	if !ok {
+		return
+	}
+
+	b.bytesLock.Lock()
+	defer b.bytesLock.Unlock()
+	b.cleanTotalBytes -= uint64(getCachedBlockSize(block))
+}
+
 // CheckForKnownPtr implements the BlockCache interface for BlockCacheStandard.
 func (b *BlockCacheStandard) CheckForKnownPtr(tlf TlfID, block *FileBlock) (
 	BlockPointer, error) {
@@ -132,23 +167,6 @@ func (b *BlockCacheStandard) CheckForKnownPtr(tlf TlfID, block *FileBlock) (
 // Put implements the BlockCache interface for BlockCacheStandard.
 func (b *BlockCacheStandard) Put(
 	ptr BlockPointer, tlf TlfID, block Block, lifetime BlockCacheLifetime) error {
-	switch lifetime {
-	case TransientEntry:
-		if b.cleanTransient != nil {
-			b.cleanTransient.Add(ptr.ID, block)
-		}
-
-	case PermanentEntry:
-		func() {
-			b.cleanLock.Lock()
-			defer b.cleanLock.Unlock()
-			b.cleanPermanent[ptr.ID] = block
-		}()
-
-	default:
-		return fmt.Errorf("Unknown lifetime %v", lifetime)
-	}
-
 	// If it's the right type of block and lifetime, store the
 	// hash -> ID mapping.
 	if fBlock, ok := block.(*FileBlock); b.ids != nil && lifetime == TransientEntry && ok && !fBlock.IsInd {
@@ -157,6 +175,59 @@ func (b *BlockCacheStandard) Put(
 		// zero out the refnonce, it doesn't matter
 		ptr.RefNonce = zeroBlockRefNonce
 		b.ids.Add(key, ptr)
+	}
+
+	size := uint64(getCachedBlockSize(block))
+	doUnlock := true
+	b.bytesLock.Lock()
+	defer func() {
+		if doUnlock {
+			b.bytesLock.Unlock()
+		}
+	}()
+	if b.cleanTransient != nil {
+		// Evict items from the cache until the bytes capacity is lower
+		// than the total capacity (or until no items are removed).
+		oldLen := b.cleanTransient.Len() + 1
+		for b.cleanTotalBytes+size > b.cleanBytesCapacity &&
+			oldLen != b.cleanTransient.Len() {
+			oldLen = b.cleanTransient.Len()
+			// Unlock while removing, since onEvict needs the lock.
+			b.bytesLock.Unlock()
+			doUnlock = false
+			b.cleanTransient.RemoveOldest()
+			doUnlock = true
+			b.bytesLock.Lock()
+		}
+		if lifetime == TransientEntry &&
+			b.cleanTotalBytes+size > b.cleanBytesCapacity {
+			// There must be too many permanent clean blocks, so don't
+			// cache.
+			return nil
+		}
+	}
+
+	switch lifetime {
+	case TransientEntry:
+		if b.cleanTransient != nil {
+			b.cleanTotalBytes += size
+			b.bytesLock.Unlock()
+			doUnlock = false
+			b.cleanTransient.Add(ptr.ID, block)
+		}
+
+	case PermanentEntry:
+		b.cleanTotalBytes += size
+		b.bytesLock.Unlock()
+		doUnlock = false
+		func() {
+			b.cleanLock.Lock()
+			defer b.cleanLock.Unlock()
+			b.cleanPermanent[ptr.ID] = block
+		}()
+
+	default:
+		return fmt.Errorf("Unknown lifetime %v", lifetime)
 	}
 
 	return nil
@@ -182,7 +253,13 @@ func (b *BlockCacheStandard) PutDirty(ptr BlockPointer,
 func (b *BlockCacheStandard) DeletePermanent(id BlockID) error {
 	b.cleanLock.Lock()
 	defer b.cleanLock.Unlock()
-	delete(b.cleanPermanent, id)
+	block, ok := b.cleanPermanent[id]
+	if ok {
+		delete(b.cleanPermanent, id)
+		b.bytesLock.Lock()
+		defer b.bytesLock.Unlock()
+		b.cleanTotalBytes -= uint64(getCachedBlockSize(block))
+	}
 	return nil
 }
 

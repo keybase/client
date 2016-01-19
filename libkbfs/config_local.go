@@ -158,7 +158,8 @@ func NewConfigLocal() *ConfigLocal {
 	config.SetConflictRenamer(TimeAndWriterConflictRenamer{config})
 	config.SetMDCache(NewMDCacheStandard(5000))
 	config.SetKeyCache(NewKeyCacheStandard(5000))
-	config.SetBlockCache(NewBlockCacheStandard(config, 5000))
+	// Limit the block cache to 10K entries or 512 MB of bytes
+	config.SetBlockCache(NewBlockCacheStandard(config, 10000, 512*1024*1024))
 	config.SetCodec(NewCodecMsgpack())
 	config.SetMDOps(&MDOpsStandard{config})
 	config.SetBlockOps(&BlockOpsStandard{config})
