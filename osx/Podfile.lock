@@ -45,7 +45,7 @@ PODS:
     - Mantle/extobjc (= 2.0.6)
   - Mantle/extobjc (2.0.6)
   - MDPSplitView (1.0.2)
-  - MPMessagePack (1.3.3):
+  - MPMessagePack (1.3.4):
     - GHODictionary
   - ObjectiveSugar (1.1.0)
   - Slash (0.1.2):
@@ -65,15 +65,13 @@ PODS:
 DEPENDENCIES:
   - GBCli
   - KBKit (from `KBKit`)
-  - MPMessagePack (from `~/Projects/MPMessagePack`)
+  - MPMessagePack
   - ObjectiveSugar
   - Slash (from `https://github.com/chrisdevereux/Slash`)
 
 EXTERNAL SOURCES:
   KBKit:
     :path: KBKit
-  MPMessagePack:
-    :path: "~/Projects/MPMessagePack"
   Slash:
     :git: https://github.com/chrisdevereux/Slash
 
@@ -92,12 +90,12 @@ SPEC CHECKSUMS:
   KBKit: 9f139696e2cd916f05ee603e33aabfd558ac8ccd
   Mantle: 299966b00759634931699f69cb6a30b9239b944d
   MDPSplitView: 127b4b371e813ec29333e515fb1c057126a75671
-  MPMessagePack: 0de75102afb01a48cb312b9570336f46659b410f
+  MPMessagePack: 7feea378c89a70af8fffb133014cd6904e8fad18
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
   Slash: fde91d6c2b9d985f50a00debffe804400dd9828c
   Tikppa: 3d4fca3d897592397d33d28cf594a9ae53cf966e
   YOLayout: 3f5b3ac64f9018f1e63a19223dbb8382c37d58cb
 
-PODFILE CHECKSUM: 1d4473bf6a8fbcaf7d0cb46eec137328a4db71aa
+PODFILE CHECKSUM: 948038c7991e6eb50fb99042ffc26603d04eda94
 
 COCOAPODS: 1.0.0.beta.2

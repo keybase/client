@@ -148,13 +148,17 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 }
 
 - (void)_install:(KBCompletion)completion {
-  [self.helperTool.helper sendRequest:@"kextInstall" params:@[@{@"source": self.source, @"destination": self.destination, @"kextID": self.kextID, @"kextPath": self.kextPath}] completion:^(NSError *error, id value) {
+  NSDictionary *params = @{@"source": self.source, @"destination": self.destination, @"kextID": self.kextID, @"kextPath": self.kextPath};
+  DDLogDebug(@"Helper: kextInstall(%@)", params);
+  [self.helperTool.helper sendRequest:@"kextInstall" params:@[params] completion:^(NSError *error, id value) {
     completion(error);
   }];
 }
 
 - (void)uninstall:(KBCompletion)completion {
-  [self.helperTool.helper sendRequest:@"kextUninstall" params:@[@{@"destination": self.destination, @"kextID": self.kextID}] completion:^(NSError *error, id value) {
+  NSDictionary *params = @{@"destination": self.destination, @"kextID": self.kextID};
+  DDLogDebug(@"Helper: kextUninstall(%@)", params);
+  [self.helperTool.helper sendRequest:@"kextUninstall" params:@[params] completion:^(NSError *error, id value) {
     completion(error);
   }];
 }

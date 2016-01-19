@@ -8,12 +8,13 @@
 
 #import "KBEnvironment.h"
 
-#import <KBKit/KBHelperTool.h>
-#import <KBKit/KBFuseComponent.h>
-#import <KBKit/KBRunOver.h>
+#import "KBHelperTool.h"
+#import "KBFuseComponent.h"
+#import "KBRunOver.h"
+#import "KBDefines.h"
+#import "KBCommandLine.h"
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
-#import <KBKit/KBDefines.h>
 
 @interface KBEnvironment ()
 @property KBEnvConfig *config;
@@ -36,8 +37,9 @@
     _kbfs = [[KBFSService alloc] initWithConfig:config helperTool:helperTool label:[config launchdKBFSLabel] servicePath:servicePath];
 
     KBFuseComponent *fuse = [[KBFuseComponent alloc] initWithConfig:config helperTool:helperTool servicePath:servicePath];
+    KBCommandLine *cli = [[KBCommandLine alloc] initWithConfig:config helperTool:helperTool servicePath:servicePath];
 
-    _installables = [NSArray arrayWithObjects:helperTool, _service, fuse, _kbfs, nil];
+    _installables = [NSArray arrayWithObjects:helperTool, _service, fuse, _kbfs, cli, nil];
 
     _services = [NSArray arrayWithObjects:_service, _kbfs, nil];
     _components = [NSMutableArray arrayWithObjects:_service, _kbfs, helperTool, fuse, nil];

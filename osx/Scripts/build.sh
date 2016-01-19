@@ -91,6 +91,6 @@ if [ -f "$helper" ]; then
   spctl --assess --verbose=4 $app_name.app/Contents/Library/LaunchServices/keybase.Helper
 fi
 
-tar zcvpf $app_name-$app_version.tgz $app_name.app
+tar zcvpf $app_name-$app_version-darwin.tgz $app_name.app
 
 open $build_dest

@@ -85,6 +85,10 @@
     [self trash:args[@"path"] completion:completion];
   } else if ([method isEqualToString:@"createDirectory"]) {
     [self createDirectory:args[@"directory"] uid:args[@"uid"] gid:args[@"gid"] permissions:args[@"permissions"] excludeFromBackup:[args[@"excludeFromBackup"] boolValue] completion:completion];
+  } else if ([method isEqualToString:@"addToPath"]) {
+    [self addToPath:args[@"directory"] name:args[@"name"] completion:completion];
+  } else if ([method isEqualToString:@"removeFromPath"]) {
+    [self removeFromPath:args[@"name"] completion:completion];
   } else {
     completion(KBMakeError(MPXPCErrorCodeUnknownRequest, @"Unknown request method"), nil);
   }
@@ -120,6 +124,28 @@
   }
 
   completion(nil, @{});
+}
+
+- (void)addToPath:(NSString *)directory name:(NSString *)name completion:(void (^)(NSError *error, id value))completion {
+  NSString *pathsdPath = [NSString stringWithFormat:@"/etc/paths.d/%@", name];
+  if ([NSFileManager.defaultManager fileExistsAtPath:pathsdPath]) {
+    completion(nil, nil);
+    return;
+  }
+  NSError *error = nil;
+  [directory writeToFile:pathsdPath atomically:YES encoding:NSUTF8StringEncoding error:&error];
+  completion(error, pathsdPath);
+}
+
+- (void)removeFromPath:(NSString *)name completion:(void (^)(NSError *error, id value))completion {
+  NSString *pathsdPath = [NSString stringWithFormat:@"/etc/paths.d/%@", name];
+  if ([NSFileManager.defaultManager fileExistsAtPath:pathsdPath]) {
+    completion(nil, nil);
+    return;
+  }
+  NSError *error = nil;
+  [NSFileManager.defaultManager removeItemAtPath:pathsdPath error:&error];
+  completion(error, pathsdPath);
 }
 
 - (void)trash:(NSString *)path completion:(void (^)(NSError *error, id value))completion {

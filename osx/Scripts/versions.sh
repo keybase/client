@@ -17,7 +17,7 @@ helper_list=$dir/../Helper/Info.plist
 kb_helper_version="`/usr/libexec/plistBuddy -c "Print :CFBundleShortVersionString" $helper_list`"
 kb_helper_build="`/usr/libexec/plistBuddy -c "Print :CFBundleVersion" $helper_list`"
 
-fuse_plist=$dir/Fuse/kbfuse/kbfuse.bundle/Contents/Info.plist
+fuse_plist=$dir/Fuse/kbfuse.bundle/Contents/Info.plist
 fuse_version="`/usr/libexec/plistBuddy -c "Print :CFBundleShortVersionString" $fuse_plist`"
 fuse_build="`/usr/libexec/plistBuddy -c "Print :CFBundleVersion" $fuse_plist`"
 

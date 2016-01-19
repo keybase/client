@@ -94,18 +94,16 @@
 }
 
 - (void)install:(KBCompletion)completion {
-  NSString *components = @"cli,service";
   NSString *binPath = [self.config serviceBinPathWithPathOptions:0 servicePath:self.servicePath];
-  [KBTask executeForJSONWithCommand:binPath args:@[@"-d", @"--log-format=plain", @"install", @"--format=json", NSStringWithFormat(@"--components=%@", components)] completion:^(NSError *error, id response) {
+  [KBTask executeForJSONWithCommand:binPath args:@[@"-d", @"--log-format=plain", @"install", @"--format=json", @"--components=service"] completion:^(NSError *error, id response) {
     if (!error) error = [KBInstallable checkForStatusErrorFromResponse:response];
     completion(error);
   }];
 }
 
 - (void)uninstall:(KBCompletion)completion {
-  NSString *components = @"cli,service";
   NSString *binPath = [self.config serviceBinPathWithPathOptions:0 servicePath:self.servicePath];
-  [KBTask execute:binPath args:@[@"-d", @"--log-format=plain", @"uninstall", NSStringWithFormat(@"--components=%@", components)] completion:^(NSError *error, NSData *outData, NSData *errData) {
+  [KBTask execute:binPath args:@[@"-d", @"--log-format=plain", @"uninstall", @"--components=service"] completion:^(NSError *error, NSData *outData, NSData *errData) {
     completion(error);
   }];
 }

@@ -79,7 +79,7 @@ func (v *CmdInstall) ParseArgv(ctx *cli.Context) error {
 	v.binPath = ctx.String("bin-path")
 	v.installer = ctx.String("installer")
 	if ctx.String("components") == "" {
-		v.components = []string{"cli", "service", "kbfs"}
+		v.components = []string{"service", "kbfs"}
 	} else {
 		v.components = strings.Split(ctx.String("components"), ",")
 	}
