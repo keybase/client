@@ -150,7 +150,14 @@
   }
 
   CFErrorRef cerror = NULL;
+  DDLogDebug(@"Installing helper tool via SMJobBless");
   Boolean success = SMJobBless(kSMDomainSystemLaunchd, (__bridge CFStringRef)name, authRef, &cerror);
+
+  // Let's attempt it again on error (since it's flakey)
+  if (!success) {
+    DDLogDebug(@"Failed, retrying");
+    success = SMJobBless(kSMDomainSystemLaunchd, (__bridge CFStringRef)name, authRef, &cerror);
+  }
 
   AuthorizationFree(authRef, kAuthorizationFlagDestroyRights);
 
@@ -158,6 +165,7 @@
     if (error) *error = (NSError *)CFBridgingRelease(cerror);
     return NO;
   } else {
+    DDLogDebug(@"Helper tool installed");
     return YES;
   }
 }
