@@ -324,9 +324,12 @@ func (c *Connection) checkForRetry(err error) bool {
 	return err == io.EOF
 }
 
-// IsConnected returns true if the connection is connected.
+// IsConnected returns true if the connection is connected.  The mutex
+// must not be held by the caller.
 func (c *Connection) IsConnected() bool {
-	return c.transport.IsConnected()
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+	return c.transport.IsConnected() && c.client != nil
 }
 
 // This will either kick-off a new reconnection attempt or wait for an
