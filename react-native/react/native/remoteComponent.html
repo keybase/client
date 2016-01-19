@@ -1,5 +1,7 @@
+<!DOCTYPE html>
 <html>
   <head>
+    <meta charset="utf-8"/>
     <title>Keybase-RemoteComponent</title>
     <link rel="stylesheet" type="text/css" href="../../../desktop/renderer/style.css" />
     <link rel="stylesheet" type="text/css" href="../../../desktop/node_modules/font-awesome/css/font-awesome.min.css" />
@@ -18,8 +20,10 @@
           }
         return false
       }
+
       var script = document.createElement('script')
       script.src = getQueryVariable('src')
+      script.async = true
       document.getElementsByTagName('head')[0].appendChild(script)
     </script>
   </body>

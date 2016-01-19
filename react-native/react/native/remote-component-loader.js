@@ -47,12 +47,11 @@ class RemoteComponentLoader extends Component {
       unmounted: false
     }
 
-    this.store = new RemoteStore({})
-
     const componentToLoad = getQueryVariable('component')
+    const selectorParams = getQueryVariable('selectorParams')
 
     const component = {
-      tracker: require('../tracker'),
+      tracker: require('../tracker').default,
       pinentry: require('../pinentry'),
       update: require('../update')
     }
@@ -61,6 +60,7 @@ class RemoteComponentLoader extends Component {
       throw new TypeError('Invalid Remote Component passed through')
     }
 
+    this.store = new RemoteStore({component: componentToLoad, selectorParams})
     this.Component = component[componentToLoad]
   }
 
@@ -75,10 +75,10 @@ class RemoteComponentLoader extends Component {
           // Only do this if the store hasn't been filled yet
           Object.keys(this.store.getState()).length === 0) {
         const unsub = this.store.subscribe(() => {
+          unsub()
           getCurrentWindow().show()
           getCurrentWindow().setAlwaysOnTop(false)
           this.setState({props: props, loaded: true})
-          unsub()
         })
       } else {
         // If we've received props, and the loaded state was false, that
@@ -91,12 +91,21 @@ class RemoteComponentLoader extends Component {
       }
     })
 
-    ipcRenderer.on('remoteUnmount', () => {
+    const onRemoteUnmount = () => {
       setImmediate(() => this.setState({unmounted: true}))
       // Hide the window since we've effectively told it to close
-      getCurrentWindow().hide()
-    })
-    ipcRenderer.send('registerRemoteUnmount', currentWindow.id)
+      try {
+        getCurrentWindow().hide()
+      } catch (_) { }
+
+      ipcRenderer.removeListener('remoteUnmount', onRemoteUnmount)
+    }
+
+    ipcRenderer.on('remoteUnmount', onRemoteUnmount)
+
+    try {
+      ipcRenderer.send('registerRemoteUnmount', currentWindow.id)
+    } catch (_) { }
 
     currentWindow.emit('needProps')
   }
@@ -105,12 +114,16 @@ class RemoteComponentLoader extends Component {
     if (!prevState.unmounted && this.state.unmounted) {
       // Close the window now that the remote-component's unmount
       // lifecycle method has finished
-      getCurrentWindow().close()
+      try {
+        getCurrentWindow().close()
+      } catch (_) { }
     }
   }
 
   componentWillUnmount () {
-    ipcRenderer.removeAllListeners('hasProps')
+    try {
+      getCurrentWindow().removeAllListeners('hasProps')
+    } catch (_) { }
   }
 
   render () {

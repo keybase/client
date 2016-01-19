@@ -17,4 +17,6 @@ export default function () {
     mainWindow.show(true)
     menuHelper(mainWindow.window)
   })
+
+  return mainWindow
 }

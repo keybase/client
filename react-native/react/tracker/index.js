@@ -156,7 +156,7 @@ Tracker.propTypes = {
 }
 
 export default connect(
-  state => ({...state.tracker, loggedIn: state.config.status.loggedIn}),
+  state => ({...state.tracker, loggedIn: state.config && state.config.status && state.config.status.loggedIn}),
   dispatch => {
     return bindActionCreators(trackerActions, dispatch)
   },
@@ -169,3 +169,16 @@ export default connect(
     }
   }
 )(Tracker)
+
+export function selector (username: string): (store: Object) => Object {
+  return store => {
+    return {
+      tracker: {
+        trackers: {
+          [username]: store.tracker.trackers[username]
+        }
+      },
+      config: store.config
+    }
+  }
+}

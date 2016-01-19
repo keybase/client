@@ -79,6 +79,7 @@ class RemoteManager extends Component {
         username={username}
         startTimer={this.props.trackerStartTimer}
         stopTimer={this.props.trackerStopTimer}
+        selectorParams={username}
         key={username} />
     ))
   }

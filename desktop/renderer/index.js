@@ -1,4 +1,7 @@
 /* @flow */
+/*
+ * The main renderer. Holds the global store. When it changes we send it to the main thread which then sends it out to subscribers
+ */
 
 import React, {Component} from '../../react-native/react/base-react'
 import ReactDOM from 'react-dom'
@@ -13,7 +16,6 @@ import {listenForNotifications} from '../../react-native/react/actions/notificat
 // For Remote Components
 import {ipcRenderer} from 'electron'
 import RemoteManager from '../../react-native/react/native/remote-manager'
-import {ipcMain} from 'remote'
 import consoleHelper from '../app/console-helper'
 import _ from 'lodash'
 
@@ -24,12 +26,6 @@ if (module.hot) {
 }
 
 const store = configureStore()
-
-// Shallow diff of two objects, returns an object that can be merged with
-// the oldObj to yield the newObj. Doesn't handle deleted keys.
-function shallowDiff (oldObj: Object, newObj: Object): Object {
-  return Object.keys(newObj).reduce((acc, k) => newObj[k] !== oldObj[k] ? (acc[k] = newObj[k]) && acc : acc, {})
-}
 
 class Keybase extends Component {
   constructor () {
@@ -52,59 +48,34 @@ class Keybase extends Component {
     // Used by material-ui widgets.
     injectTapEventPlugin()
 
-    // For remote window components
-    ipcMain.removeAllListeners('dispatchAction')
-    ipcMain.removeAllListeners('stateChange')
-    ipcMain.removeAllListeners('subscribeStore')
-
-    ipcMain.on('dispatchAction', (event, action) => {
-      // we MUST clone this else we'll run into issues with redux. See https://github.com/rackt/redux/issues/830
-      // This is because we get a remote proxy object, instead of a normal object
-      // Using _.cloneDeep() creates a non-plain object
-      setImmediate(() => store.dispatch(_.merge({}, action)))
-    })
-
-    ipcMain.on('subscribeStore', event => {
-      const sender = event.sender // cache this since this is actually a sync-rpc call...
-
-      // Keep track of the last state sent so we can make the diffs.
-      let oldState = {}
-      const getStore = () => {
-        const newState = store.getState()
-        const diffState = shallowDiff(oldState, newState) || {}
-        oldState = newState
-        return diffState
-      }
-
-      if (!sender.isDestroyed()) {
-        sender.send('stateChange', getStore())
-      }
-
-      let unsubscribe = store.subscribe(() => {
-        if (sender.isDestroyed()) {
-          if (unsubscribe) {
-            unsubscribe()
-            unsubscribe = null
-          }
-          return
-        }
-
-        const diffState = getStore()
-        if (Object.keys(diffState).length !== 0) {
-          if (!sender.isDestroyed()) { // We need this extra check due to timing issues
-            sender.send('stateChange', diffState)
-          }
-        }
-      })
-    })
-
-    ipcRenderer.send('remoteStoreReady')
+    this.setupDispatchAction()
+    this.setupStoreSubscriptions()
 
     // Handle notifications from the service
     store.dispatch(listenForNotifications())
 
     // Handle logUi.log
     ListenLogUi()
+  }
+
+  setupDispatchAction () {
+    ipcRenderer.on('dispatchAction', (event, action) => {
+      // we MUST convert this else we'll run into issues with redux. See https://github.com/rackt/redux/issues/830
+      // This is because this is touched due to the remote proxying. We get a __proto__ which causes the _.isPlainObject check to fail. We use
+      // _.merge() to get a plain object back out which we can send
+      setImmediate(() => {
+        try {
+          store.dispatch(_.merge({}, action))
+        } catch (_) {
+        }
+      })
+    })
+  }
+
+  setupStoreSubscriptions () {
+    store.subscribe(() => {
+      ipcRenderer.send('stateChange', store.getState())
+    })
   }
 
   render () {

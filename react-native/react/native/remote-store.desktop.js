@@ -5,17 +5,13 @@ export default class RemoteStore {
   listeners: Array<Function>;
   internalState: any;
 
-  constructor (props: {}) {
+  constructor (props: {component: string, selectorParams: ?string}) {
     ipcRenderer.on('stateChange', (event, arg) => {
-      this.internalState = {...this.internalState, ...arg}
+      this.internalState = arg
       this._publishChange()
     })
 
-    ipcRenderer.on('resubscribeStore', () => {
-      ipcRenderer.send('subscribeStore')
-    })
-
-    ipcRenderer.send('subscribeStore')
+    ipcRenderer.send('subscribeStore', props.component, props.selectorParams)
 
     this.listeners = []
     this.internalState = {}
