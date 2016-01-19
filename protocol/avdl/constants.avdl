@@ -51,6 +51,7 @@ protocol constants {
     SCSelfNotFound_1703,
     SCBadKexPhrase_1704,
     SCNoUIDelegation_1705,
+    SCNoUI_1706,
     SCInvalidVersionError_1800,
     SCOldVersionError_1801,
     SCInvalidLocationError_1802,

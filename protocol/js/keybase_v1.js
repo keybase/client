@@ -105,6 +105,7 @@ export default {
       'scselfnotfound': 1703,
       'scbadkexphrase': 1704,
       'scnouidelegation': 1705,
+      'scnoui': 1706,
       'scinvalidversionerror': 1800,
       'scoldversionerror': 1801,
       'scinvalidlocationerror': 1802,
