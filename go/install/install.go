@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/blang/semver"
+	"github.com/kardianos/osext"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
@@ -167,21 +168,7 @@ func chooseBinPath(bp string) (string, error) {
 }
 
 func binPath() (string, error) {
-	if libkb.IsBrewBuild {
-		binName := binName()
-		prefix, err := brewPath(binName)
-		if err != nil {
-			return "", err
-		}
-		return filepath.Join(prefix, "bin", binName), nil
-	}
-
-	path := os.Args[0]
-	if !strings.HasPrefix(path, "/") {
-		return path, fmt.Errorf("We need to be run with an absolute path to this executable to determine its full path.")
-	}
-
-	return path, nil
+	return osext.Executable()
 }
 
 func binName() string {
