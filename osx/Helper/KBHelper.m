@@ -86,9 +86,9 @@
   } else if ([method isEqualToString:@"createDirectory"]) {
     [self createDirectory:args[@"directory"] uid:args[@"uid"] gid:args[@"gid"] permissions:args[@"permissions"] excludeFromBackup:[args[@"excludeFromBackup"] boolValue] completion:completion];
   } else if ([method isEqualToString:@"addToPath"]) {
-    [self addToPath:args[@"directory"] name:args[@"name"] completion:completion];
+    [self addToPath:args[@"directory"] name:args[@"name"] appName:args[@"appName"] completion:completion];
   } else if ([method isEqualToString:@"removeFromPath"]) {
-    [self removeFromPath:args[@"name"] completion:completion];
+    [self removeFromPath:args[@"directory"] name:args[@"name"] appName:args[@"appName"] completion:completion];
   } else {
     completion(KBMakeError(MPXPCErrorCodeUnknownRequest, @"Unknown request method"), nil);
   }
@@ -126,26 +126,101 @@
   completion(nil, @{});
 }
 
-- (void)addToPath:(NSString *)directory name:(NSString *)name completion:(void (^)(NSError *error, id value))completion {
-  NSString *pathsdPath = [NSString stringWithFormat:@"/etc/paths.d/%@", name];
+- (BOOL)linkExists:(NSString *)linkPath {
+  if (![NSFileManager.defaultManager fileExistsAtPath:linkPath]) {
+    return NO;
+  }
+  NSDictionary *attributes = [NSFileManager.defaultManager attributesOfItemAtPath:linkPath error:nil];
+  if (!attributes) {
+    return NO;
+  }
+  return [attributes[NSFileType] isEqual:NSFileTypeSymbolicLink];
+}
+
+- (NSString *)resolveLinkPath:(NSString *)linkPath {
+  if (![self linkExists:linkPath]) {
+    return nil;
+  }
+  return [NSFileManager.defaultManager destinationOfSymbolicLinkAtPath:linkPath error:nil];
+}
+
+- (BOOL)createLink:(NSString *)path linkPath:(NSString *)linkPath uid:(uid_t)uid gid:(gid_t)gid {
+  if ([self linkExists:linkPath]) {
+    [NSFileManager.defaultManager removeItemAtPath:linkPath error:nil];
+  }
+  if ([NSFileManager.defaultManager createSymbolicLinkAtPath:linkPath withDestinationPath:path error:nil]) {
+    // setAttributes doesn't work with symlinks, so we have to call lchown() directly
+    const char *file = [NSFileManager.defaultManager fileSystemRepresentationWithPath:linkPath];
+    if (lchown(file, uid, gid) == 0) {
+      return YES;
+    }
+  }
+  return NO;
+}
+
+- (void)addToPath:(NSString *)directory name:(NSString *)name appName:(NSString *)appName completion:(void (^)(NSError *error, id value))completion {
+  NSString *path = [NSString stringWithFormat:@"%@/%@", directory, name];
+  NSString *linkDir = @"/usr/local/bin";
+  NSString *linkPath = [NSString stringWithFormat:@"%@/%@", linkDir, name];
+
+  // Check if link dir exists and resolves correctly
+  if ([NSFileManager.defaultManager fileExistsAtPath:linkDir]) {
+    NSString *resolved = [self resolveLinkPath:linkPath];
+    // Check if we're linked properly at /usr/local/bin
+    if ([resolved isEqualToString:path]) {
+      completion(nil, @{@"path": linkPath});
+      return;
+    }
+
+    // Fix the link
+    NSDictionary *dirAttributes = [NSFileManager.defaultManager attributesOfItemAtPath:linkDir error:nil];
+    uid_t uid = [dirAttributes[NSFileOwnerAccountID] intValue];
+    gid_t gid = [dirAttributes[NSFileGroupOwnerAccountID] intValue];
+    if (dirAttributes && [self createLink:path linkPath:linkPath uid:uid gid:gid]) {
+      completion(nil, @{@"path": linkPath});
+      return;
+    }
+  }
+
+  // Fall back to using /etc/paths.d/
+  NSString *pathsdPath = [NSString stringWithFormat:@"/etc/paths.d/%@", appName];
   if ([NSFileManager.defaultManager fileExistsAtPath:pathsdPath]) {
     completion(nil, nil);
     return;
   }
   NSError *error = nil;
   [directory writeToFile:pathsdPath atomically:YES encoding:NSUTF8StringEncoding error:&error];
-  completion(error, pathsdPath);
+  completion(error, @{@"path": pathsdPath});
 }
 
-- (void)removeFromPath:(NSString *)name completion:(void (^)(NSError *error, id value))completion {
-  NSString *pathsdPath = [NSString stringWithFormat:@"/etc/paths.d/%@", name];
-  if ([NSFileManager.defaultManager fileExistsAtPath:pathsdPath]) {
-    completion(nil, nil);
-    return;
+- (void)removeFromPath:(NSString *)directory name:(NSString *)name appName:(NSString *)appName completion:(void (^)(NSError *error, id value))completion {
+  NSString *path = [NSString stringWithFormat:@"%@/%@", directory, name];
+  NSString *linkPath = [NSString stringWithFormat:@"/usr/local/bin/%@", name];
+  NSString *resolved = [self resolveLinkPath:linkPath];
+  NSMutableArray *removePaths = [NSMutableArray array];
+
+  if ([resolved isEqualToString:path]) {
+    [removePaths addObject:linkPath];
   }
-  NSError *error = nil;
-  [NSFileManager.defaultManager removeItemAtPath:pathsdPath error:&error];
-  completion(error, pathsdPath);
+
+  NSString *pathsdPath = [NSString stringWithFormat:@"/etc/paths.d/%@", appName];
+  if ([NSFileManager.defaultManager fileExistsAtPath:pathsdPath]) {
+    [removePaths addObject:pathsdPath];
+  }
+
+  NSMutableArray *errors = [NSMutableArray array];
+  for (NSString *path in removePaths) {
+    NSError *error = nil;
+    if (![NSFileManager.defaultManager removeItemAtPath:path error:&error]) {
+      [errors addObject:KBMakeError(error.code, @"Failed to remove path: %@", path)];
+    }
+  }
+
+  if ([errors count] > 0) {
+    completion(KBMakeError(-1, @"%@", [errors componentsJoinedByString:@". "]), @{@"paths": removePaths});
+  } else {
+    completion(nil, @{@"paths": removePaths});
+  }
 }
 
 - (void)trash:(NSString *)path completion:(void (^)(NSError *error, id value))completion {

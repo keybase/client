@@ -45,6 +45,7 @@ typedef NS_ENUM (NSInteger, KBRunMode) {
 - (NSString *)runtimePath:(NSString *)filename options:(KBPathOptions)options;
 - (NSString *)cachePath:(NSString *)filename options:(KBPathOptions)options;
 
+- (NSString *)appName;
 - (NSString *)serviceBinName;
 - (NSString *)serviceBinPathWithPathOptions:(KBPathOptions)pathOptions servicePath:(NSString *)servicePath;
 - (NSString *)kbfsBinPathWithPathOptions:(KBPathOptions)pathOptions servicePath:(NSString *)servicePath;

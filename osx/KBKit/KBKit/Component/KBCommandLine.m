@@ -28,39 +28,43 @@
     completion(KBMakeError(-1, @"No service path"));
     return;
   }
-  NSDictionary *params = @{@"directory": self.servicePath, @"name": @"Keybase"};
+  NSDictionary *params = @{@"directory": self.servicePath, @"name": self.config.serviceBinName, @"appName": self.config.appName};
   DDLogDebug(@"Helper: addToPath(%@)", params);
   [self.helperTool.helper sendRequest:@"addToPath" params:@[params] completion:^(NSError *error, id value) {
+    DDLogDebug(@"Result: %@", value);
     completion(error);
   }];
 }
 
 - (void)uninstall:(KBCompletion)completion {
-  NSDictionary *params = @{@"name": @"Keybase"};
+  NSDictionary *params = @{@"directory": self.servicePath, @"name": self.config.serviceBinName, @"appName": self.config.appName};
   DDLogDebug(@"Helper: removeFromPath(%@)", params);
   [self.helperTool.helper sendRequest:@"removeFromPath" params:@[params] completion:^(NSError *error, id value) {
+    DDLogDebug(@"Result: %@", value);
     completion(error);
   }];
 }
 
 - (void)refreshComponent:(KBRefreshComponentCompletion)completion {
-  NSString *path = @"/etc/paths.d/Keybase";
-  if ([NSFileManager.defaultManager isReadableFileAtPath:path]) {
-    NSError *error = nil;
-    NSString *directory = [NSString stringWithContentsOfFile:path encoding:NSUTF8StringEncoding error:&error];
-    if (error) {
-      self.componentStatus = [KBComponentStatus componentStatusWithError:error];
-      completion(self.componentStatus);
-      return;
+  NSString *linkDir = @"/usr/local/bin";
+  NSString *linkPath = [NSString stringWithFormat:@"%@/%@", linkDir, self.config.serviceBinName];
+  NSString *pathsdPath = [NSString stringWithFormat:@"/etc/paths.d/%@", self.config.appName];
+
+  BOOL found = NO;
+  NSArray *paths = @[linkPath, pathsdPath];
+  for (NSString *path in paths) {
+    if ([NSFileManager.defaultManager fileExistsAtPath:path]) {
+      found = YES;
+      break;
     }
-    if ([directory isEqualToString:self.servicePath]) {
-      self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionNone info:nil error:nil];
-    } else {
-      self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionUpgrade info:nil error:nil];
-    }
+  }
+
+  if (found) {
+    self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusInstalled installAction:KBRInstallActionNone info:nil error:nil];
   } else {
     self.componentStatus = [KBComponentStatus componentStatusWithInstallStatus:KBRInstallStatusNotInstalled installAction:KBRInstallActionInstall info:nil error:nil];
   }
+
   completion(self.componentStatus);
 }
 
