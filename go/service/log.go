@@ -27,13 +27,17 @@ func NewLogHandler(xp rpc.Transporter, logReg *logRegister, g *libkb.GlobalConte
 	}
 }
 
-func (h *LogHandler) RegisterLogger(_ context.Context, arg keybase1.RegisterLoggerArg) error {
-	h.G().Log.Debug("RegisterLogger: %+v", arg)
+func (h *LogHandler) RegisterLogger(_ context.Context, arg keybase1.RegisterLoggerArg) (err error) {
+	h.G().Log.Debug("LogHandler::RegisterLogger: %+v", arg)
+	defer h.G().Trace("LogHandler::RegisterLogger", func() error { return err })()
+
 	if h.logReg == nil {
 		// if not a daemon, h.logReg will be nil
 		h.G().Log.Debug("- logRegister is nil, ignoring RegisterLogger request")
 		return nil
 	}
+
 	ui := &LogUI{sessionID: arg.SessionID, cli: h.getLogUICli()}
-	return h.logReg.RegisterLogger(arg, ui)
+	err = h.logReg.RegisterLogger(arg, ui)
+	return err
 }
