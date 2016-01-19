@@ -22,8 +22,8 @@ func NewCmdUpdate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 		Usage:        "The updater",
 		ArgumentHelp: "[arguments...]",
 		Subcommands: []cli.Command{
+			NewCmdUpdateRun(cl, g),
 			NewCmdUpdateCheck(cl, g),
-			NewCmdUpdateCustom(cl, g),
 		},
 	}
 }
@@ -38,7 +38,7 @@ func NewCmdUpdateCheck(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.C
 			},
 		},
 		ArgumentHelp: "",
-		Usage:        "Perform an update check",
+		Usage:        "Trigger an update check (in the service)",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdUpdateCheckRunner(g), "check", c)
 		},
@@ -84,10 +84,10 @@ func (v *CmdUpdateCheck) Run() error {
 	return client.UpdateCheck(context.TODO(), v.force)
 }
 
-func NewCmdUpdateCustom(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+func NewCmdUpdateRun(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	defaultOptions := engine.DefaultUpdaterOptions(g)
 	return cli.Command{
-		Name: "custom",
+		Name: "run",
 		Flags: []cli.Flag{
 			cli.StringFlag{
 				Name:  "e, current-version",
@@ -113,35 +113,35 @@ func NewCmdUpdateCustom(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.
 			},
 		},
 		ArgumentHelp: "",
-		Usage:        "Run the updater with custom options",
+		Usage:        "Run the updater",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(NewCmdUpdateCustomRunner(g, defaultOptions), "run", c)
+			cl.ChooseCommand(NewCmdUpdateRunRunner(g, defaultOptions), "run", c)
 		},
 	}
 }
 
-type CmdUpdateCustom struct {
+type CmdUpdateRun struct {
 	libkb.Contextified
 	checkOnly bool
 	source    string
 	options   *keybase1.UpdateOptions
 }
 
-func NewCmdUpdateCustomRunner(g *libkb.GlobalContext, options *keybase1.UpdateOptions) *CmdUpdateCustom {
-	return &CmdUpdateCustom{
+func NewCmdUpdateRunRunner(g *libkb.GlobalContext, options *keybase1.UpdateOptions) *CmdUpdateRun {
+	return &CmdUpdateRun{
 		Contextified: libkb.NewContextified(g),
 		options:      options,
 	}
 }
 
-func (v *CmdUpdateCustom) GetUsage() libkb.Usage {
+func (v *CmdUpdateRun) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		API:    true,
 		Config: true,
 	}
 }
 
-func (v *CmdUpdateCustom) ParseArgv(ctx *cli.Context) error {
+func (v *CmdUpdateRun) ParseArgv(ctx *cli.Context) error {
 	currentVersion := ctx.String("current-version")
 	if currentVersion != "" {
 		v.options.Version = currentVersion
@@ -167,7 +167,7 @@ func (v *CmdUpdateCustom) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (v *CmdUpdateCustom) Run() error {
+func (v *CmdUpdateRun) Run() error {
 	if libkb.IsBrewBuild {
 		return fmt.Errorf("Update is not supported for brew install. Use \"brew update && brew upgrade keybase\" instead.")
 	}

@@ -26,6 +26,29 @@ func NewUpdateChecker(updater *Updater, ui UI, log logger.Logger) UpdateChecker 
 	}
 }
 
+func (u *UpdateChecker) check(force bool, requested bool) error {
+	updateStart := time.Now()
+	_, err := u.updater.Update(u.ui, force, requested)
+	updateEnd := time.Now()
+	if err != nil {
+		return err
+	}
+
+	// Because updates might have been single-flighted, an update could have been
+	// made available while the update prompt was showing. For example, if the
+	// update prompt showed at 3am on Saturday morning and the person came back
+	// Monday, they could have missed an update that happened in the meantime.
+	// A quick fix for this situation is to run the updater check again if the
+	// update took along time.
+	if updateEnd.Sub(updateStart) > time.Minute*15 {
+		u.log.Info("Update took a long time to run, so let's check again")
+		return u.check(force, requested)
+	}
+	return nil
+}
+
+// Check checks for an update. If not requested (by user) or forced it will
+// exit early if check has already been applied within checkDuration().
 func (u *UpdateChecker) Check(force bool, requested bool) error {
 	if !requested && !force {
 		if lastCheckedPTime := u.updater.config.GetUpdateLastChecked(); lastCheckedPTime > 0 {
@@ -37,12 +60,15 @@ func (u *UpdateChecker) Check(force bool, requested bool) error {
 		}
 	}
 
-	_, err := u.updater.Update(u.ui, force, requested)
+	checkTime := time.Now()
+	// This may block awhile if the updater prompt is left shown for a long time
+	err := u.check(force, requested)
 	if err != nil {
 		return err
 	}
-	u.log.Debug("Updater checked")
-	u.updater.config.SetUpdateLastChecked(keybase1.ToTime(time.Now()))
+
+	u.log.Debug("Saving updater last checked: %s", checkTime)
+	u.updater.config.SetUpdateLastChecked(keybase1.ToTime(checkTime))
 	return nil
 }
 
@@ -54,7 +80,10 @@ func (u *UpdateChecker) Start() {
 	go func() {
 		for _ = range u.ticker.C {
 			u.log.Debug("Checking for update (ticker)")
-			u.Check(false, false)
+			err := u.Check(false, false)
+			if err != nil {
+				u.log.Errorf("Error in update: %s", err)
+			}
 		}
 	}()
 }
