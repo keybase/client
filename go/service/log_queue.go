@@ -6,42 +6,35 @@ package service
 import (
 	"fmt"
 	"os"
-	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 type logQueue struct {
-	active      bool
-	name        string
-	level       keybase1.LogLevel
-	ui          *LogUI
-	handleID    int
-	buffer      chan *logEntry
-	drop        chan bool
-	processDone chan bool
+	name     string
+	level    keybase1.LogLevel
+	ui       *LogUI
+	handleID int
+	buffer   chan *logEntry
+	drop     chan bool
 }
 
-func newLogQueue() *logQueue {
-	// empty until Setup is called
-	return &logQueue{}
-}
-
-func (q *logQueue) Setup(name string, level keybase1.LogLevel, ui *LogUI) error {
-	if q.active {
-		return fmt.Errorf("Setup called on active queue, name = %s, level = %d", name, level)
+func newLogQueue(name string, level keybase1.LogLevel, ui *LogUI) *logQueue {
+	q := &logQueue{
+		name:   name,
+		level:  level,
+		ui:     ui,
+		buffer: make(chan *logEntry, 10000),
+		drop:   make(chan bool, 1),
 	}
-	q.name = name
-	q.level = level
-	q.ui = ui
-	q.buffer = make(chan *logEntry, 10000)
-	q.drop = make(chan bool, 1)
-	q.processDone = make(chan bool, 1)
 
-	q.active = true
 	go q.processQueue()
 
-	return nil
+	return q
+}
+
+func (q *logQueue) String() string {
+	return fmt.Sprintf("%s: level %d, handle id %d", q.name, q.level, q.handleID)
 }
 
 func (q *logQueue) SetHandleID(id int) {
@@ -53,9 +46,6 @@ func (q *logQueue) HandleID() int {
 }
 
 func (q *logQueue) Log(e *logEntry) {
-	if !q.active {
-		return
-	}
 	if e.level < q.level {
 		return
 	}
@@ -68,17 +58,7 @@ func (q *logQueue) Log(e *logEntry) {
 }
 
 func (q *logQueue) Shutdown() {
-	if q.buffer == nil {
-		return
-	}
 	close(q.buffer)
-
-	// wait a little bit to flush the buffer
-	select {
-	case <-q.processDone:
-	case <-time.After(1 * time.Second):
-	}
-
 	q.buffer = nil
 }
 
@@ -89,9 +69,6 @@ func (q *logQueue) processQueue() {
 		}
 		q.ui.Log(e.level, e.format, e.args)
 	}
-	q.processDone <- true
-
-	q.active = false
 }
 
 // setDropFlag puts a flag into the drop channel if the channel is

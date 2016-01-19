@@ -46,7 +46,7 @@ func (d *Service) GetStartChannel() <-chan struct{} {
 	return d.startCh
 }
 
-func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID libkb.ConnectionID, logq *logQueue, g *libkb.GlobalContext) error {
+func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID libkb.ConnectionID, logReg *logRegister, g *libkb.GlobalContext) error {
 	protocols := []rpc.Protocol{
 		keybase1.AccountProtocol(NewAccountHandler(xp, g)),
 		keybase1.BTCProtocol(NewBTCHandler(xp, g)),
@@ -59,7 +59,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.FavoriteProtocol(NewFavoriteHandler(xp, g)),
 		keybase1.IdentifyProtocol(NewIdentifyHandler(xp, g)),
 		keybase1.KbfsProtocol(NewKBFSHandler(xp, g)),
-		keybase1.LogProtocol(NewLogHandler(xp, logq, g)),
+		keybase1.LogProtocol(NewLogHandler(xp, logReg, g)),
 		keybase1.LoginProtocol(NewLoginHandler(xp, g)),
 		keybase1.NotifyCtlProtocol(NewNotifyCtlHandler(xp, connID, g)),
 		keybase1.PGPProtocol(NewPGPHandler(xp, g)),
@@ -92,19 +92,18 @@ func (d *Service) Handle(c net.Conn) {
 	server.AddCloseListener(cl)
 	connID := d.G().NotifyRouter.AddConnection(xp, cl)
 
-	// create one log queue per connection
-	logq := newLogQueue()
-
-	if err := d.RegisterProtocols(server, xp, connID, logq, d.G()); err != nil {
-		d.G().Log.Warning("RegisterProtocols error: %s", err)
-		return
+	var logReg *logRegister
+	if d.isDaemon {
+		// Create a new log register object that the Log handler can use to
+		// register a logger.  When this function finishes, the logger
+		// will be removed.
+		logReg = newLogRegister(d.logForwarder, d.G().Log)
+		defer logReg.UnregisterLogger()
 	}
 
-	if d.isDaemon {
-		// if this is the daemon, then add the log queue to the forwarder
-		d.logForwarder.Add(logq)
-		// and remove it when done handling this connection
-		defer d.logForwarder.Remove(logq)
+	if err := d.RegisterProtocols(server, xp, connID, logReg, d.G()); err != nil {
+		d.G().Log.Warning("RegisterProtocols error: %s", err)
+		return
 	}
 
 	if err := server.Run(false /* bg */); err != nil {

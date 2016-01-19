@@ -66,8 +66,8 @@ func (f *logFwd) process() {
 			x.SetHandleID(f.idSeq)
 			f.idSeq++
 		case x := <-f.removeCh:
-			x.Shutdown()
 			delete(f.loggers, x.HandleID())
+			x.Shutdown()
 		case e := <-f.logCh:
 			for _, x := range f.loggers {
 				x.Log(e)
