@@ -80,6 +80,7 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 		md.log.Warning("MDServerRemote: error signing authentication token: %v", err)
 		return err
 	}
+	md.log.Debug("MDServerRemote: authentication token signed")
 
 	// authenticate -- using md.client here would cause problematic recursion.
 	c := keybase1.MetadataClient{Cli: cancelableClient{client}}
@@ -88,11 +89,13 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 		md.log.Warning("MDServerRemote: authentication error: %v", err)
 		return err
 	}
+	md.log.Debug("MDServerRemote: authentication successful")
 
 	// request a list of folders needing rekey action
 	if err := md.getFoldersForRekey(ctx, c, server); err != nil {
 		md.log.Warning("MDServerRemote: getFoldersForRekey failed with %v", err)
 	}
+	md.log.Debug("MDServerRemote: requested list of folders for rekey")
 
 	// start pinging
 	md.resetPingTicker(pingIntervalSeconds)
