@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"time"
 
 	logging "github.com/keybase/go-logging"
 	isatty "github.com/mattn/go-isatty"
@@ -348,6 +349,8 @@ func (log *Standard) AddExternalLogger(externalLogger ExternalLogger) uint64 {
 	log.externalLoggersMutex.Lock()
 	defer log.externalLoggersMutex.Unlock()
 
+	log.internal.Debug("registering external logger %d [%+v]", log.externalLoggersCount, externalLogger)
+
 	handle := log.externalLoggersCount
 	log.externalLoggersCount++
 	log.externalLoggers[handle] = externalLogger
@@ -357,6 +360,8 @@ func (log *Standard) AddExternalLogger(externalLogger ExternalLogger) uint64 {
 func (log *Standard) RemoveExternalLogger(handle uint64) {
 	log.externalLoggersMutex.Lock()
 	defer log.externalLoggersMutex.Unlock()
+
+	log.internal.Debug("removing external logger %d", handle)
 
 	delete(log.externalLoggers, handle)
 	log.externalLoggersCount--
@@ -368,7 +373,7 @@ func (log *Standard) logToExternalLoggers(level keybase1.LogLevel, format string
 	}
 	e := entry{
 		level:  level,
-		format: format,
+		format: "[daemon] " + format,
 		args:   args,
 	}
 
@@ -409,12 +414,19 @@ func (log *Standard) SetExternalLogLevel(level keybase1.LogLevel) {
 	log.externalLoggersMutex.Lock()
 	defer log.externalLoggersMutex.Unlock()
 
+	log.internal.Debug("setting external log level to %d (was %d)", level, log.externalLogLevel)
+
 	log.externalLogLevel = level
 }
 
 func (log *Standard) processBuffer() {
 	for e := range log.buffer {
 		log.externalLoggersMutex.RLock()
+
+		if len(log.externalLoggers) == 0 {
+			log.externalLoggersMutex.RUnlock()
+			continue
+		}
 
 		// Short circuit logs that are more verbose than the current external log
 		// level.
@@ -425,17 +437,33 @@ func (log *Standard) processBuffer() {
 
 		var wg sync.WaitGroup
 
-		for _, externalLogger := range log.externalLoggers {
+		for i, externalLogger := range log.externalLoggers {
 			wg.Add(1)
-			go func(xl ExternalLogger) {
-				xl.Log(e.level, e.format, e.args)
+			go func(index uint64, xl ExternalLogger) {
+				log.logWithTimeout(index, xl, e)
 				wg.Done()
-			}(externalLogger)
+			}(i, externalLogger)
 		}
 
 		log.externalLoggersMutex.RUnlock()
 
 		wg.Wait()
+	}
+}
+
+func (log *Standard) logWithTimeout(handle uint64, xl ExternalLogger, e *entry) {
+	ch := make(chan struct{})
+	go func() {
+		xl.Log(e.level, e.format, e.args)
+		ch <- struct{}{}
+	}()
+
+	select {
+	case <-ch:
+	case <-time.After(100 * time.Millisecond):
+		log.internal.Debug("timeout sending to %d, removing it", handle)
+		delete(log.externalLoggers, handle)
+		log.externalLoggersCount--
 	}
 }
 
