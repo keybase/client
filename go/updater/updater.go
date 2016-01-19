@@ -126,8 +126,8 @@ func (u *Updater) checkForUpdate(skipAssetDownload bool, force bool, requested b
 		}
 	}
 
-	if !skipAssetDownload {
-		downloadPath, _, dlerr := u.downloadAsset(update.Asset)
+	if !skipAssetDownload && update.Asset != nil {
+		downloadPath, _, dlerr := u.downloadAsset(*update.Asset)
 		if dlerr != nil {
 			err = dlerr
 			return
@@ -154,6 +154,21 @@ func computeEtag(path string) (string, error) {
 	return hex.EncodeToString(hash.Sum(result)), nil
 }
 
+func (u *Updater) checkDigest(digest string, localPath string) error {
+	if digest == "" {
+		return fmt.Errorf("Missing digest")
+	}
+	calcDigest, err := libkb.DigestForFileAtPath(localPath)
+	if err != nil {
+		return err
+	}
+	if calcDigest != digest {
+		return fmt.Errorf("Invalid digest: %s != %s (%s)", calcDigest, digest, localPath)
+	}
+	u.log.Info("Verified digest: %s (%s)", digest, localPath)
+	return nil
+}
+
 func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool, err error) {
 	url, err := url.Parse(asset.Url)
 	if err != nil {
@@ -174,6 +189,11 @@ func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool
 
 		err = copyFile(localpath, fpath)
 		if err != nil {
+			return
+		}
+
+		if derr := u.checkDigest(asset.Digest, fpath); derr != nil {
+			err = derr
 			return
 		}
 
@@ -226,10 +246,15 @@ func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool
 		return
 	}
 	defer file.Close()
-	u.log.Info("Saving to %s", fpath)
+	u.log.Info("Saving to %s", savePath)
 	n, err := io.Copy(file, resp.Body)
 	u.log.Info("Wrote %d bytes", n)
 	if err != nil {
+		return
+	}
+
+	if derr := u.checkDigest(asset.Digest, savePath); derr != nil {
+		err = derr
 		return
 	}
 
@@ -242,6 +267,7 @@ func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool
 	}
 	u.log.Info("Moving %s to %s", filepath.Base(savePath), filepath.Base(fpath))
 	err = os.Rename(savePath, fpath)
+
 	return
 }
 
@@ -343,7 +369,14 @@ func (u *Updater) update(ui UI, force bool, requested bool) (update *keybase1.Up
 
 	_, err = u.restart(ui)
 
-	u.cleanup([]string{unzipDestination(update.Asset.LocalPath), update.Asset.LocalPath, tmpFileName})
+	if update.Asset != nil {
+		u.cleanup([]string{unzipDestination(update.Asset.LocalPath), update.Asset.LocalPath})
+		return
+	}
+
+	if tmpFileName != "" {
+		u.cleanup([]string{tmpFileName})
+	}
 
 	return
 }
@@ -397,6 +430,11 @@ func (u *Updater) promptForUpdateAction(ui UI, update keybase1.Update) (err erro
 
 func (u *Updater) applyUpdate(ui UI, update keybase1.Update) (tmpPath string, err error) {
 	if err = u.promptForUpdateAction(ui, update); err != nil {
+		return
+	}
+
+	if update.Asset == nil {
+		u.log.Info("No update asset to apply")
 		return
 	}
 

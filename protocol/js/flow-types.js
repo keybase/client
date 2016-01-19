@@ -5024,15 +5024,108 @@ export type ui_PromptDefault = 0 /* 'NONE_0' */ | 1 /* 'YES_1' */ | 2 /* 'NO_2' 
 
 export type PromptDefault = 0 /* 'NONE_0' */ | 1 /* 'YES_1' */ | 2 /* 'NO_2' */
 
+export type update_Time = {
+}
+
+export type update_StringKVPair = {
+  key: string;
+  value: string;
+}
+
+export type update_Status = {
+  code: int;
+  name: string;
+  desc: string;
+  fields: Array<StringKVPair>;
+}
+
+export type update_UID = {
+}
+
+export type update_DeviceID = {
+}
+
+export type update_SigID = {
+}
+
+export type update_KID = {
+}
+
+export type update_Text = {
+  data: string;
+  markup: boolean;
+}
+
+export type update_PGPIdentity = {
+  username: string;
+  comment: string;
+  email: string;
+}
+
+export type update_PublicKey = {
+  KID: KID;
+  PGPFingerprint: string;
+  PGPIdentities: Array<PGPIdentity>;
+  isSibkey: boolean;
+  isEldest: boolean;
+  parentID: string;
+  deviceID: DeviceID;
+  deviceDescription: string;
+  deviceType: string;
+  cTime: Time;
+  eTime: Time;
+}
+
+export type update_User = {
+  uid: UID;
+  username: string;
+}
+
+export type update_Device = {
+  type: string;
+  name: string;
+  deviceID: DeviceID;
+  cTime: Time;
+  mTime: Time;
+  encryptKey: KID;
+  verifyKey: KID;
+}
+
+export type update_Stream = {
+  fd: int;
+}
+
+export type update_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
+
+export type update_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+
+export type update_UserVersionVector = {
+  id: long;
+  sigHints: int;
+  sigChain: long;
+  cachedAt: Time;
+  lastIdentifiedAt: Time;
+}
+
+export type update_UserPlusKeys = {
+  uid: UID;
+  username: string;
+  deviceKeys: Array<PublicKey>;
+  keys: Array<PublicKey>;
+  uvv: UserVersionVector;
+}
+
 export type update_Asset = {
   name: string;
   url: string;
+  digest: string;
   localPath: string;
 }
 
 export type Asset = {
   name: string;
   url: string;
+  digest: string;
   localPath: string;
 }
 
@@ -5045,7 +5138,8 @@ export type update_Update = {
   name: string;
   description: string;
   type: UpdateType;
-  asset: Asset;
+  publishedAt?: ?Time;
+  asset?: ?Asset;
 }
 
 export type Update = {
@@ -5053,7 +5147,8 @@ export type Update = {
   name: string;
   description: string;
   type: UpdateType;
-  asset: Asset;
+  publishedAt?: ?Time;
+  asset?: ?Asset;
 }
 
 export type update_UpdateOptions = {
@@ -5178,6 +5273,7 @@ export type updateUi_UserPlusKeys = {
 export type updateUi_Asset = {
   name: string;
   url: string;
+  digest: string;
   localPath: string;
 }
 
@@ -5188,7 +5284,8 @@ export type updateUi_Update = {
   name: string;
   description: string;
   type: UpdateType;
-  asset: Asset;
+  publishedAt?: ?Time;
+  asset?: ?Asset;
 }
 
 export type updateUi_UpdateAction = 0 /* 'UPDATE_0' */ | 1 /* 'SKIP_1' */ | 2 /* 'SNOOZE_2' */ | 3 /* 'CANCEL_3' */
