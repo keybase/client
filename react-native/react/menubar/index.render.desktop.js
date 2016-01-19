@@ -2,7 +2,7 @@
 /*eslint-disable react/prop-types */ // Since we're using flow types for props
 
 import React, {Component} from '../base-react'
-import {clipboard, shell} from 'electron'
+import {shell} from 'electron'
 import resolveAssets from '../../../desktop/resolve-assets'
 
 import {intersperse} from '../util/arrays'
@@ -13,7 +13,6 @@ import {Text, Input, Terminal, Icon} from '../common-adapters/index'
 
 import {CircularProgress} from 'material-ui'
 import {cleanup, allowLoggedOut as allowLoggedOutKBFS} from '../util/kbfs'
-import {NotifyPopup} from '../native/notifications'
 
 // This is the only data that the renderer cares about for a folder
 import type {FolderInfo, FolderEntry} from './index.render'
@@ -37,9 +36,7 @@ const Header = props => {
       <Icon hint='Open keybase.io web' type='fa-globe' onClick={showUser}/>
       <div style={{flex: 1}}/>
       <Icon hint={`Report a bug for version: ${version}`} type='fa-bug' onClick={ () => {
-        clipboard.writeText(`Keybase GUI Version: ${version}`)
-        shell.openExternal('https://github.com/keybase/client/issues')
-        NotifyPopup('Version copied to clipboard')
+        shell.openExternal(`https://github.com/keybase/client/issues/new?body=Keybase%20GUI%20Version:%20${version}`)
       }}/>
     </div>
   )
