@@ -23,7 +23,7 @@ func NewKeyManagerStandard(config Config) *KeyManagerStandard {
 // KeyManagerStandard.
 func (km *KeyManagerStandard) GetTLFCryptKeyForEncryption(ctx context.Context,
 	md *RootMetadata) (tlfCryptKey TLFCryptKey, err error) {
-	return km.getTLFCryptKey(ctx, md, md.LatestKeyGeneration())
+	return km.getTLFCryptKeyUsingCurrentDevice(ctx, md, md.LatestKeyGeneration())
 }
 
 // GetTLFCryptKeyForMDDecryption implements the KeyManager interface
@@ -31,7 +31,7 @@ func (km *KeyManagerStandard) GetTLFCryptKeyForEncryption(ctx context.Context,
 func (km *KeyManagerStandard) GetTLFCryptKeyForMDDecryption(
 	ctx context.Context, md *RootMetadata) (
 	tlfCryptKey TLFCryptKey, err error) {
-	return km.getTLFCryptKey(ctx, md, md.LatestKeyGeneration())
+	return km.getTLFCryptKeyUsingCurrentDevice(ctx, md, md.LatestKeyGeneration())
 }
 
 // GetTLFCryptKeyForBlockDecryption implements the KeyManager interface for
@@ -39,15 +39,15 @@ func (km *KeyManagerStandard) GetTLFCryptKeyForMDDecryption(
 func (km *KeyManagerStandard) GetTLFCryptKeyForBlockDecryption(
 	ctx context.Context, md *RootMetadata, blockPtr BlockPointer) (
 	tlfCryptKey TLFCryptKey, err error) {
-	return km.getTLFCryptKey(ctx, md, blockPtr.KeyGen)
+	return km.getTLFCryptKeyUsingCurrentDevice(ctx, md, blockPtr.KeyGen)
+}
+
+func (km *KeyManagerStandard) getTLFCryptKeyUsingCurrentDevice(ctx context.Context,
+	md *RootMetadata, keyGen KeyGen) (tlfCryptKey TLFCryptKey, err error) {
+	return km.getTLFCryptKey(ctx, md, keyGen, false)
 }
 
 func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
-	md *RootMetadata, keyGen KeyGen) (tlfCryptKey TLFCryptKey, err error) {
-	return km.getTLFCryptKeyAny(ctx, md, keyGen, false)
-}
-
-func (km *KeyManagerStandard) getTLFCryptKeyAny(ctx context.Context,
 	md *RootMetadata, keyGen KeyGen, anyDevice bool) (tlfCryptKey TLFCryptKey, err error) {
 	if md.ID.IsPublic() {
 		tlfCryptKey = PublicTLFCryptKey
@@ -386,7 +386,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 	// If there's at least one new device, add that device to every key bundle.
 	if addNewDevice {
 		for keyGen := KeyGen(FirstValidKeyGen); keyGen <= currKeyGen; keyGen++ {
-			currTlfCryptKey, err := km.getTLFCryptKeyAny(ctx, md, keyGen, true)
+			currTlfCryptKey, err := km.getTLFCryptKey(ctx, md, keyGen, true)
 			if err != nil {
 				return false, err
 			}
