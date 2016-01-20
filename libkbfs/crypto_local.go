@@ -1,8 +1,6 @@
 package libkbfs
 
 import (
-	"fmt"
-
 	"github.com/keybase/client/go/libkb"
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/net/context"
@@ -169,7 +167,6 @@ func (c *CryptoLocal) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 			copy(clientHalf.data[:], decryptedData)
 			return clientHalf, i, nil
 		}
-		fmt.Printf("not okay: decrypted data: %v\n", decryptedData)
 	}
 	err = libkb.DecryptionError{}
 	return

@@ -81,9 +81,11 @@ func (fc FakeCryptoClient) Call(_ context.Context, s string, args interface{}, r
 			ePublicKey := MakeTLFEphemeralPublicKey(k.PublicKey)
 			encryptedClientHalf := EncryptedTLFCryptKeyClientHalf{
 				Version:       EncryptionSecretbox,
-				EncryptedData: k.Ciphertext[:],
-				Nonce:         k.Nonce[:],
+				EncryptedData: make([]byte, len(k.Ciphertext)),
+				Nonce:         make([]byte, len(k.Nonce)),
 			}
+			copy(encryptedClientHalf.EncryptedData, k.Ciphertext[:])
+			copy(encryptedClientHalf.Nonce, k.Nonce[:])
 			keys = append(keys, EncryptedTLFCryptKeyClientAndEphemeral{
 				EPubKey:    ePublicKey,
 				ClientHalf: encryptedClientHalf,
@@ -282,7 +284,7 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalfAny(t *testing.T) {
 
 	keys := make([]EncryptedTLFCryptKeyClientAndEphemeral, 0, 4)
 	clientHalves := make([]TLFCryptKeyClientHalf, 0, 4)
-	for k := 0; k < 4; k++ {
+	for i := 0; i < 4; i++ {
 		_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
 		if err != nil {
 			t.Fatal(err)
