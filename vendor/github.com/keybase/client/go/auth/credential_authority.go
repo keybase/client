@@ -1,6 +1,7 @@
 package auth
 
 import (
+	"fmt"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -38,6 +39,12 @@ type checkArg struct {
 	retCh    chan error
 }
 
+// String implements the Stringer interface for checkArg.
+func (ca checkArg) String() string {
+	return fmt.Sprintf("{uid: %s, username: %s, kid: %s, sibkeys: %v, subkeys: %v}",
+		ca.uid, ca.username, ca.kid, ca.sibkeys, ca.subkeys)
+}
+
 // userWrapper contains two fields -- one is the user object itself, which will
 // spawn a go-routine that is largely off-limits to the main thread aside from
 // over channels. the second field is the `atime`, or *access* time, which the main
@@ -47,12 +54,22 @@ type userWrapper struct {
 	atime time.Time
 }
 
+// String implements the Stringer interface for userWrapper.
+func (uw userWrapper) String() string {
+	return fmt.Sprintf("{user: %s, atime: %s}", uw.u, uw.atime)
+}
+
 // cleanItems are items to consider cleaning out of the cache. they sit in a queue
 // until they are up for review. When the review happens, the user object they
 // refer to can still persist in the cache, if it's been accessed recently.
 type cleanItem struct {
 	uid   keybase1.UID
 	ctime time.Time
+}
+
+// String implements the Stringer interface for cleanItem.
+func (ci cleanItem) String() string {
+	return fmt.Sprintf("{uid: %s, ctime: %s}", ci.uid, ci.ctime)
 }
 
 // user wraps a user who is currently active in the system. Each user has a run
@@ -70,10 +87,17 @@ type user struct {
 	stopCh   chan struct{}
 }
 
+// String implements the stringer interface for user.
+func (u user) String() string {
+	return fmt.Sprintf("{uid: %s, username: %s, sibkeys: %v, subkeys: %v, isOK: %v, ctime: %s}",
+		u.uid, u.username, u.sibkeys, u.subkeys, u.isOK, u.ctime)
+}
+
 // newUser makes a new user with the given UID for use in the given
 // CredentialAuthority. This constructor sets up the necessary maps and
 // channels to make the user work as expected.
 func newUser(uid keybase1.UID, ca *CredentialAuthority) *user {
+	ca.log.Debug("newUser, uid %s", uid)
 	ret := &user{
 		uid:     uid,
 		sibkeys: make(map[keybase1.KID]struct{}),
@@ -221,10 +245,12 @@ func (v *CredentialAuthority) runLoop() {
 		case <-v.shutdownCh:
 			done = true
 		case ca := <-v.checkCh:
+			v.log.Debug("Checking %s", ca)
 			u := v.makeUser(ca.uid)
 			go u.sendCheck(ca)
 		case uid := <-v.invalidateCh:
 			if uw := v.users[uid]; uw != nil {
+				v.log.Debug("Invalidating %s", uw)
 				delete(v.users, uid)
 				go uw.u.sendStop()
 			}
@@ -250,6 +276,7 @@ func (v *CredentialAuthority) clean() {
 			return
 		}
 		if uw := v.users[e.uid]; uw != nil && !uw.atime.After(e.ctime) {
+			v.log.Debug("Cleaning %s, clean entry: %s", uw, e)
 			delete(v.users, e.uid)
 			go uw.u.sendStop()
 		}
@@ -293,6 +320,7 @@ func (u *user) run() {
 		case ca := <-u.checkCh:
 			u.check(ca)
 		case <-u.stopCh:
+			u.ca.log.Debug("Stopping user loop for %s", u)
 			done = true
 		case <-u.ca.shutdownCh:
 			done = true
@@ -335,6 +363,7 @@ func (u *user) repopulate() error {
 	}
 	u.isOK = true
 	u.ctime = ctime
+	u.ca.log.Debug("Repopulated info for %s", u)
 	return nil
 }
 
@@ -350,6 +379,7 @@ func (u *user) check(ca checkArg) {
 	var err error
 
 	defer func() {
+		u.ca.log.Debug("Check %s, err: %v", ca, err)
 		ca.retCh <- err
 	}()
 
@@ -445,6 +475,7 @@ func (u *user) checkKey(kid keybase1.KID) error {
 // check fails, and nil otherwise. If username or kid are nil they aren't checked.
 func (v *CredentialAuthority) CheckUserKey(ctx context.Context, uid keybase1.UID,
 	username *libkb.NormalizedUsername, kid *keybase1.KID) (err error) {
+	v.log.Debug("CheckUserKey uid %s, kid %s", uid, kid)
 	retCh := make(chan error)
 	v.checkCh <- checkArg{uid: uid, username: username, kid: kid, retCh: retCh}
 	select {

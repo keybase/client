@@ -135,8 +135,8 @@
 		},
 		{
 			"path": "github.com/keybase/client/go/auth",
-			"revision": "49e2147b98212f4566e9808592658d5317e688ec",
-			"revisionTime": "2016-01-18T13:45:05-08:00"
+			"revision": "f1906a84121c6b54375738c782726bf536d222bb",
+			"revisionTime": "2016-01-20T12:12:52-08:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/encoding/basex",

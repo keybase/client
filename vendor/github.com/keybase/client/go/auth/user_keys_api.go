@@ -81,9 +81,10 @@ func (u *userKeyAPI) GetUser(ctx context.Context, uid keybase1.UID) (
 }
 
 func (u *userKeyAPI) PollForChanges(ctx context.Context) (uids []keybase1.UID, err error) {
-	u.log.Debug("+ poll")
 	defer func() {
-		u.log.Debug("- poll -> %v", err)
+		if err != nil {
+			u.log.Debug("- poll -> %v", err)
+		}
 	}()
 
 	select {
