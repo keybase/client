@@ -27,15 +27,6 @@ if [ "$token" = "" ]; then
   exit 2
 fi
 
-check_release() {
-  echo "Checking for existing release: $version"
-  api_url=`$release_bin url --user=keybase --repo=client --version=$version`
-  if [ ! "$api_url" = "" ]; then
-    echo "Release already exists"
-    exit 0
-  fi
-}
-
 build() {
   rm -rf "$build_dir"
   mkdir -p "$build_dir"
@@ -64,14 +55,25 @@ build() {
 }
 
 create_release() {
+  echo "Checking for existing release: $version"
+  api_url=`$release_bin url --user=keybase --repo=client --version=$version`
+  if [ ! "$api_url" = "" ]; then
+    echo "Release already exists, skipping"
+  else
+    cd "$build_dir"
+    platform=`$release_bin platform`
+    echo "Creating release"
+    $release_bin create --version="$version" --repo="client"
+  fi
+}
+
+upload_release() {
   cd "$build_dir"
   platform=`$release_bin platform`
-  echo "Creating release"
-  $release_bin create --version="$version" --repo="client"
   echo "Uploading release"
   $release_bin upload --src="$tgz" --dest="keybase-$version-$platform.tgz" --version="$version" --repo="client"
 }
 
-check_release
 build
 create_release
+upload_release
