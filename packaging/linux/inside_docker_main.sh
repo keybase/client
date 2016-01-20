@@ -65,6 +65,34 @@ fi
 
 release_prerelease() {
   echo Doing a prerelease push to S3...
+  # Upload both repos to S3.
+  echo Syncing the deb repo...
+  aws s3 sync --delete "$build_dir/deb_repo/repo" s3://prerelease.keybase.io/deb
+  echo Syncing the rpm repo...
+  aws s3 sync --delete "$build_dir/rpm_repo/repo" s3://prerelease.keybase.io/rpm
+
+  # Upload another copy of the packages to our list of all packages.
+  for f in "$build_dir"/deb_repo/repo/pool/main/*/*/*.deb ; do
+    echo "Uploading individual binary '$f'..."
+    aws s3 cp "$f" s3://prerelease.keybase.io/linux/
+  done
+  for f in "$build_dir"/rpm_repo/repo/*/*.rpm ; do
+    echo "Uploading individual binary '$f'..."
+    aws s3 cp "$f" s3://prerelease.keybase.io/linux/
+  done
+
+  json_tmp=`mktemp`
+  echo "Writing version into JSON to $json_tmp"
+  cat > "$json_tmp" <<END
+{
+"version": "$version",
+"name": "v$version",
+"description": "Latest Linux release",
+"type": 0
+}
+END
+
+  aws s3 cp --content-type application/json "$json_tmp" s3://prerelease.keybase.io/update-linux-prod.json
 }
 
 release_serverops() {
