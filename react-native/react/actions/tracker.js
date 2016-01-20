@@ -166,7 +166,8 @@ export function onFollowHelp (username: string): Action {
 function trackUser (trackToken: ?string): Promise<boolean> {
   const options: TrackOptions = {
     localOnly: false,
-    bypassConfirm: false
+    bypassConfirm: false,
+    forceRetrack: false
   }
 
   if (trackToken) {

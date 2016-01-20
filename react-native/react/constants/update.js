@@ -25,7 +25,7 @@ type showUpdatePromptPayload = {
   isCritical: bool,
   description: string,
   type: UpdateType,
-  asset: Asset,
+  asset: ?Asset,
   windowTitle: string,
   oldVersion: string,
   newVersion: string,
