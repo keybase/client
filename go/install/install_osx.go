@@ -23,15 +23,16 @@ import (
 type ServiceLabel string
 
 const (
-	BrewServiceLabel ServiceLabel = "homebrew.mxcl.keybase"
-	BrewKBFSLabel    ServiceLabel = "homebrew.mxcl.kbfs"
 	AppServiceLabel  ServiceLabel = "keybase.service"
 	AppKBFSLabel     ServiceLabel = "keybase.kbfs"
+	BrewServiceLabel ServiceLabel = "homebrew.mxcl.keybase"
+	BrewKBFSLabel    ServiceLabel = "homebrew.mxcl.kbfs"
+	UnknownLabel     ServiceLabel = ""
 )
 
 func KeybaseServiceStatus(g *libkb.GlobalContext, label string) (status keybase1.ServiceStatus) {
 	if label == "" {
-		label = defaultServiceLabel(g.Env.GetRunMode())
+		label = DefaultServiceLabel(g.Env.GetRunMode())
 	}
 	kbService := launchd.NewService(label)
 
@@ -53,7 +54,7 @@ func KeybaseServiceStatus(g *libkb.GlobalContext, label string) (status keybase1
 
 func KBFSServiceStatus(g *libkb.GlobalContext, label string) (status keybase1.ServiceStatus) {
 	if label == "" {
-		label = defaultKBFSLabel(g.Env.GetRunMode())
+		label = DefaultKBFSLabel(g.Env.GetRunMode())
 	}
 	kbfsService := launchd.NewService(label)
 
@@ -164,14 +165,14 @@ func DefaultLaunchdEnvVars(g *libkb.GlobalContext, label string) map[string]stri
 	return envVars
 }
 
-func defaultServiceLabel(runMode libkb.RunMode) string {
+func DefaultServiceLabel(runMode libkb.RunMode) string {
 	if libkb.IsBrewBuild {
 		return BrewServiceLabel.labelForRunMode(runMode)
 	}
 	return AppServiceLabel.labelForRunMode(runMode)
 }
 
-func defaultKBFSLabel(runMode libkb.RunMode) string {
+func DefaultKBFSLabel(runMode libkb.RunMode) string {
 	if libkb.IsBrewBuild {
 		return BrewKBFSLabel.labelForRunMode(runMode)
 	}
@@ -179,7 +180,7 @@ func defaultKBFSLabel(runMode libkb.RunMode) string {
 }
 
 func installKeybaseService(g *libkb.GlobalContext, binPath string) (*keybase1.ServiceStatus, error) {
-	label := defaultServiceLabel(g.Env.GetRunMode())
+	label := DefaultServiceLabel(g.Env.GetRunMode())
 	plistArgs := []string{"service"}
 	envVars := DefaultLaunchdEnvVars(g, label)
 
@@ -203,7 +204,7 @@ func uninstallKeybaseServices(g *libkb.GlobalContext, runMode libkb.RunMode) err
 
 func installKBFSService(g *libkb.GlobalContext, binPath string) (*keybase1.ServiceStatus, error) {
 	runMode := g.Env.GetRunMode()
-	label := defaultKBFSLabel(runMode)
+	label := DefaultKBFSLabel(runMode)
 	kbfsBinPath, err := kbfsBinPath(runMode, binPath)
 	if err != nil {
 		return nil, err
@@ -236,6 +237,20 @@ func uninstallKBFSServices(g *libkb.GlobalContext, runMode libkb.RunMode) error 
 	return libkb.CombineErrors(err1, err2)
 }
 
+func NewServiceLabel(s string) (ServiceLabel, error) {
+	switch s {
+	case string(AppServiceLabel):
+		return AppServiceLabel, nil
+	case string(BrewServiceLabel):
+		return BrewServiceLabel, nil
+	case string(AppKBFSLabel):
+		return AppKBFSLabel, nil
+	case string(BrewKBFSLabel):
+		return BrewKBFSLabel, nil
+	}
+	return UnknownLabel, fmt.Errorf("Unknown service label: %s", s)
+}
+
 // Lookup the default service label for this build.
 func (l ServiceLabel) labelForRunMode(runMode libkb.RunMode) string {
 	switch runMode {
@@ -247,6 +262,29 @@ func (l ServiceLabel) labelForRunMode(runMode libkb.RunMode) string {
 		return string(l)
 	default:
 		panic("Invalid run mode")
+	}
+}
+
+func (l ServiceLabel) ComponentName() ComponentName {
+	switch l {
+	case AppServiceLabel, BrewServiceLabel:
+		return ComponentNameService
+	case AppKBFSLabel, BrewKBFSLabel:
+		return ComponentNameKBFS
+	}
+	return ComponentNameUnknown
+}
+
+func ServiceStatus(g *libkb.GlobalContext, label ServiceLabel) (*keybase1.ServiceStatus, error) {
+	switch label.ComponentName() {
+	case ComponentNameService:
+		st := KeybaseServiceStatus(g, string(label))
+		return &st, nil
+	case ComponentNameKBFS:
+		st := KBFSServiceStatus(g, string(label))
+		return &st, nil
+	default:
+		return nil, fmt.Errorf("Invalid label: %s", label)
 	}
 }
 
@@ -442,7 +480,7 @@ func autoInstall(g *libkb.GlobalContext, binPath string, force bool) (newProc bo
 	defer func() {
 		g.Log.Debug("- AutoInstall -> %v, %v", newProc, err)
 	}()
-	label := defaultServiceLabel(g.Env.GetRunMode())
+	label := DefaultServiceLabel(g.Env.GetRunMode())
 	if label == "" {
 		err = fmt.Errorf("No service label to install")
 		return

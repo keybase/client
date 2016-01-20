@@ -15,7 +15,6 @@ import (
 	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 func NewCmdLaunchd(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -231,8 +230,7 @@ func (v *CmdLaunchdList) showServices(filters []string, name string) (err error)
 type CmdLaunchdStatus struct {
 	libkb.Contextified
 	format string
-	label  string
-	name   string
+	label  install.ServiceLabel
 }
 
 func NewCmdLaunchdStatusRunner(g *libkb.GlobalContext) *CmdLaunchdStatus {
@@ -250,22 +248,33 @@ func (v *CmdLaunchdStatus) ParseArgv(ctx *cli.Context) error {
 	if len(args) < 1 {
 		return fmt.Errorf("No service name specified.")
 	}
-	v.name = args[0]
+
+	// Resolve any label "aliases"
+	labelStr := args[0]
+	switch labelStr {
+	case "service":
+		labelStr = install.DefaultServiceLabel(v.G().Env.GetRunMode())
+	case "kbfs":
+		labelStr = install.DefaultKBFSLabel(v.G().Env.GetRunMode())
+	}
+
+	label, err := install.NewServiceLabel(labelStr)
+	if err != nil {
+		return err
+	}
+	v.label = label
+
 	v.format = ctx.String("format")
 	return nil
 }
 
 func (v *CmdLaunchdStatus) Run() error {
-	var st keybase1.ServiceStatus
-	if v.name == "service" {
-		st = install.KeybaseServiceStatus(v.G(), v.label)
-	} else if v.name == "kbfs" {
-		st = install.KBFSServiceStatus(v.G(), v.label)
-	} else {
-		return fmt.Errorf("Invalid service name: %s", v.name)
+	serviceStatus, err := install.ServiceStatus(v.G(), v.label)
+	if err != nil {
+		return err
 	}
 
-	out, err := json.MarshalIndent(st, "", "  ")
+	out, err := json.MarshalIndent(serviceStatus, "", "  ")
 	if err != nil {
 		return err
 	}

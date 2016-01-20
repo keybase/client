@@ -68,11 +68,24 @@ func NewPlist(label string, binPath string, args []string, envVars map[string]st
 
 // Load will start the service.
 func (s Service) Start() error {
+	if !s.HasPlist() {
+		return fmt.Errorf("No service (plist) installed with label: %s", s.label)
+	}
+
 	plistDest := s.plistDestination()
 	s.info("Starting %s", s.label)
 	// We start using load -w on plist file
 	_, err := exec.Command("/bin/launchctl", "load", "-w", plistDest).Output()
 	return err
+}
+
+// HasPlist returns true if service has plist installed
+func (s Service) HasPlist() bool {
+	plistDest := s.plistDestination()
+	if _, err := os.Stat(plistDest); err == nil {
+		return true
+	}
+	return false
 }
 
 // Stop a service.
