@@ -1,5 +1,5 @@
 import React, {AppRegistry, Component, NativeAppEventEmitter, AsyncStorage} from './base-react'
-import {Provider} from 'react-redux/native'
+import {Provider} from 'react-redux'
 import configureStore from './store/configure-store'
 import Nav from './nav'
 
@@ -37,7 +37,7 @@ class Keybase extends Component {
   render () {
     return (
       <Provider store={store}>
-        {() => <Nav/>}
+        <Nav/>
       </Provider>
     )
   }

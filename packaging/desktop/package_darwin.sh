@@ -24,15 +24,15 @@ npm install
 node_bin="$dir/node_modules/.bin"
 
 app_name=Keybase
-keybase_version=""
-kbfs_version=""
+keybase_version="1.0.6-0"
+kbfs_version="1.0.0-32"
 comment=""
 
 keybase_binpath=${KEYBASE_BINPATH:-}
 kbfs_binpath=${KBFS_BINPATH:-}
 
 echo "Loading release tool"
-"$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
+# "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
 release_bin="$GOPATH/bin/release"
 
 if [ "$keybase_version" = "" ]; then
@@ -218,7 +218,7 @@ get_deps
 package_electron
 package_app
 update_plist
-sign
+# sign
 package_dmg
 create_sourcemap_zip
 create_zip
