@@ -1300,7 +1300,7 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 		node, err = fbo.nodeCache.GetOrCreate(de.BlockPointer, name, dir)
 	}
 
-	return node, de.EntryInfo, nil
+	return node, de.EntryInfo, err
 }
 
 func (fbo *folderBranchOps) Stat(ctx context.Context, node Node) (
@@ -1343,7 +1343,7 @@ func (fbo *folderBranchOps) statEntry(ctx context.Context, node Node) (
 		de = md.data.Dir
 	}
 
-	return de, nil
+	return de, err
 }
 
 var zeroPtr BlockPointer
