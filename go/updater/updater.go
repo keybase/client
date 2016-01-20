@@ -100,14 +100,16 @@ func (u *Updater) checkForUpdate(skipAssetDownload bool, force bool, requested b
 		return
 	}
 
-	// do only if instructions are empty/nil
+	// Update instruction might be empty, if so we'll fill in with the default
+	// instructions for the platform.
 	if update.Instructions == nil || *update.Instructions == "" {
 		instructions, err := libkb.PlatformSpecificUpgradeInstructionsString()
-		u.log.Info("Updating instructions! %s, err: %s", instructions, err)
 		if err == nil {
+			u.log.Debug("Updating instructions! %s", instructions)
 			update.Instructions = new(string)
 			*update.Instructions = instructions
 		} else {
+			u.log.Debug("Updating instructions! %s, err: %s", instructions, err)
 			update.Instructions = nil
 		}
 	}
