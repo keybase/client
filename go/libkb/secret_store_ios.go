@@ -9,7 +9,7 @@ import "github.com/keybase/go-keychain"
 
 func (k KeychainSecretStore) accessGroup() string {
 	// GetStoredSecretAccessGroup MUST be "" for the simulator
-	return k.G().Env.GetStoredSecretAccessGroup()
+	return k.context.GetStoredSecretAccessGroup()
 }
 
 func (k KeychainSecretStore) synchronizable() keychain.Synchronizable {

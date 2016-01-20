@@ -56,7 +56,7 @@ export default function (state: ConfigState = initialState, action: Action): Con
       let navState = Constants.navStartingUp
 
       if (!action.error) {
-        if (state.status && state.status.registered) {
+        if (state.status && !state.status.registered) {
           navState = Constants.navNeedsRegistration
         } else if (state.status && state.status.loggedIn) {
           navState = Constants.navNeedsLogin

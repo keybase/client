@@ -101,3 +101,9 @@ func (k *Item) SetAccess(a *Access) {
 		delete(k.attr, AccessKey)
 	}
 }
+
+// DeleteItemRef deletes a keychain item reference.
+func DeleteItemRef(ref C.CFTypeRef) error {
+	errCode := C.SecKeychainItemDelete(C.SecKeychainItemRef(ref))
+	return checkError(errCode)
+}

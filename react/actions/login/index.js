@@ -83,8 +83,10 @@ export function submitForgotPassword () {
 }
 
 export function autoLogin () {
+  const deviceType = isMobile ? 'mobile' : 'desktop'
+
   return dispatch => {
-    engine.rpc('login.login', {}, {}, (error, status) => {
+    engine.rpc('login.login', {deviceType}, {}, (error, status) => {
       if (error) {
         console.log(error)
         dispatch({type: Constants.loginDone, error: true, payload: error})
