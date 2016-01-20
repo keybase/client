@@ -11,16 +11,19 @@ import (
 	"strings"
 )
 
+func (u *Updater) checkPlatformSpecificUpdate(sourcePath string, destinationPath string) error {
+	return nil
+}
+
+func openApplication(applicationPath string) error {
+	return fmt.Errorf("Open application not supported on this platform")
+}
+
 func (u *Updater) applyUpdate(localPath string) (tmpPath string, err error) {
-	// The default source will be an .exe on Windows
-	// ...but still do this for .zip files, at least so tests will pass
-	if strings.HasSuffix(localPath, ".zip") {
-		tmpPath, err = u.applyZip(localPath)
-	} else if strings.HasSuffix(localPath, ".exe") {
+	if strings.HasSuffix(localPath, ".exe") {
 		err = exec.Command(localPath).Start()
 	} else {
 		err = fmt.Errorf("Unsupported update file type: %s", localPath)
 	}
-
 	return
 }

@@ -487,8 +487,6 @@ func (u *Updater) applyZip(localPath string) (tmpPath string, err error) {
 		return
 	}
 
-	// TODO: On OSX call mdimport so Spotlight knows it changed?
-
 	return
 }
 
