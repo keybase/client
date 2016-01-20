@@ -16,7 +16,6 @@ import (
 	"time"
 
 	"github.com/blang/semver"
-	"github.com/golang/groupcache/singleflight"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -30,7 +29,7 @@ type Updater struct {
 	source    sources.UpdateSource
 	config    Config
 	log       logger.Logger
-	callGroup singleflight.Group
+	callGroup Group
 }
 
 type UI interface {
@@ -351,7 +350,12 @@ func (u *Updater) Update(ui UI, force bool, requested bool) (*keybase1.Update, e
 	do := func() (interface{}, error) {
 		return u.update(ui, force, requested)
 	}
-	any, err := u.callGroup.Do("update", do)
+	any, cached, err := u.callGroup.Do("update", do)
+
+	if cached {
+		u.log.Info("Update call was singleflighted and returned cached result, skipping")
+		return nil, nil
+	}
 
 	update, ok := any.(*keybase1.Update)
 	if !ok {
