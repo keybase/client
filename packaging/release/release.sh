@@ -95,5 +95,4 @@ if ! gpg -K "$code_signing_fingerprint" ; then
 	exit 1
 fi
 
-cd "$serveropsdir"
-"$serveropsdir/deploy/linux_docker_build.sh" "$mode" "$version_tag"
+"$clientdir/packaging/linux/docker_build.sh" "$mode" "$version_tag"
