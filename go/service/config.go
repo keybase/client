@@ -38,6 +38,40 @@ func (h ConfigHandler) GetCurrentStatus(_ context.Context, sessionID int) (res k
 	return
 }
 
+func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res keybase1.ExtendedStatus, err error) {
+	res.Standalone = h.G().Env.GetStandalone()
+	res.LogDir = h.G().Env.GetLogDir()
+
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(h.G()))
+	if err != nil {
+		return res, err
+	}
+
+	device, err := me.GetComputedKeyFamily().GetCurrentDevice(h.G())
+	if err != nil {
+		return res, err
+	}
+	res.DeviceID = device.ID
+	if device.Description != nil {
+		res.DeviceName = *device.Description
+	}
+	res.DeviceStatus = device.StatusString()
+
+	h.G().LoginState().PassphraseStreamCache(func(cache *libkb.PassphraseStreamCache) {
+		res.PassphraseStreamCached = cache.Valid()
+	}, "ConfigHandler::GetExtendedStatus")
+
+	// this isn't quite ideal, but if there's a delegated UpdateUI available, then electron is running and connected.
+	if h.G().UIRouter != nil {
+		updateUI, err := h.G().UIRouter.GetUpdateUI()
+		if err == nil && updateUI != nil {
+			res.DesktopUIConnected = true
+		}
+	}
+
+	return
+}
+
 func (h ConfigHandler) GetConfig(_ context.Context, sessionID int) (keybase1.Config, error) {
 	var c keybase1.Config
 

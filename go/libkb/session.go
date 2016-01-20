@@ -252,6 +252,10 @@ func (s *Session) check() error {
 		return nil
 	}
 
+	if s.G().API == nil {
+		fmt.Printf("nil api???\n")
+	}
+
 	res, err := s.G().API.Get(APIArg{
 		SessionR:       s,
 		Endpoint:       "sesscheck",

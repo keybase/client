@@ -229,6 +229,31 @@
       "type" : [ "null", "User" ]
     } ]
   }, {
+    "type" : "record",
+    "name" : "ExtendedStatus",
+    "fields" : [ {
+      "name" : "standalone",
+      "type" : "boolean"
+    }, {
+      "name" : "passphraseStreamCached",
+      "type" : "boolean"
+    }, {
+      "name" : "deviceID",
+      "type" : "DeviceID"
+    }, {
+      "name" : "deviceName",
+      "type" : "string"
+    }, {
+      "name" : "deviceStatus",
+      "type" : "string"
+    }, {
+      "name" : "logDir",
+      "type" : "string"
+    }, {
+      "name" : "desktopUIConnected",
+      "type" : "boolean"
+    } ]
+  }, {
     "type" : "enum",
     "name" : "ForkType",
     "symbols" : [ "NONE_0", "AUTO_1", "WATCHDOG_2", "LAUNCHD_3" ]
@@ -283,6 +308,13 @@
         "type" : "int"
       } ],
       "response" : "GetCurrentStatusRes"
+    },
+    "getExtendedStatus" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
+      "response" : "ExtendedStatus"
     },
     "getConfig" : {
       "request" : [ {

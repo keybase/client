@@ -13,6 +13,18 @@ protocol config {
 
   GetCurrentStatusRes getCurrentStatus(int sessionID);
 
+  record ExtendedStatus {
+    boolean standalone;
+    boolean passphraseStreamCached;
+    DeviceID deviceID;
+    string deviceName;
+    string deviceStatus;
+    string logDir;
+    boolean desktopUIConnected;
+  }
+
+  ExtendedStatus getExtendedStatus(int sessionID);
+
   enum ForkType {
     NONE_0,
     AUTO_1,

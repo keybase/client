@@ -110,7 +110,7 @@ func serviceInfoPath(context Context) string {
 	return path.Join(context.GetRuntimeDir(), "keybased.info")
 }
 
-func kbfsBundleVersion(context Context, binPath string) (string, error) {
+func KBFSBundleVersion(context Context, binPath string) (string, error) {
 	runMode := context.GetRunMode()
 	kbfsBinPath, err := kbfsBinPath(runMode, binPath)
 	if err != nil {

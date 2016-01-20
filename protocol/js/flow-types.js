@@ -470,6 +470,26 @@ export type GetCurrentStatusRes = {
   user?: ?User;
 }
 
+export type config_ExtendedStatus = {
+  standalone: boolean;
+  passphraseStreamCached: boolean;
+  deviceID: DeviceID;
+  deviceName: string;
+  deviceStatus: string;
+  logDir: string;
+  desktopUIConnected: boolean;
+}
+
+export type ExtendedStatus = {
+  standalone: boolean;
+  passphraseStreamCached: boolean;
+  deviceID: DeviceID;
+  deviceName: string;
+  deviceStatus: string;
+  logDir: string;
+  desktopUIConnected: boolean;
+}
+
 export type config_ForkType = 0 /* 'NONE_0' */ | 1 /* 'AUTO_1' */ | 2 /* 'WATCHDOG_2' */ | 3 /* 'LAUNCHD_3' */
 
 export type ForkType = 0 /* 'NONE_0' */ | 1 /* 'AUTO_1' */ | 2 /* 'WATCHDOG_2' */ | 3 /* 'LAUNCHD_3' */

@@ -489,6 +489,16 @@ type GetCurrentStatusRes struct {
 	User       *User `codec:"user,omitempty" json:"user,omitempty"`
 }
 
+type ExtendedStatus struct {
+	Standalone             bool     `codec:"standalone" json:"standalone"`
+	PassphraseStreamCached bool     `codec:"passphraseStreamCached" json:"passphraseStreamCached"`
+	DeviceID               DeviceID `codec:"deviceID" json:"deviceID"`
+	DeviceName             string   `codec:"deviceName" json:"deviceName"`
+	DeviceStatus           string   `codec:"deviceStatus" json:"deviceStatus"`
+	LogDir                 string   `codec:"logDir" json:"logDir"`
+	DesktopUIConnected     bool     `codec:"desktopUIConnected" json:"desktopUIConnected"`
+}
+
 type ForkType int
 
 const (
@@ -518,6 +528,10 @@ type GetCurrentStatusArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type GetExtendedStatusArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type GetConfigArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -531,6 +545,7 @@ type SetUserConfigArg struct {
 
 type ConfigInterface interface {
 	GetCurrentStatus(context.Context, int) (GetCurrentStatusRes, error)
+	GetExtendedStatus(context.Context, int) (ExtendedStatus, error)
 	GetConfig(context.Context, int) (Config, error)
 	SetUserConfig(context.Context, SetUserConfigArg) error
 }
@@ -551,6 +566,22 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetCurrentStatus(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getExtendedStatus": {
+				MakeArg: func() interface{} {
+					ret := make([]GetExtendedStatusArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetExtendedStatusArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetExtendedStatusArg)(nil), args)
+						return
+					}
+					ret, err = i.GetExtendedStatus(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -598,6 +629,12 @@ type ConfigClient struct {
 func (c ConfigClient) GetCurrentStatus(ctx context.Context, sessionID int) (res GetCurrentStatusRes, err error) {
 	__arg := GetCurrentStatusArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.config.getCurrentStatus", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ConfigClient) GetExtendedStatus(ctx context.Context, sessionID int) (res ExtendedStatus, err error) {
+	__arg := GetExtendedStatusArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.config.getExtendedStatus", []interface{}{__arg}, &res)
 	return
 }
 
