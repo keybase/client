@@ -1,6 +1,6 @@
 import React, {Component} from '../base-react'
 import {globalStyles, globalColors} from '../styles/style-guide'
-import {autoResize} from '../native/remote-component-helper'
+import {autoResize} from '../../desktop/renderer/remote-component-helper'
 import {Checkbox, Header, Input, Text, Button} from '../common-adapters'
 
 export default class PinentryRender extends Component {

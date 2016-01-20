@@ -1,5 +1,5 @@
 import React, {Component} from '../base-react'
-import resolveAssets from '../../../desktop/resolve-assets'
+import resolveAssets from '../../desktop/resolve-assets'
 
 export default class Logo extends Component {
   render () {

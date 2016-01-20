@@ -6,7 +6,7 @@ import {pushNewSearch} from '../actions/search'
 import {logout} from '../actions/login'
 import {pushDebugTracker} from '../actions/tracker'
 import MenuList from './menu-list'
-import RemoteComponent from '../native/remote-component'
+import RemoteComponent from '../../desktop/renderer/remote-component'
 
 class Foo extends Component {
   render () {

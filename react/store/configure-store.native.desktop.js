@@ -1,5 +1,5 @@
 import {createStore, compose} from 'redux'
-import DevTools from '../../../desktop/renderer/redux-dev-tools'
+import DevTools from '../../desktop/renderer/redux-dev-tools'
 
 export default f => {
   if (__DEV__) { // eslint-disable-line no-undef

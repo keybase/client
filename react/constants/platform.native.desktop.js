@@ -50,7 +50,7 @@ function findSocketRoot () {
 }
 
 function findDataRoot () {
-  linuxDefaultRoot = `${getenv('HOME', '')}/.local/share`
+  const linuxDefaultRoot = `${getenv('HOME', '')}/.local/share`
   const paths = {
     'darwin': `${getenv('HOME', '')}/Library/Application Support/${envedPathOSX[runMode]}/`,
     'linux': `${getenv('XDG_DATA_HOME', linuxDefaultRoot)}/${envedPathLinux[runMode]}/`,

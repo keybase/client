@@ -1,5 +1,5 @@
 import electron from 'electron'
-import {globalStyles} from '../styles/style-guide'
+import {globalStyles} from '../react/styles/style-guide'
 
 const remote = electron.remote
 

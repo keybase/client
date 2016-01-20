@@ -1,22 +1,22 @@
 /* @flow */
 
-import React, {Component} from '../base-react'
-import {connect} from '../base-redux'
+import React, {Component} from '../react/base-react'
+import {connect} from '../react/base-redux'
 
 import {bindActionCreators} from 'redux'
-import {registerIdentifyUi, onCloseFromHeader as trackerOnCloseFromHeader, startTimer as trackerStartTimer, stopTimer as trackerStopTimer} from '../actions/tracker'
-import {registerPinentryListener, onCancel as pinentryOnCancel, onSubmit as pinentryOnSubmit} from '../actions/pinentry'
-import {registerTrackerChangeListener} from '../actions/tracker'
-import {registerUpdateListener, onCancel as updateOnCancel, onSkip as updateOnSkip, onSnooze as updateOnSnooze, onUpdate as updateOnUpdate, setAlwaysUpdate} from '../actions/update'
+import {registerIdentifyUi, onCloseFromHeader as trackerOnCloseFromHeader, startTimer as trackerStartTimer, stopTimer as trackerStopTimer} from '../react/actions/tracker'
+import {registerPinentryListener, onCancel as pinentryOnCancel, onSubmit as pinentryOnSubmit} from '../react/actions/pinentry'
+import {registerTrackerChangeListener} from '../react/actions/tracker'
+import {registerUpdateListener, onCancel as updateOnCancel, onSkip as updateOnSkip, onSnooze as updateOnSnooze, onUpdate as updateOnUpdate, setAlwaysUpdate} from '../react/actions/update'
 // $FlowIssue platform files
 import RemoteComponent from './remote-component'
 
-import type {GUIEntryFeatures} from '../constants/types/flow-types'
-import type {Action, Dispatch} from '../constants/types/flux'
+import type {GUIEntryFeatures} from '../react/constants/types/flow-types'
+import type {Action, Dispatch} from '../react/constants/types/flux'
 
-import type {TrackerState} from '../reducers/tracker'
-import type {PinentryState} from '../reducers/pinentry'
-import type {ShowUpdateState} from '../reducers/update'
+import type {TrackerState} from '../react/reducers/tracker'
+import type {PinentryState} from '../react/reducers/pinentry'
+import type {ShowUpdateState} from '../react/reducers/update'
 
 export type RemoteManagerProps = {
   registerPinentryListener: () => void,

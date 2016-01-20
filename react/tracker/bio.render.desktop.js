@@ -3,7 +3,7 @@
 import React, {Component} from '../base-react'
 import {Paper} from 'material-ui'
 import commonStyles, {colors} from '../styles/common'
-import resolveAssets from '../../../desktop/resolve-assets'
+import resolveAssets from '../../desktop/resolve-assets'
 import electron from 'electron'
 
 const shell = electron.shell || electron.remote.shell

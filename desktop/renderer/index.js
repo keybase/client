@@ -12,7 +12,7 @@ import {listenForNotifications} from '../../react-native/react/actions/notificat
 
 // For Remote Components
 import {ipcRenderer} from 'electron'
-import RemoteManager from '../../react-native/react/native/remote-manager'
+import RemoteManager from './remote-manager'
 import {ipcMain} from 'remote'
 import consoleHelper from '../app/console-helper'
 import _ from 'lodash'

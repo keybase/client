@@ -1,9 +1,9 @@
-import React, {Component} from '../base-react'
+import React, {Component} from '../react/base-react'
 import {remote, ipcRenderer} from 'electron'
-import resolveAssets from '../../../desktop/resolve-assets'
-import menuHelper from '../../../desktop/app/menu-helper'
-import hotPath from '../../../desktop/hot-path'
-import {globalHacks} from '../styles/style-guide'
+import resolveAssets from '../resolve-assets'
+import menuHelper from '../app/menu-helper'
+import hotPath from '../hot-path'
+import {globalHacks} from '../react/styles/style-guide'
 
 const {BrowserWindow} = remote
 
@@ -48,7 +48,7 @@ export default class RemoteComponent extends Component {
     })
 
     const componentRequireName = this.props.component
-    this.remoteWindow.loadUrl(`file://${resolveAssets('../react-native/react/native/remoteComponent.html')}?component=${componentRequireName || ''}&src=${hotPath('remote-component-loader.bundle.js')}`)
+    this.remoteWindow.loadUrl(`file://${resolveAssets('./renderer/remoteComponent.html')}?component=${componentRequireName || ''}&src=${hotPath('remote-component-loader.bundle.js')}`)
   }
 
   componentWillUnmount () {

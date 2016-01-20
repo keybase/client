@@ -2,7 +2,7 @@
 
 import React, {Component} from '../base-react'
 import {globalStyles, globalColors} from '../styles/style-guide'
-import resolveAssets from '../../../desktop/resolve-assets'
+import resolveAssets from '../../desktop/resolve-assets'
 import type {Props} from './header'
 import Text from './text'
 

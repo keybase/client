@@ -3,7 +3,7 @@
 
 import React, {Component} from '../base-react'
 import {shell} from 'electron'
-import resolveAssets from '../../../desktop/resolve-assets'
+import resolveAssets from '../../desktop/resolve-assets'
 
 import {intersperse} from '../util/arrays'
 import {parseFolderNameToUsers, canonicalizeUsernames, stripPublicTag} from '../util/kbfs'
