@@ -82,6 +82,10 @@ build_one_architecture() {
     return
   fi
 
+  # In include-KBFS mode, create the /opt/keybase dir, and include post_install.sh.
+  mkdir -p "$layout_dir/opt/keybase"
+  cp "$here/post_install.sh" "$layout_dir/opt/keybase/"
+
   # Build the kbfsfuse binary. Currently, this always builds from master.
   echo "Building kbfs for $GOARCH..."
   kbfs_repo="$(dirname "$this_repo")/kbfs"
@@ -94,7 +98,6 @@ build_one_architecture() {
   (
     cd "$here/../../desktop"
     node package.js --platform linux --arch $electron_arch
-    mkdir -p "$layout_dir/opt/keybase"
     rsync -a "release/linux-${electron_arch}/Keybase-linux-${electron_arch}/" \
       "$layout_dir/opt/keybase"
   )

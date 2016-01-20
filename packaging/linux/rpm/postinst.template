@@ -29,3 +29,5 @@ REPOCONTENT
 }
 
 install_yum
+
+/opt/keybase/post_install.sh
