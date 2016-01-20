@@ -217,7 +217,8 @@ func (c *CmdNStatus) outputTerminal(status *fstatus) error {
 	dui.Printf("\nClient:\n")
 	dui.Printf("    version:   %s\n", status.Client.Version)
 	dui.Printf("\nDesktop App:\n")
-	dui.Printf("    status:    %s\n", c.boolString(status.Desktop.Running, "running", "not running"))
+	dui.Printf("    status:    %s\n\n", c.boolString(status.Desktop.Running, "running", "not running"))
+	dui.Printf("Config path:   %s\n", status.ConfigPath)
 	return nil
 }
 
