@@ -117,3 +117,20 @@ func baseNotification(file path, finish bool) *keybase1.FSNotification {
 		StatusCode:           code,
 	}
 }
+
+// errorNotification creates FSNotifications from paths for KBFS error
+// events.
+func readErrorNotification(file path, err error) *keybase1.FSNotification {
+	n := &keybase1.FSNotification{
+		PublicTopLevelFolder: file.Tlf.IsPublic(),
+		Filename:             file.String(),
+		StatusCode:           keybase1.FSStatusCode_ERROR,
+		Status:               err.Error(),
+	}
+	if file.Tlf.IsPublic() {
+		n.NotificationType = keybase1.FSNotificationType_VERIFYING
+	} else {
+		n.NotificationType = keybase1.FSNotificationType_DECRYPTING
+	}
+	return n
+}
