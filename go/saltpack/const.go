@@ -65,3 +65,16 @@ const (
 	stateBody readState = iota
 	stateEndOfStream
 )
+
+func (m MessageType) String() string {
+	switch m {
+	case MessageTypeEncryption:
+		return "an encrypted message"
+	case MessageTypeDetachedSignature:
+		return "a detached signature"
+	case MessageTypeAttachedSignature:
+		return "an attached signature"
+	default:
+		return "an unknown message type"
+	}
+}
