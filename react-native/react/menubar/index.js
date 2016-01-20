@@ -51,15 +51,19 @@ class Menubar extends Component {
 
     if (module.hot) {
       module.hot.dispose(() => {
-        ipcRenderer.send('unsubscribeMenubar')
-        ipcRenderer.removeListener('menubarShow', onMenubarShow)
-        ipcRenderer.removeListener('menubarHide', onMenubarHide)
+        try {
+          ipcRenderer.send('unsubscribeMenubar')
+          ipcRenderer.removeListener('menubarShow', onMenubarShow)
+          ipcRenderer.removeListener('menubarHide', onMenubarHide)
+        } catch (_) { }
       })
     }
 
-    ipcRenderer.send('subscribeMenubar')
-    ipcRenderer.on('menubarShow', onMenubarShow)
-    ipcRenderer.on('menubarHide', onMenubarHide)
+    try {
+      ipcRenderer.send('subscribeMenubar')
+      ipcRenderer.on('menubarShow', onMenubarShow)
+      ipcRenderer.on('menubarHide', onMenubarHide)
+    } catch (_) { }
   }
 
   checkForFolders () {
@@ -158,3 +162,12 @@ export default connect(
   }),
   dispatch => bindActionCreators(favoriteAction, dispatch)
 )(Menubar)
+
+export function selector (): (store: Object) => Object {
+  return store => {
+    return {
+      config: store.config,
+      favorite: store.favorite
+    }
+  }
+}

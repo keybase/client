@@ -17,7 +17,9 @@ let config = {
   showMainWindow: false,
   reduxDevToolsEnable: false,
   redirectOnLogout: true,
-  reduxDevToolsSelect: state => state // only watch a subset of the store
+  reduxDevToolsSelect: state => state, // only watch a subset of the store
+  enableStoreLogging: false,
+  forwardLogs: false
 }
 
 if (__DEV__ && false) { // eslint-disable-line no-undef
@@ -32,6 +34,8 @@ if (__DEV__ && false) { // eslint-disable-line no-undef
   config.reduxDevToolsEnable = false
   config.redirectOnLogout = false
   config.reduxDevToolsSelect = state => state.tracker
+  config.enableStoreLogging = true
+  config.forwardLogs = true
 }
 
 config = updateConfig(config)
@@ -45,5 +49,7 @@ export const {
   showDevTools,
   showMainWindow,
   showAllTrackers,
-  reduxDevToolsSelect
+  reduxDevToolsSelect,
+  enableStoreLogging,
+  forwardLogs
 } = config

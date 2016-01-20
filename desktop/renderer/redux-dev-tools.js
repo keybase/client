@@ -10,5 +10,5 @@ export default createDevTools(
     toggleVisibilityKey='ctrl-h'
     changePositionKey='ctrl-q'
     defaultIsVisible={false}>
-    <LogMonitor theme='tomorrow' select={reduxDevToolsSelect} preserveScrollTop={false}/>
+    <LogMonitor theme='tomorrow' select={reduxDevToolsSelect} preserveScrollTop={false} expandActionRoot={false} expandStateRoot={false} />
   </DockMonitor>)

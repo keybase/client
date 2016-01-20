@@ -1,6 +1,6 @@
 import {ipcMain, ipcRenderer} from 'electron'
 import util from 'util'
-import getenv from 'getenv'
+import {forwardLogs} from '../../react-native/react/local-debug'
 
 const methods = ['log', 'error', 'info']
 const originalConsole = {}
@@ -14,7 +14,7 @@ const output = {
 }
 
 export default function pipeLogs () {
-  if (!__DEV__ || getenv.boolish('KEYBASE_SHOW_DEVTOOLS', true)) { // eslint-disable-line no-undef
+  if (!__DEV__ || !forwardLogs) { // eslint-disable-line no-undef
     return
   }
 
@@ -31,6 +31,9 @@ export default function pipeLogs () {
 
 export function ipcLogs () {
   // Simple ipc logging for debugging remote windows
+  if (!__DEV__ || !forwardLogs) { // eslint-disable-line no-undef
+    return
+  }
 
   ipcMain.on('console.log', (event, args) => {
     console.log('From remote console.log')
@@ -49,7 +52,10 @@ export function ipcLogs () {
 }
 
 export function ipcLogsRenderer () {
-  window.console.log = (...args) => ipcRenderer.send('console.log', args)
-  window.console.warn = (...args) => ipcRenderer.send('console.warn', args)
-  window.console.error = (...args) => ipcRenderer.send('console.error', args)
+  if (!__DEV__ || !forwardLogs) { // eslint-disable-line no-undef
+    return
+  }
+  window.console.log = (...args) => { try { ipcRenderer.send('console.log', args) } catch (_) {} }
+  window.console.warn = (...args) => { try { ipcRenderer.send('console.warn', args) } catch (_) {} }
+  window.console.error = (...args) => { try { ipcRenderer.send('console.error', args) } catch (_) {} }
 }

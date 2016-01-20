@@ -12,6 +12,8 @@
     "package": "NODE_ENV=production node package.js",
     "hot-server": "HOT=true NODE_ENV=production DEBUG='express:*' node server.js",
     "inject-sourcemaps-prod": "a(){ cp \"$1\"/* /Applications/Keybase.app/Contents/Resources/app/desktop/dist; };a",
+    "inject-code-prod": "npm run build-prod; cp dist/* /Applications/Keybase.app/Contents/Resources/app/desktop/dist/",
+    "start-prod": "/Applications/Keybase.app/Contents/MacOS/Electron",
     "electron-rebuild": "./node_modules/.bin/electron-rebuild"
   },
   "keywords": [],

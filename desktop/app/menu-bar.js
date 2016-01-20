@@ -8,7 +8,7 @@ export default function () {
   const menubarLoadingIconPath = resolveAssets('../react-native/react/images/menubarIcon/topbar_icon_loadingTemplate.png')
 
   const mb = menubar({
-    index: `file://${resolveAssets('./renderer/launcher.html')}?src=${hotPath('launcher.bundle.js')}`,
+    index: `file://${resolveAssets('./renderer/launcher.html')}?src=${hotPath('launcher.bundle.js')}&selectorParams=menubar`,
     width: 320,
     height: 364 + 10, // size plus gap to deal with deadzone
     transparent: true,

@@ -23,7 +23,9 @@ export default class Window {
 
     ipcMain.on('listenForRemoteWindowClosed', (event, remoteWindowId) => {
       BrowserWindow.fromId(remoteWindowId).on('close', () => {
-        event.sender.send('remoteWindowClosed', remoteWindowId)
+        try {
+          event.sender.send('remoteWindowClosed', remoteWindowId)
+        } catch (_) { }
       })
     })
 
