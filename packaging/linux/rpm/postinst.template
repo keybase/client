@@ -9,7 +9,7 @@
 # sources.list setting for keybase updates.
 REPOCONFIG="@@REPO_URL@@"
 
-YUM_REPO_FILE="/etc/yum.repos.d/keybase.repo"
+YUM_REPO_FILE="/etc/yum.repos.d/@@SOURCE_LIST_NAME@@.repo"
 
 install_yum() {
   # We can't add the signing key during an RPM install, because that uses the

@@ -57,7 +57,10 @@ build_one_architecture() {
     | sed "s/@@VERSION@@/$version/" \
     | sed "s|@@BINARIES_PATH@@|$binaries_path|" \
     > "$spec"
-  cat "$here/postinst.template" | sed "s|@@REPO_URL@@|$repo_url|" >> "$spec"
+  cat "$here/postinst.template" \
+    | sed "s|@@REPO_URL@@|$repo_url|" \
+    | sed "s/@@SOURCE_LIST_NAME@@/$name/" \
+    >> "$spec"
 
   rpmbuild --define "_topdir $dest" --target "$rpm_arch" -bb "$spec"
 }

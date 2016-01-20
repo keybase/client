@@ -125,7 +125,7 @@ find_apt_sources() {
 create_sources_lists() {
   find_apt_sources
 
-  SOURCELIST="$APT_SOURCESDIR/keybase.list"
+  SOURCELIST="$APT_SOURCESDIR/@@SOURCE_LIST_NAME@@.list"
   if [ -d "$APT_SOURCESDIR" ]; then
     echo "$SOURCES_PREAMBLE" > "$SOURCELIST"
     echo "$REPOCONFIG" >> "$SOURCELIST"

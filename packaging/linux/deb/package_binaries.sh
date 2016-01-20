@@ -59,6 +59,7 @@ build_one_architecture() {
   postinst_file="$dest/build/DEBIAN/postinst"
   cat "$here/postinst.template" \
     | sed "s|@@REPO_URL@@|$repo_url|" \
+    | sed "s/@@SOURCE_LIST_NAME@@/$name/" \
     > "$postinst_file"
   chmod 755 "$postinst_file"
 
