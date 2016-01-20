@@ -32,6 +32,10 @@ if [ -z "${SERVEROPSDIR:-}" ] ; then
 fi
 "$here/../check_status_and_pull.sh" "$SERVEROPSDIR"
 
+# Make sure KBFS is there and up to date.
+kbfsdir="$clientdir/../kbfs"
+"$here/../check_status_and_pull.sh" "$kbfsdir"
+
 # TODO: Make sure Amazon S3 credentials are working.
 
 # Get the current git configs for making commits.
@@ -48,10 +52,6 @@ if [ -z "$(docker images -q "$image")" ] ; then
   echo "Docker image '$image' not yet built. Building..."
   docker build -t "$image" "$clientdir/packaging/linux"
 fi
-
-# Make sure KBFS is up to date.
-kbfsdir="$clientdir/../kbfs"
-"$here/../check_status_and_pull.sh" "$kbfsdir"
 
 # XXX: Avoid running out of disks space on OSX. OSX is a special snowflake.
 # Containers run inside a VirtualBox Linux VM, and disk writes wind up in a

@@ -25,7 +25,7 @@ mode="$(cat "$build_root/MODE")"
 
 name="$("$here/../../binary_name.sh" "$mode")"
 
-repo_root="$build_root/debian_repo"
+repo_root="$build_root/deb_repo"
 
 # Run the Debian packaging script on this build root.
 "$here/package_binaries.sh" "$build_root"

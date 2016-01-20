@@ -56,3 +56,47 @@ build_dir="/root/keybase_build"
 "$client_clone/packaging/linux/build_binaries.sh" "$mode" "$build_dir"
 "$client_clone/packaging/linux/deb/layout_repo.sh" "$build_dir"
 "$client_clone/packaging/linux/rpm/layout_repo.sh" "$build_dir"
+version="$(cat "$build_dir/VERSION")"
+
+if [ "$mode" = "devel" ] ; then
+  echo "Devel mode does not push. Quitting."
+  exit
+fi
+
+release_prerelease() {
+  echo Doing a prerelease push to S3...
+}
+
+release_serverops() {
+  serverops_clone="/root/server-ops"
+  if [ "$mode" = staging ] ; then
+    deb_repo="$serverops_clone/prod/linux/deb_staging"
+    rpm_repo="$serverops_clone/prod/linux/rpm_staging"
+  elif [ "$mode" = production ] ; then
+    deb_repo="$serverops_clone/prod/linux/deb"
+    rpm_repo="$serverops_clone/prod/linux/rpm"
+  else
+    echo "WHAT IS '$mode' MODE? (╯°□°）╯︵ ┻━┻)"
+    exit 1
+  fi
+
+  echo Copying the server-ops repo...
+  cp -r /SERVEROPS "$serverops_clone"
+  echo Pushing to server-ops...
+  mkdir -p "$serverops_clone/prod/linux"
+  rm -rf "$deb_repo"
+  cp -r "$build_dir/deb_repo" "$deb_repo"
+  rm -rf "$rpm_repo"
+  cp -r "$build_dir/rpm_repo" "$rpm_repo"
+  git -C "$serverops_clone" add -A
+  git -C "$serverops_clone" commit -m "new Linux $mode packages, version $version"
+  git -C "$serverops_clone" push
+}
+
+# RELEASE THE PACKAGES! In prerelease mode, this involves a push to S3. In
+# other modes, we check in package files to the server-ops repo.
+if [ "$mode" = prerelease ] ; then
+  release_prerelease
+else
+  release_serverops
+fi
