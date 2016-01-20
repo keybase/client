@@ -77,7 +77,7 @@ function updateListenersCreator (dispatch: Dispatch, getState: () => {config: Co
           snoozeTime: moment.duration(snoozeTimeSecs, 'seconds').humanize(),
           windowTitle,
           oldVersion,
-          alwaysUpdate: true,
+          alwaysUpdate: false,
           updateCommand,
           canUpdate: !updateCommand
         }
