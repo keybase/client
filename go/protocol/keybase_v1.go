@@ -220,6 +220,9 @@ type BlockReference struct {
 	ChargedTo UID           `codec:"chargedTo" json:"chargedTo"`
 }
 
+type GetSessionChallengeArg struct {
+}
+
 type AuthenticateSessionArg struct {
 	Signature string `codec:"signature" json:"signature"`
 }
@@ -255,6 +258,7 @@ type GetUserQuotaInfoArg struct {
 }
 
 type BlockInterface interface {
+	GetSessionChallenge(context.Context) (string, error)
 	AuthenticateSession(context.Context, string) error
 	PutBlock(context.Context, PutBlockArg) error
 	GetBlock(context.Context, GetBlockArg) (GetBlockRes, error)
@@ -268,6 +272,17 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.block",
 		Methods: map[string]rpc.ServeHandlerDescription{
+			"getSessionChallenge": {
+				MakeArg: func() interface{} {
+					ret := make([]GetSessionChallengeArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetSessionChallenge(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"authenticateSession": {
 				MakeArg: func() interface{} {
 					ret := make([]AuthenticateSessionArg, 1)
@@ -381,6 +396,11 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 
 type BlockClient struct {
 	Cli GenericClient
+}
+
+func (c BlockClient) GetSessionChallenge(ctx context.Context) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.block.getSessionChallenge", []interface{}{GetSessionChallengeArg{}}, &res)
+	return
 }
 
 func (c BlockClient) AuthenticateSession(ctx context.Context, signature string) (err error) {
@@ -2905,6 +2925,9 @@ type MetadataResponse struct {
 	MdBlocks []MDBlock `codec:"mdBlocks" json:"mdBlocks"`
 }
 
+type GetChallengeArg struct {
+}
+
 type AuthenticateArg struct {
 	Signature string `codec:"signature" json:"signature"`
 }
@@ -2965,6 +2988,7 @@ type TruncateUnlockArg struct {
 type GetFolderHandleArg struct {
 	FolderID  string `codec:"folderID" json:"folderID"`
 	Signature string `codec:"signature" json:"signature"`
+	Challenge string `codec:"challenge" json:"challenge"`
 }
 
 type GetFoldersForRekeyArg struct {
@@ -2975,6 +2999,7 @@ type PingArg struct {
 }
 
 type MetadataInterface interface {
+	GetChallenge(context.Context) (string, error)
 	Authenticate(context.Context, string) (int, error)
 	PutMetadata(context.Context, PutMetadataArg) error
 	GetMetadata(context.Context, GetMetadataArg) (MetadataResponse, error)
@@ -2994,6 +3019,17 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.metadata",
 		Methods: map[string]rpc.ServeHandlerDescription{
+			"getChallenge": {
+				MakeArg: func() interface{} {
+					ret := make([]GetChallengeArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetChallenge(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"authenticate": {
 				MakeArg: func() interface{} {
 					ret := make([]AuthenticateArg, 1)
@@ -3203,6 +3239,11 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 
 type MetadataClient struct {
 	Cli GenericClient
+}
+
+func (c MetadataClient) GetChallenge(ctx context.Context) (res string, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.metadata.getChallenge", []interface{}{GetChallengeArg{}}, &res)
+	return
 }
 
 func (c MetadataClient) Authenticate(ctx context.Context, signature string) (res int, err error) {

@@ -6,6 +6,7 @@ package auth
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -24,21 +25,26 @@ func TestTokenVerifyToken(t *testing.T) {
 	server := "test"
 	clientName := "test_client"
 	clientVersion := "41651"
-	token := NewToken(uid, name, keyPair.GetKID(), server, expireIn, clientName, clientVersion)
+	challenge, err := GenerateChallenge()
+	if err != nil {
+		t.Fatal(err)
+	}
+	token := NewToken(uid, name, keyPair.GetKID(), server, challenge,
+		time.Now().Unix(), expireIn, clientName, clientVersion)
 	sig, _, err := keyPair.SignToString(token.Bytes())
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = VerifyToken("nope", server, testMaxTokenExpireIn)
+	_, err = VerifyToken("nope", server, challenge, testMaxTokenExpireIn)
 	if err == nil {
 		t.Fatal(fmt.Errorf("expected verification failure"))
 	}
-	token, err = VerifyToken(sig, server, testMaxTokenExpireIn)
+	token, err = VerifyToken(sig, server, challenge, testMaxTokenExpireIn)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if err = checkToken(token, uid, name, keyPair.GetKID(),
-		server, expireIn, clientName, clientVersion); err != nil {
+		server, challenge, expireIn, clientName, clientVersion); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -54,12 +60,17 @@ func TestTokenExpired(t *testing.T) {
 	server := "test"
 	clientName := "test_client"
 	clientVersion := "21021"
-	token := NewToken(uid, name, keyPair.GetKID(), server, expireIn, clientName, clientVersion)
+	challenge, err := GenerateChallenge()
+	if err != nil {
+		t.Fatal(err)
+	}
+	token := NewToken(uid, name, keyPair.GetKID(), server, challenge,
+		time.Now().Unix(), expireIn, clientName, clientVersion)
 	sig, _, err := keyPair.SignToString(token.Bytes())
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = VerifyToken(sig, server, testMaxTokenExpireIn)
+	_, err = VerifyToken(sig, server, challenge, testMaxTokenExpireIn)
 	_, expired := err.(TokenExpiredError)
 	if !expired {
 		t.Fatal(fmt.Errorf("expected token expired error"))
@@ -77,12 +88,17 @@ func TestMaxExpires(t *testing.T) {
 	server := "test"
 	clientName := "test_client"
 	clientVersion := "93021"
-	token := NewToken(uid, name, keyPair.GetKID(), server, expireIn, clientName, clientVersion)
+	challenge, err := GenerateChallenge()
+	if err != nil {
+		t.Fatal(err)
+	}
+	token := NewToken(uid, name, keyPair.GetKID(), server, challenge,
+		time.Now().Unix(), expireIn, clientName, clientVersion)
 	sig, _, err := keyPair.SignToString(token.Bytes())
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = VerifyToken(sig, server, testMaxTokenExpireIn)
+	_, err = VerifyToken(sig, server, challenge, testMaxTokenExpireIn)
 	_, maxExpires := err.(MaxTokenExpiresError)
 	if !maxExpires {
 		t.Fatal(fmt.Errorf("expected max token expires error"))
@@ -100,28 +116,69 @@ func TestTokenServerInvalid(t *testing.T) {
 	server := "test"
 	clientName := "test_client"
 	clientVersion := "20192"
-	token := NewToken(uid, name, keyPair.GetKID(), server, expireIn, clientName, clientVersion)
+	challenge, err := GenerateChallenge()
+	if err != nil {
+		t.Fatal(err)
+	}
+	token := NewToken(uid, name, keyPair.GetKID(), server, challenge,
+		time.Now().Unix(), expireIn, clientName, clientVersion)
 	sig, _, err := keyPair.SignToString(token.Bytes())
 	if err != nil {
 		t.Fatal(err)
 	}
-	_, err = VerifyToken(sig, "nope", testMaxTokenExpireIn)
+	_, err = VerifyToken(sig, "nope", challenge, testMaxTokenExpireIn)
 	_, invalid := err.(InvalidTokenServerError)
 	if !invalid {
 		t.Fatal(fmt.Errorf("expected invalid token server error"))
 	}
-	token, err = VerifyToken(sig, server, testMaxTokenExpireIn)
+	token, err = VerifyToken(sig, server, challenge, testMaxTokenExpireIn)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if err = checkToken(token, uid, name, keyPair.GetKID(),
-		server, expireIn, clientName, clientVersion); err != nil {
+		server, challenge, expireIn, clientName, clientVersion); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func TestTokenChallengeInvalid(t *testing.T) {
+	keyPair, err := libkb.GenerateNaclSigningKeyPair()
+	if err != nil {
+		t.Fatal(err)
+	}
+	name := libkb.NewNormalizedUsername("dana")
+	uid := libkb.UsernameToUID(name.String())
+	expireIn := 10
+	server := "test"
+	clientName := "test_client"
+	clientVersion := "20192"
+	challenge, err := GenerateChallenge()
+	if err != nil {
+		t.Fatal(err)
+	}
+	token := NewToken(uid, name, keyPair.GetKID(), server, challenge,
+		time.Now().Unix(), expireIn, clientName, clientVersion)
+	sig, _, err := keyPair.SignToString(token.Bytes())
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = VerifyToken(sig, server, "nope", testMaxTokenExpireIn)
+	_, invalid := err.(InvalidTokenChallengeError)
+	if !invalid {
+		t.Fatal(fmt.Errorf("expected invalid token server error"))
+	}
+	token, err = VerifyToken(sig, server, challenge, testMaxTokenExpireIn)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = checkToken(token, uid, name, keyPair.GetKID(),
+		server, challenge, expireIn, clientName, clientVersion); err != nil {
 		t.Fatal(err)
 	}
 }
 
 func checkToken(token *Token, uid keybase1.UID, username libkb.NormalizedUsername,
-	kid keybase1.KID, server string, expireIn int, clientName, clientVersion string) error {
+	kid keybase1.KID, server, challenge string, expireIn int, clientName, clientVersion string) error {
 	if token.UID() != uid {
 		return fmt.Errorf("UID mismatch, expected: %s, got %s",
 			uid, token.UID())
@@ -142,6 +199,10 @@ func checkToken(token *Token, uid keybase1.UID, username libkb.NormalizedUsernam
 		return fmt.Errorf("Server mismatch, expected: %s, got %s",
 			server, token.Server())
 	}
+	if token.Challenge() != challenge {
+		return fmt.Errorf("Challenge mismatch, expected: %s, got %s",
+			challenge, token.Challenge())
+	}
 	if token.ExpireIn != expireIn {
 		return fmt.Errorf("ExpireIn mismatch, expected: %d, got %d",
 			expireIn, token.ExpireIn)
@@ -155,4 +216,21 @@ func checkToken(token *Token, uid keybase1.UID, username libkb.NormalizedUsernam
 			clientVersion, token.ClientVersion())
 	}
 	return nil
+}
+
+func TestIsValidChallenge(t *testing.T) {
+	challenge, err := GenerateChallenge()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !IsValidChallenge(challenge) {
+		t.Fatal(fmt.Errorf("Invalid challenge: %s", challenge))
+	}
+	if IsValidChallenge("nope") {
+		t.Fatal("Expected invalid challenge")
+	}
+	challenge = challenge[len(challenge)/2:]
+	if IsValidChallenge(challenge) {
+		t.Fatal("Expected invalid challenge")
+	}
 }
