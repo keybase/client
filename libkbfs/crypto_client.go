@@ -171,18 +171,20 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 	}
 	bundles := make([]keybase1.CiphertextBundle, 0, len(keys))
 	errors := make([]error, 0, len(keys))
-	for _, k := range keys {
+	indexLookup := make([]int, 0, len(keys))
+	for i, k := range keys {
 		encryptedData, nonce, err := c.prepareTLFCryptKeyClientHalf(k.ClientHalf)
 		if err != nil {
 			errors = append(errors, err)
-			continue
+		} else {
+			bundles = append(bundles, keybase1.CiphertextBundle{
+				Kid:        k.PubKey.kidContainer.kid,
+				Ciphertext: encryptedData,
+				Nonce:      nonce,
+				PublicKey:  keybase1.BoxPublicKey(k.EPubKey.data),
+			})
+			indexLookup = append(indexLookup, i)
 		}
-		bundles = append(bundles, keybase1.CiphertextBundle{
-			Kid:        k.PubKey.kidContainer.kid,
-			Ciphertext: encryptedData,
-			Nonce:      nonce,
-			PublicKey:  keybase1.BoxPublicKey(k.EPubKey.data),
-		})
 	}
 	if len(bundles) == 0 {
 		err = errors[0]
@@ -195,7 +197,7 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 	if err != nil {
 		return
 	}
-	return MakeTLFCryptKeyClientHalf(res.Plaintext), res.Index, nil
+	return MakeTLFCryptKeyClientHalf(res.Plaintext), indexLookup[res.Index], nil
 }
 
 // Shutdown implements the Crypto interface for CryptoClient.

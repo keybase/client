@@ -269,7 +269,7 @@ func TestCryptoClientDecryptEmptyEncryptedTLFCryptKeyClientHalfAny(t *testing.T)
 	_, _, err := c.DecryptTLFCryptKeyClientHalfAny(
 		context.Background(), keys)
 	if _, ok := err.(NoKeysError); !ok {
-		t.Fatal(err)
+		t.Fatalf("expected NoKeysError. Actual error: %v", err)
 	}
 }
 
@@ -330,6 +330,94 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalfAny(t *testing.T) {
 
 	if clientHalves[0] != decryptedClientHalf {
 		t.Error("clientHalf != decryptedClientHalf")
+	}
+}
+
+// Test various failure cases for DecryptTLFCryptKeyClientHalfAny.
+func TestCryptoClientDecryptTLFCryptKeyClientHalfAnyFailures(t *testing.T) {
+	signingKey := MakeFakeSigningKeyOrBust("client sign")
+	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
+	config := testCryptoClientConfig(t)
+	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil)
+	c := newCryptoClientWithClient(config.Codec(), fc, logger.NewTestLogger(t))
+
+	_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	serverHalf, err := c.MakeRandomTLFCryptKeyServerHalf()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	clientHalf, err := c.MaskTLFCryptKey(serverHalf, cryptKey)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	encryptedClientHalf, err := c.EncryptTLFCryptKeyClientHalf(ephPrivateKey, cryptPrivateKey.getPublicKey(), clientHalf)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Wrong version.
+	encryptedClientHalfWrongVersion := encryptedClientHalf
+	encryptedClientHalfWrongVersion.Version++
+
+	// Wrong sizes.
+	encryptedClientHalfWrongSize := encryptedClientHalf
+	encryptedClientHalfWrongSize.EncryptedData = encryptedClientHalfWrongSize.EncryptedData[:len(encryptedClientHalfWrongSize.EncryptedData)-1]
+
+	encryptedClientHalfWrongNonceSize := encryptedClientHalf
+	encryptedClientHalfWrongNonceSize.Nonce = encryptedClientHalfWrongNonceSize.Nonce[:len(encryptedClientHalfWrongNonceSize.Nonce)-1]
+
+	// Corrupt key.
+	ephPublicKeyCorrupt := ephPublicKey
+	ephPublicKeyCorrupt.data[0] = ^ephPublicKeyCorrupt.data[0]
+
+	// Corrupt data.
+	encryptedClientHalfCorruptData := encryptedClientHalf
+	encryptedClientHalfCorruptData.EncryptedData = make([]byte, len(encryptedClientHalf.EncryptedData))
+	copy(encryptedClientHalfCorruptData.EncryptedData, encryptedClientHalf.EncryptedData)
+	encryptedClientHalfCorruptData.EncryptedData[0] = ^encryptedClientHalfCorruptData.EncryptedData[0]
+
+	keys := []EncryptedTLFCryptKeyClientAndEphemeral{
+		{
+			PubKey:     cryptPrivateKey.getPublicKey(),
+			ClientHalf: encryptedClientHalfWrongVersion,
+			EPubKey:    ephPublicKey,
+		}, {
+			PubKey:     cryptPrivateKey.getPublicKey(),
+			ClientHalf: encryptedClientHalfWrongSize,
+			EPubKey:    ephPublicKey,
+		}, {
+			PubKey:     cryptPrivateKey.getPublicKey(),
+			ClientHalf: encryptedClientHalfWrongNonceSize,
+			EPubKey:    ephPublicKey,
+		}, {
+			PubKey:     cryptPrivateKey.getPublicKey(),
+			ClientHalf: encryptedClientHalf,
+			EPubKey:    ephPublicKeyCorrupt,
+		}, {
+			PubKey:     cryptPrivateKey.getPublicKey(),
+			ClientHalf: encryptedClientHalfCorruptData,
+			EPubKey:    ephPublicKey,
+		}, {
+			PubKey:     cryptPrivateKey.getPublicKey(),
+			ClientHalf: encryptedClientHalf,
+			EPubKey:    ephPublicKey,
+		},
+	}
+
+	_, index, err := c.DecryptTLFCryptKeyClientHalfAny(
+		context.Background(), keys)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if index != len(keys)-1 {
+		t.Errorf("expected last key to work. Actual key index: %d", index)
 	}
 }
 
