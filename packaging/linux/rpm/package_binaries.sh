@@ -34,6 +34,12 @@ build_one_architecture() {
   binaries_path="$(realpath "$build_root/binaries/$debian_arch")"
   echo "binaries_path: $binaries_path"
 
+  # RPM requires us to list every file included in the package. Using `find`
+  # could backfire on us if we get weird whitespace in any filename, but
+  # hopefully that will never happen. (Maintaining this list by hand would be
+  # much worse.)
+  files="$(cd "$binaries_path" && find -type f | sed 's/\.//')"
+
   if [ "$mode" = "production" ] ; then
     repo_url="http://dist.keybase.io/linux/rpm/repo/$rpm_arch"
   elif [ "$mode" = "prerelease" ] ; then
@@ -57,6 +63,10 @@ build_one_architecture() {
     | sed "s/@@VERSION@@/$version/" \
     | sed "s|@@BINARIES_PATH@@|$binaries_path|" \
     > "$spec"
+  # Append the files list to the spec.
+  echo -e "\n%files\n$files" >> "$spec"
+  # Append the postinstall script to the spec.
+  echo -e "\n%post -p /bin/bash" >> "$spec"
   cat "$here/postinst.template" \
     | sed "s|@@REPO_URL@@|$repo_url|" \
     | sed "s/@@SOURCE_LIST_NAME@@/$name/" \

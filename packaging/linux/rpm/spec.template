@@ -11,8 +11,4 @@ Keybase command line client
 mkdir -p "$RPM_BUILD_ROOT"
 cp -r "@@BINARIES_PATH@@"/* "$RPM_BUILD_ROOT"
 
-%files
-/*
-
-# The postinstall script gets appended below here.
-%post -p /bin/bash
+# The files list and postinstall script get appended below.
