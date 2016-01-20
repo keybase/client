@@ -103,3 +103,15 @@ func (e InvalidTokenServerError) Error() string {
 	return fmt.Sprintf("Invalid server in token, expected: %s, received: %s",
 		e.expected, e.received)
 }
+
+// InvalidTokenChallengeError is raised then the challenge presented in the token does not
+// correspond to the challenge of the verifier.
+type InvalidTokenChallengeError struct {
+	expected string
+	received string
+}
+
+func (e InvalidTokenChallengeError) Error() string {
+	return fmt.Sprintf("Invalid challenge in token, expected: %s, received: %s",
+		e.expected, e.received)
+}

@@ -260,6 +260,10 @@
     } ]
   } ],
   "messages" : {
+    "getChallenge" : {
+      "request" : [ ],
+      "response" : "string"
+    },
     "authenticate" : {
       "request" : [ {
         "name" : "signature",
@@ -411,6 +415,9 @@
         "type" : "string"
       }, {
         "name" : "signature",
+        "type" : "string"
+      }, {
+        "name" : "challenge",
         "type" : "string"
       } ],
       "response" : "bytes"

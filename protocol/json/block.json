@@ -251,6 +251,10 @@
     } ]
   } ],
   "messages" : {
+    "getSessionChallenge" : {
+      "request" : [ ],
+      "response" : "string"
+    },
     "authenticateSession" : {
       "request" : [ {
         "name" : "signature",

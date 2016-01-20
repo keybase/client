@@ -17,6 +17,7 @@ protocol block {
     UID chargedTo;
   }
 
+  string getSessionChallenge();
   void authenticateSession(string signature);
 
   void putBlock(BlockIdCombo bid, string folder, string blockKey, bytes buf);
