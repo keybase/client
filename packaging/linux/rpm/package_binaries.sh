@@ -18,8 +18,9 @@ if [ -z "$build_root" ] ; then
   exit 1
 fi
 
-# RPM does not allow - in version numbers. Sigh.
-version="$(cat "$build_root/VERSION" | sed 's/-/./')"
+# RPM does not allow - in version numbers, and it doesn't know how to escape +
+# in URLs. Sigh.
+version="$(cat "$build_root/VERSION" | sed 's/[-+]/./g')"
 echo "RPM version is '$version'."
 mode="$(cat "$build_root/MODE")"
 

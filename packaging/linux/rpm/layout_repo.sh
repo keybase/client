@@ -19,7 +19,6 @@ if [ -z "$build_root" ] ; then
   exit 1
 fi
 
-version="$(cat "$build_root/VERSION")"
 mode="$(cat "$build_root/MODE")"
 
 binary_name="$("$here/../../binary_name.sh" "$mode")"
