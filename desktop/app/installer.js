@@ -32,7 +32,7 @@ export default (callback) => {
     }
 
     var cmd = [installerExec, "--app-path="+appBundlePath, "--run-mode="+runMode].join(" ")
-    exec(cmd, function(execErr, stdout, stderr) {
+    var installerProcess = exec(cmd, function(execErr, stdout, stderr) {
       if (execErr) {
         console.log("Installer (err):", execErr)
         if (execErr.code == 1) {
@@ -48,6 +48,11 @@ export default (callback) => {
       console.log("Installer (stdout):", stdout)
       console.log("Installer (stderr):", stderr)
       callback(null)
+    });
+
+    // Kill the installer process if parent process exits
+    process.on('exit', function () {
+      installerProcess.kill();
     });
   });
 
