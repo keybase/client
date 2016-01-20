@@ -479,7 +479,6 @@ func (a *Account) SetTestPostCleanHook(f func()) {
 }
 
 func (a *Account) clean() {
-	a.G().Log.Debug("Running Account::clean")
 	if a.paperEncKey != nil {
 		a.paperEncKey.clean()
 	}
