@@ -73,6 +73,34 @@ func (fc FakeCryptoClient) Call(_ context.Context, s string, args interface{}, r
 		*res = clientHalf.data
 		return nil
 
+	case "keybase.1.crypto.unboxBytes32Any":
+		fc.maybeWaitOnChannel()
+		arg := args.([]interface{})[0].(keybase1.UnboxBytes32AnyArg)
+		keys := make([]EncryptedTLFCryptKeyClientAndEphemeral, 0, len(arg.Bundles))
+		for _, k := range arg.Bundles {
+			ePublicKey := MakeTLFEphemeralPublicKey(k.PublicKey)
+			encryptedClientHalf := EncryptedTLFCryptKeyClientHalf{
+				Version:       EncryptionSecretbox,
+				EncryptedData: k.Ciphertext[:],
+				Nonce:         k.Nonce[:],
+			}
+			keys = append(keys, EncryptedTLFCryptKeyClientAndEphemeral{
+				EPubKey:    ePublicKey,
+				ClientHalf: encryptedClientHalf,
+				PubKey:     MakeCryptPublicKey(k.Kid),
+			})
+		}
+		clientHalf, index, err := fc.Local.DecryptTLFCryptKeyClientHalfAny(
+			context.Background(), keys)
+		if err != nil {
+			return err
+		}
+		res := res.(*keybase1.UnboxAnyRes)
+		res.Plaintext = clientHalf.data
+		res.Index = index
+		res.Kid = keys[index].PubKey.kidContainer.kid
+		return nil
+
 	default:
 		return fmt.Errorf("Unknown call: %s %v %v", s, args, res)
 	}
@@ -221,6 +249,84 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalf(t *testing.T) {
 	}
 
 	if clientHalf != decryptedClientHalf {
+		t.Error("clientHalf != decryptedClientHalf")
+	}
+}
+
+// Test that decrypting a TLF crypt key client half encrypted with the
+// default method (currently nacl/box) works.
+func TestCryptoClientDecryptEmptyEncryptedTLFCryptKeyClientHalfAny(t *testing.T) {
+	signingKey := MakeFakeSigningKeyOrBust("client sign")
+	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
+	config := testCryptoClientConfig(t)
+	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil)
+	c := newCryptoClientWithClient(config.Codec(), fc, logger.NewTestLogger(t))
+
+	keys := make([]EncryptedTLFCryptKeyClientAndEphemeral, 0, 0)
+
+	_, _, err := c.DecryptTLFCryptKeyClientHalfAny(
+		context.Background(), keys)
+	if _, ok := err.(NoKeysError); !ok {
+		t.Fatal(err)
+	}
+}
+
+// Test that decrypting a TLF crypt key client half encrypted with the
+// default method (currently nacl/box) works.
+func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalfAny(t *testing.T) {
+	signingKey := MakeFakeSigningKeyOrBust("client sign")
+	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
+	config := testCryptoClientConfig(t)
+	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil)
+	c := newCryptoClientWithClient(config.Codec(), fc, logger.NewTestLogger(t))
+
+	keys := make([]EncryptedTLFCryptKeyClientAndEphemeral, 0, 4)
+	clientHalves := make([]TLFCryptKeyClientHalf, 0, 4)
+	for k := 0; k < 4; k++ {
+		_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		serverHalf, err := c.MakeRandomTLFCryptKeyServerHalf()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		clientHalf, err := c.MaskTLFCryptKey(serverHalf, cryptKey)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		// See crypto_common_test.go for tests that this actually
+		// performs encryption.
+		encryptedClientHalf, err := c.EncryptTLFCryptKeyClientHalf(ephPrivateKey, cryptPrivateKey.getPublicKey(), clientHalf)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if encryptedClientHalf.Version != EncryptionSecretbox {
+			t.Fatalf("Unexpected encryption version %d", encryptedClientHalf.Version)
+		}
+		keys = append(keys, EncryptedTLFCryptKeyClientAndEphemeral{
+			PubKey:     cryptPrivateKey.getPublicKey(),
+			ClientHalf: encryptedClientHalf,
+			EPubKey:    ephPublicKey,
+		})
+		clientHalves = append(clientHalves, clientHalf)
+	}
+
+	decryptedClientHalf, index, err := c.DecryptTLFCryptKeyClientHalfAny(
+		context.Background(), keys)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if index != 0 {
+		t.Errorf("expected first key to work. Actual key index: %d", index)
+	}
+
+	if clientHalves[0] != decryptedClientHalf {
 		t.Error("clientHalf != decryptedClientHalf")
 	}
 }
