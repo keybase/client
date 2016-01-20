@@ -408,7 +408,7 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 		t.Fatal("Wrong kind of key manager for config2")
 	}
 	for keyGen := KeyGen(FirstValidKeyGen); keyGen <= currKeyGen; keyGen++ {
-		_, err = km2.getTLFCryptKey(ctx, rmd, keyGen)
+		_, err = km2.getTLFCryptKeyUsingCurrentDevice(ctx, rmd, keyGen)
 		if err == nil {
 			t.Errorf("User 2 could still fetch a key for keygen %d", keyGen)
 		}

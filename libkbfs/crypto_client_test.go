@@ -255,8 +255,7 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalf(t *testing.T) {
 	}
 }
 
-// Test that decrypting a TLF crypt key client half encrypted with the
-// default method (currently nacl/box) works.
+// Test that attempting to decrypt an empty set of client keys fails.
 func TestCryptoClientDecryptEmptyEncryptedTLFCryptKeyClientHalfAny(t *testing.T) {
 	signingKey := MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
@@ -273,8 +272,8 @@ func TestCryptoClientDecryptEmptyEncryptedTLFCryptKeyClientHalfAny(t *testing.T)
 	}
 }
 
-// Test that decrypting a TLF crypt key client half encrypted with the
-// default method (currently nacl/box) works.
+// Test that when decrypting set of client keys, the first working one
+// is used to decrypt.
 func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalfAny(t *testing.T) {
 	signingKey := MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
@@ -333,7 +332,8 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalfAny(t *testing.T) {
 	}
 }
 
-// Test various failure cases for DecryptTLFCryptKeyClientHalfAny.
+// Test various failure cases for DecryptTLFCryptKeyClientHalfAny and that
+// if a working key is present, the decryption succeeds.
 func TestCryptoClientDecryptTLFCryptKeyClientHalfAnyFailures(t *testing.T) {
 	signingKey := MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
