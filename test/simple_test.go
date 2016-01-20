@@ -6,7 +6,10 @@
 
 package test
 
-import "testing"
+import (
+	"runtime"
+	"testing"
+)
 
 // Check that renaming over a file correctly cleans up state
 func TestRenameFileOverFile(t *testing.T) {
@@ -24,6 +27,9 @@ func TestRenameFileOverFile(t *testing.T) {
 
 // Check that renaming a directory over a file correctly cleans up state
 func TestRenameDirOverFile(t *testing.T) {
+	if runtime.GOOS == "linux" && realFS {
+		t.Skip("Renaming directories over files is prohibited on linux (ENOTDIR)")
+	}
 	test(t,
 		writers("alice", "bob"),
 		as(alice,

@@ -105,7 +105,8 @@ func expectError(op fileOp, reason string) fileOp {
 		if err == nil {
 			return fmt.Errorf("Didn't get expected error (success while expecting failure): %q", reason)
 		}
-		if err.Error() != reason {
+		// Real filesystems don't give us the exact errors we wish for.
+		if !realFS && err.Error() != reason {
 			return fmt.Errorf("Got the wrong error: expected %q, got %q", reason, err.Error())
 		}
 		return nil

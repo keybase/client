@@ -47,7 +47,7 @@ func (o *opt) runInitOnce() {
 	if o.initDone {
 		return
 	}
-	userSlice := concatUserNamesToStrings2(o.readerNames, o.writerNames)
+	userSlice := concatUserNamesToStrings2(o.writerNames, o.readerNames)
 	o.users = o.engine.InitTest(o.blockSize, o.blockChangeSize, userSlice...)
 
 	for _, uname := range o.readerNames {
@@ -78,6 +78,8 @@ func (o *opt) expectSuccess(reason string, err error) {
 		o.t.Fatalf("Error: %s: %v", reason, err)
 	}
 }
+
+const realFS = false
 
 type ctx struct {
 	*opt
