@@ -54,6 +54,11 @@ type userWrapper struct {
 	atime time.Time
 }
 
+// String implements the Stringer interface for userWrapper.
+func (uw userWrapper) String() string {
+	return fmt.Sprintf("{user: %s, atime: %s}", uw.u, uw.atime)
+}
+
 // cleanItems are items to consider cleaning out of the cache. they sit in a queue
 // until they are up for review. When the review happens, the user object they
 // refer to can still persist in the cache, if it's been accessed recently.
