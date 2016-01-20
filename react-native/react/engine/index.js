@@ -199,7 +199,8 @@ class Engine {
       const wrappedResponse = this._wrapResponseOnceOnly(method, param, response)
       callMap[method](param, wrappedResponse)
     } else if (method === 'keybase.1.logUi.log' && this._hasNoHandler(method, callMap || {}, this._generalIncomingRpc)) {
-      log(param, response)
+      log(param)
+      response.result()
     } else if (!sessionID && this.generalListeners[method]) {
       this._generalIncomingRpc(method, param, response)
     } else if (!sessionID && this.serverListeners[method]) {
