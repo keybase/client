@@ -164,6 +164,42 @@ func (b *BlockCacheStandard) CheckForKnownPtr(tlf TlfID, block *FileBlock) (
 	return ptr, nil
 }
 
+func (b *BlockCacheStandard) makeRoomForSize(size uint64) bool {
+	if b.cleanTransient == nil {
+		return false
+	}
+
+	doUnlock := true
+	b.bytesLock.Lock()
+	defer func() {
+		if doUnlock {
+			b.bytesLock.Unlock()
+		}
+	}()
+
+	// Evict items from the cache until the bytes capacity is lower
+	// than the total capacity (or until no items are removed).
+	oldLen := b.cleanTransient.Len() + 1
+	for b.cleanTotalBytes+size > b.cleanBytesCapacity &&
+		oldLen != b.cleanTransient.Len() {
+		oldLen = b.cleanTransient.Len()
+		// Unlock while removing, since onEvict needs the lock.
+		b.bytesLock.Unlock()
+		doUnlock = false
+		b.cleanTransient.RemoveOldest()
+		doUnlock = true
+		b.bytesLock.Lock()
+	}
+	if b.cleanTotalBytes+size > b.cleanBytesCapacity {
+		// There must be too many permanent clean blocks, so we
+		// couldn't make room.
+		return false
+	}
+	// Only count clean bytes if we actually have a transient cache.
+	b.cleanTotalBytes += size
+	return true
+}
+
 // Put implements the BlockCache interface for BlockCacheStandard.
 func (b *BlockCacheStandard) Put(
 	ptr BlockPointer, tlf TlfID, block Block, lifetime BlockCacheLifetime) error {
@@ -177,49 +213,11 @@ func (b *BlockCacheStandard) Put(
 		b.ids.Add(key, ptr)
 	}
 
-	size := uint64(getCachedBlockSize(block))
-	doUnlock := true
-	b.bytesLock.Lock()
-	defer func() {
-		if doUnlock {
-			b.bytesLock.Unlock()
-		}
-	}()
-	if b.cleanTransient != nil {
-		// Evict items from the cache until the bytes capacity is lower
-		// than the total capacity (or until no items are removed).
-		oldLen := b.cleanTransient.Len() + 1
-		for b.cleanTotalBytes+size > b.cleanBytesCapacity &&
-			oldLen != b.cleanTransient.Len() {
-			oldLen = b.cleanTransient.Len()
-			// Unlock while removing, since onEvict needs the lock.
-			b.bytesLock.Unlock()
-			doUnlock = false
-			b.cleanTransient.RemoveOldest()
-			doUnlock = true
-			b.bytesLock.Lock()
-		}
-		if lifetime == TransientEntry &&
-			b.cleanTotalBytes+size > b.cleanBytesCapacity {
-			// There must be too many permanent clean blocks, so don't
-			// cache.
-			return nil
-		}
-	}
-
 	switch lifetime {
 	case TransientEntry:
-		if b.cleanTransient != nil {
-			b.cleanTotalBytes += size
-			b.bytesLock.Unlock()
-			doUnlock = false
-			b.cleanTransient.Add(ptr.ID, block)
-		}
+		// Cache it later, once we know there's room
 
 	case PermanentEntry:
-		b.cleanTotalBytes += size
-		b.bytesLock.Unlock()
-		doUnlock = false
 		func() {
 			b.cleanLock.Lock()
 			defer b.cleanLock.Unlock()
@@ -230,6 +228,11 @@ func (b *BlockCacheStandard) Put(
 		return fmt.Errorf("Unknown lifetime %v", lifetime)
 	}
 
+	size := uint64(getCachedBlockSize(block))
+	madeRoom := b.makeRoomForSize(size)
+	if madeRoom && lifetime == TransientEntry && b.cleanTransient != nil {
+		b.cleanTransient.Add(ptr.ID, block)
+	}
 	return nil
 }
 

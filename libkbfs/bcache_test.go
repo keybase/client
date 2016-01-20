@@ -424,4 +424,22 @@ func TestBcacheEvictIncludesPermanentSize(t *testing.T) {
 		id := fakeBlockID(i)
 		testExpectedMissing(t, id, bcache)
 	}
+
+	// Now try putting in a permanent block that exceeds capacity,
+	// which should always succeed.
+	idPerm2 := fakeBlockID(9)
+	ptr2 := BlockPointer{ID: idPerm2}
+	block2 := &FileBlock{
+		Contents: make([]byte, 10),
+	}
+	if err := bcache.Put(ptr2, tlf, block2, PermanentEntry); err != nil {
+		t.Errorf("Got error on Put for block %s: %v", idPerm, err)
+	}
+
+	if _, err := bcache.Get(BlockPointer{ID: idPerm}, branch); err != nil {
+		t.Errorf("Got unexpected error on get: %v", err)
+	}
+	if _, err := bcache.Get(BlockPointer{ID: idPerm2}, branch); err != nil {
+		t.Errorf("Got unexpected error on get: %v", err)
+	}
 }
