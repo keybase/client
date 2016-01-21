@@ -10,7 +10,7 @@ for /f %%i in ('%Folder%winresource.exe -w') do set BUILDVER=%%i
 echo %BUILDVER%
 
 :: Capture the semantic version - this is the only way to store it in a .cmd variable
-for /f %%i in ('%Folder%winresource.exe -v') do set SEMVER=%%i
+for /f "tokens=3" %%i in ('%1 -version') do set SEMVER=%%i
 echo %SEMVER%
 
 :: Other alternate time servers:
@@ -19,8 +19,19 @@ echo %SEMVER%
 ::   http://tsa.starfieldtech.com
 ::   http://timestamp.comodoca.com/authenticode
 ::   http://timestamp.digicert.com
-::SignTool.exe sign /a /tr http://timestamp.digicert.com %1
-::IF %ERRORLEVEL% NEQ 0 (
-::  EXIT /B 1
-::)
+SignTool.exe sign /a /tr http://timestamp.digicert.com %1
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
+::SignTool.exe sign /a /tr http://timestamp.digicert.com %Folder%..\..\..\kbfs\kbfsdokan\kbfsdokan.exe
+IF %ERRORLEVEL% NEQ 0 (k
+  EXIT /B 1
+)
+::SignTool.exe sign /a /tr http://timestamp.digicert.com %Folder%..\..\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
 "%ProgramFiles(x86)%\Inno Setup 5\iscc.exe" /DMyExePathName=%1 /DMyAppVersion=%BUILDVER% /DMySemVersion=%SEMVER% "/sSignCommand=signtool.exe sign /tr http://timestamp.digicert.com $f" setup_windows_gui.iss
+
+:: Afterwards, do:
+:: powershell Get-FileHash -Algorithm sha256

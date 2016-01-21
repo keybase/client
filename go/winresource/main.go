@@ -14,16 +14,33 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
+	"time"
 
 	"github.com/josephspurrier/goversioninfo"
 	"github.com/keybase/client/go/libkb"
 )
 
-// Create the syso file
+func GetBuildName() string {
+	// Todo: use regular build number when not doing prerelease
+
+	gitHash, err := exec.Command("cmd", "/C", "git", "log", "-1", "--pretty=format:%h").Output()
+	if err != nil {
+		log.Print("Error generating githash", err)
+		os.Exit(3)
+	}
+
+	return fmt.Sprintf("%d%02d%02d%02d%02d+%s", time.Now().Year(), time.Now().Month(), time.Now().Day(), time.Now().Hour(), time.Now().Minute(), gitHash)
+
+}
+
+// Create the syso and custom build file
 func main() {
 
 	outPtr := flag.String("o", "rsrc_windows.syso", "resource output pathname")
 	printverPtr := flag.Bool("v", false, "print version to console (no .syso output)")
+	printCustomVerPtr := flag.Bool("cv", false, "print custom version to console (no .syso output)")
+	printCustomBuildPtr := flag.Bool("cb", false, "print custom version to console (no .syso output)")
 	printWinVerPtr := flag.Bool("w", false, "print windows format version to console (no .syso output)")
 	iconPtr := flag.String("i", "../../../keybase/public/images/favicon.ico", "icon pathname")
 
@@ -47,6 +64,17 @@ func main() {
 
 	if *printWinVerPtr {
 		fmt.Printf("%d.%d.%d.%d", fv.Major, fv.Minor, fv.Patch, fv.Build)
+		return
+	}
+
+	if *printCustomVerPtr {
+		fmt.Printf("%d.%d.%d-%s", fv.Major, fv.Minor, fv.Patch, GetBuildName())
+		return
+	}
+
+	if *printCustomBuildPtr {
+
+		fmt.Printf("%s", GetBuildName())
 		return
 	}
 
@@ -93,4 +121,5 @@ func main() {
 		log.Printf("Error writing %s: %v", *outPtr, err)
 		os.Exit(3)
 	}
+
 }
