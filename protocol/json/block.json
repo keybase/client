@@ -224,6 +224,16 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "ChallengeInfo",
+    "fields" : [ {
+      "name" : "now",
+      "type" : "long"
+    }, {
+      "name" : "challenge",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "GetBlockRes",
     "fields" : [ {
       "name" : "blockKey",
@@ -253,7 +263,7 @@
   "messages" : {
     "getSessionChallenge" : {
       "request" : [ ],
-      "response" : "string"
+      "response" : "ChallengeInfo"
     },
     "authenticateSession" : {
       "request" : [ {

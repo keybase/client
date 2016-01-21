@@ -248,6 +248,16 @@ export type BlockIdCombo = {
   chargedTo: UID;
 }
 
+export type block_ChallengeInfo = {
+  now: long;
+  challenge: string;
+}
+
+export type ChallengeInfo = {
+  now: long;
+  challenge: string;
+}
+
 export type block_GetBlockRes = {
   blockKey: string;
   buf: bytes;
@@ -2571,6 +2581,11 @@ export type metadata_UserPlusKeys = {
 export type metadata_BlockIdCombo = {
   blockHash: string;
   chargedTo: UID;
+}
+
+export type metadata_ChallengeInfo = {
+  now: long;
+  challenge: string;
 }
 
 export type metadata_KeyHalf = {

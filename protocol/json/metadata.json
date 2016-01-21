@@ -224,6 +224,16 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "ChallengeInfo",
+    "fields" : [ {
+      "name" : "now",
+      "type" : "long"
+    }, {
+      "name" : "challenge",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "KeyHalf",
     "fields" : [ {
       "name" : "user",
@@ -262,7 +272,7 @@
   "messages" : {
     "getChallenge" : {
       "request" : [ ],
-      "response" : "string"
+      "response" : "ChallengeInfo"
     },
     "authenticate" : {
       "request" : [ {
