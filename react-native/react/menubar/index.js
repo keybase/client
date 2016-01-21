@@ -6,6 +6,7 @@ import Render from './index.render'
 import {connect} from '../base-redux'
 import {bindActionCreators} from 'redux'
 import {getTLF} from '../util/kbfs'
+import engine from '../engine'
 
 import * as favoriteAction from '../actions/favorite'
 
@@ -40,12 +41,20 @@ class Menubar extends Component {
     const onMenubarShow = () => {
       setImmediate(() => {
         this.checkForFolders()
+
+        engine.listenOnConnect('menubar', () => {
+          setImmediate(() => {
+            this.checkForFolders()
+          })
+        })
       })
     }
 
     const onMenubarHide = () => {
+
       setImmediate(() => {
         this.setState({loading: true})
+        engine.listenOnConnect('menubar', () => { })
       })
     }
 
@@ -67,7 +76,7 @@ class Menubar extends Component {
   }
 
   checkForFolders () {
-    if (this.props.username && this.props.loggedIn && !this.props.loading) {
+    if (this.props.username && this.props.loggedIn && !this.state.loading) {
       setImmediate(() => {
         this.setState({loading: true})
         this.props.favoriteList()
@@ -78,6 +87,10 @@ class Menubar extends Component {
   componentWillReceiveProps (nextProps) {
     if (this.state.loading && (this.props.folders !== nextProps.folders)) {
       this.setState({loading: false})
+    }
+
+    if (!this.props.username && nextProps.username) {
+      setImmediate(() => { this.checkForFolders() })
     }
   }
 
