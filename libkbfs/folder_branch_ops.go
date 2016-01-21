@@ -4901,32 +4901,33 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		return err
 	}
 
-	cryptKey, err := fbo.config.KBPKI().GetCurrentCryptPublicKey(ctx)
-	if err != nil {
-		return err
-	}
-
 	md, rekeyWasSet, err := fbo.getMDForRekeyWriteLocked(ctx, lState)
 	if err != nil {
 		return err
 	}
 
 	var tlfCryptKey *TLFCryptKey
-	if md.IsWriter(uid, cryptKey.kid) {
+	if md.GetTlfHandle().IsWriter(uid) {
 		var rekeyDone bool
 		// TODO: allow readers to rekey just themself
 		rekeyDone, tlfCryptKey, err = fbo.config.KeyManager().Rekey(ctx, md)
-		if err != nil {
-			return err
+		if err == nil {
+			// TODO: implement a "forced" option that rekeys even when the
+			// devices haven't changed?
+			if !rekeyDone {
+				fbo.log.CDebugf(ctx, "No rekey necessary")
+				return nil
+			}
+			// clear the rekey bit
+			md.Flags &= ^MetadataFlagRekey
+		} else {
+			if _, isReadAccessError := err.(ReadAccessError); isReadAccessError {
+				// This device hasn't been keyed yet, fall through to set the
+				// rekey bit
+			} else {
+				return err
+			}
 		}
-		// TODO: implement a "forced" option that rekeys even when the
-		// devices haven't changed?
-		if !rekeyDone {
-			fbo.log.CDebugf(ctx, "No rekey necessary")
-			return nil
-		}
-		// clear the rekey bit
-		md.Flags &= ^MetadataFlagRekey
 	} else if rekeyWasSet {
 		// Readers shouldn't re-set the rekey bit.
 		fbo.log.CDebugf(ctx, "Rekey bit already set")

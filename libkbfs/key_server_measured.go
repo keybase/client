@@ -42,6 +42,17 @@ func (b KeyServerMeasured) GetTLFCryptKeyServerHalf(ctx context.Context,
 	return serverHalf, err
 }
 
+// GetTLFCryptKeyServerHalfSpecificKey implements the KeyServer interface for
+// KeyServerMeasured.
+func (b KeyServerMeasured) GetTLFCryptKeyServerHalfSpecificKey(ctx context.Context,
+	serverHalfID TLFCryptKeyServerHalfID, key CryptPublicKey) (
+	serverHalf TLFCryptKeyServerHalf, err error) {
+	b.getTimer.Time(func() {
+		serverHalf, err = b.delegate.GetTLFCryptKeyServerHalfSpecificKey(ctx, serverHalfID, key)
+	})
+	return serverHalf, err
+}
+
 // PutTLFCryptKeyServerHalves implements the KeyServer interface for
 // KeyServerMeasured.
 func (b KeyServerMeasured) PutTLFCryptKeyServerHalves(ctx context.Context,

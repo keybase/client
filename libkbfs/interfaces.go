@@ -699,6 +699,12 @@ type KeyOps interface {
 	GetTLFCryptKeyServerHalf(ctx context.Context,
 		serverHalfID TLFCryptKeyServerHalfID) (TLFCryptKeyServerHalf, error)
 
+	// GetTLFCryptKeyServerHalfSpecificKey gets a server-side key half
+	// for a specified key given the server key half ID.
+	GetTLFCryptKeyServerHalfSpecificKey(ctx context.Context,
+		serverHalfID TLFCryptKeyServerHalfID,
+		cryptPublicKey CryptPublicKey) (TLFCryptKeyServerHalf, error)
+
 	// PutTLFCryptKeyServerHalves stores a server-side key halves for a
 	// set of users and devices.
 	PutTLFCryptKeyServerHalves(ctx context.Context,
@@ -881,21 +887,7 @@ type BlockSplitter interface {
 
 // KeyServer fetches/writes server-side key halves from/to the key server.
 type KeyServer interface {
-	// GetTLFCryptKeyServerHalf gets a server-side key half for a
-	// device given the key half ID.
-	GetTLFCryptKeyServerHalf(ctx context.Context,
-		serverHalfID TLFCryptKeyServerHalfID) (TLFCryptKeyServerHalf, error)
-
-	// PutTLFCryptKeyServerHalves stores a server-side key halves for a
-	// set of users and devices.
-	PutTLFCryptKeyServerHalves(ctx context.Context,
-		serverKeyHalves map[keybase1.UID]map[keybase1.KID]TLFCryptKeyServerHalf) error
-
-	// DeleteTLFCryptKeyServerHalf deletes a server-side key half for a
-	// device given the key half ID.
-	DeleteTLFCryptKeyServerHalf(ctx context.Context,
-		uid keybase1.UID, kid keybase1.KID,
-		serverHalfID TLFCryptKeyServerHalfID) error
+	KeyOps
 
 	// Shutdown is called to free any KeyServer resources.
 	Shutdown()

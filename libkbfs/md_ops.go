@@ -37,14 +37,16 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 			privateMetadata := &PrivateMetadata{}
 			if err != nil {
 				// Get current UID.
-				uid, err := md.config.KBPKI().GetCurrentUID(ctx)
-				if err != nil {
-					return err
+				uid, uidErr := md.config.KBPKI().GetCurrentUID(ctx)
+				if uidErr != nil {
+					return uidErr
 				}
 				isReader := handle.IsReader(uid)
-				if _, isReadAccessError := err.(ReadAccessError); !isReader || !isReadAccessError {
+				_, isReadAccessError := err.(ReadAccessError)
+				if isReader && isReadAccessError {
 					// ReadAccessErrors are expected if this client is a valid
 					// folder participant but doesn't have the shared crypt key.
+				} else {
 					return err
 				}
 			} else {

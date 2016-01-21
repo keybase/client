@@ -42,8 +42,30 @@ func expectUncachedGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata, keyGen 
 		Return(TLFCryptKeyClientHalf{}, nil)
 
 	// get the server-side half and retrieve the real secret key
-	config.mockKops.EXPECT().GetTLFCryptKeyServerHalf(gomock.Any(),
-		gomock.Any()).Return(TLFCryptKeyServerHalf{}, nil)
+	config.mockKops.EXPECT().GetTLFCryptKeyServerHalfSpecificKey(gomock.Any(),
+		gomock.Any(), gomock.Any()).Return(TLFCryptKeyServerHalf{}, nil)
+	config.mockCrypto.EXPECT().UnmaskTLFCryptKey(TLFCryptKeyServerHalf{}, TLFCryptKeyClientHalf{}).Return(TLFCryptKey{}, nil)
+
+	// now put the key into the cache
+	if !encrypt {
+		config.mockKcache.EXPECT().PutTLFCryptKey(rmd.ID, keyGen, TLFCryptKey{}).
+			Return(nil)
+	}
+}
+
+func expectUncachedGetTLFCryptKeyAnyDevice(config *ConfigMock, rmd *RootMetadata, keyGen KeyGen, uid keybase1.UID, subkey CryptPublicKey, encrypt bool) {
+	config.mockKcache.EXPECT().GetTLFCryptKey(rmd.ID, keyGen).
+		Return(TLFCryptKey{}, errors.New("NONE"))
+
+	// get the xor'd key out of the metadata
+	config.mockKbpki.EXPECT().GetCryptPublicKeys(gomock.Any(), uid).
+		Return([]CryptPublicKey{subkey}, nil)
+	config.mockCrypto.EXPECT().DecryptTLFCryptKeyClientHalfAny(gomock.Any(),
+		gomock.Any()).Return(TLFCryptKeyClientHalf{}, 0, nil)
+
+	// get the server-side half and retrieve the real secret key
+	config.mockKops.EXPECT().GetTLFCryptKeyServerHalfSpecificKey(gomock.Any(),
+		gomock.Any(), gomock.Any()).Return(TLFCryptKeyServerHalf{}, nil)
 	config.mockCrypto.EXPECT().UnmaskTLFCryptKey(TLFCryptKeyServerHalf{}, TLFCryptKeyClientHalf{}).Return(TLFCryptKey{}, nil)
 
 	// now put the key into the cache
@@ -188,7 +210,7 @@ func TestKeyManagerUncachedSecretKeyForMDDecryptionSuccess(t *testing.T) {
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
 	AddNewKeysOrBust(t, rmd, MakeDirRKeyBundle(uid, subkey))
 
-	expectUncachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration(), uid, subkey, false)
+	expectUncachedGetTLFCryptKeyAnyDevice(config, rmd, rmd.LatestKeyGeneration(), uid, subkey, false)
 
 	if _, err := config.KeyManager().
 		GetTLFCryptKeyForMDDecryption(ctx, rmd); err != nil {
@@ -411,6 +433,98 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 		if err == nil {
 			t.Errorf("User 2 could still fetch a key for keygen %d", keyGen)
 		}
+	}
+}
+
+func TestKeyManagerRekeyPaperKey(t *testing.T) {
+	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2)
+	defer CheckConfigAndShutdown(t, config1)
+
+	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)
+	defer CheckConfigAndShutdown(t, config2)
+	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Log("Create a shared folder")
+	name := u1.String() + "," + u2.String()
+
+	kbfsOps1 := config1.KBFSOps()
+	rootNode1, _, err :=
+		kbfsOps1.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+
+	t.Log("User 1 creates a file")
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	t.Log("User 2 adds a device")
+	// The configs don't share a Keybase Daemon so we have to do it in all
+	// places.
+	AddDeviceForLocalUserOrBust(t, config1, uid2)
+	devIndex := AddDeviceForLocalUserOrBust(t, config2, uid2)
+
+	config2Dev2 := ConfigAsUser(config2, u2)
+	defer CheckConfigAndShutdown(t, config2Dev2)
+	SwitchDeviceForLocalUserOrBust(t, config2Dev2, devIndex)
+
+	t.Log("Check that user 2 device 2 is unable to read the file")
+	// user 2 device 2 should be unable to read the data now since its device
+	// wasn't registered when the folder was originally created.
+	kbfsOps2Dev2 := config2Dev2.KBFSOps()
+	_, _, err =
+		kbfsOps2Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+	if _, ok := err.(ReadAccessError); !ok {
+		t.Fatalf("Got unexpected error when reading with new key: %v", err)
+	}
+
+	t.Log("User 2 rekeys from device 1")
+	kbfsOps2 := config2.KBFSOps()
+	root2dev1, _, err := kbfsOps2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't obtain folder: %#v", err)
+	}
+
+	err = kbfsOps2.Rekey(ctx, root2dev1.GetFolderBranch().Tlf)
+	if err != nil {
+		t.Fatalf("Couldn't rekey: %v", err)
+	}
+
+	t.Log("User 2 device 2 should be able to read now")
+	root2dev2, _, err :=
+		kbfsOps2Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Got unexpected error after rekey: %v", err)
+	}
+
+	t.Log("User 2 device 2 reads user 1's file")
+	children2, err := kbfsOps2Dev2.GetDirChildren(ctx, root2dev2)
+	if _, ok := children2["a"]; !ok {
+		t.Fatalf("Device 2 couldn't see user 1's dir entry")
+	}
+
+	t.Log("User 2 device 2 creates a file")
+	_, _, err = kbfsOps2Dev2.CreateFile(ctx, root2dev2, "b", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	t.Log("User 1 syncs from the server")
+	err = kbfsOps1.SyncFromServer(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+
+	t.Log("User 1 should be able to read the file that user 2 device 2 created")
+	children1, err := kbfsOps1.GetDirChildren(ctx, rootNode1)
+	if _, ok := children1["b"]; !ok {
+		t.Fatalf("Device 1 couldn't see the new dir entry")
 	}
 }
 

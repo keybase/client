@@ -512,6 +512,35 @@ func (md *MDServerRemote) GetTLFCryptKeyServerHalf(ctx context.Context,
 	return serverHalf, nil
 }
 
+// GetTLFCryptKeyServerHalfSpecificKey is an implementation of the KeyServer interface.
+func (md *MDServerRemote) GetTLFCryptKeyServerHalfSpecificKey(ctx context.Context,
+	serverHalfID TLFCryptKeyServerHalfID, cryptKey CryptPublicKey) (serverHalf TLFCryptKeyServerHalf, err error) {
+	// encode the ID
+	idBytes, err := md.config.Codec().Encode(serverHalfID)
+	if err != nil {
+		return
+	}
+
+	// get the key
+	arg := keybase1.GetKeyArg{
+		KeyHalfID: idBytes,
+		DeviceKID: cryptKey.kid.String(),
+		LogTags:   LogTagsFromContextToMap(ctx),
+	}
+	keyBytes, err := md.client.GetKey(ctx, arg)
+	if err != nil {
+		return
+	}
+
+	// decode the key
+	err = md.config.Codec().Decode(keyBytes, &serverHalf)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
 // PutTLFCryptKeyServerHalves is an implementation of the KeyServer interface.
 func (md *MDServerRemote) PutTLFCryptKeyServerHalves(ctx context.Context,
 	serverKeyHalves map[keybase1.UID]map[keybase1.KID]TLFCryptKeyServerHalf) error {
