@@ -208,6 +208,11 @@ type BlockIdCombo struct {
 	ChargedTo UID    `codec:"chargedTo" json:"chargedTo"`
 }
 
+type ChallengeInfo struct {
+	Now       int64  `codec:"now" json:"now"`
+	Challenge string `codec:"challenge" json:"challenge"`
+}
+
 type GetBlockRes struct {
 	BlockKey string `codec:"blockKey" json:"blockKey"`
 	Buf      []byte `codec:"buf" json:"buf"`
@@ -258,7 +263,7 @@ type GetUserQuotaInfoArg struct {
 }
 
 type BlockInterface interface {
-	GetSessionChallenge(context.Context) (string, error)
+	GetSessionChallenge(context.Context) (ChallengeInfo, error)
 	AuthenticateSession(context.Context, string) error
 	PutBlock(context.Context, PutBlockArg) error
 	GetBlock(context.Context, GetBlockArg) (GetBlockRes, error)
@@ -398,7 +403,7 @@ type BlockClient struct {
 	Cli GenericClient
 }
 
-func (c BlockClient) GetSessionChallenge(ctx context.Context) (res string, err error) {
+func (c BlockClient) GetSessionChallenge(ctx context.Context) (res ChallengeInfo, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.block.getSessionChallenge", []interface{}{GetSessionChallengeArg{}}, &res)
 	return
 }
@@ -2999,7 +3004,7 @@ type PingArg struct {
 }
 
 type MetadataInterface interface {
-	GetChallenge(context.Context) (string, error)
+	GetChallenge(context.Context) (ChallengeInfo, error)
 	Authenticate(context.Context, string) (int, error)
 	PutMetadata(context.Context, PutMetadataArg) error
 	GetMetadata(context.Context, GetMetadataArg) (MetadataResponse, error)
@@ -3241,7 +3246,7 @@ type MetadataClient struct {
 	Cli GenericClient
 }
 
-func (c MetadataClient) GetChallenge(ctx context.Context) (res string, err error) {
+func (c MetadataClient) GetChallenge(ctx context.Context) (res ChallengeInfo, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.metadata.getChallenge", []interface{}{GetChallengeArg{}}, &res)
 	return
 }

@@ -19,7 +19,7 @@ protocol metadata {
          array<MDBlock> mdBlocks;
   }
 
-  string getChallenge();
+  ChallengeInfo getChallenge();
   int authenticate(string signature);
   void putMetadata(MDBlock mdBlock, map<string> logTags);
   MetadataResponse getMetadata(string folderID, bytes folderHandle, string branchID, boolean unmerged, long startRevision, long stopRevision, map<string> logTags);

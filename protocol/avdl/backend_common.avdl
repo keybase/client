@@ -8,6 +8,10 @@ protocol backendCommon {
     UID chargedTo;
   }
 
+  record ChallengeInfo {
+    long now;
+    string challenge;
+  }
 }
 
 
