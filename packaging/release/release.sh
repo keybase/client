@@ -50,7 +50,7 @@ kbfsdir=${KBFSDIR:-$GOPATH/src/github.com/keybase/kbfs}
 "$clientdir/packaging/check_status_and_pull.sh" "$serveropsdir"
 "$clientdir/packaging/check_status_and_pull.sh" "$kbfsdir"
 
-version_on_disk="$("$clientdir/packaging/version.sh")"
+version_on_disk="$("$clientdir/packaging/version.sh" "$mode")"
 
 if [ "$version" != "$version_on_disk" ]; then
 	echo Version $version does not match libkb/version.go $version_on_disk
