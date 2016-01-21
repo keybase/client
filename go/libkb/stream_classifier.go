@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"io"
+	"regexp"
 	"strings"
 
 	"github.com/keybase/client/go/saltpack"
@@ -215,6 +216,12 @@ func isPGPBinary(b []byte, sc *StreamClassification) bool {
 	return true
 }
 
+func matchesSaltpackType(messageStart string, typeString string) bool {
+	exp := "^\\s*BEGIN ([a-zA-Z0-9]+ )?SALTPACK " + typeString + "."
+	match, err := regexp.MatchString(exp, messageStart)
+	return match && (err == nil)
+}
+
 var encryptionArmorHeader = saltpack.MakeArmorHeader(saltpack.MessageTypeEncryption, KeybaseSaltpackBrand)
 var signedArmorHeader = saltpack.MakeArmorHeader(saltpack.MessageTypeAttachedSignature, KeybaseSaltpackBrand)
 var detachedArmorHeader = saltpack.MakeArmorHeader(saltpack.MessageTypeDetachedSignature, KeybaseSaltpackBrand)
@@ -245,15 +252,15 @@ func ClassifyStream(r io.Reader) (sc StreamClassification, out io.Reader, err er
 		sc.Format = CryptoMessageFormatPGP
 		sc.Armored = true
 		sc.Type = CryptoMessageTypeClearSignature
-	case strings.HasPrefix(sb, encryptionArmorHeader+"."):
+	case matchesSaltpackType(sb, saltpack.EncryptionArmorString):
 		sc.Format = CryptoMessageFormatSaltpack
 		sc.Armored = true
 		sc.Type = CryptoMessageTypeEncryption
-	case strings.HasPrefix(sb, signedArmorHeader+"."):
+	case matchesSaltpackType(sb, saltpack.SignedArmorString):
 		sc.Format = CryptoMessageFormatSaltpack
 		sc.Armored = true
 		sc.Type = CryptoMessageTypeSignature
-	case strings.HasPrefix(sb, detachedArmorHeader+"."):
+	case matchesSaltpackType(sb, saltpack.DetachedSignatureArmorString):
 		sc.Format = CryptoMessageFormatSaltpack
 		sc.Armored = true
 		sc.Type = CryptoMessageTypeDetachedSignature

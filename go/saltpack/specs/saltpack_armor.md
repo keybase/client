@@ -19,13 +19,9 @@ size, which gives us 43-character output blocks and a packing efficiency of
 74.42%, compared to Base64's 75%. Finally we specify how the decoder recognizes
 the header and footer lines and strips whitespace.
 
-Here's the saltpack armor encoding of the standard lorem ipsum paragraph:
+Here's the saltpack armor encoding of a signed message:
 
-> BEGIN SALTPACK MESSAGE.
->
-> I7lAG9yMZ0wAqD2 sOUHnQz6NOuExga WMa8JagoXrIlXO2 cjZukM8JONusQT3 3n7d3nHge2n1aOU AXTTo779PYuO2y7 3We1xXJgVI16Zen TI6UInlynbr9grE zLzZUYe2MQQVEvH g9qDcgNZTKRq61a ynlZYjWZgascz7c 1tDL9iHQBHm3nHl Tsp9RK3xdPabaPU cTKXKxqb1yVd2GB s3dvZNk4QmoAf3L jeZlYvu0GgI7uno EykBRCBDUL8pN2H Lm2P0Lfg8gQdMfs 0jkvLKxuDTaWVvc CZ5l9VGP3pX6VM2 IRMZFIReCt3nv1a oDWMKNeebaEGPpS iXxWsVfZwqUK3K7 h2JMheWsYMsvWPX 8kR2WpulekKqPSH y2tt89L3Qh33RXI vJi305Lc91t7HjJ WQfYWNakquQnjf2 ljGQP9ZqJiRqNA4 3oGpAMOoDuWRSFk 7RdAFeVQDsSr1CD eIFiKcjbNZ6LILU 30a9hAJ9uB0cfVi GpCdR3svMw2Bysi Z5gj8lRqUOGgA57 GWSrfsLlMgZezGI yB0zNqX9SLSpIwI 9l8gOFgoj0BRPGU 0m7OqPgY3zCvlBH 1OmrwpAkA1Wv8.
->
-> END SALTPACK MESSAGE.
+> BEGIN SALTPACK SIGNED MESSAGE. kYM5h1pg6qz9UMn j6G7KB2OUX3itkn C30ZZBPzjc8STxf i06TIQhJ4wRFSMU hFa9gmcvl2AW8Kk qmTdLkkppPieOWq o9aWouAaMpQ9kWt eMlv17NOUUr9Gp3 fClo7khRnJ12T7j 6ZVkfDXUpznTp57 0btBywDV848jyp2 EceloYGiuOolWim 8HCx77p22iulWja ixShPFcOi1mkG2i 4Iur3QfGYeKpflx a1GXmvQLi1G99mH 625dH5HGcQ63pOb K1i7g3lXIQ9Kcfy NRDfdBIDMHJaJf1 uTKB4GJ9l4M7glS 07h9QsU4gPueyNC hzm6LmA9CFllzxy 8ZA0Ys5qDnSuwaN obowMNXpbm1nlsx fXFtMolx6ghLuEw 2s8f1jBxBQjQPwa GG90h5BbpoWGPk6 dRsou5kdNxcLaFJ KKXWTUR2h9P0P7p 9UYRsQ6QqGNiwmG wXC7YFh1xCUdAib gjZbUYUKN6KVLem hZI6XYtX2l1w8d5 jL8KJ5ZZpKhJ4JC faVWCU2VRtUFgQO ejKm6wjs6NcekTd KK4bOh5kr87cyRu 0aDjEtfMSyZZTG5 hIrEWcMq1Iotzrx iRdmY5GYf2Kx0Br 4K0rqrj8ZGa. END SALTPACK SIGNED MESSAGE.
 
 ## BaseX Encoding
 
@@ -273,11 +269,11 @@ Before getting to the BaseX payload, the decoder parses the header and footer:
 2. Assert that the header matches
 
    ```
-   BEGIN ([a-zA-Z0-9]+ )?SALTPACK ([a-zA-Z0-9]+ )?MESSAGE.
+   BEGIN ([a-zA-Z0-9]+ )?SALTPACK (ENCRYPTED MESSAGE)|(SIGNED MESSAGE)|(DETACHED SIGNATURE)
    ```
 
-   The first optional word is for an application name (like `KEYBASE`) and the
-   second is for a message type (like `ENCRYPTED`).
+   The optional word is for an application name (like `KEYBASE`). The last two
+   words give the mode of the message.
 3. Collect input up to the second period, stripping all whitespace and `>`
    characters. This is the payload. If the implementation is streaming, it may
    decode the payload before the following steps.

@@ -138,8 +138,6 @@ func BoxPublicKeyToKeybaseKID(k saltpack.BoxPublicKey) (ret keybase1.KID) {
 }
 
 func checkSaltpackBrand(b string) error {
-	if b != KeybaseSaltpackBrand {
-		return KeybaseSaltpackError{}
-	}
+	// Everything is awesome!
 	return nil
 }
