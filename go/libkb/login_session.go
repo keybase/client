@@ -9,6 +9,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 const LoginSessionMemoryTimeout time.Duration = time.Minute * 5
@@ -44,12 +46,14 @@ func NewLoginSessionWithSalt(emailOrUsername string, salt []byte, g *GlobalConte
 	return ls
 }
 
-func (s *LoginSession) Status() string {
-	if s.loaded && s.loginSession == nil && s.salt != nil {
-		return fmt.Sprintf("%s [salt only]", s.sessionFor)
+func (s *LoginSession) Status() *keybase1.SessionStatus {
+	return &keybase1.SessionStatus{
+		SessionFor: s.sessionFor,
+		Loaded:     s.loaded,
+		Cleared:    s.cleared,
+		Expired:    !s.NotExpired(),
+		SaltOnly:   s.loaded && s.loginSession == nil && s.salt != nil,
 	}
-
-	return fmt.Sprintf("%s [loaded: %s, cleared: %s, expired: %s]", s.sessionFor, BoolString(s.loaded, "yes", "no"), BoolString(s.cleared, "yes", "no"), BoolString(!s.NotExpired(), "yes", "no"))
 }
 
 func (s *LoginSession) Session() ([]byte, error) {

@@ -489,17 +489,25 @@ type GetCurrentStatusRes struct {
 	User       *User `codec:"user,omitempty" json:"user,omitempty"`
 }
 
+type SessionStatus struct {
+	SessionFor string `codec:"SessionFor" json:"SessionFor"`
+	Loaded     bool   `codec:"Loaded" json:"Loaded"`
+	Cleared    bool   `codec:"Cleared" json:"Cleared"`
+	SaltOnly   bool   `codec:"SaltOnly" json:"SaltOnly"`
+	Expired    bool   `codec:"Expired" json:"Expired"`
+}
+
 type ExtendedStatus struct {
-	Standalone             bool     `codec:"standalone" json:"standalone"`
-	PassphraseStreamCached bool     `codec:"passphraseStreamCached" json:"passphraseStreamCached"`
-	DeviceID               DeviceID `codec:"deviceID" json:"deviceID"`
-	DeviceName             string   `codec:"deviceName" json:"deviceName"`
-	DeviceStatus           string   `codec:"deviceStatus" json:"deviceStatus"`
-	LogDir                 string   `codec:"logDir" json:"logDir"`
-	DesktopUIConnected     bool     `codec:"desktopUIConnected" json:"desktopUIConnected"`
-	SessionStatus          string   `codec:"sessionStatus" json:"sessionStatus"`
-	DefaultUsername        string   `codec:"defaultUsername" json:"defaultUsername"`
-	ProvisionedUsernames   []string `codec:"provisionedUsernames" json:"provisionedUsernames"`
+	Standalone             bool           `codec:"standalone" json:"standalone"`
+	PassphraseStreamCached bool           `codec:"passphraseStreamCached" json:"passphraseStreamCached"`
+	DeviceID               DeviceID       `codec:"deviceID" json:"deviceID"`
+	DeviceName             string         `codec:"deviceName" json:"deviceName"`
+	DeviceStatus           string         `codec:"deviceStatus" json:"deviceStatus"`
+	LogDir                 string         `codec:"logDir" json:"logDir"`
+	DesktopUIConnected     bool           `codec:"desktopUIConnected" json:"desktopUIConnected"`
+	Session                *SessionStatus `codec:"session,omitempty" json:"session,omitempty"`
+	DefaultUsername        string         `codec:"defaultUsername" json:"defaultUsername"`
+	ProvisionedUsernames   []string       `codec:"provisionedUsernames" json:"provisionedUsernames"`
 }
 
 type ForkType int

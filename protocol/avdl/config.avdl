@@ -13,6 +13,14 @@ protocol config {
 
   GetCurrentStatusRes getCurrentStatus(int sessionID);
 
+  record SessionStatus {
+    string SessionFor;
+    boolean Loaded;
+    boolean Cleared;
+    boolean SaltOnly;
+    boolean Expired;
+  }
+
   record ExtendedStatus {
     boolean standalone;
     boolean passphraseStreamCached;
@@ -21,7 +29,7 @@ protocol config {
     string deviceStatus;
     string logDir;
     boolean desktopUIConnected;
-    string sessionStatus;
+    union { null, SessionStatus } session;
     string defaultUsername;
     array<string> provisionedUsernames;
   }

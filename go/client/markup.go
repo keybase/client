@@ -226,3 +226,12 @@ func RenderText(w io.Writer, txt keybase1.Text) {
 		Render(w, libkb.NewMarkup(txt.Data))
 	}
 }
+
+// BoolString maps a bool to true and false strings (like "yes"
+// and "no").  For example:  BoolString(b, "yes", "no").
+func BoolString(b bool, t, f string) string {
+	if b {
+		return t
+	}
+	return f
+}

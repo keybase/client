@@ -5,6 +5,7 @@ package client
 
 import (
 	"encoding/json"
+	"fmt"
 	"path"
 	"strings"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 func NewCmdNStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -133,7 +135,7 @@ func (c *CmdNStatus) load() (*fstatus, error) {
 		status.Service.Log = path.Join(extStatus.LogDir, c.serviceLogFilename())
 	}
 
-	status.SessionStatus = extStatus.SessionStatus
+	status.SessionStatus = c.sessionStatus(extStatus.Session)
 	status.PassphraseStreamCached = extStatus.PassphraseStreamCached
 
 	kbfsVersion, err := install.KBFSBundleVersion(c.G(), "")
@@ -176,24 +178,24 @@ func (c *CmdNStatus) outputJSON(status *fstatus) error {
 func (c *CmdNStatus) outputTerminal(status *fstatus) error {
 	dui := c.G().UI.GetDumbOutputUI()
 	dui.Printf("Username:      %s\n", status.Username)
-	dui.Printf("Logged in:     %s\n\n", libkb.BoolString(status.LoggedInProvisioned, "yes", "no"))
+	dui.Printf("Logged in:     %s\n\n", BoolString(status.LoggedInProvisioned, "yes", "no"))
 	dui.Printf("Device name:   %s\n", status.DeviceName)
 	dui.Printf("Device ID:     %s\n", status.DeviceID)
 	dui.Printf("Device status: %s\n\n", status.DeviceStatus)
-	dui.Printf("Local keybase keychain: %s\n", libkb.BoolString(status.PassphraseStreamCached, "unlocked", "locked"))
+	dui.Printf("Local keybase keychain: %s\n", BoolString(status.PassphraseStreamCached, "unlocked", "locked"))
 	dui.Printf("Session status:         %s\n", status.SessionStatus)
 	dui.Printf("\nKBFS:\n")
-	dui.Printf("    status:    %s\n", libkb.BoolString(status.KBFS.Running, "running", "not running"))
+	dui.Printf("    status:    %s\n", BoolString(status.KBFS.Running, "running", "not running"))
 	dui.Printf("    version:   %s\n", status.KBFS.Version)
 	dui.Printf("    log:       %s\n", status.KBFS.Log)
 	dui.Printf("\nService:\n")
-	dui.Printf("    status:    %s\n", libkb.BoolString(status.Service.Running, "running", "not running"))
+	dui.Printf("    status:    %s\n", BoolString(status.Service.Running, "running", "not running"))
 	dui.Printf("    version:   %s\n", status.Service.Version)
 	dui.Printf("    log:       %s\n", status.Service.Log)
 	dui.Printf("\nClient:\n")
 	dui.Printf("    version:   %s\n", status.Client.Version)
 	dui.Printf("\nDesktop app:\n")
-	dui.Printf("    status:    %s\n\n", libkb.BoolString(status.Desktop.Running, "running", "not running"))
+	dui.Printf("    status:    %s\n\n", BoolString(status.Desktop.Running, "running", "not running"))
 	dui.Printf("Config path:        %s\n", status.ConfigPath)
 	dui.Printf("Default user:       %s\n", status.DefaultUsername)
 	dui.Printf("Provisioned users:  %s\n", strings.Join(status.ProvisionedUsernames, ", "))
@@ -211,4 +213,15 @@ func (c *CmdNStatus) GetUsage() libkb.Usage {
 		Config: true,
 		API:    true,
 	}
+}
+
+func (c *CmdNStatus) sessionStatus(s *keybase1.SessionStatus) string {
+	if s == nil {
+		return "no session"
+	}
+	if s.SaltOnly {
+		return fmt.Sprintf("%s [salt only]", s.SessionFor)
+	}
+
+	return fmt.Sprintf("%s [loaded: %s, cleared: %s, expired: %s]", s.SessionFor, BoolString(s.Loaded, "yes", "no"), BoolString(s.Cleared, "yes", "no"), BoolString(s.Expired, "yes", "no"))
 }

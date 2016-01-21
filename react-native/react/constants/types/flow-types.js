@@ -470,6 +470,22 @@ export type GetCurrentStatusRes = {
   user?: ?User;
 }
 
+export type config_SessionStatus = {
+  SessionFor: string;
+  Loaded: boolean;
+  Cleared: boolean;
+  SaltOnly: boolean;
+  Expired: boolean;
+}
+
+export type SessionStatus = {
+  SessionFor: string;
+  Loaded: boolean;
+  Cleared: boolean;
+  SaltOnly: boolean;
+  Expired: boolean;
+}
+
 export type config_ExtendedStatus = {
   standalone: boolean;
   passphraseStreamCached: boolean;
@@ -478,7 +494,7 @@ export type config_ExtendedStatus = {
   deviceStatus: string;
   logDir: string;
   desktopUIConnected: boolean;
-  sessionStatus: string;
+  session?: ?SessionStatus;
   defaultUsername: string;
   provisionedUsernames: Array<string>;
 }
@@ -491,7 +507,7 @@ export type ExtendedStatus = {
   deviceStatus: string;
   logDir: string;
   desktopUIConnected: boolean;
-  sessionStatus: string;
+  session?: ?SessionStatus;
   defaultUsername: string;
   provisionedUsernames: Array<string>;
 }

@@ -59,10 +59,8 @@ func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res 
 
 	h.G().LoginState().Account(func(a *libkb.Account) {
 		res.PassphraseStreamCached = a.PassphraseStreamCache().Valid()
-		if a.LoginSession() == nil {
-			res.SessionStatus = "no session"
-		} else {
-			res.SessionStatus = a.LoginSession().Status()
+		if a.LoginSession() != nil {
+			res.Session = a.LoginSession().Status()
 		}
 	}, "ConfigHandler::GetExtendedStatus")
 

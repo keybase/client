@@ -230,6 +230,25 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "SessionStatus",
+    "fields" : [ {
+      "name" : "SessionFor",
+      "type" : "string"
+    }, {
+      "name" : "Loaded",
+      "type" : "boolean"
+    }, {
+      "name" : "Cleared",
+      "type" : "boolean"
+    }, {
+      "name" : "SaltOnly",
+      "type" : "boolean"
+    }, {
+      "name" : "Expired",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "ExtendedStatus",
     "fields" : [ {
       "name" : "standalone",
@@ -253,8 +272,8 @@
       "name" : "desktopUIConnected",
       "type" : "boolean"
     }, {
-      "name" : "sessionStatus",
-      "type" : "string"
+      "name" : "session",
+      "type" : [ "null", "SessionStatus" ]
     }, {
       "name" : "defaultUsername",
       "type" : "string"
