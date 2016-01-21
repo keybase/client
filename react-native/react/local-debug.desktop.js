@@ -18,8 +18,8 @@ let config = {
   reduxDevToolsEnable: false,
   redirectOnLogout: true,
   reduxDevToolsSelect: state => state, // only watch a subset of the store
-  enableStoreLogging: false,
-  forwardLogs: false
+  enableStoreLogging: true,
+  forwardLogs: true
 }
 
 if (__DEV__ && false) { // eslint-disable-line no-undef

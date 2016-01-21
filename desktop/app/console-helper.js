@@ -1,6 +1,8 @@
 import {ipcMain, ipcRenderer} from 'electron'
 import util from 'util'
 import {forwardLogs} from '../../react-native/react/local-debug'
+import fs from 'fs'
+import {logFileName} from '../../react-native/react/constants/platform.native.desktop.js'
 
 const methods = ['log', 'error', 'info']
 const originalConsole = {}
@@ -8,9 +10,21 @@ methods.forEach(k => {
   originalConsole[k] = console[k]
 })
 
+const fileWritable = fs.createWriteStream(logFileName())
+
+function tee (...writeFns) {
+  return t => writeFns.forEach(w => w(t))
+}
+
+const stdErrWriter = t => process.stderr.write(t)
+const stdOutWriter = t => process.stdout.write(t)
+const logFileWriter = t => fileWritable.write(t + '\n')
+
 // override console logging to also go to stdout
 const output = {
-  error: process.stderr
+  error: tee(stdErrWriter, logFileWriter),
+  log: tee(stdOutWriter, logFileWriter),
+  warn: tee(stdOutWriter, logFileWriter)
 }
 
 export default function pipeLogs () {
@@ -22,8 +36,8 @@ export default function pipeLogs () {
     console[k] = (...args) => {
       originalConsole[k].apply(console, args)
       if (args.length) {
-        const out = output[k] || process.stdout
-        out.write(k + ': ' + util.format.apply(util, args))
+        const out = output[k] || (t => process.stdout.write(t))
+        out(k + ': ' + util.format.apply(util, args))
       }
     }
   })
