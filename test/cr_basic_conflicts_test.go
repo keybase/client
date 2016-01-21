@@ -6,7 +6,10 @@
 
 package test
 
-import "testing"
+import (
+	"runtime"
+	"testing"
+)
 
 // bob and alice both write(to the same file),
 func TestCrConflictWriteFile(t *testing.T) {
@@ -186,6 +189,9 @@ func TestCrConflictUnmergedRenameFileInNewDirOverModifiedFile(t *testing.T) {
 
 // bob renames a directory over a file modified by alice.
 func TestCrConflictUnmergedRenameDirOverModifiedFile(t *testing.T) {
+	if realFS && runtime.GOOS == "linux" {
+		t.Skip("Renaming directories over files not supported on linux fuse (ENOTDIR)")
+	}
 	test(t,
 		writers("alice", "bob"),
 		as(alice,
@@ -314,6 +320,9 @@ func TestCrConflictMergedRenameFileOverModifiedFile(t *testing.T) {
 
 // alice renames a directory over a file modified by bob.
 func TestCrConflictMergedRenameDirOverModifiedFile(t *testing.T) {
+	if realFS && runtime.GOOS == "linux" {
+		t.Skip("Renaming directories over files not supported on linux fuse (ENOTDIR)")
+	}
 	test(t,
 		writers("alice", "bob"),
 		as(alice,

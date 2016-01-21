@@ -6,7 +6,10 @@
 
 package test
 
-import "testing"
+import (
+	"runtime"
+	"testing"
+)
 
 // bob writes a non-conflicting file while unstaged
 func TestCrUnmergedFile(t *testing.T) {
@@ -327,6 +330,9 @@ func TestCrUnmergedRenameFileOverFile(t *testing.T) {
 
 // bob renames a directory over an existing file
 func TestCrUnmergedRenameDirOverFile(t *testing.T) {
+	if realFS && runtime.GOOS == "linux" {
+		t.Skip("Renaming directories over files is prohibited on linux (ENOTDIR)")
+	}
 	test(t,
 		writers("alice", "bob"),
 		as(alice,
