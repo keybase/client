@@ -624,29 +624,6 @@ func (e NotDirectFileBlockError) Error() string {
 	return fmt.Sprintf("Unexpected block type; expected a direct file block")
 }
 
-// IncrementMissingBlockError indicates that we tried to increment the
-// reference count of a block that the server doesn't have.
-type IncrementMissingBlockError struct {
-	ID BlockID
-}
-
-func (e IncrementMissingBlockError) Error() string {
-	return fmt.Sprintf("Tried to increment ref count for block %v, but no "+
-		"such block exists on the server", e.ID)
-}
-
-// ArchiveMissingBlockError indicates that we tried to archive a block
-// reference that the server doesn't have.
-type ArchiveMissingBlockError struct {
-	ID  BlockID
-	Ref BlockRefNonce
-}
-
-func (e ArchiveMissingBlockError) Error() string {
-	return fmt.Sprintf("Tried to archive ref %s for block %v, but no "+
-		"such block ref exists on the server", e.Ref, e.ID)
-}
-
 // MDInvalidGetArguments indicates either the handle or top-level folder ID
 // specified in a get request was invalid.
 type MDInvalidGetArguments struct {

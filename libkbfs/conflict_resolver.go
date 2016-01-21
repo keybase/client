@@ -2832,10 +2832,6 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 	// Put all the blocks.
 	err = cr.fbo.doBlockPuts(ctx, md, *bps)
 	if err != nil {
-		// TODO: in theory we could recover from a
-		// IncrementMissingBlockError.  We would have to delete the
-		// offending block from our cache and re-doing ALL of the
-		// block ready calls.
 		return nil, nil, err
 	}
 

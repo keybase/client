@@ -824,7 +824,7 @@ type BlockServer interface {
 	// defined by the given context (which should contain a non-zero
 	// BlockRefNonce).  (Contexts with a BlockRefNonce of zero should
 	// be used when putting the block for the first time via Put().)
-	// Returns an IncrementMissingBlockError if id is unknown within
+	// Returns a BServerErrorBlockNonExistent if id is unknown within
 	// this folder.  Calling more than once with the same context is a
 	// no-op.
 	AddBlockReference(ctx context.Context, id BlockID, tlfID TlfID,
