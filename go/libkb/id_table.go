@@ -937,6 +937,7 @@ func ParseSelfSigChainLink(base GenericChainLink) (ret *SelfSigChainLink, err er
 //=========================================================================
 
 type IdentityTable struct {
+	Contextified
 	sigChain         *SigChain
 	revocations      map[keybase1.SigID]bool
 	links            map[keybase1.SigID]TypedChainLink
@@ -947,7 +948,6 @@ type IdentityTable struct {
 	cryptocurrency   []*CryptocurrencyChainLink
 	checkResult      *CheckResult
 	eldest           keybase1.KID
-	Contextified
 }
 
 func (idt *IdentityTable) GetActiveProofsFor(st ServiceType) (ret []RemoteProofChainLink) {
@@ -964,7 +964,7 @@ func (idt *IdentityTable) insertLink(l TypedChainLink) {
 	for _, rev := range l.GetRevocations() {
 		idt.revocations[rev] = true
 		if targ, found := idt.links[rev]; !found {
-			G.Log.Warning("Can't revoke signature %s @%s", rev, l.ToDebugString())
+			idt.G().Log.Warning("Can't revoke signature %s @%s", rev, l.ToDebugString())
 		} else {
 			targ.markRevoked(l)
 		}
@@ -1039,15 +1039,17 @@ func NewIdentityTable(g *GlobalContext, eldest keybase1.KID, sc *SigChain, h *Si
 	return ret, err
 }
 
-func (idt *IdentityTable) populate() error {
-	G.Log.Debug("+ Populate ID Table")
-	links, err := idt.sigChain.GetCurrentSubchain(idt.eldest)
-	if err != nil {
+func (idt *IdentityTable) populate() (err error) {
+	defer idt.G().Trace("IdentityTable::populate", func() error { return err })()
+
+	var links []*ChainLink
+	if links, err = idt.sigChain.GetCurrentSubchain(idt.eldest); err != nil {
 		return err
 	}
+
 	for _, link := range links {
 		if isBad, reason := link.IsBad(); isBad {
-			G.Log.Debug("Ignoring bad chain link with sig ID %s: %s", link.GetSigID(), reason)
+			idt.G().Log.Debug("Ignoring bad chain link with sig ID %s: %s", link.GetSigID(), reason)
 			continue
 		}
 
@@ -1061,7 +1063,6 @@ func (idt *IdentityTable) populate() error {
 			tcl.DoOwnNewLinkFromServerNotifications(idt.G())
 		}
 	}
-	G.Log.Debug("- Populate ID Table")
 	return nil
 }
 
