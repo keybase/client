@@ -9,8 +9,8 @@ For %%A in ("%1") do Set Folder=%%~dpA
 for /f %%i in ('%Folder%winresource.exe -w') do set BUILDVER=%%i
 echo %BUILDVER%
 
-:: Capture the semantic version - this is the only way to store it in a .cmd variable
-for /f %%i in ('%Folder%winresource.exe -v') do set SEMVER=%%i
+:: Capture keybase's semantic version - this is the only way to store it in a .cmd variable
+for /f "tokens=3" %%i in ('%1 -version') do set SEMVER=%%i
 echo %SEMVER%
 
 :: Other alternate time servers:
@@ -23,4 +23,4 @@ echo %SEMVER%
 ::IF %ERRORLEVEL% NEQ 0 (
 ::  EXIT /B 1
 ::)
-"%ProgramFiles(x86)%\Inno Setup 5\iscc.exe" /DMyExePathName=%1 /DMyAppVersion=%BUILDVER% /DMySemVersion=%SEMVER% "/sSignCommand=signtool.exe sign /tr http://timestamp.digicert.com $f" setup_windows_electron.iss
+"%ProgramFiles(x86)%\Inno Setup 5\iscc.exe" /DMyExePathName=%1 /DMyAppVersion=%BUILDVER% /DMySemVersion=%SEMVER% "/sSignCommand=signtool.exe sign /tr http://timestamp.digicert.com $f" setup_windows.iss

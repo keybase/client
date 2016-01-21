@@ -21,7 +21,7 @@ func openApplication(applicationPath string) error {
 
 func (u *Updater) applyUpdate(localPath string) (tmpPath string, err error) {
 	if strings.HasSuffix(localPath, ".exe") {
-		err = exec.Command(localPath).Start()
+		err = exec.Command(localPath, "/SILENT").Start()
 	} else {
 		err = fmt.Errorf("Unsupported update file type: %s", localPath)
 	}

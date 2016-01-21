@@ -29,7 +29,7 @@
 ; NOTE: The value of AppId uniquely identifies this application.
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{70E747DE-4E09-44B0-ACAD-784AA9D79C02}
+AppId={{DEB2E54C-C39F-4DC8-93A7-ABE0AB91DDCA}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}
@@ -62,9 +62,9 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 ; Arbitrarily download the Visuap Studio 2015 redistributable to $GOPATH\bin
 
 [Files]
-Source: "{#MyExePathName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#MyExePathName}"; DestDir: "{app}"
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
-Source: "..\..\desktop\release\win32-ia32\Keybase-win32-ia32\*"; DestDir: "{app}\gui"; Flags: ignoreversion createallsubdirs recursesubdirs
+Source: "..\..\desktop\release\win32-ia32\Keybase-win32-ia32\*"; DestDir: "{app}\gui"; Flags: createallsubdirs recursesubdirs
 Source: "..\..\..\..\dokan-dev\dokany\Win32\Win7Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsWindows7
 Source: "..\..\..\..\dokan-dev\dokany\Win32\Win8Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsWindows8
 Source: "..\..\..\..\dokan-dev\dokany\Win32\Win8.1Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsWindows8_1
@@ -90,7 +90,10 @@ WelcomeLabel2=This will install [name/ver] on your computer.
 
 [Run]
 Filename: "{tmp}\vc_redist.x86.exe"; Parameters: "/quiet /Q:a /c:""msiexec /qb /i vcredist.msi"""; StatusMsg: "Installing VisualStudio 2015 RunTime..."
-Filename: "{pf32}\Dokan\DokanLibrary\dokanctl.exe"; Parameters: "/i a"; WorkingDir: "{pf32}\Dokan\DokanLibrary"; Description: "Install Dokan Service"
+Filename: "{app}\{#MyExeName}"; Parameters: "ctl watchdog"; Flags: runasoriginaluser runhidden nowait
+Filename: "{pf32}\Dokan\DokanLibrary\dokanctl.exe"; Parameters: "/i a"; WorkingDir: "{pf32}\Dokan\DokanLibrary"; Flags: runhidden; Description: "Install Dokan Service"
+Filename: "{app}\kbfsdokan.exe"; Parameters: "k:"; Flags: nowait runasoriginaluser runhidden
+Filename: "{app}\gui\Keybase.exe"; Flags: nowait runasoriginaluser
 
 [UninstallDelete]
 Type: files; Name: "{userstartup}\{#MyAppName}.vbs"
@@ -105,6 +108,9 @@ Filename: "taskkill"; Parameters: "/f /im Keybase.exe"
 Filename: "taskkill"; Parameters: "/f /im kbfsdokan.exe"
 
 [Code]
+var
+  g_driverVer: String;
+
 // Simply invoking "Keybase.exe service" at startup results in an unsightly
 // extra console window, so we'll emit this bit of script instead.
 // (yes, this is pascal code that generates vbscript.)
@@ -138,12 +144,6 @@ begin
   if  CurStep=ssPostInstall then
     begin
       CreateStartupScript();
-      ExecAsOriginalUser(ExpandConstant('{app}\{#MyExeName}'), 'ctl watchdog', '', SW_HIDE, ewNoWait, ResultCode);
-      // We have to say ewNoWait, above, for the process to be spawned separately.
-      // But the service has to be started before we start the gui.
-      Sleep(100);
-      ExecAsOriginalUser(ExpandConstant('{app}\gui\Keybase.exe'), '', '', SW_SHOW, ewNoWait, ResultCode);
-      ExecAsOriginalUser(ExpandConstant('{app}\kbfsdokan.exe'), 'k:', '', SW_HIDE, ewNoWait, ResultCode);
     end
 end;
 
@@ -157,7 +157,7 @@ var
 begin
   // Launch Keybase ctl stop and wait for it to terminate
   CommandName := ExpandConstant('{app}\{#MyExeName}');
-  Exec(CommandName, 'ctl stop', '', SW_SHOW,
+  Exec(CommandName, 'ctl stop', '', SW_HIDE,
     ewWaitUntilTerminated, ResultCode);
   Sleep(100);
   Exec('{pf32}\Dokan\DokanLibrary\dokanctl.exe', '/r a', '', SW_HIDE,
@@ -170,17 +170,33 @@ begin
   Sleep(100);
 end;
 
-procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+// Restart if the driver got changed
+function NeedRestart(): Boolean;
+var
+  newVer: String;
+  fileName: String;
+
 begin
-  if  CurUninstallStep=usUninstall then
-    begin
-         StopKeybaseService();
-    end
+  fileName := ExpandConstant('{sys}\drivers\dokan.sys');
+  GetVersionNumbersString(fileName, newVer);
+  Log('Old driver ver: ' + g_driverVer);
+  Log('New driver ver: ' + newVer);
+  Result := (Length(g_driverVer) > 0 ) and not (CompareStr(g_driverVer, newVer) = 0)  
 end;
 
-function PrepareToInstall(var NeedsRestart: Boolean): String;
+function UninstallNeedRestart(): Boolean;
+begin
+  // Assume we always remove a driver
+  Result := true;
+end;
+
+function PrepareToInstall(var Needs: Boolean): String;
+var
+    fileName: String;
 begin
     StopKeybaseService();
+    fileName := ExpandConstant('{sys}\drivers\dokan.sys');
+    GetVersionNumbersString(fileName, g_driverVer);
 end;
 
 function IsX64: Boolean;
