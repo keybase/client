@@ -238,6 +238,9 @@ type folderBranchOps struct {
 	// need to be replayed after the sync finishes on top of the new
 	// versions of the blocks.
 	deferredWrites []func(context.Context, *RootMetadata, path) error
+	// Blocks that need to be deleted from the dirty cache before any
+	// deferred writes are replayed.
+	deferredDirtyDeletes []BlockPointer
 	// set to true if this write or truncate should be deferred
 	doDeferWrite bool
 	// For writes and truncates, track the unsynced to-be-unref'd
@@ -1537,7 +1540,7 @@ func (fbo *folderBranchOps) cacheBlockIfNotYetDirtyLocked(
 	case blockSyncingNotDirty:
 		// Overwrite the dirty block if this is a copy-on-write during
 		// a sync.  Don't worry, the old dirty block is safe in the
-		// sync goroutine (and also probably saved t the cache under
+		// sync goroutine (and also probably saved to the cache under
 		// its new ID already.
 		err := fbo.config.BlockCache().PutDirty(ptr, branch, block)
 		if err != nil {
@@ -2719,42 +2722,43 @@ func (fbo *folderBranchOps) Read(
 // blockLock must be taken by the caller.
 func (fbo *folderBranchOps) newRightBlockLocked(
 	ctx context.Context, ptr BlockPointer, branch BranchName, pblock *FileBlock,
-	off int64, md *RootMetadata) error {
+	off int64, md *RootMetadata) (BlockPointer, error) {
 	newRID, err := fbo.config.Crypto().MakeTemporaryBlockID()
 	if err != nil {
-		return err
+		return zeroPtr, err
 	}
 	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
 	if err != nil {
-		return err
+		return zeroPtr, err
 	}
 	rblock := &FileBlock{}
 
+	newPtr := BlockPointer{
+		ID:       newRID,
+		KeyGen:   md.LatestKeyGeneration(),
+		DataVer:  fbo.config.DataVersion(),
+		Creator:  uid,
+		RefNonce: zeroBlockRefNonce,
+	}
+
 	pblock.IPtrs = append(pblock.IPtrs, IndirectFilePtr{
 		BlockInfo: BlockInfo{
-			BlockPointer: BlockPointer{
-				ID:       newRID,
-				KeyGen:   md.LatestKeyGeneration(),
-				DataVer:  fbo.config.DataVersion(),
-				Creator:  uid,
-				RefNonce: zeroBlockRefNonce,
-			},
-			EncodedSize: 0,
+			BlockPointer: newPtr,
+			EncodedSize:  0,
 		},
 		Off: off,
 	})
 
 	if err := fbo.config.BlockCache().PutDirty(
-		pblock.IPtrs[len(pblock.IPtrs)-1].BlockPointer,
-		branch, rblock); err != nil {
-		return err
+		newPtr, branch, rblock); err != nil {
+		return zeroPtr, err
 	}
 
 	if err = fbo.cacheBlockIfNotYetDirtyLocked(
 		ptr, branch, pblock); err != nil {
-		return err
+		return zeroPtr, err
 	}
-	return nil
+	return newPtr, nil
 }
 
 // cacheLock must be taken by the caller
@@ -2771,26 +2775,28 @@ func (fbo *folderBranchOps) getOrCreateSyncInfoLocked(de DirEntry) *syncInfo {
 	return si
 }
 
-// blockLock must be taken for writing by the caller.
+// blockLock must be taken for writing by the caller.  Returns the set
+// of newly-ID'd blocks created during this write that might need to
+// be cleaned up if the write is deferred.
 func (fbo *folderBranchOps) writeDataLocked(
 	ctx context.Context, lState *lockState, md *RootMetadata, file path,
-	data []byte, off int64, doNotify bool) error {
+	data []byte, off int64, doNotify bool) ([]BlockPointer, error) {
 	if sz := off + int64(len(data)); uint64(sz) > fbo.config.MaxFileBytes() {
-		return FileTooBigError{file, sz, fbo.config.MaxFileBytes()}
+		return nil, FileTooBigError{file, sz, fbo.config.MaxFileBytes()}
 	}
 
 	// check writer status explicitly
 	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if !md.GetTlfHandle().IsWriter(uid) {
-		return NewWriteAccessError(ctx, fbo.config, md.GetTlfHandle(), uid)
+		return nil, NewWriteAccessError(ctx, fbo.config, md.GetTlfHandle(), uid)
 	}
 
 	fblock, err := fbo.getFileLocked(ctx, lState, md, file, mdWrite)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	bcache := fbo.config.BlockCache()
@@ -2800,19 +2806,20 @@ func (fbo *folderBranchOps) writeDataLocked(
 
 	_, de, err := fbo.getEntryLocked(ctx, lState, md, file)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	fbo.cacheLock.Lock()
 	defer fbo.cacheLock.Unlock()
 	si := fbo.getOrCreateSyncInfoLocked(de)
+	var newPtrs []BlockPointer
 	for nCopied < n {
 		ptr, parentBlock, indexInParent, block, more, startOff, err :=
 			fbo.getFileBlockAtOffsetLocked(
 				ctx, lState, md, file, fblock,
 				off+nCopied, mdWrite)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		oldLen := len(block.Contents)
@@ -2823,7 +2830,7 @@ func (fbo *folderBranchOps) writeDataLocked(
 		// existing block (or appended to the end of the final block), so
 		// we shouldn't ever hit this case:
 		if more && oldLen < len(block.Contents) {
-			return BadSplitError{}
+			return nil, BadSplitError{}
 		}
 
 		// TODO: support multiple levels of indirection.  Right now the
@@ -2838,7 +2845,7 @@ func (fbo *folderBranchOps) writeDataLocked(
 				// the parent
 				newID, err := fbo.config.Crypto().MakeTemporaryBlockID()
 				if err != nil {
-					return err
+					return nil, err
 				}
 				fblock = &FileBlock{
 					CommonBlock: CommonBlock{
@@ -2862,18 +2869,20 @@ func (fbo *folderBranchOps) writeDataLocked(
 				}
 				if err := bcache.PutDirty(
 					file.tailPointer(), file.Branch, fblock); err != nil {
-					return err
+					return nil, err
 				}
 				ptr = fblock.IPtrs[0].BlockPointer
+				newPtrs = append(newPtrs, ptr)
 			}
 
 			// Make a new right block and update the parent's
 			// indirect block list
-			if err := fbo.newRightBlockLocked(ctx, file.tailPointer(),
-				file.Branch, fblock,
-				startOff+int64(len(block.Contents)), md); err != nil {
-				return err
+			newPtr, err := fbo.newRightBlockLocked(ctx, file.tailPointer(),
+				file.Branch, fblock, startOff+int64(len(block.Contents)), md)
+			if err != nil {
+				return nil, err
 			}
+			newPtrs = append(newPtrs, newPtr)
 		}
 
 		if oldLen != len(block.Contents) || de.Writer != uid {
@@ -2896,7 +2905,7 @@ func (fbo *folderBranchOps) writeDataLocked(
 		// keep the old block ID while it's dirty
 		if err = fbo.cacheBlockIfNotYetDirtyLocked(ptr, file.Branch,
 			block); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -2909,8 +2918,9 @@ func (fbo *folderBranchOps) writeDataLocked(
 		// the fileBlockStates map.
 		if err = fbo.cacheBlockIfNotYetDirtyLocked(
 			file.tailPointer(), file.Branch, fblock); err != nil {
-			return err
+			return nil, err
 		}
+		newPtrs = append(newPtrs, file.tailPointer())
 	}
 	si.op.addWrite(uint64(off), uint64(len(data)))
 
@@ -2918,7 +2928,7 @@ func (fbo *folderBranchOps) writeDataLocked(
 		fbo.notifyLocal(ctx, file, si.op)
 	}
 	fbo.transitionState(dirtyState)
-	return nil
+	return newPtrs, nil
 }
 
 // cacheLock must be taken by caller.
@@ -2968,7 +2978,8 @@ func (fbo *folderBranchOps) Write(
 		fbo.doDeferWrite = false
 	}()
 
-	err = fbo.writeDataLocked(ctx, lState, md, filePath, data, off, true)
+	newPtrs, err :=
+		fbo.writeDataLocked(ctx, lState, md, filePath, data, off, true)
 	if err != nil {
 		return err
 	}
@@ -2984,13 +2995,17 @@ func (fbo *folderBranchOps) Write(
 		// the most obviously correct way.
 		dataCopy := make([]byte, len(data))
 		copy(dataCopy, data)
-		fbo.log.CDebugf(ctx, "Deferring a write to file %v",
-			filePath.tailPointer())
+		fbo.log.CDebugf(ctx, "Deferring a write to file %v off=%d len=%d",
+			filePath.tailPointer(), off, len(data))
+		fbo.deferredDirtyDeletes = append(fbo.deferredDirtyDeletes,
+			newPtrs...)
 		fbo.deferredWrites = append(fbo.deferredWrites,
 			func(ctx context.Context, rmd *RootMetadata, f path) error {
-				// Write the data again
-				return fbo.writeDataLocked(
+				// Write the data again.  We know this won't be
+				// deferred, so no need to check the new ptrs.
+				_, err := fbo.writeDataLocked(
 					ctx, lState, rmd, f, dataCopy, off, false)
+				return err
 			})
 	}
 
@@ -2998,22 +3013,24 @@ func (fbo *folderBranchOps) Write(
 	return nil
 }
 
-// blockLock must be held for writing by the caller
+// blockLock must be held for writing by the caller.  Returns the set
+// of newly-ID'd blocks created during this truncate that might need
+// to be cleaned up if the truncate is deferred.
 func (fbo *folderBranchOps) truncateLocked(
 	ctx context.Context, lState *lockState, md *RootMetadata,
-	file path, size uint64, doNotify bool) error {
+	file path, size uint64, doNotify bool) ([]BlockPointer, error) {
 	// check writer status explicitly
 	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	if !md.GetTlfHandle().IsWriter(uid) {
-		return NewWriteAccessError(ctx, fbo.config, md.GetTlfHandle(), uid)
+		return nil, NewWriteAccessError(ctx, fbo.config, md.GetTlfHandle(), uid)
 	}
 
 	fblock, err := fbo.getFileLocked(ctx, lState, md, file, mdWrite)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// find the block where the file should now end
@@ -3025,17 +3042,17 @@ func (fbo *folderBranchOps) truncateLocked(
 	if currLen < iSize {
 		// if we need to extend the file, let's just do a write
 		moreNeeded := iSize - currLen
-		return fbo.writeDataLocked(ctx, lState, md, file, make([]byte, moreNeeded,
-			moreNeeded), currLen, doNotify)
+		return fbo.writeDataLocked(ctx, lState, md, file,
+			make([]byte, moreNeeded, moreNeeded), currLen, doNotify)
 	} else if currLen == iSize {
 		// same size!
-		return nil
+		return nil, nil
 	}
 
 	// update the local entry size
 	_, de, err := fbo.getEntryLocked(ctx, lState, md, file)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	// otherwise, we need to delete some data (and possibly entire blocks)
@@ -3058,7 +3075,7 @@ func (fbo *folderBranchOps) truncateLocked(
 		// always make the parent block dirty, so we will sync it
 		if err = fbo.cacheBlockIfNotYetDirtyLocked(
 			file.tailPointer(), file.Branch, parentBlock); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -3071,7 +3088,7 @@ func (fbo *folderBranchOps) truncateLocked(
 		// the fileBlockStates map.
 		if err = fbo.cacheBlockIfNotYetDirtyLocked(
 			file.tailPointer(), file.Branch, fblock); err != nil {
-			return err
+			return nil, err
 		}
 	}
 
@@ -3099,14 +3116,14 @@ func (fbo *folderBranchOps) truncateLocked(
 	// Keep the old block ID while it's dirty.
 	if err = fbo.cacheBlockIfNotYetDirtyLocked(
 		ptr, file.Branch, block); err != nil {
-		return err
+		return nil, err
 	}
 
 	if doNotify {
 		fbo.notifyLocal(ctx, file, si.op)
 	}
 	fbo.transitionState(dirtyState)
-	return nil
+	return nil, nil
 }
 
 func (fbo *folderBranchOps) Truncate(
@@ -3140,7 +3157,7 @@ func (fbo *folderBranchOps) Truncate(
 		fbo.doDeferWrite = false
 	}()
 
-	err = fbo.truncateLocked(ctx, lState, md, filePath, size, true)
+	newPtrs, err := fbo.truncateLocked(ctx, lState, md, filePath, size, true)
 	if err != nil {
 		return err
 	}
@@ -3152,9 +3169,14 @@ func (fbo *folderBranchOps) Truncate(
 		// using the new file path.
 		fbo.log.CDebugf(ctx, "Deferring a truncate to file %v",
 			filePath.tailPointer())
+		fbo.deferredDirtyDeletes = append(fbo.deferredDirtyDeletes,
+			newPtrs...)
 		fbo.deferredWrites = append(fbo.deferredWrites,
 			func(ctx context.Context, rmd *RootMetadata, f path) error {
-				return fbo.truncateLocked(ctx, lState, rmd, f, size, false)
+				// Truncate the file again.  We know this won't be
+				// deferred, so no need to check the new ptrs.
+				_, err := fbo.truncateLocked(ctx, lState, rmd, f, size, false)
+				return err
 			})
 	}
 
@@ -3453,7 +3475,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 					// put the extra bytes in front of the next block
 					if !more {
 						// need to make a new block
-						if err := fbo.newRightBlockLocked(
+						if _, err := fbo.newRightBlockLocked(
 							ctx, file.tailPointer(), file.Branch, fblock,
 							endOfBlock, md); err != nil {
 							return true, err
@@ -3673,9 +3695,17 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 	fbo.fileBlockStates = make(map[BlockPointer]syncBlockState)
 	// Redo any writes or truncates that happened to our file while
 	// the sync was happening.
+	deletes := fbo.deferredDirtyDeletes
 	writes := fbo.deferredWrites
 	stillDirty = len(fbo.deferredWrites) != 0
+	fbo.deferredDirtyDeletes = nil
 	fbo.deferredWrites = nil
+
+	for _, ptr := range deletes {
+		if err := bcache.DeleteDirty(ptr, fbo.branch()); err != nil {
+			return true, err
+		}
+	}
 	for _, f := range writes {
 		// Clear the old deCache entry
 		func() {

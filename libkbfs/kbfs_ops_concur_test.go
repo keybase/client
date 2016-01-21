@@ -144,6 +144,13 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T, n int) {
 	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
 	defer CheckConfigAndShutdown(t, config)
 
+	// Use the smallest possible block size.
+	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
+	if err != nil {
+		t.Fatalf("Couldn't create block splitter: %v", err)
+	}
+	config.SetBlockSplitter(bsplitter)
+
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
 	rootNode, _, err :=
@@ -217,10 +224,28 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T, n int) {
 	// there should be 5 blocks at this point: the original root block
 	// + 2 modifications (create + write), the top indirect file block
 	// and a modification (write).
-	numCleanBlocks := config.BlockCache().(*BlockCacheStandard).cleanTransient.Len()
+	bcs := config.BlockCache().(*BlockCacheStandard)
+	numCleanBlocks := bcs.cleanTransient.Len()
 	if numCleanBlocks != 5 {
 		t.Errorf("Unexpected number of cached clean blocks: %d\n",
 			numCleanBlocks)
+	}
+
+	// Final sync
+	go func() {
+		errChan <- kbfsOps.Sync(ctx, fileNode)
+	}()
+	m.start <- struct{}{}
+	m.enter <- struct{}{}
+	err = <-errChan
+	if err != nil {
+		t.Fatalf("Final sync failed: %v", err)
+	}
+
+	// Make sure there are no dirty blocks left at the end of the test.
+	numDirtyBlocks := len(bcs.dirty)
+	if numDirtyBlocks != 0 {
+		t.Errorf("%d dirty blocks left after final sync", numDirtyBlocks)
 	}
 }
 
@@ -233,6 +258,146 @@ func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
 // (regression for KBFS-616)
 func TestKBFSOpsConcurMultipleWritesDuringSync(t *testing.T) {
 	testKBFSOpsConcurWritesDuringSync(t, 10)
+}
+
+// Test that multiple indirect writes can happen concurrently with a
+// sync (regression for KBFS-661)
+func TestKBFSOpsConcurMultipleIndirectWritesDuringSync(t *testing.T) {
+	testKBFSOpsConcurWritesDuringSync(t, 50)
+}
+
+// Test that writes that happen concurrently with a sync, which write
+// to the same block, work correctly.
+func TestKBFSOpsConcurDeferredDoubleWritesDuringSync(t *testing.T) {
+	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
+	defer CheckConfigAndShutdown(t, config)
+
+	// Use the smallest possible block size.
+	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
+	if err != nil {
+		t.Fatalf("Couldn't create block splitter: %v", err)
+	}
+	config.SetBlockSplitter(bsplitter)
+
+	// create and write to a file
+	kbfsOps := config.KBFSOps()
+	rootNode, _, err :=
+		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+	var data []byte
+	// Write 2 blocks worth of data
+	for i := 0; i < 30; i++ {
+		data = append(data, byte(i))
+	}
+	err = kbfsOps.Write(ctx, fileNode, data, 0)
+	if err != nil {
+		t.Errorf("Couldn't write file: %v", err)
+	}
+
+	// Make an MDOps that will pause during Put().
+	m := NewMDOpsConcurTest(uid)
+	config.SetMDOps(m)
+
+	// Sync the initial two data blocks
+	errChan := make(chan error)
+	go func() {
+		errChan <- kbfsOps.Sync(ctx, fileNode)
+	}()
+	m.start <- struct{}{}
+	m.enter <- struct{}{}
+	err = <-errChan
+	if err != nil {
+		t.Fatalf("Initial sync failed: %v", err)
+	}
+
+	// Now dirty the first block.
+	newData1 := make([]byte, 10)
+	copy(newData1, data[20:])
+	err = kbfsOps.Write(ctx, fileNode, newData1, 0)
+	if err != nil {
+		t.Errorf("Couldn't write file: %v", err)
+	}
+
+	// start the sync
+	go func() {
+		errChan <- kbfsOps.Sync(ctx, fileNode)
+	}()
+
+	// wait until Sync gets stuck at MDOps.Put()
+	m.start <- struct{}{}
+
+	// Now dirty the second block, twice.
+	newData2 := make([]byte, 10)
+	copy(newData2, data[:10])
+	err = kbfsOps.Write(ctx, fileNode, newData2, 20)
+	if err != nil {
+		t.Errorf("Couldn't write file: %v", err)
+	}
+	err = kbfsOps.Write(ctx, fileNode, newData2, 30)
+	if err != nil {
+		t.Errorf("Couldn't write file: %v", err)
+	}
+
+	// now unblock Sync and make sure there was no error
+	m.enter <- struct{}{}
+	err = <-errChan
+	if err != nil {
+		t.Errorf("Sync got an error: %v", err)
+	}
+
+	expectedData := make([]byte, 40)
+	copy(expectedData[:10], newData1)
+	copy(expectedData[10:20], data[10:20])
+	copy(expectedData[20:30], newData2)
+	copy(expectedData[30:40], newData2)
+
+	gotData := make([]byte, 40)
+	nr, err := kbfsOps.Read(ctx, fileNode, gotData, 0)
+	if err != nil {
+		t.Errorf("Couldn't read data: %v", err)
+	}
+	if nr != int64(len(gotData)) {
+		t.Errorf("Only read %d bytes", nr)
+	}
+	if !bytes.Equal(expectedData, gotData) {
+		t.Errorf("Read wrong data.  Expected %v, got %v", expectedData, gotData)
+	}
+
+	// Final sync
+	go func() {
+		errChan <- kbfsOps.Sync(ctx, fileNode)
+	}()
+	m.start <- struct{}{}
+	m.enter <- struct{}{}
+	err = <-errChan
+	if err != nil {
+		t.Fatalf("Final sync failed: %v", err)
+	}
+
+	gotData = make([]byte, 40)
+	nr, err = kbfsOps.Read(ctx, fileNode, gotData, 0)
+	if err != nil {
+		t.Errorf("Couldn't read data: %v", err)
+	}
+	if nr != int64(len(gotData)) {
+		t.Errorf("Only read %d bytes", nr)
+	}
+	if !bytes.Equal(expectedData, gotData) {
+		t.Errorf("Read wrong data.  Expected %v, got %v", expectedData, gotData)
+	}
+
+	// Make sure there are no dirty blocks left at the end of the test.
+	bcs := config.BlockCache().(*BlockCacheStandard)
+	numDirtyBlocks := len(bcs.dirty)
+	if numDirtyBlocks != 0 {
+		t.Errorf("%d dirty blocks left after final sync", numDirtyBlocks)
+	}
 }
 
 // staller is a pair of channels. Whenever something is to be
