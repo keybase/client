@@ -933,6 +933,8 @@ func (fbo *folderBranchOps) getBlockHelperLocked(ctx context.Context,
 
 	bops := fbo.config.BlockOps()
 
+	// If notifyPath is valid and the block isn't cached, trigger a
+	// read notification.
 	if notifyPath.isValid() {
 		fbo.config.Reporter().Notify(ctx, readNotification(notifyPath, false))
 		defer fbo.config.Reporter().Notify(ctx,
@@ -976,6 +978,8 @@ func (fbo *folderBranchOps) getFileBlockHelperLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, ptr BlockPointer,
 	branch BranchName, p path) (
 	*FileBlock, error) {
+	// p is used only when reporting errors and sending read
+	// notifications, and can be empty.
 	block, err := fbo.getBlockHelperLocked(
 		ctx, lState, md, ptr, branch, NewFileBlock, true, p)
 	if err != nil {
@@ -1020,6 +1024,8 @@ func (fbo *folderBranchOps) getBlockForReading(ctx context.Context,
 func (fbo *folderBranchOps) getDirBlockHelperLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, ptr BlockPointer,
 	branch BranchName, p path) (*DirBlock, error) {
+	// Pass in an empty notify path because notifications should only
+	// trigger for file reads.
 	block, err := fbo.getBlockHelperLocked(
 		ctx, lState, md, ptr, branch, NewDirBlock, true, path{})
 	if err != nil {
@@ -1074,7 +1080,7 @@ func (fbo *folderBranchOps) getDirBlockForReading(ctx context.Context,
 //
 // The given path must be valid, and the given pointer must be its
 // tail pointer or an indirect pointer from it. A read notification is
-// triggered for the given path.
+// triggered for the given path only if the block isn't in the cache.
 //
 // This shouldn't be called for "internal" operations, like conflict
 // resolution and state checking -- use getFileBlockForReading() for
