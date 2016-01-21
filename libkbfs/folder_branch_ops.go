@@ -3947,12 +3947,17 @@ func (fbo *folderBranchOps) searchForNodes(ctx context.Context,
 // blockPointer, using only the block updates that happened as part of
 // a given MD update operation.
 func (fbo *folderBranchOps) searchForNode(ctx context.Context,
-	ptr BlockPointer, op op, md *RootMetadata) (Node, error) {
+	ptr BlockPointer, md *RootMetadata) (Node, error) {
 	// Record which pointers are new to this update, and thus worth
 	// searching.
 	newPtrs := make(map[BlockPointer]bool)
-	for _, update := range op.AllUpdates() {
-		newPtrs[update.Ref] = true
+	for _, op := range md.data.Changes.Ops {
+		for _, update := range op.AllUpdates() {
+			newPtrs[update.Ref] = true
+		}
+		for _, ref := range op.Refs() {
+			newPtrs[ref] = true
+		}
 	}
 
 	nodeMap, err := fbo.searchForNodes(ctx, fbo.nodeCache, []BlockPointer{ptr},
@@ -4125,7 +4130,7 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 					// the updates.
 					var err error
 					newNode, err =
-						fbo.searchForNode(ctx, realOp.NewDir.Ref, realOp, md)
+						fbo.searchForNode(ctx, realOp.NewDir.Ref, md)
 					if newNode == nil {
 						fbo.log.CErrorf(ctx, "Couldn't find the new node: %v",
 							err)
