@@ -51,11 +51,11 @@ func MakeArmorFooter(typ MessageType, brand string) string {
 func getStringForType(typ MessageType) string {
 	switch typ {
 	case MessageTypeEncryption:
-		return encryptionArmorString
+		return EncryptionArmorString
 	case MessageTypeAttachedSignature:
-		return signedArmorString
+		return SignedArmorString
 	case MessageTypeDetachedSignature:
-		return detachedSignatureArmorString
+		return DetachedSignatureArmorString
 	default:
 		return ""
 	}
