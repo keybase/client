@@ -1298,9 +1298,13 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 		}
 
 		node, err = fbo.nodeCache.GetOrCreate(de.BlockPointer, name, dir)
+		if err != nil {
+			return nil, EntryInfo{}, err
+		}
+
 	}
 
-	return node, de.EntryInfo, err
+	return node, de.EntryInfo, nil
 }
 
 func (fbo *folderBranchOps) Stat(ctx context.Context, node Node) (
@@ -1338,12 +1342,16 @@ func (fbo *folderBranchOps) statEntry(ctx context.Context, node Node) (
 
 	if nodePath.hasValidParent() {
 		_, de, err = fbo.getEntry(ctx, lState, md, nodePath)
+		if err != nil {
+			return DirEntry{}, err
+		}
+
 	} else {
 		// nodePath is just the root.
 		de = md.data.Dir
 	}
 
-	return de, err
+	return de, nil
 }
 
 var zeroPtr BlockPointer
