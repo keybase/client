@@ -478,6 +478,10 @@ export type config_ExtendedStatus = {
   deviceStatus: string;
   logDir: string;
   desktopUIConnected: boolean;
+  sessionExists: boolean;
+  sessionLoaded: boolean;
+  sessionCleared: boolean;
+  sessionExpired: boolean;
 }
 
 export type ExtendedStatus = {
@@ -488,6 +492,10 @@ export type ExtendedStatus = {
   deviceStatus: string;
   logDir: string;
   desktopUIConnected: boolean;
+  sessionExists: boolean;
+  sessionLoaded: boolean;
+  sessionCleared: boolean;
+  sessionExpired: boolean;
 }
 
 export type config_ForkType = 0 /* 'NONE_0' */ | 1 /* 'AUTO_1' */ | 2 /* 'WATCHDOG_2' */ | 3 /* 'LAUNCHD_3' */

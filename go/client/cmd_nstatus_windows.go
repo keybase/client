@@ -6,6 +6,9 @@
 package client
 
 func (c *CmdNStatus) osSpecific(status *fstatus) error {
+	// TODO: on darwin, install.KeybaseServiceStatus() is implemented to get pid for service and kbfs.
+	// This is currently the best way to determine if KBFS is running, so other OS's should implement
+	// it.
 	return nil
 }
 
@@ -16,5 +19,5 @@ func (c *CmdNStatus) serviceLogFilename() string {
 
 // TODO: check with steve about this
 func (c *CmdNStatus) kbfsLogFilename() string {
-	return "keybase.service.log"
+	return "keybase.kbfs.log"
 }

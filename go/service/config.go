@@ -57,8 +57,20 @@ func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res 
 	}
 	res.DeviceStatus = device.StatusString()
 
-	h.G().LoginState().PassphraseStreamCache(func(cache *libkb.PassphraseStreamCache) {
-		res.PassphraseStreamCached = cache.Valid()
+	h.G().LoginState().Account(func(a *libkb.Account) {
+		res.PassphraseStreamCached = a.PassphraseStreamCache().Valid()
+		res.SessionExists = a.LoginSession().ExistsFor(me.GetName())
+		if res.SessionExists {
+			/*
+			   boolean sessionLoaded;
+			   boolean sessionCleared;
+			*/
+			res.SessionExpired = !a.LoginSession().NotExpired()
+			_, err := a.LoginSession().Session()
+			if err != nil {
+
+			}
+		}
 	}, "ConfigHandler::GetExtendedStatus")
 
 	// this isn't quite ideal, but if there's a delegated UpdateUI available, then electron is running and connected.

@@ -497,6 +497,10 @@ type ExtendedStatus struct {
 	DeviceStatus           string   `codec:"deviceStatus" json:"deviceStatus"`
 	LogDir                 string   `codec:"logDir" json:"logDir"`
 	DesktopUIConnected     bool     `codec:"desktopUIConnected" json:"desktopUIConnected"`
+	SessionExists          bool     `codec:"sessionExists" json:"sessionExists"`
+	SessionLoaded          bool     `codec:"sessionLoaded" json:"sessionLoaded"`
+	SessionCleared         bool     `codec:"sessionCleared" json:"sessionCleared"`
+	SessionExpired         bool     `codec:"sessionExpired" json:"sessionExpired"`
 }
 
 type ForkType int

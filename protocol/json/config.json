@@ -252,6 +252,18 @@
     }, {
       "name" : "desktopUIConnected",
       "type" : "boolean"
+    }, {
+      "name" : "sessionExists",
+      "type" : "boolean"
+    }, {
+      "name" : "sessionLoaded",
+      "type" : "boolean"
+    }, {
+      "name" : "sessionCleared",
+      "type" : "boolean"
+    }, {
+      "name" : "sessionExpired",
+      "type" : "boolean"
     } ]
   }, {
     "type" : "enum",

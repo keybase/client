@@ -21,6 +21,10 @@ protocol config {
     string deviceStatus;
     string logDir;
     boolean desktopUIConnected;
+    boolean sessionExists;
+    boolean sessionLoaded;
+    boolean sessionCleared;
+    boolean sessionExpired;
   }
 
   ExtendedStatus getExtendedStatus(int sessionID);

@@ -29,5 +29,5 @@ func (c *CmdNStatus) serviceLogFilename() string {
 }
 
 func (c *CmdNStatus) kbfsLogFilename() string {
-	return "keybase.service.log"
+	return "keybase.kbfs.log"
 }
