@@ -7,7 +7,7 @@ package client
 
 import "github.com/keybase/client/go/install"
 
-func (c *CmdNStatus) osSpecific(status *fstatus) error {
+func (c *CmdStatus) osSpecific(status *fstatus) error {
 	serviceStatus := install.KeybaseServiceStatus(c.G(), "service")
 	kbfsStatus := install.KeybaseServiceStatus(c.G(), "kbfs")
 
@@ -24,10 +24,10 @@ func (c *CmdNStatus) osSpecific(status *fstatus) error {
 	return nil
 }
 
-func (c *CmdNStatus) serviceLogFilename() string {
+func (c *CmdStatus) serviceLogFilename() string {
 	return "keybase.service.log"
 }
 
-func (c *CmdNStatus) kbfsLogFilename() string {
+func (c *CmdStatus) kbfsLogFilename() string {
 	return "keybase.kbfs.log"
 }

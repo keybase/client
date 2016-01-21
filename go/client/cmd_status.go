@@ -18,12 +18,12 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
-func NewCmdNStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+func NewCmdStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "nstatus",
+		Name:  "status",
 		Usage: "Show information about current user",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdNStatus{Contextified: libkb.NewContextified(g)}, "nstatus", c)
+			cl.ChooseCommand(&CmdStatus{Contextified: libkb.NewContextified(g)}, "status", c)
 		},
 		Flags: []cli.Flag{
 			cli.BoolFlag{
@@ -34,12 +34,12 @@ func NewCmdNStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 	}
 }
 
-type CmdNStatus struct {
+type CmdStatus struct {
 	libkb.Contextified
 	json bool
 }
 
-func (c *CmdNStatus) ParseArgv(ctx *cli.Context) error {
+func (c *CmdStatus) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) > 0 {
 		return UnexpectedArgsError("status")
 	}
@@ -81,7 +81,7 @@ type fstatus struct {
 	ProvisionedUsernames []string
 }
 
-func (c *CmdNStatus) Run() error {
+func (c *CmdStatus) Run() error {
 	status, err := c.load()
 	if err != nil {
 		return err
@@ -90,7 +90,7 @@ func (c *CmdNStatus) Run() error {
 	return c.output(status)
 }
 
-func (c *CmdNStatus) load() (*fstatus, error) {
+func (c *CmdStatus) load() (*fstatus, error) {
 	var status fstatus
 
 	status.Client.Version = libkb.VersionString()
@@ -157,7 +157,7 @@ func (c *CmdNStatus) load() (*fstatus, error) {
 	return &status, nil
 }
 
-func (c *CmdNStatus) output(status *fstatus) error {
+func (c *CmdStatus) output(status *fstatus) error {
 	if c.json {
 		return c.outputJSON(status)
 	}
@@ -165,7 +165,7 @@ func (c *CmdNStatus) output(status *fstatus) error {
 	return c.outputTerminal(status)
 }
 
-func (c *CmdNStatus) outputJSON(status *fstatus) error {
+func (c *CmdStatus) outputJSON(status *fstatus) error {
 	b, err := json.MarshalIndent(status, "", "    ")
 	if err != nil {
 		return err
@@ -175,7 +175,7 @@ func (c *CmdNStatus) outputJSON(status *fstatus) error {
 	return err
 }
 
-func (c *CmdNStatus) outputTerminal(status *fstatus) error {
+func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	dui := c.G().UI.GetDumbOutputUI()
 	dui.Printf("Username:      %s\n", status.Username)
 	dui.Printf("Logged in:     %s\n\n", BoolString(status.LoggedInProvisioned, "yes", "no"))
@@ -202,20 +202,20 @@ func (c *CmdNStatus) outputTerminal(status *fstatus) error {
 	return nil
 }
 
-func (c *CmdNStatus) client() {
+func (c *CmdStatus) client() {
 	dui := c.G().UI.GetDumbOutputUI()
 	dui.Printf("Client:\n")
 	dui.Printf("\tversion:\t%s\n", libkb.VersionString())
 }
 
-func (c *CmdNStatus) GetUsage() libkb.Usage {
+func (c *CmdStatus) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: true,
 		API:    true,
 	}
 }
 
-func (c *CmdNStatus) sessionStatus(s *keybase1.SessionStatus) string {
+func (c *CmdStatus) sessionStatus(s *keybase1.SessionStatus) string {
 	if s == nil {
 		return "no session"
 	}
