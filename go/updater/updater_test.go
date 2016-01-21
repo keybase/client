@@ -4,7 +4,6 @@
 package updater
 
 import (
-	"archive/zip"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -42,25 +41,32 @@ func (u testUpdateSource) Description() string {
 }
 
 func (u testUpdateSource) FindUpdate(config keybase1.UpdateOptions) (release *keybase1.Update, err error) {
-	path, err := createTestUpdateZip()
-	if err != nil {
-		return nil, err
-	}
-
-	digest, err := libkb.DigestForFileAtPath(path)
-	if err != nil {
-		return nil, err
-	}
-
-	return &keybase1.Update{
-		Version:     "1.0.1",
+	version := "1.0.1"
+	update := keybase1.Update{
+		Version:     version,
 		Name:        "Test",
 		Description: "Bug fixes",
-		Asset: &keybase1.Asset{
-			Name:   "Test-1.0.1.zip",
+	}
+
+	path, assetName, err := createTestUpdateFile(version)
+	if err != nil {
+		return nil, err
+	}
+
+	if path != "" {
+		digest, err := libkb.DigestForFileAtPath(path)
+		if err != nil {
+			return nil, err
+		}
+
+		update.Asset = &keybase1.Asset{
+			Name:   assetName,
 			Url:    fmt.Sprintf("file://%s", path),
 			Digest: digest,
-		}}, nil
+		}
+	}
+
+	return &update, nil
 }
 
 type testConfig struct {
@@ -132,34 +138,4 @@ func TestUpdateCheckErrorIfLowerVersion(t *testing.T) {
 	if update != nil {
 		t.Fatal("Shouldn't have update since our version is newer")
 	}
-}
-
-func createTestUpdateZip() (string, error) {
-	path := filepath.Join(os.TempDir(), "Test.zip")
-	// Clear if exists
-	if _, err := os.Stat(path); err == nil {
-		err := os.Remove(path)
-		if err != nil {
-			return "", err
-		}
-	}
-	zipFile, err := os.Create(path)
-	if err != nil {
-		return "", err
-	}
-	defer zipFile.Close()
-
-	w := zip.NewWriter(zipFile)
-	f, err := w.Create("Test/Test.txt")
-	if err != nil {
-		return "", err
-	}
-	_, err = f.Write([]byte("This is a test file for updates"))
-	if err != nil {
-	}
-	err = w.Close()
-	if err != nil {
-		return "", err
-	}
-	return path, nil
 }

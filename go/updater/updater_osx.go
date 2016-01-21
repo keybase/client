@@ -65,3 +65,9 @@ func openApplication(applicationPath string) error {
 	_, err := exec.Command("/usr/bin/open", applicationPath).Output()
 	return err
 }
+
+func (u *Updater) applyUpdate(localPath string) (tmpPath string, err error) {
+	// TODO: On OSX call mdimport so Spotlight knows it changed?
+
+	return u.applyZip(localPath)
+}
