@@ -9,8 +9,10 @@ mode="$("$here/../build_mode.sh" "$@")"
 binary_name="$("$here/../binary_name.sh" "$@")"
 
 # Take the second argument as the build root, or a tmp dir if there is no
-# second argument.
+# second argument. Absolutify the build root, because we cd around in this
+# script, and also because GOPATH is not allowed to be relative.
 build_root="${2:-/tmp/keybase_build_$(date +%Y_%m_%d_%H:%M:%S)}"
+build_root="$(realpath "$build_root")"
 mkdir -p "$build_root"
 
 # Record the version now, and write it to the build root. Because it uses a
@@ -67,7 +69,7 @@ build_one_architecture() {
   # client repo and the kbfs repo are fully vendored.
   export GOPATH="$build_root/gopaths/$debian_arch"
   mkdir -p "$GOPATH/src/github.com/keybase"
-  ln -s "$this_repo" "$GOPATH/src/github.com/keybase/client"
+  ln -snf "$this_repo" "$GOPATH/src/github.com/keybase/client"
 
   # Build the client binary. Note that `go build` reads $GOARCH.
   echo "Building client for $GOARCH..."
@@ -89,7 +91,7 @@ build_one_architecture() {
   # Build the kbfsfuse binary. Currently, this always builds from master.
   echo "Building kbfs for $GOARCH..."
   kbfs_repo="$(dirname "$this_repo")/kbfs"
-  ln -s "$kbfs_repo" "$GOPATH/src/github.com/keybase/kbfs"
+  ln -snf "$kbfs_repo" "$GOPATH/src/github.com/keybase/kbfs"
   go build -tags "$go_tags" -ldflags "$ldflags" -o \
     "$layout_dir/usr/bin/kbfsfuse" github.com/keybase/kbfs/kbfsfuse
 
