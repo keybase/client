@@ -40,8 +40,6 @@ class Menubar extends Component {
 
     const onMenubarShow = () => {
       setImmediate(() => {
-        this.checkForFolders()
-
         engine.listenOnConnect('menubar', () => {
           setImmediate(() => {
             this.checkForFolders()
@@ -53,7 +51,6 @@ class Menubar extends Component {
     const onMenubarHide = () => {
 
       setImmediate(() => {
-        this.setState({loading: true})
         engine.listenOnConnect('menubar', () => { })
       })
     }
