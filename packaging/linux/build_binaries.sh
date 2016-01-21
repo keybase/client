@@ -10,7 +10,7 @@ binary_name="$("$here/../binary_name.sh" "$@")"
 
 # Take the second argument as the build root, or a tmp dir if there is no
 # second argument.
-build_root="${2:-$(mktemp -d)}"
+build_root="${2:-/tmp/keybase_build_$(date +%Y_%m_%d_%H:%M:%S)}"
 mkdir -p "$build_root"
 
 # Record the version now, and write it to the build root. Because it uses a
