@@ -19,7 +19,7 @@ config.pathinfo = true
 config.output.publicPath = 'http://localhost:4000/dist/'
 
 // Uncomment below to figure out packaging bugs
-config.bail = true
+// config.bail = true
 
 config.plugins.push(new webpack.optimize.OccurenceOrderPlugin())
 

@@ -15,8 +15,9 @@ module.exports = {
       loader: 'babel',
       exclude: /(node_modules|\/dist\/)/,
       query: {
-        optional: ['runtime'],
-        stage: 2
+        cacheDirectory: true,
+        //plugins: ['transform-runtime'],
+        presets: ['es2015', 'stage-1', 'react']
       }
     }, {
       test: /\.json?$/,
