@@ -30,4 +30,7 @@ REPOCONTENT
 
 install_yum
 
-/opt/keybase/post_install.sh
+if [ -e /opt/keybase/post_install.sh ] ; then
+  # Until KBFS is in the production packages, this script doesn't exist.
+  /opt/keybase/post_install.sh
+fi
