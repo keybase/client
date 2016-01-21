@@ -30,7 +30,8 @@ func expectUsernameCall(u keybase1.UID, config *ConfigMock) {
 		Return(name, nil)
 	config.mockKbpki.EXPECT().Resolve(gomock.Any(), string(name)).AnyTimes().
 		Return(u, nil)
-	config.mockKbpki.EXPECT().Identify(gomock.Any(), string(name), gomock.Any()).AnyTimes().
+	// Ideally, this would be 0 or 1 times.
+	config.mockKbpki.EXPECT().Identify(gomock.Any(), fmt.Sprintf("uid:%s", u), gomock.Any()).AnyTimes().
 		Return(UserInfo{Name: name, UID: u}, nil)
 }
 

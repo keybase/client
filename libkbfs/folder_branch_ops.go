@@ -16,8 +16,14 @@ import (
 type mdReqType int
 
 const (
-	mdRead  mdReqType = iota // A read request
-	mdWrite                  // A write request
+	// A read request that doesn't need an identify to be
+	// performed.
+	mdReadNoIdentify mdReqType = iota
+	// A read request that needs an identify to be performed (if
+	// it hasn't been already).
+	mdReadNeedIdentify
+	// A write request.
+	mdWrite
 )
 
 type branchType int
@@ -280,8 +286,12 @@ type folderBranchOps struct {
 	staged bool
 
 	// The current state of this folder-branch.
-	state     state
 	stateLock sync.Mutex
+	state     state
+
+	// Whether we've identified this TLF or not.
+	identifyLock sync.Mutex
+	identifyDone bool
 
 	// The current status summary for this folder
 	status *folderBranchStatusKeeper
@@ -507,11 +517,41 @@ func (fbo *folderBranchOps) setHeadLocked(ctx context.Context,
 	return nil
 }
 
+func (fbo *folderBranchOps) identifyOnce(
+	ctx context.Context, md *RootMetadata) error {
+	fbo.identifyLock.Lock()
+	defer fbo.identifyLock.Unlock()
+	if fbo.identifyDone {
+		return nil
+	}
+
+	h := md.GetTlfHandle()
+	fbo.log.CDebugf(ctx, "Running identifies on %s", h.ToString(ctx, fbo.config))
+	err := identifyHandle(ctx, fbo.config, h)
+	if err != nil {
+		fbo.log.CDebugf(ctx, "Identify finished with error: %v", err)
+		// For now, if the identify fails, let the
+		// next function to hit this code path retry.
+		return err
+	}
+
+	fbo.log.CDebugf(ctx, "Identify finished successfully")
+	fbo.identifyDone = true
+	return nil
+}
+
 // if rtype == write, then mdWriterLock must be taken
 func (fbo *folderBranchOps) getMDLocked(
 	ctx context.Context, lState *lockState, rtype mdReqType) (
-	*RootMetadata, error) {
-	md := func() *RootMetadata {
+	md *RootMetadata, err error) {
+	defer func() {
+		if err != nil || rtype == mdReadNoIdentify {
+			return
+		}
+		err = fbo.identifyOnce(ctx, md)
+	}()
+
+	md = func() *RootMetadata {
 		fbo.headLock.RLock(lState)
 		defer fbo.headLock.RUnlock(lState)
 		return fbo.head
@@ -520,9 +560,9 @@ func (fbo *folderBranchOps) getMDLocked(
 		return md, nil
 	}
 
-	// if we're in mdRead mode, we can't safely fetch the new MD
-	// without causing races, so bail
-	if rtype == mdRead {
+	// Unless we're in mdWrite mode, we can't safely fetch the new
+	// MD without causing races, so bail.
+	if rtype != mdWrite {
 		return nil, MDWriteNeededInRequest{}
 	}
 
@@ -531,7 +571,7 @@ func (fbo *folderBranchOps) getMDLocked(
 	mdops := fbo.config.MDOps()
 
 	// get the head of the unmerged branch for this device (if any)
-	md, err := mdops.GetUnmergedForTLF(ctx, fbo.id(), NullBranchID)
+	md, err = mdops.GetUnmergedForTLF(ctx, fbo.id(), NullBranchID)
 	if err != nil {
 		return nil, err
 	}
@@ -560,9 +600,9 @@ func (fbo *folderBranchOps) getMDLocked(
 	return md, err
 }
 
-func (fbo *folderBranchOps) getMDForRead(
-	ctx context.Context, lState *lockState) (*RootMetadata, error) {
-	md, err := fbo.getMDLocked(ctx, lState, mdRead)
+func (fbo *folderBranchOps) getMDForReadHelper(
+	ctx context.Context, lState *lockState, rtype mdReqType) (*RootMetadata, error) {
+	md, err := fbo.getMDLocked(ctx, lState, rtype)
 	if err != nil {
 		return nil, err
 	}
@@ -575,6 +615,16 @@ func (fbo *folderBranchOps) getMDForRead(
 		return nil, NewReadAccessError(ctx, fbo.config, md.GetTlfHandle(), uid)
 	}
 	return md, nil
+}
+
+func (fbo *folderBranchOps) getMDForReadNoIdentify(
+	ctx context.Context, lState *lockState) (*RootMetadata, error) {
+	return fbo.getMDForReadHelper(ctx, lState, mdReadNoIdentify)
+}
+
+func (fbo *folderBranchOps) getMDForReadNeedIdentify(
+	ctx context.Context, lState *lockState) (*RootMetadata, error) {
+	return fbo.getMDForReadHelper(ctx, lState, mdReadNeedIdentify)
 }
 
 // mdWriterLock must be taken by the caller.
@@ -791,15 +841,16 @@ func (fbo *folderBranchOps) CheckForNewMDAndInit(
 	return fbo.initMDLocked(ctx, lState, md)
 }
 
-// execMDReadThenMDWrite first tries to execute the passed-in method
-// in mdRead mode.  If it fails with an MDWriteNeededInRequest error,
-// it re-executes the method as in mdWrite mode.  The passed-in method
-// must note whether or not this is an mdWrite call.
+// execMDReadNoIdentifyThenMDWrite first tries to execute the
+// passed-in method in mdReadNoIdentify mode.  If it fails with an
+// MDWriteNeededInRequest error, it re-executes the method as in
+// mdWrite mode.  The passed-in method must note whether or not this
+// is an mdWrite call.
 //
-// This must only be used by GetRootNode().
-func (fbo *folderBranchOps) execMDReadThenMDWrite(
+// This must only be used by getRootNode().
+func (fbo *folderBranchOps) execMDReadNoIdentifyThenMDWrite(
 	lState *lockState, f func(*lockState, mdReqType) error) error {
-	err := f(lState, mdRead)
+	err := f(lState, mdReadNoIdentify)
 
 	// Redo as an MD write request if needed
 	if _, ok := err.(MDWriteNeededInRequest); ok {
@@ -817,16 +868,16 @@ func (fbo *folderBranchOps) getRootNode(ctx context.Context) (
 		if err != nil {
 			fbo.log.CDebugf(ctx, "Error: %v", err)
 		} else {
-			fbo.log.CDebugf(ctx, "Done: %p", node.GetID())
+			// node may still be nil if we're unwinding
+			// from a panic.
+			fbo.log.CDebugf(ctx, "Done: %v", node)
 		}
 	}()
 
 	lState := makeFBOLockState()
 
-	// don't check read permissions here -- anyone should be able to read
-	// the MD to determine whether there's a public subdir or not
 	var md *RootMetadata
-	err = fbo.execMDReadThenMDWrite(lState,
+	err = fbo.execMDReadNoIdentifyThenMDWrite(lState,
 		func(lState *lockState, rtype mdReqType) error {
 			md, err = fbo.getMDLocked(ctx, lState, rtype)
 			return err
@@ -1200,7 +1251,7 @@ func (fbo *folderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 
 	lState := makeFBOLockState()
 
-	md, err := fbo.getMDForRead(ctx, lState)
+	md, err := fbo.getMDForReadNeedIdentify(ctx, lState)
 	if err != nil {
 		return nil, err
 	}
@@ -1212,7 +1263,7 @@ func (fbo *folderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 
 	fbo.blockLock.RLock(lState)
 	defer fbo.blockLock.RUnlock(lState)
-	dblock, err := fbo.getDirLocked(ctx, lState, md, dirPath, mdRead)
+	dblock, err := fbo.getDirLocked(ctx, lState, md, dirPath, mdReadNeedIdentify)
 	if err != nil {
 		return
 	}
@@ -1272,7 +1323,7 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 
 	lState := makeFBOLockState()
 
-	md, err := fbo.getMDForRead(ctx, lState)
+	md, err := fbo.getMDForReadNeedIdentify(ctx, lState)
 	if err != nil {
 		return nil, EntryInfo{}, err
 	}
@@ -1330,12 +1381,19 @@ func (fbo *folderBranchOps) statEntry(ctx context.Context, node Node) (
 
 	lState := makeFBOLockState()
 
-	md, err := fbo.getMDForRead(ctx, lState)
+	nodePath, err := fbo.pathFromNodeForRead(node)
 	if err != nil {
 		return DirEntry{}, err
 	}
 
-	nodePath, err := fbo.pathFromNodeForRead(node)
+	var md *RootMetadata
+	if nodePath.hasValidParent() {
+		md, err = fbo.getMDForReadNeedIdentify(ctx, lState)
+	} else {
+		// If nodePath has no valid parent, it's just the TLF
+		// root, so we don't need an identify in this case.
+		md, err = fbo.getMDForReadNoIdentify(ctx, lState)
+	}
 	if err != nil {
 		return DirEntry{}, err
 	}
@@ -2285,7 +2343,7 @@ func (fbo *folderBranchOps) RemoveDir(
 	err = func() error {
 		fbo.blockLock.RLock(lState)
 		defer fbo.blockLock.RUnlock(lState)
-		pblock, err := fbo.getDirLocked(ctx, lState, md, dirPath, mdRead)
+		pblock, err := fbo.getDirLocked(ctx, lState, md, dirPath, mdReadNeedIdentify)
 		de, ok := pblock.Children[dirName]
 		if !ok {
 			return NoSuchNameError{dirName}
@@ -2294,7 +2352,7 @@ func (fbo *folderBranchOps) RemoveDir(
 		// construct a path for the child so we can check for an empty dir
 		childPath := dirPath.ChildPath(dirName, de.BlockPointer)
 
-		childBlock, err := fbo.getDirLocked(ctx, lState, md, childPath, mdRead)
+		childBlock, err := fbo.getDirLocked(ctx, lState, md, childPath, mdReadNeedIdentify)
 		if err != nil {
 			return err
 		}
@@ -2595,7 +2653,7 @@ func (fbo *folderBranchOps) readLocked(
 	ctx context.Context, lState *lockState, md *RootMetadata, file path,
 	dest []byte, off int64) (int64, error) {
 	// getFileLocked already checks read permissions
-	fblock, err := fbo.getFileLocked(ctx, lState, md, file, mdRead)
+	fblock, err := fbo.getFileLocked(ctx, lState, md, file, mdReadNeedIdentify)
 	if err != nil {
 		return 0, err
 	}
@@ -2607,7 +2665,7 @@ func (fbo *folderBranchOps) readLocked(
 		nextByte := nRead + off
 		toRead := n - nRead
 		_, _, _, block, _, startOff, err := fbo.getFileBlockAtOffsetLocked(
-			ctx, lState, md, file, fblock, nextByte, mdRead)
+			ctx, lState, md, file, fblock, nextByte, mdReadNeedIdentify)
 		if err != nil {
 			return 0, err
 		}
@@ -2643,7 +2701,7 @@ func (fbo *folderBranchOps) Read(
 	lState := makeFBOLockState()
 
 	// verify we have permission to read
-	md, err := fbo.getMDForRead(ctx, lState)
+	md, err := fbo.getMDForReadNeedIdentify(ctx, lState)
 	if err != nil {
 		return 0, err
 	}
@@ -2894,7 +2952,7 @@ func (fbo *folderBranchOps) Write(
 	// Get the MD for reading.  We won't modify it; we'll track the
 	// unref changes on the side, and put them into the MD during the
 	// sync.
-	md, err := fbo.getMDLocked(ctx, lState, mdRead)
+	md, err := fbo.getMDLocked(ctx, lState, mdReadNeedIdentify)
 	if err != nil {
 		return err
 	}
@@ -3066,7 +3124,7 @@ func (fbo *folderBranchOps) Truncate(
 	// Get the MD for reading.  We won't modify it; we'll track the
 	// unref changes on the side, and put them into the MD during the
 	// sync.
-	md, err := fbo.getMDLocked(ctx, lState, mdRead)
+	md, err := fbo.getMDLocked(ctx, lState, mdReadNeedIdentify)
 	if err != nil {
 		return err
 	}
@@ -3746,7 +3804,7 @@ func (fbo *folderBranchOps) searchForNodesInDirLocked(ctx context.Context,
 	lState *lockState, cache NodeCache, newPtrs map[BlockPointer]bool,
 	md *RootMetadata, currDir path, nodeMap map[BlockPointer]Node,
 	numNodesFoundSoFar int) (int, error) {
-	dirBlock, err := fbo.getDirLocked(ctx, lState, md, currDir, mdRead)
+	dirBlock, err := fbo.getDirLocked(ctx, lState, md, currDir, mdReadNeedIdentify)
 	if err != nil {
 		return 0, err
 	}
@@ -4111,7 +4169,7 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 			// Get the real dir block; we can't use getEntry()
 			// since it swaps in the cached dir entry.
 			dblock, err := fbo.getDirLocked(ctx, lState, md,
-				p, mdRead)
+				p, mdReadNeedIdentify)
 			if err != nil {
 				return err
 			}
@@ -4498,6 +4556,7 @@ func (fbo *folderBranchOps) Rekey(ctx context.Context, tlf TlfID) (err error) {
 	}
 
 	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
+
 	if err != nil {
 		return err
 	}

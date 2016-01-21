@@ -15,21 +15,22 @@ func TestParseTlfHandleEarlyFailure(t *testing.T) {
 
 	name := "w1,w2#r1"
 	_, err := ParseTlfHandle(ctx, nil, name, true)
-	assert.Equal(t, err, NoSuchNameError{Name: name})
+	assert.Equal(t, NoSuchNameError{Name: name}, err)
 
 	nonCanonicalName := "W1,w2#r1"
 	_, err = ParseTlfHandle(ctx, nil, nonCanonicalName, false)
-	assert.Equal(t, err, TlfNameNotCanonical{nonCanonicalName, name})
+	assert.Equal(t, TlfNameNotCanonical{nonCanonicalName, name}, err)
 }
 
 // daemonKBPKI is a hacky way to make a KBPKI instance that uses some
 // methods from KeybaseDaemon.
 type daemonKBPKI struct {
 	KBPKI
-	daemon KeybaseDaemon
+	daemon        KeybaseDaemon
+	identifyCalls int
 }
 
-func (d daemonKBPKI) GetCurrentUID(ctx context.Context) (keybase1.UID, error) {
+func (d *daemonKBPKI) GetCurrentUID(ctx context.Context) (keybase1.UID, error) {
 	const sessionID = 0
 	session, err := d.daemon.CurrentSession(ctx, sessionID)
 	if err != nil {
@@ -38,11 +39,12 @@ func (d daemonKBPKI) GetCurrentUID(ctx context.Context) (keybase1.UID, error) {
 	return session.UID, nil
 }
 
-func (d daemonKBPKI) Resolve(ctx context.Context, assertion string) (keybase1.UID, error) {
+func (d *daemonKBPKI) Resolve(ctx context.Context, assertion string) (keybase1.UID, error) {
 	return d.daemon.Resolve(ctx, assertion)
 }
 
-func (d daemonKBPKI) Identify(ctx context.Context, assertion, reason string) (UserInfo, error) {
+func (d *daemonKBPKI) Identify(ctx context.Context, assertion, reason string) (UserInfo, error) {
+	d.identifyCalls++
 	return d.daemon.Identify(ctx, assertion, reason)
 }
 
@@ -61,13 +63,14 @@ func TestParseTlfHandleNoUserFailure(t *testing.T) {
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(currentUID, localUsers)
 
-	kbpki := daemonKBPKI{
+	kbpki := &daemonKBPKI{
 		daemon: daemon,
 	}
 
 	name := "u2,u3#u4"
 	_, err := ParseTlfHandle(ctx, kbpki, name, false)
-	assert.Equal(t, err, NoSuchUserError{"u4"})
+	assert.Equal(t, 0, kbpki.identifyCalls)
+	assert.Equal(t, NoSuchUserError{"u4"}, err)
 }
 
 func TestParseTlfHandleNotReaderFailure(t *testing.T) {
@@ -77,13 +80,14 @@ func TestParseTlfHandleNotReaderFailure(t *testing.T) {
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(currentUID, localUsers)
 
-	kbpki := daemonKBPKI{
+	kbpki := &daemonKBPKI{
 		daemon: daemon,
 	}
 
 	name := "u2,u3"
 	_, err := ParseTlfHandle(ctx, kbpki, name, false)
-	assert.Equal(t, err, ReadAccessError{"u1", name})
+	assert.Equal(t, 0, kbpki.identifyCalls)
+	assert.Equal(t, ReadAccessError{"u1", name}, err)
 }
 
 func TestParseTlfHandleAssertionNotCanonicalFailure(t *testing.T) {
@@ -94,14 +98,17 @@ func TestParseTlfHandleAssertionNotCanonicalFailure(t *testing.T) {
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(currentUID, localUsers)
 
-	kbpki := daemonKBPKI{
+	kbpki := &daemonKBPKI{
 		daemon: daemon,
 	}
 
-	name := "u1,u3"
-	nonCanonicalName := "u1,u3@twitter"
+	name := "u1,u3#u2"
+	nonCanonicalName := "u1,u3@twitter#u2"
 	_, err := ParseTlfHandle(ctx, kbpki, nonCanonicalName, false)
-	assert.Equal(t, err, TlfNameNotCanonical{nonCanonicalName, name})
+	// Names with assertions should be identified before the error
+	// is returned.
+	assert.Equal(t, 3, kbpki.identifyCalls)
+	assert.Equal(t, TlfNameNotCanonical{nonCanonicalName, name}, err)
 }
 
 func TestParseTlfHandleAssertionPrivateSuccess(t *testing.T) {
@@ -111,12 +118,13 @@ func TestParseTlfHandleAssertionPrivateSuccess(t *testing.T) {
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(currentUID, localUsers)
 
-	kbpki := daemonKBPKI{
+	kbpki := &daemonKBPKI{
 		daemon: daemon,
 	}
 
 	name := "u1,u3"
 	h, err := ParseTlfHandle(ctx, kbpki, name, false)
+	assert.Equal(t, 0, kbpki.identifyCalls)
 	assert.Nil(t, err)
 	assert.Equal(t, name, h.cachedName)
 }
@@ -128,12 +136,13 @@ func TestParseTlfHandleAssertionPublicSuccess(t *testing.T) {
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(currentUID, localUsers)
 
-	kbpki := daemonKBPKI{
+	kbpki := &daemonKBPKI{
 		daemon: daemon,
 	}
 
 	name := "u1,u2,u3"
 	h, err := ParseTlfHandle(ctx, kbpki, name, true)
+	assert.Equal(t, 0, kbpki.identifyCalls)
 	assert.Nil(t, err)
 	assert.Equal(t, name+ReaderSep+PublicUIDName, h.cachedName)
 }

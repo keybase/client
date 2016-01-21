@@ -544,7 +544,7 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 		t.Errorf("Couldn't sync: %v", syncErr)
 	}
 
-	md, err := fbo.getMDLocked(ctx, lState, mdRead)
+	md, err := fbo.getMDLocked(ctx, lState, mdReadNeedIdentify)
 	if err != nil {
 		t.Errorf("Couldn't get MD: %v", err)
 	}
@@ -656,7 +656,7 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 		t.Errorf("Couldn't sync: %v", syncErr)
 	}
 
-	md, err := fbo.getMDLocked(ctx, lState, mdRead)
+	md, err := fbo.getMDLocked(ctx, lState, mdReadNeedIdentify)
 	if err != nil {
 		t.Errorf("Couldn't get MD: %v", err)
 	}

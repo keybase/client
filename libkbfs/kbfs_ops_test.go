@@ -11,6 +11,8 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
@@ -170,7 +172,6 @@ func TestKBFSOpsGetFavoritesSuccess(t *testing.T) {
 	folders := []keybase1.Folder{handle1.ToKBFolder(ctx, config), handle2.ToKBFolder(ctx, config)}
 
 	config.mockKbpki.EXPECT().FavoriteList(ctx).Return(folders, nil)
-	config.mockKbpki.EXPECT().Identify(gomock.Any(), gomock.Any(), gomock.Any()).AnyTimes().Return(UserInfo{}, nil)
 
 	handles2, err := config.KBFSOps().GetFavorites(ctx)
 	if err != nil {
@@ -236,23 +237,54 @@ func TestKBFSOpsGetRootNodeCacheSuccess(t *testing.T) {
 	rmd.data.Dir.Type = Dir
 
 	ops := getOps(config, id)
-	n, ei, h, err := ops.getRootNode(ctx)
-	if err != nil {
-		t.Errorf("Got error on root MD: %v", err)
-	}
-	p := ops.nodeCache.PathFromNode(n)
+	assert.False(t, ops.identifyDone)
 
-	if p.Tlf != id {
-		t.Errorf("Got bad MD back: directory %v", p.Tlf)
-	} else if len(p.path) != 1 {
-		t.Errorf("Got bad MD back: path size %d", len(p.path))
-	} else if p.path[0].ID != rmd.data.Dir.ID {
-		t.Errorf("Got bad MD back: root ID %v", p.path[0].ID)
-	} else if ei != rmd.data.Dir.EntryInfo {
-		t.Errorf("Got bad MD back: entry info %v", ei)
-	} else if h != rmd.GetTlfHandle() {
-		t.Errorf("Got bad handle back: handle %v", h)
-	}
+	n, ei, h, err := ops.getRootNode(ctx)
+	require.Nil(t, err)
+	assert.False(t, ops.identifyDone)
+
+	p := ops.nodeCache.PathFromNode(n)
+	assert.Equal(t, id, p.Tlf)
+	require.Equal(t, 1, len(p.path))
+	assert.Equal(t, rmd.data.Dir.ID, p.path[0].ID)
+	assert.Equal(t, rmd.data.Dir.EntryInfo, ei)
+	assert.Equal(t, rmd.GetTlfHandle(), h)
+
+	// Trigger identify.
+	lState := makeFBOLockState()
+	_, err = ops.getMDLocked(ctx, lState, mdReadNeedIdentify)
+	require.Nil(t, err)
+	assert.True(t, ops.identifyDone)
+}
+
+func TestKBFSOpsGetRootNodeCacheIdentifyFail(t *testing.T) {
+	mockCtrl, config, ctx := kbfsOpsInit(t, false)
+	defer kbfsTestShutdown(mockCtrl, config)
+
+	expectedErr := errors.New("Identify failure")
+
+	_, id, rmd := makeIDAndRMD(t, config)
+
+	h := rmd.GetTlfHandle()
+	uid2 := keybase1.MakeTestUID(17)
+	h.Writers = append(h.Writers, uid2)
+	name2 := libkb.NewNormalizedUsername(fmt.Sprintf("user_%s", uid2))
+	config.mockKbpki.EXPECT().GetNormalizedUsername(gomock.Any(), uid2).AnyTimes().
+		Return(name2, nil)
+	config.mockKbpki.EXPECT().Resolve(gomock.Any(), string(name2)).AnyTimes().
+		Return(uid2, nil)
+	config.mockKbpki.EXPECT().Identify(gomock.Any(), fmt.Sprintf("uid:%s", uid2), gomock.Any()).Return(UserInfo{}, expectedErr)
+
+	rmd.data.Dir.BlockPointer.ID = fakeBlockID(1)
+	rmd.data.Dir.Type = Dir
+
+	ops := getOps(config, id)
+
+	// Trigger identify.
+	lState := makeFBOLockState()
+	_, err := ops.getMDLocked(ctx, lState, mdReadNeedIdentify)
+	assert.Equal(t, expectedErr, err)
+	assert.False(t, ops.identifyDone)
 }
 
 func expectBlock(config *ConfigMock, rmd *RootMetadata, blockPtr BlockPointer, block Block, err error) {
@@ -334,13 +366,12 @@ func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, public bool) {
 	config.mockMdcache.EXPECT().Put(rmd).Return(nil)
 
 	ops := getOps(config, id)
+	assert.False(t, ops.identifyDone)
 	n, ei, h, err := ops.getRootNode(ctx)
+	require.Nil(t, err)
+	assert.True(t, ops.identifyDone)
 
-	if err != nil {
-		t.Errorf("Got error on root MD: %v", err)
-	}
 	p := ops.nodeCache.PathFromNode(n)
-
 	if p.Tlf != id {
 		t.Errorf("Got bad MD back: directory %v", p.Tlf)
 	} else if len(p.path) != 1 {
@@ -400,6 +431,7 @@ func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
 	} else if err.Error() != expectedErr.Error() {
 		t.Errorf("Got unexpected error on root MD: %v", err)
 	}
+	assert.False(t, ops.identifyDone)
 }
 
 func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
@@ -427,14 +459,15 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 		nil, nil)
 	config.mockMdops.EXPECT().GetForHandle(gomock.Any(), h).Return(rmd, nil)
 	ops := getOps(config, id)
-	ops.head = rmd
+	assert.False(t, ops.identifyDone)
 
+	ops.head = rmd
 	name := h.ToString(ctx, config)
 	n, ei, err :=
 		config.KBFSOps().GetOrCreateRootNode(ctx, name, false, MasterBranch)
-	if err != nil {
-		t.Errorf("Got error on root MD for handle: %v", err)
-	}
+	require.Nil(t, err)
+	assert.False(t, ops.identifyDone)
+
 	p := ops.nodeCache.PathFromNode(n)
 	if p.Tlf != id {
 		t.Errorf("Got bad dir id back: %v", p.Tlf)

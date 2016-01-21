@@ -61,6 +61,11 @@ func start() *libfuse.Error {
 		return libfuse.InitError("no mount specified")
 	}
 
+	if len(flag.Args()) > 1 {
+		fmt.Print(getUsageStr())
+		return libfuse.InitError("extra arguments specified (flags go before the first argument)")
+	}
+
 	if kbfsParams.Debug {
 		log := logger.NewWithCallDepth("FUSE", 1, os.Stderr)
 		log.Configure("", true, "")
