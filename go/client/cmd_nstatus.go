@@ -6,6 +6,7 @@ package client
 import (
 	"encoding/json"
 	"path"
+	"strings"
 
 	"golang.org/x/net/context"
 
@@ -52,6 +53,7 @@ type fstatus struct {
 	DeviceStatus           string
 	LoggedInProvisioned    bool `json:"LoggedIn"`
 	PassphraseStreamCached bool `json:"KeychainUnlocked"`
+	SessionStatus          string
 	ConfigPath             string
 
 	Client struct {
@@ -72,6 +74,9 @@ type fstatus struct {
 	Desktop struct {
 		Running bool
 	}
+
+	DefaultUsername      string
+	ProvisionedUsernames []string
 }
 
 func (c *CmdNStatus) Run() error {
@@ -128,6 +133,7 @@ func (c *CmdNStatus) load() (*fstatus, error) {
 		status.Service.Log = path.Join(extStatus.LogDir, c.serviceLogFilename())
 	}
 
+	status.SessionStatus = extStatus.SessionStatus
 	status.PassphraseStreamCached = extStatus.PassphraseStreamCached
 
 	kbfsVersion, err := install.KBFSBundleVersion(c.G(), "")
@@ -137,6 +143,9 @@ func (c *CmdNStatus) load() (*fstatus, error) {
 	status.KBFS.Log = path.Join(extStatus.LogDir, c.kbfsLogFilename())
 
 	status.Desktop.Running = extStatus.DesktopUIConnected
+
+	status.DefaultUsername = extStatus.DefaultUsername
+	status.ProvisionedUsernames = extStatus.ProvisionedUsernames
 
 	// set anything os-specific:
 	if err := c.osSpecific(&status); err != nil {
@@ -164,69 +173,31 @@ func (c *CmdNStatus) outputJSON(status *fstatus) error {
 	return err
 }
 
-/*
-
-Username: chris
-Device name: ubuntu-work-vm
-User ID: 23260c2ce19420f97b58d7d95b68ca00
-Device ID: 829493463c83fd2560d1964948a6df18
-Local Keybase Keychain:  unlocked
-KBFS:
-   status: running, connected, mounted
-   version: 1.0.8-1123123213
-   log:  /home/chris/.cache/keybase/keybase.kbfs.log
-Service:
-   status: running, connected
-   version: 1.0.8-1123123213
-   log:  /home/chris/.cache/keybase/keybase.log
-Client:
-   version: 1.0.8-12312321312
-Electron:
-   status: running
-
-*/
-
-/*
-
-   logged out:
-
-   available users:
-    chris
-        - whatever info
-    max
-        - whatever info
-
-*/
-
 func (c *CmdNStatus) outputTerminal(status *fstatus) error {
 	dui := c.G().UI.GetDumbOutputUI()
 	dui.Printf("Username:      %s\n", status.Username)
-	dui.Printf("Logged in:     %s\n\n", c.boolString(status.LoggedInProvisioned, "yes", "no"))
+	dui.Printf("Logged in:     %s\n\n", libkb.BoolString(status.LoggedInProvisioned, "yes", "no"))
 	dui.Printf("Device name:   %s\n", status.DeviceName)
 	dui.Printf("Device ID:     %s\n", status.DeviceID)
 	dui.Printf("Device status: %s\n\n", status.DeviceStatus)
-	dui.Printf("Local Keybase Keychain: %s\n", c.boolString(status.PassphraseStreamCached, "unlocked", "locked"))
+	dui.Printf("Local Keybase Keychain: %s\n", libkb.BoolString(status.PassphraseStreamCached, "unlocked", "locked"))
+	dui.Printf("Session status:         %s\n", status.SessionStatus)
 	dui.Printf("\nKBFS:\n")
-	dui.Printf("    status:    %s\n", c.boolString(status.KBFS.Running, "running", "not running"))
+	dui.Printf("    status:    %s\n", libkb.BoolString(status.KBFS.Running, "running", "not running"))
 	dui.Printf("    version:   %s\n", status.KBFS.Version)
 	dui.Printf("    log:       %s\n", status.KBFS.Log)
 	dui.Printf("\nService:\n")
-	dui.Printf("    status:    %s\n", c.boolString(status.Service.Running, "running", "not running"))
+	dui.Printf("    status:    %s\n", libkb.BoolString(status.Service.Running, "running", "not running"))
 	dui.Printf("    version:   %s\n", status.Service.Version)
 	dui.Printf("    log:       %s\n", status.Service.Log)
 	dui.Printf("\nClient:\n")
 	dui.Printf("    version:   %s\n", status.Client.Version)
 	dui.Printf("\nDesktop App:\n")
-	dui.Printf("    status:    %s\n\n", c.boolString(status.Desktop.Running, "running", "not running"))
-	dui.Printf("Config path:   %s\n", status.ConfigPath)
+	dui.Printf("    status:    %s\n\n", libkb.BoolString(status.Desktop.Running, "running", "not running"))
+	dui.Printf("Config path:        %s\n", status.ConfigPath)
+	dui.Printf("Default user:       %s\n", status.DefaultUsername)
+	dui.Printf("Provisioned users:  %s\n", strings.Join(status.ProvisionedUsernames, ", "))
 	return nil
-}
-
-func (c *CmdNStatus) boolString(b bool, t, f string) string {
-	if b {
-		return t
-	}
-	return f
 }
 
 func (c *CmdNStatus) client() {

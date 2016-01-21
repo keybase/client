@@ -21,10 +21,9 @@ protocol config {
     string deviceStatus;
     string logDir;
     boolean desktopUIConnected;
-    boolean sessionExists;
-    boolean sessionLoaded;
-    boolean sessionCleared;
-    boolean sessionExpired;
+    string sessionStatus;
+    string defaultUsername;
+    array<string> provisionedUsernames;
   }
 
   ExtendedStatus getExtendedStatus(int sessionID);

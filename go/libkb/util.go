@@ -445,3 +445,12 @@ func DigestForFileAtPath(path string) (digest string, err error) {
 	digest = hex.EncodeToString(hasher.Sum(nil))
 	return
 }
+
+// BoolString maps a bool to true and false strings (like "yes"
+// and "no").  For example:  BoolString(b, "yes", "no").
+func BoolString(b bool, t, f string) string {
+	if b {
+		return t
+	}
+	return f
+}

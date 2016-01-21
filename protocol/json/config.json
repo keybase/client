@@ -253,17 +253,17 @@
       "name" : "desktopUIConnected",
       "type" : "boolean"
     }, {
-      "name" : "sessionExists",
-      "type" : "boolean"
+      "name" : "sessionStatus",
+      "type" : "string"
     }, {
-      "name" : "sessionLoaded",
-      "type" : "boolean"
+      "name" : "defaultUsername",
+      "type" : "string"
     }, {
-      "name" : "sessionCleared",
-      "type" : "boolean"
-    }, {
-      "name" : "sessionExpired",
-      "type" : "boolean"
+      "name" : "provisionedUsernames",
+      "type" : {
+        "type" : "array",
+        "items" : "string"
+      }
     } ]
   }, {
     "type" : "enum",

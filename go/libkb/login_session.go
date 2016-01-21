@@ -38,9 +38,18 @@ func NewLoginSession(emailOrUsername string, g *GlobalContext) *LoginSession {
 func NewLoginSessionWithSalt(emailOrUsername string, salt []byte, g *GlobalContext) *LoginSession {
 	ls := NewLoginSession(emailOrUsername, g)
 	ls.salt = salt
+	// XXX are these right?  is this just so the salt can be retrieved?
 	ls.loaded = true
 	ls.cleared = true
 	return ls
+}
+
+func (s *LoginSession) Status() string {
+	if s.loaded && s.loginSession == nil && s.salt != nil {
+		return fmt.Sprintf("%s [salt only]", s.sessionFor)
+	}
+
+	return fmt.Sprintf("%s [loaded: %s, cleared: %s, expired: %s]", s.sessionFor, BoolString(s.loaded, "yes", "no"), BoolString(s.cleared, "yes", "no"), BoolString(!s.NotExpired(), "yes", "no"))
 }
 
 func (s *LoginSession) Session() ([]byte, error) {
@@ -171,6 +180,7 @@ func (s *LoginSession) Load() error {
 	s.loginSessionB64 = b64
 	s.loginSession = ls
 	s.loaded = true
+	s.cleared = false
 	s.createTime = s.G().GetClock().Now()
 
 	return nil

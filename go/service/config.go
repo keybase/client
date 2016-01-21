@@ -59,17 +59,10 @@ func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res 
 
 	h.G().LoginState().Account(func(a *libkb.Account) {
 		res.PassphraseStreamCached = a.PassphraseStreamCache().Valid()
-		res.SessionExists = a.LoginSession().ExistsFor(me.GetName())
-		if res.SessionExists {
-			/*
-			   boolean sessionLoaded;
-			   boolean sessionCleared;
-			*/
-			res.SessionExpired = !a.LoginSession().NotExpired()
-			_, err := a.LoginSession().Session()
-			if err != nil {
-
-			}
+		if a.LoginSession() == nil {
+			res.SessionStatus = "no session"
+		} else {
+			res.SessionStatus = a.LoginSession().Status()
 		}
 	}, "ConfigHandler::GetExtendedStatus")
 
@@ -81,7 +74,18 @@ func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res 
 		}
 	}
 
-	return
+	current, all, err := h.G().GetAllUserNames()
+	if err != nil {
+		return res, err
+	}
+	res.DefaultUsername = current.String()
+	p := make([]string, len(all))
+	for i, u := range all {
+		p[i] = u.String()
+	}
+	res.ProvisionedUsernames = p
+
+	return res, nil
 }
 
 func (h ConfigHandler) GetConfig(_ context.Context, sessionID int) (keybase1.Config, error) {
