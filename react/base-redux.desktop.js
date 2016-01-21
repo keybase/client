@@ -1,2 +1,1 @@
-import * as Redux from 'react-redux'
-export default Redux
+export * from 'react-redux'
