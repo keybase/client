@@ -74,16 +74,24 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 
 	md.log.Debug("MDServerRemote: OnConnect called with a new connection")
 
+	// request a challenge -- using md.client here would cause problematic recursion.
+	c := keybase1.MetadataClient{Cli: cancelableClient{client}}
+	challenge, err := c.GetChallenge(ctx)
+	if err != nil {
+		md.log.Warning("MDServerRemote: challenge request error: %v", err)
+		return err
+	}
+	md.log.Debug("MDServerRemote: received challenge")
+
 	// get a new signature
-	signature, err := md.authToken.Sign(ctx)
+	signature, err := md.authToken.Sign(ctx, challenge)
 	if err != nil {
 		md.log.Warning("MDServerRemote: error signing authentication token: %v", err)
 		return err
 	}
 	md.log.Debug("MDServerRemote: authentication token signed")
 
-	// authenticate -- using md.client here would cause problematic recursion.
-	c := keybase1.MetadataClient{Cli: cancelableClient{client}}
+	// authenticate
 	pingIntervalSeconds, err := c.Authenticate(ctx, signature)
 	if err != nil {
 		md.log.Warning("MDServerRemote: authentication error: %v", err)
@@ -104,8 +112,13 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 
 // RefreshAuthToken implements the AuthTokenRefreshHandler interface.
 func (md *MDServerRemote) RefreshAuthToken(ctx context.Context) {
+	// get a new challenge
+	challenge, err := md.client.GetChallenge(ctx)
+	if err != nil {
+		md.log.Debug("MDServerRemote: error getting challenge: %v", err)
+	}
 	// get a new signature
-	signature, err := md.authToken.Sign(ctx)
+	signature, err := md.authToken.Sign(ctx, challenge)
 	if err != nil {
 		md.log.Debug("MDServerRemote: error signing auth token: %v", err)
 	}

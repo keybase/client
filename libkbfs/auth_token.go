@@ -1,10 +1,12 @@
 package libkbfs
 
 import (
+	"errors"
 	"sync"
 	"time"
 
 	"github.com/keybase/client/go/auth"
+	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
 )
 
@@ -44,7 +46,12 @@ func NewAuthToken(config Config, tokenType string, expireIn int,
 }
 
 // Sign is called to create a new signed authentication token.
-func (a *AuthToken) Sign(ctx context.Context) (string, error) {
+func (a *AuthToken) Sign(ctx context.Context, challengeInfo keybase1.ChallengeInfo) (string, error) {
+	// make sure we're being asked to sign a legit challenge
+	if !auth.IsValidChallenge(challengeInfo.Challenge) {
+		return "", errors.New("Invalid challenge")
+	}
+
 	// get UID, deviceKID and normalized username
 	uid, err := a.config.KBPKI().GetCurrentUID(ctx)
 	if err != nil {
@@ -60,8 +67,9 @@ func (a *AuthToken) Sign(ctx context.Context) (string, error) {
 	}
 
 	// create the token
-	token := auth.NewToken(uid, username, key.kid,
-		a.tokenType, a.expireIn, a.clientName, a.clientVersion)
+	token := auth.NewToken(uid, username, key.kid, a.tokenType,
+		challengeInfo.Challenge, challengeInfo.Now, a.expireIn,
+		a.clientName, a.clientVersion)
 
 	// sign the token
 	signature, err := a.config.Crypto().SignToString(ctx, token.Bytes())

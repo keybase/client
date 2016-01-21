@@ -78,21 +78,31 @@ func (b *BlockServerRemote) RemoteAddress() string {
 // OnConnect implements the ConnectionHandler interface.
 func (b *BlockServerRemote) OnConnect(ctx context.Context,
 	conn *Connection, client keybase1.GenericClient, _ *rpc.Server) error {
-	// get a new signature
-	signature, err := b.authToken.Sign(ctx)
+	// request a challenge -- using b.client here would cause problematic recursion.
+	c := keybase1.BlockClient{Cli: cancelableClient{client}}
+	challenge, err := c.GetSessionChallenge(ctx)
 	if err != nil {
 		return err
 	}
 
-	// Using b.client here would cause problematic recursion.
-	c := keybase1.BlockClient{Cli: cancelableClient{client}}
+	// get a new signature
+	signature, err := b.authToken.Sign(ctx, challenge)
+	if err != nil {
+		return err
+	}
+
 	return c.AuthenticateSession(ctx, signature)
 }
 
 // RefreshAuthToken implements the AuthTokenRefreshHandler interface.
 func (b *BlockServerRemote) RefreshAuthToken(ctx context.Context) {
+	// get a new challenge
+	challenge, err := b.client.GetSessionChallenge(ctx)
+	if err != nil {
+		b.log.Debug("BlockServerRemote: error getting challenge: %v", err)
+	}
 	// get a new signature
-	signature, err := b.authToken.Sign(ctx)
+	signature, err := b.authToken.Sign(ctx, challenge)
 	if err != nil {
 		b.log.Debug("BlockServerRemote: error signing auth token: %v", err)
 	}

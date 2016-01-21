@@ -80,7 +80,7 @@ func (e TokenExpiredError) Error() string {
 		e.creationTime, e.expireIn, e.now)
 }
 
-// InvalidTokenKeyError is raised then the public key presented in the token does not
+// InvalidTokenKeyError is raised when the public key presented in the token does not
 // correspond to the private key used to sign the token.
 type InvalidTokenKeyError struct {
 	expected string
@@ -92,7 +92,7 @@ func (e InvalidTokenKeyError) Error() string {
 		e.expected, e.received)
 }
 
-// InvalidTokenServerError is raised then the server presented in the token does not
+// InvalidTokenServerError is raised when the server presented in the token does not
 // correspond to the server being asked to verify the token.
 type InvalidTokenServerError struct {
 	expected string
@@ -101,5 +101,17 @@ type InvalidTokenServerError struct {
 
 func (e InvalidTokenServerError) Error() string {
 	return fmt.Sprintf("Invalid server in token, expected: %s, received: %s",
+		e.expected, e.received)
+}
+
+// InvalidTokenChallengeError is raised when the challenge presented in the token does not
+// correspond to the challenge of the verifier.
+type InvalidTokenChallengeError struct {
+	expected string
+	received string
+}
+
+func (e InvalidTokenChallengeError) Error() string {
+	return fmt.Sprintf("Invalid challenge in token, expected: %s, received: %s",
 		e.expected, e.received)
 }
