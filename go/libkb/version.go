@@ -7,4 +7,4 @@ package libkb
 const Version = "1.0.9"
 
 // DefaultBuild is the current build number
-const DefaultBuild = "0"
+const DefaultBuild = "1"
