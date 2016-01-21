@@ -21,14 +21,22 @@ func indentSpace(level int) string {
 	return strings.Repeat(" ", level*spacesPerIndent)
 }
 
-type CmdDumpKeyfamily struct{}
+type CmdDumpKeyfamily struct {
+	libkb.Contextified
+}
 
-func (v *CmdDumpKeyfamily) ParseArgv(ctx *cli.Context) error {
-	return nil
+func NewCmdDumpKeyfamily(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	return cli.Command{
+		Name:  "dump-keyfamily",
+		Flags: []cli.Flag{},
+		Action: func(c *cli.Context) {
+			cl.ChooseCommand(&CmdDumpKeyfamily{Contextified: libkb.NewContextified(g)}, "dump-keyfamily", c)
+		},
+	}
 }
 
 func (v *CmdDumpKeyfamily) Run() (err error) {
-	configCli, err := GetConfigClient(G)
+	configCli, err := GetConfigClient(v.G())
 	if err != nil {
 		return err
 	}
@@ -81,11 +89,12 @@ func findSubkeys(parentID keybase1.KID, allKeys []keybase1.PublicKey) []keybase1
 }
 
 func (v *CmdDumpKeyfamily) printExportedMe(me keybase1.User, publicKeys []keybase1.PublicKey, devices []keybase1.Device) error {
+	dui := v.G().UI.GetDumbOutputUI()
 	if len(publicKeys) == 0 {
-		GlobUI.Printf("No public keys.\n")
+		dui.Printf("No public keys.\n")
 		return nil
 	}
-	GlobUI.Printf("Public keys:\n")
+	dui.Printf("Public keys:\n")
 	// Keep track of subkeys we print, so that if e.g. a subkey's parent is
 	// nonexistent, we can notice that we skipped it.
 	subkeysShown := make(map[keybase1.KID]bool)
@@ -95,7 +104,7 @@ func (v *CmdDumpKeyfamily) printExportedMe(me keybase1.User, publicKeys []keybas
 			continue
 		}
 		subkeys := findSubkeys(key.KID, publicKeys)
-		err := printKey(key, subkeys, 1)
+		err := v.printKey(key, subkeys, 1)
 		if err != nil {
 			return err
 		}
@@ -106,14 +115,13 @@ func (v *CmdDumpKeyfamily) printExportedMe(me keybase1.User, publicKeys []keybas
 	// Print errors for any subkeys we failed to show.
 	for _, key := range publicKeys {
 		if !key.IsSibkey && !subkeysShown[key.KID] {
-			errorStr := fmt.Sprintf("Dangling subkey: %s", key.KID)
-			G.Log.Error(errorStr) // %s in here angers `go vet`
+			v.G().Log.Errorf("Dangling subkey: %s", key.KID)
 		}
 	}
 	return nil
 }
 
-func printKey(key keybase1.PublicKey, subkeys []keybase1.PublicKey, indent int) error {
+func (v *CmdDumpKeyfamily) printKey(key keybase1.PublicKey, subkeys []keybase1.PublicKey, indent int) error {
 	if key.KID == "" {
 		return fmt.Errorf("Found a key with an empty KID.")
 	}
@@ -121,10 +129,11 @@ func printKey(key keybase1.PublicKey, subkeys []keybase1.PublicKey, indent int) 
 	if key.IsEldest {
 		eldestStr = " (eldest)"
 	}
-	GlobUI.Printf("%s%s%s\n", indentSpace(indent), key.KID, eldestStr)
+	dui := v.G().UI.GetDumbOutputUI()
+	dui.Printf("%s%s%s\n", indentSpace(indent), key.KID, eldestStr)
 	if key.PGPFingerprint != "" {
-		GlobUI.Printf("%sPGP Fingerprint: %s\n", indentSpace(indent+1), libkb.PGPFingerprintFromHexNoError(key.PGPFingerprint).ToQuads())
-		GlobUI.Printf("%sPGP Identities:\n", indentSpace(indent+1))
+		dui.Printf("%sPGP Fingerprint: %s\n", indentSpace(indent+1), libkb.PGPFingerprintFromHexNoError(key.PGPFingerprint).ToQuads())
+		dui.Printf("%sPGP Identities:\n", indentSpace(indent+1))
 		for _, identity := range key.PGPIdentities {
 			commentStr := ""
 			if identity.Comment != "" {
@@ -134,41 +143,35 @@ func printKey(key keybase1.PublicKey, subkeys []keybase1.PublicKey, indent int) 
 			if identity.Email != "" {
 				emailStr = fmt.Sprintf(" <%s>", identity.Email)
 			}
-			GlobUI.Printf("%s%s%s%s\n", indentSpace(indent+2), identity.Username, commentStr, emailStr)
+			dui.Printf("%s%s%s%s\n", indentSpace(indent+2), identity.Username, commentStr, emailStr)
 		}
 	}
 	if key.DeviceID != "" || key.DeviceType != "" || key.DeviceDescription != "" {
-		GlobUI.Printf("%sDevice:\n", indentSpace(indent+1))
+		dui.Printf("%sDevice:\n", indentSpace(indent+1))
 		if key.DeviceID != "" {
-			GlobUI.Printf("%sID: %s\n", indentSpace(indent+2), key.DeviceID)
+			dui.Printf("%sID: %s\n", indentSpace(indent+2), key.DeviceID)
 		}
 		if key.DeviceType != "" {
-			GlobUI.Printf("%sType: %s\n", indentSpace(indent+2), key.DeviceType)
+			dui.Printf("%sType: %s\n", indentSpace(indent+2), key.DeviceType)
 		}
 		if key.DeviceDescription != "" {
-			GlobUI.Printf("%sDescription: %s\n", indentSpace(indent+2), key.DeviceDescription)
+			dui.Printf("%sDescription: %s\n", indentSpace(indent+2), key.DeviceDescription)
 		}
 	}
-	GlobUI.Printf("%sCreated: %s\n", indentSpace(indent+1), keybase1.FromTime(key.CTime))
-	GlobUI.Printf("%sExpires: %s\n", indentSpace(indent+1), keybase1.FromTime(key.ETime))
+	dui.Printf("%sCreated: %s\n", indentSpace(indent+1), keybase1.FromTime(key.CTime))
+	dui.Printf("%sExpires: %s\n", indentSpace(indent+1), keybase1.FromTime(key.ETime))
 
 	if subkeys != nil && len(subkeys) > 0 {
-		GlobUI.Printf("%sSubkeys:\n", indentSpace(indent+1))
+		dui.Printf("%sSubkeys:\n", indentSpace(indent+1))
 		for _, subkey := range subkeys {
-			printKey(subkey, nil, indent+2)
+			v.printKey(subkey, nil, indent+2)
 		}
 	}
 	return nil
 }
 
-func NewCmdDumpKeyfamily(cl *libcmdline.CommandLine) cli.Command {
-	return cli.Command{
-		Name:  "dump-keyfamily",
-		Flags: []cli.Flag{},
-		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdDumpKeyfamily{}, "dump-keyfamily", c)
-		},
-	}
+func (v *CmdDumpKeyfamily) ParseArgv(ctx *cli.Context) error {
+	return nil
 }
 
 func (v *CmdDumpKeyfamily) GetUsage() libkb.Usage {
