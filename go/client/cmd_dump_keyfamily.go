@@ -21,13 +21,13 @@ func indentSpace(level int) string {
 	return strings.Repeat(" ", level*spacesPerIndent)
 }
 
-type CmdStatus struct{}
+type CmdDumpKeyfamily struct{}
 
-func (v *CmdStatus) ParseArgv(ctx *cli.Context) error {
+func (v *CmdDumpKeyfamily) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (v *CmdStatus) Run() (err error) {
+func (v *CmdDumpKeyfamily) Run() (err error) {
 	configCli, err := GetConfigClient(G)
 	if err != nil {
 		return err
@@ -80,15 +80,7 @@ func findSubkeys(parentID keybase1.KID, allKeys []keybase1.PublicKey) []keybase1
 	return ret
 }
 
-func (v *CmdStatus) printExportedMe(me keybase1.User, publicKeys []keybase1.PublicKey, devices []keybase1.Device) error {
-	GlobUI.Printf("Username: %s\n", me.Username)
-	GlobUI.Printf("User ID: %s\n", me.Uid)
-	GlobUI.Printf("Device ID: %s\n", G.Env.GetDeviceID())
-	for _, device := range devices {
-		if device.DeviceID == G.Env.GetDeviceID() {
-			GlobUI.Printf("Device name: %s\n", device.Name)
-		}
-	}
+func (v *CmdDumpKeyfamily) printExportedMe(me keybase1.User, publicKeys []keybase1.PublicKey, devices []keybase1.Device) error {
 	if len(publicKeys) == 0 {
 		GlobUI.Printf("No public keys.\n")
 		return nil
@@ -169,18 +161,17 @@ func printKey(key keybase1.PublicKey, subkeys []keybase1.PublicKey, indent int) 
 	return nil
 }
 
-func NewCmdStatus(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdDumpKeyfamily(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name:  "status",
-		Usage: "Show information about the current user",
+		Name:  "dump-keyfamily",
 		Flags: []cli.Flag{},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdStatus{}, "status", c)
+			cl.ChooseCommand(&CmdDumpKeyfamily{}, "dump-keyfamily", c)
 		},
 	}
 }
 
-func (v *CmdStatus) GetUsage() libkb.Usage {
+func (v *CmdDumpKeyfamily) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: true,
 		API:    true,
