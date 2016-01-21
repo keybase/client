@@ -50,11 +50,21 @@ function findSocketRoot () {
 }
 
 function findDataRoot () {
-  linuxDefaultRoot = `${getenv('HOME', '')}/.local/share`
+  const linuxDefaultRoot = `${getenv('HOME', '')}/.local/share`
   const paths = {
     'darwin': `${getenv('HOME', '')}/Library/Application Support/${envedPathOSX[runMode]}/`,
     'linux': `${getenv('XDG_DATA_HOME', linuxDefaultRoot)}/${envedPathLinux[runMode]}/`,
     'win32': `${getenv('APPDATA', '')}\\Keybase\\`
+  }
+
+  return paths[process.platform]
+}
+
+export function logFileName () {
+  const paths = {
+    'darwin': `${getenv('HOME', '')}/Library/Logs/${envedPathOSX[runMode]}.app.log`,
+    'linux': null, // linux is null because we can redirect stdout
+    'win32': `${getenv('APPDATA', '')}\\Keybase\\keybase.${runMode}.app.log`
   }
 
   return paths[process.platform]
