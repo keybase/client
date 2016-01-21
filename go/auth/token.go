@@ -27,7 +27,7 @@ const (
 
 type TokenAuth struct {
 	Server    string `json:"server"`
-	Challenge string `json:"challenge"`
+	Challenge string `json:"session"`
 }
 
 type TokenKey struct {
@@ -57,7 +57,8 @@ type Token struct {
 }
 
 func NewToken(uid keybase1.UID, username libkb.NormalizedUsername, kid keybase1.KID,
-	server, challenge string, expireIn int, clientName, clientVersion string) *Token {
+	server, challenge string, now int64, expireIn int,
+	clientName, clientVersion string) *Token {
 	return &Token{
 		Body: TokenBody{
 			Auth: TokenAuth{
@@ -76,7 +77,7 @@ func NewToken(uid keybase1.UID, username libkb.NormalizedUsername, kid keybase1.
 			Name:    clientName,
 			Version: clientVersion,
 		},
-		CreationTime: time.Now().Unix(),
+		CreationTime: now,
 		ExpireIn:     expireIn,
 		Tag:          "signature",
 	}

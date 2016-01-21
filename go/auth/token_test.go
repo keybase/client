@@ -6,6 +6,7 @@ package auth
 import (
 	"fmt"
 	"testing"
+	"time"
 
 	libkb "github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -28,7 +29,8 @@ func TestTokenVerifyToken(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	token := NewToken(uid, name, keyPair.GetKID(), server, challenge, expireIn, clientName, clientVersion)
+	token := NewToken(uid, name, keyPair.GetKID(), server, challenge,
+		time.Now().Unix(), expireIn, clientName, clientVersion)
 	sig, _, err := keyPair.SignToString(token.Bytes())
 	if err != nil {
 		t.Fatal(err)
@@ -62,7 +64,8 @@ func TestTokenExpired(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	token := NewToken(uid, name, keyPair.GetKID(), server, challenge, expireIn, clientName, clientVersion)
+	token := NewToken(uid, name, keyPair.GetKID(), server, challenge,
+		time.Now().Unix(), expireIn, clientName, clientVersion)
 	sig, _, err := keyPair.SignToString(token.Bytes())
 	if err != nil {
 		t.Fatal(err)
@@ -89,7 +92,8 @@ func TestMaxExpires(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	token := NewToken(uid, name, keyPair.GetKID(), server, challenge, expireIn, clientName, clientVersion)
+	token := NewToken(uid, name, keyPair.GetKID(), server, challenge,
+		time.Now().Unix(), expireIn, clientName, clientVersion)
 	sig, _, err := keyPair.SignToString(token.Bytes())
 	if err != nil {
 		t.Fatal(err)
@@ -116,7 +120,8 @@ func TestTokenServerInvalid(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	token := NewToken(uid, name, keyPair.GetKID(), server, challenge, expireIn, clientName, clientVersion)
+	token := NewToken(uid, name, keyPair.GetKID(), server, challenge,
+		time.Now().Unix(), expireIn, clientName, clientVersion)
 	sig, _, err := keyPair.SignToString(token.Bytes())
 	if err != nil {
 		t.Fatal(err)
@@ -151,7 +156,8 @@ func TestTokenChallengeInvalid(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	token := NewToken(uid, name, keyPair.GetKID(), server, challenge, expireIn, clientName, clientVersion)
+	token := NewToken(uid, name, keyPair.GetKID(), server, challenge,
+		time.Now().Unix(), expireIn, clientName, clientVersion)
 	sig, _, err := keyPair.SignToString(token.Bytes())
 	if err != nil {
 		t.Fatal(err)
