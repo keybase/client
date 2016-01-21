@@ -74,11 +74,11 @@ release_prerelease() {
   # Upload another copy of the packages to our list of all packages.
   for f in "$build_dir"/deb_repo/repo/pool/main/*/*/*.deb ; do
     echo "Uploading individual binary '$f'..."
-    aws s3 cp "$f" s3://prerelease.keybase.io/linux/
+    aws s3 cp "$f" s3://prerelease.keybase.io/linux_binaries/deb/
   done
   for f in "$build_dir"/rpm_repo/repo/*/*.rpm ; do
     echo "Uploading individual binary '$f'..."
-    aws s3 cp "$f" s3://prerelease.keybase.io/linux/
+    aws s3 cp "$f" s3://prerelease.keybase.io/linux_binaries/rpm/
   done
 
   json_tmp=`mktemp`
