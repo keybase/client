@@ -505,6 +505,7 @@ export type config_ClientDetails = {
   clientType: ClientType;
   argv: Array<string>;
   desc: string;
+  version: string;
 }
 
 export type ClientDetails = {
@@ -512,6 +513,7 @@ export type ClientDetails = {
   clientType: ClientType;
   argv: Array<string>;
   desc: string;
+  version: string;
 }
 
 export type config_PlatformInfo = {

@@ -510,6 +510,7 @@ type ClientDetails struct {
 	ClientType ClientType `codec:"clientType" json:"clientType"`
 	Argv       []string   `codec:"argv" json:"argv"`
 	Desc       string     `codec:"desc" json:"desc"`
+	Version    string     `codec:"version" json:"version"`
 }
 
 type PlatformInfo struct {

@@ -26,6 +26,7 @@ protocol config {
     ClientType clientType;
     array<string> argv;
     string desc;
+    string version;
   }
 
   record PlatformInfo {

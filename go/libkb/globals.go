@@ -474,5 +474,6 @@ func (g *GlobalContext) GetMyClientDetails() keybase1.ClientDetails {
 		ClientType: keybase1.ClientType_CLI,
 		Pid:        os.Getpid(),
 		Argv:       os.Args,
+		Version:    VersionString(),
 	}
 }
