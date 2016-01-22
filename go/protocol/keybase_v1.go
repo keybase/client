@@ -7,6 +7,7 @@ import (
 
 type GenericClient interface {
 	Call(ctx context.Context, s string, args interface{}, res interface{}) error
+	Notify(ctx context.Context, s string, args interface{}) error
 }
 
 type Feature struct {
@@ -2547,7 +2548,7 @@ type Kex2ProvisionerClient struct {
 }
 
 func (c Kex2ProvisionerClient) KexStart(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.Kex2Provisioner.kexStart", []interface{}{KexStartArg{}}, nil)
+	err = c.Cli.Notify(ctx, "keybase.1.Kex2Provisioner.kexStart", []interface{}{KexStartArg{}})
 	return
 }
 
@@ -3561,7 +3562,7 @@ type NotifyFSClient struct {
 
 func (c NotifyFSClient) FSActivity(ctx context.Context, notification FSNotification) (err error) {
 	__arg := FSActivityArg{Notification: notification}
-	err = c.Cli.Call(ctx, "keybase.1.NotifyFS.FSActivity", []interface{}{__arg}, nil)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSActivity", []interface{}{__arg})
 	return
 }
 
@@ -3617,7 +3618,7 @@ type NotifySessionClient struct {
 }
 
 func (c NotifySessionClient) LoggedOut(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.NotifySession.loggedOut", []interface{}{LoggedOutArg{}}, nil)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifySession.loggedOut", []interface{}{LoggedOutArg{}})
 	return
 }
 
@@ -3665,7 +3666,7 @@ type NotifyTrackingClient struct {
 }
 
 func (c NotifyTrackingClient) TrackingChanged(ctx context.Context, __arg TrackingChangedArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.NotifyTracking.trackingChanged", []interface{}{__arg}, nil)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTracking.trackingChanged", []interface{}{__arg})
 	return
 }
 
@@ -3707,7 +3708,7 @@ type NotifyUsersClient struct {
 
 func (c NotifyUsersClient) UserChanged(ctx context.Context, uid UID) (err error) {
 	__arg := UserChangedArg{Uid: uid}
-	err = c.Cli.Call(ctx, "keybase.1.NotifyUsers.userChanged", []interface{}{__arg}, nil)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyUsers.userChanged", []interface{}{__arg})
 	return
 }
 
