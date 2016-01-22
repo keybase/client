@@ -12,6 +12,7 @@ tmp_dir="$dir/tmp"
 bucket_name=${BUCKET_NAME:-}
 run_mode="prod"
 platform="darwin"
+nosign=${NOSIGN:-}
 
 s3host=""
 if [ ! "$bucket_name" = "" ]; then
@@ -148,6 +149,10 @@ update_plist() {
 }
 
 sign() {
+  if [ "$nosign" = "1" ]; then
+    echo "Skipping signing"
+    return
+  fi
   cd $out_dir
   code_sign_identity="Developer ID Application: Keybase, Inc. (99229SGT5K)"
   codesign --verbose --force --deep --timestamp=none --sign "$code_sign_identity" $app_name.app
