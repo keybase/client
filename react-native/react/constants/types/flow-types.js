@@ -503,16 +503,14 @@ export type SessionStatus = {
 export type config_ClientDetails = {
   pid: int;
   clientType: ClientType;
-  process: string;
-  path: string;
+  argv: Array<string>;
   desc: string;
 }
 
 export type ClientDetails = {
   pid: int;
   clientType: ClientType;
-  process: string;
-  path: string;
+  argv: Array<string>;
   desc: string;
 }
 

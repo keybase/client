@@ -210,8 +210,8 @@ func (c *CmdStatus) outputClients(dui libkb.DumbOutputUI, clients []keybase1.Cli
 		if cli.ClientType != prev {
 			dui.Printf("\n%s(s):\n", cli.ClientType)
 			prev = cli.ClientType
-			dui.Printf("    %s [pid: %d]\n", cli.Path, cli.Pid)
 		}
+		dui.Printf("    %s [pid: %d]\n", strings.Join(cli.Argv, " "), cli.Pid)
 	}
 }
 

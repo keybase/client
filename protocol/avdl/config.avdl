@@ -24,8 +24,7 @@ protocol config {
   record ClientDetails {
     int pid;
     ClientType clientType;
-    string process;
-    string path;
+    array<string> argv;
     string desc;
   }
 

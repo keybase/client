@@ -508,8 +508,7 @@ type SessionStatus struct {
 type ClientDetails struct {
 	Pid        int        `codec:"pid" json:"pid"`
 	ClientType ClientType `codec:"clientType" json:"clientType"`
-	Process    string     `codec:"process" json:"process"`
-	Path       string     `codec:"path" json:"path"`
+	Argv       []string   `codec:"argv" json:"argv"`
 	Desc       string     `codec:"desc" json:"desc"`
 }
 

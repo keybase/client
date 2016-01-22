@@ -260,11 +260,11 @@
       "name" : "clientType",
       "type" : "ClientType"
     }, {
-      "name" : "process",
-      "type" : "string"
-    }, {
-      "name" : "path",
-      "type" : "string"
+      "name" : "argv",
+      "type" : {
+        "type" : "array",
+        "items" : "string"
+      }
     }, {
       "name" : "desc",
       "type" : "string"
