@@ -50,17 +50,21 @@ func linuxUpgradeInstructionsString() (string, error) {
 
 	packageName := "keybase"
 
+	var start string
 	if hasPackageManager("apt-get") {
-		return "sudo apt-get update && sudo apt-get install " + packageName, nil
+		start = "sudo apt-get update && sudo apt-get install " + packageName
 	} else if hasPackageManager("dnf") {
-		return "sudo dnf upgrade " + packageName, nil
+		start = "sudo dnf upgrade " + packageName
 	} else if hasPackageManager("yum") {
-		return "sudo yum upgrade " + packageName, nil
+		start = "sudo yum upgrade " + packageName
 	} else if hasPackageManager("pacman") {
-		return "sudo pacman -Syu", nil
+		start = "sudo pacman -Syu"
+	} else {
+		return "", fmt.Errorf("Unhandled linux upgrade instruction.")
 	}
 
-	return "", fmt.Errorf("Unhandled linux upgrade instruction.")
+	complete := start + " && run_keybase"
+	return complete, nil
 }
 
 func darwinUpgradeInstructions(g *GlobalContext, upgradeURI string) {
