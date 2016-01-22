@@ -1,6 +1,7 @@
 package libfuse
 
 import (
+	"runtime"
 	"time"
 
 	"bazil.org/fuse"
@@ -35,6 +36,14 @@ const (
 // a particular request.
 func NewContextWithOpID(ctx context.Context,
 	log logger.Logger) context.Context {
+	if runtime.GOOS == "darwin" {
+		// Timeout operations before they hit the osxfuse time limit,
+		// so we don't hose the entire mount.  The timeout is 60
+		// seconds, but it looks like sometimes it tries multiple
+		// attempts within that 60 seconds, so let's go a little under
+		// 60/3 to be safe.
+		ctx, _ = context.WithTimeout(ctx, 19*time.Second)
+	}
 	id, err := libkbfs.MakeRandomRequestID()
 	if err != nil {
 		log.Errorf("Couldn't make request ID: %v", err)
