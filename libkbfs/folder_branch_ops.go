@@ -81,6 +81,8 @@ const (
 	secondsBetweenBackgroundFlushes = 10
 	// Cap the number of times we retry after a recoverable error
 	maxRetriesOnRecoverableErrors = 10
+	// Number of outstanding deferred bytes allowed.
+	maxDeferredBytes = 100 << 20
 )
 
 type fboMutexLevel mutexLevel
@@ -253,6 +255,7 @@ type folderBranchOps struct {
 	// deferred; if it is blockSyncingAndDirty, then just defer the
 	// writes.
 	fileBlockStates map[BlockPointer]syncBlockState
+
 	// Writes and truncates for blocks that were being sync'd, and
 	// need to be replayed after the sync finishes on top of the new
 	// versions of the blocks.
@@ -262,6 +265,12 @@ type folderBranchOps struct {
 	deferredDirtyDeletes []BlockPointer
 	// set to true if this write or truncate should be deferred
 	doDeferWrite bool
+	// Total number of bytes currently being deferred
+	deferredBytes uint64
+	// If there are too many deferred bytes outstanding, writes should
+	// block on this channel before continuing their writes.
+	deferredBlockingChan chan struct{}
+
 	// For writes and truncates, track the unsynced to-be-unref'd
 	// block infos, per-path.  Uses a stripped BlockPointer in case
 	// the Writer has changed during the operation.
@@ -279,7 +288,7 @@ type folderBranchOps struct {
 	headLock     leveledRWMutex // protects access to the MD
 
 	// protects access to blocks in this folder, fileBlockStates,
-	// and deferredWrites.
+	// and deferredWrites et al.
 	blockLock blockLock
 
 	obsLock   sync.RWMutex // protects access to observers
@@ -3075,6 +3084,39 @@ func (fbo *folderBranchOps) clearDeCacheEntryLocked(parentPtr BlockPointer,
 	}
 }
 
+// blockLock must be held by caller
+func (fbo *folderBranchOps) maybeWaitOnDeferredWritesLocked(
+	ctx context.Context, lState *lockState) error {
+	doLock := false
+	defer func() {
+		if doLock {
+			fbo.blockLock.Lock(lState)
+		}
+	}()
+
+	// If there are too many deferred writes, we should wait until
+	// they get cleared.
+	for fbo.deferredBytes >= maxDeferredBytes {
+		fbo.log.CDebugf(ctx, "Blocking a write because of %d bytes of "+
+			"outstanding deferred writes", fbo.deferredBytes)
+		if fbo.deferredBlockingChan == nil {
+			fbo.deferredBlockingChan = make(chan struct{})
+		}
+		c := fbo.deferredBlockingChan
+		doLock = true
+		fbo.blockLock.Unlock(lState)
+		select {
+		case <-c:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+		fbo.blockLock.Lock(lState)
+		doLock = false
+		fbo.log.CDebugf(ctx, "Write unblocked")
+	}
+	return nil
+}
+
 func (fbo *folderBranchOps) Write(
 	ctx context.Context, file Node, data []byte, off int64) (err error) {
 	fbo.log.CDebugf(ctx, "Write %p %d %d", file.GetID(), len(data), off)
@@ -3097,6 +3139,10 @@ func (fbo *folderBranchOps) Write(
 
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
+	if err := fbo.maybeWaitOnDeferredWritesLocked(ctx, lState); err != nil {
+		return err
+	}
+
 	filePath, err := fbo.pathFromNodeForWriteLocked(file)
 	if err != nil {
 		return err
@@ -3123,6 +3169,7 @@ func (fbo *folderBranchOps) Write(
 		// the most obviously correct way.
 		dataCopy := make([]byte, len(data))
 		copy(dataCopy, data)
+		fbo.deferredBytes += uint64(len(data))
 		fbo.log.CDebugf(ctx, "Deferring a write to file %v off=%d len=%d",
 			filePath.tailPointer(), off, len(data))
 		fbo.deferredDirtyDeletes = append(fbo.deferredDirtyDeletes,
@@ -3866,6 +3913,12 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 			// write here. Hopefully that will never happen.
 			return true, err
 		}
+	}
+
+	fbo.deferredBytes = 0
+	if fbo.deferredBlockingChan != nil {
+		close(fbo.deferredBlockingChan)
+		fbo.deferredBlockingChan = nil
 	}
 
 	return stillDirty, nil
