@@ -6,6 +6,7 @@ package service
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"golang.org/x/net/context"
@@ -18,15 +19,17 @@ import (
 
 type ConfigHandler struct {
 	libkb.Contextified
-	xp  rpc.Transporter
-	svc *Service
+	xp     rpc.Transporter
+	svc    *Service
+	connID libkb.ConnectionID
 }
 
-func NewConfigHandler(xp rpc.Transporter, g *libkb.GlobalContext, svc *Service) *ConfigHandler {
+func NewConfigHandler(xp rpc.Transporter, i libkb.ConnectionID, g *libkb.GlobalContext, svc *Service) *ConfigHandler {
 	return &ConfigHandler{
 		Contextified: libkb.NewContextified(g),
 		xp:           xp,
 		svc:          svc,
+		connID:       i,
 	}
 }
 
@@ -38,24 +41,33 @@ func (h ConfigHandler) GetCurrentStatus(_ context.Context, sessionID int) (res k
 	return
 }
 
+func getPlatformInfo() keybase1.PlatformInfo {
+	return keybase1.PlatformInfo{
+		Os:        runtime.GOOS,
+		Arch:      runtime.GOARCH,
+		GoVersion: runtime.Version(),
+	}
+}
+
 func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res keybase1.ExtendedStatus, err error) {
+	defer h.G().Trace("ConfigHandler::GetExtendedStatus", func() error { return err })()
+
 	res.Standalone = h.G().Env.GetStandalone()
 	res.LogDir = h.G().Env.GetLogDir()
+	res.Clients = h.G().ConnectionManager.ListAllLabeledConnections()
 
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(h.G()))
 	if err != nil {
+		h.G().Log.Debug("| died in LoadMe")
 		return res, err
 	}
 
 	device, err := me.GetComputedKeyFamily().GetCurrentDevice(h.G())
 	if err != nil {
-		return res, err
+		h.G().Log.Debug("| GetCurrentDevice failed: %s", err)
+	} else {
+		res.Device = device.ProtExport()
 	}
-	res.DeviceID = device.ID
-	if device.Description != nil {
-		res.DeviceName = *device.Description
-	}
-	res.DeviceStatus = device.StatusString()
 
 	h.G().LoginState().Account(func(a *libkb.Account) {
 		res.PassphraseStreamCached = a.PassphraseStreamCache().Valid()
@@ -74,6 +86,7 @@ func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res 
 
 	current, all, err := h.G().GetAllUserNames()
 	if err != nil {
+		h.G().Log.Debug("| died in GetAllUseranmes()")
 		return res, err
 	}
 	res.DefaultUsername = current.String()
@@ -82,6 +95,7 @@ func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res 
 		p[i] = u.String()
 	}
 	res.ProvisionedUsernames = p
+	res.PlatformInfo = getPlatformInfo()
 
 	return res, nil
 }
@@ -142,4 +156,8 @@ func (h ConfigHandler) SetUserConfig(_ context.Context, arg keybase1.SetUserConf
 		return err
 	}
 	return nil
+}
+
+func (h ConfigHandler) HelloIAm(_ context.Context, arg keybase1.ClientDetails) error {
+	return h.G().ConnectionManager.Label(h.connID, arg)
 }

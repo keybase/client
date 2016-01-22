@@ -152,6 +152,9 @@
     }, {
       "name" : "verifyKey",
       "type" : "KID"
+    }, {
+      "name" : "status",
+      "type" : "int"
     } ]
   }, {
     "type" : "record",
@@ -167,7 +170,7 @@
   }, {
     "type" : "enum",
     "name" : "ClientType",
-    "symbols" : [ "CLI_0", "GUI_1" ]
+    "symbols" : [ "NONE_0", "CLI_1", "GUI_2", "KBFS_3" ]
   }, {
     "type" : "record",
     "name" : "UserVersionVector",
@@ -249,6 +252,41 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "ClientDetails",
+    "fields" : [ {
+      "name" : "pid",
+      "type" : "int"
+    }, {
+      "name" : "clientType",
+      "type" : "ClientType"
+    }, {
+      "name" : "argv",
+      "type" : {
+        "type" : "array",
+        "items" : "string"
+      }
+    }, {
+      "name" : "desc",
+      "type" : "string"
+    }, {
+      "name" : "version",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "PlatformInfo",
+    "fields" : [ {
+      "name" : "os",
+      "type" : "string"
+    }, {
+      "name" : "arch",
+      "type" : "string"
+    }, {
+      "name" : "goVersion",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "ExtendedStatus",
     "fields" : [ {
       "name" : "standalone",
@@ -257,14 +295,8 @@
       "name" : "passphraseStreamCached",
       "type" : "boolean"
     }, {
-      "name" : "deviceID",
-      "type" : "DeviceID"
-    }, {
-      "name" : "deviceName",
-      "type" : "string"
-    }, {
-      "name" : "deviceStatus",
-      "type" : "string"
+      "name" : "device",
+      "type" : [ "null", "Device" ]
     }, {
       "name" : "logDir",
       "type" : "string"
@@ -283,6 +315,15 @@
         "type" : "array",
         "items" : "string"
       }
+    }, {
+      "name" : "Clients",
+      "type" : {
+        "type" : "array",
+        "items" : "ClientDetails"
+      }
+    }, {
+      "name" : "platformInfo",
+      "type" : "PlatformInfo"
     } ]
   }, {
     "type" : "enum",
@@ -368,6 +409,13 @@
       }, {
         "name" : "value",
         "type" : "string"
+      } ],
+      "response" : "null"
+    },
+    "helloIAm" : {
+      "request" : [ {
+        "name" : "details",
+        "type" : "ClientDetails"
       } ],
       "response" : "null"
     }

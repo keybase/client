@@ -7,21 +7,32 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"golang.org/x/net/context"
 )
 
 func GetRPCClient() (ret *rpc.Client, xp rpc.Transporter, err error) {
 	return GetRPCClientWithContext(G)
 }
 
+func getSocket(g *libkb.GlobalContext) (xp rpc.Transporter, err error) {
+	var isNew bool
+	_, xp, isNew, err = g.GetSocket(false)
+	if err == nil && isNew {
+		introduceMyself(g, xp)
+	}
+	return xp, err
+
+}
+
 func GetRPCClientWithContext(g *libkb.GlobalContext) (ret *rpc.Client, xp rpc.Transporter, err error) {
-	if _, xp, err = g.GetSocket(false); err == nil {
+	if xp, err = getSocket(g); err == nil {
 		ret = rpc.NewClient(xp, libkb.ErrorUnwrapper{})
 	}
 	return
 }
 
 func GetRPCServer(g *libkb.GlobalContext) (ret *rpc.Server, xp rpc.Transporter, err error) {
-	if _, xp, err = g.GetSocket(false); err == nil {
+	if xp, err = getSocket(g); err == nil {
 		ret = rpc.NewServer(xp, libkb.WrapError)
 	}
 	if err != nil {
@@ -221,4 +232,10 @@ func GetSecretKeysClient(g *libkb.GlobalContext) (cli keybase1.SecretKeysClient,
 	}
 	cli = keybase1.SecretKeysClient{Cli: rcli}
 	return cli, nil
+}
+
+func introduceMyself(g *libkb.GlobalContext, xp rpc.Transporter) error {
+	cli := rpc.NewClient(xp, libkb.ErrorUnwrapper{})
+	ccli := keybase1.ConfigClient{Cli: cli}
+	return ccli.HelloIAm(context.TODO(), g.GetMyClientDetails())
 }

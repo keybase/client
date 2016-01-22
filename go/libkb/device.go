@@ -117,6 +117,9 @@ func (d *Device) ProtExport() *keybase1.Device {
 	if d.Description != nil {
 		ex.Name = *d.Description
 	}
+	if d.Status != nil {
+		ex.Status = *d.Status
+	}
 	return ex
 }
 
@@ -128,10 +131,14 @@ func (d *Device) IsActive() bool {
 }
 
 func (d *Device) StatusString() string {
-	if d.Status == nil {
+	return DeviceStatusToString(d.Status)
+}
+
+func DeviceStatusToString(i *int) string {
+	if i == nil {
 		return "<nil>"
 	}
-	switch *d.Status {
+	switch *i {
 	case DeviceStatusNone:
 		return "none"
 	case DeviceStatusActive:
@@ -139,6 +146,5 @@ func (d *Device) StatusString() string {
 	case DeviceStatusDefunct:
 		return "revoked"
 	}
-
 	return "unknown"
 }

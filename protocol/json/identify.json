@@ -152,6 +152,9 @@
     }, {
       "name" : "verifyKey",
       "type" : "KID"
+    }, {
+      "name" : "status",
+      "type" : "int"
     } ]
   }, {
     "type" : "record",
@@ -167,7 +170,7 @@
   }, {
     "type" : "enum",
     "name" : "ClientType",
-    "symbols" : [ "CLI_0", "GUI_1" ]
+    "symbols" : [ "NONE_0", "CLI_1", "GUI_2", "KBFS_3" ]
   }, {
     "type" : "record",
     "name" : "UserVersionVector",
@@ -386,10 +389,6 @@
       "type" : "Time"
     } ]
   }, {
-    "type" : "enum",
-    "name" : "IdentifySource",
-    "symbols" : [ "CLI_0", "KBFS_1" ]
-  }, {
     "type" : "record",
     "name" : "Identify2Res",
     "fields" : [ {
@@ -431,7 +430,7 @@
         "type" : "IdentifyReason"
       }, {
         "name" : "source",
-        "type" : "IdentifySource"
+        "type" : "ClientType"
       } ],
       "response" : "IdentifyRes"
     },

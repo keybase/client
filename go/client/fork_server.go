@@ -71,7 +71,7 @@ func ForkServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1.
 func pingLoop(g *libkb.GlobalContext) error {
 	var err error
 	for i := 0; i < 10; i++ {
-		_, _, err = g.GetSocket(true)
+		_, err = getSocket(g)
 		if err == nil {
 			g.Log.Debug("Connected (%d)", i)
 			return nil

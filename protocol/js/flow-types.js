@@ -178,6 +178,7 @@ export type block_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type Device = {
@@ -188,6 +189,7 @@ export type Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type block_Stream = {
@@ -202,9 +204,9 @@ export type block_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2
 
 export type LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type block_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type block_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
-export type ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type block_UserVersionVector = {
   id: long;
@@ -349,6 +351,7 @@ export type BTC_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type BTC_Stream = {
@@ -357,7 +360,7 @@ export type BTC_Stream = {
 
 export type BTC_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type BTC_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type BTC_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type BTC_UserVersionVector = {
   id: long;
@@ -440,6 +443,7 @@ export type config_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type config_Stream = {
@@ -448,7 +452,7 @@ export type config_Stream = {
 
 export type config_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type config_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type config_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type config_UserVersionVector = {
   id: long;
@@ -496,30 +500,58 @@ export type SessionStatus = {
   Expired: boolean;
 }
 
+export type config_ClientDetails = {
+  pid: int;
+  clientType: ClientType;
+  argv: Array<string>;
+  desc: string;
+  version: string;
+}
+
+export type ClientDetails = {
+  pid: int;
+  clientType: ClientType;
+  argv: Array<string>;
+  desc: string;
+  version: string;
+}
+
+export type config_PlatformInfo = {
+  os: string;
+  arch: string;
+  goVersion: string;
+}
+
+export type PlatformInfo = {
+  os: string;
+  arch: string;
+  goVersion: string;
+}
+
 export type config_ExtendedStatus = {
   standalone: boolean;
   passphraseStreamCached: boolean;
-  deviceID: DeviceID;
-  deviceName: string;
-  deviceStatus: string;
+  device?: ?Device;
   logDir: string;
   desktopUIConnected: boolean;
   session?: ?SessionStatus;
   defaultUsername: string;
   provisionedUsernames: Array<string>;
+  Clients: Array<ClientDetails>;
+  platformInfo: PlatformInfo;
 }
 
 export type ExtendedStatus = {
   standalone: boolean;
   passphraseStreamCached: boolean;
-  deviceID: DeviceID;
-  deviceName: string;
-  deviceStatus: string;
+  device?: ?Device;
   logDir: string;
   desktopUIConnected: boolean;
   session?: ?SessionStatus;
   defaultUsername: string;
   provisionedUsernames: Array<string>;
+  Clients: Array<ClientDetails>;
+  platformInfo: PlatformInfo;
 }
 
 export type config_ForkType = 0 /* 'NONE_0' */ | 1 /* 'AUTO_1' */ | 2 /* 'WATCHDOG_2' */ | 3 /* 'LAUNCHD_3' */
@@ -627,6 +659,7 @@ export type crypto_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type crypto_Stream = {
@@ -635,7 +668,7 @@ export type crypto_Stream = {
 
 export type crypto_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type crypto_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type crypto_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type crypto_UserVersionVector = {
   id: long;
@@ -778,6 +811,7 @@ export type ctl_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type ctl_Stream = {
@@ -786,7 +820,7 @@ export type ctl_Stream = {
 
 export type ctl_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type ctl_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type ctl_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type ctl_UserVersionVector = {
   id: long;
@@ -881,6 +915,7 @@ export type delegateUiCtl_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type delegateUiCtl_Stream = {
@@ -889,7 +924,7 @@ export type delegateUiCtl_Stream = {
 
 export type delegateUiCtl_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type delegateUiCtl_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type delegateUiCtl_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type delegateUiCtl_UserVersionVector = {
   id: long;
@@ -972,6 +1007,7 @@ export type device_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type device_Stream = {
@@ -980,7 +1016,7 @@ export type device_Stream = {
 
 export type device_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type device_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type device_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type device_UserVersionVector = {
   id: long;
@@ -1063,6 +1099,7 @@ export type favorite_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type favorite_Stream = {
@@ -1071,7 +1108,7 @@ export type favorite_Stream = {
 
 export type favorite_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type favorite_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type favorite_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type favorite_UserVersionVector = {
   id: long;
@@ -1166,6 +1203,7 @@ export type gpgUi_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type gpgUi_Stream = {
@@ -1174,7 +1212,7 @@ export type gpgUi_Stream = {
 
 export type gpgUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type gpgUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type gpgUi_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type gpgUi_UserVersionVector = {
   id: long;
@@ -1283,6 +1321,7 @@ export type identify_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type identify_Stream = {
@@ -1291,7 +1330,7 @@ export type identify_Stream = {
 
 export type identify_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type identify_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type identify_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type identify_UserVersionVector = {
   id: long;
@@ -1451,10 +1490,6 @@ export type RemoteProof = {
   mTime: Time;
 }
 
-export type identify_IdentifySource = 0 /* 'CLI_0' */ | 1 /* 'KBFS_1' */
-
-export type IdentifySource = 0 /* 'CLI_0' */ | 1 /* 'KBFS_1' */
-
 export type identify_Identify2Res = {
   upk: UserPlusKeys;
 }
@@ -1528,6 +1563,7 @@ export type identifyUi_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type identifyUi_Stream = {
@@ -1536,7 +1572,7 @@ export type identifyUi_Stream = {
 
 export type identifyUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type identifyUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type identifyUi_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type identifyUi_UserVersionVector = {
   id: long;
@@ -1836,6 +1872,7 @@ export type install_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type install_Stream = {
@@ -1844,7 +1881,7 @@ export type install_Stream = {
 
 export type install_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type install_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type install_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type install_UserVersionVector = {
   id: long;
@@ -2059,6 +2096,7 @@ export type Kex2Provisionee_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type Kex2Provisionee_Stream = {
@@ -2067,7 +2105,7 @@ export type Kex2Provisionee_Stream = {
 
 export type Kex2Provisionee_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type Kex2Provisionee_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type Kex2Provisionee_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type Kex2Provisionee_UserVersionVector = {
   id: long;
@@ -2178,6 +2216,7 @@ export type log_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type log_Stream = {
@@ -2186,7 +2225,7 @@ export type log_Stream = {
 
 export type log_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type log_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type log_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type log_UserVersionVector = {
   id: long;
@@ -2269,6 +2308,7 @@ export type logUi_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type logUi_Stream = {
@@ -2277,7 +2317,7 @@ export type logUi_Stream = {
 
 export type logUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type logUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type logUi_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type logUi_UserVersionVector = {
   id: long;
@@ -2360,6 +2400,7 @@ export type login_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type login_Stream = {
@@ -2368,7 +2409,7 @@ export type login_Stream = {
 
 export type login_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type login_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type login_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type login_UserVersionVector = {
   id: long;
@@ -2461,6 +2502,7 @@ export type loginUi_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type loginUi_Stream = {
@@ -2469,7 +2511,7 @@ export type loginUi_Stream = {
 
 export type loginUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type loginUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type loginUi_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type loginUi_UserVersionVector = {
   id: long;
@@ -2552,6 +2594,7 @@ export type metadata_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type metadata_Stream = {
@@ -2560,7 +2603,7 @@ export type metadata_Stream = {
 
 export type metadata_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type metadata_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type metadata_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type metadata_UserVersionVector = {
   id: long;
@@ -2685,6 +2728,7 @@ export type metadataUpdate_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type metadataUpdate_Stream = {
@@ -2693,7 +2737,7 @@ export type metadataUpdate_Stream = {
 
 export type metadataUpdate_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type metadataUpdate_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type metadataUpdate_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type metadataUpdate_UserVersionVector = {
   id: long;
@@ -2786,6 +2830,7 @@ export type notifyCtl_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type notifyCtl_Stream = {
@@ -2794,7 +2839,7 @@ export type notifyCtl_Stream = {
 
 export type notifyCtl_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type notifyCtl_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type notifyCtl_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type notifyCtl_UserVersionVector = {
   id: long;
@@ -2903,6 +2948,7 @@ export type NotifyTracking_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type NotifyTracking_Stream = {
@@ -2911,7 +2957,7 @@ export type NotifyTracking_Stream = {
 
 export type NotifyTracking_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type NotifyTracking_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type NotifyTracking_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type NotifyTracking_UserVersionVector = {
   id: long;
@@ -2994,6 +3040,7 @@ export type NotifyUsers_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type NotifyUsers_Stream = {
@@ -3002,7 +3049,7 @@ export type NotifyUsers_Stream = {
 
 export type NotifyUsers_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type NotifyUsers_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type NotifyUsers_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type NotifyUsers_UserVersionVector = {
   id: long;
@@ -3085,6 +3132,7 @@ export type pgp_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type pgp_Stream = {
@@ -3093,7 +3141,7 @@ export type pgp_Stream = {
 
 export type pgp_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type pgp_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type pgp_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type pgp_UserVersionVector = {
   id: long;
@@ -3353,6 +3401,7 @@ export type pgpUi_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type pgpUi_Stream = {
@@ -3361,7 +3410,7 @@ export type pgpUi_Stream = {
 
 export type pgpUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type pgpUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type pgpUi_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type pgpUi_UserVersionVector = {
   id: long;
@@ -3444,6 +3493,7 @@ export type prove_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type prove_Stream = {
@@ -3452,7 +3502,7 @@ export type prove_Stream = {
 
 export type prove_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type prove_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type prove_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type prove_UserVersionVector = {
   id: long;
@@ -3626,6 +3676,7 @@ export type proveUi_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type proveUi_Stream = {
@@ -3634,7 +3685,7 @@ export type proveUi_Stream = {
 
 export type proveUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type proveUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type proveUi_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type proveUi_UserVersionVector = {
   id: long;
@@ -3721,6 +3772,7 @@ export type provisionUi_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type provisionUi_Stream = {
@@ -3729,7 +3781,7 @@ export type provisionUi_Stream = {
 
 export type provisionUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type provisionUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type provisionUi_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type provisionUi_UserVersionVector = {
   id: long;
@@ -3834,6 +3886,7 @@ export type quota_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type quota_Stream = {
@@ -3842,7 +3895,7 @@ export type quota_Stream = {
 
 export type quota_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type quota_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type quota_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type quota_UserVersionVector = {
   id: long;
@@ -3939,6 +3992,7 @@ export type revoke_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type revoke_Stream = {
@@ -3947,7 +4001,7 @@ export type revoke_Stream = {
 
 export type revoke_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type revoke_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type revoke_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type revoke_UserVersionVector = {
   id: long;
@@ -4030,6 +4084,7 @@ export type saltpack_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type saltpack_Stream = {
@@ -4038,7 +4093,7 @@ export type saltpack_Stream = {
 
 export type saltpack_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type saltpack_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type saltpack_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type saltpack_UserVersionVector = {
   id: long;
@@ -4248,6 +4303,7 @@ export type saltpackUi_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type saltpackUi_Stream = {
@@ -4256,7 +4312,7 @@ export type saltpackUi_Stream = {
 
 export type saltpackUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type saltpackUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type saltpackUi_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type saltpackUi_UserVersionVector = {
   id: long;
@@ -4413,6 +4469,7 @@ export type SecretKeys_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type SecretKeys_Stream = {
@@ -4421,7 +4478,7 @@ export type SecretKeys_Stream = {
 
 export type SecretKeys_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type SecretKeys_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type SecretKeys_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type SecretKeys_UserVersionVector = {
   id: long;
@@ -4530,6 +4587,7 @@ export type session_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type session_Stream = {
@@ -4538,7 +4596,7 @@ export type session_Stream = {
 
 export type session_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type session_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type session_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type session_UserVersionVector = {
   id: long;
@@ -4637,6 +4695,7 @@ export type signup_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type signup_Stream = {
@@ -4645,7 +4704,7 @@ export type signup_Stream = {
 
 export type signup_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type signup_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type signup_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type signup_UserVersionVector = {
   id: long;
@@ -4740,6 +4799,7 @@ export type sigs_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type sigs_Stream = {
@@ -4748,7 +4808,7 @@ export type sigs_Stream = {
 
 export type sigs_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type sigs_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type sigs_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type sigs_UserVersionVector = {
   id: long;
@@ -4889,6 +4949,7 @@ export type streamUi_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type streamUi_Stream = {
@@ -4897,7 +4958,7 @@ export type streamUi_Stream = {
 
 export type streamUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type streamUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type streamUi_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type streamUi_UserVersionVector = {
   id: long;
@@ -4988,6 +5049,7 @@ export type track_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type track_Stream = {
@@ -4996,7 +5058,7 @@ export type track_Stream = {
 
 export type track_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type track_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type track_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type track_UserVersionVector = {
   id: long;
@@ -5150,6 +5212,7 @@ export type ui_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type ui_Stream = {
@@ -5158,7 +5221,7 @@ export type ui_Stream = {
 
 export type ui_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type ui_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type ui_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type ui_UserVersionVector = {
   id: long;
@@ -5245,6 +5308,7 @@ export type update_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type update_Stream = {
@@ -5253,7 +5317,7 @@ export type update_Stream = {
 
 export type update_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type update_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type update_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type update_UserVersionVector = {
   id: long;
@@ -5402,6 +5466,7 @@ export type updateUi_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type updateUi_Stream = {
@@ -5410,7 +5475,7 @@ export type updateUi_Stream = {
 
 export type updateUi_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type updateUi_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type updateUi_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type updateUi_UserVersionVector = {
   id: long;
@@ -5540,6 +5605,7 @@ export type user_Device = {
   mTime: Time;
   encryptKey: KID;
   verifyKey: KID;
+  status: int;
 }
 
 export type user_Stream = {
@@ -5548,7 +5614,7 @@ export type user_Stream = {
 
 export type user_LogLevel = 0 /* 'NONE_0' */ | 1 /* 'DEBUG_1' */ | 2 /* 'INFO_2' */ | 3 /* 'NOTICE_3' */ | 4 /* 'WARN_4' */ | 5 /* 'ERROR_5' */ | 6 /* 'CRITICAL_6' */ | 7 /* 'FATAL_7' */
 
-export type user_ClientType = 0 /* 'CLI_0' */ | 1 /* 'GUI_1' */
+export type user_ClientType = 0 /* 'NONE_0' */ | 1 /* 'CLI_1' */ | 2 /* 'GUI_2' */ | 3 /* 'KBFS_3' */
 
 export type user_UserVersionVector = {
   id: long;

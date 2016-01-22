@@ -513,3 +513,16 @@ func (e *Error) Error() string {
 func (e *Error) Status() Status {
 	return Status{Code: int(e.code), Name: "ERROR", Desc: e.message}
 }
+
+func (t ClientType) String() string {
+	switch t {
+	case ClientType_CLI:
+		return "command-line client"
+	case ClientType_KBFS:
+		return "KBFS"
+	case ClientType_GUI:
+		return "desktop"
+	default:
+		return "other"
+	}
+}

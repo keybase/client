@@ -69,7 +69,7 @@ func (h *IdentifyHandler) Resolve(_ context.Context, arg string) (keybase1.UID, 
 
 func (h *IdentifyHandler) Identify(_ context.Context, arg keybase1.IdentifyArg) (keybase1.IdentifyRes, error) {
 	var do = func() (interface{}, error) {
-		if arg.Source == keybase1.IdentifySource_KBFS {
+		if arg.Source == keybase1.ClientType_KBFS {
 			h.G().Log.Debug("KBFS Identify: checking result cache for %q", arg.UserAssertion)
 			x, err := h.resultCache.Get(arg.UserAssertion)
 			if err == nil {

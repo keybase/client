@@ -12,8 +12,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     }
   },
   'BTC': {
@@ -28,8 +30,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     }
   },
   'config': {
@@ -44,8 +48,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     },
     'ForkType': {
       'none': 0,
@@ -125,8 +131,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     }
   },
   'ctl': {
@@ -141,8 +149,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     },
     'ExitCode': {
       'ok': 0,
@@ -163,8 +173,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     }
   },
   'device': {
@@ -179,8 +191,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     }
   },
   'favorite': {
@@ -195,8 +209,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     }
   },
   'gpgUi': {
@@ -211,8 +227,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     }
   },
   'identify': {
@@ -227,8 +245,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     },
     'ProofState': {
       'none': 0,
@@ -319,10 +339,6 @@ export default {
       'decrypt': 4,
       'verify': 5,
       'resource': 6
-    },
-    'IdentifySource': {
-      'cli': 0,
-      'kbfs': 1
     }
   },
   'identifyUi': {
@@ -337,8 +353,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     },
     'ProofState': {
       'none': 0,
@@ -443,8 +461,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     },
     'InstallStatus': {
       'unknown': 0,
@@ -486,8 +506,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     }
   },
   'Kex2Provisioner': {},
@@ -503,8 +525,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     }
   },
   'logUi': {
@@ -519,8 +543,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     }
   },
   'login': {
@@ -535,8 +561,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     }
   },
   'loginUi': {
@@ -551,8 +579,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     }
   },
   'metadata': {
@@ -567,8 +597,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     }
   },
   'metadataUpdate': {
@@ -583,8 +615,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     }
   },
   'notifyCtl': {
@@ -599,8 +633,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     }
   },
   'NotifyFS': {
@@ -630,8 +666,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     }
   },
   'NotifyUsers': {
@@ -646,8 +684,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     }
   },
   'pgp': {
@@ -662,8 +702,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     },
     'ProofState': {
       'none': 0,
@@ -773,8 +815,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     }
   },
   'prove': {
@@ -789,8 +833,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     },
     'ProofState': {
       'none': 0,
@@ -895,8 +941,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     },
     'PromptOverwriteType': {
       'social': 0,
@@ -915,8 +963,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     },
     'ProvisionMethod': {
       'device': 0,
@@ -946,8 +996,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     }
   },
   'revoke': {
@@ -962,8 +1014,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     }
   },
   'saltpack': {
@@ -978,8 +1032,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     },
     'ProofState': {
       'none': 0,
@@ -1084,8 +1140,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     },
     'SaltpackSenderType': {
       'notTracked': 0,
@@ -1108,8 +1166,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     }
   },
   'session': {
@@ -1124,8 +1184,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     }
   },
   'signup': {
@@ -1140,8 +1202,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     }
   },
   'sigs': {
@@ -1156,8 +1220,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     }
   },
   'streamUi': {
@@ -1172,8 +1238,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     }
   },
   'test': {},
@@ -1189,8 +1257,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     },
     'ProofState': {
       'none': 0,
@@ -1295,8 +1365,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     },
     'PromptDefault': {
       'none': 0,
@@ -1316,8 +1388,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     },
     'UpdateType': {
       'normal': 0,
@@ -1337,8 +1411,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     },
     'UpdateType': {
       'normal': 0,
@@ -1364,8 +1440,10 @@ export default {
       'fatal': 7
     },
     'ClientType': {
-      'cli': 0,
-      'gui': 1
+      'none': 0,
+      'cli': 1,
+      'gui': 2,
+      'kbfs': 3
     }
   }
 }

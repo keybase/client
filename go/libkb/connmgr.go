@@ -4,7 +4,10 @@
 package libkb
 
 import (
+	"fmt"
+	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"sort"
 )
 
 // ConnectionID is a sequential integer assigned to each RPC connection
@@ -17,8 +20,14 @@ type addConnectionObj struct {
 }
 
 type lookupConnectionObj struct {
-	i  ConnectionID
+	id ConnectionID
 	ch chan<- rpc.Transporter
+}
+
+type labelConnectionObj struct {
+	id      ConnectionID
+	details keybase1.ClientDetails
+	ch      chan<- error
 }
 
 // ApplyFn can be applied to every connection. It is called with the
@@ -26,17 +35,24 @@ type lookupConnectionObj struct {
 // true to keep going and false to stop.
 type ApplyFn func(i ConnectionID, xp rpc.Transporter) bool
 
+type rpcConnection struct {
+	transporter rpc.Transporter
+	details     *keybase1.ClientDetails
+}
+
 // ConnectionManager manages all connections active for a given service.
 // It can be called from multiple goroutines.
 type ConnectionManager struct {
 	nxt    ConnectionID
-	lookup map[ConnectionID]rpc.Transporter
+	lookup map[ConnectionID](*rpcConnection)
 
 	addConnectionCh    chan *addConnectionObj
 	lookupConnectionCh chan *lookupConnectionObj
 	removeConnectionCh chan ConnectionID
 	applyAllCh         chan ApplyFn
 	shutdownCh         chan struct{}
+	labelConnectionCh  chan labelConnectionObj
+	listAllCh          chan chan<- []keybase1.ClientDetails
 }
 
 // AddConnection adds a new connection to the table of Connection object, with a
@@ -67,6 +83,41 @@ func (c *ConnectionManager) Shutdown() {
 	c.shutdownCh <- struct{}{}
 }
 
+func (c *ConnectionManager) lookupTransporter(i ConnectionID) (ret rpc.Transporter) {
+	if conn := c.lookup[i]; conn != nil {
+		ret = conn.transporter
+	}
+	return ret
+}
+
+func (c *ConnectionManager) Label(id ConnectionID, d keybase1.ClientDetails) error {
+	retCh := make(chan error)
+	c.labelConnectionCh <- labelConnectionObj{id: id, details: d, ch: retCh}
+	return <-retCh
+}
+
+func (c *ConnectionManager) ListAllLabeledConnections() []keybase1.ClientDetails {
+	retCh := make(chan []keybase1.ClientDetails)
+	c.listAllCh <- retCh
+	return <-retCh
+}
+
+type byClientType []keybase1.ClientDetails
+
+func (a byClientType) Len() int           { return len(a) }
+func (a byClientType) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a byClientType) Less(i, j int) bool { return a[i].ClientType < a[j].ClientType }
+
+func (c *ConnectionManager) listAllLabeledConnections() (ret []keybase1.ClientDetails) {
+	for _, v := range c.lookup {
+		if v.details != nil {
+			ret = append(ret, *v.details)
+		}
+	}
+	sort.Sort(byClientType(ret))
+	return ret
+}
+
 func (c *ConnectionManager) run() {
 	for {
 		select {
@@ -75,15 +126,26 @@ func (c *ConnectionManager) run() {
 		case addConnectionObj := <-c.addConnectionCh:
 			c.nxt++ // increment first, since 0 is reserved
 			nxt := c.nxt
-			c.lookup[nxt] = addConnectionObj.xp
+			c.lookup[nxt] = &rpcConnection{transporter: addConnectionObj.xp}
 			addConnectionObj.ch <- nxt
 		case lookupConnectionObj := <-c.lookupConnectionCh:
-			lookupConnectionObj.ch <- c.lookup[lookupConnectionObj.i]
+			lookupConnectionObj.ch <- c.lookupTransporter(lookupConnectionObj.id)
 		case id := <-c.removeConnectionCh:
 			delete(c.lookup, id)
+		case labelConnectionObj := <-c.labelConnectionCh:
+			id := labelConnectionObj.id
+			var err error
+			if conn := c.lookup[id]; conn != nil {
+				conn.details = &labelConnectionObj.details
+			} else {
+				err = NotFoundError{Msg: fmt.Sprintf("connection %d not found", id)}
+			}
+			labelConnectionObj.ch <- err
+		case retCh := <-c.listAllCh:
+			retCh <- c.listAllLabeledConnections()
 		case f := <-c.applyAllCh:
 			for k, v := range c.lookup {
-				if !f(k, v) {
+				if !f(k, v.transporter) {
 					break
 				}
 			}
@@ -102,11 +164,13 @@ func (c *ConnectionManager) ApplyAll(f ApplyFn) {
 // routing loop running.
 func NewConnectionManager() *ConnectionManager {
 	ret := &ConnectionManager{
-		lookup:             make(map[ConnectionID]rpc.Transporter),
+		lookup:             make(map[ConnectionID](*rpcConnection)),
 		addConnectionCh:    make(chan *addConnectionObj),
 		lookupConnectionCh: make(chan *lookupConnectionObj),
 		removeConnectionCh: make(chan ConnectionID),
+		labelConnectionCh:  make(chan labelConnectionObj),
 		applyAllCh:         make(chan ApplyFn),
+		listAllCh:          make(chan chan<- []keybase1.ClientDetails),
 		shutdownCh:         make(chan struct{}),
 	}
 	go ret.run()
