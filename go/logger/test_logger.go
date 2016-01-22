@@ -8,7 +8,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/op/go-logging"
+	logging "github.com/keybase/go-logging"
 
 	"golang.org/x/net/context"
 )
