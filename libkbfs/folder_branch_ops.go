@@ -3814,7 +3814,6 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 				dblock.Children[file.tailName()] = de
 				lbc[parentPath.tailPointer()] = dblock
 				doDeleteDe = true
-				fbo.clearDeCacheEntryLocked(parentPtr, filePtr)
 			}
 		}
 
@@ -3922,6 +3921,10 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 		defer fbo.cacheLock.Unlock()
 		fbo.clearDeCacheEntryLocked(
 			newPath.parentPath().tailPointer(), file.tailPointer())
+		// Need to explicitly state transition here, since
+		// finalizeMDWriteLocked wouldn't have been able to if we
+		// had an outstanding de cache entry.
+		fbo.transitionState(cleanState)
 	}()
 	for _, f := range writes {
 		// we can safely read head here because we hold mdWriterLock
