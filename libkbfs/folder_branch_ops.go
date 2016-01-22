@@ -5055,6 +5055,9 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 		}
 		dirtyPtrs := fbo.getDirtyPointers()
 		fbo.runUnlessShutdown(func(ctx context.Context) (err error) {
+			// Denote that these are coming from a background
+			// goroutine, not directly from any user.
+			ctx = context.WithValue(ctx, CtxBackgroundSyncKey, "1")
 			for _, ptr := range dirtyPtrs {
 				node := fbo.nodeCache.Get(ptr)
 				if node == nil {

@@ -89,3 +89,11 @@ func Build() string {
 func VersionString() string {
 	return fmt.Sprintf("%s-%s", Version, Build())
 }
+
+const (
+	// CtxBackgroundSyncKey is set in the context for any change
+	// notifications that are triggered from a background sync.
+	// Observers can ignore these if they want, since they will have
+	// already gotten the relevant notifications via LocalChanges.
+	CtxBackgroundSyncKey = "kbfs-background"
+)
