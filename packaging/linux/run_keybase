@@ -27,6 +27,15 @@ if killall keybase &> /dev/null ; then
   echo Shutting down keybase service...
 fi
 
+# There is a race condition where if we try to start the keybase service before
+# the previous process has died, we might fail to lock the pid file and error
+# out. Avoid this by waiting for the lock file to be free, on systems with flock
+# installed.
+lockfile="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase/keybased.pid"
+if which flock &> /dev/null ; then
+  flock "$lockfile" true
+fi
+
 export KEYBASE_RUN_MODE=prod
 export KEYBASE_DEBUG=1
 logdir="${XDG_CACHE_HOME:-$HOME/.cache}/keybase"
