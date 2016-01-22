@@ -123,6 +123,9 @@ func (f *Folder) BatchChanges(ctx context.Context, changes []libkbfs.NodeChange)
 	if origin, ok := ctx.Value(CtxAppIDKey).(*FS); ok && origin == f.fs {
 		return
 	}
+	if v := ctx.Value(libkbfs.CtxBackgroundSyncKey); v != nil {
+		return
+	}
 
 	// spawn a goroutine because we shouldn't lock during the notification
 	f.fs.queueNotification(func() { f.batchChangesInvalidate(ctx, changes) })
