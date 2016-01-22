@@ -100,20 +100,24 @@ func (c *PassphraseChange) findDeviceKeys(ctx *Context) (*keypair, error) {
 	}
 
 	// Get unlocked device for decryption and signing
-	ska := libkb.SecretKeyArg{
-		Me:      c.me,
-		KeyType: libkb.DeviceEncryptionKeyType,
-	}
 	// passing in nil SecretUI since we don't know the passphrase.
 	c.G().Log.Debug("runForcedUpdate: getting device encryption key")
-	encKey, err := c.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, ska, nil, "change passphrase")
+	parg := libkb.SecretKeyPromptArg{
+		LoginContext: ctx.LoginContext,
+		Ska: libkb.SecretKeyArg{
+			Me:      c.me,
+			KeyType: libkb.DeviceEncryptionKeyType,
+		},
+		Reason: "change passphrase",
+	}
+	encKey, err := c.G().Keyrings.GetSecretKeyWithPrompt(parg)
 	if err != nil {
 		return nil, err
 	}
 	c.G().Log.Debug("runForcedUpdate: got device encryption key")
 	c.G().Log.Debug("runForcedUpdate: getting device signing key")
-	ska.KeyType = libkb.DeviceSigningKeyType
-	sigKey, err := c.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, ska, nil, "change passphrase")
+	parg.Ska.KeyType = libkb.DeviceSigningKeyType
+	sigKey, err := c.G().Keyrings.GetSecretKeyWithPrompt(parg)
 	if err != nil {
 		return nil, err
 	}
@@ -418,7 +422,8 @@ func (c *PassphraseChange) findAndDecryptPrivatePGPKeys(ctx *Context) ([]libkb.G
 				}
 			}
 		} else {
-			key, err = block.PromptAndUnlock(ctx.LoginContext, "passphrase change", "your keybase passphrase", secretRetriever, ctx.SecretUI, nil, c.me)
+			parg := ctx.SecretKeyPromptArg(libkb.SecretKeyArg{}, "passphrase change")
+			key, err = block.PromptAndUnlock(parg, "your keybase passphrase", secretRetriever, nil, c.me)
 			if err != nil {
 				return nil, err
 			}

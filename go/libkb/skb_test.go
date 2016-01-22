@@ -116,7 +116,11 @@ func makeTestSKB(t *testing.T, lks *LKSec) *SKB {
 
 func testPromptAndUnlock(t *testing.T, skb *SKB, secretStore SecretStore) {
 	// XXX check nil, nil at end of this...
-	key, err := skb.PromptAndUnlock(nil, "test reason", "test which", secretStore, &TestSecretUI{Passphrase: "test passphrase", StoreSecret: true}, nil, nil)
+	parg := SecretKeyPromptArg{
+		Reason:   "test reason",
+		SecretUI: &TestSecretUI{Passphrase: "test passphrase", StoreSecret: true},
+	}
+	key, err := skb.PromptAndUnlock(parg, "test which", secretStore, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -257,7 +261,11 @@ func TestPromptCancelCache(t *testing.T) {
 
 	// wait 10 minutes: enter a passphrase this time
 	fakeClock.Advance(10 * time.Minute)
-	key, err := skb.PromptAndUnlock(nil, "test reason", "test which", store, &TestSecretUI{Passphrase: "passphrase"}, nil, nil)
+	parg := SecretKeyPromptArg{
+		Reason:   "test reason",
+		SecretUI: &TestSecretUI{Passphrase: "passphrase"},
+	}
+	key, err := skb.PromptAndUnlock(parg, "test which", store, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -267,7 +275,12 @@ func TestPromptCancelCache(t *testing.T) {
 }
 
 func testErrUnlock(t *testing.T, skb *SKB, store *TestSecretStore, ui *TestCancelSecretUI) error {
-	key, err := skb.PromptAndUnlock(nil, "test reason", "test which", store, ui, nil, nil)
+	parg := SecretKeyPromptArg{
+		Reason:         "test reason",
+		SecretUI:       ui,
+		UseCancelCache: true,
+	}
+	key, err := skb.PromptAndUnlock(parg, "test which", store, nil, nil)
 	if err == nil {
 		t.Fatal("PromptAndUnlock returned nil error")
 	}

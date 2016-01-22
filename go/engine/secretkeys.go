@@ -58,10 +58,11 @@ func (e *SecretKeysEngine) Run(ctx *Context) (err error) {
 		a.ClearKeyring()
 	}, "clear stream cache")
 
-	sigKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, libkb.SecretKeyArg{
+	ska := libkb.SecretKeyArg{
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
-	}, ctx.SecretUI, "to revoke another key")
+	}
+	sigKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "to revoke another key"))
 	if err != nil {
 		return err
 	}
@@ -74,10 +75,8 @@ func (e *SecretKeysEngine) Run(ctx *Context) (err error) {
 	}
 	e.G().Log.Debug("| got signing key")
 
-	encKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, libkb.SecretKeyArg{
-		Me:      me,
-		KeyType: libkb.DeviceEncryptionKeyType,
-	}, ctx.SecretUI, "to revoke another key")
+	ska.KeyType = libkb.DeviceEncryptionKeyType
+	encKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "to revoke another key"))
 	if err != nil {
 		return err
 	}

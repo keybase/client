@@ -137,10 +137,16 @@ func (d *Delegator) LoadSigningKey(lctx LoginContext, ui SecretUI) (err error) {
 		return
 	}
 
-	d.ExistingKey, err = d.G().Keyrings.GetSecretKeyWithPrompt(lctx, SecretKeyArg{
-		Me:      d.Me,
-		KeyType: DeviceSigningKeyType,
-	}, ui, "sign new key")
+	arg := SecretKeyPromptArg{
+		LoginContext: lctx,
+		Ska: SecretKeyArg{
+			Me:      d.Me,
+			KeyType: DeviceSigningKeyType,
+		},
+		SecretUI: ui,
+		Reason:   "sign new key",
+	}
+	d.ExistingKey, err = d.G().Keyrings.GetSecretKeyWithPrompt(arg)
 
 	return err
 }

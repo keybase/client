@@ -282,7 +282,11 @@ func (s *ScanKeys) unlockByID(id uint64) openpgp.EntityList {
 		}
 
 		// some key in the bundle matched, so unlock everything:
-		unlocked, err := skb.PromptAndUnlock(nil, unlockReason, "", nil, s.secui, nil, s.me)
+		parg := libkb.SecretKeyPromptArg{
+			Reason:   unlockReason,
+			SecretUI: s.secui,
+		}
+		unlocked, err := skb.PromptAndUnlock(parg, "", nil, nil, s.me)
 		if err != nil {
 			s.G().Log.Warning("error unlocking key: %s", err)
 			continue
@@ -300,7 +304,11 @@ func (s *ScanKeys) unlockByID(id uint64) openpgp.EntityList {
 func (s *ScanKeys) unlockAll() openpgp.EntityList {
 	var list openpgp.EntityList
 	for _, skb := range s.skbs {
-		unlocked, err := skb.PromptAndUnlock(nil, unlockReason, "", nil, s.secui, nil, s.me)
+		parg := libkb.SecretKeyPromptArg{
+			Reason:   unlockReason,
+			SecretUI: s.secui,
+		}
+		unlocked, err := skb.PromptAndUnlock(parg, "", nil, nil, s.me)
 		if err != nil {
 			s.G().Log.Warning("error unlocking key: %s", err)
 			continue

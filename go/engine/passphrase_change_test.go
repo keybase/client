@@ -39,7 +39,12 @@ func assertLoadSecretKeys(tc libkb.TestContext, u *FakeUser, msg string) {
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	sigKey, err := tc.G.Keyrings.GetSecretKeyWithPrompt(nil, skarg, u.NewSecretUI(), "testing sig")
+	parg := libkb.SecretKeyPromptArg{
+		Ska:      skarg,
+		SecretUI: u.NewSecretUI(),
+		Reason:   "testing sig",
+	}
+	sigKey, err := tc.G.Keyrings.GetSecretKeyWithPrompt(parg)
 	if err != nil {
 		tc.T.Fatalf("%s: %s", msg, err)
 	}
@@ -47,8 +52,8 @@ func assertLoadSecretKeys(tc libkb.TestContext, u *FakeUser, msg string) {
 		tc.T.Fatalf("%s: got nil signing key", msg)
 	}
 
-	skarg.KeyType = libkb.DeviceEncryptionKeyType
-	encKey, err := tc.G.Keyrings.GetSecretKeyWithPrompt(nil, skarg, u.NewSecretUI(), "testing enc")
+	parg.Ska.KeyType = libkb.DeviceEncryptionKeyType
+	encKey, err := tc.G.Keyrings.GetSecretKeyWithPrompt(parg)
 	if err != nil {
 		tc.T.Fatalf("%s: %s", msg, err)
 	}
@@ -67,7 +72,12 @@ func assertLoadPGPKeys(tc libkb.TestContext, u *FakeUser) {
 		Me:      me,
 		KeyType: libkb.PGPKeyType,
 	}
-	key, err := tc.G.Keyrings.GetSecretKeyWithPrompt(nil, ska, u.NewSecretUI(), "pgp test")
+	parg := libkb.SecretKeyPromptArg{
+		Ska:      ska,
+		SecretUI: u.NewSecretUI(),
+		Reason:   "pgp test",
+	}
+	key, err := tc.G.Keyrings.GetSecretKeyWithPrompt(parg)
 	if err != nil {
 		tc.T.Fatal(err)
 	}
@@ -710,7 +720,10 @@ func TestPassphraseChangePGP3SecMultiple(t *testing.T) {
 		t.Errorf("num pgp sync keys: %d, expected 2", len(syncKeys))
 	}
 	for _, key := range syncKeys {
-		unlocked, err := key.PromptAndUnlock(nil, "", "", nil, u.NewSecretUI(), nil, me)
+		parg := libkb.SecretKeyPromptArg{
+			SecretUI: u.NewSecretUI(),
+		}
+		unlocked, err := key.PromptAndUnlock(parg, "", nil, nil, me)
 		if err != nil {
 			t.Fatal(err)
 		}

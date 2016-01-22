@@ -4,11 +4,12 @@
 package engine
 
 import (
+	"io"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/client/go/saltpack"
 	"golang.org/x/net/context"
-	"io"
 )
 
 type SaltpackDecryptArg struct {
@@ -120,9 +121,7 @@ func (e *SaltpackDecrypt) Run(ctx *Context) (err error) {
 		KeyType: libkb.DeviceEncryptionKeyType,
 	}
 	e.G().Log.Debug("| GetSecretKeyWithPrompt")
-	key, err := e.G().Keyrings.GetSecretKeyWithPrompt(
-		ctx.LoginContext, ska, ctx.SecretUI,
-		"decrypting a message/file")
+	key, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "decrypting a message/file"))
 	if err != nil {
 		return err
 	}
