@@ -15,16 +15,26 @@ const logFile = logFileName()
 let fileWritable = null
 // If the file is too big, let's reset the log
 if (logFile) {
-  fs.stat(logFile, (err, stat) => {
-    if (err != null) {
-      fileWritable = fs.createWriteStream(logFile)
+  fs.access(logFile, fs.W_OK, err => {
+    if (err && err.errno !== -2 /* file does not exist */) {
+      console.log(`Can't write to log file.`, err)
+      fileWritable = null
+      return
     }
 
-    if (stat.size > logLimit) {
-      fileWritable = fs.createWriteStream(logFile)
-    }
+    fs.stat(logFile, (err, stat) => {
+      if (err != null) {
+        fileWritable = fs.createWriteStream(logFile)
+        return
+      }
 
-    fileWritable = fs.createWriteStream(logFile, {flags: 'a'})
+      if (stat.size > logLimit) {
+        fileWritable = fs.createWriteStream(logFile)
+        return
+      }
+
+      fileWritable = fs.createWriteStream(logFile, {flags: 'a'})
+    })
   })
 }
 
