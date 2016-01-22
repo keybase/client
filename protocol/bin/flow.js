@@ -1,3 +1,5 @@
+'use strict'
+
 var promise = require('bluebird')
 var fs = promise.promisifyAll(require('fs'))
 var path = require('path')
@@ -28,14 +30,43 @@ function analyze (json) {
   return json.types.map(function (t) {
     switch (t.type) {
       case 'record':
-        return addRecord(json.protocol + '_', t)
+        return addRecord(`${json.protocol}_`, t)
       case 'enum':
-        return addEnum(json.protocol + '_', t)
+        return addEnum(`${json.protocol}_`, t)
       case 'fixed':
-        return addFixed(json.protocol + '_', t)
+        return addFixed(`${json.protocol}_`, t)
       default:
         return ''
     }
+  }).concat(analyzeMessages(json))
+}
+
+function analyzeMessages (json) {
+  return Object.keys(json.messages).map(function (m) {
+    const params = json.messages[m].request.map(function (r) {
+      let type = seenTypes[r.type] ? `${json.protocol}_${r.type}` : r.type
+
+      if (type instanceof Array) {
+        type = `(${type.join(' | ')})`
+      } else if (typeof type === 'object') {
+        switch (type.type) {
+          case 'array':
+            type = `Array<${type.items}>`
+            break
+          case 'map':
+            type = `{string: ${type.values}}`
+            break
+          default:
+            console.log(`Unknown type: ${type}`)
+            break
+        }
+      }
+
+      return `${r.name}: ${type}`
+    }).join(', ')
+
+    return `export type ${json.protocol}_${m} = (${params}) => void;\n\n` +
+      `export const ${json.protocol}_${m}_method = 'keybase.1.${json.protocol}.${m}';\n\n`
   })
 }
 

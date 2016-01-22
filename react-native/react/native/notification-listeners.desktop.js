@@ -1,4 +1,6 @@
 import enums from '../../react/constants/types/keybase_v1'
+import type {NotifySession_loggedOut} from '../../react/constants/types/flow-types'
+import {NotifySession_loggedOut_method} from '../../react/constants/types/flow-types'
 import path from 'path'
 import type {FSNotification} from '../../react/constants/types/flow-types'
 import {getTLF} from '../util/kbfs'
@@ -12,11 +14,14 @@ var sentNotifications = {}
 
 // TODO(mm) Move these to their own actions
 export default function (dispatch, notify) {
-  return {
-    'keybase.1.NotifySession.loggedOut': () => {
+  const callMap: {
+    'keybase.1.NotifySession.loggedOut': NotifySession_loggedOut
+  } = {
+    [NotifySession_loggedOut_method]: (() => {
       notify('Logged out of Keybase')
       dispatch(logoutDone())
-    },
+      return 'hi' // this should fail TEMP
+    }),
     'keybase.1.NotifySession.loggedIn': ({username}: {username: string}) => {
       notify('Logged in to Keybase as: ' + username)
       dispatch(getCurrentStatus())
@@ -81,4 +86,6 @@ export default function (dispatch, notify) {
       }
     }
   }
+
+  return callMap
 }
