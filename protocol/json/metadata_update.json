@@ -222,6 +222,16 @@
       "name" : "chargedTo",
       "type" : "UID"
     } ]
+  }, {
+    "type" : "record",
+    "name" : "ChallengeInfo",
+    "fields" : [ {
+      "name" : "now",
+      "type" : "long"
+    }, {
+      "name" : "challenge",
+      "type" : "string"
+    } ]
   } ],
   "messages" : {
     "metadataUpdate" : {
