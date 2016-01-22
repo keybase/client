@@ -468,3 +468,11 @@ func (g *GlobalContext) GetClock() clockwork.Clock {
 	}
 	return g.Clock
 }
+
+func (g *GlobalContext) GetMyClientDetails() keybase1.ClientDetails {
+	return keybase1.ClientDetails{
+		ClientType: keybase1.ClientType_CLI,
+		Pid:        os.Getpid(),
+		Path:       os.Args[0],
+	}
+}

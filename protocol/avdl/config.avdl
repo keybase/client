@@ -21,17 +21,24 @@ protocol config {
     boolean Expired;
   }
 
+  record ClientDetails {
+    int pid;
+    ClientType clientType;
+    string process;
+    string path;
+    string desc;
+  }
+
   record ExtendedStatus {
     boolean standalone;
     boolean passphraseStreamCached;
-    DeviceID deviceID;
-    string deviceName;
-    string deviceStatus;
+    union { null, Device } device;
     string logDir;
     boolean desktopUIConnected;
     union { null, SessionStatus } session;
     string defaultUsername;
     array<string> provisionedUsernames;
+    array<ClientDetails> Clients;
   }
 
   ExtendedStatus getExtendedStatus(int sessionID);
@@ -68,4 +75,5 @@ protocol config {
     */
   void setUserConfig(int sessionID, string username, string key, string value);
 
+  void helloIAm(ClientDetails details);
 }

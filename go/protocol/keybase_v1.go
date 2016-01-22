@@ -161,6 +161,7 @@ type Device struct {
 	MTime      Time     `codec:"mTime" json:"mTime"`
 	EncryptKey KID      `codec:"encryptKey" json:"encryptKey"`
 	VerifyKey  KID      `codec:"verifyKey" json:"verifyKey"`
+	Status     int      `codec:"status" json:"status"`
 }
 
 type Stream struct {
@@ -183,8 +184,10 @@ const (
 type ClientType int
 
 const (
-	ClientType_CLI ClientType = 0
-	ClientType_GUI ClientType = 1
+	ClientType_NONE ClientType = 0
+	ClientType_CLI  ClientType = 1
+	ClientType_GUI  ClientType = 2
+	ClientType_KBFS ClientType = 3
 )
 
 type UserVersionVector struct {
@@ -502,17 +505,24 @@ type SessionStatus struct {
 	Expired    bool   `codec:"Expired" json:"Expired"`
 }
 
+type ClientDetails struct {
+	Pid        int        `codec:"pid" json:"pid"`
+	ClientType ClientType `codec:"clientType" json:"clientType"`
+	Process    string     `codec:"process" json:"process"`
+	Path       string     `codec:"path" json:"path"`
+	Desc       string     `codec:"desc" json:"desc"`
+}
+
 type ExtendedStatus struct {
-	Standalone             bool           `codec:"standalone" json:"standalone"`
-	PassphraseStreamCached bool           `codec:"passphraseStreamCached" json:"passphraseStreamCached"`
-	DeviceID               DeviceID       `codec:"deviceID" json:"deviceID"`
-	DeviceName             string         `codec:"deviceName" json:"deviceName"`
-	DeviceStatus           string         `codec:"deviceStatus" json:"deviceStatus"`
-	LogDir                 string         `codec:"logDir" json:"logDir"`
-	DesktopUIConnected     bool           `codec:"desktopUIConnected" json:"desktopUIConnected"`
-	Session                *SessionStatus `codec:"session,omitempty" json:"session,omitempty"`
-	DefaultUsername        string         `codec:"defaultUsername" json:"defaultUsername"`
-	ProvisionedUsernames   []string       `codec:"provisionedUsernames" json:"provisionedUsernames"`
+	Standalone             bool            `codec:"standalone" json:"standalone"`
+	PassphraseStreamCached bool            `codec:"passphraseStreamCached" json:"passphraseStreamCached"`
+	Device                 *Device         `codec:"device,omitempty" json:"device,omitempty"`
+	LogDir                 string          `codec:"logDir" json:"logDir"`
+	DesktopUIConnected     bool            `codec:"desktopUIConnected" json:"desktopUIConnected"`
+	Session                *SessionStatus  `codec:"session,omitempty" json:"session,omitempty"`
+	DefaultUsername        string          `codec:"defaultUsername" json:"defaultUsername"`
+	ProvisionedUsernames   []string        `codec:"provisionedUsernames" json:"provisionedUsernames"`
+	Clients                []ClientDetails `codec:"Clients" json:"Clients"`
 }
 
 type ForkType int
@@ -559,11 +569,16 @@ type SetUserConfigArg struct {
 	Value     string `codec:"value" json:"value"`
 }
 
+type HelloIAmArg struct {
+	Details ClientDetails `codec:"details" json:"details"`
+}
+
 type ConfigInterface interface {
 	GetCurrentStatus(context.Context, int) (GetCurrentStatusRes, error)
 	GetExtendedStatus(context.Context, int) (ExtendedStatus, error)
 	GetConfig(context.Context, int) (Config, error)
 	SetUserConfig(context.Context, SetUserConfigArg) error
+	HelloIAm(context.Context, ClientDetails) error
 }
 
 func ConfigProtocol(i ConfigInterface) rpc.Protocol {
@@ -634,6 +649,22 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"helloIAm": {
+				MakeArg: func() interface{} {
+					ret := make([]HelloIAmArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]HelloIAmArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]HelloIAmArg)(nil), args)
+						return
+					}
+					err = i.HelloIAm(ctx, (*typedArgs)[0].Details)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -662,6 +693,12 @@ func (c ConfigClient) GetConfig(ctx context.Context, sessionID int) (res Config,
 
 func (c ConfigClient) SetUserConfig(ctx context.Context, __arg SetUserConfigArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.config.setUserConfig", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ConfigClient) HelloIAm(ctx context.Context, details ClientDetails) (err error) {
+	__arg := HelloIAmArg{Details: details}
+	err = c.Cli.Call(ctx, "keybase.1.config.helloIAm", []interface{}{__arg}, nil)
 	return
 }
 
@@ -1693,13 +1730,6 @@ type RemoteProof struct {
 	MTime         Time      `codec:"mTime" json:"mTime"`
 }
 
-type IdentifySource int
-
-const (
-	IdentifySource_CLI  IdentifySource = 0
-	IdentifySource_KBFS IdentifySource = 1
-)
-
 type Identify2Res struct {
 	Upk UserPlusKeys `codec:"upk" json:"upk"`
 }
@@ -1715,7 +1745,7 @@ type IdentifyArg struct {
 	ForceRemoteCheck bool           `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
 	UseDelegateUI    bool           `codec:"useDelegateUI" json:"useDelegateUI"`
 	Reason           IdentifyReason `codec:"reason" json:"reason"`
-	Source           IdentifySource `codec:"source" json:"source"`
+	Source           ClientType     `codec:"source" json:"source"`
 }
 
 type Identify2Arg struct {

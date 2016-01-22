@@ -50,9 +50,7 @@ func (c *CmdStatus) ParseArgv(ctx *cli.Context) error {
 type fstatus struct {
 	Username               string
 	UserID                 string
-	DeviceID               string
-	DeviceName             string
-	DeviceStatus           string
+	Device                 *keybase1.Device
 	LoggedInProvisioned    bool `json:"LoggedIn"`
 	PassphraseStreamCached bool `json:"KeychainUnlocked"`
 	SessionStatus          string
@@ -79,6 +77,7 @@ type fstatus struct {
 
 	DefaultUsername      string
 	ProvisionedUsernames []string
+	Clients              []keybase1.ClientDetails
 }
 
 func (c *CmdStatus) Run() error {
@@ -124,9 +123,7 @@ func (c *CmdStatus) load() (*fstatus, error) {
 	status.ConfigPath = config.ConfigPath
 	status.Service.Version = config.Version
 
-	status.DeviceID = extStatus.DeviceID.String()
-	status.DeviceName = extStatus.DeviceName
-	status.DeviceStatus = extStatus.DeviceStatus
+	status.Device = extStatus.Device
 
 	if extStatus.Standalone {
 		status.Service.Running = false
@@ -148,6 +145,7 @@ func (c *CmdStatus) load() (*fstatus, error) {
 
 	status.DefaultUsername = extStatus.DefaultUsername
 	status.ProvisionedUsernames = extStatus.ProvisionedUsernames
+	status.Clients = extStatus.Clients
 
 	// set anything os-specific:
 	if err := c.osSpecific(&status); err != nil {
@@ -178,10 +176,13 @@ func (c *CmdStatus) outputJSON(status *fstatus) error {
 func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	dui := c.G().UI.GetDumbOutputUI()
 	dui.Printf("Username:      %s\n", status.Username)
-	dui.Printf("Logged in:     %s\n\n", BoolString(status.LoggedInProvisioned, "yes", "no"))
-	dui.Printf("Device name:   %s\n", status.DeviceName)
-	dui.Printf("Device ID:     %s\n", status.DeviceID)
-	dui.Printf("Device status: %s\n\n", status.DeviceStatus)
+	dui.Printf("Logged in:     %s\n", BoolString(status.LoggedInProvisioned, "yes", "no"))
+	if status.Device != nil {
+		dui.Printf("\nDevice:\n")
+		dui.Printf("    name:   %s\n", status.Device.Name)
+		dui.Printf("    ID:     %s\n", status.Device.DeviceID)
+		dui.Printf("    status: %s\n\n", libkb.DeviceStatusToString(&status.Device.Status))
+	}
 	dui.Printf("Local keybase keychain: %s\n", BoolString(status.PassphraseStreamCached, "unlocked", "locked"))
 	dui.Printf("Session status:         %s\n", status.SessionStatus)
 	dui.Printf("\nKBFS:\n")
@@ -199,7 +200,19 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	dui.Printf("Config path:        %s\n", status.ConfigPath)
 	dui.Printf("Default user:       %s\n", status.DefaultUsername)
 	dui.Printf("Provisioned users:  %s\n", strings.Join(status.ProvisionedUsernames, ", "))
+	c.outputClients(dui, status.Clients)
 	return nil
+}
+
+func (c *CmdStatus) outputClients(dui libkb.DumbOutputUI, clients []keybase1.ClientDetails) {
+	var prev keybase1.ClientType
+	for _, cli := range clients {
+		if cli.ClientType != prev {
+			dui.Printf("\n%s(s):\n", cli.ClientType)
+			prev = cli.ClientType
+			dui.Printf("    %s [pid: %d]\n", cli.Path, cli.Pid)
+		}
+	}
 }
 
 func (c *CmdStatus) client() {

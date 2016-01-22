@@ -50,7 +50,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 	protocols := []rpc.Protocol{
 		keybase1.AccountProtocol(NewAccountHandler(xp, g)),
 		keybase1.BTCProtocol(NewBTCHandler(xp, g)),
-		keybase1.ConfigProtocol(NewConfigHandler(xp, g, d)),
+		keybase1.ConfigProtocol(NewConfigHandler(xp, connID, g, d)),
 		keybase1.CryptoProtocol(NewCryptoHandler(g)),
 		keybase1.CtlProtocol(NewCtlHandler(xp, d, g)),
 		keybase1.DebuggingProtocol(NewDebuggingHandler(xp)),
