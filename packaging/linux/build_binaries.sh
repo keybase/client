@@ -11,7 +11,7 @@ binary_name="$("$here/../binary_name.sh" "$@")"
 # Take the second argument as the build root, or a tmp dir if there is no
 # second argument. Absolutify the build root, because we cd around in this
 # script, and also because GOPATH is not allowed to be relative.
-build_root="${2:-/tmp/keybase_build_$(date +%Y_%m_%d_%H:%M:%S)}"
+build_root="${2:-/tmp/keybase_build_$(date +%Y_%m_%d_%H%M%S)}"
 build_root="$(realpath "$build_root")"
 mkdir -p "$build_root"
 
@@ -53,8 +53,8 @@ if should_build_kbfs ; then
   echo "Installing Node modules for Electron"
   # Can't seem to get the right packages installed under NODE_ENV=production.
   export NODE_ENV=development
-  (cd "$here/../../react-native" && npm i)
-  (cd "$here/../../desktop" && npm i)
+  (cd "$this_repo/react-native" && npm i)
+  (cd "$this_repo/desktop" && npm i)
   export NODE_ENV=production
 fi
 
@@ -99,11 +99,24 @@ build_one_architecture() {
   # Build Electron.
   echo "Building Electron client for $electron_arch..."
   (
-    cd "$here/../../desktop"
+    cd "$this_repo/desktop"
     node package.js --platform linux --arch $electron_arch
     rsync -a "release/linux-${electron_arch}/Keybase-linux-${electron_arch}/" \
       "$layout_dir/opt/keybase"
   )
+
+  # Copy in the icon images.
+  for size in 16 32 128 256 512 ; do
+    icon_dest="$layout_dir/usr/share/icons/hicolor/${size}x${size}/apps"
+    mkdir -p "$icon_dest"
+    cp "$this_repo/media/icons/Keybase.iconset/icon_${size}x${size}.png" "$icon_dest/keybase.png"
+  done
+
+  # Copy in the desktop entry. Note that this is different from the autostart
+  # entry, which will be created per-user the first time the service runs.
+  apps_dir="$layout_dir/usr/share/applications"
+  mkdir -p "$apps_dir"
+  cp "$here/keybase.desktop" "$apps_dir"
 }
 
 export GOARCH=amd64
