@@ -6016,6 +6016,10 @@ type UpdatePromptRes struct {
 	SnoozeUntil       Time         `codec:"snoozeUntil" json:"snoozeUntil"`
 }
 
+type UpdatePromptOptions struct {
+	AlwaysAutoInstall bool `codec:"alwaysAutoInstall" json:"alwaysAutoInstall"`
+}
+
 type UpdateQuitRes struct {
 	Quit            bool   `codec:"quit" json:"quit"`
 	Pid             int    `codec:"pid" json:"pid"`
@@ -6023,8 +6027,9 @@ type UpdateQuitRes struct {
 }
 
 type UpdatePromptArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Update    Update `codec:"update" json:"update"`
+	SessionID int                 `codec:"sessionID" json:"sessionID"`
+	Update    Update              `codec:"update" json:"update"`
+	Options   UpdatePromptOptions `codec:"options" json:"options"`
 }
 
 type UpdateQuitArg struct {

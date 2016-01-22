@@ -37,7 +37,7 @@ type UI interface {
 }
 
 type Config interface {
-	GetUpdatePreferenceAuto() bool
+	GetUpdatePreferenceAuto() (bool, bool)
 	GetUpdatePreferenceSnoozeUntil() keybase1.Time
 	GetUpdatePreferenceSkip() string
 	GetUpdateLastChecked() keybase1.Time
@@ -428,7 +428,8 @@ func (u *Updater) promptForUpdateAction(ui UI, update keybase1.Update) (err erro
 		u.log.Debug("- Updater.promptForUpdateAction -> %v", err)
 	}()
 
-	if auto := u.config.GetUpdatePreferenceAuto(); auto {
+	auto, autoSet := u.config.GetUpdatePreferenceAuto()
+	if auto {
 		u.log.Debug("| going ahead with auto-updates")
 		return
 	}
@@ -443,15 +444,22 @@ func (u *Updater) promptForUpdateAction(ui UI, update keybase1.Update) (err erro
 		return
 	}
 
-	updatePromptResponse, err := updateUI.UpdatePrompt(context.TODO(), keybase1.UpdatePromptArg{Update: update})
+	// If automatically apply not set, default to true
+	alwaysAutoInstall := !autoSet
+
+	updatePromptArg := keybase1.UpdatePromptArg{
+		Update: update,
+		Options: keybase1.UpdatePromptOptions{
+			AlwaysAutoInstall: alwaysAutoInstall,
+		},
+	}
+	updatePromptResponse, err := updateUI.UpdatePrompt(context.TODO(), updatePromptArg)
 	if err != nil {
 		return
 	}
 
-	u.log.Debug("Update prompt respose: %#v", updatePromptResponse)
-	if updatePromptResponse.AlwaysAutoInstall {
-		u.config.SetUpdatePreferenceAuto(true)
-	}
+	u.log.Debug("Update prompt response: %#v", updatePromptResponse)
+	u.config.SetUpdatePreferenceAuto(updatePromptResponse.AlwaysAutoInstall)
 	switch updatePromptResponse.Action {
 	case keybase1.UpdateAction_UPDATE:
 	case keybase1.UpdateAction_SKIP:

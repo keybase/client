@@ -280,6 +280,13 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "UpdatePromptOptions",
+    "fields" : [ {
+      "name" : "alwaysAutoInstall",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "UpdateQuitRes",
     "fields" : [ {
       "name" : "quit",
@@ -300,6 +307,9 @@
       }, {
         "name" : "update",
         "type" : "Update"
+      }, {
+        "name" : "options",
+        "type" : "UpdatePromptOptions"
       } ],
       "response" : "UpdatePromptRes"
     },

@@ -73,8 +73,8 @@ type testConfig struct {
 	lastChecked keybase1.Time
 }
 
-func (c testConfig) GetUpdatePreferenceAuto() bool {
-	return false
+func (c testConfig) GetUpdatePreferenceAuto() (bool, bool) {
+	return false, false
 }
 
 func (c testConfig) GetUpdatePreferenceSnoozeUntil() keybase1.Time {
@@ -90,15 +90,15 @@ func (c testConfig) GetUpdatePreferenceSkip() string {
 }
 
 func (c testConfig) SetUpdatePreferenceAuto(b bool) error {
-	panic("Unsupported")
+	return nil
 }
 
 func (c testConfig) SetUpdatePreferenceSkip(v string) error {
-	panic("Unsupported")
+	return nil
 }
 
 func (c testConfig) SetUpdatePreferenceSnoozeUntil(t keybase1.Time) error {
-	panic("Unsupported")
+	return nil
 }
 
 func (c testConfig) SetUpdateLastChecked(t keybase1.Time) error {

@@ -573,7 +573,11 @@ func (u UpdateUI) UpdatePrompt(_ context.Context, arg keybase1.UpdatePromptArg) 
 	if doUpdate {
 		res.Action = keybase1.UpdateAction_UPDATE
 		prompt = "Auto-update in the future?"
-		res.AlwaysAutoInstall, err = u.terminal.PromptYesNo(PromptDescriptorUpdateAuto, prompt, libkb.PromptDefaultYes)
+		promptDefault := libkb.PromptDefaultNo
+		if arg.Options.AlwaysAutoInstall {
+			promptDefault = libkb.PromptDefaultYes
+		}
+		res.AlwaysAutoInstall, err = u.terminal.PromptYesNo(PromptDescriptorUpdateAuto, prompt, promptDefault)
 	} else {
 		prompt = "Snooze for one day?"
 		var snooze bool

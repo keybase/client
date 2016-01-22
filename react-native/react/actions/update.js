@@ -44,11 +44,12 @@ export function registerUpdateListener (): (dispatch: Dispatch, getState: () => 
 
 function updateListenersCreator (dispatch: Dispatch, getState: () => {config: ConfigState}) {
   return {
-    'keybase.1.updateUi.updatePrompt': (payload: {update: Update}, response) => {
+    'keybase.1.updateUi.updatePrompt': (payload: {update: Update, options: UpdatePromptOptions}, response) => {
       console.log('Asked for update prompt')
 
       updatePromptResponse = response
       const {version, description, instructions, type, asset} = payload.update
+      const {alwaysAutoInstall} = payload.options
 
       const windowTitle = {
         [updateUi.UpdateType.normal]: 'Keybase Update',
@@ -78,7 +79,7 @@ function updateListenersCreator (dispatch: Dispatch, getState: () => {config: Co
           snoozeTime: moment.duration(snoozeTimeSecs, 'seconds').humanize(),
           windowTitle,
           oldVersion,
-          alwaysUpdate: true,
+          alwaysUpdate: alwaysAutoInstall,
           updateCommand,
           canUpdate: !updateCommand
         }

@@ -5528,6 +5528,14 @@ export type UpdatePromptRes = {
   snoozeUntil: Time;
 }
 
+export type updateUi_UpdatePromptOptions = {
+  alwaysAutoInstall: boolean;
+}
+
+export type UpdatePromptOptions = {
+  alwaysAutoInstall: boolean;
+}
+
 export type updateUi_UpdateQuitRes = {
   quit: boolean;
   pid: int;
