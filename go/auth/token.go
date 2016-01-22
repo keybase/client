@@ -22,7 +22,7 @@ const (
 	TokenType             = "auth"
 	CurrentTokenVersion   = 2
 	ChallengeLengthBytes  = 32
-	ChallengeLengthString = ChallengeLengthBytes*2 // we use hex encoding
+	ChallengeLengthString = ChallengeLengthBytes * 2 // we use hex encoding
 )
 
 type TokenAuth struct {
