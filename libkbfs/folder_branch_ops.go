@@ -83,6 +83,8 @@ const (
 	maxRetriesOnRecoverableErrors = 10
 	// Number of outstanding deferred bytes allowed.
 	maxDeferredBytes = 100 << 20
+	// When the number of dirty bytes exceeds this level, force a sync.
+	dirtyBytesThreshold = 100 << 20
 )
 
 type fboMutexLevel mutexLevel
@@ -3070,6 +3072,17 @@ func (fbo *folderBranchOps) writeDataLocked(
 		fbo.notifyLocal(ctx, file, si.op)
 	}
 	fbo.transitionState(dirtyState)
+
+	if d := bcache.DirtyBytesEstimate(); d > dirtyBytesThreshold {
+		fbo.log.CDebugf(ctx, "Forcing a sync due to %d dirty bytes", d)
+		select {
+		// If we can't send on the channel, that means a sync is
+		// already in progress
+		case fbo.forceSyncChan <- struct{}{}:
+		default:
+		}
+	}
+
 	return newPtrs, nil
 }
 

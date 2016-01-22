@@ -1044,6 +1044,16 @@ func (_mr *_MockBlockCacheRecorder) IsDirty(arg0, arg1 interface{}) *gomock.Call
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsDirty", arg0, arg1)
 }
 
+func (_m *MockBlockCache) DirtyBytesEstimate() uint64 {
+	ret := _m.ctrl.Call(_m, "DirtyBytesEstimate")
+	ret0, _ := ret[0].(uint64)
+	return ret0
+}
+
+func (_mr *_MockBlockCacheRecorder) DirtyBytesEstimate() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DirtyBytesEstimate")
+}
+
 // Mock of Crypto interface
 type MockCrypto struct {
 	ctrl     *gomock.Controller
@@ -2456,14 +2466,14 @@ func (_mr *_MockConfigRecorder) SetConflictRenamer(arg0 interface{}) *gomock.Cal
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetConflictRenamer", arg0)
 }
 
-func (_m *MockConfig) MetadataDataVersion() MetadataVer {
-	ret := _m.ctrl.Call(_m, "MetadataDataVersion")
+func (_m *MockConfig) MetadataVersion() MetadataVer {
+	ret := _m.ctrl.Call(_m, "MetadataVersion")
 	ret0, _ := ret[0].(MetadataVer)
 	return ret0
 }
 
-func (_mr *_MockConfigRecorder) MetadataDataVersion() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "MetadataDataVersion")
+func (_mr *_MockConfigRecorder) MetadataVersion() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MetadataVersion")
 }
 
 func (_m *MockConfig) DataVersion() DataVer {

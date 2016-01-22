@@ -311,3 +311,17 @@ func (b *BlockCacheStandard) IsDirty(
 	_, isDirty = b.dirty[dirtyID]
 	return
 }
+
+// DirtyBytesEstimate implements the BlockCache interface for
+// BlockCacheStandard.
+func (b *BlockCacheStandard) DirtyBytesEstimate() uint64 {
+	b.dirtyLock.RLock()
+	defer b.dirtyLock.RUnlock()
+	var size uint64
+	// Users of this cache can update dirty blocks at will, so it's
+	// not possible to cache the sizes of the dirty blocks.
+	for _, block := range b.dirty {
+		size += uint64(getCachedBlockSize(block))
+	}
+	return size
+}

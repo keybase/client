@@ -500,6 +500,11 @@ type BlockCache interface {
 	// IsDirty states whether or not the block associated with the
 	// given block pointer and branch name is dirty in this cache.
 	IsDirty(ptr BlockPointer, branch BranchName) bool
+	// DirtyBytesEstimate counts the number of outstanding bytes held
+	// in dirty blocks.  It's an estimate because callers can be
+	// modifying the size of the dirty blocks outside of the cache
+	// while this is being called.
+	DirtyBytesEstimate() uint64
 }
 
 // Crypto signs, verifies, encrypts, and decrypts stuff.
