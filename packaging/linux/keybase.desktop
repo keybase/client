@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=Keybase
-Exec=run_keybase.sh
+Exec=run_keybase
 Icon=keybase
 Terminal=false
 Type=Application

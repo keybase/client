@@ -76,7 +76,7 @@ build_one_architecture() {
   go build -tags "$go_tags" -ldflags "$ldflags" -o \
     "$layout_dir/usr/bin/$binary_name" github.com/keybase/client/go/keybase
 
-  cp "$here/run_keybase.sh" "$layout_dir/usr/bin/"
+  cp "$here/run_keybase" "$layout_dir/usr/bin/"
 
   # Short-circuit if we're not building electron.
   if ! should_build_kbfs ; then
