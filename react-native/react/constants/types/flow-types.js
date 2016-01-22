@@ -56,6 +56,14 @@ export type GetPassphraseRes = {
   storeSecret: boolean;
 }
 
+export type account_passphraseChange = (sessionID: int, oldPassphrase: string, passphrase: string, force: boolean) => void;
+
+export const account_passphraseChange_method = 'keybase.1.account.passphraseChange';
+
+export type account_passphrasePrompt = (sessionID: int, guiArg: account_GUIEntryArg) => void;
+
+export const account_passphrasePrompt_method = 'keybase.1.account.passphrasePrompt';
+
 export type block_Time = {
 }
 
@@ -286,6 +294,38 @@ export type BlockReference = {
   chargedTo: UID;
 }
 
+export type block_getSessionChallenge = () => void;
+
+export const block_getSessionChallenge_method = 'keybase.1.block.getSessionChallenge';
+
+export type block_authenticateSession = (signature: string) => void;
+
+export const block_authenticateSession_method = 'keybase.1.block.authenticateSession';
+
+export type block_putBlock = (bid: block_BlockIdCombo, folder: string, blockKey: string, buf: bytes) => void;
+
+export const block_putBlock_method = 'keybase.1.block.putBlock';
+
+export type block_getBlock = (bid: block_BlockIdCombo, folder: string) => void;
+
+export const block_getBlock_method = 'keybase.1.block.getBlock';
+
+export type block_addReference = (folder: string, ref: block_BlockReference) => void;
+
+export const block_addReference_method = 'keybase.1.block.addReference';
+
+export type block_delReference = (folder: string, ref: block_BlockReference) => void;
+
+export const block_delReference_method = 'keybase.1.block.delReference';
+
+export type block_archiveReference = (folder: string, refs: Array<BlockReference>) => void;
+
+export const block_archiveReference_method = 'keybase.1.block.archiveReference';
+
+export type block_getUserQuotaInfo = () => void;
+
+export const block_getUserQuotaInfo_method = 'keybase.1.block.getUserQuotaInfo';
+
 export type BTC_Time = {
 }
 
@@ -377,6 +417,10 @@ export type BTC_UserPlusKeys = {
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
 }
+
+export type BTC_registerBTC = (sessionID: int, address: string, force: boolean) => void;
+
+export const BTC_registerBTC_method = 'keybase.1.BTC.registerBTC';
 
 export type config_Time = {
 }
@@ -590,6 +634,26 @@ export type Config = {
   forkType: ForkType;
 }
 
+export type config_getCurrentStatus = (sessionID: int) => void;
+
+export const config_getCurrentStatus_method = 'keybase.1.config.getCurrentStatus';
+
+export type config_getExtendedStatus = (sessionID: int) => void;
+
+export const config_getExtendedStatus_method = 'keybase.1.config.getExtendedStatus';
+
+export type config_getConfig = (sessionID: int) => void;
+
+export const config_getConfig_method = 'keybase.1.config.getConfig';
+
+export type config_setUserConfig = (sessionID: int, username: string, key: string, value: string) => void;
+
+export const config_setUserConfig_method = 'keybase.1.config.setUserConfig';
+
+export type config_helloIAm = (details: config_ClientDetails) => void;
+
+export const config_helloIAm_method = 'keybase.1.config.helloIAm';
+
 export type constants_StatusCode = 0 /* 'SCOk_0' */ | 201 /* 'SCLoginRequired_201' */ | 202 /* 'SCBadSession_202' */ | 203 /* 'SCBadLoginUserNotFound_203' */ | 204 /* 'SCBadLoginPassword_204' */ | 205 /* 'SCNotFound_205' */ | 218 /* 'SCGeneric_218' */ | 235 /* 'SCAlreadyLoggedIn_235' */ | 237 /* 'SCCanceled_237' */ | 239 /* 'SCInputCanceled_239' */ | 274 /* 'SCReloginRequired_274' */ | 275 /* 'SCResolutionFailed_275' */ | 276 /* 'SCProfileNotPublic_276' */ | 277 /* 'SCIdentifyFailed_277' */ | 278 /* 'SCTrackingBroke_278' */ | 279 /* 'SCWrongCryptoFormat_279' */ | 701 /* 'SCBadSignupUsernameTaken_701' */ | 801 /* 'SCMissingResult_801' */ | 901 /* 'SCKeyNotFound_901' */ | 907 /* 'SCKeyInUse_907' */ | 913 /* 'SCKeyBadGen_913' */ | 914 /* 'SCKeyNoSecret_914' */ | 915 /* 'SCKeyBadUIDs_915' */ | 916 /* 'SCKeyNoActive_916' */ | 917 /* 'SCKeyNoSig_917' */ | 918 /* 'SCKeyBadSig_918' */ | 919 /* 'SCKeyBadEldest_919' */ | 920 /* 'SCKeyNoEldest_920' */ | 921 /* 'SCKeyDuplicateUpdate_921' */ | 922 /* 'SCSibkeyAlreadyExists_922' */ | 924 /* 'SCDecryptionKeyNotFound_924' */ | 927 /* 'SCKeyNoPGPEncryption_927' */ | 928 /* 'SCKeyNoNaClEncryption_928' */ | 929 /* 'SCKeySyncedPGPNotFound_929' */ | 1301 /* 'SCBadTrackSession_1301' */ | 1409 /* 'SCDeviceNotFound_1409' */ | 1410 /* 'SCDeviceMismatch_1410' */ | 1411 /* 'SCDeviceRequired_1411' */ | 1501 /* 'SCStreamExists_1501' */ | 1502 /* 'SCStreamNotFound_1502' */ | 1503 /* 'SCStreamWrongKind_1503' */ | 1504 /* 'SCStreamEOF_1504' */ | 1601 /* 'SCAPINetworkError_1601' */ | 1602 /* 'SCTimeout_1602' */ | 1701 /* 'SCProofError_1701' */ | 1702 /* 'SCIdentificationExpired_1702' */ | 1703 /* 'SCSelfNotFound_1703' */ | 1704 /* 'SCBadKexPhrase_1704' */ | 1705 /* 'SCNoUIDelegation_1705' */ | 1706 /* 'SCNoUI_1706' */ | 1800 /* 'SCInvalidVersionError_1800' */ | 1801 /* 'SCOldVersionError_1801' */ | 1802 /* 'SCInvalidLocationError_1802' */ | 1803 /* 'SCServiceStatusError_1803' */ | 1804 /* 'SCInstallError_1804' */
 
 export type StatusCode = 0 /* 'SCOk_0' */ | 201 /* 'SCLoginRequired_201' */ | 202 /* 'SCBadSession_202' */ | 203 /* 'SCBadLoginUserNotFound_203' */ | 204 /* 'SCBadLoginPassword_204' */ | 205 /* 'SCNotFound_205' */ | 218 /* 'SCGeneric_218' */ | 235 /* 'SCAlreadyLoggedIn_235' */ | 237 /* 'SCCanceled_237' */ | 239 /* 'SCInputCanceled_239' */ | 274 /* 'SCReloginRequired_274' */ | 275 /* 'SCResolutionFailed_275' */ | 276 /* 'SCProfileNotPublic_276' */ | 277 /* 'SCIdentifyFailed_277' */ | 278 /* 'SCTrackingBroke_278' */ | 279 /* 'SCWrongCryptoFormat_279' */ | 701 /* 'SCBadSignupUsernameTaken_701' */ | 801 /* 'SCMissingResult_801' */ | 901 /* 'SCKeyNotFound_901' */ | 907 /* 'SCKeyInUse_907' */ | 913 /* 'SCKeyBadGen_913' */ | 914 /* 'SCKeyNoSecret_914' */ | 915 /* 'SCKeyBadUIDs_915' */ | 916 /* 'SCKeyNoActive_916' */ | 917 /* 'SCKeyNoSig_917' */ | 918 /* 'SCKeyBadSig_918' */ | 919 /* 'SCKeyBadEldest_919' */ | 920 /* 'SCKeyNoEldest_920' */ | 921 /* 'SCKeyDuplicateUpdate_921' */ | 922 /* 'SCSibkeyAlreadyExists_922' */ | 924 /* 'SCDecryptionKeyNotFound_924' */ | 927 /* 'SCKeyNoPGPEncryption_927' */ | 928 /* 'SCKeyNoNaClEncryption_928' */ | 929 /* 'SCKeySyncedPGPNotFound_929' */ | 1301 /* 'SCBadTrackSession_1301' */ | 1409 /* 'SCDeviceNotFound_1409' */ | 1410 /* 'SCDeviceMismatch_1410' */ | 1411 /* 'SCDeviceRequired_1411' */ | 1501 /* 'SCStreamExists_1501' */ | 1502 /* 'SCStreamNotFound_1502' */ | 1503 /* 'SCStreamWrongKind_1503' */ | 1504 /* 'SCStreamEOF_1504' */ | 1601 /* 'SCAPINetworkError_1601' */ | 1602 /* 'SCTimeout_1602' */ | 1701 /* 'SCProofError_1701' */ | 1702 /* 'SCIdentificationExpired_1702' */ | 1703 /* 'SCSelfNotFound_1703' */ | 1704 /* 'SCBadKexPhrase_1704' */ | 1705 /* 'SCNoUIDelegation_1705' */ | 1706 /* 'SCNoUI_1706' */ | 1800 /* 'SCInvalidVersionError_1800' */ | 1801 /* 'SCOldVersionError_1801' */ | 1802 /* 'SCInvalidLocationError_1802' */ | 1803 /* 'SCServiceStatusError_1803' */ | 1804 /* 'SCInstallError_1804' */
@@ -746,6 +810,22 @@ export type UnboxAnyRes = {
   index: int;
 }
 
+export type crypto_signED25519 = (msg: bytes, reason: string) => void;
+
+export const crypto_signED25519_method = 'keybase.1.crypto.signED25519';
+
+export type crypto_signToString = (msg: bytes, reason: string) => void;
+
+export const crypto_signToString_method = 'keybase.1.crypto.signToString';
+
+export type crypto_unboxBytes32 = (encryptedBytes32: crypto_EncryptedBytes32, nonce: crypto_BoxNonce, peersPublicKey: crypto_BoxPublicKey, reason: string) => void;
+
+export const crypto_unboxBytes32_method = 'keybase.1.crypto.unboxBytes32';
+
+export type crypto_unboxBytes32Any = (bundles: Array<CiphertextBundle>, reason: string) => void;
+
+export const crypto_unboxBytes32Any_method = 'keybase.1.crypto.unboxBytes32Any';
+
 export type ctl_Time = {
 }
 
@@ -842,6 +922,22 @@ export type ctl_ExitCode = 0 /* 'OK_0' */ | 2 /* 'NOTOK_2' */ | 4 /* 'RESTART_4'
 
 export type ExitCode = 0 /* 'OK_0' */ | 2 /* 'NOTOK_2' */ | 4 /* 'RESTART_4' */
 
+export type ctl_stop = (sessionID: int, exitCode: ctl_ExitCode) => void;
+
+export const ctl_stop_method = 'keybase.1.ctl.stop';
+
+export type ctl_logRotate = (sessionID: int) => void;
+
+export const ctl_logRotate_method = 'keybase.1.ctl.logRotate';
+
+export type ctl_reload = (sessionID: int) => void;
+
+export const ctl_reload_method = 'keybase.1.ctl.reload';
+
+export type ctl_dbNuke = (sessionID: int) => void;
+
+export const ctl_dbNuke_method = 'keybase.1.ctl.dbNuke';
+
 export type debugging_FirstStepResult = {
   valPlusTwo: int;
 }
@@ -849,6 +945,18 @@ export type debugging_FirstStepResult = {
 export type FirstStepResult = {
   valPlusTwo: int;
 }
+
+export type debugging_firstStep = (sessionID: int, val: int) => void;
+
+export const debugging_firstStep_method = 'keybase.1.debugging.firstStep';
+
+export type debugging_secondStep = (sessionID: int, val: int) => void;
+
+export const debugging_secondStep_method = 'keybase.1.debugging.secondStep';
+
+export type debugging_increment = (sessionID: int, val: int) => void;
+
+export const debugging_increment_method = 'keybase.1.debugging.increment';
 
 export type delegateUiCtl_Time = {
 }
@@ -942,6 +1050,18 @@ export type delegateUiCtl_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type delegateUiCtl_registerIdentifyUI = () => void;
+
+export const delegateUiCtl_registerIdentifyUI_method = 'keybase.1.delegateUiCtl.registerIdentifyUI';
+
+export type delegateUiCtl_registerSecretUI = () => void;
+
+export const delegateUiCtl_registerSecretUI_method = 'keybase.1.delegateUiCtl.registerSecretUI';
+
+export type delegateUiCtl_registerUpdateUI = () => void;
+
+export const delegateUiCtl_registerUpdateUI_method = 'keybase.1.delegateUiCtl.registerUpdateUI';
+
 export type device_Time = {
 }
 
@@ -1033,6 +1153,14 @@ export type device_UserPlusKeys = {
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
 }
+
+export type device_deviceList = (sessionID: int) => void;
+
+export const device_deviceList_method = 'keybase.1.device.deviceList';
+
+export type device_deviceAdd = (sessionID: int) => void;
+
+export const device_deviceAdd_method = 'keybase.1.device.deviceAdd';
 
 export type favorite_Time = {
 }
@@ -1137,6 +1265,18 @@ export type Folder = {
   private: boolean;
   notificationsOn: boolean;
 }
+
+export type favorite_favoriteAdd = (sessionID: int, folder: favorite_Folder) => void;
+
+export const favorite_favoriteAdd_method = 'keybase.1.favorite.favoriteAdd';
+
+export type favorite_favoriteDelete = (sessionID: int, folder: favorite_Folder) => void;
+
+export const favorite_favoriteDelete_method = 'keybase.1.favorite.favoriteDelete';
+
+export type favorite_favoriteList = (sessionID: int) => void;
+
+export const favorite_favoriteList_method = 'keybase.1.favorite.favoriteList';
 
 export type gpgUi_Time = {
 }
@@ -1255,6 +1395,26 @@ export type SelectKeyRes = {
   keyID: string;
   doSecretPush: boolean;
 }
+
+export type gpgUi_wantToAddGPGKey = (sessionID: int) => void;
+
+export const gpgUi_wantToAddGPGKey_method = 'keybase.1.gpgUi.wantToAddGPGKey';
+
+export type gpgUi_confirmDuplicateKeyChosen = (sessionID: int) => void;
+
+export const gpgUi_confirmDuplicateKeyChosen_method = 'keybase.1.gpgUi.confirmDuplicateKeyChosen';
+
+export type gpgUi_selectKeyAndPushOption = (sessionID: int, keys: Array<GPGKey>) => void;
+
+export const gpgUi_selectKeyAndPushOption_method = 'keybase.1.gpgUi.selectKeyAndPushOption';
+
+export type gpgUi_selectKey = (sessionID: int, keys: Array<GPGKey>) => void;
+
+export const gpgUi_selectKey_method = 'keybase.1.gpgUi.selectKey';
+
+export type gpgUi_sign = (msg: bytes, fingerprint: bytes) => void;
+
+export const gpgUi_sign_method = 'keybase.1.gpgUi.sign';
 
 export type identify_Time = {
 }
@@ -1497,6 +1657,18 @@ export type identify_Identify2Res = {
 export type Identify2Res = {
   upk: UserPlusKeys;
 }
+
+export type identify_Resolve = (assertion: string) => void;
+
+export const identify_Resolve_method = 'keybase.1.identify.Resolve';
+
+export type identify_identify = (sessionID: int, userAssertion: string, trackStatement: boolean, forceRemoteCheck: boolean, useDelegateUI: boolean, reason: identify_IdentifyReason, source: identify_ClientType) => void;
+
+export const identify_identify_method = 'keybase.1.identify.identify';
+
+export type identify_identify2 = (sessionID: int, uid: identify_UID, userAssertion: string, reason: identify_IdentifyReason, useDelegateUI: boolean, alwaysBlock: boolean, noErrorOnTrackFailure: boolean, forceRemoteCheck: boolean, needProofSet: boolean) => void;
+
+export const identify_identify2_method = 'keybase.1.identify.identify2';
 
 export type identifyUi_Time = {
 }
@@ -1807,6 +1979,58 @@ export type ConfirmResult = {
   remoteConfirmed: boolean;
 }
 
+export type identifyUi_delegateIdentifyUI = () => void;
+
+export const identifyUi_delegateIdentifyUI_method = 'keybase.1.identifyUi.delegateIdentifyUI';
+
+export type identifyUi_start = (sessionID: int, username: string, reason: identifyUi_IdentifyReason) => void;
+
+export const identifyUi_start_method = 'keybase.1.identifyUi.start';
+
+export type identifyUi_displayKey = (sessionID: int, key: identifyUi_IdentifyKey) => void;
+
+export const identifyUi_displayKey_method = 'keybase.1.identifyUi.displayKey';
+
+export type identifyUi_reportLastTrack = (sessionID: int, track: (null | TrackSummary)) => void;
+
+export const identifyUi_reportLastTrack_method = 'keybase.1.identifyUi.reportLastTrack';
+
+export type identifyUi_launchNetworkChecks = (sessionID: int, identity: identifyUi_Identity, user: identifyUi_User) => void;
+
+export const identifyUi_launchNetworkChecks_method = 'keybase.1.identifyUi.launchNetworkChecks';
+
+export type identifyUi_displayTrackStatement = (sessionID: int, stmt: string) => void;
+
+export const identifyUi_displayTrackStatement_method = 'keybase.1.identifyUi.displayTrackStatement';
+
+export type identifyUi_finishWebProofCheck = (sessionID: int, rp: identifyUi_RemoteProof, lcr: identifyUi_LinkCheckResult) => void;
+
+export const identifyUi_finishWebProofCheck_method = 'keybase.1.identifyUi.finishWebProofCheck';
+
+export type identifyUi_finishSocialProofCheck = (sessionID: int, rp: identifyUi_RemoteProof, lcr: identifyUi_LinkCheckResult) => void;
+
+export const identifyUi_finishSocialProofCheck_method = 'keybase.1.identifyUi.finishSocialProofCheck';
+
+export type identifyUi_displayCryptocurrency = (sessionID: int, c: identifyUi_Cryptocurrency) => void;
+
+export const identifyUi_displayCryptocurrency_method = 'keybase.1.identifyUi.displayCryptocurrency';
+
+export type identifyUi_reportTrackToken = (sessionID: int, trackToken: identifyUi_TrackToken) => void;
+
+export const identifyUi_reportTrackToken_method = 'keybase.1.identifyUi.reportTrackToken';
+
+export type identifyUi_displayUserCard = (sessionID: int, card: identifyUi_UserCard) => void;
+
+export const identifyUi_displayUserCard_method = 'keybase.1.identifyUi.displayUserCard';
+
+export type identifyUi_confirm = (sessionID: int, outcome: identifyUi_IdentifyOutcome) => void;
+
+export const identifyUi_confirm_method = 'keybase.1.identifyUi.confirm';
+
+export type identifyUi_finish = (sessionID: int) => void;
+
+export const identifyUi_finish_method = 'keybase.1.identifyUi.finish';
+
 export type install_Time = {
 }
 
@@ -2031,6 +2255,10 @@ export type FSNotification = {
   notificationType: FSNotificationType;
 }
 
+export type kbfs_FSEvent = (event: kbfs_FSNotification) => void;
+
+export const kbfs_FSEvent_method = 'keybase.1.kbfs.FSEvent';
+
 export type Kex2Provisionee_Time = {
 }
 
@@ -2151,6 +2379,18 @@ export type Kex2Provisionee_HelloRes = {
 export type HelloRes = {
 }
 
+export type Kex2Provisionee_hello = (uid: Kex2Provisionee_UID, token: Kex2Provisionee_SessionToken, csrf: Kex2Provisionee_CsrfToken, pps: Kex2Provisionee_PassphraseStream, sigBody: string) => void;
+
+export const Kex2Provisionee_hello_method = 'keybase.1.Kex2Provisionee.hello';
+
+export type Kex2Provisionee_didCounterSign = (sig: bytes) => void;
+
+export const Kex2Provisionee_didCounterSign_method = 'keybase.1.Kex2Provisionee.didCounterSign';
+
+export type Kex2Provisioner_kexStart = () => void;
+
+export const Kex2Provisioner_kexStart_method = 'keybase.1.Kex2Provisioner.kexStart';
+
 export type log_Time = {
 }
 
@@ -2243,6 +2483,10 @@ export type log_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type log_registerLogger = (sessionID: int, name: string, level: log_LogLevel) => void;
+
+export const log_registerLogger_method = 'keybase.1.log.registerLogger';
+
 export type logUi_Time = {
 }
 
@@ -2334,6 +2578,10 @@ export type logUi_UserPlusKeys = {
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
 }
+
+export type logUi_log = (sessionID: int, level: logUi_LogLevel, text: logUi_Text) => void;
+
+export const logUi_log_method = 'keybase.1.logUi.log';
 
 export type login_Time = {
 }
@@ -2437,6 +2685,38 @@ export type ConfiguredAccount = {
   hasStoredSecret: boolean;
 }
 
+export type login_getConfiguredAccounts = (sessionID: int) => void;
+
+export const login_getConfiguredAccounts_method = 'keybase.1.login.getConfiguredAccounts';
+
+export type login_login = (sessionID: int, deviceType: string, username: string, clientType: login_ClientType) => void;
+
+export const login_login_method = 'keybase.1.login.login';
+
+export type login_clearStoredSecret = (sessionID: int, username: string) => void;
+
+export const login_clearStoredSecret_method = 'keybase.1.login.clearStoredSecret';
+
+export type login_logout = (sessionID: int) => void;
+
+export const login_logout_method = 'keybase.1.login.logout';
+
+export type login_deprovision = (sessionID: int, username: string) => void;
+
+export const login_deprovision_method = 'keybase.1.login.deprovision';
+
+export type login_recoverAccountFromEmailAddress = (email: string) => void;
+
+export const login_recoverAccountFromEmailAddress_method = 'keybase.1.login.recoverAccountFromEmailAddress';
+
+export type login_paperKey = (sessionID: int) => void;
+
+export const login_paperKey_method = 'keybase.1.login.paperKey';
+
+export type login_unlock = (sessionID: int) => void;
+
+export const login_unlock_method = 'keybase.1.login.unlock';
+
 export type loginUi_Time = {
 }
 
@@ -2528,6 +2808,22 @@ export type loginUi_UserPlusKeys = {
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
 }
+
+export type loginUi_getEmailOrUsername = (sessionID: int) => void;
+
+export const loginUi_getEmailOrUsername_method = 'keybase.1.loginUi.getEmailOrUsername';
+
+export type loginUi_promptRevokePaperKeys = (sessionID: int, device: loginUi_Device, index: int) => void;
+
+export const loginUi_promptRevokePaperKeys_method = 'keybase.1.loginUi.promptRevokePaperKeys';
+
+export type loginUi_displayPaperKeyPhrase = (sessionID: int, phrase: string) => void;
+
+export const loginUi_displayPaperKeyPhrase_method = 'keybase.1.loginUi.displayPaperKeyPhrase';
+
+export type loginUi_displayPrimaryPaperKey = (sessionID: int, phrase: string) => void;
+
+export const loginUi_displayPrimaryPaperKey_method = 'keybase.1.loginUi.displayPrimaryPaperKey';
 
 export type metadata_Time = {
 }
@@ -2663,6 +2959,62 @@ export type MetadataResponse = {
   mdBlocks: Array<MDBlock>;
 }
 
+export type metadata_getChallenge = () => void;
+
+export const metadata_getChallenge_method = 'keybase.1.metadata.getChallenge';
+
+export type metadata_authenticate = (signature: string) => void;
+
+export const metadata_authenticate_method = 'keybase.1.metadata.authenticate';
+
+export type metadata_putMetadata = (mdBlock: metadata_MDBlock, logTags: {string: string}) => void;
+
+export const metadata_putMetadata_method = 'keybase.1.metadata.putMetadata';
+
+export type metadata_getMetadata = (folderID: string, folderHandle: bytes, branchID: string, unmerged: boolean, startRevision: long, stopRevision: long, logTags: {string: string}) => void;
+
+export const metadata_getMetadata_method = 'keybase.1.metadata.getMetadata';
+
+export type metadata_registerForUpdates = (folderID: string, currRevision: long, logTags: {string: string}) => void;
+
+export const metadata_registerForUpdates_method = 'keybase.1.metadata.registerForUpdates';
+
+export type metadata_pruneBranch = (folderID: string, branchID: string, logTags: {string: string}) => void;
+
+export const metadata_pruneBranch_method = 'keybase.1.metadata.pruneBranch';
+
+export type metadata_putKeys = (keyHalves: Array<KeyHalf>, logTags: {string: string}) => void;
+
+export const metadata_putKeys_method = 'keybase.1.metadata.putKeys';
+
+export type metadata_getKey = (keyHalfID: bytes, deviceKID: string, logTags: {string: string}) => void;
+
+export const metadata_getKey_method = 'keybase.1.metadata.getKey';
+
+export type metadata_deleteKey = (uid: metadata_UID, deviceKID: metadata_KID, keyHalfID: bytes, logTags: {string: string}) => void;
+
+export const metadata_deleteKey_method = 'keybase.1.metadata.deleteKey';
+
+export type metadata_truncateLock = (folderID: string) => void;
+
+export const metadata_truncateLock_method = 'keybase.1.metadata.truncateLock';
+
+export type metadata_truncateUnlock = (folderID: string) => void;
+
+export const metadata_truncateUnlock_method = 'keybase.1.metadata.truncateUnlock';
+
+export type metadata_getFolderHandle = (folderID: string, signature: string, challenge: string) => void;
+
+export const metadata_getFolderHandle_method = 'keybase.1.metadata.getFolderHandle';
+
+export type metadata_getFoldersForRekey = (deviceKID: metadata_KID) => void;
+
+export const metadata_getFoldersForRekey_method = 'keybase.1.metadata.getFoldersForRekey';
+
+export type metadata_ping = () => void;
+
+export const metadata_ping_method = 'keybase.1.metadata.ping';
+
 export type metadataUpdate_Time = {
 }
 
@@ -2764,6 +3116,14 @@ export type metadataUpdate_ChallengeInfo = {
   now: long;
   challenge: string;
 }
+
+export type metadataUpdate_metadataUpdate = (folderID: string, revision: long) => void;
+
+export const metadataUpdate_metadataUpdate_method = 'keybase.1.metadataUpdate.metadataUpdate';
+
+export type metadataUpdate_folderNeedsRekey = (folderID: string, revision: long) => void;
+
+export const metadataUpdate_folderNeedsRekey_method = 'keybase.1.metadataUpdate.folderNeedsRekey';
 
 export type notifyCtl_Time = {
 }
@@ -2871,6 +3231,10 @@ export type NotificationChannels = {
   tracking: boolean;
 }
 
+export type notifyCtl_setNotifications = (channels: notifyCtl_NotificationChannels) => void;
+
+export const notifyCtl_setNotifications_method = 'keybase.1.notifyCtl.setNotifications';
+
 export type NotifyFS_FSStatusCode = 0 /* 'START_0' */ | 1 /* 'FINISH_1' */ | 2 /* 'ERROR_2' */
 
 export type NotifyFS_FSNotificationType = 0 /* 'ENCRYPTING_0' */ | 1 /* 'DECRYPTING_1' */ | 2 /* 'SIGNING_2' */ | 3 /* 'VERIFYING_3' */ | 4 /* 'REKEYING_4' */
@@ -2882,6 +3246,18 @@ export type NotifyFS_FSNotification = {
   statusCode: FSStatusCode;
   notificationType: FSNotificationType;
 }
+
+export type NotifyFS_FSActivity = (notification: NotifyFS_FSNotification) => void;
+
+export const NotifyFS_FSActivity_method = 'keybase.1.NotifyFS.FSActivity';
+
+export type NotifySession_loggedOut = () => void;
+
+export const NotifySession_loggedOut_method = 'keybase.1.NotifySession.loggedOut';
+
+export type NotifySession_loggedIn = (username: string) => void;
+
+export const NotifySession_loggedIn_method = 'keybase.1.NotifySession.loggedIn';
 
 export type NotifyTracking_Time = {
 }
@@ -2975,6 +3351,10 @@ export type NotifyTracking_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type NotifyTracking_trackingChanged = (uid: NotifyTracking_UID, username: string) => void;
+
+export const NotifyTracking_trackingChanged_method = 'keybase.1.NotifyTracking.trackingChanged';
+
 export type NotifyUsers_Time = {
 }
 
@@ -3066,6 +3446,10 @@ export type NotifyUsers_UserPlusKeys = {
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
 }
+
+export type NotifyUsers_userChanged = (uid: NotifyUsers_UID) => void;
+
+export const NotifyUsers_userChanged_method = 'keybase.1.NotifyUsers.userChanged';
 
 export type pgp_Time = {
 }
@@ -3336,6 +3720,58 @@ export type PGPCreateUids = {
   ids: Array<PGPIdentity>;
 }
 
+export type pgp_pgpSign = (sessionID: int, source: pgp_Stream, sink: pgp_Stream, opts: pgp_PGPSignOptions) => void;
+
+export const pgp_pgpSign_method = 'keybase.1.pgp.pgpSign';
+
+export type pgp_pgpPull = (sessionID: int, userAsserts: Array<string>) => void;
+
+export const pgp_pgpPull_method = 'keybase.1.pgp.pgpPull';
+
+export type pgp_pgpEncrypt = (sessionID: int, source: pgp_Stream, sink: pgp_Stream, opts: pgp_PGPEncryptOptions) => void;
+
+export const pgp_pgpEncrypt_method = 'keybase.1.pgp.pgpEncrypt';
+
+export type pgp_pgpDecrypt = (sessionID: int, source: pgp_Stream, sink: pgp_Stream, opts: pgp_PGPDecryptOptions) => void;
+
+export const pgp_pgpDecrypt_method = 'keybase.1.pgp.pgpDecrypt';
+
+export type pgp_pgpVerify = (sessionID: int, source: pgp_Stream, opts: pgp_PGPVerifyOptions) => void;
+
+export const pgp_pgpVerify_method = 'keybase.1.pgp.pgpVerify';
+
+export type pgp_pgpImport = (sessionID: int, key: bytes, pushSecret: boolean) => void;
+
+export const pgp_pgpImport_method = 'keybase.1.pgp.pgpImport';
+
+export type pgp_pgpExport = (sessionID: int, options: pgp_PGPQuery) => void;
+
+export const pgp_pgpExport_method = 'keybase.1.pgp.pgpExport';
+
+export type pgp_pgpExportByFingerprint = (sessionID: int, options: pgp_PGPQuery) => void;
+
+export const pgp_pgpExportByFingerprint_method = 'keybase.1.pgp.pgpExportByFingerprint';
+
+export type pgp_pgpExportByKID = (sessionID: int, options: pgp_PGPQuery) => void;
+
+export const pgp_pgpExportByKID_method = 'keybase.1.pgp.pgpExportByKID';
+
+export type pgp_pgpKeyGen = (sessionID: int, primaryBits: int, subkeyBits: int, createUids: pgp_PGPCreateUids, allowMulti: boolean, doExport: boolean, pushSecret: boolean) => void;
+
+export const pgp_pgpKeyGen_method = 'keybase.1.pgp.pgpKeyGen';
+
+export type pgp_pgpDeletePrimary = (sessionID: int) => void;
+
+export const pgp_pgpDeletePrimary_method = 'keybase.1.pgp.pgpDeletePrimary';
+
+export type pgp_pgpSelect = (sessionID: int, fingerprintQuery: string, allowMulti: boolean, skipImport: boolean, onlyImport: boolean) => void;
+
+export const pgp_pgpSelect_method = 'keybase.1.pgp.pgpSelect';
+
+export type pgp_pgpUpdate = (sessionID: int, all: boolean, fingerprints: Array<string>) => void;
+
+export const pgp_pgpUpdate_method = 'keybase.1.pgp.pgpUpdate';
+
 export type pgpUi_Time = {
 }
 
@@ -3427,6 +3863,10 @@ export type pgpUi_UserPlusKeys = {
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
 }
+
+export type pgpUi_outputSignatureSuccess = (sessionID: int, fingerprint: string, username: string, signedAt: pgpUi_Time) => void;
+
+export const pgpUi_outputSignatureSuccess_method = 'keybase.1.pgpUi.outputSignatureSuccess';
 
 export type prove_Time = {
 }
@@ -3611,6 +4051,14 @@ export type StartProofResult = {
   sigID: SigID;
 }
 
+export type prove_startProof = (sessionID: int, service: string, username: string, force: boolean, promptPosted: boolean) => void;
+
+export const prove_startProof_method = 'keybase.1.prove.startProof';
+
+export type prove_checkProof = (sessionID: int, sigID: prove_SigID) => void;
+
+export const prove_checkProof_method = 'keybase.1.prove.checkProof';
+
 export type proveUi_Time = {
 }
 
@@ -3706,6 +4154,34 @@ export type proveUi_UserPlusKeys = {
 export type proveUi_PromptOverwriteType = 0 /* 'SOCIAL_0' */ | 1 /* 'SITE_1' */
 
 export type PromptOverwriteType = 0 /* 'SOCIAL_0' */ | 1 /* 'SITE_1' */
+
+export type proveUi_promptOverwrite = (sessionID: int, account: string, typ: proveUi_PromptOverwriteType) => void;
+
+export const proveUi_promptOverwrite_method = 'keybase.1.proveUi.promptOverwrite';
+
+export type proveUi_promptUsername = (sessionID: int, prompt: string, prevError: (null | Status)) => void;
+
+export const proveUi_promptUsername_method = 'keybase.1.proveUi.promptUsername';
+
+export type proveUi_outputPrechecks = (sessionID: int, text: proveUi_Text) => void;
+
+export const proveUi_outputPrechecks_method = 'keybase.1.proveUi.outputPrechecks';
+
+export type proveUi_preProofWarning = (sessionID: int, text: proveUi_Text) => void;
+
+export const proveUi_preProofWarning_method = 'keybase.1.proveUi.preProofWarning';
+
+export type proveUi_outputInstructions = (sessionID: int, instructions: proveUi_Text, proof: string) => void;
+
+export const proveUi_outputInstructions_method = 'keybase.1.proveUi.outputInstructions';
+
+export type proveUi_okToCheck = (sessionID: int, name: string, attempt: int) => void;
+
+export const proveUi_okToCheck_method = 'keybase.1.proveUi.okToCheck';
+
+export type proveUi_displayRecheckWarning = (sessionID: int, text: proveUi_Text) => void;
+
+export const proveUi_displayRecheckWarning_method = 'keybase.1.proveUi.displayRecheckWarning';
 
 export type provisionUi_Time = {
 }
@@ -3821,6 +4297,34 @@ export type SecretResponse = {
   phrase: string;
 }
 
+export type provisionUi_chooseProvisioningMethod = (sessionID: int, gpgOption: boolean) => void;
+
+export const provisionUi_chooseProvisioningMethod_method = 'keybase.1.provisionUi.chooseProvisioningMethod';
+
+export type provisionUi_chooseDeviceType = (sessionID: int, kind: provisionUi_ChooseType) => void;
+
+export const provisionUi_chooseDeviceType_method = 'keybase.1.provisionUi.chooseDeviceType';
+
+export type provisionUi_DisplayAndPromptSecret = (sessionID: int, secret: bytes, phrase: string, otherDeviceType: provisionUi_DeviceType) => void;
+
+export const provisionUi_DisplayAndPromptSecret_method = 'keybase.1.provisionUi.DisplayAndPromptSecret';
+
+export type provisionUi_DisplaySecretExchanged = (sessionID: int) => void;
+
+export const provisionUi_DisplaySecretExchanged_method = 'keybase.1.provisionUi.DisplaySecretExchanged';
+
+export type provisionUi_PromptNewDeviceName = (sessionID: int, existingDevices: Array<string>) => void;
+
+export const provisionUi_PromptNewDeviceName_method = 'keybase.1.provisionUi.PromptNewDeviceName';
+
+export type provisionUi_ProvisioneeSuccess = (sessionID: int, username: string, deviceName: string) => void;
+
+export const provisionUi_ProvisioneeSuccess_method = 'keybase.1.provisionUi.ProvisioneeSuccess';
+
+export type provisionUi_ProvisionerSuccess = (sessionID: int, deviceName: string, deviceType: string) => void;
+
+export const provisionUi_ProvisionerSuccess_method = 'keybase.1.provisionUi.ProvisionerSuccess';
+
 export type quota_Time = {
 }
 
@@ -3927,6 +4431,10 @@ export type VerifySessionRes = {
   lifetime: int;
 }
 
+export type quota_verifySession = (session: string) => void;
+
+export const quota_verifySession_method = 'keybase.1.quota.verifySession';
+
 export type revoke_Time = {
 }
 
@@ -4018,6 +4526,18 @@ export type revoke_UserPlusKeys = {
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
 }
+
+export type revoke_revokeKey = (sessionID: int, keyID: revoke_KID) => void;
+
+export const revoke_revokeKey_method = 'keybase.1.revoke.revokeKey';
+
+export type revoke_revokeDevice = (sessionID: int, deviceID: revoke_DeviceID, force: boolean) => void;
+
+export const revoke_revokeDevice_method = 'keybase.1.revoke.revokeDevice';
+
+export type revoke_revokeSigs = (sessionID: int, sigIDQueries: Array<string>) => void;
+
+export const revoke_revokeSigs_method = 'keybase.1.revoke.revokeSigs';
 
 export type saltpack_Time = {
 }
@@ -4238,6 +4758,22 @@ export type SaltpackEncryptedMessageInfo = {
   receiverIsAnon: boolean;
 }
 
+export type saltpack_saltpackEncrypt = (sessionID: int, source: saltpack_Stream, sink: saltpack_Stream, opts: saltpack_SaltpackEncryptOptions) => void;
+
+export const saltpack_saltpackEncrypt_method = 'keybase.1.saltpack.saltpackEncrypt';
+
+export type saltpack_saltpackDecrypt = (sessionID: int, source: saltpack_Stream, sink: saltpack_Stream, opts: saltpack_SaltpackDecryptOptions) => void;
+
+export const saltpack_saltpackDecrypt_method = 'keybase.1.saltpack.saltpackDecrypt';
+
+export type saltpack_saltpackSign = (sessionID: int, source: saltpack_Stream, sink: saltpack_Stream, opts: saltpack_SaltpackSignOptions) => void;
+
+export const saltpack_saltpackSign_method = 'keybase.1.saltpack.saltpackSign';
+
+export type saltpack_saltpackVerify = (sessionID: int, source: saltpack_Stream, sink: saltpack_Stream, opts: saltpack_SaltpackVerifyOptions) => void;
+
+export const saltpack_saltpackVerify_method = 'keybase.1.saltpack.saltpackVerify';
+
 export type saltpackUi_Time = {
 }
 
@@ -4346,6 +4882,14 @@ export type SaltpackSender = {
   senderType: SaltpackSenderType;
 }
 
+export type saltpackUi_saltpackPromptForDecrypt = (sessionID: int, sender: saltpackUi_SaltpackSender) => void;
+
+export const saltpackUi_saltpackPromptForDecrypt_method = 'keybase.1.saltpackUi.saltpackPromptForDecrypt';
+
+export type saltpackUi_saltpackVerifySuccess = (sessionID: int, signingKID: saltpackUi_KID, sender: saltpackUi_SaltpackSender) => void;
+
+export const saltpackUi_saltpackVerifySuccess_method = 'keybase.1.saltpackUi.saltpackVerifySuccess';
+
 export type secretUi_Feature = {
   allow: boolean;
   defaultValue: boolean;
@@ -4403,6 +4947,10 @@ export type SecretEntryRes = {
   canceled: boolean;
   storeSecret: boolean;
 }
+
+export type secretUi_getPassphrase = (sessionID: int, pinentry: secretUi_GUIEntryArg, terminal: (null | SecretEntryArg)) => void;
+
+export const secretUi_getPassphrase_method = 'keybase.1.secretUi.getPassphrase';
 
 export type SecretKeys_Time = {
 }
@@ -4522,6 +5070,10 @@ export type SecretKeys = {
   encryption: NaclDHKeyPrivate;
 }
 
+export type SecretKeys_getSecretKeys = (sessionID: int) => void;
+
+export const SecretKeys_getSecretKeys_method = 'keybase.1.SecretKeys.getSecretKeys';
+
 export type session_Time = {
 }
 
@@ -4630,6 +5182,10 @@ export type Session = {
   deviceSibkeyKid: KID;
 }
 
+export type session_currentSession = (sessionID: int) => void;
+
+export const session_currentSession_method = 'keybase.1.session.currentSession';
+
 export type signup_Time = {
 }
 
@@ -4733,6 +5289,18 @@ export type SignupRes = {
   postOk: boolean;
   writeOk: boolean;
 }
+
+export type signup_checkUsernameAvailable = (sessionID: int, username: string) => void;
+
+export const signup_checkUsernameAvailable_method = 'keybase.1.signup.checkUsernameAvailable';
+
+export type signup_signup = (sessionID: int, email: string, inviteCode: string, passphrase: string, username: string, deviceName: string, storeSecret: boolean, skipMail: boolean) => void;
+
+export const signup_signup_method = 'keybase.1.signup.signup';
+
+export type signup_inviteRequest = (sessionID: int, email: string, fullname: string, notes: string) => void;
+
+export const signup_inviteRequest_method = 'keybase.1.signup.inviteRequest';
 
 export type sigs_Time = {
 }
@@ -4884,6 +5452,14 @@ export type SigListArgs = {
   revoked: boolean;
 }
 
+export type sigs_sigList = (sessionID: int, arg: sigs_SigListArgs) => void;
+
+export const sigs_sigList_method = 'keybase.1.sigs.sigList';
+
+export type sigs_sigListJSON = (sessionID: int, arg: sigs_SigListArgs) => void;
+
+export const sigs_sigListJSON_method = 'keybase.1.sigs.sigListJSON';
+
 export type streamUi_Time = {
 }
 
@@ -4976,6 +5552,18 @@ export type streamUi_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type streamUi_close = (sessionID: int, s: streamUi_Stream) => void;
+
+export const streamUi_close_method = 'keybase.1.streamUi.close';
+
+export type streamUi_read = (sessionID: int, s: streamUi_Stream, sz: int) => void;
+
+export const streamUi_read_method = 'keybase.1.streamUi.read';
+
+export type streamUi_write = (sessionID: int, s: streamUi_Stream, buf: bytes) => void;
+
+export const streamUi_write_method = 'keybase.1.streamUi.write';
+
 export type test_Test = {
   reply: string;
 }
@@ -4983,6 +5571,18 @@ export type test_Test = {
 export type Test = {
   reply: string;
 }
+
+export type test_test = (sessionID: int, name: string) => void;
+
+export const test_test_method = 'keybase.1.test.test';
+
+export type test_testCallback = (sessionID: int, name: string) => void;
+
+export const test_testCallback_method = 'keybase.1.test.testCallback';
+
+export type test_panic = (message: string) => void;
+
+export const test_panic_method = 'keybase.1.test.panic';
 
 export type track_Time = {
 }
@@ -5147,6 +5747,26 @@ export type track_RemoteProof = {
   mTime: Time;
 }
 
+export type track_track = (sessionID: int, userAssertion: string, options: track_TrackOptions, forceRemoteCheck: boolean) => void;
+
+export const track_track_method = 'keybase.1.track.track';
+
+export type track_trackWithToken = (sessionID: int, trackToken: track_TrackToken, options: track_TrackOptions) => void;
+
+export const track_trackWithToken_method = 'keybase.1.track.trackWithToken';
+
+export type track_untrack = (sessionID: int, username: string) => void;
+
+export const track_untrack_method = 'keybase.1.track.untrack';
+
+export type track_checkTracking = (sessionID: int) => void;
+
+export const track_checkTracking_method = 'keybase.1.track.checkTracking';
+
+export type track_fakeTrackingChanged = (sessionID: int, username: string) => void;
+
+export const track_fakeTrackingChanged_method = 'keybase.1.track.fakeTrackingChanged';
+
 export type ui_Time = {
 }
 
@@ -5242,6 +5862,10 @@ export type ui_UserPlusKeys = {
 export type ui_PromptDefault = 0 /* 'NONE_0' */ | 1 /* 'YES_1' */ | 2 /* 'NO_2' */
 
 export type PromptDefault = 0 /* 'NONE_0' */ | 1 /* 'YES_1' */ | 2 /* 'NO_2' */
+
+export type ui_promptYesNo = (sessionID: int, text: ui_Text, promptDefault: ui_PromptDefault) => void;
+
+export const ui_promptYesNo_method = 'keybase.1.ui.promptYesNo';
 
 export type update_Time = {
 }
@@ -5401,6 +6025,14 @@ export type UpdateResult = {
   update?: ?Update;
 }
 
+export type update_update = (options: update_UpdateOptions) => void;
+
+export const update_update_method = 'keybase.1.update.update';
+
+export type update_updateCheck = (force: boolean) => void;
+
+export const update_updateCheck_method = 'keybase.1.update.updateCheck';
+
 export type updateUi_Time = {
 }
 
@@ -5539,6 +6171,14 @@ export type UpdateQuitRes = {
   pid: int;
   applicationPath: string;
 }
+
+export type updateUi_updatePrompt = (sessionID: int, update: updateUi_Update) => void;
+
+export const updateUi_updatePrompt_method = 'keybase.1.updateUi.updatePrompt';
+
+export type updateUi_updateQuit = () => void;
+
+export const updateUi_updateQuit_method = 'keybase.1.updateUi.updateQuit';
 
 export type user_Time = {
 }
@@ -5727,4 +6367,44 @@ export type SearchResult = {
   components: Array<SearchComponent>;
   score: double;
 }
+
+export type user_listTrackers = (sessionID: int, uid: user_UID) => void;
+
+export const user_listTrackers_method = 'keybase.1.user.listTrackers';
+
+export type user_listTrackersByName = (sessionID: int, username: string) => void;
+
+export const user_listTrackersByName_method = 'keybase.1.user.listTrackersByName';
+
+export type user_listTrackersSelf = (sessionID: int) => void;
+
+export const user_listTrackersSelf_method = 'keybase.1.user.listTrackersSelf';
+
+export type user_loadUncheckedUserSummaries = (sessionID: int, uids: Array<UID>) => void;
+
+export const user_loadUncheckedUserSummaries_method = 'keybase.1.user.loadUncheckedUserSummaries';
+
+export type user_loadUser = (sessionID: int, uid: user_UID) => void;
+
+export const user_loadUser_method = 'keybase.1.user.loadUser';
+
+export type user_loadUserPlusKeys = (sessionID: int, uid: user_UID, cacheOK: boolean) => void;
+
+export const user_loadUserPlusKeys_method = 'keybase.1.user.loadUserPlusKeys';
+
+export type user_loadPublicKeys = (sessionID: int, uid: user_UID) => void;
+
+export const user_loadPublicKeys_method = 'keybase.1.user.loadPublicKeys';
+
+export type user_listTracking = (sessionID: int, filter: string) => void;
+
+export const user_listTracking_method = 'keybase.1.user.listTracking';
+
+export type user_listTrackingJSON = (sessionID: int, filter: string, verbose: boolean) => void;
+
+export const user_listTrackingJSON_method = 'keybase.1.user.listTrackingJSON';
+
+export type user_search = (sessionID: int, query: string) => void;
+
+export const user_search_method = 'keybase.1.user.search';
 
