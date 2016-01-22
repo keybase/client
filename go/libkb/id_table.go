@@ -101,6 +101,10 @@ func (g *GenericChainLink) extractPGPFullHash(loc string) string {
 
 func (g *GenericChainLink) DoOwnNewLinkFromServerNotifications(glob *GlobalContext) {}
 
+func CanonicalProofName(t TypedChainLink) string {
+	return strings.ToLower(t.ToDisplayString())
+}
+
 //
 //=========================================================================
 

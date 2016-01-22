@@ -140,12 +140,17 @@ func AddToProofSetNoChecks(r RemoteProofChainLink, ps *ProofSet) {
 func (r *RemoteProofLinks) active() []ProofLinkWithState {
 	var links []ProofLinkWithState
 	seen := make(map[string]struct{})
+
+	// Loop over all types of services
 	for _, list := range r.links {
+
+		// Loop over all proofs for that type, from most recent,
+		// to oldest.
 		for i := len(list) - 1; i >= 0; i-- {
 			both := list[i]
 			link := both.link
 			if !link.IsRevoked() {
-				id := link.ToDisplayString()
+				id := CanonicalProofName(link)
 				// We only want to use the last proof in the list
 				// if we have several (like for dns://chriscoyne.com)
 				if _, ok := seen[id]; !ok {
