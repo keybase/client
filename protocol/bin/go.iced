@@ -162,6 +162,7 @@ class GoEmitter
     @output "type GenericClient interface {"
     @tab()
     @output "Call(ctx context.Context, s string, args interface{}, res interface{}) error"
+    @output "Notify(ctx context.Context, s string, args interface{}) error"
     @untab()
     @output "}"
 
@@ -304,7 +305,8 @@ class GoEmitter
     oarg += if arg.nargs is 0 then "#{arg.type}{}"
     else arg.name
     oarg += "}"
-    @output """err = c.Cli.Call(ctx, "#{@_pkg}.#{protocol}.#{name}", #{oarg}, #{res_in})"""
+    res = if details.notify? then "" else ", #{res_in}"
+    @output """err = c.Cli.#{if details.notify? then "Notify" else "Call"}(ctx, "#{@_pkg}.#{protocol}.#{name}", #{oarg}#{res})"""
     @output "return"
     @untab()
     @output "}"
