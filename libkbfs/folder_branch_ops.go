@@ -3916,14 +3916,14 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 			return true, err
 		}
 	}
+	// Clear the old deCache entry
+	func() {
+		fbo.cacheLock.Lock()
+		defer fbo.cacheLock.Unlock()
+		fbo.clearDeCacheEntryLocked(
+			newPath.parentPath().tailPointer(), file.tailPointer())
+	}()
 	for _, f := range writes {
-		// Clear the old deCache entry
-		func() {
-			fbo.cacheLock.Lock()
-			defer fbo.cacheLock.Unlock()
-			fbo.clearDeCacheEntryLocked(
-				newPath.parentPath().tailPointer(), file.tailPointer())
-		}()
 		// we can safely read head here because we hold mdWriterLock
 		err = f(ctx, fbo.head, newPath)
 		if err != nil {
