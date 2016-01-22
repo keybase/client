@@ -148,7 +148,10 @@ func (d *Service) Run() (err error) {
 		}
 	}
 
-	// Explicitly set fork type here based on KEYBASE_LABEL
+	// Explicitly set fork type here based on KEYBASE_LABEL.
+	// This is for OSX-based Launchd implementations, which unfortunately
+	// don't obey the same command-line flag conventions as
+	// the other platforms.
 	if len(d.G().Env.GetLabel()) > 0 {
 		d.ForkType = keybase1.ForkType_LAUNCHD
 	}
