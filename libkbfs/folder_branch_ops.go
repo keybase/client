@@ -2184,12 +2184,24 @@ func (fbo *folderBranchOps) createEntryLocked(
 	return node, de, nil
 }
 
-func (fbo *folderBranchOps) doWithRetry(ctx context.Context,
-	fn func() error) error {
+func (fbo *folderBranchOps) doMDWriteWithRetry(ctx context.Context,
+	lState *lockState, fn func() error) error {
+	doUnlock := false
+	defer func() {
+		if doUnlock {
+			fbo.mdWriterLock.Unlock(lState)
+		}
+	}()
+
 	for i := 0; ; i++ {
+		fbo.mdWriterLock.Lock(lState)
+		doUnlock = true
 		err := fn()
 		if isRetriableError(err, i) {
 			fbo.log.CDebugf(ctx, "Trying again after retriable error: %v", err)
+			// Release the lock to give someone else a chance
+			doUnlock = false
+			fbo.mdWriterLock.Unlock(lState)
 			continue
 		} else if err != nil {
 			return err
@@ -2216,11 +2228,7 @@ func (fbo *folderBranchOps) CreateDir(
 	}
 
 	lState := makeFBOLockState()
-
-	fbo.mdWriterLock.Lock(lState)
-	defer fbo.mdWriterLock.Unlock(lState)
-
-	err = fbo.doWithRetry(ctx, func() error {
+	err = fbo.doMDWriteWithRetry(ctx, lState, func() error {
 		node, de, err := fbo.createEntryLocked(ctx, lState, dir, path, Dir)
 		n = node
 		ei = de.EntryInfo
@@ -2257,11 +2265,7 @@ func (fbo *folderBranchOps) CreateFile(
 	}
 
 	lState := makeFBOLockState()
-
-	fbo.mdWriterLock.Lock(lState)
-	defer fbo.mdWriterLock.Unlock(lState)
-
-	err = fbo.doWithRetry(ctx, func() error {
+	err = fbo.doMDWriteWithRetry(ctx, lState, func() error {
 		node, de, err :=
 			fbo.createEntryLocked(ctx, lState, dir, path, entryType)
 		n = node
@@ -2355,11 +2359,7 @@ func (fbo *folderBranchOps) CreateLink(
 	}
 
 	lState := makeFBOLockState()
-
-	fbo.mdWriterLock.Lock(lState)
-	defer fbo.mdWriterLock.Unlock(lState)
-
-	err = fbo.doWithRetry(ctx, func() error {
+	err = fbo.doMDWriteWithRetry(ctx, lState, func() error {
 		de, err := fbo.createLinkLocked(ctx, lState, dir, fromName, toPath)
 		ei = de.EntryInfo
 		return err
@@ -2493,11 +2493,7 @@ func (fbo *folderBranchOps) RemoveDir(
 	}
 
 	lState := makeFBOLockState()
-
-	fbo.mdWriterLock.Lock(lState)
-	defer fbo.mdWriterLock.Unlock(lState)
-
-	return fbo.doWithRetry(ctx, func() error {
+	return fbo.doMDWriteWithRetry(ctx, lState, func() error {
 		return fbo.removeDirLocked(ctx, lState, dir, dirName)
 	})
 }
@@ -2513,11 +2509,7 @@ func (fbo *folderBranchOps) RemoveEntry(ctx context.Context, dir Node,
 	}
 
 	lState := makeFBOLockState()
-
-	fbo.mdWriterLock.Lock(lState)
-	defer fbo.mdWriterLock.Unlock(lState)
-
-	return fbo.doWithRetry(ctx, func() error {
+	return fbo.doMDWriteWithRetry(ctx, lState, func() error {
 		// verify we have permission to write
 		md, err := fbo.getMDForWriteLocked(ctx, lState)
 		if err != nil {
@@ -2724,26 +2716,22 @@ func (fbo *folderBranchOps) Rename(
 	}
 
 	lState := makeFBOLockState()
+	return fbo.doMDWriteWithRetry(ctx, lState, func() error {
+		oldParentPath, err := fbo.pathFromNodeForMDWriteLocked(oldParent)
+		if err != nil {
+			return err
+		}
 
-	fbo.mdWriterLock.Lock(lState)
-	defer fbo.mdWriterLock.Unlock(lState)
+		newParentPath, err := fbo.pathFromNodeForMDWriteLocked(newParent)
+		if err != nil {
+			return err
+		}
 
-	oldParentPath, err := fbo.pathFromNodeForMDWriteLocked(oldParent)
-	if err != nil {
-		return err
-	}
+		// only works for paths within the same topdir
+		if oldParentPath.FolderBranch != newParentPath.FolderBranch {
+			return RenameAcrossDirsError{}
+		}
 
-	newParentPath, err := fbo.pathFromNodeForMDWriteLocked(newParent)
-	if err != nil {
-		return err
-	}
-
-	// only works for paths within the same topdir
-	if oldParentPath.FolderBranch != newParentPath.FolderBranch {
-		return RenameAcrossDirsError{}
-	}
-
-	return fbo.doWithRetry(ctx, func() error {
 		return fbo.renameLocked(ctx, lState, oldParentPath, oldName,
 			newParentPath, newName, newParent)
 	})
@@ -3376,15 +3364,12 @@ func (fbo *folderBranchOps) SetEx(
 	}
 
 	lState := makeFBOLockState()
+	return fbo.doMDWriteWithRetry(ctx, lState, func() error {
+		filePath, err := fbo.pathFromNodeForMDWriteLocked(file)
+		if err != nil {
+			return err
+		}
 
-	fbo.mdWriterLock.Lock(lState)
-	defer fbo.mdWriterLock.Unlock(lState)
-	filePath, err := fbo.pathFromNodeForMDWriteLocked(file)
-	if err != nil {
-		return
-	}
-
-	return fbo.doWithRetry(ctx, func() error {
 		return fbo.setExLocked(ctx, lState, filePath, ex)
 	})
 }
@@ -3434,15 +3419,12 @@ func (fbo *folderBranchOps) SetMtime(
 	}
 
 	lState := makeFBOLockState()
+	return fbo.doMDWriteWithRetry(ctx, lState, func() error {
+		filePath, err := fbo.pathFromNodeForMDWriteLocked(file)
+		if err != nil {
+			return err
+		}
 
-	fbo.mdWriterLock.Lock(lState)
-	defer fbo.mdWriterLock.Unlock(lState)
-	filePath, err := fbo.pathFromNodeForMDWriteLocked(file)
-	if err != nil {
-		return err
-	}
-
-	return fbo.doWithRetry(ctx, func() error {
 		return fbo.setMtimeLocked(ctx, lState, filePath, mtime)
 	})
 }
@@ -3899,27 +3881,24 @@ func (fbo *folderBranchOps) Sync(ctx context.Context, file Node) (err error) {
 	}
 
 	lState := makeFBOLockState()
-
-	fbo.mdWriterLock.Lock(lState)
-	defer fbo.mdWriterLock.Unlock(lState)
-	filePath, err := fbo.pathFromNodeForMDWriteLocked(file)
-	if err != nil {
-		return err
-	}
-
 	var stillDirty bool
-	err = fbo.doWithRetry(ctx, func() error {
+	err = fbo.doMDWriteWithRetry(ctx, lState, func() error {
+		filePath, err := fbo.pathFromNodeForMDWriteLocked(file)
+		if err != nil {
+			return err
+		}
+
 		stillDirty, err = fbo.syncLocked(ctx, lState, filePath)
 		return err
 	})
+	if err != nil {
+		return err
+	}
 
 	if !stillDirty {
 		fbo.status.rmDirtyNode(file)
 	}
 
-	if err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -4731,10 +4710,7 @@ func (fbo *folderBranchOps) UnstageForTesting(
 	fbo.log.CDebugf(freshCtx, "Launching new context for UnstageForTesting")
 	go func() {
 		lState := makeFBOLockState()
-		fbo.mdWriterLock.Lock(lState)
-		defer fbo.mdWriterLock.Unlock(lState)
-
-		c <- fbo.doWithRetry(ctx, func() error {
+		c <- fbo.doMDWriteWithRetry(ctx, lState, func() error {
 			return fbo.unstageForTestingLocked(freshCtx, lState)
 		})
 	}()
@@ -4815,11 +4791,7 @@ func (fbo *folderBranchOps) Rekey(ctx context.Context, tlf TlfID) (err error) {
 	}
 
 	lState := makeFBOLockState()
-
-	fbo.mdWriterLock.Lock(lState)
-	defer fbo.mdWriterLock.Unlock(lState)
-
-	return fbo.doWithRetry(ctx, func() error {
+	return fbo.doMDWriteWithRetry(ctx, lState, func() error {
 		return fbo.rekeyLocked(ctx, lState)
 	})
 }
@@ -5118,7 +5090,7 @@ func (fbo *folderBranchOps) archiveBlocksInBackground() {
 
 				// also attempt to delete any error references
 				lState := makeFBOLockState()
-				md, err := fbo.getMDForRead(ctx, lState)
+				md, err := fbo.getMDForReadNeedIdentify(ctx, lState)
 				if err != nil {
 					fbo.log.CWarningf(ctx, "Couldn't get MD: %v", err)
 					return err
