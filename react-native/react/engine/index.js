@@ -142,7 +142,11 @@ class Engine {
           console.log('RPC ▼ result: ', method, param, ...args)
         }
 
-        response.result(...args)
+        if (response) {
+          response.result(...args)
+        } else if (__DEV__){ // eslint-disable-line no-undef
+          console.log('Calling response.result on non-response object: ', method)
+        }
       },
       error: (...args) => {
         if (once) {
@@ -157,7 +161,11 @@ class Engine {
           console.log('RPC ▼ error: ', method, param, ...args)
         }
 
-        response.error(...args)
+        if (response) {
+          response.error(...args)
+        } else if (__DEV__){ // eslint-disable-line no-undef
+          console.log('Calling response.error on non-response object: ', method)
+        }
       }
     }
     return wrappedResponse

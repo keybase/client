@@ -13,13 +13,15 @@ var sentNotifications = {}
 // TODO(mm) Move these to their own actions
 export default function (dispatch, notify) {
   return {
-    'keybase.1.NotifySession.loggedOut': () => {
+    'keybase.1.NotifySession.loggedOut': (params, response) => {
       notify('Logged out of Keybase')
       dispatch(logoutDone())
+      response.result()
     },
-    'keybase.1.NotifySession.loggedIn': ({username}: {username: string}) => {
+    'keybase.1.NotifySession.loggedIn': ({username}: {username: string}, response) => {
       notify('Logged in to Keybase as: ' + username)
       dispatch(getCurrentStatus())
+      response.result()
     },
     'keybase.1.NotifyFS.FSActivity': params => {
       const notification: FSNotification = params.notification
