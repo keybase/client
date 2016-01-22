@@ -352,6 +352,10 @@ type folderBranchOps struct {
 	blocksToDeleteLock       sync.Mutex
 	blocksToDeleteAfterError []BlockPointer
 
+	// forceSyncChan can be sent on to trigger an immediate Sync().
+	// It is a blocking channel.
+	forceSyncChan chan struct{}
+
 	// How to resolve conflicts
 	cr *ConflictResolver
 }
@@ -403,6 +407,7 @@ func newFolderBranchOps(config Config, fb FolderBranch,
 		shutdownChan:    make(chan struct{}),
 		updatePauseChan: make(chan (<-chan struct{})),
 		archiveChan:     make(chan *RootMetadata, 25),
+		forceSyncChan:   make(chan struct{}),
 	}
 	fbo.cr = NewConflictResolver(config, fbo)
 	if config.DoBackgroundFlushes() {
@@ -5028,27 +5033,28 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 	for {
 		select {
 		case <-ticker.C:
-			dirtyPtrs := fbo.getDirtyPointers()
-			fbo.runUnlessShutdown(func(ctx context.Context) (err error) {
-				for _, ptr := range dirtyPtrs {
-					node := fbo.nodeCache.Get(ptr)
-					if node == nil {
-						continue
-					}
-					err := fbo.Sync(ctx, node)
-					if err != nil {
-						// Just log the warning and keep trying to
-						// sync the rest of the dirty files.
-						p := fbo.nodeCache.PathFromNode(node)
-						fbo.log.CWarningf(ctx, "Couldn't sync dirty file with ptr=%v, nodeID=%v, and path=%v: %v",
-							ptr, node.GetID(), p, err)
-					}
-				}
-				return nil
-			})
+		case <-fbo.forceSyncChan:
 		case <-fbo.shutdownChan:
 			return
 		}
+		dirtyPtrs := fbo.getDirtyPointers()
+		fbo.runUnlessShutdown(func(ctx context.Context) (err error) {
+			for _, ptr := range dirtyPtrs {
+				node := fbo.nodeCache.Get(ptr)
+				if node == nil {
+					continue
+				}
+				err := fbo.Sync(ctx, node)
+				if err != nil {
+					// Just log the warning and keep trying to
+					// sync the rest of the dirty files.
+					p := fbo.nodeCache.PathFromNode(node)
+					fbo.log.CWarningf(ctx, "Couldn't sync dirty file with ptr=%v, nodeID=%v, and path=%v: %v",
+						ptr, node.GetID(), p, err)
+				}
+			}
+			return nil
+		})
 	}
 }
 
