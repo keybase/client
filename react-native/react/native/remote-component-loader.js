@@ -50,7 +50,8 @@ class RemoteComponentLoader extends Component {
 
     const componentToLoad = getQueryVariable('component')
     const selectorParams = getQueryVariable('selectorParams')
-    const title = getQueryVariable('')
+    let title = getQueryVariable('title')
+    title = title && decodeURI(title)
 
     if (title) {
       document.title = title

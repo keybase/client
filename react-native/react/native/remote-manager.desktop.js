@@ -71,6 +71,7 @@ class RemoteManager extends Component {
     return Object.keys(trackers).filter(username => !trackers[username].closed).map(username => (
       <RemoteComponent
         windowsOpts={{height: 339, width: 520}}
+        title={`tracker - ${username}`}
         waitForState
         ignoreNewProps
         hidden={trackers[username].hidden}
@@ -93,6 +94,7 @@ class RemoteManager extends Component {
       const onSubmit = this.props.pinentryOnSubmit.bind(null, sid)
       return (
         <RemoteComponent
+          title='Pinentry'
           windowsOpts={{width: 513, height: 260}}
           waitForState
           onRemoteClose={onCancel}
@@ -114,6 +116,7 @@ class RemoteManager extends Component {
 
     return (
       <RemoteComponent
+        title='Update'
         windowsOpts={{width: 480, height: 430}}
         waitForState
         component='update'

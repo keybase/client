@@ -57,7 +57,7 @@ export default class RemoteComponent extends Component {
     ipcRenderer.send('listenForRemoteWindowClosed', this.remoteWindow.id)
 
     const componentRequireName = this.props.component
-    this.remoteWindow.loadUrl(`file://${resolveAssets('../react-native/react/native/remoteComponent.html')}?component=${componentRequireName || ''}&src=${hotPath('remote-component-loader.bundle.js')}&selectorParams=${this.props.selectorParams}`)
+    this.remoteWindow.loadUrl(`file://${resolveAssets('../react-native/react/native/remoteComponent.html')}?component=${componentRequireName || ''}&src=${hotPath('remote-component-loader.bundle.js')}&selectorParams=${this.props.selectorParams}&title=${encodeURI(this.props.title || '')}`)
   }
 
   componentWillUnmount () {
@@ -98,6 +98,7 @@ export default class RemoteComponent extends Component {
 RemoteComponent.propTypes = {
   component: React.PropTypes.string.isRequired,
   windowsOpts: React.PropTypes.object,
+  title: React.PropTypes.string,
   onRemoteClose: React.PropTypes.func,
   hidden: React.PropTypes.bool, // Hide the remote window (Does not close the window)
   selectorParams: React.PropTypes.string, // To get a substore
