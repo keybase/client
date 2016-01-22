@@ -15,7 +15,7 @@ mkdir -p "$logdir"
 export KEYBASE_RUN_MODE=prod
 export KEYBASE_DEBUG=1
 
-keybase service &>> "$logdir/keybase.service.log" &
+keybase service &>> "$logdir/keybase.log" &
 kbfsfuse -debug -mdserver mdserver.kbfs.keybase.io:443 \
   -bserver bserver.kbfs.keybase.io:443 /keybase &>> "$logdir/keybase.kbfs.log" &
 /opt/keybase/Keybase &>> "$logdir/keybase.gui.log" &
