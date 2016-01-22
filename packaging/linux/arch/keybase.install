@@ -1,0 +1,13 @@
+post_install() {
+  if [ -e /opt/keybase/post_install.sh ] ; then
+    # Until KBFS is in the production packages, this script doesn't exist.
+    /opt/keybase/post_install.sh
+  fi
+}
+
+post_upgrade() {
+  if [ -e /opt/keybase/post_install.sh ] ; then
+    # Until KBFS is in the production packages, this script doesn't exist.
+    /opt/keybase/post_install.sh
+  fi
+}

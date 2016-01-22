@@ -5,7 +5,7 @@ pkgdesc='LOCAL BUILD'
 license=('BSD')
 # KEYBASE_VERSION works around the problem that makepkg never runs the pkgver()
 # function when --noextract is set. The caller must export this variable.
-pkgver=$KEYBASE_VERSION
+pkgver=${KEYBASE_VERSION:-0}
 pkgrel=1
 arch=('i686' 'x86_64')
 depends=(fuse)
@@ -15,6 +15,7 @@ source=(
   'git+ssh://git@github.com/keybase/kbfs'
 )
 md5sums=('SKIP')
+install=keybase.install
 
 build() {
   client/packaging/linux/build_binaries.sh prerelease build_dir
