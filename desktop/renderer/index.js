@@ -1,14 +1,14 @@
 /* @flow */
 
-import React, {Component} from '../../react-native/react/base-react'
+import React, {Component} from '../react/base-react'
 import ReactDOM from 'react-dom'
 import {Provider} from 'react-redux'
-import configureStore from '../../react-native/react/store/configure-store'
-import Nav from '../../react-native/react/nav'
+import configureStore from '../react/store/configure-store'
+import Nav from '../react/nav'
 import injectTapEventPlugin from 'react-tap-event-plugin'
-import ListenLogUi from '../../react-native/react/native/listen-log-ui'
-import {reduxDevToolsEnable} from '../../react-native/react/local-debug'
-import {listenForNotifications} from '../../react-native/react/actions/notifications'
+import ListenLogUi from '../react/native/listen-log-ui'
+import {reduxDevToolsEnable} from '../react/local-debug'
+import {listenForNotifications} from '../react/actions/notifications'
 
 // For Remote Components
 import {ipcRenderer} from 'electron'

@@ -1,9 +1,9 @@
-import React from '../../react-native/react/base-react'
+import React from '../react/base-react'
 
 import {createDevTools} from 'redux-devtools'
 import DockMonitor from 'redux-devtools-dock-monitor'
 import LogMonitor from 'redux-devtools-log-monitor'
-import {reduxDevToolsSelect} from '../../react-native/react/local-debug.desktop.js'
+import {reduxDevToolsSelect} from '../react/local-debug.desktop.js'
 
 export default createDevTools(
   <DockMonitor

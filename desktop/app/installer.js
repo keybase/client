@@ -3,7 +3,7 @@ import {exec} from 'child_process';
 import path from 'path';
 import fs from 'fs';
 
-import {runMode} from '../../react-native/react/constants/platform.native.desktop'
+import {runMode} from '../react/constants/platform.native.desktop'
 
 export default (callback) => {
   const appPath = app.getAppPath()

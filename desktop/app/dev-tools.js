@@ -1,5 +1,5 @@
 import {BrowserWindow, app, globalShortcut} from 'electron'
-import {showDevTools} from '../../react-native/react/local-debug.desktop'
+import {showDevTools} from '../react/local-debug.desktop'
 
 export default function () {
   app.on('ready', () => {

@@ -20,8 +20,8 @@ class Welcome extends Component {
     return {
       componentAtTop: {hideNavBar: true},
       subRoutes: {
-        'login': Login,
-        'signup': Signup
+        login: Login,
+        signup: Signup
       }
     }
   }

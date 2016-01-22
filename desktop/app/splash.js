@@ -1,6 +1,6 @@
 // Checks to see if we've launched before (we touch started.txt). If not, write the file and open a browser
-import {socketRoot, dataRoot, splashRoot} from '../../react-native/react/constants/platform.native.desktop'
-import {helpURL} from '../../react-native/react/constants/urls'
+import {socketRoot, dataRoot, splashRoot} from '../react/constants/platform.native.desktop'
+import {helpURL} from '../react/constants/urls'
 import path from 'path'
 
 const filePath = path.join(splashRoot, 'started.txt')

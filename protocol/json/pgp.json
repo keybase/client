@@ -271,6 +271,9 @@
     }, {
       "name" : "bypassConfirm",
       "type" : "boolean"
+    }, {
+      "name" : "forceRetrack",
+      "type" : "boolean"
     } ]
   }, {
     "type" : "enum",

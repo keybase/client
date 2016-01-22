@@ -4,8 +4,8 @@ import hotPath from '../hot-path'
 import menubar from 'menubar'
 
 export default function () {
-  const menubarIconPath = resolveAssets('../react-native/react/images/menubarIcon/topbar_iconTemplate.png')
-  const menubarLoadingIconPath = resolveAssets('../react-native/react/images/menubarIcon/topbar_icon_loadingTemplate.png')
+  const menubarIconPath = resolveAssets('../react/images/menubarIcon/topbar_iconTemplate.png')
+  const menubarLoadingIconPath = resolveAssets('../react/images/menubarIcon/topbar_icon_loadingTemplate.png')
 
   const mb = menubar({
     index: `file://${resolveAssets('./renderer/launcher.html')}?src=${hotPath('launcher.bundle.js')}`,

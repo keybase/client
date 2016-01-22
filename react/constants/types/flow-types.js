@@ -3076,6 +3076,7 @@ export type pgp_TrackStatus = 1 /* 'NEW_OK_1' */ | 2 /* 'NEW_ZERO_PROOFS_2' */ |
 export type pgp_TrackOptions = {
   localOnly: boolean;
   bypassConfirm: boolean;
+  forceRetrack: boolean;
 }
 
 export type pgp_IdentifyReasonType = 0 /* 'NONE_0' */ | 1 /* 'ID_1' */ | 2 /* 'TRACK_2' */ | 3 /* 'ENCRYPT_3' */ | 4 /* 'DECRYPT_4' */ | 5 /* 'VERIFY_5' */ | 6 /* 'RESOURCE_6' */
@@ -3434,6 +3435,7 @@ export type prove_TrackStatus = 1 /* 'NEW_OK_1' */ | 2 /* 'NEW_ZERO_PROOFS_2' */
 export type prove_TrackOptions = {
   localOnly: boolean;
   bypassConfirm: boolean;
+  forceRetrack: boolean;
 }
 
 export type prove_IdentifyReasonType = 0 /* 'NONE_0' */ | 1 /* 'ID_1' */ | 2 /* 'TRACK_2' */ | 3 /* 'ENCRYPT_3' */ | 4 /* 'DECRYPT_4' */ | 5 /* 'VERIFY_5' */ | 6 /* 'RESOURCE_6' */
@@ -4019,6 +4021,7 @@ export type saltpack_TrackStatus = 1 /* 'NEW_OK_1' */ | 2 /* 'NEW_ZERO_PROOFS_2'
 export type saltpack_TrackOptions = {
   localOnly: boolean;
   bypassConfirm: boolean;
+  forceRetrack: boolean;
 }
 
 export type saltpack_IdentifyReasonType = 0 /* 'NONE_0' */ | 1 /* 'ID_1' */ | 2 /* 'TRACK_2' */ | 3 /* 'ENCRYPT_3' */ | 4 /* 'DECRYPT_4' */ | 5 /* 'VERIFY_5' */ | 6 /* 'RESOURCE_6' */
