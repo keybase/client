@@ -514,6 +514,18 @@ export type ClientDetails = {
   desc: string;
 }
 
+export type config_PlatformInfo = {
+  os: string;
+  arch: string;
+  goVersion: string;
+}
+
+export type PlatformInfo = {
+  os: string;
+  arch: string;
+  goVersion: string;
+}
+
 export type config_ExtendedStatus = {
   standalone: boolean;
   passphraseStreamCached: boolean;
@@ -524,6 +536,7 @@ export type config_ExtendedStatus = {
   defaultUsername: string;
   provisionedUsernames: Array<string>;
   Clients: Array<ClientDetails>;
+  platformInfo: PlatformInfo;
 }
 
 export type ExtendedStatus = {
@@ -536,6 +549,7 @@ export type ExtendedStatus = {
   defaultUsername: string;
   provisionedUsernames: Array<string>;
   Clients: Array<ClientDetails>;
+  platformInfo: PlatformInfo;
 }
 
 export type config_ForkType = 0 /* 'NONE_0' */ | 1 /* 'AUTO_1' */ | 2 /* 'WATCHDOG_2' */ | 3 /* 'LAUNCHD_3' */

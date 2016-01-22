@@ -271,6 +271,19 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "PlatformInfo",
+    "fields" : [ {
+      "name" : "os",
+      "type" : "string"
+    }, {
+      "name" : "arch",
+      "type" : "string"
+    }, {
+      "name" : "goVersion",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "ExtendedStatus",
     "fields" : [ {
       "name" : "standalone",
@@ -305,6 +318,9 @@
         "type" : "array",
         "items" : "ClientDetails"
       }
+    }, {
+      "name" : "platformInfo",
+      "type" : "PlatformInfo"
     } ]
   }, {
     "type" : "enum",

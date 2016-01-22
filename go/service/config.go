@@ -6,6 +6,7 @@ package service
 import (
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"golang.org/x/net/context"
@@ -38,6 +39,14 @@ func (h ConfigHandler) GetCurrentStatus(_ context.Context, sessionID int) (res k
 		res = cs.Export()
 	}
 	return
+}
+
+func getPlatformInfo() keybase1.PlatformInfo {
+	return keybase1.PlatformInfo{
+		Os:        runtime.GOOS,
+		Arch:      runtime.GOARCH,
+		GoVersion: runtime.Version(),
+	}
 }
 
 func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res keybase1.ExtendedStatus, err error) {
@@ -86,6 +95,7 @@ func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res 
 		p[i] = u.String()
 	}
 	res.ProvisionedUsernames = p
+	res.PlatformInfo = getPlatformInfo()
 
 	return res, nil
 }

@@ -78,6 +78,7 @@ type fstatus struct {
 	DefaultUsername      string
 	ProvisionedUsernames []string
 	Clients              []keybase1.ClientDetails
+	PlatformInfo         keybase1.PlatformInfo
 }
 
 func (c *CmdStatus) Run() error {
@@ -146,6 +147,7 @@ func (c *CmdStatus) load() (*fstatus, error) {
 	status.DefaultUsername = extStatus.DefaultUsername
 	status.ProvisionedUsernames = extStatus.ProvisionedUsernames
 	status.Clients = extStatus.Clients
+	status.PlatformInfo = extStatus.PlatformInfo
 
 	// set anything os-specific:
 	if err := c.osSpecific(&status); err != nil {
@@ -193,6 +195,10 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	dui.Printf("    status:    %s\n", BoolString(status.Service.Running, "running", "not running"))
 	dui.Printf("    version:   %s\n", status.Service.Version)
 	dui.Printf("    log:       %s\n", status.Service.Log)
+	dui.Printf("\nPlatform Information:\n")
+	dui.Printf("    OS:        %s\n", status.PlatformInfo.Os)
+	dui.Printf("    Runtime:   %s\n", status.PlatformInfo.GoVersion)
+	dui.Printf("    Arch:      %s\n", status.PlatformInfo.Arch)
 	dui.Printf("\nClient:\n")
 	dui.Printf("    version:   %s\n", status.Client.Version)
 	dui.Printf("\nDesktop app:\n")
@@ -200,6 +206,7 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	dui.Printf("Config path:        %s\n", status.ConfigPath)
 	dui.Printf("Default user:       %s\n", status.DefaultUsername)
 	dui.Printf("Provisioned users:  %s\n", strings.Join(status.ProvisionedUsernames, ", "))
+
 	c.outputClients(dui, status.Clients)
 	return nil
 }

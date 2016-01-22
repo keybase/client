@@ -28,6 +28,12 @@ protocol config {
     string desc;
   }
 
+  record PlatformInfo {
+    string os;
+    string arch;
+    string goVersion;
+  }
+
   record ExtendedStatus {
     boolean standalone;
     boolean passphraseStreamCached;
@@ -38,6 +44,7 @@ protocol config {
     string defaultUsername;
     array<string> provisionedUsernames;
     array<ClientDetails> Clients;
+    PlatformInfo platformInfo;
   }
 
   ExtendedStatus getExtendedStatus(int sessionID);

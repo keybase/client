@@ -512,6 +512,12 @@ type ClientDetails struct {
 	Desc       string     `codec:"desc" json:"desc"`
 }
 
+type PlatformInfo struct {
+	Os        string `codec:"os" json:"os"`
+	Arch      string `codec:"arch" json:"arch"`
+	GoVersion string `codec:"goVersion" json:"goVersion"`
+}
+
 type ExtendedStatus struct {
 	Standalone             bool            `codec:"standalone" json:"standalone"`
 	PassphraseStreamCached bool            `codec:"passphraseStreamCached" json:"passphraseStreamCached"`
@@ -522,6 +528,7 @@ type ExtendedStatus struct {
 	DefaultUsername        string          `codec:"defaultUsername" json:"defaultUsername"`
 	ProvisionedUsernames   []string        `codec:"provisionedUsernames" json:"provisionedUsernames"`
 	Clients                []ClientDetails `codec:"Clients" json:"Clients"`
+	PlatformInfo           PlatformInfo    `codec:"platformInfo" json:"platformInfo"`
 }
 
 type ForkType int
