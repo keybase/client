@@ -33,6 +33,8 @@ declare module 'resolveAssets' {
   declare var exports: (s: string) => string;
 }
 
+declare var __VERSION__: string;
+
 // Algebraic data types
 // This is a bit hacky, but it gives you strong gaurantees.
 
