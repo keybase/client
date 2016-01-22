@@ -27,7 +27,6 @@ const Header = props => {
   const openKBFS: () => void = props.openKBFS
   const showUser: () => void = props.showUser
 
-  // $FlowIssue ignore
   const version = __VERSION__ // eslint-disable-line no-undef
 
   return (

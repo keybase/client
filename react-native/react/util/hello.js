@@ -6,12 +6,12 @@ import keybase from '../constants/types/keybase_v1'
 
 import type {ClientDetails} from '../constants/types/flow-types'
 
-export default function (pid: number, desc: string): Promise<void> {
+export default function (pid: number, desc: string, argv: Array<string>): Promise<void> {
   const details: ClientDetails = {
     pid,
     desc,
     version: __VERSION__, // eslint-disable-line no-undef
-    argv: [],
+    argv: argv,
     clientType: keybase.config.ClientType.gui
   }
 

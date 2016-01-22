@@ -59,7 +59,7 @@ class Keybase extends Component {
     ListenLogUi()
 
     // Introduce ourselves to the service
-    hello(process.pid, 'Main Renderer')
+    hello(process.pid, 'Main Renderer', process.argv)
   }
 
   setupDispatchAction () {

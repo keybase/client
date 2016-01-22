@@ -8,7 +8,7 @@ import consoleHelper from '../app/console-helper'
 import hello from '../../react-native/react/util/hello'
 
 consoleHelper()
-hello(process.pid, 'Menubar')
+hello(process.pid, 'Menubar', process.argv)
 
 if (module.hot) {
   module.hot.accept()

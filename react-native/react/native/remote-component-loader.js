@@ -57,7 +57,7 @@ class RemoteComponentLoader extends Component {
       document.title = title
     }
 
-    hello(process.pid, 'Remote Component: ' + (title || ''))
+    hello(process.pid, 'Remote Component: ' + (title || ''), process.argv)
 
     const component = {
       tracker: require('../tracker').default,
