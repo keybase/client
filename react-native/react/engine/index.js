@@ -145,7 +145,7 @@ class Engine {
         if (response) {
           response.result(...args)
         } else if (__DEV__){ // eslint-disable-line no-undef
-          console.log('Calling response.result on non-response object: ', method)
+          console.warn('Calling response.result on non-response object: ', method)
         }
       },
       error: (...args) => {
@@ -164,7 +164,7 @@ class Engine {
         if (response) {
           response.error(...args)
         } else if (__DEV__){ // eslint-disable-line no-undef
-          console.log('Calling response.error on non-response object: ', method)
+          console.warn('Calling response.error on non-response object: ', method)
         }
       }
     }
