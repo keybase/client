@@ -14,11 +14,14 @@ var sentNotifications = {}
 
 // TODO(mm) Move these to their own actions
 export default function (dispatch, notify) {
-  return {
-    [NotifySession_loggedOut_method]: (blah) => {
+  const callMap: {
+    'keybase.1.NotifySession.loggedOut': NotifySession_loggedOut
+  } = {
+    [NotifySession_loggedOut_method]: (() => {
       notify('Logged out of Keybase')
       dispatch(logoutDone())
-    },
+      return 'hi' // this should fail TEMP
+    }),
     'keybase.1.NotifySession.loggedIn': ({username}: {username: string}) => {
       notify('Logged in to Keybase as: ' + username)
       dispatch(getCurrentStatus())
@@ -83,4 +86,6 @@ export default function (dispatch, notify) {
       }
     }
   }
+
+  return callMap
 }
