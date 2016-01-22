@@ -8,6 +8,7 @@ cd "$dir"
 GOPATH=${GOPATH:-}
 nopull=${NOPULL:-} # Don't check and pull repos
 nobuild=${NOBUILD:-}
+bucket_name=${BUCKET_NAME:-"prerelease.keybase.io"}
 
 platform=${PLATFORM:-`uname`}
 
@@ -19,7 +20,6 @@ fi
 build_dir_keybase="/tmp/build_keybase"
 build_dir_kbfs="/tmp/build_kbfs"
 client_dir="$GOPATH/src/github.com/keybase/client"
-bucket_name="prerelease.keybase.io"
 
 "$client_dir/packaging/slack/send.sh" "Starting build"
 
@@ -42,8 +42,6 @@ rm -rf $save_dir
 
 if [ "$platform" = "Darwin" ]; then
   SAVE_DIR=$save_dir KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" BUCKET_NAME=$bucket_name ./package_darwin.sh
-elif [ "$platform" = "Linux" ]; then
-  SAVE_DIR=$save_dir KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" BUCKET_NAME=$bucket_name ./package_linux.sh
 else
   # TODO: Support linux build here?
   echo "Unknown platform: $platform"

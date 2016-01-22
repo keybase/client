@@ -6,6 +6,8 @@ dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd "$dir"
 
 build_dir=${BUILD_DIR:-/tmp/build_kbfs}
+nosign=${NOSIGN:-}
+
 mkdir -p $build_dir
 
 current_date=`date -u +%Y%m%d%H%M%S` # UTC
@@ -24,7 +26,7 @@ fi
 echo "Building $build_dir/kbfs ($kbfs_build)"
 GO15VENDOREXPERIMENT=1 go build -a -tags "$tags" -ldflags "$ldflags" -o $build_dir/kbfs github.com/keybase/kbfs/kbfsfuse
 
-if [ "$platform" = "Darwin" ]; then
+if [ "$platform" = "Darwin" ] && [ ! "$nosign" = "1" ]; then
   code_sign_identity="Developer ID Application: Keybase, Inc. (99229SGT5K)"
   codesign --verbose --force --deep --timestamp=none --sign "$code_sign_identity" $build_dir/kbfs
 fi
