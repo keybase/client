@@ -32,7 +32,7 @@ fi
 # out. Avoid this by waiting for the lock file to be free, on systems with flock
 # installed.
 lockfile="${XDG_RUNTIME_DIR:-$HOME/.config}/keybase/keybased.pid"
-if which flock &> /dev/null ; then
+if which flock &> /dev/null && [ -e "$lockfile" ] ; then
   flock "$lockfile" true
 fi
 
