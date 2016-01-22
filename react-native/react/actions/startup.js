@@ -8,7 +8,9 @@ import engine from '../engine'
 export function startup () {
   return function (dispatch) {
     // Also call getCurrentStatus if the service goes away/comes back.
-    engine.listenOnConnect('getCurrentStatus', () => dispatch(getCurrentStatus()))
+    engine.listenOnConnect('getCurrentStatus', () => dispatch(getCurrentStatus()).catch(error => {
+      dispatch({type: ConfigConstants.startupLoaded, payload: error, error: true})
+    }))
 
     dispatch({type: ConfigConstants.startupLoading})
 

@@ -24,7 +24,7 @@ export const setQRCode = 'login:setQRCode'
 export const cameraBrokenMode = 'login:cameraBrokenMode'
 export const needsLogin = 'login:needsLogin'
 export const needsRegistering = 'login:needsRegistering'
-export const doneRegistering = 'login:doneRegistering '
+export const doneRegistering = 'login:doneRegistering'
 
 export const actionUpdateForgotPasswordEmailAddress = 'login:actionUpdateForgotPasswordEmailAddress'
 export const actionSetForgotPasswordSubmitting = 'login:actionSetForgotPasswordSubmitting'

@@ -1,34 +1,44 @@
+/* @flow */
 import * as Constants from '../constants/devices'
 import engine from '../engine'
 import {navigateUpOnUnchanged} from './router'
+import type {AsyncAction} from '../constants/types/flux'
+import type {incomingCallMapType, revoke_revokeDevice_rpc, device_deviceList_rpc, login_paperKey_rpc} from '../constants/types/flow-types'
 
-export function loadDevices () {
+export function loadDevices () : AsyncAction {
   return function (dispatch) {
     dispatch({
       type: Constants.loadingDevices
     })
 
-    engine.rpc('device.deviceList', {}, {}, (error, devices) => {
-      dispatch({
-        type: Constants.showDevices,
-        payload: error || devices,
-        error: !!error
-      })
-    })
+    const params : device_deviceList_rpc = {
+      method: 'device.deviceList',
+      param: {},
+      incomingCallMap: {},
+      callback: (error, devices) => {
+        dispatch({
+          type: Constants.showDevices,
+          payload: error || devices,
+          error: !!error
+        })
+      }
+    }
+
+    engine.rpc(params)
   }
 }
 
-export function generatePaperKey () {
+export function generatePaperKey () : AsyncAction {
   return function (dispatch) {
     dispatch({
       type: Constants.paperKeyLoading
     })
 
-    const incomingMap = {
+    const incomingMap : incomingCallMapType = {
       'keybase.1.loginUi.promptRevokePaperKeys': (param, response) => {
         response.result(false)
       },
-      'keybase.1.secretUi.getSecret': (param, response) => {
+      'keybase.1.secretUi.getPassphrase': (param, response) => {
         console.log(param)
       },
       'keybase.1.loginUi.displayPaperKeyPhrase': ({phrase: paperKey}, response) => {
@@ -40,31 +50,45 @@ export function generatePaperKey () {
       }
     }
 
-    engine.rpc('login.paperKey', {}, incomingMap, (error, paperKey) => {
-      if (error) {
-        dispatch({
-          type: Constants.paperKeyLoaded,
-          payload: error,
-          error: true
-        })
+    const params : login_paperKey_rpc = {
+      method: 'login.paperKey',
+      param: {},
+      incomingCallMap: incomingMap,
+      callback: (error, paperKey) => {
+        if (error) {
+          dispatch({
+            type: Constants.paperKeyLoaded,
+            payload: error,
+            error: true
+          })
+        }
       }
-    })
+    }
+
+    engine.rpc(params)
   }
 }
 
-export function removeDevice (deviceID) {
+export function removeDevice (deviceID: string) : AsyncAction {
   return navigateUpOnUnchanged((dispatch, getState, maybeNavigateUp) => {
-    engine.rpc('revoke.revokeDevice', {deviceID, force: false}, {}, error => {
-      dispatch({
-        type: Constants.deviceRemoved,
-        payload: error,
-        error: !!error
-      })
+    const params : revoke_revokeDevice_rpc = {
+      method: 'revoke.revokeDevice',
+      param: {deviceID, force: false},
+      incomingCallMap: {},
+      callback: error => {
+        dispatch({
+          type: Constants.deviceRemoved,
+          payload: error,
+          error: !!error
+        })
 
-      if (!error) {
-        dispatch(loadDevices())
-        maybeNavigateUp()
+        if (!error) {
+          dispatch(loadDevices())
+          maybeNavigateUp()
+        }
       }
-    })
+    }
+
+    engine.rpc(params)
   })
 }

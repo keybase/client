@@ -46,7 +46,8 @@ const submitSearch_debounced = _.debounce((base, term, dispatch, getState) => {
   const bad_nonce = () => (getState().search.getIn([base, 'nonce']) !== nonce)
 
   const doRPC = (...args) => new Promise((resolve, reject) => {
-    engine.rpc(...args, (error, results) => {
+    // TODO think about using rpc
+    engine.rpc_unchecked(...args, (error, results) => {
       if (bad_nonce()) { return }
       if (error) { throw new Error(error) }
       if (results) {

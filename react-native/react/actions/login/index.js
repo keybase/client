@@ -1,30 +1,39 @@
+/* @flow */
 import * as Constants from '../../constants/login'
 import {isMobile} from '../../constants/platform'
 import {navigateTo, routeAppend, getCurrentURI, getCurrentTab} from '../router'
 import engine from '../../engine'
 import enums from '../../constants/types/keybase_v1'
+// $FlowIssue TODO
 import UserPass from '../../login/register/user-pass'
+// $FlowIssue TODO
 import PaperKey from '../../login/register/paper-key'
+// $FlowIssue TODO
 import CodePage from '../../login/register/code-page'
+// $FlowIssue TODO
 import ExistingDevice from '../../login/register/existing-device'
+// $FlowIssue TODO
 import SetPublicName from '../../login/register/set-public-name'
 import {switchTab} from '../tabbed-router'
 import {devicesTab} from '../../constants/tabs'
 import {loadDevices} from '../devices'
 import {defaultModeForDeviceRoles, qrGenerate} from './provision-helpers'
 import {getCurrentStatus} from '../config'
+import type {Dispatch, GetState, AsyncAction, TypedAction} from '../../constants/types/flux'
+import type {incomingCallMapType, login_recoverAccountFromEmailAddress_rpc,
+  login_login_rpc, login_logout_rpc, device_deviceAdd_rpc} from '../../constants/types/flow-types'
 
-export function login () {
+export function login (): AsyncAction {
   return (dispatch, getState) => {
     startLoginFlow(dispatch, getState, enums.provisionUi.ProvisionMethod.device, 'Keybase username', 'lorem ipsum', Constants.loginDone)
   }
 }
 
-export function doneRegistering () {
+export function doneRegistering (): TypedAction<'login:doneRegistering', void, void> {
   return {type: Constants.doneRegistering}
 }
 
-function setCodePageOtherDeviceRole (otherDeviceRole) {
+function setCodePageOtherDeviceRole (otherDeviceRole) : AsyncAction {
   return (dispatch, getState) => {
     const store = getState().login.codePage
     dispatch(setCodePageMode(defaultModeForDeviceRoles(store.myDeviceRole, otherDeviceRole, false)))
@@ -32,7 +41,7 @@ function setCodePageOtherDeviceRole (otherDeviceRole) {
   }
 }
 
-function generateQRCode (dispatch, getState) {
+function generateQRCode (dispatch: Dispatch, getState: GetState) {
   const store = getState().login.codePage
   const goodMode = store.mode === Constants.codePageModeShowCode || store.mode === Constants.codePageModeShowCodeOrEnterText
 
@@ -41,7 +50,7 @@ function generateQRCode (dispatch, getState) {
   }
 }
 
-function setCodePageMode (mode) {
+function setCodePageMode (mode) : AsyncAction {
   return (dispatch, getState) => {
     const store = getState().login.codePage
 
@@ -55,7 +64,7 @@ function setCodePageMode (mode) {
   }
 }
 
-function setCameraBrokenMode (broken) {
+function setCameraBrokenMode (broken) : AsyncAction {
   return (dispatch, getState) => {
     dispatch({type: Constants.cameraBrokenMode, payload: broken})
 
@@ -64,50 +73,73 @@ function setCameraBrokenMode (broken) {
   }
 }
 
-export function updateForgotPasswordEmail (email) {
+export function updateForgotPasswordEmail (email: string) : TypedAction<'login:actionUpdateForgotPasswordEmailAddress', string, void> {
   return {type: Constants.actionUpdateForgotPasswordEmailAddress, payload: email}
 }
 
-export function submitForgotPassword () {
+export function submitForgotPassword () : AsyncAction {
   return (dispatch, getState) => {
     dispatch({type: Constants.actionSetForgotPasswordSubmitting})
 
-    engine.rpc('login.recoverAccountFromEmailAddress', {email: getState().login.forgotPasswordEmailAddress}, {}, (error, response) => {
-      dispatch({
-        type: Constants.actionForgotPasswordDone,
-        payload: error,
-        error: !!error
-      })
-    })
-  }
-}
-
-export function autoLogin () {
-  return dispatch => {
-    engine.rpc('login.login', {}, {}, (error, status) => {
-      if (error) {
-        console.log(error)
-        dispatch({type: Constants.loginDone, error: true, payload: error})
-      } else {
-        dispatch({type: Constants.loginDone, payload: status})
+    const params : login_recoverAccountFromEmailAddress_rpc = {
+      method: 'login.recoverAccountFromEmailAddress',
+      param: {email: getState().login.forgotPasswordEmailAddress},
+      incomingCallMap: {},
+      callback: (error, response) => {
+        dispatch({
+          type: Constants.actionForgotPasswordDone,
+          payload: error,
+          error: !!error
+        })
       }
-    })
+    }
+
+    engine.rpc(params)
   }
 }
 
-export function logout () {
+export function autoLogin () : AsyncAction {
   return dispatch => {
-    engine.rpc('login.logout', {}, {}, (error, response) => {
-      if (error) {
-        console.log(error)
-      } else {
-        dispatch(logoutDone())
+    const params : login_login_rpc = {
+      method: 'login.login',
+      param: {
+        deviceType: isMobile ? 'mobile' : 'desktop',
+        username: '',
+        clientType: enums.login.ClientType.gui
+      },
+      incomingCallMap: {},
+      callback: (error, status) => {
+        if (error) {
+          console.log(error)
+          dispatch({type: Constants.loginDone, error: true, payload: error})
+        } else {
+          dispatch({type: Constants.loginDone, payload: status})
+        }
       }
-    })
+    }
+    engine.rpc(params)
   }
 }
 
-export function logoutDone () {
+export function logout () : AsyncAction {
+  return dispatch => {
+    const params : login_logout_rpc = {
+      method: 'login.logout',
+      param: {},
+      incomingCallMap: {},
+      callback: (error, response) => {
+        if (error) {
+          console.log(error)
+        } else {
+          dispatch(logoutDone())
+        }
+      }
+    }
+    engine.rpc(params)
+  }
+}
+
+export function logoutDone () : AsyncAction {
   // We've logged out, let's check our current status
   return dispatch => {
     dispatch({type: Constants.logoutDone})
@@ -117,7 +149,7 @@ export function logoutDone () {
 
 // Show a user/pass screen, call cb() when done
 // title/subTitle to customize the screen
-function askForUserPass (title, subTitle, cb) {
+function askForUserPass (title, subTitle, cb) : AsyncAction {
   return dispatch => {
     const props = {
       title,
@@ -137,7 +169,7 @@ function askForUserPass (title, subTitle, cb) {
   }
 }
 
-function askForPaperKey (cb) {
+function askForPaperKey (cb) : AsyncAction {
   return dispatch => {
     const props = {
       mapStateToProps: state => state.login,
@@ -154,7 +186,7 @@ function askForPaperKey (cb) {
 
 // Show a device naming page, call cb() when done
 // existing devices are blacklisted
-function askForDeviceName (existingDevices, cb) {
+function askForDeviceName (existingDevices, cb) : AsyncAction {
   return dispatch => {
     dispatch({
       type: Constants.actionAskDeviceName,
@@ -180,7 +212,7 @@ function askForDeviceName (existingDevices, cb) {
   }
 }
 
-function askForOtherDeviceType (cb) {
+function askForOtherDeviceType (cb) : AsyncAction {
   return dispatch => {
     const props = {
       mapStateToProps: state => state.login.codePage,
@@ -195,7 +227,7 @@ function askForOtherDeviceType (cb) {
   }
 }
 
-function askForCodePage (cb) {
+function askForCodePage (cb) : AsyncAction {
   return dispatch => {
     const mapStateToProps = state => {
       const {
@@ -230,14 +262,14 @@ function askForCodePage (cb) {
   }
 }
 
-export function registerWithExistingDevice () {
+export function registerWithExistingDevice () : AsyncAction {
   return (dispatch, getState) => {
     const provisionMethod = enums.provisionUi.ProvisionMethod.device
     startLoginFlow(dispatch, getState, provisionMethod, null, null, Constants.actionRegisteredWithExistingDevice)
   }
 }
 
-export function registerWithUserPass () {
+export function registerWithUserPass () : AsyncAction {
   return (dispatch, getState) => {
     const title = 'Registering with your Keybase passphrase'
     const subTitle = 'lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum'
@@ -246,7 +278,7 @@ export function registerWithUserPass () {
   }
 }
 
-export function registerWithPaperKey () {
+export function registerWithPaperKey () : AsyncAction {
   return (dispatch, getState) => {
     const title = 'Registering with your paperkey requires your username'
     const subTitle = 'Different lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum'
@@ -258,36 +290,50 @@ export function registerWithPaperKey () {
 function startLoginFlow (dispatch, getState, provisionMethod, userPassTitle, userPassSubtitle, successType) {
   const deviceType = isMobile ? 'mobile' : 'desktop'
   const incomingMap = makeKex2IncomingMap(dispatch, getState, provisionMethod, userPassTitle, userPassSubtitle)
+  const params : login_login_rpc = {
+    method: 'login.login',
+    param: {
+      deviceType,
+      username: '',
+      clientType: enums.login.ClientType.gui
+    },
+    incomingCallMap: incomingMap,
+    callback: (error, response) => {
+      dispatch({
+        type: successType,
+        error: !!error,
+        payload: error || null
+      })
 
-  engine.rpc('login.login', {deviceType}, incomingMap, (error, response) => {
-    dispatch({
-      type: successType,
-      error: !!error,
-      payload: error || null
-    })
-
-    if (!error) {
-      dispatch(navigateTo([]))
-      dispatch(loadDevices())
-      dispatch(switchTab(devicesTab))
+      if (!error) {
+        dispatch(navigateTo([]))
+        dispatch(loadDevices())
+        dispatch(switchTab(devicesTab))
+      }
     }
-  })
+  }
+  engine.rpc(params)
 }
 
-export function addANewDevice () {
+export function addANewDevice () : AsyncAction {
   return (dispatch, getState) => {
     const provisionMethod = enums.provisionUi.ProvisionMethod.device
     const userPassTitle = 'Registering a new device requires your Keybase username and passphrase'
     const userPassSubtitle = 'reggy lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum'
     const incomingMap = makeKex2IncomingMap(dispatch, getState, provisionMethod, userPassTitle, userPassSubtitle)
-
-    engine.rpc('device.deviceAdd', {}, incomingMap, (error, response) => {
-      console.log(error)
-    })
+    const params : device_deviceAdd_rpc = {
+      method: 'device.deviceAdd',
+      param: {},
+      incomingCallMap: incomingMap,
+      callback: (error, response) => {
+        console.log(error)
+      }
+    }
+    engine.rpc(params)
   }
 }
 
-function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle, userPassSubtitle) {
+function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle, userPassSubtitle) : incomingCallMapType {
   return {
     'keybase.1.provisionUi.chooseProvisioningMethod': (param, response) => {
       response.result(provisionMethod)
@@ -375,7 +421,7 @@ function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle
     'keybase.1.provisionUi.DisplayAndPromptSecret': ({phrase, secret}, response) => {
       dispatch({type: Constants.setTextCode, payload: phrase})
       generateQRCode(dispatch, getState)
-      dispatch(askForCodePage(phrase => { response.result({phrase}) }))
+      dispatch(askForCodePage(phrase => { response.result({phrase, secret: null}) }))
     },
     'keybase.1.provisionUi.DisplaySecretExchanged': (param, response) => {
       response.result()

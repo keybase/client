@@ -1,31 +1,32 @@
+/* @flow */
+
 import enums from '../../react/constants/types/keybase_v1'
+import type {incomingCallMapType} from '../../react/constants/types/flow-types'
 import path from 'path'
-import type {FSNotification} from '../../react/constants/types/flow-types'
 import {getTLF} from '../util/kbfs'
 
 import {getCurrentStatus} from '../actions/config'
 import {logoutDone} from '../actions/login'
+
+import type {Dispatch} from '../constants/types/flux'
 
 // TODO: Once we have access to the Redux store from the thread running
 // notification listeners, store the sentNotifications map in it.
 var sentNotifications = {}
 
 // TODO(mm) Move these to their own actions
-export default function (dispatch, notify) {
+export default function (dispatch: Dispatch, notify: any): incomingCallMapType {
   return {
-    'keybase.1.NotifySession.loggedOut': (params, response) => {
+    'keybase.1.NotifySession.loggedOut': params => {
       notify('Logged out of Keybase')
       dispatch(logoutDone())
-      response.result()
     },
-    'keybase.1.NotifySession.loggedIn': ({username}: {username: string}, response) => {
+    'keybase.1.NotifySession.loggedIn': ({username}, response) => {
       notify('Logged in to Keybase as: ' + username)
       dispatch(getCurrentStatus())
       response.result()
     },
-    'keybase.1.NotifyFS.FSActivity': params => {
-      const notification: FSNotification = params.notification
-
+    'keybase.1.NotifyFS.FSActivity': ({notification}) => {
       const action = {
         [enums.kbfs.FSNotificationType.encrypting]: 'Encrypting and uploading',
         [enums.kbfs.FSNotificationType.decrypting]: 'Decrypting, verifying, and downloading',

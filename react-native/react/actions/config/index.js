@@ -1,38 +1,58 @@
+/* @flow */
 import * as Constants from '../../constants/config'
 import engine from '../../engine'
+
+// $FlowFixMe
 import * as native from './index.native'
 
-export function getConfig (): (dispatch: Dispatch) => Promise<void> {
+import type {AsyncAction} from '../../constants/types/flux'
+import type {config_getConfig_rpc, config_getCurrentStatus_rpc} from '../../constants/types/flow-types'
+
+export function getConfig (): AsyncAction {
   return dispatch => {
     return new Promise((resolve, reject) => {
-      engine.rpc('config.getConfig', {}, {}, (error, config) => {
-        if (error) {
-          reject(error)
-        }
+      const params : config_getConfig_rpc = {
+        method: 'config.getConfig',
+        param: {},
+        incomingCallMap: {},
+        callback: (error, config) => {
+          if (error) {
+            reject(error)
+          }
 
-        dispatch({type: Constants.configLoaded, payload: {config}})
-        resolve()
-      })
+          dispatch({type: Constants.configLoaded, payload: {config}})
+          resolve()
+        }
+      }
+
+      engine.rpc(params)
     })
   }
 }
 
-export function getCurrentStatus (): (dispatch: Dispatch) => Promise<void> {
+export function getCurrentStatus (): AsyncAction {
   return dispatch => {
     return new Promise((resolve, reject) => {
-      engine.rpc('config.getCurrentStatus', {}, {}, (error, status) => {
-        if (error) {
-          reject(error)
-          return
+      const params : config_getCurrentStatus_rpc = {
+        method: 'config.getCurrentStatus',
+        param: {},
+        incomingCallMap: {},
+        callback: (error, status) => {
+          if (error) {
+            reject(error)
+            return
+          }
+
+          dispatch({
+            type: Constants.statusLoaded,
+            payload: {status}
+          })
+
+          resolve()
         }
+      }
 
-        dispatch({
-          type: Constants.statusLoaded,
-          payload: {status}
-        })
-
-        resolve()
-      })
+      engine.rpc(params)
     })
   }
 }
@@ -45,6 +65,6 @@ export function saveDevSettings () {
   return native.saveDevSettings()
 }
 
-export function updateDevSettings (updates) {
+export function updateDevSettings (updates: any) {
   return native.updateDevSettings(updates)
 }

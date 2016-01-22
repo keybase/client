@@ -43,7 +43,7 @@ protocol provisionUi {
 
   /**
    DisplayAndPromptSecret displays a secret that the user can enter into the other device.
-   It also can return a secret that the user enters into this device (from the other device). 
+   It also can return a secret that the user enters into this device (from the other device).
    If it does not return a secret, it will be canceled when this device receives the secret via kex2.
    */
   SecretResponse DisplayAndPromptSecret(int sessionID, bytes secret, string phrase, DeviceType otherDeviceType);
@@ -65,7 +65,7 @@ protocol provisionUi {
    ProvisioneeSuccess is called on provisionee when it is successfully provisioned.
    */
   void ProvisioneeSuccess(int sessionID, string username, string deviceName);
-  
+
   /**
    ProvisionerSuccess is called on provisioner when it successfully provisions another device.
    */

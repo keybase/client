@@ -1,11 +1,14 @@
+/* @flow */
 import * as Constants from '../constants/profile'
 import {routeAppend} from './router'
 import engine from '../engine'
 import {identify} from '../constants/types/keybase_v1'
+import type {incomingCallMapType, user_loadUncheckedUserSummaries_rpc, identify_identify_rpc} from '../constants/types/flow-types'
+import type {AsyncAction} from '../constants/types/flux'
 const enums = identify
 
-export function pushNewProfile (username) {
-  return function (dispatch, getState) {
+export function pushNewProfile (username: string) : AsyncAction {
+  return function (dispatch) {
     dispatch({
       type: Constants.initProfile,
       payload: {
@@ -22,14 +25,14 @@ export function pushNewProfile (username) {
   }
 }
 
-export function refreshProfile (username) {
+export function refreshProfile (username: string) : AsyncAction {
   return function (dispatch) {
     dispatch({
       type: Constants.profileLoading,
       payload: username
     })
 
-    const incomingMap = {
+    const incomingMap: incomingCallMapType = {
       'keybase.1.identifyUi.start': (param, response) => { response.result() },
       'keybase.1.identifyUi.reportLastTrack': (param, response) => { response.result() },
       'keybase.1.identifyUi.displayKey': ({key}, response) => {
@@ -106,57 +109,72 @@ export function refreshProfile (username) {
       }
     }
 
-    const params = {
-      userAssertion: username,
-      forceRemoteCheck: false,
-      trackStatement: false
-    }
-
-    engine.rpc('identify.identify', params, incomingMap,
-      (error, results) => {
+    const params : identify_identify_rpc = {
+      method: 'identify.identify',
+      param: {
+        userAssertion: username,
+        forceRemoteCheck: false,
+        reason: {
+          type: enums.identify.IdentifyReasonType.none,
+          reason: '',
+          resource: ''
+        },
+        source: enums.identify.ClientType.gui,
+        useDelegateUI: false,
+        trackStatement: false
+      },
+      incomingCallMap: incomingMap,
+      callback: (error, results) => {
         if (error) {
           console.log('identity error: ', username)
         } else {
           console.log('search results', results)
           dispatch({
             type: Constants.profileLoaded,
-            payload: {
-              username,
-              results,
-              error
-            }
+            payload: {username, results, error}
           })
 
-          dispatch(loadSummaries([results.user.uid]))
+          if (results.user) {
+            dispatch(loadSummaries([results.user.uid]))
+          }
         }
       }
-    )
+    }
+
+    engine.rpc(params)
   }
 }
 
-export function loadSummaries (uids) {
+export function loadSummaries (uids: Array<string>) : AsyncAction {
   return function (dispatch) {
     dispatch({
       type: Constants.profileSummaryLoading,
       payload: uids
     })
 
-    engine.rpc('user.loadUncheckedUserSummaries', {uids: uids}, {}, (error, response) => {
-      if (error) {
-        console.log(error)
-        return
+    const params : user_loadUncheckedUserSummaries_rpc = {
+      method: 'user.loadUncheckedUserSummaries',
+      param: {uids: uids},
+      incomingCallMap: {},
+      callback: (error, response) => {
+        if (error) {
+          console.log(error)
+          return
+        }
+
+        let summaries = {}
+        response.forEach(r => {
+          summaries[r.username] = {summary: r}
+        })
+
+        dispatch({
+          type: Constants.profileSummaryLoaded,
+          payload: error || summaries,
+          error: !!error
+        })
       }
+    }
 
-      let summaries = {}
-      response.forEach(r => {
-        summaries[r.username] = {summary: r}
-      })
-
-      dispatch({
-        type: Constants.profileSummaryLoaded,
-        payload: error || summaries,
-        error: !!error
-      })
-    })
+    engine.rpc(params)
   }
 }

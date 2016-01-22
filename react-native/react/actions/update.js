@@ -5,8 +5,9 @@ import engine from '../engine'
 import moment from 'moment'
 
 import {updateUi} from '../constants/types/keybase_v1'
-import type {Update} from '../constants/types/flow-types'
-import type {ShowUpdateAction, RegisterUpdateListenerAction, OnCancelAction, OnSkipAction, OnSnoozeAction, OnUpdateAction, SetAlwaysUpdateAction} from '../constants/update'
+import type {Update, delegateUiCtl_registerUpdateUI_rpc, incomingCallMapType} from '../constants/types/flow-types'
+import type {ShowUpdateAction, RegisterUpdateListenerAction, OnCancelAction, OnSkipAction,
+  OnSnoozeAction, OnUpdateAction, SetAlwaysUpdateAction} from '../constants/update'
 import type {ConfigState} from '../reducers/config'
 import type {ShowUpdateState} from '../reducers/update'
 import {snoozeTimeSecs} from '../constants/update'
@@ -21,13 +22,19 @@ export function registerUpdateListener (): (dispatch: Dispatch, getState: () => 
   updatePromptResponse = null
   return (dispatch, getState) => {
     engine.listenOnConnect('registerUpdateUI', () => {
-      engine.rpc('delegateUiCtl.registerUpdateUI', {}, {}, (error, response) => {
-        if (error != null) {
-          console.error('error in registering update ui: ', error)
-        } else {
-          console.log('Registered update ui')
+      const params : delegateUiCtl_registerUpdateUI_rpc = {
+        method: 'delegateUiCtl.registerUpdateUI',
+        param: {},
+        incomingCallMap: {},
+        callback: (error, response) => {
+          if (error != null) {
+            console.error('error in registering update ui: ', error)
+          } else {
+            console.log('Registered update ui')
+          }
         }
-      })
+      }
+      engine.rpc(params)
     })
 
     dispatch(({
@@ -36,15 +43,13 @@ export function registerUpdateListener (): (dispatch: Dispatch, getState: () => 
     }: RegisterUpdateListenerAction))
 
     const listeners = updateListenersCreator(dispatch, getState)
-    Object.keys(listeners).forEach(
-      k => engine.listenGeneralIncomingRpc(k, listeners[k])
-    )
+    engine.listenGeneralIncomingRpc(listeners)
   }
 }
 
-function updateListenersCreator (dispatch: Dispatch, getState: () => {config: ConfigState}) {
+function updateListenersCreator (dispatch: Dispatch, getState: () => {config: ConfigState}): incomingCallMapType {
   return {
-    'keybase.1.updateUi.updatePrompt': (payload: {update: Update, options: UpdatePromptOptions}, response) => {
+    'keybase.1.updateUi.updatePrompt': (payload, response) => {
       console.log('Asked for update prompt')
 
       updatePromptResponse = response
