@@ -5122,10 +5122,9 @@ func (fbo *folderBranchOps) archiveBlocksInBackground() {
 					func() {
 						fbo.blocksToDeleteLock.Lock()
 						defer fbo.blocksToDeleteLock.Unlock()
-						for _, ptr := range toDeleteAgain {
-							fbo.blocksToDeleteAfterError =
-								append(fbo.blocksToDeleteAfterError, ptr)
-						}
+						fbo.blocksToDeleteAfterError =
+							append(fbo.blocksToDeleteAfterError,
+								toDeleteAgain...)
 					}()
 				}
 

@@ -212,9 +212,8 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 			BlockHash: id.String(),
 		},
 		ChargedTo: context.GetWriter(), //the actual writer to decrement quota from
+		Nonce:     keybase1.BlockRefNonce(context.GetRefNonce()),
 	}
-	nonce := context.GetRefNonce()
-	copy(ref.Nonce[:], nonce[:])
 
 	err = b.client.AddReference(ctx, keybase1.AddReferenceArg{
 		Ref:    ref,
@@ -239,9 +238,8 @@ func (b *BlockServerRemote) RemoveBlockReference(ctx context.Context, id BlockID
 			BlockHash: id.String(),
 		},
 		ChargedTo: context.GetWriter(), //the actual writer to decrement quota from
+		Nonce:     keybase1.BlockRefNonce(context.GetRefNonce()),
 	}
-	nonce := context.GetRefNonce()
-	copy(ref.Nonce[:], nonce[:])
 
 	err = b.client.DelReference(ctx, keybase1.DelReferenceArg{
 		Ref:    ref,
@@ -306,16 +304,14 @@ func (b *BlockServerRemote) ArchiveBlockReferences(ctx context.Context,
 	tlfID TlfID, contexts map[BlockID]BlockContext) error {
 	refs := make([]keybase1.BlockReference, 0, len(contexts))
 	for id, context := range contexts {
-		ref := keybase1.BlockReference{
+		refs = append(refs, keybase1.BlockReference{
 			Bid: keybase1.BlockIdCombo{
 				ChargedTo: context.GetCreator(),
 				BlockHash: id.String(),
 			},
 			ChargedTo: context.GetWriter(),
-		}
-		nonce := context.GetRefNonce()
-		copy(ref.Nonce[:], nonce[:])
-		refs = append(refs, ref)
+			Nonce:     keybase1.BlockRefNonce(context.GetRefNonce()),
+		})
 	}
 	return b.archiveBlockReferences(ctx, tlfID, refs)
 }
