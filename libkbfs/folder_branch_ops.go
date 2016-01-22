@@ -907,7 +907,9 @@ func (fbo *folderBranchOps) getRootNode(ctx context.Context) (
 type makeNewBlock func() Block
 
 // getBlockHelperLocked retrieves the block pointed to by ptr, which
-// must be valid, either from the cache or from the server.
+// must be valid, either from the cache or from the server. If
+// notifyPath is valid and the block isn't cached, trigger a read
+// notification.
 //
 // This must be called only by get{File,Dir}BlockHelperLocked().
 //
@@ -933,8 +935,6 @@ func (fbo *folderBranchOps) getBlockHelperLocked(ctx context.Context,
 
 	bops := fbo.config.BlockOps()
 
-	// If notifyPath is valid and the block isn't cached, trigger a
-	// read notification.
 	if notifyPath.isValid() {
 		fbo.config.Reporter().Notify(ctx, readNotification(notifyPath, false))
 		defer fbo.config.Reporter().Notify(ctx,
@@ -971,15 +971,14 @@ func (fbo *folderBranchOps) getBlockHelperLocked(ctx context.Context,
 // getFileBlockLocked(), and getFileLocked(). And unrefEntry(), I
 // guess.
 //
-// p is used only when reporting errors, and can be empty.
+// p is used only when reporting errors and sending read
+// notifications, and can be empty.
 //
 // blockLock should be taken for reading by the caller.
 func (fbo *folderBranchOps) getFileBlockHelperLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, ptr BlockPointer,
 	branch BranchName, p path) (
 	*FileBlock, error) {
-	// p is used only when reporting errors and sending read
-	// notifications, and can be empty.
 	block, err := fbo.getBlockHelperLocked(
 		ctx, lState, md, ptr, branch, NewFileBlock, true, p)
 	if err != nil {
