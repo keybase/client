@@ -511,6 +511,15 @@ func (e InputCanceledError) ToStatus() (s keybase1.Status) {
 
 //=============================================================================
 
+func (e SkipSecretPromptError) ToStatus() (s keybase1.Status) {
+	s.Code = SCInputCanceled
+	s.Name = "CANCELED"
+	s.Desc = "Input canceled due to skip secret prompt"
+	return
+}
+
+//=============================================================================
+
 func (c KeyExistsError) ToStatus() (s keybase1.Status) {
 	s.Code = SCKeyInUse
 	s.Name = "KEY_IN_USE"

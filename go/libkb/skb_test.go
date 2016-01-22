@@ -7,6 +7,9 @@ import (
 	"bytes"
 	"encoding/base64"
 	"testing"
+	"time"
+
+	"github.com/jonboulle/clockwork"
 
 	"github.com/keybase/go-crypto/openpgp"
 	triplesec "github.com/keybase/go-triplesec"
@@ -200,4 +203,76 @@ func TestUnusedSecretStore(t *testing.T) {
 	if len(testSecretStore.Secret) > 0 {
 		t.Errorf("secret unexpectedly non-empty")
 	}
+}
+
+func TestPromptCancelCache(t *testing.T) {
+	tc := SetupTest(t, "prompt_cancel_cache")
+	defer tc.Cleanup()
+
+	fakeClock := clockwork.NewFakeClock()
+	tc.G.Clock = fakeClock
+
+	lks := makeTestLKSec(t, tc.G)
+	skb := makeTestSKB(t, lks)
+
+	store := &TestSecretStore{}
+	ui := &TestCancelSecretUI{}
+	err := testErrUnlock(t, skb, store, ui)
+	if _, ok := err.(InputCanceledError); !ok {
+		t.Errorf("PromptAndUnlock returned error %s (%T), expected InputCanceled", err, err)
+	}
+	if ui.CallCount != 1 {
+		t.Errorf("GetPassphrase call count: %d, expected 1", ui.CallCount)
+	}
+
+	// try again 5s later: should still get an error, but CallCount should not increase
+	fakeClock.Advance(5 * time.Second)
+	err = testErrUnlock(t, skb, store, ui)
+	if _, ok := err.(SkipSecretPromptError); !ok {
+		t.Errorf("PromptAndUnlock returned %s (%T), expected SkipSecretPromptError", err, err)
+	}
+	if ui.CallCount != 1 {
+		t.Errorf("GetPassphrase call count: %d, expected 1", ui.CallCount)
+	}
+
+	// wait 10 minutes: should get input canceled and CallCount should go up 1
+	fakeClock.Advance(10 * time.Minute)
+	err = testErrUnlock(t, skb, store, ui)
+	if _, ok := err.(InputCanceledError); !ok {
+		t.Errorf("PromptAndUnlock returned error %s (%T)", err, err)
+	}
+	if ui.CallCount != 2 {
+		t.Errorf("GetPassphrase call count: %d, expected 2", ui.CallCount)
+	}
+
+	// try again 5s later: should still get an error, but CallCount should not increase
+	fakeClock.Advance(5 * time.Second)
+	err = testErrUnlock(t, skb, store, ui)
+	if _, ok := err.(SkipSecretPromptError); !ok {
+		t.Errorf("PromptAndUnlock returned %s (%T), expected SkipSecretPromptError", err, err)
+	}
+	if ui.CallCount != 2 {
+		t.Errorf("GetPassphrase call count: %d, expected 1", ui.CallCount)
+	}
+
+	// wait 10 minutes: enter a passphrase this time
+	fakeClock.Advance(10 * time.Minute)
+	key, err := skb.PromptAndUnlock(nil, "test reason", "test which", store, &TestSecretUI{Passphrase: "passphrase"}, nil, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if key == nil {
+		t.Errorf("PromptAndUnlock w/ passphrase failed to return a key")
+	}
+}
+
+func testErrUnlock(t *testing.T, skb *SKB, store *TestSecretStore, ui *TestCancelSecretUI) error {
+	key, err := skb.PromptAndUnlock(nil, "test reason", "test which", store, ui, nil, nil)
+	if err == nil {
+		t.Fatal("PromptAndUnlock returned nil error")
+	}
+	if key != nil {
+		t.Errorf("PromptAndUnlock eturned a key (%v)", key)
+	}
+	return err
 }

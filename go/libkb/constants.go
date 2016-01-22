@@ -366,3 +366,7 @@ const (
 const (
 	IdentifySourceKBFS = "kbfs"
 )
+
+const (
+	SecretPromptCancelDuration = 5 * time.Minute
+)

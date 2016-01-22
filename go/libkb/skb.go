@@ -705,6 +705,18 @@ func (s *SKB) UnlockNoPrompt(lctx LoginContext, secretStore SecretStore, lksPrel
 }
 
 func (s *SKB) unlockPrompt(lctx LoginContext, reason, which string, secretStore SecretStore, ui SecretUI, me *User) (GenericKey, error) {
+	// check to see if user has recently canceled an unlock prompt:
+	// if lctx != nil, then don't bother as any prompts during login should be shown.
+	if lctx == nil {
+		var skip bool
+		s.G().LoginState().Account(func(a *Account) {
+			skip = a.SkipSecretPrompt()
+		}, "SKB - unlockPrompt")
+		if skip {
+			return nil, SkipSecretPromptError{}
+		}
+	}
+
 	desc, err := s.HumanDescription(me)
 	if err != nil {
 		return nil, err
@@ -718,7 +730,7 @@ func (s *SKB) unlockPrompt(lctx LoginContext, reason, which string, secretStore 
 		return s.UnlockSecretKey(lctx, pw, nil, nil, secretStorer, nil)
 	}
 
-	return KeyUnlocker{
+	keyUnlocker := KeyUnlocker{
 		Tries:          4,
 		Reason:         reason,
 		KeyDesc:        desc,
@@ -726,7 +738,19 @@ func (s *SKB) unlockPrompt(lctx LoginContext, reason, which string, secretStore 
 		UseSecretStore: secretStore != nil,
 		Unlocker:       unlocker,
 		UI:             ui,
-	}.Run()
+	}
+
+	key, err := keyUnlocker.Run()
+	if err != nil {
+		if _, ok := err.(InputCanceledError); ok {
+			// cache the cancel response in the account
+			s.G().LoginState().Account(func(a *Account) {
+				a.SecretPromptCanceled()
+			}, "SKB - unlockPrompt - input canceled")
+		}
+		return nil, err
+	}
+	return key, nil
 }
 
 func (s *SKB) PromptAndUnlock(lctx LoginContext, reason, which string, secretStore SecretStore, ui SecretUI, lksPreload *LKSec, me *User) (ret GenericKey, err error) {
