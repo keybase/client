@@ -20,14 +20,14 @@ type addConnectionObj struct {
 }
 
 type lookupConnectionObj struct {
-	i  ConnectionID
+	id ConnectionID
 	ch chan<- rpc.Transporter
 }
 
 type labelConnectionObj struct {
-	i  ConnectionID
-	d  keybase1.ClientDetails
-	ch chan<- error
+	id      ConnectionID
+	details keybase1.ClientDetails
+	ch      chan<- error
 }
 
 // ApplyFn can be applied to every connection. It is called with the
@@ -92,7 +92,7 @@ func (c *ConnectionManager) lookupTransporter(i ConnectionID) (ret rpc.Transport
 
 func (c *ConnectionManager) Label(id ConnectionID, d keybase1.ClientDetails) error {
 	retCh := make(chan error)
-	c.labelConnectionCh <- labelConnectionObj{i: id, d: d, ch: retCh}
+	c.labelConnectionCh <- labelConnectionObj{id: id, details: d, ch: retCh}
 	return <-retCh
 }
 
@@ -110,8 +110,8 @@ func (a byClientType) Less(i, j int) bool { return a[i].ClientType < a[j].Client
 
 func (c *ConnectionManager) listAllLabeledConnections() (ret []keybase1.ClientDetails) {
 	for _, v := range c.lookup {
-		if d := v.details; d != nil {
-			ret = append(ret, *d)
+		if v.details != nil {
+			ret = append(ret, *v.details)
 		}
 	}
 	sort.Sort(byClientType(ret))
@@ -129,14 +129,14 @@ func (c *ConnectionManager) run() {
 			c.lookup[nxt] = &rpcConnection{transporter: addConnectionObj.xp}
 			addConnectionObj.ch <- nxt
 		case lookupConnectionObj := <-c.lookupConnectionCh:
-			lookupConnectionObj.ch <- c.lookupTransporter(lookupConnectionObj.i)
+			lookupConnectionObj.ch <- c.lookupTransporter(lookupConnectionObj.id)
 		case id := <-c.removeConnectionCh:
 			delete(c.lookup, id)
 		case labelConnectionObj := <-c.labelConnectionCh:
-			id := labelConnectionObj.i
+			id := labelConnectionObj.id
 			var err error
 			if conn := c.lookup[id]; conn != nil {
-				conn.details = &labelConnectionObj.d
+				conn.details = &labelConnectionObj.details
 			} else {
 				err = NotFoundError{Msg: fmt.Sprintf("connection %d not found", id)}
 			}

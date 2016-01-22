@@ -58,7 +58,3 @@ func (c *CtlHandler) DbNuke(_ context.Context, sessionID int) error {
 	// Now drop caches, since we had the DB's state in-memory too.
 	return c.G().ConfigureCaches()
 }
-
-func (c *CtlHandler) HelloIAm(_ context.Context, arg keybase1.ClientDetails) error {
-	return nil
-}
