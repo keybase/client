@@ -2,6 +2,7 @@ package libfuse
 
 import (
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -50,6 +51,11 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 
 	if child, ok := fl.folders[req.Name]; ok {
 		return child, nil
+	}
+
+	// Shortcut for dreaded extraneous OSX finder lookups
+	if strings.HasPrefix(req.Name, "._") {
+		return nil, fuse.ENOENT
 	}
 
 	rootNode, _, err :=
