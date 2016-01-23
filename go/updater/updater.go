@@ -238,6 +238,7 @@ func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool
 	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusNotModified {
+		u.log.Info("Using cached file: %s", fpath)
 		cached = true
 		return
 	}
@@ -262,9 +263,11 @@ func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool
 		}
 		defer file.Close()
 
-		u.log.Info("Saving to %s", savePath)
+		u.log.Info("Downloading to %s", savePath)
 		n, err := io.Copy(file, resp.Body)
-		u.log.Info("Wrote %d bytes", n)
+		if err != nil {
+			u.log.Info("Downloaded %d bytes", n)
+		}
 		return err
 	}
 
