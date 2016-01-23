@@ -2,7 +2,7 @@
 - New `keybase status` command, previous one moved to `keybase dump-keyfamily`
   (PR: keybase/client#1787)
 
-## 1.0.9
+## 1.0.9 (2016-01-21)
 - Windows updater (PR: keybase/client#1770)
 - Fix passphrase confirmation logic (PR: keybase/client#1752)
 - Fix `keybase passphrase recover` SecretUI, LoginSession issues (PR: keybase/client#1750)
