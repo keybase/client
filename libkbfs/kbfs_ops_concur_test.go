@@ -880,13 +880,12 @@ func TestKBFSOpsConcurBlockSyncReadIndirect(t *testing.T) {
 		defer close(c)
 	outer:
 		for {
+			_, err := kbfsOps.Read(readCtx, fileNode, data, 0)
 			select {
 			case <-readCtx.Done():
 				break outer
 			default:
 			}
-
-			_, err := kbfsOps.Read(readCtx, fileNode, data, 0)
 			if err != nil {
 				t.Fatalf("Couldn't read file: %v", err)
 				break
