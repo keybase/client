@@ -43,6 +43,7 @@ if (__DEV__ && false) { // eslint-disable-line no-undef
 config = updateConfig(config)
 
 export const {
+  enableActionLogging,
   overrideRouterState,
   overrideActiveTab,
   skipLoginRouteToRoot,

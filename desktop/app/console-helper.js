@@ -54,7 +54,7 @@ const output = {
 }
 
 export default function pipeLogs () {
-  if (!__DEV__ || !forwardLogs) { // eslint-disable-line no-undef
+  if (!forwardLogs) { // eslint-disable-line no-undef
     return
   }
 
@@ -71,7 +71,7 @@ export default function pipeLogs () {
 
 export function ipcLogs () {
   // Simple ipc logging for debugging remote windows
-  if (!__DEV__ || !forwardLogs) { // eslint-disable-line no-undef
+  if (!forwardLogs) { // eslint-disable-line no-undef
     return
   }
 
@@ -92,7 +92,7 @@ export function ipcLogs () {
 }
 
 export function ipcLogsRenderer () {
-  if (!__DEV__ || !forwardLogs) { // eslint-disable-line no-undef
+  if (!forwardLogs) { // eslint-disable-line no-undef
     return
   }
   window.console.log = (...args) => { try { ipcRenderer.send('console.log', args) } catch (_) {} }
