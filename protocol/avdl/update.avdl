@@ -15,6 +15,7 @@ protocol update {
     string URL; // Custom source URL
     string channel; // Update channel, empty string for default
     boolean force; // Force the update to be re-applied
+    string defaultInstructions; // Default instructions if not present in update
   }
 
   record UpdateResult {

@@ -104,20 +104,24 @@ func (u *Updater) checkForUpdate(skipAssetDownload bool, force bool, requested b
 	// instructions for the platform.
 	if update.Instructions == nil || *update.Instructions == "" {
 		instructions, err := libkb.PlatformSpecificUpgradeInstructionsString()
-		if err == nil {
-			u.log.Debug("Updating instructions! %s", instructions)
-			update.Instructions = new(string)
-			*update.Instructions = instructions
+		if err != nil {
+			u.log.Errorf("Error trying to get update instructions: %s", err)
+		}
+		if instructions == "" {
+			instructions = u.options.DefaultInstructions
+		}
+		if instructions != "" {
+			u.log.Debug("Using default platform instructions: %s", instructions)
+			update.Instructions = &instructions
 		} else {
-			u.log.Debug("Updating instructions! %s, err: %s", instructions, err)
-			update.Instructions = nil
+			u.log.Debug("No instructions set for update")
 		}
 	}
 
-	if skp := u.config.GetUpdatePreferenceSkip(); len(skp) != 0 {
-		u.log.Debug("Update preference: skip %s", skp)
-		if vers, err := semver.Make(skp); err != nil {
-			u.log.Warning("Bad 'skipVersion' in config file: %q", skp)
+	if skipVersion := u.config.GetUpdatePreferenceSkip(); len(skipVersion) != 0 {
+		u.log.Debug("Update preference: skip %s", skipVersion)
+		if vers, err := semver.Make(skipVersion); err != nil {
+			u.log.Warning("Bad 'skipVersion' in config file: %q", skipVersion)
 		} else if vers.GE(updateSemVersion) {
 			u.log.Debug("Skipping updated version via config preference: %q", update.Version)
 			return nil, nil

@@ -13,12 +13,8 @@ func PlatformSpecificUpgradeInstructionsString() (string, error) {
 	switch runtime.GOOS {
 	case "linux":
 		return linuxUpgradeInstructionsString()
-	case "darwin":
-		return "", fmt.Errorf("Darwin Not implemented")
-	case "windows":
-		return "", fmt.Errorf("Windows Not implemented")
 	}
-	return "", fmt.Errorf("Not implemented")
+	return "", nil
 }
 
 func platformSpecificUpgradeInstructions(g *GlobalContext, upgradeURI string) {

@@ -5381,6 +5381,7 @@ export type update_UpdateOptions = {
   URL: string;
   channel: string;
   force: boolean;
+  defaultInstructions: string;
 }
 
 export type UpdateOptions = {
@@ -5391,6 +5392,7 @@ export type UpdateOptions = {
   URL: string;
   channel: string;
   force: boolean;
+  defaultInstructions: string;
 }
 
 export type update_UpdateResult = {
