@@ -236,6 +236,10 @@ func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool
 	if err != nil {
 		return
 	}
+	if resp == nil {
+		err = fmt.Errorf("No response")
+		return
+	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusNotModified {
 		u.log.Info("Using cached file: %s", fpath)
@@ -256,22 +260,7 @@ func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool
 		}
 	}
 
-	saveFile := func(savePath string) error {
-		file, err := os.OpenFile(savePath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, libkb.PermFile)
-		if err != nil {
-			return err
-		}
-		defer file.Close()
-
-		u.log.Info("Downloading to %s", savePath)
-		n, err := io.Copy(file, resp.Body)
-		if err != nil {
-			u.log.Info("Downloaded %d bytes", n)
-		}
-		return err
-	}
-
-	err = saveFile(savePath)
+	err = u.save(savePath, *resp)
 	if err != nil {
 		return
 	}
@@ -293,6 +282,21 @@ func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool
 
 	err = os.Rename(savePath, fpath)
 	return
+}
+
+func (u *Updater) save(savePath string, resp http.Response) error {
+	file, err := os.OpenFile(savePath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, libkb.PermFile)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	u.log.Info("Downloading to %s", savePath)
+	n, err := io.Copy(file, resp.Body)
+	if err == nil {
+		u.log.Info("Downloaded %d bytes", n)
+	}
+	return err
 }
 
 func (u *Updater) unpack(filename string) (string, error) {
