@@ -1,6 +1,11 @@
+/* @flow */
 import * as Constants from '../../constants/config'
 import engine from '../../engine'
+
+// $FlowFixMe
 import * as native from './index.native'
+
+import type {Dispatch} from '../../constants/types/flux'
 
 export function getConfig (): (dispatch: Dispatch) => Promise<void> {
   return dispatch => {
@@ -45,6 +50,6 @@ export function saveDevSettings () {
   return native.saveDevSettings()
 }
 
-export function updateDevSettings (updates) {
+export function updateDevSettings (updates: any) {
   return native.updateDevSettings(updates)
 }

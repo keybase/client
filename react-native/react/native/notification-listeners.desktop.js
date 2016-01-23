@@ -1,3 +1,5 @@
+/* @flow */
+
 import enums from '../../react/constants/types/keybase_v1'
 import type {NotifySession_loggedOut} from '../../react/constants/types/flow-types'
 import {NotifySession_loggedOut_method} from '../../react/constants/types/flow-types'
@@ -8,16 +10,19 @@ import {getTLF} from '../util/kbfs'
 import {getCurrentStatus} from '../actions/config'
 import {logoutDone} from '../actions/login'
 
+import type {Dispatch} from '../constants/types/flux'
+import type {CallMap} from '../engine/call-map-middleware'
+
 // TODO: Once we have access to the Redux store from the thread running
 // notification listeners, store the sentNotifications map in it.
 var sentNotifications = {}
 
 // TODO(mm) Move these to their own actions
-export default function (dispatch, notify) {
+export default function (dispatch: Dispatch, notify: any): CallMap {
   const callMap: {
     'keybase.1.NotifySession.loggedOut': NotifySession_loggedOut
   } = {
-    [NotifySession_loggedOut_method]: (() => {
+    'keybase.1.NotifySession.loggedOut': (() => {
       notify('Logged out of Keybase')
       dispatch(logoutDone())
       return 'hi' // this should fail TEMP

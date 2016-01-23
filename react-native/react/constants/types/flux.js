@@ -11,4 +11,5 @@ export type TypedAction<T, P, E> = {
 
 export type Action = TypedAction<string, any, any>
 
-export type Dispatch = (action: TypedAction) => void
+type AsyncAction = (dispatch: Dispatch) => ?Promise
+export type Dispatch = (action: TypedAction | AsyncAction) => ?Promise
