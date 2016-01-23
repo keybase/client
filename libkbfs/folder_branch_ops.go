@@ -3341,6 +3341,10 @@ func (fbo *folderBranchOps) Truncate(
 
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
+	if err := fbo.maybeWaitOnDeferredWritesLocked(ctx, lState); err != nil {
+		return err
+	}
+
 	filePath, err := fbo.pathFromNodeForWriteLocked(file)
 	if err != nil {
 		return err
