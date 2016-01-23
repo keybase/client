@@ -33,8 +33,6 @@ type opt struct {
 	initDone        bool
 	blockSize       int64
 	blockChangeSize int64
-	// channels used to re-enable updates if disabled
-	updateChannels map[libkbfs.Config]map[libkbfs.NodeID]chan<- struct{}
 }
 
 func test(t *testing.T, actions ...optionOp) {
@@ -102,9 +100,6 @@ func (o *opt) runInitOnce() {
 	}
 	o.initDone = true
 
-	o.updateChannels =
-		make(map[libkbfs.Config]map[libkbfs.NodeID]chan<- struct{})
-
 	o.userNames = concatUserNamesToStrings2(o.writerNames, o.readerNames)
 	configs, uids := o.createConfigsForUsers(o.userNames, o.blockSize, o.blockChangeSize)
 
@@ -141,11 +136,10 @@ func write(name string, contents string) fileOp {
 		}
 		defer f.Close()
 		_, err = f.Write([]byte(contents))
-		return err
-		//		if err != nil {
-		//			return err
-		//		}
-		//		return f.Sync()
+		if err != nil {
+			return err
+		}
+		return f.Sync()
 	}, Defaults}
 }
 
@@ -246,50 +240,13 @@ func rename(src, dst string) fileOp {
 
 func disableUpdates() fileOp {
 	return fileOp{func(c *ctx) error {
-		root, _, err := c.userData.config.KBFSOps().GetOrCreateRootNode(
-			context.Background(), c.userData.tlf, false, libkbfs.MasterBranch)
-		if err != nil {
-			return err
-		}
-		config := c.userData.config
-		if _, ok := c.updateChannels[config][root.GetID()]; ok {
-			// Updates are already disabled.
-			return nil
-		}
-		var ch chan<- struct{}
-		ch, err = libkbfs.DisableUpdatesForTesting(config, root.GetFolderBranch())
-		if err != nil {
-			return err
-		}
-		c.updateChannels[config][root.GetID()] = ch
-
-		err = libkbfs.DisableCRForTesting(c.userData.config, root.GetFolderBranch())
-		return err
-		//		return ioutil.WriteFile(c.base+".kbfs_disable_updates", []byte("off"), 0644)
+		return ioutil.WriteFile(c.base+".kbfs_disable_updates", []byte("off"), 0644)
 	}, Defaults}
 }
 
 func reenableUpdates() fileOp {
 	return fileOp{func(c *ctx) error {
-
-		root, _, err := c.userData.config.KBFSOps().GetOrCreateRootNode(
-			context.Background(), c.userData.tlf, false, libkbfs.MasterBranch)
-		if err != nil {
-			return err
-		}
-		config := c.userData.config
-		if ch, ok := c.updateChannels[config][root.GetID()]; ok {
-			ch <- struct{}{}
-			close(ch)
-			delete(c.updateChannels[config], root.GetID())
-		}
-
-		err = libkbfs.RestartCRForTesting(c.userData.config, root.GetFolderBranch())
-		if err != nil {
-			return err
-		}
-
-		//		err := ioutil.WriteFile(c.base+".kbfs_enable_updates", []byte("on"), 0644)
+		err := ioutil.WriteFile(c.base+".kbfs_enable_updates", []byte("on"), 0644)
 		if err != nil {
 			return err
 		}
@@ -436,7 +393,6 @@ func (o *opt) createConfigsForUsers(users []string, blockSize, blockChangeSize i
 
 	uids := make([]keybase1.UID, len(users))
 	uids[0] = nameToUid(o.t, config)
-	o.updateChannels[config] = make(map[libkbfs.NodeID]chan<- struct{})
 
 	// create the rest of the users as copies of the original config
 	for i, name := range normalized[1:] {
@@ -444,7 +400,6 @@ func (o *opt) createConfigsForUsers(users []string, blockSize, blockChangeSize i
 		c.SetClock(clock)
 		configs[i+1] = c
 		uids[i+1] = nameToUid(o.t, c)
-		o.updateChannels[c] = make(map[libkbfs.NodeID]chan<- struct{})
 	}
 	return configs, uids
 }

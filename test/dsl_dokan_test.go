@@ -59,7 +59,7 @@ type userData struct {
 }
 
 func (o *opt) createUserData(cfg *libkbfs.ConfigLocal, i int, tlf string) *userData {
-	driveLetter := byte('T') + i
+	driveLetter := byte('T') + byte(i)
 	if driveLetter >= 'Z' {
 		o.t.Fatal("Out of drive letters")
 	}
