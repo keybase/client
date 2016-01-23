@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"sync"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -26,7 +27,9 @@ func TestParseTlfHandleEarlyFailure(t *testing.T) {
 // methods from KeybaseDaemon.
 type daemonKBPKI struct {
 	KBPKI
-	daemon        KeybaseDaemon
+	daemon KeybaseDaemon
+
+	identifyLock  sync.RWMutex
 	identifyCalls int
 }
 
@@ -43,12 +46,24 @@ func (d *daemonKBPKI) Resolve(ctx context.Context, assertion string) (keybase1.U
 	return d.daemon.Resolve(ctx, assertion)
 }
 
-func (d *daemonKBPKI) Identify(ctx context.Context, assertion, reason string) (UserInfo, error) {
+func (d *daemonKBPKI) addIdentifyCall() {
+	d.identifyLock.Lock()
+	defer d.identifyLock.Unlock()
 	d.identifyCalls++
+}
+
+func (d *daemonKBPKI) getIdentifyCalls() int {
+	d.identifyLock.RLock()
+	defer d.identifyLock.RUnlock()
+	return d.identifyCalls
+}
+
+func (d *daemonKBPKI) Identify(ctx context.Context, assertion, reason string) (UserInfo, error) {
+	d.addIdentifyCall()
 	return d.daemon.Identify(ctx, assertion, reason)
 }
 
-func (d daemonKBPKI) GetNormalizedUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error) {
+func (d *daemonKBPKI) GetNormalizedUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error) {
 	userInfo, err := d.daemon.LoadUserPlusKeys(ctx, uid)
 	if err != nil {
 		return libkb.NormalizedUsername(""), err
@@ -69,7 +84,7 @@ func TestParseTlfHandleNoUserFailure(t *testing.T) {
 
 	name := "u2,u3#u4"
 	_, err := ParseTlfHandle(ctx, kbpki, name, false)
-	assert.Equal(t, 0, kbpki.identifyCalls)
+	assert.Equal(t, 0, kbpki.getIdentifyCalls())
 	assert.Equal(t, NoSuchUserError{"u4"}, err)
 }
 
@@ -86,7 +101,7 @@ func TestParseTlfHandleNotReaderFailure(t *testing.T) {
 
 	name := "u2,u3"
 	_, err := ParseTlfHandle(ctx, kbpki, name, false)
-	assert.Equal(t, 0, kbpki.identifyCalls)
+	assert.Equal(t, 0, kbpki.getIdentifyCalls())
 	assert.Equal(t, ReadAccessError{"u1", name}, err)
 }
 
@@ -107,7 +122,7 @@ func TestParseTlfHandleAssertionNotCanonicalFailure(t *testing.T) {
 	_, err := ParseTlfHandle(ctx, kbpki, nonCanonicalName, false)
 	// Names with assertions should be identified before the error
 	// is returned.
-	assert.Equal(t, 3, kbpki.identifyCalls)
+	assert.Equal(t, 3, kbpki.getIdentifyCalls())
 	assert.Equal(t, TlfNameNotCanonical{nonCanonicalName, name}, err)
 }
 
@@ -124,7 +139,7 @@ func TestParseTlfHandleAssertionPrivateSuccess(t *testing.T) {
 
 	name := "u1,u3"
 	h, err := ParseTlfHandle(ctx, kbpki, name, false)
-	assert.Equal(t, 0, kbpki.identifyCalls)
+	assert.Equal(t, 0, kbpki.getIdentifyCalls())
 	assert.Nil(t, err)
 	assert.Equal(t, name, h.cachedName)
 }
@@ -142,7 +157,7 @@ func TestParseTlfHandleAssertionPublicSuccess(t *testing.T) {
 
 	name := "u1,u2,u3"
 	h, err := ParseTlfHandle(ctx, kbpki, name, true)
-	assert.Equal(t, 0, kbpki.identifyCalls)
+	assert.Equal(t, 0, kbpki.getIdentifyCalls())
 	assert.Nil(t, err)
 	assert.Equal(t, name+ReaderSep+PublicUIDName, h.cachedName)
 }
