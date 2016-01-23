@@ -82,9 +82,9 @@ const (
 	// Cap the number of times we retry after a recoverable error
 	maxRetriesOnRecoverableErrors = 10
 	// Number of outstanding deferred bytes allowed.
-	maxDeferredBytes = 100 << 20
+	maxDeferredBytes = maxParallelBlockPuts * (512 << 10)
 	// When the number of dirty bytes exceeds this level, force a sync.
-	dirtyBytesThreshold = 100 << 20
+	dirtyBytesThreshold = maxParallelBlockPuts * (512 << 10)
 )
 
 type fboMutexLevel mutexLevel
