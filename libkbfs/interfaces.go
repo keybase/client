@@ -387,8 +387,12 @@ type KeyManager interface {
 	// devices.  If there are devices that have been removed, it
 	// creates a new epoch of keys for the TLF.  If no devices have
 	// changed, or if there was an error, it returns false.
-	// Otherwise, it returns true.
-	Rekey(ctx context.Context, md *RootMetadata) (bool, error)
+	// Otherwise, it returns true. If a new key generation is added
+	// the second return value points to this new key. This is to
+	// allow for caching of the TLF crypt key only after a successful
+	// merged write of the metadata. Otherwise we could prematurely
+	// pollute the key cache.
+	Rekey(ctx context.Context, md *RootMetadata) (bool, *TLFCryptKey, error)
 }
 
 // ReportingLevel indicate the severity of a reported event.

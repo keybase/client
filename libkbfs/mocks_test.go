@@ -783,11 +783,12 @@ func (_mr *_MockKeyManagerRecorder) GetTLFCryptKeyForBlockDecryption(arg0, arg1,
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyForBlockDecryption", arg0, arg1, arg2)
 }
 
-func (_m *MockKeyManager) Rekey(ctx context.Context, md *RootMetadata) (bool, error) {
+func (_m *MockKeyManager) Rekey(ctx context.Context, md *RootMetadata) (bool, *TLFCryptKey, error) {
 	ret := _m.ctrl.Call(_m, "Rekey", ctx, md)
 	ret0, _ := ret[0].(bool)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
+	ret1, _ := ret[1].(*TLFCryptKey)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
 }
 
 func (_mr *_MockKeyManagerRecorder) Rekey(arg0, arg1 interface{}) *gomock.Call {

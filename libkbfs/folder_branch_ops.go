@@ -765,13 +765,14 @@ func (fbo *folderBranchOps) initMDLocked(
 	}
 
 	var expectedKeyGen KeyGen
+	var tlfCryptKey *TLFCryptKey
 	if md.ID.IsPublic() {
 		md.Writers = make([]keybase1.UID, len(handle.Writers))
 		copy(md.Writers, handle.Writers)
 		expectedKeyGen = PublicKeyGen
 	} else {
 		// create a new set of keys for this metadata
-		if _, err := fbo.config.KeyManager().Rekey(ctx, md); err != nil {
+		if _, tlfCryptKey, err = fbo.config.KeyManager().Rekey(ctx, md); err != nil {
 			return err
 		}
 		expectedKeyGen = FirstValidKeyGen
@@ -831,6 +832,15 @@ func (fbo *folderBranchOps) initMDLocked(
 	if err != nil {
 		return err
 	}
+
+	// cache any new TLF crypt key
+	if tlfCryptKey != nil {
+		err = fbo.config.KeyCache().PutTLFCryptKey(md.ID, keyGen, *tlfCryptKey)
+		if err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -2051,6 +2061,34 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 
 	fbo.notifyBatchLocked(ctx, lState, md)
 	return nil
+}
+
+// mdWriterLock must be taken by the caller.
+func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
+	lState *lockState, md *RootMetadata) (err error) {
+	// finally, write out the new metadata
+	err = fbo.config.MDOps().Put(ctx, md)
+	isConflict := fbo.isRevisionConflict(err)
+	if err != nil && !isConflict {
+		return err
+	}
+
+	if isConflict {
+		// drop this block. we've probably collided with someone also
+		// trying to rekey the same folder but that's not necessarily
+		// the case. we'll queue another rekey just in case. it should
+		// be safe as it's idempotent. we don't want any rekeys present
+		// in unmerged history or that will just make a mess.
+		fbo.config.RekeyQueue().Enqueue(md.ID)
+		return err
+	}
+
+	fbo.setStagedLocked(lState, false, NullBranchID)
+	fbo.transitionState(cleanState)
+
+	fbo.headLock.Lock(lState)
+	defer fbo.headLock.Unlock(lState)
+	return fbo.setHeadLocked(ctx, lState, md)
 }
 
 func (fbo *folderBranchOps) cleanUpBlockState(bps *blockPutState) {
@@ -4823,9 +4861,11 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		return err
 	}
 
+	var tlfCryptKey *TLFCryptKey
 	if md.IsWriter(uid, cryptKey.kid) {
+		var rekeyDone bool
 		// TODO: allow readers to rekey just themself
-		rekeyDone, err := fbo.config.KeyManager().Rekey(ctx, md)
+		rekeyDone, tlfCryptKey, err = fbo.config.KeyManager().Rekey(ctx, md)
 		if err != nil {
 			return err
 		}
@@ -4847,9 +4887,18 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 	md.AddOp(newGCOp())
 
 	// we still let readers push a new md block since it will simply be a rekey bit block.
-	err = fbo.finalizeMDWriteLocked(ctx, lState, md, &blockPutState{})
+	err = fbo.finalizeMDRekeyWriteLocked(ctx, lState, md)
 	if err != nil {
 		return err
+	}
+
+	// cache any new TLF crypt key
+	if tlfCryptKey != nil {
+		keyGen := md.LatestKeyGeneration()
+		err = fbo.config.KeyCache().PutTLFCryptKey(md.ID, keyGen, *tlfCryptKey)
+		if err != nil {
+			return err
+		}
 	}
 
 	// send rekey finish notification

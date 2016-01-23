@@ -30,7 +30,7 @@ func expectCachedGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata, keyGen Ke
 	config.mockKcache.EXPECT().GetTLFCryptKey(rmd.ID, keyGen).Return(TLFCryptKey{}, nil)
 }
 
-func expectUncachedGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata, keyGen KeyGen, uid keybase1.UID, subkey CryptPublicKey) {
+func expectUncachedGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata, keyGen KeyGen, uid keybase1.UID, subkey CryptPublicKey, encrypt bool) {
 	config.mockKcache.EXPECT().GetTLFCryptKey(rmd.ID, keyGen).
 		Return(TLFCryptKey{}, errors.New("NONE"))
 
@@ -47,8 +47,10 @@ func expectUncachedGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata, keyGen 
 	config.mockCrypto.EXPECT().UnmaskTLFCryptKey(TLFCryptKeyServerHalf{}, TLFCryptKeyClientHalf{}).Return(TLFCryptKey{}, nil)
 
 	// now put the key into the cache
-	config.mockKcache.EXPECT().PutTLFCryptKey(rmd.ID, keyGen, TLFCryptKey{}).
-		Return(nil)
+	if !encrypt {
+		config.mockKcache.EXPECT().PutTLFCryptKey(rmd.ID, keyGen, TLFCryptKey{}).
+			Return(nil)
+	}
 }
 
 func expectRekey(config *ConfigMock, rmd *RootMetadata) {
@@ -63,11 +65,8 @@ func expectRekey(config *ConfigMock, rmd *RootMetadata) {
 	// make keys for the one device
 	config.mockCrypto.EXPECT().MaskTLFCryptKey(TLFCryptKeyServerHalf{}, TLFCryptKey{}).Return(TLFCryptKeyClientHalf{}, nil)
 	config.mockCrypto.EXPECT().EncryptTLFCryptKeyClientHalf(TLFEphemeralPrivateKey{}, subkey, TLFCryptKeyClientHalf{}).Return(EncryptedTLFCryptKeyClientHalf{}, nil)
-	newKeyGen := rmd.LatestKeyGeneration() + 1
 	config.mockKops.EXPECT().PutTLFCryptKeyServerHalves(gomock.Any(), gomock.Any()).Return(nil)
 	config.mockCrypto.EXPECT().GetTLFCryptKeyServerHalfID(gomock.Any(), gomock.Any(), gomock.Any()).Return(TLFCryptKeyServerHalfID{}, nil)
-	// now put the key into the cache
-	config.mockKcache.EXPECT().PutTLFCryptKey(rmd.ID, newKeyGen, TLFCryptKey{}).Return(nil)
 
 	// Ignore Notify calls for now
 	config.mockRep.EXPECT().Notify(gomock.Any(), gomock.Any()).AnyTimes()
@@ -171,7 +170,7 @@ func TestKeyManagerUncachedSecretKeyForEncryptionSuccess(t *testing.T) {
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
 	AddNewKeysOrBust(t, rmd, MakeDirRKeyBundle(uid, subkey))
 
-	expectUncachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration(), uid, subkey)
+	expectUncachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration(), uid, subkey, true)
 
 	if _, err := config.KeyManager().
 		GetTLFCryptKeyForEncryption(ctx, rmd); err != nil {
@@ -189,7 +188,7 @@ func TestKeyManagerUncachedSecretKeyForMDDecryptionSuccess(t *testing.T) {
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
 	AddNewKeysOrBust(t, rmd, MakeDirRKeyBundle(uid, subkey))
 
-	expectUncachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration(), uid, subkey)
+	expectUncachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration(), uid, subkey, false)
 
 	if _, err := config.KeyManager().
 		GetTLFCryptKeyForMDDecryption(ctx, rmd); err != nil {
@@ -209,7 +208,7 @@ func TestKeyManagerUncachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
 	AddNewKeysOrBust(t, rmd, MakeDirRKeyBundle(uid, subkey))
 
 	keyGen := rmd.LatestKeyGeneration() - 1
-	expectUncachedGetTLFCryptKey(config, rmd, keyGen, uid, subkey)
+	expectUncachedGetTLFCryptKey(config, rmd, keyGen, uid, subkey, false)
 
 	if _, err := config.KeyManager().GetTLFCryptKeyForBlockDecryption(
 		ctx, rmd, BlockPointer{KeyGen: keyGen}); err != nil {
@@ -227,7 +226,7 @@ func TestKeyManagerRekeyFailurePublic(t *testing.T) {
 		t.Errorf("Expected %d, got %d", rmd.LatestKeyGeneration(), PublicKeyGen)
 	}
 
-	if _, err := config.KeyManager().
+	if _, _, err := config.KeyManager().
 		Rekey(ctx, rmd); err != (InvalidPublicTLFOperation{id, "rekey"}) {
 		t.Errorf("Got unexpected error on rekey: %v", err)
 	}
@@ -247,7 +246,7 @@ func TestKeyManagerRekeySuccessPrivate(t *testing.T) {
 
 	expectRekey(config, rmd)
 
-	if done, err := config.KeyManager().Rekey(ctx, rmd); !done || err != nil {
+	if done, _, err := config.KeyManager().Rekey(ctx, rmd); !done || err != nil {
 		t.Errorf("Got error on rekey: %t, %v", done, err)
 	} else if rmd.LatestKeyGeneration() != oldKeyGen+1 {
 		t.Errorf("Bad key generation after rekey: %d", rmd.LatestKeyGeneration())
@@ -408,7 +407,7 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 		t.Fatal("Wrong kind of key manager for config2")
 	}
 	for keyGen := KeyGen(FirstValidKeyGen); keyGen <= currKeyGen; keyGen++ {
-		_, err = km2.getTLFCryptKeyUsingCurrentDevice(ctx, rmd, keyGen)
+		_, err = km2.getTLFCryptKeyUsingCurrentDevice(ctx, rmd, keyGen, true)
 		if err == nil {
 			t.Errorf("User 2 could still fetch a key for keygen %d", keyGen)
 		}
@@ -595,4 +594,123 @@ func TestKeyManagerRekeyBit(t *testing.T) {
 	// This way the shared mdserver hasn't been shutdown.
 	CheckConfigAndShutdown(t, config1)
 	doShutdown1 = false
+}
+
+// Two devices conflict when revoking a 3rd device.
+// Test that after this both can still read the latest version of the folder.
+func TestKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T) {
+	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2)
+	defer CheckConfigAndShutdown(t, config1)
+
+	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)
+	defer CheckConfigAndShutdown(t, config2)
+	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// create a shared folder
+	name := u1.String() + "," + u2.String()
+
+	kbfsOps1 := config1.KBFSOps()
+	rootNode1, _, err :=
+		kbfsOps1.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+
+	// user 1 creates a file
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	config2Dev2 := ConfigAsUser(config1.(*ConfigLocal), u2)
+	defer CheckConfigAndShutdown(t, config2Dev2)
+
+	// give user 2 a new device
+	AddDeviceForLocalUserOrBust(t, config1, uid2)
+	AddDeviceForLocalUserOrBust(t, config2, uid2)
+	devIndex := AddDeviceForLocalUserOrBust(t, config2Dev2, uid2)
+	SwitchDeviceForLocalUserOrBust(t, config2Dev2, devIndex)
+
+	// user 2 should be unable to read the data now since its device
+	// wasn't registered when the folder was originally created.
+	kbfsOps2Dev2 := config2Dev2.KBFSOps()
+	root2Dev2, _, err :=
+		kbfsOps2Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+	if _, ok := err.(ReadAccessError); !ok {
+		t.Fatalf("Got unexpected error when reading with new key: %v", err)
+	}
+
+	// now user 1 should rekey
+	err = kbfsOps1.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
+	if err != nil {
+		t.Fatalf("Couldn't rekey: %v", err)
+	}
+
+	// this device should be able to read now
+	root2Dev2, _, err =
+		kbfsOps2Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Got unexpected error after rekey: %v", err)
+	}
+
+	// Now revoke the original user 2 device
+	RevokeDeviceForLocalUserOrBust(t, config1, uid2, 0)
+	RevokeDeviceForLocalUserOrBust(t, config2Dev2, uid2, 0)
+
+	// disable updates on user 1
+	c, err := DisableUpdatesForTesting(config1, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
+
+	// rekey again but with user 2 device 2
+	err = kbfsOps2Dev2.Rekey(ctx, root2Dev2.GetFolderBranch().Tlf)
+	if err != nil {
+		t.Fatalf("Couldn't rekey: %v", err)
+	}
+
+	// have user 1 also try to rekey but fail due to conflict
+	err = kbfsOps1.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
+	if _, isConflict := err.(MDServerErrorConflictRevision); !isConflict {
+		t.Fatalf("Expected failure due to conflict")
+	}
+
+	// device 1 re-enables updates
+	c <- struct{}{}
+	err = kbfsOps1.SyncFromServer(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+
+	err = kbfsOps2Dev2.SyncFromServer(ctx, root2Dev2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+
+	// force re-encryption of the root dir
+	_, _, err = kbfsOps2Dev2.CreateFile(ctx, root2Dev2, "b", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// device 1 should still work
+	err = kbfsOps1.SyncFromServer(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+
+	rootNode1, _, err =
+		kbfsOps1.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Got unexpected error after rekey: %v", err)
+	}
+
+	children, err := kbfsOps1.GetDirChildren(ctx, rootNode1)
+	if _, ok := children["b"]; !ok {
+		t.Fatalf("Device 1 couldn't see the new dir entry")
+	}
 }

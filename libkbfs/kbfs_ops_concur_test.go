@@ -605,7 +605,7 @@ func (km *mdRecordingKeyManager) GetTLFCryptKeyForBlockDecryption(
 }
 
 func (km *mdRecordingKeyManager) Rekey(
-	ctx context.Context, md *RootMetadata) (bool, error) {
+	ctx context.Context, md *RootMetadata) (bool, *TLFCryptKey, error) {
 	km.setLastMD(md)
 	return km.delegate.Rekey(ctx, md)
 }
