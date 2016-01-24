@@ -80,7 +80,7 @@ func (e TokenExpiredError) Error() string {
 		e.creationTime, e.expireIn, e.now)
 }
 
-// InvalidTokenKeyError is raised then the public key presented in the token does not
+// InvalidTokenKeyError is raised when the public key presented in the token does not
 // correspond to the private key used to sign the token.
 type InvalidTokenKeyError struct {
 	expected string
@@ -92,7 +92,7 @@ func (e InvalidTokenKeyError) Error() string {
 		e.expected, e.received)
 }
 
-// InvalidTokenServerError is raised then the server presented in the token does not
+// InvalidTokenServerError is raised when the server presented in the token does not
 // correspond to the server being asked to verify the token.
 type InvalidTokenServerError struct {
 	expected string
