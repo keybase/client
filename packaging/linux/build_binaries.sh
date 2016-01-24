@@ -100,7 +100,7 @@ build_one_architecture() {
   echo "Building Electron client for $electron_arch..."
   (
     cd "$this_repo/desktop"
-    node package.js --platform linux --arch $electron_arch
+    node package.js --platform linux --arch $electron_arch --appVersion "$build_number"
     rsync -a "release/linux-${electron_arch}/Keybase-linux-${electron_arch}/" \
       "$layout_dir/opt/keybase"
   )
