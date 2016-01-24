@@ -3,10 +3,7 @@
 
 package logger
 
-import (
-	keybase1 "github.com/keybase/client/go/protocol"
-	"golang.org/x/net/context"
-)
+import "golang.org/x/net/context"
 
 type Null struct{}
 
@@ -35,7 +32,5 @@ func (l *Null) CErrorf(ctx context.Context, fmt string, arg ...interface{})    {
 func (l *Null) Error(fmt string, arg ...interface{})                           {}
 func (l *Null) Configure(style string, debug bool, filename string)            {}
 func (l *Null) RotateLogFile() error                                           { return nil }
-func (l *Null) AddExternalLogger(ExternalLogger) uint64                        { return 0 }
-func (l *Null) RemoveExternalLogger(uint64)                                    {}
-func (l *Null) SetExternalLogLevel(level keybase1.LogLevel)                    {}
+func (l *Null) SetExternalHandler(handler ExternalHandler)                     {}
 func (l *Null) Shutdown()                                                      {}

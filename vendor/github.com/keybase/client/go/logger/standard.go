@@ -82,14 +82,9 @@ type Standard struct {
 	module         string
 	isTerminal     bool
 
-	externalLoggers      map[uint64]ExternalLogger
-	externalLoggersCount uint64
-	externalLogLevel     keybase1.LogLevel
-	externalLoggersMutex sync.RWMutex
-
-	buffer   chan *entry
-	drop     chan bool
 	shutdown bool
+
+	externalHandler ExternalHandler
 }
 
 // Verify Standard fully implements the Logger interface.
@@ -117,17 +112,11 @@ func NewWithCallDepth(module string, extraCallDepth int, iow io.Writer) *Standar
 	}
 
 	ret := &Standard{
-		internal:             log,
-		module:               module,
-		externalLoggers:      make(map[uint64]ExternalLogger),
-		externalLoggersCount: 0,
-		externalLogLevel:     keybase1.LogLevel_INFO,
-		isTerminal:           isTerminal,
-		buffer:               make(chan *entry, 10000),
-		drop:                 make(chan bool, 1),
+		internal:   log,
+		module:     module,
+		isTerminal: isTerminal,
 	}
 	ret.initLogging(iow)
-	go ret.processBuffer()
 	return ret
 }
 
@@ -172,7 +161,9 @@ func (log *Standard) prepareString(
 
 func (log *Standard) Debug(fmt string, arg ...interface{}) {
 	log.internal.Debug(fmt, arg...)
-	log.logToExternalLoggers(keybase1.LogLevel_DEBUG, fmt, arg)
+	if log.externalHandler != nil {
+		log.externalHandler.Log(keybase1.LogLevel_DEBUG, fmt, arg)
+	}
 }
 
 func (log *Standard) CDebugf(ctx context.Context, fmt string,
@@ -184,7 +175,9 @@ func (log *Standard) CDebugf(ctx context.Context, fmt string,
 
 func (log *Standard) Info(fmt string, arg ...interface{}) {
 	log.internal.Info(fmt, arg...)
-	log.logToExternalLoggers(keybase1.LogLevel_INFO, fmt, arg)
+	if log.externalHandler != nil {
+		log.externalHandler.Log(keybase1.LogLevel_INFO, fmt, arg)
+	}
 }
 
 func (log *Standard) CInfof(ctx context.Context, fmt string,
@@ -196,7 +189,9 @@ func (log *Standard) CInfof(ctx context.Context, fmt string,
 
 func (log *Standard) Notice(fmt string, arg ...interface{}) {
 	log.internal.Notice(fmt, arg...)
-	log.logToExternalLoggers(keybase1.LogLevel_NOTICE, fmt, arg)
+	if log.externalHandler != nil {
+		log.externalHandler.Log(keybase1.LogLevel_NOTICE, fmt, arg)
+	}
 }
 
 func (log *Standard) CNoticef(ctx context.Context, fmt string,
@@ -208,7 +203,9 @@ func (log *Standard) CNoticef(ctx context.Context, fmt string,
 
 func (log *Standard) Warning(fmt string, arg ...interface{}) {
 	log.internal.Warning(fmt, arg...)
-	log.logToExternalLoggers(keybase1.LogLevel_WARN, fmt, arg)
+	if log.externalHandler != nil {
+		log.externalHandler.Log(keybase1.LogLevel_WARN, fmt, arg)
+	}
 }
 
 func (log *Standard) CWarningf(ctx context.Context, fmt string,
@@ -220,7 +217,9 @@ func (log *Standard) CWarningf(ctx context.Context, fmt string,
 
 func (log *Standard) Error(fmt string, arg ...interface{}) {
 	log.internal.Error(fmt, arg...)
-	log.logToExternalLoggers(keybase1.LogLevel_ERROR, fmt, arg)
+	if log.externalHandler != nil {
+		log.externalHandler.Log(keybase1.LogLevel_ERROR, fmt, arg)
+	}
 }
 
 func (log *Standard) Errorf(fmt string, arg ...interface{}) {
@@ -236,7 +235,9 @@ func (log *Standard) CErrorf(ctx context.Context, fmt string,
 
 func (log *Standard) Critical(fmt string, arg ...interface{}) {
 	log.internal.Critical(fmt, arg...)
-	log.logToExternalLoggers(keybase1.LogLevel_CRITICAL, fmt, arg)
+	if log.externalHandler != nil {
+		log.externalHandler.Log(keybase1.LogLevel_CRITICAL, fmt, arg)
+	}
 }
 
 func (log *Standard) CCriticalf(ctx context.Context, fmt string,
@@ -248,7 +249,9 @@ func (log *Standard) CCriticalf(ctx context.Context, fmt string,
 
 func (log *Standard) Fatalf(fmt string, arg ...interface{}) {
 	log.internal.Fatalf(fmt, arg...)
-	log.logToExternalLoggers(keybase1.LogLevel_FATAL, fmt, arg)
+	if log.externalHandler != nil {
+		log.externalHandler.Log(keybase1.LogLevel_FATAL, fmt, arg)
+	}
 }
 
 func (log *Standard) CFatalf(ctx context.Context, fmt string,
@@ -344,102 +347,6 @@ func PickFirstError(errors ...error) error {
 	return nil
 }
 
-func (log *Standard) AddExternalLogger(externalLogger ExternalLogger) uint64 {
-	log.externalLoggersMutex.Lock()
-	defer log.externalLoggersMutex.Unlock()
-
-	handle := log.externalLoggersCount
-	log.externalLoggersCount++
-	log.externalLoggers[handle] = externalLogger
-	return handle
-}
-
-func (log *Standard) RemoveExternalLogger(handle uint64) {
-	log.externalLoggersMutex.Lock()
-	defer log.externalLoggersMutex.Unlock()
-
-	delete(log.externalLoggers, handle)
-	log.externalLoggersCount--
-}
-
-func (log *Standard) logToExternalLoggers(level keybase1.LogLevel, format string, args []interface{}) {
-	if log.shutdown {
-		return
-	}
-	e := entry{
-		level:  level,
-		format: format,
-		args:   args,
-	}
-
-	// if buffer is full, don't block, just drop the log message
-	select {
-	case log.buffer <- &e:
-		log.checkDropFlag()
-	default:
-		log.setDropFlag()
-	}
-}
-
-// setDropFlag puts a flag into the drop channel if the channel is
-// empty.  This is to signal that external log messages have been
-// dropped.
-func (log *Standard) setDropFlag() {
-	select {
-	case log.drop <- true:
-	default:
-	}
-}
-
-// checkDropFlag checks to see if anything is in the drop channel.
-// If there is a flag in there, it will tell external loggers that
-// log messages were dropped.
-func (log *Standard) checkDropFlag() {
-	select {
-	case <-log.drop:
-		log.buffer <- &entry{
-			level:  keybase1.LogLevel_WARN,
-			format: "Service log messages were dropped due to full buffer",
-		}
-	default:
-	}
-}
-
-func (log *Standard) SetExternalLogLevel(level keybase1.LogLevel) {
-	log.externalLoggersMutex.Lock()
-	defer log.externalLoggersMutex.Unlock()
-
-	log.externalLogLevel = level
-}
-
-func (log *Standard) processBuffer() {
-	for e := range log.buffer {
-		log.externalLoggersMutex.RLock()
-
-		// Short circuit logs that are more verbose than the current external log
-		// level.
-		if e.level < log.externalLogLevel {
-			log.externalLoggersMutex.RUnlock()
-			continue
-		}
-
-		var wg sync.WaitGroup
-
-		for _, externalLogger := range log.externalLoggers {
-			wg.Add(1)
-			go func(xl ExternalLogger) {
-				xl.Log(e.level, e.format, e.args)
-				wg.Done()
-			}(externalLogger)
-		}
-
-		log.externalLoggersMutex.RUnlock()
-
-		wg.Wait()
-	}
-}
-
-func (log *Standard) Shutdown() {
-	close(log.buffer)
-	log.shutdown = true
+func (log *Standard) SetExternalHandler(handler ExternalHandler) {
+	log.externalHandler = handler
 }
