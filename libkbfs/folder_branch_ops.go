@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/cenkalti/backoff"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
@@ -556,7 +557,7 @@ func (fbo *folderBranchOps) setHeadLocked(ctx context.Context,
 		// as a starting point. For now only the master branch can
 		// get updates
 		if fbo.branch() == MasterBranch {
-			go fbo.registerForUpdates()
+			go fbo.registerAndWaitForUpdates()
 		}
 	}
 	return nil
@@ -5035,19 +5036,23 @@ const (
 // folderBranchOps ID tag.
 const CtxFBOOpID = "FBOID"
 
-// Run the passed function with a context that's canceled on shutdown.
-func (fbo *folderBranchOps) runUnlessShutdown(fn func(ctx context.Context) error) error {
+func (fbo *folderBranchOps) ctxWithFBOID(ctx context.Context) context.Context {
 	// Tag each request with a unique ID
 	logTags := make(logger.CtxLogTags)
 	logTags[CtxFBOIDKey] = CtxFBOOpID
-	ctx := logger.NewContextWithLogTags(context.Background(), logTags)
+	newCtx := logger.NewContextWithLogTags(ctx, logTags)
 	id, err := MakeRandomRequestID()
 	if err != nil {
 		fbo.log.Warning("Couldn't generate a random request ID: %v", err)
 	} else {
-		ctx = context.WithValue(ctx, CtxFBOIDKey, id)
+		newCtx = context.WithValue(newCtx, CtxFBOIDKey, id)
 	}
+	return newCtx
+}
 
+// Run the passed function with a context that's canceled on shutdown.
+func (fbo *folderBranchOps) runUnlessShutdown(fn func(ctx context.Context) error) error {
+	ctx := fbo.ctxWithFBOID(context.Background())
 	ctx, cancelFunc := context.WithCancel(ctx)
 	defer cancelFunc()
 	errChan := make(chan error, 1)
@@ -5063,72 +5068,103 @@ func (fbo *folderBranchOps) runUnlessShutdown(fn func(ctx context.Context) error
 	}
 }
 
-func (fbo *folderBranchOps) registerForUpdates() {
-	var err error
-	var updateChan <-chan error
-
-	err = fbo.runUnlessShutdown(func(ctx context.Context) (err error) {
-		lState := makeFBOLockState()
-
-		currRev := fbo.getCurrMDRevision(lState)
-		fbo.log.CDebugf(ctx, "Registering for updates (curr rev = %d)", currRev)
-		defer func() { fbo.log.CDebugf(ctx, "Done: %v", err) }()
-
-		// this will retry on connectivity issues. TODO: backoff on explicit
-		// throttle errors from the back-end inside MDServer.
-		updateChan, err = fbo.config.MDServer().RegisterForUpdate(ctx, fbo.id(),
-			currRev)
-		return err
-	})
-
-	if err != nil {
-		// TODO: we should probably display something or put us in some error
-		// state obvious to the user.
-		return
-	}
-
-	// successful registration; now, wait for an update or a shutdown
-	go fbo.runUnlessShutdown(func(ctx context.Context) (err error) {
-		fbo.log.CDebugf(ctx, "Waiting for updates")
-		defer func() { fbo.log.CDebugf(ctx, "Done: %v", err) }()
-
-		lState := makeFBOLockState()
-
+func (fbo *folderBranchOps) registerAndWaitForUpdates() {
+	err := fbo.runUnlessShutdown(func(ctx context.Context) error {
+		// If we fail to register for or process updates, try again
+		// with an exponential backoff, so we don't overwhelm the
+		// server or ourselves with too many attempts in a hopeless
+		// situation.
+		expBackoff := backoff.NewExponentialBackOff()
+		// Never give up hope until we shut down
+		expBackoff.MaxElapsedTime = 0
+		// Register and wait in a loop unless we hit an unrecoverable error
 		for {
 			select {
-			case err := <-updateChan:
-				fbo.log.CDebugf(ctx, "Got an update: %v", err)
-				defer fbo.registerForUpdates()
-				if err != nil {
-					return err
-				}
-				err = fbo.getAndApplyMDUpdates(ctx, lState, fbo.applyMDUpdates)
-				if err != nil {
-					fbo.log.CDebugf(ctx, "Got an error while applying "+
-						"updates: %v", err)
-					if _, ok := err.(NotPermittedWhileDirtyError); ok {
-						// If this fails because of outstanding dirty
-						// files, delay a bit to avoid wasting RPCs
-						// and CPU.
-						time.Sleep(1 * time.Second)
-					}
-					return err
-				}
-				return nil
-			case unpause := <-fbo.updatePauseChan:
-				fbo.log.CInfof(ctx, "Updates paused")
-				// wait to be unpaused
-				select {
-				case <-unpause:
-					fbo.log.CInfof(ctx, "Updates unpaused")
-				case <-ctx.Done():
-					return ctx.Err()
-				}
 			case <-ctx.Done():
 				return ctx.Err()
+			default:
+			}
+			err := backoff.RetryNotify(func() error {
+				select {
+				case <-ctx.Done():
+					// Shortcut the retry, we're done.
+					return nil
+				default:
+				}
+
+				// Replace the FBOID one with a fresh id for every attempt
+				newCtx := fbo.ctxWithFBOID(ctx)
+				updateChan, err := fbo.registerForUpdates(newCtx)
+				if err != nil {
+					return err
+				}
+				return fbo.waitForAndProcessUpdates(newCtx, updateChan)
+			},
+				expBackoff,
+				func(err error, nextTime time.Duration) {
+					fbo.log.CDebugf(ctx,
+						"Retrying registerForUpdates in %s due to err: %v",
+						nextTime, err)
+				})
+			if err != nil {
+				return err
 			}
 		}
 	})
+
+	if err != nil && err != context.Canceled {
+		fbo.log.CWarningf(context.Background(),
+			"registerAndWaitForUpdates failed unexpectedly with an error: %v",
+			err)
+	}
+}
+
+func (fbo *folderBranchOps) registerForUpdates(ctx context.Context) (
+	updateChan <-chan error, err error) {
+	lState := makeFBOLockState()
+	currRev := fbo.getCurrMDRevision(lState)
+	fbo.log.CDebugf(ctx, "Registering for updates (curr rev = %d)", currRev)
+	defer func() { fbo.log.CDebugf(ctx, "Done: %v", err) }()
+	// RegisterForUpdate will itself retry on connectivity issues
+	return fbo.config.MDServer().RegisterForUpdate(ctx, fbo.id(),
+		currRev)
+}
+
+func (fbo *folderBranchOps) waitForAndProcessUpdates(
+	ctx context.Context, updateChan <-chan error) (err error) {
+	// successful registration; now, wait for an update or a shutdown
+	fbo.log.CDebugf(ctx, "Waiting for updates")
+	defer func() { fbo.log.CDebugf(ctx, "Done: %v", err) }()
+
+	lState := makeFBOLockState()
+
+	for {
+		select {
+		case err := <-updateChan:
+			fbo.log.CDebugf(ctx, "Got an update: %v", err)
+			if err != nil {
+				return err
+			}
+			err = fbo.getAndApplyMDUpdates(ctx, lState, fbo.applyMDUpdates)
+			if err != nil {
+				fbo.log.CDebugf(ctx, "Got an error while applying "+
+					"updates: %v", err)
+				return err
+			}
+			return nil
+		case unpause := <-fbo.updatePauseChan:
+			fbo.log.CInfof(ctx, "Updates paused")
+			// wait to be unpaused
+			select {
+			case <-unpause:
+				fbo.log.CInfof(ctx, "Updates unpaused")
+			case <-ctx.Done():
+				return ctx.Err()
+			}
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
 }
 
 func (fbo *folderBranchOps) getDirtyPointers() []BlockPointer {
