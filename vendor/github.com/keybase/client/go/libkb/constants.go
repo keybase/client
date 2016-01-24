@@ -147,6 +147,7 @@ const (
 	SCIdentificationExpired  = int(keybase1.StatusCode_SCIdentificationExpired)
 	SCSelfNotFound           = int(keybase1.StatusCode_SCSelfNotFound)
 	SCBadKexPhrase           = int(keybase1.StatusCode_SCBadKexPhrase)
+	SCNoUI                   = int(keybase1.StatusCode_SCNoUI)
 	SCNoUIDelegation         = int(keybase1.StatusCode_SCNoUIDelegation)
 	SCIdentifyFailed         = int(keybase1.StatusCode_SCIdentifyFailed)
 	SCTrackingBroke          = int(keybase1.StatusCode_SCTrackingBroke)
@@ -364,4 +365,8 @@ const (
 
 const (
 	IdentifySourceKBFS = "kbfs"
+)
+
+const (
+	SecretPromptCancelDuration = 5 * time.Minute
 )

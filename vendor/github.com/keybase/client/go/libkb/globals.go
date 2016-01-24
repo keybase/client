@@ -18,13 +18,14 @@ package libkb
 
 import (
 	"fmt"
-	"github.com/jonboulle/clockwork"
-	"github.com/keybase/client/go/logger"
-	keybase1 "github.com/keybase/client/go/protocol"
 	"io"
 	"os"
 	"runtime"
 	"sync"
+
+	"github.com/jonboulle/clockwork"
+	"github.com/keybase/client/go/logger"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 type ShutdownHook func() error
@@ -287,8 +288,6 @@ func (g *GlobalContext) Shutdown() error {
 		err = epick.Error()
 
 		g.Log.Debug("exiting shutdown code=%d; err=%v", g.ExitCode, err)
-
-		g.Log.Shutdown()
 	})
 
 	// Make a little bit of a statement if we wind up here a second time
@@ -468,4 +467,13 @@ func (g *GlobalContext) GetClock() clockwork.Clock {
 		return clockwork.NewRealClock()
 	}
 	return g.Clock
+}
+
+func (g *GlobalContext) GetMyClientDetails() keybase1.ClientDetails {
+	return keybase1.ClientDetails{
+		ClientType: keybase1.ClientType_CLI,
+		Pid:        os.Getpid(),
+		Argv:       os.Args,
+		Version:    VersionString(),
+	}
 }

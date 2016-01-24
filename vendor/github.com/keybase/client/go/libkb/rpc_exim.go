@@ -244,6 +244,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return SibkeyAlreadyExistsError{}
 	case SCNoUIDelegation:
 		return UIDelegationUnavailableError{}
+	case SCNoUI:
+		return NoUIError{Which: s.Desc}
 	case SCProfileNotPublic:
 		return ProfileNotPublicError{msg: s.Desc}
 	case SCIdentifyFailed:
@@ -504,6 +506,15 @@ func (e InputCanceledError) ToStatus() (s keybase1.Status) {
 	s.Code = SCInputCanceled
 	s.Name = "CANCELED"
 	s.Desc = "Input canceled"
+	return
+}
+
+//=============================================================================
+
+func (e SkipSecretPromptError) ToStatus() (s keybase1.Status) {
+	s.Code = SCInputCanceled
+	s.Name = "CANCELED"
+	s.Desc = "Input canceled due to skip secret prompt"
 	return
 }
 
@@ -935,6 +946,14 @@ func (e UIDelegationUnavailableError) ToStatus() keybase1.Status {
 		Code: SCNoUIDelegation,
 		Name: "SC_UI_DELEGATION_UNAVAILABLE",
 		Desc: e.Error(),
+	}
+}
+
+func (e NoUIError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCNoUI,
+		Name: "SC_NO_UI",
+		Desc: e.Which,
 	}
 }
 

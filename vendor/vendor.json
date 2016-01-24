@@ -150,8 +150,8 @@
 		},
 		{
 			"path": "github.com/keybase/client/go/libkb",
-			"revision": "49e2147b98212f4566e9808592658d5317e688ec",
-			"revisionTime": "2016-01-18T13:45:05-08:00"
+			"revision": "fb0bbefae15529ab890c5ed86673b20a02fe503b",
+			"revisionTime": "2016-01-23T23:15:22-08:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/logger",
@@ -165,8 +165,8 @@
 		},
 		{
 			"path": "github.com/keybase/client/go/saltpack",
-			"revision": "49e2147b98212f4566e9808592658d5317e688ec",
-			"revisionTime": "2016-01-18T13:45:05-08:00"
+			"revision": "fb0bbefae15529ab890c5ed86673b20a02fe503b",
+			"revisionTime": "2016-01-23T23:15:22-08:00"
 		},
 		{
 			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-crypto/openpgp",

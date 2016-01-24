@@ -54,6 +54,8 @@ type Account struct {
 	paperSigKey *timedGenericKey // cached, unlocked paper signing key
 	paperEncKey *timedGenericKey // cached, unlocked paper encryption key
 
+	secretPromptCanceledAt time.Time // when the secret prompt was last canceled
+
 	testPostCleanHook func() // for testing, call this hook after cleaning
 }
 
@@ -479,7 +481,6 @@ func (a *Account) SetTestPostCleanHook(f func()) {
 }
 
 func (a *Account) clean() {
-	a.G().Log.Debug("Running Account::clean")
 	if a.paperEncKey != nil {
 		a.paperEncKey.clean()
 	}
@@ -493,4 +494,21 @@ func (a *Account) clean() {
 
 func (a *Account) ClearKeyring() {
 	a.skbKeyring = nil
+}
+
+func (a *Account) SkipSecretPrompt() bool {
+	if a.secretPromptCanceledAt.IsZero() {
+		return false
+	}
+
+	if a.G().Clock.Now().Sub(a.secretPromptCanceledAt) < SecretPromptCancelDuration {
+		return true
+	}
+
+	a.secretPromptCanceledAt = time.Time{}
+	return false
+}
+
+func (a *Account) SecretPromptCanceled() {
+	a.secretPromptCanceledAt = a.G().Clock.Now()
 }

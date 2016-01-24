@@ -142,7 +142,7 @@ var _ ConnectionTransport = (*SharedKeybaseTransport)(nil)
 // Dial is an implementation of the ConnectionTransport interface.
 func (kt *SharedKeybaseTransport) Dial(ctx context.Context) (
 	rpc.Transporter, error) {
-	_, transport, err := kt.kbCtx.GetSocket(true)
+	_, transport, _, err := kt.kbCtx.GetSocket(true)
 	if err != nil {
 		return nil, err
 	}

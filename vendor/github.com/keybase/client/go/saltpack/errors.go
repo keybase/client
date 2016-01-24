@@ -101,7 +101,7 @@ func makeErrBadFrame(format string, args ...interface{}) error {
 }
 
 func (e ErrWrongMessageType) Error() string {
-	return fmt.Sprintf("Wanted type=%d; got type=%d", e.wanted, e.received)
+	return fmt.Sprintf("Wrong saltpack message type: wanted %s, but got %s instead", e.wanted, e.received)
 }
 func (e ErrBadVersion) Error() string {
 	return fmt.Sprintf("Unsupported version (%v)", e.received)

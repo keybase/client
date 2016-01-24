@@ -4,9 +4,22 @@
 package libkb
 
 import (
+	"fmt"
 	"os/exec"
 	"runtime"
 )
+
+func PlatformSpecificUpgradeInstructionsString() (string, error) {
+	switch runtime.GOOS {
+	case "linux":
+		return linuxUpgradeInstructionsString()
+	case "darwin":
+		return "", fmt.Errorf("Darwin Not implemented")
+	case "windows":
+		return "", fmt.Errorf("Windows Not implemented")
+	}
+	return "", fmt.Errorf("Not implemented")
+}
 
 func platformSpecificUpgradeInstructions(g *GlobalContext, upgradeURI string) {
 	switch runtime.GOOS {
@@ -20,6 +33,13 @@ func platformSpecificUpgradeInstructions(g *GlobalContext, upgradeURI string) {
 }
 
 func linuxUpgradeInstructions(g *GlobalContext) {
+	upgradeInstructions, err := linuxUpgradeInstructionsString()
+	if err == nil {
+		printUpgradeCommand(g, upgradeInstructions)
+	}
+}
+
+func linuxUpgradeInstructionsString() (string, error) {
 	hasPackageManager := func(name string) bool {
 		// Not all package managers are in /usr/bin. (openSUSE for example puts
 		// Yast in /usr/sbin.) Better to just do the full check now than to get
@@ -29,19 +49,22 @@ func linuxUpgradeInstructions(g *GlobalContext) {
 	}
 
 	packageName := "keybase"
-	if DefaultRunMode == DevelRunMode {
-		packageName = "kbdev"
-	} else if DefaultRunMode == StagingRunMode {
-		packageName = "kbstage"
+
+	var start string
+	if hasPackageManager("apt-get") {
+		start = "sudo apt-get update && sudo apt-get install " + packageName
+	} else if hasPackageManager("dnf") {
+		start = "sudo dnf upgrade " + packageName
+	} else if hasPackageManager("yum") {
+		start = "sudo yum upgrade " + packageName
+	} else if hasPackageManager("pacman") {
+		start = "sudo pacman -Syu"
+	} else {
+		return "", fmt.Errorf("Unhandled linux upgrade instruction.")
 	}
 
-	if hasPackageManager("apt-get") {
-		printUpgradeCommand(g, "sudo apt-get update && sudo apt-get install "+packageName)
-	} else if hasPackageManager("dnf") {
-		printUpgradeCommand(g, "sudo dnf upgrade "+packageName)
-	} else if hasPackageManager("yum") {
-		printUpgradeCommand(g, "sudo yum upgrade "+packageName)
-	}
+	complete := start + " && run_keybase"
+	return complete, nil
 }
 
 func darwinUpgradeInstructions(g *GlobalContext, upgradeURI string) {

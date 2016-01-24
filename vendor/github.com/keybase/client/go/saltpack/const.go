@@ -31,9 +31,9 @@ var SaltpackCurrentVersion = Version{Major: 1, Minor: 0}
 // EncryptionBlockSize is by default 1MB and can't currently be tweaked.
 const EncryptionBlockSize int = 1048576
 
-const encryptionArmorString = "ENCRYPTED MESSAGE"
-const signedArmorString = "SIGNED MESSAGE"
-const detachedSignatureArmorString = "DETACHED SIGNATURE"
+const EncryptionArmorString = "ENCRYPTED MESSAGE"
+const SignedArmorString = "SIGNED MESSAGE"
+const DetachedSignatureArmorString = "DETACHED SIGNATURE"
 
 // SaltpackFormatName is the publicly advertised name of the format,
 // used in the header of the message and also in Nonce creation.
@@ -65,3 +65,16 @@ const (
 	stateBody readState = iota
 	stateEndOfStream
 )
+
+func (m MessageType) String() string {
+	switch m {
+	case MessageTypeEncryption:
+		return "an encrypted message"
+	case MessageTypeDetachedSignature:
+		return "a detached signature"
+	case MessageTypeAttachedSignature:
+		return "an attached signature"
+	default:
+		return "an unknown message type"
+	}
+}

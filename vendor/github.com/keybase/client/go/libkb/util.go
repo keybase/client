@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"crypto/hmac"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/base32"
 	"encoding/hex"
 	"fmt"
@@ -426,6 +427,21 @@ func IsSystemAdminUser() (isAdminUser bool, match string, err error) {
 		isAdminUser = true
 		return
 	}
+	return
+}
 
+// DigestForFileAtPath returns a SHA256 digest for file at specified path
+func DigestForFileAtPath(path string) (digest string, err error) {
+	hasher := sha256.New()
+	f, err := os.Open(path)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	if _, ioerr := io.Copy(hasher, f); ioerr != nil {
+		err = ioerr
+		return
+	}
+	digest = hex.EncodeToString(hasher.Sum(nil))
 	return
 }

@@ -301,22 +301,30 @@ func (k *Keyrings) setCachedSecretKey(lctx LoginContext, ska SecretKeyArg, key G
 	}
 }
 
+type SecretKeyPromptArg struct {
+	LoginContext   LoginContext
+	Ska            SecretKeyArg
+	SecretUI       SecretUI
+	Reason         string
+	UseCancelCache bool /* if true, when user cancels prompt, don't prompt again for 5m */
+}
+
 // TODO: Figure out whether and how to dep-inject the SecretStore.
-func (k *Keyrings) GetSecretKeyWithPrompt(lctx LoginContext, ska SecretKeyArg, secretUI SecretUI, reason string) (key GenericKey, err error) {
-	k.G().Log.Debug("+ GetSecretKeyWithPrompt(%s)", reason)
+func (k *Keyrings) GetSecretKeyWithPrompt(arg SecretKeyPromptArg) (key GenericKey, err error) {
+	k.G().Log.Debug("+ GetSecretKeyWithPrompt(%s)", arg.Reason)
 	defer func() {
 		k.G().Log.Debug("- GetSecretKeyWithPrompt() -> %s", ErrToOk(err))
 	}()
 
-	key = k.cachedSecretKey(lctx, ska)
+	key = k.cachedSecretKey(arg.LoginContext, arg.Ska)
 	if key != nil {
 		return key, err
 	}
 
-	key, _, err = k.GetSecretKeyAndSKBWithPrompt(lctx, ska, secretUI, reason)
+	key, _, err = k.GetSecretKeyAndSKBWithPrompt(arg)
 
 	if key != nil && err == nil {
-		k.setCachedSecretKey(lctx, ska, key)
+		k.setCachedSecretKey(arg.LoginContext, arg.Ska, key)
 	}
 
 	return key, err
@@ -356,22 +364,22 @@ func (k *Keyrings) GetSecretKeyWithoutPrompt(lctx LoginContext, ska SecretKeyArg
 	return key, err
 }
 
-func (k *Keyrings) GetSecretKeyAndSKBWithPrompt(lctx LoginContext, ska SecretKeyArg, secretUI SecretUI, reason string) (key GenericKey, skb *SKB, err error) {
-	k.G().Log.Debug("+ GetSecretKeyAndSKBWithPrompt(%s)", reason)
+func (k *Keyrings) GetSecretKeyAndSKBWithPrompt(arg SecretKeyPromptArg) (key GenericKey, skb *SKB, err error) {
+	k.G().Log.Debug("+ GetSecretKeyAndSKBWithPrompt(%s)", arg.Reason)
 	defer func() {
 		k.G().Log.Debug("- GetSecretKeyAndSKBWithPrompt() -> %s", ErrToOk(err))
 	}()
 	var which string
-	if skb, which, err = k.GetSecretKeyLocked(lctx, ska); err != nil {
+	if skb, which, err = k.GetSecretKeyLocked(arg.LoginContext, arg.Ska); err != nil {
 		skb = nil
 		return
 	}
 	var secretStore SecretStore
-	if ska.Me != nil {
-		skb.SetUID(ska.Me.GetUID())
-		secretStore = NewSecretStore(k.G(), ska.Me.GetNormalizedName())
+	if arg.Ska.Me != nil {
+		skb.SetUID(arg.Ska.Me.GetUID())
+		secretStore = NewSecretStore(k.G(), arg.Ska.Me.GetNormalizedName())
 	}
-	if key, err = skb.PromptAndUnlock(lctx, reason, which, secretStore, secretUI, nil, ska.Me); err != nil {
+	if key, err = skb.PromptAndUnlock(arg, which, secretStore, nil, arg.Ska.Me); err != nil {
 		key = nil
 		skb = nil
 		return

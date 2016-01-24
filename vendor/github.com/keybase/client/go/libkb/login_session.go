@@ -9,6 +9,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 const LoginSessionMemoryTimeout time.Duration = time.Minute * 5
@@ -38,9 +40,20 @@ func NewLoginSession(emailOrUsername string, g *GlobalContext) *LoginSession {
 func NewLoginSessionWithSalt(emailOrUsername string, salt []byte, g *GlobalContext) *LoginSession {
 	ls := NewLoginSession(emailOrUsername, g)
 	ls.salt = salt
+	// XXX are these right?  is this just so the salt can be retrieved?
 	ls.loaded = true
 	ls.cleared = true
 	return ls
+}
+
+func (s *LoginSession) Status() *keybase1.SessionStatus {
+	return &keybase1.SessionStatus{
+		SessionFor: s.sessionFor,
+		Loaded:     s.loaded,
+		Cleared:    s.cleared,
+		Expired:    !s.NotExpired(),
+		SaltOnly:   s.loaded && s.loginSession == nil && s.salt != nil,
+	}
 }
 
 func (s *LoginSession) Session() ([]byte, error) {
@@ -171,6 +184,7 @@ func (s *LoginSession) Load() error {
 	s.loginSessionB64 = b64
 	s.loginSession = ls
 	s.loaded = true
+	s.cleared = false
 	s.createTime = s.G().GetClock().Now()
 
 	return nil
