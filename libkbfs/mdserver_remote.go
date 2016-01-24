@@ -479,41 +479,6 @@ func (md *MDServerRemote) Shutdown() {
 
 // GetTLFCryptKeyServerHalf is an implementation of the KeyServer interface.
 func (md *MDServerRemote) GetTLFCryptKeyServerHalf(ctx context.Context,
-	serverHalfID TLFCryptKeyServerHalfID) (TLFCryptKeyServerHalf, error) {
-	// encode the ID
-	idBytes, err := md.config.Codec().Encode(serverHalfID)
-	if err != nil {
-		return TLFCryptKeyServerHalf{}, err
-	}
-	// get the crypt public key
-	cryptKey, err := md.config.KBPKI().GetCurrentCryptPublicKey(ctx)
-	if err != nil {
-		return TLFCryptKeyServerHalf{}, err
-	}
-
-	// get the key
-	arg := keybase1.GetKeyArg{
-		KeyHalfID: idBytes,
-		DeviceKID: cryptKey.kid.String(),
-		LogTags:   LogTagsFromContextToMap(ctx),
-	}
-	keyBytes, err := md.client.GetKey(ctx, arg)
-	if err != nil {
-		return TLFCryptKeyServerHalf{}, err
-	}
-
-	// decode the key
-	var serverHalf TLFCryptKeyServerHalf
-	err = md.config.Codec().Decode(keyBytes, &serverHalf)
-	if err != nil {
-		return TLFCryptKeyServerHalf{}, err
-	}
-
-	return serverHalf, nil
-}
-
-// GetTLFCryptKeyServerHalfSpecificKey is an implementation of the KeyServer interface.
-func (md *MDServerRemote) GetTLFCryptKeyServerHalfSpecificKey(ctx context.Context,
 	serverHalfID TLFCryptKeyServerHalfID, cryptKey CryptPublicKey) (serverHalf TLFCryptKeyServerHalf, err error) {
 	// encode the ID
 	idBytes, err := md.config.Codec().Encode(serverHalfID)

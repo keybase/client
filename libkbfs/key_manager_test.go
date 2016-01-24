@@ -42,7 +42,7 @@ func expectUncachedGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata, keyGen 
 		Return(TLFCryptKeyClientHalf{}, nil)
 
 	// get the server-side half and retrieve the real secret key
-	config.mockKops.EXPECT().GetTLFCryptKeyServerHalfSpecificKey(gomock.Any(),
+	config.mockKops.EXPECT().GetTLFCryptKeyServerHalf(gomock.Any(),
 		gomock.Any(), gomock.Any()).Return(TLFCryptKeyServerHalf{}, nil)
 	config.mockCrypto.EXPECT().UnmaskTLFCryptKey(TLFCryptKeyServerHalf{}, TLFCryptKeyClientHalf{}).Return(TLFCryptKey{}, nil)
 
@@ -64,7 +64,7 @@ func expectUncachedGetTLFCryptKeyAnyDevice(config *ConfigMock, rmd *RootMetadata
 		gomock.Any()).Return(TLFCryptKeyClientHalf{}, 0, nil)
 
 	// get the server-side half and retrieve the real secret key
-	config.mockKops.EXPECT().GetTLFCryptKeyServerHalfSpecificKey(gomock.Any(),
+	config.mockKops.EXPECT().GetTLFCryptKeyServerHalf(gomock.Any(),
 		gomock.Any(), gomock.Any()).Return(TLFCryptKeyServerHalf{}, nil)
 	config.mockCrypto.EXPECT().UnmaskTLFCryptKey(TLFCryptKeyServerHalf{}, TLFCryptKeyClientHalf{}).Return(TLFCryptKey{}, nil)
 

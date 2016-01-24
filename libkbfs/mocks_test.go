@@ -1547,26 +1547,15 @@ func (_m *MockKeyOps) EXPECT() *_MockKeyOpsRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKeyOps) GetTLFCryptKeyServerHalf(ctx context.Context, serverHalfID TLFCryptKeyServerHalfID) (TLFCryptKeyServerHalf, error) {
-	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyServerHalf", ctx, serverHalfID)
+func (_m *MockKeyOps) GetTLFCryptKeyServerHalf(ctx context.Context, serverHalfID TLFCryptKeyServerHalfID, cryptPublicKey CryptPublicKey) (TLFCryptKeyServerHalf, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyServerHalf", ctx, serverHalfID, cryptPublicKey)
 	ret0, _ := ret[0].(TLFCryptKeyServerHalf)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeyOpsRecorder) GetTLFCryptKeyServerHalf(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyServerHalf", arg0, arg1)
-}
-
-func (_m *MockKeyOps) GetTLFCryptKeyServerHalfSpecificKey(ctx context.Context, serverHalfID TLFCryptKeyServerHalfID, cryptPublicKey CryptPublicKey) (TLFCryptKeyServerHalf, error) {
-	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyServerHalfSpecificKey", ctx, serverHalfID, cryptPublicKey)
-	ret0, _ := ret[0].(TLFCryptKeyServerHalf)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockKeyOpsRecorder) GetTLFCryptKeyServerHalfSpecificKey(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyServerHalfSpecificKey", arg0, arg1, arg2)
+func (_mr *_MockKeyOpsRecorder) GetTLFCryptKeyServerHalf(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyServerHalf", arg0, arg1, arg2)
 }
 
 func (_m *MockKeyOps) PutTLFCryptKeyServerHalves(ctx context.Context, serverKeyHalves map[protocol.UID]map[protocol.KID]TLFCryptKeyServerHalf) error {
@@ -1918,26 +1907,15 @@ func (_m *MockKeyServer) EXPECT() *_MockKeyServerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKeyServer) GetTLFCryptKeyServerHalf(ctx context.Context, serverHalfID TLFCryptKeyServerHalfID) (TLFCryptKeyServerHalf, error) {
-	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyServerHalf", ctx, serverHalfID)
+func (_m *MockKeyServer) GetTLFCryptKeyServerHalf(ctx context.Context, serverHalfID TLFCryptKeyServerHalfID, cryptPublicKey CryptPublicKey) (TLFCryptKeyServerHalf, error) {
+	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyServerHalf", ctx, serverHalfID, cryptPublicKey)
 	ret0, _ := ret[0].(TLFCryptKeyServerHalf)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
 
-func (_mr *_MockKeyServerRecorder) GetTLFCryptKeyServerHalf(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyServerHalf", arg0, arg1)
-}
-
-func (_m *MockKeyServer) GetTLFCryptKeyServerHalfSpecificKey(ctx context.Context, serverHalfID TLFCryptKeyServerHalfID, cryptPublicKey CryptPublicKey) (TLFCryptKeyServerHalf, error) {
-	ret := _m.ctrl.Call(_m, "GetTLFCryptKeyServerHalfSpecificKey", ctx, serverHalfID, cryptPublicKey)
-	ret0, _ := ret[0].(TLFCryptKeyServerHalf)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockKeyServerRecorder) GetTLFCryptKeyServerHalfSpecificKey(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyServerHalfSpecificKey", arg0, arg1, arg2)
+func (_mr *_MockKeyServerRecorder) GetTLFCryptKeyServerHalf(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetTLFCryptKeyServerHalf", arg0, arg1, arg2)
 }
 
 func (_m *MockKeyServer) PutTLFCryptKeyServerHalves(ctx context.Context, serverKeyHalves map[protocol.UID]map[protocol.KID]TLFCryptKeyServerHalf) error {

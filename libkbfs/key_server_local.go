@@ -54,46 +54,6 @@ func NewKeyServerMemory(config Config) (*KeyServerLocal, error) {
 // GetTLFCryptKeyServerHalf implements the KeyServer interface for
 // KeyServerLocal.
 func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(ctx context.Context,
-	serverHalfID TLFCryptKeyServerHalfID) (TLFCryptKeyServerHalf, error) {
-	ks.shutdownLock.RLock()
-	defer ks.shutdownLock.RUnlock()
-	if *ks.shutdown {
-		return TLFCryptKeyServerHalf{},
-			errors.New("Key server already shut down")
-	}
-
-	buf, err := ks.db.Get(serverHalfID.ID.Bytes(), nil)
-	if err != nil {
-		return TLFCryptKeyServerHalf{}, err
-	}
-
-	var serverHalf TLFCryptKeyServerHalf
-	err = ks.config.Codec().Decode(buf, &serverHalf)
-	if err != nil {
-		return TLFCryptKeyServerHalf{}, err
-	}
-
-	uid, err := ks.config.KBPKI().GetCurrentUID(ctx)
-	if err != nil {
-		return TLFCryptKeyServerHalf{}, err
-	}
-	key, err := ks.config.KBPKI().GetCurrentCryptPublicKey(ctx)
-	if err != nil {
-		return TLFCryptKeyServerHalf{}, err
-	}
-
-	err = ks.config.Crypto().VerifyTLFCryptKeyServerHalfID(
-		serverHalfID, uid, key.kid, serverHalf)
-	if err != nil {
-		ks.log.CDebugf(ctx, "error verifying server half ID: %s", err)
-		return TLFCryptKeyServerHalf{}, MDServerErrorUnauthorized{}
-	}
-	return serverHalf, nil
-}
-
-// GetTLFCryptKeyServerHalfSpecificKey implements the KeyServer interface for
-// KeyServerLocal.
-func (ks *KeyServerLocal) GetTLFCryptKeyServerHalfSpecificKey(ctx context.Context,
 	serverHalfID TLFCryptKeyServerHalfID, key CryptPublicKey) (serverHalf TLFCryptKeyServerHalf, err error) {
 	ks.shutdownLock.RLock()
 	defer ks.shutdownLock.RUnlock()

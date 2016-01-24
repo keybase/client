@@ -157,7 +157,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 	// get the server-side key-half, do the unmasking, possibly cache the result, return
 	// TODO: can parallelize the get() with decryption
 	kops := km.config.KeyOps()
-	serverHalf, err := kops.GetTLFCryptKeyServerHalfSpecificKey(ctx, info.ServerHalfID, cryptPublicKey)
+	serverHalf, err := kops.GetTLFCryptKeyServerHalf(ctx, info.ServerHalfID, cryptPublicKey)
 	if err != nil {
 		return tlfCryptKey, err
 	}

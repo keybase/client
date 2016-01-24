@@ -96,7 +96,7 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	half1, err := config1.KeyOps().GetTLFCryptKeyServerHalf(ctx, serverHalfID1)
+	half1, err := config1.KeyOps().GetTLFCryptKeyServerHalf(ctx, serverHalfID1, publicKey1)
 	if err != nil {
 		t.Error(err)
 	}
@@ -105,7 +105,7 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 		t.Errorf("Expected %v, got %v", serverHalf1, half1)
 	}
 
-	half2, err := config1.KeyOps().GetTLFCryptKeyServerHalf(ctx, serverHalfID2)
+	half2, err := config1.KeyOps().GetTLFCryptKeyServerHalf(ctx, serverHalfID2, publicKey1)
 	if err != nil {
 		t.Error(err)
 	}
@@ -114,7 +114,7 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 		t.Errorf("Expected %v, got %v", serverHalf2, half2)
 	}
 
-	half3, err := config1.KeyOps().GetTLFCryptKeyServerHalf(ctx, serverHalfID3)
+	half3, err := config1.KeyOps().GetTLFCryptKeyServerHalf(ctx, serverHalfID3, publicKey1)
 	if err != nil {
 		t.Error(err)
 	}
@@ -123,14 +123,14 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 		t.Errorf("Expected %v, got %v", serverHalf3, half3)
 	}
 
-	half4, err := config1.KeyOps().GetTLFCryptKeyServerHalf(ctx, serverHalfID4)
+	half4, err := config1.KeyOps().GetTLFCryptKeyServerHalf(ctx, serverHalfID4, publicKey1)
 	_, unauthorized := err.(MDServerErrorUnauthorized)
 	if !unauthorized {
 		t.Errorf("Expected unauthorized, got %v", err)
 	}
 
 	// try to get uid2's key now as uid2
-	half4, err = config2.KeyOps().GetTLFCryptKeyServerHalf(ctx, serverHalfID4)
+	half4, err = config2.KeyOps().GetTLFCryptKeyServerHalf(ctx, serverHalfID4, publicKey2)
 	if err != nil {
 		t.Error(err)
 	}
@@ -144,7 +144,7 @@ func TestKeyServerLocalTLFCryptKeyServerHalves(t *testing.T) {
 		t.Error(err)
 	}
 
-	_, err = config1.KeyOps().GetTLFCryptKeyServerHalf(ctx, serverHalfIDNope)
+	_, err = config1.KeyOps().GetTLFCryptKeyServerHalf(ctx, serverHalfIDNope, publicKey1)
 	if err == nil {
 		t.Error("GetTLFCryptKeyServerHalf(id2, keyGen2, publicKey2) unexpectedly succeeded")
 	}

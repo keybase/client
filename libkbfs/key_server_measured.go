@@ -34,21 +34,10 @@ func NewKeyServerMeasured(delegate KeyServer, r metrics.Registry) KeyServerMeasu
 // GetTLFCryptKeyServerHalf implements the KeyServer interface for
 // KeyServerMeasured.
 func (b KeyServerMeasured) GetTLFCryptKeyServerHalf(ctx context.Context,
-	serverHalfID TLFCryptKeyServerHalfID) (
-	serverHalf TLFCryptKeyServerHalf, err error) {
-	b.getTimer.Time(func() {
-		serverHalf, err = b.delegate.GetTLFCryptKeyServerHalf(ctx, serverHalfID)
-	})
-	return serverHalf, err
-}
-
-// GetTLFCryptKeyServerHalfSpecificKey implements the KeyServer interface for
-// KeyServerMeasured.
-func (b KeyServerMeasured) GetTLFCryptKeyServerHalfSpecificKey(ctx context.Context,
 	serverHalfID TLFCryptKeyServerHalfID, key CryptPublicKey) (
 	serverHalf TLFCryptKeyServerHalf, err error) {
 	b.getTimer.Time(func() {
-		serverHalf, err = b.delegate.GetTLFCryptKeyServerHalfSpecificKey(ctx, serverHalfID, key)
+		serverHalf, err = b.delegate.GetTLFCryptKeyServerHalf(ctx, serverHalfID, key)
 	})
 	return serverHalf, err
 }
