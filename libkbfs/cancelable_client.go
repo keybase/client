@@ -18,3 +18,9 @@ func (c cancelableClient) Call(ctx context.Context, s string, args interface{}, 
 		return c.delegate.Call(ctx, s, args, res)
 	})
 }
+
+func (c cancelableClient) Notify(ctx context.Context, s string, args interface{}) error {
+	return runUnlessCanceled(ctx, func() error {
+		return c.delegate.Notify(ctx, s, args)
+	})
+}

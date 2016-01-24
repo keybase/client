@@ -89,6 +89,10 @@ func (fc *FakeBServerClient) Call(_ context.Context, s string, args interface{},
 	}
 }
 
+func (fc *FakeBServerClient) Notify(_ context.Context, s string, args interface{}) error {
+	return fmt.Errorf("Unknown notify: %s %v", s, args)
+}
+
 func (fc *FakeBServerClient) numBlocks() int {
 	fc.blocksLock.Lock()
 	defer fc.blocksLock.Unlock()

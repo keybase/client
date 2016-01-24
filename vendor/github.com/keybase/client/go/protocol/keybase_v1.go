@@ -7,6 +7,7 @@ import (
 
 type GenericClient interface {
 	Call(ctx context.Context, s string, args interface{}, res interface{}) error
+	Notify(ctx context.Context, s string, args interface{}) error
 }
 
 type Feature struct {
@@ -161,6 +162,7 @@ type Device struct {
 	MTime      Time     `codec:"mTime" json:"mTime"`
 	EncryptKey KID      `codec:"encryptKey" json:"encryptKey"`
 	VerifyKey  KID      `codec:"verifyKey" json:"verifyKey"`
+	Status     int      `codec:"status" json:"status"`
 }
 
 type Stream struct {
@@ -183,8 +185,10 @@ const (
 type ClientType int
 
 const (
-	ClientType_CLI ClientType = 0
-	ClientType_GUI ClientType = 1
+	ClientType_NONE ClientType = 0
+	ClientType_CLI  ClientType = 1
+	ClientType_GUI  ClientType = 2
+	ClientType_KBFS ClientType = 3
 )
 
 type UserVersionVector struct {
@@ -208,6 +212,11 @@ type BlockIdCombo struct {
 	ChargedTo UID    `codec:"chargedTo" json:"chargedTo"`
 }
 
+type ChallengeInfo struct {
+	Now       int64  `codec:"now" json:"now"`
+	Challenge string `codec:"challenge" json:"challenge"`
+}
+
 type GetBlockRes struct {
 	BlockKey string `codec:"blockKey" json:"blockKey"`
 	Buf      []byte `codec:"buf" json:"buf"`
@@ -218,6 +227,9 @@ type BlockReference struct {
 	Bid       BlockIdCombo  `codec:"bid" json:"bid"`
 	Nonce     BlockRefNonce `codec:"nonce" json:"nonce"`
 	ChargedTo UID           `codec:"chargedTo" json:"chargedTo"`
+}
+
+type GetSessionChallengeArg struct {
 }
 
 type AuthenticateSessionArg struct {
@@ -255,6 +267,7 @@ type GetUserQuotaInfoArg struct {
 }
 
 type BlockInterface interface {
+	GetSessionChallenge(context.Context) (ChallengeInfo, error)
 	AuthenticateSession(context.Context, string) error
 	PutBlock(context.Context, PutBlockArg) error
 	GetBlock(context.Context, GetBlockArg) (GetBlockRes, error)
@@ -268,6 +281,17 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.block",
 		Methods: map[string]rpc.ServeHandlerDescription{
+			"getSessionChallenge": {
+				MakeArg: func() interface{} {
+					ret := make([]GetSessionChallengeArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetSessionChallenge(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"authenticateSession": {
 				MakeArg: func() interface{} {
 					ret := make([]AuthenticateSessionArg, 1)
@@ -383,6 +407,11 @@ type BlockClient struct {
 	Cli GenericClient
 }
 
+func (c BlockClient) GetSessionChallenge(ctx context.Context) (res ChallengeInfo, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.block.getSessionChallenge", []interface{}{GetSessionChallengeArg{}}, &res)
+	return
+}
+
 func (c BlockClient) AuthenticateSession(ctx context.Context, signature string) (err error) {
 	__arg := AuthenticateSessionArg{Signature: signature}
 	err = c.Cli.Call(ctx, "keybase.1.block.authenticateSession", []interface{}{__arg}, nil)
@@ -469,6 +498,41 @@ type GetCurrentStatusRes struct {
 	User       *User `codec:"user,omitempty" json:"user,omitempty"`
 }
 
+type SessionStatus struct {
+	SessionFor string `codec:"SessionFor" json:"SessionFor"`
+	Loaded     bool   `codec:"Loaded" json:"Loaded"`
+	Cleared    bool   `codec:"Cleared" json:"Cleared"`
+	SaltOnly   bool   `codec:"SaltOnly" json:"SaltOnly"`
+	Expired    bool   `codec:"Expired" json:"Expired"`
+}
+
+type ClientDetails struct {
+	Pid        int        `codec:"pid" json:"pid"`
+	ClientType ClientType `codec:"clientType" json:"clientType"`
+	Argv       []string   `codec:"argv" json:"argv"`
+	Desc       string     `codec:"desc" json:"desc"`
+	Version    string     `codec:"version" json:"version"`
+}
+
+type PlatformInfo struct {
+	Os        string `codec:"os" json:"os"`
+	Arch      string `codec:"arch" json:"arch"`
+	GoVersion string `codec:"goVersion" json:"goVersion"`
+}
+
+type ExtendedStatus struct {
+	Standalone             bool            `codec:"standalone" json:"standalone"`
+	PassphraseStreamCached bool            `codec:"passphraseStreamCached" json:"passphraseStreamCached"`
+	Device                 *Device         `codec:"device,omitempty" json:"device,omitempty"`
+	LogDir                 string          `codec:"logDir" json:"logDir"`
+	DesktopUIConnected     bool            `codec:"desktopUIConnected" json:"desktopUIConnected"`
+	Session                *SessionStatus  `codec:"session,omitempty" json:"session,omitempty"`
+	DefaultUsername        string          `codec:"defaultUsername" json:"defaultUsername"`
+	ProvisionedUsernames   []string        `codec:"provisionedUsernames" json:"provisionedUsernames"`
+	Clients                []ClientDetails `codec:"Clients" json:"Clients"`
+	PlatformInfo           PlatformInfo    `codec:"platformInfo" json:"platformInfo"`
+}
+
 type ForkType int
 
 const (
@@ -498,6 +562,10 @@ type GetCurrentStatusArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type GetExtendedStatusArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
 type GetConfigArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -509,10 +577,16 @@ type SetUserConfigArg struct {
 	Value     string `codec:"value" json:"value"`
 }
 
+type HelloIAmArg struct {
+	Details ClientDetails `codec:"details" json:"details"`
+}
+
 type ConfigInterface interface {
 	GetCurrentStatus(context.Context, int) (GetCurrentStatusRes, error)
+	GetExtendedStatus(context.Context, int) (ExtendedStatus, error)
 	GetConfig(context.Context, int) (Config, error)
 	SetUserConfig(context.Context, SetUserConfigArg) error
+	HelloIAm(context.Context, ClientDetails) error
 }
 
 func ConfigProtocol(i ConfigInterface) rpc.Protocol {
@@ -531,6 +605,22 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.GetCurrentStatus(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getExtendedStatus": {
+				MakeArg: func() interface{} {
+					ret := make([]GetExtendedStatusArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetExtendedStatusArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetExtendedStatusArg)(nil), args)
+						return
+					}
+					ret, err = i.GetExtendedStatus(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -567,6 +657,22 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"helloIAm": {
+				MakeArg: func() interface{} {
+					ret := make([]HelloIAmArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]HelloIAmArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]HelloIAmArg)(nil), args)
+						return
+					}
+					err = i.HelloIAm(ctx, (*typedArgs)[0].Details)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -581,6 +687,12 @@ func (c ConfigClient) GetCurrentStatus(ctx context.Context, sessionID int) (res 
 	return
 }
 
+func (c ConfigClient) GetExtendedStatus(ctx context.Context, sessionID int) (res ExtendedStatus, err error) {
+	__arg := GetExtendedStatusArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.config.getExtendedStatus", []interface{}{__arg}, &res)
+	return
+}
+
 func (c ConfigClient) GetConfig(ctx context.Context, sessionID int) (res Config, err error) {
 	__arg := GetConfigArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.config.getConfig", []interface{}{__arg}, &res)
@@ -589,6 +701,12 @@ func (c ConfigClient) GetConfig(ctx context.Context, sessionID int) (res Config,
 
 func (c ConfigClient) SetUserConfig(ctx context.Context, __arg SetUserConfigArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.config.setUserConfig", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ConfigClient) HelloIAm(ctx context.Context, details ClientDetails) (err error) {
+	__arg := HelloIAmArg{Details: details}
+	err = c.Cli.Call(ctx, "keybase.1.config.helloIAm", []interface{}{__arg}, nil)
 	return
 }
 
@@ -644,6 +762,7 @@ const (
 	StatusCode_SCSelfNotFound           StatusCode = 1703
 	StatusCode_SCBadKexPhrase           StatusCode = 1704
 	StatusCode_SCNoUIDelegation         StatusCode = 1705
+	StatusCode_SCNoUI                   StatusCode = 1706
 	StatusCode_SCInvalidVersionError    StatusCode = 1800
 	StatusCode_SCOldVersionError        StatusCode = 1801
 	StatusCode_SCInvalidLocationError   StatusCode = 1802
@@ -831,11 +950,6 @@ type LogRotateArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
-type SetLogLevelArg struct {
-	SessionID int      `codec:"sessionID" json:"sessionID"`
-	Level     LogLevel `codec:"level" json:"level"`
-}
-
 type ReloadArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -847,7 +961,6 @@ type DbNukeArg struct {
 type CtlInterface interface {
 	Stop(context.Context, StopArg) error
 	LogRotate(context.Context, int) error
-	SetLogLevel(context.Context, SetLogLevelArg) error
 	Reload(context.Context, int) error
 	DbNuke(context.Context, int) error
 }
@@ -884,22 +997,6 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 						return
 					}
 					err = i.LogRotate(ctx, (*typedArgs)[0].SessionID)
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"setLogLevel": {
-				MakeArg: func() interface{} {
-					ret := make([]SetLogLevelArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]SetLogLevelArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]SetLogLevelArg)(nil), args)
-						return
-					}
-					err = i.SetLogLevel(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -952,11 +1049,6 @@ func (c CtlClient) Stop(ctx context.Context, __arg StopArg) (err error) {
 func (c CtlClient) LogRotate(ctx context.Context, sessionID int) (err error) {
 	__arg := LogRotateArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.ctl.logRotate", []interface{}{__arg}, nil)
-	return
-}
-
-func (c CtlClient) SetLogLevel(ctx context.Context, __arg SetLogLevelArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.ctl.setLogLevel", []interface{}{__arg}, nil)
 	return
 }
 
@@ -1646,13 +1738,6 @@ type RemoteProof struct {
 	MTime         Time      `codec:"mTime" json:"mTime"`
 }
 
-type IdentifySource int
-
-const (
-	IdentifySource_CLI  IdentifySource = 0
-	IdentifySource_KBFS IdentifySource = 1
-)
-
 type Identify2Res struct {
 	Upk UserPlusKeys `codec:"upk" json:"upk"`
 }
@@ -1668,7 +1753,7 @@ type IdentifyArg struct {
 	ForceRemoteCheck bool           `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
 	UseDelegateUI    bool           `codec:"useDelegateUI" json:"useDelegateUI"`
 	Reason           IdentifyReason `codec:"reason" json:"reason"`
-	Source           IdentifySource `codec:"source" json:"source"`
+	Source           ClientType     `codec:"source" json:"source"`
 }
 
 type Identify2Arg struct {
@@ -2463,7 +2548,50 @@ type Kex2ProvisionerClient struct {
 }
 
 func (c Kex2ProvisionerClient) KexStart(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.Kex2Provisioner.kexStart", []interface{}{KexStartArg{}}, nil)
+	err = c.Cli.Notify(ctx, "keybase.1.Kex2Provisioner.kexStart", []interface{}{KexStartArg{}})
+	return
+}
+
+type RegisterLoggerArg struct {
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Name      string   `codec:"name" json:"name"`
+	Level     LogLevel `codec:"level" json:"level"`
+}
+
+type LogInterface interface {
+	RegisterLogger(context.Context, RegisterLoggerArg) error
+}
+
+func LogProtocol(i LogInterface) rpc.Protocol {
+	return rpc.Protocol{
+		Name: "keybase.1.log",
+		Methods: map[string]rpc.ServeHandlerDescription{
+			"registerLogger": {
+				MakeArg: func() interface{} {
+					ret := make([]RegisterLoggerArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]RegisterLoggerArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]RegisterLoggerArg)(nil), args)
+						return
+					}
+					err = i.RegisterLogger(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+		},
+	}
+}
+
+type LogClient struct {
+	Cli GenericClient
+}
+
+func (c LogClient) RegisterLogger(ctx context.Context, __arg RegisterLoggerArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.log.registerLogger", []interface{}{__arg}, nil)
 	return
 }
 
@@ -2888,6 +3016,9 @@ type MetadataResponse struct {
 	MdBlocks []MDBlock `codec:"mdBlocks" json:"mdBlocks"`
 }
 
+type GetChallengeArg struct {
+}
+
 type AuthenticateArg struct {
 	Signature string `codec:"signature" json:"signature"`
 }
@@ -2948,6 +3079,7 @@ type TruncateUnlockArg struct {
 type GetFolderHandleArg struct {
 	FolderID  string `codec:"folderID" json:"folderID"`
 	Signature string `codec:"signature" json:"signature"`
+	Challenge string `codec:"challenge" json:"challenge"`
 }
 
 type GetFoldersForRekeyArg struct {
@@ -2958,6 +3090,7 @@ type PingArg struct {
 }
 
 type MetadataInterface interface {
+	GetChallenge(context.Context) (ChallengeInfo, error)
 	Authenticate(context.Context, string) (int, error)
 	PutMetadata(context.Context, PutMetadataArg) error
 	GetMetadata(context.Context, GetMetadataArg) (MetadataResponse, error)
@@ -2977,6 +3110,17 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.metadata",
 		Methods: map[string]rpc.ServeHandlerDescription{
+			"getChallenge": {
+				MakeArg: func() interface{} {
+					ret := make([]GetChallengeArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.GetChallenge(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"authenticate": {
 				MakeArg: func() interface{} {
 					ret := make([]AuthenticateArg, 1)
@@ -3186,6 +3330,11 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 
 type MetadataClient struct {
 	Cli GenericClient
+}
+
+func (c MetadataClient) GetChallenge(ctx context.Context) (res ChallengeInfo, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.metadata.getChallenge", []interface{}{GetChallengeArg{}}, &res)
+	return
 }
 
 func (c MetadataClient) Authenticate(ctx context.Context, signature string) (res int, err error) {
@@ -3413,7 +3562,7 @@ type NotifyFSClient struct {
 
 func (c NotifyFSClient) FSActivity(ctx context.Context, notification FSNotification) (err error) {
 	__arg := FSActivityArg{Notification: notification}
-	err = c.Cli.Call(ctx, "keybase.1.NotifyFS.FSActivity", []interface{}{__arg}, nil)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyFS.FSActivity", []interface{}{__arg})
 	return
 }
 
@@ -3469,7 +3618,7 @@ type NotifySessionClient struct {
 }
 
 func (c NotifySessionClient) LoggedOut(ctx context.Context) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.NotifySession.loggedOut", []interface{}{LoggedOutArg{}}, nil)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifySession.loggedOut", []interface{}{LoggedOutArg{}})
 	return
 }
 
@@ -3517,7 +3666,7 @@ type NotifyTrackingClient struct {
 }
 
 func (c NotifyTrackingClient) TrackingChanged(ctx context.Context, __arg TrackingChangedArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.NotifyTracking.trackingChanged", []interface{}{__arg}, nil)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyTracking.trackingChanged", []interface{}{__arg})
 	return
 }
 
@@ -3559,7 +3708,7 @@ type NotifyUsersClient struct {
 
 func (c NotifyUsersClient) UserChanged(ctx context.Context, uid UID) (err error) {
 	__arg := UserChangedArg{Uid: uid}
-	err = c.Cli.Call(ctx, "keybase.1.NotifyUsers.userChanged", []interface{}{__arg}, nil)
+	err = c.Cli.Notify(ctx, "keybase.1.NotifyUsers.userChanged", []interface{}{__arg})
 	return
 }
 
@@ -5747,6 +5896,7 @@ func (c UiClient) PromptYesNo(ctx context.Context, __arg PromptYesNoArg) (res bo
 type Asset struct {
 	Name      string `codec:"name" json:"name"`
 	Url       string `codec:"url" json:"url"`
+	Digest    string `codec:"digest" json:"digest"`
 	LocalPath string `codec:"localPath" json:"localPath"`
 }
 
@@ -5759,11 +5909,13 @@ const (
 )
 
 type Update struct {
-	Version     string     `codec:"version" json:"version"`
-	Name        string     `codec:"name" json:"name"`
-	Description string     `codec:"description" json:"description"`
-	Type        UpdateType `codec:"type" json:"type"`
-	Asset       Asset      `codec:"asset" json:"asset"`
+	Version      string     `codec:"version" json:"version"`
+	Name         string     `codec:"name" json:"name"`
+	Description  string     `codec:"description" json:"description"`
+	Instructions *string    `codec:"instructions,omitempty" json:"instructions,omitempty"`
+	Type         UpdateType `codec:"type" json:"type"`
+	PublishedAt  *Time      `codec:"publishedAt,omitempty" json:"publishedAt,omitempty"`
+	Asset        *Asset     `codec:"asset,omitempty" json:"asset,omitempty"`
 }
 
 type UpdateOptions struct {
@@ -5864,6 +6016,10 @@ type UpdatePromptRes struct {
 	SnoozeUntil       Time         `codec:"snoozeUntil" json:"snoozeUntil"`
 }
 
+type UpdatePromptOptions struct {
+	AlwaysAutoInstall bool `codec:"alwaysAutoInstall" json:"alwaysAutoInstall"`
+}
+
 type UpdateQuitRes struct {
 	Quit            bool   `codec:"quit" json:"quit"`
 	Pid             int    `codec:"pid" json:"pid"`
@@ -5871,8 +6027,9 @@ type UpdateQuitRes struct {
 }
 
 type UpdatePromptArg struct {
-	SessionID int    `codec:"sessionID" json:"sessionID"`
-	Update    Update `codec:"update" json:"update"`
+	SessionID int                 `codec:"sessionID" json:"sessionID"`
+	Update    Update              `codec:"update" json:"update"`
+	Options   UpdatePromptOptions `codec:"options" json:"options"`
 }
 
 type UpdateQuitArg struct {

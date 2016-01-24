@@ -25,6 +25,10 @@ func (b blockingClient) Call(ctx context.Context, s string, args interface{},
 	return nil
 }
 
+func (b blockingClient) Notify(ctx context.Context, s string, args interface{}) error {
+	return nil
+}
+
 func newKeybaseDaemonRPCWithFakeClient(t *testing.T) (
 	*KeybaseDaemonRPC, chan struct{}) {
 	ctlChan := make(chan struct{})
@@ -124,6 +128,10 @@ func (c *fakeKeybaseClient) Call(ctx context.Context, s string, args interface{}
 	default:
 		return fmt.Errorf("Unknown call: %s %v %v", s, args, res)
 	}
+}
+
+func (c *fakeKeybaseClient) Notify(_ context.Context, s string, args interface{}) error {
+	return fmt.Errorf("Unknown notify: %s %v", s, args)
 }
 
 const expectCall = true

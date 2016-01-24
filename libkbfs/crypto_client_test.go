@@ -108,6 +108,10 @@ func (fc FakeCryptoClient) Call(_ context.Context, s string, args interface{}, r
 	}
 }
 
+func (fc FakeCryptoClient) Notify(_ context.Context, s string, args interface{}) error {
+	return fmt.Errorf("Unknown notify: %s %v", s, args)
+}
+
 func testCryptoClientConfig(t *testing.T) Config {
 	config := &ConfigLocal{codec: NewCodecMsgpack()}
 	setTestLogger(config, t)

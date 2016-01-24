@@ -455,3 +455,10 @@ func (c connectionClient) Call(ctx context.Context, s string, args interface{}, 
 		return rawClient.Call(ctx, s, args, res)
 	})
 }
+
+func (c connectionClient) Notify(ctx context.Context, s string, args interface{}) error {
+	return c.conn.DoCommand(ctx, func(rawClient keybase1.GenericClient) error {
+		rawClient.Notify(ctx, s, args)
+		return nil
+	})
+}
