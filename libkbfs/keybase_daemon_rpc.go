@@ -306,6 +306,19 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 		return err
 	}
 
+	// Introduce ourselves. TODO: move this to SharedKeybaseConnection
+	// somehow?
+	configClient := keybase1.ConfigClient{Cli: cancelableClient{rawClient}}
+	err = configClient.HelloIAm(ctx, keybase1.ClientDetails{
+		Pid:        os.Getpid(),
+		ClientType: keybase1.ClientType_KBFS,
+		Argv:       os.Args,
+		Version:    VersionString(),
+	})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
