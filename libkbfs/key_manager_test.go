@@ -436,7 +436,7 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	}
 }
 
-func TestKeyManagerRekeyPaperKey(t *testing.T) {
+func TestKeyManagerSelfRekeyAcrossDevices(t *testing.T) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2)
 	defer CheckConfigAndShutdown(t, config1)

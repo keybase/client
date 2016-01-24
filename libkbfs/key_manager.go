@@ -121,6 +121,9 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 		clientHalf, index, err =
 			crypto.DecryptTLFCryptKeyClientHalfAny(ctx, keys)
 		if err != nil {
+			// The likely error here is DecryptionError, which we will replace
+			// with a ReadAccessError to communicate to the caller that we were
+			// unable to decrypt because we didn't have a key with access.
 			return tlfCryptKey, NewReadAccessError(ctx, km.config, md.GetTlfHandle(), uid)
 		}
 		info = keysInfo[index]

@@ -4911,7 +4911,9 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		var rekeyDone bool
 		// TODO: allow readers to rekey just themself
 		rekeyDone, tlfCryptKey, err = fbo.config.KeyManager().Rekey(ctx, md)
-		if err == nil {
+		if _, isReadAccessError := err.(ReadAccessError); isReadAccessError {
+			// This device hasn't been keyed yet, fall through to set the rekey bit
+		} else if err == nil {
 			// TODO: implement a "forced" option that rekeys even when the
 			// devices haven't changed?
 			if !rekeyDone {
@@ -4921,12 +4923,7 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 			// clear the rekey bit
 			md.Flags &= ^MetadataFlagRekey
 		} else {
-			if _, isReadAccessError := err.(ReadAccessError); isReadAccessError {
-				// This device hasn't been keyed yet, fall through to set the
-				// rekey bit
-			} else {
-				return err
-			}
+			return err
 		}
 	} else if rekeyWasSet {
 		// Readers shouldn't re-set the rekey bit.
