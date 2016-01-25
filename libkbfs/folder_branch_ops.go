@@ -5318,13 +5318,6 @@ func (fbo *folderBranchOps) archiveBlocksInBackground() {
 				}
 
 				// also attempt to delete any error references
-				lState := makeFBOLockState()
-				md, err := fbo.getMDForReadNeedIdentify(ctx, lState)
-				if err != nil {
-					fbo.log.CWarningf(ctx, "Couldn't get MD: %v", err)
-					return err
-				}
-
 				var toDelete []BlockPointer
 				func() {
 					fbo.blocksToDeleteLock.Lock()
