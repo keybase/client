@@ -810,9 +810,8 @@ func (c AppConfig) GetSecurityAccessGroupOverride() (bool, bool) {
 	return c.SecurityAccessGroupOverride, c.SecurityAccessGroupOverride
 }
 
-func (e *Env) GetUpdatePreferenceAuto() bool {
-	a, _ := e.config.GetUpdatePreferenceAuto()
-	return a
+func (e *Env) GetUpdatePreferenceAuto() (bool, bool) {
+	return e.config.GetUpdatePreferenceAuto()
 }
 
 func (e *Env) GetUpdatePreferenceSkip() string {

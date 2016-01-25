@@ -25,9 +25,9 @@ func GetCurrentStatus(g *GlobalContext) (res CurrentStatus, err error) {
 		return
 	}
 	res.Configured = true
-	if u := cr.GetUID(); u.Exists() {
+	if uid := cr.GetUID(); uid.Exists() {
 		res.Registered = true
-		res.User = NewUserThin(cr.GetUsername().String(), u)
+		res.User = NewUserThin(cr.GetUsername().String(), uid)
 	}
 	res.LoggedIn, err = g.LoginState().LoggedInProvisionedLoad()
 	return

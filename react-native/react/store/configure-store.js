@@ -4,7 +4,8 @@ import thunkMiddleware from 'redux-thunk'
 import createLogger from 'redux-logger'
 import rootReducer from '../reducers'
 import Immutable from 'immutable'
-import {enableStoreLogging} from '../local-debug'
+import {enableStoreLogging, enableActionLogging} from '../local-debug'
+import {actionLogger} from './actionLogger'
 
 // Transform objects from Immutable on printing
 const objToJS = state => {
@@ -31,7 +32,9 @@ const loggerMiddleware = enableStoreLogging ? createLogger({
 
 const createStoreWithMiddleware = enableStoreLogging
   ? applyMiddleware(thunkMiddleware, loggerMiddleware)
-  : applyMiddleware(thunkMiddleware)
+  : (enableActionLogging
+    ? applyMiddleware(thunkMiddleware, actionLogger)
+    : applyMiddleware(thunkMiddleware))
 
 export default function configureStore (initialState: ?any) {
   return configureStoreNative(createStoreWithMiddleware)(rootReducer, initialState)

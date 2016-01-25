@@ -90,7 +90,7 @@ func Reset() {
 
 	var err error
 	libkb.G.SocketWrapper = nil
-	con, _, err = libkb.G.GetSocket(false)
+	con, _, _, err = libkb.G.GetSocket(false)
 
 	if err != nil {
 		fmt.Println("loopback socker error:", err)

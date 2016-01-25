@@ -152,6 +152,9 @@
     }, {
       "name" : "verifyKey",
       "type" : "KID"
+    }, {
+      "name" : "status",
+      "type" : "int"
     } ]
   }, {
     "type" : "record",
@@ -167,7 +170,7 @@
   }, {
     "type" : "enum",
     "name" : "ClientType",
-    "symbols" : [ "CLI_0", "GUI_1" ]
+    "symbols" : [ "NONE_0", "CLI_1", "GUI_2", "KBFS_3" ]
   }, {
     "type" : "record",
     "name" : "UserVersionVector",
@@ -277,6 +280,13 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "UpdatePromptOptions",
+    "fields" : [ {
+      "name" : "alwaysAutoInstall",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "UpdateQuitRes",
     "fields" : [ {
       "name" : "quit",
@@ -297,6 +307,9 @@
       }, {
         "name" : "update",
         "type" : "Update"
+      }, {
+        "name" : "options",
+        "type" : "UpdatePromptOptions"
       } ],
       "response" : "UpdatePromptRes"
     },

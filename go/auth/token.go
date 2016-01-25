@@ -8,6 +8,8 @@ package auth
 
 import (
 	"bytes"
+	"crypto/rand"
+	"encoding/hex"
 	"encoding/json"
 	"math"
 	"time"
@@ -17,12 +19,15 @@ import (
 )
 
 const (
-	TokenType           = "auth"
-	CurrentTokenVersion = 1
+	TokenType             = "auth"
+	CurrentTokenVersion   = 2
+	ChallengeLengthBytes  = 32
+	ChallengeLengthString = ChallengeLengthBytes * 2 // we use hex encoding
 )
 
 type TokenAuth struct {
-	Server string `json:"server"`
+	Server    string `json:"server"`
+	Challenge string `json:"session"`
 }
 
 type TokenKey struct {
@@ -52,11 +57,13 @@ type Token struct {
 }
 
 func NewToken(uid keybase1.UID, username libkb.NormalizedUsername, kid keybase1.KID,
-	server string, expireIn int, clientName string, clientVersion string) *Token {
+	server, challenge string, now int64, expireIn int,
+	clientName, clientVersion string) *Token {
 	return &Token{
 		Body: TokenBody{
 			Auth: TokenAuth{
-				Server: server,
+				Server:    server,
+				Challenge: challenge,
 			},
 			Key: TokenKey{
 				UID:      uid,
@@ -70,7 +77,7 @@ func NewToken(uid keybase1.UID, username libkb.NormalizedUsername, kid keybase1.
 			Name:    clientName,
 			Version: clientVersion,
 		},
-		CreationTime: time.Now().Unix(),
+		CreationTime: now,
 		ExpireIn:     expireIn,
 		Tag:          "signature",
 	}
@@ -88,7 +95,7 @@ func (t Token) String() string {
 	return string(t.Bytes())
 }
 
-func VerifyToken(signature, server string, maxExpireIn int) (*Token, error) {
+func VerifyToken(signature, server, challenge string, maxExpireIn int) (*Token, error) {
 	var t *Token
 	key, token, _, err := libkb.NaclVerifyAndExtract(signature)
 	if err != nil {
@@ -113,6 +120,12 @@ func VerifyToken(signature, server string, maxExpireIn int) (*Token, error) {
 		return nil, InvalidTokenServerError{
 			expected: server,
 			received: t.Server(),
+		}
+	}
+	if challenge != t.Challenge() {
+		return nil, InvalidTokenChallengeError{
+			expected: challenge,
+			received: t.Challenge(),
 		}
 	}
 	remaining := t.TimeRemaining()
@@ -143,6 +156,10 @@ func (t Token) TimeRemaining() int {
 
 func (t Token) Server() string {
 	return t.Body.Auth.Server
+}
+
+func (t Token) Challenge() string {
+	return t.Body.Auth.Challenge
 }
 
 func (t Token) UID() keybase1.UID {
@@ -181,4 +198,24 @@ func parseToken(token []byte) (*Token, error) {
 		return nil, err
 	}
 	return &t, nil
+}
+
+// GenerateChallenge returns a cryptographically secure random challenge string.
+func GenerateChallenge() (string, error) {
+	buf := make([]byte, ChallengeLengthBytes)
+	if _, err := rand.Read(buf); err != nil {
+		return "", err
+	}
+	return hex.EncodeToString(buf), nil
+}
+
+// IsValidChallenge returns true if the passed challenge is validly formed.
+func IsValidChallenge(challenge string) bool {
+	if len(challenge) != ChallengeLengthString {
+		return false
+	}
+	if _, err := hex.DecodeString(challenge); err != nil {
+		return false
+	}
+	return true
 }

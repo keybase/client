@@ -18,7 +18,11 @@ protocol updateUi {
     Time snoozeUntil;
   }
 
-  UpdatePromptRes updatePrompt(int sessionID, Update update);
+  record UpdatePromptOptions {
+    boolean alwaysAutoInstall;
+  }
+
+  UpdatePromptRes updatePrompt(int sessionID, Update update, UpdatePromptOptions options);
 
   record UpdateQuitRes {
     boolean quit; // Whether we can quit

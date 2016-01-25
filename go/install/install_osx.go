@@ -62,7 +62,7 @@ func KBFSServiceStatus(g *libkb.GlobalContext, label string) (status keybase1.Se
 	if err != nil {
 		return
 	}
-	bundleVersion, err := kbfsBundleVersion(g, "")
+	bundleVersion, err := KBFSBundleVersion(g, "")
 	if err != nil {
 		status.Status = keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, err.Error())
 		return

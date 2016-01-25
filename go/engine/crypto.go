@@ -31,11 +31,16 @@ func getMySecretKey(
 		return nil, err
 	}
 
-	return g.Keyrings.GetSecretKeyWithPrompt(nil,
-		libkb.SecretKeyArg{
+	arg := libkb.SecretKeyPromptArg{
+		Ska: libkb.SecretKeyArg{
 			Me:      me,
 			KeyType: secretKeyType,
-		}, secretUI, reason)
+		},
+		SecretUI:       secretUI,
+		Reason:         reason,
+		UseCancelCache: true,
+	}
+	return g.Keyrings.GetSecretKeyWithPrompt(arg)
 }
 
 // SignED25519 signs the given message with the current user's private
@@ -226,11 +231,16 @@ func matchingDeviceKey(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg keyb
 	if err == nil {
 		if n, ok := kidMatch(ekey, arg.Bundles); ok {
 			// unlock this key
-			skarg := libkb.SecretKeyArg{
-				Me:      me,
-				KeyType: libkb.DeviceEncryptionKeyType,
+			parg := libkb.SecretKeyPromptArg{
+				Ska: libkb.SecretKeyArg{
+					Me:      me,
+					KeyType: libkb.DeviceEncryptionKeyType,
+				},
+				SecretUI:       secretUI,
+				Reason:         arg.Reason,
+				UseCancelCache: true,
 			}
-			key, err := g.Keyrings.GetSecretKeyWithPrompt(nil, skarg, secretUI, arg.Reason)
+			key, err := g.Keyrings.GetSecretKeyWithPrompt(parg)
 			if err != nil {
 				return nil, 0, err
 			}

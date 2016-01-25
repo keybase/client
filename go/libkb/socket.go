@@ -44,12 +44,14 @@ func (g *GlobalContext) BindToSocket() (net.Listener, error) {
 	return g.SocketInfo.BindToSocket()
 }
 
-func (g *GlobalContext) GetSocket(clearError bool) (net.Conn, rpc.Transporter, error) {
+func (g *GlobalContext) GetSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error) {
 
 	// Protect all global socket wrapper manipulation with a
 	// lock to prevent race conditions.
 	g.socketWrapperMu.Lock()
 	defer g.socketWrapperMu.Unlock()
+
+	isNew := false
 
 	needWrapper := false
 	if g.SocketWrapper == nil {
@@ -68,6 +70,7 @@ func (g *GlobalContext) GetSocket(clearError bool) (net.Conn, rpc.Transporter, e
 			sw.err = fmt.Errorf("Cannot get socket in standalone mode")
 		} else {
 			sw.conn, sw.err = g.SocketInfo.DialSocket()
+			isNew = true
 		}
 		if sw.err == nil {
 			sw.xp = rpc.NewTransport(sw.conn, NewRPCLogFactory(), WrapError)
@@ -80,5 +83,5 @@ func (g *GlobalContext) GetSocket(clearError bool) (net.Conn, rpc.Transporter, e
 		g.SocketWrapper = nil
 	}
 
-	return sw.conn, sw.xp, sw.err
+	return sw.conn, sw.xp, isNew, sw.err
 }

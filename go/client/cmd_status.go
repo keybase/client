@@ -4,185 +4,248 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
+	"path"
 	"strings"
 
 	"golang.org/x/net/context"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
-const spacesPerIndent = 4
-
-func indentSpace(level int) string {
-	return strings.Repeat(" ", level*spacesPerIndent)
-}
-
-type CmdStatus struct{}
-
-func (v *CmdStatus) ParseArgv(ctx *cli.Context) error {
-	return nil
-}
-
-func (v *CmdStatus) Run() (err error) {
-	configCli, err := GetConfigClient(G)
-	if err != nil {
-		return err
-	}
-
-	currentStatus, err := configCli.GetCurrentStatus(context.TODO(), 0)
-	if err != nil {
-		return err
-	}
-	if !currentStatus.LoggedIn {
-		return fmt.Errorf("Not logged in.")
-	}
-	myUID := currentStatus.User.Uid
-
-	userCli, err := GetUserClient()
-	if err != nil {
-		return err
-	}
-
-	me, err := userCli.LoadUser(context.TODO(), keybase1.LoadUserArg{Uid: myUID})
-	if err != nil {
-		return err
-	}
-
-	publicKeys, err := userCli.LoadPublicKeys(context.TODO(), keybase1.LoadPublicKeysArg{Uid: myUID})
-	if err != nil {
-		return err
-	}
-
-	devCli, err := GetDeviceClient()
-	if err != nil {
-		return err
-	}
-	devs, err := devCli.DeviceList(context.TODO(), 0)
-	if err != nil {
-		return err
-	}
-
-	v.printExportedMe(me, publicKeys, devs)
-	return nil
-}
-
-func findSubkeys(parentID keybase1.KID, allKeys []keybase1.PublicKey) []keybase1.PublicKey {
-	ret := []keybase1.PublicKey{}
-	for _, key := range allKeys {
-		if keybase1.KIDFromString(key.ParentID).Equal(parentID) {
-			ret = append(ret, key)
-		}
-	}
-	return ret
-}
-
-func (v *CmdStatus) printExportedMe(me keybase1.User, publicKeys []keybase1.PublicKey, devices []keybase1.Device) error {
-	GlobUI.Printf("Username: %s\n", me.Username)
-	GlobUI.Printf("User ID: %s\n", me.Uid)
-	GlobUI.Printf("Device ID: %s\n", G.Env.GetDeviceID())
-	for _, device := range devices {
-		if device.DeviceID == G.Env.GetDeviceID() {
-			GlobUI.Printf("Device name: %s\n", device.Name)
-		}
-	}
-	if len(publicKeys) == 0 {
-		GlobUI.Printf("No public keys.\n")
-		return nil
-	}
-	GlobUI.Printf("Public keys:\n")
-	// Keep track of subkeys we print, so that if e.g. a subkey's parent is
-	// nonexistent, we can notice that we skipped it.
-	subkeysShown := make(map[keybase1.KID]bool)
-	for _, key := range publicKeys {
-		if !key.IsSibkey {
-			// Subkeys will be printed under their respective sibkeys.
-			continue
-		}
-		subkeys := findSubkeys(key.KID, publicKeys)
-		err := printKey(key, subkeys, 1)
-		if err != nil {
-			return err
-		}
-		for _, subkey := range subkeys {
-			subkeysShown[subkey.KID] = true
-		}
-	}
-	// Print errors for any subkeys we failed to show.
-	for _, key := range publicKeys {
-		if !key.IsSibkey && !subkeysShown[key.KID] {
-			errorStr := fmt.Sprintf("Dangling subkey: %s", key.KID)
-			G.Log.Error(errorStr) // %s in here angers `go vet`
-		}
-	}
-	return nil
-}
-
-func printKey(key keybase1.PublicKey, subkeys []keybase1.PublicKey, indent int) error {
-	if key.KID == "" {
-		return fmt.Errorf("Found a key with an empty KID.")
-	}
-	eldestStr := ""
-	if key.IsEldest {
-		eldestStr = " (eldest)"
-	}
-	GlobUI.Printf("%s%s%s\n", indentSpace(indent), key.KID, eldestStr)
-	if key.PGPFingerprint != "" {
-		GlobUI.Printf("%sPGP Fingerprint: %s\n", indentSpace(indent+1), libkb.PGPFingerprintFromHexNoError(key.PGPFingerprint).ToQuads())
-		GlobUI.Printf("%sPGP Identities:\n", indentSpace(indent+1))
-		for _, identity := range key.PGPIdentities {
-			commentStr := ""
-			if identity.Comment != "" {
-				commentStr = fmt.Sprintf(" (%s)", identity.Comment)
-			}
-			emailStr := ""
-			if identity.Email != "" {
-				emailStr = fmt.Sprintf(" <%s>", identity.Email)
-			}
-			GlobUI.Printf("%s%s%s%s\n", indentSpace(indent+2), identity.Username, commentStr, emailStr)
-		}
-	}
-	if key.DeviceID != "" || key.DeviceType != "" || key.DeviceDescription != "" {
-		GlobUI.Printf("%sDevice:\n", indentSpace(indent+1))
-		if key.DeviceID != "" {
-			GlobUI.Printf("%sID: %s\n", indentSpace(indent+2), key.DeviceID)
-		}
-		if key.DeviceType != "" {
-			GlobUI.Printf("%sType: %s\n", indentSpace(indent+2), key.DeviceType)
-		}
-		if key.DeviceDescription != "" {
-			GlobUI.Printf("%sDescription: %s\n", indentSpace(indent+2), key.DeviceDescription)
-		}
-	}
-	GlobUI.Printf("%sCreated: %s\n", indentSpace(indent+1), keybase1.FromTime(key.CTime))
-	GlobUI.Printf("%sExpires: %s\n", indentSpace(indent+1), keybase1.FromTime(key.ETime))
-
-	if subkeys != nil && len(subkeys) > 0 {
-		GlobUI.Printf("%sSubkeys:\n", indentSpace(indent+1))
-		for _, subkey := range subkeys {
-			printKey(subkey, nil, indent+2)
-		}
-	}
-	return nil
-}
-
-func NewCmdStatus(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdStatus(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "status",
-		Usage: "Show information about the current user",
-		Flags: []cli.Flag{},
+		Usage: "Show information about current user",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdStatus{}, "status", c)
+			cl.ChooseCommand(&CmdStatus{Contextified: libkb.NewContextified(g)}, "status", c)
+		},
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "j, json",
+				Usage: "Output status as JSON",
+			},
 		},
 	}
 }
 
-func (v *CmdStatus) GetUsage() libkb.Usage {
+type CmdStatus struct {
+	libkb.Contextified
+	json bool
+}
+
+func (c *CmdStatus) ParseArgv(ctx *cli.Context) error {
+	if len(ctx.Args()) > 0 {
+		return UnexpectedArgsError("status")
+	}
+	c.json = ctx.Bool("json")
+	return nil
+}
+
+type fstatus struct {
+	Username               string
+	UserID                 string
+	Device                 *keybase1.Device
+	LoggedInProvisioned    bool `json:"LoggedIn"`
+	PassphraseStreamCached bool `json:"KeychainUnlocked"`
+	SessionStatus          string
+	ConfigPath             string
+
+	Client struct {
+		Version string
+	}
+	Service struct {
+		Version string
+		Running bool
+		Pid     string
+		Log     string
+	}
+	KBFS struct {
+		Version string
+		Running bool
+		Pid     string
+		Log     string
+	}
+	Desktop struct {
+		Running bool
+	}
+
+	DefaultUsername      string
+	ProvisionedUsernames []string
+	Clients              []keybase1.ClientDetails
+	PlatformInfo         keybase1.PlatformInfo
+}
+
+func (c *CmdStatus) Run() error {
+	status, err := c.load()
+	if err != nil {
+		return err
+	}
+
+	return c.output(status)
+}
+
+func (c *CmdStatus) load() (*fstatus, error) {
+	var status fstatus
+
+	status.Client.Version = libkb.VersionString()
+
+	cli, err := GetConfigClient(c.G())
+	if err != nil {
+		return nil, err
+	}
+
+	curStatus, err := cli.GetCurrentStatus(context.TODO(), 0)
+	if err != nil {
+		return nil, err
+	}
+
+	status.LoggedInProvisioned = curStatus.LoggedIn
+	if curStatus.User != nil {
+		status.Username = curStatus.User.Username
+		status.UserID = curStatus.User.Uid.String()
+	}
+
+	extStatus, err := cli.GetExtendedStatus(context.TODO(), 0)
+	if err != nil {
+		return nil, err
+	}
+
+	config, err := cli.GetConfig(context.TODO(), 0)
+	if err != nil {
+		return nil, err
+	}
+
+	status.ConfigPath = config.ConfigPath
+	status.Service.Version = config.Version
+
+	status.Device = extStatus.Device
+
+	if extStatus.Standalone {
+		status.Service.Running = false
+	} else {
+		status.Service.Running = true
+		status.Service.Log = path.Join(extStatus.LogDir, c.serviceLogFilename())
+	}
+
+	status.SessionStatus = c.sessionStatus(extStatus.Session)
+	status.PassphraseStreamCached = extStatus.PassphraseStreamCached
+
+	kbfsVersion, err := install.KBFSBundleVersion(c.G(), "")
+	if err == nil {
+		status.KBFS.Version = kbfsVersion
+	}
+	status.KBFS.Log = path.Join(extStatus.LogDir, c.kbfsLogFilename())
+
+	status.Desktop.Running = extStatus.DesktopUIConnected
+
+	status.DefaultUsername = extStatus.DefaultUsername
+	status.ProvisionedUsernames = extStatus.ProvisionedUsernames
+	status.Clients = extStatus.Clients
+	status.PlatformInfo = extStatus.PlatformInfo
+
+	// set anything os-specific:
+	if err := c.osSpecific(&status); err != nil {
+		return nil, err
+	}
+
+	return &status, nil
+}
+
+func (c *CmdStatus) output(status *fstatus) error {
+	if c.json {
+		return c.outputJSON(status)
+	}
+
+	return c.outputTerminal(status)
+}
+
+func (c *CmdStatus) outputJSON(status *fstatus) error {
+	b, err := json.MarshalIndent(status, "", "    ")
+	if err != nil {
+		return err
+	}
+	dui := c.G().UI.GetDumbOutputUI()
+	_, err = dui.Printf(string(b) + "\n")
+	return err
+}
+
+func (c *CmdStatus) outputTerminal(status *fstatus) error {
+	dui := c.G().UI.GetDumbOutputUI()
+	dui.Printf("Username:      %s\n", status.Username)
+	dui.Printf("Logged in:     %s\n", BoolString(status.LoggedInProvisioned, "yes", "no"))
+	if status.Device != nil {
+		dui.Printf("\nDevice:\n")
+		dui.Printf("    name:   %s\n", status.Device.Name)
+		dui.Printf("    ID:     %s\n", status.Device.DeviceID)
+		dui.Printf("    status: %s\n\n", libkb.DeviceStatusToString(&status.Device.Status))
+	}
+	dui.Printf("Local keybase keychain: %s\n", BoolString(status.PassphraseStreamCached, "unlocked", "locked"))
+	dui.Printf("Session status:         %s\n", status.SessionStatus)
+	dui.Printf("\nKBFS:\n")
+	dui.Printf("    status:    %s\n", BoolString(status.KBFS.Running, "running", "not running"))
+	dui.Printf("    version:   %s\n", status.KBFS.Version)
+	dui.Printf("    log:       %s\n", status.KBFS.Log)
+	dui.Printf("\nService:\n")
+	dui.Printf("    status:    %s\n", BoolString(status.Service.Running, "running", "not running"))
+	dui.Printf("    version:   %s\n", status.Service.Version)
+	dui.Printf("    log:       %s\n", status.Service.Log)
+	dui.Printf("\nPlatform Information:\n")
+	dui.Printf("    OS:        %s\n", status.PlatformInfo.Os)
+	dui.Printf("    Runtime:   %s\n", status.PlatformInfo.GoVersion)
+	dui.Printf("    Arch:      %s\n", status.PlatformInfo.Arch)
+	dui.Printf("\nClient:\n")
+	dui.Printf("    version:   %s\n", status.Client.Version)
+	dui.Printf("\nDesktop app:\n")
+	dui.Printf("    status:    %s\n\n", BoolString(status.Desktop.Running, "running", "not running"))
+	dui.Printf("Config path:        %s\n", status.ConfigPath)
+	dui.Printf("Default user:       %s\n", status.DefaultUsername)
+	dui.Printf("Provisioned users:  %s\n", strings.Join(status.ProvisionedUsernames, ", "))
+
+	c.outputClients(dui, status.Clients)
+	return nil
+}
+
+func (c *CmdStatus) outputClients(dui libkb.DumbOutputUI, clients []keybase1.ClientDetails) {
+	var prev keybase1.ClientType
+	for _, cli := range clients {
+		if cli.ClientType != prev {
+			dui.Printf("\n%s(s):\n", cli.ClientType)
+			prev = cli.ClientType
+		}
+		var vstr string
+		if len(cli.Version) > 0 {
+			vstr = ", version: " + cli.Version
+		}
+		dui.Printf("    %s [pid: %d%s]\n", strings.Join(cli.Argv, " "), cli.Pid, vstr)
+	}
+}
+
+func (c *CmdStatus) client() {
+	dui := c.G().UI.GetDumbOutputUI()
+	dui.Printf("Client:\n")
+	dui.Printf("\tversion:\t%s\n", libkb.VersionString())
+}
+
+func (c *CmdStatus) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: true,
 		API:    true,
 	}
+}
+
+func (c *CmdStatus) sessionStatus(s *keybase1.SessionStatus) string {
+	if s == nil {
+		return "no session"
+	}
+	if s.SaltOnly {
+		return fmt.Sprintf("%s [salt only]", s.SessionFor)
+	}
+
+	return fmt.Sprintf("%s [loaded: %s, cleared: %s, expired: %s]", s.SessionFor, BoolString(s.Loaded, "yes", "no"), BoolString(s.Cleared, "yes", "no"), BoolString(s.Expired, "yes", "no"))
 }

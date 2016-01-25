@@ -19,7 +19,8 @@ let config = {
   redirectOnLogout: true,
   reduxDevToolsSelect: state => state, // only watch a subset of the store
   enableStoreLogging: false,
-  forwardLogs: false
+  enableActionLogging: true,
+  forwardLogs: true
 }
 
 if (__DEV__ && false) { // eslint-disable-line no-undef
@@ -35,12 +36,14 @@ if (__DEV__ && false) { // eslint-disable-line no-undef
   config.redirectOnLogout = false
   config.reduxDevToolsSelect = state => state.tracker
   config.enableStoreLogging = true
+  config.enableActionLogging = false
   config.forwardLogs = true
 }
 
 config = updateConfig(config)
 
 export const {
+  enableActionLogging,
   overrideRouterState,
   overrideActiveTab,
   skipLoginRouteToRoot,

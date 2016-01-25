@@ -119,10 +119,11 @@ func (e *RevokeEngine) Run(ctx *Context) error {
 		ctx.LogUI.Info("  %s", kid)
 	}
 
-	sigKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, libkb.SecretKeyArg{
+	ska := libkb.SecretKeyArg{
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
-	}, ctx.SecretUI, "to revoke another key")
+	}
+	sigKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "to revoke another key"))
 	if err != nil {
 		return err
 	}

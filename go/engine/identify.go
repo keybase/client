@@ -35,7 +35,7 @@ type IdentifyArg struct {
 	// For normal identify, safe to leave these in their default zero state.
 	TrackOptions keybase1.TrackOptions
 
-	Source keybase1.IdentifySource
+	Source keybase1.ClientType
 	Reason keybase1.IdentifyReason
 }
 
@@ -111,7 +111,7 @@ func (e *Identify) Run(ctx *Context) error {
 
 		if e.user.Equal(e.me) {
 			e.arg.WithTracking = false
-			if e.arg.Source == keybase1.IdentifySource_KBFS {
+			if e.arg.Source == keybase1.ClientType_KBFS {
 				// if this is a self identify from kbfs, then short-circuit the identify process:
 				return e.shortCircuitSelfID(ctx)
 			}

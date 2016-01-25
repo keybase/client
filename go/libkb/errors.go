@@ -987,6 +987,12 @@ func (e InputCanceledError) Error() string {
 	return "Input canceled"
 }
 
+type SkipSecretPromptError struct{}
+
+func (e SkipSecretPromptError) Error() string {
+	return "Skipping secret prompt due to recent user cancel of secret prompt"
+}
+
 //=============================================================================
 
 type NoDeviceError struct {

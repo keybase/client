@@ -9,8 +9,10 @@ mode="$("$here/../build_mode.sh" "$@")"
 binary_name="$("$here/../binary_name.sh" "$@")"
 
 # Take the second argument as the build root, or a tmp dir if there is no
-# second argument.
-build_root="${2:-/tmp/keybase_build_$(date +%Y_%m_%d_%H:%M:%S)}"
+# second argument. Absolutify the build root, because we cd around in this
+# script, and also because GOPATH is not allowed to be relative.
+build_root="${2:-/tmp/keybase_build_$(date +%Y_%m_%d_%H%M%S)}"
+build_root="$(realpath "$build_root")"
 mkdir -p "$build_root"
 
 # Record the version now, and write it to the build root. Because it uses a
@@ -51,8 +53,8 @@ if should_build_kbfs ; then
   echo "Installing Node modules for Electron"
   # Can't seem to get the right packages installed under NODE_ENV=production.
   export NODE_ENV=development
-  (cd "$here/../../react-native" && npm i)
-  (cd "$here/../../desktop" && npm i)
+  (cd "$this_repo/react-native" && npm i)
+  (cd "$this_repo/desktop" && npm i)
   export NODE_ENV=production
 fi
 
@@ -67,14 +69,14 @@ build_one_architecture() {
   # client repo and the kbfs repo are fully vendored.
   export GOPATH="$build_root/gopaths/$debian_arch"
   mkdir -p "$GOPATH/src/github.com/keybase"
-  ln -s "$this_repo" "$GOPATH/src/github.com/keybase/client"
+  ln -snf "$this_repo" "$GOPATH/src/github.com/keybase/client"
 
   # Build the client binary. Note that `go build` reads $GOARCH.
   echo "Building client for $GOARCH..."
   go build -tags "$go_tags" -ldflags "$ldflags" -o \
     "$layout_dir/usr/bin/$binary_name" github.com/keybase/client/go/keybase
 
-  cp "$here/run_keybase.sh" "$layout_dir/usr/bin/"
+  cp "$here/run_keybase" "$layout_dir/usr/bin/"
 
   # Short-circuit if we're not building electron.
   if ! should_build_kbfs ; then
@@ -85,22 +87,36 @@ build_one_architecture() {
   # In include-KBFS mode, create the /opt/keybase dir, and include post_install.sh.
   mkdir -p "$layout_dir/opt/keybase"
   cp "$here/post_install.sh" "$layout_dir/opt/keybase/"
+  cp "$here/crypto_squirrel.txt" "$layout_dir/opt/keybase/"
 
   # Build the kbfsfuse binary. Currently, this always builds from master.
   echo "Building kbfs for $GOARCH..."
   kbfs_repo="$(dirname "$this_repo")/kbfs"
-  ln -s "$kbfs_repo" "$GOPATH/src/github.com/keybase/kbfs"
+  ln -snf "$kbfs_repo" "$GOPATH/src/github.com/keybase/kbfs"
   go build -tags "$go_tags" -ldflags "$ldflags" -o \
     "$layout_dir/usr/bin/kbfsfuse" github.com/keybase/kbfs/kbfsfuse
 
   # Build Electron.
   echo "Building Electron client for $electron_arch..."
   (
-    cd "$here/../../desktop"
-    node package.js --platform linux --arch $electron_arch
+    cd "$this_repo/desktop"
+    node package.js --platform linux --arch "$electron_arch" --appVersion "$version"
     rsync -a "release/linux-${electron_arch}/Keybase-linux-${electron_arch}/" \
       "$layout_dir/opt/keybase"
   )
+
+  # Copy in the icon images.
+  for size in 16 32 128 256 512 ; do
+    icon_dest="$layout_dir/usr/share/icons/hicolor/${size}x${size}/apps"
+    mkdir -p "$icon_dest"
+    cp "$this_repo/media/icons/Keybase.iconset/icon_${size}x${size}.png" "$icon_dest/keybase.png"
+  done
+
+  # Copy in the desktop entry. Note that this is different from the autostart
+  # entry, which will be created per-user the first time the service runs.
+  apps_dir="$layout_dir/usr/share/applications"
+  mkdir -p "$apps_dir"
+  cp "$here/keybase.desktop" "$apps_dir"
 }
 
 export GOARCH=amd64

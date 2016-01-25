@@ -63,3 +63,12 @@ func (c *Context) GetNetContext() context.Context {
 func (c *Context) GetUpdateUI() (libkb.UpdateUI, error) {
 	return c.UpdateUI, nil
 }
+
+func (c *Context) SecretKeyPromptArg(ska libkb.SecretKeyArg, reason string) libkb.SecretKeyPromptArg {
+	return libkb.SecretKeyPromptArg{
+		LoginContext: c.LoginContext,
+		SecretUI:     c.SecretUI,
+		Ska:          ska,
+		Reason:       reason,
+	}
+}

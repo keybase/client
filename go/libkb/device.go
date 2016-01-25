@@ -4,9 +4,10 @@
 package libkb
 
 import (
+	"time"
+
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
-	"time"
 )
 
 const (
@@ -116,6 +117,9 @@ func (d *Device) ProtExport() *keybase1.Device {
 	if d.Description != nil {
 		ex.Name = *d.Description
 	}
+	if d.Status != nil {
+		ex.Status = *d.Status
+	}
 	return ex
 }
 
@@ -124,4 +128,23 @@ func (d *Device) IsActive() bool {
 		return false
 	}
 	return *d.Status == DeviceStatusActive
+}
+
+func (d *Device) StatusString() string {
+	return DeviceStatusToString(d.Status)
+}
+
+func DeviceStatusToString(i *int) string {
+	if i == nil {
+		return "<nil>"
+	}
+	switch *i {
+	case DeviceStatusNone:
+		return "none"
+	case DeviceStatusActive:
+		return "active"
+	case DeviceStatusDefunct:
+		return "revoked"
+	}
+	return "unknown"
 }

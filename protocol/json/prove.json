@@ -152,6 +152,9 @@
     }, {
       "name" : "verifyKey",
       "type" : "KID"
+    }, {
+      "name" : "status",
+      "type" : "int"
     } ]
   }, {
     "type" : "record",
@@ -167,7 +170,7 @@
   }, {
     "type" : "enum",
     "name" : "ClientType",
-    "symbols" : [ "CLI_0", "GUI_1" ]
+    "symbols" : [ "NONE_0", "CLI_1", "GUI_2", "KBFS_3" ]
   }, {
     "type" : "record",
     "name" : "UserVersionVector",
@@ -270,6 +273,9 @@
       "type" : "boolean"
     }, {
       "name" : "bypassConfirm",
+      "type" : "boolean"
+    }, {
+      "name" : "forceRetrack",
       "type" : "boolean"
     } ]
   }, {

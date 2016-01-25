@@ -13,6 +13,43 @@ protocol config {
 
   GetCurrentStatusRes getCurrentStatus(int sessionID);
 
+  record SessionStatus {
+    string SessionFor;
+    boolean Loaded;
+    boolean Cleared;
+    boolean SaltOnly;
+    boolean Expired;
+  }
+
+  record ClientDetails {
+    int pid;
+    ClientType clientType;
+    array<string> argv;
+    string desc;
+    string version;
+  }
+
+  record PlatformInfo {
+    string os;
+    string arch;
+    string goVersion;
+  }
+
+  record ExtendedStatus {
+    boolean standalone;
+    boolean passphraseStreamCached;
+    union { null, Device } device;
+    string logDir;
+    boolean desktopUIConnected;
+    union { null, SessionStatus } session;
+    string defaultUsername;
+    array<string> provisionedUsernames;
+    array<ClientDetails> Clients;
+    PlatformInfo platformInfo;
+  }
+
+  ExtendedStatus getExtendedStatus(int sessionID);
+
   enum ForkType {
     NONE_0,
     AUTO_1,
@@ -45,4 +82,5 @@ protocol config {
     */
   void setUserConfig(int sessionID, string username, string key, string value);
 
+  void helloIAm(ClientDetails details);
 }

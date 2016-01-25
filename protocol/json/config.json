@@ -152,6 +152,9 @@
     }, {
       "name" : "verifyKey",
       "type" : "KID"
+    }, {
+      "name" : "status",
+      "type" : "int"
     } ]
   }, {
     "type" : "record",
@@ -167,7 +170,7 @@
   }, {
     "type" : "enum",
     "name" : "ClientType",
-    "symbols" : [ "CLI_0", "GUI_1" ]
+    "symbols" : [ "NONE_0", "CLI_1", "GUI_2", "KBFS_3" ]
   }, {
     "type" : "record",
     "name" : "UserVersionVector",
@@ -229,6 +232,100 @@
       "type" : [ "null", "User" ]
     } ]
   }, {
+    "type" : "record",
+    "name" : "SessionStatus",
+    "fields" : [ {
+      "name" : "SessionFor",
+      "type" : "string"
+    }, {
+      "name" : "Loaded",
+      "type" : "boolean"
+    }, {
+      "name" : "Cleared",
+      "type" : "boolean"
+    }, {
+      "name" : "SaltOnly",
+      "type" : "boolean"
+    }, {
+      "name" : "Expired",
+      "type" : "boolean"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "ClientDetails",
+    "fields" : [ {
+      "name" : "pid",
+      "type" : "int"
+    }, {
+      "name" : "clientType",
+      "type" : "ClientType"
+    }, {
+      "name" : "argv",
+      "type" : {
+        "type" : "array",
+        "items" : "string"
+      }
+    }, {
+      "name" : "desc",
+      "type" : "string"
+    }, {
+      "name" : "version",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "PlatformInfo",
+    "fields" : [ {
+      "name" : "os",
+      "type" : "string"
+    }, {
+      "name" : "arch",
+      "type" : "string"
+    }, {
+      "name" : "goVersion",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "ExtendedStatus",
+    "fields" : [ {
+      "name" : "standalone",
+      "type" : "boolean"
+    }, {
+      "name" : "passphraseStreamCached",
+      "type" : "boolean"
+    }, {
+      "name" : "device",
+      "type" : [ "null", "Device" ]
+    }, {
+      "name" : "logDir",
+      "type" : "string"
+    }, {
+      "name" : "desktopUIConnected",
+      "type" : "boolean"
+    }, {
+      "name" : "session",
+      "type" : [ "null", "SessionStatus" ]
+    }, {
+      "name" : "defaultUsername",
+      "type" : "string"
+    }, {
+      "name" : "provisionedUsernames",
+      "type" : {
+        "type" : "array",
+        "items" : "string"
+      }
+    }, {
+      "name" : "Clients",
+      "type" : {
+        "type" : "array",
+        "items" : "ClientDetails"
+      }
+    }, {
+      "name" : "platformInfo",
+      "type" : "PlatformInfo"
+    } ]
+  }, {
     "type" : "enum",
     "name" : "ForkType",
     "symbols" : [ "NONE_0", "AUTO_1", "WATCHDOG_2", "LAUNCHD_3" ]
@@ -284,6 +381,13 @@
       } ],
       "response" : "GetCurrentStatusRes"
     },
+    "getExtendedStatus" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      } ],
+      "response" : "ExtendedStatus"
+    },
     "getConfig" : {
       "request" : [ {
         "name" : "sessionID",
@@ -305,6 +409,13 @@
       }, {
         "name" : "value",
         "type" : "string"
+      } ],
+      "response" : "null"
+    },
+    "helloIAm" : {
+      "request" : [ {
+        "name" : "details",
+        "type" : "ClientDetails"
       } ],
       "response" : "null"
     }

@@ -75,11 +75,11 @@ func (e *Kex2Provisioner) Run(ctx *Context) error {
 	}
 
 	// get signing key (including secret key):
-	arg := libkb.SecretKeyArg{
+	ska := libkb.SecretKeyArg{
 		Me:      e.me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	e.signingKey, err = e.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, arg, ctx.SecretUI, "new device install")
+	e.signingKey, err = e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "new device install"))
 	if err != nil {
 		return err
 	}

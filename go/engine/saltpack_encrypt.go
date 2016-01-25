@@ -135,9 +135,7 @@ func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
 			Me:      e.me,
 			KeyType: libkb.DeviceEncryptionKeyType,
 		}
-		key, err := e.G().Keyrings.GetSecretKeyWithPrompt(
-			ctx.LoginContext, ska, ctx.SecretUI,
-			"encrypting a message/file")
+		key, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "encrypting a message/file"))
 		if err != nil {
 			return err
 		}

@@ -557,7 +557,8 @@ func (e *LoginProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
 	e.G().Log.Debug("got synced secret key")
 
 	// unlock it
-	unlocked, err := key.PromptAndUnlock(ctx.LoginContext, "sign new device", "keybase", nil, ctx.SecretUI, e.lks, e.user)
+	parg := ctx.SecretKeyPromptArg(libkb.SecretKeyArg{}, "sign new device")
+	unlocked, err := key.PromptAndUnlock(parg, "keybase", nil, e.lks, e.user)
 	if err != nil {
 		return nil, err
 	}

@@ -38,7 +38,7 @@ AppPublisherURL={#MyAppURL}
 AppSupportURL={#MyAppURL}
 AppUpdatesURL={#MyAppURL}
 AppCopyright=Copyright (c) 2015, Keybase
-DefaultDirName={pf}\{#MyAppName}
+DefaultDirName={pf32}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 OutputBaseFilename=keybase_setup_gui_{#MySemVersion}_{#MyGoArch}
@@ -49,6 +49,7 @@ UninstallDisplayIcon={app}\keybase.exe
 VersionInfoVersion={#MyAppVersion}
 DisableDirPage=auto
 DisableProgramGroupPage=auto
+ArchitecturesInstallIn64BitMode=x64 ia64
 ; CreateUninstallRegKey=no
 ; Comment this out for development
 ; (there doesn't seem to be a way to make it conditional)
@@ -65,12 +66,18 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Source: "{#MyExePathName}"; DestDir: "{app}"
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 Source: "..\..\desktop\release\win32-ia32\Keybase-win32-ia32\*"; DestDir: "{app}\gui"; Flags: createallsubdirs recursesubdirs
-Source: "..\..\..\..\dokan-dev\dokany\Win32\Win7Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsWindows7
-Source: "..\..\..\..\dokan-dev\dokany\Win32\Win8Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsWindows8
-Source: "..\..\..\..\dokan-dev\dokany\Win32\Win8.1Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsWindows8_1
-Source: "..\..\..\..\dokan-dev\dokany\Win32\Win10Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsWindows10
-Source: "..\..\..\..\dokan-dev\dokany\Win32\Release\dokan.dll"; DestDir: "{sys}"
-Source: "..\..\..\..\dokan-dev\dokany\Win32\Release\dokannp.dll"; DestDir: "{sys}"
+Source: "..\..\..\..\dokan-dev\dokany\Win32\Win7Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsOtherArch and IsWindows7
+Source: "..\..\..\..\dokan-dev\dokany\Win32\Win8Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsOtherArch and IsWindows8
+Source: "..\..\..\..\dokan-dev\dokany\Win32\Win8.1Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsOtherArch and IsWindows8_1
+Source: "..\..\..\..\dokan-dev\dokany\Win32\Win10Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsOtherArch and IsWindows10
+Source: "..\..\..\..\dokan-dev\dokany\Win32\Release\dokan.dll"; DestDir: "{sys}"; Flags: 32bit
+Source: "..\..\..\..\dokan-dev\dokany\Win32\Release\dokannp.dll"; DestDir: "{sys}"; Flags: 32bit
+Source: "..\..\..\..\dokan-dev\dokany\x64\Win7Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsX64 and IsWindows7
+Source: "..\..\..\..\dokan-dev\dokany\x64\Win8Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsX64 and IsWindows8
+Source: "..\..\..\..\dokan-dev\dokany\x64\Win8.1Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsX64 and IsWindows8_1
+Source: "..\..\..\..\dokan-dev\dokany\x64\Win10Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsX64 and IsWindows10
+Source: "..\..\..\..\dokan-dev\dokany\x64\Release\dokan.dll"; DestDir: "{sys}"; Check: IsX64; Flags: 64bit
+Source: "..\..\..\..\dokan-dev\dokany\x64\Release\dokannp.dll"; DestDir: "{sys}"; Check: IsX64; Flags: 64bit
 Source: "..\..\..\..\dokan-dev\dokany\Win32\Release\dokanctl.exe"; DestDir: "{pf32}\Dokan\DokanLibrary"
 Source: "..\..\..\..\dokan-dev\dokany\Win32\Release\mounter.exe"; DestDir: "{pf32}\Dokan\DokanLibrary"
 Source: "..\..\..\..\..\..\bin\vc_redist.x86.exe"; DestDir: "{tmp}"
@@ -266,5 +273,12 @@ begin
   GetWindowsVersionEx(Version);
 
   Result := Version.NTPlatform and (Version.Major = 10);
-
+  if result = true then
+  begin
+     Log('IsWindows10');
+  end
+  else
+  begin
+     Log('Not Windows10: version' + IntToStr(Version.Major));
+  end;
 end;

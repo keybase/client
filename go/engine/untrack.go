@@ -185,7 +185,7 @@ func (e *UntrackEngine) storeRemoteUntrack(them *libkb.User, ctx *Context) (err 
 		KeyType: libkb.DeviceSigningKeyType,
 	}
 	var signingKeyPriv libkb.GenericKey
-	if signingKeyPriv, err = e.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, arg, ctx.SecretUI, "untracking signature"); err != nil {
+	if signingKeyPriv, err = e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(arg, "untracking signature")); err != nil {
 		return
 	}
 

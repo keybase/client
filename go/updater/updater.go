@@ -37,7 +37,7 @@ type UI interface {
 }
 
 type Config interface {
-	GetUpdatePreferenceAuto() bool
+	GetUpdatePreferenceAuto() (bool, bool)
 	GetUpdatePreferenceSnoozeUntil() keybase1.Time
 	GetUpdatePreferenceSkip() string
 	GetUpdateLastChecked() keybase1.Time
@@ -236,8 +236,13 @@ func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool
 	if err != nil {
 		return
 	}
+	if resp == nil {
+		err = fmt.Errorf("No response")
+		return
+	}
 	defer resp.Body.Close()
 	if resp.StatusCode == http.StatusNotModified {
+		u.log.Info("Using cached file: %s", fpath)
 		cached = true
 		return
 	}
@@ -255,20 +260,7 @@ func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool
 		}
 	}
 
-	saveFile := func(savePath string) error {
-		file, err := os.OpenFile(savePath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, libkb.PermFile)
-		if err != nil {
-			return err
-		}
-		defer file.Close()
-
-		u.log.Info("Saving to %s", savePath)
-		n, err := io.Copy(file, resp.Body)
-		u.log.Info("Wrote %d bytes", n)
-		return err
-	}
-
-	err = saveFile(savePath)
+	err = u.save(savePath, *resp)
 	if err != nil {
 		return
 	}
@@ -290,6 +282,21 @@ func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool
 
 	err = os.Rename(savePath, fpath)
 	return
+}
+
+func (u *Updater) save(savePath string, resp http.Response) error {
+	file, err := os.OpenFile(savePath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, libkb.PermFile)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	u.log.Info("Downloading to %s", savePath)
+	n, err := io.Copy(file, resp.Body)
+	if err == nil {
+		u.log.Info("Downloaded %d bytes", n)
+	}
+	return err
 }
 
 func (u *Updater) unpack(filename string) (string, error) {
@@ -428,7 +435,8 @@ func (u *Updater) promptForUpdateAction(ui UI, update keybase1.Update) (err erro
 		u.log.Debug("- Updater.promptForUpdateAction -> %v", err)
 	}()
 
-	if auto := u.config.GetUpdatePreferenceAuto(); auto {
+	auto, autoSet := u.config.GetUpdatePreferenceAuto()
+	if auto {
 		u.log.Debug("| going ahead with auto-updates")
 		return
 	}
@@ -443,15 +451,22 @@ func (u *Updater) promptForUpdateAction(ui UI, update keybase1.Update) (err erro
 		return
 	}
 
-	updatePromptResponse, err := updateUI.UpdatePrompt(context.TODO(), keybase1.UpdatePromptArg{Update: update})
+	// If automatically apply not set, default to true
+	alwaysAutoInstall := !autoSet
+
+	updatePromptArg := keybase1.UpdatePromptArg{
+		Update: update,
+		Options: keybase1.UpdatePromptOptions{
+			AlwaysAutoInstall: alwaysAutoInstall,
+		},
+	}
+	updatePromptResponse, err := updateUI.UpdatePrompt(context.TODO(), updatePromptArg)
 	if err != nil {
 		return
 	}
 
-	u.log.Debug("Update prompt respose: %#v", updatePromptResponse)
-	if updatePromptResponse.AlwaysAutoInstall {
-		u.config.SetUpdatePreferenceAuto(true)
-	}
+	u.log.Debug("Update prompt response: %#v", updatePromptResponse)
+	u.config.SetUpdatePreferenceAuto(updatePromptResponse.AlwaysAutoInstall)
 	switch updatePromptResponse.Action {
 	case keybase1.UpdateAction_UPDATE:
 	case keybase1.UpdateAction_SKIP:

@@ -83,9 +83,7 @@ func (p *PGPSignEngine) Run(ctx *Context) (err error) {
 		KeyType:  libkb.PGPKeyType,
 		KeyQuery: p.arg.Opts.KeyQuery,
 	}
-
-	key, err = p.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, ska, ctx.SecretUI, "command-line signature")
-
+	key, err = p.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "command-line signature"))
 	if err != nil {
 		return
 	} else if pgp, ok = key.(*libkb.PGPKeyBundle); !ok {

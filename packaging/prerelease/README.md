@@ -23,7 +23,7 @@ In addition, a comment with a short sha of the last commit is added as well allo
 To build and deploy the app:
 
 ```
-./build_app_darwin.sh
+./build_app.sh
 ```
 
 ### Scheduling Builds
@@ -36,10 +36,16 @@ launchctl load ~/Library/LaunchAgents/keybase.prerelease.plist
 
 ### Dev/Local Builds
 
-For faster debugging/testing, you can build keybase or KBFS directly into an
+For faster debugging/testing, you can build Keybase services directly into an
 existing app install:
 
 ```
 BUILD_DIR=/Applications/Keybase.app/Contents/SharedSupport/bin ./build_keybase.sh
 BUILD_DIR=/Applications/Keybase.app/Contents/SharedSupport/bin ./build_kbfs.sh
+```
+
+To build the app and services from a local copy:
+
+```
+NOPULL=1 NOSIGN=1 ./build_app.sh
 ```

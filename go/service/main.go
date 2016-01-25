@@ -50,7 +50,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 	protocols := []rpc.Protocol{
 		keybase1.AccountProtocol(NewAccountHandler(xp, g)),
 		keybase1.BTCProtocol(NewBTCHandler(xp, g)),
-		keybase1.ConfigProtocol(NewConfigHandler(xp, g, d)),
+		keybase1.ConfigProtocol(NewConfigHandler(xp, connID, g, d)),
 		keybase1.CryptoProtocol(NewCryptoHandler(g)),
 		keybase1.CtlProtocol(NewCtlHandler(xp, d, g)),
 		keybase1.DebuggingProtocol(NewDebuggingHandler(xp)),
@@ -148,7 +148,10 @@ func (d *Service) Run() (err error) {
 		}
 	}
 
-	// Explicitly set fork type here based on KEYBASE_LABEL
+	// Explicitly set fork type here based on KEYBASE_LABEL.
+	// This is for OSX-based Launchd implementations, which unfortunately
+	// don't obey the same command-line flag conventions as
+	// the other platforms.
 	if len(d.G().Env.GetLabel()) > 0 {
 		d.ForkType = keybase1.ForkType_LAUNCHD
 	}

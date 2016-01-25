@@ -67,6 +67,7 @@ protocol Common {
     Time mTime;
     KID encryptKey;
     KID verifyKey;
+    int status;
   }
 
   record Stream {
@@ -85,8 +86,10 @@ protocol Common {
   }
 
   enum ClientType {
-    CLI_0,
-    GUI_1
+    NONE_0,
+    CLI_1,
+    GUI_2,
+    KBFS_3
   }
 
   record UserVersionVector {
@@ -110,5 +113,5 @@ protocol Common {
 
       UserVersionVector uvv;
   }
-  
+
 }

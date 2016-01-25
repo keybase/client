@@ -152,6 +152,9 @@
     }, {
       "name" : "verifyKey",
       "type" : "KID"
+    }, {
+      "name" : "status",
+      "type" : "int"
     } ]
   }, {
     "type" : "record",
@@ -167,7 +170,7 @@
   }, {
     "type" : "enum",
     "name" : "ClientType",
-    "symbols" : [ "CLI_0", "GUI_1" ]
+    "symbols" : [ "NONE_0", "CLI_1", "GUI_2", "KBFS_3" ]
   }, {
     "type" : "record",
     "name" : "UserVersionVector",
@@ -224,6 +227,16 @@
     } ]
   }, {
     "type" : "record",
+    "name" : "ChallengeInfo",
+    "fields" : [ {
+      "name" : "now",
+      "type" : "long"
+    }, {
+      "name" : "challenge",
+      "type" : "string"
+    } ]
+  }, {
+    "type" : "record",
     "name" : "GetBlockRes",
     "fields" : [ {
       "name" : "blockKey",
@@ -251,6 +264,10 @@
     } ]
   } ],
   "messages" : {
+    "getSessionChallenge" : {
+      "request" : [ ],
+      "response" : "ChallengeInfo"
+    },
     "authenticateSession" : {
       "request" : [ {
         "name" : "signature",

@@ -69,6 +69,10 @@ func (v *CmdUpdateCheck) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *CmdUpdateCheck) Run() error {
+	if err := checkBrew(); err != nil {
+		return err
+	}
+
 	protocols := []rpc.Protocol{
 		NewUpdateUIProtocol(v.G()),
 	}
@@ -167,9 +171,16 @@ func (v *CmdUpdateRun) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
-func (v *CmdUpdateRun) Run() error {
+func checkBrew() error {
 	if libkb.IsBrewBuild {
 		return fmt.Errorf("Update is not supported for brew install. Use \"brew update && brew upgrade keybase\" instead.")
+	}
+	return nil
+}
+
+func (v *CmdUpdateRun) Run() error {
+	if err := checkBrew(); err != nil {
+		return err
 	}
 
 	protocols := []rpc.Protocol{

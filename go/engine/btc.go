@@ -69,10 +69,11 @@ func (e *BTCEngine) Run(ctx *Context) (err error) {
 		sigIDToRevoke = cryptocurrencyLink.GetSigID()
 	}
 
-	sigKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.LoginContext, libkb.SecretKeyArg{
+	ska := libkb.SecretKeyArg{
 		Me:      me,
 		KeyType: libkb.DeviceSigningKeyType,
-	}, ctx.SecretUI, "to register a cryptocurrency address")
+	}
+	sigKey, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "to register a cryptocurrency address"))
 	if err != nil {
 		return err
 	}
