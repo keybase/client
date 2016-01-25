@@ -128,7 +128,7 @@ func (t *transport) run() error {
 	var err error
 	for shouldContinue(err) {
 		var rpc rpcMessage
-		if rpc, err = t.packetizer.NextFrame(); err == nil {
+		if rpc, err = t.packetizer.NextFrame(); shouldReceive(rpc) {
 			t.receiver.Receive(rpc)
 		}
 	}
@@ -175,13 +175,32 @@ func (t *transport) AddCloseListener(ch chan<- error) {
 }
 
 func shouldContinue(err error) bool {
-	switch e := err.(type) {
+	err = unboxRPCError(err)
+	switch err.(type) {
 	case nil:
 		return true
 	case CallNotFoundError:
 		return true
-	case RPCDecodeError:
-		return shouldContinue(e.err)
+	case MethodNotFoundError:
+		return true
+	case ProtocolNotFoundError:
+		return true
+	default:
+		return false
+	}
+}
+
+func shouldReceive(rpc rpcMessage) bool {
+	if rpc == nil {
+		return false
+	}
+	switch rpc.Err().(type) {
+	case nil:
+		return true
+	case MethodNotFoundError:
+		return true
+	case ProtocolNotFoundError:
+		return true
 	default:
 		return false
 	}

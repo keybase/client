@@ -64,8 +64,8 @@ func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res i
 	// Wait for result from call
 	select {
 	case res := <-c.resultCh:
-		d.log.ClientReply(c.seqid, c.method, res.Err(), res.Res())
-		return res.Err()
+		d.log.ClientReply(c.seqid, c.method, res.ResponseErr(), res.Res())
+		return res.ResponseErr()
 	case <-c.ctx.Done():
 		return d.handleCancel(c)
 	case <-d.stopCh:

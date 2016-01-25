@@ -40,6 +40,11 @@ func (dw *decoderWrapper) Decode(i interface{}) error {
 	return nil
 }
 
+func (dw *decoderWrapper) ResetBytes(b []byte) {
+	dw.fieldNumber = 0
+	dw.Decoder.ResetBytes(b)
+}
+
 func newCodecMsgpackHandle() codec.Handle {
 	return &codec.MsgpackHandle{
 		WriteExt:    true,

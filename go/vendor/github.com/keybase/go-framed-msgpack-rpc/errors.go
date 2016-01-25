@@ -37,7 +37,7 @@ type ReceiverError struct {
 }
 
 func (p ReceiverError) Error() string {
-	return "dispatcher error: " + p.msg
+	return "receiver error: " + p.msg
 }
 
 func NewReceiverError(d string, a ...interface{}) ReceiverError {
@@ -117,23 +117,34 @@ func (c NilResultError) Error() string {
 }
 
 type RPCDecodeError struct {
-	err error
-	typ MethodType
-	len int
+	err  error
+	typ  MethodType
+	len  int
+	name string
 }
 
 func (r RPCDecodeError) Error() string {
-	return fmt.Sprintf("RPC error: type %d, length %d, error: %v", r.typ, r.len, r.err)
+	return fmt.Sprintf("RPC error. type: %d, method: %s, length: %d, error: %v", r.typ, r.name, r.len, r.err)
 }
 
-func newRPCDecodeError(t MethodType, l int, e error) RPCDecodeError {
+func newRPCDecodeError(t MethodType, n string, l int, e error) RPCDecodeError {
 	return RPCDecodeError{
-		err: e,
-		typ: t,
-		len: l,
+		err:  e,
+		typ:  t,
+		len:  l,
+		name: n,
 	}
 }
 
 func newRPCMessageFieldDecodeError(i int, err error) error {
 	return fmt.Errorf("error decoding message field at position %d, error: %v", i, err)
+}
+
+func unboxRPCError(err error) error {
+	switch e := err.(type) {
+	case RPCDecodeError:
+		return e.err
+	default:
+		return err
+	}
 }
