@@ -86,6 +86,8 @@ const (
 	maxDeferredBytes = maxParallelBlockPuts * (512 << 10)
 	// When the number of dirty bytes exceeds this level, force a sync.
 	dirtyBytesThreshold = maxParallelBlockPuts * (512 << 10)
+	// The timeout for any background task.
+	backgroundTaskTimeout = 1 * time.Minute
 )
 
 type fboMutexLevel mutexLevel
@@ -5150,6 +5152,10 @@ func (fbo *folderBranchOps) waitForAndProcessUpdates(
 			if err != nil {
 				return err
 			}
+			// Getting and applying the updates requires holding
+			// locks, so make sure it doesn't take too long.
+			ctx, cancel := context.WithTimeout(ctx, backgroundTaskTimeout)
+			defer cancel()
 			err = fbo.getAndApplyMDUpdates(ctx, lState, fbo.applyMDUpdates)
 			if err != nil {
 				fbo.log.CDebugf(ctx, "Got an error while applying "+
@@ -5199,15 +5205,20 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 			// Denote that these are coming from a background
 			// goroutine, not directly from any user.
 			ctx = context.WithValue(ctx, CtxBackgroundSyncKey, "1")
+			// Just in case network access or a bug gets stuck for a
+			// long time, time out the sync eventually.
+			longCtx, longCancel :=
+				context.WithTimeout(ctx, backgroundTaskTimeout)
+			defer longCancel()
 
 			// Make sure this loop doesn't starve user requests for
-			// too long.  But use the non-timeout version in the
+			// too long.  But use the longer-timeout version in the
 			// actual Sync command, to avoid unnecessary errors.
-			timeoutCtx, cancel := context.WithTimeout(ctx, 1*time.Second)
-			defer cancel()
+			shortCtx, shortCancel := context.WithTimeout(ctx, 1*time.Second)
+			defer shortCancel()
 			for _, ptr := range dirtyPtrs {
 				select {
-				case <-timeoutCtx.Done():
+				case <-shortCtx.Done():
 					fbo.log.CDebugf(ctx,
 						"Stopping background sync early due to timeout")
 					return nil
@@ -5218,7 +5229,7 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 				if node == nil {
 					continue
 				}
-				err := fbo.Sync(ctx, node)
+				err := fbo.Sync(longCtx, node)
 				if err != nil {
 					// Just log the warning and keep trying to
 					// sync the rest of the dirty files.
@@ -5313,6 +5324,13 @@ func (fbo *folderBranchOps) archiveBlocksInBackground() {
 			}
 			fbo.runUnlessShutdown(func(ctx context.Context) (err error) {
 				defer fbo.archiveGroup.Done()
+				// This func doesn't take any locks, though it can
+				// block md writes due to the buffered channel.  So
+				// use the long timeout to make sure things get
+				// unblocked eventually, but no need for a short timeout.
+				ctx, cancel := context.WithTimeout(ctx, backgroundTaskTimeout)
+				defer cancel()
+
 				fbo.log.CDebugf(ctx, "Archiving %d block pointers as a result "+
 					"of revision %d", len(ptrs), md.Revision)
 				bops := fbo.config.BlockOps()
