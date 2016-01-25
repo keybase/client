@@ -99,7 +99,6 @@ export default class Render extends Component {
 
     return (
       <div style={styles.container}>
-        <div style={styles.arrow}/>
         <div style={styles.body}>
           <Header openKBFS={openKBFS} showUser={() => showUser(username)}/>
           {!loggedIn && <LoggedoutMessage />}
@@ -332,25 +331,12 @@ const styles = {
   },
   body: {
     ...globalStyles.flexBoxColumn,
-    ...globalStyles.rounded,
-    ...globalStyles.windowBorder,
     position: 'relative',
     overflow: 'hidden',
     height: 364,
     minHeight: 364,
     maxHeight: 364,
-    marginTop: -1, // let arrow not have a border below it
     flex: 1
-  },
-  arrow: {
-    ...globalStyles.topMost,
-    width: 0,
-    height: 10,
-    minHeight: 10,
-    borderLeft: '7px solid transparent',
-    borderRight: '7px solid transparent',
-    borderBottom: `5px solid ${globalColors.grey5}`,
-    alignSelf: 'center'
   },
   header: {
     ...globalStyles.flexBoxRow,

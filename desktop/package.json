@@ -50,7 +50,7 @@
     "babel-runtime": "^5.8.34",
     "del": "^2.2.0",
     "electron-packager": "^5.1.0",
-    "electron-prebuilt": "0.36.4",
+    "electron-prebuilt": "0.36.5",
     "electron-rebuild": "^1.0.1",
     "eslint": "^1.10.3",
     "eslint-config-standard": "^4.4.0",
