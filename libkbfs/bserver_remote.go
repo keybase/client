@@ -44,11 +44,10 @@ var _ AuthTokenRefreshHandler = (*BlockServerRemote)(nil)
 func NewBlockServerRemote(config Config, blkSrvAddr string) *BlockServerRemote {
 	bs := &BlockServerRemote{
 		config:     config,
-		log:        config.MakeLogger(""),
+		log:        config.MakeLogger("BSR"),
 		blkSrvAddr: blkSrvAddr,
 	}
-	bs.log.Debug("BlockServerRemote new instance "+
-		"server addr %s", blkSrvAddr)
+	bs.log.Debug("new instance server addr %s", blkSrvAddr)
 	bs.authToken = NewAuthToken(config,
 		BServerTokenServer, BServerTokenExpireIn,
 		BServerClientName, BServerClientVersion, bs)
@@ -99,22 +98,22 @@ func (b *BlockServerRemote) RefreshAuthToken(ctx context.Context) {
 	// get a new challenge
 	challenge, err := b.client.GetSessionChallenge(ctx)
 	if err != nil {
-		b.log.Debug("BlockServerRemote: error getting challenge: %v", err)
+		b.log.CDebugf(ctx, "error getting challenge: %v", err)
 	}
 	// get a new signature
 	signature, err := b.authToken.Sign(ctx, challenge)
 	if err != nil {
-		b.log.Debug("BlockServerRemote: error signing auth token: %v", err)
+		b.log.CDebugf(ctx, "error signing auth token: %v", err)
 	}
 	// update authentication
 	if err := b.client.AuthenticateSession(ctx, signature); err != nil {
-		b.log.Debug("BlockServerRemote: error refreshing auth token: %v", err)
+		b.log.CDebugf(ctx, "error refreshing auth token: %v", err)
 	}
 }
 
 // OnConnectError implements the ConnectionHandler interface.
 func (b *BlockServerRemote) OnConnectError(err error, wait time.Duration) {
-	b.log.Warning("BlockServerRemote: connection error: %v; retrying in %s",
+	b.log.Warning("connection error: %v; retrying in %s",
 		err, wait)
 	if b.authToken != nil {
 		b.authToken.Shutdown()
@@ -125,14 +124,14 @@ func (b *BlockServerRemote) OnConnectError(err error, wait time.Duration) {
 
 // OnDoCommandError implements the ConnectionHandler interface.
 func (b *BlockServerRemote) OnDoCommandError(err error, wait time.Duration) {
-	b.log.Warning("BlockServerRemote: DoCommand error: %q; retrying in %s",
+	b.log.Warning("DoCommand error: %v; retrying in %s",
 		err, wait)
 }
 
 // OnDisconnected implements the ConnectionHandler interface.
 func (b *BlockServerRemote) OnDisconnected(status DisconnectStatus) {
 	if status == StartingNonFirstConnection {
-		b.log.Warning("BlockServerRemote is disconnected")
+		b.log.Warning("disconnected")
 	}
 	if b.authToken != nil {
 		b.authToken.Shutdown()
@@ -154,7 +153,7 @@ func (b *BlockServerRemote) Get(ctx context.Context, id BlockID, tlfID TlfID,
 	var err error
 	size := -1
 	defer func() {
-		b.log.CDebugf(ctx, "BlockServerRemote.Get id=%s uid=%s sz=%d err=%v",
+		b.log.CDebugf(ctx, "Get id=%s uid=%s sz=%d err=%v",
 			id, context.GetWriter(), size, err)
 	}()
 
@@ -189,7 +188,7 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	var err error
 	size := len(buf)
 	defer func() {
-		b.log.CDebugf(ctx, "BlockServerRemote.Put id=%s uid=%s sz=%d err=%v",
+		b.log.CDebugf(ctx, "Put id=%s uid=%s sz=%d err=%v",
 			id, context.GetWriter(), size, err)
 	}()
 
@@ -212,7 +211,7 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 	tlfID TlfID, context BlockContext) error {
 	var err error
 	defer func() {
-		b.log.CDebugf(ctx, "BlockServerRemote.AddBlockReference id=%s uid=%s err=%v",
+		b.log.CDebugf(ctx, "AddBlockReference id=%s uid=%s err=%v",
 			id, context.GetWriter(), err)
 	}()
 
@@ -238,7 +237,7 @@ func (b *BlockServerRemote) RemoveBlockReference(ctx context.Context, id BlockID
 	tlfID TlfID, context BlockContext) error {
 	var err error
 	defer func() {
-		b.log.CDebugf(ctx, "BlockServerRemote.RemoveBlockReference id=%s uid=%s err=%v",
+		b.log.CDebugf(ctx, "RemoveBlockReference id=%s uid=%s err=%v",
 			id, context.GetWriter(), err)
 	}()
 
@@ -270,13 +269,13 @@ func (b *BlockServerRemote) archiveBlockReferences(ctx context.Context,
 			Refs:   notDone,
 			Folder: tlfID.String(),
 		})
-		b.log.CDebugf(ctx, "BlockServerRemote.ArchiveBlockReference request to archive %d refs actual archived %d\n",
+		b.log.CDebugf(ctx, "ArchiveBlockReference request to archive %d refs actual archived %d\n",
 			len(notDone), len(res))
 		if err != nil {
-			b.log.CWarningf(ctx, "BlockServerRemote.ArchiveBlockReference err=%v", err)
+			b.log.CWarningf(ctx, "ArchiveBlockReference err=%v", err)
 		}
 		if len(res) == 0 && !prevProgress {
-			b.log.CErrorf(ctx, "BlockServerRemote.ArchiveBlockReference failed to make progress err=%v", err)
+			b.log.CErrorf(ctx, "ArchiveBlockReference failed to make progress err=%v", err)
 			break
 		}
 		prevProgress = len(res) != 0
