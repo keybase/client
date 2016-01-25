@@ -36,7 +36,7 @@ const Header = props => {
       <Icon hint='Open keybase.io web' type='fa-globe' onClick={showUser}/>
       <div style={{flex: 1}}/>
       <Icon hint={`Report a bug for version: ${version}`} type='fa-bug' onClick={ () => {
-        shell.openExternal(`https://github.com/keybase/client/issues/new?body=Keybase%20GUI%20Version:%20${version}`)
+        shell.openExternal(`https://github.com/keybase/client/issues/new?body=Keybase%20GUI%20Version:%20${encodeURIComponent(version)}`)
       }}/>
     </div>
   )
