@@ -68,11 +68,11 @@ func allocCtx(slot uint32) *dokanCtx {
 	return &dokanCtx{C.kbfs_libdokan_alloc_ctx(C.ULONG64(slot)), slot}
 }
 
-func (ctx *dokanCtx) Run(driveLetter byte) error {
+func (ctx *dokanCtx) Run(path string) error {
 	if isDebug {
 		ctx.ptr.dokan_options.Options |= C.kbfs_libdokan_debug
 	}
-	C.kbfs_libdokan_set_drive_letter(ctx.ptr, (C.char)(driveLetter))
+	C.kbfs_libdokan_set_path(ctx.ptr, stringToUtf16Ptr(path))
 	ec := C.kbfs_libdokan_run(ctx.ptr)
 	if ec != 0 {
 		return errors.New("Dokan failed")

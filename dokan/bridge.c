@@ -284,17 +284,20 @@ struct kbfs_libdokan_ctx* kbfs_libdokan_alloc_ctx(ULONG64 slot) {
   //   ctx->dokan_operations.FindStreams = kbfs_libdokan_c_FindStreams;
   return ctx;
 }
-void kbfs_libdokan_set_drive_letter(struct kbfs_libdokan_ctx* ctx, char c) {
-  ctx->drive_letter[0] = (WCHAR)c;
-  ctx->drive_letter[1] = L':';
-  ctx->drive_letter[2] = L'\\';
-  ctx->drive_letter[3] = 0;
-  ctx->dokan_options.MountPoint = ctx->drive_letter;
+
+void kbfs_libdokan_set_path(struct kbfs_libdokan_ctx* ctx, void* ptr) {
+	if(ctx->dokan_options.MountPoint)
+		free((void*)ctx->dokan_options.MountPoint);
+	ctx->dokan_options.MountPoint = wcsdup(ptr);
 }
+
 error_t kbfs_libdokan_free(struct kbfs_libdokan_ctx* ctx) {
-  if(ctx)
-    free(ctx);
-  return 0;
+	if(ctx) {
+		if(ctx->dokan_options.MountPoint)
+			free((void*)ctx->dokan_options.MountPoint);
+	   free(ctx);
+	}
+	return 0;
 }
 
 error_t kbfs_libdokan_run(struct kbfs_libdokan_ctx* ctx) {

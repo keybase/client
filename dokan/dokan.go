@@ -9,19 +9,20 @@ package dokan
 
 // MountHandle holds a reference to a mounted filesystem.
 type MountHandle struct {
-	ctx         *dokanCtx
-	errChan     chan error
-	driveLetter byte
+	ctx     *dokanCtx
+	errChan chan error
+	// Dir is the path of this mount.
+	Dir string
 }
 
-// Mount mounts a FileSystem to the given drive letter and returns when it has been mounted
+// Mount mounts a FileSystem to the given path and returns when it has been mounted
 // or there is an error.
-func Mount(fs FileSystem, driveLetter byte) (*MountHandle, error) {
+func Mount(fs FileSystem, path string) (*MountHandle, error) {
 	var ec = make(chan error, 2)
 	var slot = fsTableStore(fs, ec)
 	ctx := allocCtx(slot)
 	go func() {
-		ec <- ctx.Run(driveLetter)
+		ec <- ctx.Run(path)
 		close(ec)
 	}()
 	// This gets a send from either
@@ -35,12 +36,12 @@ func Mount(fs FileSystem, driveLetter byte) (*MountHandle, error) {
 		ctx.Free()
 		return nil, err
 	}
-	return &MountHandle{ctx, ec, driveLetter}, nil
+	return &MountHandle{ctx, ec, path}, nil
 }
 
 // Close unmounts the filesystem.
 func (m *MountHandle) Close() error {
-	err := Unmount(m.driveLetter)
+	err := Unmount(m.Dir)
 	m.ctx.Free()
 	m.ctx = nil
 	return err

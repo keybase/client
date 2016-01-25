@@ -46,6 +46,13 @@ func stringToUtf16Buffer(s string, ptr C.LPWSTR, blenUcs2 C.DWORD) bool {
 	return true
 }
 
+// stringToUtf16Ptr return a pointer to the string as utf16 with zero
+// termination.
+func stringToUtf16Ptr(s string) unsafe.Pointer {
+	tmp := utf16.Encode([]rune(s + "\000"))
+	return unsafe.Pointer(&tmp[0])
+}
+
 // ptrUcs2Slice takes a C Windows wide string and length in UCS2
 // and returns it aliased as a uint16 slice.
 func ptrUcs2Slice(ptr C.LPCWSTR, lenUcs2 int) []uint16 {
