@@ -5194,7 +5194,21 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 			// Denote that these are coming from a background
 			// goroutine, not directly from any user.
 			ctx = context.WithValue(ctx, CtxBackgroundSyncKey, "1")
+
+			// Make sure this loop doesn't starve user requests for
+			// too long.  But use the non-timeout version in the
+			// actual Sync command, to avoid unnecessary errors.
+			timeoutCtx, cancel := context.WithTimeout(ctx, 1*time.Second)
+			defer cancel()
 			for _, ptr := range dirtyPtrs {
+				select {
+				case <-timeoutCtx.Done():
+					fbo.log.CDebugf(ctx,
+						"Stopping background sync early due to timeout")
+					return nil
+				default:
+				}
+
 				node := fbo.nodeCache.Get(ptr)
 				if node == nil {
 					continue
@@ -5204,7 +5218,8 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 					// Just log the warning and keep trying to
 					// sync the rest of the dirty files.
 					p := fbo.nodeCache.PathFromNode(node)
-					fbo.log.CWarningf(ctx, "Couldn't sync dirty file with ptr=%v, nodeID=%v, and path=%v: %v",
+					fbo.log.CWarningf(ctx, "Couldn't sync dirty file with "+
+						"ptr=%v, nodeID=%v, and path=%v: %v",
 						ptr, node.GetID(), p, err)
 				}
 			}
