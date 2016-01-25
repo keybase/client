@@ -10,6 +10,7 @@ type rpcMessage interface {
 	Name() string
 	SeqNo() seqNumber
 	MinLength() int
+	Err() error
 	DecodeMessage(int, decoder, *protocolHandler, *callContainer) error
 }
 
@@ -17,23 +18,25 @@ type rpcCallMessage struct {
 	seqno seqNumber
 	name  string
 	arg   interface{}
+	err   error
 }
 
 func (rpcCallMessage) MinLength() int {
 	return 3
 }
 
-func (r *rpcCallMessage) DecodeMessage(l int, d decoder, p *protocolHandler, _ *callContainer) (err error) {
-	if err = d.Decode(&r.seqno); err != nil {
-		return err
+func (r *rpcCallMessage) DecodeMessage(l int, d decoder, p *protocolHandler, _ *callContainer) error {
+	if r.err = d.Decode(&r.seqno); r.err != nil {
+		return r.err
 	}
-	if err = d.Decode(&r.name); err != nil {
-		return err
+	if r.err = d.Decode(&r.name); r.err != nil {
+		return r.err
 	}
-	if r.arg, err = p.getArg(r.name); err != nil {
-		return err
+	if r.arg, r.err = p.getArg(r.name); r.err != nil {
+		return r.err
 	}
-	return d.Decode(r.arg)
+	r.err = d.Decode(r.arg)
+	return r.err
 }
 
 func (r rpcCallMessage) Type() MethodType {
@@ -52,9 +55,14 @@ func (r rpcCallMessage) Arg() interface{} {
 	return r.arg
 }
 
+func (r rpcCallMessage) Err() error {
+	return r.err
+}
+
 type rpcResponseMessage struct {
-	c   *call
-	err error
+	c           *call
+	err         error
+	responseErr error
 }
 
 func (r rpcResponseMessage) MinLength() int {
@@ -63,14 +71,15 @@ func (r rpcResponseMessage) MinLength() int {
 
 func (r *rpcResponseMessage) DecodeMessage(l int, d decoder, _ *protocolHandler, cc *callContainer) error {
 	var seqNo seqNumber
-	if err := d.Decode(&seqNo); err != nil {
-		return err
+	if r.err = d.Decode(&seqNo); r.err != nil {
+		return r.err
 	}
 
 	// Attempt to retrieve the call
 	r.c = cc.RetrieveCall(seqNo)
 	if r.c == nil {
-		return newCallNotFoundError(seqNo)
+		r.err = newCallNotFoundError(seqNo)
+		return r.err
 	}
 
 	// Decode the error
@@ -80,24 +89,24 @@ func (r *rpcResponseMessage) DecodeMessage(l int, d decoder, _ *protocolHandler,
 	} else {
 		responseErr = new(string)
 	}
-	if err := d.Decode(responseErr); err != nil {
-		return err
+	if r.err = d.Decode(responseErr); r.err != nil {
+		return r.err
 	}
 
 	// Ensure the error is wrapped correctly
 	if r.c.errorUnwrapper != nil {
-		var dispatchErr error
-		r.err, dispatchErr = r.c.errorUnwrapper.UnwrapError(responseErr)
-		if dispatchErr != nil {
-			return dispatchErr
+		r.responseErr, r.err = r.c.errorUnwrapper.UnwrapError(responseErr)
+		if r.err != nil {
+			return r.err
 		}
 	} else {
 		errAsString, ok := responseErr.(*string)
 		if !ok {
-			return fmt.Errorf("unable to convert error to string: %v", responseErr)
+			r.err = fmt.Errorf("unable to convert error to string: %v", responseErr)
+			return r.err
 		}
 		if *errAsString != "" {
-			r.err = errors.New(*errAsString)
+			r.responseErr = errors.New(*errAsString)
 		}
 	}
 
@@ -105,7 +114,8 @@ func (r *rpcResponseMessage) DecodeMessage(l int, d decoder, _ *protocolHandler,
 	if r.c.res == nil {
 		return nil
 	}
-	return d.Decode(r.c.res)
+	r.err = d.Decode(r.c.res)
+	return r.err
 }
 
 func (r rpcResponseMessage) Type() MethodType {
@@ -113,10 +123,16 @@ func (r rpcResponseMessage) Type() MethodType {
 }
 
 func (r rpcResponseMessage) SeqNo() seqNumber {
+	if r.c == nil {
+		return -1
+	}
 	return r.c.seqid
 }
 
 func (r rpcResponseMessage) Name() string {
+	if r.c == nil {
+		return ""
+	}
 	return r.c.method
 }
 
@@ -124,27 +140,39 @@ func (r rpcResponseMessage) Err() error {
 	return r.err
 }
 
+func (r rpcResponseMessage) ResponseErr() error {
+	return r.responseErr
+}
+
 func (r rpcResponseMessage) Res() interface{} {
+	if r.c == nil {
+		return nil
+	}
 	return r.c.res
 }
 
 func (r rpcResponseMessage) ResponseCh() chan *rpcResponseMessage {
+	if r.c == nil {
+		return nil
+	}
 	return r.c.resultCh
 }
 
 type rpcNotifyMessage struct {
 	name string
 	arg  interface{}
+	err  error
 }
 
-func (r *rpcNotifyMessage) DecodeMessage(l int, d decoder, p *protocolHandler, _ *callContainer) (err error) {
-	if err = d.Decode(&r.name); err != nil {
-		return err
+func (r *rpcNotifyMessage) DecodeMessage(l int, d decoder, p *protocolHandler, _ *callContainer) error {
+	if r.err = d.Decode(&r.name); r.err != nil {
+		return r.err
 	}
-	if r.arg, err = p.getArg(r.name); err != nil {
-		return err
+	if r.arg, r.err = p.getArg(r.name); r.err != nil {
+		return r.err
 	}
-	return d.Decode(r.arg)
+	r.err = d.Decode(r.arg)
+	return r.err
 }
 
 func (rpcNotifyMessage) MinLength() int {
@@ -167,16 +195,22 @@ func (r rpcNotifyMessage) Arg() interface{} {
 	return r.arg
 }
 
+func (r rpcNotifyMessage) Err() error {
+	return r.err
+}
+
 type rpcCancelMessage struct {
 	seqno seqNumber
 	name  string
+	err   error
 }
 
-func (r *rpcCancelMessage) DecodeMessage(l int, d decoder, p *protocolHandler, _ *callContainer) (err error) {
-	if err = d.Decode(&r.seqno); err != nil {
-		return err
+func (r *rpcCancelMessage) DecodeMessage(l int, d decoder, p *protocolHandler, _ *callContainer) error {
+	if r.err = d.Decode(&r.seqno); r.err != nil {
+		return r.err
 	}
-	return d.Decode(&r.name)
+	r.err = d.Decode(&r.name)
+	return r.err
 }
 
 func (rpcCancelMessage) MinLength() int {
@@ -195,10 +229,14 @@ func (r rpcCancelMessage) Name() string {
 	return r.name
 }
 
+func (r rpcCancelMessage) Err() error {
+	return r.err
+}
+
 func decodeRPC(l int, d decoder, p *protocolHandler, cc *callContainer) (rpcMessage, error) {
 	typ := MethodInvalid
 	if err := d.Decode(&typ); err != nil {
-		return nil, newRPCDecodeError(typ, l, err)
+		return nil, newRPCDecodeError(typ, "", l, err)
 	}
 
 	var data rpcMessage
@@ -212,16 +250,16 @@ func decodeRPC(l int, d decoder, p *protocolHandler, cc *callContainer) (rpcMess
 	case MethodCancel:
 		data = &rpcCancelMessage{}
 	default:
-		return nil, newRPCDecodeError(typ, l, errors.New("invalid RPC type"))
+		return nil, newRPCDecodeError(typ, "", l, errors.New("invalid RPC type"))
 	}
 
 	dataLength := l - 1
 	if dataLength < data.MinLength() {
-		return nil, newRPCDecodeError(typ, l, errors.New("wrong message length"))
+		return nil, newRPCDecodeError(typ, "", l, errors.New("wrong message length"))
 	}
 
 	if err := data.DecodeMessage(dataLength, d, p, cc); err != nil {
-		return nil, newRPCDecodeError(typ, l, err)
+		return data, newRPCDecodeError(typ, data.Name(), l, err)
 	}
 	return data, nil
 }

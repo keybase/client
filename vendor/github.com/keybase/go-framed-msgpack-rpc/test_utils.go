@@ -235,8 +235,13 @@ func (a TestClient) Add(ctx context.Context, arg AddArgs) (ret int, err error) {
 	return
 }
 
-func (a TestClient) Broken() (err error) {
-	err = a.Call(nil, "test.1.testp.broken", nil, nil)
+func (a TestClient) BrokenMethod() (err error) {
+	err = a.Call(context.Background(), "test.1.testp.broken", nil, nil)
+	return
+}
+
+func (a TestClient) BrokenProtocol() (err error) {
+	err = a.Call(context.Background(), "test.2.testp.broken", nil, nil)
 	return
 }
 
