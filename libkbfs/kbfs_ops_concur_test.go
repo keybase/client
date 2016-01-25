@@ -140,7 +140,8 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 }
 
 // Test that writes can happen concurrently with a sync
-func testKBFSOpsConcurWritesDuringSync(t *testing.T, n int) {
+func testKBFSOpsConcurWritesDuringSync(t *testing.T,
+	initialWriteBytes int, nOneByteWrites int) {
 	config, uid, ctx := kbfsOpsConcurInit(t, "test_user")
 	defer CheckConfigAndShutdown(t, config)
 
@@ -162,7 +163,10 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T, n int) {
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
-	data := []byte{1}
+	data := make([]byte, initialWriteBytes)
+	for i := 0; i < initialWriteBytes; i++ {
+		data[i] = 1
+	}
 	err = kbfsOps.Write(ctx, fileNode, data, 0)
 	if err != nil {
 		t.Errorf("Couldn't write file: %v", err)
@@ -183,22 +187,23 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T, n int) {
 
 	expectedData := make([]byte, len(data))
 	copy(expectedData, data)
-	for i := 0; i < n; i++ {
+	for i := 0; i < nOneByteWrites; i++ {
 		// now make sure we can write the file and see the new byte we wrote
 		newData := []byte{byte(i + 2)}
-		err = kbfsOps.Write(ctx, fileNode, newData, int64(i+1))
+		err = kbfsOps.Write(ctx, fileNode, newData, int64(i+initialWriteBytes))
 		if err != nil {
 			t.Errorf("Couldn't write data: %v\n", err)
 		}
 
 		// read the data back
-		buf := make([]byte, i+2)
+		buf := make([]byte, i+1+initialWriteBytes)
 		nr, err := kbfsOps.Read(ctx, fileNode, buf, 0)
 		if err != nil {
 			t.Errorf("Couldn't read data: %v\n", err)
 		}
 		expectedData = append(expectedData, newData...)
-		if nr != int64(i+2) || !bytes.Equal(expectedData, buf) {
+		if nr != int64(i+1+initialWriteBytes) ||
+			!bytes.Equal(expectedData, buf) {
 			t.Errorf("Got wrong data %v; expected %v", buf, expectedData)
 		}
 	}
@@ -212,23 +217,29 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T, n int) {
 
 	// finally, make sure we can still read it after the sync too
 	// (even though the second write hasn't been sync'd yet)
-	buf2 := make([]byte, n+1)
+	totalSize := nOneByteWrites + initialWriteBytes
+	buf2 := make([]byte, totalSize)
 	nr, err := kbfsOps.Read(ctx, fileNode, buf2, 0)
 	if err != nil {
 		t.Errorf("Couldn't read data: %v\n", err)
 	}
-	if nr != int64(n+1) || !bytes.Equal(expectedData, buf2) {
+	if nr != int64(totalSize) ||
+		!bytes.Equal(expectedData, buf2) {
 		t.Errorf("2nd read: Got wrong data %v; expected %v", buf2, expectedData)
 	}
 
-	// there should be 5 blocks at this point: the original root block
-	// + 2 modifications (create + write), the top indirect file block
-	// and a modification (write).
+	// there should be 4+n clean blocks at this point: the original
+	// root block + 2 modifications (create + write), the empty file
+	// block, the n initial modification blocks plus top block (if
+	// applicable).
 	bcs := config.BlockCache().(*BlockCacheStandard)
 	numCleanBlocks := bcs.cleanTransient.Len()
-	if numCleanBlocks != 5 {
-		t.Errorf("Unexpected number of cached clean blocks: %d\n",
-			numCleanBlocks)
+	nFileBlocks := 1 + len(data)/int(bsplitter.maxSize)
+	if nFileBlocks > 1 {
+		nFileBlocks++ // top indirect block
+	}
+	if g, e := numCleanBlocks, 4+nFileBlocks; g != e {
+		t.Errorf("Unexpected number of cached clean blocks: %d vs %d (%d vs %d)\n", g, e, totalSize, bsplitter.maxSize)
 	}
 
 	// Final sync
@@ -242,6 +253,12 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T, n int) {
 		t.Fatalf("Final sync failed: %v", err)
 	}
 
+	if ei, err := kbfsOps.Stat(ctx, fileNode); err != nil {
+		t.Fatalf("Couldn't stat: %v", err)
+	} else if g, e := ei.Size, uint64(totalSize); g != e {
+		t.Fatalf("Unexpected size: %d vs %d", g, e)
+	}
+
 	// Make sure there are no dirty blocks left at the end of the test.
 	numDirtyBlocks := len(bcs.dirty)
 	if numDirtyBlocks != 0 {
@@ -251,19 +268,19 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T, n int) {
 
 // Test that a write can happen concurrently with a sync
 func TestKBFSOpsConcurWriteDuringSync(t *testing.T) {
-	testKBFSOpsConcurWritesDuringSync(t, 1)
+	testKBFSOpsConcurWritesDuringSync(t, 1, 1)
 }
 
 // Test that multiple writes can happen concurrently with a sync
 // (regression for KBFS-616)
 func TestKBFSOpsConcurMultipleWritesDuringSync(t *testing.T) {
-	testKBFSOpsConcurWritesDuringSync(t, 10)
+	testKBFSOpsConcurWritesDuringSync(t, 1, 10)
 }
 
 // Test that multiple indirect writes can happen concurrently with a
 // sync (regression for KBFS-661)
 func TestKBFSOpsConcurMultipleIndirectWritesDuringSync(t *testing.T) {
-	testKBFSOpsConcurWritesDuringSync(t, 50)
+	testKBFSOpsConcurWritesDuringSync(t, 25, 50)
 }
 
 // Test that writes that happen concurrently with a sync, which write
