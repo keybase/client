@@ -69,6 +69,7 @@ with this program. If not, see <http://www.gnu.org/licenses/>.
 
 #define DOKAN_SECTOR_SIZE 512
 #define DOKAN_ALLOCATION_UNIT_SIZE 512
+#define DOKAN_DISK_SIZE 1024 * 1024 * 1024
 
 // used in CCB->Flags and FCB->Flags
 #define DOKAN_FILE_DIRECTORY 1
@@ -327,6 +328,7 @@ typedef struct _EVENT_INFORMATION {
 #define DOKAN_EVENT_ALTERNATIVE_STREAM_ON 1
 #define DOKAN_EVENT_WRITE_PROTECT 2
 #define DOKAN_EVENT_REMOVABLE 4
+#define DOKAN_EVENT_MOUNT_MANAGER 8
 
 typedef struct _EVENT_DRIVER_INFO {
   ULONG DriverVersion;
@@ -340,7 +342,8 @@ typedef struct _EVENT_START {
   ULONG UserVersion;
   ULONG DeviceType;
   ULONG Flags;
-  WCHAR DriveLetter;
+  WCHAR MountPoint[260];
+  WCHAR UNCName[64];
   ULONG IrpTimeout;
 } EVENT_START, *PEVENT_START;
 
