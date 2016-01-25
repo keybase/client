@@ -724,12 +724,14 @@ func (ckf ComputedKeyFamily) GetActivePGPKeys(sibkey bool) (ret []*PGPKeyBundle)
 // UpdateDevices takes the Device object from the given ChainLink
 // and updates keys to reflects any device changes encoded therein.
 func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
-	defer ckf.G().Trace("UpdateDevice", func() error { return err })()
 
 	var dobj *Device
 	if dobj = tcl.GetDevice(); dobj == nil {
+		ckf.G().VDL.Log(VLog1, "Short-circuit of UpdateDevices(); not a device link")
 		return
 	}
+
+	defer ckf.G().Trace("UpdateDevice", func() error { return err })()
 
 	did := dobj.ID
 	kid := dobj.Kid

@@ -135,38 +135,38 @@
 		},
 		{
 			"path": "github.com/keybase/client/go/auth",
-			"revision": "dcda00196c56d74ce8b0b9f198c9f1f37b095c72",
-			"revisionTime": "2016-01-24T19:23:53-08:00"
+			"revision": "f032f2f9b4af6081c47c7292a7cb7535f27e5ab4",
+			"revisionTime": "2016-01-25T10:28:44-08:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/encoding/basex",
-			"revision": "49e2147b98212f4566e9808592658d5317e688ec",
-			"revisionTime": "2016-01-18T13:45:05-08:00"
+			"revision": "f032f2f9b4af6081c47c7292a7cb7535f27e5ab4",
+			"revisionTime": "2016-01-25T10:28:44-08:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/kex2",
-			"revision": "49e2147b98212f4566e9808592658d5317e688ec",
-			"revisionTime": "2016-01-18T13:45:05-08:00"
+			"revision": "f032f2f9b4af6081c47c7292a7cb7535f27e5ab4",
+			"revisionTime": "2016-01-25T10:28:44-08:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/libkb",
-			"revision": "fb0bbefae15529ab890c5ed86673b20a02fe503b",
-			"revisionTime": "2016-01-23T23:15:22-08:00"
+			"revision": "f032f2f9b4af6081c47c7292a7cb7535f27e5ab4",
+			"revisionTime": "2016-01-25T10:28:44-08:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/logger",
-			"revision": "fb0bbefae15529ab890c5ed86673b20a02fe503b",
-			"revisionTime": "2016-01-23T23:15:22-08:00"
+			"revision": "f032f2f9b4af6081c47c7292a7cb7535f27e5ab4",
+			"revisionTime": "2016-01-25T10:28:44-08:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/protocol",
-			"revision": "fb0bbefae15529ab890c5ed86673b20a02fe503b",
-			"revisionTime": "2016-01-23T23:15:22-08:00"
+			"revision": "f032f2f9b4af6081c47c7292a7cb7535f27e5ab4",
+			"revisionTime": "2016-01-25T10:28:44-08:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/saltpack",
-			"revision": "fb0bbefae15529ab890c5ed86673b20a02fe503b",
-			"revisionTime": "2016-01-23T23:15:22-08:00"
+			"revision": "f032f2f9b4af6081c47c7292a7cb7535f27e5ab4",
+			"revisionTime": "2016-01-25T10:28:44-08:00"
 		},
 		{
 			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-crypto/openpgp",
