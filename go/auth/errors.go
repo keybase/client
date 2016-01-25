@@ -104,7 +104,7 @@ func (e InvalidTokenServerError) Error() string {
 		e.expected, e.received)
 }
 
-// InvalidTokenChallengeError is raised then the challenge presented in the token does not
+// InvalidTokenChallengeError is raised when the challenge presented in the token does not
 // correspond to the challenge of the verifier.
 type InvalidTokenChallengeError struct {
 	expected string
