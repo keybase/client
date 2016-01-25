@@ -218,7 +218,7 @@ func configureLogging(g *libkb.GlobalContext, cl *libcmdline.CommandLine) error 
 	}
 
 	protocols := []rpc.Protocol{client.NewLogUIProtocol()}
-	if err := client.RegisterProtocols(protocols); err != nil {
+	if err := client.RegisterProtocolsWithContext(protocols, g); err != nil {
 		return err
 	}
 
@@ -235,7 +235,7 @@ func configureLogging(g *libkb.GlobalContext, cl *libcmdline.CommandLine) error 
 		Level: logLevel,
 	}
 	if err := logClient.RegisterLogger(context.TODO(), arg); err != nil {
-		return err
+		g.Log.Warning("Failed to register as a logger: %s", err)
 	}
 
 	return nil
