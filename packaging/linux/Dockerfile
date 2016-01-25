@@ -10,13 +10,14 @@ RUN apt-get update
 #   - The deploy scripts use 'git' to commit and push.
 #   - 'curl' and 'wget' are for downloading Go and Node
 #   - 'build-essential' pulls in gcc etc., which Go requires.
+#   - 's3cmd' for pushing binaries to S3
 RUN apt-get update
-RUN apt-get install -y fakeroot reprepro rpm createrepo git wget build-essential curl
+RUN apt-get install -y fakeroot reprepro rpm createrepo git wget build-essential curl s3cmd
 
 # Install a recent version of Node.
 RUN curl -sL https://deb.nodesource.com/setup_5.x | bash -
 RUN apt-get update
-RUN apt-get install -y nodejs awscli
+RUN apt-get install -y nodejs
 
 # Install Go 1.5, which doesn't exist in the Ubuntu repos yet.
 RUN wget https://storage.googleapis.com/golang/go1.5.1.linux-amd64.tar.gz -O /root/go.tar

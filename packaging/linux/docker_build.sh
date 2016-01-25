@@ -47,7 +47,7 @@ if [ -z "$git_name" ] || [ -z "$git_email" ] ; then
 fi
 
 # Make sure the image is ready.
-image=keybase_packaging_v2
+image=keybase_packaging_v3
 if [ -z "$(docker images -q "$image")" ] ; then
   echo "Docker image '$image' not yet built. Building..."
   docker build -t "$image" "$clientdir/packaging/linux"
