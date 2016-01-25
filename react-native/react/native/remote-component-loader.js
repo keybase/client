@@ -5,6 +5,7 @@ import remote from 'remote'
 import {ipcRenderer} from 'electron'
 import RemoteStore from './remote-store'
 import consoleHelper, {ipcLogsRenderer} from '../../../desktop/app/console-helper'
+import hello from '../util/hello'
 import {globalStyles, globalColors, globalHacks} from '../styles/style-guide'
 
 consoleHelper()
@@ -49,6 +50,14 @@ class RemoteComponentLoader extends Component {
 
     const componentToLoad = getQueryVariable('component')
     const selectorParams = getQueryVariable('selectorParams')
+    let title = getQueryVariable('title')
+    title = title && decodeURI(title)
+
+    if (title) {
+      document.title = title
+    }
+
+    hello(process.pid, 'Remote Component: ' + (title || ''), process.argv)
 
     const component = {
       tracker: require('../tracker').default,

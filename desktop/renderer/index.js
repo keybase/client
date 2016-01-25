@@ -12,6 +12,7 @@ import injectTapEventPlugin from 'react-tap-event-plugin'
 import ListenLogUi from '../../react-native/react/native/listen-log-ui'
 import {reduxDevToolsEnable} from '../../react-native/react/local-debug'
 import {listenForNotifications} from '../../react-native/react/actions/notifications'
+import hello from '../../react-native/react/util/hello'
 
 // For Remote Components
 import {ipcRenderer} from 'electron'
@@ -56,6 +57,9 @@ class Keybase extends Component {
 
     // Handle logUi.log
     ListenLogUi()
+
+    // Introduce ourselves to the service
+    hello(process.pid, 'Main Renderer', process.argv)
   }
 
   setupDispatchAction () {
