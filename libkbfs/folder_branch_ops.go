@@ -2945,14 +2945,14 @@ func (fbo *folderBranchOps) Read(
 // blockLock must be taken by the caller.
 func (fbo *folderBranchOps) newRightBlockLocked(
 	ctx context.Context, ptr BlockPointer, branch BranchName, pblock *FileBlock,
-	off int64, md *RootMetadata) (BlockPointer, error) {
+	off int64, md *RootMetadata) error {
 	newRID, err := fbo.config.Crypto().MakeTemporaryBlockID()
 	if err != nil {
-		return zeroPtr, err
+		return err
 	}
 	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
 	if err != nil {
-		return zeroPtr, err
+		return err
 	}
 	rblock := &FileBlock{}
 
@@ -2974,14 +2974,14 @@ func (fbo *folderBranchOps) newRightBlockLocked(
 
 	if err := fbo.config.BlockCache().PutDirty(
 		newPtr, branch, rblock); err != nil {
-		return zeroPtr, err
+		return err
 	}
 
 	if err = fbo.cacheBlockIfNotYetDirtyLocked(
 		ptr, branch, pblock); err != nil {
-		return zeroPtr, err
+		return err
 	}
-	return newPtr, nil
+	return nil
 }
 
 // cacheLock must be taken by the caller
@@ -2999,8 +2999,8 @@ func (fbo *folderBranchOps) getOrCreateSyncInfoLocked(de DirEntry) *syncInfo {
 }
 
 // blockLock must be taken for writing by the caller.  Returns the set
-// of newly-ID'd blocks created during this write that might need to
-// be cleaned up if the write is deferred.
+// of blocks dirtied during this write that might need to be cleaned
+// up if the write is deferred.
 func (fbo *folderBranchOps) writeDataLocked(
 	ctx context.Context, lState *lockState, md *RootMetadata, file path,
 	data []byte, off int64, doNotify bool) ([]BlockPointer, error) {
@@ -3035,7 +3035,7 @@ func (fbo *folderBranchOps) writeDataLocked(
 	fbo.cacheLock.Lock()
 	defer fbo.cacheLock.Unlock()
 	si := fbo.getOrCreateSyncInfoLocked(de)
-	var newPtrs []BlockPointer
+	var dirtyPtrs []BlockPointer
 	for nCopied < n {
 		ptr, parentBlock, indexInParent, block, more, startOff, err :=
 			fbo.getFileBlockAtOffsetLocked(
@@ -3095,17 +3095,15 @@ func (fbo *folderBranchOps) writeDataLocked(
 					return nil, err
 				}
 				ptr = fblock.IPtrs[0].BlockPointer
-				newPtrs = append(newPtrs, ptr)
 			}
 
 			// Make a new right block and update the parent's
 			// indirect block list
-			newPtr, err := fbo.newRightBlockLocked(ctx, file.tailPointer(),
+			err := fbo.newRightBlockLocked(ctx, file.tailPointer(),
 				file.Branch, fblock, startOff+int64(len(block.Contents)), md)
 			if err != nil {
 				return nil, err
 			}
-			newPtrs = append(newPtrs, newPtr)
 		}
 
 		if oldLen != len(block.Contents) || de.Writer != uid {
@@ -3130,6 +3128,7 @@ func (fbo *folderBranchOps) writeDataLocked(
 			block); err != nil {
 			return nil, err
 		}
+		dirtyPtrs = append(dirtyPtrs, ptr)
 	}
 
 	if fblock.IsInd {
@@ -3143,7 +3142,7 @@ func (fbo *folderBranchOps) writeDataLocked(
 			file.tailPointer(), file.Branch, fblock); err != nil {
 			return nil, err
 		}
-		newPtrs = append(newPtrs, file.tailPointer())
+		dirtyPtrs = append(dirtyPtrs, file.tailPointer())
 	}
 	si.op.addWrite(uint64(off), uint64(len(data)))
 
@@ -3162,7 +3161,7 @@ func (fbo *folderBranchOps) writeDataLocked(
 		}
 	}
 
-	return newPtrs, nil
+	return dirtyPtrs, nil
 }
 
 // cacheLock must be taken by caller.
@@ -3250,7 +3249,7 @@ func (fbo *folderBranchOps) Write(
 			fbo.doDeferWrite = false
 		}()
 
-		newPtrs, err :=
+		dirtyPtrs, err :=
 			fbo.writeDataLocked(ctx, lState, md, filePath, data, off, true)
 		if err != nil {
 			return err
@@ -3271,7 +3270,7 @@ func (fbo *folderBranchOps) Write(
 			fbo.log.CDebugf(ctx, "Deferring a write to file %v off=%d len=%d",
 				filePath.tailPointer(), off, len(data))
 			fbo.deferredDirtyDeletes = append(fbo.deferredDirtyDeletes,
-				newPtrs...)
+				dirtyPtrs...)
 			fbo.deferredWrites = append(fbo.deferredWrites,
 				func(ctx context.Context, rmd *RootMetadata, f path) error {
 					// Write the data again.  We know this won't be
@@ -3436,7 +3435,7 @@ func (fbo *folderBranchOps) Truncate(
 			fbo.doDeferWrite = false
 		}()
 
-		newPtrs, err :=
+		dirtyPtrs, err :=
 			fbo.truncateLocked(ctx, lState, md, filePath, size, true)
 		if err != nil {
 			return err
@@ -3450,7 +3449,7 @@ func (fbo *folderBranchOps) Truncate(
 			fbo.log.CDebugf(ctx, "Deferring a truncate to file %v",
 				filePath.tailPointer())
 			fbo.deferredDirtyDeletes = append(fbo.deferredDirtyDeletes,
-				newPtrs...)
+				dirtyPtrs...)
 			fbo.deferredWrites = append(fbo.deferredWrites,
 				func(ctx context.Context, rmd *RootMetadata, f path) error {
 					// Truncate the file again.  We know this won't be
@@ -3768,7 +3767,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 					// put the extra bytes in front of the next block
 					if !more {
 						// need to make a new block
-						if _, err := fbo.newRightBlockLocked(
+						if err := fbo.newRightBlockLocked(
 							ctx, file.tailPointer(), file.Branch, fblock,
 							endOfBlock, md); err != nil {
 							return true, err
