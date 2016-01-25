@@ -40,7 +40,7 @@ func main() {
 	outPtr := flag.String("o", "rsrc_windows.syso", "resource output pathname")
 	printverPtr := flag.Bool("v", false, "print version to console (no .syso output)")
 	printCustomVerPtr := flag.Bool("cv", false, "print custom version to console (no .syso output)")
-	printCustomBuildPtr := flag.Bool("cb", false, "print custom version to console (no .syso output)")
+	printCustomBuildPtr := flag.Bool("cb", false, "print custom build number to console (no .syso output)")
 	printWinVerPtr := flag.Bool("w", false, "print windows format version to console (no .syso output)")
 	iconPtr := flag.String("i", "../../../keybase/public/images/favicon.ico", "icon pathname")
 

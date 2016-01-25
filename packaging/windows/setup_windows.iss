@@ -59,7 +59,7 @@ SignTool=SignCommand
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
-Source: "{#MyExePathName}"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#MyExePathName}"; DestDir: "{app}"
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
@@ -67,18 +67,22 @@ Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{group}\{#MyAppName} CMD"; Filename: "cmd.exe"; WorkingDir: "{app}"; IconFilename: "{app}\{#MyExeName}"; Parameters: "/K ""set PATH=%PATH%;{app}"""
 
 [Registry]
-Root: "HKCU"; Subkey: "SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\Keybase.exe"; ValueType: string; ValueData: "{app}\Keybase.exe"; Flags: uninsdeletekey
+Root: "HKCU"; Subkey: "SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\keybase.exe"; ValueType: string; ValueData: "{app}\keybase.exe"; Flags: uninsdeletekey
 
 [Messages]
 WelcomeLabel2=This will install [name/ver] on your computer.
 
 [Run]
+Filename: "{app}\{#MyExeName}"; Parameters: "ctl watchdog"; Flags: runasoriginaluser runhidden nowait
 
 [UninstallDelete]
 Type: files; Name: "{userstartup}\{#MyAppName}.vbs"
 
 [InstallDelete]
 Type: files; Name: "{userstartup}\{#MyAppName}.vbs"
+
+[UninstallRun]
+Filename: "{app}\{#MyExeName}"; Parameters: "ctl stop"; WorkingDir: "{app}"; Flags: waituntilterminated
 
 [Code]
 // Simply invoking "Keybase.exe service" at startup results in an unsightly
@@ -103,45 +107,6 @@ begin
   exit;
 end;
 
-function IsKeybaseRunning : Boolean;
-var
-  WMIService: Variant;
-  WbemLocator: Variant;
-  WbemObjectSet: Variant;
-
-begin
-  WbemLocator := CreateOleObject('WbemScripting.SWbemLocator');
-  WMIService := WbemLocator.ConnectServer('localhost', 'root\CIMV2');
-  WbemObjectSet := WMIService.ExecQuery(ExpandConstant('SELECT * FROM Win32_Process Where Name="{#MyExeName}"'));
-  
-  // Fairly simple check just to see if a process is running named Keybase.exe
-  // No point in trying to stop it otherwise (it will hang).
-  Result := not VarIsNull(WbemObjectSet) and (WbemObjectSet.Count > 0);
-end;
- 
-procedure StopKeybaseService();
-var
-  ResultCode: Integer;
-  CommandName: string;
-  i: Integer;
-
-begin
-  if IsKeybaseRunning() then
-  begin
-    // Launch Keybase ctl stop and wait for it to terminate
-    CommandName := ExpandConstant('{app}\{#MyExeName}');
-    Exec(CommandName, 'ctl stop', '', SW_SHOW,
-      ewWaitUntilTerminated, ResultCode);
-    Sleep(500);
-  end;
-  for i := 1 to 5 do 
-  begin
-    if IsKeybaseRunning() then
-      Sleep(500)
-    else
-      break;
-  end;
-end;
  
 procedure CurStepChanged(CurStep: TSetupStep);
 var
@@ -151,19 +116,6 @@ begin
   if  CurStep=ssPostInstall then
     begin
       CreateStartupScript();
-      ExecAsOriginalUser(ExpandConstant('{app}\{#MyExeName}'), 'ctl watchdog', '', SW_HIDE, ewNoWait, ResultCode);
     end
 end;
 
-procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
-begin
-  if  CurUninstallStep=usUninstall then
-    begin
-         StopKeybaseService();
-    end
-end;
-
-function PrepareToInstall(var NeedsRestart: Boolean): String;
-begin
-    StopKeybaseService();
-end;

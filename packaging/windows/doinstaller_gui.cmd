@@ -9,7 +9,7 @@ For %%A in ("%1") do Set Folder=%%~dpA
 for /f %%i in ('%Folder%winresource.exe -w') do set BUILDVER=%%i
 echo %BUILDVER%
 
-:: Capture the semantic version - this is the only way to store it in a .cmd variable
+:: Capture keybase's semantic version - this is the only way to store it in a .cmd variable
 for /f "tokens=3" %%i in ('%1 -version') do set SEMVER=%%i
 echo %SEMVER%
 
