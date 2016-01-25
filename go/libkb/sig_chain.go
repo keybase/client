@@ -415,7 +415,7 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 			w.Warn()
 		}
 
-		sc.G().Log.Debug("| Verify link: %s", link.id)
+		sc.G().VDL.Log(VLog1, "| Verify link: %s", link.id)
 
 		if first {
 			if err = ckf.InsertEldestLink(tcl, un); err != nil {
