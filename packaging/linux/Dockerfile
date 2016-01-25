@@ -10,9 +10,13 @@ RUN apt-get update
 #   - The deploy scripts use 'git' to commit and push.
 #   - 'curl' and 'wget' are for downloading Go and Node
 #   - 'build-essential' pulls in gcc etc., which Go requires.
-#   - 's3cmd' for pushing binaries to S3
+#   - python and pip for recent versions of s3cmd
 RUN apt-get update
-RUN apt-get install -y fakeroot reprepro rpm createrepo git wget build-essential curl s3cmd
+RUN apt-get install -y fakeroot reprepro rpm createrepo git wget build-essential curl python python-pip
+
+# Install s3cmd. See this issue for why we need a version newer than what's in
+# the Debian repos: https://github.com/s3tools/s3cmd/issues/437
+RUN pip install s3cmd
 
 # Install a recent version of Node.
 RUN curl -sL https://deb.nodesource.com/setup_5.x | bash -

@@ -21,6 +21,8 @@ if [ "$#" -lt 1 ] ; then
   exit 1
 fi
 
+mode="$1"
+
 here="$(dirname "$BASH_SOURCE")"
 
 clientdir="$(git -C "$here" rev-parse --show-toplevel)"
@@ -36,14 +38,20 @@ fi
 kbfsdir="$clientdir/../kbfs"
 "$here/../check_status_and_pull.sh" "$kbfsdir"
 
-# TODO: Make sure Amazon S3 credentials are working.
-
 # Get the current git configs for making commits.
 git_name="$(git -C "$SERVEROPSDIR" config user.name || true)"
 git_email="$(git -C "$SERVEROPSDIR" config user.email || true)"
 if [ -z "$git_name" ] || [ -z "$git_email" ] ; then
   echo "The server-ops repo doesn't have user.name and user.email configured."
   exit 1
+fi
+
+# Test the S3 credentials, and copy them to a temp folder for sharing. (Docker
+# on non-Linux platforms cannot share files directly.)
+s3cmd_temp="$(mktemp -d)"
+if [ "$mode" = prerelease ] || [ "$mode" = nightly ] ; then
+  s3cmd get s3://prerelease.keybase.io/update-linux-prod.json - > /dev/null
+  cp ~/.s3cfg "$s3cmd_temp"
 fi
 
 # Make sure the image is ready.
@@ -95,9 +103,9 @@ docker run -ti \
   -v "$SERVEROPSDIR:/SERVEROPS:ro" \
   -v "$clientdir:/CLIENT:ro" \
   -v "$kbfsdir:/KBFS:ro" \
-  -v "$HOME/.aws:/root/.aws:ro" \
   -v "$HOME/.ssh:/root/.ssh:ro" \
   -v "$gpg_tempdir:/GPG" \
+  -v "$s3cmd_temp:/S3CMD:ro" \
   "${osx_args[@]:+${osx_args[@]}}" \
   -e GIT_AUTHOR_NAME="$git_name" \
   -e GIT_COMMITTER_NAME="$git_name" \

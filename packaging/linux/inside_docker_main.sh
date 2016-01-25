@@ -7,24 +7,18 @@
 #
 # For example: ./inside_docker_main.sh staging v1.0.0-27
 #
-# Most of the packaging work is done by the rpm and deb layout scripts, which
-# in turn call the respective packaging scripts in the client repo. This
-# scripts job is to set up the build environment by creating a GOPATH and
-# kicking off a gpg-agent.
-#
-# After running all of this, the server-ops repo will have the latest packages
-# in origin/master. The final step of a release is then to ssh into
-# dist.keybase.io and pull the server-ops repo there.
+# TAG is optional for modes other than production. MODE can be "nightly", which
+# puts this script into a loop.
 
 set -e -u -o pipefail
 
 mode="$1"
 tag="${2:-}"
 
-if [ "$mode" = "production" ] && [ -z "$tag" ] ; then
-  echo ERROR: in production mode, you must build from a git tag.
-  exit 1
-fi
+client_copy="/root/client"
+kbfs_copy="/root/kbfs"
+serverops_copy="/root/server-ops"
+build_dir="/root/build_keybase"
 
 # Import the code signing key, kick off the gpg agent, and sign an empty
 # message with it. This makes the password prompt happen now, so that we don't
@@ -33,107 +27,77 @@ echo "Loading the Keybase code signing key in the container..."
 code_signing_fingerprint="$(cat /CLIENT/packaging/linux/code_signing_fingerprint)"
 gpg --import --quiet < /GPG/code_signing_key
 true > /GPG/code_signing_key  # truncate it, just in case
-eval $(gpg-agent --daemon)
+# Use very long lifetimes for the key in memory, so that we don't forget it in
+# the middle of a nightly loop.
+eval "$(gpg-agent --daemon --max-cache-ttl 315360000 --default-cache-ttl 315360000)"
 gpg --sign --use-agent --default-key "$code_signing_fingerprint" \
   --output /dev/null /dev/null
 
+# Copy in the S3 credentials in prerelease or nightly mode.
+if [ "$mode" = prerelease ] || [ "$mode" = nightly ] ; then
+  cp /S3CMD/.s3cfg /root/
+fi
+
 # Copy the repos we'll be using to build.
 echo "Copying the client repo..."
-client_clone="/root/client"
-cp -r /CLIENT "$client_clone"
+cp -r /CLIENT "$client_copy"
 echo "Copying the kbfs repo..."
-kbfs_clone="/root/kbfs"
-cp -r /KBFS "$kbfs_clone"
+cp -r /KBFS "$kbfs_copy"
 
-# Optionally check out the tag we're building.
+if [ "$mode" != prerelease ] && [ "$mode" != nightly ] ; then
+  echo "Copying the server-ops repo..."
+  cp -r /SERVEROPS "$serverops_copy"
+fi
+
+# If we're not entering a nightly build loop (where everything by definition
+# happens from master) then we'll build whatever working copy these repos have
+# checked out. However, if a tag was provided, switch to that.
 if [ -n "$tag" ] ; then
-  echo "Checkout out tag '$tag'..."
-  git -C "$client_clone" checkout "$tag"
+  git -C "$client_copy" checkout -f "$tag"
 fi
 
-# Build all the packages!
-build_dir="/root/keybase_build"
-"$client_clone/packaging/linux/build_binaries.sh" "$mode" "$build_dir"
-"$client_clone/packaging/linux/deb/layout_repo.sh" "$build_dir"
-"$client_clone/packaging/linux/rpm/layout_repo.sh" "$build_dir"
-version="$(cat "$build_dir/VERSION")"
-
-if [ "$mode" = "devel" ] ; then
-  echo "Devel mode does not push. Quitting."
-  exit
+# In a non-nightly build mode, do the build once and then short-circuit.
+if [ "$mode" != nightly ] ; then
+  "$client_copy/packaging/linux/build_and_push_packages.sh" "$mode" "$build_dir"
+  exit "$?"
 fi
 
-release_prerelease() {
-  credentials="$HOME/.aws/credentials"
-  export AWS_ACCESS_KEY_ID="$(grep aws_access_key_id "$credentials" | awk '{print $3}')"
-  export AWS_SECRET_ACCESS_KEY="$(grep aws_secret_access_key "$credentials" | awk '{print $3}')"
+# NIGHTLY MODE
 
-  echo Doing a prerelease push to S3...
-  # Upload both repos to S3.
-  echo Syncing the deb repo...
-  s3cmd sync --delete-removed "$build_dir/deb_repo/repo/" s3://prerelease.keybase.io/deb/
-  echo Syncing the rpm repo...
-  s3cmd sync --delete-removed "$build_dir/rpm_repo/repo/" s3://prerelease.keybase.io/rpm/
-
-  # Upload another copy of the packages to our list of all packages.
-  for f in "$build_dir"/deb_repo/repo/pool/main/*/*/*.deb ; do
-    echo "Uploading individual binary '$f'..."
-    s3cmd put "$f" s3://prerelease.keybase.io/linux_binaries/deb/
-  done
-  for f in "$build_dir"/rpm_repo/repo/*/*.rpm ; do
-    echo "Uploading individual binary '$f'..."
-    s3cmd put "$f" s3://prerelease.keybase.io/linux_binaries/rpm/
-  done
-
-  json_tmp=`mktemp`
-  echo "Writing version into JSON to $json_tmp"
-  cat > "$json_tmp" <<END
-{
-"version": "$version",
-"name": "v$version",
-"description": "Latest Linux release",
-"type": 0
-}
-END
-
-  s3cmd put --mime-type application/json "$json_tmp" s3://prerelease.keybase.io/update-linux-prod.json
-
-  # Generate and push the index.html file.
-  export BUCKET_NAME="prerelease.keybase.io"
-  export GOPATH="$HOME/s3_gopath"  # for building the Go release binary
-  "$client_clone/packaging/prerelease/s3_index.sh"
+ny_date() {
+  TZ=America/New_York date "$@"
 }
 
-release_serverops() {
-  serverops_clone="/root/server-ops"
-  if [ "$mode" = staging ] ; then
-    deb_repo="$serverops_clone/prod/linux/deb_staging"
-    rpm_repo="$serverops_clone/prod/linux/rpm_staging"
-  elif [ "$mode" = production ] ; then
-    deb_repo="$serverops_clone/prod/linux/deb"
-    rpm_repo="$serverops_clone/prod/linux/rpm"
-  else
-    echo "WHAT IS '$mode' MODE? (╯°□°）╯︵ ┻━┻)"
-    exit 1
+refresh_repos() {
+  "$client_copy/packaging/check_status_and_pull.sh" "$client_copy"
+  "$client_copy/packaging/check_status_and_pull.sh" "$kbfs_copy"
+  if [ "$mode" != prerelease ] && [ "$mode" != nightly ] ; then
+    "$client_copy/packaging/check_status_and_pull.sh" "$serverops_copy"
   fi
-
-  echo Copying the server-ops repo...
-  cp -r /SERVEROPS "$serverops_clone"
-  echo Pushing to server-ops...
-  mkdir -p "$serverops_clone/prod/linux"
-  rm -rf "$deb_repo"
-  cp -r "$build_dir/deb_repo" "$deb_repo"
-  rm -rf "$rpm_repo"
-  cp -r "$build_dir/rpm_repo" "$rpm_repo"
-  git -C "$serverops_clone" add -A
-  git -C "$serverops_clone" commit -m "new Linux $mode packages, version $version"
-  git -C "$serverops_clone" push
 }
 
-# RELEASE THE PACKAGES! In prerelease mode, this involves a push to S3. In
-# other modes, we check in package files to the server-ops repo.
-if [ "$mode" = prerelease ] ; then
-  release_prerelease
-else
-  release_serverops
-fi
+# I don't want to have to think about what happens to sleep when a machine
+# suspends for a long time and wakes up. So instead of a big sleep, we do
+# little one minute sleeps, and do a build whenever we happen to wake up at
+# 3am.
+
+# Do an early refresh, to catch errors.
+refresh_repos
+
+echo Entering nightly loop...
+last_build_day=""
+while true ; do
+  current_day="$(ny_date +%d)"
+  current_hour="$(ny_date +%H)"
+  # Build if it's midnight and we haven't already built today.
+  if [ "$current_day" != "$last_build_day" ] && [ "$current_hour" = 00 ] ; then
+    last_build_day="$current_day"
+    echo -e "\n\n\n=================== STARTING A BUILD ===================="
+    ny_date
+    refresh_repos
+    # Each nightly build happens in prerelease mode. Suppress errors in the
+    # build script with `|| true`, so that the nightly loop continues.
+    "$client_copy/packaging/linux/build_and_push_packages.sh" prerelease "$build_dir" || true
+  fi
+  sleep 60
+done
