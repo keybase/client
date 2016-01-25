@@ -59,7 +59,7 @@ SignTool=SignCommand
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
-Source: "{#MyExePathName}"; DestDir: "{app}"
+Source: "{#MyExePathName}"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Icons]
@@ -67,22 +67,18 @@ Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{group}\{#MyAppName} CMD"; Filename: "cmd.exe"; WorkingDir: "{app}"; IconFilename: "{app}\{#MyExeName}"; Parameters: "/K ""set PATH=%PATH%;{app}"""
 
 [Registry]
-Root: "HKCU"; Subkey: "SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\keybase.exe"; ValueType: string; ValueData: "{app}\keybase.exe"; Flags: uninsdeletekey
+Root: "HKCU"; Subkey: "SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\Keybase.exe"; ValueType: string; ValueData: "{app}\Keybase.exe"; Flags: uninsdeletekey
 
 [Messages]
 WelcomeLabel2=This will install [name/ver] on your computer.
 
 [Run]
-Filename: "{app}\{#MyExeName}"; Parameters: "ctl watchdog"; Flags: runasoriginaluser runhidden nowait
 
 [UninstallDelete]
 Type: files; Name: "{userstartup}\{#MyAppName}.vbs"
 
 [InstallDelete]
 Type: files; Name: "{userstartup}\{#MyAppName}.vbs"
-
-[UninstallRun]
-Filename: "{app}\{#MyExeName}"; Parameters: "ctl stop"; WorkingDir: "{app}"; Flags: waituntilterminated
 
 [Code]
 // Simply invoking "Keybase.exe service" at startup results in an unsightly

@@ -35,3 +35,4 @@ IF %ERRORLEVEL% NEQ 0 (
 
 :: Afterwards, do:
 :: powershell Get-FileHash -Algorithm sha256
+:: (must convert to lower case before using in update json)
