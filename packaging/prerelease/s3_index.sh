@@ -22,5 +22,7 @@ release_bin="$GOPATH/bin/release"
 mkdir -p $save_dir
 echo "Creating index.html"
 $release_bin index-html --bucket-name="$bucket_name" --prefixes="darwin/,linux_binaries/deb/,linux_binaries/rpm,electron-sourcemaps/" --dest="$save_dir/index.html"
+echo "Linking latest"
+$release_bin latest --bucket-name="$bucket_name"
 echo "Syncing"
 s3cmd sync --acl-public --disable-multipart $save_dir/* s3://$bucket_name/
