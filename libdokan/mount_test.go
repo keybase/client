@@ -1469,25 +1469,6 @@ func TestStatOtherFolderPublic(t *testing.T) {
 
 }
 
-func TestStatOtherFolderPublicFirstUse(t *testing.T) {
-	// This triggers a different error than with the warmup.
-	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
-	defer libkbfs.CheckConfigAndShutdown(t, config)
-
-	c2 := libkbfs.ConfigAsUser(config, "wsmith")
-	defer c2.Shutdown()
-	mnt, _, cancelFn := makeFS(t, c2)
-	defer mnt.Close()
-	defer cancelFn()
-
-	switch _, err := os.Lstat(path.Join(mnt.Dir, PublicName, "jdoe")); err := err.(type) {
-	case *os.PathError:
-	default:
-		t.Fatalf("expected a PathError, got %T: %v", err, err)
-	}
-
-}
-
 func TestReadPublicFile(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
 	defer libkbfs.CheckConfigAndShutdown(t, config)
