@@ -273,7 +273,7 @@ func TestKBFSOpsGetRootNodeCacheIdentifyFail(t *testing.T) {
 		Return(name2, nil)
 	config.mockKbpki.EXPECT().Resolve(gomock.Any(), string(name2)).AnyTimes().
 		Return(uid2, nil)
-	config.mockKbpki.EXPECT().Identify(gomock.Any(), fmt.Sprintf("uid:%s", uid2), gomock.Any()).Return(UserInfo{}, expectedErr)
+	config.mockKbpki.EXPECT().Identify(gomock.Any(), name2.String(), gomock.Any()).Return(UserInfo{}, expectedErr)
 
 	rmd.data.Dir.BlockPointer.ID = fakeBlockID(1)
 	rmd.data.Dir.Type = Dir

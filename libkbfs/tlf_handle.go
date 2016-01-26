@@ -257,10 +257,16 @@ func identifyTlfHandle(ctx context.Context, kbpki KBPKI,
 
 func identifyUID(ctx context.Context, kbpki KBPKI, name string,
 	uid keybase1.UID, isWriter, isPublic bool) error {
-	assertion := fmt.Sprintf("uid:%s", uid)
-	userInfo, err := identifyHelper(ctx, kbpki, name, assertion, isWriter, isPublic)
+	username, err := kbpki.GetNormalizedUsername(ctx, uid)
 	if err != nil {
 		return err
+	}
+	userInfo, err := identifyHelper(ctx, kbpki, name, username.String(), isWriter, isPublic)
+	if err != nil {
+		return err
+	}
+	if userInfo.Name != username {
+		return fmt.Errorf("Identify returned name=%s, expected %s", userInfo.Name, username)
 	}
 	if userInfo.UID != uid {
 		return fmt.Errorf("Identify returned uid=%s, expected %s", userInfo.UID, uid)
