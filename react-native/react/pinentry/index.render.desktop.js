@@ -65,6 +65,7 @@ export default class PinentryRender extends Component {
               })}
             </div>
             <Input
+              ref={input => input && input.focus()}
               errorText={this.props.retryLabel}
               style={styles.input}
               onChange={e => this.setState({passphrase: e.target.value})}

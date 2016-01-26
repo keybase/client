@@ -36,6 +36,10 @@ export default class Input extends Component {
     this._textField && this._textField.blur()
   }
 
+  focus () {
+    this._textField && this._textField.focus()
+  }
+
   render () {
     const style = this.props.small ? styles.containerSmall : styles.container
     const textStyle = this.props.small ? styles.inputSmall : styles.input
