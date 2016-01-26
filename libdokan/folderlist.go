@@ -78,9 +78,11 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 			// Invalid public TLF.
 			return nil, false, dokan.ErrObjectPathNotFound
 
-		// TODO: Handle libkbfs.WriteAccessError similarly to
-		// libfuse.
-
+		case libkbfs.WriteAccessError:
+			if len(path) == 1 {
+				return &EmptyFolder{}, true, nil
+			}
+			return nil, false, dokan.ErrObjectPathNotFound
 		default:
 			// Some other error.
 			return nil, false, err
