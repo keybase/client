@@ -60,6 +60,14 @@ release_serverops() {
 
 release_prerelease() {
   echo Doing a prerelease push to S3...
+
+  # Parse the shared .s3cfg file and export the keys as environment variables.
+  # (Our s3cmd commands would be happy to read that file directly if we put it
+  # in /root, but the s3_index.sh script ends up running Go code that depends
+  # on the variables.)
+  export AWS_ACCESS_KEY="$(grep access_key /S3CMD/.s3cfg | awk '{print $3}')"
+  export AWS_SECRET_KEY="$(grep secret_key /S3CMD/.s3cfg | awk '{print $3}')"
+
   # Upload both repos to S3.
   echo Syncing the deb repo...
   s3cmd sync --delete-removed "$build_dir/deb_repo/repo/" s3://prerelease.keybase.io/deb/

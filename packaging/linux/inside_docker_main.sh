@@ -33,11 +33,6 @@ eval "$(gpg-agent --daemon --max-cache-ttl 315360000 --default-cache-ttl 3153600
 gpg --sign --use-agent --default-key "$code_signing_fingerprint" \
   --output /dev/null /dev/null
 
-# Copy in the S3 credentials in prerelease or nightly mode.
-if [ "$mode" = prerelease ] || [ "$mode" = nightly ] ; then
-  cp /S3CMD/.s3cfg /root/
-fi
-
 # Copy the repos we'll be using to build. There are two reasons we do this:
 # 1) We don't want builds to get confused by changes made on the host after
 #    the build has started. This especially applies to nightly builds, which
