@@ -19,11 +19,10 @@ import (
 
 type compatMount struct {
 	*dokan.MountHandle
-	Dir string
 }
 
 func (c *compatMount) Close() {
-	dokan.Unmount(c.Dir[0])
+	dokan.Unmount(c.Dir)
 	getDriveLetterLock(c.Dir[0]).Unlock()
 }
 
@@ -42,11 +41,11 @@ func makeFSE(t testing.TB, config *libkbfs.ConfigLocal, driveLetter byte) (*comp
 		t.Fatal(err)
 	}
 
-	mnt, err := dokan.Mount(fs, driveLetter)
+	mnt, err := dokan.Mount(fs, string([]byte{driveLetter, ':'}))
 	if err != nil {
 		t.Fatal(err)
 	}
-	cm := &compatMount{Dir: string([]byte{driveLetter, ':'}), MountHandle: mnt}
+	cm := &compatMount{MountHandle: mnt}
 	return cm, fs, cancelFn
 }
 
