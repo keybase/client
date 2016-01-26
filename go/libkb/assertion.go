@@ -289,6 +289,8 @@ func (a AssertionSocial) IsRemote() bool           { return true }
 func (a AssertionWeb) IsRemote() bool              { return true }
 func (a AssertionFingerprint) IsFingerprint() bool { return true }
 func (a AssertionUID) IsUID() bool                 { return true }
+func (a AssertionHTTP) IsRemote() bool             { return true }
+func (a AssertionHTTPS) IsRemote() bool            { return true }
 
 func (a AssertionUID) ToUID() keybase1.UID {
 	if a.uid.IsNil() {
