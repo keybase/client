@@ -371,10 +371,10 @@ func (u *Updater) Update(ui UI, force bool, requested bool) (*keybase1.Update, e
 	do := func() (interface{}, error) {
 		return u.update(ui, force, requested)
 	}
-	any, cached, err := u.callGroup.Do("update", do)
+	any, skipped, err := u.callGroup.Do("update", true, do)
 
-	if cached {
-		u.log.Info("Update call was singleflighted and returned cached result, skipping")
+	if skipped {
+		u.log.Info("Update was already in progress, skipping")
 		return nil, nil
 	}
 
