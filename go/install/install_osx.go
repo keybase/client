@@ -181,7 +181,8 @@ func DefaultKBFSLabel(runMode libkb.RunMode) string {
 
 func installKeybaseService(g *libkb.GlobalContext, binPath string) (*keybase1.ServiceStatus, error) {
 	label := DefaultServiceLabel(g.Env.GetRunMode())
-	plistArgs := []string{"service"}
+	// TODO: Remove -d when doing real release
+	plistArgs := []string{"-d", "service"}
 	envVars := DefaultLaunchdEnvVars(g, label)
 
 	plist := launchd.NewPlist(label, binPath, plistArgs, envVars)
