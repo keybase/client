@@ -71,9 +71,9 @@ release_prerelease() {
   echo Doing a prerelease push to S3...
   # Upload both repos to S3.
   echo Syncing the deb repo...
-  s3cmd sync --delete-removed "$build_dir/deb_repo/repo" s3://prerelease.keybase.io/deb/
+  s3cmd sync --delete-removed "$build_dir/deb_repo/repo/" s3://prerelease.keybase.io/deb/
   echo Syncing the rpm repo...
-  s3cmd sync --delete-removed "$build_dir/rpm_repo/repo" s3://prerelease.keybase.io/rpm/
+  s3cmd sync --delete-removed "$build_dir/rpm_repo/repo/" s3://prerelease.keybase.io/rpm/
 
   # Upload another copy of the packages to our list of all packages.
   for f in "$build_dir"/deb_repo/repo/pool/main/*/*/*.deb ; do
