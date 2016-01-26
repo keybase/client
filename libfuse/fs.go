@@ -98,7 +98,7 @@ func (f *FS) queueNotification(fn func()) {
 	f.notifications.In() <- fn
 }
 
-// LaunchNotificationProcessor launches the  nitification  processor.
+// LaunchNotificationProcessor launches the  notification  processor.
 func (f *FS) LaunchNotificationProcessor(ctx context.Context) {
 	f.notificationMutex.Lock()
 	defer f.notificationMutex.Unlock()

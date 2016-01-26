@@ -2,6 +2,12 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
+// Without any build tags the tests are run on libkbfs directly.
+// With the tag dokan all tests are run through a dokan filesystem.
+// With the tag fuse all tests are run thrhough a fuse filesystem.
+// Note that fuse cannot be compiled on Windows and Dokan can only
+// be compiled on Windows.
+
 // +build dokan fuse
 
 package test
@@ -94,6 +100,7 @@ func as(user username, fops ...fileOp) optionOp {
 	}
 }
 
+// runInitOnce is run once per opt. Each test case has their own opt.
 func (o *opt) runInitOnce() {
 	if o.initDone {
 		return
