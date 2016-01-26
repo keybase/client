@@ -305,9 +305,8 @@ func (md *MDOpsStandard) readyMD(ctx context.Context, rmd *RootMetadata) (
 
 	codec := md.config.Codec()
 	crypto := md.config.Crypto()
-	handle := rmd.GetTlfHandle()
 
-	if rmd.ID.IsPublic() || handle.IsWriter(me) {
+	if rmd.ID.IsPublic() || !rmd.IsWriterMetadataCopiedSet() {
 		// Record the last writer to modify this writer metadata
 		rmd.LastModifyingWriter = me
 
