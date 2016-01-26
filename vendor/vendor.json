@@ -273,6 +273,11 @@
 			"revisionTime": "2015-11-29T16:13:40-08:00"
 		},
 		{
+			"path": "github.com/stathat/go",
+			"revision": "4f9037d3c641cd8dbda0d4d91bc95d3e314d3bd6",
+			"revisionTime": "2016-01-26T15:36:48-06:00"
+		},
+		{
 			"path": "github.com/stretchr/testify/assert",
 			"revision": "5b9da39b66e8e994455c2525c4421c8cc00a7f93",
 			"revisionTime": "2016-01-02T12:02:58+01:00"
