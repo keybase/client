@@ -28,11 +28,10 @@ import (
 
 type compatMount struct {
 	*dokan.MountHandle
-	Dir string
 }
 
 func (c *compatMount) Close() {
-	dokan.Unmount(c.Dir[0])
+	dokan.Unmount(c.Dir)
 	getDriveLetterLock(c.Dir[0]).Unlock()
 }
 
@@ -61,11 +60,11 @@ func makeFSE(t testing.TB, config *libkbfs.ConfigLocal, driveLetter byte) (*comp
 		t.Fatalf("NewFS failed: %q", err.Error())
 	}
 
-	mnt, err := dokan.Mount(filesys, driveLetter)
+	mnt, err := dokan.Mount(filesys, string([]byte{driveLetter, ':', '\\'}))
 	if err != nil {
 		t.Fatal(err)
 	}
-	cm := &compatMount{Dir: string([]byte{driveLetter, ':', '\\'}), MountHandle: mnt}
+	cm := &compatMount{MountHandle: mnt}
 	return cm, filesys, cancelFn
 }
 
@@ -1465,25 +1464,6 @@ func TestStatOtherFolderPublic(t *testing.T) {
 	// fuse, not the person owning the folder
 	if g, e := fi.Mode().String(), `drwxrwxrwx`; g != e {
 		t.Errorf("wrong mode for folder: %q != %q", g, e)
-	}
-
-}
-
-func TestStatOtherFolderPublicFirstUse(t *testing.T) {
-	// This triggers a different error than with the warmup.
-	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
-	defer libkbfs.CheckConfigAndShutdown(t, config)
-
-	c2 := libkbfs.ConfigAsUser(config, "wsmith")
-	defer c2.Shutdown()
-	mnt, _, cancelFn := makeFS(t, c2)
-	defer mnt.Close()
-	defer cancelFn()
-
-	switch _, err := os.Lstat(path.Join(mnt.Dir, PublicName, "jdoe")); err := err.(type) {
-	case *os.PathError:
-	default:
-		t.Fatalf("expected a PathError, got %T: %v", err, err)
 	}
 
 }

@@ -22,7 +22,7 @@ func TestEmptyFS(t *testing.T) {
 	s0 := fsTableStore(errorFS{}, nil)
 	defer fsTableFree(s0)
 	fs := newTestFS()
-	mnt, err := Mount(fs, 'T')
+	mnt, err := Mount(fs, `T:\`)
 	if err != nil {
 		t.Fatal("Mount failed:", err)
 	}

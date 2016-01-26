@@ -32,13 +32,12 @@ typedef uint32_t go_fs_id;
 struct kbfs_libdokan_ctx {
   DOKAN_OPERATIONS dokan_operations;
   DOKAN_OPTIONS dokan_options;
-  WCHAR drive_letter[4]; // e.g. `G:\`
 };
 
 struct kbfs_libdokan_ctx* kbfs_libdokan_alloc_ctx(ULONG64 fsslot);
 error_t kbfs_libdokan_free(struct kbfs_libdokan_ctx* ctx);
 error_t kbfs_libdokan_run(struct kbfs_libdokan_ctx* ctx);
-void kbfs_libdokan_set_drive_letter(struct kbfs_libdokan_ctx* ctx, char c);
+void kbfs_libdokan_set_path(struct kbfs_libdokan_ctx* ctx, void*);
 
 int kbfs_libdokan_fill_find(PFillFindData, PWIN32_FIND_DATAW, PDOKAN_FILE_INFO);
 

@@ -16,9 +16,9 @@ import (
 )
 
 // Unmount a drive mounted by dokan.
-func Unmount(driveLetter byte) error {
+func Unmount(path string) error {
 	debug("Unmount: Calling Dokan.Unmount")
-	res := C.DokanUnmount(C.WCHAR(driveLetter))
+	res := C.DokanRemoveMountPoint((*C.WCHAR)(stringToUtf16Ptr(path)))
 	if res == C.FALSE {
 		debug("Unmount: Failed!")
 		return errors.New("DokanRemoveMountPoint failed!")

@@ -52,7 +52,7 @@ func (m *DefaultMounter) Mount(fs dokan.FileSystem) error {
 // go-routine.
 func (m *DefaultMounter) mountHelper(fs dokan.FileSystem) (*dokan.MountHandle, error) {
 	// m.dir is constant and safe to access outside the lock.
-	handle, err := dokan.Mount(fs, m.dir[0])
+	handle, err := dokan.Mount(fs, m.dir)
 	if err != nil {
 		return nil, err
 	}

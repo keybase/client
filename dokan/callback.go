@@ -354,33 +354,30 @@ func kbfs_libdokan_Mounted(pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	return errToNT(err)
 }
 
-/* FIXME add support for getting/setting windows ACLs
-
 //export kbfs_libdokan_GetFileSecurity
-func kbfs_libdokan_GetFileSecurity (
+func kbfs_libdokan_GetFileSecurity(
 	fname C.LPCWSTR,
 	//A pointer to SECURITY_INFORMATION value being requested
 	input C.PSECURITY_INFORMATION,
 	// A pointer to SECURITY_DESCRIPTOR buffer to be filled
 	output C.PSECURITY_DESCRIPTOR,
-	outlen C.ULONG,// length of Security descriptor buffer
+	outlen C.ULONG, // length of Security descriptor buffer
 	LengthNeeded C.PULONG,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
-
-
+	debug("GetFileSecurity TODO")
+	return ntstatusOk
 }
 
 //export kbfs_libdokan_SetFileSecurity
-func kbfs_libdokan_SetFileSecurity (
+func kbfs_libdokan_SetFileSecurity(
 	fname C.LPCWSTR,
 	SecurityInformation C.PSECURITY_INFORMATION,
 	SecurityDescriptor C.PSECURITY_DESCRIPTOR,
 	SecurityDescriptorLength C.ULONG,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
-
-
+	debug("SetFileSecurity TODO")
+	return ntstatusOk
 }
-*/
 
 /* FIXME add support for multiple streams per file?
 //export kbfs_libdokan_FindStreams
