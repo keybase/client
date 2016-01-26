@@ -55,6 +55,10 @@ export default function () {
       event.preventDefault()
     })
 
+    if (process.platform === 'linux') {
+      mb.tray.setToolTip('View Folders')
+    }
+
     mb.on('show', () => {
       menubarListeners.forEach(l => l.send('menubarShow'))
     })
