@@ -38,12 +38,18 @@ if [ "$mode" = prerelease ] || [ "$mode" = nightly ] ; then
   cp /S3CMD/.s3cfg /root/
 fi
 
-# Copy the repos we'll be using to build.
+# Copy the repos we'll be using to build. There are two reasons we do this:
+# 1) We don't want builds to get confused by changes made on the host after
+#    the build has started. This especially applies to nightly builds, which
+#    require a repo that always remains at master.
+# 2) Even if we wanted to have changes in the container be reflected back in
+#    the host, all files written by a Docker container will appear on the host
+#    to be written by root. That interacts poorly with a user's repos.
+# Thus we have the host share these directories read-only, and we copy them.
 echo "Copying the client repo..."
 cp -r /CLIENT "$client_copy"
 echo "Copying the kbfs repo..."
 cp -r /KBFS "$kbfs_copy"
-
 if [ "$mode" != prerelease ] && [ "$mode" != nightly ] ; then
   echo "Copying the server-ops repo..."
   cp -r /SERVEROPS "$serverops_copy"
