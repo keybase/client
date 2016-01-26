@@ -221,7 +221,6 @@ static DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_Mounted(PDOKAN_FILE_INFO FileInfo
   return kbfs_libdokan_Mounted(FileInfo);
 }
 
-/*
 extern NTSTATUS kbfs_libdokan_GetFileSecurity(LPCWSTR FileName,
 											  //A pointer to SECURITY_INFORMATION value being requested
 											  PSECURITY_INFORMATION input,
@@ -230,13 +229,31 @@ extern NTSTATUS kbfs_libdokan_GetFileSecurity(LPCWSTR FileName,
 											  ULONG outlen,// length of Security descriptor buffer
 											  PULONG LengthNeeded,
 											  PDOKAN_FILE_INFO FileInfo);
+static DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_GetFileSecurity(LPCWSTR FileName,
+											  //A pointer to SECURITY_INFORMATION value being requested
+											  PSECURITY_INFORMATION input,
+											  // A pointer to SECURITY_DESCRIPTOR buffer to be filled
+											  PSECURITY_DESCRIPTOR output,
+											  ULONG outlen,// length of Security descriptor buffer
+											  PULONG LengthNeeded,
+											  PDOKAN_FILE_INFO FileInfo) {
+	return kbfs_libdokan_GetFileSecurity(FileName, input, output, outlen, LengthNeeded, FileInfo);
+}
 
 extern NTSTATUS kbfs_libdokan_SetFileSecurity(LPCWSTR FileName,
 											  PSECURITY_INFORMATION SecurityInformation,
 											  PSECURITY_DESCRIPTOR SecurityDescriptor,
 											  ULONG SecurityDescriptorLength,
 											  PDOKAN_FILE_INFO FileInfo);
+static DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_SetFileSecurity(LPCWSTR FileName,
+											  PSECURITY_INFORMATION SecurityInformation,
+											  PSECURITY_DESCRIPTOR SecurityDescriptor,
+											  ULONG SecurityDescriptorLength,
+											  PDOKAN_FILE_INFO FileInfo) {
+	return kbfs_libdokan_SetFileSecurity(FileName, SecurityInformation, SecurityDescriptor, SecurityDescriptorLength, FileInfo);
+}
 
+/*
 extern NTSTATUS kbfs_libdokan_FindStreams(LPCWSTR FileName,
 										  // call this function with PWIN32_FIND_STREAM_DATA
 										  PFillFindStreamData FindStreamData, 
@@ -277,9 +294,8 @@ struct kbfs_libdokan_ctx* kbfs_libdokan_alloc_ctx(ULONG64 slot) {
   ctx->dokan_operations.GetDiskFreeSpace = kbfs_libdokan_c_GetDiskFreeSpace;
   ctx->dokan_operations.GetVolumeInformation = kbfs_libdokan_c_GetVolumeInformation;
   ctx->dokan_operations.Mounted = kbfs_libdokan_c_Mounted;
-  // FIXME: Handling ACLs not implemented currently
-  //  ctx->dokan_operations.GetFileSecurity = kbfs_libdokan_c_GetFileSecurity;
-  //  ctx->dokan_operations.SetFileSecurity = kbfs_libdokan_c_SetFileSecurity;
+  ctx->dokan_operations.GetFileSecurity = kbfs_libdokan_c_GetFileSecurity;
+  ctx->dokan_operations.SetFileSecurity = kbfs_libdokan_c_SetFileSecurity;
   // FIXME: Multiple streams per file for e.g. resource forks
   //   ctx->dokan_operations.FindStreams = kbfs_libdokan_c_FindStreams;
   return ctx;
