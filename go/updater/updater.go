@@ -25,11 +25,12 @@ import (
 )
 
 type Updater struct {
-	options   keybase1.UpdateOptions
-	source    sources.UpdateSource
-	config    Config
-	log       logger.Logger
-	callGroup Group
+	options      keybase1.UpdateOptions
+	source       sources.UpdateSource
+	config       Config
+	log          logger.Logger
+	callGroup    Group
+	cancelPrompt context.CancelFunc
 }
 
 type UI interface {
@@ -367,22 +368,35 @@ func (u *Updater) apply(src string, dest string) (tmpPath string, err error) {
 }
 
 // Update checks, downloads and performs an update.
-func (u *Updater) Update(ui UI, force bool, requested bool) (*keybase1.Update, error) {
+func (u *Updater) Update(ui UI, force bool, requested bool) (update *keybase1.Update, err error) {
+	update, skipped, err := u.updateSingleFlight(ui, force, requested)
+	// Retry if skipped via singleflight
+	if skipped {
+		update, _, err = u.updateSingleFlight(ui, force, requested)
+	}
+	return
+}
+
+func (u *Updater) updateSingleFlight(ui UI, force bool, requested bool) (*keybase1.Update, bool, error) {
+	if u.cancelPrompt != nil {
+		u.log.Info("Canceling update that was waiting on a prompt")
+		u.cancelPrompt()
+	}
+
 	do := func() (interface{}, error) {
 		return u.update(ui, force, requested)
 	}
 	any, cached, err := u.callGroup.Do("update", do)
-
 	if cached {
-		u.log.Info("Update call was singleflighted and returned cached result, skipping")
-		return nil, nil
+		u.log.Info("There was an update already in progress")
+		return nil, true, nil
 	}
 
 	update, ok := any.(*keybase1.Update)
 	if !ok {
-		return nil, fmt.Errorf("Invalid type returned by updater singleflight")
+		return nil, false, fmt.Errorf("Invalid type returned by updater singleflight")
 	}
-	return update, err
+	return update, false, err
 }
 
 func (u *Updater) update(ui UI, force bool, requested bool) (update *keybase1.Update, err error) {
@@ -460,7 +474,10 @@ func (u *Updater) promptForUpdateAction(ui UI, update keybase1.Update) (err erro
 			AlwaysAutoInstall: alwaysAutoInstall,
 		},
 	}
-	updatePromptResponse, err := updateUI.UpdatePrompt(context.TODO(), updatePromptArg)
+	updateContext, canceler := context.WithCancel(context.Background())
+	u.cancelPrompt = canceler
+	updatePromptResponse, err := updateUI.UpdatePrompt(updateContext, updatePromptArg)
+	u.cancelPrompt = nil
 	if err != nil {
 		return
 	}

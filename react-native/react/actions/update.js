@@ -68,6 +68,11 @@ function updateListenersCreator (dispatch: Dispatch, getState: () => {config: Co
 
       const updateCommand = (instructions && instructions.length) ? instructions : null
 
+      // Cancel any existing update prompts; this will trigger a new focused window
+      dispatch({
+        type: Constants.onCancel
+      })
+
       dispatch(({
         type: Constants.showUpdatePrompt,
         payload: {
