@@ -14,6 +14,11 @@ import (
 	"golang.org/x/net/context"
 )
 
+type fileOpener interface {
+	open(ctx context.Context, oc *openContext, path []string) (f dokan.File, isDir bool, err error)
+	dokan.File
+}
+
 // FolderList is a node that can list all of the logged-in user's
 // favorite top-level folders, on either a public or private basis.
 type FolderList struct {
@@ -23,7 +28,7 @@ type FolderList struct {
 	public bool
 
 	mu      sync.Mutex
-	folders map[string]*Dir
+	folders map[string]fileOpener
 }
 
 // GetFileInformation for dokan.
@@ -67,15 +72,35 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 
 		case libkbfs.TlfNameNotCanonical:
 			// Non-canonical name.
-			if len(path) == 1 && oc.isOpenReparsePoint() {
-				fl.fs.log.CDebugf(ctx, "FL Lookup returning ALIAS")
-				return &Alias{canon: err.NameToTry}, false, nil
+			if len(path) == 1 {
+				fl.fs.log.CDebugf(ctx, "FL Lookup Alias")
+				target := err.NameToTry
+				d, bf, err := fl.open(ctx, oc, []string{target})
+				switch {
+				case err == nil && oc.isOpenReparsePoint():
+					d.Cleanup(nil)
+					return &Alias{canon: target}, false, nil
+				case err == nil:
+					return d, bf, err
+				case oc.isCreateDirectory():
+					fl.fs.log.CDebugf(ctx, "FL Lookup returning EmptyFolder instead of Alias")
+					e := &EmptyFolder{}
+					fl.lockedAddChild(name, e)
+					return e, true, nil
+				}
+				return nil, false, err
 			}
 			path[0] = err.NameToTry
 			continue
 
-		case libkbfs.NoSuchNameError:
+		case libkbfs.NoSuchNameError, libkbfs.NoSuchUserError:
 			// Invalid public TLF.
+			if len(path) == 1 && oc.isCreateDirectory() {
+				fl.fs.log.CDebugf(ctx, "FL Lookup returning EmptyFolder instead of Alias")
+				e := &EmptyFolder{}
+				fl.lockedAddChild(name, e)
+				return e, true, nil
+			}
 			return nil, false, dokan.ErrObjectPathNotFound
 
 		case libkbfs.WriteAccessError:
@@ -102,11 +127,9 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 			return nil, false, err
 		}
 
-		fl.mu.Lock()
 		child = newDir(folder, rootNode, path[0], nil)
 		folder.nodes[rootNode.GetID()] = child
-		fl.folders[name] = child
-		fl.mu.Unlock()
+		fl.lockedAddChild(name, child)
 		return child.open(ctx, oc, path[1:])
 	}
 	return nil, false, dokan.ErrObjectPathNotFound
@@ -223,4 +246,10 @@ outer:
 		return dokan.ErrObjectNameNotFound
 	}
 	return nil
+}
+
+func (f *FolderList) lockedAddChild(name string, val fileOpener) {
+	f.mu.Lock()
+	f.folders[name] = val
+	f.mu.Unlock()
 }

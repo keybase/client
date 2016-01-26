@@ -61,12 +61,12 @@ func NewFS(ctx context.Context, config libkbfs.Config, log logger.Logger) (*FS, 
 	f.root = &Root{
 		private: &FolderList{
 			fs:      f,
-			folders: make(map[string]*Dir),
+			folders: make(map[string]fileOpener),
 		},
 		public: &FolderList{
 			fs:      f,
 			public:  true,
-			folders: make(map[string]*Dir),
+			folders: make(map[string]fileOpener),
 		}}
 
 	ctx = context.WithValue(ctx, CtxAppIDKey, f)
@@ -238,6 +238,22 @@ func (f *FS) MoveFile(source *dokan.FileInfo, targetPath string, replaceExisting
 	}
 	defer src.Cleanup(nil)
 
+	// Source directory
+	srcDirPath, err := windowsPathSplit(source.Path())
+	if err != nil {
+		return err
+	}
+	if len(srcDirPath) < 1 {
+		return errors.New("Invalid source for move")
+	}
+	srcName := srcDirPath[len(srcDirPath)-1]
+	srcDirPath = srcDirPath[0 : len(srcDirPath)-1]
+	srcDir, _, err := f.open(ctx, oc, srcDirPath)
+	if err != nil {
+		return err
+	}
+	defer srcDir.Cleanup(nil)
+
 	// Destination directory, not the destination file
 	dstPath, err := windowsPathSplit(targetPath)
 	if err != nil {
@@ -248,47 +264,56 @@ func (f *FS) MoveFile(source *dokan.FileInfo, targetPath string, replaceExisting
 	}
 	dstDirPath := dstPath[0 : len(dstPath)-1]
 
-	dst, dstIsDir, err := f.open(ctx, oc, dstDirPath)
-	f.log.CDebugf(ctx, "FS Rename dest open %v -> %v,%v,%v dstType %T", dstDirPath, dst, dstIsDir, err, dst)
+	dstDir, dstIsDir, err := f.open(ctx, oc, dstDirPath)
+	f.log.CDebugf(ctx, "FS Rename dest open %v -> %v,%v,%v dstType %T", dstDirPath, dstDir, dstIsDir, err, dstDir)
 	if err != nil {
 		return err
 	}
-	defer dst.Cleanup(nil)
+	defer dstDir.Cleanup(nil)
 	if !dstIsDir {
 		return errors.New("Tried to move to a non-directory path")
 	}
 
-	ddst, ok := dst.(*Dir)
+	fl1, ok := srcDir.(*FolderList)
+	fl2, ok2 := dstDir.(*FolderList)
+	if ok && ok2 && fl1 == fl2 {
+		return f.folderListRename(ctx, fl1, oc, src, srcName, dstPath, replaceExisting)
+	}
+
+	srcDirD, ok := srcDir.(*Dir)
+	if !ok {
+		return errors.New("Parent of src not a Dir")
+	}
+	srcFolder := srcDirD.folder
+	srcParent := srcDirD.node
+
+	ddst, ok := dstDir.(*Dir)
 	if !ok {
 		return errors.New("Destination directory is not of type Dir")
 	}
 
-	var srcFolder *Folder
-	var srcParent libkbfs.Node
-	var srcName string
-	switch x := src.(type) {
+	switch src.(type) {
 	case *Dir:
-		srcFolder = x.folder
-		srcParent = x.parent
-		srcName = x.name
 	case *File:
-		srcFolder = x.folder
-		srcParent = x.parent
-		srcName = x.name
-		f.log.CDebugf(ctx, "FS Rename srcnode %v srcdirnode %v dstdirnode %v", x.node.GetID(), srcParent.GetID(), ddst.node.GetID())
-	}
-
-	if srcFolder != ddst.folder {
-		return errors.New("Move only supported inside a top-level directory")
+	default:
+		return dokan.ErrAccessDenied
 	}
 
 	// here we race...
 	if !replaceExisting {
-		_, _, err := f.open(ctx, oc, dstPath)
-		if err != dokan.ErrObjectPathNotFound {
+		x, _, err := f.open(ctx, oc, dstPath)
+		if err == nil {
+			defer x.Cleanup(nil)
+		}
+		if !isNoSuchNameError(err) {
+			f.log.CDebugf(ctx, "FS Rename target open error %T %v", err, err)
 			return errors.New("Refusing to replace existing target!")
 		}
 
+	}
+
+	if srcFolder != ddst.folder {
+		return dokan.ErrAccessDenied
 	}
 
 	// overwritten node, if any, will be removed from Folder.nodes, if
@@ -309,6 +334,37 @@ func (f *FS) MoveFile(source *dokan.FileInfo, targetPath string, replaceExisting
 	}
 
 	f.log.CDebugf(ctx, "FS Rename SUCCESS")
+	return nil
+}
+
+func (f *FS) folderListRename(ctx context.Context, fl *FolderList, oc *openContext, src dokan.File, srcName string, dstPath []string, replaceExisting bool) error {
+	ef, ok := src.(*EmptyFolder)
+	f.log.CDebugf(ctx, "FS Rename folderlist %v", ef)
+	if !ok {
+		return dokan.ErrAccessDenied
+	}
+	dstName := dstPath[len(dstPath)-1]
+	fl.mu.Lock()
+	_, ok = fl.folders[dstName]
+	fl.mu.Unlock()
+	if !replaceExisting && ok {
+		f.log.CDebugf(ctx, "FS Rename folderlist refusing to replace target")
+		return dokan.ErrAccessDenied
+	}
+	// Perhaps create destination by opening it.
+	x, _, err := f.open(ctx, oc, dstPath)
+	if err == nil {
+		x.Cleanup(nil)
+	}
+	fl.mu.Lock()
+	defer fl.mu.Unlock()
+	_, ok = fl.folders[dstName]
+	delete(fl.folders, srcName)
+	if !ok {
+		f.log.CDebugf(ctx, "FS Rename folderlist adding target")
+		fl.folders[dstName] = ef
+	}
+	f.log.CDebugf(ctx, "FS Rename folderlist success")
 	return nil
 }
 
