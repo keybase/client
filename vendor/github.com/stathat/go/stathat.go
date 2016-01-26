@@ -235,7 +235,7 @@ func (sr *statReport) path() string {
 }
 
 func (sr *statReport) url() string {
-	return fmt.Sprintf("http://%s%s", hostname, sr.path())
+	return fmt.Sprintf("https://%s%s", hostname, sr.path())
 }
 
 // Using the classic API, posts a count to a stat using DefaultReporter.
