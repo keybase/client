@@ -248,8 +248,8 @@ outer:
 	return nil
 }
 
-func (f *FolderList) lockedAddChild(name string, val fileOpener) {
-	f.mu.Lock()
-	f.folders[name] = val
-	f.mu.Unlock()
+func (fl *FolderList) lockedAddChild(name string, val fileOpener) {
+	fl.mu.Lock()
+	fl.folders[name] = val
+	fl.mu.Unlock()
 }

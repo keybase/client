@@ -12,6 +12,8 @@ import (
 	"github.com/keybase/kbfs/dokan"
 )
 
+// Return dokan.ErrAccessDenied by default as that is a safe default.
+
 type emptyFile struct{}
 
 func (t emptyFile) Cleanup(fi *dokan.FileInfo) {
