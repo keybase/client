@@ -4914,7 +4914,7 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		if _, isReadAccessError := err.(ReadAccessError); isReadAccessError {
 			// This device hasn't been keyed yet, fall through to set the rekey bit
 			if rekeyWasSet {
-				// Readers shouldn't re-set the rekey bit.
+				// Writers not yet keyed shouldn't reset the rekey bit
 				fbo.log.CDebugf(ctx, "Rekey bit already set")
 				return nil
 			}
