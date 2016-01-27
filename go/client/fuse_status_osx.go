@@ -36,9 +36,12 @@ func KeybaseFuseStatus(g *libkb.GlobalContext, bundleVersion string) keybase1.Fu
 			return st
 		}
 		if info == nil {
-			st.InstallStatus = keybase1.InstallStatus_ERROR
-			st.InstallAction = keybase1.InstallAction_REINSTALL
-			st.Status = keybase1.Status{Code: libkb.SCGeneric, Name: "INSTALL_ERROR", Desc: fmt.Sprintf("Fuse installed (%s) but kext was not loaded (%s)", st.Path, kextID)}
+			// This means the kext isn't loaded. If kext isn't loaded then kbfs will
+			// load it when it start up by calling load_kbfuse (in the kext bundle).
+			// TODO: Go ahead and load the kext ahead of time?
+			st.InstallStatus = keybase1.InstallStatus_INSTALLED
+			st.InstallAction = keybase1.InstallAction_NONE
+			st.Status = keybase1.StatusOK(fmt.Sprintf("Fuse installed (%s) but kext was not loaded (%s)", st.Path, kextID))
 			return st
 		}
 

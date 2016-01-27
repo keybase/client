@@ -102,7 +102,7 @@ func ResolveInstallStatus(version string, bundleVersion string, lastExitStatus s
 		installStatus = keybase1.InstallStatus_INSTALLED
 	}
 
-	status = keybase1.StatusOK()
+	status = keybase1.StatusOK("")
 	return
 }
 

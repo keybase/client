@@ -495,13 +495,16 @@ func FromError(err error) *Error {
 	return &Error{code: StatusCode_SCGeneric, message: err.Error()}
 }
 
-func StatusOK() Status {
-	return Status{Code: int(StatusCode_SCOk), Name: "OK", Desc: "OK"}
+func StatusOK(desc string) Status {
+	if desc == "" {
+		desc = "OK"
+	}
+	return Status{Code: int(StatusCode_SCOk), Name: "OK", Desc: desc}
 }
 
 func StatusFromCode(code StatusCode, message string) Status {
 	if code == StatusCode_SCOk {
-		return StatusOK()
+		return StatusOK(message)
 	}
 	return NewError(code, message).Status()
 }
