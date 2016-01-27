@@ -102,6 +102,25 @@ func TestCopyMultiblockFile(t *testing.T) {
 	)
 }
 
+// Test that we can make a big file, delete it, then make it
+// again. Regression for KBFS-700.
+func TestMakeDeleteAndMakeMultiBlockFile(t *testing.T) {
+	test(t,
+		blockSize(20), writers("alice", "bob"),
+		as(alice,
+			write("a/b", ntimesString(15, "0123456789")),
+		),
+		as(bob,
+			read("a/b", ntimesString(15, "0123456789")),
+			rm("a/b"),
+			write("a/b2", ntimesString(15, "0123456789")),
+		),
+		as(alice,
+			read("a/b2", ntimesString(15, "0123456789")),
+		),
+	)
+}
+
 // When block changes are unembedded, make sure other users can read
 // and apply them.
 func TestReadUnembeddedBlockChanges(t *testing.T) {
