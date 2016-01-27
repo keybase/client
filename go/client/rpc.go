@@ -39,7 +39,7 @@ func GetRPCClientWithContext(g *libkb.GlobalContext) (ret *rpc.Client, xp rpc.Tr
 }
 
 func GetRPCServer(g *libkb.GlobalContext) (ret *rpc.Server, xp rpc.Transporter, err error) {
-	if xp, err = getSocket(g, false); err == nil {
+	if xp, err = getSocketNoRetry(g); err == nil {
 		ret = rpc.NewServer(xp, libkb.WrapError)
 	}
 	if err != nil {
