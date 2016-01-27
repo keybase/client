@@ -329,20 +329,6 @@ func fiTypeString(fi os.FileInfo) string {
 	return "OTHER"
 }
 
-func (o *opt) fail(reason string) {
-	o.t.Fatal(reason)
-}
-
-func (o *opt) failf(format string, objs ...interface{}) {
-	o.t.Fatalf(format, objs...)
-}
-
-func (o *opt) expectSuccess(reason string, err error) {
-	if err != nil {
-		o.t.Fatalf("Error: %s: %v", reason, err)
-	}
-}
-
 func syncWithServer(t *testing.T, tlf string, ud *userData) {
 	config := ud.config
 	ctx := context.Background()

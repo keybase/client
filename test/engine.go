@@ -1,6 +1,8 @@
 package test
 
 import (
+	"testing"
+
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
@@ -22,7 +24,7 @@ type Engine interface {
 	// changes can be in each MD update, before it is written to a
 	// dedicated data block instead. If blockSize or blockChangeSize
 	// are zero, the engine defaults are used.
-	InitTest(blockSize int64, blockChangeSize int64,
+	InitTest(t *testing.T, blockSize int64, blockChangeSize int64,
 		users ...string) map[string]User
 	// GetUID is called by the test harness to retrieve a user instance's UID.
 	GetUID(u User) keybase1.UID
@@ -72,7 +74,4 @@ type Engine interface {
 	// Shutdown is called by the test harness when it is done with the
 	// given user.
 	Shutdown(u User) error
-	// PrintLog is called by the test harness when the engine should
-	// print out all accumulated log output to stdout.
-	PrintLog()
 }

@@ -7,8 +7,6 @@
 package test
 
 import (
-	engine "github.com/keybase/kbfs/test/ext"
-
 	"errors"
 	"fmt"
 	"path"
@@ -20,10 +18,10 @@ import (
 type opt struct {
 	readerNames     []username
 	writerNames     []username
-	users           map[string]engine.User
+	users           map[string]User
 	t               *testing.T
 	initDone        bool
-	engine          engine.Engine
+	engine          Engine
 	readers         []string
 	writers         []string
 	blockSize       int64
@@ -32,7 +30,7 @@ type opt struct {
 
 func test(t *testing.T, actions ...optionOp) {
 	o := &opt{}
-	o.engine = &engine.LibKBFS{}
+	o.engine = &LibKBFS{}
 	o.engine.Init()
 	o.t = t
 	for _, omod := range actions {
@@ -48,7 +46,7 @@ func (o *opt) runInitOnce() {
 		return
 	}
 	userSlice := concatUserNamesToStrings2(o.writerNames, o.readerNames)
-	o.users = o.engine.InitTest(o.blockSize, o.blockChangeSize, userSlice...)
+	o.users = o.engine.InitTest(o.t, o.blockSize, o.blockChangeSize, userSlice...)
 
 	for _, uname := range o.readerNames {
 		uid := string(o.engine.GetUID(o.users[string(uname)]))
@@ -62,29 +60,12 @@ func (o *opt) runInitOnce() {
 	o.initDone = true
 }
 
-func (o *opt) fail(reason string) {
-	o.engine.PrintLog()
-	o.t.Fatal(reason)
-}
-
-func (o *opt) failf(format string, objs ...interface{}) {
-	o.engine.PrintLog()
-	o.t.Fatalf(format, objs...)
-}
-
-func (o *opt) expectSuccess(reason string, err error) {
-	if err != nil {
-		o.engine.PrintLog()
-		o.t.Fatalf("Error: %s: %v", reason, err)
-	}
-}
-
 const realFS = false
 
 type ctx struct {
 	*opt
-	user       engine.User
-	rootNode   engine.Node
+	user       User
+	rootNode   Node
 	noSyncInit bool
 }
 
@@ -278,7 +259,7 @@ func lsdir(name string, contents m) fileOp {
 	}, Defaults}
 }
 
-func (c *ctx) getNode(filepath string, create bool, isFile bool) (engine.Node, error) {
+func (c *ctx) getNode(filepath string, create bool, isFile bool) (Node, error) {
 	if filepath == "" || filepath == "/" {
 		return c.rootNode, nil
 	}
@@ -289,7 +270,7 @@ func (c *ctx) getNode(filepath string, create bool, isFile bool) (engine.Node, e
 	c.t.Log("getNode:", filepath, create, isFile, components, len(components))
 	var sym string
 	var err error
-	var node, parent engine.Node
+	var node, parent Node
 	parent = c.rootNode
 	for i, name := range components {
 		node, sym, err = c.engine.Lookup(c.user, parent, name)

@@ -119,3 +119,18 @@ func noSync() fileOp {
 		return nil
 	}, IsInit}
 }
+
+
+func (o *opt) fail(reason string) {
+	o.t.Fatal(reason)
+}
+
+func (o *opt) failf(format string, objs ...interface{}) {
+	o.t.Fatalf(format, objs...)
+}
+
+func (o *opt) expectSuccess(reason string, err error) {
+	if err != nil {
+		o.t.Fatalf("Error: %s: %v", reason, err)
+	}
+}
