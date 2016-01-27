@@ -12,7 +12,7 @@ type testSignOptions struct {
 	corruptHeader      func(sh *SignatureHeader)
 	corruptHeaderBytes func(bytes *[]byte)
 	swapBlock          bool
-	skipBlock          func(blockNum PacketSeqno) bool
+	skipBlock          func(blockNum packetSeqno) bool
 	skipFooter         bool
 }
 
@@ -21,7 +21,7 @@ type testSignStream struct {
 	encoder    encoder
 	buffer     bytes.Buffer
 	block      []byte
-	seqno      PacketSeqno
+	seqno      packetSeqno
 	secretKey  SigningSecretKey
 	options    testSignOptions
 	savedBlock *SignatureBlock

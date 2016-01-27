@@ -14,7 +14,7 @@ type verifyStream struct {
 	header     *SignatureHeader
 	headerHash []byte
 	publicKey  SigningPublicKey
-	seqno      PacketSeqno
+	seqno      packetSeqno
 }
 
 func newVerifyStream(r io.Reader, msgType MessageType) (*verifyStream, error) {

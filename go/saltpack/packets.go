@@ -29,7 +29,7 @@ type EncryptionHeader struct {
 	Ephemeral       []byte         `codec:"ephemeral"`
 	SenderSecretbox []byte         `codec:"sendersecretbox"`
 	Receivers       []receiverKeys `codec:"rcvrs"`
-	seqno           PacketSeqno
+	seqno           packetSeqno
 }
 
 // EncryptionBlock contains a block of encrypted data. It contains
@@ -38,7 +38,7 @@ type EncryptionBlock struct {
 	_struct            bool     `codec:",toarray"`
 	HashAuthenticators [][]byte `codec:"authenticators"`
 	PayloadCiphertext  []byte   `codec:"ctext"`
-	seqno              PacketSeqno
+	seqno              packetSeqno
 }
 
 func (h *EncryptionHeader) validate() error {
@@ -104,5 +104,5 @@ type SignatureBlock struct {
 	_struct      bool   `codec:",toarray"`
 	Signature    []byte `codec:"signature"`
 	PayloadChunk []byte `codec:"payload_chunk"`
-	seqno        PacketSeqno
+	seqno        packetSeqno
 }

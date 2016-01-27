@@ -6,11 +6,11 @@ package saltpack
 // MessageType is an int used to describe what "type" of message it is.
 type MessageType int
 
-// PacketSeqno is a special int type used to describe which packet in the
+// packetSeqno is a special int type used to describe which packet in the
 // sequence we're dealing with.  The header is always at seqno=0. Other packets
-// follow. Note that there is a distinction between PacketSeqno and EncryptionBlockNumber.
+// follow. Note that there is a distinction between packetSeqno and EncryptionBlockNumber.
 // In general, the former is one more than the latter.
-type PacketSeqno uint64
+type packetSeqno uint64
 
 // MessageTypeEncryption is a packet type to describe an
 // encryption message.

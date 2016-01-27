@@ -198,7 +198,7 @@ func TestSignSkipBlock(t *testing.T) {
 	key := newSigPrivKey(t)
 	var opts testSignOptions
 	numBlocks := 10
-	opts.skipBlock = func(n PacketSeqno) bool {
+	opts.skipBlock = func(n packetSeqno) bool {
 		return int(n) == numBlocks-1
 	}
 	smsg, err := testTweakSign(randomMsg(t, numBlocks*1024*1024), key, opts)

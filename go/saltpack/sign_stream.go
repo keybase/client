@@ -15,7 +15,7 @@ type signAttachedStream struct {
 	encoder    encoder
 	buffer     bytes.Buffer
 	block      []byte
-	seqno      PacketSeqno
+	seqno      packetSeqno
 	secretKey  SigningSecretKey
 }
 

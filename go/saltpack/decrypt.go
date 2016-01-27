@@ -119,7 +119,7 @@ func (ds *decryptStream) readHeader(rawReader io.Reader) error {
 
 func (ds *decryptStream) readBlock(b []byte) (n int, lastBlock bool, err error) {
 	var eb EncryptionBlock
-	var seqno PacketSeqno
+	var seqno packetSeqno
 	seqno, err = ds.mps.Read(&eb)
 	if err != nil {
 		return 0, false, err
