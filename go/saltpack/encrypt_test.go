@@ -334,10 +334,10 @@ func testRealEncryptor(t *testing.T, sz int) {
 	if mki.ReceiverIsAnon {
 		t.Fatal("receiver shouldn't be anon")
 	}
-	if !PublicKeyEqual(sndr.GetPublicKey(), mki.SenderKey) {
+	if !publicKeyEqual(sndr.GetPublicKey(), mki.SenderKey) {
 		t.Fatal("got wrong sender key")
 	}
-	if !PublicKeyEqual(receivers[0], mki.ReceiverKey.GetPublicKey()) {
+	if !publicKeyEqual(receivers[0], mki.ReceiverKey.GetPublicKey()) {
 		t.Fatal("wrong receiver key")
 	}
 	if mki.NumAnonReceivers != 0 {
@@ -1071,7 +1071,7 @@ func TestAllAnonymous(t *testing.T) {
 	if !mki.ReceiverIsAnon {
 		t.Fatal("receiver should be anon")
 	}
-	if !PublicKeyEqual(receivers[5], mki.ReceiverKey.GetPublicKey()) {
+	if !publicKeyEqual(receivers[5], mki.ReceiverKey.GetPublicKey()) {
 		t.Fatal("wrong receiver key")
 	}
 	if mki.NumAnonReceivers != 8 {

@@ -132,8 +132,8 @@ type SigKeyring interface {
 	LookupSigningPublicKey(kid []byte) SigningPublicKey
 }
 
-// PublicKeyEqual returns true if the two public keys are equal.
-func PublicKeyEqual(pk1, pk2 BoxPublicKey) bool {
+// publicKeyEqual returns true if the two public keys are equal.
+func publicKeyEqual(pk1, pk2 BoxPublicKey) bool {
 	return KIDEqual(pk1, pk2)
 }
 
