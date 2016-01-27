@@ -43,7 +43,11 @@ if [ "$mode" = prerelease ] || [ "$mode" = nightly ] ; then
   # These modes require S3 credentials. Test that the ~/.s3cfg creds are
   # working, and copy them to a temp folder for sharing. (Docker on non-Linux
   # platforms cannot share files directly.)
-  s3cmd get s3://prerelease.keybase.io/update-linux-prod.json - > /dev/null
+  export BUCKET_NAME="${BUCKET_NAME:-prerelease.keybase.io}"
+  echo "Using S3 \$BUCKET_NAME: $BUCKET_NAME"
+  canary="s3://$BUCKET_NAME/build_canary_file"
+  echo build canary | s3cmd put - "$canary"
+  s3cmd del "$canary"
   cp ~/.s3cfg "$s3cmd_temp"
 else
   # These modes require server-ops to be available and pushable.
@@ -104,5 +108,6 @@ docker run -ti \
   -v "$s3cmd_temp:/S3CMD:ro" \
   "${serverops_args[@]:+${serverops_args[@]}}" \
   "${osx_args[@]:+${osx_args[@]}}" \
+  -e BUCKET_NAME \
   "$image" \
   bash /CLIENT/packaging/linux/inside_docker_main.sh "$@"

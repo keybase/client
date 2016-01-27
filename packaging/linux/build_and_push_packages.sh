@@ -70,18 +70,18 @@ release_prerelease() {
 
   # Upload both repos to S3.
   echo Syncing the deb repo...
-  s3cmd sync --delete-removed "$build_dir/deb_repo/repo/" s3://prerelease.keybase.io/deb/
+  s3cmd sync --delete-removed "$build_dir/deb_repo/repo/" "s3://$BUCKET_NAME/deb/"
   echo Syncing the rpm repo...
-  s3cmd sync --delete-removed "$build_dir/rpm_repo/repo/" s3://prerelease.keybase.io/rpm/
+  s3cmd sync --delete-removed "$build_dir/rpm_repo/repo/" "s3://$BUCKET_NAME/rpm/"
 
   # Upload another copy of the packages to our list of all packages.
   for f in "$build_dir"/deb_repo/repo/pool/main/*/*/*.deb ; do
     echo "Uploading individual binary '$f'..."
-    s3cmd put "$f" s3://prerelease.keybase.io/linux_binaries/deb/
+    s3cmd put "$f" "s3://$BUCKET_NAME/linux_binaries/deb/"
   done
   for f in "$build_dir"/rpm_repo/repo/*/*.rpm ; do
     echo "Uploading individual binary '$f'..."
-    s3cmd put "$f" s3://prerelease.keybase.io/linux_binaries/rpm/
+    s3cmd put "$f" "s3://$BUCKET_NAME/linux_binaries/rpm/"
   done
 
   json_tmp=`mktemp`
@@ -95,10 +95,9 @@ release_prerelease() {
 }
 END
 
-  s3cmd put --mime-type application/json "$json_tmp" s3://prerelease.keybase.io/update-linux-prod.json
+  s3cmd put --mime-type application/json "$json_tmp" "s3://$BUCKET_NAME/update-linux-prod.json"
 
   # Generate and push the index.html file.
-  export BUCKET_NAME="prerelease.keybase.io"
   export GOPATH="$HOME/s3_gopath"  # for building the Go release binary
   "$here/../prerelease/s3_index.sh"
 }
