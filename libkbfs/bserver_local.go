@@ -111,7 +111,7 @@ func (b *BlockServerLocal) ArchiveBlockReferences(ctx context.Context,
 // getAll returns all the known block references, and should only be
 // used during testing.
 func (b *BlockServerLocal) getAll(tlf TlfID) (
-	map[BlockID]map[BlockRefNonce]bool, error) {
+	map[BlockID]map[BlockRefNonce]blockRefLocalStatus, error) {
 	return b.s.getAll(tlf)
 }
 

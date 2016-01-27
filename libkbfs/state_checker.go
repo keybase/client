@@ -122,7 +122,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 	// Build the expected block list.
 	expectedLiveBlocks := make(map[BlockPointer]bool)
 	expectedRef := uint64(0)
-	allKnownBlocks := make(map[BlockPointer]bool)
+	archivedBlocks := make(map[BlockPointer]bool)
 	actualLiveBlocks := make(map[BlockPointer]uint32)
 	for _, rmd := range rmds {
 		// Don't process copies.
@@ -133,7 +133,6 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 		if info := rmd.data.cachedChanges.Info; info.BlockPointer != zeroPtr {
 			sc.log.CDebugf(ctx, "Unembedded block change: %v, %d",
 				info.BlockPointer, info.EncodedSize)
-			allKnownBlocks[info.BlockPointer] = true
 			actualLiveBlocks[info.BlockPointer] = info.EncodedSize
 		}
 
@@ -141,23 +140,21 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 			for _, ptr := range op.Refs() {
 				if ptr != zeroPtr {
 					expectedLiveBlocks[ptr] = true
-					allKnownBlocks[ptr] = true
 				}
 			}
 			for _, ptr := range op.Unrefs() {
 				delete(expectedLiveBlocks, ptr)
 				if ptr != zeroPtr {
-					allKnownBlocks[ptr] = true
+					archivedBlocks[ptr] = true
 				}
 			}
 			for _, update := range op.AllUpdates() {
 				delete(expectedLiveBlocks, update.Unref)
 				if update.Unref != zeroPtr {
-					allKnownBlocks[update.Unref] = true
+					archivedBlocks[update.Unref] = true
 				}
 				if update.Ref != zeroPtr {
 					expectedLiveBlocks[update.Ref] = true
-					allKnownBlocks[update.Ref] = true
 				}
 			}
 		}
@@ -237,12 +234,18 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 		return err
 	}
 
-	blockRefsByID := make(map[BlockID]map[BlockRefNonce]bool)
-	for ptr := range allKnownBlocks {
+	blockRefsByID := make(map[BlockID]map[BlockRefNonce]blockRefLocalStatus)
+	for ptr := range expectedLiveBlocks {
 		if _, ok := blockRefsByID[ptr.ID]; !ok {
-			blockRefsByID[ptr.ID] = make(map[BlockRefNonce]bool)
+			blockRefsByID[ptr.ID] = make(map[BlockRefNonce]blockRefLocalStatus)
 		}
-		blockRefsByID[ptr.ID][ptr.RefNonce] = true
+		blockRefsByID[ptr.ID][ptr.RefNonce] = blockRef
+	}
+	for ptr := range archivedBlocks {
+		if _, ok := blockRefsByID[ptr.ID]; !ok {
+			blockRefsByID[ptr.ID] = make(map[BlockRefNonce]blockRefLocalStatus)
+		}
+		blockRefsByID[ptr.ID][ptr.RefNonce] = archivedBlockRef
 	}
 
 	if g, e := bserverKnownBlocks, blockRefsByID; !reflect.DeepEqual(g, e) {

@@ -31,7 +31,7 @@ type blockEntry struct {
 // for bserverLocal.
 type bserverLocalStorage interface {
 	get(id BlockID) (blockEntry, error)
-	getAll(tlf TlfID) (map[BlockID]map[BlockRefNonce]bool, error)
+	getAll(tlf TlfID) (map[BlockID]map[BlockRefNonce]blockRefLocalStatus, error)
 	put(id BlockID, entry blockEntry) error
 	addReference(id BlockID, refNonce BlockRefNonce) error
 	removeReference(id BlockID, refNonce BlockRefNonce) error
@@ -63,8 +63,8 @@ func (s *bserverMemStorage) get(id BlockID) (blockEntry, error) {
 }
 
 func (s *bserverMemStorage) getAll(tlf TlfID) (
-	map[BlockID]map[BlockRefNonce]bool, error) {
-	res := make(map[BlockID]map[BlockRefNonce]bool)
+	map[BlockID]map[BlockRefNonce]blockRefLocalStatus, error) {
+	res := make(map[BlockID]map[BlockRefNonce]blockRefLocalStatus)
 	s.lock.RLock()
 	defer s.lock.RUnlock()
 
@@ -72,9 +72,9 @@ func (s *bserverMemStorage) getAll(tlf TlfID) (
 		if entry.Tlf != tlf {
 			continue
 		}
-		res[id] = make(map[BlockRefNonce]bool)
-		for ref := range entry.Refs {
-			res[id][ref] = true
+		res[id] = make(map[BlockRefNonce]blockRefLocalStatus)
+		for ref, status := range entry.Refs {
+			res[id][ref] = status
 		}
 	}
 	return res, nil
@@ -206,7 +206,7 @@ func (s *bserverFileStorage) get(id BlockID) (blockEntry, error) {
 }
 
 func (s *bserverFileStorage) getAll(tlf TlfID) (
-	map[BlockID]map[BlockRefNonce]bool, error) {
+	map[BlockID]map[BlockRefNonce]blockRefLocalStatus, error) {
 	return nil, errors.New("getAll not yet implemented for bserverFileStorage")
 }
 
@@ -348,7 +348,7 @@ func (s *bserverLeveldbStorage) get(id BlockID) (blockEntry, error) {
 }
 
 func (s *bserverLeveldbStorage) getAll(tlf TlfID) (
-	map[BlockID]map[BlockRefNonce]bool, error) {
+	map[BlockID]map[BlockRefNonce]blockRefLocalStatus, error) {
 	return nil,
 		errors.New("getAll not yet implemented for bserverLeveldbStorage")
 }
