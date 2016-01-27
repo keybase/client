@@ -46,18 +46,18 @@ const NoncePrefixEncryption = "encryption nonce prefix"
 // signatureBlockSize is by default 1MB and can't currently be tweaked.
 const signatureBlockSize int = 1048576
 
-// SignatureAttachedString is part of the data that is signed in
+// signatureAttachedString is part of the data that is signed in
 // each payload packet.
-const SignatureAttachedString = "saltpack attached signature\x00"
+const signatureAttachedString = "saltpack attached signature\x00"
 
-// SignatureDetachedString is part of the data that is signed in
+// signatureDetachedString is part of the data that is signed in
 // a detached signature.
-const SignatureDetachedString = "saltpack detached signature\x00"
+const signatureDetachedString = "saltpack detached signature\x00"
 
 // We truncate HMAC512 to the same link that NaCl's crypto_auth function does.
-const CryptoAuthBytes = 32
+const cryptoAuthBytes = 32
 
-const CryptoAuthKeyBytes = 32
+const cryptoAuthKeyBytes = 32
 
 type readState int
 

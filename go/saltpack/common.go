@@ -59,7 +59,7 @@ func attachedSignatureInput(headerHash []byte, block *signatureBlock) []byte {
 	hasher.Write(block.PayloadChunk)
 
 	var buf bytes.Buffer
-	buf.Write([]byte(SignatureAttachedString))
+	buf.Write([]byte(signatureAttachedString))
 	buf.Write(hasher.Sum(nil))
 
 	return buf.Bytes()
@@ -75,7 +75,7 @@ func detachedSignatureInput(headerHash []byte, plaintext []byte) []byte {
 
 func detachedSignatureInputFromHash(plaintextAndHeaderHash []byte) []byte {
 	var buf bytes.Buffer
-	buf.Write([]byte(SignatureDetachedString))
+	buf.Write([]byte(signatureDetachedString))
 	buf.Write(plaintextAndHeaderHash)
 
 	return buf.Bytes()
@@ -84,19 +84,19 @@ func detachedSignatureInputFromHash(plaintextAndHeaderHash []byte) []byte {
 func hmacSHA512256(key []byte, input []byte) []byte {
 	// Equivalent to crypto_auth, but using Go's builtin HMAC. Truncates
 	// SHA512, instead of actually calling SHA512/256.
-	if len(key) != CryptoAuthKeyBytes {
+	if len(key) != cryptoAuthKeyBytes {
 		panic("Bad crypto_auth key length")
 	}
 	authenticatorDigest := hmac.New(sha512.New, key)
 	authenticatorDigest.Write(input)
 	fullMAC := authenticatorDigest.Sum(nil)
-	return fullMAC[:CryptoAuthBytes]
+	return fullMAC[:cryptoAuthBytes]
 }
 
 func computeMACKey(secret BoxSecretKey, public BoxPublicKey, headerHash []byte) []byte {
 	nonce := nonceForMACKeyBox(headerHash)
-	macKeyBox := secret.Box(public, nonce, make([]byte, CryptoAuthKeyBytes))
-	macKey := macKeyBox[poly1305.TagSize : poly1305.TagSize+CryptoAuthKeyBytes]
+	macKeyBox := secret.Box(public, nonce, make([]byte, cryptoAuthKeyBytes))
+	macKey := macKeyBox[poly1305.TagSize : poly1305.TagSize+cryptoAuthKeyBytes]
 	return macKey
 }
 
