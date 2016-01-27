@@ -596,12 +596,12 @@ func statusFromResults(componentResults []keybase1.ComponentResult) keybase1.Sta
 		return keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, strings.Join(errorMessages, ". "))
 	}
 
-	return keybase1.StatusOK()
+	return keybase1.StatusOK("")
 }
 
 func componentResult(name string, err error) keybase1.ComponentResult {
 	if err != nil {
 		return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, err.Error())}
 	}
-	return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusOK()}
+	return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusOK("")}
 }
