@@ -14,7 +14,7 @@ import (
 type encryptStream struct {
 	output     io.Writer
 	encoder    encoder
-	header     *EncryptionHeader
+	header     *encryptionHeader
 	payloadKey SymmetricKey
 	buffer     bytes.Buffer
 	inblock    []byte
@@ -135,7 +135,7 @@ func (es *encryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey) err
 		sender = ephemeralKey
 	}
 
-	eh := &EncryptionHeader{
+	eh := &encryptionHeader{
 		FormatName: SaltpackFormatName,
 		Version:    SaltpackCurrentVersion,
 		Type:       MessageTypeEncryption,

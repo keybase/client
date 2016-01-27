@@ -21,7 +21,7 @@ type testEncryptionOptions struct {
 	corruptReceiverKeys         func(rk *receiverKeys, rid int)
 	corruptSenderKeyPlaintext   func(pk *[]byte)
 	corruptSenderKeyCiphertext  func(pk []byte)
-	corruptHeader               func(eh *EncryptionHeader)
+	corruptHeader               func(eh *encryptionHeader)
 	corruptHeaderPacked         func(b []byte)
 }
 
@@ -35,7 +35,7 @@ func (eo testEncryptionOptions) getBlockSize() int {
 type testEncryptStream struct {
 	output     io.Writer
 	encoder    encoder
-	header     *EncryptionHeader
+	header     *encryptionHeader
 	payloadKey SymmetricKey
 	buffer     bytes.Buffer
 	inblock    []byte
@@ -134,7 +134,7 @@ func (pes *testEncryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey
 		sender = ephemeralKey
 	}
 
-	eh := &EncryptionHeader{
+	eh := &encryptionHeader{
 		FormatName: SaltpackFormatName,
 		Version:    SaltpackCurrentVersion,
 		Type:       MessageTypeEncryption,
