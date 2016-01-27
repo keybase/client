@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
 )
 
@@ -117,6 +118,20 @@ func (rkq *RekeyQueueStandard) dequeue(id TlfID, err error) {
 	}
 }
 
+// CtxRekeyTagKey is the type used for unique context tags within an
+// enqueued Rekey.
+type CtxRekeyTagKey int
+
+const (
+	// CtxRekeyIDKey is the type of the tag for unique operation IDs
+	// within an enqueued Rekey.
+	CtxRekeyIDKey CtxRekeyTagKey = iota
+)
+
+// CtxRekeyOpID is the display name for the unique operation
+// enqueued rekey ID tag.
+const CtxRekeyOpID = "REKEYID"
+
 // Dedicated goroutine to process the rekey queue.
 func (rkq *RekeyQueueStandard) processRekeys(ctx context.Context, hasWorkCh chan struct{}) {
 	for {
@@ -134,7 +149,17 @@ func (rkq *RekeyQueueStandard) processRekeys(ctx context.Context, hasWorkCh chan
 				if id == NullTlfID {
 					break
 				}
-				err := rkq.config.KBFSOps().Rekey(ctx, id)
+
+				// Assign an ID to this rekey operation so we can track it.
+				logTags := make(logger.CtxLogTags)
+				logTags[CtxRekeyIDKey] = CtxRekeyOpID
+				newCtx := logger.NewContextWithLogTags(ctx, logTags)
+				ctxID, err := MakeRandomRequestID()
+				if err == nil {
+					newCtx = context.WithValue(newCtx, CtxRekeyIDKey, ctxID)
+				}
+
+				err = rkq.config.KBFSOps().Rekey(newCtx, id)
 				rkq.dequeue(id, err)
 				if ctx.Err() != nil {
 					close(hasWorkCh)
