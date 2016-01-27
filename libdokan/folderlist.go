@@ -101,13 +101,13 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 				fl.lockedAddChild(name, e)
 				return e, true, nil
 			}
-			return nil, false, dokan.ErrObjectPathNotFound
+			return nil, false, dokan.ErrObjectNameNotFound
 
 		case libkbfs.WriteAccessError:
 			if len(path) == 1 {
 				return &EmptyFolder{}, true, nil
 			}
-			return nil, false, dokan.ErrObjectPathNotFound
+			return nil, false, dokan.ErrObjectNameNotFound
 		default:
 			// Some other error.
 			return nil, false, err
@@ -132,7 +132,7 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 		fl.lockedAddChild(name, child)
 		return child.open(ctx, oc, path[1:])
 	}
-	return nil, false, dokan.ErrObjectPathNotFound
+	return nil, false, dokan.ErrObjectNameNotFound
 }
 
 func (fl *FolderList) forgetFolder(f *Folder) {

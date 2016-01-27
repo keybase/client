@@ -226,7 +226,7 @@ func openFile(ctx context.Context, oc *openContext, path []string, f *File) (dok
 	var err error
 	// Files only allowed as leafs...
 	if len(path) > 1 {
-		return nil, false, dokan.ErrObjectPathNotFound
+		return nil, false, dokan.ErrObjectNameNotFound
 	}
 	if oc.isTruncate() {
 		err = f.folder.fs.config.KBFSOps().Truncate(ctx, f.node, 0)
@@ -239,7 +239,7 @@ func openFile(ctx context.Context, oc *openContext, path []string, f *File) (dok
 
 func openSymlink(ctx context.Context, oc *openContext, parent *Dir, rootDir *Dir, origPath, path []string, target string) (dokan.File, bool, error) {
 	if !oc.reduceRedirectionsLeft() {
-		return nil, false, dokan.ErrObjectPathNotFound
+		return nil, false, dokan.ErrObjectNameNotFound
 	}
 	// Take relevant prefix of original path.
 	origPath = origPath[:len(origPath)-len(path)]

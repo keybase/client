@@ -13,7 +13,7 @@ type EmptyFolder struct {
 
 func (ef *EmptyFolder) open(ctx context.Context, oc *openContext, path []string) (f dokan.File, isDir bool, err error) {
 	if len(path) != 0 {
-		return nil, false, dokan.ErrObjectPathNotFound
+		return nil, false, dokan.ErrObjectNameNotFound
 	}
 	return ef, true, nil
 }

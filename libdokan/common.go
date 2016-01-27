@@ -82,9 +82,9 @@ func fillStat(a *dokan.Stat, de *libkbfs.EntryInfo) {
 func errToDokan(err error) error {
 	switch err.(type) {
 	case libkbfs.NoSuchNameError:
-		return dokan.ErrObjectPathNotFound
+		return dokan.ErrObjectNameNotFound
 	case libkbfs.NoSuchUserError:
-		return dokan.ErrObjectPathNotFound
+		return dokan.ErrObjectNameNotFound
 	case libkbfs.MDServerErrorUnauthorized:
 		return dokan.ErrAccessDenied
 	case nil:
