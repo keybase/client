@@ -10,13 +10,25 @@ methods.forEach(k => {
   originalConsole[k] = console[k]
 })
 
+function fileDoesNotExist (err) {
+  if (process.platform === 'win32' && err.errno === -4058) {
+    return true
+  }
+
+  if (err.errno === -2) {
+    return true
+  }
+
+  return false
+}
+
 const logLimit = 5e6
 const logFile = logFileName()
 let fileWritable = null
 // If the file is too big, let's reset the log
 if (logFile) {
   fs.access(logFile, fs.W_OK, err => {
-    if (err && err.errno !== -2 /* file does not exist */) {
+    if (err && !fileDoesNotExist(err)) {
       console.log(`Can't write to log file.`, err)
       fileWritable = null
       return
@@ -42,8 +54,8 @@ function tee (...writeFns) {
   return t => writeFns.forEach(w => w(t))
 }
 
-const stdErrWriter = t => process.stderr.write(t)
-const stdOutWriter = t => process.stdout.write(t)
+const stdErrWriter = process.platform === 'win32' ? () => {} : t => process.stderr.write(t)
+const stdOutWriter = process.platform === 'win32' ? () => {} : t => process.stdout.write(t)
 const logFileWriter = t => fileWritable && fileWritable.write(t + '\n')
 
 // override console logging to also go to stdout
@@ -62,7 +74,7 @@ export default function pipeLogs () {
     console[k] = (...args) => {
       originalConsole[k].apply(console, args)
       if (args.length) {
-        const out = output[k] || (t => process.stdout.write(t))
+        const out = output[k] || stdOutWriter
         out(k + `: ${Date()} (${Date.now()}): ` + util.format.apply(util, args))
       }
     }

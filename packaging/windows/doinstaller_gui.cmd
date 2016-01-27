@@ -23,11 +23,11 @@ SignTool.exe sign /a /tr http://timestamp.digicert.com %1
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
-::SignTool.exe sign /a /tr http://timestamp.digicert.com %Folder%..\..\..\kbfs\kbfsdokan\kbfsdokan.exe
+SignTool.exe sign /a /tr http://timestamp.digicert.com %Folder%..\..\..\kbfs\kbfsdokan\kbfsdokan.exe
 IF %ERRORLEVEL% NEQ 0 (k
   EXIT /B 1
 )
-::SignTool.exe sign /a /tr http://timestamp.digicert.com %Folder%..\..\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
+SignTool.exe sign /a /tr http://timestamp.digicert.com %Folder%..\..\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
