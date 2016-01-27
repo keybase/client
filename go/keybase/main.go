@@ -55,7 +55,12 @@ func main() {
 		err = e2
 	}
 	if err != nil {
-		g.Log.Error(err.Error())
+		// Note that logger.Error and logger.Errorf are the same, which causes problems
+		// trying to print percent signs, which are used in environment variables
+		// in Windows.
+		// Had to change from Error to Errorf because of go vet because of:
+		// https://github.com/golang/go/issues/6407
+		g.Log.Errorf("%s", err.Error())
 	}
 	if g.ExitCode != keybase1.ExitCode_OK {
 		os.Exit(int(g.ExitCode))

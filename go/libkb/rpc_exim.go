@@ -7,7 +7,6 @@ package libkb
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"sort"
 
@@ -193,7 +192,7 @@ func ImportStatusAsError(s *keybase1.Status) error {
 	case SCOk:
 		return nil
 	case SCGeneric:
-		return fmt.Errorf(s.Desc)
+		return errors.New(s.Desc)
 	case SCBadLoginPassword:
 		return PassphraseError{s.Desc}
 	case SCKeyBadGen:
