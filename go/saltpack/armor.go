@@ -12,8 +12,8 @@ import (
 	"strings"
 )
 
-// ArmorParams specify armor formatting, encoding and punctuation.
-type ArmorParams struct {
+// armorParams specify armor formatting, encoding and punctuation.
+type armorParams struct {
 	// BytesPerWord is the number of characters in each "word" of output.
 	// We'll put spaces between words.
 	BytesPerWord int
@@ -33,7 +33,7 @@ type armorEncoderStream struct {
 	encoded io.Writer
 	encoder io.WriteCloser
 	nWords  int
-	params  ArmorParams
+	params  armorParams
 }
 
 func (s *armorEncoderStream) Write(b []byte) (n int, err error) {
@@ -97,7 +97,7 @@ func (s *armorEncoderStream) Close() (err error) {
 //
 // To make the output look pretty, a space is inserted every 15 characters of output,
 // and a newline is inserted every 200 words.
-func NewArmorEncoderStream(encoded io.Writer, header string, footer string, params ArmorParams) (io.WriteCloser, error) {
+func NewArmorEncoderStream(encoded io.Writer, header string, footer string, params armorParams) (io.WriteCloser, error) {
 	ret := &armorEncoderStream{
 		buf:     new(bytes.Buffer),
 		encoded: encoded,
@@ -111,10 +111,10 @@ func NewArmorEncoderStream(encoded io.Writer, header string, footer string, para
 	return ret, nil
 }
 
-// ArmorSeal takes an input plaintext and returns and output armor encoding
+// armorSeal takes an input plaintext and returns and output armor encoding
 // as a string, or an error if a problem was encountered. Also provide a header
 // and a footer to frame the message.
-func ArmorSeal(plaintext []byte, header string, footer string, params ArmorParams) (string, error) {
+func armorSeal(plaintext []byte, header string, footer string, params armorParams) (string, error) {
 	var buf bytes.Buffer
 	enc, err := NewArmorEncoderStream(&buf, header, footer, params)
 	if err != nil {
@@ -150,7 +150,7 @@ type framedDecoderStream struct {
 	header []byte
 	footer []byte
 	state  fdsState
-	params ArmorParams
+	params armorParams
 	r      *punctuatedReader
 }
 
@@ -246,14 +246,14 @@ func (s *framedDecoderStream) GetHeader() (string, error) { return s.toASCII(s.h
 // NewArmorDecoderStream is used to decode armored encoding. It returns a stream you
 // can read from, and also a Frame you can query to see what the open/close
 // frame markers were.
-func NewArmorDecoderStream(r io.Reader, params ArmorParams) (io.Reader, Frame, error) {
+func NewArmorDecoderStream(r io.Reader, params armorParams) (io.Reader, Frame, error) {
 	fds := &framedDecoderStream{r: newPunctuatedReader(r, params.Punctuation), params: params}
 	ret := basex.NewDecoder(params.Encoding, fds)
 	return ret, fds, nil
 }
 
-// ArmorOpen runs armor stream decoding, but on a string, and it outputs a string.
-func ArmorOpen(msg string, params ArmorParams) (body []byte, header string, footer string, err error) {
+// armorOpen runs armor stream decoding, but on a string, and it outputs a string.
+func armorOpen(msg string, params armorParams) (body []byte, header string, footer string, err error) {
 	var dec io.Reader
 	var frame Frame
 	buf := bytes.NewBufferString(msg)

@@ -11,7 +11,7 @@ import (
 // Armor62Params are the armoring parameters we recommend for use with
 // a generic armorer.  It specifies the spaces between words, the spacing
 // between lines, some simple punctuation, and an encoding alphabet.
-var Armor62Params = ArmorParams{
+var Armor62Params = armorParams{
 	BytesPerWord: 15,
 	WordsPerLine: 200,
 	Punctuation:  byte('.'),
@@ -38,7 +38,7 @@ func NewArmor62EncoderStream(encoded io.Writer, typ MessageType, brand string) (
 func Armor62Seal(plaintext []byte, typ MessageType, brand string) (string, error) {
 	hdr := makeFrame(headerMarker, typ, brand)
 	ftr := makeFrame(footerMarker, typ, brand)
-	return ArmorSeal(plaintext, hdr, ftr, Armor62Params)
+	return armorSeal(plaintext, hdr, ftr, Armor62Params)
 }
 
 // NewArmor62DecoderStream is used to decode input base62-armoring format. It returns
@@ -51,7 +51,7 @@ func NewArmor62DecoderStream(r io.Reader) (io.Reader, Frame, error) {
 // Armor62Open runs armor stream decoding, but on a string, and it outputs
 // a string.
 func Armor62Open(msg string) (body []byte, header string, footer string, err error) {
-	return ArmorOpen(msg, Armor62Params)
+	return armorOpen(msg, Armor62Params)
 }
 
 // CheckArmor62Frame checks that the frame matches our standard
