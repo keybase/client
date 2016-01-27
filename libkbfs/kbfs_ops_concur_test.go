@@ -1290,3 +1290,132 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 		t.Errorf("Failed block put for %v left block in cache", errPtr)
 	}
 }
+
+// Test that a writes that happen on a multi-block file concurrently
+// with a sync, which has to retry due to an archived block, works
+// correctly.  Regression test for KBFS-700.
+func TestKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T) {
+	config, _, ctx := kbfsOpsConcurInit(t, "test_user")
+	defer CheckConfigAndShutdown(t, config)
+
+	// Use the smallest possible block size.
+	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
+	if err != nil {
+		t.Fatalf("Couldn't create block splitter: %v", err)
+	}
+	config.SetBlockSplitter(bsplitter)
+
+	// Stall on the first put
+	onSyncStalledCh := make(chan struct{}, 1)
+	syncUnstallCh := make(chan struct{})
+
+	stallKey := "requestName"
+	syncValue := "sync"
+
+	config.SetBlockOps(&stallingBlockOps{
+		stallOpName: "put",
+		stallKey:    stallKey,
+		stallMap: map[interface{}]staller{
+			syncValue: staller{
+				stalled: onSyncStalledCh,
+				unstall: syncUnstallCh,
+			},
+		},
+		delegate: config.BlockOps(),
+	})
+
+	// create and write to a file
+	kbfsOps := config.KBFSOps()
+	rootNode, _, err :=
+		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+	var data []byte
+	// Write 2 blocks worth of data
+	for i := 0; i < 30; i++ {
+		data = append(data, byte(i))
+	}
+	err = kbfsOps.Write(ctx, fileNode, data, 0)
+	if err != nil {
+		t.Errorf("Couldn't write file: %v", err)
+	}
+
+	err = kbfsOps.Sync(ctx, fileNode)
+	if err != nil {
+		t.Fatalf("First sync failed: %v", err)
+	}
+
+	// Remove that file, and wait for the archiving to complete
+	err = kbfsOps.RemoveEntry(ctx, rootNode, "a")
+	if err != nil {
+		t.Fatalf("Couldn't remove file: %v", err)
+	}
+
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+
+	fileNode2, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// Now write the identical first block and sync it.
+	err = kbfsOps.Write(ctx, fileNode2, data[:20], 0)
+	if err != nil {
+		t.Errorf("Couldn't write file: %v", err)
+	}
+
+	// Sync the initial two data blocks
+	errChan := make(chan error)
+	// start the sync
+	go func() {
+		syncCtx := context.WithValue(ctx, stallKey, syncValue)
+		errChan <- kbfsOps.Sync(syncCtx, fileNode2)
+	}()
+	<-onSyncStalledCh
+
+	// Now write the second block.
+	err = kbfsOps.Write(ctx, fileNode2, data[20:], 20)
+	if err != nil {
+		t.Errorf("Couldn't write file: %v", err)
+	}
+
+	// Unstall the sync.
+	close(syncUnstallCh)
+	err = <-errChan
+	if err != nil {
+		t.Errorf("Sync got an error: %v", err)
+	}
+
+	// Final sync
+	err = kbfsOps.Sync(ctx, fileNode2)
+	if err != nil {
+		t.Fatalf("Final sync failed: %v", err)
+	}
+
+	gotData := make([]byte, 30)
+	nr, err := kbfsOps.Read(ctx, fileNode2, gotData, 0)
+	if err != nil {
+		t.Errorf("Couldn't read data: %v", err)
+	}
+	if nr != int64(len(gotData)) {
+		t.Errorf("Only read %d bytes", nr)
+	}
+	if !bytes.Equal(data, gotData) {
+		t.Errorf("Read wrong data.  Expected %v, got %v", data, gotData)
+	}
+
+	// Make sure there are no dirty blocks left at the end of the test.
+	bcs := config.BlockCache().(*BlockCacheStandard)
+	numDirtyBlocks := len(bcs.dirty)
+	if numDirtyBlocks != 0 {
+		t.Errorf("%d dirty blocks left after final sync", numDirtyBlocks)
+	}
+}
