@@ -9,11 +9,11 @@ import (
 	"io"
 )
 
-// PunctuatedReader is a stream reader that reads until it hits a usual
+// punctuatedReader is a stream reader that reads until it hits a usual
 // error OR until it hits a punctuation character. In that latter case
 // it returns an `ErrPunctuation` "error" so that way callers can tell
 // the difference between a normal EOF and a "punctuated" EOF.
-type PunctuatedReader struct {
+type punctuatedReader struct {
 	r              io.Reader
 	punctuation    [1]byte
 	nextSegment    []byte
@@ -30,9 +30,9 @@ var ErrPunctuated = errors.New("found punctuation in stream")
 // overflowed before we found the needed character.
 var ErrOverflow = errors.New("buffer was overflowed before we found punctuation")
 
-// Read from the PunctuatedReader, potentially returning an `ErrPunctuation`
+// Read from the punctuatedReader, potentially returning an `ErrPunctuation`
 // if a punctuation character was found.
-func (p *PunctuatedReader) Read(out []byte) (n int, err error) {
+func (p *punctuatedReader) Read(out []byte) (n int, err error) {
 
 	// First deal with the case that we had a "short copy" to our target buffer
 	// in a previous call of the read function.
@@ -100,7 +100,7 @@ func (p *PunctuatedReader) Read(out []byte) (n int, err error) {
 // ReadUntilPunctuation reads from the stream until it find a desired
 // punctuation byte. If it wasn't found before EOF, it will return io.ErrUnexpectedEOF.
 // If it wasn't found before lim bytes are consumed, then it will return ErrOverflow.
-func (p *PunctuatedReader) ReadUntilPunctuation(lim int) (res []byte, err error) {
+func (p *punctuatedReader) ReadUntilPunctuation(lim int) (res []byte, err error) {
 	for {
 		var n int
 		n, err = p.Read(p.buf[:])
@@ -124,10 +124,10 @@ func (p *PunctuatedReader) ReadUntilPunctuation(lim int) (res []byte, err error)
 	}
 }
 
-// NewPunctuatedReader returns a new PunctuatedReader given an underlying
+// newPunctuatedReader returns a new punctuatedReader given an underlying
 // read stream and a punctuation byte.
-func NewPunctuatedReader(r io.Reader, p byte) *PunctuatedReader {
-	ret := &PunctuatedReader{r: r}
+func newPunctuatedReader(r io.Reader, p byte) *punctuatedReader {
+	ret := &punctuatedReader{r: r}
 	ret.punctuation[0] = p
 	return ret
 }

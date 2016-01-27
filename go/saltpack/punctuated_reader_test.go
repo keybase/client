@@ -42,7 +42,7 @@ My Muse said to me ‘Fool, look in your heart and write.’
 
 func TestPunctuatedReaderRegularReads(t *testing.T) {
 	buf := bytes.NewBufferString(testText)
-	r := NewPunctuatedReader(buf, '.')
+	r := newPunctuatedReader(buf, '.')
 	for i := 0; i < 6; i++ {
 		_, err := r.ReadUntilPunctuation(1024)
 		if err != nil {
@@ -56,7 +56,7 @@ func TestPunctuatedReaderRegularReads(t *testing.T) {
 }
 
 func TestPunctuatedReaderSlowReads(t *testing.T) {
-	r := NewPunctuatedReader(&slowReader{[]byte(testText)}, '.')
+	r := newPunctuatedReader(&slowReader{[]byte(testText)}, '.')
 	for i := 0; i < 6; i++ {
 		_, err := r.ReadUntilPunctuation(1024)
 		if err != nil {
@@ -70,7 +70,7 @@ func TestPunctuatedReaderSlowReads(t *testing.T) {
 }
 
 func TestPunctuatedReaderSlowReadsOverflow(t *testing.T) {
-	r := NewPunctuatedReader(&slowReader{[]byte(testText)}, '.')
+	r := newPunctuatedReader(&slowReader{[]byte(testText)}, '.')
 	_, err := r.ReadUntilPunctuation(20)
 	if err != ErrOverflow {
 		t.Fatalf("Wrong error; wanted %v but got %v", ErrOverflow, err)

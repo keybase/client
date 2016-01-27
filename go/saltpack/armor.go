@@ -151,7 +151,7 @@ type framedDecoderStream struct {
 	footer []byte
 	state  fdsState
 	params ArmorParams
-	r      *PunctuatedReader
+	r      *punctuatedReader
 }
 
 // Read from a framedDeecoderStream. The frame is the "BEGIN FOO." block
@@ -247,7 +247,7 @@ func (s *framedDecoderStream) GetHeader() (string, error) { return s.toASCII(s.h
 // can read from, and also a Frame you can query to see what the open/close
 // frame markers were.
 func NewArmorDecoderStream(r io.Reader, params ArmorParams) (io.Reader, Frame, error) {
-	fds := &framedDecoderStream{r: NewPunctuatedReader(r, params.Punctuation), params: params}
+	fds := &framedDecoderStream{r: newPunctuatedReader(r, params.Punctuation), params: params}
 	ret := basex.NewDecoder(params.Encoding, fds)
 	return ret, fds, nil
 }
