@@ -286,6 +286,9 @@
     }, {
       "name" : "force",
       "type" : "boolean"
+    }, {
+      "name" : "defaultInstructions",
+      "type" : "string"
     } ]
   }, {
     "type" : "record",

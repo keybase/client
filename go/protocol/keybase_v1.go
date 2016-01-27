@@ -5919,13 +5919,14 @@ type Update struct {
 }
 
 type UpdateOptions struct {
-	Version         string `codec:"version" json:"version"`
-	Platform        string `codec:"platform" json:"platform"`
-	DestinationPath string `codec:"destinationPath" json:"destinationPath"`
-	Source          string `codec:"source" json:"source"`
-	URL             string `codec:"URL" json:"URL"`
-	Channel         string `codec:"channel" json:"channel"`
-	Force           bool   `codec:"force" json:"force"`
+	Version             string `codec:"version" json:"version"`
+	Platform            string `codec:"platform" json:"platform"`
+	DestinationPath     string `codec:"destinationPath" json:"destinationPath"`
+	Source              string `codec:"source" json:"source"`
+	URL                 string `codec:"URL" json:"URL"`
+	Channel             string `codec:"channel" json:"channel"`
+	Force               bool   `codec:"force" json:"force"`
+	DefaultInstructions string `codec:"defaultInstructions" json:"defaultInstructions"`
 }
 
 type UpdateResult struct {
