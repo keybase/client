@@ -821,7 +821,7 @@ func TestCorruptEncryption(t *testing.T) {
 	// First check that a corrupted ciphertext fails the Poly1305
 	ciphertext, err := testSeal(msg, sender, receivers, testEncryptionOptions{
 		blockSize: 1024,
-		corruptEncryptionBlock: func(eb *EncryptionBlock, ebn encryptionBlockNumber) {
+		corruptEncryptionBlock: func(eb *encryptionBlock, ebn encryptionBlockNumber) {
 			if ebn == 2 {
 				eb.PayloadCiphertext[8] ^= 1
 			}
@@ -840,7 +840,7 @@ func TestCorruptEncryption(t *testing.T) {
 	// Next check that a corruption of the Poly1305 tags causes a failure
 	ciphertext, err = testSeal(msg, sender, receivers, testEncryptionOptions{
 		blockSize: 1024,
-		corruptEncryptionBlock: func(eb *EncryptionBlock, ebn encryptionBlockNumber) {
+		corruptEncryptionBlock: func(eb *encryptionBlock, ebn encryptionBlockNumber) {
 			if ebn == 2 {
 				eb.HashAuthenticators[0][2] ^= 1
 			}

@@ -38,7 +38,7 @@ func (es *encryptStream) Write(plaintext []byte) (int, error) {
 	if ret, es.err = es.buffer.Write(plaintext); es.err != nil {
 		return 0, es.err
 	}
-	for es.buffer.Len() >= EncryptionBlockSize {
+	for es.buffer.Len() >= encryptionBlockSize {
 		es.err = es.encryptBlock()
 		if es.err != nil {
 			return 0, es.err
@@ -66,7 +66,7 @@ func (es *encryptStream) encryptBytes(b []byte) error {
 	nonce := nonceForChunkSecretBox(es.numBlocks)
 	ciphertext := secretbox.Seal([]byte{}, b, (*[24]byte)(nonce), (*[32]byte)(&es.payloadKey))
 
-	block := EncryptionBlock{
+	block := encryptionBlock{
 		PayloadCiphertext: ciphertext,
 	}
 
@@ -212,7 +212,7 @@ func NewEncryptStream(ciphertext io.Writer, sender BoxSecretKey, receivers []Box
 	es := &encryptStream{
 		output:  ciphertext,
 		encoder: newEncoder(ciphertext),
-		inblock: make([]byte, EncryptionBlockSize),
+		inblock: make([]byte, encryptionBlockSize),
 	}
 	err := es.init(sender, receivers)
 	return es, err

@@ -13,7 +13,7 @@ import (
 type testEncryptionOptions struct {
 	blockSize                   int
 	skipFooter                  bool
-	corruptEncryptionBlock      func(bl *EncryptionBlock, ebn encryptionBlockNumber)
+	corruptEncryptionBlock      func(bl *encryptionBlock, ebn encryptionBlockNumber)
 	corruptCiphertextBeforeHash func(c []byte, ebn encryptionBlockNumber)
 	corruptPayloadNonce         func(n *Nonce, ebn encryptionBlockNumber) *Nonce
 	corruptKeysNonce            func(n *Nonce, rid int) *Nonce
@@ -27,7 +27,7 @@ type testEncryptionOptions struct {
 
 func (eo testEncryptionOptions) getBlockSize() int {
 	if eo.blockSize == 0 {
-		return EncryptionBlockSize
+		return encryptionBlockSize
 	}
 	return eo.blockSize
 }
@@ -97,7 +97,7 @@ func (pes *testEncryptStream) encryptBytes(b []byte) error {
 		pes.options.corruptCiphertextBeforeHash(ciphertext, pes.numBlocks)
 	}
 
-	block := EncryptionBlock{
+	block := encryptionBlock{
 		PayloadCiphertext: ciphertext,
 	}
 

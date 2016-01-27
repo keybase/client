@@ -8,7 +8,7 @@ type MessageType int
 
 // packetSeqno is a special int type used to describe which packet in the
 // sequence we're dealing with.  The header is always at seqno=0. Other packets
-// follow. Note that there is a distinction between packetSeqno and EncryptionBlockNumber.
+// follow. Note that there is a distinction between packetSeqno and encryptionBlockNumber.
 // In general, the former is one more than the latter.
 type packetSeqno uint64
 
@@ -28,8 +28,8 @@ const MessageTypeDetachedSignature MessageType = 2
 // version, 1.0.
 var SaltpackCurrentVersion = Version{Major: 1, Minor: 0}
 
-// EncryptionBlockSize is by default 1MB and can't currently be tweaked.
-const EncryptionBlockSize int = 1048576
+// encryptionBlockSize is by default 1MB and can't currently be tweaked.
+const encryptionBlockSize int = 1048576
 
 const EncryptionArmorString = "ENCRYPTED MESSAGE"
 const SignedArmorString = "SIGNED MESSAGE"

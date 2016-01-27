@@ -118,7 +118,7 @@ func (ds *decryptStream) readHeader(rawReader io.Reader) error {
 }
 
 func (ds *decryptStream) readBlock(b []byte) (n int, lastBlock bool, err error) {
-	var eb EncryptionBlock
+	var eb encryptionBlock
 	var seqno packetSeqno
 	seqno, err = ds.mps.Read(&eb)
 	if err != nil {
@@ -267,7 +267,7 @@ func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 	return nil
 }
 
-func (ds *decryptStream) processEncryptionBlock(bl *EncryptionBlock) ([]byte, error) {
+func (ds *decryptStream) processEncryptionBlock(bl *encryptionBlock) ([]byte, error) {
 
 	blockNum := encryptionBlockNumber(bl.seqno - 1)
 
