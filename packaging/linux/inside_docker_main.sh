@@ -96,8 +96,8 @@ last_build_day=""
 while true ; do
   current_day="$(ny_date +%d)"
   current_hour="$(ny_date +%H)"
-  # Build if it's midnight and we haven't already built today.
-  if [ "$current_day" != "$last_build_day" ] && [ "$current_hour" = 00 ] ; then
+  # Build if it's noon and we haven't already built today.
+  if [ "$current_day" != "$last_build_day" ] && [ "$current_hour" = 12 ] ; then
     last_build_day="$current_day"
     echo -e "\n\n\n=================== STARTING A BUILD ===================="
     ny_date
