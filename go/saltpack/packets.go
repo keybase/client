@@ -65,7 +65,7 @@ func newSignatureHeader(sender SigningPublicKey, msgType MessageType) (*Signatur
 	if sender == nil {
 		return nil, ErrInvalidParameter{message: "no public signing key provided"}
 	}
-	nonce, err := NewSigNonce()
+	nonce, err := newSigNonce()
 	if err != nil {
 		return nil, err
 	}

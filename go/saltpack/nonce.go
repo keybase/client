@@ -40,14 +40,14 @@ func nonceForChunkSecretBox(i encryptionBlockNumber) *Nonce {
 	return &n
 }
 
-// SigNonce is a nonce for signatures.
-type SigNonce [16]byte
+// sigNonce is a nonce for signatures.
+type sigNonce [16]byte
 
-// NewSigNonce creates a SigNonce with random bytes.
-func NewSigNonce() (SigNonce, error) {
-	var n SigNonce
+// newSigNonce creates a sigNonce with random bytes.
+func newSigNonce() (sigNonce, error) {
+	var n sigNonce
 	if _, err := rand.Read(n[:]); err != nil {
-		return SigNonce{}, err
+		return sigNonce{}, err
 	}
 	return n, nil
 }
