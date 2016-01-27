@@ -70,8 +70,8 @@ func ForkServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1.
 
 func pingLoop(g *libkb.GlobalContext) error {
 	var err error
-	for i := 0; i < 10; i++ {
-		_, err = getSocket(g)
+	for i := 0; i < 20; i++ {
+		_, err = getSocketWithRetry(g)
 		if err == nil {
 			g.Log.Debug("Connected (%d)", i)
 			return nil
