@@ -14,25 +14,32 @@ func GetRPCClient() (ret *rpc.Client, xp rpc.Transporter, err error) {
 	return GetRPCClientWithContext(G)
 }
 
-func getSocket(g *libkb.GlobalContext) (xp rpc.Transporter, err error) {
+func getSocketWithRetry(g *libkb.GlobalContext) (xp rpc.Transporter, err error) {
+	return getSocket(g, true)
+}
+
+func getSocketNoRetry(g *libkb.GlobalContext) (xp rpc.Transporter, err error) {
+	return getSocket(g, false)
+}
+
+func getSocket(g *libkb.GlobalContext, clearError bool) (xp rpc.Transporter, err error) {
 	var isNew bool
-	_, xp, isNew, err = g.GetSocket(false)
+	_, xp, isNew, err = g.GetSocket(clearError)
 	if err == nil && isNew {
 		introduceMyself(g, xp)
 	}
 	return xp, err
-
 }
 
 func GetRPCClientWithContext(g *libkb.GlobalContext) (ret *rpc.Client, xp rpc.Transporter, err error) {
-	if xp, err = getSocket(g); err == nil {
+	if xp, err = getSocketNoRetry(g); err == nil {
 		ret = rpc.NewClient(xp, libkb.ErrorUnwrapper{})
 	}
 	return
 }
 
 func GetRPCServer(g *libkb.GlobalContext) (ret *rpc.Server, xp rpc.Transporter, err error) {
-	if xp, err = getSocket(g); err == nil {
+	if xp, err = getSocket(g, false); err == nil {
 		ret = rpc.NewServer(xp, libkb.WrapError)
 	}
 	if err != nil {
