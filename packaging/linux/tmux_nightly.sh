@@ -21,7 +21,7 @@ build_script="$here/docker_build.sh"
 bash_target="$(mktemp)"
 cat << END > "$bash_target"
 # Wait for the network to come up.
-while ! ping -c 1 google.com ; do
+while ! ping -c 3 github.com ; do
   sleep 1
 done
 
