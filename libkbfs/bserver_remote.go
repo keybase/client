@@ -310,17 +310,19 @@ func (b *BlockServerRemote) GetUserQuotaInfo(ctx context.Context) (info *UserQuo
 // ArchiveBlockReferences implements the BlockServer interface for
 // BlockServerRemote
 func (b *BlockServerRemote) ArchiveBlockReferences(ctx context.Context,
-	tlfID TlfID, contexts map[BlockID]BlockContext) error {
+	tlfID TlfID, contexts map[BlockID][]BlockContext) error {
 	refs := make([]keybase1.BlockReference, 0, len(contexts))
-	for id, context := range contexts {
-		refs = append(refs, keybase1.BlockReference{
-			Bid: keybase1.BlockIdCombo{
-				ChargedTo: context.GetCreator(),
-				BlockHash: id.String(),
-			},
-			ChargedTo: context.GetWriter(),
-			Nonce:     keybase1.BlockRefNonce(context.GetRefNonce()),
-		})
+	for id, idContexts := range contexts {
+		for _, context := range idContexts {
+			refs = append(refs, keybase1.BlockReference{
+				Bid: keybase1.BlockIdCombo{
+					ChargedTo: context.GetCreator(),
+					BlockHash: id.String(),
+				},
+				ChargedTo: context.GetWriter(),
+				Nonce:     keybase1.BlockRefNonce(context.GetRefNonce()),
+			})
+		}
 	}
 	return b.archiveBlockReferences(ctx, tlfID, refs)
 }

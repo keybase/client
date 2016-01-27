@@ -852,7 +852,7 @@ type BlockServer interface {
 	// view of the folder, and shouldn't be served to anyone other
 	// than folder writers.
 	ArchiveBlockReferences(ctx context.Context, tlfID TlfID,
-		contexts map[BlockID]BlockContext) error
+		contexts map[BlockID][]BlockContext) error
 
 	// Shutdown is called to shutdown an BlockServer connection.
 	Shutdown()
