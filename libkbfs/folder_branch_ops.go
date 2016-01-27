@@ -4978,6 +4978,12 @@ func (fbo *folderBranchOps) Rekey(ctx context.Context, tlf TlfID) (err error) {
 	})
 }
 
+func (fbo *folderBranchOps) waitForArchives(lState *lockState) {
+	fbo.mdWriterLock.Lock(lState)
+	defer fbo.mdWriterLock.Unlock(lState)
+	fbo.archiveGroup.Wait()
+}
+
 func (fbo *folderBranchOps) SyncFromServer(
 	ctx context.Context, folderBranch FolderBranch) (err error) {
 	fbo.log.CDebugf(ctx, "SyncFromServer")
@@ -5023,10 +5029,7 @@ func (fbo *folderBranchOps) SyncFromServer(
 
 	// Wait for all the asynchronous block archiving to hit the block
 	// server.
-	fbo.mdWriterLock.Lock(lState)
-	defer fbo.mdWriterLock.Unlock(lState)
-	fbo.archiveGroup.Wait()
-
+	fbo.waitForArchives(lState)
 	return nil
 }
 

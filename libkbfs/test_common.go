@@ -156,6 +156,9 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 	// turn off background flushing by default during tests
 	config.noBGFlush = true
 
+	configs := []Config{config}
+	config.allKnownConfigsForTesting = &configs
+
 	return config
 }
 
@@ -221,6 +224,10 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 	}
 	c.SetMDServer(mdServer)
 	c.SetKeyServer(keyServer)
+
+	// Keep track of all the other configs in a shared slice.
+	c.allKnownConfigsForTesting = config.allKnownConfigsForTesting
+	*c.allKnownConfigsForTesting = append(*c.allKnownConfigsForTesting, c)
 
 	return c
 }

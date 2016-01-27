@@ -1,6 +1,8 @@
 package libkbfs
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -49,6 +51,10 @@ type ConfigLocal struct {
 	maxNameBytes uint32
 	maxDirBytes  uint64
 	rekeyQueue   RekeyQueue
+
+	// allKnownConfigs is used for testing, and contains all created
+	// Config objects in this test.
+	allKnownConfigsForTesting *[]Config
 }
 
 var _ Config = (*ConfigLocal)(nil)
@@ -460,6 +466,20 @@ func (c *ConfigLocal) SetMetricsRegistry(r metrics.Registry) {
 
 // Shutdown implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) Shutdown() error {
+	if c.CheckStateOnShutdown() {
+		// Before we do anything, wait for all archiving to finish.
+		for _, config := range *c.allKnownConfigsForTesting {
+			kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
+			if !ok {
+				return fmt.Errorf("No KBFSOps Standard!")
+			}
+			for _, fbo := range kbfsOps.ops {
+				lState := makeFBOLockState()
+				fbo.waitForArchives(lState)
+			}
+		}
+	}
+
 	err := c.KBFSOps().Shutdown()
 	// Continue with shutdown regardless of err.
 	c.RekeyQueue().Clear()
