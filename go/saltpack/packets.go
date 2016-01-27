@@ -99,8 +99,8 @@ func (h *SignatureHeader) validate(msgType MessageType) error {
 	return nil
 }
 
-// SignatureBlock contains a block of signed data.
-type SignatureBlock struct {
+// signatureBlock contains a block of signed data.
+type signatureBlock struct {
 	_struct      bool   `codec:",toarray"`
 	Signature    []byte `codec:"signature"`
 	PayloadChunk []byte `codec:"payload_chunk"`

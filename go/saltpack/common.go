@@ -52,7 +52,7 @@ func assertEndOfStream(stream *msgpackStream) error {
 	return err
 }
 
-func attachedSignatureInput(headerHash []byte, block *SignatureBlock) []byte {
+func attachedSignatureInput(headerHash []byte, block *signatureBlock) []byte {
 	hasher := sha512.New()
 	hasher.Write(headerHash)
 	binary.Write(hasher, binary.BigEndian, block.seqno)

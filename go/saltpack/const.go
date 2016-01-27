@@ -43,8 +43,8 @@ const SaltpackFormatName = "saltpack"
 // using the nonce for encryption.
 const NoncePrefixEncryption = "encryption nonce prefix"
 
-// SignatureBlockSize is by default 1MB and can't currently be tweaked.
-const SignatureBlockSize int = 1048576
+// signatureBlockSize is by default 1MB and can't currently be tweaked.
+const signatureBlockSize int = 1048576
 
 // SignatureAttachedString is part of the data that is signed in
 // each payload packet.

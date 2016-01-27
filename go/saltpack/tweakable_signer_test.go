@@ -24,7 +24,7 @@ type testSignStream struct {
 	seqno      packetSeqno
 	secretKey  SigningSecretKey
 	options    testSignOptions
-	savedBlock *SignatureBlock
+	savedBlock *signatureBlock
 }
 
 func newTestSignStream(w io.Writer, signer SigningSecretKey, opts testSignOptions) (*testSignStream, error) {
@@ -55,7 +55,7 @@ func newTestSignStream(w io.Writer, signer SigningSecretKey, opts testSignOption
 	stream := &testSignStream{
 		headerHash: headerHash,
 		encoder:    newEncoder(w),
-		block:      make([]byte, SignatureBlockSize),
+		block:      make([]byte, signatureBlockSize),
 		secretKey:  signer,
 		options:    opts,
 	}
@@ -75,7 +75,7 @@ func (s *testSignStream) Write(p []byte) (int, error) {
 		return 0, err
 	}
 
-	for s.buffer.Len() >= SignatureBlockSize {
+	for s.buffer.Len() >= signatureBlockSize {
 		if err := s.signBlock(); err != nil {
 			return 0, err
 		}
@@ -107,7 +107,7 @@ func (s *testSignStream) signBlock() error {
 }
 
 func (s *testSignStream) signBytes(b []byte) error {
-	block := SignatureBlock{
+	block := signatureBlock{
 		PayloadChunk: b,
 		seqno:        s.seqno,
 	}
@@ -149,7 +149,7 @@ func (s *testSignStream) writeFooter() error {
 	return s.signBytes([]byte{})
 }
 
-func (s *testSignStream) computeSig(block *SignatureBlock) ([]byte, error) {
+func (s *testSignStream) computeSig(block *signatureBlock) ([]byte, error) {
 	return s.secretKey.Sign(attachedSignatureInput(s.headerHash, block))
 }
 
