@@ -71,12 +71,16 @@ ny_date() {
   TZ=America/New_York date "$@"
 }
 
+refresh_one_repo() {
+  git -C "$1" fetch
+  git -C "$1" checkout -f origin/master
+  # Unfortunately we can't clean ignored files. That makes npm too slow :(
+  git -C "$1" clean -df
+}
+
 refresh_repos() {
-  "$client_copy/packaging/check_status_and_pull.sh" "$client_copy"
-  "$client_copy/packaging/check_status_and_pull.sh" "$kbfs_copy"
-  if [ "$mode" != prerelease ] && [ "$mode" != nightly ] ; then
-    "$client_copy/packaging/check_status_and_pull.sh" "$serverops_copy"
-  fi
+  refresh_one_repo "$client_copy"
+  refresh_one_repo "$kbfs_copy"
 }
 
 # I don't want to have to think about what happens to sleep when a machine
