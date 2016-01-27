@@ -39,10 +39,6 @@ const DetachedSignatureArmorString = "DETACHED SIGNATURE"
 // used in the header of the message and also in Nonce creation.
 const SaltpackFormatName = "saltpack"
 
-// NoncePrefixEncryption is the prefix used to create the nonce when
-// using the nonce for encryption.
-const NoncePrefixEncryption = "encryption nonce prefix"
-
 // signatureBlockSize is by default 1MB and can't currently be tweaked.
 const signatureBlockSize int = 1048576
 
