@@ -2,6 +2,7 @@
 - Cache InputCanceled from SecretUI from KBFS crypto ops (PR: keybase/client#1795)
 - New `keybase status` command, previous one moved to `keybase dump-keyfamily`
   (PR: keybase/client#1787)
+- Fix regression in auto-fork (PR: keybase/client#1831)
 
 ## 1.0.9 (2016-01-21)
 - Windows updater (PR: keybase/client#1770)
