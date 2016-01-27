@@ -3595,6 +3595,71 @@ func (fbo *folderBranchOps) mergeUnrefCacheLocked(file path, md *RootMetadata) {
 	}
 }
 
+// fixChildBlocksAfterRecoverableError should be called when a sync
+// failed with a recoverable block error on a multi-block file.  It
+// makes sure that any outstanding dirty versions of the file are
+// fixed up to reflect the fact that some of the indirect pointers now
+// need to change.
+//
+// blockLock may or may not be held, indicated by doLock.
+func (fbo *folderBranchOps) fixChildBlocksAfterRecoverableError(
+	ctx context.Context, doLock bool, lState *lockState, file path,
+	redirtyOnRecoverableError map[BlockPointer]BlockPointer) {
+	if doLock {
+		fbo.blockLock.Lock(lState)
+		defer fbo.blockLock.Unlock(lState)
+	}
+
+	bcache := fbo.config.BlockCache()
+
+	// If a copy of the top indirect block was made, we need to
+	// redirty all the sync'd blocks under their new IDs, so that
+	// future syncs will know they failed.
+	state := fbo.fileBlockStates[file.tailPointer()]
+	if state != blockSyncingAndDirty {
+		return
+	}
+
+	topBlock, err := bcache.Get(file.tailPointer(), fbo.branch())
+	fblock, ok := topBlock.(*FileBlock)
+	if err != nil || !ok {
+		fbo.log.CWarningf(ctx, "Couldn't find dirtied "+
+			"top-block for %v: %v", file.tailPointer(), err)
+		return
+	}
+	for newPtr, oldPtr := range redirtyOnRecoverableError {
+		found := false
+		for i, iptr := range fblock.IPtrs {
+			if iptr.BlockPointer == newPtr {
+				found = true
+				fblock.IPtrs[i].EncodedSize = 0
+			}
+		}
+		if !found {
+			continue
+		}
+
+		fbo.log.CDebugf(ctx, "Re-dirtying %v (and deleting dirty block %v)",
+			newPtr, oldPtr)
+		// These block would have been permanent,
+		// so they're definitely still in the
+		// cache
+		b, err := bcache.Get(newPtr, fbo.branch())
+		if err != nil {
+			fbo.log.CWarningf(ctx, "Couldn't re-dirty %v: %v", newPtr, err)
+			continue
+		}
+		err = bcache.PutDirty(newPtr, fbo.branch(), b)
+		if err != nil {
+			fbo.log.CWarningf(ctx, "Couldn't re-dirty %v: %v", newPtr, err)
+		}
+		err = bcache.DeleteDirty(oldPtr, fbo.branch())
+		if err != nil {
+			fbo.log.CDebugf(ctx, "Couldn't del-dirty %v: %v", oldPtr, err)
+		}
+	}
+}
+
 // mdWriterLock must be taken by the caller.
 func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 	lState *lockState, file path) (stillDirty bool, err error) {
@@ -3648,6 +3713,12 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 	// TODO: Clean up deferredDirtyDeletes on return, like
 	// syncIndirectFileBlockPtrs.
 	var deferredDirtyDeletes []func() error
+
+	// These pointers need to be re-dirtied if the top block gets
+	// copied during the sync, and a recoverable error happens.  Maps
+	// to the lod block pointer for the block, which would need a
+	// DeleteDirty.
+	redirtyOnRecoverableError := make(map[BlockPointer]BlockPointer)
 
 	// A list of permanent entries added to the block cache, which
 	// should be removed after the blocks have been sent to the
@@ -3703,6 +3774,8 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 				*si = *savedSi
 				if fblock.IsInd {
 					*fblock = *oldFblock
+					fbo.fixChildBlocksAfterRecoverableError(ctx, !doUnlock,
+						lState, file, redirtyOnRecoverableError)
 				}
 			}
 		}
@@ -3870,6 +3943,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 				md.AddRefBlock(newInfo)
 				si.bps.addNewBlock(newInfo.BlockPointer, block, readyBlockData)
 				fbo.fileBlockStates[localPtr] = blockSyncingNotDirty
+				redirtyOnRecoverableError[newInfo.BlockPointer] = localPtr
 			}
 		}
 	}
