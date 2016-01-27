@@ -134,10 +134,10 @@ type SigKeyring interface {
 
 // publicKeyEqual returns true if the two public keys are equal.
 func publicKeyEqual(pk1, pk2 BoxPublicKey) bool {
-	return KIDEqual(pk1, pk2)
+	return kidEqual(pk1, pk2)
 }
 
-// KIDEqual return true if the KIDs for two keys are equal.
-func KIDEqual(k1, k2 KIDExtractor) bool {
+// kidEqual return true if the KIDs for two keys are equal.
+func kidEqual(k1, k2 KIDExtractor) bool {
 	return hmac.Equal(k1.ToKID(), k2.ToKID())
 }
