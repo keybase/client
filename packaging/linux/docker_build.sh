@@ -26,32 +26,29 @@ mode="$1"
 here="$(dirname "$BASH_SOURCE")"
 
 clientdir="$(git -C "$here" rev-parse --show-toplevel)"
-
-# Make sure the SERVEROPSDIR is there and up to date.
-if [ -z "${SERVEROPSDIR:-}" ] ; then
-  echo You must define SERVEROPSDIR to point to your clone of keybase/server-ops.
-  exit 1
-fi
-"$here/../check_status_and_pull.sh" "$SERVEROPSDIR"
-
-# Make sure KBFS is there and up to date.
 kbfsdir="$clientdir/../kbfs"
+serveropsdir="$clientdir/../server-ops"
+
+# Make sure KBFS is there and up to date. (This assumes that we always build
+# KBFS from master.)
 "$here/../check_status_and_pull.sh" "$kbfsdir"
 
-# Get the current git configs for making commits.
-git_name="$(git -C "$SERVEROPSDIR" config user.name || true)"
-git_email="$(git -C "$SERVEROPSDIR" config user.email || true)"
-if [ -z "$git_name" ] || [ -z "$git_email" ] ; then
-  echo "The server-ops repo doesn't have user.name and user.email configured."
-  exit 1
-fi
-
-# Test the S3 credentials, and copy them to a temp folder for sharing. (Docker
-# on non-Linux platforms cannot share files directly.)
+# Pushing will require either S3 credentials or the server-ops dir, depending
+# on the build mode. Make sure the appropriate one is available.
 s3cmd_temp="$(mktemp -d)"
+git_name=""
+git_email=""
+serverops_args=()
 if [ "$mode" = prerelease ] || [ "$mode" = nightly ] ; then
+  # These modes require S3 credentials. Test that the ~/.s3cfg creds are
+  # working, and copy them to a temp folder for sharing. (Docker on non-Linux
+  # platforms cannot share files directly.)
   s3cmd get s3://prerelease.keybase.io/update-linux-prod.json - > /dev/null
   cp ~/.s3cfg "$s3cmd_temp"
+else
+  # These modes require server-ops to be available and pushable.
+  "$here/../check_status_and_pull.sh" "$serveropsdir"
+  serverops_args=(-v "$serveropsdir:/SERVEROPS:ro")
 fi
 
 # Make sure the image is ready.
@@ -97,18 +94,15 @@ gpg --export-secret-key --armor "$code_signing_fingerprint" > "$gpg_tempfile"
 #   - the client repo
 #   - ~/.ssh
 # Also export several env vars for git configuration and to pass through the
-# GPG code signing key. For the crazy array notation we're using with osx_args,
-# see http://stackoverflow.com/a/7577209/823869.
+# GPG code signing key. For the crazy array notation we're using with
+# serverops_args and osx_args, see http://stackoverflow.com/a/7577209/823869.
 docker run -ti \
-  -v "$SERVEROPSDIR:/SERVEROPS:ro" \
   -v "$clientdir:/CLIENT:ro" \
   -v "$kbfsdir:/KBFS:ro" \
   -v "$HOME/.ssh:/root/.ssh:ro" \
   -v "$gpg_tempdir:/GPG" \
   -v "$s3cmd_temp:/S3CMD:ro" \
+  "${serverops_args[@]:+${serverops_args[@]}}" \
   "${osx_args[@]:+${osx_args[@]}}" \
-  -e GIT_AUTHOR_NAME="$git_name" \
-  -e GIT_COMMITTER_NAME="$git_name" \
-  -e EMAIL="$git_email" \
   "$image" \
   bash /CLIENT/packaging/linux/inside_docker_main.sh "$@"

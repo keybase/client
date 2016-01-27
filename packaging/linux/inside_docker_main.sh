@@ -48,6 +48,8 @@ cp -r /KBFS "$kbfs_copy"
 if [ "$mode" != prerelease ] && [ "$mode" != nightly ] ; then
   echo "Copying the server-ops repo..."
   cp -r /SERVEROPS "$serverops_copy"
+  git -C "$serverops_copy" config user.name "Keybase Linux Build"
+  git -C "$serverops_copy" config user.email "example@example.com"
 fi
 
 # If we're not entering a nightly build loop (where everything by definition
