@@ -23,7 +23,7 @@
     _buffer = [NSMutableArray array];
     _group = dispatch_group_create();
     _bufferQueue = dispatch_queue_create("KBMemLogger", NULL);
-    self.logFormatter = [[KBLogPlainFormatter alloc] init];
+    self.logFormatter = [[KBLogConsoleFormatter alloc] init];
   }
   return self;
 }
