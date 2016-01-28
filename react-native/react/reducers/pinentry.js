@@ -68,6 +68,7 @@ export default function (state: RootPinentryState = initialState, action: Pinent
         return {
           ...state,
           pinentryStates: {
+            ...state.pinentryStates,
             [sessionID]: newPinentryState
           }
         }
@@ -78,6 +79,7 @@ export default function (state: RootPinentryState = initialState, action: Pinent
         return {
           ...state,
           pinentryStates: {
+            ...state.pinentryStates,
             [sessionID]: updatePinentryState(state.pinentryStates[sessionID] || {}, action)
           }
         }
