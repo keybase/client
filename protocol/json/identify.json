@@ -405,6 +405,14 @@
       } ],
       "response" : "UID"
     },
+    "Resolve2" : {
+      "doc" : "Resolve an assertion to a (UID,username). On failure, returns an error.",
+      "request" : [ {
+        "name" : "assertion",
+        "type" : "string"
+      } ],
+      "response" : "User"
+    },
     "identify" : {
       "doc" : "Identify a user from a username or assertion (e.g. kbuser, twuser@twitter).\n    If trackStatement is true, we'll return a generated JSON tracking statement.\n    If forceRemoteCheck is true, we force all remote proofs to be checked (otherwise a cache is used).",
       "request" : [ {
