@@ -82,8 +82,3 @@ export const globalStyles = {
   ...font,
   ...util
 }
-
-// Workarounds to various things that are broken
-export const globalHacks = {
-  framelessWindowDeadzone: process.platform === 'darwin' ? 20 : 0 // workaround for https://github.com/atom/electron/issues/983, you don't get mouse events in the header on frameless windows
-}

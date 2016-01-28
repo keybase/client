@@ -6,7 +6,7 @@ import {ipcRenderer} from 'electron'
 import RemoteStore from './remote-store'
 import consoleHelper, {ipcLogsRenderer} from '../../../desktop/app/console-helper'
 import hello from '../util/hello'
-import {globalStyles, globalColors, globalHacks} from '../styles/style-guide'
+import {globalColors} from '../styles/style-guide'
 
 consoleHelper()
 ipcLogsRenderer()
@@ -153,10 +153,6 @@ class RemoteComponentLoader extends Component {
 
 const styles = {
   container: {
-    ...globalStyles.rounded,
-    ...globalStyles.windowBorder,
-    marginTop: globalHacks.framelessWindowDeadzone,
-    marginBottom: globalHacks.framelessWindowDeadzone,
     overflow: 'hidden',
     backgroundColor: globalColors.white
   },
