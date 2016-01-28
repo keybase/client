@@ -38,7 +38,7 @@ a block of B bytes with an alphabet of length A:
 3. Convert that number into a list of C digits in base A, by repeatedly taking
    the remainder mod A and then dividing by A. Order the digits from most to
    least significant. There may be leading zeroes.
-4. Map the digits into the letters in the target alphabet.
+4. Map the digits to letters in the target alphabet.
 
 To decode a block of C characters with an alphabet of length A:
 
@@ -69,7 +69,7 @@ Here's an example using our familiar 10-character alphabet, where the letter
    unsigned integer, equal 255.
 3. Convert the number into digits. The five digit representation of 255, from
    most to least significant, is 0-0-2-5-5.
-4. Map the digits into letters. In this simple alphabet, the result is `00255`.
+4. Map the digits to letters. In this simple alphabet, the result is `00255`.
 
 To decode `00255` back into bytes, we'd do this:
 
