@@ -58,15 +58,14 @@ func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res 
 
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(h.G()))
 	if err != nil {
-		h.G().Log.Debug("| died in LoadMe")
-		return res, err
-	}
-
-	device, err := me.GetComputedKeyFamily().GetCurrentDevice(h.G())
-	if err != nil {
-		h.G().Log.Debug("| GetCurrentDevice failed: %s", err)
+		h.G().Log.Debug("| could not load me user")
 	} else {
-		res.Device = device.ProtExport()
+		device, err := me.GetComputedKeyFamily().GetCurrentDevice(h.G())
+		if err != nil {
+			h.G().Log.Debug("| GetCurrentDevice failed: %s", err)
+		} else {
+			res.Device = device.ProtExport()
+		}
 	}
 
 	h.G().LoginState().Account(func(a *libkb.Account) {
