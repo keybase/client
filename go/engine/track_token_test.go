@@ -4,10 +4,9 @@
 package engine
 
 import (
-	"testing"
-
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"testing"
 )
 
 func TestTrackToken(t *testing.T) {
@@ -37,6 +36,39 @@ func trackWithToken(tc libkb.TestContext, fu *FakeUser, username string) {
 		Options: keybase1.TrackOptions{BypassConfirm: true},
 	}
 	teng := NewTrackToken(&arg, tc.G)
+	if err := RunEngine(teng, ctx); err != nil {
+		tc.T.Fatal(err)
+	}
+
+	defer runUntrack(tc.G, fu, username)
+	assertTracking(tc, username)
+}
+
+func TestTrackTokenIdentify2(t *testing.T) {
+	tc := SetupEngineTest(t, "track")
+	defer tc.Cleanup()
+	fu := CreateAndSignupFakeUser(tc, "track")
+
+	idUI := &FakeIdentifyUI{}
+	username := "t_tracy"
+	arg := &keybase1.Identify2Arg{
+		UserAssertion: username,
+		NeedProofSet:  true,
+	}
+	ctx := &Context{
+		LogUI:      tc.G.UI.GetLogUI(),
+		IdentifyUI: idUI,
+		SecretUI:   fu.NewSecretUI(),
+	}
+	eng := NewResolveThenIdentify2(tc.G, arg)
+	if err := RunEngine(eng, ctx); err != nil {
+		tc.T.Fatal(err)
+	}
+	targ := TrackTokenArg{
+		Token:   idUI.Token,
+		Options: keybase1.TrackOptions{BypassConfirm: true},
+	}
+	teng := NewTrackToken(&targ, tc.G)
 	if err := RunEngine(teng, ctx); err != nil {
 		tc.T.Fatal(err)
 	}
