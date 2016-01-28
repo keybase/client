@@ -110,7 +110,7 @@ using the formula for C from above:
 Here's the table for a 62-character alphabet, showing only the block sizes
 where efficiency goes up:
 
-<table>
+<table class="table table-condensed table-striped">
 <tr>
   <td><strong>bytes</strong></td>
   <td><strong>characters</strong></td>
