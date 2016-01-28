@@ -119,7 +119,7 @@ The sender then signs the concatenation of two values:
 An attached signature:
 
 ```yaml
-# header packet
+# header packet (on the wire, this is double-encoded)
 [
   # format name
   "saltpack",
@@ -153,7 +153,7 @@ An attached signature:
 A detached signature:
 
 ```yaml
-# header packet (the only packet)
+# header packet (on the wire, this is double-encoded)
 [
   # format name
   "saltpack",
