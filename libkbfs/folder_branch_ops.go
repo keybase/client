@@ -5433,10 +5433,14 @@ func (fbo *folderBranchOps) archiveBlocksInBackground() {
 				var toDeleteAgain []BlockPointer
 				for _, ptr := range toDelete {
 					err := bops.Delete(ctx, md, ptr.ID, ptr)
+					// Ignore permanent errors
+					_, isPermErr := err.(BServerError)
 					if err != nil {
 						fbo.log.CWarningf(ctx, "Couldn't delete ref %v: %v",
 							ptr, err)
-						toDeleteAgain = append(toDeleteAgain, ptr)
+						if !isPermErr {
+							toDeleteAgain = append(toDeleteAgain, ptr)
+						}
 					}
 				}
 
