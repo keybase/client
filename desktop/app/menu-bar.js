@@ -11,8 +11,8 @@ export default function () {
   const mb = menubar({
     index: `file://${resolveAssets('./renderer/launcher.html')}?src=${hotPath('launcher.bundle.js')}&selectorParams=menubar`,
     width: 320,
-    height: 364 + 10, // size plus gap to deal with deadzone
-    transparent: true,
+    height: 364,
+    frame: false,
     resizable: false,
     preloadWindow: true,
     icon: menubarIconPath,
