@@ -65,10 +65,16 @@ func (c *CmdLogSend) Run() error {
 		return err
 	}
 
-	return c.post(string(statusJSON), kbfsLog, svcLog)
+	c.G().Log.Debug("tailing desktop log %q", status.Desktop.Log)
+	desktopLog, err := tail(status.Desktop.Log, c.numLines)
+	if err != nil {
+		return err
+	}
+
+	return c.post(string(statusJSON), kbfsLog, svcLog, desktopLog)
 }
 
-func (c *CmdLogSend) post(status, kbfsLog, svcLog string) error {
+func (c *CmdLogSend) post(status, kbfsLog, svcLog, desktopLog string) error {
 	c.G().Log.Debug("sending status + logs to keybase")
 	arg := libkb.APIArg{
 		Endpoint: "logdump/send",
@@ -76,6 +82,7 @@ func (c *CmdLogSend) post(status, kbfsLog, svcLog string) error {
 			"status_gz":      libkb.B64Arg(compress(status)),
 			"kbfs_log_gz":    libkb.B64Arg(compress(kbfsLog)),
 			"keybase_log_gz": libkb.B64Arg(compress(svcLog)),
+			"gui_log_gz":     libkb.B64Arg(compress(desktopLog)),
 		},
 	}
 
@@ -116,6 +123,10 @@ func tail(filename string, numLines int) (string, error) {
 		if len(lines) == numLines {
 			break
 		}
+	}
+
+	for left, right := 0, len(lines)-1; left < right; left, right = left+1, right-1 {
+		lines[left], lines[right] = lines[right], lines[left]
 	}
 
 	return strings.Join(lines, "\n"), nil

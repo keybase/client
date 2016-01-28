@@ -73,6 +73,7 @@ type fstatus struct {
 	}
 	Desktop struct {
 		Running bool
+		Log     string
 	}
 
 	DefaultUsername      string
@@ -143,6 +144,7 @@ func (c *CmdStatus) load() (*fstatus, error) {
 	status.KBFS.Log = path.Join(extStatus.LogDir, c.kbfsLogFilename())
 
 	status.Desktop.Running = extStatus.DesktopUIConnected
+	status.Desktop.Log = path.Join(extStatus.LogDir, c.desktopLogFilename())
 
 	status.DefaultUsername = extStatus.DefaultUsername
 	status.ProvisionedUsernames = extStatus.ProvisionedUsernames
@@ -203,6 +205,7 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	dui.Printf("    version:   %s\n", status.Client.Version)
 	dui.Printf("\nDesktop app:\n")
 	dui.Printf("    status:    %s\n\n", BoolString(status.Desktop.Running, "running", "not running"))
+	dui.Printf("    log:       %s\n", status.Desktop.Log)
 	dui.Printf("Config path:        %s\n", status.ConfigPath)
 	dui.Printf("Default user:       %s\n", status.DefaultUsername)
 	dui.Printf("Provisioned users:  %s\n", strings.Join(status.ProvisionedUsernames, ", "))

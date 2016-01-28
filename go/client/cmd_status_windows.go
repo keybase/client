@@ -21,3 +21,8 @@ func (c *CmdStatus) serviceLogFilename() string {
 func (c *CmdStatus) kbfsLogFilename() string {
 	return "keybase.kbfs.log"
 }
+
+// TODO: check with steve about this
+func (c *CmdStatus) desktopLogFilename() string {
+	return "keybase.gui.log"
+}
