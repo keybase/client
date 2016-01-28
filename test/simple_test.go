@@ -26,10 +26,8 @@ func TestRenameFileOverFile(t *testing.T) {
 
 // Check that renaming a directory over a file correctly cleans up state
 func TestRenameDirOverFile(t *testing.T) {
-	if implementation == "fuse" {
-		t.Skip("Renaming directories over files is prohibited on linux (ENOTDIR)")
-	}
 	test(t,
+		skip("fuse", "Renaming directories over files not supported on linux fuse (ENOTDIR)"),
 		writers("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),

@@ -186,10 +186,8 @@ func TestCrConflictUnmergedRenameFileInNewDirOverModifiedFile(t *testing.T) {
 
 // bob renames a directory over a file modified by alice.
 func TestCrConflictUnmergedRenameDirOverModifiedFile(t *testing.T) {
-	if implementation == "fuse" {
-		t.Skip("Renaming directories over files not supported on linux fuse (ENOTDIR)")
-	}
 	test(t,
+		skip("fuse", "Renaming directories over files not supported on linux fuse (ENOTDIR)"),
 		writers("alice", "bob"),
 		as(alice,
 			write("a/b", "hello"),
@@ -317,10 +315,8 @@ func TestCrConflictMergedRenameFileOverModifiedFile(t *testing.T) {
 
 // alice renames a directory over a file modified by bob.
 func TestCrConflictMergedRenameDirOverModifiedFile(t *testing.T) {
-	if implementation == "fuse" {
-		t.Skip("Renaming directories over files not supported on linux fuse (ENOTDIR)")
-	}
 	test(t,
+		skip("fuse", "Renaming directories over files not supported on linux fuse (ENOTDIR)"),
 		writers("alice", "bob"),
 		as(alice,
 			write("a/b", "hello"),

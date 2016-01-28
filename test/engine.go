@@ -15,6 +15,8 @@ type Node interface{}
 // Engine is the interface to the filesystem to be used by the test harness.
 // It may wrap libkbfs directly or it may wrap other users of libkbfs (e.g., libfuse).
 type Engine interface {
+	// Name returns the name of the engine.
+	Name() string
 	// Init is called by the test harness once prior to using a KBFS interface implementation.
 	Init()
 	// InitTest is called by the test harness to initialize user

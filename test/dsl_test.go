@@ -128,6 +128,14 @@ func blockChangeSize(n int64) optionOp {
 	}
 }
 
+func skip(implementation, reason string) optionOp {
+	return func(c *opt) {
+		if c.engine.Name() == implementation {
+			c.t.Skip(reason)
+		}
+	}
+}
+
 func writers(ns ...username) optionOp {
 	return func(o *opt) {
 		o.writerNames = append(o.writerNames, ns...)
@@ -158,7 +166,7 @@ func expectError(op fileOp, reason string) fileOp {
 			return fmt.Errorf("Didn't get expected error (success while expecting failure): %q", reason)
 		}
 		// Real filesystems don't give us the exact errors we wish for.
-		if implementation == "libkbfs" && err.Error() != reason {
+		if c.engine.Name() == "libkbfs" && err.Error() != reason {
 			return fmt.Errorf("Got the wrong error: expected %q, got %q", reason, err.Error())
 		}
 		return nil
@@ -370,7 +378,7 @@ func lsdir(name string, contents m) fileOp {
 			for node, ty2 := range entries {
 				// Windows does not mark "exutable" bits in any way.
 				if re.MatchString(node) && (ty == ty2 ||
-					(implementation == "dokan" && ty == "EXEC" && ty2 == "FILE")) {
+					(c.engine.Name() == "dokan" && ty == "EXEC" && ty2 == "FILE")) {
 					delete(entries, node)
 					continue outer
 				}

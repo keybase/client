@@ -25,6 +25,11 @@ type LibKBFS struct {
 // Check that LibKBFS fully implements the Engine interface.
 var _ Engine = (*LibKBFS)(nil)
 
+// Name returns the name of the Engine.
+func (k *LibKBFS) Name() string {
+	return "libkbfs"
+}
+
 // Init implements the Engine interface.
 func (k *LibKBFS) Init() {
 	// Initialize reference holder and channels maps

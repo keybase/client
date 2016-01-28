@@ -17,8 +17,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-const implementation = "dokan"
-
 type dokanEngine struct {
 	fsEngine
 }
@@ -27,6 +25,11 @@ func createEngine() Engine { return &dokanEngine{} }
 
 func (e *dokanEngine) Init() {
 	e.createUser = createUserDokan
+}
+
+// Name returns the name of the Engine.
+func (*dokanEngine) Name() string {
+	return "dokan"
 }
 
 func createUserDokan(t *testing.T, ith int, config *libkbfs.ConfigLocal, tlf string) User {

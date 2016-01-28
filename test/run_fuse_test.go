@@ -18,13 +18,16 @@ import (
 	"golang.org/x/net/context"
 )
 
-const implementation = "fuse"
-
 type fuseEngine struct {
 	fsEngine
 }
 
 func createEngine() Engine { return &fuseEngine{} }
+
+// Name returns the name of the Engine.
+func (*fuseEngine) Name() string {
+	return "fuse"
+}
 
 func (e *fuseEngine) Init() {
 	e.createUser = createUserFuse

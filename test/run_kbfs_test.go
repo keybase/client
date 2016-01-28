@@ -6,8 +6,6 @@
 
 package test
 
-const implementation = "libkbfs"
-
 func createEngine() Engine {
 	return &LibKBFS{}
 }
