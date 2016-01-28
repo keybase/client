@@ -1,11 +1,11 @@
-import React, {Component} from '../react/base-react'
+import React, {Component} from '../shared/base-react'
 import ReactDOM from 'react-dom'
 import {Provider} from 'react-redux'
 import remote from 'remote'
 import {ipcRenderer} from 'electron'
 import RemoteStore from './remote-store'
 import consoleHelper, {ipcLogsRenderer} from '../app/console-helper'
-import {globalStyles, globalColors, globalHacks} from '../react/styles/style-guide'
+import {globalStyles, globalColors, globalHacks} from '../shared/styles/style-guide'
 
 consoleHelper()
 ipcLogsRenderer()
@@ -52,9 +52,9 @@ class RemoteComponentLoader extends Component {
     const componentToLoad = getQueryVariable('component')
 
     const component = {
-      tracker: require('../react/tracker'),
-      pinentry: require('../react/pinentry'),
-      update: require('../react/update')
+      tracker: require('../shared/tracker'),
+      pinentry: require('../shared/pinentry'),
+      update: require('../shared/update')
     }
 
     if (!componentToLoad || !component[componentToLoad]) {

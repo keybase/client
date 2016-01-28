@@ -1,9 +1,9 @@
-import React, {Component} from '../react/base-react'
+import React, {Component} from '../shared/base-react'
 import {remote, ipcRenderer} from 'electron'
 import resolveAssets from '../resolve-assets'
 import menuHelper from '../app/menu-helper'
 import hotPath from '../hot-path'
-import {globalHacks} from '../react/styles/style-guide'
+import {globalHacks} from '../shared/styles/style-guide'
 
 const {BrowserWindow} = remote
 

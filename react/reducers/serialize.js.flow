@@ -1,2 +1,0 @@
-import type {State} from '../constants/reducer'
-declare export default function foo(state: State, action: any): State;

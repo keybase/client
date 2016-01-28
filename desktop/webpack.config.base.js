@@ -35,7 +35,9 @@ module.exports = {
     fallback: path.join(__dirname, 'node_modules')
   },
   resolveLoader: {
-    modulesDirectories: [path.join(__dirname, 'node_modules')]
+    modulesDirectories: ['web_loaders', 'web_modules', 'node_loaders', 'node_modules', path.join(__dirname, 'node_modules')],
+    extensions: ['', '.webpack-loader.js', '.web-loader.js', '.loader.js', '.js'],
+    packageMains: ['webpackLoader', 'webLoader', 'loader', 'main']
   },
   plugins: [
     new webpack.DefinePlugin(defines)

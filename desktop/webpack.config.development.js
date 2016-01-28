@@ -14,12 +14,13 @@ const defines = {
 console.log('Injecting dev defines: ', defines)
 
 config.debug = true
+config.errorDetails = true
 config.devtool = NO_SOURCE_MAPS ? undefined : 'cheap-module-eval-source-map'
 config.pathinfo = true
 config.output.publicPath = 'http://localhost:4000/dist/'
 
 // Uncomment below to figure out packaging bugs
-config.bail = true
+// config.bail = true
 
 config.plugins.push(new webpack.optimize.OccurenceOrderPlugin())
 

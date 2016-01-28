@@ -1,9 +1,9 @@
-import React from '../react/base-react'
+import React from '../shared/base-react'
 
 import {createDevTools} from 'redux-devtools'
 import DockMonitor from 'redux-devtools-dock-monitor'
 import LogMonitor from 'redux-devtools-log-monitor'
-import {reduxDevToolsSelect} from '../react/local-debug.desktop.js'
+import {reduxDevToolsSelect} from '../shared/local-debug.desktop.js'
 
 export default createDevTools(
   <DockMonitor
