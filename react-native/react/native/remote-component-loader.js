@@ -87,6 +87,7 @@ class RemoteComponentLoader extends Component {
           unsub()
           getCurrentWindow().show()
           getCurrentWindow().setAlwaysOnTop(false)
+          getCurrentWindow().focus()
           this.setState({props: props, loaded: true})
         })
       } else {
