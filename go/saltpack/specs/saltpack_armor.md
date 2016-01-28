@@ -110,27 +110,21 @@ using the formula for C from above:
 Here's the table for a 62-character alphabet, showing only the block sizes
 where efficiency goes up:
 
-<table class="table table-condensed table-striped">
-<tr>
-  <td><strong>bytes</strong></td>
-  <td><strong>characters</strong></td>
-  <td><strong>efficiency</strong></td>
-</tr>
-<tr><td>1  </td> <td>2  </td> <td>50.00%</td></tr>
-<tr><td>2  </td> <td>3  </td> <td>66.67%</td></tr>
-<tr><td>5  </td> <td>7  </td> <td>71.43%</td></tr>
-<tr><td>8  </td> <td>11 </td> <td>72.73%</td></tr>
-<tr><td>11 </td> <td>15 </td> <td>73.33%</td></tr>
-<tr><td>14 </td> <td>19 </td> <td>73.68%</td></tr>
-<tr><td>17 </td> <td>23 </td> <td>73.91%</td></tr>
-<tr><td>20 </td> <td>27 </td> <td>74.07%</td></tr>
-<tr><td>23 </td> <td>31 </td> <td>74.19%</td></tr>
-<tr><td>26 </td> <td>35 </td> <td>74.29%</td></tr>
-<tr><td>29 </td> <td>39 </td> <td>74.36%</td></tr>
-<tr><td>32 </td> <td>43 </td> <td>74.42%</td></tr>
-<tr><td>227</td> <td>305</td> <td>74.43%</td></tr>
-</table>
-
+| bytes | characters | efficiency |
+| ----- | ---------- | ---------- |
+| 1     | 2          | 50.00%     |
+| 2     | 3          | 66.67%     |
+| 5     | 7          | 71.43%     |
+| 8     | 11         | 72.73%     |
+| 11    | 15         | 73.33%     |
+| 14    | 19         | 73.68%     |
+| 17    | 23         | 73.91%     |
+| 20    | 27         | 74.07%     |
+| 23    | 31         | 74.19%     |
+| 26    | 35         | 74.29%     |
+| 29    | 39         | 74.36%     |
+| 32    | 43         | 74.42%     |
+| 227   | 305        | 74.43%     |
 
 We can compare these efficiency figures to the theoretical maximum for a
 62-character alphabet:
