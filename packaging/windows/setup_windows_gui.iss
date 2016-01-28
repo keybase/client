@@ -25,6 +25,7 @@
 #define MyGoArch "amd64"
 #endif
 
+
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
 ; Do not use the same AppId value in installers for other applications.
@@ -50,11 +51,11 @@ VersionInfoVersion={#MyAppVersion}
 DisableDirPage=auto
 DisableProgramGroupPage=auto
 ArchitecturesInstallIn64BitMode=x64 ia64
+PrivilegesRequired=lowest
 ; CreateUninstallRegKey=no
 ; Comment this out for development
 ; (there doesn't seem to be a way to make it conditional)
-SignTool=SignCommand
-
+;SignTool=SignCommand
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -65,22 +66,22 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 [Files]
 Source: "{#MyExePathName}"; DestDir: "{app}"; Flags: replacesameversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
-Source: "..\..\desktop\release\win32-ia32\Keybase-win32-ia32\*"; DestDir: "{app}\gui"; Flags: createallsubdirs recursesubdirs replacesameversion
-Source: "..\..\..\..\dokan-dev\dokany\Win32\Win7Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsOtherArch and IsWindows7
-Source: "..\..\..\..\dokan-dev\dokany\Win32\Win8Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsOtherArch and IsWindows8
-Source: "..\..\..\..\dokan-dev\dokany\Win32\Win8.1Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsOtherArch and IsWindows8_1
-Source: "..\..\..\..\dokan-dev\dokany\Win32\Win10Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsOtherArch and IsWindows10
-Source: "..\..\..\..\dokan-dev\dokany\Win32\Release\dokan.dll"; DestDir: "{sys}"; Flags: 32bit
-Source: "..\..\..\..\dokan-dev\dokany\Win32\Release\dokannp.dll"; DestDir: "{sys}"; Flags: 32bit
-Source: "..\..\..\..\dokan-dev\dokany\x64\Win7Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsX64 and IsWindows7
-Source: "..\..\..\..\dokan-dev\dokany\x64\Win8Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsX64 and IsWindows8
-Source: "..\..\..\..\dokan-dev\dokany\x64\Win8.1Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsX64 and IsWindows8_1
-Source: "..\..\..\..\dokan-dev\dokany\x64\Win10Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsX64 and IsWindows10
-Source: "..\..\..\..\dokan-dev\dokany\x64\Release\dokan.dll"; DestDir: "{sys}"; Flags: 64bit; Check: IsX64
-Source: "..\..\..\..\dokan-dev\dokany\x64\Release\dokannp.dll"; DestDir: "{sys}"; Flags: 64bit; Check: IsX64
-Source: "..\..\..\..\dokan-dev\dokany\Win32\Release\dokanctl.exe"; DestDir: "{pf32}\Dokan\DokanLibrary"
-Source: "..\..\..\..\dokan-dev\dokany\Win32\Release\mounter.exe"; DestDir: "{pf32}\Dokan\DokanLibrary"
-Source: "..\..\..\..\..\..\bin\vc_redist.x86.exe"; DestDir: "{tmp}"
+;Source: "..\..\desktop\release\win32-ia32\Keybase-win32-ia32\*"; DestDir: "{app}\gui"; Flags: createallsubdirs recursesubdirs replacesameversion
+Source: "..\..\..\..\dokan-dev\dokany\Win32\Win7Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsOtherArch and IsWindows7 and IsElevated
+Source: "..\..\..\..\dokan-dev\dokany\Win32\Win8Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsOtherArch and IsWindows8 and IsElevated
+Source: "..\..\..\..\dokan-dev\dokany\Win32\Win8.1Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsOtherArch and IsWindows8_1 and IsElevated
+Source: "..\..\..\..\dokan-dev\dokany\Win32\Win10Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsOtherArch and IsWindows10 and IsElevated
+Source: "..\..\..\..\dokan-dev\dokany\Win32\Release\dokan.dll"; DestDir: "{sys}"; Flags: 32bit; Check: IsElevated
+Source: "..\..\..\..\dokan-dev\dokany\Win32\Release\dokannp.dll"; DestDir: "{sys}"; Flags: 32bit; Check: IsElevated
+Source: "..\..\..\..\dokan-dev\dokany\x64\Win7Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsX64 and IsWindows7 and IsElevated
+Source: "..\..\..\..\dokan-dev\dokany\x64\Win8Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsX64 and IsWindows8 and IsElevated
+Source: "..\..\..\..\dokan-dev\dokany\x64\Win8.1Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsX64 and IsWindows8_1 and IsElevated
+Source: "..\..\..\..\dokan-dev\dokany\x64\Win10Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsX64 and IsWindows10 and IsElevated
+Source: "..\..\..\..\dokan-dev\dokany\x64\Release\dokan.dll"; DestDir: "{sys}"; Flags: 64bit; Check: IsX64 and IsElevated
+Source: "..\..\..\..\dokan-dev\dokany\x64\Release\dokannp.dll"; DestDir: "{sys}"; Flags: 64bit; Check: IsX64 and IsElevated
+Source: "..\..\..\..\dokan-dev\dokany\Win32\Release\dokanctl.exe"; DestDir: "{pf32}\Dokan\DokanLibrary"; Check: IsElevated
+Source: "..\..\..\..\dokan-dev\dokany\Win32\Release\mounter.exe"; DestDir: "{pf32}\Dokan\DokanLibrary"; Check: IsElevated
+;Source: "..\..\..\..\..\..\bin\vc_redist.x86.exe"; DestDir: "{tmp}"
 Source: "..\..\..\kbfs\kbfsdokan\kbfsdokan.exe"; DestDir: "{app}"; Flags: replacesameversion
 
 [Icons]
@@ -98,7 +99,7 @@ WelcomeLabel2=This will install [name/ver] on your computer.
 [Run]
 Filename: "{tmp}\vc_redist.x86.exe"; Parameters: "/quiet /Q:a /c:""msiexec /qb /i vcredist.msi"""; StatusMsg: "Installing VisualStudio 2015 RunTime..."
 Filename: "{app}\{#MyExeName}"; Parameters: "ctl watchdog"; Flags: runasoriginaluser runhidden nowait
-Filename: "{pf32}\Dokan\DokanLibrary\dokanctl.exe"; Parameters: "/i a"; WorkingDir: "{pf32}\Dokan\DokanLibrary"; Flags: runhidden; Description: "Install Dokan Service"
+Filename: "{pf32}\Dokan\DokanLibrary\dokanctl.exe"; Parameters: "/i a"; WorkingDir: "{pf32}\Dokan\DokanLibrary"; Flags: runhidden; Description: "Install Dokan Service"; Check: NeedRestart
 Filename: "{app}\kbfsdokan.exe"; Parameters: "k:"; Flags: nowait runasoriginaluser runhidden
 Filename: "{app}\gui\Keybase.exe"; WorkingDir: "{app}\gui"; Flags: nowait runasoriginaluser
 
@@ -114,9 +115,21 @@ Filename: "{pf32}\Dokan\DokanLibrary\dokanctl.exe"; Parameters: "/r a"
 Filename: "taskkill"; Parameters: "/f /im Keybase.exe"
 Filename: "taskkill"; Parameters: "/f /im kbfsdokan.exe"
 
+[Dirs]
+Name: "{app}\{app}"; Permissions: authusers-modify
+
 [Code]
 var
-  g_driverVer: String;
+  g_Elevated: Boolean;
+  g_currentDokanVer: String;
+type
+  HINSTANCE = THandle;
+
+procedure ExitProcess(uExitCode: UINT);
+  external 'ExitProcess@kernel32.dll stdcall';
+function ShellExecute(hwnd: HWND; lpOperation: string; lpFile: string;
+  lpParameters: string; lpDirectory: string; nShowCmd: Integer): HINSTANCE;
+  external 'ShellExecuteW@shell32.dll stdcall';
 
 // Simply invoking "Keybase.exe service" at startup results in an unsightly
 // extra console window, so we'll emit this bit of script instead.
@@ -162,33 +175,47 @@ var
   CommandName: string;
 
 begin
+  // kill any electron UI instances
+  Exec('taskkill.exe', '/f /im Keybase.exe', '', SW_HIDE,
+    ewWaitUntilTerminated, ResultCode);
   // Launch Keybase ctl stop and wait for it to terminate
   CommandName := ExpandConstant('{app}\{#MyExeName}');
   Exec(CommandName, 'ctl stop', '', SW_HIDE,
     ewWaitUntilTerminated, ResultCode);
   Sleep(100);
-  Exec('{pf32}\Dokan\DokanLibrary\dokanctl.exe', '/r a', '', SW_HIDE,
-    ewWaitUntilTerminated, ResultCode);
-  // Now kill any electron UI instances
-  Exec('taskkill.exe', '/f /im Keybase.exe', '', SW_HIDE,
-    ewWaitUntilTerminated, ResultCode);
   Exec('taskkill.exe', '/f /im kbfsdokan.exe', '', SW_HIDE,
     ewWaitUntilTerminated, ResultCode);
   Sleep(100);
+  if g_Elevated then
+  begin
+    Exec('{pf32}\Dokan\DokanLibrary\dokanctl.exe', '/r a', '', SW_HIDE,
+      ewWaitUntilTerminated, ResultCode);
+  end
 end;
 
 // Restart if the driver got changed
 function NeedRestart(): Boolean;
+begin
+  Result := g_Elevated and (Length(g_currentDokanVer) > 0);
+end;
+
+// Restart if the driver got changed
+function IsElevated(): Boolean;
+begin
+  Result := g_Elevated
+end;
+
+
+function IsDokanBeingUpdated(): Boolean;
 var
   newVer: String;
   fileName: String;
 
 begin
-  fileName := ExpandConstant('{sys}\drivers\dokan.sys');
-  GetVersionNumbersString(fileName, newVer);
-  Log('Old driver ver: ' + g_driverVer);
+  newVer := '10.0.10011.16384';  // TODO!
+  Log('Old driver ver: ' + g_currentDokanVer);
   Log('New driver ver: ' + newVer);
-  Result := (Length(g_driverVer) > 0 ) and not (CompareStr(g_driverVer, newVer) = 0)  
+  Result := not (CompareStr(g_currentDokanVer, newVer) = 0)
 end;
 
 function UninstallNeedRestart(): Boolean;
@@ -198,12 +225,66 @@ begin
 end;
 
 function PrepareToInstall(var Needs: Boolean): String;
-var
-    fileName: String;
 begin
     StopKeybaseService();
+end;
+
+function CmdLineParamExists(const Value: string): Boolean;
+var
+  I: Integer;  
+begin
+  Result := False;
+  for I := 1 to ParamCount do
+    if CompareText(ParamStr(I), Value) = 0 then
+    begin
+      Result := True;
+      Exit;
+    end;
+end;
+
+function InitializeSetup(): Boolean;
+var
+    Params: string;
+    RetVal: HINSTANCE;
+    fileName: string;
+begin
+  // initialize our helper variables
+    g_Elevated := CmdLineParamExists('/ELEVATE');
+    Result := True;
+
     fileName := ExpandConstant('{sys}\drivers\dokan.sys');
-    GetVersionNumbersString(fileName, g_driverVer);
+    GetVersionNumbersString(fileName, g_currentDokanVer);
+
+    if not g_Elevated then
+    begin
+       if IsDokanBeingUpdated() then
+       begin
+          // pass the already selected directory to the executing parameters and
+          // include our own custom /ELEVATE parameter which is used to tell the
+          // setup to install the driver
+          Params := ExpandConstant('/DIR="{app}" /ELEVATE');
+          // because executing of the setup loader is not possible with ShellExec
+          // function, we need to use a WinAPI workaround
+          RetVal := ShellExecute(0, 'runas', ExpandConstant('{srcexe}'), Params, '', SW_SHOW);
+          // if elevated executing of this setup succeeded, then...
+          if RetVal > 32 then
+          begin
+            // exit this non-elevated setup instance
+            ExitProcess(0);
+          end
+          else
+          // executing of this setup failed for some reason; one common reason may
+          // be simply closing the UAC dialog
+          begin
+            // handling of this situation is upon you, this line forces the wizard
+            // stay on the current page
+            Result := False;
+            // and possibly show some error message to the user
+            MsgBox(Format('Elevating of this setup failed. Code: %d', [RetVal]),
+              mbError, MB_OK);
+          end;
+       end
+    end;
 end;
 
 function IsX64: Boolean;
