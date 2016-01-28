@@ -2026,7 +2026,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 		}
 		err := mdops.PutUnmerged(ctx, md, bid)
 		if err != nil {
-			return nil
+			return err
 		}
 		fbo.setStagedLocked(lState, true, bid)
 		fbo.cr.Resolve(md.Revision, mergedRev)
