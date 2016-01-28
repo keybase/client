@@ -85,7 +85,7 @@ func (c *CmdLogSend) post(status, kbfsLog, svcLog string) error {
 		return err
 	}
 
-	id, err := resp.Body.AtKey("id").GetString()
+	id, err := resp.Body.AtKey("logdump_id").GetString()
 	if err != nil {
 		return err
 	}
