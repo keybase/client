@@ -25,7 +25,7 @@ type Engine interface {
 	// dedicated data block instead. If blockSize or blockChangeSize
 	// are zero, the engine defaults are used.
 	InitTest(t *testing.T, blockSize int64, blockChangeSize int64,
-		users ...string) map[string]User
+		writers []username, readers []username) map[string]User
 	// GetUID is called by the test harness to retrieve a user instance's UID.
 	GetUID(u User) keybase1.UID
 	// GetRootDir is called by the test harness to get a handle to the TLF from the given user's
@@ -48,8 +48,6 @@ type Engine interface {
 	RemoveEntry(u User, dir Node, name string) (err error)
 	// Rename is called by the test harness as the given user to rename a node.
 	Rename(u User, srcDir Node, srcName string, dstDir Node, dstName string) (err error)
-	// Sync is called by the test harness as the given user to sync the given file as the given user.
-	Sync(u User, file Node) (err error)
 	// ReadFile is called by the test harness to read from the given file as the given user.
 	ReadFile(u User, file Node, off, len int64) (data string, err error)
 	// Lookup is called by the test harness to return a node in the given directory by

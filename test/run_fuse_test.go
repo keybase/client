@@ -18,8 +18,19 @@ import (
 	"golang.org/x/net/context"
 )
 
-func makeFS(t testing.TB, config *libkbfs.ConfigLocal) (
-	*fstestutil.Mount, *libfuse.FS, func()) {
+const implementation = "fuse"
+
+type fuseEngine struct {
+	fsEngine
+}
+
+func createEngine() Engine { return &fuseEngine{} }
+
+func (e *fuseEngine) Init() {
+	e.createUser = createUserFuse
+}
+
+func createUserFuse(t *testing.T, ith int, config *libkbfs.ConfigLocal, tlf string) User {
 	log := logger.NewTestLogger(t)
 	fuse.Debug = func(msg interface{}) {
 		log.Debug("%s", msg)
@@ -42,18 +53,12 @@ func makeFS(t testing.TB, config *libkbfs.ConfigLocal) (
 		t.Fatal(err)
 	}
 	filesys.LaunchNotificationProcessor(ctx)
-	return mnt, filesys, cancelFn
-}
-
-type userData struct {
-	config libkbfs.Config
-	fs     *libfuse.FS
-	mnt    *fstestutil.Mount
-	tlf    string
-	cancel func()
-}
-
-func (o *opt) createUserData(cfg *libkbfs.ConfigLocal, i int, tlf string) *userData {
-	mnt, fs, cancel := makeFS(o.t, cfg)
-	return &userData{cfg, fs, mnt, tlf, cancel}
+	return &fsUser{
+		mntDir: mnt.Dir,
+		config: config,
+		cancel: cancelFn,
+		close:  mnt.Close,
+		tlf:    tlf,
+		notificationGroupWait: filesys.NotificationGroupWait,
+	}
 }

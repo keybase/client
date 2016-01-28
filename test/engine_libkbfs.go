@@ -35,7 +35,8 @@ func (k *LibKBFS) Init() {
 
 // InitTest implements the Engine interface.
 func (k *LibKBFS) InitTest(t *testing.T, blockSize int64, blockChangeSize int64,
-	users ...string) map[string]User {
+	writers []username, readers []username) map[string]User {
+	users := concatUserNamesToStrings2(writers, readers)
 	// Start a new log for this test.
 	k.t = t
 	k.t.Log("\n------------------------------------------")
@@ -319,4 +320,3 @@ func (k *LibKBFS) Shutdown(u User) error {
 	}
 	return nil
 }
-
