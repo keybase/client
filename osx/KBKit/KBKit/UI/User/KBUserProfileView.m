@@ -210,7 +210,7 @@
       if (track) {
         completion(nil, nil);
       } else {
-        completion(KBMakeError(-1, @"Skipped track"), nil);
+        completion(KBMakeError(KBErrorCodeGeneric, @"Skipped track"), nil);
       }
     }];
     [gself setNeedsLayout];

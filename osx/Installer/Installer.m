@@ -42,7 +42,7 @@ typedef NS_ENUM (NSInteger, KBExit) {
 
   [self install:^(NSError *error, KBEnvironment *environment, KBExit exitCode) {
     if (!error) {
-      [self afterInstall];
+      [self afterInstall:environment];
     }
     DDLogInfo(@"Exit(%@)", @(exitCode));
     dispatch_async(dispatch_get_main_queue(), ^{
@@ -70,7 +70,7 @@ typedef NS_ENUM (NSInteger, KBExit) {
   }];
 }
 
-- (void)afterInstall {
+- (void)afterInstall:(KBEnvironment *)environment {
   /**
   if (!![self.settings objectForKey:@"run-at-login"]) {
     [self setRunAtLogin:[self.settings boolForKey:@"run-at-login"]];
@@ -78,19 +78,7 @@ typedef NS_ENUM (NSInteger, KBExit) {
    */
 
   // TODO: Read setting from config instead of always enabling
-  [self setRunAtLogin:YES];
-}
-
-- (void)setRunAtLogin:(BOOL)runAtLogin {
-  NSBundle *appBundle = [NSBundle bundleWithPath:self.settings.appPath];
-  if (!appBundle) {
-    DDLogError(@"No app bundle to use for login item");
-    return;
-  }
-  DDLogDebug(@"Set login item: %@ for %@", @(runAtLogin), appBundle);
-  NSError *error = nil;
-  [KBLoginItem setLoginEnabled:runAtLogin URL:appBundle.bundleURL error:&error];
-  if (error) DDLogError(@"Error enabling login item: %@", error);
+  [KBInstaller setRunAtLogin:YES config:environment.config appPath:self.settings.appPath];
 }
 
 - (void)checkError:(NSError *)error environment:(KBEnvironment *)environment completion:(void (^)(NSError *error, KBExit exit))completion {

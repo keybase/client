@@ -25,9 +25,15 @@
 
 - (void)install:(KBCompletion)completion {
   if (!self.servicePath) {
-    completion(KBMakeError(-1, @"No service path"));
+    completion(KBMakeError(KBErrorCodeGeneric, @"No service path"));
     return;
   }
+
+  if (![self.config isInApplications:self.servicePath]) {
+    completion(KBMakeWarning(@"Command line install is not supported from this location."));
+    return;
+  }
+
   NSDictionary *params = @{@"directory": self.servicePath, @"name": self.config.serviceBinName, @"appName": self.config.appName};
   DDLogDebug(@"Helper: addToPath(%@)", params);
   [self.helperTool.helper sendRequest:@"addToPath" params:@[params] completion:^(NSError *error, id value) {

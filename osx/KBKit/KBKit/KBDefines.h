@@ -20,6 +20,8 @@ typedef void (^KBOnExtension)(id sender, NSExtensionItem *outputItem);
 typedef void (^KBOnTarget)(id sender);
 
 typedef NS_ENUM (NSInteger, KBErrorCode) {
+  KBErrorCodeWarning = 0,
+  KBErrorCodeGeneric = -1,
   KBErrorCodeUnsupported = -10,
   KBErrorCodePermissionDenied = -11,
 
@@ -44,6 +46,9 @@ typedef NS_ENUM (NSInteger, KBErrorResponse) {
 #define KBMakeError(CODE, MSG, ...) [NSError errorWithDomain:@"Keybase" code:CODE userInfo:@{NSLocalizedDescriptionKey:[NSString stringWithFormat:MSG, ##__VA_ARGS__], NSLocalizedRecoveryOptionsErrorKey: @[@"OK"]}]
 
 #define KBMakeErrorWithRecovery(CODE, MSG, RECOVERY, ...) [NSError errorWithDomain:@"Keybase" code:CODE userInfo:@{NSLocalizedDescriptionKey: MSG, NSLocalizedRecoveryOptionsErrorKey: @[@"OK"], NSLocalizedRecoverySuggestionErrorKey:[NSString stringWithFormat:RECOVERY, ##__VA_ARGS__]}]
+
+#define KBMakeWarning(MSG) KBMakeError(KBErrorCodeWarning, MSG)
+#define KBIsWarning(ERR) ((ERR.code == KBErrorCodeWarning))
 
 
 #define KBOrNull(obj) (obj ? obj : NSNull.null)

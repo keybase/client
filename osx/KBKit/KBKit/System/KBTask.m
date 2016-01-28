@@ -46,7 +46,7 @@
   } @catch (NSException *e) {
     NSString *errorMessage = NSStringWithFormat(@"%@ (%@ %@)", e.reason, command, [args join:@" "]);
     DDLogError(@"Error running task: %@", errorMessage);
-    completion(KBMakeError(-1, @"%@", errorMessage), nil, nil);
+    completion(KBMakeError(KBErrorCodeGeneric, @"%@", errorMessage), nil, nil);
   }
 }
 
@@ -57,7 +57,7 @@
       return;
     }
     if (!outData) {
-      completion(KBMakeError(-1, @"No data for launchd status"), nil);
+      completion(KBMakeError(KBErrorCodeGeneric, @"No data for launchd status"), nil);
       return;
     }
 
@@ -68,7 +68,7 @@
       return;
     }
     if (!value) {
-      completion(KBMakeError(-1, @"Invalid JSON"), nil);
+      completion(KBMakeError(KBErrorCodeGeneric, @"Invalid JSON"), nil);
       return;
     }
 

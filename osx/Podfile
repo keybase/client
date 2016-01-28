@@ -2,7 +2,7 @@ target "Installer" do
   platform :osx, "10.10"
   pod "ObjectiveSugar"
   pod "GBCli"
-  pod "Slash", :git => "https://github.com/chrisdevereux/Slash"
+  pod "Slash"
   pod "MPMessagePack"
   pod "KBKit", :path => "KBKit"
 end
@@ -12,7 +12,7 @@ target "Status" do
   platform :osx, "10.10"
   pod "ObjectiveSugar"
   pod "GBCli"
-  pod "Slash", :git => "https://github.com/chrisdevereux/Slash"
+  pod "Slash"
   pod "MPMessagePack"
   pod "KBKit", :path => "KBKit"
 end

@@ -144,7 +144,7 @@
   @try {
     [task launch];
   } @catch (NSException *e) {
-    completion(KBMakeError(-1, @"%@", e.reason), nil);
+    completion(KBMakeError(KBErrorCodeGeneric, @"%@", e.reason), nil);
   }
 }
 

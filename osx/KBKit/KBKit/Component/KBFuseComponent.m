@@ -49,13 +49,13 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 
 + (void)status:(NSString *)binPath bundleVersion:(KBSemVersion *)bundleVersion completion:(KBOnFuseStatus)completion {
   NSString *bundleVersionFlag = NSStringWithFormat(@"--bundle-version=%@", [bundleVersion description]);
-  [KBTask execute:binPath args:@[@"-d", @"--log-format=plain", @"fuse", @"status", bundleVersionFlag] completion:^(NSError *error, NSData *outData, NSData *errData) {
+  [KBTask execute:binPath args:@[@"-d", @"--log-format=file", @"fuse", @"status", bundleVersionFlag] completion:^(NSError *error, NSData *outData, NSData *errData) {
     if (error) {
       completion(error, nil);
       return;
     }
     if (!outData) {
-      completion(KBMakeError(-1, @"No data for fuse status"), nil);
+      completion(KBMakeError(KBErrorCodeGeneric, @"No data for fuse status"), nil);
       return;
     }
 
@@ -66,7 +66,7 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
       return;
     }
     if (!dict) {
-      completion(KBMakeError(-1, @"Invalid data for fuse status"), nil);
+      completion(KBMakeError(KBErrorCodeGeneric, @"Invalid data for fuse status"), nil);
       return;
     }
 

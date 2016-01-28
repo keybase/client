@@ -18,4 +18,6 @@
 - (void)installWithEnvironment:(KBEnvironment *)environment force:(BOOL)force completion:(void (^)(NSError *error, NSArray *installables))completion;
 - (void)uninstallWithEnvironment:(KBEnvironment *)environment completion:(dispatch_block_t)completion;
 
++ (void)setRunAtLogin:(BOOL)runAtLogin config:(KBEnvConfig *)config appPath:(NSString *)appPath;
+
 @end
