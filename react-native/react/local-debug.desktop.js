@@ -20,7 +20,8 @@ let config = {
   reduxDevToolsSelect: state => state, // only watch a subset of the store
   enableStoreLogging: false,
   enableActionLogging: true,
-  forwardLogs: true
+  forwardLogs: true,
+  devStoreChangingFunctions: false
 }
 
 if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) { // eslint-disable-line no-undef
@@ -38,6 +39,7 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) { // eslint-disable-line no-unde
   config.enableStoreLogging = true
   config.enableActionLogging = false
   config.forwardLogs = true
+  config.devStoreChangingFunctions = true
 }
 
 config = updateConfig(config)
@@ -54,5 +56,6 @@ export const {
   showAllTrackers,
   reduxDevToolsSelect,
   enableStoreLogging,
-  forwardLogs
+  forwardLogs,
+  devStoreChangingFunctions
 } = config
