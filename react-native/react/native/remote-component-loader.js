@@ -86,7 +86,6 @@ class RemoteComponentLoader extends Component {
         const unsub = this.store.subscribe(() => {
           unsub()
           getCurrentWindow().show()
-          getCurrentWindow().setAlwaysOnTop(false)
           this.setState({props: props, loaded: true})
         })
       } else {
@@ -94,7 +93,6 @@ class RemoteComponentLoader extends Component {
         // means we should show the window
         if (this.state.loaded === false) {
           currentWindow.show()
-          currentWindow.setAlwaysOnTop(false)
         }
         setImmediate(() => this.setState({props: props, loaded: true}))
       }
