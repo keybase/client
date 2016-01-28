@@ -1,25 +1,5 @@
 # Saltpack Binary Encryption Format
 
-**Changelog**
-- 18 Jan 2015
-  - Double-encode the header instead of doing custom framing.
-- 13 Jan 2015
-  - Hardcode nonces that are used with ephemeral keys.
-- 11 Jan 2015
-  - Authenticate the entire header in every payload packet, and use HMAC for
-    authentication instead of the dicey crypto_box hack.
-- 5 Jan 2015
-  - Move the sender's public key out of the recipient box and into a separate
-    secretbox with its own field in the header. That saves us the overhead of
-    encrypting it for every recipient.
-- 29 Dec 2015
-  - We had incorrectly assumed it was hard for other recipients to find a
-    Poly1305 collision. Use a hash instead, where we need preimage resistance.
-- 16 Dec 2015
-  - Unify the sender box and the key box into a single "recipient box".
-- 15 Dec 2015
-  - Initial version.
-
 The main building block of our encrypted message format is NaCl's
 [box](http://nacl.cr.yp.to/box.html) and
 [secretbox](http://nacl.cr.yp.to/secretbox.html) constructions. These have
