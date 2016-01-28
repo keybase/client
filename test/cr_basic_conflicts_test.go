@@ -64,6 +64,37 @@ func TestCrConflictCreateFile(t *testing.T) {
 	)
 }
 
+// alice setattr's a file, while bob removes, recreates and writes to
+// a file of the same name. Regression test for KBFS-668.
+func TestCrConflictSetattrVsRecreatedFileInRoot(t *testing.T) {
+	test(t,
+		writers("alice", "bob"),
+		as(alice,
+			mkfile("a", "hello"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			setex("a", true),
+		),
+		as(bob, noSync(),
+			write("a", "uh oh"),
+			rm("a"),
+			mkfile("a", "world"),
+			reenableUpdates(),
+			lsdir("", m{"a$": "EXEC", "a.conflict.bob.0001-01-01T00:00:00Z": "FILE"}),
+			read("a", "hello"),
+			read("a.conflict.bob.0001-01-01T00:00:00Z", "world"),
+		),
+		as(alice,
+			lsdir("", m{"a$": "EXEC", "a.conflict.bob.0001-01-01T00:00:00Z": "FILE"}),
+			read("a", "hello"),
+			read("a.conflict.bob.0001-01-01T00:00:00Z", "world"),
+		),
+	)
+}
+
 // bob creates a directory with the same name that alice used for a file
 func TestCrConflictCauseRenameOfMergedFile(t *testing.T) {
 	test(t,

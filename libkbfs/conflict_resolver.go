@@ -806,12 +806,14 @@ func (cr *ConflictResolver) resolveMergedPaths(ctx context.Context,
 	chainsToSearchFor := make(map[BlockPointer][]BlockPointer)
 	var ptrs []BlockPointer
 
-	// While we're at it, find any deleted unmerged chains containing
-	// operations, where the corresponding merged chain has changed.
-	// The unmerged ops will need to be re-applied in that case.
+	// While we're at it, find any deleted unmerged directory chains
+	// containing operations, where the corresponding merged chain has
+	// changed.  The unmerged ops will need to be re-applied in that
+	// case.
 	var newUnmergedPaths []path
 	for original, unmergedChain := range unmergedChains.byOriginal {
-		if !unmergedChains.isDeleted(original) || len(unmergedChain.ops) == 0 {
+		if !unmergedChains.isDeleted(original) || len(unmergedChain.ops) == 0 ||
+			unmergedChain.isFile() {
 			continue
 		}
 		mergedChain, ok := mergedChains.byOriginal[original]
