@@ -169,6 +169,7 @@ func TestIdPGPNotEldest(t *testing.T) {
 
 type FakeIdentifyUI struct {
 	Proofs          map[string]string
+	ProofResults    map[string]keybase1.LinkCheckResult
 	User            *keybase1.User
 	Confirmed       bool
 	Keys            map[libkb.PGPFingerprint]*keybase1.TrackDiff
@@ -186,6 +187,11 @@ func (ui *FakeIdentifyUI) FinishWebProofCheck(proof keybase1.RemoteProof, result
 		ui.Proofs = make(map[string]string)
 	}
 	ui.Proofs[proof.Key] = proof.Value
+
+	if ui.ProofResults == nil {
+		ui.ProofResults = make(map[string]keybase1.LinkCheckResult)
+	}
+	ui.ProofResults[proof.Key] = result
 }
 
 func (ui *FakeIdentifyUI) FinishSocialProofCheck(proof keybase1.RemoteProof, result keybase1.LinkCheckResult) {
@@ -195,7 +201,12 @@ func (ui *FakeIdentifyUI) FinishSocialProofCheck(proof keybase1.RemoteProof, res
 		ui.Proofs = make(map[string]string)
 	}
 	ui.Proofs[proof.Key] = proof.Value
+	if ui.ProofResults == nil {
+		ui.ProofResults = make(map[string]keybase1.LinkCheckResult)
+	}
+	ui.ProofResults[proof.Key] = result
 }
+
 func (ui *FakeIdentifyUI) Confirm(outcome *keybase1.IdentifyOutcome) (result keybase1.ConfirmResult, err error) {
 	ui.Lock()
 	defer ui.Unlock()

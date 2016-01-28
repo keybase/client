@@ -56,7 +56,7 @@ func NewNowCheckResult(g *GlobalContext, pe ProofError) *CheckResult {
 	return &CheckResult{
 		Contextified: NewContextified(g),
 		Status:       pe,
-		Time:         time.Now(),
+		Time:         g.GetClock().Now(),
 	}
 }
 
@@ -208,7 +208,7 @@ func (pc *ProofCache) Put(sid keybase1.SigID, pe ProofError) error {
 	cr := CheckResult{
 		Contextified: pc.Contextified,
 		Status:       pe,
-		Time:         time.Now(),
+		Time:         pc.G().Clock.Now(),
 	}
 	pc.memPut(sid, cr)
 	return pc.dbPut(sid, cr)
