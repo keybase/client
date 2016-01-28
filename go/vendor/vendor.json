@@ -218,6 +218,11 @@
 			"revisionTime": "2014-10-08T16:43:58+02:00"
 		},
 		{
+			"path": "github.com/rogpeppe/rog-go/reverse",
+			"revision": "f57ad5e24ab7813942c045f86eda1066eb969e98",
+			"revisionTime": "2015-01-10T16:24:53Z"
+		},
+		{
 			"path": "github.com/syndtr/goleveldb/leveldb",
 			"revision": "a06509502ca32565bdf74afc1e573050023f261c",
 			"revisionTime": "2015-06-10T06:54:26+07:00"
