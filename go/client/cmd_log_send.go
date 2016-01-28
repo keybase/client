@@ -5,6 +5,8 @@ package client
 
 import (
 	"bufio"
+	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"os"
 	"strings"
@@ -39,7 +41,7 @@ type CmdLogSend struct {
 
 func (c *CmdLogSend) Run() error {
 
-	// use status command to get status:
+	c.G().Log.Debug("getting keybase status")
 	statusCmd := &CmdStatus{Contextified: libkb.NewContextified(c.G())}
 	status, err := statusCmd.load()
 	if err != nil {
@@ -51,17 +53,53 @@ func (c *CmdLogSend) Run() error {
 	}
 	c.G().Log.Debug("status json: %s", statusJSON)
 
+	c.G().Log.Debug("tailing kbfs log %q", status.KBFS.Log)
 	kbfsLog, err := tail(status.KBFS.Log, c.numLines)
 	if err != nil {
 		return err
 	}
 
+	c.G().Log.Debug("tailing service log %q", status.Service.Log)
 	svcLog, err := tail(status.Service.Log, c.numLines)
 	if err != nil {
 		return err
 	}
 
+	return c.post(string(statusJSON), kbfsLog, svcLog)
+}
+
+func (c *CmdLogSend) post(status, kbfsLog, svcLog string) error {
+	c.G().Log.Debug("sending status + logs to keybase")
+	arg := libkb.APIArg{
+		Endpoint: "logdump/send",
+		Args: libkb.HTTPArgs{
+			"status_gz":      libkb.B64Arg(compress(status)),
+			"kbfs_log_gz":    libkb.B64Arg(compress(kbfsLog)),
+			"keybase_log_gz": libkb.B64Arg(compress(svcLog)),
+		},
+	}
+
+	resp, err := c.G().API.Post(arg)
+	if err != nil {
+		c.G().Log.Debug("post error: %s", err)
+		return err
+	}
+
+	id, err := resp.Body.AtKey("id").GetString()
+	if err != nil {
+		return err
+	}
+
+	c.G().Log.Info("logs sent, dump id = %q", id)
 	return nil
+}
+
+func compress(s string) []byte {
+	var buf bytes.Buffer
+	zip := gzip.NewWriter(&buf)
+	zip.Write([]byte(s))
+	zip.Close()
+	return buf.Bytes()
 }
 
 func tail(filename string, numLines int) (string, error) {
