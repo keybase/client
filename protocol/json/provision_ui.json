@@ -263,7 +263,7 @@
       "response" : "DeviceType"
     },
     "DisplayAndPromptSecret" : {
-      "doc" : "DisplayAndPromptSecret displays a secret that the user can enter into the other device.\n   It also can return a secret that the user enters into this device (from the other device). \n   If it does not return a secret, it will be canceled when this device receives the secret via kex2.",
+      "doc" : "DisplayAndPromptSecret displays a secret that the user can enter into the other device.\n   It also can return a secret that the user enters into this device (from the other device).\n   If it does not return a secret, it will be canceled when this device receives the secret via kex2.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"

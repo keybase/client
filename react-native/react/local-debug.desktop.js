@@ -23,7 +23,7 @@ let config = {
   forwardLogs: true
 }
 
-if (__DEV__ && false) { // eslint-disable-line no-undef
+if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) { // eslint-disable-line no-undef
   config.overrideRouterState = createRouterState(['devMenu', 'components'], [])
   config.overrideActiveTab = Tabs.moreTab
   config.skipLoginRouteToRoot = true

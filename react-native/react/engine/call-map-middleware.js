@@ -1,6 +1,6 @@
 /* @flow */
 
-export type Endpoint = (params: any) => (Promise<any> | any)
+export type Endpoint = (params: any, response: any) => (Promise<any> | any)
 
 export type NestedCallMap = {[key: string]: (NestedCallMap | Endpoint)}
 export type CallMap = {[key: string]: Endpoint}

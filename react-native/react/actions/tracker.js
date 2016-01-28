@@ -14,7 +14,8 @@ import type {ConfigState} from '../reducers/config'
 import type {CallMap} from '../engine/call-map-middleware'
 import type {Action, Dispatch} from '../constants/types/flux'
 
-import type {Identity, IdentifyKey, TrackSummary, User, Cryptocurrency, IdentifyOutcome, RemoteProof, LinkCheckResult, TrackOptions, UserCard} from '../constants/types/flow-types'
+import type {RemoteProof, LinkCheckResult, TrackOptions, UserCard, delegateUiCtl_registerIdentifyUI_rpc,
+  track_checkTracking_rpc, track_untrack_rpc, track_trackWithToken_rpc, incomingCallMapType} from '../constants/types/flow-types'
 
 type TrackerActionCreator = (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void
 
@@ -33,7 +34,15 @@ export function startTimer (): TrackerActionCreator {
           // All popups are closed now.
           clearInterval(intervalId)
         }
-        engine.rpc('track.checkTracking')
+
+        const params : track_checkTracking_rpc = {
+          method: 'track.checkTracking',
+          param: {},
+          incomingCallMap: {},
+          callback: null
+        }
+
+        engine.rpc(params)
       }, Constants.rpcUpdateTimerSeconds)
     }
   }
@@ -47,13 +56,16 @@ export function stopTimer (): Action {
 
 export function registerTrackerChangeListener (): TrackerActionCreator {
   return dispatch => {
-    engine.listenGeneralIncomingRpc('keybase.1.NotifyTracking.trackingChanged', function (args) {
-      dispatch({
-        type: Constants.userUpdated,
-        payload: args
-      })
-    })
+    const params: incomingCallMapType = {
+      'keybase.1.NotifyTracking.trackingChanged': args => {
+        dispatch({
+          type: Constants.userUpdated,
+          payload: args
+        })
+      }
+    }
 
+    engine.listenGeneralIncomingRpc(params)
     setNotifications({tracking: true})
   }
 }
@@ -61,11 +73,20 @@ export function registerTrackerChangeListener (): TrackerActionCreator {
 export function registerIdentifyUi (): TrackerActionCreator {
   return (dispatch, getState) => {
     engine.listenOnConnect('registerIdentifyUi', () => {
-      engine.rpc('delegateUiCtl.registerIdentifyUI', {}, {}, (error, response) => {
-        if (error != null) {
-          console.error('error in registering identify ui: ', error)
+      const params : delegateUiCtl_registerIdentifyUI_rpc = {
+        method: 'delegateUiCtl.registerIdentifyUI',
+        param: {},
+        incomingCallMap: {},
+        callback: (error, response) => {
+          if (error != null) {
+            console.error('error in registering identify ui: ', error)
+          } else {
+            console.log('Registered identify ui')
+          }
         }
-      })
+      }
+
+      engine.rpc(params)
     })
 
     createServer(
@@ -136,17 +157,24 @@ function onUserTrackingLoading (username: string): Action {
 
 export function onUnfollow (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
-    engine.rpc('track.untrack', {username}, {}, (err, response) => {
-      if (err) {
-        console.log('err untracking', err)
-      } else {
-        dispatch({
-          type: Constants.reportLastTrack,
-          payload: {username}
-        })
-        console.log('success in untracking')
+    const params : track_untrack_rpc = {
+      method: 'track.untrack',
+      param: {username},
+      incomingCallMap: {},
+      callback: (err, response) => {
+        if (err) {
+          console.log('err untracking', err)
+        } else {
+          dispatch({
+            type: Constants.reportLastTrack,
+            payload: {username}
+          })
+          console.log('success in untracking')
+        }
       }
-    })
+    }
+
+    engine.rpc(params)
 
     dispatch({
       type: Constants.onUnfollow,
@@ -170,21 +198,28 @@ function trackUser (trackToken: ?string): Promise<boolean> {
     forceRetrack: false
   }
 
-  if (trackToken) {
-    return new Promise((resolve, reject) => {
-      engine.rpc('track.trackWithToken', {trackToken, options}, {}, (err, response) => {
-        if (err) {
-          console.log('error: Track with token: ', err)
-          reject(err)
+  return new Promise((resolve, reject) => {
+    if (trackToken != null) {
+      const params : track_trackWithToken_rpc = {
+        method: 'track.trackWithToken',
+        param: {trackToken, options},
+        incomingCallMap: {},
+        callback: (err, response) => {
+          if (err) {
+            console.log('error: Track with token: ', err)
+            reject(err)
+          }
+
+          console.log('Finished tracking', response)
+          resolve(true)
         }
+      }
 
-        console.log('Finished tracking', response)
-        resolve(true)
-      })
-    })
-  }
-
-  return Promise.resolve(false)
+      engine.rpc(params)
+    } else {
+      resolve(false)
+    }
+  })
 }
 
 export function onCloseFromActionBar (username: string): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
@@ -239,8 +274,10 @@ function updateUserInfo (userCard: UserCard, username: string, getState: () => {
 function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
   /* eslint-disable arrow-parens */
   const sessionIDToUsername: { [key: number]: string } = {}
+
+  // TODO the promisifyResponses is actually dangerous. you can't send errors back and it makes typing it more difficult
   const identifyUi = {
-    start: (params: {sessionID: number, username: string, reason: {reason: string}}) => {
+    start: params => {
       const {username, sessionID, reason} = params
       sessionIDToUsername[sessionID] = username
 
@@ -264,9 +301,9 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
         payload: {username}
       })
     },
-    displayKey: (params: {sessionID: number, key: IdentifyKey}) => {
+    displayKey: params => {
     },
-    reportLastTrack: (params: {sessionID: number, track: ?TrackSummary}) => {
+    reportLastTrack: params => {
       const username = sessionIDToUsername[params.sessionID]
       dispatch({
         type: Constants.reportLastTrack,
@@ -277,7 +314,7 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
       })
     },
 
-    launchNetworkChecks: (params: {sessionID: number, identity: Identity, user: User}) => {
+    launchNetworkChecks: params => {
       const username = sessionIDToUsername[params.sessionID]
       // This is the first spot that we have access to the user, so let's use that to get
       // The user information
@@ -292,36 +329,39 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
       dispatch({type: Constants.updateProofState, payload: {username}})
     },
 
-    displayTrackStatement: (params: {sessionID: number, stmt: string}) => {
+    displayTrackStatement: params => {
     },
 
-    finishWebProofCheck: (params: {sessionID: number, rp: RemoteProof, lcr: LinkCheckResult}) => {
+    finishWebProofCheck: params => {
       const username = sessionIDToUsername[params.sessionID]
       dispatch(updateProof(params.rp, params.lcr, username))
       dispatch({type: Constants.updateProofState, payload: {username}})
       dispatch({type: Constants.decideToShowTracker, payload: {username}})
     },
-    finishSocialProofCheck: (params: {sessionID: number, rp: RemoteProof, lcr: LinkCheckResult}) => {
+    finishSocialProofCheck: params => {
       const username = sessionIDToUsername[params.sessionID]
       dispatch(updateProof(params.rp, params.lcr, username))
       dispatch({type: Constants.updateProofState, payload: {username}})
       dispatch({type: Constants.decideToShowTracker, payload: {username}})
     },
-    displayCryptocurrency: (params: {sessionID: number, c: Cryptocurrency}) => {
+    displayCryptocurrency: params => {
     },
-    displayUserCard: (params: {sessionID: number, card: UserCard}) => {
+    displayUserCard: params => {
       const username = sessionIDToUsername[params.sessionID]
       dispatch(updateUserInfo(params.card, username, getState))
     },
-    reportTrackToken: (params: {sessionID: number, trackToken: string}) => {
+    reportTrackToken: params => {
       const username = sessionIDToUsername[params.sessionID]
       const {trackToken} = params
       dispatch({type: Constants.updateTrackToken, payload: {username, trackToken}})
     },
-    confirm: (params: {sessionID: number, outcome: IdentifyOutcome}): bool => {
-      return false
+    confirm: params => {
+      return {
+        identityConfirmed: false,
+        remoteConfirmed: false
+      }
     },
-    finish: (params: {sessionID: number}) => {
+    finish: params => {
       const username = sessionIDToUsername[params.sessionID]
       // Check if there were any errors in the proofs
       dispatch({type: Constants.updateProofState, payload: {username}})

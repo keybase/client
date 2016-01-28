@@ -96,12 +96,14 @@ class Engine {
 
   // Bind a single callback to a method.
   // Newer calls to this will overwrite older listeners, and older listeners will not get called.
-  listenGeneralIncomingRpc (method, listener) {
-    this.generalListeners[method] = listener
+  listenGeneralIncomingRpc (params) {
+    Object.keys(params).forEach(method => {
+      this.generalListeners[method] = params[method]
+    })
   }
 
   removeGeneralIncomingRpc (method) {
-    this.listenGeneralIncomingRpc(method, () => {})
+    this.listenGeneralIncomingRpc({[method]: () => {}})
   }
 
   listenServerInit (method, listener) {
@@ -183,7 +185,7 @@ class Engine {
     listener(param, wrappedResponse)
   }
 
-  _hasNoHandler(method, callMap, generalIncomingRpcMap) {
+  _hasNoHandler (method, callMap, generalIncomingRpcMap) {
     if (!callMap) {
       return generalIncomingRpcMap[method] == null
     }
@@ -220,7 +222,8 @@ class Engine {
 
   // Make an RPC and call callbacks in the incomingCallMap
   // (name of call, {arguments object}, {methodName: function(params, response)}, function(err, data)
-  rpc (method, param, incomingCallMap, callback) {
+  // Use rpc() instead
+  rpc_unchecked (method, param, incomingCallMap, callback) {
     if (!param) {
       param = {}
     }
@@ -253,6 +256,11 @@ class Engine {
     } else {
       invoke()
     }
+  }
+
+  rpc (params) {
+    const {method, param, incomingCallMap, callback} = params
+    this.rpc_unchecked(method, param, incomingCallMap, callback)
   }
 
   reset () {
