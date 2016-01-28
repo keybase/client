@@ -39,8 +39,9 @@ type BlockCacheStandard struct {
 	bytesLock       sync.Mutex
 	cleanTotalBytes uint64
 
-	dirtyLock sync.RWMutex
-	dirty     map[dirtyBlockID]Block
+	dirtyLock          sync.Mutex
+	dirty              map[dirtyBlockID]Block
+	dirtyBytesEstimate uint64
 }
 
 // NewBlockCacheStandard constructs a new BlockCacheStandard instance
@@ -83,8 +84,8 @@ func (b *BlockCacheStandard) Get(ptr BlockPointer, branch BranchName) (
 			refNonce: ptr.RefNonce,
 			branch:   branch,
 		}
-		b.dirtyLock.RLock()
-		defer b.dirtyLock.RUnlock()
+		b.dirtyLock.Lock()
+		defer b.dirtyLock.Unlock()
 		return b.dirty[dirtyID]
 	}()
 	if block != nil {
@@ -248,6 +249,7 @@ func (b *BlockCacheStandard) PutDirty(ptr BlockPointer,
 	b.dirtyLock.Lock()
 	defer b.dirtyLock.Unlock()
 	b.dirty[dirtyID] = block
+	b.dirtyBytesEstimate = 0
 	return nil
 }
 
@@ -294,6 +296,7 @@ func (b *BlockCacheStandard) DeleteDirty(
 	b.dirtyLock.Lock()
 	defer b.dirtyLock.Unlock()
 	delete(b.dirty, dirtyID)
+	b.dirtyBytesEstimate = 0
 	return nil
 }
 
@@ -306,8 +309,8 @@ func (b *BlockCacheStandard) IsDirty(
 		branch:   branch,
 	}
 
-	b.dirtyLock.RLock()
-	defer b.dirtyLock.RUnlock()
+	b.dirtyLock.Lock()
+	defer b.dirtyLock.Unlock()
 	_, isDirty = b.dirty[dirtyID]
 	return
 }
@@ -315,13 +318,16 @@ func (b *BlockCacheStandard) IsDirty(
 // DirtyBytesEstimate implements the BlockCache interface for
 // BlockCacheStandard.
 func (b *BlockCacheStandard) DirtyBytesEstimate() uint64 {
-	b.dirtyLock.RLock()
-	defer b.dirtyLock.RUnlock()
-	var size uint64
-	// Users of this cache can update dirty blocks at will, so it's
-	// not possible to cache the sizes of the dirty blocks.
-	for _, block := range b.dirty {
-		size += uint64(getCachedBlockSize(block))
+	b.dirtyLock.Lock()
+	defer b.dirtyLock.Unlock()
+	if b.dirtyBytesEstimate == 0 {
+		// Users of this cache can update dirty blocks at will, so
+		// it's not possible to return the exact sizes of the blocks.
+		// Just cache what we have until we know for sure that it's
+		// changed (because a new block is added, for example).
+		for _, block := range b.dirty {
+			b.dirtyBytesEstimate += uint64(getCachedBlockSize(block))
+		}
 	}
-	return size
+	return b.dirtyBytesEstimate
 }
