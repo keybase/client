@@ -82,8 +82,6 @@ const (
 	secondsBetweenBackgroundFlushes = 10
 	// Cap the number of times we retry after a recoverable error
 	maxRetriesOnRecoverableErrors = 10
-	// Number of outstanding deferred bytes allowed.
-	maxDeferredBytes = maxParallelBlockPuts * (512 << 10)
 	// When the number of dirty bytes exceeds this level, force a sync.
 	dirtyBytesThreshold = maxParallelBlockPuts * (512 << 10)
 	// The timeout for any background task.
@@ -270,8 +268,6 @@ type folderBranchOps struct {
 	deferredDirtyDeletes []BlockPointer
 	// set to true if this write or truncate should be deferred
 	doDeferWrite bool
-	// Total number of bytes currently being deferred
-	deferredBytes uint64
 	// If there are too many deferred bytes outstanding, writes should
 	// block on this channel before continuing their writes.
 	deferredBlockingChan chan struct{}
@@ -3198,19 +3194,29 @@ func (fbo *folderBranchOps) maybeWaitOnDeferredWritesLocked(
 		}
 	}()
 
-	// If there are too many deferred writes, we should wait until
-	// they get cleared.
-	for fbo.deferredBytes >= maxDeferredBytes {
-		fbo.log.CDebugf(ctx, "Blocking a write because of %d bytes of "+
-			"outstanding deferred writes", fbo.deferredBytes)
+	// If there is too much unflushed data, we should wait until some
+	// of it gets flush so our memory usage doesn't grow without
+	// bound.
+	bcache := fbo.config.BlockCache()
+	for {
+		dirtyBytes := bcache.DirtyBytesEstimate()
+		if dirtyBytes < dirtyBytesThreshold {
+			break
+		}
+		fbo.log.CDebugf(ctx, "Blocking a write because of %d dirty bytes",
+			dirtyBytes)
 		if fbo.deferredBlockingChan == nil {
 			fbo.deferredBlockingChan = make(chan struct{})
 		}
 		c := fbo.deferredBlockingChan
 		doLock = true
 		fbo.blockLock.Unlock(lState)
+		// Check again periodically, in case some other TLF is hogging
+		// all the dirty bytes.
+		t := time.NewTimer(100 * time.Millisecond)
 		select {
 		case <-c:
+		case <-t.C:
 		case <-ctx.Done():
 			return ctx.Err()
 		}
@@ -3274,7 +3280,6 @@ func (fbo *folderBranchOps) Write(
 			// the most obviously correct way.
 			dataCopy := make([]byte, len(data))
 			copy(dataCopy, data)
-			fbo.deferredBytes += uint64(len(data))
 			fbo.log.CDebugf(ctx, "Deferring a write to file %v off=%d len=%d",
 				filePath.tailPointer(), off, len(data))
 			fbo.deferredDirtyDeletes = append(fbo.deferredDirtyDeletes,
@@ -4106,7 +4111,6 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 		}
 	}
 
-	fbo.deferredBytes = 0
 	if fbo.deferredBlockingChan != nil {
 		close(fbo.deferredBlockingChan)
 		fbo.deferredBlockingChan = nil
