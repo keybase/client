@@ -2,11 +2,14 @@ import React, {Component} from '../base-react'
 import {FlatButton} from 'material-ui'
 import {connect} from '../base-redux'
 import commonStyles from '../styles/common'
-import {Header} from '../common-adapters'
+import {Header, Button} from '../common-adapters'
 import Tracker from '../tracker'
 import Menubar from '../menubar'
 import Container from './dev-container'
 import Update from '../update/index.js'
+
+// $FlowIssue platform files
+import RemoteComponent from '../native/remote-component'
 
 import {devEditAction} from '../reducers/devEdit'
 
@@ -45,6 +48,9 @@ export default class Render extends Component {
         <Container title='Tracker'>
           <ConnectedTrackerDev/>
         </Container>
+        <Container title='Popup'>
+          <PopupDemo/>
+        </Container>
         <Container title='Header No Close'>
           <Header icon title='Title'/>
         </Container>
@@ -55,6 +61,64 @@ export default class Render extends Component {
   )
   }
 }
+class PopupDemo_ extends Component {
+  componentWillMount () {
+    const demoState = {
+      closed: true,
+      sessionID: -1,
+      features: {},
+      prompt: 'Demo Pinentry',
+      windowTitle: 'demo window title',
+      canceled: false,
+      submitted: false,
+      submitLabel: 'submit',
+      cancelLabel: 'cancel',
+      retryLabel: 'retry'
+    }
+
+    const trackerDemoState = {
+      serverActive: true,
+      trackerState: 'metaNew',
+      trackerMessage: 'stuff',
+      username: 'Demo',
+      shouldFollow: false,
+      reason: 'Reason here',
+      userInfo: {
+        fullname: 'sir demo',
+        followersCount: 1337,
+        followingCount: 1337,
+        followsYou: false,
+        avatar: null,
+        location: 'Planet Earth'
+      },
+      proofs: [],
+      closed: true,
+      hidden: false,
+      trackToken: null,
+      lastTrack: null
+    }
+
+    this.props.dispatch(devEditAction(['pinentry', 'pinentryStates', -1], demoState))
+    this.props.dispatch(devEditAction(['tracker', 'trackers', '::demo'], trackerDemoState))
+  }
+
+  render () {
+    const togglePinentry = () => {
+      this.props.dispatch(devEditAction(['pinentry', 'pinentryStates', -1, 'closed'], false))
+    }
+    const toggleTracker = () => {
+      this.props.dispatch(devEditAction(['tracker', 'trackers', '::demo', 'closed'], false))
+    }
+    return (
+      <div>
+      <Header title='Pinentry'/>
+        <Button label='toggle popup pinentry' onClick={togglePinentry} />
+        <Button label='toggle popup tracker' onClick={toggleTracker} />
+      </div>
+    )
+  }
+}
+const PopupDemo = connect(state => ({}), dispatch => ({dispatch}))(PopupDemo_)
 
 class TrackerDev extends Component {
   constructor (props) {

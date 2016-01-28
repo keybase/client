@@ -9,9 +9,15 @@ export function autoResize () {
     try {
       const element = window.document.getElementById('remoteComponent')
       const browserWindow = remote.getCurrentWindow()
-      // Height of remote component + offset from parent + top/bottom border
-      browserWindow.setSize(browserWindow.getSize()[0], element.scrollHeight + 2 * element.offsetTop + 2 * globalStyles.windowBorder.borderWidth)
-    } catch (i) {
+      if (element && (element.scrollHeight != null) && (element.offsetTop != null) && !browserWindow.isDestroyed()) {
+        // Height of remote component + offset from parent + top/bottom border
+        const originalResizableState = browserWindow.isResizable()
+        browserWindow.setResizable(true)
+        browserWindow.setSize(browserWindow.getSize()[0], element.scrollHeight + 2 * element.offsetTop + 2 * globalStyles.windowBorder.borderWidth)
+        browserWindow.setResizable(originalResizableState)
+      }
+    } catch (e) {
+      console.error('error in resizing frame', e)
     }
   }, 1)
 }
