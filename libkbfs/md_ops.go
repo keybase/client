@@ -297,7 +297,7 @@ func (md *MDOpsStandard) GetUnmergedRange(ctx context.Context, id TlfID,
 }
 
 func (md *MDOpsStandard) readyMD(ctx context.Context, rmd *RootMetadata) (
-	*RootMetadataSigned, error) {
+	rms *RootMetadataSigned, err error) {
 	_, me, err := md.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return nil, err

@@ -2063,7 +2063,7 @@ func (cr *ConflictResolver) createResolvedMD(ctx context.Context,
 	lState *lockState, unmergedPaths []path, unmergedChains *crChains,
 	mergedChains *crChains) (*RootMetadata, error) {
 	currMD := mergedChains.mostRecentMD
-	newMD, err := currMD.MakeSuccessor(cr.config)
+	newMD, err := currMD.MakeSuccessor(cr.config, true)
 	if err != nil {
 		return nil, err
 	}

@@ -219,6 +219,16 @@ func (tkg TLFWriterKeyGenerations) IsWriter(user keybase1.UID, deviceKID keybase
 type TLFReaderKeyBundle struct {
 	// TODO rename once we're rid of TLFKeyBundle
 	RKeys UserDeviceKeyInfoMap
+
+	// M_e as described in 4.1.1 of https://keybase.io/blog/kbfs-crypto.
+	// Because devices can be added into the key generation after it
+	// is initially created (so those devices can get access to
+	// existing data), we track multiple ephemeral public keys; the
+	// one used by a particular device is specified by EPubKeyIndex in
+	// its TLFCryptoKeyInfo struct.
+	// This list is needed so a reader rekey doesn't modify the writer
+	// metadata.
+	TLFReaderEphemeralPublicKeys TLFEphemeralPublicKeys `codec:"readerEPubKey"`
 }
 
 // DeepEqual returns true if two TLFReaderKeyBundles are equal.
@@ -230,6 +240,7 @@ func (trb TLFReaderKeyBundle) DeepEqual(rhs TLFReaderKeyBundle) bool {
 func (trb *TLFReaderKeyBundle) DeepCopy() *TLFReaderKeyBundle {
 	return &TLFReaderKeyBundle{
 		RKeys: trb.RKeys.DeepCopy(),
+		TLFReaderEphemeralPublicKeys: trb.TLFReaderEphemeralPublicKeys.DeepCopy(),
 	}
 }
 
@@ -340,9 +351,19 @@ func (tkb *TLFKeyBundle) fillInDevices(crypto Crypto,
 	rKeys map[keybase1.UID][]CryptPublicKey, ePubKey TLFEphemeralPublicKey,
 	ePrivKey TLFEphemeralPrivateKey, tlfCryptKey TLFCryptKey) (
 	serverKeyMap, error) {
-	tkb.TLFEphemeralPublicKeys =
-		append(tkb.TLFEphemeralPublicKeys, ePubKey)
-	newIndex := len(tkb.TLFEphemeralPublicKeys) - 1
+	var newIndex int
+	if len(wKeys) == 0 {
+		// This is VERY ugly, but we need it in order to avoid having to
+		// version the metadata. The index will be strictly negative for reader
+		// ephemeral public keys
+		tkb.TLFReaderEphemeralPublicKeys =
+			append(tkb.TLFReaderEphemeralPublicKeys, ePubKey)
+		newIndex = -len(tkb.TLFReaderEphemeralPublicKeys)
+	} else {
+		tkb.TLFEphemeralPublicKeys =
+			append(tkb.TLFEphemeralPublicKeys, ePubKey)
+		newIndex = len(tkb.TLFEphemeralPublicKeys) - 1
+	}
 
 	// now fill in the secret keys as needed
 	newServerKeys := serverKeyMap{}
@@ -389,6 +410,9 @@ func (tkb TLFKeyBundle) GetTLFEphemeralPublicKey(user keybase1.UID,
 			TLFEphemeralPublicKeyNotFoundError{user, key}
 	}
 
+	if info.EPubKeyIndex < 0 {
+		return tkb.TLFReaderEphemeralPublicKeys[-1-info.EPubKeyIndex], nil
+	}
 	return tkb.TLFEphemeralPublicKeys[info.EPubKeyIndex], nil
 }
 

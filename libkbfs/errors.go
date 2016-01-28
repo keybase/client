@@ -841,6 +841,14 @@ func NewRekeyPermissionError(ctx context.Context, config Config, dir *TlfHandle,
 	return RekeyPermissionError{username, dirname}
 }
 
+// RekeyIncompleteError is returned when a rekey is partially done but
+// needs a writer to finish it.
+type RekeyIncompleteError struct{}
+
+func (e RekeyIncompleteError) Error() string {
+	return fmt.Sprintf("Rekey did not complete due to insufficient user permissions")
+}
+
 // InvalidKIDError is returned whenever an invalid KID is detected.
 type InvalidKIDError struct {
 	kid keybase1.KID

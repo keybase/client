@@ -707,7 +707,7 @@ func (fbo *folderBranchOps) getMDForWriteLocked(
 	// Make a new successor of the current MD to hold the coming
 	// writes.  The caller must pass this into syncBlockAndCheckEmbed
 	// or the changes will be lost.
-	newMd, err := md.MakeSuccessor(fbo.config)
+	newMd, err := md.MakeSuccessor(fbo.config, true)
 	if err != nil {
 		return nil, err
 	}
@@ -717,7 +717,7 @@ func (fbo *folderBranchOps) getMDForWriteLocked(
 
 // mdWriterLock must be taken by the caller.
 func (fbo *folderBranchOps) getMDForRekeyWriteLocked(
-	ctx context.Context, lState *lockState) (*RootMetadata, bool, error) {
+	ctx context.Context, lState *lockState) (rmd *RootMetadata, wasRekeySet bool, err error) {
 	md, err := fbo.getMDLocked(ctx, lState, mdRekey)
 	if err != nil {
 		return nil, false, err
@@ -728,29 +728,23 @@ func (fbo *folderBranchOps) getMDForRekeyWriteLocked(
 		return nil, false, err
 	}
 
+	handle := md.GetTlfHandle()
+
 	// must be a reader or writer (it checks both.)
-	if !md.GetTlfHandle().IsReader(uid) {
+	if !handle.IsReader(uid) {
 		return nil, false,
 			NewRekeyPermissionError(ctx, fbo.config, md.GetTlfHandle(), username)
 	}
 
-	newMd, err := md.MakeSuccessor(fbo.config)
+	newMd, err := md.MakeSuccessor(fbo.config, handle.IsWriter(uid))
 	if err != nil {
 		return nil, false, err
 	}
 
-	if !md.GetTlfHandle().IsWriter(uid) {
-		// readers shouldn't modify writer metadata
-		if !newMd.IsWriterMetadataCopiedSet() {
-			return nil, false,
-				NewRekeyPermissionError(ctx, fbo.config, md.GetTlfHandle(), username)
-		}
-		// readers are currently only allowed to set the rekey bit
-		// TODO: allow readers to fully rekey only themself.
-		if !newMd.IsRekeySet() {
-			return nil, false,
-				NewRekeyPermissionError(ctx, fbo.config, md.GetTlfHandle(), username)
-		}
+	// readers shouldn't modify writer metadata
+	if !md.GetTlfHandle().IsWriter(uid) && !newMd.IsWriterMetadataCopiedSet() {
+		return nil, false,
+			NewRekeyPermissionError(ctx, fbo.config, md.GetTlfHandle(), username)
 	}
 
 	return &newMd, md.IsRekeySet(), nil
@@ -5065,15 +5059,9 @@ func (fbo *folderBranchOps) UnstageForTesting(
 }
 
 func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
-	lState *lockState) error {
+	lState *lockState) (err error) {
 	if fbo.staged {
 		return errors.New("Can't rekey while staged.")
-	}
-
-	_, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
-
-	if err != nil {
-		return err
 	}
 
 	md, rekeyWasSet, err := fbo.getMDForRekeyWriteLocked(ctx, lState)
@@ -5081,40 +5069,42 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		return err
 	}
 
-	var tlfCryptKey *TLFCryptKey
-	if md.GetTlfHandle().IsWriter(uid) {
-		var rekeyDone bool
-		// TODO: allow readers to rekey just themself
-		rekeyDone, tlfCryptKey, err = fbo.config.KeyManager().Rekey(ctx, md)
-		if _, isReadAccessError := err.(ReadAccessError); isReadAccessError {
-			// This device hasn't been keyed yet, fall through to set the rekey bit
-			if rekeyWasSet {
-				// Writers not yet keyed shouldn't reset the rekey bit
-				fbo.log.CDebugf(ctx, "Rekey bit already set")
-				return nil
-			}
-		} else if err == nil {
-			// TODO: implement a "forced" option that rekeys even when the
-			// devices haven't changed?
-			if !rekeyDone {
-				fbo.log.CDebugf(ctx, "No rekey necessary")
-				return nil
-			}
-			// clear the rekey bit
-			md.Flags &= ^MetadataFlagRekey
-		} else {
-			return err
+	rekeyDone, tlfCryptKey, err := fbo.config.KeyManager().Rekey(ctx, md)
+
+	switch err.(type) {
+	case nil:
+		// TODO: implement a "forced" option that rekeys even when the
+		// devices haven't changed?
+		if !rekeyDone {
+			fbo.log.CDebugf(ctx, "No rekey necessary")
+			return nil
 		}
-	} else if rekeyWasSet {
-		// Readers shouldn't re-set the rekey bit.
-		fbo.log.CDebugf(ctx, "Rekey bit already set")
-		return nil
+		// clear the rekey bit
+		md.Flags &= ^MetadataFlagRekey
+
+	case RekeyIncompleteError:
+		fbo.log.CDebugf(ctx, "Rekeyed reader devices, but still need writer rekey")
+		// Rekey incomplete, fallthrough without early exit, to ensure we write
+		// the metadata with any potential changes
+
+	case ReadAccessError:
+		fbo.log.CDebugf(ctx, "Device doesn't have access to rekey")
+		// This device hasn't been keyed yet, fall through to set the rekey bit
+		if rekeyWasSet {
+			// Devices not yet keyed shouldn't set the rekey bit again
+			fbo.log.CDebugf(ctx, "Rekey bit already set")
+			return nil
+		}
+
+	default:
+		return err
 	}
 
 	// add an empty operation to satisfy assumptions elsewhere
 	md.AddOp(newRekeyOp())
 
-	// we still let readers push a new md block since it will simply be a rekey bit block.
+	// we still let readers push a new md block that we validate against reader
+	// permissions
 	err = fbo.finalizeMDRekeyWriteLocked(ctx, lState, md)
 	if err != nil {
 		return err
@@ -5138,7 +5128,9 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 // Rekey rekeys the given folder.
 func (fbo *folderBranchOps) Rekey(ctx context.Context, tlf TlfID) (err error) {
 	fbo.log.CDebugf(ctx, "Rekey")
-	defer func() { fbo.log.CDebugf(ctx, "Done: %v", err) }()
+	defer func() {
+		fbo.log.CDebugf(ctx, "Done: %v", err)
+	}()
 
 	fb := FolderBranch{tlf, MasterBranch}
 	if fb != fbo.folderBranch {

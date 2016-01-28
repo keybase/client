@@ -2,6 +2,7 @@ package libkbfs
 
 import (
 	"bytes"
+	"reflect"
 	"sort"
 	"strconv"
 
@@ -169,18 +170,37 @@ type RootMetadata struct {
 	mdID MdID
 }
 
-// IsValidRekeyRequest returns true if the current block is a simple rekey wrt the passed block.
-func (md RootMetadata) IsValidRekeyRequest(config Config, prevMd RootMetadata) bool {
-	if !md.IsRekeySet() || !md.IsWriterMetadataCopiedSet() {
+func (md RootMetadata) haveOnlyUserRKeysChanged(prevMD RootMetadata, user keybase1.UID) bool {
+	// Require the same number of generations
+	if len(md.RKeys) != len(prevMD.RKeys) {
 		return false
 	}
-	if md.Revision.Number() != prevMd.Revision.Number()+1 {
-		return false
+	for i, gen := range md.RKeys {
+		prevMDGen := prevMD.RKeys[i]
+		if len(gen.RKeys) != len(prevMDGen.RKeys) {
+			return false
+		}
+		for u, keys := range gen.RKeys {
+			if u != user {
+				prevKeys := prevMDGen.RKeys[u]
+				if !reflect.DeepEqual(keys, prevKeys) {
+					return false
+				}
+			}
+		}
 	}
-	if !md.RKeys.DeepEqual(prevMd.RKeys) {
-		return false
+	return true
+}
+
+// IsValidRekeyRequest returns true if the current block is a simple rekey wrt
+// the passed block.
+func (md RootMetadata) IsValidRekeyRequest(config Config, prevMd RootMetadata, user keybase1.UID) bool {
+	if md.IsWriterMetadataCopiedSet() &&
+		md.WriterMetadata.Equals(prevMd.WriterMetadata) &&
+		md.haveOnlyUserRKeysChanged(prevMd, user) {
+		return true
 	}
-	return md.WriterMetadata.Equals(prevMd.WriterMetadata)
+	return false
 }
 
 // MergedStatus returns the status of this update -- has it been
@@ -284,14 +304,14 @@ func (md *RootMetadata) increment(config Config, currMD *RootMetadata) error {
 // MakeSuccessor returns a complete copy of this RootMetadata (but
 // with cleared block change lists and cleared serialized metadata),
 // with the revision incremented and a correct backpointer.
-func (md RootMetadata) MakeSuccessor(config Config) (RootMetadata, error) {
+func (md RootMetadata) MakeSuccessor(config Config, isWriter bool) (RootMetadata, error) {
 	newMd := md
 	// no need to copy the serialized metadata, if it exists
 	newMd.Writers = make([]keybase1.UID, len(md.Writers))
 	copy(newMd.Writers, md.Writers)
 	newMd.WKeys = md.WKeys.DeepCopy()
 	newMd.RKeys = md.RKeys.DeepCopy()
-	if md.IsReadable() {
+	if md.IsReadable() && isWriter {
 		newMd.ClearBlockChanges()
 		// no need to deep copy the full data since we just cleared the
 		// block changes.
@@ -404,6 +424,8 @@ func (md *RootMetadata) GetTlfHandle() *TlfHandle {
 	} else {
 		wtkb := md.WKeys[len(md.WKeys)-1]
 		rtkb := md.RKeys[len(md.RKeys)-1]
+		h.Writers = make([]keybase1.UID, 0, len(wtkb.WKeys))
+		h.Readers = make([]keybase1.UID, 0, len(rtkb.RKeys))
 		for w := range wtkb.WKeys {
 			h.Writers = append(h.Writers, w)
 		}

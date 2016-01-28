@@ -339,13 +339,28 @@ func (km *KeyManagerStandard) identifyUIDSets(ctx context.Context,
 	return nil
 }
 
+func (km *KeyManagerStandard) generateKeyMapForUsers(ctx context.Context, users []keybase1.UID) (map[keybase1.UID][]CryptPublicKey, error) {
+	keyMap := make(map[keybase1.UID][]CryptPublicKey)
+
+	// TODO: parallelize
+	for _, w := range users {
+		// HACK: clear cache
+		km.config.KeybaseDaemon().FlushUserFromLocalCache(ctx, w)
+		publicKeys, err := km.config.KBPKI().GetCryptPublicKeys(ctx, w)
+		if err != nil {
+			return nil, err
+		}
+		keyMap[w] = publicKeys
+	}
+
+	return keyMap, nil
+}
+
 // Rekey implements the KeyManager interface for KeyManagerStandard.
 func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 	rekeyDone bool, cryptKey *TLFCryptKey, err error) {
 	km.log.CDebugf(ctx, "Rekey %s", md.ID)
-	defer func() {
-		km.log.CDebugf(ctx, "Rekey %s done: %#v", md.ID, err)
-	}()
+	defer func() { km.log.CDebugf(ctx, "Rekey %s done: %#v", md.ID, err) }()
 
 	currKeyGen := md.LatestKeyGeneration()
 	if md.ID.IsPublic() || currKeyGen == PublicKeyGen {
@@ -354,37 +369,36 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 
 	handle := md.GetTlfHandle()
 
+	username, uid, err := km.config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		return false, nil, err
+	}
+
 	// Decide whether we have a new device and/or a revoked device, or neither.
 	// Look up all the device public keys for all writers and readers first.
-	wKeys := make(map[keybase1.UID][]CryptPublicKey)
-	rKeys := make(map[keybase1.UID][]CryptPublicKey)
 
-	// TODO: parallelize
-	for _, w := range handle.Writers {
-		// HACK: clear cache
-		km.config.KeybaseDaemon().FlushUserFromLocalCache(ctx, w)
-		publicKeys, err := km.config.KBPKI().GetCryptPublicKeys(ctx, w)
-		if err != nil {
-			return false, nil, err
-		}
-		wKeys[w] = publicKeys
-	}
-	for _, r := range handle.Readers {
-		// HACK: clear cache
-		km.config.KeybaseDaemon().FlushUserFromLocalCache(ctx, r)
-		publicKeys, err := km.config.KBPKI().GetCryptPublicKeys(ctx, r)
-		if err != nil {
-			return false, nil, err
-		}
-		rKeys[r] = publicKeys
+	incKeyGen := currKeyGen < FirstValidKeyGen
+
+	if !handle.IsWriter(uid) && incKeyGen {
+		// Readers cannot create the first key generation
+		return false, nil, NewReadAccessError(ctx, km.config, handle, username)
 	}
 
-	// If there's at least one revoked device, add a new key generation
-	addNewDevice := false
-	incKeyGen := false
-	if currKeyGen < FirstValidKeyGen {
-		incKeyGen = true
-	} else {
+	wKeys, err := km.generateKeyMapForUsers(ctx, handle.Writers)
+	if err != nil {
+		return false, nil, err
+	}
+	rKeys, err := km.generateKeyMapForUsers(ctx, handle.Readers)
+	if err != nil {
+		return false, nil, err
+	}
+
+	addNewReaderDevice := false
+	addNewWriterDevice := false
+	var newReaderUsers map[keybase1.UID]bool
+	var newWriterUsers map[keybase1.UID]bool
+
+	if !incKeyGen {
 		// See if there is at least one new device in relation to the
 		// current key bundle
 		tkb, err := md.getTLFKeyBundle(currKeyGen)
@@ -392,30 +406,46 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 			return false, nil, err
 		}
 
-		wNew := km.usersWithNewDevices(ctx, md, tkb.WKeys, wKeys)
-		rNew := km.usersWithNewDevices(ctx, md, tkb.RKeys, rKeys)
-		addNewDevice = len(wNew) > 0 || len(rNew) > 0
+		newWriterUsers = km.usersWithNewDevices(ctx, md, tkb.WKeys, wKeys)
+		newReaderUsers = km.usersWithNewDevices(ctx, md, tkb.RKeys, rKeys)
+		addNewWriterDevice = len(newWriterUsers) > 0
+		addNewReaderDevice = len(newReaderUsers) > 0
 
 		wRemoved := km.usersWithRemovedDevices(ctx, md, tkb.WKeys, wKeys)
 		rRemoved := km.usersWithRemovedDevices(ctx, md, tkb.RKeys, rKeys)
 		incKeyGen = len(wRemoved) > 0 || len(rRemoved) > 0
 
 		for u := range wRemoved {
-			wNew[u] = true
+			newWriterUsers[u] = true
 		}
 		for u := range rRemoved {
-			rNew[u] = true
+			newReaderUsers[u] = true
 		}
 
-		if err := km.identifyUIDSets(ctx, md, wNew, rNew); err != nil {
+		if err := km.identifyUIDSets(ctx, md, newWriterUsers, newReaderUsers); err != nil {
 			return false, nil, err
 		}
 	}
 
-	if !addNewDevice && !incKeyGen {
+	if !addNewReaderDevice && !addNewWriterDevice && !incKeyGen {
 		km.log.CDebugf(ctx, "Skipping rekeying %s: no new or removed devices",
 			md.ID)
 		return false, nil, nil
+	}
+
+	if !handle.IsWriter(uid) {
+		if _, userHasNewKeys := newReaderUsers[uid]; userHasNewKeys {
+			// Only rekey the logged-in reader
+			rKeys = map[keybase1.UID][]CryptPublicKey{
+				uid: rKeys[uid],
+			}
+			wKeys = nil
+			delete(newReaderUsers, uid)
+		} else {
+			// No new reader device for our user, so the reader can't do
+			// anything
+			return false, nil, NewReadAccessError(ctx, km.config, handle, username)
+		}
 	}
 
 	// send rekey start notification
@@ -433,7 +463,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 	}
 
 	// If there's at least one new device, add that device to every key bundle.
-	if addNewDevice {
+	if addNewReaderDevice || addNewWriterDevice {
 		for keyGen := KeyGen(FirstValidKeyGen); keyGen <= currKeyGen; keyGen++ {
 			currTlfCryptKey, err := km.getTLFCryptKey(ctx, md, keyGen, true, false)
 			if err != nil {
@@ -448,7 +478,15 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 		}
 	}
 
-	if !incKeyGen {
+	if !handle.IsWriter(uid) {
+		if len(newReaderUsers) > 0 || addNewWriterDevice || incKeyGen {
+			// If we're a reader but we haven't completed all the work, return
+			// RekeyIncompleteError
+			return false, nil, RekeyIncompleteError{}
+		}
+		// Otherwise, there's nothing left to do!
+		return true, nil, nil
+	} else if !incKeyGen {
 		// we're done!
 		return true, nil, nil
 	}
@@ -461,6 +499,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 		},
 		TLFReaderKeyBundle: &TLFReaderKeyBundle{
 			RKeys: make(UserDeviceKeyInfoMap),
+			// TLFReaderEphemeralPublicKeys will be filled in by updateKeyBundle
 		},
 	}
 	err = md.AddNewKeys(newClientKeys)

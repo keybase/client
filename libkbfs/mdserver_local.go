@@ -102,9 +102,9 @@ func (md *MDServerLocal) checkPerms(ctx context.Context, id TlfID,
 	isWriter := rmds.MD.GetTlfHandle().IsWriter(user)
 	isReader := rmds.MD.GetTlfHandle().IsReader(user)
 	if checkWrite {
-		// is this a reader simply setting the rekey bit?
+		// if this is a reader, are they acting within their restrictions?
 		if !isWriter && isReader && newMd != nil {
-			return newMd.MD.IsValidRekeyRequest(md.config, rmds.MD), nil
+			return newMd.MD.IsValidRekeyRequest(md.config, rmds.MD, user), nil
 		}
 		return isWriter, nil
 	}
