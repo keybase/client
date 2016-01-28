@@ -257,23 +257,22 @@ ipsum](https://twitter.com/oconnor663/status/680171387353448448).
 
 Before getting to the BaseX payload, the decoder parses the header and footer:
 
-1. Collect input up to the first period, stripping any leading whitespace and
-   `>` characters (for compatibility with email clients that use `>` for
-   quoting). This is the header.
-2. Assert that the header matches
+1. Strip all whitespace and `>` characters from the message. (`>` is for
+   compatibility with email clients that use it for quoting.)
+2. Collect input up to the first period. This is the header.
+3. Assert that the header (with its whitespace stripped in step 1) matches
 
    ```
-   BEGIN ([a-zA-Z0-9]+ )?SALTPACK (ENCRYPTED MESSAGE)|(SIGNED MESSAGE)|(DETACHED SIGNATURE)
+   BEGIN([a-zA-Z0-9]+ )?SALTPACK(ENCRYPTEDMESSAGE)|(SIGNEDMESSAGE)|(DETACHEDSIGNATURE)
    ```
 
    The optional word is for an application name (like `KEYBASE`). The last two
    words give the mode of the message.
-3. Collect input up to the second period, stripping all whitespace and `>`
-   characters. This is the payload. If the implementation is streaming, it may
-   decode the payload before the following steps.
-4. Collect input up to the third period, stripping any leading whitespace and
-   `>` characters. This is the footer.
-5. Assert that the footer matches the header, with `END` instead of `BEGIN`.
+4. Collect input up to the second period. This is the payload. If the
+   implementation is streaming, it may decode the payload before the following
+   steps.
+5. Collect input up to the third period. This is the footer.
+6. Assert that the footer matches the header, with `END` instead of `BEGIN`.
 
 We use periods to delimit the header and footer to make parsing easier.
 Although we've been careful to avoid special characters in the payload, we're
