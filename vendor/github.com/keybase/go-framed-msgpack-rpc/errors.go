@@ -4,10 +4,6 @@ import (
 	"fmt"
 )
 
-type RPCErrorWrapper struct {
-	error
-}
-
 type PacketizerError struct {
 	msg string
 }

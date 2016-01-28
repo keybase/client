@@ -29,7 +29,7 @@ type callRequest struct {
 }
 
 func newCallRequest(rpc *rpcCallMessage, log LogInterface) *callRequest {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(rpc.Context())
 	return &callRequest{
 		rpcCallMessage: rpc,
 		requestImpl: requestImpl{
@@ -86,7 +86,7 @@ type notifyRequest struct {
 }
 
 func newNotifyRequest(rpc *rpcNotifyMessage, log LogInterface) *notifyRequest {
-	ctx, cancel := context.WithCancel(context.Background())
+	ctx, cancel := context.WithCancel(rpc.Context())
 	return &notifyRequest{
 		rpcNotifyMessage: rpc,
 		requestImpl: requestImpl{
