@@ -160,7 +160,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	// Match the returned User object to the Merkle tree. Also make sure
 	// that the username queried for matches the User returned (if it
 	// was indeed queried for)
-	if err = ret.leaf.MatchUser(ret, arg.UID, rres.kbUsername); err != nil {
+	if err = ret.leaf.MatchUser(ret, arg.UID, rres.GetNormalizedQueriedUsername()); err != nil {
 		return
 	}
 

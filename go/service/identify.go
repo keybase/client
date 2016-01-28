@@ -67,6 +67,15 @@ func (h *IdentifyHandler) Resolve(_ context.Context, arg string) (keybase1.UID, 
 	return rres.GetUID(), rres.GetError()
 }
 
+func (h *IdentifyHandler) Resolve2(_ context.Context, arg string) (u keybase1.User, err error) {
+	rres := h.G().Resolver.ResolveFullExpression(arg)
+	err = rres.GetError()
+	if err == nil {
+		u.Uid, u.Username = rres.GetUID(), rres.GetNormalizedUsername().String()
+	}
+	return u, err
+}
+
 func (h *IdentifyHandler) Identify(_ context.Context, arg keybase1.IdentifyArg) (keybase1.IdentifyRes, error) {
 	var do = func() (interface{}, error) {
 		if arg.Source == keybase1.ClientType_KBFS {
