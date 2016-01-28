@@ -68,9 +68,9 @@ const (
 	PGPFingerprintHexLen = 40
 
 	ProofCacheSize             = 0x1000
-	ProofCacheLongDur          = 6 * time.Hour
-	ProofCacheMediumDur        = 30 * time.Minute
-	ProofCacheShortDur         = 1 * time.Minute
+	ProofCacheLongDur          = 48 * time.Hour
+	ProofCacheMediumDur        = 6 * time.Hour
+	ProofCacheShortDur         = 30 * time.Minute
 	Identify2CacheLongTimeout  = 6 * time.Hour
 	Identify2CacheShortTimeout = 1 * time.Minute
 

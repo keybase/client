@@ -43,15 +43,22 @@ protocol identifyUi {
     string checkText;
   }
 
+  enum CheckResultFreshness {
+    FRESH_0,
+    AGED_1,
+    RANCID_2
+  }
+
   record CheckResult {
     ProofResult proofResult;
     Time time;
-    string displayMarkup;
+    CheckResultFreshness freshness;
   }
 
   record LinkCheckResult {
     int proofId;
     ProofResult proofResult;
+    ProofResult snoozedResult;
     boolean torWarning;
     union { null, CheckResult } cached;
     union { null, TrackDiff } diff;

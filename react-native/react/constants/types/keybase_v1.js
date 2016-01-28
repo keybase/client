@@ -447,6 +447,11 @@ export default {
       'decrypt': 4,
       'verify': 5,
       'resource': 6
+    },
+    'CheckResultFreshness': {
+      'fresh': 0,
+      'aged': 1,
+      'rancid': 2
     }
   },
   'install': {

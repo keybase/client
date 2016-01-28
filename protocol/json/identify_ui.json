@@ -485,6 +485,10 @@
       "type" : "string"
     } ]
   }, {
+    "type" : "enum",
+    "name" : "CheckResultFreshness",
+    "symbols" : [ "FRESH_0", "AGED_1", "RANCID_2" ]
+  }, {
     "type" : "record",
     "name" : "CheckResult",
     "fields" : [ {
@@ -494,8 +498,8 @@
       "name" : "time",
       "type" : "Time"
     }, {
-      "name" : "displayMarkup",
-      "type" : "string"
+      "name" : "freshness",
+      "type" : "CheckResultFreshness"
     } ]
   }, {
     "type" : "record",
@@ -505,6 +509,9 @@
       "type" : "int"
     }, {
       "name" : "proofResult",
+      "type" : "ProofResult"
+    }, {
+      "name" : "snoozedResult",
       "type" : "ProofResult"
     }, {
       "name" : "torWarning",

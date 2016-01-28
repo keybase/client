@@ -1191,6 +1191,7 @@ type LinkCheckResult struct {
 	hint              *SigHint
 	cached            *CheckResult
 	err               ProofError
+	snoozedErr        ProofError
 	diff              TrackDiff
 	remoteDiff        TrackDiff
 	link              RemoteProofChainLink
@@ -1265,7 +1266,7 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack, forceRemoteCheck bo
 	}
 
 	if !forceRemoteCheck {
-		if res.cached = idt.G().ProofCache.Get(sid); res.cached != nil {
+		if res.cached = idt.G().ProofCache.Get(sid); res.cached != nil && res.cached.Freshness() == keybase1.CheckResultFreshness_FRESH {
 			res.err = res.cached.Status
 			return
 		}
@@ -1280,10 +1281,27 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack, forceRemoteCheck bo
 		return
 	}
 
-	if res.err = pc.CheckStatus(*res.hint); res.err != nil {
-		idt.G().Log.Debug("| Check status failed with error: %s", res.err.Error())
+	res.err = pc.CheckStatus(*res.hint)
+
+	// If no error than all good
+	if res.err == nil {
 		return
 	}
+
+	// If the error was soft, and we had a cached successful result that wasn't rancid,
+	// then it's OK to stifle the error message for now.  We just have to be certain
+	// not to cache it.
+	if ProofErrorIsSoft(res.err) && res.cached != nil && res.cached.Status == nil &&
+		res.cached.Freshness() != keybase1.CheckResultFreshness_RANCID {
+		idt.G().Log.Debug("| Got soft error (%s) but returning success (last seen at %s)",
+			res.err.Error(), res.cached.Time)
+		res.snoozedErr = res.err
+		res.err = nil
+		doCache = false
+		return
+	}
+
+	idt.G().Log.Debug("| Check status failed with error: %s", res.err.Error())
 
 	return
 }

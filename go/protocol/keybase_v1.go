@@ -1916,20 +1916,29 @@ type SigHint struct {
 	CheckText string `codec:"checkText" json:"checkText"`
 }
 
+type CheckResultFreshness int
+
+const (
+	CheckResultFreshness_FRESH  CheckResultFreshness = 0
+	CheckResultFreshness_AGED   CheckResultFreshness = 1
+	CheckResultFreshness_RANCID CheckResultFreshness = 2
+)
+
 type CheckResult struct {
-	ProofResult   ProofResult `codec:"proofResult" json:"proofResult"`
-	Time          Time        `codec:"time" json:"time"`
-	DisplayMarkup string      `codec:"displayMarkup" json:"displayMarkup"`
+	ProofResult ProofResult          `codec:"proofResult" json:"proofResult"`
+	Time        Time                 `codec:"time" json:"time"`
+	Freshness   CheckResultFreshness `codec:"freshness" json:"freshness"`
 }
 
 type LinkCheckResult struct {
-	ProofId     int          `codec:"proofId" json:"proofId"`
-	ProofResult ProofResult  `codec:"proofResult" json:"proofResult"`
-	TorWarning  bool         `codec:"torWarning" json:"torWarning"`
-	Cached      *CheckResult `codec:"cached,omitempty" json:"cached,omitempty"`
-	Diff        *TrackDiff   `codec:"diff,omitempty" json:"diff,omitempty"`
-	RemoteDiff  *TrackDiff   `codec:"remoteDiff,omitempty" json:"remoteDiff,omitempty"`
-	Hint        *SigHint     `codec:"hint,omitempty" json:"hint,omitempty"`
+	ProofId       int          `codec:"proofId" json:"proofId"`
+	ProofResult   ProofResult  `codec:"proofResult" json:"proofResult"`
+	SnoozedResult ProofResult  `codec:"snoozedResult" json:"snoozedResult"`
+	TorWarning    bool         `codec:"torWarning" json:"torWarning"`
+	Cached        *CheckResult `codec:"cached,omitempty" json:"cached,omitempty"`
+	Diff          *TrackDiff   `codec:"diff,omitempty" json:"diff,omitempty"`
+	RemoteDiff    *TrackDiff   `codec:"remoteDiff,omitempty" json:"remoteDiff,omitempty"`
+	Hint          *SigHint     `codec:"hint,omitempty" json:"hint,omitempty"`
 }
 
 type UserCard struct {
