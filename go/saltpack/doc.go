@@ -10,8 +10,12 @@ usage; (4) fully modern (no CBC option here); (5) high performance; (6) less
 bug-prone; (7) generally unwilling to output unauthenticated data; and (8)
 easier to compose with other software in any manner of languages or platforms.
 
+Key Management
+
 Saltpack makes no attempt to manage keys. We assume the wrapping application
 has a story for key management.
+
+Modes of Operation
 
 Saltpack supports three modes of operation: encrypted messages, attached
 signatures, and detached signatures. An attached signature contains a message
@@ -19,12 +23,21 @@ and a signature that authenticates it. A detached signature contains just the
 signature, and assumes an independent delievery mechanism for the file
 (this might come up when distributing an ISO an separate signature of it).
 
+Encoding
+
 Saltpack has two encoding modes: binary and armored. In armored mode, saltpack
 outputs in Base62-encoding, suitable for publication into any manner of Web
 settings without fear of markup-caused mangling.
 
+API
+
 This saltpack library implementation supports two API patterns: streaming and
 all-at-once. The former is useful for large files that can't fit into memory;
 the latter is more convenient. Both produce the same output.
+
+More Info
+
+See https://saltpack.org
+
 */
 package saltpack
