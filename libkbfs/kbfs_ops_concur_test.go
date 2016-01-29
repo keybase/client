@@ -1409,3 +1409,113 @@ func TestKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T) {
 		t.Errorf("%d dirty blocks left after final sync", numDirtyBlocks)
 	}
 }
+
+// Test that a Sync that is canceled during a successful MD put works.
+func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
+	config, _, ctx := kbfsOpsConcurInit(t, "test_user")
+	defer CheckConfigAndShutdown(t, config)
+
+	onPutStalledCh := make(chan struct{}, 1)
+	putUnstallCh := make(chan struct{})
+
+	stallKey := "requestName"
+	putValue := "put"
+
+	config.SetMDOps(&stallingMDOps{
+		stallOpName: "put",
+		stallKey:    stallKey,
+		stallMap: map[interface{}]staller{
+			putValue: staller{
+				stalled: onPutStalledCh,
+				unstall: putUnstallCh,
+			},
+		},
+		delegate: config.MDOps(),
+	})
+
+	// Use the smallest possible block size.
+	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
+	if err != nil {
+		t.Fatalf("Couldn't create block splitter: %v", err)
+	}
+	config.SetBlockSplitter(bsplitter)
+
+	// create and write to a file
+	kbfsOps := config.KBFSOps()
+	rootNode, _, err :=
+		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+	data := make([]byte, 30)
+	for i := 0; i < 30; i++ {
+		data[i] = 1
+	}
+	err = kbfsOps.Write(ctx, fileNode, data, 0)
+	if err != nil {
+		t.Errorf("Couldn't write file: %v", err)
+	}
+
+	// start the sync
+	errChan := make(chan error)
+	cancelCtx, cancel := context.WithCancel(ctx)
+	go func() {
+		putCtx := context.WithValue(cancelCtx, stallKey, putValue)
+		errChan <- kbfsOps.Sync(putCtx, fileNode)
+	}()
+
+	// wait until Sync gets stuck at MDOps.Put()
+	<-onPutStalledCh
+	cancel()
+	close(putUnstallCh)
+
+	// We expect a canceled error
+	err = <-errChan
+	if err != context.Canceled {
+		t.Fatalf("No expected canceled error: %v", err)
+	}
+
+	ops := getOps(config, rootNode.GetFolderBranch().Tlf)
+	// Know that the sync finished by grabbing the lock.
+	lState := makeFBOLockState()
+	ops.mdWriterLock.Lock(lState)
+	ops.mdWriterLock.Unlock(lState)
+	if len(ops.blocksToDeleteAfterError) == 0 {
+		t.Fatalf("No blocks to delete after error")
+	}
+
+	// Flush the file.  This will result in conflict resolution, and
+	// an extra copy of the file, but that's ok for now.
+	if err := kbfsOps.Sync(ctx, fileNode); err != nil {
+		t.Fatalf("Couldn't sync: %v", err)
+	}
+
+	// The first put actually succeeded, so SyncFromServer and make
+	// sure it worked.  This should also finish removing any blocks
+	// that would be removed.
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+
+	gotData := make([]byte, 30)
+	nr, err := kbfsOps.Read(ctx, fileNode, gotData, 0)
+	if err != nil {
+		t.Errorf("Couldn't read data: %v", err)
+	}
+	if nr != int64(len(gotData)) {
+		t.Errorf("Only read %d bytes", nr)
+	}
+	if !bytes.Equal(data, gotData) {
+		t.Errorf("Read wrong data.  Expected %v, got %v", data, gotData)
+	}
+
+	if len(ops.blocksToDeleteAfterError) > 0 {
+		t.Fatalf("Blocks left to delete after sync: %v",
+			ops.blocksToDeleteAfterError)
+	}
+}

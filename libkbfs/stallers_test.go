@@ -135,7 +135,15 @@ func (m *stallingMDOps) GetUnmergedRange(ctx context.Context, id TlfID,
 
 func (m *stallingMDOps) Put(ctx context.Context, md *RootMetadata) error {
 	m.maybeStall(ctx, "put")
-	return m.delegate.Put(ctx, md)
+	err := m.delegate.Put(ctx, md)
+	// If the Put was canceled, return the cancel error.  This
+	// emulates the Put being canceled while the RPC is outstanding.
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+		return err
+	}
 }
 
 func (m *stallingMDOps) PutUnmerged(ctx context.Context, md *RootMetadata,
