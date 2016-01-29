@@ -1,3 +1,5 @@
+import {remote} from 'electron'
+
 import {Component} from './base-react'
 import {connect} from './base-redux'
 import MetaNavigator from './router/meta-navigator'
@@ -10,6 +12,9 @@ import NoTab from './no-tab'
 import More from './more'
 import Login from './login'
 import commonStyles from './styles/common'
+
+import {resizeLoginForm} from './local-debug'
+
 // TODO global routes
 // import globalRoutes from './router/global-routes'
 const globalRoutes = {}
@@ -19,6 +24,8 @@ import {folderTab, chatTab, peopleTab, devicesTab, moreTab, loginTab} from './co
 import {switchTab} from './actions/tabbed-router'
 import {startup} from './actions/startup'
 import {Tab, Tabs} from 'material-ui'
+
+import {loginResizeTo} from './login/index.render'
 
 const tabs = {
   [moreTab]: {module: More, name: 'More'},
@@ -58,6 +65,30 @@ class Nav extends Component {
 
   _handleTabsChange (e, key, payload) {
     this.props.switchTab(e)
+  }
+
+  componentWillReceiveProps (nextProps) {
+    const activeTab = this.props.tabbedRouter.get('activeTab')
+    const nextActiveTab = nextProps.tabbedRouter.get('activeTab')
+
+    // Transistioning into the login tab
+    if (resizeLoginForm && activeTab !== loginTab && nextActiveTab === loginTab) {
+      this.window = remote.getCurrentWindow()
+      const [width, height] = this.window.getSize()
+      this.originalSize = {width, height}
+
+      this.window && this.window.setContentSize(loginResizeTo.width, loginResizeTo.height, true)
+      this.window && this.window.setResizable(false)
+    }
+
+    // Transistioning out of the login tab
+    if (resizeLoginForm && activeTab === loginTab && nextActiveTab !== loginTab) {
+      if (this.originalSize) {
+        const {width, height} = this.originalSize
+        this.window && this.window.setSize(width, height, true)
+      }
+      this.window && this.window.setResizable(true)
+    }
   }
 
   render () {
