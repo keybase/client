@@ -376,7 +376,7 @@ func lsdir(name string, contents m) fileOp {
 		for restr, ty := range contents {
 			re := regexp.MustCompile(restr)
 			for node, ty2 := range entries {
-				// Windows does not mark "exutable" bits in any way.
+				// Windows does not mark "executable" bits in any way.
 				if re.MatchString(node) && (ty == ty2 ||
 					(c.engine.Name() == "dokan" && ty == "EXEC" && ty2 == "FILE")) {
 					delete(entries, node)
