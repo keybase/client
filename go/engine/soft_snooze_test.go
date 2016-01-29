@@ -31,7 +31,7 @@ func (e *flakeyRooterAPI) Get(arg libkb.APIArg) (res *libkb.ExternalAPIRes, err 
 
 	// Show an error if we're in flakey mode
 	if e.flakeOut && strings.Contains(arg.Endpoint, "rooter") {
-		return &libkb.ExternalAPIRes{HTTPStatus: 429}, &libkb.APIError{Status: "Ratelimited", StatusCode: 429}
+		return &libkb.ExternalAPIRes{HTTPStatus: 429}, &libkb.APIError{Msg: "Ratelimited", Code: 429}
 	}
 
 	return e.orig.Get(arg)
