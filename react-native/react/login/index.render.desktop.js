@@ -4,6 +4,8 @@
 import React, {Component} from '../base-react'
 import {globalStyles} from '../styles/style-guide'
 
+import {remote} from 'electron'
+
 import {Text} from '../common-adapters'
 import Carousel from '../util/carousel.desktop'
 
@@ -12,9 +14,28 @@ import type {LoginRenderProps} from './index.render'
 export default class LoginRender extends Component {
   props: LoginRenderProps;
 
+  window: ?any;
+  originalSize: ?{width: number, height: number};
+
+  componentWillMount () {
+    this.window = remote.getCurrentWindow()
+    const [width, height] = this.window.getSize()
+    this.originalSize = {width, height}
+    this.window && this.window.setSize(styles.container.width, styles.container.height + 20 /* for frame */, true)
+    this.window && this.window.setResizable(false)
+  }
+
+  componentWillUnmount () {
+    if (this.originalSize) {
+      const {width, height} = this.originalSize
+      this.window && this.window.setSize(width, height, true)
+    }
+    this.window && this.window.setResizable(true)
+  }
+
   render (): ReactElement {
     return (
-      <div style={{...globalStyles.flexBoxRow, ...styles.container, ...styles.demo}}>
+      <div style={{...globalStyles.flexBoxRow, ...styles.container}}>
         <Carousel style={{width: 400}} itemWidth={340}/>
         <div style={styles.loginForm}>
           <Text style={styles.topMargin} type='Header'>Welcome to Keybase!</Text>
@@ -28,12 +49,6 @@ export default class LoginRender extends Component {
 }
 
 const styles = {
-  demo: {
-    marginTop: 20,
-    marginLeft: 20,
-    boxShadow: '10px 10px 40px black'
-  },
-
   container: {
     height: 500,
     width: 700,
