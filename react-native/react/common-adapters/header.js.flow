@@ -3,10 +3,10 @@
 import React, {Component} from '../base-react'
 
 export type Props = {
-  icon: ?string,
+  icon?: ?string,
   title: string,
   onClose: () => void,
-  style: Object,
+  style?: Object,
   children?: ?Object
 }
 

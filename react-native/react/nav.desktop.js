@@ -8,13 +8,14 @@ import People from './people'
 import Devices from './devices'
 import NoTab from './no-tab'
 import More from './more'
+import Login from './login'
 import commonStyles from './styles/common'
 // TODO global routes
 // import globalRoutes from './router/global-routes'
 const globalRoutes = {}
 
 import * as Constants from './constants/config'
-import {folderTab, chatTab, peopleTab, devicesTab, moreTab} from './constants/tabs'
+import {folderTab, chatTab, peopleTab, devicesTab, moreTab, loginTab} from './constants/tabs'
 import {switchTab} from './actions/tabbed-router'
 import {startup} from './actions/startup'
 import {Tab, Tabs} from 'material-ui'
@@ -66,6 +67,17 @@ class Nav extends Component {
       return (
         <div style={{display: 'flex', flexDirection: 'column', flex: 1, alignItems: 'center', justifyContent: 'center'}}>
           <h1>Loading...</h1>
+        </div>
+      )
+    }
+
+    if (activeTab === loginTab) {
+      return (
+        <div style={styles.tabsContainer}>
+          <MetaNavigator
+            tab={loginTab}
+            globalRoutes={globalRoutes}
+            rootComponent={Login} />
         </div>
       )
     }

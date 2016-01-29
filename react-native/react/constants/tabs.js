@@ -4,6 +4,7 @@ export const chatTab = 'tabs:chatTab'
 export const peopleTab = 'tabs:peopleTab'
 export const devicesTab = 'tabs:devicesTab'
 export const moreTab = 'tabs:moreTab'
+export const loginTab = 'tabs:loginTab'
 
 const prettyNames = {
   [startupTab]: null,
@@ -11,7 +12,8 @@ const prettyNames = {
   [chatTab]: 'Chat',
   [peopleTab]: 'People',
   [devicesTab]: 'Devices',
-  [moreTab]: 'More'
+  [moreTab]: 'More',
+  [loginTab]: 'Login'
 }
 
 export function prettify (tabName) {
