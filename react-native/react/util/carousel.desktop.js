@@ -73,10 +73,8 @@ export default class Carousel extends Component {
       <div style={{...styles.carousel, ...this.props.style}}>
         <div style={{...globalStyles.flexBoxRow, width: itemWidth, overflow: 'visible'}}>
           <div style={{...styles.carouselWrapper, marginLeft}}>
-            <CarouselThing style={{...styles.carouselThing, ...globalStyles.rounded, width: itemWidth}}/>
-            <CarouselThing style={{...styles.carouselThing, ...globalStyles.rounded, width: itemWidth}}/>
-            <CarouselThing style={{...styles.carouselThing, ...globalStyles.rounded, width: itemWidth}}/>
-            <CarouselThing style={{...styles.carouselThing, ...globalStyles.rounded, width: itemWidth}}/>
+            {_.range(this.state.itemCount)
+              .map(i => <CarouselThing style={{...styles.carouselThing, ...globalStyles.rounded, width: itemWidth}} key={i}/>)}
           </div>
         </div>
         <PageIndicator style={{alignSelf: 'center'}} selectedIndex={this.state.selectedIndex} itemCount={this.state.itemCount} onClickPage={i => this.resetIndex(i)}/>
