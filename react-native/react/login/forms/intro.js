@@ -1,6 +1,6 @@
 /* @flow */
 
-import React, {Component} from '../../base-react'
+import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import Render from './intro.render'
 

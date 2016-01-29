@@ -1,10 +1,9 @@
 /* @flow */
 /* eslint-disable react/prop-types */
 
-import React from 'react'
+import React, {Component} from 'react'
 import _ from 'lodash'
 
-import {Component} from '../base-react'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {Text, Icon} from '../common-adapters'
 
