@@ -6,7 +6,7 @@ import _ from 'lodash'
 
 import {Component} from '../base-react'
 import {globalStyles, globalColors} from '../styles/style-guide'
-import {Text} from '../common-adapters'
+import {Text, Icon} from '../common-adapters'
 
 export type CarouselProps = {
   style?: ?Object,
@@ -26,7 +26,7 @@ class CarouselThing extends Component {
 function PageIndicator ({selectedIndex, itemCount, style, onClickPage}: {selectedIndex: number, itemCount: number, style: Object, onClickPage: (i: number) => void}): ReactElement {
   const marks = _.range(itemCount).map(n => {
     const color = (n === selectedIndex) ? globalColors.white : globalColors.lightBlue
-    return (<i className='fa fa-circle' style={{color, ...styles.pageIndicator}} onClick={() => onClickPage(n)} key={n}/>)
+    return (<Icon type='fa-circle' style={{color, ...styles.pageIndicator}} onClick={() => onClickPage(n)} key={n}/>)
   })
   return (
     <div style={style}>{marks}</div>
@@ -111,6 +111,8 @@ const styles = {
     transition: 'color 1s ease-in-out',
     fontSize: 10,
     marginLeft: 4,
+    width: 8,
+    height: 8,
     marginRight: 4
   }
 }
