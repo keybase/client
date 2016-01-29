@@ -24,8 +24,8 @@ npm install
 node_bin="$dir/node_modules/.bin"
 
 app_name=Keybase
-keybase_version="1.0.6-0"
-kbfs_version="1.0.0-32"
+keybase_version="1.0.8-0"
+kbfs_version="1.0.0-33"
 comment=""
 
 keybase_binpath=${KEYBASE_BINPATH:-}
