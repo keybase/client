@@ -18,6 +18,11 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
+const (
+	defaultLines = 1e5
+	maxLines     = 1e6
+)
+
 func NewCmdLogSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "send",
@@ -54,22 +59,13 @@ func (c *CmdLogSend) Run() error {
 	c.G().Log.Debug("status json: %s", statusJSON)
 
 	c.G().Log.Debug("tailing kbfs log %q", status.KBFS.Log)
-	kbfsLog, err := tail(status.KBFS.Log, c.numLines)
-	if err != nil {
-		return err
-	}
+	kbfsLog := c.tail(status.KBFS.Log, c.numLines)
 
 	c.G().Log.Debug("tailing service log %q", status.Service.Log)
-	svcLog, err := tail(status.Service.Log, c.numLines)
-	if err != nil {
-		return err
-	}
+	svcLog := c.tail(status.Service.Log, c.numLines)
 
 	c.G().Log.Debug("tailing desktop log %q", status.Desktop.Log)
-	desktopLog, err := tail(status.Desktop.Log, c.numLines)
-	if err != nil {
-		return err
-	}
+	desktopLog := c.tail(status.Desktop.Log, c.numLines)
 
 	return c.post(string(statusJSON), kbfsLog, svcLog, desktopLog)
 }
@@ -109,10 +105,11 @@ func compress(s string) []byte {
 	return buf.Bytes()
 }
 
-func tail(filename string, numLines int) (string, error) {
+func (c *CmdLogSend) tail(filename string, numLines int) string {
 	f, err := os.Open(filename)
 	if err != nil {
-		return "", err
+		c.G().Log.Warning("error opening log %q: %s", filename, err)
+		return ""
 	}
 	b := reverse.NewScanner(f)
 	b.Split(bufio.ScanLines)
@@ -129,7 +126,7 @@ func tail(filename string, numLines int) (string, error) {
 		lines[left], lines[right] = lines[right], lines[left]
 	}
 
-	return strings.Join(lines, "\n"), nil
+	return strings.Join(lines, "\n")
 }
 
 func (c *CmdLogSend) ParseArgv(ctx *cli.Context) error {
@@ -138,7 +135,9 @@ func (c *CmdLogSend) ParseArgv(ctx *cli.Context) error {
 	}
 	c.numLines = ctx.Int("n")
 	if c.numLines < 1 {
-		c.numLines = 10000
+		c.numLines = defaultLines
+	} else if c.numLines > maxLines {
+		c.numLines = maxLines
 	}
 	return nil
 }
