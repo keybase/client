@@ -22,11 +22,13 @@ var version = flag.Bool("version", false, "Print version")
 const usageFormatStr = `Usage:
   kbfsfuse -version
 
+To run against remote KBFS servers:
   kbfsfuse [-debug] [-cpuprofile=path/to/dir] [-memprofile=path/to/dir]
     [-bserver=%s] [-mdserver=%s]
     [-runtime-dir=path/to/dir] [-label=label] [-mount-type=force]
     /path/to/mountpoint
 
+To run in a local testing environment:
   kbfsfuse [-debug] [-cpuprofile=path/to/dir] [-memprofile=path/to/dir]
     [-server-in-memory|-server-root=path/to/dir] [-localuser=<user>]
     [-runtime-dir=path/to/dir] [-label=label] [-mount-type=force]
