@@ -2,7 +2,7 @@ import {BrowserWindow} from 'electron'
 import splash from './splash'
 import installer from './installer'
 import {app} from 'electron'
-import ListenLogUi from '../../react-native/react/native/listen-log-ui'
+import ListenLogUi from '../shared/native/listen-log-ui'
 import menuHelper from './menu-helper'
 import consoleHelper, {ipcLogs} from './console-helper'
 import devTools from './dev-tools'
@@ -10,7 +10,7 @@ import menuBar from './menu-bar'
 import storeHelper from './store-helper'
 import mainWindow from './main-window'
 import urlHelper from './url-helper'
-import hello from '../../react-native/react/util/hello'
+import hello from '../shared/util/hello'
 
 // MUST do this else we get limited by simultaneous hot reload event streams
 app.commandLine.appendSwitch('ignore-connections-limit', 'localhost')

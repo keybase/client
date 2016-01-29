@@ -1,12 +1,10 @@
 ## Building the Keybase.app
 
-1. Set the run mode by editing `react-native/react/constants/platform.native.desktop.js` and set the `const runMode` and `const isDev`. *TODO: Make this configurable/scripted*
-
-2. Install script dependencies:
+1. Install script dependencies:
 
 			npm install
 
-3. In `keybase/client/packaging/desktop`, run:
+2. In `keybase/client/packaging/desktop`, run:
 
 			package_darwin.sh
 

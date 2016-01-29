@@ -3,19 +3,19 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import {bindActionCreators} from 'redux'
-import {registerIdentifyUi, onCloseFromHeader as trackerOnCloseFromHeader, startTimer as trackerStartTimer, stopTimer as trackerStopTimer} from '../actions/tracker'
-import {registerPinentryListener, onCancel as pinentryOnCancel, onSubmit as pinentryOnSubmit} from '../actions/pinentry'
-import {registerTrackerChangeListener} from '../actions/tracker'
-import {registerUpdateListener, onCancel as updateOnCancel, onSkip as updateOnSkip, onSnooze as updateOnSnooze, onUpdate as updateOnUpdate, setAlwaysUpdate} from '../actions/update'
+import {registerIdentifyUi, onCloseFromHeader as trackerOnCloseFromHeader, startTimer as trackerStartTimer, stopTimer as trackerStopTimer} from '../shared/actions/tracker'
+import {registerPinentryListener, onCancel as pinentryOnCancel, onSubmit as pinentryOnSubmit} from '../shared/actions/pinentry'
+import {registerTrackerChangeListener} from '../shared/actions/tracker'
+import {registerUpdateListener, onCancel as updateOnCancel, onSkip as updateOnSkip, onSnooze as updateOnSnooze, onUpdate as updateOnUpdate, setAlwaysUpdate} from '../shared/actions/update'
 // $FlowIssue platform files
 import RemoteComponent from './remote-component'
 
-import type {GUIEntryFeatures} from '../constants/types/flow-types'
-import type {Action, Dispatch} from '../constants/types/flux'
+import type {GUIEntryFeatures} from '../shared/constants/types/flow-types'
+import type {Action, Dispatch} from '../shared/constants/types/flux'
 
-import type {TrackerState} from '../reducers/tracker'
-import type {PinentryState} from '../reducers/pinentry'
-import type {ShowUpdateState} from '../reducers/update'
+import type {TrackerState} from '../shared/reducers/tracker'
+import type {PinentryState} from '../shared/reducers/pinentry'
+import type {ShowUpdateState} from '../shared/reducers/update'
 
 export type RemoteManagerProps = {
   registerPinentryListener: () => void,

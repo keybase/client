@@ -5,7 +5,7 @@ import {Header, Text, Button, Checkbox} from '../common-adapters/index.desktop'
 import {clipboard} from 'electron'
 import marked from 'marked'
 import type {RenderProps} from './index.render'
-import {autoResize} from '../native/remote-component-helper'
+import {autoResize} from '../../desktop/renderer/remote-component-helper'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
 export default class UpdateRender extends Component {

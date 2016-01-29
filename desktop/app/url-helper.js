@@ -1,5 +1,5 @@
 import {ipcMain, shell} from 'electron'
-import * as linkFuncs from '../../react-native/react/constants/urls'
+import * as linkFuncs from '../shared/constants/urls'
 
 export default function () {
   ipcMain.on('openURL', (event, type, params) => {
