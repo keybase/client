@@ -54,7 +54,11 @@ func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res 
 
 	res.Standalone = h.G().Env.GetStandalone()
 	res.LogDir = h.G().Env.GetLogDir()
-	res.Clients = h.G().ConnectionManager.ListAllLabeledConnections()
+
+	// Should work in standalone mode too
+	if h.G().ConnectionManager != nil {
+		res.Clients = h.G().ConnectionManager.ListAllLabeledConnections()
+	}
 
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(h.G()))
 	if err != nil {

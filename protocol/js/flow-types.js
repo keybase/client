@@ -3946,21 +3946,26 @@ export type SigHint = {
   checkText: string;
 }
 
+export type identifyUi_CheckResultFreshness = 0 /* 'FRESH_0' */ | 1 /* 'AGED_1' */ | 2 /* 'RANCID_2' */
+
+export type CheckResultFreshness = 0 /* 'FRESH_0' */ | 1 /* 'AGED_1' */ | 2 /* 'RANCID_2' */
+
 export type identifyUi_CheckResult = {
   proofResult: ProofResult;
   time: Time;
-  displayMarkup: string;
+  freshness: CheckResultFreshness;
 }
 
 export type CheckResult = {
   proofResult: ProofResult;
   time: Time;
-  displayMarkup: string;
+  freshness: CheckResultFreshness;
 }
 
 export type identifyUi_LinkCheckResult = {
   proofId: int;
   proofResult: ProofResult;
+  snoozedResult: ProofResult;
   torWarning: boolean;
   cached?: ?CheckResult;
   diff?: ?TrackDiff;
@@ -3971,6 +3976,7 @@ export type identifyUi_LinkCheckResult = {
 export type LinkCheckResult = {
   proofId: int;
   proofResult: ProofResult;
+  snoozedResult: ProofResult;
   torWarning: boolean;
   cached?: ?CheckResult;
   diff?: ?TrackDiff;

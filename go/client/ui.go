@@ -227,6 +227,10 @@ func (w LinkCheckResultWrapper) GetError() error {
 	return libkb.ImportProofError(w.lcr.ProofResult)
 }
 
+func (w LinkCheckResultWrapper) GetSnoozedError() error {
+	return libkb.ImportProofError(w.lcr.SnoozedResult)
+}
+
 type SigHintWrapper struct {
 	hint *keybase1.SigHint
 }
@@ -253,19 +257,25 @@ func (w LinkCheckResultWrapper) GetHint() SigHintWrapper {
 	return SigHintWrapper{w.lcr.Hint}
 }
 
-type CheckResultWrapper struct {
-	cr *keybase1.CheckResult
-}
-
-func (crw CheckResultWrapper) ToDisplayString() string {
-	return crw.cr.DisplayMarkup
-}
-
-func (w LinkCheckResultWrapper) GetCached() *CheckResultWrapper {
+func (w LinkCheckResultWrapper) GetCachedMsg() string {
+	var msg string
 	if o := w.lcr.Cached; o != nil {
-		return &CheckResultWrapper{o}
+		fresh := (o.Freshness == keybase1.CheckResultFreshness_FRESH)
+		snze := w.GetSnoozedError()
+		snoozed := (o.Freshness == keybase1.CheckResultFreshness_AGED && snze != nil)
+		if fresh || snoozed {
+			tm := keybase1.FromTime(o.Time)
+			msg = "cached " + libkb.FormatTime(tm)
+		}
+		if snoozed {
+			msg += "; but got a retryable error (" + snze.Error() + ") this time around"
+		}
 	}
-	return nil
+	if len(msg) > 0 {
+		msg = "[" + msg + "]"
+
+	}
+	return msg
 }
 
 func (ui BaseIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, l keybase1.LinkCheckResult) {
@@ -280,8 +290,12 @@ func (ui BaseIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, l keybas
 	run := s.GetRemoteUsername()
 
 	if err := lcr.GetError(); err == nil {
+		color := "green"
+		if lcr.GetSnoozedError() != nil {
+			color = "yellow"
+		}
 		msg += (CHECK + " " + lcrs + `"` +
-			ColorString("green", run) + `" on ` + s.GetService() +
+			ColorString(color, run) + `" on ` + s.GetService() +
 			": " + lcr.GetHint().GetHumanURL())
 	} else {
 		msg += (BADX + " " + lcrs +
@@ -289,8 +303,8 @@ func (ui BaseIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, l keybas
 				ColorString("bold", "failed")+": "+
 				err.Error()))
 	}
-	if cached := lcr.GetCached(); cached != nil {
-		msg += " " + ColorString("magenta", cached.ToDisplayString())
+	if cachedMsg := lcr.GetCachedMsg(); len(cachedMsg) > 0 {
+		msg += " " + ColorString("magenta", cachedMsg)
 	}
 	ui.ReportHook(msg)
 }
@@ -366,8 +380,8 @@ func (ui BaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1.
 				lcr.GetError().Error()))
 	}
 
-	if cached := lcr.GetCached(); cached != nil {
-		msg += " " + ColorString("magenta", cached.ToDisplayString())
+	if cachedMsg := lcr.GetCachedMsg(); len(cachedMsg) > 0 {
+		msg += " " + ColorString("magenta", cachedMsg)
 	}
 	ui.ReportHook(msg)
 }

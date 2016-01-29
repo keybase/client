@@ -17,6 +17,7 @@ type Identify2WithUIDTestArgs struct {
 	noMe     bool                  // don't load ME
 	tcl      *libkb.TrackChainLink // the track chainlink to use
 	selfLoad bool                  // on if this is a self load
+	noCache  bool                  // on if we shouldn't use the cache
 	cache    libkb.Identify2Cacher
 	clock    func() time.Time
 }
@@ -494,6 +495,9 @@ func (e *Identify2WithUID) toUserPlusKeys() keybase1.UserPlusKeys {
 func (e *Identify2WithUID) getCache() libkb.Identify2Cacher {
 	if e.testArgs != nil && e.testArgs.cache != nil {
 		return e.testArgs.cache
+	}
+	if e.testArgs != nil && e.testArgs.noCache {
+		return nil
 	}
 	return e.G().Identify2Cache
 }
