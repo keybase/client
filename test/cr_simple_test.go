@@ -328,6 +328,7 @@ func TestCrUnmergedRenameFileOverFile(t *testing.T) {
 // bob renames a directory over an existing file
 func TestCrUnmergedRenameDirOverFile(t *testing.T) {
 	test(t,
+		skip("fuse", "Renaming directories over files not supported on linux fuse (ENOTDIR)"),
 		writers("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),

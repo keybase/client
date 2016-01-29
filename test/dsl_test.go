@@ -2,28 +2,36 @@
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
-// +build !dokan,!fuse
-
 package test
 
 import (
-	engine "github.com/keybase/kbfs/test/ext"
-
+	"bytes"
 	"errors"
 	"fmt"
 	"path"
 	"regexp"
 	"strings"
 	"testing"
+
+	"github.com/keybase/kbfs/libkbfs"
+)
+
+type m map[string]string
+type username string
+
+const (
+	alice = username("alice")
+	bob   = username("bob")
+	eve   = username("eve")
 )
 
 type opt struct {
 	readerNames     []username
 	writerNames     []username
-	users           map[string]engine.User
+	users           map[string]User
 	t               *testing.T
 	initDone        bool
-	engine          engine.Engine
+	engine          Engine
 	readers         []string
 	writers         []string
 	blockSize       int64
@@ -32,12 +40,16 @@ type opt struct {
 
 func test(t *testing.T, actions ...optionOp) {
 	o := &opt{}
-	o.engine = &engine.LibKBFS{}
+	o.engine = createEngine()
 	o.engine.Init()
 	o.t = t
+	defer o.close()
 	for _, omod := range actions {
 		omod(o)
 	}
+}
+
+func (o *opt) close() {
 	for _, user := range o.users {
 		o.expectSuccess("Shutdown", o.engine.Shutdown(user))
 	}
@@ -47,8 +59,7 @@ func (o *opt) runInitOnce() {
 	if o.initDone {
 		return
 	}
-	userSlice := concatUserNamesToStrings2(o.readerNames, o.writerNames)
-	o.users = o.engine.InitTest(o.blockSize, o.blockChangeSize, userSlice...)
+	o.users = o.engine.InitTest(o.t, o.blockSize, o.blockChangeSize, o.writerNames, o.readerNames)
 
 	for _, uname := range o.readerNames {
 		uid := string(o.engine.GetUID(o.users[string(uname)]))
@@ -62,27 +73,131 @@ func (o *opt) runInitOnce() {
 	o.initDone = true
 }
 
+func ntimesString(n int, s string) string {
+	var bs bytes.Buffer
+	for i := 0; i < n; i++ {
+		bs.WriteString(s)
+	}
+	return bs.String()
+}
+
+func concatUserNamesToStrings2(a, b []username) []string {
+	userSlice := make([]string, 0, len(a)+len(b))
+	for _, u := range a {
+		userSlice = append(userSlice, string(u))
+	}
+	for _, u := range b {
+		userSlice = append(userSlice, string(u))
+	}
+	return userSlice
+}
+
+func setBlockSizes(t *testing.T, config libkbfs.Config, blockSize, blockChangeSize int64) {
+	// Set the block sizes, if any
+	if blockSize > 0 || blockChangeSize > 0 {
+		if blockSize == 0 {
+			blockSize = 512 * 1024
+		}
+		if blockChangeSize < 0 {
+			t.Fatal("Can't handle negative blockChangeSize")
+		}
+		if blockChangeSize == 0 {
+			blockChangeSize = 8 * 1024
+		}
+		bsplit, err := libkbfs.NewBlockSplitterSimple(blockSize,
+			uint64(blockChangeSize), config.Codec())
+		if err != nil {
+			t.Fatalf("Couldn't make block splitter for block size %d,"+
+				" blockChangeSize %d: %v", blockSize, blockChangeSize, err)
+		}
+		config.SetBlockSplitter(bsplit)
+	}
+}
+
+type optionOp func(*opt)
+
+func blockSize(n int64) optionOp {
+	return func(o *opt) {
+		o.blockSize = n
+	}
+}
+
+func blockChangeSize(n int64) optionOp {
+	return func(o *opt) {
+		o.blockChangeSize = n
+	}
+}
+
+func skip(implementation, reason string) optionOp {
+	return func(c *opt) {
+		if c.engine.Name() == implementation {
+			c.t.Skip(reason)
+		}
+	}
+}
+
+func writers(ns ...username) optionOp {
+	return func(o *opt) {
+		o.writerNames = append(o.writerNames, ns...)
+	}
+}
+
+func readers(ns ...username) optionOp {
+	return func(o *opt) {
+		o.readerNames = append(o.readerNames, ns...)
+	}
+}
+
+type fileOp struct {
+	operation func(*ctx) error
+	flags     fileOpFlags
+}
+type fileOpFlags uint32
+
+const (
+	Defaults = fileOpFlags(0)
+	IsInit   = fileOpFlags(1)
+)
+
+func expectError(op fileOp, reason string) fileOp {
+	return fileOp{func(c *ctx) error {
+		err := op.operation(c)
+		if err == nil {
+			return fmt.Errorf("Didn't get expected error (success while expecting failure): %q", reason)
+		}
+		// Real filesystems don't give us the exact errors we wish for.
+		if c.engine.Name() == "libkbfs" && err.Error() != reason {
+			return fmt.Errorf("Got the wrong error: expected %q, got %q", reason, err.Error())
+		}
+		return nil
+	}, Defaults}
+}
+
+func noSync() fileOp {
+	return fileOp{func(c *ctx) error {
+		c.noSyncInit = true
+		return nil
+	}, IsInit}
+}
+
 func (o *opt) fail(reason string) {
-	o.engine.PrintLog()
 	o.t.Fatal(reason)
 }
 
 func (o *opt) failf(format string, objs ...interface{}) {
-	o.engine.PrintLog()
 	o.t.Fatalf(format, objs...)
 }
 
 func (o *opt) expectSuccess(reason string, err error) {
 	if err != nil {
-		o.engine.PrintLog()
 		o.t.Fatalf("Error: %s: %v", reason, err)
 	}
 }
 
 type ctx struct {
 	*opt
-	user       engine.User
-	rootNode   engine.Node
+	user       User
+	rootNode   Node
 	noSyncInit bool
 }
 
@@ -261,7 +376,9 @@ func lsdir(name string, contents m) fileOp {
 		for restr, ty := range contents {
 			re := regexp.MustCompile(restr)
 			for node, ty2 := range entries {
-				if re.MatchString(node) && ty == ty2 {
+				// Windows does not mark "executable" bits in any way.
+				if re.MatchString(node) && (ty == ty2 ||
+					(c.engine.Name() == "dokan" && ty == "EXEC" && ty2 == "FILE")) {
 					delete(entries, node)
 					continue outer
 				}
@@ -276,7 +393,7 @@ func lsdir(name string, contents m) fileOp {
 	}, Defaults}
 }
 
-func (c *ctx) getNode(filepath string, create bool, isFile bool) (engine.Node, error) {
+func (c *ctx) getNode(filepath string, create bool, isFile bool) (Node, error) {
 	if filepath == "" || filepath == "/" {
 		return c.rootNode, nil
 	}
@@ -287,7 +404,7 @@ func (c *ctx) getNode(filepath string, create bool, isFile bool) (engine.Node, e
 	c.t.Log("getNode:", filepath, create, isFile, components, len(components))
 	var sym string
 	var err error
-	var node, parent engine.Node
+	var node, parent Node
 	parent = c.rootNode
 	for i, name := range components {
 		node, sym, err = c.engine.Lookup(c.user, parent, name)

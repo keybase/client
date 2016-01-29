@@ -3,6 +3,7 @@ package test
 import (
 	"fmt"
 	"sort"
+	"testing"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -18,11 +19,16 @@ type LibKBFS struct {
 	// channels used to re-enable updates if disabled
 	updateChannels map[libkbfs.Config]map[libkbfs.NodeID]chan<- struct{}
 	// test object, mostly for logging
-	log *MemoryLog
+	t *testing.T
 }
 
 // Check that LibKBFS fully implements the Engine interface.
 var _ Engine = (*LibKBFS)(nil)
+
+// Name returns the name of the Engine.
+func (k *LibKBFS) Name() string {
+	return "libkbfs"
+}
 
 // Init implements the Engine interface.
 func (k *LibKBFS) Init() {
@@ -33,18 +39,19 @@ func (k *LibKBFS) Init() {
 }
 
 // InitTest implements the Engine interface.
-func (k *LibKBFS) InitTest(blockSize int64, blockChangeSize int64,
-	users ...string) map[string]User {
+func (k *LibKBFS) InitTest(t *testing.T, blockSize int64, blockChangeSize int64,
+	writers []username, readers []username) map[string]User {
+	users := concatUserNamesToStrings2(writers, readers)
 	// Start a new log for this test.
-	k.log = &MemoryLog{}
-	k.log.Log("\n------------------------------------------")
+	k.t = t
+	k.t.Log("\n------------------------------------------")
 	userMap := make(map[string]User)
 	normalized := make([]libkb.NormalizedUsername, len(users))
 	for i, name := range users {
 		normalized[i] = libkb.NormalizedUsername(name)
 	}
 	// create the first user specially
-	config := libkbfs.MakeTestConfigOrBust(k.log, normalized...)
+	config := libkbfs.MakeTestConfigOrBust(t, normalized...)
 
 	// Set the block sizes, if any
 	if blockSize > 0 || blockChangeSize > 0 {
@@ -317,9 +324,4 @@ func (k *LibKBFS) Shutdown(u User) error {
 		return err
 	}
 	return nil
-}
-
-// PrintLog implements the Engine interface.
-func (k *LibKBFS) PrintLog() {
-	k.log.PrintLog()
 }

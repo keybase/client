@@ -447,9 +447,9 @@ func (f *FS) reportErr(ctx context.Context, err error) {
 	f.log.CDebugf(ctx, err.Error())
 }
 
-// Root implements the fs.FS interface for FS.
-func (f *FS) Root() (dokan.File, error) {
-	return f.root, nil
+// NotificationGroupWait waits till the local notification group is done.
+func (f *FS) NotificationGroupWait() {
+	f.notificationGroup.Wait()
 }
 
 // Root represents the root of the KBFS file system.

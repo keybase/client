@@ -48,6 +48,17 @@ func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool) *FS {
 	return &FS{config: config, conn: conn, log: log, errLog: errLog}
 }
 
+// SetFuseConn sets fuse connection for this FS.
+func (f *FS) SetFuseConn(fuse *fs.Server, conn *fuse.Conn) {
+	f.fuse = fuse
+	f.conn = conn
+}
+
+// NotificationGroupWait - wait on the notification group.
+func (f *FS) NotificationGroupWait() {
+	f.notificationGroup.Wait()
+}
+
 func (f *FS) processNotifications(ctx context.Context) {
 	for {
 		select {
@@ -87,7 +98,8 @@ func (f *FS) queueNotification(fn func()) {
 	f.notifications.In() <- fn
 }
 
-func (f *FS) launchNotificationProcessor(ctx context.Context) {
+// LaunchNotificationProcessor launches the  notification  processor.
+func (f *FS) LaunchNotificationProcessor(ctx context.Context) {
 	f.notificationMutex.Lock()
 	defer f.notificationMutex.Unlock()
 
@@ -116,7 +128,7 @@ func (f *FS) Serve(ctx context.Context) error {
 	})
 	f.fuse = srv
 
-	f.launchNotificationProcessor(ctx)
+	f.LaunchNotificationProcessor(ctx)
 
 	// Blocks forever, unless an interrupt signal is received
 	// (handled by libkbfs.Init).

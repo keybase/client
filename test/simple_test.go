@@ -6,7 +6,9 @@
 
 package test
 
-import "testing"
+import (
+	"testing"
+)
 
 // Check that renaming over a file correctly cleans up state
 func TestRenameFileOverFile(t *testing.T) {
@@ -25,6 +27,7 @@ func TestRenameFileOverFile(t *testing.T) {
 // Check that renaming a directory over a file correctly cleans up state
 func TestRenameDirOverFile(t *testing.T) {
 	test(t,
+		skip("fuse", "Renaming directories over files not supported on linux fuse (ENOTDIR)"),
 		writers("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),

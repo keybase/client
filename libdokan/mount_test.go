@@ -1565,7 +1565,7 @@ func syncFolderToServer(t *testing.T, tlf string, fs *FS) {
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
-	fs.notificationGroup.Wait()
+	fs.NotificationGroupWait()
 }
 
 func syncPublicFolderToServer(t *testing.T, tlf string, fs *FS) {
@@ -1777,7 +1777,7 @@ func TestInvalidateDataOnLocalWrite(t *testing.T) {
 
 	// The Write above is a local change, and thus we can just do a
 	// local wait without syncing to the server.
-	fs.notificationGroup.Wait()
+	fs.NotificationGroupWait()
 
 	{
 		buf := make([]byte, 4096)
