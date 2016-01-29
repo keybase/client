@@ -1,3 +1,4 @@
+- Only restart driver if necessary when upgrading on Windows (PR: keybase/client#1842)
 - Fix formatting for certain errors (PR: keybase/client#1830)
 - Cache InputCanceled from SecretUI from KBFS crypto ops (PR: keybase/client#1795)
 - New `keybase status` command, previous one moved to `keybase dump-keyfamily`
