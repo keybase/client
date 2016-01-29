@@ -2,8 +2,7 @@
 import React, {Component} from '../base-react'
 
 export type LoginRenderProps = {
-  onSignup: () => void,
-  onLogin: () => void
+  formComponent: ReactClass
 }
 
 export default class LoginRender extends Component {

@@ -1,0 +1,11 @@
+/* @flow */
+import React, {Component} from '../base-react'
+
+export type IntroProps = {
+  onSignup: () => void,
+  onLogin: () => void
+}
+
+export default class Intro extends Component {
+  props: IntroProps;
+}

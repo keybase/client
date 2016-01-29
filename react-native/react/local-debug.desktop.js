@@ -21,7 +21,8 @@ let config = {
   enableStoreLogging: false,
   enableActionLogging: true,
   forwardLogs: true,
-  devStoreChangingFunctions: false
+  devStoreChangingFunctions: false,
+  resizeLoginForm: true
 }
 
 if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) { // eslint-disable-line no-undef
@@ -40,6 +41,7 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) { // eslint-disable-line no-unde
   config.enableActionLogging = false
   config.forwardLogs = true
   config.devStoreChangingFunctions = true
+  config.resizeLoginForm = false
 }
 
 config = updateConfig(config)
@@ -57,5 +59,6 @@ export const {
   reduxDevToolsSelect,
   enableStoreLogging,
   forwardLogs,
-  devStoreChangingFunctions
+  devStoreChangingFunctions,
+  resizeLoginForm
 } = config
