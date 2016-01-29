@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
+	"mime/multipart"
 	"os"
 	"strings"
 
@@ -72,17 +73,35 @@ func (c *CmdLogSend) Run() error {
 
 func (c *CmdLogSend) post(status, kbfsLog, svcLog, desktopLog string) error {
 	c.G().Log.Debug("sending status + logs to keybase")
-	arg := libkb.APIArg{
-		Endpoint: "logdump/send",
-		Args: libkb.HTTPArgs{
-			"status_gz":      libkb.B64Arg(compress(status)),
-			"kbfs_log_gz":    libkb.B64Arg(compress(kbfsLog)),
-			"keybase_log_gz": libkb.B64Arg(compress(svcLog)),
-			"gui_log_gz":     libkb.B64Arg(compress(desktopLog)),
-		},
+
+	var body bytes.Buffer
+	mpart := multipart.NewWriter(&body)
+
+	if err := addFile(mpart, "status_gz", "status.gz", status); err != nil {
+		return err
+	}
+	if err := addFile(mpart, "kbfs_log_gz", "kbfs_log.gz", kbfsLog); err != nil {
+		return err
+	}
+	if err := addFile(mpart, "keybase_log_gz", "keybase_log.gz", svcLog); err != nil {
+		return err
+	}
+	if err := addFile(mpart, "gui_log_gz", "gui_log.gz", desktopLog); err != nil {
+		return err
 	}
 
-	resp, err := c.G().API.Post(arg)
+	if err := mpart.Close(); err != nil {
+		return err
+	}
+
+	c.G().Log.Debug("body size: %d\n", body.Len())
+
+	arg := libkb.APIArg{
+		Contextified: libkb.NewContextified(c.G()),
+		Endpoint:     "logdump/send",
+	}
+
+	resp, err := c.G().API.PostRaw(arg, mpart.FormDataContentType(), &body)
 	if err != nil {
 		c.G().Log.Debug("post error: %s", err)
 		return err
@@ -97,12 +116,24 @@ func (c *CmdLogSend) post(status, kbfsLog, svcLog, desktopLog string) error {
 	return nil
 }
 
-func compress(s string) []byte {
-	var buf bytes.Buffer
-	zip := gzip.NewWriter(&buf)
-	zip.Write([]byte(s))
-	zip.Close()
-	return buf.Bytes()
+func addFile(mpart *multipart.Writer, param, filename, data string) error {
+	if len(data) == 0 {
+		return nil
+	}
+
+	part, err := mpart.CreateFormFile(param, filename)
+	if err != nil {
+		return err
+	}
+	gz := gzip.NewWriter(part)
+	if _, err := gz.Write([]byte(data)); err != nil {
+		return err
+	}
+	if err := gz.Close(); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (c *CmdLogSend) tail(filename string, numLines int) string {
