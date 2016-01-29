@@ -1981,6 +1981,11 @@ func (fbo *folderBranchOps) isRevisionConflict(err error) bool {
 
 // mdWriterLock must be held by the caller.
 func (fbo *folderBranchOps) archiveLocked(md *RootMetadata) {
+	// Don't archive for unmerged revisions, because conflict
+	// resolution might undo some of the unreferences.
+	if md.MergedStatus() != Merged {
+		return
+	}
 	fbo.archiveGroup.Add(1)
 	fbo.archiveChan <- md
 }
