@@ -396,6 +396,15 @@ export type incomingCallMapType = {
       result: (result: identify_Resolve_result) => void
     }
   ) => void,
+  'keybase.1.identify.Resolve2'?: (
+    params: {
+      assertion: string
+    },
+    response: {
+      error: (err: string) => void,
+      result: (result: identify_Resolve2_result) => void
+    }
+  ) => void,
   'keybase.1.identify.identify'?: (
     params: {
       sessionID: int,
@@ -3671,6 +3680,19 @@ export type identify_Resolve_rpc = {
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any, response: identify_Resolve_result) => void)
+}
+
+// identify.Resolve2 ////////////////////////////////////////
+
+export type identify_Resolve2_result = identify_User
+
+export type identify_Resolve2_rpc = {
+  method: 'identify.Resolve2',
+  param: {
+    assertion: string
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any, response: identify_Resolve2_result) => void)
 }
 
 // identify.identify ////////////////////////////////////////

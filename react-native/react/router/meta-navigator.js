@@ -3,10 +3,10 @@
  * todo(mm) explain why we need a meta navigator
  */
 
-import React, {Component} from '../base-react'
+import React, {Component} from 'react'
 import Render from './meta-navigator.render'
 import Immutable from 'immutable'
-import {connect} from '../base-redux'
+import {connect} from 'react-redux'
 
 class MetaNavigator extends Component {
   constructor (props) {

@@ -1,4 +1,4 @@
-import React, {Component} from '../base-react'
+import React, {Component} from 'react'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import Container from './dev-container'
 import {Button, Logo, Input, Text} from '../common-adapters'

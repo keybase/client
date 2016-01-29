@@ -1,5 +1,5 @@
 import reactDOM from 'react-dom'
-import React, {Component} from '../../react-native/react/base-react'
+import React, {Component} from 'react'
 import {showMainWindow} from '../../react-native/react/local-debug.desktop'
 import {Provider} from 'react-redux'
 import RemoteStore from '../../react-native/react/native/remote-store.desktop'

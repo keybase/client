@@ -1,4 +1,5 @@
-import React, {Component, Text, View} from '../../../../base-react'
+import React, {Component} from 'react'
+import {Text, View} from 'react-native'
 
 export default class QR extends Component {
   render () {

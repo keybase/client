@@ -1,4 +1,4 @@
-import React, {Component, Text, View} from '../../base-react'
+import React, {Component, Text, View} from 'react'
 import commonStyles from '../../styles/common'
 import Button from '../../common-adapters/button'
 

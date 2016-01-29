@@ -1,8 +1,7 @@
 /* @flow */
 
-import React, {Component} from '../base-react'
-import {connect} from '../base-redux'
-// $FlowIssue .desktop issue
+import React, {Component} from 'react'
+import {connect} from 'react-redux'
 import Render from './render'
 
 import * as trackerActions from '../actions/tracker'

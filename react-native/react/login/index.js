@@ -1,4 +1,4 @@
-import React, {Component} from '../base-react'
+import React, {Component} from 'react'
 import Welcome from './welcome'
 import Register from './register'
 import Render from './index.render'

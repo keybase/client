@@ -1,5 +1,5 @@
-import React, {Component} from '../base-react'
-import {connect} from '../base-redux'
+import React, {Component} from 'react'
+import {connect} from 'react-redux'
 import {routeAppend} from '../actions/router'
 import {pushNewProfile} from '../actions/profile'
 import {pushNewSearch} from '../actions/search'

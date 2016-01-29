@@ -1,2 +1,2 @@
-import {NativeModules} from '../base-react'
+import {NativeModules} from 'react-native'
 export default NativeModules.ObjcEngine

@@ -1,5 +1,5 @@
-import {Component} from './base-react'
-import {connect} from './base-redux'
+import {Component} from 'react'
+import {connect} from 'react-redux'
 import MetaNavigator from './router/meta-navigator'
 import React from 'react'
 import Folders from './folders'

@@ -1,4 +1,4 @@
-import React, {Component} from '../base-react'
+import React, {Component} from 'react'
 
 export default class AccountComponent extends Component {
   render () {

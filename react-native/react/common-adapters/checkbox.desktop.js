@@ -1,6 +1,6 @@
 /* @flow */
 
-import React, {Component} from '../base-react'
+import React, {Component} from 'react'
 import Text, {styles as TextStyles} from './text'
 import {globalStyles} from '../styles/style-guide'
 import type {Props} from './checkbox'

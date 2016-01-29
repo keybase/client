@@ -1,5 +1,6 @@
-import React, {AppRegistry, Component, NativeAppEventEmitter, AsyncStorage} from './base-react'
-import {Provider} from 'react-redux/native'
+import React, {Component} from 'react'
+import {AppRegistry, NativeAppEventEmitter, AsyncStorage} from 'react-native'
+import {Provider} from 'react-redux'
 import configureStore from './store/configure-store'
 import Nav from './nav'
 

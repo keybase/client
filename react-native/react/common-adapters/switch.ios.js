@@ -1,2 +1,2 @@
-import {SwitchIOS} from '../base-react'
+import {SwitchIOS} from 'react'
 export default SwitchIOS

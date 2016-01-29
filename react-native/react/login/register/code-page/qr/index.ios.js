@@ -1,4 +1,5 @@
-import React, {Component, Image, StyleSheet, View} from '../../../../base-react'
+import React, {Component} from 'react'
+import {Image, StyleSheet, View} from 'react-native'
 import Camera from 'react-native-camera'
 
 export default class QR extends Component {

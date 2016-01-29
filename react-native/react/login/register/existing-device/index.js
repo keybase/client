@@ -1,5 +1,5 @@
-import React, {Component} from '../../../base-react'
-import {connect} from '../../../base-redux'
+import React, {Component} from 'react'
+import {connect} from 'react-redux'
 import Render from './index.render'
 import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer} from '../../../constants/login'
 

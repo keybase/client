@@ -1,6 +1,6 @@
 /* @flow */
 
-import React, {Component} from '../base-react'
+import React, {Component} from 'react'
 import {Paper} from 'material-ui'
 import commonStyles, {colors} from '../styles/common'
 import resolveAssets from '../../../desktop/resolve-assets'

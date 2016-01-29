@@ -3,7 +3,8 @@
  * you're a phone/computer and if you're the existing device or the new device
  */
 
-import React, {Component, StyleSheet, Text, View, TextInput} from '../../../base-react'
+import React, {Component} from 'react'
+import {StyleSheet, Text, View, TextInput} from 'react-native'
 import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
         codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer} from '../../../constants/login'
 import {codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText} from '../../../constants/login'

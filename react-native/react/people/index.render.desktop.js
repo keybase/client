@@ -1,4 +1,4 @@
-import React, {Component} from '../base-react'
+import React, {Component} from 'react'
 import Search from '../search/index.desktop'
 
 export default class PeopleRender extends Component {

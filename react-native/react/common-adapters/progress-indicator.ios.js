@@ -1,2 +1,2 @@
-import {ActivityIndicatorIOS} from '../base-react'
+import {ActivityIndicatorIOS} from 'react-native'
 export default ActivityIndicatorIOS

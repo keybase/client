@@ -1,8 +1,7 @@
 /* @flow */
 
-import React, {Component} from '../base-react'
-import {connect} from '../base-redux'
-
+import React, {Component} from 'react'
+import {connect} from 'react-redux'
 import {bindActionCreators} from 'redux'
 import {registerIdentifyUi, onCloseFromHeader as trackerOnCloseFromHeader, startTimer as trackerStartTimer, stopTimer as trackerStopTimer} from '../actions/tracker'
 import {registerPinentryListener, onCancel as pinentryOnCancel, onSubmit as pinentryOnSubmit} from '../actions/pinentry'

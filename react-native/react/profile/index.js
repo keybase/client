@@ -1,5 +1,7 @@
-import React, {Component, Image, StyleSheet, ScrollView, Text, View} from '../base-react'
-import {connect} from '../base-redux'
+import React, {Component} from 'react'
+import {Image, StyleSheet, ScrollView, Text, View} from 'react-native'
+
+import {connect} from 'react-redux'
 
 class Profile extends Component {
   render () {

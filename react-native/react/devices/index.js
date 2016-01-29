@@ -1,5 +1,5 @@
-import React, {Component} from '../base-react'
-import {connect} from '../base-redux'
+import React, {Component} from 'react'
+import {connect} from 'react-redux'
 
 import CodePage from '../login/register/code-page'
 import GenPaperKey from './gen-paper-key'

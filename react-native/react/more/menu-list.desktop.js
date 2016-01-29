@@ -1,4 +1,4 @@
-import React, {Component} from '../base-react'
+import React, {Component} from 'react'
 import {List, ListItem} from 'material-ui'
 
 export default class MenuList extends Component {
