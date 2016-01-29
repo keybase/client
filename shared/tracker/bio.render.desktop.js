@@ -3,7 +3,7 @@
 import React, {Component} from '../base-react'
 import {Paper} from 'material-ui'
 import commonStyles, {colors} from '../styles/common'
-import resolveAssets from '../../desktop/resolve-assets'
+import resolveRoot from '../../desktop/resolve-root'
 import electron from 'electron'
 
 const shell = electron.shell || electron.remote.shell
@@ -11,7 +11,7 @@ const shell = electron.shell || electron.remote.shell
 import type {Styled} from '../styles/common'
 import type {BioProps} from './bio.render'
 
-const noAvatar = `file:///${resolveAssets('../shared/images/no-avatar@2x.png')}`
+const noAvatar = `file:///${resolveRoot('shared/images/no-avatar@2x.png')}`
 
 export default class BioRender extends Component {
   props: BioProps & Styled;

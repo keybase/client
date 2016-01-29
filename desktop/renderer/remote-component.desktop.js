@@ -1,6 +1,6 @@
 import React, {Component} from '../shared/base-react'
 import {remote, ipcRenderer} from 'electron'
-import resolveAssets from '../resolve-assets'
+import resolveRoot from '../resolve-root'
 import menuHelper from '../app/menu-helper'
 import hotPath from '../hot-path'
 import {globalHacks} from '../shared/styles/style-guide'
@@ -48,7 +48,7 @@ export default class RemoteComponent extends Component {
     })
 
     const componentRequireName = this.props.component
-    this.remoteWindow.loadUrl(`file://${resolveAssets('./renderer/remoteComponent.html')}?component=${componentRequireName || ''}&src=${hotPath('remote-component-loader.bundle.js')}`)
+    this.remoteWindow.loadUrl(`file://${resolveRoot('renderer/remoteComponent.html')}?component=${componentRequireName || ''}&src=${hotPath('remote-component-loader.bundle.js')}`)
   }
 
   componentWillUnmount () {

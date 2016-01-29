@@ -1,5 +1,5 @@
 import React, {Component} from '../base-react'
-import resolveAssets from '../../desktop/resolve-assets'
+import resolveRoot from '../../desktop/resolve-root'
 
 export default class Logo extends Component {
   render () {
@@ -7,9 +7,7 @@ export default class Logo extends Component {
       width: this.props.small ? 42 : 124,
       ...(this.props.grey ? {WebkitFilter: 'grayscale()'} : {})
     }
-    return (
-      <img style={style} src={`file://${resolveAssets('../shared/images/service/keybase.png')}`}/>
-    )
+    return <img style={style} src={`file://${resolveRoot('shared/images/service/keybase.png')}`}/>
   }
 }
 

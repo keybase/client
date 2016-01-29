@@ -29,7 +29,7 @@ declare module 'material-ui/lib/svg-icons/navigation/close' {
 declare class Notification {
 }
 
-declare module 'resolveAssets' {
+declare module 'resolveShared' {
   declare var exports: (s: string) => string;
 }
 

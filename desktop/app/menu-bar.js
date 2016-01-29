@@ -1,14 +1,14 @@
 import {ipcMain} from 'electron'
-import resolveAssets from '../resolve-assets'
+import resolveRoot from '../resolve-root'
 import hotPath from '../hot-path'
 import menubar from 'menubar'
 
 export default function () {
-  const menubarIconPath = resolveAssets('../shared/images/menubarIcon/topbar_iconTemplate.png')
-  const menubarLoadingIconPath = resolveAssets('../shared/images/menubarIcon/topbar_icon_loadingTemplate.png')
+  const menubarIconPath = resolveRoot('shared/images/menubarIcon/topbar_iconTemplate.png')
+  const menubarLoadingIconPath = resolveRoot('shared/images/menubarIcon/topbar_icon_loadingTemplate.png')
 
   const mb = menubar({
-    index: `file://${resolveAssets('./renderer/launcher.html')}?src=${hotPath('launcher.bundle.js')}`,
+    index: `file://${resolveRoot('renderer/launcher.html')}?src=${hotPath('launcher.bundle.js')}`,
     width: 320,
     height: 364 + 10, // size plus gap to deal with deadzone
     transparent: true,
