@@ -1,2 +1,0 @@
-declare export var globalColors: Object
-declare export var globalStyles: Object

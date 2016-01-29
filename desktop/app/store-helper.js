@@ -1,6 +1,6 @@
 import {ipcMain} from 'electron'
-import {selector as trackerSelector} from '../../react-native/react/tracker'
-import {selector as menubarSelector} from '../../react-native/react/menubar'
+import {selector as trackerSelector} from '../shared/tracker'
+import {selector as menubarSelector} from '../shared/menubar'
 
 export default function (mainWindow) {
   const subscribeStoreSubscribers = []

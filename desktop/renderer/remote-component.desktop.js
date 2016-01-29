@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
 import {remote, ipcRenderer} from 'electron'
-import resolveAssets from '../../../desktop/resolve-assets'
+import resolveRoot from '../../../desktop/resolve-root'
 import menuHelper from '../../../desktop/app/menu-helper'
 import hotPath from '../../../desktop/hot-path'
 
@@ -52,7 +52,7 @@ export default class RemoteComponent extends Component {
     ipcRenderer.send('listenForRemoteWindowClosed', this.remoteWindow.id)
 
     const componentRequireName = this.props.component
-    this.remoteWindow.loadUrl(`file://${resolveAssets('../react-native/react/native/remoteComponent.html')}?component=${componentRequireName || ''}&src=${hotPath('remote-component-loader.bundle.js')}&selectorParams=${this.props.selectorParams}&title=${encodeURI(this.props.title || '')}`)
+    this.remoteWindow.loadUrl(`file://${resolveRoot('shared/native/remoteComponent.html')}?component=${componentRequireName || ''}&src=${hotPath('remote-component-loader.bundle.js')}&selectorParams=${this.props.selectorParams}&title=${encodeURI(this.props.title || '')}`)
   }
 
   componentWillUnmount () {
