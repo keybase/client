@@ -1,8 +1,6 @@
 package libkbfs
 
 import (
-	"fmt"
-
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -471,7 +469,7 @@ func (c *ConfigLocal) Shutdown() error {
 		for _, config := range *c.allKnownConfigsForTesting {
 			kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
 			if !ok {
-				return fmt.Errorf("No KBFSOps Standard!")
+				continue
 			}
 			for _, fbo := range kbfsOps.ops {
 				lState := makeFBOLockState()

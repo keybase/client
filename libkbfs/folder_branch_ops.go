@@ -3716,7 +3716,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 
 	// These pointers need to be re-dirtied if the top block gets
 	// copied during the sync, and a recoverable error happens.  Maps
-	// to the lod block pointer for the block, which would need a
+	// to the old block pointer for the block, which would need a
 	// DeleteDirty.
 	redirtyOnRecoverableError := make(map[BlockPointer]BlockPointer)
 

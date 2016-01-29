@@ -1291,7 +1291,7 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	}
 }
 
-// Test that a writes that happen on a multi-block file concurrently
+// Test that writes that happen on a multi-block file concurrently
 // with a sync, which has to retry due to an archived block, works
 // correctly.  Regression test for KBFS-700.
 func TestKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T) {
