@@ -1,5 +1,5 @@
 import {createStore, compose} from 'redux'
-import DevTools from '../../../desktop/renderer/redux-dev-tools'
+import DevTools from '../../desktop/renderer/redux-dev-tools'
 import {enableStoreLogging} from '../local-debug'
 
 export default f => {

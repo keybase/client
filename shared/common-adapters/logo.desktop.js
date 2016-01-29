@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import resolveRoot from '../../../desktop/resolve-root'
+import resolveRoot from '../../desktop/resolve-root'
 
 export default class Logo extends Component {
   render () {

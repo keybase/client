@@ -41,7 +41,7 @@ Example JSON reply to the service:
 
 The window that the Electron app opens in response to the RPC renders a "smart"
 React component which interprets the JSON, and passes values through to a "dumb"
-React component (currently at `react/pinentry/index.render.desktop.js`) as
+React component (currently at `shared/pinentry/index.render.desktop.js`) as
 props.  This lets us render the "dumb" component standalone for testing, too.
 
 Open questions:
@@ -55,7 +55,7 @@ Open questions:
 
 We can register as a delegated identify UI with the Go core, and it'll send us
 any identity or proof updates, which we can show and update in real-time in a
-tracker popup window (files in `react/tracker/`).  We create a new tracker popup
+tracker popup window (files in `shared/tracker/`).  We create a new tracker popup
 window in response to KBFS operations like cd'ing into a new private directory.
 
 ### KBFS errors and OS notifications

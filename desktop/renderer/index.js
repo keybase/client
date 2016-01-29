@@ -16,7 +16,7 @@ import hello from '../shared/util/hello'
 
 // For Remote Components
 import {ipcRenderer} from 'electron'
-import RemoteManager from '../shared/native/remote-manager'
+import RemoteManager from './remote-manager'
 import consoleHelper from '../app/console-helper'
 import _ from 'lodash'
 

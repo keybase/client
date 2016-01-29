@@ -9,7 +9,7 @@ import Container from './dev-container'
 import Update from '../update/index.js'
 
 // $FlowIssue platform files
-import RemoteComponent from '../native/remote-component'
+import RemoteComponent from '../../desktop/renderer/remote-component'
 
 import {devEditAction} from '../reducers/devEdit'
 

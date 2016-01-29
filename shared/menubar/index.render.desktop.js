@@ -3,7 +3,7 @@
 
 import React, {Component} from 'react'
 import {shell} from 'electron'
-import resolveRoot from '../../../desktop/resolve-root'
+import resolveRoot from '../../desktop/resolve-root'
 
 import {intersperse} from '../util/arrays'
 import {parseFolderNameToUsers, canonicalizeUsernames, stripPublicTag} from '../util/kbfs'
