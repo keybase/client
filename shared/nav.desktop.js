@@ -1,4 +1,4 @@
-import {Component} from './base-react'
+import {Component} from 'react'
 import {connect} from './base-redux'
 import MetaNavigator from './router/meta-navigator'
 import React from 'react'
