@@ -25,6 +25,8 @@ const (
 	mdReadNeedIdentify
 	// A write request.
 	mdWrite
+	// A rekey request.
+	mdRekey
 )
 
 type branchType int
@@ -599,7 +601,7 @@ func (fbo *folderBranchOps) getMDLocked(
 	ctx context.Context, lState *lockState, rtype mdReqType) (
 	md *RootMetadata, err error) {
 	defer func() {
-		if err != nil || rtype == mdReadNoIdentify {
+		if err != nil || rtype == mdReadNoIdentify || rtype == mdRekey {
 			return
 		}
 		err = fbo.identifyOnce(ctx, md)
@@ -616,7 +618,7 @@ func (fbo *folderBranchOps) getMDLocked(
 
 	// Unless we're in mdWrite mode, we can't safely fetch the new
 	// MD without causing races, so bail.
-	if rtype != mdWrite {
+	if rtype != mdWrite && rtype != mdRekey {
 		return nil, MDWriteNeededInRequest{}
 	}
 
@@ -712,7 +714,7 @@ func (fbo *folderBranchOps) getMDForWriteLocked(
 // mdWriterLock must be taken by the caller.
 func (fbo *folderBranchOps) getMDForRekeyWriteLocked(
 	ctx context.Context, lState *lockState) (*RootMetadata, bool, error) {
-	md, err := fbo.getMDLocked(ctx, lState, mdWrite)
+	md, err := fbo.getMDLocked(ctx, lState, mdRekey)
 	if err != nil {
 		return nil, false, err
 	}
