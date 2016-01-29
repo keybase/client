@@ -46,6 +46,9 @@ type CmdLogSend struct {
 }
 
 func (c *CmdLogSend) Run() error {
+	if err := c.confirm(); err != nil {
+		return err
+	}
 
 	c.G().Log.Debug("getting keybase status")
 	statusCmd := &CmdStatus{Contextified: libkb.NewContextified(c.G())}
@@ -57,7 +60,6 @@ func (c *CmdLogSend) Run() error {
 	if err != nil {
 		return err
 	}
-	c.G().Log.Debug("status json: %s", statusJSON)
 
 	c.G().Log.Debug("tailing kbfs log %q", status.KBFS.Log)
 	kbfsLog := c.tail(status.KBFS.Log, c.numLines)
@@ -69,6 +71,16 @@ func (c *CmdLogSend) Run() error {
 	desktopLog := c.tail(status.Desktop.Log, c.numLines)
 
 	return c.post(string(statusJSON), kbfsLog, svcLog, desktopLog)
+}
+
+func (c *CmdLogSend) confirm() error {
+	ui := c.G().UI.GetTerminalUI()
+	ui.Printf("This command will send recent keybase log entries to keybase.io\n")
+	ui.Printf("for debugging purposes only.\n\n")
+	ui.Printf("While we have made every attempt to keep sensitive information\n")
+	ui.Printf("out of the logs, we wanted to make sure you are ok with sending\n")
+	ui.Printf("your log files.\n\n")
+	return ui.PromptForConfirmation("Continue sending logs to keybase.io?")
 }
 
 func (c *CmdLogSend) post(status, kbfsLog, svcLog, desktopLog string) error {
@@ -112,8 +124,17 @@ func (c *CmdLogSend) post(status, kbfsLog, svcLog, desktopLog string) error {
 		return err
 	}
 
-	c.G().Log.Info("logs sent, dump id = %q", id)
+	c.outputInstructions(id)
 	return nil
+}
+
+func (c *CmdLogSend) outputInstructions(id string) {
+	ui := c.G().UI.GetTerminalUI()
+	ui.Printf("keybase.io received your logs successfully! Your log dump ID is:\n\n")
+	ui.Printf("\t%s\n\n", id)
+	ui.Printf("Here's a URL to submit a bug report containing this ID:\n\n")
+	ui.Printf("\thttps://github.com/keybase/keybase-issues/issues/new?body=log+dump+id+%s\n\n", id)
+	ui.Printf("Thanks!\n")
 }
 
 func addFile(mpart *multipart.Writer, param, filename, data string) error {
