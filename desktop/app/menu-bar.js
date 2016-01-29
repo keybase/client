@@ -1,15 +1,15 @@
 import {ipcMain} from 'electron'
-import resolveAssets from '../resolve-assets'
+import resolveRoot from '../resolve-root'
 import hotPath from '../hot-path'
 import menubar from 'menubar'
 
 export default function () {
   const isWhite = process.platform === 'linux' ? '_white' : ''
-  const menubarIconPath = resolveAssets(`../react-native/react/images/menubarIcon/topbar_iconTemplate${isWhite}.png`)
-  const menubarLoadingIconPath = resolveAssets(`../react-native/react/images/menubarIcon/topbar_icon_loadingTemplate${isWhite}.png`)
+  const menubarIconPath = resolveRoot(`shared/images/menubarIcon/topbar_iconTemplate${isWhite}.png`)
+  const menubarLoadingIconPath = resolveRoot(`shared/images/menubarIcon/topbar_icon_loadingTemplate${isWhite}.png`)
 
   const mb = menubar({
-    index: `file://${resolveAssets('./renderer/launcher.html')}?src=${hotPath('launcher.bundle.js')}&selectorParams=menubar`,
+    index: `file://${resolveRoot('renderer/launcher.html')}?src=${hotPath('launcher.bundle.js')}&selectorParams=menubar`,
     width: 320,
     height: 364,
     frame: false,

@@ -1,13 +1,12 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import {routeAppend} from '../actions/router'
-import {switchTab} from '../actions/tabbed-router'
 import {pushNewProfile} from '../actions/profile'
 import {pushNewSearch} from '../actions/search'
 import {logout} from '../actions/login'
 import {pushDebugTracker} from '../actions/tracker'
 import MenuList from './menu-list'
-import RemoteComponent from '../native/remote-component'
+import RemoteComponent from '../../desktop/renderer/remote-component'
 
 import {loginTab} from '../constants/tabs'
 

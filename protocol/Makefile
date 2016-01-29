@@ -77,12 +77,12 @@ objc-build-stamp: build-stamp
 js/flow-types.js: build-stamp
 	@mkdir -p js/
 	node ./bin/flow.js
-	cp ./js/flow-types.js ../react-native/react/constants/types
+	cp ./js/flow-types.js ../shared/constants/types
 
 js/keybase_v1.js: build-stamp
 	@mkdir -p js/
 	node ./bin/js.js
-	cp ./js/keybase_v1.js ../react-native/react/constants/types
+	cp ./js/keybase_v1.js ../shared/constants/types
 
 swift-build-stamp: build-stamp
 	@ # Runs without generating files (to validate)
