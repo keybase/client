@@ -324,7 +324,7 @@ func (t TrackDiffNewEldest) GetTrackDiffType() keybase1.TrackDiffType {
 	return keybase1.TrackDiffType_NEW_ELDEST
 }
 func (t TrackDiffNewEldest) ToDisplayString() string {
-	return fmt.Sprintf("Changed from %s to %s", t.tracked, t.observed)
+	return fmt.Sprintf("Account reset! Old key was %s; new key is %s", t.tracked, t.observed)
 }
 func (t TrackDiffNewEldest) ToDisplayMarkup() *Markup {
 	return NewMarkup(t.ToDisplayString())

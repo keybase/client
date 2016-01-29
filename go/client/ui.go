@@ -106,7 +106,7 @@ func (ui IdentifyTrackUI) ReportRevoked(del []keybase1.TrackDiff) {
 	if len(del) > 0 {
 		ui.G().Log.Warning("Some proofs you previously tracked were revoked:")
 		for _, d := range del {
-			ui.ReportHook(BADX + " " + TrackDiffToColoredString(d))
+			ui.ReportHook(BADX + " " + trackDiffToColoredString(d))
 		}
 	}
 }
@@ -275,7 +275,7 @@ func (ui BaseIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, l keybas
 	lcr := LinkCheckResultWrapper{l}
 
 	if diff := lcr.GetDiff(); diff != nil {
-		lcrs = TrackDiffToColoredString(*diff) + " "
+		lcrs = trackDiffToColoredString(*diff) + " "
 	}
 	run := s.GetRemoteUsername()
 
@@ -295,11 +295,10 @@ func (ui BaseIdentifyUI) FinishSocialProofCheck(p keybase1.RemoteProof, l keybas
 	ui.ReportHook(msg)
 }
 
-func TrackDiffToColoredString(t keybase1.TrackDiff) string {
-	s := "<" + t.DisplayMarkup + ">"
+func trackDiffToColor(typ keybase1.TrackDiffType) string {
 	var color string
-	switch t.Type {
-	case keybase1.TrackDiffType_ERROR, keybase1.TrackDiffType_CLASH, keybase1.TrackDiffType_REVOKED:
+	switch typ {
+	case keybase1.TrackDiffType_ERROR, keybase1.TrackDiffType_CLASH, keybase1.TrackDiffType_REVOKED, keybase1.TrackDiffType_NEW_ELDEST:
 		color = "red"
 	case keybase1.TrackDiffType_UPGRADED:
 		color = "orange"
@@ -308,7 +307,12 @@ func TrackDiffToColoredString(t keybase1.TrackDiff) string {
 	case keybase1.TrackDiffType_NONE:
 		color = "green"
 	}
-	if len(color) > 0 {
+	return color
+}
+
+func trackDiffToColoredString(t keybase1.TrackDiff) string {
+	s := "<" + t.DisplayMarkup + ">"
+	if color := trackDiffToColor(t.Type); len(color) > 0 {
 		s = ColorString(color, s)
 	}
 	return s
@@ -325,7 +329,7 @@ func (ui BaseIdentifyUI) FinishWebProofCheck(p keybase1.RemoteProof, l keybase1.
 	lcr := LinkCheckResultWrapper{l}
 
 	if diff := lcr.GetDiff(); diff != nil {
-		lcrs = TrackDiffToColoredString(*diff) + " "
+		lcrs = trackDiffToColoredString(*diff) + " "
 	}
 
 	greatColor := "green"
@@ -374,18 +378,24 @@ func (ui BaseIdentifyUI) DisplayCryptocurrency(l keybase1.Cryptocurrency) {
 }
 
 func (ui BaseIdentifyUI) DisplayKey(key keybase1.IdentifyKey) {
-	var ds string
-	if key.TrackDiff != nil {
-		ds = TrackDiffToColoredString(*key.TrackDiff) + " "
-	}
-	var s string
+	var fpq string
 	if fp := libkb.ImportPGPFingerprintSlice(key.PGPFingerprint); fp != nil {
-		s = fp.ToQuads()
-	} else {
-		s = "<none>"
+		fpq = fp.ToQuads()
 	}
-	msg := CHECK + " " + ds + ColorString("green", "public key fingerprint: "+s)
-	ui.ReportHook(msg)
+	if key.TrackDiff != nil {
+		mark := CHECK
+		if key.TrackDiff.Type == keybase1.TrackDiffType_NEW_ELDEST {
+			mark = BADX
+		}
+		msg := mark + " " + trackDiffToColoredString(*key.TrackDiff)
+		if len(fpq) > 0 {
+			msg += " " + ColorString(trackDiffToColor(key.TrackDiff.Type), "public key fingerprint: "+fpq)
+		}
+		ui.ReportHook(msg)
+	} else if len(fpq) > 0 {
+		msg := CHECK + " " + ColorString("green", "public key fingerprint: "+fpq)
+		ui.ReportHook(msg)
+	}
 }
 
 func (ui BaseIdentifyUI) ReportLastTrack(tl *keybase1.TrackSummary) {
