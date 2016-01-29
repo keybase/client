@@ -345,13 +345,14 @@ type folderBranchOps struct {
 	// protected by mdWriterLock.
 	archiveGroup sync.WaitGroup
 
-	// blocksToDeleteAfterError is a list of blocks that may have been
-	// Put as part of a failed MD write.  These blocks should be
-	// deleted as soon as possible.  The lock should only be held
-	// immediately around accessing the list.  TODO: Persist these to
-	// disk?
+	// blocksToDeleteAfterError is a list of blocks, for a given
+	// metadata revision, that may have been Put as part of a failed
+	// MD write.  These blocks should be deleted as soon as we know
+	// for sure that the MD write isn't visible to others.
+	// The lock should only be held immediately around accessing the
+	// list.  TODO: Persist these to disk?
 	blocksToDeleteLock       sync.Mutex
-	blocksToDeleteAfterError []BlockPointer
+	blocksToDeleteAfterError map[*RootMetadata][]BlockPointer
 
 	// forceSyncChan can be sent on to trigger an immediate Sync().
 	// It is a blocking channel.
@@ -402,13 +403,14 @@ func newFolderBranchOps(config Config, fb FolderBranch,
 		blockLock: blockLock{
 			mu: blockLockMu,
 		},
-		nodeCache:       nodeCache,
-		state:           cleanState,
-		log:             log,
-		shutdownChan:    make(chan struct{}),
-		updatePauseChan: make(chan (<-chan struct{})),
-		archiveChan:     make(chan *RootMetadata, 25),
-		forceSyncChan:   make(chan struct{}),
+		nodeCache:                nodeCache,
+		state:                    cleanState,
+		log:                      log,
+		shutdownChan:             make(chan struct{}),
+		updatePauseChan:          make(chan (<-chan struct{})),
+		archiveChan:              make(chan *RootMetadata, 25),
+		blocksToDeleteAfterError: make(map[*RootMetadata][]BlockPointer),
+		forceSyncChan:            make(chan struct{}),
 	}
 	fbo.cr = NewConflictResolver(config, fbo)
 	if config.DoBackgroundFlushes() {
@@ -2113,14 +2115,15 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 	return fbo.setHeadLocked(ctx, lState, md)
 }
 
-func (fbo *folderBranchOps) cleanUpBlockState(bps *blockPutState) {
+func (fbo *folderBranchOps) cleanUpBlockState(
+	md *RootMetadata, bps *blockPutState) {
 	fbo.blocksToDeleteLock.Lock()
 	defer fbo.blocksToDeleteLock.Unlock()
 	// Clean up any blocks that may have been orphaned by this
 	// failure.
 	for _, bs := range bps.blockStates {
-		fbo.blocksToDeleteAfterError =
-			append(fbo.blocksToDeleteAfterError, bs.blockPtr)
+		fbo.blocksToDeleteAfterError[md] =
+			append(fbo.blocksToDeleteAfterError[md], bs.blockPtr)
 	}
 }
 
@@ -2138,7 +2141,7 @@ func (fbo *folderBranchOps) syncBlockAndFinalizeLocked(ctx context.Context,
 
 	defer func() {
 		if err != nil {
-			fbo.cleanUpBlockState(bps)
+			fbo.cleanUpBlockState(md, bps)
 		}
 	}()
 
@@ -2783,7 +2786,7 @@ func (fbo *folderBranchOps) renameLocked(
 
 	defer func() {
 		if err != nil {
-			fbo.cleanUpBlockState(newBps)
+			fbo.cleanUpBlockState(md, newBps)
 		}
 	}()
 
@@ -4022,7 +4025,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 
 	defer func() {
 		if err != nil {
-			fbo.cleanUpBlockState(si.bps)
+			fbo.cleanUpBlockState(md, si.bps)
 		}
 	}()
 
@@ -5405,6 +5408,95 @@ func (fbo *folderBranchOps) finalizeResolution(ctx context.Context,
 	return nil
 }
 
+func (fbo *folderBranchOps) processToDelete(ctx context.Context) error {
+	// also attempt to delete any error references
+	var toDelete map[*RootMetadata][]BlockPointer
+	func() {
+		fbo.blocksToDeleteLock.Lock()
+		defer fbo.blocksToDeleteLock.Unlock()
+		toDelete = fbo.blocksToDeleteAfterError
+		fbo.blocksToDeleteAfterError =
+			make(map[*RootMetadata][]BlockPointer)
+	}()
+
+	if len(toDelete) == 0 {
+		return nil
+	}
+
+	toDeleteAgain := make(map[*RootMetadata][]BlockPointer)
+	bops := fbo.config.BlockOps()
+	for md, ptrs := range toDelete {
+		fbo.log.CDebugf(ctx, "Checking deleted blocks for revision %d",
+			md.Revision)
+		// Make sure that the MD didn't actually become
+		// part of the folder history.  (This could happen
+		// if the Sync was canceled while the MD put was
+		// outstanding.)
+		var rmds []*RootMetadata
+		var err error
+		if md.MergedStatus() == Merged {
+			rmds, err = getMergedMDUpdates(ctx, fbo.config, fbo.id(),
+				md.Revision)
+		} else {
+			_, rmds, err = getUnmergedMDUpdates(ctx, fbo.config, fbo.id(),
+				md.BID, md.Revision)
+		}
+		if err != nil || len(rmds) == 0 {
+			toDeleteAgain[md] = ptrs
+			continue
+		}
+		if rmds[0].data.Dir == md.data.Dir {
+			// This md is part of the history of the folder,
+			// so we shouldn't delete the blocks.
+			fbo.log.CDebugf(ctx, "Not deleting blocks from revision %d",
+				md.Revision)
+			// But, since this MD put seems to have succeeded, we
+			// should archive it.  But do it asynchronously, because
+			// we don't want to take the lock here.
+			go fbo.runUnlessShutdown(func(ctx context.Context) error {
+				lState := makeFBOLockState()
+				fbo.mdWriterLock.Lock(lState)
+				defer fbo.mdWriterLock.Unlock(lState)
+				fbo.log.CDebugf(ctx, "Archiving successful MD revision %d",
+					rmds[0].Revision)
+				fbo.archiveLocked(rmds[0])
+				return nil
+			})
+			continue
+		}
+
+		// Otherwise something else has been written over
+		// this MD, so get rid of the blocks.
+		fbo.log.CDebugf(ctx, "Cleaning up blocks for failed revision %d",
+			md.Revision)
+
+		for _, ptr := range ptrs {
+			err := bops.Delete(ctx, md, ptr.ID, ptr)
+			// Ignore permanent errors
+			_, isPermErr := err.(BServerError)
+			if err != nil {
+				fbo.log.CWarningf(ctx, "Couldn't delete ref %v: %v", ptr, err)
+				if !isPermErr {
+					toDeleteAgain[md] = append(toDeleteAgain[md], ptr)
+				}
+			}
+		}
+	}
+
+	if len(toDeleteAgain) > 0 {
+		func() {
+			fbo.blocksToDeleteLock.Lock()
+			defer fbo.blocksToDeleteLock.Unlock()
+			for md, ptrs := range toDeleteAgain {
+				fbo.blocksToDeleteAfterError[md] =
+					append(fbo.blocksToDeleteAfterError[md], ptrs...)
+			}
+		}()
+	}
+
+	return nil
+}
+
 func (fbo *folderBranchOps) archiveBlocksInBackground() {
 	for {
 		select {
@@ -5434,41 +5526,10 @@ func (fbo *folderBranchOps) archiveBlocksInBackground() {
 					return err
 				}
 
-				// also attempt to delete any error references
-				var toDelete []BlockPointer
-				func() {
-					fbo.blocksToDeleteLock.Lock()
-					defer fbo.blocksToDeleteLock.Unlock()
-					toDelete = fbo.blocksToDeleteAfterError
-					fbo.blocksToDeleteAfterError = nil
-				}()
-
-				if len(toDelete) == 0 {
-					return nil
-				}
-
-				var toDeleteAgain []BlockPointer
-				for _, ptr := range toDelete {
-					err := bops.Delete(ctx, md, ptr.ID, ptr)
-					// Ignore permanent errors
-					_, isPermErr := err.(BServerError)
-					if err != nil {
-						fbo.log.CWarningf(ctx, "Couldn't delete ref %v: %v",
-							ptr, err)
-						if !isPermErr {
-							toDeleteAgain = append(toDeleteAgain, ptr)
-						}
-					}
-				}
-
-				if len(toDeleteAgain) > 0 {
-					func() {
-						fbo.blocksToDeleteLock.Lock()
-						defer fbo.blocksToDeleteLock.Unlock()
-						fbo.blocksToDeleteAfterError =
-							append(fbo.blocksToDeleteAfterError,
-								toDeleteAgain...)
-					}()
+				// Also see if we can delete any blocks.
+				if err := fbo.processToDelete(ctx); err != nil {
+					fbo.log.CDebugf(ctx, "Error deleting blocks: %v", err)
+					return err
 				}
 
 				return nil
