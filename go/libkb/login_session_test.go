@@ -7,11 +7,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/jonboulle/clockwork"
-	jsonw "github.com/keybase/go-jsonw"
+	"io"
 	"net/http"
 	"testing"
 	"time"
+
+	"github.com/jonboulle/clockwork"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 const fakeResponse = `{
@@ -69,6 +71,10 @@ func (a *FakeAPI) PostJSON(APIArg) (*APIRes, error) {
 
 func (a *FakeAPI) PostResp(APIArg) (*http.Response, error) {
 	return nil, fmt.Errorf("PostResp is phony")
+}
+
+func (a *FakeAPI) PostRaw(APIArg, string, io.Reader) (*APIRes, error) {
+	return nil, fmt.Errorf("PostRaw is phony")
 }
 
 func (a *FakeAPI) PostDecode(APIArg, APIResponseWrapper) error {
