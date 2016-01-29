@@ -1,0 +1,17 @@
+/* @flow */
+
+import React, {Component} from 'react'
+
+export type Props = {
+  type: 'Header' | 'Body' | 'TerminalCommand' | 'TerminalComment' | 'TerminalEmpty',
+  link?: bool,
+  small?: bool,
+  reversed?: bool,
+  onClick?: Function
+}
+
+declare export default class Text extends React.Component<void, Props, {}> {
+  props: Props;
+}
+
+declare export var styles: Object

@@ -1,0 +1,23 @@
+/* @flow */
+
+import React, {Component} from 'react'
+
+export type Props = {
+  autoFocus?: bool,
+  errorText?: string,
+  floatingLabelText?: string,
+  hintText?: string,
+  multiLine?: bool,
+  onChange?: (event: Object) => void,
+  onEnterKeyDown?: (event: Object) => void,
+  rows?: number,
+  rowsMax?: number,
+  style?: Object,
+  type?: 'password' | 'text',
+  value?: string,
+  small?: bool
+}
+
+declare export default class Input extends React.Component<void, Props, {}> {
+  props: Props;
+}
