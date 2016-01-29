@@ -1,5 +1,8 @@
+import React, {Component} from 'react'
+import {Text, View, StyleSheet, BackAndroid, DrawerLayoutAndroid, Image, TouchableNativeFeedback} from 'react-native'
+
 import TabBar from './native/tab-bar'
-import {connect} from './base-redux'
+import {connect} from 'react-redux'
 import MetaNavigator from './router/meta-navigator'
 import globalRoutes from './router/global-routes'
 
@@ -10,8 +13,6 @@ import Devices from './devices'
 import NoTab from './no-tab'
 import More from './more'
 import Startup from './start-up'
-
-import React, {Component, Text, View, StyleSheet, BackAndroid, DrawerLayoutAndroid, Image, TouchableNativeFeedback} from './base-react'
 
 import {folderTab, chatTab, peopleTab, devicesTab, moreTab, startupTab, prettify} from './constants/tabs'
 import {androidTabBarHeight} from './styles/native'

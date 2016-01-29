@@ -1,6 +1,6 @@
 /* @flow */
 
-import React, {Component} from '../base-react'
+import React, {Component} from 'react'
 import {Header} from '../common-adapters'
 
 import type {Styled} from '../styles/common'

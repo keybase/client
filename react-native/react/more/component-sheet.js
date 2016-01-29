@@ -1,4 +1,4 @@
-import React, {Component} from '../base-react'
+import React, {Component} from 'react'
 import Render from './component-sheet.render'
 
 export default class ComponentSheet extends Component {

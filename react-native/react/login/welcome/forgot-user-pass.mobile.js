@@ -1,5 +1,6 @@
-import React, {Component, StyleSheet, Text, TextInput, View} from '../../base-react'
-import {connect} from '../../base-redux'
+import React, {Component} from 'react'
+import {StyleSheet, Text, TextInput, View} from 'react-native'
+import {connect} from 'react-redux'
 import commonStyles from '../../styles/common'
 import Button from '../../common-adapters/button'
 import {updateForgotPasswordEmail, submitForgotPassword} from '../../actions/login'

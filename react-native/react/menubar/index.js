@@ -1,10 +1,10 @@
 /* @flow */
 /*eslint-disable react/prop-types */ // Since we're using flow types for props
 
-import React, {Component} from '../base-react'
+import React, {Component} from 'react'
 import Render from './index.render'
-import {connect} from '../base-redux'
 import {bindActionCreators} from 'redux'
+import {connect} from 'react-redux'
 import {getTLF} from '../util/kbfs'
 import engine from '../engine'
 

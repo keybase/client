@@ -1,6 +1,6 @@
 /* @flow */
 
-import React, {Component} from '../base-react'
+import React, {Component} from 'react'
 import Render from './index.render'
 import Intro from './forms/intro'
 import {Text} from '../common-adapters'

@@ -1,4 +1,4 @@
-import React, {Component} from '../../../base-react'
+import React, {Component} from 'react'
 import {TextField, RaisedButton} from 'material-ui'
 
 export default class SetPublicNameRender extends Component {

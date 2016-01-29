@@ -4,3 +4,4 @@ declare export default {
 }
 
 declare export var styles: Object
+declare var exports: any;

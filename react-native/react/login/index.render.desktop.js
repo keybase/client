@@ -1,7 +1,7 @@
 /* @flow */
 /* eslint-disable react/prop-types */
 
-import React, {Component} from '../base-react'
+import React, {Component} from 'react'
 import {globalStyles} from '../styles/style-guide'
 import Carousel from '../util/carousel.desktop'
 

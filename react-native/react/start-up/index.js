@@ -1,5 +1,6 @@
-import React, {Component, View, Text} from '../base-react'
-import {connect} from '../base-redux'
+import React, {Component} from 'react'
+import {View, Text} from 'react-native'
+import {connect} from 'react-redux'
 
 class RegisterPlaceHolder extends Component {
   render () {

@@ -1,5 +1,7 @@
-import React, {Component, ListView, StyleSheet, TouchableHighlight, Text, TextInput, View, Image} from '../base-react'
-import {connect} from '../base-redux'
+import React, {Component} from 'react'
+import {ListView, StyleSheet, TouchableHighlight, Text, TextInput, View, Image} from 'react-native'
+
+import {connect} from 'react-redux'
 import {selectService, submitSearch} from '../actions/search'
 import {pushNewProfile} from '../actions/profile'
 import commonStyles from '../styles/common'

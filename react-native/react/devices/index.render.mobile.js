@@ -1,4 +1,5 @@
-import React, {Component, Text, TouchableHighlight, View, ScrollView, StyleSheet} from '../base-react'
+import React, {Component} from 'react'
+import {Text, TouchableHighlight, View, ScrollView, StyleSheet} from 'react-native'
 import moment from 'moment'
 import commonStyles from '../styles/common'
 

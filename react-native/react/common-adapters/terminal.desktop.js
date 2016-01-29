@@ -1,4 +1,4 @@
-import React, {Component} from '../base-react'
+import React, {Component} from 'react'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
 export default class Terminal extends Component {

@@ -1,4 +1,5 @@
-import React, {Component, View, Text} from '../base-react'
+import React, {Component} from 'react'
+import {View, Text} from 'react-native'
 
 export default class ProofsRender extends Component {
   render () {

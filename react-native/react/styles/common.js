@@ -1,7 +1,5 @@
 /* @flow */
-// $FlowIssue Pulling non react things from react
-import {StyleSheet} from '../base-react'
-import native, {styles as nativeStyles} from './common.native'
+import native, {styles as nativeStyles, sheet} from './common.native'
 
 const buttonHighlightCommon = {
   padding: 0,
@@ -62,7 +60,7 @@ const buttons = {
   }
 }
 
-export default StyleSheet.create({
+export default sheet({
   ...buttons,
   error: {
     backgroundColor: 'red',

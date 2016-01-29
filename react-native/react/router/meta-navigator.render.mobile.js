@@ -1,4 +1,5 @@
-import React, {View, Component} from '../base-react'
+import React, {Component} from 'react'
+import {View} from 'react-native'
 
 export default class MetaNavigatorRender extends Component {
   render () {

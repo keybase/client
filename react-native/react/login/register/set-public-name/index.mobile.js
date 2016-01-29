@@ -1,7 +1,7 @@
 'use strict'
 
-import React, {Component, Text, TextInput, View} from '../../../base-react'
-import {connect} from '../../../base-redux'
+import React, {Component, Text, TextInput, View} from 'react'
+import {connect} from 'react-redux'
 import commonStyles from '../../../styles/common'
 import Button from '../../../common-adapters/button'
 

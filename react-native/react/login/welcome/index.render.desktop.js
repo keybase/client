@@ -1,4 +1,4 @@
-import React, {Component} from '../../base-react'
+import React, {Component} from 'react'
 import commonStyles from '../../styles/common'
 import shell from 'shell'
 

@@ -1,4 +1,5 @@
-import React, {Component, LinkingIOS, StyleSheet, Text, View} from '../../base-react'
+import React, {Component} from 'react'
+import {LinkingIOS, StyleSheet, Text, View} from 'react-native'
 import commonStyles from '../../styles/common'
 import Button from '../../common-adapters/button'
 

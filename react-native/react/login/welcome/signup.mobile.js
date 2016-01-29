@@ -1,5 +1,6 @@
-import React, {Component, Text, View} from '../../base-react'
-import {connect} from '../../base-redux'
+import React, {Component} from 'react'
+import {Text, View} from 'react-native'
+import {connect} from 'react-redux'
 import commonStyles from '../../styles/common'
 
 class Signup extends Component {

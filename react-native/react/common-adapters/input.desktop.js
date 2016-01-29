@@ -1,4 +1,4 @@
-import React, {Component} from '../base-react'
+import React, {Component} from 'react'
 import {TextField} from 'material-ui'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {styles as TextStyles} from './text'

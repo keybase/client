@@ -36,9 +36,15 @@ function addEnums (prot, json) {
 }
 
 function write () {
-  var s = fs.createWriteStream('js/keybase_v1.js')
-  s.write('export default ' + JSON.stringify(protocols, null, 2).replace(/\"/g, '\'') + '\n')
-  s.close()
+  var stream = fs.createWriteStream('js/keybase_v1.js')
+  stream.once('open', function(fd) {
+    Object.keys(protocols).forEach(function (p) {
+      stream.write('export const ' + p + ' = ' + JSON.stringify(protocols[p], null, 2).replace(/\"/g, '\'') + '\n\n')
+    })
+
+    stream.write('export default {\n' + Object.keys(protocols).map(function(a) {return '  ' + a}).join(',\n') + '\n}')
+    stream.end()
+  })
 }
 
 function fixCase (s) {

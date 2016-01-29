@@ -75,7 +75,7 @@ export default function pipeLogs () {
       originalConsole[k].apply(console, args)
       if (args.length) {
         const out = output[k] || stdOutWriter
-        out(k + `: ${Date()} (${Date.now()}): ` + util.format.apply(util, args))
+        out(`${k}: ${Date()} (${Date.now()}): ${util.format.apply(util, args)}`)
       }
     }
   })

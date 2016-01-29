@@ -1,4 +1,6 @@
-import React, {Component, StyleSheet, Text, TouchableHighlight, View} from '../../../base-react'
+import React, {Component, StyleSheet, Text, TouchableHighlight, View} from 'react'
+import {StyleSheet, Text, TouchableHighlight, View} from 'react-native'
+
 import commonStyles from '../../../styles/common'
 
 export default class ExistingDeviceRender extends Component {

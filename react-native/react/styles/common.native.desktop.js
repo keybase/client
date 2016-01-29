@@ -75,3 +75,8 @@ export const styles = {
     backgroundColor: '#F7F7F7'
   }
 }
+
+export function sheet (obj) {
+  return obj
+}
+

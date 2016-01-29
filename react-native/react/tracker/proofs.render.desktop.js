@@ -1,6 +1,6 @@
 /* @flow */
 
-import React, {Component} from '../base-react'
+import React, {Component} from 'react'
 import commonStyles, {colors} from '../styles/common'
 import {checking, revoked} from '../constants/tracker'
 import {metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted} from '../constants/tracker'

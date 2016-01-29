@@ -1,8 +1,9 @@
-import React, {Component} from '../base-react'
-import {FlatButton} from 'material-ui'
-import {navigateUp} from '../actions/router'
+import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import {bindActionCreators} from 'redux'
+
+import {FlatButton} from 'material-ui'
+import {navigateUp} from '../actions/router'
 
 class MetaNavigatorRender extends Component {
   onBack () {

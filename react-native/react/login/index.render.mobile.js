@@ -1,4 +1,5 @@
-import React, {Component, StyleSheet, View} from '../base-react'
+import React, {Component} from 'react'
+import {StyleSheet, View} from 'react-native'
 import ProgressIndicator from '../common-adapters/progress-indicator'
 
 export default class LoginRender extends Component {
