@@ -4,15 +4,10 @@ import {isMobile} from '../../constants/platform'
 import {navigateTo, routeAppend, getCurrentURI, getCurrentTab} from '../router'
 import engine from '../../engine'
 import enums from '../../constants/types/keybase_v1'
-// $FlowIssue TODO
 import UserPass from '../../login/register/user-pass'
-// $FlowIssue TODO
 import PaperKey from '../../login/register/paper-key'
-// $FlowIssue TODO
 import CodePage from '../../login/register/code-page'
-// $FlowIssue TODO
 import ExistingDevice from '../../login/register/existing-device'
-// $FlowIssue TODO
 import SetPublicName from '../../login/register/set-public-name'
 import {switchTab} from '../tabbed-router'
 import {devicesTab} from '../../constants/tabs'

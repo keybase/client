@@ -8,11 +8,9 @@
 .*/react/router/global-routes.js
 .*/react/nav.android.js
 .*/react/nav.ios.js
-.*/react/login/.*
 .*/react/login2/.*
 .*/react/profile/.*
 .*/react/search/.*
-.*/react/local-debug.js
 
 # Ignoring these for now
 .*/desktop/.*

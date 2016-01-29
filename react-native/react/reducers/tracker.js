@@ -1,6 +1,5 @@
 /* @flow */
 
-// $FlowIssue platform files
 import {showAllTrackers} from '../local-debug'
 
 import * as Constants from '../constants/tracker'

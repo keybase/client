@@ -61,7 +61,7 @@ class MetaNavigator extends Component {
 
   getComponentAtTop (rootComponent, uri) {
     let currentPath = uri.first() || Immutable.Map()
-    let nextPath = uri.rest().first() || Immutable.Map()
+    let nextPath = uri.rest().first()
     let restPath = uri.rest().rest()
     let routeStack = Immutable.List()
 
@@ -69,7 +69,7 @@ class MetaNavigator extends Component {
     let parseNextRoute = rootComponent.parseRoute
     let componentAtTop = null
 
-    while (parseNextRoute) {
+    while (parseNextRoute && currentPath) {
       const t = parseNextRoute(currentPath, uri)
       componentAtTop = {
         ...t.componentAtTop,
@@ -93,14 +93,14 @@ class MetaNavigator extends Component {
           ...t.subRoutes
         }
 
-        if (subRoutes[nextPath.get('path')]) {
+        if (nextPath && subRoutes[nextPath.get('path')]) {
           nextComponent = subRoutes[nextPath.get('path')]
           parseNextRoute = nextComponent.parseRoute
         }
       }
 
       // See if they're using an embedded parseRoute
-      if (!parseNextRoute && nextPath.get('parseRoute')) {
+      if (!parseNextRoute && nextPath && nextPath.get('parseRoute')) {
         const result = nextPath.get('parseRoute')
         parseNextRoute = () => result
       }
@@ -108,7 +108,7 @@ class MetaNavigator extends Component {
       routeStack = routeStack.push(componentAtTop)
 
       currentPath = nextPath
-      nextPath = restPath.first() || Immutable.Map()
+      nextPath = restPath.first()
       restPath = restPath.rest()
     }
 

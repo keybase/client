@@ -1,12 +1,15 @@
 import React, {Component} from '../base-react'
 import {connect} from '../base-redux'
 import {routeAppend} from '../actions/router'
+import {switchTab} from '../actions/tabbed-router'
 import {pushNewProfile} from '../actions/profile'
 import {pushNewSearch} from '../actions/search'
 import {logout} from '../actions/login'
 import {pushDebugTracker} from '../actions/tracker'
 import MenuList from './menu-list'
 import RemoteComponent from '../native/remote-component'
+
+import {loginTab} from '../constants/tabs'
 
 class Foo extends Component {
   render () {
@@ -28,7 +31,7 @@ class DevMenu extends Component {
   render () {
     const menuItems = [
       {name: 'Login', onClick: () => {
-        this.props.routeAppend(['login', {path: 'welcome', upLink: ['about'], upTitle: 'About'}])
+        this.props.switchTab(loginTab)
       }},
       {name: 'Register', onClick: () => {
         this.props.routeAppend(['login', {path: 'register', upLink: ['']}])
@@ -107,6 +110,7 @@ export default connect(
   dispatch => {
     return {
       routeAppend: uri => dispatch(routeAppend(uri)),
+      switchTab: tabName => dispatch(switchTab(tabName)),
       logout: () => dispatch(logout()),
       pushNewSearch: () => dispatch(pushNewSearch()),
       pushNewProfile: username => dispatch(pushNewProfile(username)),

@@ -6,15 +6,14 @@
 
 import Immutable from 'immutable'
 import routerReducer, {createRouterState} from './router'
-import {startupTab, folderTab, chatTab, peopleTab, devicesTab, moreTab} from '../constants/tabs'
+import {startupTab, folderTab, chatTab, peopleTab, devicesTab, moreTab, loginTab} from '../constants/tabs'
 import * as Constants from '../constants/tabbed-router'
-// $FlowFixMe ignore this import for now
 import * as LocalDebug from '../local-debug'
 import * as LoginConstants from '../constants/login'
 
 import type {RouterState} from './router'
 
-type TabName = startupTab | folderTab | chatTab | peopleTab | devicesTab | moreTab
+type TabName = startupTab | folderTab | chatTab | peopleTab | devicesTab | moreTab | loginTab
 type TabbedRouterState = MapADT2<'tabs', Immutable.Map<TabName, RouterState>, 'activeTab', TabName> // eslint-disable-line no-undef
 
 const emptyRouterState: RouterState = LocalDebug.overrideRouterState ? LocalDebug.overrideRouterState : createRouterState([], [])
@@ -27,7 +26,8 @@ const initialState: TabbedRouterState = Immutable.fromJS({
     [chatTab]: emptyRouterState,
     [peopleTab]: emptyRouterState,
     [devicesTab]: emptyRouterState,
-    [moreTab]: emptyRouterState
+    [moreTab]: emptyRouterState,
+    [loginTab]: emptyRouterState
   },
   activeTab: LocalDebug.overrideActiveTab ? LocalDebug.overrideActiveTab : moreTab
 })

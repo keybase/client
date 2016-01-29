@@ -1,5 +1,6 @@
 /* @flow */
 
+import Immutable from 'immutable'
 import type {State} from '../constants/reducer'
 import type {Action} from '../constants/types/flux'
 
@@ -15,7 +16,10 @@ function updateInKeypath (map: any, keyPath: Array<String | number>, v: any): an
         console.error('Accessing an array without a number')
       }
       return copy
+    } else if (Immutable.Iterable.isIterable(map)) {
+      return map.set(frontKey, v)
     }
+
     return {...map, [frontKey]: v}
   }
 
@@ -27,7 +31,10 @@ function updateInKeypath (map: any, keyPath: Array<String | number>, v: any): an
       console.error('Accessing an array without a number')
     }
     return copy
+  } else if (Immutable.Iterable.isIterable(map)) {
+    return map.setIn(keyPath, v)
   }
+
   return {...map, [frontKey]: updateInKeypath(map[frontKey], keyPath.slice(1), v)}
 }
 

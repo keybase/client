@@ -10,9 +10,11 @@ import configureStore from '../../react-native/react/store/configure-store'
 import Nav from '../../react-native/react/nav'
 import injectTapEventPlugin from 'react-tap-event-plugin'
 import ListenLogUi from '../../react-native/react/native/listen-log-ui'
-import {reduxDevToolsEnable} from '../../react-native/react/local-debug'
+import {reduxDevToolsEnable, devStoreChangingFunctions} from '../../react-native/react/local-debug'
 import {listenForNotifications} from '../../react-native/react/actions/notifications'
 import hello from '../../react-native/react/util/hello'
+
+import {devEditAction} from '../../react-native/react/reducers/devEdit'
 
 // For Remote Components
 import {ipcRenderer} from 'electron'
@@ -27,6 +29,10 @@ if (module.hot) {
 }
 
 const store = configureStore()
+
+if (devStoreChangingFunctions) {
+  window.devEdit = (path, value) => store.dispatch(devEditAction(path, value))
+}
 
 class Keybase extends Component {
   constructor () {
