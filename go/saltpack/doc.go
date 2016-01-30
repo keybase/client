@@ -7,7 +7,7 @@ for encrypted messages, and a reasonable armoring format. We intend Saltpack
 as a replacement for the PGP messaging format, as it can be used in many of
 the same circumstances.  However, it is designed to be: (1) simpler; (2)
 easier to implement; (3) judicious (perhaps judgmental) in its crypto usage;
-(4) fully modern (no CBC option here); (5) high performance; (6) less bug-
+(4) fully modern (no CFB mode here); (5) high performance; (6) less bug-
 prone; (7) generally unwilling to output unauthenticated data; and (8) easier
 to compose with other software in any manner of languages or platforms.
 
