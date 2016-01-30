@@ -1493,6 +1493,7 @@ type blockState struct {
 	blockPtr       BlockPointer
 	block          Block
 	readyBlockData ReadyBlockData
+	badPtr         bool
 }
 
 func (fbo *folderBranchOps) Stat(ctx context.Context, node Node) (
@@ -1525,7 +1526,7 @@ func newBlockPutState(length int) *blockPutState {
 func (bps *blockPutState) addNewBlock(blockPtr BlockPointer, block Block,
 	readyBlockData ReadyBlockData) {
 	bps.blockStates = append(bps.blockStates,
-		blockState{blockPtr, block, readyBlockData})
+		blockState{blockPtr, block, readyBlockData, false})
 }
 
 func (bps *blockPutState) mergeOtherBps(other *blockPutState) {
@@ -1895,7 +1896,7 @@ func (fbo *folderBranchOps) doOneBlockPut(ctx context.Context,
 // isRecoverableBlockError(err), the caller should retry its entire
 // operation, starting from when the MD successor was created.
 func (fbo *folderBranchOps) doBlockPuts(ctx context.Context,
-	md *RootMetadata, bps blockPutState) error {
+	md *RootMetadata, bps *blockPutState) error {
 	errChan := make(chan error, 1)
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -1944,6 +1945,14 @@ func (fbo *folderBranchOps) doBlockPuts(ctx context.Context,
 		// Wait for all the outstanding puts to finish, to amortize
 		// the work of re-doing the put.
 		for fblock := range blocksToRemoveChan {
+			for i, bs := range bps.blockStates {
+				if bs.block == fblock {
+					// Mark this for later so the caller can know
+					// which were the bad blocks.
+					bps.blockStates[i].badPtr = true
+				}
+			}
+
 			// Remove each problematic block from the cache so the
 			// redo can just make a new block instead.
 			if err := bcache.DeleteKnownPtr(fbo.id(), fblock); err != nil {
@@ -2160,7 +2169,7 @@ func (fbo *folderBranchOps) syncBlockAndFinalizeLocked(ctx context.Context,
 		}
 	}()
 
-	err = fbo.doBlockPuts(ctx, md, *bps)
+	err = fbo.doBlockPuts(ctx, md, bps)
 	if err != nil {
 		return DirEntry{}, err
 	}
@@ -2805,7 +2814,7 @@ func (fbo *folderBranchOps) renameLocked(
 		}
 	}()
 
-	err = fbo.doBlockPuts(ctx, md, *newBps)
+	err = fbo.doBlockPuts(ctx, md, newBps)
 	if err != nil {
 		return err
 	}
@@ -3696,6 +3705,32 @@ func (fbo *folderBranchOps) fixChildBlocksAfterRecoverableError(
 	}
 }
 
+// revertSyncInfoAfterRecoverableError updates the saved sync info to
+// include all the blocks from before the error, except for those that
+// have encountered recoverable block errors themselves.
+func (fbo *folderBranchOps) revertSyncInfoAfterRecoverableError(
+	si *syncInfo, savedSi *syncInfo) {
+	// Mark any bad pointers to they get skipped next
+	// time.
+	badPtrs := make(map[BlockPointer]bool)
+	for _, bs := range si.bps.blockStates {
+		badPtrs[bs.blockPtr] = bs.badPtr
+	}
+	// This sync will be retried and needs new blocks, so
+	// reset everything in the sync info.
+	*si = *savedSi
+	if si.bps == nil {
+		return
+	}
+	si.bps.blockStates = nil
+	for _, bs := range savedSi.bps.blockStates {
+		// Only save the good pointers
+		if !badPtrs[bs.blockPtr] {
+			si.bps.blockStates = append(si.bps.blockStates, bs)
+		}
+	}
+}
+
 // mdWriterLock must be taken by the caller.
 func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 	lState *lockState, file path) (stillDirty bool, err error) {
@@ -3805,9 +3840,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 			// it could get reused again in a later Sync call.
 			si.op.resetUpdateState()
 			if isRecoverableBlockError(err) {
-				// This sync will be retried and needs new blocks, so
-				// reset everything in the sync info.
-				*si = *savedSi
+				fbo.revertSyncInfoAfterRecoverableError(si, savedSi)
 				if fblock.IsInd {
 					*fblock = *oldFblock
 					fbo.fixChildBlocksAfterRecoverableError(ctx, !doUnlock,
@@ -4044,7 +4077,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 		}
 	}()
 
-	err = fbo.doBlockPuts(ctx, md, *si.bps)
+	err = fbo.doBlockPuts(ctx, md, si.bps)
 	if err != nil {
 		return true, err
 	}

@@ -1458,3 +1458,103 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 			ops.blocksToDeleteAfterError)
 	}
 }
+
+// Test that truncating a block to a zero-contents block, for which a
+// duplicate has previously been archived, works correctly after a
+// cancel.  Regression test for KBFS-727.
+func TestKBFSOpsTruncateWithDupBlockCanceled(t *testing.T) {
+	config, _, ctx := kbfsOpsConcurInit(t, "test_user")
+	defer CheckConfigAndShutdown(t, config)
+
+	// Cancel the first put
+	onSyncStalledCh := make(chan struct{}, 1)
+	syncUnstallCh := make(chan struct{})
+
+	stallKey := "requestName"
+	syncValue := "sync"
+
+	config.SetBlockOps(&stallingBlockOps{
+		stallOpName: "Put",
+		stallKey:    stallKey,
+		stallMap: map[interface{}]staller{
+			syncValue: staller{
+				stalled: onSyncStalledCh,
+				unstall: syncUnstallCh,
+			},
+		},
+		delegate: config.BlockOps(),
+	})
+
+	// create and write to a file
+	kbfsOps := config.KBFSOps()
+	rootNode, _, err :=
+		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+	_, _, err = kbfsOps.CreateFile(ctx, rootNode, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// Remove that file, and wait for the archiving to complete
+	err = kbfsOps.RemoveEntry(ctx, rootNode, "a")
+	if err != nil {
+		t.Fatalf("Couldn't remove file: %v", err)
+	}
+
+	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+
+	fileNode2, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	var data []byte
+	// Write some data
+	for i := 0; i < 30; i++ {
+		data = append(data, byte(i))
+	}
+	err = kbfsOps.Write(ctx, fileNode2, data, 0)
+	if err != nil {
+		t.Errorf("Couldn't write file: %v", err)
+	}
+
+	err = kbfsOps.Sync(ctx, fileNode2)
+	if err != nil {
+		t.Fatalf("First sync failed: %v", err)
+	}
+
+	// Now truncate and sync, canceling during the block puts
+	err = kbfsOps.Truncate(ctx, fileNode2, 0)
+	if err != nil {
+		t.Errorf("Couldn't truncate file: %v", err)
+	}
+
+	// Sync the initial two data blocks
+	errChan := make(chan error)
+	// start the sync
+	cancelCtx, cancel := context.WithCancel(ctx)
+	go func() {
+		syncCtx := context.WithValue(cancelCtx, stallKey, syncValue)
+		errChan <- kbfsOps.Sync(syncCtx, fileNode2)
+	}()
+	<-onSyncStalledCh
+
+	cancel()
+	// Unstall the sync.
+	close(syncUnstallCh)
+	err = <-errChan
+	if err != context.Canceled {
+		t.Errorf("Sync got wrong error: %v", err)
+	}
+
+	// Final sync
+	err = kbfsOps.Sync(ctx, fileNode2)
+	if err != nil {
+		t.Fatalf("Final sync failed: %v", err)
+	}
+}

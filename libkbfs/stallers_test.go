@@ -64,7 +64,13 @@ func (f *stallingBlockOps) Put(
 	ctx context.Context, md *RootMetadata, blockPtr BlockPointer,
 	readyBlockData ReadyBlockData) error {
 	f.maybeStall(ctx, "Put")
-	return f.delegate.Put(ctx, md, blockPtr, readyBlockData)
+	err := f.delegate.Put(ctx, md, blockPtr, readyBlockData)
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+	return err
 }
 
 func (f *stallingBlockOps) Delete(

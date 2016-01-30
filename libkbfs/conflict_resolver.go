@@ -2832,7 +2832,7 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 	}
 
 	// Put all the blocks.
-	err = cr.fbo.doBlockPuts(ctx, md, *bps)
+	err = cr.fbo.doBlockPuts(ctx, md, bps)
 	if err != nil {
 		return nil, nil, err
 	}
