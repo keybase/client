@@ -123,6 +123,13 @@ type EncryptedPrivateMetadata encryptedData
 // EncryptedBlock is an encrypted Block.
 type EncryptedBlock encryptedData
 
+// EncryptedMerkleLeaf is an encrypted Merkle leaf.
+type EncryptedMerkleLeaf struct {
+	_struct       bool `codec:",toarray"`
+	Version       EncryptionVer
+	EncryptedData []byte
+}
+
 // DeepCopy returns a complete copy of this EncryptedTLFCryptKeyClientHalf.
 func (ech EncryptedTLFCryptKeyClientHalf) DeepCopy() (echCopy EncryptedTLFCryptKeyClientHalf) {
 	echCopy.Version = ech.Version

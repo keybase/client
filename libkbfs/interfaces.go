@@ -551,6 +551,10 @@ type Crypto interface {
 	// MakeMdID computes the MD ID of a RootMetadata object.
 	MakeMdID(md *RootMetadata) (MdID, error)
 
+	// MakeMerkleHash computes the hash of a RootMetadataSigned object
+	// for inclusion into the KBFS Merkle tree.
+	MakeMerkleHash(md *RootMetadataSigned) (MerkleHash, error)
+
 	// MakeTemporaryBlockID generates a temporary block ID using a
 	// CSPRNG. This is used for indirect blocks before they're
 	// committed to the server.
@@ -646,6 +650,14 @@ type Crypto interface {
 	// DecryptBlock() must guarantee that (size of the decrypted
 	// block) <= len(encryptedBlock).
 	DecryptBlock(encryptedBlock EncryptedBlock, key BlockCryptKey, block Block) error
+
+	// EncryptMerkleLeaf encrypts a Merkle leaf node with the TLFPublicKey.
+	EncryptMerkleLeaf(leaf MerkleLeaf, pubKey TLFPublicKey, nonce *[24]byte,
+		ePrivKey TLFEphemeralPrivateKey) (EncryptedMerkleLeaf, error)
+
+	// DecryptMerkleLeaf decrypts a Merkle leaf node with the TLFPrivateKey.
+	DecryptMerkleLeaf(encryptedLeaf EncryptedMerkleLeaf, privKey TLFPrivateKey,
+		nonce *[24]byte, ePubKey TLFEphemeralPublicKey) (*MerkleLeaf, error)
 
 	// Shutdown frees any resources associated with this instance.
 	Shutdown()

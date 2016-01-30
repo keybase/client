@@ -86,6 +86,19 @@ func (c *CryptoCommon) MakeMdID(md *RootMetadata) (MdID, error) {
 	return MdID{h}, nil
 }
 
+// MakeMerkleHash implements the Crypto interface for CryptoCommon.
+func (c *CryptoCommon) MakeMerkleHash(md *RootMetadataSigned) (MerkleHash, error) {
+	buf, err := c.codec.Encode(md)
+	if err != nil {
+		return MerkleHash{}, err
+	}
+	h, err := DefaultHash(buf)
+	if err != nil {
+		return MerkleHash{}, err
+	}
+	return MerkleHash{h}, nil
+}
+
 // MakeTemporaryBlockID implements the Crypto interface for CryptoCommon.
 func (c *CryptoCommon) MakeTemporaryBlockID() (BlockID, error) {
 	var dh RawDefaultHash
@@ -468,4 +481,38 @@ func (c *CryptoCommon) VerifyTLFCryptKeyServerHalfID(serverHalfID TLFCryptKeySer
 	key := serverHalf.data[:]
 	data := append(user.ToBytes(), deviceKID.ToBytes()...)
 	return serverHalfID.ID.Verify(key, data)
+}
+
+// EncryptMerkleLeaf encrypts a Merkle leaf node with the TLFPublicKey.
+func (c *CryptoCommon) EncryptMerkleLeaf(leaf MerkleLeaf, pubKey TLFPublicKey,
+	nonce *[24]byte, ePrivKey TLFEphemeralPrivateKey) (EncryptedMerkleLeaf, error) {
+	// encode the clear-text leaf
+	leafBytes, err := c.codec.Encode(leaf)
+	if err != nil {
+		return EncryptedMerkleLeaf{}, err
+	}
+	// encrypt the encoded leaf
+	encryptedData := box.Seal(nil, leafBytes[:], nonce, (*[32]byte)(&pubKey.data), (*[32]byte)(&ePrivKey.data))
+	return EncryptedMerkleLeaf{
+		Version:       EncryptionSecretbox,
+		EncryptedData: encryptedData,
+	}, nil
+}
+
+// DecryptMerkleLeaf decrypts a Merkle leaf node with the TLFPrivateKey.
+func (c *CryptoCommon) DecryptMerkleLeaf(encryptedLeaf EncryptedMerkleLeaf, privKey TLFPrivateKey,
+	nonce *[24]byte, ePubKey TLFEphemeralPublicKey) (*MerkleLeaf, error) {
+	if encryptedLeaf.Version != EncryptionSecretbox {
+		return nil, UnknownEncryptionVer{encryptedLeaf.Version}
+	}
+	leafBytes, ok := box.Open(nil, encryptedLeaf.EncryptedData[:], nonce, (*[32]byte)(&ePubKey.data), (*[32]byte)(&privKey.data))
+	if !ok {
+		return nil, libkb.DecryptionError{}
+	}
+	// decode the leaf
+	var leaf MerkleLeaf
+	if err := c.codec.Decode(leafBytes, &leaf); err != nil {
+		return nil, err
+	}
+	return &leaf, nil
 }

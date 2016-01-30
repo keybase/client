@@ -552,3 +552,9 @@ func (rmds *RootMetadataSigned) IsInitialized() bool {
 	// The data is initialized only if there is a signature.
 	return !rmds.SigInfo.IsNil()
 }
+
+// MerkleHash computes a hash of this RootMetadataSigned object for inclusion
+// into the KBFS Merkle tree.
+func (rmds *RootMetadataSigned) MerkleHash(config Config) (MerkleHash, error) {
+	return config.Crypto().MakeMerkleHash(rmds)
+}

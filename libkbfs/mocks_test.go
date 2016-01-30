@@ -1132,6 +1132,17 @@ func (_mr *_MockCryptoRecorder) MakeMdID(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeMdID", arg0)
 }
 
+func (_m *MockCrypto) MakeMerkleHash(md *RootMetadataSigned) (MerkleHash, error) {
+	ret := _m.ctrl.Call(_m, "MakeMerkleHash", md)
+	ret0, _ := ret[0].(MerkleHash)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockCryptoRecorder) MakeMerkleHash(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "MakeMerkleHash", arg0)
+}
+
 func (_m *MockCrypto) MakeTemporaryBlockID() (BlockID, error) {
 	ret := _m.ctrl.Call(_m, "MakeTemporaryBlockID")
 	ret0, _ := ret[0].(BlockID)
@@ -1374,6 +1385,28 @@ func (_m *MockCrypto) DecryptBlock(encryptedBlock EncryptedBlock, key BlockCrypt
 
 func (_mr *_MockCryptoRecorder) DecryptBlock(arg0, arg1, arg2 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DecryptBlock", arg0, arg1, arg2)
+}
+
+func (_m *MockCrypto) EncryptMerkleLeaf(leaf MerkleLeaf, pubKey TLFPublicKey, nonce *[24]byte, ePrivKey TLFEphemeralPrivateKey) (EncryptedMerkleLeaf, error) {
+	ret := _m.ctrl.Call(_m, "EncryptMerkleLeaf", leaf, pubKey, nonce, ePrivKey)
+	ret0, _ := ret[0].(EncryptedMerkleLeaf)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockCryptoRecorder) EncryptMerkleLeaf(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "EncryptMerkleLeaf", arg0, arg1, arg2, arg3)
+}
+
+func (_m *MockCrypto) DecryptMerkleLeaf(encryptedLeaf EncryptedMerkleLeaf, privKey TLFPrivateKey, nonce *[24]byte, ePubKey TLFEphemeralPublicKey) (*MerkleLeaf, error) {
+	ret := _m.ctrl.Call(_m, "DecryptMerkleLeaf", encryptedLeaf, privKey, nonce, ePubKey)
+	ret0, _ := ret[0].(*MerkleLeaf)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockCryptoRecorder) DecryptMerkleLeaf(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DecryptMerkleLeaf", arg0, arg1, arg2, arg3)
 }
 
 func (_m *MockCrypto) Shutdown() {

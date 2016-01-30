@@ -240,6 +240,11 @@
 			"revisionTime": "2015-12-18T17:01:58-08:00"
 		},
 		{
+			"path": "github.com/keybase/go-merkle-tree",
+			"revision": "94090372642a4b6fcac21e6f1e71f4050c19d908",
+			"revisionTime": "2016-02-04T14:18:14-08:00"
+		},
+		{
 			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-triplesec",
 			"path": "github.com/keybase/go-triplesec",
 			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
