@@ -18,10 +18,10 @@ type Version struct {
 	Minor   int  `codec:"minor"`
 }
 
-// EncryptionHeader is the first packet in an encrypted message.
+// encryptionHeader is the first packet in an encrypted message.
 // It contains the encryptions of the session keys, and various
 // message metadata.
-type EncryptionHeader struct {
+type encryptionHeader struct {
 	_struct         bool           `codec:",toarray"`
 	FormatName      string         `codec:"format_name"`
 	Version         Version        `codec:"vers"`
@@ -29,19 +29,19 @@ type EncryptionHeader struct {
 	Ephemeral       []byte         `codec:"ephemeral"`
 	SenderSecretbox []byte         `codec:"sendersecretbox"`
 	Receivers       []receiverKeys `codec:"rcvrs"`
-	seqno           PacketSeqno
+	seqno           packetSeqno
 }
 
-// EncryptionBlock contains a block of encrypted data. It contains
+// encryptionBlock contains a block of encrypted data. It contains
 // the ciphertext, and any necessary authentication Tags.
-type EncryptionBlock struct {
+type encryptionBlock struct {
 	_struct            bool     `codec:",toarray"`
 	HashAuthenticators [][]byte `codec:"authenticators"`
 	PayloadCiphertext  []byte   `codec:"ctext"`
-	seqno              PacketSeqno
+	seqno              packetSeqno
 }
 
-func (h *EncryptionHeader) validate() error {
+func (h *encryptionHeader) validate() error {
 	if h.Type != MessageTypeEncryption {
 		return ErrWrongMessageType{MessageTypeEncryption, h.Type}
 	}
@@ -65,7 +65,7 @@ func newSignatureHeader(sender SigningPublicKey, msgType MessageType) (*Signatur
 	if sender == nil {
 		return nil, ErrInvalidParameter{message: "no public signing key provided"}
 	}
-	nonce, err := NewSigNonce()
+	nonce, err := newSigNonce()
 	if err != nil {
 		return nil, err
 	}
@@ -99,10 +99,10 @@ func (h *SignatureHeader) validate(msgType MessageType) error {
 	return nil
 }
 
-// SignatureBlock contains a block of signed data.
-type SignatureBlock struct {
+// signatureBlock contains a block of signed data.
+type signatureBlock struct {
 	_struct      bool   `codec:",toarray"`
 	Signature    []byte `codec:"signature"`
 	PayloadChunk []byte `codec:"payload_chunk"`
-	seqno        PacketSeqno
+	seqno        packetSeqno
 }

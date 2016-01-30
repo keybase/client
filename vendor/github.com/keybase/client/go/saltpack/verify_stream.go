@@ -14,7 +14,7 @@ type verifyStream struct {
 	header     *SignatureHeader
 	headerHash []byte
 	publicKey  SigningPublicKey
-	seqno      PacketSeqno
+	seqno      packetSeqno
 }
 
 func newVerifyStream(r io.Reader, msgType MessageType) (*verifyStream, error) {
@@ -88,7 +88,7 @@ func (v *verifyStream) readHeader(msgType MessageType) error {
 }
 
 func (v *verifyStream) readBlock(p []byte) (int, bool, error) {
-	var block SignatureBlock
+	var block signatureBlock
 	_, err := v.stream.Read(&block)
 	if err != nil {
 		return 0, false, err
@@ -110,7 +110,7 @@ func (v *verifyStream) readBlock(p []byte) (int, bool, error) {
 	return n, false, err
 }
 
-func (v *verifyStream) processBlock(block *SignatureBlock) ([]byte, error) {
+func (v *verifyStream) processBlock(block *signatureBlock) ([]byte, error) {
 	if err := v.publicKey.Verify(attachedSignatureInput(v.headerHash, block), block.Signature); err != nil {
 		return nil, err
 	}

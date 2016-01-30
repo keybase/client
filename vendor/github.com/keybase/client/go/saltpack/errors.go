@@ -64,11 +64,11 @@ var (
 // ErrBadTag is generated when a payload hash doesn't match the hash
 // authenticator. It specifies which Packet sequence number the bad packet was
 // in.
-type ErrBadTag PacketSeqno
+type ErrBadTag packetSeqno
 
 // ErrBadCiphertext is generated when decryption fails due to improper authentication. It specifies
 // which Packet sequence number the bad packet was in.
-type ErrBadCiphertext PacketSeqno
+type ErrBadCiphertext packetSeqno
 
 // ErrRepeatedKey is produced during encryption if a key is repeated; keys must be
 // unique.

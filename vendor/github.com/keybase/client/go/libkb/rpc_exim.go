@@ -7,7 +7,6 @@ package libkb
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"sort"
 
@@ -35,9 +34,10 @@ func (l LinkCheckResult) ExportToIdentifyRow(i int) keybase1.IdentifyRow {
 
 func (l LinkCheckResult) Export() keybase1.LinkCheckResult {
 	ret := keybase1.LinkCheckResult{
-		ProofId:     l.position,
-		ProofResult: ExportProofError(l.err),
-		TorWarning:  l.torWarning,
+		ProofId:       l.position,
+		ProofResult:   ExportProofError(l.err),
+		SnoozedResult: ExportProofError(l.snoozedErr),
+		TorWarning:    l.torWarning,
 	}
 	if l.cached != nil {
 		ret.Cached = l.cached.Export()
@@ -56,9 +56,9 @@ func (l LinkCheckResult) Export() keybase1.LinkCheckResult {
 
 func (cr CheckResult) Export() *keybase1.CheckResult {
 	return &keybase1.CheckResult{
-		ProofResult:   ExportProofError(cr.Status),
-		Time:          keybase1.ToTime(cr.Time),
-		DisplayMarkup: cr.ToDisplayString(),
+		ProofResult: ExportProofError(cr.Status),
+		Time:        keybase1.ToTime(cr.Time),
+		Freshness:   cr.Freshness(),
 	}
 }
 
@@ -193,7 +193,7 @@ func ImportStatusAsError(s *keybase1.Status) error {
 	case SCOk:
 		return nil
 	case SCGeneric:
-		return fmt.Errorf(s.Desc)
+		return errors.New(s.Desc)
 	case SCBadLoginPassword:
 		return PassphraseError{s.Desc}
 	case SCKeyBadGen:

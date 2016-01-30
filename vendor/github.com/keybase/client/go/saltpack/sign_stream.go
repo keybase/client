@@ -15,7 +15,7 @@ type signAttachedStream struct {
 	encoder    encoder
 	buffer     bytes.Buffer
 	block      []byte
-	seqno      PacketSeqno
+	seqno      packetSeqno
 	secretKey  SigningSecretKey
 }
 
@@ -42,7 +42,7 @@ func newSignAttachedStream(w io.Writer, signer SigningSecretKey) (*signAttachedS
 	stream := &signAttachedStream{
 		headerHash: headerHash,
 		encoder:    newEncoder(w),
-		block:      make([]byte, SignatureBlockSize),
+		block:      make([]byte, signatureBlockSize),
 		secretKey:  signer,
 	}
 
@@ -61,7 +61,7 @@ func (s *signAttachedStream) Write(p []byte) (int, error) {
 		return 0, err
 	}
 
-	for s.buffer.Len() >= SignatureBlockSize {
+	for s.buffer.Len() >= signatureBlockSize {
 		if err := s.signBlock(); err != nil {
 			return 0, err
 		}
@@ -88,7 +88,7 @@ func (s *signAttachedStream) signBlock() error {
 }
 
 func (s *signAttachedStream) signBytes(b []byte) error {
-	block := SignatureBlock{
+	block := signatureBlock{
 		PayloadChunk: b,
 		seqno:        s.seqno,
 	}
@@ -110,7 +110,7 @@ func (s *signAttachedStream) writeFooter() error {
 	return s.signBytes([]byte{})
 }
 
-func (s *signAttachedStream) computeSig(block *SignatureBlock) ([]byte, error) {
+func (s *signAttachedStream) computeSig(block *signatureBlock) ([]byte, error) {
 	return s.secretKey.Sign(attachedSignatureInput(s.headerHash, block))
 }
 

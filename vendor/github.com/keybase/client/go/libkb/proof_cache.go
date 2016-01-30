@@ -30,31 +30,33 @@ func (cr CheckResult) Pack() *jsonw.Wrapper {
 	return p
 }
 
-func (cr CheckResult) ToDisplayString() string {
-	return "[cached " + FormatTime(cr.Time) + "]"
-}
-
-func (cr CheckResult) IsFresh() bool {
-	// XXX  Might also want two separate timeouts for no error and hard failures.
-
-	var interval time.Duration
-	if cr.Status == nil {
-		interval = cr.G().Env.GetProofCacheLongDur()
-	} else if ProofErrorIsSoft(cr.Status) {
+func (cr CheckResult) Freshness() keybase1.CheckResultFreshness {
+	now := cr.G().GetClock().Now()
+	age := now.Sub(cr.Time)
+	switch {
+	case cr.Status == nil:
+		switch {
+		case age < cr.G().Env.GetProofCacheMediumDur():
+			return keybase1.CheckResultFreshness_FRESH
+		case age < cr.G().Env.GetProofCacheLongDur():
+			return keybase1.CheckResultFreshness_AGED
+		}
+	case !ProofErrorIsSoft(cr.Status):
+		if age < cr.G().Env.GetProofCacheShortDur() {
+			return keybase1.CheckResultFreshness_FRESH
+		}
+	default:
 		// don't use cache results for "soft" errors (500s, timeouts)
 		// see issue #140
-		return false
-	} else {
-		interval = cr.G().Env.GetProofCacheMediumDur()
 	}
-	return (time.Since(cr.Time) < interval)
+	return keybase1.CheckResultFreshness_RANCID
 }
 
 func NewNowCheckResult(g *GlobalContext, pe ProofError) *CheckResult {
 	return &CheckResult{
 		Contextified: NewContextified(g),
 		Status:       pe,
-		Time:         time.Now(),
+		Time:         g.GetClock().Now(),
 	}
 }
 
@@ -124,7 +126,7 @@ func (pc *ProofCache) memGet(sid keybase1.SigID) *CheckResult {
 		pc.G().Log.Errorf("Bad type assertion in ProofCache.Get")
 		return nil
 	}
-	if !cr.IsFresh() {
+	if cr.Freshness() == keybase1.CheckResultFreshness_RANCID {
 		pc.lru.Remove(sid)
 		return nil
 	}
@@ -182,7 +184,7 @@ func (pc *ProofCache) dbGet(sid keybase1.SigID) (cr *CheckResult) {
 		return nil
 	}
 
-	if !cr.IsFresh() {
+	if cr.Freshness() == keybase1.CheckResultFreshness_RANCID {
 		if err := pc.G().LocalDb.Delete(dbkey); err != nil {
 			pc.G().Log.Errorf("Delete error: %s", err)
 		}
@@ -206,7 +208,7 @@ func (pc *ProofCache) Put(sid keybase1.SigID, pe ProofError) error {
 	cr := CheckResult{
 		Contextified: pc.Contextified,
 		Status:       pe,
-		Time:         time.Now(),
+		Time:         pc.G().Clock.Now(),
 	}
 	pc.memPut(sid, cr)
 	return pc.dbPut(sid, cr)

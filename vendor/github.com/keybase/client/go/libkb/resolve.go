@@ -11,12 +11,13 @@ import (
 )
 
 type ResolveResult struct {
-	uid        keybase1.UID
-	body       *jsonw.Wrapper
-	err        error
-	kbUsername string
-	cachedAt   time.Time
-	mutable    bool
+	uid                keybase1.UID
+	body               *jsonw.Wrapper
+	err                error
+	queriedKbUsername  string
+	resolvedKbUsername string
+	cachedAt           time.Time
+	mutable            bool
 }
 
 const (
@@ -28,6 +29,16 @@ const (
 
 func (res *ResolveResult) GetUID() keybase1.UID {
 	return res.uid
+}
+
+func (res *ResolveResult) GetUsername() string {
+	return res.resolvedKbUsername
+}
+func (res *ResolveResult) GetNormalizedUsername() NormalizedUsername {
+	return NewNormalizedUsername(res.GetUsername())
+}
+func (res *ResolveResult) GetNormalizedQueriedUsername() NormalizedUsername {
+	return NewNormalizedUsername(res.queriedKbUsername)
 }
 
 func (res *ResolveResult) GetError() error {
@@ -106,7 +117,7 @@ func (r *Resolver) resolveURLViaServerLookup(au AssertionURL, input string, with
 	var l int
 
 	if au.IsKeybase() {
-		res.kbUsername = au.GetValue()
+		res.queriedKbUsername = au.GetValue()
 	}
 
 	if key, val, res.err = au.ToLookup(); res.err != nil {
@@ -146,6 +157,9 @@ func (r *Resolver) resolveURLViaServerLookup(au AssertionURL, input string, with
 	} else {
 		res.body = them.AtIndex(0)
 		res.uid, res.err = GetUID(res.body.AtKey("id"))
+		if res.err == nil {
+			res.resolvedKbUsername, res.err = res.body.AtPath("basics.username").GetString()
+		}
 	}
 
 	return

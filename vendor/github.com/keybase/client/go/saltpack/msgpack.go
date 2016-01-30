@@ -29,14 +29,14 @@ func decodeFromBytes(p interface{}, b []byte) error {
 
 type msgpackStream struct {
 	decoder *codec.Decoder
-	seqno   PacketSeqno
+	seqno   packetSeqno
 }
 
 func newMsgpackStream(r io.Reader) *msgpackStream {
 	return &msgpackStream{decoder: codec.NewDecoder(r, codecHandle())}
 }
 
-func (r *msgpackStream) Read(i interface{}) (ret PacketSeqno, err error) {
+func (r *msgpackStream) Read(i interface{}) (ret packetSeqno, err error) {
 	if err = r.decoder.Decode(i); err != nil {
 		return ret, err
 	}

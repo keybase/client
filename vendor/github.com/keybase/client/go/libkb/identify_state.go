@@ -3,7 +3,9 @@
 
 package libkb
 
-import keybase1 "github.com/keybase/client/go/protocol"
+import (
+	keybase1 "github.com/keybase/client/go/protocol"
+)
 
 type IdentifyState struct {
 	res   *IdentifyOutcome
@@ -103,8 +105,9 @@ func (s *IdentifyState) computeKeyDiffs(dhook func(keybase1.IdentifyKey)) {
 			TrackDiff: ExportTrackDiff(diff),
 		}
 		k.KID = kid
-		fp := s.u.GetKeyFamily().kid2pgp[kid]
-		k.PGPFingerprint = fp[:]
+		if fp, ok := s.u.GetKeyFamily().kid2pgp[kid]; ok {
+			k.PGPFingerprint = fp[:]
+		}
 		dhook(k)
 	}
 

@@ -242,6 +242,7 @@ type API interface {
 	PostJSON(APIArg) (*APIRes, error)
 	PostResp(APIArg) (*http.Response, error)
 	PostDecode(APIArg, APIResponseWrapper) error
+	PostRaw(APIArg, string, io.Reader) (*APIRes, error)
 }
 
 type ExternalAPI interface {

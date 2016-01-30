@@ -103,7 +103,7 @@ func (ds *decryptStream) readHeader(rawReader io.Reader) error {
 	headerHash := sha512.Sum512(headerBytes)
 	ds.headerHash = headerHash[:]
 	// Parse the header bytes.
-	var header EncryptionHeader
+	var header encryptionHeader
 	err = decodeFromBytes(&header, headerBytes)
 	if err != nil {
 		return err
@@ -118,8 +118,8 @@ func (ds *decryptStream) readHeader(rawReader io.Reader) error {
 }
 
 func (ds *decryptStream) readBlock(b []byte) (n int, lastBlock bool, err error) {
-	var eb EncryptionBlock
-	var seqno PacketSeqno
+	var eb encryptionBlock
+	var seqno packetSeqno
 	seqno, err = ds.mps.Read(&eb)
 	if err != nil {
 		return 0, false, err
@@ -142,7 +142,7 @@ func (ds *decryptStream) readBlock(b []byte) (n int, lastBlock bool, err error) 
 	return n, false, err
 }
 
-func (ds *decryptStream) tryVisibleReceivers(hdr *EncryptionHeader, ephemeralKey BoxPublicKey) (BoxSecretKey, *SymmetricKey, int, error) {
+func (ds *decryptStream) tryVisibleReceivers(hdr *encryptionHeader, ephemeralKey BoxPublicKey) (BoxSecretKey, *SymmetricKey, int, error) {
 	var kids [][]byte
 	tab := make(map[int]int)
 	for i, r := range hdr.Receivers {
@@ -176,7 +176,7 @@ func (ds *decryptStream) tryVisibleReceivers(hdr *EncryptionHeader, ephemeralKey
 	return sk, payloadKey, orig, err
 }
 
-func (ds *decryptStream) tryHiddenReceivers(hdr *EncryptionHeader, ephemeralKey BoxPublicKey) (BoxSecretKey, *SymmetricKey, int, error) {
+func (ds *decryptStream) tryHiddenReceivers(hdr *encryptionHeader, ephemeralKey BoxPublicKey) (BoxSecretKey, *SymmetricKey, int, error) {
 	secretKeys := ds.ring.GetAllSecretKeys()
 
 	for _, r := range hdr.Receivers {
@@ -207,7 +207,7 @@ func (ds *decryptStream) tryHiddenReceivers(hdr *EncryptionHeader, ephemeralKey 
 	return nil, nil, -1, nil
 }
 
-func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
+func (ds *decryptStream) processEncryptionHeader(hdr *encryptionHeader) error {
 	if err := hdr.validate(); err != nil {
 		return err
 	}
@@ -267,7 +267,7 @@ func (ds *decryptStream) processEncryptionHeader(hdr *EncryptionHeader) error {
 	return nil
 }
 
-func (ds *decryptStream) processEncryptionBlock(bl *EncryptionBlock) ([]byte, error) {
+func (ds *decryptStream) processEncryptionBlock(bl *encryptionBlock) ([]byte, error) {
 
 	blockNum := encryptionBlockNumber(bl.seqno - 1)
 

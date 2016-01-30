@@ -11,7 +11,7 @@ import (
 // Armor62Params are the armoring parameters we recommend for use with
 // a generic armorer.  It specifies the spaces between words, the spacing
 // between lines, some simple punctuation, and an encoding alphabet.
-var Armor62Params = ArmorParams{
+var Armor62Params = armorParams{
 	BytesPerWord: 15,
 	WordsPerLine: 200,
 	Punctuation:  byte('.'),
@@ -29,7 +29,7 @@ var Armor62Params = ArmorParams{
 func NewArmor62EncoderStream(encoded io.Writer, typ MessageType, brand string) (io.WriteCloser, error) {
 	hdr := makeFrame(headerMarker, typ, brand)
 	ftr := makeFrame(footerMarker, typ, brand)
-	return NewArmorEncoderStream(encoded, hdr, ftr, Armor62Params)
+	return newArmorEncoderStream(encoded, hdr, ftr, Armor62Params)
 }
 
 // Armor62Seal takes an input plaintext and returns and output armor encoding
@@ -38,20 +38,20 @@ func NewArmor62EncoderStream(encoded io.Writer, typ MessageType, brand string) (
 func Armor62Seal(plaintext []byte, typ MessageType, brand string) (string, error) {
 	hdr := makeFrame(headerMarker, typ, brand)
 	ftr := makeFrame(footerMarker, typ, brand)
-	return ArmorSeal(plaintext, hdr, ftr, Armor62Params)
+	return armorSeal(plaintext, hdr, ftr, Armor62Params)
 }
 
 // NewArmor62DecoderStream is used to decode input base62-armoring format. It returns
 // a stream you can read from, and also a Frame you can query to see what the open/close
 // frame markers were.
 func NewArmor62DecoderStream(r io.Reader) (io.Reader, Frame, error) {
-	return NewArmorDecoderStream(r, Armor62Params)
+	return newArmorDecoderStream(r, Armor62Params)
 }
 
 // Armor62Open runs armor stream decoding, but on a string, and it outputs
 // a string.
 func Armor62Open(msg string) (body []byte, header string, footer string, err error) {
-	return ArmorOpen(msg, Armor62Params)
+	return armorOpen(msg, Armor62Params)
 }
 
 // CheckArmor62Frame checks that the frame matches our standard

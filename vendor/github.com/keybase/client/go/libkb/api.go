@@ -483,6 +483,18 @@ func (a *InternalAPIEngine) PostDecode(arg APIArg, v APIResponseWrapper) error {
 	return a.checkAppStatus(arg, v.GetAppStatus())
 }
 
+func (a *InternalAPIEngine) PostRaw(arg APIArg, ctype string, r io.Reader) (*APIRes, error) {
+	url := a.getURL(arg)
+	req, err := http.NewRequest("POST", url.String(), r)
+	if len(ctype) > 0 {
+		req.Header.Set("Content-Type", ctype)
+	}
+	if err != nil {
+		return nil, err
+	}
+	return a.DoRequest(arg, req)
+}
+
 func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, error) {
 	resp, jw, err := doRequestShared(a, arg, req, true)
 	if err != nil {

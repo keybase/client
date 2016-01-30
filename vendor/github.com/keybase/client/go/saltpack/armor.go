@@ -12,8 +12,8 @@ import (
 	"strings"
 )
 
-// ArmorParams specify armor formatting, encoding and punctuation.
-type ArmorParams struct {
+// armorParams specify armor formatting, encoding and punctuation.
+type armorParams struct {
 	// BytesPerWord is the number of characters in each "word" of output.
 	// We'll put spaces between words.
 	BytesPerWord int
@@ -33,7 +33,7 @@ type armorEncoderStream struct {
 	encoded io.Writer
 	encoder io.WriteCloser
 	nWords  int
-	params  ArmorParams
+	params  armorParams
 }
 
 func (s *armorEncoderStream) Write(b []byte) (n int, err error) {
@@ -89,7 +89,7 @@ func (s *armorEncoderStream) Close() (err error) {
 	return nil
 }
 
-// NewArmorEncoderStream makes a new Armor encoding stream, using the given encoding
+// newArmorEncoderStream makes a new Armor encoding stream, using the given encoding
 // Pass it an `encoded` stream writer to write the
 // encoded stream to.  Also pass a header, and a footer string.  It will
 // return an io.WriteCloser on success, that you can write raw (unencoded) data to.
@@ -97,7 +97,7 @@ func (s *armorEncoderStream) Close() (err error) {
 //
 // To make the output look pretty, a space is inserted every 15 characters of output,
 // and a newline is inserted every 200 words.
-func NewArmorEncoderStream(encoded io.Writer, header string, footer string, params ArmorParams) (io.WriteCloser, error) {
+func newArmorEncoderStream(encoded io.Writer, header string, footer string, params armorParams) (io.WriteCloser, error) {
 	ret := &armorEncoderStream{
 		buf:     new(bytes.Buffer),
 		encoded: encoded,
@@ -111,12 +111,12 @@ func NewArmorEncoderStream(encoded io.Writer, header string, footer string, para
 	return ret, nil
 }
 
-// ArmorSeal takes an input plaintext and returns and output armor encoding
+// armorSeal takes an input plaintext and returns and output armor encoding
 // as a string, or an error if a problem was encountered. Also provide a header
 // and a footer to frame the message.
-func ArmorSeal(plaintext []byte, header string, footer string, params ArmorParams) (string, error) {
+func armorSeal(plaintext []byte, header string, footer string, params armorParams) (string, error) {
 	var buf bytes.Buffer
-	enc, err := NewArmorEncoderStream(&buf, header, footer, params)
+	enc, err := newArmorEncoderStream(&buf, header, footer, params)
 	if err != nil {
 		return "", err
 	}
@@ -150,8 +150,8 @@ type framedDecoderStream struct {
 	header []byte
 	footer []byte
 	state  fdsState
-	params ArmorParams
-	r      *PunctuatedReader
+	params armorParams
+	r      *punctuatedReader
 }
 
 // Read from a framedDeecoderStream. The frame is the "BEGIN FOO." block
@@ -243,21 +243,21 @@ func (s *framedDecoderStream) toASCII(buf []byte) (string, error) {
 func (s *framedDecoderStream) GetFooter() (string, error) { return s.toASCII(s.footer) }
 func (s *framedDecoderStream) GetHeader() (string, error) { return s.toASCII(s.header) }
 
-// NewArmorDecoderStream is used to decode armored encoding. It returns a stream you
+// newArmorDecoderStream is used to decode armored encoding. It returns a stream you
 // can read from, and also a Frame you can query to see what the open/close
 // frame markers were.
-func NewArmorDecoderStream(r io.Reader, params ArmorParams) (io.Reader, Frame, error) {
-	fds := &framedDecoderStream{r: NewPunctuatedReader(r, params.Punctuation), params: params}
+func newArmorDecoderStream(r io.Reader, params armorParams) (io.Reader, Frame, error) {
+	fds := &framedDecoderStream{r: newPunctuatedReader(r, params.Punctuation), params: params}
 	ret := basex.NewDecoder(params.Encoding, fds)
 	return ret, fds, nil
 }
 
-// ArmorOpen runs armor stream decoding, but on a string, and it outputs a string.
-func ArmorOpen(msg string, params ArmorParams) (body []byte, header string, footer string, err error) {
+// armorOpen runs armor stream decoding, but on a string, and it outputs a string.
+func armorOpen(msg string, params armorParams) (body []byte, header string, footer string, err error) {
 	var dec io.Reader
 	var frame Frame
 	buf := bytes.NewBufferString(msg)
-	dec, frame, err = NewArmorDecoderStream(buf, params)
+	dec, frame, err = newArmorDecoderStream(buf, params)
 	if err != nil {
 		return
 	}

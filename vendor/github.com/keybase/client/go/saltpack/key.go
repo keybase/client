@@ -33,9 +33,9 @@ func symmetricKeyFromSlice(slice []byte) (*SymmetricKey, error) {
 	return &result, nil
 }
 
-// KIDExtractor key types can output a key ID corresponding to the
+// kidExtractor key types can output a key ID corresponding to the
 // key.
-type KIDExtractor interface {
+type kidExtractor interface {
 	// ToKID outputs the "key ID" that corresponds to this key.
 	// You can do whatever you'd like here, but probably it makes sense just
 	// to output the public key as is.
@@ -44,7 +44,7 @@ type KIDExtractor interface {
 
 // BoxPublicKey is an generic interface to NaCl's public key Box function.
 type BoxPublicKey interface {
-	KIDExtractor
+	kidExtractor
 
 	// ToRawBoxKeyPointer returns this public key as a *[32]byte,
 	// for use with nacl.box.Seal
@@ -95,7 +95,7 @@ type SigningSecretKey interface {
 // SigningPublicKey is a public NaCl key that can verify
 // signatures.
 type SigningPublicKey interface {
-	KIDExtractor
+	kidExtractor
 
 	// Verify verifies that signature is a valid signature of message for
 	// this public key.
@@ -132,17 +132,12 @@ type SigKeyring interface {
 	LookupSigningPublicKey(kid []byte) SigningPublicKey
 }
 
-// SecretKeyEqual returns true if the two secret keys are equal.
-func SecretKeyEqual(sk1, sk2 BoxSecretKey) bool {
-	return PublicKeyEqual(sk1.GetPublicKey(), sk2.GetPublicKey())
+// publicKeyEqual returns true if the two public keys are equal.
+func publicKeyEqual(pk1, pk2 BoxPublicKey) bool {
+	return kidEqual(pk1, pk2)
 }
 
-// PublicKeyEqual returns true if the two public keys are equal.
-func PublicKeyEqual(pk1, pk2 BoxPublicKey) bool {
-	return KIDEqual(pk1, pk2)
-}
-
-// KIDEqual return true if the KIDs for two keys are equal.
-func KIDEqual(k1, k2 KIDExtractor) bool {
+// kidEqual return true if the KIDs for two keys are equal.
+func kidEqual(k1, k2 kidExtractor) bool {
 	return hmac.Equal(k1.ToKID(), k2.ToKID())
 }

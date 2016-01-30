@@ -742,13 +742,13 @@ func (mc *MerkleClient) LastRootToSigJSON() (ret *jsonw.Wrapper, err error) {
 	return
 }
 
-func (mul *MerkleUserLeaf) MatchUser(u *User, uid keybase1.UID, un string) (err error) {
+func (mul *MerkleUserLeaf) MatchUser(u *User, uid keybase1.UID, nun NormalizedUsername) (err error) {
 	if mul.username != u.GetName() {
 		err = MerkleClashError{fmt.Sprintf("vs loaded object: username %s != %s", mul.username, u.GetName())}
 	} else if mul.uid.NotEqual(u.GetUID()) {
 		err = MerkleClientError{fmt.Sprintf("vs loaded object: UID %s != %s", mul.uid, u.GetUID())}
-	} else if len(un) > 0 && mul.username != un {
-		err = MerkleClashError{fmt.Sprintf("vs given arg: username %s != %s", mul.username, un)}
+	} else if !nun.IsNil() && !NewNormalizedUsername(mul.username).Eq(nun) {
+		err = MerkleClashError{fmt.Sprintf("vs given arg: username %s != %s", mul.username, nun)}
 	} else if uid.NotEqual(mul.uid) {
 		err = MerkleClashError{fmt.Sprintf("vs given arg: UID %s != %s", uid, mul.uid)}
 	}
