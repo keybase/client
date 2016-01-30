@@ -3211,6 +3211,14 @@ func (fbo *folderBranchOps) maybeWaitOnDeferredWritesLocked(
 		c := fbo.deferredBlockingChan
 		doLock = true
 		fbo.blockLock.Unlock(lState)
+
+		select {
+		// If we can't send on the channel, that means a sync is
+		// already in progress
+		case fbo.forceSyncChan <- struct{}{}:
+		default:
+		}
+
 		// Check again periodically, in case some other TLF is hogging
 		// all the dirty bytes.
 		t := time.NewTimer(100 * time.Millisecond)
