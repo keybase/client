@@ -5359,7 +5359,7 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 					// sync the rest of the dirty files.
 					p := fbo.nodeCache.PathFromNode(node)
 					fbo.log.CWarningf(ctx, "Couldn't sync dirty file with "+
-						"ptr=%v, nodeID=%v, and path=%v: %v",
+						"ptr=%v, nodeID=%p, and path=%v: %v",
 						ptr, node.GetID(), p, err)
 				}
 			}
