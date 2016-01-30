@@ -16,10 +16,12 @@ var version = flag.Bool("version", false, "Print version")
 const usageFormatStr = `Usage:
   kbfs -version
 
+To run against remote KBFS servers:
   kbfs [-debug] [-cpuprofile=path/to/dir] [-memprofile=path/to/dir]
     [-bserver=%s] [-mdserver=%s]
     <command> [<args>]
 
+To run in a local testing environment:
   kbfs [-debug] [-cpuprofile=path/to/dir] [-memprofile=path/to/dir]
     [-server-in-memory|-server-root=path/to/dir] [-localuser=<user>]
     <command> [<args>]
