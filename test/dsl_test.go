@@ -17,7 +17,6 @@ import (
 )
 
 type m map[string]string
-type username string
 
 const (
 	alice = username("alice")
@@ -79,17 +78,6 @@ func ntimesString(n int, s string) string {
 		bs.WriteString(s)
 	}
 	return bs.String()
-}
-
-func concatUserNamesToStrings2(a, b []username) []string {
-	userSlice := make([]string, 0, len(a)+len(b))
-	for _, u := range a {
-		userSlice = append(userSlice, string(u))
-	}
-	for _, u := range b {
-		userSlice = append(userSlice, string(u))
-	}
-	return userSlice
 }
 
 func setBlockSizes(t *testing.T, config libkbfs.Config, blockSize, blockChangeSize int64) {

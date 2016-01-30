@@ -12,6 +12,8 @@ type User interface{}
 // Node is an implementation-defined object which acts as a handle to a particular filesystem node.
 type Node interface{}
 
+type username string
+
 // Engine is the interface to the filesystem to be used by the test harness.
 // It may wrap libkbfs directly or it may wrap other users of libkbfs (e.g., libfuse).
 type Engine interface {

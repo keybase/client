@@ -38,6 +38,17 @@ func (k *LibKBFS) Init() {
 		make(map[libkbfs.Config]map[libkbfs.NodeID]chan<- struct{})
 }
 
+func concatUserNamesToStrings2(a, b []username) []string {
+	userSlice := make([]string, 0, len(a)+len(b))
+	for _, u := range a {
+		userSlice = append(userSlice, string(u))
+	}
+	for _, u := range b {
+		userSlice = append(userSlice, string(u))
+	}
+	return userSlice
+}
+
 // InitTest implements the Engine interface.
 func (k *LibKBFS) InitTest(t *testing.T, blockSize int64, blockChangeSize int64,
 	writers []username, readers []username) map[string]User {
