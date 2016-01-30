@@ -41,9 +41,12 @@ func makeFrame(which headerOrFooterMarker, typ MessageType, brand string) string
 	return strings.Join(words, " ")
 }
 
+// MakeArmorHeader makes the armor header for the message type for the given "brand"
 func MakeArmorHeader(typ MessageType, brand string) string {
 	return makeFrame(headerMarker, typ, brand)
 }
+
+// MakeArmorFooter makes the armor footer for the message type for the given "brand"
 func MakeArmorFooter(typ MessageType, brand string) string {
 	return makeFrame(footerMarker, typ, brand)
 }

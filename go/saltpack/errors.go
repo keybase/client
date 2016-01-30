@@ -59,6 +59,9 @@ var (
 
 	// ErrBadSignature is returned when verification of a block fails.
 	ErrBadSignature = errors.New("invalid signature")
+
+	// ErrDecryptionFailed is returned when a decryption fails
+	ErrDecryptionFailed = errors.New("decryption failed")
 )
 
 // ErrBadTag is generated when a payload hash doesn't match the hash
