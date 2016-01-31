@@ -48,7 +48,7 @@ func (r *keyring) insert(k BoxSecretKey) {
 }
 
 func (r *keyring) insertSigningKey(k SigningSecretKey) {
-	r.sigKeys[hex.EncodeToString(k.PublicKey().ToKID())] = k
+	r.sigKeys[hex.EncodeToString(k.GetPublicKey().ToKID())] = k
 }
 
 func (r *keyring) LookupBoxPublicKey(kid []byte) BoxPublicKey {
@@ -65,10 +65,10 @@ func (r *keyring) LookupSigningPublicKey(kid []byte) SigningPublicKey {
 	if !ok {
 		return nil
 	}
-	return key.PublicKey()
+	return key.GetPublicKey()
 }
 
-func (r *keyring) ImportEphemeralKey(kid []byte) BoxPublicKey {
+func (r *keyring) ImportBoxEphemeralKey(kid []byte) BoxPublicKey {
 	ret := &boxPublicKey{}
 	if len(kid) != len(ret.key) {
 		return nil
@@ -77,7 +77,7 @@ func (r *keyring) ImportEphemeralKey(kid []byte) BoxPublicKey {
 	return ret
 }
 
-func (r *keyring) GetAllSecretKeys() (ret []BoxSecretKey) {
+func (r *keyring) GetAllBoxSecretKeys() (ret []BoxSecretKey) {
 	if r.iterable {
 		for _, v := range r.keys {
 			ret = append(ret, v)
@@ -334,10 +334,10 @@ func testRealEncryptor(t *testing.T, sz int) {
 	if mki.ReceiverIsAnon {
 		t.Fatal("receiver shouldn't be anon")
 	}
-	if !publicKeyEqual(sndr.GetPublicKey(), mki.SenderKey) {
+	if !PublicKeyEqual(sndr.GetPublicKey(), mki.SenderKey) {
 		t.Fatal("got wrong sender key")
 	}
-	if !publicKeyEqual(receivers[0], mki.ReceiverKey.GetPublicKey()) {
+	if !PublicKeyEqual(receivers[0], mki.ReceiverKey.GetPublicKey()) {
 		t.Fatal("wrong receiver key")
 	}
 	if mki.NumAnonReceivers != 0 {
@@ -1071,7 +1071,7 @@ func TestAllAnonymous(t *testing.T) {
 	if !mki.ReceiverIsAnon {
 		t.Fatal("receiver should be anon")
 	}
-	if !publicKeyEqual(receivers[5], mki.ReceiverKey.GetPublicKey()) {
+	if !PublicKeyEqual(receivers[5], mki.ReceiverKey.GetPublicKey()) {
 		t.Fatal("wrong receiver key")
 	}
 	if mki.NumAnonReceivers != 8 {

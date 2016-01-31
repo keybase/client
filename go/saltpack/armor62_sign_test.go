@@ -24,8 +24,8 @@ func TestSignArmor62(t *testing.T) {
 		t.Fatal(err)
 	}
 	brandCheck(t, brand)
-	if !kidEqual(skey, key.PublicKey()) {
-		t.Errorf("signer key %x, expected %x", skey.ToKID(), key.PublicKey().ToKID())
+	if !kidEqual(skey, key.GetPublicKey()) {
+		t.Errorf("signer key %x, expected %x", skey.ToKID(), key.GetPublicKey().ToKID())
 	}
 	if !bytes.Equal(vmsg, msg) {
 		t.Errorf("verified msg '%x', expected '%x'", vmsg, msg)
@@ -48,7 +48,7 @@ func TestSignDetachedArmor62(t *testing.T) {
 		t.Fatal(err)
 	}
 	brandCheck(t, brand)
-	if !kidEqual(skey, key.PublicKey()) {
-		t.Errorf("signer key %x, expected %x", skey.ToKID(), key.PublicKey().ToKID())
+	if !kidEqual(skey, key.GetPublicKey()) {
+		t.Errorf("signer key %x, expected %x", skey.ToKID(), key.GetPublicKey().ToKID())
 	}
 }

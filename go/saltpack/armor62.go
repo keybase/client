@@ -67,7 +67,7 @@ func CheckArmor62Frame(frame Frame, typ MessageType) (brand string, err error) {
 	return CheckArmor62(hdr, ftr, typ)
 }
 
-// CheckArmor62Frame checks that the frame matches our standard
+// CheckArmor62 checks that the frame matches our standard
 // begin/end frame
 func CheckArmor62(hdr string, ftr string, typ MessageType) (brand string, err error) {
 	brand, err = parseFrame(hdr, typ, headerMarker)
