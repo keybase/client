@@ -41,6 +41,9 @@ func NewForceMounter(dir string) *DefaultMounter {
 
 // Mount uses default mount and blocks.
 func (m *DefaultMounter) Mount(fs dokan.FileSystem) error {
+	if m.force {
+		dokan.Unmount(m.dir)
+	}
 	h, err := m.mountHelper(fs)
 	if err != nil {
 		return err
