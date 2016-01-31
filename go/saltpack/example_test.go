@@ -14,23 +14,21 @@ func ExampleEncryptArmor62Seal() {
 	var err error
 
 	// Make a new Keyring, initialized to be empty
-	basicKeyring := basic.NewKeyring()
-	var keyring saltpack.Keyring
-	keyring = basicKeyring
+	keyring := basic.NewKeyring()
 
 	// The test message
 	msg := []byte("The Magic Words are Squeamish Ossifrage")
 
 	// Make a secret key for the sender
 	var sender saltpack.BoxSecretKey
-	sender, err = basicKeyring.GenerateBoxKey()
+	sender, err = keyring.GenerateBoxKey()
 	if err != nil {
 		return
 	}
 
 	// And one for the receiver
 	var receiver saltpack.BoxSecretKey
-	receiver, err = basicKeyring.GenerateBoxKey()
+	receiver, err = keyring.GenerateBoxKey()
 	if err != nil {
 		return
 	}
@@ -44,7 +42,7 @@ func ExampleEncryptArmor62Seal() {
 		return
 	}
 
-	// The decrypted message
+	// The decrypted message should match the input mesasge.
 	var msg2 []byte
 	_, msg2, _, err = saltpack.Dearmor62DecryptOpen(ciphertext, keyring)
 	if err != nil {
@@ -62,23 +60,21 @@ func ExampleNewEncryptArmor62Stream() {
 	var err error
 
 	// Make a new Keyring, initialized to be empty
-	basicKeyring := basic.NewKeyring()
-	var keyring saltpack.Keyring
-	keyring = basicKeyring
+	keyring := basic.NewKeyring()
 
 	// The test message
 	plaintext := "The Magic Words are Squeamish Ossifrage"
 
 	// Make a secret key for the sender
 	var sender saltpack.BoxSecretKey
-	sender, err = basicKeyring.GenerateBoxKey()
+	sender, err = keyring.GenerateBoxKey()
 	if err != nil {
 		return
 	}
 
 	// And one for the receiver
 	var receiver saltpack.BoxSecretKey
-	receiver, err = basicKeyring.GenerateBoxKey()
+	receiver, err = keyring.GenerateBoxKey()
 	if err != nil {
 		return
 	}
