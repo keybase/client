@@ -13,7 +13,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/libdokan"
 	"github.com/keybase/kbfs/libkbfs"
 )
@@ -26,11 +25,13 @@ var version = flag.Bool("version", false, "Print version")
 const usageFormatStr = `Usage:
   kbfsdokan -version
 
+To run against remote KBFS servers:
   kbfsdokan [-debug] [-cpuprofile=path/to/dir] [-memprofile=path/to/dir]
     [-bserver=%s] [-mdserver=%s]
     [-runtime-dir=path/to/dir] [-label=label] [-mount-type=force]
     /path/to/mountpoint
 
+To run in a local testing environment:
   kbfsdokan [-debug] [-cpuprofile=path/to/dir] [-memprofile=path/to/dir]
     [-server-in-memory|-server-root=path/to/dir] [-localuser=<user>]
     [-runtime-dir=path/to/dir] [-label=label] [-mount-type=force]
@@ -56,7 +57,7 @@ func start() *libdokan.Error {
 	flag.Parse()
 
 	if *version {
-		fmt.Printf("%s-%s\n", libkbfs.Version, libkbfs.Build)
+		fmt.Printf("%s\n", libkbfs.VersionString())
 		return nil
 	}
 
@@ -65,9 +66,9 @@ func start() *libdokan.Error {
 		return libdokan.InitError("no mount specified")
 	}
 
-	if kbfsParams.Debug {
-		log := logger.NewWithCallDepth("DOKAN", 1, os.Stderr)
-		log.Configure("", true, "")
+	if len(flag.Args()) > 1 {
+		fmt.Print(getUsageStr())
+		return libdokan.InitError("extra arguments specified (flags go before the first argument)")
 	}
 
 	mountpoint := flag.Arg(0)
