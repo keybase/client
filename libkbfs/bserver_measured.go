@@ -91,3 +91,8 @@ func (b BlockServerMeasured) ArchiveBlockReferences(ctx context.Context,
 func (b BlockServerMeasured) Shutdown() {
 	b.delegate.Shutdown()
 }
+
+// GetUserQuotaInfo implements the BlockServer interface for BlockServerMeasured
+func (b BlockServerMeasured) GetUserQuotaInfo(ctx context.Context) (info *UserQuotaInfo, err error) {
+	return b.delegate.GetUserQuotaInfo(ctx)
+}

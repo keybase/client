@@ -119,3 +119,9 @@ func (b *BlockServerLocal) getAll(tlf TlfID) (
 func (b *BlockServerLocal) Shutdown() {
 	b.s.shutdown()
 }
+
+// GetUserQuotaInfo implements the BlockServer interface for BlockServerLocal
+func (b *BlockServerLocal) GetUserQuotaInfo(ctx context.Context) (info *UserQuotaInfo, err error) {
+	// Return a dummy value here.
+	return &UserQuotaInfo{Limit: 0x7FFFFFFFFFFFFFFF}, nil
+}
