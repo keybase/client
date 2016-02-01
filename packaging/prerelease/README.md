@@ -44,8 +44,8 @@ BUILD_DIR=/Applications/Keybase.app/Contents/SharedSupport/bin ./build_keybase.s
 BUILD_DIR=/Applications/Keybase.app/Contents/SharedSupport/bin ./build_kbfs.sh
 ```
 
-To build the app and services from a local copy:
+To build the app and services from a local copy (for testing):
 
 ```
-NOPULL=1 NOSIGN=1 ./build_app.sh
+TEST=1 NOSIGN=1 ./build_app.sh
 ```

@@ -6,15 +6,20 @@ dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd "$dir"
 
 GOPATH=${GOPATH:-}
-nopull=${NOPULL:-} # Don't check and pull repos
-nobuild=${NOBUILD:-}
+nobuild=${NOBUILD:-} # Don't build go binaries
+istest=${TEST:-} # Test only
 bucket_name=${BUCKET_NAME:-"prerelease.keybase.io"}
-
 platform=${PLATFORM:-`uname`}
 
 if [ "$GOPATH" = "" ]; then
   echo "No GOPATH"
   exit 1
+fi
+
+# If testing, use test bucket
+if [ "$istest" = "1" ]; then
+  bucket_name="prerelease-test.keybase.io"
+  echo "Using test bucket: $bucket_name"
 fi
 
 build_dir_keybase="/tmp/build_keybase"
@@ -23,12 +28,9 @@ client_dir="$GOPATH/src/github.com/keybase/client"
 
 "$client_dir/packaging/slack/send.sh" "Starting build"
 
-if [ ! "$nopull" = "1" ]; then
+if [ ! "$istest" = "1" ]; then
   "$client_dir/packaging/check_status_and_pull.sh" "$client_dir"
   "$client_dir/packaging/check_status_and_pull.sh" "$GOPATH/src/github.com/keybase/kbfs"
- else
-  # Save to alternate testing bucket if we are building local
-  bucket_name="prerelease-testing"
 fi
 
 if [ ! "$nobuild" = "1" ]; then
@@ -49,6 +51,6 @@ else
 fi
 
 cd $dir
-SAVE_DIR=$save_dir BUCKET_NAME=$bucket_name ./s3_index.sh
+BUCKET_NAME=$bucket_name ./s3_index.sh
 
 "$client_dir/packaging/slack/send.sh" "Finished build. See https://s3.amazonaws.com/$bucket_name/index.html"
