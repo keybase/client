@@ -22,15 +22,11 @@ type fuseEngine struct {
 	fsEngine
 }
 
-func createEngine() Engine { return &fuseEngine{} }
-
-// Name returns the name of the Engine.
-func (*fuseEngine) Name() string {
-	return "fuse"
-}
-
-func (e *fuseEngine) Init() {
+func createEngine() Engine {
+	e := &fuseEngine{}
 	e.createUser = createUserFuse
+	e.name = "fuse"
+	return e
 }
 
 func createUserFuse(t *testing.T, ith int, config *libkbfs.ConfigLocal, tlf string) User {

@@ -21,15 +21,11 @@ type dokanEngine struct {
 	fsEngine
 }
 
-func createEngine() Engine { return &dokanEngine{} }
-
-func (e *dokanEngine) Init() {
+func createEngine() Engine {
+	e := &dokanEngine{}
 	e.createUser = createUserDokan
-}
-
-// Name returns the name of the Engine.
-func (*dokanEngine) Name() string {
-	return "dokan"
+	e.name = "dokan"
+	return e
 }
 
 func createUserDokan(t *testing.T, ith int, config *libkbfs.ConfigLocal, tlf string) User {

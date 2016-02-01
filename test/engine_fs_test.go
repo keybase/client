@@ -25,6 +25,7 @@ import (
 )
 
 type fsEngine struct {
+	name       string
 	t          *testing.T
 	createUser func(t *testing.T, ith int, config *libkbfs.ConfigLocal, tlf string) User
 }
@@ -38,6 +39,14 @@ type fsUser struct {
 	close                 func()
 	notificationGroupWait func()
 	tlf                   string
+}
+
+// Perform Init for the engine
+func (*fsEngine) Init() {}
+
+// Name returns the name of the Engine.
+func (e *fsEngine) Name() string {
+	return e.name
 }
 
 // GetUID is called by the test harness to retrieve a user instance's UID.
@@ -206,15 +215,18 @@ func (*fsEngine) CreateLink(u User, parentDir Node, fromName string, toPath stri
 // Lookup is called by the test harness to return a node in the given directory by
 // its name for the given user. In the case of a symlink the symPath will be set and
 // the node will be nil.
-func (*fsEngine) Lookup(u User, parentDir Node, name string) (file Node, symPath string, err error) {
+func (e *fsEngine) Lookup(u User, parentDir Node, name string) (file Node, symPath string, err error) {
 	n := parentDir.(*fsNode)
 	path := n.path + "/" + name
 	fi, err := os.Lstat(path)
 	if err != nil {
 		return nil, "", err
 	}
-	// Not a symlink
-	if fi.Mode()&os.ModeSymlink == 0 {
+	// Return if not a symlink
+	// TODO currently we pretend that Dokan has no symbolic links
+	// here and end up deferencing them. This works but is not
+	// ideal.
+	if fi.Mode()&os.ModeSymlink == 0 || e.name == "dokan" {
 		return &fsNode{path}, "", nil
 	}
 	symPath, err = os.Readlink(path)
