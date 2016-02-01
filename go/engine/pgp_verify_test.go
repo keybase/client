@@ -12,7 +12,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
-func TestPGPVerify(t *testing.T) {
+func doVerify(t *testing.T, msg string) {
 	tc := SetupEngineTest(t, "PGPVerify")
 	defer tc.Cleanup()
 	fu := createFakeUserWithPGPSibkey(tc)
@@ -23,8 +23,6 @@ func TestPGPVerify(t *testing.T) {
 		LogUI:      tc.G.UI.GetLogUI(),
 		PgpUI:      &TestPgpUI{},
 	}
-
-	msg := "If you wish to stop receiving notifications from this topic, please click or visit the link below to unsubscribe:"
 
 	// create detached sig
 	detached := sign(ctx, tc, msg, keybase1.SignMode_DETACHED)
@@ -72,6 +70,16 @@ func TestPGPVerify(t *testing.T) {
 	// extra credit:
 	// encrypt a message for another user and sign it
 	// verify that attached signature
+}
+
+func TestPGPVerify(t *testing.T) {
+	msg := "If you wish to stop receiving notifications from this topic, please click or visit the link below to unsubscribe:"
+	doVerify(t, msg)
+}
+
+func TestPGPVerifyShortMsg(t *testing.T) {
+	msg := "less than 100 characters"
+	doVerify(t, msg)
 }
 
 func sign(ctx *Context, tc libkb.TestContext, msg string, mode keybase1.SignMode) string {

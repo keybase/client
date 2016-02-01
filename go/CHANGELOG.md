@@ -1,3 +1,4 @@
+- Detached pgp verify was broken for messages shorter than 100 bytes (PR: keybase/client#1862)
 - Only restart driver if necessary when upgrading on Windows (PR: keybase/client#1842)
 - Fix formatting for certain errors (PR: keybase/client#1830)
 - Cache InputCanceled from SecretUI from KBFS crypto ops (PR: keybase/client#1795)

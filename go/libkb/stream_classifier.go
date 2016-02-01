@@ -53,7 +53,7 @@ func (p *StreamPeeker) Peek(buf []byte) (n int, err error) {
 		return 0, ErrCannotPeek
 	}
 	n, err = io.ReadFull(p.r, buf)
-	p.buf = append(p.buf, buf...)
+	p.buf = append(p.buf, buf[:n]...)
 	return n, err
 }
 
@@ -236,7 +236,12 @@ func ClassifyStream(r io.Reader) (sc StreamClassification, out io.Reader, err er
 	var buf [100]byte
 	var n int
 	if n, err = peeker.Peek(buf[:]); err != nil {
-		return sc, peeker, err
+		// ErrUnexpectedEOF might just mean we read less than 100 bytes
+		if err == io.ErrUnexpectedEOF && len(buf) > 0 {
+			err = nil
+		} else {
+			return sc, peeker, err
+		}
 	}
 	sb := string(buf[:n])
 	switch {
