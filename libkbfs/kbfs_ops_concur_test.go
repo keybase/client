@@ -109,11 +109,8 @@ func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 	}
 }
 
-// Test that a read can happen concurrently with a sync
-func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
-	config, _, ctx := kbfsOpsConcurInit(t, "test_user")
-	defer CheckConfigAndShutdown(t, config)
-
+func setStallingMDOpsForPut(ctx context.Context, config Config) (
+	<-chan struct{}, chan<- struct{}, context.Context) {
 	onPutStalledCh := make(chan struct{}, 1)
 	putUnstallCh := make(chan struct{})
 
@@ -131,6 +128,17 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 		},
 		delegate: config.MDOps(),
 	})
+
+	putCtx := context.WithValue(ctx, stallKey, putValue)
+	return onPutStalledCh, putUnstallCh, putCtx
+}
+
+// Test that a read can happen concurrently with a sync
+func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
+	config, _, ctx := kbfsOpsConcurInit(t, "test_user")
+	defer CheckConfigAndShutdown(t, config)
+
+	onPutStalledCh, putUnstallCh, putCtx := setStallingMDOpsForPut(ctx, config)
 
 	// create and write to a file
 	kbfsOps := config.KBFSOps()
@@ -152,7 +160,6 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 	// start the sync
 	errChan := make(chan error)
 	go func() {
-		putCtx := context.WithValue(ctx, stallKey, putValue)
 		errChan <- kbfsOps.Sync(putCtx, fileNode)
 	}()
 
@@ -183,23 +190,7 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 	config, _, ctx := kbfsOpsConcurInit(t, "test_user")
 	defer CheckConfigAndShutdown(t, config)
 
-	onPutStalledCh := make(chan struct{}, 1)
-	putUnstallCh := make(chan struct{})
-
-	stallKey := "requestName"
-	putValue := "put"
-
-	config.SetMDOps(&stallingMDOps{
-		stallOpName: "put",
-		stallKey:    stallKey,
-		stallMap: map[interface{}]staller{
-			putValue: staller{
-				stalled: onPutStalledCh,
-				unstall: putUnstallCh,
-			},
-		},
-		delegate: config.MDOps(),
-	})
+	onPutStalledCh, putUnstallCh, putCtx := setStallingMDOpsForPut(ctx, config)
 
 	// Use the smallest possible block size.
 	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
@@ -231,7 +222,6 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 	// start the sync
 	errChan := make(chan error)
 	go func() {
-		putCtx := context.WithValue(ctx, stallKey, putValue)
 		errChan <- kbfsOps.Sync(putCtx, fileNode)
 	}()
 
@@ -336,23 +326,7 @@ func TestKBFSOpsConcurDeferredDoubleWritesDuringSync(t *testing.T) {
 	config, _, ctx := kbfsOpsConcurInit(t, "test_user")
 	defer CheckConfigAndShutdown(t, config)
 
-	onPutStalledCh := make(chan struct{}, 1)
-	putUnstallCh := make(chan struct{})
-
-	stallKey := "requestName"
-	putValue := "put"
-
-	config.SetMDOps(&stallingMDOps{
-		stallOpName: "put",
-		stallKey:    stallKey,
-		stallMap: map[interface{}]staller{
-			putValue: staller{
-				stalled: onPutStalledCh,
-				unstall: putUnstallCh,
-			},
-		},
-		delegate: config.MDOps(),
-	})
+	onPutStalledCh, putUnstallCh, putCtx := setStallingMDOpsForPut(ctx, config)
 
 	// Use the smallest possible block size.
 	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
@@ -399,7 +373,6 @@ func TestKBFSOpsConcurDeferredDoubleWritesDuringSync(t *testing.T) {
 	// start the sync
 	errChan := make(chan error)
 	go func() {
-		putCtx := context.WithValue(ctx, stallKey, putValue)
 		errChan <- kbfsOps.Sync(putCtx, fileNode)
 	}()
 
@@ -946,23 +919,7 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	config, _, ctx := kbfsOpsConcurInit(t, "test_user")
 	defer CheckConfigAndShutdown(t, config)
 
-	onPutStalledCh := make(chan struct{}, 1)
-	putUnstallCh := make(chan struct{})
-
-	stallKey := "requestName"
-	putValue := "put"
-
-	config.SetMDOps(&stallingMDOps{
-		stallOpName: "put",
-		stallKey:    stallKey,
-		stallMap: map[interface{}]staller{
-			putValue: staller{
-				stalled: onPutStalledCh,
-				unstall: putUnstallCh,
-			},
-		},
-		delegate: config.MDOps(),
-	})
+	onPutStalledCh, putUnstallCh, putCtx := setStallingMDOpsForPut(ctx, config)
 
 	// make blocks small
 	config.BlockSplitter().(*BlockSplitterSimple).maxSize = 5
@@ -1010,7 +967,6 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	// start the sync
 	errChan := make(chan error)
 	go func() {
-		putCtx := context.WithValue(ctx, stallKey, putValue)
 		errChan <- kbfsOps.Sync(putCtx, fileNode)
 	}()
 
@@ -1415,23 +1371,7 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 	config, _, ctx := kbfsOpsConcurInit(t, "test_user")
 	defer CheckConfigAndShutdown(t, config)
 
-	onPutStalledCh := make(chan struct{}, 1)
-	putUnstallCh := make(chan struct{})
-
-	stallKey := "requestName"
-	putValue := "put"
-
-	config.SetMDOps(&stallingMDOps{
-		stallOpName: "put",
-		stallKey:    stallKey,
-		stallMap: map[interface{}]staller{
-			putValue: staller{
-				stalled: onPutStalledCh,
-				unstall: putUnstallCh,
-			},
-		},
-		delegate: config.MDOps(),
-	})
+	onPutStalledCh, putUnstallCh, putCtx := setStallingMDOpsForPut(ctx, config)
 
 	// Use the smallest possible block size.
 	bsplitter, err := NewBlockSplitterSimple(20, 8*1024, config.Codec())
@@ -1462,10 +1402,9 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 
 	// start the sync
 	errChan := make(chan error)
-	cancelCtx, cancel := context.WithCancel(ctx)
+	cancelCtx, cancel := context.WithCancel(putCtx)
 	go func() {
-		putCtx := context.WithValue(cancelCtx, stallKey, putValue)
-		errChan <- kbfsOps.Sync(putCtx, fileNode)
+		errChan <- kbfsOps.Sync(cancelCtx, fileNode)
 	}()
 
 	// wait until Sync gets stuck at MDOps.Put()
