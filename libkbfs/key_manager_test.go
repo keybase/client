@@ -322,10 +322,27 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
 
+	// Set the KBPKI so we can count the identify calls
+	localDaemon := config1.KeybaseDaemon()
+	measuredDaemon :=
+		NewKeybaseDaemonMeasured(localDaemon, config1.MetricsRegistry())
+	config1.SetKeybaseDaemon(measuredDaemon)
+	// Force the FBO to forget about its previous identify.
+	kbfsOps1.(*KBFSOpsStandard).getOps(
+		rootNode1.GetFolderBranch()).identifyDone = false
+
 	// now user 1 should rekey
 	err = kbfsOps1.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't rekey: %v", err)
+	}
+
+	// Set the local daemon back since there are later dependencies on it.
+	config1.SetKeybaseDaemon(localDaemon)
+
+	// Only u2 should be identified as part of the rekey.
+	if g, e := measuredDaemon.identifyTimer.Count(), int64(1); g != e {
+		t.Errorf("Expected %d identify calls, but got %d", e, g)
 	}
 
 	// this device should be able to read now
@@ -350,9 +367,16 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	RevokeDeviceForLocalUserOrBust(t, config2Dev3, uid2, 0)
 
 	// rekey again
+	config1.SetKeybaseDaemon(measuredDaemon)
 	err = kbfsOps1.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't rekey: %v", err)
+	}
+	config1.SetKeybaseDaemon(localDaemon)
+
+	// Only u2 should be identified (twice) as part of the rekey.
+	if g, e := measuredDaemon.identifyTimer.Count(), int64(3); g != e {
+		t.Errorf("Expected %d identify calls, but got %d", e, g)
 	}
 
 	// force re-encryption of the root dir
