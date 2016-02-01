@@ -1,5 +1,5 @@
 // Can't tell which thread we're in so let's try both
-const electron = require('electron')
+import electron from 'electron'
 
 const Menu = electron.Menu || electron.remote.Menu
 const app = electron.app || electron.remote.app
