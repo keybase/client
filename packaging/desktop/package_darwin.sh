@@ -25,8 +25,8 @@ npm install
 node_bin="$dir/node_modules/.bin"
 
 app_name=Keybase
-keybase_version=""
-kbfs_version=""
+keybase_version=${KEYBASE_VERSION:-}
+kbfs_version=${KBFS_VERSION:-}
 comment=""
 
 keybase_binpath=${KEYBASE_BINPATH:-}
@@ -40,9 +40,6 @@ if [ "$keybase_version" = "" ]; then
   if [ ! "$keybase_binpath" = "" ]; then
     keybase_version=`$keybase_binpath version -S`
     echo "Using keybase (bin) version: $keybase_version"
-  else
-    keybase_version=`$release_bin latest-version --user=keybase --repo=client`
-    echo "Using latest keybase version: $keybase_version"
   fi
 fi
 
@@ -50,19 +47,16 @@ if [ "$kbfs_version" = "" ]; then
   if [ ! "$kbfs_binpath" = "" ]; then
     kbfs_version=`$kbfs_binpath -version`
     echo "Using kbfs (bin) version: $kbfs_version"
-  else
-    kbfs_version=`$release_bin latest-version --user=keybase --repo=kbfs-beta`
-    echo "Using latest kbfs-beta version: $kbfs_version"
   fi
 fi
 
 if [ "$keybase_version" = "" ]; then
-  echo "No keybase version available"
+  echo "Specify KEYBASE_VERSION to use (Github release/tag)"
   exit 1
 fi
 
 if [ "$kbfs_version" = "" ]; then
-  echo "No kbfs version available"
+  echo "Specify KBFS_VERSION for use (Github release/tag)"
   exit 1
 fi
 
@@ -76,8 +70,6 @@ out_dir="$build_dir/Keybase-darwin-x64"
 shared_support_dir="$out_dir/Keybase.app/Contents/SharedSupport"
 resources_dir="$out_dir/Keybase.app/Contents/Resources/"
 
-keybase_url="https://github.com/keybase/client/releases/download/v$keybase_version/keybase-$keybase_version-darwin.tgz"
-kbfs_url="https://github.com/keybase/kbfs-beta/releases/download/v$kbfs_version/kbfs-$kbfs_version-darwin.tgz"
 installer_url="https://github.com/keybase/client/releases/download/v1.0.9-0/KeybaseInstaller-1.1.18-darwin.tgz"
 
 keybase_bin="$tmp_dir/keybase"
@@ -97,6 +89,16 @@ clean() {
   mkdir -p $tmp_dir
 }
 
+ensure_url() {
+  url="$1"
+  msg="$2"
+  if ! curl --output /dev/null --silent --head --fail "$url"; then
+    echo "URL doesn't exist: $url"
+    echo "$msg"
+    exit 1
+  fi
+}
+
 get_deps() {
   cd $tmp_dir
   echo "Downloading dependencies"
@@ -105,7 +107,9 @@ get_deps() {
     echo "Using local keybase binpath: $keybase_binpath"
     cp $keybase_binpath .
   else
+    keybase_url="https://github.com/keybase/client/releases/download/v$keybase_version/keybase-$keybase_version-darwin.tgz"
     echo "Getting $keybase_url"
+    ensure_url $keybase_url "You need to build the binary for this Github release/version. See packaging/github to create/build a release."
     curl -J -L -Ss $keybase_url | tar zx
   fi
 
@@ -113,7 +117,9 @@ get_deps() {
     echo "Using local kbfs binpath: $kbfs_binpath"
     cp $kbfs_binpath .
   else
+    kbfs_url="https://github.com/keybase/kbfs-beta/releases/download/v$kbfs_version/kbfs-$kbfs_version-darwin.tgz"
     echo "Getting $kbfs_url"
+    ensure_url $kbfs_url "You need to build the binary for this Github release/version. See packaging/github to create/build a release."
     curl -J -L -Ss $kbfs_url | tar zx
   fi
   curl -J -L -Ss $installer_url | tar zx

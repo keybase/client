@@ -1,28 +1,17 @@
 ## Building the Keybase.app
 
-1. Install script dependencies:
+Install script dependencies:
 
 			npm install
 
-2. In `keybase/client/packaging/desktop`, run:
+To build from a Github release/version, specify versions:
 
-			package_darwin.sh
+			KEYBASE_VERSION=1.0.9-0 KBFS_VERSION=1.0.0 ./package_darwin.sh
 
-### Creating KBFS release
+To build from existing binaries, specify binpaths:
 
-1. Because the repo is private, you need to export KBFS to the beta repo. See `keybase/client/packaging/export/` for details.
+			KEYBASE_BINPATH=/path/to/keybase KBFS_BINPATH=/path/to/kbfs ./package_darwin.sh
 
-2. In `keybase/client/packaging/desktop`, run:
+## Prerelease
 
-			build_kbfs.sh 1.0.0-27
-
-3. Draft a release at https://github.com/keybase/kbfs-beta/releases with name `v1.0.0-27` and upload the generated file `build_kbfs/kbfs-1.0.0-27.tgz`.
-
-
-## Re-package
-
-You can specify the binpath for existing keybase and kbfs binaries, and re-package the app using:
-
-```
-KEYBASE_BINPATH=/Applications/Keybase.app/Contents/SharedSupport/bin/keybase KBFS_BINPATH=/Applications/Keybase.app/Contents/SharedSupport/bin/kbfs ./package_darwin.sh
-```
+For building a prerelease, see script in `keybase/client/packaging/prerelease`.

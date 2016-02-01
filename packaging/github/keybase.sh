@@ -16,7 +16,8 @@ release_bin="$GOPATH/bin/release"
 
 version="${VERSION:-}"
 if [ "$version" = "" ]; then
-  version=`$release_bin latest-version --user=keybase --repo=client`
+  echo "Specify VERSION to build"
+  exit 1
 fi
 tag="v$version"
 tgz="keybase-$version.tgz"
