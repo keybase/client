@@ -4,7 +4,7 @@ import path from 'path'
 import fs from 'fs'
 import os from 'os'
 
-import {runMode} from '../../react-native/react/constants/platform.native.desktop'
+import {runMode} from '../shared/constants/platform.native.desktop'
 
 export default (callback) => {
   const appPath = app.getAppPath()

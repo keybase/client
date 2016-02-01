@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import resolveAssets from '../../../desktop/resolve-assets'
+import resolveRoot from '../../desktop/resolve-root'
 
 export default class Logo extends Component {
   render () {
@@ -8,7 +8,7 @@ export default class Logo extends Component {
       ...(this.props.grey ? {WebkitFilter: 'grayscale()'} : {})
     }
     return (
-      <img style={style} src={`file://${resolveAssets('../react-native/react/images/service/keybase.png')}`}/>
+      <img style={style} src={`file://${resolveRoot('shared/images/service/keybase.png')}`}/>
     )
   }
 }
