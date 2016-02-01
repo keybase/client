@@ -108,3 +108,101 @@ func ExampleNewEncryptArmor62Stream() {
 	// Output:
 	// The Magic Words are Squeamish Ossifrage
 }
+
+func ExampleSignArmor62() {
+
+	var err error
+
+	// Make a new Keyring, initialized to be empty
+	keyring := basic.NewKeyring()
+
+	// The test message
+	msg := []byte("The Magic Words are Squeamish Ossifrage")
+
+	// Make a secret key for the sender
+	var signer saltpack.SigningSecretKey
+	signer, err = keyring.GenerateSigningKey()
+	if err != nil {
+		return
+	}
+
+	var signed string
+	signed, err = saltpack.SignArmor62(msg, signer, "")
+	if err != nil {
+		return
+	}
+
+	// The verified message should match the input mesasge.
+	var verifiedMsg []byte
+	var signingPublicKey saltpack.SigningPublicKey
+	signingPublicKey, verifiedMsg, _, err = saltpack.Dearmor62Verify(signed, keyring)
+	if err != nil {
+		return
+	}
+
+	if saltpack.PublicKeyEqual(signingPublicKey, signer.GetPublicKey()) {
+		fmt.Println("The right key")
+	}
+
+	fmt.Println(string(verifiedMsg))
+
+	// Output:
+	// The right key
+	// The Magic Words are Squeamish Ossifrage
+}
+
+func ExampleNewSignArmor62Stream() {
+
+	var err error
+
+	// Make a new Keyring, initialized to be empty
+	keyring := basic.NewKeyring()
+
+	// The test message
+	msg := []byte("The Magic Words are Squeamish Ossifrage")
+
+	// Make a secret key for the sender
+	var signer saltpack.SigningSecretKey
+	signer, err = keyring.GenerateSigningKey()
+	if err != nil {
+		return
+	}
+
+	// Make a new signature stream. We write the input data into
+	// the input stream, and we read output out of the output stream.
+	// In this case, the output stream is just a buffer.
+	var input io.WriteCloser
+	var output bytes.Buffer
+	input, err = saltpack.NewSignArmor62Stream(&output, signer, "")
+	if err != nil {
+		return
+	}
+
+	// Write the message into the input stream, and then close
+	input.Write(msg)
+	input.Close()
+
+	// The verified message. We pass the signed stream as the first argument
+	// as a stream (here a bytes.Buffer which is output from above), and read the
+	// verified data out of verified stream.
+	var verifiedStream io.Reader
+	var signingPublicKey saltpack.SigningPublicKey
+	signingPublicKey, verifiedStream, _, err = saltpack.NewDearmor62VerifyStream(&output, keyring)
+	if err != nil {
+		return
+	}
+
+	// Assert we got the right key back.
+	if saltpack.PublicKeyEqual(signingPublicKey, signer.GetPublicKey()) {
+		fmt.Println("The right key")
+	}
+
+	// Copy all of the data out of the verified stream, and into standard
+	// output, here for testing / comparison purposes.
+	io.Copy(os.Stdout, verifiedStream)
+	os.Stdout.Write([]byte{'\n'})
+
+	// Output:
+	// The right key
+	// The Magic Words are Squeamish Ossifrage
+}

@@ -57,7 +57,7 @@ func TestBasicSign(t *testing.T) {
 	if !bytes.Equal(msg, msg2) {
 		t.Fatal("msg payload mismatch")
 	}
-	if !saltpack.PublicSigningKeyEqual(k1.GetPublicKey(), pk) {
+	if !saltpack.PublicKeyEqual(k1.GetPublicKey(), pk) {
 		t.Fatal("public signing key wasn't right")
 	}
 }

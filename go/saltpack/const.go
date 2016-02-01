@@ -37,7 +37,7 @@ const EncryptionArmorString = "ENCRYPTED MESSAGE"
 // SignedArmorString is included in armor headers for signed messages
 const SignedArmorString = "SIGNED MESSAGE"
 
-// DetachedArmorString is included in armor headers for detached signatures.
+// DetachedSignatureArmorString is included in armor headers for detached signatures.
 const DetachedSignatureArmorString = "DETACHED SIGNATURE"
 
 // SaltpackFormatName is the publicly advertised name of the format,
