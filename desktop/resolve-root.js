@@ -10,14 +10,10 @@ if (!app) {
 
 let root = null
 
-/* eslint-disable no-undef */ // Injected by webpack
-if (!__DEV__) {
-/* eslint-enable no-undef */
+if (!__DEV__) { // eslint-disable-line no-undef
   root = path.join(app.getAppPath(), './desktop')
 } else {
   root = path.join(__dirname)
 }
 
-export default function (to) {
-  return path.resolve(root, to)
-}
+export default (...to) => path.resolve(root, ...to)
