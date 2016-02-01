@@ -5,6 +5,7 @@ import (
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	metrics "github.com/rcrowley/go-metrics"
+	"golang.org/x/net/context"
 )
 
 const (
@@ -472,8 +473,10 @@ func (c *ConfigLocal) Shutdown() error {
 				continue
 			}
 			for _, fbo := range kbfsOps.ops {
-				lState := makeFBOLockState()
-				fbo.waitForArchives(lState)
+				err := fbo.waitForArchives(context.Background())
+				if err != nil {
+					return err
+				}
 			}
 		}
 	}
