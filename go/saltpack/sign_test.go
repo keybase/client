@@ -122,7 +122,7 @@ func testSignAndVerify(t *testing.T, message []byte) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !kidEqual(skey, key.GetPublicKey()) {
+	if !PublicKeyEqual(skey, key.GetPublicKey()) {
 		t.Errorf("signer key %x, expected %x", skey.ToKID(), key.GetPublicKey().ToKID())
 	}
 	if !bytes.Equal(vmsg, message) {
@@ -155,7 +155,7 @@ func TestSignEmptyStream(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !kidEqual(skey, key.GetPublicKey()) {
+	if !PublicKeyEqual(skey, key.GetPublicKey()) {
 		t.Errorf("signer key %x, expected %x", skey.ToKID(), key.GetPublicKey().ToKID())
 	}
 	if len(vmsg) != 0 {
@@ -270,7 +270,7 @@ func TestSignDetached(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !kidEqual(skey, key.GetPublicKey()) {
+	if !PublicKeyEqual(skey, key.GetPublicKey()) {
 		t.Errorf("signer key %x, expected %x", skey.ToKID(), key.GetPublicKey().ToKID())
 	}
 }
@@ -427,7 +427,7 @@ func TestSignCorruptHeader(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !kidEqual(skey, key.GetPublicKey()) {
+	if !PublicKeyEqual(skey, key.GetPublicKey()) {
 		t.Errorf("signer key %x, expected %x", skey.ToKID(), key.GetPublicKey().ToKID())
 	}
 	if !bytes.Equal(vmsg, msg) {
@@ -516,7 +516,7 @@ func TestSignDetachedCorruptHeader(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !kidEqual(skey, key.GetPublicKey()) {
+	if !PublicKeyEqual(skey, key.GetPublicKey()) {
 		t.Errorf("signer key %x, expected %x", skey.ToKID(), key.GetPublicKey().ToKID())
 	}
 

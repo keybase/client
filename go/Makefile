@@ -9,6 +9,8 @@ vet:
 
 lint:
 	golint ./... | grep -v ^vendor | grep -v ^protocol | grep -v comment | grep -v KeysById | grep -v "error should be the last type" || echo "Lint-free!"
+	# Strict linting on saltpack
+	golint saltpack/...
 
 # to run splint, first do this:  go get stathat.com/c/splint
 splint:

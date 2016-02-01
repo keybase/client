@@ -22,7 +22,7 @@ func TestVerify(t *testing.T) {
 		t.Logf("signed msg: %x", smsg)
 		t.Fatal(err)
 	}
-	if !kidEqual(skey, key.GetPublicKey()) {
+	if !PublicKeyEqual(skey, key.GetPublicKey()) {
 		t.Errorf("sender key %x, expected %x", skey.ToKID(), key.GetPublicKey().ToKID())
 	}
 	if !bytes.Equal(msg, in) {
@@ -48,7 +48,7 @@ func TestVerifyConcurrent(t *testing.T) {
 				t.Logf("signed msg: %x", smsg)
 				t.Error(err)
 			}
-			if !kidEqual(skey, key.GetPublicKey()) {
+			if !PublicKeyEqual(skey, key.GetPublicKey()) {
 				t.Errorf("sender key %x, expected %x", skey.ToKID(), key.GetPublicKey().ToKID())
 			}
 			if !bytes.Equal(msg, in) {
