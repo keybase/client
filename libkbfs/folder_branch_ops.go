@@ -1493,7 +1493,6 @@ type blockState struct {
 	blockPtr       BlockPointer
 	block          Block
 	readyBlockData ReadyBlockData
-	badPtr         bool
 }
 
 func (fbo *folderBranchOps) Stat(ctx context.Context, node Node) (
@@ -1526,7 +1525,7 @@ func newBlockPutState(length int) *blockPutState {
 func (bps *blockPutState) addNewBlock(blockPtr BlockPointer, block Block,
 	readyBlockData ReadyBlockData) {
 	bps.blockStates = append(bps.blockStates,
-		blockState{blockPtr, block, readyBlockData, false})
+		blockState{blockPtr, block, readyBlockData})
 }
 
 func (bps *blockPutState) mergeOtherBps(other *blockPutState) {
@@ -1894,11 +1893,12 @@ func (fbo *folderBranchOps) doOneBlockPut(ctx context.Context,
 // doBlockPuts writes all the pending block puts to the cache and
 // server. If the err returned by this function satisfies
 // isRecoverableBlockError(err), the caller should retry its entire
-// operation, starting from when the MD successor was created.  In
-// that case, the corresponding block states in bps that caused
-// recoverable errors will be marked with `badPtr = true`.
+// operation, starting from when the MD successor was created.
+//
+// Returns a slice of block pointers that resulted in recoverable
+// errors and should be removed by the caller from any saved state.
 func (fbo *folderBranchOps) doBlockPuts(ctx context.Context,
-	md *RootMetadata, bps *blockPutState) error {
+	md *RootMetadata, bps blockPutState) ([]BlockPointer, error) {
 	errChan := make(chan error, 1)
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
@@ -1942,6 +1942,7 @@ func (fbo *folderBranchOps) doBlockPuts(ctx context.Context,
 		close(blocksToRemoveChan)
 	}()
 	err := <-errChan
+	var blocksToRemove []BlockPointer
 	if isRecoverableBlockError(err) {
 		bcache := fbo.config.BlockCache()
 		// Wait for all the outstanding puts to finish, to amortize
@@ -1949,11 +1950,10 @@ func (fbo *folderBranchOps) doBlockPuts(ctx context.Context,
 		for fblock := range blocksToRemoveChan {
 			for i, bs := range bps.blockStates {
 				if bs.block == fblock {
-					// Mark this for later so the caller can know
-					// which were the bad blocks.  We don't just
-					// remove them here so the caller can update other
-					// saved state to remove the bad blocks.
-					bps.blockStates[i].badPtr = true
+					// Let the caller know which blocks shouldn't be
+					// retried.
+					blocksToRemove = append(blocksToRemove,
+						bps.blockStates[i].blockPtr)
 				}
 			}
 
@@ -1965,7 +1965,7 @@ func (fbo *folderBranchOps) doBlockPuts(ctx context.Context,
 			}
 		}
 	}
-	return err
+	return blocksToRemove, err
 }
 
 func (fbo *folderBranchOps) finalizeBlocks(bps *blockPutState) error {
@@ -2173,7 +2173,7 @@ func (fbo *folderBranchOps) syncBlockAndFinalizeLocked(ctx context.Context,
 		}
 	}()
 
-	err = fbo.doBlockPuts(ctx, md, bps)
+	_, err = fbo.doBlockPuts(ctx, md, *bps)
 	if err != nil {
 		return DirEntry{}, err
 	}
@@ -2818,7 +2818,7 @@ func (fbo *folderBranchOps) renameLocked(
 		}
 	}()
 
-	err = fbo.doBlockPuts(ctx, md, newBps)
+	_, err = fbo.doBlockPuts(ctx, md, *newBps)
 	if err != nil {
 		return err
 	}
@@ -3713,12 +3713,12 @@ func (fbo *folderBranchOps) fixChildBlocksAfterRecoverableError(
 // include all the blocks from before the error, except for those that
 // have encountered recoverable block errors themselves.
 func (fbo *folderBranchOps) revertSyncInfoAfterRecoverableError(
-	si *syncInfo, savedSi *syncInfo) {
+	blocksToRemove []BlockPointer, si *syncInfo, savedSi *syncInfo) {
 	// Mark any bad pointers to they get skipped next
 	// time.
-	badPtrs := make(map[BlockPointer]bool)
-	for _, bs := range si.bps.blockStates {
-		badPtrs[bs.blockPtr] = bs.badPtr
+	blocksToRemoveSet := make(map[BlockPointer]bool)
+	for _, ptr := range blocksToRemove {
+		blocksToRemoveSet[ptr] = true
 	}
 	// This sync will be retried and needs new blocks, so
 	// reset everything in the sync info.
@@ -3729,7 +3729,7 @@ func (fbo *folderBranchOps) revertSyncInfoAfterRecoverableError(
 	si.bps.blockStates = nil
 	for _, bs := range savedSi.bps.blockStates {
 		// Only save the good pointers
-		if !badPtrs[bs.blockPtr] {
+		if !blocksToRemoveSet[bs.blockPtr] {
 			si.bps.blockStates = append(si.bps.blockStates, bs)
 		}
 	}
@@ -3837,6 +3837,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 	if fblock.IsInd {
 		oldFblock = fblock.DeepCopy()
 	}
+	var blocksToRemove []BlockPointer
 	defer func() {
 		if err != nil {
 			// If there was an error, we need to back out any changes
@@ -3844,7 +3845,8 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 			// it could get reused again in a later Sync call.
 			si.op.resetUpdateState()
 			if isRecoverableBlockError(err) {
-				fbo.revertSyncInfoAfterRecoverableError(si, savedSi)
+				fbo.revertSyncInfoAfterRecoverableError(
+					blocksToRemove, si, savedSi)
 				if fblock.IsInd {
 					*fblock = *oldFblock
 					fbo.fixChildBlocksAfterRecoverableError(ctx, !doUnlock,
@@ -4081,7 +4083,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 		}
 	}()
 
-	err = fbo.doBlockPuts(ctx, md, si.bps)
+	blocksToRemove, err = fbo.doBlockPuts(ctx, md, *si.bps)
 	if err != nil {
 		return true, err
 	}

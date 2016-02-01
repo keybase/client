@@ -2831,8 +2831,8 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 		}
 	}
 
-	// Put all the blocks.
-	err = cr.fbo.doBlockPuts(ctx, md, bps)
+	// Put all the blocks.  TODO: deal with recoverable block errors?
+	_, err = cr.fbo.doBlockPuts(ctx, md, *bps)
 	if err != nil {
 		return nil, nil, err
 	}
