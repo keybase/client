@@ -5409,7 +5409,7 @@ func (fbo *folderBranchOps) finalizeResolution(ctx context.Context,
 	return nil
 }
 
-func (fbo *folderBranchOps) processToDelete(ctx context.Context) error {
+func (fbo *folderBranchOps) processBlocksToDelete(ctx context.Context) error {
 	// also attempt to delete any error references
 	var toDelete map[*RootMetadata][]BlockPointer
 	func() {
@@ -5528,7 +5528,7 @@ func (fbo *folderBranchOps) archiveBlocksInBackground() {
 				}
 
 				// Also see if we can delete any blocks.
-				if err := fbo.processToDelete(ctx); err != nil {
+				if err := fbo.processBlocksToDelete(ctx); err != nil {
 					fbo.log.CDebugf(ctx, "Error deleting blocks: %v", err)
 					return err
 				}
