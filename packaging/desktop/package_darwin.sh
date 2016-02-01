@@ -130,6 +130,7 @@ package_electron() {
   cd $client_dir
   cd desktop
 
+  rm -rf node_modules
   npm install
   npm run package -- --appVersion="$app_version" --comment="$comment"
   rsync -av release/darwin-x64/Keybase-darwin-x64 $build_dir
