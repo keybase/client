@@ -1894,7 +1894,9 @@ func (fbo *folderBranchOps) doOneBlockPut(ctx context.Context,
 // doBlockPuts writes all the pending block puts to the cache and
 // server. If the err returned by this function satisfies
 // isRecoverableBlockError(err), the caller should retry its entire
-// operation, starting from when the MD successor was created.
+// operation, starting from when the MD successor was created.  In
+// that case, the corresponding block states in bps that caused
+// recoverable errors will be marked with `badPtr = true`.
 func (fbo *folderBranchOps) doBlockPuts(ctx context.Context,
 	md *RootMetadata, bps *blockPutState) error {
 	errChan := make(chan error, 1)
@@ -1948,7 +1950,9 @@ func (fbo *folderBranchOps) doBlockPuts(ctx context.Context,
 			for i, bs := range bps.blockStates {
 				if bs.block == fblock {
 					// Mark this for later so the caller can know
-					// which were the bad blocks.
+					// which were the bad blocks.  We don't just
+					// remove them here so the caller can update other
+					// saved state to remove the bad blocks.
 					bps.blockStates[i].badPtr = true
 				}
 			}
