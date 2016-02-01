@@ -11,6 +11,8 @@ import NativeEventEmitter from '../common-adapters/native-event-emitter'
 import windowsHack from './windows-hack'
 import {log} from '../native/log/logui'
 
+import {constants} from '../constants/types/keybase_v1'
+
 class Engine {
   constructor () {
     windowsHack()
@@ -220,7 +222,10 @@ class Engine {
         console.log(`Unknown incoming rpc: ${sessionID} ${method} ${param}${response ? ': Sending back error' : ''}`)
       }
       if (response && response.error) {
-        response.error('Unhandled rpc')
+        response.error({
+          code: constants.StatusCode.scgeneric,
+          desc: 'Unhandled incoming RPC'
+        })
       }
     }
   }
