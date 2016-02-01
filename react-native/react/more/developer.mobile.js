@@ -1,5 +1,6 @@
-import React, {Component, StyleSheet, Navigator, TextInput, View, Text} from '../base-react'
-import {connect} from '../base-redux'
+import React, {Component} from 'react'
+import {StyleSheet, Navigator, TextInput, View, Text} from 'react-native'
+import {connect} from 'react-redux'
 import {getDevSettings, saveDevSettings, updateDevSettings} from '../actions/config'
 
 class Developer extends Component {

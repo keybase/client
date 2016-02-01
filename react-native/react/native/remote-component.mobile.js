@@ -1,4 +1,5 @@
-import React, {Component, View} from '../base-react'
+import React, {Component} from 'react'
+import {View} from 'react-native'
 
 export default class RemoteComponent extends Component {
   render () {

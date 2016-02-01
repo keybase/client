@@ -1,4 +1,4 @@
-import React, {Component, StyleSheet} from '../../../base-react'
+import React, {Component} from 'react'
 import {TextField, RaisedButton} from 'material-ui'
 
 export default class PaperKeyRender extends Component {
@@ -34,11 +34,11 @@ PaperKeyRender.propTypes = {
   paperKey: React.PropTypes.string
 }
 
-const styles = StyleSheet.create({
+const styles = {
   container: {
     flex: 1,
     display: 'flex',
     flexDirection: 'column',
     alignItems: 'stretch'
   }
-})
+}

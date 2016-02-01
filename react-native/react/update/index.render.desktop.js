@@ -1,5 +1,5 @@
 /* @flow */
-import React, {Component} from '../base-react'
+import React, {Component} from 'react'
 import {Snackbar} from 'material-ui'
 import {Header, Text, Button, Checkbox} from '../common-adapters/index.desktop'
 import {clipboard} from 'electron'

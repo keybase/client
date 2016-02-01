@@ -1,4 +1,4 @@
-import React, {Component} from '../base-react'
+import React, {Component} from 'react'
 
 import HardwarePhoneIphone from 'material-ui/lib/svg-icons/hardware/phone-iphone'
 import HardwareComputer from 'material-ui/lib/svg-icons/hardware/computer'

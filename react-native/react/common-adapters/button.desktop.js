@@ -1,6 +1,6 @@
 /* @flow */
 
-import React, {Component} from '../base-react'
+import React, {Component} from 'react'
 import {FlatButton} from 'material-ui'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props} from './button'

@@ -1,4 +1,5 @@
-import React, {Component, StyleSheet, Text, View} from '../../base-react'
+import React, {Component, StyleSheet, Text, View} from 'react'
+import {StyleSheet, Text, View} from 'react-native'
 
 export default class RegisterRender extends Component {
   render () {

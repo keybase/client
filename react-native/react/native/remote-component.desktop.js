@@ -1,4 +1,4 @@
-import React, {Component} from '../base-react'
+import React, {Component} from 'react'
 import {remote, ipcRenderer} from 'electron'
 import resolveAssets from '../../../desktop/resolve-assets'
 import menuHelper from '../../../desktop/app/menu-helper'

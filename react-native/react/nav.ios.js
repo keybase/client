@@ -1,5 +1,7 @@
-import React, {Component, TabBarIOS, View, Navigator, Text, TouchableOpacity, StyleSheet} from './base-react'
-import {connect} from './base-redux'
+import React, {Component} from 'react'
+import {TabBarIOS, View, Navigator, Text, TouchableOpacity, StyleSheet} from 'react-native'
+
+import {connect} from 'react-redux'
 
 import MetaNavigator from './router/meta-navigator'
 import globalRoutes from './router/global-routes'

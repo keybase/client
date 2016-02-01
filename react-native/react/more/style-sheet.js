@@ -1,4 +1,4 @@
-import React, {Component} from '../base-react'
+import React, {Component} from 'react'
 import Render from './style-sheet.render'
 import {globalColors} from '../styles/style-guide'
 

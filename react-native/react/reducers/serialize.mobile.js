@@ -1,4 +1,4 @@
-import {AsyncStorage} from '../base-react'
+import {AsyncStorage} from 'react'
 import type {State} from '../constants/reducer'
 import {stateKey} from '../constants/reducer'
 import transit from 'transit-immutable-js'

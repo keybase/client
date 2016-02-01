@@ -3,8 +3,8 @@
  * you're a phone/computer and if you're the existing device or the new device
  */
 
-import React, {Component} from '../../../base-react'
-import {connect} from '../../../base-redux'
+import React, {Component} from 'react'
+import {connect} from 'react-redux'
 import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
         codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer} from '../../../constants/login'
 import Render from './index.render'

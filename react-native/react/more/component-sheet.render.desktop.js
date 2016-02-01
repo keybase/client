@@ -1,6 +1,6 @@
-import React, {Component} from '../base-react'
+import React, {Component} from 'react'
 import {FlatButton} from 'material-ui'
-import {connect} from '../base-redux'
+import {connect} from 'react-redux'
 import commonStyles from '../styles/common'
 import {Header, Button} from '../common-adapters'
 import Tracker from '../tracker'

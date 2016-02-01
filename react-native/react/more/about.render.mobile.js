@@ -1,4 +1,5 @@
-import React, {Component, Text, View, StyleSheet} from '../base-react'
+import React, {Component} from 'react'
+import {Text, View, StyleSheet} from 'react-native'
 import commonStyles from '../styles/common'
 
 export default class ChatRender extends Component {

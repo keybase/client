@@ -1,4 +1,5 @@
-import React, {requireNativeComponent, PropTypes, Component} from '../base-react'
+import React, {requireNativeComponent} from 'react'
+import {PropTypes, Component} from 'react-native'
 
 const tabBarProps = {
   name: 'TabBar',

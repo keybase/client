@@ -1,4 +1,5 @@
-import React, {Component, Text, TextInput, View, StyleSheet} from '../base-react'
+import React, {Component} from 'react'
+import {Text, TextInput, View, StyleSheet} from 'react-native'
 import commonStyles from '../styles/common'
 import Button from '../common-adapters/button'
 

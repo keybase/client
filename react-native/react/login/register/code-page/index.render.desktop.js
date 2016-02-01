@@ -3,7 +3,7 @@
  * you're a phone/computer and if you're the existing device or the new device
  */
 
-import React, {Component} from '../../../base-react'
+import React, {Component} from 'react'
 import {TextField, RaisedButton} from 'material-ui'
 import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
         codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer} from '../../../constants/login'

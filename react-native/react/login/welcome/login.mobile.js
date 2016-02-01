@@ -1,5 +1,6 @@
-import React, {Component, Text, TextInput, View} from '../../base-react'
-import {connect} from '../../base-redux'
+import React, {Component} from 'react'
+import {Text, TextInput, View} from 'react-native'
+import {connect} from 'react-redux'
 import commonStyles from '../../styles/common'
 import {login} from '../../actions/login'
 import {routeAppend} from '../../actions/router'

@@ -1,4 +1,4 @@
-import React from '../../react-native/react/base-react'
+import React from 'react'
 
 import {createDevTools} from 'redux-devtools'
 import DockMonitor from 'redux-devtools-dock-monitor'

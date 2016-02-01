@@ -1,4 +1,5 @@
-import React, {Component, Text, TouchableHighlight, View} from '../base-react'
+import React, {Component} from 'react'
+import {Text, TouchableHighlight, View} from 'react-native'
 import commonStyles, {buttonHighlight, disabledButtonHighlight} from '../styles/common'
 
 export default class Button extends Component {

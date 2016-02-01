@@ -1,4 +1,4 @@
-import React, {Component} from '../base-react'
+import React, {Component} from 'react'
 import {Paper, AppBar} from 'material-ui'
 
 export default class Container extends Component {

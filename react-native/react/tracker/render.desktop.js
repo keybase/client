@@ -1,6 +1,6 @@
 /* @flow */
 
-import React, {Component} from '../base-react'
+import React, {Component} from 'react'
 
 import Header from './header.render.desktop'
 import Action from './action.render.desktop'

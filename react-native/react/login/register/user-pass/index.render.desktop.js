@@ -1,4 +1,4 @@
-import React, {Component, StyleSheet} from '../../../base-react'
+import React, {Component} from 'react'
 import {TextField, RaisedButton} from 'material-ui'
 
 export default class UserPassRender extends Component {
@@ -54,7 +54,7 @@ UserPassRender.propTypes = {
   buttonEnabled: React.PropTypes.bool.isRequired
 }
 
-const styles = StyleSheet.create({
+const styles = {
   container: {
     flex: 1,
     display: 'flex',
@@ -64,4 +64,4 @@ const styles = StyleSheet.create({
     paddingTop: 100,
     padding: 20
   }
-})
+}

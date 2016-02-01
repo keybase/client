@@ -1,2 +1,2 @@
-import {SwitchAndroid} from '../base-react'
+import {SwitchAndroid} from 'react-native'
 export default SwitchAndroid
