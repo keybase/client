@@ -91,7 +91,7 @@ class Keybase extends Component {
   render () {
     let dt = null
     if (__DEV__ && reduxDevToolsEnable) { // eslint-disable-line no-undef
-      const DevTools = require('./redux-dev-tools')
+      const DevTools = require('./redux-dev-tools').default
       dt = <DevTools />
     }
 

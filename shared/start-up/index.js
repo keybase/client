@@ -1,6 +1,7 @@
 import React, {Component} from 'react'
 import {View, Text} from 'react-native'
 import {connect} from 'react-redux'
+import login from '../login/welcome'
 
 class RegisterPlaceHolder extends Component {
   render () {
@@ -17,7 +18,7 @@ class Startup extends Component {
     return {
       componentAtTop: {hideNavBar: true},
       subRoutes: {
-        login: require('../login/welcome'),
+        login,
         // TODO when kex2 is done import Registration from './login/register'
         register: RegisterPlaceHolder
       }

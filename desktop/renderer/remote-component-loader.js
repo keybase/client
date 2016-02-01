@@ -8,6 +8,10 @@ import consoleHelper, {ipcLogsRenderer} from '../app/console-helper'
 import hello from '../shared/util/hello'
 import {globalColors} from '../shared/styles/style-guide'
 
+import tracker from '../shared/tracker'
+import pinentry from '../shared/pinentry'
+import update from '../shared/update'
+
 consoleHelper()
 ipcLogsRenderer()
 
@@ -59,11 +63,7 @@ class RemoteComponentLoader extends Component {
 
     hello(process.pid, 'Remote Component: ' + (title || ''), process.argv)
 
-    const component = {
-      tracker: require('../shared/tracker').default,
-      pinentry: require('../shared/pinentry'),
-      update: require('../shared/update')
-    }
+    const component = {tracker, pinentry, update}
 
     if (!componentToLoad || !component[componentToLoad]) {
       throw new TypeError('Invalid Remote Component passed through')
