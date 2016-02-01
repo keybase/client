@@ -216,7 +216,12 @@ class Engine {
     } else if (!sessionID && this.serverListeners[method]) {
       this._serverInitIncomingRPC(method, param, response)
     } else {
-      console.log(`Unknown incoming rpc: ${sessionID} ${method} ${param}`)
+      if (__DEV__) {
+        console.log(`Unknown incoming rpc: ${sessionID} ${method} ${param}${response ? ': Sending back error' : ''}`)
+      }
+      if (response && response.error) {
+        response.error('Unhandled rpc')
+      }
     }
   }
 
