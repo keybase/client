@@ -342,7 +342,8 @@ type folderBranchOps struct {
 	archiveChan chan *RootMetadata
 	// archiveGroup can be Wait'd on to ensure that all outstanding
 	// archivals are completed.  Calls to Wait() and Add() should be
-	// protected by mdWriterLock.
+	// protected by mdWriterLock. TODO: protect this group with its
+	// own lock.
 	archiveGroup sync.WaitGroup
 
 	// blocksToDeleteAfterError is a list of blocks, for a given
@@ -1978,7 +1979,7 @@ func (fbo *folderBranchOps) isRevisionConflict(err error) bool {
 }
 
 // mdWriterLock must be held by the caller.
-func (fbo *folderBranchOps) archiveLocked(md *RootMetadata) {
+func (fbo *folderBranchOps) archiveUnrefBlocksLocked(md *RootMetadata) {
 	// Don't archive for unmerged revisions, because conflict
 	// resolution might undo some of the unreferences.
 	if md.MergedStatus() != Merged {
@@ -2081,7 +2082,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 	}
 
 	// Archive the old, unref'd blocks
-	fbo.archiveLocked(md)
+	fbo.archiveUnrefBlocksLocked(md)
 
 	fbo.notifyBatchLocked(ctx, lState, md)
 	return nil
@@ -5399,7 +5400,7 @@ func (fbo *folderBranchOps) finalizeResolution(ctx context.Context,
 	fbo.setStagedLocked(lState, false, NullBranchID)
 
 	// Archive the old, unref'd blocks
-	fbo.archiveLocked(md)
+	fbo.archiveUnrefBlocksLocked(md)
 
 	// notifyOneOp for every fixed-up merged op.
 	for _, op := range newOps {
@@ -5459,7 +5460,7 @@ func (fbo *folderBranchOps) processToDelete(ctx context.Context) error {
 				defer fbo.mdWriterLock.Unlock(lState)
 				fbo.log.CDebugf(ctx, "Archiving successful MD revision %d",
 					rmds[0].Revision)
-				fbo.archiveLocked(rmds[0])
+				fbo.archiveUnrefBlocksLocked(rmds[0])
 				return nil
 			})
 			continue
