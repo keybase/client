@@ -750,11 +750,13 @@ func (s *LoginState) acctHandle(f acctHandler, name string) error {
 	}
 	select {
 	case s.acctReqs <- req:
-		// this is just during debugging:
 	case <-time.After(5 * time.Second):
+		// this is just during debugging:
 		s.G().Log.Debug("timed out sending acct request %q", name)
 		s.G().Log.Debug("active request: %s", s.activeReq)
-		debug.PrintStack()
+		if s.G().Env.GetDebug() {
+			debug.PrintStack()
+		}
 		return TimeoutError{}
 	}
 
