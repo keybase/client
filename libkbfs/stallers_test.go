@@ -49,34 +49,34 @@ func (f *stallingBlockOps) maybeStall(ctx context.Context, opName string) {
 func (f *stallingBlockOps) Get(
 	ctx context.Context, md *RootMetadata, blockPtr BlockPointer,
 	block Block) error {
-	f.maybeStall(ctx, "get")
+	f.maybeStall(ctx, "Get")
 	return f.delegate.Get(ctx, md, blockPtr, block)
 }
 
 func (f *stallingBlockOps) Ready(
 	ctx context.Context, md *RootMetadata, block Block) (
 	id BlockID, plainSize int, readyBlockData ReadyBlockData, err error) {
-	f.maybeStall(ctx, "ready")
+	f.maybeStall(ctx, "Ready")
 	return f.delegate.Ready(ctx, md, block)
 }
 
 func (f *stallingBlockOps) Put(
 	ctx context.Context, md *RootMetadata, blockPtr BlockPointer,
 	readyBlockData ReadyBlockData) error {
-	f.maybeStall(ctx, "put")
+	f.maybeStall(ctx, "Put")
 	return f.delegate.Put(ctx, md, blockPtr, readyBlockData)
 }
 
 func (f *stallingBlockOps) Delete(
 	ctx context.Context, md *RootMetadata, id BlockID,
 	context BlockContext) error {
-	f.maybeStall(ctx, "delete")
+	f.maybeStall(ctx, "Delete")
 	return f.delegate.Delete(ctx, md, id, context)
 }
 
 func (f *stallingBlockOps) Archive(
 	ctx context.Context, md *RootMetadata, ptrs []BlockPointer) error {
-	f.maybeStall(ctx, "archive")
+	f.maybeStall(ctx, "Archive")
 	return f.delegate.Archive(ctx, md, ptrs)
 }
 
@@ -99,42 +99,42 @@ func (m *stallingMDOps) maybeStall(ctx context.Context, opName string) {
 
 func (m *stallingMDOps) GetForHandle(ctx context.Context, handle *TlfHandle) (
 	*RootMetadata, error) {
-	m.maybeStall(ctx, "gethandle")
+	m.maybeStall(ctx, "GetForHandle")
 	return m.delegate.GetForHandle(ctx, handle)
 }
 
 func (m *stallingMDOps) GetUnmergedForHandle(ctx context.Context,
 	handle *TlfHandle) (*RootMetadata, error) {
-	m.maybeStall(ctx, "getunmergedhandle")
+	m.maybeStall(ctx, "GetUnmergedForHandle")
 	return m.delegate.GetUnmergedForHandle(ctx, handle)
 }
 
 func (m *stallingMDOps) GetForTLF(ctx context.Context, id TlfID) (
 	*RootMetadata, error) {
-	m.maybeStall(ctx, "gettlf")
+	m.maybeStall(ctx, "GetForTLF")
 	return m.delegate.GetForTLF(ctx, id)
 }
 
 func (m *stallingMDOps) GetUnmergedForTLF(ctx context.Context, id TlfID,
 	bid BranchID) (*RootMetadata, error) {
-	m.maybeStall(ctx, "getunmergedtlf")
+	m.maybeStall(ctx, "GetUnmergedForTLF")
 	return m.delegate.GetUnmergedForTLF(ctx, id, bid)
 }
 
 func (m *stallingMDOps) GetRange(ctx context.Context, id TlfID,
 	start, stop MetadataRevision) ([]*RootMetadata, error) {
-	m.maybeStall(ctx, "get")
+	m.maybeStall(ctx, "GetRange")
 	return m.delegate.GetRange(ctx, id, start, stop)
 }
 
 func (m *stallingMDOps) GetUnmergedRange(ctx context.Context, id TlfID,
 	bid BranchID, start, stop MetadataRevision) ([]*RootMetadata, error) {
-	m.maybeStall(ctx, "getunmerged")
+	m.maybeStall(ctx, "GetUnmergedRange")
 	return m.delegate.GetUnmergedRange(ctx, id, bid, start, stop)
 }
 
 func (m *stallingMDOps) Put(ctx context.Context, md *RootMetadata) error {
-	m.maybeStall(ctx, "put")
+	m.maybeStall(ctx, "Put")
 	err := m.delegate.Put(ctx, md)
 	// If the Put was canceled, return the cancel error.  This
 	// emulates the Put being canceled while the RPC is outstanding.
@@ -148,6 +148,6 @@ func (m *stallingMDOps) Put(ctx context.Context, md *RootMetadata) error {
 
 func (m *stallingMDOps) PutUnmerged(ctx context.Context, md *RootMetadata,
 	bid BranchID) error {
-	m.maybeStall(ctx, "putunmerged")
+	m.maybeStall(ctx, "PutUnmerged")
 	return m.delegate.PutUnmerged(ctx, md, bid)
 }

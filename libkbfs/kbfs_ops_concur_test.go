@@ -56,7 +56,7 @@ func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 	getValue := "get"
 
 	config.SetMDOps(&stallingMDOps{
-		stallOpName: "gettlf",
+		stallOpName: "GetForTLF",
 		stallKey:    stallKey,
 		stallMap: map[interface{}]staller{
 			getValue: staller{
@@ -118,7 +118,7 @@ func setStallingMDOpsForPut(ctx context.Context, config Config) (
 	putValue := "put"
 
 	config.SetMDOps(&stallingMDOps{
-		stallOpName: "put",
+		stallOpName: "Put",
 		stallKey:    stallKey,
 		stallMap: map[interface{}]staller{
 			putValue: staller{
@@ -475,7 +475,7 @@ func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
 	writeValue := "write"
 
 	config.SetBlockOps(&stallingBlockOps{
-		stallOpName: "get",
+		stallOpName: "Get",
 		stallKey:    stallKey,
 		stallMap: map[interface{}]staller{
 			readValue: staller{
@@ -624,7 +624,7 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 	syncValue := "sync"
 
 	config.SetBlockOps(&stallingBlockOps{
-		stallOpName: "get",
+		stallOpName: "Get",
 		stallKey:    stallKey,
 		stallMap: map[interface{}]staller{
 			syncValue: staller{
@@ -736,7 +736,7 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 	syncValue := "sync"
 
 	config.SetBlockOps(&stallingBlockOps{
-		stallOpName: "get",
+		stallOpName: "Get",
 		stallKey:    stallKey,
 		stallMap: map[interface{}]staller{
 			syncValue: staller{
@@ -1259,7 +1259,7 @@ func TestKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T) {
 	syncValue := "sync"
 
 	config.SetBlockOps(&stallingBlockOps{
-		stallOpName: "put",
+		stallOpName: "Put",
 		stallKey:    stallKey,
 		stallMap: map[interface{}]staller{
 			syncValue: staller{
