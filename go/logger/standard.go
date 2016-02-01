@@ -21,7 +21,6 @@ import (
 const permDir os.FileMode = 0700
 
 var initLoggingBackendOnce sync.Once
-var logRotateMutex sync.Mutex
 
 // Map from module name to whether SetLevel() has been called for that
 // module.
@@ -77,7 +76,6 @@ type entry struct {
 
 type Standard struct {
 	internal       *logging.Logger
-	filename       string
 	configureMutex sync.Mutex
 	module         string
 	isTerminal     bool
@@ -263,11 +261,9 @@ func (log *Standard) Profile(fmts string, arg ...interface{}) {
 	log.Debug(fmts, arg...)
 }
 
-func (log *Standard) Configure(style string, debug bool, filename string) {
+func (log *Standard) Configure(style string, debug bool) {
 	log.configureMutex.Lock()
 	defer log.configureMutex.Unlock()
-
-	log.filename = filename
 
 	var logfmt string
 	if log.isTerminal {
@@ -297,18 +293,6 @@ func (log *Standard) Configure(style string, debug bool, filename string) {
 	}
 
 	logging.SetFormatter(logging.MustStringFormatter(logfmt))
-}
-
-func OpenLogFile(filename string) (name string, file *os.File, err error) {
-	name = filename
-	if err = MakeParentDirs(name); err != nil {
-		return
-	}
-	file, err = os.OpenFile(name, (os.O_APPEND | os.O_WRONLY | os.O_CREATE), 0600)
-	if err != nil {
-		return
-	}
-	return
 }
 
 func FileExists(path string) (bool, error) {

@@ -120,13 +120,8 @@ func (log *TestLogger) Profile(fmts string, arg ...interface{}) {
 	log.log.Logf(prefixCaller(logging.CRITICAL, fmts), arg...)
 }
 
-func (log *TestLogger) Configure(style string, debug bool, filename string) {
+func (log *TestLogger) Configure(style string, debug bool) {
 	// no-op
-}
-
-func (log *TestLogger) RotateLogFile() error {
-	// no-op
-	return nil
 }
 
 // no-op stubs to fulfill the Logger interface

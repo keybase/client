@@ -34,10 +34,6 @@ func (c *CtlHandler) Stop(_ context.Context, args keybase1.StopArg) error {
 	return nil
 }
 
-func (c *CtlHandler) LogRotate(_ context.Context, sessionID int) error {
-	return c.G().Log.RotateLogFile()
-}
-
 func (c *CtlHandler) Reload(_ context.Context, sessionID int) error {
 	c.G().Log.Info("Reloading config file")
 	return c.G().ConfigReload()

@@ -313,13 +313,6 @@ func RandIntn(n int) int {
 	return x % n
 }
 
-// OpenLogFile opens the standard Keybase logfile, and returns its
-// name, its File object, or an Error if it didn't work out.
-func OpenLogFile() (name string, file *os.File, err error) {
-	name = G.Env.GetLogFile()
-	return logger.OpenLogFile(name)
-}
-
 // MakeURI makes a URI string out of the given protocol and
 // host strings, adding necessary punctuation in between.
 func MakeURI(prot string, host string) string {
