@@ -133,7 +133,7 @@ func (c *CmdLogSend) outputInstructions(id string) {
 	ui.Printf("keybase.io received your logs successfully! Your log dump ID is:\n\n")
 	ui.Printf("\t%s\n\n", id)
 	ui.Printf("Here's a URL to submit a bug report containing this ID:\n\n")
-	ui.Printf("\thttps://github.com/keybase/keybase-issues/issues/new?body=log+dump+id+%s\n\n", id)
+	ui.Printf("\thttps://github.com/keybase/client/issues/new?body=log+dump+id+%s\n\n", id)
 	ui.Printf("Thanks!\n")
 }
 

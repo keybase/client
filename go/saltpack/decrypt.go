@@ -177,7 +177,7 @@ func (ds *decryptStream) tryVisibleReceivers(hdr *encryptionHeader, ephemeralKey
 }
 
 func (ds *decryptStream) tryHiddenReceivers(hdr *encryptionHeader, ephemeralKey BoxPublicKey) (BoxSecretKey, *SymmetricKey, int, error) {
-	secretKeys := ds.ring.GetAllSecretKeys()
+	secretKeys := ds.ring.GetAllBoxSecretKeys()
 
 	for _, r := range hdr.Receivers {
 		if len(r.ReceiverKID) == 0 {
@@ -212,7 +212,7 @@ func (ds *decryptStream) processEncryptionHeader(hdr *encryptionHeader) error {
 		return err
 	}
 
-	ephemeralKey := ds.ring.ImportEphemeralKey(hdr.Ephemeral)
+	ephemeralKey := ds.ring.ImportBoxEphemeralKey(hdr.Ephemeral)
 	if ephemeralKey == nil {
 		return ErrBadEphemeralKey
 	}

@@ -88,8 +88,8 @@ type SigningSecretKey interface {
 	// Sign signs message with this secret key.
 	Sign(message []byte) ([]byte, error)
 
-	// PublicKey gets the public key associated with this secret key.
-	PublicKey() SigningPublicKey
+	// GetPublicKey gets the public key associated with this secret key.
+	GetPublicKey() SigningPublicKey
 }
 
 // SigningPublicKey is a public NaCl key that can verify
@@ -117,12 +117,12 @@ type Keyring interface {
 
 	// GetAllSecretKeys returns all keys, needed if we want to support
 	// "hidden" receivers via trial and error
-	GetAllSecretKeys() []BoxSecretKey
+	GetAllBoxSecretKeys() []BoxSecretKey
 
 	// ImportEphemeralKey imports the ephemeral key into
 	// BoxPublicKey format. This key has never been seen before, so
 	// will be ephemeral.
-	ImportEphemeralKey(kid []byte) BoxPublicKey
+	ImportBoxEphemeralKey(kid []byte) BoxPublicKey
 }
 
 // SigKeyring is an interface used during verification to find
@@ -132,8 +132,13 @@ type SigKeyring interface {
 	LookupSigningPublicKey(kid []byte) SigningPublicKey
 }
 
-// publicKeyEqual returns true if the two public keys are equal.
-func publicKeyEqual(pk1, pk2 BoxPublicKey) bool {
+// PublicKeyEqual returns true if the two public keys are equal.
+func PublicKeyEqual(pk1, pk2 BoxPublicKey) bool {
+	return kidEqual(pk1, pk2)
+}
+
+// PublicSigningKeyEqual returns true if the two public signing keys are equal
+func PublicSigningKeyEqual(pk1, pk2 SigningPublicKey) bool {
 	return kidEqual(pk1, pk2)
 }
 

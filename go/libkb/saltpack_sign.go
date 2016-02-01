@@ -69,7 +69,7 @@ type saltSigner struct {
 	NaclSigningKeyPair
 }
 
-func (s saltSigner) PublicKey() saltpack.SigningPublicKey {
+func (s saltSigner) GetPublicKey() saltpack.SigningPublicKey {
 	return saltSignerPublic{key: s.Public}
 }
 

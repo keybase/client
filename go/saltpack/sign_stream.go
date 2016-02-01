@@ -24,7 +24,7 @@ func newSignAttachedStream(w io.Writer, signer SigningSecretKey) (*signAttachedS
 		return nil, ErrInvalidParameter{message: "no signing key provided"}
 	}
 
-	header, err := newSignatureHeader(signer.PublicKey(), MessageTypeAttachedSignature)
+	header, err := newSignatureHeader(signer.GetPublicKey(), MessageTypeAttachedSignature)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +125,7 @@ func newSignDetachedStream(w io.Writer, signer SigningSecretKey) (*signDetachedS
 		return nil, ErrInvalidParameter{message: "no signing key provided"}
 	}
 
-	header, err := newSignatureHeader(signer.PublicKey(), MessageTypeDetachedSignature)
+	header, err := newSignatureHeader(signer.GetPublicKey(), MessageTypeDetachedSignature)
 	if err != nil {
 		return nil, err
 	}

@@ -26,7 +26,9 @@ func NewDearmor62DecryptStream(ciphertext io.Reader, kr Keyring) (*MessageKeyInf
 
 // Dearmor62DecryptOpen takes an armor62'ed, encrypted ciphertext and attempts to
 // dearmor and decrypt it, using the provided keyring. Checks that the frames in the
-// armor are as expected.
+// armor are as expected. Returns the MessageKeyInfo recovered during message
+// processing, the plaintext (if decryption succeeded), the armor branding, and
+// maybe an error if there was a failure.
 func Dearmor62DecryptOpen(ciphertext string, kr Keyring) (*MessageKeyInfo, []byte, string, error) {
 	buf := bytes.NewBufferString(ciphertext)
 	mki, s, frame, err := NewDearmor62DecryptStream(buf, kr)

@@ -4,9 +4,9 @@ import {Provider} from 'react-redux'
 import remote from 'remote'
 import {ipcRenderer} from 'electron'
 import RemoteStore from './remote-store'
-import consoleHelper, {ipcLogsRenderer} from '../../../desktop/app/console-helper'
-import hello from '../util/hello'
-import {globalColors} from '../styles/style-guide'
+import consoleHelper, {ipcLogsRenderer} from '../app/console-helper'
+import hello from '../shared/util/hello'
+import {globalColors} from '../shared/styles/style-guide'
 
 consoleHelper()
 ipcLogsRenderer()
@@ -60,9 +60,9 @@ class RemoteComponentLoader extends Component {
     hello(process.pid, 'Remote Component: ' + (title || ''), process.argv)
 
     const component = {
-      tracker: require('../tracker').default,
-      pinentry: require('../pinentry'),
-      update: require('../update')
+      tracker: require('../shared/tracker').default,
+      pinentry: require('../shared/pinentry'),
+      update: require('../shared/update')
     }
 
     if (!componentToLoad || !component[componentToLoad]) {

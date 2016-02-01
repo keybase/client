@@ -1,8 +1,8 @@
 import {ipcMain, ipcRenderer} from 'electron'
 import util from 'util'
-import {forwardLogs} from '../../react-native/react/local-debug'
+import {forwardLogs} from '../shared/local-debug'
 import fs from 'fs'
-import {logFileName} from '../../react-native/react/constants/platform.native.desktop.js'
+import {logFileName} from '../shared/constants/platform.native.desktop.js'
 
 const methods = ['log', 'error', 'info']
 const originalConsole = {}

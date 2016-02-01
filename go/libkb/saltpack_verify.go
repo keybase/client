@@ -126,12 +126,12 @@ type sigKeyring struct {
 }
 
 func (s sigKeyring) LookupSigningPublicKey(kid []byte) saltpack.SigningPublicKey {
-	if s.PublicKey() == nil {
+	if s.GetPublicKey() == nil {
 		return nil
 	}
 
-	if hmac.Equal(s.PublicKey().ToKID(), kid) {
-		return s.PublicKey()
+	if hmac.Equal(s.GetPublicKey().ToKID(), kid) {
+		return s.GetPublicKey()
 	}
 
 	return nil

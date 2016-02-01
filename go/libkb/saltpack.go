@@ -121,11 +121,11 @@ func (n naclKeyring) LookupBoxPublicKey(kid []byte) saltpack.BoxPublicKey {
 	return pk
 }
 
-func (n naclKeyring) GetAllSecretKeys() []saltpack.BoxSecretKey {
+func (n naclKeyring) GetAllBoxSecretKeys() []saltpack.BoxSecretKey {
 	return []saltpack.BoxSecretKey{naclBoxSecretKey(n)}
 }
 
-func (n naclKeyring) ImportEphemeralKey(kid []byte) saltpack.BoxPublicKey {
+func (n naclKeyring) ImportBoxEphemeralKey(kid []byte) saltpack.BoxPublicKey {
 	return n.LookupBoxPublicKey(kid)
 }
 

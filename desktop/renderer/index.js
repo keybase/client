@@ -6,19 +6,19 @@
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
 import {Provider} from 'react-redux'
-import configureStore from '../../react-native/react/store/configure-store'
-import Nav from '../../react-native/react/nav'
+import configureStore from '../shared/store/configure-store'
+import Nav from '../shared/nav'
 import injectTapEventPlugin from 'react-tap-event-plugin'
-import ListenLogUi from '../../react-native/react/native/listen-log-ui'
-import {reduxDevToolsEnable, devStoreChangingFunctions} from '../../react-native/react/local-debug'
-import {listenForNotifications} from '../../react-native/react/actions/notifications'
-import hello from '../../react-native/react/util/hello'
+import ListenLogUi from '../shared/native/listen-log-ui'
+import {reduxDevToolsEnable, devStoreChangingFunctions} from '../shared/local-debug'
+import {listenForNotifications} from '../shared/actions/notifications'
+import hello from '../shared/util/hello'
 
-import {devEditAction} from '../../react-native/react/reducers/devEdit'
+import {devEditAction} from '../shared/reducers/devEdit'
 
 // For Remote Components
 import {ipcRenderer} from 'electron'
-import RemoteManager from '../../react-native/react/native/remote-manager'
+import RemoteManager from './remote-manager'
 import consoleHelper from '../app/console-helper'
 import _ from 'lodash'
 
