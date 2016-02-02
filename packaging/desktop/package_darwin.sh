@@ -6,9 +6,9 @@ dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd $dir
 
 client_dir="$dir/../.."
-build_dir=${BUILD_DIR:-"$dir/build"}
+build_dir=${BUILD_DIR:-"/tmp/package_darwin/build"}
 save_dir=${SAVE_DIR:-}
-tmp_dir="$dir/tmp"
+tmp_dir="/tmp/package_darwin/tmp"
 bucket_name=${BUCKET_NAME:-}
 run_mode="prod"
 platform="darwin"
