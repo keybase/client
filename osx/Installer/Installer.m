@@ -10,6 +10,7 @@
 
 #import <KBKit/KBKit.h>
 #import "Settings.h"
+#import "Uninstaller.h"
 
 @interface Installer ()
 @property Settings *settings;
@@ -17,9 +18,9 @@
 @end
 
 typedef NS_ENUM (NSInteger, KBExit) {
-  KBExitIgnore = 0,
-  KBExitNormal = 0,
-  KBExitQuit = 1,
+  KBExitOK = 0,
+  KBExitIgnoreError = 0,
+  KBExitError = 1,
 };
 
 @implementation Installer
@@ -33,21 +34,54 @@ typedef NS_ENUM (NSInteger, KBExit) {
   [KBAppearance setCurrentAppearance:[KBUIAppearance appearance]];
 
   GBSettings *settings = [GBSettings settingsWithName:@"Settings" parent:nil];
-#if DEBUG
-  [settings setObject:@"/Applications/Keybase.app" forKey:@"app-path"];
-  //  [self.settings setObject:@"/Volumes/Keybase/Keybase.app" forKey:@"app-path"];
-  [settings setObject:@"prod" forKey:@"run-mode"];
-#endif
+//#if DEBUG
+//  [settings setObject:@"/Applications/Keybase.app" forKey:@"app-path"];
+//  //  [self.settings setObject:@"/Volumes/Keybase/Keybase.app" forKey:@"app-path"];
+//  [settings setObject:@"prod" forKey:@"run-mode"];
+//#endif
   _settings = [[Settings alloc] initWithSettings:settings];
 
+  if ([_settings isUninstall]) {
+    [self uninstall];
+  } else {
+    [self install];
+  }
+}
+
+- (void)waitForLog {
+  dispatch_semaphore_t sema = dispatch_semaphore_create(0);
+  dispatch_async(DDLog.loggingQueue, ^{
+    dispatch_semaphore_signal(sema);
+  });
+  dispatch_semaphore_wait(sema, dispatch_time(DISPATCH_TIME_NOW, 1.0 * NSEC_PER_SEC));
+}
+
+- (void)exit:(KBExit)code {
+  [self waitForLog];
+  exit(code);
+}
+
+- (void)install {
   [self install:^(NSError *error, KBEnvironment *environment, KBExit exitCode) {
     if (!error) {
       [self afterInstall:environment];
     }
     DDLogInfo(@"Exit(%@)", @(exitCode));
     dispatch_async(dispatch_get_main_queue(), ^{
-      exit(exitCode);
+      [self exit:exitCode];
     });
+  }];
+}
+
+- (void)uninstall {
+  [Uninstaller uninstallWithSettings:_settings completion:^(NSError *error) {
+    if (error) {
+      DDLogError(@"Error uninstalling: %@", error);
+      [self exit:KBExitError];
+      return;
+    }
+    DDLogInfo(@"Uninstalled");
+    [self exit:KBExitOK];
   }];
 }
 
@@ -83,7 +117,7 @@ typedef NS_ENUM (NSInteger, KBExit) {
 
 - (void)checkError:(NSError *)error environment:(KBEnvironment *)environment completion:(void (^)(NSError *error, KBExit exit))completion {
   if (!error) {
-    completion(nil, KBExitNormal);
+    completion(nil, KBExitOK);
     return;
   }
 
@@ -97,9 +131,9 @@ typedef NS_ENUM (NSInteger, KBExit) {
   [alert setAlertStyle:NSWarningAlertStyle];
   NSModalResponse response = [alert runModal];
   if (response == NSAlertFirstButtonReturn) {
-    completion(error, KBExitQuit);
+    completion(error, KBExitError);
   } else if (response == NSAlertSecondButtonReturn) {
-    completion(error, KBExitIgnore);
+    completion(error, KBExitIgnoreError);
   } else if (response == NSAlertThirdButtonReturn) {
     [self showMoreDetails:error environment:environment completion:completion];
   }
@@ -129,9 +163,9 @@ typedef NS_ENUM (NSInteger, KBExit) {
 
   NSModalResponse response = [alert runModal];
   if (response == NSAlertFirstButtonReturn) {
-    completion(error, KBExitQuit);
+    completion(error, KBExitError);
   } else if (response == NSAlertSecondButtonReturn) {
-    completion(error, KBExitIgnore);
+    completion(error, KBExitIgnoreError);
   }
 }
 

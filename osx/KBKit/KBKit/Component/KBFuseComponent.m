@@ -142,6 +142,13 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
     if ([cs needsInstallOrUpgrade]) {
       [self _install:completion];
     } else {
+      // Check if we need to fix the current install
+      if ([self needsFix]) {
+        DDLogInfo(@"Current install needs fix");
+        [self fix:completion];
+        return;
+      }
+
       completion(nil);
     }
   }];
@@ -171,6 +178,21 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 
 - (void)stop:(KBCompletion)completion {
   [self.helperTool.helper sendRequest:@"kextUnload" params:@[@{@"kextID": self.kextID}] completion:^(NSError *error, id value) {
+    completion(error);
+  }];
+}
+
+// Check if we need to do a fix instead of a full install
+- (BOOL)needsFix {
+  // Check if missing 10.11 symlink in extensions directory
+  return [NSFileManager.defaultManager fileExistsAtPath:self.destination] && ![NSFileManager.defaultManager attributesOfItemAtPath:[self.destination stringByAppendingPathComponent:@"Contents/Extensions/10.11"] error:nil];
+}
+
+- (void)fix:(KBCompletion)completion {
+  // Current fix is to re-copy the fuse kext
+  NSDictionary *params = @{@"source": self.source, @"destination": self.destination};
+  DDLogDebug(@"Helper: kextCopy(%@)", params);
+  [self.helperTool.helper sendRequest:@"kextCopy" params:@[params] completion:^(NSError *error, id value) {
     completion(error);
   }];
 }

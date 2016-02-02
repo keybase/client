@@ -339,6 +339,8 @@
 		0033F4761C3F271B00317C79 /* KBMemLogger.m in Sources */ = {isa = PBXBuildFile; fileRef = 0033F4741C3F271B00317C79 /* KBMemLogger.m */; };
 		0033F4791C3F27D700317C79 /* KBLogFormatter.h in Headers */ = {isa = PBXBuildFile; fileRef = 0033F4771C3F27D700317C79 /* KBLogFormatter.h */; };
 		0033F47A1C3F27D700317C79 /* KBLogFormatter.m in Sources */ = {isa = PBXBuildFile; fileRef = 0033F4781C3F27D700317C79 /* KBLogFormatter.m */; };
+		0036340B1C603E270089465B /* KBAppBundle.h in Headers */ = {isa = PBXBuildFile; fileRef = 003634091C603E270089465B /* KBAppBundle.h */; };
+		0036340C1C603E270089465B /* KBAppBundle.m in Sources */ = {isa = PBXBuildFile; fileRef = 0036340A1C603E270089465B /* KBAppBundle.m */; };
 		004E09C81C28CA0F00E3A061 /* KBLoginItem.h in Headers */ = {isa = PBXBuildFile; fileRef = 004E09C61C28CA0F00E3A061 /* KBLoginItem.h */; };
 		004E09C91C28CA0F00E3A061 /* KBLoginItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 004E09C71C28CA0F00E3A061 /* KBLoginItem.m */; };
 		004E09DA1C3DD6C500E3A061 /* KBInstallStatusView.h in Headers */ = {isa = PBXBuildFile; fileRef = 004E09D81C3DD6C500E3A061 /* KBInstallStatusView.h */; };
@@ -700,6 +702,8 @@
 		0033F4741C3F271B00317C79 /* KBMemLogger.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBMemLogger.m; sourceTree = "<group>"; };
 		0033F4771C3F27D700317C79 /* KBLogFormatter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBLogFormatter.h; sourceTree = "<group>"; };
 		0033F4781C3F27D700317C79 /* KBLogFormatter.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBLogFormatter.m; sourceTree = "<group>"; };
+		003634091C603E270089465B /* KBAppBundle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBAppBundle.h; sourceTree = "<group>"; };
+		0036340A1C603E270089465B /* KBAppBundle.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBAppBundle.m; sourceTree = "<group>"; };
 		004E09C61C28CA0F00E3A061 /* KBLoginItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBLoginItem.h; sourceTree = "<group>"; };
 		004E09C71C28CA0F00E3A061 /* KBLoginItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBLoginItem.m; sourceTree = "<group>"; };
 		004E09D81C3DD6C500E3A061 /* KBInstallStatusView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBInstallStatusView.h; sourceTree = "<group>"; };
@@ -844,6 +848,8 @@
 				00010B531BE19F8800A9C285 /* KBUninstaller.m */,
 				00E206661C4DBD170095FD56 /* KBCommandLine.h */,
 				00E206671C4DBD170095FD56 /* KBCommandLine.m */,
+				003634091C603E270089465B /* KBAppBundle.h */,
+				0036340A1C603E270089465B /* KBAppBundle.m */,
 			);
 			name = Component;
 			path = KBKit/Component;
@@ -1478,6 +1484,7 @@
 				00010DAE1BE19F8900A9C285 /* KBProofView.h in Headers */,
 				00010D661BE19F8900A9C285 /* KBPGPAppView.h in Headers */,
 				00010D2E1BE19F8900A9C285 /* KBFileListView.h in Headers */,
+				0036340B1C603E270089465B /* KBAppBundle.h in Headers */,
 				00010CF21BE19F8900A9C285 /* KBRPCRecord.h in Headers */,
 				00010CAD1BE19F8900A9C285 /* KBInstallable.h in Headers */,
 				00010CCF1BE19F8900A9C285 /* KBSemVersion.h in Headers */,
@@ -1643,6 +1650,7 @@
 				00010CE51BE19F8900A9C285 /* KBPrefOption.m in Sources */,
 				00010CD01BE19F8900A9C285 /* KBSemVersion.m in Sources */,
 				00010DE11BE19F8900A9C285 /* KBWaitFor.m in Sources */,
+				0036340C1C603E270089465B /* KBAppBundle.m in Sources */,
 				00010D7B1BE19F8900A9C285 /* KBPGPEncryptFilesView.m in Sources */,
 				00010DAD1BE19F8900A9C285 /* KBProofResult.m in Sources */,
 				00010D411BE19F8900A9C285 /* KBInstallStatusAppView.m in Sources */,

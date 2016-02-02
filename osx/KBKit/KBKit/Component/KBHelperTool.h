@@ -18,4 +18,6 @@
 
 - (instancetype)initWithConfig:(KBEnvConfig *)config;
 
++ (MPXPCClient *)helper;
+
 @end

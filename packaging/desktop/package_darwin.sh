@@ -70,7 +70,7 @@ out_dir="$build_dir/Keybase-darwin-x64"
 shared_support_dir="$out_dir/Keybase.app/Contents/SharedSupport"
 resources_dir="$out_dir/Keybase.app/Contents/Resources/"
 
-installer_url="https://github.com/keybase/client/releases/download/v1.0.9-0/KeybaseInstaller-1.1.18-darwin.tgz"
+installer_url="https://github.com/keybase/client/releases/download/v1.0.9-0/KeybaseInstaller-1.1.20-darwin.tgz"
 
 keybase_bin="$tmp_dir/keybase"
 kbfs_bin="$tmp_dir/kbfs"

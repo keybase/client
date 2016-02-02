@@ -10,11 +10,27 @@
 #import "KBLaunchCtl.h"
 #import "KBRunOver.h"
 #import "KBPath.h"
+#import "KBInstallable.h"
 #import <CocoaLumberjack/CocoaLumberjack.h>
 
 @implementation KBUninstaller
 
-+ (void)uninstall:(NSString *)prefix completion:(KBCompletion)completion {
++ (void)uninstall:(NSArray *)installables completion:(KBCompletion)completion {
+  KBRunOver *rover = [[KBRunOver alloc] init];
+  rover.enumerator = [installables objectEnumerator];
+  rover.runBlock = ^(KBInstallable *installable, KBRunCompletion runCompletion) {
+    [installable uninstall:^(NSError *error) {
+      installable.error = error;
+      runCompletion(installable);
+    }];
+  };
+  rover.completion = ^(NSArray *installables) {
+    completion([KBInstallable combineErrors:installables ignoreWarnings:YES]);
+  };
+  [rover run];
+}
+
++ (void)uninstallServicesWithPrefix:(NSString *)prefix completion:(KBCompletion)completion {
   NSAssert([prefix length] > 2, @"Must have a prefix");
   NSFileManager *fileManager = NSFileManager.defaultManager;
 

@@ -40,43 +40,9 @@
       NSString *desc = [[installable installDescription:@"\n"] join:@"\n"];
       DDLogInfo(@"%@: %@", name, desc);
     }
-    completion([self combineErrors:installables ignoreWarnings:YES], installables);
+    completion([KBInstallable combineErrors:installables ignoreWarnings:YES], installables);
   };
   [rover run];
-}
-
-- (NSError *)combineErrors:(NSArray *)installables ignoreWarnings:(BOOL)ignoreWarnings {
-  BOOL installed = YES;
-  NSMutableArray *errorMessages = [NSMutableArray array];
-  for (KBInstallable *installable in installables) {
-    NSError *error = installable.error;
-    if (!error) error = installable.componentStatus.error;
-
-    // Ignore warnings
-    if (ignoreWarnings && KBIsWarning(error)) {
-      continue;
-    }
-
-    NSString *errorMessage = nil;
-    if (error) {
-      errorMessage = NSStringWithFormat(@"%@ (%@)", installable.componentStatus.error.localizedDescription, @(installable.componentStatus.error.code));
-    }
-    if (errorMessage && ![errorMessages containsObject:errorMessage]) [errorMessages addObject:errorMessage];
-    installed &= [installable isInstalled];
-  }
-
-  if ([errorMessages count] == 0) {
-    if (!installed) {
-      // No errors but not everything was installed (this hopefully shouldn't happen)
-      return KBMakeError(KBErrorCodeGeneric, @"Unknown install error");
-    } else {
-      // Success (no errors)
-      return nil;
-    }
-  }
-
-  return KBMakeError(KBErrorCodeGeneric, @"%@", [errorMessages join:@".\n"]);
-
 }
 
 - (void)refreshStatusWithEnvironment:(KBEnvironment *)environment completion:(dispatch_block_t)completion {

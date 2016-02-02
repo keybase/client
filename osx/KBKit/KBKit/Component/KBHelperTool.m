@@ -43,10 +43,14 @@
   return [KBSemVersion version:NSBundle.mainBundle.infoDictionary[@"KBHelperVersion"] build:nil];
 }
 
++ (MPXPCClient *)helper {
+  return [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES readOptions:MPMessagePackReaderOptionsUseOrderedDictionary];
+}
+
 - (MPXPCClient *)helper {
   // Always use a new helper tool since it can be interrupted if stale or updated.
   [_helper close];
-  _helper = [[MPXPCClient alloc] initWithServiceName:@"keybase.Helper" privileged:YES readOptions:MPMessagePackReaderOptionsUseOrderedDictionary];
+  _helper = [KBHelperTool helper];
   return _helper;
 }
 

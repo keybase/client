@@ -81,6 +81,8 @@
     [KBKext installWithSource:args[@"source"] destination:args[@"destination"] kextID:args[@"kextID"] kextPath:args[@"kextPath"] completion:completion];
   } else if ([method isEqualToString:@"kextUninstall"]) {
     [KBKext uninstallWithDestination:args[@"destination"] kextID:args[@"kextID"] completion:completion];
+  } else if ([method isEqualToString:@"kextCopy"]) {
+    [KBKext copyWithSource:args[@"source"] destination:args[@"destination"] removeExisting:YES completion:completion];
   } else if ([method isEqualToString:@"trash"]) {
     [self trash:args[@"path"] completion:completion];
   } else if ([method isEqualToString:@"createDirectory"]) {
@@ -232,7 +234,8 @@
   }
 
   NSURL *outURL = nil;
-  if (![NSFileManager.defaultManager trashItemAtURL:[NSURL fileURLWithPath:path] resultingItemURL:&outURL error:&error]) {
+  // Don't use trashItemAtURL since we are root here and the root trash will never be emptied, let's remove it
+  if (![NSFileManager.defaultManager removeItemAtURL:[NSURL fileURLWithPath:path] error:&error]) {
     completion(error, nil);
   } else {
     completion(nil, @{@"outURL": [outURL absoluteString]});

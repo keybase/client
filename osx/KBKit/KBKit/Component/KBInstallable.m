@@ -103,4 +103,30 @@
   completion(KBMakeError(KBErrorCodeUnsupported, @"Unsupported"));
 }
 
++ (NSError *)combineErrors:(NSArray *)installables ignoreWarnings:(BOOL)ignoreWarnings {
+  NSMutableArray *errorMessages = [NSMutableArray array];
+  for (KBInstallable *installable in installables) {
+    NSError *error = installable.error;
+    if (!error) error = installable.componentStatus.error;
+
+    // Ignore warnings
+    if (ignoreWarnings && error && KBIsWarning(error)) {
+      continue;
+    }
+
+    NSString *errorMessage = nil;
+    if (error) {
+      errorMessage = NSStringWithFormat(@"%@ (%@)", installable.componentStatus.error.localizedDescription, @(installable.componentStatus.error.code));
+    }
+    if (errorMessage && ![errorMessages containsObject:errorMessage]) [errorMessages addObject:errorMessage];
+  }
+
+  if ([errorMessages count] == 0) {
+    // Success (no errors)
+    return nil;
+  }
+
+  return KBMakeError(KBErrorCodeGeneric, @"%@", [errorMessages join:@".\n"]);
+}
+
 @end

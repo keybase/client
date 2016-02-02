@@ -27,7 +27,7 @@ PODS:
     - CocoaLumberjack/Default
   - GBCli (1.1)
   - GHKeychain (1.2.8)
-  - GHKit (2.0.0)
+  - GHKit (2.0.2)
   - GHODictionary (1.0.9)
   - KBKit (0.1.6):
     - AFNetworking (~> 2.0)
@@ -45,14 +45,10 @@ PODS:
     - Mantle/extobjc (= 2.0.6)
   - Mantle/extobjc (2.0.6)
   - MDPSplitView (1.0.2)
-  - MPMessagePack (1.3.4):
+  - MPMessagePack (1.3.5):
     - GHODictionary
   - ObjectiveSugar (1.1.0)
-  - Slash (0.1.2):
-    - Slash/arc (= 0.1.2)
-    - Slash/no-arc (= 0.1.2)
-  - Slash/arc (0.1.2)
-  - Slash/no-arc (0.1.2)
+  - Slash (0.1.4)
   - Tikppa (0.1.1):
     - AFNetworking
     - CocoaLumberjack
@@ -67,35 +63,28 @@ DEPENDENCIES:
   - KBKit (from `KBKit`)
   - MPMessagePack
   - ObjectiveSugar
-  - Slash (from `https://github.com/chrisdevereux/Slash`)
+  - Slash
 
 EXTERNAL SOURCES:
   KBKit:
     :path: KBKit
-  Slash:
-    :git: https://github.com/chrisdevereux/Slash
-
-CHECKOUT OPTIONS:
-  Slash:
-    :commit: 7f50cd7825f57af22d82e99e0aeec5d82724eb13
-    :git: https://github.com/chrisdevereux/Slash
 
 SPEC CHECKSUMS:
   AFNetworking: cb8d14a848e831097108418f5d49217339d4eb60
   CocoaLumberjack: 17fe8581f84914d5d7e6360f7c70022b173c3ae0
   GBCli: e5f988fadb68e1e3c01919f134009fed9796fde0
   GHKeychain: 008cdb8bbab5b0dc1da3d0f06a67ce5203231e44
-  GHKit: 29e5361c9d8a33343ae5ed4698057d1533ee590b
+  GHKit: 02e7a86856912103d02c447a4a8860501b70334b
   GHODictionary: 1f7873492445e0f33ac19575a358c3c91926b564
   KBKit: 9f139696e2cd916f05ee603e33aabfd558ac8ccd
   Mantle: 299966b00759634931699f69cb6a30b9239b944d
   MDPSplitView: 127b4b371e813ec29333e515fb1c057126a75671
-  MPMessagePack: 7feea378c89a70af8fffb133014cd6904e8fad18
+  MPMessagePack: 7c9c9cdee049b62e3578ee423ba451fa406bbd08
   ObjectiveSugar: a6a25f23d657c19df0a0b972466d5b5ca9f5295c
-  Slash: fde91d6c2b9d985f50a00debffe804400dd9828c
+  Slash: 7184f2a98e13ad62303037db3a706c88e98b197e
   Tikppa: 3d4fca3d897592397d33d28cf594a9ae53cf966e
   YOLayout: 3f5b3ac64f9018f1e63a19223dbb8382c37d58cb
 
-PODFILE CHECKSUM: 948038c7991e6eb50fb99042ffc26603d04eda94
+PODFILE CHECKSUM: 254d09634e37270f76c88d82cab3a560a72b79ed
 
 COCOAPODS: 1.0.0.beta.2

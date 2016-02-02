@@ -53,4 +53,6 @@ typedef void (^KBOnComponentStatus)(KBComponentStatus *installStatus);
 
 - (BOOL)isInstalled;
 
++ (NSError *)combineErrors:(NSArray *)installables ignoreWarnings:(BOOL)ignoreWarnings;
+
 @end

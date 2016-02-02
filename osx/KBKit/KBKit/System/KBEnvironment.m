@@ -20,6 +20,7 @@
 @property KBEnvConfig *config;
 @property KBService *service;
 @property KBFSService *kbfs;
+@property KBFuseComponent *fuse;
 @property NSMutableArray */*of id<KBComponent>*/components;
 @property NSArray */*of KBInstallable*/installables;
 @property NSArray *services;
@@ -36,13 +37,13 @@
     _service = [[KBService alloc] initWithConfig:config label:[config launchdServiceLabel] servicePath:servicePath];
     _kbfs = [[KBFSService alloc] initWithConfig:config helperTool:helperTool label:[config launchdKBFSLabel] servicePath:servicePath];
 
-    KBFuseComponent *fuse = [[KBFuseComponent alloc] initWithConfig:config helperTool:helperTool servicePath:servicePath];
+    _fuse = [[KBFuseComponent alloc] initWithConfig:config helperTool:helperTool servicePath:servicePath];
     KBCommandLine *cli = [[KBCommandLine alloc] initWithConfig:config helperTool:helperTool servicePath:servicePath];
 
-    _installables = [NSArray arrayWithObjects:helperTool, _service, fuse, _kbfs, cli, nil];
+    _installables = [NSArray arrayWithObjects:helperTool, _service, _fuse, _kbfs, cli, nil];
 
     _services = [NSArray arrayWithObjects:_service, _kbfs, nil];
-    _components = [NSMutableArray arrayWithObjects:_service, _kbfs, helperTool, fuse, nil];
+    _components = [NSMutableArray arrayWithObjects:_service, _kbfs, helperTool, _fuse, nil];
   }
   return self;
 }

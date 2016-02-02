@@ -10,10 +10,6 @@
 
 #import <IOKit/kext/KextManager.h>
 
-@interface KBKext ()
-@property NSString *path;
-@end
-
 @implementation KBKext
 
 + (NSDictionary *)kextInfo:(NSString *)label {
@@ -36,9 +32,28 @@
     return;
   }
 
+  // Copy kext into place
+  [self copyWithSource:source destination:destination removeExisting:NO completion:^(NSError *error, id value) {
+    if (error) {
+      completion(error, nil);
+      return;
+    }
+    [self loadKextID:kextID path:kextPath completion:completion];
+  }];
+}
+
++ (void)copyWithSource:(NSString *)source destination:(NSString *)destination removeExisting:(BOOL)removeExisting completion:(KBOnCompletion)completion {
+  NSError *error = nil;
+
+  if (removeExisting && ![self deletePath:destination error:&error]) {
+    if (!error) error = KBMakeError(KBHelperErrorKext, @"Failed to remove existing");
+    completion(error, nil);
+    return;
+  }
+
   if (![NSFileManager.defaultManager copyItemAtPath:source toPath:destination error:&error]) {
     if (!error) error = KBMakeError(KBHelperErrorKext, @"Failed to copy");
-    completion(error, @(0));
+    completion(error, nil);
     return;
   }
 
@@ -50,14 +65,14 @@
 
   [self updateAttributes:attributes path:destination completion:^(NSError *error) {
     if (error) {
-      completion(error, @(0));
-    } else {
-      // This is not fatal, but would prevent load_kbfuse from working if it did
-      if (![self updateLoaderFileAttributes:destination error:&error]) {
-        KBLog(@"Failed to update loader file attributes: %@", error);
-      }
-      [self loadKextID:kextID path:kextPath completion:completion];
+      completion(error, nil);
+      return;
     }
+    if (![self updateLoaderFileAttributes:destination error:&error]) {
+      completion(error, nil);
+      return;
+    }
+    completion(nil, nil);
   }];
 }
 
@@ -73,16 +88,16 @@
 
 + (void)updateAttributes:(NSDictionary *)attributes path:(NSString *)path completion:(KBCompletion)completion {
   NSError *error = nil;
-  if (![NSFileManager.defaultManager setAttributes:attributes ofItemAtPath:path error:&error]) {
+  if (![self updateAttributes:attributes path:path error:&error]) {
     if (!error) error = KBMakeError(KBHelperErrorKext, @"Failed to set attributes");
     completion(error);
     return;
   }
 
-  NSDirectoryEnumerator *dirEnum = [NSFileManager.defaultManager enumeratorAtPath:path];
+  NSDirectoryEnumerator *enumerator = [NSFileManager.defaultManager enumeratorAtPath:path];
   NSString *file;
-  while ((file = [dirEnum nextObject])) {
-    if (![NSFileManager.defaultManager setAttributes:attributes ofItemAtPath:[path stringByAppendingPathComponent:file] error:&error]) {
+  while ((file = [enumerator nextObject])) {
+    if (![self updateAttributes:attributes path:[path stringByAppendingPathComponent:file] error:&error]) {
       if (!error) error = KBMakeError(KBHelperErrorKext, @"Failed to set attributes");
       completion(error);
       return;
@@ -90,6 +105,32 @@
   }
 
   completion(nil);
+}
+
++ (BOOL)updateAttributes:(NSDictionary *)attributes path:(NSString *)path error:(NSError **)error {
+  NSDictionary *existingAttributes = [NSFileManager.defaultManager attributesOfItemAtPath:path error:error];
+  if (!existingAttributes) {
+    return NO;
+  }
+
+  // setAttributes doesn't work on symbolic links
+  if (existingAttributes[NSFileType] == NSFileTypeSymbolicLink) {
+    const char *file = [NSFileManager.defaultManager fileSystemRepresentationWithPath:path];
+    uid_t uid = [attributes[NSFileOwnerAccountID] intValue];
+    gid_t gid = [attributes[NSFileGroupOwnerAccountID] intValue];
+    int res = lchown(file, uid, gid);
+    if (res != 0) {
+      if (error) *error = KBMakeError(KBHelperErrorKext, @"Unable to set attributes on symlink: %@", @(res));
+      return NO;
+    }
+    return YES;
+  }
+
+  if (![NSFileManager.defaultManager setAttributes:attributes ofItemAtPath:path error:error]) {
+    return NO;
+  }
+
+  return YES;
 }
 
 + (void)updateWithSource:(NSString *)source destination:(NSString *)destination kextID:(NSString *)kextID kextPath:(NSString *)kextPath completion:(KBOnCompletion)completion {
@@ -149,13 +190,20 @@
   completion(nil, @(0));
 }
 
++ (BOOL)deletePath:(NSString *)path error:(NSError **)error {
+  if ([NSFileManager.defaultManager fileExistsAtPath:path isDirectory:NULL] && ![NSFileManager.defaultManager removeItemAtPath:path error:error]) {
+    if (error) *error = KBMakeError(KBHelperErrorKext, @"Failed to remove path: %@", path);
+    return NO;
+  }
+  return YES;
+}
+
 + (BOOL)uninstallWithDestination:(NSString *)destination kextID:(NSString *)kextID error:(NSError **)error {
   if (![self unloadKextID:kextID error:error]) {
     return NO;
   }
 
-  if ([NSFileManager.defaultManager fileExistsAtPath:destination isDirectory:NULL] && ![NSFileManager.defaultManager removeItemAtPath:destination error:error]) {
-    if (error) *error = KBMakeError(KBHelperErrorKext, @"Failed to remove path: %@", destination);
+  if (![self deletePath:destination error:error]) {
     return NO;
   }
 
