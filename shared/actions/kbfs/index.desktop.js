@@ -2,12 +2,12 @@
 
 import {shell} from 'electron'
 
-import {getExtendedConfig} from '../actions/config'
-import * as Constants from '../constants/config'
+import {getExtendedConfig} from '../config'
+import * as Constants from '../../constants/config'
 
-import {config} from '../constants/types/keybase_v1'
+import {config} from '../../constants/types/keybase_v1'
 
-import type {AsyncAction} from '../constants/types/flux'
+import type {AsyncAction} from '../../constants/types/flux'
 
 export function openInKBFS (path: string = ''): AsyncAction {
   return (dispatch, getState) => new Promise((resolve, reject) => {

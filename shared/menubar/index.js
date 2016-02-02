@@ -14,8 +14,6 @@ import {openInKBFS} from '../actions/kbfs'
 import {remote} from 'electron'
 import {ipcRenderer} from 'electron'
 
-import {kbfsPath} from '../constants/platform'
-
 import type {Folder} from '../constants/types/flow-types'
 import type {FolderInfo} from './index.render'
 
