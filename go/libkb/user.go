@@ -6,6 +6,7 @@ package libkb
 import (
 	"fmt"
 	"io"
+	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
@@ -221,16 +222,39 @@ func (u *User) StoreSigChain() error {
 }
 
 func (u *User) LoadSigChains(allKeys bool, f *MerkleUserLeaf, self bool) (err error) {
+	defer TimeLog(fmt.Sprintf("LoadSigChains: %s", u.name), time.Now(), u.G().Log.Debug)
+
 	loader := SigChainLoader{
 		user:         u,
 		self:         self,
 		allKeys:      allKeys,
 		leaf:         f,
 		chainType:    PublicChain,
-		preload:      u.sigChain(),
 		Contextified: u.Contextified,
 	}
+
+	// if allKeys is set, don't use the ChainCache.  allKeys is a rare case
+	// (`sigs list --all-keys` command only)
+
+	if allKeys || u.sigChain() != nil {
+		if u.sigChain() != nil {
+			u.G().Log.Debug("LoadSigChains %s: using links from existing SigChain", u.name)
+			loader.preload = u.sigChain().ChainLinksCopy()
+		}
+	} else {
+		links, ok := u.G().ChainCache.Get(u.id)
+		if ok {
+			u.G().Log.Debug("LoadSigChains %s: using cached links (%d)", u.name, len(links))
+			loader.preload = links
+		}
+	}
+
 	u.sigChainMem, err = loader.Load()
+
+	if !allKeys {
+		u.G().Log.Debug("LoadSigChains %s: caching links", u.name)
+		u.G().ChainCache.Put(u.id, u.sigChain().ChainLinksCopy())
+	}
 
 	// Eventually load the others, but for now, this one is good enough
 	return err
