@@ -59,7 +59,7 @@ func stdRef(ref string) string {
 }
 
 var encodingTests = []encodingTest{
-	encodingTest{Base58StdEncoding, stdRef},
+	{Base58StdEncoding, stdRef},
 }
 
 var bigtest = testpair{
