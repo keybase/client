@@ -205,8 +205,7 @@ func (km *KeyManagerStandard) updateKeyBundle(ctx context.Context,
 
 func (km *KeyManagerStandard) usersWithNewDevices(ctx context.Context,
 	md *RootMetadata, keyInfoMap UserDeviceKeyInfoMap,
-	expectedKeys map[keybase1.UID][]CryptPublicKey) (
-	identifiesNeeded []keybase1.UID) {
+	expectedKeys map[keybase1.UID][]CryptPublicKey) (users []keybase1.UID) {
 	for u, keys := range expectedKeys {
 		kids, ok := keyInfoMap[u]
 		if !ok {
@@ -214,7 +213,7 @@ func (km *KeyManagerStandard) usersWithNewDevices(ctx context.Context,
 			// in the handle, but don't error just in case we ever
 			// want to support that in the future.
 			km.log.CInfof(ctx, "Rekey %s: adding new user %s", md.ID, u)
-			identifiesNeeded = append(identifiesNeeded, u)
+			users = append(users, u)
 			continue
 		}
 		for _, k := range keys {
@@ -222,18 +221,17 @@ func (km *KeyManagerStandard) usersWithNewDevices(ctx context.Context,
 			if _, ok := kids[k.kid]; !ok {
 				km.log.CInfof(ctx, "Rekey %s: adding new device %s for user %s",
 					md.ID, k.kid, u)
-				identifiesNeeded = append(identifiesNeeded, u)
+				users = append(users, u)
 				break
 			}
 		}
 	}
-	return identifiesNeeded
+	return users
 }
 
 func (km *KeyManagerStandard) usersWithRemovedDevices(ctx context.Context,
 	md *RootMetadata, keyInfoMap UserDeviceKeyInfoMap,
-	expectedKeys map[keybase1.UID][]CryptPublicKey) (
-	identifiesNeeded []keybase1.UID) {
+	expectedKeys map[keybase1.UID][]CryptPublicKey) (users []keybase1.UID) {
 	for u, kids := range keyInfoMap {
 		keys, ok := expectedKeys[u]
 		if !ok {
@@ -241,7 +239,7 @@ func (km *KeyManagerStandard) usersWithRemovedDevices(ctx context.Context,
 			// from the handle, but don't error just in case we ever
 			// want to support that in the future.
 			km.log.CInfof(ctx, "Rekey %s: removing user %s", md.ID, u)
-			identifiesNeeded = append(identifiesNeeded, u)
+			users = append(users, u)
 			continue
 		}
 		keyLookup := make(map[keybase1.KID]bool)
@@ -253,12 +251,12 @@ func (km *KeyManagerStandard) usersWithRemovedDevices(ctx context.Context,
 			if !keyLookup[kid] {
 				km.log.CInfof(ctx,
 					"Rekey %s: removing device %s for user %s", md.ID, kid, u)
-				identifiesNeeded = append(identifiesNeeded, u)
+				users = append(users, u)
 				break
 			}
 		}
 	}
-	return identifiesNeeded
+	return users
 }
 
 func (km *KeyManagerStandard) deleteKeysForRemovedDevices(ctx context.Context,
