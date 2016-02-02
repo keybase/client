@@ -9,11 +9,10 @@ import {getTLF} from '../util/kbfs'
 import engine from '../engine'
 
 import * as favoriteAction from '../actions/favorite'
+import {openInKBFS} from '../actions/kbfs'
 
-import {remote, shell} from 'electron'
+import {remote} from 'electron'
 import {ipcRenderer} from 'electron'
-
-import {kbfsPath} from '../constants/platform'
 
 import type {Folder} from '../constants/types/flow-types'
 import type {FolderInfo} from './index.render'
@@ -22,6 +21,7 @@ export type MenubarProps = {
   username: ?string,
   folders: ?Array<Folder>,
   favoriteList: () => void,
+  openInKBFS: () => void,
   debug: ?boolean,
   loggedIn: ?boolean
 }
@@ -100,17 +100,17 @@ class Menubar extends Component {
   }
 
   openKBFS () {
-    shell.openItem(kbfsPath)
+    this.props.openInKBFS()
     this.closeMenubar()
   }
 
   openKBFSPublic (sub) {
-    shell.openItem(`${kbfsPath}/public/${sub}`)
+    this.props.openInKBFS(`/public/${sub}`)
     this.closeMenubar()
   }
 
   openKBFSPrivate (sub) {
-    shell.openItem(`${kbfsPath}/private/${sub}`)
+    this.props.openInKBFS(`/private/${sub}`)
     this.closeMenubar()
   }
 
@@ -140,7 +140,7 @@ class Menubar extends Component {
         // TODO we don't get this information right now,
         isEmpty: false,
         openFolder: () => {
-          setImmediate(() => shell.openItem(`${kbfsPath}${getTLF(!f.private, f.name)}`))
+          setImmediate(() => this.props.openInKBFS(`${getTLF(!f.private, f.name)}`))
           this.closeMenubar()
         }
       }
@@ -170,7 +170,7 @@ export default connect(
     loggedIn: state.config && state.config.status && state.config.status.loggedIn,
     folders: state.favorite && state.favorite.folders
   }),
-  dispatch => bindActionCreators(favoriteAction, dispatch)
+  dispatch => bindActionCreators({...favoriteAction, openInKBFS}, dispatch)
 )(Menubar)
 
 export function selector (): (store: Object) => Object {

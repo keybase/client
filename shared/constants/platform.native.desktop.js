@@ -4,7 +4,6 @@ import getenv from 'getenv'
 
 export const OS = OS_DESKTOP
 export const isMobile = false
-export const kbfsPath = `/keybase`
 
 export const runMode = getenv('KEYBASE_RUN_MODE', 'prod')
 

@@ -5,12 +5,14 @@ import * as LoginConstants from '../constants/login'
 
 import type {Action} from '../constants/types/flux'
 import type {NavState} from '../constants/config'
-import type {Config, GetCurrentStatusRes} from '../constants/types/flow-types'
+import type {Config, GetCurrentStatusRes, ExtendedStatus} from '../constants/types/flow-types'
 
 export type ConfigState = {
   navState: NavState;
   status: ?GetCurrentStatusRes;
   config: ?Config;
+  extendedConfig: ?ExtendedStatus;
+  kbfsPath: string;
   error: ?any;
   devConfig: ?any;
 }
@@ -19,6 +21,8 @@ const initialState: ConfigState = {
   navState: Constants.navStartingUp,
   status: null,
   config: null,
+  extendedConfig: null,
+  kbfsPath: Constants.defaultKBFSPath,
   error: null,
   devConfig: null
 }
@@ -39,6 +43,24 @@ export default function (state: ConfigState = initialState, action: Action): Con
         return {
           ...state,
           config: action.payload.config
+        }
+      }
+      return state
+
+    case Constants.extendedConfigLoaded:
+      if (action.payload && action.payload.extendedConfig) {
+        return {
+          ...state,
+          extendedConfig: action.payload.extendedConfig
+        }
+      }
+      return state
+
+    case Constants.changeKBFSPath:
+      if (action.payload && action.payload.path) {
+        return {
+          ...state,
+          kbfsPath: action.payload.path
         }
       }
       return state
