@@ -29,3 +29,22 @@ func TestLoadUserPlusKeys(t *testing.T) {
 		}
 	}
 }
+
+func BenchmarkLoadSigChains(b *testing.B) {
+	tc := SetupTest(b, "benchmark load user")
+	u, err := LoadUser(NewLoadUserByNameArg(tc.G, "kwejfkwef"))
+	if err != nil {
+		b.Fatal(err)
+	}
+	if u == nil {
+		b.Fatal("no user")
+	}
+	u.sigChainMem = nil
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		if err = u.LoadSigChains(true, &u.leaf, false); err != nil {
+			b.Fatal(err)
+		}
+		u.sigChainMem = nil
+	}
+}
