@@ -3713,7 +3713,7 @@ func (fbo *folderBranchOps) fixChildBlocksAfterRecoverableError(
 // include all the blocks from before the error, except for those that
 // have encountered recoverable block errors themselves.
 func (fbo *folderBranchOps) revertSyncInfoAfterRecoverableError(
-	blocksToRemove []BlockPointer, si *syncInfo, savedSi *syncInfo) {
+	blocksToRemove []BlockPointer, si, savedSi *syncInfo) {
 	// Mark any bad pointers to they get skipped next
 	// time.
 	blocksToRemoveSet := make(map[BlockPointer]bool)
