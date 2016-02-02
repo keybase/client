@@ -328,7 +328,8 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 		daemon: config1.KeybaseDaemon(),
 	}
 	config1.SetKBPKI(countKBPKI)
-	// Force the FBO to forget about its previous identify.
+	// Force the FBO to forget about its previous identify, so that we
+	// can make sure the rekey doesn't trigger a full identify.
 	kbfsOps1.(*KBFSOpsStandard).getOps(
 		rootNode1.GetFolderBranch()).identifyDone = false
 
@@ -532,7 +533,8 @@ func TestKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T) {
 		daemon: config1.KeybaseDaemon(),
 	}
 	config1.SetKBPKI(countKBPKI)
-	// Force the FBO to forget about its previous identify.
+	// Force the FBO to forget about its previous identify, so that we
+	// can make sure the rekey doesn't trigger a full identify.
 	kbfsOps1.(*KBFSOpsStandard).getOps(
 		rootNode1.GetFolderBranch()).identifyDone = false
 
