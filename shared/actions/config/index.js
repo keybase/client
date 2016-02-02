@@ -6,7 +6,7 @@ import engine from '../../engine'
 import * as native from './index.native'
 
 import type {AsyncAction} from '../../constants/types/flux'
-import type {config_getConfig_rpc, config_getCurrentStatus_rpc} from '../../constants/types/flow-types'
+import type {config_getConfig_rpc, config_getExtendedStatus_rpc, config_getCurrentStatus_rpc} from '../../constants/types/flow-types'
 
 export function getConfig (): AsyncAction {
   return dispatch => {
@@ -22,6 +22,28 @@ export function getConfig (): AsyncAction {
 
           dispatch({type: Constants.configLoaded, payload: {config}})
           resolve()
+        }
+      }
+
+      engine.rpc(params)
+    })
+  }
+}
+
+export function getExtendedConfig (): AsyncAction {
+  return dispatch => {
+    return new Promise((resolve, reject) => {
+      const params : config_getExtendedStatus_rpc = {
+        method: 'config.getExtendedStatus',
+        param: {},
+        incomingCallMap: {},
+        callback: (error, extendedConfig) => {
+          if (error) {
+            reject(error)
+          }
+
+          dispatch({type: Constants.extendedConfigLoaded, payload: {extendedConfig}})
+          resolve(extendedConfig)
         }
       }
 

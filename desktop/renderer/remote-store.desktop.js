@@ -26,7 +26,7 @@ export default class RemoteStore {
   dispatch (action: any) {
     // TODO use our middlewares
     if (action.constructor === Function) {
-      action(a => this.dispatch(a), () => this.getState())
+      return action(a => this.dispatch(a), () => this.getState())
     } else {
       ipcRenderer.send('dispatchAction', action)
     }

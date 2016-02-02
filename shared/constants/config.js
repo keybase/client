@@ -9,12 +9,17 @@ export const navNeedsLogin = 'navNeedsLogin'
 export const navLoggedIn = 'navLoggedIn'
 export const navErrorStartingUp = 'navErrorStartingUp'
 
+export const defaultKBFSPath = '/keybase'
+
 // Actions
 export const startupLoading = 'config:startupLoading'
 export const startupLoaded = 'config:startupLoaded'
 
 export const statusLoaded = 'config:statusLoaded'
 export const configLoaded = 'config:configLoaded'
+export const extendedConfigLoaded = 'config:extendedConfigLoaded'
+
+export const changeKBFSPath = 'config:changeKBFSPath'
 
 export const devConfigLoading = 'config:devConfigLoading'
 export const devConfigLoaded = 'config:devConfigLoaded'

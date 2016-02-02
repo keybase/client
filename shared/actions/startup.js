@@ -21,6 +21,7 @@ export function startup () {
       })
       .then(() => dispatch({type: ConfigConstants.startupLoaded}))
       .catch(error => {
+        console.error('Error starting up:', error)
         dispatch({type: ConfigConstants.startupLoaded, payload: error, error: true})
       })
   }
