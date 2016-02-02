@@ -345,7 +345,9 @@ type folderBranchOps struct {
 	// the number of outstanding archive requests.  We can't use a
 	// sync.WaitGroup because it requires that the Add() and the
 	// Wait() are fully synchronized, which means holding a mutex
-	// during Wait(), which can lead to deadlocks for users of
+	// during Wait(), which can lead to deadlocks between incoming FBO
+	// calls and the background archiver.  TODO: add a struct for
+	// these fields, to be shared with a similar usage in
 	// ConflictResolver.
 	archiveLock     sync.Mutex
 	numArchives     int
