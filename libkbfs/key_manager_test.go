@@ -323,10 +323,11 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	}
 
 	// Set the KBPKI so we can count the identify calls
-	localDaemon := config1.KeybaseDaemon()
-	measuredDaemon :=
-		NewKeybaseDaemonMeasured(localDaemon, config1.MetricsRegistry())
-	config1.SetKeybaseDaemon(measuredDaemon)
+	countKBPKI := &daemonKBPKI{
+		KBPKI:  config1.KBPKI(),
+		daemon: config1.KeybaseDaemon(),
+	}
+	config1.SetKBPKI(countKBPKI)
 	// Force the FBO to forget about its previous identify.
 	kbfsOps1.(*KBFSOpsStandard).getOps(
 		rootNode1.GetFolderBranch()).identifyDone = false
@@ -337,11 +338,8 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 		t.Fatalf("Couldn't rekey: %v", err)
 	}
 
-	// Set the local daemon back since there are later dependencies on it.
-	config1.SetKeybaseDaemon(localDaemon)
-
 	// Only u2 should be identified as part of the rekey.
-	if g, e := measuredDaemon.identifyTimer.Count(), int64(1); g != e {
+	if g, e := countKBPKI.getIdentifyCalls(), 1; g != e {
 		t.Errorf("Expected %d identify calls, but got %d", e, g)
 	}
 
@@ -367,15 +365,13 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	RevokeDeviceForLocalUserOrBust(t, config2Dev3, uid2, 0)
 
 	// rekey again
-	config1.SetKeybaseDaemon(measuredDaemon)
 	err = kbfsOps1.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
 		t.Fatalf("Couldn't rekey: %v", err)
 	}
-	config1.SetKeybaseDaemon(localDaemon)
 
 	// Only u2 should be identified again as part of the rekey.
-	if g, e := measuredDaemon.identifyTimer.Count(), int64(2); g != e {
+	if g, e := countKBPKI.getIdentifyCalls(), 2; g != e {
 		t.Errorf("Expected %d identify calls, but got %d", e, g)
 	}
 
@@ -531,10 +527,11 @@ func TestKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T) {
 	}
 
 	// Set the KBPKI so we can count the identify calls
-	localDaemon := config1.KeybaseDaemon()
-	measuredDaemon :=
-		NewKeybaseDaemonMeasured(localDaemon, config1.MetricsRegistry())
-	config1.SetKeybaseDaemon(measuredDaemon)
+	countKBPKI := &daemonKBPKI{
+		KBPKI:  config1.KBPKI(),
+		daemon: config1.KeybaseDaemon(),
+	}
+	config1.SetKBPKI(countKBPKI)
 	// Force the FBO to forget about its previous identify.
 	kbfsOps1.(*KBFSOpsStandard).getOps(
 		rootNode1.GetFolderBranch()).identifyDone = false
@@ -545,11 +542,8 @@ func TestKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T) {
 		t.Fatalf("Couldn't rekey: %v", err)
 	}
 
-	// Set the local daemon back since there are later dependencies on it.
-	config1.SetKeybaseDaemon(localDaemon)
-
 	// u2 and u3 should be identified as part of the rekey.
-	if g, e := measuredDaemon.identifyTimer.Count(), int64(2); g != e {
+	if g, e := countKBPKI.getIdentifyCalls(), 2; g != e {
 		t.Errorf("Expected %d identify calls, but got %d", e, g)
 	}
 
