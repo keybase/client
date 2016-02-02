@@ -45,5 +45,6 @@ protocol login {
     Unlock restores access to local key store by priming passphrase stream cache.
     */
   void unlock(int sessionID);
+  void unlockWithPassphrase(int sessionID, string passphrase);
 
 }

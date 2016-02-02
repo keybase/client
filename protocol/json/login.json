@@ -305,6 +305,16 @@
         "type" : "int"
       } ],
       "response" : "null"
+    },
+    "unlockWithPassphrase" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "passphrase",
+        "type" : "string"
+      } ],
+      "response" : "null"
     }
   }
 }

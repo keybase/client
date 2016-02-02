@@ -2716,6 +2716,11 @@ type UnlockArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type UnlockWithPassphraseArg struct {
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
+	Passphrase string `codec:"passphrase" json:"passphrase"`
+}
+
 type LoginInterface interface {
 	GetConfiguredAccounts(context.Context, int) ([]ConfiguredAccount, error)
 	Login(context.Context, LoginArg) error
@@ -2725,6 +2730,7 @@ type LoginInterface interface {
 	RecoverAccountFromEmailAddress(context.Context, string) error
 	PaperKey(context.Context, int) error
 	Unlock(context.Context, int) error
+	UnlockWithPassphrase(context.Context, UnlockWithPassphraseArg) error
 }
 
 func LoginProtocol(i LoginInterface) rpc.Protocol {
@@ -2859,6 +2865,22 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"unlockWithPassphrase": {
+				MakeArg: func() interface{} {
+					ret := make([]UnlockWithPassphraseArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]UnlockWithPassphraseArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]UnlockWithPassphraseArg)(nil), args)
+						return
+					}
+					err = i.UnlockWithPassphrase(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -2909,6 +2931,11 @@ func (c LoginClient) PaperKey(ctx context.Context, sessionID int) (err error) {
 func (c LoginClient) Unlock(ctx context.Context, sessionID int) (err error) {
 	__arg := UnlockArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.login.unlock", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LoginClient) UnlockWithPassphrase(ctx context.Context, __arg UnlockWithPassphraseArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.login.unlockWithPassphrase", []interface{}{__arg}, nil)
 	return
 }
 

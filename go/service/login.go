@@ -82,6 +82,15 @@ func (h *LoginHandler) Unlock(_ context.Context, sessionID int) error {
 	return engine.RunEngine(eng, ctx)
 }
 
+func (h *LoginHandler) UnlockWithPassphrase(_ context.Context, arg keybase1.UnlockWithPassphraseArg) error {
+	ctx := &engine.Context{
+		LogUI:    h.getLogUI(arg.SessionID),
+		SecretUI: h.getSecretUI(arg.SessionID),
+	}
+	eng := engine.NewUnlockWithPassphrase(h.G(), arg.Passphrase)
+	return engine.RunEngine(eng, ctx)
+}
+
 func (h *LoginHandler) Login(ctx context.Context, arg keybase1.LoginArg) error {
 	ectx := &engine.Context{
 		LogUI:       h.getLogUI(arg.SessionID),

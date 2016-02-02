@@ -4,9 +4,13 @@
 package client
 
 import (
+	"io/ioutil"
+	"os"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
 )
@@ -29,10 +33,18 @@ func NewCmdUnlock(cl *libcmdline.CommandLine) cli.Command {
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdUnlock{}, "unlock", c)
 		},
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "stdin",
+				Usage: "Read a passphrase from stdin instead of a prompt",
+			},
+		},
 	}
 }
 
-type CmdUnlock struct{}
+type CmdUnlock struct {
+	stdin bool
+}
 
 func (c *CmdUnlock) Run() error {
 	cli, err := GetLoginClient(G)
@@ -45,10 +57,20 @@ func (c *CmdUnlock) Run() error {
 	if err := RegisterProtocols(protocols); err != nil {
 		return err
 	}
+	if c.stdin {
+		stdinBytes, err := ioutil.ReadAll(os.Stdin)
+		if err != nil {
+			return err
+		}
+		return cli.UnlockWithPassphrase(context.TODO(), keybase1.UnlockWithPassphraseArg{
+			Passphrase: string(stdinBytes),
+		})
+	}
 	return cli.Unlock(context.TODO(), 0)
 }
 
 func (c *CmdUnlock) ParseArgv(ctx *cli.Context) error {
+	c.stdin = ctx.Bool("stdin")
 	return nil
 }
 

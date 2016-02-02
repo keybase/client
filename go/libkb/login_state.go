@@ -236,6 +236,43 @@ func (s *LoginState) GetPassphraseStreamForUser(ui SecretUI, username string) (p
 	return nil, err
 }
 
+// GetPassphraseStreamWithPassphrase either returns a cached, verified
+// passphrase stream (maybe from a previous login) or generates a new one via
+// Login. It will return the current Passphrase stream on success or an error
+// on failure.
+func (s *LoginState) GetPassphraseStreamWithPassphrase(passphrase string) (pps *PassphraseStream, err error) {
+	s.G().Log.Debug("+ GetPassphraseStreamWithPassphrase() called")
+	defer func() { s.G().Log.Debug("- GetPassphraseStreamWithPassphrase() -> %s", ErrToOk(err)) }()
+
+	username := string(s.G().Env.GetUsername())
+	if username == "" {
+		return nil, fmt.Errorf("No current user to unlock.")
+	}
+
+	pps, err = s.PassphraseStream()
+	if err != nil {
+		return nil, err
+	}
+	if pps != nil {
+		return pps, nil
+	}
+	err = s.loginHandle(func(lctx LoginContext) error {
+		return s.passphraseLogin(lctx, username, passphrase, nil, "")
+	}, nil, "LoginState - GetPassphraseStreamWithPassphrase")
+	if err != nil {
+		return nil, err
+	}
+	pps, err = s.PassphraseStream()
+	if err != nil {
+		return nil, err
+	}
+	if pps != nil {
+		return pps, nil
+	}
+	err = InternalError{"No cached keystream data after login attempt"}
+	return nil, err
+}
+
 // GetVerifiedTripleSec either returns a cached, verified Triplesec
 // or generates a new one that's verified via Login.
 func (s *LoginState) GetVerifiedTriplesec(ui SecretUI) (ret *triplesec.Cipher, gen PassphraseGeneration, err error) {
@@ -649,7 +686,9 @@ func (s *LoginState) passphraseLogin(lctx LoginContext, username, passphrase str
 
 func (s *LoginState) stretchPassphraseIfNecessary(lctx LoginContext, un string, pp string, ui SecretUI, retry string) (storeSecret bool, err error) {
 	s.G().Log.Debug("+ stretchPassphraseIfNecessary (%s)", un)
-	defer s.G().Log.Debug("- stretchPassphraseIfNecessary")
+	defer func() {
+		s.G().Log.Debug("- stretchPassphraseIfNecessary -> %s", ErrToOk(err))
+	}()
 	if lctx.PassphraseStreamCache().Valid() {
 		s.G().Log.Debug("| stretchPassphraseIfNecessary: passphrase stream cached")
 		// already have stretched passphrase cached

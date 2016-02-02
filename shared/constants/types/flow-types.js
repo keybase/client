@@ -700,6 +700,16 @@ export type incomingCallMapType = {
       result: () => void
     }
   ) => void,
+  'keybase.1.login.unlockWithPassphrase'?: (
+    params: {
+      sessionID: int,
+      passphrase: string
+    },
+    response: {
+      error: (err: string) => void,
+      result: () => void
+    }
+  ) => void,
   'keybase.1.loginUi.getEmailOrUsername'?: (
     params: {
       sessionID: int
@@ -4986,6 +4996,19 @@ export type login_paperKey_rpc = {
 export type login_unlock_rpc = {
   method: 'login.unlock',
   param: {},
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+// login.unlockWithPassphrase ////////////////////////////////////////
+
+/* void response */
+
+export type login_unlockWithPassphrase_rpc = {
+  method: 'login.unlockWithPassphrase',
+  param: {
+    passphrase: string
+  },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }

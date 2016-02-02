@@ -77,3 +77,37 @@ func TestUnlockNoop(t *testing.T) {
 		t.Fatal("expected valid stream cache after unlock")
 	}
 }
+
+func TestUnlockWithPassphrase(t *testing.T) {
+	tc := SetupEngineTest(t, "template")
+	defer tc.Cleanup()
+
+	fu := CreateAndSignupFakeUser(tc, "login")
+
+	if !assertStreamCache(tc, true) {
+		t.Fatal("expected valid stream cache after sign up")
+	}
+
+	ctx := &Context{
+		LogUI:   tc.G.UI.GetLogUI(),
+		LoginUI: &libkb.TestLoginUI{},
+		// No SecretUI here!
+	}
+
+	tc.G.LoginState().Account(func(a *libkb.Account) {
+		a.ClearStreamCache()
+	}, "clear stream cache")
+
+	if !assertStreamCache(tc, false) {
+		t.Fatal("expected invalid stream cache after clear")
+	}
+
+	eng := NewUnlockWithPassphrase(tc.G, fu.Passphrase)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	if !assertStreamCache(tc, true) {
+		t.Fatal("expected valid stream cache after unlock")
+	}
+}

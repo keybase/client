@@ -10,12 +10,21 @@ import (
 // Unlock is an engine.
 type Unlock struct {
 	libkb.Contextified
+	passphrase string
 }
 
 // NewUnlock creates a Unlock engine.
 func NewUnlock(g *libkb.GlobalContext) *Unlock {
 	return &Unlock{
 		Contextified: libkb.NewContextified(g),
+	}
+}
+
+// NewUnlock creates a Unlock engine.
+func NewUnlockWithPassphrase(g *libkb.GlobalContext, passphrase string) *Unlock {
+	return &Unlock{
+		Contextified: libkb.NewContextified(g),
+		passphrase:   passphrase,
 	}
 }
 
@@ -31,6 +40,9 @@ func (e *Unlock) Prereqs() Prereqs {
 
 // RequiredUIs returns the required UIs.
 func (e *Unlock) RequiredUIs() []libkb.UIKind {
+	if e.passphrase != "" {
+		return nil
+	}
 	return []libkb.UIKind{libkb.SecretUIKind}
 }
 
@@ -41,6 +53,10 @@ func (e *Unlock) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *Unlock) Run(ctx *Context) error {
+	if e.passphrase != "" {
+		_, err := e.G().LoginState().GetPassphraseStreamWithPassphrase(e.passphrase)
+		return err
+	}
 	_, err := e.G().LoginState().GetPassphraseStream(ctx.SecretUI)
 	return err
 }
