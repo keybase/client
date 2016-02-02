@@ -74,8 +74,8 @@ ny_date() {
 refresh_one_repo() {
   git -C "$1" fetch
   git -C "$1" checkout -f origin/master
-  # Unfortunately we can't clean ignored files. That makes npm too slow :(
-  git -C "$1" clean -df
+  # `npm install` is unreliable if the repo isn't clean.
+  git -C "$1" clean -dffx
 }
 
 refresh_repos() {
