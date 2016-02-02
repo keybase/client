@@ -16,7 +16,7 @@ class AppDelegate: UIResponder {
       
       #if DEBUG
         if let reactHost = AppDefault.ReactHost.stringValue {
-          return NSURL(string: "http://\(reactHost)/react/index.bundle?platform=ios&dev=true")
+          return NSURL(string: "http://\(reactHost)/shared/index.bundle?platform=ios&dev=true")
         } else {
           return NSBundle.mainBundle().URLForResource("main", withExtension: "jsbundle")
         }
@@ -68,19 +68,19 @@ class KeyListener: UIViewController {
   }
 
   func goBackInTime(sender: UIKeyCommand){
-    bridge.eventDispatcher.sendAppEventWithName("backInTime", body: true)
+    bridge.eventDispatcher.sendDeviceEventWithName("backInTime", body: true)
   }
 
   func goForwardInTime(sender: UIKeyCommand){
-    bridge.eventDispatcher.sendAppEventWithName("forwardInTime", body: true)
+    bridge.eventDispatcher.sendDeviceEventWithName("forwardInTime", body: true)
   }
 
   func saveState(sender: UIKeyCommand){
-    bridge.eventDispatcher.sendAppEventWithName("saveState", body: true)
+    bridge.eventDispatcher.sendDeviceEventWithName("saveState", body: true)
   }
 
   func clearState(sender: UIKeyCommand){
-    bridge.eventDispatcher.sendAppEventWithName("clearState", body: true)
+    bridge.eventDispatcher.sendDeviceEventWithName("clearState", body: true)
   }
 
 }

@@ -32,7 +32,7 @@ RCT_EXPORT_MODULE();
 
 #pragma mark - Send event
 - (void)onTimer {
-    [self.bridge.eventDispatcher sendAppEventWithName:@"EventName"
+    [self.bridge.eventDispatcher sendDeviceEventWithName:@"EventName"
                                                  body:@{@"payload": [NSString stringWithFormat:@"%@", @(self.count++)]}];
 }
 

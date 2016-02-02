@@ -16,7 +16,7 @@
 
 @property dispatch_queue_t readQueue;
 @property dispatch_queue_t writeQueue;
-@property (weak) RCTBridge *bridge;
+@property (strong) RCTBridge *bridge;
 
 - (void)startReadLoop;
 - (void)setupQueues;
@@ -54,7 +54,7 @@ static NSString *const eventName = @"objc-engine-event";
     for(;;) {
       NSString * data = GoKeybaseReadB64();
       if(data) {
-        [self.bridge.eventDispatcher sendAppEventWithName:eventName body:data];
+        [self.bridge.eventDispatcher sendDeviceEventWithName:eventName body:data];
       }
     }
   });
@@ -75,23 +75,24 @@ static NSString *const eventName = @"objc-engine-event";
 #pragma mark - Engine exposed to react
 
 @interface ObjcEngine : NSObject <RCTBridgeModule>
-@property (readonly) ObjcEngine* engine;
+@property (readonly) Engine* engine;
 @end
 
 @implementation ObjcEngine
 
+RCT_EXPORT_MODULE();
+
 // required by reactnative
-@synthesize bridge=_bridge;
+@synthesize bridge = _bridge;
 
 - (Engine *)engine {
   AppDelegate *delegate = [UIApplication sharedApplication].delegate;
   return delegate.engine;
 }
 
-RCT_EXPORT_MODULE();
-
 RCT_EXPORT_METHOD(runWithData:(NSString *)data) {
-  self.engine.bridge = _bridge;
+  Engine * engine = self.engine;
+  engine.bridge = self.bridge;
   [self.engine runWithData: data];
 }
 

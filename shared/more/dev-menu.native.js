@@ -6,25 +6,16 @@ import {pushNewSearch} from '../actions/search'
 import {logout} from '../actions/login'
 import {pushDebugTracker} from '../actions/tracker'
 import MenuList from './menu-list'
-import RemoteComponent from '../../desktop/renderer/remote-component'
 
 import {loginTab} from '../constants/tabs'
+import engine from '../engine'
 
-class Foo extends Component {
-  render () {
-    const payload = {
-      features: {
-        secretStorage: {allow: true, label: 'store your test passphrase'}
-      },
-      prompt: 'Enter a test passphrase',
-      retryLabel: '',
-      windowTitle: 'Keybase Test Passphrase'
-    }
-    return <RemoteComponent
-             component='pinentry'
-             {...payload}/>
-  }
-}
+import developer from './developer'
+import login from '../login'
+import pinentry from '../pinentry'
+import tracker from '../tracker'
+import components from './component-sheet'
+import styleSheet from './style-sheet'
 
 class DevMenu extends Component {
   render () {
@@ -36,14 +27,11 @@ class DevMenu extends Component {
         this.props.routeAppend(['login', {path: 'register', upLink: ['']}])
       }},
       {name: 'reset', onClick: () => {
-        require('../engine').reset()
+        engine.reset()
         console.log('Engine reset!')
       }},
       {name: 'Sign Out', onClick: () => {
         this.props.logout()
-      }},
-      {name: 'Passphrase entry', onClick: () => {
-        this.props.routeAppend('pinentry')
       }},
       {name: 'Developer', hasChildren: true, onClick: () => {
         this.props.routeAppend('developer')
@@ -53,21 +41,6 @@ class DevMenu extends Component {
       }},
       {name: 'Profile', hasChildren: true, onClick: () => {
         this.props.pushNewProfile('test12')
-      }},
-      {name: 'Tracker Listener', hasChildren: true, onClick: () => {
-        this.props.showTrackerListener('max')
-      }},
-      {name: 'Tracker (normal)', hasChildren: true, onClick: () => {
-        this.props.routeAppend([{path: 'tracker', state: 'normal'}])
-      }},
-      {name: 'Tracker (warning)', hasChildren: true, onClick: () => {
-        this.props.routeAppend([{path: 'tracker', state: 'warning'}])
-      }},
-      {name: 'Tracker (error)', hasChildren: true, onClick: () => {
-        this.props.routeAppend([{path: 'tracker', state: 'error'}])
-      }},
-      {name: 'Remote Window', hasChildren: true, onClick: () => {
-        this.props.routeAppend([{parseRoute: {componentAtTop: {component: Foo}}}])
       }},
       {name: 'Components', hasChildren: true, onClick: () => {
         this.props.routeAppend(['components'])
@@ -84,14 +57,7 @@ class DevMenu extends Component {
   static parseRoute () {
     return {
       componentAtTop: {title: 'Dev Menu'},
-      subRoutes: {
-        developer: require('./developer'),
-        login: require('../login'),
-        pinentry: require('../pinentry'),
-        tracker: require('../tracker'),
-        components: require('./component-sheet'),
-        styleSheet: require('./style-sheet')
-      }
+      subRoutes: {developer, login, components, styleSheet}
     }
   }
 }

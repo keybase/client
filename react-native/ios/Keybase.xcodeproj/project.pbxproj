@@ -23,7 +23,6 @@
 		DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB0846041BA75DC800F54960 /* keybase.framework */; };
 		DBCE36251B90F14800ECADDE /* Engine.m in Sources */ = {isa = PBXBuildFile; fileRef = DBCE36241B90F14800ECADDE /* Engine.m */; };
 		DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */; };
-		DBDCF3101B8D03DD00BA95D8 /* main.jsbundle in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF30A1B8D03DD00BA95D8 /* main.jsbundle */; };
 		DBDCF3531B8D04FD00BA95D8 /* ObjcTest.m in Sources */ = {isa = PBXBuildFile; fileRef = DBDCF3501B8D04FD00BA95D8 /* ObjcTest.m */; };
 		DBDCF3541B8D04FD00BA95D8 /* ReactBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = DBDCF3511B8D04FD00BA95D8 /* ReactBridge.m */; };
 		DBDCF3551B8D04FD00BA95D8 /* SwiftTest.swift in Sources */ = {isa = PBXBuildFile; fileRef = DBDCF3521B8D04FD00BA95D8 /* SwiftTest.swift */; };
@@ -146,7 +145,6 @@
 		DBCE36241B90F14800ECADDE /* Engine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Engine.m; sourceTree = "<group>"; };
 		DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		DBDCF3091B8D03DD00BA95D8 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		DBDCF30A1B8D03DD00BA95D8 /* main.jsbundle */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
 		DBDCF3441B8D04FC00BA95D8 /* Keybase-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Keybase-Bridging-Header.h"; sourceTree = "<group>"; };
 		DBDCF34F1B8D04FD00BA95D8 /* ObjcTest.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ObjcTest.h; sourceTree = "<group>"; };
 		DBDCF3501B8D04FD00BA95D8 /* ObjcTest.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ObjcTest.m; sourceTree = "<group>"; };
@@ -345,7 +343,6 @@
 				E94938C61BCC082C00137015 /* App.swift */,
 				DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */,
 				DBDCF3091B8D03DD00BA95D8 /* Info.plist */,
-				DBDCF30A1B8D03DD00BA95D8 /* main.jsbundle */,
 				DBCE36231B90F14800ECADDE /* Engine.h */,
 				DBCE36241B90F14800ECADDE /* Engine.m */,
 				DBDCF34F1B8D04FD00BA95D8 /* ObjcTest.h */,
@@ -614,7 +611,6 @@
 			files = (
 				0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */,
 				DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */,
-				DBDCF3101B8D03DD00BA95D8 /* main.jsbundle in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
