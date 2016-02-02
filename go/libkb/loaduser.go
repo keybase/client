@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"fmt"
+	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
@@ -113,7 +114,8 @@ func LoadMe(arg LoadUserArg) (*User, error) {
 }
 
 func LoadUser(arg LoadUserArg) (ret *User, err error) {
-	G.Log.Debug("LoadUser: %+v", arg)
+	defer TimeLog(fmt.Sprintf("LoadUser: %+v", arg), time.Now(), arg.G().Log.Debug)
+	arg.G().Log.Debug("LoadUser: %+v", arg)
 	var refresh bool
 
 	// Whatever the reply is, pass along our desired global context
@@ -131,7 +133,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return nil, err
 	}
 
-	G.Log.Debug("+ LoadUser(uid=%v, name=%v)", arg.UID, arg.Name)
+	arg.G().Log.Debug("+ LoadUser(uid=%v, name=%v)", arg.UID, arg.Name)
 
 	// resolve the uid from the name, if necessary
 	rres, err := arg.resolveUID()
@@ -142,7 +144,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	// check to see if this is a self load
 	arg.checkSelf()
 
-	G.Log.Debug("| resolved to %s", arg.UID)
+	arg.G().Log.Debug("| resolved to %s", arg.UID)
 
 	// We can get the user object's body from either the resolution result or
 	// if it was plumbed through as a parameter.
