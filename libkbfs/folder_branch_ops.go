@@ -25,7 +25,8 @@ const (
 	mdReadNeedIdentify
 	// A write request.
 	mdWrite
-	// A rekey request.
+	// A rekey request.  Doesn't need an identify to be performed, as
+	// a rekey does its own (finer-grained) identifies.
 	mdRekey
 )
 
