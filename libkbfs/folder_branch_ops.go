@@ -596,7 +596,7 @@ func (fbo *folderBranchOps) identifyOnce(
 	return nil
 }
 
-// if rtype == write, then mdWriterLock must be taken
+// if rtype == mdWrite || mdRekey, then mdWriterLock must be taken
 func (fbo *folderBranchOps) getMDLocked(
 	ctx context.Context, lState *lockState, rtype mdReqType) (
 	md *RootMetadata, err error) {
@@ -616,8 +616,8 @@ func (fbo *folderBranchOps) getMDLocked(
 		return md, nil
 	}
 
-	// Unless we're in mdWrite mode, we can't safely fetch the new
-	// MD without causing races, so bail.
+	// Unless we're in mdWrite or mdRekey mode, we can't safely fetch
+	// the new MD without causing races, so bail.
 	if rtype != mdWrite && rtype != mdRekey {
 		return nil, MDWriteNeededInRequest{}
 	}

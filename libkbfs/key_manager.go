@@ -203,10 +203,10 @@ func (km *KeyManagerStandard) updateKeyBundle(ctx context.Context,
 	return nil
 }
 
-func (km *KeyManagerStandard) checkForNewDevice(ctx context.Context,
+func (km *KeyManagerStandard) usersWithNewDevices(ctx context.Context,
 	md *RootMetadata, keyInfoMap UserDeviceKeyInfoMap,
-	expectedKeys map[keybase1.UID][]CryptPublicKey, isWriter bool) bool {
-	var identifies []keybase1.UID
+	expectedKeys map[keybase1.UID][]CryptPublicKey) (
+	identifiesNeeded []keybase1.UID) {
 	for u, keys := range expectedKeys {
 		kids, ok := keyInfoMap[u]
 		if !ok {
@@ -214,7 +214,7 @@ func (km *KeyManagerStandard) checkForNewDevice(ctx context.Context,
 			// in the handle, but don't error just in case we ever
 			// want to support that in the future.
 			km.log.CInfof(ctx, "Rekey %s: adding new user %s", md.ID, u)
-			identifies = append(identifies, u)
+			identifiesNeeded = append(identifiesNeeded, u)
 			continue
 		}
 		for _, k := range keys {
@@ -222,25 +222,18 @@ func (km *KeyManagerStandard) checkForNewDevice(ctx context.Context,
 			if _, ok := kids[k.kid]; !ok {
 				km.log.CInfof(ctx, "Rekey %s: adding new device %s for user %s",
 					md.ID, k.kid, u)
-				identifies = append(identifies, u)
+				identifiesNeeded = append(identifiesNeeded, u)
 				break
 			}
 		}
 	}
-	for _, u := range identifies {
-		// Fire off an identify to make sure this user is legit.
-		// TODO: parallelize?
-		identifyUID(ctx, km.config.KBPKI(),
-			md.GetTlfHandle().GetCanonicalName(ctx, km.config), u, isWriter,
-			md.ID.IsPublic())
-	}
-	return len(identifies) > 0
+	return identifiesNeeded
 }
 
-func (km *KeyManagerStandard) checkForRemovedDevice(ctx context.Context,
+func (km *KeyManagerStandard) usersWithRemovedDevices(ctx context.Context,
 	md *RootMetadata, keyInfoMap UserDeviceKeyInfoMap,
-	expectedKeys map[keybase1.UID][]CryptPublicKey, isWriter bool) bool {
-	var identifies []keybase1.UID
+	expectedKeys map[keybase1.UID][]CryptPublicKey) (
+	identifiesNeeded []keybase1.UID) {
 	for u, kids := range keyInfoMap {
 		keys, ok := expectedKeys[u]
 		if !ok {
@@ -248,7 +241,7 @@ func (km *KeyManagerStandard) checkForRemovedDevice(ctx context.Context,
 			// from the handle, but don't error just in case we ever
 			// want to support that in the future.
 			km.log.CInfof(ctx, "Rekey %s: removing user %s", md.ID, u)
-			identifies = append(identifies, u)
+			identifiesNeeded = append(identifiesNeeded, u)
 			continue
 		}
 		keyLookup := make(map[keybase1.KID]bool)
@@ -260,19 +253,12 @@ func (km *KeyManagerStandard) checkForRemovedDevice(ctx context.Context,
 			if !keyLookup[kid] {
 				km.log.CInfof(ctx,
 					"Rekey %s: removing device %s for user %s", md.ID, kid, u)
-				identifies = append(identifies, u)
+				identifiesNeeded = append(identifiesNeeded, u)
 				break
 			}
 		}
 	}
-	for _, u := range identifies {
-		// Fire off an identify to make sure this user is legit
-		// TODO: parallelize?
-		identifyUID(ctx, km.config.KBPKI(),
-			md.GetTlfHandle().GetCanonicalName(ctx, km.config), u, isWriter,
-			md.ID.IsPublic())
-	}
-	return len(identifies) > 0
+	return identifiesNeeded
 }
 
 func (km *KeyManagerStandard) deleteKeysForRemovedDevices(ctx context.Context,
@@ -379,6 +365,8 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 	// If there's at least one revoked device, add a new key generation
 	addNewDevice := false
 	incKeyGen := false
+	var writerIdentifiesNeeded []keybase1.UID
+	var readerIdentifiesNeeded []keybase1.UID
 	if currKeyGen < FirstValidKeyGen {
 		incKeyGen = true
 	} else {
@@ -389,17 +377,56 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 			return false, nil, err
 		}
 
-		addNewDevice = km.checkForNewDevice(ctx, md, tkb.WKeys, wKeys, true) ||
-			km.checkForNewDevice(ctx, md, tkb.RKeys, rKeys, false)
+		writerIdentifiesNeeded =
+			km.usersWithNewDevices(ctx, md, tkb.WKeys, wKeys)
+		readerIdentifiesNeeded =
+			km.usersWithNewDevices(ctx, md, tkb.RKeys, rKeys)
+		addNewDevice = len(writerIdentifiesNeeded) > 0 ||
+			len(readerIdentifiesNeeded) > 0
 
-		incKeyGen = km.checkForRemovedDevice(ctx, md, tkb.WKeys, wKeys, true) ||
-			km.checkForRemovedDevice(ctx, md, tkb.RKeys, rKeys, false)
+		wRemoved := km.usersWithRemovedDevices(ctx, md, tkb.WKeys, wKeys)
+		rRemoved := km.usersWithRemovedDevices(ctx, md, tkb.RKeys, rKeys)
+		incKeyGen = len(wRemoved) > 0 || len(rRemoved) > 0
+		if incKeyGen && !addNewDevice {
+			writerIdentifiesNeeded = wRemoved
+			readerIdentifiesNeeded = rRemoved
+		} else if incKeyGen {
+			// Only add non-duplicates to the identify lists.
+			identifies := make(map[keybase1.UID]bool)
+			for _, uid := range append(
+				writerIdentifiesNeeded, readerIdentifiesNeeded...) {
+				identifies[uid] = true
+			}
+			for _, u := range wRemoved {
+				if !identifies[u] {
+					writerIdentifiesNeeded = append(writerIdentifiesNeeded, u)
+				}
+			}
+			for _, u := range rRemoved {
+				if !identifies[u] {
+					readerIdentifiesNeeded = append(readerIdentifiesNeeded, u)
+				}
+			}
+		}
 	}
 
 	if !addNewDevice && !incKeyGen {
 		km.log.CDebugf(ctx, "Skipping rekeying %s: no new or removed devices",
 			md.ID)
 		return false, nil, nil
+	}
+
+	// Fire off an identifies to make sure the users are legit. TODO:
+	// parallelize?
+	for _, u := range writerIdentifiesNeeded {
+		identifyUID(ctx, km.config.KBPKI(),
+			md.GetTlfHandle().GetCanonicalName(ctx, km.config), u, true,
+			md.ID.IsPublic())
+	}
+	for _, u := range readerIdentifiesNeeded {
+		identifyUID(ctx, km.config.KBPKI(),
+			md.GetTlfHandle().GetCanonicalName(ctx, km.config), u, false,
+			md.ID.IsPublic())
 	}
 
 	// send rekey start notification

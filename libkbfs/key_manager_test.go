@@ -374,8 +374,8 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	}
 	config1.SetKeybaseDaemon(localDaemon)
 
-	// Only u2 should be identified (twice) as part of the rekey.
-	if g, e := measuredDaemon.identifyTimer.Count(), int64(3); g != e {
+	// Only u2 should be identified again as part of the rekey.
+	if g, e := measuredDaemon.identifyTimer.Count(), int64(2); g != e {
 		t.Errorf("Expected %d identify calls, but got %d", e, g)
 	}
 
