@@ -460,6 +460,113 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	}
 }
 
+func TestKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T) {
+	var u1, u2, u3 libkb.NormalizedUsername = "u1", "u2", "u3"
+	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2, u3)
+	defer CheckConfigAndShutdown(t, config1)
+
+	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)
+	defer CheckConfigAndShutdown(t, config2)
+	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	config3 := ConfigAsUser(config1.(*ConfigLocal), u3)
+	defer CheckConfigAndShutdown(t, config3)
+	uid3, err := config3.KBPKI().GetCurrentUID(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a shared folder
+	name := u1.String() + "," + u2.String() + ReaderSep + u3.String()
+
+	kbfsOps1 := config1.KBFSOps()
+	rootNode1, _, err :=
+		kbfsOps1.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+
+	// user 1 creates a file
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	config2Dev2 := ConfigAsUser(config1.(*ConfigLocal), u2)
+	defer CheckConfigAndShutdown(t, config2Dev2)
+
+	config3Dev2 := ConfigAsUser(config1.(*ConfigLocal), u3)
+	defer CheckConfigAndShutdown(t, config3Dev2)
+
+	// Now give u2 and u3 new devices.  The configs don't share a
+	// Keybase Daemon so we have to do it in all places.
+	AddDeviceForLocalUserOrBust(t, config1, uid2)
+	AddDeviceForLocalUserOrBust(t, config2, uid2)
+	AddDeviceForLocalUserOrBust(t, config3, uid2)
+	devIndex := AddDeviceForLocalUserOrBust(t, config2Dev2, uid2)
+	SwitchDeviceForLocalUserOrBust(t, config2Dev2, devIndex)
+	AddDeviceForLocalUserOrBust(t, config1, uid3)
+	AddDeviceForLocalUserOrBust(t, config2, uid3)
+	AddDeviceForLocalUserOrBust(t, config3, uid3)
+	devIndex = AddDeviceForLocalUserOrBust(t, config3Dev2, uid3)
+	SwitchDeviceForLocalUserOrBust(t, config3Dev2, devIndex)
+
+	// Users 2 and 3 should be unable to read the data now since its
+	// device wasn't registered when the folder was originally
+	// created.
+	kbfsOps2Dev2 := config2Dev2.KBFSOps()
+	_, _, err =
+		kbfsOps2Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+	if _, ok := err.(ReadAccessError); !ok {
+		t.Fatalf("Got unexpected error when reading with new key: %v", err)
+	}
+	kbfsOps3Dev2 := config3Dev2.KBFSOps()
+	_, _, err =
+		kbfsOps3Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+	if _, ok := err.(ReadAccessError); !ok {
+		t.Fatalf("Got unexpected error when reading with new key: %v", err)
+	}
+
+	// Set the KBPKI so we can count the identify calls
+	localDaemon := config1.KeybaseDaemon()
+	measuredDaemon :=
+		NewKeybaseDaemonMeasured(localDaemon, config1.MetricsRegistry())
+	config1.SetKeybaseDaemon(measuredDaemon)
+	// Force the FBO to forget about its previous identify.
+	kbfsOps1.(*KBFSOpsStandard).getOps(
+		rootNode1.GetFolderBranch()).identifyDone = false
+
+	// now user 1 should rekey
+	err = kbfsOps1.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
+	if err != nil {
+		t.Fatalf("Couldn't rekey: %v", err)
+	}
+
+	// Set the local daemon back since there are later dependencies on it.
+	config1.SetKeybaseDaemon(localDaemon)
+
+	// u2 and u3 should be identified as part of the rekey.
+	if g, e := measuredDaemon.identifyTimer.Count(), int64(2); g != e {
+		t.Errorf("Expected %d identify calls, but got %d", e, g)
+	}
+
+	// The new devices should be able to read now.
+	_, _, err =
+		kbfsOps2Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Got unexpected error after rekey: %v", err)
+	}
+
+	_, _, err =
+		kbfsOps3Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Got unexpected error after rekey: %v", err)
+	}
+}
+
 func TestKeyManagerSelfRekeyAcrossDevices(t *testing.T) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2)
