@@ -578,6 +578,7 @@ func NewChainLink(g *GlobalContext, parent *SigChain, id LinkID, jw *jsonw.Wrapp
 func ImportLinkFromStorage(id LinkID, selfUID keybase1.UID, g *GlobalContext) (*ChainLink, error) {
 	link, ok := g.LinkCache.Get(id)
 	if ok {
+		link.Contextified = NewContextified(g)
 		return &link, nil
 	}
 

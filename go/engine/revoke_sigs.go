@@ -102,9 +102,5 @@ func (e *RevokeSigsEngine) Run(ctx *Context) error {
 		return err
 	}
 
-	// is this necessary?
-	e.G().Log.Debug("removing user %s (%s) from chain cache after sig revoke", me.GetName(), me.GetUID())
-	e.G().ChainCache.Remove(me.GetUID())
-
 	return nil
 }

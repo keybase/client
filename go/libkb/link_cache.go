@@ -88,9 +88,12 @@ func (c *LinkCache) handle() {
 	for {
 		select {
 		case g := <-c.gets:
-			var res getLinkRes
-			res.link, res.ok = c.cache[g.linkID]
-			g.result <- res
+			link, ok := c.cache[g.linkID]
+			if ok {
+				g.result <- getLinkRes{link: link.Copy(), ok: true}
+			} else {
+				g.result <- getLinkRes{ok: false}
+			}
 		case p := <-c.puts:
 			c.cache[p.linkID] = p.link
 		case d := <-c.dels:
