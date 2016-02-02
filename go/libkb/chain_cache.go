@@ -14,6 +14,7 @@ type ChainCache struct {
 	cache map[keybase1.UID][]ChainLink
 	gets  chan getChainReq
 	puts  chan putChainReq
+	dels  chan delChainReq
 	done  chan struct{}
 }
 
@@ -24,6 +25,7 @@ func NewChainCache() *ChainCache {
 		cache: make(map[keybase1.UID][]ChainLink),
 		gets:  make(chan getChainReq),
 		puts:  make(chan putChainReq),
+		dels:  make(chan delChainReq),
 		done:  make(chan struct{}),
 	}
 
@@ -55,6 +57,15 @@ func (c *ChainCache) Put(uid keybase1.UID, links []ChainLink) {
 	c.puts <- req
 }
 
+// Remove deletes a list of ChainLinks from the cache.
+func (c *ChainCache) Remove(uid keybase1.UID) {
+	req := delChainReq{
+		UID: uid,
+	}
+
+	c.dels <- req
+}
+
 // Shutdown terminates the use of this cache.
 func (c *ChainCache) Shutdown() {
 	close(c.done)
@@ -75,6 +86,10 @@ type putChainReq struct {
 	Links []ChainLink
 }
 
+type delChainReq struct {
+	UID keybase1.UID
+}
+
 func (c *ChainCache) handle() {
 	for {
 		select {
@@ -84,6 +99,8 @@ func (c *ChainCache) handle() {
 			g.Result <- res
 		case p := <-c.puts:
 			c.cache[p.UID] = p.Links
+		case d := <-c.dels:
+			delete(c.cache, d.UID)
 		case <-c.done:
 			return
 		}

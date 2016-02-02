@@ -231,30 +231,10 @@ func (u *User) LoadSigChains(allKeys bool, f *MerkleUserLeaf, self bool) (err er
 		leaf:         f,
 		chainType:    PublicChain,
 		Contextified: u.Contextified,
-	}
-
-	// if allKeys is set, don't use the ChainCache.  allKeys is a rare case
-	// (`sigs list --all-keys` command only)
-
-	if allKeys || u.sigChain() != nil {
-		if u.sigChain() != nil {
-			u.G().Log.Debug("LoadSigChains %s: using links from existing SigChain", u.name)
-			loader.preload = u.sigChain().ChainLinksCopy()
-		}
-	} else {
-		links, ok := u.G().ChainCache.Get(u.id)
-		if ok {
-			u.G().Log.Debug("LoadSigChains %s: using cached links (%d)", u.name, len(links))
-			loader.preload = links
-		}
+		preload:      u.sigChain(),
 	}
 
 	u.sigChainMem, err = loader.Load()
-
-	if !allKeys {
-		u.G().Log.Debug("LoadSigChains %s: caching links", u.name)
-		u.G().ChainCache.Put(u.id, u.sigChain().ChainLinksCopy())
-	}
 
 	// Eventually load the others, but for now, this one is good enough
 	return err

@@ -69,7 +69,7 @@ func TestRevokeSig(t *testing.T) {
 	revokeEngine = NewRevokeSigsEngine([]string{sigID.ToString(true)}, tc.G)
 	err = RunEngine(revokeEngine, ctx)
 	if err == nil {
-		t.Fatal(err)
+		t.Fatal("RevokeSigs should have failed, but it didn't")
 	}
 	assertNumDevicesAndKeys(tc, u, 2, 5) // no change
 
