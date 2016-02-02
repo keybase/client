@@ -445,3 +445,9 @@ func DigestForFileAtPath(path string) (digest string, err error) {
 	digest = hex.EncodeToString(hasher.Sum(nil))
 	return
 }
+
+// TimeLog calls out with the time since start.  Use like this:
+//    defer TimeLog("MyFunc", time.Now(), e.G().Log.Warning)
+func TimeLog(name string, start time.Time, out func(string, ...interface{})) {
+	out("* %s: %s", name, time.Since(start))
+}
