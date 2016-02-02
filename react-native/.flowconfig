@@ -22,10 +22,7 @@
 .*/shared/debug/.*
 
 # Ignore .*-render.platform.js files
-.*-render\.android\.js
-.*-render\.ios\.js
-.*-render\.mobile\.js
-.*-render\.desktop\.js
+.*\.desktop\.js
 
 # Some react native errors in flow type
 .*/node_modules/react-native/Libraries/Animated/src/Interpolation.js
