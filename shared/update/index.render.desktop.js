@@ -10,6 +10,9 @@ import {globalStyles, globalColors} from '../styles/style-guide'
 
 export default class UpdateRender extends Component {
   props: RenderProps;
+  state: {
+    snackbarOpen: boolean
+  };
 
   constructor (props: RenderProps) {
     super(props)

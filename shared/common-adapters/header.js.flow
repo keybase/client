@@ -10,6 +10,6 @@ export type Props = {
   children?: ?Object
 }
 
-declare export default class Header extends React.Component<void, Props, {}> {
+declare export default class Header extends React.Component {
   props: Props;
 }

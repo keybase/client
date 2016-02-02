@@ -70,7 +70,7 @@ export default class ProofsRender extends Component {
         <div style={styles.usernameContainer}>
           <span
             className='hover-underline'
-            style={{...styles.username, ...(proof.status === revoked ? {textDecoration: 'line-through'} : {})}}
+            style={{...styles.username, ...(proof.state === revoked ? {textDecoration: 'line-through'} : {})}}
             onClick={onClickProfile}>{proof.name}</span>
           {proof.meta && <span style={{...styles.meta, backgroundColor: metaColor}}>{proof.meta}</span>}
         </div>
