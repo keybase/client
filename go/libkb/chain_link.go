@@ -725,6 +725,7 @@ func (c *ChainLink) Copy() ChainLink {
 	unpacked := *c.unpacked
 
 	r := *c
+	r.SetGlobalContext(nil)
 	r.parent = nil
 	r.unpacked = &unpacked
 
