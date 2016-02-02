@@ -132,7 +132,7 @@ func (api *BaseAPIEngine) getCli(cookied bool) (ret *Client) {
 func (api *BaseAPIEngine) PrepareGet(url url.URL, arg APIArg) (*http.Request, error) {
 	url.RawQuery = arg.getHTTPArgs().Encode()
 	ruri := url.String()
-	api.G().Log.Debug(fmt.Sprintf("+ API GET request to %s", ruri))
+	api.G().Log.Debug("+ API GET request to %s", ruri)
 	return http.NewRequest("GET", ruri, nil)
 }
 
