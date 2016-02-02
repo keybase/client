@@ -3,9 +3,10 @@
 pkgname=keybase
 pkgdesc='LOCAL BUILD'
 license=('BSD')
-# KEYBASE_VERSION works around the problem that makepkg never runs the pkgver()
-# function when --noextract is set. The caller must export this variable.
-pkgver=${KEYBASE_VERSION:-0}
+pkgver=0
+pkgver() {
+  "$srcdir/client/packaging/version.sh" prerelease | sed 's/-/_/g'
+}
 pkgrel=1
 arch=('i686' 'x86_64')
 depends=(fuse)
@@ -14,7 +15,7 @@ source=(
   'git+ssh://git@github.com/keybase/client'
   'git+ssh://git@github.com/keybase/kbfs'
 )
-md5sums=('SKIP')
+md5sums=('SKIP' 'SKIP')
 install=keybase.install
 
 build() {

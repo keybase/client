@@ -11,6 +11,4 @@ mkdir -p src
 ln -snf "$client_root" src/client
 ln -snf "$kbfs_root" src/kbfs
 
-export KEYBASE_VERSION="$(../../version.sh prerelease | sed 's/-/_/g')"
-
 makepkg -e "$@"
