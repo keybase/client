@@ -60,7 +60,7 @@ const DEFAULT_OPTS = {
   ].concat(devDeps.map(name => `/node_modules/${name}($|/)`))
 }
 
-const icon = argv.icon || argv.i || '../media/icons/Keybase.icns'
+const icon = argv.icon
 
 if (icon) {
   DEFAULT_OPTS.icon = icon

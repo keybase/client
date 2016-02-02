@@ -132,7 +132,7 @@ package_electron() {
 
   rm -rf node_modules
   npm install
-  npm run package -- --appVersion="$app_version" --comment="$comment"
+  npm run package -- --appVersion="$app_version" --comment="$comment" --icon="$client_dir/media/icons/Keybase.icns"
   rsync -av release/darwin-x64/Keybase-darwin-x64 $build_dir
 }
 
