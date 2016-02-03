@@ -3,6 +3,15 @@ import {connect} from 'react-redux'
 import {navigateTo} from '../actions/router'
 import MenuList from './menu-list'
 
+import about from './about'
+import account from './account'
+import billing from './about'
+import appPrefs from './about'
+import invites from './about'
+import notifs from './about'
+import deleteMe from './about'
+import devMenu from './dev-menu'
+
 class More extends Component {
   constructor (props) {
     super(props)
@@ -37,16 +46,7 @@ class More extends Component {
   static parseRoute () {
     return {
       componentAtTop: {title: 'More'},
-      subRoutes: {
-        about: require('./about'),
-        account: require('./account'),
-        billing: require('./about'),
-        appPrefs: require('./about'),
-        invites: require('./about'),
-        notifs: require('./about'),
-        deleteMe: require('./about'),
-        devMenu: require('./dev-menu')
-      }
+      subRoutes: {about, account, billing, appPrefs, invites, notifs, deleteMe, devMenu}
     }
   }
 }

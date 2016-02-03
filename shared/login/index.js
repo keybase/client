@@ -3,7 +3,7 @@
 import React, {Component} from 'react'
 import Render from './index.render'
 import Intro from './forms/intro'
-import {Text} from '../common-adapters'
+import ErrorText from './error.render'
 
 export default class Login extends Component {
   render () {
@@ -12,7 +12,7 @@ export default class Login extends Component {
 
   static parseRoute (currentPath, uri) {
     // Fallback (for debugging)
-    let Form = () => <Text type='Body'>Error loading component {JSON.stringify(currentPath.toJS())}</Text>
+    let Form = () => <ErrorText currentPath={currentPath} />
 
     switch (currentPath.get('path')) {
       case 'root':

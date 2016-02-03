@@ -1,4 +1,4 @@
-import React, {Component, StyleSheet, Text, TouchableHighlight, View} from 'react'
+import React, {Component} from 'react'
 import {StyleSheet, Text, TouchableHighlight, View} from 'react-native'
 
 import commonStyles from '../../../styles/common'
