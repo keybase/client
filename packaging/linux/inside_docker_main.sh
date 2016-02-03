@@ -105,6 +105,7 @@ while true ; do
     # Each nightly build happens in prerelease mode. Suppress errors in the
     # build script with `|| true`, so that the nightly loop continues.
     "$client_copy/packaging/linux/build_and_push_packages.sh" prerelease "$build_dir" || true
+    echo "=================== BUILD FINISHED ===================="
   fi
   sleep 60
 done
