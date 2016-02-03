@@ -722,7 +722,10 @@ func (c *ChainLink) Typed() TypedChainLink {
 }
 
 func (c *ChainLink) Copy() ChainLink {
-	unpacked := *c.unpacked
+	var unpacked ChainLinkUnpacked
+	if c.unpacked != nil {
+		unpacked = *c.unpacked
+	}
 
 	r := *c
 	r.SetGlobalContext(nil)
