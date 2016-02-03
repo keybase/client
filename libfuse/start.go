@@ -19,6 +19,19 @@ type StartOptions struct {
 
 // Start the filesystem
 func Start(mounter Mounter, options StartOptions) *Error {
+	log := logger.NewWithCallDepth("", 1, os.Stderr)
+	log.Configure("", options.KbfsParams.Debug, "")
+	log.Info("KBFS version %s", libkbfs.VersionString())
+
+	if options.RuntimeDir != "" {
+		info := libkb.NewServiceInfo(libkbfs.Version, libkbfs.Build(), options.Label, os.Getpid())
+		err := info.WriteFile(path.Join(options.RuntimeDir, "kbfs.info"))
+		if err != nil {
+			return InitError(err.Error())
+		}
+	}
+
+	log.Debug("Mounting: %s", mounter.Dir())
 	c, err := mounter.Mount()
 	if err != nil {
 		return MountError(err.Error())
@@ -42,9 +55,7 @@ func Start(mounter Mounter, options StartOptions) *Error {
 		}
 	}
 
-	log := logger.NewWithCallDepth("", 1, os.Stderr)
-	log.Info("KBFS version %s", libkbfs.VersionString())
-
+	log.Debug("Initializing")
 	config, err := libkbfs.Init(options.KbfsParams, onInterruptFn, log)
 	if err != nil {
 		return InitError(err.Error())
@@ -52,19 +63,13 @@ func Start(mounter Mounter, options StartOptions) *Error {
 
 	defer libkbfs.Shutdown(options.KbfsParams.MemProfile)
 
-	if options.RuntimeDir != "" {
-		info := libkb.NewServiceInfo(libkbfs.Version, libkbfs.Build(), options.Label, os.Getpid())
-		err = info.WriteFile(path.Join(options.RuntimeDir, "kbfs.info"))
-		if err != nil {
-			return InitError(err.Error())
-		}
-	}
-
+	log.Debug("Creating filesystem")
 	fs := NewFS(config, c, options.KbfsParams.Debug)
 	ctx := context.WithValue(context.Background(), CtxAppIDKey, fs)
 	logTags := make(logger.CtxLogTags)
 	logTags[CtxIDKey] = CtxOpID
 	ctx = logger.NewContextWithLogTags(ctx, logTags)
+	log.Debug("Serving filesystem")
 	fs.Serve(ctx)
 
 	<-c.Ready
@@ -73,5 +78,6 @@ func Start(mounter Mounter, options StartOptions) *Error {
 		return MountError(err.Error())
 	}
 
+	log.Debug("Ending")
 	return nil
 }
