@@ -174,6 +174,9 @@ func (f *Folder) batchChangesInvalidate(ctx context.Context,
 	}
 }
 
+// TODO: Expire TLF nodes periodically. See
+// https://keybase.atlassian.net/browse/KBFS-59 .
+
 // Dir represents KBFS subdirectories.
 type Dir struct {
 	folder *Folder

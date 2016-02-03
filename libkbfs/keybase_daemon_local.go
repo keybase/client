@@ -5,6 +5,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/util"
@@ -116,13 +117,14 @@ var _ KeybaseDaemon = KeybaseDaemonLocal{}
 
 // Resolve implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k KeybaseDaemonLocal) Resolve(ctx context.Context, assertion string) (
-	keybase1.UID, error) {
+	libkb.NormalizedUsername, keybase1.UID, error) {
 	uid, ok := k.asserts[assertion]
 	if !ok {
-		return keybase1.UID(""), NoSuchUserError{assertion}
+		return libkb.NormalizedUsername(""), keybase1.UID(""),
+			NoSuchUserError{assertion}
 	}
 
-	return uid, nil
+	return k.localUsers[uid].Name, uid, nil
 }
 
 // Identify implements KeybaseDaemon for KeybaseDaemonLocal.
@@ -159,6 +161,7 @@ func (k KeybaseDaemonLocal) CurrentSession(ctx context.Context, sessionID int) (
 		return SessionInfo{}, err
 	}
 	return SessionInfo{
+		Name:           u.Name,
 		UID:            u.UID,
 		Token:          "keybase_daemon_local_token",
 		CryptPublicKey: u.GetCurrentCryptPublicKey(),

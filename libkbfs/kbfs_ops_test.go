@@ -118,7 +118,7 @@ func kbfsOpsInitNoMocks(t *testing.T, users ...libkb.NormalizedUsername) (
 	Config, keybase1.UID, context.Context) {
 	config := MakeTestConfigOrBust(t, users...)
 
-	currentUID, err := config.KBPKI().GetCurrentUID(context.Background())
+	_, currentUID, err := config.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -202,9 +202,10 @@ func makeID(t *testing.T, config *ConfigMock, public bool) (keybase1.UID, TlfID,
 		h.Readers = []keybase1.UID{keybase1.PublicUID}
 	}
 	h.Writers = []keybase1.UID{uid}
+	name := libkb.NewNormalizedUsername(fmt.Sprintf("user_%s", uid))
 	expectUsernameCalls(h, config)
-	config.mockKbpki.EXPECT().GetCurrentUID(gomock.Any()).AnyTimes().
-		Return(uid, nil)
+	config.mockKbpki.EXPECT().GetCurrentUserInfo(gomock.Any()).AnyTimes().
+		Return(name, uid, nil)
 	return uid, id, h
 }
 
@@ -272,7 +273,7 @@ func TestKBFSOpsGetRootNodeCacheIdentifyFail(t *testing.T) {
 	config.mockKbpki.EXPECT().GetNormalizedUsername(gomock.Any(), uid2).AnyTimes().
 		Return(name2, nil)
 	config.mockKbpki.EXPECT().Resolve(gomock.Any(), string(name2)).AnyTimes().
-		Return(uid2, nil)
+		Return(name2, uid2, nil)
 	config.mockKbpki.EXPECT().Identify(gomock.Any(), name2.String(), gomock.Any()).Return(UserInfo{}, expectedErr)
 
 	rmd.data.Dir.BlockPointer.ID = fakeBlockID(1)
@@ -420,10 +421,10 @@ func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
 		GetUnmergedForTLF(gomock.Any(), id, gomock.Any()).Return(nil, nil)
 	config.mockMdops.EXPECT().GetForTLF(gomock.Any(), id).Return(rmd, nil)
 	// try to get the MD for writing, but fail (no puts should happen)
-	config.mockKbpki.EXPECT().GetCurrentUID(ctx).AnyTimes().
-		Return(uid, nil)
-	expectedErr := WriteAccessError{
-		fmt.Sprintf("user_%s", uid), h.ToString(ctx, config)}
+	name := libkb.NewNormalizedUsername(fmt.Sprintf("user_%s", uid))
+	config.mockKbpki.EXPECT().GetCurrentUserInfo(ctx).AnyTimes().
+		Return(name, uid, nil)
+	expectedErr := WriteAccessError{name, h.ToString(ctx, config)}
 
 	ops := getOps(config, id)
 	if _, _, _, err := ops.getRootNode(ctx); err == nil {
@@ -605,11 +606,11 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 
 	// won't even try getting the block if the user isn't a reader
 	ops.head = rmd
-	config.mockKbpki.EXPECT().GetCurrentUID(ctx).AnyTimes().
-		Return(uid, nil)
+	name := libkb.NewNormalizedUsername(fmt.Sprintf("user_%s", uid))
+	config.mockKbpki.EXPECT().GetCurrentUserInfo(ctx).AnyTimes().
+		Return(name, uid, nil)
 	expectUsernameCall(uid, config)
-	expectedErr := ReadAccessError{
-		fmt.Sprintf("user_%s", uid), h.ToString(ctx, config)}
+	expectedErr := ReadAccessError{name, h.ToString(ctx, config)}
 
 	if _, err := config.KBFSOps().GetDirChildren(ctx, n); err == nil {
 		t.Errorf("Got no expected error on getdir")

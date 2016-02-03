@@ -53,15 +53,11 @@ func (a *AuthToken) Sign(ctx context.Context, challengeInfo keybase1.ChallengeIn
 	}
 
 	// get UID, deviceKID and normalized username
-	uid, err := a.config.KBPKI().GetCurrentUID(ctx)
+	username, uid, err := a.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return "", err
 	}
 	key, err := a.config.KBPKI().GetCurrentVerifyingKey(ctx)
-	if err != nil {
-		return "", err
-	}
-	username, err := a.config.KBPKI().GetNormalizedUsername(ctx, uid)
 	if err != nil {
 		return "", err
 	}

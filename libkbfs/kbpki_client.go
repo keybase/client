@@ -1,6 +1,8 @@
 package libkbfs
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -31,15 +33,16 @@ func (k *KBPKIClient) GetCurrentToken(ctx context.Context) (string, error) {
 	return s.Token, nil
 }
 
-// GetCurrentUID implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) GetCurrentUID(ctx context.Context) (keybase1.UID, error) {
+// GetCurrentUserInfo implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) GetCurrentUserInfo(ctx context.Context) (
+	libkb.NormalizedUsername, keybase1.UID, error) {
 	s, err := k.session(ctx)
 	if err != nil {
 		// TODO: something more intelligent; maybe just shut down
 		// unless we want anonymous browsing of public data
-		return keybase1.UID(""), err
+		return libkb.NormalizedUsername(""), keybase1.UID(""), err
 	}
-	return s.UID, nil
+	return s.Name, s.UID, nil
 }
 
 // GetCurrentCryptPublicKey implements the KBPKI interface for KBPKIClient.
@@ -64,7 +67,7 @@ func (k *KBPKIClient) GetCurrentVerifyingKey(ctx context.Context) (
 
 // Resolve implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) Resolve(ctx context.Context, assertion string) (
-	keybase1.UID, error) {
+	libkb.NormalizedUsername, keybase1.UID, error) {
 	return k.config.KeybaseDaemon().Resolve(ctx, assertion)
 }
 
@@ -78,11 +81,11 @@ func (k *KBPKIClient) Identify(ctx context.Context, assertion, reason string) (
 // KBPKIClient.
 func (k *KBPKIClient) GetNormalizedUsername(ctx context.Context, uid keybase1.UID) (
 	libkb.NormalizedUsername, error) {
-	userInfo, err := k.loadUserPlusKeys(ctx, uid)
+	username, _, err := k.Resolve(ctx, fmt.Sprintf("uid:%s", uid))
 	if err != nil {
 		return libkb.NormalizedUsername(""), err
 	}
-	return userInfo.Name, nil
+	return username, nil
 }
 
 // HasVerifyingKey implements the KBPKI interface for KBPKIClient.

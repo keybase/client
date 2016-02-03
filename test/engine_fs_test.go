@@ -52,9 +52,9 @@ func (e *fsEngine) Name() string {
 // GetUID is called by the test harness to retrieve a user instance's UID.
 func (e *fsEngine) GetUID(user User) keybase1.UID {
 	u := user.(*fsUser)
-	uid, err := u.config.KBPKI().GetCurrentUID(context.Background())
+	_, uid, err := u.config.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
-		e.t.Fatalf("GetUID: GetCurrentUID failed with %v", err)
+		e.t.Fatalf("GetUID: GetCurrentUserInfo failed with %v", err)
 	}
 	return uid
 }
@@ -320,7 +320,7 @@ func (e *fsEngine) InitTest(t *testing.T, blockSize int64, blockChangeSize int64
 }
 
 func nameToUID(t *testing.T, config libkbfs.Config) keybase1.UID {
-	uid, err := config.KBPKI().GetCurrentUID(context.Background())
+	_, uid, err := config.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}

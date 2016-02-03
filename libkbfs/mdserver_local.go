@@ -95,7 +95,7 @@ func (md *MDServerLocal) checkPerms(ctx context.Context, id TlfID,
 		// and check that the UID is listed.
 		return true, nil
 	}
-	user, err := md.config.KBPKI().GetCurrentUID(ctx)
+	_, user, err := md.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return false, err
 	}
@@ -157,7 +157,7 @@ func (md *MDServerLocal) GetForHandle(ctx context.Context, handle *TlfHandle,
 	}
 
 	// Non-readers shouldn't be able to create the dir.
-	uid, err := md.config.KBPKI().GetCurrentUID(ctx)
+	_, uid, err := md.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return id, nil, err
 	}

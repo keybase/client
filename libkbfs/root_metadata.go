@@ -504,11 +504,11 @@ func (md *RootMetadata) isReadableOrError(ctx context.Context, config Config) er
 	}
 	// this should only be the case if we're a new device not yet
 	// added to the set of reader/writer keys.
-	uid, err := config.KBPKI().GetCurrentUID(ctx)
+	username, _, err := config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return err
 	}
-	return NewReadAccessError(ctx, config, md.GetTlfHandle(), uid)
+	return NewReadAccessError(ctx, config, md.GetTlfHandle(), username)
 }
 
 // RootMetadataSigned is the top-level MD object stored in MD server

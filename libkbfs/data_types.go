@@ -36,6 +36,7 @@ type UserInfo struct {
 // SessionInfo contains all the info about the keybase session that
 // kbfs cares about.
 type SessionInfo struct {
+	Name           libkb.NormalizedUsername
 	UID            keybase1.UID
 	Token          string
 	CryptPublicKey CryptPublicKey

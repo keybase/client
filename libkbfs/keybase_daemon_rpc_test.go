@@ -8,6 +8,8 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
@@ -145,27 +147,19 @@ func testCurrentSession(
 	ctx := context.Background()
 	sessionID := 0
 	session, err := c.CurrentSession(ctx, sessionID)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
-	if session != expectedSession {
-		t.Errorf("Expected %v, got %v", expectedSession, session)
-	}
-
-	if client.currentSessionCalled != expectedCalled {
-		t.Errorf("Expected CurrentSession called = %t, got %t",
-			expectedCalled, client.currentSessionCalled)
-	}
+	assert.Equal(t, expectedSession, session)
+	assert.Equal(t, expectedCalled, client.currentSessionCalled)
 }
 
 // Test that the session cache works and is invalidated as expected.
 func TestKeybaseDaemonSessionCache(t *testing.T) {
-	k := MakeLocalUserCryptPublicKeyOrBust(
-		libkb.NormalizedUsername("fake username"))
-	v := MakeLocalUserVerifyingKeyOrBust(
-		libkb.NormalizedUsername("fake username"))
+	name := libkb.NormalizedUsername("fake username")
+	k := MakeLocalUserCryptPublicKeyOrBust(name)
+	v := MakeLocalUserVerifyingKeyOrBust(name)
 	session := SessionInfo{
+		Name:           name,
 		UID:            keybase1.UID("fake uid"),
 		Token:          "fake token",
 		CryptPublicKey: k,
@@ -184,9 +178,7 @@ func TestKeybaseDaemonSessionCache(t *testing.T) {
 
 	// Should invalidate cache.
 	err := c.LoggedOut(context.Background())
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
 	// Should fill cache again.
 	testCurrentSession(t, client, c, session, expectCall)
@@ -209,18 +201,10 @@ func testLoadUserPlusKeys(
 
 	ctx := context.Background()
 	info, err := c.LoadUserPlusKeys(ctx, uid)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
-	if info.Name != expectedName {
-		t.Errorf("Expected name %s, got %s", expectedName, info.Name)
-	}
-
-	if client.loadUserPlusKeysCalled != expectedCalled {
-		t.Errorf("Expected LoadUserPlusKeys called = %t, got %t",
-			expectedCalled, client.loadUserPlusKeysCalled)
-	}
+	assert.Equal(t, expectedName, info.Name)
+	assert.Equal(t, expectedCalled, client.loadUserPlusKeysCalled)
 }
 
 func testIdentify(
@@ -231,18 +215,10 @@ func testIdentify(
 
 	ctx := context.Background()
 	info, err := c.Identify(ctx, "uid:"+string(uid), "")
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
-	if info.Name != expectedName {
-		t.Errorf("Expected name %s, got %s", expectedName, info.Name)
-	}
-
-	if client.identifyCalled != expectedCalled {
-		t.Errorf("Expected Identify called = %t, got %t",
-			expectedCalled, client.identifyCalled)
-	}
+	assert.Equal(t, expectedName, info.Name)
+	assert.Equal(t, expectedCalled, client.identifyCalled)
 }
 
 // Test that the user cache works and is invalidated as expected.
@@ -276,9 +252,7 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 
 	// Should invalidate cache for uid1.
 	err := c.UserChanged(context.Background(), uid1)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
 	// Should fill cache again.
 	testLoadUserPlusKeys(t, client, c, uid1, name1, expectCall)
@@ -291,9 +265,7 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 
 	// Should invalidate cache for uid2.
 	err = c.UserChanged(context.Background(), uid2)
-	if err != nil {
-		t.Fatal(err)
-	}
+	require.Nil(t, err)
 
 	// Should fill cache again.
 	testLoadUserPlusKeys(t, client, c, uid2, name2, expectCall)

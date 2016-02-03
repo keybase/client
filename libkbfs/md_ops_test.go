@@ -2,6 +2,7 @@ package libkbfs
 
 import (
 	"errors"
+	"fmt"
 	"testing"
 
 	"github.com/golang/mock/gomock"
@@ -31,8 +32,9 @@ func newDir(t *testing.T, config *ConfigMock, x byte, share bool, public bool) (
 	revision := MetadataRevision(1)
 	id, h, rmds := NewFolder(t, x, revision, share, public)
 	expectUsernameCalls(h, config)
-	config.mockKbpki.EXPECT().GetCurrentUID(gomock.Any()).AnyTimes().
-		Return(h.Writers[0], nil)
+	name := libkb.NewNormalizedUsername(fmt.Sprintf("user_%s", h.Writers[0]))
+	config.mockKbpki.EXPECT().GetCurrentUserInfo(gomock.Any()).AnyTimes().
+		Return(name, h.Writers[0], nil)
 	return id, h, rmds
 }
 

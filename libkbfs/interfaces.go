@@ -257,10 +257,17 @@ type KBFSOps interface {
 // KeybaseDaemon is an interface for communicating with the local
 // Keybase daemon.
 type KeybaseDaemon interface {
-	// Resolve, given an assertion, resolves it to a UID. The
-	// authenticity of the given UID shouldn't be trusted, except
-	// to compare it with the current UID.
-	Resolve(ctx context.Context, assertion string) (keybase1.UID, error)
+	// Resolve, given an assertion, resolves it to a username/UID
+	// pair. The username <-> UID mapping is trusted and
+	// immutable, so it can be cached. If the assertion is just
+	// the username or a UID assertion, then the resolution can
+	// also be trusted. If the returned pair is equal to that of
+	// the current session, then it can also be
+	// trusted. Otherwise, Identify() needs to be called on the
+	// assertion before the assertion -> (username, UID) mapping
+	// can be trusted.
+	Resolve(ctx context.Context, assertion string) (
+		libkb.NormalizedUsername, keybase1.UID, error)
 
 	// Identify, given an assertion, returns a UserInfo struct
 	// with the user that matches that assertion, or an error
@@ -304,8 +311,10 @@ type KeybaseDaemon interface {
 type KBPKI interface {
 	// GetCurrentToken gets the current keybase session token.
 	GetCurrentToken(ctx context.Context) (string, error)
-	// GetCurrentUID gets the UID of the current logged-in user.
-	GetCurrentUID(ctx context.Context) (keybase1.UID, error)
+	// GetCurrentUserInfo gets the name and UID of the current
+	// logged-in user.
+	GetCurrentUserInfo(ctx context.Context) (
+		libkb.NormalizedUsername, keybase1.UID, error)
 	// GetCurrentCryptPublicKey gets the crypt public key for the
 	// currently-active device.
 	GetCurrentCryptPublicKey(ctx context.Context) (CryptPublicKey, error)
@@ -313,11 +322,17 @@ type KBPKI interface {
 	// currently-active device.
 	GetCurrentVerifyingKey(ctx context.Context) (VerifyingKey, error)
 
-	// Resolve resolves an assertion (which could also be a
-	// username) to a UID.  The authenticity of the given UID
-	// shouldn't be trusted, except to compare it with the current
-	// UID.
-	Resolve(ctx context.Context, assertion string) (keybase1.UID, error)
+	// Resolve, given an assertion, resolves it to a username/UID
+	// pair. The username <-> UID mapping is trusted and
+	// immutable, so it can be cached. If the assertion is just
+	// the username or a UID assertion, then the resolution can
+	// also be trusted. If the returned pair is equal to that of
+	// the current session, then it can also be
+	// trusted. Otherwise, Identify() needs to be called on the
+	// assertion before the assertion -> (username, UID) mapping
+	// can be trusted.
+	Resolve(ctx context.Context, assertion string) (
+		libkb.NormalizedUsername, keybase1.UID, error)
 
 	// Identify resolves an assertion (which could also be a
 	// username) to a UserInfo struct, spawning tracker popups if

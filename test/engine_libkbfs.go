@@ -114,7 +114,7 @@ func (k *LibKBFS) GetUID(u User) (uid keybase1.UID) {
 		panic("passed parameter isn't a config object")
 	}
 	var err error
-	uid, err = config.KBPKI().GetCurrentUID(context.Background())
+	_, uid, err = config.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
 		panic(err.Error())
 	}

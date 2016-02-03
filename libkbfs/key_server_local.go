@@ -71,7 +71,7 @@ func (ks *KeyServerLocal) GetTLFCryptKeyServerHalf(ctx context.Context,
 		return TLFCryptKeyServerHalf{}, err
 	}
 
-	uid, err := ks.config.KBPKI().GetCurrentUID(ctx)
+	_, uid, err := ks.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return TLFCryptKeyServerHalf{}, err
 	}

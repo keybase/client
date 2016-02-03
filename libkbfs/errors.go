@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
 )
@@ -142,7 +143,7 @@ func (e ErrorFileAccessError) Error() string {
 // ReadAccessError indicates that the user tried to read from a
 // top-level folder without read permission.
 type ReadAccessError struct {
-	User string
+	User libkb.NormalizedUsername
 	Dir  string
 }
 
@@ -155,7 +156,7 @@ func (e ReadAccessError) Error() string {
 // WriteAccessError indicates that the user tried to read from a
 // top-level folder without read permission.
 type WriteAccessError struct {
-	User string
+	User libkb.NormalizedUsername
 	Dir  string
 }
 
@@ -168,23 +169,17 @@ func (e WriteAccessError) Error() string {
 // NewReadAccessError constructs a ReadAccessError for the given
 // directory and user.
 func NewReadAccessError(ctx context.Context, config Config, dir *TlfHandle,
-	uid keybase1.UID) error {
+	username libkb.NormalizedUsername) error {
 	dirname := dir.ToString(ctx, config)
-	if name, err2 := config.KBPKI().GetNormalizedUsername(ctx, uid); err2 == nil {
-		return ReadAccessError{string(name), dirname}
-	}
-	return ReadAccessError{uid.String(), dirname}
+	return ReadAccessError{username, dirname}
 }
 
 // NewWriteAccessError constructs a WriteAccessError for the given
 // directory and user.
 func NewWriteAccessError(ctx context.Context, config Config, dir *TlfHandle,
-	uid keybase1.UID) error {
+	username libkb.NormalizedUsername) error {
 	dirname := dir.ToString(ctx, config)
-	if name, err2 := config.KBPKI().GetNormalizedUsername(ctx, uid); err2 == nil {
-		return WriteAccessError{string(name), dirname}
-	}
-	return WriteAccessError{uid.String(), dirname}
+	return WriteAccessError{username, dirname}
 }
 
 // NotFileBlockError indicates that a file block was expected but a
@@ -828,7 +823,7 @@ func (e NoCurrentSessionError) Error() string {
 // RekeyPermissionError indicates that the user tried to rekey a
 // top-level folder in a manner inconsistent with their permissions.
 type RekeyPermissionError struct {
-	User string
+	User libkb.NormalizedUsername
 	Dir  string
 }
 
@@ -841,12 +836,9 @@ func (e RekeyPermissionError) Error() string {
 // NewRekeyPermissionError constructs a RekeyPermissionError for the given
 // directory and user.
 func NewRekeyPermissionError(ctx context.Context, config Config, dir *TlfHandle,
-	uid keybase1.UID) error {
+	username libkb.NormalizedUsername) error {
 	dirname := dir.ToString(ctx, config)
-	if name, err2 := config.KBPKI().GetNormalizedUsername(ctx, uid); err2 == nil {
-		return RekeyPermissionError{string(name), dirname}
-	}
-	return RekeyPermissionError{uid.String(), dirname}
+	return RekeyPermissionError{username, dirname}
 }
 
 // InvalidKIDError is returned whenever an invalid KID is detected.

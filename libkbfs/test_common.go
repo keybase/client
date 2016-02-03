@@ -364,7 +364,7 @@ func RevokeDeviceForLocalUserOrBust(t *testing.T, config Config,
 
 // SwitchDeviceForLocalUserOrBust switches the current user's current device
 func SwitchDeviceForLocalUserOrBust(t *testing.T, config Config, index int) {
-	uid, err := config.KBPKI().GetCurrentUID(context.Background())
+	_, uid, err := config.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
 		t.Fatalf("Couldn't get UID: %v", err)
 	}

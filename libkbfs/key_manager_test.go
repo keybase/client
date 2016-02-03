@@ -282,7 +282,7 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)
 	defer CheckConfigAndShutdown(t, config2)
-	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -464,14 +464,14 @@ func TestKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T) {
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)
 	defer CheckConfigAndShutdown(t, config2)
-	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	config3 := ConfigAsUser(config1.(*ConfigLocal), u3)
 	defer CheckConfigAndShutdown(t, config3)
-	uid3, err := config3.KBPKI().GetCurrentUID(context.Background())
+	_, uid3, err := config3.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -570,7 +570,7 @@ func TestKeyManagerSelfRekeyAcrossDevices(t *testing.T) {
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)
 	defer CheckConfigAndShutdown(t, config2)
-	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -671,7 +671,7 @@ func TestKeyManagerRekeyBit(t *testing.T) {
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)
 	defer CheckConfigAndShutdown(t, config2)
-	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -679,7 +679,7 @@ func TestKeyManagerRekeyBit(t *testing.T) {
 
 	config3 := ConfigAsUser(config1.(*ConfigLocal), u3)
 	defer CheckConfigAndShutdown(t, config3)
-	uid3, err := config3.KBPKI().GetCurrentUID(context.Background())
+	_, uid3, err := config3.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -846,7 +846,7 @@ func TestKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T) {
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)
 	defer CheckConfigAndShutdown(t, config2)
-	uid2, err := config2.KBPKI().GetCurrentUID(context.Background())
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}

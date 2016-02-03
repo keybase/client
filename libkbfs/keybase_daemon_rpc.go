@@ -350,8 +350,12 @@ func (k *KeybaseDaemonRPC) ShouldThrottle(err error) bool {
 
 // Resolve implements the KeybaseDaemon interface for KeybaseDaemonRPC.
 func (k *KeybaseDaemonRPC) Resolve(ctx context.Context, assertion string) (
-	keybase1.UID, error) {
-	return k.identifyClient.Resolve(ctx, assertion)
+	libkb.NormalizedUsername, keybase1.UID, error) {
+	user, err := k.identifyClient.Resolve2(ctx, assertion)
+	if err != nil {
+		return libkb.NormalizedUsername(""), keybase1.UID(""), err
+	}
+	return libkb.NewNormalizedUsername(user.Username), user.Uid, nil
 }
 
 // Identify implements the KeybaseDaemon interface for KeybaseDaemonRPC.
@@ -436,6 +440,7 @@ func (k *KeybaseDaemonRPC) CurrentSession(ctx context.Context, sessionID int) (
 	cryptPublicKey := MakeCryptPublicKey(deviceSubkey.GetKID())
 	verifyingKey := MakeVerifyingKey(deviceSibkey.GetKID())
 	s := SessionInfo{
+		Name:           libkb.NewNormalizedUsername(res.Username),
 		UID:            keybase1.UID(res.Uid),
 		Token:          res.Token,
 		CryptPublicKey: cryptPublicKey,
@@ -443,8 +448,8 @@ func (k *KeybaseDaemonRPC) CurrentSession(ctx context.Context, sessionID int) (
 	}
 
 	k.log.CDebugf(
-		ctx, "new session with uid %s, crypt public key %s, and verifying key %s",
-		s.UID, s.CryptPublicKey, s.VerifyingKey)
+		ctx, "new session with username %s, uid %s, crypt public key %s, and verifying key %s",
+		s.Name, s.UID, s.CryptPublicKey, s.VerifyingKey)
 
 	k.setCachedCurrentSession(s)
 

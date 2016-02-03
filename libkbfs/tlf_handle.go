@@ -211,11 +211,7 @@ func resolveTlfHandle(ctx context.Context, kbpki KBPKI,
 	public bool, writerNames, readerNames []string) (
 	*TlfHandle, CanonicalTlfName, error) {
 	resolveUser := func(ctx context.Context, assertion string, isWriter bool) (UserInfo, error) {
-		uid, err := kbpki.Resolve(ctx, assertion)
-		if err != nil {
-			return UserInfo{}, err
-		}
-		name, err := kbpki.GetNormalizedUsername(ctx, uid)
+		name, uid, err := kbpki.Resolve(ctx, assertion)
 		if err != nil {
 			return UserInfo{}, err
 		}
@@ -383,7 +379,6 @@ func (h *TlfHandle) ToString(ctx context.Context, config Config) string {
 	h.cacheMutex.Lock()
 	defer h.cacheMutex.Unlock()
 	if h.cachedName != "" {
-		// TODO: we should expire this cache periodically
 		return h.cachedName
 	}
 
@@ -482,7 +477,7 @@ func ParseTlfHandle(
 	}
 
 	if !public {
-		currentUID, err := kbpki.GetCurrentUID(ctx)
+		currentUsername, currentUID, err := kbpki.GetCurrentUserInfo(ctx)
 		if err != nil {
 			return nil, err
 		}
@@ -497,14 +492,7 @@ func ParseTlfHandle(
 		}
 
 		if !canRead {
-			var user string
-			username, err := kbpki.GetNormalizedUsername(ctx, currentUID)
-			if err == nil {
-				user = username.String()
-			} else {
-				user = "uid:" + currentUID.String()
-			}
-			return nil, ReadAccessError{user, name}
+			return nil, ReadAccessError{currentUsername, name}
 		}
 	}
 

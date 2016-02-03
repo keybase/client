@@ -320,7 +320,7 @@ func TestCRMergedChainsSimple(t *testing.T) {
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	defer CheckConfigAndShutdown(t, config2)
-	uid2, err := config2.KBPKI().GetCurrentUID(ctx)
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -380,7 +380,7 @@ func TestCRMergedChainsDifferentDirectories(t *testing.T) {
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	defer CheckConfigAndShutdown(t, config2)
-	uid2, err := config2.KBPKI().GetCurrentUID(ctx)
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -442,7 +442,7 @@ func TestCRMergedChainsDeletedDirectories(t *testing.T) {
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	defer CheckConfigAndShutdown(t, config2)
-	uid2, err := config2.KBPKI().GetCurrentUID(ctx)
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -537,7 +537,7 @@ func TestCRMergedChainsRenamedDirectory(t *testing.T) {
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	defer CheckConfigAndShutdown(t, config2)
-	uid2, err := config2.KBPKI().GetCurrentUID(ctx)
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -617,7 +617,7 @@ func TestCRMergedChainsComplex(t *testing.T) {
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	defer CheckConfigAndShutdown(t, config2)
-	uid2, err := config2.KBPKI().GetCurrentUID(ctx)
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -798,7 +798,7 @@ func TestCRMergedChainsRenameCycleSimple(t *testing.T) {
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	defer CheckConfigAndShutdown(t, config2)
-	uid2, err := config2.KBPKI().GetCurrentUID(ctx)
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -881,7 +881,7 @@ func TestCRMergedChainsConflictSimple(t *testing.T) {
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	defer CheckConfigAndShutdown(t, config2)
-	uid2, err := config2.KBPKI().GetCurrentUID(ctx)
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -947,7 +947,7 @@ func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	defer CheckConfigAndShutdown(t, config2)
-	uid2, err := config2.KBPKI().GetCurrentUID(ctx)
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1049,7 +1049,7 @@ func TestCRDoActionsSimple(t *testing.T) {
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	defer CheckConfigAndShutdown(t, config2)
-	uid2, err := config2.KBPKI().GetCurrentUID(ctx)
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -1137,7 +1137,7 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	defer CheckConfigAndShutdown(t, config2)
-	uid2, err := config2.KBPKI().GetCurrentUID(ctx)
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}

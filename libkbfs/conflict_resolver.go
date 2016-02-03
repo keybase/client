@@ -1034,11 +1034,7 @@ func (cr *ConflictResolver) addRecreateOpsToUnmergedChains(ctx context.Context,
 
 	// we know all of these recreate ops were authored by the current user
 	kbpki := cr.config.KBPKI()
-	uid, err := kbpki.GetCurrentUID(ctx)
-	if err != nil {
-		return nil, err
-	}
-	writerName, err := kbpki.GetNormalizedUsername(ctx, uid)
+	writerName, _, err := kbpki.GetCurrentUserInfo(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -1733,7 +1729,7 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 	}
 	fblock = fblock.DeepCopy()
 	newPtr := ptr
-	uid, err := cr.config.KBPKI().GetCurrentUID(ctx)
+	_, uid, err := cr.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return BlockPointer{}, err
 	}
@@ -2694,7 +2690,7 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 		return updates, newBlockPutState(0), nil
 	}
 
-	uid, err := cr.config.KBPKI().GetCurrentUID(ctx)
+	_, uid, err := cr.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return nil, nil, err
 	}

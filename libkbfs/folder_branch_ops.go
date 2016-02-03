@@ -664,12 +664,12 @@ func (fbo *folderBranchOps) getMDForReadHelper(
 		return nil, err
 	}
 
-	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
+	username, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if !md.GetTlfHandle().IsReader(uid) {
-		return nil, NewReadAccessError(ctx, fbo.config, md.GetTlfHandle(), uid)
+		return nil, NewReadAccessError(ctx, fbo.config, md.GetTlfHandle(), username)
 	}
 	return md, nil
 }
@@ -692,13 +692,13 @@ func (fbo *folderBranchOps) getMDForWriteLocked(
 		return nil, err
 	}
 
-	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
+	username, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if !md.GetTlfHandle().IsWriter(uid) {
 		return nil,
-			NewWriteAccessError(ctx, fbo.config, md.GetTlfHandle(), uid)
+			NewWriteAccessError(ctx, fbo.config, md.GetTlfHandle(), username)
 	}
 
 	// Make a new successor of the current MD to hold the coming
@@ -720,7 +720,7 @@ func (fbo *folderBranchOps) getMDForRekeyWriteLocked(
 		return nil, false, err
 	}
 
-	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
+	username, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return nil, false, err
 	}
@@ -728,7 +728,7 @@ func (fbo *folderBranchOps) getMDForRekeyWriteLocked(
 	// must be a reader or writer (it checks both.)
 	if !md.GetTlfHandle().IsReader(uid) {
 		return nil, false,
-			NewRekeyPermissionError(ctx, fbo.config, md.GetTlfHandle(), uid)
+			NewRekeyPermissionError(ctx, fbo.config, md.GetTlfHandle(), username)
 	}
 
 	newMd, err := md.MakeSuccessor(fbo.config)
@@ -740,13 +740,13 @@ func (fbo *folderBranchOps) getMDForRekeyWriteLocked(
 		// readers shouldn't modify writer metadata
 		if !newMd.IsWriterMetadataCopiedSet() {
 			return nil, false,
-				NewRekeyPermissionError(ctx, fbo.config, md.GetTlfHandle(), uid)
+				NewRekeyPermissionError(ctx, fbo.config, md.GetTlfHandle(), username)
 		}
 		// readers are currently only allowed to set the rekey bit
 		// TODO: allow readers to fully rekey only themself.
 		if !newMd.IsRekeySet() {
 			return nil, false,
-				NewRekeyPermissionError(ctx, fbo.config, md.GetTlfHandle(), uid)
+				NewRekeyPermissionError(ctx, fbo.config, md.GetTlfHandle(), username)
 		}
 	}
 
@@ -761,15 +761,16 @@ func (fbo *folderBranchOps) nowUnixNano() int64 {
 func (fbo *folderBranchOps) initMDLocked(
 	ctx context.Context, lState *lockState, md *RootMetadata) error {
 	// create a dblock since one doesn't exist yet
-	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
+	username, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return err
 	}
 
 	handle := md.GetTlfHandle()
 
+	// make sure we're a writer before rekeying or putting any blocks.
 	if !handle.IsWriter(uid) {
-		return NewWriteAccessError(ctx, fbo.config, handle, uid)
+		return NewWriteAccessError(ctx, fbo.config, handle, username)
 	}
 
 	newDblock := &DirBlock{
@@ -812,11 +813,6 @@ func (fbo *folderBranchOps) initMDLocked(
 	md.AddOp(newCreateOp("", BlockPointer{}, Dir))
 	md.AddRefBlock(md.data.Dir.BlockInfo)
 	md.UnrefBytes = 0
-
-	// make sure we're a writer before putting any blocks
-	if !handle.IsWriter(uid) {
-		return NewWriteAccessError(ctx, fbo.config, handle, uid)
-	}
 
 	if err = fbo.config.BlockOps().Put(ctx, md, info.BlockPointer,
 		readyBlockData); err != nil {
@@ -1272,7 +1268,7 @@ func (fbo *folderBranchOps) updateDirBlock(ctx context.Context,
 				// error, just log it and keep going because having
 				// the correct Writer is not important enough to fail
 				// the whole lookup.
-				uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
+				_, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
 				if err != nil {
 					fbo.log.CDebugf(ctx, "Ignoring error while getting "+
 						"logged-in user during directory entry lookup: %v", err)
@@ -1835,7 +1831,7 @@ func (fbo *folderBranchOps) syncBlockAndCheckEmbed(ctx context.Context,
 	name string, entryType EntryType, mtime bool, ctime bool,
 	stopAt BlockPointer, lbc localBcache) (
 	path, DirEntry, *blockPutState, error) {
-	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
+	_, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return path{}, DirEntry{}, nil, err
 	}
@@ -2988,7 +2984,7 @@ func (fbo *folderBranchOps) newRightBlockLocked(
 	if err != nil {
 		return err
 	}
-	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
+	_, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return err
 	}
@@ -3047,12 +3043,12 @@ func (fbo *folderBranchOps) writeDataLocked(
 	}
 
 	// check writer status explicitly
-	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
+	username, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if !md.GetTlfHandle().IsWriter(uid) {
-		return nil, NewWriteAccessError(ctx, fbo.config, md.GetTlfHandle(), uid)
+		return nil, NewWriteAccessError(ctx, fbo.config, md.GetTlfHandle(), username)
 	}
 
 	fblock, err := fbo.getFileLocked(ctx, lState, md, file, mdWrite)
@@ -3348,12 +3344,12 @@ func (fbo *folderBranchOps) truncateLocked(
 	ctx context.Context, lState *lockState, md *RootMetadata,
 	file path, size uint64, doNotify bool) ([]BlockPointer, error) {
 	// check writer status explicitly
-	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
+	username, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return nil, err
 	}
 	if !md.GetTlfHandle().IsWriter(uid) {
-		return nil, NewWriteAccessError(ctx, fbo.config, md.GetTlfHandle(), uid)
+		return nil, NewWriteAccessError(ctx, fbo.config, md.GetTlfHandle(), username)
 	}
 
 	fblock, err := fbo.getFileLocked(ctx, lState, md, file, mdWrite)
@@ -3780,7 +3776,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 		return true, nil
 	}
 
-	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
+	_, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return true, err
 	}
@@ -5048,7 +5044,7 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		return errors.New("Can't rekey while staged.")
 	}
 
-	uid, err := fbo.config.KBPKI().GetCurrentUID(ctx)
+	_, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
 
 	if err != nil {
 		return err

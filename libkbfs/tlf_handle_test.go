@@ -33,16 +33,18 @@ type daemonKBPKI struct {
 	identifyCalls int
 }
 
-func (d *daemonKBPKI) GetCurrentUID(ctx context.Context) (keybase1.UID, error) {
+func (d *daemonKBPKI) GetCurrentUserInfo(ctx context.Context) (
+	libkb.NormalizedUsername, keybase1.UID, error) {
 	const sessionID = 0
 	session, err := d.daemon.CurrentSession(ctx, sessionID)
 	if err != nil {
-		return keybase1.UID(""), err
+		return libkb.NormalizedUsername(""), keybase1.UID(""), err
 	}
-	return session.UID, nil
+	return session.Name, session.UID, nil
 }
 
-func (d *daemonKBPKI) Resolve(ctx context.Context, assertion string) (keybase1.UID, error) {
+func (d *daemonKBPKI) Resolve(ctx context.Context, assertion string) (
+	libkb.NormalizedUsername, keybase1.UID, error) {
 	return d.daemon.Resolve(ctx, assertion)
 }
 

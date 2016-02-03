@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	metrics "github.com/rcrowley/go-metrics"
 	"golang.org/x/net/context"
@@ -48,11 +49,11 @@ func NewKeybaseDaemonMeasured(delegate KeybaseDaemon, r metrics.Registry) Keybas
 
 // Resolve implements the KeybaseDaemon interface for KeybaseDaemonMeasured.
 func (k KeybaseDaemonMeasured) Resolve(ctx context.Context, assertion string) (
-	uid keybase1.UID, err error) {
+	name libkb.NormalizedUsername, uid keybase1.UID, err error) {
 	k.resolveTimer.Time(func() {
-		uid, err = k.delegate.Resolve(ctx, assertion)
+		name, uid, err = k.delegate.Resolve(ctx, assertion)
 	})
-	return uid, err
+	return name, uid, err
 }
 
 // Identify implements the KeybaseDaemon interface for KeybaseDaemonMeasured.

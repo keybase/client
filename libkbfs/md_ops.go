@@ -37,7 +37,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 			privateMetadata := &PrivateMetadata{}
 			if err != nil {
 				// Get current UID.
-				uid, uidErr := md.config.KBPKI().GetCurrentUID(ctx)
+				_, uid, uidErr := md.config.KBPKI().GetCurrentUserInfo(ctx)
 				if uidErr != nil {
 					return uidErr
 				}
@@ -298,7 +298,7 @@ func (md *MDOpsStandard) GetUnmergedRange(ctx context.Context, id TlfID,
 
 func (md *MDOpsStandard) readyMD(ctx context.Context, rmd *RootMetadata) (
 	*RootMetadataSigned, error) {
-	me, err := md.config.KBPKI().GetCurrentUID(ctx)
+	_, me, err := md.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return nil, err
 	}

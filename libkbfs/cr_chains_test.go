@@ -129,7 +129,7 @@ func testCRCheckOps(t *testing.T, cc *crChains, original BlockPointer,
 func testCRChainsFillInWriter(t *testing.T, rmds []*RootMetadata) Config {
 	config := MakeTestConfigOrBust(t, "u1")
 	kbpki := config.KBPKI()
-	uid, err := kbpki.GetCurrentUID(context.Background())
+	_, uid, err := kbpki.GetCurrentUserInfo(context.Background())
 	if err != nil {
 		t.Fatalf("Couldn't get UID: %v", err)
 	}

@@ -65,15 +65,15 @@ func TestKeyBundleFillInDevices(t *testing.T) {
 	defer CheckConfigAndShutdown(t, config3)
 
 	ctx := context.Background()
-	u1, err := config1.KBPKI().GetCurrentUID(ctx)
+	_, u1, err := config1.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatalf("Couldn't get uid for user 1: %v", err)
 	}
-	u2, err := config2.KBPKI().GetCurrentUID(ctx)
+	_, u2, err := config2.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatalf("Couldn't get uid for user 2: %v", err)
 	}
-	u3, err := config3.KBPKI().GetCurrentUID(ctx)
+	_, u3, err := config3.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatalf("Couldn't get uid for user 3: %v", err)
 	}

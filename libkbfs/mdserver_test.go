@@ -17,7 +17,7 @@ func TestMDServerBasics(t *testing.T) {
 	defer config.Shutdown()
 	mdServer := config.MDServer()
 	ctx := context.Background()
-	uid, err := config.KBPKI().GetCurrentUID(ctx)
+	_, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -194,7 +194,7 @@ func TestMDServerRegisterForUpdate(t *testing.T) {
 	mdServer := config.MDServer()
 	ctx := context.Background()
 
-	uid, err := config.KBPKI().GetCurrentUID(ctx)
+	_, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
