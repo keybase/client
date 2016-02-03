@@ -1034,7 +1034,7 @@ func (cr *ConflictResolver) addRecreateOpsToUnmergedChains(ctx context.Context,
 
 	// we know all of these recreate ops were authored by the current user
 	kbpki := cr.config.KBPKI()
-	uid, err := kbpki.GetCurrentUID(ctx)
+	_, uid, err := kbpki.GetCurrentUserInfo(ctx)
 	if err != nil {
 		return nil, err
 	}
