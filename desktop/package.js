@@ -66,25 +66,24 @@ if (icon) {
   DEFAULT_OPTS.icon = icon
 }
 
-const version = argv.version || argv.v
-
-if (version) {
-  DEFAULT_OPTS.version = version
-  startPack()
-} else {
-  // use the same version as the currently-installed electron-prebuilt
-  console.log('Finding electron version')
-  exec('npm list --dev electron-prebuilt', (err, stdout, stderr) => {
-    DEFAULT_OPTS.version = '0.36.3'
-
-    if (!err) {
-      try {
-        DEFAULT_OPTS.version = stdout.match(/electron-prebuilt@([0-9.]+)\n/)[1]
-      } catch (ignore) { }
+// use the same version as the currently-installed electron-prebuilt
+console.log('Finding electron version')
+exec('npm list --dev electron-prebuilt', (err, stdout, stderr) => {
+  if (!err) {
+    try {
+      DEFAULT_OPTS.version = stdout.match(/electron-prebuilt@([0-9.]+)/)[1]
+      console.log("Found electron-prebuilt version: ", DEFAULT_OPTS.version)
+    } catch (err) {
+      console.log("Couldn't parse npm list to find electron: ", err)
+      process.exit(1)
     }
-    startPack()
-  })
-}
+  } else {
+      console.log("Couldn't list npm to find electron: ", err)
+      process.exit(1)
+  }
+
+  startPack()
+})
 
 function startPack () {
   console.log('start pack...')
