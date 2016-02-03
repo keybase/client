@@ -79,7 +79,7 @@ func (c *CmdLogSend) confirm() error {
 	ui.Printf("for debugging purposes only.\n\n")
 	ui.Printf("These logs don’t include your private keys or encrypted data,\n")
 	ui.Printf("but they will include filenames and other metadata keybase normally\n")
-	ui.Printf("can’t read, for debugging purposes.\n")
+	ui.Printf("can’t read, for debugging purposes.\n\n")
 	return ui.PromptForConfirmation("Continue sending logs to keybase.io?")
 }
 
@@ -130,11 +130,14 @@ func (c *CmdLogSend) post(status, kbfsLog, svcLog, desktopLog string) error {
 
 func (c *CmdLogSend) outputInstructions(id string) {
 	ui := c.G().UI.GetTerminalUI()
-	ui.Printf("keybase.io received your logs successfully! Your log dump ID is:\n\n")
-	ui.Printf("\t%s\n\n", id)
-	ui.Printf("Here's a URL to submit a bug report containing this ID:\n\n")
-	ui.Printf("\thttps://github.com/keybase/client/issues/new?body=log+dump+id+%s\n\n", id)
-	ui.Printf("Thanks!\n")
+
+	ui.Printf("\n\n------------\n")
+	ui.Printf("Success! Your log ID is:\n\n")
+	ui.Printf("  %s\n\n", id)
+	ui.Printf("Here's a URL to submit new bug reports containing this ID:\n\n")
+	ui.Output("  https://github.com/keybase/client/issues/new?body=[write%20something%20useful%20and%20descriptive%20here]%0A%0Amy%20log%20id:%20" + id)
+	ui.Printf("\n\nThanks!\n")
+	ui.Printf("------------\n\n")
 }
 
 func addFile(mpart *multipart.Writer, param, filename, data string) error {
