@@ -228,7 +228,7 @@ type TLFReaderKeyBundle struct {
 	// its TLFCryptoKeyInfo struct.
 	// This list is needed so a reader rekey doesn't modify the writer
 	// metadata.
-	TLFReaderEphemeralPublicKeys TLFEphemeralPublicKeys `codec:"readerEPubKey"`
+	TLFReaderEphemeralPublicKeys TLFEphemeralPublicKeys `codec:"readerEPubKey,omitempty"`
 }
 
 // DeepEqual returns true if two TLFReaderKeyBundles are equal.
