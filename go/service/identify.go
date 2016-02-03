@@ -68,7 +68,7 @@ func (h *IdentifyHandler) Resolve(_ context.Context, arg string) (keybase1.UID, 
 }
 
 func (h *IdentifyHandler) Resolve2(_ context.Context, arg string) (u keybase1.User, err error) {
-	rres := h.G().Resolver.ResolveFullExpression(arg)
+	rres := h.G().Resolver.ResolveFullExpressionNeedUsername(arg)
 	err = rres.GetError()
 	if err == nil {
 		u.Uid, u.Username = rres.GetUID(), rres.GetNormalizedUsername().String()
