@@ -26,6 +26,8 @@ type folderBlockManager struct {
 	// archiveGroup tracks the outstanding archives.
 	archiveGroup repeatedWaitGroup
 
+	archiveCancel context.CancelFunc
+
 	// blocksToDeleteAfterError is a list of blocks, for a given
 	// metadata revision, that may have been Put as part of a failed
 	// MD write.  These blocks should be deleted as soon as we know
@@ -41,6 +43,8 @@ type folderBlockManager struct {
 
 	// reclamationGroup tracks the outstanding quota reclamations.
 	reclamationGroup repeatedWaitGroup
+
+	reclamationCancel context.CancelFunc
 }
 
 func newFolderBlockManager(config Config, fb FolderBranch) *folderBlockManager {
@@ -56,8 +60,7 @@ func newFolderBlockManager(config Config, fb FolderBranch) *folderBlockManager {
 		forceReclamationChan:     make(chan struct{}, 1),
 	}
 	go fbm.archiveBlocksInBackground()
-	if config.QuotaReclamationPeriod().Seconds() != 0 &&
-		fb.Branch == MasterBranch {
+	if fb.Branch == MasterBranch {
 		go fbm.reclaimQuotaInBackground()
 	}
 	return fbm
@@ -65,6 +68,12 @@ func newFolderBlockManager(config Config, fb FolderBranch) *folderBlockManager {
 
 func (fbm *folderBlockManager) shutdown() {
 	close(fbm.shutdownChan)
+	if fbm.archiveCancel != nil {
+		fbm.archiveCancel()
+	}
+	if fbm.reclamationCancel != nil {
+		fbm.reclamationCancel()
+	}
 }
 
 func (fbm *folderBlockManager) cleanUpBlockState(
@@ -245,7 +254,10 @@ func (fbm *folderBlockManager) archiveBlocksInBackground() {
 				// use the long timeout to make sure things get
 				// unblocked eventually, but no need for a short timeout.
 				ctx, cancel := context.WithTimeout(ctx, backgroundTaskTimeout)
-				defer cancel()
+				defer func() {
+					cancel()
+					fbm.archiveCancel = nil
+				}()
 
 				fbm.log.CDebugf(ctx, "Archiving %d block pointers as a result "+
 					"of revision %d", len(ptrs), md.Revision)
@@ -271,7 +283,12 @@ func (fbm *folderBlockManager) archiveBlocksInBackground() {
 }
 
 func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
-	ctx := fbm.ctxWithFBMID(context.Background())
+	ctx, cancel := context.WithCancel(fbm.ctxWithFBMID(context.Background()))
+	fbm.reclamationCancel = cancel
+	defer func() {
+		fbm.reclamationCancel = nil
+		cancel()
+	}()
 	fbm.log.CDebugf(ctx, "Starting quota reclamation process")
 	defer func() {
 		fbm.log.CDebugf(ctx, "Ending quota reclamation process: %v", err)
@@ -286,6 +303,10 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 	timer := time.NewTimer(fbm.config.QuotaReclamationPeriod())
 	for {
+		// Don't let the timer fire if auto-reclamation is turned off.
+		if fbm.config.QuotaReclamationPeriod().Seconds() == 0 {
+			timer.Stop()
+		}
 		select {
 		case <-fbm.shutdownChan:
 			return
