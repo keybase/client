@@ -1,12 +1,23 @@
 /* @flow */
 import React, {Component} from 'react'
 
+export type RenderProps = {
+  username: ?string,
+  openKBFS: () => void,
+  openKBFSPublic: (username: ?string) => void,
+  openKBFSPrivate: (username: ?string) => void,
+  showMain: () => void,
+  showHelp: () => void,
+  showUser: (username: ?string) => void,
+  quit: () => void,
+  folders: Array<FolderInfo>,
+  debug?: boolean,
+  loading: boolean,
+  loggedIn: boolean
+}
+
 export default class Render extends Component {
-  props: {
-    debug?: boolean,
-    loading: boolean,
-    loggedIn: ?boolean
-  };
+  props: RenderProps;
 }
 
 export type FolderInfo = {

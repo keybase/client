@@ -5,6 +5,6 @@ import React, {Component} from 'react'
 export type Props = {
 }
 
-declare export default class Terminal extends React.Component<void, Props, {}> {
+declare export default class Terminal extends React.Component {
   props: Props;
 }

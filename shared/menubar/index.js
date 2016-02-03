@@ -28,6 +28,9 @@ export type MenubarProps = {
 
 class Menubar extends Component {
   props: MenubarProps;
+  state: {
+    loading: boolean;
+  };
 
   constructor (props) {
     super(props)
@@ -130,7 +133,6 @@ class Menubar extends Component {
   }
 
   render () {
-    const openingButtonInfo = this.props.username && {text: 'WTF?', onClick: () => this.showHelp()}
     const {username} = this.props
     const folders = (this.props.folders || []).map((f: Folder) : FolderInfo => {
       return {
@@ -149,7 +151,6 @@ class Menubar extends Component {
     return <Render
       username={username}
       debug={!!this.props.debug}
-      openingButtonInfo={openingButtonInfo}
       openKBFS={() => this.openKBFS()}
       openKBFSPublic={username => this.openKBFSPublic(username)}
       openKBFSPrivate={username => this.openKBFSPrivate(username)}
@@ -159,7 +160,7 @@ class Menubar extends Component {
       quit={() => remote.app.quit()}
       folders={folders}
       loading={this.state.loading && !!username}
-      loggedIn={this.props.loggedIn}
+      loggedIn={this.props.loggedIn || false}
     />
   }
 }

@@ -36,6 +36,6 @@ const createStoreWithMiddleware = enableStoreLogging
     ? applyMiddleware(thunkMiddleware, actionLogger)
     : applyMiddleware(thunkMiddleware))
 
-export default function configureStore (initialState: ?any) {
+export default function configureStore (initialState) {
   return configureStoreNative(createStoreWithMiddleware)(rootReducer, initialState)
 }

@@ -8,6 +8,6 @@ export type Props = {
   key: Object
 }
 
-declare export default class Divider extends React.Component<void, Props, {}> {
+declare export default class Divider extends React.Component {
   props: Props;
 }

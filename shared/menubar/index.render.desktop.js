@@ -15,7 +15,7 @@ import {CircularProgress} from 'material-ui'
 import {cleanup, allowLoggedOut as allowLoggedOutKBFS} from '../util/kbfs'
 
 // This is the only data that the renderer cares about for a folder
-import type {FolderInfo, FolderEntry} from './index.render'
+import type {FolderInfo, FolderEntry, RenderProps} from './index.render'
 
 function iconPath (isPublic, isEmpty) {
   const pubPart = isPublic ? 'public' : 'private'
@@ -74,24 +74,7 @@ const LoggedoutMessage = props => {
 }
 
 export default class Render extends Component {
-  props: {
-    username: ?string,
-    openKBFS: () => void,
-    openKBFSPublic: (username: ?string) => void,
-    openKBFSPrivate: (username: ?string) => void,
-    showMain: () => void,
-    showHelp: () => void,
-    showUser: (username: ?string) => void,
-    quit: () => void,
-    openingButtonInfo: {
-      text: string,
-      onClick: () => void
-    },
-    folders: Array<FolderInfo>,
-    debug?: boolean,
-    loading: boolean,
-    loggedIn: boolean
-  };
+  props: RenderProps;
 
   render (): ReactElement {
     const {openKBFS, openKBFSPublic, openKBFSPrivate, showMain, showHelp, showUser, quit, username, loggedIn} = this.props
@@ -170,16 +153,17 @@ const ShowAll = props => {
     key={props.isPublic + 'showAll'}/>
 }
 
-class CollapsableFolderList extends Component {
-  props: {
-    username: ?string,
-    folders: Array<FolderInfo|FolderEntry>,
-    folderDisplayLimit: number,
-    collapsed: boolean,
-    onExpand: Function,
-    isPublic: boolean
-  };
+type CollapsableFolderListProps = {
+    username: ?string;
+    folders: Array<FolderInfo|FolderEntry>;
+    folderDisplayLimit: number;
+    collapsed: boolean;
+    onExpand: Function;
+    isPublic: boolean;
+}
 
+// No Idea why I can't just do props like before, but this works too
+class CollapsableFolderList extends Component<void, CollapsableFolderListProps, void> {
   render () {
     const {collapsed, username, folderDisplayLimit, onExpand} = this.props
 
@@ -209,20 +193,23 @@ class CollapsableFolderList extends Component {
   }
 }
 
-class FolderList extends Component {
-  props: {
-    loading: boolean,
-    username: ?string,
-    folders: Array<FolderInfo>,
-    openKBFSPublic: (username: ?string) => void,
-    openKBFSPrivate: (username: ?string) => void,
-    loggedIn: boolean
-  };
+type FolderListProps = {
+  loading: boolean,
+  username: ?string,
+  folders: Array<FolderInfo>,
+  openKBFSPublic: (username: ?string) => void,
+  openKBFSPrivate: (username: ?string) => void,
+  loggedIn: boolean
+}
 
-  state: {
-    privateCollapsed: boolean,
-    publicCollapsed: boolean
-  };
+type FolderState = {
+  privateCollapsed: boolean,
+  publicCollapsed: boolean
+}
+
+// No idea why I have to specify the props and state here instead of props: {...};
+class FolderList extends Component<void, FolderListProps, FolderState> {
+  state: FolderState;
 
   constructor (props) {
     super(props)

@@ -10,7 +10,7 @@ export type Props = {
   onClick?: Function
 }
 
-declare export default class Text extends React.Component<void, Props, {}> {
+declare export default class Text extends React.Component {
   props: Props;
 }
 
