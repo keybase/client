@@ -1423,7 +1423,7 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 	lState := makeFBOLockState()
 	ops.mdWriterLock.Lock(lState)
 	ops.mdWriterLock.Unlock(lState)
-	if len(ops.blocksToDeleteAfterError) == 0 {
+	if len(ops.fbm.blocksToDeleteAfterError) == 0 {
 		t.Fatalf("No blocks to delete after error")
 	}
 
@@ -1453,9 +1453,9 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 		t.Errorf("Read wrong data.  Expected %v, got %v", data, gotData)
 	}
 
-	if len(ops.blocksToDeleteAfterError) > 0 {
+	if len(ops.fbm.blocksToDeleteAfterError) > 0 {
 		t.Fatalf("Blocks left to delete after sync: %v",
-			ops.blocksToDeleteAfterError)
+			ops.fbm.blocksToDeleteAfterError)
 	}
 }
 

@@ -343,37 +343,15 @@ type folderBranchOps struct {
 	// Can be used to turn off notifications for a while (e.g., for testing)
 	updatePauseChan chan (<-chan struct{})
 
-	// A queue of MD updates for this folder that need to have their
-	// unref's blocks archived
-	archiveChan chan *RootMetadata
-
-	// We use a mutex, int, and channel to track and synchronize on
-	// the number of outstanding archive requests.  We can't use a
-	// sync.WaitGroup because it requires that the Add() and the
-	// Wait() are fully synchronized, which means holding a mutex
-	// during Wait(), which can lead to deadlocks between incoming FBO
-	// calls and the background archiver.  TODO: add a struct for
-	// these fields, to be shared with a similar usage in
-	// ConflictResolver.
-	archiveLock     sync.Mutex
-	numArchives     int
-	isArchiveIdleCh chan struct{} // leave as nil when initializing
-
-	// blocksToDeleteAfterError is a list of blocks, for a given
-	// metadata revision, that may have been Put as part of a failed
-	// MD write.  These blocks should be deleted as soon as we know
-	// for sure that the MD write isn't visible to others.
-	// The lock should only be held immediately around accessing the
-	// list.  TODO: Persist these to disk?
-	blocksToDeleteLock       sync.Mutex
-	blocksToDeleteAfterError map[*RootMetadata][]BlockPointer
-
 	// forceSyncChan can be sent on to trigger an immediate Sync().
 	// It is a blocking channel.
 	forceSyncChan chan struct{}
 
 	// How to resolve conflicts
 	cr *ConflictResolver
+
+	// Helper class for archiving and cleaning up the blocks for this TLF
+	fbm *folderBlockManager
 }
 
 var _ KBFSOps = (*folderBranchOps)(nil)
@@ -417,20 +395,18 @@ func newFolderBranchOps(config Config, fb FolderBranch,
 		blockLock: blockLock{
 			mu: blockLockMu,
 		},
-		nodeCache:                nodeCache,
-		state:                    cleanState,
-		log:                      log,
-		shutdownChan:             make(chan struct{}),
-		updatePauseChan:          make(chan (<-chan struct{})),
-		archiveChan:              make(chan *RootMetadata, 25),
-		blocksToDeleteAfterError: make(map[*RootMetadata][]BlockPointer),
-		forceSyncChan:            make(chan struct{}),
+		nodeCache:       nodeCache,
+		state:           cleanState,
+		log:             log,
+		shutdownChan:    make(chan struct{}),
+		updatePauseChan: make(chan (<-chan struct{})),
+		forceSyncChan:   make(chan struct{}),
+		fbm:             newFolderBlockManager(config, fb),
 	}
 	fbo.cr = NewConflictResolver(config, fbo)
 	if config.DoBackgroundFlushes() {
 		go fbo.backgroundFlusher(secondsBetweenBackgroundFlushes * time.Second)
 	}
-	go fbo.archiveBlocksInBackground()
 	return fbo
 }
 
@@ -461,6 +437,7 @@ func (fbo *folderBranchOps) Shutdown() error {
 
 	close(fbo.shutdownChan)
 	fbo.cr.Shutdown()
+	fbo.fbm.shutdown()
 	return nil
 }
 
@@ -1994,24 +1971,6 @@ func (fbo *folderBranchOps) isRevisionConflict(err error) bool {
 		isConflictDiskUsage || isConditionFailed
 }
 
-func (fbo *folderBranchOps) archiveUnrefBlocks(md *RootMetadata) {
-	// Don't archive for unmerged revisions, because conflict
-	// resolution might undo some of the unreferences.
-	if md.MergedStatus() != Merged {
-		return
-	}
-
-	func() {
-		fbo.archiveLock.Lock()
-		defer fbo.archiveLock.Unlock()
-		if fbo.numArchives == 0 {
-			fbo.isArchiveIdleCh = make(chan struct{})
-		}
-		fbo.numArchives++
-	}()
-	fbo.archiveChan <- md
-}
-
 // mdWriterLock must be taken by the caller.
 func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, bps *blockPutState) (err error) {
@@ -2105,7 +2064,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 	}
 
 	// Archive the old, unref'd blocks
-	fbo.archiveUnrefBlocks(md)
+	fbo.fbm.archiveUnrefBlocks(md)
 
 	fbo.notifyBatchLocked(ctx, lState, md)
 	return nil
@@ -2139,18 +2098,6 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 	return fbo.setHeadLocked(ctx, lState, md)
 }
 
-func (fbo *folderBranchOps) cleanUpBlockState(
-	md *RootMetadata, bps *blockPutState) {
-	fbo.blocksToDeleteLock.Lock()
-	defer fbo.blocksToDeleteLock.Unlock()
-	// Clean up any blocks that may have been orphaned by this
-	// failure.
-	for _, bs := range bps.blockStates {
-		fbo.blocksToDeleteAfterError[md] =
-			append(fbo.blocksToDeleteAfterError[md], bs.blockPtr)
-	}
-}
-
 // mdWriterLock must be taken by the caller, but not blockLock
 func (fbo *folderBranchOps) syncBlockAndFinalizeLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, newBlock Block, dir path,
@@ -2165,7 +2112,7 @@ func (fbo *folderBranchOps) syncBlockAndFinalizeLocked(ctx context.Context,
 
 	defer func() {
 		if err != nil {
-			fbo.cleanUpBlockState(md, bps)
+			fbo.fbm.cleanUpBlockState(md, bps)
 		}
 	}()
 
@@ -2811,7 +2758,7 @@ func (fbo *folderBranchOps) renameLocked(
 
 	defer func() {
 		if err != nil {
-			fbo.cleanUpBlockState(md, newBps)
+			fbo.fbm.cleanUpBlockState(md, newBps)
 		}
 	}()
 
@@ -4087,7 +4034,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 
 	defer func() {
 		if err != nil {
-			fbo.cleanUpBlockState(md, si.bps)
+			fbo.fbm.cleanUpBlockState(md, si.bps)
 		}
 	}()
 
@@ -5143,25 +5090,6 @@ func (fbo *folderBranchOps) Rekey(ctx context.Context, tlf TlfID) (err error) {
 		})
 }
 
-func (fbo *folderBranchOps) waitForArchives(ctx context.Context) error {
-	archiveIdleCh := func() chan struct{} {
-		fbo.archiveLock.Lock()
-		defer fbo.archiveLock.Unlock()
-		return fbo.isArchiveIdleCh
-	}()
-
-	if archiveIdleCh == nil {
-		return nil
-	}
-
-	select {
-	case <-archiveIdleCh:
-		return nil
-	case <-ctx.Done():
-		return ctx.Err()
-	}
-}
-
 func (fbo *folderBranchOps) SyncFromServer(
 	ctx context.Context, folderBranch FolderBranch) (err error) {
 	fbo.log.CDebugf(ctx, "SyncFromServer")
@@ -5207,7 +5135,7 @@ func (fbo *folderBranchOps) SyncFromServer(
 
 	// Wait for all the asynchronous block archiving to hit the block
 	// server.
-	return fbo.waitForArchives(ctx)
+	return fbo.fbm.waitForArchives(ctx)
 }
 
 // CtxFBOTagKey is the type used for unique context tags within folderBranchOps
@@ -5482,152 +5410,13 @@ func (fbo *folderBranchOps) finalizeResolution(ctx context.Context,
 	fbo.setStagedLocked(lState, false, NullBranchID)
 
 	// Archive the old, unref'd blocks
-	fbo.archiveUnrefBlocks(md)
+	fbo.fbm.archiveUnrefBlocks(md)
 
 	// notifyOneOp for every fixed-up merged op.
 	for _, op := range newOps {
 		fbo.notifyOneOpLocked(ctx, lState, op, md)
 	}
 	return nil
-}
-
-func (fbo *folderBranchOps) processBlocksToDelete(ctx context.Context) error {
-	// also attempt to delete any error references
-	var toDelete map[*RootMetadata][]BlockPointer
-	func() {
-		fbo.blocksToDeleteLock.Lock()
-		defer fbo.blocksToDeleteLock.Unlock()
-		toDelete = fbo.blocksToDeleteAfterError
-		fbo.blocksToDeleteAfterError =
-			make(map[*RootMetadata][]BlockPointer)
-	}()
-
-	if len(toDelete) == 0 {
-		return nil
-	}
-
-	toDeleteAgain := make(map[*RootMetadata][]BlockPointer)
-	bops := fbo.config.BlockOps()
-	for md, ptrs := range toDelete {
-		fbo.log.CDebugf(ctx, "Checking deleted blocks for revision %d",
-			md.Revision)
-		// Make sure that the MD didn't actually become
-		// part of the folder history.  (This could happen
-		// if the Sync was canceled while the MD put was
-		// outstanding.)
-		var rmds []*RootMetadata
-		var err error
-		if md.MergedStatus() == Merged {
-			rmds, err = getMergedMDUpdates(ctx, fbo.config, fbo.id(),
-				md.Revision)
-		} else {
-			_, rmds, err = getUnmergedMDUpdates(ctx, fbo.config, fbo.id(),
-				md.BID, md.Revision)
-		}
-		if err != nil || len(rmds) == 0 {
-			toDeleteAgain[md] = ptrs
-			continue
-		}
-		if rmds[0].data.Dir == md.data.Dir {
-			// This md is part of the history of the folder,
-			// so we shouldn't delete the blocks.
-			fbo.log.CDebugf(ctx, "Not deleting blocks from revision %d",
-				md.Revision)
-			// But, since this MD put seems to have succeeded, we
-			// should archive it.
-			fbo.log.CDebugf(ctx, "Archiving successful MD revision %d",
-				rmds[0].Revision)
-			fbo.archiveUnrefBlocks(rmds[0])
-			continue
-		}
-
-		// Otherwise something else has been written over
-		// this MD, so get rid of the blocks.
-		fbo.log.CDebugf(ctx, "Cleaning up blocks for failed revision %d",
-			md.Revision)
-
-		for _, ptr := range ptrs {
-			err := bops.Delete(ctx, md, ptr.ID, ptr)
-			// Ignore permanent errors
-			_, isPermErr := err.(BServerError)
-			if err != nil {
-				fbo.log.CWarningf(ctx, "Couldn't delete ref %v: %v", ptr, err)
-				if !isPermErr {
-					toDeleteAgain[md] = append(toDeleteAgain[md], ptr)
-				}
-			}
-		}
-	}
-
-	if len(toDeleteAgain) > 0 {
-		func() {
-			fbo.blocksToDeleteLock.Lock()
-			defer fbo.blocksToDeleteLock.Unlock()
-			for md, ptrs := range toDeleteAgain {
-				fbo.blocksToDeleteAfterError[md] =
-					append(fbo.blocksToDeleteAfterError[md], ptrs...)
-			}
-		}()
-	}
-
-	return nil
-}
-
-func (fbo *folderBranchOps) archiveDone() {
-	fbo.archiveLock.Lock()
-	defer fbo.archiveLock.Unlock()
-	if fbo.numArchives <= 0 {
-		panic(fmt.Sprintf("Bad number of archives in archivesDone: %d",
-			fbo.numArchives))
-	}
-	fbo.numArchives--
-	if fbo.numArchives == 0 {
-		close(fbo.isArchiveIdleCh)
-		fbo.isArchiveIdleCh = nil
-	}
-}
-
-func (fbo *folderBranchOps) archiveBlocksInBackground() {
-	for {
-		select {
-		case md := <-fbo.archiveChan:
-			var ptrs []BlockPointer
-			for _, op := range md.data.Changes.Ops {
-				ptrs = append(ptrs, op.Unrefs()...)
-				for _, update := range op.AllUpdates() {
-					ptrs = append(ptrs, update.Unref)
-				}
-			}
-			fbo.runUnlessShutdown(func(ctx context.Context) (err error) {
-				defer fbo.archiveDone()
-				// This func doesn't take any locks, though it can
-				// block md writes due to the buffered channel.  So
-				// use the long timeout to make sure things get
-				// unblocked eventually, but no need for a short timeout.
-				ctx, cancel := context.WithTimeout(ctx, backgroundTaskTimeout)
-				defer cancel()
-
-				fbo.log.CDebugf(ctx, "Archiving %d block pointers as a result "+
-					"of revision %d", len(ptrs), md.Revision)
-				bops := fbo.config.BlockOps()
-				err = bops.Archive(ctx, md, ptrs)
-				if err != nil {
-					fbo.log.CWarningf(ctx, "Couldn't archive blocks: %v", err)
-					return err
-				}
-
-				// Also see if we can delete any blocks.
-				if err := fbo.processBlocksToDelete(ctx); err != nil {
-					fbo.log.CDebugf(ctx, "Error deleting blocks: %v", err)
-					return err
-				}
-
-				return nil
-			})
-		case <-fbo.shutdownChan:
-			return
-		}
-	}
 }
 
 // GetUpdateHistory implements the KBFSOps interface for folderBranchOps
