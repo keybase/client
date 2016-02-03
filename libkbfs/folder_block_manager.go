@@ -38,6 +38,9 @@ type folderBlockManager struct {
 	// forceReclamation forces the manager to start a reclamation
 	// process.
 	forceReclamationChan chan struct{}
+
+	// reclamationGroup tracks the outstanding quota reclamations.
+	reclamationGroup repeatedWaitGroup
 }
 
 func newFolderBlockManager(config Config, fb FolderBranch) *folderBlockManager {
@@ -91,9 +94,15 @@ func (fbm *folderBlockManager) waitForArchives(ctx context.Context) error {
 	return fbm.archiveGroup.Wait(ctx)
 }
 
+func (fbm *folderBlockManager) waitForQuotaReclamations(
+	ctx context.Context) error {
+	return fbm.reclamationGroup.Wait(ctx)
+}
+
 func (fbm *folderBlockManager) forceQuotaReclamation() {
 	select {
 	case fbm.forceReclamationChan <- struct{}{}:
+		fbm.reclamationGroup.Add(1)
 	default:
 	}
 }
@@ -261,6 +270,19 @@ func (fbm *folderBlockManager) archiveBlocksInBackground() {
 	}
 }
 
+func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
+	ctx := fbm.ctxWithFBMID(context.Background())
+	fbm.log.CDebugf(ctx, "Starting quota reclamation process")
+	defer func() {
+		fbm.log.CDebugf(ctx, "Ending quota reclamation process: %v", err)
+	}()
+	defer timer.Reset(fbm.config.QuotaReclamationPeriod())
+	defer fbm.reclamationGroup.Done()
+
+	// TODO: fill in the actual reclamation logic
+	return nil
+}
+
 func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 	timer := time.NewTimer(fbm.config.QuotaReclamationPeriod())
 	for {
@@ -268,13 +290,10 @@ func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 		case <-fbm.shutdownChan:
 			return
 		case <-timer.C:
+			fbm.reclamationGroup.Add(1)
 		case <-fbm.forceReclamationChan:
 		}
 
-		ctx := fbm.ctxWithFBMID(context.Background())
-		fbm.log.CDebugf(ctx, "Starting quota reclamation process")
-
-		// Start a round of quota reclamation
-		timer.Reset(fbm.config.QuotaReclamationPeriod())
+		fbm.doReclamation(timer)
 	}
 }

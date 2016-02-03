@@ -5124,9 +5124,12 @@ func (fbo *folderBranchOps) SyncFromServer(
 		return err
 	}
 
-	// Wait for all the asynchronous block archiving to hit the block
-	// server.
-	return fbo.fbm.waitForArchives(ctx)
+	// Wait for all the asynchronous block archiving and quota
+	// reclamation to hit the block server.
+	if err := fbo.fbm.waitForArchives(ctx); err != nil {
+		return err
+	}
+	return fbo.fbm.waitForQuotaReclamations(ctx)
 }
 
 // CtxFBOTagKey is the type used for unique context tags within folderBranchOps
