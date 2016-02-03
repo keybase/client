@@ -41,15 +41,8 @@ type ConflictResolver struct {
 	inputChanLock sync.RWMutex
 	inputChan     chan conflictInput
 
-	// We use a mutex, int, and channel to track and synchronize on
-	// the number of outstanding resolves.  We can't use a
-	// sync.WaitGroup because it requires that the Add() and the
-	// Wait() are fully synchronized, which means holding a mutex
-	// during Wait(), which can lead to deadlocks for users of
-	// ConflictResolver.
-	resolveLock sync.Mutex
-	numResolves int
-	isIdleCh    chan struct{} // leave as nil when initializing
+	// resolveGroup tracks the outstanding resolves.
+	resolveGroup repeatedWaitGroup
 
 	inputLock sync.Mutex
 	currInput conflictInput
@@ -104,20 +97,6 @@ func (cr *ConflictResolver) stopProcessing() {
 	cr.inputChan = nil
 }
 
-func (cr *ConflictResolver) resolutionDone() {
-	cr.resolveLock.Lock()
-	defer cr.resolveLock.Unlock()
-	if cr.numResolves <= 0 {
-		panic(fmt.Sprintf("Bad number of resolves in resolutionDone: %d",
-			cr.numResolves))
-	}
-	cr.numResolves--
-	if cr.numResolves == 0 {
-		close(cr.isIdleCh)
-		cr.isIdleCh = nil
-	}
-}
-
 // processInput processes conflict resolution jobs from the given
 // channel until it is closed. This function uses a parameter for the
 // channel instead of accessing cr.inputChan directly so that it
@@ -153,7 +132,7 @@ func (cr *ConflictResolver) processInput(inputChan <-chan conflictInput) {
 		}()
 		if !valid {
 			cr.log.CDebugf(ctx, "Ignoring uninteresting input: %v", ci)
-			cr.resolutionDone()
+			cr.resolveGroup.Done()
 			continue
 		}
 
@@ -172,14 +151,7 @@ func (cr *ConflictResolver) Resolve(unmerged MetadataRevision,
 		return
 	}
 
-	func() {
-		cr.resolveLock.Lock()
-		defer cr.resolveLock.Unlock()
-		if cr.numResolves == 0 {
-			cr.isIdleCh = make(chan struct{})
-		}
-		cr.numResolves++
-	}()
+	cr.resolveGroup.Add(1)
 	cr.inputChan <- conflictInput{unmerged, merged}
 }
 
@@ -187,22 +159,7 @@ func (cr *ConflictResolver) Resolve(unmerged MetadataRevision,
 // complete (though not necessarily successful), or until the given
 // context is canceled.
 func (cr *ConflictResolver) Wait(ctx context.Context) error {
-	idleCh := func() chan struct{} {
-		cr.resolveLock.Lock()
-		defer cr.resolveLock.Unlock()
-		return cr.isIdleCh
-	}()
-
-	if idleCh == nil {
-		return nil
-	}
-
-	select {
-	case <-idleCh:
-		return nil
-	case <-ctx.Done():
-		return ctx.Err()
-	}
+	return cr.resolveGroup.Wait(ctx)
 }
 
 // Shutdown cancels any ongoing resolutions and stops any background
@@ -2987,7 +2944,7 @@ func (e CRWrapError) String() string {
 func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	cr.log.CDebugf(ctx, "Starting conflict resolution with input %v", ci)
 	var err error
-	defer cr.resolutionDone()
+	defer cr.resolveGroup.Done()
 	defer func() {
 		cr.log.CDebugf(ctx, "Finished conflict resolution: %v", err)
 		if err != nil {

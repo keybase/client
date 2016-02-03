@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
@@ -22,17 +23,8 @@ type folderBlockManager struct {
 	// unref's blocks archived
 	archiveChan chan *RootMetadata
 
-	// We use a mutex, int, and channel to track and synchronize on
-	// the number of outstanding archive requests.  We can't use a
-	// sync.WaitGroup because it requires that the Add() and the
-	// Wait() are fully synchronized, which means holding a mutex
-	// during Wait(), which can lead to deadlocks between incoming FBO
-	// calls and the background archiver.  TODO: add a struct for
-	// these fields, to be shared with a similar usage in
-	// ConflictResolver.
-	archiveLock     sync.Mutex
-	numArchives     int
-	isArchiveIdleCh chan struct{} // leave as nil when initializing
+	// archiveGroup tracks the outstanding archives.
+	archiveGroup repeatedWaitGroup
 
 	// blocksToDeleteAfterError is a list of blocks, for a given
 	// metadata revision, that may have been Put as part of a failed
@@ -42,6 +34,10 @@ type folderBlockManager struct {
 	// list.  TODO: Persist these to disk?
 	blocksToDeleteLock       sync.Mutex
 	blocksToDeleteAfterError map[*RootMetadata][]BlockPointer
+
+	// forceReclamation forces the manager to start a reclamation
+	// process.
+	forceReclamationChan chan struct{}
 }
 
 func newFolderBlockManager(config Config, fb FolderBranch) *folderBlockManager {
@@ -54,8 +50,13 @@ func newFolderBlockManager(config Config, fb FolderBranch) *folderBlockManager {
 		id:                       fb.Tlf,
 		archiveChan:              make(chan *RootMetadata, 25),
 		blocksToDeleteAfterError: make(map[*RootMetadata][]BlockPointer),
+		forceReclamationChan:     make(chan struct{}, 1),
 	}
 	go fbm.archiveBlocksInBackground()
+	if config.QuotaReclamationPeriod().Seconds() != 0 &&
+		fb.Branch == MasterBranch {
+		go fbm.reclaimQuotaInBackground()
+	}
 	return fbm
 }
 
@@ -82,33 +83,18 @@ func (fbm *folderBlockManager) archiveUnrefBlocks(md *RootMetadata) {
 		return
 	}
 
-	func() {
-		fbm.archiveLock.Lock()
-		defer fbm.archiveLock.Unlock()
-		if fbm.numArchives == 0 {
-			fbm.isArchiveIdleCh = make(chan struct{})
-		}
-		fbm.numArchives++
-	}()
+	fbm.archiveGroup.Add(1)
 	fbm.archiveChan <- md
 }
 
 func (fbm *folderBlockManager) waitForArchives(ctx context.Context) error {
-	archiveIdleCh := func() chan struct{} {
-		fbm.archiveLock.Lock()
-		defer fbm.archiveLock.Unlock()
-		return fbm.isArchiveIdleCh
-	}()
+	return fbm.archiveGroup.Wait(ctx)
+}
 
-	if archiveIdleCh == nil {
-		return nil
-	}
-
+func (fbm *folderBlockManager) forceQuotaReclamation() {
 	select {
-	case <-archiveIdleCh:
-		return nil
-	case <-ctx.Done():
-		return ctx.Err()
+	case fbm.forceReclamationChan <- struct{}{}:
+	default:
 	}
 }
 
@@ -194,20 +180,6 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context) error 
 	return nil
 }
 
-func (fbm *folderBlockManager) archiveDone() {
-	fbm.archiveLock.Lock()
-	defer fbm.archiveLock.Unlock()
-	if fbm.numArchives <= 0 {
-		panic(fmt.Sprintf("Bad number of archives in archivesDone: %d",
-			fbm.numArchives))
-	}
-	fbm.numArchives--
-	if fbm.numArchives == 0 {
-		close(fbm.isArchiveIdleCh)
-		fbm.isArchiveIdleCh = nil
-	}
-}
-
 // CtxFBMTagKey is the type used for unique context tags within
 // folderBlockManager
 type CtxFBMTagKey int
@@ -258,7 +230,7 @@ func (fbm *folderBlockManager) archiveBlocksInBackground() {
 				}
 			}
 			fbm.runUnlessShutdown(func(ctx context.Context) (err error) {
-				defer fbm.archiveDone()
+				defer fbm.archiveGroup.Done()
 				// This func doesn't take any locks, though it can
 				// block md writes due to the buffered channel.  So
 				// use the long timeout to make sure things get
@@ -286,5 +258,23 @@ func (fbm *folderBlockManager) archiveBlocksInBackground() {
 		case <-fbm.shutdownChan:
 			return
 		}
+	}
+}
+
+func (fbm *folderBlockManager) reclaimQuotaInBackground() {
+	timer := time.NewTimer(fbm.config.QuotaReclamationPeriod())
+	for {
+		select {
+		case <-fbm.shutdownChan:
+			return
+		case <-timer.C:
+		case <-fbm.forceReclamationChan:
+		}
+
+		ctx := fbm.ctxWithFBMID(context.Background())
+		fbm.log.CDebugf(ctx, "Starting quota reclamation process")
+
+		// Start a round of quota reclamation
+		timer.Reset(fbm.config.QuotaReclamationPeriod())
 	}
 }
