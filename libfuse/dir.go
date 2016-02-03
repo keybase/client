@@ -6,6 +6,7 @@ import (
 	"os"
 	"sync"
 	"syscall"
+	"time"
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
@@ -13,15 +14,18 @@ import (
 	"golang.org/x/net/context"
 )
 
-// Folder represents KBFS top-level folders
+// Folder represents the info shared among all nodes of a KBFS
+// top-level folder.
 type Folder struct {
-	fs           *FS
-	list         *FolderList
-	name         string
-	folderBranch libkbfs.FolderBranch
+	fs   *FS
+	list *FolderList
+	name string
+
+	folderBranchMu sync.Mutex
+	folderBranch   libkbfs.FolderBranch
 
 	// Protects the nodes map.
-	mu sync.Mutex
+	nodesMu sync.Mutex
 	// Map KBFS nodes to FUSE nodes, to be able to handle multiple
 	// lookups and incoming change notifications. A node is present
 	// here if the kernel holds a reference to it.
@@ -40,14 +44,55 @@ type Folder struct {
 	updateChan chan<- struct{}
 }
 
+func newFolder(fl *FolderList, name string) *Folder {
+	f := &Folder{
+		fs:    fl.fs,
+		list:  fl,
+		name:  name,
+		nodes: map[libkbfs.NodeID]fs.Node{},
+	}
+	return f
+}
+
+func (f *Folder) setFolderBranch(folderBranch libkbfs.FolderBranch) error {
+	f.folderBranchMu.Lock()
+	defer f.folderBranchMu.Unlock()
+
+	// TODO unregister all at unmount
+	err := f.list.fs.config.Notifier().RegisterForChanges(
+		[]libkbfs.FolderBranch{folderBranch}, f)
+	if err != nil {
+		return err
+	}
+	f.folderBranch = folderBranch
+	return nil
+}
+
+func (f *Folder) unsetFolderBranch() {
+	f.folderBranchMu.Lock()
+	defer f.folderBranchMu.Unlock()
+	if f.folderBranch == (libkbfs.FolderBranch{}) {
+		// Wasn't set.
+		return
+	}
+
+	err := f.list.fs.config.Notifier().UnregisterFromChanges([]libkbfs.FolderBranch{f.folderBranch}, f)
+	if err != nil {
+		f.fs.log.Info("cannot unregister change notifier for folder %q: %v",
+			f.name, err)
+	}
+	f.folderBranch = libkbfs.FolderBranch{}
+}
+
 // forgetNode forgets a formerly active child with basename name.
 func (f *Folder) forgetNode(node libkbfs.Node) {
-	f.mu.Lock()
-	defer f.mu.Unlock()
+	f.nodesMu.Lock()
+	defer f.nodesMu.Unlock()
 
 	delete(f.nodes, node.GetID())
 	if len(f.nodes) == 0 {
-		f.list.forgetFolder(f)
+		f.unsetFolderBranch()
+		f.list.forgetFolder(f.name)
 	}
 }
 
@@ -100,9 +145,9 @@ func (f *Folder) LocalChange(ctx context.Context, node libkbfs.Node, write libkb
 
 func (f *Folder) localChangeInvalidate(ctx context.Context, node libkbfs.Node,
 	write libkbfs.WriteRange) {
-	f.mu.Lock()
+	f.nodesMu.Lock()
 	n, ok := f.nodes[node.GetID()]
-	f.mu.Unlock()
+	f.nodesMu.Unlock()
 	if !ok {
 		return
 	}
@@ -134,9 +179,9 @@ func (f *Folder) BatchChanges(ctx context.Context, changes []libkbfs.NodeChange)
 func (f *Folder) batchChangesInvalidate(ctx context.Context,
 	changes []libkbfs.NodeChange) {
 	for _, v := range changes {
-		f.mu.Lock()
+		f.nodesMu.Lock()
 		n, ok := f.nodes[v.Node.GetID()]
-		f.mu.Unlock()
+		f.nodesMu.Unlock()
 		if !ok {
 			continue
 		}
@@ -177,7 +222,24 @@ func (f *Folder) batchChangesInvalidate(ctx context.Context,
 // TODO: Expire TLF nodes periodically. See
 // https://keybase.atlassian.net/browse/KBFS-59 .
 
-// Dir represents KBFS subdirectories.
+// DirInterface gathers all the interfaces a Dir or something that
+// wraps a Dir should implement.
+type DirInterface interface {
+	fs.Node
+	fs.NodeRequestLookuper
+	fs.NodeCreater
+	fs.NodeMkdirer
+	fs.NodeSymlinker
+	fs.NodeRenamer
+	fs.NodeRemover
+	fs.Handle
+	fs.HandleReadDirAller
+	fs.NodeForgetter
+	fs.NodeSetattrer
+}
+
+// Dir represents a subdirectory of a KBFS top-level folder (including
+// the TLF root directory itself).
 type Dir struct {
 	folder *Folder
 	node   libkbfs.Node
@@ -191,7 +253,7 @@ func newDir(folder *Folder, node libkbfs.Node) *Dir {
 	return d
 }
 
-var _ fs.Node = (*Dir)(nil)
+var _ DirInterface = (*Dir)(nil)
 
 // Attr implements the fs.Node interface for Dir.
 func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) (err error) {
@@ -213,13 +275,11 @@ func (d *Dir) attr(ctx context.Context, a *fuse.Attr) (err error) {
 	fillAttr(&de, a)
 
 	a.Mode = os.ModeDir | 0700
-	if d.folder.folderBranch.Tlf.IsPublic() {
+	if d.folder.list.public {
 		a.Mode |= 0055
 	}
 	return nil
 }
-
-var _ fs.NodeRequestLookuper = (*Dir)(nil)
 
 // Lookup implements the fs.NodeRequestLookuper interface for Dir.
 func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (node fs.Node, err error) {
@@ -279,8 +339,8 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 	}
 
 	// No libkbfs calls after this point!
-	d.folder.mu.Lock()
-	defer d.folder.mu.Unlock()
+	d.folder.nodesMu.Lock()
+	defer d.folder.nodesMu.Unlock()
 
 	// newNode can be nil even without errors when the KBFS direntry
 	// is of a type that doesn't get its own node (is fully contained
@@ -319,8 +379,6 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 	}
 }
 
-var _ fs.NodeCreater = (*Dir)(nil)
-
 // Create implements the fs.NodeCreater interface for Dir.
 func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.CreateResponse) (node fs.Node, handle fs.Handle, err error) {
 	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
@@ -338,13 +396,11 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 		folder: d.folder,
 		node:   newNode,
 	}
-	d.folder.mu.Lock()
+	d.folder.nodesMu.Lock()
 	d.folder.nodes[newNode.GetID()] = child
-	d.folder.mu.Unlock()
+	d.folder.nodesMu.Unlock()
 	return child, child, nil
 }
-
-var _ fs.NodeMkdirer = (*Dir)(nil)
 
 // Mkdir implements the fs.NodeMkdirer interface for Dir.
 func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (
@@ -360,13 +416,11 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (
 	}
 
 	child := newDir(d.folder, newNode)
-	d.folder.mu.Lock()
+	d.folder.nodesMu.Lock()
 	d.folder.nodes[newNode.GetID()] = child
-	d.folder.mu.Unlock()
+	d.folder.nodesMu.Unlock()
 	return child, nil
 }
-
-var _ fs.NodeSymlinker = (*Dir)(nil)
 
 // Symlink implements the fs.NodeSymlinker interface for Dir.
 func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (
@@ -388,8 +442,6 @@ func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (
 	return child, nil
 }
 
-var _ fs.NodeRenamer = (*Dir)(nil)
-
 // Rename implements the fs.NodeRenamer interface for Dir.
 func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest,
 	newDir fs.Node) (err error) {
@@ -398,19 +450,30 @@ func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest,
 		req.OldName, req.NewName)
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
 
-	newDir2, ok := newDir.(*Dir)
-	if !ok {
-		// The destination is not a Dir instance, probably because
-		// it's Root (or some other node type added later). The kernel
-		// won't let a rename newDir point to a non-directory.
+	var realNewDir *Dir
+	switch newDir := newDir.(type) {
+	case *Dir:
+		realNewDir = newDir
+	case *TLF:
+		var err error
+		realNewDir, err = newDir.loadDir(ctx)
+		if err != nil {
+			return err
+		}
+	default:
+		// The destination is not a TLF instance, probably
+		// because it's Root (or some other node type added
+		// later). The kernel won't let a rename newDir point
+		// to a non-directory.
 		//
-		// We have no cheap atomic rename across folders, so we can't
-		// serve this. EXDEV makes `mv` do a copy+delete, and the
-		// Lookup on the destination path will decide whether it's
-		// legal.
+		// We have no cheap atomic rename across folders, so
+		// we can't serve this. EXDEV makes `mv` do a
+		// copy+delete, and the Lookup on the destination path
+		// will decide whether it's legal.
 		return fuse.Errno(syscall.EXDEV)
 	}
-	if d.folder != newDir2.folder {
+
+	if d.folder != realNewDir.folder {
 		// Check this explicitly, not just trusting KBFSOps.Rename to
 		// return an error, because we rely on it for locking
 		// correctness.
@@ -421,14 +484,12 @@ func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest,
 	// it is there in the first place, by its Forget
 
 	if err := d.folder.fs.config.KBFSOps().Rename(
-		ctx, d.node, req.OldName, newDir2.node, req.NewName); err != nil {
+		ctx, d.node, req.OldName, realNewDir.node, req.NewName); err != nil {
 		return err
 	}
 
 	return nil
 }
-
-var _ fs.NodeRemover = (*Dir)(nil)
 
 // Remove implements the fs.NodeRemover interface for Dir.
 func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) (err error) {
@@ -450,10 +511,6 @@ func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) (err error) {
 
 	return nil
 }
-
-var _ fs.Handle = (*Dir)(nil)
-
-var _ fs.HandleReadDirAller = (*Dir)(nil)
 
 // ReadDirAll implements the fs.NodeReadDirAller interface for Dir.
 func (d *Dir) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
@@ -483,16 +540,12 @@ func (d *Dir) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 	return res, nil
 }
 
-var _ fs.NodeForgetter = (*Dir)(nil)
-
 // Forget kernel reference to this node.
 func (d *Dir) Forget() {
 	d.folder.forgetNode(d.node)
 }
 
-var _ fs.NodeSetattrer = (*Dir)(nil)
-
-// Setattr implements the fs.NodeSetattrer interface for File.
+// Setattr implements the fs.NodeSetattrer interface for Dir.
 func (d *Dir) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse.SetattrResponse) (err error) {
 	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
 	d.folder.fs.log.CDebugf(ctx, "Dir SetAttr")
@@ -532,4 +585,188 @@ func (d *Dir) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse.
 		return err
 	}
 	return nil
+}
+
+// TLF represents the root directory of a TLF. It wraps a lazy-loaded
+// Dir.
+type TLF struct {
+	folder *Folder
+
+	dirLock sync.RWMutex
+	dir     *Dir
+}
+
+func newTLF(fl *FolderList, name string) *TLF {
+	folder := newFolder(fl, name)
+	tlf := &TLF{
+		folder: folder,
+	}
+	return tlf
+}
+
+var _ DirInterface = (*TLF)(nil)
+
+func (tlf *TLF) isPublic() bool {
+	return tlf.folder.list.public
+}
+
+func (tlf *TLF) getStoredDir() *Dir {
+	tlf.dirLock.RLock()
+	defer tlf.dirLock.RUnlock()
+	return tlf.dir
+}
+
+func (tlf *TLF) loadDir(ctx context.Context) (*Dir, error) {
+	dir := tlf.getStoredDir()
+	if dir != nil {
+		return dir, nil
+	}
+
+	tlf.dirLock.Lock()
+	defer tlf.dirLock.Unlock()
+	// Need to check for nilness again to avoid racing with other
+	// calls to loadDir().
+	if tlf.dir != nil {
+		return tlf.dir, nil
+	}
+
+	rootNode, _, err :=
+		tlf.folder.fs.config.KBFSOps().GetOrCreateRootNode(
+			ctx, tlf.folder.name, tlf.isPublic(),
+			libkbfs.MasterBranch)
+	if err != nil {
+		return nil, err
+	}
+
+	err = tlf.folder.setFolderBranch(rootNode.GetFolderBranch())
+	if err != nil {
+		return nil, err
+	}
+
+	tlf.folder.nodes[rootNode.GetID()] = tlf
+	tlf.dir = newDir(tlf.folder, rootNode)
+	return tlf.dir, nil
+}
+
+// Attr implements the fs.Node interface for TLF.
+func (tlf *TLF) Attr(ctx context.Context, a *fuse.Attr) error {
+	dir := tlf.getStoredDir()
+	if dir == nil {
+		tlf.folder.fs.log.CDebugf(
+			ctx, "Faking Attr for TLF %s", tlf.folder.name)
+		// Have a low non-zero value for Valid to avoid being
+		// swamped with requests, while still not showing
+		// stale data for too long if we end up loading the
+		// dir.
+		a.Valid = 1 * time.Second
+		a.Mode = os.ModeDir | 0700
+		if tlf.isPublic() {
+			a.Mode |= 0055
+		}
+		return nil
+	}
+
+	return dir.Attr(ctx, a)
+}
+
+// Lookup implements the fs.NodeRequestLookuper interface for TLF.
+func (tlf *TLF) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (fs.Node, error) {
+	dir, err := tlf.loadDir(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return dir.Lookup(ctx, req, resp)
+}
+
+// Create implements the fs.NodeCreater interface for TLF.
+func (tlf *TLF) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.CreateResponse) (fs.Node, fs.Handle, error) {
+	dir, err := tlf.loadDir(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	return dir.Create(ctx, req, resp)
+}
+
+// Mkdir implements the fs.NodeMkdirer interface for TLF.
+func (tlf *TLF) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (
+	fs.Node, error) {
+	dir, err := tlf.loadDir(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return dir.Mkdir(ctx, req)
+}
+
+// Symlink implements the fs.NodeSymlinker interface for TLF.
+func (tlf *TLF) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (
+	fs.Node, error) {
+	dir, err := tlf.loadDir(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return dir.Symlink(ctx, req)
+}
+
+// Rename implements the fs.NodeRenamer interface for TLF.
+func (tlf *TLF) Rename(ctx context.Context, req *fuse.RenameRequest,
+	newDir fs.Node) error {
+	dir, err := tlf.loadDir(ctx)
+	if err != nil {
+		return err
+	}
+	return dir.Rename(ctx, req, newDir)
+}
+
+// Remove implements the fs.NodeRemover interface for TLF.
+func (tlf *TLF) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
+	dir, err := tlf.loadDir(ctx)
+	if err != nil {
+		return err
+	}
+	return dir.Remove(ctx, req)
+}
+
+// ReadDirAll implements the fs.NodeReadDirAller interface for TLF.
+func (tlf *TLF) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
+	dir, err := tlf.loadDir(ctx)
+	switch err := err.(type) {
+	case nil:
+		// No error.
+		break
+
+	case libkbfs.WriteAccessError:
+		// No permission to create TLF, so pretend it's still
+		// empty.
+		//
+		// In theory, we need to invalidate this once the TLF
+		// is created, but in practice, the Linux kernel
+		// doesn't cache readdir results, and probably not
+		// OSXFUSE either.
+		tlf.folder.fs.log.CDebugf(ctx,
+			"No permission to write to %s, so pretending it's empty",
+			tlf.folder.name)
+		return nil, nil
+
+	default:
+		// Some other error.
+		return nil, err
+	}
+	return dir.ReadDirAll(ctx)
+}
+
+// Forget kernel reference to this node.
+func (tlf *TLF) Forget() {
+	dir := tlf.getStoredDir()
+	if dir != nil {
+		dir.Forget()
+	}
+}
+
+// Setattr implements the fs.NodeSetattrer interface for TLF.
+func (tlf *TLF) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse.SetattrResponse) error {
+	dir, err := tlf.loadDir(ctx)
+	if err != nil {
+		return err
+	}
+	return dir.Setattr(ctx, req, resp)
 }

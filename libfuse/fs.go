@@ -159,12 +159,12 @@ func (f *FS) Root() (fs.Node, error) {
 	n := &Root{
 		private: &FolderList{
 			fs:      f,
-			folders: make(map[string]*Dir),
+			folders: make(map[string]*TLF),
 		},
 		public: &FolderList{
 			fs:      f,
 			public:  true,
-			folders: make(map[string]*Dir),
+			folders: make(map[string]*TLF),
 		},
 	}
 	return n, nil

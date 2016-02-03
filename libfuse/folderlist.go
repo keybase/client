@@ -4,7 +4,6 @@ import (
 	"os"
 	"strings"
 	"sync"
-	"time"
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
@@ -20,7 +19,7 @@ type FolderList struct {
 	public bool
 
 	mu      sync.Mutex
-	folders map[string]*Dir
+	folders map[string]*TLF
 }
 
 var _ fs.Node = (*FolderList)(nil)
@@ -58,9 +57,8 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		return nil, fuse.ENOENT
 	}
 
-	rootNode, _, err :=
-		fl.fs.config.KBFSOps().GetOrCreateRootNode(
-			ctx, req.Name, fl.public, libkbfs.MasterBranch)
+	_, err = libkbfs.ParseTlfHandle(
+		ctx, fl.fs.config.KBPKI(), req.Name, fl.public)
 	switch err := err.(type) {
 	case nil:
 		// No error.
@@ -77,50 +75,20 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		// Invalid public TLF.
 		return nil, fuse.ENOENT
 
-	case libkbfs.WriteAccessError:
-		// No permissions to create TLF.
-		fl.fs.log.CDebugf(ctx, "Local user doesn't have permission to create "+
-			" %s and it doesn't exist yet, so making an empty folder", req.Name)
-		// Only cache this empty folder for a minute, in case a valid
-		// writer comes along and creates it.
-		resp.EntryValid = 60 * time.Second
-		return &EmptyFolder{fl.fs}, nil
-
 	default:
 		// Some other error.
 		return nil, err
 	}
 
-	folderBranch := rootNode.GetFolderBranch()
-	folder := &Folder{
-		fs:           fl.fs,
-		list:         fl,
-		name:         req.Name,
-		folderBranch: folderBranch,
-		nodes:        map[libkbfs.NodeID]fs.Node{},
-	}
-
-	// TODO unregister all at unmount
-	if err := fl.fs.config.Notifier().RegisterForChanges([]libkbfs.FolderBranch{folderBranch}, folder); err != nil {
-		return nil, err
-	}
-
-	child := newDir(folder, rootNode)
-	folder.nodes[rootNode.GetID()] = child
-
+	child := newTLF(fl, req.Name)
 	fl.folders[req.Name] = child
 	return child, nil
 }
 
-func (fl *FolderList) forgetFolder(f *Folder) {
+func (fl *FolderList) forgetFolder(folderName string) {
 	fl.mu.Lock()
 	defer fl.mu.Unlock()
-
-	if err := fl.fs.config.Notifier().UnregisterFromChanges([]libkbfs.FolderBranch{f.folderBranch}, f); err != nil {
-		fl.fs.log.Info("cannot unregister change notifier for folder %q: %v",
-			f.name, err)
-	}
-	delete(fl.folders, f.name)
+	delete(fl.folders, folderName)
 }
 
 var _ fs.Handle = (*FolderList)(nil)
@@ -202,7 +170,7 @@ outer:
 	return res, nil
 }
 
-var _ fs.NodeRemover = (*Dir)(nil)
+var _ fs.NodeRemover = (*FolderList)(nil)
 
 // Remove implements the fs.NodeRemover interface for FolderList.
 func (fl *FolderList) Remove(ctx context.Context, req *fuse.RemoveRequest) (err error) {
