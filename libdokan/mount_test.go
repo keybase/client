@@ -2509,7 +2509,7 @@ func TestSimpleCRConflictOnOpenFiles(t *testing.T) {
 	}
 
 	// They should see the conflict.
-	nowString := now.Format(time.RFC3339Nano)
+	nowString := "unknown." + now.Format("2006-01-02")
 	checkDir(t, root1, map[string]fileInfoCheck{
 		"f": func(fi os.FileInfo) error {
 			return mustBeFileWithSize(fi, int64(len(input1)))
@@ -2699,7 +2699,7 @@ func TestSimpleCRConflictOnOpenMergedFile(t *testing.T) {
 	}
 
 	// They should see the conflict.
-	nowString := now.Format(time.RFC3339Nano)
+	nowString := "unknown." + now.Format("2006-01-02")
 	checkDir(t, root1, map[string]fileInfoCheck{
 		"f.conflict.user1." + nowString: func(fi os.FileInfo) error {
 			return mustBeFileWithSize(fi, int64(len(input1)))
