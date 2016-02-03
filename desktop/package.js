@@ -69,6 +69,7 @@ if (icon) {
 const version = argv.version || argv.v
 
 if (version) {
+  console.log('Using passed in version of electron-prebuild: ', version)
   DEFAULT_OPTS.version = version
   startPack()
 } else {
@@ -76,12 +77,17 @@ if (version) {
   console.log('Finding electron version')
   exec('npm list --dev electron-prebuilt', (err, stdout, stderr) => {
     DEFAULT_OPTS.version = '0.36.3'
-
     if (!err) {
       try {
-        DEFAULT_OPTS.version = stdout.match(/electron-prebuilt@([0-9.]+)\n/)[1]
-      } catch (ignore) { }
+        DEFAULT_OPTS.version = stdout.match(/electron-prebuilt@([0-9.]+)/)[1]
+        console.log("Found electron-prebuilt version: ", DEFAULT_OPTS.version)
+      } catch (err) {
+        console.log("Couldn't parse npm list to find electron: ", err)
+      }
+    } else {
+        console.log("Couldn't list npm to find electron: ", err)
     }
+
     startPack()
   })
 }
