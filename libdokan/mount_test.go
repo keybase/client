@@ -1856,6 +1856,7 @@ func testForErrorText(t *testing.T, path string, expectedErr error,
 }
 
 func TestErrorFile(t *testing.T) {
+	t.Skip("Non-existent users are allowed on windows.")
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	config.SetReporter(libkbfs.NewReporterSimple(config.Clock(), 0))
 	defer libkbfs.CheckConfigAndShutdown(t, config)
