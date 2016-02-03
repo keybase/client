@@ -15,6 +15,8 @@
 # Ignoring these for now
 .*/node_modules/redux-devtools/.*
 .*/node_modules/react-redux/node_modules/invariant/.*
+.*/node_modules/babel-preset-stage-1
+.*/node_modules/react-tap-event-plugin/node_modules/.*
 .*/shared/packager/.*
 .*/shared/purepack/.*
 .*/shared/framed-msgpack-rpc/.*
@@ -22,7 +24,10 @@
 .*/shared/debug/.*
 
 # Ignore .*-render.platform.js files
-.*\.desktop\.js
+.*-render\.android\.js
+.*-render\.ios\.js
+.*-render\.mobile\.js
+.*-render\.desktop\.js
 
 # Some react native errors in flow type
 .*/node_modules/react-native/Libraries/Animated/src/Interpolation.js
