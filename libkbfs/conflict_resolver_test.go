@@ -22,6 +22,10 @@ func crTestInit(t *testing.T) (mockCtrl *gomock.Controller, config *ConfigMock,
 	// usernames don't matter for these tests
 	config.mockKbpki.EXPECT().GetNormalizedUsername(gomock.Any(), gomock.Any()).
 		AnyTimes().Return(libkb.NormalizedUsername("mockUser"), nil)
+
+	mockDaemon := NewMockKeybaseDaemon(mockCtrl)
+	mockDaemon.EXPECT().LoadUserPlusKeys(gomock.Any(), gomock.Any()).AnyTimes().Return(UserInfo{Name: "mockUser"}, nil)
+	config.SetKeybaseDaemon(mockDaemon)
 	return mockCtrl, config, fbo.cr
 }
 
@@ -287,10 +291,26 @@ func testCRCheckPathsAndActions(t *testing.T, cr *ConflictResolver,
 		return
 	}
 
+	// Set writer infos to match so DeepEqual will succeed.
+	for k, v := range expectedActions {
+		v2, ok := actionMap[k]
+		if !ok || (len(v) != len(v2)) {
+			break
+		}
+		for i := 0; i < len(v); i++ {
+			switch x := v[i].(type) {
+			case *dropUnmergedAction:
+				y := v2[i].(*dropUnmergedAction)
+				y.op.setWriterInfo(x.op.getWriterInfo())
+			}
+		}
+	}
+
 	if !reflect.DeepEqual(expectedActions, actionMap) {
 		for k, v := range expectedActions {
-			t.Logf("Expected: %v -> %v", k, v)
-			t.Logf("Got: %v -> %v", k, actionMap[k])
+			t.Logf("Sub %v eq=%v", k, reflect.DeepEqual(v, actionMap[k]))
+			t.Logf("Expected: %v", v)
+			t.Logf("Got:      %v", actionMap[k])
 		}
 		t.Fatalf("Actions aren't right.  Expected %v, got %v",
 			expectedActions, actionMap)
@@ -861,7 +881,7 @@ func TestCRMergedChainsRenameCycleSimple(t *testing.T) {
 	ro := newRmOp("dirA", dirRootPtr)
 	ro.Dir.Ref = unmergedPathRoot.tailPointer()
 	ro.dropThis = true
-	ro.setWriterName("u2")
+	ro.setWriterInfo(writerInfo{name: "u2"})
 	ro.setFinalPath(unmergedPathRoot)
 	expectedActions := map[BlockPointer]crActionList{
 		mergedPathRoot.tailPointer(): {&dropUnmergedAction{ro}},
@@ -929,7 +949,7 @@ func TestCRMergedChainsConflictSimple(t *testing.T) {
 	mergedPathRoot := cr1.fbo.nodeCache.PathFromNode(dirRoot1)
 	mergedPaths[unmergedPathRoot.tailPointer()] = mergedPathRoot
 
-	nowString := now.Format(time.RFC3339Nano)
+	nowString := "unknown." + now.Format("2006-01-02")
 	expectedActions := map[BlockPointer]crActionList{
 		mergedPathRoot.tailPointer(): {&renameUnmergedAction{
 			"file1", "file1.conflict.u2." + nowString, ""}},
@@ -1028,7 +1048,7 @@ func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 
 	coFile := newCreateOp("file", dirRootPtr, Exec)
 
-	nowString := now.Format(time.RFC3339Nano)
+	nowString := "unknown." + now.Format("2006-01-02")
 	mergedPathRoot := cr1.fbo.nodeCache.PathFromNode(dirRoot1)
 	// Both unmerged actions should collapse into just one rename operation
 	expectedActions := map[BlockPointer]crActionList{
@@ -1227,7 +1247,7 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 
 	// Does the merged block contain the two files?
 	mergedRootPath := cr1.fbo.nodeCache.PathFromNode(dir1)
-	nowString := now.Format(time.RFC3339Nano)
+	nowString := "unknown." + now.Format("2006-01-02")
 	mergedName := "file.conflict.u2." + nowString
 	if len(newFileBlocks) != 1 {
 		t.Errorf("Unexpected new file blocks!")

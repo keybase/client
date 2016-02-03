@@ -605,7 +605,7 @@ func TestBasicCRFileConflict(t *testing.T) {
 	// Make sure they both see the same set of children
 	expectedChildren := []string{
 		"b",
-		"b.conflict.u2." + now.Format(time.RFC3339Nano),
+		"b.conflict.u2.unknown." + now.Format("2006-01-02"),
 	}
 	children1, err := kbfsOps1.GetDirChildren(ctx, dirA1)
 	if err != nil {
@@ -791,7 +791,7 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	// Make sure they all see the same set of children
 	expectedChildren := []string{
 		"b",
-		"b.conflict.u2." + now.Format(time.RFC3339Nano),
+		"b.conflict.u2.unknown." + now.Format("2006-01-02"),
 	}
 	children1, err := kbfsOps1.GetDirChildren(ctx, dirA1)
 	if err != nil {
