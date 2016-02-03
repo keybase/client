@@ -25,19 +25,18 @@
 
 - (void)uninstall:(KBCompletion)completion {
   MPXPCClient *helper = [KBHelperTool helper];
-  // Only uninstall from approved locations
+  // Only remove from approved locations
   if (![_path isEqualToString:@"/Applications/Keybase.app"]) {
     completion(KBMakeError(-1, @"Not approved to uninstall: %@", _path));
     return;
   }
   if (![NSFileManager.defaultManager fileExistsAtPath:_path]) {
-    DDLogInfo(@"No app to trash");
+    DDLogInfo(@"No app to uninstall");
     completion(nil);
     return;
   }
-  NSDictionary *params = @{@"path": _path};
-  [helper sendRequest:@"trash" params:@[params] completion:^(NSError *error, id value) {
-    DDLogDebug(@"Trash: %@", value);
+  NSDictionary *params = @{@"source": _path, @"destination": @"/tmp/Keybase.app"};
+  [helper sendRequest:@"move" params:@[params] completion:^(NSError *error, id value) {
     completion(error);
   }];
 }

@@ -104,19 +104,32 @@
 }
 
 + (NSError *)combineErrors:(NSArray *)installables ignoreWarnings:(BOOL)ignoreWarnings {
-  NSMutableArray *errorMessages = [NSMutableArray array];
+  NSMutableArray *errors = [NSMutableArray array];
   for (KBInstallable *installable in installables) {
     NSError *error = installable.error;
     if (!error) error = installable.componentStatus.error;
+    if (!error) continue;
 
     // Ignore warnings
-    if (ignoreWarnings && error && KBIsWarning(error)) {
+    if (ignoreWarnings && KBIsWarning(error)) {
       continue;
     }
 
+    [errors addObject:error];
+  }
+
+  if ([errors count] == 0) {
+    return nil;
+  }
+  if ([errors count] == 1) {
+    return errors[0];
+  }
+
+  NSMutableArray *errorMessages = [NSMutableArray array];
+  for (NSError *error in errors) {
     NSString *errorMessage = nil;
     if (error) {
-      errorMessage = NSStringWithFormat(@"%@ (%@)", installable.componentStatus.error.localizedDescription, @(installable.componentStatus.error.code));
+      errorMessage = NSStringWithFormat(@"%@ (%@)", error.localizedDescription, @(error.code));
     }
     if (errorMessage && ![errorMessages containsObject:errorMessage]) [errorMessages addObject:errorMessage];
   }
