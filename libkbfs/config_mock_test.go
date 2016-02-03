@@ -1,6 +1,8 @@
 package libkbfs
 
 import (
+	"time"
+
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
@@ -109,6 +111,9 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	config.maxFileBytes = maxFileBytesDefault
 	config.maxNameBytes = maxNameBytesDefault
 	config.maxDirBytes = maxDirBytesDefault
+
+	config.qrPeriod = 0 * time.Second // no auto reclamation
+	config.qrUnrefAge = qrUnrefAgeDefault
 
 	return config
 }

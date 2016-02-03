@@ -155,6 +155,9 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 	// turn off background flushing by default during tests
 	config.noBGFlush = true
 
+	// no auto reclamation
+	config.qrPeriod = 0 * time.Second
+
 	configs := []Config{config}
 	config.allKnownConfigsForTesting = &configs
 

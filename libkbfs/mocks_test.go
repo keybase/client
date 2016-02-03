@@ -2577,6 +2577,26 @@ func (_mr *_MockConfigRecorder) DoBackgroundFlushes() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DoBackgroundFlushes")
 }
 
+func (_m *MockConfig) QuotaReclamationPeriod() time.Duration {
+	ret := _m.ctrl.Call(_m, "QuotaReclamationPeriod")
+	ret0, _ := ret[0].(time.Duration)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) QuotaReclamationPeriod() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "QuotaReclamationPeriod")
+}
+
+func (_m *MockConfig) QuotaReclamationMinUnrefAge() time.Duration {
+	ret := _m.ctrl.Call(_m, "QuotaReclamationMinUnrefAge")
+	ret0, _ := ret[0].(time.Duration)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) QuotaReclamationMinUnrefAge() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "QuotaReclamationMinUnrefAge")
+}
+
 func (_m *MockConfig) MakeLogger(module string) logger.Logger {
 	ret := _m.ctrl.Call(_m, "MakeLogger", module)
 	ret0, _ := ret[0].(logger.Logger)

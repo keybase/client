@@ -1040,6 +1040,15 @@ type Config interface {
 	// flush dirty files, even without a sync from the user.  Should
 	// be true except for during some testing.
 	DoBackgroundFlushes() bool
+
+	// QuotaReclamationPeriod indicates how often should each TLF
+	// should check for quota to reclaim.  If the Duration.Seconds()
+	// == 0, quota reclamation should not run automatically.
+	QuotaReclamationPeriod() time.Duration
+	// QuotaReclamationMinUnrefAge indicates the minimum time a block
+	// must have been unreferenced before it can be reclaimed.
+	QuotaReclamationMinUnrefAge() time.Duration
+
 	MakeLogger(module string) logger.Logger
 	SetLoggerMaker(func(module string) logger.Logger)
 	// MetricsRegistry may be nil, which should be interpreted as
