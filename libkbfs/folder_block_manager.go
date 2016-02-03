@@ -224,17 +224,7 @@ const CtxFBMOpID = "FBMID"
 
 func (fbm *folderBlockManager) ctxWithFBMID(
 	ctx context.Context) context.Context {
-	// Tag each request with a unique ID
-	logTags := make(logger.CtxLogTags)
-	logTags[CtxFBMIDKey] = CtxFBMOpID
-	newCtx := logger.NewContextWithLogTags(ctx, logTags)
-	id, err := MakeRandomRequestID()
-	if err != nil {
-		fbm.log.Warning("Couldn't generate a random request ID: %v", err)
-	} else {
-		newCtx = context.WithValue(newCtx, CtxFBMIDKey, id)
-	}
-	return newCtx
+	return ctxWithRandomID(ctx, CtxFBMIDKey, CtxFBMOpID, fbm.log)
 }
 
 // Run the passed function with a context that's canceled on shutdown.

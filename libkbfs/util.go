@@ -97,3 +97,20 @@ const (
 	// already gotten the relevant notifications via LocalChanges.
 	CtxBackgroundSyncKey = "kbfs-background"
 )
+
+func ctxWithRandomID(ctx context.Context, tagKey interface{},
+	tagName string, log logger.Logger) context.Context {
+	// Tag each request with a unique ID
+	logTags := make(logger.CtxLogTags)
+	logTags[tagKey] = tagName
+	newCtx := logger.NewContextWithLogTags(ctx, logTags)
+	id, err := MakeRandomRequestID()
+	if err != nil {
+		if log != nil {
+			log.Warning("Couldn't generate a random request ID: %v", err)
+		}
+	} else {
+		newCtx = context.WithValue(newCtx, tagKey, id)
+	}
+	return newCtx
+}

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
 )
 
@@ -151,15 +150,8 @@ func (rkq *RekeyQueueStandard) processRekeys(ctx context.Context, hasWorkCh chan
 				}
 
 				// Assign an ID to this rekey operation so we can track it.
-				logTags := make(logger.CtxLogTags)
-				logTags[CtxRekeyIDKey] = CtxRekeyOpID
-				newCtx := logger.NewContextWithLogTags(ctx, logTags)
-				ctxID, err := MakeRandomRequestID()
-				if err == nil {
-					newCtx = context.WithValue(newCtx, CtxRekeyIDKey, ctxID)
-				}
-
-				err = rkq.config.KBFSOps().Rekey(newCtx, id)
+				newCtx := ctxWithRandomID(ctx, CtxRekeyIDKey, CtxRekeyOpID, nil)
+				err := rkq.config.KBFSOps().Rekey(newCtx, id)
 				rkq.dequeue(id, err)
 				if ctx.Err() != nil {
 					close(hasWorkCh)

@@ -4975,16 +4975,7 @@ func (fbo *folderBranchOps) UnstageForTesting(
 		// notifications if we do.  But we still want to wait for the
 		// context to cancel.
 		c := make(chan error, 1)
-		logTags := make(logger.CtxLogTags)
-		logTags[CtxFBOIDKey] = CtxFBOOpID
-		ctxWithTags :=
-			logger.NewContextWithLogTags(context.Background(), logTags)
-		id, err := MakeRandomRequestID()
-		if err != nil {
-			fbo.log.Warning("Couldn't generate a random request ID: %v", err)
-		} else {
-			ctxWithTags = context.WithValue(ctxWithTags, CtxFBOIDKey, id)
-		}
+		ctxWithTags := fbo.ctxWithFBOID(context.Background())
 		freshCtx, cancel := context.WithCancel(ctxWithTags)
 		defer cancel()
 		fbo.log.CDebugf(freshCtx, "Launching new context for UnstageForTesting")
@@ -5152,17 +5143,7 @@ const (
 const CtxFBOOpID = "FBOID"
 
 func (fbo *folderBranchOps) ctxWithFBOID(ctx context.Context) context.Context {
-	// Tag each request with a unique ID
-	logTags := make(logger.CtxLogTags)
-	logTags[CtxFBOIDKey] = CtxFBOOpID
-	newCtx := logger.NewContextWithLogTags(ctx, logTags)
-	id, err := MakeRandomRequestID()
-	if err != nil {
-		fbo.log.Warning("Couldn't generate a random request ID: %v", err)
-	} else {
-		newCtx = context.WithValue(newCtx, CtxFBOIDKey, id)
-	}
-	return newCtx
+	return ctxWithRandomID(ctx, CtxFBOIDKey, CtxFBOOpID, fbo.log)
 }
 
 // Run the passed function with a context that's canceled on shutdown.

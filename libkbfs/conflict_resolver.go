@@ -123,10 +123,6 @@ func (cr *ConflictResolver) resolutionDone() {
 // channel instead of accessing cr.inputChan directly so that it
 // doesn't have to hold inputChanLock.
 func (cr *ConflictResolver) processInput(inputChan <-chan conflictInput) {
-	logTags := make(logger.CtxLogTags)
-	logTags[CtxCRIDKey] = CtxCROpID
-	backgroundCtx := logger.NewContextWithLogTags(context.Background(), logTags)
-
 	var cancel func()
 	defer func() {
 		if cancel != nil {
@@ -134,13 +130,8 @@ func (cr *ConflictResolver) processInput(inputChan <-chan conflictInput) {
 		}
 	}()
 	for ci := range inputChan {
-		ctx := backgroundCtx
-		id, err := MakeRandomRequestID()
-		if err != nil {
-			cr.log.Warning("Couldn't generate a random request ID: %v", err)
-		} else {
-			ctx = context.WithValue(ctx, CtxCRIDKey, id)
-		}
+		ctx := ctxWithRandomID(context.Background(), CtxCRIDKey,
+			CtxCROpID, cr.log)
 
 		valid := func() bool {
 			cr.inputLock.Lock()

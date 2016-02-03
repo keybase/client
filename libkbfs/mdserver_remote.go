@@ -624,17 +624,7 @@ func (md *MDServerRemote) backgroundRekeyChecker(ctx context.Context) {
 			}
 
 			// Assign an ID to this rekey check so we can track it.
-			logTags := make(logger.CtxLogTags)
-			logTags[CtxMDSRIDKey] = CtxMDSROpID
-			newCtx := logger.NewContextWithLogTags(ctx, logTags)
-			id, err := MakeRandomRequestID()
-			if err != nil {
-				md.log.CWarningf(ctx,
-					"Couldn't generate a random request ID: %v", err)
-			} else {
-				newCtx = context.WithValue(newCtx, CtxMDSRIDKey, id)
-			}
-
+			newCtx := ctxWithRandomID(ctx, CtxMDSRIDKey, CtxMDSROpID, md.log)
 			md.log.CDebugf(newCtx, "Checking for rekey folders")
 			if err := md.getFoldersForRekey(newCtx, md.client); err != nil {
 				md.log.CWarningf(newCtx, "MDServerRemote: getFoldersForRekey "+
