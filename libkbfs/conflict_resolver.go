@@ -309,12 +309,12 @@ func (cr *ConflictResolver) updateCurrInput(ctx context.Context,
 func (cr *ConflictResolver) makeChains(ctx context.Context,
 	unmerged []*RootMetadata, merged []*RootMetadata) (
 	unmergedChains *crChains, mergedChains *crChains, err error) {
-	unmergedChains, err = newCRChains(ctx, cr.config.KBPKI(), unmerged)
+	unmergedChains, err = newCRChains(ctx, cr.config, unmerged)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	mergedChains, err = newCRChains(ctx, cr.config.KBPKI(), merged)
+	mergedChains, err = newCRChains(ctx, cr.config, merged)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -1034,14 +1034,18 @@ func (cr *ConflictResolver) addRecreateOpsToUnmergedChains(ctx context.Context,
 
 	// we know all of these recreate ops were authored by the current user
 	kbpki := cr.config.KBPKI()
-	writerName, _, err := kbpki.GetCurrentUserInfo(ctx)
+	uid, err := kbpki.GetCurrentUID(ctx)
+	if err != nil {
+		return nil, err
+	}
+	winfo, err := newWriterInfo(ctx, cr.config, uid, unmergedChains.mostRecentMD.writerKID())
 	if err != nil {
 		return nil, err
 	}
 
 	var newUnmergedPaths []path
 	for _, rop := range recreateOps {
-		rop.setWriterName(writerName)
+		rop.setWriterInfo(winfo)
 
 		// If rop.Dir.Unref is a merged most recent pointer, look up the
 		// original.  Otherwise rop.Dir.Unref is the original.  Use the
@@ -1560,13 +1564,13 @@ func (cr *ConflictResolver) addMergedRecreates(ctx context.Context,
 					co := newCreateOp(name, chain.original, t)
 					co.Dir.Ref = chain.original
 					co.AddRefBlock(c.mostRecent)
-					writerName, err :=
-						cr.config.KBPKI().GetNormalizedUsername(
-							ctx, mergedChains.mostRecentMD.LastModifyingWriter)
+					winfo, err := newWriterInfo(ctx, cr.config,
+						mergedChains.mostRecentMD.LastModifyingWriter,
+						mergedChains.mostRecentMD.writerKID())
 					if err != nil {
 						return err
 					}
-					co.setWriterName(writerName)
+					co.setWriterInfo(winfo)
 					chain.ops = append([]op{co}, chain.ops...)
 					cr.log.CDebugf(ctx, "Re-created rm'd merge-modified node "+
 						"%v with operation %s in parent %v", unrefOriginal, co,
@@ -2343,7 +2347,7 @@ func (cr *ConflictResolver) resolveOnePath(ctx context.Context,
 func (cr *ConflictResolver) makePostResolutionPaths(ctx context.Context,
 	md *RootMetadata, unmergedChains *crChains, mergedChains *crChains,
 	mergedPaths map[BlockPointer]path) (map[BlockPointer]path, error) {
-	resolvedChains, err := newCRChains(ctx, cr.config.KBPKI(),
+	resolvedChains, err := newCRChains(ctx, cr.config,
 		[]*RootMetadata{md})
 	if err != nil {
 		return nil, err

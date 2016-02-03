@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-
-	"github.com/keybase/client/go/libkb"
 )
 
 // op represents a single file-system remote-sync operation
@@ -18,8 +16,8 @@ type op interface {
 	Refs() []BlockPointer
 	Unrefs() []BlockPointer
 	String() string
-	setWriterName(name libkb.NormalizedUsername)
-	getWriterName() libkb.NormalizedUsername
+	setWriterInfo(writerInfo)
+	getWriterInfo() writerInfo
 	setFinalPath(p path)
 	getFinalPath() path
 	// CheckConflict compares the function's target op with the given
@@ -69,9 +67,10 @@ type OpCommon struct {
 	// its custom fields is updated on AddUpdate, instead of the
 	// generic Updates field.
 	customUpdates map[BlockPointer]*blockUpdate
-	// writerName is the keybase username that generated this
-	// operation.  Not exported; only used during conflict resolution.
-	writerName libkb.NormalizedUsername
+	// writerInfo is the keybase username that generated this
+	// operation and device.
+	// Not exported; only used during conflict resolution.
+	writerInfo writerInfo
 	// finalPath is the final resolved path to the node that this
 	// operation affects in a set of MD updates.  Not exported; only
 	// used during conflict resolution.
@@ -113,12 +112,12 @@ func (oc *OpCommon) Unrefs() []BlockPointer {
 	return oc.UnrefBlocks
 }
 
-func (oc *OpCommon) setWriterName(name libkb.NormalizedUsername) {
-	oc.writerName = name
+func (oc *OpCommon) setWriterInfo(info writerInfo) {
+	oc.writerInfo = info
 }
 
-func (oc *OpCommon) getWriterName() libkb.NormalizedUsername {
-	return oc.writerName
+func (oc *OpCommon) getWriterInfo() writerInfo {
+	return oc.writerInfo
 }
 
 func (oc *OpCommon) setFinalPath(p path) {

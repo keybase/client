@@ -160,7 +160,7 @@ func NewConfigLocal() *ConfigLocal {
 	config := &ConfigLocal{}
 	config.SetClock(wallClock{})
 	config.SetReporter(NewReporterSimple(config.Clock(), 10))
-	config.SetConflictRenamer(TimeAndWriterConflictRenamer{config})
+	config.SetConflictRenamer(WriterDeviceDateConflictRenamer{config})
 	config.SetMDCache(NewMDCacheStandard(5000))
 	config.SetKeyCache(NewKeyCacheStandard(5000))
 	// Limit the block cache to 10K entries or 512 MB of bytes
