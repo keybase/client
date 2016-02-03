@@ -1838,6 +1838,16 @@ func (_mr *_MockBlockServerRecorder) Shutdown() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
 }
 
+func (_m *MockBlockServer) GetUserQuotaInfo(ctx context.Context) (info *UserQuotaInfo, err error) {
+	_m.ctrl.Call(_m, "GetUserQuotaInfo", ctx)
+	// Return a dummy value here.
+	return &UserQuotaInfo{Limit: 0x7FFFFFFFFFFFFFFF}, nil
+}
+
+func (_mr *_MockBlockServerRecorder) GetUserQuotaInfo(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetUserQuotaInfo", arg0)
+}
+
 // Mock of BlockSplitter interface
 type MockBlockSplitter struct {
 	ctrl     *gomock.Controller

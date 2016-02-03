@@ -871,6 +871,9 @@ type BlockServer interface {
 
 	// Shutdown is called to shutdown an BlockServer connection.
 	Shutdown()
+
+	// GetUserQuotaInfo returns the quota for the user.
+	GetUserQuotaInfo(ctx context.Context) (info *UserQuotaInfo, err error)
 }
 
 // BlockSplitter decides when a file or directory block needs to be split
