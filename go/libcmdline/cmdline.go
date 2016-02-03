@@ -178,6 +178,14 @@ func (p CommandLine) GetProofCacheSize() (int, bool) {
 	return 0, false
 }
 
+func (p CommandLine) GetLinkCacheSize() (int, bool) {
+	ret := p.GetGInt("link-cache-size")
+	if ret != 0 {
+		return ret, true
+	}
+	return 0, false
+}
+
 func (p CommandLine) GetStandalone() (bool, bool) {
 	return p.GetBool("standalone", true)
 }

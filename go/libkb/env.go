@@ -33,6 +33,8 @@ func (n NullConfiguration) GetProofCacheSize() (int, bool)                { retu
 func (n NullConfiguration) GetProofCacheLongDur() (time.Duration, bool)   { return 0, false }
 func (n NullConfiguration) GetProofCacheMediumDur() (time.Duration, bool) { return 0, false }
 func (n NullConfiguration) GetProofCacheShortDur() (time.Duration, bool)  { return 0, false }
+func (n NullConfiguration) GetLinkCacheSize() (int, bool)                 { return 0, false }
+func (n NullConfiguration) GetLinkCacheCleanDur() (time.Duration, bool)   { return 0, false }
 func (n NullConfiguration) GetMerkleKIDs() []string                       { return nil }
 func (n NullConfiguration) GetPinentry() string                           { return "" }
 func (n NullConfiguration) GetUID() (ret keybase1.UID)                    { return }
@@ -569,6 +571,21 @@ func (e *Env) GetProofCacheShortDur() time.Duration {
 	return e.GetDuration(ProofCacheShortDur,
 		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_PROOF_CACHE_SHORT_DUR") },
 		e.config.GetProofCacheShortDur,
+	)
+}
+
+func (e *Env) GetLinkCacheSize() int {
+	return e.GetInt(ProofCacheSize,
+		e.cmd.GetLinkCacheSize,
+		func() (int, bool) { return e.getEnvInt("KEYBASE_LINK_CACHE_SIZE") },
+		e.config.GetLinkCacheSize,
+	)
+}
+
+func (e *Env) GetLinkCacheCleanDur() time.Duration {
+	return e.GetDuration(LinkCacheCleanDur,
+		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_LINK_CACHE_CLEAN_DUR") },
+		e.config.GetLinkCacheCleanDur,
 	)
 }
 

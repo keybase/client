@@ -73,6 +73,8 @@ const (
 	ProofCacheShortDur         = 30 * time.Minute
 	Identify2CacheLongTimeout  = 6 * time.Hour
 	Identify2CacheShortTimeout = 1 * time.Minute
+	LinkCacheSize              = 0x10000
+	LinkCacheCleanDur          = 1 * time.Minute
 
 	SigShortIDBytes = 27
 )

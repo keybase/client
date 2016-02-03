@@ -493,6 +493,14 @@ func (f JSONConfigFile) GetProofCacheShortDur() (time.Duration, bool) {
 	return f.GetDurationAtPath("cache.short_duration.proofs")
 }
 
+func (f JSONConfigFile) GetLinkCacheSize() (int, bool) {
+	return f.getCacheSize("cache.limits.links")
+}
+
+func (f JSONConfigFile) GetLinkCacheCleanDur() (time.Duration, bool) {
+	return f.GetDurationAtPath("cache.clean_duration.links")
+}
+
 func (f JSONConfigFile) GetMerkleKIDs() []string {
 	if f.jw == nil {
 		return nil
