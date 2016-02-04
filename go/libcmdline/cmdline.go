@@ -58,9 +58,6 @@ func (p *CommandLine) GetLogForward() LogForward  { return p.logForward }
 func (p CommandLine) GetSplitLogOutput() (bool, bool) {
 	return p.GetBool("split-log-output", true)
 }
-func (p CommandLine) GetLogFile() string {
-	return p.GetGString("log-file")
-}
 func (p CommandLine) GetNoAutoFork() (bool, bool) {
 	return p.GetBool("no-auto-fork", true)
 }

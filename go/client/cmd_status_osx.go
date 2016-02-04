@@ -23,15 +23,3 @@ func (c *CmdStatus) osSpecific(status *fstatus) error {
 
 	return nil
 }
-
-func (c *CmdStatus) serviceLogFilename() string {
-	return "keybase.service.log"
-}
-
-func (c *CmdStatus) kbfsLogFilename() string {
-	return "keybase.kbfs.log"
-}
-
-func (c *CmdStatus) desktopLogFilename() string {
-	return "Keybase.app.log"
-}

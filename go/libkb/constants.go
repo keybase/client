@@ -376,3 +376,7 @@ const (
 const (
 	SecretPromptCancelDuration = 5 * time.Minute
 )
+
+const ServiceLogFileName = "keybase.service.log"
+const KBFSLogFileName = "keybase.kbfs.log"
+const DesktopLogFileName = "Keybase.app.log"

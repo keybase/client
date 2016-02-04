@@ -55,7 +55,6 @@ type CommandLine interface {
 	GetLocalRPCDebug() string
 	GetTimers() string
 	GetSplitLogOutput() (bool, bool)
-	GetLogFile() string
 	GetRunMode() (RunMode, error)
 
 	GetScraperTimeout() (time.Duration, bool)

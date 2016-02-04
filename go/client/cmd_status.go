@@ -131,7 +131,7 @@ func (c *CmdStatus) load() (*fstatus, error) {
 		status.Service.Running = false
 	} else {
 		status.Service.Running = true
-		status.Service.Log = path.Join(extStatus.LogDir, c.serviceLogFilename())
+		status.Service.Log = path.Join(extStatus.LogDir, libkb.ServiceLogFileName)
 	}
 
 	status.SessionStatus = c.sessionStatus(extStatus.Session)
@@ -141,10 +141,10 @@ func (c *CmdStatus) load() (*fstatus, error) {
 	if err == nil {
 		status.KBFS.Version = kbfsVersion
 	}
-	status.KBFS.Log = path.Join(extStatus.LogDir, c.kbfsLogFilename())
+	status.KBFS.Log = path.Join(extStatus.LogDir, libkb.KBFSLogFileName)
 
 	status.Desktop.Running = extStatus.DesktopUIConnected
-	status.Desktop.Log = path.Join(extStatus.LogDir, c.desktopLogFilename())
+	status.Desktop.Log = path.Join(extStatus.LogDir, libkb.DesktopLogFileName)
 
 	status.DefaultUsername = extStatus.DefaultUsername
 	status.ProvisionedUsernames = extStatus.ProvisionedUsernames

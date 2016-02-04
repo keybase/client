@@ -47,7 +47,7 @@ echo Mounting /keybase...
 kbfsfuse -debug -mdserver mdserver.kbfs.keybase.io:443 \
   -bserver bserver.kbfs.keybase.io:443 /keybase &>> "$logdir/keybase.kbfs.log" &
 echo Launching Keybase GUI...
-/opt/keybase/Keybase &>> "$logdir/keybase.gui.log" &
+/opt/keybase/Keybase &>> "$logdir/Keybase.app.log" &
 
 echo 'Success!'
 # Magical squirrel produced by https://github.com/erkin/ponysay

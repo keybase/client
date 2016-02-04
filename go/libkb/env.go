@@ -747,10 +747,7 @@ func (e *Env) GetSplitLogOutput() bool {
 
 func (e *Env) GetLogFile() string {
 	return e.GetString(
-		func() string { return e.cmd.GetLogFile() },
-		func() string { return os.Getenv("KEYBASE_LOG_FILE") },
-		func() string { return e.config.GetLogFile() },
-		func() string { return filepath.Join(e.GetLogDir(), "keybase.log") },
+		func() string { return filepath.Join(e.GetLogDir(), ServiceLogFileName) },
 	)
 }
 
