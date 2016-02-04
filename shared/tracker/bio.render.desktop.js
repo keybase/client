@@ -5,6 +5,7 @@ import {Paper} from 'material-ui'
 import commonStyles, {colors} from '../styles/common'
 import resolveRoot from '../../desktop/resolve-root'
 import electron from 'electron'
+import featureFlags from '../util/feature-flags'
 
 const shell = electron.shell || electron.remote.shell
 
@@ -58,7 +59,7 @@ const styles = {
     backgroundColor: colors.greyBackground,
     justifyContent: 'flex-start',
     paddingTop: 12,
-    width: 202
+    width: featureFlags.get('tracker') === 'v2'? 320 : 202
   },
   avatarContainer: {
     border: '3px solid #cccccc',

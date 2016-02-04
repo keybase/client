@@ -166,4 +166,3 @@ const styles = {
     ...commonStyles.clickable
   }
 }
-

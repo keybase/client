@@ -9,6 +9,7 @@ import Proofs from './proofs.render.desktop'
 import commonStyles from '../styles/common'
 
 import type {RenderProps} from './render'
+import featureFlags from '../util/feature-flags'
 
 export default class Render extends Component {
   props: RenderProps;
@@ -45,18 +46,18 @@ const styles = {
     ...commonStyles.fontRegular,
     backgroundColor: 'white',
     fontSize: 15,
-    height: 332,
-    width: 520
+    width: featureFlags.get('tracker') === 'v2' ? 320 : 520,
+    height: featureFlags.get('tracker') === 'v2' ? 520 : 332
   },
   header: {
     height: 34
   },
   bodyContainer: {
-    ...commonStyles.flexBoxRow,
-    height: 242
+    ...featureFlags.get('tracker') === 'v2' ? commonStyles.flexBoxColumn : commonStyles.flexBoxRow,
+    height: featureFlags.get('tracker') === 'v2' ? 642 : 242
   },
   bio: {
-    width: 202
+    width: featureFlags.get('tracker') === 'v2' ? 320 : 202
   },
   proofs: {
   },
