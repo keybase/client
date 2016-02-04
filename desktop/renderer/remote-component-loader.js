@@ -12,6 +12,8 @@ import tracker from '../shared/tracker'
 import pinentry from '../shared/pinentry'
 import update from '../shared/update'
 
+import {setupContextMenu} from '../app/menu-helper'
+
 consoleHelper()
 ipcLogsRenderer()
 
@@ -75,6 +77,8 @@ class RemoteComponentLoader extends Component {
 
   componentWillMount () {
     const currentWindow = getCurrentWindow()
+
+    setupContextMenu(currentWindow)
 
     currentWindow.on('hasProps', props => {
       // Maybe we need to wait for the state to arrive at the beginning

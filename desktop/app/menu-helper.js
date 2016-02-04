@@ -68,3 +68,36 @@ export default function makeMenu (window) {
     window.setMenu(menu)
   }
 }
+
+export function setupContextMenu(window) {
+  console.log('setting up context menu:', window)
+
+  const InputMenu = Menu.buildFromTemplate([
+    {label: 'Undo', role: 'undo'},
+    {label: 'Redo', role: 'redo'},
+    {type: 'separator'},
+    {label: 'Cut', role: 'cut'},
+    {label: 'Copy', role: 'copy'},
+    {label: 'Paste', role: 'paste'},
+    {type: 'separator'},
+    {label: 'Select all', role: 'selectall'}
+  ])
+
+  console.log(document, document.body)
+
+  document.body.addEventListener('contextmenu', e => {
+    console.log('got context request', e)
+    e.preventDefault();
+    e.stopPropagation();
+
+    let node = e.target
+
+    while (node) {
+      if (node.nodeName.match(/^(input|textarea)$/i) || node.isContentEditable) {
+        InputMenu.popup(window)
+        break
+      }
+      node = node.parentNode
+    }
+  })
+}
