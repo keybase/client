@@ -135,8 +135,9 @@ func uniquifyName(block *DirBlock, name string) (string, error) {
 		return name, nil
 	}
 
+	base, ext := splitExtension(name)
 	for i := 1; i <= 100; i++ {
-		newName := fmt.Sprintf("%s_(%d)", name, i)
+		newName := fmt.Sprintf("%s_(%d)%s", base, i, ext)
 		if _, ok := block.Children[newName]; !ok {
 			return newName, nil
 		}

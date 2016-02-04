@@ -23,5 +23,6 @@ func TestSplitExtension(t *testing.T) {
 	testSplitExtension(t, "x/y", "x/y", "")
 	testSplitExtension(t, "x/", "x/", "")
 	testSplitExtension(t, "/.foo", "/.foo", "")
+	testSplitExtension(t, "weird. is this?", "weird. is this?", "")
 	testSplitExtension(t, "", "", "")
 }

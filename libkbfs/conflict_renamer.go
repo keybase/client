@@ -45,11 +45,11 @@ func splitExtension(path string) (string, string) {
 			}
 			// A leading dot is not an extension
 			if i == 0 || path[i-1] == '/' || path[i-1] == '\\' {
-				break
+				return path, ""
 			}
 			return path[:i], path[i:]
-		case '/', '\\':
-			break
+		case '/', '\\', ' ':
+			return path, ""
 		}
 	}
 	return path, ""
