@@ -157,8 +157,7 @@ func (g *GlobalContext) Logout() error {
 }
 
 func (g *GlobalContext) ConfigureLogging() error {
-	g.Log.Configure(g.Env.GetLogFormat(), g.Env.GetDebug(),
-		g.Env.GetLogFile())
+	g.Log.Configure(g.Env.GetLogFormat(), g.Env.GetDebug())
 	g.Output = os.Stdout
 	g.VDL.Configure(g.Env.GetVDebugSetting())
 	return nil

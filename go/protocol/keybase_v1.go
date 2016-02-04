@@ -946,10 +946,6 @@ type StopArg struct {
 	ExitCode  ExitCode `codec:"exitCode" json:"exitCode"`
 }
 
-type LogRotateArg struct {
-	SessionID int `codec:"sessionID" json:"sessionID"`
-}
-
 type ReloadArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -960,7 +956,6 @@ type DbNukeArg struct {
 
 type CtlInterface interface {
 	Stop(context.Context, StopArg) error
-	LogRotate(context.Context, int) error
 	Reload(context.Context, int) error
 	DbNuke(context.Context, int) error
 }
@@ -981,22 +976,6 @@ func CtlProtocol(i CtlInterface) rpc.Protocol {
 						return
 					}
 					err = i.Stop(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
-			"logRotate": {
-				MakeArg: func() interface{} {
-					ret := make([]LogRotateArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]LogRotateArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]LogRotateArg)(nil), args)
-						return
-					}
-					err = i.LogRotate(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -1043,12 +1022,6 @@ type CtlClient struct {
 
 func (c CtlClient) Stop(ctx context.Context, __arg StopArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.ctl.stop", []interface{}{__arg}, nil)
-	return
-}
-
-func (c CtlClient) LogRotate(ctx context.Context, sessionID int) (err error) {
-	__arg := LogRotateArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.ctl.logRotate", []interface{}{__arg}, nil)
 	return
 }
 

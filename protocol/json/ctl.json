@@ -231,13 +231,6 @@
       } ],
       "response" : "null"
     },
-    "logRotate" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      } ],
-      "response" : "null"
-    },
     "reload" : {
       "request" : [ {
         "name" : "sessionID",

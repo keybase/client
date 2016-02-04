@@ -53,8 +53,6 @@ type CommandLine interface {
 	GetNoAutoFork() (bool, bool)
 	GetLocalRPCDebug() string
 	GetTimers() string
-	GetSplitLogOutput() (bool, bool)
-	GetLogFile() string
 	GetRunMode() (RunMode, error)
 
 	GetScraperTimeout() (time.Duration, bool)
@@ -134,8 +132,6 @@ type ConfigReader interface {
 	GetAllUsernames() (current NormalizedUsername, others []NormalizedUsername, err error)
 	GetUID() keybase1.UID
 	GetProxyCACerts() ([]string, error)
-	GetSplitLogOutput() (bool, bool)
-	GetLogFile() string
 	GetRunMode() (RunMode, error)
 	GetScraperTimeout() (time.Duration, bool)
 	GetAPITimeout() (time.Duration, bool)

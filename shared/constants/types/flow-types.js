@@ -214,15 +214,6 @@ export type incomingCallMapType = {
       result: () => void
     }
   ) => void,
-  'keybase.1.ctl.logRotate'?: (
-    params: {
-      sessionID: int
-    },
-    response: {
-      error: (err: string) => void,
-      result: () => void
-    }
-  ) => void,
   'keybase.1.ctl.reload'?: (
     params: {
       sessionID: int
@@ -2820,17 +2811,6 @@ export type ctl_stop_rpc = {
   param: {
     exitCode: ctl_ExitCode
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-// ctl.logRotate ////////////////////////////////////////
-
-/* void response */
-
-export type ctl_logRotate_rpc = {
-  method: 'ctl.logRotate',
-  param: {},
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }

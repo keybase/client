@@ -19,15 +19,12 @@ func spawnServer(cl libkb.CommandLine, forkType keybase1.ForkType) (pid int, err
 	var files []uintptr
 	var cmd string
 	var args []string
-	var devnull, log *os.File
+	var devnull *os.File
 
 	defer func() {
 		if err != nil {
 			if devnull != nil {
 				devnull.Close()
-			}
-			if log != nil {
-				log.Close()
 			}
 		}
 	}()
@@ -36,15 +33,7 @@ func spawnServer(cl libkb.CommandLine, forkType keybase1.ForkType) (pid int, err
 		return
 	}
 	files = append(files, devnull.Fd())
-
-	if G.Env.GetSplitLogOutput() {
-		files = append(files, uintptr(1), uintptr(2))
-	} else {
-		if _, log, err = libkb.OpenLogFile(); err != nil {
-			return
-		}
-		files = append(files, log.Fd(), log.Fd())
-	}
+	files = append(files, uintptr(1), uintptr(2))
 
 	attr := syscall.ProcAttr{
 		Env:   os.Environ(),

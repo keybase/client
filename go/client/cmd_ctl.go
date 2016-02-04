@@ -19,7 +19,6 @@ func NewCmdCtl(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 			NewCmdCtlStop(cl, g),
 			NewCmdCtlReload(cl, g),
 			NewCmdCtlRestart(cl, g),
-			NewCmdCtlLogRotate(cl, g),
 			NewCmdWatchdog(cl, g),
 		},
 	}
