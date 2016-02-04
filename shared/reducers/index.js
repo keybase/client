@@ -14,6 +14,7 @@ import tracker from './tracker'
 import pinentry from './pinentry'
 import favorite from './favorite'
 import update from './update'
+import signup from './signup'
 
 import devEdit from './devEdit'
 
@@ -47,7 +48,8 @@ const combinedReducer = combineReducers({
   tracker,
   pinentry,
   favorite,
-  update
+  update,
+  signup
 })
 
 let reducer

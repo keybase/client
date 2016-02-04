@@ -11,11 +11,16 @@ export default class Render extends Component {
   props: Props;
 
   render (): ReactElement {
+    let inviteRef = null
+    const submitInviteCode = () => {
+      const inviteCode = inviteRef && inviteRef.getValue() || ''
+      this.props.onInviteCodeSubmit(inviteCode)
+    }
     return (
       <div style={styles.form}>
         <Text style={styles.topMargin} type='Header'>Enter your special invite code</Text>
-        <Input hintText='Invite Code' errorText={this.props.inviteCodeErrorText} onEnterKeyDown={this.props.onInviteCodeSubmit}/>
-        <Button label='Check' onClick={this.props.onInviteCodeSubmit}/>
+        <Input ref={r => inviteRef = r} hintText='Invite Code' errorText={this.props.inviteCodeErrorText} onEnterKeyDown={submitInviteCode}/>
+        <Button label='Check' onClick={submitInviteCode}/>
       </div>
     )
   }
