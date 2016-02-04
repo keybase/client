@@ -22,8 +22,7 @@ let config = {
   enableActionLogging: true,
   forwardLogs: true,
   devStoreChangingFunctions: false,
-  resizeLoginForm: true,
-  trackerVersionTwo: false
+  resizeLoginForm: true
 }
 
 if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) { // eslint-disable-line no-undef
@@ -45,10 +44,6 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) { // eslint-disable-line no-unde
   config.resizeLoginForm = false
 }
 
-if (__DEV__ && process.env.KEYBASE_TRACKER_V2) { // eslint-disable-line no-undef
-  config.trackerVersionTwo = true
-}
-
 config = updateConfig(config)
 
 export const {
@@ -65,6 +60,5 @@ export const {
   enableStoreLogging,
   forwardLogs,
   devStoreChangingFunctions,
-  resizeLoginForm,
-  trackerVersionTwo
+  resizeLoginForm
 } = config
