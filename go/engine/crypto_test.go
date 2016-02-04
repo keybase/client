@@ -341,6 +341,7 @@ func TestCryptoUnboxBytes32AnyPaper(t *testing.T) {
 		Bundles: []keybase1.CiphertextBundle{
 			{Kid: kp.GetKID(), Ciphertext: encryptedBytes32, Nonce: nonce, PublicKey: peersPublicKey},
 		},
+		PromptPaper: true,
 	}
 	res, err := UnboxBytes32Any(tc.G, u.NewSecretUI(), arg)
 	if err != nil {

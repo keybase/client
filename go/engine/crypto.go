@@ -182,6 +182,11 @@ func getMatchingSecretKey(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg k
 		return key, index, nil
 	}
 
+	if !arg.PromptPaper {
+		g.Log.Debug("UnboxBytes32Any/getMatchingSecretKey: not checking paper keys (promptPaper == false)")
+		return nil, 0, libkb.NoSecretKeyError{}
+	}
+
 	// check the paper keys for this user
 	key, index, err = matchingPaperKey(g, secretUI, arg, me)
 	if err != nil {

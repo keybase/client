@@ -54,5 +54,8 @@ protocol crypto {
     int index;
   }
 
-  UnboxAnyRes unboxBytes32Any(array<CiphertextBundle> bundles, string reason);
+  // if promptPaper is set to true and a paper key would work for one of the bundles, 
+  // then there will be a prompt for the user to enter it.  If false, no paper key 
+  // prompts will happen.
+  UnboxAnyRes unboxBytes32Any(array<CiphertextBundle> bundles, string reason, boolean promptPaper);
 }

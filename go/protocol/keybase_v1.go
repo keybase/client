@@ -826,8 +826,9 @@ type UnboxBytes32Arg struct {
 }
 
 type UnboxBytes32AnyArg struct {
-	Bundles []CiphertextBundle `codec:"bundles" json:"bundles"`
-	Reason  string             `codec:"reason" json:"reason"`
+	Bundles     []CiphertextBundle `codec:"bundles" json:"bundles"`
+	Reason      string             `codec:"reason" json:"reason"`
+	PromptPaper bool               `codec:"promptPaper" json:"promptPaper"`
 }
 
 type CryptoInterface interface {

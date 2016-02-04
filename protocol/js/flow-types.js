@@ -197,7 +197,8 @@ export type incomingCallMapType = {
   'keybase.1.crypto.unboxBytes32Any'?: (
     params: {
       bundles: Array<crypto_CiphertextBundle>,
-      reason: string
+      reason: string,
+      promptPaper: boolean
     },
     response: {
       error: (err: string) => void,
@@ -2714,7 +2715,8 @@ export type crypto_unboxBytes32Any_rpc = {
   method: 'crypto.unboxBytes32Any',
   param: {
     bundles: Array<crypto_CiphertextBundle>,
-    reason: string
+    reason: string,
+    promptPaper: boolean
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any, response: crypto_unboxBytes32Any_result) => void)

@@ -329,6 +329,9 @@
       }, {
         "name" : "reason",
         "type" : "string"
+      }, {
+        "name" : "promptPaper",
+        "type" : "boolean"
       } ],
       "response" : "UnboxAnyRes"
     }
