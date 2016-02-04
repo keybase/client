@@ -1558,3 +1558,106 @@ func TestKBFSOpsTruncateWithDupBlockCanceled(t *testing.T) {
 		t.Fatalf("Final sync failed: %v", err)
 	}
 }
+
+type blockOpsOverQuota struct {
+	BlockOps
+}
+
+func (booq *blockOpsOverQuota) Put(ctx context.Context, md *RootMetadata,
+	blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
+	return BServerErrorOverQuota{""}
+}
+
+// Test that a quota error causes deferred writes to error.
+// Regression test for KBFS-751.
+func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
+	config, _, ctx := kbfsOpsConcurInit(t, "test_user")
+	defer CheckConfigAndShutdown(t, config)
+
+	// Cancel the first put
+	onSyncStalledCh := make(chan struct{}, 1)
+	syncUnstallCh := make(chan struct{})
+
+	stallKey := "requestName"
+	syncValue := "sync"
+
+	realBlockOps := config.BlockOps()
+	staller := &stallingBlockOps{
+		stallOpName: "Put",
+		stallKey:    stallKey,
+		stallMap: map[interface{}]staller{
+			syncValue: staller{
+				stalled: onSyncStalledCh,
+				unstall: syncUnstallCh,
+			},
+		},
+		delegate: realBlockOps,
+	}
+
+	config.SetBlockOps(staller)
+
+	// create and write to a file
+	kbfsOps := config.KBFSOps()
+	rootNode, _, err :=
+		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// Write over the dirty amount of data.  TODO: make this
+	// configurable for a speedier test.
+	data := make([]byte, dirtyBytesThreshold+1)
+	err = kbfsOps.Write(ctx, fileNode, data, 0)
+	if err != nil {
+		t.Errorf("Couldn't write file: %v", err)
+	}
+
+	booq := &blockOpsOverQuota{BlockOps: staller.delegate}
+	staller.delegate = booq
+
+	// Block the Sync
+	// Sync the initial two data blocks
+	syncErrCh := make(chan error)
+	go func() {
+		syncCtx := context.WithValue(ctx, stallKey, syncValue)
+		syncErrCh <- kbfsOps.Sync(syncCtx, fileNode)
+	}()
+	<-onSyncStalledCh
+
+	// Now write more data which should get blocked
+	newData := make([]byte, 1)
+	writeErrCh := make(chan error)
+	go func() {
+		writeErrCh <- kbfsOps.Write(ctx, fileNode, newData, int64(len(data)))
+	}()
+
+	// Wait until the write is blocked
+	ops := getOps(config, rootNode.GetFolderBranch().Tlf)
+	func() {
+		lState := makeFBOLockState()
+		ops.blockLock.Lock(lState)
+		defer ops.blockLock.Unlock(lState)
+		for len(ops.syncListeners) == 0 {
+			ops.blockLock.Unlock(lState)
+			runtime.Gosched()
+			ops.blockLock.Lock(lState)
+		}
+	}()
+
+	// Unblock the sync
+	syncUnstallCh <- struct{}{}
+
+	// Both errors should be an OverQuota error
+	syncErr := <-syncErrCh
+	writeErr := <-writeErrCh
+	if _, ok := syncErr.(BServerErrorOverQuota); !ok {
+		t.Fatalf("Unexpected sync err: %v", syncErr)
+	}
+	if writeErr != syncErr {
+		t.Fatalf("Unexpected write err: %v", writeErr)
+	}
+}

@@ -272,8 +272,11 @@ type folderBranchOps struct {
 	// set to true if this write or truncate should be deferred
 	doDeferWrite bool
 	// If there are too many deferred bytes outstanding, writes should
-	// block on this channel before continuing their writes.
-	deferredBlockingChan chan struct{}
+	// add themselves to this list (while holding blockLock).  They
+	// will be able to receive on the channel on an outstanding Sync()
+	// completes.  If they receive an error, they should fail the
+	// write.
+	syncListeners []chan error
 
 	// For writes and truncates, track the unsynced to-be-unref'd
 	// block infos, per-path.  Uses a stripped BlockPointer in case
@@ -292,7 +295,7 @@ type folderBranchOps struct {
 	headLock     leveledRWMutex // protects access to the MD
 
 	// protects access to blocks in this folder, fileBlockStates,
-	// and deferredWrites et al.
+	// syncListeners, and deferredWrites et al.
 	blockLock blockLock
 
 	obsLock   sync.RWMutex // protects access to observers
@@ -3228,6 +3231,7 @@ func (fbo *folderBranchOps) maybeWaitOnDeferredWritesLocked(
 	// of it gets flush so our memory usage doesn't grow without
 	// bound.
 	bcache := fbo.config.BlockCache()
+	var syncBlockingCh chan error
 	for {
 		dirtyBytes := bcache.DirtyBytesEstimate()
 		if dirtyBytes < dirtyBytesThreshold {
@@ -3235,10 +3239,11 @@ func (fbo *folderBranchOps) maybeWaitOnDeferredWritesLocked(
 		}
 		fbo.log.CDebugf(ctx, "Blocking a write because of %d dirty bytes",
 			dirtyBytes)
-		if fbo.deferredBlockingChan == nil {
-			fbo.deferredBlockingChan = make(chan struct{})
+		if syncBlockingCh == nil {
+			syncBlockingCh = make(chan error, 1)
+			fbo.syncListeners =
+				append(fbo.syncListeners, syncBlockingCh)
 		}
-		c := fbo.deferredBlockingChan
 		doLock = true
 		fbo.blockLock.Unlock(lState)
 
@@ -3253,7 +3258,16 @@ func (fbo *folderBranchOps) maybeWaitOnDeferredWritesLocked(
 		// all the dirty bytes.
 		t := time.NewTimer(100 * time.Millisecond)
 		select {
-		case <-c:
+		case err := <-syncBlockingCh:
+			syncBlockingCh = nil
+			if err != nil {
+				// XXX: should we ignore non-fatal errors (like
+				// context.Canceled), or errors that are specific only
+				// to some other file being sync'd (e.g.,
+				// "recoverable" block errors from which we couldn't
+				// recover)?
+				return err
+			}
 		case <-t.C:
 		case <-ctx.Done():
 			return ctx.Err()
@@ -4175,12 +4189,18 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 		}
 	}
 
-	if fbo.deferredBlockingChan != nil {
-		close(fbo.deferredBlockingChan)
-		fbo.deferredBlockingChan = nil
-	}
-
 	return stillDirty, nil
+}
+
+func (fbo *folderBranchOps) notifyDeferredListeners(
+	lState *lockState, err error) {
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
+	listeners := fbo.syncListeners
+	fbo.syncListeners = nil
+	for _, listener := range listeners {
+		listener <- err
+	}
 }
 
 func (fbo *folderBranchOps) Sync(ctx context.Context, file Node) (err error) {
@@ -4193,6 +4213,8 @@ func (fbo *folderBranchOps) Sync(ctx context.Context, file Node) (err error) {
 	}
 
 	lState := makeFBOLockState()
+	defer func() { fbo.notifyDeferredListeners(lState, err) }()
+
 	var stillDirty bool
 	err = fbo.doMDWriteWithRetryUnlessCanceled(ctx, lState, func() error {
 		filePath, err := fbo.pathFromNodeForMDWriteLocked(file)
