@@ -59,7 +59,7 @@ const styles = {
     backgroundColor: colors.greyBackground,
     justifyContent: 'flex-start',
     paddingTop: 12,
-    width: featureFlags.tracker === 'v2'? 320 : 202
+    width: featureFlags.tracker === 'v2'? '' : 202
   },
   avatarContainer: {
     border: '3px solid #cccccc',
