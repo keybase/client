@@ -93,8 +93,8 @@
 		},
 		{
 			"path": "github.com/go-sql-driver/mysql",
-			"revision": "d512f204a577a4ab037a1816604c48c9c13210be",
-			"revisionTime": "2015-11-12T17:33:55+01:00"
+			"revision": "267b128680c46286b9ca13475c3cca5de8f79bd7",
+			"revisionTime": "2016-02-03T12:00:21+01:00"
 		},
 		{
 			"path": "github.com/goamz/goamz/aws",
