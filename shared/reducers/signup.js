@@ -16,7 +16,7 @@ export default function (state: SignupState = initialState, action: SignupAction
   switch (action.type) {
     case Constants.checkInviteCode:
       // Assert this is the type we're looking at
-      var _t: CheckInviteCode = action
+      var action: CheckInviteCode = action
       if (action.error && action.error === true) {
         return {
           ...state,
