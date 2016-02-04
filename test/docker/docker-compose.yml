@@ -27,4 +27,9 @@ bserver:
         - dynamodb
         - mdserver
     restart: unless-stopped
-
+keybase:
+    image: keybase
+    volumes:
+        - $GOPATH/bin:/opt/keybase:ro
+    links:
+        - kbweb
