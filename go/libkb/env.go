@@ -575,7 +575,7 @@ func (e *Env) GetProofCacheShortDur() time.Duration {
 }
 
 func (e *Env) GetLinkCacheSize() int {
-	return e.GetInt(ProofCacheSize,
+	return e.GetInt(LinkCacheSize,
 		e.cmd.GetLinkCacheSize,
 		func() (int, bool) { return e.getEnvInt("KEYBASE_LINK_CACHE_SIZE") },
 		e.config.GetLinkCacheSize,
