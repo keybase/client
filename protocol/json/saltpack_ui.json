@@ -218,7 +218,7 @@
   }, {
     "type" : "enum",
     "name" : "SaltpackSenderType",
-    "symbols" : [ "NOT_TRACKED_0", "UNKNOWN_1", "ANONYMOUS_2", "TRACKING_BROKE_3", "TRACKING_OK_4" ]
+    "symbols" : [ "NOT_TRACKED_0", "UNKNOWN_1", "ANONYMOUS_2", "TRACKING_BROKE_3", "TRACKING_OK_4", "SELF_5" ]
   }, {
     "type" : "record",
     "name" : "SaltpackSender",

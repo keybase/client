@@ -8,7 +8,8 @@ protocol saltpackUi {
     UNKNOWN_1,
     ANONYMOUS_2,
     TRACKING_BROKE_3,
-    TRACKING_OK_4
+    TRACKING_OK_4,
+    SELF_5
   }
 
   record SaltpackSender {

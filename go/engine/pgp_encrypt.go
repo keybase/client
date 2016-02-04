@@ -66,7 +66,7 @@ func (e *PGPEncrypt) SubConsumers() []libkb.UIConsumer {
 // Run starts the engine.
 func (e *PGPEncrypt) Run(ctx *Context) error {
 	// verify valid options based on logged in state:
-	ok, err := IsLoggedIn(e, ctx)
+	ok, uid, err := IsLoggedIn(e, ctx)
 	if err != nil {
 		return err
 	}
@@ -82,7 +82,7 @@ func (e *PGPEncrypt) Run(ctx *Context) error {
 			return libkb.LoginRequiredError{Context: "you must be logged in to encrypt for yourself"}
 		}
 	} else {
-		me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
+		me, err := libkb.LoadMeByUID(e.G(), uid)
 		if err != nil {
 			return err
 		}

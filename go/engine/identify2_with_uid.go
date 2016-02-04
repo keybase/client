@@ -415,11 +415,12 @@ func (e *Identify2WithUID) loadMe(ctx *Context) (err error) {
 	}
 
 	var ok bool
-	ok, err = IsLoggedIn(e, ctx)
+	var uid keybase1.UID
+	ok, uid, err = IsLoggedIn(e, ctx)
 	if err != nil || !ok {
 		return err
 	}
-	e.me, err = libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
+	e.me, err = libkb.LoadMeByUID(e.G(), uid)
 	return err
 }
 

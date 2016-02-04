@@ -41,6 +41,12 @@ func NewLoadUserByNameArg(g *GlobalContext, name string) LoadUserArg {
 	return arg
 }
 
+func NewLoadUserByUIDArg(g *GlobalContext, uid keybase1.UID) LoadUserArg {
+	arg := NewLoadUserArg(g)
+	arg.UID = uid
+	return arg
+}
+
 func NewLoadUserPubOptionalArg(g *GlobalContext) LoadUserArg {
 	arg := NewLoadUserArg(g)
 	arg.PublicKeyOptional = true
@@ -111,6 +117,10 @@ func (arg *LoadUserArg) checkSelf() {
 func LoadMe(arg LoadUserArg) (*User, error) {
 	arg.Self = true
 	return LoadUser(arg)
+}
+
+func LoadMeByUID(g *GlobalContext, uid keybase1.UID) (*User, error) {
+	return LoadMe(NewLoadUserByUIDArg(g, uid))
 }
 
 func LoadUser(arg LoadUserArg) (ret *User, err error) {

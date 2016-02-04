@@ -71,6 +71,13 @@ func (a *Account) LocalSession() *Session {
 	return a.localSession
 }
 
+func (a *Account) GetUID() (ret keybase1.UID) {
+	if a.localSession != nil {
+		ret = a.localSession.GetUID()
+	}
+	return ret
+}
+
 func (a *Account) UnloadLocalSession() {
 	a.localSession = newSession(a.G())
 }

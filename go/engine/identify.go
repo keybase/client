@@ -99,12 +99,12 @@ func (e *Identify) Run(ctx *Context) error {
 		return err
 	}
 
-	ok, err := IsLoggedIn(e, ctx)
+	ok, uid, err := IsLoggedIn(e, ctx)
 	if err != nil {
 		return err
 	}
 	if ok {
-		e.me, err = libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
+		e.me, err = libkb.LoadMeByUID(e.G(), uid)
 		if err != nil {
 			return err
 		}

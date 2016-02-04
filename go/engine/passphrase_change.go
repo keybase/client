@@ -91,7 +91,7 @@ func (c *PassphraseChange) Run(ctx *Context) (err error) {
 // findDeviceKeys looks for device keys and unlocks them.
 func (c *PassphraseChange) findDeviceKeys(ctx *Context) (*keypair, error) {
 	// need to be logged in to get a device key (unlocked)
-	lin, err := IsLoggedIn(c, ctx)
+	lin, _, err := IsLoggedIn(c, ctx)
 	if err != nil {
 		return nil, err
 	}

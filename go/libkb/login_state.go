@@ -56,6 +56,7 @@ type LoginContext interface {
 	ClearLoginSession()
 
 	LocalSession() *Session
+	GetUID() keybase1.UID
 	EnsureUsername(username NormalizedUsername)
 	SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error
 
@@ -67,6 +68,11 @@ type LoginContext interface {
 
 	CachedSecretKey(ska SecretKeyArg) (GenericKey, error)
 	SetCachedSecretKey(ska SecretKeyArg, key GenericKey) error
+}
+
+type LoggedInHelper interface {
+	GetUID() keybase1.UID
+	LoggedInLoad() (bool, error)
 }
 
 type loginHandler func(LoginContext) error
@@ -952,6 +958,13 @@ func (s *LoginState) LocalSession(h func(*Session), name string) error {
 	}, name)
 }
 
+func (s *LoginState) GetUID() (ret keybase1.UID) {
+	s.Account(func(a *Account) {
+		ret = a.GetUID()
+	}, "GetUID")
+	return ret
+}
+
 func (s *LoginState) LoginSession(h func(*LoginSession), name string) error {
 	return s.Account(func(a *Account) {
 		h(a.LoginSession())
@@ -1020,7 +1033,7 @@ func (s *LoginState) LoggedInLoad() (lin bool, err error) {
 	if aerr != nil {
 		return false, aerr
 	}
-	return
+	return lin, err
 }
 
 func (s *LoginState) LoggedInProvisionedLoad() (lin bool, err error) {
