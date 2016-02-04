@@ -192,6 +192,13 @@ func (k KeybaseDaemonLocal) Notify(ctx context.Context, notification *keybase1.F
 	return nil
 }
 
+// FlushUserFromLocalCache implements the KeybaseDaemon interface for
+// KeybaseDaemonLocal.
+func (k KeybaseDaemonLocal) FlushUserFromLocalCache(ctx context.Context,
+	uid keybase1.UID) {
+	// Do nothing.
+}
+
 // Shutdown implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k KeybaseDaemonLocal) Shutdown() {
 	k.favoriteStore.Shutdown()

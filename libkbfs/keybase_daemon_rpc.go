@@ -494,6 +494,14 @@ func (k *KeybaseDaemonRPC) Notify(ctx context.Context, notification *keybase1.FS
 	return k.kbfsClient.FSEvent(ctx, *notification)
 }
 
+// FlushUserFromLocalCache implements the KeybaseDaemon interface for
+// KeybaseDaemonRPC.
+func (k *KeybaseDaemonRPC) FlushUserFromLocalCache(ctx context.Context,
+	uid keybase1.UID) {
+	k.log.CDebugf(ctx, "Flushing cache for user %s", uid)
+	k.setCachedUserInfo(uid, UserInfo{})
+}
+
 // Shutdown implements the KeybaseDaemon interface for KeybaseDaemonRPC.
 func (k *KeybaseDaemonRPC) Shutdown() {
 	if k.shutdownFn != nil {

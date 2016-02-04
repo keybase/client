@@ -362,11 +362,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 	// TODO: parallelize
 	for _, w := range handle.Writers {
 		// HACK: clear cache
-		if kdm, ok := km.config.KeybaseDaemon().(KeybaseDaemonMeasured); ok {
-			if kdr, ok := kdm.delegate.(*KeybaseDaemonRPC); ok {
-				kdr.setCachedUserInfo(w, UserInfo{})
-			}
-		}
+		km.config.KeybaseDaemon().FlushUserFromLocalCache(ctx, w)
 		publicKeys, err := km.config.KBPKI().GetCryptPublicKeys(ctx, w)
 		if err != nil {
 			return false, nil, err
@@ -375,11 +371,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 	}
 	for _, r := range handle.Readers {
 		// HACK: clear cache
-		if kdm, ok := km.config.KeybaseDaemon().(KeybaseDaemonMeasured); ok {
-			if kdr, ok := kdm.delegate.(*KeybaseDaemonRPC); ok {
-				kdr.setCachedUserInfo(r, UserInfo{})
-			}
-		}
+		km.config.KeybaseDaemon().FlushUserFromLocalCache(ctx, r)
 		publicKeys, err := km.config.KBPKI().GetCryptPublicKeys(ctx, r)
 		if err != nil {
 			return false, nil, err

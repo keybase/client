@@ -562,6 +562,14 @@ func (_mr *_MockKeybaseDaemonRecorder) Notify(arg0, arg1 interface{}) *gomock.Ca
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Notify", arg0, arg1)
 }
 
+func (_m *MockKeybaseDaemon) FlushUserFromLocalCache(ctx context.Context, uid protocol.UID) {
+	_m.ctrl.Call(_m, "FlushUserFromLocalCache", ctx, uid)
+}
+
+func (_mr *_MockKeybaseDaemonRecorder) FlushUserFromLocalCache(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "FlushUserFromLocalCache", arg0, arg1)
+}
+
 func (_m *MockKeybaseDaemon) Shutdown() {
 	_m.ctrl.Call(_m, "Shutdown")
 }
@@ -1838,10 +1846,11 @@ func (_mr *_MockBlockServerRecorder) Shutdown() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
 }
 
-func (_m *MockBlockServer) GetUserQuotaInfo(ctx context.Context) (info *UserQuotaInfo, err error) {
-	_m.ctrl.Call(_m, "GetUserQuotaInfo", ctx)
-	// Return a dummy value here.
-	return &UserQuotaInfo{Limit: 0x7FFFFFFFFFFFFFFF}, nil
+func (_m *MockBlockServer) GetUserQuotaInfo(ctx context.Context) (*UserQuotaInfo, error) {
+	ret := _m.ctrl.Call(_m, "GetUserQuotaInfo", ctx)
+	ret0, _ := ret[0].(*UserQuotaInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
 func (_mr *_MockBlockServerRecorder) GetUserQuotaInfo(arg0 interface{}) *gomock.Call {

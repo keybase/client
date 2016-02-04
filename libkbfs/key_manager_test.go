@@ -90,8 +90,10 @@ func expectRekey(config *ConfigMock, rmd *RootMetadata) {
 	config.mockKops.EXPECT().PutTLFCryptKeyServerHalves(gomock.Any(), gomock.Any()).Return(nil)
 	config.mockCrypto.EXPECT().GetTLFCryptKeyServerHalfID(gomock.Any(), gomock.Any(), gomock.Any()).Return(TLFCryptKeyServerHalfID{}, nil)
 
-	// Ignore Notify calls for now
+	// Ignore Notify and Flush calls for now
 	config.mockRep.EXPECT().Notify(gomock.Any(), gomock.Any()).AnyTimes()
+	config.mockKbd.EXPECT().FlushUserFromLocalCache(gomock.Any(),
+		gomock.Any()).AnyTimes()
 }
 
 func TestKeyManagerPublicTLFCryptKey(t *testing.T) {

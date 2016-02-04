@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
@@ -56,6 +57,41 @@ func TestKBPKIClientHasVerifyingKey(t *testing.T) {
 		VerifyingKey{})
 	if err == nil {
 		t.Error("HasVerifyingKey unexpectedly succeeded")
+	}
+}
+
+// Test that KBPKI forces a cache flush one time if it can't find a
+// given verifying key.
+func TestKBPKIClientHasVerifyingKeyStaleCache(t *testing.T) {
+	ctr := NewSafeTestReporter(t)
+	mockCtrl := gomock.NewController(ctr)
+	config := NewConfigMock(mockCtrl, ctr)
+	c := NewKBPKIClient(config)
+	config.SetKBPKI(c)
+	defer func() {
+		config.ctr.CheckForFailures()
+		mockCtrl.Finish()
+	}()
+
+	u := keybase1.MakeTestUID(1)
+	key1 := MakeLocalUserVerifyingKeyOrBust("u_1")
+	key2 := MakeLocalUserVerifyingKeyOrBust("u_2")
+	info1 := UserInfo{
+		VerifyingKeys: []VerifyingKey{key1},
+	}
+	config.mockKbd.EXPECT().LoadUserPlusKeys(gomock.Any(), u).
+		Return(info1, nil)
+
+	config.mockKbd.EXPECT().FlushUserFromLocalCache(gomock.Any(), u)
+	info2 := UserInfo{
+		VerifyingKeys: []VerifyingKey{key1, key2},
+	}
+	config.mockKbd.EXPECT().LoadUserPlusKeys(gomock.Any(), u).
+		Return(info2, nil)
+
+	err := c.HasVerifyingKey(context.Background(), u, key2)
+	if err != nil {
+		t.Error(err)
 	}
 }
 

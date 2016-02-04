@@ -299,6 +299,13 @@ type KeybaseDaemon interface {
 	// Notify sends a filesystem notification.
 	Notify(ctx context.Context, notification *keybase1.FSNotification) error
 
+	// FlushUserFromLocalCache instructs this layer to clear any
+	// KBFS-side, locally-cached information about the given user.
+	// This does NOT involve communication with the daemon, this is
+	// just to force future calls loading this user to fall through to
+	// the daemon itself, rather than being served from the cache.
+	FlushUserFromLocalCache(ctx context.Context, uid keybase1.UID)
+
 	// TODO: Add CryptoClient methods, too.
 
 	// Shutdown frees any resources associated with this

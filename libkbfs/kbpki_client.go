@@ -109,16 +109,7 @@ func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
 		// clearing our local cache.  We might have stale info if the
 		// service hasn't learned of the users' new key yet.
 		if i == 0 {
-			// HACK: clear cache
-			if kdm, ok := k.config.KeybaseDaemon().(KeybaseDaemonMeasured); ok {
-				if kdr, ok := kdm.delegate.(*KeybaseDaemonRPC); ok {
-					kdr.setCachedUserInfo(uid, UserInfo{})
-				} else {
-					break
-				}
-			} else {
-				break
-			}
+			k.config.KeybaseDaemon().FlushUserFromLocalCache(ctx, uid)
 		}
 	}
 

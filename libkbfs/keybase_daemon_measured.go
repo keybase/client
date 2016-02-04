@@ -120,6 +120,13 @@ func (k KeybaseDaemonMeasured) Notify(ctx context.Context, notification *keybase
 	return err
 }
 
+// FlushUserFromLocalCache implements the KeybaseDaemon interface for
+// KeybaseDaemonMeasured.
+func (k KeybaseDaemonMeasured) FlushUserFromLocalCache(
+	ctx context.Context, uid keybase1.UID) {
+	k.delegate.FlushUserFromLocalCache(ctx, uid)
+}
+
 // Shutdown implements the KeybaseDaemon interface for
 // KeybaseDaemonMeasured.
 func (k KeybaseDaemonMeasured) Shutdown() {
