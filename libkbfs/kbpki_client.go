@@ -91,16 +91,34 @@ func (k *KBPKIClient) GetNormalizedUsername(ctx context.Context, uid keybase1.UI
 // HasVerifyingKey implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
 	verifyingKey VerifyingKey) error {
-	userInfo, err := k.loadUserPlusKeys(ctx, uid)
-	if err != nil {
-		return err
-	}
+	for i := 0; i < 2; i++ {
+		userInfo, err := k.loadUserPlusKeys(ctx, uid)
+		if err != nil {
+			return err
+		}
 
-	for _, key := range userInfo.VerifyingKeys {
-		if verifyingKey.kid.Equal(key.kid) {
-			k.log.CDebugf(ctx, "found verifying key %s for user %s",
-				verifyingKey.kid, uid)
-			return nil
+		for _, key := range userInfo.VerifyingKeys {
+			if verifyingKey.kid.Equal(key.kid) {
+				k.log.CDebugf(ctx, "found verifying key %s for user %s",
+					verifyingKey.kid, uid)
+				return nil
+			}
+		}
+
+		// If the first attempt couldn't find the key, try again after
+		// clearing our local cache.  We might have stale info if the
+		// service hasn't learned of the users' new key yet.
+		if i == 0 {
+			// HACK: clear cache
+			if kdm, ok := k.config.KeybaseDaemon().(KeybaseDaemonMeasured); ok {
+				if kdr, ok := kdm.delegate.(*KeybaseDaemonRPC); ok {
+					kdr.setCachedUserInfo(uid, UserInfo{})
+				} else {
+					break
+				}
+			} else {
+				break
+			}
 		}
 	}
 
