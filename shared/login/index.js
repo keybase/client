@@ -5,6 +5,9 @@ import Render from './index.render'
 import Intro from './forms/intro'
 import ErrorText from './error.render'
 
+// Signup Components
+import InviteCode from './signup/inviteCode'
+
 export default class Login extends Component {
   render () {
     return <Render formComponent={this.props.formComponent}/>
@@ -17,6 +20,9 @@ export default class Login extends Component {
     switch (currentPath.get('path')) {
       case 'root':
         Form = () => <Intro/>
+        break
+      case 'signup':
+        Form = () => <InviteCode/>
         break
     }
 
