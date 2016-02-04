@@ -1,0 +1,16 @@
+/* @flow */
+/* eslint-disable react/prop-types */
+
+import React, {Component} from 'react'
+
+export type Props = {
+  username: ?string,
+  email: ?string,
+  usernameErrorText: ?string,
+  emailErrorText: ?string,
+  submitUserEmail: () => void
+}
+
+export default class Render extends Component {
+  props: Props;
+}

@@ -7,6 +7,7 @@ import ErrorText from './error.render'
 
 // Signup Components
 import InviteCode from './signup/inviteCode'
+import UsernameEmailForm from './signup/usernameEmailForm'
 
 export default class Login extends Component {
   render () {
@@ -22,7 +23,11 @@ export default class Login extends Component {
         Form = () => <Intro/>
         break
       case 'signup':
+      case 'inviteCode':
         Form = () => <InviteCode/>
+        break
+      case 'usernameAndEmail':
+        Form = () => <UsernameEmailForm/>
         break
     }
 
