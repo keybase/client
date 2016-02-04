@@ -1,0 +1,30 @@
+kbweb:
+    image: kbweb
+    ports:
+        - "3000:3000"
+dynamodb:
+    image: dynamodb
+    expose:
+        - "8000"
+mdserver:
+    image: mdserver
+    ports:
+        - "8125:8125"
+    volumes:
+        - $GOPATH/bin:/opt/keybase:ro
+    links:
+        - kbweb
+        - dynamodb
+    restart: unless-stopped
+bserver:
+    image: bserver
+    ports:
+        - "8225:8225"
+    volumes:
+        - $GOPATH/bin:/opt/keybase:ro
+    links:
+        - kbweb
+        - dynamodb
+        - mdserver
+    restart: unless-stopped
+
