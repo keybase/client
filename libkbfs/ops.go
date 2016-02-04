@@ -67,8 +67,8 @@ type OpCommon struct {
 	// its custom fields is updated on AddUpdate, instead of the
 	// generic Updates field.
 	customUpdates map[BlockPointer]*blockUpdate
-	// writerInfo is the keybase username that generated this
-	// operation and device.
+	// writerInfo is the keybase username and device that generated this
+	// operation.
 	// Not exported; only used during conflict resolution.
 	writerInfo writerInfo
 	// finalPath is the final resolved path to the node that this
