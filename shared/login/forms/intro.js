@@ -3,6 +3,7 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import Render from './intro.render'
+import {routeAppend} from '../../actions/router'
 
 class Intro extends Component {
   render (): ReactElement {
@@ -20,7 +21,7 @@ Intro.propTypes = {
 export default connect(
   state => ({}),
   dispatch => ({
-    onSignup: () => {},
-    onLogin: () => {}
+    onSignup: () => { dispatch(routeAppend('signup')) },
+    onLogin: () => { dispatch(routeAppend('login')) }
   })
 )(Intro)
