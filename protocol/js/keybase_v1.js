@@ -1191,7 +1191,8 @@ export const saltpackUi = {
     'unknown': 1,
     'anonymous': 2,
     'trackingBroke': 3,
-    'trackingOk': 4
+    'trackingOk': 4,
+    'self': 5
   }
 }
 

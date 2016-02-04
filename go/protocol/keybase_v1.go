@@ -5108,6 +5108,7 @@ const (
 	SaltpackSenderType_ANONYMOUS      SaltpackSenderType = 2
 	SaltpackSenderType_TRACKING_BROKE SaltpackSenderType = 3
 	SaltpackSenderType_TRACKING_OK    SaltpackSenderType = 4
+	SaltpackSenderType_SELF           SaltpackSenderType = 5
 )
 
 type SaltpackSender struct {

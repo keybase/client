@@ -7,13 +7,19 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
-func IsLoggedIn(e Engine, ctx *Context) (bool, error) {
-	if ctx.LoginContext != nil {
-		return ctx.LoginContext.LoggedInLoad()
+func IsLoggedIn(e Engine, ctx *Context) (ret bool, uid keybase1.UID, err error) {
+	var lih libkb.LoggedInHelper
+	if lih = ctx.LoginContext; lih == nil {
+		lih = e.G().LoginState()
 	}
-	return e.G().LoginState().LoggedInLoad()
+	ret, err = lih.LoggedInLoad()
+	if ret && err == nil {
+		uid = lih.GetUID()
+	}
+	return ret, uid, err
 }
 
 func IsProvisioned(e Engine, ctx *Context) (bool, error) {

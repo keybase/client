@@ -82,6 +82,15 @@ func (e *SaltpackSenderIdentify) lookupSender() (err error) {
 
 func (e *SaltpackSenderIdentify) identifySender(ctx *Context) (err error) {
 	defer e.G().Trace("SaltpackDecrypt::identifySender", func() error { return err })()
+
+	var lin bool
+	var uid keybase1.UID
+	if lin, uid, err = IsLoggedIn(e, ctx); err == nil && lin && uid.Equal(e.res.Uid) {
+		e.G().Log.Debug("| Sender is self")
+		e.res.SenderType = keybase1.SaltpackSenderType_SELF
+		return nil
+	}
+
 	iarg := keybase1.Identify2Arg{
 		Uid:                   e.res.Uid,
 		UseDelegateUI:         !e.arg.interactive,

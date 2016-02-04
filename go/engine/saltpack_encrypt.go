@@ -76,11 +76,11 @@ func (e *SaltpackEncrypt) loadMyPublicKeys() ([]libkb.NaclDHKeyPublic, error) {
 }
 
 func (e *SaltpackEncrypt) loadMe(ctx *Context) error {
-	loggedIn, err := IsLoggedIn(e, ctx)
+	loggedIn, uid, err := IsLoggedIn(e, ctx)
 	if err != nil || !loggedIn {
 		return err
 	}
-	e.me, err = libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
+	e.me, err = libkb.LoadMeByUID(e.G(), uid)
 	return err
 }
 

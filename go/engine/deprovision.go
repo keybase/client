@@ -56,7 +56,7 @@ func (e *DeprovisionEngine) Run(ctx *Context) (err error) {
 
 	// If the user to deprovision is currently logged in, we need to revoke
 	// their keys and then log out.
-	isLoggedIn, err := IsLoggedIn(e, ctx)
+	isLoggedIn, _, err := IsLoggedIn(e, ctx)
 	if err != nil {
 		return err
 	}

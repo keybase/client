@@ -36,7 +36,7 @@ func (s *SaltpackUI) doInteractive(arg keybase1.SaltpackPromptForDecryptArg) err
 	var why string
 	def := libkb.PromptDefaultYes
 	switch arg.Sender.SenderType {
-	case keybase1.SaltpackSenderType_TRACKING_OK:
+	case keybase1.SaltpackSenderType_TRACKING_OK, keybase1.SaltpackSenderType_SELF:
 		return nil
 	case keybase1.SaltpackSenderType_NOT_TRACKED:
 		why = "The sender of this message is a Keybase user you don't track"
@@ -74,7 +74,11 @@ func (s *SaltpackUI) SaltpackVerifySuccess(_ context.Context, arg keybase1.Saltp
 	if arg.Sender.SenderType == keybase1.SaltpackSenderType_UNKNOWN {
 		un = "The signer of this message is unknown to Keybase"
 	} else {
-		un = fmt.Sprintf("Signed by %s", ColorString("bold", arg.Sender.Username))
+		var you string
+		if arg.Sender.SenderType == keybase1.SaltpackSenderType_SELF {
+			you = " (you)"
+		}
+		un = fmt.Sprintf("Signed by %s%s", ColorString("bold", arg.Sender.Username), you)
 	}
 	fmt.Fprintf(w, ColorString("green", fmt.Sprintf("Signature verified. %s.\n", un)))
 	if arg.Sender.SenderType == keybase1.SaltpackSenderType_UNKNOWN {

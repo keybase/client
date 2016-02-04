@@ -31,7 +31,7 @@ func runPrereqs(e Engine, ctx *Context) (err error) {
 
 	if prq.Session {
 		var ok bool
-		ok, err = IsLoggedIn(e, ctx)
+		ok, _, err = IsLoggedIn(e, ctx)
 		if !ok {
 			urlError, isURLError := err.(*url.Error)
 			context := ""
