@@ -452,6 +452,16 @@ var _ keybase1.GenericClient = connectionClient{}
 
 func (c connectionClient) Call(ctx context.Context, s string, args interface{}, res interface{}) error {
 	return c.conn.DoCommand(ctx, func(rawClient keybase1.GenericClient) error {
+		tags, ok := logger.LogTagsFromContext(ctx)
+		if ok {
+			rpcTags := make(rpc.CtxRpcTags)
+			for key, tagName := range tags {
+				if v := ctx.Value(key); v != nil {
+					rpcTags[tagName] = v
+				}
+			}
+			ctx = rpc.AddRpcTagsToContext(ctx, rpcTags)
+		}
 		return rawClient.Call(ctx, s, args, res)
 	})
 }
