@@ -30,9 +30,8 @@ func (WriterDeviceDateConflictRenamer) ConflictRenameHelper(t time.Time, user, d
 	}
 	base, ext := splitExtension(original)
 	date := t.Format("2006-01-02")
-	return fmt.Sprintf("%s.conflicted (%s's %s's conflicted copy %s)%s",
+	return fmt.Sprintf("%s.conflicted (%s's %s copy %s)%s",
 		base, user, device, date, ext)
-
 }
 
 // splitExtension splits filename into a base name and the extension.
