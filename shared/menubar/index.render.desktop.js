@@ -93,25 +93,38 @@ export default class Render extends Component {
 }
 
 const Row = props => {
+  const wrapStyle = props.allowWrap ? {flexWrap: 'wrap'} : {}
+  const containerStyle = {
+    ...globalStyles.flexBoxRow,
+    alignItems: 'flex-start',
+    marginTop: 1,
+    marginBottom: 1,
+    minHeight: 25,
+    ...props.style,
+    ...wrapStyle
+  }
+
   return (
-    <div style={{...globalStyles.flexBoxRow, alignItems: 'flex-start', marginTop: 1, marginBottom: 1, minHeight: 25, ...props.style}} onClick={props.onClick}>
+    <div style={containerStyle} onClick={props.onClick}>
       <div style={{...globalStyles.clickable, marginRight: 2, ...props.iconStyle}}/>
-      <Text type='Body' link small key={props.key} style={{marginTop: 4, ...props.textStyle}}>{props.text}</Text>
+      <Text type='Body' link small key={props.key} style={{marginTop: 4, overflowWrap: 'break-word', flex: 1, ...props.textStyle}}>{props.text}</Text>
       {props.children}
     </div>
   )
 }
 
 const FolderRow = props => {
+  const divider = <span>,<wbr/></span> // word break on the commas
   const {username, folder: {isPublic, isEmpty, openFolder, folderName}} = props
-  let line = intersperse(',', canonicalizeUsernames(username, parseFolderNameToUsers(folderName)))
+  let text = intersperse(divider, canonicalizeUsernames(username, parseFolderNameToUsers(folderName)))
 
   return <Row
     onClick={openFolder}
-    text={line}
+    text={text}
+    allowWrap
     iconStyle={SVGFolderIcon(iconPath(isPublic, isEmpty))}
     textStyle={{color: globalColors.blue}}
-    key={isPublic + line}/>
+    key={isPublic + text.join('')}/>
 }
 
 const FolderEntryRow = props => {
