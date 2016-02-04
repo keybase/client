@@ -4973,12 +4973,12 @@ func (fbo *folderBranchOps) unstageForTestingLocked(ctx context.Context,
 		return err
 	}
 
-	// Finally, create a gcOp with the newly-unref'd pointers.
-	gcOp := newGCOp()
+	// Finally, create a resolutionOp with the newly-unref'd pointers.
+	resOp := newResolutionOp()
 	for _, ptr := range unmergedPtrs {
-		gcOp.AddUnrefBlock(ptr)
+		resOp.AddUnrefBlock(ptr)
 	}
-	md.AddOp(gcOp)
+	md.AddOp(resOp)
 	return fbo.finalizeMDWriteLocked(ctx, lState, md, &blockPutState{})
 }
 
@@ -5086,7 +5086,7 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 	}
 
 	// add an empty operation to satisfy assumptions elsewhere
-	md.AddOp(newGCOp())
+	md.AddOp(newRekeyOp())
 
 	// we still let readers push a new md block since it will simply be a rekey bit block.
 	err = fbo.finalizeMDRekeyWriteLocked(ctx, lState, md)

@@ -40,6 +40,8 @@ const (
 	renameOpCode
 	syncOpCode
 	setAttrOpCode
+	resolutionOpCode
+	rekeyOpCode
 	gcOpCode // for deleting old blocks during an MD history truncation
 )
 
@@ -556,18 +558,94 @@ func (sao *setAttrOp) GetDefaultAction(mergedPath path) crAction {
 	}
 }
 
+// resolutionOp is an op that represents the block changes that took
+// place as part of a conflict resolution.
+type resolutionOp struct {
+	OpCommon
+}
+
+func newResolutionOp() *resolutionOp {
+	ro := &resolutionOp{
+		OpCommon: OpCommon{
+			customUpdates: make(map[BlockPointer]*blockUpdate),
+		},
+	}
+	return ro
+}
+
+func (ro *resolutionOp) SizeExceptUpdates() uint64 {
+	return 0
+}
+
+func (ro *resolutionOp) AllUpdates() []blockUpdate {
+	return ro.Updates
+}
+
+func (ro *resolutionOp) String() string {
+	return "resolution"
+}
+
+func (ro *resolutionOp) CheckConflict(renamer ConflictRenamer, mergedOp op) (
+	crAction, error) {
+	return nil, nil
+}
+
+func (ro *resolutionOp) GetDefaultAction(mergedPath path) crAction {
+	return nil
+}
+
+// rekeyOp is an op that represents a rekey on a TLF.
+type rekeyOp struct {
+	OpCommon
+}
+
+func newRekeyOp() *rekeyOp {
+	ro := &rekeyOp{
+		OpCommon: OpCommon{
+			customUpdates: make(map[BlockPointer]*blockUpdate),
+		},
+	}
+	return ro
+}
+
+func (ro *rekeyOp) SizeExceptUpdates() uint64 {
+	return 0
+}
+
+func (ro *rekeyOp) AllUpdates() []blockUpdate {
+	return ro.Updates
+}
+
+func (ro *rekeyOp) String() string {
+	return "rekey"
+}
+
+func (ro *rekeyOp) CheckConflict(renamer ConflictRenamer, mergedOp op) (
+	crAction, error) {
+	return nil, nil
+}
+
+func (ro *rekeyOp) GetDefaultAction(mergedPath path) crAction {
+	return nil
+}
+
 // gcOp is an op that represents garbage-collecting the history of a
 // folder (which may involve unreferencing blocks that previously held
 // operation lists.
 type gcOp struct {
 	OpCommon
+
+	// LatestRev is the most recent MD revision that was
+	// garbage-collected with this operation.
+	LatestRev MetadataRevision `codec:"r"`
 }
 
-func newGCOp() *gcOp {
+func newGCOp(latestRev MetadataRevision) *gcOp {
 	gco := &gcOp{
 		OpCommon: OpCommon{
 			customUpdates: make(map[BlockPointer]*blockUpdate),
 		},
+		LatestRev: latestRev,
 	}
 	return gco
 }
@@ -581,7 +659,7 @@ func (gco *gcOp) AllUpdates() []blockUpdate {
 }
 
 func (gco *gcOp) String() string {
-	return "gc"
+	return fmt.Sprintf("gc %d", gco.LatestRev)
 }
 
 func (gco *gcOp) CheckConflict(renamer ConflictRenamer, mergedOp op) (
@@ -652,6 +730,10 @@ func opPointerizer(iface interface{}) reflect.Value {
 		return reflect.ValueOf(&op)
 	case setAttrOp:
 		return reflect.ValueOf(&op)
+	case resolutionOp:
+		return reflect.ValueOf(&op)
+	case rekeyOp:
+		return reflect.ValueOf(&op)
 	case gcOp:
 		return reflect.ValueOf(&op)
 	}
@@ -664,6 +746,8 @@ func RegisterOps(codec Codec) {
 	codec.RegisterType(reflect.TypeOf(renameOp{}), renameOpCode)
 	codec.RegisterType(reflect.TypeOf(syncOp{}), syncOpCode)
 	codec.RegisterType(reflect.TypeOf(setAttrOp{}), setAttrOpCode)
+	codec.RegisterType(reflect.TypeOf(resolutionOp{}), resolutionOpCode)
+	codec.RegisterType(reflect.TypeOf(rekeyOp{}), rekeyOpCode)
 	codec.RegisterType(reflect.TypeOf(gcOp{}), gcOpCode)
 	codec.RegisterIfaceSliceType(reflect.TypeOf(opsList{}), opsListCode,
 		opPointerizer)

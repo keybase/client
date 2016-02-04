@@ -313,6 +313,10 @@ func (ccs *crChains) makeChainForOp(op op) error {
 		if err != nil {
 			return err
 		}
+	case *resolutionOp:
+		// ignore resolution op
+	case *rekeyOp:
+		// ignore rekey op
 	case *gcOp:
 		// ignore gc op
 	}

@@ -2148,7 +2148,7 @@ func (cr *ConflictResolver) createResolvedMD(ctx context.Context,
 	}
 
 	// Add a final dummy operation to collect all of the block updates.
-	newMD.AddOp(newGCOp())
+	newMD.AddOp(newResolutionOp())
 
 	return &newMD, nil
 }
@@ -2183,7 +2183,7 @@ func crFixOpPointers(oldOps []op, updates map[BlockPointer]BlockPointer,
 				realOp.RefBlocks[i] = mostRecent
 				ptrsToFix = append(ptrsToFix, &realOp.RefBlocks[i])
 			}
-			// The leading gcOp will take care of the updates.
+			// The leading resolutionOp will take care of the updates.
 			realOp.Updates = nil
 		case *rmOp:
 			updatesToFix = append(updatesToFix, &realOp.Dir)
@@ -2199,7 +2199,7 @@ func crFixOpPointers(oldOps []op, updates map[BlockPointer]BlockPointer,
 				}
 				realOp.UnrefBlocks[i] = original
 			}
-			// The leading gcOp will take care of the updates.
+			// The leading resolutionOp will take care of the updates.
 			realOp.Updates = nil
 		case *renameOp:
 			updatesToFix = append(updatesToFix, &realOp.OldDir, &realOp.NewDir)
@@ -2217,7 +2217,7 @@ func crFixOpPointers(oldOps []op, updates map[BlockPointer]BlockPointer,
 		case *setAttrOp:
 			updatesToFix = append(updatesToFix, &realOp.Dir)
 			ptrsToFix = append(ptrsToFix, &realOp.File)
-			// The leading gcOp will take care of the updates.
+			// The leading resolutionOp will take care of the updates.
 			realOp.Updates = nil
 		}
 
@@ -2708,14 +2708,14 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 	}
 
 	oldOps := md.data.Changes.Ops
-	gcOp, ok := oldOps[len(oldOps)-1].(*gcOp)
+	resOp, ok := oldOps[len(oldOps)-1].(*resolutionOp)
 	if !ok {
 		return nil, nil, fmt.Errorf("dummy op is not gc: %s",
 			oldOps[len(oldOps)-1])
 	}
 
 	// Create an update map, and fix up the gc ops.
-	for i, update := range gcOp.Updates {
+	for i, update := range resOp.Updates {
 		// The unref should represent the most recent merged pointer
 		// for the block.  However, the other ops will be using the
 		// original pointer as the unref, so use that as the key.
@@ -2738,11 +2738,11 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 			if err != nil {
 				return nil, nil, err
 			}
-			cr.log.CDebugf(ctx, "Fixing gcOp update from unmerged most "+
+			cr.log.CDebugf(ctx, "Fixing resOp update from unmerged most "+
 				"recent %v to merged most recent %v",
 				update.Unref, mergedMostRecent)
 			update.Unref = mergedMostRecent
-			gcOp.Updates[i] = update
+			resOp.Updates[i] = update
 			updates[update.Unref] = update.Ref
 		}
 	}
@@ -2788,7 +2788,7 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 	// Clean up any gc updates that don't refer to blocks that exist
 	// in the merged branch.
 	var newUpdates []blockUpdate
-	for _, update := range gcOp.Updates {
+	for _, update := range resOp.Updates {
 		// Ignore it if it doesn't descend from an original block
 		// pointer or one created in the merged branch.
 		if _, ok := unmergedChains.originals[update.Unref]; !ok &&
@@ -2796,14 +2796,14 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 			mergedChains.byMostRecent[update.Unref] == nil {
 			cr.log.CDebugf(ctx, "Turning update from %v into just a ref for %v",
 				update.Unref, update.Ref)
-			gcOp.AddRefBlock(update.Ref)
+			resOp.AddRefBlock(update.Ref)
 			continue
 		}
 		newUpdates = append(newUpdates, update)
 	}
-	gcOp.Updates = newUpdates
+	resOp.Updates = newUpdates
 
-	newOps[0] = gcOp // move the dummy ops to the front
+	newOps[0] = resOp // move the dummy ops to the front
 	md.data.Changes.Ops = newOps
 
 	// TODO: only perform this loop if debugging is enabled.
@@ -2847,7 +2847,7 @@ func (cr *ConflictResolver) getOpsForLocalNotification(ctx context.Context,
 	lState *lockState, md *RootMetadata, unmergedChains *crChains,
 	mergedChains *crChains, updates map[BlockPointer]BlockPointer) (
 	[]op, error) {
-	dummyOp := newGCOp()
+	dummyOp := newResolutionOp()
 	newPtrs := make(map[BlockPointer]bool)
 	for original, newMostRecent := range updates {
 		chain, ok := unmergedChains.byOriginal[original]
