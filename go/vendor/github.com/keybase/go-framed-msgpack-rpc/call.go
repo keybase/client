@@ -33,9 +33,13 @@ func newCallContainer() *callContainer {
 }
 
 func (cc *callContainer) NewCall(ctx context.Context, m string, arg interface{}, res interface{}, u ErrorUnwrapper) *call {
+	// Buffer one response to take into account that a call stops
+	// waiting for its result when its canceled. (See
+	// https://github.com/keybase/go-framed-msgpack-rpc/issues/62
+	// .)
 	return &call{
 		ctx:            ctx,
-		resultCh:       make(chan *rpcResponseMessage),
+		resultCh:       make(chan *rpcResponseMessage, 1),
 		method:         m,
 		arg:            arg,
 		res:            res,
