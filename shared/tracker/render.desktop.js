@@ -46,18 +46,18 @@ const styles = {
     ...commonStyles.fontRegular,
     backgroundColor: 'white',
     fontSize: 15,
-    width: featureFlags.get('tracker') === 'v2' ? 320 : 520,
-    height: featureFlags.get('tracker') === 'v2' ? 520 : 332
+    width: featureFlags.tracker === 'v2' ? 320 : 520,
+    height: featureFlags.tracker === 'v2' ? 520 : 332
   },
   header: {
     height: 34
   },
   bodyContainer: {
-    ...featureFlags.get('tracker') === 'v2' ? commonStyles.flexBoxColumn : commonStyles.flexBoxRow,
-    height: featureFlags.get('tracker') === 'v2' ? 642 : 242
+    ...featureFlags.tracker === 'v2' ? commonStyles.flexBoxColumn : commonStyles.flexBoxRow,
+    height: featureFlags.tracker === 'v2' ? 642 : 242
   },
   bio: {
-    width: featureFlags.get('tracker') === 'v2' ? 320 : 202
+    width: featureFlags.tracker === 'v2' ? 320 : 202
   },
   proofs: {
   },
