@@ -4,8 +4,6 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-
-	"github.com/keybase/client/go/libkb"
 )
 
 // op represents a single file-system remote-sync operation
@@ -18,8 +16,8 @@ type op interface {
 	Refs() []BlockPointer
 	Unrefs() []BlockPointer
 	String() string
-	setWriterName(name libkb.NormalizedUsername)
-	getWriterName() libkb.NormalizedUsername
+	setWriterInfo(writerInfo)
+	getWriterInfo() writerInfo
 	setFinalPath(p path)
 	getFinalPath() path
 	// CheckConflict compares the function's target op with the given
@@ -69,9 +67,10 @@ type OpCommon struct {
 	// its custom fields is updated on AddUpdate, instead of the
 	// generic Updates field.
 	customUpdates map[BlockPointer]*blockUpdate
-	// writerName is the keybase username that generated this
-	// operation.  Not exported; only used during conflict resolution.
-	writerName libkb.NormalizedUsername
+	// writerInfo is the keybase username and device that generated this
+	// operation.
+	// Not exported; only used during conflict resolution.
+	writerInfo writerInfo
 	// finalPath is the final resolved path to the node that this
 	// operation affects in a set of MD updates.  Not exported; only
 	// used during conflict resolution.
@@ -113,12 +112,12 @@ func (oc *OpCommon) Unrefs() []BlockPointer {
 	return oc.UnrefBlocks
 }
 
-func (oc *OpCommon) setWriterName(name libkb.NormalizedUsername) {
-	oc.writerName = name
+func (oc *OpCommon) setWriterInfo(info writerInfo) {
+	oc.writerInfo = info
 }
 
-func (oc *OpCommon) getWriterName() libkb.NormalizedUsername {
-	return oc.writerName
+func (oc *OpCommon) getWriterInfo() writerInfo {
+	return oc.writerInfo
 }
 
 func (oc *OpCommon) setFinalPath(p path) {
@@ -197,14 +196,14 @@ func (co *createOp) CheckConflict(renamer ConflictRenamer, mergedOp op) (
 				// merged one is not.
 				return &renameMergedAction{
 					fromName: co.NewName,
-					toName:   co.NewName + renamer.GetConflictSuffix(mergedOp),
+					toName:   renamer.ConflictRename(mergedOp, co.NewName),
 					symPath:  co.crSymPath,
 				}, nil
 			}
 			// Otherwise rename the unmerged entry (guaranteed to be a file).
 			return &renameUnmergedAction{
 				fromName: co.NewName,
-				toName:   co.NewName + renamer.GetConflictSuffix(co),
+				toName:   renamer.ConflictRename(co, co.NewName),
 				symPath:  co.crSymPath,
 			}, nil
 		}
@@ -220,7 +219,7 @@ func (co *createOp) CheckConflict(renamer ConflictRenamer, mergedOp op) (
 			// Always rename the unmerged one
 			return &copyUnmergedEntryAction{
 				fromName: co.NewName,
-				toName:   co.NewName + renamer.GetConflictSuffix(co),
+				toName:   renamer.ConflictRename(co, co.NewName),
 				symPath:  co.crSymPath,
 				unique:   true,
 			}, nil
@@ -452,8 +451,7 @@ func (so *syncOp) CheckConflict(renamer ConflictRenamer, mergedOp op) (
 		// contents?)
 		return &renameUnmergedAction{
 			fromName: so.getFinalPath().tailName(),
-			toName: mergedOp.getFinalPath().tailName() +
-				renamer.GetConflictSuffix(so),
+			toName:   renamer.ConflictRename(so, mergedOp.getFinalPath().tailName()),
 		}, nil
 	case *setAttrOp:
 		// Someone on the merged path explicitly set an attribute, so
@@ -543,8 +541,7 @@ func (sao *setAttrOp) CheckConflict(renamer ConflictRenamer, mergedOp op) (
 			// conflict.
 			return &renameUnmergedAction{
 				fromName: sao.getFinalPath().tailName(),
-				toName: mergedOp.getFinalPath().tailName() +
-					renamer.GetConflictSuffix(sao),
+				toName:   renamer.ConflictRename(sao, mergedOp.getFinalPath().tailName()),
 			}, nil
 		}
 	}

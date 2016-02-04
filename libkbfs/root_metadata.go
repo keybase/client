@@ -511,6 +511,11 @@ func (md *RootMetadata) isReadableOrError(ctx context.Context, config Config) er
 	return NewReadAccessError(ctx, config, md.GetTlfHandle(), username)
 }
 
+// writerKID returns the KID of the writer.
+func (md RootMetadata) writerKID() keybase1.KID {
+	return md.WriterMetadataSigInfo.VerifyingKey.KID()
+}
+
 // RootMetadataSigned is the top-level MD object stored in MD server
 type RootMetadataSigned struct {
 	// signature over the root metadata by the private signing key

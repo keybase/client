@@ -157,7 +157,7 @@ func TestCRChainsSingleOp(t *testing.T) {
 	rmds := []*RootMetadata{rmd}
 	config := testCRChainsFillInWriter(t, rmds)
 	defer config.Shutdown()
-	cc, err := newCRChains(context.Background(), config.KBPKI(), rmds)
+	cc, err := newCRChains(context.Background(), config, rmds)
 	if err != nil {
 		t.Fatalf("Error making chains: %v", err)
 	}
@@ -191,7 +191,7 @@ func TestCRChainsRenameOp(t *testing.T) {
 	rmds := []*RootMetadata{rmd}
 	config := testCRChainsFillInWriter(t, rmds)
 	defer config.Shutdown()
-	cc, err := newCRChains(context.Background(), config.KBPKI(), rmds)
+	cc, err := newCRChains(context.Background(), config, rmds)
 	if err != nil {
 		t.Fatalf("Error making chains: %v", err)
 	}
@@ -294,7 +294,7 @@ func TestCRChainsMultiOps(t *testing.T) {
 	rmds := []*RootMetadata{bigRmd}
 	config := testCRChainsFillInWriter(t, rmds)
 	defer config.Shutdown()
-	cc, err := newCRChains(context.Background(), config.KBPKI(), rmds)
+	cc, err := newCRChains(context.Background(), config, rmds)
 	if err != nil {
 		t.Fatalf("Error making chains for big RMD: %v", err)
 	}
@@ -324,7 +324,7 @@ func TestCRChainsMultiOps(t *testing.T) {
 	// now make sure the chain of MDs gets the same answers
 	config = testCRChainsFillInWriter(t, multiRmds)
 	defer config.Shutdown()
-	mcc, err := newCRChains(context.Background(), config.KBPKI(), multiRmds)
+	mcc, err := newCRChains(context.Background(), config, multiRmds)
 	if err != nil {
 		t.Fatalf("Error making chains for multi RMDs: %v", err)
 	}
@@ -441,7 +441,7 @@ func TestCRChainsCollapse(t *testing.T) {
 	rmds := []*RootMetadata{rmd}
 	config := testCRChainsFillInWriter(t, rmds)
 	defer config.Shutdown()
-	cc, err := newCRChains(context.Background(), config.KBPKI(), rmds)
+	cc, err := newCRChains(context.Background(), config, rmds)
 	if err != nil {
 		t.Fatalf("Error making chains: %v", err)
 	}

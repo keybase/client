@@ -2753,12 +2753,12 @@ func TestSimpleCRConflictOnOpenFiles(t *testing.T) {
 	}
 
 	// They should see the conflict.
-	nowString := now.Format(time.RFC3339Nano)
+	cre := libkbfs.WriterDeviceDateConflictRenamer{}
 	checkDir(t, root1, map[string]fileInfoCheck{
 		"f": func(fi os.FileInfo) error {
 			return mustBeFileWithSize(fi, int64(len(input1)))
 		},
-		"f.conflict.user2." + nowString: func(fi os.FileInfo) error {
+		cre.ConflictRenameHelper(now, "user2", "dev1", "f"): func(fi os.FileInfo) error {
 			return mustBeFileWithSize(fi, int64(len(input2)))
 		},
 	})
@@ -2766,7 +2766,7 @@ func TestSimpleCRConflictOnOpenFiles(t *testing.T) {
 		"f": func(fi os.FileInfo) error {
 			return mustBeFileWithSize(fi, int64(len(input1)))
 		},
-		"f.conflict.user2." + nowString: func(fi os.FileInfo) error {
+		cre.ConflictRenameHelper(now, "user2", "dev1", "f"): func(fi os.FileInfo) error {
 			return mustBeFileWithSize(fi, int64(len(input2)))
 		},
 	})
@@ -2812,10 +2812,8 @@ func TestSimpleCRConflictOnOpenFiles(t *testing.T) {
 		t.Errorf("wrong content: %q != %q", g, e)
 	}
 
-	filec1 := path.Join(mnt1.Dir, PrivateName, "user1,user2",
-		"f.conflict.user2."+nowString)
-	filec2 := path.Join(mnt1.Dir, PrivateName, "user1,user2",
-		"f.conflict.user2."+nowString)
+	filec1 := path.Join(mnt1.Dir, PrivateName, "user1,user2", cre.ConflictRenameHelper(now, "user2", "dev1", "f"))
+	filec2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", cre.ConflictRenameHelper(now, "user2", "dev1", "f"))
 	buf, err = ioutil.ReadFile(filec1)
 	if err != nil {
 		t.Fatal(err)
@@ -2944,15 +2942,16 @@ func TestSimpleCRConflictOnOpenMergedFile(t *testing.T) {
 	}
 
 	// They should see the conflict.
-	nowString := now.Format(time.RFC3339Nano)
+	cre := libkbfs.WriterDeviceDateConflictRenamer{}
+	fcr := cre.ConflictRenameHelper(now, "user1", "dev1", "f")
 	checkDir(t, root1, map[string]fileInfoCheck{
-		"f.conflict.user1." + nowString: func(fi os.FileInfo) error {
+		fcr: func(fi os.FileInfo) error {
 			return mustBeFileWithSize(fi, int64(len(input1)))
 		},
 		"f": mustBeDir,
 	})
 	checkDir(t, root2, map[string]fileInfoCheck{
-		"f.conflict.user1." + nowString: func(fi os.FileInfo) error {
+		fcr: func(fi os.FileInfo) error {
 			return mustBeFileWithSize(fi, int64(len(input1)))
 		},
 		"f": mustBeDir,
@@ -3000,10 +2999,8 @@ func TestSimpleCRConflictOnOpenMergedFile(t *testing.T) {
 		t.Errorf("wrong content: %q != %q", g, e)
 	}
 
-	filec1 := path.Join(mnt1.Dir, PrivateName, "user1,user2",
-		"f.conflict.user1."+nowString)
-	filec2 := path.Join(mnt2.Dir, PrivateName, "user1,user2",
-		"f.conflict.user1."+nowString)
+	filec1 := path.Join(mnt1.Dir, PrivateName, "user1,user2", fcr)
+	filec2 := path.Join(mnt2.Dir, PrivateName, "user1,user2", fcr)
 	buf, err = ioutil.ReadFile(filec1)
 	if err != nil {
 		t.Fatal(err)

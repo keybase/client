@@ -31,6 +31,7 @@ type UserInfo struct {
 	UID             keybase1.UID
 	VerifyingKeys   []VerifyingKey
 	CryptPublicKeys []CryptPublicKey
+	KIDNames        map[keybase1.KID]string
 }
 
 // SessionInfo contains all the info about the keybase session that
@@ -802,4 +803,11 @@ type TLFUpdateHistory struct {
 	ID      string
 	Name    string
 	Updates []UpdateSummary
+}
+
+// writerInfo is the keybase username and device that generated the operation.
+type writerInfo struct {
+	name       libkb.NormalizedUsername
+	kid        keybase1.KID
+	deviceName string
 }

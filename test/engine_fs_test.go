@@ -155,7 +155,7 @@ func (*fsEngine) GetDirChildrenTypes(u User, parentDir Node) (children map[strin
 	defer f.Close()
 	fis, err := f.Readdir(-1)
 	if err != nil {
-		return nil, fmt.Errorf("Readdir on %q failed: %q", f, err.Error())
+		return nil, fmt.Errorf("Readdir on %v failed: %q", f, err.Error())
 	}
 	children = map[string]string{}
 	for _, fi := range fis {

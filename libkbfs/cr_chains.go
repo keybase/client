@@ -218,7 +218,7 @@ func (ccs *crChains) makeChainForOp(op op) error {
 		// split rename op into two separate operations, one for
 		// remove and one for create
 		ro := newRmOp(realOp.OldName, realOp.OldDir.Unref)
-		ro.setWriterName(realOp.getWriterName())
+		ro.setWriterInfo(realOp.getWriterInfo())
 		ro.Dir.Ref = realOp.OldDir.Ref
 		err := ccs.addOp(realOp.OldDir.Ref, ro)
 		if err != nil {
@@ -237,7 +237,7 @@ func (ccs *crChains) makeChainForOp(op op) error {
 			// Something was overwritten; make an explicit rm for it
 			// so we can check for conflicts.
 			roOverwrite := newRmOp(realOp.NewName, ndu)
-			roOverwrite.setWriterName(realOp.getWriterName())
+			roOverwrite.setWriterInfo(realOp.getWriterInfo())
 			roOverwrite.Dir.Ref = ndr
 			err = ccs.addOp(ndr, roOverwrite)
 			if err != nil {
@@ -250,7 +250,7 @@ func (ccs *crChains) makeChainForOp(op op) error {
 		}
 
 		co := newCreateOp(realOp.NewName, ndu, realOp.RenamedType)
-		co.setWriterName(realOp.getWriterName())
+		co.setWriterInfo(realOp.getWriterInfo())
 		co.renamed = true
 		co.Dir.Ref = ndr
 		err = ccs.addOp(ndr, co)
@@ -453,7 +453,7 @@ func newCRChainsEmpty() *crChains {
 	}
 }
 
-func newCRChains(ctx context.Context, kbpki KBPKI, rmds []*RootMetadata) (
+func newCRChains(ctx context.Context, cfg Config, rmds []*RootMetadata) (
 	ccs *crChains, err error) {
 	ccs = newCRChainsEmpty()
 
@@ -466,7 +466,7 @@ func newCRChains(ctx context.Context, kbpki KBPKI, rmds []*RootMetadata) (
 			continue
 		}
 
-		writerName, err := kbpki.GetNormalizedUsername(ctx, rmd.LastModifyingWriter)
+		winfo, err := newWriterInfo(ctx, cfg, rmd.LastModifyingWriter, rmd.writerKID())
 		if err != nil {
 			return nil, err
 		}
@@ -476,7 +476,7 @@ func newCRChains(ctx context.Context, kbpki KBPKI, rmds []*RootMetadata) (
 		}
 
 		for _, op := range rmd.data.Changes.Ops {
-			op.setWriterName(writerName)
+			op.setWriterInfo(winfo)
 			err := ccs.makeChainForOp(op)
 			if err != nil {
 				return nil, err

@@ -2089,14 +2089,14 @@ func (_m *MockConflictRenamer) EXPECT() *_MockConflictRenamerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockConflictRenamer) GetConflictSuffix(op op) string {
-	ret := _m.ctrl.Call(_m, "GetConflictSuffix", op)
+func (_m *MockConflictRenamer) ConlictRename(op op, original string) string {
+	ret := _m.ctrl.Call(_m, "ConflictRename", op, original)
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
-func (_mr *_MockConflictRenamerRecorder) GetConflictSuffix(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetConflictSuffix", arg0)
+func (_mr *_MockConflictRenamerRecorder) ConflictRename(arg0 interface{}, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "ConflictRename", arg0, arg1)
 }
 
 // Mock of Config interface

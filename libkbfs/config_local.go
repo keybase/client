@@ -147,6 +147,9 @@ func MakeLocalUsers(users []libkb.NormalizedUsername) []LocalUser {
 				UID:             keybase1.MakeTestUID(uint32(i + 1)),
 				VerifyingKeys:   []VerifyingKey{verifyingKey},
 				CryptPublicKeys: []CryptPublicKey{cryptPublicKey},
+				KIDNames: map[keybase1.KID]string{
+					verifyingKey.KID(): "dev1",
+				},
 			},
 			CurrentCryptPublicKeyIndex: 0,
 			CurrentVerifyingKeyIndex:   0,
@@ -160,7 +163,7 @@ func NewConfigLocal() *ConfigLocal {
 	config := &ConfigLocal{}
 	config.SetClock(wallClock{})
 	config.SetReporter(NewReporterSimple(config.Clock(), 10))
-	config.SetConflictRenamer(TimeAndWriterConflictRenamer{config})
+	config.SetConflictRenamer(WriterDeviceDateConflictRenamer{config})
 	config.SetMDCache(NewMDCacheStandard(5000))
 	config.SetKeyCache(NewKeyCacheStandard(5000))
 	// Limit the block cache to 10K entries or 512 MB of bytes
