@@ -45,7 +45,8 @@ func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res i
 	// Have to add call before encoding otherwise we'll race the response
 	d.calls.AddCall(c)
 	defer d.calls.RemoveCall(c.seqid)
-	errCh := d.writer.EncodeAndWrite(ctx, []interface{}{MethodCall, c.seqid, c.method, c.arg})
+	rpcTags, _ := RpcTagsFromContext(ctx)
+	errCh := d.writer.EncodeAndWrite(ctx, []interface{}{MethodCall, c.seqid, c.method, c.arg, rpcTags})
 
 	// Wait for result from encode
 	select {
@@ -74,7 +75,8 @@ func (d *dispatch) Call(ctx context.Context, name string, arg interface{}, res i
 }
 
 func (d *dispatch) Notify(ctx context.Context, name string, arg interface{}) error {
-	errCh := d.writer.EncodeAndWrite(ctx, []interface{}{MethodNotify, name, arg})
+	rpcTags, _ := RpcTagsFromContext(ctx)
+	errCh := d.writer.EncodeAndWrite(ctx, []interface{}{MethodNotify, name, arg, rpcTags})
 	select {
 	case err := <-errCh:
 		if err == nil {
