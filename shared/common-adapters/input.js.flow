@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 
 export type Props = {
   autoFocus?: bool,
-  errorText?: string,
+  errorText?: ?string,
   floatingLabelText?: string,
   hintText?: string,
   multiLine?: bool,

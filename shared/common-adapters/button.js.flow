@@ -5,10 +5,10 @@ import React, {Component} from 'react'
 export type Props = {
   onClick: ?Function,
   label: ?string,
-  style: ?Object,
-  primary: ?bool,
-  small: ?bool,
-  more: ?bool
+  style?: ?Object,
+  primary?: ?bool,
+  small?: ?bool,
+  more?: ?bool
 }
 
 declare export default class Button extends Component {
