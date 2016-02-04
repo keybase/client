@@ -1,6 +1,8 @@
 package libkbfs
 
 import (
+	"fmt"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -79,15 +81,11 @@ func (k *KBPKIClient) Identify(ctx context.Context, assertion, reason string) (
 // KBPKIClient.
 func (k *KBPKIClient) GetNormalizedUsername(ctx context.Context, uid keybase1.UID) (
 	libkb.NormalizedUsername, error) {
-	// TODO: Use the following faster code once
-	// https://keybase.atlassian.net/browse/CORE-2472 is fixed.
-	//
-	// username, _, err := k.Resolve(ctx, fmt.Sprintf("uid:%s", uid))
-	userInfo, err := k.loadUserPlusKeys(ctx, uid)
+	username, _, err := k.Resolve(ctx, fmt.Sprintf("uid:%s", uid))
 	if err != nil {
 		return libkb.NormalizedUsername(""), err
 	}
-	return userInfo.Name, nil
+	return username, nil
 }
 
 // HasVerifyingKey implements the KBPKI interface for KBPKIClient.
