@@ -2,13 +2,14 @@
 import * as Constants from '../constants/devices'
 import engine from '../engine'
 import {navigateUpOnUnchanged} from './router'
-import type {AsyncAction} from '../constants/types/flux'
+import type {AsyncAction, TypedAction} from '../constants/types/flux'
 import type {incomingCallMapType, revoke_revokeDevice_rpc, device_deviceList_rpc, login_paperKey_rpc} from '../constants/types/flow-types'
 
 export function loadDevices () : AsyncAction {
   return function (dispatch) {
     dispatch({
-      type: Constants.loadingDevices
+      type: Constants.loadingDevices,
+      payload: null
     })
 
     const params : device_deviceList_rpc = {
@@ -16,11 +17,21 @@ export function loadDevices () : AsyncAction {
       param: {},
       incomingCallMap: {},
       callback: (error, devices) => {
-        dispatch({
-          type: Constants.showDevices,
-          payload: error || devices,
-          error: !!error
-        })
+        // Flow is weird here, we have to give it true or false directly instead of just giving it !!error
+        if (error) {
+          dispatch({
+            type: Constants.showDevices,
+            payload: error,
+            error: true
+          })
+        } else {
+          dispatch({
+            type: Constants.showDevices,
+            payload: devices,
+            error: false
+          })
+        }
+        // dispatch()
       }
     }
 
@@ -31,7 +42,8 @@ export function loadDevices () : AsyncAction {
 export function generatePaperKey () : AsyncAction {
   return function (dispatch) {
     dispatch({
-      type: Constants.paperKeyLoading
+      type: Constants.paperKeyLoading,
+      payload: null
     })
 
     const incomingMap : incomingCallMapType = {

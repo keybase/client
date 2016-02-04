@@ -75,7 +75,8 @@ function updateListenersCreator (dispatch: Dispatch, getState: () => {config: Co
 
       // Cancel any existing update prompts; this will trigger a new focused window
       dispatch({
-        type: Constants.onCancel
+        type: Constants.onCancel,
+        payload: null
       })
 
       dispatch(({
@@ -128,21 +129,21 @@ function sendUpdatePromptResponse (payload: any /* UpdatePromptRes */): void {
 
 export function onCancel (): (dispatch: Dispatch) => void {
   return dispatch => {
-    dispatch(({type: Constants.onCancel}: OnCancelAction))
+    dispatch(({type: Constants.onCancel, payload: null}: OnCancelAction))
     sendUpdatePromptResponse({action: updateUi.UpdateAction.cancel})
   }
 }
 
 export function onSkip (): (dispatch: Dispatch) => void {
   return dispatch => {
-    dispatch(({type: Constants.onSkip}: OnSkipAction))
+    dispatch(({type: Constants.onSkip, payload: null}: OnSkipAction))
     sendUpdatePromptResponse({action: updateUi.UpdateAction.skip})
   }
 }
 
 export function onSnooze (): (dispatch: Dispatch) => void {
   return dispatch => {
-    dispatch(({type: Constants.onSnooze}: OnSnoozeAction))
+    dispatch(({type: Constants.onSnooze, payload: null}: OnSnoozeAction))
     sendUpdatePromptResponse({
       action: updateUi.UpdateAction.snooze,
       snoozeUntil: Date.now() + snoozeTimeSecs * 1000
@@ -152,7 +153,7 @@ export function onSnooze (): (dispatch: Dispatch) => void {
 
 export function onUpdate (): (dispatch: Dispatch, getState: () => {update: ShowUpdateState}) => void {
   return (dispatch, getState) => {
-    dispatch(({type: Constants.onUpdate}: OnUpdateAction))
+    dispatch(({type: Constants.onUpdate, payload: null}: OnUpdateAction))
     sendUpdatePromptResponse({
       action: updateUi.UpdateAction.update,
       alwaysAutoInstall: getState().update.alwaysUpdate

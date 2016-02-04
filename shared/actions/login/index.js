@@ -25,7 +25,8 @@ export function login (): AsyncAction {
 }
 
 export function doneRegistering (): TypedAction<'login:doneRegistering', void, void> {
-  return {type: Constants.doneRegistering}
+  // this has to be undefined for flow to match it to void
+  return {type: Constants.doneRegistering, payload: undefined}
 }
 
 function setCodePageOtherDeviceRole (otherDeviceRole) : AsyncAction {
@@ -74,18 +75,26 @@ export function updateForgotPasswordEmail (email: string) : TypedAction<'login:a
 
 export function submitForgotPassword () : AsyncAction {
   return (dispatch, getState) => {
-    dispatch({type: Constants.actionSetForgotPasswordSubmitting})
+    dispatch({type: Constants.actionSetForgotPasswordSubmitting, payload: undefined})
 
     const params : login_recoverAccountFromEmailAddress_rpc = {
       method: 'login.recoverAccountFromEmailAddress',
       param: {email: getState().login.forgotPasswordEmailAddress},
       incomingCallMap: {},
       callback: (error, response) => {
-        dispatch({
-          type: Constants.actionForgotPasswordDone,
-          payload: error,
-          error: !!error
-        })
+        if (error) {
+          dispatch({
+            type: Constants.actionForgotPasswordDone,
+            payload: error,
+            error: true
+          })
+        } else {
+          dispatch({
+            type: Constants.actionForgotPasswordDone,
+            payload: undefined,
+            error: false
+          })
+        }
       }
     }
 
@@ -137,7 +146,7 @@ export function logout () : AsyncAction {
 export function logoutDone () : AsyncAction {
   // We've logged out, let's check our current status
   return dispatch => {
-    dispatch({type: Constants.logoutDone})
+    dispatch({type: Constants.logoutDone, payload: undefined})
     dispatch(getCurrentStatus())
   }
 }
@@ -294,13 +303,19 @@ function startLoginFlow (dispatch, getState, provisionMethod, userPassTitle, use
     },
     incomingCallMap: incomingMap,
     callback: (error, response) => {
-      dispatch({
-        type: successType,
-        error: !!error,
-        payload: error || null
-      })
+      if (error) {
+        dispatch({
+          type: successType,
+          error: true,
+          payload: error
+        })
+      } else {
+        dispatch({
+          type: successType,
+          error: false,
+          payload: undefined
+        })
 
-      if (!error) {
         dispatch(navigateTo([]))
         dispatch(loadDevices())
         dispatch(switchTab(devicesTab))

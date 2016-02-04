@@ -3,8 +3,8 @@ import * as Constants from '../constants/profile'
 import {routeAppend} from './router'
 import engine from '../engine'
 import {identify} from '../constants/types/keybase_v1'
-import type {incomingCallMapType, user_loadUncheckedUserSummaries_rpc, identify_identify_rpc} from '../constants/types/flow-types'
-import type {AsyncAction} from '../constants/types/flux'
+import type {incomingCallMapType, user_loadUncheckedUserSummaries_rpc, identify_identify_rpc, user_UserSummary} from '../constants/types/flow-types'
+import type {AsyncAction, TypedAction} from '../constants/types/flux'
 const enums = identify
 
 export function pushNewProfile (username: string) : AsyncAction {
@@ -145,6 +145,7 @@ export function refreshProfile (username: string) : AsyncAction {
   }
 }
 
+type Summaries = {[key: string]: user_UserSummary}
 export function loadSummaries (uids: Array<string>) : AsyncAction {
   return function (dispatch) {
     dispatch({
@@ -167,11 +168,19 @@ export function loadSummaries (uids: Array<string>) : AsyncAction {
           summaries[r.username] = {summary: r}
         })
 
-        dispatch({
-          type: Constants.profileSummaryLoaded,
-          payload: error || summaries,
-          error: !!error
-        })
+        if (error) {
+          dispatch(({
+            type: Constants.profileSummaryLoaded,
+            payload: error,
+            error: true
+          }: TypedAction<'profile:profileSummaryLoaded', Summaries, any>))
+        } else {
+          dispatch(({
+            type: Constants.profileSummaryLoaded,
+            payload: summaries,
+            error: false
+          }: TypedAction<'profile:profileSummaryLoaded', Summaries, any>))
+        }
       }
     }
 
