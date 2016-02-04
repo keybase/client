@@ -196,14 +196,14 @@ func (co *createOp) CheckConflict(renamer ConflictRenamer, mergedOp op) (
 				// merged one is not.
 				return &renameMergedAction{
 					fromName: co.NewName,
-					toName:   co.NewName + renamer.GetConflictSuffix(mergedOp),
+					toName:   renamer.ConflictRename(mergedOp, co.NewName),
 					symPath:  co.crSymPath,
 				}, nil
 			}
 			// Otherwise rename the unmerged entry (guaranteed to be a file).
 			return &renameUnmergedAction{
 				fromName: co.NewName,
-				toName:   co.NewName + renamer.GetConflictSuffix(co),
+				toName:   renamer.ConflictRename(co, co.NewName),
 				symPath:  co.crSymPath,
 			}, nil
 		}
@@ -219,7 +219,7 @@ func (co *createOp) CheckConflict(renamer ConflictRenamer, mergedOp op) (
 			// Always rename the unmerged one
 			return &copyUnmergedEntryAction{
 				fromName: co.NewName,
-				toName:   co.NewName + renamer.GetConflictSuffix(co),
+				toName:   renamer.ConflictRename(co, co.NewName),
 				symPath:  co.crSymPath,
 				unique:   true,
 			}, nil
@@ -451,8 +451,7 @@ func (so *syncOp) CheckConflict(renamer ConflictRenamer, mergedOp op) (
 		// contents?)
 		return &renameUnmergedAction{
 			fromName: so.getFinalPath().tailName(),
-			toName: mergedOp.getFinalPath().tailName() +
-				renamer.GetConflictSuffix(so),
+			toName:   renamer.ConflictRename(so, mergedOp.getFinalPath().tailName()),
 		}, nil
 	case *setAttrOp:
 		// Someone on the merged path explicitly set an attribute, so
@@ -542,8 +541,7 @@ func (sao *setAttrOp) CheckConflict(renamer ConflictRenamer, mergedOp op) (
 			// conflict.
 			return &renameUnmergedAction{
 				fromName: sao.getFinalPath().tailName(),
-				toName: mergedOp.getFinalPath().tailName() +
-					renamer.GetConflictSuffix(sao),
+				toName:   renamer.ConflictRename(sao, mergedOp.getFinalPath().tailName()),
 			}, nil
 		}
 	}

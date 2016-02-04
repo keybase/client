@@ -949,10 +949,12 @@ func TestCRMergedChainsConflictSimple(t *testing.T) {
 	mergedPathRoot := cr1.fbo.nodeCache.PathFromNode(dirRoot1)
 	mergedPaths[unmergedPathRoot.tailPointer()] = mergedPathRoot
 
-	nowString := "unknown." + now.Format("2006-01-02")
+	cre := WriterDeviceDateConflictRenamer{}
 	expectedActions := map[BlockPointer]crActionList{
 		mergedPathRoot.tailPointer(): {&renameUnmergedAction{
-			"file1", "file1.conflict.u2." + nowString, ""}},
+			"file1",
+			cre.ConflictRenameHelper(now, "u2", "dev1", "file1"),
+			""}},
 	}
 
 	testCRCheckPathsAndActions(t, cr2, []path{unmergedPathRoot},
@@ -1048,12 +1050,14 @@ func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 
 	coFile := newCreateOp("file", dirRootPtr, Exec)
 
-	nowString := "unknown." + now.Format("2006-01-02")
+	cre := WriterDeviceDateConflictRenamer{}
 	mergedPathRoot := cr1.fbo.nodeCache.PathFromNode(dirRoot1)
 	// Both unmerged actions should collapse into just one rename operation
 	expectedActions := map[BlockPointer]crActionList{
 		mergedPathRoot.tailPointer(): {&renameUnmergedAction{
-			"file", "file.conflict.u2." + nowString, ""}},
+			"file",
+			cre.ConflictRenameHelper(now, "u2", "dev1", "file"),
+			""}},
 	}
 
 	testCRCheckPathsAndActions(t, cr2, []path{unmergedPathFile},
@@ -1247,8 +1251,8 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 
 	// Does the merged block contain the two files?
 	mergedRootPath := cr1.fbo.nodeCache.PathFromNode(dir1)
-	nowString := "unknown." + now.Format("2006-01-02")
-	mergedName := "file.conflict.u2." + nowString
+	cre := WriterDeviceDateConflictRenamer{}
+	mergedName := cre.ConflictRenameHelper(now, "u2", "dev1", "file")
 	if len(newFileBlocks) != 1 {
 		t.Errorf("Unexpected new file blocks!")
 	}

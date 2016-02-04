@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/keybase/kbfs/libkbfs"
 )
@@ -425,4 +426,15 @@ func (c *ctx) getNode(filepath string, create bool, isFile bool) (Node, error) {
 		}
 	}
 	return node, nil
+}
+
+// crname returns the name of a conflict file.
+func crname(path string, user username) string {
+	cre := libkbfs.WriterDeviceDateConflictRenamer{}
+	return cre.ConflictRenameHelper(time.Time{}, string(user), "dev1", path)
+}
+
+// crnameEsc returns the name of a conflict file with regular expression escapes.
+func crnameEsc(path string, user username) string {
+	return regexp.QuoteMeta(crname(path, user))
 }

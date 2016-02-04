@@ -2509,12 +2509,12 @@ func TestSimpleCRConflictOnOpenFiles(t *testing.T) {
 	}
 
 	// They should see the conflict.
-	nowString := "unknown." + now.Format("2006-01-02")
+	cre := libkbfs.WriterDeviceDateConflictRenamer{}
 	checkDir(t, root1, map[string]fileInfoCheck{
 		"f": func(fi os.FileInfo) error {
 			return mustBeFileWithSize(fi, int64(len(input1)))
 		},
-		"f.conflict.user2." + nowString: func(fi os.FileInfo) error {
+		cre.ConflictRenameHelper(now, "user2", "dev1", "f"): func(fi os.FileInfo) error {
 			return mustBeFileWithSize(fi, int64(len(input2)))
 		},
 	})
@@ -2522,7 +2522,7 @@ func TestSimpleCRConflictOnOpenFiles(t *testing.T) {
 		"f": func(fi os.FileInfo) error {
 			return mustBeFileWithSize(fi, int64(len(input1)))
 		},
-		"f.conflict.user2." + nowString: func(fi os.FileInfo) error {
+		cre.ConflictRenameHelper(now, "user2", "dev1", "f"): func(fi os.FileInfo) error {
 			return mustBeFileWithSize(fi, int64(len(input2)))
 		},
 	})
@@ -2699,15 +2699,15 @@ func TestSimpleCRConflictOnOpenMergedFile(t *testing.T) {
 	}
 
 	// They should see the conflict.
-	nowString := "unknown." + now.Format("2006-01-02")
+	cre := libkbfs.WriterDeviceDateConflictRenamer{}
 	checkDir(t, root1, map[string]fileInfoCheck{
-		"f.conflict.user1." + nowString: func(fi os.FileInfo) error {
+		cre.ConflictRenameHelper(now, "user1", "dev1", "f"): func(fi os.FileInfo) error {
 			return mustBeFileWithSize(fi, int64(len(input1)))
 		},
 		"f": mustBeDir,
 	})
 	checkDir(t, root2, map[string]fileInfoCheck{
-		"f.conflict.user1." + nowString: func(fi os.FileInfo) error {
+		cre.ConflictRenameHelper(now, "user1", "dev1", "f"): func(fi os.FileInfo) error {
 			return mustBeFileWithSize(fi, int64(len(input1)))
 		},
 		"f": mustBeDir,

@@ -8,37 +8,52 @@ import (
 	"golang.org/x/net/context"
 )
 
-// TimeAndWriterConflictRenamer renames a file using the current time
-// and the writer of that file.
-type timeAndWriterConflictRenamer struct {
-	config Config
-}
-
-// GetConflictSuffix implements the ConflictRename interface for
-// TimeAndWriterConflictRenamer.
-func (cr timeAndWriterConflictRenamer) GetConflictSuffix(op op) string {
-	now := cr.config.Clock().Now()
-	nowString := now.Format(time.RFC3339Nano)
-	return fmt.Sprintf(".conflict.%s.%s", op.getWriterInfo().name, nowString)
-}
-
-// TimeAndWriterConflictRenamer renames a file using the current time
-// and the writer of that file.
+// WriterDeviceDateConflictRenamer renames a file using
+// a username, device name, and date.
 type WriterDeviceDateConflictRenamer struct {
 	config Config
 }
 
-// GetConflictSuffix implements the ConflictRename interface for
+// ConflictRename implements the ConflictRename interface for
 // TimeAndWriterConflictRenamer.
-func (cr WriterDeviceDateConflictRenamer) GetConflictSuffix(op op) string {
+func (cr WriterDeviceDateConflictRenamer) ConflictRename(op op, original string) string {
 	now := cr.config.Clock().Now()
-	nowString := now.Format("2006-01-02")
 	winfo := op.getWriterInfo()
-	dname := winfo.dname
-	if dname == "" {
-		dname = "unknown"
+	return cr.ConflictRenameHelper(now, string(winfo.name), winfo.deviceName, original)
+}
+
+// ConflictRenameHelper is a helper for ConflictRename especially useful from
+// tests.
+func (WriterDeviceDateConflictRenamer) ConflictRenameHelper(t time.Time, user, device, original string) string {
+	if device == "" {
+		device = "unknown"
 	}
-	return fmt.Sprintf(".conflict.%s.%s.%s", winfo.name, dname, nowString)
+	base, ext := splitExtension(original)
+	date := t.Format("2006-01-02")
+	return fmt.Sprintf("%s.conflicted (%s's %s's conflicted copy %s)%s",
+		base, user, device, date, ext)
+
+}
+
+// splitExtension splits filename into a base name and the extension.
+func splitExtension(path string) (string, string) {
+	for i := len(path) - 1; i > 0; i-- {
+		switch path[i] {
+		case '.':
+			// Handle some multipart extensions
+			if i >= 4 && path[i-4:i] == ".tar" {
+				i -= 4
+			}
+			// A leading dot is not an extension
+			if i == 0 || path[i-1] == '/' || path[i-1] == '\\' {
+				break
+			}
+			return path[:i], path[i:]
+		case '/', '\\':
+			break
+		}
+	}
+	return path, ""
 }
 
 func newWriterInfo(ctx context.Context, cfg Config, uid keybase1.UID, kid keybase1.KID) (writerInfo, error) {
@@ -47,5 +62,5 @@ func newWriterInfo(ctx context.Context, cfg Config, uid keybase1.UID, kid keybas
 		return writerInfo{}, err
 	}
 
-	return writerInfo{name: ui.Name, kid: kid, dname: ui.KIDNames[kid]}, nil
+	return writerInfo{name: ui.Name, kid: kid, deviceName: ui.KIDNames[kid]}, nil
 }

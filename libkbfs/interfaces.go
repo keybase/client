@@ -962,9 +962,8 @@ type Clock interface {
 
 // ConflictRenamer deals with names for conflicting directory entries.
 type ConflictRenamer interface {
-	// GetConflictSuffix returns the appropriate suffix for the
-	// given op causing a conflict.
-	GetConflictSuffix(op op) string
+	// ConflictRename returns the appropriately modified filename.
+	ConflictRename(op op, original string) string
 }
 
 // Config collects all the singleton instance instantiations needed to

@@ -805,8 +805,9 @@ type TLFUpdateHistory struct {
 	Updates []UpdateSummary
 }
 
+// writerInfo is the keybase username and device that generated the operation.
 type writerInfo struct {
-	name  libkb.NormalizedUsername
-	kid   keybase1.KID
-	dname string
+	name       libkb.NormalizedUsername
+	kid        keybase1.KID
+	deviceName string
 }

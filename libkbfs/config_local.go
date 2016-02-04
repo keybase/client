@@ -147,6 +147,9 @@ func MakeLocalUsers(users []libkb.NormalizedUsername) []LocalUser {
 				UID:             keybase1.MakeTestUID(uint32(i + 1)),
 				VerifyingKeys:   []VerifyingKey{verifyingKey},
 				CryptPublicKeys: []CryptPublicKey{cryptPublicKey},
+				KIDNames: map[keybase1.KID]string{
+					verifyingKey.KID(): "dev1",
+				},
 			},
 			CurrentCryptPublicKeyIndex: 0,
 			CurrentVerifyingKeyIndex:   0,
