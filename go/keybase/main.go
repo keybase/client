@@ -115,6 +115,10 @@ func mainInner(g *libkb.GlobalContext) error {
 		return err
 	}
 
+	if err = configurePath(g, cl); err != nil {
+		return err
+	}
+
 	return cmd.Run()
 }
 
@@ -244,6 +248,16 @@ func configureLogging(g *libkb.GlobalContext, cl *libcmdline.CommandLine) error 
 	}
 
 	return nil
+}
+
+// configurePath sends the client's PATH to the service.
+func configurePath(g *libkb.GlobalContext, cl *libcmdline.CommandLine) error {
+	if cl.IsService() {
+		// this only runs on the client
+		return nil
+	}
+
+	return client.SendPath(g)
 }
 
 func HandleSignals() {

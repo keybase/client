@@ -577,6 +577,11 @@ type SetUserConfigArg struct {
 	Value     string `codec:"value" json:"value"`
 }
 
+type SetPathArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Path      string `codec:"path" json:"path"`
+}
+
 type HelloIAmArg struct {
 	Details ClientDetails `codec:"details" json:"details"`
 }
@@ -586,6 +591,7 @@ type ConfigInterface interface {
 	GetExtendedStatus(context.Context, int) (ExtendedStatus, error)
 	GetConfig(context.Context, int) (Config, error)
 	SetUserConfig(context.Context, SetUserConfigArg) error
+	SetPath(context.Context, SetPathArg) error
 	HelloIAm(context.Context, ClientDetails) error
 }
 
@@ -657,6 +663,22 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"setPath": {
+				MakeArg: func() interface{} {
+					ret := make([]SetPathArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetPathArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetPathArg)(nil), args)
+						return
+					}
+					err = i.SetPath(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"helloIAm": {
 				MakeArg: func() interface{} {
 					ret := make([]HelloIAmArg, 1)
@@ -701,6 +723,11 @@ func (c ConfigClient) GetConfig(ctx context.Context, sessionID int) (res Config,
 
 func (c ConfigClient) SetUserConfig(ctx context.Context, __arg SetUserConfigArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.config.setUserConfig", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ConfigClient) SetPath(ctx context.Context, __arg SetPathArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.config.setPath", []interface{}{__arg}, nil)
 	return
 }
 
