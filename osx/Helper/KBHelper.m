@@ -131,9 +131,6 @@
 }
 
 - (BOOL)linkExists:(NSString *)linkPath {
-  if (![NSFileManager.defaultManager fileExistsAtPath:linkPath]) {
-    return NO;
-  }
   NSDictionary *attributes = [NSFileManager.defaultManager attributesOfItemAtPath:linkPath error:nil];
   if (!attributes) {
     return NO;
@@ -180,6 +177,7 @@
     NSDictionary *dirAttributes = [NSFileManager.defaultManager attributesOfItemAtPath:linkDir error:nil];
     uid_t uid = [dirAttributes[NSFileOwnerAccountID] intValue];
     gid_t gid = [dirAttributes[NSFileGroupOwnerAccountID] intValue];
+    KBLog(@"Fixing symlink: %@, %@ (%@,%@)", linkPath, path, @(uid), @(gid));
     if (dirAttributes && [self createLink:path linkPath:linkPath uid:uid gid:gid]) {
       completion(nil, @{@"path": linkPath});
       return;
