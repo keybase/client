@@ -427,7 +427,7 @@ func (l *TrackChainLink) insertIntoTable(tab *IdentityTable) {
 
 type TrackedKey struct {
 	KID         keybase1.KID
-	Fingerprint PGPFingerprint
+	Fingerprint *PGPFingerprint
 }
 
 func trackedKeyFromJSON(jw *jsonw.Wrapper) (TrackedKey, error) {
@@ -441,7 +441,7 @@ func trackedKeyFromJSON(jw *jsonw.Wrapper) (TrackedKey, error) {
 	// It's ok if key_fingerprint doesn't exist.  But if it does, then include it:
 	fp, err := GetPGPFingerprint(jw.AtKey("key_fingerprint"))
 	if err == nil && fp != nil {
-		ret.Fingerprint = *fp
+		ret.Fingerprint = fp
 	}
 	return ret, nil
 }
@@ -452,6 +452,18 @@ func (l *TrackChainLink) GetTrackedKeys() ([]TrackedKey, error) {
 	set := make(map[keybase1.KID]bool)
 
 	var res []TrackedKey
+
+	// If the eldest kid in this tracking statement is a PGP key, it's
+	// implicitly tracked, in addition to the "pgp_keys" section that follows.
+	// If there is no eldest kid tracked, just skip this step.
+	eldestKeyJSON := l.payloadJSON.AtPath("body.track.key")
+	eldestTrackedKey, err := trackedKeyFromJSON(eldestKeyJSON)
+	if err == nil {
+		if eldestTrackedKey.Fingerprint != nil {
+			res = append(res, eldestTrackedKey)
+			set[eldestTrackedKey.KID] = true
+		}
+	}
 
 	pgpKeysJSON := l.payloadJSON.AtPath("body.track.pgp_keys")
 	if !pgpKeysJSON.IsNil() {
