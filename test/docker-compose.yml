@@ -12,37 +12,37 @@ mdserver:
         - "8125:8125"
     volumes:
         - $GOPATH/bin:/opt/keybase:ro
+        - $GOPATH/src/github.com/keybase/kbfs/test:/opt/scripts:ro
     links:
         - kbweb
         - dynamodb
     restart: unless-stopped
     environment:
-        GOPATH: $GOPATH
         KBFS_BIND_ADDR: '0.0.0.0:8125'
-    entrypoint: sh -c "KBFS_TLS_KEY=$$(cat docker_key.pem) KBFS_TLS_CERTIFICATE=$$(cat docker_cert.pem) /opt/keybase/mdserver"
+    entrypoint: sh -c "KBFS_TLS_KEY=$$(cat /opt/scripts/docker_key.pem) KBFS_TLS_CERTIFICATE=$$(cat /opt/scripts/docker_cert.pem) /opt/keybase/mdserver"
 bserver:
     image: kbserver
     ports:
         - "8225:8225"
     volumes:
         - $GOPATH/bin:/opt/keybase:ro
+        - $GOPATH/src/github.com/keybase/kbfs/test:/opt/scripts:ro
     links:
         - kbweb
         - dynamodb
         - mdserver
     restart: unless-stopped
     environment:
-        GOPATH: $GOPATH
         KBFS_BIND_ADDR: '0.0.0.0:8225'
-    entrypoint: sh -c "KBFS_TLS_KEY=$$(cat docker_key.pem) KBFS_TLS_CERTIFICATE=$$(cat docker_cert.pem) /opt/keybase/bserver"
+    entrypoint: sh -c "KBFS_TLS_KEY=$$(cat /opt/scripts/docker_key.pem) KBFS_TLS_CERTIFICATE=$$(cat /opt/scripts/docker_cert.pem) /opt/keybase/bserver"
 keybase:
     image: keybase
     volumes:
         - $GOPATH/bin:/opt/keybase:ro
+        - $GOPATH/src/github.com/keybase/kbfs/test:/opt/scripts:ro
     links:
         - kbweb
         - mdserver
         - bserver
     privileged: true
-    environment:
-        GOPATH: $GOPATH
+    entrypoint: keybase_docker_setup.sh

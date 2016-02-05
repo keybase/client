@@ -17,6 +17,13 @@ import (
 	//"github.com/samalba/dockerclient"
 )
 
+func createCommand(c string, args ...string) *exec.Cmd {
+	cmd := exec.Command(c, args...)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd
+}
+
 func getDockerIds(f string) ([]string, error) {
 	cmd := exec.Command("docker-compose", "ps", "-q", f)
 	var buf bytes.Buffer
@@ -30,12 +37,12 @@ func getDockerIds(f string) ([]string, error) {
 }
 
 func startDockers() error {
-	cmd := exec.Command(fmt.Sprintf("%s/src/github.com/keybase/kbfs/test/run_dockers.sh", os.Getenv("GOPATH")))
+	cmd := createCommand(fmt.Sprintf("%s/src/github.com/keybase/kbfs/test/run_dockers.sh", os.Getenv("GOPATH")))
 	return cmd.Run()
 }
 
 func stopDockers() error {
-	cmd := exec.Command("docker-compose", "down")
+	cmd := createCommand("docker-compose", "down")
 	return cmd.Run()
 }
 
@@ -48,7 +55,7 @@ func resetService(n int) (map[string]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to start the service: %v", err)
 	}
-	err = exec.Command("docker-compose", "scale", fmt.Sprintf("keybase=%d", n)).Run()
+	err = createCommand("docker-compose", "scale", fmt.Sprintf("keybase=%d", n)).Run()
 	if err != nil {
 		return nil, fmt.Errorf("Unable to scale up the service: %v", err)
 	}
@@ -62,7 +69,7 @@ func resetService(n int) (map[string]string, error) {
 func signupContainer(container string, username string) error {
 	email := fmt.Sprintf("%s@keyba.se", username)
 
-	cmd := exec.Command("docker", "exec", container,
+	cmd := createCommand("docker", "exec", container,
 		"keybase", "signup", "-c", "202020202020202020202020",
 		"--email", email, "--username", username,
 		"-p", "\"strong passphrase\"", "-d", "dev1", "-b", "--devel")
@@ -90,8 +97,25 @@ func signupContainers(containers []string) (map[string]string, error) {
 	return usernamesByContainer, nil
 }
 
+func listFolder(container string, writers []string, readers []string) error {
+
+	folderId := strings.Join([]string{
+		strings.Join(writers, ","),
+		strings.Join(readers, "#"),
+	}, "#")
+
+	cmd := createCommand("docker", "exec", container,
+		"ls", fmt.Sprintf("/keybase/private/%s", folderId))
+
+	err := cmd.Run()
+	if err != nil {
+		return fmt.Errorf("Unable to list folder %s on container %s. Error: %v", folderId, container)
+	}
+	return nil
+}
+
 func TestBasicFileWrite(t *testing.T) {
-	_, err := resetService(1)
+	_, err := resetService(3)
 	if err != nil {
 		t.Fatalf("Failed to reset service: %v", err)
 	}
