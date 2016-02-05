@@ -6,6 +6,9 @@ import RemoteStore from './remote-store.desktop'
 import Menubar from '../shared/menubar'
 import consoleHelper from '../app/console-helper'
 import hello from '../shared/util/hello'
+import {setupContextMenu} from '../app/menu-helper'
+
+import {remote} from 'electron'
 
 consoleHelper()
 hello(process.pid, 'Menubar', process.argv)
@@ -27,3 +30,4 @@ class RemoteMenubar extends Component {
 }
 
 reactDOM.render(React.createElement(RemoteMenubar), document.getElementById('root'))
+setupContextMenu(remote.getCurrentWindow())
