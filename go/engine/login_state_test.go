@@ -235,8 +235,7 @@ func TestLoginWithPromptPassphrase(t *testing.T) {
 	Logout(tc)
 
 	// Clear out the username stored in G.Env.
-	// TODO: Figure out a cleaner way to do this.
-	tc.G.Env = libkb.NewEnv(nil, nil)
+	tc.G.Env.GetConfigWriter().SetUserConfig(nil, true)
 
 	mockGetUsername := &GetUsernameMock{
 		Username: fu.Username,
