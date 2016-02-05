@@ -156,20 +156,20 @@ func (p CommandLine) GetGpgOptions() []string {
 	return ret
 }
 
-func (p CommandLine) GetMerkleKIDs() []string {
-	s := p.GetGString("merkle-kids")
+func (p CommandLine) getKIDs(name string) []string {
+	s := p.GetGString(name)
 	if len(s) == 0 {
 		return nil
 	}
 	return strings.Split(s, ":")
 }
 
+func (p CommandLine) GetMerkleKIDs() []string {
+	return p.getKIDs("merkle-kids")
+}
+
 func (p CommandLine) GetCodeSigningKIDs() []string {
-	s := p.GetGString("code-signing-kids")
-	if len(s) == 0 {
-		return nil
-	}
-	return strings.Split(s, ":")
+	return p.getKIDs("code-signing-kids")
 }
 
 func (p CommandLine) GetUserCacheMaxAge() (time.Duration, bool) {
