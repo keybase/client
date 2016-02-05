@@ -15,9 +15,10 @@ import {listenForNotifications} from '../shared/actions/notifications'
 import hello from '../shared/util/hello'
 
 import {devEditAction} from '../shared/reducers/devEdit'
+import {setupContextMenu} from '../app/menu-helper'
 
 // For Remote Components
-import {ipcRenderer} from 'electron'
+import electron, {ipcRenderer} from 'electron'
 import RemoteManager from './remote-manager'
 import consoleHelper from '../app/console-helper'
 import _ from 'lodash'
@@ -55,6 +56,8 @@ class Keybase extends Component {
         })
       }
     }
+
+    setupContextMenu(electron.remote.getCurrentWindow())
 
     // Used by material-ui widgets.
     injectTapEventPlugin()
