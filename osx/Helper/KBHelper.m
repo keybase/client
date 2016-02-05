@@ -83,8 +83,10 @@
     [KBKext uninstallWithDestination:args[@"destination"] kextID:args[@"kextID"] completion:completion];
   } else if ([method isEqualToString:@"kextCopy"]) {
     [KBKext copyWithSource:args[@"source"] destination:args[@"destination"] removeExisting:YES completion:completion];
-  } else if ([method isEqualToString:@"trash"]) {
-    [self trash:args[@"path"] completion:completion];
+  } else if ([method isEqualToString:@"remove"]) {
+    [self remove:args[@"path"] completion:completion];
+  } else if ([method isEqualToString:@"move"]) {
+    [self moveFromSource:args[@"source"] destination:args[@"destination"] overwriteDestination:YES completion:completion];
   } else if ([method isEqualToString:@"createDirectory"]) {
     [self createDirectory:args[@"directory"] uid:args[@"uid"] gid:args[@"gid"] permissions:args[@"permissions"] excludeFromBackup:[args[@"excludeFromBackup"] boolValue] completion:completion];
   } else if ([method isEqualToString:@"addToPath"]) {
@@ -225,21 +227,34 @@
   }
 }
 
-- (void)trash:(NSString *)path completion:(void (^)(NSError *error, id value))completion {
+- (void)moveFromSource:(NSString *)source destination:(NSString *)destination overwriteDestination:(BOOL)overwriteDestination completion:(void (^)(NSError *error, id value))completion {
   NSError *error = nil;
-  // The caller should check the path too but let's be safer and prevent some bad paths
+  if ([NSFileManager.defaultManager fileExistsAtPath:destination isDirectory:NULL] && ![NSFileManager.defaultManager removeItemAtPath:destination error:&error]) {
+    completion(error, nil);
+    return;
+  }
+
+  if (![NSFileManager.defaultManager moveItemAtPath:source toPath:destination error:&error]) {
+    completion(error, nil);
+    return;
+  }
+
+  completion(nil, @{});
+}
+
+- (void)remove:(NSString *)path completion:(void (^)(NSError *error, id value))completion {
+  NSError *error = nil;
+  // The caller will check the path too but let's be safer and prevent some bad paths
   if (!path || ![path hasPrefix:@"/"] || [path isEqualToString:@"/"]) {
     completion(KBMakeError(MPXPCErrorCodeInvalidRequest, @"Invalid path"), nil);
     return;
   }
 
-  NSURL *outURL = nil;
-  // Don't use trashItemAtURL since we are root here and the root trash will never be emptied, let's remove it
   if (![NSFileManager.defaultManager removeItemAtURL:[NSURL fileURLWithPath:path] error:&error]) {
     completion(error, nil);
-  } else {
-    completion(nil, @{@"outURL": [outURL absoluteString]});
+    return;
   }
+  completion(nil, @{});
 }
 
 @end
