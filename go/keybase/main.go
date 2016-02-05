@@ -188,6 +188,11 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 		}
 	}
 
+	// Finally, we'll restart the service if we see that it's out of date.
+	if err = client.FixVersionClash(g, cl); err != nil {
+		return err
+	}
+
 	g.Log.Debug("| After forks; newProc=%v", newProc)
 	if err = configureLogging(g, cl); err != nil {
 		return err
@@ -197,11 +202,6 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 	// final step, which is to check for a version clashes.
 	if newProc {
 		return nil
-	}
-
-	// Finally, we'll restart the service if we see that it's out of date.
-	if err = client.FixVersionClash(g, cl); err != nil {
-		return err
 	}
 
 	return nil
