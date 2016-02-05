@@ -501,6 +501,27 @@ func (f JSONConfigFile) GetLinkCacheCleanDur() (time.Duration, bool) {
 	return f.GetDurationAtPath("cache.clean_duration.links")
 }
 
+func (f JSONConfigFile) getStringArray(v *jsonw.Wrapper) []string {
+	n, err := v.Len()
+	if err != nil {
+		return nil
+	}
+
+	if n == 0 {
+		return nil
+	}
+
+	ret := make([]string, n)
+	for i := 0; i < n; i++ {
+		s, err := v.AtIndex(i).GetString()
+		if err != nil {
+			return nil
+		}
+		ret[i] = s
+	}
+	return ret
+}
+
 func (f JSONConfigFile) GetMerkleKIDs() []string {
 	if f.jw == nil {
 		return nil
@@ -511,24 +532,7 @@ func (f JSONConfigFile) GetMerkleKIDs() []string {
 		return nil
 	}
 
-	l, err := v.Len()
-	if err != nil {
-		return nil
-	}
-
-	if l == 0 {
-		return nil
-	}
-
-	ret := make([]string, l)
-	for i := 0; i < l; i++ {
-		s, err := v.AtIndex(i).GetString()
-		if err != nil {
-			return nil
-		}
-		ret[i] = s
-	}
-	return ret
+	return f.getStringArray(v)
 }
 
 func (f JSONConfigFile) GetCodeSigningKIDs() []string {
@@ -540,21 +544,7 @@ func (f JSONConfigFile) GetCodeSigningKIDs() []string {
 	if err != nil || v == nil {
 		return nil
 	}
-
-	l, err := v.Len()
-	if err != nil || l == 0 {
-		return nil
-	}
-
-	ret := make([]string, l)
-	for i := 0; i < l; i++ {
-		s, err := v.AtIndex(i).GetString()
-		if err != nil {
-			return nil
-		}
-		ret[i] = s
-	}
-	return ret
+	return f.getStringArray(v)
 }
 
 func (f JSONConfigFile) GetGpgHome() (ret string) {
