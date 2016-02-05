@@ -531,6 +531,32 @@ func (f JSONConfigFile) GetMerkleKIDs() []string {
 	return ret
 }
 
+func (f JSONConfigFile) GetCodeSigningKIDs() []string {
+	if f.jw == nil {
+		return nil
+	}
+
+	v, err := f.jw.AtKey("keys").AtKey("codesigning").ToArray()
+	if err != nil || v == nil {
+		return nil
+	}
+
+	l, err := v.Len()
+	if err != nil || l == 0 {
+		return nil
+	}
+
+	ret := make([]string, l)
+	for i := 0; i < l; i++ {
+		s, err := v.AtIndex(i).GetString()
+		if err != nil {
+			return nil
+		}
+		ret[i] = s
+	}
+	return ret
+}
+
 func (f JSONConfigFile) GetGpgHome() (ret string) {
 	ret, _ = f.GetStringAtPath("gpg.home")
 	return ret

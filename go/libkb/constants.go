@@ -89,6 +89,10 @@ var MerkleStagingKIDs = []string{
 	"0101bed85ce72cc315828367c28b41af585b6b7d95646a62ca829691d70f49184fa70a",
 }
 
+var CodeSigningProdKIDs = []string{}
+var CodeSigningTestKIDs = []string{}
+var CodeSigningStagingKIDs = []string{}
+
 const (
 	KeybaseKIDV1       = 1 // Uses SHA-256
 	KeybaseSignatureV1 = 1
