@@ -4211,10 +4211,14 @@ func (fbo *folderBranchOps) Sync(ctx context.Context, file Node) (err error) {
 	if err != nil {
 		return
 	}
+	defer func() {
+		// Make a local lockState here, otherwise we might race with
+		// the syncLocked goroutine if a cancel happens.
+		lState := makeFBOLockState()
+		fbo.notifyDeferredListeners(lState, err)
+	}()
 
 	lState := makeFBOLockState()
-	defer func() { fbo.notifyDeferredListeners(lState, err) }()
-
 	var stillDirty bool
 	err = fbo.doMDWriteWithRetryUnlessCanceled(ctx, lState, func() error {
 		filePath, err := fbo.pathFromNodeForMDWriteLocked(file)
