@@ -167,13 +167,15 @@ func (h ConfigHandler) SetPath(_ context.Context, arg keybase1.SetPathArg) error
 	h.G().Log.Debug("SetPath: client path =  %s", arg.Path)
 
 	pathenv := strings.Split(svcPath, ":")
+	pathset := make(map[string]bool)
+	for _, p := range pathenv {
+		pathset[p] = true
+	}
+
 	var clientAdditions []string
-NextDir:
 	for _, dir := range strings.Split(arg.Path, ":") {
-		for _, x := range pathenv {
-			if x == dir {
-				continue NextDir
-			}
+		if _, ok := pathset[dir]; ok {
+			continue
 		}
 		clientAdditions = append(clientAdditions, dir)
 	}
