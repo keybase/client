@@ -161,6 +161,38 @@ func (h ConfigHandler) SetUserConfig(_ context.Context, arg keybase1.SetUserConf
 	return nil
 }
 
+func (h ConfigHandler) SetPath(_ context.Context, arg keybase1.SetPathArg) error {
+	svcPath := os.Getenv("PATH")
+	h.G().Log.Debug("SetPath: service path = %s", svcPath)
+	h.G().Log.Debug("SetPath: client path =  %s", arg.Path)
+
+	pathenv := strings.Split(svcPath, ":")
+	pathset := make(map[string]bool)
+	for _, p := range pathenv {
+		pathset[p] = true
+	}
+
+	var clientAdditions []string
+	for _, dir := range strings.Split(arg.Path, ":") {
+		if _, ok := pathset[dir]; ok {
+			continue
+		}
+		clientAdditions = append(clientAdditions, dir)
+	}
+
+	pathenv = append(pathenv, clientAdditions...)
+	combined := strings.Join(pathenv, ":")
+
+	if combined == svcPath {
+		return nil
+	}
+
+	h.G().Log.Debug("SetPath: setting service path: %s", combined)
+	os.Setenv("PATH", combined)
+
+	return nil
+}
+
 func (h ConfigHandler) HelloIAm(_ context.Context, arg keybase1.ClientDetails) error {
 	return h.G().ConnectionManager.Label(h.connID, arg)
 }

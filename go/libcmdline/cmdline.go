@@ -156,13 +156,22 @@ func (p CommandLine) GetGpgOptions() []string {
 	return ret
 }
 
-func (p CommandLine) GetMerkleKIDs() []string {
-	s := p.GetGString("merkle-kids")
-	if len(s) != 0 {
-		return strings.Split(s, ":")
+func (p CommandLine) getKIDs(name string) []string {
+	s := p.GetGString(name)
+	if len(s) == 0 {
+		return nil
 	}
-	return nil
+	return strings.Split(s, ":")
 }
+
+func (p CommandLine) GetMerkleKIDs() []string {
+	return p.getKIDs("merkle-kids")
+}
+
+func (p CommandLine) GetCodeSigningKIDs() []string {
+	return p.getKIDs("code-signing-kids")
+}
+
 func (p CommandLine) GetUserCacheMaxAge() (time.Duration, bool) {
 	ret, err := p.GetGDuration("user-cache-maxage")
 	if err != nil {
@@ -170,6 +179,7 @@ func (p CommandLine) GetUserCacheMaxAge() (time.Duration, bool) {
 	}
 	return ret, true
 }
+
 func (p CommandLine) GetProofCacheSize() (int, bool) {
 	ret := p.GetGInt("proof-cache-size")
 	if ret != 0 {
@@ -335,8 +345,12 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Usage: "Dump API call internals (may leak secrets).",
 		},
 		cli.StringFlag{
-			Name:  "merkle-key-fingerprints",
+			Name:  "merkle-kids",
 			Usage: "Set of admissable Merkle Tree fingerprints (colon-separated).",
+		},
+		cli.StringFlag{
+			Name:  "code-signing-kids",
+			Usage: "Set of code signing key IDs (colon-separated).",
 		},
 		cli.IntFlag{
 			Name:  "user-cache-size",

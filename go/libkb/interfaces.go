@@ -41,6 +41,7 @@ type CommandLine interface {
 	GetProofCacheSize() (int, bool)
 	GetLinkCacheSize() (int, bool)
 	GetMerkleKIDs() []string
+	GetCodeSigningKIDs() []string
 	GetPinentry() string
 	GetGpg() string
 	GetGpgOptions() []string
@@ -118,6 +119,7 @@ type ConfigReader interface {
 	GetLinkCacheSize() (int, bool)
 	GetLinkCacheCleanDur() (time.Duration, bool)
 	GetMerkleKIDs() []string
+	GetCodeSigningKIDs() []string
 	GetPinentry() string
 	GetNoPinentry() (bool, bool)
 	GetGpg() string

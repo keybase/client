@@ -82,5 +82,8 @@ protocol config {
     */
   void setUserConfig(int sessionID, string username, string key, string value);
 
+  // setPath tells the service the client's PATH so that it can augment its own PATH if necessary.
+  void setPath(int sessionID, string path);
+
   void helloIAm(ClientDetails details);
 }

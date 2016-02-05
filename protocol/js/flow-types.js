@@ -153,6 +153,16 @@ export type incomingCallMapType = {
       result: () => void
     }
   ) => void,
+  'keybase.1.config.setPath'?: (
+    params: {
+      sessionID: int,
+      path: string
+    },
+    response: {
+      error: (err: string) => void,
+      result: () => void
+    }
+  ) => void,
   'keybase.1.config.helloIAm'?: (
     params: {
       details: config_ClientDetails
@@ -2494,6 +2504,19 @@ export type config_setUserConfig_rpc = {
     username: string,
     key: string,
     value: string
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+// config.setPath ////////////////////////////////////////
+
+/* void response */
+
+export type config_setPath_rpc = {
+  method: 'config.setPath',
+  param: {
+    path: string
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any) => void)
