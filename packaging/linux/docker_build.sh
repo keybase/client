@@ -56,7 +56,7 @@ else
 fi
 
 # Make sure the image is ready.
-image=keybase_packaging_v3
+image=keybase_packaging_v4
 if [ -z "$(docker images -q "$image")" ] ; then
   echo "Docker image '$image' not yet built. Building..."
   docker build -t "$image" "$clientdir/packaging/linux"
