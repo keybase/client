@@ -383,6 +383,11 @@ type renameUnmergedAction struct {
 	fromName string
 	toName   string
 	symPath  string
+
+	// Set if this conflict is between file writes, and the parent
+	// chains need to be updated with new create/rename operations.
+	unmergedParentMostRecent BlockPointer
+	mergedParentMostRecent   BlockPointer
 }
 
 func crActionCopyFile(ctx context.Context, copier fileBlockDeepCopier,
@@ -493,71 +498,87 @@ func (rua *renameUnmergedAction) updateOps(unmergedMostRecent BlockPointer,
 				realOp.File = newMergedEntry.BlockPointer
 			}
 		}
-	} else {
-		// Prepend a rename for the unmerged copy to the merged set of
-		// operations, with another create for the merged file, for local
-		// playback.
 
-		// The entry that got renamed in the unmerged branch:
-		unmergedEntry, ok := unmergedBlock.Children[rua.fromName]
+		if !rua.unmergedParentMostRecent.IsInitialized() {
+			// This is not a file-file conflict.
+			return nil
+		}
+
+		unmergedChain, ok =
+			unmergedChains.byMostRecent[rua.unmergedParentMostRecent]
 		if !ok {
-			return NoSuchNameError{rua.fromName}
+			// Couldn't find the parent to update.  Sigh.
+			return fmt.Errorf("Couldn't find parent %v to update "+
+				"renameUnmergedAction for file %v (%s)",
+				rua.unmergedParentMostRecent, unmergedMostRecent, rua.toName)
 		}
+		unmergedMostRecent = rua.unmergedParentMostRecent
+		mergedMostRecent = rua.mergedParentMostRecent
+	}
 
-		// The entry that gets created in the unmerged branch:
-		mergedEntry, ok := mergedBlock.Children[rua.fromName]
-		if !ok {
-			return NoSuchNameError{rua.fromName}
-		}
+	// Prepend a rename for the unmerged copy to the merged set of
+	// operations, with another create for the merged file, for local
+	// playback.
 
-		rop := newRenameOp(rua.fromName, mergedMostRecent, rua.toName,
-			mergedMostRecent, newMergedEntry.BlockPointer,
-			newMergedEntry.Type)
-		// For local notifications, we need to transform the entry's
-		// pointer into the new (de-dup'd) pointer.  newMergedEntry is
-		// not yet the final pointer (that happens during syncBlock),
-		// but a later stage will convert it.
-		if rua.symPath == "" {
-			rop.AddUpdate(unmergedEntry.BlockPointer,
-				newMergedEntry.BlockPointer)
+	// The entry that got renamed in the unmerged branch:
+	unmergedEntry, ok := unmergedBlock.Children[rua.fromName]
+	if !ok {
+		return NoSuchNameError{rua.fromName}
+	}
+
+	// The entry that gets created in the unmerged branch:
+	mergedEntry, ok := mergedBlock.Children[rua.fromName]
+	if !ok {
+		return NoSuchNameError{rua.fromName}
+	}
+
+	rop := newRenameOp(rua.fromName, mergedMostRecent, rua.toName,
+		mergedMostRecent, newMergedEntry.BlockPointer,
+		newMergedEntry.Type)
+	// For local notifications, we need to transform the entry's
+	// pointer into the new (de-dup'd) pointer.  newMergedEntry is
+	// not yet the final pointer (that happens during syncBlock),
+	// but a later stage will convert it.
+	if rua.symPath == "" {
+		rop.AddUpdate(unmergedEntry.BlockPointer,
+			newMergedEntry.BlockPointer)
+	}
+	err := prependOpsToChain(mergedMostRecent, mergedChains,
+		rop, newCreateOp(rua.fromName, mergedMostRecent, mergedEntry.Type))
+	if err != nil {
+		return err
+	}
+
+	// Before merging the unmerged ops, create a file with the new
+	// name, unless the create already exists.
+	found := false
+	var co *createOp
+	for _, op := range unmergedChain.ops {
+		var ok bool
+		if co, ok = op.(*createOp); ok && co.NewName == rua.toName {
+			found = true
+			if len(co.RefBlocks) > 0 {
+				co.RefBlocks[0] = newMergedEntry.BlockPointer
+			}
+			break
 		}
-		err := prependOpsToChain(mergedMostRecent, mergedChains,
-			rop, newCreateOp(rua.fromName, mergedMostRecent, mergedEntry.Type))
+	}
+	if !found {
+		co = newCreateOp(rua.toName, unmergedMostRecent, mergedEntry.Type)
+		co.AddRefBlock(newMergedEntry.BlockPointer)
+		err = prependOpsToChain(unmergedMostRecent, unmergedChains, co)
 		if err != nil {
 			return err
 		}
-
-		// Before merging the unmerged ops, create a file with the new
-		// name, unless the create already exists.
-		found := false
-		var co *createOp
-		for _, op := range unmergedChain.ops {
-			var ok bool
-			if co, ok = op.(*createOp); ok && co.NewName == rua.toName {
-				found = true
-				if len(co.RefBlocks) > 0 {
-					co.RefBlocks[0] = newMergedEntry.BlockPointer
-				}
-				break
-			}
-		}
-		if !found {
-			co = newCreateOp(rua.toName, unmergedMostRecent, mergedEntry.Type)
-			co.AddRefBlock(newMergedEntry.BlockPointer)
-			err = prependOpsToChain(unmergedMostRecent, unmergedChains, co)
-			if err != nil {
-				return err
-			}
-		}
-		// Since we copied the node, unref the old block but only if
-		// it's not a symlink and the name changed.  If the name is
-		// the same, it means the old block pointer is still in use
-		// because we just did a copy of a node still in use in the
-		// merged branch.
-		if unmergedEntry.BlockPointer != newMergedEntry.BlockPointer &&
-			rua.fromName != rua.toName && rua.symPath == "" {
-			co.AddUnrefBlock(unmergedEntry.BlockPointer)
-		}
+	}
+	// Since we copied the node, unref the old block but only if
+	// it's not a symlink and the name changed.  If the name is
+	// the same, it means the old block pointer is still in use
+	// because we just did a copy of a node still in use in the
+	// merged branch.
+	if unmergedEntry.BlockPointer != newMergedEntry.BlockPointer &&
+		rua.fromName != rua.toName && rua.symPath == "" {
+		co.AddUnrefBlock(unmergedEntry.BlockPointer)
 	}
 
 	return nil

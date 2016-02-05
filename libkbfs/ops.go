@@ -453,7 +453,12 @@ func (so *syncOp) CheckConflict(renamer ConflictRenamer, mergedOp op) (
 		// contents?)
 		return &renameUnmergedAction{
 			fromName: so.getFinalPath().tailName(),
-			toName:   renamer.ConflictRename(so, mergedOp.getFinalPath().tailName()),
+			toName: renamer.ConflictRename(so, mergedOp.getFinalPath().
+				tailName()),
+			unmergedParentMostRecent: so.getFinalPath().parentPath().
+				tailPointer(),
+			mergedParentMostRecent: mergedOp.getFinalPath().parentPath().
+				tailPointer(),
 		}, nil
 	case *setAttrOp:
 		// Someone on the merged path explicitly set an attribute, so
@@ -543,7 +548,12 @@ func (sao *setAttrOp) CheckConflict(renamer ConflictRenamer, mergedOp op) (
 			// conflict.
 			return &renameUnmergedAction{
 				fromName: sao.getFinalPath().tailName(),
-				toName:   renamer.ConflictRename(sao, mergedOp.getFinalPath().tailName()),
+				toName: renamer.ConflictRename(
+					sao, mergedOp.getFinalPath().tailName()),
+				unmergedParentMostRecent: sao.getFinalPath().parentPath().
+					tailPointer(),
+				mergedParentMostRecent: mergedOp.getFinalPath().parentPath().
+					tailPointer(),
 			}, nil
 		}
 	}

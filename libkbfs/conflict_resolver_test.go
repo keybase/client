@@ -954,7 +954,7 @@ func TestCRMergedChainsConflictSimple(t *testing.T) {
 		mergedPathRoot.tailPointer(): {&renameUnmergedAction{
 			"file1",
 			cre.ConflictRenameHelper(now, "u2", "dev1", "file1"),
-			""}},
+			"", zeroPtr, zeroPtr}},
 	}
 
 	testCRCheckPathsAndActions(t, cr2, []path{unmergedPathRoot},
@@ -1057,7 +1057,7 @@ func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 		mergedPathRoot.tailPointer(): {&renameUnmergedAction{
 			"file",
 			cre.ConflictRenameHelper(now, "u2", "dev1", "file"),
-			""}},
+			"", zeroPtr, zeroPtr}},
 	}
 
 	testCRCheckPathsAndActions(t, cr2, []path{unmergedPathFile},
