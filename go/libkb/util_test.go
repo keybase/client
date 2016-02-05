@@ -41,3 +41,25 @@ func TestCombineErrors(t *testing.T) {
 		t.Errorf("Wrong output for combine errors: %#v != %#v", err.Error(), expected)
 	}
 }
+
+func TestWhitespaceNormalize(t *testing.T) {
+
+	data := []struct {
+		in, out string
+	}{
+		{" ab   cd    ef   gh ", "ab cd ef gh"},
+		{"a\nb  c\nd", "a b c d"},
+		{
+			" Verifying myself: I am pomf on Keybase.io. 8a6cewzit2o7zuLKGbDqQADhzfOlGerGuBpq\n/ https://keybase.io/pomf/sigs/8a6cewzit2o7zuLKGbDqQADhzfOlGerGuBpq ",
+			"Verifying myself: I am pomf on Keybase.io. 8a6cewzit2o7zuLKGbDqQADhzfOlGerGuBpq / https://keybase.io/pomf/sigs/8a6cewzit2o7zuLKGbDqQADhzfOlGerGuBpq",
+		},
+	}
+
+	for i, p := range data {
+		out := WhitespaceNormalize(p.in)
+		if out != p.out {
+			t.Errorf("Failed on test %d: %s != %s", i, out, p.out)
+		}
+	}
+
+}
