@@ -188,7 +188,9 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 		}
 	}
 
-	// Finally, we'll restart the service if we see that it's out of date.
+	// Restart the service if we see that it's out of date. It's important to do this
+	// before we make any RPCs to the service --- for instance, before the logging
+	// calls below. See the v1.0.8 update fiasco for more details.
 	if err = client.FixVersionClash(g, cl); err != nil {
 		return err
 	}
