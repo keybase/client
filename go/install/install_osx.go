@@ -158,7 +158,6 @@ func ListServices(g *libkb.GlobalContext) (*keybase1.ServicesStatus, error) {
 
 func DefaultLaunchdEnvVars(g *libkb.GlobalContext, label string) map[string]string {
 	envVars := make(map[string]string)
-	envVars["PATH"] = "/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin"
 	envVars["KEYBASE_LABEL"] = label
 	envVars["KEYBASE_LOG_FORMAT"] = "file"
 	envVars["KEYBASE_RUNTIME_DIR"] = g.Env.GetRuntimeDir()
