@@ -1,16 +1,20 @@
 FROM ubuntu:14.04
 MAINTAINER Keybase <admin@keybase.io>
 
-VOLUME /keybase/bin
-VOLUME /keybase/socket
-
-ADD test/start_daemon_in_container.sh /start_daemon.sh
+RUN apt-get update
+RUN apt-get install -y fuse
+RUN apt-get install -y ssh
 
 RUN useradd -m keybase
+RUN mkdir /keybase
+RUN chown keybase:keybase /keybase
 USER keybase
-ENV KEYBASE_RUN_MODE devel
-ENV KEYBASE_SOCKET_FILE /keybase/socket/keybase.sock
-ENV KEYBASE_DEBUG true
-ENV PATH=$PATH:/keybase/bin
+WORKDIR /home/keybase
 
-CMD /start_daemon.sh
+ENV KEYBASE_DEBUG=1
+ENV KEYBASE_RUN_MODE=devel
+ENV KEYBASE_SERVER_URI="http://kbweb:3000"
+ENV KBFS_DYNAMO_SERVER_ADDR="http://dynamodb:8000"
+ENV PATH=/opt/keybase:$PATH
+
+ENTRYPOINT ["/opt/keybase/keybase", "service"]
