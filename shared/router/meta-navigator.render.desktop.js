@@ -14,11 +14,12 @@ class MetaNavigatorRender extends Component {
     const {rootComponent, uri, getComponentAtTop} = this.props
     const {componentAtTop} = getComponentAtTop(rootComponent, uri)
     const Module = componentAtTop.component
+    const hideBack = !!componentAtTop.hideBack
 
     return (
       <div>
         <Module {...componentAtTop.props} />
-        {uri && uri.count() > 1 && <FlatButton onClick={ () => this.onBack() } style={styles.backButton} label='Back'/>}
+        {!hideBack && uri && uri.count() > 1 && <FlatButton onClick={ () => this.onBack() } style={styles.backButton} label='Back'/>}
       </div>
     )
   }

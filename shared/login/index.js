@@ -9,6 +9,10 @@ import ErrorText from './error.render'
 import InviteCode from './signup/inviteCode'
 import UsernameEmailForm from './signup/usernameEmailForm'
 
+// Register Components
+import Register from './register'
+// import PaperKey from './register/paper-key'
+
 export default class Login extends Component {
   render () {
     return <Render formComponent={this.props.formComponent}/>
@@ -16,26 +20,37 @@ export default class Login extends Component {
 
   static parseRoute (currentPath, uri) {
     // Fallback (for debugging)
-    let Form = () => <ErrorText currentPath={currentPath} />
+    let Form = <ErrorText currentPath={currentPath} />
 
-    switch (currentPath.get('path')) {
-      case 'root':
-        Form = () => <Intro/>
-        break
-      case 'signup':
-      case 'inviteCode':
-        Form = () => <InviteCode/>
-        break
-      case 'usernameAndEmail':
-        Form = () => <UsernameEmailForm/>
-        break
+    const path = currentPath.get('path')
+
+    const {component: Component, props} = currentPath.get('parseRoute') || {}
+    if (Component) {
+      Form = <Component {...props}/>
+    } else {
+      switch (path) {
+        case 'root':
+          Form = <Intro/>
+          break
+        case 'signup':
+        case 'inviteCode':
+          Form = <InviteCode/>
+          break
+        case 'usernameAndEmail':
+          Form = <UsernameEmailForm/>
+          break
+        case 'register':
+          Form = <Register />
+          break
+      }
     }
 
     return {
       componentAtTop: {
         component: Login,
+        hideBack: true,
         props: {
-          formComponent: Form
+          formComponent: () => Form
         }
       },
       parseNextRoute: Login.parseRoute

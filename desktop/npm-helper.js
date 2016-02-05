@@ -1,6 +1,6 @@
 // Helper for cross platform npm run script commands
 import path from 'path'
-import {execSync} from 'child_process'
+import child_process, {execSync} from 'child_process'
 import fs from 'fs'
 
 const [,,command, ...rest] = process.argv
@@ -29,69 +29,113 @@ const inject = info => {
   return temp
 }
 
-const commands = {
-  'start': () => {
-    return {shell: 'npm run build-dev && npm run start-cold'}
-  },
-  'start-hot': () => {
-    return {
-      env: {HOT: 'true'},
-      nodeEnv: 'development',
-      shell: 'node client.js'
-    }
-  },
-  'start-cold': () => {
-    return {
-      nodeEnv: 'development',
-      shell: 'electron ./dist/main.bundle.js'
-    }
-  },
-  'build-dev': () => {
-    return {
-      env: {NO_SERVER:'true', DEBUG: 'express:*'},
-      nodeEnv: 'production',
-      nodePathDesktop: true,
-      shell: 'node server.js'}
-  },
-  'build-prod': () => {
-    return {
-      nodeEnv: 'production',
-      nodePathDesktop: true,
-      shell: 'webpack --config webpack.config.production.js --progress --profile --colors'
-    }
-  },
-  'package': () => {
-    return {
-      nodeEnv: 'production',
-      nodePathDesktop: true,
-      shell: 'node package.js'
-    }
-  },
-  'hot-server': () => {
-    return {
-      env: {HOT: 'true', DEBUG: 'express:*'},
-      nodeEnv: 'production',
-      nodePathDesktop: true,
-      shell: 'node server.js'
-    }
-  },
-  'inject-sourcemaps-prod': () => {
-    return {shell: 'a(){ cp \'$1\'/* /Applications/Keybase.app/Contents/Resources/app/desktop/dist; };a'}
-  },
-  'inject-code-prod': () => {
-    return {shell: 'npm run package; cp dist/* /Applications/Keybase.app/Contents/Resources/app/desktop/dist/'}
-  },
-  'start-prod': () => {
-    return {shell: '/Applications/Keybase.app/Contents/MacOS/Electron'}
-  },
-  'electron-rebuild': () => {
-    return {shell: './node_modules/.bin/electron-rebuild'}
-  },
-  'postinstall': () => {
-    if (process.platform === 'win32') {
-      fixupSymlinks()
-    }
+function pad (s, num) {
+  while (s.length < num) {
+    s += ' '
   }
+
+  return s
+}
+
+const commands = {
+  'help': {
+    code: () => {
+      const len = Object.keys(commands).reduce((acc, i) => Math.max(i.length, acc), 1) + 2
+      console.log(Object.keys(commands).map(c => commands[c].help && `npm run ${pad(c + ': ', len)}${commands[c].help}`).filter(c => !!c).join('\n'))
+    }
+  },
+  'start': {
+    shell: 'npm run build-dev && npm run start-cold', help: 'Do a simple dev build'
+  },
+  'start-hot': {
+    env: {HOT: 'true'},
+    nodeEnv: 'development',
+    shell: 'node client.js',
+    help: 'Start electron with hot reloading (needs npm run hot-server)'
+  },
+  'start-hot-debug': {
+    env: {HOT: 'true', USE_INSPECTOR: 'true'},
+    nodeEnv: 'development',
+    shell: 'node client.js',
+    help: 'Start electron with hot reloading against a debugged main process'
+  },
+  'debug-main': {
+    env: {ELECTRON_RUN_AS_NODE: 'true'},
+    nodeEnv: 'development',
+    shell: './node_modules/.bin/electron node_modules/node-inspector/bin/inspector.js --no-preload',
+    help: 'Debug the main process with node-inspector'
+  },
+  'setup-debug-main': {
+    help: 'Setup node-inspector to work with electron (run once per electron prebuilt upgrade)',
+    code: setupDebugMain
+  },
+  'start-cold': {
+    nodeEnv: 'development',
+    shell: 'electron ./dist/main.bundle.js',
+    help: 'Start electron with no hot reloading'
+  },
+  'build-dev': {
+    env: {NO_SERVER:'true', DEBUG: 'express:*'},
+    nodeEnv: 'production',
+    nodePathDesktop: true,
+    shell: 'node server.js',
+    help: 'Make a development build of the js code'
+  },
+  'build-prod': {
+    nodeEnv: 'production',
+    nodePathDesktop: true,
+    shell: 'webpack --config webpack.config.production.js --progress --profile --colors',
+    help: 'Make a production build of the js code'
+  },
+  'package': {
+    nodeEnv: 'production',
+    nodePathDesktop: true,
+    shell: 'node package.js',
+    help: 'Package up the production js code'
+  },
+  'hot-server': {
+    env: {HOT: 'true', DEBUG: 'express:*'},
+    nodeEnv: 'production',
+    nodePathDesktop: true,
+    shell: 'node server.js',
+    help: 'Start the webpack hot reloading code server (needed by npm run start-hot)'
+  },
+  'inject-sourcemaps-prod': {
+    shell: 'a(){ cp \'$1\'/* /Applications/Keybase.app/Contents/Resources/app/desktop/dist; };a',
+    help: '[Path to sourcemaps]: Copy sourcemaps into currently installed Keybase app'
+  },
+  'inject-code-prod': {
+    shell: 'npm run package; cp dist/* /Applications/Keybase.app/Contents/Resources/app/desktop/dist/',
+    help: 'Copy current code into currently installed Keybase app'
+  },
+  'start-prod': {
+    shell: '/Applications/Keybase.app/Contents/MacOS/Electron',
+    help: 'Launch installed Keybase app with console output'
+  },
+  'electron-rebuild': {
+    shell: './node_modules/.bin/electron-rebuild',
+    help: 'Rebuild electron native code'
+  },
+  'postinstall': {
+    help: 'Window: fixup symlinks, others: nothing',
+    code: (process.platform === 'win32') ? fixupSymlinks : () => {}
+  }
+}
+
+function setupDebugMain () {
+  let electronVer = null
+  try {
+    electronVer = child_process.execSync('npm list --dev electron-prebuilt', {encoding: 'utf8'}).match(/electron-prebuilt@([0-9.]+)/)[1]
+    console.log(`Found electron-prebuilt version: ${electronVer}`)
+  } catch(err) {
+    console.log(`Couldn't figure out electron`)
+    process.exit(1)
+  }
+
+  exec('npm install node-inspector')
+  exec('npm install git+https://git@github.com/enlight/node-pre-gyp.git#detect-electron-runtime-in-find')
+  exec(`node_modules/.bin/node-pre-gyp --target=${electronVer} --runtime=electron --fallback-to-build --directory node_modules/v8-debug/ --dist-url=https://atom.io/download/atom-shell reinstall`)
+  exec(`node_modules/.bin/node-pre-gyp --target=${electronVer} --runtime=electron --fallback-to-build --directory node_modules/v8-profiler/ --dist-url=https://atom.io/download/atom-shell reinstall`)
 }
 
 function fixupSymlinks () {
@@ -132,24 +176,21 @@ function exec (command, env, options) {
   }
 }
 
-const toRun = commands[command]
+let info = commands[command]
 
-if (!toRun) {
+if (!info) {
   console.log('Unknown command: ', command)
   process.exit(1)
 }
 
-let info = toRun()
-
-if (!info) {
-  process.exit(0)
-}
-
 info = inject(info)
 
-if (!info.shell) {
-  process.exit(1)
+if (info.shell) {
+  console.log(`Calling: ${JSON.stringify(info, null, 2)}`)
+  exec(info.shell, info.env)
 }
 
-console.log(`Calling: ${JSON.stringify(info, null, 2)}`)
-exec(info.shell, info.env)
+if (info.code) {
+  info.code()
+}
+

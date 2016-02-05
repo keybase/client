@@ -15,7 +15,13 @@ http.get('http://localhost:4000/dist/main.bundle.js', function (response) {
   response.pipe(file)
   file.on('finish', function() {
     file.close(function () {
-      const e = spawn(electron, [name], {stdio: 'inherit'})
+      const params = [name]
+
+      if (process.env.USE_INSPECTOR) {
+        params.unshift('--debug-brk=5858')
+      }
+
+      const e = spawn(electron, params, {stdio: 'inherit'})
       e.on('close', function () {})
     })
   })
