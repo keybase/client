@@ -128,7 +128,7 @@ func FixVersionClash(g *libkb.GlobalContext, cl libkb.CommandLine) (err error) {
 		time.Sleep(time.Second)
 		newPid, err := getPid(g)
 		if err != nil {
-			g.Log.Warning("No pid; shutdown must have worked (%v)")
+			g.Log.Warning("No pid; shutdown must have worked (%v)", err)
 		} else if newPid != origPid {
 			g.Log.Warning("New service found with pid=%d; assuming restart", newPid)
 			return nil
