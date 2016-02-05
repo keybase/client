@@ -46,6 +46,7 @@ type Config interface {
 	SetUpdatePreferenceSkip(v string) error
 	SetUpdatePreferenceSnoozeUntil(t keybase1.Time) error
 	SetUpdateLastChecked(t keybase1.Time) error
+	GetRunModeAsString() string
 }
 
 func NewUpdater(options keybase1.UpdateOptions, source sources.UpdateSource, config Config, log logger.Logger) *Updater {
@@ -257,7 +258,7 @@ func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool
 	}
 
 	savePath := fmt.Sprintf("%s.download", fpath)
-	if _, err = os.Stat(savePath); err == nil {
+	if _, ferr := os.Stat(savePath); ferr == nil {
 		u.log.Info("Removing existing partial download: %s", savePath)
 		err = os.Remove(savePath)
 		if err != nil {
@@ -305,13 +306,21 @@ func (u *Updater) save(savePath string, resp http.Response) error {
 }
 
 func (u *Updater) unpack(filename string) (string, error) {
-	u.log.Debug("unpack %s", filename)
+	u.log.Debug("Unpack %s", filename)
 	if !strings.HasSuffix(filename, ".zip") {
-		u.log.Debug("File isn't compressed, so won't unzip: %q", filename)
-		return filename, nil
+		u.log.Errorf("Don't know how to unpack: %s", filename)
+		return "", nil
 	}
 
 	unzipDestination := unzipDestination(filename)
+	if _, ferr := os.Stat(unzipDestination); ferr == nil {
+		u.log.Info("Removing existing unzip destination: %s", unzipDestination)
+		err := os.RemoveAll(unzipDestination)
+		if err != nil {
+			return "", nil
+		}
+	}
+
 	u.log.Info("Unzipping %q -> %q", filename, unzipDestination)
 	err := zip.Unzip(filename, unzipDestination)
 	if err != nil {
@@ -360,9 +369,18 @@ func (u *Updater) apply(src string, dest string) (tmpPath string, err error) {
 			return
 		}
 		u.log.Info("Moving (existing) %s to %s", dest, tmpPath)
+
 		err = os.Rename(dest, tmpPath)
+		// If we error trying to remove existing destination, let's try using
+		// a platform dependent (privileged) way.
+		// To test this (on OS X), chown -R root:admin /Applications/Keybase and
+		// perform an update.
 		if err != nil {
-			return
+			platformRemoveErr := u.removeApp(dest)
+			if platformRemoveErr != nil {
+				// We failed to remove via platform too, return (original) err
+				return
+			}
 		}
 	}
 
@@ -504,21 +522,21 @@ func (u *Updater) promptForUpdateAction(ui UI, update keybase1.Update) (err erro
 	return
 }
 
-func (u *Updater) applyZip(localPath string) (tmpPath string, err error) {
+func (u *Updater) applyZip(localPath string, destinationPath string) (tmpPath string, err error) {
 	unzipPath, err := u.unpack(localPath)
 	if err != nil {
 		return
 	}
 	u.log.Info("Unzip path: %s", unzipPath)
 
-	baseName := filepath.Base(u.options.DestinationPath)
+	baseName := filepath.Base(destinationPath)
 	sourcePath := filepath.Join(unzipPath, baseName)
-	err = u.checkUpdate(sourcePath, u.options.DestinationPath)
+	err = u.checkUpdate(sourcePath, destinationPath)
 	if err != nil {
 		return
 	}
 
-	tmpPath, err = u.apply(sourcePath, u.options.DestinationPath)
+	tmpPath, err = u.apply(sourcePath, destinationPath)
 	if err != nil {
 		return
 	}

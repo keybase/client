@@ -27,3 +27,7 @@ func (u *Updater) applyUpdate(localPath string) (tmpPath string, err error) {
 	}
 	return
 }
+
+func (u *Updater) removeApp(appPath string) error {
+	return fmt.Errorf("Remove app is unsupported on this platform")
+}

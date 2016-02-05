@@ -867,3 +867,7 @@ func (e *Env) GetVDebugSetting() string {
 		func() string { return "" },
 	)
 }
+
+func (e *Env) GetRunModeAsString() string {
+	return string(e.GetRunMode())
+}

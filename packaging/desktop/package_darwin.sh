@@ -31,6 +31,7 @@ comment=""
 
 keybase_binpath=${KEYBASE_BINPATH:-}
 kbfs_binpath=${KBFS_BINPATH:-}
+installer_bundle_path=${INSTALLER_BUNDLE_PATH:-}
 
 echo "Loading release tool"
 "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
@@ -122,7 +123,12 @@ get_deps() {
     ensure_url $kbfs_url "You need to build the binary for this Github release/version. See packaging/github to create/build a release."
     curl -J -L -Ss $kbfs_url | tar zx
   fi
-  curl -J -L -Ss $installer_url | tar zx
+  if [ ! "$installer_bundle_path" = "" ]; then
+    echo "Using local installer bundle path: $installer_bundle_path"
+    cp -R $installer_bundle_path .
+  else
+    curl -J -L -Ss $installer_url | tar zx
+  fi
 }
 
 # Build Keybase.app
