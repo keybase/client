@@ -1,4 +1,4 @@
-## 1.0.10
+## 1.0.10 (2016-02-05)
 - Detached pgp verify was broken for messages shorter than 100 bytes (PR: keybase/client#1862)
 - Only restart driver if necessary when upgrading on Windows (PR: keybase/client#1842)
 - Fix formatting for certain errors (PR: keybase/client#1830)
