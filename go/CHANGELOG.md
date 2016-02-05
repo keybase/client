@@ -1,3 +1,4 @@
+## 1.0.10
 - Detached pgp verify was broken for messages shorter than 100 bytes (PR: keybase/client#1862)
 - Only restart driver if necessary when upgrading on Windows (PR: keybase/client#1842)
 - Fix formatting for certain errors (PR: keybase/client#1830)
@@ -5,6 +6,9 @@
 - New `keybase status` command, previous one moved to `keybase dump-keyfamily`
   (PR: keybase/client#1787)
 - Fix regression in auto-fork (PR: keybase/client#1831)
+- Add ChainLink cache to speed up identify2 (PR: keybase/client#1868)
+- Add `keybase log send` command (PR: keybase/client#1846)
+- Client sends PATH to service (PR: keybase/client#1907)
 
 ## 1.0.9 (2016-01-21)
 - Windows updater (PR: keybase/client#1770)
