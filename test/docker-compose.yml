@@ -7,7 +7,7 @@ dynamodb:
     expose:
         - "8000"
 mdserver:
-    image: mdserver
+    image: kbserver
     ports:
         - "8125:8125"
     volumes:
@@ -16,8 +16,12 @@ mdserver:
         - kbweb
         - dynamodb
     restart: unless-stopped
+    environment:
+        GOPATH: $GOPATH
+        KBFS_BIND_ADDR: '0.0.0.0:8125'
+    entrypoint: sh -c "KBFS_TLS_KEY=$$(cat docker_key.pem) KBFS_TLS_CERTIFICATE=$$(cat docker_cert.pem) /opt/keybase/mdserver"
 bserver:
-    image: bserver
+    image: kbserver
     ports:
         - "8225:8225"
     volumes:
@@ -27,9 +31,18 @@ bserver:
         - dynamodb
         - mdserver
     restart: unless-stopped
+    environment:
+        GOPATH: $GOPATH
+        KBFS_BIND_ADDR: '0.0.0.0:8225'
+    entrypoint: sh -c "KBFS_TLS_KEY=$$(cat docker_key.pem) KBFS_TLS_CERTIFICATE=$$(cat docker_cert.pem) /opt/keybase/bserver"
 keybase:
     image: keybase
     volumes:
         - $GOPATH/bin:/opt/keybase:ro
     links:
         - kbweb
+        - mdserver
+        - bserver
+    privileged: true
+    environment:
+        GOPATH: $GOPATH
