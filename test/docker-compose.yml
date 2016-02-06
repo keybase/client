@@ -34,7 +34,7 @@ bserver:
     restart: unless-stopped
     environment:
         KBFS_BIND_ADDR: '0.0.0.0:8225'
-    entrypoint: sh -c "KBFS_TLS_KEY=$$(cat /opt/scripts/docker_key.pem) KBFS_TLS_CERTIFICATE=$$(cat /opt/scripts/docker_cert.pem) /opt/keybase/bserver"
+    entrypoint: sh -c "BSERVER_USE_MEMORY_STORE=1 KBFS_TLS_KEY=$$(cat /opt/scripts/docker_key.pem) KBFS_TLS_CERTIFICATE=$$(cat /opt/scripts/docker_cert.pem) /opt/keybase/bserver"
 keybase:
     image: keybase
     volumes:

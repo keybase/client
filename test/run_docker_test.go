@@ -18,10 +18,20 @@ import (
 )
 
 func createCommand(c string, args ...string) *exec.Cmd {
+	fmt.Println(strings.Join(append([]string{"$", c}, args...), " "))
 	cmd := exec.Command(c, args...)
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	return cmd
+}
+
+func dockerExec(container string, command ...string) error {
+	args := append([]string{
+		"exec",
+		container,
+	}, command...)
+	cmd := createCommand("docker", args...)
+	return cmd.Run()
 }
 
 func getDockerIds(f string) ([]string, error) {
@@ -72,17 +82,17 @@ func signupContainer(container string, username string) error {
 	cmd := createCommand("docker", "exec", container,
 		"keybase", "signup", "-c", "202020202020202020202020",
 		"--email", email, "--username", username,
-		"-p", "\"strong passphrase\"", "-d", "dev1", "-b", "--devel")
+		"-p", "strong passphrase", "-d", "dev1", "-b", "--devel")
 
 	err := cmd.Run()
 	if err != nil {
-		return fmt.Errorf("Unable to signup container %s for user %s. Error: %v", container, username)
+		return fmt.Errorf("Unable to signup user %s on container %s. Error: %v", username, container, err)
 	}
 	return nil
 }
 
 func signupContainers(containers []string) (map[string]string, error) {
-	usernamesByContainer := make(map[string]string)
+	containersByUsername := make(map[string]string)
 
 	for i, container := range containers {
 
@@ -92,37 +102,82 @@ func signupContainers(containers []string) (map[string]string, error) {
 			return nil, err
 		}
 
-		usernamesByContainer[container] = username
+		containersByUsername[username] = container
 	}
-	return usernamesByContainer, nil
+	return containersByUsername, nil
 }
 
-func listFolder(container string, writers []string, readers []string) error {
+func getTLF(writers []string, readers []string) string {
+	content := []string{strings.Join(writers, ",")}
+	if len(readers) > 0 {
+		content = append(content, strings.Join(readers, "#"))
+	}
+	return fmt.Sprintf("/keybase/private/%s", strings.Join(content, "#"))
+}
 
-	folderId := strings.Join([]string{
-		strings.Join(writers, ","),
-		strings.Join(readers, "#"),
-	}, "#")
+func listFolder(container string, tlf string) error {
+	err := dockerExec(container, "ls", tlf)
 
-	cmd := createCommand("docker", "exec", container,
-		"ls", fmt.Sprintf("/keybase/private/%s", folderId))
-
-	err := cmd.Run()
 	if err != nil {
-		return fmt.Errorf("Unable to list folder %s on container %s. Error: %v", folderId, container)
+		return fmt.Errorf("Unable to list folder %s on container %s. Error: %v", tlf, container)
 	}
 	return nil
 }
 
-func TestBasicFileWrite(t *testing.T) {
-	_, err := resetService(3)
+func writeToFile(container string, tlf string, filename string, text string) error {
+	err := dockerExec(container, "sh", "-c", fmt.Sprintf("echo \"%s\" >> %s", text, fmt.Sprintf("%s/%s", tlf, filename)))
+
+	if err != nil {
+		return fmt.Errorf("Unable to write to file %s/%s on container %s", tlf, filename, container)
+	}
+	return nil
+}
+
+func readFromFile(container string, tlf string, filename string) error {
+	err := dockerExec(container, "cat", fmt.Sprintf("%s/%s", tlf, filename))
+
+	if err != nil {
+		return fmt.Errorf("Unable to read from file %s/%s on container %s", tlf, filename, container)
+	}
+	return nil
+}
+
+func TestSharedFileWrite(t *testing.T) {
+	containers, err := resetService(2)
 	if err != nil {
 		t.Fatalf("Failed to reset service: %v", err)
 	}
+	tlf := getTLF([]string{"test0", "test1"}, []string{})
+	err = writeToFile(
+		containers["test0"],
+		tlf,
+		"hello.txt",
+		"world",
+	)
+	if err != nil {
+		stopDockers()
+		t.Fatalf("Failed to write to file: %v", err)
+	}
+	err = listFolder(
+		containers["test1"],
+		tlf,
+	)
+	if err != nil {
+		stopDockers()
+		t.Fatalf("Failed to list folder %s. Error: %v", tlf, err)
+	}
+	err = readFromFile(
+		containers["test1"],
+		tlf,
+		"hello.txt",
+	)
+	if err != nil {
+		stopDockers()
+		t.Fatalf("Failed to write to file: %v", err)
+	}
 
-	//err := stopDockers()
-	//if err != nil {
-	//	t.Fatalf("Failed to stop dockers: %v", err)
-	//}
-
+	err = stopDockers()
+	if err != nil {
+		t.Fatalf("Failed to stop dockers: %v", err)
+	}
 }
