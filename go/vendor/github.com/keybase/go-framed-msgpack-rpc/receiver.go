@@ -112,7 +112,7 @@ func (r *receiveHandler) receiveCancel(rpc *rpcCancelMessage) error {
 func (r *receiveHandler) handleReceiveDispatch(req request) error {
 	if req.Err() != nil {
 		req.LogInvocation(req.Err())
-		return req.Reply(r.writer, nil, wrapError(nil, req.Err()))
+		return req.Reply(r.writer, nil, wrapError(r.protHandler.wef, req.Err()))
 	}
 	serveHandler, wrapErrorFunc, se := r.protHandler.findServeHandler(req.Name())
 	if se != nil {
