@@ -9,6 +9,7 @@ package test
 import (
 	"bytes"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"strings"
@@ -17,20 +18,25 @@ import (
 	//"github.com/samalba/dockerclient"
 )
 
-func createCommand(c string, args ...string) *exec.Cmd {
+func createCommand(out io.Writer, err io.Writer, c string, args ...string) *exec.Cmd {
 	fmt.Println(strings.Join(append([]string{"$", c}, args...), " "))
 	cmd := exec.Command(c, args...)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd.Stdout = out
+	cmd.Stderr = err
 	return cmd
 }
 
-func dockerExec(container string, command ...string) error {
+func createStdoutCommand(c string, args ...string) *exec.Cmd {
+	cmd := createCommand(os.Stdout, os.Stderr, c, args...)
+	return cmd
+}
+
+func dockerExec(out io.Writer, err io.Writer, container string, command ...string) error {
 	args := append([]string{
 		"exec",
 		container,
 	}, command...)
-	cmd := createCommand("docker", args...)
+	cmd := createCommand(out, err, "docker", args...)
 	return cmd.Run()
 }
 
@@ -47,12 +53,12 @@ func getDockerIds(f string) ([]string, error) {
 }
 
 func startDockers() error {
-	cmd := createCommand(fmt.Sprintf("%s/src/github.com/keybase/kbfs/test/run_dockers.sh", os.Getenv("GOPATH")))
+	cmd := createStdoutCommand(fmt.Sprintf("%s/src/github.com/keybase/kbfs/test/run_dockers.sh", os.Getenv("GOPATH")))
 	return cmd.Run()
 }
 
 func stopDockers() error {
-	cmd := createCommand("docker-compose", "down")
+	cmd := createStdoutCommand("docker-compose", "down")
 	return cmd.Run()
 }
 
@@ -65,7 +71,7 @@ func resetService(n int) (map[string]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("Unable to start the service: %v", err)
 	}
-	err = createCommand("docker-compose", "scale", fmt.Sprintf("keybase=%d", n)).Run()
+	err = createStdoutCommand("docker-compose", "scale", fmt.Sprintf("keybase=%d", n)).Run()
 	if err != nil {
 		return nil, fmt.Errorf("Unable to scale up the service: %v", err)
 	}
@@ -79,7 +85,7 @@ func resetService(n int) (map[string]string, error) {
 func signupContainer(container string, username string) error {
 	email := fmt.Sprintf("%s@keyba.se", username)
 
-	cmd := createCommand("docker", "exec", container,
+	cmd := createCommand(nil, nil, "docker", "exec", container,
 		"keybase", "signup", "-c", "202020202020202020202020",
 		"--email", email, "--username", username,
 		"-p", "strong passphrase", "-d", "dev1", "-b", "--devel")
@@ -116,7 +122,7 @@ func getTLF(writers []string, readers []string) string {
 }
 
 func listFolder(container string, tlf string) error {
-	err := dockerExec(container, "ls", tlf)
+	err := dockerExec(os.Stdout, os.Stderr, container, "ls", tlf)
 
 	if err != nil {
 		return fmt.Errorf("Unable to list folder %s on container %s. Error: %v", tlf, container)
@@ -125,7 +131,7 @@ func listFolder(container string, tlf string) error {
 }
 
 func writeToFile(container string, tlf string, filename string, text string) error {
-	err := dockerExec(container, "sh", "-c", fmt.Sprintf("echo \"%s\" >> %s", text, fmt.Sprintf("%s/%s", tlf, filename)))
+	err := dockerExec(os.Stdout, os.Stderr, container, "sh", "-c", fmt.Sprintf("echo \"%s\" >> %s", text, fmt.Sprintf("%s/%s", tlf, filename)))
 
 	if err != nil {
 		return fmt.Errorf("Unable to write to file %s/%s on container %s", tlf, filename, container)
@@ -134,7 +140,7 @@ func writeToFile(container string, tlf string, filename string, text string) err
 }
 
 func readFromFile(container string, tlf string, filename string) error {
-	err := dockerExec(container, "cat", fmt.Sprintf("%s/%s", tlf, filename))
+	err := dockerExec(os.Stdout, os.Stderr, container, "cat", fmt.Sprintf("%s/%s", tlf, filename))
 
 	if err != nil {
 		return fmt.Errorf("Unable to read from file %s/%s on container %s", tlf, filename, container)
