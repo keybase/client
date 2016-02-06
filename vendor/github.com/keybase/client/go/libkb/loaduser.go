@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"fmt"
+	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
@@ -37,6 +38,12 @@ func NewLoadUserForceArg(g *GlobalContext) LoadUserArg {
 func NewLoadUserByNameArg(g *GlobalContext, name string) LoadUserArg {
 	arg := NewLoadUserArg(g)
 	arg.Name = name
+	return arg
+}
+
+func NewLoadUserByUIDArg(g *GlobalContext, uid keybase1.UID) LoadUserArg {
+	arg := NewLoadUserArg(g)
+	arg.UID = uid
 	return arg
 }
 
@@ -112,8 +119,13 @@ func LoadMe(arg LoadUserArg) (*User, error) {
 	return LoadUser(arg)
 }
 
+func LoadMeByUID(g *GlobalContext, uid keybase1.UID) (*User, error) {
+	return LoadMe(NewLoadUserByUIDArg(g, uid))
+}
+
 func LoadUser(arg LoadUserArg) (ret *User, err error) {
-	G.Log.Debug("LoadUser: %+v", arg)
+	defer TimeLog(fmt.Sprintf("LoadUser: %+v", arg), time.Now(), arg.G().Log.Debug)
+	arg.G().Log.Debug("LoadUser: %+v", arg)
 	var refresh bool
 
 	// Whatever the reply is, pass along our desired global context
@@ -131,7 +143,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 		return nil, err
 	}
 
-	G.Log.Debug("+ LoadUser(uid=%v, name=%v)", arg.UID, arg.Name)
+	arg.G().Log.Debug("+ LoadUser(uid=%v, name=%v)", arg.UID, arg.Name)
 
 	// resolve the uid from the name, if necessary
 	rres, err := arg.resolveUID()
@@ -142,7 +154,7 @@ func LoadUser(arg LoadUserArg) (ret *User, err error) {
 	// check to see if this is a self load
 	arg.checkSelf()
 
-	G.Log.Debug("| resolved to %s", arg.UID)
+	arg.G().Log.Debug("| resolved to %s", arg.UID)
 
 	// We can get the user object's body from either the resolution result or
 	// if it was plumbed through as a parameter.

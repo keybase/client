@@ -576,6 +576,12 @@ func NewChainLink(g *GlobalContext, parent *SigChain, id LinkID, jw *jsonw.Wrapp
 }
 
 func ImportLinkFromStorage(id LinkID, selfUID keybase1.UID, g *GlobalContext) (*ChainLink, error) {
+	link, ok := g.LinkCache.Get(id)
+	if ok {
+		link.Contextified = NewContextified(g)
+		return &link, nil
+	}
+
 	jw, err := g.LocalDb.Get(DbKey{Typ: DBLink, Key: id.String()})
 	var ret *ChainLink
 	if err == nil {
@@ -585,6 +591,8 @@ func ImportLinkFromStorage(id LinkID, selfUID keybase1.UID, g *GlobalContext) (*
 			ret = nil
 		}
 		ret.storedLocally = true
+
+		g.LinkCache.Put(id, ret.Copy())
 	}
 	return ret, err
 }
@@ -711,4 +719,22 @@ func (c *ChainLink) IsInCurrentFamily(u *User) bool {
 
 func (c *ChainLink) Typed() TypedChainLink {
 	return c.typed
+}
+
+func (c *ChainLink) Copy() ChainLink {
+	var unpacked ChainLinkUnpacked
+	if c.unpacked != nil {
+		unpacked = *c.unpacked
+	}
+
+	r := *c
+	r.SetGlobalContext(nil)
+	r.parent = nil
+	r.unpacked = &unpacked
+
+	if c.cki != nil {
+		r.cki = c.cki.ShallowCopy()
+	}
+
+	return r
 }

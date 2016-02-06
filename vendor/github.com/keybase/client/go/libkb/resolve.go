@@ -61,21 +61,25 @@ func (r *Resolver) resolve(input string, withBody bool) (res ResolveResult) {
 	r.G().Log.Debug("+ Resolving username %s", input)
 	var au AssertionURL
 	if au, res.err = ParseAssertionURL(input, false); res.err != nil {
-		return
+		return res
 	}
-	res = r.resolveURL(au, input, withBody)
-	return
+	res = r.resolveURL(au, input, withBody, false)
+	return res
 }
 
 func (r *Resolver) ResolveFullExpression(input string) (res ResolveResult) {
-	return r.resolveFullExpression(input, false)
+	return r.resolveFullExpression(input, false, false)
+}
+
+func (r *Resolver) ResolveFullExpressionNeedUsername(input string) (res ResolveResult) {
+	return r.resolveFullExpression(input, false, true)
 }
 
 func (r *Resolver) ResolveFullExpressionWithBody(input string) (res ResolveResult) {
-	return r.resolveFullExpression(input, true)
+	return r.resolveFullExpression(input, true, false)
 }
 
-func (r *Resolver) resolveFullExpression(input string, withBody bool) (res ResolveResult) {
+func (r *Resolver) resolveFullExpression(input string, withBody bool, needUsername bool) (res ResolveResult) {
 	var expr AssertionExpression
 	expr, res.err = AssertionParseAndOnly(input)
 	if res.err != nil {
@@ -86,18 +90,22 @@ func (r *Resolver) resolveFullExpression(input string, withBody bool) (res Resol
 		res.err = ResolutionError{Input: input, Msg: "Cannot find a resolvable factor"}
 		return res
 	}
-	return r.resolveURL(u, input, withBody)
+	return r.resolveURL(u, input, withBody, needUsername)
 }
 
-func (r *Resolver) resolveURL(au AssertionURL, input string, withBody bool) ResolveResult {
-	// A standard keybase UID, so it's already resolved
-	if tmp := au.ToUID(); tmp.Exists() {
-		return ResolveResult{uid: tmp}
+func (r *Resolver) resolveURL(au AssertionURL, input string, withBody bool, needUsername bool) ResolveResult {
+
+	// A standard keybase UID, so it's already resolved... unless we explicitly
+	// need it!
+	if !needUsername {
+		if tmp := au.ToUID(); tmp.Exists() {
+			return ResolveResult{uid: tmp}
+		}
 	}
 
 	ck := au.CacheKey()
 
-	if p := r.getCache(ck); p != nil {
+	if p := r.getCache(ck); p != nil && (!needUsername || len(p.resolvedKbUsername) > 0) {
 		return *p
 	}
 

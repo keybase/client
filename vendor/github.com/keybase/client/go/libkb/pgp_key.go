@@ -288,11 +288,11 @@ func cleanPGPInput(s string) string {
 
 // note:  openpgp.ReadArmoredKeyRing only returns the first block.
 // It will never return multiple entities.
-func ReadOneKeyFromString(s string) (*PGPKeyBundle, error) {
-	s = cleanPGPInput(s)
-	reader := strings.NewReader(s)
+func ReadOneKeyFromString(originalArmor string) (*PGPKeyBundle, error) {
+	cleanArmor := cleanPGPInput(originalArmor)
+	reader := strings.NewReader(cleanArmor)
 	el, err := openpgp.ReadArmoredKeyRing(reader)
-	return finishReadOne(el, s, err)
+	return finishReadOne(el, originalArmor, err)
 }
 
 // firstPrivateKey scans s for a private key block.

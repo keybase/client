@@ -33,9 +33,8 @@ func symmetricKeyFromSlice(slice []byte) (*SymmetricKey, error) {
 	return &result, nil
 }
 
-// kidExtractor key types can output a key ID corresponding to the
-// key.
-type kidExtractor interface {
+// BasePublicKey types can output a key ID corresponding to the key.
+type BasePublicKey interface {
 	// ToKID outputs the "key ID" that corresponds to this key.
 	// You can do whatever you'd like here, but probably it makes sense just
 	// to output the public key as is.
@@ -44,7 +43,7 @@ type kidExtractor interface {
 
 // BoxPublicKey is an generic interface to NaCl's public key Box function.
 type BoxPublicKey interface {
-	kidExtractor
+	BasePublicKey
 
 	// ToRawBoxKeyPointer returns this public key as a *[32]byte,
 	// for use with nacl.box.Seal
@@ -88,14 +87,14 @@ type SigningSecretKey interface {
 	// Sign signs message with this secret key.
 	Sign(message []byte) ([]byte, error)
 
-	// PublicKey gets the public key associated with this secret key.
-	PublicKey() SigningPublicKey
+	// GetPublicKey gets the public key associated with this secret key.
+	GetPublicKey() SigningPublicKey
 }
 
 // SigningPublicKey is a public NaCl key that can verify
 // signatures.
 type SigningPublicKey interface {
-	kidExtractor
+	BasePublicKey
 
 	// Verify verifies that signature is a valid signature of message for
 	// this public key.
@@ -117,12 +116,12 @@ type Keyring interface {
 
 	// GetAllSecretKeys returns all keys, needed if we want to support
 	// "hidden" receivers via trial and error
-	GetAllSecretKeys() []BoxSecretKey
+	GetAllBoxSecretKeys() []BoxSecretKey
 
 	// ImportEphemeralKey imports the ephemeral key into
 	// BoxPublicKey format. This key has never been seen before, so
 	// will be ephemeral.
-	ImportEphemeralKey(kid []byte) BoxPublicKey
+	ImportBoxEphemeralKey(kid []byte) BoxPublicKey
 }
 
 // SigKeyring is an interface used during verification to find
@@ -132,12 +131,7 @@ type SigKeyring interface {
 	LookupSigningPublicKey(kid []byte) SigningPublicKey
 }
 
-// publicKeyEqual returns true if the two public keys are equal.
-func publicKeyEqual(pk1, pk2 BoxPublicKey) bool {
-	return kidEqual(pk1, pk2)
-}
-
-// kidEqual return true if the KIDs for two keys are equal.
-func kidEqual(k1, k2 kidExtractor) bool {
+// PublicKeyEqual returns true if the two public keys are equal.
+func PublicKeyEqual(k1, k2 BasePublicKey) bool {
 	return hmac.Equal(k1.ToKID(), k2.ToKID())
 }

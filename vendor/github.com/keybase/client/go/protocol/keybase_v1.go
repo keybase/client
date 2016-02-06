@@ -577,6 +577,11 @@ type SetUserConfigArg struct {
 	Value     string `codec:"value" json:"value"`
 }
 
+type SetPathArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Path      string `codec:"path" json:"path"`
+}
+
 type HelloIAmArg struct {
 	Details ClientDetails `codec:"details" json:"details"`
 }
@@ -586,6 +591,7 @@ type ConfigInterface interface {
 	GetExtendedStatus(context.Context, int) (ExtendedStatus, error)
 	GetConfig(context.Context, int) (Config, error)
 	SetUserConfig(context.Context, SetUserConfigArg) error
+	SetPath(context.Context, SetPathArg) error
 	HelloIAm(context.Context, ClientDetails) error
 }
 
@@ -657,6 +663,22 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"setPath": {
+				MakeArg: func() interface{} {
+					ret := make([]SetPathArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetPathArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetPathArg)(nil), args)
+						return
+					}
+					err = i.SetPath(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"helloIAm": {
 				MakeArg: func() interface{} {
 					ret := make([]HelloIAmArg, 1)
@@ -701,6 +723,11 @@ func (c ConfigClient) GetConfig(ctx context.Context, sessionID int) (res Config,
 
 func (c ConfigClient) SetUserConfig(ctx context.Context, __arg SetUserConfigArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.config.setUserConfig", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ConfigClient) SetPath(ctx context.Context, __arg SetPathArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.config.setPath", []interface{}{__arg}, nil)
 	return
 }
 
@@ -826,8 +853,9 @@ type UnboxBytes32Arg struct {
 }
 
 type UnboxBytes32AnyArg struct {
-	Bundles []CiphertextBundle `codec:"bundles" json:"bundles"`
-	Reason  string             `codec:"reason" json:"reason"`
+	Bundles     []CiphertextBundle `codec:"bundles" json:"bundles"`
+	Reason      string             `codec:"reason" json:"reason"`
+	PromptPaper bool               `codec:"promptPaper" json:"promptPaper"`
 }
 
 type CryptoInterface interface {
@@ -2716,6 +2744,11 @@ type UnlockArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type UnlockWithPassphraseArg struct {
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
+	Passphrase string `codec:"passphrase" json:"passphrase"`
+}
+
 type LoginInterface interface {
 	GetConfiguredAccounts(context.Context, int) ([]ConfiguredAccount, error)
 	Login(context.Context, LoginArg) error
@@ -2725,6 +2758,7 @@ type LoginInterface interface {
 	RecoverAccountFromEmailAddress(context.Context, string) error
 	PaperKey(context.Context, int) error
 	Unlock(context.Context, int) error
+	UnlockWithPassphrase(context.Context, UnlockWithPassphraseArg) error
 }
 
 func LoginProtocol(i LoginInterface) rpc.Protocol {
@@ -2859,6 +2893,22 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"unlockWithPassphrase": {
+				MakeArg: func() interface{} {
+					ret := make([]UnlockWithPassphraseArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]UnlockWithPassphraseArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]UnlockWithPassphraseArg)(nil), args)
+						return
+					}
+					err = i.UnlockWithPassphrase(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -2909,6 +2959,11 @@ func (c LoginClient) PaperKey(ctx context.Context, sessionID int) (err error) {
 func (c LoginClient) Unlock(ctx context.Context, sessionID int) (err error) {
 	__arg := UnlockArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.login.unlock", []interface{}{__arg}, nil)
+	return
+}
+
+func (c LoginClient) UnlockWithPassphrase(ctx context.Context, __arg UnlockWithPassphraseArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.login.unlockWithPassphrase", []interface{}{__arg}, nil)
 	return
 }
 
@@ -5081,6 +5136,7 @@ const (
 	SaltpackSenderType_ANONYMOUS      SaltpackSenderType = 2
 	SaltpackSenderType_TRACKING_BROKE SaltpackSenderType = 3
 	SaltpackSenderType_TRACKING_OK    SaltpackSenderType = 4
+	SaltpackSenderType_SELF           SaltpackSenderType = 5
 )
 
 type SaltpackSender struct {

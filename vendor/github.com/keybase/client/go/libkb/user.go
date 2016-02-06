@@ -6,6 +6,7 @@ package libkb
 import (
 	"fmt"
 	"io"
+	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
@@ -221,15 +222,18 @@ func (u *User) StoreSigChain() error {
 }
 
 func (u *User) LoadSigChains(allKeys bool, f *MerkleUserLeaf, self bool) (err error) {
+	defer TimeLog(fmt.Sprintf("LoadSigChains: %s", u.name), time.Now(), u.G().Log.Debug)
+
 	loader := SigChainLoader{
 		user:         u,
 		self:         self,
 		allKeys:      allKeys,
 		leaf:         f,
 		chainType:    PublicChain,
-		preload:      u.sigChain(),
 		Contextified: u.Contextified,
+		preload:      u.sigChain(),
 	}
+
 	u.sigChainMem, err = loader.Load()
 
 	// Eventually load the others, but for now, this one is good enough

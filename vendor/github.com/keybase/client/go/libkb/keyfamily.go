@@ -95,6 +95,7 @@ type RawKeyFamily struct {
 // merged version of the key without revocations, and each individual version
 // of the key with revocations intact.
 type PGPKeySet struct {
+	Contextified
 	PermissivelyMergedKey *PGPKeyBundle
 	KeysByHash            map[string]*PGPKeyBundle
 }
@@ -125,6 +126,7 @@ func (s *PGPKeySet) addKey(key *PGPKeyBundle) error {
 	// behavior (for sigchains or sections of sigchains with no specific PGP
 	// key hash) and the new behavior.
 
+	s.G().Log.Debug("adding PGP kid %s with full hash %s", key.GetKID().String(), fullHash)
 	s.KeysByHash[fullHash] = key
 
 	strippedKey := key.StripRevocations()
@@ -352,7 +354,7 @@ func ParseKeyFamily(g *GlobalContext, jw *jsonw.Wrapper) (ret *KeyFamily, err er
 		if pgp, isPGP := newKey.(*PGPKeyBundle); isPGP {
 			ks, ok := kf.PGPKeySets[kid]
 			if !ok {
-				ks = &PGPKeySet{nil, make(map[string]*PGPKeyBundle)}
+				ks = &PGPKeySet{NewContextified(g), nil, make(map[string]*PGPKeyBundle)}
 				kf.PGPKeySets[kid] = ks
 
 				fp := pgp.GetFingerprint()

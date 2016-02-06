@@ -31,8 +31,13 @@ var SaltpackCurrentVersion = Version{Major: 1, Minor: 0}
 // encryptionBlockSize is by default 1MB and can't currently be tweaked.
 const encryptionBlockSize int = 1048576
 
+// EncryptionArmorString is included in armor headers for encrypted messages.
 const EncryptionArmorString = "ENCRYPTED MESSAGE"
+
+// SignedArmorString is included in armor headers for signed messages
 const SignedArmorString = "SIGNED MESSAGE"
+
+// DetachedSignatureArmorString is included in armor headers for detached signatures.
 const DetachedSignatureArmorString = "DETACHED SIGNATURE"
 
 // SaltpackFormatName is the publicly advertised name of the format,

@@ -56,6 +56,7 @@ type LoginContext interface {
 	ClearLoginSession()
 
 	LocalSession() *Session
+	GetUID() keybase1.UID
 	EnsureUsername(username NormalizedUsername)
 	SaveState(sessionID, csrf string, username NormalizedUsername, uid keybase1.UID, deviceID keybase1.DeviceID) error
 
@@ -67,6 +68,11 @@ type LoginContext interface {
 
 	CachedSecretKey(ska SecretKeyArg) (GenericKey, error)
 	SetCachedSecretKey(ska SecretKeyArg, key GenericKey) error
+}
+
+type LoggedInHelper interface {
+	GetUID() keybase1.UID
+	LoggedInLoad() (bool, error)
 }
 
 type loginHandler func(LoginContext) error
@@ -222,6 +228,43 @@ func (s *LoginState) GetPassphraseStreamForUser(ui SecretUI, username string) (p
 	err = s.loginHandle(func(lctx LoginContext) error {
 		return s.loginWithPromptHelper(lctx, username, nil, ui, true)
 	}, nil, "LoginState - GetPassphraseStreamForUser")
+	if err != nil {
+		return nil, err
+	}
+	pps, err = s.PassphraseStream()
+	if err != nil {
+		return nil, err
+	}
+	if pps != nil {
+		return pps, nil
+	}
+	err = InternalError{"No cached keystream data after login attempt"}
+	return nil, err
+}
+
+// GetPassphraseStreamWithPassphrase either returns a cached, verified
+// passphrase stream (maybe from a previous login) or generates a new one via
+// Login. It will return the current Passphrase stream on success or an error
+// on failure.
+func (s *LoginState) GetPassphraseStreamWithPassphrase(passphrase string) (pps *PassphraseStream, err error) {
+	s.G().Log.Debug("+ GetPassphraseStreamWithPassphrase() called")
+	defer func() { s.G().Log.Debug("- GetPassphraseStreamWithPassphrase() -> %s", ErrToOk(err)) }()
+
+	username := string(s.G().Env.GetUsername())
+	if username == "" {
+		return nil, fmt.Errorf("No current user to unlock.")
+	}
+
+	pps, err = s.PassphraseStream()
+	if err != nil {
+		return nil, err
+	}
+	if pps != nil {
+		return pps, nil
+	}
+	err = s.loginHandle(func(lctx LoginContext) error {
+		return s.passphraseLogin(lctx, username, passphrase, nil, "")
+	}, nil, "LoginState - GetPassphraseStreamWithPassphrase")
 	if err != nil {
 		return nil, err
 	}
@@ -649,7 +692,9 @@ func (s *LoginState) passphraseLogin(lctx LoginContext, username, passphrase str
 
 func (s *LoginState) stretchPassphraseIfNecessary(lctx LoginContext, un string, pp string, ui SecretUI, retry string) (storeSecret bool, err error) {
 	s.G().Log.Debug("+ stretchPassphraseIfNecessary (%s)", un)
-	defer s.G().Log.Debug("- stretchPassphraseIfNecessary")
+	defer func() {
+		s.G().Log.Debug("- stretchPassphraseIfNecessary -> %s", ErrToOk(err))
+	}()
 	if lctx.PassphraseStreamCache().Valid() {
 		s.G().Log.Debug("| stretchPassphraseIfNecessary: passphrase stream cached")
 		// already have stretched passphrase cached
@@ -750,11 +795,13 @@ func (s *LoginState) acctHandle(f acctHandler, name string) error {
 	}
 	select {
 	case s.acctReqs <- req:
-		// this is just during debugging:
 	case <-time.After(5 * time.Second):
+		// this is just during debugging:
 		s.G().Log.Debug("timed out sending acct request %q", name)
 		s.G().Log.Debug("active request: %s", s.activeReq)
-		debug.PrintStack()
+		if s.G().Env.GetDebug() {
+			debug.PrintStack()
+		}
 		return TimeoutError{}
 	}
 
@@ -911,6 +958,13 @@ func (s *LoginState) LocalSession(h func(*Session), name string) error {
 	}, name)
 }
 
+func (s *LoginState) GetUID() (ret keybase1.UID) {
+	s.Account(func(a *Account) {
+		ret = a.GetUID()
+	}, "GetUID")
+	return ret
+}
+
 func (s *LoginState) LoginSession(h func(*LoginSession), name string) error {
 	return s.Account(func(a *Account) {
 		h(a.LoginSession())
@@ -979,7 +1033,7 @@ func (s *LoginState) LoggedInLoad() (lin bool, err error) {
 	if aerr != nil {
 		return false, aerr
 	}
-	return
+	return lin, err
 }
 
 func (s *LoginState) LoggedInProvisionedLoad() (lin bool, err error) {

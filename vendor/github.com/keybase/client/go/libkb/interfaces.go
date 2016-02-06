@@ -39,7 +39,9 @@ type CommandLine interface {
 	GetAPIDump() (bool, bool)
 	GetUserCacheMaxAge() (time.Duration, bool)
 	GetProofCacheSize() (int, bool)
+	GetLinkCacheSize() (int, bool)
 	GetMerkleKIDs() []string
+	GetCodeSigningKIDs() []string
 	GetPinentry() string
 	GetGpg() string
 	GetGpgOptions() []string
@@ -114,7 +116,10 @@ type ConfigReader interface {
 	GetProofCacheLongDur() (time.Duration, bool)
 	GetProofCacheMediumDur() (time.Duration, bool)
 	GetProofCacheShortDur() (time.Duration, bool)
+	GetLinkCacheSize() (int, bool)
+	GetLinkCacheCleanDur() (time.Duration, bool)
 	GetMerkleKIDs() []string
+	GetCodeSigningKIDs() []string
 	GetPinentry() string
 	GetNoPinentry() (bool, bool)
 	GetGpg() string

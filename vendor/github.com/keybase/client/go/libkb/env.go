@@ -33,7 +33,10 @@ func (n NullConfiguration) GetProofCacheSize() (int, bool)                { retu
 func (n NullConfiguration) GetProofCacheLongDur() (time.Duration, bool)   { return 0, false }
 func (n NullConfiguration) GetProofCacheMediumDur() (time.Duration, bool) { return 0, false }
 func (n NullConfiguration) GetProofCacheShortDur() (time.Duration, bool)  { return 0, false }
+func (n NullConfiguration) GetLinkCacheSize() (int, bool)                 { return 0, false }
+func (n NullConfiguration) GetLinkCacheCleanDur() (time.Duration, bool)   { return 0, false }
 func (n NullConfiguration) GetMerkleKIDs() []string                       { return nil }
+func (n NullConfiguration) GetCodeSigningKIDs() []string                  { return nil }
 func (n NullConfiguration) GetPinentry() string                           { return "" }
 func (n NullConfiguration) GetUID() (ret keybase1.UID)                    { return }
 func (n NullConfiguration) GetGpg() string                                { return "" }
@@ -572,6 +575,21 @@ func (e *Env) GetProofCacheShortDur() time.Duration {
 	)
 }
 
+func (e *Env) GetLinkCacheSize() int {
+	return e.GetInt(LinkCacheSize,
+		e.cmd.GetLinkCacheSize,
+		func() (int, bool) { return e.getEnvInt("KEYBASE_LINK_CACHE_SIZE") },
+		e.config.GetLinkCacheSize,
+	)
+}
+
+func (e *Env) GetLinkCacheCleanDur() time.Duration {
+	return e.GetDuration(LinkCacheCleanDur,
+		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_LINK_CACHE_CLEAN_DUR") },
+		e.config.GetLinkCacheCleanDur,
+	)
+}
+
 func (e *Env) GetEmailOrUsername() string {
 	un := e.GetUsername().String()
 	if len(un) > 0 {
@@ -624,6 +642,32 @@ func (e *Env) GetMerkleKIDs() []keybase1.KID {
 			if e.GetRunMode() == DevelRunMode || e.GetRunMode() == StagingRunMode {
 				ret = append(ret, MerkleTestKIDs...)
 				ret = append(ret, MerkleStagingKIDs...)
+			}
+			return ret
+		},
+	)
+
+	if slist == nil {
+		return nil
+	}
+	var ret []keybase1.KID
+	for _, s := range slist {
+		ret = append(ret, keybase1.KIDFromString(s))
+	}
+
+	return ret
+}
+
+func (e *Env) GetCodeSigningKIDs() []keybase1.KID {
+	slist := e.GetStringList(
+		func() []string { return e.cmd.GetCodeSigningKIDs() },
+		func() []string { return e.getEnvPath("KEYBASE_CODE_SIGNING_KIDS") },
+		func() []string { return e.config.GetCodeSigningKIDs() },
+		func() []string {
+			ret := CodeSigningProdKIDs
+			if e.GetRunMode() == DevelRunMode || e.GetRunMode() == StagingRunMode {
+				ret = append(ret, CodeSigningTestKIDs...)
+				ret = append(ret, CodeSigningStagingKIDs...)
 			}
 			return ret
 		},

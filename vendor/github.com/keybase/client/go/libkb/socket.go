@@ -44,6 +44,10 @@ func (g *GlobalContext) BindToSocket() (net.Listener, error) {
 	return g.SocketInfo.BindToSocket()
 }
 
+func NewTransportFromSocket(s net.Conn) rpc.Transporter {
+	return rpc.NewTransport(s, NewRPCLogFactory(), WrapError)
+}
+
 func (g *GlobalContext) GetSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error) {
 
 	// Protect all global socket wrapper manipulation with a
@@ -73,7 +77,7 @@ func (g *GlobalContext) GetSocket(clearError bool) (net.Conn, rpc.Transporter, b
 			isNew = true
 		}
 		if sw.err == nil {
-			sw.xp = rpc.NewTransport(sw.conn, NewRPCLogFactory(), WrapError)
+			sw.xp = NewTransportFromSocket(sw.conn)
 		}
 		g.SocketWrapper = &sw
 	}

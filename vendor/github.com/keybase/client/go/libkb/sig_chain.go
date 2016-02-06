@@ -612,17 +612,16 @@ func (l *SigChainLoader) LoadLastLinkIDFromStorage() (mt *MerkleTriple, err erro
 	return
 }
 
-func (l *SigChainLoader) AccessPreload() (cached bool, err error) {
-	if l.preload != nil && (l.preload.allKeys == l.allKeys) {
-		l.G().Log.Debug("| Preload successful")
-		cached = true
-		src := l.preload.chainLinks
-		l.links = make([]*ChainLink, len(src))
-		copy(l.links, src)
-	} else {
+func (l *SigChainLoader) AccessPreload() bool {
+	if l.preload == nil || (l.preload.allKeys != l.allKeys) {
 		l.G().Log.Debug("| Preload failed")
+		return false
 	}
-	return
+	l.G().Log.Debug("| Preload successful")
+	src := l.preload.chainLinks
+	l.links = make([]*ChainLink, len(src))
+	copy(l.links, src)
+	return true
 }
 
 func (l *SigChainLoader) LoadLinksFromStorage() (err error) {
@@ -858,6 +857,7 @@ func (l *SigChainLoader) merkleTreeEldestMatchesLastLinkEldest() bool {
 // all of the steps to load a chain in from storage, to refresh it against
 // the server, and to verify its integrity.
 func (l *SigChainLoader) Load() (ret *SigChain, err error) {
+	defer TimeLog(fmt.Sprintf("SigChainLoader.Load: %s", l.user.GetName()), time.Now(), l.G().Log.Debug)
 	var current bool
 	var preload bool
 
@@ -878,9 +878,7 @@ func (l *SigChainLoader) Load() (ret *SigChain, err error) {
 	}
 
 	stage("AccessPreload")
-	if preload, err = l.AccessPreload(); err != nil {
-		return
-	}
+	preload = l.AccessPreload()
 
 	if !preload {
 		stage("LoadLinksFromStorage")

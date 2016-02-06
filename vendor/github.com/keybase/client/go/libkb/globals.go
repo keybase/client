@@ -52,6 +52,7 @@ type GlobalContext struct {
 	Timers            *TimerSet          // Which timers are currently configured on
 	TrackCache        *TrackCache        // cache of IdentifyOutcomes for tracking purposes
 	Identify2Cache    Identify2Cacher    // cache of Identify2 results for fast-pathing identify2 RPCS
+	LinkCache         *LinkCache         // cache of ChainLinks
 	UI                UI                 // Interact with the UI
 	Service           bool               // whether we're in server mode
 	shutdownOnce      sync.Once          // whether we've shut down or not
@@ -220,6 +221,8 @@ func (g *GlobalContext) ConfigureCaches() error {
 	g.TrackCache = NewTrackCache()
 	g.Identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())
 	g.ProofCache = NewProofCache(g, g.Env.GetProofCacheSize())
+	g.LinkCache = NewLinkCache(g.Env.GetLinkCacheSize(), g.Env.GetLinkCacheCleanDur())
+	g.Log.Debug("Created LinkCache, max size: %d, clean dur: %s", g.Env.GetLinkCacheSize(), g.Env.GetLinkCacheCleanDur())
 
 	// We consider the local DB as a cache; it's caching our
 	// fetches from the server after all (and also our cryptographic
@@ -279,6 +282,9 @@ func (g *GlobalContext) Shutdown() error {
 		}
 		if g.Identify2Cache != nil {
 			g.Identify2Cache.Shutdown()
+		}
+		if g.LinkCache != nil {
+			g.LinkCache.Shutdown()
 		}
 
 		for _, hook := range g.ShutdownHooks {

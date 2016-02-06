@@ -68,6 +68,8 @@ func (rc *TwitterChecker) findSigInTweet(h SigHint, s *goquery.Selection) ProofE
 			G.Log.Debug("| Stripping off @prefx: %s", prefix)
 		}
 	}
+	inside = WhitespaceNormalize(inside)
+	checkText = WhitespaceNormalize(checkText)
 	if strings.HasPrefix(inside, checkText) {
 		return nil
 	}
