@@ -111,6 +111,7 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	config.maxFileBytes = maxFileBytesDefault
 	config.maxNameBytes = maxNameBytesDefault
 	config.maxDirBytes = maxDirBytesDefault
+	config.rwpWaitTime = rekeyWithPromptWaitTimeDefault
 
 	config.qrPeriod = 0 * time.Second // no auto reclamation
 	config.qrUnrefAge = qrUnrefAgeDefault

@@ -20,6 +20,9 @@ const (
 	// increase this once we support levels of indirection for
 	// directories.
 	maxDirBytesDefault = 512 * 1024
+	// Default time after setting the rekey bit before prompting for a
+	// paper key.
+	rekeyWithPromptWaitTimeDefault = 10 * time.Minute
 	// How often do we check for stuff to reclaim?
 	qrPeriodDefault = 1 * time.Minute
 	// How long must something be unreferenced before we reclaim it?
@@ -52,6 +55,7 @@ type ConfigLocal struct {
 	registry     metrics.Registry
 	loggerFn     func(prefix string) logger.Logger
 	noBGFlush    bool // logic opposite so the default value is the common setting
+	rwpWaitTime  time.Duration
 	maxFileBytes uint64
 	maxNameBytes uint32
 	maxDirBytes  uint64
@@ -186,6 +190,7 @@ func NewConfigLocal() *ConfigLocal {
 	config.maxFileBytes = maxFileBytesDefault
 	config.maxNameBytes = maxNameBytesDefault
 	config.maxDirBytes = maxDirBytesDefault
+	config.rwpWaitTime = rekeyWithPromptWaitTimeDefault
 
 	config.qrPeriod = qrPeriodDefault
 	config.qrUnrefAge = qrUnrefAgeDefault
@@ -412,6 +417,12 @@ func (c *ConfigLocal) DataVersion() DataVer {
 // DoBackgroundFlushes implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) DoBackgroundFlushes() bool {
 	return !c.noBGFlush
+}
+
+// RekeyWithPromptWaitTime implements the Config interface for
+// ConfigLocal.
+func (c *ConfigLocal) RekeyWithPromptWaitTime() time.Duration {
+	return c.rwpWaitTime
 }
 
 // QuotaReclamationPeriod implements the Config interface for ConfigLocal.

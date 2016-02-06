@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"errors"
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
@@ -1050,4 +1051,90 @@ func TestKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T) {
 	if _, ok := children["b"]; !ok {
 		t.Fatalf("Device 1 couldn't see the new dir entry")
 	}
+}
+
+type cryptoLocalTrapAny struct {
+	Crypto
+	promptCh chan<- bool
+}
+
+func (clta *cryptoLocalTrapAny) DecryptTLFCryptKeyClientHalfAny(
+	ctx context.Context,
+	keys []EncryptedTLFCryptKeyClientAndEphemeral, promptPaper bool) (
+	TLFCryptKeyClientHalf, int, error) {
+	clta.promptCh <- promptPaper
+	return TLFCryptKeyClientHalf{}, 0, nil
+}
+
+func TestKeyManagerRekeyAddDeviceWithPrompt(t *testing.T) {
+	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2)
+	defer CheckConfigAndShutdown(t, config1)
+
+	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)
+	defer CheckConfigAndShutdown(t, config2)
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a shared folder
+	name := u1.String() + "," + u2.String()
+
+	kbfsOps1 := config1.KBFSOps()
+	rootNode1, _, err :=
+		kbfsOps1.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+
+	// user 1 creates a file
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	config2Dev2 := ConfigAsUser(config1.(*ConfigLocal), u2)
+	defer CheckConfigAndShutdown(t, config2Dev2)
+
+	// Now give u2 a new device.  The configs don't share a Keybase
+	// Daemon so we have to do it in all places.
+	AddDeviceForLocalUserOrBust(t, config1, uid2)
+	AddDeviceForLocalUserOrBust(t, config2, uid2)
+	devIndex := AddDeviceForLocalUserOrBust(t, config2Dev2, uid2)
+	SwitchDeviceForLocalUserOrBust(t, config2Dev2, devIndex)
+
+	// The new device should be unable to rekey on its own, and will
+	// just set the rekey bit.
+	kbfsOps2Dev2 := config2Dev2.KBFSOps()
+	err = kbfsOps2Dev2.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
+	if err != nil {
+		t.Fatalf("First rekey failed %v", err)
+	}
+
+	// Make sure just the rekey bit is set
+	ops := getOps(config2Dev2, rootNode1.GetFolderBranch().Tlf)
+	if !ops.head.IsRekeySet() {
+		t.Fatalf("Couldn't set rekey bit")
+	}
+
+	c := make(chan bool)
+	clta := &cryptoLocalTrapAny{config2Dev2.Crypto(), c}
+	config2Dev2.SetCrypto(clta)
+
+	ops.rekeyWithPromptTimer.Reset(1 * time.Millisecond)
+	promptPaper := <-c
+	if !promptPaper {
+		t.Fatalf("Didn't prompt paper")
+	}
+
+	// Take the mdWriterLock to ensure that the rekeyWithPrompt finishes.
+	lState := makeFBOLockState()
+	ops.mdWriterLock.Lock(lState)
+	t.Logf("Got lock!")
+	ops.mdWriterLock.Unlock(lState)
+
+	// State checking won't work since we fakes out the key in clta,
+	// so shutdown the shared MDServer to avoid it.
+	config1.MDServer().Shutdown()
 }

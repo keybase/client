@@ -352,6 +352,11 @@ type folderBranchOps struct {
 
 	// Helper class for archiving and cleaning up the blocks for this TLF
 	fbm *folderBlockManager
+
+	// rekeyWithPromptTimer tracks a timed function that will try to
+	// rekey with a paper key prompt, if enough time has passed.
+	// Protected by mdWriterLock
+	rekeyWithPromptTimer *time.Timer
 }
 
 var _ KBFSOps = (*folderBranchOps)(nil)
@@ -4997,7 +5002,7 @@ func (fbo *folderBranchOps) UnstageForTesting(
 }
 
 func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
-	lState *lockState) (err error) {
+	lState *lockState, promptPaper bool) (err error) {
 	if fbo.staged {
 		return errors.New("Can't rekey while staged.")
 	}
@@ -5007,7 +5012,32 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		return err
 	}
 
-	rekeyDone, tlfCryptKey, err := fbo.config.KeyManager().Rekey(ctx, md)
+	if fbo.rekeyWithPromptTimer != nil {
+		fbo.rekeyWithPromptTimer.Stop()
+		fbo.rekeyWithPromptTimer = nil
+		if !promptPaper {
+			fbo.log.CDebugf(ctx, "rekeyWithPrompt interrupted before it fires.")
+		} else if !md.IsRekeySet() {
+			// If the rekey bit isn't set, than some other device
+			// already took care of our request, and we can stop
+			// early.  Note that if this FBO never registered for
+			// updates, then we might not yet have seen the update, in
+			// which case we'll still try to rekey but it will fail as
+			// a conflict.
+			fbo.log.CDebugf(ctx, "rekeyWithPrompt not needed because the "+
+				"rekey bit was already unset.")
+			return nil
+		}
+	}
+
+	var tlfCryptKey *TLFCryptKey
+	var rekeyDone bool
+	if promptPaper {
+		rekeyDone, tlfCryptKey, err = fbo.config.KeyManager().
+			RekeyWithPrompt(ctx, md)
+	} else {
+		rekeyDone, tlfCryptKey, err = fbo.config.KeyManager().Rekey(ctx, md)
+	}
 
 	switch err.(type) {
 	case nil:
@@ -5021,7 +5051,8 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		md.Flags &= ^MetadataFlagRekey
 
 	case RekeyIncompleteError:
-		fbo.log.CDebugf(ctx, "Rekeyed reader devices, but still need writer rekey")
+		fbo.log.CDebugf(ctx,
+			"Rekeyed reader devices, but still need writer rekey")
 		// Rekey incomplete, fallthrough without early exit, to ensure we write
 		// the metadata with any potential changes
 
@@ -5033,6 +5064,14 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 			fbo.log.CDebugf(ctx, "Rekey bit already set")
 			return nil
 		}
+
+		// If we didn't have read access, then we don't have any
+		// unlocked paper keys.  Wait for some time, and then if
+		// we still aren't rekeyed, try again but this time prompt
+		// the user for any known paper keys.
+		d := fbo.config.RekeyWithPromptWaitTime()
+		fbo.log.CDebugf(ctx, "Scheduling a rekeyWithPrompt in %s", d)
+		fbo.rekeyWithPromptTimer = time.AfterFunc(d, fbo.rekeyWithPrompt)
 
 	default:
 		return err
@@ -5059,8 +5098,32 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 
 	// send rekey finish notification
 	handle := md.GetTlfHandle()
-	fbo.config.Reporter().Notify(ctx, rekeyNotification(ctx, fbo.config, handle, true))
+	fbo.config.Reporter().Notify(ctx,
+		rekeyNotification(ctx, fbo.config, handle, true))
 	return nil
+}
+
+func (fbo *folderBranchOps) rekeyWithPrompt() {
+	var ctx context.Context
+	var err error
+	{
+		// TODO: replace this with a helper method once KBFS-745 is done.
+		logTags := make(logger.CtxLogTags)
+		logTags[CtxRekeyIDKey] = CtxRekeyOpID
+		ctx = logger.NewContextWithLogTags(context.Background(), logTags)
+		ctxID, err := MakeRandomRequestID()
+		if err == nil {
+			ctx = context.WithValue(ctx, CtxRekeyIDKey, ctxID)
+		}
+	}
+
+	fbo.log.CDebugf(ctx, "rekeyWithPrompt")
+	defer func() { fbo.log.CDebugf(ctx, "Done: %v", err) }()
+
+	err = fbo.doMDWriteWithRetryUnlessCanceled(ctx,
+		func(lState *lockState) error {
+			return fbo.rekeyLocked(ctx, lState, true)
+		})
 }
 
 // Rekey rekeys the given folder.
@@ -5077,7 +5140,7 @@ func (fbo *folderBranchOps) Rekey(ctx context.Context, tlf TlfID) (err error) {
 
 	return fbo.doMDWriteWithRetryUnlessCanceled(ctx,
 		func(lState *lockState) error {
-			return fbo.rekeyLocked(ctx, lState)
+			return fbo.rekeyLocked(ctx, lState, false)
 		})
 }
 

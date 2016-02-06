@@ -806,6 +806,18 @@ func (_mr *_MockKeyManagerRecorder) Rekey(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Rekey", arg0, arg1)
 }
 
+func (_m *MockKeyManager) RekeyWithPrompt(ctx context.Context, md *RootMetadata) (bool, *TLFCryptKey, error) {
+	ret := _m.ctrl.Call(_m, "RekeyWithPrompt", ctx, md)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(*TLFCryptKey)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+func (_mr *_MockKeyManagerRecorder) RekeyWithPrompt(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RekeyWithPrompt", arg0, arg1)
+}
+
 // Mock of Reporter interface
 type MockReporter struct {
 	ctrl     *gomock.Controller
@@ -2575,6 +2587,16 @@ func (_m *MockConfig) DoBackgroundFlushes() bool {
 
 func (_mr *_MockConfigRecorder) DoBackgroundFlushes() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DoBackgroundFlushes")
+}
+
+func (_m *MockConfig) RekeyWithPromptWaitTime() time.Duration {
+	ret := _m.ctrl.Call(_m, "RekeyWithPromptWaitTime")
+	ret0, _ := ret[0].(time.Duration)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) RekeyWithPromptWaitTime() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RekeyWithPromptWaitTime")
 }
 
 func (_m *MockConfig) QuotaReclamationPeriod() time.Duration {
