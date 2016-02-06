@@ -579,6 +579,12 @@ func (km *mdRecordingKeyManager) Rekey(
 	return km.delegate.Rekey(ctx, md)
 }
 
+func (km *mdRecordingKeyManager) RekeyWithPrompt(
+	ctx context.Context, md *RootMetadata) (bool, *TLFCryptKey, error) {
+	km.setLastMD(md)
+	return km.delegate.RekeyWithPrompt(ctx, md)
+}
+
 // Test that a sync can happen concurrently with a write. This is a
 // regression test for KBFS-558.
 func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {

@@ -61,7 +61,7 @@ func expectUncachedGetTLFCryptKeyAnyDevice(config *ConfigMock, rmd *RootMetadata
 	config.mockKbpki.EXPECT().GetCryptPublicKeys(gomock.Any(), uid).
 		Return([]CryptPublicKey{subkey}, nil)
 	config.mockCrypto.EXPECT().DecryptTLFCryptKeyClientHalfAny(gomock.Any(),
-		gomock.Any()).Return(TLFCryptKeyClientHalf{}, 0, nil)
+		gomock.Any(), false).Return(TLFCryptKeyClientHalf{}, 0, nil)
 
 	// get the server-side half and retrieve the real secret key
 	config.mockKops.EXPECT().GetTLFCryptKeyServerHalf(gomock.Any(),

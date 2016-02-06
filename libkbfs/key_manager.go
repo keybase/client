@@ -31,7 +31,8 @@ func (km *KeyManagerStandard) GetTLFCryptKeyForEncryption(ctx context.Context,
 func (km *KeyManagerStandard) GetTLFCryptKeyForMDDecryption(
 	ctx context.Context, md *RootMetadata) (
 	tlfCryptKey TLFCryptKey, err error) {
-	return km.getTLFCryptKey(ctx, md, md.LatestKeyGeneration(), true, true)
+	return km.getTLFCryptKey(ctx, md, md.LatestKeyGeneration(),
+		true, true, false)
 }
 
 // GetTLFCryptKeyForBlockDecryption implements the KeyManager interface for
@@ -44,11 +45,12 @@ func (km *KeyManagerStandard) GetTLFCryptKeyForBlockDecryption(
 
 func (km *KeyManagerStandard) getTLFCryptKeyUsingCurrentDevice(ctx context.Context,
 	md *RootMetadata, keyGen KeyGen, cache bool) (tlfCryptKey TLFCryptKey, err error) {
-	return km.getTLFCryptKey(ctx, md, keyGen, false, cache)
+	return km.getTLFCryptKey(ctx, md, keyGen, false, cache, false)
 }
 
 func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
-	md *RootMetadata, keyGen KeyGen, anyDevice bool, cache bool) (
+	md *RootMetadata, keyGen KeyGen, anyDevice bool, cache bool,
+	promptPaper bool) (
 	tlfCryptKey TLFCryptKey, err error) {
 
 	if md.ID.IsPublic() {
@@ -119,7 +121,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 		}
 		var index int
 		clientHalf, index, err =
-			crypto.DecryptTLFCryptKeyClientHalfAny(ctx, keys)
+			crypto.DecryptTLFCryptKeyClientHalfAny(ctx, keys, promptPaper)
 		if err != nil {
 			// The likely error here is DecryptionError, which we will replace
 			// with a ReadAccessError to communicate to the caller that we were
@@ -357,9 +359,10 @@ func (km *KeyManagerStandard) generateKeyMapForUsers(ctx context.Context, users 
 }
 
 // Rekey implements the KeyManager interface for KeyManagerStandard.
-func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
+func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
+	promptPaper bool) (
 	rekeyDone bool, cryptKey *TLFCryptKey, err error) {
-	km.log.CDebugf(ctx, "Rekey %s", md.ID)
+	km.log.CDebugf(ctx, "Rekey %s (%t)", md.ID, promptPaper)
 	defer func() { km.log.CDebugf(ctx, "Rekey %s done: %#v", md.ID, err) }()
 
 	currKeyGen := md.LatestKeyGeneration()
@@ -465,7 +468,8 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 	// If there's at least one new device, add that device to every key bundle.
 	if addNewReaderDevice || addNewWriterDevice {
 		for keyGen := KeyGen(FirstValidKeyGen); keyGen <= currKeyGen; keyGen++ {
-			currTlfCryptKey, err := km.getTLFCryptKey(ctx, md, keyGen, true, false)
+			currTlfCryptKey, err := km.getTLFCryptKey(ctx, md, keyGen,
+				true, false, promptPaper)
 			if err != nil {
 				return false, nil, err
 			}
@@ -532,4 +536,17 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
 	}
 
 	return true, &tlfCryptKey, nil
+}
+
+// Rekey implements the KeyManager interface for KeyManagerStandard.
+func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
+	rekeyDone bool, cryptKey *TLFCryptKey, err error) {
+	return km.doRekey(ctx, md, false)
+}
+
+// RekeyWithPrompt implements the KeyManager interface for
+// KeyManagerStandard.
+func (km *KeyManagerStandard) RekeyWithPrompt(ctx context.Context,
+	md *RootMetadata) (rekeyDone bool, cryptKey *TLFCryptKey, err error) {
+	return km.doRekey(ctx, md, true)
 }

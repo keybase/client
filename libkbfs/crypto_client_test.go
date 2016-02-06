@@ -93,7 +93,7 @@ func (fc FakeCryptoClient) Call(_ context.Context, s string, args interface{}, r
 			})
 		}
 		clientHalf, index, err := fc.Local.DecryptTLFCryptKeyClientHalfAny(
-			context.Background(), keys)
+			context.Background(), keys, arg.PromptPaper)
 		if err != nil {
 			return err
 		}
@@ -270,7 +270,7 @@ func TestCryptoClientDecryptEmptyEncryptedTLFCryptKeyClientHalfAny(t *testing.T)
 	keys := make([]EncryptedTLFCryptKeyClientAndEphemeral, 0, 0)
 
 	_, _, err := c.DecryptTLFCryptKeyClientHalfAny(
-		context.Background(), keys)
+		context.Background(), keys, false)
 	if _, ok := err.(NoKeysError); !ok {
 		t.Fatalf("expected NoKeysError. Actual error: %v", err)
 	}
@@ -322,7 +322,7 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalfAny(t *testing.T) {
 	}
 
 	decryptedClientHalf, index, err := c.DecryptTLFCryptKeyClientHalfAny(
-		context.Background(), keys)
+		context.Background(), keys, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -415,7 +415,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfAnyFailures(t *testing.T) {
 	}
 
 	_, index, err := c.DecryptTLFCryptKeyClientHalfAny(
-		context.Background(), keys)
+		context.Background(), keys, false)
 	if err != nil {
 		t.Fatal(err)
 	}

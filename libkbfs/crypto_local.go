@@ -152,7 +152,7 @@ func (c *CryptoLocal) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 // DecryptTLFCryptKeyClientHalfAny implements the Crypto interface for
 // CryptoLocal.
 func (c *CryptoLocal) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
-	keys []EncryptedTLFCryptKeyClientAndEphemeral) (
+	keys []EncryptedTLFCryptKeyClientAndEphemeral, _ bool) (
 	clientHalf TLFCryptKeyClientHalf, index int, err error) {
 	if len(keys) == 0 {
 		return clientHalf, index, NoKeysError{}

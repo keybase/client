@@ -414,7 +414,14 @@ type KeyManager interface {
 	// allow for caching of the TLF crypt key only after a successful
 	// merged write of the metadata. Otherwise we could prematurely
 	// pollute the key cache.
+	//
+	// Does not prompt the user for any unlocked paper keys.
 	Rekey(ctx context.Context, md *RootMetadata) (bool, *TLFCryptKey, error)
+
+	// Just like Rekey(), but also prompts for any unlocked paper
+	// keys.
+	RekeyWithPrompt(ctx context.Context, md *RootMetadata) (
+		bool, *TLFCryptKey, error)
 }
 
 // ReportingLevel indicate the severity of a reported event.
@@ -607,10 +614,11 @@ type Crypto interface {
 		TLFCryptKeyClientHalf, error)
 
 	// DecryptTLFCryptKeyClientHalfAny decrypts one of the
-	// TLFCryptKeyClientHalf using the available private keys and the ephemeral
-	// public key.
+	// TLFCryptKeyClientHalf using the available private keys and the
+	// ephemeral public key.  If promptPaper is true, the service will
+	// prompt the user for any unlocked paper keys.
 	DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
-		keys []EncryptedTLFCryptKeyClientAndEphemeral) (
+		keys []EncryptedTLFCryptKeyClientAndEphemeral, promptPaper bool) (
 		TLFCryptKeyClientHalf, int, error)
 
 	// GetTLFCryptKeyServerHalfID creates a unique ID for this particular

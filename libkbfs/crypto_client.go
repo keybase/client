@@ -164,7 +164,7 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 // DecryptTLFCryptKeyClientHalfAny implements the Crypto interface for
 // CryptoClient.
 func (c *CryptoClient) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
-	keys []EncryptedTLFCryptKeyClientAndEphemeral) (
+	keys []EncryptedTLFCryptKeyClientAndEphemeral, promptPaper bool) (
 	clientHalf TLFCryptKeyClientHalf, index int, err error) {
 	if len(keys) == 0 {
 		return clientHalf, index, NoKeysError{}
@@ -191,8 +191,9 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 		return
 	}
 	res, err := c.client.UnboxBytes32Any(ctx, keybase1.UnboxBytes32AnyArg{
-		Bundles: bundles,
-		Reason:  "to rekey for kbfs",
+		Bundles:     bundles,
+		Reason:      "to rekey for kbfs",
+		PromptPaper: promptPaper,
 	})
 	if err != nil {
 		return
