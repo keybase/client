@@ -122,7 +122,7 @@ func mainInner(g *libkb.GlobalContext) error {
 		// Further note -- don't die here.  It could be we're calling this method
 		// against an earlier version of the service that doesn't support it.
 		// It's not critical that it succeed, so continue on.
-		g.Log.Notice("Configure path failed: %v\n", err)
+		g.Log.Debug("Configure path failed: %v", err)
 	}
 
 	return cmd.Run()
