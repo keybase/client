@@ -119,7 +119,10 @@ func mainInner(g *libkb.GlobalContext) error {
 	// its PATH if necessary. This is called after FixVersionClash(), which
 	// happens above in configureProcesses().
 	if err = configurePath(g, cl); err != nil {
-		return err
+		// Further note -- don't die here.  It could be we're calling this method
+		// against an earlier version of the service that doesn't support it.
+		// It's not critical that it succeed, so continue on.
+		g.Log.Notice("Configure path failed: %v\n", err)
 	}
 
 	return cmd.Run()
