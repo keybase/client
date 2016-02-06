@@ -118,7 +118,9 @@ func mainInner(g *libkb.GlobalContext) error {
 	// This sends the client's PATH to the service so the service can update
 	// its PATH if necessary. This is called after FixVersionClash(), which
 	// happens above in configureProcesses().
-	if err = configurePath(g, cl); err != nil {
+	fc := cl.GetForkCmd()
+	err = configurePath(g, cl)
+	if err != nil && fc != libcmdline.NoFork {
 		return err
 	}
 
