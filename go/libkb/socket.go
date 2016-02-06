@@ -44,8 +44,8 @@ func (g *GlobalContext) BindToSocket() (net.Listener, error) {
 	return g.SocketInfo.BindToSocket()
 }
 
-func NewTransportFromSocket(s net.Conn) rpc.Transporter {
-	return rpc.NewTransport(s, NewRPCLogFactory(), WrapError)
+func NewTransportFromSocket(g *GlobalContext, s net.Conn) rpc.Transporter {
+	return rpc.NewTransport(s, NewRPCLogFactory(g), WrapError)
 }
 
 func (g *GlobalContext) GetSocket(clearError bool) (net.Conn, rpc.Transporter, bool, error) {
@@ -77,7 +77,7 @@ func (g *GlobalContext) GetSocket(clearError bool) (net.Conn, rpc.Transporter, b
 			isNew = true
 		}
 		if sw.err == nil {
-			sw.xp = NewTransportFromSocket(sw.conn)
+			sw.xp = NewTransportFromSocket(g, sw.conn)
 		}
 		g.SocketWrapper = &sw
 	}

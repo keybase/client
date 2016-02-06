@@ -68,14 +68,16 @@ func getRPCLogOptions() *RPCLogOptions {
 	return rpcLogOptions
 }
 
-type RPCLogFactory struct{}
+type RPCLogFactory struct {
+	Contextified
+}
 
-func NewRPCLogFactory() *RPCLogFactory {
-	return &RPCLogFactory{}
+func NewRPCLogFactory(g *GlobalContext) *RPCLogFactory {
+	return &RPCLogFactory{Contextified: NewContextified(g)}
 }
 
 func (r *RPCLogFactory) NewLog(a net.Addr) rpc.LogInterface {
-	ret := rpc.SimpleLog{Addr: a, Out: G.Log, Opts: getRPCLogOptions()}
+	ret := rpc.SimpleLog{Addr: a, Out: r.G().GetUnforwardedLogger(), Opts: getRPCLogOptions()}
 	ret.TransportStart()
 	return ret
 }

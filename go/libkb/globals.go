@@ -483,3 +483,15 @@ func (g *GlobalContext) GetMyClientDetails() keybase1.ClientDetails {
 		Version:    VersionString(),
 	}
 }
+
+func (g *GlobalContext) GetUnforwardedLogger() *logger.UnforwardedLogger {
+	if g.Log == nil {
+		return nil
+	}
+	log, ok := g.Log.(*logger.Standard)
+	if !ok {
+		g.Log.Notice("Can't make Unforwaded logger from a non-standard logger")
+		return nil
+	}
+	return (*logger.UnforwardedLogger)(log)
+}
