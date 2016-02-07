@@ -358,6 +358,7 @@ func (log *Standard) GetUnforwardedLogger() *UnforwardedLogger {
 
 func (log *UnforwardedLogger) Debug(s string, args ...interface{})   { log.internal.Debug(s, args...) }
 func (log *UnforwardedLogger) Error(s string, args ...interface{})   { log.internal.Error(s, args...) }
+func (log *UnforwardedLogger) Errorf(s string, args ...interface{})  { log.internal.Error(s, args...) }
 func (log *UnforwardedLogger) Warning(s string, args ...interface{}) { log.internal.Warning(s, args...) }
 func (log *UnforwardedLogger) Info(s string, args ...interface{})    { log.internal.Info(s, args...) }
 func (log *UnforwardedLogger) Profile(s string, args ...interface{}) { log.internal.Debug(s, args...) }
