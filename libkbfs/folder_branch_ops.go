@@ -742,9 +742,9 @@ func (fbo *folderBranchOps) getMDForRekeyWriteLocked(
 	}
 
 	// readers shouldn't modify writer metadata
-	if !md.GetTlfHandle().IsWriter(uid) && !newMd.IsWriterMetadataCopiedSet() {
+	if !handle.IsWriter(uid) && !newMd.IsWriterMetadataCopiedSet() {
 		return nil, false,
-			NewRekeyPermissionError(ctx, fbo.config, md.GetTlfHandle(), username)
+			NewRekeyPermissionError(ctx, fbo.config, handle, username)
 	}
 
 	return &newMd, md.IsRekeySet(), nil
