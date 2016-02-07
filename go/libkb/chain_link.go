@@ -469,6 +469,7 @@ func (c *ChainLink) VerifyHash() error {
 		return fmt.Errorf("hash mismatch")
 	}
 	c.hashVerified = true
+	c.G().LinkCache.Mutate(c.id, func(c *ChainLink) { c.hashVerified = true })
 	return nil
 }
 
@@ -495,6 +496,7 @@ func (c *ChainLink) VerifyPayload() error {
 
 	c.unpacked.sigID = sigid
 	c.payloadVerified = true
+	c.G().LinkCache.Mutate(c.id, func(c *ChainLink) { c.payloadVerified = true })
 	return nil
 }
 
@@ -730,6 +732,9 @@ func (c *ChainLink) Copy() ChainLink {
 	r := *c
 	r.SetGlobalContext(nil)
 	r.parent = nil
+	r.chainVerified = c.chainVerified
+	r.hashVerified = c.hashVerified
+	r.payloadVerified = c.payloadVerified
 	r.unpacked = &unpacked
 
 	if c.cki != nil {
