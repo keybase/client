@@ -88,32 +88,48 @@ func (k *KBPKIClient) GetNormalizedUsername(ctx context.Context, uid keybase1.UI
 	return username, nil
 }
 
-// HasVerifyingKey implements the KBPKI interface for KBPKIClient.
-func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
-	verifyingKey VerifyingKey) error {
-	for i := 0; i < 2; i++ {
-		userInfo, err := k.loadUserPlusKeys(ctx, uid)
-		if err != nil {
-			return err
-		}
+func (k *KBPKIClient) hasVerifyingKey(ctx context.Context, uid keybase1.UID,
+	verifyingKey VerifyingKey) (bool, error) {
+	userInfo, err := k.loadUserPlusKeys(ctx, uid)
+	if err != nil {
+		return false, err
+	}
 
-		for _, key := range userInfo.VerifyingKeys {
-			if verifyingKey.kid.Equal(key.kid) {
-				k.log.CDebugf(ctx, "found verifying key %s for user %s",
-					verifyingKey.kid, uid)
-				return nil
-			}
-		}
-
-		// If the first attempt couldn't find the key, try again after
-		// clearing our local cache.  We might have stale info if the
-		// service hasn't learned of the users' new key yet.
-		if i == 0 {
-			k.config.KeybaseDaemon().FlushUserFromLocalCache(ctx, uid)
+	for _, key := range userInfo.VerifyingKeys {
+		if verifyingKey.kid.Equal(key.kid) {
+			k.log.CDebugf(ctx, "found verifying key %s for user %s",
+				verifyingKey.kid, uid)
+			return true, nil
 		}
 	}
 
-	return KeyNotFoundError{verifyingKey.kid}
+	return false, nil
+}
+
+// HasVerifyingKey implements the KBPKI interface for KBPKIClient.
+func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
+	verifyingKey VerifyingKey) error {
+	ok, err := k.hasVerifyingKey(ctx, uid, verifyingKey)
+	if err != nil {
+		return err
+	}
+	if ok {
+		return nil
+	}
+
+	// If the first attempt couldn't find the key, try again after
+	// clearing our local cache.  We might have stale info if the
+	// service hasn't learned of the users' new key yet.
+	k.config.KeybaseDaemon().FlushUserFromLocalCache(ctx, uid)
+
+	ok, err = k.hasVerifyingKey(ctx, uid, verifyingKey)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return KeyNotFoundError{verifyingKey.kid}
+	}
+	return nil
 }
 
 // GetCryptPublicKeys implements the KBPKI interface for KBPKIClient.
