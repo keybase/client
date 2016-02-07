@@ -82,8 +82,7 @@ type Standard struct {
 	module         string
 	isTerminal     bool
 
-	shutdown bool
-
+	shutdown        bool
 	externalHandler ExternalHandler
 }
 
@@ -350,3 +349,16 @@ func PickFirstError(errors ...error) error {
 func (log *Standard) SetExternalHandler(handler ExternalHandler) {
 	log.externalHandler = handler
 }
+
+type UnforwardedLogger Standard
+
+func (log *Standard) GetUnforwardedLogger() *UnforwardedLogger {
+	return (*UnforwardedLogger)(log)
+}
+
+func (log *UnforwardedLogger) Debug(s string, args ...interface{})   { log.internal.Debug(s, args...) }
+func (log *UnforwardedLogger) Error(s string, args ...interface{})   { log.internal.Error(s, args...) }
+func (log *UnforwardedLogger) Errorf(s string, args ...interface{})  { log.internal.Error(s, args...) }
+func (log *UnforwardedLogger) Warning(s string, args ...interface{}) { log.internal.Warning(s, args...) }
+func (log *UnforwardedLogger) Info(s string, args ...interface{})    { log.internal.Info(s, args...) }
+func (log *UnforwardedLogger) Profile(s string, args ...interface{}) { log.internal.Debug(s, args...) }
