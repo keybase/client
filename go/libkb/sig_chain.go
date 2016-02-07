@@ -5,10 +5,9 @@ package libkb
 
 import (
 	"fmt"
+	keybase1 "github.com/keybase/client/go/protocol"
 	"io"
 	"time"
-
-	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 type SigChain struct {
@@ -219,6 +218,7 @@ func (sc *SigChain) VerifyChain() (err error) {
 	for i := len(sc.chainLinks) - 1; i >= 0; i-- {
 		curr := sc.chainLinks[i]
 		if curr.chainVerified {
+			sc.G().Log.Debug("| short-circuit at link %d", i)
 			break
 		}
 		if err = curr.VerifyLink(); err != nil {
