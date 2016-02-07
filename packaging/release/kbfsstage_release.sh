@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
 #
 # kbfsstage_release.sh creates kbfsstage releases.

@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
 # Prints out the current build mode ("production", "prerelease", "staging", or
 # "devel") as determined from the first command line arg. This script enforces

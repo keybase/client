@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
 # Parse the version number out of our codebase and print it. This script exists
 # because our packaging process needs the version number in a lot of places,

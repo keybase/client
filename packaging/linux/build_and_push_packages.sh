@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
 # This script does a complete Linux build and publishes the results:
 #   1) Build Linux binaries with Go and Electron

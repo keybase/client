@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
 # Given a build root, invokes package_binaries.sh and then lays out the
 # resulting packages as they would be in a debian package server.

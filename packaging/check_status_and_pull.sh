@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
 # There are lots of places where we need to check stuff like:
 #   1) Does repo X exist?

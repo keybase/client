@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
 # This script is the starting point for everything that happens inside our
 # packaging docker. It expects to be invoked like this:

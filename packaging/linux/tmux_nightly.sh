@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
 # This is a script that you can run on boot to kick off a nightly build loop.
 # It requires tmux and gnome-terminal. One way to make it autostart, if you're

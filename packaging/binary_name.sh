@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
 # Prints out the binary name ("keybase", "kbstage", or "kbdev") that
 # corresponds to the current bulid mode. This script helps us avoid duplicating

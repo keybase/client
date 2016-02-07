@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
 # Builds the keybase binary and packages it into two ".rpm" files, one for i386
 # and one for amd64. The argument to this script is the output directory of a

@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
 # This script is for users who want make staging builds from source. See
 # https://keybase.io/docs/client/client_architecture. We don't use it
