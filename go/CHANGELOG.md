@@ -1,3 +1,7 @@
+## 1.0.11
+- Forward-compatibility fix, for future RPCS (PR: keybase/client#1919)
+- Fix potential recursive LogUI Explosion (PR: keybase/client#1925)
+
 ## 1.0.10 (2016-02-05)
 - Detached pgp verify was broken for messages shorter than 100 bytes (PR: keybase/client#1862)
 - Only restart driver if necessary when upgrading on Windows (PR: keybase/client#1842)
@@ -36,7 +40,7 @@
 - `keybase exp decrypt` now properly identifies senders, and allows for interactive
   mode if requested (PRs: keybase/client#1613, keybase/client#1617)
 - Implement OpenPGP PolicyURI subpacket (via vendored PR: keybase/go-crypto#3)
-- OpenPGP better check for nil signing subkeys 
+- OpenPGP better check for nil signing subkeys
     (via vendored keybase/go-crypto commit de6e298306e9dfba84a8f4f9042ee6c2bb02df85)
 - SaltPack: descriptive error message on failed decryption (PR: keybase/client#1625)
 - Preserve external log message order (PR: keybase/client#1641)
