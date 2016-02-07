@@ -3,6 +3,7 @@
 - Fix potential recursive LogUI Explosion (PR: keybase/client#1925)
 - Another crack at GNU S2K Dummy (via vendored PR: keybase/go-crypto#10)
 - Performance improvement in sigchain replays (PR keybase/client#1930)
+- Logs in devel mode go to ~/Library/Logs/KeybaseDevel on darwin (PR: keybase/client#1926)
 
 ## 1.0.10 (2016-02-05)
 - Detached pgp verify was broken for messages shorter than 100 bytes (PR: keybase/client#1862)
