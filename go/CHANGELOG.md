@@ -4,6 +4,10 @@
 - Another crack at GNU S2K Dummy (via vendored PR: keybase/go-crypto#10)
 - Performance improvement in sigchain replays (PR keybase/client#1930)
 - Logs in devel mode go to ~/Library/Logs/KeybaseDevel on darwin (PR: keybase/client#1926)
+- RSA Support for public exponent e's with <= 7 bytes (rather than 3)
+  (via vendored PR: keybase/go-crypto#8)
+- Don't encrypt for DSA and do encrypt for ElGamal subkeys
+  (via vendored PR: keybase/go-crytpo#11)
 
 ## 1.0.10 (2016-02-05)
 - Detached pgp verify was broken for messages shorter than 100 bytes (PR: keybase/client#1862)
