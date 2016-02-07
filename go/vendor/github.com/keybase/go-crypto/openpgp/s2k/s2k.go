@@ -150,6 +150,31 @@ func Iterated(out []byte, h hash.Hash, in []byte, salt []byte, count int) {
 	}
 }
 
+func parseGNUExtensions(r io.Reader) (f func(out, in []byte), err error) {
+	var buf [9]byte
+
+	// A three-byte string identifier
+	_, err = io.ReadFull(r, buf[:3])
+	if err != nil {
+		return
+	}
+	gnuExt := string(buf[:3])
+
+	if gnuExt != "GNU" {
+		return nil, errors.UnsupportedError("Malformed GNU extension: " + gnuExt)
+	}
+	_, err = io.ReadFull(r, buf[:1])
+	if err != nil {
+		return
+	}
+	gnuExtType := int(buf[0])
+	if gnuExtType != 1 {
+		return nil, errors.UnsupportedError("unknown S2K GNU protection mode: " + strconv.Itoa(int(gnuExtType)))
+	}
+
+	return nil, nil
+}
+
 // Parse reads a binary specification for a string-to-key transformation from r
 // and returns a function which performs that transform.
 func Parse(r io.Reader) (f func(out, in []byte), err error) {
@@ -159,6 +184,13 @@ func Parse(r io.Reader) (f func(out, in []byte), err error) {
 	if err != nil {
 		return
 	}
+
+	// GNU Extensions; handle them before we try to look for a hash, which won't
+	// be needed in most cases anyway.
+	if buf[0] == 101 {
+		return parseGNUExtensions(r)
+	}
+
 
 	hash, ok := HashIdToHash(buf[1])
 	if !ok {
@@ -194,29 +226,6 @@ func Parse(r io.Reader) (f func(out, in []byte), err error) {
 			Iterated(out, h, in, buf[:8], count)
 		}
 		return f, nil
-
-	// GNU Extensions
-	case 101:
-
-		// A three-byte string identifier
-		_, err = io.ReadFull(r, buf[:3])
-		if err != nil {
-			return
-		}
-		gnuExt := string(buf[:3])
-
-		if gnuExt != "GNU" {
-			return nil, errors.UnsupportedError("Malformed GNU extension: " + gnuExt)
-		}
-		_, err = io.ReadFull(r, buf[:1])
-		if err != nil {
-			return
-		}
-		gnuExtType := int(buf[0])
-		if gnuExtType != 1 {
-			return nil, errors.UnsupportedError("unknown S2K GNU protection mode: " + strconv.Itoa(int(gnuExtType)))
-		}
-		return nil, nil
 	}
 
 	return nil, errors.UnsupportedError("S2K function")
