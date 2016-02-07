@@ -2288,7 +2288,7 @@ func (fbo *folderBranchOps) createEntryLocked(
 }
 
 func (fbo *folderBranchOps) doMDWriteWithRetry(ctx context.Context,
-	lState *lockState, fn func() error) error {
+	lState *lockState, fn func(lState *lockState) error) error {
 	doUnlock := false
 	defer func() {
 		if doUnlock {
@@ -2308,7 +2308,7 @@ func (fbo *folderBranchOps) doMDWriteWithRetry(ctx context.Context,
 		default:
 		}
 
-		err := fn()
+		err := fn(lState)
 		if isRetriableError(err, i) {
 			fbo.log.CDebugf(ctx, "Trying again after retriable error: %v", err)
 			// Release the lock to give someone else a chance
@@ -2323,8 +2323,9 @@ func (fbo *folderBranchOps) doMDWriteWithRetry(ctx context.Context,
 }
 
 func (fbo *folderBranchOps) doMDWriteWithRetryUnlessCanceled(
-	ctx context.Context, lState *lockState, fn func() error) error {
+	ctx context.Context, fn func(lState *lockState) error) error {
 	return runUnlessCanceled(ctx, func() error {
+		lState := makeFBOLockState()
 		return fbo.doMDWriteWithRetry(ctx, lState, fn)
 	})
 }
@@ -2346,13 +2347,13 @@ func (fbo *folderBranchOps) CreateDir(
 		return nil, EntryInfo{}, err
 	}
 
-	lState := makeFBOLockState()
-	err = fbo.doMDWriteWithRetryUnlessCanceled(ctx, lState, func() error {
-		node, de, err := fbo.createEntryLocked(ctx, lState, dir, path, Dir)
-		n = node
-		ei = de.EntryInfo
-		return err
-	})
+	err = fbo.doMDWriteWithRetryUnlessCanceled(ctx,
+		func(lState *lockState) error {
+			node, de, err := fbo.createEntryLocked(ctx, lState, dir, path, Dir)
+			n = node
+			ei = de.EntryInfo
+			return err
+		})
 	if err != nil {
 		return nil, EntryInfo{}, err
 	}
@@ -2383,14 +2384,14 @@ func (fbo *folderBranchOps) CreateFile(
 		entryType = File
 	}
 
-	lState := makeFBOLockState()
-	err = fbo.doMDWriteWithRetryUnlessCanceled(ctx, lState, func() error {
-		node, de, err :=
-			fbo.createEntryLocked(ctx, lState, dir, path, entryType)
-		n = node
-		ei = de.EntryInfo
-		return err
-	})
+	err = fbo.doMDWriteWithRetryUnlessCanceled(ctx,
+		func(lState *lockState) error {
+			node, de, err :=
+				fbo.createEntryLocked(ctx, lState, dir, path, entryType)
+			n = node
+			ei = de.EntryInfo
+			return err
+		})
 	if err != nil {
 		return nil, EntryInfo{}, err
 	}
@@ -2477,12 +2478,12 @@ func (fbo *folderBranchOps) CreateLink(
 		return EntryInfo{}, err
 	}
 
-	lState := makeFBOLockState()
-	err = fbo.doMDWriteWithRetryUnlessCanceled(ctx, lState, func() error {
-		de, err := fbo.createLinkLocked(ctx, lState, dir, fromName, toPath)
-		ei = de.EntryInfo
-		return err
-	})
+	err = fbo.doMDWriteWithRetryUnlessCanceled(ctx,
+		func(lState *lockState) error {
+			de, err := fbo.createLinkLocked(ctx, lState, dir, fromName, toPath)
+			ei = de.EntryInfo
+			return err
+		})
 	if err != nil {
 		return EntryInfo{}, err
 	}
@@ -2611,10 +2612,10 @@ func (fbo *folderBranchOps) RemoveDir(
 		return
 	}
 
-	lState := makeFBOLockState()
-	return fbo.doMDWriteWithRetryUnlessCanceled(ctx, lState, func() error {
-		return fbo.removeDirLocked(ctx, lState, dir, dirName)
-	})
+	return fbo.doMDWriteWithRetryUnlessCanceled(ctx,
+		func(lState *lockState) error {
+			return fbo.removeDirLocked(ctx, lState, dir, dirName)
+		})
 }
 
 func (fbo *folderBranchOps) RemoveEntry(ctx context.Context, dir Node,
@@ -2627,21 +2628,21 @@ func (fbo *folderBranchOps) RemoveEntry(ctx context.Context, dir Node,
 		return err
 	}
 
-	lState := makeFBOLockState()
-	return fbo.doMDWriteWithRetryUnlessCanceled(ctx, lState, func() error {
-		// verify we have permission to write
-		md, err := fbo.getMDForWriteLocked(ctx, lState)
-		if err != nil {
-			return err
-		}
+	return fbo.doMDWriteWithRetryUnlessCanceled(ctx,
+		func(lState *lockState) error {
+			// verify we have permission to write
+			md, err := fbo.getMDForWriteLocked(ctx, lState)
+			if err != nil {
+				return err
+			}
 
-		dirPath, err := fbo.pathFromNodeForMDWriteLocked(dir)
-		if err != nil {
-			return err
-		}
+			dirPath, err := fbo.pathFromNodeForMDWriteLocked(dir)
+			if err != nil {
+				return err
+			}
 
-		return fbo.removeEntryLocked(ctx, lState, md, dirPath, name)
-	})
+			return fbo.removeEntryLocked(ctx, lState, md, dirPath, name)
+		})
 }
 
 // mdWriterLock must be taken by caller.
@@ -2834,26 +2835,26 @@ func (fbo *folderBranchOps) Rename(
 		return err
 	}
 
-	lState := makeFBOLockState()
-	return fbo.doMDWriteWithRetryUnlessCanceled(ctx, lState, func() error {
-		oldParentPath, err := fbo.pathFromNodeForMDWriteLocked(oldParent)
-		if err != nil {
-			return err
-		}
+	return fbo.doMDWriteWithRetryUnlessCanceled(ctx,
+		func(lState *lockState) error {
+			oldParentPath, err := fbo.pathFromNodeForMDWriteLocked(oldParent)
+			if err != nil {
+				return err
+			}
 
-		newParentPath, err := fbo.pathFromNodeForMDWriteLocked(newParent)
-		if err != nil {
-			return err
-		}
+			newParentPath, err := fbo.pathFromNodeForMDWriteLocked(newParent)
+			if err != nil {
+				return err
+			}
 
-		// only works for paths within the same topdir
-		if oldParentPath.FolderBranch != newParentPath.FolderBranch {
-			return RenameAcrossDirsError{}
-		}
+			// only works for paths within the same topdir
+			if oldParentPath.FolderBranch != newParentPath.FolderBranch {
+				return RenameAcrossDirsError{}
+			}
 
-		return fbo.renameLocked(ctx, lState, oldParentPath, oldName,
-			newParentPath, newName, newParent)
-	})
+			return fbo.renameLocked(ctx, lState, oldParentPath, oldName,
+				newParentPath, newName, newParent)
+		})
 }
 
 // blockLock must be taken for reading by caller.
@@ -3575,15 +3576,15 @@ func (fbo *folderBranchOps) SetEx(
 		return
 	}
 
-	lState := makeFBOLockState()
-	return fbo.doMDWriteWithRetryUnlessCanceled(ctx, lState, func() error {
-		filePath, err := fbo.pathFromNodeForMDWriteLocked(file)
-		if err != nil {
-			return err
-		}
+	return fbo.doMDWriteWithRetryUnlessCanceled(ctx,
+		func(lState *lockState) error {
+			filePath, err := fbo.pathFromNodeForMDWriteLocked(file)
+			if err != nil {
+				return err
+			}
 
-		return fbo.setExLocked(ctx, lState, filePath, ex)
-	})
+			return fbo.setExLocked(ctx, lState, filePath, ex)
+		})
 }
 
 // mdWriterLock must be taken by caller.
@@ -3630,15 +3631,15 @@ func (fbo *folderBranchOps) SetMtime(
 		return
 	}
 
-	lState := makeFBOLockState()
-	return fbo.doMDWriteWithRetryUnlessCanceled(ctx, lState, func() error {
-		filePath, err := fbo.pathFromNodeForMDWriteLocked(file)
-		if err != nil {
-			return err
-		}
+	return fbo.doMDWriteWithRetryUnlessCanceled(ctx,
+		func(lState *lockState) error {
+			filePath, err := fbo.pathFromNodeForMDWriteLocked(file)
+			if err != nil {
+				return err
+			}
 
-		return fbo.setMtimeLocked(ctx, lState, filePath, mtime)
-	})
+			return fbo.setMtimeLocked(ctx, lState, filePath, mtime)
+		})
 }
 
 // cacheLock should be taken by the caller
@@ -4206,23 +4207,21 @@ func (fbo *folderBranchOps) Sync(ctx context.Context, file Node) (err error) {
 		return
 	}
 	defer func() {
-		// Make a local lockState here, otherwise we might race with
-		// the syncLocked goroutine if a cancel happens.
 		lState := makeFBOLockState()
 		fbo.notifyDeferredListeners(lState, err)
 	}()
 
-	lState := makeFBOLockState()
 	var stillDirty bool
-	err = fbo.doMDWriteWithRetryUnlessCanceled(ctx, lState, func() error {
-		filePath, err := fbo.pathFromNodeForMDWriteLocked(file)
-		if err != nil {
-			return err
-		}
+	err = fbo.doMDWriteWithRetryUnlessCanceled(ctx,
+		func(lState *lockState) error {
+			filePath, err := fbo.pathFromNodeForMDWriteLocked(file)
+			if err != nil {
+				return err
+			}
 
-		stillDirty, err = fbo.syncLocked(ctx, lState, filePath)
-		return err
-	})
+			stillDirty, err = fbo.syncLocked(ctx, lState, filePath)
+			return err
+		})
 	if err != nil {
 		return err
 	}
@@ -5044,9 +5043,10 @@ func (fbo *folderBranchOps) UnstageForTesting(
 		fbo.log.CDebugf(freshCtx, "Launching new context for UnstageForTesting")
 		go func() {
 			lState := makeFBOLockState()
-			c <- fbo.doMDWriteWithRetry(ctx, lState, func() error {
-				return fbo.unstageForTestingLocked(freshCtx, lState)
-			})
+			c <- fbo.doMDWriteWithRetry(ctx, lState,
+				func(lState *lockState) error {
+					return fbo.unstageForTestingLocked(freshCtx, lState)
+				})
 		}()
 
 		select {
@@ -5137,10 +5137,10 @@ func (fbo *folderBranchOps) Rekey(ctx context.Context, tlf TlfID) (err error) {
 		return WrongOpsError{fbo.folderBranch, fb}
 	}
 
-	lState := makeFBOLockState()
-	return fbo.doMDWriteWithRetryUnlessCanceled(ctx, lState, func() error {
-		return fbo.rekeyLocked(ctx, lState)
-	})
+	return fbo.doMDWriteWithRetryUnlessCanceled(ctx,
+		func(lState *lockState) error {
+			return fbo.rekeyLocked(ctx, lState)
+		})
 }
 
 func (fbo *folderBranchOps) waitForArchives(ctx context.Context) error {
