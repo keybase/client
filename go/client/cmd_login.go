@@ -148,11 +148,12 @@ func (c *CmdLogin) Cancel() error {
 func (c *CmdLogin) errNoSyncedKey() error {
 	return errors.New(`in Login
 
-Sorry, you have a PGP private key that Keybase doesn't have a copy of.
-You need to prove you're you. Any of these will unlock this computer:
+Sorry, your account is already established with a PGP public key, but this
+utility cannot access the corresponding private key. You need to prove
+you're you. We suggest one of the following:
 
-   - reset your account and start fresh: https://keybase.io/#account-reset
    - install GPG and put your PGP private key on this machine and try again
+   - reset your account and start fresh: https://keybase.io/#account-reset
    - go back and provision with another device or paper key
 `)
 }
