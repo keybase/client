@@ -55,7 +55,7 @@ func (c *CmdWatchdog) Run() (err error) {
 
 		var pid int
 		// restart server case
-		if pid, err = spawnServer(c.G().Env.GetCommandLine(), keybase1.ForkType_WATCHDOG); err != nil {
+		if pid, err = spawnServer(c.G(), c.G().Env.GetCommandLine(), keybase1.ForkType_WATCHDOG); err != nil {
 			return err
 		}
 

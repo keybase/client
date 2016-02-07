@@ -14,7 +14,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
-func spawnServer(cl libkb.CommandLine, forkType keybase1.ForkType) (pid int, err error) {
+func spawnServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1.ForkType) (pid int, err error) {
 
 	var files []uintptr
 	var cmd string
@@ -37,10 +37,10 @@ func spawnServer(cl libkb.CommandLine, forkType keybase1.ForkType) (pid int, err
 	}
 	files = append(files, devnull.Fd())
 
-	if G.Env.GetSplitLogOutput() {
+	if g.Env.GetSplitLogOutput() {
 		files = append(files, uintptr(1), uintptr(2))
 	} else {
-		if _, log, err = libkb.OpenLogFile(); err != nil {
+		if _, log, err = libkb.OpenLogFile(g); err != nil {
 			return
 		}
 		files = append(files, log.Fd(), log.Fd())

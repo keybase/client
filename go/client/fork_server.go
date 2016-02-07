@@ -49,7 +49,7 @@ func ForkServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1.
 	if err == nil {
 		g.Log.Debug("Flocked! Server must have died")
 		srv.ReleaseLock()
-		_, err = spawnServer(cl, forkType)
+		_, err = spawnServer(g, cl, forkType)
 		if err != nil {
 			g.Log.Errorf("Error in spawning server process: %s", err)
 			return false, err
