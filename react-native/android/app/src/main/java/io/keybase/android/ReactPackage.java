@@ -8,7 +8,6 @@ import com.facebook.react.uimanager.ViewManager;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.keybase.android.components.TabBarManager;
 import io.keybase.android.modules.KeybaseEngine;
 
 public class ReactPackage implements com.facebook.react.ReactPackage {
@@ -30,7 +29,7 @@ public class ReactPackage implements com.facebook.react.ReactPackage {
     @Override
     public List<ViewManager> createViewManagers(ReactApplicationContext reactApplicationContext) {
         List<ViewManager> modules = new ArrayList<>();
-        modules.add(new TabBarManager());
+        // modules.add(new TabBarManager());
         return modules;
     }
 }

@@ -1,103 +1,90 @@
 package io.keybase.android;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
+import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.KeyEvent;
 
-import com.facebook.react.LifecycleState;
+import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactRootView;
-import com.facebook.react.modules.core.DefaultHardwareBackBtnHandler;
 import com.facebook.react.shell.MainReactPackage;
 
 import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.cert.CertificateException;
+import java.util.Arrays;
+import java.util.List;
 
 import go.keybase.Keybase;
 
 import static go.keybase.Keybase.Init;
 
-public class MainActivity extends Activity implements DefaultHardwareBackBtnHandler {
+public class MainActivity extends ReactActivity {
 
     private static final String TAG = MainActivity.class.getName();
 
     private ReactInstanceManager mReactInstanceManager;
     private ReactRootView mReactRootView;
 
+    /**
+     * Returns the name of the main component registered from JavaScript.
+     * This is used to schedule rendering of the component.
+     */
     @Override
-    @TargetApi(Build.VERSION_CODES.KITKAT)
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Init(this.getFilesDir().getPath(), "staging", "", false);
-
-        try {
-            Keybase.SetGlobalExternalKeyStore(new KeyStore(this, getSharedPreferences("KeyStore", MODE_PRIVATE)));
-        } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException e) {
-            e.printStackTrace();
-        }
-
-        mReactRootView = new ReactRootView(this);
-        mReactInstanceManager = ReactInstanceManager.builder()
-          .setApplication(getApplication())
-          .setBundleAssetName("index.android.bundle")
-          .setJSMainModuleName("react/index")
-          .addPackage(new MainReactPackage())
-          .addPackage(new ReactPackage())
-          .setUseDeveloperSupport(BuildConfig.DEBUG)
-          .setInitialLifecycleState(LifecycleState.RESUMED)
-          .build();
-
-        mReactRootView.startReactApplication(mReactInstanceManager, "Keybase", null);
-        setContentView(mReactRootView);
+    protected String getMainComponentName() {
+        return "Keybase";
     }
+
+    /**
+     * Returns whether dev mode should be enabled.
+     * This enables e.g. the dev menu.
+     */
+    @Override
+    protected boolean getUseDeveloperSupport() {
+        return BuildConfig.DEBUG;
+    }
+
+
+@Override
+@TargetApi(Build.VERSION_CODES.KITKAT)
+protected void onCreate(Bundle savedInstanceState) {
+
+    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+        Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+          Uri.parse("package:" + getPackageName()));
+        startActivityForResult(intent, -1);
+    }
+
+    Init(this.getFilesDir().getPath(), "staging", "", false);
+
+    try {
+        Keybase.SetGlobalExternalKeyStore(new KeyStore(this, getSharedPreferences("KeyStore", MODE_PRIVATE)));
+    } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException e) {
+        e.printStackTrace();
+    }
+
+    super.onCreate(savedInstanceState);
+}
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
-        if (BuildConfig.DEBUG) {
-            if (keyCode == KeyEvent.KEYCODE_MENU && mReactInstanceManager != null) {
-                mReactInstanceManager.showDevOptionsDialog();
-                return true;
-            } else if (keyCode == KeyEvent.KEYCODE_VOLUME_UP && mReactInstanceManager != null) {
-                mReactInstanceManager.getDevSupportManager().handleReloadJS();
-                return true;
-            }
+        if (BuildConfig.DEBUG && keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+            return super.onKeyUp(KeyEvent.KEYCODE_MENU, null);
         }
         return super.onKeyUp(keyCode, event);
     }
 
     @Override
-    public void invokeDefaultOnBackPressed() {
-      super.onBackPressed();
+    protected List<com.facebook.react.ReactPackage> getPackages() {
+        return Arrays.asList(
+          new MainReactPackage(),
+          new ReactPackage());
     }
 
-    @Override
-    public void onBackPressed() {
-        if (mReactInstanceManager != null) {
-            mReactInstanceManager.onBackPressed();
-        } else {
-            super.onBackPressed();
-        }
-    }
 
-    @Override
-    protected void onPause() {
-        super.onPause();
-
-        if (mReactInstanceManager != null) {
-            mReactInstanceManager.onPause();
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-
-        if (mReactInstanceManager != null) {
-            mReactInstanceManager.onResume(this);
-        }
-    }
 }

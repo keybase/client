@@ -10,9 +10,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 
 import com.facebook.react.bridge.Arguments;
-import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.WritableMap;
-import com.facebook.react.uimanager.CatalystStylesDiffMap;
 import com.facebook.react.uimanager.ThemedReactContext;
 import com.facebook.react.uimanager.UIProp;
 import com.facebook.react.uimanager.ViewGroupManager;
@@ -62,8 +60,8 @@ public class TabBarManager extends ViewGroupManager<LinearLayout> {
     }
 
     @Override
-    public void removeView(final LinearLayout parent, final View child) {
-        tabs.remove(child);
+    public void removeViewAt(final LinearLayout parent, final int index) {
+        tabs.remove(index);
         //TODO Clean up this getChildAt business
         SlidingTabLayout tabBar = (SlidingTabLayout) parent.getChildAt(0);
         ViewPager viewPager = (ViewPager) parent.getChildAt(1);
@@ -164,31 +162,31 @@ public class TabBarManager extends ViewGroupManager<LinearLayout> {
         });
     }
 
-    @Override
-    public void updateView(final LinearLayout parent, final CatalystStylesDiffMap props) {
-        ViewPager viewPager = (ViewPager) parent.getChildAt(1);
-
-        if (props.hasKey(PROP_TITLES)) {
-            titles.clear();
-            final ReadableArray propTitles = props.getArray(PROP_TITLES);
-            for (int i = 0; i < propTitles.size(); i++) {
-                titles.add(propTitles.getString(i));
-            }
-        }
-
-        if (props.hasKey(PROP_selectedStates)) {
-            selectedStates.clear();
-            final ReadableArray propSelectedStates = props.getArray(PROP_selectedStates);
-            for (int i = 0; i < propSelectedStates.size(); i++) {
-                final boolean b = propSelectedStates.getBoolean(i);
-                selectedStates.add(propSelectedStates.getBoolean(i));
-                if (b) {
-                    // This won't work because the viewpager doesn't have this item yet
-                    // viewPager.setCurrentItem(i);
-                    // Instead we save the index, and set the current item when we add it.
-                    selectedItem = i;
-                }
-            }
-        }
-    }
+//    @Override
+//    public void updateView(final LinearLayout parent, final React) {
+//        ViewPager viewPager = (ViewPager) parent.getChildAt(1);
+//
+//        if (props.hasKey(PROP_TITLES)) {
+//            titles.clear();
+//            final ReadableArray propTitles = props.getArray(PROP_TITLES);
+//            for (int i = 0; i < propTitles.size(); i++) {
+//                titles.add(propTitles.getString(i));
+//            }
+//        }
+//
+//        if (props.hasKey(PROP_selectedStates)) {
+//            selectedStates.clear();
+//            final ReadableArray propSelectedStates = props.getArray(PROP_selectedStates);
+//            for (int i = 0; i < propSelectedStates.size(); i++) {
+//                final boolean b = propSelectedStates.getBoolean(i);
+//                selectedStates.add(propSelectedStates.getBoolean(i));
+//                if (b) {
+//                    // This won't work because the viewpager doesn't have this item yet
+//                    // viewPager.setCurrentItem(i);
+//                    // Instead we save the index, and set the current item when we add it.
+//                    selectedItem = i;
+//                }
+//            }
+//        }
+//    }
 }

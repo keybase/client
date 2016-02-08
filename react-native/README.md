@@ -64,6 +64,22 @@ npm run gobuild-android
 react-native run-android
 ```
 
+Currently there is a text relocation bug: https://github.com/golang/go/issues/10807
+which affects android versions L
+
+latest go (from HEAD) along wth latest gomobile (from go get) seem to fix the issue.
+
+On mac with brew you can simply do:
+```sh
+# Latest Go
+brew upgrade --HEAD go
+
+# Latest Go Mobile
+go get -u golang.org/x/mobile/cmd/gomobile && gomobile init
+
+```
+
+
 To set the host for the JS files: Shake the device and choose 'Dev Settings | Debug server host for device'
 
 ### Release building
