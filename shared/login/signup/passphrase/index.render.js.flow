@@ -1,0 +1,13 @@
+/* @flow */
+/* eslint-disable react/prop-types */
+
+import React, {Component} from 'react'
+
+export type Props = {
+  passphraseError: ?(() => ?string),
+  checkPassphrase: (passphrase: string, passphrase2: string) => void
+}
+
+export default class Render extends Component {
+  props: Props;
+}

@@ -8,5 +8,8 @@ export type CheckInviteCode = TypedAction<'signup:checkInviteCode', {inviteCode:
 export const checkUsernameEmail = 'signup:checkUsernameEmail'
 export type CheckUsernameEmail = TypedAction<'signup:checkUsernameEmail', {username: string, email: string}, {emailError: ?string, usernameError: ?string, email: ?string, username: ?string}>
 
-export type SignupActions = CheckInviteCode | CheckUsernameEmail
+export const checkPassphrase = 'signup:checkPassphrase'
+export type CheckPassphrase = TypedAction<'signup:checkPassphrase', {passphrase: () => string}, {passphraseError: () => ?string}>
+
+export type SignupActions = CheckInviteCode | CheckUsernameEmail | CheckPassphrase
 

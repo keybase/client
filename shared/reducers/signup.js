@@ -11,8 +11,10 @@ export type SignupState = {
   inviteCodeError: ?string,
   usernameError: ?string,
   emailError: ?string,
-  passwordError: ?string,
-  phase: 'inviteCode' | 'usernameAndEmail' | 'passphrase' | 'deviceName' | 'paperkey'
+  // TODO change to secure string
+  passphraseError: ?(() => ?string),
+  passphrase: ?(() => string),
+  phase: 'inviteCode' | 'usernameAndEmail' | 'deviceName' | 'paperkey' | 'passphraseSignup'
 }
 
 const initialState: SignupState = {
@@ -22,7 +24,8 @@ const initialState: SignupState = {
   inviteCodeError: null,
   usernameError: null,
   emailError: null,
-  passwordError: null,
+  passphraseError: null,
+  passphrase: null,
   phase: 'inviteCode'
 }
 
@@ -57,11 +60,27 @@ export default function (state: SignupState = initialState, action: SignupAction
       } else {
         return {
           ...state,
-          phase: 'passphrase',
+          phase: 'passphraseSignup',
           emailError: null,
           usernameError: null,
           username,
           email
+        }
+      }
+
+    case Constants.checkPassphrase:
+      if (action.error) {
+        const {passphraseError} = action.payload
+        return {
+          ...state,
+          passphraseError
+        }
+      } else {
+        const {passphrase} = action.payload
+        return {
+          ...state,
+          passphrase,
+          passphraseError: null
         }
       }
 

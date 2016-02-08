@@ -6,7 +6,7 @@ import {routeAppend} from '../../actions/router'
 
 import type {TypedAsyncAction} from '../../constants/types/flux'
 import type {RouteAppend} from '../../constants/router'
-import type {CheckInviteCode, CheckUsernameEmail} from '../../constants/signup'
+import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase} from '../../constants/signup'
 
 function nextPhase (): TypedAsyncAction<RouteAppend> {
   return (dispatch, getState) => {
@@ -43,6 +43,37 @@ export function checkUsernameEmail (username: ?string, email: ?string): TypedAsy
     dispatch({
       type: Constants.checkUsernameEmail,
       payload: {username, email}
+    })
+    dispatch(nextPhase())
+  }
+}
+
+// TODO when securestring is merged change these closed over texts to secure string
+export function checkPassphrase (passphrase1: string, passphrase2: string): TypedAsyncAction<CheckPassphrase | RouteAppend> {
+  return dispatch => {
+    if (!passphrase1 || !passphrase2) {
+      const passphraseError = () => 'Fields cannot be blank'
+      dispatch({
+        type: Constants.checkPassphrase,
+        error: true,
+        payload: {passphraseError}
+      })
+      return
+    }
+
+    if (passphrase1 !== passphrase2) {
+      const passphraseError = () => 'Passphrases must match'
+      dispatch({
+        type: Constants.checkPassphrase,
+        error: true,
+        payload: {passphraseError}
+      })
+      return
+    }
+
+    dispatch({
+      type: Constants.checkPassphrase,
+      payload: {passphrase: () => passphrase1}
     })
     dispatch(nextPhase())
   }

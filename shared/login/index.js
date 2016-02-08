@@ -8,6 +8,7 @@ import ErrorText from './error.render'
 // Signup Components
 import InviteCode from './signup/inviteCode'
 import UsernameEmailForm from './signup/usernameEmailForm'
+import PassphraseSignup from './signup/passphrase'
 
 // Register Components
 import Register from './register'
@@ -38,6 +39,9 @@ export default class Login extends Component {
           break
         case 'usernameAndEmail':
           form = <UsernameEmailForm/>
+          break
+        case 'passphraseSignup':
+          form = <PassphraseSignup/>
           break
         case 'register':
           form = <Register />
