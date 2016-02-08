@@ -84,8 +84,6 @@ func (s *SignupEngine) Run(ctx *Context) error {
 			return err
 		}
 
-		s.G().NotifyRouter.HandleLogin(s.arg.Username)
-
 		if !s.arg.SkipPaper {
 			if err := s.genPaperKeys(ctx); err != nil {
 				return err
@@ -106,7 +104,18 @@ func (s *SignupEngine) Run(ctx *Context) error {
 
 		return nil
 	}
-	return s.G().LoginState().ExternalFunc(f, "SignupEngine - Run")
+
+	if err := s.G().LoginState().ExternalFunc(f, "SignupEngine - Run"); err != nil {
+		return err
+	}
+
+	// signup complete, notify anyone interested.
+	// (and don't notify inside a LoginState action to avoid
+	// a chance of timing out)
+	s.G().NotifyRouter.HandleLogin(s.arg.Username)
+
+	return nil
+
 }
 
 func (s *SignupEngine) genPassphraseStream(a libkb.LoginContext, passphrase string) error {
