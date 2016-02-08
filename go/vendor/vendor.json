@@ -169,8 +169,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-keychain",
-			"revision": "85f1fec3577b1d6a34f0bfa6c50da4f03fcb4620",
-			"revisionTime": "2016-02-01T15:28:24-05:00"
+			"revision": "18e96b8b8ccf5706fbba9d97a82cbb009720bf02",
+			"revisionTime": "2016-02-04T10:09:49-05:00"
 		},
 		{
 			"path": "github.com/keybase/go-logging",
