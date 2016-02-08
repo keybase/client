@@ -8,6 +8,7 @@
   (via vendored PR: keybase/go-crypto#8)
 - Don't encrypt for DSA and do encrypt for ElGamal subkeys
   (via vendored PR: keybase/go-crytpo#11)
+- Properly serialize ElGamal Subkeys (via vendored PR: keybase/go-crypto#13)
 
 ## 1.0.10 (2016-02-05)
 - Detached pgp verify was broken for messages shorter than 100 bytes (PR: keybase/client#1862)

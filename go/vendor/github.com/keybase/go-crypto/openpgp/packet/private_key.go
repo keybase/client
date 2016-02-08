@@ -148,6 +148,8 @@ func (pk *PrivateKey) Serialize(w io.Writer) (err error) {
 			err = serializeRSAPrivateKey(privateKeyBuf, priv)
 		case *dsa.PrivateKey:
 			err = serializeDSAPrivateKey(privateKeyBuf, priv)
+		case *elgamal.PrivateKey:
+			err = serializeElGamalPrivateKey(privateKeyBuf, priv)
 		default:
 			err = errors.InvalidArgumentError("unknown private key type")
 		}
@@ -203,6 +205,10 @@ func serializeRSAPrivateKey(w io.Writer, priv *rsa.PrivateKey) error {
 }
 
 func serializeDSAPrivateKey(w io.Writer, priv *dsa.PrivateKey) error {
+	return writeBig(w, priv.X)
+}
+
+func serializeElGamalPrivateKey(w io.Writer, priv *elgamal.PrivateKey) error {
 	return writeBig(w, priv.X)
 }
 
