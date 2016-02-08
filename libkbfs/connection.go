@@ -314,8 +314,7 @@ func (c *Connection) waitForConnection(ctx context.Context) error {
 	// kick-off a connection and wait for it to complete
 	// or for the caller to cancel.
 	reconnectChan, disconnectStatus, reconnectErrPtr := c.getReconnectChan()
-	// inform the handler of our disconnected state
-	c.handler.OnDisconnected(disconnectStatus)
+	c.log.Debug("Connection: waitForConnection; status: %d", disconnectStatus)
 	select {
 	case <-ctx.Done():
 		// caller canceled
@@ -363,7 +362,7 @@ func (c *Connection) getReconnectChan() (
 			disconnectStatus = StartingFirstConnection
 			c.reconnectedBefore = true
 		}
-		go c.doReconnect(ctx, c.reconnectChan, c.reconnectErrPtr)
+		go c.doReconnect(ctx, disconnectStatus, c.reconnectChan, c.reconnectErrPtr)
 	} else {
 		disconnectStatus = UsingExistingConnection
 	}
@@ -382,8 +381,10 @@ func dontRetryOnConnect(err error) bool {
 // doReconnect attempts a reconnection.  It assumes that reconnectChan
 // and reconnectErrPtr are the same ones in c, but are passed in to
 // avoid having to take the mutex at the beginning of the method.
-func (c *Connection) doReconnect(ctx context.Context,
+func (c *Connection) doReconnect(ctx context.Context, disconnectStatus DisconnectStatus,
 	reconnectChan chan struct{}, reconnectErrPtr *error) {
+	// inform the handler of our disconnected state
+	c.handler.OnDisconnected(disconnectStatus)
 	// retry w/exponential backoff
 	backoff.RetryNotify(func() error {
 		// try to connect

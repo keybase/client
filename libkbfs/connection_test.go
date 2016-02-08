@@ -78,8 +78,8 @@ func (ut *unitTester) Err() error {
 	if ut.numConnectErrors != 1 {
 		return fmt.Errorf("expected 1 connect error, got: %d", ut.numConnectErrors)
 	}
-	if ut.numDisconnects != 0 {
-		return fmt.Errorf("expected no disconnected errors, got: %d", ut.numDisconnects)
+	if ut.numDisconnects != 1 {
+		return fmt.Errorf("expected 1 disconnected error, got: %d", ut.numDisconnects)
 	}
 	return nil
 }
