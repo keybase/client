@@ -76,13 +76,13 @@ build_one_architecture() {
   go build -tags "$go_tags" -ldflags "$ldflags" -o \
     "$layout_dir/usr/bin/$binary_name" github.com/keybase/client/go/keybase
 
-  cp "$here/run_keybase" "$layout_dir/usr/bin/"
-
   # Short-circuit if we're not building electron.
   if ! should_build_kbfs ; then
     echo "SKIPPING kbfs and electron."
     return
   fi
+
+  cp "$here/run_keybase" "$layout_dir/usr/bin/"
 
   # In include-KBFS mode, create the /opt/keybase dir, and include post_install.sh.
   mkdir -p "$layout_dir/opt/keybase"
