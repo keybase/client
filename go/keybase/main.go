@@ -115,16 +115,6 @@ func mainInner(g *libkb.GlobalContext) error {
 		return err
 	}
 
-	// This sends the client's PATH to the service so the service can update
-	// its PATH if necessary. This is called after FixVersionClash(), which
-	// happens above in configureProcesses().
-	if err = configurePath(g, cl); err != nil {
-		// Further note -- don't die here.  It could be we're calling this method
-		// against an earlier version of the service that doesn't support it.
-		// It's not critical that it succeed, so continue on.
-		g.Log.Debug("Configure path failed: %v", err)
-	}
-
 	return cmd.Run()
 }
 
@@ -200,9 +190,12 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 
 	// Restart the service if we see that it's out of date. It's important to do this
 	// before we make any RPCs to the service --- for instance, before the logging
-	// calls below. See the v1.0.8 update fiasco for more details.
-	if err = client.FixVersionClash(g, cl); err != nil {
-		return err
+	// calls below. See the v1.0.8 update fiasco for more details. Also, only need
+	// to do this if we didn't just start a new process.
+	if !newProc {
+		if err = client.FixVersionClash(g, cl); err != nil {
+			return err
+		}
 	}
 
 	g.Log.Debug("| After forks; newProc=%v", newProc)
@@ -210,10 +203,14 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 		return err
 	}
 
-	// If we have created a new proc, then there's no need to keep going to the
-	// final step, which is to check for a version clashes.
-	if newProc {
-		return nil
+	// This sends the client's PATH to the service so the service can update
+	// its PATH if necessary. This is called after FixVersionClash(), which
+	// happens above in configureProcesses().
+	if err = configurePath(g, cl); err != nil {
+		// Further note -- don't die here.  It could be we're calling this method
+		// against an earlier version of the service that doesn't support it.
+		// It's not critical that it succeed, so continue on.
+		g.Log.Debug("Configure path failed: %v", err)
 	}
 
 	return nil
