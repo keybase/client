@@ -48,21 +48,23 @@ func (s Service) Label() string { return s.label }
 
 // Plist defines a launchd plist
 type Plist struct {
-	label     string
-	binPath   string
-	args      []string
-	envVars   map[string]string
-	keepAlive bool
+	label       string
+	binPath     string
+	args        []string
+	envVars     map[string]string
+	keepAlive   bool
+	logFileName string
 }
 
 // NewPlist constructs a launchd service.
-func NewPlist(label string, binPath string, args []string, envVars map[string]string) Plist {
+func NewPlist(label string, binPath string, args []string, envVars map[string]string, logFileName string) Plist {
 	return Plist{
-		label:     label,
-		binPath:   binPath,
-		args:      args,
-		envVars:   envVars,
-		keepAlive: true,
+		label:       label,
+		binPath:     binPath,
+		args:        args,
+		envVars:     envVars,
+		keepAlive:   true,
+		logFileName: logFileName,
 	}
 }
 
@@ -373,7 +375,7 @@ func ensureDirectoryExists(dir string) error {
 
 // TODO Use go-plist library
 func (p Plist) plist() string {
-	logFile := filepath.Join(launchdLogDir(), p.label+".log")
+	logFile := filepath.Join(launchdLogDir(), p.logFileName)
 
 	encodeTag := func(name, val string) string {
 		return fmt.Sprintf("<%s>%s</%s>", name, val, name)

@@ -184,7 +184,7 @@ func installKeybaseService(g *libkb.GlobalContext, binPath string) (*keybase1.Se
 	plistArgs := []string{"-d", "service"}
 	envVars := DefaultLaunchdEnvVars(g, label)
 
-	plist := launchd.NewPlist(label, binPath, plistArgs, envVars)
+	plist := launchd.NewPlist(label, binPath, plistArgs, envVars, libkb.ServiceLogFileName)
 	err := launchd.Install(plist, g.Log)
 	if err != nil {
 		return nil, err
@@ -220,7 +220,7 @@ func installKBFSService(g *libkb.GlobalContext, binPath string) (*keybase1.Servi
 	plistArgs := []string{"-debug", mountPath}
 	envVars := DefaultLaunchdEnvVars(g, label)
 
-	plist := launchd.NewPlist(label, kbfsBinPath, plistArgs, envVars)
+	plist := launchd.NewPlist(label, kbfsBinPath, plistArgs, envVars, libkb.KBFSLogFileName)
 	err = launchd.Install(plist, g.Log)
 	if err != nil {
 		return nil, err

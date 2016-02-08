@@ -38,7 +38,7 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 	return cli.Command{
 		Name:         "install",
 		Usage:        "Install a launchd service",
-		ArgumentHelp: "<label> <executable> <args>",
+		ArgumentHelp: "<label> <executable> <logfilename> <args>",
 		Action: func(c *cli.Context) {
 			// TODO: Use ChooseCommand
 			args := c.Args()
@@ -48,13 +48,17 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 			if len(args) < 2 {
 				g.Log.Fatalf("No executable specified.")
 			}
+			if len(args) < 3 {
+				g.Log.Fatalf("No log file name specified.")
+			}
 
 			label := args[0]
 			binPath := args[1]
-			plistArgs := args[2:]
+			logFileName := args[2]
+			plistArgs := args[3:]
 			envVars := install.DefaultLaunchdEnvVars(g, label)
 
-			plist := launchd.NewPlist(label, binPath, plistArgs, envVars)
+			plist := launchd.NewPlist(label, binPath, plistArgs, envVars, logFileName)
 			err := launchd.Install(plist, g.Log)
 			if err != nil {
 				g.Log.Fatalf("%v", err)
