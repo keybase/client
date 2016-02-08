@@ -5,7 +5,6 @@
 package openpgp
 
 import (
-	"crypto/rsa"
 	"fmt"
 	"io"
 	"time"
@@ -13,6 +12,7 @@ import (
 	"github.com/keybase/go-crypto/openpgp/armor"
 	"github.com/keybase/go-crypto/openpgp/errors"
 	"github.com/keybase/go-crypto/openpgp/packet"
+	"github.com/keybase/go-crypto/rsa"
 )
 
 // PublicKeyType is the armor type for a PGP public key.
@@ -95,8 +95,20 @@ func (e *Entity) encryptionKey(now time.Time) (Key, bool) {
 	// Iterate the keys to find the newest key
 	var maxTime time.Time
 	for i, subkey := range e.Subkeys {
-		if subkey.Sig.FlagsValid &&
-			subkey.Sig.FlagEncryptCommunications &&
+
+		// NOTE(maxtaco)
+		// If there is a Flags subpacket, then we have to follow it, and only
+		// use keys that are marked for Encryption of Communication.  If there
+		// isn't a Flags subpacket, and this is an Encrypt-Only key (right now only ElGamal
+		// suffices), then we implicitly use it. The check for primary below is a little
+		// more open-ended, but for now, let's be strict and potentially open up
+		// if we see bugs in the wild.
+		//
+		// One more note: old DSA/ElGamal keys tend not to have the Flags subpacket,
+		// so this sort of thing is pretty important for encrypting to older keys.
+		//
+		if ((subkey.Sig.FlagsValid && subkey.Sig.FlagEncryptCommunications) ||
+			(!subkey.Sig.FlagsValid && subkey.PublicKey.PubKeyAlgo == packet.PubKeyAlgoElGamal)) &&
 			subkey.PublicKey.PubKeyAlgo.CanEncrypt() &&
 			!subkey.Sig.KeyExpired(now) &&
 			(maxTime.IsZero() || subkey.Sig.CreationTime.After(maxTime)) {
@@ -114,8 +126,11 @@ func (e *Entity) encryptionKey(now time.Time) (Key, bool) {
 	// the primary key doesn't have any usage metadata then we
 	// assume that the primary key is ok. Or, if the primary key is
 	// marked as ok to encrypt to, then we can obviously use it.
+	//
+	// NOTE(maxtaco) - see note above, how this policy is a little too open-ended
+	// for my liking, but leave it for now.
 	i := e.primaryIdentity()
-	if !i.SelfSignature.FlagsValid || i.SelfSignature.FlagEncryptCommunications &&
+	if (!i.SelfSignature.FlagsValid || i.SelfSignature.FlagEncryptCommunications) &&
 		e.PrimaryKey.PubKeyAlgo.CanEncrypt() &&
 		!i.SelfSignature.KeyExpired(now) {
 		return Key{e, e.PrimaryKey, e.PrivateKey, i.SelfSignature}, true
@@ -131,8 +146,7 @@ func (e *Entity) signingKey(now time.Time) (Key, bool) {
 	candidateSubkey := -1
 
 	for i, subkey := range e.Subkeys {
-		if subkey.Sig.FlagsValid &&
-			subkey.Sig.FlagSign &&
+		if (!subkey.Sig.FlagsValid || subkey.Sig.FlagSign) &&
 			subkey.PrivateKey.PrivateKey != nil &&
 			subkey.PublicKey.PubKeyAlgo.CanSign() &&
 			!subkey.Sig.KeyExpired(now) {
@@ -149,8 +163,10 @@ func (e *Entity) signingKey(now time.Time) (Key, bool) {
 	// If we have no candidate subkey then we assume that it's ok to sign
 	// with the primary key.
 	i := e.primaryIdentity()
-	if (!i.SelfSignature.FlagsValid || i.SelfSignature.FlagSign &&
-		!i.SelfSignature.KeyExpired(now)) && e.PrivateKey.PrivateKey != nil {
+	if (!i.SelfSignature.FlagsValid || i.SelfSignature.FlagSign) &&
+		e.PrimaryKey.PubKeyAlgo.CanSign() &&
+		!i.SelfSignature.KeyExpired(now) &&
+		e.PrivateKey.PrivateKey != nil {
 		return Key{e, e.PrimaryKey, e.PrivateKey, i.SelfSignature}, true
 	}
 

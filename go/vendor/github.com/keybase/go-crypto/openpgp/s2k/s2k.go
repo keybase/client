@@ -191,7 +191,6 @@ func Parse(r io.Reader) (f func(out, in []byte), err error) {
 		return parseGNUExtensions(r)
 	}
 
-
 	hash, ok := HashIdToHash(buf[1])
 	if !ok {
 		return nil, errors.UnsupportedError("hash for S2K function: " + strconv.Itoa(int(buf[1])))
