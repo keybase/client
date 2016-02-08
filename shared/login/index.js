@@ -20,27 +20,27 @@ export default class Login extends Component {
 
   static parseRoute (currentPath, uri) {
     // Fallback (for debugging)
-    let Form = <ErrorText currentPath={currentPath} />
+    let form = <ErrorText currentPath={currentPath} />
 
     const path = currentPath.get('path')
 
     const {component: Component, props} = currentPath.get('parseRoute') || {}
     if (Component) {
-      Form = <Component {...props}/>
+      form = <Component {...props}/>
     } else {
       switch (path) {
         case 'root':
-          Form = <Intro/>
+          form = <Intro/>
           break
         case 'signup':
         case 'inviteCode':
-          Form = <InviteCode/>
+          form = <InviteCode/>
           break
         case 'usernameAndEmail':
-          Form = <UsernameEmailForm/>
+          form = <UsernameEmailForm/>
           break
         case 'register':
-          Form = <Register />
+          form = <Register />
           break
       }
     }
@@ -50,7 +50,7 @@ export default class Login extends Component {
         component: Login,
         hideBack: true,
         props: {
-          formComponent: () => Form
+          formComponent: () => form
         }
       },
       parseNextRoute: Login.parseRoute
