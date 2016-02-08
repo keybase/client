@@ -657,6 +657,100 @@ func TestKeyManagerSelfRekeyAcrossDevices(t *testing.T) {
 	}
 }
 
+func TestKeyManagerReaderRekey(t *testing.T) {
+	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2)
+	defer CheckConfigAndShutdown(t, config1)
+	_, uid1, err := config1.KBPKI().GetCurrentUserInfo(context.Background())
+
+	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)
+	defer CheckConfigAndShutdown(t, config2)
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Log("Create a shared folder")
+	name := u1.String() + ReaderSep + u2.String()
+
+	kbfsOps1 := config1.KBFSOps()
+	rootNode1, _, err :=
+		kbfsOps1.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+
+	t.Log("User 1 creates a file")
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	t.Log("User 1 adds a device")
+	// The configs don't share a Keybase Daemon so we have to do it in all
+	// places.
+	AddDeviceForLocalUserOrBust(t, config1, uid1)
+	devIndex := AddDeviceForLocalUserOrBust(t, config2, uid1)
+
+	config1Dev2 := ConfigAsUser(config2, u1)
+	defer CheckConfigAndShutdown(t, config1Dev2)
+	SwitchDeviceForLocalUserOrBust(t, config1Dev2, devIndex)
+
+	t.Log("User 2 adds a device")
+	// The configs don't share a Keybase Daemon so we have to do it in all
+	// places.
+	AddDeviceForLocalUserOrBust(t, config1, uid2)
+	AddDeviceForLocalUserOrBust(t, config1Dev2, uid2)
+	devIndex = AddDeviceForLocalUserOrBust(t, config2, uid2)
+
+	config2Dev2 := ConfigAsUser(config2, u2)
+	defer CheckConfigAndShutdown(t, config2Dev2)
+	SwitchDeviceForLocalUserOrBust(t, config2Dev2, devIndex)
+
+	t.Log("Check that user 2 device 2 is unable to read the file")
+	// user 2 device 2 should be unable to read the data now since its device
+	// wasn't registered when the folder was originally created.
+	kbfsOps2Dev2 := config2Dev2.KBFSOps()
+	_, _, err =
+		kbfsOps2Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+	if _, ok := err.(ReadAccessError); !ok {
+		t.Fatalf("Got unexpected error when reading with new key: %v", err)
+	}
+
+	t.Log("User 2 rekeys from device 1")
+	kbfsOps2 := config2.KBFSOps()
+	root2dev1, _, err := kbfsOps2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't obtain folder: %#v", err)
+	}
+
+	err = kbfsOps2.Rekey(ctx, root2dev1.GetFolderBranch().Tlf)
+	if err != nil {
+		t.Fatalf("Expected reader rekey to partially complete. Actual error: %#v", err)
+	}
+
+	t.Log("User 2 device 2 should be able to read now")
+	root2dev2, _, err :=
+		kbfsOps2Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Got unexpected error after rekey: %v", err)
+	}
+
+	t.Log("User 1 device 2 should still be unable to read")
+	kbfsOps1Dev2 := config1Dev2.KBFSOps()
+	_, _, err =
+		kbfsOps1Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+	if _, ok := err.(ReadAccessError); !ok {
+		t.Fatalf("Got unexpected error when reading with new key: %v", err)
+	}
+
+	t.Log("User 2 device 2 reads user 1's file")
+	children2, err := kbfsOps2Dev2.GetDirChildren(ctx, root2dev2)
+	if _, ok := children2["a"]; !ok {
+		t.Fatalf("Device 2 couldn't see user 1's dir entry")
+	}
+}
+
 // This tests 2 variations of the situation where clients w/o the folder key set the rekey bit.
 // In one case the client is a writer and in the other a reader. They both blindly copy the existing
 // metadata and simply set the rekey bit. Then another participant rekeys the folder and they try to read.
