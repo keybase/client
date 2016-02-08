@@ -17,6 +17,14 @@ import (
 	"github.com/agl/ed25519"
 )
 
+// to avoid importing all of libkb, some constants copied from
+// libkb/constants.go here:
+const (
+	KeybaseKIDV1 = 0x01
+	KIDNaclEddsa = 0x20
+	IDSuffixKID  = 0x0a
+)
+
 var jsonOutput = flag.Bool("json", false, "output json")
 
 func main() {
@@ -28,13 +36,21 @@ func main() {
 		os.Exit(1)
 	}
 
+	pubkb := make([]byte, len(pub)+3)
+	pubkb[0] = KeybaseKIDV1
+	pubkb[1] = KIDNaclEddsa
+	copy(pubkb[2:], pub[:])
+	pubkb[len(pubkb)-1] = IDSuffixKID
+
 	if *jsonOutput {
 		x := struct {
-			Public  string
-			Private string
+			Public        string
+			PublicKeybase string
+			Private       string
 		}{
-			Public:  hex.EncodeToString((*pub)[:]),
-			Private: hex.EncodeToString((*priv)[:]),
+			Public:        hex.EncodeToString((*pub)[:]),
+			PublicKeybase: hex.EncodeToString(pubkb),
+			Private:       hex.EncodeToString((*priv)[:]),
 		}
 		j, err := json.MarshalIndent(x, "", "    ")
 		if err != nil {
@@ -43,7 +59,8 @@ func main() {
 		}
 		fmt.Println(string(j))
 	} else {
-		fmt.Printf("Public key:  %x\n", *pub)
-		fmt.Printf("Private key: %x\n", *priv)
+		fmt.Printf("Public key:         %x\n", *pub)
+		fmt.Printf("Keybase public key: %x\n", pubkb)
+		fmt.Printf("Private key:        %x\n", *priv)
 	}
 }
