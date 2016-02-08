@@ -1,7 +1,6 @@
 import React, {Component} from 'react'
-import {Text, View, StyleSheet, BackAndroid, DrawerLayoutAndroid, Image, TouchableNativeFeedback} from 'react-native'
+import {Text, View, StyleSheet, BackAndroid, DrawerLayoutAndroid, Image, TouchableNativeFeedback, ViewPagerAndroid} from 'react-native'
 
-import TabBar from './native/tab-bar'
 import {connect} from 'react-redux'
 import MetaNavigator from './router/meta-navigator'
 import globalRoutes from './router/global-routes'
@@ -15,7 +14,6 @@ import More from './more'
 import Startup from './start-up'
 
 import {folderTab, chatTab, peopleTab, devicesTab, moreTab, startupTab, prettify} from './constants/tabs'
-import {androidTabBarHeight} from './styles/native'
 
 import {switchTab} from './actions/tabbed-router'
 import {navigateBack} from './actions/router'
@@ -24,12 +22,11 @@ import {startup} from './actions/startup'
 import * as Constants from './constants/config'
 
 const tabs = {
-  [folderTab]: {module: Folders, name: 'Folders'},
-  [chatTab]: {module: Chat, name: 'Chat'},
-  [peopleTab]: {module: People, name: 'People'},
-  [devicesTab]: {module: Devices, name: 'Devices'},
-  [moreTab]: {module: More, name: 'More'},
-  [startupTab]: {module: Startup, name: null}
+  [folderTab]: Folders,
+  [chatTab]: Chat,
+  [peopleTab]: People,
+  [devicesTab]: Devices,
+  [moreTab]: More
 }
 
 class AndroidNavigator extends Component {
@@ -67,7 +64,7 @@ class Nav extends Component {
   }
 
   _renderContent (activeTab) {
-    const {module} = tabs[activeTab]
+    const module = tabs[activeTab]
     return (
       <View style={styles.tabContent} collapsable={false}>
         <MetaNavigator
@@ -115,6 +112,40 @@ class Nav extends Component {
       </View>
     )
 
+    const tabKeys = Object.keys(tabs)
+
+    let activeIndex = tabKeys.indexOf(activeTab)
+    activeIndex = activeIndex === -1 ? 0 : activeIndex
+
+    const tabViews = tabKeys.map(k => {
+      return (
+        <View key={k}>
+          {this._renderContent(k)}
+        </View>
+      )
+    })
+
+    const tabBarNames = tabKeys.map((k, i) => {
+      return (
+        <TouchableNativeFeedback
+          key={k}
+          onPress={() => {
+            if (this._viewPagerRef) {
+              this._viewPagerRef.setPage(i)
+              this.props.switchTab(k)
+            }
+          }}>
+            <View style={{flex: 0}}>
+              <Text>{prettify(k)}</Text>
+            </View>
+        </TouchableNativeFeedback>
+      )
+    })
+
+    const tabBar = (
+      <View style={{flex: 0, flexDirection: 'row', justifyContent: 'space-around'}}>{tabBarNames}</View>
+    )
+
     return (
       <DrawerLayoutAndroid
         drawerWidth={300}
@@ -154,20 +185,14 @@ class Nav extends Component {
               </View>
             </View>
           <View collapsable={false} style={{flex: 2}}>
-            <TabBar style={{position: 'absolute', left: 0, right: 0, top: 0, bottom: 0}}>
-              { Object.keys(tabs).map(tab => {
-                const {name} = tabs[tab]
-                return (
-                  name &&
-                  <TabBar.Item
-                    title={name}
-                    selected={activeTab === tab}
-                    onPress={() => this.props.switchTab(tab)}>
-                    {this._renderContent(tab)}
-                  </TabBar.Item>
-                ) })
-              }
-            </TabBar>
+            {tabBar}
+            <ViewPagerAndroid
+              ref={r => this._viewPagerRef = r}
+              style={{flex: 1}}
+              initialPage={activeIndex}
+              onPageSelected={e => this.props.switchTab(tabKeys[e.nativeEvent.position])}>
+              {tabViews}
+            </ViewPagerAndroid>
           </View>
         </View>
       </DrawerLayoutAndroid>
@@ -182,7 +207,7 @@ Nav.propTypes = {
   startup: React.PropTypes.func.isRequired,
   tabbedRouter: React.PropTypes.object.isRequired,
   config: React.PropTypes.shape({
-    navState: React.PropTypes.oneOf([Constants.navStartingUp, Constants.navNeedsRegistration, Constants.navNeedsLogin, Constants.navLoggedIn])
+    navState: React.PropTypes.oneOf([Constants.navStartingUp, Constants.navNeedsRegistration, Constants.navNeedsLogin, Constants.navLoggedIn, Constants.navErrorStartingUp])
   }).isRequired
 }
 
@@ -192,8 +217,7 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     left: 0,
-    right: 0,
-    marginBottom: androidTabBarHeight
+    right: 0
   },
   toolbar: {
     height: 50,
