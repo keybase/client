@@ -60,7 +60,14 @@ class Keybase extends Component {
     setupContextMenu(electron.remote.getCurrentWindow())
 
     // Used by material-ui widgets.
-    injectTapEventPlugin()
+    if (module.hot) {
+      // Don't reload this thing if we're hot reloading
+      if (module.hot.data === undefined) {
+        injectTapEventPlugin()
+      }
+    } else {
+      injectTapEventPlugin()
+    }
 
     this.setupDispatchAction()
     this.setupStoreSubscriptions()
