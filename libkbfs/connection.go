@@ -386,7 +386,10 @@ func (c *Connection) doReconnect(ctx context.Context, disconnectStatus Disconnec
 	// inform the handler of our disconnected state
 	c.handler.OnDisconnected(disconnectStatus)
 	// retry w/exponential backoff
-	backoff.RetryNotify(func() error {
+	expBackoff := backoff.NewExponentialBackOff()
+	// never give up
+	expBackoff.MaxElapsedTime = 0
+	err := backoff.RetryNotify(func() error {
 		// try to connect
 		err := c.connect(ctx)
 		select {
@@ -404,9 +407,14 @@ func (c *Connection) doReconnect(ctx context.Context, disconnectStatus Disconnec
 			return nil
 		}
 		return err
-	}, backoff.NewExponentialBackOff(),
+	}, expBackoff,
 		// give the caller a chance to log any other error or adjust state
 		c.handler.OnConnectError)
+
+	if err != nil {
+		// this shouldn't happen, but just in case.
+		*reconnectErrPtr = err
+	}
 
 	// close the reconnect channel to signal we're connected.
 	c.mutex.Lock()

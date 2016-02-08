@@ -215,7 +215,7 @@ func (md *MDServerRemote) OnDisconnected(status DisconnectStatus) {
 		md.authToken.Shutdown()
 	}
 	md.config.RekeyQueue().Clear()
-	// Reset the timer since we wlil get folders for rekey again on
+	// Reset the timer since we will get folders for rekey again on
 	// the re-connect.
 	md.rekeyTimer.Reset(MdServerBackgroundRekeyPeriod)
 }
