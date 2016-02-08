@@ -11,6 +11,7 @@ import (
 func GetKeybasePassphrase(ui SecretUI, username, retryMsg string) (keybase1.GetPassphraseRes, error) {
 	arg := DefaultPassphraseArg()
 	arg.WindowTitle = "Keybase passphrase"
+	arg.Type = keybase1.PassphraseType_PASS_PHRASE
 	arg.Prompt = fmt.Sprintf("Please enter the Keybase passphrase for %s (12+ characters)", username)
 	arg.RetryLabel = retryMsg
 	return GetPassphraseUntilCheck(arg, newUIPrompter(ui), &CheckPassphraseSimple)
@@ -19,6 +20,7 @@ func GetKeybasePassphrase(ui SecretUI, username, retryMsg string) (keybase1.GetP
 func GetSecret(ui SecretUI, title, prompt, retryMsg string, allowSecretStore bool) (keybase1.GetPassphraseRes, error) {
 	arg := DefaultPassphraseArg()
 	arg.WindowTitle = title
+	arg.Type = keybase1.PassphraseType_PASS_PHRASE
 	arg.Prompt = prompt
 	arg.RetryLabel = retryMsg
 	// apparently allowSecretStore can be true even though HasSecretStore()
@@ -31,6 +33,7 @@ func GetSecret(ui SecretUI, title, prompt, retryMsg string, allowSecretStore boo
 func GetPaperKeyPassphrase(ui SecretUI, username string) (string, error) {
 	arg := DefaultPassphraseArg()
 	arg.WindowTitle = "Paper backup key passphrase"
+	arg.Type = keybase1.PassphraseType_PAPER_KEY
 	if len(username) == 0 {
 		username = "your account"
 	}
@@ -50,6 +53,7 @@ func GetPaperKeyForCryptoPassphrase(ui SecretUI, reason string, devices []*Devic
 	}
 	arg := DefaultPassphraseArg()
 	arg.WindowTitle = "Paper backup key passphrase"
+	arg.Type = keybase1.PassphraseType_PAPER_KEY
 	arg.Features.StoreSecret.Allow = false
 	arg.Features.StoreSecret.Readonly = true
 	if len(devices) == 1 {

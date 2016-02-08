@@ -8,7 +8,7 @@ import signupRouter from './signup'
 
 // Register Components
 import Register from './register'
-// import PaperKey from './register/paper-key'
+import PaperKey from './register/paper-key'
 
 import {Map} from 'immutable'
 import type {URI} from '../reducers/router'
@@ -19,7 +19,7 @@ function loginRouter (currentPath: Map<string, string>, uri: URI): any {
 
   const path = currentPath.get('path')
 
-  const {component: Component, props} = currentPath.get('parseRoute') || {}
+  const {componentAtTop: {component: Component, props}} = currentPath.get('parseRoute') || {componentAtTop: {}}
   if (Component) {
     form = <Component {...props}/>
   } else {

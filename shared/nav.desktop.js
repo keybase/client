@@ -13,8 +13,6 @@ import More from './more'
 import Login from './login'
 import commonStyles from './styles/common'
 
-import {resizeLoginForm} from './local-debug'
-
 // TODO global routes
 // import globalRoutes from './router/global-routes'
 const globalRoutes = {}
@@ -72,7 +70,7 @@ class Nav extends Component {
     const nextActiveTab = nextProps.tabbedRouter.get('activeTab')
 
     // Transistioning into the login tab
-    if (resizeLoginForm && activeTab !== loginTab && nextActiveTab === loginTab) {
+    if (activeTab !== loginTab && nextActiveTab === loginTab) {
       this.window = remote.getCurrentWindow()
       const [width, height] = this.window.getSize()
       this.originalSize = {width, height}
@@ -82,7 +80,7 @@ class Nav extends Component {
     }
 
     // Transistioning out of the login tab
-    if (resizeLoginForm && activeTab === loginTab && nextActiveTab !== loginTab) {
+    if (activeTab === loginTab && nextActiveTab !== loginTab) {
       if (this.originalSize) {
         const {width, height} = this.originalSize
         this.window && this.window.setSize(width, height, true)

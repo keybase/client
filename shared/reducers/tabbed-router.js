@@ -8,7 +8,7 @@ import Immutable from 'immutable'
 import routerReducer, {createRouterState} from './router'
 import {startupTab, folderTab, chatTab, peopleTab, devicesTab, moreTab, loginTab} from '../constants/tabs'
 import * as Constants from '../constants/tabbed-router'
-import * as LocalDebug from '../local-debug'
+import {initTabbedRouterState} from '../local-debug'
 import * as LoginConstants from '../constants/login'
 
 import type {RouterState} from './router'
@@ -16,9 +16,9 @@ import type {RouterState} from './router'
 type TabName = startupTab | folderTab | chatTab | peopleTab | devicesTab | moreTab | loginTab
 type TabbedRouterState = MapADT2<'tabs', Immutable.Map<TabName, RouterState>, 'activeTab', TabName> // eslint-disable-line no-undef
 
-const emptyRouterState: RouterState = LocalDebug.overrideRouterState ? LocalDebug.overrideRouterState : createRouterState([], [])
+const emptyRouterState: RouterState = createRouterState([], [])
 
-const initialState: TabbedRouterState = Immutable.fromJS({
+const initialState: TabbedRouterState = Immutable.fromJS(initTabbedRouterState({
   // a map from tab name to router obj
   tabs: {
     [startupTab]: emptyRouterState,
@@ -29,28 +29,13 @@ const initialState: TabbedRouterState = Immutable.fromJS({
     [moreTab]: emptyRouterState,
     [loginTab]: emptyRouterState
   },
-  activeTab: LocalDebug.overrideActiveTab ? LocalDebug.overrideActiveTab : moreTab
-})
+  activeTab: moreTab
+}))
 
 export default function (state: TabbedRouterState = initialState, action: any): TabbedRouterState {
   switch (action.type) {
     case Constants.switchTab:
       return state.set('activeTab', action.payload)
-    case LoginConstants.loginDone:
-      if (LocalDebug.skipLoginRouteToRoot || action.error) {
-        return state
-      }
-      return state.set('activeTab', folderTab)
-    case LoginConstants.logoutDone:
-      if (LocalDebug.redirectOnLogout) {
-        return state.set('activeTab', startupTab)
-      }
-      return state
-    case LoginConstants.needsLogin:
-    case LoginConstants.needsRegistering:
-      // TODO set the active tab to be startupTab here.
-      // see: https://github.com/keybase/client/pull/1202#issuecomment-150346720
-      return state.set('activeTab', moreTab).updateIn(['tabs', startupTab], routerState => routerReducer(routerState, action))
     default:
       return state.updateIn(['tabs', state.get('activeTab')], routerState => routerReducer(routerState, action))
   }

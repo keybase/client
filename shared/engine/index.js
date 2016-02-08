@@ -12,10 +12,20 @@ import windowsHack from './windows-hack'
 import {log} from '../native/log/logui'
 
 import {constants} from '../constants/types/keybase_v1'
+import {printOutstandingRPCs}  from '../local-debug'
 
 class Engine {
   constructor () {
     windowsHack()
+
+    if (printOutstandingRPCs) {
+      setInterval(() => {
+        const keys = Object.keys(this.sessionIDToResponse)
+        if (keys.length) {
+          console.log('Outstanding RPC sessionIDs: ', keys)
+        }
+      }, 10 * 1000)
+    }
 
     this.program = 'keybase.1'
     this.rpcClient = new RpcClient(
@@ -40,6 +50,9 @@ class Engine {
 
     // to find callMap for rpc callbacks
     this.sessionIDToIncomingCall = {}
+
+    // any non-responded to response objects
+    this.sessionIDToResponse = {}
 
     // A call map for general listeners
     // These are commands that the service can call at any point in time
@@ -131,6 +144,8 @@ class Engine {
   }
 
   _wrapResponseOnceOnly (method, param, response) {
+    const {sessionID} = param
+
     let once = false
     const wrappedResponse = {
       result: (...args) => {
@@ -145,8 +160,8 @@ class Engine {
         if (printRPC) {
           console.log('RPC ▼ result: ', method, param, ...args)
         }
-
         if (response) {
+          this.sessionIDToResponse[sessionID] = null
           response.result(...args)
         } else if (__DEV__){ // eslint-disable-line no-undef
           console.warn('Calling response.result on non-response object: ', method)
@@ -166,12 +181,15 @@ class Engine {
         }
 
         if (response) {
+          this.sessionIDToResponse[sessionID] = null
           response.error(...args)
         } else if (__DEV__){ // eslint-disable-line no-undef
           console.warn('Calling response.error on non-response object: ', method)
         }
       }
     }
+
+    this.sessionIDToResponse[sessionID] = wrappedResponse
     return wrappedResponse
   }
 
@@ -206,23 +224,27 @@ class Engine {
 
     const callMap = this.sessionIDToIncomingCall[sessionID]
 
+    if (printRPC) {
+      console.log('RPC ◀ incoming: ', payload)
+    }
+    // make wrapper so we only call this once
+    const wrappedResponse = this._wrapResponseOnceOnly(method, param, response)
+
     if (callMap && callMap[method]) {
-      // make wrapper so we only call this once
-      const wrappedResponse = this._wrapResponseOnceOnly(method, param, response)
       callMap[method](param, wrappedResponse)
     } else if (method === 'keybase.1.logUi.log' && this._hasNoHandler(method, callMap || {}, this._generalIncomingRpc)) {
       log(param)
-      response.result()
+      wrappedResponse.result()
     } else if (!sessionID && this.generalListeners[method]) {
-      this._generalIncomingRpc(method, param, response)
+      this._generalIncomingRpc(method, param, wrappedResponse)
     } else if (!sessionID && this.serverListeners[method]) {
-      this._serverInitIncomingRPC(method, param, response)
+      this._serverInitIncomingRPC(method, param, wrappedResponse)
     } else {
       if (__DEV__) {
         console.log(`Unknown incoming rpc: ${sessionID} ${method} ${param}${response ? ': Sending back error' : ''}`)
       }
       if (response && response.error) {
-        response.error({
+        wrappedResponse.error({
           code: constants.StatusCode.scgeneric,
           desc: 'Unhandled incoming RPC'
         })
@@ -240,6 +262,7 @@ class Engine {
 
     const sessionID = param.sessionID = this.getSessionID()
     this.sessionIDToIncomingCall[sessionID] = incomingCallMap
+    this.sessionIDToResponse[sessionID] = null
 
     const invoke = () => {
       if (printRPC) {
@@ -252,6 +275,7 @@ class Engine {
         }
         // deregister incomingCallbacks
         delete this.sessionIDToIncomingCall[sessionID]
+        delete this.sessionIDToResponse[sessionID]
         if (callback) {
           callback(err, data)
         }
@@ -266,11 +290,27 @@ class Engine {
     } else {
       invoke()
     }
+
+    return sessionID
   }
 
   rpc (params) {
     const {method, param, incomingCallMap, callback} = params
-    this.rpc_unchecked(method, param, incomingCallMap, callback)
+    return this.rpc_unchecked(method, param, incomingCallMap, callback)
+  }
+
+  cancelRPC (sessionID) {
+    const response = this.sessionIDToResponse[sessionID]
+    if (response) {
+      if (response && response.error) {
+        response.error({
+          code: constants.StatusCode.scgeneric,
+          desc: 'Canceling RPC'
+        })
+      }
+    } else {
+      console.log('Invalid sessionID sent to cancelRPC: ', sessionID)
+    }
   }
 
   reset () {

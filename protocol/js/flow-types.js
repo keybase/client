@@ -1774,12 +1774,17 @@ export type GUIEntryFeatures = {
   showTyping: Feature;
 }
 
+export type account_PassphraseType = 0 /* 'NONE_0' */ | 1 /* 'PAPER_KEY_1' */ | 2 /* 'PASS_PHRASE_2' */ | 3 /* 'VERIFY_PASS_PHRASE_3' */
+
+export type PassphraseType = 0 /* 'NONE_0' */ | 1 /* 'PAPER_KEY_1' */ | 2 /* 'PASS_PHRASE_2' */ | 3 /* 'VERIFY_PASS_PHRASE_3' */
+
 export type account_GUIEntryArg = {
   windowTitle: string;
   prompt: string;
   submitLabel: string;
   cancelLabel: string;
   retryLabel: string;
+  type: PassphraseType;
   features: GUIEntryFeatures;
 }
 
@@ -1789,6 +1794,7 @@ export type GUIEntryArg = {
   submitLabel: string;
   cancelLabel: string;
   retryLabel: string;
+  type: PassphraseType;
   features: GUIEntryFeatures;
 }
 
@@ -7794,12 +7800,15 @@ export type secretUi_GUIEntryFeatures = {
   showTyping: Feature;
 }
 
+export type secretUi_PassphraseType = 0 /* 'NONE_0' */ | 1 /* 'PAPER_KEY_1' */ | 2 /* 'PASS_PHRASE_2' */ | 3 /* 'VERIFY_PASS_PHRASE_3' */
+
 export type secretUi_GUIEntryArg = {
   windowTitle: string;
   prompt: string;
   submitLabel: string;
   cancelLabel: string;
   retryLabel: string;
+  type: PassphraseType;
   features: GUIEntryFeatures;
 }
 

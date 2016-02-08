@@ -28,6 +28,10 @@
       "type" : "Feature"
     } ]
   }, {
+    "type" : "enum",
+    "name" : "PassphraseType",
+    "symbols" : [ "NONE_0", "PAPER_KEY_1", "PASS_PHRASE_2", "VERIFY_PASS_PHRASE_3" ]
+  }, {
     "type" : "record",
     "name" : "GUIEntryArg",
     "fields" : [ {
@@ -45,6 +49,9 @@
     }, {
       "name" : "retryLabel",
       "type" : "string"
+    }, {
+      "name" : "type",
+      "type" : "PassphraseType"
     }, {
       "name" : "features",
       "type" : "GUIEntryFeatures"

@@ -1,12 +1,12 @@
 /* @flow */
 
 // Like join, but doesn't convert to string at the end
-export function intersperse<X> (separator: X, arr: Array<X>): Array<X> {
+export function intersperse (separator: any, arr: Array<any>): Array<any> {
   return intersperseFn(() => separator, arr)
 }
 
 // Like intersperse but takes a function to define the separator
-export function intersperseFn<X> (separatorFn: (index: number, x: X) => X, arr: Array<X>): Array<X> {
+export function intersperseFn (separatorFn: (index: number, x: any) => any, arr: Array<any>): Array<any> {
   if (arr.length === 0) {
     return []
   }
