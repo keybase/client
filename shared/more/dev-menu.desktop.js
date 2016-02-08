@@ -41,7 +41,8 @@ class DevMenu extends Component {
         this.props.switchTab(loginTab)
       }},
       {name: 'Register', onClick: () => {
-        this.props.routeAppend(['login', {path: 'register', upLink: ['']}])
+        this.props.switchTab(loginTab)
+        this.props.routeAppend(['register'])
       }},
       {name: 'reset', onClick: () => {
         engine.reset()

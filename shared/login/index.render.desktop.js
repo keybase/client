@@ -13,31 +13,19 @@ export default class LoginRender extends Component {
   render (): ReactElement {
     const FormComponent = this.props.formComponent
     return (
-      <div style={{...globalStyles.flexBoxRow, ...styles.container}}>
-        <Carousel style={{width: 400}} itemWidth={340}/>
-        <div style={styles.loginForm}>
-          <FormComponent/>
-        </div>
+      <div style={styles.loginForm}>
+        <FormComponent/>
       </div>
     )
   }
 }
 
-export const loginResizeTo = {width: 700, height: 500}
+export const loginResizeTo = {width: 550, height: 605}
 
 const styles = {
-  container: {
-    height: loginResizeTo.height,
-    width: loginResizeTo.width,
-    overflow: 'hidden'
-  },
-
   loginForm: {
     ...globalStyles.flexBoxColumn,
-    flex: 1,
-    paddingRight: 20,
-    paddingLeft: 20,
-    boxShadow: `-2px 0px 2px rgba(0, 0, 0, 0.12)`
+    flex: 1
   },
 
   topMargin: {
