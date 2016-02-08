@@ -95,23 +95,6 @@ var _ fs.Handle = (*FolderList)(nil)
 
 var _ fs.HandleReadDirAller = (*FolderList)(nil)
 
-func (fl *FolderList) getDirent(ctx context.Context, work <-chan *libkbfs.Favorite, results chan<- fuse.Dirent) error {
-	for {
-		select {
-		case fav, ok := <-work:
-			if !ok {
-				return nil
-			}
-			results <- fuse.Dirent{
-				Type: fuse.DT_Dir,
-				Name: fav.Name,
-			}
-		case <-ctx.Done():
-			return ctx.Err()
-		}
-	}
-}
-
 // ReadDirAll implements the ReadDirAll interface.
 func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 	ctx = NewContextWithOpID(ctx, fl.fs.log)
@@ -121,50 +104,12 @@ func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err er
 	if err != nil {
 		return nil, err
 	}
-	work := make(chan *libkbfs.Favorite)
-	results := make(chan fuse.Dirent)
-	errCh := make(chan error, 1)
-	const maxWorkers = 10
-	var wg sync.WaitGroup
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-	for i := 0; i < maxWorkers && i < len(favs); i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			if err := fl.getDirent(ctx, work, results); err != nil {
-				select {
-				case errCh <- err:
-				default:
-				}
-			}
-		}()
-	}
 
-	go func() {
-		// feed work
-		for _, fav := range favs {
-			if fl.public != fav.Public {
-				continue
-			}
-			work <- fav
-		}
-		close(work)
-		wg.Wait()
-		// workers are done
-		close(results)
-	}()
-
-outer:
-	for {
-		select {
-		case dirent, ok := <-results:
-			if !ok {
-				break outer
-			}
-			res = append(res, dirent)
-		case err := <-errCh:
-			return nil, err
+	res = make([]fuse.Dirent, len(favs))
+	for i, fav := range favs {
+		res[i] = fuse.Dirent{
+			Type: fuse.DT_Dir,
+			Name: fav.Name,
 		}
 	}
 	return res, nil
