@@ -88,7 +88,7 @@ func delegateUIs(e Engine, ctx *Context) error {
 	// perhaps should iterate over all registered UIs in UIRouter.
 
 	if requiresUI(e, libkb.SecretUIKind) {
-		if ui, err := e.G().UIRouter.GetSecretUI(); err != nil {
+		if ui, err := e.G().UIRouter.GetSecretUI(ctx.SessionID); err != nil {
 			return err
 		} else if ui != nil {
 			e.G().Log.Debug("using delegated secret UI for engine %q", e.Name())

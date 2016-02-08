@@ -52,6 +52,7 @@ func (h *IdentifyHandler) Identify2(_ context.Context, arg keybase1.Identify2Arg
 	ctx := engine.Context{
 		LogUI:      logui,
 		IdentifyUI: iui,
+		SessionID:  arg.SessionID,
 	}
 	eng := engine.NewResolveThenIdentify2(h.G(), &arg)
 	err = engine.RunEngine(eng, &ctx)
@@ -163,6 +164,7 @@ func (h *IdentifyHandler) makeContext(sessionID int, arg keybase1.IdentifyArg) (
 	ctx := engine.Context{
 		LogUI:      logui,
 		IdentifyUI: iui,
+		SessionID:  sessionID,
 	}
 	return &ctx, nil
 }

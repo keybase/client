@@ -21,7 +21,7 @@ func (f fakeUIRouter) GetIdentifyUI() (libkb.IdentifyUI, error) {
 	return nil, errors.New("Unexpected GetIdentifyUI call")
 }
 
-func (f fakeUIRouter) GetSecretUI() (libkb.SecretUI, error) {
+func (f fakeUIRouter) GetSecretUI(int) (libkb.SecretUI, error) {
 	return f.secretUI, f.secretUIErr
 }
 
@@ -46,21 +46,21 @@ func TestCryptoSecretUI(t *testing.T) {
 	// Should return errorSecretUI because UIRouter returned an
 	// error.
 	tc.G.SetUIRouter(fakeUIRouter{secretUIErr: errors.New("fake error")})
-	secretUI := c.getSecretUI("")
+	secretUI := c.getSecretUI(0, "")
 	if _, ok := secretUI.(errorSecretUI); !ok {
 		t.Errorf("secretUI %v is not an errorSecretUI", secretUI)
 	}
 
 	// Should return errorSecretUI because UIRouter returned nil.
 	tc.G.SetUIRouter(fakeUIRouter{})
-	secretUI = c.getSecretUI("")
+	secretUI = c.getSecretUI(0, "")
 	if _, ok := secretUI.(errorSecretUI); !ok {
 		t.Errorf("secretUI %v is not an errorSecretUI", secretUI)
 	}
 
 	// Should return nullSecretUI..
 	tc.G.SetUIRouter(fakeUIRouter{secretUI: nullSecretUI{}})
-	secretUI = c.getSecretUI("")
+	secretUI = c.getSecretUI(0, "")
 	if _, ok := secretUI.(nullSecretUI); !ok {
 		t.Errorf("secretUI %v is not a nullSecretUI", secretUI)
 	}

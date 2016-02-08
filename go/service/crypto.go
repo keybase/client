@@ -20,10 +20,10 @@ func NewCryptoHandler(g *libkb.GlobalContext) *CryptoHandler {
 	}
 }
 
-func (c *CryptoHandler) getDelegatedSecretUI() libkb.SecretUI {
+func (c *CryptoHandler) getDelegatedSecretUI(sessionID int) libkb.SecretUI {
 	// We should only ever be called in service mode, so UIRouter
 	// should be non-nil.
-	ui, err := c.G().UIRouter.GetSecretUI()
+	ui, err := c.G().UIRouter.GetSecretUI(sessionID)
 	if err != nil {
 		c.G().Log.Debug("UIRouter.GetSecretUI() returned an error %v", err)
 		return nil
@@ -49,8 +49,8 @@ func (e errorSecretUI) GetPassphrase(keybase1.GUIEntryArg, *keybase1.SecretEntry
 	return keybase1.GetPassphraseRes{}, libkb.LoginRequiredError{Context: e.reason}
 }
 
-func (c *CryptoHandler) getSecretUI(reason string) libkb.SecretUI {
-	secretUI := c.getDelegatedSecretUI()
+func (c *CryptoHandler) getSecretUI(sessionID int, reason string) libkb.SecretUI {
+	secretUI := c.getDelegatedSecretUI(sessionID)
 	if secretUI != nil {
 		return secretUI
 	}
@@ -61,17 +61,17 @@ func (c *CryptoHandler) getSecretUI(reason string) libkb.SecretUI {
 }
 
 func (c *CryptoHandler) SignED25519(_ context.Context, arg keybase1.SignED25519Arg) (keybase1.ED25519SignatureInfo, error) {
-	return engine.SignED25519(c.G(), c.getSecretUI(arg.Reason), arg)
+	return engine.SignED25519(c.G(), c.getSecretUI(arg.SessionID, arg.Reason), arg)
 }
 
 func (c *CryptoHandler) SignToString(_ context.Context, arg keybase1.SignToStringArg) (string, error) {
-	return engine.SignToString(c.G(), c.getSecretUI(arg.Reason), arg)
+	return engine.SignToString(c.G(), c.getSecretUI(arg.SessionID, arg.Reason), arg)
 }
 
 func (c *CryptoHandler) UnboxBytes32(_ context.Context, arg keybase1.UnboxBytes32Arg) (keybase1.Bytes32, error) {
-	return engine.UnboxBytes32(c.G(), c.getSecretUI(arg.Reason), arg)
+	return engine.UnboxBytes32(c.G(), c.getSecretUI(arg.SessionID, arg.Reason), arg)
 }
 
 func (c *CryptoHandler) UnboxBytes32Any(_ context.Context, arg keybase1.UnboxBytes32AnyArg) (keybase1.UnboxAnyRes, error) {
-	return engine.UnboxBytes32Any(c.G(), c.getSecretUI(arg.Reason), arg)
+	return engine.UnboxBytes32Any(c.G(), c.getSecretUI(arg.SessionID, arg.Reason), arg)
 }

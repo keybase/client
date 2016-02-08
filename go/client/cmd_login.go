@@ -42,6 +42,7 @@ type CmdLogin struct {
 	clientType keybase1.ClientType
 	cancel     func()
 	done       chan struct{}
+	SessionID  int
 }
 
 func NewCmdLoginRunner(g *libkb.GlobalContext) *CmdLogin {
@@ -82,6 +83,7 @@ func (c *CmdLogin) Run() error {
 			Username:   c.username,
 			DeviceType: libkb.DeviceTypeDesktop,
 			ClientType: c.clientType,
+			SessionID:  c.SessionID,
 		})
 	c.done <- struct{}{}
 

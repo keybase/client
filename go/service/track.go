@@ -39,6 +39,7 @@ func (h *TrackHandler) Track(_ context.Context, arg keybase1.TrackArg) error {
 	ctx := engine.Context{
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
 		SecretUI:   h.getSecretUI(arg.SessionID),
+		SessionID:  arg.SessionID,
 	}
 	eng := engine.NewTrackEngine(&earg, h.G())
 	return engine.RunEngine(eng, &ctx)
@@ -52,6 +53,7 @@ func (h *TrackHandler) TrackWithToken(_ context.Context, arg keybase1.TrackWithT
 	ctx := engine.Context{
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
 		SecretUI:   h.getSecretUI(arg.SessionID),
+		SessionID:  arg.SessionID,
 	}
 	eng := engine.NewTrackToken(&earg, h.G())
 	return engine.RunEngine(eng, &ctx)
@@ -63,7 +65,8 @@ func (h *TrackHandler) Untrack(_ context.Context, arg keybase1.UntrackArg) error
 		Username: arg.Username,
 	}
 	ctx := engine.Context{
-		SecretUI: h.getSecretUI(arg.SessionID),
+		SecretUI:  h.getSecretUI(arg.SessionID),
+		SessionID: arg.SessionID,
 	}
 	eng := engine.NewUntrackEngine(&earg, h.G())
 	return engine.RunEngine(eng, &ctx)

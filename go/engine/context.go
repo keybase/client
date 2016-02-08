@@ -25,6 +25,8 @@ type Context struct {
 	LoginContext libkb.LoginContext
 	NetContext   context.Context
 	SaltpackUI   libkb.SaltpackUI
+
+	SessionID int
 }
 
 func (c *Context) HasUI(kind libkb.UIKind) bool {

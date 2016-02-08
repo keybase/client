@@ -20,12 +20,12 @@ protocol crypto {
     is used as part of the SecretEntryArg object passed into
     secretUi.getSecret().
     */
-  ED25519SignatureInfo signED25519(bytes msg, string reason);
+  ED25519SignatureInfo signED25519(int sessionID, bytes msg, string reason);
 
   /**
     Same as the above except the full marsheled and encoded NaclSigInfo.
     */
-  string signToString(bytes msg, string reason);
+  string signToString(int sessionID, bytes msg, string reason);
 
   fixed Bytes32(32);
   // 32 + fixed-size nacl/box overhead.
@@ -39,7 +39,7 @@ protocol crypto {
     decrypted data. The 'reason' parameter is used as part of the
     SecretEntryArg object passed into secretUi.getSecret().
     */
-  Bytes32 unboxBytes32(EncryptedBytes32 encryptedBytes32, BoxNonce nonce, BoxPublicKey peersPublicKey, string reason);
+  Bytes32 unboxBytes32(int sessionID, EncryptedBytes32 encryptedBytes32, BoxNonce nonce, BoxPublicKey peersPublicKey, string reason);
  
   record CiphertextBundle {
     KID kid;
@@ -57,5 +57,5 @@ protocol crypto {
   // if promptPaper is set to true and a paper key would work for one of the bundles, 
   // then there will be a prompt for the user to enter it.  If false, no paper key 
   // prompts will happen.
-  UnboxAnyRes unboxBytes32Any(array<CiphertextBundle> bundles, string reason, boolean promptPaper);
+  UnboxAnyRes unboxBytes32Any(int sessionID, array<CiphertextBundle> bundles, string reason, boolean promptPaper);
 }

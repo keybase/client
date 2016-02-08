@@ -46,7 +46,10 @@ func (h *UserHandler) ListTrackersSelf(_ context.Context, sessionID int) ([]keyb
 }
 
 func (h *UserHandler) listTrackers(sessionID int, eng *engine.ListTrackersEngine) ([]keybase1.Tracker, error) {
-	ctx := &engine.Context{LogUI: h.getLogUI(sessionID)}
+	ctx := &engine.Context{
+		LogUI:     h.getLogUI(sessionID),
+		SessionID: sessionID,
+	}
 	if err := engine.RunEngine(eng, ctx); err != nil {
 		return nil, err
 	}
@@ -104,7 +107,10 @@ func (h *UserHandler) Search(_ context.Context, arg keybase1.SearchArg) (results
 	eng := engine.NewSearchEngine(engine.SearchEngineArgs{
 		Query: arg.Query,
 	}, h.G())
-	ctx := &engine.Context{LogUI: h.getLogUI(arg.SessionID)}
+	ctx := &engine.Context{
+		LogUI:     h.getLogUI(arg.SessionID),
+		SessionID: arg.SessionID,
+	}
 	err = engine.RunEngine(eng, ctx)
 	if err == nil {
 		results = eng.GetResults()

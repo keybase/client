@@ -836,16 +836,19 @@ type UnboxAnyRes struct {
 }
 
 type SignED25519Arg struct {
-	Msg    []byte `codec:"msg" json:"msg"`
-	Reason string `codec:"reason" json:"reason"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Msg       []byte `codec:"msg" json:"msg"`
+	Reason    string `codec:"reason" json:"reason"`
 }
 
 type SignToStringArg struct {
-	Msg    []byte `codec:"msg" json:"msg"`
-	Reason string `codec:"reason" json:"reason"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Msg       []byte `codec:"msg" json:"msg"`
+	Reason    string `codec:"reason" json:"reason"`
 }
 
 type UnboxBytes32Arg struct {
+	SessionID        int              `codec:"sessionID" json:"sessionID"`
 	EncryptedBytes32 EncryptedBytes32 `codec:"encryptedBytes32" json:"encryptedBytes32"`
 	Nonce            BoxNonce         `codec:"nonce" json:"nonce"`
 	PeersPublicKey   BoxPublicKey     `codec:"peersPublicKey" json:"peersPublicKey"`
@@ -853,6 +856,7 @@ type UnboxBytes32Arg struct {
 }
 
 type UnboxBytes32AnyArg struct {
+	SessionID   int                `codec:"sessionID" json:"sessionID"`
 	Bundles     []CiphertextBundle `codec:"bundles" json:"bundles"`
 	Reason      string             `codec:"reason" json:"reason"`
 	PromptPaper bool               `codec:"promptPaper" json:"promptPaper"`

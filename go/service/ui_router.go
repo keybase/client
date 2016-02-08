@@ -105,7 +105,7 @@ func (u *UIRouter) GetIdentifyUI() (libkb.IdentifyUI, error) {
 	return ret, nil
 }
 
-func (u *UIRouter) GetSecretUI() (ui libkb.SecretUI, err error) {
+func (u *UIRouter) GetSecretUI(sessionID int) (ui libkb.SecretUI, err error) {
 	defer u.G().Trace("UIRouter.GetSecretUI", func() error { return err })
 	x := u.getUI(libkb.SecretUIKind)
 	if x == nil {
@@ -115,7 +115,7 @@ func (u *UIRouter) GetSecretUI() (ui libkb.SecretUI, err error) {
 	cli := rpc.NewClient(x, libkb.ErrorUnwrapper{})
 	scli := keybase1.SecretUiClient{Cli: cli}
 	u.G().Log.Debug("| returning delegated SecretUI")
-	return &SecretUI{cli: &scli}, nil
+	return &SecretUI{cli: &scli, sessionID: sessionID}, nil
 }
 
 func (u *UIRouter) GetUpdateUI() (libkb.UpdateUI, error) {

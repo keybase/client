@@ -35,8 +35,9 @@ func (h *LoginHandler) Logout(_ context.Context, sessionID int) error {
 func (h *LoginHandler) Deprovision(_ context.Context, arg keybase1.DeprovisionArg) error {
 	eng := engine.NewDeprovisionEngine(h.G(), arg.Username)
 	ctx := engine.Context{
-		LogUI:    h.getLogUI(arg.SessionID),
-		SecretUI: h.getSecretUI(arg.SessionID),
+		LogUI:     h.getLogUI(arg.SessionID),
+		SecretUI:  h.getSecretUI(arg.SessionID),
+		SessionID: arg.SessionID,
 	}
 	return engine.RunEngine(eng, &ctx)
 }
@@ -65,9 +66,10 @@ func (h *LoginHandler) ClearStoredSecret(_ context.Context, arg keybase1.ClearSt
 
 func (h *LoginHandler) PaperKey(_ context.Context, sessionID int) error {
 	ctx := &engine.Context{
-		LogUI:    h.getLogUI(sessionID),
-		LoginUI:  h.getLoginUI(sessionID),
-		SecretUI: h.getSecretUI(sessionID),
+		LogUI:     h.getLogUI(sessionID),
+		LoginUI:   h.getLoginUI(sessionID),
+		SecretUI:  h.getSecretUI(sessionID),
+		SessionID: sessionID,
 	}
 	eng := engine.NewPaperKey(h.G())
 	return engine.RunEngine(eng, ctx)
@@ -75,8 +77,9 @@ func (h *LoginHandler) PaperKey(_ context.Context, sessionID int) error {
 
 func (h *LoginHandler) Unlock(_ context.Context, sessionID int) error {
 	ctx := &engine.Context{
-		LogUI:    h.getLogUI(sessionID),
-		SecretUI: h.getSecretUI(sessionID),
+		LogUI:     h.getLogUI(sessionID),
+		SecretUI:  h.getSecretUI(sessionID),
+		SessionID: sessionID,
 	}
 	eng := engine.NewUnlock(h.G())
 	return engine.RunEngine(eng, ctx)
@@ -84,8 +87,9 @@ func (h *LoginHandler) Unlock(_ context.Context, sessionID int) error {
 
 func (h *LoginHandler) UnlockWithPassphrase(_ context.Context, arg keybase1.UnlockWithPassphraseArg) error {
 	ctx := &engine.Context{
-		LogUI:    h.getLogUI(arg.SessionID),
-		SecretUI: h.getSecretUI(arg.SessionID),
+		LogUI:     h.getLogUI(arg.SessionID),
+		SecretUI:  h.getSecretUI(arg.SessionID),
+		SessionID: arg.SessionID,
 	}
 	eng := engine.NewUnlockWithPassphrase(h.G(), arg.Passphrase)
 	return engine.RunEngine(eng, ctx)
@@ -99,6 +103,7 @@ func (h *LoginHandler) Login(ctx context.Context, arg keybase1.LoginArg) error {
 		SecretUI:    h.getSecretUI(arg.SessionID),
 		GPGUI:       h.getGPGUI(arg.SessionID),
 		NetContext:  ctx,
+		SessionID:   arg.SessionID,
 	}
 	eng := engine.NewLogin(h.G(), arg.DeviceType, arg.Username, arg.ClientType)
 	return engine.RunEngine(eng, ectx)

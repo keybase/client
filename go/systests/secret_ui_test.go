@@ -62,6 +62,7 @@ func TestSecretUI(t *testing.T) {
 	}
 	tc2.G.SetUI(loginCmdUI)
 	cmd := client.NewCmdLoginRunner(tc2.G)
+	cmd.SessionID = 19
 	err = cmd.Run()
 	if err == nil {
 		t.Fatal("login worked, when it should have failed")
@@ -71,6 +72,11 @@ func TestSecretUI(t *testing.T) {
 	if !sui.getPassphrase {
 		t.Logf("secret ui: %+v", sui)
 		t.Error("delegate secret UI GetPassphrase was not called during login cmd")
+	}
+
+	// check that delegate ui session id was correct:
+	if sui.getPassphraseSessionID != cmd.SessionID {
+		t.Errorf("delegate secret UI session ID: %d, expected %d", sui.getPassphraseSessionID, cmd.SessionID)
 	}
 
 	stopper := client.NewCmdCtlStopRunner(tc1.G)
@@ -84,7 +90,8 @@ func TestSecretUI(t *testing.T) {
 }
 
 type secretUI struct {
-	getPassphrase bool
+	getPassphrase          bool
+	getPassphraseSessionID int
 }
 
 // secretUI implements the keybase1.IdentifyUiInterface
@@ -94,8 +101,9 @@ func newSecretUI() *secretUI {
 	return &secretUI{}
 }
 
-func (s *secretUI) GetPassphrase(context.Context, keybase1.GetPassphraseArg) (res keybase1.GetPassphraseRes, err error) {
+func (s *secretUI) GetPassphrase(_ context.Context, arg keybase1.GetPassphraseArg) (res keybase1.GetPassphraseRes, err error) {
 	s.getPassphrase = true
+	s.getPassphraseSessionID = arg.SessionID
 	res.Passphrase = "XXXXXXXXXXXX"
 	return res, nil
 }

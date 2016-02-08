@@ -27,7 +27,10 @@ func NewDeviceHandler(xp rpc.Transporter, g *libkb.GlobalContext) *DeviceHandler
 
 // DeviceList returns a list of all the devices for a user.
 func (h *DeviceHandler) DeviceList(_ context.Context, sessionID int) ([]keybase1.Device, error) {
-	ctx := &engine.Context{LogUI: h.getLogUI(sessionID)}
+	ctx := &engine.Context{
+		LogUI:     h.getLogUI(sessionID),
+		SessionID: sessionID,
+	}
 	eng := engine.NewDevList(h.G())
 	if err := engine.RunEngine(eng, ctx); err != nil {
 		return nil, err
@@ -41,6 +44,7 @@ func (h *DeviceHandler) DeviceAdd(_ context.Context, sessionID int) error {
 	ctx := &engine.Context{
 		ProvisionUI: h.getProvisionUI(sessionID),
 		SecretUI:    h.getSecretUI(sessionID),
+		SessionID:   sessionID,
 	}
 	eng := engine.NewDeviceAdd(h.G())
 	return engine.RunEngine(eng, ctx)

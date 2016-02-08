@@ -25,8 +25,9 @@ func NewSecretKeysHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SecretKey
 
 func (h *SecretKeysHandler) GetSecretKeys(_ context.Context, sessionID int) (keybase1.SecretKeys, error) {
 	ctx := engine.Context{
-		LogUI:    h.getLogUI(sessionID),
-		SecretUI: h.getSecretUI(sessionID),
+		LogUI:     h.getLogUI(sessionID),
+		SecretUI:  h.getSecretUI(sessionID),
+		SessionID: sessionID,
 	}
 	eng := engine.NewSecretKeysEngine(h.G())
 	err := engine.RunEngine(eng, &ctx)

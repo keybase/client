@@ -174,6 +174,7 @@ export type incomingCallMapType = {
   ) => void,
   'keybase.1.crypto.signED25519'?: (
     params: {
+      sessionID: int,
       msg: bytes,
       reason: string
     },
@@ -184,6 +185,7 @@ export type incomingCallMapType = {
   ) => void,
   'keybase.1.crypto.signToString'?: (
     params: {
+      sessionID: int,
       msg: bytes,
       reason: string
     },
@@ -194,6 +196,7 @@ export type incomingCallMapType = {
   ) => void,
   'keybase.1.crypto.unboxBytes32'?: (
     params: {
+      sessionID: int,
       encryptedBytes32: crypto_EncryptedBytes32,
       nonce: crypto_BoxNonce,
       peersPublicKey: crypto_BoxPublicKey,
@@ -206,6 +209,7 @@ export type incomingCallMapType = {
   ) => void,
   'keybase.1.crypto.unboxBytes32Any'?: (
     params: {
+      sessionID: int,
       bundles: Array<crypto_CiphertextBundle>,
       reason: string,
       promptPaper: boolean

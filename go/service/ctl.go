@@ -45,7 +45,8 @@ func (c *CtlHandler) Reload(_ context.Context, sessionID int) error {
 
 func (c *CtlHandler) DbNuke(_ context.Context, sessionID int) error {
 	ctx := engine.Context{
-		LogUI: c.getLogUI(sessionID),
+		LogUI:     c.getLogUI(sessionID),
+		SessionID: sessionID,
 	}
 
 	fn, err := c.G().LocalDb.Nuke()

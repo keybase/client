@@ -68,9 +68,10 @@ func (ph *ProveHandler) getProveUI(sessionID int) libkb.ProveUI {
 func (ph *ProveHandler) StartProof(_ context.Context, arg keybase1.StartProofArg) (res keybase1.StartProofResult, err error) {
 	eng := engine.NewProve(&arg, ph.G())
 	ctx := engine.Context{
-		ProveUI:  ph.getProveUI(arg.SessionID),
-		SecretUI: ph.getSecretUI(arg.SessionID),
-		LogUI:    ph.getLogUI(arg.SessionID),
+		ProveUI:   ph.getProveUI(arg.SessionID),
+		SecretUI:  ph.getSecretUI(arg.SessionID),
+		LogUI:     ph.getLogUI(arg.SessionID),
+		SessionID: arg.SessionID,
 	}
 	err = engine.RunEngine(eng, &ctx)
 	if err != nil {

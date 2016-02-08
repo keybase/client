@@ -29,10 +29,11 @@ func (h *SignupHandler) CheckUsernameAvailable(_ context.Context, arg keybase1.C
 
 func (h *SignupHandler) Signup(_ context.Context, arg keybase1.SignupArg) (res keybase1.SignupRes, err error) {
 	ctx := &engine.Context{
-		LogUI:    h.getLogUI(arg.SessionID),
-		GPGUI:    h.getGPGUI(arg.SessionID),
-		SecretUI: h.getSecretUI(arg.SessionID),
-		LoginUI:  h.getLoginUI(arg.SessionID),
+		LogUI:     h.getLogUI(arg.SessionID),
+		GPGUI:     h.getGPGUI(arg.SessionID),
+		SecretUI:  h.getSecretUI(arg.SessionID),
+		LoginUI:   h.getLoginUI(arg.SessionID),
+		SessionID: arg.SessionID,
 	}
 	runarg := engine.SignupEngineRunArg{
 		Username:    arg.Username,
