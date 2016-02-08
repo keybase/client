@@ -624,6 +624,19 @@ func (pk *PublicKey) VerifyKeySignature(signed *PublicKey, sig *Signature) error
 	}
 
 	if sig.FlagSign {
+
+		// BUG(maxtaco)
+		//
+		// We should check for more than FlagsSign here, because if
+		// you read keys.go, we can sometimes use signing subkeys even if they're
+		// not explicitly flagged as such. However, so doing fails lots of currently
+		// working tests, so I'm not going to do much here.
+		//
+		// In other words, we should have this disjunction in the condition above:
+		//
+		//    || (!sig.FlagsValid && pk.PubKeyAlgo.CanSign()) {
+		//
+
 		// Signing subkeys must be cross-signed. See
 		// https://www.gnupg.org/faq/subkey-cross-certify.html.
 		if sig.EmbeddedSignature == nil {

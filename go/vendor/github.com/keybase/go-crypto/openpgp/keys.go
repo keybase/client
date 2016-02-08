@@ -146,8 +146,7 @@ func (e *Entity) signingKey(now time.Time) (Key, bool) {
 	candidateSubkey := -1
 
 	for i, subkey := range e.Subkeys {
-		if subkey.Sig.FlagsValid &&
-			subkey.Sig.FlagSign &&
+		if (!subkey.Sig.FlagsValid || subkey.Sig.FlagSign) &&
 			subkey.PrivateKey.PrivateKey != nil &&
 			subkey.PublicKey.PubKeyAlgo.CanSign() &&
 			!subkey.Sig.KeyExpired(now) {
@@ -164,8 +163,10 @@ func (e *Entity) signingKey(now time.Time) (Key, bool) {
 	// If we have no candidate subkey then we assume that it's ok to sign
 	// with the primary key.
 	i := e.primaryIdentity()
-	if (!i.SelfSignature.FlagsValid || i.SelfSignature.FlagSign &&
-		!i.SelfSignature.KeyExpired(now)) && e.PrivateKey.PrivateKey != nil {
+	if (!i.SelfSignature.FlagsValid || i.SelfSignature.FlagSign) &&
+		e.PrimaryKey.PubKeyAlgo.CanSign() &&
+		!i.SelfSignature.KeyExpired(now) &&
+		e.PrivateKey.PrivateKey != nil {
 		return Key{e, e.PrimaryKey, e.PrivateKey, i.SelfSignature}, true
 	}
 
