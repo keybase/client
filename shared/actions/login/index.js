@@ -160,7 +160,7 @@ function askForUserPass (title, subTitle, cb) : AsyncAction {
       subTitle,
       mapStateToProps: state => state.login.userPass,
       onSubmit: (username, passphrase) => {
-        dispatch({type: Constants.actionSetUserPass, payload: {username, passphrase}})
+        dispatch({type: Constants.actionSetUserPass, payload: {username, passphrase: passphrase.stringValue()}})
         cb()
       }
     }
@@ -369,7 +369,7 @@ function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle
       if (!passphrase) {
         dispatch(askForUserPass(userPassTitle, userPassSubtitle, () => {
           const {passphrase} = getState().login.userPass
-          response.result({passphrase, storeSecret: false})
+          response.result({passphrase: passphrase.stringValue(), storeSecret: false})
         }))
       } else {
         response.result({passphrase, storeSecret: false})
@@ -381,14 +381,14 @@ function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle
         dispatch(askForUserPass(userPassTitle, userPassSubtitle, () => {
           const {passphrase} = getState().login.userPass
           response.result({
-            text: passphrase,
+            text: passphrase.stringValue(),
             canceled: false,
             storeSecret: true
           })
         }))
       } else {
         response.result({
-          text: passphrase,
+          text: passphrase.stringValue(),
           canceled: false,
           storeSecret: true
         })
