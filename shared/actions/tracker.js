@@ -223,13 +223,13 @@ function trackUser (trackToken: ?string): Promise<boolean> {
   })
 }
 
-export function onCloseFromActionBar (username: string): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
+export function onMaybeTrack (username: string): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
   return (dispatch, getState) => {
     const trackerState = getState().tracker.trackers[username]
     const {shouldFollow} = trackerState
     const {trackToken} = (trackerState || {})
 
-    const dispatchCloseAction = () => dispatch({type: Constants.onCloseFromActionBar, payload: {username}})
+    const dispatchCloseAction = () => dispatch({type: Constants.onMaybeTrack, payload: {username}})
 
     if (shouldFollow) {
       dispatch(onUserTrackingLoading(username))
@@ -245,9 +245,9 @@ export function onCloseFromActionBar (username: string): (dispatch: Dispatch, ge
   }
 }
 
-export function onCloseFromHeader (username: string): Action {
+export function onClose (username: string): Action {
   return {
-    type: Constants.onCloseFromHeader,
+    type: Constants.onClose,
     payload: {username}
   }
 }

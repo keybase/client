@@ -47,7 +47,7 @@ export default class ActionRender extends Component {
           <span style={styles.track}>Track</span>
           <i style={styles.eye} className='fa fa-eye'></i>
         </div>
-        <FlatButton style={commonStyles.primaryButton} label='Close' primary onClick={() => this.props.onClose()} />
+        <FlatButton style={commonStyles.primaryButton} label='Close' primary onClick={() => this.props.onMaybeTrack()} />
       </div>
     )
   }
@@ -79,7 +79,7 @@ export default class ActionRender extends Component {
           <span style={styles.track}>Track</span>
           <i style={styles.eye} className='fa fa-eye'></i>
         </div>
-        <FlatButton style={commonStyles.primaryButton} label='Close' primary onClick={() => this.props.onClose()} />
+        <FlatButton style={commonStyles.primaryButton} label='Close' primary onClick={() => this.props.onMaybeTrack()} />
       </div>
     )
   }
@@ -104,6 +104,7 @@ ActionRender.propTypes = {
   username: React.PropTypes.string,
   shouldFollow: React.PropTypes.bool.isRequired,
   onClose: React.PropTypes.func.isRequired,
+  onMaybeTrack: React.PropTypes.func.isRequired,
   onRefollow: React.PropTypes.func.isRequired,
   onUnfollow: React.PropTypes.func.isRequired,
   onFollowChecked: React.PropTypes.func.isRequired,
