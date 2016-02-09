@@ -114,7 +114,7 @@ func (u *UIRouter) GetSecretUI(sessionID int) (ui libkb.SecretUI, err error) {
 	}
 	cli := rpc.NewClient(x, libkb.ErrorUnwrapper{})
 	scli := keybase1.SecretUiClient{Cli: cli}
-	u.G().Log.Debug("| returning delegated SecretUI")
+	u.G().Log.Debug("| returning delegated SecretUI with sessionID = %d", sessionID)
 	return &SecretUI{cli: &scli, sessionID: sessionID}, nil
 }
 

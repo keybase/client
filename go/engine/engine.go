@@ -91,7 +91,7 @@ func delegateUIs(e Engine, ctx *Context) error {
 		if ui, err := e.G().UIRouter.GetSecretUI(ctx.SessionID); err != nil {
 			return err
 		} else if ui != nil {
-			e.G().Log.Debug("using delegated secret UI for engine %q", e.Name())
+			e.G().Log.Debug("using delegated secret UI for engine %q (session id = %d)", e.Name(), ctx.SessionID)
 			ctx.SecretUI = ui
 		}
 	}
