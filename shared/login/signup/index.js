@@ -10,10 +10,10 @@ import UsernameEmailForm from './usernameEmailForm'
 import PassphraseSignup from './passphrase'
 import DeviceName from './deviceName'
 
-import {Map} from 'Immutable'
+import {Map} from 'immutable'
 import type {URI} from '../../reducers/router'
 
-export default function SignupRouter (currentPath: Map<string, string>, uri: URI): any {
+export default function signupRouter (currentPath: Map<string, string>, uri: URI): any {
   // Fallback (for debugging)
   let form = <ErrorText currentPath={currentPath} />
 
@@ -48,6 +48,6 @@ export default function SignupRouter (currentPath: Map<string, string>, uri: URI
         formComponent: () => form
       }
     },
-    parseNextRoute: SignupRouter
+    parseNextRoute: signupRouter
   }
 }
