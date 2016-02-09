@@ -814,15 +814,17 @@ func (cr *ConflictResolver) resolveMergedPaths(ctx context.Context,
 			recreateOps = append(recreateOps, op)
 		}
 
-		// Remember to fill in the corresponding mergedPath once we
-		// get mostRecent's full path.
-		chainsToSearchFor[mostRecent] =
-			append(chainsToSearchFor[mostRecent], p.tailPointer())
-
 		// At the end of this process, we are left with a merged path
 		// that begins just after mostRecent.  We will fill this in
 		// later with the searchFromNodes result.
 		mergedPaths[p.tailPointer()] = mergedPath
+
+		if mostRecent.IsInitialized() {
+			// Remember to fill in the corresponding mergedPath once we
+			// get mostRecent's full path.
+			chainsToSearchFor[mostRecent] =
+				append(chainsToSearchFor[mostRecent], p.tailPointer())
+		}
 	}
 
 	// Now we can search for all the merged paths that need to be
@@ -840,6 +842,11 @@ func (cr *ConflictResolver) resolveMergedPaths(ctx context.Context,
 	}
 	for ptr := range chainsToSearchFor {
 		ptrs = append(ptrs, ptr)
+	}
+
+	if len(ptrs) == 0 {
+		// Nothing to search for
+		return mergedPaths, recreateOps, newUnmergedPaths, nil
 	}
 
 	nodeMap, err := cr.fbo.searchForNodes(ctx, mergedNodeCache, ptrs, newPtrs,
