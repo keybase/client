@@ -344,6 +344,7 @@ func ParseKeyFamily(g *GlobalContext, jw *jsonw.Wrapper) (ret *KeyFamily, err er
 		// can do just as well.
 		if err != nil {
 			g.Log.Notice("Failed to parse public key at position %d", i)
+			g.Log.Debug("Key parsing error: %s", err)
 			g.Log.Debug("Full key dump follows")
 			g.Log.Debug(bundle)
 			continue
