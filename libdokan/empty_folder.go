@@ -21,7 +21,7 @@ func (ef *EmptyFolder) open(ctx context.Context, oc *openContext, path []string)
 	if len(path) != 0 {
 		return nil, false, dokan.ErrObjectNameNotFound
 	}
-	return ef, true, nil
+	return oc.returnDirNoCleanup(ef)
 }
 
 // GetFileInformation for dokan.

@@ -39,18 +39,20 @@ func (*FolderList) GetFileInformation(*dokan.FileInfo) (*dokan.Stat, error) {
 // open tries to open the correct thing. Following aliases and deferring to
 // Dir.open as necessary.
 func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) (f dokan.File, isDir bool, err error) {
-	fl.fs.log.CDebugf(ctx, "FL Lookup %s", path)
+	fl.fs.log.CDebugf(ctx, "FL Lookup %#v", path)
 	defer func() { fl.fs.reportErr(ctx, err) }()
 
 	if len(path) == 0 {
-		if oc.mayNotBeDirectory() {
-			return nil, true, dokan.ErrFileIsADirectory
-		}
-		return fl, true, nil
+		return oc.returnDirNoCleanup(fl)
 	}
 
 	for oc.reduceRedirectionsLeft() {
 		name := path[0]
+
+		if name == "desktop.ini" {
+			fl.fs.log.CDebugf(ctx, "FL Lookup ignoring desktop.ini")
+			return nil, false, dokan.ErrObjectNameNotFound
+		}
 
 		fl.mu.Lock()
 		child, ok := fl.folders[name]
@@ -105,7 +107,7 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 
 		case libkbfs.WriteAccessError:
 			if len(path) == 1 {
-				return &EmptyFolder{}, true, nil
+				return oc.returnDirNoCleanup(&EmptyFolder{})
 			}
 			return nil, false, dokan.ErrObjectNameNotFound
 		default:
@@ -146,99 +148,28 @@ func (fl *FolderList) forgetFolder(f *Folder) {
 	delete(fl.folders, f.name)
 }
 
-func (fl *FolderList) getDirent(ctx context.Context, work <-chan *libkbfs.Favorite, results chan<- dokan.NamedStat) error {
-	for {
-		select {
-		case fav, ok := <-work:
-			if !ok {
-				return nil
-			}
-
-			var ns dokan.NamedStat
-			ns.Name = fav.Name
-			ns.FileAttributes = fileAttributeDirectory
-			ns.NumberOfLinks = 1
-
-			_, err := libkbfs.ParseTlfHandle(ctx, fl.fs.config.KBPKI(), fav.Name, fl.public)
-			switch err.(type) {
-			case nil:
-				// No error.
-				break
-
-			case libkbfs.TlfNameNotCanonical:
-				// Non-canonical name.
-				ns.FileAttributes = fileAttributeReparsePoint
-				ns.ReparsePointTag = reparsePointTagSymlink
-
-			default:
-				// Some other error.
-				continue
-			}
-
-			results <- ns
-		case <-ctx.Done():
-			return ctx.Err()
-		}
-	}
-}
-
 // FindFiles for dokan.
 func (fl *FolderList) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) (err error) {
 	ctx := NewContextWithOpID(fl.fs)
 	fl.fs.log.CDebugf(ctx, "FL ReadDirAll")
 	defer func() { fl.fs.reportErr(ctx, err) }()
 	favs, err := fl.fs.config.KBFSOps().GetFavorites(ctx)
+	fl.fs.log.CDebugf(ctx, "FL ReadDirAll -> %v,%v", favs, err)
 	if err != nil {
 		return err
 	}
-	work := make(chan *libkbfs.Favorite)
-	results := make(chan dokan.NamedStat)
-	errCh := make(chan error, 1)
-	const maxWorkers = 10
-	var wg sync.WaitGroup
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-	for i := 0; i < maxWorkers && i < len(favs); i++ {
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-			if err := fl.getDirent(ctx, work, results); err != nil {
-				select {
-				case errCh <- err:
-				default:
-				}
-			}
-		}()
-	}
-
-	go func() {
-		// feed work
-		for _, fav := range favs {
-			if fl.public != fav.Public {
-				continue
-			}
-			work <- fav
-		}
-		close(work)
-		wg.Wait()
-		// workers are done
-		close(results)
-	}()
-
+	var ns dokan.NamedStat
+	ns.FileAttributes = fileAttributeDirectory
+	ns.NumberOfLinks = 1
 	empty := true
-outer:
-	for {
-		select {
-		case dirent, ok := <-results:
-			if !ok {
-				break outer
-			}
-			empty = false
-			err = callback(&dirent)
-			if err != nil {
-				return err
-			}
-		case err := <-errCh:
+	for _, fav := range favs {
+		if fav.Public != fl.public {
+			continue
+		}
+		empty = false
+		ns.Name = fav.Name
+		err = callback(&ns)
+		if err != nil {
 			return err
 		}
 	}

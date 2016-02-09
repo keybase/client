@@ -151,6 +151,15 @@ func (oc *openContext) isOpenReparsePoint() bool {
 	return oc.CreateOptions&syscall.FILE_FLAG_OPEN_REPARSE_POINT != 0
 }
 
+// returnDirNoCleanup returns a dir or nothing depending on the open
+// flags and does not call .Cleanup on error.
+func (oc *openContext) returnDirNoCleanup(f dokan.File) (dokan.File, bool, error) {
+	if oc.mayNotBeDirectory() {
+		return nil, false, dokan.ErrFileIsADirectory
+	}
+	return f, true, nil
+}
+
 func (oc *openContext) mayNotBeDirectory() bool {
 	return oc.CreateOptions&dokan.FILE_NON_DIRECTORY_FILE != 0
 }
@@ -189,22 +198,22 @@ func (f *FS) openRaw(ctx context.Context, fi *dokan.FileInfo, caf *dokan.CreateD
 
 // open tries to open a file deferring to more specific implementations.
 func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File, bool, error) {
+	psl := len(ps)
 	switch {
-	case len(ps) < 1:
+	case psl < 1:
 		return nil, false, dokan.ErrObjectNameNotFound
-	case len(ps) == 1 && ps[0] == ``:
-		if oc.mayNotBeDirectory() {
-			return nil, true, dokan.ErrFileIsADirectory
-		}
-		return f.root, true, nil
-	case libkbfs.ErrorFile == ps[len(ps)-1]:
+	case psl == 1 && ps[0] == ``:
+		return oc.returnDirNoCleanup(f.root)
+	case libkbfs.ErrorFile == ps[psl-1]:
 		return NewErrorFile(f), false, nil
-	case MetricsFileName == ps[len(ps)-1]:
+	case MetricsFileName == ps[psl-1]:
 		return NewMetricsFile(f), false, nil
 	case PublicName == ps[0]:
 		return f.root.public.open(ctx, oc, ps[1:])
 	case PrivateName == ps[0]:
 		return f.root.private.open(ctx, oc, ps[1:])
+	case ProfileListDirName == ps[0]:
+		return (ProfileList{}).open(ctx, oc, ps[1:])
 	}
 	return nil, false, dokan.ErrObjectNameNotFound
 }
