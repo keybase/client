@@ -1,6 +1,8 @@
 /* @flow */
 
 class SecureString {
+  _value: () => string;
+
   constructor (stringValue: string) {
     this._value = () => stringValue
   }

@@ -2,6 +2,7 @@
 
 .*/node_modules/babel.*
 .*/node_modules/react/.*
+.*/node_modules/fbjs/.*
 .*/node_modules/react-tap-event-plugin/node_modules/.*
 .*/react/node_modules/.*
 

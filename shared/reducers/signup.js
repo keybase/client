@@ -1,8 +1,9 @@
 /* @flow */
 
 import * as Constants from '../constants/signup'
+import SecureString from '../util/secure-string'
 
-import type {SignupActions, CheckInviteCode} from '../constants/signup'
+import type {SignupActions} from '../constants/signup'
 
 export type SignupState = {
   inviteCode: ?string,
@@ -11,8 +12,11 @@ export type SignupState = {
   inviteCodeError: ?string,
   usernameError: ?string,
   emailError: ?string,
-  passwordError: ?string,
-  phase: 'inviteCode' | 'usernameAndEmail' | 'passphrase' | 'deviceName' | 'paperkey'
+  passphraseError: ?SecureString,
+  passphrase: ?SecureString,
+  deviceNameError: ?string,
+  deviceName: ?string,
+  phase: 'inviteCode' | 'usernameAndEmail' | 'passphraseSignup' | 'deviceName' | 'paperkey'
 }
 
 const initialState: SignupState = {
@@ -22,7 +26,10 @@ const initialState: SignupState = {
   inviteCodeError: null,
   usernameError: null,
   emailError: null,
-  passwordError: null,
+  passphraseError: null,
+  passphrase: null,
+  deviceNameError: null,
+  deviceName: null,
   phase: 'inviteCode'
 }
 
@@ -57,11 +64,45 @@ export default function (state: SignupState = initialState, action: SignupAction
       } else {
         return {
           ...state,
-          phase: 'passphrase',
+          phase: 'passphraseSignup',
           emailError: null,
           usernameError: null,
           username,
           email
+        }
+      }
+
+    case Constants.checkPassphrase:
+      if (action.error) {
+        const {passphraseError} = action.payload
+        return {
+          ...state,
+          passphraseError
+        }
+      } else {
+        const {passphrase} = action.payload
+        return {
+          ...state,
+          phase: 'deviceName',
+          passphrase,
+          passphraseError: null
+        }
+      }
+
+    case Constants.submitDeviceName:
+      if (action.error) {
+        const {deviceNameError} = action.payload
+        return {
+          ...state,
+          deviceNameError
+        }
+      } else {
+        const {deviceName} = action.payload
+        return {
+          ...state,
+          phase: 'paperkey',
+          deviceName,
+          deviceNameError: null
         }
       }
 
