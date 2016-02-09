@@ -4,7 +4,7 @@
 import engine from '../engine'
 import keybase from '../constants/types/keybase_v1'
 
-import type {ClientDetails} from '../constants/types/flow-types'
+import type {ClientDetails, config_helloIAm_rpc} from '../constants/types/flow-types'
 
 export default function (pid: number, desc: string, argv: Array<string>): Promise<void> {
   const details: ClientDetails = {
@@ -17,14 +17,22 @@ export default function (pid: number, desc: string, argv: Array<string>): Promis
 
   return new Promise((resolve, reject) => {
     engine.listenOnConnect('hello', () => {
-      engine.rpc('config.helloIAm', {details}, {}, (err, resp) => {
-        if (err != null) {
-          console.error('error in helloIAm', err)
-          reject(err)
-        } else {
-          resolve()
+
+      const params : config_helloIAm_rpc = {
+        method: 'config.helloIAm',
+        param: {details},
+        incomingCallMap: {},
+        callback: (err, resp) => {
+          if (err != null) {
+            console.error('error in helloIAm', err)
+            reject(err)
+          } else {
+            resolve()
+          }
         }
-      })
+      }
+
+      engine.rpc(params)
     })
   })
 }
