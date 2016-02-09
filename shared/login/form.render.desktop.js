@@ -3,12 +3,11 @@
 
 import React, {Component} from 'react'
 import {globalStyles} from '../styles/style-guide'
-import Carousel from '../util/carousel.desktop'
 
-import type {LoginRenderProps} from './index.render'
+import type {Props} from './form.render'
 
-export default class LoginRender extends Component {
-  props: LoginRenderProps;
+export default class Render extends Component {
+  props: Props;
 
   render (): ReactElement {
     const FormComponent = this.props.formComponent
@@ -20,7 +19,7 @@ export default class LoginRender extends Component {
   }
 }
 
-export const loginResizeTo = {width: 550, height: 605}
+export const formResizeTo = {width: 550, height: 605}
 
 const styles = {
   loginForm: {

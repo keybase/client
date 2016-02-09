@@ -1,15 +1,11 @@
 /* @flow */
 
 import React, {Component} from 'react'
-import Render from './index.render'
+import Form from './form'
 import Intro from './forms/intro'
 import ErrorText from './error.render'
 
-// Signup Components
-import InviteCode from './signup/inviteCode'
-import UsernameEmailForm from './signup/usernameEmailForm'
-import PassphraseSignup from './signup/passphrase'
-import DeviceName from './signup/deviceName'
+import SignupRouter from './signup'
 
 // Register Components
 import Register from './register'
@@ -17,7 +13,6 @@ import Register from './register'
 
 export default class Login extends Component {
   render () {
-    return <Render formComponent={this.props.formComponent}/>
   }
 
   static parseRoute (currentPath, uri) {
@@ -35,18 +30,7 @@ export default class Login extends Component {
           form = <Intro/>
           break
         case 'signup':
-        case 'inviteCode':
-          form = <InviteCode/>
-          break
-        case 'usernameAndEmail':
-          form = <UsernameEmailForm/>
-          break
-        case 'passphraseSignup':
-          form = <PassphraseSignup/>
-          break
-        case 'deviceName':
-          form = <DeviceName/>
-          break
+          return SignupRouter(currentPath, uri)
         case 'register':
           form = <Register />
           break
@@ -55,7 +39,7 @@ export default class Login extends Component {
 
     return {
       componentAtTop: {
-        component: Login,
+        component: Form,
         hideBack: true,
         props: {
           formComponent: () => form

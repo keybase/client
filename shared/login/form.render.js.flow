@@ -1,0 +1,10 @@
+/* @flow */
+import React, {Component} from 'react'
+
+export type Props = {
+  formComponent: ReactClass
+}
+
+export default class Render extends Component {
+  props: Props;
+}
