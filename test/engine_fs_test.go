@@ -15,10 +15,10 @@ import (
 	"io/ioutil"
 	"os"
 	"sort"
-	"testing"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -26,8 +26,8 @@ import (
 
 type fsEngine struct {
 	name       string
-	t          *testing.T
-	createUser func(t *testing.T, ith int, config *libkbfs.ConfigLocal, tlf string) User
+	t          logger.TestLogBackend
+	createUser func(t logger.TestLogBackend, ith int, config *libkbfs.ConfigLocal, tlf string) User
 }
 type fsNode struct {
 	path string
@@ -40,6 +40,9 @@ type fsUser struct {
 	notificationGroupWait func()
 	tlf                   string
 }
+
+// Check that fsEngine fully implements the Engine interface.
+var _ Engine = (*fsEngine)(nil)
 
 // Perform Init for the engine
 func (*fsEngine) Init() {}
@@ -282,7 +285,7 @@ func usersTlf(uids []keybase1.UID, nwriters int, config *libkbfs.ConfigLocal) st
 	return name
 }
 
-func (e *fsEngine) InitTest(t *testing.T, blockSize int64, blockChangeSize int64, writers []username, readers []username) map[string]User {
+func (e *fsEngine) InitTest(t logger.TestLogBackend, blockSize int64, blockChangeSize int64, writers []username, readers []username) map[string]User {
 	e.t = t
 	res := map[string]User{}
 
@@ -319,7 +322,7 @@ func (e *fsEngine) InitTest(t *testing.T, blockSize int64, blockChangeSize int64
 	return res
 }
 
-func nameToUID(t *testing.T, config libkbfs.Config) keybase1.UID {
+func nameToUID(t logger.TestLogBackend, config libkbfs.Config) keybase1.UID {
 	_, uid, err := config.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
 		t.Fatal(err)

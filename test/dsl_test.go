@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/libkbfs"
 )
 
@@ -81,7 +82,7 @@ func ntimesString(n int, s string) string {
 	return bs.String()
 }
 
-func setBlockSizes(t *testing.T, config libkbfs.Config, blockSize, blockChangeSize int64) {
+func setBlockSizes(t logger.TestLogBackend, config libkbfs.Config, blockSize, blockChangeSize int64) {
 	// Set the block sizes, if any
 	if blockSize > 0 || blockChangeSize > 0 {
 		if blockSize == 0 {

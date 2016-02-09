@@ -3,7 +3,6 @@ package libkbfs
 import (
 	"errors"
 	"os"
-	"testing"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -249,7 +248,7 @@ func fakeTlfIDByte(id TlfID) byte {
 }
 
 // NewFolder returns a new RootMetadataSigned for testing.
-func NewFolder(t *testing.T, x byte, revision MetadataRevision, share bool, public bool) (
+func NewFolder(t logger.TestLogBackend, x byte, revision MetadataRevision, share bool, public bool) (
 	TlfID, *TlfHandle, *RootMetadataSigned) {
 	id := FakeTlfID(x, public)
 	h, rmds := NewFolderWithIDAndWriter(t, id, revision, share, public, keybase1.MakeTestUID(15))
@@ -257,13 +256,13 @@ func NewFolder(t *testing.T, x byte, revision MetadataRevision, share bool, publ
 }
 
 // NewFolderWithID returns a new RootMetadataSigned for testing.
-func NewFolderWithID(t *testing.T, id TlfID, revision MetadataRevision, share bool, public bool) (
+func NewFolderWithID(t logger.TestLogBackend, id TlfID, revision MetadataRevision, share bool, public bool) (
 	*TlfHandle, *RootMetadataSigned) {
 	return NewFolderWithIDAndWriter(t, id, revision, share, public, keybase1.MakeTestUID(15))
 }
 
 // NewFolderWithIDAndWriter returns a new RootMetadataSigned for testing.
-func NewFolderWithIDAndWriter(t *testing.T, id TlfID, revision MetadataRevision,
+func NewFolderWithIDAndWriter(t logger.TestLogBackend, id TlfID, revision MetadataRevision,
 	share bool, public bool, writer keybase1.UID) (*TlfHandle, *RootMetadataSigned) {
 
 	h := NewTlfHandle()
@@ -294,7 +293,7 @@ func NewFolderWithIDAndWriter(t *testing.T, id TlfID, revision MetadataRevision,
 }
 
 // AddNewKeysOrBust adds new keys to root metadata and blows up on error.
-func AddNewKeysOrBust(t *testing.T, rmd *RootMetadata, tkb TLFKeyBundle) {
+func AddNewKeysOrBust(t logger.TestLogBackend, rmd *RootMetadata, tkb TLFKeyBundle) {
 	if err := rmd.AddNewKeys(tkb); err != nil {
 		t.Fatal(err)
 	}
@@ -302,7 +301,7 @@ func AddNewKeysOrBust(t *testing.T, rmd *RootMetadata, tkb TLFKeyBundle) {
 
 // AddDeviceForLocalUserOrBust creates a new device for a user and
 // returns the index for that device.
-func AddDeviceForLocalUserOrBust(t *testing.T, config Config,
+func AddDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config,
 	uid keybase1.UID) int {
 	kbd, ok := config.KeybaseDaemon().(KeybaseDaemonLocal)
 	if !ok {
@@ -329,7 +328,7 @@ func AddDeviceForLocalUserOrBust(t *testing.T, config Config,
 
 // RevokeDeviceForLocalUserOrBust revokes a device for a user in the
 // given index.
-func RevokeDeviceForLocalUserOrBust(t *testing.T, config Config,
+func RevokeDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config,
 	uid keybase1.UID, index int) {
 	kbd, ok := config.KeybaseDaemon().(KeybaseDaemonLocal)
 	if !ok {
@@ -363,7 +362,7 @@ func RevokeDeviceForLocalUserOrBust(t *testing.T, config Config,
 }
 
 // SwitchDeviceForLocalUserOrBust switches the current user's current device
-func SwitchDeviceForLocalUserOrBust(t *testing.T, config Config, index int) {
+func SwitchDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config, index int) {
 	_, uid, err := config.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
 		t.Fatalf("Couldn't get UID: %v", err)
@@ -406,7 +405,7 @@ func SwitchDeviceForLocalUserOrBust(t *testing.T, config Config, index int) {
 	crypto.cryptPrivateKey = MakeLocalUserCryptPrivateKeyOrBust(keySalt)
 }
 
-func testWithCanceledContext(t *testing.T, ctx context.Context,
+func testWithCanceledContext(t logger.TestLogBackend, ctx context.Context,
 	readyChan <-chan struct{}, goChan chan<- struct{},
 	fn func(context.Context) error) {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -516,7 +515,7 @@ func (tc TestClock) Now() time.Time {
 
 // CheckConfigAndShutdown shuts down the given config, but fails the
 // test if there's an error.
-func CheckConfigAndShutdown(t *testing.T, config Config) {
+func CheckConfigAndShutdown(t logger.TestLogBackend, config Config) {
 	if err := config.Shutdown(); err != nil {
 		t.Errorf(err.Error())
 	}
