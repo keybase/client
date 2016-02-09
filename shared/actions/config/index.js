@@ -43,7 +43,7 @@ export function getConfig (): AsyncAction {
           }
 
           dispatch({type: Constants.configLoaded, payload: {config}})
-          switchTabs(dispatch, getState)
+          dispatch(switchTabs)
           resolve()
         }
       }
