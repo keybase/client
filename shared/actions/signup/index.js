@@ -1,6 +1,7 @@
 /* @flow */
 
 import * as Constants from '../../constants/signup'
+import SecureString from '../../util/secure-string'
 
 import {routeAppend} from '../../actions/router'
 
@@ -53,11 +54,11 @@ export function checkPassphrase (passphrase1: string, passphrase2: string): Type
   return dispatch => {
     let passphraseError = null
     if (!passphrase1 || !passphrase2) {
-      passphraseError = () => 'Fields cannot be blank'
+      passphraseError = new SecureString('Fields cannot be blank')
     } else if (passphrase1 !== passphrase2) {
-      passphraseError = () => 'Passphrases must match'
+      passphraseError = new SecureString('Passphrases must match')
     } else if (passphrase1.length < 12) {
-      passphraseError = () => 'Passphrase must be at least 12 Characters'
+      passphraseError = new SecureString('Passphrase must be at least 12 Characters')
     }
 
     if (passphraseError) {
@@ -69,7 +70,7 @@ export function checkPassphrase (passphrase1: string, passphrase2: string): Type
     } else {
       dispatch({
         type: Constants.checkPassphrase,
-        payload: {passphrase: () => passphrase1}
+        payload: {passphrase: new SecureString(passphrase1)}
       })
       dispatch(nextPhase())
     }

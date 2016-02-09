@@ -20,7 +20,7 @@ export default class Render extends Component {
         console.error('Null refs for passphrase fields')
       }
     }
-    const passphraseError = this.props.passphraseError && this.props.passphraseError()
+    const passphraseError = this.props.passphraseError && this.props.passphraseError.stringValue()
 
     return (
       <div style={styles.form}>
