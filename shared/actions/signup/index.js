@@ -51,30 +51,27 @@ export function checkUsernameEmail (username: ?string, email: ?string): TypedAsy
 // TODO when securestring is merged change these closed over texts to secure string
 export function checkPassphrase (passphrase1: string, passphrase2: string): TypedAsyncAction<CheckPassphrase | RouteAppend> {
   return dispatch => {
+    let passphraseError = null
     if (!passphrase1 || !passphrase2) {
-      const passphraseError = () => 'Fields cannot be blank'
+      passphraseError = () => 'Fields cannot be blank'
+    } else if (passphrase1 !== passphrase2) {
+      passphraseError = () => 'Passphrases must match'
+    } else if (passphrase1.length < 12) {
+      passphraseError = () => 'Passphrase must be at least 12 Characters'
+    }
+
+    if (passphraseError) {
       dispatch({
         type: Constants.checkPassphrase,
         error: true,
         payload: {passphraseError}
       })
-      return
-    }
-
-    if (passphrase1 !== passphrase2) {
-      const passphraseError = () => 'Passphrases must match'
+    } else {
       dispatch({
         type: Constants.checkPassphrase,
-        error: true,
-        payload: {passphraseError}
+        payload: {passphrase: () => passphrase1}
       })
-      return
+      dispatch(nextPhase())
     }
-
-    dispatch({
-      type: Constants.checkPassphrase,
-      payload: {passphrase: () => passphrase1}
-    })
-    dispatch(nextPhase())
   }
 }
