@@ -25,7 +25,7 @@ import {switchTab} from './actions/tabbed-router'
 import {startup} from './actions/startup'
 import {Tab, Tabs} from 'material-ui'
 
-import {formResizeTo as loginResizeTo} from './login/form.render'
+import {globalResizing} from './styles/style-guide'
 
 const tabs = {
   [moreTab]: {module: More, name: 'More'},
@@ -77,7 +77,7 @@ class Nav extends Component {
       const [width, height] = this.window.getSize()
       this.originalSize = {width, height}
 
-      this.window && this.window.setContentSize(loginResizeTo.width, loginResizeTo.height, true)
+      this.window && this.window.setContentSize(globalResizing.login.width, globalResizing.login.height, true)
       this.window && this.window.setResizable(false)
     }
 

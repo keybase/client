@@ -17,6 +17,10 @@ export const globalColors = {
   white: '#ffffff'
 }
 
+export const globalResizing = {
+  login: {width: 550, height: 605}
+}
+
 const fontCommon = {
   WebkitFontSmoothing: 'antialiased',
   textRendering: 'optimizeLegibility'
