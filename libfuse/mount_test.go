@@ -314,6 +314,10 @@ func TestReaddirPrivate(t *testing.T) {
 			context.Background(), "jdoe", false, libkbfs.MasterBranch); err != nil {
 			t.Fatalf("cannot set up a favorite: %v", err)
 		}
+		if _, _, err := config.KBFSOps().GetOrCreateRootNode(
+			context.Background(), "jdoe", true, libkbfs.MasterBranch); err != nil {
+			t.Fatalf("cannot set up a favorite: %v", err)
+		}
 	}
 
 	checkDir(t, path.Join(mnt.Dir, PrivateName), map[string]fileInfoCheck{
@@ -332,6 +336,10 @@ func TestReaddirPublic(t *testing.T) {
 		// Force FakeMDServer to have some TlfIDs it can present to us
 		// as favorites. Don't go through VFS to avoid caching causing
 		// false positives.
+		if _, _, err := config.KBFSOps().GetOrCreateRootNode(
+			context.Background(), "jdoe", false, libkbfs.MasterBranch); err != nil {
+			t.Fatalf("cannot set up a favorite: %v", err)
+		}
 		if _, _, err := config.KBFSOps().GetOrCreateRootNode(
 			context.Background(), "jdoe", true, libkbfs.MasterBranch); err != nil {
 			t.Fatalf("cannot set up a favorite: %v", err)
