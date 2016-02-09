@@ -69,7 +69,7 @@ func (ph *ProveHandler) StartProof(_ context.Context, arg keybase1.StartProofArg
 	eng := engine.NewProve(&arg, ph.G())
 	ctx := engine.Context{
 		ProveUI:   ph.getProveUI(arg.SessionID),
-		SecretUI:  ph.getSecretUI(arg.SessionID),
+		SecretUI:  ph.getSecretUI(arg.SessionID, ph.G()),
 		LogUI:     ph.getLogUI(arg.SessionID),
 		SessionID: arg.SessionID,
 	}

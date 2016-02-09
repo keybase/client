@@ -55,11 +55,13 @@ func (u *LoginUI) DisplayPrimaryPaperKey(ctx context.Context, arg keybase1.Displ
 type SecretUI struct {
 	sessionID int
 	cli       *keybase1.SecretUiClient
+	libkb.Contextified
 }
 
 // GetPassphrase gets the current keybase passphrase from delegated pinentry.
-func (l *SecretUI) GetPassphrase(pinentry keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
-	return l.cli.GetPassphrase(context.TODO(), keybase1.GetPassphraseArg{SessionID: l.sessionID, Pinentry: pinentry, Terminal: terminal})
+func (u *SecretUI) GetPassphrase(pinentry keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
+	u.G().Log.Debug("SecretUI:GetPassphrase, sessionID = %d", u.sessionID)
+	return u.cli.GetPassphrase(context.TODO(), keybase1.GetPassphraseArg{SessionID: u.sessionID, Pinentry: pinentry, Terminal: terminal})
 }
 
 func (h *BaseHandler) rpcClient() *rpc.Client {
@@ -86,8 +88,12 @@ func (h *BaseHandler) getSecretUICli() *keybase1.SecretUiClient {
 	return h.secretCli
 }
 
-func (h *BaseHandler) getSecretUI(sessionID int) libkb.SecretUI {
-	return &SecretUI{sessionID, h.getSecretUICli()}
+func (h *BaseHandler) getSecretUI(sessionID int, g *libkb.GlobalContext) libkb.SecretUI {
+	return &SecretUI{
+		sessionID:    sessionID,
+		cli:          h.getSecretUICli(),
+		Contextified: libkb.NewContextified(g),
+	}
 }
 
 func (h *BaseHandler) getLogUICli() *keybase1.LogUiClient {

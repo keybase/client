@@ -43,7 +43,7 @@ func (h *DeviceHandler) DeviceList(_ context.Context, sessionID int) ([]keybase1
 func (h *DeviceHandler) DeviceAdd(_ context.Context, sessionID int) error {
 	ctx := &engine.Context{
 		ProvisionUI: h.getProvisionUI(sessionID),
-		SecretUI:    h.getSecretUI(sessionID),
+		SecretUI:    h.getSecretUI(sessionID, h.G()),
 		SessionID:   sessionID,
 	}
 	eng := engine.NewDeviceAdd(h.G())

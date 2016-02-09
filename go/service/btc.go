@@ -27,7 +27,7 @@ func NewBTCHandler(xp rpc.Transporter, g *libkb.GlobalContext) *BTCHandler {
 func (h *BTCHandler) RegisterBTC(_ context.Context, arg keybase1.RegisterBTCArg) error {
 	ctx := engine.Context{
 		LogUI:     h.getLogUI(arg.SessionID),
-		SecretUI:  h.getSecretUI(arg.SessionID),
+		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
 		SessionID: arg.SessionID,
 	}
 	eng := engine.NewBTCEngine(arg.Address, arg.Force, h.G())

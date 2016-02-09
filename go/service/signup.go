@@ -31,7 +31,7 @@ func (h *SignupHandler) Signup(_ context.Context, arg keybase1.SignupArg) (res k
 	ctx := &engine.Context{
 		LogUI:     h.getLogUI(arg.SessionID),
 		GPGUI:     h.getGPGUI(arg.SessionID),
-		SecretUI:  h.getSecretUI(arg.SessionID),
+		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
 		LoginUI:   h.getLoginUI(arg.SessionID),
 		SessionID: arg.SessionID,
 	}

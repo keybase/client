@@ -36,7 +36,7 @@ func (h *LoginHandler) Deprovision(_ context.Context, arg keybase1.DeprovisionAr
 	eng := engine.NewDeprovisionEngine(h.G(), arg.Username)
 	ctx := engine.Context{
 		LogUI:     h.getLogUI(arg.SessionID),
-		SecretUI:  h.getSecretUI(arg.SessionID),
+		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
 		SessionID: arg.SessionID,
 	}
 	return engine.RunEngine(eng, &ctx)
@@ -68,7 +68,7 @@ func (h *LoginHandler) PaperKey(_ context.Context, sessionID int) error {
 	ctx := &engine.Context{
 		LogUI:     h.getLogUI(sessionID),
 		LoginUI:   h.getLoginUI(sessionID),
-		SecretUI:  h.getSecretUI(sessionID),
+		SecretUI:  h.getSecretUI(sessionID, h.G()),
 		SessionID: sessionID,
 	}
 	eng := engine.NewPaperKey(h.G())
@@ -78,7 +78,7 @@ func (h *LoginHandler) PaperKey(_ context.Context, sessionID int) error {
 func (h *LoginHandler) Unlock(_ context.Context, sessionID int) error {
 	ctx := &engine.Context{
 		LogUI:     h.getLogUI(sessionID),
-		SecretUI:  h.getSecretUI(sessionID),
+		SecretUI:  h.getSecretUI(sessionID, h.G()),
 		SessionID: sessionID,
 	}
 	eng := engine.NewUnlock(h.G())
@@ -88,7 +88,7 @@ func (h *LoginHandler) Unlock(_ context.Context, sessionID int) error {
 func (h *LoginHandler) UnlockWithPassphrase(_ context.Context, arg keybase1.UnlockWithPassphraseArg) error {
 	ctx := &engine.Context{
 		LogUI:     h.getLogUI(arg.SessionID),
-		SecretUI:  h.getSecretUI(arg.SessionID),
+		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
 		SessionID: arg.SessionID,
 	}
 	eng := engine.NewUnlockWithPassphrase(h.G(), arg.Passphrase)
@@ -100,7 +100,7 @@ func (h *LoginHandler) Login(ctx context.Context, arg keybase1.LoginArg) error {
 		LogUI:       h.getLogUI(arg.SessionID),
 		LoginUI:     h.getLoginUI(arg.SessionID),
 		ProvisionUI: h.getProvisionUI(arg.SessionID),
-		SecretUI:    h.getSecretUI(arg.SessionID),
+		SecretUI:    h.getSecretUI(arg.SessionID, h.G()),
 		GPGUI:       h.getGPGUI(arg.SessionID),
 		NetContext:  ctx,
 		SessionID:   arg.SessionID,

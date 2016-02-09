@@ -27,7 +27,7 @@ func (h *RevokeHandler) RevokeKey(_ context.Context, arg keybase1.RevokeKeyArg) 
 	sessionID := arg.SessionID
 	ctx := engine.Context{
 		LogUI:     h.getLogUI(sessionID),
-		SecretUI:  h.getSecretUI(sessionID),
+		SecretUI:  h.getSecretUI(sessionID, h.G()),
 		SessionID: arg.SessionID,
 	}
 	eng := engine.NewRevokeKeyEngine(arg.KeyID, h.G())
@@ -38,7 +38,7 @@ func (h *RevokeHandler) RevokeDevice(_ context.Context, arg keybase1.RevokeDevic
 	sessionID := arg.SessionID
 	ctx := engine.Context{
 		LogUI:     h.getLogUI(sessionID),
-		SecretUI:  h.getSecretUI(sessionID),
+		SecretUI:  h.getSecretUI(sessionID, h.G()),
 		SessionID: arg.SessionID,
 	}
 	eng := engine.NewRevokeDeviceEngine(engine.RevokeDeviceEngineArgs{ID: arg.DeviceID, Force: arg.Force}, h.G())
@@ -48,7 +48,7 @@ func (h *RevokeHandler) RevokeDevice(_ context.Context, arg keybase1.RevokeDevic
 func (h *RevokeHandler) RevokeSigs(_ context.Context, arg keybase1.RevokeSigsArg) error {
 	ctx := engine.Context{
 		LogUI:     h.getLogUI(arg.SessionID),
-		SecretUI:  h.getSecretUI(arg.SessionID),
+		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
 		SessionID: arg.SessionID,
 	}
 	eng := engine.NewRevokeSigsEngine(arg.SigIDQueries, h.G())

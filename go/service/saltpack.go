@@ -57,7 +57,7 @@ func (h *SaltpackHandler) SaltpackDecrypt(_ context.Context, arg keybase1.Saltpa
 
 	ctx := &engine.Context{
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
-		SecretUI:   h.getSecretUI(arg.SessionID),
+		SecretUI:   h.getSecretUI(arg.SessionID, h.G()),
 		SaltpackUI: h.getSaltpackUI(arg.SessionID),
 		SessionID:  arg.SessionID,
 	}
@@ -79,7 +79,7 @@ func (h *SaltpackHandler) SaltpackEncrypt(_ context.Context, arg keybase1.Saltpa
 
 	ctx := &engine.Context{
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
-		SecretUI:   h.getSecretUI(arg.SessionID),
+		SecretUI:   h.getSecretUI(arg.SessionID, h.G()),
 		SessionID:  arg.SessionID,
 	}
 	eng := engine.NewSaltpackEncrypt(earg, h.G())
@@ -98,7 +98,7 @@ func (h *SaltpackHandler) SaltpackSign(_ context.Context, arg keybase1.SaltpackS
 
 	ctx := &engine.Context{
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
-		SecretUI:   h.getSecretUI(arg.SessionID),
+		SecretUI:   h.getSecretUI(arg.SessionID, h.G()),
 		SessionID:  arg.SessionID,
 	}
 	eng := engine.NewSaltpackSign(earg, h.G())
@@ -117,7 +117,7 @@ func (h *SaltpackHandler) SaltpackVerify(_ context.Context, arg keybase1.Saltpac
 
 	ctx := &engine.Context{
 		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
-		SecretUI:   h.getSecretUI(arg.SessionID),
+		SecretUI:   h.getSecretUI(arg.SessionID, h.G()),
 		SaltpackUI: h.getSaltpackUI(arg.SessionID),
 		SessionID:  arg.SessionID,
 	}

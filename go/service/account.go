@@ -26,14 +26,14 @@ func NewAccountHandler(xp rpc.Transporter, g *libkb.GlobalContext) *AccountHandl
 func (h *AccountHandler) PassphraseChange(_ context.Context, arg keybase1.PassphraseChangeArg) error {
 	eng := engine.NewPassphraseChange(&arg, h.G())
 	ctx := &engine.Context{
-		SecretUI:  h.getSecretUI(arg.SessionID),
+		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
 		SessionID: arg.SessionID,
 	}
 	return engine.RunEngine(eng, ctx)
 }
 
 func (h *AccountHandler) PassphrasePrompt(_ context.Context, arg keybase1.PassphrasePromptArg) (keybase1.GetPassphraseRes, error) {
-	ui := h.getSecretUI(arg.SessionID)
+	ui := h.getSecretUI(arg.SessionID, h.G())
 	if h.G().UIRouter != nil {
 		delegateUI, err := h.G().UIRouter.GetSecretUI(arg.SessionID)
 		if err != nil {
