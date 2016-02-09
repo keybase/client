@@ -328,7 +328,7 @@ func (s *SKB) UnlockSecretKey(lctx LoginContext, passphrase string, tsec *triple
 				}
 			}
 		} else {
-			s.G().Log.Debug("| not caching passphrase stream:  err = %v, ppsIn = %v", err, ppsIn)
+			s.G().Log.Debug("| not caching passphrase stream: err = %v", err)
 		}
 	default:
 		err = BadKeyError{fmt.Sprintf("Can't unlock secret with protection type %d", int(s.Priv.Encryption))}

@@ -131,7 +131,7 @@ func (s *LKSec) Load(lctx LoginContext) (err error) {
 
 	s.secret = make([]byte, len(s.serverHalf))
 	XORBytes(s.secret, s.serverHalf, s.clientHalf)
-	s.G().Log.Debug("| Making XOR'ed secret key for Local Key Security (LKS): ServerHalf=%x; clientHalf=%x", s.serverHalf, s.clientHalf)
+	s.G().Log.Debug("| Making XOR'ed secret key for Local Key Security (LKS)")
 
 	return nil
 }
