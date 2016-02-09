@@ -1,5 +1,6 @@
 /* @flow */
 
+import _ from 'lodash'
 import * as Constants from '../../constants/signup'
 import SecureString from '../../util/secure-string'
 
@@ -7,7 +8,7 @@ import {routeAppend} from '../../actions/router'
 
 import type {TypedAsyncAction} from '../../constants/types/flux'
 import type {RouteAppend} from '../../constants/router'
-import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase} from '../../constants/signup'
+import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName} from '../../constants/signup'
 
 function nextPhase (): TypedAsyncAction<RouteAppend> {
   return (dispatch, getState) => {
@@ -49,7 +50,6 @@ export function checkUsernameEmail (username: ?string, email: ?string): TypedAsy
   }
 }
 
-// TODO when securestring is merged change these closed over texts to secure string
 export function checkPassphrase (passphrase1: string, passphrase2: string): TypedAsyncAction<CheckPassphrase | RouteAppend> {
   return dispatch => {
     let passphraseError = null
@@ -71,6 +71,31 @@ export function checkPassphrase (passphrase1: string, passphrase2: string): Type
       dispatch({
         type: Constants.checkPassphrase,
         payload: {passphrase: new SecureString(passphrase1)}
+      })
+      dispatch(nextPhase())
+    }
+  }
+}
+
+export function submitDeviceName (deviceName: string): TypedAsyncAction<SubmitDeviceName | RouteAppend> {
+  return dispatch => {
+    // TODO do some checking on the device name - ideally this is done on the service side
+    //
+    let deviceNameError = null
+    if (_.trim(deviceName).length === 0) {
+      deviceNameError = 'Device name must not be empty'
+    }
+
+    if (deviceNameError) {
+      dispatch({
+        type: Constants.submitDeviceName,
+        error: true,
+        payload: {deviceNameError}
+      })
+    } else {
+      dispatch({
+        type: Constants.submitDeviceName,
+        payload: {deviceName}
       })
       dispatch(nextPhase())
     }

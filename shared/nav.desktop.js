@@ -25,7 +25,7 @@ import {switchTab} from './actions/tabbed-router'
 import {startup} from './actions/startup'
 import {Tab, Tabs} from 'material-ui'
 
-import {loginResizeTo} from './login/index.render'
+import {formResizeTo as loginResizeTo} from './login/form.render'
 
 const tabs = {
   [moreTab]: {module: More, name: 'More'},

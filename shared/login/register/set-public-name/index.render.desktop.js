@@ -14,8 +14,8 @@ export default class SetPublicNameRender extends Component {
           onEnterKeyDown={() => this.props.onSubmit()}
           onChange={event => this.props.onChangeDeviceName(event.target.value)}
         />
-        { this.props.nameTaken &&
-          <p>{`The device name: ${this.props.deviceName} is already taken`}</p>
+        { this.props.deviceNameError &&
+          <p>{this.props.deviceNameError}</p>
         }
         <RaisedButton
           style={{alignSelf: 'flex-end', marginTop: 20}}
@@ -33,6 +33,6 @@ SetPublicNameRender.propTypes = {
   deviceName: React.PropTypes.string,
   onSubmit: React.PropTypes.func.isRequired,
   onChangeDeviceName: React.PropTypes.func.isRequired,
-  nameTaken: React.PropTypes.bool.isRequired,
+  deviceNameError: React.PropTypes.string,
   submitEnabled: React.PropTypes.bool.isRequired
 }

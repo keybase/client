@@ -12,5 +12,8 @@ export type CheckUsernameEmail = TypedAction<'signup:checkUsernameEmail', {usern
 export const checkPassphrase = 'signup:checkPassphrase'
 export type CheckPassphrase = TypedAction<'signup:checkPassphrase', {passphrase: SecureString}, {passphraseError: SecureString}>
 
-export type SignupActions = CheckInviteCode | CheckUsernameEmail | CheckPassphrase
+export const submitDeviceName = 'signup:submitDeviceName'
+export type SubmitDeviceName = TypedAction<'signup:submitDeviceName', {deviceName: string}, {deviceNameError: string}>
+
+export type SignupActions = CheckInviteCode | CheckUsernameEmail | CheckPassphrase | SubmitDeviceName
 

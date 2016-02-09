@@ -20,8 +20,8 @@ export default class SetPublicNameRender extends Component {
           onSubmitEditing={() => { this.props.onSubmit() }}
           />
 
-        { this.props.nameTaken &&
-          <Text>{`The device name: ${this.props.deviceName} is already taken`}</Text>
+        { this.props.deviceNameError &&
+          <Text>{this.props.deviceNameError}</Text>
         }
         <Button style={{alignSelf: 'flex-end'}} isAction title='Submit' onPress={() => this.props.onSubmit()} enabled={this.props.submitEnabled}/>
       </View>
@@ -33,6 +33,6 @@ SetPublicNameRender.propTypes = {
   deviceName: React.PropTypes.string,
   onSubmit: React.PropTypes.func.isRequired,
   onChangeDeviceName: React.PropTypes.func.isRequired,
-  nameTaken: React.PropTypes.func.isRequired,
+  deviceNameError: React.PropTypes.string,
   submitEnabled: React.PropTypes.func.isRequired
 }
