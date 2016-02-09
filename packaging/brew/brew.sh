@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Note:  this script isn't bulletproof, and you have to kind of know what you
 # are doing (editing the formula by hand, etc.), but it saves some time.

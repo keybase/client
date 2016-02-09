@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
 # Invokes the build_rpm.sh script in the Go client repo, copies the resulting
 # package here, and then updates the RPM repo hierarchy. Does not check for

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # This creates a KBFS (beta) release on github from the current source/tagged version.
 

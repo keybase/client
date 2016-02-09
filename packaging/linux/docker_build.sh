@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
 # This script is the starting point for linux packaging builds. Here's what it
 # does:

@@ -1,4 +1,4 @@
-#! /bin/bash
+#! /usr/bin/env bash
 
 # This script handles distro-independent Linux post-install tasks. Currently
 # that means creating the /keybase directory and making it writable. The deb-
