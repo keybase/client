@@ -17,12 +17,25 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"sync"
 
 	keybase1 "github.com/keybase/client/go/protocol"
 	triplesec "github.com/keybase/go-triplesec"
 )
+
+func DumpKey(g *GlobalContext, name string, b []byte) {
+	tmp, err := ioutil.TempFile(os.TempDir(), "dump-"+name)
+	if err != nil {
+		g.Log.Warning("Failed to dumpKey %s: %s", name, err)
+		return
+	}
+	g.Log.Notice("DUMPKEY %s -> %s", name, tmp.Name())
+	buf := bytes.NewBuffer(b)
+	io.Copy(tmp, buf)
+	tmp.Close()
+}
 
 type SKB struct {
 	Priv SKBPriv  `codec:"priv"`
@@ -61,7 +74,7 @@ func (key *PGPKeyBundle) ToServerSKB(gc *GlobalContext, tsec *triplesec.Cipher, 
 	var pk, sk bytes.Buffer
 
 	// Need to serialize Private first, because
-	err = key.Entity.SerializePrivate(&sk, nil)
+	err = key.SerializePrivate(&sk)
 	if err != nil {
 		return
 	}
@@ -96,7 +109,7 @@ func (key *PGPKeyBundle) ToLksSKB(lks *LKSec) (ret *SKB, err error) {
 	ret = NewSKB(lks.G())
 
 	serializePublic := func() error { return key.Entity.Serialize(&pk) }
-	serializePrivate := func() error { return key.Entity.SerializePrivate(&sk, nil) }
+	serializePrivate := func() error { return key.SerializePrivate(&sk) }
 
 	// NOTE(maxtaco): For imported keys, it is crucial to serialize the public key
 	// **before** the private key, since the latter operation destructively
@@ -114,6 +127,7 @@ func (key *PGPKeyBundle) ToLksSKB(lks *LKSec) (ret *SKB, err error) {
 		}
 	} else {
 		err = serializePublic()
+
 		if err == nil {
 			err = serializePrivate()
 		}
