@@ -2098,13 +2098,13 @@ func (_m *MockConflictRenamer) EXPECT() *_MockConflictRenamerRecorder {
 	return _m.recorder
 }
 
-func (_m *MockConflictRenamer) ConlictRename(op op, original string) string {
+func (_m *MockConflictRenamer) ConflictRename(op op, original string) string {
 	ret := _m.ctrl.Call(_m, "ConflictRename", op, original)
 	ret0, _ := ret[0].(string)
 	return ret0
 }
 
-func (_mr *_MockConflictRenamerRecorder) ConflictRename(arg0 interface{}, arg1 interface{}) *gomock.Call {
+func (_mr *_MockConflictRenamerRecorder) ConflictRename(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "ConflictRename", arg0, arg1)
 }
 
