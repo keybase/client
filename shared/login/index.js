@@ -1,7 +1,6 @@
 /* @flow */
 
 import React, {Component} from 'react'
-import Form from './form'
 import Intro from './forms/intro'
 import ErrorText from './error.render'
 
@@ -38,11 +37,8 @@ function loginRouter (currentPath: Map<string, string>, uri: URI): any {
 
   return {
     componentAtTop: {
-      component: Form,
-      hideBack: true,
-      props: {
-        formComponent: () => form
-      }
+      component: () => form,
+      hideBack: true
     },
     parseNextRoute: loginRouter
   }

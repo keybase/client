@@ -1,7 +1,6 @@
 /* @flow */
 
 import React from 'react'
-import Form from '../form'
 import ErrorText from '../error.render'
 
 // Signup Components
@@ -42,11 +41,8 @@ export default function signupRouter (currentPath: Map<string, string>, uri: URI
 
   return {
     componentAtTop: {
-      component: Form,
-      hideBack: true,
-      props: {
-        formComponent: () => form
-      }
+      component: () => form,
+      hideBack: true
     },
     parseNextRoute: signupRouter
   }
