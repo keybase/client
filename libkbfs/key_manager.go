@@ -23,7 +23,8 @@ func NewKeyManagerStandard(config Config) *KeyManagerStandard {
 // KeyManagerStandard.
 func (km *KeyManagerStandard) GetTLFCryptKeyForEncryption(ctx context.Context,
 	md *RootMetadata) (tlfCryptKey TLFCryptKey, err error) {
-	return km.getTLFCryptKeyUsingCurrentDevice(ctx, md, md.LatestKeyGeneration(), false)
+	return km.getTLFCryptKeyUsingCurrentDevice(ctx, md,
+		md.LatestKeyGeneration(), false)
 }
 
 // GetTLFCryptKeyForMDDecryption implements the KeyManager interface
@@ -32,7 +33,7 @@ func (km *KeyManagerStandard) GetTLFCryptKeyForMDDecryption(
 	ctx context.Context, md *RootMetadata) (
 	tlfCryptKey TLFCryptKey, err error) {
 	return km.getTLFCryptKey(ctx, md, md.LatestKeyGeneration(),
-		true, true, false)
+		getTLFCryptKeyAnyDevice|getTLFCryptKeyDoCache)
 }
 
 // GetTLFCryptKeyForBlockDecryption implements the KeyManager interface for
@@ -43,14 +44,26 @@ func (km *KeyManagerStandard) GetTLFCryptKeyForBlockDecryption(
 	return km.getTLFCryptKeyUsingCurrentDevice(ctx, md, blockPtr.KeyGen, true)
 }
 
-func (km *KeyManagerStandard) getTLFCryptKeyUsingCurrentDevice(ctx context.Context,
-	md *RootMetadata, keyGen KeyGen, cache bool) (tlfCryptKey TLFCryptKey, err error) {
-	return km.getTLFCryptKey(ctx, md, keyGen, false, cache, false)
+func (km *KeyManagerStandard) getTLFCryptKeyUsingCurrentDevice(
+	ctx context.Context, md *RootMetadata, keyGen KeyGen, cache bool) (
+	tlfCryptKey TLFCryptKey, err error) {
+	flags := getTLFCryptKeyFlags(0)
+	if cache {
+		flags = getTLFCryptKeyDoCache
+	}
+	return km.getTLFCryptKey(ctx, md, keyGen, flags)
 }
 
+type getTLFCryptKeyFlags byte
+
+const (
+	getTLFCryptKeyAnyDevice getTLFCryptKeyFlags = 1 << iota
+	getTLFCryptKeyDoCache
+	getTLFCryptKeyPromptPaper
+)
+
 func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
-	md *RootMetadata, keyGen KeyGen, anyDevice bool, cache bool,
-	promptPaper bool) (
+	md *RootMetadata, keyGen KeyGen, flags getTLFCryptKeyFlags) (
 	tlfCryptKey TLFCryptKey, err error) {
 
 	if md.ID.IsPublic() {
@@ -88,13 +101,14 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 	var cryptPublicKey CryptPublicKey
 	crypto := km.config.Crypto()
 
-	if anyDevice {
+	if flags&getTLFCryptKeyAnyDevice != 0 {
 		publicKeys, err := kbpki.GetCryptPublicKeys(ctx, uid)
 		if err != nil {
 			return tlfCryptKey, err
 		}
 
-		keys := make([]EncryptedTLFCryptKeyClientAndEphemeral, 0, len(publicKeys))
+		keys := make([]EncryptedTLFCryptKeyClientAndEphemeral, 0,
+			len(publicKeys))
 		keysInfo := make([]TLFCryptKeyInfo, 0, len(publicKeys))
 		publicKeyLookup := make([]int, 0, len(publicKeys))
 
@@ -116,17 +130,19 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 			}
 		}
 		if len(keys) == 0 {
-			err = NewReadAccessError(ctx, km.config, md.GetTlfHandle(), username)
+			err = NewReadAccessError(ctx, km.config, md.GetTlfHandle(),
+				username)
 			return tlfCryptKey, err
 		}
 		var index int
-		clientHalf, index, err =
-			crypto.DecryptTLFCryptKeyClientHalfAny(ctx, keys, promptPaper)
+		clientHalf, index, err = crypto.DecryptTLFCryptKeyClientHalfAny(ctx,
+			keys, flags&getTLFCryptKeyPromptPaper != 0)
 		if err != nil {
 			// The likely error here is DecryptionError, which we will replace
 			// with a ReadAccessError to communicate to the caller that we were
 			// unable to decrypt because we didn't have a key with access.
-			return tlfCryptKey, NewReadAccessError(ctx, km.config, md.GetTlfHandle(), username)
+			return tlfCryptKey, NewReadAccessError(ctx, km.config,
+				md.GetTlfHandle(), username)
 		}
 		info = keysInfo[index]
 		cryptPublicKey = publicKeys[publicKeyLookup[index]]
@@ -142,7 +158,8 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 			return tlfCryptKey, err
 		}
 		if !ok {
-			err = NewReadAccessError(ctx, km.config, md.GetTlfHandle(), username)
+			err = NewReadAccessError(ctx, km.config, md.GetTlfHandle(),
+				username)
 			return tlfCryptKey, err
 		}
 
@@ -152,8 +169,8 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 			return tlfCryptKey, err
 		}
 
-		clientHalf, err =
-			crypto.DecryptTLFCryptKeyClientHalf(ctx, ePublicKey, info.ClientHalf)
+		clientHalf, err = crypto.DecryptTLFCryptKeyClientHalf(ctx, ePublicKey,
+			info.ClientHalf)
 		if err != nil {
 			return tlfCryptKey, err
 		}
@@ -162,16 +179,18 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 	// get the server-side key-half, do the unmasking, possibly cache the result, return
 	// TODO: can parallelize the get() with decryption
 	kops := km.config.KeyOps()
-	serverHalf, err := kops.GetTLFCryptKeyServerHalf(ctx, info.ServerHalfID, cryptPublicKey)
+	serverHalf, err := kops.GetTLFCryptKeyServerHalf(ctx, info.ServerHalfID,
+		cryptPublicKey)
 	if err != nil {
 		return tlfCryptKey, err
 	}
 
-	if tlfCryptKey, err = crypto.UnmaskTLFCryptKey(serverHalf, clientHalf); err != nil {
+	if tlfCryptKey, err =
+		crypto.UnmaskTLFCryptKey(serverHalf, clientHalf); err != nil {
 		return
 	}
 
-	if cache {
+	if flags&getTLFCryptKeyDoCache != 0 {
 		if err = kcache.PutTLFCryptKey(md.ID, keyGen, tlfCryptKey); err != nil {
 			tlfCryptKey = TLFCryptKey{}
 			return
@@ -362,7 +381,8 @@ func (km *KeyManagerStandard) generateKeyMapForUsers(ctx context.Context, users 
 func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 	promptPaper bool) (
 	rekeyDone bool, cryptKey *TLFCryptKey, err error) {
-	km.log.CDebugf(ctx, "Rekey %s (%t)", md.ID, promptPaper)
+	km.log.CDebugf(ctx, "Rekey %s (prompt for paper key: %t)",
+		md.ID, promptPaper)
 	defer func() { km.log.CDebugf(ctx, "Rekey %s done: %#v", md.ID, err) }()
 
 	currKeyGen := md.LatestKeyGeneration()
@@ -468,8 +488,11 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 	// If there's at least one new device, add that device to every key bundle.
 	if addNewReaderDevice || addNewWriterDevice {
 		for keyGen := KeyGen(FirstValidKeyGen); keyGen <= currKeyGen; keyGen++ {
-			currTlfCryptKey, err := km.getTLFCryptKey(ctx, md, keyGen,
-				true, false, promptPaper)
+			flags := getTLFCryptKeyAnyDevice
+			if promptPaper {
+				flags |= getTLFCryptKeyPromptPaper
+			}
+			currTlfCryptKey, err := km.getTLFCryptKey(ctx, md, keyGen, flags)
 			if err != nil {
 				return false, nil, err
 			}

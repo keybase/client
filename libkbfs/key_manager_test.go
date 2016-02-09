@@ -1053,6 +1053,9 @@ func TestKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T) {
 	}
 }
 
+// cryptoLocalTrapAny traps every DecryptTLFCryptKeyClientHalfAny
+// call, and sends on the given channel whether each call had
+// promptPaper set or not.
 type cryptoLocalTrapAny struct {
 	Crypto
 	promptCh chan<- bool
