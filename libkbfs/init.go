@@ -21,8 +21,6 @@ type InitParams struct {
 	Debug bool
 	// If non-empty, where to write a CPU profile.
 	CPUProfile string
-	// If non-empty, where to write a memory profile.
-	MemProfile string
 
 	// If non-empty, the host:port of the block server. If empty,
 	// a default value is used depending on the run mode.
@@ -90,7 +88,6 @@ func AddFlags(flags *flag.FlagSet) *InitParams {
 	var params InitParams
 	flags.BoolVar(&params.Debug, "debug", BoolForString(os.Getenv("KBFS_DEBUG")), "Print debug messages")
 	flags.StringVar(&params.CPUProfile, "cpuprofile", "", "write cpu profile to file")
-	flags.StringVar(&params.MemProfile, "memprofile", "", "write memory profile to file")
 
 	flags.StringVar(&params.BServerAddr, "bserver", GetDefaultBServer(), "host:port of the block server")
 	flags.StringVar(&params.MDServerAddr, "mdserver", GetDefaultMDServer(), "host:port of the metadata server")
@@ -240,8 +237,6 @@ func Init(params InitParams, onInterruptFn func(), log logger.Logger) (Config, e
 	go func() {
 		_ = <-interruptChan
 
-		Shutdown(params.MemProfile)
-
 		if onInterruptFn != nil {
 			onInterruptFn()
 		}
@@ -361,18 +356,6 @@ func Init(params InitParams, onInterruptFn func(), log logger.Logger) (Config, e
 
 // Shutdown does any necessary shutdown tasks for libkbfs. Shutdown
 // should be called at the end of main.
-func Shutdown(memProfilePath string) error {
+func Shutdown() {
 	pprof.StopCPUProfile()
-
-	if memProfilePath != "" {
-		// Let the GC/OS clean up the file handle.
-		f, err := os.Create(memProfilePath)
-		if err != nil {
-			return err
-		}
-
-		pprof.WriteHeapProfile(f)
-	}
-
-	return nil
 }

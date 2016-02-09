@@ -40,12 +40,9 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 	fl.mu.Lock()
 	defer fl.mu.Unlock()
 
-	if req.Name == libkbfs.ErrorFile {
-		return NewErrorFile(fl.fs, resp), nil
-	}
-
-	if req.Name == MetricsFileName {
-		return NewMetricsFile(fl.fs, resp), nil
+	specialNode := handleSpecialFile(req.Name, fl.fs, resp)
+	if specialNode != nil {
+		return specialNode, nil
 	}
 
 	if child, ok := fl.folders[req.Name]; ok {

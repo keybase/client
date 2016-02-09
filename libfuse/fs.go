@@ -208,15 +208,17 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 	ctx = NewContextWithOpID(ctx, r.private.fs.log)
 	r.private.fs.log.CDebugf(ctx, "FS Lookup %s", req.Name)
 	defer func() { r.private.fs.reportErr(ctx, err) }()
+
+	specialNode := handleSpecialFile(req.Name, r.private.fs, resp)
+	if specialNode != nil {
+		return specialNode, nil
+	}
+
 	switch req.Name {
 	case PrivateName:
 		return r.private, nil
 	case PublicName:
 		return r.public, nil
-	case libkbfs.ErrorFile:
-		return NewErrorFile(r.private.fs, resp), nil
-	case MetricsFileName:
-		return NewMetricsFile(r.private.fs, resp), nil
 	}
 	return nil, fuse.ENOENT
 }

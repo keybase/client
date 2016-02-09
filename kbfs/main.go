@@ -17,12 +17,11 @@ const usageFormatStr = `Usage:
   kbfs -version
 
 To run against remote KBFS servers:
-  kbfs [-debug] [-cpuprofile=path/to/dir] [-memprofile=path/to/dir]
-    [-bserver=%s] [-mdserver=%s]
+  kbfs [-debug] [-cpuprofile=path/to/dir] [-bserver=%s] [-mdserver=%s]
     <command> [<args>]
 
 To run in a local testing environment:
-  kbfs [-debug] [-cpuprofile=path/to/dir] [-memprofile=path/to/dir]
+  kbfs [-debug] [-cpuprofile=path/to/dir]
     [-server-in-memory|-server-root=path/to/dir] [-localuser=<user>]
     <command> [<args>]
 
@@ -71,7 +70,7 @@ func realMain() (exitStatus int) {
 		return 1
 	}
 
-	defer libkbfs.Shutdown(kbfsParams.MemProfile)
+	defer libkbfs.Shutdown()
 
 	// TODO: Make the logging level WARNING instead of INFO, or
 	// figure out some other way to log the full folder-branch

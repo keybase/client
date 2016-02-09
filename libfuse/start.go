@@ -61,7 +61,7 @@ func Start(mounter Mounter, options StartOptions) *Error {
 		return InitError(err.Error())
 	}
 
-	defer libkbfs.Shutdown(options.KbfsParams.MemProfile)
+	defer libkbfs.Shutdown()
 
 	log.Debug("Creating filesystem")
 	fs := NewFS(config, c, options.KbfsParams.Debug)

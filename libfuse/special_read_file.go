@@ -23,6 +23,9 @@ func (f *SpecialReadFile) Attr(ctx context.Context, a *fuse.Attr) error {
 		return err
 	}
 
+	// Have a low non-zero value for Valid to avoid being swamped
+	// with requests, while still keeping the size up to date.
+	a.Valid = 1 * time.Second
 	// Some apps (e.g., Chrome) get confused if we use a 0 size
 	// here, as is usual for pseudofiles. So return the actual
 	// size, even though it may be racy.

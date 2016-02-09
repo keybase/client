@@ -287,13 +287,12 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 	d.folder.fs.log.CDebugf(ctx, "Dir Lookup %s", req.Name)
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
 
+	specialNode := handleSpecialFile(req.Name, d.folder.fs, resp)
+	if specialNode != nil {
+		return specialNode, nil
+	}
+
 	switch req.Name {
-	case libkbfs.ErrorFile:
-		return NewErrorFile(d.folder.fs, resp), nil
-
-	case MetricsFileName:
-		return NewMetricsFile(d.folder.fs, resp), nil
-
 	case StatusFileName:
 		return NewStatusFile(d.folder, resp), nil
 
