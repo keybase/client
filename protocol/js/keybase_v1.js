@@ -1,4 +1,11 @@
-export const account = {}
+export const account = {
+  'PassphraseType': {
+    'none': 0,
+    'paperKey': 1,
+    'passPhrase': 2,
+    'verifyPassPhrase': 3
+  }
+}
 
 export const block = {
   'LogLevel': {
@@ -1196,7 +1203,14 @@ export const saltpackUi = {
   }
 }
 
-export const secretUi = {}
+export const secretUi = {
+  'PassphraseType': {
+    'none': 0,
+    'paperKey': 1,
+    'passPhrase': 2,
+    'verifyPassPhrase': 3
+  }
+}
 
 export const SecretKeys = {
   'LogLevel': {

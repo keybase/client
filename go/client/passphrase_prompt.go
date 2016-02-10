@@ -16,6 +16,7 @@ func PromptPassphrase(g *libkb.GlobalContext) (keybase1.GetPassphraseRes, error)
 	arg := libkb.DefaultPassphraseArg()
 	arg.WindowTitle = "Passphrase"
 	arg.Prompt = "Pick a strong passphrase (12+ characters)"
+	arg.Type = keybase1.PassphraseType_PASS_PHRASE
 	return promptPassphraseWithArg(g, arg, "Please reenter your passphrase for confirmation")
 }
 
@@ -25,6 +26,7 @@ func PromptNewPassphrase(g *libkb.GlobalContext) (string, error) {
 	arg := libkb.DefaultPassphraseArg()
 	arg.WindowTitle = "Pick a new passphrase"
 	arg.Prompt = "Pick a new strong passphrase (12+ characters)"
+	arg.Type = keybase1.PassphraseType_VERIFY_PASS_PHRASE
 	arg.Features.StoreSecret.Allow = false
 	res, err := promptPassphraseWithArg(g, arg, "Please reenter your new passphrase for confirmation")
 	if err != nil {

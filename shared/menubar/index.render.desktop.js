@@ -42,28 +42,28 @@ const Header = props => {
 }
 
 const Footer = props => {
-  const debug: boolean = props.debug
   const showHelp: () => void = props.showHelp
-  const showMain: () => void = props.showMain
   const quit: () => void = props.quit
 
   return (
     <div style={styles.footer}>
       <Text type='Body' small onClick={showHelp}>Help</Text>
-      {debug && <Text type='Body' small onClick={showMain}>Debug</Text>}
       <Text type='Body' small onClick={quit}>Quit</Text>
     </div>
   )
 }
 
 const LoggedoutMessage = props => {
+  // showMain is TEMP here, until we get the actual button merged in
   return (
     <div style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.grey5}}>
       <i style={{alignSelf: 'center', color: globalColors.lowRiskWarning, marginTop: 12}} className='fa fa-exclamation-triangle'></i>
       <Text type='Body' small style={{alignSelf: 'center', marginTop: 6}}>You're logged out!</Text>
       <Text type='Body' small style={{marginTop: 23, marginBottom: 5, marginLeft: 10}}>From the terminal:</Text>
       <Terminal>
-        <Text type='TerminalCommand'>keybase login</Text>
+        <Text onClick={__DEV__ ? () => {
+          props.showMain() } : undefined
+        } type='TerminalCommand'>keybase login</Text>
         <Text type='TerminalEmpty'/>
         <Text type='TerminalComment'>or if you're new to Keybase:</Text>
         <Text type='TerminalCommand'>keybase signup</Text>
@@ -77,15 +77,16 @@ export default class Render extends Component {
   props: RenderProps;
 
   render (): ReactElement {
-    const {openKBFS, openKBFSPublic, openKBFSPrivate, showMain, showHelp, showUser, quit, username, loggedIn} = this.props
+    const {openKBFS, openKBFSPublic, openKBFSPrivate, showMain,
+      showHelp, showUser, quit, username, loggedIn} = this.props
 
     return (
       <div style={styles.container}>
         <div style={styles.body}>
           <Header openKBFS={openKBFS} showUser={() => showUser(username)}/>
-          {!loggedIn && <LoggedoutMessage />}
+          {!loggedIn && <LoggedoutMessage showMain={showMain}/>}
           <FolderList loading={this.props.loading} username={this.props.username} openKBFSPublic={openKBFSPublic} openKBFSPrivate={openKBFSPrivate} folders={this.props.folders} loggedIn={loggedIn}/>
-          <Footer debug={this.props.debug || false} showHelp={showHelp} quit={quit} showMain={showMain}/>
+          <Footer showHelp={showHelp} quit={quit} showMain={showMain}/>
         </div>
       </div>
     )

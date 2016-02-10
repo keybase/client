@@ -10,9 +10,11 @@ import engine from '../engine'
 
 import * as favoriteAction from '../actions/favorite'
 import {openInKBFS} from '../actions/kbfs'
+import {switchTab} from '../actions/tabbed-router'
 
 import {remote} from 'electron'
 import {ipcRenderer} from 'electron'
+import {loginTab} from '../constants/tabs'
 
 import type {Folder} from '../constants/types/flow-types'
 import type {FolderInfo} from './index.render'
@@ -22,8 +24,8 @@ export type MenubarProps = {
   folders: ?Array<Folder>,
   favoriteList: () => void,
   openInKBFS: () => void,
-  debug: ?boolean,
-  loggedIn: ?boolean
+  loggedIn: ?boolean,
+  switchTab: (tab: string) => void
 }
 
 class Menubar extends Component {
@@ -119,6 +121,7 @@ class Menubar extends Component {
 
   showMain () {
     ipcRenderer.send('showMain')
+    this.props.switchTab(loginTab)
     this.closeMenubar()
   }
 
@@ -150,7 +153,6 @@ class Menubar extends Component {
 
     return <Render
       username={username}
-      debug={!!this.props.debug}
       openKBFS={() => this.openKBFS()}
       openKBFSPublic={username => this.openKBFSPublic(username)}
       openKBFSPrivate={username => this.openKBFSPrivate(username)}
@@ -171,7 +173,7 @@ export default connect(
     loggedIn: state.config && state.config.status && state.config.status.loggedIn,
     folders: state.favorite && state.favorite.folders
   }),
-  dispatch => bindActionCreators({...favoriteAction, openInKBFS}, dispatch)
+  dispatch => bindActionCreators({...favoriteAction, openInKBFS, switchTab}, dispatch)
 )(Menubar)
 
 export function selector (): (store: Object) => Object {

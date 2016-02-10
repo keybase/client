@@ -4,6 +4,7 @@ import {isMobile} from '../../constants/platform'
 import {navigateTo, routeAppend, getCurrentURI, getCurrentTab} from '../router'
 import engine from '../../engine'
 import enums from '../../constants/types/keybase_v1'
+import {constants} from '../../constants/types/keybase_v1'
 import UserPass from '../../login/register/user-pass'
 import PaperKey from '../../login/register/paper-key'
 import CodePage from '../../login/register/code-page'
@@ -17,6 +18,8 @@ import {getCurrentStatus} from '../config'
 import type {Dispatch, GetState, AsyncAction, TypedAction} from '../../constants/types/flux'
 import type {incomingCallMapType, login_recoverAccountFromEmailAddress_rpc,
   login_login_rpc, login_logout_rpc, device_deviceAdd_rpc} from '../../constants/types/flow-types'
+
+let currentLoginSessionID = null
 
 export function login (): AsyncAction {
   return (dispatch, getState) => {
@@ -291,6 +294,15 @@ export function registerWithPaperKey () : AsyncAction {
   }
 }
 
+export function cancelLogin () : AsyncAction {
+  return (dispatch, getState) => {
+    if (currentLoginSessionID) {
+      engine.cancelRPC(currentLoginSessionID)
+      currentLoginSessionID = null
+    }
+  }
+}
+
 function startLoginFlow (dispatch, getState, provisionMethod, userPassTitle, userPassSubtitle, successType) {
   const deviceType = isMobile ? 'mobile' : 'desktop'
   const incomingMap = makeKex2IncomingMap(dispatch, getState, provisionMethod, userPassTitle, userPassSubtitle)
@@ -303,6 +315,7 @@ function startLoginFlow (dispatch, getState, provisionMethod, userPassTitle, use
     },
     incomingCallMap: incomingMap,
     callback: (error, response) => {
+      currentLoginSessionID = null
       if (error) {
         dispatch({
           type: successType,
@@ -322,7 +335,8 @@ function startLoginFlow (dispatch, getState, provisionMethod, userPassTitle, use
       }
     }
   }
-  engine.rpc(params)
+
+  currentLoginSessionID = engine.rpc(params)
 }
 
 export function addANewDevice () : AsyncAction {
@@ -359,43 +373,58 @@ function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle
         response.result(username)
       }
     },
-    'keybase.1.secretUi.getPaperKeyPassphrase': (param, response) => {
-      dispatch(askForPaperKey(paperKey => {
-        response.result(paperKey)
-      }))
-    },
-    'keybase.1.secretUi.getKeybasePassphrase': (param, response) => {
-      const {passphrase} = getState().login.userPass
-      if (!passphrase) {
-        dispatch(askForUserPass(userPassTitle, userPassSubtitle, () => {
-          const {passphrase} = getState().login.userPass
-          response.result({passphrase: passphrase.stringValue(), storeSecret: false})
-        }))
-      } else {
-        response.result({passphrase, storeSecret: false})
+    'keybase.1.secretUi.getPassphrase': ({pinentry: {type}}, response) => {
+      switch (type) {
+        case enums.secretUi.PassphraseType.paperKey: {
+          dispatch(askForPaperKey(paperKey => {
+            response.result({
+              passphrase: paperKey,
+              storeSecret: false
+            })
+          }))
+        }
+        case enums.secretUi.PassphraseType.passPhrase: {
+            /// TODO
+        }
+        case enums.secretUi.PassphraseType.verifyPassPhrase: {
+            /// TODO
+        }
+        break
+      default:
+        response.error('Unknown getPassphrase type')
       }
     },
-    'keybase.1.secretUi.getSecret': (param, response) => {
-      const {passphrase} = getState().login.userPass
-      if (!passphrase) {
-        dispatch(askForUserPass(userPassTitle, userPassSubtitle, () => {
-          const {passphrase} = getState().login.userPass
-          response.result({
-            text: passphrase.stringValue(),
-            canceled: false,
-            storeSecret: true
-          })
-        }))
-      } else {
-        response.result({
-          text: passphrase.stringValue(),
-          canceled: false,
-          storeSecret: true
-        })
-      }
-    },
-    'keybase.1.provisionUi.PromptNewDeviceName': (param, response) => {
-      const {existingDevices} = param
+    // 'keybase.1.secretUi.getKeybasePassphrase': (param, response) => {
+      // const {passphrase} = getState().login.userPass
+      // if (!passphrase) {
+        // dispatch(askForUserPass(userPassTitle, userPassSubtitle, () => {
+          // const {passphrase} = getState().login.userPass
+          // response.result({passphrase: passphrase.stringValue(), storeSecret: false})
+        // }))
+      // } else {
+        // response.result({passphrase, storeSecret: false})
+      // }
+    // },
+    // 'keybase.1.secretUi.getSecret': (param, response) => {
+      // const {passphrase} = getState().login.userPass
+      // if (!passphrase) {
+        // dispatch(askForUserPass(userPassTitle, userPassSubtitle, () => {
+          // const {passphrase} = getState().login.userPass
+          // response.result({
+            // text: passphrase.stringValue(),
+            // canceled: false,
+            // storeSecret: true
+          // })
+        // }))
+      // } else {
+        // response.result({
+          // text: passphrase.stringValue(),
+          // canceled: false,
+          // storeSecret: true
+        // })
+      // }
+    // },
+    'keybase.1.provisionUi.PromptNewDeviceName': ({existingDevices}, response) => {
       dispatch(askForDeviceName(existingDevices, () => {
         const {deviceName} = getState().login.deviceName
         response.result(deviceName)

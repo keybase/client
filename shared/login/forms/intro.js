@@ -22,6 +22,6 @@ export default connect(
   state => ({}),
   dispatch => ({
     onSignup: () => { dispatch(routeAppend('signup')) },
-    onLogin: () => { dispatch(routeAppend('login')) }
+    onLogin: () => { dispatch(routeAppend('register')) }
   })
 )(Intro)

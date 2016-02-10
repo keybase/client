@@ -13,12 +13,20 @@ protocol passphraseCommon {
     Feature showTyping;
   }
 
+  enum PassphraseType {
+    NONE_0,
+    PAPER_KEY_1,
+    PASS_PHRASE_2,
+    VERIFY_PASS_PHRASE_3
+  }
+
   record GUIEntryArg {
     string windowTitle;
     string prompt;
     string submitLabel;
     string cancelLabel;
     string retryLabel;
+    PassphraseType type;
     GUIEntryFeatures features;
   }
 

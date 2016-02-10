@@ -22,12 +22,22 @@ type GUIEntryFeatures struct {
 	ShowTyping  Feature `codec:"showTyping" json:"showTyping"`
 }
 
+type PassphraseType int
+
+const (
+	PassphraseType_NONE               PassphraseType = 0
+	PassphraseType_PAPER_KEY          PassphraseType = 1
+	PassphraseType_PASS_PHRASE        PassphraseType = 2
+	PassphraseType_VERIFY_PASS_PHRASE PassphraseType = 3
+)
+
 type GUIEntryArg struct {
 	WindowTitle string           `codec:"windowTitle" json:"windowTitle"`
 	Prompt      string           `codec:"prompt" json:"prompt"`
 	SubmitLabel string           `codec:"submitLabel" json:"submitLabel"`
 	CancelLabel string           `codec:"cancelLabel" json:"cancelLabel"`
 	RetryLabel  string           `codec:"retryLabel" json:"retryLabel"`
+	Type        PassphraseType   `codec:"type" json:"type"`
 	Features    GUIEntryFeatures `codec:"features" json:"features"`
 }
 
