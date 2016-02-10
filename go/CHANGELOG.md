@@ -1,4 +1,4 @@
-## 1.0.11
+## 1.0.11 (2016-02-10)
 - Forward-compatibility fix, for future RPCS (PR: keybase/client#1919)
 - Fix potential recursive LogUI Explosion (PR: keybase/client#1925)
 - Another crack at GNU S2K Dummy (via vendored PR: keybase/go-crypto#10)
