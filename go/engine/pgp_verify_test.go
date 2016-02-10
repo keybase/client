@@ -99,9 +99,8 @@ func sign(ctx *Context, tc libkb.TestContext, msg string, mode keybase1.SignMode
 func signEnc(ctx *Context, tc libkb.TestContext, msg string) string {
 	sink := libkb.NewBufferCloser()
 	arg := &PGPEncryptArg{
-		Sink:         sink,
-		Source:       strings.NewReader(msg),
-		TrackOptions: keybase1.TrackOptions{BypassConfirm: true},
+		Sink:   sink,
+		Source: strings.NewReader(msg),
 	}
 	eng := NewPGPEncrypt(arg, tc.G)
 	if err := RunEngine(eng, ctx); err != nil {

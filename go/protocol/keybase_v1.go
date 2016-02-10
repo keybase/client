@@ -3833,13 +3833,11 @@ type PGPSignOptions struct {
 }
 
 type PGPEncryptOptions struct {
-	Recipients   []string     `codec:"recipients" json:"recipients"`
-	NoSign       bool         `codec:"noSign" json:"noSign"`
-	NoSelf       bool         `codec:"noSelf" json:"noSelf"`
-	BinaryOut    bool         `codec:"binaryOut" json:"binaryOut"`
-	KeyQuery     string       `codec:"keyQuery" json:"keyQuery"`
-	SkipTrack    bool         `codec:"skipTrack" json:"skipTrack"`
-	TrackOptions TrackOptions `codec:"trackOptions" json:"trackOptions"`
+	Recipients []string `codec:"recipients" json:"recipients"`
+	NoSign     bool     `codec:"noSign" json:"noSign"`
+	NoSelf     bool     `codec:"noSelf" json:"noSelf"`
+	BinaryOut  bool     `codec:"binaryOut" json:"binaryOut"`
+	KeyQuery   string   `codec:"keyQuery" json:"keyQuery"`
 }
 
 type PGPSigVerification struct {

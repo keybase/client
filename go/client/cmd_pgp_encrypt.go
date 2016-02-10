@@ -36,10 +36,6 @@ func NewCmdPGPEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 				Name:  "k, key",
 				Usage: "Specify a key to use (otherwise most recent PGP key is used).",
 			},
-			cli.BoolFlag{
-				Name:  "l, local",
-				Usage: "Only track locally, don't send a statement to the server.",
-			},
 			cli.StringFlag{
 				Name:  "m, message",
 				Usage: "Provide the message on the command line.",
@@ -56,14 +52,6 @@ func NewCmdPGPEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 				Name:  "s, sign",
 				Usage: "Sign in addition to encrypting.",
 			},
-			cli.BoolFlag{
-				Name:  "skip-track",
-				Usage: "Don't track.",
-			},
-			cli.BoolFlag{
-				Name:  "y",
-				Usage: "Approve remote tracking without prompting.",
-			},
 		},
 		Description: `If encrypting with signatures, "keybase pgp encrypt" requires an
    imported PGP private key, and accesses the local Keybase keyring when producing
@@ -74,13 +62,11 @@ func NewCmdPGPEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Co
 type CmdPGPEncrypt struct {
 	libkb.Contextified
 	UnixFilter
-	recipients   []string
-	trackOptions keybase1.TrackOptions
-	sign         bool
-	noSelf       bool
-	keyQuery     string
-	binaryOut    bool
-	skipTrack    bool
+	recipients []string
+	sign       bool
+	noSelf     bool
+	keyQuery   string
+	binaryOut  bool
 }
 
 func (c *CmdPGPEncrypt) Run() error {
@@ -101,13 +87,11 @@ func (c *CmdPGPEncrypt) Run() error {
 		return err
 	}
 	opts := keybase1.PGPEncryptOptions{
-		Recipients:   c.recipients,
-		NoSign:       !c.sign,
-		NoSelf:       c.noSelf,
-		BinaryOut:    c.binaryOut,
-		KeyQuery:     c.keyQuery,
-		SkipTrack:    c.skipTrack,
-		TrackOptions: c.trackOptions,
+		Recipients: c.recipients,
+		NoSign:     !c.sign,
+		NoSelf:     c.noSelf,
+		BinaryOut:  c.binaryOut,
+		KeyQuery:   c.keyQuery,
 	}
 	arg := keybase1.PGPEncryptArg{Source: src, Sink: snk, Opts: opts}
 	err = cli.PGPEncrypt(context.TODO(), arg)
@@ -128,12 +112,7 @@ func (c *CmdPGPEncrypt) ParseArgv(ctx *cli.Context) error {
 		return err
 	}
 	c.recipients = ctx.Args()
-	c.trackOptions = keybase1.TrackOptions{
-		LocalOnly:     ctx.Bool("local"),
-		BypassConfirm: ctx.Bool("y"),
-	}
 	c.sign = ctx.Bool("sign")
-	c.skipTrack = ctx.Bool("skip-track")
 	c.keyQuery = ctx.String("key")
 	c.binaryOut = ctx.Bool("binary")
 	return nil

@@ -32,8 +32,6 @@ protocol pgp {
     boolean noSelf;
     boolean binaryOut;
     string keyQuery;
-    boolean skipTrack;
-    TrackOptions trackOptions;
   }
 
   void pgpEncrypt(int sessionID, Stream source, Stream sink, PGPEncryptOptions opts);

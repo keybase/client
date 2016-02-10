@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 func TestGenerateNewPGPKey(t *testing.T) {
@@ -47,8 +46,8 @@ func TestPGPUserInterface(t *testing.T) {
 
 	// test that identify ui was shown once to sender for recipient
 	p.assertEqual(idCount, 1, "identify ui count")
-	// test that sender tracks recipient
-	p.assert(p.senderTracksRecipient(), "after encrypt, sender should track recipient")
+	// with identify2, no tracking, so test that sender doesn't track recipient
+	p.assert(!p.senderTracksRecipient(), "after encrypt, sender shouldn't track recipient")
 	p.assert(!p.recipientTracksSender(), "after encrypt, recipient shouldn't track sender")
 
 	// encrypt, signed
@@ -56,8 +55,8 @@ func TestPGPUserInterface(t *testing.T) {
 
 	// test that identify ui was shown once to sender for recipient
 	p.assertEqual(idCount, 1, "identify ui count")
-	// test that sender tracks recipient
-	p.assert(p.senderTracksRecipient(), "after encrypt, sender should track recipient")
+	// with identify2, not tracking, so test that sender doesn't track recipient
+	p.assert(!p.senderTracksRecipient(), "after encrypt, sender shouldn't track recipient")
 	p.assert(!p.recipientTracksSender(), "after encrypt, recipient shouldn't track sender")
 
 	// decrypt, not signed
@@ -167,11 +166,10 @@ func (p *pgpPair) encrypt(sign bool) (string, int) {
 	ctx := &Context{IdentifyUI: &FakeIdentifyUI{}, SecretUI: p.sender.NewSecretUI()}
 	sink := libkb.NewBufferCloser()
 	arg := &PGPEncryptArg{
-		Recips:       []string{p.recipient.Username},
-		Source:       strings.NewReader("thank you for your order"),
-		Sink:         sink,
-		NoSign:       !sign,
-		TrackOptions: keybase1.TrackOptions{BypassConfirm: true},
+		Recips: []string{p.recipient.Username},
+		Source: strings.NewReader("thank you for your order"),
+		Sink:   sink,
+		NoSign: !sign,
 	}
 
 	eng := NewPGPEncrypt(arg, p.tcS.G)

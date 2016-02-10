@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 func TestPGPEncrypt(t *testing.T) {
@@ -24,11 +23,10 @@ func TestPGPEncrypt(t *testing.T) {
 
 	sink := libkb.NewBufferCloser()
 	arg := &PGPEncryptArg{
-		Recips:       []string{"t_alice", "t_bob+kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
-		Source:       strings.NewReader("track and encrypt, track and encrypt"),
-		Sink:         sink,
-		NoSign:       true,
-		TrackOptions: keybase1.TrackOptions{BypassConfirm: true},
+		Recips: []string{"t_alice", "t_bob+kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
+		Source: strings.NewReader("track and encrypt, track and encrypt"),
+		Sink:   sink,
+		NoSign: true,
 	}
 
 	eng := NewPGPEncrypt(arg, tc.G)
@@ -56,11 +54,10 @@ func TestPGPEncryptNoPGPNaClOnly(t *testing.T) {
 
 	sink := libkb.NewBufferCloser()
 	arg := &PGPEncryptArg{
-		Recips:       []string{u1.Username},
-		Source:       strings.NewReader("track and encrypt, track and encrypt"),
-		Sink:         sink,
-		NoSign:       true,
-		TrackOptions: keybase1.TrackOptions{BypassConfirm: true},
+		Recips: []string{u1.Username},
+		Source: strings.NewReader("track and encrypt, track and encrypt"),
+		Sink:   sink,
+		NoSign: true,
 	}
 
 	eng := NewPGPEncrypt(arg, tc.G)
@@ -86,11 +83,10 @@ func TestPGPEncryptSelfNoKey(t *testing.T) {
 
 	sink := libkb.NewBufferCloser()
 	arg := &PGPEncryptArg{
-		Recips:       []string{"t_alice", "t_bob+twitter:kbtester1", "t_charlie+twitter:tacovontaco"},
-		Source:       strings.NewReader("track and encrypt, track and encrypt"),
-		Sink:         sink,
-		NoSign:       true,
-		TrackOptions: keybase1.TrackOptions{BypassConfirm: true},
+		Recips: []string{"t_alice", "t_bob+twitter:kbtester1", "t_charlie+twitter:tacovontaco"},
+		Source: strings.NewReader("track and encrypt, track and encrypt"),
+		Sink:   sink,
+		NoSign: true,
 	}
 
 	eng := NewPGPEncrypt(arg, tc.G)
@@ -115,11 +111,10 @@ func TestPGPEncryptNoTrack(t *testing.T) {
 
 	sink := libkb.NewBufferCloser()
 	arg := &PGPEncryptArg{
-		Recips:    []string{"t_alice", "t_bob+kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
-		Source:    strings.NewReader("identify and encrypt, identify and encrypt"),
-		Sink:      sink,
-		NoSign:    true,
-		SkipTrack: true,
+		Recips: []string{"t_alice", "t_bob+kbtester1@twitter", "t_charlie+tacovontaco@twitter"},
+		Source: strings.NewReader("identify and encrypt, identify and encrypt"),
+		Sink:   sink,
+		NoSign: true,
 	}
 
 	eng := NewPGPEncrypt(arg, tc.G)
@@ -151,11 +146,10 @@ func TestPGPEncryptSelfTwice(t *testing.T) {
 	msg := "encrypt for self only once"
 	sink := libkb.NewBufferCloser()
 	arg := &PGPEncryptArg{
-		Recips:       []string{u.Username},
-		Source:       strings.NewReader(msg),
-		Sink:         sink,
-		NoSign:       true,
-		TrackOptions: keybase1.TrackOptions{BypassConfirm: true},
+		Recips: []string{u.Username},
+		Source: strings.NewReader(msg),
+		Sink:   sink,
+		NoSign: true,
 	}
 
 	eng := NewPGPEncrypt(arg, tc.G)

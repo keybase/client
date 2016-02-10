@@ -6182,8 +6182,6 @@ export type pgp_PGPEncryptOptions = {
   noSelf: boolean;
   binaryOut: boolean;
   keyQuery: string;
-  skipTrack: boolean;
-  trackOptions: TrackOptions;
 }
 
 export type PGPEncryptOptions = {
@@ -6192,8 +6190,6 @@ export type PGPEncryptOptions = {
   noSelf: boolean;
   binaryOut: boolean;
   keyQuery: string;
-  skipTrack: boolean;
-  trackOptions: TrackOptions;
 }
 
 export type pgp_PGPSigVerification = {
