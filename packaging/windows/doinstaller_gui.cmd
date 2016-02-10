@@ -45,5 +45,4 @@ IF %ERRORLEVEL% NEQ 0 (
 "%ProgramFiles(x86)%\Inno Setup 5\iscc.exe" /DMyExePathName=%PathName% /DMyAppVersion=%BUILDVER% /DMySemVersion=%SEMVER% /DNewDokanVersion=%DOKANVER% "/sSignCommand=signtool.exe sign /tr http://timestamp.digicert.com $f" %GOPATH%\src\github.com\keybase\client\packaging\windows\setup_windows_gui.iss
 
 :: Afterwards, do:
-:: powershell Get-FileHash -Algorithm sha256
-:: (must convert to lower case before using in update json)
+:: winresource.exe -u [installer.exe] > update-windows-prod.json

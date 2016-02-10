@@ -42,6 +42,7 @@ func main() {
 	printCustomVerPtr := flag.Bool("cv", false, "print custom version to console (no .syso output)")
 	printCustomBuildPtr := flag.Bool("cb", false, "print custom build number to console (no .syso output)")
 	printWinVerPtr := flag.Bool("w", false, "print windows format version to console (no .syso output)")
+	outputJsonPtr := flag.String("u", "", "output update.json from given installer path")
 	iconPtr := flag.String("i", "../../../keybase/public/images/favicon.ico", "icon pathname")
 
 	flag.Parse()
@@ -57,8 +58,11 @@ func main() {
 		os.Exit(3)
 	}
 
+	semVer := fmt.Sprintf("%d.%d.%d-%d", fv.Major, fv.Minor, fv.Patch, fv.Build)
+	customVer := fmt.Sprintf("%d.%d.%d-%s", fv.Major, fv.Minor, fv.Patch, GetBuildName())
+
 	if *printverPtr {
-		fmt.Printf("%d.%d.%d-%d", fv.Major, fv.Minor, fv.Patch, fv.Build)
+		fmt.Print(semVer)
 		return
 	}
 
@@ -68,13 +72,17 @@ func main() {
 	}
 
 	if *printCustomVerPtr {
-		fmt.Printf("%d.%d.%d-%s", fv.Major, fv.Minor, fv.Patch, GetBuildName())
+		fmt.Print(customVer)
 		return
 	}
 
 	if *printCustomBuildPtr {
-
 		fmt.Printf("%s", GetBuildName())
+		return
+	}
+
+	if len(*outputJsonPtr) > 0 {
+		OutputUpdateJSon(customVer, *outputJsonPtr)
 		return
 	}
 
