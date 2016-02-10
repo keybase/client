@@ -351,6 +351,8 @@ type folderBranchOps struct {
 
 var _ KBFSOps = (*folderBranchOps)(nil)
 
+var _ fbmHelper = (*folderBranchOps)(nil)
+
 // newFolderBranchOps constructs a new folderBranchOps object.
 func newFolderBranchOps(config Config, fb FolderBranch,
 	bType branchType) *folderBranchOps {
@@ -396,9 +398,9 @@ func newFolderBranchOps(config Config, fb FolderBranch,
 		shutdownChan:    make(chan struct{}),
 		updatePauseChan: make(chan (<-chan struct{})),
 		forceSyncChan:   make(chan struct{}),
-		fbm:             newFolderBlockManager(config, fb),
 	}
 	fbo.cr = NewConflictResolver(config, fbo)
+	fbo.fbm = newFolderBlockManager(config, fb, fbo)
 	if config.DoBackgroundFlushes() {
 		go fbo.backgroundFlusher(secondsBetweenBackgroundFlushes * time.Second)
 	}
@@ -650,6 +652,13 @@ func (fbo *folderBranchOps) getMDForReadHelper(
 		return nil, NewReadAccessError(ctx, fbo.config, md.GetTlfHandle(), username)
 	}
 	return md, nil
+}
+
+// getMDForFBM is a helper method for the folderBlockManager only.
+func (fbo *folderBranchOps) getMDForFBM(ctx context.Context) (
+	*RootMetadata, error) {
+	lState := makeFBOLockState()
+	return fbo.getMDForReadHelper(ctx, lState, mdReadNoIdentify)
 }
 
 func (fbo *folderBranchOps) getMDForReadNoIdentify(
@@ -4744,6 +4753,12 @@ func (fbo *folderBranchOps) reembedBlockChanges(ctx context.Context,
 		rmd.data.cachedChanges.Info = info
 	}
 	return nil
+}
+
+func (fbo *folderBranchOps) reembedForFBM(ctx context.Context,
+	rmds []*RootMetadata) error {
+	lState := makeFBOLockState()
+	return fbo.reembedBlockChanges(ctx, lState, rmds)
 }
 
 type applyMDUpdatesFunc func(context.Context, *lockState, []*RootMetadata) error
