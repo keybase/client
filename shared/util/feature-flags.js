@@ -1,17 +1,30 @@
 /* @flow */
 
-type FeatureFlag = {
-  tracker: 'v1' | 'v2',
-  allowLogin: boolean
+import getenv from 'getenv'
+
+// To enable a feature, include it in the environment variable KEYBASE_FEATURES.
+// For example, KEYBASE_FEATURES=tracker2,login,awesomefeature
+
+type FeatureFlags = {
+  tracker2: boolean,
+  login: boolean
 }
 
-const tracker = process.env.KEYBASE_TRACKER_V2 ? 'v2' : 'v1'
-const allowLogin = process.env.KEYBASE_ALLOW_LOGIN ? true : false
+function loadFeatureFlags (): FeatureFlags {
+  let features = getenv.array('KEYBASE_FEATURES', 'string', '')
 
-const ff: FeatureFlag = {
-  tracker,
-  allowLogin
+  // For compatibility, this is deprecated
+  if (getenv.boolish('KEYBASE_TRACKER_V2', false)) { features.push('tracker2') }
+  if (getenv.boolish('KEYBASE_ALLOW_LOGIN', false)) { features.push('login') }
+
+  return {
+    tracker2: features.includes('tracker2'),
+    login: features.includes('login')
+  }
 }
+
+const ff = loadFeatureFlags()
+
+console.log('Features', ff)
 
 export default ff
-export {tracker, allowLogin}
