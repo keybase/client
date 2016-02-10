@@ -3,10 +3,10 @@ package test
 import (
 	"fmt"
 	"sort"
+	"testing"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -18,8 +18,8 @@ type LibKBFS struct {
 	refs map[libkbfs.Config]map[libkbfs.Node]bool
 	// channels used to re-enable updates if disabled
 	updateChannels map[libkbfs.Config]map[libkbfs.NodeID]chan<- struct{}
-	// test log object
-	t logger.TestLogBackend
+	// test object, mostly for logging
+	t *testing.T
 }
 
 // Check that LibKBFS fully implements the Engine interface.
@@ -50,9 +50,8 @@ func concatUserNamesToStrings2(a, b []username) []string {
 }
 
 // InitTest implements the Engine interface.
-func (k *LibKBFS) InitTest(t logger.TestLogBackend, blockSize int64,
-	blockChangeSize int64, writers []username,
-	readers []username) map[string]User {
+func (k *LibKBFS) InitTest(t *testing.T, blockSize int64, blockChangeSize int64,
+	writers []username, readers []username) map[string]User {
 	users := concatUserNamesToStrings2(writers, readers)
 	// Start a new log for this test.
 	k.t = t
