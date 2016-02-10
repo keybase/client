@@ -1,4 +1,5 @@
 import showDockIcon from './dockIcon'
+import menuHelper from './menu-helper'
 import {app, ipcMain, BrowserWindow} from 'electron'
 
 export default class Window {
@@ -67,7 +68,12 @@ export default class Window {
       return
     }
 
+    if (this.opts.show) {
+      this.releaseDockIcon = showDockIcon()
+    }
+
     this.window = new BrowserWindow({show: false, ...this.opts})
+    menuHelper(this.window)
     this.window.loadURL(`file://${this.filename}`)
     this.bindWindowListeners()
   }
