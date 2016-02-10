@@ -1761,6 +1761,28 @@ func (_mr *_MockMDServerRecorder) RegisterForUpdate(arg0, arg1, arg2 interface{}
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RegisterForUpdate", arg0, arg1, arg2)
 }
 
+func (_m *MockMDServer) TruncateLock(ctx context.Context, id TlfID) (bool, error) {
+	ret := _m.ctrl.Call(_m, "TruncateLock", ctx, id)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockMDServerRecorder) TruncateLock(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "TruncateLock", arg0, arg1)
+}
+
+func (_m *MockMDServer) TruncateUnlock(ctx context.Context, id TlfID) (bool, error) {
+	ret := _m.ctrl.Call(_m, "TruncateUnlock", ctx, id)
+	ret0, _ := ret[0].(bool)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockMDServerRecorder) TruncateUnlock(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "TruncateUnlock", arg0, arg1)
+}
+
 func (_m *MockMDServer) DisableRekeyUpdatesForTesting() {
 	_m.ctrl.Call(_m, "DisableRekeyUpdatesForTesting")
 }

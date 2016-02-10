@@ -479,6 +479,18 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id TlfID,
 	return c, err
 }
 
+// TruncateLock implements the MDServer interface for MDServerRemote.
+func (md *MDServerRemote) TruncateLock(ctx context.Context, id TlfID) (
+	bool, error) {
+	return md.client.TruncateLock(ctx, id.String())
+}
+
+// TruncateUnlock implements the MDServer interface for MDServerRemote.
+func (md *MDServerRemote) TruncateUnlock(ctx context.Context, id TlfID) (
+	bool, error) {
+	return md.client.TruncateUnlock(ctx, id.String())
+}
+
 // getFoldersForRekey registers to receive updates about folders needing rekey actions.
 func (md *MDServerRemote) getFoldersForRekey(ctx context.Context,
 	client keybase1.MetadataClient) error {

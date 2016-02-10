@@ -832,6 +832,15 @@ type MDServer interface {
 	RegisterForUpdate(ctx context.Context, id TlfID,
 		currHead MetadataRevision) (<-chan error, error)
 
+	// TruncateLock attempts to take the history truncation lock for
+	// this folder, for a TTL defined by the server.  Returns true if
+	// the lock was successfully taken.
+	TruncateLock(ctx context.Context, id TlfID) (bool, error)
+	// TruncateUnlock attempts to release the history truncation lock
+	// for this folder.  Returns true if the lock was successfully
+	// released.
+	TruncateUnlock(ctx context.Context, id TlfID) (bool, error)
+
 	// DisableRekeyUpdatesForTesting disables processing rekey updates
 	// received from the mdserver while testing.
 	DisableRekeyUpdatesForTesting()

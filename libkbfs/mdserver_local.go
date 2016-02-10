@@ -622,6 +622,18 @@ func (md *MDServerLocal) RegisterForUpdate(ctx context.Context, id TlfID,
 	return c, nil
 }
 
+// TruncateLock implements the MDServer interface for MDServerLocal.
+func (md *MDServerLocal) TruncateLock(ctx context.Context, id TlfID) (
+	bool, error) {
+	return true, nil
+}
+
+// TruncateUnlock implements the MDServer interface for MDServerLocal.
+func (md *MDServerLocal) TruncateUnlock(ctx context.Context, id TlfID) (
+	bool, error) {
+	return true, nil
+}
+
 // Shutdown implements the MDServer interface for MDServerLocal.
 func (md *MDServerLocal) Shutdown() {
 	md.shutdownLock.Lock()
