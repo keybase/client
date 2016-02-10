@@ -5,7 +5,7 @@ var fs = promise.promisifyAll(require('fs'))
 var path = require('path')
 var root = 'json'
 
-fs.readdirAsync(root).filter(jsonOnly).map(load).map(analyze).reduce(collectTypes, []).then(write)
+fs.readdirAsync(root).filter(jsonOnly).map(load).map(analyze).reduce(collectTypes, []).then(makeRpcUnionType).then(write)
 
 var typePrelude = `/* @flow */
 
@@ -228,6 +228,12 @@ function parseArray (t) {
 
 function collectTypes (acc, typeDefs) {
   return acc.concat(typeDefs)
+}
+
+function makeRpcUnionType (typeDefs) {
+  const rpcTypes = typeDefs.map(t => t.match(/(\w*_rpc)/g)).filter(t => t).reduce((acc, t) => acc.concat(t), []).join(' | ')
+  const unionRpcType = `\n\nexport type rpc = ${rpcTypes}\n\n`
+  return typeDefs.concat(unionRpcType)
 }
 
 function write (typeDefs) {
