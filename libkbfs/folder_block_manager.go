@@ -99,6 +99,30 @@ func (fbm *folderBlockManager) archiveUnrefBlocks(md *RootMetadata) {
 	fbm.archiveChan <- md
 }
 
+// archiveUnrefBlocksNoWait enqueues the MD for archiving without
+// blocking.  By the time it returns, the archive group has been
+// incremented so future waits will block on this archive.  This
+// method is for internal use within folderBlockManager only.
+func (fbm *folderBlockManager) archiveUnrefBlocksNoWait(md *RootMetadata) {
+	// Don't archive for unmerged revisions, because conflict
+	// resolution might undo some of the unreferences.
+	if md.MergedStatus() != Merged {
+		return
+	}
+
+	fbm.archiveGroup.Add(1)
+
+	// Don't block if the channel is full; instead do the send in a
+	// background goroutine.  We've already done the Add above, so the
+	// wait calls should all work just fine.
+	select {
+	case fbm.archiveChan <- md:
+		return
+	default:
+		go func() { fbm.archiveChan <- md }()
+	}
+}
+
 func (fbm *folderBlockManager) waitForArchives(ctx context.Context) error {
 	return fbm.archiveGroup.Wait(ctx)
 }
@@ -162,7 +186,9 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context) error 
 			// should archive it.
 			fbm.log.CDebugf(ctx, "Archiving successful MD revision %d",
 				rmds[0].Revision)
-			fbm.archiveUnrefBlocks(rmds[0])
+			// Don't block on archiving the MD, because that could
+			// lead to deadlock.
+			fbm.archiveUnrefBlocksNoWait(rmds[0])
 			continue
 		}
 
