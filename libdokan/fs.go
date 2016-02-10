@@ -95,9 +95,24 @@ func (f *FS) GetVolumeInformation() (dokan.VolumeInformation, error) {
 }
 
 // GetDiskFreeSpace returns information about free space on the volume for dokan.
-func (*FS) GetDiskFreeSpace() (dokan.FreeSpace, error) {
+func (f *FS) GetDiskFreeSpace() (dokan.FreeSpace, error) {
 	// TODO should this be refused to other users?
-	return dokan.FreeSpace{}, nil
+	ctx := NewContextWithOpID(f)
+	f.log.CDebugf(ctx, "FS GetDiskFreeSpace")
+	uqi, err := f.config.BlockServer().GetUserQuotaInfo(ctx)
+	f.log.CDebugf(ctx, "FS GetDiskFreeSpace -> %v, %v", uqi, err)
+	if err != nil {
+		return dokan.FreeSpace{}, errToDokan(err)
+	}
+	free := uint64(uqi.Limit)
+	if uqi.Total != nil {
+		free -= uint64(uqi.Total.UsageBytes)
+	}
+	return dokan.FreeSpace{
+		TotalNumberOfBytes:     uint64(uqi.Limit),
+		TotalNumberOfFreeBytes: free,
+		FreeBytesAvailable:     free,
+	}, nil
 }
 
 // openContext is for opening files.
