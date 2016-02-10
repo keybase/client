@@ -12,7 +12,6 @@ package engine
 
 import (
 	"fmt"
-
 	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/libkb"

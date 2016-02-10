@@ -46,6 +46,9 @@ type Config struct {
 	// RSABits is the number of bits in new RSA keys made with NewEntity.
 	// If zero, then 2048 bit keys are created.
 	RSABits int
+	// ReuseSignatures tells us to reuse existing Signatures
+	// on serialized output.
+	ReuseSignaturesOnSerialize bool
 }
 
 func (c *Config) Random() io.Reader {
@@ -88,4 +91,8 @@ func (c *Config) PasswordHashIterations() int {
 		return 0
 	}
 	return c.S2KCount
+}
+
+func (c *Config) ReuseSignatures() bool {
+	return c != nil && c.ReuseSignaturesOnSerialize
 }

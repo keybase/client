@@ -10,6 +10,7 @@
   (via vendored PR: keybase/go-crytpo#11)
 - Properly serialize ElGamal Subkeys (via vendored PR: keybase/go-crypto#13)
 - Allow DSA sub-signing keys without an explicit KeyFlags (via vendored PR: keybase/go-crypto#12)
+- Fix handling of revoked subkeys (via PR keybase/client#1966 and vendored PR: keybase/go-crypto#15)
 
 ## 1.0.10 (2016-02-05)
 - Detached pgp verify was broken for messages shorter than 100 bytes (PR: keybase/client#1862)
