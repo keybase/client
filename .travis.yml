@@ -18,6 +18,7 @@ script:
   - cd ../libfuse && go test -i && go test -c
   - cd ../test
   - go test -i && go test
+  - go test -c -tags fuse
 notifications:
   slack: keybase:WKlhs55Mb4am4obv1rNRg8P0
 
