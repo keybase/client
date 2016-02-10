@@ -188,6 +188,7 @@ func (e *PGPEncrypt) verifyUsers(ctx *Context, assertions []string, loggedIn boo
 			Reason: keybase1.IdentifyReason{
 				Type: keybase1.IdentifyReasonType_ENCRYPT,
 			},
+			AlwaysBlock: true,
 		}
 		eng := NewResolveThenIdentify2(e.G(), &arg)
 		if err := RunEngine(eng, ctx); err != nil {
