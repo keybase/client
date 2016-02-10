@@ -5001,21 +5001,30 @@ func (fbo *folderBranchOps) UnstageForTesting(
 	})
 }
 
+// mdWriterLock must be taken by the caller.
 func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 	lState *lockState, promptPaper bool) (err error) {
 	if fbo.staged {
 		return errors.New("Can't rekey while staged.")
 	}
 
-	// Make sure we're up-to-date with the latest revision, since
-	// Rekey doesn't let us go into CR mode, and we don't actually get
-	// folder update notifications when the rekey bit is set, just a
-	// "folder needs rekey" update.
-	if err := fbo.getAndApplyMDUpdates(
-		ctx, lState, fbo.applyMDUpdatesLocked); err != nil {
-		if applyErr, ok := err.(MDUpdateApplyError); !ok ||
-			applyErr.rev != applyErr.curr {
-			return err
+	head := func() *RootMetadata {
+		fbo.headLock.RLock(lState)
+		defer fbo.headLock.RUnlock(lState)
+		return fbo.head
+	}()
+	if head != nil {
+		// If we already have a cached revision, make sure we're
+		// up-to-date with the latest revision before inspecting the
+		// metadata, since Rekey doesn't let us go into CR mode, and
+		// we don't actually get folder update notifications when the
+		// rekey bit is set, just a "folder needs rekey" update.
+		if err := fbo.getAndApplyMDUpdates(
+			ctx, lState, fbo.applyMDUpdatesLocked); err != nil {
+			if applyErr, ok := err.(MDUpdateApplyError); !ok ||
+				applyErr.rev != applyErr.curr {
+				return err
+			}
 		}
 	}
 
