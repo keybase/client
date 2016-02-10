@@ -5,7 +5,7 @@
 // sits on top and dispatches messages to the correct tab's router.
 
 import Immutable from 'immutable'
-import routerReducer, {createRouterState} from './router'
+import {subReducer as routerReducer, createRouterState} from './router'
 import {startupTab, folderTab, chatTab, peopleTab, devicesTab, moreTab, loginTab} from '../constants/tabs'
 import * as Constants from '../constants/tabbed-router'
 import {initTabbedRouterState} from '../local-debug'
@@ -37,6 +37,12 @@ export default function (state: TabbedRouterState = initialState, action: any): 
     case Constants.switchTab:
       return state.set('activeTab', action.payload)
     default:
-      return state.updateIn(['tabs', state.get('activeTab')], routerState => routerReducer(routerState, action))
+      let tab = state.get('activeTab')
+
+      if (action.payload && action.payload.tab) {
+        tab = action.payload.tab
+      }
+
+      return state.updateIn(['tabs', tab], routerState => routerReducer(routerState, action))
   }
 }

@@ -47,7 +47,8 @@ function parseUri (uri) {
   return List(uri.map(parsePath))
 }
 
-export default function (state: RouterState = initialState, action: any): RouterState {
+// This is called by the tabbed reducer, not the global reducer
+export function subReducer(state: RouterState = initialState, action: any): RouterState {
   const stateWithHistory = state.update('history', pushIfTailIsDifferent.bind(null, state.get('uri')))
   switch (action.type) {
     // TODO(MM): change the history so if we go up to something that is already in the history,
@@ -60,16 +61,12 @@ export default function (state: RouterState = initialState, action: any): Router
       return state.update('history', history => history.count() > 1 ? history.pop() : parseUri([]))
         .set('uri', lastUri)
     case RouterConstants.navigate:
-      return stateWithHistory.set('uri', parseUri(action.payload))
+      return stateWithHistory.set('uri', parseUri(action.payload.uri))
     case RouterConstants.navigateAppend:
       if (action.payload.constructor === Array) {
-        return stateWithHistory.update('uri', uri => uri.concat(action.payload.map(parsePath)))
+        return stateWithHistory.update('uri', uri => uri.concat(action.payload.route.map(parsePath)))
       }
-      return stateWithHistory.update('uri', uri => uri.push(parsePath(action.payload)))
-    case LoginConstants.needsLogin:
-      return state.set('uri', parseUri(['login']))
-    case LoginConstants.needsRegistering:
-      return state.set('uri', parseUri(['register']))
+      return stateWithHistory.update('uri', uri => uri.push(parsePath(action.payload.route)))
     default:
       return state
   }

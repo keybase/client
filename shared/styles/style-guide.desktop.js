@@ -18,7 +18,7 @@ export const globalColors = {
 }
 
 export const globalResizing = {
-  login: {width: 550, height: 605}
+  login: {width: 700, height: 580}
 }
 
 const fontCommon = {

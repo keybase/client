@@ -1,0 +1,13 @@
+/* @flow */
+
+import React, {Component} from 'react'
+
+export type Props = {
+  onClick: Function,
+  style?: ?Object
+}
+
+declare export default class BackButton extends Component {
+  props: Props;
+}
+

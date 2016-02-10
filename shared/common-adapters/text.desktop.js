@@ -21,6 +21,7 @@ export default class Text extends Component {
       ...(this.props.small ? styles.textSmallMixin : {}),
       ...(this.props.reversed ? styles.textReversedMixin : {}),
       ...(this.props.onClick ? globalStyles.clickable : {}),
+      ...(this.props.inline ? styles.inline : {}),
       ...this.props.style
     }
 
@@ -41,14 +42,15 @@ Text.propTypes = {
   reversed: React.PropTypes.bool,
   children: React.PropTypes.node,
   style: React.PropTypes.object,
-  onClick: React.PropTypes.func
+  onClick: React.PropTypes.func,
+  inline: React.PropTypes.bool
 }
 
 const textCommon = {
   ...globalStyles.fontRegular,
   ...globalStyles.noSelect,
   color: globalColors.grey1,
-  cursor: 'default'
+  cursor: 'inherit'
 }
 
 export const styles = {
@@ -108,5 +110,8 @@ export const styles = {
   },
   textReversedMixin: {
     color: globalColors.white
+  },
+  inline: {
+    display: 'inline-block'
   }
 }
