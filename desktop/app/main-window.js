@@ -16,7 +16,6 @@ export default function () {
 
   ipcMain.on('showMain', () => {
     mainWindow.show(true)
-    menuHelper(mainWindow.window)
   })
 
   return mainWindow
