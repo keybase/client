@@ -269,7 +269,7 @@ func (b *BlockServerRemote) archiveBlockReferences(ctx context.Context,
 			Refs:   notDone,
 			Folder: tlfID.String(),
 		})
-		b.log.CDebugf(ctx, "ArchiveBlockReference request to archive %d refs actual archived %d\n",
+		b.log.CDebugf(ctx, "ArchiveBlockReference request to archive %d refs actual archived %d",
 			len(notDone), len(res))
 		if err != nil {
 			b.log.CWarningf(ctx, "ArchiveBlockReference err=%v", err)
