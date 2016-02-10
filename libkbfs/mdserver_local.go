@@ -498,7 +498,10 @@ func (md *MDServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) erro
 		return MDServerError{err}
 	}
 
-	if mStatus == Merged {
+	if mStatus == Merged &&
+		// Don't send notifies if it's just a rekey (the real mdserver
+		// sends a "folder needs rekey" notification in this case).
+		!(rmds.MD.IsRekeySet() && rmds.MD.IsWriterMetadataCopiedSet()) {
 		md.sessionHeads[id] = md
 
 		// now fire all the observers that aren't from this session
