@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import {Text, Icon} from './index'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles} from '../styles/style-guide'
 import type {Props} from './back-button'
 
 export default class BackButton extends Component {
@@ -10,7 +10,7 @@ export default class BackButton extends Component {
 
   render () {
     return (
-      <div style={styles.container} onClick={this.props.onClick} style={this.props.style}>
+      <div style={{...styles.container, ...this.props.style}} onClick={this.props.onClick}>
         <Icon type='fa-arrow-left' style={styles.icon}/>
         <Text inline type='Body' onClick={() => this.props.onClick()}>Back</Text>
       </div>

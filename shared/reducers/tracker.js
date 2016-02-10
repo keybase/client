@@ -127,7 +127,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       const anyPending: boolean = proofs.reduce((acc, p) => acc || p.state === checking, false)
 
       // Helper to reduce boiler plate.
-      const anyMetaCheck = (v: SimpleProofMeta) => ((acc, p) => acc || p.meta === v)
+      const anyMetaCheck = (v: SimpleProofMeta) => ((acc, p) => acc || p.meta === v) // eslint-disable-line
 
       const anyDeletedProofs : boolean = proofs.reduce(anyMetaCheck(metaDeleted), false)
       const anyUnreachableProofs : boolean = proofs.reduce(anyMetaCheck(metaUnreachable), false)

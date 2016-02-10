@@ -142,7 +142,7 @@ class Menubar extends Component {
 
   render () {
     const {username} = this.props
-    const folders = (this.props.folders || []).map((f: Folder) : FolderInfo => {
+    const folders = (this.props.folders || []).map((f: Folder) : FolderInfo => { // eslint-disable-line arrow-parens
       return {
         type: 'folder',
         folderName: f.name,
