@@ -25,7 +25,9 @@ import (
 	triplesec "github.com/keybase/go-triplesec"
 )
 
-func DumpKey(g *GlobalContext, name string, b []byte) {
+// DebugDumpKey is used only in debugging. For now it's now in
+// use but we might need it in the future.
+func DebugDumpKey(g *GlobalContext, name string, b []byte) {
 	tmp, err := ioutil.TempFile(os.TempDir(), "dump-"+name)
 	if err != nil {
 		g.Log.Warning("Failed to dumpKey %s: %s", name, err)
