@@ -9,12 +9,15 @@ export default class Icon extends Component {
   props: Props;
 
   render (): ReactElement {
+    const color = this.props.style && this.props.style.color || globalColors.grey2
+    const hoverColor = this.props.style && this.props.style.hoverColor || globalColors.grey1
+
     return <FontIcon
       title={this.props.hint}
       style={{...styles.icon, ...this.props.style}}
       className={`fa ${this.props.type}`}
-      color={globalColors.grey2}
-      hoverColor={globalColors.grey1}
+      color={color}
+      hoverColor={hoverColor}
       onClick={this.props.onClick}/>
   }
 }
@@ -22,7 +25,7 @@ export default class Icon extends Component {
 Icon.propTypes = {
   type: React.PropTypes.string.isRequired,
   hint: React.PropTypes.string,
-  onClick: React.PropTypes.func.isRequired,
+  onClick: React.PropTypes.func,
   style: React.PropTypes.object
 }
 

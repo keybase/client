@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import {registerWithUserPass, registerWithPaperKey, registerWithExistingDevice} from '../../actions/login'
+import {registerWithUserPass, registerWithPaperKey, registerWithExistingDevice, cancelLogin} from '../../actions/login'
 import Render from './index.render'
 
 class Register extends Component {
@@ -10,6 +10,7 @@ class Register extends Component {
         onGotoExistingDevicePage={this.props.onGotoExistingDevicePage}
         onGotoPaperKeyPage={this.props.onGotoPaperKeyPage}
         onGotoUserPassPage={this.props.onGotoUserPassPage}
+        onBack={this.props.onBack}
       />
     )
   }
@@ -31,7 +32,8 @@ export default connect(
     return {
       onGotoExistingDevicePage: () => dispatch(registerWithExistingDevice()),
       onGotoPaperKeyPage: () => dispatch(registerWithPaperKey()),
-      onGotoUserPassPage: () => dispatch(registerWithUserPass())
+      onGotoUserPassPage: () => dispatch(registerWithUserPass()),
+      onBack: () => dispatch(cancelLogin())
     }
   }
 )(Register)

@@ -11,7 +11,7 @@ import CodePage from '../../login/register/code-page'
 import ExistingDevice from '../../login/register/existing-device'
 import SetPublicName from '../../login/register/set-public-name'
 import {switchTab} from '../tabbed-router'
-import {devicesTab} from '../../constants/tabs'
+import {devicesTab, loginTab} from '../../constants/tabs'
 import {loadDevices} from '../devices'
 import {defaultModeForDeviceRoles, qrGenerate} from './provision-helpers'
 import {getCurrentStatus} from '../config'
@@ -296,6 +296,7 @@ export function registerWithPaperKey () : AsyncAction {
 
 export function cancelLogin () : AsyncAction {
   return (dispatch, getState) => {
+    dispatch(navigateTo([], loginTab))
     if (currentLoginSessionID) {
       engine.cancelRPC(currentLoginSessionID)
       currentLoginSessionID = null
