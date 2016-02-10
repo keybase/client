@@ -999,11 +999,15 @@ func TestKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T) {
 	RevokeDeviceForLocalUserOrBust(t, config1, uid2, 0)
 	RevokeDeviceForLocalUserOrBust(t, config2Dev2, uid2, 0)
 
-	// disable updates on user 1
-	c, err := DisableUpdatesForTesting(config1, rootNode1.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't disable updates: %v", err)
-	}
+	// Stall user 1's rekey, to ensure a conflict.
+	onPutStalledCh, putUnstallCh, putCtx := setStallingMDOpsForPut(ctx, config1)
+
+	// Have user 1 also try to rekey but fail due to conflict
+	errChan := make(chan error)
+	go func() {
+		errChan <- kbfsOps1.Rekey(putCtx, rootNode1.GetFolderBranch().Tlf)
+	}()
+	<-onPutStalledCh
 
 	// rekey again but with user 2 device 2
 	err = kbfsOps2Dev2.Rekey(ctx, root2Dev2.GetFolderBranch().Tlf)
@@ -1011,17 +1015,11 @@ func TestKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T) {
 		t.Fatalf("Couldn't rekey: %v", err)
 	}
 
-	// have user 1 also try to rekey but fail due to conflict
-	err = kbfsOps1.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
+	// Make sure user 1's rekey failed.
+	putUnstallCh <- struct{}{}
+	err = <-errChan
 	if _, isConflict := err.(MDServerErrorConflictRevision); !isConflict {
 		t.Fatalf("Expected failure due to conflict")
-	}
-
-	// device 1 re-enables updates
-	c <- struct{}{}
-	err = kbfsOps1.SyncFromServer(ctx, rootNode1.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %v", err)
 	}
 
 	err = kbfsOps2Dev2.SyncFromServer(ctx, root2Dev2.GetFolderBranch())

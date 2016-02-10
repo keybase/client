@@ -5007,6 +5007,18 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		return errors.New("Can't rekey while staged.")
 	}
 
+	// Make sure we're up-to-date with the latest revision, since
+	// Rekey doesn't let us go into CR mode, and we don't actually get
+	// folder update notifications when the rekey bit is set, just a
+	// "folder needs rekey" update.
+	if err := fbo.getAndApplyMDUpdates(
+		ctx, lState, fbo.applyMDUpdatesLocked); err != nil {
+		if applyErr, ok := err.(MDUpdateApplyError); !ok ||
+			applyErr.rev != applyErr.curr {
+			return err
+		}
+	}
+
 	md, rekeyWasSet, err := fbo.getMDForRekeyWriteLocked(ctx, lState)
 	if err != nil {
 		return err
