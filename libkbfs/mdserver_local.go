@@ -21,6 +21,9 @@ type MDServerLocal struct {
 	mdDb     *leveldb.DB // folderId+[branchId]+[revision] -> root metadata (signed)
 	branchDb *leveldb.DB // folderId+deviceKID             -> branchId
 
+	locksMutex *sync.Mutex
+	locksDb    *leveldb.DB // folderId -> deviceKID
+
 	// mutex protects observers and sessionHeads
 	mutex *sync.Mutex
 	// Multiple instances of MDServerLocal could share a reference to
@@ -35,7 +38,7 @@ type MDServerLocal struct {
 }
 
 func newMDServerLocalWithStorage(config Config, handleStorage, mdStorage,
-	branchStorage storage.Storage) (*MDServerLocal, error) {
+	branchStorage, lockStorage storage.Storage) (*MDServerLocal, error) {
 	handleDb, err := leveldb.Open(handleStorage, leveldbOptions)
 	if err != nil {
 		return nil, err
@@ -48,8 +51,12 @@ func newMDServerLocalWithStorage(config Config, handleStorage, mdStorage,
 	if err != nil {
 		return nil, err
 	}
+	locksDb, err := leveldb.Open(lockStorage, leveldbOptions)
+	if err != nil {
+		return nil, err
+	}
 	mdserv := &MDServerLocal{config, handleDb, mdDb, branchDb, &sync.Mutex{},
-		make(map[TlfID]map[*MDServerLocal]chan<- error),
+		locksDb, &sync.Mutex{}, make(map[TlfID]map[*MDServerLocal]chan<- error),
 		make(map[TlfID]*MDServerLocal), new(bool), &sync.RWMutex{}}
 	return mdserv, nil
 }
@@ -74,8 +81,12 @@ func NewMDServerLocal(config Config, handleDbfile string, mdDbfile string,
 		return nil, err
 	}
 
+	// Always use memory for the lock storage, so it gets wiped after
+	// a restart.
+	lockStorage := storage.NewMemStorage()
+
 	return newMDServerLocalWithStorage(config, handleStorage, mdStorage,
-		branchStorage)
+		branchStorage, lockStorage)
 }
 
 // NewMDServerMemory constructs a new MDServerLocal object that stores
@@ -83,7 +94,7 @@ func NewMDServerLocal(config Config, handleDbfile string, mdDbfile string,
 func NewMDServerMemory(config Config) (*MDServerLocal, error) {
 	return newMDServerLocalWithStorage(config,
 		storage.NewMemStorage(), storage.NewMemStorage(),
-		storage.NewMemStorage())
+		storage.NewMemStorage(), storage.NewMemStorage())
 }
 
 // Helper to aid in enforcement that only specified public keys can access TLF metdata.
@@ -622,16 +633,94 @@ func (md *MDServerLocal) RegisterForUpdate(ctx context.Context, id TlfID,
 	return c, nil
 }
 
+func getTruncateLockKey(id TlfID) ([]byte, error) {
+	buf := &bytes.Buffer{}
+	// add folder id
+	_, err := buf.Write(id.Bytes())
+	if err != nil {
+		return []byte{}, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (md *MDServerLocal) getCurrentDeviceKIDBytes(ctx context.Context) (
+	[]byte, error) {
+	buf := &bytes.Buffer{}
+	deviceKID, err := md.getCurrentDeviceKID(ctx)
+	if err != nil {
+		return []byte{}, err
+	}
+	_, err = buf.Write(deviceKID.ToBytes())
+	if err != nil {
+		return []byte{}, err
+	}
+	return buf.Bytes(), nil
+}
+
 // TruncateLock implements the MDServer interface for MDServerLocal.
 func (md *MDServerLocal) TruncateLock(ctx context.Context, id TlfID) (
 	bool, error) {
-	return true, nil
+	md.locksMutex.Lock()
+	defer md.locksMutex.Unlock()
+
+	key, err := getTruncateLockKey(id)
+	if err != nil {
+		return false, err
+	}
+
+	myKID, err := md.getCurrentDeviceKIDBytes(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	lockBytes, err := md.locksDb.Get(key, nil)
+	if err == leveldb.ErrNotFound {
+		if err := md.locksDb.Put(key, myKID, nil); err != nil {
+			return false, err
+		}
+		return true, nil
+	} else if err != nil {
+		return false, err
+	} else if bytes.Equal(lockBytes, myKID) {
+		// idempotent
+		return true, nil
+	}
+
+	// Locked by someone else.
+	return false, MDServerErrorLocked{}
 }
 
 // TruncateUnlock implements the MDServer interface for MDServerLocal.
 func (md *MDServerLocal) TruncateUnlock(ctx context.Context, id TlfID) (
 	bool, error) {
-	return true, nil
+	md.locksMutex.Lock()
+	defer md.locksMutex.Unlock()
+
+	key, err := getTruncateLockKey(id)
+	if err != nil {
+		return false, err
+	}
+
+	myKID, err := md.getCurrentDeviceKIDBytes(ctx)
+	if err != nil {
+		return false, err
+	}
+
+	lockBytes, err := md.locksDb.Get(key, nil)
+	if err == leveldb.ErrNotFound {
+		// Already unlocked
+		return true, nil
+	} else if err != nil {
+		return false, err
+	} else if bytes.Equal(lockBytes, myKID) {
+		if err := md.locksDb.Delete(key, nil); err != nil {
+			return false, err
+		}
+		return true, nil
+	}
+
+	// Locked by someone else.
+	return false, MDServerErrorLocked{}
 }
 
 // Shutdown implements the MDServer interface for MDServerLocal.
@@ -659,8 +748,9 @@ func (md *MDServerLocal) copy(config Config) *MDServerLocal {
 	// NOTE: observers and sessionHeads are copied shallowly on
 	// purpose, so that the MD server that gets a Put will notify all
 	// observers correctly no matter where they got on the list.
-	return &MDServerLocal{config, md.handleDb, md.mdDb, md.branchDb, md.mutex,
-		md.observers, md.sessionHeads, md.shutdown, md.shutdownLock}
+	return &MDServerLocal{config, md.handleDb, md.mdDb, md.branchDb,
+		md.locksMutex, md.locksDb, md.mutex, md.observers, md.sessionHeads,
+		md.shutdown, md.shutdownLock}
 }
 
 // isShutdown returns whether the logical, shared MDServer instance
