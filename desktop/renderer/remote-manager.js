@@ -3,7 +3,7 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import {bindActionCreators} from 'redux'
-import {registerIdentifyUi, onCloseFromHeader as trackerOnCloseFromHeader, startTimer as trackerStartTimer, stopTimer as trackerStopTimer} from '../shared/actions/tracker'
+import {registerIdentifyUi, onClose as trackerOnClose, startTimer as trackerStartTimer, stopTimer as trackerStopTimer} from '../shared/actions/tracker'
 import {registerPinentryListener, onCancel as pinentryOnCancel, onSubmit as pinentryOnSubmit} from '../shared/actions/pinentry'
 import {registerTrackerChangeListener} from '../shared/actions/tracker'
 import {registerUpdateListener, onCancel as updateOnCancel, onSkip as updateOnSkip, onSnooze as updateOnSnooze, onUpdate as updateOnUpdate, setAlwaysUpdate} from '../shared/actions/update'
@@ -24,7 +24,7 @@ export type RemoteManagerProps = {
   pinentryOnSubmit: (sessionID: number, passphrase: string, features: GUIEntryFeatures) => void,
   registerIdentifyUi: () => void,
   registerTrackerChangeListener: () => void,
-  trackerOnCloseFromHeader: () => void,
+  trackerOnClose: () => void,
   trackerServerStarted: boolean,
   trackerStartTimer: (dispatch: Dispatch, getState: any) => void,
   trackerStopTimer: () => Action,
@@ -74,7 +74,7 @@ class RemoteManager extends Component {
         waitForState
         ignoreNewProps
         hidden={trackers[username].hidden}
-        onRemoteClose={() => this.props.trackerOnCloseFromHeader(username)}
+        onRemoteClose={() => this.props.trackerOnClose(username)}
         component='tracker'
         username={username}
         startTimer={this.props.trackerStartTimer}
@@ -147,7 +147,7 @@ RemoteManager.propTypes = {
   registerUpdateListener: React.PropTypes.func,
   registerIdentifyUi: React.PropTypes.func,
   registerTrackerChangeListener: React.PropTypes.any,
-  trackerOnCloseFromHeader: React.PropTypes.func,
+  trackerOnClose: React.PropTypes.func,
   trackerServerStarted: React.PropTypes.bool,
   trackerStartTimer: React.PropTypes.func,
   trackerStopTimer: React.PropTypes.func,
@@ -174,7 +174,7 @@ export default connect(
     registerIdentifyUi,
     trackerStartTimer,
     trackerStopTimer,
-    trackerOnCloseFromHeader,
+    trackerOnClose,
     registerPinentryListener,
     registerTrackerChangeListener,
     pinentryOnCancel,

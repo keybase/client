@@ -98,13 +98,13 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         closed: true,
         hidden: false
       }
-    case Constants.onCloseFromActionBar:
+    case Constants.onMaybeTrack:
       return {
         ...state,
         closed: true,
         hidden: false
       }
-    case Constants.onCloseFromHeader:
+    case Constants.onClose:
       return {
         ...state,
         closed: true,

@@ -35,8 +35,8 @@ export const reportLastTrack = 'tracker:reportLastTrack'
 
 export const onUserTrackingLoading = 'tracker:userTrackingLoading'
 
-export const onCloseFromActionBar = 'tracker:onCloseFromActionBar'
-export const onCloseFromHeader = 'tracker:onCloseFromHeader'
+export const onMaybeTrack = 'tracker:onMaybeTrack'
+export const onClose = 'tracker:onClose'
 
 export const onRefollow = 'tracker:onRefollow'
 export const onUnfollow = 'tracker:onUnfollow'

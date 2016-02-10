@@ -23,8 +23,8 @@ type TrackerProps = {
   reason: string,
   userInfo: UserInfo,
   proofs: Array<Proof>,
-  onCloseFromHeader: () => void,
-  onCloseFromActionBar: () => void,
+  onClose: () => void,
+  onMaybeTrack: () => void,
   onRefollow: () => void,
   onUnfollow: () => void,
   onFollowHelp: () => void,
@@ -63,7 +63,7 @@ class Tracker extends Component {
       },
       headerProps: {
         reason: this.props.reason,
-        onClose: () => this.props.onCloseFromHeader(this.props.username)
+        onClose: () => this.props.onClose(this.props.username)
       },
       actionProps: {
         loggedIn: this.props.loggedIn,
@@ -72,7 +72,8 @@ class Tracker extends Component {
         renderChangedTitle,
         failedProofsNotFollowingText,
         shouldFollow: this.props.shouldFollow,
-        onClose: () => this.props.onCloseFromActionBar(this.props.username),
+        onClose: () => this.props.onClose(this.props.username),
+        onMaybeTrack: () => this.props.onMaybeTrack(this.props.username),
         onRefollow: () => this.props.onRefollow(this.props.username),
         onUnfollow: () => this.props.onUnfollow(this.props.username),
         onFollowHelp: () => this.props.onFollowHelp(this.props.username),
@@ -140,8 +141,8 @@ Tracker.propTypes = {
   reason: React.PropTypes.any,
   userInfo: React.PropTypes.any,
   proofs: React.PropTypes.any,
-  onCloseFromHeader: React.PropTypes.any,
-  onCloseFromActionBar: React.PropTypes.any,
+  onClose: React.PropTypes.any,
+  onMaybeTrack: React.PropTypes.any,
   onRefollow: React.PropTypes.any,
   onUnfollow: React.PropTypes.any,
   onFollowHelp: React.PropTypes.any,

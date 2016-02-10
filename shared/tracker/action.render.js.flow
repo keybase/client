@@ -11,9 +11,9 @@ export type ActionProps = {
   renderChangedTitle: ?string,
   failedProofsNotFollowingText: string,
   onClose: () => void,
+  onMaybeTrack: () => void,
   onRefollow: () => void,
   onUnfollow: () => void,
   onFollowHelp: () => void,
   onFollowChecked: () => void
 }
-
