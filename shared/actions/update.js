@@ -5,7 +5,7 @@ import engine from '../engine'
 import moment from 'moment'
 
 import {updateUi} from '../constants/types/keybase_v1'
-import type {Update, delegateUiCtl_registerUpdateUI_rpc, incomingCallMapType} from '../constants/types/flow-types'
+import type {delegateUiCtl_registerUpdateUI_rpc, incomingCallMapType} from '../constants/types/flow-types'
 import type {ShowUpdateAction, RegisterUpdateListenerAction, OnCancelAction, OnSkipAction,
   OnSnoozeAction, OnUpdateAction, SetAlwaysUpdateAction} from '../constants/update'
 import type {ConfigState} from '../reducers/config'

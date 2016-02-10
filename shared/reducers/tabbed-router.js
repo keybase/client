@@ -9,8 +9,6 @@ import {subReducer as routerReducer, createRouterState} from './router'
 import {startupTab, folderTab, chatTab, peopleTab, devicesTab, moreTab, loginTab} from '../constants/tabs'
 import * as Constants from '../constants/tabbed-router'
 import {initTabbedRouterState} from '../local-debug'
-import * as LoginConstants from '../constants/login'
-
 import type {RouterState} from './router'
 
 type TabName = startupTab | folderTab | chatTab | peopleTab | devicesTab | moreTab | loginTab

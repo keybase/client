@@ -22,7 +22,7 @@ let config = {
   printOutstandingRPCs: false
 }
 
-if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) { // eslint-disable-line no-undef
+if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.skipLoginRouteToRoot = true
   config.allowStartupFailure = true
   config.printRPC = true
@@ -55,7 +55,7 @@ export const {
 } = config
 
 export function initTabbedRouterState (state) {
-  if (!__DEV__ || !process.env.KEYBASE_LOCAL_DEBUG) { // eslint-disable-line no-undef
+  if (!__DEV__ || !process.env.KEYBASE_LOCAL_DEBUG) {
     return state
   }
 

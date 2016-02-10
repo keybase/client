@@ -1,3 +1,3 @@
-import {View} from 'react-native'
+import React, {View} from 'react-native'
 
 export default props => <View />

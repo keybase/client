@@ -53,7 +53,7 @@ const combinedReducer = combineReducers({
 })
 
 let reducer
-if (__DEV__) { // eslint-disable-line no-undef
+if (__DEV__) {
   reducer = function (state: State, action: any): State {
     return (
       devEdit(

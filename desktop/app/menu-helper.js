@@ -69,7 +69,7 @@ export default function makeMenu (window) {
   }
 }
 
-export function setupContextMenu(window) {
+export function setupContextMenu (window) {
   const InputMenu = Menu.buildFromTemplate([
     {label: 'Undo', role: 'undo'},
     {label: 'Redo', role: 'redo'},
@@ -82,8 +82,8 @@ export function setupContextMenu(window) {
   ])
 
   document.body.addEventListener('contextmenu', e => {
-    e.preventDefault();
-    e.stopPropagation();
+    e.preventDefault()
+    e.stopPropagation()
 
     let node = e.target
 

@@ -2,6 +2,7 @@ import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import {routeAppend} from '../actions/router'
 import {pushNewProfile} from '../actions/profile'
+import {switchTab} from '../actions/tabbed-router'
 import {pushNewSearch} from '../actions/search'
 import {logout} from '../actions/login'
 import {pushDebugTracker} from '../actions/tracker'
@@ -12,8 +13,6 @@ import engine from '../engine'
 
 import developer from './developer'
 import login from '../login'
-import pinentry from '../pinentry'
-import tracker from '../tracker'
 import components from './component-sheet'
 import styleSheet from './style-sheet'
 
@@ -67,7 +66,8 @@ DevMenu.propTypes = {
   logout: React.PropTypes.func.isRequired,
   pushNewSearch: React.PropTypes.func.isRequired,
   pushNewProfile: React.PropTypes.func.isRequired,
-  showTrackerListener: React.PropTypes.func.isRequired
+  showTrackerListener: React.PropTypes.func.isRequired,
+  switchTab: React.PropTypes.func.isRequired
 }
 
 export default connect(

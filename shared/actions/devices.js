@@ -2,7 +2,7 @@
 import * as Constants from '../constants/devices'
 import engine from '../engine'
 import {navigateUpOnUnchanged} from './router'
-import type {AsyncAction, TypedAction} from '../constants/types/flux'
+import type {AsyncAction} from '../constants/types/flux'
 import type {incomingCallMapType, revoke_revokeDevice_rpc, device_deviceList_rpc, login_paperKey_rpc} from '../constants/types/flow-types'
 
 export function loadDevices () : AsyncAction {

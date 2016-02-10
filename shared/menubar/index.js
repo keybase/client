@@ -54,7 +54,6 @@ class Menubar extends Component {
     }
 
     const onMenubarHide = () => {
-
       setImmediate(() => {
         engine.listenOnConnect('menubar', () => { })
       })

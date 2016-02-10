@@ -25,6 +25,8 @@ function loadFeatureFlags (): FeatureFlags {
 
 const ff = loadFeatureFlags()
 
-console.log('Features', ff)
+if (__DEV__) {
+  console.log('Features', ff)
+}
 
 export default ff

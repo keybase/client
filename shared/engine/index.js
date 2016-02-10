@@ -12,7 +12,7 @@ import windowsHack from './windows-hack'
 import {log} from '../native/log/logui'
 
 import {constants} from '../constants/types/keybase_v1'
-import {printOutstandingRPCs}  from '../local-debug'
+import {printOutstandingRPCs} from '../local-debug'
 
 class Engine {
   constructor () {
@@ -166,7 +166,7 @@ class Engine {
         if (response) {
           this.sessionIDToResponse[sessionID] = null
           response.result(...args)
-        } else if (__DEV__){ // eslint-disable-line no-undef
+        } else if (__DEV__) {
           console.warn('Calling response.result on non-response object: ', method)
         }
       },
@@ -186,7 +186,7 @@ class Engine {
         if (response) {
           this.sessionIDToResponse[sessionID] = null
           response.error(...args)
-        } else if (__DEV__){ // eslint-disable-line no-undef
+        } else if (__DEV__) {
           console.warn('Calling response.error on non-response object: ', method)
         }
       }
@@ -294,7 +294,7 @@ class Engine {
       })
     }
 
-    if (__DEV__ && process.env.KEYBASE_RPC_DELAY) { // eslint-disable-line no-undef
+    if (__DEV__ && process.env.KEYBASE_RPC_DELAY) {
       if (printRPC) {
         console.log('RPC [DELAYED] ▶', method, param)
       }

@@ -98,7 +98,8 @@ DevMenu.propTypes = {
   logout: React.PropTypes.func.isRequired,
   pushNewSearch: React.PropTypes.func.isRequired,
   pushNewProfile: React.PropTypes.func.isRequired,
-  showTrackerListener: React.PropTypes.func.isRequired
+  showTrackerListener: React.PropTypes.func.isRequired,
+  switchTab: React.PropTypes.func.isRequired
 }
 
 export default connect(

@@ -4,7 +4,6 @@ import {isMobile} from '../../constants/platform'
 import {navigateTo, routeAppend, getCurrentURI, getCurrentTab} from '../router'
 import engine from '../../engine'
 import enums from '../../constants/types/keybase_v1'
-import {constants} from '../../constants/types/keybase_v1'
 import UserPass from '../../login/register/user-pass'
 import PaperKey from '../../login/register/paper-key'
 import CodePage from '../../login/register/code-page'
@@ -383,16 +382,18 @@ function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle
               storeSecret: false
             })
           }))
+          break
         }
         case enums.secretUi.PassphraseType.passPhrase: {
-            /// TODO
+          // TODO
+          break
         }
         case enums.secretUi.PassphraseType.verifyPassPhrase: {
-            /// TODO
+          // TODO
+          break
         }
-        break
-      default:
-        response.error('Unknown getPassphrase type')
+        default:
+          response.error('Unknown getPassphrase type')
       }
     },
     // 'keybase.1.secretUi.getKeybasePassphrase': (param, response) => {

@@ -8,7 +8,6 @@ import signupRouter from './signup'
 
 // Register Components
 import Register from './register'
-import PaperKey from './register/paper-key'
 
 import {Map} from 'immutable'
 import type {URI} from '../reducers/router'

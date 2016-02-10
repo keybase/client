@@ -17,7 +17,6 @@ export default function (pid: number, desc: string, argv: Array<string>): Promis
 
   return new Promise((resolve, reject) => {
     engine.listenOnConnect('hello', () => {
-
       const params : config_helloIAm_rpc = {
         method: 'config.helloIAm',
         param: {details},

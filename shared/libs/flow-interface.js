@@ -41,11 +41,11 @@ declare var __VERSION__: string;
 declare var __DEV__: boolean;
 
 // Algebraic data types
-// This is a bit hacky, but it gives you strong gaurantees.
+// This is a bit hacky, but it gives you strong guarantees.
 
 declare interface MapADT2<K1, V1, K2, V2> {
-  set(key: K1, value: V1 ): MapADT2<K1, V1, K2, V2>;
-  set(key: K2, value: V2 ): MapADT2<K1, V1, K2, V2>;
+  set(key: K1, value: V1): MapADT2<K1, V1, K2, V2>;
+  set(key: K2, value: V2): MapADT2<K1, V1, K2, V2>;
   update(key: K1, updateFn: (v: V1) => V1): MapADT2<K1, V1, K2, V2>;
   update(key: K2, updateFn: (v: V2) => V2): MapADT2<K1, V1, K2, V2>;
   get(key: K1): V1;
@@ -55,9 +55,9 @@ declare interface MapADT2<K1, V1, K2, V2> {
 }
 
 declare interface MapADT3<K1, V1, K2, V2, K3, V3> {
-  set(key: K1, value: V1 ): MapADT3<K1, V1, K2, V2, K3, V3>;
-  set(key: K2, value: V2 ): MapADT3<K1, V1, K2, V2, K3, V3>;
-  set(key: K3, value: V3 ): MapADT3<K1, V1, K2, V2, K3, V3>;
+  set(key: K1, value: V1): MapADT3<K1, V1, K2, V2, K3, V3>;
+  set(key: K2, value: V2): MapADT3<K1, V1, K2, V2, K3, V3>;
+  set(key: K3, value: V3): MapADT3<K1, V1, K2, V2, K3, V3>;
   update(key: K1, updateFn: (v: V1) => V1): MapADT3<K1, V1, K2, V2, K3, V3>;
   update(key: K2, updateFn: (v: V2) => V2): MapADT3<K1, V1, K2, V2, K3, V3>;
   update(key: K3, updateFn: (v: V3) => V3): MapADT3<K1, V1, K2, V2, K3, V3>;
@@ -69,10 +69,10 @@ declare interface MapADT3<K1, V1, K2, V2, K3, V3> {
 }
 
 declare interface MapADT4<K1, V1, K2, V2, K3, V3, K4, V4> {
-  set(key: K1, value: V1 ): MapADT4<K1, V1, K2, V2, K3, V3, K4, V4>;
-  set(key: K2, value: V2 ): MapADT4<K1, V1, K2, V2, K3, V3, K4, V4>;
-  set(key: K3, value: V3 ): MapADT4<K1, V1, K2, V2, K3, V3, K4, V4>;
-  set(key: K4, value: V4 ): MapADT4<K1, V1, K2, V2, K3, V3, K4, V4>;
+  set(key: K1, value: V1): MapADT4<K1, V1, K2, V2, K3, V3, K4, V4>;
+  set(key: K2, value: V2): MapADT4<K1, V1, K2, V2, K3, V3, K4, V4>;
+  set(key: K3, value: V3): MapADT4<K1, V1, K2, V2, K3, V3, K4, V4>;
+  set(key: K4, value: V4): MapADT4<K1, V1, K2, V2, K3, V3, K4, V4>;
   update(key: K1, updateFn: (v: V1) => V1): MapADT4<K1, V1, K2, V2, K3, V3, K4, V4>;
   update(key: K2, updateFn: (v: V2) => V2): MapADT4<K1, V1, K2, V2, K3, V3, K4, V4>;
   update(key: K3, updateFn: (v: V3) => V3): MapADT4<K1, V1, K2, V2, K3, V3, K4, V4>;
@@ -86,11 +86,11 @@ declare interface MapADT4<K1, V1, K2, V2, K3, V3, K4, V4> {
 }
 
 declare interface MapADT5<K1, V1, K2, V2, K3, V3, K4, V4, K5, V5> {
-  set(key: K1, value: V1 ): MapADT5<K1, V1, K2, V2, K3, V3, K4, V4, K5, V5>;
-  set(key: K2, value: V2 ): MapADT5<K1, V1, K2, V2, K3, V3, K4, V4, K5, V5>;
-  set(key: K3, value: V3 ): MapADT5<K1, V1, K2, V2, K3, V3, K4, V4, K5, V5>;
-  set(key: K4, value: V4 ): MapADT5<K1, V1, K2, V2, K3, V3, K4, V4, K5, V5>;
-  set(key: K5, value: V5 ): MapADT5<K1, V1, K2, V2, K3, V3, K4, V4, K5, V5>;
+  set(key: K1, value: V1): MapADT5<K1, V1, K2, V2, K3, V3, K4, V4, K5, V5>;
+  set(key: K2, value: V2): MapADT5<K1, V1, K2, V2, K3, V3, K4, V4, K5, V5>;
+  set(key: K3, value: V3): MapADT5<K1, V1, K2, V2, K3, V3, K4, V4, K5, V5>;
+  set(key: K4, value: V4): MapADT5<K1, V1, K2, V2, K3, V3, K4, V4, K5, V5>;
+  set(key: K5, value: V5): MapADT5<K1, V1, K2, V2, K3, V3, K4, V4, K5, V5>;
   update(key: K1, updateFn: (v: V1) => V1): MapADT5<K1, V1, K2, V2, K3, V3, K4, V4, K5, V5>;
   update(key: K2, updateFn: (v: V2) => V2): MapADT5<K1, V1, K2, V2, K3, V3, K4, V4, K5, V5>;
   update(key: K3, updateFn: (v: V3) => V3): MapADT5<K1, V1, K2, V2, K3, V3, K4, V4, K5, V5>;

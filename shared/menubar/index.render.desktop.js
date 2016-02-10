@@ -62,7 +62,9 @@ const LogInTerminalMessage = props => {
       <Text type='Body' small style={{alignSelf: 'center', marginTop: 6}}>You're logged out!</Text>
       <Text type='Body' small style={{marginTop: 23, marginBottom: 5, marginLeft: 10}}>From the terminal:</Text>
       <Terminal>
-        <Text type='TerminalCommand'>keybase login</Text>
+        <Text
+          onClick={__DEV__ ? () => { props.showMain() } : undefined }
+          type='TerminalCommand'>keybase login</Text>
         <Text type='TerminalEmpty'/>
         <Text type='TerminalComment'>or if you're new to Keybase:</Text>
         <Text type='TerminalCommand'>keybase signup</Text>

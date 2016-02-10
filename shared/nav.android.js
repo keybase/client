@@ -11,7 +11,6 @@ import People from './people'
 import Devices from './devices'
 import NoTab from './no-tab'
 import More from './more'
-import Startup from './start-up'
 
 import {folderTab, chatTab, peopleTab, devicesTab, moreTab, startupTab, prettify} from './constants/tabs'
 
