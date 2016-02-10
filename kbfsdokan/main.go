@@ -26,13 +26,13 @@ const usageFormatStr = `Usage:
   kbfsdokan -version
 
 To run against remote KBFS servers:
-  kbfsdokan [-debug] [-cpuprofile=path/to/dir] [-memprofile=path/to/dir]
+  kbfsdokan [-debug] [-cpuprofile=path/to/dir]
     [-bserver=%s] [-mdserver=%s]
     [-runtime-dir=path/to/dir] [-label=label] [-mount-type=force]
     /path/to/mountpoint
 
 To run in a local testing environment:
-  kbfsdokan [-debug] [-cpuprofile=path/to/dir] [-memprofile=path/to/dir]
+  kbfsdokan [-debug] [-cpuprofile=path/to/dir]
     [-server-in-memory|-server-root=path/to/dir] [-localuser=<user>]
     [-runtime-dir=path/to/dir] [-label=label] [-mount-type=force]
     /path/to/mountpoint

@@ -12,8 +12,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-// TODO: Implement in dokan.
-
 // TODO: Also have a file for CPU profiles.
 
 // ProfileListDirName is the name of the KBFS profile directory -- it
