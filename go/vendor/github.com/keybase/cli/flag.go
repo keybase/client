@@ -237,13 +237,17 @@ func (f IntSliceFlag) getName() string {
 
 // BoolFlag is a switch that defaults to false
 type BoolFlag struct {
-	Name   string
-	Usage  string
-	EnvVar string
+	Name      string
+	Usage     string
+	EnvVar    string
+	HideUsage bool
 }
 
 // String returns a readable representation of this value (for usage defaults)
 func (f BoolFlag) String() string {
+	if f.HideUsage {
+		return ""
+	}
 	return withEnvHint(f.EnvVar, fmt.Sprintf("%s\t%v", prefixedNames(f.Name), f.Usage))
 }
 

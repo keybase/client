@@ -38,7 +38,8 @@ func NewCmdSignup(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 			},
 		},
 	}
-	cmd.Flags = append(cmd.Flags, extraSignupFlags...)
+
+	cmd.Flags = append(cmd.Flags, restrictedSignupFlags...)
 	return cmd
 }
 

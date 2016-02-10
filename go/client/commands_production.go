@@ -17,4 +17,6 @@ func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 	return []cli.Command{}
 }
 
-var extraSignupFlags = []cli.Flag{}
+const develUsage = false
+
+var restrictedSignupFlags = []cli.Flag{}
