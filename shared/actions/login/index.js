@@ -373,8 +373,7 @@ function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle
         response.result(username)
       }
     },
-    'keybase.1.secretUi.getPassphrase': (param, response) => {
-      const {pinentry: {type}} = param
+    'keybase.1.secretUi.getPassphrase': ({pinentry: {type}}, response) => {
       switch (type) {
         case enums.secretUi.PassphraseType.paperKey: {
           dispatch(askForPaperKey(paperKey => {
@@ -425,8 +424,7 @@ function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle
         // })
       // }
     // },
-    'keybase.1.provisionUi.PromptNewDeviceName': (param, response) => {
-      const {existingDevices} = param
+    'keybase.1.provisionUi.PromptNewDeviceName': ({existingDevices}, response) => {
       dispatch(askForDeviceName(existingDevices, () => {
         const {deviceName} = getState().login.deviceName
         response.result(deviceName)

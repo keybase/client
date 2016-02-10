@@ -302,7 +302,7 @@ class Engine {
   cancelRPC (sessionID) {
     const response = this.sessionIDToResponse[sessionID]
     if (response) {
-      if (response && response.error) {
+      if (response.error) {
         response.error({
           code: constants.StatusCode.scgeneric,
           desc: 'Canceling RPC'

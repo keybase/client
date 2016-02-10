@@ -2,7 +2,7 @@
 
 type FeatureFlag = {
   tracker: 'v1' | 'v2',
-  allowLogin: true | false
+  allowLogin: boolean
 }
 
 const tracker = process.env.KEYBASE_TRACKER_V2 ? 'v2' : 'v1'

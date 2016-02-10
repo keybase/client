@@ -15,6 +15,7 @@ import type {config_getConfig_rpc, config_getExtendedStatus_rpc, config_getCurre
 function switchTabs(dispatch, getState) {
   const {config: {status}} = getState()
   if (!status) {
+    console.error('Config switching tabs with null status')
     return
   }
 
@@ -40,6 +41,7 @@ export function getConfig (): AsyncAction {
         callback: (error, config) => {
           if (error) {
             reject(error)
+            return
           }
 
           dispatch({type: Constants.configLoaded, payload: {config}})
@@ -63,6 +65,7 @@ export function getExtendedConfig (): AsyncAction {
         callback: (error, extendedConfig) => {
           if (error) {
             reject(error)
+            return
           }
 
           dispatch({type: Constants.extendedConfigLoaded, payload: {extendedConfig}})
