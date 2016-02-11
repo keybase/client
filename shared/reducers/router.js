@@ -63,7 +63,7 @@ export function subReducer(state: RouterState = initialState, action: any): Rout
     case RouterConstants.navigate:
       return stateWithHistory.set('uri', parseUri(action.payload.uri))
     case RouterConstants.navigateAppend:
-      if (action.payload.constructor === Array) {
+      if (action.payload.route.constructor === Array) {
         return stateWithHistory.update('uri', uri => uri.concat(action.payload.route.map(parsePath)))
       }
       return stateWithHistory.update('uri', uri => uri.push(parsePath(action.payload.route)))
