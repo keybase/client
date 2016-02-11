@@ -692,7 +692,9 @@ func (l LoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayP
 	l.parent.Printf("  4. it can provision new keys/devices, so put it in your wallet\n")
 	l.parent.Printf("  5. just like any other device, it'll be revokable/replaceable if you lose it\n\n")
 	l.parent.Printf("Your paper key is\n\n")
-	l.parent.Printf("\t%s\n\n", arg.Phrase)
+	l.parent.Printf("\t")
+	l.parent.OutputDesc(OutputDescriptorPrimaryPaperKey, arg.Phrase)
+	l.parent.Printf("\n\n")
 	l.parent.Printf("Write it down....now!\n\n")
 
 	confirmed, err := l.parent.PromptYesNo(PromptDescriptorLoginWritePaper, "Have you written down the above paper key?", libkb.PromptDefaultNo)
@@ -966,6 +968,10 @@ func (ui *UI) DefaultTabWriter() *tabwriter.Writer {
 func (ui *UI) Output(s string) error {
 	_, err := ui.OutputWriter().Write([]byte(s))
 	return err
+}
+
+func (ui *UI) OutputDesc(_ libkb.OutputDescriptor, s string) error {
+	return ui.Output(s)
 }
 
 func (ui *UI) OutputWriter() io.Writer {

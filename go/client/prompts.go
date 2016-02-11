@@ -48,3 +48,8 @@ const (
 	PromptDescriptorDecryptInteractive
 	PromptDescriptorPGPGenEnterID
 )
+
+const (
+	OutputDescriptorGeneric libkb.OutputDescriptor = iota
+	OutputDescriptorPrimaryPaperKey
+)

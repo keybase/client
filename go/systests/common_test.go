@@ -4,8 +4,6 @@
 package systests
 
 import (
-	"fmt"
-	"io"
 	"path/filepath"
 	"testing"
 
@@ -59,37 +57,3 @@ func (n *baseNullUI) GetProvisionUI(libkb.KexRole) libkb.ProvisionUI { return ni
 
 func (n *baseNullUI) Configure() error { return nil }
 func (n *baseNullUI) Shutdown() error  { return nil }
-
-type baseTerminalUI struct {
-	g *libkb.GlobalContext
-}
-
-func (b *baseTerminalUI) OutputWriter() io.Writer {
-	return b
-}
-func (b *baseTerminalUI) ErrorWriter() io.Writer {
-	return b
-}
-func (b *baseTerminalUI) Write(x []byte) (int, error) {
-	b.g.Log.Debug("Terminal write: %s", string(x))
-	return len(x), nil
-}
-func (b *baseTerminalUI) Output(s string) error {
-	b.g.Log.Debug("Terminal Output: %s", s)
-	return nil
-}
-func (b *baseTerminalUI) Printf(f string, args ...interface{}) (int, error) {
-	s := fmt.Sprintf(f, args...)
-	b.g.Log.Debug("Terminal Printf: %s", s)
-	return len(s), nil
-}
-func (b *baseTerminalUI) PromptForConfirmation(prompt string) error { return nil }
-func (b *baseTerminalUI) PromptPassword(libkb.PromptDescriptor, string) (string, error) {
-	return "", nil
-}
-func (b *baseTerminalUI) PromptYesNo(pd libkb.PromptDescriptor, _ string, _ libkb.PromptDefault) (bool, error) {
-	return false, fmt.Errorf("unhandled yes/no prompt: %v", pd)
-}
-func (b *baseTerminalUI) Prompt(pd libkb.PromptDescriptor, _ string) (string, error) {
-	return "", fmt.Errorf("unhandled prompt: %v", pd)
-}

@@ -19,9 +19,10 @@ import (
 )
 
 type signupInfo struct {
-	username   string
-	email      string
-	passphrase string
+	username          string
+	email             string
+	passphrase        string
+	displayedPaperKey string
 }
 
 type signupUI struct {
@@ -73,7 +74,11 @@ func (n *signupUI) GetGPGUI() libkb.GPGUI {
 func (n *signupUI) GetUpdateUI() libkb.UpdateUI { return nil }
 
 func (n *signupSecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (res keybase1.GetPassphraseRes, err error) {
-	res.Passphrase = n.info.passphrase
+	if p.Type == keybase1.PassphraseType_PAPER_KEY {
+		res.Passphrase = n.info.displayedPaperKey
+	} else {
+		res.Passphrase = n.info.passphrase
+	}
 	n.G().Log.Debug("| GetPassphrase: %v -> %v", p, res)
 	return res, err
 }
@@ -100,6 +105,14 @@ func (n *signupTerminalUI) PromptPassword(pd libkb.PromptDescriptor, _ string) (
 }
 func (n *signupTerminalUI) Output(s string) error {
 	n.G().Log.Debug("Terminal Output: %s", s)
+	return nil
+}
+func (n *signupTerminalUI) OutputDesc(od libkb.OutputDescriptor, s string) error {
+	switch od {
+	case client.OutputDescriptorPrimaryPaperKey:
+		n.info.displayedPaperKey = s
+	}
+	n.G().Log.Debug("Terminal Output %d: %s", od, s)
 	return nil
 }
 func (n *signupTerminalUI) Printf(f string, args ...interface{}) (int, error) {

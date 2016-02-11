@@ -345,10 +345,12 @@ const (
 )
 
 type PromptDescriptor int
+type OutputDescriptor int
 
 type TerminalUI interface {
 	OutputWriter() io.Writer
 	Output(string) error
+	OutputDesc(OutputDescriptor, string) error
 	ErrorWriter() io.Writer
 	Printf(fmt string, args ...interface{}) (int, error)
 	PromptYesNo(PromptDescriptor, string, PromptDefault) (bool, error)

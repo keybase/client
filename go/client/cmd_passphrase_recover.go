@@ -19,8 +19,14 @@ func NewCmdPassphraseRecover(cl *libcmdline.CommandLine, g *libkb.GlobalContext)
 		Name:  "recover",
 		Usage: "Recover your keybase account passphrase",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdPassphraseRecover{Contextified: libkb.NewContextified(g)}, "recover", c)
+			cl.ChooseCommand(NewCmdPassphraseRecoverRunner(g), "recover", c)
 		},
+	}
+}
+
+func NewCmdPassphraseRecoverRunner(g *libkb.GlobalContext) *CmdPassphraseRecover {
+	return &CmdPassphraseRecover{
+		Contextified: libkb.NewContextified(g),
 	}
 }
 
