@@ -4755,6 +4755,7 @@ func (fbo *folderBranchOps) reembedBlockChanges(ctx context.Context,
 	return nil
 }
 
+// reembedForFBM is a helper method for the folderBlockManager only.
 func (fbo *folderBranchOps) reembedForFBM(ctx context.Context,
 	rmds []*RootMetadata) error {
 	lState := makeFBOLockState()

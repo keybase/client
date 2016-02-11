@@ -373,18 +373,9 @@ func (fbm *folderBlockManager) archiveBlocksInBackground() {
 // that's older than the unref age, as well as the latest revision
 // that was scrubbed by the previous gc op.
 func (fbm *folderBlockManager) getMostRecentOldEnoughAndGCRevisions(
-	ctx context.Context) (mostRecentOldEnoughRev MetadataRevision,
-	lastGCRev MetadataRevision, err error) {
-	head, err := fbm.helper.getMDForFBM(ctx)
-	if err != nil {
-		return MetadataRevisionUninitialized, MetadataRevisionUninitialized, err
-	}
-
-	if head.MergedStatus() != Merged {
-		return MetadataRevisionUninitialized, MetadataRevisionUninitialized,
-			errors.New("Skipping quota reclamation while unstaged")
-	}
-
+	ctx context.Context, head *RootMetadata) (
+	mostRecentOldEnoughRev MetadataRevision, lastGCRev MetadataRevision,
+	err error) {
 	// Walk backwards until we find one that is old enough.  Also,
 	// look out for the previous gcOp.
 	currHead := head.Revision
@@ -536,8 +527,37 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	defer fbm.reclamationGroup.Done()
 
 	ctx, _ = context.WithTimeout(ctx, backgroundTaskTimeout)
+
+	// First get the current head, and see if we're staged or not.
+	head, err := fbm.helper.getMDForFBM(ctx)
+	if err != nil {
+		return err
+	}
+	if head.MergedStatus() != Merged {
+		return errors.New("Skipping quota reclamation while unstaged")
+	}
+
+	// Then grab the lock for this folder, so we're the only one doing
+	// garbage collection for a while.
+	locked, err := fbm.config.MDServer().TruncateLock(ctx, fbm.id)
+	if err != nil {
+		return err
+	}
+	if !locked {
+		fbm.log.CDebugf(ctx, "Couldn't get the truncate lock")
+		return fmt.Errorf("Couldn't get the truncate lock for folder %d",
+			fbm.id)
+	}
+	defer func() {
+		_, unlockErr := fbm.config.MDServer().TruncateUnlock(ctx, fbm.id)
+		if unlockErr != nil {
+			fbm.log.CDebugf(ctx, "Couldn't release the truncate lock: %v",
+				unlockErr)
+		}
+	}()
+
 	mostRecentOldEnoughRev, lastGCRev, err :=
-		fbm.getMostRecentOldEnoughAndGCRevisions(ctx)
+		fbm.getMostRecentOldEnoughAndGCRevisions(ctx, head)
 	if err != nil {
 		return err
 	}
