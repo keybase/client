@@ -9,6 +9,7 @@ import {registerTrackerChangeListener} from '../shared/actions/tracker'
 import {registerUpdateListener, onCancel as updateOnCancel, onSkip as updateOnSkip, onSnooze as updateOnSnooze, onUpdate as updateOnUpdate, setAlwaysUpdate} from '../shared/actions/update'
 // $FlowIssue platform files
 import RemoteComponent from './remote-component'
+import flags from '../shared/util/feature-flags'
 
 import type {GUIEntryFeatures} from '../shared/constants/types/flow-types'
 import type {Action, Dispatch} from '../shared/constants/types/flux'
@@ -67,9 +68,12 @@ class RemoteManager extends Component {
 
   trackerRemoteComponents () {
     const {trackers} = this.props
+    const windowsOpts = flags.tracker2 ?
+      {height: 539, width: 320} :
+      {height: 339, width: 520}
     return Object.keys(trackers).filter(username => !trackers[username].closed).map(username => (
       <RemoteComponent
-        windowsOpts={{height: 339, width: 520}}
+        windowsOpts={windowsOpts}
         title={`tracker - ${username}`}
         waitForState
         ignoreNewProps
