@@ -1,6 +1,5 @@
 import reactDOM from 'react-dom'
 import React, {Component} from 'react'
-import {allowLogin} from '../shared/util/feature-flags'
 import {Provider} from 'react-redux'
 import RemoteStore from './remote-store.desktop'
 import Menubar from '../shared/menubar'
