@@ -27,7 +27,7 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) { // eslint-disable-line no-unde
   config.allowStartupFailure = true
   config.printRPC = true
   config.showDevTools = false
-  config.showAllTrackers = true
+  config.showAllTrackers = false
   config.reduxDevToolsEnable = false
   config.redirectOnLogout = false
   config.reduxDevToolsSelect = state => state.tracker
