@@ -19,8 +19,14 @@ func NewCmdPassphraseChange(cl *libcmdline.CommandLine, g *libkb.GlobalContext) 
 		Name:  "change",
 		Usage: "Change your keybase account passphrase.",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdPassphraseChange{Contextified: libkb.NewContextified(g)}, "change", c)
+			cl.ChooseCommand(NewCmdPassphraseChangeRunner(g), "change", c)
 		},
+	}
+}
+
+func NewCmdPassphraseChangeRunner(g *libkb.GlobalContext) *CmdPassphraseChange {
+	return &CmdPassphraseChange{
+		Contextified: libkb.NewContextified(g),
 	}
 }
 
