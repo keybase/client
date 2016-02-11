@@ -17,7 +17,7 @@ export default class Icon extends Component {
       style={{...styles.icon, ...this.props.style}}
       className={`fa ${this.props.type}`}
       color={color}
-      hoverColor={hoverColor}
+      hoverColor={this.props.onClick ? hoverColor : null}
       onClick={this.props.onClick}/>
   }
 }
