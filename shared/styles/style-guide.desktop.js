@@ -14,7 +14,8 @@ export const globalColors = {
   lightOrange: '#fc8558',
   lowRiskWarning: '#f5a623',
   orange: '#ff602e',
-  white: '#ffffff'
+  white: '#ffffff',
+  black: '#000000'
 }
 
 export const globalResizing = {
@@ -82,7 +83,34 @@ const util = {
   }
 }
 
+const lineCommon = {
+  overflow: 'hidden',
+  display: '-webkit-box',
+  textOverflow: 'ellipsis',
+  WebkitBoxOrient: 'vertical'
+}
+
+const line = {
+  singleLine: {
+    ...lineCommon,
+    WebkitLineClamp: 1
+  },
+  twoLines: {
+    ...lineCommon,
+    WebkitLineClamp: 2
+  },
+  threeLines: {
+    ...lineCommon,
+    WebkitLineClamp: 3
+  },
+  fourLines: {
+    ...lineCommon,
+    WebkitLineClamp: 4
+  }
+}
+
 export const globalStyles = {
   ...font,
-  ...util
+  ...util,
+  ...line
 }

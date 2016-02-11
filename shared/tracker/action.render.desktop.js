@@ -3,7 +3,9 @@
 import React, {Component} from 'react'
 import {FlatButton} from 'material-ui'
 import commonStyles from '../styles/common'
+import {globalColors} from '../styles/style-guide'
 import {normal, checking, warning} from '../constants/tracker'
+import flags from '../util/feature-flags'
 
 import type {Styled} from '../styles/common'
 import type {ActionProps} from './action.render'
@@ -12,28 +14,45 @@ export default class ActionRender extends Component {
   props: ActionProps & Styled;
 
   render (): ReactElement {
+    if (flags.tracker2) {
+      return this.render2()
+    }
+    return this.renderDefault()
+  }
+
+  renderDefault (): ReactElement {
     const {username, state, loggedIn} = this.props
+    const styles = styles1
 
     if (!loggedIn) {
-      return this.renderLoggedOut()
+      return this.renderLoggedOut(styles)
     } else if (state === checking || !username) {
-      return this.renderPending()
+      return this.renderPending(styles)
     } else if (this.props.state === normal) {
-      return this.renderNormal(username)
+      return this.renderNormal(styles, username)
     } else if (this.props.currentlyFollowing) {
-      return this.renderChanged()
+      return this.renderChanged(styles)
     } else {
-      return this.renderWarningNotFollowed()
+      return this.renderWarningNotFollowed(styles)
     }
   }
 
-  renderPending (): ReactElement {
+  render2 (): ReactElement {
+    const styles = styles2
+    return (
+      <div style={{...styles.container}}>
+        <FlatButton label='Close' onClick={() => this.props.onClose()} />
+      </div>
+    )
+  }
+
+  renderPending (styles: any): ReactElement {
     return (
       <div><p> Loading... </p></div>
     )
   }
 
-  renderWarningNotFollowed (): ReactElement {
+  renderWarningNotFollowed (styles: any): ReactElement {
     const title = this.props.failedProofsNotFollowingText
 
     return (
@@ -52,7 +71,7 @@ export default class ActionRender extends Component {
     )
   }
 
-  renderChanged (): ReactElement {
+  renderChanged (styles: any): ReactElement {
     const title = this.props.renderChangedTitle
 
     return (
@@ -68,7 +87,7 @@ export default class ActionRender extends Component {
     )
   }
 
-  renderNormal (username: string): ReactElement {
+  renderNormal (styles: any, username: string): ReactElement {
     return (
       <div style={{...styles.normalContainer, ...this.props.style}}>
         <div style={{...styles.textContainer, ...(this.props.shouldFollow ? {display: 'none'} : {})}}>
@@ -84,7 +103,7 @@ export default class ActionRender extends Component {
     )
   }
 
-  renderLoggedOut (): ReactElement {
+  renderLoggedOut (styles: any): ReactElement {
     return (
       <div style={{...styles.normalContainer, ...this.props.style}}>
         <i style={styles.flagWarning} className='fa fa-exclamation-triangle'></i>
@@ -114,7 +133,7 @@ ActionRender.propTypes = {
   currentlyFollowing: React.PropTypes.bool.isRequired
 }
 
-const styles = {
+const styles1 = {
   normalContainer: {
     ...commonStyles.flexBoxRow,
     ...commonStyles.noSelect,
@@ -171,5 +190,24 @@ const styles = {
   flagError: {
     color: '#d0021b',
     width: 20
+  }
+}
+
+const styles2 = {
+  container: {
+    ...commonStyles.flexBoxRow,
+    ...commonStyles.noSelect,
+    backgroundColor: globalColors.white,
+    opacity: 0.9,
+    width: '100%',
+    height: 61,
+    boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingTop: 15,
+    paddingBottom: 18,
+    paddingRight: 15,
+    position: 'relative',
+    zIndex: 1
   }
 }

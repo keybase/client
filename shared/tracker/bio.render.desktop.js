@@ -3,8 +3,10 @@
 import React, {Component} from 'react'
 import {Paper} from 'material-ui'
 import commonStyles, {colors} from '../styles/common'
+import {globalColors, globalStyles} from '../styles/style-guide'
 import resolveRoot from '../../desktop/resolve-root'
 import electron from 'electron'
+import flags from '../util/feature-flags'
 
 const shell = electron.shell || electron.remote.shell
 
@@ -29,6 +31,13 @@ export default class BioRender extends Component {
   }
 
   render (): ReactElement {
+    if (flags.tracker2) {
+      return this.render2(styles2)
+    }
+    return this.renderDefault(styles1)
+  }
+
+  renderDefault (styles: any): ReactElement {
     const {userInfo} = this.props
 
     return (
@@ -44,6 +53,43 @@ export default class BioRender extends Component {
       </div>
     )
   }
+
+  render2 (styles: any): ReactElement {
+    const {username, userInfo} = this.props
+
+    return (
+      <div style={styles.outer}>
+        <div style={styles.container}>
+        <Paper onClick={() => this.onClickAvatar()} style={styles.avatarContainer} zDepth={1} circle>
+          <img src={(userInfo.avatar) || noAvatar} style={styles.avatar}/>
+        </Paper>
+        <div style={styles.content}>
+          <p style={styles.username}>{username}</p>
+          <p style={styles.fullname}>{userInfo.fullname}</p>
+          <p style={styles.following}>
+            <span className='hover-underline' onClick={() => this.onClickFollowers()}>
+              {userInfo.followersCount} Followers
+            </span>
+            &nbsp;
+            &middot;
+            &nbsp;
+            <span className='hover-underline' onClick={() => this.onClickFollowing()}>
+              Following {userInfo.followingCount}
+            </span>
+          </p>
+          { userInfo.bio &&
+            <p style={userInfo.location ? {...globalStyles.twoLines, ...styles.bio} : {...globalStyles.threeLines, ...styles.bio}}>
+              {userInfo.bio}
+            </p>
+          }
+          { userInfo.location &&
+            <p style={styles.location}>{userInfo.location}</p>
+          }
+        </div>
+      </div>
+    </div>
+    )
+  }
 }
 
 BioRender.propTypes = {
@@ -51,7 +97,7 @@ BioRender.propTypes = {
   userInfo: React.PropTypes.any
 }
 
-const styles = {
+const styles1 = {
   container: {
     ...commonStyles.flexBoxColumn,
     alignItems: 'center',
@@ -115,6 +161,86 @@ const styles = {
     fontSize: 13,
     lineHeight: '16px',
     margin: 0,
+    marginTop: 4
+  }
+}
+
+const styles2 = {
+  outer: {
+    marginTop: 90
+  },
+  container: {
+    ...commonStyles.flexBoxColumn,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 320,
+    marginTop: -35,
+    marginBottom: 18
+  },
+  avatarContainer: {
+    width: 70,
+    height: 70,
+    minHeight: 70,
+    overflow: 'hidden',
+    boxSizing: 'content-box',
+    zIndex: 2
+  },
+  avatar: {
+    ...commonStyles.clickable,
+    width: 70,
+    height: 70
+  },
+  content: {
+    backgroundColor: globalColors.white,
+    ...commonStyles.flexBoxColumn,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 320,
+    marginTop: -35,
+    paddingTop: 35,
+    zIndex: 1
+  },
+  username: {
+    fontWeight: 500,
+    letterSpacing: '0.3px',
+    color: colors.orange,
+    fontSize: 24,
+    marginTop: 7,
+    height: '29px'
+  },
+  fullname: {
+    fontWeight: 470,
+    fontSize: 16,
+    color: colors.grey1,
+    lineHeight: '21px',
+    textAlign: 'center'
+  },
+  following: {
+    ...commonStyles.clickable,
+    opacity: 0.6,
+    color: colors.grey1,
+    fontSize: 14,
+    margin: 0,
+    marginTop: 4
+  },
+  bio: {
+    color: '#353d4c',
+    opacity: 0.6,
+    fontSize: 14,
+    lineHeight: '18px',
+    paddingLeft: 30,
+    paddingRight: 30,
+    marginTop: 7,
+    textAlign: 'center'
+  },
+  location: {
+    ...globalStyles.singleLine,
+    color: '#353d4c',
+    opacity: 0.6,
+    fontSize: 14,
+    textAlign: 'center',
+    paddingLeft: 30,
+    paddingRight: 30,
     marginTop: 4
   }
 }

@@ -90,18 +90,6 @@ class Tracker extends Component {
   }
 
   static parseRoute (currentPath) {
-    if (currentPath.get('state')) {
-      return {
-        componentAtTop: {
-          title: 'Tracker',
-          props: {
-            ...mockData,
-            trackerState: currentPath.get('state')
-          }
-        }
-      }
-    }
-
     return {
       componentAtTop: {
         title: 'Tracker',
@@ -111,25 +99,6 @@ class Tracker extends Component {
       }
     }
   }
-}
-
-const mockData = {
-  username: 'max',
-  trackerState: 'checking',
-  reason: 'You accessed /private/cecile',
-  userInfo: {
-    fullname: 'Alice Bonhomme-Biaias',
-    followersCount: 81,
-    followingCount: 567,
-    followsYou: true,
-    location: 'New York, NY',
-    avatar: 'https://s3.amazonaws.com/keybase_processed_uploads/2571dc6108772dbe0816deef41b25705_200_200_square_200.jpeg'
-  },
-  shouldFollow: true,
-  proofs: [
-    {"name":"marcopolo","type":"github","id":"56363c0307325cb4eedb072be7f8a5d3b29d13f5ef33650a7e910f772ff1d3710f", state: 'normal', humanUrl: "github.com/marcopolo", color: 'green', meta: 'new'}, //eslint-disable-line
-    {"name":"open_sourcery","type":"twitter","id":"76363c0307325cb4eedb072be7f8a5d3b29d13f5ef33650a7e910f772ff1d3710f", state: 'checking', humanUrl: "twitter.com/open_sourcery", color: 'gray'}, //eslint-disable-line
-  ]
 }
 
 Tracker.propTypes = {
