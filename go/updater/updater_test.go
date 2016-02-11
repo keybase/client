@@ -106,6 +106,10 @@ func (c testConfig) SetUpdateLastChecked(t keybase1.Time) error {
 	return nil
 }
 
+func (c testConfig) GetRunModeAsString() string {
+	return "test"
+}
+
 func NewDefaultTestUpdateConfig() keybase1.UpdateOptions {
 	return keybase1.UpdateOptions{
 		Version:             "1.0.0",
