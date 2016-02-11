@@ -10,7 +10,7 @@ pkgver() {
 pkgrel=1
 arch=('i686' 'x86_64')
 depends=(fuse)
-makedepends=(go npm)
+makedepends=(go npm git)
 source=(
   'git+ssh://git@github.com/keybase/client'
   'git+ssh://git@github.com/keybase/kbfs'
