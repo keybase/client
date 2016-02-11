@@ -124,7 +124,8 @@ func (e *TrackToken) Run(ctx *Context) (err error) {
 
 	e.G().Log.Debug("| Tracking statement: %s", string(e.trackStatementBytes))
 
-	if e.arg.Options.LocalOnly {
+	if e.arg.Options.LocalOnly || e.arg.Options.ExpiringLocal {
+		e.G().Log.Debug("| Local")
 		err = e.storeLocalTrack()
 	} else {
 		err = e.storeRemoteTrack(ctx)
@@ -184,7 +185,7 @@ func (e *TrackToken) loadThem(username string) error {
 }
 
 func (e *TrackToken) storeLocalTrack() error {
-	return libkb.StoreLocalTrack(e.arg.Me.GetUID(), e.them.GetUID(), e.trackStatement, e.G())
+	return libkb.StoreLocalTrack(e.arg.Me.GetUID(), e.them.GetUID(), e.arg.Options.ExpiringLocal, e.trackStatement, e.G())
 }
 
 func (e *TrackToken) storeRemoteTrack(ctx *Context) (err error) {

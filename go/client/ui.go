@@ -111,6 +111,41 @@ func (ui IdentifyTrackUI) ReportRevoked(del []keybase1.TrackDiff) {
 	}
 }
 
+func (ui IdentifyTrackUI) confirmFailedTrackProofs(o *keybase1.IdentifyOutcome) (result keybase1.ConfirmResult, err error) {
+	trackMaxAge := fmt.Sprintf("%v", ui.G().Env.GetLocalTrackMaxAge())
+	prompt := "Some previously tracked proofs are failing. [I]gnore for " + trackMaxAge + ", [A]ccept these changes or [C]ancel?"
+
+	inputChecker := libkb.CheckMember{Set: []string{"I", "A", "C"}}
+	choice, err := PromptWithChecker(PromptDescriptorTrackPublic, ui.parent, prompt, false, inputChecker.Checker())
+	if choice == "C" {
+		err = ErrInputCanceled
+	}
+	if err != nil {
+		return
+	}
+
+	result.IdentityConfirmed = true
+
+	if choice == "I" {
+		result.ExpiringLocal = true
+		return
+	}
+
+	// This means they accepted
+	if !o.TrackOptions.LocalOnly {
+		// If we want to track remote, lets confirm (unless bypassing)
+		if o.TrackOptions.BypassConfirm {
+			result.RemoteConfirmed = true
+			return
+		}
+		prompt = "Publish these changes publicly to keybase.io?"
+		if result.RemoteConfirmed, err = ui.parent.PromptYesNo(PromptDescriptorTrackAction, prompt, libkb.PromptDefaultYes); err != nil {
+			return
+		}
+	}
+	return
+}
+
 func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.ConfirmResult, err error) {
 	var prompt string
 	username := o.Username
@@ -132,8 +167,7 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.
 	trackChanged := true
 	switch o.TrackStatus {
 	case keybase1.TrackStatus_UPDATE_BROKEN:
-		prompt = "Your tracking statement of " + username + " is broken; fix it?"
-		promptDefault = libkb.PromptDefaultNo
+		return ui.confirmFailedTrackProofs(o)
 	case keybase1.TrackStatus_UPDATE_NEW_PROOFS:
 		prompt = "Your tracking statement of " + username +
 			" is still valid; update it to reflect new proofs?"

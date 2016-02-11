@@ -11,7 +11,6 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"fmt"
-	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
@@ -267,7 +266,7 @@ func (arg ProofMetadata) ToJSON(g *GlobalContext) (ret *jsonw.Wrapper, err error
 
 	ctime := arg.CreationTime
 	if ctime == 0 {
-		ctime = time.Now().Unix()
+		ctime = g.Clock.Now().Unix()
 	}
 
 	ei := arg.ExpireIn

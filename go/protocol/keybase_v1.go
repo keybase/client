@@ -1727,6 +1727,7 @@ type TrackOptions struct {
 	LocalOnly     bool `codec:"localOnly" json:"localOnly"`
 	BypassConfirm bool `codec:"bypassConfirm" json:"bypassConfirm"`
 	ForceRetrack  bool `codec:"forceRetrack" json:"forceRetrack"`
+	ExpiringLocal bool `codec:"expiringLocal" json:"expiringLocal"`
 }
 
 type IdentifyReasonType int
@@ -1999,6 +2000,7 @@ type UserCard struct {
 type ConfirmResult struct {
 	IdentityConfirmed bool `codec:"identityConfirmed" json:"identityConfirmed"`
 	RemoteConfirmed   bool `codec:"remoteConfirmed" json:"remoteConfirmed"`
+	ExpiringLocal     bool `codec:"expiringLocal" json:"expiringLocal"`
 }
 
 type DelegateIdentifyUIArg struct {

@@ -6,7 +6,6 @@ package libkb
 import (
 	"fmt"
 	"io"
-	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
@@ -222,7 +221,7 @@ func (u *User) StoreSigChain() error {
 }
 
 func (u *User) LoadSigChains(allKeys bool, f *MerkleUserLeaf, self bool) (err error) {
-	defer TimeLog(fmt.Sprintf("LoadSigChains: %s", u.name), time.Now(), u.G().Log.Debug)
+	defer TimeLog(fmt.Sprintf("LoadSigChains: %s", u.name), u.G().Clock.Now(), u.G().Log.Debug)
 
 	loader := SigChainLoader{
 		user:         u,
@@ -501,6 +500,7 @@ func (u *User) TrackChainLinkFor(username string, uid keybase1.UID) (*TrackChain
 	}
 
 	if remote.GetCTime().After(local.GetCTime()) {
+		u.G().Log.Debug("| Returning newer remote")
 		return remote, nil
 	}
 

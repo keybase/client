@@ -61,6 +61,7 @@ func (e *TrackEngine) Run(ctx *Context) error {
 	iarg.Reason.Type = keybase1.IdentifyReasonType_TRACK
 	ieng := NewIdentify(iarg, e.G())
 	if err := RunEngine(ieng, ctx); err != nil {
+		e.G().Log.Debug("RunEngine(NewIdentify) error: %v", err)
 		return err
 	}
 
@@ -71,6 +72,7 @@ func (e *TrackEngine) Run(ctx *Context) error {
 	outcome := ieng.Outcome().Export()
 	result, err := ctx.IdentifyUI.Confirm(outcome)
 	if err != nil {
+		e.G().Log.Debug("IdentifyUI.Confirm error: %v", err)
 		return err
 	}
 	if !result.IdentityConfirmed {
@@ -81,6 +83,11 @@ func (e *TrackEngine) Run(ctx *Context) error {
 	// the tracking statement publicly to keybase, change LocalOnly to true here:
 	if !e.arg.Options.LocalOnly && !result.RemoteConfirmed {
 		e.arg.Options.LocalOnly = true
+	}
+
+	if !e.arg.Options.ExpiringLocal && result.ExpiringLocal {
+		e.G().Log.Debug("-ExpiringLocal-")
+		e.arg.Options.ExpiringLocal = true
 	}
 
 	targ := &TrackTokenArg{

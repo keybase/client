@@ -277,6 +277,9 @@
     }, {
       "name" : "forceRetrack",
       "type" : "boolean"
+    }, {
+      "name" : "expiringLocal",
+      "type" : "boolean"
     } ]
   }, {
     "type" : "enum",

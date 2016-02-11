@@ -15,6 +15,8 @@ import (
 type flakeyRooterAPI struct {
 	orig     libkb.ExternalAPI
 	flakeOut bool
+	hardFail bool
+	G        *libkb.GlobalContext
 }
 
 func newFlakeyRooterAPI(x libkb.ExternalAPI) *flakeyRooterAPI {
@@ -24,20 +26,27 @@ func newFlakeyRooterAPI(x libkb.ExternalAPI) *flakeyRooterAPI {
 }
 
 func (e *flakeyRooterAPI) GetText(arg libkb.APIArg) (*libkb.ExternalTextRes, error) {
+	e.G.Log.Debug("| flakeyRooterAPI.GetText, hard = %v, flake = %v", e.hardFail, e.flakeOut)
 	return e.orig.GetText(arg)
 }
 
 func (e *flakeyRooterAPI) Get(arg libkb.APIArg) (res *libkb.ExternalAPIRes, err error) {
-
+	e.G.Log.Debug("| flakeyRooterAPI.Get, hard = %v, flake = %v", e.hardFail, e.flakeOut)
 	// Show an error if we're in flakey mode
-	if e.flakeOut && strings.Contains(arg.Endpoint, "rooter") {
-		return &libkb.ExternalAPIRes{HTTPStatus: 429}, &libkb.APIError{Msg: "Ratelimited", Code: 429}
+	if strings.Contains(arg.Endpoint, "rooter") {
+		if e.hardFail {
+			return &libkb.ExternalAPIRes{HTTPStatus: 404}, &libkb.APIError{Msg: "NotFound", Code: 404}
+		}
+		if e.flakeOut {
+			return &libkb.ExternalAPIRes{HTTPStatus: 429}, &libkb.APIError{Msg: "Ratelimited", Code: 429}
+		}
 	}
 
 	return e.orig.Get(arg)
 }
 
 func (e *flakeyRooterAPI) GetHTML(arg libkb.APIArg) (res *libkb.ExternalHTMLRes, err error) {
+	e.G.Log.Debug("| flakeyRooterAPI.GetHTML, hard = %v, flake = %v", e.hardFail, e.flakeOut)
 	return e.orig.GetHTML(arg)
 }
 
@@ -54,12 +63,12 @@ func TestSoftSnooze(t *testing.T) {
 	defer tc.Cleanup()
 	fu := CreateAndSignupFakeUser(tc, "track")
 
-	fakeClock := clockwork.NewFakeClock()
+	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.Clock = fakeClock
 	// to pick up the new clock...
 	tc.G.ResetLoginState()
 
-	flakeyAPI := flakeyRooterAPI{orig: tc.G.XAPI, flakeOut: false}
+	flakeyAPI := flakeyRooterAPI{orig: tc.G.XAPI, flakeOut: false, G: tc.G}
 	tc.G.XAPI = &flakeyAPI
 
 	idUI := &FakeIdentifyUI{}
@@ -89,6 +98,8 @@ func TestSoftSnooze(t *testing.T) {
 	if err := RunEngine(teng, ctx); err != nil {
 		t.Fatal(err)
 	}
+
+	defer runUntrack(tc.G, fu, username)
 
 	// Now make her Rooter proof flakey / fail with a 429
 	flakeyAPI.flakeOut = true
@@ -130,6 +141,5 @@ func TestSoftSnooze(t *testing.T) {
 		t.Fatal("expected a Rooter error result")
 	}
 
-	defer runUntrack(tc.G, fu, username)
 	assertTracking(tc, username)
 }
