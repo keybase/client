@@ -2,19 +2,21 @@
 
 import React, {Component} from 'react'
 import {Paper} from 'material-ui'
+import {Text} from '../common-adapters'
 import commonStyles, {colors} from '../styles/common'
+import {globalColors, globalStyles} from '../styles/style-guide'
 import resolveRoot from '../../desktop/resolve-root'
 import electron from 'electron'
+import flags from '../util/feature-flags'
 
 const shell = electron.shell || electron.remote.shell
 
-import type {Styled} from '../styles/common'
 import type {BioProps} from './bio.render'
 
 const noAvatar = `file:///${resolveRoot('shared/images/no-avatar@2x.png')}`
 
 export default class BioRender extends Component {
-  props: BioProps & Styled;
+  props: BioProps;
 
   onClickAvatar () {
     shell.openExternal(`https://keybase.io/${this.props.username}`)
@@ -29,6 +31,13 @@ export default class BioRender extends Component {
   }
 
   render (): ReactElement {
+    if (flags.tracker2) {
+      return this.render2(styles2)
+    }
+    return this.renderDefault(styles1)
+  }
+
+  renderDefault (styles: Object): ReactElement {
     const {userInfo} = this.props
 
     return (
@@ -44,14 +53,51 @@ export default class BioRender extends Component {
       </div>
     )
   }
+
+  render2 (styles: Object): ReactElement {
+    const {username, userInfo} = this.props
+
+    return (
+      <div style={styles.outer}>
+        <div style={styles.container}>
+        <Paper onClick={() => this.onClickAvatar()} style={styles.avatarContainer} zDepth={1} circle>
+          <img src={(userInfo.avatar) || noAvatar} style={styles.avatar}/>
+        </Paper>
+        <div style={styles.content}>
+          <Text type='Body' style={styles.username}>{username}</Text>
+          <Text type='Body' style={styles.fullname}>{userInfo.fullname}</Text>
+          <Text type='Body' style={styles.following}>
+            <span className='hover-underline' onClick={() => this.onClickFollowers()}>
+              {userInfo.followersCount} Followers
+            </span>
+            &nbsp;
+            &middot;
+            &nbsp;
+            <span className='hover-underline' onClick={() => this.onClickFollowing()}>
+              Following {userInfo.followingCount}
+            </span>
+          </Text>
+          { userInfo.bio &&
+            <Text type='Body' style={styles.bio} lineClamp={userInfo.location ? 2 : 3}>
+              {userInfo.bio}
+            </Text>
+          }
+          { userInfo.location &&
+            <Text type='Body' style={styles.location} lineClamp={1}>{userInfo.location}</Text>
+          }
+        </div>
+      </div>
+    </div>
+    )
+  }
 }
 
 BioRender.propTypes = {
   username: React.PropTypes.any,
-  userInfo: React.PropTypes.any
+  userInfo: React.PropTypes.any.isRequired
 }
 
-const styles = {
+const styles1 = {
   container: {
     ...commonStyles.flexBoxColumn,
     alignItems: 'center',
@@ -116,5 +162,83 @@ const styles = {
     lineHeight: '16px',
     margin: 0,
     marginTop: 4
+  }
+}
+
+const styles2 = {
+  outer: {
+    marginTop: 90
+  },
+  container: {
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 320,
+    marginTop: -35,
+    marginBottom: 18
+  },
+  avatarContainer: {
+    width: 70,
+    height: 70,
+    minHeight: 70,
+    overflow: 'hidden',
+    boxSizing: 'content-box',
+    zIndex: 2
+  },
+  avatar: {
+    ...globalStyles.clickable,
+    width: 70,
+    height: 70
+  },
+  content: {
+    backgroundColor: globalColors.white,
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 320,
+    marginTop: -35,
+    paddingTop: 35,
+    zIndex: 1
+  },
+  username: {
+    fontWeight: 500,
+    letterSpacing: '0.3px',
+    color: colors.orange,
+    fontSize: 24,
+    marginTop: 7,
+    height: '29px'
+  },
+  fullname: {
+    fontWeight: 470,
+    fontSize: 16,
+    color: globalColors.grey1,
+    lineHeight: '21px',
+    textAlign: 'center'
+  },
+  following: {
+    ...globalStyles.clickable,
+    opacity: 0.6,
+    color: globalColors.grey1,
+    fontSize: 14,
+    margin: 0,
+    marginTop: 4
+  },
+  bio: {
+    color: '#353d4c',
+    opacity: 0.6,
+    fontSize: 14,
+    lineHeight: '18px',
+    paddingLeft: 30,
+    paddingRight: 30,
+    marginTop: 7,
+    textAlign: 'center'
+  },
+  location: {
+    color: '#353d4c',
+    opacity: 0.6,
+    fontSize: 14,
+    textAlign: 'center',
+    paddingLeft: 30,
+    paddingRight: 30
   }
 }

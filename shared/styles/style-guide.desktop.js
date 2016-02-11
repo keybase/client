@@ -14,7 +14,8 @@ export const globalColors = {
   lightOrange: '#fc8558',
   lowRiskWarning: '#f5a623',
   orange: '#ff602e',
-  white: '#ffffff'
+  white: '#ffffff',
+  black: '#000000'
 }
 
 export const globalResizing = {

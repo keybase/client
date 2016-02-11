@@ -17,6 +17,7 @@ export default class Text extends Component {
 
     const style = {
       ...typeStyle,
+      ...(this.props.lineClamp ? lineClamp(this.props.lineClamp) : {}),
       ...(this.props.link ? styles.textLinkMixin : {}),
       ...(this.props.small ? styles.textSmallMixin : {}),
       ...(this.props.reversed ? styles.textReversedMixin : {}),
@@ -43,7 +44,8 @@ Text.propTypes = {
   children: React.PropTypes.node,
   style: React.PropTypes.object,
   onClick: React.PropTypes.func,
-  inline: React.PropTypes.bool
+  inline: React.PropTypes.bool,
+  lineClamp: React.PropTypes.number
 }
 
 const textCommon = {
@@ -113,5 +115,19 @@ export const styles = {
   },
   inline: {
     display: 'inline-block'
+  }
+}
+
+const lineCommon = {
+  overflow: 'hidden',
+  display: '-webkit-box',
+  textOverflow: 'ellipsis',
+  WebkitBoxOrient: 'vertical'
+}
+
+function lineClamp (lines: number) {
+  return {
+    ...lineCommon,
+    WebkitLineClamp: lines
   }
 }

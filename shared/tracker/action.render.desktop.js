@@ -2,42 +2,61 @@
 
 import React, {Component} from 'react'
 import {FlatButton} from 'material-ui'
+import {Button} from '../common-adapters'
 import commonStyles from '../styles/common'
+import {globalColors} from '../styles/style-guide'
 import {normal, checking, warning} from '../constants/tracker'
+import flags from '../util/feature-flags'
 
-import type {Styled} from '../styles/common'
 import type {ActionProps} from './action.render'
 
 export default class ActionRender extends Component {
-  props: ActionProps & Styled;
+  props: ActionProps;
 
   render (): ReactElement {
+    if (flags.tracker2) {
+      return this.render2()
+    }
+    return this.renderDefault()
+  }
+
+  renderDefault (): ReactElement {
     const {username, state, loggedIn} = this.props
+    const styles = styles1
 
     if (!loggedIn) {
-      return this.renderLoggedOut()
+      return this.renderLoggedOut(styles)
     } else if (state === checking || !username) {
-      return this.renderPending()
+      return this.renderPending(styles)
     } else if (this.props.state === normal) {
-      return this.renderNormal(username)
+      return this.renderNormal(styles, username)
     } else if (this.props.currentlyFollowing) {
-      return this.renderChanged()
+      return this.renderChanged(styles)
     } else {
-      return this.renderWarningNotFollowed()
+      return this.renderWarningNotFollowed(styles)
     }
   }
 
-  renderPending (): ReactElement {
+  render2 (): ReactElement {
+    const styles = styles2
+    return (
+      <div style={{...styles.container}}>
+        <Button label='Close' onClick={() => this.props.onClose()} />
+      </div>
+    )
+  }
+
+  renderPending (styles: Object): ReactElement {
     return (
       <div><p> Loading... </p></div>
     )
   }
 
-  renderWarningNotFollowed (): ReactElement {
+  renderWarningNotFollowed (styles: Object): ReactElement {
     const title = this.props.failedProofsNotFollowingText
 
     return (
-      <div style={{...styles.normalContainer, ...this.props.style}}>
+      <div style={styles.normalContainer}>
         <i style={this.props.state === warning ? styles.flagWarning : styles.flagError} className='fa fa-flag'></i>
         <div style={styles.textContainer}>
           <span style={styles.changedMessage}>{title}</span>
@@ -52,11 +71,11 @@ export default class ActionRender extends Component {
     )
   }
 
-  renderChanged (): ReactElement {
+  renderChanged (styles: Object): ReactElement {
     const title = this.props.renderChangedTitle
 
     return (
-      <div style={{...styles.normalContainer, ...this.props.style}}>
+      <div>
         <i style={this.props.state === warning ? styles.flagWarning : styles.flagError} className='fa fa-flag'></i>
         <div style={styles.textContainer}>
           {title && <span style={styles.changedMessage}>{title}</span>}
@@ -68,9 +87,9 @@ export default class ActionRender extends Component {
     )
   }
 
-  renderNormal (username: string): ReactElement {
+  renderNormal (styles: any, username: string): ReactElement {
     return (
-      <div style={{...styles.normalContainer, ...this.props.style}}>
+      <div style={styles.normalContainer}>
         <div style={{...styles.textContainer, ...(this.props.shouldFollow ? {display: 'none'} : {})}}>
           <span style={styles.youShouldFollow}>You'll see this card every time you access the folder.</span>
         </div>
@@ -84,9 +103,9 @@ export default class ActionRender extends Component {
     )
   }
 
-  renderLoggedOut (): ReactElement {
+  renderLoggedOut (styles: Object): ReactElement {
     return (
-      <div style={{...styles.normalContainer, ...this.props.style}}>
+      <div>
         <i style={styles.flagWarning} className='fa fa-exclamation-triangle'></i>
         <div style={styles.textContainer}>
           <span style={styles.changedMessage}>You should <span style={styles.command}>keybase login</span> or <span style={styles.command}>keybase signup</span> from the terminal for more options.</span>
@@ -110,11 +129,10 @@ ActionRender.propTypes = {
   onFollowChecked: React.PropTypes.func.isRequired,
   renderChangedTitle: React.PropTypes.string,
   failedProofsNotFollowingText: React.PropTypes.string.isRequired,
-  style: React.PropTypes.object.isRequired,
   currentlyFollowing: React.PropTypes.bool.isRequired
 }
 
-const styles = {
+const styles1 = {
   normalContainer: {
     ...commonStyles.flexBoxRow,
     ...commonStyles.noSelect,
@@ -122,7 +140,8 @@ const styles = {
     backgroundColor: 'white',
     justifyContent: 'flex-end',
     paddingLeft: 15,
-    paddingRight: 15
+    paddingRight: 15,
+    height: 56
   },
   textContainer: {
     ...commonStyles.flexBoxRow,
@@ -171,5 +190,24 @@ const styles = {
   flagError: {
     color: '#d0021b',
     width: 20
+  }
+}
+
+const styles2 = {
+  container: {
+    ...commonStyles.flexBoxRow,
+    ...commonStyles.noSelect,
+    backgroundColor: globalColors.white,
+    opacity: 0.9,
+    width: '100%',
+    height: 61,
+    boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    paddingTop: 15,
+    paddingBottom: 18,
+    paddingRight: 15,
+    position: 'relative',
+    zIndex: 1
   }
 }
