@@ -2,10 +2,12 @@ package libfuse
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
+	"os/exec"
 	"path"
 	"reflect"
 	"runtime"
@@ -349,6 +351,60 @@ func TestReaddirPublic(t *testing.T) {
 	checkDir(t, path.Join(mnt.Dir, PublicName), map[string]fileInfoCheck{
 		"jdoe": mustBeDir,
 	})
+}
+
+type kbdaemonBrokenIdentify struct {
+	libkbfs.KeybaseDaemon
+}
+
+func (k kbdaemonBrokenIdentify) Identify(ctx context.Context, assertion,
+	reason string) (libkbfs.UserInfo, error) {
+	return libkbfs.UserInfo{}, errors.New("Fake identify error")
+}
+
+// Regression test for KBFS-772 on OSX.  (There's a bug where ls only
+// respectes errors from Open, not from ReadDirAll.)
+func TestReaddirPublicFailedIdentifyViaOSCall(t *testing.T) {
+	config1 := libkbfs.MakeTestConfigOrBust(t, "u1", "u2")
+	defer libkbfs.CheckConfigAndShutdown(t, config1)
+	mnt1, _, cancelFn1 := makeFS(t, config1)
+	defer mnt1.Close()
+	defer cancelFn1()
+
+	config2 := libkbfs.ConfigAsUser(config1, "u2")
+	defer libkbfs.CheckConfigAndShutdown(t, config2)
+	mnt2, _, cancelFn2 := makeFS(t, config2)
+	defer mnt2.Close()
+	defer cancelFn2()
+
+	// Create a shared folder via u2.
+	p := path.Join(mnt2.Dir, PrivateName, "u1,u2", "mydir")
+	if err := os.Mkdir(p, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	// Make u1 get failures for every identify call.
+	config1.SetKeybaseDaemon(kbdaemonBrokenIdentify{
+		KeybaseDaemon: config1.KeybaseDaemon(),
+	})
+
+	// A private non-existing home folder, with write permissions, fails.
+	err := exec.Command("ls", path.Join(mnt1.Dir, PublicName, "u1")).Run()
+	if _, ok := err.(*exec.ExitError); !ok {
+		t.Fatalf("No error as expected on broken user identify: %v", err)
+	}
+
+	// A private existing shared folder, with write permissions, fails.
+	err = exec.Command("ls", path.Join(mnt1.Dir, PrivateName, "u1,u2")).Run()
+	if _, ok := err.(*exec.ExitError); !ok {
+		t.Fatalf("No error as expected on broken user identify: %v", err)
+	}
+
+	// A public, non-existing folder, without write permissions, fails.
+	err = exec.Command("ls", path.Join(mnt1.Dir, PublicName, "u2")).Run()
+	if _, ok := err.(*exec.ExitError); !ok {
+		t.Fatalf("No error as expected on broken user identify: %v", err)
+	}
 }
 
 func TestReaddirMyFolderEmpty(t *testing.T) {
