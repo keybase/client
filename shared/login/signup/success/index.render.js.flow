@@ -1,8 +1,11 @@
 /* @flow */
 
 import React, {Component} from 'react'
+import SecureString from '../../../util/secure-string'
 
 export type Props = {
+  paperkey: SecureString,
+  onFinish: () => void
 }
 
 export default class Render extends Component {

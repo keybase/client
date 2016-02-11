@@ -4,9 +4,9 @@ import React, {Component} from 'react'
 
 export type Props = {
   label: string,
-  onCheck: Function,
+  onCheck: (newCheckedValue: boolean) => void,
   checked: boolean,
-  style: Object
+  style?: Object
 }
 
 declare export default class Checkbox extends React.Component {

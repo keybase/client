@@ -15,7 +15,7 @@ class DeviceName extends Component {
 
   constructor (props) {
     super(props)
-    this.state = {deviceName: null}
+    this.state = {deviceName: props.deviceName}
   }
 
   render (): ReactElement {

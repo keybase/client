@@ -8,6 +8,7 @@ import InviteCode from './inviteCode'
 import UsernameEmailForm from './usernameEmailForm'
 import PassphraseSignup from './passphrase'
 import DeviceName from './deviceName'
+import Success from './success'
 
 import {Map} from 'immutable'
 import type {URI} from '../../reducers/router'
@@ -35,6 +36,10 @@ export default function signupRouter (currentPath: Map<string, string>, uri: URI
         break
       case 'deviceName':
         form = <DeviceName/>
+        break
+      case 'paperkey':
+      case 'success':
+        form = <Success/>
         break
     }
   }
