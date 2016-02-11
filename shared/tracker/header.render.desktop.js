@@ -34,8 +34,8 @@ export default class HeaderRender extends Component {
     let warningOnClose = 'You will see this window everytime you access this folder.'
     return (
       <div style={styles.outer}>
-        <div style={styles.headerContainer}>
-          <Text type='Body' style={{...styles.text, flex: 1}}>{this.props.hoveringOnClose ? warningOnClose : this.props.reason}</Text>
+        <div style={this.props.showCloseWarning ? styles.headerCloseWarning : styles.headerNormal}>
+          <Text type='Body' style={{...styles.text, flex: 1}}>{this.props.showCloseWarning ? warningOnClose : this.props.reason}</Text>
           <Icon type='fa-times' opacity style={styles.close}
             onClick={() => this.props.onClose()}
             onMouseEnter={() => this.closeMouseEnter()}
@@ -46,11 +46,11 @@ export default class HeaderRender extends Component {
   }
 
   closeMouseEnter () {
-    this.setState({props: this.props, hoveringOnClose: true})
+    // this.setState({props: this.props, showCloseWarning: true})
   }
 
   closeMouseLeave () {
-    this.setState({props: this.props, hoveringOnClose: false})
+    // this.setState({props: this.props, showCloseWarning: false})
   }
 }
 
@@ -58,8 +58,7 @@ HeaderRender.propTypes = {
   reason: React.PropTypes.string,
   onClose: React.PropTypes.func.isRequired,
   style: React.PropTypes.object.isRequired,
-  warningOnClose: React.PropTypes.string,
-  hoveringOnClose: React.PropTypes.boolean
+  showCloseWarning: React.PropTypes.boolean
 }
 
 const styles1 = {
@@ -68,17 +67,27 @@ const styles1 = {
   }
 }
 
-const styles2 = {
-  outer: {
-    position: 'relative'
-  },
+const commonStyles2 = {
   headerContainer: {
     position: 'absolute',
     top: 0,
     ...globalStyles.flexBoxRow,
-    backgroundColor: globalColors.blue,
     height: 90,
     width: 320
+  }
+}
+
+const styles2 = {
+  outer: {
+    position: 'relative'
+  },
+  headerNormal: {
+    ...commonStyles2.headerContainer,
+    backgroundColor: globalColors.blue
+  },
+  headerCloseWarning: {
+    ...commonStyles2.headerContainer,
+    backgroundColor: globalColors.lowRiskWarning
   },
   close: {
     position: 'absolute',
