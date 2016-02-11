@@ -5,7 +5,10 @@ import React, {Component} from 'react'
 export type Props = {
   type: string,
   hint?: string,
+  opacity?: boolean,
   onClick?: () => void,
+  onMouseEnter?: () => void,
+  onMouseLeave?: () => void,
   style?: Object
 }
 

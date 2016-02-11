@@ -7,7 +7,8 @@ export type Props = {
   link?: bool,
   small?: bool,
   reversed?: bool,
-  onClick?: Function
+  onClick?: Function,
+  lineClamp?: number
 }
 
 declare export default class Text extends React.Component {
