@@ -736,14 +736,12 @@ func (tlf *TLF) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
 	return dir.Remove(ctx, req)
 }
 
-// ReadDirAll implements the fs.NodeReadDirAller interface for TLF.
-func (tlf *TLF) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
-	ctx = NewContextWithOpID(ctx, tlf.folder.fs.log)
-	dir, err := tlf.loadDir(ctx)
+func (tlf *TLF) filterEarlyExitError(ctx context.Context, err error) (
+	exitEarly bool, retErr error) {
 	switch err := err.(type) {
 	case nil:
 		// No error.
-		break
+		return false, nil
 
 	case libkbfs.WriteAccessError:
 		// No permission to create TLF, so pretend it's still
@@ -756,11 +754,24 @@ func (tlf *TLF) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
 		tlf.folder.fs.log.CDebugf(ctx,
 			"No permission to write to %s, so pretending it's empty",
 			tlf.folder.name)
-		return nil, nil
+		return true, nil
 
 	default:
 		// Some other error.
+		return true, err
+	}
+}
+
+// ReadDirAll implements the fs.NodeReadDirAller interface for TLF.
+func (tlf *TLF) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
+	ctx = NewContextWithOpID(ctx, tlf.folder.fs.log)
+	dir, err := tlf.loadDir(ctx)
+	exitEarly, err := tlf.filterEarlyExitError(ctx, err)
+	if err != nil {
 		return nil, err
+	}
+	if exitEarly {
+		return nil, nil
 	}
 	return dir.ReadDirAll(ctx)
 }
@@ -781,4 +792,23 @@ func (tlf *TLF) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fus
 		return err
 	}
 	return dir.Setattr(ctx, req, resp)
+}
+
+var _ fs.Handle = (*TLF)(nil)
+
+var _ fs.NodeOpener = (*TLF)(nil)
+
+// Open implements the fs.NodeOpener interface for TLF.
+func (tlf *TLF) Open(ctx context.Context, req *fuse.OpenRequest,
+	resp *fuse.OpenResponse) (fs.Handle, error) {
+	ctx = NewContextWithOpID(ctx, tlf.folder.fs.log)
+	// Explicitly load the directory when a TLF is opened, because
+	// some OSX programs like ls have a bug that doesn't report errors
+	// on a ReadDirAll.
+	_, err := tlf.loadDir(ctx)
+	_, err = tlf.filterEarlyExitError(ctx, err)
+	if err != nil {
+		return nil, err
+	}
+	return tlf, nil
 }
