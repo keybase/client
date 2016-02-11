@@ -20,7 +20,7 @@ class Engine {
 
     if (printOutstandingRPCs) {
       setInterval(() => {
-        const keys = Object.keys(this.sessionIDToResponse)
+        const keys = Object.keys(this.sessionIDToResponse).filter(k => this.sessionIDToResponse[k])
         if (keys.length) {
           console.log('Outstanding RPC sessionIDs: ', keys)
         }
@@ -62,6 +62,9 @@ class Engine {
 
     // A list of functions to call when we connect
     this.onConnectFns = {}
+
+    // Throw an error and fail?
+    this._failOnError = false
   }
 
   onConnect () {
@@ -243,6 +246,11 @@ class Engine {
       if (__DEV__) {
         console.log(`Unknown incoming rpc: ${sessionID} ${method} ${param}${response ? ': Sending back error' : ''}`)
       }
+
+      if (this._failOnError) {
+        throw new Error(`unhandled incoming rpc: ${sessionID} ${method} ${JSON.stringify(param)}${response ? '. has response' : ''}`)
+      }
+
       if (response && response.error) {
         wrappedResponse.error({
           code: constants.StatusCode.scgeneric,
@@ -250,6 +258,10 @@ class Engine {
         })
       }
     }
+  }
+
+  setFailOnError () {
+    this._failOnError = true
   }
 
   // Make an RPC and call callbacks in the incomingCallMap
