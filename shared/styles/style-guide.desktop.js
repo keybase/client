@@ -18,6 +18,28 @@ export const globalColors = {
   black: '#000000'
 }
 
+export const globalColorsDZ2 = {
+
+  // Keybase Brand Colors
+  blue: '#00bff0',
+  lightBlue1: '#86e2f9',
+  lightBlue2: '#c7f4ff',
+  orange1: '#ff602e',
+  orange2: '#fc8558',
+  yellow: '#fff75a',
+  darkBlue: '#385f8c',
+
+  // Additional Colors
+  green1: '#90d05c',
+  green2: '#5bad34',
+  red1: '#e66272',
+  red2: '#dc001b',
+
+  // Backgrounds
+  backgroundGrey: '#f6f6f6',
+  backgroundWhite: '#ffffff'
+}
+
 export const globalResizing = {
   login: {width: 700, height: 580}
 }
