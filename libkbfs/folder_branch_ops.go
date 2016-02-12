@@ -876,11 +876,11 @@ func (fbo *folderBranchOps) CheckForNewMDAndInit(
 				if err != nil {
 					return err
 				}
+				// Drop through to do the identify.
+			} else {
+				return nil
 			}
-			return nil
 		}
-
-		// Otherwise, identify and initialize.
 
 		// Always identify first when trying to initialize the folder,
 		// even if we turn out not to be a writer.  (We can't rely on
@@ -891,7 +891,12 @@ func (fbo *folderBranchOps) CheckForNewMDAndInit(
 		if err != nil {
 			return err
 		}
-		return fbo.initMDLocked(ctx, lState, md)
+
+		// Initialize if needed
+		if md.data.Dir.Type != Dir {
+			return fbo.initMDLocked(ctx, lState, md)
+		}
+		return nil
 	})
 }
 
