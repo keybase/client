@@ -741,6 +741,9 @@ func (md *MDServerLocal) Shutdown() {
 	if md.branchDb != nil {
 		md.branchDb.Close()
 	}
+	if md.locksDb != nil {
+		md.locksDb.Close()
+	}
 }
 
 // This should only be used for testing with an in-memory server.
