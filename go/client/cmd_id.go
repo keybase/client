@@ -32,7 +32,7 @@ func (v *CmdID) ParseArgv(ctx *cli.Context) error {
 		v.user = ctx.Args()[0]
 	}
 	v.trackStatement = ctx.Bool("track-statement")
-	v.useDelegateUI = ctx.Bool("delegate-identify-ui")
+	v.useDelegateUI = ctx.Bool("ui")
 	return nil
 }
 
@@ -78,18 +78,22 @@ func NewCmdID(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 		Name:         "id",
 		ArgumentHelp: "[username]",
 		Usage:        "Identify a user and check their signature chain",
-		Description:  "Identify a user and check their signature chain.  Don't specify a username to identify yourself.  You can also specify proof assertions like user@twitter.",
+		Description:  "Identify a user and check their signature chain. Don't specify a username to identify yourself. You can also specify proof assertions like user@twitter.",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "t, track-statement",
 				Usage: "Output a tracking statement (in JSON format).",
+			},
+			cli.BoolFlag{
+				Name:      "ui",
+				Usage:     "Use identify UI.",
+				HideUsage: !develUsage,
 			},
 		},
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdIDRunner(g), "id", c)
 		},
 	}
-	cmdIDAddFlags(&ret)
 	return ret
 }
 

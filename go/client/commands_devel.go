@@ -26,7 +26,7 @@ func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 	}
 }
 
-var extraSignupFlags = []cli.Flag{
+var restrictedSignupFlags = []cli.Flag{
 	cli.StringFlag{
 		Name:  "p, passphrase",
 		Usage: "Specify a passphrase",
@@ -44,3 +44,5 @@ var extraSignupFlags = []cli.Flag{
 		Usage: "Run the client in development mode",
 	},
 }
+
+const develUsage = true
