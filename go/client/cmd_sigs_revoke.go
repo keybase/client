@@ -55,7 +55,8 @@ func (c *CmdSigsRevoke) Run() error {
 func NewCmdSigsRevoke(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:         "revoke",
-		ArgumentHelp: "<id>",
+		ArgumentHelp: "<id> ...",
+		Usage:        "Verify one or more signatures by sig ID",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSigsRevoke{}, "revoke", c)
 		},

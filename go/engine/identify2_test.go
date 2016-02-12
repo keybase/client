@@ -498,7 +498,7 @@ func TestIdentify2WithUIDLocalAssertions(t *testing.T) {
 	}
 
 	// First time we'll cause an ID, so we need to start & finish
-	arg.UserAssertion = "4ff50d580914427227bb14c821029e2c7cf0d488@fingerprint"
+	arg.UserAssertion = "4ff50d580914427227bb14c821029e2c7cf0d488@" + PGPAssertionKey
 	run()
 	<-i.startCh
 	<-i.finishCh

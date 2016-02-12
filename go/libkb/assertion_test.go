@@ -23,7 +23,7 @@ func TestSuccess1(t *testing.T) {
 }
 
 func TestAssertions1(t *testing.T) {
-	a := "web://maxk.org && (https://foo.com || http://bar.com) && (bb@twitter || max || fingerprint://aabbcc)"
+	a := "web://maxk.org && (https://foo.com || http://bar.com) && (bb@twitter || max || pgp://aabbcc)"
 	goodProofsets := []ProofSet{
 		*NewProofSet([]Proof{
 			{"dns", "maxk.org"},
@@ -40,7 +40,7 @@ func TestAssertions1(t *testing.T) {
 		*NewProofSet([]Proof{
 			{"http", "maxk.org"},
 			{"https", "foo.com"},
-			{"fingerprint", "00aabbcc"},
+			{"pgp", "00aabbcc"},
 		}),
 		*NewProofSet([]Proof{
 			{"http", "maxk.org"},
@@ -65,7 +65,7 @@ func TestAssertions1(t *testing.T) {
 		*NewProofSet([]Proof{
 			{"http", "maxk.org"},
 			{"http", "foo.com"},
-			{"fingerprint", "00aabbcc"},
+			{"pgp", "00aabbcc"},
 		}),
 		*NewProofSet([]Proof{
 			{"http", "maxk.org"},
@@ -74,7 +74,7 @@ func TestAssertions1(t *testing.T) {
 		*NewProofSet([]Proof{
 			{"http", "maxk.org"},
 			{"https", "foo.com"},
-			{"fingerprint", "00aabbcce"},
+			{"pgp", "00aabbcce"},
 		}),
 	}
 	expr, err := AssertionParse(a)
@@ -96,7 +96,7 @@ func TestAssertions1(t *testing.T) {
 
 func TestAssertions2(t *testing.T) {
 	// Coyne-style grammar
-	a := "web:maxk.org+max,malgorithms+https:nutflex.com+fingerprint:aabbcc,samwise+dns:match.com"
+	a := "web:maxk.org+max,malgorithms+https:nutflex.com+pgp:aabbcc,samwise+dns:match.com"
 	goodProofsets := []ProofSet{
 		*NewProofSet([]Proof{
 			{"https", "maxk.org"},
@@ -104,7 +104,7 @@ func TestAssertions2(t *testing.T) {
 		}),
 		*NewProofSet([]Proof{
 			{"https", "nutflex.com"},
-			{"fingerprint", "2233aabbcc"},
+			{"pgp", "2233aabbcc"},
 			{"keybase", "malgorithms"},
 		}),
 		*NewProofSet([]Proof{

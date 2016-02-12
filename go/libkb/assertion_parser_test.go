@@ -66,8 +66,8 @@ func TestParser1(t *testing.T) {
 }
 
 func TestParser2(t *testing.T) {
-	inp := "  web://a.aa ||   http://b.bb   && dns://c.cc ||\n d ||\n fingerprint:e && reddit:f || twitter:g && (https:h.in ||\ndns:i.co)"
-	outp := "(web://a.aa || ((http://b.bb && dns://c.cc) || (keybase://d || ((fingerprint://e && reddit://f) || (twitter://g && (https://h.in || dns://i.co))))))"
+	inp := "  web://a.aa ||   http://b.bb   && dns://c.cc ||\n d ||\n pgp:e && reddit:f || twitter:g && (https:h.in ||\ndns:i.co)"
+	outp := "(web://a.aa || ((http://b.bb && dns://c.cc) || (keybase://d || ((pgp://e && reddit://f) || (twitter://g && (https://h.in || dns://i.co))))))"
 	expr, err := AssertionParse(inp)
 	if err != nil {
 		t.Error(err)
