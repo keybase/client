@@ -86,9 +86,6 @@ const styles2 = {
     overflowX: 'hidden',
     paddingBottom: 120
   },
-  WebkitScrollbar: {
-    display: 'none'
-  },
   footer: {
     position: 'absolute',
     width: 320,
