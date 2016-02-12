@@ -380,3 +380,7 @@ const (
 const ServiceLogFileName = "keybase.service.log"
 const KBFSLogFileName = "keybase.kbfs.log"
 const DesktopLogFileName = "Keybase.app.log"
+
+const (
+	PGPAssertionKey = "pgp"
+)

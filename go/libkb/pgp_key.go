@@ -693,7 +693,7 @@ func (p PGPFingerprint) ToIDString() string {
 }
 
 func (p PGPFingerprint) ToKeyValuePair() (string, string) {
-	return "fingerprint", p.ToIDString()
+	return PGPAssertionKey, p.ToIDString()
 }
 
 func (p PGPFingerprint) GetProofState() keybase1.ProofState {

@@ -523,7 +523,7 @@ func (u *User) BaseProofSet() *ProofSet {
 		{Key: "uid", Value: u.id.String()},
 	}
 	for _, fp := range u.GetActivePGPFingerprints(true) {
-		proofs = append(proofs, Proof{Key: "fingerprint", Value: fp.String()})
+		proofs = append(proofs, Proof{Key: PGPAssertionKey, Value: fp.String()})
 	}
 
 	return NewProofSet(proofs)

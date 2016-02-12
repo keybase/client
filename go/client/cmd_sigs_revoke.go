@@ -55,7 +55,7 @@ func (c *CmdSigsRevoke) Run() error {
 func NewCmdSigsRevoke(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
 		Name:         "revoke",
-		ArgumentHelp: "<id>",
+		ArgumentHelp: "<id> ...",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdSigsRevoke{}, "revoke", c)
 		},
