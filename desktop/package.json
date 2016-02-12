@@ -44,7 +44,8 @@
     "react-tap-event-plugin": "^0.2.1",
     "reduce-reducers": "^0.1.1",
     "redux": "^3.2.0",
-    "redux-thunk": "^1.0.3"
+    "redux-thunk": "^1.0.3",
+    "semver": "^5.1.0"
   },
   "devDependencies": {
     "babel": "^6.3.26",
