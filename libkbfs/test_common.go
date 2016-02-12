@@ -409,8 +409,7 @@ func SwitchDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config, inde
 }
 
 func testWithCanceledContext(t logger.TestLogBackend, ctx context.Context,
-	readyChan <-chan struct{}, goChan chan<- struct{},
-	fn func(context.Context) error) {
+	readyChan <-chan struct{}, fn func(context.Context) error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
 		// wait for the RPC, then cancel the context
@@ -422,8 +421,6 @@ func testWithCanceledContext(t logger.TestLogBackend, ctx context.Context,
 	if err != context.Canceled {
 		t.Fatalf("Function did not return a canceled error: %v", err)
 	}
-	// let any waiting goroutines complete, which shouldn't hurt anything
-	goChan <- struct{}{}
 }
 
 // MakeDirRKeyBundle creates a new bundle with a reader key.

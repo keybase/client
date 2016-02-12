@@ -1033,7 +1033,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 
 	// give it a remote block server with a fake client
 	fc := NewFakeBServerClient(nil, nil, nil)
-	b := newBlockServerRemoteWithClient(ctx, config, cancelableClient{fc})
+	b := newBlockServerRemoteWithClient(ctx, config, fc)
 	config.SetBlockServer(b)
 
 	// make blocks small
@@ -1117,10 +1117,6 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	}
 
 	// Now clean up by letting the rest of the blocks through.
-	for i := 0; i < maxParallelBlockPuts; i++ {
-		goChan <- struct{}{}
-	}
-
 	for i := 0; i < maxParallelBlockPuts; i++ {
 		<-finishChan
 	}

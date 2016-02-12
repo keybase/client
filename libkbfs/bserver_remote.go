@@ -60,10 +60,10 @@ func NewBlockServerRemote(config Config, blkSrvAddr string) *BlockServerRemote {
 
 // For testing.
 func newBlockServerRemoteWithClient(ctx context.Context, config Config,
-	client keybase1.GenericClient) *BlockServerRemote {
+	client keybase1.BlockInterface) *BlockServerRemote {
 	bs := &BlockServerRemote{
 		config: config,
-		client: keybase1.BlockClient{Cli: client},
+		client: client,
 		log:    config.MakeLogger(""),
 	}
 	return bs

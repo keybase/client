@@ -21,10 +21,10 @@ var _ keybase1.GenericClient = blockingClient{}
 
 func (b blockingClient) Call(ctx context.Context, s string, args interface{},
 	res interface{}) error {
-	// Say we're ready, and wait for the signal to proceed.
+	// Say we're ready, and wait for cancellation.
 	b.ctlChan <- struct{}{}
-	<-b.ctlChan
-	return nil
+	<-ctx.Done()
+	return ctx.Err()
 }
 
 func (b blockingClient) Notify(ctx context.Context, s string, args interface{}) error {
@@ -36,7 +36,7 @@ func newKeybaseDaemonRPCWithFakeClient(t *testing.T) (
 	ctlChan := make(chan struct{})
 	c := newKeybaseDaemonRPCWithClient(
 		nil,
-		cancelableClient{blockingClient{ctlChan}},
+		blockingClient{ctlChan},
 		logger.NewTestLogger(t))
 	return c, ctlChan
 }
@@ -48,7 +48,7 @@ func TestKeybaseDaemonRPCIdentifyCanceled(t *testing.T) {
 		_, err := c.Identify(ctx, "", "")
 		return err
 	}
-	testWithCanceledContext(t, context.Background(), ctlChan, ctlChan, f)
+	testWithCanceledContext(t, context.Background(), ctlChan, f)
 }
 
 // If we cancel the RPC before the RPC returns, the call should error quickly.
@@ -58,7 +58,7 @@ func TestKeybaseDaemonRPCGetCurrentSessionCanceled(t *testing.T) {
 		_, err := c.CurrentSession(ctx, 0)
 		return err
 	}
-	testWithCanceledContext(t, context.Background(), ctlChan, ctlChan, f)
+	testWithCanceledContext(t, context.Background(), ctlChan, f)
 }
 
 // TODO: Add tests for Favorite* methods, too.

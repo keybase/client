@@ -26,7 +26,8 @@ type folderBlockManager struct {
 	// archiveGroup tracks the outstanding archives.
 	archiveGroup repeatedWaitGroup
 
-	archiveCancel context.CancelFunc
+	archiveCancelLock sync.Mutex
+	archiveCancel     context.CancelFunc
 
 	// blocksToDeleteAfterError is a list of blocks, for a given
 	// metadata revision, that may have been Put as part of a failed
@@ -44,7 +45,8 @@ type folderBlockManager struct {
 	// reclamationGroup tracks the outstanding quota reclamations.
 	reclamationGroup repeatedWaitGroup
 
-	reclamationCancel context.CancelFunc
+	reclamationCancelLock sync.Mutex
+	reclamationCancel     context.CancelFunc
 }
 
 func newFolderBlockManager(config Config, fb FolderBranch) *folderBlockManager {
@@ -59,6 +61,9 @@ func newFolderBlockManager(config Config, fb FolderBranch) *folderBlockManager {
 		blocksToDeleteAfterError: make(map[*RootMetadata][]BlockPointer),
 		forceReclamationChan:     make(chan struct{}, 1),
 	}
+	// Pass in the BlockOps here so that the archive goroutine
+	// doesn't do possibly-racy-in-tests access to
+	// fbm.config.BlockOps().
 	go fbm.archiveBlocksInBackground()
 	if fb.Branch == MasterBranch {
 		go fbm.reclaimQuotaInBackground()
@@ -66,14 +71,48 @@ func newFolderBlockManager(config Config, fb FolderBranch) *folderBlockManager {
 	return fbm
 }
 
+func (fbm *folderBlockManager) setArchiveCancel(cancel context.CancelFunc) {
+	fbm.archiveCancelLock.Lock()
+	defer fbm.archiveCancelLock.Unlock()
+	fbm.archiveCancel = cancel
+}
+
+func (fbm *folderBlockManager) cancelArchive() {
+	archiveCancel := func() context.CancelFunc {
+		fbm.archiveCancelLock.Lock()
+		defer fbm.archiveCancelLock.Unlock()
+		archiveCancel := fbm.archiveCancel
+		fbm.archiveCancel = nil
+		return archiveCancel
+	}()
+	if archiveCancel != nil {
+		archiveCancel()
+	}
+}
+
+func (fbm *folderBlockManager) setReclamationCancel(cancel context.CancelFunc) {
+	fbm.reclamationCancelLock.Lock()
+	defer fbm.reclamationCancelLock.Unlock()
+	fbm.reclamationCancel = cancel
+}
+
+func (fbm *folderBlockManager) cancelReclamation() {
+	reclamationCancel := func() context.CancelFunc {
+		fbm.reclamationCancelLock.Lock()
+		defer fbm.reclamationCancelLock.Unlock()
+		reclamationCancel := fbm.reclamationCancel
+		fbm.reclamationCancel = nil
+		return reclamationCancel
+	}()
+	if reclamationCancel != nil {
+		reclamationCancel()
+	}
+}
+
 func (fbm *folderBlockManager) shutdown() {
 	close(fbm.shutdownChan)
-	if fbm.archiveCancel != nil {
-		fbm.archiveCancel()
-	}
-	if fbm.reclamationCancel != nil {
-		fbm.reclamationCancel()
-	}
+	fbm.cancelArchive()
+	fbm.cancelReclamation()
 }
 
 func (fbm *folderBlockManager) cleanUpBlockState(
@@ -280,10 +319,8 @@ func (fbm *folderBlockManager) archiveBlocksInBackground() {
 				// use the long timeout to make sure things get
 				// unblocked eventually, but no need for a short timeout.
 				ctx, cancel := context.WithTimeout(ctx, backgroundTaskTimeout)
-				defer func() {
-					cancel()
-					fbm.archiveCancel = nil
-				}()
+				fbm.setArchiveCancel(cancel)
+				defer fbm.cancelArchive()
 
 				fbm.log.CDebugf(ctx, "Archiving %d block pointers as a result "+
 					"of revision %d", len(ptrs), md.Revision)
@@ -310,11 +347,8 @@ func (fbm *folderBlockManager) archiveBlocksInBackground() {
 
 func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	ctx, cancel := context.WithCancel(fbm.ctxWithFBMID(context.Background()))
-	fbm.reclamationCancel = cancel
-	defer func() {
-		fbm.reclamationCancel = nil
-		cancel()
-	}()
+	fbm.setReclamationCancel(cancel)
+	defer fbm.cancelReclamation()
 	fbm.log.CDebugf(ctx, "Starting quota reclamation process")
 	defer func() {
 		fbm.log.CDebugf(ctx, "Ending quota reclamation process: %v", err)

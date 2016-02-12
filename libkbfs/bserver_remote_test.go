@@ -2,6 +2,7 @@ package libkbfs
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"sync"
 	"testing"
@@ -24,17 +25,26 @@ func NewFakeBServerClient(
 	goChan <-chan struct{},
 	finishChan chan<- struct{}) *FakeBServerClient {
 	return &FakeBServerClient{
-		blocks:    make(map[keybase1.GetBlockArg]keybase1.GetBlockRes),
-		readyChan: readyChan,
-		goChan:    goChan,
+		blocks:     make(map[keybase1.GetBlockArg]keybase1.GetBlockRes),
+		readyChan:  readyChan,
+		goChan:     goChan,
+		finishChan: finishChan,
 	}
 }
 
-func (fc *FakeBServerClient) maybeWaitOnChannel() {
-	if fc.readyChan != nil {
-		// say we're ready, and wait for the signal to proceed
-		fc.readyChan <- struct{}{}
-		<-fc.goChan
+func (fc *FakeBServerClient) maybeWaitOnChannel(ctx context.Context) error {
+	if fc.readyChan == nil {
+		return nil
+	}
+
+	// say we're ready, and wait for a signal to proceed or a
+	// cancellation.
+	fc.readyChan <- struct{}{}
+	select {
+	case <-fc.goChan:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
 	}
 }
 
@@ -44,53 +54,59 @@ func (fc *FakeBServerClient) maybeFinishOnChannel() {
 	}
 }
 
-func (fc *FakeBServerClient) Call(_ context.Context, s string, args interface{},
-	res interface{}) error {
-	switch s {
-	case "keybase.1.block.establishSession":
-		// no need to do anything
-		return nil
-
-	case "keybase.1.block.putBlock":
-		fc.maybeWaitOnChannel()
-		defer fc.maybeFinishOnChannel()
-		putArgs := args.([]interface{})[0].(keybase1.PutBlockArg)
-		fc.blocksLock.Lock()
-		defer fc.blocksLock.Unlock()
-		fc.blocks[keybase1.GetBlockArg{Bid: putArgs.Bid, Folder: putArgs.Folder}] =
-			keybase1.GetBlockRes{BlockKey: putArgs.BlockKey, Buf: putArgs.Buf}
-		return nil
-
-	case "keybase.1.block.getBlock":
-		fc.maybeWaitOnChannel()
-		defer fc.maybeFinishOnChannel()
-		getArgs := args.([]interface{})[0].(keybase1.GetBlockArg)
-		getRes := res.(*keybase1.GetBlockRes)
-		fc.blocksLock.Lock()
-		defer fc.blocksLock.Unlock()
-		getRes2, ok := fc.blocks[getArgs]
-		*getRes = getRes2
-		if !ok {
-			return fmt.Errorf("No such block: %v", getArgs)
-		}
-		return nil
-
-	case "keybase.1.block.addReference":
-		return nil
-
-	case "keybase.1.block.archiveReference":
-		archiveArgs := args.([]interface{})[0].(keybase1.ArchiveReferenceArg)
-		archiveRes := res.(*[]keybase1.BlockReference)
-		*archiveRes = archiveArgs.Refs
-		return nil
-
-	default:
-		return fmt.Errorf("Unknown call: %s %v %v", s, args, res)
-	}
+func (fc *FakeBServerClient) GetSessionChallenge(context.Context) (keybase1.ChallengeInfo, error) {
+	return keybase1.ChallengeInfo{}, errors.New("GetSessionChallenge not implemented")
 }
 
-func (fc *FakeBServerClient) Notify(_ context.Context, s string, args interface{}) error {
-	return fmt.Errorf("Unknown notify: %s %v", s, args)
+func (fc *FakeBServerClient) AuthenticateSession(context.Context, string) error {
+	return errors.New("AuthenticateSession not implemented")
+}
+
+func (fc *FakeBServerClient) PutBlock(ctx context.Context, arg keybase1.PutBlockArg) error {
+	err := fc.maybeWaitOnChannel(ctx)
+	defer fc.maybeFinishOnChannel()
+	if err != nil {
+		return err
+	}
+
+	fc.blocksLock.Lock()
+	defer fc.blocksLock.Unlock()
+	fc.blocks[keybase1.GetBlockArg{Bid: arg.Bid, Folder: arg.Folder}] =
+		keybase1.GetBlockRes{BlockKey: arg.BlockKey, Buf: arg.Buf}
+	return nil
+}
+
+func (fc *FakeBServerClient) GetBlock(ctx context.Context, arg keybase1.GetBlockArg) (keybase1.GetBlockRes, error) {
+	err := fc.maybeWaitOnChannel(ctx)
+	defer fc.maybeFinishOnChannel()
+	if err != nil {
+		return keybase1.GetBlockRes{}, err
+	}
+
+	fc.blocksLock.Lock()
+	defer fc.blocksLock.Unlock()
+	getRes, ok := fc.blocks[arg]
+	if !ok {
+		return keybase1.GetBlockRes{}, fmt.Errorf("No such block: %v", arg)
+	}
+	return getRes, nil
+}
+
+func (fc *FakeBServerClient) AddReference(context.Context, keybase1.AddReferenceArg) error {
+	// Do nothing.
+	return nil
+}
+
+func (fc *FakeBServerClient) DelReference(context.Context, keybase1.DelReferenceArg) error {
+	return errors.New("DelReference not implemented")
+}
+
+func (fc *FakeBServerClient) ArchiveReference(context.Context, keybase1.ArchiveReferenceArg) ([]keybase1.BlockReference, error) {
+	return nil, errors.New("ArchiveReference not implemented")
+}
+
+func (fc *FakeBServerClient) GetUserQuotaInfo(context.Context) ([]byte, error) {
+	return nil, errors.New("GetUserQuotaInfo not implemented")
 }
 
 func (fc *FakeBServerClient) numBlocks() int {
@@ -151,11 +167,10 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 	config := &ConfigLocal{codec: codec}
 	setTestLogger(config, t)
 	readyChan := make(chan struct{})
-	goChan := make(chan struct{})
-	fc := NewFakeBServerClient(readyChan, goChan, nil)
+	fc := NewFakeBServerClient(readyChan, nil, nil)
 
 	f := func(ctx context.Context) error {
-		b := newBlockServerRemoteWithClient(ctx, config, cancelableClient{fc})
+		b := newBlockServerRemoteWithClient(ctx, config, fc)
 
 		bID := fakeBlockID(1)
 		tlfID := FakeTlfID(2, false)
@@ -169,5 +184,5 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 		err = b.Put(ctx, bID, tlfID, bCtx, data, serverHalf)
 		return err
 	}
-	testWithCanceledContext(t, context.Background(), readyChan, goChan, f)
+	testWithCanceledContext(t, context.Background(), readyChan, f)
 }
