@@ -374,7 +374,7 @@ func (fbm *folderBlockManager) archiveBlocksInBackground() {
 // that was scrubbed by the previous gc op.
 func (fbm *folderBlockManager) getMostRecentOldEnoughAndGCRevisions(
 	ctx context.Context, head *RootMetadata) (
-	mostRecentOldEnoughRev MetadataRevision, lastGCRev MetadataRevision,
+	mostRecentOldEnoughRev, lastGCRev MetadataRevision,
 	err error) {
 	// Walk backwards until we find one that is old enough.  Also,
 	// look out for the previous gcOp.
@@ -454,8 +454,8 @@ func (fbm *folderBlockManager) getMostRecentOldEnoughAndGCRevisions(
 // that were unreferenced after the earliestRev, up to and including
 // those in latestRev.
 func (fbm *folderBlockManager) getUnreferencedBlocks(
-	ctx context.Context, latestRev MetadataRevision,
-	earliestRev MetadataRevision) (ptrs []BlockPointer, err error) {
+	ctx context.Context, latestRev, earliestRev MetadataRevision) (
+	ptrs []BlockPointer, err error) {
 	defer func() {
 		if err == nil {
 			fbm.log.CDebugf(ctx, "Found %d pointers to clean between "+
@@ -526,7 +526,8 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	defer timer.Reset(fbm.config.QuotaReclamationPeriod())
 	defer fbm.reclamationGroup.Done()
 
-	ctx, _ = context.WithTimeout(ctx, backgroundTaskTimeout)
+	ctx, cancel = context.WithTimeout(ctx, backgroundTaskTimeout)
+	defer cancel()
 
 	// First get the current head, and see if we're staged or not.
 	head, err := fbm.helper.getMDForFBM(ctx)
