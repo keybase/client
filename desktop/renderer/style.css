@@ -100,8 +100,53 @@ table {
 @font-face {
     font-family: 'Source Code Pro';
     font-weight: 400;
-    src: url(fonts/SourceCodePro-Regular.ttf);
+    src: url(fonts/SourceCodePro/SourceCodePro-Regular.ttf);
     src: local('Source Code Pro'), local('SourceCodePro-Regular'), format('truetype');
+}
+
+@font-face {
+    font-family: 'Source Code Pro';
+    font-weight: 600;
+    src: url(fonts/SourceCodePro/SourceCodePro-Semibold.ttf);
+    src: local('Source Code Pro'), local('SourceCodePro-Semibold'), format('truetype');
+}
+
+/* Lato */
+@font-face {
+    font-family: 'Lato';
+    font-weight: 400;
+    src: url(fonts/lato/Lato-Regular.ttf);
+    src: local('Lato'), local('Lato-Regular'), format('truetype');
+}
+
+@font-face {
+    font-family: 'Lato';
+    font-weight: 400;
+    font-style: italic;
+    src: url(fonts/lato/Lato-Italic.ttf);
+    src: local('Lato'), local('Lato-Italic'), format('truetype');
+}
+
+@font-face {
+    font-family: 'Lato';
+    font-weight: 600;
+    src: url(fonts/lato/Lato-Semibold.ttf);
+    src: local('Lato'), local('Lato-Semibold'), format('truetype');
+}
+
+@font-face {
+    font-family: 'Lato';
+    font-weight: 600;
+    font-style: italic;
+    src: url(fonts/lato/Lato-SemiboldItalic.ttf);
+    src: local('Lato'), local('Lato-SemiboldItalic'), format('truetype');
+}
+
+@font-face {
+    font-family: 'Lato';
+    font-weight: 700;
+    src: url(fonts/lato/Lato-Bold.ttf);
+    src: local('Lato'), local('Lato-Bold'), format('truetype');
 }
 
 html {
