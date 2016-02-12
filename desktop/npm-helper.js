@@ -81,6 +81,20 @@ const commands = {
     shell: 'node server.js',
     help: 'Make a development build of the js code'
   },
+  'watch-test-file': {
+    env: {WATCH: 'true'},
+    nodeEnv: 'staging',
+    nodePathDesktop: true,
+    shell: 'node test.js',
+    help: 'test code'
+  },
+  'test': {
+    env: {},
+    nodeEnv: 'staging',
+    nodePathDesktop: true,
+    shell: 'node test.js',
+    help: 'test code'
+  },
   'build-prod': {
     nodeEnv: 'production',
     nodePathDesktop: true,

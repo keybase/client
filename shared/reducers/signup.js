@@ -16,7 +16,8 @@ export type SignupState = {
   passphrase: ?SecureString,
   deviceNameError: ?string,
   deviceName: ?string,
-  phase: 'inviteCode' | 'usernameAndEmail' | 'passphraseSignup' | 'deviceName' | 'paperkey'
+  paperkey: ?SecureString,
+  phase: 'inviteCode' | 'usernameAndEmail' | 'passphraseSignup' | 'deviceName' | 'signupLoading' | 'paperkey' | 'success'
 }
 
 const initialState: SignupState = {
@@ -29,7 +30,8 @@ const initialState: SignupState = {
   passphraseError: null,
   passphrase: null,
   deviceNameError: null,
-  deviceName: null,
+  paperkey: null,
+  deviceName: 'Home Computer',
   phase: 'inviteCode'
 }
 
@@ -100,9 +102,33 @@ export default function (state: SignupState = initialState, action: SignupAction
         const {deviceName} = action.payload
         return {
           ...state,
-          phase: 'paperkey',
+          phase: 'signupLoading',
           deviceName,
           deviceNameError: null
+        }
+      }
+
+    case Constants.showPaperKey:
+      if (action.error) {
+        console.error('Should not get an error from showing paper key')
+        return state
+      } else {
+        const {paperkey} = action.payload
+        return {
+          ...state,
+          paperkey,
+          phase: 'paperkey',
+        }
+      }
+
+    case Constants.showSuccess:
+      if (action.error) {
+        console.error('Should not get an error from showing success')
+        return state
+      } else {
+        return {
+          ...state,
+          phase: 'success',
         }
       }
 

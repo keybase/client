@@ -15,5 +15,14 @@ export type CheckPassphrase = TypedAction<'signup:checkPassphrase', {passphrase:
 export const submitDeviceName = 'signup:submitDeviceName'
 export type SubmitDeviceName = TypedAction<'signup:submitDeviceName', {deviceName: string}, {deviceNameError: string}>
 
-export type SignupActions = CheckInviteCode | CheckUsernameEmail | CheckPassphrase | SubmitDeviceName
+export const signup = 'signup:signup'
+export type Signup = TypedAction<'signup:signup', {}, {signupError: SecureString}>
+
+export const showPaperKey = 'signup:showPaperKey'
+export type ShowPaperKey = TypedAction<'signup:showPaperKey', {paperkey: SecureString}, {}>
+
+export const showSuccess = 'signup:showSuccess'
+export type ShowSuccess = TypedAction<'signup:showSuccess', {}, {}>
+
+export type SignupActions = CheckInviteCode | CheckUsernameEmail | CheckPassphrase | SubmitDeviceName | Signup | ShowPaperKey | ShowSuccess
 
