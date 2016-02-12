@@ -24,7 +24,6 @@ type unitTester struct {
 // OnConnect implements the ConnectionHandler interface.
 func (ut *unitTester) OnConnect(context.Context, *Connection, keybase1.GenericClient, *rpc.Server) error {
 	ut.numConnects++
-	ut.doneChan <- true
 	return nil
 }
 
@@ -64,6 +63,10 @@ func (ut *unitTester) IsConnected() bool {
 
 // Finalize implements the ConnectionTransport interface.
 func (ut *unitTester) Finalize() {
+	// Do this here so that we guarantee that conn.client is
+	// non-nil, and therefore conn.IsConnected() before we're
+	// done.
+	ut.doneChan <- true
 }
 
 // Close implements the ConnectionTransport interface.
@@ -92,7 +95,12 @@ func TestReconnectBasic(t *testing.T) {
 		doneChan:   make(chan bool),
 		errToThrow: errors.New("intentional error to trigger reconnect"),
 	}
-	conn := newConnectionWithTransport(config, unitTester, unitTester, libkb.ErrorUnwrapper{}, true)
+	conn := newConnectionWithTransport(config, unitTester, unitTester, libkb.ErrorUnwrapper{}, false)
+	conn.reconnectBackoff.InitialInterval = 5 * time.Millisecond
+
+	// start connecting now
+	conn.getReconnectChan()
+
 	defer conn.Shutdown()
 	timeout := time.After(2 * time.Second)
 	select {
@@ -173,14 +181,15 @@ func TestDoCommandThrottle(t *testing.T) {
 	config := NewConfigLocal()
 	setTestLogger(config, t)
 	unitTester := &unitTester{
-		doneChan:   make(chan bool),
-		errToThrow: errors.New("intentional error to trigger reconnect"),
+		doneChan: make(chan bool),
 	}
 
 	throttleErr := errors.New("throttle")
 	conn := newConnectionWithTransport(config, unitTester, unitTester, testErrorUnwrapper{}, true)
 	defer conn.Shutdown()
 	<-unitTester.doneChan
+
+	conn.doCommandBackoff.InitialInterval = 5 * time.Millisecond
 
 	throttle := true
 	ctx := context.Background()

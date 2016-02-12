@@ -175,12 +175,14 @@ func (kt *SharedKeybaseTransport) Close() {
 
 // Connection encapsulates all client connection handling.
 type Connection struct {
-	config         Config
-	srvAddr        string
-	handler        ConnectionHandler
-	transport      ConnectionTransport
-	errorUnwrapper rpc.ErrorUnwrapper
-	log            logger.Logger
+	config           Config
+	srvAddr          string
+	handler          ConnectionHandler
+	transport        ConnectionTransport
+	errorUnwrapper   rpc.ErrorUnwrapper
+	reconnectBackoff *backoff.ExponentialBackOff
+	doCommandBackoff *backoff.ExponentialBackOff
+	log              logger.Logger
 
 	// protects everything below.
 	mutex             sync.Mutex
@@ -213,12 +215,18 @@ func NewSharedKeybaseConnection(kbCtx *libkb.GlobalContext, config Config,
 func newConnectionWithTransport(config Config,
 	handler ConnectionHandler, transport ConnectionTransport,
 	errorUnwrapper rpc.ErrorUnwrapper, connectNow bool) *Connection {
+	// retry w/exponential backoff
+	reconnectBackoff := backoff.NewExponentialBackOff()
+	// never give up reconnecting
+	reconnectBackoff.MaxElapsedTime = 0
 	connection := &Connection{
-		config:         config,
-		handler:        handler,
-		transport:      transport,
-		errorUnwrapper: errorUnwrapper,
-		log:            config.MakeLogger(""),
+		config:           config,
+		handler:          handler,
+		transport:        transport,
+		errorUnwrapper:   errorUnwrapper,
+		reconnectBackoff: reconnectBackoff,
+		doCommandBackoff: backoff.NewExponentialBackOff(),
+		log:              config.MakeLogger(""),
 	}
 	if connectNow {
 		// start connecting now
@@ -291,7 +299,7 @@ func (c *Connection) DoCommand(ctx context.Context, rpcFunc func(keybase1.Generi
 			}
 			rpcErr = throttleErr
 			return nil
-		}, backoff.NewExponentialBackOff(), c.handler.OnDoCommandError)
+		}, c.doCommandBackoff, c.handler.OnDoCommandError)
 
 		// RetryNotify gave up.
 		if throttleErr != nil {
@@ -385,10 +393,6 @@ func (c *Connection) doReconnect(ctx context.Context, disconnectStatus Disconnec
 	reconnectChan chan struct{}, reconnectErrPtr *error) {
 	// inform the handler of our disconnected state
 	c.handler.OnDisconnected(disconnectStatus)
-	// retry w/exponential backoff
-	expBackoff := backoff.NewExponentialBackOff()
-	// never give up
-	expBackoff.MaxElapsedTime = 0
 	err := backoff.RetryNotify(func() error {
 		// try to connect
 		err := c.connect(ctx)
@@ -407,7 +411,7 @@ func (c *Connection) doReconnect(ctx context.Context, disconnectStatus Disconnec
 			return nil
 		}
 		return err
-	}, expBackoff,
+	}, c.reconnectBackoff,
 		// give the caller a chance to log any other error or adjust state
 		c.handler.OnConnectError)
 
