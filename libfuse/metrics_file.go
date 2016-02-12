@@ -6,7 +6,7 @@ import (
 
 	"bazil.org/fuse"
 
-	"github.com/rcrowley/go-metrics"
+	"github.com/keybase/kbfs/metricsutil"
 	"golang.org/x/net/context"
 )
 
@@ -17,7 +17,7 @@ const MetricsFileName = ".kbfs_metrics"
 func getEncodedMetrics(fs *FS) ([]byte, time.Time, error) {
 	if registry := fs.config.MetricsRegistry(); registry != nil {
 		b := bytes.NewBuffer(nil)
-		metrics.WriteOnce(registry, b)
+		metricsutil.WriteMetrics(registry, b)
 		return b.Bytes(), time.Time{}, nil
 	}
 	return []byte("Metrics have been turned off.\n"), time.Time{}, nil
