@@ -7,5 +7,6 @@ import "sync"
 type rwLocker interface {
 	sync.Locker
 	RLock()
+	RLocker() sync.Locker
 	RUnlock()
 }

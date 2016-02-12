@@ -13,26 +13,71 @@ import (
 // by creating a new lockState at the start of an execution flow and
 // passing it to the (r-)lock/(r-)unlock methods of each (rw-)mutex.
 //
-// TODO: Since we're keeping around this state, we may as well add
-// assertHeld() functions and use them.
-//
 // TODO: Once this becomes a bottleneck, add a +build production
 // version that stubs everything out.
+
+// An exclusiveLock is a lock around something that is expected to be
+// accessed exclusively. It immediately panics upon any lock
+// contention.
+type exclusiveLock struct {
+	// TODO: This can be replaced with an atomic value and
+	// compare-and-swap.
+	ch chan struct{}
+}
+
+func makeExclusiveLock() exclusiveLock {
+	return exclusiveLock{
+		ch: make(chan struct{}, 1),
+	}
+}
+
+func (l exclusiveLock) lock() {
+	select {
+	case l.ch <- struct{}{}:
+	default:
+		panic("unexpected concurrent access")
+	}
+}
+
+func (l exclusiveLock) unlock() {
+	<-l.ch
+}
 
 // mutexLevel is the level for a mutex, which must be unique to that
 // mutex.
 type mutexLevel int
 
+// exclusionType is the type of exclusion of a lock. A regular lock
+// always uses write exclusion, where only one thing at a time can
+// hold the lock, whereas a reader-writer lock can do either write
+// exclusion or read exclusion, where only one writer or any number of
+// readers can hold the lock.
+type exclusionType int
+
+const (
+	nonExclusion   exclusionType = 0
+	writeExclusion exclusionType = 1
+	readExclusion  exclusionType = 2
+)
+
+func (et exclusionType) prefix() string {
+	switch et {
+	case nonExclusion:
+		return "Un"
+	case writeExclusion:
+		return ""
+	case readExclusion:
+		return "R"
+	}
+	return fmt.Sprintf("exclusionType{%d}", et)
+}
+
 // exclusionState holds the state for a held mutex.
 type exclusionState struct {
 	// The level of the held mutex.
 	level mutexLevel
-	// If positive, a reader lock on the mutex is held. Otherwise,
-	// a writer lock on the mutex is held.
-	//
-	// TODO: Turns out we don't really need readerCount anymore,
-	// and just whether this is a reader or writer lock.
-	readerCount int
+	// The exclusion type of the held mutex.
+	exclusionType exclusionType
 }
 
 // lockState holds the info regarding which level mutexes are held or
@@ -41,7 +86,7 @@ type lockState struct {
 	levelToString func(mutexLevel) string
 
 	// Protects exclusionStates.
-	exclusionStatesLock sync.Mutex
+	exclusionStatesLock exclusiveLock
 	// The stack of held mutexes, ordered by increasing level.
 	exclusionStates []exclusionState
 }
@@ -50,11 +95,12 @@ type lockState struct {
 // start of a new execution flow and passed to any leveledMutex or
 // leveledRWMutex operation during that execution flow.
 //
-// TODO: Consider add a parameter to set the capacity of
+// TODO: Consider adding a parameter to set the capacity of
 // exclusionStates.
 func makeLevelState(levelToString func(mutexLevel) string) *lockState {
 	return &lockState{
-		levelToString: levelToString,
+		levelToString:       levelToString,
+		exclusionStatesLock: makeExclusiveLock(),
 	}
 }
 
@@ -68,37 +114,23 @@ func (state *lockState) currLocked() *exclusionState {
 	return &state.exclusionStates[stateCount-1]
 }
 
-func (state *lockState) pushLocked(exclusionState exclusionState) {
-	state.exclusionStates = append(state.exclusionStates, exclusionState)
-}
-
-func (state *lockState) popLocked() {
-	state.exclusionStates = state.exclusionStates[:len(state.exclusionStates)-1]
-}
-
 type levelViolationError struct {
 	levelToString func(mutexLevel) string
 	level         mutexLevel
-	isRLock       bool
+	exclusionType exclusionType
 	curr          exclusionState
 }
 
 func (e levelViolationError) Error() string {
-	var prefix, currPrefix string
-	if e.isRLock {
-		prefix = "R"
-	}
-	if e.curr.readerCount > 0 {
-		currPrefix = "R"
-	}
 	return fmt.Sprintf("level violation: %s %sLocked after %s %sLocked",
-		e.levelToString(e.level), prefix, e.levelToString(e.curr.level),
-		currPrefix)
+		e.levelToString(e.level), e.exclusionType.prefix(),
+		e.levelToString(e.curr.level), e.curr.exclusionType.prefix())
 }
 
-func (state *lockState) afterLock(level mutexLevel) error {
-	state.exclusionStatesLock.Lock()
-	defer state.exclusionStatesLock.Unlock()
+func (state *lockState) doLock(
+	level mutexLevel, exclusionType exclusionType, lock sync.Locker) error {
+	state.exclusionStatesLock.lock()
+	defer state.exclusionStatesLock.unlock()
 
 	curr := state.currLocked()
 
@@ -106,54 +138,49 @@ func (state *lockState) afterLock(level mutexLevel) error {
 		return levelViolationError{
 			levelToString: state.levelToString,
 			level:         level,
-			isRLock:       false,
+			exclusionType: exclusionType,
 			curr:          *curr,
 		}
 	}
 
-	state.pushLocked(exclusionState{level: level, readerCount: 0})
+	lock.Lock()
+
+	state.exclusionStates = append(state.exclusionStates, exclusionState{
+		level:         level,
+		exclusionType: exclusionType,
+	})
 	return nil
 }
 
 type danglingUnlockError struct {
 	levelToString func(mutexLevel) string
 	level         mutexLevel
-	isRUnlock     bool
+	exclusionType exclusionType
 }
 
 func (e danglingUnlockError) Error() string {
-	var prefix string
-	if e.isRUnlock {
-		prefix = "R"
-	}
 	return fmt.Sprintf("%s %sUnlocked while already unlocked",
-		e.levelToString(e.level), prefix)
+		e.levelToString(e.level), e.exclusionType.prefix())
 }
 
 type mismatchedUnlockError struct {
 	levelToString func(mutexLevel) string
 	level         mutexLevel
-	isRUnlock     bool
+	exclusionType exclusionType
 	curr          exclusionState
 }
 
 func (e mismatchedUnlockError) Error() string {
-	var prefix, currPrefix string
-	if e.isRUnlock {
-		prefix = "R"
-	}
-	if e.curr.readerCount > 0 {
-		currPrefix = "R"
-	}
 	return fmt.Sprintf(
 		"%sUnlock call for %s doesn't match %sLock call for %s",
-		prefix, e.levelToString(e.level),
-		currPrefix, e.levelToString(e.curr.level))
+		e.exclusionType.prefix(), e.levelToString(e.level),
+		e.curr.exclusionType.prefix(), e.levelToString(e.curr.level))
 }
 
-func (state *lockState) beforeUnlock(level mutexLevel) error {
-	state.exclusionStatesLock.Lock()
-	defer state.exclusionStatesLock.Unlock()
+func (state *lockState) doUnlock(
+	level mutexLevel, exclusionType exclusionType, lock sync.Locker) error {
+	state.exclusionStatesLock.lock()
+	defer state.exclusionStatesLock.unlock()
 
 	curr := state.currLocked()
 
@@ -161,79 +188,43 @@ func (state *lockState) beforeUnlock(level mutexLevel) error {
 		return danglingUnlockError{
 			levelToString: state.levelToString,
 			level:         level,
-			isRUnlock:     false,
+			exclusionType: exclusionType,
 		}
 	}
 
-	if level != curr.level || curr.readerCount != 0 {
+	if level != curr.level || curr.exclusionType != exclusionType {
 		return mismatchedUnlockError{
 			levelToString: state.levelToString,
 			level:         level,
-			isRUnlock:     false,
+			exclusionType: exclusionType,
 			curr:          *curr,
 		}
 	}
 
-	state.popLocked()
+	lock.Unlock()
+
+	state.exclusionStates = state.exclusionStates[:len(state.exclusionStates)-1]
 	return nil
 }
 
-type mismatchedRLockError struct {
-	levelToString func(mutexLevel) string
-	level         mutexLevel
-}
+// getExclusionType returns returns the exclusionType for the given
+// mutexLevel, or nonExclusion if there is none.
+func (state *lockState) getExclusionType(level mutexLevel) exclusionType {
+	state.exclusionStatesLock.lock()
+	defer state.exclusionStatesLock.unlock()
 
-func (e mismatchedRLockError) Error() string {
-	return fmt.Sprintf("%s RLocked while already Locked",
-		e.levelToString(e.level))
-}
-
-func (state *lockState) afterRLock(level mutexLevel) error {
-	state.exclusionStatesLock.Lock()
-	defer state.exclusionStatesLock.Unlock()
-
-	curr := state.currLocked()
-	if curr != nil && level <= curr.level {
-		return levelViolationError{
-			levelToString: state.levelToString,
-			level:         level,
-			isRLock:       true,
-			curr:          *curr,
+	// Not worth it to do anything more complicated than a
+	// brute-force search.
+	for _, state := range state.exclusionStates {
+		if state.level > level {
+			break
+		}
+		if state.level == level {
+			return state.exclusionType
 		}
 	}
 
-	state.pushLocked(exclusionState{level: level, readerCount: 1})
-	return nil
-}
-
-func (state *lockState) beforeRUnlock(level mutexLevel) error {
-	state.exclusionStatesLock.Lock()
-	defer state.exclusionStatesLock.Unlock()
-
-	curr := state.currLocked()
-
-	if curr == nil {
-		return danglingUnlockError{
-			levelToString: state.levelToString,
-			level:         level,
-			isRUnlock:     true,
-		}
-	}
-
-	if level != curr.level || curr.readerCount == 0 {
-		return mismatchedUnlockError{
-			levelToString: state.levelToString,
-			level:         level,
-			isRUnlock:     true,
-			curr:          *curr,
-		}
-	}
-
-	curr.readerCount--
-	if curr.readerCount == 0 {
-		state.popLocked()
-	}
-	return nil
+	return nonExclusion
 }
 
 // leveledMutex is a mutex with an associated level, which must be
@@ -252,20 +243,70 @@ func makeLeveledMutex(level mutexLevel, locker sync.Locker) leveledMutex {
 }
 
 func (m leveledMutex) Lock(lockState *lockState) {
-	m.locker.Lock()
-	err := lockState.afterLock(m.level)
+	err := lockState.doLock(m.level, writeExclusion, m.locker)
 	if err != nil {
-		m.locker.Unlock()
 		panic(err)
 	}
 }
 
 func (m leveledMutex) Unlock(lockState *lockState) {
-	err := lockState.beforeUnlock(m.level)
+	err := lockState.doUnlock(m.level, writeExclusion, m.locker)
 	if err != nil {
 		panic(err)
 	}
-	m.locker.Unlock()
+}
+
+type unexpectedExclusionError struct {
+	levelToString func(mutexLevel) string
+	level         mutexLevel
+	exclusionType exclusionType
+}
+
+func (e unexpectedExclusionError) Error() string {
+	return fmt.Sprintf("%s unexpectedly %sLocked",
+		e.levelToString(e.level), e.exclusionType.prefix())
+}
+
+// AssertUnlocked does nothing if m is unlocked with respect to the
+// given lockState. Otherwise, it panics.
+func (m leveledMutex) AssertUnlocked(lockState *lockState) {
+	et := lockState.getExclusionType(m.level)
+	if et != nonExclusion {
+		panic(unexpectedExclusionError{
+			levelToString: lockState.levelToString,
+			level:         m.level,
+			exclusionType: et,
+		})
+	}
+}
+
+type unexpectedExclusionTypeError struct {
+	levelToString         func(mutexLevel) string
+	level                 mutexLevel
+	expectedExclusionType exclusionType
+	exclusionType         exclusionType
+}
+
+func (e unexpectedExclusionTypeError) Error() string {
+	return fmt.Sprintf(
+		"%s unexpectedly not %sLocked; instead it is %sLocked",
+		e.levelToString(e.level),
+		e.expectedExclusionType.prefix(),
+		e.exclusionType.prefix())
+}
+
+// AssertLocked does nothing if m is locked with respect to the given
+// lockState. Otherwise, it panics.
+func (m leveledMutex) AssertLocked(lockState *lockState) {
+	et := lockState.getExclusionType(m.level)
+	if et != writeExclusion {
+		panic(unexpectedExclusionTypeError{
+			levelToString: lockState.levelToString,
+			level:         m.level,
+			expectedExclusionType: writeExclusion,
+			exclusionType:         et,
+		})
+	}
 }
 
 // leveledLocker represents an object that can be locked and unlocked
@@ -291,37 +332,93 @@ func makeLeveledRWMutex(level mutexLevel, rwLocker rwLocker) leveledRWMutex {
 }
 
 func (rw leveledRWMutex) Lock(lockState *lockState) {
-	rw.rwLocker.Lock()
-	err := lockState.afterLock(rw.level)
+	err := lockState.doLock(rw.level, writeExclusion, rw.rwLocker)
 	if err != nil {
-		rw.rwLocker.Unlock()
 		panic(err)
 	}
 }
 
 func (rw leveledRWMutex) Unlock(lockState *lockState) {
-	err := lockState.beforeUnlock(rw.level)
+	err := lockState.doUnlock(rw.level, writeExclusion, rw.rwLocker)
 	if err != nil {
 		panic(err)
 	}
-	rw.rwLocker.Unlock()
 }
 
 func (rw leveledRWMutex) RLock(lockState *lockState) {
-	rw.rwLocker.RLock()
-	err := lockState.afterRLock(rw.level)
+	err := lockState.doLock(rw.level, readExclusion, rw.rwLocker.RLocker())
 	if err != nil {
-		rw.rwLocker.RUnlock()
 		panic(err)
 	}
 }
 
 func (rw leveledRWMutex) RUnlock(lockState *lockState) {
-	err := lockState.beforeRUnlock(rw.level)
+	err := lockState.doUnlock(rw.level, readExclusion, rw.rwLocker.RLocker())
 	if err != nil {
 		panic(err)
 	}
-	rw.rwLocker.RUnlock()
+}
+
+// AssertUnlocked does nothing if m is unlocked with respect to the
+// given lockState. Otherwise, it panics.
+func (rw leveledRWMutex) AssertUnlocked(lockState *lockState) {
+	et := lockState.getExclusionType(rw.level)
+	if et != nonExclusion {
+		panic(unexpectedExclusionError{
+			levelToString: lockState.levelToString,
+			level:         rw.level,
+			exclusionType: et,
+		})
+	}
+}
+
+// AssertLocked does nothing if m is locked with respect to the given
+// lockState. Otherwise, it panics.
+func (rw leveledRWMutex) AssertLocked(lockState *lockState) {
+	et := lockState.getExclusionType(rw.level)
+	if et != writeExclusion {
+		panic(unexpectedExclusionTypeError{
+			levelToString: lockState.levelToString,
+			level:         rw.level,
+			expectedExclusionType: writeExclusion,
+			exclusionType:         et,
+		})
+	}
+}
+
+// AssertRLocked does nothing if m is r-locked with respect to the
+// given lockState. Otherwise, it panics.
+func (rw leveledRWMutex) AssertRLocked(lockState *lockState) {
+	et := lockState.getExclusionType(rw.level)
+	if et != readExclusion {
+		panic(unexpectedExclusionTypeError{
+			levelToString: lockState.levelToString,
+			level:         rw.level,
+			expectedExclusionType: readExclusion,
+			exclusionType:         et,
+		})
+	}
+}
+
+type unexpectedNonExclusionError struct {
+	levelToString func(mutexLevel) string
+	level         mutexLevel
+}
+
+func (e unexpectedNonExclusionError) Error() string {
+	return fmt.Sprintf("%s unexpectedly unlocked", e.levelToString(e.level))
+}
+
+// AssertAnyLocked does nothing if m is locked or r-locked with
+// respect to the given lockState. Otherwise, it panics.
+func (rw leveledRWMutex) AssertAnyLocked(lockState *lockState) {
+	et := lockState.getExclusionType(rw.level)
+	if et == nonExclusion {
+		panic(unexpectedNonExclusionError{
+			levelToString: lockState.levelToString,
+			level:         rw.level,
+		})
+	}
 }
 
 func (rw leveledRWMutex) RLocker() leveledLocker {

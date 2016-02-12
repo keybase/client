@@ -8,6 +8,17 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestExclusiveLock(t *testing.T) {
+	el := makeExclusiveLock()
+	el.lock()
+	defer el.unlock()
+
+	// This must leave el unlocked.
+	require.Panics(t, func() {
+		el.lock()
+	})
+}
+
 type testMutexLevel mutexLevel
 
 const (
@@ -32,14 +43,17 @@ func TestLeveledMutexSingleFlow(t *testing.T) {
 
 	state := makeLevelState(testMutexLevelToString)
 
-	mu1.Lock(state)
-	defer mu1.Unlock(state)
+	for _, mu := range []leveledMutex{mu1, mu2, mu3} {
+		mu.AssertUnlocked(state)
+		mu.Lock(state)
+		mu.AssertLocked(state)
 
-	mu2.Lock(state)
-	defer mu2.Unlock(state)
-
-	mu3.Lock(state)
-	defer mu3.Unlock(state)
+		defer func(mu leveledMutex) {
+			mu.AssertLocked(state)
+			mu.Unlock(state)
+			mu.AssertUnlocked(state)
+		}(mu)
+	}
 }
 
 func TestLeveledMutexIncorrect(t *testing.T) {
@@ -49,8 +63,23 @@ func TestLeveledMutexIncorrect(t *testing.T) {
 
 	state := makeLevelState(testMutexLevelToString)
 
+	require.Panics(t, func() {
+		mu1.AssertLocked(state)
+	})
+
 	mu2.Lock(state)
-	defer mu2.Unlock(state)
+
+	require.Panics(t, func() {
+		mu2.AssertUnlocked(state)
+	})
+
+	defer func() {
+		mu2.Unlock(state)
+
+		require.Panics(t, func() {
+			mu2.AssertLocked(state)
+		})
+	}()
 
 	// This must leave mu1 unlocked.
 	require.Panics(t, func() {
@@ -153,14 +182,41 @@ func TestLeveledRWMutexSingleFlow(t *testing.T) {
 
 	state := makeLevelState(testMutexLevelToString)
 
+	mu1.AssertUnlocked(state)
 	mu1.Lock(state)
-	defer mu1.Unlock(state)
+	mu1.AssertLocked(state)
+	mu1.AssertAnyLocked(state)
 
+	defer func() {
+		mu1.AssertLocked(state)
+		mu1.AssertAnyLocked(state)
+		mu1.Unlock(state)
+		mu1.AssertUnlocked(state)
+	}()
+
+	mu2.AssertUnlocked(state)
 	mu2.RLock(state)
-	defer mu2.RUnlock(state)
+	mu2.AssertRLocked(state)
+	mu2.AssertAnyLocked(state)
 
+	defer func() {
+		mu2.AssertRLocked(state)
+		mu2.AssertAnyLocked(state)
+		mu2.RUnlock(state)
+		mu2.AssertUnlocked(state)
+	}()
+
+	mu3.AssertUnlocked(state)
 	mu3.Lock(state)
-	defer mu3.Unlock(state)
+	mu3.AssertLocked(state)
+	mu3.AssertAnyLocked(state)
+
+	defer func() {
+		mu3.AssertLocked(state)
+		mu3.AssertAnyLocked(state)
+		mu3.Unlock(state)
+		mu3.AssertUnlocked(state)
+	}()
 }
 
 func TestLeveledRWMutexIncorrect(t *testing.T) {
@@ -170,8 +226,39 @@ func TestLeveledRWMutexIncorrect(t *testing.T) {
 
 	state := makeLevelState(testMutexLevelToString)
 
+	require.Panics(t, func() {
+		mu1.AssertLocked(state)
+	})
+	require.Panics(t, func() {
+		mu1.AssertRLocked(state)
+	})
+	require.Panics(t, func() {
+		mu1.AssertAnyLocked(state)
+	})
+
 	mu2.RLock(state)
-	defer mu2.RUnlock(state)
+
+	require.Panics(t, func() {
+		mu2.AssertUnlocked(state)
+	})
+
+	defer func() {
+		mu2.RUnlock(state)
+	}()
+
+	require.Panics(t, func() {
+		mu2.AssertLocked(state)
+
+		require.Panics(t, func() {
+			mu2.AssertLocked(state)
+		})
+		require.Panics(t, func() {
+			mu2.AssertRLocked(state)
+		})
+		require.Panics(t, func() {
+			mu2.AssertAnyLocked(state)
+		})
+	})
 
 	// This must leave mu2 read-locked.
 	require.Panics(t, func() {
@@ -188,6 +275,10 @@ func TestLeveledRWMutexIncorrect(t *testing.T) {
 
 	mu3.Lock(state)
 	defer mu3.Unlock(state)
+
+	require.Panics(t, func() {
+		mu3.AssertRLocked(state)
+	})
 
 	// This must leave mu3 locked.
 	require.Panics(t, func() {
