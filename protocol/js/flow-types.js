@@ -42,6 +42,11 @@ export type BlockReference = {
   chargedTo: UID;
 }
 
+export type BlockReferenceCount = {
+  ref: BlockReference;
+  liveCount: int;
+}
+
 export type BoxNonce = any
 
 export type BoxPublicKey = any
@@ -1272,6 +1277,18 @@ export type block_authenticateSession_rpc = {
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any) => void)
+}
+
+export type block_delReferenceWithCount_result = Array<BlockReferenceCount>
+
+export type block_delReferenceWithCount_rpc = {
+  method: 'block.delReferenceWithCount',
+  param: {
+    folder: string,
+    refs: Array<BlockReference>
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any, response: block_delReferenceWithCount_result) => void)
 }
 
 export type block_delReference_result = void
@@ -2769,6 +2786,32 @@ export type saltpack_saltpackDecrypt_rpc = {
   callback: (null | (err: ?any, response: saltpack_saltpackDecrypt_result) => void)
 }
 
+export type saltpack_saltpackDecrypt_result = SaltpackEncryptedMessageInfo
+
+export type saltpack_saltpackDecrypt_rpc = {
+  method: 'saltpack.saltpackDecrypt',
+  param: {
+    source: Stream,
+    sink: Stream,
+    opts: SaltpackDecryptOptions
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any, response: saltpack_saltpackDecrypt_result) => void)
+}
+
+export type saltpack_saltpackEncrypt_result = void
+
+export type saltpack_saltpackEncrypt_rpc = {
+  method: 'saltpack.saltpackEncrypt',
+  param: {
+    source: Stream,
+    sink: Stream,
+    opts: SaltpackEncryptOptions
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
 export type saltpack_saltpackEncrypt_result = void
 
 export type saltpack_saltpackEncrypt_rpc = {
@@ -2790,6 +2833,32 @@ export type saltpack_saltpackSign_rpc = {
     source: Stream,
     sink: Stream,
     opts: SaltpackSignOptions
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type saltpack_saltpackSign_result = void
+
+export type saltpack_saltpackSign_rpc = {
+  method: 'saltpack.saltpackSign',
+  param: {
+    source: Stream,
+    sink: Stream,
+    opts: SaltpackSignOptions
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type saltpack_saltpackVerify_result = void
+
+export type saltpack_saltpackVerify_rpc = {
+  method: 'saltpack.saltpackVerify',
+  param: {
+    source: Stream,
+    sink: Stream,
+    opts: SaltpackVerifyOptions
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any) => void)
@@ -3219,6 +3288,7 @@ export type rpc =
   | block_addReference_rpc
   | block_archiveReference_rpc
   | block_authenticateSession_rpc
+  | block_delReferenceWithCount_rpc
   | block_delReference_rpc
   | block_getBlock_rpc
   | block_getSessionChallenge_rpc
@@ -3351,8 +3421,12 @@ export type rpc =
   | saltpackUi_saltpackPromptForDecrypt_rpc
   | saltpackUi_saltpackVerifySuccess_rpc
   | saltpack_saltpackDecrypt_rpc
+  | saltpack_saltpackDecrypt_rpc
+  | saltpack_saltpackEncrypt_rpc
   | saltpack_saltpackEncrypt_rpc
   | saltpack_saltpackSign_rpc
+  | saltpack_saltpackSign_rpc
+  | saltpack_saltpackVerify_rpc
   | saltpack_saltpackVerify_rpc
   | secretUi_getPassphrase_rpc
   | session_currentSession_rpc
@@ -3469,6 +3543,16 @@ export type incomingCallMapType = {
     response: {
       error: (err: RPCError) => void,
       result: () => void
+    }
+  ) => void,
+  'keybase.1.block.delReferenceWithCount'?: (
+    params: {
+      folder: string,
+      refs: Array<BlockReference>
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: block_delReferenceWithCount_result) => void
     }
   ) => void,
   'keybase.1.block.archiveReference'?: (

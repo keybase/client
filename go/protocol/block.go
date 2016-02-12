@@ -20,6 +20,11 @@ type BlockReference struct {
 	ChargedTo UID           `codec:"chargedTo" json:"chargedTo"`
 }
 
+type BlockReferenceCount struct {
+	Ref       BlockReference `codec:"ref" json:"ref"`
+	LiveCount int            `codec:"liveCount" json:"liveCount"`
+}
+
 type GetSessionChallengeArg struct {
 }
 
@@ -49,6 +54,11 @@ type DelReferenceArg struct {
 	Ref    BlockReference `codec:"ref" json:"ref"`
 }
 
+type DelReferenceWithCountArg struct {
+	Folder string           `codec:"folder" json:"folder"`
+	Refs   []BlockReference `codec:"refs" json:"refs"`
+}
+
 type ArchiveReferenceArg struct {
 	Folder string           `codec:"folder" json:"folder"`
 	Refs   []BlockReference `codec:"refs" json:"refs"`
@@ -64,6 +74,7 @@ type BlockInterface interface {
 	GetBlock(context.Context, GetBlockArg) (GetBlockRes, error)
 	AddReference(context.Context, AddReferenceArg) error
 	DelReference(context.Context, DelReferenceArg) error
+	DelReferenceWithCount(context.Context, DelReferenceWithCountArg) ([]BlockReferenceCount, error)
 	ArchiveReference(context.Context, ArchiveReferenceArg) ([]BlockReference, error)
 	GetUserQuotaInfo(context.Context) ([]byte, error)
 }
@@ -163,6 +174,22 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"delReferenceWithCount": {
+				MakeArg: func() interface{} {
+					ret := make([]DelReferenceWithCountArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DelReferenceWithCountArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DelReferenceWithCountArg)(nil), args)
+						return
+					}
+					ret, err = i.DelReferenceWithCount(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"archiveReference": {
 				MakeArg: func() interface{} {
 					ret := make([]ArchiveReferenceArg, 1)
@@ -226,6 +253,11 @@ func (c BlockClient) AddReference(ctx context.Context, __arg AddReferenceArg) (e
 
 func (c BlockClient) DelReference(ctx context.Context, __arg DelReferenceArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.block.delReference", []interface{}{__arg}, nil)
+	return
+}
+
+func (c BlockClient) DelReferenceWithCount(ctx context.Context, __arg DelReferenceWithCountArg) (res []BlockReferenceCount, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.block.delReferenceWithCount", []interface{}{__arg}, &res)
 	return
 }
 

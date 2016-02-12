@@ -405,6 +405,20 @@
           "name": "chargedTo"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "BlockReferenceCount",
+      "fields": [
+        {
+          "type": "BlockReference",
+          "name": "ref"
+        },
+        {
+          "type": "int",
+          "name": "liveCount"
+        }
+      ]
     }
   ],
   "messages": {
@@ -480,6 +494,25 @@
         }
       ],
       "response": "null"
+    },
+    "delReferenceWithCount": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "string"
+        },
+        {
+          "name": "refs",
+          "type": {
+            "type": "array",
+            "items": "BlockReference"
+          }
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "BlockReferenceCount"
+      }
     },
     "archiveReference": {
       "request": [
