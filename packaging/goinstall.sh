@@ -8,7 +8,7 @@ cd $dir
 istest=${TEST:-}
 
 if [ ! "$istest" = "1" ]; then
-  go get -u $1
+  go get -u -f $1
 else
   go get $1
 fi
