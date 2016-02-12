@@ -5,6 +5,7 @@ package engine
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -131,7 +132,9 @@ func (e *PGPPullEngine) runLoggedOut(ctx *Context) error {
 	if len(e.userAsserts) == 0 {
 		return libkb.PGPPullLoggedOutError{}
 	}
-	for _, assertString := range e.userAsserts {
+	t := time.Now()
+	for i, assertString := range e.userAsserts {
+		t = e.rateLimit(t, i)
 		if err := e.processUserWhenLoggedOut(ctx, assertString); err != nil {
 			return err
 		}
@@ -192,7 +195,9 @@ func (e *PGPPullEngine) Run(ctx *Context) error {
 func (e *PGPPullEngine) runLoggedIn(ctx *Context, summaries []keybase1.UserSummary) error {
 
 	// Loop over the list of all users we track.
-	for _, userSummary := range summaries {
+	t := time.Now()
+	for i, userSummary := range summaries {
+		t = e.rateLimit(t, i)
 		// Compute the set of tracked pgp fingerprints. LoadUser will fetch key
 		// data from the server, and we will compare it against this.
 		trackedFingerprints := make(map[string]bool)
@@ -231,4 +236,21 @@ func (e *PGPPullEngine) exportKeysToGPG(ctx *Context, user *libkb.User, tfp map[
 		ctx.LogUI.Info("Imported key for %s.", user.GetName())
 	}
 	return nil
+}
+
+func (e *PGPPullEngine) rateLimit(start time.Time, index int) time.Time {
+	// server currently limiting to 32 req/s, but there can be 4 requests for each loaduser call.
+	const loadUserPerSec = 8
+	if index == 0 {
+		return start
+	}
+	if index%loadUserPerSec != 0 {
+		return start
+	}
+	d := time.Second - time.Since(start)
+	if d > 0 {
+		e.G().Log.Debug("sleeping for %s to slow down api requests", d)
+		time.Sleep(d)
+	}
+	return time.Now()
 }
