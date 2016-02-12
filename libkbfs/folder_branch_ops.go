@@ -880,7 +880,17 @@ func (fbo *folderBranchOps) CheckForNewMDAndInit(
 			return nil
 		}
 
-		// otherwise, initialize
+		// Otherwise, identify and initialize.
+
+		// Always identify first when trying to initialize the folder,
+		// even if we turn out not to be a writer.  (We can't rely on
+		// the identifyOnce call in getMDLocked, because that isn't
+		// called from the initialization code path when the local
+		// user is not a valid writer.
+		err = fbo.identifyOnce(ctx, md)
+		if err != nil {
+			return err
+		}
 		return fbo.initMDLocked(ctx, lState, md)
 	})
 }
