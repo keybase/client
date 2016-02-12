@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide'
 import Container from './dev-container'
 import {Button, Logo, Input, Text} from '../common-adapters'
 
@@ -24,6 +24,24 @@ export default class Render extends Component {
               <Text type='Body' link reversed>Body link</Text>
               <Text type='Body' small reversed>Body small</Text>
               <Text type='Body' link small reversed>Body link small</Text>
+            </div>
+          </div>
+        </Container>
+        <Container title='Colors - DZ2'>
+          <div style={{...globalStyles.flexBoxColumn, flexWrap: 'wrap'}}>
+            <Text type='body'>Colors</Text>
+            <div style={{...globalStyles.flexBoxColumn, flexWrap: 'wrap', height: 350}}>
+            {Object.keys(globalColorsDZ2).sort().map(c => {
+              return (
+                <div style={{...globalStyles.flexBoxRow, height: 60, margin: 5}}>
+                  <div style={{width: 60, height: 60, backgroundColor: globalColorsDZ2[c]}}></div>
+                  <div style={{...globalStyles.flexBoxColumn, justifyContent: 'center', marginLeft: 5}}>
+                    <Text type='Body'>{c}</Text>
+                    <Text type='Body' small>{globalColorsDZ2[c]}</Text>
+                  </div>
+                </div>
+              ) }
+            )}
             </div>
           </div>
         </Container>
