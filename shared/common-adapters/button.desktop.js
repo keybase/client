@@ -17,22 +17,23 @@ export default class Button extends Component {
       styles = styles1
     }
 
-    const rootStyle = this.props.primary ? styles.buttonPrimary : styles.buttonSecondary
+    const rootStyle = (this.props.follow || this.props.primary) ? styles.buttonPrimary : styles.buttonSecondary
     const smallStyle = this.props.small ? styles.buttonSmall : {}
+    const followStyle = this.props.follow ? styles2.buttonFollow : {}
     const smallLabelStyle = this.props.small ? styles.buttonSmallLabel : {}
     const moreStyle = this.props.more ? styles.buttonMore : {}
     const moreLabelStyle = this.props.more ? styles.buttonMoreLabel : {}
 
     // FIXME: A better way?
-    const flipForeground = rootStyle.backgroundColor == globalColorsDZ2.backgroundGrey ?
-      { color: 'rgba(0, 0, 0, 0.4);' } :
-      { color: '#ffffff' }
+    const textForeground = flags.tracker2 && rootStyle.backgroundColor == globalColorsDZ2.backgroundGrey ?
+      { color: globalColorsDZ2.black40 } :
+      { color: globalColorsDZ2.white100 }
 
     return (
       <FlatButton
         onClick={this.props.onClick}
-        style={{...rootStyle, ...smallStyle, ...moreStyle, ...this.props.style}}
-        labelStyle={{...styles.buttonLabel, ...smallLabelStyle, ...moreLabelStyle, ...flipForeground}}
+        style={{...rootStyle, ...smallStyle, ...moreStyle, ...followStyle, ...this.props.style}}
+        labelStyle={{...styles.buttonLabel, ...smallLabelStyle, ...moreLabelStyle, ...textForeground}}
         label={this.props.label || this.props.more && '•••'}
         primary={this.props.primary} />
     )
@@ -64,12 +65,12 @@ export const styles2 = {
   buttonPrimary: {
     ...buttonCommon,
     backgroundColor: globalColorsDZ2.blue,
-    disabledOpacity: 0.2
+    disabledOpacity: 0.2,
+    marginRight: 10
   },
   buttonSecondary: {
     ...buttonCommon,
     backgroundColor: globalColorsDZ2.backgroundGrey,
-    foregroundColor: globalColorsDZ2.black,
     disabledOpacity: 0.3,
     marginRight: 10
   },
@@ -77,11 +78,13 @@ export const styles2 = {
     ...buttonCommon,
     backgroundColor: globalColorsDZ2.red1,
     disabledOpacity: 0.2,
+    marginRight: 10
   },
   buttonFollow: {
     ...buttonCommon,
     backgroundColor: globalColorsDZ2.green1,
-    disabledOpacity: 0.3
+    disabledOpacity: 0.3,
+    marginRight: 10
   },
   buttonSmall: {
     fontSize: 13,
