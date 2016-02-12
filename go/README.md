@@ -42,10 +42,10 @@ Download the appropriate package:
 ### Building
 
 ```bash
-cd $GOPATH/src/github.com/keybase/client/go # assuming a proper $GOPATH
-export GO15VENDOREXPERIMENT=1               # all dependencies are vendored
-go install --tags production                # otherwise it will default to 'devel' mode
-export PATH=$PATH:$GOPATH/bin               # if it's not in your path already
+cd $GOPATH/src/github.com/keybase/client/go/keybase # assuming a proper $GOPATH
+export GO15VENDOREXPERIMENT=1                       # all dependencies are vendored
+go install --tags production                        # otherwise it will default to 'devel' mode
+export PATH=$PATH:$GOPATH/bin                       # if it's not in your path already
 ```
 
 ### Run the service
