@@ -532,7 +532,15 @@ const (
 )
 
 func (api *ExternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
-	// noop for now
+	// TODO (here and in the internal API engine implementation): If we don't
+	// set the User-Agent, it will default to http.defaultUserAgent
+	// ("Go-http-client/1.1"). We should think about whether that's what we
+	// want in Tor mode. Clients that are actually using Tor will always be
+	// distinguishable from the rest, insofar as their originating IP will be a
+	// Tor exit node, but there may be other use cases where this matters more?
+	if api.G().Env.GetTorMode().UseHeaders() {
+		req.Header.Set("User-Agent", UserAgent)
+	}
 }
 
 func (api *ExternalAPIEngine) consumeHeaders(resp *http.Response) error {
