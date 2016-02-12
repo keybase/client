@@ -6,7 +6,6 @@ package service
 import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
 )
@@ -25,14 +24,8 @@ func NewCtlHandler(xp rpc.Transporter, v *Service, g *libkb.GlobalContext) *CtlH
 	}
 }
 
-// Stop is called on the rpc keybase.1.ctl.stop, which shuts down the service.
-func (c *CtlHandler) Stop(_ context.Context, args keybase1.StopArg) error {
-	c.G().Log.Debug("Received stop(%d) RPC; shutting down", args.ExitCode)
-	go func() {
-		c.service.Stop(args.ExitCode)
-	}()
-	return nil
-}
+// Stop is located in ctl_osx.go and ctl_non_osx.go for
+// OS-specific service stop.
 
 func (c *CtlHandler) LogRotate(_ context.Context, sessionID int) error {
 	return c.G().Log.RotateLogFile()
