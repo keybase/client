@@ -42,46 +42,36 @@ Download the appropriate package:
 ### Building
 
 ```bash
-cd $GOPATH/src/github.com/keybase/client/go
-export GO15VENDOREXPERIMENT=1 # all dependencies are vendored
-go install
+cd $GOPATH/src/github.com/keybase/client/go # assuming a proper $GOPATH
+export GO15VENDOREXPERIMENT=1               # all dependencies are vendored
+go install --tags production                # otherwise it will default to 'devel' mode
+export PATH=$PATH:$GOPATH/bin               # if it's not in your path already
 ```
 
 ### Run the service
 
 ```bash
-cd keybase
-./keybase service
+keybase service
 ```
 
 Or specify a custom home directory (and use -d for debug):
 
 ```bash
-./keybase -H ~/Projects/Keybase/dev -d service
+keybase -H ~/Projects/Keybase/dev -d service
 ```
 
 ### Run the client
 
 ```bash
-./keybase id max
+keybase login
+keybase id max
 ```
 
 ### Or you can run the client in "Standalone" Mode
 
 ```bash
-./keybase --standalone id max
-```
-
-### Testing
-
-First follow [these
-instructions](https://github.com/keybase/keybase/blob/76e762699d940ff3f3a0b931ca9f35f68c812f18/README.md#running-the-server-in-a-docker-container)
-to run a docker instance of the server.
-
-Then, run:
-
-```bash
-make test
+# No service needed, but you'll be repeatedly prompted for your passphrase
+keybase --standalone id max
 ```
 
 ### License
