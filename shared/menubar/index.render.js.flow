@@ -5,6 +5,7 @@ export type RenderProps = {
   username: ?string,
   openKBFS: () => void,
   openKBFSPublic: (username: ?string) => void,
+  logIn: () => void,
   openKBFSPrivate: (username: ?string) => void,
   showMain: () => void,
   showHelp: () => void,
