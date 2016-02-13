@@ -166,16 +166,11 @@ func (e *Env) GetCommandLine() CommandLine {
 	return e.cmd
 }
 
-func (e *Env) SetConfig(config ConfigReader) {
+func (e *Env) SetConfig(r ConfigReader, w ConfigWriter) {
 	e.Lock()
 	defer e.Unlock()
-	e.config = config
-}
-
-func (e *Env) SetConfigWriter(writer ConfigWriter) {
-	e.Lock()
-	defer e.Unlock()
-	e.writer = writer
+	e.config = r
+	e.writer = w
 }
 
 func NewEnv(cmd CommandLine, config ConfigReader) *Env {

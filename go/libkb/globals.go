@@ -177,8 +177,7 @@ func (g *GlobalContext) ConfigureConfig() error {
 	if err = c.Check(); err != nil {
 		return err
 	}
-	g.Env.SetConfig(*c)
-	g.Env.SetConfigWriter(c)
+	g.Env.SetConfig(*c, c)
 	return nil
 }
 
