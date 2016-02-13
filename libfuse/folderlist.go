@@ -7,6 +7,7 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -125,5 +126,11 @@ var _ fs.NodeRemover = (*FolderList)(nil)
 
 // Remove implements the fs.NodeRemover interface for FolderList.
 func (fl *FolderList) Remove(ctx context.Context, req *fuse.RemoveRequest) (err error) {
-	return fuse.EPERM
+	ctx = NewContextWithOpID(ctx, fl.fs.log)
+	fl.fs.log.CDebugf(ctx, "FolderList Remove %s", req.Name)
+	defer func() { fl.fs.reportErr(ctx, err) }()
+
+	fld := keybase1.Folder{Name: req.Name, Private: !fl.public}
+	err = fl.fs.config.KeybaseDaemon().FavoriteDelete(ctx, fld)
+	return err
 }
