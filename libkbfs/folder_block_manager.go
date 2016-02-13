@@ -628,6 +628,8 @@ func (fbm *folderBlockManager) finalizeReclamation(ctx context.Context,
 	ptrs []BlockPointer, latestRev MetadataRevision) error {
 	gco := newGCOp(latestRev)
 	for _, ptr := range ptrs {
+		// TODO: only add to the gc op if the bserver indicated that
+		// this was the final reference for this block ID.
 		gco.AddUnrefBlock(ptr)
 	}
 	fbm.log.CDebugf(ctx, "Finalizing reclamation %s with %d ptrs", gco,
