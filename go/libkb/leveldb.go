@@ -9,6 +9,7 @@ import (
 	"sync"
 
 	"github.com/syndtr/goleveldb/leveldb"
+	errors "github.com/syndtr/goleveldb/leveldb/errors"
 )
 
 type LevelDb struct {
@@ -33,11 +34,22 @@ func (l *LevelDb) open() error {
 
 	var err error
 	if l.db == nil {
-		G.Log.Debug("+ LevelDb.open")
+		l.G().Log.Debug("+ LevelDb.open")
 		fn := l.GetFilename()
-		l.G().Log.Debug("Opening LevelDB for local cache: %v %s", l, fn)
+		l.G().Log.Debug("| Opening LevelDB for local cache: %v %s", l, fn)
 		l.db, err = leveldb.OpenFile(fn, nil)
-		G.Log.Debug("- LevelDb.open -> %s", ErrToOk(err))
+		if err != nil {
+			if _, ok := err.(*errors.ErrCorrupted); ok {
+				l.G().Log.Debug("| LevelDB was corrupted; attempting recovery (%v)", err)
+				l.db, err = leveldb.RecoverFile(fn, nil)
+				if err != nil {
+					l.G().Log.Debug("| Recovery failed: %v", err)
+				} else {
+					l.G().Log.Debug("| Recovery succeeded!")
+				}
+			}
+		}
+		l.G().Log.Debug("- LevelDb.open -> %s", ErrToOk(err))
 	}
 	return err
 }
