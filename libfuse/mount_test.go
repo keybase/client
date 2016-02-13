@@ -265,13 +265,9 @@ func TestRemoveAlias(t *testing.T) {
 	defer cancelFn()
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe,jdoe")
-	switch err := os.Remove(p); err := err.(type) {
-	case *os.PathError:
-		if g, e := err.Err, syscall.EPERM; g != e {
-			t.Fatalf("wrong error: %v != %v", g, e)
-		}
-	default:
-		t.Fatalf("expected a PathError, got %T: %v", err, err)
+	err := os.Remove(p)
+	if err != nil {
+		t.Fatalf("Removing alias failed!")
 	}
 }
 
