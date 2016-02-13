@@ -15,6 +15,12 @@ type fbmHelper interface {
 	reembedForFBM(ctx context.Context, rmds []*RootMetadata) error
 }
 
+const (
+	// How many pointers to delete in a single Delete call.  TODO:
+	// update this when a batched Delete RPC is available.
+	numPointersToDeletePerChunk = 1
+)
+
 // folderBlockManager is a helper class for managing the blocks in a
 // particular TLF.  It archives historical blocks and reclaims quota
 // usage, all in the background.
@@ -380,8 +386,7 @@ func (fbm *folderBlockManager) archiveBlocksInBackground() {
 // that was scrubbed by the previous gc op.
 func (fbm *folderBlockManager) getMostRecentOldEnoughAndGCRevisions(
 	ctx context.Context, head *RootMetadata) (
-	mostRecentOldEnoughRev, lastGCRev MetadataRevision,
-	err error) {
+	mostRecentOldEnoughRev, lastGCRev MetadataRevision, err error) {
 	// Walk backwards until we find one that is old enough.  Also,
 	// look out for the previous gcOp.
 	currHead := head.Revision
@@ -462,6 +467,8 @@ func (fbm *folderBlockManager) getMostRecentOldEnoughAndGCRevisions(
 func (fbm *folderBlockManager) getUnreferencedBlocks(
 	ctx context.Context, latestRev, earliestRev MetadataRevision) (
 	ptrs []BlockPointer, err error) {
+	fbm.log.CDebugf(ctx, "Getting unreferenced blocks between revisions "+
+		"%d and %d", earliestRev, latestRev)
 	defer func() {
 		if err == nil {
 			fbm.log.CDebugf(ctx, "Found %d pointers to clean between "+
@@ -521,14 +528,73 @@ func (fbm *folderBlockManager) getUnreferencedBlocks(
 	return ptrs, nil
 }
 
+func (fbm *folderBlockManager) deleteBlockRefs(ctx context.Context,
+	md *RootMetadata, ptrs []BlockPointer) error {
+	fbm.log.CDebugf(ctx, "Deleting %d pointers", len(ptrs))
+	bops := fbm.config.BlockOps()
+
+	var wg sync.WaitGroup
+	numChunks := len(ptrs) / numPointersToDeletePerChunk
+	numWorkers := numChunks
+	if numWorkers > maxParallelBlockPuts {
+		numWorkers = maxParallelBlockPuts
+	}
+	wg.Add(numWorkers)
+	chunks := make(chan []BlockPointer, numChunks)
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	errChan := make(chan error, 1)
+	worker := func() {
+		defer wg.Done()
+		for chunk := range chunks {
+			fbm.log.CDebugf(ctx, "Deleting chunk of %d pointers", len(chunk))
+			// TODO: send the whole chunk at once whenever the batched
+			// Delete RPC is ready.
+			for _, ptr := range chunk {
+				err := bops.Delete(ctx, md, ptr.ID, ptr)
+				if err != nil {
+					select {
+					case errChan <- err:
+						// First error wins.
+					default:
+					}
+					return
+				}
+				select {
+				// return early if the context has been canceled
+				case <-ctx.Done():
+					return
+				default:
+				}
+			}
+		}
+	}
+	for i := 0; i < numWorkers; i++ {
+		go worker()
+	}
+
+	for start := 0; start < len(ptrs); start += numPointersToDeletePerChunk {
+		end := start + numPointersToDeletePerChunk
+		if end > len(ptrs) {
+			end = len(ptrs)
+		}
+		chunks <- ptrs[start:end]
+	}
+	close(chunks)
+
+	go func() {
+		wg.Wait()
+		close(errChan)
+	}()
+	return <-errChan
+}
+
 func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	ctx, cancel := context.WithCancel(fbm.ctxWithFBMID(context.Background()))
 	fbm.setReclamationCancel(cancel)
 	defer fbm.cancelReclamation()
-	fbm.log.CDebugf(ctx, "Starting quota reclamation process")
-	defer func() {
-		fbm.log.CDebugf(ctx, "Ending quota reclamation process: %v", err)
-	}()
 	defer timer.Reset(fbm.config.QuotaReclamationPeriod())
 	defer fbm.reclamationGroup.Done()
 
@@ -571,12 +637,27 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	if err != nil {
 		return err
 	}
-	if mostRecentOldEnoughRev == MetadataRevisionUninitialized {
-		fbm.log.CDebugf(ctx, "No old-enough revisions")
+	if mostRecentOldEnoughRev == MetadataRevisionUninitialized ||
+		mostRecentOldEnoughRev <= lastGCRev {
+		// TODO: need a log level more fine-grained than Debug to
+		// print out that we're not doing reclamation.
 		return nil
 	}
 
-	_, err = fbm.getUnreferencedBlocks(ctx, mostRecentOldEnoughRev, lastGCRev)
+	// Don't print these until we know for sure that we'll be
+	// reclaiming some quota, to avoid log pollution.
+	fbm.log.CDebugf(ctx, "Starting quota reclamation process")
+	defer func() {
+		fbm.log.CDebugf(ctx, "Ending quota reclamation process: %v", err)
+	}()
+
+	ptrs, err :=
+		fbm.getUnreferencedBlocks(ctx, mostRecentOldEnoughRev, lastGCRev)
+	if err != nil {
+		return err
+	}
+
+	err = fbm.deleteBlockRefs(ctx, head, ptrs)
 	if err != nil {
 		return err
 	}
