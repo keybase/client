@@ -15,6 +15,7 @@ import (
 	"github.com/eapache/channels"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/dokan"
+	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -221,13 +222,13 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 		return oc.returnDirNoCleanup(f.root)
 	case libkbfs.ErrorFile == ps[psl-1]:
 		return NewErrorFile(f), false, nil
-	case MetricsFileName == ps[psl-1]:
+	case libfs.MetricsFileName == ps[psl-1]:
 		return NewMetricsFile(f), false, nil
 	case PublicName == ps[0]:
 		return f.root.public.open(ctx, oc, ps[1:])
 	case PrivateName == ps[0]:
 		return f.root.private.open(ctx, oc, ps[1:])
-	case ProfileListDirName == ps[0]:
+	case libfs.ProfileListDirName == ps[0]:
 		return (ProfileList{}).open(ctx, oc, ps[1:])
 	}
 	return nil, false, dokan.ErrObjectNameNotFound

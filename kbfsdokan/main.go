@@ -14,6 +14,7 @@ import (
 	"os"
 
 	"github.com/keybase/kbfs/libdokan"
+	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 )
 
@@ -51,7 +52,7 @@ func getUsageStr() string {
 	return fmt.Sprintf(usageFormatStr, defaultBServer, defaultMDServer)
 }
 
-func start() *libdokan.Error {
+func start() *libfs.Error {
 	kbfsParams := libkbfs.AddFlags(flag.CommandLine)
 
 	flag.Parse()
@@ -63,12 +64,12 @@ func start() *libdokan.Error {
 
 	if len(flag.Args()) < 1 {
 		fmt.Print(getUsageStr())
-		return libdokan.InitError("no mount specified")
+		return libfs.InitError("no mount specified")
 	}
 
 	if len(flag.Args()) > 1 {
 		fmt.Print(getUsageStr())
-		return libdokan.InitError("extra arguments specified (flags go before the first argument)")
+		return libfs.InitError("extra arguments specified (flags go before the first argument)")
 	}
 
 	mountpoint := flag.Arg(0)

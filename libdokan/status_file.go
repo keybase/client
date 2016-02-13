@@ -40,8 +40,7 @@ func getEncodedStatus(ctx context.Context, folder *Folder) (
 // representation of the status of the current TLF.
 func NewStatusFile(folder *Folder) *SpecialReadFile {
 	return &SpecialReadFile{
-		read: func() ([]byte, time.Time, error) {
-			ctx := NewContextWithOpID(folder.fs)
+		read: func(ctx context.Context) ([]byte, time.Time, error) {
 			return getEncodedStatus(ctx, folder)
 		},
 	}
