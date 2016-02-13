@@ -38,7 +38,7 @@ export default class Render extends Component {
     return (
       <div style={styles.container}>
         <Header {...this.props.headerProps} />
-        <div style={styles.content}>
+        <div style={styles.content} className="hide-scrollbar">
           <Bio {...this.props.bioProps} />
           <Proofs {...this.props.proofsProps} />
         </div>
