@@ -694,6 +694,13 @@ func (tlf *TLF) loadDirAllowNonexistent(ctx context.Context) (
 	return tlf.loadDirHelper(ctx, true)
 }
 
+func (tlf *TLF) clearCache() {
+	tlf.dirLock.Lock()
+	defer tlf.dirLock.Unlock()
+
+	tlf.dir = nil
+}
+
 // Attr implements the fs.Node interface for TLF.
 func (tlf *TLF) Attr(ctx context.Context, a *fuse.Attr) error {
 	dir := tlf.getStoredDir()
