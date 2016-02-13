@@ -13,6 +13,7 @@ import (
 type fbmHelper interface {
 	getMDForFBM(ctx context.Context) (*RootMetadata, error)
 	reembedForFBM(ctx context.Context, rmds []*RootMetadata) error
+	finalizeGCOp(ctx context.Context, gco *gcOp) error
 }
 
 const (
@@ -623,6 +624,20 @@ func (fbm *folderBlockManager) deleteBlockRefs(ctx context.Context,
 	return <-errChan
 }
 
+func (fbm *folderBlockManager) finalizeReclamation(ctx context.Context,
+	ptrs []BlockPointer, latestRev MetadataRevision) error {
+	gco := newGCOp(latestRev)
+	for _, ptr := range ptrs {
+		gco.AddUnrefBlock(ptr)
+	}
+	fbm.log.CDebugf(ctx, "Finalizing reclamation %s with %d ptrs", gco,
+		len(ptrs))
+	// finalizeGCOp could wait indefinitely on locks, so run it in a
+	// goroutine.
+	return runUnlessCanceled(ctx,
+		func() error { return fbm.helper.finalizeGCOp(ctx, gco) })
+}
+
 func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	ctx, cancel := context.WithCancel(fbm.ctxWithFBMID(context.Background()))
 	fbm.setReclamationCancel(cancel)
@@ -683,7 +698,7 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 		fbm.log.CDebugf(ctx, "Ending quota reclamation process: %v", err)
 	}()
 
-	ptrs, _, err :=
+	ptrs, latestRev, err :=
 		fbm.getUnreferencedBlocks(ctx, mostRecentOldEnoughRev, lastGCRev)
 	if err != nil {
 		return err
@@ -694,7 +709,7 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 		return err
 	}
 
-	return nil
+	return fbm.finalizeReclamation(ctx, ptrs, latestRev)
 }
 
 func (fbm *folderBlockManager) reclaimQuotaInBackground() {

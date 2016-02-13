@@ -2133,6 +2133,43 @@ func (fbo *folderBranchOps) finalizeMDRekeyWriteLocked(ctx context.Context,
 	return fbo.setHeadLocked(ctx, lState, md)
 }
 
+func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *gcOp) (
+	err error) {
+	lState := makeFBOLockState()
+	// Lock the folder so we can get an internally-consistent MD
+	// revision number.
+	fbo.mdWriterLock.Lock(lState)
+	defer fbo.mdWriterLock.Unlock(lState)
+
+	md, err := fbo.getMDForWriteLocked(ctx, lState)
+	if err != nil {
+		return err
+	}
+
+	md.AddOp(gco)
+
+	// finally, write out the new metadata
+	err = fbo.config.MDOps().Put(ctx, md)
+	if err != nil {
+		// Don't allow garbage collection to put us into a conflicting
+		// state; just wait for the next period.
+		return err
+	}
+
+	fbo.setStagedLocked(lState, false, NullBranchID)
+	fbo.transitionState(cleanState)
+
+	fbo.headLock.Lock(lState)
+	defer fbo.headLock.Unlock(lState)
+	err = fbo.setHeadLocked(ctx, lState, md)
+	if err != nil {
+		return err
+	}
+
+	fbo.notifyBatchLocked(ctx, lState, md)
+	return nil
+}
+
 func (fbo *folderBranchOps) syncBlockAndFinalizeLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, newBlock Block, dir path,
 	name string, entryType EntryType, mtime bool, ctime bool,
