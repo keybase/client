@@ -564,7 +564,7 @@ func (api *ExternalAPIEngine) DoRequest(
 		}
 	case XAPIResText:
 		var buf bytes.Buffer
-		_, err := buf.ReadFrom(resp.Body)
+		_, err = buf.ReadFrom(resp.Body)
 		defer resp.Body.Close()
 		if err == nil {
 			tr = &ExternalTextRes{resp.StatusCode, string(buf.Bytes())}
