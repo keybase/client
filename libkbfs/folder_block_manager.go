@@ -19,6 +19,10 @@ const (
 	// How many pointers to delete in a single Delete call.  TODO:
 	// update this when a batched Delete RPC is available.
 	numPointersToDeletePerChunk = 1
+	// Once the number of pointers being deleted in a single gc op
+	// passes this threshold, we'll stop garbage collection at the
+	// current revision.
+	numPointersPerGCThreshold = 100
 )
 
 // folderBlockManager is a helper class for managing the blocks in a
@@ -463,10 +467,12 @@ func (fbm *folderBlockManager) getMostRecentOldEnoughAndGCRevisions(
 
 // getUnrefBlocks returns a slice containing all the block pointers
 // that were unreferenced after the earliestRev, up to and including
-// those in latestRev.
+// those in latestRev.  If the number of pointers is too large, it
+// will shorten the range of the revisions being reclaimed, and return
+// the latest revision represented in the returned slice of pointers.
 func (fbm *folderBlockManager) getUnreferencedBlocks(
 	ctx context.Context, latestRev, earliestRev MetadataRevision) (
-	ptrs []BlockPointer, err error) {
+	ptrs []BlockPointer, lastRevConsidered MetadataRevision, err error) {
 	fbm.log.CDebugf(ctx, "Getting unreferenced blocks between revisions "+
 		"%d and %d", earliestRev, latestRev)
 	defer func() {
@@ -480,12 +486,14 @@ func (fbm *folderBlockManager) getUnreferencedBlocks(
 		// Nothing to do.
 		fbm.log.CDebugf(ctx, "Latest rev %d is included in the previous "+
 			"gc op (%d)", latestRev, earliestRev)
-		return nil, nil
+		return nil, MetadataRevisionUninitialized, nil
 	}
 
 	// Walk backward, starting from latestRev, until just after
 	// earliestRev, gathering block pointers.
 	currHead := latestRev
+	revStartPositions := make(map[MetadataRevision]int)
+outer:
 	for {
 		startRev := currHead - maxMDsAtATime + 1 // (MetadataRevision is signed)
 		if startRev < MetadataRevisionInitial {
@@ -495,19 +503,21 @@ func (fbm *folderBlockManager) getUnreferencedBlocks(
 		rmds, err := getMDRange(ctx, fbm.config, fbm.id, NullBranchID, startRev,
 			currHead, Merged)
 		if err != nil {
-			return nil, err
+			return nil, MetadataRevisionUninitialized, err
 		}
 
 		if err := fbm.helper.reembedForFBM(ctx, rmds); err != nil {
-			return nil, err
+			return nil, MetadataRevisionUninitialized, err
 		}
 
 		numNew := len(rmds)
 		for i := len(rmds) - 1; i >= 0; i-- {
 			rmd := rmds[i]
 			if rmd.Revision <= earliestRev {
-				return ptrs, nil
+				break outer
 			}
+			// Save the latest revision starting at this position:
+			revStartPositions[rmd.Revision] = len(ptrs)
 			for _, op := range rmd.data.Changes.Ops {
 				ptrs = append(ptrs, op.Unrefs()...)
 				for _, update := range op.AllUpdates() {
@@ -525,7 +535,29 @@ func (fbm *folderBlockManager) getUnreferencedBlocks(
 		}
 	}
 
-	return ptrs, nil
+	if len(ptrs) > numPointersPerGCThreshold {
+		// Find the earliest revision to clean up that lets us send at
+		// least numPointersPerGCThreshold pointers.  The earliest
+		// pointers are at the end of the list, so subtract the
+		// threshold from the back.
+		threshStart := len(ptrs) - numPointersPerGCThreshold
+		origLatestRev := latestRev
+		origPtrsLen := len(ptrs)
+		// TODO: optimize by keeping rev->pos mappings in sorted order.
+		for rev, i := range revStartPositions {
+			if i < threshStart && rev < latestRev {
+				latestRev = rev
+			}
+		}
+		if latestRev < origLatestRev {
+			ptrs = ptrs[revStartPositions[latestRev]:]
+			fbm.log.CDebugf(ctx, "Shortening GC range from [%d:%d] to [%d:%d],"+
+				" reducing pointers from %d to %d", earliestRev, origLatestRev,
+				earliestRev, latestRev, origPtrsLen, len(ptrs))
+		}
+	}
+
+	return ptrs, latestRev, nil
 }
 
 func (fbm *folderBlockManager) deleteBlockRefs(ctx context.Context,
@@ -651,7 +683,7 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 		fbm.log.CDebugf(ctx, "Ending quota reclamation process: %v", err)
 	}()
 
-	ptrs, err :=
+	ptrs, _, err :=
 		fbm.getUnreferencedBlocks(ctx, mostRecentOldEnoughRev, lastGCRev)
 	if err != nil {
 		return err
