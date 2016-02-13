@@ -64,9 +64,7 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 		}
 
 		fl.fs.log.CDebugf(ctx, "FL Lookup continuing")
-		rootNode, _, err :=
-			fl.fs.config.KBFSOps().GetOrCreateRootNode(
-				ctx, name, fl.public, libkbfs.MasterBranch)
+		_, err = libkbfs.ParseTlfHandle(ctx, fl.fs.config.KBPKI(), name, fl.public)
 		switch err := err.(type) {
 		case nil:
 			// No error.
@@ -120,22 +118,8 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 			return nil, false, err
 		}
 
-		folderBranch := rootNode.GetFolderBranch()
-		folder := &Folder{
-			fs:           fl.fs,
-			list:         fl,
-			name:         name,
-			folderBranch: folderBranch,
-			nodes:        map[libkbfs.NodeID]dokan.File{},
-		}
-
-		// TODO unregister all at unmount
-		if err := fl.fs.config.Notifier().RegisterForChanges([]libkbfs.FolderBranch{folderBranch}, folder); err != nil {
-			return nil, false, err
-		}
-
-		child = newDir(folder, rootNode, path[0], nil)
-		folder.nodes[rootNode.GetID()] = child
+		fl.fs.log.CDebugf(ctx, "FL Lookup adding new child")
+		child = newTLF(fl, name)
 		fl.lockedAddChild(name, child)
 		return child.open(ctx, oc, path[1:])
 	}
@@ -145,6 +129,8 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 func (fl *FolderList) forgetFolder(f *Folder) {
 	fl.mu.Lock()
 	defer fl.mu.Unlock()
+
+	fl.fs.log.Info("forgetFolder %q", f.name)
 
 	if err := fl.fs.config.Notifier().UnregisterFromChanges([]libkbfs.FolderBranch{f.folderBranch}, f); err != nil {
 		fl.fs.log.Info("cannot unregister change notifier for folder %q: %v",

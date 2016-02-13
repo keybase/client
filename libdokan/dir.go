@@ -18,10 +18,12 @@ import (
 
 // Folder represents KBFS top-level folders
 type Folder struct {
-	fs           *FS
-	list         *FolderList
-	name         string
-	folderBranch libkbfs.FolderBranch
+	fs   *FS
+	list *FolderList
+	name string
+
+	folderBranchMu sync.Mutex
+	folderBranch   libkbfs.FolderBranch
 
 	// Protects the nodes map.
 	mu sync.Mutex
@@ -47,6 +49,46 @@ type Folder struct {
 	noForget bool
 }
 
+func newFolder(fl *FolderList, name string) *Folder {
+	f := &Folder{
+		fs:    fl.fs,
+		list:  fl,
+		name:  name,
+		nodes: map[libkbfs.NodeID]dokan.File{},
+	}
+	return f
+}
+
+func (f *Folder) setFolderBranch(folderBranch libkbfs.FolderBranch) error {
+	f.folderBranchMu.Lock()
+	defer f.folderBranchMu.Unlock()
+
+	// TODO unregister all at unmount
+	err := f.list.fs.config.Notifier().RegisterForChanges(
+		[]libkbfs.FolderBranch{folderBranch}, f)
+	if err != nil {
+		return err
+	}
+	f.folderBranch = folderBranch
+	return nil
+}
+
+func (f *Folder) unsetFolderBranch() {
+	f.folderBranchMu.Lock()
+	defer f.folderBranchMu.Unlock()
+	if f.folderBranch == (libkbfs.FolderBranch{}) {
+		// Wasn't set.
+		return
+	}
+
+	err := f.list.fs.config.Notifier().UnregisterFromChanges([]libkbfs.FolderBranch{f.folderBranch}, f)
+	if err != nil {
+		f.fs.log.Info("cannot unregister change notifier for folder %q: %v",
+			f.name, err)
+	}
+	f.folderBranch = libkbfs.FolderBranch{}
+}
+
 // forgetNode forgets a formerly active child with basename name.
 func (f *Folder) forgetNode(node libkbfs.Node) {
 	f.mu.Lock()
@@ -54,6 +96,7 @@ func (f *Folder) forgetNode(node libkbfs.Node) {
 
 	delete(f.nodes, node.GetID())
 	if len(f.nodes) == 0 && !f.noForget {
+		f.unsetFolderBranch()
 		f.list.forgetFolder(f)
 	}
 }
@@ -397,4 +440,15 @@ func resolveSymlinkIsDir(ctx context.Context, oc *openContext, rootDir *Dir, ori
 }
 func isPathSeparator(r rune) bool {
 	return r == '/' || r == '\\'
+}
+
+func asDir(ctx context.Context, f dokan.File) *Dir {
+	switch x := f.(type) {
+	case *Dir:
+		return x
+	case *TLF:
+		d, _ := x.loadDir(ctx, "asDir")
+		return d
+	}
+	return nil
 }

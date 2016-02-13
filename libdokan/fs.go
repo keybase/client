@@ -241,7 +241,7 @@ func windowsPathSplit(raw string) ([]string, error) {
 	if raw == `` {
 		raw = `\`
 	}
-	if raw[0] != '\\' {
+	if raw[0] != '\\' || raw[len(raw)-1] == '*' {
 		return nil, dokan.ErrObjectNameNotFound
 	}
 	return strings.Split(raw[1:], `\`), nil
@@ -305,21 +305,22 @@ func (f *FS) MoveFile(source *dokan.FileInfo, targetPath string, replaceExisting
 		return f.folderListRename(ctx, fl1, oc, src, srcName, dstPath, replaceExisting)
 	}
 
-	srcDirD, ok := srcDir.(*Dir)
-	if !ok {
+	srcDirD := asDir(ctx, srcDir)
+	if srcDirD == nil {
 		return errors.New("Parent of src not a Dir")
 	}
 	srcFolder := srcDirD.folder
 	srcParent := srcDirD.node
 
-	ddst, ok := dstDir.(*Dir)
-	if !ok {
+	ddst := asDir(ctx, dstDir)
+	if ddst == nil {
 		return errors.New("Destination directory is not of type Dir")
 	}
 
 	switch src.(type) {
 	case *Dir:
 	case *File:
+	case *TLF:
 	default:
 		return dokan.ErrAccessDenied
 	}
