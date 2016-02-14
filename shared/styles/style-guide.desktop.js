@@ -19,7 +19,6 @@ export const globalColors = {
 }
 
 export const globalColorsDZ2 = {
-
   // Keybase Brand Colors
   blue: '#33a0ff',
   blue2: '#66b8ff',
@@ -52,7 +51,10 @@ export const globalColorsDZ2 = {
   lightGrey2: '#f6f6f6',
 
   white: '#ffffff',
-  black: '#000000'
+  black: '#000000',
+
+  // TODO these do not appear in the color style guide, only text mocks
+  brown: '#471f11'
 }
 
 export const globalResizing = {
@@ -67,19 +69,30 @@ const fontCommon = {
 const font = {
   fontRegular: {
     ...fontCommon,
-    fontFamily: 'Noto Sans'
+    fontFamily: 'Lato',
+    fontWeight: 400
+  },
+  fontSemibold: {
+    ...fontCommon,
+    fontFamily: 'Lato',
+    fontWeight: 600
   },
   fontBold: {
     ...fontCommon,
-    fontFamily: 'Noto Sans Bold'
+    fontFamily: 'Lato',
+    fontWeight: 700
   },
-  fontItalic: {
-    ...fontCommon,
-    fontFamily: 'Noto Sans Italic'
+  italic: {
+    fontStyle: 'italic'
   },
   fontTerminal: {
     ...fontCommon,
     fontFamily: 'Source Code Pro'
+  },
+  fontTerminalSemibold: {
+    ...fontCommon,
+    fontFamily: 'Source Code Pro',
+    fontWeight: 600
   }
 }
 
