@@ -58,7 +58,7 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 			plistArgs := args[3:]
 			envVars := install.DefaultLaunchdEnvVars(g, label)
 
-			plist := launchd.NewPlist(label, binPath, plistArgs, envVars, logFileName)
+			plist := launchd.NewPlist(label, binPath, plistArgs, envVars, logFileName, "")
 			err := launchd.Install(plist, g.Log)
 			if err != nil {
 				g.Log.Fatalf("%v", err)

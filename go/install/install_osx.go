@@ -156,12 +156,12 @@ func ListServices(g *libkb.GlobalContext) (*keybase1.ServicesStatus, error) {
 		Kbfs:    serviceStatusesFromLaunchd(g, kbfs)}, nil
 }
 
-func DefaultLaunchdEnvVars(g *libkb.GlobalContext, label string) map[string]string {
-	envVars := make(map[string]string)
-	envVars["KEYBASE_LABEL"] = label
-	envVars["KEYBASE_LOG_FORMAT"] = "file"
-	envVars["KEYBASE_RUNTIME_DIR"] = g.Env.GetRuntimeDir()
-	return envVars
+func DefaultLaunchdEnvVars(g *libkb.GlobalContext, label string) []launchd.EnvVar {
+	return []launchd.EnvVar{
+		launchd.NewEnvVar("KEYBASE_LABEL", label),
+		launchd.NewEnvVar("KEYBASE_LOG_FORMAT", "file"),
+		launchd.NewEnvVar("KEYBASE_RUNTIME_DIR", g.Env.GetRuntimeDir()),
+	}
 }
 
 func DefaultServiceLabel(runMode libkb.RunMode) string {
@@ -178,20 +178,21 @@ func DefaultKBFSLabel(runMode libkb.RunMode) string {
 	return AppKBFSLabel.labelForRunMode(runMode)
 }
 
-func installKeybaseService(g *libkb.GlobalContext, binPath string) (*keybase1.ServiceStatus, error) {
-	label := DefaultServiceLabel(g.Env.GetRunMode())
+func keybasePlist(g *libkb.GlobalContext, binPath string, label string) launchd.Plist {
 	// TODO: Remove -d when doing real release
 	plistArgs := []string{"-d", "service"}
 	envVars := DefaultLaunchdEnvVars(g, label)
+	comment := "It's not advisable to edit this plist, it may be overwritten"
+	return launchd.NewPlist(label, binPath, plistArgs, envVars, libkb.ServiceLogFileName, comment)
+}
 
-	plist := launchd.NewPlist(label, binPath, plistArgs, envVars, libkb.ServiceLogFileName)
+func installKeybaseService(g *libkb.GlobalContext, service launchd.Service, plist launchd.Plist) (*keybase1.ServiceStatus, error) {
 	err := launchd.Install(plist, g.Log)
 	if err != nil {
 		return nil, err
 	}
 
-	kbService := launchd.NewService(label)
-	st, err := serviceStatusFromLaunchd(g, kbService, serviceInfoPath(g))
+	st, err := serviceStatusFromLaunchd(g, service, serviceInfoPath(g))
 	return &st, err
 }
 
@@ -202,32 +203,30 @@ func uninstallKeybaseServices(g *libkb.GlobalContext, runMode libkb.RunMode) err
 	return libkb.CombineErrors(err1, err2)
 }
 
-func installKBFSService(g *libkb.GlobalContext, binPath string) (*keybase1.ServiceStatus, error) {
+func kbfsPlist(g *libkb.GlobalContext, kbfsBinPath string, label string) (plist launchd.Plist, err error) {
 	runMode := g.Env.GetRunMode()
-	label := DefaultKBFSLabel(runMode)
-	kbfsBinPath, err := kbfsBinPath(runMode, binPath)
-	if err != nil {
-		return nil, err
-	}
-
 	mountPath := kbfsMountPath(runMode)
-	_, err = os.Stat(mountPath)
-	if err != nil {
-		return nil, err
-	}
-
 	// TODO: Remove when doing real release
 	plistArgs := []string{"-debug", mountPath}
 	envVars := DefaultLaunchdEnvVars(g, label)
+	comment := "It's not advisable to edit this plist, it may be overwritten"
+	plist = launchd.NewPlist(label, kbfsBinPath, plistArgs, envVars, libkb.KBFSLogFileName, comment)
 
-	plist := launchd.NewPlist(label, kbfsBinPath, plistArgs, envVars, libkb.KBFSLogFileName)
-	err = launchd.Install(plist, g.Log)
+	_, err = os.Stat(mountPath)
+	if err != nil {
+		return
+	}
+
+	return
+}
+
+func installKBFSService(g *libkb.GlobalContext, service launchd.Service, plist launchd.Plist) (*keybase1.ServiceStatus, error) {
+	err := launchd.Install(plist, g.Log)
 	if err != nil {
 		return nil, err
 	}
 
-	kbfsService := launchd.NewService(label)
-	st, err := serviceStatusFromLaunchd(g, kbfsService, "")
+	st, err := serviceStatusFromLaunchd(g, service, "")
 	return &st, err
 }
 
@@ -358,18 +357,35 @@ func installCommandLineForBinPath(binPath string, linkPath string, force bool) e
 }
 
 func installService(g *libkb.GlobalContext, binPath string, force bool) error {
-	bp, err := chooseBinPath(binPath)
+	resolvedBinPath, err := chooseBinPath(binPath)
 	if err != nil {
 		return err
 	}
-	g.Log.Debug("Using binPath: %s", bp)
+	g.Log.Debug("Using binPath: %s", resolvedBinPath)
+
+	label := DefaultServiceLabel(g.Env.GetRunMode())
+	service := launchd.NewService(label)
+	plist := keybasePlist(g, resolvedBinPath, label)
 	g.Log.Debug("Checking service")
-	keybaseStatus := KeybaseServiceStatus(g, "")
+	keybaseStatus := KeybaseServiceStatus(g, label)
 	g.Log.Debug("Service: %s (Action: %s)", keybaseStatus.InstallStatus.String(), keybaseStatus.InstallAction.String())
-	if keybaseStatus.NeedsInstall() || force {
-		g.Log.Debug("Installing Keybase service")
+	needsInstall := keybaseStatus.NeedsInstall()
+
+	if !needsInstall {
+		plistValid, err := service.CheckPlist(plist)
+		if err != nil {
+			return err
+		}
+		if !plistValid {
+			g.Log.Debug("Needs plist upgrade: %s", service.PlistDestination())
+			needsInstall = true
+		}
+	}
+
+	if needsInstall || force {
 		uninstallKeybaseServices(g, g.Env.GetRunMode())
-		_, err := installKeybaseService(g, bp)
+		g.Log.Debug("Installing Keybase service")
+		_, err := installKeybaseService(g, service, plist)
 		if err != nil {
 			g.Log.Errorf("Error installing Keybase service: %s", err)
 			return err
@@ -380,17 +396,37 @@ func installService(g *libkb.GlobalContext, binPath string, force bool) error {
 }
 
 func installKBFS(g *libkb.GlobalContext, binPath string, force bool) error {
-	bp, err := chooseBinPath(binPath)
+	runMode := g.Env.GetRunMode()
+	label := DefaultKBFSLabel(runMode)
+	kbfsService := launchd.NewService(label)
+	kbfsBinPath, err := kbfsBinPath(runMode, binPath)
 	if err != nil {
 		return err
 	}
+	plist, err := kbfsPlist(g, kbfsBinPath, label)
+	if err != nil {
+		return err
+	}
+
 	g.Log.Debug("Checking KBFS")
-	kbfsStatus := KBFSServiceStatus(g, "")
+	kbfsStatus := KBFSServiceStatus(g, label)
 	g.Log.Debug("KBFS: %s (Action: %s)", kbfsStatus.InstallStatus.String(), kbfsStatus.InstallAction.String())
-	if kbfsStatus.NeedsInstall() || force {
-		g.Log.Debug("Installing KBFS")
+	needsInstall := kbfsStatus.NeedsInstall()
+
+	if !needsInstall {
+		plistValid, err := kbfsService.CheckPlist(plist)
+		if err != nil {
+			return err
+		}
+		if !plistValid {
+			g.Log.Debug("Needs plist upgrade: %s", kbfsService.PlistDestination())
+			needsInstall = true
+		}
+	}
+	if needsInstall || force {
 		uninstallKBFSServices(g, g.Env.GetRunMode())
-		_, err := installKBFSService(g, bp)
+		g.Log.Debug("Installing KBFS")
+		_, err := installKBFSService(g, kbfsService, plist)
 		if err != nil {
 			g.Log.Errorf("Error installing KBFS: %s", err)
 			return err
@@ -485,14 +521,19 @@ func autoInstall(g *libkb.GlobalContext, binPath string, force bool) (newProc bo
 		err = fmt.Errorf("No service label to install")
 		return
 	}
+	resolvedBinPath, err := chooseBinPath(binPath)
+	if err != nil {
+		return
+	}
+	g.Log.Debug("Using binPath: %s", resolvedBinPath)
 
-	// Check if plist is installed. If so we're already installed and return.
-	plistPath := launchd.PlistDestination(label)
-	if _, ferr := os.Stat(plistPath); ferr == nil {
-		g.Log.Debug("| already installed at %s", plistPath)
-		if !force {
-			return
-		}
+	service := launchd.NewService(label)
+	plist := keybasePlist(g, resolvedBinPath, label)
+
+	// Check if plist is valid. If so we're already installed and return.
+	plistValid, err := service.CheckPlist(plist)
+	if err != nil || plistValid {
+		return
 	}
 
 	err = installService(g, binPath, true)
