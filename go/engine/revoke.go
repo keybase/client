@@ -74,6 +74,9 @@ func (e *RevokeEngine) getKIDsToRevoke(me *libkb.User) ([]keybase1.KID, error) {
 		if err != nil {
 			return nil, err
 		}
+		if len(deviceKeys) == 0 {
+			return nil, fmt.Errorf("No active keys to revoke for device %s.", e.deviceID)
+		}
 		return deviceKeys, nil
 	} else if e.mode == RevokeKey {
 		kid := e.kid
