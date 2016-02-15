@@ -3,7 +3,7 @@
 # Note:  this script isn't bulletproof, and you have to kind of know what you
 # are doing (editing the formula by hand, etc.), but it saves some time.
 #
-# Steps taken from here:  
+# Steps taken from here:
 #
 # https://github.com/Homebrew/homebrew/blob/master/share/doc/homebrew/How-To-Open-a-Homebrew-Pull-Request-(and-get-it-merged).md
 #
@@ -18,12 +18,14 @@ fi
 
 version="$1"
 version_branch="keybase-$version"
+repo=$(brew --repository)
 
-cd $(brew --repository)
+echo "Brew repository: $repo"
+cd $repo
 git checkout master
 brew update
 git checkout -b $version_branch
-# this next step could be automated by copying the keybase.rb file from 
+# this next step could be automated by copying the keybase.rb file from
 # keybase/homebrew-beta repo:
 brew edit keybase
 brew audit keybase
@@ -33,5 +35,5 @@ brew install keybase
 brew test keybase
 git commit Library/Formula/keybase.rb
 git push --set-upstream keybase $version_branch
-open https://github.com/Homebrew/homebrew 
 
+open https://github.com/keybase/homebrew
