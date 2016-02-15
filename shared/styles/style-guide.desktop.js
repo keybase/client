@@ -21,23 +21,38 @@ export const globalColors = {
 export const globalColorsDZ2 = {
 
   // Keybase Brand Colors
-  blue: '#00bff0',
-  lightBlue1: '#86e2f9',
-  lightBlue2: '#c7f4ff',
-  orange1: '#ff602e',
-  orange2: '#fc8558',
+  blue: '#33a0ff',
+  blue2: '#66b8ff',
+  blue3: '#a8d7ff',
+  blue4: '#e6f3ff',
+
+  orange: '#ff6f21',
+
   yellow: '#fff75a',
-  darkBlue: '#385f8c',
 
-  // Additional Colors
-  green1: '#90d05c',
-  green2: '#5bad34',
-  red1: '#e66272',
-  red2: '#dc001b',
+  darkBlue: '#195080',
+  darkBlue2: '#2470b3',
+  darkBlue3: '#001b33',
 
-  // Backgrounds
-  backgroundGrey: '#f6f6f6',
-  backgroundWhite: '#ffffff'
+  green: '#3dcc8e',
+  green2: '#36b37c',
+
+  red: '#ff4d61',
+
+  yellowGreen: '#b3db39',
+  yellowGreen2: '#89a82c',
+
+  black75: 'rgba(0, 0, 0, 0.75)',
+  black60: 'rgba(0, 0, 0, 0.60)',
+  black40: 'rgba(0, 0, 0, 0.40)',
+  black20: 'rgba(0, 0, 0, 0.20)',
+  black10: 'rgba(0, 0, 0, 0.10)',
+
+  lightGrey: '#ebebeb',
+  lightGrey2: '#f6f6f6',
+
+  white: '#ffffff',
+  black: '#000000'
 }
 
 export const globalResizing = {
