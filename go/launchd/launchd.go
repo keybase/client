@@ -46,18 +46,30 @@ func (s Service) info(format string, args ...interface{}) {
 // Label for service
 func (s Service) Label() string { return s.label }
 
+// EnvVar defines and environment variable for the Plist
+type EnvVar struct {
+	key   string
+	value string
+}
+
+// NewEnvVar creates a new environment variable
+func NewEnvVar(key string, value string) EnvVar {
+	return EnvVar{key, value}
+}
+
 // Plist defines a launchd plist
 type Plist struct {
 	label       string
 	binPath     string
 	args        []string
-	envVars     map[string]string
+	envVars     []EnvVar
 	keepAlive   bool
 	logFileName string
+	comment     string
 }
 
-// NewPlist constructs a launchd service.
-func NewPlist(label string, binPath string, args []string, envVars map[string]string, logFileName string) Plist {
+// NewPlist constructs a launchd service plist
+func NewPlist(label string, binPath string, args []string, envVars []EnvVar, logFileName string, comment string) Plist {
 	return Plist{
 		label:       label,
 		binPath:     binPath,
@@ -65,6 +77,7 @@ func NewPlist(label string, binPath string, args []string, envVars map[string]st
 		envVars:     envVars,
 		keepAlive:   true,
 		logFileName: logFileName,
+		comment:     comment,
 	}
 }
 
@@ -136,11 +149,11 @@ func (s Service) WaitForExit(wait time.Duration) error {
 }
 
 // Install will install the launchd service
-func (s Service) Install(p Plist) (err error) {
-	if _, err := os.Stat(p.binPath); os.IsNotExist(err) {
-		return err
+func (s Service) Install(p Plist) error {
+	if _, ferr := os.Stat(p.binPath); os.IsNotExist(ferr) {
+		return fmt.Errorf("%s doesn't exist", p.binPath)
 	}
-	plist := p.plist()
+	plist := p.plistXML()
 	plistDest := s.plistDestination()
 
 	// See GH issue: https://github.com/keybase/client/pull/1399#issuecomment-164810645
@@ -150,13 +163,11 @@ func (s Service) Install(p Plist) (err error) {
 
 	s.info("Saving %s", plistDest)
 	file := libkb.NewFile(plistDest, []byte(plist), 0644)
-	err = file.Save()
-	if err != nil {
-		return
+	if err := file.Save(); err != nil {
+		return err
 	}
 
-	err = s.Start()
-	return
+	return s.Start()
 }
 
 // Uninstall will uninstall the launchd service
@@ -286,6 +297,13 @@ func (s Service) LoadStatus() (*ServiceStatus, error) {
 	return nil, nil
 }
 
+// CheckPlist returns false, if the plist destination doesn't match what we
+// would install. This means the plist is old and we need to update it.
+func (s Service) CheckPlist(plist Plist) (bool, error) {
+	plistDest := s.plistDestination()
+	return plist.Check(plistDest)
+}
+
 // Install will install a service
 func Install(plist Plist, log logger.Logger) error {
 	service := NewService(plist.label)
@@ -349,6 +367,10 @@ func PlistDestination(label string) string {
 	return filepath.Join(launchAgentDir(), label+".plist")
 }
 
+func (s Service) PlistDestination() string {
+	return s.plistDestination()
+}
+
 func (s Service) plistDestination() string {
 	return PlistDestination(s.label)
 }
@@ -373,8 +395,32 @@ func ensureDirectoryExists(dir string) error {
 	return nil
 }
 
+// Check if plist matches plist at path
+func (p Plist) Check(path string) (bool, error) {
+	if p.binPath == "" {
+		return false, fmt.Errorf("Invalid ProgramArguments")
+	}
+
+	// If path doesn't exist, we don't match
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return false, nil
+	}
+
+	buf, err := ioutil.ReadFile(path)
+	if err != nil {
+		return false, err
+	}
+
+	plistXML := p.plistXML()
+	if string(buf) == plistXML {
+		return true, nil
+	}
+
+	return false, nil
+}
+
 // TODO Use go-plist library
-func (p Plist) plist() string {
+func (p Plist) plistXML() string {
 	logFile := filepath.Join(launchdLogDir(), p.logFileName)
 
 	encodeTag := func(name, val string) string {
@@ -397,9 +443,9 @@ func (p Plist) plist() string {
 	}
 
 	envVars := []string{}
-	for key, value := range p.envVars {
-		envVars = append(envVars, encodeTag("key", key))
-		envVars = append(envVars, encodeTag("string", value))
+	for _, envVar := range p.envVars {
+		envVars = append(envVars, encodeTag("key", envVar.key))
+		envVars = append(envVars, encodeTag("string", envVar.value))
 	}
 
 	options := []string{}
@@ -408,7 +454,7 @@ func (p Plist) plist() string {
 		options = append(options, encodeTag("key", "RunAtLoad"), encodeBool(true))
 	}
 
-	return `<?xml version="1.0" encoding="UTF-8"?>
+	xml := `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
@@ -428,5 +474,12 @@ func (p Plist) plist() string {
   <key>WorkingDirectory</key>
   <string>/tmp</string>
 </dict>
-</plist>`
+</plist>
+`
+
+	if p.comment != "" {
+		xml = fmt.Sprintf("<!-- %s -->\n%s", p.comment, xml)
+	}
+
+	return xml
 }
