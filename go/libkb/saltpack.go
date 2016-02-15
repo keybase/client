@@ -38,6 +38,29 @@ func (b naclBoxPublicKey) HideIdentity() bool {
 	return false
 }
 
+type hiddenNaclBoxPublicKey NaclDHKeyPublic
+
+func (b hiddenNaclBoxPublicKey) ToKID() []byte {
+	return b[:]
+}
+
+func (b hiddenNaclBoxPublicKey) ToRawBoxKeyPointer() *saltpack.RawBoxKey {
+	return (*saltpack.RawBoxKey)(&b)
+}
+
+func (b hiddenNaclBoxPublicKey) CreateEphemeralKey() (saltpack.BoxSecretKey, error) {
+	kp, err := GenerateNaclDHKeyPair()
+	if err != nil {
+		return nil, err
+	}
+
+	return naclBoxSecretKey(kp), nil
+}
+
+func (b hiddenNaclBoxPublicKey) HideIdentity() bool {
+	return true
+}
+
 type naclBoxPrecomputedSharedKey [32]byte
 
 var _ saltpack.BoxPrecomputedSharedKey = naclBoxPrecomputedSharedKey{}

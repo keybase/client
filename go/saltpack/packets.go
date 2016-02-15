@@ -28,7 +28,7 @@ type encryptionHeader struct {
 	Type            MessageType    `codec:"type"`
 	Ephemeral       []byte         `codec:"ephemeral"`
 	SenderSecretbox []byte         `codec:"sendersecretbox"`
-	Receivers       []receiverKeys `codec:"rcvrs"`
+	Receivers       []receiverKeys `codec:"rcvrs,omitempty"`
 	seqno           packetSeqno
 }
 

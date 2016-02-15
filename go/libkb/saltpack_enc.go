@@ -15,6 +15,7 @@ type SaltpackEncryptArg struct {
 	Receivers []NaclDHKeyPublic
 	Sender    NaclDHKeyPair
 	Binary    bool
+	Anonymous bool
 }
 
 // SaltpackEncrypt reads from the given source, encrypts it for the given
@@ -23,7 +24,11 @@ type SaltpackEncryptArg struct {
 func SaltpackEncrypt(g *GlobalContext, arg *SaltpackEncryptArg) error {
 	var receiverBoxKeys []saltpack.BoxPublicKey
 	for _, k := range arg.Receivers {
-		receiverBoxKeys = append(receiverBoxKeys, naclBoxPublicKey(k))
+		if arg.Anonymous {
+			receiverBoxKeys = append(receiverBoxKeys, hiddenNaclBoxPublicKey(k))
+		} else {
+			receiverBoxKeys = append(receiverBoxKeys, naclBoxPublicKey(k))
+		}
 	}
 
 	var bsk saltpack.BoxSecretKey

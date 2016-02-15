@@ -152,6 +152,7 @@ func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
 		Receivers: receivers,
 		Sender:    sender,
 		Binary:    e.arg.Opts.Binary,
+		Anonymous: e.arg.Opts.Anonymous,
 	}
 	return libkb.SaltpackEncrypt(e.G(), &encarg)
 }

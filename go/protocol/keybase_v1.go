@@ -4986,6 +4986,7 @@ type SaltpackEncryptOptions struct {
 	HideSelf      bool     `codec:"hideSelf" json:"hideSelf"`
 	NoSelfEncrypt bool     `codec:"noSelfEncrypt" json:"noSelfEncrypt"`
 	Binary        bool     `codec:"binary" json:"binary"`
+	Anonymous     bool     `codec:"anonymous" json:"anonymous"`
 }
 
 type SaltpackDecryptOptions struct {

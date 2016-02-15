@@ -21,6 +21,7 @@ type CmdEncrypt struct {
 	recipients    []string
 	noSelfEncrypt bool
 	binary        bool
+	anonymous     bool
 }
 
 func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -55,6 +56,10 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Usage: "Specify an outfile (stdout by default).",
 			},
 			cli.BoolFlag{
+				Name:  "a, anonymous",
+				Usage: "Don't include recepients in metadata",
+			},
+			cli.BoolFlag{
 				Name:  "no-self",
 				Usage: "Don't encrypt for yourself",
 			},
@@ -86,6 +91,7 @@ func (c *CmdEncrypt) Run() error {
 		Recipients:    c.recipients,
 		NoSelfEncrypt: c.noSelfEncrypt,
 		Binary:        c.binary,
+		Anonymous:     c.anonymous,
 	}
 	arg := keybase1.SaltpackEncryptArg{Source: src, Sink: snk, Opts: opts}
 	err = cli.SaltpackEncrypt(context.TODO(), arg)
@@ -112,6 +118,7 @@ func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 	infile := ctx.String("infile")
 	c.noSelfEncrypt = ctx.Bool("no-self")
 	c.binary = ctx.Bool("binary")
+	c.anonymous = ctx.Bool("anonymous")
 	if err := c.filter.FilterInit(msg, infile, outfile); err != nil {
 		return err
 	}
