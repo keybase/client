@@ -232,7 +232,7 @@ function collectTypes (acc, typeDefs) {
 
 function makeRpcUnionType (typeDefs) {
   const rpcTypes = typeDefs.map(t => t.match(/(\w*_rpc)/g)).filter(t => t).reduce((acc, t) => acc.concat(t), []).join(' | ')
-  const unionRpcType = `\n\nexport type rpc = ${rpcTypes}\n\n`
+  const unionRpcType = `export type rpc = ${rpcTypes}\n\n`
   return typeDefs.concat(unionRpcType)
 }
 

@@ -2,8 +2,6 @@
 
 import * as RouterConstants from '../constants/router'
 import Immutable, {List, Map} from 'immutable'
-import * as LoginConstants from '../constants/login'
-
 export type URI = List<Map<string, string>>
 type History = List<URI>
 
@@ -48,7 +46,7 @@ function parseUri (uri) {
 }
 
 // This is called by the tabbed reducer, not the global reducer
-export function subReducer(state: RouterState = initialState, action: any): RouterState {
+export function subReducer (state: RouterState = initialState, action: any): RouterState {
   const stateWithHistory = state.update('history', pushIfTailIsDifferent.bind(null, state.get('uri')))
   switch (action.type) {
     // TODO(MM): change the history so if we go up to something that is already in the history,

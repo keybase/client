@@ -2,16 +2,16 @@ import React, {Component} from 'react'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 import {BackButton, Icon, Text} from '../../common-adapters'
 
-const Row = props => {
+const Row = ({onClick, icon, title, subTitle, children}) => {
   return (
-    <div className='register-row' style={styles.rowContainer} onClick={props.onClick}>
+    <div className='register-row' style={styles.rowContainer} onClick={onClick}>
       <div className='register-icon' style={styles.iconContainer}>
-        <Icon type={props.icon} style={styles.icon}/>
+        <Icon type={icon} style={styles.icon}/>
       </div>
       <div style={styles.rowBody}>
-        <Text type='Header'>{props.title}</Text>
-        <Text type='Body' small>{props.subTitle}</Text>
-        {props.children}
+        <Text type='Header'>{title}</Text>
+        <Text type='Body' small>{subTitle}</Text>
+        {children}
       </div>
     </div>
   )

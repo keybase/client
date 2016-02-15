@@ -23,7 +23,8 @@ class Register extends Component {
 Register.propTypes = {
   onGotoExistingDevicePage: React.PropTypes.func.isRequired,
   onGotoPaperKeyPage: React.PropTypes.func.isRequired,
-  onGotoUserPassPage: React.PropTypes.func.isRequired
+  onGotoUserPassPage: React.PropTypes.func.isRequired,
+  onBack: React.PropTypes.func.isRequired
 }
 
 export default connect(

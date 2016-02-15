@@ -7,10 +7,6 @@ import Tracker from '../tracker'
 import Menubar from '../menubar'
 import Container from './dev-container'
 import Update from '../update/index.js'
-
-// $FlowIssue platform files
-import RemoteComponent from '../../desktop/renderer/remote-component'
-
 import {devEditAction} from '../reducers/devEdit'
 
 // Tracker constants
@@ -118,6 +114,11 @@ class PopupDemo_ extends Component {
     )
   }
 }
+
+PopupDemo_.propTypes = {
+  dispatch: React.PropTypes.any
+}
+
 const PopupDemo = connect(state => ({}), dispatch => ({dispatch}))(PopupDemo_)
 
 class TrackerDev extends Component {
@@ -177,6 +178,11 @@ class TrackerDev extends Component {
       return this.usernamePicker()
     }
   }
+}
+
+TrackerDev.propTypes = {
+  dispatch: React.PropTypes.any,
+  trackers: React.PropTypes.any
 }
 
 const ConnectedTrackerDev = connect(state => state.tracker, dispatch => ({dispatch}))(TrackerDev)

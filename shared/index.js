@@ -12,7 +12,7 @@ const store = configureStore()
 class Keybase extends Component {
   componentWillMount () {
     this.subscriptions = []
-    if (__DEV__) { // eslint-disable-line no-undef
+    if (__DEV__) {
       AsyncStorage.getItem(stateKey, (err, stateJSON) => {
         if (err != null) {
           console.error('Error in reading state:', err)

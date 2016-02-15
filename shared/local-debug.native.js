@@ -13,7 +13,7 @@ let config = {
   printRPC: false
 }
 
-if (__DEV__ && false) { // eslint-disable-line no-undef
+if (__DEV__ && false) {
   config.overrideRouterState = createRouterState([], [])
   config.overrideActiveTab = Tabs.devicesTab
   config.skipLoginRouteToRoot = true

@@ -1,10 +1,15 @@
 {
     "parser": "babel-eslint",
     "extends": ["standard", "standard-react"],
+    "globals": {
+        "__DEV__": false
+    },
     "plugins": [
         "flow-vars", "mocha"
     ],
     "rules": {
+        "flow-vars/define-flow-type": 1,
+        "flow-vars/use-flow-type": 1,
         "standard/object-curly-even-spacing": [2, "never"],
         "standard/array-bracket-even-spacing": [2, "never"],
         "standard/computed-property-even-spacing": [2, "never"],

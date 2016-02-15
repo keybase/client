@@ -30,7 +30,7 @@ class More extends Component {
       ]
     }
 
-    if (__DEV__) { // eslint-disable-line no-undef
+    if (__DEV__) {
       this.state.menuItems.push({
         name: 'Dev Menu',
         hasChildren: true,

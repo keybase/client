@@ -22,7 +22,6 @@ const objToJS = state => {
   return newState
 }
 
-// Only log if __DEV__
 const loggerMiddleware = enableStoreLogging ? createLogger({
   duration: true,
   stateTransformer: objToJS,

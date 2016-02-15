@@ -1,5 +1,5 @@
 import Window from './window'
-import {app, ipcMain} from 'electron'
+import {ipcMain} from 'electron'
 import menuHelper from './menu-helper'
 import resolveRoot from '../resolve-root'
 import hotPath from '../hot-path'

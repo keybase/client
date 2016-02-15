@@ -7,7 +7,7 @@ export const isMobile = false
 
 export const runMode = getenv('KEYBASE_RUN_MODE', 'prod')
 
-if (__DEV__) { // eslint-disable-line no-undef
+if (__DEV__) {
   console.log(`Run mode: ${runMode}`)
 }
 
