@@ -1,3 +1,6 @@
+## 1.0.12 (2016-02-15)
+- Fix invalid plist on brew install/upgrade (#2074)
+
 ## 1.0.11 (2016-02-10)
 - Forward-compatibility fix, for future RPCS (PR: keybase/client#1919)
 - Fix potential recursive LogUI Explosion (PR: keybase/client#1925)
