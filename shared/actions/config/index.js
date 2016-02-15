@@ -6,6 +6,8 @@ import {switchTab} from '../../actions/tabbed-router'
 import {navigateTo} from '../../actions/router'
 import {loginTab, moreTab} from '../../constants/tabs'
 
+import {skipLoginRouteToRoot} from '../../local-debug'
+
 // $FlowFixMe
 import * as native from './index.native'
 
@@ -26,7 +28,7 @@ function switchTabs () : AsyncAction {
     } else if (!status.loggedIn) {
       dispatch(switchTab(loginTab))
       // dispatch(navigateTo(['login']))
-    } else if (status.loggedIn) {
+    } else if (status.loggedIn && !skipLoginRouteToRoot) {
       dispatch(switchTab(moreTab))
       dispatch(navigateTo([]))
     }
