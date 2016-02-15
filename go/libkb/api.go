@@ -538,9 +538,19 @@ func (api *ExternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
 	// want in Tor mode. Clients that are actually using Tor will always be
 	// distinguishable from the rest, insofar as their originating IP will be a
 	// Tor exit node, but there may be other use cases where this matters more?
-	if api.G().Env.GetTorMode().UseHeaders() {
-		req.Header.Set("User-Agent", UserAgent)
+	userAgent := UserAgent
+	// Awful hack to make reddit as happy as possible.
+	if isReddit(req) {
+		userAgent += " (by /u/oconnor663)"
 	}
+	if api.G().Env.GetTorMode().UseHeaders() {
+		req.Header.Set("User-Agent", userAgent)
+	}
+}
+
+func isReddit(req *http.Request) bool {
+	host := req.URL.Host
+	return host == "reddit.com" || strings.HasSuffix(host, ".reddit.com")
 }
 
 func (api *ExternalAPIEngine) consumeHeaders(resp *http.Response) error {
