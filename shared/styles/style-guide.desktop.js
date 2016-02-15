@@ -37,7 +37,15 @@ export const globalColorsDZ2 = {
 
   // Backgrounds
   backgroundGrey: '#f6f6f6',
-  backgroundWhite: '#ffffff'
+  backgroundWhite: '#ffffff',
+
+  // Foreground text
+  black75: 'rgba(0, 0, 0, 0.75)',
+  black40: 'rgba(0, 0, 0, 0.4)',
+  black10: 'rgba(0, 0, 0, 0.1)',
+  white100: '#ffffff',
+  white75: 'rgba(255, 255, 255, 0.75)',
+  white40: 'rgba(255, 255, 255, 0.4)'
 }
 
 export const globalResizing = {
