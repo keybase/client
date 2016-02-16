@@ -7,14 +7,15 @@ import (
 	"bytes"
 	"crypto/sha512"
 	"encoding/hex"
-	"golang.org/x/crypto/nacl/secretbox"
 	"io"
+
+	"golang.org/x/crypto/nacl/secretbox"
 )
 
 type encryptStream struct {
 	output     io.Writer
 	encoder    encoder
-	header     *encryptionHeader
+	header     *EncryptionHeader
 	payloadKey SymmetricKey
 	buffer     bytes.Buffer
 	inblock    []byte
@@ -135,7 +136,7 @@ func (es *encryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey) err
 		sender = ephemeralKey
 	}
 
-	eh := &encryptionHeader{
+	eh := &EncryptionHeader{
 		FormatName: SaltpackFormatName,
 		Version:    SaltpackCurrentVersion,
 		Type:       MessageTypeEncryption,

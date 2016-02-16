@@ -936,7 +936,7 @@ func TestCorruptHeader(t *testing.T) {
 	// Test bad Header version
 	teo := testEncryptionOptions{
 		blockSize: 1024,
-		corruptHeader: func(eh *encryptionHeader) {
+		corruptHeader: func(eh *EncryptionHeader) {
 			eh.Version.Major = 2
 		},
 	}
@@ -956,7 +956,7 @@ func TestCorruptHeader(t *testing.T) {
 	// Test bad header Tag
 	teo = testEncryptionOptions{
 		blockSize: 1024,
-		corruptHeader: func(eh *encryptionHeader) {
+		corruptHeader: func(eh *EncryptionHeader) {
 			eh.Type = MessageTypeAttachedSignature
 		},
 	}
@@ -1111,7 +1111,7 @@ func TestCorruptEmpheralKey(t *testing.T) {
 	receivers := []BoxPublicKey{newHiddenBoxKey(t).GetPublicKey()}
 	plaintext := randomMsg(t, 1024*3)
 	teo := testEncryptionOptions{
-		corruptHeader: func(eh *encryptionHeader) {
+		corruptHeader: func(eh *EncryptionHeader) {
 			eh.Ephemeral = eh.Ephemeral[0 : len(eh.Ephemeral)-1]
 		},
 	}
@@ -1133,7 +1133,7 @@ func TestCiphertextSwapKeys(t *testing.T) {
 	}
 	plaintext := randomMsg(t, 1024*3)
 	teo := testEncryptionOptions{
-		corruptHeader: func(h *encryptionHeader) {
+		corruptHeader: func(h *EncryptionHeader) {
 			h.Receivers[1].PayloadKeyBox, h.Receivers[0].PayloadKeyBox = h.Receivers[0].PayloadKeyBox, h.Receivers[1].PayloadKeyBox
 		},
 	}

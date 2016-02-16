@@ -4982,11 +4982,11 @@ func (c RevokeClient) RevokeSigs(ctx context.Context, __arg RevokeSigsArg) (err 
 }
 
 type SaltpackEncryptOptions struct {
-	Recipients    []string `codec:"recipients" json:"recipients"`
-	HideSelf      bool     `codec:"hideSelf" json:"hideSelf"`
-	NoSelfEncrypt bool     `codec:"noSelfEncrypt" json:"noSelfEncrypt"`
-	Binary        bool     `codec:"binary" json:"binary"`
-	Anonymous     bool     `codec:"anonymous" json:"anonymous"`
+	Recipients     []string `codec:"recipients" json:"recipients"`
+	HideSelf       bool     `codec:"hideSelf" json:"hideSelf"`
+	NoSelfEncrypt  bool     `codec:"noSelfEncrypt" json:"noSelfEncrypt"`
+	Binary         bool     `codec:"binary" json:"binary"`
+	HideRecipients bool     `codec:"hideRecipients" json:"hideRecipients"`
 }
 
 type SaltpackDecryptOptions struct {

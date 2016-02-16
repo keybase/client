@@ -41,7 +41,7 @@ func (b naclBoxPublicKey) HideIdentity() bool {
 type hiddenNaclBoxPublicKey NaclDHKeyPublic
 
 func (b hiddenNaclBoxPublicKey) ToKID() []byte {
-	return b[:]
+	panic("attempting to return KID from hiddenNaclBoxPublicKey")
 }
 
 func (b hiddenNaclBoxPublicKey) ToRawBoxKeyPointer() *saltpack.RawBoxKey {

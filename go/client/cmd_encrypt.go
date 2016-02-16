@@ -17,11 +17,11 @@ import (
 
 type CmdEncrypt struct {
 	libkb.Contextified
-	filter        UnixFilter
-	recipients    []string
-	noSelfEncrypt bool
-	binary        bool
-	anonymous     bool
+	filter         UnixFilter
+	recipients     []string
+	noSelfEncrypt  bool
+	binary         bool
+	hideRecipients bool
 }
 
 func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -35,10 +35,6 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			}, "encrypt", c)
 		},
 		Flags: []cli.Flag{
-			// TODO: Support anonymous receiver mode:
-			// https://keybase.atlassian.net/browse/CORE-2142
-			// .
-			//
 			cli.BoolFlag{
 				Name:  "b, binary",
 				Usage: "Output in binary (rather than ASCII/armored).",
@@ -56,7 +52,7 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Usage: "Specify an outfile (stdout by default).",
 			},
 			cli.BoolFlag{
-				Name:  "a, anonymous",
+				Name:  "hide-recipients",
 				Usage: "Don't include recepients in metadata",
 			},
 			cli.BoolFlag{
@@ -88,10 +84,10 @@ func (c *CmdEncrypt) Run() error {
 	}
 
 	opts := keybase1.SaltpackEncryptOptions{
-		Recipients:    c.recipients,
-		NoSelfEncrypt: c.noSelfEncrypt,
-		Binary:        c.binary,
-		Anonymous:     c.anonymous,
+		Recipients:     c.recipients,
+		NoSelfEncrypt:  c.noSelfEncrypt,
+		Binary:         c.binary,
+		HideRecipients: c.hideRecipients,
 	}
 	arg := keybase1.SaltpackEncryptArg{Source: src, Sink: snk, Opts: opts}
 	err = cli.SaltpackEncrypt(context.TODO(), arg)
@@ -118,7 +114,7 @@ func (c *CmdEncrypt) ParseArgv(ctx *cli.Context) error {
 	infile := ctx.String("infile")
 	c.noSelfEncrypt = ctx.Bool("no-self")
 	c.binary = ctx.Bool("binary")
-	c.anonymous = ctx.Bool("anonymous")
+	c.hideRecipients = ctx.Bool("hide-recipients")
 	if err := c.filter.FilterInit(msg, infile, outfile); err != nil {
 		return err
 	}

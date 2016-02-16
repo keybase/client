@@ -147,12 +147,12 @@ func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
 	}
 
 	encarg := libkb.SaltpackEncryptArg{
-		Source:    e.arg.Source,
-		Sink:      e.arg.Sink,
-		Receivers: receivers,
-		Sender:    sender,
-		Binary:    e.arg.Opts.Binary,
-		Anonymous: e.arg.Opts.Anonymous,
+		Source:         e.arg.Source,
+		Sink:           e.arg.Sink,
+		Receivers:      receivers,
+		Sender:         sender,
+		Binary:         e.arg.Opts.Binary,
+		HideRecipients: e.arg.Opts.HideRecipients,
 	}
 	return libkb.SaltpackEncrypt(e.G(), &encarg)
 }

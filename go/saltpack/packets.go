@@ -18,17 +18,17 @@ type Version struct {
 	Minor   int  `codec:"minor"`
 }
 
-// encryptionHeader is the first packet in an encrypted message.
+// EncryptionHeader is the first packet in an encrypted message.
 // It contains the encryptions of the session keys, and various
 // message metadata.
-type encryptionHeader struct {
+type EncryptionHeader struct {
 	_struct         bool           `codec:",toarray"`
 	FormatName      string         `codec:"format_name"`
 	Version         Version        `codec:"vers"`
 	Type            MessageType    `codec:"type"`
 	Ephemeral       []byte         `codec:"ephemeral"`
 	SenderSecretbox []byte         `codec:"sendersecretbox"`
-	Receivers       []receiverKeys `codec:"rcvrs,omitempty"`
+	Receivers       []receiverKeys `codec:"rcvrs"`
 	seqno           packetSeqno
 }
 
@@ -41,7 +41,7 @@ type encryptionBlock struct {
 	seqno              packetSeqno
 }
 
-func (h *encryptionHeader) validate() error {
+func (h *EncryptionHeader) validate() error {
 	if h.Type != MessageTypeEncryption {
 		return ErrWrongMessageType{MessageTypeEncryption, h.Type}
 	}

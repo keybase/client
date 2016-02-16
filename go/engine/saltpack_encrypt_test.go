@@ -51,24 +51,7 @@ func TestSaltpackEncrypt(t *testing.T) {
 	run([]string{u1.Username, u2.Username, u3.Username})
 }
 
-type receiverKeys struct {
-	_struct       bool   `codec:",toarray"`
-	ReceiverKID   []byte `codec:"receiver_key_id"`
-	PayloadKeyBox []byte `codec:"payloadkey"`
-}
-
-type encryptionHeader struct {
-	_struct         bool                 `codec:",toarray"`
-	FormatName      string               `codec:"format_name"`
-	Version         saltpack.Version     `codec:"vers"`
-	Type            saltpack.MessageType `codec:"type"`
-	Ephemeral       []byte               `codec:"ephemeral"`
-	SenderSecretbox []byte               `codec:"sendersecretbox"`
-	Receivers       []receiverKeys       `codec:"rcvrs,omitempty"`
-	seqno           uint64
-}
-
-func TestSaltpackAnonymousEncrypt(t *testing.T) {
+func TestSaltpackEncryptHideRecipients(t *testing.T) {
 	tc := SetupEngineTest(t, "SaltpackEncrypt")
 	defer tc.Cleanup()
 
@@ -84,7 +67,7 @@ func TestSaltpackAnonymousEncrypt(t *testing.T) {
 	run := func(Recips []string) {
 		sink := libkb.NewBufferCloser()
 		arg := &SaltpackEncryptArg{
-			Opts:   keybase1.SaltpackEncryptOptions{Recipients: Recips, Anonymous: true},
+			Opts:   keybase1.SaltpackEncryptOptions{Recipients: Recips, HideRecipients: true},
 			Source: strings.NewReader("id2 and encrypt, id2 and encrypt"),
 			Sink:   sink,
 		}
@@ -99,14 +82,16 @@ func TestSaltpackAnonymousEncrypt(t *testing.T) {
 			t.Fatal("no output")
 		}
 
-		var header encryptionHeader
+		var header saltpack.EncryptionHeader
 		dec := codec.NewDecoderBytes(out, &codec.MsgpackHandle{WriteExt: true})
 		if err := dec.Decode(&header); err != nil {
 			t.Fatal(err)
 		}
 
-		if len(header.Receivers) > 0 {
-			t.Fatal("receivers included in anonymous saltpack header")
+		for _, receiver := range header.Receivers {
+			if receiver.ReceiverKID != nil {
+				t.Fatal("receiver KID included in anonymous saltpack header")
+			}
 		}
 
 	}
