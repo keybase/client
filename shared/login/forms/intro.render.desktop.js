@@ -17,8 +17,7 @@ export default class Intro extends Component {
         <Text style={styles.header} type='Header'>Join Keybase</Text>
         <Text style={styles.headerSub} type='Body'>Folders for anyone in the world.</Text>
         <Button style={styles.button} primary onClick={this.props.onSignup} label='Create an account' />
-        <Text style={styles.loginHeader} type='Body'>Already on Keybase?</Text>
-        <Text type='Body' link onClick={this.props.onLogin}>Log In</Text>
+        <Text style={styles.loginHeader} type='Body' link onClick={this.props.onLogin}>Already on Keybase?<br/><span>Log in</span></Text>
       </div>
     )
   }
@@ -38,7 +37,8 @@ const styles = {
     marginTop: 10
   },
   loginHeader: {
-    marginTop: 95
+    marginTop: 95,
+    textAlign: 'center'
   },
   button: {
     marginTop: 20

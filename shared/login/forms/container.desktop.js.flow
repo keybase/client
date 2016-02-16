@@ -1,0 +1,9 @@
+/* @flow */
+import React from 'react'
+
+export type Props = {
+    onBack: () => void
+};
+
+// https://github.com/facebook/flow/issues/1081
+// TODO stateless component annotation
