@@ -859,6 +859,18 @@ func (fbo *folderBranchOps) CheckForNewMDAndInit(
 			return WrongOpsError{fbo.folderBranch, fb}
 		}
 
+		// Always identify first when trying to initialize the folder,
+		// even if we turn out not to be a writer.  (We can't rely on
+		// the identifyOnce call in getMDLocked, because that isn't
+		// called from the initialization code path when the local
+		// user is not a valid writer.)  Also, we want to make sure we
+		// fail before we set the head, otherwise future calls will
+		// succeed incorrectly.
+		err = fbo.identifyOnce(ctx, md)
+		if err != nil {
+			return err
+		}
+
 		lState := makeFBOLockState()
 
 		fbo.mdWriterLock.Lock(lState)
@@ -880,16 +892,6 @@ func (fbo *folderBranchOps) CheckForNewMDAndInit(
 			} else {
 				return nil
 			}
-		}
-
-		// Always identify first when trying to initialize the folder,
-		// even if we turn out not to be a writer.  (We can't rely on
-		// the identifyOnce call in getMDLocked, because that isn't
-		// called from the initialization code path when the local
-		// user is not a valid writer.
-		err = fbo.identifyOnce(ctx, md)
-		if err != nil {
-			return err
 		}
 
 		// Initialize if needed

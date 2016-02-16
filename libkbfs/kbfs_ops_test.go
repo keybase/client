@@ -467,7 +467,7 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 	n, ei, err :=
 		config.KBFSOps().GetOrCreateRootNode(ctx, name, false, MasterBranch)
 	require.Nil(t, err)
-	assert.False(t, ops.identifyDone)
+	assert.True(t, ops.identifyDone)
 
 	p := ops.nodeCache.PathFromNode(n)
 	if p.Tlf != id {
