@@ -5,6 +5,8 @@ import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide
 import {styles as TextStyles} from './text'
 import materialTheme from '../styles/material-theme.desktop'
 
+import InputOld from './input.old.desktop'
+
 import type {Props} from './input'
 
 export default class Input extends Component {
@@ -43,6 +45,10 @@ export default class Input extends Component {
   }
 
   render () {
+    if (!this.props.dz2) {
+      return <InputOld {...this.props}/>
+    }
+
     const style = this.props.small ? styles.containerSmall : styles.container
     const textStyle = this.props.small ? styles.inputSmall : styles.input
 
@@ -90,22 +96,6 @@ export default class Input extends Component {
 
 Input.childContextTypes = {
   muiTheme: React.PropTypes.object
-}
-
-Input.propTypes = {
-  autoFocus: React.PropTypes.bool,
-  errorText: React.PropTypes.string,
-  floatingLabelText: React.PropTypes.string,
-  hintText: React.PropTypes.string,
-  multiLine: React.PropTypes.bool,
-  onChange: React.PropTypes.func,
-  onEnterKeyDown: React.PropTypes.func,
-  rows: React.PropTypes.number,
-  rowsMax: React.PropTypes.number,
-  style: React.PropTypes.object,
-  type: React.PropTypes.oneOf(['password', 'text']),
-  value: React.PropTypes.string,
-  small: React.PropTypes.bool
 }
 
 export const styles = {

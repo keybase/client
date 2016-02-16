@@ -82,17 +82,17 @@ export default class Render extends Component {
         </Container>
         <Container title='Inputs'>
           <div style={{...globalStyles.flexBoxColumn, maxWidth: 250}}>
-            <Input floatingLabelText='Label' />
-            <Input floatingLabelText='Label' errorText='Error lorem ipsum dolor sit amet.'/>
-            <Input multiLine floatingLabelText='Multiline'/>
-            <Input multiLine floatingLabelText='Multiline' errorText='Error lorem ipsum dolor sit amet.'/>
-            <Input floatingLabelText='Label' defaultValue='Blah'/>
-            <Input floatingLabelText='foo' rows={1} rowsMax={3} multiLine />
-            <Input hintText='foo' rows={1} rowsMax={3} multiLine />
-            <Input multiLine hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas' style={{marginTop: 30}} />
-            <Input small hintText='user1,user2,etc' style={{width: '100%', marginLeft: 2}} />
+            <Input dz2 floatingLabelText='Label' />
+            <Input dz2 floatingLabelText='Label' errorText='Error lorem ipsum dolor sit amet.'/>
+            <Input dz2 multiLine floatingLabelText='Multiline'/>
+            <Input dz2 multiLine floatingLabelText='Multiline' errorText='Error lorem ipsum dolor sit amet.'/>
+            <Input dz2 floatingLabelText='Label' defaultValue='Blah'/>
+            <Input dz2 floatingLabelText='foo' rows={1} rowsMax={3} multiLine />
+            <Input dz2 hintText='foo' rows={1} rowsMax={3} multiLine />
+            <Input dz2 multiLine hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas' style={{marginTop: 30}} />
+            <Input dz2 small hintText='user1,user2,etc' style={{width: '100%', marginLeft: 2}} />
             <FormWithCheckbox
-              inputProps={{floatingLabelText: 'Passphrase', style: {marginBottom: 0}, errorText: 'Error Message'}}
+              inputProps={{dz2: true, floatingLabelText: 'Passphrase', style: {marginBottom: 0}, errorText: 'Error Message'}}
               checkboxesProps={[
                 {label: 'Save in Keychain', checked: true, onCheck: () => {}},
                 {label: 'Show Typing', checked: true, onCheck: () => {}}
