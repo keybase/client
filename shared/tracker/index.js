@@ -59,17 +59,19 @@ class Tracker extends Component {
     const renderChangedTitle = this.props.trackerMessage
     const failedProofsNotFollowingText = `Some of ${this.props.username}'s proofs couldn't be verified. Track the working proofs?`
 
+    const currentlyFollowing = this.props.currentlyFollowing || false
+
     const renderProps: RenderProps = {
       bioProps: {
         username: this.props.username,
         userInfo: this.props.userInfo,
-        currentlyFollowing: this.props.currentlyFollowing
+        currentlyFollowing
       },
       headerProps: {
         reason: this.props.reason,
         onClose: () => this.props.onClose(this.props.username),
         trackerState: this.props.trackerState,
-        currentlyFollowing: this.props.currentlyFollowing
+        currentlyFollowing
       },
       actionProps: {
         loggedIn: this.props.loggedIn,
@@ -84,7 +86,7 @@ class Tracker extends Component {
         onUnfollow: () => this.props.onUnfollow(this.props.username),
         onFollowHelp: () => this.props.onFollowHelp(this.props.username),
         onFollowChecked: checked => this.props.onFollowChecked(checked, this.props.username),
-        currentlyFollowing: flags.tracker2 ? this.props.currentlyFollowing : !!this.props.lastTrack
+        currentlyFollowing: flags.tracker2 ? currentlyFollowing : !!this.props.lastTrack
       },
       proofsProps: {
         username: this.props.username,
