@@ -632,22 +632,12 @@ func TestDecryptPrivateMetadataFailures(t *testing.T) {
 		})
 }
 
-func makeBlockCryptKey(t *testing.T, c *CryptoCommon) BlockCryptKey {
-	_, _, _, _, tlfCryptKey, err := c.MakeRandomTLFKeys()
+func makeFakeBlockCryptKey(t *testing.T) BlockCryptKey {
+	var blockCryptKey BlockCryptKey
+	err := cryptoRandRead(blockCryptKey.data[:])
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	serverHalf, err := c.MakeRandomBlockCryptKeyServerHalf()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	blockCryptKey, err := c.UnmaskBlockCryptKey(serverHalf, tlfCryptKey)
-	if err != nil {
-		t.Fatal(err)
-	}
-
 	return blockCryptKey
 }
 
@@ -657,7 +647,7 @@ func TestEncryptBlock(t *testing.T) {
 	config := testCryptoClientConfig(t)
 	c := CryptoCommon{config.Codec(), config.MakeLogger("")}
 
-	cryptKey := makeBlockCryptKey(t, &c)
+	cryptKey := makeFakeBlockCryptKey(t)
 
 	block := TestBlock{50}
 	expectedEncodedBlock, err := config.Codec().Encode(block)
@@ -691,7 +681,7 @@ func TestDecryptBlockSecretboxSeal(t *testing.T) {
 	config := testCryptoClientConfig(t)
 	c := CryptoCommon{config.Codec(), config.MakeLogger("")}
 
-	cryptKey := makeBlockCryptKey(t, &c)
+	cryptKey := makeFakeBlockCryptKey(t)
 
 	block := TestBlock{50}
 
@@ -724,7 +714,7 @@ func TestDecryptEncryptedBlock(t *testing.T) {
 	config := testCryptoClientConfig(t)
 	c := CryptoCommon{config.Codec(), config.MakeLogger("")}
 
-	cryptKey := makeBlockCryptKey(t, &c)
+	cryptKey := makeFakeBlockCryptKey(t)
 
 	block := TestBlock{50}
 
@@ -749,7 +739,7 @@ func TestDecryptBlockFailures(t *testing.T) {
 	config := testCryptoClientConfig(t)
 	c := CryptoCommon{config.Codec(), config.MakeLogger("")}
 
-	cryptKey := makeBlockCryptKey(t, &c)
+	cryptKey := makeFakeBlockCryptKey(t)
 
 	block := TestBlock{50}
 
@@ -849,15 +839,28 @@ func TestSecretboxEncryptedLen(t *testing.T) {
 	config := testCryptoClientConfig(t)
 	c := CryptoCommon{config.Codec(), config.MakeLogger("")}
 
-	for i := 100; i < 100000; i += 1000 {
+	const startSize = 100
+	const endSize = 100000
+	const iterations = 5
+
+	// Generating random data is slow, so do it all up-front and
+	// index into it. Note that we're intentionally re-using most
+	// of the data between iterations intentionally.
+	randomData := make([]byte, endSize+iterations)
+	if err := cryptoRandRead(randomData); err != nil {
+		t.Fatal(err)
+	}
+
+	cryptKeys := make([]BlockCryptKey, iterations)
+	for j := 0; j < iterations; j++ {
+		cryptKeys[j] = makeFakeBlockCryptKey(t)
+	}
+
+	for i := startSize; i < endSize; i += 1000 {
 		var enclen int
-		for j := 0; j < 5; j++ {
-			cryptKey := makeBlockCryptKey(t, &c)
-			data := make([]byte, i)
-			if err := cryptoRandRead(data); err != nil {
-				t.Fatal(err)
-			}
-			enc := secretboxSeal(t, &c, data, cryptKey.data)
+		for j := 0; j < iterations; j++ {
+			data := randomData[j : j+i]
+			enc := secretboxSealEncoded(t, &c, data, cryptKeys[j].data)
 			if j == 0 {
 				enclen = len(enc.EncryptedData)
 			} else if len(enc.EncryptedData) != enclen {
@@ -881,14 +884,22 @@ func (tba testBlockArray) SetEncodedSize(size uint32) {
 func TestBlockEncryptedLen(t *testing.T) {
 	config := testCryptoClientConfig(t)
 	c := CryptoCommon{config.Codec(), config.MakeLogger("")}
-	cryptKey := makeBlockCryptKey(t, &c)
+	cryptKey := makeFakeBlockCryptKey(t)
+
+	const startSize = 1025
+	const endSize = 2000
+
+	// Generating random data is slow, so do it all up-front and
+	// index into it. Note that we're intentionally re-using most
+	// of the data between iterations intentionally.
+	randomData := make(testBlockArray, endSize)
+	if err := cryptoRandRead(randomData); err != nil {
+		t.Fatal(err)
+	}
 
 	var expectedLen int
 	for i := 1025; i < 2000; i++ {
-		data := make(testBlockArray, i)
-		if err := cryptoRandRead(data); err != nil {
-			t.Fatal(err)
-		}
+		data := randomData[:i]
 		_, encBlock, err := c.EncryptBlock(data, cryptKey)
 		if err != nil {
 			t.Fatal(err)
