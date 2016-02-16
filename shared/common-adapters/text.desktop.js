@@ -4,7 +4,7 @@
 import React, {Component} from 'react'
 import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide'
 
-//$FlowFixMe remove when we stop using the old version of text
+// $FlowFixMe remove when we stop using the old version of text
 import TextOld from './text.old'
 
 import type {Props} from './text'
@@ -79,9 +79,23 @@ export default class Text extends Component {
     }
 
     const terminalPrefix = this._terminalPrefix(this.props.type)
+    const className = this.props.className || ''
 
-    return <span className={this.props.link ? 'hover-underline' : ''} style={style} onClick={this.props.onClick}>{terminalPrefix}{this.props.children}</span>
+    return <span className={this.props.link ? 'hover-underline ' + className : className} style={style} onClick={this.props.onClick}>{terminalPrefix}{this.props.children}</span>
   }
+}
+
+Text.propTypes = {
+  type: React.PropTypes.oneOf(['Header', 'Body', 'TerminalCommand', 'TerminalComment', 'TerminalEmpty']),
+  link: React.PropTypes.bool,
+  small: React.PropTypes.bool,
+  reversed: React.PropTypes.bool,
+  children: React.PropTypes.node,
+  style: React.PropTypes.object,
+  onClick: React.PropTypes.func,
+  inline: React.PropTypes.bool,
+  lineClamp: React.PropTypes.number,
+  className: React.PropTypes.string
 }
 
 const textCommon = {
@@ -150,17 +164,17 @@ export const styles = {
     whiteSpace: 'nowrap',
     fontSize: 14,
     lineHeight: '21px',
-    letterSpacing: '0.3px',
+    letterSpacing: '0.3px'
   },
   textTerminalComment: {
     color: globalColorsDZ2.white,
     opacity: 0.4
   },
   textTerminalEmpty: {
-    minHeight: 20,
+    minHeight: 20
   },
   textTerminalInline: {
-    backgroundColor: globalColorsDZ2.blue4,
+    backgroundColor: globalColorsDZ2.blue4
   },
   textLinkMixin: {
     color: globalColors.blue,

@@ -1,27 +1,82 @@
-import React, {Component} from 'react'
-import commonStyles from '../../../styles/common'
+import React from 'react'
+import {Text, Icon} from '../../../common-adapters'
+import {globalStyles, globalColorsDZ2, transition} from '../../../styles/style-guide'
+import Container from '../../forms/container'
 
-export default class ExistingDeviceRender extends Component {
-  render () {
-    return (
-      <div style={{display: 'flex', flex: 1, flexDirection: 'column', marginTop: 200, padding: 20, alignItems: 'stretch'}}>
-        <h1>What type of device would you like to connect this device with?</h1>
-        <div style={{display: 'flex', flex: 1, flexDirection: 'row', marginTop: 40, justifyContent: 'space-between', alignItems: 'flex-start', paddingLeft: 40, paddingRight: 40}}>
-          <div style={{...commonStyles.clickable, ...{display: 'flex', flexDirection: 'column', alignItems: 'center'}}} onClick={() => this.props.onSubmitComputer()}>
-            <p>[Desktop icon]</p>
-            <p>Desktop Device &gt;</p>
-          </div>
-          <div style={{...commonStyles.clickable, ...{display: 'flex', flexDirection: 'column', alignItems: 'center'}}} onClick={() => this.props.onSubmitPhone()}>
-            <p>[Mobile icon]</p>
-            <p>Mobile Device &gt;</p>
-          </div>
-        </div>
+const Item = ({onClick, icon, title}) => {
+  return (
+    <div className='existing-device-container' style={styles.item} onClick={onClick}>
+      <div className='existing-device-item' style={styles.iconContainer}>
+        <Icon type={icon} style={styles.icon} inheritColor/>
       </div>
-    )
+      <Text link type='Header'>{title}</Text>
+    </div>
+  )
+}
+
+const Render = ({onBack, onSubmitComputer, onSubmitPhone}) => {
+  const realCSS = `
+  .existing-device-container .existing-device-item {
+    background-color: ${globalColorsDZ2.lightGrey2};
+    color: ${globalColorsDZ2.black75};
+  }
+  .existing-device-container:hover .existing-device-item {
+    background-color: ${globalColorsDZ2.blue4};
+    color: ${globalColorsDZ2.black};
+  }
+  `
+
+  return (
+    <Container
+      style={styles.container}
+      onBack={() => onBack()}>
+      <style>{realCSS}</style>
+      <Text type='Header' style={styles.header}>What’s your other device?</Text>
+      <div style={styles.itemContainer}>
+        <Item title='Phone' icon='fa-mobile' onClick={() => onSubmitPhone()}/>
+        <Item title='Computer' icon='fa-laptop' onClick={() => onSubmitComputer()}/>
+      </div>
+    </Container>
+  )
+}
+
+const styles = {
+  container: {
+    flex: 1,
+    alignItems: 'center'
+  },
+  header: {
+    marginTop: 46
+  },
+  itemContainer: {
+    ...globalStyles.flexBoxRow,
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center'
+  },
+  item: {
+    ...globalStyles.flexBoxColumn,
+    ...globalStyles.clickable,
+    alignItems: 'center',
+    margin: 15,
+    width: 150
+  },
+  iconContainer: {
+    ...globalStyles.flexBoxColumn,
+    ...transition(['color', 'background-color']),
+    alignItems: 'center',
+    borderRadius: 150 / 2,
+    height: 150,
+    justifyContent: 'center',
+    marginBottom: 15,
+    width: 150
+  },
+  icon: {
+    fontSize: 78,
+    width: 80,
+    height: 80,
+    textAlign: 'center'
   }
 }
 
-ExistingDeviceRender.propTypes = {
-  onSubmitComputer: React.PropTypes.func.isRequired,
-  onSubmitPhone: React.PropTypes.func.isRequired
-}
+export default Render
