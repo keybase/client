@@ -67,7 +67,11 @@ func TestSaltpackEncryptHideRecipients(t *testing.T) {
 	run := func(Recips []string) {
 		sink := libkb.NewBufferCloser()
 		arg := &SaltpackEncryptArg{
-			Opts:   keybase1.SaltpackEncryptOptions{Recipients: Recips, HideRecipients: true},
+			Opts: keybase1.SaltpackEncryptOptions{
+				Recipients:     Recips,
+				HideRecipients: true,
+				Binary:         true,
+			},
 			Source: strings.NewReader("id2 and encrypt, id2 and encrypt"),
 			Sink:   sink,
 		}
@@ -84,6 +88,11 @@ func TestSaltpackEncryptHideRecipients(t *testing.T) {
 
 		var header saltpack.EncryptionHeader
 		dec := codec.NewDecoderBytes(out, &codec.MsgpackHandle{WriteExt: true})
+		var b []byte
+		if err := dec.Decode(&b); err != nil {
+			t.Fatal(err)
+		}
+		dec = codec.NewDecoderBytes(b, &codec.MsgpackHandle{WriteExt: true})
 		if err := dec.Decode(&header); err != nil {
 			t.Fatal(err)
 		}
