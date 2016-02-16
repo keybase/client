@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {TextField} from 'material-ui'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide'
 import {styles as TextStyles} from './text'
 import materialTheme from '../styles/material-theme.desktop'
 
@@ -9,14 +9,15 @@ import type {Props} from './input'
 
 export default class Input extends Component {
   props: Props;
-  state: {value: ?string};
+  state: {value: ?string, focused: boolean};
   _textField: any;
 
   constructor (props: Props) {
     super(props)
 
     this.state = {
-      value: props.value
+      value: props.value,
+      focused: false
     }
   }
   getChildContext (): Object {
@@ -65,7 +66,9 @@ export default class Input extends Component {
           autoFocus={this.props.autoFocus}
           errorText={this.props.errorText}
           floatingLabelText={this.props.small ? undefined : this.props.floatingLabelText || this.props.hintText}
-          floatingLabelStyle={styles.floatingLabelStyle}
+          floatingLabelStyle={{...styles.floatingLabelStyle, ...(this.state.focused ? {color: globalColorsDZ2.blue2} : {})}}
+          onFocus={() => this.setState({focused: true})}
+          onBlur={() => this.setState({focused: false})}
           hintText={this.props.hintText}
           hintStyle={{top: 3, bottom: 'auto'}}
           multiLine={this.props.multiLine}
@@ -123,7 +126,7 @@ export const styles = {
     lineHeight: '11px'
   },
   underlineFocusStyle: {
-    borderColor: globalColors.blue,
+    borderColor: globalColorsDZ2.blue2,
     transition: ''
   },
   errorStyle: {
