@@ -3199,6 +3199,14 @@ func (c LoginUiClient) DisplayPrimaryPaperKey(ctx context.Context, __arg Display
 	return
 }
 
+type MerkleTreeID int
+
+const (
+	MerkleTreeID_MASTER       MerkleTreeID = 0
+	MerkleTreeID_KBFS_PUBLIC  MerkleTreeID = 1
+	MerkleTreeID_KBFS_PRIVATE MerkleTreeID = 2
+)
+
 type KeyHalf struct {
 	User      UID    `codec:"user" json:"user"`
 	DeviceKID KID    `codec:"deviceKID" json:"deviceKID"`
@@ -3206,13 +3214,19 @@ type KeyHalf struct {
 }
 
 type MDBlock struct {
-	Version int    `codec:"version" json:"version"`
-	Block   []byte `codec:"block" json:"block"`
+	Version   int    `codec:"version" json:"version"`
+	Timestamp Time   `codec:"timestamp" json:"timestamp"`
+	Block     []byte `codec:"block" json:"block"`
 }
 
 type MetadataResponse struct {
 	FolderID string    `codec:"folderID" json:"folderID"`
 	MdBlocks []MDBlock `codec:"mdBlocks" json:"mdBlocks"`
+}
+
+type MerkleRoot struct {
+	Version int    `codec:"version" json:"version"`
+	Root    []byte `codec:"root" json:"root"`
 }
 
 type GetChallengeArg struct {
@@ -3288,6 +3302,24 @@ type GetFoldersForRekeyArg struct {
 type PingArg struct {
 }
 
+type GetMerkleRootArg struct {
+	TreeID MerkleTreeID `codec:"treeID" json:"treeID"`
+	SeqNo  int64        `codec:"seqNo" json:"seqNo"`
+}
+
+type GetMerkleRootLatestArg struct {
+	TreeID MerkleTreeID `codec:"treeID" json:"treeID"`
+}
+
+type GetMerkleRootSinceArg struct {
+	TreeID MerkleTreeID `codec:"treeID" json:"treeID"`
+	When   Time         `codec:"when" json:"when"`
+}
+
+type GetMerkleNodeArg struct {
+	Hash string `codec:"hash" json:"hash"`
+}
+
 type MetadataInterface interface {
 	GetChallenge(context.Context) (ChallengeInfo, error)
 	Authenticate(context.Context, string) (int, error)
@@ -3303,6 +3335,10 @@ type MetadataInterface interface {
 	GetFolderHandle(context.Context, GetFolderHandleArg) ([]byte, error)
 	GetFoldersForRekey(context.Context, KID) error
 	Ping(context.Context) error
+	GetMerkleRoot(context.Context, GetMerkleRootArg) (MerkleRoot, error)
+	GetMerkleRootLatest(context.Context, MerkleTreeID) (MerkleRoot, error)
+	GetMerkleRootSince(context.Context, GetMerkleRootSinceArg) (MerkleRoot, error)
+	GetMerkleNode(context.Context, string) ([]byte, error)
 }
 
 func MetadataProtocol(i MetadataInterface) rpc.Protocol {
@@ -3523,6 +3559,70 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getMerkleRoot": {
+				MakeArg: func() interface{} {
+					ret := make([]GetMerkleRootArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetMerkleRootArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetMerkleRootArg)(nil), args)
+						return
+					}
+					ret, err = i.GetMerkleRoot(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getMerkleRootLatest": {
+				MakeArg: func() interface{} {
+					ret := make([]GetMerkleRootLatestArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetMerkleRootLatestArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetMerkleRootLatestArg)(nil), args)
+						return
+					}
+					ret, err = i.GetMerkleRootLatest(ctx, (*typedArgs)[0].TreeID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getMerkleRootSince": {
+				MakeArg: func() interface{} {
+					ret := make([]GetMerkleRootSinceArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetMerkleRootSinceArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetMerkleRootSinceArg)(nil), args)
+						return
+					}
+					ret, err = i.GetMerkleRootSince(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getMerkleNode": {
+				MakeArg: func() interface{} {
+					ret := make([]GetMerkleNodeArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetMerkleNodeArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetMerkleNodeArg)(nil), args)
+						return
+					}
+					ret, err = i.GetMerkleNode(ctx, (*typedArgs)[0].Hash)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -3602,6 +3702,28 @@ func (c MetadataClient) GetFoldersForRekey(ctx context.Context, deviceKID KID) (
 
 func (c MetadataClient) Ping(ctx context.Context) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.metadata.ping", []interface{}{PingArg{}}, nil)
+	return
+}
+
+func (c MetadataClient) GetMerkleRoot(ctx context.Context, __arg GetMerkleRootArg) (res MerkleRoot, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.metadata.getMerkleRoot", []interface{}{__arg}, &res)
+	return
+}
+
+func (c MetadataClient) GetMerkleRootLatest(ctx context.Context, treeID MerkleTreeID) (res MerkleRoot, err error) {
+	__arg := GetMerkleRootLatestArg{TreeID: treeID}
+	err = c.Cli.Call(ctx, "keybase.1.metadata.getMerkleRootLatest", []interface{}{__arg}, &res)
+	return
+}
+
+func (c MetadataClient) GetMerkleRootSince(ctx context.Context, __arg GetMerkleRootSinceArg) (res MerkleRoot, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.metadata.getMerkleRootSince", []interface{}{__arg}, &res)
+	return
+}
+
+func (c MetadataClient) GetMerkleNode(ctx context.Context, hash string) (res []byte, err error) {
+	__arg := GetMerkleNodeArg{Hash: hash}
+	err = c.Cli.Call(ctx, "keybase.1.metadata.getMerkleNode", []interface{}{__arg}, &res)
 	return
 }
 

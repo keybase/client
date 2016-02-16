@@ -935,6 +935,44 @@ export type incomingCallMapType = {
       result: () => void
     }
   ) => void,
+  'keybase.1.metadata.getMerkleRoot'?: (
+    params: {
+      treeID: metadata_MerkleTreeID,
+      seqNo: long
+    },
+    response: {
+      error: (err: string) => void,
+      result: (result: metadata_getMerkleRoot_result) => void
+    }
+  ) => void,
+  'keybase.1.metadata.getMerkleRootLatest'?: (
+    params: {
+      treeID: metadata_MerkleTreeID
+    },
+    response: {
+      error: (err: string) => void,
+      result: (result: metadata_getMerkleRootLatest_result) => void
+    }
+  ) => void,
+  'keybase.1.metadata.getMerkleRootSince'?: (
+    params: {
+      treeID: metadata_MerkleTreeID,
+      when: metadata_Time
+    },
+    response: {
+      error: (err: string) => void,
+      result: (result: metadata_getMerkleRootSince_result) => void
+    }
+  ) => void,
+  'keybase.1.metadata.getMerkleNode'?: (
+    params: {
+      hash: string
+    },
+    response: {
+      error: (err: string) => void,
+      result: (result: metadata_getMerkleNode_result) => void
+    }
+  ) => void,
   'keybase.1.metadataUpdate.metadataUpdate'?: (
     params: {
       folderID: string,
@@ -5375,6 +5413,10 @@ export type metadata_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type metadata_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
+
+export type MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
+
 export type metadata_BlockIdCombo = {
   blockHash: string;
   chargedTo: UID;
@@ -5399,11 +5441,13 @@ export type KeyHalf = {
 
 export type metadata_MDBlock = {
   version: int;
+  timestamp: Time;
   block: bytes;
 }
 
 export type MDBlock = {
   version: int;
+  timestamp: Time;
   block: bytes;
 }
 
@@ -5415,6 +5459,16 @@ export type metadata_MetadataResponse = {
 export type MetadataResponse = {
   folderID: string;
   mdBlocks: Array<MDBlock>;
+}
+
+export type metadata_MerkleRoot = {
+  version: int;
+  root: bytes;
+}
+
+export type MerkleRoot = {
+  version: int;
+  root: bytes;
 }
 
 // metadata.getChallenge ////////////////////////////////////////
@@ -5612,6 +5666,60 @@ export type metadata_ping_rpc = {
   param: {},
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any) => void)
+}
+
+// metadata.getMerkleRoot ////////////////////////////////////////
+
+export type metadata_getMerkleRoot_result = metadata_MerkleRoot
+
+export type metadata_getMerkleRoot_rpc = {
+  method: 'metadata.getMerkleRoot',
+  param: {
+    treeID: metadata_MerkleTreeID,
+    seqNo: long
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any, response: metadata_getMerkleRoot_result) => void)
+}
+
+// metadata.getMerkleRootLatest ////////////////////////////////////////
+
+export type metadata_getMerkleRootLatest_result = metadata_MerkleRoot
+
+export type metadata_getMerkleRootLatest_rpc = {
+  method: 'metadata.getMerkleRootLatest',
+  param: {
+    treeID: metadata_MerkleTreeID
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any, response: metadata_getMerkleRootLatest_result) => void)
+}
+
+// metadata.getMerkleRootSince ////////////////////////////////////////
+
+export type metadata_getMerkleRootSince_result = metadata_MerkleRoot
+
+export type metadata_getMerkleRootSince_rpc = {
+  method: 'metadata.getMerkleRootSince',
+  param: {
+    treeID: metadata_MerkleTreeID,
+    when: metadata_Time
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any, response: metadata_getMerkleRootSince_result) => void)
+}
+
+// metadata.getMerkleNode ////////////////////////////////////////
+
+export type metadata_getMerkleNode_result = bytes
+
+export type metadata_getMerkleNode_rpc = {
+  method: 'metadata.getMerkleNode',
+  param: {
+    hash: string
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any, response: metadata_getMerkleNode_result) => void)
 }
 
 export type metadataUpdate_Time = long
@@ -9700,5 +9808,5 @@ export type user_search_rpc = {
   callback: (null | (err: ?any, response: user_search_result) => void)
 }
 
-export type rpc = account_passphraseChange_rpc | account_passphrasePrompt_rpc | block_getSessionChallenge_rpc | block_authenticateSession_rpc | block_putBlock_rpc | block_getBlock_rpc | block_addReference_rpc | block_delReference_rpc | block_archiveReference_rpc | block_getUserQuotaInfo_rpc | BTC_registerBTC_rpc | config_getCurrentStatus_rpc | config_getExtendedStatus_rpc | config_getConfig_rpc | config_setUserConfig_rpc | config_setPath_rpc | config_helloIAm_rpc | config_setValue_rpc | config_clearValue_rpc | config_getValue_rpc | crypto_signED25519_rpc | crypto_signToString_rpc | crypto_unboxBytes32_rpc | crypto_unboxBytes32Any_rpc | ctl_stop_rpc | ctl_logRotate_rpc | ctl_reload_rpc | ctl_dbNuke_rpc | debugging_firstStep_rpc | debugging_secondStep_rpc | debugging_increment_rpc | delegateUiCtl_registerIdentifyUI_rpc | delegateUiCtl_registerSecretUI_rpc | delegateUiCtl_registerUpdateUI_rpc | device_deviceList_rpc | device_deviceAdd_rpc | favorite_favoriteAdd_rpc | favorite_favoriteDelete_rpc | favorite_favoriteList_rpc | gpgUi_wantToAddGPGKey_rpc | gpgUi_confirmDuplicateKeyChosen_rpc | gpgUi_selectKeyAndPushOption_rpc | gpgUi_selectKey_rpc | gpgUi_sign_rpc | identify_Resolve_rpc | identify_Resolve2_rpc | identify_identify_rpc | identify_identify2_rpc | identifyUi_delegateIdentifyUI_rpc | identifyUi_start_rpc | identifyUi_displayKey_rpc | identifyUi_reportLastTrack_rpc | identifyUi_launchNetworkChecks_rpc | identifyUi_displayTrackStatement_rpc | identifyUi_finishWebProofCheck_rpc | identifyUi_finishSocialProofCheck_rpc | identifyUi_displayCryptocurrency_rpc | identifyUi_reportTrackToken_rpc | identifyUi_displayUserCard_rpc | identifyUi_confirm_rpc | identifyUi_finish_rpc | kbfs_FSEvent_rpc | Kex2Provisionee_hello_rpc | Kex2Provisionee_didCounterSign_rpc | Kex2Provisioner_kexStart_rpc | log_registerLogger_rpc | logUi_log_rpc | login_getConfiguredAccounts_rpc | login_login_rpc | login_clearStoredSecret_rpc | login_logout_rpc | login_deprovision_rpc | login_recoverAccountFromEmailAddress_rpc | login_paperKey_rpc | login_unlock_rpc | login_unlockWithPassphrase_rpc | loginUi_getEmailOrUsername_rpc | loginUi_promptRevokePaperKeys_rpc | loginUi_displayPaperKeyPhrase_rpc | loginUi_displayPrimaryPaperKey_rpc | metadata_getChallenge_rpc | metadata_authenticate_rpc | metadata_putMetadata_rpc | metadata_getMetadata_rpc | metadata_registerForUpdates_rpc | metadata_pruneBranch_rpc | metadata_putKeys_rpc | metadata_getKey_rpc | metadata_deleteKey_rpc | metadata_truncateLock_rpc | metadata_truncateUnlock_rpc | metadata_getFolderHandle_rpc | metadata_getFoldersForRekey_rpc | metadata_ping_rpc | metadataUpdate_metadataUpdate_rpc | metadataUpdate_folderNeedsRekey_rpc | notifyCtl_setNotifications_rpc | NotifyFS_FSActivity_rpc | NotifySession_loggedOut_rpc | NotifySession_loggedIn_rpc | NotifyTracking_trackingChanged_rpc | NotifyUsers_userChanged_rpc | pgp_pgpSign_rpc | pgp_pgpPull_rpc | pgp_pgpEncrypt_rpc | pgp_pgpDecrypt_rpc | pgp_pgpVerify_rpc | pgp_pgpImport_rpc | pgp_pgpExport_rpc | pgp_pgpExportByFingerprint_rpc | pgp_pgpExportByKID_rpc | pgp_pgpKeyGen_rpc | pgp_pgpDeletePrimary_rpc | pgp_pgpSelect_rpc | pgp_pgpUpdate_rpc | pgpUi_outputSignatureSuccess_rpc | prove_startProof_rpc | prove_checkProof_rpc | proveUi_promptOverwrite_rpc | proveUi_promptUsername_rpc | proveUi_outputPrechecks_rpc | proveUi_preProofWarning_rpc | proveUi_outputInstructions_rpc | proveUi_okToCheck_rpc | proveUi_displayRecheckWarning_rpc | provisionUi_chooseProvisioningMethod_rpc | provisionUi_chooseDeviceType_rpc | provisionUi_DisplayAndPromptSecret_rpc | provisionUi_DisplaySecretExchanged_rpc | provisionUi_PromptNewDeviceName_rpc | provisionUi_ProvisioneeSuccess_rpc | provisionUi_ProvisionerSuccess_rpc | quota_verifySession_rpc | revoke_revokeKey_rpc | revoke_revokeDevice_rpc | revoke_revokeSigs_rpc | saltpack_saltpackEncrypt_rpc | saltpack_saltpackDecrypt_rpc | saltpack_saltpackSign_rpc | saltpack_saltpackVerify_rpc | saltpackUi_saltpackPromptForDecrypt_rpc | saltpackUi_saltpackVerifySuccess_rpc | secretUi_getPassphrase_rpc | SecretKeys_getSecretKeys_rpc | session_currentSession_rpc | signup_checkUsernameAvailable_rpc | signup_signup_rpc | signup_inviteRequest_rpc | signup_checkInvitationCode_rpc | sigs_sigList_rpc | sigs_sigListJSON_rpc | streamUi_close_rpc | streamUi_read_rpc | streamUi_write_rpc | test_test_rpc | test_testCallback_rpc | test_panic_rpc | track_track_rpc | track_trackWithToken_rpc | track_untrack_rpc | track_checkTracking_rpc | track_fakeTrackingChanged_rpc | ui_promptYesNo_rpc | update_update_rpc | update_updateCheck_rpc | updateUi_updatePrompt_rpc | updateUi_updateQuit_rpc | user_listTrackers_rpc | user_listTrackersByName_rpc | user_listTrackersSelf_rpc | user_loadUncheckedUserSummaries_rpc | user_loadUser_rpc | user_loadUserPlusKeys_rpc | user_loadPublicKeys_rpc | user_listTracking_rpc | user_listTrackingJSON_rpc | user_search_rpc
+export type rpc = account_passphraseChange_rpc | account_passphrasePrompt_rpc | block_getSessionChallenge_rpc | block_authenticateSession_rpc | block_putBlock_rpc | block_getBlock_rpc | block_addReference_rpc | block_delReference_rpc | block_archiveReference_rpc | block_getUserQuotaInfo_rpc | BTC_registerBTC_rpc | config_getCurrentStatus_rpc | config_getExtendedStatus_rpc | config_getConfig_rpc | config_setUserConfig_rpc | config_setPath_rpc | config_helloIAm_rpc | config_setValue_rpc | config_clearValue_rpc | config_getValue_rpc | crypto_signED25519_rpc | crypto_signToString_rpc | crypto_unboxBytes32_rpc | crypto_unboxBytes32Any_rpc | ctl_stop_rpc | ctl_logRotate_rpc | ctl_reload_rpc | ctl_dbNuke_rpc | debugging_firstStep_rpc | debugging_secondStep_rpc | debugging_increment_rpc | delegateUiCtl_registerIdentifyUI_rpc | delegateUiCtl_registerSecretUI_rpc | delegateUiCtl_registerUpdateUI_rpc | device_deviceList_rpc | device_deviceAdd_rpc | favorite_favoriteAdd_rpc | favorite_favoriteDelete_rpc | favorite_favoriteList_rpc | gpgUi_wantToAddGPGKey_rpc | gpgUi_confirmDuplicateKeyChosen_rpc | gpgUi_selectKeyAndPushOption_rpc | gpgUi_selectKey_rpc | gpgUi_sign_rpc | identify_Resolve_rpc | identify_Resolve2_rpc | identify_identify_rpc | identify_identify2_rpc | identifyUi_delegateIdentifyUI_rpc | identifyUi_start_rpc | identifyUi_displayKey_rpc | identifyUi_reportLastTrack_rpc | identifyUi_launchNetworkChecks_rpc | identifyUi_displayTrackStatement_rpc | identifyUi_finishWebProofCheck_rpc | identifyUi_finishSocialProofCheck_rpc | identifyUi_displayCryptocurrency_rpc | identifyUi_reportTrackToken_rpc | identifyUi_displayUserCard_rpc | identifyUi_confirm_rpc | identifyUi_finish_rpc | kbfs_FSEvent_rpc | Kex2Provisionee_hello_rpc | Kex2Provisionee_didCounterSign_rpc | Kex2Provisioner_kexStart_rpc | log_registerLogger_rpc | logUi_log_rpc | login_getConfiguredAccounts_rpc | login_login_rpc | login_clearStoredSecret_rpc | login_logout_rpc | login_deprovision_rpc | login_recoverAccountFromEmailAddress_rpc | login_paperKey_rpc | login_unlock_rpc | login_unlockWithPassphrase_rpc | loginUi_getEmailOrUsername_rpc | loginUi_promptRevokePaperKeys_rpc | loginUi_displayPaperKeyPhrase_rpc | loginUi_displayPrimaryPaperKey_rpc | metadata_getChallenge_rpc | metadata_authenticate_rpc | metadata_putMetadata_rpc | metadata_getMetadata_rpc | metadata_registerForUpdates_rpc | metadata_pruneBranch_rpc | metadata_putKeys_rpc | metadata_getKey_rpc | metadata_deleteKey_rpc | metadata_truncateLock_rpc | metadata_truncateUnlock_rpc | metadata_getFolderHandle_rpc | metadata_getFoldersForRekey_rpc | metadata_ping_rpc | metadata_getMerkleRoot_rpc | metadata_getMerkleRootLatest_rpc | metadata_getMerkleRootSince_rpc | metadata_getMerkleNode_rpc | metadataUpdate_metadataUpdate_rpc | metadataUpdate_folderNeedsRekey_rpc | notifyCtl_setNotifications_rpc | NotifyFS_FSActivity_rpc | NotifySession_loggedOut_rpc | NotifySession_loggedIn_rpc | NotifyTracking_trackingChanged_rpc | NotifyUsers_userChanged_rpc | pgp_pgpSign_rpc | pgp_pgpPull_rpc | pgp_pgpEncrypt_rpc | pgp_pgpDecrypt_rpc | pgp_pgpVerify_rpc | pgp_pgpImport_rpc | pgp_pgpExport_rpc | pgp_pgpExportByFingerprint_rpc | pgp_pgpExportByKID_rpc | pgp_pgpKeyGen_rpc | pgp_pgpDeletePrimary_rpc | pgp_pgpSelect_rpc | pgp_pgpUpdate_rpc | pgpUi_outputSignatureSuccess_rpc | prove_startProof_rpc | prove_checkProof_rpc | proveUi_promptOverwrite_rpc | proveUi_promptUsername_rpc | proveUi_outputPrechecks_rpc | proveUi_preProofWarning_rpc | proveUi_outputInstructions_rpc | proveUi_okToCheck_rpc | proveUi_displayRecheckWarning_rpc | provisionUi_chooseProvisioningMethod_rpc | provisionUi_chooseDeviceType_rpc | provisionUi_DisplayAndPromptSecret_rpc | provisionUi_DisplaySecretExchanged_rpc | provisionUi_PromptNewDeviceName_rpc | provisionUi_ProvisioneeSuccess_rpc | provisionUi_ProvisionerSuccess_rpc | quota_verifySession_rpc | revoke_revokeKey_rpc | revoke_revokeDevice_rpc | revoke_revokeSigs_rpc | saltpack_saltpackEncrypt_rpc | saltpack_saltpackDecrypt_rpc | saltpack_saltpackSign_rpc | saltpack_saltpackVerify_rpc | saltpackUi_saltpackPromptForDecrypt_rpc | saltpackUi_saltpackVerifySuccess_rpc | secretUi_getPassphrase_rpc | SecretKeys_getSecretKeys_rpc | session_currentSession_rpc | signup_checkUsernameAvailable_rpc | signup_signup_rpc | signup_inviteRequest_rpc | signup_checkInvitationCode_rpc | sigs_sigList_rpc | sigs_sigListJSON_rpc | streamUi_close_rpc | streamUi_read_rpc | streamUi_write_rpc | test_test_rpc | test_testCallback_rpc | test_panic_rpc | track_track_rpc | track_trackWithToken_rpc | track_untrack_rpc | track_checkTracking_rpc | track_fakeTrackingChanged_rpc | ui_promptYesNo_rpc | update_update_rpc | update_updateCheck_rpc | updateUi_updatePrompt_rpc | updateUi_updateQuit_rpc | user_listTrackers_rpc | user_listTrackersByName_rpc | user_listTrackersSelf_rpc | user_loadUncheckedUserSummaries_rpc | user_loadUser_rpc | user_loadUserPlusKeys_rpc | user_loadPublicKeys_rpc | user_listTracking_rpc | user_listTrackingJSON_rpc | user_search_rpc
 

@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"strings"
+	"strconv"
 	"time"
 
 	jsonw "github.com/keybase/go-jsonw"
@@ -536,4 +537,12 @@ func (t ClientType) String() string {
 	default:
 		return "other"
 	}
+}
+
+func (m MerkleTreeID) Number() int {
+	return int(m)
+}
+
+func (m MerkleTreeID) String() string {
+	return strconv.Itoa(int(m))
 }

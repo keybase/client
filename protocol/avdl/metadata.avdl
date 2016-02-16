@@ -11,12 +11,18 @@ protocol metadata {
 
   record MDBlock {
          int version;
+         Time timestamp;
          bytes block;
   }
 
   record MetadataResponse {
          string folderID;
          array<MDBlock> mdBlocks;
+  }
+
+  record MerkleRoot {
+         int version;
+         bytes root;
   }
 
   ChallengeInfo getChallenge();
@@ -33,4 +39,12 @@ protocol metadata {
   bytes getFolderHandle(string folderID, string signature, string challenge);
   void getFoldersForRekey(KID deviceKID);
   void ping();
+
+  // Merkle tree specific commands
+  // todo: we probably also want a method which will return a minmum set of interior nodes
+  // and a leaf node given a root node and a TLF ID.
+  MerkleRoot getMerkleRoot(MerkleTreeID treeID, long seqNo);
+  MerkleRoot getMerkleRootLatest(MerkleTreeID treeID);
+  MerkleRoot getMerkleRootSince(MerkleTreeID treeID, Time when);
+  bytes getMerkleNode(string hash);
 }

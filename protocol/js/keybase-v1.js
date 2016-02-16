@@ -637,6 +637,11 @@ export const metadata = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   }
 }
 

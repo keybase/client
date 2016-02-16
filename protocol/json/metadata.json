@@ -216,6 +216,10 @@
       "type" : "UserVersionVector"
     } ]
   }, {
+    "type" : "enum",
+    "name" : "MerkleTreeID",
+    "symbols" : [ "MASTER_0", "KBFS_PUBLIC_1", "KBFS_PRIVATE_2" ]
+  }, {
     "type" : "record",
     "name" : "BlockIdCombo",
     "fields" : [ {
@@ -255,6 +259,9 @@
       "name" : "version",
       "type" : "int"
     }, {
+      "name" : "timestamp",
+      "type" : "Time"
+    }, {
       "name" : "block",
       "type" : "bytes"
     } ]
@@ -270,6 +277,16 @@
         "type" : "array",
         "items" : "MDBlock"
       }
+    } ]
+  }, {
+    "type" : "record",
+    "name" : "MerkleRoot",
+    "fields" : [ {
+      "name" : "version",
+      "type" : "int"
+    }, {
+      "name" : "root",
+      "type" : "bytes"
     } ]
   } ],
   "messages" : {
@@ -445,6 +462,40 @@
     "ping" : {
       "request" : [ ],
       "response" : "null"
+    },
+    "getMerkleRoot" : {
+      "request" : [ {
+        "name" : "treeID",
+        "type" : "MerkleTreeID"
+      }, {
+        "name" : "seqNo",
+        "type" : "long"
+      } ],
+      "response" : "MerkleRoot"
+    },
+    "getMerkleRootLatest" : {
+      "request" : [ {
+        "name" : "treeID",
+        "type" : "MerkleTreeID"
+      } ],
+      "response" : "MerkleRoot"
+    },
+    "getMerkleRootSince" : {
+      "request" : [ {
+        "name" : "treeID",
+        "type" : "MerkleTreeID"
+      }, {
+        "name" : "when",
+        "type" : "Time"
+      } ],
+      "response" : "MerkleRoot"
+    },
+    "getMerkleNode" : {
+      "request" : [ {
+        "name" : "hash",
+        "type" : "string"
+      } ],
+      "response" : "bytes"
     }
   }
 }
