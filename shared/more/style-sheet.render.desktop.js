@@ -124,23 +124,6 @@ class DZ2Font extends Component {
               <Text dz2 darkMode={darkMode} type='BodySmall'>Body small Body Small</Text>
               <Space/>
 
-              <div style={{alignSelf: (darkMode ? 'flex-start' : 'flex-end')}}>
-                {(darkMode ? [1.0, 0.75, 0.4] : [0.75, 0.4, 0.1]).map(opacity => (
-                  darkMode ? (
-                    <div style={{...globalStyles.flexBoxRow, alignItems: 'baseline'}}>
-                      <Text dz2 darkMode type='HeaderBig' style={{marginLeft: 10, marginRight: 10, opacity}}>k</Text>
-                      <Text dz2 darkMode type='BodySmall' style={{opacity}}>White {opacity * 100 + '%'}</Text>
-                    </div>
-                    ) : (
-                    <div style={{...globalStyles.flexBoxRow, alignItems: 'baseline'}}>
-                      <Text dz2 type='BodySmall' style={{opacity}}>Black {opacity * 100 + '%'}</Text>
-                      <Text dz2 type='HeaderBig' style={{marginLeft: 10, marginRight: 10, opacity}}>k</Text>
-                    </div>
-                  )
-                ))}
-              </div>
-
-              <Space/>
               <div style={{...globalStyles.flexBoxRow, alignItems: 'baseline', justifyContent: 'center', backgroundColor: globalColorsDZ2.yellow, paddingTop: 10, paddingBottom: 10}}>
                 <Text dz2 type='HeaderBig' warning style={{marginLeft: 10, marginRight: 10}}>k</Text>
                 <Text dz2 type='BodySmall' warning>brown {'60%'}</Text>
@@ -151,7 +134,7 @@ class DZ2Font extends Component {
         <div style={globalStyles.flexBoxRow}>
           <div style={{...globalStyles.flexBoxColumn, flex: 1, padding: 10}}>
             <p>
-              <Text dz2 inline type='BodySmall'>Word word word word word</Text>
+              <Text dz2 inline type='BodySmall'>Word word word word word&nbsp;</Text>
               <Text dz2 inline type='Terminal'>inline command line&nbsp;</Text>
               <Text dz2 inline type='TerminalUsername'>username&nbsp;</Text>
               <Text dz2 inline type='TerminalPrivate'>{`'secret'`}</Text>
