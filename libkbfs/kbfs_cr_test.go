@@ -959,6 +959,11 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
 
+	err = kbfsOps2.SyncFromServer(ctx, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+
 	err = kbfsOps2Dev2.SyncFromServer(ctx, rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
