@@ -1402,6 +1402,10 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 		t.Errorf("Couldn't write file: %v", err)
 	}
 
+	ops := getOps(config, rootNode.GetFolderBranch().Tlf)
+	unpauseArchives := make(chan struct{})
+	ops.fbm.archivePauseChan <- unpauseArchives
+
 	// start the sync
 	errChan := make(chan error)
 	cancelCtx, cancel := context.WithCancel(putCtx)
@@ -1420,7 +1424,6 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 		t.Fatalf("No expected canceled error: %v", err)
 	}
 
-	ops := getOps(config, rootNode.GetFolderBranch().Tlf)
 	// Know that the sync finished by grabbing the lock.
 	lState := makeFBOLockState()
 	ops.mdWriterLock.Lock(lState)
@@ -1434,6 +1437,8 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 	if err := kbfsOps.Sync(ctx, fileNode); err != nil {
 		t.Fatalf("Couldn't sync: %v", err)
 	}
+
+	unpauseArchives <- struct{}{}
 
 	// The first put actually succeeded, so SyncFromServer and make
 	// sure it worked.  This should also finish removing any blocks

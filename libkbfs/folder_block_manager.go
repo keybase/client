@@ -23,6 +23,8 @@ type folderBlockManager struct {
 	// unref's blocks archived
 	archiveChan chan *RootMetadata
 
+	archivePauseChan chan (<-chan struct{})
+
 	// archiveGroup tracks the outstanding archives.
 	archiveGroup repeatedWaitGroup
 
@@ -58,6 +60,7 @@ func newFolderBlockManager(config Config, fb FolderBranch) *folderBlockManager {
 		shutdownChan:             make(chan struct{}),
 		id:                       fb.Tlf,
 		archiveChan:              make(chan *RootMetadata, 25),
+		archivePauseChan:         make(chan (<-chan struct{})),
 		blocksToDeleteAfterError: make(map[*RootMetadata][]BlockPointer),
 		forceReclamationChan:     make(chan struct{}, 1),
 	}
@@ -337,6 +340,18 @@ func (fbm *folderBlockManager) archiveBlocksInBackground() {
 					return err
 				}
 
+				return nil
+			})
+		case unpause := <-fbm.archivePauseChan:
+			fbm.runUnlessShutdown(func(ctx context.Context) (err error) {
+				fbm.log.CInfof(ctx, "Archives paused")
+				// wait to be unpaused
+				select {
+				case <-unpause:
+					fbm.log.CInfof(ctx, "Archives unpaused")
+				case <-ctx.Done():
+					return ctx.Err()
+				}
 				return nil
 			})
 		case <-fbm.shutdownChan:
