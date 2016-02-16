@@ -3,6 +3,8 @@
 import React, {Component} from 'react'
 
 export type Props = {
+  style?: Object,
+  dz2?: boolean
 }
 
 declare export default class Terminal extends React.Component {

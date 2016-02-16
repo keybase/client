@@ -10,25 +10,41 @@ export default class Text extends Component {
 
   _terminalPrefix (type: Props.type): ?ReactElement {
     return ({
-      TerminalEmpty: <span>&nbsp;</span>,
-      TerminalCommand: <span>> </span>,
-      TerminalComment: <span># </span>
+      'TerminalEmpty': <span>&nbsp;</span>,
+      'TerminalCommand': <span>> </span>,
+      'TerminalComment': <span># </span>
     }: {[key: string]: ReactElement})[type]
+  }
+
+  _inlineStyle (type: Props.type): Object {
+    switch (type) {
+      case 'Terminal':
+      case 'TerminalCommand':
+      case 'TerminalComment':
+      case 'TerminalUsername':
+      case 'TerminalPublic':
+      case 'TerminalPrivate':
+        return styles.textTerminalInline
+      default:
+        return {}
+    }
   }
 
   render (): ReactElement {
     const typeStyle = {
-      'Header-Jumbo': styles.textHeaderJumbo,
-      'Header-Big': styles.textHeaderBig,
+      'HeaderJumbo': styles.textHeaderJumbo,
+      'HeaderBig': styles.textHeaderBig,
       'Header': styles.textHeader,
-      'Body-Semibold': styles.textBodySemibold,
+      'BodySemibold': styles.textBodySemibold,
       'Body': styles.textBody,
-      'Body-Small': styles.textBodySmall,
+      'BodySmall': styles.textBodySmall,
       'Error': styles.textError,
-      'Terminal-Inline': {...styles.textTerminal, ...styles.textTerminalInline},
-      'Terminal': styles.textTerminal,
+      'Terminal': {...styles.textTerminal, color: (this.props.inline ? globalColorsDZ2.darkBlue : globalColorsDZ2.blue3)},
       'TerminalCommand': styles.textTerminal,
       'TerminalComment': {...styles.textTerminal, ...styles.textTerminalComment},
+      'TerminalUsername': {...styles.textTerminal, color: globalColorsDZ2.orange},
+      'TerminalPublic': {...styles.textTerminal, color: globalColorsDZ2.yellowGreen2},
+      'TerminalPrivate': {...styles.textTerminal, color: globalColorsDZ2.darkBlue2},
       'TerminalEmpty': {...styles.textTerminal, ...styles.textTerminalEmpty}
     }[this.props.type]
 
@@ -36,9 +52,12 @@ export default class Text extends Component {
 
     const color = this.props.darkMode ? globalColorsDZ2.white : globalColorsDZ2.black
 
+    const inlineStyle = this.props.inline ? this._inlineStyle(this.props.type) : {}
+
     const style = {
       opacity,
       color,
+      ...inlineStyle,
       ...typeStyle,
       ...(this.props.lineClamp ? lineClamp(this.props.lineClamp) : {}),
       ...(this.props.link ? styles.textLinkMixin : {}),
@@ -51,16 +70,7 @@ export default class Text extends Component {
 
     const terminalPrefix = this._terminalPrefix(this.props.type)
 
-    const props = {
-      className: (this.props.link ? 'hover-underline' : ''),
-      style,
-      onClick: this.props.onClick
-    }
-
-    // $FlowIssue doesn't like strings for react classes
-    const tag: ReactClass = this.props.inline ? 'span' : 'p'
-
-    return React.createElement(tag, props, [terminalPrefix, this.props.children])
+    return <span className={this.props.link ? 'hover-underline' : ''} style={style} onClick={this.props.onClick}>{terminalPrefix}{this.props.children}</span>
   }
 }
 
@@ -126,12 +136,11 @@ export const styles = {
     letterSpacing: '0.2px'
   },
   textTerminal: {
-    ...textCommon,
     ...globalStyles.fontTerminalSemibold,
+    whiteSpace: 'nowrap',
     fontSize: 14,
     lineHeight: '21px',
     letterSpacing: '0.3px',
-    color: globalColorsDZ2.blue3
   },
   textTerminalComment: {
     color: globalColorsDZ2.white,
@@ -142,7 +151,6 @@ export const styles = {
   },
   textTerminalInline: {
     backgroundColor: globalColorsDZ2.blue4,
-    color: globalColorsDZ2.darkBlue
   },
   textLinkMixin: {
     color: globalColors.blue,

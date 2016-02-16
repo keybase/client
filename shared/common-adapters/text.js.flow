@@ -3,10 +3,11 @@
 import React, {Component} from 'react'
 
 export type Props = {
-  type: 'Header-Jumbo' | 'Header-Big' | 'Header'
-          | 'Body' | 'Body-Semibold' | 'Body-Small'
+  type: 'HeaderJumbo' | 'HeaderBig' | 'Header'
+          | 'Body' | 'BodySemibold' | 'BodySmall'
           | 'Error'
-          | 'Terminal' | 'Terminal-Inline'
+          | 'Terminal'
+          | 'TerminalUsername' | 'TerminalPublic' | 'TerminalPrivate'
           | 'TerminalCommand' | 'TerminalComment' | 'TerminalEmpty',
   opacity?: 1 | 0.75 | 0.6 | 0.4,
   darkMode?: boolean, // For rendering on a dark background (light text)
