@@ -16,7 +16,7 @@ export default class Text extends Component {
     }: {[key: string]: ReactElement})[type]
   }
 
-  render () {
+  render (): ReactElement {
     const typeStyle = {
       'Header-Jumbo': styles.textHeaderJumbo,
       'Header-Big': styles.textHeaderBig,
@@ -51,11 +51,16 @@ export default class Text extends Component {
 
     const terminalPrefix = this._terminalPrefix(this.props.type)
 
-    if (this.props.inline) {
-      return <span className={this.props.link ? 'hover-underline' : ''} style={style} onClick={this.props.onClick}>{terminalPrefix}{this.props.children}</span>
+    const props = {
+      className: (this.props.link ? 'hover-underline' : ''),
+      style,
+      onClick: this.props.onClick
     }
 
-    return <p className={this.props.link ? 'hover-underline' : ''} style={style} onClick={this.props.onClick}>{terminalPrefix}{this.props.children}</p>
+    // $FlowIssue doesn't like strings for react classes
+    const tag: ReactClass = this.props.inline ? 'span' : 'p'
+
+    return React.createElement(tag, props, [terminalPrefix, this.props.children])
   }
 }
 
