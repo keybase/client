@@ -9,6 +9,8 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/saltpack"
+	"github.com/ugorji/go/codec"
 )
 
 func TestSaltpackEncrypt(t *testing.T) {
@@ -41,6 +43,72 @@ func TestSaltpackEncrypt(t *testing.T) {
 		if len(out) == 0 {
 			t.Fatal("no output")
 		}
+	}
+	run([]string{u1.Username, u2.Username})
+
+	// If we add ourselves, we should be smart and not error out
+	// (We are u3 in this case)
+	run([]string{u1.Username, u2.Username, u3.Username})
+}
+
+type receiverKeys struct {
+	_struct       bool   `codec:",toarray"`
+	ReceiverKID   []byte `codec:"receiver_key_id"`
+	PayloadKeyBox []byte `codec:"payloadkey"`
+}
+
+type encryptionHeader struct {
+	_struct         bool                 `codec:",toarray"`
+	FormatName      string               `codec:"format_name"`
+	Version         saltpack.Version     `codec:"vers"`
+	Type            saltpack.MessageType `codec:"type"`
+	Ephemeral       []byte               `codec:"ephemeral"`
+	SenderSecretbox []byte               `codec:"sendersecretbox"`
+	Receivers       []receiverKeys       `codec:"rcvrs,omitempty"`
+	seqno           uint64
+}
+
+func TestSaltpackAnonymousEncrypt(t *testing.T) {
+	tc := SetupEngineTest(t, "SaltpackEncrypt")
+	defer tc.Cleanup()
+
+	u1 := CreateAndSignupFakeUser(tc, "nalcp")
+	u2 := CreateAndSignupFakeUser(tc, "nalcp")
+	u3 := CreateAndSignupFakeUser(tc, "nalcp")
+
+	trackUI := &FakeIdentifyUI{
+		Proofs: make(map[string]string),
+	}
+	ctx := &Context{IdentifyUI: trackUI, SecretUI: u3.NewSecretUI()}
+
+	run := func(Recips []string) {
+		sink := libkb.NewBufferCloser()
+		arg := &SaltpackEncryptArg{
+			Opts:   keybase1.SaltpackEncryptOptions{Recipients: Recips, Anonymous: true},
+			Source: strings.NewReader("id2 and encrypt, id2 and encrypt"),
+			Sink:   sink,
+		}
+
+		eng := NewSaltpackEncrypt(arg, tc.G)
+		if err := RunEngine(eng, ctx); err != nil {
+			t.Fatal(err)
+		}
+
+		out := sink.Bytes()
+		if len(out) == 0 {
+			t.Fatal("no output")
+		}
+
+		var header encryptionHeader
+		dec := codec.NewDecoderBytes(out, &codec.MsgpackHandle{WriteExt: true})
+		if err := dec.Decode(&header); err != nil {
+			t.Fatal(err)
+		}
+
+		if len(header.Receivers) > 0 {
+			t.Fatal("receivers included in anonymous saltpack header")
+		}
+
 	}
 	run([]string{u1.Username, u2.Username})
 
