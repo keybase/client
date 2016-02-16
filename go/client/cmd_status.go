@@ -225,7 +225,11 @@ func (c *CmdStatus) outputClients(dui libkb.DumbOutputUI, clients []keybase1.Cli
 		if len(cli.Version) > 0 {
 			vstr = ", version: " + cli.Version
 		}
-		dui.Printf("    %s [pid: %d%s]\n", strings.Join(cli.Argv, " "), cli.Pid, vstr)
+		var dstr string
+		if len(cli.Desc) > 0 {
+			dstr = ", description: " + cli.Desc
+		}
+		dui.Printf("    %s [pid: %d%s%s]\n", strings.Join(cli.Argv, " "), cli.Pid, vstr, dstr)
 	}
 }
 
