@@ -65,12 +65,12 @@ export default class Input extends Component {
           style={{...textStyle, ...globalStyles.flexBoxColumn}}
           autoFocus={this.props.autoFocus}
           errorText={this.props.errorText}
-          floatingLabelText={this.props.small ? undefined : this.props.floatingLabelText || this.props.hintText}
+          floatingLabelText={this.props.small ? undefined : this.props.floatingLabelText}
           floatingLabelStyle={{...styles.floatingLabelStyle, ...(this.state.focused ? {color: globalColorsDZ2.blue2} : {})}}
           onFocus={() => this.setState({focused: true})}
           onBlur={() => this.setState({focused: false})}
           hintText={this.props.hintText}
-          hintStyle={{top: 3, bottom: 'auto'}}
+          hintStyle={{...styles.hintStyle, ...(this.props.multiLine ? {textAlign: 'center'} : {top: 3, bottom: 'auto'})}}
           multiLine={this.props.multiLine}
           onChange={event => {
             this.onChange(event)
@@ -130,7 +130,7 @@ export const styles = {
     transition: ''
   },
   errorStyle: {
-    ...globalStyles.fontRegular,
+    ...globalStyles.DZ2.fontRegular,
     color: globalColors.highRiskWarning,
     alignSelf: 'center',
     fontSize: 13,
@@ -138,8 +138,11 @@ export const styles = {
     position: 'initial',
     marginTop: 4
   },
+  hintStyle: {
+    ...globalStyles.DZ2.fontRegular
+  },
   floatingLabelStyle: {
-    ...globalStyles.fontRegular,
+    ...globalStyles.DZ2.fontRegular,
     alignSelf: 'center',
     position: 'inherit',
     top: 34

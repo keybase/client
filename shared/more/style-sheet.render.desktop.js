@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide'
 import Container from './dev-container'
-import {Button, Logo, Input, Text, Terminal} from '../common-adapters'
+import {Button, Logo, Input, Text, Terminal, FormWithCheckbox} from '../common-adapters'
 
 export default class Render extends Component {
   render () {
@@ -88,8 +88,16 @@ export default class Render extends Component {
             <Input multiLine floatingLabelText='Multiline' errorText='Error lorem ipsum dolor sit amet.'/>
             <Input floatingLabelText='Label' defaultValue='Blah'/>
             <Input floatingLabelText='foo' rows={1} rowsMax={3} multiLine />
-            <Input rows={1} rowsMax={3} multiLine />
+            <Input hintText='foo' rows={1} rowsMax={3} multiLine />
+            <Input multiLine hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas' style={{marginTop: 30}} />
             <Input small hintText='user1,user2,etc' style={{width: '100%', marginLeft: 2}} />
+            <FormWithCheckbox
+              inputProps={{floatingLabelText: 'Passphrase', style: {marginBottom: 0}, errorText: 'Error Message'}}
+              checkboxesProps={[
+                {label: 'Save in Keychain', checked: true, onCheck: () => {}},
+                {label: 'Show Typing', checked: true, onCheck: () => {}}
+              ]}
+            />
           </div>
         </Container>
       </div>)
