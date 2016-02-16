@@ -98,17 +98,23 @@ type ChainLinkUnpacked struct {
 }
 
 // A template for some of the reasons in badChainLinks below.
-const badLinkTemplate = "Link %d of akalin's sigchain, which was accidentally added by an old client in development on 23 Mar 2015 20:02 GMT."
+const badAkalin = "Link %d of akalin's sigchain, which was accidentally added by an old client in development on 23 Mar 2015 20:02 GMT."
+const badJamGregory = "Link %d of jamgregory's sigchain, which had a bad PGP keypin"
 
 // A map from SigIDs of bad chain links that should be ignored to the
 // reasons why they're ignored.
 var badChainLinks = map[keybase1.SigID]string{
 	// Links 22-25 of akalin's sigchain, which was accidentally
 	// added by an old client in development on 3/23/2015, 9:02am.
-	"2a0da9730f049133ce728ba30de8c91b6658b7a375e82c4b3528d7ddb1a21f7a0f": fmt.Sprintf(badLinkTemplate, 22),
-	"eb5c7e7d3cf8370bed8ab55c0d8833ce9d74fd2c614cf2cd2d4c30feca4518fa0f": fmt.Sprintf(badLinkTemplate, 23),
-	"0f175ef0d3b57a9991db5deb30f2432a85bc05922bbe727016f3fb660863a1890f": fmt.Sprintf(badLinkTemplate, 24),
-	"48267f0e3484b2f97859829503e20c2f598529b42c1d840a8fc1eceda71458400f": fmt.Sprintf(badLinkTemplate, 25),
+	// Links 17-19 of jamGregory's sigchain, which refered to a corrupted
+	// PGP key. See https://github.com/keybase/client/issues/1908
+	"2a0da9730f049133ce728ba30de8c91b6658b7a375e82c4b3528d7ddb1a21f7a0f": fmt.Sprintf(badAkalin, 22),
+	"eb5c7e7d3cf8370bed8ab55c0d8833ce9d74fd2c614cf2cd2d4c30feca4518fa0f": fmt.Sprintf(badAkalin, 23),
+	"0f175ef0d3b57a9991db5deb30f2432a85bc05922bbe727016f3fb660863a1890f": fmt.Sprintf(badAkalin, 24),
+	"48267f0e3484b2f97859829503e20c2f598529b42c1d840a8fc1eceda71458400f": fmt.Sprintf(badAkalin, 25),
+	"1171fb8def065ecd8e053b042d7f162520de4b0bef853da7580e0668707770250f": fmt.Sprintf(badJamGregory, 17),
+	"e66998426a3bdba3b75aaec84d1fa75494061114abe9983da4e4495821a7ecf40f": fmt.Sprintf(badJamGregory, 18),
+	"bb92cc0c57bf99764b56ab54dbf489527c2744154706c07acd03007dcd7001480f": fmt.Sprintf(badJamGregory, 19),
 }
 
 // Some chainlinks are broken and need a small whitespace addition to match their payload
