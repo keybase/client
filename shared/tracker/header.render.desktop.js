@@ -36,8 +36,8 @@ export default class HeaderRender extends Component {
   }
 
   render2 (styles: Object) {
-    let headerStyle:Object = (this.props.currentlyFollowing ? styles.headerSuccess : styles.headerNormal)
-    let headerTextStyle:Object = styles.headerTextNormal
+    let headerStyle = (this.props.currentlyFollowing && !this.props.changed) ? styles.headerSuccess : styles.headerNormal
+    let headerTextStyle = styles.headerTextNormal
     switch (this.props.trackerState) {
       case 'warning':
         headerStyle = styles.headerWarning
@@ -50,13 +50,13 @@ export default class HeaderRender extends Component {
     if (!this.props.currentlyFollowing && this.state.showCloseWarning) {
       headerStyle = styles.headerWarning
       headerTextStyle = styles.headerTextWarning
-      headerText = 'You will see this window everytime you access this folder.'
+      headerText = 'You will see this window every time you access this folder.'
     }
 
     return (
       <div style={styles.outer}>
         <div style={{...styles.header, ...headerStyle}}>
-          <Text type='Body' lineClamp={2} style={{...styles.text, ...headerTextStyle, flex: 1}}>{headerText}</Text>
+          <Text type='BodySemibold' dz2 lineClamp={2} style={{...styles.text, ...headerTextStyle, flex: 1}}>{headerText}</Text>
           <Icon type='fa-times' opacity style={styles.close}
             onClick={() => this.props.onClose()}
             onMouseEnter={() => this.closeMouseEnter()}
@@ -102,10 +102,16 @@ const styles2 = {
     backgroundColor: globalColorsDZ2.yellow
   },
   headerTextNormal: {
-    color: globalColorsDZ2.white
+    color: globalColorsDZ2.white,
+    fontSize: 14,
+    lineHeight: 'normal',
+    opacity: 1
   },
   headerTextWarning: {
-    color: globalColorsDZ2.black75
+    color: globalColorsDZ2.black,
+    fontSize: 14,
+    lineHeight: 'normal',
+    opacity: 1
   },
   headerError: {
     backgroundColor: globalColorsDZ2.red

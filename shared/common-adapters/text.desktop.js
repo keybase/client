@@ -186,7 +186,7 @@ const lineCommon = {
   WebkitBoxOrient: 'vertical'
 }
 
-function lineClamp (lines: number) {
+export function lineClamp (lines: number): Object {
   return {
     ...lineCommon,
     WebkitLineClamp: lines
