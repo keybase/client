@@ -3,6 +3,10 @@
 
 import React, {Component} from 'react'
 import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide'
+
+//$FlowFixMe remove when we stop using the old version of text
+import TextOld from './text.old'
+
 import type {Props} from './text'
 
 export default class Text extends Component {
@@ -31,6 +35,10 @@ export default class Text extends Component {
   }
 
   render (): ReactElement {
+    if (!this.props.dz2) {
+      return <TextOld {...this.props}/>
+    }
+
     const typeStyle = {
       'HeaderJumbo': styles.textHeaderJumbo,
       'HeaderBig': styles.textHeaderBig,
@@ -53,12 +61,14 @@ export default class Text extends Component {
     const color = this.props.darkMode ? globalColorsDZ2.white : globalColorsDZ2.black
 
     const inlineStyle = this.props.inline ? this._inlineStyle(this.props.type) : {}
+    const warningStyle = this.props.warning ? {opacity: 0.6, color: globalColorsDZ2.brown, backgroundColor: globalColorsDZ2.yellow} : {}
 
     const style = {
       opacity,
       color,
       ...inlineStyle,
       ...typeStyle,
+      ...warningStyle,
       ...(this.props.lineClamp ? lineClamp(this.props.lineClamp) : {}),
       ...(this.props.link ? styles.textLinkMixin : {}),
       ...(this.props.small ? styles.textSmallMixin : {}),
@@ -75,7 +85,7 @@ export default class Text extends Component {
 }
 
 const textCommon = {
-  ...globalStyles.fontRegular,
+  ...globalStyles.DZ2.fontRegular,
   ...globalStyles.noSelect,
   cursor: 'inherit'
 }
@@ -83,7 +93,7 @@ const textCommon = {
 const headerStyles = {
   textHeaderJumbo: {
     ...textCommon,
-    ...globalStyles.fontBold,
+    ...globalStyles.DZ2.fontBold,
     fontSize: 32,
     lineHeight: '38px',
     letterSpacing: '0.3px'
@@ -91,7 +101,7 @@ const headerStyles = {
 
   textHeaderBig: {
     ...textCommon,
-    ...globalStyles.fontBold,
+    ...globalStyles.DZ2.fontBold,
     fontSize: 24,
     lineHeight: '31px',
     letterSpacing: '0.3px'
@@ -99,7 +109,7 @@ const headerStyles = {
 
   textHeader: {
     ...textCommon,
-    ...globalStyles.fontBold,
+    ...globalStyles.DZ2.fontBold,
     fontSize: 18,
     lineHeight: '25px',
     letterSpacing: '0.3px'
@@ -116,7 +126,7 @@ export const styles = {
   },
   textBodySemibold: {
     ...textCommon,
-    ...globalStyles.fontSemibold,
+    ...globalStyles.DZ2.fontSemibold,
     fontSize: 16,
     lineHeight: '22px',
     letterSpacing: '0.3px'
@@ -136,7 +146,7 @@ export const styles = {
     letterSpacing: '0.2px'
   },
   textTerminal: {
-    ...globalStyles.fontTerminalSemibold,
+    ...globalStyles.DZ2.fontTerminalSemibold,
     whiteSpace: 'nowrap',
     fontSize: 14,
     lineHeight: '21px',

@@ -4,7 +4,8 @@ import React, {Component} from 'react'
 
 export type Props = {
   style?: Object,
-  dz2?: boolean
+  dz2?: boolean,
+  children?: ReactElement
 }
 
 declare export default class Terminal extends React.Component {

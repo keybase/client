@@ -41,19 +41,12 @@ export const globalColorsDZ2 = {
   yellowGreen: '#b3db39',
   yellowGreen2: '#89a82c',
 
-  black75: 'rgba(0, 0, 0, 0.75)',
-  black60: 'rgba(0, 0, 0, 0.60)',
-  black40: 'rgba(0, 0, 0, 0.40)',
-  black20: 'rgba(0, 0, 0, 0.20)',
-  black10: 'rgba(0, 0, 0, 0.10)',
-
   lightGrey: '#ebebeb',
   lightGrey2: '#f6f6f6',
 
   white: '#ffffff',
   black: '#000000',
 
-  // TODO these do not appear in the color style guide, only text mocks
   brown: '#471f11'
 }
 
@@ -67,6 +60,26 @@ const fontCommon = {
 }
 
 const font = {
+  fontRegular: {
+    ...fontCommon,
+    fontFamily: 'Noto Sans'
+  },
+  fontBold: {
+    ...fontCommon,
+    fontFamily: 'Noto Sans Bold'
+  },
+  fontItalic: {
+    ...fontCommon,
+    fontFamily: 'Noto Sans Italic'
+  },
+  fontTerminal: {
+    ...fontCommon,
+    fontFamily: 'Source Code Pro'
+  },
+}
+
+
+const fontDZ2 = {
   fontRegular: {
     ...fontCommon,
     fontFamily: 'Lato',
@@ -135,5 +148,6 @@ const util = {
 
 export const globalStyles = {
   ...font,
+  DZ2: {...fontDZ2},
   ...util
 }

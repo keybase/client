@@ -7,7 +7,7 @@ export default class Render extends Component {
   render () {
     return (
       <div style={{...globalStyles.flexBoxColumn, margin: 20}}>
-        <Container title='Text:DZ2'>
+        <Container title='Text - DZ2'>
           <DZ2Font/>
         </Container>
         <Container title='Text'>
@@ -105,36 +105,36 @@ class DZ2Font extends Component {
                 flex: 1,
                 padding: 40,
                 backgroundColor: (darkMode ? globalColorsDZ2.darkBlue : globalColorsDZ2.white)}}>
-              <Text darkMode={darkMode} type='HeaderJumbo'>Header Jumbo</Text>
-              <Text darkMode={darkMode} type='HeaderJumbo'>Header Jumbo</Text>
+              <Text dz2 darkMode={darkMode} type='HeaderJumbo'>Header Jumbo</Text>
+              <Text dz2 darkMode={darkMode} type='HeaderJumbo'>Header Jumbo</Text>
               <Space/>
-              <Text darkMode={darkMode} type='HeaderBig'>Header Big Header Big</Text>
-              <Text darkMode={darkMode} type='HeaderBig'>Header Big Header Big</Text>
+              <Text dz2 darkMode={darkMode} type='HeaderBig'>Header Big Header Big</Text>
+              <Text dz2 darkMode={darkMode} type='HeaderBig'>Header Big Header Big</Text>
               <Space/>
-              <Text darkMode={darkMode} type='Header'>Header Header Header</Text>
-              <Text darkMode={darkMode} type='Header'>Header Header Header</Text>
+              <Text dz2 darkMode={darkMode} type='Header'>Header Header Header</Text>
+              <Text dz2 darkMode={darkMode} type='Header'>Header Header Header</Text>
               <Space/>
-              <Text darkMode={darkMode} type='Body'>Body Body</Text>
-              <Text darkMode={darkMode} type='Body'>Body Body</Text>
+              <Text dz2 darkMode={darkMode} type='Body'>Body Body</Text>
+              <Text dz2 darkMode={darkMode} type='Body'>Body Body</Text>
               <Space/>
-              <Text darkMode={darkMode} type='BodySemibold'>Body Semibold Body Semibold</Text>
-              <Text darkMode={darkMode} type='BodySemibold'>Body Semibold Body Semibold</Text>
+              <Text dz2 darkMode={darkMode} type='BodySemibold'>Body Semibold Body Semibold</Text>
+              <Text dz2 darkMode={darkMode} type='BodySemibold'>Body Semibold Body Semibold</Text>
               <Space/>
-              <Text darkMode={darkMode} type='BodySmall'>Body small Body Small</Text>
-              <Text darkMode={darkMode} type='BodySmall'>Body small Body Small</Text>
+              <Text dz2 darkMode={darkMode} type='BodySmall'>Body small Body Small</Text>
+              <Text dz2 darkMode={darkMode} type='BodySmall'>Body small Body Small</Text>
               <Space/>
 
               <div style={{alignSelf: (darkMode ? 'flex-start' : 'flex-end')}}>
                 {(darkMode ? [1.0, 0.75, 0.4] : [0.75, 0.4, 0.1]).map(opacity => (
                   darkMode ? (
                     <div style={{...globalStyles.flexBoxRow, alignItems: 'baseline'}}>
-                      <Text darkMode type='HeaderBig' style={{marginLeft: 10, marginRight: 10, opacity}}>k</Text>
-                      <Text darkMode type='BodySmall' style={{opacity}}>White {opacity * 100 + '%'}</Text>
+                      <Text dz2 darkMode type='HeaderBig' style={{marginLeft: 10, marginRight: 10, opacity}}>k</Text>
+                      <Text dz2 darkMode type='BodySmall' style={{opacity}}>White {opacity * 100 + '%'}</Text>
                     </div>
                     ) : (
                     <div style={{...globalStyles.flexBoxRow, alignItems: 'baseline'}}>
-                      <Text type='BodySmall' style={{opacity}}>Black {opacity * 100 + '%'}</Text>
-                      <Text type='HeaderBig' style={{marginLeft: 10, marginRight: 10, opacity}}>k</Text>
+                      <Text dz2 type='BodySmall' style={{opacity}}>Black {opacity * 100 + '%'}</Text>
+                      <Text dz2 type='HeaderBig' style={{marginLeft: 10, marginRight: 10, opacity}}>k</Text>
                     </div>
                   )
                 ))}
@@ -142,8 +142,8 @@ class DZ2Font extends Component {
 
               <Space/>
               <div style={{...globalStyles.flexBoxRow, alignItems: 'baseline', justifyContent: 'center', backgroundColor: globalColorsDZ2.yellow, paddingTop: 10, paddingBottom: 10}}>
-                <Text type='HeaderBig' style={{color: globalColorsDZ2.brown, opacity: 0.6, marginLeft: 10, marginRight: 10}}>k</Text>
-                <Text type='BodySmall' style={{color: globalColorsDZ2.brown, opacity: 0.6}}>brown {'60%'}</Text>
+                <Text dz2 type='HeaderBig' warning style={{marginLeft: 10, marginRight: 10}}>k</Text>
+                <Text dz2 type='BodySmall' warning>brown {'60%'}</Text>
               </div>
             </div>))}
         </div>
@@ -151,27 +151,27 @@ class DZ2Font extends Component {
         <div style={globalStyles.flexBoxRow}>
           <div style={{...globalStyles.flexBoxColumn, flex: 1, padding: 10}}>
             <p>
-              <Text inline type='BodySmall'>Word word word word word</Text>
-              <Text inline type='Terminal'>inline command line&nbsp;</Text>
-              <Text inline type='TerminalUsername'>username&nbsp;</Text>
-              <Text inline type='TerminalPrivate'>{`'secret'`}</Text>
+              <Text dz2 inline type='BodySmall'>Word word word word word</Text>
+              <Text dz2 inline type='Terminal'>inline command line&nbsp;</Text>
+              <Text dz2 inline type='TerminalUsername'>username&nbsp;</Text>
+              <Text dz2 inline type='TerminalPrivate'>{`'secret'`}</Text>
             </p>
           </div>
           <Terminal dz2 style={{flex: 1, overflow: 'scroll'}}>
             <div style={{...globalStyles.flexBoxRow}}>
-              <Text type='Terminal'>command line stuff&nbsp;</Text>
-              <Text type='TerminalUsername'>username&nbsp;</Text>
-              <Text type='TerminalPrivate'>something secret</Text>
+              <Text dz2 type='Terminal'>command line stuff&nbsp;</Text>
+              <Text dz2 type='TerminalUsername'>username&nbsp;</Text>
+              <Text dz2 type='TerminalPrivate'>something secret</Text>
             </div>
 
             <div style={{...globalStyles.flexBoxRow}}>
-              <Text type='Terminal'>command line stuff&nbsp;</Text>
-              <Text type='TerminalUsername'>username&nbsp;</Text>
-              <Text type='TerminalPublic'>something public</Text>
+              <Text dz2 type='Terminal'>command line stuff&nbsp;</Text>
+              <Text dz2 type='TerminalUsername'>username&nbsp;</Text>
+              <Text dz2 type='TerminalPublic'>something public</Text>
             </div>
 
-            <Text type='Terminal'>command line stuff</Text>
-            <Text type='TerminalComment'>comment and stuff</Text>
+            <Text dz2 type='Terminal'>command line stuff</Text>
+            <Text dz2 type='TerminalComment'>comment and stuff</Text>
           </Terminal>
         </div>
       </div>
