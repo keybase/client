@@ -23,7 +23,6 @@ const propsDefault = {
     fullname: 'Gabriel Handford',
     followersCount: 1871,
     followingCount: 356,
-    followsYou: true,
     location: 'San Francisco, California, USA, Earth, Milky Way',
     bio: 'Etsy photo booth mlkshk semiotics, 8-bit literally slow-carb keytar bushwick +1. Plaid migas etsy yuccie, locavore street art mlkshk lumbersexual. Literally microdosing pug disrupt iPhone raw denim, quinoa meggings kitsch. ',
     avatar: 'https://s3.amazonaws.com/keybase_processed_uploads/71cd3854986d416f60dacd27d5796705_200_200_square_200.jpeg'
@@ -69,8 +68,8 @@ const propsNewProofs = {
     ...propsNewUser.userInfo,
     followsYou: true
   },
-  currentlyFollowing: true,
-  trackerState: 'warning'
+  currentlyFollowing: false,
+  trackerState: 'normal'
 }
 
 const propsBrokenProofs = {
@@ -80,7 +79,7 @@ const propsBrokenProofs = {
     ...propsNewUser.userInfo,
     followsYou: true
   },
-  currentlyFollowing: true,
+  currentlyFollowing: false,
   trackerState: 'error'
 }
 
