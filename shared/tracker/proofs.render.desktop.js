@@ -70,7 +70,7 @@ export default class ProofsRender extends Component {
       followed: colors.lightBlue,
       unfollowed: colors.lightBlue,
       refollowed: colors.lightBlue,
-      proofsAdded: colors.lightBlue
+      followedProofsAdded: colors.lightBlue
     }[proof.state]
 
     return (
