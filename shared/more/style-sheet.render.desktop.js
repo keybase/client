@@ -81,11 +81,15 @@ export default class Render extends Component {
           </div>
         </Container>
         <Container title='Inputs'>
-          <div style={{...globalStyles.flexBoxColumn}}>
+          <div style={{...globalStyles.flexBoxColumn, maxWidth: 250}}>
             <Input floatingLabelText='Label' />
             <Input floatingLabelText='Label' errorText='Error lorem ipsum dolor sit amet.'/>
+            <Input multiLine floatingLabelText='Multiline'/>
+            <Input multiLine floatingLabelText='Multiline' errorText='Error lorem ipsum dolor sit amet.'/>
             <Input floatingLabelText='Label' defaultValue='Blah'/>
+            <Input floatingLabelText='foo' rows={1} rowsMax={3} multiLine />
             <Input rows={1} rowsMax={3} multiLine />
+            <Input small hintText='user1,user2,etc' style={{width: '100%', marginLeft: 2}} />
           </div>
         </Container>
       </div>)
