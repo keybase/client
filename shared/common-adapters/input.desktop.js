@@ -61,7 +61,7 @@ export default class Input extends Component {
     }
     const inputStyle = this.props.multiLine ? multiLineStyleFix : {height: 'auto'}
     return (
-      <div style={{...style, ...this.props.style}}>
+      <div style={{...style, ...this.props.style}} onClick={() => {this._textField && this._textField.focus()}}>
         <TextField
           ref={textField => this._textField = textField}
           fullWidth
