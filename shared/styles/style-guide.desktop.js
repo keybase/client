@@ -20,7 +20,6 @@ export const globalColors = {
 }
 
 export const globalColorsDZ2 = {
-
   // Keybase Brand Colors
   blue: '#33a0ff',
   blue2: '#66b8ff',
@@ -43,17 +42,13 @@ export const globalColorsDZ2 = {
   yellowGreen: '#b3db39',
   yellowGreen2: '#89a82c',
 
-  black75: 'rgba(0, 0, 0, 0.75)',
-  black60: 'rgba(0, 0, 0, 0.60)',
-  black40: 'rgba(0, 0, 0, 0.40)',
-  black20: 'rgba(0, 0, 0, 0.20)',
-  black10: 'rgba(0, 0, 0, 0.10)',
-
   lightGrey: '#ebebeb',
   lightGrey2: '#f6f6f6',
 
   white: '#ffffff',
-  black: '#000000'
+  black: '#000000',
+
+  brown: '#471f11'
 }
 
 export const globalResizing = {
@@ -81,6 +76,37 @@ const font = {
   fontTerminal: {
     ...fontCommon,
     fontFamily: 'Source Code Pro'
+  },
+}
+
+
+const fontDZ2 = {
+  fontRegular: {
+    ...fontCommon,
+    fontFamily: 'Lato',
+    fontWeight: 400
+  },
+  fontSemibold: {
+    ...fontCommon,
+    fontFamily: 'Lato',
+    fontWeight: 600
+  },
+  fontBold: {
+    ...fontCommon,
+    fontFamily: 'Lato',
+    fontWeight: 700
+  },
+  italic: {
+    fontStyle: 'italic'
+  },
+  fontTerminal: {
+    ...fontCommon,
+    fontFamily: 'Source Code Pro'
+  },
+  fontTerminalSemibold: {
+    ...fontCommon,
+    fontFamily: 'Source Code Pro',
+    fontWeight: 600
   }
 }
 
@@ -123,5 +149,6 @@ const util = {
 
 export const globalStyles = {
   ...font,
+  DZ2: {...fontDZ2},
   ...util
 }

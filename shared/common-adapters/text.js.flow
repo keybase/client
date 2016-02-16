@@ -3,12 +3,23 @@
 import React, {Component} from 'react'
 
 export type Props = {
-  type: 'Header' | 'Body' | 'TerminalCommand' | 'TerminalComment' | 'TerminalEmpty',
-  link?: bool,
-  small?: bool,
-  reversed?: bool,
-  onClick?: Function,
-  lineClamp?: number
+  type: 'HeaderJumbo' | 'HeaderBig' | 'Header'
+          | 'Body' | 'BodySemibold' | 'BodySmall'
+          | 'Error'
+          | 'Terminal'
+          | 'TerminalUsername' | 'TerminalPublic' | 'TerminalPrivate'
+          | 'TerminalCommand' | 'TerminalComment' | 'TerminalEmpty',
+  darkMode?: boolean, // For rendering on a dark background (light text)
+  inline?: boolean,
+  warning?: boolean, // Warning text has a yellow background and brown text
+  link?: boolean,
+  small?: boolean,
+  reversed?: boolean,
+  onClick?: () => void,
+  lineClamp?: number,
+  style?: Object,
+  dz2?: boolean, // Use DZ2 styling?
+  children?: ReactElement
 }
 
 declare export default class Text extends React.Component {

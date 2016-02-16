@@ -1,22 +1,74 @@
+/* @flow */
+/* eslint-disable react/prop-types */
+
 import React, {Component} from 'react'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide'
+
+//$FlowFixMe remove when we stop using the old version of text
+import TextOld from './text.old'
+
 import type {Props} from './text'
 
 export default class Text extends Component {
   props: Props;
 
-  render () {
+  _terminalPrefix (type: Props.type): ?ReactElement {
+    return ({
+      'TerminalEmpty': <span>&nbsp;</span>,
+      'TerminalCommand': <span>> </span>,
+      'TerminalComment': <span># </span>
+    }: {[key: string]: ReactElement})[type]
+  }
+
+  _inlineStyle (type: Props.type): Object {
+    switch (type) {
+      case 'Terminal':
+      case 'TerminalCommand':
+      case 'TerminalComment':
+      case 'TerminalUsername':
+      case 'TerminalPublic':
+      case 'TerminalPrivate':
+        return styles.textTerminalInline
+      default:
+        return {}
+    }
+  }
+
+  render (): ReactElement {
+    if (!this.props.dz2) {
+      return <TextOld {...this.props}/>
+    }
+
     const typeStyle = {
+      'HeaderJumbo': styles.textHeaderJumbo,
+      'HeaderBig': styles.textHeaderBig,
       'Header': styles.textHeader,
+      'BodySemibold': styles.textBodySemibold,
       'Body': styles.textBody,
+      'BodySmall': styles.textBodySmall,
       'Error': styles.textError,
-      'TerminalCommand': styles.textTerminalCommand,
-      'TerminalComment': styles.textTerminalComment,
-      'TerminalEmpty': styles.textTerminalEmpty
+      'Terminal': {...styles.textTerminal, color: (this.props.inline ? globalColorsDZ2.darkBlue : globalColorsDZ2.blue3)},
+      'TerminalCommand': styles.textTerminal,
+      'TerminalComment': {...styles.textTerminal, ...styles.textTerminalComment},
+      'TerminalUsername': {...styles.textTerminal, color: globalColorsDZ2.orange},
+      'TerminalPublic': {...styles.textTerminal, color: globalColorsDZ2.yellowGreen2},
+      'TerminalPrivate': {...styles.textTerminal, color: globalColorsDZ2.darkBlue2},
+      'TerminalEmpty': {...styles.textTerminal, ...styles.textTerminalEmpty}
     }[this.props.type]
 
+    const opacity = this.props.darkMode ? 1 : 0.75
+
+    const color = this.props.darkMode ? globalColorsDZ2.white : globalColorsDZ2.black
+
+    const inlineStyle = this.props.inline ? this._inlineStyle(this.props.type) : {}
+    const warningStyle = this.props.warning ? {opacity: 0.6, color: globalColorsDZ2.brown, backgroundColor: globalColorsDZ2.yellow} : {}
+
     const style = {
+      opacity,
+      color,
+      ...inlineStyle,
       ...typeStyle,
+      ...warningStyle,
       ...(this.props.lineClamp ? lineClamp(this.props.lineClamp) : {}),
       ...(this.props.link ? styles.textLinkMixin : {}),
       ...(this.props.small ? styles.textSmallMixin : {}),
@@ -26,48 +78,65 @@ export default class Text extends Component {
       ...this.props.style
     }
 
-    const terminalPrefix = {
-      TerminalEmpty: <span>&nbsp;</span>,
-      TerminalCommand: <span>> </span>,
-      TerminalComment: <span># </span>
-    }[this.props.type]
+    const terminalPrefix = this._terminalPrefix(this.props.type)
 
-    return <p className={this.props.link ? 'hover-underline' : ''} style={style} onClick={this.props.onClick}>{terminalPrefix}{this.props.children}</p>
+    return <span className={this.props.link ? 'hover-underline' : ''} style={style} onClick={this.props.onClick}>{terminalPrefix}{this.props.children}</span>
   }
 }
 
-Text.propTypes = {
-  type: React.PropTypes.oneOf(['Header', 'Body', 'TerminalCommand', 'TerminalComment', 'TerminalEmpty']),
-  link: React.PropTypes.bool,
-  small: React.PropTypes.bool,
-  reversed: React.PropTypes.bool,
-  children: React.PropTypes.node,
-  style: React.PropTypes.object,
-  onClick: React.PropTypes.func,
-  inline: React.PropTypes.bool,
-  lineClamp: React.PropTypes.number
-}
-
 const textCommon = {
-  ...globalStyles.fontRegular,
+  ...globalStyles.DZ2.fontRegular,
   ...globalStyles.noSelect,
-  color: globalColors.grey1,
   cursor: 'inherit'
 }
 
-export const styles = {
+const headerStyles = {
+  textHeaderJumbo: {
+    ...textCommon,
+    ...globalStyles.DZ2.fontBold,
+    fontSize: 32,
+    lineHeight: '38px',
+    letterSpacing: '0.3px'
+  },
+
+  textHeaderBig: {
+    ...textCommon,
+    ...globalStyles.DZ2.fontBold,
+    fontSize: 24,
+    lineHeight: '31px',
+    letterSpacing: '0.3px'
+  },
+
   textHeader: {
     ...textCommon,
-    ...globalStyles.fontBold,
+    ...globalStyles.DZ2.fontBold,
     fontSize: 18,
-    lineHeight: '22px',
-    letterSpacing: '0.5px'
-  },
+    lineHeight: '25px',
+    letterSpacing: '0.3px'
+  }
+}
+
+export const styles = {
+  ...headerStyles,
   textBody: {
     ...textCommon,
-    fontSize: 15,
-    lineHeight: '20px',
-    letterSpacing: '0.2px'
+    fontSize: 16,
+    lineHeight: '22px',
+    letterSpacing: '0.3px'
+  },
+  textBodySemibold: {
+    ...textCommon,
+    ...globalStyles.DZ2.fontSemibold,
+    fontSize: 16,
+    lineHeight: '22px',
+    letterSpacing: '0.3px'
+  },
+  textBodySmall: {
+    ...textCommon,
+    fontSize: 14,
+    lineHeight: '19px',
+    opacity: 0.4,
+    letterSpacing: '0.3px'
   },
   textError: {
     ...textCommon,
@@ -76,30 +145,22 @@ export const styles = {
     lineHeight: '17px',
     letterSpacing: '0.2px'
   },
-  textTerminalCommand: {
-    ...textCommon,
-    ...globalStyles.fontTerminal,
-    color: globalColors.white,
-    fontSize: 13,
-    lineHeight: '16px',
-    letterSpacing: '0.2px'
+  textTerminal: {
+    ...globalStyles.DZ2.fontTerminalSemibold,
+    whiteSpace: 'nowrap',
+    fontSize: 14,
+    lineHeight: '21px',
+    letterSpacing: '0.3px',
   },
   textTerminalComment: {
-    ...textCommon,
-    ...globalStyles.fontTerminal,
-    color: globalColors.grey2,
-    fontSize: 13,
-    lineHeight: '16px',
-    letterSpacing: '0.2px'
+    color: globalColorsDZ2.white,
+    opacity: 0.4
   },
   textTerminalEmpty: {
-    ...textCommon,
-    ...globalStyles.fontTerminal,
-    color: globalColors.grey1,
-    fontSize: 13,
-    lineHeight: '16px',
     minHeight: 20,
-    letterSpacing: '0.2px'
+  },
+  textTerminalInline: {
+    backgroundColor: globalColorsDZ2.blue4,
   },
   textLinkMixin: {
     color: globalColors.blue,
