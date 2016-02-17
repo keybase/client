@@ -28,6 +28,8 @@ const (
 	qrPeriodDefault = 1 * time.Minute
 	// How long must something be unreferenced before we reclaim it?
 	qrUnrefAgeDefault = 1 * time.Minute
+	// tlfValidDurationDefault is the default for tlf validity before redoing identify.
+	tlfValidDurationDefault = 6*time.Hour
 )
 
 // ConfigLocal implements the Config interface using purely local
@@ -73,6 +75,9 @@ type ConfigLocal struct {
 	// allKnownConfigsForTesting is used for testing, and contains all created
 	// Config objects in this test.
 	allKnownConfigsForTesting *[]Config
+
+	// tlfValidDuration is the time TLFs are valid before redoing identification.
+	tlfValidDuration time.Duration
 }
 
 var _ Config = (*ConfigLocal)(nil)
@@ -210,6 +215,9 @@ func NewConfigLocal() *ConfigLocal {
 		registry := metrics.NewRegistry()
 		config.SetMetricsRegistry(registry)
 	}
+
+	config.tlfValidDuration = tlfValidDurationDefault
+	
 	return config
 }
 
@@ -511,6 +519,16 @@ func (c *ConfigLocal) RekeyQueue() RekeyQueue {
 // SetMetricsRegistry implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) SetMetricsRegistry(r metrics.Registry) {
 	c.registry = r
+}
+
+// SetTLFValidDuration implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetTLFValidDuration(r time.Duration) {
+	c.tlfValidDuration = r
+}
+
+// TLFValidDuration implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) TLFValidDuration() time.Duration {
+	return c.tlfValidDuration
 }
 
 // Shutdown implements the Config interface for ConfigLocal.

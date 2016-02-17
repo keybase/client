@@ -25,10 +25,32 @@ var _ KBFSOps = (*KBFSOpsStandard)(nil)
 // NewKBFSOpsStandard constructs a new KBFSOpsStandard object.
 func NewKBFSOpsStandard(config Config) *KBFSOpsStandard {
 	log := config.MakeLogger("")
-	return &KBFSOpsStandard{
+	kops:= &KBFSOpsStandard{
 		config: config,
 		log:    log,
 		ops:    make(map[FolderBranch]*folderBranchOps),
+	}
+	go kops.checkReIdentifyNeedLoop()
+	return kops
+}
+
+func (fs *KBFSOpsStandard) checkReIdentifyNeedLoop() {
+	// Tick ten times the rate of valid duration allowing only overflows of +-10%
+	ticker := time.NewTicker(fs.config.TLFValidDuration()/10)
+	maxValid := fs.config.TLFValidDuration()
+	for {
+		<-ticker.C
+		now := time.Now()
+		fs.checkReIdentifyNeed(now, maxValid)
+	}
+}
+
+func (fs *KBFSOpsStandard) checkReIdentifyNeed(now time.Time, maxValid time.Duration) {
+	fs.opsLock.Lock()
+	defer fs.opsLock.Unlock()
+
+	for _,fbo := range fs.ops {
+		fbo.checkReIdentifyNeed(now, maxValid)
 	}
 }
 

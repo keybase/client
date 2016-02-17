@@ -1080,6 +1080,10 @@ type Config interface {
 	// objects, which is to use the default registry.
 	MetricsRegistry() metrics.Registry
 	SetMetricsRegistry(metrics.Registry)
+	// TLFValidDuration is the time TLFs are valid before identification needs to be redone.
+	TLFValidDuration() time.Duration
+	// SetTLFValidDuration sets TLFValidDuration.
+	SetTLFValidDuration(time.Duration)
 	// Shutdown is called to free config resources.
 	Shutdown() error
 	// CheckStateOnShutdown tells the caller whether or not it is safe

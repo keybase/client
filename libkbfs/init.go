@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"runtime/pprof"
 	"sync"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -38,6 +39,10 @@ type InitParams struct {
 	// Fake local user name. If non-empty, either ServerInMemory
 	// must be true or ServerRootDir must be non-empty.
 	LocalUser string
+
+	// TLFValidDuration is the duration that TLFs are valid
+	// before marked for lazy revalidation.
+	TLFValidDuration time.Duration
 }
 
 var libkbOnce sync.Once
@@ -95,6 +100,7 @@ func AddFlags(flags *flag.FlagSet) *InitParams {
 	flags.BoolVar(&params.ServerInMemory, "server-in-memory", false, "use in-memory server (and ignore -bserver, -mdserver, and -server-root)")
 	flags.StringVar(&params.ServerRootDir, "server-root", "", "directory to put local server files (and ignore -bserver and -mdserver)")
 	flags.StringVar(&params.LocalUser, "localuser", "", "fake local user (used only with -server-in-memory or -server-root)")
+	flags.DurationVar(&params.TLFValidDuration, "tlf-valid", tlfValidDurationDefault, "time tlfs are valid before redoing identification")
 	return &params
 }
 
@@ -289,6 +295,8 @@ func Init(params InitParams, onInterruptFn func(), log logger.Logger) (Config, e
 		}
 		return lg
 	})
+
+	config.SetTLFValidDuration(params.TLFValidDuration)
 
 	kbfsOps := NewKBFSOpsStandard(config)
 	config.SetKBFSOps(kbfsOps)
