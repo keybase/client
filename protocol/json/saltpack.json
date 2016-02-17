@@ -406,6 +406,9 @@
     }, {
       "name" : "binary",
       "type" : "boolean"
+    }, {
+      "name" : "hideRecipients",
+      "type" : "boolean"
     } ]
   }, {
     "type" : "record",

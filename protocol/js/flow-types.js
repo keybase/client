@@ -7545,6 +7545,7 @@ export type saltpack_SaltpackEncryptOptions = {
   hideSelf: boolean;
   noSelfEncrypt: boolean;
   binary: boolean;
+  hideRecipients: boolean;
 }
 
 export type SaltpackEncryptOptions = {
@@ -7552,6 +7553,7 @@ export type SaltpackEncryptOptions = {
   hideSelf: boolean;
   noSelfEncrypt: boolean;
   binary: boolean;
+  hideRecipients: boolean;
 }
 
 export type saltpack_SaltpackDecryptOptions = {
