@@ -8,7 +8,6 @@ package libdokan
 
 import (
 	"sync"
-	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/kbfs/dokan"
@@ -85,22 +84,7 @@ func (tlf *TLF) loadDir(ctx context.Context, info string) (dir *Dir, err error) 
 	tlf.dir.refcount.Increase()
 	tlf.folder.lockedAddNode(rootNode, tlf.dir)
 
-	// Reset tlf after a while to force revalidation
-	time.AfterFunc(6*time.Hour, tlf.clearCache)
-
 	return tlf.dir, nil
-}
-
-func (tlf *TLF) clearCache() {
-	tlf.dirLock.Lock()
-	defer tlf.dirLock.Unlock()
-
-	if tlf.dir != nil {
-		// Drop it from cache too.
-		tlf.dir.Cleanup(nil)
-	}
-
-	tlf.dir = nil
 }
 
 // GetFileInformation for dokan.
