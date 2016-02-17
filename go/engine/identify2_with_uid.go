@@ -383,6 +383,9 @@ func (e *Identify2WithUID) createIdentifyState() (err error) {
 	if tcl != nil {
 		e.useTracking = true
 		e.state.SetTrackLookup(tcl)
+		if ttcl, _ := e.me.TmpTrackChainLinkFor(e.them.GetName(), e.them.GetUID()); ttcl != nil {
+			e.state.SetTmpTrackLookup(ttcl)
+		}
 	}
 
 	return nil

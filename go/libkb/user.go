@@ -473,6 +473,13 @@ func (u *User) Equal(other *User) bool {
 	return u.id == other.id
 }
 
+func (u *User) TmpTrackChainLinkFor(username string, uid keybase1.UID) (tcl *TrackChainLink, err error) {
+	u.G().Log.Debug("+ GetTmpTrackingStatement for %s", uid)
+	tcl, err = LocalTmpTrackChainLinkFor(u.id, uid, u.G())
+	u.G().Log.Debug("- GetTmpTrackingStatement for %s -> %v, %v", uid, (tcl != nil), err)
+	return tcl, err
+}
+
 func (u *User) TrackChainLinkFor(username string, uid keybase1.UID) (*TrackChainLink, error) {
 	u.G().Log.Debug("+ GetTrackingStatement for %s", uid)
 	defer u.G().Log.Debug("- GetTrackingStatement for %s", uid)

@@ -1689,16 +1689,17 @@ type TrackToken string
 type TrackDiffType int
 
 const (
-	TrackDiffType_NONE           TrackDiffType = 0
-	TrackDiffType_ERROR          TrackDiffType = 1
-	TrackDiffType_CLASH          TrackDiffType = 2
-	TrackDiffType_REVOKED        TrackDiffType = 3
-	TrackDiffType_UPGRADED       TrackDiffType = 4
-	TrackDiffType_NEW            TrackDiffType = 5
-	TrackDiffType_REMOTE_FAIL    TrackDiffType = 6
-	TrackDiffType_REMOTE_WORKING TrackDiffType = 7
-	TrackDiffType_REMOTE_CHANGED TrackDiffType = 8
-	TrackDiffType_NEW_ELDEST     TrackDiffType = 9
+	TrackDiffType_NONE               TrackDiffType = 0
+	TrackDiffType_ERROR              TrackDiffType = 1
+	TrackDiffType_CLASH              TrackDiffType = 2
+	TrackDiffType_REVOKED            TrackDiffType = 3
+	TrackDiffType_UPGRADED           TrackDiffType = 4
+	TrackDiffType_NEW                TrackDiffType = 5
+	TrackDiffType_REMOTE_FAIL        TrackDiffType = 6
+	TrackDiffType_REMOTE_WORKING     TrackDiffType = 7
+	TrackDiffType_REMOTE_CHANGED     TrackDiffType = 8
+	TrackDiffType_NEW_ELDEST         TrackDiffType = 9
+	TrackDiffType_NONE_VIA_TEMPORARY TrackDiffType = 10
 )
 
 type TrackDiff struct {

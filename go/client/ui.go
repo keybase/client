@@ -250,6 +250,9 @@ type LinkCheckResultWrapper struct {
 }
 
 func (w LinkCheckResultWrapper) GetDiff() *keybase1.TrackDiff {
+	if w.lcr.RemoteDiff != nil && w.lcr.RemoteDiff.Type == keybase1.TrackDiffType_NONE_VIA_TEMPORARY {
+		return w.lcr.RemoteDiff
+	}
 	return w.lcr.Diff
 }
 
@@ -350,7 +353,7 @@ func trackDiffToColor(typ keybase1.TrackDiffType) string {
 		color = "red"
 	case keybase1.TrackDiffType_UPGRADED:
 		color = "orange"
-	case keybase1.TrackDiffType_NEW:
+	case keybase1.TrackDiffType_NEW, keybase1.TrackDiffType_NONE_VIA_TEMPORARY:
 		color = "blue"
 	case keybase1.TrackDiffType_NONE:
 		color = "green"
