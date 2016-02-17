@@ -1,3 +1,7 @@
+declare module 'react-native' {
+  declare var exports: any;
+}
+
 declare module 'invariant' {
   declare var exports: (callback: any) => any;
 }
