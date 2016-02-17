@@ -1,10 +1,16 @@
+// @flow
 import React, {Component} from 'react'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide'
+
+import type {Props} from './terminal'
 
 export default class Terminal extends Component {
+  props: Props;
+
   render () {
+    const style = {...styles.container, ...(this.props.dz2 ? styles.DZ2 : {})}
     return (
-      <div style={{...styles.container, ...this.props.style}}>
+      <div style={{...style, ...this.props.style}}>
         {this.props.children}
       </div>
     )
@@ -23,6 +29,10 @@ const styles = {
     padding: 10,
     justifyContent: 'stretch',
     alignItems: 'flex-start'
+  },
+
+  DZ2: {
+    backgroundColor: globalColorsDZ2.darkBlue3,
   }
 }
 

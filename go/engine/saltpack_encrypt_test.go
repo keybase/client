@@ -9,6 +9,8 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/saltpack"
+	"github.com/ugorji/go/codec"
 )
 
 func TestSaltpackEncrypt(t *testing.T) {
@@ -41,6 +43,66 @@ func TestSaltpackEncrypt(t *testing.T) {
 		if len(out) == 0 {
 			t.Fatal("no output")
 		}
+	}
+	run([]string{u1.Username, u2.Username})
+
+	// If we add ourselves, we should be smart and not error out
+	// (We are u3 in this case)
+	run([]string{u1.Username, u2.Username, u3.Username})
+}
+
+func TestSaltpackEncryptHideRecipients(t *testing.T) {
+	tc := SetupEngineTest(t, "SaltpackEncrypt")
+	defer tc.Cleanup()
+
+	u1 := CreateAndSignupFakeUser(tc, "nalcp")
+	u2 := CreateAndSignupFakeUser(tc, "nalcp")
+	u3 := CreateAndSignupFakeUser(tc, "nalcp")
+
+	trackUI := &FakeIdentifyUI{
+		Proofs: make(map[string]string),
+	}
+	ctx := &Context{IdentifyUI: trackUI, SecretUI: u3.NewSecretUI()}
+
+	run := func(Recips []string) {
+		sink := libkb.NewBufferCloser()
+		arg := &SaltpackEncryptArg{
+			Opts: keybase1.SaltpackEncryptOptions{
+				Recipients:     Recips,
+				HideRecipients: true,
+				Binary:         true,
+			},
+			Source: strings.NewReader("id2 and encrypt, id2 and encrypt"),
+			Sink:   sink,
+		}
+
+		eng := NewSaltpackEncrypt(arg, tc.G)
+		if err := RunEngine(eng, ctx); err != nil {
+			t.Fatal(err)
+		}
+
+		out := sink.Bytes()
+		if len(out) == 0 {
+			t.Fatal("no output")
+		}
+
+		var header saltpack.EncryptionHeader
+		dec := codec.NewDecoderBytes(out, &codec.MsgpackHandle{WriteExt: true})
+		var b []byte
+		if err := dec.Decode(&b); err != nil {
+			t.Fatal(err)
+		}
+		dec = codec.NewDecoderBytes(b, &codec.MsgpackHandle{WriteExt: true})
+		if err := dec.Decode(&header); err != nil {
+			t.Fatal(err)
+		}
+
+		for _, receiver := range header.Receivers {
+			if receiver.ReceiverKID != nil {
+				t.Fatal("receiver KID included in anonymous saltpack header")
+			}
+		}
+
 	}
 	run([]string{u1.Username, u2.Username})
 

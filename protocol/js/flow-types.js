@@ -681,7 +681,8 @@ export type incomingCallMapType = {
   'keybase.1.login.deprovision'?: (
     params: {
       sessionID: int,
-      username: string
+      username: string,
+      doRevoke: boolean
     },
     response: {
       error: (err: string) => void,
@@ -4994,7 +4995,8 @@ export type login_logout_rpc = {
 export type login_deprovision_rpc = {
   method: 'login.deprovision',
   param: {
-    username: string
+    username: string,
+    doRevoke: boolean
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any) => void)

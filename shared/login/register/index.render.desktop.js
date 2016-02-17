@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {globalStyles, globalColors} from '../../styles/style-guide'
+import {globalStyles, globalColors, transition} from '../../styles/style-guide'
 import {Icon, Text} from '../../common-adapters'
 import Container from '../forms/container.desktop'
 
@@ -76,12 +76,12 @@ const styles = {
   rowContainer: {
     ...globalStyles.flexBoxRow,
     ...globalStyles.clickable,
+    ...transition('background'),
     minHeight: 100,
     maxHeight: 100,
     alignItems: 'center',
     marginBottom: 10,
-    padding: 20,
-    transition: 'background .2s ease-out'
+    padding: 20
   },
   instantContainer: {
     ...globalStyles.flexBoxRow,
@@ -89,6 +89,7 @@ const styles = {
   },
   iconContainer: {
     ...globalStyles.flexBoxRow,
+    ...transition('transform', 'background'),
     maxWidth: 80,
     maxHeight: 80,
     minWidth: 80,
@@ -96,8 +97,7 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 25,
-    borderRadius: 40,
-    transition: 'transform .2s ease-out, background .1s ease-out'
+    borderRadius: 40
   },
   instantIcon: {
     color: globalColors.green

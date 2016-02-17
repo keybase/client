@@ -3,7 +3,7 @@
 import React, {Component} from 'react'
 import {Header} from '../common-adapters'
 import {Icon, Text} from '../common-adapters/index'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColorsDZ2} from '../styles/style-guide'
 import flags from '../util/feature-flags'
 
 import type {HeaderProps} from './header.render'
@@ -36,11 +36,27 @@ export default class HeaderRender extends Component {
   }
 
   render2 (styles: Object) {
-    let warningOnClose = 'You will see this window everytime you access this folder.'
+    let headerStyle:Object = (this.props.currentlyFollowing ? styles.headerSuccess : styles.headerNormal)
+    let headerTextStyle:Object = styles.headerTextNormal
+    switch (this.props.trackerState) {
+      case 'warning':
+        headerStyle = styles.headerWarning
+        headerTextStyle = styles.headerTextWarning
+        break
+      case 'error': headerStyle = styles.headerError; break
+    }
+
+    let headerText:string = this.props.reason
+    if (!this.props.currentlyFollowing && this.state.showCloseWarning) {
+      headerStyle = styles.headerWarning
+      headerTextStyle = styles.headerTextWarning
+      headerText = 'You will see this window everytime you access this folder.'
+    }
+
     return (
       <div style={styles.outer}>
-        <div style={{...styles.header, ...(this.state.showCloseWarning ? styles.headerWarning : styles.headerNormal)}}>
-          <Text type='Body' style={{...styles.text, flex: 1}}>{this.state.showCloseWarning ? warningOnClose : this.props.reason}</Text>
+        <div style={{...styles.header, ...headerStyle}}>
+          <Text type='Body' lineClamp={2} style={{...styles.text, ...headerTextStyle, flex: 1}}>{headerText}</Text>
           <Icon type='fa-times' opacity style={styles.close}
             onClick={() => this.props.onClose()}
             onMouseEnter={() => this.closeMouseEnter()}
@@ -57,11 +73,6 @@ export default class HeaderRender extends Component {
   closeMouseLeave () {
     this.setState({showCloseWarning: false})
   }
-}
-
-HeaderRender.propTypes = {
-  reason: React.PropTypes.string,
-  onClose: React.PropTypes.func.isRequired
 }
 
 const styles1 = {
@@ -82,10 +93,22 @@ const styles2 = {
     width: 320
   },
   headerNormal: {
-    backgroundColor: globalColors.blue
+    backgroundColor: globalColorsDZ2.blue
+  },
+  headerSuccess: {
+    backgroundColor: globalColorsDZ2.green
   },
   headerWarning: {
-    backgroundColor: globalColors.lowRiskWarning
+    backgroundColor: globalColorsDZ2.yellow
+  },
+  headerTextNormal: {
+    color: globalColorsDZ2.white
+  },
+  headerTextWarning: {
+    color: globalColorsDZ2.black75
+  },
+  headerError: {
+    backgroundColor: globalColorsDZ2.red
   },
   close: {
     position: 'absolute',
@@ -94,15 +117,12 @@ const styles2 = {
   },
   text: {
     ...globalStyles.flexBoxRow,
-    ...globalStyles.line2,
     alignItems: 'center',
     justifyContent: 'center',
-    color: globalColors.white,
-    maxHeight: 38,
-    marginTop: 11,
-    marginLeft: 30,
-    marginRight: 29,
-    marginBottom: 7,
+    color: globalColorsDZ2.white,
+    marginLeft: 15,
+    marginRight: 15,
+    marginBottom: 32,
     fontSize: 14,
     textAlign: 'center'
   }

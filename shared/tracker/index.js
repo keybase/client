@@ -14,6 +14,8 @@ import type {SimpleProofState} from '../constants/tracker'
 
 import type {TrackSummary} from '../constants/types/flow-types'
 
+import flags from '../util/feature-flags'
+
 type TrackerProps = {
   loggedIn: boolean,
   trackerState: SimpleProofState,
@@ -34,7 +36,8 @@ type TrackerProps = {
   closed: boolean,
   lastTrack: ?TrackSummary,
   startTimer: () => void,
-  stopTimer: () => void
+  stopTimer: () => void,
+  currentlyFollowing: ?boolean
 }
 
 class Tracker extends Component {
@@ -59,11 +62,14 @@ class Tracker extends Component {
     const renderProps: RenderProps = {
       bioProps: {
         username: this.props.username,
-        userInfo: this.props.userInfo
+        userInfo: this.props.userInfo,
+        currentlyFollowing: this.props.currentlyFollowing
       },
       headerProps: {
         reason: this.props.reason,
-        onClose: () => this.props.onClose(this.props.username)
+        onClose: () => this.props.onClose(this.props.username),
+        trackerState: this.props.trackerState,
+        currentlyFollowing: this.props.currentlyFollowing
       },
       actionProps: {
         loggedIn: this.props.loggedIn,
@@ -78,7 +84,7 @@ class Tracker extends Component {
         onUnfollow: () => this.props.onUnfollow(this.props.username),
         onFollowHelp: () => this.props.onFollowHelp(this.props.username),
         onFollowChecked: checked => this.props.onFollowChecked(checked, this.props.username),
-        currentlyFollowing: !!this.props.lastTrack
+        currentlyFollowing: flags.tracker2 ? this.props.currentlyFollowing : !!this.props.lastTrack
       },
       proofsProps: {
         username: this.props.username,

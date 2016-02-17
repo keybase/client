@@ -60,12 +60,23 @@ export default class BioRender extends Component {
     return (
       <div style={styles.outer}>
         <div style={styles.container}>
-        <Paper onClick={() => this.onClickAvatar()} style={styles.avatarContainer} zDepth={1} circle>
-          <img src={(userInfo.avatar) || noAvatar} style={styles.avatar}/>
-        </Paper>
+          <div style={styles.avatarOuter}>
+            <Paper onClick={() => this.onClickAvatar()} style={styles.avatarContainer} zDepth={1} circle>
+              <img src={(userInfo.avatar) || noAvatar} style={styles.avatar}/>
+            </Paper>
+            { (userInfo.followsYou || this.props.currentlyFollowing) &&
+              <div>
+                <div style={userInfo.followsYou ? {...followBadgeStyles.followBadge, ...followBadgeStyles.followsYou} : {...followBadgeStyles.followBadge, ...followBadgeStyles.notFollowsYou}} />
+                <div style={this.props.currentlyFollowing ? {...followBadgeStyles.followBadge, ...followBadgeStyles.following} : {...followBadgeStyles.followBadge, ...followBadgeStyles.notFollowing}} />
+              </div>
+            }
+          </div>
         <div style={styles.content}>
           <Text type='Body' style={styles.username}>{username}</Text>
           <Text type='Body' style={styles.fullname}>{userInfo.fullname}</Text>
+          { userInfo.followsYou &&
+            <Text type='Body' style={styles.followsYou}>FOLLOWS YOU</Text>
+          }
           <Text type='Body' style={styles.following}>
             <span className='hover-underline' onClick={() => this.onClickFollowers()}>
               {userInfo.followersCount} Followers
@@ -90,11 +101,6 @@ export default class BioRender extends Component {
     </div>
     )
   }
-}
-
-BioRender.propTypes = {
-  username: React.PropTypes.any,
-  userInfo: React.PropTypes.any.isRequired
 }
 
 const styles1 = {
@@ -177,13 +183,18 @@ const styles2 = {
     marginTop: -35,
     marginBottom: 18
   },
+  avatarOuter: {
+    width: 70,
+    height: 70,
+    position: 'relative',
+    zIndex: 2
+  },
   avatarContainer: {
     width: 70,
     height: 70,
     minHeight: 70,
     overflow: 'hidden',
-    boxSizing: 'content-box',
-    zIndex: 2
+    boxSizing: 'content-box'
   },
   avatar: {
     ...globalStyles.clickable,
@@ -215,13 +226,16 @@ const styles2 = {
     lineHeight: '21px',
     textAlign: 'center'
   },
+  followsYou: {
+    fontSize: 11,
+    opacity: 0.6,
+    color: globalColors.grey1
+  },
   following: {
     ...globalStyles.clickable,
     opacity: 0.6,
     color: globalColors.grey1,
-    fontSize: 14,
-    margin: 0,
-    marginTop: 4
+    fontSize: 14
   },
   bio: {
     color: '#353d4c',
@@ -230,7 +244,6 @@ const styles2 = {
     lineHeight: '18px',
     paddingLeft: 30,
     paddingRight: 30,
-    marginTop: 7,
     textAlign: 'center'
   },
   location: {
@@ -240,5 +253,37 @@ const styles2 = {
     textAlign: 'center',
     paddingLeft: 30,
     paddingRight: 30
+  }
+}
+
+const followBadgeStyles = {
+  followBadge: {
+    position: 'absolute',
+    background: '#fff',
+    width: 14,
+    height: 14,
+    borderRadius: '50%',
+    border: '2px solid #fff',
+    boxShadow: '0px 3px 3px rgba(0,0,0,0.1)'
+  },
+  followsYou: {
+    top: 52,
+    left: 55,
+    background: globalColors.green
+  },
+  notFollowsYou: {
+    top: 52,
+    left: 55,
+    background: globalColors.grey3
+  },
+  following: {
+    top: 57,
+    left: 48,
+    background: globalColors.green
+  },
+  notFollowing: {
+    top: 57,
+    left: 48,
+    background: globalColors.grey3
   }
 }

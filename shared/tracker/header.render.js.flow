@@ -1,7 +1,10 @@
 /* @flow */
 
+import type {SimpleProofState} from '../constants/tracker'
+
 export type HeaderProps = {
   reason: string,
-  onClose: () => void
+  onClose: () => void,
+  trackerState: SimpleProofState,
+  currentlyFollowing: boolean
 }
-

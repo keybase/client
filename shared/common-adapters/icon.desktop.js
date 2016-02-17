@@ -9,15 +9,23 @@ export default class Icon extends Component {
   props: Props;
 
   render (): ReactElement {
-    const color = this.props.style && this.props.style.color || (this.props.opacity ? globalColors.grey1 : globalColors.grey2)
-    const hoverColor = this.props.style && this.props.style.hoverColor || (this.props.opacity ? globalColors.black : globalColors.grey1)
+    let color = null
+    let hoverColor = null
+
+    if (this.props.inheritColor) {
+      color = 'inherit'
+      hoverColor = 'inherit'
+    } else {
+      color = this.props.style && this.props.style.color || (this.props.opacity ? globalColors.grey1 : globalColors.grey2)
+      hoverColor = this.props.style && this.props.style.hoverColor || (this.props.opacity ? globalColors.black : globalColors.grey1)
+    }
 
     return <FontIcon
       title={this.props.hint}
       style={{...styles.icon, opacity: this.props.opacity ? 0.35 : 1.0, ...this.props.style}}
       className={`fa ${this.props.type}`}
       color={color}
-      hoverColor={this.props.onClick ? hoverColor : null}
+      hoverColor={hoverColor}
       onMouseEnter={this.props.onMouseEnter}
       onMouseLeave={this.props.onMouseLeave}
       onClick={this.props.onClick}/>
@@ -31,7 +39,8 @@ Icon.propTypes = {
   onClick: React.PropTypes.func,
   onMouseEnter: React.PropTypes.func,
   onMouseLeave: React.PropTypes.func,
-  style: React.PropTypes.object
+  style: React.PropTypes.object,
+  inheritColor: React.PropTypes.bool
 }
 
 export const styles = {

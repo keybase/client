@@ -15,6 +15,7 @@ import (
 
 type CmdDeprovision struct {
 	libkb.Contextified
+	loggedIn bool
 }
 
 func NewCmdDeprovision(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -59,6 +60,7 @@ func (c *CmdDeprovision) Run() (err error) {
 	return loginCli.Deprovision(context.TODO(), keybase1.DeprovisionArg{
 		SessionID: 0,
 		Username:  username,
+		DoRevoke:  c.loggedIn,
 	})
 }
 
@@ -84,6 +86,7 @@ func (c *CmdDeprovision) getUsernameToDeprovision() (string, error) {
 
 	// If there is a user logged in, just return that user.
 	if currentStatus.LoggedIn {
+		c.loggedIn = true
 		return currentStatus.User.Username, nil
 	}
 
@@ -121,6 +124,15 @@ func (c *CmdDeprovision) getUsernameToDeprovision() (string, error) {
 }
 
 func (c *CmdDeprovision) getBigScaryWarning(username string) (string, error) {
+	// If the user is logged out, warn that we won't revoke their keys.
+	loggedOutWarning := ""
+	if !c.loggedIn {
+		loggedOutWarning = `
+
+Note that you aren't currently logged in. That means we won't publicly revoke
+this device's keys. To do that from another device, use 'keybase device remove'.`
+	}
+
 	// If the user has PGP secret keys in the SKBKeyring, print an additional warning.
 	keyring, err := libkb.LoadSKBKeyring(libkb.NewNormalizedUsername(username), c.G())
 	if err != nil {
@@ -140,7 +152,7 @@ or copy them, use %s.`, "`keybase pgp export`")
 
 You are about to delete this device from your account, including its secret
 keys. If you don't have any other devices, you'll lose access to your account
-and all your data!%s
+and all your data!%s%s
 
-Proceed?`, username, pgpWarning), nil
+Proceed?`, username, loggedOutWarning, pgpWarning), nil
 }

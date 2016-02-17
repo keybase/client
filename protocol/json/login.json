@@ -280,6 +280,9 @@
       }, {
         "name" : "username",
         "type" : "string"
+      }, {
+        "name" : "doRevoke",
+        "type" : "boolean"
       } ],
       "response" : "null"
     },
