@@ -10,18 +10,21 @@ import (
 	"time"
 
 	"github.com/keybase/kbfs/dokan"
+	"golang.org/x/net/context"
 )
 
 // SpecialReadFile represents a file whose contents are determined by
 // a function.
 type SpecialReadFile struct {
-	read func() ([]byte, time.Time, error)
+	read func(context.Context) ([]byte, time.Time, error)
+	fs   *FS
 	emptyFile
 }
 
 // GetFileInformation does stats for dokan.
 func (f *SpecialReadFile) GetFileInformation(*dokan.FileInfo) (*dokan.Stat, error) {
-	data, t, err := f.read()
+	ctx := NewContextWithOpID(f.fs)
+	data, t, err := f.read(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +43,8 @@ func (f *SpecialReadFile) GetFileInformation(*dokan.FileInfo) (*dokan.Stat, erro
 
 // ReadFile does reads for dokan.
 func (f *SpecialReadFile) ReadFile(fi *dokan.FileInfo, bs []byte, offset int64) (int, error) {
-	data, _, err := f.read()
+	ctx := NewContextWithOpID(f.fs)
+	data, _, err := f.read(ctx)
 	if err != nil {
 		return 0, err
 	}

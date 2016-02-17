@@ -12,6 +12,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -24,7 +25,7 @@ type StartOptions struct {
 }
 
 // Start the filesystem
-func Start(mounter Mounter, options StartOptions) *Error {
+func Start(mounter Mounter, options StartOptions) *libfs.Error {
 	var err error
 
 	log := logger.NewWithCallDepth("", 1, os.Stderr)
@@ -36,7 +37,7 @@ func Start(mounter Mounter, options StartOptions) *Error {
 
 	config, err := libkbfs.Init(options.KbfsParams, onInterruptFn, log)
 	if err != nil {
-		return InitError(err.Error())
+		return libfs.InitError(err.Error())
 	}
 
 	defer libkbfs.Shutdown()
@@ -45,7 +46,7 @@ func Start(mounter Mounter, options StartOptions) *Error {
 		info := libkb.NewServiceInfo(libkbfs.Version, libkbfs.Build(), options.Label, os.Getpid())
 		err = info.WriteFile(path.Join(options.RuntimeDir, "kbfs.info"))
 		if err != nil {
-			return InitError(err.Error())
+			return libfs.InitError(err.Error())
 		}
 	}
 
@@ -56,11 +57,11 @@ func Start(mounter Mounter, options StartOptions) *Error {
 	}
 	fs, err := NewFS(context.Background(), config, log)
 	if err != nil {
-		return InitError(err.Error())
+		return libfs.InitError(err.Error())
 	}
 	err = mounter.Mount(fs)
 	if err != nil {
-		return MountError(err.Error())
+		return libfs.MountError(err.Error())
 	}
 
 	return nil

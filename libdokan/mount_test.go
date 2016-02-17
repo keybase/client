@@ -22,6 +22,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/dokan"
+	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -1834,7 +1835,7 @@ func testForErrorText(t *testing.T, path string, expectedErr error,
 		t.Fatalf("Bad error reading %s error file: %v", err, fileType)
 	}
 
-	var errors []jsonReportedError
+	var errors []libfs.JSONReportedError
 	err = json.Unmarshal(buf, &errors)
 	if err != nil {
 		t.Fatalf("Couldn't unmarshal error file: %v. Full contents: %s",

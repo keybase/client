@@ -20,6 +20,7 @@ import (
 	"bazil.org/fuse/fs"
 	"bazil.org/fuse/fs/fstestutil"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 	"golang.org/x/sys/unix"
@@ -2116,7 +2117,7 @@ func testForErrorText(t *testing.T, path string, expectedErr error,
 		t.Fatalf("Bad error reading %s error file: %v", path, err)
 	}
 
-	var errors []jsonReportedError
+	var errors []libfs.JSONReportedError
 	err = json.Unmarshal(buf, &errors)
 	if err != nil {
 		t.Fatalf("Couldn't unmarshal error file: %v. Full contents: %s",
