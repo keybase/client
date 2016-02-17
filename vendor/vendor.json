@@ -165,8 +165,8 @@
 		},
 		{
 			"path": "github.com/keybase/client/go/protocol",
-			"revision": "ade448b1b4ac22167427ba3d2c06d6a4e1418e46",
-			"revisionTime": "2016-02-05T21:42:56-05:00"
+			"revision": "30bebf0c2302a7fda1b6a5edd9347e27e5c4dc77",
+			"revisionTime": "2016-02-16T14:56:44-08:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/saltpack",

@@ -22,12 +22,22 @@ type GUIEntryFeatures struct {
 	ShowTyping  Feature `codec:"showTyping" json:"showTyping"`
 }
 
+type PassphraseType int
+
+const (
+	PassphraseType_NONE               PassphraseType = 0
+	PassphraseType_PAPER_KEY          PassphraseType = 1
+	PassphraseType_PASS_PHRASE        PassphraseType = 2
+	PassphraseType_VERIFY_PASS_PHRASE PassphraseType = 3
+)
+
 type GUIEntryArg struct {
 	WindowTitle string           `codec:"windowTitle" json:"windowTitle"`
 	Prompt      string           `codec:"prompt" json:"prompt"`
 	SubmitLabel string           `codec:"submitLabel" json:"submitLabel"`
 	CancelLabel string           `codec:"cancelLabel" json:"cancelLabel"`
 	RetryLabel  string           `codec:"retryLabel" json:"retryLabel"`
+	Type        PassphraseType   `codec:"type" json:"type"`
 	Features    GUIEntryFeatures `codec:"features" json:"features"`
 }
 
@@ -525,7 +535,6 @@ type ExtendedStatus struct {
 	PassphraseStreamCached bool            `codec:"passphraseStreamCached" json:"passphraseStreamCached"`
 	Device                 *Device         `codec:"device,omitempty" json:"device,omitempty"`
 	LogDir                 string          `codec:"logDir" json:"logDir"`
-	DesktopUIConnected     bool            `codec:"desktopUIConnected" json:"desktopUIConnected"`
 	Session                *SessionStatus  `codec:"session,omitempty" json:"session,omitempty"`
 	DefaultUsername        string          `codec:"defaultUsername" json:"defaultUsername"`
 	ProvisionedUsernames   []string        `codec:"provisionedUsernames" json:"provisionedUsernames"`
@@ -558,6 +567,14 @@ type Config struct {
 	ForkType     ForkType `codec:"forkType" json:"forkType"`
 }
 
+type ConfigValue struct {
+	IsNull bool    `codec:"isNull" json:"isNull"`
+	B      *bool   `codec:"b,omitempty" json:"b,omitempty"`
+	I      *int    `codec:"i,omitempty" json:"i,omitempty"`
+	S      *string `codec:"s,omitempty" json:"s,omitempty"`
+	O      *string `codec:"o,omitempty" json:"o,omitempty"`
+}
+
 type GetCurrentStatusArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -586,6 +603,19 @@ type HelloIAmArg struct {
 	Details ClientDetails `codec:"details" json:"details"`
 }
 
+type SetValueArg struct {
+	Path  string      `codec:"path" json:"path"`
+	Value ConfigValue `codec:"value" json:"value"`
+}
+
+type ClearValueArg struct {
+	Path string `codec:"path" json:"path"`
+}
+
+type GetValueArg struct {
+	Path string `codec:"path" json:"path"`
+}
+
 type ConfigInterface interface {
 	GetCurrentStatus(context.Context, int) (GetCurrentStatusRes, error)
 	GetExtendedStatus(context.Context, int) (ExtendedStatus, error)
@@ -593,6 +623,9 @@ type ConfigInterface interface {
 	SetUserConfig(context.Context, SetUserConfigArg) error
 	SetPath(context.Context, SetPathArg) error
 	HelloIAm(context.Context, ClientDetails) error
+	SetValue(context.Context, SetValueArg) error
+	ClearValue(context.Context, string) error
+	GetValue(context.Context, string) (ConfigValue, error)
 }
 
 func ConfigProtocol(i ConfigInterface) rpc.Protocol {
@@ -695,6 +728,54 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"setValue": {
+				MakeArg: func() interface{} {
+					ret := make([]SetValueArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetValueArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetValueArg)(nil), args)
+						return
+					}
+					err = i.SetValue(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"clearValue": {
+				MakeArg: func() interface{} {
+					ret := make([]ClearValueArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ClearValueArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ClearValueArg)(nil), args)
+						return
+					}
+					err = i.ClearValue(ctx, (*typedArgs)[0].Path)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getValue": {
+				MakeArg: func() interface{} {
+					ret := make([]GetValueArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetValueArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetValueArg)(nil), args)
+						return
+					}
+					ret, err = i.GetValue(ctx, (*typedArgs)[0].Path)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -737,6 +818,23 @@ func (c ConfigClient) HelloIAm(ctx context.Context, details ClientDetails) (err 
 	return
 }
 
+func (c ConfigClient) SetValue(ctx context.Context, __arg SetValueArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.config.setValue", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ConfigClient) ClearValue(ctx context.Context, path string) (err error) {
+	__arg := ClearValueArg{Path: path}
+	err = c.Cli.Call(ctx, "keybase.1.config.clearValue", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ConfigClient) GetValue(ctx context.Context, path string) (res ConfigValue, err error) {
+	__arg := GetValueArg{Path: path}
+	err = c.Cli.Call(ctx, "keybase.1.config.getValue", []interface{}{__arg}, &res)
+	return
+}
+
 type StatusCode int
 
 const (
@@ -757,6 +855,7 @@ const (
 	StatusCode_SCTrackingBroke          StatusCode = 278
 	StatusCode_SCWrongCryptoFormat      StatusCode = 279
 	StatusCode_SCBadSignupUsernameTaken StatusCode = 701
+	StatusCode_SCBadInvitationCode      StatusCode = 707
 	StatusCode_SCMissingResult          StatusCode = 801
 	StatusCode_SCKeyNotFound            StatusCode = 901
 	StatusCode_SCKeyInUse               StatusCode = 907
@@ -836,16 +935,19 @@ type UnboxAnyRes struct {
 }
 
 type SignED25519Arg struct {
-	Msg    []byte `codec:"msg" json:"msg"`
-	Reason string `codec:"reason" json:"reason"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Msg       []byte `codec:"msg" json:"msg"`
+	Reason    string `codec:"reason" json:"reason"`
 }
 
 type SignToStringArg struct {
-	Msg    []byte `codec:"msg" json:"msg"`
-	Reason string `codec:"reason" json:"reason"`
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Msg       []byte `codec:"msg" json:"msg"`
+	Reason    string `codec:"reason" json:"reason"`
 }
 
 type UnboxBytes32Arg struct {
+	SessionID        int              `codec:"sessionID" json:"sessionID"`
 	EncryptedBytes32 EncryptedBytes32 `codec:"encryptedBytes32" json:"encryptedBytes32"`
 	Nonce            BoxNonce         `codec:"nonce" json:"nonce"`
 	PeersPublicKey   BoxPublicKey     `codec:"peersPublicKey" json:"peersPublicKey"`
@@ -853,6 +955,7 @@ type UnboxBytes32Arg struct {
 }
 
 type UnboxBytes32AnyArg struct {
+	SessionID   int                `codec:"sessionID" json:"sessionID"`
 	Bundles     []CiphertextBundle `codec:"bundles" json:"bundles"`
 	Reason      string             `codec:"reason" json:"reason"`
 	PromptPaper bool               `codec:"promptPaper" json:"promptPaper"`
@@ -1675,16 +1778,17 @@ type TrackToken string
 type TrackDiffType int
 
 const (
-	TrackDiffType_NONE           TrackDiffType = 0
-	TrackDiffType_ERROR          TrackDiffType = 1
-	TrackDiffType_CLASH          TrackDiffType = 2
-	TrackDiffType_REVOKED        TrackDiffType = 3
-	TrackDiffType_UPGRADED       TrackDiffType = 4
-	TrackDiffType_NEW            TrackDiffType = 5
-	TrackDiffType_REMOTE_FAIL    TrackDiffType = 6
-	TrackDiffType_REMOTE_WORKING TrackDiffType = 7
-	TrackDiffType_REMOTE_CHANGED TrackDiffType = 8
-	TrackDiffType_NEW_ELDEST     TrackDiffType = 9
+	TrackDiffType_NONE               TrackDiffType = 0
+	TrackDiffType_ERROR              TrackDiffType = 1
+	TrackDiffType_CLASH              TrackDiffType = 2
+	TrackDiffType_REVOKED            TrackDiffType = 3
+	TrackDiffType_UPGRADED           TrackDiffType = 4
+	TrackDiffType_NEW                TrackDiffType = 5
+	TrackDiffType_REMOTE_FAIL        TrackDiffType = 6
+	TrackDiffType_REMOTE_WORKING     TrackDiffType = 7
+	TrackDiffType_REMOTE_CHANGED     TrackDiffType = 8
+	TrackDiffType_NEW_ELDEST         TrackDiffType = 9
+	TrackDiffType_NONE_VIA_TEMPORARY TrackDiffType = 10
 )
 
 type TrackDiff struct {
@@ -1713,6 +1817,7 @@ type TrackOptions struct {
 	LocalOnly     bool `codec:"localOnly" json:"localOnly"`
 	BypassConfirm bool `codec:"bypassConfirm" json:"bypassConfirm"`
 	ForceRetrack  bool `codec:"forceRetrack" json:"forceRetrack"`
+	ExpiringLocal bool `codec:"expiringLocal" json:"expiringLocal"`
 }
 
 type IdentifyReasonType int
@@ -1931,7 +2036,7 @@ type Cryptocurrency struct {
 
 type Identity struct {
 	Status          *Status          `codec:"status,omitempty" json:"status,omitempty"`
-	WhenLastTracked int              `codec:"whenLastTracked" json:"whenLastTracked"`
+	WhenLastTracked Time             `codec:"whenLastTracked" json:"whenLastTracked"`
 	Proofs          []IdentifyRow    `codec:"proofs" json:"proofs"`
 	Cryptocurrency  []Cryptocurrency `codec:"cryptocurrency" json:"cryptocurrency"`
 	Revoked         []TrackDiff      `codec:"revoked" json:"revoked"`
@@ -1959,14 +2064,15 @@ type CheckResult struct {
 }
 
 type LinkCheckResult struct {
-	ProofId       int          `codec:"proofId" json:"proofId"`
-	ProofResult   ProofResult  `codec:"proofResult" json:"proofResult"`
-	SnoozedResult ProofResult  `codec:"snoozedResult" json:"snoozedResult"`
-	TorWarning    bool         `codec:"torWarning" json:"torWarning"`
-	Cached        *CheckResult `codec:"cached,omitempty" json:"cached,omitempty"`
-	Diff          *TrackDiff   `codec:"diff,omitempty" json:"diff,omitempty"`
-	RemoteDiff    *TrackDiff   `codec:"remoteDiff,omitempty" json:"remoteDiff,omitempty"`
-	Hint          *SigHint     `codec:"hint,omitempty" json:"hint,omitempty"`
+	ProofId            int          `codec:"proofId" json:"proofId"`
+	ProofResult        ProofResult  `codec:"proofResult" json:"proofResult"`
+	SnoozedResult      ProofResult  `codec:"snoozedResult" json:"snoozedResult"`
+	TorWarning         bool         `codec:"torWarning" json:"torWarning"`
+	TmpTrackExpireTime Time         `codec:"tmpTrackExpireTime" json:"tmpTrackExpireTime"`
+	Cached             *CheckResult `codec:"cached,omitempty" json:"cached,omitempty"`
+	Diff               *TrackDiff   `codec:"diff,omitempty" json:"diff,omitempty"`
+	RemoteDiff         *TrackDiff   `codec:"remoteDiff,omitempty" json:"remoteDiff,omitempty"`
+	Hint               *SigHint     `codec:"hint,omitempty" json:"hint,omitempty"`
 }
 
 type UserCard struct {
@@ -1985,6 +2091,7 @@ type UserCard struct {
 type ConfirmResult struct {
 	IdentityConfirmed bool `codec:"identityConfirmed" json:"identityConfirmed"`
 	RemoteConfirmed   bool `codec:"remoteConfirmed" json:"remoteConfirmed"`
+	ExpiringLocal     bool `codec:"expiringLocal" json:"expiringLocal"`
 }
 
 type DelegateIdentifyUIArg struct {
@@ -2730,6 +2837,7 @@ type LogoutArg struct {
 type DeprovisionArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Username  string `codec:"username" json:"username"`
+	DoRevoke  bool   `codec:"doRevoke" json:"doRevoke"`
 }
 
 type RecoverAccountFromEmailAddressArg struct {
@@ -3091,6 +3199,14 @@ func (c LoginUiClient) DisplayPrimaryPaperKey(ctx context.Context, __arg Display
 	return
 }
 
+type MerkleTreeID int
+
+const (
+	MerkleTreeID_MASTER       MerkleTreeID = 0
+	MerkleTreeID_KBFS_PUBLIC  MerkleTreeID = 1
+	MerkleTreeID_KBFS_PRIVATE MerkleTreeID = 2
+)
+
 type KeyHalf struct {
 	User      UID    `codec:"user" json:"user"`
 	DeviceKID KID    `codec:"deviceKID" json:"deviceKID"`
@@ -3098,13 +3214,19 @@ type KeyHalf struct {
 }
 
 type MDBlock struct {
-	Version int    `codec:"version" json:"version"`
-	Block   []byte `codec:"block" json:"block"`
+	Version   int    `codec:"version" json:"version"`
+	Timestamp Time   `codec:"timestamp" json:"timestamp"`
+	Block     []byte `codec:"block" json:"block"`
 }
 
 type MetadataResponse struct {
 	FolderID string    `codec:"folderID" json:"folderID"`
 	MdBlocks []MDBlock `codec:"mdBlocks" json:"mdBlocks"`
+}
+
+type MerkleRoot struct {
+	Version int    `codec:"version" json:"version"`
+	Root    []byte `codec:"root" json:"root"`
 }
 
 type GetChallengeArg struct {
@@ -3180,6 +3302,24 @@ type GetFoldersForRekeyArg struct {
 type PingArg struct {
 }
 
+type GetMerkleRootArg struct {
+	TreeID MerkleTreeID `codec:"treeID" json:"treeID"`
+	SeqNo  int64        `codec:"seqNo" json:"seqNo"`
+}
+
+type GetMerkleRootLatestArg struct {
+	TreeID MerkleTreeID `codec:"treeID" json:"treeID"`
+}
+
+type GetMerkleRootSinceArg struct {
+	TreeID MerkleTreeID `codec:"treeID" json:"treeID"`
+	When   Time         `codec:"when" json:"when"`
+}
+
+type GetMerkleNodeArg struct {
+	Hash string `codec:"hash" json:"hash"`
+}
+
 type MetadataInterface interface {
 	GetChallenge(context.Context) (ChallengeInfo, error)
 	Authenticate(context.Context, string) (int, error)
@@ -3195,6 +3335,10 @@ type MetadataInterface interface {
 	GetFolderHandle(context.Context, GetFolderHandleArg) ([]byte, error)
 	GetFoldersForRekey(context.Context, KID) error
 	Ping(context.Context) error
+	GetMerkleRoot(context.Context, GetMerkleRootArg) (MerkleRoot, error)
+	GetMerkleRootLatest(context.Context, MerkleTreeID) (MerkleRoot, error)
+	GetMerkleRootSince(context.Context, GetMerkleRootSinceArg) (MerkleRoot, error)
+	GetMerkleNode(context.Context, string) ([]byte, error)
 }
 
 func MetadataProtocol(i MetadataInterface) rpc.Protocol {
@@ -3415,6 +3559,70 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getMerkleRoot": {
+				MakeArg: func() interface{} {
+					ret := make([]GetMerkleRootArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetMerkleRootArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetMerkleRootArg)(nil), args)
+						return
+					}
+					ret, err = i.GetMerkleRoot(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getMerkleRootLatest": {
+				MakeArg: func() interface{} {
+					ret := make([]GetMerkleRootLatestArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetMerkleRootLatestArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetMerkleRootLatestArg)(nil), args)
+						return
+					}
+					ret, err = i.GetMerkleRootLatest(ctx, (*typedArgs)[0].TreeID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getMerkleRootSince": {
+				MakeArg: func() interface{} {
+					ret := make([]GetMerkleRootSinceArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetMerkleRootSinceArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetMerkleRootSinceArg)(nil), args)
+						return
+					}
+					ret, err = i.GetMerkleRootSince(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getMerkleNode": {
+				MakeArg: func() interface{} {
+					ret := make([]GetMerkleNodeArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetMerkleNodeArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetMerkleNodeArg)(nil), args)
+						return
+					}
+					ret, err = i.GetMerkleNode(ctx, (*typedArgs)[0].Hash)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -3494,6 +3702,28 @@ func (c MetadataClient) GetFoldersForRekey(ctx context.Context, deviceKID KID) (
 
 func (c MetadataClient) Ping(ctx context.Context) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.metadata.ping", []interface{}{PingArg{}}, nil)
+	return
+}
+
+func (c MetadataClient) GetMerkleRoot(ctx context.Context, __arg GetMerkleRootArg) (res MerkleRoot, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.metadata.getMerkleRoot", []interface{}{__arg}, &res)
+	return
+}
+
+func (c MetadataClient) GetMerkleRootLatest(ctx context.Context, treeID MerkleTreeID) (res MerkleRoot, err error) {
+	__arg := GetMerkleRootLatestArg{TreeID: treeID}
+	err = c.Cli.Call(ctx, "keybase.1.metadata.getMerkleRootLatest", []interface{}{__arg}, &res)
+	return
+}
+
+func (c MetadataClient) GetMerkleRootSince(ctx context.Context, __arg GetMerkleRootSinceArg) (res MerkleRoot, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.metadata.getMerkleRootSince", []interface{}{__arg}, &res)
+	return
+}
+
+func (c MetadataClient) GetMerkleNode(ctx context.Context, hash string) (res []byte, err error) {
+	__arg := GetMerkleNodeArg{Hash: hash}
+	err = c.Cli.Call(ctx, "keybase.1.metadata.getMerkleNode", []interface{}{__arg}, &res)
 	return
 }
 
@@ -3819,13 +4049,11 @@ type PGPSignOptions struct {
 }
 
 type PGPEncryptOptions struct {
-	Recipients   []string     `codec:"recipients" json:"recipients"`
-	NoSign       bool         `codec:"noSign" json:"noSign"`
-	NoSelf       bool         `codec:"noSelf" json:"noSelf"`
-	BinaryOut    bool         `codec:"binaryOut" json:"binaryOut"`
-	KeyQuery     string       `codec:"keyQuery" json:"keyQuery"`
-	SkipTrack    bool         `codec:"skipTrack" json:"skipTrack"`
-	TrackOptions TrackOptions `codec:"trackOptions" json:"trackOptions"`
+	Recipients []string `codec:"recipients" json:"recipients"`
+	NoSign     bool     `codec:"noSign" json:"noSign"`
+	NoSelf     bool     `codec:"noSelf" json:"noSelf"`
+	BinaryOut  bool     `codec:"binaryOut" json:"binaryOut"`
+	KeyQuery   string   `codec:"keyQuery" json:"keyQuery"`
 }
 
 type PGPSigVerification struct {
@@ -4639,6 +4867,7 @@ type DisplaySecretExchangedArg struct {
 type PromptNewDeviceNameArg struct {
 	SessionID       int      `codec:"sessionID" json:"sessionID"`
 	ExistingDevices []string `codec:"existingDevices" json:"existingDevices"`
+	ErrorMessage    string   `codec:"errorMessage" json:"errorMessage"`
 }
 
 type ProvisioneeSuccessArg struct {
@@ -4970,10 +5199,11 @@ func (c RevokeClient) RevokeSigs(ctx context.Context, __arg RevokeSigsArg) (err 
 }
 
 type SaltpackEncryptOptions struct {
-	Recipients    []string `codec:"recipients" json:"recipients"`
-	HideSelf      bool     `codec:"hideSelf" json:"hideSelf"`
-	NoSelfEncrypt bool     `codec:"noSelfEncrypt" json:"noSelfEncrypt"`
-	Binary        bool     `codec:"binary" json:"binary"`
+	Recipients     []string `codec:"recipients" json:"recipients"`
+	HideSelf       bool     `codec:"hideSelf" json:"hideSelf"`
+	NoSelfEncrypt  bool     `codec:"noSelfEncrypt" json:"noSelfEncrypt"`
+	Binary         bool     `codec:"binary" json:"binary"`
+	HideRecipients bool     `codec:"hideRecipients" json:"hideRecipients"`
 }
 
 type SaltpackDecryptOptions struct {
@@ -5404,10 +5634,16 @@ type InviteRequestArg struct {
 	Notes     string `codec:"notes" json:"notes"`
 }
 
+type CheckInvitationCodeArg struct {
+	SessionID      int    `codec:"sessionID" json:"sessionID"`
+	InvitationCode string `codec:"invitationCode" json:"invitationCode"`
+}
+
 type SignupInterface interface {
 	CheckUsernameAvailable(context.Context, CheckUsernameAvailableArg) error
 	Signup(context.Context, SignupArg) (SignupRes, error)
 	InviteRequest(context.Context, InviteRequestArg) error
+	CheckInvitationCode(context.Context, CheckInvitationCodeArg) error
 }
 
 func SignupProtocol(i SignupInterface) rpc.Protocol {
@@ -5462,6 +5698,22 @@ func SignupProtocol(i SignupInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"checkInvitationCode": {
+				MakeArg: func() interface{} {
+					ret := make([]CheckInvitationCodeArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CheckInvitationCodeArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CheckInvitationCodeArg)(nil), args)
+						return
+					}
+					err = i.CheckInvitationCode(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -5482,6 +5734,11 @@ func (c SignupClient) Signup(ctx context.Context, __arg SignupArg) (res SignupRe
 
 func (c SignupClient) InviteRequest(ctx context.Context, __arg InviteRequestArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.signup.inviteRequest", []interface{}{__arg}, nil)
+	return
+}
+
+func (c SignupClient) CheckInvitationCode(ctx context.Context, __arg CheckInvitationCodeArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.signup.checkInvitationCode", []interface{}{__arg}, nil)
 	return
 }
 

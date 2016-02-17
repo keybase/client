@@ -2,6 +2,8 @@ package libkbfs
 
 import (
 	"encoding"
+
+	keybase1 "github.com/keybase/client/go/protocol"
 	merkle "github.com/keybase/go-merkle-tree"
 )
 
@@ -11,12 +13,11 @@ const MerkleRootVersion = 1
 // MerkleRoot represents a signed Merkle tree root.
 type MerkleRoot struct {
 	Version   int                   `codec:"v"`
-	TreeName  string                `codec:"n"`
+	TreeID    keybase1.MerkleTreeID `codec:"t"`
 	SeqNo     int64                 `codec:"sn"`
 	Timestamp int64                 `codec:"ts"`
 	Hash      merkle.Hash           `codec:"h"`
 	PrevRoot  merkle.Hash           `codec:"pr"`
-	Signature string                `codec:"sig"`
 	EPubKey   TLFEphemeralPublicKey `codec:"epk"`
 	Nonce     [24]byte              `codec:"non"`
 }

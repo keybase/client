@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"strings"
+	"strconv"
 	"time"
 
 	jsonw "github.com/keybase/go-jsonw"
@@ -380,10 +381,18 @@ func encode(b []byte) string {
 }
 
 func FromTime(t Time) time.Time {
+	if t == 0 {
+		return time.Time{}
+	}
 	return time.Unix(0, int64(t)*1000000)
 }
 
 func ToTime(t time.Time) Time {
+	// the result of calling UnixNano on the zero Time is undefined.
+	// https://golang.org/pkg/time/#Time.UnixNano
+	if t.IsZero() {
+		return 0
+	}
 	return Time(t.UnixNano() / 1000000)
 }
 
@@ -528,4 +537,12 @@ func (t ClientType) String() string {
 	default:
 		return "other"
 	}
+}
+
+func (m MerkleTreeID) Number() int {
+	return int(m)
+}
+
+func (m MerkleTreeID) String() string {
+	return strconv.Itoa(int(m))
 }
