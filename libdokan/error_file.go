@@ -13,5 +13,5 @@ import (
 // NewErrorFile returns a special read file that contains a text
 // representation of the last few KBFS errors.
 func NewErrorFile(fs *FS) *SpecialReadFile {
-	return &SpecialReadFile{read: libfs.GetEncodedErrors(fs.config)}
+	return &SpecialReadFile{read: libfs.GetEncodedErrors(fs.config), fs: fs}
 }

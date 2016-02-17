@@ -229,7 +229,7 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 	case PrivateName == ps[0]:
 		return f.root.private.open(ctx, oc, ps[1:])
 	case libfs.ProfileListDirName == ps[0]:
-		return (ProfileList{}).open(ctx, oc, ps[1:])
+		return (ProfileList{fs: f}).open(ctx, oc, ps[1:])
 	}
 	return nil, false, dokan.ErrObjectNameNotFound
 }

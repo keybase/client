@@ -18,6 +18,7 @@ import (
 
 // ProfileList is a node that can list all of the available profiles.
 type ProfileList struct {
+	fs *FS
 	emptyFile
 }
 
@@ -27,7 +28,7 @@ func (ProfileList) GetFileInformation(*dokan.FileInfo) (st *dokan.Stat, err erro
 }
 
 // open tries to open a file.
-func (ProfileList) open(ctx context.Context, oc *openContext, path []string) (dokan.File, bool, error) {
+func (pl ProfileList) open(ctx context.Context, oc *openContext, path []string) (dokan.File, bool, error) {
 	if len(path) == 0 {
 		return oc.returnDirNoCleanup(ProfileList{})
 	}
@@ -38,7 +39,7 @@ func (ProfileList) open(ctx context.Context, oc *openContext, path []string) (do
 	if f == nil {
 		return nil, false, dokan.ErrObjectNameNotFound
 	}
-	return &SpecialReadFile{read: f}, false, nil
+	return &SpecialReadFile{read: f, fs: pl.fs}, false, nil
 }
 
 // FindFiles does readdir for dokan.

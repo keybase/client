@@ -13,5 +13,5 @@ import (
 // NewMetricsFile returns a special read file that contains a text
 // representation of all metrics.
 func NewMetricsFile(fs *FS) *SpecialReadFile {
-	return &SpecialReadFile{read: libfs.GetEncodedMetrics(fs.config)}
+	return &SpecialReadFile{read: libfs.GetEncodedMetrics(fs.config), fs: fs}
 }

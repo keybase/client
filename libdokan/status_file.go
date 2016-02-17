@@ -43,5 +43,6 @@ func NewStatusFile(folder *Folder) *SpecialReadFile {
 		read: func(ctx context.Context) ([]byte, time.Time, error) {
 			return getEncodedStatus(ctx, folder)
 		},
+		fs: folder.fs,
 	}
 }
