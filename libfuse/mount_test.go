@@ -267,7 +267,7 @@ func TestRemoveAlias(t *testing.T) {
 	p := path.Join(mnt.Dir, PrivateName, "jdoe,jdoe")
 	err := os.Remove(p)
 	if err != nil {
-		t.Fatalf("Removing alias failed!")
+		t.Fatalf("Removing alias failed: %v", err)
 	}
 }
 
