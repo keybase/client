@@ -2148,6 +2148,28 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *gcOp) (
 
 	md.AddOp(gco)
 
+	if !fbo.config.BlockSplitter().ShouldEmbedBlockChanges(&md.data.Changes) {
+		_, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
+		if err != nil {
+			return err
+		}
+
+		bps := newBlockPutState(1)
+		err = fbo.unembedBlockChanges(ctx, bps, md, &md.data.Changes, uid)
+		if err != nil {
+			return err
+		}
+
+		ptrsToDelete, err := fbo.doBlockPuts(ctx, md, *bps)
+		if err != nil {
+			return err
+		}
+		if len(ptrsToDelete) > 0 {
+			return fmt.Errorf("Unexpected pointers to delete after "+
+				"unembedding block changes in gc op: %v", ptrsToDelete)
+		}
+	}
+
 	// finally, write out the new metadata
 	err = fbo.config.MDOps().Put(ctx, md)
 	if err != nil {
