@@ -7,6 +7,7 @@ import commonStyles from '../styles/common'
 import {globalColors} from '../styles/style-guide'
 import {normal, checking, warning} from '../constants/tracker'
 import flags from '../util/feature-flags'
+import {Text} from '../common-adapters'
 
 import type {ActionProps} from './action.render'
 
@@ -27,7 +28,7 @@ export default class ActionRender extends Component {
     if (!loggedIn) {
       return this.renderLoggedOut(styles)
     } else if (state === checking || !username) {
-      return this.renderPending(styles)
+      return this.renderPending(styles, username)
     } else if (this.props.state === normal) {
       return this.renderNormal(styles, username)
     } else if (this.props.currentlyFollowing) {
@@ -46,9 +47,10 @@ export default class ActionRender extends Component {
     )
   }
 
-  renderPending (styles: Object): ReactElement {
+  renderPending (styles: Object, username: ?string): ReactElement {
+    const text: string = username ? `Verifying ${username}'s identity` : `Loading tracker information...`
     return (
-      <div><p> Loading... </p></div>
+      <div><Text style={{textAlign: 'center', paddingTop: 8}} type='Body'>{text}</Text></div>
     )
   }
 
