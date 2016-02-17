@@ -363,27 +363,29 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	return err
 }
 
-func (e *Identify2WithUID) getTrackChainLink() (*libkb.TrackChainLink, error) {
+func (e *Identify2WithUID) getTrackChainLink(tmp bool) (*libkb.TrackChainLink, error) {
 	if e.testArgs != nil && e.testArgs.tcl != nil {
 		return e.testArgs.tcl, nil
 	}
 	if e.me == nil {
 		return nil, nil
 	}
+	if tmp {
+		return e.me.TmpTrackChainLinkFor(e.them.GetName(), e.them.GetUID())
+	}
 	return e.me.TrackChainLinkFor(e.them.GetName(), e.them.GetUID())
 }
 
 func (e *Identify2WithUID) createIdentifyState() (err error) {
 	e.state = libkb.NewIdentifyState(nil, e.them)
-
-	tcl, err := e.getTrackChainLink()
+	tcl, err := e.getTrackChainLink(false)
 	if err != nil {
 		return err
 	}
 	if tcl != nil {
 		e.useTracking = true
 		e.state.SetTrackLookup(tcl)
-		if ttcl, _ := e.me.TmpTrackChainLinkFor(e.them.GetName(), e.them.GetUID()); ttcl != nil {
+		if ttcl, _ := e.getTrackChainLink(true); ttcl != nil {
 			e.state.SetTmpTrackLookup(ttcl)
 		}
 	}
