@@ -26,10 +26,10 @@ BackButton.propTypes = {
 export const styles = {
   container: {
     ...globalStyles.flexBoxRow,
+    ...globalStyles.clickable,
     alignItems: 'center'
   },
   icon: {
-    ...globalStyles.clickable,
     marginRight: 10
   }
 }

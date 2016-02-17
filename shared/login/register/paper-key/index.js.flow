@@ -1,0 +1,15 @@
+/* @flow */
+import React, {Component} from 'react'
+
+export type Props = {
+  onSubmit: () => void,
+  onBack: () => void
+}
+
+export type State = {
+    paperKey: string
+}
+
+export default class PaperKey extends Component {
+  props: Props;
+}

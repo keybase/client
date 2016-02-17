@@ -5,6 +5,7 @@
 .*/node_modules/fbjs/.*
 .*/node_modules/react-tap-event-plugin/node_modules/.*
 .*/react/node_modules/.*
+../desktop/build/.*
 
 [include]
 ../desktop
@@ -22,7 +23,6 @@ module.system.node.resolve_dirname=../react-native/node_modules
 
 module.name_mapper='^image![a-zA-Z0-9$_-]+$' -> 'GlobalImageStub'
 module.name_mapper='^[./a-zA-Z0-9$_-]+\.png$' -> 'RelativeImageStub'
-module.name_mapper='^\..*base-react$' -> 'React'
 
 module.name_mapper='^\..*resolve-root' -> 'resolveRoot'
 

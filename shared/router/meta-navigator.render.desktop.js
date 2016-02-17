@@ -4,6 +4,7 @@ import {bindActionCreators} from 'redux'
 
 import {FlatButton} from 'material-ui'
 import {navigateUp} from '../actions/router'
+import {globalStyles} from '../styles/style-guide'
 
 class MetaNavigatorRender extends Component {
   onBack () {
@@ -17,7 +18,7 @@ class MetaNavigatorRender extends Component {
     const hideBack = !!componentAtTop.hideBack
 
     return (
-      <div>
+      <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
         <Module {...componentAtTop.props} />
         {!hideBack && uri && uri.count() > 1 && <FlatButton onClick={ () => this.onBack() } style={styles.backButton} label='Back'/>}
       </div>

@@ -1,14 +1,16 @@
+// @flow
 import React, {Component} from 'react'
 import {globalStyles, globalColors} from '../../styles/style-guide'
-import {BackButton, Icon, Text} from '../../common-adapters'
+import {Icon, Text} from '../../common-adapters'
+import Container from '../forms/container.desktop'
 
-const Row = ({onClick, icon, title, subTitle, children}) => {
+const Row = ({onClick, icon, title, subTitle, children, style}) => {
   return (
-    <div className='register-row' style={styles.rowContainer} onClick={onClick}>
+    <div className='register-row' style={{...styles.rowContainer, ...style}} onClick={onClick}>
       <div className='register-icon' style={styles.iconContainer}>
         <Icon type={icon} style={styles.icon}/>
       </div>
-      <div style={styles.rowBody}>
+      <div>
         <Text type='Header'>{title}</Text>
         <Text type='Body' small>{subTitle}</Text>
         {children}
@@ -28,10 +30,10 @@ export default class RegisterRender extends Component {
     `
 
     return (
-      <div style={styles.container}>
+      <Container onBack={() => this.props.onBack()} >
         <style>{realCSS}</style>
-        <BackButton onClick={() => this.props.onBack()} style={styles.back}/>
         <Row
+          style={styles.firstRow}
           icon='fa-key'
           title='Connect your PGP key'
           subTitle='If your PGP key is on the Keybase server, we can sign you in right away.'>
@@ -55,7 +57,7 @@ export default class RegisterRender extends Component {
           title='Use your username and passphrase'
           subTitle=''
           onClick={() => { this.props.onGotoUserPassPage() }}/>
-      </div>
+      </Container>
     )
   }
 }
@@ -68,16 +70,12 @@ RegisterRender.propTypes = {
 }
 
 const styles = {
-  container: {
-    ...globalStyles.flexBoxColumn,
-    ...globalStyles.clickable,
-    margin: 65
-  },
-  back: {
-    marginBottom: 15
+  firstRow: {
+    marginTop: 20
   },
   rowContainer: {
     ...globalStyles.flexBoxRow,
+    ...globalStyles.clickable,
     minHeight: 100,
     maxHeight: 100,
     alignItems: 'center',
