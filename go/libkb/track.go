@@ -205,6 +205,16 @@ func (t TrackDiffNone) GetTrackDiffType() keybase1.TrackDiffType {
 	return keybase1.TrackDiffType_NONE
 }
 
+type TrackDiffNoneViaTemporary struct{}
+
+func (t TrackDiffNoneViaTemporary) BreaksTracking() bool     { return false }
+func (t TrackDiffNoneViaTemporary) IsSameAsTracked() bool    { return true }
+func (t TrackDiffNoneViaTemporary) ToDisplayString() string  { return "tracked (tmp)" }
+func (t TrackDiffNoneViaTemporary) ToDisplayMarkup() *Markup { return NewMarkup(t.ToDisplayString()) }
+func (t TrackDiffNoneViaTemporary) GetTrackDiffType() keybase1.TrackDiffType {
+	return keybase1.TrackDiffType_NONE_VIA_TEMPORARY
+}
+
 type TrackDiffNew struct{}
 
 func (t TrackDiffNew) BreaksTracking() bool {
@@ -420,13 +430,11 @@ func localTrackChainLinkFor(tracker, trackee keybase1.UID, localExpires bool, g 
 }
 
 func LocalTrackChainLinkFor(tracker, trackee keybase1.UID, g *GlobalContext) (ret *TrackChainLink, err error) {
-	// First, see if there is an expiring local track
-	ret, err = localTrackChainLinkFor(tracker, trackee, true, g)
-	if ret == nil || err != nil {
-		// If not, look for a regular, permanent local track
-		ret, err = localTrackChainLinkFor(tracker, trackee, false, g)
-	}
-	return
+	return localTrackChainLinkFor(tracker, trackee, false, g)
+}
+
+func LocalTmpTrackChainLinkFor(tracker, trackee keybase1.UID, g *GlobalContext) (ret *TrackChainLink, err error) {
+	return localTrackChainLinkFor(tracker, trackee, true, g)
 }
 
 func StoreLocalTrack(tracker keybase1.UID, trackee keybase1.UID, expiringLocal bool, statement *jsonw.Wrapper, g *GlobalContext) error {

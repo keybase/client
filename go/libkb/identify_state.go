@@ -8,9 +8,10 @@ import (
 )
 
 type IdentifyState struct {
-	res   *IdentifyOutcome
-	u     *User
-	track *TrackLookup
+	res      *IdentifyOutcome
+	u        *User
+	track    *TrackLookup
+	trackTmp *TrackLookup
 }
 
 func NewIdentifyState(res *IdentifyOutcome, u *User) IdentifyState {
@@ -25,6 +26,10 @@ func (s *IdentifyState) SetTrackLookup(t *TrackChainLink) {
 	if s.res != nil {
 		s.res.TrackUsed = s.track
 	}
+}
+
+func (s *IdentifyState) SetTmpTrackLookup(t *TrackChainLink) {
+	s.trackTmp = NewTrackLookup(t)
 }
 
 func (s *IdentifyState) TrackLookup() *TrackLookup {
@@ -81,6 +86,9 @@ func (s *IdentifyState) computeTrackDiffs() {
 	for _, c := range s.res.ProofChecks {
 		c.diff = c.link.ComputeTrackDiff(s.track)
 		c.trackedProofState = s.track.GetProofState(c.link.ToIDString())
+		if s.trackTmp != nil {
+			c.tmpTrackedProofState = s.trackTmp.GetProofState(c.link.ToIDString())
+		}
 	}
 }
 
