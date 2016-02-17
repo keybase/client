@@ -73,9 +73,9 @@ func openApplication(applicationPath string) error {
 	return err
 }
 
-func (u *Updater) applyUpdate(localPath string) (tmpPath string, err error) {
+func (u *Updater) applyUpdate(localPath string) (err error) {
 	destinationPath := u.options.DestinationPath
-	tmpPath, err = u.applyZip(localPath, destinationPath)
+	err = u.applyZip(localPath, destinationPath)
 	if err != nil {
 		return
 	}

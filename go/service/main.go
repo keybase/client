@@ -169,6 +169,7 @@ func (d *Service) Run() (err error) {
 	}
 
 	if sources.IsPrerelease {
+		updater.CleanupFix() // TODO(gabriel): Remove anytime after March 2016
 		updr := engine.NewDefaultUpdater(d.G())
 		if updr != nil {
 			updateChecker := updater.NewUpdateChecker(updr, d.G().UIRouter, d.G().Log)

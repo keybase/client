@@ -19,7 +19,7 @@ func openApplication(applicationPath string) error {
 	return fmt.Errorf("Open application not supported on this platform")
 }
 
-func (u *Updater) applyUpdate(localPath string) (tmpPath string, err error) {
+func (u *Updater) applyUpdate(localPath string) (err error) {
 	if strings.HasSuffix(localPath, ".exe") {
 		err = exec.Command(localPath, "/SILENT").Start()
 	} else {
