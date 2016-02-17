@@ -5,17 +5,19 @@ package client
 
 import (
 	"fmt"
-	"github.com/blang/semver"
-	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
-	rpc "github.com/keybase/go-framed-msgpack-rpc"
-	"golang.org/x/net/context"
 	"io/ioutil"
 	"net"
 	"os"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/blang/semver"
+	"github.com/keybase/client/go/launchd"
+	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"golang.org/x/net/context"
 )
 
 func getPid(g *libkb.GlobalContext) (int, error) {
@@ -114,13 +116,17 @@ func FixVersionClash(g *libkb.GlobalContext, cl libkb.CommandLine) (err error) {
 	g.Log.Warning("Restarting after upgrade; service is running v%s, while v%s is available",
 		semverService, semverClient)
 
-	ctlCli = keybase1.CtlClient{Cli: gcli}
 	origPid, err := getPid(g)
 	if err != nil {
 		g.Log.Warning("Failed to find pid for service: %v\n", err)
 	}
 
-	err = ctlCli.Stop(context.TODO(), keybase1.StopArg{})
+	if serviceConfig.ForkType == keybase1.ForkType_LAUNCHD {
+		err = launchd.Restart(serviceConfig.Label, g.Log)
+	} else {
+		ctlCli = keybase1.CtlClient{Cli: gcli}
+		err = ctlCli.Stop(context.TODO(), keybase1.StopArg{})
+	}
 	if err != nil && origPid >= 0 {
 		// A fallback approach. I haven't seen a need for it, but it can't really hurt.
 		// If we fail to restart via Stop() then revert to kill techniques.
