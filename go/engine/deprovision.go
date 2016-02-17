@@ -17,12 +17,14 @@ import (
 type DeprovisionEngine struct {
 	libkb.Contextified
 	username libkb.NormalizedUsername
+	doRevoke bool // requires being logged in already
 }
 
-func NewDeprovisionEngine(g *libkb.GlobalContext, username string) *DeprovisionEngine {
+func NewDeprovisionEngine(g *libkb.GlobalContext, username string, doRevoke bool) *DeprovisionEngine {
 	return &DeprovisionEngine{
 		Contextified: libkb.NewContextified(g),
 		username:     libkb.NewNormalizedUsername(username),
+		doRevoke:     doRevoke,
 	}
 }
 
@@ -44,25 +46,11 @@ func (e *DeprovisionEngine) SubConsumers() []libkb.UIConsumer {
 	}
 }
 
-// This function anticipates some error cases, but it will still return an
-// error if something unexpected goes wrong.
-func (e *DeprovisionEngine) attemptRevoke(ctx *Context) error {
-	isLoggedIn, uid, err := IsLoggedIn(e, ctx)
-	if err != nil {
-		e.G().Log.Debug("DeprovisionEngine error checking login status: %s", err)
-		return err
-	}
-
-	// If the user we're deprovisioning isn't logged in, short-circuit the
-	// revoke and continue deprovision.
-	if !isLoggedIn || !e.G().Env.GetUsername().Eq(e.username) {
-		ctx.LogUI.Warning("User %s is not logged in, so we aren't revoking their keys on the server.", e.username)
-		ctx.LogUI.Warning("To do that yourself, run `keybase device remove %s`", e.G().Env.GetDeviceID())
-		ctx.LogUI.Warning("from another device.")
-		return nil
-	}
-
-	me, err := libkb.LoadMeByUID(e.G(), uid)
+// This function anticipates some error cases (particularly that the device may
+// be already revoked), but it will still return an error if something
+// unexpected goes wrong.
+func (e *DeprovisionEngine) attemptLoggedInRevoke(ctx *Context) error {
+	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
 	if err != nil {
 		e.G().Log.Debug("DeprovisionEngine error loading current user: %s", err)
 		return err
@@ -73,6 +61,7 @@ func (e *DeprovisionEngine) attemptRevoke(ctx *Context) error {
 		e.G().Log.Debug("DeprovisionEngine error loading keys for current device: %s", err)
 		return err
 	}
+
 	// If there are no keys to revoke, it's likely the device has already been
 	// revoked. We still need to log out below though.
 	if len(keys) == 0 {
@@ -110,11 +99,11 @@ func (e *DeprovisionEngine) Run(ctx *Context) (err error) {
 	// 3. Delete the user from the config file.
 	// 4. Db nuke.
 
-	// If the user to deprovision is currently logged in, we need to revoke
-	// their keys and then log out.
-	err = e.attemptRevoke(ctx)
-	if err != nil {
-		return
+	if e.doRevoke {
+		err = e.attemptLoggedInRevoke(ctx)
+		if err != nil {
+			return
+		}
 	}
 
 	if clearSecretErr := libkb.ClearStoredSecret(e.G(), e.username); clearSecretErr != nil {

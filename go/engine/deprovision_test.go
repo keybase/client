@@ -89,7 +89,7 @@ func TestDeprovision(t *testing.T) {
 		t.Fatal("Unexpectedly logged out")
 	}
 
-	e := NewDeprovisionEngine(tc.G, fu.Username)
+	e := NewDeprovisionEngine(tc.G, fu.Username, true /* doRevoke */)
 	ctx = &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
@@ -175,11 +175,11 @@ func TestDeprovisionLoggedOut(t *testing.T) {
 	}
 
 	// Unlike the first test, this time we log out before we run the
-	// deprovision. That should mean that no keys get revoked, but everything
-	// else should be the same.
+	// deprovision. We should be able to do a deprovision with revocation
+	// disabled.
 	tc.G.Logout()
 
-	e := NewDeprovisionEngine(tc.G, fu.Username)
+	e := NewDeprovisionEngine(tc.G, fu.Username, false /* doRevoke */)
 	ctx = &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
@@ -271,7 +271,7 @@ func TestCurrentDeviceRevoked(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	e := NewDeprovisionEngine(tc.G, fu.Username)
+	e := NewDeprovisionEngine(tc.G, fu.Username, true /* doRevoke */)
 	ctx = &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),

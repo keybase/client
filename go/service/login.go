@@ -33,7 +33,7 @@ func (h *LoginHandler) Logout(_ context.Context, sessionID int) error {
 }
 
 func (h *LoginHandler) Deprovision(_ context.Context, arg keybase1.DeprovisionArg) error {
-	eng := engine.NewDeprovisionEngine(h.G(), arg.Username)
+	eng := engine.NewDeprovisionEngine(h.G(), arg.Username, arg.DoRevoke)
 	ctx := engine.Context{
 		LogUI:     h.getLogUI(arg.SessionID),
 		SecretUI:  h.getSecretUI(arg.SessionID, h.G()),
