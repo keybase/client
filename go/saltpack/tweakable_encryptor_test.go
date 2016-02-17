@@ -6,8 +6,9 @@ package saltpack
 import (
 	"bytes"
 	"crypto/sha512"
-	"golang.org/x/crypto/nacl/secretbox"
 	"io"
+
+	"golang.org/x/crypto/nacl/secretbox"
 )
 
 type testEncryptionOptions struct {
@@ -21,7 +22,7 @@ type testEncryptionOptions struct {
 	corruptReceiverKeys         func(rk *receiverKeys, rid int)
 	corruptSenderKeyPlaintext   func(pk *[]byte)
 	corruptSenderKeyCiphertext  func(pk []byte)
-	corruptHeader               func(eh *encryptionHeader)
+	corruptHeader               func(eh *EncryptionHeader)
 	corruptHeaderPacked         func(b []byte)
 }
 
@@ -35,7 +36,7 @@ func (eo testEncryptionOptions) getBlockSize() int {
 type testEncryptStream struct {
 	output     io.Writer
 	encoder    encoder
-	header     *encryptionHeader
+	header     *EncryptionHeader
 	payloadKey SymmetricKey
 	buffer     bytes.Buffer
 	inblock    []byte
@@ -134,7 +135,7 @@ func (pes *testEncryptStream) init(sender BoxSecretKey, receivers []BoxPublicKey
 		sender = ephemeralKey
 	}
 
-	eh := &encryptionHeader{
+	eh := &EncryptionHeader{
 		FormatName: SaltpackFormatName,
 		Version:    SaltpackCurrentVersion,
 		Type:       MessageTypeEncryption,
