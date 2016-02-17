@@ -1,3 +1,7 @@
+## 1.0.13 (2016-02-17)
+- Fix service not restarting after version mismatch check
+- Fix bad sigchain link error (PR: keybase/client#1998)
+
 ## 1.0.12 (2016-02-15)
 - Fix invalid plist on brew install/upgrade (#2074)
 
