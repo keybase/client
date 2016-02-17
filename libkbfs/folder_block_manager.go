@@ -525,6 +525,12 @@ outer:
 					ptrs = append(ptrs, update.Unref)
 				}
 			}
+			// TODO: when can we clean up the MD's unembedded block
+			// changes pointer?  It's not safe until we know for sure
+			// that all existing clients have received the latest
+			// update (and also that there are no outstanding staged
+			// branches).  Let's do that as part of the bigger issue
+			// KBFS-793 -- for now we have to leak those blocks.
 		}
 
 		if numNew > 0 {
