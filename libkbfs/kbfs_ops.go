@@ -25,7 +25,7 @@ var _ KBFSOps = (*KBFSOpsStandard)(nil)
 // NewKBFSOpsStandard constructs a new KBFSOpsStandard object.
 func NewKBFSOpsStandard(config Config) *KBFSOpsStandard {
 	log := config.MakeLogger("")
-	kops:= &KBFSOpsStandard{
+	kops := &KBFSOpsStandard{
 		config: config,
 		log:    log,
 		ops:    make(map[FolderBranch]*folderBranchOps),
@@ -35,9 +35,13 @@ func NewKBFSOpsStandard(config Config) *KBFSOpsStandard {
 }
 
 func (fs *KBFSOpsStandard) checkReIdentifyNeedLoop() {
-	// Tick ten times the rate of valid duration allowing only overflows of +-10%
-	ticker := time.NewTicker(fs.config.TLFValidDuration()/10)
 	maxValid := fs.config.TLFValidDuration()
+	// Tests and some users fail to set this properly.
+	if maxValid <= 10*time.Second || maxValid > 24*365*time.Hour {
+		maxValid = tlfValidDurationDefault
+	}
+	// Tick ten times the rate of valid duration allowing only overflows of +-10%
+	ticker := time.NewTicker(maxValid / 10)
 	for {
 		<-ticker.C
 		now := time.Now()
@@ -49,7 +53,7 @@ func (fs *KBFSOpsStandard) checkReIdentifyNeed(now time.Time, maxValid time.Dura
 	fs.opsLock.Lock()
 	defer fs.opsLock.Unlock()
 
-	for _,fbo := range fs.ops {
+	for _, fbo := range fs.ops {
 		fbo.checkReIdentifyNeed(now, maxValid)
 	}
 }
