@@ -13,13 +13,11 @@
 [libs]
 ./libs/immutable-interface.js
 ./libs/flow-interface.js
-# ../node_modules/react-native/Libraries/react-native/react-native-interface.js
 
 [options]
 munge_underscores=true
 
 module.system.node.resolve_dirname=../desktop/node_modules
-module.system.node.resolve_dirname=../react-native/node_modules
 
 module.name_mapper='^image![a-zA-Z0-9$_-]+$' -> 'GlobalImageStub'
 module.name_mapper='^[./a-zA-Z0-9$_-]+\.png$' -> 'RelativeImageStub'
