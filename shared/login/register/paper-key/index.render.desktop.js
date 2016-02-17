@@ -1,8 +1,10 @@
+// @flow
 import React from 'react'
 import {Text, Icon, Input, Button} from '../../../common-adapters'
-import Container from '../../forms/container'
+import Container from '../../forms/container.desktop'
+import type {Props} from './index.render'
 
-const Render = ({onBack, onSubmit, onChangePaperKey, paperKey}) => {
+const Render = ({onBack, onSubmit, onChangePaperKey, paperKey}: Props) => {
   return (
     <Container
       style={styles.container}

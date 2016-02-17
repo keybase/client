@@ -1,7 +1,8 @@
+// @flow
 import React, {Component} from 'react'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 import {Icon, Text} from '../../common-adapters'
-import Container from '../forms/container'
+import Container from '../forms/container.desktop'
 
 const Row = ({onClick, icon, title, subTitle, children, style}) => {
   return (
@@ -9,7 +10,7 @@ const Row = ({onClick, icon, title, subTitle, children, style}) => {
       <div className='register-icon' style={styles.iconContainer}>
         <Icon type={icon} style={styles.icon}/>
       </div>
-      <div style={styles.rowBody}>
+      <div>
         <Text type='Header'>{title}</Text>
         <Text type='Body' small>{subTitle}</Text>
         {children}

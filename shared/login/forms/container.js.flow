@@ -1,0 +1,12 @@
+/* @flow */
+import React from 'react'
+
+export type Props = {
+    onBack: () => void,
+    children: ?Array<any>,
+    style: ?Object
+};
+
+declare export default class Container extends React.Component {
+  props: Props;
+}

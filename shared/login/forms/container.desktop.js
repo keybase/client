@@ -1,7 +1,8 @@
+// @flow
 import React from 'react'
 import {globalStyles} from '../../styles/style-guide'
 import {BackButton} from '../../common-adapters'
-import type {Props} from './container.desktop'
+import type {Props} from './container'
 
 export default ({children, onBack, style}: Props) => {
   return (
