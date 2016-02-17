@@ -47,7 +47,7 @@ func (e *DeprovisionEngine) SubConsumers() []libkb.UIConsumer {
 // This function anticipates some error cases, but it will still return an
 // error if something unexpected goes wrong.
 func (e *DeprovisionEngine) attemptRevoke(ctx *Context) error {
-	isLoggedIn, _, err := IsLoggedIn(e, ctx)
+	isLoggedIn, uid, err := IsLoggedIn(e, ctx)
 	if err != nil {
 		e.G().Log.Debug("DeprovisionEngine error checking login status: %s", err)
 		return err
@@ -62,7 +62,7 @@ func (e *DeprovisionEngine) attemptRevoke(ctx *Context) error {
 		return nil
 	}
 
-	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
+	me, err := libkb.LoadMeByUID(e.G(), uid)
 	if err != nil {
 		e.G().Log.Debug("DeprovisionEngine error loading current user: %s", err)
 		return err
