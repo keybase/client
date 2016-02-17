@@ -257,6 +257,9 @@
       "name" : "time",
       "type" : "Time"
     }, {
+      "name" : "expires",
+      "type" : "Time"
+    }, {
       "name" : "isRemote",
       "type" : "boolean"
     } ]
@@ -451,7 +454,7 @@
       "type" : [ "null", "Status" ]
     }, {
       "name" : "whenLastTracked",
-      "type" : "int"
+      "type" : "Time"
     }, {
       "name" : "proofs",
       "type" : {

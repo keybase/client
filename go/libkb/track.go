@@ -90,6 +90,7 @@ type TrackInstructions struct {
 
 type TrackSummary struct {
 	time     time.Time
+	expires  time.Time
 	isRemote bool
 	username string
 }
@@ -97,6 +98,12 @@ type TrackSummary struct {
 func (s TrackSummary) IsRemote() bool      { return s.isRemote }
 func (s TrackSummary) GetCTime() time.Time { return s.time }
 func (s TrackSummary) Username() string    { return s.username }
+func (s TrackSummary) GetETime() (ret time.Time) {
+	if !s.IsRemote() {
+		ret = s.expires
+	}
+	return ret
+}
 
 //=====================================================================
 
@@ -108,10 +115,12 @@ type TrackLookup struct {
 }
 
 func (l TrackLookup) ToSummary() TrackSummary {
-	return TrackSummary{
+	ret := TrackSummary{
 		time:     l.GetCTime(),
 		isRemote: l.IsRemote(),
+		expires:  l.GetLocalExpireTime(),
 	}
+	return ret
 }
 
 func (l TrackLookup) GetProofState(id string) keybase1.ProofState {
@@ -136,6 +145,10 @@ func (l TrackLookup) GetEldestKID() keybase1.KID {
 		G.Log.Warning("Error in lookup of eldest KID: %s", err)
 	}
 	return ret
+}
+
+func (l TrackLookup) GetLocalExpireTime() (ret time.Time) {
+	return l.link.GetLocalExpireTime()
 }
 
 func (l TrackLookup) IsRemote() bool {
@@ -374,18 +387,20 @@ func localTrackChainLinkFor(tracker, trackee keybase1.UID, localExpires bool, g 
 		return
 	}
 
-	cl := &ChainLink{payloadJSON: obj, unsigned: true}
+	cl := &ChainLink{Contextified: NewContextified(g), payloadJSON: obj, unsigned: true}
 	if err = cl.UnpackLocal(); err != nil {
 		g.Log.Debug("| unpack failed -> %s", err)
 		return
 	}
 
+	var linkETime time.Time
+
 	if localExpires {
-		linkEtime := cl.GetCTime().Add(g.Env.GetLocalTrackMaxAge())
+		linkETime = cl.GetCTime().Add(g.Env.GetLocalTrackMaxAge())
 
-		g.Log.Debug("| := local track created %s, expires: %s, it is now %s", cl.GetCTime(), linkEtime.String(), g.Clock.Now())
+		g.Log.Debug("| := local track created %s, expires: %s, it is now %s", cl.GetCTime(), linkETime.String(), g.Clock.Now())
 
-		if linkEtime.Before(g.Clock.Now()) {
+		if linkETime.Before(g.Clock.Now()) {
 			g.Log.Debug("| expired local track, deleting")
 			RemoveLocalTrack(tracker, trackee, true, g)
 			ret = nil
@@ -398,6 +413,7 @@ func localTrackChainLinkFor(tracker, trackee keybase1.UID, localExpires bool, g 
 	ret, err = ParseTrackChainLink(base)
 	if ret != nil && err == nil {
 		ret.local = true
+		ret.expires = linkETime
 	}
 
 	return

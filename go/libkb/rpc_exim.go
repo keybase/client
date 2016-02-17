@@ -83,7 +83,7 @@ func (ir IdentifyOutcome) ExportToUncheckedIdentity() *keybase1.Identity {
 		Status: ExportErrorAsStatus(ir.Error),
 	}
 	if ir.TrackUsed != nil {
-		tmp.WhenLastTracked = int(ir.TrackUsed.GetCTime().Unix())
+		tmp.WhenLastTracked = keybase1.ToTime(ir.TrackUsed.GetCTime())
 	}
 
 	pc := ir.ProofChecksSorted()
@@ -354,6 +354,7 @@ func ImportPGPFingerprintSlice(fp []byte) (ret *PGPFingerprint) {
 
 func (s TrackSummary) Export(username string) (ret keybase1.TrackSummary) {
 	ret.Time = keybase1.ToTime(s.time)
+	ret.Expires = keybase1.ToTime(s.expires)
 	ret.IsRemote = s.isRemote
 	ret.Username = username
 	return
@@ -364,11 +365,13 @@ func ImportTrackSummary(s *keybase1.TrackSummary) *TrackSummary {
 		return nil
 	}
 
-	return &TrackSummary{
+	ret := &TrackSummary{
 		time:     keybase1.FromTime(s.Time),
 		isRemote: s.IsRemote,
 		username: s.Username,
+		expires:  keybase1.FromTime(s.Expires),
 	}
+	return ret
 }
 
 func ExportTrackSummary(l *TrackLookup, username string) *keybase1.TrackSummary {

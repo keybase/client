@@ -1709,6 +1709,7 @@ type TrackDiff struct {
 type TrackSummary struct {
 	Username string `codec:"username" json:"username"`
 	Time     Time   `codec:"time" json:"time"`
+	Expires  Time   `codec:"expires" json:"expires"`
 	IsRemote bool   `codec:"isRemote" json:"isRemote"`
 }
 
@@ -1946,7 +1947,7 @@ type Cryptocurrency struct {
 
 type Identity struct {
 	Status          *Status          `codec:"status,omitempty" json:"status,omitempty"`
-	WhenLastTracked int              `codec:"whenLastTracked" json:"whenLastTracked"`
+	WhenLastTracked Time             `codec:"whenLastTracked" json:"whenLastTracked"`
 	Proofs          []IdentifyRow    `codec:"proofs" json:"proofs"`
 	Cryptocurrency  []Cryptocurrency `codec:"cryptocurrency" json:"cryptocurrency"`
 	Revoked         []TrackDiff      `codec:"revoked" json:"revoked"`

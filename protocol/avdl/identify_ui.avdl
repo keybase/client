@@ -30,7 +30,7 @@ protocol identifyUi {
 
   record Identity {
     union { null, Status } status;
-    int whenLastTracked;
+    Time whenLastTracked;
     array<IdentifyRow> proofs;
     array<Cryptocurrency> cryptocurrency;
     array<TrackDiff> revoked;

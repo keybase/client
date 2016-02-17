@@ -257,6 +257,9 @@
       "name" : "time",
       "type" : "Time"
     }, {
+      "name" : "expires",
+      "type" : "Time"
+    }, {
       "name" : "isRemote",
       "type" : "boolean"
     } ]
@@ -408,6 +411,9 @@
       "type" : "boolean"
     }, {
       "name" : "binary",
+      "type" : "boolean"
+    }, {
+      "name" : "hideRecipients",
       "type" : "boolean"
     } ]
   }, {

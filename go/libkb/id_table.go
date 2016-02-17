@@ -390,6 +390,7 @@ type TrackChainLink struct {
 	whomUID      keybase1.UID
 	untrack      *UntrackChainLink
 	local        bool
+	expires      time.Time // should only be relevant if local is set to true
 }
 
 func (l TrackChainLink) IsRemote() bool {
@@ -410,7 +411,7 @@ func ParseTrackChainLink(b GenericChainLink) (ret *TrackChainLink, err error) {
 		return
 	}
 
-	ret = &TrackChainLink{b, whomUsername, whomUID, nil, false}
+	ret = &TrackChainLink{b, whomUsername, whomUID, nil, false, time.Time{}}
 	return
 }
 
@@ -418,6 +419,13 @@ func (l *TrackChainLink) Type() string { return "track" }
 
 func (l *TrackChainLink) ToDisplayString() string {
 	return l.whomUsername
+}
+
+func (l *TrackChainLink) GetLocalExpireTime() (ret time.Time) {
+	if l.local {
+		ret = l.expires
+	}
+	return ret
 }
 
 func (l *TrackChainLink) insertIntoTable(tab *IdentityTable) {

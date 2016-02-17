@@ -3599,12 +3599,14 @@ export type TrackDiff = {
 export type identify_TrackSummary = {
   username: string;
   time: Time;
+  expires: Time;
   isRemote: boolean;
 }
 
 export type TrackSummary = {
   username: string;
   time: Time;
+  expires: Time;
   isRemote: boolean;
 }
 
@@ -3616,12 +3618,14 @@ export type identify_TrackOptions = {
   localOnly: boolean;
   bypassConfirm: boolean;
   forceRetrack: boolean;
+  expiringLocal: boolean;
 }
 
 export type TrackOptions = {
   localOnly: boolean;
   bypassConfirm: boolean;
   forceRetrack: boolean;
+  expiringLocal: boolean;
 }
 
 export type identify_IdentifyReasonType = 0 /* 'NONE_0' */ | 1 /* 'ID_1' */ | 2 /* 'TRACK_2' */ | 3 /* 'ENCRYPT_3' */ | 4 /* 'DECRYPT_4' */ | 5 /* 'VERIFY_5' */ | 6 /* 'RESOURCE_6' */
@@ -3883,6 +3887,7 @@ export type identifyUi_TrackDiff = {
 export type identifyUi_TrackSummary = {
   username: string;
   time: Time;
+  expires: Time;
   isRemote: boolean;
 }
 
@@ -3892,6 +3897,7 @@ export type identifyUi_TrackOptions = {
   localOnly: boolean;
   bypassConfirm: boolean;
   forceRetrack: boolean;
+  expiringLocal: boolean;
 }
 
 export type identifyUi_IdentifyReasonType = 0 /* 'NONE_0' */ | 1 /* 'ID_1' */ | 2 /* 'TRACK_2' */ | 3 /* 'ENCRYPT_3' */ | 4 /* 'DECRYPT_4' */ | 5 /* 'VERIFY_5' */ | 6 /* 'RESOURCE_6' */
@@ -3985,7 +3991,7 @@ export type Cryptocurrency = {
 
 export type identifyUi_Identity = {
   status?: ?Status;
-  whenLastTracked: int;
+  whenLastTracked: Time;
   proofs: Array<IdentifyRow>;
   cryptocurrency: Array<Cryptocurrency>;
   revoked: Array<TrackDiff>;
@@ -3993,7 +3999,7 @@ export type identifyUi_Identity = {
 
 export type Identity = {
   status?: ?Status;
-  whenLastTracked: int;
+  whenLastTracked: Time;
   proofs: Array<IdentifyRow>;
   cryptocurrency: Array<Cryptocurrency>;
   revoked: Array<TrackDiff>;
@@ -4080,11 +4086,13 @@ export type UserCard = {
 export type identifyUi_ConfirmResult = {
   identityConfirmed: boolean;
   remoteConfirmed: boolean;
+  expiringLocal: boolean;
 }
 
 export type ConfirmResult = {
   identityConfirmed: boolean;
   remoteConfirmed: boolean;
+  expiringLocal: boolean;
 }
 
 // identifyUi.delegateIdentifyUI ////////////////////////////////////////
@@ -6106,6 +6114,7 @@ export type pgp_TrackDiff = {
 export type pgp_TrackSummary = {
   username: string;
   time: Time;
+  expires: Time;
   isRemote: boolean;
 }
 
@@ -6115,6 +6124,7 @@ export type pgp_TrackOptions = {
   localOnly: boolean;
   bypassConfirm: boolean;
   forceRetrack: boolean;
+  expiringLocal: boolean;
 }
 
 export type pgp_IdentifyReasonType = 0 /* 'NONE_0' */ | 1 /* 'ID_1' */ | 2 /* 'TRACK_2' */ | 3 /* 'ENCRYPT_3' */ | 4 /* 'DECRYPT_4' */ | 5 /* 'VERIFY_5' */ | 6 /* 'RESOURCE_6' */
@@ -6651,6 +6661,7 @@ export type prove_TrackDiff = {
 export type prove_TrackSummary = {
   username: string;
   time: Time;
+  expires: Time;
   isRemote: boolean;
 }
 
@@ -6660,6 +6671,7 @@ export type prove_TrackOptions = {
   localOnly: boolean;
   bypassConfirm: boolean;
   forceRetrack: boolean;
+  expiringLocal: boolean;
 }
 
 export type prove_IdentifyReasonType = 0 /* 'NONE_0' */ | 1 /* 'ID_1' */ | 2 /* 'TRACK_2' */ | 3 /* 'ENCRYPT_3' */ | 4 /* 'DECRYPT_4' */ | 5 /* 'VERIFY_5' */ | 6 /* 'RESOURCE_6' */
@@ -7486,6 +7498,7 @@ export type saltpack_TrackDiff = {
 export type saltpack_TrackSummary = {
   username: string;
   time: Time;
+  expires: Time;
   isRemote: boolean;
 }
 
@@ -7495,6 +7508,7 @@ export type saltpack_TrackOptions = {
   localOnly: boolean;
   bypassConfirm: boolean;
   forceRetrack: boolean;
+  expiringLocal: boolean;
 }
 
 export type saltpack_IdentifyReasonType = 0 /* 'NONE_0' */ | 1 /* 'ID_1' */ | 2 /* 'TRACK_2' */ | 3 /* 'ENCRYPT_3' */ | 4 /* 'DECRYPT_4' */ | 5 /* 'VERIFY_5' */ | 6 /* 'RESOURCE_6' */
@@ -7543,6 +7557,7 @@ export type saltpack_SaltpackEncryptOptions = {
   hideSelf: boolean;
   noSelfEncrypt: boolean;
   binary: boolean;
+  hideRecipients: boolean;
 }
 
 export type SaltpackEncryptOptions = {
@@ -7550,6 +7565,7 @@ export type SaltpackEncryptOptions = {
   hideSelf: boolean;
   noSelfEncrypt: boolean;
   binary: boolean;
+  hideRecipients: boolean;
 }
 
 export type saltpack_SaltpackDecryptOptions = {
@@ -8694,6 +8710,7 @@ export type track_TrackDiff = {
 export type track_TrackSummary = {
   username: string;
   time: Time;
+  expires: Time;
   isRemote: boolean;
 }
 
@@ -8703,6 +8720,7 @@ export type track_TrackOptions = {
   localOnly: boolean;
   bypassConfirm: boolean;
   forceRetrack: boolean;
+  expiringLocal: boolean;
 }
 
 export type track_IdentifyReasonType = 0 /* 'NONE_0' */ | 1 /* 'ID_1' */ | 2 /* 'TRACK_2' */ | 3 /* 'ENCRYPT_3' */ | 4 /* 'DECRYPT_4' */ | 5 /* 'VERIFY_5' */ | 6 /* 'RESOURCE_6' */

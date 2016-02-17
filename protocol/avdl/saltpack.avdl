@@ -9,6 +9,7 @@ protocol saltpack {
     boolean hideSelf;
     boolean noSelfEncrypt;
     boolean binary;
+    boolean hideRecipients;
   }
 
   record SaltpackDecryptOptions {

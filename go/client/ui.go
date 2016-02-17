@@ -454,6 +454,9 @@ func (ui BaseIdentifyUI) ReportLastTrack(tl *keybase1.TrackSummary) {
 		}
 		msg := ColorString("bold", fmt.Sprintf("You last %stracked %s on %s",
 			locally, t.Username(), libkb.FormatTime(t.GetCTime())))
+		if et := t.GetETime(); !et.IsZero() {
+			msg += fmt.Sprintf(" (track expires on %s)", libkb.FormatTime(et))
+		}
 		ui.ReportHook(msg)
 	}
 }
