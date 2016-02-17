@@ -1,0 +1,15 @@
+/* @flow */
+
+import React, {Component} from 'react'
+
+import type {Props as InputProps} from './input'
+import type {Props as CheckboxProps} from './checkbox'
+
+export type Props = {
+  inputProps: InputProps,
+  checkboxesProps: Array<CheckboxProps>
+}
+
+declare export default class FormWithCheckbox extends React.Component {
+  props: Props;
+}
