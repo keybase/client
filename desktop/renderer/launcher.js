@@ -3,13 +3,13 @@ import React, {Component} from 'react'
 import {Provider} from 'react-redux'
 import RemoteStore from './remote-store.desktop'
 import Menubar from '../shared/menubar'
-import consoleHelper from '../app/console-helper'
+import {ipcLogsRenderer} from '../app/console-helper'
 import hello from '../shared/util/hello'
 import {setupContextMenu} from '../app/menu-helper'
 
 import {remote} from 'electron'
 
-consoleHelper()
+ipcLogsRenderer()
 hello(process.pid, 'Menubar', process.argv)
 
 if (module.hot) {
