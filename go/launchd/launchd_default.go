@@ -12,13 +12,13 @@ import (
 )
 
 func Restart(label string, log logger.Logger) error {
-	return fmt.Error("Unsupported on this platform")
+	return fmt.Errorf("Unsupported on this platform")
 }
 
 func Start(label string, log logger.Logger) error {
-	return fmt.Error("Unsupported on this platform")
+	return fmt.Errorf("Unsupported on this platform")
 }
 
 func Stop(label string, wait bool, log logger.Logger) error {
-	return fmt.Error("Unsupported on this platform")
+	return fmt.Errorf("Unsupported on this platform")
 }
