@@ -20,6 +20,14 @@ version="$1"
 version_branch="keybase-$version"
 repo=$(brew --repository)
 
+function onExit {
+	cd $repo
+	git checkout master
+	git branch -D $version_branch
+}
+trap onExit EXIT
+
+
 echo "Brew repository: $repo"
 cd $repo
 git checkout master
