@@ -11,7 +11,6 @@ import type {RenderProps} from './render'
 import type {UserInfo} from './bio.render'
 import type {Proof} from './proofs.render'
 import type {SimpleProofState} from '../constants/tracker'
-
 import type {TrackSummary} from '../constants/types/flow-types'
 
 import flags from '../util/feature-flags'

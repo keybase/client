@@ -39,10 +39,20 @@ export default class ActionRender extends Component {
   }
 
   render2 (): ReactElement {
+    const {username, trackerState, loggedIn, currentlyFollowing} = this.props
     const styles = styles2
+    let buttons
+    if (currentlyFollowing) {
+      // Proofs changed.
+      buttons = {unfollow: true, refollow: true}
+    } else {
+      buttons = {follow: true}
+    }
     return (
       <div style={{...styles.container}}>
-        <Button label='Close' onClick={() => this.props.onClose()} />
+        {buttons.unfollow && <Button label='Unfollow' primary onClick={() => this.props.onUnfollow()} />}
+        {buttons.refollow && <Button label='Re-follow' onClick={() => this.props.onRefollow()} />}
+        {buttons.follow && <Button label='Follow' follow follow onClick={() => this.props.onUnfollow()} />}
       </div>
     )
   }
