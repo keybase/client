@@ -308,7 +308,7 @@ func (w LinkCheckResultWrapper) GetCachedMsg() string {
 		if snoozed {
 			msg += "; but got a retryable error (" + snze.Error() + ") this time around"
 		}
-	} else if w.GetDiff().Type == keybase1.TrackDiffType_NONE_VIA_TEMPORARY {
+	} else if w.GetDiff() != nil && w.GetDiff().Type == keybase1.TrackDiffType_NONE_VIA_TEMPORARY {
 		msg = "failure temporarily ignored until " + libkb.FormatTime(w.GetTmpTrackExpireTime())
 	}
 	if len(msg) > 0 {

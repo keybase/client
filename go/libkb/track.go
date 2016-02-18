@@ -139,8 +139,8 @@ func (l TrackLookup) GetEldestKID() keybase1.KID {
 	return ret
 }
 
-func (l TrackLookup) GetLocalExpireTime() (ret time.Time) {
-	return l.link.GetLocalExpireTime()
+func (l TrackLookup) GetTmpExpireTime() (ret time.Time) {
+	return l.link.GetTmpExpireTime()
 }
 
 func (l TrackLookup) IsRemote() bool {
@@ -404,7 +404,7 @@ func localTrackChainLinkFor(tracker, trackee keybase1.UID, localExpires bool, g 
 
 		if linkETime.Before(g.Clock.Now()) {
 			g.Log.Debug("| expired local track, deleting")
-			RemoveLocalTrack(tracker, trackee, true, g)
+			removeLocalTrack(tracker, trackee, true, g)
 			ret = nil
 			err = ErrTrackingExpired
 			return ret, err
@@ -415,7 +415,7 @@ func localTrackChainLinkFor(tracker, trackee keybase1.UID, localExpires bool, g 
 	ret, err = ParseTrackChainLink(base)
 	if ret != nil && err == nil {
 		ret.local = true
-		ret.expires = linkETime
+		ret.tmpExpireTime = linkETime
 	}
 
 	return
@@ -434,7 +434,13 @@ func StoreLocalTrack(tracker keybase1.UID, trackee keybase1.UID, expiringLocal b
 	return g.LocalDb.Put(LocalTrackDBKey(tracker, trackee, expiringLocal), nil, statement)
 }
 
-func RemoveLocalTrack(tracker keybase1.UID, trackee keybase1.UID, expiringLocal bool, g *GlobalContext) error {
+func removeLocalTrack(tracker keybase1.UID, trackee keybase1.UID, expiringLocal bool, g *GlobalContext) error {
 	g.Log.Debug("| RemoveLocalTrack, expiring = %v", expiringLocal)
 	return g.LocalDb.Delete(LocalTrackDBKey(tracker, trackee, expiringLocal))
+}
+
+func RemoveLocalTracks(tracker keybase1.UID, trackee keybase1.UID, g *GlobalContext) error {
+	e1 := removeLocalTrack(tracker, trackee, false, g)
+	e2 := removeLocalTrack(tracker, trackee, true, g)
+	return PickFirstError(e1, e2)
 }

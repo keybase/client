@@ -503,7 +503,7 @@ func (u *User) TrackChainLinkFor(username string, uid keybase1.UID) (*TrackChain
 	}
 
 	if remote == nil && local != nil {
-		u.g.Log.Debug("local expire %v: %s", local.expires.IsZero(), local.expires)
+		u.g.Log.Debug("local expire %v: %s", local.tmpExpireTime.IsZero(), local.tmpExpireTime)
 		return local, nil
 	}
 

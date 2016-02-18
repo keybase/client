@@ -129,6 +129,9 @@ func (e *TrackToken) Run(ctx *Context) (err error) {
 		err = e.storeLocalTrack()
 	} else {
 		err = e.storeRemoteTrack(ctx)
+		if err != nil {
+			e.removeLocalTracks()
+		}
 	}
 
 	if err == nil {
@@ -237,5 +240,11 @@ func (e *TrackToken) storeRemoteTrack(ctx *Context) (err error) {
 	linkid := libkb.ComputeLinkID(e.trackStatementBytes)
 	e.arg.Me.SigChainBump(linkid, sigid)
 
+	return err
+}
+
+func (e *TrackToken) removeLocalTracks() (err error) {
+	defer e.G().Trace("removeLocalTracks", func() error { return err })()
+	err = libkb.RemoveLocalTracks(e.arg.Me.GetUID(), e.them.GetUID(), e.G())
 	return err
 }

@@ -11,7 +11,7 @@ type IdentifyState struct {
 	res      *IdentifyOutcome
 	u        *User
 	track    *TrackLookup
-	trackTmp *TrackLookup
+	tmpTrack *TrackLookup
 }
 
 func NewIdentifyState(res *IdentifyOutcome, u *User) IdentifyState {
@@ -29,7 +29,7 @@ func (s *IdentifyState) SetTrackLookup(t *TrackChainLink) {
 }
 
 func (s *IdentifyState) SetTmpTrackLookup(t *TrackChainLink) {
-	s.trackTmp = NewTrackLookup(t)
+	s.tmpTrack = NewTrackLookup(t)
 }
 
 func (s *IdentifyState) TrackLookup() *TrackLookup {
@@ -86,9 +86,9 @@ func (s *IdentifyState) computeTrackDiffs() {
 	for _, c := range s.res.ProofChecks {
 		c.diff = c.link.ComputeTrackDiff(s.track)
 		c.trackedProofState = s.track.GetProofState(c.link.ToIDString())
-		if s.trackTmp != nil {
-			c.tmpTrackedProofState = s.trackTmp.GetProofState(c.link.ToIDString())
-			c.tmpTrackExpireTime = s.trackTmp.GetLocalExpireTime()
+		if s.tmpTrack != nil {
+			c.tmpTrackedProofState = s.tmpTrack.GetProofState(c.link.ToIDString())
+			c.tmpTrackExpireTime = s.tmpTrack.GetTmpExpireTime()
 		}
 	}
 }

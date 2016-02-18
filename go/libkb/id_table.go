@@ -386,11 +386,11 @@ func remoteProofInsertIntoTable(l RemoteProofChainLink, tab *IdentityTable) {
 //
 type TrackChainLink struct {
 	GenericChainLink
-	whomUsername string
-	whomUID      keybase1.UID
-	untrack      *UntrackChainLink
-	local        bool
-	expires      time.Time // should only be relevant if local is set to true
+	whomUsername  string
+	whomUID       keybase1.UID
+	untrack       *UntrackChainLink
+	local         bool
+	tmpExpireTime time.Time // should only be relevant if local is set to true
 }
 
 func (l TrackChainLink) IsRemote() bool {
@@ -421,9 +421,9 @@ func (l *TrackChainLink) ToDisplayString() string {
 	return l.whomUsername
 }
 
-func (l *TrackChainLink) GetLocalExpireTime() (ret time.Time) {
+func (l *TrackChainLink) GetTmpExpireTime() (ret time.Time) {
 	if l.local {
-		ret = l.expires
+		ret = l.tmpExpireTime
 	}
 	return ret
 }
