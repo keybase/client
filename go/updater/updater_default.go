@@ -15,6 +15,6 @@ func openApplication(applicationPath string) error {
 	return fmt.Errorf("Open application not supported on this platform")
 }
 
-func (u *Updater) applyUpdate(localPath string) (string, error) {
-	return "", nil
+func (u *Updater) applyUpdate(localPath string) error {
+	return nil
 }

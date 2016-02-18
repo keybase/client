@@ -357,20 +357,10 @@ func (u *Updater) checkUpdate(sourcePath string, destinationPath string) error {
 	return u.checkPlatformSpecificUpdate(sourcePath, destinationPath)
 }
 
-func (u *Updater) apply(src string, dest string) (tmpPath string, err error) {
+func (u *Updater) apply(src string, dest string) (err error) {
 	if _, sterr := os.Stat(dest); sterr == nil {
-		tmpFileName, terr := libkb.TempFileName(fmt.Sprintf("%s.", filepath.Base(dest)))
-		if terr != nil {
-			err = terr
-			return
-		}
-		tmpPath = filepath.Join(backupDir(), tmpFileName)
-		err = libkb.MakeParentDirs(tmpPath)
-		if err != nil {
-			return
-		}
-		u.log.Info("Moving (existing) %s to %s", dest, tmpPath)
-		err = os.Rename(dest, tmpPath)
+		u.log.Info("Removing %s", dest)
+		err = os.RemoveAll(dest)
 		if err != nil {
 			return
 		}
@@ -437,7 +427,7 @@ func (u *Updater) update(ui UI, force bool, requested bool) (update *keybase1.Up
 		return
 	}
 
-	tmpFileName, err := u.applyUpdate(update.Asset.LocalPath)
+	err = u.applyUpdate(update.Asset.LocalPath)
 	if err != nil {
 		return
 	}
@@ -446,11 +436,6 @@ func (u *Updater) update(ui UI, force bool, requested bool) (update *keybase1.Up
 
 	if update.Asset != nil {
 		u.cleanup([]string{unzipDestination(update.Asset.LocalPath), update.Asset.LocalPath})
-		return
-	}
-
-	if tmpFileName != "" {
-		u.cleanup([]string{tmpFileName})
 	}
 
 	return
@@ -514,7 +499,7 @@ func (u *Updater) promptForUpdateAction(ui UI, update keybase1.Update) (err erro
 	return
 }
 
-func (u *Updater) applyZip(localPath string, destinationPath string) (tmpPath string, err error) {
+func (u *Updater) applyZip(localPath string, destinationPath string) (err error) {
 	unzipPath, err := u.unpack(localPath)
 	if err != nil {
 		return
@@ -528,11 +513,7 @@ func (u *Updater) applyZip(localPath string, destinationPath string) (tmpPath st
 		return
 	}
 
-	tmpPath, err = u.apply(sourcePath, destinationPath)
-	if err != nil {
-		return
-	}
-
+	err = u.apply(sourcePath, destinationPath)
 	return
 }
 
@@ -601,10 +582,6 @@ func pathForUpdaterFilename(filename string) string {
 	return filepath.Join(os.TempDir(), "KeybaseUpdates", filename)
 }
 
-func backupDir() string {
-	return filepath.Join(os.TempDir(), "KeybaseBackup")
-}
-
 func unzipDestination(filename string) string {
 	return fmt.Sprintf("%s.unzipped", filename)
 }
@@ -646,4 +623,10 @@ func (u *Updater) waitForUI(ui UI, wait time.Duration) (updateUI libkb.UpdateUI,
 		i++
 	}
 	return nil, fmt.Errorf("No UI available for updater")
+}
+
+// CleanupFix remove updater backup dir, fixes https://keybase.atlassian.net/browse/DESKTOP-526
+// TODO(gabriel): Remove anytime after March 2016
+func CleanupFix() {
+	os.RemoveAll(filepath.Join(os.TempDir(), "KeybaseBackup"))
 }
