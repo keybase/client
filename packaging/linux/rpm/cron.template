@@ -1,81 +1,18 @@
-# Add icons to the system icons
-XDG_ICON_RESOURCE="`which xdg-icon-resource 2> /dev/null || true`"
-if [ ! -x "$XDG_ICON_RESOURCE" ]; then
-  echo "Error: Could not find xdg-icon-resource" >&2
-  exit 1
-fi
-for icon in "/opt/google/chrome/product_logo_"*.png; do
-  size="${icon##*/product_logo_}"
-  "$XDG_ICON_RESOURCE" install --size "${size%.png}" "$icon" "google-chrome"
-done
-
-UPDATE_MENUS="`which update-menus 2> /dev/null || true`"
-if [ -x "$UPDATE_MENUS" ]; then
-  update-menus
-fi
-
-# Update cache of .desktop file MIME types. Non-fatal since it's just a cache.
-update-desktop-database > /dev/null 2>&1 || true
-
-# Updates defaults.list file if present.
-update_defaults_list() {
-  # $1: name of the .desktop file
-
-  local DEFAULTS_FILE="/usr/share/applications/defaults.list"
-
-  if [ ! -f "${DEFAULTS_FILE}" ]; then
-    return
-  fi
-
-  # Split key-value pair out of MimeType= line from the .desktop file,
-  # then split semicolon-separated list of mime types (they should not contain
-  # spaces).
-  mime_types="$(grep MimeType= /usr/share/applications/${1} |
-                cut -d '=' -f 2- |
-                tr ';' ' ')"
-  for mime_type in ${mime_types}; do
-    if egrep -q "^${mime_type}=" "${DEFAULTS_FILE}"; then
-      if ! egrep -q "^${mime_type}=.*${1}" "${DEFAULTS_FILE}"; then
-        default_apps="$(grep ${mime_type}= "${DEFAULTS_FILE}" |
-                        cut -d '=' -f 2-)"
-        egrep -v "^${mime_type}=" "${DEFAULTS_FILE}" > "${DEFAULTS_FILE}.new"
-        echo "${mime_type}=${default_apps};${1}" >> "${DEFAULTS_FILE}.new"
-        mv "${DEFAULTS_FILE}.new" "${DEFAULTS_FILE}"
-      fi
-    else
-      # If there's no mention of the mime type in the file, add it.
-      echo "${mime_type}=${1};" >> "${DEFAULTS_FILE}"
-    fi
-  done
-}
-
-update_defaults_list "google-chrome.desktop"
-
-# This function uses sed to insert the contents of one file into another file,
-# after the first line matching a given regular expression. If there is no
-# matching line, then the file is unchanged.
-insert_after_first_match() {
-  # $1: file to update
-  # $2: regular expression
-  # $3: file to insert
-  sed -i -e "1,/$2/ {
-    /$2/ r $3
-    }" "$1"
-}
-
-# If /usr/share/gnome-control-center/default-apps/gnome-default-applications.xml
-# exists, it may need to be updated to add ourselves to the default applications
-# list. If we find the file and it does not seem to contain our patch already
-# (the patch is safe to leave even after uninstall), update it.
-GNOME_DFL_APPS=/usr/share/gnome-control-center/default-apps/gnome-default-applications.xml
-if [ -f "$GNOME_DFL_APPS" ]; then
-# Conditionally insert the contents of the file "default-app-block" after the
-# first "<web-browsers>" line we find in gnome-default-applications.xml
-  fgrep -q "Google Chrome" "$GNOME_DFL_APPS" || insert_after_first_match \
-    "$GNOME_DFL_APPS" \
-    "^[ 	]*<web-browsers>[ 	]*$" \
-    "/opt/google/chrome/default-app-block"
-fi
+#!/bin/sh
+#
+# Copyright (c) 2009 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+#
+# This script is part of the google-chrome package.
+#
+# It creates the repository configuration file for package updates, since
+# we cannot do this during the google-chrome installation since the repository
+# is locked.
+#
+# This functionality can be controlled by creating the $DEFAULTS_FILE and
+# setting "repo_add_once" to "true" or "false" as desired. An empty
+# $DEFAULTS_FILE is the same as setting the value to "false".
 
 # System-wide package configuration.
 DEFAULTS_FILE="/etc/default/google-chrome"
@@ -402,93 +339,50 @@ get_lib_dir() {
   fi
 }
 
-NSS_FILES="libnspr4.so.0d libplds4.so.0d libplc4.so.0d libssl3.so.1d \
-    libnss3.so.1d libsmime3.so.1d libnssutil3.so.1d"
-
-add_nss_symlinks() {
-  get_lib_dir
-  for f in $NSS_FILES
-  do
-    target=$(echo $f | sed 's/\.[01]d$//')
-    if [ -f "/$LIBDIR/$target" ]; then
-      ln -snf "/$LIBDIR/$target" "/opt/google/chrome/$f"
-    elif [ -f "/usr/$LIBDIR/$target" ]; then
-      ln -snf "/usr/$LIBDIR/$target" "/opt/google/chrome/$f"
-    else
-      echo $f not found in "/$LIBDIR/$target" or "/usr/$LIBDIR/$target".
-      exit 1
-    fi
-  done
-}
-
-remove_nss_symlinks() {
-  for f in $NSS_FILES
-  do
-    rm -rf "/opt/google/chrome/$f"
-  done
-}
-
-remove_udev_symlinks() {
-  rm -rf "/opt/google/chrome/libudev.so.0"
-}
-
-remove_nss_symlinks
-add_nss_symlinks
-
-remove_udev_symlinks
-
+## MAIN ##
 DEFAULTS_FILE="/etc/default/google-chrome"
-if [ ! -e "$DEFAULTS_FILE" ]; then
-  echo 'repo_add_once="true"' > "$DEFAULTS_FILE"
+if [ -r "$DEFAULTS_FILE" ]; then
+  . "$DEFAULTS_FILE"
 fi
-
-. "$DEFAULTS_FILE"
 
 if [ "$repo_add_once" = "true" ]; then
   determine_rpm_package_manager
 
+  # The initial install happens in the post-install scripts, but there have been
+  # reports of configuration problems, so just verify that everything looks
+  # good, and if not, try to install again.
+  verify_install $PACKAGEMANAGER
+  if [ $? -ne 0 ]; then
+    install_${PACKAGEMANAGER}
+  fi
+
+  # Now do any extra configuration that couldn't be done by post-install.
   case $PACKAGEMANAGER in
-  "yum")
-    install_yum
-    ;;
   "urpmi")
-    install_urpmi
+    # We need to configure urpmi after the install has finished.
+    # See configure_urpmi() for details.
+    configure_urpmi
     ;;
   "yast")
-    install_yast
+    # It looks as though yast/zypper has a lock on the RPM DB during
+    # postinstall, so we cannot add the signing key with install_rpm_key().
+    # Instead, we attempt to do this here. If the user attempt to update before
+    # the cron job imports the key, Yast will grab the key from our server and
+    # prompt the user to accept the key.
+    install_rpm_key
     ;;
   esac
+
+  if [ $? -eq 0 ]; then
+    # Before we quit auto-configuration, check that everything looks sane, since
+    # part of this happened during package install and we don't have the return
+    # value of that process.
+    verify_install $PACKAGEMANAGER
+    if [ $? -eq 0 ]; then
+      sed -i -e 's/[[:space:]]*repo_add_once=.*/repo_add_once="false"/' \
+        "$DEFAULTS_FILE"
+    fi
+  fi
+else
+  update_bad_repo
 fi
-
-# Some package managers have locks that prevent everything from being
-# configured at install time, so wait a bit then kick the cron job to do
-# whatever is left. Probably the db will be unlocked by then, but if not, the
-# cron job will keep retrying.
-# Do this with 'at' instead of a backgrounded shell because zypper waits on all
-# sub-shells to finish before it finishes, which is exactly the opposite of
-# what we want here. Also preemptively start atd because for some reason it's
-# not always running, which kind of defeats the purpose of having 'at' as a
-# required LSB command.
-service atd start
-echo "sh /etc/cron.daily/google-chrome" | at now + 2 minute > /dev/null 2>&1
-
-CHANNEL=stable
-case $CHANNEL in
-  stable )
-    PRIORITY=200
-    ;;
-  beta )
-    PRIORITY=150
-    ;;
-  unstable )
-    PRIORITY=120
-    ;;
-  * )
-    PRIORITY=0
-    ;;
-esac
-
-/usr/sbin/update-alternatives --install /usr/bin/google-chrome google-chrome \
-  /usr/bin/google-chrome-stable $PRIORITY
-
-exit 0
