@@ -113,7 +113,7 @@ export function ipcLogsRenderer () {
   if (!forwardLogs) { // eslint-disable-line no-undef
     return
   }
-  window.console.log = (...args) => { try { ipcRenderer.send('console.log', args) } catch (_) {} }
-  window.console.warn = (...args) => { try { ipcRenderer.send('console.warn', args) } catch (_) {} }
-  window.console.error = (...args) => { try { ipcRenderer.send('console.error', args) } catch (_) {} }
+  window.console.log = (...args) => { try { originalConsole.log.apply(console, args); ipcRenderer.send('console.log', args) } catch (_) {debugger;} }
+  window.console.warn = (...args) => { try { originalConsole.warn.apply(console, args); ipcRenderer.send('console.warn', args) } catch (_) {} }
+  window.console.error = (...args) => { try { originalConsole.error.apply(console, args); ipcRenderer.send('console.error', args) } catch (_) {} }
 }
