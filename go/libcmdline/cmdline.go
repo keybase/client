@@ -193,6 +193,14 @@ func (p CommandLine) GetLinkCacheSize() (int, bool) {
 	return 0, false
 }
 
+func (p CommandLine) GetLocalTrackMaxAge() (time.Duration, bool) {
+	ret, err := p.GetGDuration("local-track-maxage")
+	if err != nil {
+		return 0, false
+	}
+	return ret, true
+}
+
 func (p CommandLine) GetStandalone() (bool, bool) {
 	return p.GetBool("standalone", true)
 }

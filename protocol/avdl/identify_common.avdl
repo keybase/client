@@ -17,7 +17,8 @@ protocol identifyCommon {
     REMOTE_FAIL_6,
     REMOTE_WORKING_7,
     REMOTE_CHANGED_8,
-    NEW_ELDEST_9
+    NEW_ELDEST_9,
+    NONE_VIA_TEMPORARY_10
   }
 
   record TrackDiff {
@@ -56,6 +57,7 @@ protocol identifyCommon {
     boolean localOnly;
     boolean bypassConfirm;
     boolean forceRetrack;  // only used in testing
+    boolean expiringLocal;
   }
 
   enum IdentifyReasonType {

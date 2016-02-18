@@ -212,7 +212,7 @@ func (ui *FakeIdentifyUI) Confirm(outcome *keybase1.IdentifyOutcome) (result key
 	defer ui.Unlock()
 	ui.Outcome = outcome
 	result.IdentityConfirmed = outcome.TrackOptions.BypassConfirm
-	result.RemoteConfirmed = outcome.TrackOptions.BypassConfirm
+	result.RemoteConfirmed = outcome.TrackOptions.BypassConfirm && !outcome.TrackOptions.ExpiringLocal
 	return
 }
 func (ui *FakeIdentifyUI) DisplayCryptocurrency(keybase1.Cryptocurrency) {

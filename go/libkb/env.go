@@ -66,6 +66,7 @@ func (n NullConfiguration) GetUpdatePreferenceSnoozeUntil() keybase1.Time { retu
 func (n NullConfiguration) GetUpdateLastChecked() keybase1.Time           { return keybase1.Time(0) }
 func (n NullConfiguration) GetUpdatePreferenceSkip() string               { return "" }
 func (n NullConfiguration) GetVDebugSetting() string                      { return "" }
+func (n NullConfiguration) GetLocalTrackMaxAge() (time.Duration, bool)    { return 0, false }
 
 func (n NullConfiguration) GetUserConfig() (*UserConfig, error) { return nil, nil }
 func (n NullConfiguration) GetUserConfigForUsername(s NormalizedUsername) (*UserConfig, error) {
@@ -541,6 +542,13 @@ func (e *Env) GetScraperTimeout() time.Duration {
 	)
 }
 
+func (e *Env) GetLocalTrackMaxAge() time.Duration {
+	return e.GetDuration(LocalTrackMaxAge,
+		func() (time.Duration, bool) { return e.cmd.GetLocalTrackMaxAge() },
+		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_LOCAL_TRACK_MAX_AGE") },
+		func() (time.Duration, bool) { return e.config.GetLocalTrackMaxAge() },
+	)
+}
 func (e *Env) GetProofCacheSize() int {
 	return e.GetInt(ProofCacheSize,
 		e.cmd.GetProofCacheSize,

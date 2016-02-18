@@ -236,7 +236,7 @@
   }, {
     "type" : "enum",
     "name" : "TrackDiffType",
-    "symbols" : [ "NONE_0", "ERROR_1", "CLASH_2", "REVOKED_3", "UPGRADED_4", "NEW_5", "REMOTE_FAIL_6", "REMOTE_WORKING_7", "REMOTE_CHANGED_8", "NEW_ELDEST_9" ]
+    "symbols" : [ "NONE_0", "ERROR_1", "CLASH_2", "REVOKED_3", "UPGRADED_4", "NEW_5", "REMOTE_FAIL_6", "REMOTE_WORKING_7", "REMOTE_CHANGED_8", "NEW_ELDEST_9", "NONE_VIA_TEMPORARY_10" ]
   }, {
     "type" : "record",
     "name" : "TrackDiff",
@@ -276,6 +276,9 @@
       "type" : "boolean"
     }, {
       "name" : "forceRetrack",
+      "type" : "boolean"
+    }, {
+      "name" : "expiringLocal",
       "type" : "boolean"
     } ]
   }, {
@@ -448,7 +451,7 @@
       "type" : [ "null", "Status" ]
     }, {
       "name" : "whenLastTracked",
-      "type" : "int"
+      "type" : "Time"
     }, {
       "name" : "proofs",
       "type" : {
@@ -517,6 +520,9 @@
       "name" : "torWarning",
       "type" : "boolean"
     }, {
+      "name" : "tmpTrackExpireTime",
+      "type" : "Time"
+    }, {
       "name" : "cached",
       "type" : [ "null", "CheckResult" ]
     }, {
@@ -571,6 +577,9 @@
       "type" : "boolean"
     }, {
       "name" : "remoteConfirmed",
+      "type" : "boolean"
+    }, {
+      "name" : "expiringLocal",
       "type" : "boolean"
     } ]
   } ],

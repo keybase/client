@@ -173,7 +173,8 @@ func (e *UntrackEngine) loadThem() (them *libkb.User, remoteLink, localLink *lib
 }
 
 func (e *UntrackEngine) storeLocalUntrack(them *libkb.User) error {
-	return libkb.RemoveLocalTrack(e.arg.Me.GetUID(), them.GetUID(), e.G())
+	// Also do a removal in case of expiring local tracks
+	return libkb.RemoveLocalTracks(e.arg.Me.GetUID(), them.GetUID(), e.G())
 }
 
 func (e *UntrackEngine) storeRemoteUntrack(them *libkb.User, ctx *Context) (err error) {

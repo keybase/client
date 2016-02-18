@@ -111,6 +111,41 @@ func (ui IdentifyTrackUI) ReportRevoked(del []keybase1.TrackDiff) {
 	}
 }
 
+func (ui IdentifyTrackUI) confirmFailedTrackProofs(o *keybase1.IdentifyOutcome) (result keybase1.ConfirmResult, err error) {
+	trackMaxAge := fmt.Sprintf("%v", ui.G().Env.GetLocalTrackMaxAge())
+	prompt := "Some previously tracked proofs are failing. [I]gnore for " + trackMaxAge + ", [A]ccept these changes or [C]ancel?"
+
+	inputChecker := libkb.CheckMember{Set: []string{"I", "A", "C"}}
+	choice, err := PromptWithChecker(PromptDescriptorTrackPublic, ui.parent, prompt, false, inputChecker.Checker())
+	if libkb.Cicmp(choice, "C") {
+		err = ErrInputCanceled
+	}
+	if err != nil {
+		return
+	}
+
+	result.IdentityConfirmed = true
+
+	if libkb.Cicmp(choice, "I") {
+		result.ExpiringLocal = true
+		return
+	}
+
+	// This means they accepted
+	if !o.TrackOptions.LocalOnly {
+		// If we want to track remote, lets confirm (unless bypassing)
+		if o.TrackOptions.BypassConfirm {
+			result.RemoteConfirmed = true
+			return
+		}
+		prompt = "Publish these changes publicly to keybase.io?"
+		if result.RemoteConfirmed, err = ui.parent.PromptYesNo(PromptDescriptorTrackAction, prompt, libkb.PromptDefaultYes); err != nil {
+			return
+		}
+	}
+	return
+}
+
 func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.ConfirmResult, err error) {
 	var prompt string
 	username := o.Username
@@ -132,8 +167,7 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.
 	trackChanged := true
 	switch o.TrackStatus {
 	case keybase1.TrackStatus_UPDATE_BROKEN:
-		prompt = "Your tracking statement of " + username + " is broken; fix it?"
-		promptDefault = libkb.PromptDefaultNo
+		return ui.confirmFailedTrackProofs(o)
 	case keybase1.TrackStatus_UPDATE_NEW_PROOFS:
 		prompt = "Your tracking statement of " + username +
 			" is still valid; update it to reflect new proofs?"
@@ -219,6 +253,10 @@ func (w LinkCheckResultWrapper) GetDiff() *keybase1.TrackDiff {
 	return w.lcr.Diff
 }
 
+func (w LinkCheckResultWrapper) GetTmpTrackExpireTime() time.Time {
+	return keybase1.FromTime(w.lcr.TmpTrackExpireTime)
+}
+
 func (w LinkCheckResultWrapper) GetTorWarning() bool {
 	return w.lcr.TorWarning
 }
@@ -270,6 +308,8 @@ func (w LinkCheckResultWrapper) GetCachedMsg() string {
 		if snoozed {
 			msg += "; but got a retryable error (" + snze.Error() + ") this time around"
 		}
+	} else if w.GetDiff() != nil && w.GetDiff().Type == keybase1.TrackDiffType_NONE_VIA_TEMPORARY {
+		msg = "failure temporarily ignored until " + libkb.FormatTime(w.GetTmpTrackExpireTime())
 	}
 	if len(msg) > 0 {
 		msg = "[" + msg + "]"
@@ -316,7 +356,7 @@ func trackDiffToColor(typ keybase1.TrackDiffType) string {
 		color = "red"
 	case keybase1.TrackDiffType_UPGRADED:
 		color = "orange"
-	case keybase1.TrackDiffType_NEW:
+	case keybase1.TrackDiffType_NEW, keybase1.TrackDiffType_NONE_VIA_TEMPORARY:
 		color = "blue"
 	case keybase1.TrackDiffType_NONE:
 		color = "green"
@@ -416,7 +456,7 @@ func (ui BaseIdentifyUI) ReportLastTrack(tl *keybase1.TrackSummary) {
 	if t := libkb.ImportTrackSummary(tl); t != nil {
 		locally := ""
 		if !t.IsRemote() {
-			locally = "locally "
+			locally += "locally "
 		}
 		msg := ColorString("bold", fmt.Sprintf("You last %stracked %s on %s",
 			locally, t.Username(), libkb.FormatTime(t.GetCTime())))
