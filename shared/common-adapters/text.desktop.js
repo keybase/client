@@ -53,14 +53,20 @@ export default class Text extends Component {
       'TerminalUsername': {...styles.textTerminal, color: globalColorsDZ2.orange},
       'TerminalPublic': {...styles.textTerminal, color: globalColorsDZ2.yellowGreen2},
       'TerminalPrivate': {...styles.textTerminal, color: globalColorsDZ2.darkBlue2},
-      'TerminalEmpty': {...styles.textTerminal, ...styles.textTerminalEmpty}
+      'TerminalEmpty': {...styles.textTerminal, ...styles.textTerminalEmpty},
+      'InputHeader': styles.textInputHeader
     }[this.props.type]
 
     const opacity = this.props.darkMode ? 1 : 0.75
 
     const color = this.props.darkMode ? globalColorsDZ2.white : globalColorsDZ2.black
 
-    const inlineStyle = this.props.inline ? this._inlineStyle(this.props.type) : {}
+    let inline = true
+    if (this.props.hasOwnProperty('inline')) {
+      inline = this.props.inline
+    }
+
+    const inlineStyle = inline ? {...this._inlineStyle(this.props.type)} : {display: 'block'}
     const warningStyle = this.props.warning ? {opacity: 0.6, color: globalColorsDZ2.brown, backgroundColor: globalColorsDZ2.yellow} : {}
 
     const style = {
@@ -74,7 +80,6 @@ export default class Text extends Component {
       ...(this.props.small ? styles.textSmallMixin : {}),
       ...(this.props.reversed ? styles.textReversedMixin : {}),
       ...(this.props.onClick ? globalStyles.clickable : {}),
-      ...(this.props.inline ? styles.inline : {}),
       ...this.props.style
     }
 
@@ -127,6 +132,15 @@ const headerStyles = {
     fontSize: 18,
     lineHeight: '25px',
     letterSpacing: '0.3px'
+  },
+
+  textInputHeader: {
+    ...textCommon,
+    ...globalStyles.DZ2.fontSemibold,
+    fontSize: 14,
+    lineHeight: '18px',
+    letterSpacing: '0.3px',
+    color: globalColorsDZ2.blue2
   }
 }
 
@@ -147,9 +161,9 @@ export const styles = {
   },
   textBodySmall: {
     ...textCommon,
+    color: globalColorsDZ2.black40,
     fontSize: 14,
     lineHeight: '19px',
-    opacity: 0.4,
     letterSpacing: '0.3px'
   },
   textError: {
@@ -167,8 +181,7 @@ export const styles = {
     letterSpacing: '0.3px'
   },
   textTerminalComment: {
-    color: globalColorsDZ2.white,
-    opacity: 0.4
+    color: globalColorsDZ2.white40
   },
   textTerminalEmpty: {
     minHeight: 20
@@ -187,9 +200,6 @@ export const styles = {
   },
   textReversedMixin: {
     color: globalColors.white
-  },
-  inline: {
-    display: 'inline-block'
   }
 }
 

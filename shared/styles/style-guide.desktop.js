@@ -46,9 +46,17 @@ export const globalColorsDZ2 = {
   lightGrey2: '#f6f6f6',
 
   white: '#ffffff',
-  black: '#000000',
+  white75: 'rgba(0, 0, 0, 0.75)',
+  white40: 'rgba(0, 0, 0, 0.40)',
 
-  brown: '#471f11'
+  black: '#000000',
+  black75: 'rgba(0, 0, 0, 0.75)',
+  black60: 'rgba(0, 0, 0, 0.60)',
+  black40: 'rgba(0, 0, 0, 0.40)',
+  black20: 'rgba(0, 0, 0, 0.20)',
+  black10: 'rgba(0, 0, 0, 0.10)',
+
+  brown60: 'rgba(71, 31, 17, 0.6)'
 }
 
 export const globalResizing = {
