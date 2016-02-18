@@ -452,12 +452,17 @@ func (ui BaseIdentifyUI) DisplayKey(key keybase1.IdentifyKey) {
 func (ui BaseIdentifyUI) ReportLastTrack(tl *keybase1.TrackSummary) {
 	if t := libkb.ImportTrackSummary(tl); t != nil {
 		locally := ""
+		var et time.Time
 		if !t.IsRemote() {
-			locally = "locally "
+			et = t.GetETime()
+			if !et.IsZero() {
+				locally = "temporarily "
+			}
+			locally += "locally "
 		}
 		msg := ColorString("bold", fmt.Sprintf("You last %stracked %s on %s",
 			locally, t.Username(), libkb.FormatTime(t.GetCTime())))
-		if et := t.GetETime(); !et.IsZero() {
+		if !et.IsZero() {
 			msg += fmt.Sprintf(" (track expires on %s)", libkb.FormatTime(et))
 		}
 		ui.ReportHook(msg)

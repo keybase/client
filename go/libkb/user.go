@@ -474,15 +474,15 @@ func (u *User) Equal(other *User) bool {
 }
 
 func (u *User) TmpTrackChainLinkFor(username string, uid keybase1.UID) (tcl *TrackChainLink, err error) {
-	u.G().Log.Debug("+ GetTmpTrackingStatement for %s", uid)
+	u.G().Log.Debug("+ TmpTrackChainLinkFor for %s", uid)
 	tcl, err = LocalTmpTrackChainLinkFor(u.id, uid, u.G())
-	u.G().Log.Debug("- GetTmpTrackingStatement for %s -> %v, %v", uid, (tcl != nil), err)
+	u.G().Log.Debug("- TmpTrackChainLinkFor for %s -> %v, %v", uid, (tcl != nil), err)
 	return tcl, err
 }
 
 func (u *User) TrackChainLinkFor(username string, uid keybase1.UID) (*TrackChainLink, error) {
-	u.G().Log.Debug("+ GetTrackingStatement for %s", uid)
-	defer u.G().Log.Debug("- GetTrackingStatement for %s", uid)
+	u.G().Log.Debug("+ TrackChainLinkFor for %s", uid)
+	defer u.G().Log.Debug("- TrackChainLinkFor for %s", uid)
 
 	remote, e1 := u.remoteTrackChainLinkFor(username, uid)
 	local, e2 := LocalTrackChainLinkFor(u.id, uid, u.G())
@@ -503,6 +503,7 @@ func (u *User) TrackChainLinkFor(username string, uid keybase1.UID) (*TrackChain
 	}
 
 	if remote == nil && local != nil {
+		u.g.Log.Debug("local expire %v: %s", local.expires.IsZero(), local.expires)
 		return local, nil
 	}
 
