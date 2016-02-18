@@ -17,6 +17,7 @@ import {getCurrentStatus} from '../config'
 import type {Dispatch, GetState, AsyncAction, TypedAction} from '../../constants/types/flux'
 import type {incomingCallMapType, login_recoverAccountFromEmailAddress_rpc,
   login_login_rpc, login_logout_rpc, device_deviceAdd_rpc} from '../../constants/types/flow-types'
+import {mobileAppsExist} from '../../util/feature-flags'
 
 let currentLoginSessionID = null
 
@@ -449,7 +450,7 @@ function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle
       }
     },
     'keybase.1.provisionUi.chooseDeviceType': (param, response) => {
-      dispatch(askForOtherDeviceType(type => {
+      const onSubmit = type => {
         const typeMap = {
           [Constants.codePageDeviceRoleExistingPhone]: enums.provisionUi.DeviceType.mobile,
           [Constants.codePageDeviceRoleExistingComputer]: enums.provisionUi.DeviceType.desktop
@@ -457,7 +458,13 @@ function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle
 
         dispatch(setCodePageOtherDeviceRole(type))
         response.result(typeMap[type])
-      }))
+      }
+
+      if (!mobileAppsExist) {
+        onSubmit(Constants.codePageDeviceRoleExistingComputer)
+      } else {
+        dispatch(askForOtherDeviceType(onSubmit))
+      }
     },
     'keybase.1.provisionUi.DisplayAndPromptSecret': ({phrase, secret}, response) => {
       dispatch({type: Constants.setTextCode, payload: phrase})

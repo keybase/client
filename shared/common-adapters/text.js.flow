@@ -19,7 +19,8 @@ export type Props = {
   lineClamp?: number,
   style?: Object,
   dz2?: boolean, // Use DZ2 styling?
-  children?: ReactElement
+  children?: ReactElement,
+  className?: string
 }
 
 declare export default class Text extends React.Component {

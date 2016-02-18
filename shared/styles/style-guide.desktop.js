@@ -152,3 +152,9 @@ export const globalStyles = {
   DZ2: {...fontDZ2},
   ...util
 }
+
+export function transition (...properties: Array<string>) : Object {
+  return {
+    transition: properties.map(p => `${p} 0.3s ease-in`).join(', ')
+  }
+}
