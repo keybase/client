@@ -484,7 +484,33 @@ func (e *LoginProvision) deviceName(ctx *Context) (string, error) {
 	arg := keybase1.PromptNewDeviceNameArg{
 		ExistingDevices: names,
 	}
-	return ctx.ProvisionUI.PromptNewDeviceName(ctx.GetNetContext(), arg)
+
+	for i := 0; i < 10; i++ {
+		devname, err := ctx.ProvisionUI.PromptNewDeviceName(ctx.GetNetContext(), arg)
+		if err != nil {
+			return "", err
+		}
+		if !libkb.CheckDeviceName.F(devname) {
+			arg.ErrorMessage = "Invalid device name. Device names should be " + libkb.CheckDeviceName.Hint
+			continue
+		}
+		duplicate := false
+		for _, name := range names {
+			if devname == name {
+				duplicate = true
+				break
+			}
+		}
+
+		if duplicate {
+			arg.ErrorMessage = fmt.Sprintf("Device name %q already used", devname)
+			continue
+		}
+
+		return devname, nil
+	}
+
+	return "", libkb.RetryExhaustedError{}
 }
 
 // makeDeviceKeys uses DeviceWrap to generate device keys.

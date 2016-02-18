@@ -57,9 +57,10 @@ protocol provisionUi {
   /**
    PromptNewDeviceName is called when the device provisioning process needs a name for the new device.
    To help the clients not send a duplicate name, existingDevices is populated with the current device
-   names for the user.
+   names for the user.  If the device name returned to the service is invalid or already
+   taken, it will call this again with an error message in errorMessage.
    */
-  string PromptNewDeviceName(int sessionID, array<string> existingDevices);
+  string PromptNewDeviceName(int sessionID, array<string> existingDevices, string errorMessage);
 
   /**
    ProvisioneeSuccess is called on provisionee when it is successfully provisioned.

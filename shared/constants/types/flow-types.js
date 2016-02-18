@@ -1291,7 +1291,8 @@ export type incomingCallMapType = {
   'keybase.1.provisionUi.PromptNewDeviceName'?: (
     params: {
       sessionID: int,
-      existingDevices: Array<string>
+      existingDevices: Array<string>,
+      errorMessage: string
     },
     response: {
       error: (err: string) => void,
@@ -7209,7 +7210,8 @@ export type provisionUi_PromptNewDeviceName_result = string
 export type provisionUi_PromptNewDeviceName_rpc = {
   method: 'provisionUi.PromptNewDeviceName',
   param: {
-    existingDevices: Array<string>
+    existingDevices: Array<string>,
+    errorMessage: string
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any, response: provisionUi_PromptNewDeviceName_result) => void)

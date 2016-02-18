@@ -288,7 +288,7 @@
       "response" : "null"
     },
     "PromptNewDeviceName" : {
-      "doc" : "PromptNewDeviceName is called when the device provisioning process needs a name for the new device.\n   To help the clients not send a duplicate name, existingDevices is populated with the current device\n   names for the user.",
+      "doc" : "PromptNewDeviceName is called when the device provisioning process needs a name for the new device.\n   To help the clients not send a duplicate name, existingDevices is populated with the current device\n   names for the user.  If the device name returned to the service is invalid or already\n   taken, it will call this again with an error message in errorMessage.",
       "request" : [ {
         "name" : "sessionID",
         "type" : "int"
@@ -298,6 +298,9 @@
           "type" : "array",
           "items" : "string"
         }
+      }, {
+        "name" : "errorMessage",
+        "type" : "string"
       } ],
       "response" : "string"
     },

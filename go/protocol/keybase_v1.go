@@ -4745,6 +4745,7 @@ type DisplaySecretExchangedArg struct {
 type PromptNewDeviceNameArg struct {
 	SessionID       int      `codec:"sessionID" json:"sessionID"`
 	ExistingDevices []string `codec:"existingDevices" json:"existingDevices"`
+	ErrorMessage    string   `codec:"errorMessage" json:"errorMessage"`
 }
 
 type ProvisioneeSuccessArg struct {
