@@ -253,6 +253,10 @@ func (w LinkCheckResultWrapper) GetDiff() *keybase1.TrackDiff {
 	return w.lcr.Diff
 }
 
+func (w LinkCheckResultWrapper) GetTmpTrackExpireTime() time.Time {
+	return keybase1.FromTime(w.lcr.TmpTrackExpireTime)
+}
+
 func (w LinkCheckResultWrapper) GetTorWarning() bool {
 	return w.lcr.TorWarning
 }
@@ -304,6 +308,8 @@ func (w LinkCheckResultWrapper) GetCachedMsg() string {
 		if snoozed {
 			msg += "; but got a retryable error (" + snze.Error() + ") this time around"
 		}
+	} else if w.GetDiff().Type == keybase1.TrackDiffType_NONE_VIA_TEMPORARY {
+		msg = "failure temporarily ignored until " + libkb.FormatTime(w.GetTmpTrackExpireTime())
 	}
 	if len(msg) > 0 {
 		msg = "[" + msg + "]"
@@ -449,19 +455,11 @@ func (ui BaseIdentifyUI) DisplayKey(key keybase1.IdentifyKey) {
 func (ui BaseIdentifyUI) ReportLastTrack(tl *keybase1.TrackSummary) {
 	if t := libkb.ImportTrackSummary(tl); t != nil {
 		locally := ""
-		var et time.Time
 		if !t.IsRemote() {
-			et = t.GetETime()
-			if !et.IsZero() {
-				locally = "temporarily "
-			}
 			locally += "locally "
 		}
 		msg := ColorString("bold", fmt.Sprintf("You last %stracked %s on %s",
 			locally, t.Username(), libkb.FormatTime(t.GetCTime())))
-		if !et.IsZero() {
-			msg += fmt.Sprintf(" (track expires on %s)", libkb.FormatTime(et))
-		}
 		ui.ReportHook(msg)
 	}
 }

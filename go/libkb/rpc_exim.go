@@ -51,6 +51,7 @@ func (l LinkCheckResult) Export() keybase1.LinkCheckResult {
 	if l.hint != nil {
 		ret.Hint = l.hint.Export()
 	}
+	ret.TmpTrackExpireTime = keybase1.ToTime(l.tmpTrackExpireTime)
 	return ret
 }
 
@@ -354,7 +355,6 @@ func ImportPGPFingerprintSlice(fp []byte) (ret *PGPFingerprint) {
 
 func (s TrackSummary) Export(username string) (ret keybase1.TrackSummary) {
 	ret.Time = keybase1.ToTime(s.time)
-	ret.Expires = keybase1.ToTime(s.expires)
 	ret.IsRemote = s.isRemote
 	ret.Username = username
 	return
@@ -369,7 +369,6 @@ func ImportTrackSummary(s *keybase1.TrackSummary) *TrackSummary {
 		time:     keybase1.FromTime(s.Time),
 		isRemote: s.IsRemote,
 		username: s.Username,
-		expires:  keybase1.FromTime(s.Expires),
 	}
 	return ret
 }

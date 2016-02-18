@@ -88,6 +88,7 @@ func (s *IdentifyState) computeTrackDiffs() {
 		c.trackedProofState = s.track.GetProofState(c.link.ToIDString())
 		if s.trackTmp != nil {
 			c.tmpTrackedProofState = s.trackTmp.GetProofState(c.link.ToIDString())
+			c.tmpTrackExpireTime = s.trackTmp.GetLocalExpireTime()
 		}
 	}
 }

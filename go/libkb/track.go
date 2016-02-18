@@ -90,7 +90,6 @@ type TrackInstructions struct {
 
 type TrackSummary struct {
 	time     time.Time
-	expires  time.Time
 	isRemote bool
 	username string
 }
@@ -98,12 +97,6 @@ type TrackSummary struct {
 func (s TrackSummary) IsRemote() bool      { return s.isRemote }
 func (s TrackSummary) GetCTime() time.Time { return s.time }
 func (s TrackSummary) Username() string    { return s.username }
-func (s TrackSummary) GetETime() (ret time.Time) {
-	if !s.IsRemote() {
-		ret = s.expires
-	}
-	return ret
-}
 
 //=====================================================================
 
@@ -118,7 +111,6 @@ func (l TrackLookup) ToSummary() TrackSummary {
 	ret := TrackSummary{
 		time:     l.GetCTime(),
 		isRemote: l.IsRemote(),
-		expires:  l.GetLocalExpireTime(),
 	}
 	return ret
 }
@@ -209,7 +201,7 @@ type TrackDiffNoneViaTemporary struct{}
 
 func (t TrackDiffNoneViaTemporary) BreaksTracking() bool     { return false }
 func (t TrackDiffNoneViaTemporary) IsSameAsTracked() bool    { return true }
-func (t TrackDiffNoneViaTemporary) ToDisplayString() string  { return "tracked (tmp)" }
+func (t TrackDiffNoneViaTemporary) ToDisplayString() string  { return "snoozed" }
 func (t TrackDiffNoneViaTemporary) ToDisplayMarkup() *Markup { return NewMarkup(t.ToDisplayString()) }
 func (t TrackDiffNoneViaTemporary) GetTrackDiffType() keybase1.TrackDiffType {
 	return keybase1.TrackDiffType_NONE_VIA_TEMPORARY

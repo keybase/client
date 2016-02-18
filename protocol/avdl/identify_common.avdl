@@ -29,7 +29,6 @@ protocol identifyCommon {
   record TrackSummary {
     string username;
     Time time;
-    Time expires;
     boolean isRemote;
   }
 

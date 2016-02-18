@@ -1710,7 +1710,6 @@ type TrackDiff struct {
 type TrackSummary struct {
 	Username string `codec:"username" json:"username"`
 	Time     Time   `codec:"time" json:"time"`
-	Expires  Time   `codec:"expires" json:"expires"`
 	IsRemote bool   `codec:"isRemote" json:"isRemote"`
 }
 
@@ -1976,14 +1975,15 @@ type CheckResult struct {
 }
 
 type LinkCheckResult struct {
-	ProofId       int          `codec:"proofId" json:"proofId"`
-	ProofResult   ProofResult  `codec:"proofResult" json:"proofResult"`
-	SnoozedResult ProofResult  `codec:"snoozedResult" json:"snoozedResult"`
-	TorWarning    bool         `codec:"torWarning" json:"torWarning"`
-	Cached        *CheckResult `codec:"cached,omitempty" json:"cached,omitempty"`
-	Diff          *TrackDiff   `codec:"diff,omitempty" json:"diff,omitempty"`
-	RemoteDiff    *TrackDiff   `codec:"remoteDiff,omitempty" json:"remoteDiff,omitempty"`
-	Hint          *SigHint     `codec:"hint,omitempty" json:"hint,omitempty"`
+	ProofId            int          `codec:"proofId" json:"proofId"`
+	ProofResult        ProofResult  `codec:"proofResult" json:"proofResult"`
+	SnoozedResult      ProofResult  `codec:"snoozedResult" json:"snoozedResult"`
+	TorWarning         bool         `codec:"torWarning" json:"torWarning"`
+	TmpTrackExpireTime Time         `codec:"tmpTrackExpireTime" json:"tmpTrackExpireTime"`
+	Cached             *CheckResult `codec:"cached,omitempty" json:"cached,omitempty"`
+	Diff               *TrackDiff   `codec:"diff,omitempty" json:"diff,omitempty"`
+	RemoteDiff         *TrackDiff   `codec:"remoteDiff,omitempty" json:"remoteDiff,omitempty"`
+	Hint               *SigHint     `codec:"hint,omitempty" json:"hint,omitempty"`
 }
 
 type UserCard struct {

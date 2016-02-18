@@ -1217,6 +1217,7 @@ type LinkCheckResult struct {
 	link                 RemoteProofChainLink
 	trackedProofState    keybase1.ProofState
 	tmpTrackedProofState keybase1.ProofState
+	tmpTrackExpireTime   time.Time
 	position             int
 	torWarning           bool
 }

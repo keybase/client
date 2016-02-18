@@ -3599,14 +3599,12 @@ export type TrackDiff = {
 export type identify_TrackSummary = {
   username: string;
   time: Time;
-  expires: Time;
   isRemote: boolean;
 }
 
 export type TrackSummary = {
   username: string;
   time: Time;
-  expires: Time;
   isRemote: boolean;
 }
 
@@ -3887,7 +3885,6 @@ export type identifyUi_TrackDiff = {
 export type identifyUi_TrackSummary = {
   username: string;
   time: Time;
-  expires: Time;
   isRemote: boolean;
 }
 
@@ -4040,6 +4037,7 @@ export type identifyUi_LinkCheckResult = {
   proofResult: ProofResult;
   snoozedResult: ProofResult;
   torWarning: boolean;
+  tmpTrackExpireTime: Time;
   cached?: ?CheckResult;
   diff?: ?TrackDiff;
   remoteDiff?: ?TrackDiff;
@@ -4051,6 +4049,7 @@ export type LinkCheckResult = {
   proofResult: ProofResult;
   snoozedResult: ProofResult;
   torWarning: boolean;
+  tmpTrackExpireTime: Time;
   cached?: ?CheckResult;
   diff?: ?TrackDiff;
   remoteDiff?: ?TrackDiff;
@@ -6114,7 +6113,6 @@ export type pgp_TrackDiff = {
 export type pgp_TrackSummary = {
   username: string;
   time: Time;
-  expires: Time;
   isRemote: boolean;
 }
 
@@ -6661,7 +6659,6 @@ export type prove_TrackDiff = {
 export type prove_TrackSummary = {
   username: string;
   time: Time;
-  expires: Time;
   isRemote: boolean;
 }
 
@@ -7498,7 +7495,6 @@ export type saltpack_TrackDiff = {
 export type saltpack_TrackSummary = {
   username: string;
   time: Time;
-  expires: Time;
   isRemote: boolean;
 }
 
@@ -8710,7 +8706,6 @@ export type track_TrackDiff = {
 export type track_TrackSummary = {
   username: string;
   time: Time;
-  expires: Time;
   isRemote: boolean;
 }
 

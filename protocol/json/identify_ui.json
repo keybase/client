@@ -257,9 +257,6 @@
       "name" : "time",
       "type" : "Time"
     }, {
-      "name" : "expires",
-      "type" : "Time"
-    }, {
       "name" : "isRemote",
       "type" : "boolean"
     } ]
@@ -522,6 +519,9 @@
     }, {
       "name" : "torWarning",
       "type" : "boolean"
+    }, {
+      "name" : "tmpTrackExpireTime",
+      "type" : "Time"
     }, {
       "name" : "cached",
       "type" : [ "null", "CheckResult" ]

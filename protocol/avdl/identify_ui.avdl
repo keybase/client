@@ -60,6 +60,7 @@ protocol identifyUi {
     ProofResult proofResult;
     ProofResult snoozedResult;
     boolean torWarning;
+    Time tmpTrackExpireTime;
     union { null, CheckResult } cached;
     union { null, TrackDiff } diff;
     union { null, TrackDiff } remoteDiff;
