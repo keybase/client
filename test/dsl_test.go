@@ -185,6 +185,13 @@ func (o *opt) expectSuccess(reason string, err error) {
 	}
 }
 
+func addTime(d time.Duration) fileOp {
+	return fileOp{func(c *ctx) error {
+		c.clock.T = c.clock.T.Add(d)
+		return nil
+	}, Defaults}
+}
+
 type ctx struct {
 	*opt
 	user       User
@@ -430,13 +437,26 @@ func (c *ctx) getNode(filepath string, create bool, isFile bool) (Node, error) {
 	return node, nil
 }
 
+// crnameAtTime returns the name of a conflict file, at a given
+// duration past the default time.
+func crnameAtTime(path string, user username, d time.Duration) string {
+	cre := libkbfs.WriterDeviceDateConflictRenamer{}
+	return cre.ConflictRenameHelper(time.Time{}.Add(d), string(user),
+		"dev1", path)
+}
+
+// crnameAtTimeEsc returns the name of a conflict file with regular
+// expression escapes, at a given duration past the default time.
+func crnameAtTimeEsc(path string, user username, d time.Duration) string {
+	return regexp.QuoteMeta(crnameAtTime(path, user, d))
+}
+
 // crname returns the name of a conflict file.
 func crname(path string, user username) string {
-	cre := libkbfs.WriterDeviceDateConflictRenamer{}
-	return cre.ConflictRenameHelper(time.Time{}, string(user), "dev1", path)
+	return crnameAtTime(path, user, 0)
 }
 
 // crnameEsc returns the name of a conflict file with regular expression escapes.
 func crnameEsc(path string, user username) string {
-	return regexp.QuoteMeta(crname(path, user))
+	return crnameAtTimeEsc(path, user, 0)
 }

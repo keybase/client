@@ -6,7 +6,10 @@
 
 package test
 
-import "testing"
+import (
+	"testing"
+	"time"
+)
 
 // bob and alice both write(to the same file),
 func TestCrConflictWriteFile(t *testing.T) {
@@ -32,6 +35,38 @@ func TestCrConflictWriteFile(t *testing.T) {
 			lsdir("a/", m{"b$": "FILE", crnameEsc("b", bob): "FILE"}),
 			read("a/b", "world"),
 			read(crname("a/b", bob), "uh oh"),
+		),
+	)
+}
+
+// bob and alice both write(to the same file), but on a non-default day.
+func TestCrConflictWriteFileWithAddTime(t *testing.T) {
+	timeInc := 25 * time.Hour
+	test(t,
+		writers("alice", "bob"),
+		as(alice,
+			mkfile("a/b", "hello"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			addTime(timeInc),
+			write("a/b", "world"),
+		),
+		as(bob, noSync(),
+			write("a/b", "uh oh"),
+			reenableUpdates(),
+			lsdir("a/", m{"b$": "FILE",
+				crnameAtTimeEsc("b", bob, timeInc): "FILE"}),
+			read("a/b", "world"),
+			read(crnameAtTime("a/b", bob, timeInc), "uh oh"),
+		),
+		as(alice,
+			lsdir("a/", m{"b$": "FILE",
+				crnameAtTimeEsc("b", bob, timeInc): "FILE"}),
+			read("a/b", "world"),
+			read(crnameAtTime("a/b", bob, timeInc), "uh oh"),
 		),
 	)
 }
