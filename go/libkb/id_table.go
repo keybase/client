@@ -1261,6 +1261,13 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack, forceRemoteCheck bo
 		if hasPreviousTrack {
 			observedProofState := ProofErrorToState(res.err)
 			res.remoteDiff = idt.ComputeRemoteDiff(res.trackedProofState, res.tmpTrackedProofState, observedProofState)
+
+			// If the remote diff only worked out because of the temporary track, then
+			// also update the local diff (i.e., the difference between what we tracked
+			// and what Keybase is saying) accordingly.
+			if _, ok := res.remoteDiff.(TrackDiffNoneViaTemporary); ok {
+				res.diff = res.remoteDiff
+			}
 		}
 
 		if doCache {

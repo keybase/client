@@ -250,9 +250,6 @@ type LinkCheckResultWrapper struct {
 }
 
 func (w LinkCheckResultWrapper) GetDiff() *keybase1.TrackDiff {
-	if w.lcr.RemoteDiff != nil && w.lcr.RemoteDiff.Type == keybase1.TrackDiffType_NONE_VIA_TEMPORARY {
-		return w.lcr.RemoteDiff
-	}
 	return w.lcr.Diff
 }
 
