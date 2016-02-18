@@ -3,16 +3,39 @@
 import React, {Component} from 'react'
 import commonStyles from '../styles/common'
 import Tracker from '../tracker/index.js'
-import {normal, revoked} from '../constants/tracker'
 import flags from '../util/feature-flags'
+import {normal, checking, revoked, error} from '../constants/tracker'
+import {metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted} from '../constants/tracker'
+
+const proofGithub = {name: 'githubuser', type: 'github', id: 'githubId', state: normal, humanUrl: 'github.com', profileUrl: 'http://github.com'}
+const proofTwitter = {name: 'twitteruser', type: 'twitter', id: 'twitterId', state: normal, humanUrl: 'twitter.com', profileUrl: 'http://twitter.com'}
+const proofWeb = {name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', type: 'web', id: 'webId', state: normal, humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com'}
+const proofHN = {name: 'pg', type: 'hackernews', id: 'hnId', state: normal, humanUrl: 'news.ycombinator.com', profileUrl: 'http://news.ycombinator.com'}
+const proofRooter = {name: 'roooooooter', type: 'rooter', state: normal, id: 'rooterId', humanUrl: ''}
 
 const proofsDefault = [
-  {name: 'githubuser', type: 'github', id: 'id1', state: normal, humanUrl: 'github.com', color: 'gray'},
-  {name: 'twitteruser', type: 'twitter', id: 'id2', state: normal, humanUrl: 'twitter.com', color: 'gray'},
-  {name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', type: 'web', id: 'id5', state: normal, humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', color: 'gray'},
-  {name: 'pg', type: 'hackernews', id: 'id3', state: normal, humanUrl: 'news.ycombinator.com', color: 'gray'},
-  {name: 'roooooooter', type: 'rooter', id: 'id4', state: normal, humanUrl: '', color: 'gray'},
-  {name: 'revoked', type: 'rooter', id: 'revokedId1', state: revoked, humanUrl: '', color: 'gray'}
+  proofGithub,
+  proofTwitter,
+  proofWeb,
+  proofHN,
+  proofRooter
+]
+
+const proofsNew = [
+  {...proofGithub, meta: metaNew},
+  proofTwitter,
+  proofWeb,
+  proofHN,
+  proofRooter
+]
+
+const proofsChanged = [
+  {name: 'deleted', type: 'rooter', id: 'warningId', state: revoked, meta: metaDeleted, humanUrl: ''},
+  {name: 'unreachable', type: 'rooter', id: 'unreachableId', state: error, meta: metaUnreachable, humanUrl: ''},
+  // TODO: Need to use state for checking; Refactor after nuking v1
+  {name: 'checking', type: 'rooter', id: 'checkingId', state: checking, humanUrl: ''},
+  {name: 'pending', type: 'rooter', id: 'pendingId', state: normal, meta: metaPending, humanUrl: ''},
+  {name: 'upgraded', type: 'rooter', id: 'upgradedId', state: normal, meta: metaUpgraded, humanUrl: ''}
 ]
 
 const propsDefault = {
@@ -28,7 +51,8 @@ const propsDefault = {
     avatar: 'https://s3.amazonaws.com/keybase_processed_uploads/71cd3854986d416f60dacd27d5796705_200_200_square_200.jpeg'
   },
   shouldFollow: true,
-  trackerState: 'normal',
+  currentlyFollowing: false,
+  trackerState: normal,
   proofs: proofsDefault,
 
   // For hover
@@ -51,14 +75,15 @@ const propsNewUserFollowsYou = {
   }
 }
 
-const propsFollowed = {
+const propsFollowing = {
   ...propsNewUser,
   reason: 'You have followed gabrielh.',
   userInfo: {
     ...propsNewUser.userInfo,
     followsYou: true
   },
-  currentlyFollowing: true
+  currentlyFollowing: true,
+  proofs: proofsDefault
 }
 
 const propsNewProofs = {
@@ -68,19 +93,20 @@ const propsNewProofs = {
     ...propsNewUser.userInfo,
     followsYou: true
   },
-  currentlyFollowing: false,
-  trackerState: 'normal'
+  currentlyFollowing: true,
+  proofs: proofsNew
 }
 
-const propsBrokenProofs = {
+const propsChangedProofs = {
   ...propsDefault,
   reason: 'Some of gabrielh\'s proofs have changed since you last tracked them.',
   userInfo: {
     ...propsNewUser.userInfo,
     followsYou: true
   },
-  currentlyFollowing: false,
-  trackerState: 'error'
+  currentlyFollowing: true,
+  trackerState: error,
+  proofs: proofsChanged
 }
 
 const propsUnfollowed = {
@@ -89,8 +115,7 @@ const propsUnfollowed = {
   userInfo: {
     ...propsNewUser.userInfo,
     followsYou: true
-  },
-  currentlyFollowing: false
+  }
 }
 
 const propsLessData = {
@@ -98,17 +123,17 @@ const propsLessData = {
   username: '00',
   reason: 'I\'m a user with not much data.',
   userInfo: {
-    fullname: 'Zero Zero',
+    fullname: 'Hi',
     followersCount: 1,
     followingCount: 0,
     followsYou: false,
     avatar: 'http://placehold.it/140x140/ffffff/000000'
   },
   shouldFollow: true,
-  trackerState: 'normal',
+  currentlyFollowing: false,
+  trackerState: normal,
   proofs: [
-    {name: 'githubuser', type: 'github', id: 'id1', state: normal, humanUrl: 'github.com', color: 'gray'},
-    {name: 'twitteruser', type: 'twitter', id: 'id2', state: normal, humanUrl: 'twitter.com', color: 'gray'}
+    proofGithub
   ]
 }
 
@@ -132,7 +157,7 @@ export default class Render extends Component {
           </div>
           <div>
             <div style={styles.pretendTrackerWindow}>
-              <Tracker {...propsFollowed} />
+              <Tracker {...propsFollowing} />
             </div>
             <p>Followed</p>
           </div>
@@ -144,9 +169,9 @@ export default class Render extends Component {
           </div>
           <div>
             <div style={styles.pretendTrackerWindow}>
-              <Tracker {...propsBrokenProofs} />\
+              <Tracker {...propsChangedProofs} />\
             </div>
-            <p>Broken proofs</p>
+            <p>Changed/Broken proofs</p>
           </div>
           <div>
             <div style={styles.pretendTrackerWindow}>

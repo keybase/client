@@ -323,7 +323,7 @@ function trackDiffToSimpleProofMeta (diff: TrackDiffType): ?SimpleProofMeta {
     [identify.TrackDiffType.none]         : null,
     [identify.TrackDiffType.error]        : null,
     [identify.TrackDiffType.clash]        : null,
-    [identify.TrackDiffType.revoked]      : null,
+    [identify.TrackDiffType.revoked]      : metaDeleted,
     [identify.TrackDiffType.upgraded]     : metaUpgraded,
     [identify.TrackDiffType.new]          : metaNew,
     [identify.TrackDiffType.remotefail]   : null,

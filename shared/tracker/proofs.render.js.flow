@@ -5,15 +5,16 @@ import type {SimpleProofState, SimpleProofMeta} from '../constants/tracker'
 export type Proof = {
   id: string,
   type: string,
-  state: SimpleProofState,
   meta: ?SimpleProofMeta,
   humanUrl: ?string,
   profileUrl: ?string,
   name: string,
-  color: string
+  color: string,
+  state: SimpleProofState
 }
 
 export type ProofsProps = {
   proofs: Array<Proof>,
-  username: ?string
+  username: ?string,
+  currentlyFollowing: boolean
 }

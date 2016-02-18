@@ -28,3 +28,5 @@ declare export default class Text extends React.Component {
 }
 
 declare export var styles: Object
+
+declare function lineClamp (lines: number): Object
