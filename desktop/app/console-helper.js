@@ -3,6 +3,7 @@ import util from 'util'
 import {forwardLogs} from '../shared/local-debug'
 import fs from 'fs'
 import {logFileName} from '../shared/constants/platform.native.desktop.js'
+import setupLocalLogs from '../shared/util/local-log'
 
 const methods = ['log', 'error', 'info']
 const originalConsole = {}
@@ -66,6 +67,7 @@ const output = {
 }
 
 export default function pipeLogs () {
+  setupLocalLogs()
   if (!forwardLogs) { // eslint-disable-line no-undef
     return
   }
@@ -109,10 +111,12 @@ export function ipcLogs () {
 }
 
 export function ipcLogsRenderer () {
+  setupLocalLogs()
   if (!forwardLogs) { // eslint-disable-line no-undef
     return
   }
-  window.console.log = (...args) => { try { originalConsole.log.apply(console, args); ipcRenderer.send('console.log', args) } catch (_) {} }
-  window.console.warn = (...args) => { try { originalConsole.warn.apply(console, args); ipcRenderer.send('console.warn', args) } catch (_) {} }
-  window.console.error = (...args) => { try { originalConsole.error.apply(console, args); ipcRenderer.send('console.error', args) } catch (_) {} }
+
+  window.console.log = (...args) => { try { console.logLocal(...args); ipcRenderer.send('console.log', args) } catch (_) {} }
+  window.console.warn = (...args) => { try { console.warnLocal(...args); ipcRenderer.send('console.warn', args) } catch (_) {} }
+  window.console.error = (...args) => { try { console.errorLocal(...args); ipcRenderer.send('console.error', args) } catch (_) {} }
 }
