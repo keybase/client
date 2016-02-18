@@ -29,7 +29,7 @@ export function openInKBFS (path: string = ''): AsyncAction {
         const kbfsPath = kbfsClients[0].argv.filter(arg => arg.search(/.*:\\?$/) === 0)[0]
 
         if (!kbfsPath) {
-          return Promise.reject("Couldn\'t figure out kbfs path from argv")
+          return Promise.reject("Couldn't figure out kbfs path from argv")
         }
 
         return Promise.resolve(kbfsPath + '\\')
