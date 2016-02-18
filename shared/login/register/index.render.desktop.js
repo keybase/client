@@ -86,16 +86,22 @@ const styles = {
     minHeight: 100,
     maxHeight: 100,
     alignItems: 'center',
-    padding: 20,
-    transition: 'background .2s ease-out'
+    padding: 20
   },
   instantContainer: {
     ...globalStyles.flexBoxRow,
     alignItems: 'center'
   },
+  instant: {
+    color: globalColorsDZ2.green2
+  },
+  instantIcon: {
+    color: globalColorsDZ2.green2,
+    width: 12
+  },
   iconContainer: {
     ...globalStyles.flexBoxRow,
-    ...transition('transform', 'background'),
+    ...transition('transform'),
     maxWidth: 80,
     maxHeight: 80,
     minWidth: 80,
@@ -104,13 +110,6 @@ const styles = {
     alignItems: 'center',
     marginRight: 25,
     position: 'relative'
-  },
-  instant: {
-    color: globalColorsDZ2.green2
-  },
-  instantIcon: {
-    color: globalColorsDZ2.green2,
-    width: 12
   },
   icon: {
     fontSize: 35,
