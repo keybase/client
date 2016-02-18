@@ -14,6 +14,7 @@ import (
 type Server struct {
 	Auth   aws.Auth
 	Region aws.Region
+	Client *http.Client // if set, it overrides http.DefaultClient
 }
 
 /*
@@ -104,7 +105,10 @@ func (s *Server) queryServer(target string, query *Query) ([]byte, error) {
 	signer := aws.NewV4Signer(s.Auth, "dynamodb", s.Region)
 	signer.Sign(hreq)
 
-	resp, err := http.DefaultClient.Do(hreq)
+	if s.Client == nil {
+		s.Client = http.DefaultClient
+	}
+	resp, err := s.Client.Do(hreq)
 
 	if err != nil {
 		log.Printf("Error calling Amazon")
