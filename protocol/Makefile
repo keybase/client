@@ -82,7 +82,7 @@ js/flow-types.js: build-stamp
 js/keybase_v1.js: build-stamp
 	@mkdir -p js/
 	node ./bin/js.js
-	cp ./js/keybase_v1.js ../shared/constants/types
+	cp ./js/keybase-v1.js ../shared/constants/types
 
 swift-build-stamp: build-stamp
 	@ # Runs without generating files (to validate)

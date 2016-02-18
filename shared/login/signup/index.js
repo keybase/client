@@ -4,10 +4,10 @@ import React from 'react'
 import ErrorText from '../error.render'
 
 // Signup Components
-import InviteCode from './inviteCode'
-import UsernameEmailForm from './usernameEmailForm'
+import InviteCode from './invite-code'
+import UsernameEmailForm from './username-email-form'
 import PassphraseSignup from './passphrase'
-import DeviceName from './deviceName'
+import DeviceName from './device-name'
 import Success from './success'
 
 import {Map} from 'immutable'

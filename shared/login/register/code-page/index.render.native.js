@@ -28,7 +28,7 @@ export default class CodePageRender extends Component {
       codePageModeScanCode: 'Scan Code'
     }
 
-    return (<Text style={this.controlStyle(mode)} onPress={() => this.props.setCodePageMode(mode) }>{label[mode]}</Text>)
+    return (<Text style={this.controlStyle(mode)} onPress={() => this.props.setCodePageMode(mode)}>{label[mode]}</Text>)
   }
 
   renderCameraBrokenControl () {

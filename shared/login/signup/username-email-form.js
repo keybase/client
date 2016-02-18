@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import {bindActionCreators} from 'redux'
 
-import Render from './usernameEmailForm.render'
+import Render from './username-email-form.render'
 import * as signupActions from '../../actions/signup'
 
 class UsernameEmailForm extends Component {

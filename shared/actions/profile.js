@@ -2,7 +2,7 @@
 import * as Constants from '../constants/profile'
 import {routeAppend} from './router'
 import engine from '../engine'
-import {identify} from '../constants/types/keybase_v1'
+import {identify} from '../constants/types/keybase-v1'
 import type {incomingCallMapType, user_loadUncheckedUserSummaries_rpc, identify_identify_rpc, user_UserSummary} from '../constants/types/flow-types'
 import type {AsyncAction, TypedAction} from '../constants/types/flux'
 const enums = identify

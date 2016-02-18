@@ -1,5 +1,3 @@
-'use strict'
-
 const config = require('react-native/packager/rn-cli.config')
 const path = require('path')
 
@@ -8,15 +6,15 @@ const assetRoots = config.getAssetRoots()
 const blacklist = config.getBlacklistRE()
 
 module.exports = {
-  getProjectRoots() {
+  getProjectRoots () {
     return projectRoots
   },
 
-  getAssetRoots() {
+  getAssetRoots () {
     return assetRoots
   },
 
-  getBlacklistRE() {
+  getBlacklistRE () {
     return blacklist
   }
 }

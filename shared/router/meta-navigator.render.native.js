@@ -12,7 +12,7 @@ export default class MetaNavigatorRender extends Component {
         saveName='main'
         ref={this.props.setNavigator}
         initialRouteStack={routeStack.toJS()}
-        configureScene={route => route.sceneConfig || Navigator.SceneConfigs.FloatFromRight }
+        configureScene={route => route.sceneConfig || Navigator.SceneConfigs.FloatFromRight}
         renderScene={(route, navigator) => {
           const Module = route.component
           return (

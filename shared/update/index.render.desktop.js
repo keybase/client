@@ -56,29 +56,29 @@ export default class UpdateRender extends Component {
           <Text type='Body'>What's new?</Text>
           <div style={styles.descriptionBlock} dangerouslySetInnerHTML={{__html: whatsNew}} />
         </div>
-        { this.props.updateCommand &&
-          <Text style={styles.updateCommandHeader} type='Body'>Terminal command:</Text> }
-        { this.props.updateCommand &&
+        {this.props.updateCommand &&
+          <Text style={styles.updateCommandHeader} type='Body'>Terminal command:</Text>}
+        {this.props.updateCommand &&
           <div style={styles.command}>
             <Text type='Body' reversed style={{flex: 1}}>&gt; {this.props.updateCommand}</Text>
             <div className='clipboard' title='Copy to clipboard' style={styles.clipboard} onClick={() => this.onCopy()}>
               <i className='fa fa-clipboard'></i>
             </div>
-          </div> }
+          </div>}
         <div style={styles.actions}>
           <Button label={`Ignore for ${this.props.snoozeTime}`} onClick={() => this.props.onSnooze()} />
-          { this.props.canUpdate &&
-            <Button primary label='Update' onClick={() => this.props.onUpdate()} /> }
-          { !this.props.canUpdate &&
-            <Button primary label='Done, close!' onClick={() => this.props.onSnooze()} /> }
+          {this.props.canUpdate &&
+            <Button primary label='Update' onClick={() => this.props.onUpdate()} />}
+          {!this.props.canUpdate &&
+            <Button primary label='Done, close!' onClick={() => this.props.onSnooze()} />}
         </div>
-        { this.props.canUpdate &&
+        {this.props.canUpdate &&
           <div style={{...styles.actions, justifyContent: 'flex-end'}}>
             <Checkbox
               checked={this.props.alwaysUpdate}
               label='Update automatically'
               onCheck={checked => this.props.setAlwaysUpdate(checked)}/>
-          </div> }
+          </div>}
         <Snackbar
           message='Copied to clipboard!'
           autoHideDuration={1000}

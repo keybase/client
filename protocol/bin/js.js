@@ -36,7 +36,7 @@ function addEnums (prot, json) {
 }
 
 function write () {
-  var stream = fs.createWriteStream('js/keybase_v1.js')
+  var stream = fs.createWriteStream('js/keybase-v1.js')
   stream.once('open', function (fd) {
     Object.keys(protocols).forEach(function (p) {
       stream.write('export const ' + p + ' = ' + JSON.stringify(protocols[p], null, 2).replace(/\"/g, '\'') + '\n\n')

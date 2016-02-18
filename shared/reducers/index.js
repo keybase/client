@@ -16,7 +16,7 @@ import favorite from './favorite'
 import update from './update'
 import signup from './signup'
 
-import devEdit from './devEdit'
+import devEdit from './dev-edit'
 
 import * as Constants from '../constants/dev'
 

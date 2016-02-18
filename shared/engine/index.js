@@ -11,7 +11,7 @@ import NativeEventEmitter from '../common-adapters/native-event-emitter'
 import windowsHack from './windows-hack'
 import {log} from '../native/log/logui'
 
-import {constants} from '../constants/types/keybase_v1'
+import {constants} from '../constants/types/keybase-v1'
 import {printOutstandingRPCs} from '../local-debug'
 
 class Engine {

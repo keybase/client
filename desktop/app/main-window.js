@@ -1,6 +1,5 @@
 import Window from './window'
 import {ipcMain} from 'electron'
-import menuHelper from './menu-helper'
 import resolveRoot from '../resolve-root'
 import hotPath from '../hot-path'
 import flags from '../shared/util/feature-flags'

@@ -13,7 +13,7 @@ const name = 'dist/main.hot.bundle.js'
 const file = fs.createWriteStream(name)
 http.get('http://localhost:4000/dist/main.bundle.js', function (response) {
   response.pipe(file)
-  file.on('finish', function() {
+  file.on('finish', function () {
     file.close(function () {
       const params = [name]
 

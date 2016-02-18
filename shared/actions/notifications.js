@@ -2,7 +2,7 @@
 import engine from '../engine'
 import {NotifyPopup} from '../native/notifications'
 import ListenerCreator from '../native/notification-listeners'
-import setNotifications from '../util/setNotifications'
+import setNotifications from '../util/set-notifications'
 import * as Constants from '../constants/notifications'
 import {log} from '../native/log/logui'
 

@@ -62,12 +62,12 @@ class Search extends Component {
               ) : null}
               <View style={styles.services}>
                 {socialProofs.map(proof => <View key={proof.get('proofType')} style={styles.service}>
-                    <Image style={styles.serviceIcon} source={serviceIcons[proof.get('proofType')]}/>
-                    {proof === matchingProof && (
-                      <Text style={styles.serviceName}>
-                        {renderTextWithHighlight(proof.get('proofName'), this.props.term, styles.highlight)}
-                      </Text>
-                    )}
+                  <Image style={styles.serviceIcon} source={serviceIcons[proof.get('proofType')]}/>
+                  {proof === matchingProof && (
+                    <Text style={styles.serviceName}>
+                      {renderTextWithHighlight(proof.get('proofName'), this.props.term, styles.highlight)}
+                    </Text>
+                  )}
                 </View>).toArray()}
               </View>
             </View>

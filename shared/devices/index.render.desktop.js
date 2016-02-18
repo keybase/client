@@ -86,7 +86,7 @@ export default class DevicesRender extends Component {
         </View>
 
         <View auto row style={styles.deviceContainer}>
-          { this.props.devices && this.props.devices.map(device => this.renderDevice(device)) }
+          {this.props.devices && this.props.devices.map(device => this.renderDevice(device))}
         </View>
       </View>
     )

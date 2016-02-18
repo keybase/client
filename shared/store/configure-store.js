@@ -5,7 +5,7 @@ import createLogger from 'redux-logger'
 import rootReducer from '../reducers'
 import Immutable from 'immutable'
 import {enableStoreLogging, enableActionLogging} from '../local-debug'
-import {actionLogger} from './actionLogger'
+import {actionLogger} from './action-logger'
 
 // Transform objects from Immutable on printing
 const objToJS = state => {

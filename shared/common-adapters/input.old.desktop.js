@@ -42,7 +42,7 @@ export default class Input extends Component {
     return (
       <div style={{...style, ...this.props.style}}>
         <TextField
-          ref={textField => this._textField = textField}
+          ref={textField => (this._textField = textField)}
           fullWidth
           errorStyle={styles.errorStyle}
           style={textStyle}

@@ -20,7 +20,7 @@ export default class SetPublicNameRender extends Component {
           onSubmitEditing={() => { this.props.onSubmit() }}
           />
 
-        { this.props.deviceNameError &&
+        {this.props.deviceNameError &&
           <Text>{this.props.deviceNameError}</Text>
         }
         <Button style={{alignSelf: 'flex-end'}} isAction title='Submit' onPress={() => this.props.onSubmit()} enabled={this.props.submitEnabled}/>

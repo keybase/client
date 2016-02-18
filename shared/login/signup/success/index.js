@@ -2,7 +2,6 @@
 
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import {bindActionCreators} from 'redux'
 import SecureString from '../../../util/secure-string'
 
 import Render from './index.render'

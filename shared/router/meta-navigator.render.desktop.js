@@ -20,7 +20,7 @@ class MetaNavigatorRender extends Component {
     return (
       <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
         <Module {...componentAtTop.props} />
-        {!hideBack && uri && uri.count() > 1 && <FlatButton onClick={ () => this.onBack() } style={styles.backButton} label='Back'/>}
+        {!hideBack && uri && uri.count() > 1 && <FlatButton onClick={() => this.onBack()} style={styles.backButton} label='Back'/>}
       </div>
     )
   }

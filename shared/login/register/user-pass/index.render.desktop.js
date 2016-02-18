@@ -21,7 +21,7 @@ export default class UserPassRender extends Component {
           floatingLabelText='Password'
           type='password'
           ref='passphrase'
-          onEnterKeyDown={() => this.props.onSubmit() }
+          onEnterKeyDown={() => this.props.onSubmit()}
           onChange={event => this.props.onChangePassphrase(event.target.value)}
           value={this.props.passphrase}
         />

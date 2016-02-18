@@ -5,7 +5,7 @@ import React, {Component} from 'react'
 import {globalStyles} from '../../styles/style-guide'
 import {Text, Input, Button} from '../../common-adapters'
 
-import type {Props} from './inviteCode.render'
+import type {Props} from './invite-code.render'
 
 export default class Render extends Component {
   props: Props;
@@ -19,7 +19,7 @@ export default class Render extends Component {
     return (
       <div style={styles.form}>
         <Text style={styles.topMargin} type='Header'>Enter your special invite code</Text>
-        <Input ref={r => inviteRef = r} hintText='Invite Code' errorText={this.props.inviteCodeErrorText} onEnterKeyDown={submitInviteCode}/>
+        <Input ref={r => (inviteRef = r)} hintText='Invite Code' errorText={this.props.inviteCodeErrorText} onEnterKeyDown={submitInviteCode}/>
         <Button label='Check' onClick={submitInviteCode}/>
       </div>
     )

@@ -7,7 +7,7 @@ import Tracker from '../tracker'
 import Menubar from '../menubar'
 import Container from './dev-container'
 import Update from '../update/index.js'
-import {devEditAction} from '../reducers/devEdit'
+import {devEditAction} from '../reducers/dev-edit'
 
 // Tracker constants
 import {normal, warning, error, checking, revoked} from '../constants/tracker'
@@ -107,7 +107,7 @@ class PopupDemo_ extends Component {
     }
     return (
       <div>
-      <Header title='Pinentry'/>
+        <Header title='Pinentry'/>
         <Button label='toggle popup pinentry' onClick={togglePinentry} />
         <Button label='toggle popup tracker' onClick={toggleTracker} />
       </div>

@@ -6,7 +6,7 @@ import engine from '../engine'
 import {createServer} from '../engine/server'
 import {flattenCallMap, promisifyResponses} from '../engine/call-map-middleware'
 
-import setNotifications from '../util/setNotifications'
+import setNotifications from '../util/set-notifications'
 
 import type {State as RootTrackerState} from '../reducers/tracker'
 import type {ConfigState} from '../reducers/config'
@@ -143,7 +143,7 @@ export function onRefollow (username: string): TrackerActionCreator {
     trackUser(trackToken)
       .then(dispatchAction)
       .catch(err => {
-        console.error(`Couldn't track user:`, err)
+        console.error("Couldn't track user:", err)
         dispatchAction()
       })
   }

@@ -25,8 +25,8 @@ export default class Render extends Component {
     return (
       <div style={styles.form}>
         <Text style={styles.topMargin} type='Header'>Create your Passphrase (+12 Characters)</Text>
-        <Input type='password' ref={r => passphraseRef1 = r} hintText='Passphrase' errorText={passphraseError}/>
-        <Input type='password' ref={r => passphraseRef2 = r} hintText='Again'/>
+        <Input type='password' ref={r => (passphraseRef1 = r)} hintText='Passphrase' errorText={passphraseError}/>
+        <Input type='password' ref={r => (passphraseRef2 = r)} hintText='Again'/>
         <Button label='Next' onClick={checkPassphrase}/>
       </div>
     )

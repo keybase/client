@@ -118,7 +118,7 @@ export default function (state: SignupState = initialState, action: SignupAction
         return {
           ...state,
           paperkey,
-          phase: 'paperkey',
+          phase: 'paperkey'
         }
       }
 
@@ -129,7 +129,7 @@ export default function (state: SignupState = initialState, action: SignupAction
       } else {
         return {
           ...state,
-          phase: 'success',
+          phase: 'success'
         }
       }
 
