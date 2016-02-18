@@ -117,7 +117,7 @@ func (ui IdentifyTrackUI) confirmFailedTrackProofs(o *keybase1.IdentifyOutcome) 
 
 	inputChecker := libkb.CheckMember{Set: []string{"I", "A", "C"}}
 	choice, err := PromptWithChecker(PromptDescriptorTrackPublic, ui.parent, prompt, false, inputChecker.Checker())
-	if choice == "C" {
+	if libkb.Cicmp(choice, "C") {
 		err = ErrInputCanceled
 	}
 	if err != nil {
@@ -126,7 +126,7 @@ func (ui IdentifyTrackUI) confirmFailedTrackProofs(o *keybase1.IdentifyOutcome) 
 
 	result.IdentityConfirmed = true
 
-	if choice == "I" {
+	if libkb.Cicmp(choice, "I") {
 		result.ExpiringLocal = true
 		return
 	}

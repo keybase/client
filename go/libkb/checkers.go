@@ -115,7 +115,7 @@ func (c CheckMember) Checker() Checker {
 	return Checker{
 		F: func(s string) bool {
 			for _, v := range c.Set {
-				if strings.ToLower(v) == strings.ToLower(s) {
+				if Cicmp(v, s) {
 					return true
 				}
 			}
