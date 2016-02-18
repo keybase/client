@@ -154,9 +154,10 @@ func (e *TrackToken) isTrackTokenStale(o *libkb.IdentifyOutcome) (err error) {
 		return libkb.TrackStaleError{FirstTrack: true}
 	} else if o.TrackUsed == nil || lastTrack == nil {
 		return nil
-	} else if o.TrackUsed.GetTrackerSeqno() != lastTrack.GetSeqno() {
+	} else if o.TrackUsed.GetTrackerSeqno() < lastTrack.GetSeqno() {
 		// Similarly, if there was a last track for this user that wasn't the
 		// one we were expecting, someone also must have intervened.
+		e.G().Log.Debug("Stale track! We were at seqno %d, but %d is already in chain", o.TrackUsed.GetTrackerSeqno(), lastTrack.GetSeqno())
 		return libkb.TrackStaleError{FirstTrack: false}
 	}
 	return nil
