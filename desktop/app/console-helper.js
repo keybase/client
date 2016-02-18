@@ -54,9 +54,10 @@ function tee (...writeFns) {
   return t => writeFns.forEach(w => w(t))
 }
 
-const stdErrWriter = process.platform === 'win32' ? () => {} : t => process.stderr.write(t)
-const stdOutWriter = process.platform === 'win32' ? () => {} : t => process.stdout.write(t)
+const stdErrWriter = process.platform === 'win32' ? () => {} : t => process.stderr.write(t + '\n')
+const stdOutWriter = process.platform === 'win32' ? () => {} : t => process.stdout.write(t + '\n')
 const logFileWriter = t => fileWritable && fileWritable.write(t + '\n')
+const logFileWriterNoNewline = t => fileWritable && fileWritable.write(t)
 
 // override console logging to also go to stdout
 const output = {
@@ -72,7 +73,6 @@ export default function pipeLogs () {
 
   methods.forEach(k => {
     console[k] = (...args) => {
-      originalConsole[k].apply(console, args)
       if (args.length) {
         const out = output[k] || stdOutWriter
         out(`${k}: ${Date()} (${Date.now()}): ${util.format.apply(util, args)}`)
@@ -88,17 +88,23 @@ export function ipcLogs () {
   }
 
   ipcMain.on('console.log', (event, args) => {
-    console.log('From remote console.log')
+    const prologue = `From ${event.sender.getTitle()}: `
+    process.stdout.write(prologue)
+    logFileWriterNoNewline(prologue)
     console.log.apply(console, args)
   })
 
   ipcMain.on('console.warn', (event, args) => {
-    console.log('From remote console.warn')
+    const prologue = `From ${event.sender.getTitle()}: `
+    process.stdout.write(prologue)
+    logFileWriterNoNewline(prologue)
     console.log.apply(console, args)
   })
 
   ipcMain.on('console.error', (event, args) => {
-    console.log('From remote console.error')
+    const prologue = `From ${event.sender.getTitle()}: `
+    process.stdout.write(prologue)
+    logFileWriterNoNewline(prologue)
     console.log.apply(console, args)
   })
 }

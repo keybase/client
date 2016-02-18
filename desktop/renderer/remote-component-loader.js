@@ -4,7 +4,7 @@ import {Provider} from 'react-redux'
 import remote from 'remote'
 import {ipcRenderer} from 'electron'
 import RemoteStore from './remote-store'
-import consoleHelper, {ipcLogsRenderer} from '../app/console-helper'
+import {ipcLogsRenderer} from '../app/console-helper'
 import hello from '../shared/util/hello'
 import {globalColors} from '../shared/styles/style-guide'
 
@@ -14,7 +14,6 @@ import update from '../shared/update'
 
 import {setupContextMenu} from '../app/menu-helper'
 
-consoleHelper()
 ipcLogsRenderer()
 
 if (module.hot) {

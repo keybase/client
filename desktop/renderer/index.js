@@ -20,10 +20,10 @@ import {setupContextMenu} from '../app/menu-helper'
 // For Remote Components
 import electron, {ipcRenderer} from 'electron'
 import RemoteManager from './remote-manager'
-import consoleHelper from '../app/console-helper'
+import {ipcLogsRenderer} from '../app/console-helper'
 import _ from 'lodash'
 
-consoleHelper()
+ipcLogsRenderer()
 
 if (module.hot) {
   module.hot.accept()
