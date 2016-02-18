@@ -106,3 +106,79 @@ func TestQuotaReclamationSimple(t *testing.T) {
 			pre, post)
 	}
 }
+
+// Test that a single quota reclamation run doesn't try to reclaim too
+// much quota at once.
+func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
+	var userName libkb.NormalizedUsername = "test_user"
+	config, _, ctx := kbfsOpsInitNoMocks(t, userName)
+	defer CheckConfigAndShutdown(t, config)
+
+	now := time.Now()
+	clock := &TestClock{now}
+	config.SetClock(clock)
+
+	kbfsOps := config.KBFSOps()
+	rootNode, _, err :=
+		kbfsOps.GetOrCreateRootNode(ctx, userName.String(), false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+	// Do a bunch of operations.
+	for i := 0; i < numPointersPerGCThreshold; i++ {
+		_, _, err = kbfsOps.CreateDir(ctx, rootNode, "a")
+		if err != nil {
+			t.Fatalf("Couldn't create dir: %v", err)
+		}
+		err = kbfsOps.RemoveDir(ctx, rootNode, "a")
+		if err != nil {
+			t.Fatalf("Couldn't remove dir: %v", err)
+		}
+	}
+
+	// Increase the time, and make sure that there is still more than
+	// one block in the history
+	clock.T = now.Add(2 * config.QuotaReclamationMinUnrefAge())
+
+	// Run it.
+	ops := kbfsOps.(*KBFSOpsStandard).getOpsByNode(rootNode)
+	ops.fbm.forceQuotaReclamation()
+	err = ops.fbm.waitForQuotaReclamations(ctx)
+	if err != nil {
+		t.Fatalf("Couldn't wait for QR: %v", err)
+	}
+
+	bserverLocal, ok := config.BlockServer().(*BlockServerLocal)
+	if !ok {
+		t.Fatalf("Bad block server")
+	}
+	blocks, err := bserverLocal.getAll(rootNode.GetFolderBranch().Tlf)
+	if err != nil {
+		t.Fatalf("Couldn't get blocks: %v", err)
+	}
+
+	b := totalBlockRefs(blocks)
+	if b <= 1 {
+		t.Errorf("Too many blocks left after first QR: %d", b)
+	}
+
+	// Now let it run to completion
+	for b > 1 {
+		ops.fbm.forceQuotaReclamation()
+		err = ops.fbm.waitForQuotaReclamations(ctx)
+		if err != nil {
+			t.Fatalf("Couldn't wait for QR: %v", err)
+		}
+
+		blocks, err := bserverLocal.getAll(rootNode.GetFolderBranch().Tlf)
+		if err != nil {
+			t.Fatalf("Couldn't get blocks: %v", err)
+		}
+		oldB := b
+		b = totalBlockRefs(blocks)
+		if b >= oldB {
+			t.Fatalf("Blocks didn't shrink after reclamation: %d vs. %d",
+				b, oldB)
+		}
+	}
+}
