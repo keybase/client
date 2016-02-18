@@ -1,6 +1,6 @@
 /* @flow */
 
-import enums from '../constants/types/keybase_v1'
+import enums from '../constants/types/keybase-v1'
 import type {incomingCallMapType} from '../constants/types/flow-types'
 import path from 'path'
 import {getTLF} from '../util/kbfs'

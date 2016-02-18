@@ -1,5 +1,3 @@
-'use strict'
-
 const os = require('os')
 const webpack = require('webpack')
 const cfg = require('./webpack.config.production.js')
@@ -72,14 +70,14 @@ exec('npm list --dev electron-prebuilt', (err, stdout, stderr) => {
   if (!err) {
     try {
       DEFAULT_OPTS.version = stdout.match(/electron-prebuilt@([0-9.]+)/)[1]
-      console.log("Found electron-prebuilt version: ", DEFAULT_OPTS.version)
+      console.log('Found electron-prebuilt version: ', DEFAULT_OPTS.version)
     } catch (err) {
       console.log("Couldn't parse npm list to find electron: ", err)
       process.exit(1)
     }
   } else {
-      console.log("Couldn't list npm to find electron: ", err)
-      process.exit(1)
+    console.log("Couldn't list npm to find electron: ", err)
+    process.exit(1)
   }
 
   startPack()

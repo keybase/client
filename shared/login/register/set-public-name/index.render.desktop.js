@@ -14,7 +14,7 @@ export default class SetPublicNameRender extends Component {
           onEnterKeyDown={() => this.props.onSubmit()}
           onChange={event => this.props.onChangeDeviceName(event.target.value)}
         />
-        { this.props.deviceNameError &&
+        {this.props.deviceNameError &&
           <p>{this.props.deviceNameError}</p>
         }
         <RaisedButton

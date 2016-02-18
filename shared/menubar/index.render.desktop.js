@@ -36,7 +36,7 @@ const Header = props => {
       <Icon hint='Open KBFS folder' type='fa-folder' style={{marginRight: 10}} onClick={openKBFS}/>
       <Icon hint='Open keybase.io web' type='fa-globe' onClick={showUser}/>
       <div style={{flex: 1}}/>
-      <Icon hint={`Report a bug for version: ${version}`} type='fa-bug' onClick={ () => {
+      <Icon hint={`Report a bug for version: ${version}`} type='fa-bug' onClick={() => {
         shell.openExternal(`https://github.com/keybase/client/issues/new?body=Keybase%20GUI%20Version:%20${encodeURIComponent(version)}`)
       }}/>
     </div>
@@ -76,10 +76,10 @@ const LogInPrompt = props => {
   const logIn: () => void = props.logIn
   return (
     <div style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.grey5}}>
-        <Icon type='fa-exclamation-triangle' style={{alignSelf: 'center', color: globalColors.lowRiskWarning, marginTop: 12}} />
-        <Text type='Body' small style={{alignSelf: 'center', marginTop: 6}}>You're logged out!</Text>
-        <Button primary label='Log In' onClick={logIn} style={{alignSelf: 'center', minWidth: 160, marginTop: 12, marginRight: 0}}/>
-        {allowLoggedOutKBFS && <Text type='Body' small style={{marginTop: 22, marginBottom: 7, marginLeft: 10}}>Or access someone's public folder:</Text>}
+      <Icon type='fa-exclamation-triangle' style={{alignSelf: 'center', color: globalColors.lowRiskWarning, marginTop: 12}} />
+      <Text type='Body' small style={{alignSelf: 'center', marginTop: 6}}>You're logged out!</Text>
+      <Button primary label='Log In' onClick={logIn} style={{alignSelf: 'center', minWidth: 160, marginTop: 12, marginRight: 0}}/>
+      {allowLoggedOutKBFS && <Text type='Body' small style={{marginTop: 22, marginBottom: 7, marginLeft: 10}}>Or access someone's public folder:</Text>}
     </div>
   )
 }
@@ -159,14 +159,14 @@ const FolderEntryRow = props => {
       iconStyle={SVGFolderIcon(iconPath(entry.isPublic, false))}
       textStyle={{color: globalColors.blue}}
       key={key}>
-    <Input
-      ref={input => inputRef = input}
-      small
-      hintText='user1,user2,etc'
-      onEnterKeyDown={() => openFolder()}
-      style={{width: '100%', marginLeft: entry.prefix ? 2 : 0}} />
-    <i className='fa fa-arrow-right' style={styles.entryArrow} onClick={() => openFolder()}></i>
-  </Row>)
+      <Input
+        ref={input => (inputRef = input)}
+        small
+        hintText='user1,user2,etc'
+        onEnterKeyDown={() => openFolder()}
+        style={{width: '100%', marginLeft: entry.prefix ? 2 : 0}} />
+      <i className='fa fa-arrow-right' style={styles.entryArrow} onClick={() => openFolder()}></i>
+    </Row>)
 }
 
 const ShowAll = props => {
@@ -320,7 +320,7 @@ class FolderList extends Component<void, FolderListProps, FolderState> {
               onExpand={() => this.setState({privateCollapsed: false})}
               isPublic={false}
               collapsed={this.state.privateCollapsed} />
-            </div>
+          </div>
         )}
         <Text type='Body' onClick={() => this.props.openKBFSPublic('')}>/keybase/public/</Text>
         <CollapsableFolderList

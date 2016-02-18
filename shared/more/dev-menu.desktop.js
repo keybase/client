@@ -29,9 +29,10 @@ class Foo extends Component {
       retryLabel: '',
       windowTitle: 'Keybase Test Passphrase'
     }
-    return <RemoteComponent
-             component='pinentry'
-             {...payload}/>
+    return (
+      <RemoteComponent
+        component='pinentry'
+        {...payload}/>)
   }
 }
 

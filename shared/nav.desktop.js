@@ -118,19 +118,19 @@ class Nav extends Component {
           valueLink={{value: activeTab, requestChange: this._handleTabsChange.bind(this)}}
           contentContainerStyle={styles.tab}
           tabTemplate={TabTemplate}>
-          { Object.keys(tabs).map(tab => {
+          {Object.keys(tabs).map(tab => {
             const {module, name} = tabs[tab]
             return (
               <Tab label={name} value={tab} key={tab} >
-                { activeTab === tab &&
+                {activeTab === tab &&
                   <MetaNavigator
                     tab={tab}
                     globalRoutes={globalRoutes}
                     rootComponent={module || NoTab}
-                  /> }
+                  />}
               </Tab>
             )
-          }) }
+          })}
         </Tabs>
       </div>
     )

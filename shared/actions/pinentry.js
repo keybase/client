@@ -7,7 +7,7 @@ import type {GUIEntryFeatures, incomingCallMapType, delegateUiCtl_registerSecret
 import type {NewPinentryAction, RegisterPinentryListenerAction} from '../constants/pinentry'
 
 import type {Dispatch, AsyncAction} from '../constants/types/flux'
-import {constants} from '../constants/types/keybase_v1'
+import {constants} from '../constants/types/keybase-v1'
 
 const uglySessionIDResponseMapper: {[key: number]: any} = {}
 

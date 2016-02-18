@@ -2,7 +2,7 @@
 // Send helloIAm message to service
 
 import engine from '../engine'
-import keybase from '../constants/types/keybase_v1'
+import keybase from '../constants/types/keybase-v1'
 
 import type {ClientDetails, config_helloIAm_rpc} from '../constants/types/flow-types'
 

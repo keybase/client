@@ -34,12 +34,12 @@ class Devices extends Component {
 
   render () {
     return (
-    <Render
-      devices={this.props.devices}
-      waitingForServer={this.props.waitingForServer}
-      showRemoveDevicePage={this.props.showRemoveDevicePage}
-      showExistingDevicePage={this.props.showExistingDevicePage}
-      showGenPaperKeyPage={this.props.showGenPaperKeyPage}/>
+      <Render
+        devices={this.props.devices}
+        waitingForServer={this.props.waitingForServer}
+        showRemoveDevicePage={this.props.showRemoveDevicePage}
+        showExistingDevicePage={this.props.showExistingDevicePage}
+        showGenPaperKeyPage={this.props.showGenPaperKeyPage}/>
     )
   }
 }

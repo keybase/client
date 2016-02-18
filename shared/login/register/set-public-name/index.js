@@ -20,7 +20,7 @@ export default class SetPublicName extends Component {
       <Render
         deviceName={this.state.deviceName}
         onChangeDeviceName={deviceName => this.setState({deviceName})}
-        onSubmit={ () => this.props.onSubmit(this.state.deviceName) }
+        onSubmit={() => this.props.onSubmit(this.state.deviceName)}
         deviceNameError={nameTakenError}
         submitEnabled={submitEnabled}
       />

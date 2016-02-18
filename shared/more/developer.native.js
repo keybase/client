@@ -34,7 +34,7 @@ class Developer extends Component {
             value={this.props.devConfig.configured[key]}
             style={styles.input}
             clearButtonMode='always'
-            onChangeText={ val => this.props.updateDevSettings({[key]: val || null}) }
+            onChangeText={val => this.props.updateDevSettings({[key]: val || null})}
           />
         </View>
       )

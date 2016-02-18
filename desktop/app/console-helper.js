@@ -29,7 +29,7 @@ let fileWritable = null
 if (logFile) {
   fs.access(logFile, fs.W_OK, err => {
     if (err && !fileDoesNotExist(err)) {
-      console.log(`Can't write to log file.`, err)
+      console.log("Can't write to log file.", err)
       fileWritable = null
       return
     }

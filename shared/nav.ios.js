@@ -156,7 +156,7 @@ class Nav extends Component {
     return (
       <View style={{flex: 1}}>
         <TabBarIOS tintColor='black' translucent={false}>
-        { Object.keys(tabs).map(tab => {
+        {Object.keys(tabs).map(tab => {
           const {name} = tabs[tab]
 
           return (name &&

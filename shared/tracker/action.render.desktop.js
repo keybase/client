@@ -48,7 +48,7 @@ export default class ActionRender extends Component {
   }
 
   renderPending (styles: Object, username: ?string): ReactElement {
-    const text: string = username ? `Verifying ${username}'s identity` : `Loading tracker information...`
+    const text: string = username ? `Verifying ${username}'s identity` : 'Loading tracker information...'
     return (
       <div><Text style={{textAlign: 'center', paddingTop: 8}} type='Body'>{text}</Text></div>
     )

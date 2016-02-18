@@ -14,7 +14,7 @@ import {reduxDevToolsEnable, devStoreChangingFunctions} from '../shared/local-de
 import {listenForNotifications} from '../shared/actions/notifications'
 import hello from '../shared/util/hello'
 
-import {devEditAction} from '../shared/reducers/devEdit'
+import {devEditAction} from '../shared/reducers/dev-edit'
 import {setupContextMenu} from '../app/menu-helper'
 
 // For Remote Components

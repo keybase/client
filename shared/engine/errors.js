@@ -37,7 +37,6 @@ export default class EngineError extends Error {
       default:
         return this.desc
     }
-    return JSON.stringify(this)
   }
 }
 

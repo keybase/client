@@ -6,7 +6,7 @@ export default class ChatRender extends Component {
   render () {
     return (
       <View style={styles.container}>
-      <Text style={[{textAlign: 'center', marginBottom: 75}, commonStyles.h1]}>Version 0.1</Text>
+        <Text style={[{textAlign: 'center', marginBottom: 75}, commonStyles.h1]}>Version 0.1</Text>
       </View>
     )
   }

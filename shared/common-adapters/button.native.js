@@ -12,7 +12,7 @@ export default class Button extends Component {
 
     return !enabled ? (<View style={containerStyles}>{child}</View>) : (
       <TouchableHighlight
-        underlayColor={enabled ? buttonHighlight : disabledButtonHighlight }
+        underlayColor={enabled ? buttonHighlight : disabledButtonHighlight}
         onPress={enabled ? this.props.onPress : null}
         style={containerStyles}>
         {child}

@@ -134,9 +134,9 @@ class Nav extends Component {
               this.props.switchTab(k)
             }
           }}>
-            <View style={{flex: 0}}>
-              <Text>{prettify(k)}</Text>
-            </View>
+          <View style={{flex: 0}}>
+            <Text>{prettify(k)}</Text>
+          </View>
         </TouchableNativeFeedback>
       )
     })
@@ -152,13 +152,13 @@ class Nav extends Component {
         drawerPosition={DrawerLayoutAndroid.positions.Left}
         renderNavigationView={() => drawerContnet}>
         <View collapsable={false} style={{flex: 1}}>
-            <View
-              title={''}
-              style={styles.toolbar}>
-              <View collapsable={false} style={styles.toolbarContent}>
-                <View style={{flex: 0}}>
+          <View
+            title={''}
+            style={styles.toolbar}>
+            <View collapsable={false} style={styles.toolbarContent}>
+              <View style={{flex: 0}}>
                 <TouchableNativeFeedback
-                  onPress={ () => this.refs.drawer && this.refs.drawer.openDrawer() }
+                  onPress={() => this.refs.drawer && this.refs.drawer.openDrawer()}
                   delayPressIn={0}
                   background={TouchableNativeFeedback.SelectableBackground()} >
                   <View>
@@ -167,26 +167,26 @@ class Nav extends Component {
                 </TouchableNativeFeedback>
               </View>
 
-                <View style={{marginLeft: 40}}>
-                  <Text style={styles.toolbarName}>{prettify(activeTab)}</Text>
-                </View>
+              <View style={{marginLeft: 40}}>
+                <Text style={styles.toolbarName}>{prettify(activeTab)}</Text>
+              </View>
 
-                <View style={styles.toolbarSearchWrapper}>
-                  <TouchableNativeFeedback
-                    onPress={ () => console.log('todo: show search')}
-                    delayPressIn={0}
-                    background={TouchableNativeFeedback.SelectableBackground()}>
-                    <View>
-                      <Image style={styles.toolbarImage} resizeMode={'contain'} source={require('./images/nav/ic_search_black_24dp.png')}/>
-                    </View>
-                  </TouchableNativeFeedback>
-                </View>
+              <View style={styles.toolbarSearchWrapper}>
+                <TouchableNativeFeedback
+                  onPress={() => console.log('todo: show search')}
+                  delayPressIn={0}
+                  background={TouchableNativeFeedback.SelectableBackground()}>
+                  <View>
+                    <Image style={styles.toolbarImage} resizeMode={'contain'} source={require('./images/nav/ic_search_black_24dp.png')}/>
+                  </View>
+                </TouchableNativeFeedback>
               </View>
             </View>
+          </View>
           <View collapsable={false} style={{flex: 2}}>
             {tabBar}
             <ViewPagerAndroid
-              ref={r => this._viewPagerRef = r}
+              ref={r => (this._viewPagerRef = r)}
               style={{flex: 1}}
               initialPage={activeIndex}
               onPageSelected={e => this.props.switchTab(tabKeys[e.nativeEvent.position])}>

@@ -23,7 +23,7 @@ class ForgotUserPass extends Component {
         <TextInput
           style={commonStyles.textInput}
           value={this.props.email}
-          onChangeText={email => this.props.updateEmail(email) }
+          onChangeText={email => this.props.updateEmail(email)}
           onSubmitEditing={() => this.props.submit()}
           autoCorrect={false}
           autoFocus

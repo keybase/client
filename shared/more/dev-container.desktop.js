@@ -4,12 +4,12 @@ import {Paper, AppBar} from 'material-ui'
 export default class Container extends Component {
   render () {
     return (
-    <Paper zDepth={5} style={{margin: 20}}>
-      <AppBar title={this.props.title}/>
-      <div style={{margin: 10}}>
-        {this.props.children}
-      </div>
-    </Paper>
+      <Paper zDepth={5} style={{margin: 20}}>
+        <AppBar title={this.props.title}/>
+        <div style={{margin: 10}}>
+          {this.props.children}
+        </div>
+      </Paper>
     )
   }
 }
