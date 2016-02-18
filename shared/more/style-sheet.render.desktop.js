@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide'
 import Container from './dev-container'
-import {Button, Logo, Input, Text, Terminal, FormWithCheckbox} from '../common-adapters'
+import {Button, Input, Text, Terminal, FormWithCheckbox} from '../common-adapters'
 
 export default class Render extends Component {
   render () {
@@ -67,12 +67,6 @@ export default class Render extends Component {
           <div style={{...globalStyles.flexBoxRow}}>
             <Button label='Secondary'/>
             <Button label='Primary' primary />
-          </div>
-        </Container>
-        <Container title='Logos'>
-          <div style={{...globalStyles.flexBoxRow, alignItems: 'baseline'}}>
-            <Logo />
-            <Logo small grey/>
           </div>
         </Container>
         <Container title='Icons'>
