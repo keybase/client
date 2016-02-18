@@ -379,60 +379,28 @@ func (c *PassphraseChange) verifySuppliedPassphrase(ctx *Context) (err error) {
 // findAndDecryptPrivatePGPKeys gets the user's private pgp keys if
 // any exist and decrypts them.
 func (c *PassphraseChange) findAndDecryptPrivatePGPKeys(ctx *Context) ([]libkb.GenericKey, error) {
-	ska := libkb.SecretKeyArg{
-		Me:      c.me,
-		KeyType: libkb.PGPKeyType,
+
+	var keyList []libkb.GenericKey
+
+	// Using a paper key makes TripleSec-synced keys unrecoverable
+	if c.usingPaper {
+		return keyList, nil
 	}
 
-	// get all the pgp key skb blocks from the keyring:
-	var blocks []*libkb.SKB
-	err := c.G().LoginState().Keyring(func(kr *libkb.SKBKeyringFile) {
-		blocks = kr.SearchWithComputedKeyFamily(c.me.GetComputedKeyFamily(), ska)
-	}, "PassphraseChange - findAndDecryptPrivatePGPKey")
+	// Only use the synced secret keys:
+	blocks, err := c.me.AllSyncedSecretKeys(ctx.LoginContext)
 	if err != nil {
 		return nil, err
-	}
-
-	// and the synced secret keys:
-	syncKeys, err := c.me.AllSyncedSecretKeys(ctx.LoginContext)
-	if err != nil {
-		return nil, err
-	}
-	if syncKeys != nil {
-		blocks = append(blocks, syncKeys...)
 	}
 
 	secretRetriever := libkb.NewSecretStore(c.G(), c.me.GetNormalizedName())
 
-	// avoid duplicates:
-	keys := make(map[keybase1.KID]libkb.GenericKey)
 	for _, block := range blocks {
-		block.SetUID(c.me.GetUID())
-		var key libkb.GenericKey
-		if c.usingPaper {
-			key, err = block.UnlockWithStoredSecret(secretRetriever)
-			if err != nil {
-				switch err.(type) {
-				case libkb.BadKeyError:
-					// expected error, ok to proceed...
-					continue
-				default:
-					// unexpected error type:
-					return nil, err
-				}
-			}
-		} else {
-			parg := ctx.SecretKeyPromptArg(libkb.SecretKeyArg{}, "passphrase change")
-			key, err = block.PromptAndUnlock(parg, "your keybase passphrase", secretRetriever, nil, c.me)
-			if err != nil {
-				return nil, err
-			}
+		parg := ctx.SecretKeyPromptArg(libkb.SecretKeyArg{}, "passphrase change")
+		key, err := block.PromptAndUnlock(parg, "your keybase passphrase", secretRetriever, nil, c.me)
+		if err != nil {
+			return nil, err
 		}
-		keys[key.GetKID()] = key
-	}
-
-	keyList := make([]libkb.GenericKey, 0, len(keys))
-	for _, key := range keys {
 		keyList = append(keyList, key)
 	}
 
