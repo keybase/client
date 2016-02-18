@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"sort"
 	"testing"
-	"time"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -51,7 +50,8 @@ func concatUserNamesToStrings2(a, b []username) []string {
 
 // InitTest implements the Engine interface.
 func (k *LibKBFS) InitTest(t *testing.T, blockSize int64, blockChangeSize int64,
-	writers []username, readers []username) map[string]User {
+	writers []username, readers []username,
+	clock libkbfs.Clock) map[string]User {
 	users := concatUserNamesToStrings2(writers, readers)
 	// Start a new log for this test.
 	k.t = t
@@ -85,8 +85,6 @@ func (k *LibKBFS) InitTest(t *testing.T, blockSize int64, blockChangeSize int64,
 		config.SetBlockSplitter(bsplit)
 	}
 
-	// TODO: pass this in from each test
-	clock := libkbfs.TestClock{T: time.Time{}}
 	config.SetClock(clock)
 	userMap[users[0]] = config
 	k.refs[config] = make(map[libkbfs.Node]bool)

@@ -36,6 +36,7 @@ type opt struct {
 	writers         []string
 	blockSize       int64
 	blockChangeSize int64
+	clock           *libkbfs.TestClock
 }
 
 func test(t *testing.T, actions ...optionOp) {
@@ -59,7 +60,8 @@ func (o *opt) runInitOnce() {
 	if o.initDone {
 		return
 	}
-	o.users = o.engine.InitTest(o.t, o.blockSize, o.blockChangeSize, o.writerNames, o.readerNames)
+	o.clock = &libkbfs.TestClock{T: time.Time{}}
+	o.users = o.engine.InitTest(o.t, o.blockSize, o.blockChangeSize, o.writerNames, o.readerNames, o.clock)
 
 	for _, uname := range o.readerNames {
 		uid := string(o.engine.GetUID(o.users[string(uname)]))

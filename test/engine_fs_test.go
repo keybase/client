@@ -16,7 +16,6 @@ import (
 	"os"
 	"sort"
 	"testing"
-	"time"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -282,7 +281,7 @@ func usersTlf(uids []keybase1.UID, nwriters int, config *libkbfs.ConfigLocal) st
 	return name
 }
 
-func (e *fsEngine) InitTest(t *testing.T, blockSize int64, blockChangeSize int64, writers []username, readers []username) map[string]User {
+func (e *fsEngine) InitTest(t *testing.T, blockSize int64, blockChangeSize int64, writers []username, readers []username, clock libkbfs.Clock) map[string]User {
 	e.t = t
 	res := map[string]User{}
 
@@ -291,9 +290,6 @@ func (e *fsEngine) InitTest(t *testing.T, blockSize int64, blockChangeSize int64
 	for i, name := range users {
 		normalized[i] = libkb.NormalizedUsername(name)
 	}
-
-	// TODO: pass this in from each test
-	clock := libkbfs.TestClock{T: time.Time{}}
 
 	// create the first user specially
 	config0 := libkbfs.MakeTestConfigOrBust(t, normalized...)
