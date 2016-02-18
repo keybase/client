@@ -124,6 +124,26 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 	expectedRef := uint64(0)
 	archivedBlocks := make(map[BlockPointer]bool)
 	actualLiveBlocks := make(map[BlockPointer]uint32)
+
+	// See what the last GC op revision is.  All unref'd pointers from
+	// that revision or earlier should be deleted from the block
+	// server.
+	gcRevision := MetadataRevisionUninitialized
+	for _, rmd := range rmds {
+		// Don't process copies.
+		if rmd.IsWriterMetadataCopiedSet() {
+			continue
+		}
+
+		for _, op := range rmd.data.Changes.Ops {
+			gcOp, ok := op.(*gcOp)
+			if !ok {
+				continue
+			}
+			gcRevision = gcOp.LatestRev
+		}
+	}
+
 	for _, rmd := range rmds {
 		// Don't process copies.
 		if rmd.IsWriterMetadataCopiedSet() {
@@ -142,16 +162,26 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 					expectedLiveBlocks[ptr] = true
 				}
 			}
-			for _, ptr := range op.Unrefs() {
-				delete(expectedLiveBlocks, ptr)
-				if ptr != zeroPtr {
-					archivedBlocks[ptr] = true
+			if _, ok := op.(*gcOp); !ok {
+				for _, ptr := range op.Unrefs() {
+					delete(expectedLiveBlocks, ptr)
+					if ptr != zeroPtr {
+						if rmd.Revision <= gcRevision {
+							delete(archivedBlocks, ptr)
+						} else {
+							archivedBlocks[ptr] = true
+						}
+					}
 				}
 			}
 			for _, update := range op.AllUpdates() {
 				delete(expectedLiveBlocks, update.Unref)
 				if update.Unref != zeroPtr && update.Ref != update.Unref {
-					archivedBlocks[update.Unref] = true
+					if rmd.Revision <= gcRevision {
+						delete(archivedBlocks, update.Unref)
+					} else {
+						archivedBlocks[update.Unref] = true
+					}
 				}
 				if update.Ref != zeroPtr {
 					expectedLiveBlocks[update.Ref] = true
