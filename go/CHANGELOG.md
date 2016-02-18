@@ -1,3 +1,6 @@
+## 1.0.14
+- Fix crasher on passphrase recover on Linux (PR: keybase/client#2062)
+
 ## 1.0.13 (2016-02-17)
 - Fix service not restarting after version mismatch check
 - Fix bad sigchain link error (PR: keybase/client#1998)
