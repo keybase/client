@@ -3583,9 +3583,9 @@ export type identify_TrackToken = string
 
 export type TrackToken = string
 
-export type identify_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */
+export type identify_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */ | 10 /* 'NONE_VIA_TEMPORARY_10' */
 
-export type TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */
+export type TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */ | 10 /* 'NONE_VIA_TEMPORARY_10' */
 
 export type identify_TrackDiff = {
   type: TrackDiffType;
@@ -3617,12 +3617,14 @@ export type identify_TrackOptions = {
   localOnly: boolean;
   bypassConfirm: boolean;
   forceRetrack: boolean;
+  expiringLocal: boolean;
 }
 
 export type TrackOptions = {
   localOnly: boolean;
   bypassConfirm: boolean;
   forceRetrack: boolean;
+  expiringLocal: boolean;
 }
 
 export type identify_IdentifyReasonType = 0 /* 'NONE_0' */ | 1 /* 'ID_1' */ | 2 /* 'TRACK_2' */ | 3 /* 'ENCRYPT_3' */ | 4 /* 'DECRYPT_4' */ | 5 /* 'VERIFY_5' */ | 6 /* 'RESOURCE_6' */
@@ -3874,7 +3876,7 @@ export type identifyUi_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /*
 
 export type identifyUi_TrackToken = string
 
-export type identifyUi_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */
+export type identifyUi_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */ | 10 /* 'NONE_VIA_TEMPORARY_10' */
 
 export type identifyUi_TrackDiff = {
   type: TrackDiffType;
@@ -3893,6 +3895,7 @@ export type identifyUi_TrackOptions = {
   localOnly: boolean;
   bypassConfirm: boolean;
   forceRetrack: boolean;
+  expiringLocal: boolean;
 }
 
 export type identifyUi_IdentifyReasonType = 0 /* 'NONE_0' */ | 1 /* 'ID_1' */ | 2 /* 'TRACK_2' */ | 3 /* 'ENCRYPT_3' */ | 4 /* 'DECRYPT_4' */ | 5 /* 'VERIFY_5' */ | 6 /* 'RESOURCE_6' */
@@ -3986,7 +3989,7 @@ export type Cryptocurrency = {
 
 export type identifyUi_Identity = {
   status?: ?Status;
-  whenLastTracked: int;
+  whenLastTracked: Time;
   proofs: Array<IdentifyRow>;
   cryptocurrency: Array<Cryptocurrency>;
   revoked: Array<TrackDiff>;
@@ -3994,7 +3997,7 @@ export type identifyUi_Identity = {
 
 export type Identity = {
   status?: ?Status;
-  whenLastTracked: int;
+  whenLastTracked: Time;
   proofs: Array<IdentifyRow>;
   cryptocurrency: Array<Cryptocurrency>;
   revoked: Array<TrackDiff>;
@@ -4035,6 +4038,7 @@ export type identifyUi_LinkCheckResult = {
   proofResult: ProofResult;
   snoozedResult: ProofResult;
   torWarning: boolean;
+  tmpTrackExpireTime: Time;
   cached?: ?CheckResult;
   diff?: ?TrackDiff;
   remoteDiff?: ?TrackDiff;
@@ -4046,6 +4050,7 @@ export type LinkCheckResult = {
   proofResult: ProofResult;
   snoozedResult: ProofResult;
   torWarning: boolean;
+  tmpTrackExpireTime: Time;
   cached?: ?CheckResult;
   diff?: ?TrackDiff;
   remoteDiff?: ?TrackDiff;
@@ -4081,11 +4086,13 @@ export type UserCard = {
 export type identifyUi_ConfirmResult = {
   identityConfirmed: boolean;
   remoteConfirmed: boolean;
+  expiringLocal: boolean;
 }
 
 export type ConfirmResult = {
   identityConfirmed: boolean;
   remoteConfirmed: boolean;
+  expiringLocal: boolean;
 }
 
 // identifyUi.delegateIdentifyUI ////////////////////////////////////////
@@ -6098,7 +6105,7 @@ export type pgp_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWITT
 
 export type pgp_TrackToken = string
 
-export type pgp_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */
+export type pgp_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */ | 10 /* 'NONE_VIA_TEMPORARY_10' */
 
 export type pgp_TrackDiff = {
   type: TrackDiffType;
@@ -6117,6 +6124,7 @@ export type pgp_TrackOptions = {
   localOnly: boolean;
   bypassConfirm: boolean;
   forceRetrack: boolean;
+  expiringLocal: boolean;
 }
 
 export type pgp_IdentifyReasonType = 0 /* 'NONE_0' */ | 1 /* 'ID_1' */ | 2 /* 'TRACK_2' */ | 3 /* 'ENCRYPT_3' */ | 4 /* 'DECRYPT_4' */ | 5 /* 'VERIFY_5' */ | 6 /* 'RESOURCE_6' */
@@ -6643,7 +6651,7 @@ export type prove_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWI
 
 export type prove_TrackToken = string
 
-export type prove_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */
+export type prove_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */ | 10 /* 'NONE_VIA_TEMPORARY_10' */
 
 export type prove_TrackDiff = {
   type: TrackDiffType;
@@ -6662,6 +6670,7 @@ export type prove_TrackOptions = {
   localOnly: boolean;
   bypassConfirm: boolean;
   forceRetrack: boolean;
+  expiringLocal: boolean;
 }
 
 export type prove_IdentifyReasonType = 0 /* 'NONE_0' */ | 1 /* 'ID_1' */ | 2 /* 'TRACK_2' */ | 3 /* 'ENCRYPT_3' */ | 4 /* 'DECRYPT_4' */ | 5 /* 'VERIFY_5' */ | 6 /* 'RESOURCE_6' */
@@ -7478,7 +7487,7 @@ export type saltpack_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* '
 
 export type saltpack_TrackToken = string
 
-export type saltpack_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */
+export type saltpack_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */ | 10 /* 'NONE_VIA_TEMPORARY_10' */
 
 export type saltpack_TrackDiff = {
   type: TrackDiffType;
@@ -7497,6 +7506,7 @@ export type saltpack_TrackOptions = {
   localOnly: boolean;
   bypassConfirm: boolean;
   forceRetrack: boolean;
+  expiringLocal: boolean;
 }
 
 export type saltpack_IdentifyReasonType = 0 /* 'NONE_0' */ | 1 /* 'ID_1' */ | 2 /* 'TRACK_2' */ | 3 /* 'ENCRYPT_3' */ | 4 /* 'DECRYPT_4' */ | 5 /* 'VERIFY_5' */ | 6 /* 'RESOURCE_6' */
@@ -8688,7 +8698,7 @@ export type track_ProofType = 0 /* 'NONE_0' */ | 1 /* 'KEYBASE_1' */ | 2 /* 'TWI
 
 export type track_TrackToken = string
 
-export type track_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */
+export type track_TrackDiffType = 0 /* 'NONE_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'CLASH_2' */ | 3 /* 'REVOKED_3' */ | 4 /* 'UPGRADED_4' */ | 5 /* 'NEW_5' */ | 6 /* 'REMOTE_FAIL_6' */ | 7 /* 'REMOTE_WORKING_7' */ | 8 /* 'REMOTE_CHANGED_8' */ | 9 /* 'NEW_ELDEST_9' */ | 10 /* 'NONE_VIA_TEMPORARY_10' */
 
 export type track_TrackDiff = {
   type: TrackDiffType;
@@ -8707,6 +8717,7 @@ export type track_TrackOptions = {
   localOnly: boolean;
   bypassConfirm: boolean;
   forceRetrack: boolean;
+  expiringLocal: boolean;
 }
 
 export type track_IdentifyReasonType = 0 /* 'NONE_0' */ | 1 /* 'ID_1' */ | 2 /* 'TRACK_2' */ | 3 /* 'ENCRYPT_3' */ | 4 /* 'DECRYPT_4' */ | 5 /* 'VERIFY_5' */ | 6 /* 'RESOURCE_6' */

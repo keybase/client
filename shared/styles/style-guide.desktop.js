@@ -76,9 +76,8 @@ const font = {
   fontTerminal: {
     ...fontCommon,
     fontFamily: 'Source Code Pro'
-  },
+  }
 }
-
 
 const fontDZ2 = {
   fontRegular: {

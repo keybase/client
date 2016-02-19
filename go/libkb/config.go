@@ -653,3 +653,7 @@ func (f *JSONConfigFile) SetTimeAtPath(path string, t keybase1.Time) error {
 	}
 	return f.SetStringAtPath(path, fmt.Sprintf("%d", t))
 }
+
+func (f JSONConfigFile) GetLocalTrackMaxAge() (time.Duration, bool) {
+	return f.GetDurationAtPath("local_track_max_age")
+}

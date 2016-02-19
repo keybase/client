@@ -1689,16 +1689,17 @@ type TrackToken string
 type TrackDiffType int
 
 const (
-	TrackDiffType_NONE           TrackDiffType = 0
-	TrackDiffType_ERROR          TrackDiffType = 1
-	TrackDiffType_CLASH          TrackDiffType = 2
-	TrackDiffType_REVOKED        TrackDiffType = 3
-	TrackDiffType_UPGRADED       TrackDiffType = 4
-	TrackDiffType_NEW            TrackDiffType = 5
-	TrackDiffType_REMOTE_FAIL    TrackDiffType = 6
-	TrackDiffType_REMOTE_WORKING TrackDiffType = 7
-	TrackDiffType_REMOTE_CHANGED TrackDiffType = 8
-	TrackDiffType_NEW_ELDEST     TrackDiffType = 9
+	TrackDiffType_NONE               TrackDiffType = 0
+	TrackDiffType_ERROR              TrackDiffType = 1
+	TrackDiffType_CLASH              TrackDiffType = 2
+	TrackDiffType_REVOKED            TrackDiffType = 3
+	TrackDiffType_UPGRADED           TrackDiffType = 4
+	TrackDiffType_NEW                TrackDiffType = 5
+	TrackDiffType_REMOTE_FAIL        TrackDiffType = 6
+	TrackDiffType_REMOTE_WORKING     TrackDiffType = 7
+	TrackDiffType_REMOTE_CHANGED     TrackDiffType = 8
+	TrackDiffType_NEW_ELDEST         TrackDiffType = 9
+	TrackDiffType_NONE_VIA_TEMPORARY TrackDiffType = 10
 )
 
 type TrackDiff struct {
@@ -1727,6 +1728,7 @@ type TrackOptions struct {
 	LocalOnly     bool `codec:"localOnly" json:"localOnly"`
 	BypassConfirm bool `codec:"bypassConfirm" json:"bypassConfirm"`
 	ForceRetrack  bool `codec:"forceRetrack" json:"forceRetrack"`
+	ExpiringLocal bool `codec:"expiringLocal" json:"expiringLocal"`
 }
 
 type IdentifyReasonType int
@@ -1945,7 +1947,7 @@ type Cryptocurrency struct {
 
 type Identity struct {
 	Status          *Status          `codec:"status,omitempty" json:"status,omitempty"`
-	WhenLastTracked int              `codec:"whenLastTracked" json:"whenLastTracked"`
+	WhenLastTracked Time             `codec:"whenLastTracked" json:"whenLastTracked"`
 	Proofs          []IdentifyRow    `codec:"proofs" json:"proofs"`
 	Cryptocurrency  []Cryptocurrency `codec:"cryptocurrency" json:"cryptocurrency"`
 	Revoked         []TrackDiff      `codec:"revoked" json:"revoked"`
@@ -1973,14 +1975,15 @@ type CheckResult struct {
 }
 
 type LinkCheckResult struct {
-	ProofId       int          `codec:"proofId" json:"proofId"`
-	ProofResult   ProofResult  `codec:"proofResult" json:"proofResult"`
-	SnoozedResult ProofResult  `codec:"snoozedResult" json:"snoozedResult"`
-	TorWarning    bool         `codec:"torWarning" json:"torWarning"`
-	Cached        *CheckResult `codec:"cached,omitempty" json:"cached,omitempty"`
-	Diff          *TrackDiff   `codec:"diff,omitempty" json:"diff,omitempty"`
-	RemoteDiff    *TrackDiff   `codec:"remoteDiff,omitempty" json:"remoteDiff,omitempty"`
-	Hint          *SigHint     `codec:"hint,omitempty" json:"hint,omitempty"`
+	ProofId            int          `codec:"proofId" json:"proofId"`
+	ProofResult        ProofResult  `codec:"proofResult" json:"proofResult"`
+	SnoozedResult      ProofResult  `codec:"snoozedResult" json:"snoozedResult"`
+	TorWarning         bool         `codec:"torWarning" json:"torWarning"`
+	TmpTrackExpireTime Time         `codec:"tmpTrackExpireTime" json:"tmpTrackExpireTime"`
+	Cached             *CheckResult `codec:"cached,omitempty" json:"cached,omitempty"`
+	Diff               *TrackDiff   `codec:"diff,omitempty" json:"diff,omitempty"`
+	RemoteDiff         *TrackDiff   `codec:"remoteDiff,omitempty" json:"remoteDiff,omitempty"`
+	Hint               *SigHint     `codec:"hint,omitempty" json:"hint,omitempty"`
 }
 
 type UserCard struct {
@@ -1999,6 +2002,7 @@ type UserCard struct {
 type ConfirmResult struct {
 	IdentityConfirmed bool `codec:"identityConfirmed" json:"identityConfirmed"`
 	RemoteConfirmed   bool `codec:"remoteConfirmed" json:"remoteConfirmed"`
+	ExpiringLocal     bool `codec:"expiringLocal" json:"expiringLocal"`
 }
 
 type DelegateIdentifyUIArg struct {

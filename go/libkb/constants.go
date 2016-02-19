@@ -79,7 +79,8 @@ const (
 	LinkCacheSize              = 0x10000
 	LinkCacheCleanDur          = 1 * time.Minute
 
-	SigShortIDBytes = 27
+	SigShortIDBytes  = 27
+	LocalTrackMaxAge = 48 * time.Hour
 )
 
 var MerkleProdKIDs = []string{

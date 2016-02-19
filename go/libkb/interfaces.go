@@ -63,6 +63,7 @@ type CommandLine interface {
 	GetTorMode() (TorMode, error)
 	GetTorHiddenAddress() string
 	GetTorProxy() string
+	GetLocalTrackMaxAge() (time.Duration, bool)
 
 	// Lower-level functions
 	GetGString(string) string
@@ -146,6 +147,7 @@ type ConfigReader interface {
 	GetUpdatePreferenceSkip() string
 	GetUpdatePreferenceSnoozeUntil() keybase1.Time
 	GetUpdateLastChecked() keybase1.Time
+	GetLocalTrackMaxAge() (time.Duration, bool)
 
 	GetTorMode() (TorMode, error)
 	GetTorHiddenAddress() string

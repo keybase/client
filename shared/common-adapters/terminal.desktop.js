@@ -18,7 +18,8 @@ export default class Terminal extends Component {
 }
 
 Terminal.propTypes = {
-  style: React.PropTypes.object
+  style: React.PropTypes.object,
+  dz2: React.PropTypes.bool
 }
 
 const styles = {
@@ -32,7 +33,7 @@ const styles = {
   },
 
   DZ2: {
-    backgroundColor: globalColorsDZ2.darkBlue3,
+    backgroundColor: globalColorsDZ2.darkBlue3
   }
 }
 

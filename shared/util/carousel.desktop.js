@@ -16,7 +16,7 @@ class CarouselThing extends Component {
   render (): ReactElement {
     return (
       <div style={{...this.props.style}}>
-          <Text style={{margin: 20}} type='Body'>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus sagittis lacus vel augue laoreet.</Text>
+        <Text style={{margin: 20}} type='Body'>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus sagittis lacus vel augue laoreet.</Text>
       </div>
     )
   }

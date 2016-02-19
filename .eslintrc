@@ -1,11 +1,21 @@
 {
+    "env": {
+        "es6": true
+    },
     "parser": "babel-eslint",
     "extends": ["standard", "standard-react"],
+    "parserOptions": {
+        "ecmaVersion": 6,
+        "sourceType": "module",
+        "ecmaFeatures": {
+            "jsx": true
+        }
+    },
     "globals": {
         "__DEV__": false
     },
     "plugins": [
-        "flow-vars", "mocha"
+        "flow-vars", "mocha", "filenames"
     ],
     "rules": {
         "flow-vars/define-flow-type": 1,
@@ -14,6 +24,8 @@
         "standard/array-bracket-even-spacing": [2, "never"],
         "standard/computed-property-even-spacing": [2, "never"],
         "strict": [2, "global"],
-        "arrow-parens": [2, "as-needed"]
+        "arrow-parens": [2, "as-needed"],
+        "react/jsx-no-bind": [2, {"allowArrowFunctions": true}],
+        "filenames/filenames": [2, "^[0-9a-z-.]+(\\.desktop|\\.native|\\.ios|\\.android)?$"]
     }
 }

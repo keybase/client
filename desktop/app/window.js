@@ -1,4 +1,4 @@
-import showDockIcon from './dockIcon'
+import showDockIcon from './dock-icon'
 import menuHelper from './menu-helper'
 import {app, ipcMain, BrowserWindow} from 'electron'
 

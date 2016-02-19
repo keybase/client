@@ -391,7 +391,7 @@ func TestProvisionPaper(t *testing.T) {
 
 	// redo SetupEngineTest to get a new home directory...should look like a new device.
 	tc2 := SetupEngineTest(t, "login")
-	fakeClock := clockwork.NewFakeClock()
+	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc2.G.Clock = fakeClock
 	// to pick up the new clock...
 	tc2.G.ResetLoginState()

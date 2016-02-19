@@ -7,7 +7,7 @@ import * as Constants from '../constants/tracker'
 import {normal, warning, error, checking} from '../constants/tracker'
 import {metaNew, metaUpgraded, metaUnreachable, metaDeleted} from '../constants/tracker'
 
-import {identify} from '../constants/types/keybase_v1'
+import {identify} from '../constants/types/keybase-v1'
 
 import type {UserInfo} from '../tracker/bio.render'
 import type {Proof} from '../tracker/proofs.render'
@@ -323,7 +323,7 @@ function trackDiffToSimpleProofMeta (diff: TrackDiffType): ?SimpleProofMeta {
     [identify.TrackDiffType.none]         : null,
     [identify.TrackDiffType.error]        : null,
     [identify.TrackDiffType.clash]        : null,
-    [identify.TrackDiffType.revoked]      : null,
+    [identify.TrackDiffType.revoked]      : metaDeleted,
     [identify.TrackDiffType.upgraded]     : metaUpgraded,
     [identify.TrackDiffType.new]          : metaNew,
     [identify.TrackDiffType.remotefail]   : null,

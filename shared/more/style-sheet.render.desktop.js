@@ -184,7 +184,7 @@ class DZ2Font extends Component {
               <Text dz2 inline type='BodySmall'>Word word word word word&nbsp;</Text>
               <Text dz2 inline type='Terminal'>inline command line&nbsp;</Text>
               <Text dz2 inline type='TerminalUsername'>username&nbsp;</Text>
-              <Text dz2 inline type='TerminalPrivate'>{`'secret'`}</Text>
+              <Text dz2 inline type='TerminalPrivate'>{"'secret'"}</Text>
             </p>
           </div>
           <Terminal dz2 style={{flex: 1, overflow: 'scroll'}}>

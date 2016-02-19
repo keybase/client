@@ -9,7 +9,6 @@ const defines = {
   '__VERSION__': JSON.stringify('Development')
 }
 
-
 config.entry = {
   test: ['./shared/test/index.js']
 }

@@ -124,10 +124,14 @@ func (e *TrackToken) Run(ctx *Context) (err error) {
 
 	e.G().Log.Debug("| Tracking statement: %s", string(e.trackStatementBytes))
 
-	if e.arg.Options.LocalOnly {
+	if e.arg.Options.LocalOnly || e.arg.Options.ExpiringLocal {
+		e.G().Log.Debug("| Local")
 		err = e.storeLocalTrack()
 	} else {
 		err = e.storeRemoteTrack(ctx)
+		if err != nil {
+			e.removeLocalTracks()
+		}
 	}
 
 	if err == nil {
@@ -153,9 +157,10 @@ func (e *TrackToken) isTrackTokenStale(o *libkb.IdentifyOutcome) (err error) {
 		return libkb.TrackStaleError{FirstTrack: true}
 	} else if o.TrackUsed == nil || lastTrack == nil {
 		return nil
-	} else if o.TrackUsed.GetTrackerSeqno() != lastTrack.GetSeqno() {
+	} else if o.TrackUsed.GetTrackerSeqno() < lastTrack.GetSeqno() {
 		// Similarly, if there was a last track for this user that wasn't the
 		// one we were expecting, someone also must have intervened.
+		e.G().Log.Debug("Stale track! We were at seqno %d, but %d is already in chain", o.TrackUsed.GetTrackerSeqno(), lastTrack.GetSeqno())
 		return libkb.TrackStaleError{FirstTrack: false}
 	}
 	return nil
@@ -184,7 +189,7 @@ func (e *TrackToken) loadThem(username string) error {
 }
 
 func (e *TrackToken) storeLocalTrack() error {
-	return libkb.StoreLocalTrack(e.arg.Me.GetUID(), e.them.GetUID(), e.trackStatement, e.G())
+	return libkb.StoreLocalTrack(e.arg.Me.GetUID(), e.them.GetUID(), e.arg.Options.ExpiringLocal, e.trackStatement, e.G())
 }
 
 func (e *TrackToken) storeRemoteTrack(ctx *Context) (err error) {
@@ -235,5 +240,11 @@ func (e *TrackToken) storeRemoteTrack(ctx *Context) (err error) {
 	linkid := libkb.ComputeLinkID(e.trackStatementBytes)
 	e.arg.Me.SigChainBump(linkid, sigid)
 
+	return err
+}
+
+func (e *TrackToken) removeLocalTracks() (err error) {
+	defer e.G().Trace("removeLocalTracks", func() error { return err })()
+	err = libkb.RemoveLocalTracks(e.arg.Me.GetUID(), e.them.GetUID(), e.G())
 	return err
 }

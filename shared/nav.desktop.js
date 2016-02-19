@@ -59,6 +59,10 @@ class Nav extends Component {
   constructor (props) {
     super(props)
     this.props.startup()
+
+    // Restartup when we connect online.
+    // If you startup while offline, you'll stay in an errored state
+    window.addEventListener('online', this.props.startup)
   }
 
   _handleTabsChange (e, key, payload) {
@@ -118,19 +122,19 @@ class Nav extends Component {
           valueLink={{value: activeTab, requestChange: this._handleTabsChange.bind(this)}}
           contentContainerStyle={styles.tab}
           tabTemplate={TabTemplate}>
-          { Object.keys(tabs).map(tab => {
+          {Object.keys(tabs).map(tab => {
             const {module, name} = tabs[tab]
             return (
               <Tab label={name} value={tab} key={tab} >
-                { activeTab === tab &&
+                {activeTab === tab &&
                   <MetaNavigator
                     tab={tab}
                     globalRoutes={globalRoutes}
                     rootComponent={module || NoTab}
-                  /> }
+                  />}
               </Tab>
             )
-          }) }
+          })}
         </Tabs>
       </div>
     )

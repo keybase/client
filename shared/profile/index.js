@@ -14,9 +14,9 @@ class Profile extends Component {
           <Text>keybase.io/{this.props.username}</Text>
           <Text>Full Name: {this.props.summary.get('fullName')}</Text>
           <Text>Bio: {this.props.summary.get('bio')}</Text>
-          { this.props.proofs.map((details, proof) => {
+          {this.props.proofs.map((details, proof) => {
             return (<Text>{proof}: {details.get('display')}{details.get('warning')}{details.get('error')} </Text>)
-          }) }
+          })}
         </View>
       </ScrollView>
     )

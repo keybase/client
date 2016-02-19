@@ -339,7 +339,8 @@ export const identify = {
     'remoteFail': 6,
     'remoteWorking': 7,
     'remoteChanged': 8,
-    'newEldest': 9
+    'newEldest': 9,
+    'noneViaTemporary': 10
   },
   'TrackStatus': {
     'newOk': 1,
@@ -448,7 +449,8 @@ export const identifyUi = {
     'remoteFail': 6,
     'remoteWorking': 7,
     'remoteChanged': 8,
-    'newEldest': 9
+    'newEldest': 9,
+    'noneViaTemporary': 10
   },
   'TrackStatus': {
     'newOk': 1,
@@ -818,7 +820,8 @@ export const pgp = {
     'remoteFail': 6,
     'remoteWorking': 7,
     'remoteChanged': 8,
-    'newEldest': 9
+    'newEldest': 9,
+    'noneViaTemporary': 10
   },
   'TrackStatus': {
     'newOk': 1,
@@ -951,7 +954,8 @@ export const prove = {
     'remoteFail': 6,
     'remoteWorking': 7,
     'remoteChanged': 8,
-    'newEldest': 9
+    'newEldest': 9,
+    'noneViaTemporary': 10
   },
   'TrackStatus': {
     'newOk': 1,
@@ -1155,7 +1159,8 @@ export const saltpack = {
     'remoteFail': 6,
     'remoteWorking': 7,
     'remoteChanged': 8,
-    'newEldest': 9
+    'newEldest': 9,
+    'noneViaTemporary': 10
   },
   'TrackStatus': {
     'newOk': 1,
@@ -1397,7 +1402,8 @@ export const track = {
     'remoteFail': 6,
     'remoteWorking': 7,
     'remoteChanged': 8,
-    'newEldest': 9
+    'newEldest': 9,
+    'noneViaTemporary': 10
   },
   'TrackStatus': {
     'newOk': 1,

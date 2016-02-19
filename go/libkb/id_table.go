@@ -386,10 +386,11 @@ func remoteProofInsertIntoTable(l RemoteProofChainLink, tab *IdentityTable) {
 //
 type TrackChainLink struct {
 	GenericChainLink
-	whomUsername string
-	whomUID      keybase1.UID
-	untrack      *UntrackChainLink
-	local        bool
+	whomUsername  string
+	whomUID       keybase1.UID
+	untrack       *UntrackChainLink
+	local         bool
+	tmpExpireTime time.Time // should only be relevant if local is set to true
 }
 
 func (l TrackChainLink) IsRemote() bool {
@@ -410,7 +411,7 @@ func ParseTrackChainLink(b GenericChainLink) (ret *TrackChainLink, err error) {
 		return
 	}
 
-	ret = &TrackChainLink{b, whomUsername, whomUID, nil, false}
+	ret = &TrackChainLink{b, whomUsername, whomUID, nil, false, time.Time{}}
 	return
 }
 
@@ -418,6 +419,13 @@ func (l *TrackChainLink) Type() string { return "track" }
 
 func (l *TrackChainLink) ToDisplayString() string {
 	return l.whomUsername
+}
+
+func (l *TrackChainLink) GetTmpExpireTime() (ret time.Time) {
+	if l.local {
+		ret = l.tmpExpireTime
+	}
+	return ret
 }
 
 func (l *TrackChainLink) insertIntoTable(tab *IdentityTable) {
@@ -1200,16 +1208,18 @@ func (idt *IdentityTable) identifyActiveProof(lcr *LinkCheckResult, is IdentifyS
 }
 
 type LinkCheckResult struct {
-	hint              *SigHint
-	cached            *CheckResult
-	err               ProofError
-	snoozedErr        ProofError
-	diff              TrackDiff
-	remoteDiff        TrackDiff
-	link              RemoteProofChainLink
-	trackedProofState keybase1.ProofState
-	position          int
-	torWarning        bool
+	hint                 *SigHint
+	cached               *CheckResult
+	err                  ProofError
+	snoozedErr           ProofError
+	diff                 TrackDiff
+	remoteDiff           TrackDiff
+	link                 RemoteProofChainLink
+	trackedProofState    keybase1.ProofState
+	tmpTrackedProofState keybase1.ProofState
+	tmpTrackExpireTime   time.Time
+	position             int
+	torWarning           bool
 }
 
 func (l LinkCheckResult) GetDiff() TrackDiff            { return l.diff }
@@ -1220,15 +1230,24 @@ func (l LinkCheckResult) GetPosition() int              { return l.position }
 func (l LinkCheckResult) GetTorWarning() bool           { return l.torWarning }
 func (l LinkCheckResult) GetLink() RemoteProofChainLink { return l.link }
 
-func ComputeRemoteDiff(tracked, observed keybase1.ProofState) TrackDiff {
+// ComputeRemoteDiff takes as input three tracking results: the permanent track,
+// the local temporary track, and the one it observed remotely. It favors the
+// permenant track but will roll back to the temporary track if needs be.
+func (idt *IdentityTable) ComputeRemoteDiff(tracked, trackedTmp, observed keybase1.ProofState) (ret TrackDiff) {
+	idt.G().Log.Debug("+ ComputeRemoteDiff(%v,%v,%v)", tracked, trackedTmp, observed)
 	if observed == tracked {
-		return TrackDiffNone{}
+		ret = TrackDiffNone{}
+	} else if observed == trackedTmp {
+		ret = TrackDiffNoneViaTemporary{}
 	} else if observed == keybase1.ProofState_OK {
-		return TrackDiffRemoteWorking{tracked}
+		ret = TrackDiffRemoteWorking{tracked}
 	} else if tracked == keybase1.ProofState_OK {
-		return TrackDiffRemoteFail{observed}
+		ret = TrackDiffRemoteFail{observed}
+	} else {
+		ret = TrackDiffRemoteChanged{tracked, observed}
 	}
-	return TrackDiffRemoteChanged{tracked, observed}
+	idt.G().Log.Debug("- ComputeRemoteDiff(%v,%v,%v) -> (%+v,(%T))", tracked, trackedTmp, observed, ret, ret)
+	return ret
 }
 
 func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack, forceRemoteCheck bool, res *LinkCheckResult) {
@@ -1242,7 +1261,14 @@ func (idt *IdentityTable) proofRemoteCheck(hasPreviousTrack, forceRemoteCheck bo
 
 		if hasPreviousTrack {
 			observedProofState := ProofErrorToState(res.err)
-			res.remoteDiff = ComputeRemoteDiff(res.trackedProofState, observedProofState)
+			res.remoteDiff = idt.ComputeRemoteDiff(res.trackedProofState, res.tmpTrackedProofState, observedProofState)
+
+			// If the remote diff only worked out because of the temporary track, then
+			// also update the local diff (i.e., the difference between what we tracked
+			// and what Keybase is saying) accordingly.
+			if _, ok := res.remoteDiff.(TrackDiffNoneViaTemporary); ok {
+				res.diff = res.remoteDiff
+			}
 		}
 
 		if doCache {

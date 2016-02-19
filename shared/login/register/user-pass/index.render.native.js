@@ -22,7 +22,7 @@ export default class UserPassRender extends Component {
           autoCorrect={false}
           enablesReturnKeyAutomatically
           onChangeText={passphrase => this.props.onChangePassphrase(passphrase)}
-          onSubmitEditing={() => this.props.onSubmit() }
+          onSubmitEditing={() => this.props.onSubmit()}
           ref='passphrase'
           returnKeyType='done'
           secureTextEntry

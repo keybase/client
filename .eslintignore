@@ -1,0 +1,11 @@
+/desktop/build/**
+/desktop/release/**
+/desktop/node_modules
+/react-native/node_modules
+/shared/libs/immutable-interface.js
+/git-hooks
+/go
+/media
+/osx
+/packaging
+/protocol

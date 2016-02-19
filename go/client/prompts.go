@@ -47,6 +47,7 @@ const (
 	PromptDescriptorUpdateSnooze
 	PromptDescriptorDecryptInteractive
 	PromptDescriptorPGPGenEnterID
+	PromptDescriptorTrackExpireLocal
 )
 
 const (

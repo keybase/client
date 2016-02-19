@@ -178,6 +178,9 @@ func (e *Identify) run(ctx *Context) (*libkb.IdentifyOutcome, error) {
 		}
 		if tlink != nil {
 			is.SetTrackLookup(tlink)
+			if ttcl, _ := e.me.TmpTrackChainLinkFor(e.user.GetName(), e.user.GetUID()); ttcl != nil {
+				is.SetTmpTrackLookup(ttcl)
+			}
 		}
 	}
 

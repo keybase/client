@@ -29,7 +29,7 @@ let fileWritable = null
 if (logFile) {
   fs.access(logFile, fs.W_OK, err => {
     if (err && !fileDoesNotExist(err)) {
-      console.log(`Can't write to log file.`, err)
+      console.log("Can't write to log file.", err)
       fileWritable = null
       return
     }
@@ -54,10 +54,9 @@ function tee (...writeFns) {
   return t => writeFns.forEach(w => w(t))
 }
 
-const stdErrWriter = process.platform === 'win32' ? () => {} : t => process.stderr.write(t + '\n')
-const stdOutWriter = process.platform === 'win32' ? () => {} : t => process.stdout.write(t + '\n')
-const logFileWriter = t => fileWritable && fileWritable.write(t + '\n')
-const logFileWriterNoNewline = t => fileWritable && fileWritable.write(t)
+const stdErrWriter = process.platform === 'win32' ? () => {} : t => process.stderr.write(t)
+const stdOutWriter = process.platform === 'win32' ? () => {} : t => process.stdout.write(t)
+const logFileWriter = t => fileWritable && fileWritable.write(t)
 
 // override console logging to also go to stdout
 const output = {
@@ -75,7 +74,7 @@ export default function pipeLogs () {
     console[k] = (...args) => {
       if (args.length) {
         const out = output[k] || stdOutWriter
-        out(`${k}: ${Date()} (${Date.now()}): ${util.format.apply(util, args)}`)
+        out(`${k}: ${Date()} (${Date.now()}): ${util.format.apply(util, args)}\n`)
       }
     }
   })
@@ -89,22 +88,22 @@ export function ipcLogs () {
 
   ipcMain.on('console.log', (event, args) => {
     const prologue = `From ${event.sender.getTitle()}: `
-    process.stdout.write(prologue)
-    logFileWriterNoNewline(prologue)
+    stdOutWriter(prologue)
+    logFileWriter(prologue)
     console.log.apply(console, args)
   })
 
   ipcMain.on('console.warn', (event, args) => {
     const prologue = `From ${event.sender.getTitle()}: `
-    process.stdout.write(prologue)
-    logFileWriterNoNewline(prologue)
+    stdOutWriter(prologue)
+    logFileWriter(prologue)
     console.log.apply(console, args)
   })
 
   ipcMain.on('console.error', (event, args) => {
     const prologue = `From ${event.sender.getTitle()}: `
-    process.stdout.write(prologue)
-    logFileWriterNoNewline(prologue)
+    stdOutWriter(prologue)
+    logFileWriter(prologue)
     console.log.apply(console, args)
   })
 }
@@ -113,7 +112,7 @@ export function ipcLogsRenderer () {
   if (!forwardLogs) { // eslint-disable-line no-undef
     return
   }
-  window.console.log = (...args) => { try { originalConsole.log.apply(console, args); ipcRenderer.send('console.log', args) } catch (_) {debugger;} }
+  window.console.log = (...args) => { try { originalConsole.log.apply(console, args); ipcRenderer.send('console.log', args) } catch (_) {} }
   window.console.warn = (...args) => { try { originalConsole.warn.apply(console, args); ipcRenderer.send('console.warn', args) } catch (_) {} }
   window.console.error = (...args) => { try { originalConsole.error.apply(console, args); ipcRenderer.send('console.error', args) } catch (_) {} }
 }

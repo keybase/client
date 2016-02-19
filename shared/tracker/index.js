@@ -6,6 +6,7 @@ import Render from './render'
 
 import * as trackerActions from '../actions/tracker'
 import {bindActionCreators} from 'redux'
+import {metaNone} from '../constants/tracker'
 
 import type {RenderProps} from './render'
 import type {UserInfo} from './bio.render'
@@ -37,7 +38,7 @@ type TrackerProps = {
   lastTrack: ?TrackSummary,
   startTimer: () => void,
   stopTimer: () => void,
-  currentlyFollowing: ?boolean
+  currentlyFollowing: boolean
 }
 
 class Tracker extends Component {
@@ -58,8 +59,11 @@ class Tracker extends Component {
 
     const renderChangedTitle = this.props.trackerMessage
     const failedProofsNotFollowingText = `Some of ${this.props.username}'s proofs couldn't be verified. Track the working proofs?`
+    const currentlyFollowing = flags.tracker2 ? this.props.currentlyFollowing || false : !!this.props.lastTrack
 
-    const currentlyFollowing = this.props.currentlyFollowing || false
+    const changed = !this.props.proofs.every(function (proof, index, ar) {
+      return (!proof.meta || proof.meta === metaNone)
+    })
 
     const renderProps: RenderProps = {
       bioProps: {
@@ -71,7 +75,8 @@ class Tracker extends Component {
         reason: this.props.reason,
         onClose: () => this.props.onClose(this.props.username),
         trackerState: this.props.trackerState,
-        currentlyFollowing
+        currentlyFollowing,
+        changed
       },
       actionProps: {
         loggedIn: this.props.loggedIn,
@@ -86,11 +91,12 @@ class Tracker extends Component {
         onUnfollow: () => this.props.onUnfollow(this.props.username),
         onFollowHelp: () => this.props.onFollowHelp(this.props.username),
         onFollowChecked: checked => this.props.onFollowChecked(checked, this.props.username),
-        currentlyFollowing: flags.tracker2 ? currentlyFollowing : !!this.props.lastTrack
+        currentlyFollowing
       },
       proofsProps: {
         username: this.props.username,
-        proofs: this.props.proofs
+        proofs: this.props.proofs,
+        currentlyFollowing
       }
     }
 

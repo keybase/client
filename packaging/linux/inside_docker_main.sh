@@ -18,7 +18,7 @@ tag="${2:-}"
 client_copy="/root/client"
 kbfs_copy="/root/kbfs"
 serverops_copy="/root/server-ops"
-build_dir="/root/build_keybase"
+build_dir="/root/build"
 
 # Import the code signing key, kick off the gpg agent, and sign an empty
 # message with it. This makes the password prompt happen now, so that we don't

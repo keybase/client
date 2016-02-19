@@ -5,7 +5,7 @@ import React, {Component} from 'react'
 import Header from './header.render.desktop'
 import Action from './action.render.desktop'
 import Bio from './bio.render.desktop'
-import Proofs from './proofs.render.desktop'
+import {ProofsRender, ProofsRender2} from './proofs.render.desktop'
 import commonStyles from '../styles/common'
 import flags from '../util/feature-flags'
 
@@ -27,7 +27,7 @@ export default class Render extends Component {
         <Header {...this.props.headerProps} />
         <div style={styles.bodyContainer}>
           <Bio {...this.props.bioProps} />
-          <Proofs {...this.props.proofsProps} />
+          <ProofsRender {...this.props.proofsProps} />
         </div>
         <Action {...this.props.actionProps} />
       </div>
@@ -38,9 +38,9 @@ export default class Render extends Component {
     return (
       <div style={styles.container}>
         <Header {...this.props.headerProps} />
-        <div style={styles.content} className="hide-scrollbar">
+        <div style={styles.content} className='hide-scrollbar'>
           <Bio {...this.props.bioProps} />
-          <Proofs {...this.props.proofsProps} />
+          <ProofsRender2 {...this.props.proofsProps} />
         </div>
         <div style={styles.footer}>
           <Action {...this.props.actionProps} />

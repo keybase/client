@@ -4,7 +4,7 @@ import * as Constants from '../constants/update'
 import engine from '../engine'
 import moment from 'moment'
 
-import {updateUi} from '../constants/types/keybase_v1'
+import {updateUi} from '../constants/types/keybase-v1'
 import type {delegateUiCtl_registerUpdateUI_rpc, incomingCallMapType} from '../constants/types/flow-types'
 import type {ShowUpdateAction, RegisterUpdateListenerAction, OnCancelAction, OnSkipAction,
   OnSnoozeAction, OnUpdateAction, SetAlwaysUpdateAction} from '../constants/update'

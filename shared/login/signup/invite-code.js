@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import {bindActionCreators} from 'redux'
 
-import Render from './inviteCode.render'
+import Render from './invite-code.render'
 import * as signupActions from '../../actions/signup'
 
 class InviteCode extends Component {

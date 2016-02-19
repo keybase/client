@@ -39,7 +39,10 @@ export default callback => {
     }
 
     var cmd = [installerExec, '--app-path=' + appBundlePath, '--run-mode=' + runMode].join(' ')
+    console.log('Running installer: ', cmd)
     var installerProcess = exec(cmd, function (execErr, stdout, stderr) {
+      console.log('Installer (stdout):', stdout)
+      console.log('Installer (stderr):', stderr)
       if (execErr) {
         console.log('Installer (err):', execErr)
         if (execErr.code === 1) {
@@ -51,9 +54,6 @@ export default callback => {
         callback(execErr)
         return
       }
-
-      console.log('Installer (stdout):', stdout)
-      console.log('Installer (stderr):', stderr)
       callback(null)
     })
 

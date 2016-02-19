@@ -6,5 +6,6 @@ export type HeaderProps = {
   reason: string,
   onClose: () => void,
   trackerState: SimpleProofState,
-  currentlyFollowing: boolean
+  currentlyFollowing: boolean,
+  changed: boolean
 }

@@ -3,7 +3,22 @@ import path from 'path'
 import child_process, {execSync} from 'child_process'
 import fs from 'fs'
 
-const [,,command, ...rest] = process.argv
+const postinstallGlobals = {
+  'eslint/eslint': '#798ac54518ff161e5ff3394fc62c55200d7e6f64', // need fix for https://github.com/eslint/eslint/issues/5261, can go mainline soon
+  'eslint-config-standard': '@5.1.0',
+  'eslint-config-standard-react': '@2.3.0',
+  'eslint-plugin-mocha': '@2.0.0',
+  'eslint-plugin-babel': '@3.1.0',
+  'eslint-plugin-filenames': '@0.2.0',
+  'eslint-plugin-react': '@3.16.1',
+  'eslint-plugin-standard': '@1.3.2',
+  'eslint-plugin-promise': '@1.0.8',
+  'eslint-config-standard-jsx': '@1.1.1',
+  'babel-eslint': '@5.0.0',
+  'marudor/eslint-plugin-flow-vars': '#eslint-2.0' // this is a PR that makes it compat w/ eslint 2.*
+}
+
+const [,, command, ...rest] = process.argv
 
 const inject = info => {
   let temp = {
@@ -75,7 +90,7 @@ const commands = {
     help: 'Start electron with no hot reloading'
   },
   'build-dev': {
-    env: {NO_SERVER:'true', DEBUG: 'express:*'},
+    env: {NO_SERVER: 'true', DEBUG: 'express:*'},
     nodeEnv: 'production',
     nodePathDesktop: true,
     shell: 'node server.js',
@@ -131,9 +146,18 @@ const commands = {
     help: 'Rebuild electron native code'
   },
   'postinstall': {
-    help: 'Window: fixup symlinks, others: nothing',
-    code: (process.platform === 'win32') ? fixupSymlinks : () => {}
+    help: 'Window: fixup symlinks, all: install global eslint',
+    code: postInstall
   }
+}
+
+function postInstall () {
+  if (process.platform === 'win32') {
+    fixupSymlinks()
+  }
+
+  const modules = Object.keys(postinstallGlobals).map(k => `${k}${postinstallGlobals[k]}`).join(' ')
+  exec(`npm install -g ${modules}`)
 }
 
 function setupDebugMain () {
@@ -141,8 +165,8 @@ function setupDebugMain () {
   try {
     electronVer = child_process.execSync('npm list --dev electron-prebuilt', {encoding: 'utf8'}).match(/electron-prebuilt@([0-9.]+)/)[1]
     console.log(`Found electron-prebuilt version: ${electronVer}`)
-  } catch(err) {
-    console.log(`Couldn't figure out electron`)
+  } catch (err) {
+    console.log("Couldn't figure out electron")
     process.exit(1)
   }
 

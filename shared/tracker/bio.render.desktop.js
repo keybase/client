@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import {Paper} from 'material-ui'
 import {Text} from '../common-adapters'
 import commonStyles, {colors} from '../styles/common'
-import {globalColors, globalStyles} from '../styles/style-guide'
+import {globalStyles, globalColorsDZ2} from '../styles/style-guide'
 import resolveRoot from '../../desktop/resolve-root'
 import electron from 'electron'
 import flags from '../util/feature-flags'
@@ -54,8 +54,23 @@ export default class BioRender extends Component {
     )
   }
 
+  followLabel (): ?string {
+    const {userInfo, currentlyFollowing} = this.props
+
+    if (userInfo.followsYou && currentlyFollowing) {
+      return 'You follow each other'
+    } else if (userInfo.followsYou) {
+      return 'Follows you'
+    }
+
+    return null
+  }
+
   render2 (styles: Object): ReactElement {
-    const {username, userInfo} = this.props
+    const {username, userInfo, currentlyFollowing} = this.props
+
+    const followsYou = userInfo.followsYou
+    const followLabel = this.followLabel()
 
     return (
       <div style={styles.outer}>
@@ -64,41 +79,41 @@ export default class BioRender extends Component {
             <Paper onClick={() => this.onClickAvatar()} style={styles.avatarContainer} zDepth={1} circle>
               <img src={(userInfo.avatar) || noAvatar} style={styles.avatar}/>
             </Paper>
-            { (userInfo.followsYou || this.props.currentlyFollowing) &&
+            {(followsYou || currentlyFollowing) &&
               <div>
-                <div style={userInfo.followsYou ? {...followBadgeStyles.followBadge, ...followBadgeStyles.followsYou} : {...followBadgeStyles.followBadge, ...followBadgeStyles.notFollowsYou}} />
-                <div style={this.props.currentlyFollowing ? {...followBadgeStyles.followBadge, ...followBadgeStyles.following} : {...followBadgeStyles.followBadge, ...followBadgeStyles.notFollowing}} />
+                <div style={followsYou ? {...followBadgeStyles.followBadge, ...followBadgeStyles.followsYou} : {...followBadgeStyles.followBadge, ...followBadgeStyles.notFollowsYou}} />
+                <div style={currentlyFollowing ? {...followBadgeStyles.followBadge, ...followBadgeStyles.following} : {...followBadgeStyles.followBadge, ...followBadgeStyles.notFollowing}} />
               </div>
             }
           </div>
-        <div style={styles.content}>
-          <Text type='Body' style={styles.username}>{username}</Text>
-          <Text type='Body' style={styles.fullname}>{userInfo.fullname}</Text>
-          { userInfo.followsYou &&
-            <Text type='Body' style={styles.followsYou}>FOLLOWS YOU</Text>
-          }
-          <Text type='Body' style={styles.following}>
-            <span className='hover-underline' onClick={() => this.onClickFollowers()}>
-              {userInfo.followersCount} Followers
-            </span>
-            &nbsp;
-            &middot;
-            &nbsp;
-            <span className='hover-underline' onClick={() => this.onClickFollowing()}>
-              Following {userInfo.followingCount}
-            </span>
-          </Text>
-          { userInfo.bio &&
-            <Text type='Body' style={styles.bio} lineClamp={userInfo.location ? 2 : 3}>
-              {userInfo.bio}
+          <div style={styles.content}>
+            <Text type='HeaderBig' dz2 style={{...styles.username, ...(currentlyFollowing ? styles.usernameFollowing : styles.usernameNotFollowing)}}>{username}</Text>
+            <Text type='BodySemibold' dz2 style={styles.fullname}>{userInfo.fullname}</Text>
+            {followLabel &&
+              <Text type='BodySmall' dz2 style={styles.followLabel}>{followLabel}</Text>
+            }
+            <Text type='BodySmall' dz2 style={styles.following}>
+              <span className='hover-underline' onClick={() => this.onClickFollowers()}>
+                {userInfo.followersCount} Followers
+              </span>
+              &nbsp;
+              &middot;
+              &nbsp;
+              <span className='hover-underline' onClick={() => this.onClickFollowing()}>
+                Following {userInfo.followingCount}
+              </span>
             </Text>
-          }
-          { userInfo.location &&
-            <Text type='Body' style={styles.location} lineClamp={1}>{userInfo.location}</Text>
-          }
+            {userInfo.bio &&
+              <Text type='BodySmall' dz2 style={styles.bio} lineClamp={userInfo.location ? 2 : 3}>
+                {userInfo.bio}
+              </Text>
+            }
+            {userInfo.location &&
+              <Text type='BodySmall' dz2 style={styles.location} lineClamp={1}>{userInfo.location}</Text>
+            }
+          </div>
         </div>
       </div>
-    </div>
     )
   }
 }
@@ -138,10 +153,7 @@ const styles1 = {
     marginTop: -10
   },
   fullname: {
-    ...commonStyles.fontBold,
-    color: colors.lightBlue,
-    fontSize: 18,
-    lineHeight: '22px',
+    fontSize: 16,
     margin: 0,
     marginTop: 4,
     textAlign: 'center'
@@ -180,8 +192,7 @@ const styles2 = {
     alignItems: 'center',
     justifyContent: 'center',
     width: 320,
-    marginTop: -35,
-    marginBottom: 18
+    marginTop: -35
   },
   avatarOuter: {
     width: 70,
@@ -202,57 +213,45 @@ const styles2 = {
     height: 70
   },
   content: {
-    backgroundColor: globalColors.white,
+    backgroundColor: globalColorsDZ2.white,
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
     justifyContent: 'center',
     width: 320,
     marginTop: -35,
     paddingTop: 35,
+    paddingBottom: 18,
     zIndex: 1
   },
   username: {
-    fontWeight: 500,
-    letterSpacing: '0.3px',
-    color: colors.orange,
-    fontSize: 24,
-    marginTop: 7,
-    height: '29px'
+    marginTop: 7
+  },
+  usernameFollowing: {
+    color: globalColorsDZ2.green2
+  },
+  usernameNotFollowing: {
+    color: globalColorsDZ2.orange
   },
   fullname: {
-    fontWeight: 470,
-    fontSize: 16,
-    color: globalColors.grey1,
-    lineHeight: '21px',
-    textAlign: 'center'
+    textAlign: 'center',
+    color: '#444444'
   },
-  followsYou: {
+  followLabel: {
     fontSize: 11,
-    opacity: 0.6,
-    color: globalColors.grey1
+    textTransform: 'uppercase'
   },
   following: {
-    ...globalStyles.clickable,
-    opacity: 0.6,
-    color: globalColors.grey1,
-    fontSize: 14
+    ...globalStyles.clickable
   },
   bio: {
-    color: '#353d4c',
-    opacity: 0.6,
-    fontSize: 14,
-    lineHeight: '18px',
     paddingLeft: 30,
     paddingRight: 30,
     textAlign: 'center'
   },
   location: {
-    color: '#353d4c',
-    opacity: 0.6,
-    fontSize: 14,
-    textAlign: 'center',
     paddingLeft: 30,
-    paddingRight: 30
+    paddingRight: 30,
+    textAlign: 'center'
   }
 }
 
@@ -269,21 +268,21 @@ const followBadgeStyles = {
   followsYou: {
     top: 52,
     left: 55,
-    background: globalColors.green
+    background: globalColorsDZ2.green2
   },
   notFollowsYou: {
     top: 52,
     left: 55,
-    background: globalColors.grey3
+    background: '#ccc'
   },
   following: {
     top: 57,
     left: 48,
-    background: globalColors.green
+    background: globalColorsDZ2.green2
   },
   notFollowing: {
     top: 57,
     left: 48,
-    background: globalColors.grey3
+    background: '#ccc'
   }
 }
