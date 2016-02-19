@@ -1,5 +1,6 @@
 ## 1.0.14
 - Fix crasher on passphrase recover on Linux (PR: keybase/client#2062)
+- Local snooze for broken remote proofs (PR: keybase/client#1934)
 
 ## 1.0.13 (2016-02-17)
 - Fix service not restarting after version mismatch check
