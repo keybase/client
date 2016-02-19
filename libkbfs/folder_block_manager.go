@@ -580,20 +580,18 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 
 func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 	timer := time.NewTimer(fbm.config.QuotaReclamationPeriod())
+	timerChan := timer.C
 	for {
 		// Don't let the timer fire if auto-reclamation is turned off.
 		if fbm.config.QuotaReclamationPeriod().Seconds() == 0 {
 			timer.Stop()
-			// Drain any event we missed
-			select {
-			case <-timer.C:
-			default:
-			}
+			// Use a channel that will never fire instead.
+			timerChan = make(chan time.Time)
 		}
 		select {
 		case <-fbm.shutdownChan:
 			return
-		case <-timer.C:
+		case <-timerChan:
 			fbm.reclamationGroup.Add(1)
 		case <-fbm.forceReclamationChan:
 		}
