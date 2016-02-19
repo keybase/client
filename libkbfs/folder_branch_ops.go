@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"errors"
 	"fmt"
+	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
@@ -642,13 +643,14 @@ func (fbo *folderBranchOps) getMDForReadHelper(
 	if err != nil {
 		return nil, err
 	}
-
-	username, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if !md.GetTlfHandle().IsReader(uid) {
-		return nil, NewReadAccessError(ctx, fbo.config, md.GetTlfHandle(), username)
+	if !md.ID.IsPublic() {
+		username, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
+		if err != nil {
+			return nil, err
+		}
+		if !md.GetTlfHandle().IsReader(uid) {
+			return nil, NewReadAccessError(ctx, fbo.config, md.GetTlfHandle(), username)
+		}
 	}
 	return md, nil
 }
@@ -1323,7 +1325,7 @@ func (fbo *folderBranchOps) pathFromNodeForMDWriteLocked(
 func (fbo *folderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 	children map[string]EntryInfo, err error) {
 	fbo.log.CDebugf(ctx, "GetDirChildren %p", dir.GetID())
-	defer func() { fbo.log.CDebugf(ctx, "Done: %v", err) }()
+	defer func() { fbo.log.CDebugf(ctx, "Done GetDirChildren: %v", err) }()
 
 	err = fbo.checkNode(dir)
 	if err != nil {
@@ -1331,6 +1333,12 @@ func (fbo *folderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 	}
 
 	err = runUnlessCanceled(ctx, func() error {
+		var err error
+		defer func() {
+			if err != nil {
+				fbo.log.CDebugf(ctx, "Stack: %s", string(debug.Stack()))
+			}
+		}()
 		lState := makeFBOLockState()
 
 		md, err := fbo.getMDForReadNeedIdentify(ctx, lState)

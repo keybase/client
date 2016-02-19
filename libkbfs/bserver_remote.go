@@ -87,7 +87,8 @@ func (b *BlockServerRemote) OnConnect(ctx context.Context,
 	// get a new signature
 	signature, err := b.authToken.Sign(ctx, challenge)
 	if err != nil {
-		return err
+		b.log.Warning("BServerRemote: error signing authentication token: %#v", err)
+		return nil
 	}
 
 	return c.AuthenticateSession(ctx, signature)

@@ -76,7 +76,7 @@ func ParseTlfID(s string) TlfID {
 	var id TlfID
 	err = id.UnmarshalBinary(bytes)
 	if err != nil {
-		id = TlfID{}
+		return NullTlfID
 	}
 	return id
 }

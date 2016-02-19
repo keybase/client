@@ -84,7 +84,7 @@ func NewMDServerRemote(config Config, srvAddr string) *MDServerRemote {
 // OnConnect implements the ConnectionHandler interface.
 func (md *MDServerRemote) OnConnect(ctx context.Context,
 	conn *Connection, client keybase1.GenericClient,
-	server *rpc.Server) error {
+	server *rpc.Server) (err error) {
 
 	md.log.Debug("MDServerRemote: OnConnect called with a new connection")
 
@@ -97,21 +97,23 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 	}
 	md.log.Debug("MDServerRemote: received challenge")
 
+	pingIntervalSeconds := 0
+
 	// get a new signature
 	signature, err := md.authToken.Sign(ctx, challenge)
 	if err != nil {
 		md.log.Warning("MDServerRemote: error signing authentication token: %v", err)
-		return err
-	}
-	md.log.Debug("MDServerRemote: authentication token signed")
+	} else {
+		md.log.Debug("MDServerRemote: authentication token signed")
 
-	// authenticate
-	pingIntervalSeconds, err := c.Authenticate(ctx, signature)
-	if err != nil {
-		md.log.Warning("MDServerRemote: authentication error: %v", err)
-		return err
+		// authenticate
+		pingIntervalSeconds, err = c.Authenticate(ctx, signature)
+		if err != nil {
+			md.log.Warning("MDServerRemote: authentication error: %v", err)
+			return err
+		}
+		md.log.Debug("MDServerRemote: authentication successful; ping interval: %ds", pingIntervalSeconds)
 	}
-	md.log.Debug("MDServerRemote: authentication successful; ping interval: %ds", pingIntervalSeconds)
 
 	// we'll get replies asynchronously as to not block the connection
 	// for doing other active work for the user. they will be sent to
@@ -121,11 +123,14 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 			return err
 		}
 	}
-	// request a list of folders needing rekey action
-	if err := md.getFoldersForRekey(ctx, c); err != nil {
-		md.log.Warning("MDServerRemote: getFoldersForRekey failed with %v", err)
+
+	if signature != "" {
+		// request a list of folders needing rekey action
+		if err := md.getFoldersForRekey(ctx, c); err != nil {
+			md.log.Warning("MDServerRemote: getFoldersForRekey failed with %v", err)
+		}
+		md.log.Debug("MDServerRemote: requested list of folders for rekey")
 	}
-	md.log.Debug("MDServerRemote: requested list of folders for rekey")
 
 	// start pinging
 	md.resetPingTicker(pingIntervalSeconds)

@@ -2,9 +2,11 @@ package libkbfs
 
 import (
 	"fmt"
+	"runtime/debug"
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 
 	"golang.org/x/net/context"
@@ -99,7 +101,7 @@ func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context, handle *TlfHandle
 
 	if !exists && fb.Branch == MasterBranch {
 		err := fs.config.KBPKI().FavoriteAdd(ctx, handle.ToKBFolder(ctx, fs.config))
-		if err != nil {
+		if _, isDeviceRequired := err.(libkb.DeviceRequiredError); err != nil && (!isDeviceRequired || !handle.IsPublic()) {
 			return nil, err
 		}
 	}
@@ -114,7 +116,12 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNode(
 	node Node, ei EntryInfo, err error) {
 	fs.log.CDebugf(ctx, "GetOrCreateRootNode(%s, %t, %v)",
 		name, public, branch)
-	defer func() { fs.log.CDebugf(ctx, "Done: %v", err) }()
+	defer func() {
+		fs.log.CDebugf(ctx, "Done: %#v", err)
+		if err != nil {
+			fs.log.CDebugf(ctx, "Stack: %s", string(debug.Stack()))
+		}
+	}()
 
 	h, err := ParseTlfHandle(ctx, fs.config.KBPKI(), name, public)
 	if err != nil {

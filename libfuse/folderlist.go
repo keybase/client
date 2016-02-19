@@ -7,6 +7,7 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -94,9 +95,11 @@ var _ fs.HandleReadDirAller = (*FolderList)(nil)
 // ReadDirAll implements the ReadDirAll interface.
 func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 	fl.fs.log.CDebugf(ctx, "FL ReadDirAll")
-	defer func() { fl.fs.reportErr(ctx, err) }()
+	defer func() {
+		fl.fs.reportErr(ctx, err)
+	}()
 	favs, err := fl.fs.config.KBFSOps().GetFavorites(ctx)
-	if err != nil {
+	if _, isDeviceRequired := err.(libkb.DeviceRequiredError); isDeviceRequired && !fl.public {
 		return nil, err
 	}
 

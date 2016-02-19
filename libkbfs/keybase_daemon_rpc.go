@@ -23,6 +23,8 @@ type KeybaseDaemonRPC struct {
 	kbfsClient     keybase1.KbfsInterface
 	log            logger.Logger
 
+	config Config
+
 	// Only used when there's a real connection (i.e., not in
 	// testing).
 	shutdownFn func()
@@ -52,6 +54,7 @@ var _ KeybaseDaemon = (*KeybaseDaemonRPC)(nil)
 // calls using the socket of the given Keybase context.
 func NewKeybaseDaemonRPC(config Config, kbCtx *libkb.GlobalContext, log logger.Logger, debug bool) *KeybaseDaemonRPC {
 	k := newKeybaseDaemonRPC(kbCtx, log)
+	k.config = config
 	conn := NewSharedKeybaseConnection(kbCtx, config, k)
 	k.fillClients(conn.GetClient())
 	k.shutdownFn = conn.Shutdown
@@ -161,6 +164,8 @@ func (k *KeybaseDaemonRPC) LoggedIn(ctx context.Context, name string) error {
 	k.log.CDebugf(ctx, "Current session logged in: %s", name)
 	// Since we don't have the whole session, just clear the cache.
 	k.setCachedCurrentSession(SessionInfo{})
+	k.config.MDServer().Shutdown()
+	k.config.BlockServer().Shutdown()
 	return nil
 }
 
@@ -168,6 +173,8 @@ func (k *KeybaseDaemonRPC) LoggedIn(ctx context.Context, name string) error {
 func (k *KeybaseDaemonRPC) LoggedOut(ctx context.Context) error {
 	k.log.CDebugf(ctx, "Current session logged out")
 	k.setCachedCurrentSession(SessionInfo{})
+	k.config.MDServer().Shutdown()
+	k.config.BlockServer().Shutdown()
 	return nil
 }
 
