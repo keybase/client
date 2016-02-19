@@ -583,6 +583,11 @@ func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 		// Don't let the timer fire if auto-reclamation is turned off.
 		if fbm.config.QuotaReclamationPeriod().Seconds() == 0 {
 			timer.Stop()
+			// Drain any event we missed
+			select {
+			case <-timer.C:
+			default:
+			}
 		}
 		select {
 		case <-fbm.shutdownChan:
