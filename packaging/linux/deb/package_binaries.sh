@@ -22,11 +22,13 @@ version="$(cat "$build_root/VERSION")"
 mode="$(cat "$build_root/MODE")"
 
 name="$("$here/../../binary_name.sh" "$mode")"
+dependencies=""
 
 if [ "$mode" = "production" ] ; then
   repo_url="http://dist.keybase.io/linux/deb/repo"
 elif [ "$mode" = "prerelease" ] ; then
   repo_url="http://s3.amazonaws.com/prerelease.keybase.io/deb"
+  dependencies="libappindicator1"
 elif [ "$mode" = "staging" ] ; then
   # Note: This doesn't exist yet. But we need to be distinct from the
   # production URL, because we're moving to a model where we build a clean repo
@@ -55,6 +57,7 @@ build_one_architecture() {
     | sed "s/@@VERSION@@/$version/" \
     | sed "s/@@ARCHITECTURE@@/$debian_arch/" \
     | sed "s/@@SIZE@@/$size/" \
+    | sed "s/@@DEPENDENCIES@@/$dependencies/" \
     > "$dest/build/DEBIAN/control"
   postinst_file="$dest/build/DEBIAN/postinst"
   cat "$here/postinst.template" \
