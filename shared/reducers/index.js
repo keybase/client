@@ -13,7 +13,8 @@ import serialize from './serialize'
 import tracker from './tracker'
 import pinentry from './pinentry'
 import favorite from './favorite'
-import update from './update'
+import updateConfirm from './update-confirm'
+import updatePaused from './update-paused'
 import signup from './signup'
 
 import devEdit from './dev-edit'
@@ -48,7 +49,8 @@ const combinedReducer = combineReducers({
   tracker,
   pinentry,
   favorite,
-  update,
+  updateConfirm,
+  updatePaused,
   signup
 })
 

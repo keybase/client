@@ -981,6 +981,10 @@ func (c CanceledError) Error() string {
 	return c.M
 }
 
+func NewCanceledError(m string) CanceledError {
+	return CanceledError{M: m}
+}
+
 type InputCanceledError struct{}
 
 func (e InputCanceledError) Error() string {

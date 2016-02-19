@@ -1,14 +1,29 @@
 /* @flow */
 import React, {Component} from 'react'
+import {connect} from 'react-redux'
 import {Snackbar} from 'material-ui'
 import {Header, Text, Button, Checkbox} from '../common-adapters'
 import {clipboard} from 'electron'
 import marked from 'marked'
-import type {RenderProps} from './index.render'
 import {autoResize} from '../../desktop/renderer/remote-component-helper'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
-export default class UpdateRender extends Component {
+type RenderProps = {
+  isCritical: bool,
+  windowTitle: string,
+  oldVersion: string,
+  newVersion: string,
+  description: string,
+  alwaysUpdate: bool,
+  setAlwaysUpdate: (alwaysUpdate: bool) => void,
+  snoozeTime: string,
+  updateCommand: ?string,
+  canUpdate: bool,
+  onUpdate: () => void,
+  onSnooze: () => void
+}
+
+export default class UpdateConfirm extends Component {
   props: RenderProps;
   state: {
     snackbarOpen: boolean
@@ -90,21 +105,6 @@ export default class UpdateRender extends Component {
   }
 }
 
-UpdateRender.propTypes = {
-  isCritical: React.PropTypes.bool.isRequired,
-  windowTitle: React.PropTypes.string.isRequired,
-  oldVersion: React.PropTypes.string.isRequired,
-  newVersion: React.PropTypes.string.isRequired,
-  description: React.PropTypes.string.isRequired,
-  alwaysUpdate: React.PropTypes.bool.isRequired,
-  setAlwaysUpdate: React.PropTypes.func.isRequired,
-  snoozeTime: React.PropTypes.string.isRequired,
-  updateCommand: React.PropTypes.string,
-  canUpdate: React.PropTypes.bool.isRequired,
-  onUpdate: React.PropTypes.func.isRequired,
-  onSnooze: React.PropTypes.func.isRequired
-}
-
 const styles = {
   container: {
     ...globalStyles.flexBoxColumn
@@ -165,3 +165,15 @@ const styles = {
     borderLeft: `solid ${globalColors.grey2} 1px`
   }
 }
+
+export default connect(
+  state => state.updateConfirm,
+    undefined,
+    (stateProps, dispatchProps, ownProps) => {
+      return {
+        ...stateProps,
+        ...dispatchProps,
+        ...ownProps
+      }
+    }
+)(UpdateConfirm)

@@ -903,6 +903,22 @@ func (e *Env) GetRunModeAsString() string {
 	return string(e.GetRunMode())
 }
 
+func (e *Env) GetMountDir() string {
+	switch e.GetRunMode() {
+	case DevelRunMode:
+		return "/keybase.devel"
+
+	case StagingRunMode:
+		return "/keybase.staging"
+
+	case ProductionRunMode:
+		return "/keybase"
+
+	default:
+		panic("Invalid run mode")
+	}
+}
+
 func (e *Env) GetAppStartMode() AppStartMode {
 	return e.config.GetAppStartMode()
 }

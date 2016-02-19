@@ -206,15 +206,14 @@ func uninstallKeybaseServices(g *libkb.GlobalContext, runMode libkb.RunMode) err
 }
 
 func kbfsPlist(g *libkb.GlobalContext, kbfsBinPath string, label string) (plist launchd.Plist, err error) {
-	runMode := g.Env.GetRunMode()
-	mountPath := kbfsMountPath(runMode)
+	mountDir := g.Env.GetMountDir()
 	// TODO: Remove when doing real release
-	plistArgs := []string{"-debug", mountPath}
+	plistArgs := []string{"-debug", mountDir}
 	envVars := DefaultLaunchdEnvVars(g, label)
 	comment := "It's not advisable to edit this plist, it may be overwritten"
 	plist = launchd.NewPlist(label, kbfsBinPath, plistArgs, envVars, libkb.KBFSLogFileName, comment)
 
-	_, err = os.Stat(mountPath)
+	_, err = os.Stat(mountDir)
 	if err != nil {
 		return
 	}
@@ -472,28 +471,28 @@ func uninstallKBFS(g *libkb.GlobalContext) error {
 		return err
 	}
 
-	mountPath := kbfsMountPath(g.Env.GetRunMode())
-	if _, err := os.Stat(mountPath); os.IsNotExist(err) {
+	mountDir := g.Env.GetMountDir()
+	if _, err := os.Stat(mountDir); os.IsNotExist(err) {
 		return nil
 	}
-	g.Log.Debug("Checking if mounted: %s", mountPath)
-	mounted, err := mounter.IsMounted(g, mountPath)
+	g.Log.Debug("Checking if mounted: %s", mountDir)
+	mounted, err := mounter.IsMounted(g, mountDir)
 	if err != nil {
 		return err
 	}
 	g.Log.Debug("Mounted: %s", mounted)
 	if mounted {
-		err = mounter.Unmount(g, mountPath, false)
+		err = mounter.Unmount(g, mountDir, false)
 		if err != nil {
 			return err
 		}
 	}
-	empty, err := libkb.IsDirEmpty(mountPath)
+	empty, err := libkb.IsDirEmpty(mountDir)
 	if err != nil {
 		return err
 	}
 	if !empty {
-		return fmt.Errorf("Mount has files after unmounting: %s", mountPath)
+		return fmt.Errorf("Mount has files after unmounting: %s", mountDir)
 	}
 	// TODO: We should remove the mountPath via trashDir(g, mountPath) but given
 	// permissions of /keybase we'll need the priviledged tool to do it instead.

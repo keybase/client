@@ -180,7 +180,6 @@ const styles1 = {
     width: 520 + 1,
     height: 332 + 1,
     boxShadow: '0px 5px 6px rgba(0,0,0,0.4)',
-    border: '1px solid #efefef',
     marginRight: 20,
     marginBottom: 20
   }

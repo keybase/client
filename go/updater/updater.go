@@ -18,6 +18,7 @@ import (
 	"github.com/blang/semver"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
+	"github.com/keybase/client/go/lsof"
 	keybase1 "github.com/keybase/client/go/protocol"
 	zip "github.com/keybase/client/go/tools/zip"
 	"github.com/keybase/client/go/updater/sources"
@@ -47,6 +48,7 @@ type Config interface {
 	SetUpdatePreferenceSnoozeUntil(t keybase1.Time) error
 	SetUpdateLastChecked(t keybase1.Time) error
 	GetRunModeAsString() string
+	GetMountDir() string
 }
 
 func NewUpdater(options keybase1.UpdateOptions, source sources.UpdateSource, config Config, log logger.Logger) *Updater {
@@ -125,7 +127,7 @@ func (u *Updater) checkForUpdate(skipAssetDownload bool, force bool, requested b
 		if vers, err := semver.Make(skipVersion); err != nil {
 			u.log.Warning("Bad 'skipVersion' in config file: %q", skipVersion)
 		} else if vers.GE(updateSemVersion) {
-			u.log.Debug("Skipping updated version via config preference: %q", update.Version)
+			u.log.Info("Skipping updated version via config preference: %q", update.Version)
 			return nil, nil
 		}
 	}
@@ -413,7 +415,13 @@ func (u *Updater) update(ui UI, force bool, requested bool) (update *keybase1.Up
 		return
 	}
 
-	if err = u.promptForUpdateAction(ui, *update); err != nil {
+	err = u.promptForUpdateAction(ui, *update)
+	if err != nil {
+		return
+	}
+
+	err = u.checkInUse(ui, *update)
+	if err != nil {
 		return
 	}
 
@@ -441,6 +449,15 @@ func (u *Updater) update(ui UI, force bool, requested bool) (update *keybase1.Up
 	return
 }
 
+func (u *Updater) updateUI(ui UI) (updateUI libkb.UpdateUI, err error) {
+	if ui == nil {
+		err = libkb.NoUIError{Which: "Update"}
+		return
+	}
+
+	return u.waitForUI(ui, 5*time.Second)
+}
+
 func (u *Updater) promptForUpdateAction(ui UI, update keybase1.Update) (err error) {
 
 	u.log.Debug("+ Updater.promptForUpdateAction")
@@ -454,12 +471,7 @@ func (u *Updater) promptForUpdateAction(ui UI, update keybase1.Update) (err erro
 		return
 	}
 
-	if ui == nil {
-		err = libkb.NoUIError{Which: "Update"}
-		return
-	}
-
-	updateUI, err := u.waitForUI(ui, 5*time.Second)
+	updateUI, err := u.updateUI(ui)
 	if err != nil {
 		return
 	}
@@ -486,15 +498,15 @@ func (u *Updater) promptForUpdateAction(ui UI, update keybase1.Update) (err erro
 	switch updatePromptResponse.Action {
 	case keybase1.UpdateAction_UPDATE:
 	case keybase1.UpdateAction_SKIP:
-		err = libkb.CanceledError{M: "skipped update"}
+		err = libkb.NewCanceledError("Skipped update")
 		u.config.SetUpdatePreferenceSkip(update.Version)
 	case keybase1.UpdateAction_SNOOZE:
-		err = libkb.CanceledError{M: "snoozed update"}
+		err = libkb.NewCanceledError("Snoozed update")
 		u.config.SetUpdatePreferenceSnoozeUntil(updatePromptResponse.SnoozeUntil)
 	case keybase1.UpdateAction_CANCEL:
-		err = libkb.CanceledError{M: "canceled update"}
+		err = libkb.NewCanceledError("Canceled by user")
 	default:
-		err = libkb.CanceledError{M: "unexpected cancelation"}
+		err = libkb.NewCanceledError("Canceled by service")
 	}
 	return
 }
@@ -517,6 +529,72 @@ func (u *Updater) applyZip(localPath string, destinationPath string) (err error)
 	return
 }
 
+func (u *Updater) promptForAppInUse(ui UI, update keybase1.Update, processes []lsof.Process) error {
+	updateUI, err := u.updateUI(ui)
+	if err != nil {
+		return err
+	}
+
+	updateAppInUseArg := keybase1.UpdateAppInUseArg{
+		Update:    update,
+		Processes: toKeybaseProcess(processes),
+	}
+	updateContext, canceler := context.WithCancel(context.Background())
+	u.cancelPrompt = canceler
+	updateInUseResponse, err := updateUI.UpdateAppInUse(updateContext, updateAppInUseArg)
+	u.cancelPrompt = nil
+	if err != nil {
+		return err
+	}
+
+	u.log.Debug("Update (app in use) response: %#v", updateInUseResponse)
+	switch updateInUseResponse.Action {
+	case keybase1.UpdateAppInUseAction_CANCEL:
+		return libkb.NewCanceledError("Canceled by user")
+	case keybase1.UpdateAppInUseAction_FORCE:
+		// Continue
+	case keybase1.UpdateAppInUseAction_KILL_PROCESSES:
+		panic("Unimplemented") // TODO: Kill processes
+	default:
+		return libkb.NewCanceledError("Canceled by service")
+	}
+	return nil
+}
+
+func toKeybaseProcess(processes []lsof.Process) []keybase1.Process {
+	kbProcesses := []keybase1.Process{}
+	for _, p := range processes {
+		fileDescriptors := []keybase1.FileDescriptor{}
+		for _, f := range p.FileDescriptors {
+			fileDescriptors = append(fileDescriptors, keybase1.FileDescriptor{Name: f.Name})
+		}
+		kbProcesses = append(kbProcesses, keybase1.Process{Pid: p.PID, Command: p.Command, FileDescriptors: fileDescriptors})
+	}
+	return kbProcesses
+}
+
+func (u *Updater) checkInUse(ui UI, update keybase1.Update) error {
+	mountDir := u.config.GetMountDir()
+	if mountDir == "" {
+		return nil
+	}
+	if _, serr := os.Stat(mountDir); os.IsNotExist(serr) {
+		return nil
+	}
+
+	processes, err := lsof.MountPoint(mountDir)
+	if err != nil {
+		return err
+	}
+	if len(processes) != 0 {
+		err = u.promptForAppInUse(ui, update, processes)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 func (u *Updater) restart(ui UI) (didQuit bool, err error) {
 	if ui == nil {
 		err = libkb.NoUIError{Which: "Update"}
@@ -525,7 +603,7 @@ func (u *Updater) restart(ui UI) (didQuit bool, err error) {
 
 	u.log.Info("Restarting app")
 	u.log.Debug("Asking if it safe to quit the app")
-	updateUI, err := u.waitForUI(ui, 5*time.Second)
+	updateUI, err := u.updateUI(ui)
 	if err != nil {
 		return
 	}

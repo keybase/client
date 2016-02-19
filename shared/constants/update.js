@@ -3,25 +3,25 @@
 import type {TypedAction} from '../constants/types/flux'
 import type {Asset, UpdateType} from '../constants/types/flow-types'
 
-export const showUpdatePrompt = 'update:showUpdatePrompt'
+export const showUpdateConfirm = 'update:showUpdateConfirm'
 export const registerUpdateListener = 'update:registerUpdateListener'
 export const onCancel = 'update:onCancel'
 export const onSkip = 'update:onSkip'
 export const onSnooze = 'update:onSnooze'
-export const onUpdate = 'update:onUpdate'
+export const onConfirmUpdate = 'update:onConfirmUpdate'
 export const setAlwaysUpdate = 'update:setAlwaysUpdate'
 
-export type ShowUpdateAction = TypedAction<'update:showUpdatePrompt', showUpdatePromptPayload, UpdateError>
+export type ShowUpdateConfirmAction = TypedAction<'update:showUpdateConfirm', showUpdateConfirmPayload, UpdateError>
 export type RegisterUpdateListenerAction = TypedAction<'update:registerUpdateListener', {started: bool}, any>
 export type OnCancelAction = TypedAction<'update:onCancel', void, any>
 export type OnSkipAction = TypedAction<'update:onSkip', void, any>
 export type OnSnoozeAction = TypedAction<'update:onSnooze', void, any>
-export type OnUpdateAction = TypedAction<'update:onUpdate', void, any>
+export type OnConfirmUpdateAction = TypedAction<'update:onConfirmUpdate', void, any>
 export type SetAlwaysUpdateAction = TypedAction<'update:setAlwaysUpdate', {alwaysUpdate: bool}, any>
 
-export type UpdateActions = ShowUpdateAction | RegisterUpdateListenerAction | OnSkipAction | OnSnoozeAction | OnUpdateAction | OnCancelAction | SetAlwaysUpdateAction
+export type UpdateConfirmActions = ShowUpdateConfirmAction | RegisterUpdateListenerAction | OnSkipAction | OnSnoozeAction | OnConfirmUpdateAction | OnCancelAction | SetAlwaysUpdateAction
 
-type showUpdatePromptPayload = {
+type showUpdateConfirmPayload = {
   isCritical: bool,
   description: string,
   type: UpdateType,
@@ -39,3 +39,15 @@ type showUpdatePromptPayload = {
 type UpdateError = void
 
 export const snoozeTimeSecs = 60 * 60 * 24
+
+export const showUpdatePaused = 'update:showUpdatePaused'
+export const onForce = 'updatePaused:onForce'
+
+export type ShowUpdatePausedAction = TypedAction<'update:showUpdatePaused', showUpdatePausedPayload, UpdateError>
+export type OnForceAction = TypedAction<'updatePaused:onForce', void, any>
+
+export type UpdatePausedActions = ShowUpdatePausedAction
+
+type showUpdatePausedPayload = {
+
+}

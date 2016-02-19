@@ -6,20 +6,22 @@ import moment from 'moment'
 
 import {updateUi} from '../constants/types/keybase-v1'
 import type {delegateUiCtl_registerUpdateUI_rpc, incomingCallMapType} from '../constants/types/flow-types'
-import type {ShowUpdateAction, RegisterUpdateListenerAction, OnCancelAction, OnSkipAction,
-  OnSnoozeAction, OnUpdateAction, SetAlwaysUpdateAction} from '../constants/update'
+import type {ShowUpdateConfirmAction, RegisterUpdateListenerAction, OnCancelAction, OnSkipAction,
+  OnSnoozeAction, OnConfirmUpdateAction, SetAlwaysUpdateAction, ShowUpdatePausedAction, OnForceAction} from '../constants/update'
 import type {ConfigState} from '../reducers/config'
-import type {ShowUpdateState} from '../reducers/update'
-import {snoozeTimeSecs} from '../constants/update'
+import type {UpdateConfirmState} from '../reducers/update-confirm'
+import type {UpdatePausedState} from '../reducers/update-paused'
 import type {Dispatch} from '../constants/types/flux'
 
 import {remote} from 'electron'
 import path from 'path'
 
-let updatePromptResponse: ?{result: (payload: any) => void}
+let updateConfirmResponse: ?{result: (payload: any) => void}
+let updatePausedResponse: ?{result: (payload: any) => void}
 
 export function registerUpdateListener (): (dispatch: Dispatch, getState: () => {config: ConfigState}) => void {
-  updatePromptResponse = null
+  updateConfirmResponse = null
+  updatePausedResponse = null
   return (dispatch, getState) => {
     engine.listenOnConnect('registerUpdateUI', () => {
       const params : delegateUiCtl_registerUpdateUI_rpc = {
@@ -28,7 +30,7 @@ export function registerUpdateListener (): (dispatch: Dispatch, getState: () => 
         incomingCallMap: {},
         callback: (error, response) => {
           if (error != null) {
-            console.error('error in registering update ui: ', error)
+            console.error('Error in registering update ui: ', error)
           } else {
             console.log('Registered update ui')
           }
@@ -50,9 +52,9 @@ export function registerUpdateListener (): (dispatch: Dispatch, getState: () => 
 function updateListenersCreator (dispatch: Dispatch, getState: () => {config: ConfigState}): incomingCallMapType {
   return {
     'keybase.1.updateUi.updatePrompt': (payload, response) => {
-      console.log('Asked for update prompt')
+      console.log('Update (prompt)')
 
-      updatePromptResponse = response
+      updateConfirmResponse = response
       const {version, description, instructions, type, asset} = payload.update
       const {alwaysAutoInstall} = payload.options
 
@@ -80,24 +82,43 @@ function updateListenersCreator (dispatch: Dispatch, getState: () => {config: Co
       })
 
       dispatch(({
-        type: Constants.showUpdatePrompt,
+        type: Constants.showUpdateConfirm,
         payload: {
           isCritical: type === updateUi.UpdateType.critical,
           newVersion: version,
           description,
           type,
           asset,
-          snoozeTime: moment.duration(snoozeTimeSecs, 'seconds').humanize(),
+          snoozeTime: moment.duration(Constants.snoozeTimeSecs, 'seconds').humanize(),
           windowTitle,
           oldVersion,
           alwaysUpdate: alwaysAutoInstall,
           updateCommand,
           canUpdate: !updateCommand
         }
-      }: ShowUpdateAction))
+      }: ShowUpdateConfirmAction))
+    },
+
+    'keybase.1.updateUi.updateAppInUse': (payload, response) => {
+      console.log('Update (app in use) prompt')
+
+      updatePausedResponse = response
+
+      // Cancel any existing update prompts
+      dispatch({
+        type: Constants.onCancel,
+        payload: null
+      })
+
+      dispatch(({
+        type: Constants.showUpdatePaused,
+        payload: {
+        }
+      }: ShowUpdatePausedAction))
     },
 
     'keybase.1.updateUi.updateQuit': (param, response) => {
+      console.log('Update (quit/restart) prompt')
       const appPath = remote.app.getAppPath()
 
       // This returns the app bundle path on OS X in production mode.
@@ -117,46 +138,46 @@ function updateListenersCreator (dispatch: Dispatch, getState: () => {config: Co
   }
 }
 
-function sendUpdatePromptResponse (payload: any /* UpdatePromptRes */): void {
-  if (!updatePromptResponse) {
-    console.error('Update send response with incorrect flow')
+function sendUpdateConfirmResponse (payload: any /* UpdatePromptRes */): void {
+  if (!updateConfirmResponse) {
+    console.error('Update confirm response with incorrect flow')
     return
   }
 
-  updatePromptResponse.result(payload)
-  updatePromptResponse = null
+  updateConfirmResponse.result(payload)
+  updateConfirmResponse = null
 }
 
 export function onCancel (): (dispatch: Dispatch) => void {
   return dispatch => {
     dispatch(({type: Constants.onCancel, payload: null}: OnCancelAction))
-    sendUpdatePromptResponse({action: updateUi.UpdateAction.cancel})
+    sendUpdateConfirmResponse({action: updateUi.UpdateAction.cancel})
   }
 }
 
 export function onSkip (): (dispatch: Dispatch) => void {
   return dispatch => {
     dispatch(({type: Constants.onSkip, payload: null}: OnSkipAction))
-    sendUpdatePromptResponse({action: updateUi.UpdateAction.skip})
+    sendUpdateConfirmResponse({action: updateUi.UpdateAction.skip})
   }
 }
 
 export function onSnooze (): (dispatch: Dispatch) => void {
   return dispatch => {
     dispatch(({type: Constants.onSnooze, payload: null}: OnSnoozeAction))
-    sendUpdatePromptResponse({
+    sendUpdateConfirmResponse({
       action: updateUi.UpdateAction.snooze,
-      snoozeUntil: Date.now() + snoozeTimeSecs * 1000
+      snoozeUntil: Date.now() + Constants.snoozeTimeSecs * 1000
     })
   }
 }
 
-export function onUpdate (): (dispatch: Dispatch, getState: () => {update: ShowUpdateState}) => void {
+export function onUpdate (): (dispatch: Dispatch, getState: () => {updateConfirm: UpdateConfirmState}) => void {
   return (dispatch, getState) => {
-    dispatch(({type: Constants.onUpdate, payload: null}: OnUpdateAction))
-    sendUpdatePromptResponse({
+    dispatch(({type: Constants.onConfirmUpdate, payload: null}: OnConfirmUpdateAction))
+    sendUpdateConfirmResponse({
       action: updateUi.UpdateAction.update,
-      alwaysAutoInstall: getState().update.alwaysUpdate
+      alwaysAutoInstall: getState().updateConfirm.alwaysUpdate
     })
   }
 }
@@ -170,4 +191,30 @@ export function setAlwaysUpdate (alwaysUpdate: bool): (dispatch: Dispatch) => vo
       }
     }: SetAlwaysUpdateAction))
   }
+}
+
+export function onForce (): (dispatch: Dispatch, getState: () => {updatePaused: UpdatePausedState}) => void {
+  return (dispatch, getState) => {
+    dispatch(({type: Constants.onForce, payload: null}: OnForceAction))
+    sendUpdatePausedResponse({
+      action: updateUi.UpdateAppInUseAction.force
+    })
+  }
+}
+
+export function onPauseCancel (): (dispatch: Dispatch) => void {
+  return dispatch => {
+    dispatch(({type: Constants.onCancel, payload: null}: OnCancelAction))
+    sendUpdatePausedResponse({action: updateUi.UpdateAppInUseAction.cancel})
+  }
+}
+
+function sendUpdatePausedResponse (payload: any /* UpdatePromptRes */): void {
+  if (!updatePausedResponse) {
+    console.error('Update paused response with incorrect flow')
+    return
+  }
+
+  updatePausedResponse.result(payload)
+  updatePausedResponse = null
 }

@@ -7,6 +7,7 @@ import {registerIdentifyUi, onClose as trackerOnClose, startTimer as trackerStar
 import {registerPinentryListener, onCancel as pinentryOnCancel, onSubmit as pinentryOnSubmit} from '../shared/actions/pinentry'
 import {registerTrackerChangeListener} from '../shared/actions/tracker'
 import {registerUpdateListener, onCancel as updateOnCancel, onSkip as updateOnSkip, onSnooze as updateOnSnooze, onUpdate as updateOnUpdate, setAlwaysUpdate} from '../shared/actions/update'
+import {onForce as updateOnForce, onPauseCancel as updateOnPauseCancel} from '../shared/actions/update'
 // $FlowIssue platform files
 import RemoteComponent from './remote-component'
 import flags from '../shared/util/feature-flags'
@@ -16,7 +17,8 @@ import type {Action, Dispatch} from '../shared/constants/types/flux'
 
 import type {TrackerState} from '../shared/reducers/tracker'
 import type {PinentryState} from '../shared/reducers/pinentry'
-import type {ShowUpdateState} from '../shared/reducers/update'
+import type {UpdateConfirmState} from '../shared/reducers/update-confirm'
+import type {UpdatePausedState} from '../shared/reducers/update-paused'
 
 export type RemoteManagerProps = {
   registerPinentryListener: () => void,
@@ -31,12 +33,15 @@ export type RemoteManagerProps = {
   trackerStopTimer: () => Action,
   trackers: {[key: string]: TrackerState},
   pinentryStates: {[key: string]: PinentryState},
-  showUpdateState: ShowUpdateState,
+  updateConfirmState: UpdateConfirmState,
   updateOnSkip: () => void,
   updateOnCancel: () => void,
   updateOnSnooze: () => void,
   updateOnUpdate: () => void,
-  setAlwaysUpdate: (alwaysUpdate: bool) => void
+  setAlwaysUpdate: (alwaysUpdate: bool) => void,
+  updatePausedState: UpdatePausedState,
+  updateOnForce: () => void,
+  updateOnPauseCancel: () => void
 }
 
 class RemoteManager extends Component {
@@ -59,7 +64,11 @@ class RemoteManager extends Component {
       return true
     }
 
-    if (nextProps.showUpdateState !== this.props.showUpdateState) {
+    if (nextProps.updateConfirmState !== this.props.updateConfirmState) {
+      return true
+    }
+
+    if (nextProps.updatePausedState !== this.props.updatePausedState) {
       return true
     }
 
@@ -110,25 +119,58 @@ class RemoteManager extends Component {
     })
   }
 
-  showUpdatePromptComponents () {
-    const {showUpdateState} = this.props
-
-    if (showUpdateState.closed) {
+  showUpdateConfirmComponents () {
+    const {updateConfirmState} = this.props
+    if (updateConfirmState.closed) {
       return
+    }
+
+    let updateType = 'confirm'
+    let onRemoteClose = () => this.props.updateOnCancel()
+    let windowOpts = {width: 480, height: 430}
+    let options = {
+      onCancel: () => this.props.updateOnCancel(),
+      onSkip: () => this.props.updateOnSkip(),
+      onSnooze: () => this.props.updateOnSnooze(),
+      onUpdate: () => this.props.updateOnUpdate(),
+      setAlwaysUpdate: alwaysUpdate => this.props.setAlwaysUpdate(alwaysUpdate)
+    }
+    return (
+      <RemoteComponent
+        title='Update'
+        windowsOpts={windowOpts}
+        waitForState
+        component='update'
+        onRemoteClose={onRemoteClose}
+        type={updateType}
+        options={options}
+      />
+    )
+  }
+
+  showUpdatePausedComponents () {
+    const {updatePausedState} = this.props
+    if (updatePausedState.closed) {
+      return
+    }
+
+    let updateType = 'paused'
+    let onRemoteClose = () => this.props.updateOnPauseCancel()
+    let windowOpts = {width: 500, height: 309}
+    let options = {
+      onCancel: () => this.props.updateOnPauseCancel(),
+      onForce: () => this.props.updateOnForce()
     }
 
     return (
       <RemoteComponent
         title='Update'
-        windowsOpts={{width: 480, height: 430}}
+        windowsOpts={windowOpts}
         waitForState
         component='update'
-        onCancel={() => this.props.updateOnCancel()}
-        onSkip={() => this.props.updateOnSkip()}
-        onSnooze={() => this.props.updateOnSnooze()}
-        onUpdate={() => this.props.updateOnUpdate()}
-        onRemoteClose={() => this.props.updateOnCancel()}
-        setAlwaysUpdate={alwaysUpdate => this.props.setAlwaysUpdate(alwaysUpdate)}
+        onRemoteClose={onRemoteClose}
+        type={updateType}
+        options={options}
       />
     )
   }
@@ -138,7 +180,8 @@ class RemoteManager extends Component {
       <div style={{display: 'none'}}>
         {this.trackerRemoteComponents()}
         {this.pinentryRemoteComponents()}
-        {this.showUpdatePromptComponents()}
+        {this.showUpdateConfirmComponents()}
+        {this.showUpdatePausedComponents()}
       </div>
     )
   }
@@ -157,12 +200,15 @@ RemoteManager.propTypes = {
   trackerStopTimer: React.PropTypes.func,
   trackers: React.PropTypes.any,
   pinentryStates: React.PropTypes.any,
-  showUpdateState: React.PropTypes.any,
+  updateConfirmState: React.PropTypes.any,
   updateOnCancel: React.PropTypes.func,
   updateOnSkip: React.PropTypes.func,
   updateOnSnooze: React.PropTypes.func,
   updateOnUpdate: React.PropTypes.func,
-  setAlwaysUpdate: React.PropTypes.func
+  setAlwaysUpdate: React.PropTypes.func,
+  updatePausedState: React.PropTypes.any,
+  updateOnForce: React.PropTypes.func,
+  updateOnPauseCancel: React.PropTypes.func
 }
 
 export default connect(
@@ -171,7 +217,8 @@ export default connect(
       trackerServerStarted: state.tracker.serverStarted,
       trackers: state.tracker.trackers,
       pinentryStates: state.pinentry.pinentryStates || {},
-      showUpdateState: state.update
+      updateConfirmState: state.updateConfirm,
+      updatePausedState: state.updatePaused
     }
   },
   dispatch => bindActionCreators({
@@ -188,6 +235,8 @@ export default connect(
     updateOnSkip,
     updateOnSnooze,
     updateOnUpdate,
-    setAlwaysUpdate
+    setAlwaysUpdate,
+    updateOnForce,
+    updateOnPauseCancel
   }, dispatch)
 )(RemoteManager)
