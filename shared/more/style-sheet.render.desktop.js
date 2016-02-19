@@ -68,7 +68,7 @@ export default class Render extends Component {
         <Container title='Buttons'>
           <div style={{...globalStyles.flexBoxColumn, padding: 10, paddingRight: 100}}>
             <div style={{...globalStyles.flexBoxRow}}>
-              <div style={{...globalStyles.flexBoxColumn, alignItems: 'flex-start', padding: 10, paddingRight: 100}}>
+              <div style={{...globalStyles.flexBoxColumn, alignItems: 'flex-start', justifyContents: 'flex-start', padding: 10, paddingRight: 100}}>
                 <Button primary label='Primary'/><Space/>
                 <Button label='Secondary'/><Space/>
                 <Button danger label='Danger'/><Space/>
@@ -77,7 +77,7 @@ export default class Render extends Component {
                 <Button following label='Following'/><Space/>
                 <Button unfollow label='Unfollow'/><Space/>
               </div>
-              <div style={{...globalStyles.flexBoxColumn, alignItems: 'flex-start', padding: 10, paddingRight: 100}}>
+              <div style={{...globalStyles.flexBoxColumn, alignItems: 'flex-start', justifyContents: 'flex-start', padding: 10, paddingRight: 100}}>
                 <Button primary disabled label='Primary disabled'/><Space/>
                 <Button secondary disabled label='Secondary disabled'/><Space/>
                 <Button danger disabled label='Danger disabled'/><Space/>
@@ -86,7 +86,7 @@ export default class Render extends Component {
               </div>
             </div>
 
-            <div style={{...globalStyles.flexBoxColumn, alignItems: 'flex-start', padding: 10}}>
+            <div style={{...globalStyles.flexBoxColumn, alignItems: 'flex-start', justifyContents: 'flex-start', padding: 10}}>
               <Button primary fullWidth label='Primary full-width'/><Space/>
               <Button secondary fullWidth label='Secondary full-width'/><Space/>
               <Button danger fullWidth label='Danger full-width'/><Space/>
@@ -94,7 +94,7 @@ export default class Render extends Component {
             </div>
 
             <div style={{...globalStyles.flexBoxRow}}>
-              <div style={{...globalStyles.flexBoxColumn, alignItems: 'flex-start', padding: 10, paddingRight: 100}}>
+              <div style={{...globalStyles.flexBoxColumn, alignItems: 'flex-start', justifyContents: 'flex-start', padding: 10, paddingRight: 100}}>
                 <Button primary small label='Primary small'/><Space/>
                 <Button secondary small label='Secondary small'/><Space/>
                 <Button danger small label='Danger small'/><Space/>
