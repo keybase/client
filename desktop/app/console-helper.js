@@ -3,7 +3,7 @@ import util from 'util'
 import {forwardLogs} from '../shared/local-debug'
 import fs from 'fs'
 import {logFileName} from '../shared/constants/platform.native.desktop.js'
-import setupLocalLogs from '../shared/util/local-log'
+import setupLocalLogs, {logLocal, warnLocal, errorLocal} from '../shared/util/local-log'
 
 const methods = ['log', 'error', 'info']
 const originalConsole = {}
@@ -116,7 +116,7 @@ export function ipcLogsRenderer () {
     return
   }
 
-  window.console.log = (...args) => { try { console.logLocal(...args); ipcRenderer.send('console.log', args) } catch (_) {} }
-  window.console.warn = (...args) => { try { console.warnLocal(...args); ipcRenderer.send('console.warn', args) } catch (_) {} }
-  window.console.error = (...args) => { try { console.errorLocal(...args); ipcRenderer.send('console.error', args) } catch (_) {} }
+  window.console.log = (...args) => { try { logLocal(...args); ipcRenderer.send('console.log', args) } catch (_) {} }
+  window.console.warn = (...args) => { try { warnLocal(...args); ipcRenderer.send('console.warn', args) } catch (_) {} }
+  window.console.error = (...args) => { try { errorLocal(...args); ipcRenderer.send('console.error', args) } catch (_) {} }
 }

@@ -1,7 +1,11 @@
 // @flow
 
+export let logLocal = null
+export let warnLocal = null
+export let errorLocal = null
+
 export default function setupLocalLogs () {
-  if (!console.logLocal) console.logLocal = console.log
-  if (!console.warnLocal) console.warnLocal = console.warn
-  if (!console.errorLocal) console.errorLocal = console.error
+  if (!logLocal) logLocal = console.log.bind(console)
+  if (!warnLocal) warnLocal = console.warn.bind(console)
+  if (!errorLocal) errorLocal = console.error.bind(console)
 }
