@@ -47,7 +47,6 @@ export const globalColorsDZ2 = {
 
   white: '#ffffff',
   black: '#000000',
-  black75: 'rgba(0, 0, 0, 0.75)',
 
   brown: '#471f11'
 }
@@ -79,7 +78,6 @@ const font = {
     fontFamily: 'Source Code Pro'
   },
 }
-
 
 const fontDZ2 = {
   fontRegular: {
