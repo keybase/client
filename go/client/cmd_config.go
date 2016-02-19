@@ -16,14 +16,14 @@ import (
 
 type CmdConfigGet struct {
 	libkb.Contextified
-	path string
+	Path string
 }
 
 type CmdConfigSet struct {
 	libkb.Contextified
-	path    string
-	value   keybase1.ConfigValue
-	doClear bool
+	Path    string
+	Value   keybase1.ConfigValue
+	DoClear bool
 }
 
 type CmdConfigInfo struct {
@@ -32,7 +32,7 @@ type CmdConfigInfo struct {
 
 func (v *CmdConfigGet) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) == 1 {
-		v.path = ctx.Args()[0]
+		v.Path = ctx.Args()[0]
 	} else if len(ctx.Args()) > 1 {
 		return fmt.Errorf("Expected 0 or 1 arguments")
 	}
@@ -52,15 +52,15 @@ func (v *CmdConfigSet) ParseArgv(ctx *cli.Context) error {
 	}
 
 	flags := 0
-	v.path = ctx.Args()[0]
+	v.Path = ctx.Args()[0]
 
 	if ctx.Bool("clear") {
 		flags++
-		v.doClear = true
+		v.DoClear = true
 	}
 	if ctx.Bool("null") {
 		flags++
-		v.value.IsNull = true
+		v.Value.IsNull = true
 	}
 	if ctx.Bool("int") {
 		flags++
@@ -69,7 +69,7 @@ func (v *CmdConfigSet) ParseArgv(ctx *cli.Context) error {
 			return err
 		}
 		tmp := int(i)
-		v.value.I = &tmp
+		v.Value.I = &tmp
 	}
 	if ctx.Bool("bool") {
 		flags++
@@ -77,13 +77,13 @@ func (v *CmdConfigSet) ParseArgv(ctx *cli.Context) error {
 		if err != nil {
 			return err
 		}
-		v.value.B = &b
+		v.Value.B = &b
 	}
 
 	if ctx.Bool("obj") {
 		flags++
 		s := ctx.Args()[1]
-		v.value.O = &s
+		v.Value.O = &s
 	}
 
 	if ctx.Bool("string") {
@@ -96,7 +96,7 @@ func (v *CmdConfigSet) ParseArgv(ctx *cli.Context) error {
 
 	if ctx.Bool("string") || flags == 0 {
 		s := ctx.Args()[1]
-		v.value.S = &s
+		v.Value.S = &s
 	}
 	return nil
 }
@@ -111,7 +111,7 @@ func (v *CmdConfigGet) Run() error {
 		return err
 	}
 	var val keybase1.ConfigValue
-	val, err = cli.GetValue(context.TODO(), v.path)
+	val, err = cli.GetValue(context.TODO(), v.Path)
 	if err != nil {
 		return err
 	}
@@ -137,10 +137,10 @@ func (v *CmdConfigSet) Run() error {
 	if err != nil {
 		return err
 	}
-	if v.doClear {
-		err = cli.ClearValue(context.TODO(), v.path)
+	if v.DoClear {
+		err = cli.ClearValue(context.TODO(), v.Path)
 	} else {
-		err = cli.SetValue(context.TODO(), keybase1.SetValueArg{Path: v.path, Value: v.value})
+		err = cli.SetValue(context.TODO(), keybase1.SetValueArg{Path: v.Path, Value: v.Value})
 	}
 	return err
 }
@@ -163,13 +163,17 @@ func NewCmdConfig(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 	}
 }
 
+func NewCmdConfigGetRunner(g *libkb.GlobalContext) *CmdConfigGet {
+	return &CmdConfigGet{Contextified: libkb.NewContextified(g)}
+}
+
 func NewCmdConfigGet(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "get",
 		Usage:        "Get a config value",
 		ArgumentHelp: "<key>",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdConfigGet{Contextified: libkb.NewContextified(g)}, "get", c)
+			cl.ChooseCommand(NewCmdConfigGetRunner(g), "get", c)
 		},
 	}
 }
@@ -207,9 +211,13 @@ func NewCmdConfigSet(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Com
 			},
 		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdConfigSet{Contextified: libkb.NewContextified(g)}, "set", c)
+			cl.ChooseCommand(NewCmdConfigSetRunner(g), "set", c)
 		},
 	}
+}
+
+func NewCmdConfigSetRunner(g *libkb.GlobalContext) *CmdConfigSet {
+	return &CmdConfigSet{Contextified: libkb.NewContextified(g)}
 }
 
 func NewCmdConfigInfo(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
