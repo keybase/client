@@ -1,7 +1,7 @@
 /* @flow */
 
 import React, {Component} from 'react'
-import {FlatButton, RaisedButton} from 'material-ui'
+import {FlatButton} from 'material-ui'
 import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide'
 import type {Props} from './button'
 import flags from '../util/feature-flags'
