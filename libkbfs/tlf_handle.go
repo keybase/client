@@ -288,29 +288,53 @@ func (h *TlfHandle) GetCanonicalName(ctx context.Context, config Config) Canonic
 	return CanonicalTlfName(s)
 }
 
+func identifyOneUID(ctx context.Context, kbpki KBPKI,
+	canonicalName CanonicalTlfName, uid keybase1.UID, isWriter,
+	isPublic bool, errChan chan<- error) {
+	err := identifyUID(ctx, kbpki, canonicalName, uid, isWriter, isPublic)
+	if err != nil {
+		select {
+		case errChan <- err:
+		default:
+		}
+	}
+}
+
 // identifyHandle identifies the canonical names in the given handle.
 func identifyHandle(ctx context.Context, config Config, h *TlfHandle) error {
 	canonicalName := h.GetCanonicalName(ctx, config)
 
+	var wg sync.WaitGroup
+	errChan := make(chan error, 1)
+	// TODO: limit the number of concurrent identifies?
 	for _, writerUID := range h.Writers {
-		isWriter := true
-		err := identifyUID(ctx, config.KBPKI(), canonicalName, writerUID, isWriter, h.IsPublic())
-		if err != nil {
-			return err
-		}
+		wg.Add(1)
+		localWriter := writerUID
+		go func() {
+			defer wg.Done()
+			identifyOneUID(ctx, config.KBPKI(), canonicalName, localWriter,
+				true, h.IsPublic(), errChan)
+		}()
 	}
 
 	if !h.IsPublic() && len(h.Readers) > 0 {
 		for _, readerUID := range h.Readers {
-			isWriter := false
-			err := identifyUID(ctx, config.KBPKI(), canonicalName, readerUID, isWriter, h.IsPublic())
-			if err != nil {
-				return err
-			}
+			wg.Add(1)
+			localReader := readerUID
+			go func() {
+				defer wg.Done()
+				identifyOneUID(ctx, config.KBPKI(), canonicalName, localReader,
+					false, h.IsPublic(), errChan)
+			}()
 		}
 	}
 
-	return nil
+	go func() {
+		wg.Wait()
+		close(errChan)
+	}()
+
+	return <-errChan
 }
 
 // IsPublic returns whether or not this TlfHandle represents a public
