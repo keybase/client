@@ -5,176 +5,219 @@ package client
 
 import (
 	"fmt"
-	"io"
 	"strconv"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol"
+	"golang.org/x/net/context"
 )
 
 type CmdConfigGet struct {
-	key    string
-	writer io.Writer
+	libkb.Contextified
+	path string
 }
 
 type CmdConfigSet struct {
-	key    string
-	value  string
-	writer io.Writer
-}
-
-type CmdConfigReset struct {
-	writer io.Writer
+	libkb.Contextified
+	path    string
+	value   keybase1.ConfigValue
+	doClear bool
 }
 
 type CmdConfigInfo struct {
-	writer io.Writer
+	libkb.Contextified
 }
 
 func (v *CmdConfigGet) ParseArgv(ctx *cli.Context) error {
-	if len(ctx.Args()) < 1 {
-		return fmt.Errorf("Not enough arguments.")
-	}
-	v.key = ctx.Args()[0]
-	if v.writer == nil {
-		v.writer = GlobUI.OutputWriter()
+	if len(ctx.Args()) == 1 {
+		v.path = ctx.Args()[0]
+	} else if len(ctx.Args()) > 1 {
+		return fmt.Errorf("Expected 0 or 1 arguments")
 	}
 	return nil
 }
 
 func (v *CmdConfigSet) ParseArgv(ctx *cli.Context) error {
-	if len(ctx.Args()) < 1 {
-		return fmt.Errorf("Not enough arguments.")
+	var neededArgs int
+	if ctx.Bool("int") || ctx.Bool("string") || ctx.Bool("obj") || ctx.Bool("int") {
+		neededArgs = 2
+	} else {
+		neededArgs = 1
 	}
-	v.key = ctx.Args()[0]
-	if len(ctx.Args()) > 1 {
-		v.value = ctx.Args()[1]
+	if len(ctx.Args()) != neededArgs {
+		return fmt.Errorf("Wrong number of arguments; wanted %d, got %d",
+			neededArgs, len(ctx.Args()))
 	}
-	if v.writer == nil {
-		v.writer = GlobUI.OutputWriter()
-	}
-	return nil
-}
 
-func (v *CmdConfigReset) ParseArgv(ctx *cli.Context) error {
-	if v.writer == nil {
-		v.writer = GlobUI.OutputWriter()
+	flags := 0
+	v.path = ctx.Args()[0]
+
+	if ctx.Bool("clear") {
+		flags++
+		v.doClear = true
+	}
+	if ctx.Bool("null") {
+		flags++
+		v.value.IsNull = true
+	}
+	if ctx.Bool("int") {
+		flags++
+		i, err := strconv.ParseInt(ctx.Args()[1], 10, 64)
+		if err != nil {
+			return err
+		}
+		tmp := int(i)
+		v.value.I = &tmp
+	}
+	if ctx.Bool("bool") {
+		flags++
+		b, err := strconv.ParseBool(ctx.Args()[1])
+		if err != nil {
+			return err
+		}
+		v.value.B = &b
+	}
+
+	if ctx.Bool("obj") {
+		flags++
+		s := ctx.Args()[1]
+		v.value.O = &s
+	}
+
+	if ctx.Bool("string") {
+		flags++
+	}
+
+	if flags > 1 {
+		return fmt.Errorf("Can only specify one of -c, -n, -i, -b or -s")
+	}
+
+	if ctx.Bool("string") || flags == 0 {
+		s := ctx.Args()[1]
+		v.value.S = &s
 	}
 	return nil
 }
 
 func (v *CmdConfigInfo) ParseArgv(ctx *cli.Context) error {
-	if v.writer == nil {
-		v.writer = GlobUI.OutputWriter()
-	}
 	return nil
 }
 
 func (v *CmdConfigGet) Run() error {
-	cr := G.Env.GetConfig()
-	// TODO: print dictionaries?
-	if s, isSet := cr.GetStringAtPath(v.key); isSet {
-		fmt.Fprintf(v.writer, "%s: %s\n", v.key, s)
-	} else if b, isSet := cr.GetBoolAtPath(v.key); isSet {
-		fmt.Fprintf(v.writer, "%s: %t\n", v.key, b)
-	} else if i, isSet := cr.GetIntAtPath(v.key); isSet {
-		fmt.Fprintf(v.writer, "%s: %d\n", v.key, i)
-	} else if isSet := cr.GetNullAtPath(v.key); isSet {
-		fmt.Fprintf(v.writer, "%s: null\n", v.key)
+	cli, err := GetConfigClient(v.G())
+	if err != nil {
+		return err
 	}
+	var val keybase1.ConfigValue
+	val, err = cli.GetValue(context.TODO(), v.path)
+	if err != nil {
+		return err
+	}
+	dui := v.G().UI.GetDumbOutputUI()
+	switch {
+	case val.IsNull:
+		dui.Printf("null\n")
+	case val.I != nil:
+		dui.Printf("%d\n", *val.I)
+	case val.S != nil:
+		dui.Printf("%q\n", *val.S)
+	case val.B != nil:
+		dui.Printf("%t\n", *val.B)
+	case val.O != nil:
+		dui.Printf("%s\n", *val.O)
+	}
+
 	return nil
 }
 
 func (v *CmdConfigSet) Run() error {
-	if v.value != "" {
-		cw := G.Env.GetConfigWriter()
-		// try to convert the value to an int, and then to a bool
-		// if those don't work, use a string
-		if val, e := strconv.Atoi(v.value); e == nil {
-			cw.SetIntAtPath(v.key, val)
-		} else if val, e := strconv.ParseBool(v.value); e == nil {
-			// NOTE: this will also convert strings like 't' and 'F' to
-			// a bool, which could potentially cause strange errors for
-			// e.g. a user named "f"
-			cw.SetBoolAtPath(v.key, val)
-		} else if v.value == "null" {
-			cw.SetNullAtPath(v.key)
-		} else {
-			cw.SetStringAtPath(v.key, v.value)
-		}
-	} else {
-		cw := G.Env.GetConfigWriter()
-		cw.DeleteAtPath(v.key)
+	cli, err := GetConfigClient(v.G())
+	if err != nil {
+		return err
 	}
-	return nil
-}
-
-func (v *CmdConfigReset) Run() error {
-	// Clear out file
-	cw := G.Env.GetConfigWriter()
-	cw.Reset()
-	return nil
+	if v.doClear {
+		err = cli.ClearValue(context.TODO(), v.path)
+	} else {
+		err = cli.SetValue(context.TODO(), keybase1.SetValueArg{Path: v.path, Value: v.value})
+	}
+	return err
 }
 
 func (v *CmdConfigInfo) Run() error {
-	configFile := G.Env.GetConfigFilename()
-	fmt.Fprintf(v.writer, "File: %s\n\n", configFile)
+	configFile := v.G().Env.GetConfigFilename()
+	v.G().UI.GetDumbOutputUI().Printf("%s\n", configFile)
 	return nil
 }
 
-func NewCmdConfig(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdConfig(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "config",
 		ArgumentHelp: "[arguments...]",
 		Subcommands: []cli.Command{
-			NewCmdConfigGet(cl),
-			NewCmdConfigSet(cl),
-			NewCmdConfigReset(cl),
-			NewCmdConfigInfo(cl),
+			NewCmdConfigGet(cl, g),
+			NewCmdConfigSet(cl, g),
+			NewCmdConfigInfo(cl, g),
 		},
 	}
 }
 
-func NewCmdConfigGet(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdConfigGet(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "get",
 		Usage:        "Get a config value",
 		ArgumentHelp: "<key>",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdConfigGet{}, "get", c)
+			cl.ChooseCommand(&CmdConfigGet{Contextified: libkb.NewContextified(g)}, "get", c)
 		},
 	}
 }
 
-func NewCmdConfigSet(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdConfigSet(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "set",
 		Usage:        "Set a config value",
 		ArgumentHelp: "<key> <value>",
 		Description:  "Set a config value. Specify an empty value to clear it.",
+		Flags: []cli.Flag{
+			cli.BoolFlag{
+				Name:  "bool, b",
+				Usage: "Treat the passed argument as a boolean",
+			},
+			cli.BoolFlag{
+				Name:  "int, i",
+				Usage: "Treat the passed argument as an integer",
+			},
+			cli.BoolFlag{
+				Name:  "obj, o",
+				Usage: "Treat the passed argument as a JSON object",
+			},
+			cli.BoolFlag{
+				Name:  "string, s",
+				Usage: "Treat the passed argument as a string (default)",
+			},
+			cli.BoolFlag{
+				Name:  "null, n",
+				Usage: "Set the value to null",
+			},
+			cli.BoolFlag{
+				Name:  "clear, c",
+				Usage: "Clear out the value",
+			},
+		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdConfigSet{}, "set", c)
+			cl.ChooseCommand(&CmdConfigSet{Contextified: libkb.NewContextified(g)}, "set", c)
 		},
 	}
 }
 
-func NewCmdConfigReset(cl *libcmdline.CommandLine) cli.Command {
-	return cli.Command{
-		Name:  "reset",
-		Usage: "Reset the config",
-		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdConfigReset{}, "reset", c)
-		},
-	}
-}
-
-func NewCmdConfigInfo(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdConfigInfo(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:  "info",
 		Usage: "Show config file path",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdConfigInfo{}, "info", c)
+			cl.ChooseCommand(&CmdConfigInfo{Contextified: libkb.NewContextified(g)}, "info", c)
 		},
 	}
 }
@@ -186,12 +229,6 @@ func (v *CmdConfigGet) GetUsage() libkb.Usage {
 }
 
 func (v *CmdConfigSet) GetUsage() libkb.Usage {
-	return libkb.Usage{
-		Config: true,
-	}
-}
-
-func (v *CmdConfigReset) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: true,
 	}

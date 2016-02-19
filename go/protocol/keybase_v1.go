@@ -568,6 +568,14 @@ type Config struct {
 	ForkType     ForkType `codec:"forkType" json:"forkType"`
 }
 
+type ConfigValue struct {
+	IsNull bool    `codec:"isNull" json:"isNull"`
+	B      *bool   `codec:"b,omitempty" json:"b,omitempty"`
+	I      *int    `codec:"i,omitempty" json:"i,omitempty"`
+	S      *string `codec:"s,omitempty" json:"s,omitempty"`
+	O      *string `codec:"o,omitempty" json:"o,omitempty"`
+}
+
 type GetCurrentStatusArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -596,6 +604,19 @@ type HelloIAmArg struct {
 	Details ClientDetails `codec:"details" json:"details"`
 }
 
+type SetValueArg struct {
+	Path  string      `codec:"path" json:"path"`
+	Value ConfigValue `codec:"value" json:"value"`
+}
+
+type ClearValueArg struct {
+	Path string `codec:"path" json:"path"`
+}
+
+type GetValueArg struct {
+	Path string `codec:"path" json:"path"`
+}
+
 type ConfigInterface interface {
 	GetCurrentStatus(context.Context, int) (GetCurrentStatusRes, error)
 	GetExtendedStatus(context.Context, int) (ExtendedStatus, error)
@@ -603,6 +624,9 @@ type ConfigInterface interface {
 	SetUserConfig(context.Context, SetUserConfigArg) error
 	SetPath(context.Context, SetPathArg) error
 	HelloIAm(context.Context, ClientDetails) error
+	SetValue(context.Context, SetValueArg) error
+	ClearValue(context.Context, string) error
+	GetValue(context.Context, string) (ConfigValue, error)
 }
 
 func ConfigProtocol(i ConfigInterface) rpc.Protocol {
@@ -705,6 +729,54 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"setValue": {
+				MakeArg: func() interface{} {
+					ret := make([]SetValueArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetValueArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetValueArg)(nil), args)
+						return
+					}
+					err = i.SetValue(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"clearValue": {
+				MakeArg: func() interface{} {
+					ret := make([]ClearValueArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ClearValueArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ClearValueArg)(nil), args)
+						return
+					}
+					err = i.ClearValue(ctx, (*typedArgs)[0].Path)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getValue": {
+				MakeArg: func() interface{} {
+					ret := make([]GetValueArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetValueArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetValueArg)(nil), args)
+						return
+					}
+					ret, err = i.GetValue(ctx, (*typedArgs)[0].Path)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -744,6 +816,23 @@ func (c ConfigClient) SetPath(ctx context.Context, __arg SetPathArg) (err error)
 func (c ConfigClient) HelloIAm(ctx context.Context, details ClientDetails) (err error) {
 	__arg := HelloIAmArg{Details: details}
 	err = c.Cli.Call(ctx, "keybase.1.config.helloIAm", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ConfigClient) SetValue(ctx context.Context, __arg SetValueArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.config.setValue", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ConfigClient) ClearValue(ctx context.Context, path string) (err error) {
+	__arg := ClearValueArg{Path: path}
+	err = c.Cli.Call(ctx, "keybase.1.config.clearValue", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ConfigClient) GetValue(ctx context.Context, path string) (res ConfigValue, err error) {
+	__arg := GetValueArg{Path: path}
+	err = c.Cli.Call(ctx, "keybase.1.config.getValue", []interface{}{__arg}, &res)
 	return
 }
 

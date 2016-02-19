@@ -89,12 +89,17 @@ func (g *GlobalContext) SetCommandLine(cmd CommandLine) { g.Env.SetCommandLine(c
 
 func (g *GlobalContext) SetUI(u UI) { g.UI = u }
 
-func (g *GlobalContext) Init() {
+func (g *GlobalContext) Init() *GlobalContext {
 	g.Env = NewEnv(nil, nil)
 	g.Service = false
 	g.createLoginState()
 	g.Resolver = NewResolver(g)
 	g.RateLimits = NewRateLimits(g)
+	return g
+}
+
+func NewGlobalContextInit() *GlobalContext {
+	return NewGlobalContext().Init()
 }
 
 func (g *GlobalContext) SetService() {

@@ -159,8 +159,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-jsonw",
-			"revision": "8b210ebd44e383ee4c61a58284a478f1a50787e4",
-			"revisionTime": "2015-06-24T12:59:21-04:00"
+			"revision": "49900b186f7c75688c880fec4a1c0f20d9209e2a",
+			"revisionTime": "2016-02-18T22:29:06-05:00"
 		},
 		{
 			"path": "github.com/keybase/go-kext",
