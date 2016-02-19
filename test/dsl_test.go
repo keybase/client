@@ -60,7 +60,7 @@ func (o *opt) runInitOnce() {
 	if o.initDone {
 		return
 	}
-	o.clock = &libkbfs.TestClock{T: time.Time{}}
+	o.clock = &libkbfs.TestClock{T: time.Unix(0, 0)}
 	o.users = o.engine.InitTest(o.t, o.blockSize, o.blockChangeSize, o.writerNames, o.readerNames, o.clock)
 
 	for _, uname := range o.readerNames {
@@ -441,7 +441,7 @@ func (c *ctx) getNode(filepath string, create bool, isFile bool) (Node, error) {
 // duration past the default time.
 func crnameAtTime(path string, user username, d time.Duration) string {
 	cre := libkbfs.WriterDeviceDateConflictRenamer{}
-	return cre.ConflictRenameHelper(time.Time{}.Add(d), string(user),
+	return cre.ConflictRenameHelper(time.Unix(0, 0).Add(d), string(user),
 		"dev1", path)
 }
 
