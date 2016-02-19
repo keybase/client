@@ -9,6 +9,8 @@ export type Props = {
   primary?: ?bool,
   secondary?: ?bool,
   follow?: ?bool,
+  following?: ?bool,
+  unfollow?: ?bool,
   danger?: ?bool,
   disabled?: ?bool,
   small?: ?bool,

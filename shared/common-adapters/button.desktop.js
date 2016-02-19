@@ -33,27 +33,42 @@ export default class Button extends Component {
       return this.render1()
     }
 
-    let backgroundColorStyle = {}
+    let backgroundStyle = {}
     let labelStyle = {}
     let widthStyle = {}
     let smallStyle = {}
+
+    // First apply styles for the main button types.
     if (this.props.primary) {
-      backgroundColorStyle = {
+      backgroundStyle = {
         ...styles2.buttonPrimary,
         opacity: this.props.disabled ? styles2.buttonPrimary.disabledOpacity : 1
       }
     } else if (this.props.follow) {
-      backgroundColorStyle = {
+      backgroundStyle = {
         ...styles2.buttonFollow,
         opacity: this.props.disabled ? styles2.buttonFollow.disabledOpacity : 1
       }
+    } else if (this.props.following) {
+      backgroundStyle = {
+        ...styles2.buttonFollowing,
+        opacity: this.props.disabled ? styles2.buttonFollowing.disabledOpacity : 1
+      }
+      labelStyle = {
+        color: globalColorsDZ2.green
+      }
+    } else if (this.props.unfollow) {
+      backgroundStyle = {
+        ...styles2.buttonUnfollow,
+        opacity: this.props.disabled ? styles2.buttonUnfollow.disabledOpacity : 1
+      }
     } else if (this.props.danger) {
-      backgroundColorStyle = {
+      backgroundStyle = {
         ...styles2.buttonDanger,
         opacity: this.props.disabled ? styles2.buttonDanger.disabledOpacity : 1
       }
     } else {
-      backgroundColorStyle = {
+      backgroundStyle = {
         ...styles2.buttonSecondary,
         opacity: this.props.disabled ? styles2.buttonSecondary.disabledOpacity : 1
       }
@@ -71,8 +86,8 @@ export default class Button extends Component {
     }
 
     if (this.props.fullWidth) {
-      backgroundColorStyle = {
-        ...backgroundColorStyle,
+      backgroundStyle = {
+        ...backgroundStyle,
         minWidth: '100%'
       }
     }
@@ -80,7 +95,7 @@ export default class Button extends Component {
     return (
       <FlatButton
         onClick={this.props.onClick}
-        style={{...backgroundColorStyle, ...this.props.style, ...smallStyle, ...widthStyle}}
+        style={{...backgroundStyle, ...this.props.style, ...smallStyle, ...widthStyle}}
         labelStyle={{...styles2.buttonLabel, ...labelStyle}}
         label={this.props.label || this.props.more && '•••'}
         primary={this.props.primary}
@@ -98,6 +113,8 @@ Button.propTypes = {
   primary: React.PropTypes.bool,
   secondary: React.PropTypes.bool,
   follow: React.PropTypes.bool,
+  following: React.PropTypes.bool,
+  unfollow: React.PropTypes.bool,
   danger: React.PropTypes.bool,
   small: React.PropTypes.bool,
   more: React.PropTypes.bool,
@@ -151,7 +168,22 @@ export const styles2 = {
     ...buttonCommon2,
     backgroundColor: globalColorsDZ2.green,
     disabledOpacity: 0.3,
-    marginRight: 10
+    marginRight: 10,
+    minWidth: '125px'
+  },
+  buttonFollowing: {
+    ...buttonCommon2,
+    backgroundColor: globalColorsDZ2.white,
+    border: 'solid 2px ' + globalColorsDZ2.green,
+    marginRight: 10,
+    minWidth: '125px'
+  },
+  buttonUnfollow: {
+    ...buttonCommon2,
+    backgroundColor: globalColorsDZ2.blue,
+    disabledOpacity: 0.2,
+    marginRight: 10,
+    minWidth: '125px'
   },
   buttonSmall: {
     height: '28px',

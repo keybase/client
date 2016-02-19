@@ -72,14 +72,16 @@ export default class Render extends Component {
                 <Button primary label='Primary'/><Space/>
                 <Button label='Secondary'/><Space/>
                 <Button danger label='Danger'/><Space/>
+                <Space/>
                 <Button follow label='Follow'/><Space/>
-                <Button follow label='Following'/><Space/>
-                <Button primary label='Unfollow'/><Space/>
+                <Button following label='Following'/><Space/>
+                <Button unfollow label='Unfollow'/><Space/>
               </div>
               <div style={{...globalStyles.flexBoxColumn, padding: 10, paddingRight: 100}}>
                 <Button primary disabled label='Primary disabled'/><Space/>
                 <Button secondary disabled label='Secondary disabled'/><Space/>
                 <Button danger disabled label='Danger disabled'/><Space/>
+                <Space/>
                 <Button follow disabled label='Follow disabled'/><Space/>
               </div>
             </div>
