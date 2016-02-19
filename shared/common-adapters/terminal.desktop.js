@@ -2,12 +2,12 @@
 import React, {Component} from 'react'
 import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide'
 
-import type {Props} from './terminal'
+import type {Props, Context} from './terminal'
 
 export default class Terminal extends Component {
   props: Props;
 
-  getChildContext (): Object {
+  getChildContext (): Context {
     return {
       inTerminal: true
     }

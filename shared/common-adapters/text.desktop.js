@@ -8,9 +8,11 @@ import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide
 import TextOld from './text.old'
 
 import type {Props, Background} from './text'
+import type {Context} from './terminal'
 
 export default class Text extends Component {
   props: Props;
+  context: Context;
 
   _terminalPrefix (type: Props.type): ?ReactElement {
     return ({
@@ -89,7 +91,7 @@ export default class Text extends Component {
       ...(this.props.small ? styles.textSmallMixin : {}),
       ...(this.props.onClick ? globalStyles.clickable : {}),
       ...(inline ? {...this._inlineStyle(this.props.type)} : {display: 'block'}),
-      ...this._colorStyleBackgroundMode(this.props.backgroundMode == null ? 'Normal' : this.props.backgroundMode, this.props.type),
+      ...this._colorStyleBackgroundMode(this.props.backgroundMode || 'Normal', this.props.type),
       ...this.props.style
     }
 
