@@ -372,6 +372,25 @@
       "name" : "forkType",
       "type" : "ForkType"
     } ]
+  }, {
+    "type" : "record",
+    "name" : "ConfigValue",
+    "fields" : [ {
+      "name" : "isNull",
+      "type" : "boolean"
+    }, {
+      "name" : "b",
+      "type" : [ "null", "boolean" ]
+    }, {
+      "name" : "i",
+      "type" : [ "null", "int" ]
+    }, {
+      "name" : "s",
+      "type" : [ "null", "string" ]
+    }, {
+      "name" : "o",
+      "type" : [ "null", "string" ]
+    } ]
   } ],
   "messages" : {
     "getCurrentStatus" : {
@@ -428,6 +447,30 @@
         "type" : "ClientDetails"
       } ],
       "response" : "null"
+    },
+    "setValue" : {
+      "request" : [ {
+        "name" : "path",
+        "type" : "string"
+      }, {
+        "name" : "value",
+        "type" : "ConfigValue"
+      } ],
+      "response" : "null"
+    },
+    "clearValue" : {
+      "request" : [ {
+        "name" : "path",
+        "type" : "string"
+      } ],
+      "response" : "null"
+    },
+    "getValue" : {
+      "request" : [ {
+        "name" : "path",
+        "type" : "string"
+      } ],
+      "response" : "ConfigValue"
     }
   }
 }

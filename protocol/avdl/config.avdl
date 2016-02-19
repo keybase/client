@@ -73,6 +73,15 @@ protocol config {
     ForkType forkType;
   }
 
+  // A poor man's union, since we only currently supprt union { null, T }
+  record ConfigValue {
+    boolean isNull;
+    union { null, boolean } b;
+    union { null, int } i;
+    union { null, string } s;
+    union { null, string } o;
+  }
+
   Config getConfig(int sessionID);
 
   /**
@@ -86,4 +95,9 @@ protocol config {
   void setPath(int sessionID, string path);
 
   void helloIAm(ClientDetails details);
+
+  void setValue(string path, ConfigValue value);
+  void clearValue(string path);
+  ConfigValue getValue(string path);
+
 }

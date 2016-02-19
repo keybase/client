@@ -96,6 +96,9 @@ func (n NullConfiguration) GetNoPinentry() (bool, bool) {
 func (n NullConfiguration) GetStringAtPath(string) (string, bool) {
 	return "", false
 }
+func (n NullConfiguration) GetInterfaceAtPath(string) (interface{}, error) {
+	return nil, nil
+}
 
 func (n NullConfiguration) GetBoolAtPath(string) (bool, bool) {
 	return false, false
