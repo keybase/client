@@ -12,30 +12,44 @@ import (
 )
 
 type FakeCryptoClient struct {
-	Local   *CryptoLocal
-	ctlChan chan struct{}
+	Local     *CryptoLocal
+	readyChan chan<- struct{}
+	goChan    <-chan struct{}
 }
 
 func NewFakeCryptoClient(config Config, signingKey SigningKey,
-	cryptPrivateKey CryptPrivateKey, ctlChan chan struct{}) *FakeCryptoClient {
+	cryptPrivateKey CryptPrivateKey,
+	readyChan chan<- struct{},
+	goChan <-chan struct{}) *FakeCryptoClient {
 	return &FakeCryptoClient{
-		Local:   NewCryptoLocal(config, signingKey, cryptPrivateKey),
-		ctlChan: ctlChan,
+		Local:     NewCryptoLocal(config, signingKey, cryptPrivateKey),
+		readyChan: readyChan,
+		goChan:    goChan,
 	}
 }
 
-func (fc FakeCryptoClient) maybeWaitOnChannel() {
-	if fc.ctlChan != nil {
-		// say we're ready, and wait for the signal to proceed
-		fc.ctlChan <- struct{}{}
-		<-fc.ctlChan
+func (fc FakeCryptoClient) maybeWaitOnChannel(ctx context.Context) error {
+	if fc.readyChan == nil {
+		return nil
+	}
+
+	// say we're ready, and wait for a signal to proceed or a
+	// cancellation.
+	fc.readyChan <- struct{}{}
+	select {
+	case <-fc.goChan:
+		return nil
+	case <-ctx.Done():
+		return ctx.Err()
 	}
 }
 
-func (fc FakeCryptoClient) Call(_ context.Context, s string, args interface{}, res interface{}) error {
+func (fc FakeCryptoClient) Call(ctx context.Context, s string, args interface{}, res interface{}) error {
 	switch s {
 	case "keybase.1.crypto.signED25519":
-		fc.maybeWaitOnChannel()
+		if err := fc.maybeWaitOnChannel(ctx); err != nil {
+			return err
+		}
 		arg := args.([]interface{})[0].(keybase1.SignED25519Arg)
 		sigInfo, err := fc.Local.Sign(context.Background(), arg.Msg)
 		if err != nil {
@@ -56,7 +70,9 @@ func (fc FakeCryptoClient) Call(_ context.Context, s string, args interface{}, r
 		return nil
 
 	case "keybase.1.crypto.unboxBytes32":
-		fc.maybeWaitOnChannel()
+		if err := fc.maybeWaitOnChannel(ctx); err != nil {
+			return err
+		}
 		arg := args.([]interface{})[0].(keybase1.UnboxBytes32Arg)
 		publicKey := MakeTLFEphemeralPublicKey(arg.PeersPublicKey)
 		encryptedClientHalf := EncryptedTLFCryptKeyClientHalf{
@@ -74,7 +90,9 @@ func (fc FakeCryptoClient) Call(_ context.Context, s string, args interface{}, r
 		return nil
 
 	case "keybase.1.crypto.unboxBytes32Any":
-		fc.maybeWaitOnChannel()
+		if err := fc.maybeWaitOnChannel(ctx); err != nil {
+			return err
+		}
 		arg := args.([]interface{})[0].(keybase1.UnboxBytes32AnyArg)
 		keys := make([]EncryptedTLFCryptKeyClientAndEphemeral, 0, len(arg.Bundles))
 		for _, k := range arg.Bundles {
@@ -123,7 +141,7 @@ func TestCryptoClientSignAndVerify(t *testing.T) {
 	signingKey := MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
 	config := testCryptoClientConfig(t)
-	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil)
+	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil, nil)
 	c := newCryptoClientWithClient(config.Codec(), fc, logger.NewTestLogger(t))
 
 	msg := []byte("message")
@@ -144,7 +162,7 @@ func TestCryptoClientSignCanceled(t *testing.T) {
 	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
 	config := testCryptoClientConfig(t)
 	ctlChan := make(chan struct{})
-	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, ctlChan)
+	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, ctlChan, nil)
 	c := newCryptoClientWithClient(config.Codec(), cancelableClient{fc}, logger.NewTestLogger(t))
 
 	f := func(ctx context.Context) error {
@@ -161,7 +179,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfBoxSeal(t *testing.T) {
 	signingKey := MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
 	config := testCryptoClientConfig(t)
-	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil)
+	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil, nil)
 	c := newCryptoClientWithClient(config.Codec(), fc, logger.NewTestLogger(t))
 
 	_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
@@ -219,7 +237,7 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalf(t *testing.T) {
 	signingKey := MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
 	config := testCryptoClientConfig(t)
-	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil)
+	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil, nil)
 	c := newCryptoClientWithClient(config.Codec(), fc, logger.NewTestLogger(t))
 
 	_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
@@ -264,7 +282,7 @@ func TestCryptoClientDecryptEmptyEncryptedTLFCryptKeyClientHalfAny(t *testing.T)
 	signingKey := MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
 	config := testCryptoClientConfig(t)
-	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil)
+	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil, nil)
 	c := newCryptoClientWithClient(config.Codec(), fc, logger.NewTestLogger(t))
 
 	keys := make([]EncryptedTLFCryptKeyClientAndEphemeral, 0, 0)
@@ -282,7 +300,7 @@ func TestCryptoClientDecryptEncryptedTLFCryptKeyClientHalfAny(t *testing.T) {
 	signingKey := MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
 	config := testCryptoClientConfig(t)
-	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil)
+	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil, nil)
 	c := newCryptoClientWithClient(config.Codec(), fc, logger.NewTestLogger(t))
 
 	keys := make([]EncryptedTLFCryptKeyClientAndEphemeral, 0, 4)
@@ -342,7 +360,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfAnyFailures(t *testing.T) {
 	signingKey := MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
 	config := testCryptoClientConfig(t)
-	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil)
+	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil, nil)
 	c := newCryptoClientWithClient(config.Codec(), fc, logger.NewTestLogger(t))
 
 	_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
@@ -430,7 +448,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 	signingKey := MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
 	config := testCryptoClientConfig(t)
-	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil)
+	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, nil, nil)
 	c := newCryptoClientWithClient(config.Codec(), fc, logger.NewTestLogger(t))
 
 	_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
@@ -516,7 +534,7 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfCanceled(t *testing.T) {
 	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
 	config := testCryptoClientConfig(t)
 	ctlChan := make(chan struct{})
-	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, ctlChan)
+	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, ctlChan, nil)
 	c := newCryptoClientWithClient(config.Codec(), cancelableClient{fc}, logger.NewTestLogger(t))
 
 	_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
