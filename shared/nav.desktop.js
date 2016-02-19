@@ -59,6 +59,10 @@ class Nav extends Component {
   constructor (props) {
     super(props)
     this.props.startup()
+
+    // Restartup when we connect online.
+    // If you startup while offline, you'll stay in an errored state
+    window.addEventListener('online', this.props.startup)
   }
 
   _handleTabsChange (e, key, payload) {
