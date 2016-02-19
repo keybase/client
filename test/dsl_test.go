@@ -359,6 +359,12 @@ func reenableUpdates() fileOp {
 	}, Defaults}
 }
 
+func forceQuotaReclamation() fileOp {
+	return fileOp{func(c *ctx) error {
+		return c.engine.ForceQuotaReclamation(c.user, c.rootNode)
+	}, Defaults}
+}
+
 func lsdir(name string, contents m) fileOp {
 	return fileOp{func(c *ctx) error {
 		folder, err := c.getNode(name, false, false)

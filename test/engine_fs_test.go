@@ -195,6 +195,21 @@ func (e *fsEngine) SyncFromServer(user User, dir Node) (err error) {
 	return nil
 }
 
+// ForceQuotaReclamation implements the Engine interface.
+func (*fsEngine) ForceQuotaReclamation(user User, dir Node) (err error) {
+	u := user.(*fsUser)
+	ctx := context.Background()
+	root, _, err := u.config.KBFSOps().GetOrCreateRootNode(
+		ctx, u.tlf, false, libkbfs.MasterBranch)
+	if err != nil {
+		return fmt.Errorf("cannot get root for %s: %v", u.tlf, err)
+	}
+
+	// TODO: expose this as a special write-only file?
+	return libkbfs.ForceQuotaReclamationForTesting(u.config,
+		root.GetFolderBranch())
+}
+
 // Shutdown is called by the test harness when it is done with the
 // given user.
 func (*fsEngine) Shutdown(user User) error {

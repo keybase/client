@@ -319,6 +319,13 @@ func (k *LibKBFS) SyncFromServer(u User, dir Node) (err error) {
 	return kbfsOps.SyncFromServer(context.Background(), d.GetFolderBranch())
 }
 
+// ForceQuotaReclamation implements the Engine interface.
+func (k *LibKBFS) ForceQuotaReclamation(u User, dir Node) (err error) {
+	config := u.(*libkbfs.ConfigLocal)
+	d := dir.(libkbfs.Node)
+	return libkbfs.ForceQuotaReclamationForTesting(config, d.GetFolderBranch())
+}
+
 // Shutdown implements the Engine interface.
 func (k *LibKBFS) Shutdown(u User) error {
 	config := u.(*libkbfs.ConfigLocal)

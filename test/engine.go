@@ -75,6 +75,9 @@ type Engine interface {
 	// SyncFromServer is called by the test harness as the given user to actively retrieve new
 	// metadata for a folder.
 	SyncFromServer(u User, dir Node) (err error)
+	// ForceQuotaReclamation starts quota reclamation by the given
+	// user in the TLF corresponding to the given node.
+	ForceQuotaReclamation(u User, dir Node) (err error)
 	// Shutdown is called by the test harness when it is done with the
 	// given user.
 	Shutdown(u User) error

@@ -503,6 +503,20 @@ func RestartCRForTesting(config Config, folderBranch FolderBranch) error {
 	return nil
 }
 
+// ForceQuotaReclamationForTesting kicks off quota reclamation under
+// the given config, for the given folder-branch.
+func ForceQuotaReclamationForTesting(config Config,
+	folderBranch FolderBranch) error {
+	kbfsOps, ok := config.KBFSOps().(*KBFSOpsStandard)
+	if !ok {
+		return errors.New("Unexpected KBFSOps type")
+	}
+
+	ops := kbfsOps.getOps(folderBranch)
+	ops.fbm.forceQuotaReclamation()
+	return nil
+}
+
 // TestClock returns a set time as the current time.
 type TestClock struct {
 	T time.Time
