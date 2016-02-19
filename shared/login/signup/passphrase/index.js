@@ -3,7 +3,7 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import {bindActionCreators} from 'redux'
-import SecureString from '../../../util/secure-string'
+import HiddenString from '../../../util/hidden-string'
 
 import Render from './index.render'
 import {checkPassphrase} from '../../../actions/signup'
@@ -19,7 +19,7 @@ class PassphraseForm extends Component {
 }
 
 PassphraseForm.propTypes = {
-  passphraseError: React.PropTypes.instanceOf(SecureString),
+  passphraseError: React.PropTypes.instanceOf(HiddenString),
   checkPassphrase: React.PropTypes.func
 }
 

@@ -3,7 +3,7 @@
 import * as Constants from '../constants/login'
 import * as ConfigConstants from '../constants/config'
 import Immutable from 'immutable'
-import SecureString from '../util/secure-string'
+import HiddenString from '../util/hidden-string'
 import {isMobile} from '../constants/platform'
 import {
   codePageDeviceRoleNewPhone,
@@ -39,7 +39,7 @@ type LoginState = {
   forgotPasswordError: ?Error,
   userPass: {
     username: string | '',
-    passphrase: ?SecureString
+    passphrase: ?HiddenString
   },
   deviceName: {
     onSubmit: ?Function,
