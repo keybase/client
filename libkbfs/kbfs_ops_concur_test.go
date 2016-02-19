@@ -1656,7 +1656,7 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 	}()
 
 	// Unblock the sync
-	syncUnstallCh <- struct{}{}
+	close(syncUnstallCh)
 
 	// Both errors should be an OverQuota error
 	syncErr := <-syncErrCh
