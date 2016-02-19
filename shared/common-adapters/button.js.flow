@@ -9,8 +9,11 @@ export type Props = {
   primary?: ?bool,
   secondary?: ?bool,
   follow?: ?bool,
+  danger?: ?bool,
+  disabled?: ?bool,
   small?: ?bool,
-  more?: ?bool
+  more?: ?bool,
+  fullWidth?: ?bool
 }
 
 declare export default class Button extends Component {

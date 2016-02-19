@@ -5,6 +5,8 @@ import {Button, Logo, Input, Text, Terminal, FormWithCheckbox} from '../common-a
 
 export default class Render extends Component {
   render () {
+    const Space = () => <div style={{height: 20}}/>
+
     return (
       <div style={{...globalStyles.flexBoxColumn, margin: 20}}>
         <Container title='Text - DZ2'>
@@ -64,10 +66,41 @@ export default class Render extends Component {
           </div>
         </Container>
         <Container title='Buttons'>
-          <div style={{...globalStyles.flexBoxRow}}>
-            <Button label='Secondary'/>
-            <Button label='Primary' primary />
+          <div style={{...globalStyles.flexBoxColumn, padding: 10, paddingRight: 100}}>
+            <div style={{...globalStyles.flexBoxRow}}>
+              <div style={{...globalStyles.flexBoxColumn, padding: 10, paddingRight: 100}}>
+                <Button primary label='Primary'/><Space/>
+                <Button label='Secondary'/><Space/>
+                <Button danger label='Danger'/><Space/>
+                <Button follow label='Follow'/><Space/>
+                <Button follow label='Following'/><Space/>
+                <Button primary label='Unfollow'/><Space/>
+              </div>
+              <div style={{...globalStyles.flexBoxColumn, padding: 10, paddingRight: 100}}>
+                <Button primary disabled label='Primary disabled'/><Space/>
+                <Button secondary disabled label='Secondary disabled'/><Space/>
+                <Button danger disabled label='Danger disabled'/><Space/>
+                <Button follow disabled label='Follow disabled'/><Space/>
+              </div>
+            </div>
+
+            <div style={{...globalStyles.flexBoxColumn, padding: 10}}>
+              <Button primary fullWidth label='Primary full-width'/><Space/>
+              <Button secondary fullWidth label='Secondary full-width'/><Space/>
+              <Button danger fullWidth label='Danger full-width'/><Space/>
+              <Button follow fullWidth label='Follow full-width'/><Space/>
+            </div>
+
+            <div style={{...globalStyles.flexBoxRow}}>
+              <div style={{...globalStyles.flexBoxColumn, padding: 10, paddingRight: 100}}>
+                <Button primary small label='Primary small'/><Space/>
+                <Button secondary small label='Secondary small'/><Space/>
+                <Button danger small label='Danger small'/><Space/>
+                <Button follow small label='Follow small'/><Space/>
+              </div>
+            </div>
           </div>
+
         </Container>
         <Container title='Logos'>
           <div style={{...globalStyles.flexBoxRow, alignItems: 'baseline'}}>
