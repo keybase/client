@@ -77,6 +77,7 @@ export default class Button extends Component {
       }
     }
 
+    // Then some overrides that apply to all button types.
     if (this.props.small) {
       smallStyle = styles2.buttonSmall
       labelStyle = {
@@ -88,6 +89,12 @@ export default class Button extends Component {
     if (this.props.fullWidth) {
       backgroundStyle = {
         ...backgroundStyle,
+        // Using minWidth here means we can't have a full-width button on the
+        // same line/row as another button, the right thing is very unlikely to
+        // happen.  The alternative is 'flex: 1' here, which would work but is
+        // dangerous, because we'd be modifying our container.
+        //
+        // So let's just say that a fullWidth button can't have siblings.
         minWidth: '100%'
       }
     }
