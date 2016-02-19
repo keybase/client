@@ -15,7 +15,7 @@ type nodeCacheEntry struct {
 // fields to construct paths.
 type nodeCacheStandard struct {
 	folderBranch FolderBranch
-	nodes        map[BlockPointer]*nodeCacheEntry
+	nodes        map[blockRef]*nodeCacheEntry
 	lock         sync.RWMutex
 }
 
@@ -24,15 +24,15 @@ var _ NodeCache = (*nodeCacheStandard)(nil)
 func newNodeCacheStandard(fb FolderBranch) *nodeCacheStandard {
 	return &nodeCacheStandard{
 		folderBranch: fb,
-		nodes:        make(map[BlockPointer]*nodeCacheEntry),
+		nodes:        make(map[blockRef]*nodeCacheEntry),
 	}
 }
 
 // lock must be locked for writing by the caller
 func (ncs *nodeCacheStandard) forgetLocked(core *nodeCore) {
-	ptr := core.pathNode.BlockPointer
+	ref := core.pathNode.BlockPointer.ref()
 
-	entry, ok := ncs.nodes[ptr]
+	entry, ok := ncs.nodes[ref]
 	if !ok {
 		return
 	}
@@ -42,7 +42,7 @@ func (ncs *nodeCacheStandard) forgetLocked(core *nodeCore) {
 
 	entry.refCount--
 	if entry.refCount <= 0 {
-		delete(ncs.nodes, ptr)
+		delete(ncs.nodes, ref)
 	}
 }
 
@@ -57,16 +57,16 @@ func (ncs *nodeCacheStandard) forget(core *nodeCore) {
 func (ncs *nodeCacheStandard) newChildForParentLocked(parent Node) (*nodeStandard, error) {
 	nodeStandard, ok := parent.(*nodeStandard)
 	if !ok {
-		return nil, ParentNodeNotFoundError{BlockPointer{}}
+		return nil, ParentNodeNotFoundError{blockRef{}}
 	}
 
-	ptr := nodeStandard.core.pathNode.BlockPointer
-	entry, ok := ncs.nodes[ptr]
+	ref := nodeStandard.core.pathNode.BlockPointer.ref()
+	entry, ok := ncs.nodes[ref]
 	if !ok {
-		return nil, ParentNodeNotFoundError{ptr}
+		return nil, ParentNodeNotFoundError{ref}
 	}
 	if nodeStandard.core != entry.core {
-		return nil, ParentNodeNotFoundError{ptr}
+		return nil, ParentNodeNotFoundError{ref}
 	}
 	return nodeStandard, nil
 }
@@ -82,16 +82,16 @@ func (ncs *nodeCacheStandard) GetOrCreate(
 	if !ptr.IsValid() {
 		// Temporary code to track down bad block
 		// pointers. Remove when not needed anymore.
-		panic(InvalidBlockPointerError{ptr})
+		panic(InvalidBlockRefError{ptr.ref()})
 	}
 
 	if name == "" {
-		return nil, EmptyNameError{ptr}
+		return nil, EmptyNameError{ptr.ref()}
 	}
 
 	ncs.lock.Lock()
 	defer ncs.lock.Unlock()
-	entry, ok := ncs.nodes[ptr]
+	entry, ok := ncs.nodes[ptr.ref()]
 	if ok {
 		// If the entry happens to be unlinked, we may be in a
 		// situation where a node got unlinked and then recreated, but
@@ -102,7 +102,7 @@ func (ncs *nodeCacheStandard) GetOrCreate(
 			entry.core.cachedPath = path{}
 			entry.core.parent, ok = parent.(*nodeStandard)
 			if !ok {
-				return nil, ParentNodeNotFoundError{BlockPointer{}}
+				return nil, ParentNodeNotFoundError{blockRef{}}
 			}
 			entry.core.pathNode.Name = name
 		}
@@ -121,25 +121,25 @@ func (ncs *nodeCacheStandard) GetOrCreate(
 	entry = &nodeCacheEntry{
 		core: newNodeCore(ptr, name, parentNS, ncs),
 	}
-	ncs.nodes[ptr] = entry
+	ncs.nodes[ptr.ref()] = entry
 	return makeNodeStandardForEntry(entry), nil
 }
 
 // Get implements the NodeCache interface for nodeCacheStandard.
-func (ncs *nodeCacheStandard) Get(ptr BlockPointer) Node {
-	if ptr == (BlockPointer{}) {
+func (ncs *nodeCacheStandard) Get(ref blockRef) Node {
+	if ref == (blockRef{}) {
 		return nil
 	}
 
 	// Temporary code to track down bad block pointers. Remove (or
 	// return an error) when not needed anymore.
-	if !ptr.IsValid() {
-		panic(InvalidBlockPointerError{ptr})
+	if !ref.IsValid() {
+		panic(InvalidBlockRefError{ref})
 	}
 
 	ncs.lock.Lock()
 	defer ncs.lock.Unlock()
-	entry, ok := ncs.nodes[ptr]
+	entry, ok := ncs.nodes[ref]
 	if !ok {
 		return nil
 	}
@@ -148,51 +148,51 @@ func (ncs *nodeCacheStandard) Get(ptr BlockPointer) Node {
 
 // UpdatePointer implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) UpdatePointer(
-	oldPtr BlockPointer, newPtr BlockPointer) {
-	if oldPtr == (BlockPointer{}) && newPtr == (BlockPointer{}) {
+	oldRef blockRef, newPtr BlockPointer) {
+	if oldRef == (blockRef{}) && newPtr == (BlockPointer{}) {
 		return
 	}
 
-	if !oldPtr.IsValid() {
-		panic(fmt.Sprintf("invalid oldPtr %s with newPtr %s", oldPtr, newPtr))
+	if !oldRef.IsValid() {
+		panic(fmt.Sprintf("invalid oldRef %s with newPtr %s", oldRef, newPtr))
 	}
 
 	if !newPtr.IsValid() {
-		panic(fmt.Sprintf("invalid newPtr %s with oldPtr %s", newPtr, oldPtr))
+		panic(fmt.Sprintf("invalid newPtr %s with oldRef %s", newPtr, oldRef))
 	}
 
 	ncs.lock.Lock()
 	defer ncs.lock.Unlock()
-	entry, ok := ncs.nodes[oldPtr]
+	entry, ok := ncs.nodes[oldRef]
 	if !ok {
 		return
 	}
 
 	entry.core.pathNode.BlockPointer = newPtr
-	delete(ncs.nodes, oldPtr)
-	ncs.nodes[newPtr] = entry
+	delete(ncs.nodes, oldRef)
+	ncs.nodes[newPtr.ref()] = entry
 }
 
 // Move implements the NodeCache interface for nodeCacheStandard.
 func (ncs *nodeCacheStandard) Move(
-	ptr BlockPointer, newParent Node, newName string) error {
-	if ptr == (BlockPointer{}) {
+	ref blockRef, newParent Node, newName string) error {
+	if ref == (blockRef{}) {
 		return nil
 	}
 
 	// Temporary code to track down bad block pointers. Remove (or
 	// return an error) when not needed anymore.
-	if !ptr.IsValid() {
-		panic(InvalidBlockPointerError{ptr})
+	if !ref.IsValid() {
+		panic(InvalidBlockRefError{ref})
 	}
 
 	if newName == "" {
-		return EmptyNameError{ptr}
+		return EmptyNameError{ref}
 	}
 
 	ncs.lock.Lock()
 	defer ncs.lock.Unlock()
-	entry, ok := ncs.nodes[ptr]
+	entry, ok := ncs.nodes[ref]
 	if !ok {
 		return nil
 	}
@@ -208,20 +208,20 @@ func (ncs *nodeCacheStandard) Move(
 }
 
 // Unlink implements the NodeCache interface for nodeCacheStandard.
-func (ncs *nodeCacheStandard) Unlink(ptr BlockPointer, oldPath path) {
-	if ptr == (BlockPointer{}) {
+func (ncs *nodeCacheStandard) Unlink(ref blockRef, oldPath path) {
+	if ref == (blockRef{}) {
 		return
 	}
 
 	// Temporary code to track down bad block pointers. Remove (or
 	// return an error) when not needed anymore.
-	if !ptr.IsValid() {
-		panic(InvalidBlockPointerError{ptr})
+	if !ref.IsValid() {
+		panic(InvalidBlockRefError{ref})
 	}
 
 	ncs.lock.Lock()
 	defer ncs.lock.Unlock()
-	entry, ok := ncs.nodes[ptr]
+	entry, ok := ncs.nodes[ref]
 	if !ok {
 		return
 	}

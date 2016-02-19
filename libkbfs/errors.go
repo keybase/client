@@ -66,15 +66,14 @@ func (e BadTLFNameError) Error() string {
 	return fmt.Sprintf("TLF name %s is in an incorrect format", e.Name)
 }
 
-// InvalidBlockPointerError indicates an invalid block pointer was
+// InvalidBlockRefError indicates an invalid block reference was
 // encountered.
-type InvalidBlockPointerError struct {
-	ptr BlockPointer
+type InvalidBlockRefError struct {
+	ref blockRef
 }
 
-// Error implements the error interface for InvalidPathError.
-func (e InvalidBlockPointerError) Error() string {
-	return fmt.Sprintf("Invalid block pointer %s", e.ptr)
+func (e InvalidBlockRefError) Error() string {
+	return fmt.Sprintf("Invalid block ref %s", e.ref)
 }
 
 // InvalidPathError indicates an invalid path was encountered.
@@ -577,23 +576,23 @@ func (e NodeNotFoundError) Error() string {
 // ParentNodeNotFoundError indicates that we tried to update a Node's
 // parent with a BlockPointer that we don't yet know about.
 type ParentNodeNotFoundError struct {
-	parent BlockPointer
+	parent blockRef
 }
 
 // Error implements the error interface for ParentNodeNotFoundError.
 func (e ParentNodeNotFoundError) Error() string {
-	return fmt.Sprintf("No such parent node found for pointer %v", e.parent)
+	return fmt.Sprintf("No such parent node found for %v", e.parent)
 }
 
 // EmptyNameError indicates that the user tried to use an empty name
-// for the given BlockPointer.
+// for the given blockRef.
 type EmptyNameError struct {
-	ptr BlockPointer
+	ref blockRef
 }
 
 // Error implements the error interface for EmptyNameError.
 func (e EmptyNameError) Error() string {
-	return fmt.Sprintf("Cannot use empty name for pointer %v", e.ptr)
+	return fmt.Sprintf("Cannot use empty name for %v", e.ref)
 }
 
 // PaddedBlockReadError occurs if the number of bytes read do not

@@ -15,7 +15,7 @@ type blockRefLocalStatus int
 
 const (
 	noBlockRef blockRefLocalStatus = iota
-	blockRef
+	liveBlockRef
 	archivedBlockRef
 )
 
@@ -100,8 +100,8 @@ func (s *bserverMemStorage) addReference(id BlockID, refNonce BlockRefNonce) err
 
 	// only add it if there's a non-archived reference
 	for _, status := range entry.Refs {
-		if status == blockRef {
-			entry.Refs[refNonce] = blockRef
+		if status == liveBlockRef {
+			entry.Refs[refNonce] = liveBlockRef
 			s.m[id] = entry
 			return nil
 		}
@@ -246,8 +246,8 @@ func (s *bserverFileStorage) addReference(id BlockID, refNonce BlockRefNonce) er
 
 	// only add it if there's a non-archived reference
 	for _, status := range entry.Refs {
-		if status == blockRef {
-			entry.Refs[refNonce] = blockRef
+		if status == liveBlockRef {
+			entry.Refs[refNonce] = liveBlockRef
 			return s.putLocked(p, entry)
 		}
 	}
@@ -382,8 +382,8 @@ func (s *bserverLeveldbStorage) addReference(id BlockID, refNonce BlockRefNonce)
 	}
 
 	for _, status := range entry.Refs {
-		if status == blockRef {
-			entry.Refs[refNonce] = blockRef
+		if status == liveBlockRef {
+			entry.Refs[refNonce] = liveBlockRef
 			return s.putLocked(id, entry)
 		}
 	}

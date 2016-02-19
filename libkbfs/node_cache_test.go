@@ -139,14 +139,14 @@ func TestNodeCacheGetOrCreateSuccess(t *testing.T) {
 	}
 
 	// now make sure the refCounts are right.
-	if ncs.nodes[parentPtr].refCount != 1 {
-		t.Errorf("Parent has wrong refcount: %d", ncs.nodes[parentPtr].refCount)
+	if ncs.nodes[parentPtr.ref()].refCount != 1 {
+		t.Errorf("Parent has wrong refcount: %d", ncs.nodes[parentPtr.ref()].refCount)
 	}
-	if ncs.nodes[childPtr1].refCount != 2 {
-		t.Errorf("Child1 has wrong refcount: %d", ncs.nodes[childPtr1].refCount)
+	if ncs.nodes[childPtr1.ref()].refCount != 2 {
+		t.Errorf("Child1 has wrong refcount: %d", ncs.nodes[childPtr1.ref()].refCount)
 	}
-	if ncs.nodes[childPtr2].refCount != 1 {
-		t.Errorf("Child1 has wrong refcount: %d", ncs.nodes[childPtr2].refCount)
+	if ncs.nodes[childPtr2.ref()].refCount != 1 {
+		t.Errorf("Child1 has wrong refcount: %d", ncs.nodes[childPtr2.ref()].refCount)
 	}
 }
 
@@ -165,7 +165,7 @@ func TestNodeCacheGetOrCreateNoParent(t *testing.T) {
 	// now try to create a child node for that parent
 	childPtr1 := BlockPointer{ID: fakeBlockID(1)}
 	_, err = ncs.GetOrCreate(childPtr1, "child", parentNode)
-	expectedErr := ParentNodeNotFoundError{parentPtr}
+	expectedErr := ParentNodeNotFoundError{parentPtr.ref()}
 	if err != expectedErr {
 		t.Errorf("Got unexpected error when creating w/o parent: %v", err)
 	}
@@ -182,7 +182,7 @@ func TestNodeCacheUpdatePointer(t *testing.T) {
 	}
 
 	newParentPtr := BlockPointer{ID: fakeBlockID(1)}
-	ncs.UpdatePointer(parentPtr, newParentPtr)
+	ncs.UpdatePointer(parentPtr.ref(), newParentPtr)
 
 	if parentNode.(*nodeStandard).core.pathNode.BlockPointer != newParentPtr {
 		t.Errorf("UpdatePointer didn't work.")
@@ -198,7 +198,7 @@ func TestNodeCacheMoveSuccess(t *testing.T) {
 	childPtr2 := path2[1].BlockPointer
 
 	// now move child2 under child1
-	err := ncs.Move(childPtr2, childNode1, "child3")
+	err := ncs.Move(childPtr2.ref(), childNode1, "child3")
 	if err != nil {
 		t.Errorf("Couldn't update parent: %v", err)
 	}
@@ -213,14 +213,14 @@ func TestNodeCacheMoveSuccess(t *testing.T) {
 	}
 
 	// now make sure all nodes have 1 reference.
-	if ncs.nodes[parentPtr].refCount != 1 {
-		t.Errorf("Parent has wrong refcount: %d", ncs.nodes[parentPtr].refCount)
+	if ncs.nodes[parentPtr.ref()].refCount != 1 {
+		t.Errorf("Parent has wrong refcount: %d", ncs.nodes[parentPtr.ref()].refCount)
 	}
-	if ncs.nodes[childPtr1].refCount != 1 {
-		t.Errorf("Child1 has wrong refcount: %d", ncs.nodes[childPtr1].refCount)
+	if ncs.nodes[childPtr1.ref()].refCount != 1 {
+		t.Errorf("Child1 has wrong refcount: %d", ncs.nodes[childPtr1.ref()].refCount)
 	}
-	if ncs.nodes[childPtr2].refCount != 1 {
-		t.Errorf("Child1 has wrong refcount: %d", ncs.nodes[childPtr2].refCount)
+	if ncs.nodes[childPtr2.ref()].refCount != 1 {
+		t.Errorf("Child1 has wrong refcount: %d", ncs.nodes[childPtr2.ref()].refCount)
 	}
 }
 
@@ -235,8 +235,8 @@ func TestNodeCacheMoveNoParent(t *testing.T) {
 	simulateGC(ncs, []Node{childNode2})
 
 	// now move child2 under child1
-	err := ncs.Move(childPtr2, childNode1, "child3")
-	expectedErr := ParentNodeNotFoundError{childPtr1}
+	err := ncs.Move(childPtr2.ref(), childNode1, "child3")
+	expectedErr := ParentNodeNotFoundError{childPtr1.ref()}
 	if err != expectedErr {
 		t.Errorf("Got unexpected error when updating parent: %v", err)
 	}
@@ -271,7 +271,7 @@ func TestNodeCacheUnlink(t *testing.T) {
 	childPtr2 := path2[2].BlockPointer
 
 	// unlink child2
-	ncs.Unlink(childPtr2, ncs.PathFromNode(childNode2))
+	ncs.Unlink(childPtr2.ref(), ncs.PathFromNode(childNode2))
 
 	path := ncs.PathFromNode(childNode2)
 	checkNodeCachePath(t, id, branch, path, path2)
@@ -291,7 +291,7 @@ func TestNodeCacheUnlinkParent(t *testing.T) {
 	childPtr1 := path2[1].BlockPointer
 
 	// unlink node 2's parent
-	ncs.Unlink(childPtr1, ncs.PathFromNode(childNode1))
+	ncs.Unlink(childPtr1.ref(), ncs.PathFromNode(childNode1))
 
 	path := ncs.PathFromNode(childNode2)
 	checkNodeCachePath(t, id, branch, path, path2)
@@ -311,10 +311,10 @@ func TestNodeCacheUnlinkThenRelink(t *testing.T) {
 	childPtr2 := path2[2].BlockPointer
 
 	// unlink child2
-	ncs.Unlink(childPtr2, ncs.PathFromNode(childNode2))
+	ncs.Unlink(childPtr2.ref(), ncs.PathFromNode(childNode2))
 	newChildName := "newChildName"
 	newChildPtr2 := BlockPointer{ID: fakeBlockID(22)}
-	ncs.UpdatePointer(childPtr2, newChildPtr2)
+	ncs.UpdatePointer(childPtr2.ref(), newChildPtr2)
 	ncs.GetOrCreate(newChildPtr2, newChildName, childNode1)
 
 	path := ncs.PathFromNode(childNode2)

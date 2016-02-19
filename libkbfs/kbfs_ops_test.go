@@ -2646,7 +2646,7 @@ func checkSyncOp(t *testing.T, so *syncOp, filePtr BlockPointer,
 func checkSyncOpInCache(t *testing.T, ops *folderBranchOps,
 	filePtr BlockPointer, writes []WriteRange) {
 	// check the in-progress syncOp
-	si, ok := ops.unrefCache[stripBP(filePtr)]
+	si, ok := ops.unrefCache[filePtr.ref()]
 	if !ok {
 		t.Error("No sync info for written file!")
 	}

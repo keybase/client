@@ -63,7 +63,7 @@ func (b *BlockServerLocal) Put(ctx context.Context, id BlockID, tlfID TlfID,
 		KeyServerHalf: serverHalf,
 		Tlf:           tlfID,
 	}
-	entry.Refs[zeroBlockRefNonce] = blockRef
+	entry.Refs[zeroBlockRefNonce] = liveBlockRef
 	return b.s.put(id, entry)
 }
 

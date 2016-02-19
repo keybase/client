@@ -2762,8 +2762,8 @@ func (_mr *_MockNodeCacheRecorder) GetOrCreate(arg0, arg1, arg2 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetOrCreate", arg0, arg1, arg2)
 }
 
-func (_m *MockNodeCache) Get(ptr BlockPointer) Node {
-	ret := _m.ctrl.Call(_m, "Get", ptr)
+func (_m *MockNodeCache) Get(ref blockRef) Node {
+	ret := _m.ctrl.Call(_m, "Get", ref)
 	ret0, _ := ret[0].(Node)
 	return ret0
 }
@@ -2772,16 +2772,16 @@ func (_mr *_MockNodeCacheRecorder) Get(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Get", arg0)
 }
 
-func (_m *MockNodeCache) UpdatePointer(oldPtr BlockPointer, newPtr BlockPointer) {
-	_m.ctrl.Call(_m, "UpdatePointer", oldPtr, newPtr)
+func (_m *MockNodeCache) UpdatePointer(oldRef blockRef, newPtr BlockPointer) {
+	_m.ctrl.Call(_m, "UpdatePointer", oldRef, newPtr)
 }
 
 func (_mr *_MockNodeCacheRecorder) UpdatePointer(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "UpdatePointer", arg0, arg1)
 }
 
-func (_m *MockNodeCache) Move(ptr BlockPointer, newParent Node, newName string) error {
-	ret := _m.ctrl.Call(_m, "Move", ptr, newParent, newName)
+func (_m *MockNodeCache) Move(ref blockRef, newParent Node, newName string) error {
+	ret := _m.ctrl.Call(_m, "Move", ref, newParent, newName)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
@@ -2790,8 +2790,8 @@ func (_mr *_MockNodeCacheRecorder) Move(arg0, arg1, arg2 interface{}) *gomock.Ca
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Move", arg0, arg1, arg2)
 }
 
-func (_m *MockNodeCache) Unlink(ptr BlockPointer, oldPath path) {
-	_m.ctrl.Call(_m, "Unlink", ptr, oldPath)
+func (_m *MockNodeCache) Unlink(ref blockRef, oldPath path) {
+	_m.ctrl.Call(_m, "Unlink", ref, oldPath)
 }
 
 func (_mr *_MockNodeCacheRecorder) Unlink(arg0, arg1 interface{}) *gomock.Call {

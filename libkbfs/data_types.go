@@ -199,6 +199,26 @@ func (nonce BlockRefNonce) String() string {
 	return hex.EncodeToString(nonce[:])
 }
 
+// blockRef is a block ID/ref nonce pair, which defines a unique
+// reference to a block.
+type blockRef struct {
+	id       BlockID
+	refNonce BlockRefNonce
+}
+
+func (r blockRef) IsValid() bool {
+	return r.id.IsValid()
+}
+
+func (r blockRef) String() string {
+	s := fmt.Sprintf("blockRef{id: %s", r.id)
+	if r.refNonce != zeroBlockRefNonce {
+		s += fmt.Sprintf(", refNonce: %s", r.refNonce)
+	}
+	s += "}"
+	return s
+}
+
 // BlockPointer contains the identifying information for a block in KBFS.
 type BlockPointer struct {
 	ID      BlockID `codec:"i"`
@@ -246,6 +266,13 @@ func (p BlockPointer) String() string {
 	}
 	s += "}"
 	return s
+}
+
+func (p BlockPointer) ref() blockRef {
+	return blockRef{
+		id:       p.ID,
+		refNonce: p.RefNonce,
+	}
 }
 
 // BlockInfo contains all information about a block in KBFS and its
