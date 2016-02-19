@@ -149,7 +149,7 @@ const buttonCommon2 = {
   height: '32px',
   lineHeight: '24px',
   textTransform: 'none',
-  minWidth: 100
+  minWidth: 10
 }
 
 export const styles2 = {
