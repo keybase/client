@@ -10,8 +10,8 @@ import (
 	"bazil.org/fuse"
 
 	"github.com/keybase/client/go/logger"
-	"github.com/keybase/kbfs/libfuse"
 	"github.com/keybase/kbfs/libfs"
+	"github.com/keybase/kbfs/libfuse"
 	"github.com/keybase/kbfs/libkbfs"
 )
 
