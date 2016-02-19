@@ -7,7 +7,7 @@ import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide
 // $FlowFixMe remove when we stop using the old version of text
 import TextOld from './text.old'
 
-import type {Props} from './text'
+import type {Props, Background} from './text'
 
 export default class Text extends Component {
   props: Props;
@@ -34,16 +34,20 @@ export default class Text extends Component {
     }
   }
 
-  _colorStyleDarkmode (type: Props.type): Object {
+  _colorStyleBackgroundMode (backgroundMode: Background, type: Props.type): Object {
+    if (backgroundMode === 'Information') {
+      return {color: globalColorsDZ2.brown60}
+    }
     switch (type) {
       case 'HeaderJumbo':
       case 'HeaderBig':
       case 'Header':
       case 'BodySemibold':
+      case 'BodySmallSemibold':
       case 'Body':
-        return {color: globalColorsDZ2.white}
+        return {color: backgroundMode === 'Normal' ? globalColorsDZ2.black75 : globalColorsDZ2.white}
       case 'BodySmall':
-        return {color: globalColorsDZ2.white40}
+        return {color: backgroundMode === 'Normal' ? globalColorsDZ2.black40 : globalColorsDZ2.white40}
       default:
         return {}
     }
@@ -61,6 +65,7 @@ export default class Text extends Component {
       'BodySemibold': styles.textBodySemibold,
       'Body': styles.textBody,
       'BodySmall': styles.textBodySmall,
+      'BodySmallSemibold': styles.textBodySmallSemibold,
       'Error': styles.textError,
       'Terminal': {...styles.textTerminal, color: (this.context.inTerminal ? globalColorsDZ2.blue3 : globalColorsDZ2.darkBlue)},
       'TerminalCommand': styles.textTerminalCommand,
@@ -69,8 +74,7 @@ export default class Text extends Component {
       'TerminalPublic': styles.textTerminalPublic,
       'TerminalPrivate': styles.textTerminalPrivate,
       'TerminalEmpty': styles.textTerminalEmpty,
-      'InputHeader': styles.textInputHeader,
-      'Warning': styles.textWarning
+      'InputHeader': styles.textInputHeader
     }[this.props.type]
 
     let inline = true
@@ -83,10 +87,9 @@ export default class Text extends Component {
       ...(this.props.lineClamp ? lineClamp(this.props.lineClamp) : {}),
       ...(this.props.link ? styles.textLinkMixin : {}),
       ...(this.props.small ? styles.textSmallMixin : {}),
-      ...(this.props.reversed ? styles.textReversedMixin : {}),
       ...(this.props.onClick ? globalStyles.clickable : {}),
       ...(inline ? {...this._inlineStyle(this.props.type)} : {display: 'block'}),
-      ...(this.props.darkMode ? this._colorStyleDarkmode(this.props.type) : {}),
+      ...this._colorStyleBackgroundMode(this.props.backgroundMode == null ? 'Normal' : this.props.backgroundMode, this.props.type),
       ...this.props.style
     }
 
@@ -109,7 +112,6 @@ Text.propTypes = {
   type: React.PropTypes.oneOf(['Header', 'Body', 'TerminalCommand', 'TerminalComment', 'TerminalEmpty']),
   link: React.PropTypes.bool,
   small: React.PropTypes.bool,
-  reversed: React.PropTypes.bool,
   children: React.PropTypes.node,
   style: React.PropTypes.object,
   onClick: React.PropTypes.func,
@@ -183,7 +185,13 @@ export const styles = {
   },
   textBodySmall: {
     ...textCommon,
-    color: globalColorsDZ2.black40,
+    fontSize: 14,
+    lineHeight: '19px',
+    letterSpacing: '0.3px'
+  },
+  textBodySmallSemibold: {
+    ...textCommon,
+    ...globalStyles.DZ2.fontSemibold,
     fontSize: 14,
     lineHeight: '19px',
     letterSpacing: '0.3px'
@@ -232,17 +240,6 @@ export const styles = {
     color: globalColors.grey2,
     fontSize: 13,
     lineHeight: '17px'
-  },
-  textReversedMixin: {
-    color: globalColors.white
-  },
-  textWarning: {
-    ...textCommon,
-    ...globalStyles.DZ2.fontBold,
-    fontSize: 24,
-    lineHeight: '31px',
-    letterSpacing: '0.3px',
-    color: globalColorsDZ2.brown60
   }
 }
 

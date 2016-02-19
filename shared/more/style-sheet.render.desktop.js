@@ -103,38 +103,46 @@ class DZ2Font extends Component {
     const Space = () => <div style={{height: 20}}/>
     return (
       <div style={globalStyles.flexBoxColumn}>
-        <div style={globalStyles.flexBoxRow}>
+        <div style={{...globalStyles.flexBoxRow, flexWrap: 'wrap'}}>
 
-          {[false, true].map(darkMode => (
-            <div style={
-              {...globalStyles.flexBoxColumn,
-                flex: 1,
-                padding: 40,
-                backgroundColor: (darkMode ? globalColorsDZ2.darkBlue : globalColorsDZ2.white)}}>
-              <Text dz2 darkMode={darkMode} type='HeaderJumbo'>Header Jumbo</Text>
-              <Text dz2 darkMode={darkMode} type='HeaderJumbo'>Header Jumbo</Text>
-              <Space/>
-              <Text dz2 darkMode={darkMode} type='HeaderBig'>Header Big Header Big</Text>
-              <Text dz2 darkMode={darkMode} type='HeaderBig'>Header Big Header Big</Text>
-              <Space/>
-              <Text dz2 darkMode={darkMode} type='Header'>Header Header Header</Text>
-              <Text dz2 darkMode={darkMode} type='Header'>Header Header Header</Text>
-              <Space/>
-              <Text dz2 darkMode={darkMode} type='Body'>Body Body</Text>
-              <Text dz2 darkMode={darkMode} type='Body'>Body Body</Text>
-              <Space/>
-              <Text dz2 darkMode={darkMode} type='BodySemibold'>Body Semibold Body Semibold</Text>
-              <Text dz2 darkMode={darkMode} type='BodySemibold'>Body Semibold Body Semibold</Text>
-              <Space/>
-              <Text dz2 darkMode={darkMode} type='BodySmall'>Body small Body Small</Text>
-              <Text dz2 darkMode={darkMode} type='BodySmall'>Body small Body Small</Text>
-              <Space/>
+          {['Normal', 'Announcements', 'Success', 'Information', 'HighRisk', 'Documentation', 'Terminal'].map(backgroundMode => {
+            const background = {
+              'Normal': globalColorsDZ2.white,
+              'Announcements': globalColorsDZ2.blue,
+              'Success': globalColorsDZ2.green,
+              'Information': globalColorsDZ2.yellow,
+              'HighRisk': globalColorsDZ2.red,
+              'Documentation': globalColorsDZ2.darkBlue,
+              'Terminal': globalColorsDZ2.darkBlue3
+            }[backgroundMode]
 
-              <div style={{...globalStyles.flexBoxRow, alignItems: 'baseline', justifyContent: 'center', backgroundColor: globalColorsDZ2.yellow, paddingTop: 10, paddingBottom: 10}}>
-                <Text dz2 type='Warning' style={{marginRight: 10}}>k </Text>
-                <Text dz2 type='BodySmall'>Brown 60%</Text>
-              </div>
-            </div>))}
+            return (
+              <div style={
+                {...globalStyles.flexBoxColumn,
+                  padding: 40,
+                  minWidth: 500,
+                  backgroundColor: background}}>
+                <Text dz2 backgroundMode={backgroundMode} type='HeaderJumbo'>Header Jumbo</Text>
+                <Text dz2 backgroundMode={backgroundMode} type='HeaderJumbo'>Header Jumbo</Text>
+                <Space/>
+                <Text dz2 backgroundMode={backgroundMode} type='HeaderBig'>Header Big Header Big</Text>
+                <Text dz2 backgroundMode={backgroundMode} type='HeaderBig'>Header Big Header Big</Text>
+                <Space/>
+                <Text dz2 backgroundMode={backgroundMode} type='Header'>Header Header Header</Text>
+                <Text dz2 backgroundMode={backgroundMode} type='Header'>Header Header Header</Text>
+                <Space/>
+                <Text dz2 backgroundMode={backgroundMode} type='Body'>Body Body</Text>
+                <Text dz2 backgroundMode={backgroundMode} type='Body'>Body Body</Text>
+                <Space/>
+                <Text dz2 backgroundMode={backgroundMode} type='BodySemibold'>Body Semibold Body Semibold</Text>
+                <Text dz2 backgroundMode={backgroundMode} type='BodySemibold'>Body Semibold Body Semibold</Text>
+                <Space/>
+                <Text dz2 backgroundMode={backgroundMode} type='BodySmallSemibold'>Body small Semibold Body Small Semibold</Text>
+                <Text dz2 backgroundMode={backgroundMode} type='BodySmallSemibold'>Body small Semibold Body Small Semibold</Text>
+                <Space/>
+                <Text dz2 backgroundMode={backgroundMode} type='BodySmall'>Body small Body Small</Text>
+                <Text dz2 backgroundMode={backgroundMode} type='BodySmall'>Body small Body Small</Text>
+              </div>) })}
         </div>
 
         <div style={globalStyles.flexBoxRow}>
