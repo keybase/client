@@ -38,7 +38,7 @@ export default class Icon extends Component {
         title={this.props.hint}
         style={{opacity: this.props.opacity ? 0.35 : 1.0, ...this.props.style}}
         onClick={this.props.onClick}
-        srcSet={`${[1, 2].map(mult => `${resolveRoot('shared/images/icons', this.props.type)}${mult > 1 ? `@${mult}x` : ``}.png ${mult}x`).join(', ')}`} />
+        srcSet={`${[1, 2, 3].map(mult => `${resolveRoot('shared/images/icons', this.props.type)}${mult > 1 ? `@${mult}x` : ''}.png ${mult}x`).join(', ')}`} />
     }
   }
 }
