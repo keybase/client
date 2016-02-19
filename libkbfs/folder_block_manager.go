@@ -522,7 +522,13 @@ outer:
 			for _, op := range rmd.data.Changes.Ops {
 				ptrs = append(ptrs, op.Unrefs()...)
 				for _, update := range op.AllUpdates() {
-					ptrs = append(ptrs, update.Unref)
+					// It's legal for there to be an "update two
+					// identical pointers (usually becau conflict
+					// resolution), so ignore that for quota
+					// reclamation purposes.
+					if update.Ref != update.Unref {
+						ptrs = append(ptrs, update.Unref)
+					}
 				}
 			}
 			// TODO: when can we clean up the MD's unembedded block
