@@ -40,7 +40,6 @@ export default class ActionRender extends Component {
 
   render2 (): ReactElement {
     const styles = styles2
-
     return (
       <div style={{...styles.container}}>
         <Button label='Close' onClick={() => this.props.onClose()} />

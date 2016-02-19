@@ -79,6 +79,7 @@ const font = {
   },
 }
 
+
 const fontDZ2 = {
   fontRegular: {
     ...fontCommon,
