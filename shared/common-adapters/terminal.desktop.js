@@ -7,6 +7,12 @@ import type {Props} from './terminal'
 export default class Terminal extends Component {
   props: Props;
 
+  getChildContext (): Object {
+    return {
+      inTerminal: true
+    }
+  }
+
   render () {
     const style = {...styles.container, ...(this.props.dz2 ? styles.DZ2 : {})}
     return (
@@ -15,6 +21,10 @@ export default class Terminal extends Component {
       </div>
     )
   }
+}
+
+Terminal.childContextTypes = {
+  inTerminal: React.PropTypes.bool
 }
 
 Terminal.propTypes = {

@@ -46,8 +46,8 @@ export const globalColorsDZ2 = {
   lightGrey2: '#f6f6f6',
 
   white: '#ffffff',
-  white75: 'rgba(0, 0, 0, 0.75)',
-  white40: 'rgba(0, 0, 0, 0.40)',
+  white75: 'rgba(255, 255, 255, 0.75)',
+  white40: 'rgba(255, 255, 255, 0.40)',
 
   black: '#000000',
   black75: 'rgba(0, 0, 0, 0.75)',

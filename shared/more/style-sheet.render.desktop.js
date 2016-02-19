@@ -131,8 +131,8 @@ class DZ2Font extends Component {
               <Space/>
 
               <div style={{...globalStyles.flexBoxRow, alignItems: 'baseline', justifyContent: 'center', backgroundColor: globalColorsDZ2.yellow, paddingTop: 10, paddingBottom: 10}}>
-                <Text dz2 type='HeaderBig' warning style={{marginLeft: 10, marginRight: 10}}>k</Text>
-                <Text dz2 type='BodySmall' warning>brown {'60%'}</Text>
+                <Text dz2 type='Warning' style={{marginRight: 10}}>k </Text>
+                <Text dz2 type='BodySmall'>Brown 60%</Text>
               </div>
             </div>))}
         </div>
@@ -140,27 +140,29 @@ class DZ2Font extends Component {
         <div style={globalStyles.flexBoxRow}>
           <div style={{...globalStyles.flexBoxColumn, flex: 1, padding: 10}}>
             <p>
-              <Text dz2 inline type='BodySmall'>Word word word word word&nbsp;</Text>
-              <Text dz2 inline type='Terminal'>inline command line&nbsp;</Text>
-              <Text dz2 inline type='TerminalUsername'>username&nbsp;</Text>
-              <Text dz2 inline type='TerminalPrivate'>{"'secret'"}</Text>
+              <Text dz2 type='BodySmall'>Word word </Text>
+              <Text dz2 type='Terminal'>inline command line </Text>
+              <Text dz2 type='TerminalUsername'>username </Text>
+              <Text dz2 type='TerminalPrivate'>'secret'</Text>
+              <Text dz2 type='BodySmall'> word word word word word </Text>
+              <Text dz2 type='Terminal'>inline command line</Text>
             </p>
           </div>
           <Terminal dz2 style={{flex: 1, overflow: 'scroll'}}>
-            <div style={{...globalStyles.flexBoxRow}}>
-              <Text dz2 type='Terminal'>command line stuff&nbsp;</Text>
-              <Text dz2 type='TerminalUsername'>username&nbsp;</Text>
-              <Text dz2 type='TerminalPrivate'>something secret</Text>
-            </div>
+            <p>
+              <Text dz2 type='Terminal'>command line stuff </Text>
+              <Text dz2 type='TerminalUsername'>username </Text>
+              <Text dz2 type='TerminalPrivate'>'something secret'</Text>
+            </p>
 
-            <div style={{...globalStyles.flexBoxRow}}>
-              <Text dz2 type='Terminal'>command line stuff&nbsp;</Text>
-              <Text dz2 type='TerminalUsername'>username&nbsp;</Text>
-              <Text dz2 type='TerminalPublic'>something public</Text>
-            </div>
+            <p>
+              <Text dz2 type='Terminal'>command line stuff </Text>
+              <Text dz2 type='TerminalUsername'>username </Text>
+              <Text dz2 type='TerminalPublic'>'something public'</Text>
+            </p>
 
-            <Text dz2 type='Terminal'>command line stuff</Text>
-            <Text dz2 type='TerminalComment'>comment and stuff</Text>
+            <Text dz2 type='TerminalComment'>comment</Text>
+            <Text dz2 type='TerminalComment'>comment</Text>
           </Terminal>
         </div>
       </div>
