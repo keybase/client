@@ -1,0 +1,7 @@
+// @ flow
+
+declare var exports: {
+  default:  {
+    showErrorBox: (title: string, body: string) => void
+  }
+}

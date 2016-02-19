@@ -2,7 +2,7 @@ import * as ConfigConstants from '../constants/config'
 import {getConfig, getCurrentStatus} from './config'
 import {autoLogin} from './login'
 import engine from '../engine'
-import {NotifyPopup} from '../native/notifications'
+import dialog from '../native/dialog'
 
 // This requires things across actions, so to avoid a circular dependency we'll pull this out
 // into it's own file
@@ -20,7 +20,7 @@ export function startup () {
           .catch(error => {
             console.error('Error starting up:', error)
             dispatch({type: ConfigConstants.startupLoaded, payload: error, error: true})
-            NotifyPopup('Startup Failed', {body: 'Run `keybase log send` to tell us why!'})
+            dialog.showErrorBox('Startup Failed', `Run \`keybase log send\` to tell us why!\nError Message: ${error}`)
           })
       )
     })
