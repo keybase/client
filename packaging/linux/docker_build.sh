@@ -62,30 +62,31 @@ if [ -z "$(docker images -q "$image")" ] ; then
   docker build -t "$image" "$clientdir/packaging/linux"
 fi
 
-# XXX: Avoid running out of disks space on OSX. OSX is a special snowflake.
-# Containers run inside a VirtualBox Linux VM, and disk writes wind up in a
-# tmpfs in that VM's very limited memory (instead of a btrfs subvolume on the
-# host's disk, as with a regular Linux host). That's no good for our builds,
-# which consume ~2GB of space. Docker has special support for sharing folders
-# from /Users, so we create such a folder and mount it as /root in the
-# container. (See https://docs.docker.com/userguide/dockervolumes, the notes
-# about Mac/Windows.) We have to be sure that all our copies and builds happen
-# in this folder.
-osx_args=()
-if [ "$(uname)" = Darwin ] ; then
-  host_root_temp="$(mktemp -d "$HOME/docker_temp_XXXX")"
-  echo "Created temp folder '$host_root_temp'."
-  osx_args=(-v "$host_root_temp:/root")
-  # Make sure we delete all this crap when we exit.
-  cleanup() {
-    echo "Cleaning up '$host_root_temp'..."
-    rm -rf "$host_root_temp"
-  }
-  trap cleanup EXIT
-fi
+# Prepare a folder that we'll share with the container, as the container's
+# /root directory, where all the build work gets done. Docker recommends that
+# write-heavy work happen in shared folders, for better performance.
+# (https://docs.docker.com/engine/userguide/storagedriver/device-mapper-driver:
+# "data volumes provide the best and most predictable performance. This is
+# because they bypass the storage driver and do not incur any of the potential
+# overheads introduced by thin provisioning and copy-on-write. For this reason,
+# you should to place heavy write workloads on data volumes.")
+#
+# Other reasons for preferring a shared folder:
+# 1) It avoids hiding a ton of disk usage in btrfs subvolumes that you won't
+# remember to clean up.
+# 2) It's a requirement os OSX (and probably Windows), where docker containers
+# run inside a hidden VirtualBox VM. That VM has very little disk space, and we
+# have to use shared folders to take advantage of the host's storage.
+#
+# Note that even though we're creating this folder in the current user's home
+# directory, it's going to end up full of files owned by root. Such is Docker.
+mkdir -p "$HOME/keybase_builds"
+shared_dir="$HOME/keybase_builds/$(date +%Y_%m_%d_%H%M%S)_$mode"
+# No -p here. It's an error if this directory already exists.
+mkdir "$shared_dir"
 
 # Export the GPG code signing key. Share a directory instead of a file, because
-# Docker on OSX doesn't support sharing files.
+# Docker on OSX doesn't support sharing individual files.
 code_signing_fingerprint="$(cat "$here/code_signing_fingerprint")"
 echo "Exporting the Keybase code signing key ($code_signing_fingerprint)..."
 gpg_tempdir="$(mktemp -d)"
@@ -101,13 +102,13 @@ gpg --export-secret-key --armor "$code_signing_fingerprint" > "$gpg_tempfile"
 # GPG code signing key. For the crazy array notation we're using with
 # serverops_args and osx_args, see http://stackoverflow.com/a/7577209/823869.
 docker run -ti \
+  -v "$shared_dir:/root" \
+  -v "$HOME/.ssh:/root/.ssh:ro" \
   -v "$clientdir:/CLIENT:ro" \
   -v "$kbfsdir:/KBFS:ro" \
-  -v "$HOME/.ssh:/root/.ssh:ro" \
   -v "$gpg_tempdir:/GPG" \
   -v "$s3cmd_temp:/S3CMD:ro" \
   "${serverops_args[@]:+${serverops_args[@]}}" \
-  "${osx_args[@]:+${osx_args[@]}}" \
   -e BUCKET_NAME \
   "$image" \
   bash /CLIENT/packaging/linux/inside_docker_main.sh "$@"
