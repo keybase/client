@@ -14,3 +14,9 @@ fi
 
 # Run the cron job immediately to perform repository configuration.
 nohup sh /etc/cron.daily/@@NAME@@ > /dev/null 2>&1 &
+
+# Run shared Keybase post-install code. Currently this only exists in
+# prerelease packages.
+if [ -x /opt/keybase/post_install.sh ] ; then
+  /opt/keybase/post_install.sh
+fi
