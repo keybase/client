@@ -67,6 +67,10 @@ type folderBlockManager struct {
 	reclamationCancel     context.CancelFunc
 
 	helper fbmHelper
+
+	// Keep track of the last reclamation time, for testing.
+	lastReclamationTimeLock sync.Mutex
+	lastReclamationTime     time.Time
 }
 
 func newFolderBlockManager(config Config, fb FolderBranch,
@@ -712,6 +716,9 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	fbm.log.CDebugf(ctx, "Starting quota reclamation process")
 	defer func() {
 		fbm.log.CDebugf(ctx, "Ending quota reclamation process: %v", err)
+		fbm.lastReclamationTimeLock.Lock()
+		defer fbm.lastReclamationTimeLock.Unlock()
+		fbm.lastReclamationTime = fbm.config.Clock().Now()
 	}()
 
 	ptrs, latestRev, err :=
@@ -748,4 +755,10 @@ func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 
 		fbm.doReclamation(timer)
 	}
+}
+
+func (fbm *folderBlockManager) getLastReclamationTime() time.Time {
+	fbm.lastReclamationTimeLock.Lock()
+	defer fbm.lastReclamationTimeLock.Unlock()
+	return fbm.lastReclamationTime
 }

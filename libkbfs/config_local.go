@@ -70,7 +70,7 @@ type ConfigLocal struct {
 	qrPeriod   time.Duration
 	qrUnrefAge time.Duration
 
-	// allKnownConfigs is used for testing, and contains all created
+	// allKnownConfigsForTesting is used for testing, and contains all created
 	// Config objects in this test.
 	allKnownConfigsForTesting *[]Config
 }
