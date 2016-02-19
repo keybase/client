@@ -321,7 +321,13 @@ func (fbm *folderBlockManager) archiveBlocksInBackground() {
 			for _, op := range md.data.Changes.Ops {
 				ptrs = append(ptrs, op.Unrefs()...)
 				for _, update := range op.AllUpdates() {
-					ptrs = append(ptrs, update.Unref)
+					// It's legal for there to be an "update" between
+					// two identical pointers (usually because of
+					// conflict resolution), so ignore that for
+					// archival purposes.
+					if update.Ref != update.Unref {
+						ptrs = append(ptrs, update.Unref)
+					}
 				}
 			}
 			fbm.runUnlessShutdown(func(ctx context.Context) (err error) {

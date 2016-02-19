@@ -150,7 +150,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 			}
 			for _, update := range op.AllUpdates() {
 				delete(expectedLiveBlocks, update.Unref)
-				if update.Unref != zeroPtr {
+				if update.Unref != zeroPtr && update.Ref != update.Unref {
 					archivedBlocks[update.Unref] = true
 				}
 				if update.Ref != zeroPtr {
