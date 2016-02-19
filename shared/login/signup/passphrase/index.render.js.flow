@@ -2,10 +2,10 @@
 /* eslint-disable react/prop-types */
 
 import React, {Component} from 'react'
-import SecureString from '../../../util/secure-string'
+import HiddenString from '../../../util/hidden-string'
 
 export type Props = {
-  passphraseError: ?SecureString,
+  passphraseError: ?HiddenString,
   checkPassphrase: (passphrase: string, passphrase2: string) => void
 }
 

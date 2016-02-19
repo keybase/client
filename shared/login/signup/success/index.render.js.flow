@@ -1,10 +1,10 @@
 /* @flow */
 
 import React, {Component} from 'react'
-import SecureString from '../../../util/secure-string'
+import HiddenString from '../../../util/hidden-string'
 
 export type Props = {
-  paperkey: SecureString,
+  paperkey: HiddenString,
   onFinish: () => void
 }
 

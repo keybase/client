@@ -2,7 +2,7 @@
 
 import _ from 'lodash'
 import * as Constants from '../../constants/signup'
-import SecureString from '../../util/secure-string'
+import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
 
 import {routeAppend} from '../../actions/router'
@@ -59,11 +59,11 @@ export function checkPassphrase (passphrase1: string, passphrase2: string): Type
   return dispatch => new Promise((resolve, reject) => {
     let passphraseError = null
     if (!passphrase1 || !passphrase2) {
-      passphraseError = new SecureString('Fields cannot be blank')
+      passphraseError = new HiddenString('Fields cannot be blank')
     } else if (passphrase1 !== passphrase2) {
-      passphraseError = new SecureString('Passphrases must match')
+      passphraseError = new HiddenString('Passphrases must match')
     } else if (passphrase1.length < 12) {
-      passphraseError = new SecureString('Passphrase must be at least 12 Characters')
+      passphraseError = new HiddenString('Passphrase must be at least 12 Characters')
     }
 
     if (passphraseError) {
@@ -75,7 +75,7 @@ export function checkPassphrase (passphrase1: string, passphrase2: string): Type
     } else {
       dispatch({
         type: Constants.checkPassphrase,
-        payload: {passphrase: new SecureString(passphrase1)}
+        payload: {passphrase: new HiddenString(passphrase1)}
       })
       dispatch(nextPhase())
     }
@@ -135,7 +135,7 @@ function signup (skipMail): TypedAsyncAction<Signup | ShowPaperKey> {
             // TODO if the user doesn't Ack the paper key we should error
             dispatch({
               type: Constants.showPaperKey,
-              payload: {paperkey: new SecureString(phrase)}
+              payload: {paperkey: new HiddenString(phrase)}
             })
             result()
           },

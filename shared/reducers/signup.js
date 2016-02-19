@@ -1,7 +1,7 @@
 /* @flow */
 
 import * as Constants from '../constants/signup'
-import SecureString from '../util/secure-string'
+import HiddenString from '../util/hidden-string'
 
 import type {SignupActions} from '../constants/signup'
 
@@ -12,11 +12,11 @@ export type SignupState = {
   inviteCodeError: ?string,
   usernameError: ?string,
   emailError: ?string,
-  passphraseError: ?SecureString,
-  passphrase: ?SecureString,
+  passphraseError: ?HiddenString,
+  passphrase: ?HiddenString,
   deviceNameError: ?string,
   deviceName: ?string,
-  paperkey: ?SecureString,
+  paperkey: ?HiddenString,
   phase: 'inviteCode' | 'usernameAndEmail' | 'passphraseSignup' | 'deviceName' | 'signupLoading' | 'paperkey' | 'success'
 }
 
