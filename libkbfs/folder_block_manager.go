@@ -549,10 +549,13 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 			fbm.id)
 	}
 	defer func() {
-		_, unlockErr := fbm.config.MDServer().TruncateUnlock(ctx, fbm.id)
+		unlocked, unlockErr := fbm.config.MDServer().TruncateUnlock(ctx, fbm.id)
 		if unlockErr != nil {
 			fbm.log.CDebugf(ctx, "Couldn't release the truncate lock: %v",
 				unlockErr)
+		}
+		if !unlocked {
+			fbm.log.CDebugf(ctx, "Couldn't unlock the truncate lock")
 		}
 	}()
 
