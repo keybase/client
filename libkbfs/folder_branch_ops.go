@@ -4643,6 +4643,16 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 		changes = append(changes, NodeChange{
 			Node: childNode,
 		})
+	case *gcOp:
+		// Unreferenced blocks in a gcOp mean that we shouldn't cache
+		// them anymore
+		bcache := fbo.config.BlockCache()
+		for _, ptr := range realOp.Unrefs() {
+			if err := bcache.DeleteTransient(ptr, fbo.id()); err != nil {
+				fbo.log.CDebugf(ctx,
+					"Couldn't delete transient entry for %v: %v", ptr, err)
+			}
+		}
 	}
 
 	fbo.obsLock.RLock()
