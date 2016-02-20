@@ -1028,6 +1028,16 @@ func (_mr *_MockBlockCacheRecorder) PutDirty(arg0, arg1, arg2 interface{}) *gomo
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutDirty", arg0, arg1, arg2)
 }
 
+func (_m *MockBlockCache) DeleteTransient(ptr BlockPointer, tlf TlfID) error {
+	ret := _m.ctrl.Call(_m, "DeleteTransient", ptr, tlf)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockBlockCacheRecorder) DeleteTransient(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteTransient", arg0, arg1)
+}
+
 func (_m *MockBlockCache) DeletePermanent(id BlockID) error {
 	ret := _m.ctrl.Call(_m, "DeletePermanent", id)
 	ret0, _ := ret[0].(error)

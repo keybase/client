@@ -239,6 +239,35 @@ func TestBcacheCheckPtrNotFound(t *testing.T) {
 	}
 }
 
+func TestBcacheDeleteTransient(t *testing.T) {
+	config := blockCacheTestInit(t, 100, 1<<30)
+	defer CheckConfigAndShutdown(t, config)
+	bcache := config.BlockCache()
+
+	block := NewFileBlock().(*FileBlock)
+	block.Contents = []byte{1, 2, 3, 4}
+	id := fakeBlockID(1)
+	ptr := BlockPointer{ID: id}
+	tlf := FakeTlfID(1, false)
+
+	err := bcache.Put(ptr, tlf, block, TransientEntry)
+	if err != nil {
+		t.Errorf("Couldn't put block: %v", err)
+	}
+
+	if err := bcache.DeleteTransient(ptr, tlf); err != nil {
+		t.Fatalf("Couldn't delete transient: %v", err)
+	}
+
+	// Make sure the pointer is gone from the hash cache too.
+	checkedPtr, err := bcache.CheckForKnownPtr(tlf, block)
+	if err != nil {
+		t.Errorf("Unexpected error checking id: %v", err)
+	} else if checkedPtr.IsInitialized() {
+		t.Errorf("Unexpected ID; got %v, expected null", checkedPtr)
+	}
+}
+
 func TestBcacheDeletePermanent(t *testing.T) {
 	config := blockCacheTestInit(t, 100, 1<<30)
 	defer CheckConfigAndShutdown(t, config)

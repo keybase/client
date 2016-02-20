@@ -519,6 +519,10 @@ type BlockCache interface {
 	// given block pointer and branch name. (The lifetime is
 	// implicitly permanent.)
 	PutDirty(ptr BlockPointer, branch BranchName, block Block) error
+	// DeleteTransient removes the transient entry for the given
+	// pointer from the cache, as well as any cached IDs so the block
+	// won't be reused.
+	DeleteTransient(ptr BlockPointer, tlf TlfID) error
 	// Delete removes the permanent entry for the non-dirty block
 	// associated with the given block ID from the cache.  No
 	// error is returned if no block exists for the given ID.

@@ -268,6 +268,34 @@ func (b *BlockCacheStandard) DeletePermanent(id BlockID) error {
 	return nil
 }
 
+// DeleteTransient implements the BlockCache interface for BlockCacheStandard.
+func (b *BlockCacheStandard) DeleteTransient(
+	ptr BlockPointer, tlf TlfID) error {
+	if b.cleanTransient == nil {
+		return nil
+	}
+
+	// If the block is cached and a file block, delete the known
+	// pointer as well.
+	if tmp, ok := b.cleanTransient.Get(ptr.ID); ok {
+		block, ok := tmp.(Block)
+		if !ok {
+			return BadDataError{ptr.ID}
+		}
+
+		// Remove the key if it exists
+		if fBlock, ok := block.(*FileBlock); b.ids != nil && ok &&
+			!fBlock.IsInd {
+			_, hash := DoRawDefaultHash(fBlock.Contents)
+			key := idCacheKey{tlf, hash}
+			b.ids.Remove(key)
+		}
+
+		b.cleanTransient.Remove(ptr.ID)
+	}
+	return nil
+}
+
 // DeleteKnownPtr implements the BlockCache interface for BlockCacheStandard.
 func (b *BlockCacheStandard) DeleteKnownPtr(tlf TlfID, block *FileBlock) error {
 	if block.IsInd {
