@@ -301,9 +301,6 @@
       "name" : "logDir",
       "type" : "string"
     }, {
-      "name" : "desktopUIConnected",
-      "type" : "boolean"
-    }, {
       "name" : "session",
       "type" : [ "null", "SessionStatus" ]
     }, {

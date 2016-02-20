@@ -149,14 +149,6 @@ func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res 
 		}
 	}, "ConfigHandler::GetExtendedStatus")
 
-	// this isn't quite ideal, but if there's a delegated UpdateUI available, then electron is running and connected.
-	if h.G().UIRouter != nil {
-		updateUI, err := h.G().UIRouter.GetUpdateUI()
-		if err == nil && updateUI != nil {
-			res.DesktopUIConnected = true
-		}
-	}
-
 	current, all, err := h.G().GetAllUserNames()
 	if err != nil {
 		h.G().Log.Debug("| died in GetAllUseranmes()")
