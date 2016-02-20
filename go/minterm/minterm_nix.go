@@ -17,6 +17,7 @@ func (m *MinTerm) open() error {
 	}
 	m.termIn = f
 	m.termOut = f
+	m.closeTermOut = false // since it's repeated
 	fd := int(f.Fd())
 	w, h, err := terminal.GetSize(fd)
 	if err != nil {

@@ -24,6 +24,7 @@ func (m *MinTerm) open() error {
 
 	m.termIn = fin
 	m.termOut = fout
+	m.closeTermOut = true // since it's a different file...
 	fdout := int(fout.Fd())
 	w, h, err := terminal.GetSize(fdout)
 	if err != nil {

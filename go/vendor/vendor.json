@@ -153,6 +153,11 @@
 			"revisionTime": "2016-02-07T15:39:06-05:00"
 		},
 		{
+			"path": "github.com/keybase/go-crypto/ssh/terminal",
+			"revision": "0829a5f1b577747f1935b43155b575f397c3848a",
+			"revisionTime": "2016-02-19T22:08:28-05:00"
+		},
+		{
 			"path": "github.com/keybase/go-framed-msgpack-rpc",
 			"revision": "8290ec13128f8375b58c7ff301b8de8775725e13",
 			"revisionTime": "2016-02-05T19:42:04-06:00"
@@ -196,11 +201,6 @@
 			"path": "github.com/keybase/keybase-test-vectors/go",
 			"revision": "a5147a659b4a69f77e027e301e726e05492474d6",
 			"revisionTime": "2015-10-20T11:39:53-04:00"
-		},
-		{
-			"path": "github.com/keybase/miniline",
-			"revision": "e88a8de513f98c2ad471a993c6b6dbfdad81a0d8",
-			"revisionTime": "2015-12-14T09:36:09-05:00"
 		},
 		{
 			"path": "github.com/kr/pty",
