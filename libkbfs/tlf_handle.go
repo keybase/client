@@ -304,6 +304,9 @@ func identifyOneUID(ctx context.Context, kbpki KBPKI,
 func identifyHandle(ctx context.Context, config Config, h *TlfHandle) error {
 	canonicalName := h.GetCanonicalName(ctx, config)
 
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	var wg sync.WaitGroup
 	errChan := make(chan error, 1)
 	// TODO: limit the number of concurrent identifies?
