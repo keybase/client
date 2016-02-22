@@ -35,7 +35,6 @@ export default class Button extends Component {
 
     let backgroundStyle = {}
     let labelStyle = {}
-    let widthStyle = {}
     let smallStyle = {}
 
     // First apply styles for the main button types.
@@ -109,7 +108,7 @@ export default class Button extends Component {
     return (
       <FlatButton
         onClick={this.props.onClick}
-        style={{...backgroundStyle, ...this.props.style, ...smallStyle, ...widthStyle}}
+        style={{...backgroundStyle, ...this.props.style, ...smallStyle}}
         labelStyle={{...styles2.buttonLabel, ...labelStyle}}
         label={this.props.label || this.props.more && '•••'}
         primary={this.props.type === 'Primary'}
