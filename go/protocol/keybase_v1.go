@@ -535,7 +535,6 @@ type ExtendedStatus struct {
 	PassphraseStreamCached bool            `codec:"passphraseStreamCached" json:"passphraseStreamCached"`
 	Device                 *Device         `codec:"device,omitempty" json:"device,omitempty"`
 	LogDir                 string          `codec:"logDir" json:"logDir"`
-	DesktopUIConnected     bool            `codec:"desktopUIConnected" json:"desktopUIConnected"`
 	Session                *SessionStatus  `codec:"session,omitempty" json:"session,omitempty"`
 	DefaultUsername        string          `codec:"defaultUsername" json:"defaultUsername"`
 	ProvisionedUsernames   []string        `codec:"provisionedUsernames" json:"provisionedUsernames"`
@@ -568,6 +567,14 @@ type Config struct {
 	ForkType     ForkType `codec:"forkType" json:"forkType"`
 }
 
+type ConfigValue struct {
+	IsNull bool    `codec:"isNull" json:"isNull"`
+	B      *bool   `codec:"b,omitempty" json:"b,omitempty"`
+	I      *int    `codec:"i,omitempty" json:"i,omitempty"`
+	S      *string `codec:"s,omitempty" json:"s,omitempty"`
+	O      *string `codec:"o,omitempty" json:"o,omitempty"`
+}
+
 type GetCurrentStatusArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
@@ -596,6 +603,19 @@ type HelloIAmArg struct {
 	Details ClientDetails `codec:"details" json:"details"`
 }
 
+type SetValueArg struct {
+	Path  string      `codec:"path" json:"path"`
+	Value ConfigValue `codec:"value" json:"value"`
+}
+
+type ClearValueArg struct {
+	Path string `codec:"path" json:"path"`
+}
+
+type GetValueArg struct {
+	Path string `codec:"path" json:"path"`
+}
+
 type ConfigInterface interface {
 	GetCurrentStatus(context.Context, int) (GetCurrentStatusRes, error)
 	GetExtendedStatus(context.Context, int) (ExtendedStatus, error)
@@ -603,6 +623,9 @@ type ConfigInterface interface {
 	SetUserConfig(context.Context, SetUserConfigArg) error
 	SetPath(context.Context, SetPathArg) error
 	HelloIAm(context.Context, ClientDetails) error
+	SetValue(context.Context, SetValueArg) error
+	ClearValue(context.Context, string) error
+	GetValue(context.Context, string) (ConfigValue, error)
 }
 
 func ConfigProtocol(i ConfigInterface) rpc.Protocol {
@@ -705,6 +728,54 @@ func ConfigProtocol(i ConfigInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"setValue": {
+				MakeArg: func() interface{} {
+					ret := make([]SetValueArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SetValueArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SetValueArg)(nil), args)
+						return
+					}
+					err = i.SetValue(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"clearValue": {
+				MakeArg: func() interface{} {
+					ret := make([]ClearValueArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ClearValueArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ClearValueArg)(nil), args)
+						return
+					}
+					err = i.ClearValue(ctx, (*typedArgs)[0].Path)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"getValue": {
+				MakeArg: func() interface{} {
+					ret := make([]GetValueArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetValueArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetValueArg)(nil), args)
+						return
+					}
+					ret, err = i.GetValue(ctx, (*typedArgs)[0].Path)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -747,6 +818,23 @@ func (c ConfigClient) HelloIAm(ctx context.Context, details ClientDetails) (err 
 	return
 }
 
+func (c ConfigClient) SetValue(ctx context.Context, __arg SetValueArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.config.setValue", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ConfigClient) ClearValue(ctx context.Context, path string) (err error) {
+	__arg := ClearValueArg{Path: path}
+	err = c.Cli.Call(ctx, "keybase.1.config.clearValue", []interface{}{__arg}, nil)
+	return
+}
+
+func (c ConfigClient) GetValue(ctx context.Context, path string) (res ConfigValue, err error) {
+	__arg := GetValueArg{Path: path}
+	err = c.Cli.Call(ctx, "keybase.1.config.getValue", []interface{}{__arg}, &res)
+	return
+}
+
 type StatusCode int
 
 const (
@@ -767,6 +855,7 @@ const (
 	StatusCode_SCTrackingBroke          StatusCode = 278
 	StatusCode_SCWrongCryptoFormat      StatusCode = 279
 	StatusCode_SCBadSignupUsernameTaken StatusCode = 701
+	StatusCode_SCBadInvitationCode      StatusCode = 707
 	StatusCode_SCMissingResult          StatusCode = 801
 	StatusCode_SCKeyNotFound            StatusCode = 901
 	StatusCode_SCKeyInUse               StatusCode = 907
@@ -5422,10 +5511,16 @@ type InviteRequestArg struct {
 	Notes     string `codec:"notes" json:"notes"`
 }
 
+type CheckInvitationCodeArg struct {
+	SessionID      int    `codec:"sessionID" json:"sessionID"`
+	InvitationCode string `codec:"invitationCode" json:"invitationCode"`
+}
+
 type SignupInterface interface {
 	CheckUsernameAvailable(context.Context, CheckUsernameAvailableArg) error
 	Signup(context.Context, SignupArg) (SignupRes, error)
 	InviteRequest(context.Context, InviteRequestArg) error
+	CheckInvitationCode(context.Context, CheckInvitationCodeArg) error
 }
 
 func SignupProtocol(i SignupInterface) rpc.Protocol {
@@ -5480,6 +5575,22 @@ func SignupProtocol(i SignupInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"checkInvitationCode": {
+				MakeArg: func() interface{} {
+					ret := make([]CheckInvitationCodeArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CheckInvitationCodeArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CheckInvitationCodeArg)(nil), args)
+						return
+					}
+					err = i.CheckInvitationCode(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -5500,6 +5611,11 @@ func (c SignupClient) Signup(ctx context.Context, __arg SignupArg) (res SignupRe
 
 func (c SignupClient) InviteRequest(ctx context.Context, __arg InviteRequestArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.signup.inviteRequest", []interface{}{__arg}, nil)
+	return
+}
+
+func (c SignupClient) CheckInvitationCode(ctx context.Context, __arg CheckInvitationCodeArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.signup.checkInvitationCode", []interface{}{__arg}, nil)
 	return
 }
 

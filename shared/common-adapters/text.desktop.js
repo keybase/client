@@ -7,10 +7,12 @@ import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide
 // $FlowFixMe remove when we stop using the old version of text
 import TextOld from './text.old'
 
-import type {Props} from './text'
+import type {Props, Background} from './text'
+import type {Context} from './terminal'
 
 export default class Text extends Component {
   props: Props;
+  context: Context;
 
   _terminalPrefix (type: Props.type): ?ReactElement {
     return ({
@@ -28,7 +30,26 @@ export default class Text extends Component {
       case 'TerminalUsername':
       case 'TerminalPublic':
       case 'TerminalPrivate':
-        return styles.textTerminalInline
+        return this.context.inTerminal ? {} : styles.textTerminalInline
+      default:
+        return {}
+    }
+  }
+
+  _colorStyleBackgroundMode (backgroundMode: Background, type: Props.type): Object {
+    if (backgroundMode === 'Information') {
+      return {color: globalColorsDZ2.brown60}
+    }
+    switch (type) {
+      case 'HeaderJumbo':
+      case 'HeaderBig':
+      case 'Header':
+      case 'BodySemibold':
+      case 'BodySmallSemibold':
+      case 'Body':
+        return {color: backgroundMode === 'Normal' ? globalColorsDZ2.black75 : globalColorsDZ2.white}
+      case 'BodySmall':
+        return {color: backgroundMode === 'Normal' ? globalColorsDZ2.black40 : globalColorsDZ2.white40}
       default:
         return {}
     }
@@ -46,50 +67,53 @@ export default class Text extends Component {
       'BodySemibold': styles.textBodySemibold,
       'Body': styles.textBody,
       'BodySmall': styles.textBodySmall,
+      'BodySmallSemibold': styles.textBodySmallSemibold,
       'Error': styles.textError,
-      'Terminal': {...styles.textTerminal, color: (this.props.inline ? globalColorsDZ2.darkBlue : globalColorsDZ2.blue3)},
-      'TerminalCommand': styles.textTerminal,
-      'TerminalComment': {...styles.textTerminal, ...styles.textTerminalComment},
-      'TerminalUsername': {...styles.textTerminal, color: globalColorsDZ2.orange},
-      'TerminalPublic': {...styles.textTerminal, color: globalColorsDZ2.yellowGreen2},
-      'TerminalPrivate': {...styles.textTerminal, color: globalColorsDZ2.darkBlue2},
-      'TerminalEmpty': {...styles.textTerminal, ...styles.textTerminalEmpty}
+      'Terminal': {...styles.textTerminal, color: (this.context.inTerminal ? globalColorsDZ2.blue3 : globalColorsDZ2.darkBlue)},
+      'TerminalCommand': styles.textTerminalCommand,
+      'TerminalComment': styles.textTerminalComment,
+      'TerminalUsername': styles.textTerminalUsername,
+      'TerminalPublic': styles.textTerminalPublic,
+      'TerminalPrivate': styles.textTerminalPrivate,
+      'TerminalEmpty': styles.textTerminalEmpty,
+      'InputHeader': styles.textInputHeader
     }[this.props.type]
 
-    const opacity = this.props.darkMode ? 1 : 0.75
-
-    const color = this.props.darkMode ? globalColorsDZ2.white : globalColorsDZ2.black
-
-    const inlineStyle = this.props.inline ? this._inlineStyle(this.props.type) : {}
-    const warningStyle = this.props.warning ? {opacity: 0.6, color: globalColorsDZ2.brown, backgroundColor: globalColorsDZ2.yellow} : {}
+    let inline = true
+    if (this.props.hasOwnProperty('inline')) {
+      inline = this.props.inline
+    }
 
     const style = {
-      opacity,
-      color,
-      ...inlineStyle,
       ...typeStyle,
-      ...warningStyle,
       ...(this.props.lineClamp ? lineClamp(this.props.lineClamp) : {}),
       ...(this.props.link ? styles.textLinkMixin : {}),
       ...(this.props.small ? styles.textSmallMixin : {}),
-      ...(this.props.reversed ? styles.textReversedMixin : {}),
       ...(this.props.onClick ? globalStyles.clickable : {}),
-      ...(this.props.inline ? styles.inline : {}),
+      ...(inline ? {...this._inlineStyle(this.props.type)} : {display: 'block'}),
+      ...this._colorStyleBackgroundMode(this.props.backgroundMode || 'Normal', this.props.type),
       ...this.props.style
     }
 
     const terminalPrefix = this._terminalPrefix(this.props.type)
     const className = this.props.className || ''
 
-    return <span className={this.props.link ? 'hover-underline ' + className : className} style={style} onClick={this.props.onClick}>{terminalPrefix}{this.props.children}</span>
+    return (
+      <span
+        className={this.props.link ? 'hover-underline ' + className : className}
+        style={style}
+        onClick={this.props.onClick}>{terminalPrefix}{this.props.children}</span>)
   }
+}
+
+Text.contextTypes = {
+  inTerminal: React.PropTypes.bool
 }
 
 Text.propTypes = {
   type: React.PropTypes.oneOf(['Header', 'Body', 'TerminalCommand', 'TerminalComment', 'TerminalEmpty']),
   link: React.PropTypes.bool,
   small: React.PropTypes.bool,
-  reversed: React.PropTypes.bool,
   children: React.PropTypes.node,
   style: React.PropTypes.object,
   onClick: React.PropTypes.func,
@@ -102,6 +126,13 @@ const textCommon = {
   ...globalStyles.DZ2.fontRegular,
   ...globalStyles.noSelect,
   cursor: 'inherit'
+}
+
+const textTerminal = {
+  ...globalStyles.DZ2.fontTerminalSemibold,
+  fontSize: 14,
+  lineHeight: '21px',
+  letterSpacing: '0.3px'
 }
 
 const headerStyles = {
@@ -127,6 +158,15 @@ const headerStyles = {
     fontSize: 18,
     lineHeight: '25px',
     letterSpacing: '0.3px'
+  },
+
+  textInputHeader: {
+    ...textCommon,
+    ...globalStyles.DZ2.fontSemibold,
+    fontSize: 14,
+    lineHeight: '18px',
+    letterSpacing: '0.3px',
+    color: globalColorsDZ2.blue2
   }
 }
 
@@ -149,7 +189,13 @@ export const styles = {
     ...textCommon,
     fontSize: 14,
     lineHeight: '19px',
-    opacity: 0.4,
+    letterSpacing: '0.3px'
+  },
+  textBodySmallSemibold: {
+    ...textCommon,
+    ...globalStyles.DZ2.fontSemibold,
+    fontSize: 14,
+    lineHeight: '19px',
     letterSpacing: '0.3px'
   },
   textError: {
@@ -159,22 +205,34 @@ export const styles = {
     lineHeight: '17px',
     letterSpacing: '0.2px'
   },
-  textTerminal: {
-    ...globalStyles.DZ2.fontTerminalSemibold,
-    whiteSpace: 'nowrap',
-    fontSize: 14,
-    lineHeight: '21px',
-    letterSpacing: '0.3px'
+  textTerminal,
+  textTerminalCommand: {
+    ...textTerminal
   },
   textTerminalComment: {
-    color: globalColorsDZ2.white,
-    opacity: 0.4
+    ...textTerminal,
+    color: globalColorsDZ2.white40
+  },
+  textTerminalUsername: {
+    ...textTerminal,
+    color: globalColorsDZ2.orange
+  },
+  textTerminalPublic: {
+    ...textTerminal,
+    color: globalColorsDZ2.yellowGreen2
+  },
+  textTerminalPrivate: {
+    ...textTerminal,
+    color: globalColorsDZ2.darkBlue2
   },
   textTerminalEmpty: {
+    ...textTerminal,
     minHeight: 20
   },
   textTerminalInline: {
-    backgroundColor: globalColorsDZ2.blue4
+    backgroundColor: globalColorsDZ2.blue4,
+    wordWrap: 'break-word',
+    display: 'inline'
   },
   textLinkMixin: {
     color: globalColors.blue,
@@ -184,12 +242,6 @@ export const styles = {
     color: globalColors.grey2,
     fontSize: 13,
     lineHeight: '17px'
-  },
-  textReversedMixin: {
-    color: globalColors.white
-  },
-  inline: {
-    display: 'inline-block'
   }
 }
 

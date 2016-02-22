@@ -283,6 +283,16 @@
         "type" : "string"
       } ],
       "response" : "null"
+    },
+    "checkInvitationCode" : {
+      "request" : [ {
+        "name" : "sessionID",
+        "type" : "int"
+      }, {
+        "name" : "invitationCode",
+        "type" : "string"
+      } ],
+      "response" : "null"
     }
   }
 }

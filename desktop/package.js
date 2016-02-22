@@ -31,8 +31,6 @@ fs.copySync('./Icon.png', 'build/desktop/Icon.png')
 fs.copySync('./Icon@2x.png', 'build/desktop/Icon@2x.png')
 fs.copySync('../shared/native', 'build/desktop/shared/native', {filter: f => f.endsWith('.html')})
 fs.copySync('../shared/images', 'build/desktop/shared/images')
-fs.copySync('./node_modules/font-awesome/css/font-awesome.min.css', 'build/desktop/node_modules/font-awesome/css/font-awesome.min.css')
-fs.copySync('./node_modules/font-awesome/fonts/fontawesome-webfont.woff2', 'build/desktop/node_modules/font-awesome/fonts/fontawesome-webfont.woff2')
 fs.copySync('./renderer', 'build/desktop/renderer', {filter: f => !f.endsWith('.js')})
 
 fs.writeJsonSync('build/package.json', {

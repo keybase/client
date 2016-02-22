@@ -89,6 +89,7 @@ export const constants = {
     'sctrackingbroke': 278,
     'scwrongcryptoformat': 279,
     'scbadsignupusernametaken': 701,
+    'scbadinvitationcode': 707,
     'scmissingresult': 801,
     'sckeynotfound': 901,
     'sckeyinuse': 907,

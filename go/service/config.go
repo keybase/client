@@ -4,6 +4,8 @@
 package service
 
 import (
+	"encoding/json"
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -15,6 +17,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 type ConfigHandler struct {
@@ -49,6 +52,73 @@ func getPlatformInfo() keybase1.PlatformInfo {
 	}
 }
 
+func (h ConfigHandler) GetValue(_ context.Context, path string) (ret keybase1.ConfigValue, err error) {
+	var i interface{}
+	i, err = h.G().Env.GetConfig().GetInterfaceAtPath(path)
+	if err != nil {
+		return ret, err
+	}
+	if i == nil {
+		ret.IsNull = true
+	} else {
+		switch v := i.(type) {
+		case int:
+			ret.I = &v
+		case string:
+			ret.S = &v
+		case bool:
+			ret.B = &v
+		case float64:
+			tmp := int(v)
+			ret.I = &tmp
+		default:
+			var b []byte
+			b, err = json.Marshal(v)
+			if err == nil {
+				tmp := string(b)
+				ret.O = &tmp
+			}
+		}
+	}
+	return ret, err
+}
+
+func (h ConfigHandler) SetValue(_ context.Context, arg keybase1.SetValueArg) (err error) {
+	w := h.G().Env.GetConfigWriter()
+	if arg.Path == "users" {
+		err = fmt.Errorf("The field 'users' cannot be edited for fear of config corruption")
+		return err
+	}
+	switch {
+	case arg.Value.IsNull:
+		w.SetNullAtPath(arg.Path)
+	case arg.Value.S != nil:
+		w.SetStringAtPath(arg.Path, *arg.Value.S)
+	case arg.Value.I != nil:
+		w.SetIntAtPath(arg.Path, *arg.Value.I)
+	case arg.Value.B != nil:
+		w.SetBoolAtPath(arg.Path, *arg.Value.B)
+	case arg.Value.O != nil:
+		var jw *jsonw.Wrapper
+		jw, err = jsonw.Unmarshal([]byte(*arg.Value.O))
+		if err == nil {
+			err = w.SetWrapperAtPath(arg.Path, jw)
+		}
+	default:
+		err = fmt.Errorf("Bad type for setting a value")
+	}
+	if err == nil {
+		h.G().ConfigReload()
+	}
+	return err
+}
+
+func (h ConfigHandler) ClearValue(_ context.Context, path string) error {
+	h.G().Env.GetConfigWriter().DeleteAtPath(path)
+	h.G().ConfigReload()
+	return nil
+}
+
 func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res keybase1.ExtendedStatus, err error) {
 	defer h.G().Trace("ConfigHandler::GetExtendedStatus", func() error { return err })()
 
@@ -78,14 +148,6 @@ func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res 
 			res.Session = a.LoginSession().Status()
 		}
 	}, "ConfigHandler::GetExtendedStatus")
-
-	// this isn't quite ideal, but if there's a delegated UpdateUI available, then electron is running and connected.
-	if h.G().UIRouter != nil {
-		updateUI, err := h.G().UIRouter.GetUpdateUI()
-		if err == nil && updateUI != nil {
-			res.DesktopUIConnected = true
-		}
-	}
 
 	current, all, err := h.G().GetAllUserNames()
 	if err != nil {

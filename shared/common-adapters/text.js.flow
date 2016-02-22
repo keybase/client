@@ -2,16 +2,16 @@
 
 import React, {Component} from 'react'
 
+export type Background = 'Normal' | 'Announcements' | 'Success' | 'Information' | 'HighRisk' | 'Documentation' | 'Terminal'
 export type Props = {
   type: 'HeaderJumbo' | 'HeaderBig' | 'Header'
-          | 'Body' | 'BodySemibold' | 'BodySmall'
+          | 'Body' | 'BodySemibold' | 'BodySmall' | 'BodySmallSemibold'
           | 'Error'
           | 'Terminal'
           | 'TerminalUsername' | 'TerminalPublic' | 'TerminalPrivate'
           | 'TerminalCommand' | 'TerminalComment' | 'TerminalEmpty',
-  darkMode?: boolean, // For rendering on a dark background (light text)
+  backgroundMode?: Background,
   inline?: boolean,
-  warning?: boolean, // Warning text has a yellow background and brown text
   link?: boolean,
   small?: boolean,
   reversed?: boolean,

@@ -1,6 +1,8 @@
 /* @flow */
 
-class SecureString {
+// HiddenString tries to wrap a string value to prevent it from being easily
+// output as a string to log, file or console
+class HiddenString {
   _value: () => string;
 
   constructor (stringValue: string) {
@@ -8,7 +10,7 @@ class SecureString {
   }
 
   toString (): string {
-    return '[protected SecureString]'
+    return '[HiddenString]'
   }
 
   stringValue (): string {
@@ -16,4 +18,4 @@ class SecureString {
   }
 }
 
-export default SecureString
+export default HiddenString

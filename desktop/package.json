@@ -29,7 +29,6 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "font-awesome": "^4.4.0",
     "framed-msgpack-rpc": "keybase/node-framed-msgpack-rpc#nojima/keybase-client-changes",
     "getenv": "^0.6.0",
     "immutable": "^3.7.5",

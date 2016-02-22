@@ -26,51 +26,72 @@ mode="$(cat "$build_root/MODE")"
 
 name="$("$here/../../binary_name.sh" "$mode")"
 
+if [ "$mode" = "production" ] ; then
+  repo_url="http://dist.keybase.io/linux/rpm/repo"
+elif [ "$mode" = "prerelease" ] ; then
+  repo_url="http://s3.amazonaws.com/prerelease.keybase.io/rpm"
+elif [ "$mode" = "staging" ] ; then
+  # Note: This doesn't exist yet. But we need to be distinct from the
+  # production URL, because we're moving to a model where we build a clean
+  # repo every time, rather than adding to an existing one. (For S3
+  # compatibility.)
+  repo_url="http://dist.keybase.io/linux/rpm_staging/repo"
+else
+  # We don't actually publish devel builds. This URL is a dream within a
+  # dream.
+  repo_url="http://dist.keybase.io/linux/rpm_devel/repo"
+fi
+repo_ssl_url="$(echo "$repo_url" | sed 's|http|https|')"
+
 build_one_architecture() {
   echo "Making .rpm package for $rpm_arch."
   dest="$build_root/rpm/$rpm_arch"
   mkdir -p "$dest/SPECS"
 
-  # The binaries fold uses debian arch names.
+  # The binaries folder uses debian arch names.
   binaries_path="$(realpath "$build_root/binaries/$debian_arch")"
-  echo "binaries_path: $binaries_path"
+
+  # We want to make a copy of all the binaries before we package them, both
+  # because we're going to add a cron file into the tree, and to save ourselves
+  # from unpredictable rpm mischief.
+  copied_binaries="$dest/copied_binaries"
+  mkdir -p "$copied_binaries"
+  cp -r "$binaries_path"/* "$copied_binaries/"
+  echo "copied_binaries: $copied_binaries"
+
+  # We need to copy in the cron file before we collect the list of all files
+  # below.
+  cron_file="$copied_binaries/etc/cron.daily/$name"
+  mkdir -p "$(dirname "$cron_file")"
+  cat "$here/cron.template" \
+    | sed "s/@@NAME@@/$name/g" \
+    | sed "s|@@REPO_URL@@|$repo_url|g" \
+    | sed "s|@@REPO_SSL_URL@@|$repo_url|g" \
+    | sed "s/@@RPM_ARCH@@/$rpm_arch/g" \
+    > "$cron_file"
 
   # RPM requires us to list every file included in the package. Using `find`
   # could backfire on us if we get weird whitespace in any filename, but
   # hopefully that will never happen. (Maintaining this list by hand would be
   # much worse.)
-  files="$(cd "$binaries_path" && find -type f | sed 's/\.//')"
-
-  if [ "$mode" = "production" ] ; then
-    repo_url="http://dist.keybase.io/linux/rpm/repo/$rpm_arch"
-  elif [ "$mode" = "prerelease" ] ; then
-    repo_url="http://s3.amazonaws.com/prerelease.keybase.io/rpm/$rpm_arch"
-  elif [ "$mode" = "staging" ] ; then
-    # Note: This doesn't exist yet. But we need to be distinct from the
-    # production URL, because we're moving to a model where we build a clean
-    # repo every time, rather than adding to an existing one. (For S3
-    # compatibility.)
-    repo_url="http://dist.keybase.io/linux/rpm_staging/repo/$rpm_arch"
-  else
-    # We don't actually publish devel builds. This URL is a dream within a
-    # dream.
-    repo_url="http://dist.keybase.io/linux/rpm_devel/repo/$rpm_arch"
-  fi
+  files="$(cd "$copied_binaries" && find -type f | sed 's/\.//')"
 
   spec="$dest/SPECS/keybase-$rpm_arch.spec"
   mkdir -p "$(dirname "$spec")"
   cat "$here/spec.template" \
-    | sed "s/@@NAME@@/$name/" \
-    | sed "s/@@VERSION@@/$version/" \
-    | sed "s|@@BINARIES_PATH@@|$binaries_path|" \
+    | sed "s/@@NAME@@/$name/g" \
+    | sed "s/@@VERSION@@/$version/g" \
+    | sed "s|@@COPIED_BINARIES@@|$copied_binaries|g" \
     > "$spec"
   # Append the files list to the spec.
   echo -e "\n%files\n$files" >> "$spec"
   # Append the postinstall script to the spec.
   echo -e "\n%post -p /bin/bash" >> "$spec"
   cat "$here/postinst.template" \
-    | sed "s|@@REPO_URL@@|$repo_url|" \
-    | sed "s/@@SOURCE_LIST_NAME@@/$name/" \
+    | sed "s/@@NAME@@/$name/g" \
+    | sed "s|@@REPO_URL@@|$repo_url|g" \
+    | sed "s|@@REPO_SSL_URL@@|$repo_url|g" \
+    | sed "s/@@RPM_ARCH@@/$rpm_arch/g" \
     >> "$spec"
 
   rpmbuild --define "_topdir $dest" --target "$rpm_arch" -bb "$spec"

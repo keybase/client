@@ -46,5 +46,8 @@ rm $src_dir/$name.tar
 cd $dest_dir
 echo "Committing"
 git add .
-git commit -m "Updating repo"
-git push
+if git commit -m "Updating repo" ; then
+  git push
+else
+  echo "Nothing to commit in kbfs-beta, skipping push."
+fi

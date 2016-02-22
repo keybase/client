@@ -9,6 +9,6 @@ Keybase command line client
 
 %install
 mkdir -p "$RPM_BUILD_ROOT"
-cp -r "@@BINARIES_PATH@@"/* "$RPM_BUILD_ROOT"
+cp -r "@@COPIED_BINARIES@@"/* "$RPM_BUILD_ROOT"
 
 # The files list and postinstall script get appended below.

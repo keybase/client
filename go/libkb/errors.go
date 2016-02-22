@@ -1340,3 +1340,11 @@ func (e WrongCryptoFormatError) Error() string {
 	}
 	return ret
 }
+
+//=============================================================================
+
+type BadInvitationCodeError struct{}
+
+func (e BadInvitationCodeError) Error() string {
+	return "bad invitation code"
+}

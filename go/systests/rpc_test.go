@@ -39,6 +39,7 @@ func TestRPCs(t *testing.T) {
 
 	// Add test RPC methods here.
 	testIdentifyResolve2(t, tc2.G)
+	testCheckInvitationCode(t, tc2.G)
 
 	if err := stopper.Run(); err != nil {
 		t.Fatal(err)
@@ -82,5 +83,21 @@ func testIdentifyResolve2(t *testing.T, g *libkb.GlobalContext) {
 		t.Fatalf("expected an error on a bad resolve, but got none")
 	} else if _, ok := err.(libkb.ResolutionError); !ok {
 		t.Fatalf("Wrong error: wanted type %T but got (%v, %T)", libkb.ResolutionError{}, err, err)
+	}
+}
+
+func testCheckInvitationCode(t *testing.T, g *libkb.GlobalContext) {
+	cli, err := client.GetSignupClient(g)
+	if err != nil {
+		t.Fatalf("failed to get a signup client: %v", err)
+	}
+
+	err = cli.CheckInvitationCode(context.TODO(), keybase1.CheckInvitationCodeArg{InvitationCode: libkb.TestInvitationCode})
+	if err != nil {
+		t.Fatalf("Did not expect an error code, but got: %v", err)
+	}
+	err = cli.CheckInvitationCode(context.TODO(), keybase1.CheckInvitationCodeArg{InvitationCode: "eeoeoeoe333o3"})
+	if _, ok := err.(libkb.BadInvitationCodeError); !ok {
+		t.Fatalf("Expected an error code, but got %T %v", err, err)
 	}
 }

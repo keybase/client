@@ -3,7 +3,7 @@
 
 import React, {Component} from 'react'
 import {globalStyles} from '../../styles/style-guide'
-import {Text, Logo, Button} from '../../common-adapters'
+import {Text, Icon, Button} from '../../common-adapters'
 
 import type {IntroProps} from './intro.render'
 
@@ -13,7 +13,7 @@ export default class Intro extends Component {
   render (): ReactElement {
     return (
       <div style={styles.loginForm}>
-        <Logo />
+        <Icon type='logo-128'/>
         <Text style={styles.header} type='Header'>Join Keybase</Text>
         <Text style={styles.headerSub} type='Body'>Folders for anyone in the world.</Text>
         <Button style={styles.button} type='Primary' onClick={this.props.onSignup} label='Create an account' />

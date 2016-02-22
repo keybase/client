@@ -30,7 +30,7 @@ func GetBuildName() string {
 		os.Exit(3)
 	}
 
-	return fmt.Sprintf("%d%02d%02d%02d%02d+%s", time.Now().Year(), time.Now().Month(), time.Now().Day(), time.Now().Hour(), time.Now().Minute(), gitHash)
+	return fmt.Sprintf("%d%02d%02d%02d%02d%02d+%s", time.Now().Year(), time.Now().Month(), time.Now().Day(), time.Now().Hour(), time.Now().Minute(), time.Now().Second(), gitHash)
 
 }
 
@@ -42,7 +42,6 @@ func main() {
 	printCustomVerPtr := flag.Bool("cv", false, "print custom version to console (no .syso output)")
 	printCustomBuildPtr := flag.Bool("cb", false, "print custom build number to console (no .syso output)")
 	printWinVerPtr := flag.Bool("w", false, "print windows format version to console (no .syso output)")
-	outputJsonPtr := flag.String("u", "", "output update.json from given installer path")
 	iconPtr := flag.String("i", "../../../keybase/public/images/favicon.ico", "icon pathname")
 
 	flag.Parse()
@@ -78,11 +77,6 @@ func main() {
 
 	if *printCustomBuildPtr {
 		fmt.Printf("%s", GetBuildName())
-		return
-	}
-
-	if len(*outputJsonPtr) > 0 {
-		OutputUpdateJSon(customVer, *outputJsonPtr)
 		return
 	}
 

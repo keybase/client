@@ -108,6 +108,7 @@ type ConfigReader interface {
 	GetGpgHome() string
 	GetBundledCA(host string) string
 	GetStringAtPath(string) (string, bool)
+	GetInterfaceAtPath(string) (interface{}, error)
 	GetBoolAtPath(string) (bool, bool)
 	GetIntAtPath(string) (int, bool)
 	GetNullAtPath(string) bool
@@ -167,6 +168,7 @@ type ConfigWriter interface {
 	SetStringAtPath(string, string) error
 	SetBoolAtPath(string, bool) error
 	SetIntAtPath(string, int) error
+	SetWrapperAtPath(string, *jsonw.Wrapper) error
 	SetNullAtPath(string) error
 	DeleteAtPath(string)
 	SetUpdatePreferenceAuto(bool) error

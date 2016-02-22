@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import SecureString from '../../../util/secure-string'
+import HiddenString from '../../../util/hidden-string'
 
 import Render from './index.render'
 
@@ -17,7 +17,7 @@ class Success extends Component {
 }
 
 Success.propTypes = {
-  paperkey: React.PropTypes.instanceOf(SecureString).isRequired,
+  paperkey: React.PropTypes.instanceOf(HiddenString).isRequired,
   onFinish: React.PropTypes.func.isRequired
 }
 

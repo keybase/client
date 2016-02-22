@@ -20,7 +20,6 @@ export function startup () {
           .catch(error => {
             console.error('Error starting up:', error)
             dispatch({type: ConfigConstants.startupLoaded, payload: error, error: true})
-            NotifyPopup('Startup Failed', {body: 'Run `keybase log send` to tell us why!'})
           })
       )
     })

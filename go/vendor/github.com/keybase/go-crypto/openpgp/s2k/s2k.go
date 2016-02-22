@@ -168,11 +168,33 @@ func parseGNUExtensions(r io.Reader) (f func(out, in []byte), err error) {
 		return
 	}
 	gnuExtType := int(buf[0])
-	if gnuExtType != 1 {
+	switch gnuExtType {
+	case 1:
+		return nil, nil
+	case 2:
+		// Read a serial number, which is prefixed by a 1-byte length.
+		// The maximum length is 16.
+		var lenBuf [1]byte
+		_, err = io.ReadFull(r, buf[:1])
+		if err != nil {
+			return
+		}
+
+		maxLen := 16
+		ivLen := int(lenBuf[0])
+		if ivLen > maxLen {
+			ivLen = maxLen
+		}
+		ivBuf := make([]byte, ivLen)
+		// For now we simply discard the IV
+		_, err = io.ReadFull(r, ivBuf)
+		if err != nil {
+			return
+		}
+		return nil, nil
+	default:
 		return nil, errors.UnsupportedError("unknown S2K GNU protection mode: " + strconv.Itoa(int(gnuExtType)))
 	}
-
-	return nil, nil
 }
 
 // Parse reads a binary specification for a string-to-key transformation from r

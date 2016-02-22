@@ -7,6 +7,8 @@
 set Folder=%GOPATH%\src\github.com\keybase\client\go\keybase\
 set PathName=%Folder%keybase.exe
 
+pushd %GOPATH%\src\github.com\keybase\client\packaging\windows
+
 :: Capture the windows style version - this is the only way to store it in a .cmd variable
 for /f %%i in ('%Folder%winresource.exe -w') do set BUILDVER=%%i
 echo %BUILDVER%
@@ -16,7 +18,6 @@ for /f "tokens=3" %%i in ('%PathName% -version') do set SEMVER=%%i
 echo %SEMVER%
 
 :: Kind of arbitrary location for dokan source binaries.
-:: Also arbitrary is the choice of the 32 bit Win10 driver.
 :: There are 8 (4 windows versions times 32/64 bit) but they all seem to have the same version.
 for /f %%i in ('PowerShell "(Get-Item %GOPATH%\src\github.com\dokan-dev\dokany\Win32\Win10Release\dokan.sys).VersionInfo.FileVersion"') do set DOKANVER=%%i
 echo %DOKANVER%
@@ -44,5 +45,10 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 "%ProgramFiles(x86)%\Inno Setup 5\iscc.exe" /DMyExePathName=%PathName% /DMyAppVersion=%BUILDVER% /DMySemVersion=%SEMVER% /DNewDokanVersion=%DOKANVER% "/sSignCommand=signtool.exe sign /tr http://timestamp.digicert.com $f" %GOPATH%\src\github.com\keybase\client\packaging\windows\setup_windows_gui.iss
 
-:: Afterwards, do:
-:: winresource.exe -u [installer.exe] > update-windows-prod.json
+:: After sanity checking, do:
+
+::%GOPATH%\bin\windows_386\release update-json --version=%KEYBASE_VERSION% --src=Output/keybase_setup_gui-1.0.13-20160218110300+95d6179.386.exe --uri=https://s3.amazonaws.com/prerelease.keybase.io/windows-updates > update-windows-prod.json
+::"%ProgramFiles%\S3 Browser\s3browser-con.exe" upload keybase Output\keybase_setup_gui-1.0.13-20160218110300+95d6179.386.exe prerelease.keybase.io/windows
+::"%ProgramFiles%\S3 Browser\s3browser-con.exe" upload keybase update-windows-prod.json prerelease.keybase.io
+::%GOPATH%\bin\windows_386\release index-html --bucket-name=prerelease.keybase.io --prefixes="darwin/,linux_binaries/deb/,linux_binaries/rpm/,windows/" --dest=index.html
+::"%ProgramFiles%\S3 Browser\s3browser-con.exe" upload keybase index.html prerelease.keybase.io

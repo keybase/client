@@ -27,3 +27,12 @@ echo %SEMVER%
 ::)
 
 "%ProgramFiles(x86)%\Inno Setup 5\iscc.exe" /DMyExePathName=%PathName% /DMyAppVersion=%BUILDVER% /DMySemVersion=%SEMVER% "/sSignCommand=signtool.exe sign /tr http://timestamp.digicert.com $f" %GOPATH%\src\github.com\keybase\client\packaging\windows\setup_windows.iss
+
+:: Publish to servers (requires bash)
+::ssh-agent bash
+::ssh-add [path/to/your/key]
+::ssh -A steve@gw1.keybase.io
+::ssh -A keybase@dist.keybase.io
+::
+::to pull without establishing credentials or userId:
+::git pull https://zanderz@github.com/keybase/server-ops.git

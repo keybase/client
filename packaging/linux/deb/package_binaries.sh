@@ -38,6 +38,7 @@ else
   # We don't actually publish devel builds. This URL is a dream within a dream.
   repo_url="http://dist.keybase.io/linux/deb_devel/repo"
 fi
+repo_ssl_url="$(echo "$repo_url" | sed 's|http|https|')"
 
 build_one_architecture() {
   echo "Making .deb package for $debian_arch."
@@ -52,6 +53,7 @@ build_one_architecture() {
   # users will see warnings.
   size="$(du --summarize --block-size=1024 "$dest" | awk '{print $1}')"
 
+  # Debian control file
   cat "$here/control.template" \
     | sed "s/@@NAME@@/$name/" \
     | sed "s/@@VERSION@@/$version/" \
@@ -59,12 +61,23 @@ build_one_architecture() {
     | sed "s/@@SIZE@@/$size/" \
     | sed "s/@@DEPENDENCIES@@/$dependencies/" \
     > "$dest/build/DEBIAN/control"
+
+  # Debian postinst script
   postinst_file="$dest/build/DEBIAN/postinst"
   cat "$here/postinst.template" \
-    | sed "s|@@REPO_URL@@|$repo_url|" \
-    | sed "s/@@SOURCE_LIST_NAME@@/$name/" \
+    | sed "s/@@NAME@@/$name/g" \
     > "$postinst_file"
   chmod 755 "$postinst_file"
+
+  # distro-upgrade-handling cron job (sigh...see comments within)
+  cron_file="$dest/build/etc/cron.daily/$name"
+  mkdir -p "$(dirname "$cron_file")"
+  cat "$here/cron.template" \
+    | sed "s/@@NAME@@/$name/g" \
+    | sed "s|@@REPO_URL@@|$repo_url|g" \
+    | sed "s|@@REPO_SSL_URL@@|$repo_ssl_url|g" \
+    > "$cron_file"
+  chmod 755 "$cron_file"
 
   fakeroot dpkg-deb --build "$dest/build" "$dest/$name-$version-$debian_arch.deb"
 }

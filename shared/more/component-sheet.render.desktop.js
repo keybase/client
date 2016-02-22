@@ -2,7 +2,7 @@ import React, {Component} from 'react'
 import {FlatButton} from 'material-ui'
 import {connect} from 'react-redux'
 import commonStyles from '../styles/common'
-import {Header, Button} from '../common-adapters'
+import {Header, Button, Checkbox} from '../common-adapters'
 import Tracker from '../tracker'
 import Menubar from '../menubar'
 import Container from './dev-container'
@@ -16,9 +16,43 @@ import {metaUpgraded, metaNew, metaUnreachable, metaPending, metaDeleted, metaNo
 import * as TrackerConstants from '../constants/tracker'
 
 export default class Render extends Component {
+  constructor (props) {
+    super(props)
+    this.state = {
+      normalChecked: true,
+      normalUnchecked: false,
+      disabledChecked: true,
+      disabledUnchecked: false
+    }
+  }
+
   render () {
     return (
       <div style={{...commonStyles.flexBoxColumn, flex: 1, overflowY: 'auto'}}>
+        <Container title='Checkbox'>
+          <Checkbox
+            dz2
+            label='Normal - checked'
+            onCheck={checked => this.setState({normalChecked: checked})}
+            checked={this.state.normalChecked} />
+          <Checkbox
+            dz2
+            label='Normal - unchecked'
+            onCheck={checked => this.setState({normalUnchecked: checked})}
+            checked={this.state.normalUnchecked} />
+          <Checkbox
+            dz2
+            label='Disabled - checked'
+            onCheck={checked => this.setState({disabledChecked: checked})}
+            disabled
+            checked={this.state.disabledChecked} />
+          <Checkbox
+            dz2
+            label='Disabled - unchecked'
+            disabled
+            onCheck={checked => this.setState({disabledUnchecked: checked})}
+            checked={this.state.disabledUnchecked} />
+        </Container>
         <Container title='Menubar'>
           <Menubar/>
         </Container>

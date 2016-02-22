@@ -83,10 +83,27 @@ refresh_repos() {
   refresh_one_repo "$kbfs_copy"
 }
 
+push_kbfs_beta() {
+  kbfs_beta_copy="/root/kbfs-beta"
+  kbfs_beta_gopath="/root/kbfs-beta-gopath"
+  if ! [ -e "$kbfs_beta_copy" ] ; then
+    git clone git@github.com:keybase/kbfs-beta "$kbfs_beta_copy"
+    git -C "$kbfs_beta_copy" config user.name "nightly build"
+    git -C "$kbfs_beta_copy" config user.email "nightly build"
+    # Make the fake GOPATH, because export_kbfs.sh wants it.
+    mkdir -p "$kbfs_beta_gopath/src/github.com/keybase/"
+    ln -snf "$client_copy" "$kbfs_beta_gopath/src/github.com/keybase/client"
+    ln -snf "$kbfs_copy" "$kbfs_beta_gopath/src/github.com/keybase/kbfs"
+    ln -snf "$kbfs_beta_copy" "$kbfs_beta_gopath/src/github.com/keybase/kbfs-beta"
+  fi
+  git -C "$kbfs_beta_copy" pull --ff-only
+  GOPATH="$kbfs_beta_gopath" "$client_copy/packaging/export/export_kbfs.sh"
+}
+
 # I don't want to have to think about what happens to sleep when a machine
 # suspends for a long time and wakes up. So instead of a big sleep, we do
 # little one minute sleeps, and do a build whenever we happen to wake up at
-# 3am.
+# noon.
 
 # Do an early refresh, to catch errors.
 refresh_repos
@@ -102,6 +119,7 @@ while true ; do
     echo -e "\n\n\n=================== STARTING A BUILD ===================="
     ny_date
     refresh_repos
+    push_kbfs_beta
     # Each nightly build happens in prerelease mode. Suppress errors in the
     # build script with `|| true`, so that the nightly loop continues.
     "$client_copy/packaging/linux/build_and_push_packages.sh" prerelease "$build_dir" || true
