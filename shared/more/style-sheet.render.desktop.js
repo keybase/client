@@ -1,6 +1,7 @@
+/* @flow */
 import React, {Component} from 'react'
 import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide'
-import Container from './dev-container'
+import Container from './dev-container.desktop.js'
 import {Button, Logo, Input, Text, Terminal, FormWithCheckbox} from '../common-adapters'
 
 export default class Render extends Component {
@@ -69,36 +70,36 @@ export default class Render extends Component {
           <div style={{...globalStyles.flexBoxColumn, padding: 10, paddingRight: 100}}>
             <div style={{...globalStyles.flexBoxRow}}>
               <div style={{...globalStyles.flexBoxColumn, alignItems: 'flex-start', justifyContents: 'flex-start', padding: 10, paddingRight: 100}}>
-                <Button type='Primary' label='Primary'/><Space/>
-                <Button type='Secondary' label='Secondary'/><Space/>
-                <Button type='Danger' danger label='Danger'/><Space/>
+                <Button onClick={() => {}} type='Primary' label='Primary'/><Space/>
+                <Button onClick={() => {}} type='Secondary' label='Secondary'/><Space/>
+                <Button onClick={() => {}} type='Danger' danger label='Danger'/><Space/>
                 <Space/>
-                <Button type='Follow' label='Follow'/><Space/>
-                <Button type='Following' label='Following'/><Space/>
-                <Button type='Unfollow' label='Unfollow'/><Space/>
+                <Button onClick={() => {}} type='Follow' label='Follow'/><Space/>
+                <Button onClick={() => {}} type='Following' label='Following'/><Space/>
+                <Button onClick={() => {}} type='Unfollow' label='Unfollow'/><Space/>
               </div>
               <div style={{...globalStyles.flexBoxColumn, alignItems: 'flex-start', justifyContents: 'flex-start', padding: 10, paddingRight: 100}}>
-                <Button type='Primary' disabled label='Primary disabled'/><Space/>
-                <Button type='Secondary' disabled label='Secondary disabled'/><Space/>
-                <Button type='Danger' disabled label='Danger disabled'/><Space/>
+                <Button onClick={() => {}} type='Primary' disabled label='Primary disabled'/><Space/>
+                <Button onClick={() => {}} type='Secondary' disabled label='Secondary disabled'/><Space/>
+                <Button onClick={() => {}} type='Danger' disabled label='Danger disabled'/><Space/>
                 <Space/>
-                <Button type='Follow' disabled label='Follow disabled'/><Space/>
+                <Button onClick={() => {}} type='Follow' disabled label='Follow disabled'/><Space/>
               </div>
             </div>
 
             <div style={{...globalStyles.flexBoxColumn, alignItems: 'flex-start', justifyContents: 'flex-start', padding: 10}}>
-              <Button type='Primary' fullWidth label='Primary full-width'/><Space/>
-              <Button type='Secondary' fullWidth label='Secondary full-width'/><Space/>
-              <Button type='Danger' fullWidth label='Danger full-width'/><Space/>
-              <Button type='Follow' fullWidth label='Follow full-width'/><Space/>
+              <Button onClick={() => {}} type='Primary' fullWidth label='Primary full-width'/><Space/>
+              <Button onClick={() => {}} type='Secondary' fullWidth label='Secondary full-width'/><Space/>
+              <Button onClick={() => {}} type='Danger' fullWidth label='Danger full-width'/><Space/>
+              <Button onClick={() => {}} type='Follow' fullWidth label='Follow full-width'/><Space/>
             </div>
 
             <div style={{...globalStyles.flexBoxRow}}>
               <div style={{...globalStyles.flexBoxColumn, alignItems: 'flex-start', justifyContents: 'flex-start', padding: 10, paddingRight: 100}}>
-                <Button type='Primary' small label='Primary small'/><Space/>
-                <Button type='Secondary' small label='Secondary small'/><Space/>
-                <Button type='Danger' small label='Danger small'/><Space/>
-                <Button type='Follow' small label='Follow small'/><Space/>
+                <Button onClick={() => {}} type='Primary' small label='Primary small'/><Space/>
+                <Button onClick={() => {}} type='Secondary' small label='Secondary small'/><Space/>
+                <Button onClick={() => {}} type='Danger' small label='Danger small'/><Space/>
+                <Button onClick={() => {}} type='Follow' small label='Follow small'/><Space/>
               </div>
             </div>
           </div>

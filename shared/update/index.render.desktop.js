@@ -1,7 +1,7 @@
 /* @flow */
 import React, {Component} from 'react'
 import {Snackbar} from 'material-ui'
-import {Header, Text, Button, Checkbox} from '../common-adapters/index.desktop'
+import {Header, Text, Button, Checkbox} from '../common-adapters'
 import {clipboard} from 'electron'
 import marked from 'marked'
 import type {RenderProps} from './index.render'
