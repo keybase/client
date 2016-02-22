@@ -78,3 +78,7 @@ func (h *SignupHandler) InviteRequest(_ context.Context, arg keybase1.InviteRequ
 		Notes:    arg.Notes,
 	})
 }
+
+func (h *SignupHandler) CheckInvitationCode(_ context.Context, arg keybase1.CheckInvitationCodeArg) (err error) {
+	return libkb.CheckInvitationCode(arg.InvitationCode)
+}

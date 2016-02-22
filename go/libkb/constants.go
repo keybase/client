@@ -128,6 +128,7 @@ const (
 	SCResolutionFailed       = int(keybase1.StatusCode_SCResolutionFailed)
 	SCProfileNotPublic       = int(keybase1.StatusCode_SCProfileNotPublic)
 	SCBadSignupUsernameTaken = int(keybase1.StatusCode_SCBadSignupUsernameTaken)
+	SCBadInvitationCode      = int(keybase1.StatusCode_SCBadInvitationCode)
 	SCMissingResult          = int(keybase1.StatusCode_SCMissingResult)
 	SCKeyNotFound            = int(keybase1.StatusCode_SCKeyNotFound)
 	SCKeyInUse               = int(keybase1.StatusCode_SCKeyInUse)
@@ -375,6 +376,7 @@ const (
 
 const (
 	IdentifySourceKBFS = "kbfs"
+	TestInvitationCode = "202020202020202020202020"
 )
 
 const (

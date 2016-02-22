@@ -21,7 +21,7 @@ func createFakeUserWithNoKeys(tc libkb.TestContext) (username, passphrase string
 			return err
 		}
 
-		if err := s.join(a, username, email, testInviteCode, true); err != nil {
+		if err := s.join(a, username, email, libkb.TestInvitationCode, true); err != nil {
 			return err
 		}
 
@@ -54,7 +54,7 @@ func createFakeUserWithPGPOnly(t *testing.T, tc libkb.TestContext) *FakeUser {
 			return err
 		}
 
-		if err := s.join(a, fu.Username, fu.Email, testInviteCode, true); err != nil {
+		if err := s.join(a, fu.Username, fu.Email, libkb.TestInvitationCode, true); err != nil {
 			return err
 		}
 
@@ -112,7 +112,7 @@ func createFakeUserWithPGPPubOnly(t *testing.T, tc libkb.TestContext) *FakeUser 
 			return err
 		}
 
-		if err := s.join(a, fu.Username, fu.Email, testInviteCode, true); err != nil {
+		if err := s.join(a, fu.Username, fu.Email, libkb.TestInvitationCode, true); err != nil {
 			return err
 		}
 
@@ -153,7 +153,7 @@ func createFakeUserWithPGPMult(t *testing.T, tc libkb.TestContext) *FakeUser {
 			return err
 		}
 
-		if err := s.join(a, fu.Username, fu.Email, testInviteCode, true); err != nil {
+		if err := s.join(a, fu.Username, fu.Email, libkb.TestInvitationCode, true); err != nil {
 			t.Fatal(err)
 		}
 
@@ -207,7 +207,7 @@ func createFakeUserWithPGPMultSubset(t *testing.T, tc libkb.TestContext, alterna
 			return err
 		}
 
-		if err := s.join(a, fu.Username, fu.Email, testInviteCode, true); err != nil {
+		if err := s.join(a, fu.Username, fu.Email, libkb.TestInvitationCode, true); err != nil {
 			t.Fatal(err)
 		}
 
