@@ -24,7 +24,7 @@ rm -rf $save_dir
 mkdir -p $save_dir
 
 echo "Creating index files"
-$release_bin index-html --bucket-name="$bucket_name" --prefixes="darwin/,linux_binaries/deb/,linux_binaries/rpm/" --dest="$save_dir/index.html"
+$release_bin index-html --bucket-name="$bucket_name" --prefixes="darwin/,linux_binaries/deb/,linux_binaries/rpm/,windows/" --dest="$save_dir/index.html"
 $release_bin index-html --bucket-name="$bucket_name" --prefixes="electron-sourcemaps/" --dest="$save_dir/electron-sourcemaps/index.html"
 
 echo "Linking latest"
