@@ -7,6 +7,7 @@ import {Icon} from '../common-adapters/index'
 import {CircularProgress} from 'material-ui'
 import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked, error as proofError, warning as proofWarning} from '../constants/tracker'
 import {metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone} from '../constants/tracker'
+import {Props as IconProps} from '../common-adapters/icon'
 import electron from 'electron'
 
 const shell = electron.shell || electron.remote.shell
@@ -39,7 +40,7 @@ export class ProofsRender2 extends Component {
     shell.openExternal(`https://keybase.io/${this.props.username}`)
   }
 
-  iconNameForProof (proof: Proof): string {
+  iconNameForProof (proof: Proof): IconProps.type {
     return {
       'twitter': 'fa-twitter',
       'github': 'fa-github',
