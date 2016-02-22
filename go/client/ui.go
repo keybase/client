@@ -719,6 +719,9 @@ func (l LoginUI) DisplayPaperKeyPhrase(_ context.Context, arg keybase1.DisplayPa
 
 func (l LoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayPrimaryPaperKeyArg) error {
 	if l.noPrompt {
+		l.parent.Printf("Paper key: ")
+		l.parent.OutputDesc(OutputDescriptorPrimaryPaperKey, arg.Phrase)
+		l.parent.Printf("\n")
 		return nil
 	}
 	l.parent.Printf("\n")
