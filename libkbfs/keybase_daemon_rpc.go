@@ -164,8 +164,10 @@ func (k *KeybaseDaemonRPC) LoggedIn(ctx context.Context, name string) error {
 	k.log.CDebugf(ctx, "Current session logged in: %s", name)
 	// Since we don't have the whole session, just clear the cache.
 	k.setCachedCurrentSession(SessionInfo{})
-	k.config.MDServer().Shutdown()
-	k.config.BlockServer().Shutdown()
+	if k.config != nil {
+		k.config.MDServer().Shutdown()
+		k.config.BlockServer().Shutdown()
+	}
 	return nil
 }
 
@@ -173,8 +175,10 @@ func (k *KeybaseDaemonRPC) LoggedIn(ctx context.Context, name string) error {
 func (k *KeybaseDaemonRPC) LoggedOut(ctx context.Context) error {
 	k.log.CDebugf(ctx, "Current session logged out")
 	k.setCachedCurrentSession(SessionInfo{})
-	k.config.MDServer().Shutdown()
-	k.config.BlockServer().Shutdown()
+	if k.config != nil {
+		k.config.MDServer().Shutdown()
+		k.config.BlockServer().Shutdown()
+	}
 	return nil
 }
 
