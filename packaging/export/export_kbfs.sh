@@ -46,5 +46,5 @@ rm $src_dir/$name.tar
 cd $dest_dir
 echo "Committing"
 git add .
-git commit -m "Updating repo"
+git commit -m "Updating repo" --allow-empty
 git push
