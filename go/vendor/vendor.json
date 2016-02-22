@@ -114,8 +114,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp",
-			"revision": "5db6de1aca42e05efe425d66695a8b0432edf2a2",
-			"revisionTime": "2016-02-10T10:53:12-05:00"
+			"revision": "a3a3f8860f3c8a0f0e15eecf945b01978ac36f83",
+			"revisionTime": "2016-02-21T19:57:56-05:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/armor",
@@ -144,8 +144,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/s2k",
-			"revision": "826ac3154b72cec753bb46ca1fdf9a4383506048",
-			"revisionTime": "2016-02-06T22:30:13-05:00"
+			"revision": "a3a3f8860f3c8a0f0e15eecf945b01978ac36f83",
+			"revisionTime": "2016-02-21T19:57:56-05:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/rsa",
