@@ -156,7 +156,7 @@ func (fl *FolderList) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedSt
 	defer func() { fl.fs.reportErr(ctx, err) }()
 	favs, err := fl.fs.config.KBFSOps().GetFavorites(ctx)
 	fl.fs.log.CDebugf(ctx, "FL ReadDirAll -> %v,%v", favs, err)
-	if _, isDeviceRequired := err.(libkb.DeviceRequiredError); isDeviceRequired && !fl.public {
+	if _, isDeviceRequired := err.(libkb.DeviceRequiredError); err != nil && (!isDeviceRequired || !fl.public) {
 		return err
 	}
 	var ns dokan.NamedStat

@@ -99,7 +99,7 @@ func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err er
 		fl.fs.reportErr(ctx, err)
 	}()
 	favs, err := fl.fs.config.KBFSOps().GetFavorites(ctx)
-	if _, isDeviceRequired := err.(libkb.DeviceRequiredError); isDeviceRequired && !fl.public {
+	if _, isDeviceRequired := err.(libkb.DeviceRequiredError); err != nil && (!isDeviceRequired || !fl.public) {
 		return nil, err
 	}
 
