@@ -2695,8 +2695,7 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 		p.Branch)
 	newRootBlock := getDirBlockFromCache(t, config, node.BlockPointer, p.Branch)
 	lState := makeFBOLockState()
-	newRootBlock = ops.updateDirBlock(
-		ctx, lState, path{FolderBranch{Tlf: id}, []pathNode{node}}, newRootBlock)
+	newRootBlock = ops.getUpdatedDirBlock(ctx, lState, newRootBlock)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).path) !=
 		len(p.path) {
@@ -2903,8 +2902,7 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	b, _ := config.BlockCache().Get(node.BlockPointer, p.Branch)
 	newRootBlock := b.(*DirBlock)
 	lState := makeFBOLockState()
-	newRootBlock = ops.updateDirBlock(
-		ctx, lState, path{FolderBranch{Tlf: id}, []pathNode{node}}, newRootBlock)
+	newRootBlock = ops.getUpdatedDirBlock(ctx, lState, newRootBlock)
 
 	b, _ = config.BlockCache().Get(fileNode.BlockPointer, p.Branch)
 	pblock := b.(*FileBlock)
@@ -3125,8 +3123,7 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 		p.Branch)
 	newRootBlock := getDirBlockFromCache(t, config, node.BlockPointer, p.Branch)
 	lState := makeFBOLockState()
-	newRootBlock = ops.updateDirBlock(
-		ctx, lState, path{FolderBranch{Tlf: id}, []pathNode{node}}, newRootBlock)
+	newRootBlock = ops.getUpdatedDirBlock(ctx, lState, newRootBlock)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).path) !=
 		len(p.path) {
