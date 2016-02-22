@@ -86,9 +86,11 @@ func (e *SaltpackSenderIdentify) identifySender(ctx *Context) (err error) {
 	var lin bool
 	var uid keybase1.UID
 	if lin, uid, err = IsLoggedIn(e, ctx); err == nil && lin && uid.Equal(e.res.Uid) {
-		e.G().Log.Debug("| Sender is self")
-		e.res.SenderType = keybase1.SaltpackSenderType_SELF
-		return nil
+		if len(e.arg.userAssertion) == 0 {
+			e.G().Log.Debug("| Sender is self")
+			e.res.SenderType = keybase1.SaltpackSenderType_SELF
+			return nil
+		}
 	}
 
 	iarg := keybase1.Identify2Arg{
