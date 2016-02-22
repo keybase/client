@@ -111,7 +111,7 @@ export default class Button extends Component {
     return (
       <FlatButton
         onClick={this.props.onClick}
-        style={{...backgroundStyle, ...this.props.style, ...smallStyle}}
+        style={{...backgroundStyle, ...smallStyle, ...this.props.style}}
         labelStyle={{...styles2.buttonLabel, ...labelStyle}}
         label={this.props.label || this.props.more && '•••'}
         primary={this.props.type === 'Primary'}
