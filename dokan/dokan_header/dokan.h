@@ -1,9 +1,10 @@
 /*
   Dokan : user-mode file system library for Windows
 
-  Copyright (C) 2008 Hiroki Asakawa info@dokan-dev.net
+  Copyright (C) 2015 - 2016 Adrien J. <liryna.stark@gmail.com> and Maxime C. <maxime@islog.com>
+  Copyright (C) 2007 - 2011 Hiroki Asakawa <info@dokan-dev.net>
 
-  http://dokan-dev.net/en
+  http://dokan-dev.github.io
 
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU Lesser General Public License as published by the Free
@@ -26,7 +27,7 @@ with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "fileinfo.h"
 #include "public.h"
 
-#define DOKAN_DRIVER_NAME L"dokan.sys"
+#define DOKAN_DRIVER_NAME L"dokan" DOKAN_MAJOR_API_VERSION L".sys"
 
 #ifdef _EXPORTING
 #define DOKANAPI /*__declspec(dllexport)*/                                     \
@@ -54,6 +55,7 @@ extern "C" {
                                       // install Dokan network provider.
 #define DOKAN_OPTION_REMOVABLE 32     // use removable drive
 #define DOKAN_OPTION_MOUNT_MANAGER 64 // use mount manager
+#define DOKAN_OPTION_CURRENT_SESSION 128 // mount the drive on current session only
 
 typedef struct _DOKAN_OPTIONS {
   USHORT Version;        // Supported Dokan Version, ex. "530" (Dokan ver 0.5.3)
@@ -162,8 +164,8 @@ typedef struct _DOKAN_OPERATIONS {
    LPBY_HANDLE_FILE_INFORMATION, // Buffer
    PDOKAN_FILE_INFO);
 
-  // You should implement either FindFiles or FindFilesWithPattern
-
+  // FindFilesWithPattern is checking first. If it is not implemented or
+  // returns STATUS_NOT_IMPLEMENTED, then FindFiles is called, if implemented.
   NTSTATUS(DOKAN_CALLBACK *FindFiles)
   (LPCWSTR,           // PathName
    PFillFindData,     // call this function with PWIN32_FIND_DATAW
@@ -175,6 +177,8 @@ typedef struct _DOKAN_OPERATIONS {
    PFillFindData, // call this function with PWIN32_FIND_DATAW
    PDOKAN_FILE_INFO);
 
+  // SetFileAttributes and SetFileTime are called only if both of them
+  // are implemented.
   NTSTATUS(DOKAN_CALLBACK *SetFileAttributes)
   (LPCWSTR, // FileName
    DWORD,   // FileAttributes
