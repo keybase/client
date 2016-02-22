@@ -141,7 +141,7 @@ const buttonCommon2 = {
   color: globalColorsDZ2.white,
   borderRadius: 55,
   fontSize: 16,
-  height: '32px',
+  height: 32,
   lineHeight: '24px',
   textTransform: 'none',
   minWidth: 10
@@ -171,24 +171,24 @@ export const styles2 = {
     backgroundColor: globalColorsDZ2.green,
     disabledOpacity: 0.3,
     marginRight: 10,
-    minWidth: '125px'
+    minWidth: 125
   },
   buttonFollowing: {
     ...buttonCommon2,
     backgroundColor: globalColorsDZ2.white,
-    border: 'solid 2px ' + globalColorsDZ2.green,
+    border: `solid 2px ${globalColorsDZ2.green}`,
     marginRight: 10,
-    minWidth: '125px'
+    minWidth: 125
   },
   buttonUnfollow: {
     ...buttonCommon2,
     backgroundColor: globalColorsDZ2.blue,
     disabledOpacity: 0.2,
     marginRight: 10,
-    minWidth: '125px'
+    minWidth: 125
   },
   buttonSmall: {
-    height: '28px',
+    height: 28,
     lineHeight: '24px'
   },
   buttonLabel: {
@@ -216,7 +216,7 @@ export const styles1 = {
     fontSize: 13,
     paddingTop: 3,
     paddingBottom: 3,
-    lineHeight: '18px'
+    lineHeight: 18
   },
   buttonLabel: {
     paddingLeft: 24,
@@ -234,7 +234,7 @@ export const styles1 = {
     paddingTop: 2,
     paddingBottom: 2,
     height: 12,
-    lineHeight: '2px'
+    lineHeight: 2
   },
   buttonMoreLabel: {
     paddingLeft: 3,
