@@ -75,6 +75,33 @@ func TestSaltpackSignVerify(t *testing.T) {
 			t.Errorf("%s: verify error: %s", test.name, err)
 			continue
 		}
+
+		// test SignedBy option:
+		varg = &SaltpackVerifyArg{
+			Sink:   libkb.NopWriteCloser{W: &sink},
+			Source: strings.NewReader(sig),
+			Opts: keybase1.SaltpackVerifyOptions{
+				SignedBy: fu.Username,
+			},
+		}
+		veng = NewSaltpackVerify(varg, tc.G)
+		if err := RunEngine(veng, ctx); err != nil {
+			t.Errorf("%s: verify w/ SignedBy error: %s", test.name, err)
+			continue
+		}
+
+		varg = &SaltpackVerifyArg{
+			Sink:   libkb.NopWriteCloser{W: &sink},
+			Source: strings.NewReader(sig),
+			Opts: keybase1.SaltpackVerifyOptions{
+				SignedBy: "unknown",
+			},
+		}
+		veng = NewSaltpackVerify(varg, tc.G)
+		if err := RunEngine(veng, ctx); err == nil {
+			t.Errorf("%s: verify w/ SignedBy=unknown worked, should have failed", test.name)
+			continue
+		}
 	}
 
 	// now try the same messages, but generate detached signatures
@@ -219,5 +246,78 @@ func TestSaltpackSignVerifyBinary(t *testing.T) {
 			t.Errorf("(detached) %s: verify error: %s", test.name, err)
 			continue
 		}
+	}
+}
+
+func TestSaltpackSignVerifyNotSelf(t *testing.T) {
+	tc := SetupEngineTest(t, "sign")
+	defer tc.Cleanup()
+
+	signer := CreateAndSignupFakeUser(tc, "sign")
+
+	var sink bytes.Buffer
+
+	sarg := &SaltpackSignArg{
+		Sink:   libkb.NopWriteCloser{W: &sink},
+		Source: ioutil.NopCloser(bytes.NewBufferString("this is from me")),
+	}
+
+	eng := NewSaltpackSign(sarg, tc.G)
+	ctx := &Context{
+		IdentifyUI: &FakeIdentifyUI{},
+		SecretUI:   signer.NewSecretUI(),
+	}
+
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	sig := sink.String()
+
+	if len(sig) == 0 {
+		t.Fatal("empty sig")
+	}
+
+	Logout(tc)
+
+	_ = CreateAndSignupFakeUser(tc, "sign")
+
+	// no user assertion
+	varg := &SaltpackVerifyArg{
+		Sink:   libkb.NopWriteCloser{W: &sink},
+		Source: strings.NewReader(sig),
+	}
+	veng := NewSaltpackVerify(varg, tc.G)
+
+	ctx.SaltpackUI = fakeSaltpackUI{}
+
+	if err := RunEngine(veng, ctx); err != nil {
+		t.Fatalf("verify error: %s", err)
+	}
+
+	// valid user assertion
+	varg = &SaltpackVerifyArg{
+		Sink:   libkb.NopWriteCloser{W: &sink},
+		Source: strings.NewReader(sig),
+		Opts: keybase1.SaltpackVerifyOptions{
+			SignedBy: signer.Username,
+		},
+	}
+	veng = NewSaltpackVerify(varg, tc.G)
+	if err := RunEngine(veng, ctx); err != nil {
+		t.Fatalf("verify w/ SignedBy error: %s", err)
+	}
+
+	// invalid user assertion
+	varg = &SaltpackVerifyArg{
+		Sink:   libkb.NopWriteCloser{W: &sink},
+		Source: strings.NewReader(sig),
+		Opts: keybase1.SaltpackVerifyOptions{
+			SignedBy: "unknown",
+		},
+	}
+	veng = NewSaltpackVerify(varg, tc.G)
+	if err := RunEngine(veng, ctx); err == nil {
+		t.Errorf("verify w/ SignedBy unknown didn't fail")
 	}
 }
