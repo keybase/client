@@ -19,8 +19,6 @@ func SetupEngineTest(tb testing.TB, name string) libkb.TestContext {
 	return tc
 }
 
-var testInviteCode = "202020202020202020202020"
-
 type FakeUser struct {
 	Username      string
 	Email         string
@@ -65,7 +63,7 @@ func MakeTestSignupEngineRunArg(fu *FakeUser) SignupEngineRunArg {
 	return SignupEngineRunArg{
 		Username:    fu.Username,
 		Email:       fu.Email,
-		InviteCode:  testInviteCode,
+		InviteCode:  libkb.TestInvitationCode,
 		Passphrase:  fu.Passphrase,
 		StoreSecret: false,
 		DeviceName:  defaultDeviceName,

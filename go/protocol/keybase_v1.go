@@ -855,6 +855,7 @@ const (
 	StatusCode_SCTrackingBroke          StatusCode = 278
 	StatusCode_SCWrongCryptoFormat      StatusCode = 279
 	StatusCode_SCBadSignupUsernameTaken StatusCode = 701
+	StatusCode_SCBadInvitationCode      StatusCode = 707
 	StatusCode_SCMissingResult          StatusCode = 801
 	StatusCode_SCKeyNotFound            StatusCode = 901
 	StatusCode_SCKeyInUse               StatusCode = 907
@@ -5510,10 +5511,16 @@ type InviteRequestArg struct {
 	Notes     string `codec:"notes" json:"notes"`
 }
 
+type CheckInvitationCodeArg struct {
+	SessionID      int    `codec:"sessionID" json:"sessionID"`
+	InvitationCode string `codec:"invitationCode" json:"invitationCode"`
+}
+
 type SignupInterface interface {
 	CheckUsernameAvailable(context.Context, CheckUsernameAvailableArg) error
 	Signup(context.Context, SignupArg) (SignupRes, error)
 	InviteRequest(context.Context, InviteRequestArg) error
+	CheckInvitationCode(context.Context, CheckInvitationCodeArg) error
 }
 
 func SignupProtocol(i SignupInterface) rpc.Protocol {
@@ -5568,6 +5575,22 @@ func SignupProtocol(i SignupInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"checkInvitationCode": {
+				MakeArg: func() interface{} {
+					ret := make([]CheckInvitationCodeArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CheckInvitationCodeArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CheckInvitationCodeArg)(nil), args)
+						return
+					}
+					err = i.CheckInvitationCode(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -5588,6 +5611,11 @@ func (c SignupClient) Signup(ctx context.Context, __arg SignupArg) (res SignupRe
 
 func (c SignupClient) InviteRequest(ctx context.Context, __arg InviteRequestArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.signup.inviteRequest", []interface{}{__arg}, nil)
+	return
+}
+
+func (c SignupClient) CheckInvitationCode(ctx context.Context, __arg CheckInvitationCodeArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.signup.checkInvitationCode", []interface{}{__arg}, nil)
 	return
 }
 

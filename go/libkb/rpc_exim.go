@@ -217,6 +217,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return KeyExistsError{fp}
 	case SCStreamExists:
 		return StreamExistsError{}
+	case SCBadInvitationCode:
+		return BadInvitationCodeError{}
 	case SCStreamNotFound:
 		return StreamNotFoundError{}
 	case SCStreamWrongKind:
@@ -780,6 +782,14 @@ func ImportKeyGenArg(a keybase1.PGPKeyGenArg) (ret PGPGenArg) {
 //=============================================================================
 
 func (t Tracker) Export() keybase1.Tracker { return keybase1.Tracker(t) }
+
+//=============================================================================
+
+func (e BadInvitationCodeError) ToStatus(s keybase1.Status) {
+	s.Code = SCBadInvitationCode
+	s.Name = "BAD_INVITATION_CODE"
+	return
+}
 
 //=============================================================================
 
