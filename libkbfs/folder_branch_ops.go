@@ -3,7 +3,6 @@ package libkbfs
 import (
 	"errors"
 	"fmt"
-	"runtime/debug"
 	"strings"
 	"sync"
 	"time"
@@ -1334,11 +1333,6 @@ func (fbo *folderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 
 	err = runUnlessCanceled(ctx, func() error {
 		var err error
-		defer func() {
-			if err != nil {
-				fbo.log.CDebugf(ctx, "Stack: %s", string(debug.Stack()))
-			}
-		}()
 		lState := makeFBOLockState()
 
 		md, err := fbo.getMDForReadNeedIdentify(ctx, lState)

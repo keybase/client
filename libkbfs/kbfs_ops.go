@@ -2,7 +2,6 @@ package libkbfs
 
 import (
 	"fmt"
-	"runtime/debug"
 	"sync"
 	"time"
 
@@ -116,12 +115,7 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNode(
 	node Node, ei EntryInfo, err error) {
 	fs.log.CDebugf(ctx, "GetOrCreateRootNode(%s, %t, %v)",
 		name, public, branch)
-	defer func() {
-		fs.log.CDebugf(ctx, "Done: %#v", err)
-		if err != nil {
-			fs.log.CDebugf(ctx, "Stack: %s", string(debug.Stack()))
-		}
-	}()
+	defer func() { fs.log.CDebugf(ctx, "Done: %#v", err) }()
 
 	h, err := ParseTlfHandle(ctx, fs.config.KBPKI(), name, public)
 	if err != nil {
