@@ -17,6 +17,7 @@ export default class PaperKeyRender extends Component {
         />
         <Button
           style={{alignSelf: 'flex-end', marginRight: 10}}
+          type='Secondary'
           onPress={() => this.props.onSubmit()}
           title='Submit & Log in'
           enabled={this.props.paperKey}/>

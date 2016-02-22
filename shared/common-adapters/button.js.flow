@@ -6,12 +6,13 @@ export type Props = {
   onClick: ?Function,
   label: ?string,
   style?: ?Object,
-  primary?: ?bool,
+  type: 'Primary' | 'Secondary' | 'Danger' | 'Follow' | 'Following' | 'Unfollow',
+  disabled?: ?bool,
   small?: ?bool,
-  more?: ?bool
+  dz2?: boolean, // Use DZ2 styling?
+  fullWidth?: ?bool
 }
 
 declare export default class Button extends Component {
   props: Props;
 }
-

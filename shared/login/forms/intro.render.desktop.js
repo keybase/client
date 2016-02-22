@@ -16,7 +16,7 @@ export default class Intro extends Component {
         <Icon type='logo-128'/>
         <Text style={styles.header} type='Header'>Join Keybase</Text>
         <Text style={styles.headerSub} type='Body'>Folders for anyone in the world.</Text>
-        <Button style={styles.button} primary onClick={this.props.onSignup} label='Create an account' />
+        <Button style={styles.button} type='Primary' onClick={this.props.onSignup} label='Create an account' />
         <Text style={styles.loginHeader} type='Body' link onClick={this.props.onLogin}>Already on Keybase?<br/><span>Log in</span></Text>
       </div>
     )

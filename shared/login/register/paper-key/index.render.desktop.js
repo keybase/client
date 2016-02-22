@@ -21,7 +21,7 @@ const Render = ({onBack, onSubmit, onChangePaperKey, paperKey}: Props) => {
       />
       <Button
         label='Continue'
-        primary
+        type='Primary'
         onClick={() => onSubmit()}
         enabled={paperKey}
       />

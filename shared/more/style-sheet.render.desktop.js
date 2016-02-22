@@ -1,10 +1,13 @@
+/* @flow */
 import React, {Component} from 'react'
 import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide'
-import Container from './dev-container'
+import Container from './dev-container.desktop.js'
 import {Button, Input, Text, Terminal, FormWithCheckbox} from '../common-adapters'
 
 export default class Render extends Component {
   render () {
+    const Space = () => <div style={{height: 20}}/>
+
     return (
       <div style={{...globalStyles.flexBoxColumn, margin: 20}}>
         <Container title='Text - DZ2'>
@@ -64,10 +67,43 @@ export default class Render extends Component {
           </div>
         </Container>
         <Container title='Buttons'>
-          <div style={{...globalStyles.flexBoxRow}}>
-            <Button label='Secondary'/>
-            <Button label='Primary' primary />
+          <div style={{...globalStyles.flexBoxColumn, padding: 10, paddingRight: 100}}>
+            <div style={{...globalStyles.flexBoxRow}}>
+              <div style={{...globalStyles.flexBoxColumn, alignItems: 'flex-start', justifyContents: 'flex-start', padding: 10, paddingRight: 100}}>
+                <Button dz2 onClick={() => {}} type='Primary' label='Primary'/><Space/>
+                <Button dz2 onClick={() => {}} type='Secondary' label='Secondary'/><Space/>
+                <Button dz2 onClick={() => {}} type='Danger' danger label='Danger'/><Space/>
+                <Space/>
+                <Button dz2 onClick={() => {}} type='Follow' label='Follow'/><Space/>
+                <Button dz2 onClick={() => {}} type='Following' label='Following'/><Space/>
+                <Button dz2 onClick={() => {}} type='Unfollow' label='Unfollow'/><Space/>
+              </div>
+              <div style={{...globalStyles.flexBoxColumn, alignItems: 'flex-start', justifyContents: 'flex-start', padding: 10, paddingRight: 100}}>
+                <Button dz2 onClick={() => {}} type='Primary' disabled label='Primary disabled'/><Space/>
+                <Button dz2 onClick={() => {}} type='Secondary' disabled label='Secondary disabled'/><Space/>
+                <Button dz2 onClick={() => {}} type='Danger' disabled label='Danger disabled'/><Space/>
+                <Space/>
+                <Button dz2 onClick={() => {}} type='Follow' disabled label='Follow disabled'/><Space/>
+              </div>
+            </div>
+
+            <div style={{...globalStyles.flexBoxColumn, alignItems: 'flex-start', justifyContents: 'flex-start', padding: 10}}>
+              <Button dz2 onClick={() => {}} type='Primary' fullWidth label='Primary full-width'/><Space/>
+              <Button dz2 onClick={() => {}} type='Secondary' fullWidth label='Secondary full-width'/><Space/>
+              <Button dz2 onClick={() => {}} type='Danger' fullWidth label='Danger full-width'/><Space/>
+              <Button dz2 onClick={() => {}} type='Follow' fullWidth label='Follow full-width'/><Space/>
+            </div>
+
+            <div style={{...globalStyles.flexBoxRow}}>
+              <div style={{...globalStyles.flexBoxColumn, alignItems: 'flex-start', justifyContents: 'flex-start', padding: 10, paddingRight: 100}}>
+                <Button dz2 onClick={() => {}} type='Primary' small label='Primary small'/><Space/>
+                <Button dz2 onClick={() => {}} type='Secondary' small label='Secondary small'/><Space/>
+                <Button dz2 onClick={() => {}} type='Danger' small label='Danger small'/><Space/>
+                <Button dz2 onClick={() => {}} type='Follow' small label='Follow small'/><Space/>
+              </div>
+            </div>
           </div>
+
         </Container>
         <Container title='Icons'>
           <div style={{...globalStyles.flexBoxColumn}}>

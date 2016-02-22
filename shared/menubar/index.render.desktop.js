@@ -78,7 +78,7 @@ const LogInPrompt = props => {
     <div style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.grey5}}>
       <Icon type='fa-exclamation-triangle' style={{alignSelf: 'center', color: globalColors.lowRiskWarning, marginTop: 12}} />
       <Text type='Body' small style={{alignSelf: 'center', marginTop: 6}}>You're logged out!</Text>
-      <Button primary label='Log In' onClick={logIn} style={{alignSelf: 'center', minWidth: 160, marginTop: 12, marginRight: 0}}/>
+      <Button type='Primary' label='Log In' onClick={logIn} style={{alignSelf: 'center', minWidth: 160, marginTop: 12, marginRight: 0}}/>
       {allowLoggedOutKBFS && <Text type='Body' small style={{marginTop: 22, marginBottom: 7, marginLeft: 10}}>Or access someone's public folder:</Text>}
     </div>
   )

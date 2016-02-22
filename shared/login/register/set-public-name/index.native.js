@@ -34,7 +34,7 @@ class SetPublicName extends Component {
           onChangeText={deviceName => this.setState({deviceName})}
           onSubmitEditing={() => { this.onSubmit() }}
           />
-        <Button style={{alignSelf: 'flex-end'}} isAction title='Submit' onPress={() => this.onSubmit()} enabled={enabled}/>
+        <Button type='Secondary' style={{alignSelf: 'flex-end'}} isAction title='Submit' onPress={() => this.onSubmit()} enabled={enabled}/>
       </View>
     )
   }
@@ -80,4 +80,3 @@ export default connect(
     }
   }
 )(SetPublicName)
-

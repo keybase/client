@@ -76,8 +76,8 @@ export default class PinentryRender extends Component {
             />
           </div>
           <div style={styles.action}>
-            <Button label={this.props.cancelLabel || 'Cancel'} onClick={() => this.props.onCancel()} />
-            <Button primary label={this.props.submitLabel || 'Close'} onClick={submitPassphrase} />
+            <Button type='Secondary' label={this.props.cancelLabel || 'Cancel'} onClick={() => this.props.onCancel()} />
+            <Button type='Primary' label={this.props.submitLabel || 'Close'} onClick={submitPassphrase} />
           </div>
         </div>
       </div>

@@ -144,7 +144,7 @@ class Nav extends Component {
       return (
         <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
           <Text>Error Loading: {this.props.config.error.toString()}</Text>
-          <Button title='Retry' onPress={() => this.props.startup()} isAction />
+          <Button type='Secondary' title='Retry' onPress={() => this.props.startup()} isAction />
         </View>
       )
     }

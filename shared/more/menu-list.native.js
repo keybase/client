@@ -19,7 +19,7 @@ export default class MenuList extends Component {
     const sep = this.renderSep(rowID)
 
     return (
-      <Button onPress={rowData.onClick}>
+      <Button type='Secondary' onPress={rowData.onClick}>
         <View>
           <View style={{margin: 10, flexDirection: 'row', flex: 1, justifyContent: 'space-between'}}>
             <Text>{rowData.name}</Text>

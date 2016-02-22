@@ -20,7 +20,7 @@ export default class Render extends Component {
       <div style={styles.form}>
         <Text style={styles.topMargin} type='Header'>Enter your special invite code</Text>
         <Input ref={r => (inviteRef = r)} hintText='Invite Code' errorText={this.props.inviteCodeErrorText} onEnterKeyDown={submitInviteCode}/>
-        <Button label='Check' onClick={submitInviteCode}/>
+        <Button type='Secondary' label='Check' onClick={submitInviteCode}/>
       </div>
     )
   }

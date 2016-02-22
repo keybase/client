@@ -8,13 +8,13 @@ export default class WelcomeRender extends Component {
     return (
       <View style={[styles.container, {marginTop: 64, marginBottom: 48}]}>
         <Text style={[commonStyles.h1, {padding: 20, textAlign: 'center'}]}>Welcome to Keybase</Text>
-        <Button onPress={() => this.props.onGotoLoginPage()}>
+        <Button type='Secondary' onPress={() => this.props.onGotoLoginPage()}>
           <View>
             <Text style={commonStyles.h1}>Log in -</Text>
             <Text style={[commonStyles.h2, {marginBottom: 40}]}>Already a keybase user? Welcome back!</Text>
           </View>
         </Button>
-        <Button onPress={() => this.props.onGotoSignupPage()}>
+        <Button type='Secondary' onPress={() => this.props.onGotoSignupPage()}>
           <View>
             <Text style={commonStyles.h1}>Sign up -</Text>
             <Text style={commonStyles.h2}>In order to sign up for our beta, a friend who is an existing member on Keybase is required to share a file with you</Text>

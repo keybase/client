@@ -132,7 +132,7 @@ export default class CodePageRender extends Component {
           placeholder='Type code here'
           value={this.props.enterText}
           multiline />
-        <Button style={{alignSelf: 'flex-end'}} title='Submit' action onPress={() => {
+        <Button type='Secondary' style={{alignSelf: 'flex-end'}} title='Submit' action onPress={() => {
           this.props.textEntered()
         }}/>
       </View>
