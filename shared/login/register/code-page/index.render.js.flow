@@ -1,0 +1,24 @@
+/* @flow */
+
+import {Component} from 'react'
+import type {Mode, DeviceRole} from '../../../reducers/login'
+
+export type Props = {
+  mode: Mode,
+  textCode: string,
+  qrCode: string,
+  myDeviceRole: DeviceRole,
+  otherDeviceRole: DeviceRole,
+  cameraBrokenMode: boolean,
+  setCodePageMode: Function,
+  qrScanned: Function,
+  setCameraBrokenMode: Function,
+  textEntered: Function,
+  onChangeText: Function,
+  onBack: Function,
+  enterText: string
+}
+
+export default class CodePageRender extends Component {
+  props: Props;
+}
