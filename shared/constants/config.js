@@ -1,14 +1,6 @@
 /* @flow */
 
-export type NavState = 'navStartingUp' | 'navNeedsRegistration' | 'navNeedsLogin' | 'navLoggedIn' | 'navErrorStartingUp'
-
 // Constants
-export const navStartingUp = 'navStartingUp'
-export const navNeedsRegistration = 'navNeedsRegistration'
-export const navNeedsLogin = 'navNeedsLogin'
-export const navLoggedIn = 'navLoggedIn'
-export const navErrorStartingUp = 'navErrorStartingUp'
-
 export const defaultKBFSPath = '/keybase'
 
 // Actions

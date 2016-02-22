@@ -7,7 +7,6 @@ import * as Tabs from './constants/tabs'
 import {updateConfig} from './command-line.desktop.js'
 
 let config = {
-  skipLoginRouteToRoot: false,
   allowStartupFailure: false,
   printRPC: false,
   showDevTools: false,
@@ -20,11 +19,11 @@ let config = {
   forwardLogs: true,
   devStoreChangingFunctions: false,
   printOutstandingRPCs: false,
-  reactPerf: false
+  reactPerf: false,
+  overrideLoggedInTab: null
 }
 
 if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
-  config.skipLoginRouteToRoot = true
   config.allowStartupFailure = true
   config.printRPC = true
   config.showDevTools = false
@@ -38,13 +37,13 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.devStoreChangingFunctions = true
   config.printOutstandingRPCs = true
   config.reactPerf = false
+  config.overrideLoggedInTab = Tabs.moreTab
 }
 
 config = updateConfig(config)
 
 export const {
   enableActionLogging,
-  skipLoginRouteToRoot,
   allowStartupFailure,
   printRPC,
   showDevTools,
@@ -54,7 +53,8 @@ export const {
   forwardLogs,
   devStoreChangingFunctions,
   printOutstandingRPCs,
-  reactPerf
+  reactPerf,
+  overrideLoggedInTab
 } = config
 
 export function initTabbedRouterState (state) {
@@ -68,7 +68,6 @@ export function initTabbedRouterState (state) {
       ...state.tabs,
       [Tabs.loginTab]: createRouterState([], []),
       [Tabs.moreTab]: createRouterState(['devMenu', 'styleSheet'], [])
-    },
-    activeTab: Tabs.moreTab
+    }
   }
 }

@@ -2,11 +2,7 @@
 import * as Constants from '../../constants/config'
 import engine from '../../engine'
 
-import {switchTab} from '../../actions/tabbed-router'
-import {navigateTo} from '../../actions/router'
-import {loginTab, moreTab} from '../../constants/tabs'
-
-import {skipLoginRouteToRoot} from '../../local-debug'
+import {navBasedOnLoginState} from '../../actions/login'
 
 // $FlowFixMe
 import * as native from './index.native'
@@ -20,17 +16,6 @@ function switchTabs () : AsyncAction {
     if (!status) {
       console.error('Config switching tabs with null status')
       return
-    }
-
-    if (!status.registered) {
-      dispatch(switchTab(loginTab))
-      // dispatch(navigateTo([]))
-    } else if (!status.loggedIn) {
-      dispatch(switchTab(loginTab))
-      // dispatch(navigateTo(['login']))
-    } else if (status.loggedIn && !skipLoginRouteToRoot) {
-      dispatch(switchTab(moreTab))
-      dispatch(navigateTo([]))
     }
   }
 }
@@ -99,6 +84,8 @@ export function getCurrentStatus (): AsyncAction {
             type: Constants.statusLoaded,
             payload: {status}
           })
+
+          dispatch(navBasedOnLoginState())
 
           resolve()
         }

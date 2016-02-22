@@ -5,9 +5,8 @@ import Intro from './forms/intro'
 import ErrorText from './error.render'
 
 import signupRouter from './signup'
-
-// Register Components
 import Register from './register'
+import Login from './login'
 
 import {Map} from 'immutable'
 import type {URI} from '../reducers/router'
@@ -30,6 +29,9 @@ function loginRouter (currentPath: Map<string, string>, uri: URI): any {
         return signupRouter(currentPath, uri)
       case 'register':
         form = <Register />
+        break
+      case 'login':
+        form = <Login />
         break
     }
   }

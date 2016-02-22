@@ -22,6 +22,7 @@ export const qrScanned = 'login:qrScanned'
 export const setQRCode = 'login:setQRCode'
 export const cameraBrokenMode = 'login:cameraBrokenMode'
 export const doneRegistering = 'login:doneRegistering'
+export const configuredAccounts = 'login:configuredAccounts'
 
 export const actionUpdateForgotPasswordEmailAddress = 'login:actionUpdateForgotPasswordEmailAddress'
 export const actionSetForgotPasswordSubmitting = 'login:actionSetForgotPasswordSubmitting'

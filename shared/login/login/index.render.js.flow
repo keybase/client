@@ -1,0 +1,15 @@
+/* @flow */
+import type {Component} from 'react'
+
+export type Props = {
+  lastUser: string | null,
+  serverURI: string,
+  users: Array<string>,
+  onSignup: () => void,
+  onBack: () => void,
+  onLogin: (user: string, passphrase: string, store: boolean) => void
+}
+
+export default class LoginRender extends Component {
+  props: Props;
+}

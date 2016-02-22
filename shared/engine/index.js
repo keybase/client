@@ -195,7 +195,9 @@ class Engine {
       }
     }
 
-    this.sessionIDToResponse[sessionID] = wrappedResponse
+    if (sessionID) {
+      this.sessionIDToResponse[sessionID] = wrappedResponse
+    }
     return wrappedResponse
   }
 

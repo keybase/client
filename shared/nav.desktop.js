@@ -17,7 +17,6 @@ import commonStyles from './styles/common'
 // import globalRoutes from './router/global-routes'
 const globalRoutes = {}
 
-import * as Constants from './constants/config'
 import {folderTab, chatTab, peopleTab, devicesTab, moreTab, loginTab} from './constants/tabs'
 import {switchTab} from './actions/tabbed-router'
 import {startup} from './actions/startup'
@@ -35,13 +34,6 @@ const tabs = {
 
 class TabTemplate extends Component {
   render () {
-    /* If we decide to show content for non-active tabs
-    if (this.props.selected) {
-      delete styles.height;
-      delete styles.overflow;
-    }
-    */
-
     return (
       <div style={styles.tabTemplate}>
         {this.props.children}
@@ -63,46 +55,56 @@ class Nav extends Component {
     // Restartup when we connect online.
     // If you startup while offline, you'll stay in an errored state
     window.addEventListener('online', this.props.startup)
+
+    this._renderedActiveTab = null // the last tab we actually drew
   }
 
   _handleTabsChange (e, key, payload) {
     this.props.switchTab(e)
   }
 
-  componentWillReceiveProps (nextProps) {
-    const activeTab = this.props.tabbedRouter.get('activeTab')
-    const nextActiveTab = nextProps.tabbedRouter.get('activeTab')
+  _resizeWindow () {
+    this._askedResize = false
+    const currentWindow = remote.getCurrentWindow()
 
-    // Transistioning into the login tab
-    if (activeTab !== loginTab && nextActiveTab === loginTab) {
-      this.window = remote.getCurrentWindow()
-      const [width, height] = this.window.getSize()
-      this.originalSize = {width, height}
-
-      this.window && this.window.setContentSize(globalResizing.login.width, globalResizing.login.height, true)
-      this.window && this.window.setResizable(false)
+    if (!currentWindow) {
+      return
     }
 
-    // Transistioning out of the login tab
-    if (activeTab === loginTab && nextActiveTab !== loginTab) {
-      if (this.originalSize) {
-        const {width, height} = this.originalSize
-        this.window && this.window.setSize(width, height, true)
+    if (this._renderedActiveTab === loginTab) {
+      const [width, height] = currentWindow.getSize()
+
+      // Did we actually change the size
+      if (width !== globalResizing.login.width && height !== globalResizing.login.height) {
+        this._originalSize = {width, height}
       }
-      this.window && this.window.setResizable(true)
+
+      currentWindow.setContentSize(globalResizing.login.width, globalResizing.login.height, true)
+      currentWindow.setResizable(false)
+    } else {
+      if (this._originalSize) {
+        const {width, height} = this._originalSize
+        currentWindow.setSize(width, height, true)
+      } else {
+        currentWindow.setContentSize(globalResizing.normal.width, globalResizing.normal.height, true)
+      }
+      currentWindow.setResizable(true)
     }
+  }
+
+  shouldComponentUpdate (nextProps, nextState) {
+    return (nextProps.tabbedRouter.get('activeTab') !== this.props.tabbedRouter.get('activeTab'))
   }
 
   render () {
     const activeTab = this.props.tabbedRouter.get('activeTab')
 
-    if (this.props.config.navState === Constants.navStartingUp) {
-      return (
-        <div style={{display: 'flex', flexDirection: 'column', flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-          <h1>Loading...</h1>
-        </div>
-      )
+    if (!this._askedResize && (activeTab === loginTab || this._renderedActiveTab === loginTab)) {
+      this._askedResize = true
+      setImmediate(() => this._resizeWindow())
     }
+
+    this._renderedActiveTab = activeTab
 
     if (activeTab === loginTab) {
       return (
@@ -168,16 +170,9 @@ const styles = {
 
 Nav.propTypes = {
   switchTab: React.PropTypes.func.isRequired,
-  // navigateBack: React.PropTypes.func.isRequired,
   startup: React.PropTypes.func.isRequired,
   tabbedRouter: React.PropTypes.object.isRequired,
   config: React.PropTypes.shape({
-    navState: React.PropTypes.oneOf([
-      Constants.navStartingUp,
-      Constants.navNeedsRegistration,
-      Constants.navNeedsLogin,
-      Constants.navLoggedIn,
-      Constants.navErrorStartingUp]),
     error: React.PropTypes.object
   }).isRequired
 }
@@ -187,7 +182,6 @@ export default connect(
   dispatch => {
     return {
       switchTab: tab => dispatch(switchTab(tab)),
-      // navigateBack: () => dispatch(navigateBack()),
       startup: () => dispatch(startup())
     }
   }

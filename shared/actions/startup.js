@@ -2,7 +2,6 @@ import * as ConfigConstants from '../constants/config'
 import {getConfig, getCurrentStatus} from './config'
 import {autoLogin} from './login'
 import engine from '../engine'
-import {NotifyPopup} from '../native/notifications'
 
 // This requires things across actions, so to avoid a circular dependency we'll pull this out
 // into it's own file

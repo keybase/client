@@ -4,11 +4,9 @@ import * as Constants from '../constants/config'
 import * as LoginConstants from '../constants/login'
 
 import type {Action} from '../constants/types/flux'
-import type {NavState} from '../constants/config'
 import type {Config, GetCurrentStatusRes, ExtendedStatus} from '../constants/types/flow-types'
 
 export type ConfigState = {
-  navState: NavState;
   status: ?GetCurrentStatusRes;
   config: ?Config;
   extendedConfig: ?ExtendedStatus;
@@ -18,13 +16,12 @@ export type ConfigState = {
 }
 
 const initialState: ConfigState = {
-  navState: Constants.navStartingUp,
   status: null,
   config: null,
   extendedConfig: null,
   kbfsPath: Constants.defaultKBFSPath,
   error: null,
-  devConfig: null
+  devConfig: null,
 }
 
 export default function (state: ConfigState = initialState, action: Action): ConfigState {
@@ -32,7 +29,6 @@ export default function (state: ConfigState = initialState, action: Action): Con
     case Constants.startupLoading:
       return {
         ...state,
-        navState: Constants.navStartingUp,
         config: null,
         status: null,
         error: null
@@ -73,36 +69,6 @@ export default function (state: ConfigState = initialState, action: Action): Con
         }
       }
       return state
-
-    case Constants.startupLoaded:
-      let navState = Constants.navStartingUp
-
-      if (!action.error) {
-        if (state.status && state.status.registered) {
-          navState = Constants.navNeedsRegistration
-        } else if (state.status && state.status.loggedIn) {
-          navState = Constants.navNeedsLogin
-        }
-      } else {
-        navState = Constants.navErrorStartingUp
-      }
-
-      return {
-        ...state,
-        error: action.error ? action.payload : null,
-        navState
-      }
-    case LoginConstants.logoutDone:
-      return {
-        ...state,
-        navState: Constants.navNeedsLogin
-      }
-    case LoginConstants.loginDone:
-      return {
-        ...state,
-        error: action.error ? action.payload : null,
-        navState: action.error ? Constants.navErrorStartingUp : Constants.navLoggedIn
-      }
     case Constants.devConfigLoading:
       return {
         ...state,
