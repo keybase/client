@@ -10,7 +10,6 @@ export type Props = {
   disabled?: ?bool,
   small?: ?bool,
   dz2?: boolean, // Use DZ2 styling?
-  more?: ?bool,
   fullWidth?: ?bool
 }
 

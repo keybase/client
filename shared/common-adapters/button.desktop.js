@@ -13,15 +13,13 @@ export default class Button extends Component {
     const rootStyle = this.props.type === 'Primary' ? styles1.buttonPrimary : styles1.buttonSecondary
     const smallStyle = this.props.small ? styles1.buttonSmall : {}
     const smallLabelStyle = this.props.small ? styles1.buttonSmallLabel : {}
-    const moreStyle = this.props.more ? styles1.buttonMore : {}
-    const moreLabelStyle = this.props.more ? styles1.buttonMoreLabel : {}
 
     return (
       <FlatButton
         onClick={this.props.onClick}
-        style={{...rootStyle, ...smallStyle, ...moreStyle, ...this.props.style}}
-        labelStyle={{...styles1.buttonLabel, ...smallLabelStyle, ...moreLabelStyle}}
-        label={this.props.label || this.props.more && '•••'}
+        style={{...rootStyle, ...smallStyle, ...this.props.style}}
+        labelStyle={{...styles1.buttonLabel, ...smallLabelStyle}}
+        label={this.props.label}
         primary={this.props.type === 'Primary'}
         secondary={this.props.type === 'Secondary'}
       />
@@ -225,21 +223,5 @@ export const styles1 = {
   buttonSmallLabel: {
     paddingLeft: 10,
     paddingRight: 10
-  },
-  buttonMore: {
-    ...buttonCommon1,
-    backgroundColor: globalColors.grey3,
-    paddingLeft: 2,
-    paddingRight: 2,
-    paddingTop: 2,
-    paddingBottom: 2,
-    height: 12,
-    lineHeight: 2
-  },
-  buttonMoreLabel: {
-    paddingLeft: 3,
-    paddingRight: 3,
-    paddingTop: 3,
-    paddingBottom: 3
   }
 }
