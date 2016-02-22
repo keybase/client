@@ -9,6 +9,7 @@ package libdokan
 import (
 	"sync"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -155,7 +156,7 @@ func (fl *FolderList) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedSt
 	defer func() { fl.fs.reportErr(ctx, err) }()
 	favs, err := fl.fs.config.KBFSOps().GetFavorites(ctx)
 	fl.fs.log.CDebugf(ctx, "FL ReadDirAll -> %v,%v", favs, err)
-	if err != nil {
+	if _, isDeviceRequired := err.(libkb.DeviceRequiredError); isDeviceRequired && !fl.public {
 		return err
 	}
 	var ns dokan.NamedStat
