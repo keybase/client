@@ -5,14 +5,21 @@
  */
 
 import React, {Component} from 'react'
-import {TextField, RaisedButton} from 'material-ui'
 import {globalStyles, globalColorsDZ2} from '../../../styles/style-guide'
-import {Text, Icon} from '../../../common-adapters'
+import {Text, Icon, Input, Button} from '../../../common-adapters'
 import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
         codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer} from '../../../constants/login'
 import {codePageModeShowCode, codePageModeEnterText, codePageModeShowText} from '../../../constants/login'
 import Container from '../../forms/container.desktop'
 import type {Props} from './index.render'
+
+const subTitle = () => (
+  <p>
+    <Text dz2 type='BodySmall'>In the Keybase app on your phone, go to</Text>
+    <Icon dz2 type='fa-mobile' style={styles.phoneIcon} />
+    <Text dz2 type='BodySmall'>Devices > Add a new device.</Text>
+  </p>
+)
 
 export default class CodePageRender extends Component {
   props: Props;
@@ -36,11 +43,7 @@ export default class CodePageRender extends Component {
         style={styles.container}
         onBack={this.props.onBack}>
         <Text style={{marginTop: 38, marginBottom: 11}} dz2 type='Header'>Scan this QR code</Text>
-        <p>
-          <Text dz2 type='BodySmall'>In the Keybase app on your phone, go to</Text>
-          <Icon dz2 type='fa-mobile' style={styles.phoneIcon} />
-          <Text dz2 type='BodySmall'>Devices > Add a new device.</Text>
-        </p>
+        {subTitle()}
         <div style={styles.qrContainer}>
           <div style={{...qr, ...styles.qr}} />
         </div>
@@ -54,38 +57,31 @@ export default class CodePageRender extends Component {
 
   renderEnterText () {
     return (
-      <div style={{display: 'flex', flexDirection: 'column', flex: 1, backgroundColor: 'green', alignItems: 'center', justifyContent: 'center', padding: 20}}>
-        <h1>Type the verification code from your other device into here</h1>
-        <TextField
-          hintText='Type code here'
-          floatingLabelText='Code'
-          value={this.props.enterText}
+      <Container
+        style={styles.container}
+        onBack={this.props.onBack}>
+        <Text style={{marginTop: 38, marginBottom: 11}} dz2 type='Header'>Type in text code</Text>
+        {subTitle()}
+
+        <Icon style={{marginTop: 30, marginBottom: 40}} type='phone-text-code' />
+        <Input
+          dz2
+          style={{alignSelf: 'stretch'}}
+          fullWidth
+          hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
+          floatingLabelText='Text code'
           multiLine
+          value={this.props.enterText}
           onChange={event => this.props.onChangeText(event.target.value)}
         />
-        <RaisedButton
-          style={{alignSelf: 'flex-end', marginTop: 20}}
-          label='Submit'
-          primary
-          onClick={() => this.props.textEntered(codePageModeEnterText)}
-        />
-      </div>
+        <Button dz2 style={{alignSelf: 'flex-end', marginTop: 35, marginBottom: 20}} label='Continue' onClick={() => this.props.textEntered(codePageModeEnterText)} />
+        <p style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}} onClick={() => this.props.setCodePageMode(codePageModeShowCode)}>
+          <Icon style={{marginRight: 15}} type='phone-q-r-code' />
+          <Text dz2 type='BodyPrimaryLink' onClick={() => this.props.setCodePageMode(codePageModeShowCode)}>Scan QR code instead</Text>
+        </p>
+      </Container>
     )
   }
-
-  // renderShowCodeAndEnterText () {
-    // return (
-      // <div style={{display: 'flex', flexDirection: 'row', flex: 1, backgroundColor: 'green', alignItems: 'center', justifyContent: 'center', padding: 20}}>
-        // {this.renderCode()}
-        // <div style={{display: 'flex', flexDirection: 'column', backgroundColor: 'green', alignItems: 'center', justifyContent: 'center', padding: 20}}>
-          // <p>|</p>
-          // <p>or</p>
-          // <p>|</p>
-        // </div>
-        // {this.renderEnterText()}
-      // </div>
-    // )
-  // }
 
   render () {
     switch (this.props.mode) {
