@@ -72,6 +72,7 @@ type fstatus struct {
 		Log     string
 	}
 	Desktop struct {
+		Version string
 		Running bool
 		Log     string
 	}
@@ -89,6 +90,15 @@ func (c *CmdStatus) Run() error {
 	}
 
 	return c.output(status)
+}
+
+func getFirstClient(v []keybase1.ClientDetails, typ keybase1.ClientType) *keybase1.ClientDetails {
+	for _, cli := range v {
+		if cli.ClientType == typ {
+			return &cli
+		}
+	}
+	return nil
 }
 
 func (c *CmdStatus) load() (*fstatus, error) {
@@ -137,13 +147,22 @@ func (c *CmdStatus) load() (*fstatus, error) {
 	status.SessionStatus = c.sessionStatus(extStatus.Session)
 	status.PassphraseStreamCached = extStatus.PassphraseStreamCached
 
-	kbfsVersion, err := install.KBFSBundleVersion(c.G(), "")
-	if err == nil {
-		status.KBFS.Version = kbfsVersion
+	if kbfs := getFirstClient(extStatus.Clients, keybase1.ClientType_KBFS); kbfs != nil {
+		status.KBFS.Version = kbfs.Version
+		status.KBFS.Running = true
+	} else {
+		kbfsVersion, err := install.KBFSBundleVersion(c.G(), "")
+		if err == nil {
+			status.KBFS.Version = kbfsVersion
+		}
 	}
-	status.KBFS.Log = path.Join(extStatus.LogDir, libkb.KBFSLogFileName)
 
-	status.Desktop.Running = extStatus.DesktopUIConnected
+	if desktop := getFirstClient(extStatus.Clients, keybase1.ClientType_GUI); desktop != nil {
+		status.Desktop.Running = true
+		status.Desktop.Version = desktop.Version
+	}
+
+	status.KBFS.Log = path.Join(extStatus.LogDir, libkb.KBFSLogFileName)
 	status.Desktop.Log = path.Join(extStatus.LogDir, libkb.DesktopLogFileName)
 
 	status.DefaultUsername = extStatus.DefaultUsername
@@ -183,12 +202,12 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	dui.Printf("Logged in:     %s\n", BoolString(status.LoggedInProvisioned, "yes", "no"))
 	if status.Device != nil {
 		dui.Printf("\nDevice:\n")
-		dui.Printf("    name:   %s\n", status.Device.Name)
-		dui.Printf("    ID:     %s\n", status.Device.DeviceID)
-		dui.Printf("    status: %s\n\n", libkb.DeviceStatusToString(&status.Device.Status))
+		dui.Printf("    name:      %s\n", status.Device.Name)
+		dui.Printf("    ID:        %s\n", status.Device.DeviceID)
+		dui.Printf("    status:    %s\n\n", libkb.DeviceStatusToString(&status.Device.Status))
 	}
-	dui.Printf("Local keybase keychain: %s\n", BoolString(status.PassphraseStreamCached, "unlocked", "locked"))
-	dui.Printf("Session status:         %s\n", status.SessionStatus)
+	dui.Printf("Keybase keys:  %s\n", BoolString(status.PassphraseStreamCached, "unlocked", "locked"))
+	dui.Printf("Session:       %s\n", status.SessionStatus)
 	dui.Printf("\nKBFS:\n")
 	dui.Printf("    status:    %s\n", BoolString(status.KBFS.Running, "running", "not running"))
 	dui.Printf("    version:   %s\n", status.KBFS.Version)
@@ -205,10 +224,11 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	dui.Printf("    version:   %s\n", status.Client.Version)
 	dui.Printf("\nDesktop app:\n")
 	dui.Printf("    status:    %s\n", BoolString(status.Desktop.Running, "running", "not running"))
+	dui.Printf("    version:   %s\n", status.Desktop.Version)
 	dui.Printf("    log:       %s\n\n", status.Desktop.Log)
-	dui.Printf("Config path:        %s\n", status.ConfigPath)
-	dui.Printf("Default user:       %s\n", status.DefaultUsername)
-	dui.Printf("Provisioned users:  %s\n", strings.Join(status.ProvisionedUsernames, ", "))
+	dui.Printf("Config path:   %s\n", status.ConfigPath)
+	dui.Printf("Default user:  %s\n", status.DefaultUsername)
+	dui.Printf("Other users:   %s\n", strings.Join(status.ProvisionedUsernames, ", "))
 
 	c.outputClients(dui, status.Clients)
 	return nil
@@ -218,7 +238,7 @@ func (c *CmdStatus) outputClients(dui libkb.DumbOutputUI, clients []keybase1.Cli
 	var prev keybase1.ClientType
 	for _, cli := range clients {
 		if cli.ClientType != prev {
-			dui.Printf("\n%s(s):\n", cli.ClientType)
+			dui.Printf("\n%s:\n", cli.ClientType)
 			prev = cli.ClientType
 		}
 		var vstr string

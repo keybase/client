@@ -535,7 +535,6 @@ type ExtendedStatus struct {
 	PassphraseStreamCached bool            `codec:"passphraseStreamCached" json:"passphraseStreamCached"`
 	Device                 *Device         `codec:"device,omitempty" json:"device,omitempty"`
 	LogDir                 string          `codec:"logDir" json:"logDir"`
-	DesktopUIConnected     bool            `codec:"desktopUIConnected" json:"desktopUIConnected"`
 	Session                *SessionStatus  `codec:"session,omitempty" json:"session,omitempty"`
 	DefaultUsername        string          `codec:"defaultUsername" json:"defaultUsername"`
 	ProvisionedUsernames   []string        `codec:"provisionedUsernames" json:"provisionedUsernames"`

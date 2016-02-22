@@ -2443,7 +2443,6 @@ export type config_ExtendedStatus = {
   passphraseStreamCached: boolean;
   device?: ?Device;
   logDir: string;
-  desktopUIConnected: boolean;
   session?: ?SessionStatus;
   defaultUsername: string;
   provisionedUsernames: Array<string>;
@@ -2456,7 +2455,6 @@ export type ExtendedStatus = {
   passphraseStreamCached: boolean;
   device?: ?Device;
   logDir: string;
-  desktopUIConnected: boolean;
   session?: ?SessionStatus;
   defaultUsername: string;
   provisionedUsernames: Array<string>;

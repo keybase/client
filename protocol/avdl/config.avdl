@@ -40,7 +40,6 @@ protocol config {
     boolean passphraseStreamCached;
     union { null, Device } device;
     string logDir;
-    boolean desktopUIConnected;
     union { null, SessionStatus } session;
     string defaultUsername;
     array<string> provisionedUsernames;
