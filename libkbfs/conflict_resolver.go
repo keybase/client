@@ -2884,10 +2884,29 @@ func (cr *ConflictResolver) getOpsForLocalNotification(ctx context.Context,
 			// This update was already handled above.
 			continue
 		}
+
+		// If the node changed in both branches, but NOT in the
+		// resolution, make sure the local notification uses the
+		// unmerged most recent pointer as the unref.
+		original := chain.original
+		if c, ok := unmergedChains.byOriginal[chain.original]; ok {
+			original = c.mostRecent
+			updates[chain.original] = chain.mostRecent
+		}
+
 		newPtrs[ptr] = true
-		dummyOp.AddUpdate(chain.original, chain.mostRecent)
-		updates[chain.original] = chain.mostRecent
+		dummyOp.AddUpdate(original, chain.mostRecent)
+		updates[original] = chain.mostRecent
 		ptrs = append(ptrs, chain.mostRecent)
+	}
+
+	// If any nodes changed only in the unmerged branch, make sure we
+	// update the pointers in the local ops (e.g., renameOp.Renamed)
+	// to the latest local most recent.
+	for original, chain := range unmergedChains.byOriginal {
+		if _, ok := updates[original]; !ok {
+			updates[original] = chain.mostRecent
+		}
 	}
 
 	// Update the merged chains so they all have the new most recent
