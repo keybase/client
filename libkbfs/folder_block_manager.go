@@ -522,9 +522,9 @@ outer:
 			for _, op := range rmd.data.Changes.Ops {
 				ptrs = append(ptrs, op.Unrefs()...)
 				for _, update := range op.AllUpdates() {
-					// It's legal for there to be an "update two
-					// identical pointers (usually becau conflict
-					// resolution), so ignore that for quota
+					// It's legal for there to be an "update" between
+					// two identical pointers (usually because of
+					// conflict resolution), so ignore that for quota
 					// reclamation purposes.
 					if update.Ref != update.Unref {
 						ptrs = append(ptrs, update.Unref)
@@ -579,7 +579,9 @@ func (fbm *folderBlockManager) deleteBlockRefs(ctx context.Context,
 	bops := fbm.config.BlockOps()
 
 	var wg sync.WaitGroup
-	numChunks := len(ptrs) / numPointersToDeletePerChunk
+	// Round up to find the number of chunks.
+	numChunks := (len(ptrs) + numPointersToDeletePerChunk - 1) /
+		numPointersToDeletePerChunk
 	numWorkers := numChunks
 	if numWorkers > maxParallelBlockPuts {
 		numWorkers = maxParallelBlockPuts
