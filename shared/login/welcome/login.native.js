@@ -54,6 +54,7 @@ class Login extends Component {
           onPress={() => { this.submitLogin() }}
           enabled={this.state.username.length && this.state.passphrase.length}
           isAction
+          type='Secondary'
           title='Submit'/>
       </View>
     )

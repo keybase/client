@@ -10,7 +10,7 @@ export default class Button extends Component {
   props: Props;
 
   render1 () {
-    const rootStyle = this.props.primary ? styles1.buttonPrimary : styles1.buttonSecondary
+    const rootStyle = this.props.type === 'Primary' ? styles1.buttonPrimary : styles1.buttonSecondary
     const smallStyle = this.props.small ? styles1.buttonSmall : {}
     const smallLabelStyle = this.props.small ? styles1.buttonSmallLabel : {}
     const moreStyle = this.props.more ? styles1.buttonMore : {}
@@ -22,8 +22,8 @@ export default class Button extends Component {
         style={{...rootStyle, ...smallStyle, ...moreStyle, ...this.props.style}}
         labelStyle={{...styles1.buttonLabel, ...smallLabelStyle, ...moreLabelStyle}}
         label={this.props.label || this.props.more && '•••'}
-        primary={this.props.primary}
-        secondary={this.props.secondary}
+        primary={this.props.type === 'Primary'}
+        secondary={this.props.type === 'Secondary'}
       />
     )
   }
@@ -39,42 +39,49 @@ export default class Button extends Component {
     let smallStyle = {}
 
     // First apply styles for the main button types.
-    if (this.props.primary) {
-      backgroundStyle = {
-        ...styles2.buttonPrimary,
-        opacity: this.props.disabled ? styles2.buttonPrimary.disabledOpacity : 1
-      }
-    } else if (this.props.follow) {
-      backgroundStyle = {
-        ...styles2.buttonFollow,
-        opacity: this.props.disabled ? styles2.buttonFollow.disabledOpacity : 1
-      }
-    } else if (this.props.following) {
-      backgroundStyle = {
-        ...styles2.buttonFollowing,
-        opacity: this.props.disabled ? styles2.buttonFollowing.disabledOpacity : 1
-      }
-      labelStyle = {
-        color: globalColorsDZ2.green
-      }
-    } else if (this.props.unfollow) {
-      backgroundStyle = {
-        ...styles2.buttonUnfollow,
-        opacity: this.props.disabled ? styles2.buttonUnfollow.disabledOpacity : 1
-      }
-    } else if (this.props.danger) {
-      backgroundStyle = {
-        ...styles2.buttonDanger,
-        opacity: this.props.disabled ? styles2.buttonDanger.disabledOpacity : 1
-      }
-    } else {
-      backgroundStyle = {
-        ...styles2.buttonSecondary,
-        opacity: this.props.disabled ? styles2.buttonSecondary.disabledOpacity : 1
-      }
-      labelStyle = {
-        color: globalColorsDZ2.black75
-      }
+    switch (this.props.type) {
+      case 'Primary':
+        backgroundStyle = {
+          ...styles2.buttonPrimary,
+          opacity: this.props.disabled ? styles2.buttonPrimary.disabledOpacity : 1
+        }
+        break
+      case 'Follow':
+        backgroundStyle = {
+          ...styles2.buttonFollow,
+          opacity: this.props.disabled ? styles2.buttonFollow.disabledOpacity : 1
+        }
+        break
+      case 'Following':
+        backgroundStyle = {
+          ...styles2.buttonFollowing,
+          opacity: this.props.disabled ? styles2.buttonFollowing.disabledOpacity : 1
+        }
+        labelStyle = {
+          color: globalColorsDZ2.green
+        }
+        break
+      case 'Unfollow':
+        backgroundStyle = {
+          ...styles2.buttonUnfollow,
+          opacity: this.props.disabled ? styles2.buttonUnfollow.disabledOpacity : 1
+        }
+        break
+      case 'Danger':
+        backgroundStyle = {
+          ...styles2.buttonDanger,
+          opacity: this.props.disabled ? styles2.buttonDanger.disabledOpacity : 1
+        }
+        break
+      case 'Secondary':
+      default:
+        backgroundStyle = {
+          ...styles2.buttonSecondary,
+          opacity: this.props.disabled ? styles2.buttonSecondary.disabledOpacity : 1
+        }
+        labelStyle = {
+          color: globalColorsDZ2.black75
+        }
     }
 
     // Then some overrides that apply to all button types.
@@ -105,28 +112,12 @@ export default class Button extends Component {
         style={{...backgroundStyle, ...this.props.style, ...smallStyle, ...widthStyle}}
         labelStyle={{...styles2.buttonLabel, ...labelStyle}}
         label={this.props.label || this.props.more && '•••'}
-        primary={this.props.primary}
-        secondary={this.props.secondary}
+        primary={this.props.type === 'Primary'}
+        secondary={this.props.type === 'Secondary'}
         disabled={this.props.disabled}
       />
     )
   }
-}
-
-Button.propTypes = {
-  onClick: React.PropTypes.func.isRequired,
-  label: React.PropTypes.string,
-  style: React.PropTypes.object,
-  primary: React.PropTypes.bool,
-  secondary: React.PropTypes.bool,
-  follow: React.PropTypes.bool,
-  following: React.PropTypes.bool,
-  unfollow: React.PropTypes.bool,
-  danger: React.PropTypes.bool,
-  small: React.PropTypes.bool,
-  more: React.PropTypes.bool,
-  disabled: React.PropTypes.bool,
-  fullWidth: React.PropTypes.bool
 }
 
 const buttonCommon1 = {

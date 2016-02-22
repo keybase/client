@@ -108,8 +108,8 @@ class PopupDemo_ extends Component {
     return (
       <div>
         <Header title='Pinentry'/>
-        <Button label='toggle popup pinentry' onClick={togglePinentry} />
-        <Button label='toggle popup tracker' onClick={toggleTracker} />
+        <Button type='Secondary' label='toggle popup pinentry' onClick={togglePinentry} />
+        <Button type='Secondary' label='toggle popup tracker' onClick={toggleTracker} />
       </div>
     )
   }

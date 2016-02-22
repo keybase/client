@@ -23,7 +23,7 @@ export default class SetPublicNameRender extends Component {
         {this.props.deviceNameError &&
           <Text>{this.props.deviceNameError}</Text>
         }
-        <Button style={{alignSelf: 'flex-end'}} isAction title='Submit' onPress={() => this.props.onSubmit()} enabled={this.props.submitEnabled}/>
+        <Button type='Secondary' style={{alignSelf: 'flex-end'}} isAction title='Submit' onPress={() => this.props.onSubmit()} enabled={this.props.submitEnabled}/>
       </View>
     )
   }

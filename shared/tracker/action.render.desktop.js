@@ -42,7 +42,7 @@ export default class ActionRender extends Component {
     const styles = styles2
     return (
       <div style={{...styles.container}}>
-        <Button label='Close' onClick={() => this.props.onClose()} />
+        <Button type='Secondary' label='Close' onClick={() => this.props.onClose()} />
       </div>
     )
   }

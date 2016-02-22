@@ -66,11 +66,11 @@ export default class UpdateRender extends Component {
             </div>
           </div>}
         <div style={styles.actions}>
-          <Button label={`Ignore for ${this.props.snoozeTime}`} onClick={() => this.props.onSnooze()} />
+          <Button type='Secondary' label={`Ignore for ${this.props.snoozeTime}`} onClick={() => this.props.onSnooze()} />
           {this.props.canUpdate &&
-            <Button primary label='Update' onClick={() => this.props.onUpdate()} />}
+            <Button type='Primary' label='Update' onClick={() => this.props.onUpdate()} />}
           {!this.props.canUpdate &&
-            <Button primary label='Done, close!' onClick={() => this.props.onSnooze()} />}
+            <Button type='Primary' label='Done, close!' onClick={() => this.props.onSnooze()} />}
         </div>
         {this.props.canUpdate &&
           <div style={{...styles.actions, justifyContent: 'flex-end'}}>

@@ -28,7 +28,7 @@ export default class Render extends Component {
 
         <Text type='Body'>{'Is this in your wallet?'}</Text>
         <Checkbox label={'Yes, it is in my wallet. I pinky promise.'} checked={this.state.inWallet} onCheck={inWallet => this.setState({inWallet})} />
-        {this.state.inWallet && <Button label='Continue' onClick={() => this.props.onFinish()} />}
+        {this.state.inWallet && <Button type='Secondary' label='Continue' onClick={() => this.props.onFinish()} />}
       </div>
     )
   }

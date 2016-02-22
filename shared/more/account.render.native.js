@@ -55,6 +55,7 @@ export default class AccountRender extends Component {
                 buttonStyle={commonStyles.button}
                 style={styles.saveButton}
                 title='Save'
+                type='Secondary'
                 onPress={() => {
                   const {email, oldPassphrase, newPassphrase, newPassphraseRepeat} = this.state
                   onSave(email, oldPassphrase, newPassphrase, newPassphraseRepeat)
