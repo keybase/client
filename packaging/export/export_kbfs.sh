@@ -9,7 +9,7 @@ src_dir="$GOPATH/src/github.com/keybase/kbfs"
 dest_dir="$GOPATH/src/github.com/keybase/kbfs-beta"
 clientdir="$GOPATH/src/github.com/keybase/client"
 name=kbfs
-kbfs_dirs=(kbfs kbfsfuse libfuse libkbfs vendor)
+kbfs_dirs=(kbfs kbfsfuse libfs libfuse libkbfs vendor)
 
 "$clientdir/packaging/check_status_and_pull.sh" "$src_dir"
 "$clientdir/packaging/check_status_and_pull.sh" "$dest_dir"
