@@ -28,16 +28,10 @@ export default class Button extends Component {
     )
   }
 
-  render () {
-    if (!flags.tracker2) {
-      return this.render1()
-    }
-
+  _styles (type: Props.type): Object {
     let backgroundStyle = {}
     let labelStyle = {}
-    let smallStyle = {}
 
-    // First apply styles for the main button types.
     switch (this.props.type) {
       case 'Primary':
         backgroundStyle = {
@@ -82,6 +76,17 @@ export default class Button extends Component {
           color: globalColorsDZ2.black75
         }
     }
+    return {backgroundStyle, labelStyle}
+  }
+
+  render () {
+    if (!this.props.dz2) {
+      return this.render1()
+    }
+
+    // First apply styles for the main button types.
+    let {backgroundStyle, labelStyle} = this._styles(this.props.type)
+    let smallStyle = {}
 
     // Then some overrides that apply to all button types.
     if (this.props.small) {
