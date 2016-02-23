@@ -40,19 +40,9 @@ func (v *CmdConfigGet) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *CmdConfigSet) ParseArgv(ctx *cli.Context) error {
-	var neededArgs int
-	if ctx.Bool("int") || ctx.Bool("string") || ctx.Bool("obj") || ctx.Bool("int") {
-		neededArgs = 2
-	} else {
-		neededArgs = 1
-	}
-	if len(ctx.Args()) != neededArgs {
-		return fmt.Errorf("Wrong number of arguments; wanted %d, got %d",
-			neededArgs, len(ctx.Args()))
-	}
-
 	flags := 0
-	v.Path = ctx.Args()[0]
+	args := ctx.Args()
+	v.Path = args[0]
 
 	if ctx.Bool("clear") {
 		flags++
@@ -63,8 +53,11 @@ func (v *CmdConfigSet) ParseArgv(ctx *cli.Context) error {
 		v.Value.IsNull = true
 	}
 	if ctx.Bool("int") {
+		if len(args) <= 1 {
+			return fmt.Errorf("Missing int value argument")
+		}
 		flags++
-		i, err := strconv.ParseInt(ctx.Args()[1], 10, 64)
+		i, err := strconv.ParseInt(args[1], 10, 64)
 		if err != nil {
 			return err
 		}
@@ -72,8 +65,11 @@ func (v *CmdConfigSet) ParseArgv(ctx *cli.Context) error {
 		v.Value.I = &tmp
 	}
 	if ctx.Bool("bool") {
+		if len(args) <= 1 {
+			return fmt.Errorf("Missing bool value argument")
+		}
 		flags++
-		b, err := strconv.ParseBool(ctx.Args()[1])
+		b, err := strconv.ParseBool(args[1])
 		if err != nil {
 			return err
 		}
@@ -81,8 +77,11 @@ func (v *CmdConfigSet) ParseArgv(ctx *cli.Context) error {
 	}
 
 	if ctx.Bool("obj") {
+		if len(args) <= 1 {
+			return fmt.Errorf("Missing obj value argument")
+		}
 		flags++
-		s := ctx.Args()[1]
+		s := args[1]
 		v.Value.O = &s
 	}
 
@@ -95,7 +94,10 @@ func (v *CmdConfigSet) ParseArgv(ctx *cli.Context) error {
 	}
 
 	if ctx.Bool("string") || flags == 0 {
-		s := ctx.Args()[1]
+		if len(args) <= 1 {
+			return fmt.Errorf("Missing string value argument")
+		}
+		s := args[1]
 		v.Value.S = &s
 	}
 	return nil
