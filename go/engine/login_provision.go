@@ -310,6 +310,9 @@ func (e *LoginProvision) paper(ctx *Context) error {
 // synced pgp key.  Any other situations require different
 // provisioning methods.
 func (e *LoginProvision) passphrase(ctx *Context) error {
+	// clear out any existing session:
+	e.G().Logout()
+
 	// prompt for the email or username
 	emailOrUsername, err := e.promptEmailOrUsername(ctx)
 	if err != nil {
