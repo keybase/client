@@ -86,9 +86,9 @@ func (e *SaltpackSenderIdentify) identifySender(ctx *Context) (err error) {
 	var lin bool
 	var uid keybase1.UID
 	if lin, uid, err = IsLoggedIn(e, ctx); err == nil && lin && uid.Equal(e.res.Uid) {
+		e.res.SenderType = keybase1.SaltpackSenderType_SELF
 		if len(e.arg.userAssertion) == 0 {
 			e.G().Log.Debug("| Sender is self")
-			e.res.SenderType = keybase1.SaltpackSenderType_SELF
 			return nil
 		}
 	}
@@ -106,6 +106,12 @@ func (e *SaltpackSenderIdentify) identifySender(ctx *Context) (err error) {
 	if err = RunEngine(eng, ctx); err != nil {
 		return err
 	}
+
+	if e.res.SenderType == keybase1.SaltpackSenderType_SELF {
+		// if we already know the sender type, then return now
+		return nil
+	}
+
 	switch eng.getTrackType() {
 	case identify2NoTrack:
 		e.res.SenderType = keybase1.SaltpackSenderType_NOT_TRACKED
