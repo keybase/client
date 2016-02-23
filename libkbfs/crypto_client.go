@@ -67,7 +67,7 @@ func (c *CryptoClient) OnDoCommandError(err error, wait time.Duration) {
 }
 
 // OnDisconnected implements the ConnectionHandler interface.
-func (c *CryptoClient) OnDisconnected(status DisconnectStatus) {
+func (c *CryptoClient) OnDisconnected(_ context.Context, status DisconnectStatus) {
 	if status == StartingNonFirstConnection {
 		c.log.Warning("CryptoClient is disconnected")
 	}

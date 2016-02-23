@@ -351,7 +351,7 @@ func (k *KeybaseDaemonRPC) OnDoCommandError(err error, wait time.Duration) {
 }
 
 // OnDisconnected implements the ConnectionHandler interface.
-func (k *KeybaseDaemonRPC) OnDisconnected(status DisconnectStatus) {
+func (k *KeybaseDaemonRPC) OnDisconnected(_ context.Context, status DisconnectStatus) {
 	if status == StartingNonFirstConnection {
 		k.log.Warning("KeybaseDaemonRPC is disconnected")
 	}

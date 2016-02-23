@@ -84,7 +84,14 @@ func NewMDServerRemote(config Config, srvAddr string) *MDServerRemote {
 // OnConnect implements the ConnectionHandler interface.
 func (md *MDServerRemote) OnConnect(ctx context.Context,
 	conn *Connection, client rpc.GenericClient,
-	server *rpc.Server) error {
+	server *rpc.Server) (err error) {
+
+	defer func() {
+		if err == nil {
+			md.config.Reporter().Notify(ctx,
+				connectionNotification(connectionStatusConnected))
+		}
+	}()
 
 	md.log.Debug("MDServerRemote: OnConnect called with a new connection")
 
@@ -219,8 +226,10 @@ func (md *MDServerRemote) OnDoCommandError(err error, wait time.Duration) {
 }
 
 // OnDisconnected implements the ConnectionHandler interface.
-func (md *MDServerRemote) OnDisconnected(status DisconnectStatus) {
+func (md *MDServerRemote) OnDisconnected(ctx context.Context, status DisconnectStatus) {
 	md.log.Warning("MDServerRemote is disconnected: %v", status)
+	md.config.Reporter().Notify(ctx,
+		connectionNotification(connectionStatusDisconnected))
 	md.cancelObservers()
 	md.resetPingTicker(0)
 	if md.authToken != nil {

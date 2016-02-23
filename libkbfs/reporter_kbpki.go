@@ -7,6 +7,9 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
+const connectionStatusConnected keybase1.FSStatusCode = keybase1.FSStatusCode_START
+const connectionStatusDisconnected keybase1.FSStatusCode = keybase1.FSStatusCode_ERROR
+
 // ReporterKBPKI implements the Notify function of the Reporter
 // interface in addition to embedding ReporterSimple for error
 // tracking.  Notify will make RPCs to the keybase daemon.
@@ -132,6 +135,16 @@ func rekeyNotification(ctx context.Context, config Config, handle *TlfHandle, fi
 		Filename:             handle.GetCanonicalPath(ctx, config),
 		StatusCode:           code,
 		NotificationType:     keybase1.FSNotificationType_REKEYING,
+	}
+}
+
+// connectionNotification creates FSNotifications based on whether
+// or not KBFS is online.
+func connectionNotification(status keybase1.FSStatusCode) *keybase1.FSNotification {
+	// TODO finish placeholder
+	return &keybase1.FSNotification{
+		NotificationType: keybase1.FSNotificationType_CONNECTION,
+		StatusCode:       status,
 	}
 }
 

@@ -37,7 +37,7 @@ func (ut *unitTester) OnDoCommandError(error, time.Duration) {
 }
 
 // OnDisconnected implements the ConnectionHandler interface.
-func (ut *unitTester) OnDisconnected(DisconnectStatus) {
+func (ut *unitTester) OnDisconnected(context.Context, DisconnectStatus) {
 	ut.numDisconnects++
 }
 
