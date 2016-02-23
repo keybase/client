@@ -2,50 +2,15 @@
 
 KBFuse is OSXFuse "branded" for Keybase. This is so we can maintain, install and upgrade fuse without
 conflicting with existing OSXFuse installs. It also allows us to sign the kext with our certificate instead
-of relying on 3rd party builds from other developers.
+of relying on 3rd party binaries from other developers.
 
 ### Building KBFuse from OSXFuse
 
-Checkout the OSXFuse (osxfuse-3.1.0) version:
-
-    rm -rf osxfuse
-    git clone --recursive -b osxfuse-3.1.0 git://github.com/osxfuse/osxfuse.git osxfuse
-
-Run script to search/replace osxfuse to kbfuse:
-
-    sh rename.sh
-    # HACK: Run again if it errors (TODO: Fix this)
-    sh rename.sh
-
-Clean and build the distribution:
-
-    sudo rm -rf /tmp/kbfuse*
-    cd osxfuse
-    ./build.sh -t fsbundle
-
-If you get an error compiling you might have to run `brew link gettext --force` (see https://github.com/osxfuse/osxfuse/issues/149).
-
-    cd ..
-    rm -rf kbfuse.bundle
-    ditto /tmp/kbfuse/fsbundle/kbfuse.fs kbfuse.bundle
-
-You should also backup the /tmp/kbfuse/fsbundle directory in case you need debug symbols later (TODO: Add steps for this)
-
-Sign the kext:
-
-    codesign --verbose --sign "Developer ID Application: Keybase, Inc." kbfuse.bundle/Contents/Extensions/10.10/kbfuse.kext
-    codesign --verbose --force --deep --sign "Developer ID Application: Keybase, Inc." kbfuse.bundle
-
-Note that you want the May version of our certificate installed. The March version doesn't sign kext's.
-
-To verify kext signature:
-
-    codesign -dvvvv kbfuse.bundle/Contents/Extensions/10.10/kbfuse.kext
-    codesign -dvvvv kbfuse.bundle
+    build.sh
 
 ### Manual Install
 
-If you are upgrading you should uninstall first.
+If you are upgrading you should uninstall the kext first (see below).
 
 To install:
 

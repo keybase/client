@@ -12,8 +12,8 @@ for i in "${files[@]}"
 do
 echo "Files: $i"
 find . -name "$i" -type f
-find . -name "$i" -type f -exec sed -i '' s/osxfuse/kbfuse/ {} +
-find . -name "$i" -type f -exec sed -i '' s/OSXFUSE/KBFUSE/ {} +
+find . -name "$i" -type f -exec sed -i '' s/osxfuse/kbfuse/g {} +
+find . -name "$i" -type f -exec sed -i '' s/OSXFUSE/KBFUSE/g {} +
 done
 
 find . -type d -name '*osxfuse*' -exec sh -c 'mv {} $(echo {} | sed -e 's/osxfuse/kbfuse/g')' \;
