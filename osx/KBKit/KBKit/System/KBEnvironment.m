@@ -24,6 +24,7 @@
 @property NSMutableArray */*of id<KBComponent>*/components;
 @property NSArray */*of KBInstallable*/installables;
 @property NSArray *services;
+@property (nonatomic) NSDictionary *appConfig;
 @end
 
 
@@ -84,6 +85,24 @@
 
   [info appendString:@"\n"];
   return info;
+}
+
+- (NSDictionary *)appConfig:(NSError **)error {
+  // TODO: We should detect if changed and reload
+  if (!_appConfig) {
+    NSData *data = [NSData dataWithContentsOfFile:[_config appPath:@"config.json" options:0]];
+    if (!data) {
+      if (error) *error = KBMakeError(-1, @"No config file found");
+    }
+    _appConfig = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:nil];
+  }
+  return _appConfig;
+}
+
+- (id)configValueForKey:(NSString *)keyPath error:(NSError **)error {
+  NSDictionary *appConfig = [self appConfig:error];
+  if (!appConfig) return nil;
+  return [appConfig valueForKeyPath:keyPath];
 }
 
 @end

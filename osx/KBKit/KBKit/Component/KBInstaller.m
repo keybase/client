@@ -88,7 +88,7 @@
 + (void)setRunAtLogin:(BOOL)runAtLogin config:(KBEnvConfig *)config appPath:(NSString *)appPath {
   NSBundle *appBundle = [NSBundle bundleWithPath:appPath];
   if (!appBundle) {
-    DDLogError(@"No app bundle to use for login item");
+    DDLogError(@"No app bundle found (for login item check)");
     return;
   }
   if (![config isInApplications:appBundle.bundlePath] && ![config isInUserApplications:appBundle.bundlePath]) {
@@ -96,7 +96,7 @@
     return;
   }
 
-  DDLogDebug(@"Set login item: %@ for %@", @(runAtLogin), appBundle);
+  DDLogDebug(@"Set login item %@ (%@)", (runAtLogin ? @"enabled" : @"disabled"), appPath);
   NSError *error = nil;
   [KBLoginItem setLoginEnabled:runAtLogin URL:appBundle.bundleURL error:&error];
   if (error) DDLogError(@"Error enabling login item: %@", error);

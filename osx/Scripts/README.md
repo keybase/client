@@ -6,11 +6,15 @@
  * xcpretty (`gem install xcpretty`)
  * Xcode command line tools
 
-### Build
+### Build Installer
 
 ```sh
-sh build.sh
+./build_installer.sh
 ```
+
+### Test Installer
+
+./build/KeybaseInstaller.app/Contents/MacOS/Keybase --app-path=/Applications/Keybase.app --run-mode=prod
 
 ## Overview
 

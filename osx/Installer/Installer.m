@@ -105,14 +105,8 @@ typedef NS_ENUM (NSInteger, KBExit) {
 }
 
 - (void)afterInstall:(KBEnvironment *)environment {
-  /**
-  if (!![self.settings objectForKey:@"run-at-login"]) {
-    [self setRunAtLogin:[self.settings boolForKey:@"run-at-login"]];
-  }
-   */
-
-  // TODO: Read setting from config instead of always enabling
-  [KBInstaller setRunAtLogin:YES config:environment.config appPath:self.settings.appPath];
+  BOOL runAtLogin = [[environment configValueForKey:@"osx.login_item" error:nil] boolValue];
+  [KBInstaller setRunAtLogin:runAtLogin config:environment.config appPath:self.settings.appPath];
 }
 
 - (void)checkError:(NSError *)error environment:(KBEnvironment *)environment completion:(void (^)(NSError *error, KBExit exit))completion {
