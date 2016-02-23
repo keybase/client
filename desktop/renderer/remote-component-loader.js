@@ -13,6 +13,7 @@ import pinentry from '../shared/pinentry'
 import update from '../shared/update'
 
 import {setupContextMenu} from '../app/menu-helper'
+import loadPerf from '../shared/util/load-perf'
 
 ipcLogsRenderer()
 
@@ -52,6 +53,8 @@ class RemoteComponentLoader extends Component {
       loaded: false,
       unmounted: false
     }
+
+    loadPerf()
 
     const componentToLoad = getQueryVariable('component')
     const selectorParams = getQueryVariable('selectorParams')

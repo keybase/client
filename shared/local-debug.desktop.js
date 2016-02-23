@@ -19,7 +19,8 @@ let config = {
   enableActionLogging: true,
   forwardLogs: true,
   devStoreChangingFunctions: false,
-  printOutstandingRPCs: false
+  printOutstandingRPCs: false,
+  reactPerf: false
 }
 
 if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
@@ -36,6 +37,7 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.forwardLogs = true
   config.devStoreChangingFunctions = true
   config.printOutstandingRPCs = true
+  config.reactPerf = false
 }
 
 config = updateConfig(config)
@@ -51,7 +53,8 @@ export const {
   enableStoreLogging,
   forwardLogs,
   devStoreChangingFunctions,
-  printOutstandingRPCs
+  printOutstandingRPCs,
+  reactPerf
 } = config
 
 export function initTabbedRouterState (state) {

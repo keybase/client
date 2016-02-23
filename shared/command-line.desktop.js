@@ -7,5 +7,9 @@ export function updateConfig (config) {
     newConfig.showDevTools = true
   }
 
+  if (getenv.boolish('KEYBASE_REACT_PERF_STARTUP', false)) {
+    newConfig.reactPerf = true
+  }
+
   return newConfig
 }
