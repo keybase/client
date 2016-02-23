@@ -6,6 +6,8 @@ import rpc from 'framed-msgpack-rpc'
 import {printRPC} from '../local-debug'
 const {client: {Client: RpcClient}} = rpc
 
+import setupLocalLogs, {logLocal} from '../util/local-log'
+
 import {Buffer} from 'buffer'
 import NativeEventEmitter from '../common-adapters/native-event-emitter'
 import windowsHack from './windows-hack'
@@ -17,6 +19,7 @@ import {printOutstandingRPCs} from '../local-debug'
 class Engine {
   constructor () {
     windowsHack()
+    setupLocalLogs()
 
     if (printOutstandingRPCs) {
       setInterval(() => {
@@ -154,14 +157,14 @@ class Engine {
       result: (...args) => {
         if (once) {
           if (printRPC) {
-            console.log('RPC ▼ result bailing on additional calls: ', method, param, ...args)
+            logLocal('RPC ▼ result bailing on additional calls: ', method, param, ...args)
           }
           return
         }
         once = true
 
         if (printRPC) {
-          console.log('RPC ▼ result: ', method, param, ...args)
+          logLocal('RPC ▼ result: ', method, param, ...args)
         }
         if (response) {
           this.sessionIDToResponse[sessionID] = null
@@ -173,14 +176,14 @@ class Engine {
       error: (...args) => {
         if (once) {
           if (printRPC) {
-            console.log('RPC ▼ error bailing on additional calls: ', method, param, ...args)
+            logLocal('RPC ▼ error bailing on additional calls: ', method, param, ...args)
           }
           return
         }
         once = true
 
         if (printRPC) {
-          console.log('RPC ▼ error: ', method, param, ...args)
+          logLocal('RPC ▼ error: ', method, param, ...args)
         }
 
         if (response) {
@@ -228,7 +231,7 @@ class Engine {
     const callMap = this.sessionIDToIncomingCall[sessionID]
 
     if (printRPC) {
-      console.log('RPC ◀ incoming: ', payload)
+      logLocal('RPC ◀ incoming: ', payload)
     }
     // make wrapper so we only call this once
     const wrappedResponse = this._wrapResponseOnceOnly(method, param, response)
@@ -244,10 +247,10 @@ class Engine {
       this._serverInitIncomingRPC(method, param, wrappedResponse)
     } else {
       if (__DEV__) {
-        console.log(`Unknown incoming rpc: ${sessionID} ${method} ${param}${response ? ': Sending back error' : ''}`)
+        logLocal(`Unknown incoming rpc: ${sessionID} ${method} ${param}${response ? ': Sending back error' : ''}`)
       }
 
-      if (this._failOnError) {
+      if (this._failOnError && __DEV__) {
         throw new Error(`unhandled incoming rpc: ${sessionID} ${method} ${JSON.stringify(param)}${response ? '. has response' : ''}`)
       }
 
@@ -278,12 +281,12 @@ class Engine {
 
     const invoke = () => {
       if (printRPC) {
-        console.log('RPC ▶', method, param)
+        logLocal('RPC ▶', method, param)
       }
 
       this.rpcClient.invoke(method, [param], (err, data) => {
         if (printRPC) {
-          console.log('RPC ◀', method, param, err, data)
+          logLocal('RPC ◀', method, param, err, data)
         }
         // deregister incomingCallbacks
         delete this.sessionIDToIncomingCall[sessionID]
@@ -296,7 +299,7 @@ class Engine {
 
     if (__DEV__ && process.env.KEYBASE_RPC_DELAY) {
       if (printRPC) {
-        console.log('RPC [DELAYED] ▶', method, param)
+        logLocal('RPC [DELAYED] ▶', method, param)
       }
       setTimeout(invoke, process.env.KEYBASE_RPC_DELAY)
     } else {
@@ -321,7 +324,7 @@ class Engine {
         })
       }
     } else {
-      console.log('Invalid sessionID sent to cancelRPC: ', sessionID)
+      logLocal('Invalid sessionID sent to cancelRPC: ', sessionID)
     }
   }
 
