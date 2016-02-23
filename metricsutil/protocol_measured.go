@@ -31,8 +31,8 @@ func wrapDescription(name string, desc rpc.ServeHandlerDescription,
 // WrapProtocol returns a protocol which inserts timers for every
 // method in the protocol, if r is non-nil. If r is nil, the given
 // protocol is returned unchanged.
-func WrapProtocol(p rpc.Protocol, r metrics.Registry) rpc.Protocol {
-	if r == nil {
+func WrapProtocol(p rpc.Protocol, r InboundRegistry) rpc.Protocol {
+	if r.Registry == nil {
 		return p
 	}
 
