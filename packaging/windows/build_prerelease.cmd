@@ -1,4 +1,3 @@
-pushd
 :: Build keybase.exe with prerelease options
 pushd %GOPATH%\src\github.com\keybase\client\go\keybase
 set GOARCH=386
@@ -8,7 +7,6 @@ echo %KEYBASE_VERSION%
 for /f %%i in ('winresource.exe -cb') do set KEYBASE_BUILD=%%i
 echo %KEYBASE_BUILD%
 go build -a -tags "prerelease production" -ldflags="-X github.com/keybase/client/go/libkb.CustomBuild=%KEYBASE_BUILD%"
-popd
 
 :: Then build kbfsdokan
 pushd %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan
