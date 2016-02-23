@@ -70,16 +70,16 @@ Source: "..\..\..\..\dokan-dev\dokany\Win32\Win7Release\dokan.sys"; DestDir: "{s
 Source: "..\..\..\..\dokan-dev\dokany\Win32\Win8Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsOtherArch and IsWindows8 and IsDokanBeingUpdated
 Source: "..\..\..\..\dokan-dev\dokany\Win32\Win8.1Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsOtherArch and IsWindows8_1 and IsDokanBeingUpdated
 Source: "..\..\..\..\dokan-dev\dokany\Win32\Win10Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsOtherArch and IsWindows10 and IsDokanBeingUpdated
-Source: "..\..\..\..\dokan-dev\dokany\Win32\Release\dokan.dll"; DestDir: "{sys}"; Flags: 32bit; Check: IsDokanBeingUpdated
-Source: "..\..\..\..\dokan-dev\dokany\Win32\Release\dokannp.dll"; DestDir: "{sys}"; Flags: 32bit; Check: IsDokanBeingUpdated
+Source: "..\..\..\..\dokan-dev\dokany\Win32\Release\dokan.dll"; DestDir: "{sys}"; Flags: 32bit
+Source: "..\..\..\..\dokan-dev\dokany\Win32\Release\dokannp.dll"; DestDir: "{sys}"; Flags: 32bit
 Source: "..\..\..\..\dokan-dev\dokany\x64\Win7Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsX64 and IsWindows7 and IsDokanBeingUpdated
 Source: "..\..\..\..\dokan-dev\dokany\x64\Win8Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsX64 and IsWindows8 and IsDokanBeingUpdated
 Source: "..\..\..\..\dokan-dev\dokany\x64\Win8.1Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsX64 and IsWindows8_1 and IsDokanBeingUpdated
 Source: "..\..\..\..\dokan-dev\dokany\x64\Win10Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsX64 and IsWindows10 and IsDokanBeingUpdated
-Source: "..\..\..\..\dokan-dev\dokany\x64\Release\dokan.dll"; DestDir: "{sys}"; Flags: 64bit; Check: IsX64 and IsDokanBeingUpdated
-Source: "..\..\..\..\dokan-dev\dokany\x64\Release\dokannp.dll"; DestDir: "{sys}"; Flags: 64bit; Check: IsX64 and IsDokanBeingUpdated
-Source: "..\..\..\..\dokan-dev\dokany\Win32\Release\dokanctl.exe"; DestDir: "{pf32}\Dokan\DokanLibrary"; Check: IsDokanBeingUpdated
-Source: "..\..\..\..\dokan-dev\dokany\Win32\Release\mounter.exe"; DestDir: "{pf32}\Dokan\DokanLibrary"; Check: IsDokanBeingUpdated
+Source: "..\..\..\..\dokan-dev\dokany\x64\Release\dokan.dll"; DestDir: "{sys}"; Flags: 64bit; Check: IsX64
+Source: "..\..\..\..\dokan-dev\dokany\x64\Release\dokannp.dll"; DestDir: "{sys}"; Flags: 64bit; Check: IsX64
+Source: "..\..\..\..\dokan-dev\dokany\Win32\Release\dokanctl.exe"; DestDir: "{pf32}\Dokan\DokanLibrary"
+Source: "..\..\..\..\dokan-dev\dokany\Win32\Release\mounter.exe"; DestDir: "{pf32}\Dokan\DokanLibrary"
 Source: "..\..\..\..\..\..\bin\vc_redist.x86.exe"; DestDir: "{tmp}"
 Source: "..\..\..\kbfs\kbfsdokan\kbfsdokan.exe"; DestDir: "{app}"; Flags: replacesameversion
 
@@ -103,6 +103,7 @@ Filename: "{app}\gui\Keybase.exe"; WorkingDir: "{app}\gui"; Flags: nowait runaso
 
 [UninstallDelete]
 Type: files; Name: "{userstartup}\{#MyAppName}.vbs"
+Type: files; Name: "{sys}\drivers\dokan.sys"
 
 [InstallDelete]
 Type: files; Name: "{userstartup}\{#MyAppName}.vbs"
