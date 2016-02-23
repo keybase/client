@@ -7,19 +7,19 @@ package minterm
 import (
 	"errors"
 	"fmt"
+	"github.com/keybase/go-crypto/ssh/terminal"
+	"io"
 	"os"
 	"strings"
-
-	"github.com/keybase/gopass"
-	"github.com/keybase/miniline"
 )
 
 // MinTerm is a minimal terminal interface.
 type MinTerm struct {
-	termIn  *os.File
-	termOut *os.File
-	width   int
-	height  int
+	termIn       *os.File
+	termOut      *os.File
+	closeTermOut bool
+	width        int
+	height       int
 }
 
 var ErrPromptInterrupted = errors.New("prompt interrupted")
@@ -42,7 +42,7 @@ func (m *MinTerm) Shutdown() error {
 	if m.termIn != nil {
 		go m.termIn.Close()
 	}
-	if m.termOut != nil {
+	if m.termOut != nil && m.closeTermOut {
 		go m.termOut.Close()
 	}
 	return nil
@@ -62,11 +62,8 @@ func (m *MinTerm) Write(s string) error {
 // Prompt gets a line of input from the terminal.  It displays the text in
 // the prompt parameter first.
 func (m *MinTerm) Prompt(prompt string) (string, error) {
-	s, err := miniline.ReadLine(prompt)
-	if err == miniline.ErrInterrupted {
-		return "", ErrPromptInterrupted
-	}
-	return s, nil
+	m.Write(prompt)
+	return m.readLine()
 }
 
 // PromptPassword gets a line of input from the terminal, but
@@ -76,12 +73,38 @@ func (m *MinTerm) PromptPassword(prompt string) (string, error) {
 	if !strings.HasSuffix(prompt, ": ") {
 		m.Write(": ")
 	}
-	b, err := gopass.GetPasswd(int(m.termIn.Fd()))
+	return m.readSecret()
+}
+
+func (m *MinTerm) fdIn() int { return int(m.termIn.Fd()) }
+
+func (m *MinTerm) readLine() (string, error) {
+	fd := int(m.fdIn())
+	oldState, err := terminal.MakeRaw(fd)
 	if err != nil {
-		if err == gopass.ErrInterrupted {
-			err = ErrPromptInterrupted
-		}
 		return "", err
 	}
-	return string(b), nil
+	defer terminal.Restore(fd, oldState)
+	var ret string
+	ret, err = terminal.NewTerminal(m.termIn, "").ReadLine()
+	return ret, convertErr(err)
+}
+
+func (m *MinTerm) readSecret() (string, error) {
+	fd := int(m.fdIn())
+	oldState, err := terminal.MakeRaw(fd)
+	if err != nil {
+		return "", err
+	}
+	defer terminal.Restore(fd, oldState)
+	var ret string
+	ret, err = terminal.NewTerminal(m.termIn, "").ReadPassword("")
+	return ret, convertErr(err)
+}
+
+func convertErr(e error) error {
+	if e == io.ErrUnexpectedEOF {
+		e = ErrPromptInterrupted
+	}
+	return e
 }
