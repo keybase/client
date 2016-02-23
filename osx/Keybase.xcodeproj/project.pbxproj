@@ -14,7 +14,6 @@
 		001392751B06B18A0082DEA8 /* Fuse.icns in Resources */ = {isa = PBXBuildFile; fileRef = 001392711B06B18A0082DEA8 /* Fuse.icns */; };
 		001C6B3C1B24F8630048F086 /* icon.icns in Resources */ = {isa = PBXBuildFile; fileRef = 001C6B3B1B24F8630048F086 /* icon.icns */; };
 		001C6B401B24F8630048F086 /* ShareViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 001C6B3F1B24F8630048F086 /* ShareViewController.m */; };
-		003634051C6035570089465B /* kbfuse.bundle in Resources */ = {isa = PBXBuildFile; fileRef = 003634041C6035570089465B /* kbfuse.bundle */; };
 		003634081C6039770089465B /* Uninstaller.m in Sources */ = {isa = PBXBuildFile; fileRef = 003634071C6039770089465B /* Uninstaller.m */; };
 		003B40451B265F7B000B7D3B /* KBHelper.m in Sources */ = {isa = PBXBuildFile; fileRef = 0057B0C01AE57A7A00BFB0E7 /* KBHelper.m */; };
 		003B40471B265F7B000B7D3B /* KBKext.m in Sources */ = {isa = PBXBuildFile; fileRef = 003C454C1AE6CECD00431829 /* KBKext.m */; };
@@ -114,7 +113,6 @@
 		003608141C442EB100B3300E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Status/Info.plist; sourceTree = "<group>"; };
 		003608161C442EB100B3300E /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; name = main.m; path = Status/main.m; sourceTree = "<group>"; };
 		0036081C1C442ED200B3300E /* KeybaseStatus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = KeybaseStatus.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		003634041C6035570089465B /* kbfuse.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = kbfuse.bundle; sourceTree = "<group>"; };
 		003634061C6039770089465B /* Uninstaller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Uninstaller.h; sourceTree = "<group>"; };
 		003634071C6039770089465B /* Uninstaller.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Uninstaller.m; sourceTree = "<group>"; };
 		003C454B1AE6CECD00431829 /* KBKext.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBKext.h; sourceTree = "<group>"; };
@@ -303,14 +301,6 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		00566A531A9BAD4800CA236E /* Scripts */ = {
-			isa = PBXGroup;
-			children = (
-				00A420511AE6F88E0040CCDC /* Fuse */,
-			);
-			path = Scripts;
-			sourceTree = SOURCE_ROOT;
-		};
 		0057B0BB1AE57A7A00BFB0E7 /* Helper */ = {
 			isa = PBXGroup;
 			children = (
@@ -360,14 +350,6 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		00A420511AE6F88E0040CCDC /* Fuse */ = {
-			isa = PBXGroup;
-			children = (
-				003634041C6035570089465B /* kbfuse.bundle */,
-			);
-			path = Fuse;
-			sourceTree = "<group>";
-		};
 		00AA75111B27635D0069A6CC /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
@@ -387,7 +369,6 @@
 				00E1CEF21C4432E600ED3A35 /* Utils */,
 				0013926F1B06B18A0082DEA8 /* Resources */,
 				0057B0BB1AE57A7A00BFB0E7 /* Helper */,
-				00566A531A9BAD4800CA236E /* Scripts */,
 				4A1398D8A1B7A96F0CD7F917 /* Tests */,
 				00CC434A1A3A9E6C006118A9 /* Products */,
 				468C135BF6D934E5DFBB8513 /* Frameworks */,
@@ -773,7 +754,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				001392751B06B18A0082DEA8 /* Fuse.icns in Resources */,
-				003634051C6035570089465B /* kbfuse.bundle in Resources */,
 				00E1CEEF1C44313B00ED3A35 /* Media.xcassets in Resources */,
 				0005BCA01C445AFB0062EF1D /* MainMenu.xib in Resources */,
 			);
