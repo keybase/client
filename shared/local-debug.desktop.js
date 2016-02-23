@@ -64,7 +64,7 @@ export function initTabbedRouterState (state) {
     tabs: {
       ...state.tabs,
       [Tabs.loginTab]: createRouterState([], []),
-      [Tabs.moreTab]: createRouterState(['devMenu', 'styleSheet'], [])
+      [Tabs.moreTab]: createRouterState(['devMenu', 'componentsTracker'], [])
     },
     activeTab: Tabs.moreTab
   }

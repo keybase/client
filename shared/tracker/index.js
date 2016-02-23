@@ -21,7 +21,7 @@ type TrackerProps = {
   loggedIn: boolean,
   trackerState: SimpleProofState,
   trackerMessage: ?string,
-  username: ?string,
+  username: string,
   shouldFollow: ?boolean,
   reason: string,
   userInfo: UserInfo,
@@ -30,6 +30,9 @@ type TrackerProps = {
   onMaybeTrack: () => void,
   onRefollow: () => void,
   onUnfollow: () => void,
+  onRefollow2: () => void,
+  onUnfollow2: () => void,
+  onFollow: () => void,
   onFollowHelp: () => void,
   onFollowChecked: () => void,
   registerIdentifyUi: () => void,
@@ -38,7 +41,8 @@ type TrackerProps = {
   lastTrack: ?TrackSummary,
   startTimer: () => void,
   stopTimer: () => void,
-  currentlyFollowing: boolean
+  currentlyFollowing: boolean,
+  lastAction: 'followed' | 'refollowed' | 'unfollowed' | 'error'
 }
 
 class Tracker extends Component {
@@ -59,7 +63,7 @@ class Tracker extends Component {
 
     const renderChangedTitle = this.props.trackerMessage
     const failedProofsNotFollowingText = `Some of ${this.props.username}'s proofs couldn't be verified. Track the working proofs?`
-    const currentlyFollowing = flags.tracker2 ? this.props.currentlyFollowing || false : !!this.props.lastTrack
+    const currentlyFollowing = !!this.props.lastTrack
 
     const changed = !this.props.proofs.every(function (proof, index, ar) {
       return (!proof.meta || proof.meta === metaNone)
@@ -76,7 +80,8 @@ class Tracker extends Component {
         onClose: () => this.props.onClose(this.props.username),
         trackerState: this.props.trackerState,
         currentlyFollowing,
-        changed
+        changed,
+        lastAction: this.props.lastAction
       },
       actionProps: {
         loggedIn: this.props.loggedIn,
@@ -87,11 +92,13 @@ class Tracker extends Component {
         shouldFollow: this.props.shouldFollow,
         onClose: () => this.props.onClose(this.props.username),
         onMaybeTrack: () => this.props.onMaybeTrack(this.props.username),
-        onRefollow: () => this.props.onRefollow(this.props.username),
-        onUnfollow: () => this.props.onUnfollow(this.props.username),
+        onRefollow: () => flags.tracker2 ? this.props.onRefollow2(this.props.username) : this.props.onRefollow(this.props.username),
+        onUnfollow: () => flags.tracker2 ? this.props.onUnfollow2(this.props.username) : this.props.onUnfollow(this.props.username),
+        onFollow: () => this.props.onFollow(this.props.username),
         onFollowHelp: () => this.props.onFollowHelp(this.props.username),
         onFollowChecked: checked => this.props.onFollowChecked(checked, this.props.username),
-        currentlyFollowing
+        currentlyFollowing,
+        lastAction: this.props.lastAction
       },
       proofsProps: {
         username: this.props.username,
@@ -113,29 +120,6 @@ class Tracker extends Component {
       }
     }
   }
-}
-
-Tracker.propTypes = {
-  loggedIn: React.PropTypes.bool.isRequired,
-  trackerState: React.PropTypes.any,
-  trackerMessage: React.PropTypes.any,
-  username: React.PropTypes.any,
-  shouldFollow: React.PropTypes.any,
-  reason: React.PropTypes.any,
-  userInfo: React.PropTypes.any,
-  proofs: React.PropTypes.any,
-  onClose: React.PropTypes.any,
-  onMaybeTrack: React.PropTypes.any,
-  onRefollow: React.PropTypes.any,
-  onUnfollow: React.PropTypes.any,
-  onFollowHelp: React.PropTypes.any,
-  onFollowChecked: React.PropTypes.any,
-  registerIdentifyUi: React.PropTypes.any,
-  registerTrackerChangeListener: React.PropTypes.any,
-  closed: React.PropTypes.bool.isRequired,
-  lastTrack: React.PropTypes.any,
-  startTimer: React.PropTypes.any,
-  stopTimer: React.PropTypes.any
 }
 
 export default connect(
