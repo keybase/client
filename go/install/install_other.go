@@ -19,3 +19,11 @@ func AutoInstall(g *libkb.GlobalContext, binPath string, force bool) (newProc bo
 func CheckIfValidLocation() *keybase1.Error {
 	return nil
 }
+
+func kbfsBinPath(runMode libkb.RunMode, binPath string) (string, error) {
+	return "", fmt.Errorf("Unsupported for this build or platform")
+}
+
+func RunAfterStartup(g *libkb.GlobalContext, isService bool) error {
+	return nil
+}

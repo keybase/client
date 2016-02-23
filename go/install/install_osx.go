@@ -8,12 +8,14 @@ package install
 import (
 	"fmt"
 	"os"
+	"os/exec"
 	"path"
 	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
 
+	"github.com/blang/semver"
 	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/mounter"
@@ -644,4 +646,74 @@ func componentResult(name string, err error) keybase1.ComponentResult {
 		return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusFromCode(keybase1.StatusCode_SCInstallError, err.Error())}
 	}
 	return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusOK("")}
+}
+
+func kbfsBinPath(runMode libkb.RunMode, binPath string) (string, error) {
+	// If it's brew lookup path by formula name
+	if libkb.IsBrewBuild {
+		kbfsBinName := kbfsBinName(runMode)
+		prefix, err := brewPath(kbfsBinName)
+		if err != nil {
+			return "", err
+		}
+		return filepath.Join(prefix, "bin", kbfsBinName), nil
+	}
+
+	return kbfsBinPathDefault(runMode, binPath)
+}
+
+func brewPath(formula string) (string, error) {
+	// Get the homebrew install path prefix for this formula
+	prefixOutput, err := exec.Command("brew", "--prefix", formula).Output()
+	if err != nil {
+		return "", fmt.Errorf("Error checking brew path: %s", err)
+	}
+	prefix := strings.TrimSpace(string(prefixOutput))
+	return prefix, nil
+}
+
+func OSVersion() (semver.Version, error) {
+	out, err := exec.Command("sw_vers", "-productVersion").Output()
+	if err != nil {
+		return semver.Version{}, err
+	}
+	return semver.Make(strings.TrimSpace(string(out)))
+}
+
+func RunAfterStartup(g *libkb.GlobalContext, isService bool) error {
+	// Ensure the app is running (if it exists and is supported on the platform)
+	if libkb.IsBrewBuild {
+		return nil
+	}
+	switch g.Env.GetAppStartMode() {
+	case libkb.AppStartModeService:
+		if !isService {
+			return nil
+		}
+	case libkb.AppStartModeDisabled:
+		g.Log.Debug("App start mode is disabled")
+		return nil
+	}
+
+	appPath := "/Applications/Keybase.app"
+	if exists, _ := libkb.FileExists(appPath); exists {
+		ver, err := OSVersion()
+		if err != nil {
+			g.Log.Errorf("Error trying to determine OS version: %s", err)
+			return nil
+		}
+		if ver.LT(semver.MustParse("10.0.0")) {
+			g.Log.Debug("App isn't supported on this OS version: %s", ver)
+			return nil
+		}
+
+		g.Log.Debug("Ensuring app is open: %s", appPath)
+		// If app is already open this is a no-op, the -g option will cause to open
+		// in background.
+		out, err := exec.Command("/usr/bin/open", "-g", appPath).Output()
+		if err != nil {
+			g.Log.Errorf("Error trying to open Keybase.app; %s; %s", err, out)
+		}
+	}
+	return nil
 }

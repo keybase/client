@@ -150,16 +150,6 @@ func uninstallCommandLine() error {
 	return os.Remove(linkPath)
 }
 
-// We're only moving the folder in case something somehow managed to get at it
-// in between unmounting and checking if it had files.
-func trashDir(context Context, dir string) error {
-	randString, err := libkb.RandString("Trash.", 20)
-	if err != nil {
-		return err
-	}
-	return os.Rename(dir, filepath.Join(context.GetCacheDir(), randString))
-}
-
 func chooseBinPath(bp string) (string, error) {
 	if bp != "" {
 		return bp, nil
@@ -173,25 +163,6 @@ func binPath() (string, error) {
 
 func binName() string {
 	return filepath.Base(os.Args[0])
-}
-
-func kbfsBinPath(runMode libkb.RunMode, binPath string) (string, error) {
-	// If it's brew lookup path by formula name
-	kbfsBinName := kbfsBinName(runMode)
-	if libkb.IsBrewBuild {
-		prefix, err := brewPath(kbfsBinName)
-		if err != nil {
-			return "", err
-		}
-		return filepath.Join(prefix, "bin", kbfsBinName), nil
-	}
-
-	// Use the same directory as the binPath
-	path, err := chooseBinPath(binPath)
-	if err != nil {
-		return "", err
-	}
-	return filepath.Join(filepath.Dir(path), kbfsBinName), nil
 }
 
 func kbfsBinName(runMode libkb.RunMode) string {
@@ -226,12 +197,11 @@ func kbfsMountPath(runMode libkb.RunMode) string {
 	}
 }
 
-func brewPath(formula string) (string, error) {
-	// Get the homebrew install path prefix for this formula
-	prefixOutput, err := exec.Command("brew", "--prefix", formula).Output()
+func kbfsBinPathDefault(runMode libkb.RunMode, binPath string) (string, error) {
+	path, err := chooseBinPath(binPath)
 	if err != nil {
-		return "", fmt.Errorf("Error checking brew path: %s", err)
+		return "", err
 	}
-	prefix := strings.TrimSpace(string(prefixOutput))
-	return prefix, nil
+	kbfsBinName := kbfsBinName(runMode)
+	return filepath.Join(filepath.Dir(path), kbfsBinName), nil
 }

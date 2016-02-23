@@ -645,6 +645,14 @@ func (f *JSONConfigFile) SetUpdateLastChecked(t keybase1.Time) error {
 	return f.SetTimeAtPath("updates.last_checked", t)
 }
 
+func (f JSONConfigFile) GetAppStartMode() AppStartMode {
+	s, isSet := f.GetStringAtPath("app_start_mode")
+	if s == "service" || !isSet {
+		return AppStartModeService
+	}
+	return AppStartModeDisabled
+}
+
 func (f JSONConfigFile) GetTimeAtPath(path string) keybase1.Time {
 	var ret keybase1.Time
 	s, _ := f.GetStringAtPath(path)
