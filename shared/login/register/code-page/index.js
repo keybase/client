@@ -8,6 +8,7 @@ import {connect} from 'react-redux'
 import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
         codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer} from '../../../constants/login'
 import Render from './index.render'
+import {cancelLogin} from '../../../actions/login'
 
 class CodePage extends Component {
   constructor (props) {
@@ -23,6 +24,7 @@ class CodePage extends Component {
       <Render
         enterText={this.state.enterText}
         onChangeText={enterText => this.setState({enterText})}
+        onBack={this.props.onBack}
         mode={this.props.mode}
         textCode={this.props.textCode}
         qrCode={this.props.qrCode}
@@ -43,6 +45,7 @@ const validRoles = [codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
 
 CodePage.propTypes = {
   mode: React.PropTypes.string,
+  onBack: React.PropTypes.func.isRequired,
   textCode: React.PropTypes.string,
   qrCode: React.PropTypes.string,
   myDeviceRole: React.PropTypes.oneOf(validRoles),
@@ -57,7 +60,9 @@ CodePage.propTypes = {
 
 export default connect(
   state => state,
-  null,
+  dispatch => ({
+    onBack: () => dispatch(cancelLogin())
+  }),
   (stateProps, dispatchProps, ownProps) => {
     return {
       ...ownProps,

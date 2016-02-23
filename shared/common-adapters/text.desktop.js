@@ -50,6 +50,10 @@ export default class Text extends Component {
         return {color: backgroundMode === 'Normal' ? globalColorsDZ2.black75 : globalColorsDZ2.white}
       case 'BodySmall':
         return {color: backgroundMode === 'Normal' ? globalColorsDZ2.black40 : globalColorsDZ2.white40}
+      case 'BodyPrimaryLink':
+        return {color: globalColorsDZ2.blue}
+      case 'BodySecondaryLink':
+        return {color: globalColorsDZ2.black40}
       default:
         return {}
     }
@@ -66,6 +70,8 @@ export default class Text extends Component {
       'Header': styles.textHeader,
       'BodySemibold': styles.textBodySemibold,
       'Body': styles.textBody,
+      'BodyPrimaryLink': styles.textBody,
+      'BodySecondaryLink': styles.textBody,
       'BodySmall': styles.textBodySmall,
       'BodySmallSemibold': styles.textBodySmallSemibold,
       'Error': styles.textError,
@@ -84,10 +90,21 @@ export default class Text extends Component {
       inline = this.props.inline
     }
 
+    let linkStyle = null
+    let linkClassname = null
+    switch (this.props.type) {
+      case 'BodyPrimaryLink':
+      case 'BodySecondaryLink':
+        linkStyle = {
+          cursor: 'pointer'
+        }
+        linkClassname = 'hover-underline'
+    }
+
     const style = {
       ...typeStyle,
+      ...linkStyle,
       ...(this.props.lineClamp ? lineClamp(this.props.lineClamp) : {}),
-      ...(this.props.link ? styles.textLinkMixin : {}),
       ...(this.props.small ? styles.textSmallMixin : {}),
       ...(this.props.onClick ? globalStyles.clickable : {}),
       ...(inline ? {...this._inlineStyle(this.props.type)} : {display: 'block'}),
@@ -96,11 +113,11 @@ export default class Text extends Component {
     }
 
     const terminalPrefix = this._terminalPrefix(this.props.type)
-    const className = this.props.className || ''
+    const className = (this.props.className || '') + ' ' + (linkClassname || '')
 
     return (
       <span
-        className={this.props.link ? 'hover-underline ' + className : className}
+        className={className}
         style={style}
         onClick={this.props.onClick}>{terminalPrefix}{this.props.children}</span>)
   }
@@ -112,7 +129,6 @@ Text.contextTypes = {
 
 Text.propTypes = {
   type: React.PropTypes.oneOf(['Header', 'Body', 'TerminalCommand', 'TerminalComment', 'TerminalEmpty']),
-  link: React.PropTypes.bool,
   small: React.PropTypes.bool,
   children: React.PropTypes.node,
   style: React.PropTypes.object,
@@ -233,10 +249,6 @@ export const styles = {
     backgroundColor: globalColorsDZ2.blue4,
     wordWrap: 'break-word',
     display: 'inline'
-  },
-  textLinkMixin: {
-    color: globalColors.blue,
-    cursor: 'pointer'
   },
   textSmallMixin: {
     color: globalColors.grey2,

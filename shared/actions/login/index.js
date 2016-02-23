@@ -42,7 +42,7 @@ function setCodePageOtherDeviceRole (otherDeviceRole) : AsyncAction {
 
 function generateQRCode (dispatch: Dispatch, getState: GetState) {
   const store = getState().login.codePage
-  const goodMode = store.mode === Constants.codePageModeShowCode || store.mode === Constants.codePageModeShowCodeOrEnterText
+  const goodMode = store.mode === Constants.codePageModeShowCode
 
   if (goodMode && !store.qrCode && store.textCode) {
     dispatch({type: Constants.setQRCode, payload: qrGenerate(store.textCode)})
