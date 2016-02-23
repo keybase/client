@@ -4,12 +4,17 @@ import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide
 import Container from './dev-container.desktop.js'
 import {Button, Input, Text, Terminal, FormWithCheckbox} from '../common-adapters'
 
+import DropdownDemo from './components/dropdown'
+
 export default class Render extends Component {
   render () {
     const Space = () => <div style={{height: 20}}/>
 
     return (
       <div style={{...globalStyles.flexBoxColumn, margin: 20}}>
+        <Container title='Dropdown - DZ2'>
+          <DropdownDemo/>
+        </Container>
         <Container title='Text - DZ2'>
           <DZ2Font/>
         </Container>
