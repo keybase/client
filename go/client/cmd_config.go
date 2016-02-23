@@ -42,6 +42,11 @@ func (v *CmdConfigGet) ParseArgv(ctx *cli.Context) error {
 func (v *CmdConfigSet) ParseArgv(ctx *cli.Context) error {
 	flags := 0
 	args := ctx.Args()
+
+	if len(ctx.Args()) < 1 {
+		return fmt.Errorf("Need 1 or more arguments for set")
+	}
+
 	v.Path = args[0]
 
 	if ctx.Bool("clear") {
