@@ -73,7 +73,9 @@ ny_date() {
 
 refresh_one_repo() {
   git -C "$1" fetch
-  git -C "$1" checkout -f origin/master
+  # Calls to check_status_and_pull.sh break if we're not on master.
+  git -C "$1" checkout -f master
+  git -C "$1" reset --hard origin/master
   # `npm install` is unreliable if the repo isn't clean.
   git -C "$1" clean -dffx
 }
