@@ -7,14 +7,15 @@ import (
 	"bytes"
 	"crypto/rand"
 	"fmt"
-	"github.com/jonboulle/clockwork"
-	"golang.org/x/net/context"
 	"io/ioutil"
 	"os"
 	"strings"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/jonboulle/clockwork"
+	"golang.org/x/net/context"
 
 	"github.com/keybase/client/go/kex2"
 	"github.com/keybase/client/go/libkb"
@@ -357,6 +358,50 @@ func TestProvisionPassphraseSyncedPGPEmail(t *testing.T) {
 
 	// and they should have a paper backup key
 	hasOnePaperDev(tc, u1)
+
+	if err := AssertProvisioned(tc); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// If a user is logged in as alice, then logs in as bob (who has
+// no keys), provision via passphrase should work.
+// Bug https://keybase.atlassian.net/browse/CORE-2605
+func TestProvisionPassphraseNoKeysSwitchUser(t *testing.T) {
+	// this is the web user
+	tcWeb := SetupEngineTest(t, "web")
+	username, passphrase := createFakeUserWithNoKeys(tcWeb)
+	Logout(tcWeb)
+	tcWeb.Cleanup()
+
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	// this is a provisioned user.  stay logged in as this user
+	// and start login process for web user.
+	CreateAndSignupFakeUser(tc, "alice")
+
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIPassphrase(),
+		LoginUI:     &libkb.TestLoginUI{Username: username},
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    &libkb.TestSecretUI{Passphrase: passphrase},
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, username, keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	// since this user didn't have any keys, login should have fixed that:
+	testUserHasDeviceKey(tc)
+
+	t.Logf("user has device key")
+
+	// and they should have a paper backup key
+	hasOnePaperDev(tc, &FakeUser{Username: username, Passphrase: passphrase})
+
+	t.Logf("user has paper device")
 
 	if err := AssertProvisioned(tc); err != nil {
 		t.Fatal(err)
