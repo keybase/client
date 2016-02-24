@@ -1,7 +1,6 @@
 package libkbfs
 
 import (
-	"fmt"
 	"runtime"
 	"sync"
 
@@ -37,21 +36,16 @@ func NewReporterSimple(clock Clock, maxErrors int) *ReporterSimple {
 	return rs
 }
 
-// Report implements the Reporter interface for ReporterSimple.
-func (r *ReporterSimple) Report(level ReportingLevel, message fmt.Stringer) {
-	if level < RptE {
-		return
-	}
-
+// ReportErr implements the Reporter interface for ReporterSimple.
+func (r *ReporterSimple) ReportErr(err error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 
 	stack := make([]uintptr, 20)
 	n := runtime.Callers(2, stack)
 	re := ReportedError{
-		Level: level,
 		Time:  r.clock.Now(),
-		Error: message,
+		Error: err,
 		Stack: stack[:n],
 	}
 	r.currErrorIndex++

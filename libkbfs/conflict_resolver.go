@@ -2943,8 +2943,8 @@ type CRWrapError struct {
 	err error
 }
 
-// String implements the Stringer interface for CRWrapError.
-func (e CRWrapError) String() string {
+// Error implements the error interface for CRWrapError.
+func (e CRWrapError) Error() string {
 	return "Conflict resolution error: " + e.err.Error()
 }
 
@@ -2955,7 +2955,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	defer func() {
 		cr.log.CDebugf(ctx, "Finished conflict resolution: %v", err)
 		if err != nil {
-			cr.config.Reporter().Report(RptE, CRWrapError{err})
+			cr.config.Reporter().ReportErr(CRWrapError{err})
 		}
 	}()
 

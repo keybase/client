@@ -90,7 +90,7 @@ func TestCRInput(t *testing.T) {
 	// Just cause an error so it doesn't bother the mocks too much.
 	config.mockCrypto.EXPECT().MakeMdID(gomock.Any()).Return(MdID{},
 		errors.New("Stopping resolution process early"))
-	config.mockRep.EXPECT().Report(gomock.Any(), gomock.Any())
+	config.mockRep.EXPECT().ReportErr(gomock.Any())
 
 	// First try a completely unknown revision
 	cr.Resolve(unmergedHead, MetadataRevisionUninitialized)
@@ -166,7 +166,7 @@ func TestCRInputFracturedRange(t *testing.T) {
 	// Just cause an error so it doesn't bother the mocks too much.
 	config.mockCrypto.EXPECT().MakeMdID(gomock.Any()).Return(MdID{},
 		errors.New("Stopping resolution process early"))
-	config.mockRep.EXPECT().Report(gomock.Any(), gomock.Any())
+	config.mockRep.EXPECT().ReportErr(gomock.Any())
 
 	// Resolve the fractured revision list
 	cr.Resolve(unmergedHead, MetadataRevisionUninitialized)

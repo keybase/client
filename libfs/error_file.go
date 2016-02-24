@@ -15,7 +15,6 @@ import (
 
 // JSONReportedError stringifies the reported error before marshalling
 type JSONReportedError struct {
-	Level libkbfs.ReportingLevel
 	Time  time.Time
 	Error string
 	Stack []errors.StackFrame
@@ -38,9 +37,8 @@ func GetEncodedErrors(config libkbfs.Config) func(context.Context) ([]byte, time
 		errors := config.Reporter().AllKnownErrors()
 		jsonErrors := make([]JSONReportedError, len(errors))
 		for i, e := range errors {
-			jsonErrors[i].Level = e.Level
 			jsonErrors[i].Time = e.Time
-			jsonErrors[i].Error = e.Error.String()
+			jsonErrors[i].Error = e.Error.Error()
 			jsonErrors[i].Stack = convertStack(e.Stack)
 		}
 		data, err := json.MarshalIndent(jsonErrors, "", "  ")

@@ -4,7 +4,6 @@
 package libkbfs
 
 import (
-	fmt "fmt"
 	gomock "github.com/golang/mock/gomock"
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
@@ -839,12 +838,12 @@ func (_m *MockReporter) EXPECT() *_MockReporterRecorder {
 	return _m.recorder
 }
 
-func (_m *MockReporter) Report(level ReportingLevel, message fmt.Stringer) {
-	_m.ctrl.Call(_m, "Report", level, message)
+func (_m *MockReporter) ReportErr(err error) {
+	_m.ctrl.Call(_m, "ReportErr", err)
 }
 
-func (_mr *_MockReporterRecorder) Report(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Report", arg0, arg1)
+func (_mr *_MockReporterRecorder) ReportErr(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "ReportErr", arg0)
 }
 
 func (_m *MockReporter) AllKnownErrors() []ReportedError {

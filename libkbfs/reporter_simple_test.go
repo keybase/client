@@ -2,11 +2,10 @@ package libkbfs
 
 import (
 	"errors"
-	"fmt"
 	"testing"
 )
 
-func checkReportedErrors(t *testing.T, expected []fmt.Stringer,
+func checkReportedErrors(t *testing.T, expected []error,
 	got []ReportedError) {
 	if len(expected) != len(got) {
 		t.Errorf("Unexpected number of errors: %d", len(got))
@@ -23,42 +22,41 @@ func checkReportedErrors(t *testing.T, expected []fmt.Stringer,
 
 func TestReporterSimpleMaxLimited(t *testing.T) {
 	r := NewReporterSimple(wallClock{}, 3)
-	err1 := WrapError{errors.New("1")}
-	r.Report(RptE, err1)
-	checkReportedErrors(t, []fmt.Stringer{err1}, r.AllKnownErrors())
-	err2 := WrapError{errors.New("2")}
-	r.Report(RptE, err2)
-	err3 := WrapError{errors.New("3")}
-	r.Report(RptE, err3)
-	checkReportedErrors(t, []fmt.Stringer{err1, err2, err3}, r.AllKnownErrors())
-	err4 := WrapError{errors.New("4")}
-	r.Report(RptE, err4)
-	checkReportedErrors(t, []fmt.Stringer{err2, err3, err4}, r.AllKnownErrors())
-	err5 := WrapError{errors.New("5")}
-	r.Report(RptE, err5)
-	err6 := WrapError{errors.New("6")}
-	r.Report(RptE, err6)
-	checkReportedErrors(t, []fmt.Stringer{err4, err5, err6}, r.AllKnownErrors())
+	err1 := errors.New("1")
+	r.ReportErr(err1)
+	checkReportedErrors(t, []error{err1}, r.AllKnownErrors())
+	err2 := errors.New("2")
+	r.ReportErr(err2)
+	err3 := errors.New("3")
+	r.ReportErr(err3)
+	checkReportedErrors(t, []error{err1, err2, err3}, r.AllKnownErrors())
+	err4 := errors.New("4")
+	r.ReportErr(err4)
+	checkReportedErrors(t, []error{err2, err3, err4}, r.AllKnownErrors())
+	err5 := errors.New("5")
+	r.ReportErr(err5)
+	err6 := errors.New("6")
+	r.ReportErr(err6)
+	checkReportedErrors(t, []error{err4, err5, err6}, r.AllKnownErrors())
 }
 
 func TestReporterSimpleUnlimited(t *testing.T) {
 	r := NewReporterSimple(wallClock{}, 0)
-	err1 := WrapError{errors.New("1")}
-	r.Report(RptE, err1)
-	checkReportedErrors(t, []fmt.Stringer{err1}, r.AllKnownErrors())
-	err2 := WrapError{errors.New("2")}
-	r.Report(RptE, err2)
-	err3 := WrapError{errors.New("3")}
-	r.Report(RptE, err3)
-	checkReportedErrors(t, []fmt.Stringer{err1, err2, err3}, r.AllKnownErrors())
-	err4 := WrapError{errors.New("4")}
-	r.Report(RptE, err4)
-	checkReportedErrors(t, []fmt.Stringer{err1, err2, err3, err4},
-		r.AllKnownErrors())
-	err5 := WrapError{errors.New("5")}
-	r.Report(RptE, err5)
-	err6 := WrapError{errors.New("6")}
-	r.Report(RptE, err6)
-	checkReportedErrors(t, []fmt.Stringer{err1, err2, err3, err4, err5, err6},
+	err1 := errors.New("1")
+	r.ReportErr(err1)
+	checkReportedErrors(t, []error{err1}, r.AllKnownErrors())
+	err2 := errors.New("2")
+	r.ReportErr(err2)
+	err3 := errors.New("3")
+	r.ReportErr(err3)
+	checkReportedErrors(t, []error{err1, err2, err3}, r.AllKnownErrors())
+	err4 := errors.New("4")
+	r.ReportErr(err4)
+	checkReportedErrors(t, []error{err1, err2, err3, err4}, r.AllKnownErrors())
+	err5 := errors.New("5")
+	r.ReportErr(err5)
+	err6 := errors.New("6")
+	r.ReportErr(err6)
+	checkReportedErrors(t, []error{err1, err2, err3, err4, err5, err6},
 		r.AllKnownErrors())
 }

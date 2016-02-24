@@ -1,7 +1,6 @@
 package libkbfs
 
 import (
-	"fmt"
 	"reflect"
 	"time"
 
@@ -424,32 +423,10 @@ type KeyManager interface {
 		bool, *TLFCryptKey, error)
 }
 
-// ReportingLevel indicate the severity of a reported event.
-// MK: I sort of have something like this with G.Log.Debug, G.Log.Warn, etc..
-// JS: Yeah, I was thinking about that, but I was a bit unsure about tying it
-//     to a purely string-based logging system, in case we want to report
-//     more complex objects.  Not sure if this is the right way to go though.
-//     Very open to suggestions.
-// MK: Yeah, very good point...
-type ReportingLevel int
-
-const (
-	// RptD indicates a debug-level event
-	RptD ReportingLevel = iota
-	// RptI indicates a info-level event
-	RptI
-	// RptW indicates a warning-level event
-	RptW
-	// RptE indicates a error-level event
-	RptE
-	// RptF indicates a fatal-level event
-	RptF
-)
-
 // Reporter exports events (asynchronously) to any number of sinks
 type Reporter interface {
-	// Report records that a given event happened at the given reporting level.
-	Report(level ReportingLevel, message fmt.Stringer)
+	// ReportErr records that a given error happened.
+	ReportErr(err error)
 	// AllKnownErrors returns all errors known to this Reporter.
 	AllKnownErrors() []ReportedError
 	// Notify sends the given notification to any sink.

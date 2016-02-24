@@ -463,7 +463,7 @@ func (f *FS) reportErr(ctx context.Context, err error) {
 		return
 	}
 
-	f.config.Reporter().Report(libkbfs.RptE, libkbfs.WrapError{Err: err})
+	f.config.Reporter().ReportErr(err)
 	// We just log the error as debug, rather than error, because it
 	// might just indicate an expected error such as an ENOENT.
 	//

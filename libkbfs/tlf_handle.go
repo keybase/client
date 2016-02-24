@@ -388,7 +388,7 @@ func resolveUIDs(ctx context.Context, config Config,
 		} else if name, err := config.KBPKI().GetNormalizedUsername(ctx, uid); err == nil {
 			names = append(names, string(name))
 		} else {
-			config.Reporter().Report(RptE, WrapError{err})
+			config.Reporter().ReportErr(err)
 			names = append(names, fmt.Sprintf("uid:%s", uid))
 		}
 	}

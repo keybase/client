@@ -737,9 +737,8 @@ const (
 
 // ReportedError represents an error reported by KBFS.
 type ReportedError struct {
-	Level ReportingLevel
 	Time  time.Time
-	Error fmt.Stringer
+	Error error
 	Stack []uintptr
 }
 
