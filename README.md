@@ -27,6 +27,9 @@ But - some of the things in this repo are explorations, and the app you build fr
 Report any issues with client software on this GitHub [issue tracker](https://github.com/keybase/client/issues).
 Internally, we track our progress using Jira, but all PRs come through GitHub for your review!
 
+If you're having problems with the command line `keybase` client, take a
+look at [the troubleshooting doc](go/doc/troubleshooting.md).
+
 If you're having problem with our Website, try the
 [keybase-issues](https://github.com/keybase/keybase-issues) issue tracker.
 
