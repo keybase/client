@@ -150,7 +150,6 @@ export function onRefollow (username: string): TrackerActionCreator {
 
 export function onRefollow2 (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
-    console.log('onRefollow')
     const {trackToken} = (getState().tracker.trackers[username] || {})
     const dispatchRefollowAction = () => {
       dispatch({

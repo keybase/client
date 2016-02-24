@@ -42,7 +42,6 @@ export default class ActionRender extends Component {
     const {username} = this.props
     const styles = styles2
 
-    console.log(this.props)
     switch (this.props.lastAction) {
       case 'followed':
       case 'refollowed':
