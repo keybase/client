@@ -14,7 +14,7 @@ import (
 // reached anywhere within a top-level folder.
 const StatusFileName = ".kbfs_status"
 
-func getEncodedStatus(ctx context.Context, folder *Folder) (
+func getEncodedFolderStatus(ctx context.Context, folder *Folder) (
 	data []byte, t time.Time, err error) {
 	var status libkbfs.FolderBranchStatus
 	status, _, err = folder.fs.config.KBFSOps().
@@ -32,13 +32,20 @@ func getEncodedStatus(ctx context.Context, folder *Folder) (
 	return data, time.Time{}, err
 }
 
+func getEncodedStatus(ctx context.Context) (data []byte, t time.Time, err error) {
+	return data, t, err
+}
+
 // NewStatusFile returns a special read file that contains a text
 // representation of the status of the current TLF.
 func NewStatusFile(folder *Folder, resp *fuse.LookupResponse) *SpecialReadFile {
 	resp.EntryValid = 0
 	return &SpecialReadFile{
 		read: func(ctx context.Context) ([]byte, time.Time, error) {
-			return getEncodedStatus(ctx, folder)
+			if folder == nil {
+				return getEncodedStatus(ctx)
+			}
+			return getEncodedFolderStatus(ctx, folder)
 		},
 	}
 }
