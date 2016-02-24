@@ -29,10 +29,17 @@ export default class Input extends Component {
   }
 
   getValue (): ?string {
+    if (!this.props.dz2) {
+      return this.refs.inputOld && this.refs.inputOld.getValue()
+    }
     return this.state.value
   }
 
   clearValue () {
+    if (!this.props.dz2) {
+      this.refs.inputOld && this.refs.inputOld.clearValue()
+      return
+    }
     this.setState({value: null})
   }
 
@@ -41,12 +48,16 @@ export default class Input extends Component {
   }
 
   blur () {
+    if (!this.props.dz2) {
+      return this.refs.inputOld && this.refs.inputOld.blur()
+    }
+
     this._textField && this._textField.blur()
   }
 
   render () {
     if (!this.props.dz2) {
-      return <InputOld {...this.props}/>
+      return <InputOld ref="inputOld" {...this.props}/>
     }
 
     const style = this.props.small ? styles.containerSmall : styles.container
