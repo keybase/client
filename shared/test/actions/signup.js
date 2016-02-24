@@ -99,6 +99,13 @@ describe('Signup', function () {
     })
   })
 
+  describe('Reset signup', () => {
+    it('should reset the phase to inviteCode', () => {
+      store.dispatch(signupActions.resetSignup())
+      assert(store.getState().signup.phase === 'inviteCode', 'Resets the phase to inviteCode')
+    })
+  })
+
   describe('Signup for an account', () => {
     const username = `Test${Math.floor(Math.random() * 1e5)}`
     console.log(`Using username: ${username}`)
