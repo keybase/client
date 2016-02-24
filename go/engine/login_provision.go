@@ -372,7 +372,7 @@ func (e *LoginProvision) pgpProvision(ctx *Context) error {
 	}
 
 	// need a session to try to get synced private key
-	return e.G().LoginState().LoginWithPrompt(e.user.GetName(), ctx.LoginUI, ctx.SecretUI, afterLogin)
+	return e.G().LoginState().LoginWithPrompt(e.arg.User.GetName(), ctx.LoginUI, ctx.SecretUI, afterLogin)
 }
 
 // makeDeviceKeysWithSigner creates device keys given a signing
@@ -384,7 +384,7 @@ func (e *LoginProvision) makeDeviceKeysWithSigner(ctx *Context, signer libkb.Gen
 	}
 	args.Signer = signer
 	args.IsEldest = false // just to be explicit
-	args.EldestKID = e.user.GetEldestKID()
+	args.EldestKID = e.arg.User.GetEldestKID()
 
 	return e.makeDeviceKeys(ctx, args)
 }
@@ -564,7 +564,7 @@ func (e *LoginProvision) loadUser(ctx *Context) (*libkb.User, error) {
 // syncedPGPKey looks for a synced pgp key for e.user.  If found,
 // it unlocks it.
 func (e *LoginProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
-	key, err := e.user.SyncedSecretKey(ctx.LoginContext)
+	key, err := e.arg.User.SyncedSecretKey(ctx.LoginContext)
 	if err != nil {
 		return nil, err
 	}
@@ -669,7 +669,11 @@ func (e *LoginProvision) chooseDevice(ctx *Context, pgp bool) error {
 }
 
 func (e *LoginProvision) tryPGP(ctx *Context) error {
-	return errors.New("nyi")
+	if err := e.pgpProvision(ctx); err != nil {
+		// XXX try gpg provsion when this fails due to no sync pgp
+		return err
+	}
+	return nil
 }
 
 func (e *LoginProvision) eldest(ctx *Context) error {
