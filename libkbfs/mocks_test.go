@@ -838,12 +838,12 @@ func (_m *MockReporter) EXPECT() *_MockReporterRecorder {
 	return _m.recorder
 }
 
-func (_m *MockReporter) ReportErr(err error) {
-	_m.ctrl.Call(_m, "ReportErr", err)
+func (_m *MockReporter) ReportErr(ctx context.Context, err error) {
+	_m.ctrl.Call(_m, "ReportErr", ctx, err)
 }
 
-func (_mr *_MockReporterRecorder) ReportErr(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "ReportErr", arg0)
+func (_mr *_MockReporterRecorder) ReportErr(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "ReportErr", arg0, arg1)
 }
 
 func (_m *MockReporter) AllKnownErrors() []ReportedError {

@@ -610,7 +610,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 	config.mockKbpki.EXPECT().GetCurrentUserInfo(ctx).AnyTimes().
 		Return(name, uid, nil)
 	expectUsernameCall(uid, config)
-	expectedErr := ReadAccessError{name, h.ToString(ctx, config)}
+	expectedErr := ReadAccessError{name, h.GetCanonicalName(ctx, config), false}
 
 	if _, err := config.KBFSOps().GetDirChildren(ctx, n); err == nil {
 		t.Errorf("Got no expected error on getdir")

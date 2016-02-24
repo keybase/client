@@ -142,14 +142,15 @@ func (e ErrorFileAccessError) Error() string {
 // ReadAccessError indicates that the user tried to read from a
 // top-level folder without read permission.
 type ReadAccessError struct {
-	User libkb.NormalizedUsername
-	Dir  string
+	User   libkb.NormalizedUsername
+	Tlf    CanonicalTlfName
+	Public bool
 }
 
 // Error implements the error interface for ReadAccessError
 func (e ReadAccessError) Error() string {
 	return fmt.Sprintf("%s does not have read access to directory %s",
-		e.User, e.Dir)
+		e.User, buildCanonicalPath(e.Public, e.Tlf))
 }
 
 // WriteAccessError indicates that the user tried to read from a
@@ -167,10 +168,10 @@ func (e WriteAccessError) Error() string {
 
 // NewReadAccessError constructs a ReadAccessError for the given
 // directory and user.
-func NewReadAccessError(ctx context.Context, config Config, dir *TlfHandle,
+func NewReadAccessError(ctx context.Context, config Config, h *TlfHandle,
 	username libkb.NormalizedUsername) error {
-	dirname := dir.ToString(ctx, config)
-	return ReadAccessError{username, dirname}
+	tlfname := h.GetCanonicalName(ctx, config)
+	return ReadAccessError{username, tlfname, h.IsPublic()}
 }
 
 // NewWriteAccessError constructs a WriteAccessError for the given

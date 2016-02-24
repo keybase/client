@@ -177,7 +177,7 @@ func (f *FS) reportErr(ctx context.Context, err error) {
 		return
 	}
 
-	f.config.Reporter().ReportErr(err)
+	f.config.Reporter().ReportErr(ctx, err)
 	// We just log the error as debug, rather than error, because it
 	// might just indicate an expected error such as an ENOENT.
 	//

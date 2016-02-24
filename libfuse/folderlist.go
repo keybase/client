@@ -54,7 +54,7 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 	}
 
 	_, err = libkbfs.ParseTlfHandle(
-		ctx, fl.fs.config.KBPKI(), req.Name, fl.public)
+		ctx, fl.fs.config, req.Name, fl.public)
 	switch err := err.(type) {
 	case nil:
 		// No error.

@@ -37,7 +37,7 @@ func NewReporterSimple(clock Clock, maxErrors int) *ReporterSimple {
 }
 
 // ReportErr implements the Reporter interface for ReporterSimple.
-func (r *ReporterSimple) ReportErr(err error) {
+func (r *ReporterSimple) ReportErr(ctx context.Context, err error) {
 	r.lock.Lock()
 	defer r.lock.Unlock()
 

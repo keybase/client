@@ -116,7 +116,7 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNode(
 		name, public, branch)
 	defer func() { fs.log.CDebugf(ctx, "Done: %v", err) }()
 
-	h, err := ParseTlfHandle(ctx, fs.config.KBPKI(), name, public)
+	h, err := ParseTlfHandle(ctx, fs.config, name, public)
 	if err != nil {
 		return nil, EntryInfo{}, err
 	}

@@ -108,7 +108,7 @@ func TestParseTlfHandleNotReaderFailure(t *testing.T) {
 	name := "u2,u3"
 	_, err := ParseTlfHandle(ctx, config, name, false)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
-	assert.Equal(t, ReadAccessError{"u1", name}, err)
+	assert.Equal(t, ReadAccessError{"u1", CanonicalTlfName(name), false}, err)
 }
 
 func TestParseTlfHandleAssertionNotCanonicalFailure(t *testing.T) {

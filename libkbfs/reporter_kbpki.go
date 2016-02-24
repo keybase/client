@@ -32,12 +32,30 @@ func NewReporterKBPKI(config Config, maxErrors, bufSize int) *ReporterKBPKI {
 	return r
 }
 
+// ReportErr implements the Reporter interface for ReporterKBPKI.
+func (r *ReporterKBPKI) ReportErr(ctx context.Context, err error) {
+	r.ReporterSimple.ReportErr(ctx, err)
+
+	// Fire off error popups
+	var notification *keybase1.FSNotification
+	switch e := err.(type) {
+	case ReadAccessError:
+		notification = readErrorNotification(tlfPathFromString(e.Tlf), err)
+	}
+
+	if notification != nil {
+		r.Notify(ctx, notification)
+	}
+}
+
 // Notify implements the Reporter interface for ReporterKBPKI.
 //
 // TODO: might be useful to get the debug tags out of ctx and store
 //       them in the notifyBuffer as well so that send() can put
 //       them back in its context.
 func (r *ReporterKBPKI) Notify(ctx context.Context, notification *keybase1.FSNotification) {
+	r.log.CDebugf(ctx, "ReporterDaemon: queuing notification: %+v",
+		notification)
 	select {
 	case r.notifyBuffer <- notification:
 	default:
@@ -56,6 +74,9 @@ func (r *ReporterKBPKI) Shutdown() {
 // the keybase daemon.
 func (r *ReporterKBPKI) send(ctx context.Context) {
 	for notification := range r.notifyBuffer {
+		r.log.CDebugf(ctx, "ReporterDaemon: sending notification: %+v",
+			notification)
+
 		if err := r.config.KeybaseDaemon().Notify(ctx, notification); err != nil {
 			r.log.CDebugf(ctx, "ReporterDaemon: error sending notification: %s",
 				err)

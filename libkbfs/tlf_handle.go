@@ -388,7 +388,7 @@ func resolveUIDs(ctx context.Context, config Config,
 		} else if name, err := config.KBPKI().GetNormalizedUsername(ctx, uid); err == nil {
 			names = append(names, string(name))
 		} else {
-			config.Reporter().ReportErr(err)
+			config.Reporter().ReportErr(ctx, err)
 			names = append(names, fmt.Sprintf("uid:%s", uid))
 		}
 	}
@@ -466,7 +466,7 @@ func (h *TlfHandle) Users() []keybase1.UID {
 // ParseTlfHandle parses a TlfHandle from an encoded string. See
 // ToString for the opposite direction.
 func ParseTlfHandle(
-	ctx context.Context, kbpki KBPKI, name string, public bool) (
+	ctx context.Context, config Config, name string, public bool) (
 	*TlfHandle, error) {
 	// Before parsing the tlf handle (which results in identify
 	// calls that cause tracker popups), first see if there's any
@@ -493,6 +493,7 @@ func ParseTlfHandle(
 		return nil, TlfNameNotCanonical{name, normalizedName}
 	}
 
+	kbpki := config.KBPKI()
 	h, canonicalName, err := resolveTlfHandle(
 		ctx, kbpki, public, writerNames, readerNames)
 	if err != nil {
@@ -515,7 +516,7 @@ func ParseTlfHandle(
 		}
 
 		if !canRead {
-			return nil, ReadAccessError{currentUsername, name}
+			return nil, ReadAccessError{currentUsername, canonicalName, public}
 		}
 	}
 

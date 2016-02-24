@@ -2955,7 +2955,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	defer func() {
 		cr.log.CDebugf(ctx, "Finished conflict resolution: %v", err)
 		if err != nil {
-			cr.config.Reporter().ReportErr(CRWrapError{err})
+			cr.config.Reporter().ReportErr(ctx, CRWrapError{err})
 		}
 	}()
 
