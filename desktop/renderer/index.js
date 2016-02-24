@@ -21,7 +21,8 @@ import {setupContextMenu} from '../app/menu-helper'
 import electron, {ipcRenderer} from 'electron'
 import RemoteManager from './remote-manager'
 import {ipcLogsRenderer} from '../app/console-helper'
-import _ from 'lodash'
+import loadPerf from '../shared/util/load-perf'
+import merge from 'lodash/merge'
 
 ipcLogsRenderer()
 
@@ -42,6 +43,8 @@ class Keybase extends Component {
 
   constructor () {
     super()
+
+    loadPerf()
 
     this.state = {
       panelShowing: false
@@ -89,7 +92,7 @@ class Keybase extends Component {
       // _.merge() to get a plain object back out which we can send
       setImmediate(() => {
         try {
-          store.dispatch(_.merge({}, action))
+          store.dispatch(merge({}, action))
         } catch (_) {
         }
       })

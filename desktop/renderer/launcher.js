@@ -6,7 +6,7 @@ import Menubar from '../shared/menubar'
 import {ipcLogsRenderer} from '../app/console-helper'
 import hello from '../shared/util/hello'
 import {setupContextMenu} from '../app/menu-helper'
-
+import loadPerf from '../shared/util/load-perf'
 import {remote} from 'electron'
 
 ipcLogsRenderer()
@@ -19,6 +19,10 @@ if (module.hot) {
 const store = new RemoteStore({})
 
 class RemoteMenubar extends Component {
+  constructor () {
+    super()
+    loadPerf()
+  }
   render () {
     return (
       <Provider store={store}>
