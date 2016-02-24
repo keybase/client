@@ -24,5 +24,8 @@ export type ShowPaperKey = TypedAction<'signup:showPaperKey', {paperkey: HiddenS
 export const showSuccess = 'signup:showSuccess'
 export type ShowSuccess = TypedAction<'signup:showSuccess', {}, {}>
 
-export type SignupActions = CheckInviteCode | CheckUsernameEmail | CheckPassphrase | SubmitDeviceName | Signup | ShowPaperKey | ShowSuccess
+export const resetSignup = 'signup:resetSignup'
+export type ResetSignup = TypedAction<'signup:resetSignup', {}, {}>
+
+export type SignupActions = CheckInviteCode | CheckUsernameEmail | CheckPassphrase | SubmitDeviceName | Signup | ShowPaperKey | ShowSuccess | ResetSignup
 

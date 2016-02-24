@@ -9,8 +9,8 @@ import {routeAppend} from '../../actions/router'
 
 import type {TypedAsyncAction} from '../../constants/types/flux'
 import type {RouteAppend} from '../../constants/router'
-import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName, Signup, ShowPaperKey, ShowSuccess} from '../../constants/signup'
-import type {signup_signup_rpc} from '../../constants/types/flow-types'
+import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName, Signup, ShowPaperKey, ShowSuccess, ResetSignup} from '../../constants/signup'
+import type {signup_signup_rpc, signup_checkInvitationCode_rpc, signup_checkUsernameAvailable_rpc} from '../../constants/types/flow-types'
 
 function nextPhase (): TypedAsyncAction<RouteAppend> {
   return (dispatch, getState) => {
@@ -24,18 +24,69 @@ export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInvi
   return dispatch => new Promise((resolve, reject) => {
     // TODO make service call
     dispatch({type: Constants.checkInviteCode, payload: {inviteCode}})
-    dispatch(nextPhase())
-    resolve()
+
+    const params: signup_checkInvitationCode_rpc = {
+      method: 'signup.checkInvitationCode',
+      param: {
+        invitationCode: inviteCode
+      },
+      incomingCallMap: {},
+      callback: (err) => {
+        if (err) {
+          console.error('error in inviteCode:', err)
+          dispatch({type: Constants.checkInviteCode, error: true, payload: {errorText: 'Invite code is invalid'}})
+          reject(err)
+        } else {
+          dispatch({type: Constants.checkInviteCode, payload: {inviteCode}})
+          dispatch(nextPhase())
+          resolve()
+        }
+      }
+    }
+
+    engine.rpc(params)
   })
+}
+
+function isBlank (s: string): boolean {
+  return _.trim(s).length === 0
+}
+
+function hasSpaces (s: string): boolean {
+  return s.indexOf(' ') !== -1
+}
+
+// Returns an error string if not valid
+function isValidCommon (thing: ?string): ?string {
+  if (!thing || isBlank(thing)) {
+    return 'Cannot be blank'
+  }
+
+  if (hasSpaces(thing)) return 'No spaces allowed'
+}
+
+// Returns an error string if not valid
+function isValidUsername (username: ?string): ?string {
+  const commonError = isValidCommon(username)
+  if (commonError) {
+    return commonError
+  }
+}
+
+// Returns an error string if not valid
+function isValidEmail (email: ?string): ?string {
+  const commonError = isValidCommon(email)
+  if (commonError) {
+    return commonError
+  }
 }
 
 export function checkUsernameEmail (username: ?string, email: ?string): TypedAsyncAction<CheckUsernameEmail | RouteAppend> {
   return dispatch => new Promise((resolve, reject) => {
-    console.log('username is', username)
-    console.log('email is', email)
-    if (!username || !email) {
-      const emailError = email ? undefined : 'cannot be blank'
-      const usernameError = username ? undefined : 'cannot be blank'
+    const emailError = isValidEmail(email)
+    const usernameError = isValidUsername(username)
+
+    if (emailError || usernameError || !username || !email) {
       dispatch({
         type: Constants.checkUsernameEmail,
         error: true,
@@ -45,13 +96,36 @@ export function checkUsernameEmail (username: ?string, email: ?string): TypedAsy
       return
     }
 
-    // TODO make service checking of email and username
-    dispatch({
-      type: Constants.checkUsernameEmail,
-      payload: {username, email}
-    })
-    dispatch(nextPhase())
-    resolve()
+    const params: signup_checkUsernameAvailable_rpc = {
+      method: 'signup.checkUsernameAvailable',
+      param: {username},
+      incomingCallMap: {},
+      callback: (err) => {
+        if (err) {
+          console.error("username isn't available:", err)
+          dispatch({
+            type: Constants.checkUsernameEmail,
+            error: true,
+            payload: {emailError, usernameError: 'Username is taken', email, username}
+          })
+          resolve()
+        } else {
+          // We need this check to make flow happy. This should never be null
+          if (username && email) {
+            dispatch({
+              type: Constants.checkUsernameEmail,
+              payload: {username, email}
+            })
+            dispatch(nextPhase())
+            resolve()
+          } else {
+            reject()
+          }
+        }
+      }
+    }
+
+    engine.rpc(params)
   })
 }
 
@@ -147,6 +221,11 @@ function signup (skipMail): TypedAsyncAction<Signup | ShowPaperKey> {
         callback: (err, {passphraseOk, postOk, writeOk}) => {
           if (err) {
             console.error('error in signup:', err)
+            dispatch({
+              type: Constants.signup,
+              error: true,
+              payload: {signupError: new HiddenString(err)}
+            })
             reject()
           } else {
             console.log('Successful signup', passphraseOk, postOk, writeOk)
@@ -161,6 +240,10 @@ function signup (skipMail): TypedAsyncAction<Signup | ShowPaperKey> {
       reject()
     }
   })
+}
+
+export function resetSignup (): ResetSignup {
+  return {type: Constants.resetSignup, payload: {}}
 }
 
 export function showSuccess (): ShowSuccess {

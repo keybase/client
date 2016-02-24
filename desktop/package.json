@@ -61,6 +61,8 @@
     "babel-preset-react": "^6.5.0",
     "babel-preset-stage-1": "^6.5.0",
     "babel-runtime": "^6.5.0",
+    "chai": "^3.5.0",
+    "chai-as-promised": "^5.2.0",
     "del": "^2.2.0",
     "electron-packager": "^5.1.0",
     "electron-prebuilt": "0.36.9",

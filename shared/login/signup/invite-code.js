@@ -21,6 +21,6 @@ InviteCode.propTypes = {
 }
 
 export default connect(
-  state => ({}),
+  state => ({errorText: state.signup.inviteCodeError}),
   dispatch => bindActionCreators(signupActions, dispatch)
 )(InviteCode)
