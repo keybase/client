@@ -1,20 +1,19 @@
-'use strict'
+'use strict' // eslint-disable-line
 
 var promise = require('bluebird')
 var fs = promise.promisifyAll(require('fs'))
 var path = require('path')
 var root = 'json'
 
-fs.readdirAsync(root).filter(jsonOnly).map(load).map(analyze).reduce(collectTypes, []).then(makeRpcUnionType).then(write)
-
-var typePrelude = `/* @flow */
-
-export type int = number
-export type long = number
-export type double = number
-export type bytes = any
-
-`
+fs
+.readdirAsync(root)
+.filter(jsonOnly)
+.map(load)
+.map(analyze)
+.reduce((acc, typeDefs) => acc.concat(typeDefs), [])
+.then(t => t.sort())
+.then(makeRpcUnionType)
+.then(write)
 
 let incomingMaps = {}
 
@@ -30,35 +29,35 @@ var seenTypes = {
 }
 
 function analyze (json) {
-  return json.types.map(function (t) {
+  return json.types.map(t => {
+    if (seenTypes[t.name]) {
+      return ''
+    }
+
+    seenTypes[t.name] = true
+
     switch (t.type) {
       case 'record':
-        return addRecord(`${json.protocol}_`, t)
+        return `export type ${t.name} = ${parseRecord(t)}\n\n`
       case 'enum':
-        return addEnum(`${json.protocol}_`, t)
+        return `export type ${t.name} =${parseEnum(t)}\n\n`
       case 'fixed':
-        return addFixed(`${json.protocol}_`, t)
+        return `export type ${t.name} = any\n\n`
       default:
         return ''
     }
   }).concat(analyzeMessages(json))
 }
 
-function figureKBType (protocol, rawType) {
-  return seenTypes[rawType] ? `${protocol}_${rawType}` : rawType
-}
-
-function figureType (protocol, rawType) {
-  const type = figureKBType(protocol, rawType)
-
+function figureType (type) {
   if (type instanceof Array) {
     return `(${type.join(' | ')})`
   } else if (typeof type === 'object') {
     switch (type.type) {
       case 'array':
-        return `Array<${figureKBType(protocol, type.items)}>`
+        return `Array<${type.items}>`
       case 'map':
-        return `{string: ${figureKBType(protocol, type.values)}}`
+        return `{string: ${type.values}}`
       default:
         console.log(`Unknown type: ${type}`)
         return 'unknown'
@@ -69,32 +68,32 @@ function figureType (protocol, rawType) {
 }
 
 function analyzeMessages (json) {
-  return Object.keys(json.messages).map(function (m) {
+  return Object.keys(json.messages).map(m => {
     const message = json.messages[m]
 
     function params (incoming, prefix) {
-      return message.request.filter(function (r) {
+      return message.request.filter(r => {
         return incoming || (r.name !== 'sessionID') // We have the engine handle this under the hood
-      }).map(function (r) {
-        return `${prefix}${r.name}: ${figureType(json.protocol, r.type)}`
+      }).map(r => {
+        return `${prefix}${r.name}: ${figureType(r.type)}`
       }).join(',\n')
     }
 
     const name = `${json.protocol}_${m}`
-    const responseType = figureType(json.protocol, message.response)
-    let response = '/* void response */'
-    if (responseType !== 'null') {
-      response = `export type ${name}_result = ${responseType}`
-    }
+    const responseType = figureType(message.response)
+    const response = `export type ${name}_result = ${responseType === 'null' ? 'void' : responseType}`
 
     const isNotify = message.hasOwnProperty('notify')
-    let r = ' /* Notify call, No response */'
+    let r = null
     if (!isNotify) {
       const type = (responseType === 'null') ? '' : `result: ${name}_result`
       r = `,\n    response: {
       error: (err: string) => void,
       result: (${type}) => void
     }`
+    } else {
+      r = ` /* ,\n    response: {} // Notify call
+    */`
     }
 
     let p = params(true, '      ')
@@ -119,41 +118,8 @@ function analyzeMessages (json) {
   callback: (null | (err: ?any${r}) => void)
 }`
 
-    return [
-      `// ${json.protocol}.${m} ////////////////////////////////////////`,
-      response, rpc, ''].join('\n\n')
+    return [response, rpc, ''].join('\n\n')
   })
-}
-
-function addFixed (namespace, t) {
-  var typeDef = `export type ${namespace}${t.name} = any\n\n`
-
-  if (!seenTypes[t.name]) {
-    seenTypes[t.name] = true
-    typeDef += addFixed('', t)
-  }
-  return typeDef
-}
-
-function addEnum (namespace, t) {
-  var typeDef = `export type ${namespace}${t.name} = ${parseEnum(t)}\n\n`
-
-  if (!seenTypes[t.name]) {
-    seenTypes[t.name] = true
-    typeDef += addEnum('', t)
-  }
-  return typeDef
-}
-
-function addRecord (namespace, t) {
-  var typeDef = `export type ${namespace}${t.name} = ${parseRecord(t)}\n\n`
-
-  if (!seenTypes[t.name]) {
-    seenTypes[t.name] = true
-    typeDef += addRecord('', t)
-  }
-
-  return typeDef
 }
 
 // Type parsing
@@ -171,7 +137,7 @@ function parseInnerType (t) {
     case 'record':
       return parseRecord(t)
     case 'array':
-      return parseArray(t)
+      return `Array<${t.items}>`
     default:
       return t
   }
@@ -185,10 +151,10 @@ function parseEnumSymbol (s) {
 function parseEnum (t) {
   // Special case, we're always gui
   if (t.name === 'ClientType') {
-    return '2 /* FORCE GUI ONLY */'
+    return ' 2 // FORCE GUI ONLY'
   }
 
-  return parseUnion(t.symbols.map(s => `${parseEnumSymbol(s)} /* '${s}' */`))
+  return parseUnion(t.symbols.map(s => `${parseEnumSymbol(s)} // ${s}`))
 }
 
 function parseMaybe (t) {
@@ -197,7 +163,7 @@ function parseMaybe (t) {
 }
 
 function parseUnion (unionTypes) {
-  return unionTypes.map(parseInnerType).join(' | ')
+  return '\n    ' + unionTypes.map(parseInnerType).join('\n  | ')
 }
 
 function parseRecord (t) {
@@ -211,7 +177,7 @@ function parseRecord (t) {
     objectMapType += '\n'
   }
 
-  t.fields.forEach(function (f) {
+  t.fields.forEach(f => {
     var innerType = parseInnerType(f.type)
 
     // If we have a maybe type, let's also make the key optional
@@ -222,25 +188,27 @@ function parseRecord (t) {
   return objectMapType
 }
 
-function parseArray (t) {
-  return `Array<${t.items}>`
-}
-
-function collectTypes (acc, typeDefs) {
-  return acc.concat(typeDefs)
-}
-
 function makeRpcUnionType (typeDefs) {
-  const rpcTypes = typeDefs.map(t => t.match(/(\w*_rpc)/g)).filter(t => t).reduce((acc, t) => acc.concat(t), []).join(' | ')
-  const unionRpcType = `export type rpc = ${rpcTypes}\n\n`
+  const rpcTypes = typeDefs.map(t => t.match(/(\w*_rpc)/g)).filter(t => t).reduce((acc, t) => acc.concat(t), []).join('\n  | ')
+  const unionRpcType = `export type rpc =
+    ${rpcTypes}\n\n`
   return typeDefs.concat(unionRpcType)
 }
 
 function write (typeDefs) {
-  var s = fs.createWriteStream('js/flow-types.js')
+  const s = fs.createWriteStream('js/flow-types.js')
+
+  const typePrelude = `/* @flow */
+
+export type int = number
+export type long = number
+export type double = number
+export type bytes = any
+
+`
 
   const incomingMap = `export type incomingCallMapType = {\n` +
   Object.keys(incomingMaps).map(im => `  '${im}'?: ${incomingMaps[im]}`).join(',\n') + '\n}\n\n'
-  s.write(typePrelude + incomingMap + typeDefs.join(''))
+  s.write(typePrelude + typeDefs.join('') + incomingMap)
   s.close()
 }
