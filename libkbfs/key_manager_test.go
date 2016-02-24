@@ -1113,8 +1113,22 @@ func TestKeyManagerRekeyAddDeviceWithPrompt(t *testing.T) {
 		t.Fatalf("First rekey failed %v", err)
 	}
 
-	// Make sure just the rekey bit is set
 	ops := getOps(config2Dev2, rootNode1.GetFolderBranch().Tlf)
+	rev1 := ops.head.Revision
+
+	// Do it again, to simulate the mdserver sending back this node's
+	// own rekey request.  This shouldn't increase the MD version.
+	err = kbfsOps2Dev2.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
+	if err != nil {
+		t.Fatalf("Second rekey failed %v", err)
+	}
+	rev2 := ops.head.Revision
+
+	if rev1 != rev2 {
+		t.Errorf("Revision changed after second rekey: %v vs %v", rev1, rev2)
+	}
+
+	// Make sure just the rekey bit is set
 	if !ops.head.IsRekeySet() {
 		t.Fatalf("Couldn't set rekey bit")
 	}
