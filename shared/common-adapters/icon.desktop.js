@@ -56,8 +56,6 @@ Icon.propTypes = {
 
 export const styles = {
   icon: {
-    height: 16,
-    width: 16,
     fontSize: 16
   }
 }

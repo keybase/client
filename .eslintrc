@@ -26,6 +26,7 @@
         "strict": [2, "global"],
         "arrow-parens": [2, "as-needed"],
         "react/jsx-no-bind": [2, {"allowArrowFunctions": true}],
+        "react/prop-types": [0],
         "filenames/filenames": [2, "^[0-9a-z-.]+(\\.desktop|\\.native|\\.ios|\\.android)?$"]
     }
 }

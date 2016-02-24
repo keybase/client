@@ -21,10 +21,16 @@ const styles = {
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
-    margin: 65
+    margin: 65,
+    position: 'relative'
   },
   innerContainer: {
     ...globalStyles.flexBoxColumn,
-    alignSelf: 'stretch'
+    alignSelf: 'stretch',
+    position: 'absolute',
+    top: 20,
+    left: 0,
+    right: 0,
+    bottom: 0
   }
 }

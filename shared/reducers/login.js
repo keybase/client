@@ -46,7 +46,12 @@ type LoginState = {
     existingDevices: ?Array<string>,
     deviceName: string | ''
   },
-  configuredAccounts: ?Array<{hasStoredSecret: bool, username: string}>;
+  configuredAccounts: ?Array<{hasStoredSecret: bool, username: string}>,
+  provisionDevices: Array<{
+    name: string,
+    id: string,
+    type: 'mobile' | 'laptop'
+  }>
 }
 
 const initialState: LoginState = {
@@ -75,7 +80,23 @@ const initialState: LoginState = {
     existingDevices: [],
     deviceName: ''
   },
-  configuredAccounts: null
+  configuredAccounts: null,
+  provisionDevices: [
+    {name: 'desk', id: 'deskid', type: 'laptop'},
+    {name: 'mob1', id: '1', type: 'mobile'},
+    {name: 'mob2', id: '2', type: 'mobile'},
+    {name: 'mob2', id: '2', type: 'mobile'},
+    {name: 'mob2', id: '2', type: 'mobile'},
+    {name: 'mob2', id: '2', type: 'mobile'},
+    {name: 'mob2', id: '2', type: 'mobile'},
+    {name: 'mob2', id: '2', type: 'mobile'},
+    {name: 'mob2', id: '2', type: 'mobile'},
+    {name: 'mob2', id: '2', type: 'mobile'},
+    {name: 'mob2', id: '2', type: 'mobile'},
+    {name: 'mob2', id: '2', type: 'mobile'},
+    {name: 'mob2', id: '2', type: 'mobile'},
+    {name: 'mob2', id: '2', type: 'mobile'}
+  ]
 }
 
 export default function (state: LoginState = initialState, action: any): LoginState {

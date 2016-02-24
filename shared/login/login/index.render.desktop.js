@@ -12,8 +12,7 @@ type State = {
   passphrase: string
 }
 
-export default class LoginRender extends Component {
-  props: Props;
+export default class LoginRender extends Component<void, Props, State> {
   state: State;
 
   constructor (props: Props) {

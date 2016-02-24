@@ -4,6 +4,7 @@ import {isMobile} from '../../constants/platform'
 import {navigateTo, routeAppend} from '../router'
 import engine from '../../engine'
 import enums from '../../constants/types/keybase-v1'
+import SelectOtherDevice from '../../login/register/select-other-device'
 import UserPass from '../../login/register/user-pass'
 import PaperKey from '../../login/register/paper-key'
 import CodePage from '../../login/register/code-page'
@@ -366,8 +367,23 @@ export function registerWithUserPass () : AsyncAction {
   }
 }
 
+function TEST_MOCK_SCREEN (dispatch) {
+  dispatch(routeAppend({
+    parseRoute: {
+      componentAtTop: {
+        component: SelectOtherDevice,
+        props: {}}
+    }
+  }))
+}
+
 export function registerWithPaperKey () : AsyncAction {
   return (dispatch, getState) => {
+    if (__DEV__) {
+      TEST_MOCK_SCREEN(dispatch)
+      return
+    }
+
     const title = 'Registering with your paperkey requires your username'
     const subTitle = 'Different lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum'
     const provisionMethod = enums.provisionUi.ProvisionMethod.paperKey

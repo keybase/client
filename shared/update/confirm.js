@@ -23,7 +23,7 @@ type RenderProps = {
   onSnooze: () => void
 }
 
-export default class UpdateConfirm extends Component {
+class UpdateConfirm extends Component {
   props: RenderProps;
   state: {
     snackbarOpen: boolean
