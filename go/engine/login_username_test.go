@@ -67,7 +67,11 @@ func TestLoginUsernamePrompt(t *testing.T) {
 	tc := SetupEngineTest(t, "lu")
 	defer tc.Cleanup()
 
-	for _, test := range lutests {
+	lutestsPrompt := make([]luTest, len(lutests)+1)
+	copy(lutestsPrompt, lutests)
+	lutestsPrompt[len(lutestsPrompt)-1] = luTest{name: "empty prompt input", input: "", err: libkb.NoUsernameError{}}
+
+	for _, test := range lutestsPrompt {
 		ctx := &Context{
 			LoginUI: &libkb.TestLoginUI{
 				Username: test.input,
@@ -99,6 +103,24 @@ func TestLoginUsernamePrompt(t *testing.T) {
 		if eng.User().GetUID() != test.uid {
 			t.Errorf("%s: uid %q, expected %q", test.name, eng.User().GetUID(), test.uid)
 		}
+	}
+}
+
+// test user canceling GetEmailOrUsername prompt:
+func TestLoginUsernamePromptCancel(t *testing.T) {
+	tc := SetupEngineTest(t, "lu")
+	defer tc.Cleanup()
+	ctx := &Context{
+		LoginUI:  &libkb.TestLoginCancelUI{},
+		SecretUI: &libkb.TestSecretUI{},
+	}
+	eng := NewLoginUsername(tc.G, "")
+	err := RunEngine(eng, ctx)
+	if err == nil {
+		t.Fatal("expected an error")
+	}
+	if _, ok := err.(libkb.InputCanceledError); !ok {
+		t.Errorf("error: %s (%T), expected InputCanceledError", err, err)
 	}
 }
 
