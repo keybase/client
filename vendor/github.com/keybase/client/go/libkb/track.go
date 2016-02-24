@@ -4,12 +4,15 @@
 package libkb
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
 )
+
+var ErrTrackingExpired = errors.New("Local track expired")
 
 // Can be a ProofLinkWithState, one of the identities listed in a
 // tracking statement, or a PGP Fingerprint!
@@ -105,10 +108,11 @@ type TrackLookup struct {
 }
 
 func (l TrackLookup) ToSummary() TrackSummary {
-	return TrackSummary{
+	ret := TrackSummary{
 		time:     l.GetCTime(),
 		isRemote: l.IsRemote(),
 	}
+	return ret
 }
 
 func (l TrackLookup) GetProofState(id string) keybase1.ProofState {
@@ -133,6 +137,10 @@ func (l TrackLookup) GetEldestKID() keybase1.KID {
 		G.Log.Warning("Error in lookup of eldest KID: %s", err)
 	}
 	return ret
+}
+
+func (l TrackLookup) GetTmpExpireTime() (ret time.Time) {
+	return l.link.GetTmpExpireTime()
 }
 
 func (l TrackLookup) IsRemote() bool {
@@ -187,6 +195,16 @@ func (t TrackDiffNone) ToDisplayMarkup() *Markup {
 }
 func (t TrackDiffNone) GetTrackDiffType() keybase1.TrackDiffType {
 	return keybase1.TrackDiffType_NONE
+}
+
+type TrackDiffNoneViaTemporary struct{}
+
+func (t TrackDiffNoneViaTemporary) BreaksTracking() bool     { return false }
+func (t TrackDiffNoneViaTemporary) IsSameAsTracked() bool    { return true }
+func (t TrackDiffNoneViaTemporary) ToDisplayString() string  { return "snoozed" }
+func (t TrackDiffNoneViaTemporary) ToDisplayMarkup() *Markup { return NewMarkup(t.ToDisplayString()) }
+func (t TrackDiffNoneViaTemporary) GetTrackDiffType() keybase1.TrackDiffType {
+	return keybase1.TrackDiffType_NONE_VIA_TEMPORARY
 }
 
 type TrackDiffNew struct{}
@@ -349,18 +367,19 @@ func (l *TrackLookup) GetCTime() time.Time {
 
 //=====================================================================
 
-func LocalTrackDBKey(tracker, trackee keybase1.UID) DbKey {
-	return DbKey{Typ: DBLocalTrack, Key: fmt.Sprintf("%s-%s", tracker, trackee)}
+func LocalTrackDBKey(tracker, trackee keybase1.UID, expireLocal bool) DbKey {
+	key := fmt.Sprintf("%s-%s", tracker, trackee)
+	if expireLocal {
+		key += "-expires"
+	}
+	return DbKey{Typ: DBLocalTrack, Key: key}
 }
 
 //=====================================================================
 
-func LocalTrackChainLinkFor(tracker, trackee keybase1.UID, g *GlobalContext) (ret *TrackChainLink, err error) {
-	g.Log.Debug("+ GetLocalTrack(%s,%s)", tracker, trackee)
-	defer g.Log.Debug("- GetLocalTrack(%s,%s) -> (%v, %s)", tracker, trackee, ret, ErrToOk(err))
-
+func localTrackChainLinkFor(tracker, trackee keybase1.UID, localExpires bool, g *GlobalContext) (ret *TrackChainLink, err error) {
 	var obj *jsonw.Wrapper
-	obj, err = g.LocalDb.Get(LocalTrackDBKey(tracker, trackee))
+	obj, err = g.LocalDb.Get(LocalTrackDBKey(tracker, trackee, localExpires))
 	if err != nil {
 		g.Log.Debug("| DB lookup failed")
 		return
@@ -370,26 +389,58 @@ func LocalTrackChainLinkFor(tracker, trackee keybase1.UID, g *GlobalContext) (re
 		return
 	}
 
-	cl := &ChainLink{payloadJSON: obj, unsigned: true}
+	cl := &ChainLink{Contextified: NewContextified(g), payloadJSON: obj, unsigned: true}
 	if err = cl.UnpackLocal(); err != nil {
 		g.Log.Debug("| unpack failed -> %s", err)
 		return
 	}
+
+	var linkETime time.Time
+
+	if localExpires {
+		linkETime = cl.GetCTime().Add(g.Env.GetLocalTrackMaxAge())
+
+		g.Log.Debug("| := local track created %s, expires: %s, it is now %s", cl.GetCTime(), linkETime.String(), g.Clock.Now())
+
+		if linkETime.Before(g.Clock.Now()) {
+			g.Log.Debug("| expired local track, deleting")
+			removeLocalTrack(tracker, trackee, true, g)
+			ret = nil
+			err = ErrTrackingExpired
+			return ret, err
+		}
+	}
+
 	base := GenericChainLink{cl}
 	ret, err = ParseTrackChainLink(base)
 	if ret != nil && err == nil {
 		ret.local = true
+		ret.tmpExpireTime = linkETime
 	}
 
 	return
 }
 
-func StoreLocalTrack(tracker keybase1.UID, trackee keybase1.UID, statement *jsonw.Wrapper, g *GlobalContext) error {
-	g.Log.Debug("| StoreLocalTrack")
-	return g.LocalDb.Put(LocalTrackDBKey(tracker, trackee), nil, statement)
+func LocalTrackChainLinkFor(tracker, trackee keybase1.UID, g *GlobalContext) (ret *TrackChainLink, err error) {
+	return localTrackChainLinkFor(tracker, trackee, false, g)
 }
 
-func RemoveLocalTrack(tracker keybase1.UID, trackee keybase1.UID, g *GlobalContext) error {
-	g.Log.Debug("| RemoveLocalTrack")
-	return g.LocalDb.Delete(LocalTrackDBKey(tracker, trackee))
+func LocalTmpTrackChainLinkFor(tracker, trackee keybase1.UID, g *GlobalContext) (ret *TrackChainLink, err error) {
+	return localTrackChainLinkFor(tracker, trackee, true, g)
+}
+
+func StoreLocalTrack(tracker keybase1.UID, trackee keybase1.UID, expiringLocal bool, statement *jsonw.Wrapper, g *GlobalContext) error {
+	g.Log.Debug("| StoreLocalTrack, expiring = %v", expiringLocal)
+	return g.LocalDb.Put(LocalTrackDBKey(tracker, trackee, expiringLocal), nil, statement)
+}
+
+func removeLocalTrack(tracker keybase1.UID, trackee keybase1.UID, expiringLocal bool, g *GlobalContext) error {
+	g.Log.Debug("| RemoveLocalTrack, expiring = %v", expiringLocal)
+	return g.LocalDb.Delete(LocalTrackDBKey(tracker, trackee, expiringLocal))
+}
+
+func RemoveLocalTracks(tracker keybase1.UID, trackee keybase1.UID, g *GlobalContext) error {
+	e1 := removeLocalTrack(tracker, trackee, false, g)
+	e2 := removeLocalTrack(tracker, trackee, true, g)
+	return PickFirstError(e1, e2)
 }

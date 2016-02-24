@@ -55,7 +55,6 @@ type CommandLine interface {
 	GetLocalRPCDebug() string
 	GetTimers() string
 	GetSplitLogOutput() (bool, bool)
-	GetLogFile() string
 	GetRunMode() (RunMode, error)
 
 	GetScraperTimeout() (time.Duration, bool)
@@ -64,6 +63,7 @@ type CommandLine interface {
 	GetTorMode() (TorMode, error)
 	GetTorHiddenAddress() string
 	GetTorProxy() string
+	GetLocalTrackMaxAge() (time.Duration, bool)
 
 	// Lower-level functions
 	GetGString(string) string
@@ -108,6 +108,7 @@ type ConfigReader interface {
 	GetGpgHome() string
 	GetBundledCA(host string) string
 	GetStringAtPath(string) (string, bool)
+	GetInterfaceAtPath(string) (interface{}, error)
 	GetBoolAtPath(string) (bool, bool)
 	GetIntAtPath(string) (int, bool)
 	GetNullAtPath(string) bool
@@ -147,6 +148,7 @@ type ConfigReader interface {
 	GetUpdatePreferenceSkip() string
 	GetUpdatePreferenceSnoozeUntil() keybase1.Time
 	GetUpdateLastChecked() keybase1.Time
+	GetLocalTrackMaxAge() (time.Duration, bool)
 
 	GetTorMode() (TorMode, error)
 	GetTorHiddenAddress() string
@@ -166,6 +168,7 @@ type ConfigWriter interface {
 	SetStringAtPath(string, string) error
 	SetBoolAtPath(string, bool) error
 	SetIntAtPath(string, int) error
+	SetWrapperAtPath(string, *jsonw.Wrapper) error
 	SetNullAtPath(string) error
 	DeleteAtPath(string)
 	SetUpdatePreferenceAuto(bool) error
@@ -346,10 +349,12 @@ const (
 )
 
 type PromptDescriptor int
+type OutputDescriptor int
 
 type TerminalUI interface {
 	OutputWriter() io.Writer
 	Output(string) error
+	OutputDesc(OutputDescriptor, string) error
 	ErrorWriter() io.Writer
 	Printf(fmt string, args ...interface{}) (int, error)
 	PromptYesNo(PromptDescriptor, string, PromptDefault) (bool, error)
@@ -386,7 +391,7 @@ type UIRouter interface {
 	// Both of these are allowed to return nil for the UI even if
 	// error is nil.
 	GetIdentifyUI() (IdentifyUI, error)
-	GetSecretUI() (SecretUI, error)
+	GetSecretUI(sessionID int) (SecretUI, error)
 	GetUpdateUI() (UpdateUI, error)
 
 	Shutdown()

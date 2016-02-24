@@ -5,7 +5,6 @@ package libkb
 
 import (
 	"encoding/hex"
-	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
@@ -167,7 +166,7 @@ func (d *Delegator) Run(lctx LoginContext) (err error) {
 
 	// We'll need to generate two proofs, so set the Ctime
 	// so that we get the same time both times
-	d.Ctime = time.Now().Unix()
+	d.Ctime = d.G().Clock.Now().Unix()
 
 	// For a sibkey signature, we first sign the blob with the
 	// sibkey, and then embed that signature for the delegating key

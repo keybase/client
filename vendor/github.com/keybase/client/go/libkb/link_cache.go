@@ -18,6 +18,7 @@ type LinkCache struct {
 	gets   chan getLinkReq
 	puts   chan putLinkReq
 	dels   chan delLinkReq
+	muts   chan mutLinkReq
 	lens   chan lenReq
 	cleans chan struct{}
 	done   chan struct{}
@@ -39,6 +40,7 @@ func NewLinkCache(maxSize int, cleanDur time.Duration) *LinkCache {
 		lens:        make(chan lenReq),
 		cleans:      make(chan struct{}),
 		done:        make(chan struct{}),
+		muts:        make(chan mutLinkReq),
 		maxSize:     maxSize,
 		cleanWait:   cleanDur,
 		accessOrder: list.New(),
@@ -70,6 +72,14 @@ func (c *LinkCache) Put(id LinkID, link ChainLink) {
 	}
 	copy(req.linkID[:], id)
 	c.puts <- req
+}
+
+func (c *LinkCache) Mutate(id LinkID, f func(c *ChainLink)) {
+	req := mutLinkReq{
+		f: f,
+	}
+	copy(req.linkID[:], id)
+	c.muts <- req
 }
 
 // Remove deletes a ChainLink from the cache.
@@ -112,6 +122,11 @@ type delLinkReq struct {
 	linkID linkIDFixed
 }
 
+type mutLinkReq struct {
+	linkID linkIDFixed
+	f      func(c *ChainLink)
+}
+
 type lenReq struct {
 	result chan int
 }
@@ -149,6 +164,15 @@ func (c *LinkCache) handle() {
 			delete(c.cache, d.linkID)
 		case l := <-c.lens:
 			l.result <- len(c.cache)
+		case m := <-c.muts:
+			if elt, ok := c.cache[m.linkID]; ok {
+				if link, ok := elt.Value.(ChainLink); ok {
+					m.f(&link)
+					c.accessOrder.Remove(elt)
+					elt = c.accessOrder.PushBack(link)
+					c.cache[m.linkID] = elt
+				}
+			}
 		case <-c.cleans:
 			delta := len(c.cache) - c.maxSize
 			for i := 0; i < delta; i++ {

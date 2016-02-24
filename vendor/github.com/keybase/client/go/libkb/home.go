@@ -6,7 +6,6 @@ package libkb
 import (
 	"io/ioutil"
 	"os"
-	"path"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -126,7 +125,15 @@ func (d Darwin) ConfigDir() string                { return d.homeDir(d.Home(fals
 func (d Darwin) DataDir() string                  { return d.ConfigDir() }
 func (d Darwin) RuntimeDir() string               { return d.CacheDir() }
 func (d Darwin) ServiceSpawnDir() (string, error) { return d.RuntimeDir(), nil }
-func (d Darwin) LogDir() string                   { return path.Join(d.Home(false), "Library", "Logs") }
+func (d Darwin) LogDir() string {
+	appName := toUpper(d.appName)
+	runMode := d.getRunMode()
+	dirs := []string{d.Home(false), "Library", "Logs"}
+	if runMode != ProductionRunMode {
+		dirs = append(dirs, appName+toUpper(string(runMode)))
+	}
+	return filepath.Join(dirs...)
+}
 
 func (d Darwin) Home(emptyOk bool) string {
 	var ret string

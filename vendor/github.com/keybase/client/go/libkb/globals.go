@@ -89,12 +89,17 @@ func (g *GlobalContext) SetCommandLine(cmd CommandLine) { g.Env.SetCommandLine(c
 
 func (g *GlobalContext) SetUI(u UI) { g.UI = u }
 
-func (g *GlobalContext) Init() {
+func (g *GlobalContext) Init() *GlobalContext {
 	g.Env = NewEnv(nil, nil)
 	g.Service = false
 	g.createLoginState()
 	g.Resolver = NewResolver(g)
 	g.RateLimits = NewRateLimits(g)
+	return g
+}
+
+func NewGlobalContextInit() *GlobalContext {
+	return NewGlobalContext().Init()
 }
 
 func (g *GlobalContext) SetService() {
@@ -177,8 +182,7 @@ func (g *GlobalContext) ConfigureConfig() error {
 	if err = c.Check(); err != nil {
 		return err
 	}
-	g.Env.SetConfig(*c)
-	g.Env.SetConfigWriter(c)
+	g.Env.SetConfig(*c, c)
 	return nil
 }
 
@@ -482,4 +486,16 @@ func (g *GlobalContext) GetMyClientDetails() keybase1.ClientDetails {
 		Argv:       os.Args,
 		Version:    VersionString(),
 	}
+}
+
+func (g *GlobalContext) GetUnforwardedLogger() *logger.UnforwardedLogger {
+	if g.Log == nil {
+		return nil
+	}
+	log, ok := g.Log.(*logger.Standard)
+	if !ok {
+		g.Log.Notice("Can't make Unforwaded logger from a non-standard logger")
+		return nil
+	}
+	return (*logger.UnforwardedLogger)(log)
 }

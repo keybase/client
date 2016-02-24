@@ -361,6 +361,11 @@ func (scr *signatureCheckReader) Read(buf []byte) (n int, err error) {
 // returns the signer if the signature is valid. If the signer isn't known,
 // ErrUnknownIssuer is returned.
 func CheckDetachedSignature(keyring KeyRing, signed, signature io.Reader) (signer *Entity, err error) {
+	signer, _, err = checkDetachedSignature(keyring, signed, signature)
+	return signer, err
+}
+
+func checkDetachedSignature(keyring KeyRing, signed, signature io.Reader) (signer *Entity, issuer *uint64, err error) {
 	var issuerKeyId uint64
 	var hashFunc crypto.Hash
 	var sigType packet.SignatureType
@@ -371,16 +376,16 @@ func CheckDetachedSignature(keyring KeyRing, signed, signature io.Reader) (signe
 	for {
 		p, err = packets.Next()
 		if err == io.EOF {
-			return nil, errors.ErrUnknownIssuer
+			return nil, nil, errors.ErrUnknownIssuer
 		}
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		switch sig := p.(type) {
 		case *packet.Signature:
 			if sig.IssuerKeyId == nil {
-				return nil, errors.StructuralError("signature doesn't have an issuer")
+				return nil, nil, errors.StructuralError("signature doesn't have an issuer")
 			}
 			issuerKeyId = *sig.IssuerKeyId
 			hashFunc = sig.Hash
@@ -390,7 +395,7 @@ func CheckDetachedSignature(keyring KeyRing, signed, signature io.Reader) (signe
 			hashFunc = sig.Hash
 			sigType = sig.SigType
 		default:
-			return nil, errors.StructuralError("non signature packet found")
+			return nil, nil, errors.StructuralError("non signature packet found")
 		}
 
 		keys = keyring.KeysByIdUsage(issuerKeyId, packet.KeyFlagSign)
@@ -405,11 +410,11 @@ func CheckDetachedSignature(keyring KeyRing, signed, signature io.Reader) (signe
 
 	h, wrappedHash, err := hashForSignature(hashFunc, sigType)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	if _, err := io.Copy(wrappedHash, signed); err != nil && err != io.EOF {
-		return nil, err
+		return nil, nil, err
 	}
 
 	for _, key := range keys {
@@ -423,20 +428,24 @@ func CheckDetachedSignature(keyring KeyRing, signed, signature io.Reader) (signe
 		}
 
 		if err == nil {
-			return key.Entity, nil
+			return key.Entity, &issuerKeyId, nil
 		}
 	}
 
-	return nil, err
+	return nil, nil, err
 }
 
 // CheckArmoredDetachedSignature performs the same actions as
 // CheckDetachedSignature but expects the signature to be armored.
 func CheckArmoredDetachedSignature(keyring KeyRing, signed, signature io.Reader) (signer *Entity, err error) {
+	signer, _, err = checkArmoredDetachedSignature(keyring, signed, signature)
+	return signer, err
+}
+
+func checkArmoredDetachedSignature(keyring KeyRing, signed, signature io.Reader) (signer *Entity, issuer *uint64, err error) {
 	body, err := readArmored(signature, SignatureType)
 	if err != nil {
 		return
 	}
-
-	return CheckDetachedSignature(keyring, signed, body)
+	return checkDetachedSignature(keyring, signed, body)
 }

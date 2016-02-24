@@ -5,10 +5,9 @@ package libkb
 
 import (
 	"fmt"
+	keybase1 "github.com/keybase/client/go/protocol"
 	"io"
 	"time"
-
-	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 type SigChain struct {
@@ -79,7 +78,7 @@ func (sc SigChain) GetComputedKeyInfos() (cki *ComputedKeyInfos) {
 }
 
 func (sc SigChain) GetFutureChainTail() (ret *MerkleTriple) {
-	now := time.Now()
+	now := sc.G().Clock.Now()
 	if sc.localChainTail != nil && now.Sub(sc.localChainUpdateTime) < ServerUpdateLag {
 		ret = sc.localChainTail
 	}
@@ -125,7 +124,7 @@ func (sc *SigChain) Bump(mt MerkleTriple) {
 	mt.Seqno = sc.GetLastKnownSeqno() + 1
 	sc.G().Log.Debug("| Bumping SigChain LastKnownSeqno to %d", mt.Seqno)
 	sc.localChainTail = &mt
-	sc.localChainUpdateTime = time.Now()
+	sc.localChainUpdateTime = sc.G().Clock.Now()
 }
 
 func (sc *SigChain) LoadFromServer(t *MerkleTriple, selfUID keybase1.UID) (dirtyTail *MerkleTriple, err error) {
@@ -219,6 +218,7 @@ func (sc *SigChain) VerifyChain() (err error) {
 	for i := len(sc.chainLinks) - 1; i >= 0; i-- {
 		curr := sc.chainLinks[i]
 		if curr.chainVerified {
+			sc.G().Log.Debug("| short-circuit at link %d", i)
 			break
 		}
 		if err = curr.VerifyLink(); err != nil {
@@ -434,6 +434,14 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 		isModifyingKeys := isDelegating || tcl.Type() == PGPUpdateType
 		isFinalLink := (linkIndex == len(links)-1)
 		isLastLinkInSameKeyRun := (isFinalLink || newKID != links[linkIndex+1].GetKID())
+
+		if pgpcl, ok := tcl.(*PGPUpdateChainLink); ok {
+			if hash := pgpcl.GetPGPFullHash(); hash != "" {
+				sc.G().Log.Debug("| Setting active PGP hash for %s: %s", pgpcl.kid, hash)
+				ckf.SetActivePGPHash(pgpcl.kid, hash)
+			}
+		}
+
 		if isModifyingKeys || isFinalLink || isLastLinkInSameKeyRun {
 			_, err = link.VerifySigWithKeyFamily(ckf)
 			if err != nil {
@@ -447,13 +455,6 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 			if err != nil {
 				sc.G().Log.Debug("| Failure in Delegate: %s", err)
 				return
-			}
-		}
-
-		if pgpcl, ok := tcl.(*PGPUpdateChainLink); ok {
-			if hash := pgpcl.GetPGPFullHash(); hash != "" {
-				sc.G().Log.Debug("| Setting active PGP hash for %s: %s", pgpcl.kid, hash)
-				ckf.SetActivePGPHash(pgpcl.kid, hash)
 			}
 		}
 
@@ -857,7 +858,7 @@ func (l *SigChainLoader) merkleTreeEldestMatchesLastLinkEldest() bool {
 // all of the steps to load a chain in from storage, to refresh it against
 // the server, and to verify its integrity.
 func (l *SigChainLoader) Load() (ret *SigChain, err error) {
-	defer TimeLog(fmt.Sprintf("SigChainLoader.Load: %s", l.user.GetName()), time.Now(), l.G().Log.Debug)
+	defer TimeLog(fmt.Sprintf("SigChainLoader.Load: %s", l.user.GetName()), l.G().Clock.Now(), l.G().Log.Debug)
 	var current bool
 	var preload bool
 

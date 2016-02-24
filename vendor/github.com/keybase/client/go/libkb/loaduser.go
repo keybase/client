@@ -5,7 +5,6 @@ package libkb
 
 import (
 	"fmt"
-	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
@@ -124,7 +123,7 @@ func LoadMeByUID(g *GlobalContext, uid keybase1.UID) (*User, error) {
 }
 
 func LoadUser(arg LoadUserArg) (ret *User, err error) {
-	defer TimeLog(fmt.Sprintf("LoadUser: %+v", arg), time.Now(), arg.G().Log.Debug)
+	defer TimeLog(fmt.Sprintf("LoadUser: %+v", arg), arg.G().Clock.Now(), arg.G().Log.Debug)
 	arg.G().Log.Debug("LoadUser: %+v", arg)
 	var refresh bool
 

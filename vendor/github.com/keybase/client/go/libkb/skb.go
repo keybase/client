@@ -17,12 +17,27 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 	"sync"
 
 	keybase1 "github.com/keybase/client/go/protocol"
 	triplesec "github.com/keybase/go-triplesec"
 )
+
+// DebugDumpKey is used only in debugging. For now it's now in
+// use but we might need it in the future.
+func DebugDumpKey(g *GlobalContext, name string, b []byte) {
+	tmp, err := ioutil.TempFile(os.TempDir(), "dump-"+name)
+	if err != nil {
+		g.Log.Warning("Failed to dumpKey %s: %s", name, err)
+		return
+	}
+	g.Log.Notice("DUMPKEY %s -> %s", name, tmp.Name())
+	buf := bytes.NewBuffer(b)
+	io.Copy(tmp, buf)
+	tmp.Close()
+}
 
 type SKB struct {
 	Priv SKBPriv  `codec:"priv"`
@@ -61,7 +76,7 @@ func (key *PGPKeyBundle) ToServerSKB(gc *GlobalContext, tsec *triplesec.Cipher, 
 	var pk, sk bytes.Buffer
 
 	// Need to serialize Private first, because
-	err = key.Entity.SerializePrivate(&sk, nil)
+	err = key.SerializePrivate(&sk)
 	if err != nil {
 		return
 	}
@@ -96,7 +111,7 @@ func (key *PGPKeyBundle) ToLksSKB(lks *LKSec) (ret *SKB, err error) {
 	ret = NewSKB(lks.G())
 
 	serializePublic := func() error { return key.Entity.Serialize(&pk) }
-	serializePrivate := func() error { return key.Entity.SerializePrivate(&sk, nil) }
+	serializePrivate := func() error { return key.SerializePrivate(&sk) }
 
 	// NOTE(maxtaco): For imported keys, it is crucial to serialize the public key
 	// **before** the private key, since the latter operation destructively
@@ -114,6 +129,7 @@ func (key *PGPKeyBundle) ToLksSKB(lks *LKSec) (ret *SKB, err error) {
 		}
 	} else {
 		err = serializePublic()
+
 		if err == nil {
 			err = serializePrivate()
 		}
@@ -328,7 +344,7 @@ func (s *SKB) UnlockSecretKey(lctx LoginContext, passphrase string, tsec *triple
 				}
 			}
 		} else {
-			s.G().Log.Debug("| not caching passphrase stream:  err = %v, ppsIn = %v", err, ppsIn)
+			s.G().Log.Debug("| not caching passphrase stream: err = %v", err)
 		}
 	default:
 		err = BadKeyError{fmt.Sprintf("Can't unlock secret with protection type %d", int(s.Priv.Encryption))}

@@ -66,6 +66,7 @@ func (n NullConfiguration) GetUpdatePreferenceSnoozeUntil() keybase1.Time { retu
 func (n NullConfiguration) GetUpdateLastChecked() keybase1.Time           { return keybase1.Time(0) }
 func (n NullConfiguration) GetUpdatePreferenceSkip() string               { return "" }
 func (n NullConfiguration) GetVDebugSetting() string                      { return "" }
+func (n NullConfiguration) GetLocalTrackMaxAge() (time.Duration, bool)    { return 0, false }
 
 func (n NullConfiguration) GetUserConfig() (*UserConfig, error) { return nil, nil }
 func (n NullConfiguration) GetUserConfigForUsername(s NormalizedUsername) (*UserConfig, error) {
@@ -94,6 +95,9 @@ func (n NullConfiguration) GetNoPinentry() (bool, bool) {
 
 func (n NullConfiguration) GetStringAtPath(string) (string, bool) {
 	return "", false
+}
+func (n NullConfiguration) GetInterfaceAtPath(string) (interface{}, error) {
+	return nil, nil
 }
 
 func (n NullConfiguration) GetBoolAtPath(string) (bool, bool) {
@@ -166,16 +170,11 @@ func (e *Env) GetCommandLine() CommandLine {
 	return e.cmd
 }
 
-func (e *Env) SetConfig(config ConfigReader) {
+func (e *Env) SetConfig(r ConfigReader, w ConfigWriter) {
 	e.Lock()
 	defer e.Unlock()
-	e.config = config
-}
-
-func (e *Env) SetConfigWriter(writer ConfigWriter) {
-	e.Lock()
-	defer e.Unlock()
-	e.writer = writer
+	e.config = r
+	e.writer = w
 }
 
 func NewEnv(cmd CommandLine, config ConfigReader) *Env {
@@ -546,6 +545,13 @@ func (e *Env) GetScraperTimeout() time.Duration {
 	)
 }
 
+func (e *Env) GetLocalTrackMaxAge() time.Duration {
+	return e.GetDuration(LocalTrackMaxAge,
+		func() (time.Duration, bool) { return e.cmd.GetLocalTrackMaxAge() },
+		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_LOCAL_TRACK_MAX_AGE") },
+		func() (time.Duration, bool) { return e.config.GetLocalTrackMaxAge() },
+	)
+}
 func (e *Env) GetProofCacheSize() int {
 	return e.GetInt(ProofCacheSize,
 		e.cmd.GetProofCacheSize,
@@ -747,10 +753,7 @@ func (e *Env) GetSplitLogOutput() bool {
 
 func (e *Env) GetLogFile() string {
 	return e.GetString(
-		func() string { return e.cmd.GetLogFile() },
-		func() string { return os.Getenv("KEYBASE_LOG_FILE") },
-		func() string { return e.config.GetLogFile() },
-		func() string { return filepath.Join(e.GetLogDir(), "keybase.log") },
+		func() string { return filepath.Join(e.GetLogDir(), ServiceLogFileName) },
 	)
 }
 
@@ -893,4 +896,8 @@ func (e *Env) GetVDebugSetting() string {
 		func() string { return e.config.GetVDebugSetting() },
 		func() string { return "" },
 	)
+}
+
+func (e *Env) GetRunModeAsString() string {
+	return string(e.GetRunMode())
 }

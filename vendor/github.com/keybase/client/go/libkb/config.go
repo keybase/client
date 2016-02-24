@@ -66,6 +66,10 @@ func (f JSONConfigFile) GetFilename() string {
 	return f.filename
 }
 
+func (f JSONConfigFile) GetInterfaceAtPath(p string) (i interface{}, err error) {
+	return f.jw.AtPath(p).GetInterface()
+}
+
 func (f JSONConfigFile) GetStringAtPath(p string) (ret string, isSet bool) {
 	i, isSet := f.getValueAtPath(p, getString)
 	if isSet {
@@ -133,6 +137,14 @@ func (f *JSONConfigFile) setValueAtPath(p string, getter valueGetter, v interfac
 		if err == nil {
 			return f.Save()
 		}
+	}
+	return err
+}
+
+func (f *JSONConfigFile) SetWrapperAtPath(p string, w *jsonw.Wrapper) error {
+	err := f.jw.SetValueAtPath(p, w)
+	if err == nil {
+		err = f.Save()
 	}
 	return err
 }
@@ -652,4 +664,8 @@ func (f *JSONConfigFile) SetTimeAtPath(path string, t keybase1.Time) error {
 		return f.SetNullAtPath(path)
 	}
 	return f.SetStringAtPath(path, fmt.Sprintf("%d", t))
+}
+
+func (f JSONConfigFile) GetLocalTrackMaxAge() (time.Duration, bool) {
+	return f.GetDurationAtPath("local_track_max_age")
 }

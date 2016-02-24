@@ -8,11 +8,11 @@ import (
 	"bytes"
 	"crypto/cipher"
 	"crypto/dsa"
-	"crypto/rsa"
 	"crypto/sha1"
 	"github.com/keybase/go-crypto/openpgp/elgamal"
 	"github.com/keybase/go-crypto/openpgp/errors"
 	"github.com/keybase/go-crypto/openpgp/s2k"
+	"github.com/keybase/go-crypto/rsa"
 	"io"
 	"io/ioutil"
 	"math/big"
@@ -43,6 +43,13 @@ func NewRSAPrivateKey(currentTime time.Time, priv *rsa.PrivateKey) *PrivateKey {
 func NewDSAPrivateKey(currentTime time.Time, priv *dsa.PrivateKey) *PrivateKey {
 	pk := new(PrivateKey)
 	pk.PublicKey = *NewDSAPublicKey(currentTime, &priv.PublicKey)
+	pk.PrivateKey = priv
+	return pk
+}
+
+func NewElGamalPrivateKey(currentTime time.Time, priv *elgamal.PrivateKey) *PrivateKey {
+	pk := new(PrivateKey)
+	pk.PublicKey = *NewElGamalPublicKey(currentTime, &priv.PublicKey)
 	pk.PrivateKey = priv
 	return pk
 }
@@ -148,6 +155,8 @@ func (pk *PrivateKey) Serialize(w io.Writer) (err error) {
 			err = serializeRSAPrivateKey(privateKeyBuf, priv)
 		case *dsa.PrivateKey:
 			err = serializeDSAPrivateKey(privateKeyBuf, priv)
+		case *elgamal.PrivateKey:
+			err = serializeElGamalPrivateKey(privateKeyBuf, priv)
 		default:
 			err = errors.InvalidArgumentError("unknown private key type")
 		}
@@ -203,6 +212,10 @@ func serializeRSAPrivateKey(w io.Writer, priv *rsa.PrivateKey) error {
 }
 
 func serializeDSAPrivateKey(w io.Writer, priv *dsa.PrivateKey) error {
+	return writeBig(w, priv.X)
+}
+
+func serializeElGamalPrivateKey(w io.Writer, priv *elgamal.PrivateKey) error {
 	return writeBig(w, priv.X)
 }
 

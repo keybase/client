@@ -140,6 +140,10 @@ func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (*PGPKeyBundle, error
 			return nil, err
 		}
 		bundle.ArmoredPublicKey = publicBundle.ArmoredPublicKey
+
+		// It's a bug that gpg --export-secret-keys doesn't grep subkey revocations.
+		// No matter, we have both in-memory, so we can copy it over here
+		bundle.CopySubkeyRevocations(publicBundle.Entity)
 	}
 
 	return bundle, nil

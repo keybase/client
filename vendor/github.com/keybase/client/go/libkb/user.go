@@ -6,7 +6,6 @@ package libkb
 import (
 	"fmt"
 	"io"
-	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
@@ -222,7 +221,7 @@ func (u *User) StoreSigChain() error {
 }
 
 func (u *User) LoadSigChains(allKeys bool, f *MerkleUserLeaf, self bool) (err error) {
-	defer TimeLog(fmt.Sprintf("LoadSigChains: %s", u.name), time.Now(), u.G().Log.Debug)
+	defer TimeLog(fmt.Sprintf("LoadSigChains: %s", u.name), u.G().Clock.Now(), u.G().Log.Debug)
 
 	loader := SigChainLoader{
 		user:         u,
@@ -474,9 +473,16 @@ func (u *User) Equal(other *User) bool {
 	return u.id == other.id
 }
 
+func (u *User) TmpTrackChainLinkFor(username string, uid keybase1.UID) (tcl *TrackChainLink, err error) {
+	u.G().Log.Debug("+ TmpTrackChainLinkFor for %s", uid)
+	tcl, err = LocalTmpTrackChainLinkFor(u.id, uid, u.G())
+	u.G().Log.Debug("- TmpTrackChainLinkFor for %s -> %v, %v", uid, (tcl != nil), err)
+	return tcl, err
+}
+
 func (u *User) TrackChainLinkFor(username string, uid keybase1.UID) (*TrackChainLink, error) {
-	u.G().Log.Debug("+ GetTrackingStatement for %s", uid)
-	defer u.G().Log.Debug("- GetTrackingStatement for %s", uid)
+	u.G().Log.Debug("+ TrackChainLinkFor for %s", uid)
+	defer u.G().Log.Debug("- TrackChainLinkFor for %s", uid)
 
 	remote, e1 := u.remoteTrackChainLinkFor(username, uid)
 	local, e2 := LocalTrackChainLinkFor(u.id, uid, u.G())
@@ -497,10 +503,12 @@ func (u *User) TrackChainLinkFor(username string, uid keybase1.UID) (*TrackChain
 	}
 
 	if remote == nil && local != nil {
+		u.g.Log.Debug("local expire %v: %s", local.tmpExpireTime.IsZero(), local.tmpExpireTime)
 		return local, nil
 	}
 
 	if remote.GetCTime().After(local.GetCTime()) {
+		u.G().Log.Debug("| Returning newer remote")
 		return remote, nil
 	}
 
@@ -523,7 +531,7 @@ func (u *User) BaseProofSet() *ProofSet {
 		{Key: "uid", Value: u.id.String()},
 	}
 	for _, fp := range u.GetActivePGPFingerprints(true) {
-		proofs = append(proofs, Proof{Key: "fingerprint", Value: fp.String()})
+		proofs = append(proofs, Proof{Key: PGPAssertionKey, Value: fp.String()})
 	}
 
 	return NewProofSet(proofs)

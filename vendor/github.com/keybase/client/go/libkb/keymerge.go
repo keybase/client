@@ -57,6 +57,9 @@ func (to *PGPKeyBundle) MergeKey(from *PGPKeyBundle) {
 		if i, ok := existingSubkeys[subkey.PublicKey.Fingerprint]; ok {
 			if subkey.Sig.CreationTime.After(to.Subkeys[i].Sig.CreationTime) {
 				to.Subkeys[i].Sig = subkey.Sig
+				if subkey.Revocation != nil {
+					to.Subkeys[i].Revocation = subkey.Revocation
+				}
 			}
 		} else {
 			to.Subkeys = append(to.Subkeys, subkey)

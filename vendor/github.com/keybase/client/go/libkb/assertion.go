@@ -358,7 +358,7 @@ func ParseAssertionURLKeyValue(key, val string,
 		ret = AssertionHTTPS{base}
 	case "dns":
 		ret = AssertionDNS{base}
-	case "fingerprint":
+	case PGPAssertionKey:
 		ret = AssertionFingerprint{base}
 	default:
 		ret = AssertionSocial{base}

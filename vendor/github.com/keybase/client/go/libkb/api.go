@@ -532,7 +532,25 @@ const (
 )
 
 func (api *ExternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
-	// noop for now
+	// TODO (here and in the internal API engine implementation): If we don't
+	// set the User-Agent, it will default to http.defaultUserAgent
+	// ("Go-http-client/1.1"). We should think about whether that's what we
+	// want in Tor mode. Clients that are actually using Tor will always be
+	// distinguishable from the rest, insofar as their originating IP will be a
+	// Tor exit node, but there may be other use cases where this matters more?
+	userAgent := UserAgent
+	// Awful hack to make reddit as happy as possible.
+	if isReddit(req) {
+		userAgent += " (by /u/oconnor663)"
+	}
+	if api.G().Env.GetTorMode().UseHeaders() {
+		req.Header.Set("User-Agent", userAgent)
+	}
+}
+
+func isReddit(req *http.Request) bool {
+	host := req.URL.Host
+	return host == "reddit.com" || strings.HasSuffix(host, ".reddit.com")
 }
 
 func (api *ExternalAPIEngine) consumeHeaders(resp *http.Response) error {
@@ -564,7 +582,7 @@ func (api *ExternalAPIEngine) DoRequest(
 		}
 	case XAPIResText:
 		var buf bytes.Buffer
-		_, err := buf.ReadFrom(resp.Body)
+		_, err = buf.ReadFrom(resp.Body)
 		defer resp.Body.Close()
 		if err == nil {
 			tr = &ExternalTextRes{resp.StatusCode, string(buf.Bytes())}

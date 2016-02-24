@@ -92,7 +92,7 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 		return nil, err
 	}
 
-	transport := rpc.NewTransport(conn, libkb.NewRPCLogFactory(), libkb.WrapError)
+	transport := rpc.NewTransport(conn, libkb.NewRPCLogFactory(libkb.G), libkb.WrapError)
 	ct.mutex.Lock()
 	defer ct.mutex.Unlock()
 	ct.conn = conn

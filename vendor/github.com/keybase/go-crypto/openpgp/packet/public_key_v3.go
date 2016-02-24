@@ -7,7 +7,6 @@ package packet
 import (
 	"crypto"
 	"crypto/md5"
-	"crypto/rsa"
 	"encoding/binary"
 	"fmt"
 	"hash"
@@ -17,6 +16,7 @@ import (
 	"time"
 
 	"github.com/keybase/go-crypto/openpgp/errors"
+	"github.com/keybase/go-crypto/rsa"
 )
 
 // PublicKeyV3 represents older, version 3 public keys. These keys are less secure and
@@ -100,14 +100,14 @@ func (pk *PublicKeyV3) parseRSA(r io.Reader) (err error) {
 	if len(pk.n.bytes) < 8 {
 		return errors.StructuralError("v3 public key modulus is too short")
 	}
-	if len(pk.e.bytes) > 3 {
+	if len(pk.e.bytes) > 7 {
 		err = errors.UnsupportedError("large public exponent")
 		return
 	}
 	rsa := &rsa.PublicKey{N: new(big.Int).SetBytes(pk.n.bytes)}
 	for i := 0; i < len(pk.e.bytes); i++ {
 		rsa.E <<= 8
-		rsa.E |= int(pk.e.bytes[i])
+		rsa.E |= int64(pk.e.bytes[i])
 	}
 	pk.PublicKey = rsa
 	return

@@ -5,13 +5,13 @@
 package openpgp
 
 import (
-	"crypto/rsa"
 	"io"
 	"time"
 
 	"github.com/keybase/go-crypto/openpgp/armor"
 	"github.com/keybase/go-crypto/openpgp/errors"
 	"github.com/keybase/go-crypto/openpgp/packet"
+	"github.com/keybase/go-crypto/rsa"
 )
 
 // PublicKeyType is the armor type for a PGP public key.
@@ -29,6 +29,7 @@ type Entity struct {
 	Identities  map[string]*Identity // indexed by Identity.Name
 	Revocations []*packet.Signature
 	Subkeys     []Subkey
+	BadSubkeys  []BadSubkey
 }
 
 // An Identity represents an identity claimed by an Entity and zero or more
@@ -46,6 +47,14 @@ type Subkey struct {
 	PublicKey  *packet.PublicKey
 	PrivateKey *packet.PrivateKey
 	Sig        *packet.Signature
+	Revocation *packet.Signature
+}
+
+// BadSubkey is one that failed reconstruction, but we'll keep it around for
+// informational purposes.
+type BadSubkey struct {
+	Subkey
+	Err error
 }
 
 // A Key identifies a specific public key in an Entity. This is either the
@@ -94,10 +103,23 @@ func (e *Entity) encryptionKey(now time.Time) (Key, bool) {
 	// Iterate the keys to find the newest key
 	var maxTime time.Time
 	for i, subkey := range e.Subkeys {
-		if subkey.Sig.FlagsValid &&
-			subkey.Sig.FlagEncryptCommunications &&
+
+		// NOTE(maxtaco)
+		// If there is a Flags subpacket, then we have to follow it, and only
+		// use keys that are marked for Encryption of Communication.  If there
+		// isn't a Flags subpacket, and this is an Encrypt-Only key (right now only ElGamal
+		// suffices), then we implicitly use it. The check for primary below is a little
+		// more open-ended, but for now, let's be strict and potentially open up
+		// if we see bugs in the wild.
+		//
+		// One more note: old DSA/ElGamal keys tend not to have the Flags subpacket,
+		// so this sort of thing is pretty important for encrypting to older keys.
+		//
+		if ((subkey.Sig.FlagsValid && subkey.Sig.FlagEncryptCommunications) ||
+			(!subkey.Sig.FlagsValid && subkey.PublicKey.PubKeyAlgo == packet.PubKeyAlgoElGamal)) &&
 			subkey.PublicKey.PubKeyAlgo.CanEncrypt() &&
 			!subkey.Sig.KeyExpired(now) &&
+			subkey.Revocation == nil &&
 			(maxTime.IsZero() || subkey.Sig.CreationTime.After(maxTime)) {
 			candidateSubkey = i
 			maxTime = subkey.Sig.CreationTime
@@ -113,8 +135,11 @@ func (e *Entity) encryptionKey(now time.Time) (Key, bool) {
 	// the primary key doesn't have any usage metadata then we
 	// assume that the primary key is ok. Or, if the primary key is
 	// marked as ok to encrypt to, then we can obviously use it.
+	//
+	// NOTE(maxtaco) - see note above, how this policy is a little too open-ended
+	// for my liking, but leave it for now.
 	i := e.primaryIdentity()
-	if !i.SelfSignature.FlagsValid || i.SelfSignature.FlagEncryptCommunications &&
+	if (!i.SelfSignature.FlagsValid || i.SelfSignature.FlagEncryptCommunications) &&
 		e.PrimaryKey.PubKeyAlgo.CanEncrypt() &&
 		!i.SelfSignature.KeyExpired(now) {
 		return Key{e, e.PrimaryKey, e.PrivateKey, i.SelfSignature}, true
@@ -130,9 +155,10 @@ func (e *Entity) signingKey(now time.Time) (Key, bool) {
 	candidateSubkey := -1
 
 	for i, subkey := range e.Subkeys {
-		if subkey.Sig.FlagsValid &&
-			subkey.Sig.FlagSign &&
+		if (!subkey.Sig.FlagsValid || subkey.Sig.FlagSign) &&
+			subkey.PrivateKey.PrivateKey != nil &&
 			subkey.PublicKey.PubKeyAlgo.CanSign() &&
+			subkey.Revocation == nil &&
 			!subkey.Sig.KeyExpired(now) {
 			candidateSubkey = i
 			break
@@ -147,8 +173,10 @@ func (e *Entity) signingKey(now time.Time) (Key, bool) {
 	// If we have no candidate subkey then we assume that it's ok to sign
 	// with the primary key.
 	i := e.primaryIdentity()
-	if (!i.SelfSignature.FlagsValid || i.SelfSignature.FlagSign &&
-		!i.SelfSignature.KeyExpired(now)) && e.PrivateKey.PrivateKey != nil {
+	if (!i.SelfSignature.FlagsValid || i.SelfSignature.FlagSign) &&
+		e.PrimaryKey.PubKeyAlgo.CanSign() &&
+		!i.SelfSignature.KeyExpired(now) &&
+		e.PrivateKey.PrivateKey != nil {
 		return Key{e, e.PrimaryKey, e.PrivateKey, i.SelfSignature}, true
 	}
 
@@ -176,7 +204,15 @@ func (el EntityList) KeysById(id uint64) (keys []Key) {
 
 		for _, subKey := range e.Subkeys {
 			if subKey.PublicKey.KeyId == id {
-				keys = append(keys, Key{e, subKey.PublicKey, subKey.PrivateKey, subKey.Sig})
+
+				// If there's both a a revocation and a sig, then take the
+				// revocation. Otherwise, we can proceed with the sig.
+				sig := subKey.Revocation
+				if sig == nil {
+					sig = subKey.Sig
+				}
+
+				keys = append(keys, Key{e, subKey.PublicKey, subKey.PrivateKey, sig})
 			}
 		}
 	}
@@ -348,35 +384,44 @@ EachPacket:
 		}
 		switch pkt := p.(type) {
 		case *packet.UserId:
+
+			// Make a new Identity object, that we might wind up throwing away.
+			// We'll only add it if we get a valid self-signature over this
+			// userID.
 			current = new(Identity)
 			current.Name = pkt.Id
 			current.UserId = pkt
-			e.Identities[pkt.Id] = current
-
-			for {
-				p, err = packets.Next()
-				if err == io.EOF {
-					return nil, io.ErrUnexpectedEOF
-				} else if err != nil {
-					return nil, err
-				}
-
-				sig, ok := p.(*packet.Signature)
-				if !ok {
-					return nil, errors.StructuralError("user ID packet not followed by self-signature")
-				}
-
-				if (sig.SigType == packet.SigTypePositiveCert || sig.SigType == packet.SigTypeGenericCert) && sig.IssuerKeyId != nil && *sig.IssuerKeyId == e.PrimaryKey.KeyId {
-					if err = e.PrimaryKey.VerifyUserIdSignature(pkt.Id, e.PrimaryKey, sig); err != nil {
-						return nil, errors.StructuralError("user ID self-signature invalid: " + err.Error())
-					}
-					current.SelfSignature = sig
-					break
-				}
-				current.Signatures = append(current.Signatures, sig)
-			}
 		case *packet.Signature:
-			if pkt.SigType == packet.SigTypeKeyRevocation {
+
+			// First handle the case of a self-signature. According to RFC8440,
+			// Section 5.2.3.3, if there are several self-signatures,
+			// we should take the newer one.
+			if current != nil &&
+				(current.SelfSignature == nil || pkt.CreationTime.After(current.SelfSignature.CreationTime)) &&
+				(pkt.SigType == packet.SigTypePositiveCert || pkt.SigType == packet.SigTypeGenericCert) &&
+				pkt.IssuerKeyId != nil &&
+				*pkt.IssuerKeyId == e.PrimaryKey.KeyId {
+
+				if err = e.PrimaryKey.VerifyUserIdSignature(current.Name, e.PrimaryKey, pkt); err == nil {
+
+					current.SelfSignature = pkt
+
+					// NOTE(maxtaco) 2016.01.11
+					// Only register an identity once we've gotten a valid self-signature.
+					// It's possible therefore for us to throw away `current` in the case
+					// no valid self-signatures were found. That's OK as long as there are
+					// other identies that make sense.
+					//
+					// NOTE! We might later see a revocation for this very same UID, and it
+					// won't be undone. We've preserved this feature from the original
+					// Google OpenPGP we forked from.
+					e.Identities[current.Name] = current
+				} else {
+					// We really should warn that there was a failure here. Not raise an error
+					// since this really shouldn't be a fail-stop error.
+				}
+			} else if pkt.SigType == packet.SigTypeKeyRevocation {
+				// These revocations won't revoke UIDs as handled above, so lookout!
 				revocations = append(revocations, pkt)
 			} else if pkt.SigType == packet.SigTypeDirectSignature {
 				// TODO: RFC4880 5.2.1 permits signatures
@@ -431,26 +476,59 @@ func addSubkey(e *Entity, packets *packet.Reader, pub *packet.PublicKey, priv *p
 	var subKey Subkey
 	subKey.PublicKey = pub
 	subKey.PrivateKey = priv
-	p, err := packets.Next()
-	if err == io.EOF {
-		return io.ErrUnexpectedEOF
+	var lastErr error
+	for {
+		p, err := packets.Next()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return errors.StructuralError("subkey signature invalid: " + err.Error())
+		}
+		sig, ok := p.(*packet.Signature)
+		if !ok {
+			// Hit a non-signature packet, so assume we're up to the next key
+			packets.Unread(p)
+			break
+		}
+		if st := sig.SigType; st != packet.SigTypeSubkeyBinding && st != packet.SigTypeSubkeyRevocation {
+
+			// Note(maxtaco):
+			// We used to error out here, but instead, let's fast-forward past
+			// packets that are in the wrong place (like misplaced 0x13 signatures)
+			// until we get to one that works.  For a test case,
+			// see TestWithBadSubkeySignaturePackets.
+
+			continue
+		}
+		err = e.PrimaryKey.VerifyKeySignature(subKey.PublicKey, sig)
+		if err != nil {
+			// Non valid signature, so again, no need to abandon all hope, just continue;
+			// make a note of the error we hit.
+			lastErr = errors.StructuralError("subkey signature invalid: " + err.Error())
+			continue
+		}
+		switch sig.SigType {
+		case packet.SigTypeSubkeyBinding:
+			// First writer wins
+			if subKey.Sig == nil {
+				subKey.Sig = sig
+			}
+		case packet.SigTypeSubkeyRevocation:
+			// First writer wins
+			if subKey.Revocation == nil {
+				subKey.Revocation = sig
+			}
+		}
 	}
-	if err != nil {
-		return errors.StructuralError("subkey signature invalid: " + err.Error())
+	if subKey.Sig != nil {
+		e.Subkeys = append(e.Subkeys, subKey)
+	} else {
+		if lastErr == nil {
+			lastErr = errors.StructuralError("Subkey wasn't signed; expected a 'binding' signature")
+		}
+		e.BadSubkeys = append(e.BadSubkeys, BadSubkey{Subkey: subKey, Err: lastErr})
 	}
-	var ok bool
-	subKey.Sig, ok = p.(*packet.Signature)
-	if !ok {
-		return errors.StructuralError("subkey packet not followed by signature")
-	}
-	if subKey.Sig.SigType != packet.SigTypeSubkeyBinding && subKey.Sig.SigType != packet.SigTypeSubkeyRevocation {
-		return errors.StructuralError("subkey signature with wrong type")
-	}
-	err = e.PrimaryKey.VerifyKeySignature(subKey.PublicKey, subKey.Sig)
-	if err != nil {
-		return errors.StructuralError("subkey signature invalid: " + err.Error())
-	}
-	e.Subkeys = append(e.Subkeys, subKey)
 	return nil
 }
 
@@ -554,12 +632,23 @@ func (e *Entity) SerializePrivate(w io.Writer, config *packet.Config) (err error
 		if err != nil {
 			return
 		}
-		if e.PrivateKey.PrivateKey != nil {
+		// Workaround shortcoming of SignKey(), which doesn't work to reverse-sign
+		// sub-signing keys. So if requested, just reuse the signatures already
+		// available to us (if we read this key from a keyring).
+		if e.PrivateKey.PrivateKey != nil && !config.ReuseSignatures() {
 			err = subkey.Sig.SignKey(subkey.PublicKey, e.PrivateKey, config)
 			if err != nil {
 				return
 			}
 		}
+
+		if subkey.Revocation != nil {
+			err = subkey.Revocation.Serialize(w)
+			if err != nil {
+				return
+			}
+		}
+
 		err = subkey.Sig.Serialize(w)
 		if err != nil {
 			return
@@ -595,6 +684,13 @@ func (e *Entity) Serialize(w io.Writer) error {
 		err = subkey.PublicKey.Serialize(w)
 		if err != nil {
 			return err
+		}
+
+		if subkey.Revocation != nil {
+			err = subkey.Revocation.Serialize(w)
+			if err != nil {
+				return err
+			}
 		}
 		err = subkey.Sig.Serialize(w)
 		if err != nil {
@@ -633,4 +729,22 @@ func (e *Entity) SignIdentity(identity string, signer *Entity, config *packet.Co
 	}
 	ident.Signatures = append(ident.Signatures, sig)
 	return nil
+}
+
+// CopySubkeyRevocations copies subkey revocations from the src Entity over
+// to the receiver entity. We need this because `gpg --export-secret-key` does
+// not appear to output subkey revocations.  In this case we need to manually
+// merge with the output of `gpg --export`.
+func (e *Entity) CopySubkeyRevocations(src *Entity) {
+	m := make(map[[20]byte]*packet.Signature)
+	for _, subkey := range src.Subkeys {
+		if subkey.Revocation != nil {
+			m[subkey.PublicKey.Fingerprint] = subkey.Revocation
+		}
+	}
+	for i, subkey := range e.Subkeys {
+		if r := m[subkey.PublicKey.Fingerprint]; r != nil {
+			e.Subkeys[i].Revocation = r
+		}
+	}
 }

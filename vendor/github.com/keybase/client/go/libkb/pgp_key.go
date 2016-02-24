@@ -255,6 +255,10 @@ func PGPKeyRawToArmored(raw []byte, priv bool) (ret string, err error) {
 	return
 }
 
+func (k *PGPKeyBundle) SerializePrivate(w io.Writer) error {
+	return k.Entity.SerializePrivate(w, &packet.Config{ReuseSignaturesOnSerialize: !k.Generated})
+}
+
 func (k *PGPKeyBundle) EncodeToStream(wc io.WriteCloser, private bool) error {
 	// See Issue #32
 	which := "PUBLIC"
@@ -267,7 +271,7 @@ func (k *PGPKeyBundle) EncodeToStream(wc io.WriteCloser, private bool) error {
 	}
 
 	if private {
-		err = k.Entity.SerializePrivate(writer, nil)
+		err = k.SerializePrivate(writer)
 	} else {
 		err = k.Entity.Serialize(writer)
 	}
@@ -689,7 +693,7 @@ func (p PGPFingerprint) ToIDString() string {
 }
 
 func (p PGPFingerprint) ToKeyValuePair() (string, string) {
-	return "fingerprint", p.ToIDString()
+	return PGPAssertionKey, p.ToIDString()
 }
 
 func (p PGPFingerprint) GetProofState() keybase1.ProofState {

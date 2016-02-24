@@ -51,6 +51,7 @@ func (l LinkCheckResult) Export() keybase1.LinkCheckResult {
 	if l.hint != nil {
 		ret.Hint = l.hint.Export()
 	}
+	ret.TmpTrackExpireTime = keybase1.ToTime(l.tmpTrackExpireTime)
 	return ret
 }
 
@@ -83,7 +84,7 @@ func (ir IdentifyOutcome) ExportToUncheckedIdentity() *keybase1.Identity {
 		Status: ExportErrorAsStatus(ir.Error),
 	}
 	if ir.TrackUsed != nil {
-		tmp.WhenLastTracked = int(ir.TrackUsed.GetCTime().Unix())
+		tmp.WhenLastTracked = keybase1.ToTime(ir.TrackUsed.GetCTime())
 	}
 
 	pc := ir.ProofChecksSorted()
@@ -216,6 +217,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return KeyExistsError{fp}
 	case SCStreamExists:
 		return StreamExistsError{}
+	case SCBadInvitationCode:
+		return BadInvitationCodeError{}
 	case SCStreamNotFound:
 		return StreamNotFoundError{}
 	case SCStreamWrongKind:
@@ -364,11 +367,12 @@ func ImportTrackSummary(s *keybase1.TrackSummary) *TrackSummary {
 		return nil
 	}
 
-	return &TrackSummary{
+	ret := &TrackSummary{
 		time:     keybase1.FromTime(s.Time),
 		isRemote: s.IsRemote,
 		username: s.Username,
 	}
+	return ret
 }
 
 func ExportTrackSummary(l *TrackLookup, username string) *keybase1.TrackSummary {
@@ -778,6 +782,14 @@ func ImportKeyGenArg(a keybase1.PGPKeyGenArg) (ret PGPGenArg) {
 //=============================================================================
 
 func (t Tracker) Export() keybase1.Tracker { return keybase1.Tracker(t) }
+
+//=============================================================================
+
+func (e BadInvitationCodeError) ToStatus(s keybase1.Status) {
+	s.Code = SCBadInvitationCode
+	s.Name = "BAD_INVITATION_CODE"
+	return
+}
 
 //=============================================================================
 

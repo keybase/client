@@ -344,6 +344,7 @@ func ParseKeyFamily(g *GlobalContext, jw *jsonw.Wrapper) (ret *KeyFamily, err er
 		// can do just as well.
 		if err != nil {
 			g.Log.Notice("Failed to parse public key at position %d", i)
+			g.Log.Debug("Key parsing error: %s", err)
 			g.Log.Debug("Full key dump follows")
 			g.Log.Debug(bundle)
 			continue
@@ -542,7 +543,11 @@ func (ckf *ComputedKeyFamily) Revoke(tcl TypedChainLink) (err error) {
 
 // SetPGPHash sets the authoritative version (by hash) of a PGP key
 func (ckf *ComputedKeyFamily) SetActivePGPHash(kid keybase1.KID, hash string) {
-	ckf.cki.Infos[kid].ActivePGPHash = hash
+	if _, ok := ckf.cki.Infos[kid]; ok {
+		ckf.cki.Infos[kid].ActivePGPHash = hash
+	} else {
+		ckf.G().Log.Debug("| Skipped setting active hash, since key was never delegated")
+	}
 }
 
 // revokeSigs operates on the per-signature revocations in the given

@@ -199,3 +199,15 @@ func PostDeviceLKS(sr SessionReader, deviceID keybase1.DeviceID, deviceType stri
 	_, err := G.API.Post(arg)
 	return err
 }
+
+func CheckInvitationCode(code string) error {
+	arg := APIArg{
+		Endpoint:    "invitation/check",
+		NeedSession: false,
+		Args: HTTPArgs{
+			"invitation_id": S{Val: code},
+		},
+	}
+	_, err := G.API.Get(arg)
+	return err
+}

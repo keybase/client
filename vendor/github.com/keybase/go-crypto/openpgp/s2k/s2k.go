@@ -150,6 +150,53 @@ func Iterated(out []byte, h hash.Hash, in []byte, salt []byte, count int) {
 	}
 }
 
+func parseGNUExtensions(r io.Reader) (f func(out, in []byte), err error) {
+	var buf [9]byte
+
+	// A three-byte string identifier
+	_, err = io.ReadFull(r, buf[:3])
+	if err != nil {
+		return
+	}
+	gnuExt := string(buf[:3])
+
+	if gnuExt != "GNU" {
+		return nil, errors.UnsupportedError("Malformed GNU extension: " + gnuExt)
+	}
+	_, err = io.ReadFull(r, buf[:1])
+	if err != nil {
+		return
+	}
+	gnuExtType := int(buf[0])
+	switch gnuExtType {
+		case 1:
+			return nil, nil
+		case 2:
+			// Read a serial number, which is prefixed by a 1-byte length.
+			// The maximum length is 16.
+			var lenBuf [1]byte
+			_, err = io.ReadFull(r, buf[:1])
+			if err != nil {
+				return
+			}
+
+			maxLen := 16
+			ivLen := int(lenBuf[0])
+			if ivLen > maxLen {
+				ivLen = maxLen
+			}
+			ivBuf := make([]byte, ivLen)
+			// For now we simply discard the IV
+			_, err = io.ReadFull(r, ivBuf)
+			if err != nil {
+				return
+			}
+			return nil, nil
+		default:
+			return nil, errors.UnsupportedError("unknown S2K GNU protection mode: " + strconv.Itoa(int(gnuExtType)))
+	}
+}
+
 // Parse reads a binary specification for a string-to-key transformation from r
 // and returns a function which performs that transform.
 func Parse(r io.Reader) (f func(out, in []byte), err error) {
@@ -158,6 +205,12 @@ func Parse(r io.Reader) (f func(out, in []byte), err error) {
 	_, err = io.ReadFull(r, buf[:2])
 	if err != nil {
 		return
+	}
+
+	// GNU Extensions; handle them before we try to look for a hash, which won't
+	// be needed in most cases anyway.
+	if buf[0] == 101 {
+		return parseGNUExtensions(r)
 	}
 
 	hash, ok := HashIdToHash(buf[1])
@@ -194,29 +247,6 @@ func Parse(r io.Reader) (f func(out, in []byte), err error) {
 			Iterated(out, h, in, buf[:8], count)
 		}
 		return f, nil
-
-	// GNU Extensions
-	case 101:
-
-		// A three-byte string identifier
-		_, err = io.ReadFull(r, buf[:3])
-		if err != nil {
-			return
-		}
-		gnuExt := string(buf[:3])
-
-		if gnuExt != "GNU" {
-			return nil, errors.UnsupportedError("Malformed GNU extension: " + gnuExt)
-		}
-		_, err = io.ReadFull(r, buf[:1])
-		if err != nil {
-			return
-		}
-		gnuExtType := int(buf[0])
-		if gnuExtType != 1 {
-			return nil, errors.UnsupportedError("unknown S2K GNU protection mode: " + strconv.Itoa(int(gnuExtType)))
-		}
-		return nil, nil
 	}
 
 	return nil, errors.UnsupportedError("S2K function")

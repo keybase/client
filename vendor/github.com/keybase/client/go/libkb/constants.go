@@ -55,7 +55,10 @@ const (
 	KeybaseSaltpackBrand = "KEYBASE"
 )
 
-var UserAgent = "Keybase/" + Version + " (" + runtime.Version() + " on " + runtime.GOOS + ")"
+// Right now reddit is the only site that seems to have any requirements for
+// our User-Agent string. (See https://github.com/reddit/reddit/wiki/API.)If
+// something else comes up, we'll want to make this more configurable.
+var UserAgent = runtime.GOOS + ":" + "Keybase CLI (" + runtime.Version() + "):" + Version
 
 const (
 	PermFile          os.FileMode = 0600
@@ -76,7 +79,8 @@ const (
 	LinkCacheSize              = 0x10000
 	LinkCacheCleanDur          = 1 * time.Minute
 
-	SigShortIDBytes = 27
+	SigShortIDBytes  = 27
+	LocalTrackMaxAge = 48 * time.Hour
 )
 
 var MerkleProdKIDs = []string{
@@ -124,6 +128,7 @@ const (
 	SCResolutionFailed       = int(keybase1.StatusCode_SCResolutionFailed)
 	SCProfileNotPublic       = int(keybase1.StatusCode_SCProfileNotPublic)
 	SCBadSignupUsernameTaken = int(keybase1.StatusCode_SCBadSignupUsernameTaken)
+	SCBadInvitationCode      = int(keybase1.StatusCode_SCBadInvitationCode)
 	SCMissingResult          = int(keybase1.StatusCode_SCMissingResult)
 	SCKeyNotFound            = int(keybase1.StatusCode_SCKeyNotFound)
 	SCKeyInUse               = int(keybase1.StatusCode_SCKeyInUse)
@@ -371,8 +376,17 @@ const (
 
 const (
 	IdentifySourceKBFS = "kbfs"
+	TestInvitationCode = "202020202020202020202020"
 )
 
 const (
 	SecretPromptCancelDuration = 5 * time.Minute
+)
+
+const ServiceLogFileName = "keybase.service.log"
+const KBFSLogFileName = "keybase.kbfs.log"
+const DesktopLogFileName = "Keybase.app.log"
+
+const (
+	PGPAssertionKey = "pgp"
 )

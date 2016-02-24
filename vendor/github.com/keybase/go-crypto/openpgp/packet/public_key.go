@@ -10,7 +10,6 @@ import (
 	"crypto/dsa"
 	"crypto/ecdsa"
 	"crypto/elliptic"
-	"crypto/rsa"
 	"crypto/sha1"
 	_ "crypto/sha256"
 	_ "crypto/sha512"
@@ -25,6 +24,7 @@ import (
 	"github.com/agl/ed25519"
 	"github.com/keybase/go-crypto/openpgp/elgamal"
 	"github.com/keybase/go-crypto/openpgp/errors"
+	"github.com/keybase/go-crypto/rsa"
 )
 
 var (
@@ -241,6 +241,21 @@ func (e *edDSAkey) check() error {
 	return nil
 }
 
+// NewElGamalPublicKey returns a PublicKey that wraps the given elgamal.PublicKey.
+func NewElGamalPublicKey(creationTime time.Time, pub *elgamal.PublicKey) *PublicKey {
+	pk := &PublicKey{
+		CreationTime: creationTime,
+		PubKeyAlgo:   PubKeyAlgoElGamal,
+		PublicKey:    pub,
+		p:            fromBig(pub.P),
+		g:            fromBig(pub.G),
+		y:            fromBig(pub.Y),
+	}
+
+	pk.setFingerPrintAndKeyId()
+	return pk
+}
+
 func (pk *PublicKey) parse(r io.Reader) (err error) {
 	// RFC 4880, section 5.5.2
 	var buf [6]byte
@@ -315,7 +330,7 @@ func (pk *PublicKey) parseRSA(r io.Reader) (err error) {
 		return
 	}
 
-	if len(pk.e.bytes) > 3 {
+	if len(pk.e.bytes) > 7 {
 		err = errors.UnsupportedError("large public exponent")
 		return
 	}
@@ -325,7 +340,7 @@ func (pk *PublicKey) parseRSA(r io.Reader) (err error) {
 	}
 	for i := 0; i < len(pk.e.bytes); i++ {
 		rsa.E <<= 8
-		rsa.E |= int(pk.e.bytes[i])
+		rsa.E |= int64(pk.e.bytes[i])
 	}
 	pk.PublicKey = rsa
 	return
@@ -438,6 +453,8 @@ func (pk *PublicKey) Serialize(w io.Writer) (err error) {
 	case PubKeyAlgoECDH:
 		length += pk.ec.byteLen()
 		length += pk.ecdh.byteLen()
+	case PubKeyAlgoEdDSA:
+		length += pk.edk.byteLen()
 	default:
 		panic("unknown public key algorithm")
 	}
@@ -622,6 +639,19 @@ func (pk *PublicKey) VerifyKeySignature(signed *PublicKey, sig *Signature) error
 	}
 
 	if sig.FlagSign {
+
+		// BUG(maxtaco)
+		//
+		// We should check for more than FlagsSign here, because if
+		// you read keys.go, we can sometimes use signing subkeys even if they're
+		// not explicitly flagged as such. However, so doing fails lots of currently
+		// working tests, so I'm not going to do much here.
+		//
+		// In other words, we should have this disjunction in the condition above:
+		//
+		//    || (!sig.FlagsValid && pk.PubKeyAlgo.CanSign()) {
+		//
+
 		// Signing subkeys must be cross-signed. See
 		// https://www.gnupg.org/faq/subkey-cross-certify.html.
 		if sig.EmbeddedSignature == nil {
@@ -663,6 +693,19 @@ func (pk *PublicKey) VerifyRevocationSignature(sig *Signature) (err error) {
 	}
 	return pk.VerifySignature(h, sig)
 }
+
+type teeHash struct {
+	h hash.Hash
+}
+
+func (t teeHash) Write(b []byte) (n int, err error) {
+	fmt.Printf("hash -> %s %+v\n", string(b), b)
+	return t.h.Write(b)
+}
+func (t teeHash) Sum(b []byte) []byte { return t.h.Sum(b) }
+func (t teeHash) Reset()              { t.h.Reset() }
+func (t teeHash) Size() int           { return t.h.Size() }
+func (t teeHash) BlockSize() int      { return t.h.BlockSize() }
 
 // userIdSignatureHash returns a Hash of the message that needs to be signed
 // to assert that pk is a valid key for id.

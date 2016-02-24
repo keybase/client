@@ -308,6 +308,15 @@ func (w *Wrapper) GetUint64Void(ip *uint64, errp *error) {
 	}
 }
 
+func (rd *Wrapper) GetInterface() (v interface{}, err error) {
+	if rd.err != nil {
+		err = rd.err
+	} else {
+		v = rd.dat
+	}
+	return v, err
+}
+
 func (rd *Wrapper) GetBool() (ret bool, err error) {
 	if rd.err != nil {
 		err = rd.err
