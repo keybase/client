@@ -26,12 +26,12 @@ func MakeInboundRegistry(r metrics.Registry) InboundRegistry {
 
 // MakeOutboundRegistry makes an OutboundRegistry from the given one. r
 // can be nil, in which case nil is returned.
-func MakeOutboundRegistry(r metrics.Registry) OutboundRegistry {
+func MakeOutboundRegistry(r metrics.Registry, to string) OutboundRegistry {
 	if r == nil {
 		return OutboundRegistry{}
 	}
 
 	return OutboundRegistry{
-		Registry: metrics.NewPrefixedChildRegistry(r, "outbound - "),
+		Registry: metrics.NewPrefixedChildRegistry(r, "outbound - "+to+" - "),
 	}
 }
