@@ -15,6 +15,35 @@ import (
 	time "time"
 )
 
+// Mock of AuthTokenRefreshHandler interface
+type MockAuthTokenRefreshHandler struct {
+	ctrl     *gomock.Controller
+	recorder *_MockAuthTokenRefreshHandlerRecorder
+}
+
+// Recorder for MockAuthTokenRefreshHandler (not exported)
+type _MockAuthTokenRefreshHandlerRecorder struct {
+	mock *MockAuthTokenRefreshHandler
+}
+
+func NewMockAuthTokenRefreshHandler(ctrl *gomock.Controller) *MockAuthTokenRefreshHandler {
+	mock := &MockAuthTokenRefreshHandler{ctrl: ctrl}
+	mock.recorder = &_MockAuthTokenRefreshHandlerRecorder{mock}
+	return mock
+}
+
+func (_m *MockAuthTokenRefreshHandler) EXPECT() *_MockAuthTokenRefreshHandlerRecorder {
+	return _m.recorder
+}
+
+func (_m *MockAuthTokenRefreshHandler) RefreshAuthToken(_param0 context.Context) {
+	_m.ctrl.Call(_m, "RefreshAuthToken", _param0)
+}
+
+func (_mr *_MockAuthTokenRefreshHandlerRecorder) RefreshAuthToken(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RefreshAuthToken", arg0)
+}
+
 // Mock of Block interface
 type MockBlock struct {
 	ctrl     *gomock.Controller
@@ -1738,6 +1767,14 @@ func (_m *MockMDServer) EXPECT() *_MockMDServerRecorder {
 	return _m.recorder
 }
 
+func (_m *MockMDServer) RefreshAuthToken(_param0 context.Context) {
+	_m.ctrl.Call(_m, "RefreshAuthToken", _param0)
+}
+
+func (_mr *_MockMDServerRecorder) RefreshAuthToken(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RefreshAuthToken", arg0)
+}
+
 func (_m *MockMDServer) GetForHandle(ctx context.Context, handle *TlfHandle, mStatus MergeStatus) (TlfID, *RootMetadataSigned, error) {
 	ret := _m.ctrl.Call(_m, "GetForHandle", ctx, handle, mStatus)
 	ret0, _ := ret[0].(TlfID)
@@ -1860,6 +1897,14 @@ func NewMockBlockServer(ctrl *gomock.Controller) *MockBlockServer {
 
 func (_m *MockBlockServer) EXPECT() *_MockBlockServerRecorder {
 	return _m.recorder
+}
+
+func (_m *MockBlockServer) RefreshAuthToken(_param0 context.Context) {
+	_m.ctrl.Call(_m, "RefreshAuthToken", _param0)
+}
+
+func (_mr *_MockBlockServerRecorder) RefreshAuthToken(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RefreshAuthToken", arg0)
 }
 
 func (_m *MockBlockServer) Get(ctx context.Context, id BlockID, tlfID TlfID, context BlockContext) ([]byte, BlockCryptKeyServerHalf, error) {

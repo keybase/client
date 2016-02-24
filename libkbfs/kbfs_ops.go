@@ -5,7 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 
 	"golang.org/x/net/context"
@@ -94,13 +93,17 @@ func (fs *KBFSOpsStandard) getOpsByNode(node Node) *folderBranchOps {
 }
 
 func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context, handle *TlfHandle, fb FolderBranch) (*folderBranchOps, error) {
+	kbpki := fs.config.KBPKI()
+	_, _, err := kbpki.GetCurrentUserInfo(ctx)
+	isLoggedIn := err == nil
+
 	fs.opsLock.RLock()
 	_, exists := fs.ops[fb]
 	fs.opsLock.RUnlock()
 
-	if !exists && fb.Branch == MasterBranch {
-		err := fs.config.KBPKI().FavoriteAdd(ctx, handle.ToKBFolder(ctx, fs.config))
-		if _, isDeviceRequired := err.(libkb.DeviceRequiredError); err != nil && (!isDeviceRequired || !handle.IsPublic()) {
+	if !exists && isLoggedIn && fb.Branch == MasterBranch {
+		err := kbpki.FavoriteAdd(ctx, handle.ToKBFolder(ctx, fs.config))
+		if err != nil {
 			return nil, err
 		}
 	}

@@ -120,6 +120,9 @@ func (b *BlockServerLocal) Shutdown() {
 	b.s.shutdown()
 }
 
+// RefreshAuthToken implements the BlockServer interface for BlockServerLocal.
+func (b *BlockServerLocal) RefreshAuthToken(_ context.Context) {}
+
 // GetUserQuotaInfo implements the BlockServer interface for BlockServerLocal
 func (b *BlockServerLocal) GetUserQuotaInfo(ctx context.Context) (info *UserQuotaInfo, err error) {
 	// Return a dummy value here.

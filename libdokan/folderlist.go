@@ -9,7 +9,6 @@ package libdokan
 import (
 	"sync"
 
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -154,10 +153,17 @@ func (fl *FolderList) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedSt
 	ctx := NewContextWithOpID(fl.fs)
 	fl.fs.log.CDebugf(ctx, "FL ReadDirAll")
 	defer func() { fl.fs.reportErr(ctx, err) }()
-	favs, err := fl.fs.config.KBFSOps().GetFavorites(ctx)
-	fl.fs.log.CDebugf(ctx, "FL ReadDirAll -> %v,%v", favs, err)
-	if _, isDeviceRequired := err.(libkb.DeviceRequiredError); err != nil && (!isDeviceRequired || !fl.public) {
-		return err
+
+	_, _, err = fl.fs.config.KBPKI().GetCurrentUserInfo(ctx)
+	isLoggedIn := err == nil
+
+	var favs []*libkbfs.Favorite
+	if isLoggedIn {
+		favs, err := fl.fs.config.KBFSOps().GetFavorites(ctx)
+		fl.fs.log.CDebugf(ctx, "FL ReadDirAll -> %v,%v", favs, err)
+		if err != nil {
+			return err
+		}
 	}
 	var ns dokan.NamedStat
 	ns.FileAttributes = fileAttributeDirectory

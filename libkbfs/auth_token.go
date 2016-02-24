@@ -13,12 +13,6 @@ import (
 // AuthTokenMinRefreshSeconds is the minimum number of seconds between refreshes.
 const AuthTokenMinRefreshSeconds = 60
 
-// AuthTokenRefreshHandler defines a callback to be called when an auth token refresh
-// is needed.
-type AuthTokenRefreshHandler interface {
-	RefreshAuthToken(context.Context)
-}
-
 // AuthToken encapsulates a timed authentication token.
 type AuthToken struct {
 	config         Config

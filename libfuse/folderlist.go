@@ -7,7 +7,6 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
-	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -98,9 +97,15 @@ func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err er
 	defer func() {
 		fl.fs.reportErr(ctx, err)
 	}()
-	favs, err := fl.fs.config.KBFSOps().GetFavorites(ctx)
-	if _, isDeviceRequired := err.(libkb.DeviceRequiredError); err != nil && (!isDeviceRequired || !fl.public) {
-		return nil, err
+	_, _, err = fl.fs.config.KBPKI().GetCurrentUserInfo(ctx)
+	isLoggedIn := err == nil
+
+	var favs []*libkbfs.Favorite
+	if isLoggedIn {
+		favs, err = fl.fs.config.KBFSOps().GetFavorites(ctx)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	res = make([]fuse.Dirent, 0, len(favs))

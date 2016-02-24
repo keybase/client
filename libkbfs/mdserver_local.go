@@ -746,6 +746,9 @@ func (md *MDServerLocal) Shutdown() {
 	}
 }
 
+// RefreshAuthToken implements the MDServer interface for MDServerLocal.
+func (md *MDServerLocal) RefreshAuthToken(ctx context.Context) {}
+
 // This should only be used for testing with an in-memory server.
 func (md *MDServerLocal) copy(config Config) *MDServerLocal {
 	// NOTE: observers and sessionHeads are copied shallowly on
