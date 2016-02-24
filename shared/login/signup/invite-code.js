@@ -10,7 +10,7 @@ import * as signupActions from '../../actions/signup'
 class InviteCode extends Component {
   render () {
     return (
-      <Render onInviteCodeSubmit={this.props.checkInviteCode} inviteCodeErrorText={this.props.errorText}/>
+      <Render inviteCode={this.props.inviteCode} onInviteCodeSubmit={this.props.checkInviteCode} inviteCodeErrorText={this.props.errorText}/>
     )
   }
 }
@@ -21,6 +21,6 @@ InviteCode.propTypes = {
 }
 
 export default connect(
-  state => ({errorText: state.signup.inviteCodeError}),
+  state => ({errorText: state.signup.inviteCodeError, inviteCode: state.signup.inviteCode}),
   dispatch => bindActionCreators(signupActions, dispatch)
 )(InviteCode)
