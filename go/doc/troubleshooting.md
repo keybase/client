@@ -48,5 +48,5 @@ keybase --pinentry=none login
 To make that configuration permanent, you can run:
 
 ```
-keybase config set -b pinentry.disabled true
+keybase config set pinentry.disabled true
 ```
