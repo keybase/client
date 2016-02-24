@@ -41,6 +41,7 @@ func (e *LoginUsername) Prereqs() Prereqs {
 func (e *LoginUsername) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.LoginUIKind,
+		libkb.SecretUIKind,
 	}
 }
 
@@ -60,14 +61,7 @@ func (e *LoginUsername) Run(ctx *Context) error {
 
 	user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(e.G(), username))
 	if err != nil {
-		// LoadUser can return an AppStatusError when a user isn't found.
-		// Translate that to a libkb.NotFoundError.
-		if aerr, ok := err.(libkb.AppStatusError); ok {
-			if aerr.Code == libkb.SCNotFound {
-				return libkb.NotFoundError{}
-			}
-		}
-		return err
+		return e.convertNotFound(err)
 	}
 	e.user = user
 
@@ -108,7 +102,7 @@ func (e *LoginUsername) findUsername(ctx *Context) (string, error) {
 		return nil
 	}
 	if err := e.G().LoginState().VerifyEmailAddress(e.usernameOrEmail, ctx.SecretUI, afterLogin); err != nil {
-		return "", err
+		return "", e.convertNotFound(err)
 	}
 
 	e.G().Log.Debug("VerifyEmailAddress %q => %q", e.usernameOrEmail, username)
@@ -123,4 +117,15 @@ func (e *LoginUsername) prompt(ctx *Context) error {
 	}
 	e.usernameOrEmail = res
 	return nil
+}
+
+// LoadUser and VerifyEmailAddress can return an AppStatusError when a user isn't found.
+// Convert that to a libkb.NotFoundError.
+func (e *LoginUsername) convertNotFound(in error) error {
+	if aerr, ok := in.(libkb.AppStatusError); ok {
+		if aerr.Code == libkb.SCNotFound || aerr.Code == libkb.SCBadLoginUserNotFound {
+			return libkb.NotFoundError{}
+		}
+	}
+	return in
 }
