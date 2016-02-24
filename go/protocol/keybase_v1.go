@@ -2556,6 +2556,7 @@ const (
 	FSNotificationType_SIGNING    FSNotificationType = 2
 	FSNotificationType_VERIFYING  FSNotificationType = 3
 	FSNotificationType_REKEYING   FSNotificationType = 4
+	FSNotificationType_CONNECTION FSNotificationType = 5
 )
 
 type FSNotification struct {

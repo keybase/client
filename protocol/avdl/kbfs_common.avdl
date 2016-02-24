@@ -12,7 +12,8 @@ protocol kbfsCommon {
     DECRYPTING_1,
     SIGNING_2,
     VERIFYING_3,
-    REKEYING_4
+    REKEYING_4,
+    CONNECTION_5
   }
 
   record FSNotification {

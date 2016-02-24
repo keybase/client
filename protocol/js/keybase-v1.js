@@ -520,7 +520,8 @@ export const kbfs = {
     'decrypting': 1,
     'signing': 2,
     'verifying': 3,
-    'rekeying': 4
+    'rekeying': 4,
+    'connection': 5
   }
 }
 
@@ -694,7 +695,8 @@ export const NotifyFS = {
     'decrypting': 1,
     'signing': 2,
     'verifying': 3,
-    'rekeying': 4
+    'rekeying': 4,
+    'connection': 5
   }
 }
 
