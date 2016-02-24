@@ -26,7 +26,7 @@ func TestWriteReadWriteFail(t *testing.T) {
 		),
 		as(eve,
 			read("foo.txt", "hello world"),
-			expectError(rm("foo.txt"), "eve does not have write access to directory alice,bob#eve"),
+			expectError(rm("foo.txt"), "eve does not have write access to directory /keybase/private/alice,bob#eve"),
 		),
 	)
 }

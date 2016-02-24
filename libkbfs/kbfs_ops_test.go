@@ -424,7 +424,8 @@ func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
 	name := libkb.NewNormalizedUsername(fmt.Sprintf("user_%s", uid))
 	config.mockKbpki.EXPECT().GetCurrentUserInfo(ctx).AnyTimes().
 		Return(name, uid, nil)
-	expectedErr := WriteAccessError{name, h.ToString(ctx, config)}
+	expectedErr := WriteAccessError{
+		name, h.GetCanonicalName(ctx, config), false}
 
 	ops := getOps(config, id)
 	if _, _, _, err := ops.getRootNode(ctx); err == nil {

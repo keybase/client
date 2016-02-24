@@ -156,14 +156,15 @@ func (e ReadAccessError) Error() string {
 // WriteAccessError indicates that the user tried to read from a
 // top-level folder without read permission.
 type WriteAccessError struct {
-	User libkb.NormalizedUsername
-	Dir  string
+	User   libkb.NormalizedUsername
+	Tlf    CanonicalTlfName
+	Public bool
 }
 
 // Error implements the error interface for WriteAccessError
 func (e WriteAccessError) Error() string {
 	return fmt.Sprintf("%s does not have write access to directory %s",
-		e.User, e.Dir)
+		e.User, buildCanonicalPath(e.Public, e.Tlf))
 }
 
 // NewReadAccessError constructs a ReadAccessError for the given
@@ -176,10 +177,10 @@ func NewReadAccessError(ctx context.Context, config Config, h *TlfHandle,
 
 // NewWriteAccessError constructs a WriteAccessError for the given
 // directory and user.
-func NewWriteAccessError(ctx context.Context, config Config, dir *TlfHandle,
+func NewWriteAccessError(ctx context.Context, config Config, h *TlfHandle,
 	username libkb.NormalizedUsername) error {
-	dirname := dir.ToString(ctx, config)
-	return WriteAccessError{username, dirname}
+	tlfname := h.GetCanonicalName(ctx, config)
+	return WriteAccessError{username, tlfname, h.IsPublic()}
 }
 
 // NotFileBlockError indicates that a file block was expected but a

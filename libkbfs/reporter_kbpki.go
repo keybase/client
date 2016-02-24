@@ -37,14 +37,16 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context, err error) {
 	r.ReporterSimple.ReportErr(ctx, err)
 
 	// Fire off error popups
-	var notification *keybase1.FSNotification
+	var n *keybase1.FSNotification
 	switch e := err.(type) {
 	case ReadAccessError:
-		notification = readErrorNotification(tlfPathFromString(e.Tlf), err)
+		n = readErrorNotification(tlfPathFromString(e.Tlf), err)
+	case WriteAccessError:
+		n = writeErrorNotification(tlfPathFromString(e.Tlf), err)
 	}
 
-	if notification != nil {
-		r.Notify(ctx, notification)
+	if n != nil {
+		r.Notify(ctx, n)
 	}
 }
 
@@ -139,8 +141,25 @@ func baseNotification(file path, finish bool) *keybase1.FSNotification {
 	}
 }
 
-// errorNotification creates FSNotifications from paths for KBFS error
-// events.
+// writeErrorNotification creates FSNotifications from paths for KBFS
+// write error events.
+func writeErrorNotification(file path, err error) *keybase1.FSNotification {
+	n := &keybase1.FSNotification{
+		PublicTopLevelFolder: file.Tlf.IsPublic(),
+		Filename:             file.String(),
+		StatusCode:           keybase1.FSStatusCode_ERROR,
+		Status:               err.Error(),
+	}
+	if file.Tlf.IsPublic() {
+		n.NotificationType = keybase1.FSNotificationType_SIGNING
+	} else {
+		n.NotificationType = keybase1.FSNotificationType_ENCRYPTING
+	}
+	return n
+}
+
+// readErrorNotification creates FSNotifications from paths for KBFS
+// read error events.
 func readErrorNotification(file path, err error) *keybase1.FSNotification {
 	n := &keybase1.FSNotification{
 		PublicTopLevelFolder: file.Tlf.IsPublic(),
