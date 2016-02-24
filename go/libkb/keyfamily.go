@@ -892,3 +892,12 @@ func (ckf *ComputedKeyFamily) GetAllDevices() []*Device {
 	}
 	return devices
 }
+
+func (ckf *ComputedKeyFamily) HasActiveDevice() bool {
+	for _, device := range ckf.cki.Devices {
+		if device.IsActive() {
+			return true
+		}
+	}
+	return false
+}

@@ -59,7 +59,9 @@ func (e *LoginUsername) Run(ctx *Context) error {
 
 	e.G().Log.Debug("LoginUsername: found username %q", username)
 
-	user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(e.G(), username))
+	arg := libkb.NewLoadUserByNameArg(e.G(), username)
+	arg.PublicKeyOptional = true
+	user, err := libkb.LoadUser(arg)
 	if err != nil {
 		return e.convertNotFound(err)
 	}

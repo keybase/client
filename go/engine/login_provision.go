@@ -31,12 +31,13 @@ type LoginProvision struct {
 
 type LoginProvisionArg struct {
 	DeviceType string // desktop or mobile
-	Username   string // optional
 	ClientType keybase1.ClientType
+	// XXX leave this here for now just so I don't need to change everything right now.
+	Username string // optional
+	User     *libkb.User
 }
 
-// NewLoginProvision creates a LoginProvision engine.  username
-// is optional.
+// NewLoginProvision creates a LoginProvision engine.
 func NewLoginProvision(g *libkb.GlobalContext, arg *LoginProvisionArg) *LoginProvision {
 	return &LoginProvision{
 		Contextified: libkb.NewContextified(g),
@@ -74,34 +75,30 @@ func (e *LoginProvision) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *LoginProvision) Run(ctx *Context) error {
-
-	tx, err := e.G().Env.GetConfigWriter().BeginTransaction()
-	if err != nil {
-		return err
-	}
-
-	// From this point on, if there's an error, we abort the
-	// transaction.
-	defer func() {
-		if tx != nil {
-			tx.Abort()
-		}
-	}()
-
 	if err := e.checkArg(); err != nil {
 		return err
 	}
 
-	method, err := e.chooseMethod(ctx)
-	if err != nil {
-		return err
-	}
-
-	if err := e.runMethod(ctx, method); err != nil {
+	// based on information in e.arg.User, route the user
+	// through the provisioning options
+	if err := e.route(ctx); err != nil {
 		// cleanup state because there was an error:
 		e.cleanup()
 		return err
 	}
+
+	/*
+		method, err := e.chooseMethod(ctx)
+		if err != nil {
+			return err
+		}
+
+		if err := e.runMethod(ctx, method); err != nil {
+			// cleanup state because there was an error:
+			e.cleanup()
+			return err
+		}
+	*/
 
 	if err := e.ensurePaperKey(ctx); err != nil {
 		return err
@@ -110,14 +107,6 @@ func (e *LoginProvision) Run(ctx *Context) error {
 	if err := e.displaySuccess(ctx); err != nil {
 		return err
 	}
-
-	if err := tx.Commit(); err != nil {
-		return err
-	}
-
-	// Zero out the TX so that we don't abort it in the defer()
-	// exit.
-	tx = nil
 
 	return nil
 }
@@ -421,7 +410,7 @@ func (e *LoginProvision) addEldestDeviceKey(ctx *Context) error {
 func (e *LoginProvision) paperKey(ctx *Context) error {
 	args := &PaperKeyPrimaryArgs{
 		SigningKey: e.signingKey,
-		Me:         e.user,
+		Me:         e.arg.User,
 	}
 	eng := NewPaperKeyPrimary(e.G(), args)
 	return RunEngine(eng, ctx)
@@ -442,7 +431,7 @@ func (e *LoginProvision) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs, erro
 	e.devname = devname
 
 	return &DeviceWrapArgs{
-		Me:         e.user,
+		Me:         e.arg.User,
 		DeviceName: e.devname,
 		DeviceType: e.arg.DeviceType,
 		Lks:        e.lks,
@@ -460,7 +449,7 @@ func (e *LoginProvision) ensureLKSec(ctx *Context) error {
 		return err
 	}
 
-	e.lks = libkb.NewLKSec(pps, e.user.GetUID(), e.G())
+	e.lks = libkb.NewLKSec(pps, e.arg.User.GetUID(), e.G())
 	return nil
 }
 
@@ -474,12 +463,12 @@ func (e *LoginProvision) ppStream(ctx *Context) (*libkb.PassphraseStream, error)
 		}
 		return cached.PassphraseStream(), nil
 	}
-	return e.G().LoginState().GetPassphraseStreamForUser(ctx.SecretUI, e.username)
+	return e.G().LoginState().GetPassphraseStreamForUser(ctx.SecretUI, e.arg.User.GetName())
 }
 
 // deviceName gets a new device name from the user.
 func (e *LoginProvision) deviceName(ctx *Context) (string, error) {
-	names, err := e.user.DeviceNames()
+	names, err := e.arg.User.DeviceNames()
 	if err != nil {
 		e.G().Log.Debug("error getting device names: %s", err)
 		e.G().Log.Debug("proceeding to ask user for a device name despite error...")
@@ -647,7 +636,51 @@ func (e *LoginProvision) checkArg() error {
 		return libkb.InvalidArgumentError{Msg: fmt.Sprintf("device type must be %q or %q, not %q", libkb.DeviceTypeDesktop, libkb.DeviceTypeMobile, e.arg.DeviceType)}
 	}
 
+	if e.arg.User == nil {
+		return libkb.InvalidArgumentError{Msg: "User cannot be nil"}
+	}
+
 	return nil
+}
+
+func (e *LoginProvision) route(ctx *Context) error {
+	// check if User has any pgp keys, active devices
+	pgp := false
+	device := false
+	ckf := e.arg.User.GetComputedKeyFamily()
+	if ckf != nil {
+		pgp = len(ckf.GetActivePGPKeys(false)) > 0
+		device = ckf.HasActiveDevice()
+	}
+
+	if device {
+		return e.chooseDevice(ctx, pgp)
+	}
+
+	if pgp {
+		return e.tryPGP(ctx)
+	}
+
+	return e.eldest(ctx)
+}
+
+func (e *LoginProvision) chooseDevice(ctx *Context, pgp bool) error {
+	return errors.New("nyi")
+}
+
+func (e *LoginProvision) tryPGP(ctx *Context) error {
+	return errors.New("nyi")
+}
+
+func (e *LoginProvision) eldest(ctx *Context) error {
+	if !e.arg.User.GetEldestKID().IsNil() {
+		// this shouldn't happen, but make sure
+		return errors.New("eldest called on user with existing eldest KID")
+	}
+
+	// XXX clean this up:
+	// e.user = e.arg.User
+	return e.addEldestDeviceKey(ctx)
 }
 
 // chooseMethod uses ProvisionUI to let user choose a provisioning
@@ -686,13 +719,15 @@ func (e *LoginProvision) runMethod(ctx *Context, method keybase1.ProvisionMethod
 // ensurePaperKey checks to see if e.user has any paper keys.  If
 // not, it makes one.
 func (e *LoginProvision) ensurePaperKey(ctx *Context) error {
-	// device provisioning doesn't load a user:
-	if e.user == nil {
-		return nil
-	}
+	/*
+		// device provisioning doesn't load a user:
+		if e.user == nil {
+			return nil
+		}
+	*/
 
 	// see if they have a paper key already
-	cki := e.user.GetComputedKeyInfos()
+	cki := e.arg.User.GetComputedKeyInfos()
 	if cki != nil {
 		if len(cki.PaperDevices()) > 0 {
 			return nil

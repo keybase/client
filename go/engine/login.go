@@ -7,6 +7,7 @@ package engine
 
 import (
 	"errors"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
@@ -82,16 +83,49 @@ func (e *Login) Run(ctx *Context) error {
 
 	e.G().Log.Debug("LoginCurrentDevice error: %s (continuing with device provisioning...)", err)
 
-	// this device needs to be provisioned:
+	// this device needs to be provisioned
+
+	// clear out any existing session:
+	e.G().Logout()
+
+	// transaction around config file
+	tx, err := e.G().Env.GetConfigWriter().BeginTransaction()
+	if err != nil {
+		return err
+	}
+
+	// From this point on, if there's an error, we abort the
+	// transaction.
+	defer func() {
+		if tx != nil {
+			tx.Abort()
+		}
+	}()
+
+	// run the username engine to load a user
+	ueng := NewLoginUsername(e.G(), e.username)
+	if err = RunEngine(ueng, ctx); err != nil {
+		return err
+	}
+
 	darg := &LoginProvisionArg{
 		DeviceType: e.deviceType,
-		Username:   e.username,
 		ClientType: e.clientType,
+		User:       ueng.User(),
 	}
 	deng := NewLoginProvision(e.G(), darg)
 	if err = RunEngine(deng, ctx); err != nil {
 		return err
 	}
+
+	// commit the config changes
+	if err := tx.Commit(); err != nil {
+		return err
+	}
+
+	// Zero out the TX so that we don't abort it in the defer()
+	// exit.
+	tx = nil
 
 	sendNotification()
 	return nil

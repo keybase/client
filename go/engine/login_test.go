@@ -230,7 +230,7 @@ func TestProvisionPassphraseFail(t *testing.T) {
 }
 
 // If a user has no keys, provision via passphrase should work.
-func TestProvisionPassphraseNoKeys(t *testing.T) {
+func TestProvisionPassphraseNoKeysSolo(t *testing.T) {
 	tcWeb := SetupEngineTest(t, "web")
 	defer tcWeb.Cleanup()
 
