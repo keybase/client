@@ -18,6 +18,12 @@ type KBFSOpsStandard struct {
 	log     logger.Logger
 	ops     map[FolderBranch]*folderBranchOps
 	opsLock sync.RWMutex
+	// reIdentifyControlChan controls reidentification.
+	// Sending a value to this channel forces all fbos
+	// to be marked for revalidation.
+	// Closing this channel will shutdown the reidentification
+	// watcher.
+	reIdentifyControlChan chan struct{}
 }
 
 var _ KBFSOps = (*KBFSOpsStandard)(nil)
@@ -29,12 +35,13 @@ func NewKBFSOpsStandard(config Config) *KBFSOpsStandard {
 		config: config,
 		log:    log,
 		ops:    make(map[FolderBranch]*folderBranchOps),
+		reIdentifyControlChan: make(chan struct{}),
 	}
-	go kops.checkReIdentifyNeedLoop()
+	go kops.markForReIdentifyIfNeededLoop()
 	return kops
 }
 
-func (fs *KBFSOpsStandard) checkReIdentifyNeedLoop() {
+func (fs *KBFSOpsStandard) markForReIdentifyIfNeededLoop() {
 	maxValid := fs.config.TLFValidDuration()
 	// Tests and some users fail to set this properly.
 	if maxValid <= 10*time.Second || maxValid > 24*365*time.Hour {
@@ -43,24 +50,35 @@ func (fs *KBFSOpsStandard) checkReIdentifyNeedLoop() {
 	// Tick ten times the rate of valid duration allowing only overflows of +-10%
 	ticker := time.NewTicker(maxValid / 10)
 	for {
-		<-ticker.C
-		now := time.Now()
-		fs.checkReIdentifyNeed(now, maxValid)
+		var now time.Time
+		select {
+		// Normal case: feed the current time from config and mark fbos needing validation.
+		case <-ticker.C:
+			now = fs.config.Clock().Now()
+		// Mark everything for reidentification via now being the empty value or quit.
+		case _, ok := <-fs.reIdentifyControlChan:
+			if !ok {
+				ticker.Stop()
+				return
+			}
+		}
+		fs.markForReIdentifyIfNeeded(now, maxValid)
 	}
 }
 
-func (fs *KBFSOpsStandard) checkReIdentifyNeed(now time.Time, maxValid time.Duration) {
+func (fs *KBFSOpsStandard) markForReIdentifyIfNeeded(now time.Time, maxValid time.Duration) {
 	fs.opsLock.Lock()
 	defer fs.opsLock.Unlock()
 
 	for _, fbo := range fs.ops {
-		fbo.checkReIdentifyNeed(now, maxValid)
+		fbo.markForReIdentifyIfNeeded(now, maxValid)
 	}
 }
 
 // Shutdown safely shuts down any background goroutines that may have
 // been launched by KBFSOpsStandard.
 func (fs *KBFSOpsStandard) Shutdown() error {
+	close(fs.reIdentifyControlChan)
 	var errors []error
 	for _, ops := range fs.ops {
 		if err := ops.Shutdown(); err != nil {

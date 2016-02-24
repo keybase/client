@@ -29,7 +29,7 @@ const (
 	// How long must something be unreferenced before we reclaim it?
 	qrUnrefAgeDefault = 1 * time.Minute
 	// tlfValidDurationDefault is the default for tlf validity before redoing identify.
-	tlfValidDurationDefault = 6*time.Hour
+	tlfValidDurationDefault = 6 * time.Hour
 )
 
 // ConfigLocal implements the Config interface using purely local
@@ -217,7 +217,7 @@ func NewConfigLocal() *ConfigLocal {
 	}
 
 	config.tlfValidDuration = tlfValidDurationDefault
-	
+
 	return config
 }
 

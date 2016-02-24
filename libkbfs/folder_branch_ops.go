@@ -407,12 +407,13 @@ func newFolderBranchOps(config Config, fb FolderBranch,
 	return fbo
 }
 
-// checkRevalidationNeed checks whether this tlf is identified and mark
+// markForReIdentifyIfNeeded checks whether this tlf is identified and mark
 // it for lazy reidentification if it exceeds time limits.
-func (fbo *folderBranchOps) checkReIdentifyNeed(now time.Time, maxValid time.Duration) {
+func (fbo *folderBranchOps) markForReIdentifyIfNeeded(now time.Time, maxValid time.Duration) {
 	fbo.identifyLock.Lock()
 	defer fbo.identifyLock.Unlock()
 	if fbo.identifyDone && (now.Before(fbo.identifyTime) || fbo.identifyTime.Add(maxValid).Before(now)) {
+		fbo.log.CDebugf(nil, "Expiring identify from %v", fbo.identifyTime)
 		fbo.identifyDone = false
 	}
 }
@@ -582,7 +583,7 @@ func (fbo *folderBranchOps) identifyOnce(
 
 	fbo.log.CDebugf(ctx, "Identify finished successfully")
 	fbo.identifyDone = true
-	fbo.identifyTime = time.Now()
+	fbo.identifyTime = fbo.config.Clock().Now()
 	return nil
 }
 

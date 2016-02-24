@@ -2764,6 +2764,24 @@ func (_mr *_MockConfigRecorder) SetMetricsRegistry(arg0 interface{}) *gomock.Cal
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetMetricsRegistry", arg0)
 }
 
+func (_m *MockConfig) TLFValidDuration() time.Duration {
+	ret := _m.ctrl.Call(_m, "TLFValidDuration")
+	ret0, _ := ret[0].(time.Duration)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) TLFValidDuration() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "TLFValidDuration")
+}
+
+func (_m *MockConfig) SetTLFValidDuration(_param0 time.Duration) {
+	_m.ctrl.Call(_m, "SetTLFValidDuration", _param0)
+}
+
+func (_mr *_MockConfigRecorder) SetTLFValidDuration(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SetTLFValidDuration", arg0)
+}
+
 func (_m *MockConfig) Shutdown() error {
 	ret := _m.ctrl.Call(_m, "Shutdown")
 	ret0, _ := ret[0].(error)

@@ -258,6 +258,55 @@ func TestKBFSOpsGetRootNodeCacheSuccess(t *testing.T) {
 	assert.True(t, ops.identifyDone)
 }
 
+func TestKBFSOpsGetRootNodeReIdentify(t *testing.T) {
+	mockCtrl, config, ctx := kbfsOpsInit(t, false)
+	defer kbfsTestShutdown(mockCtrl, config)
+
+	_, id, rmd := makeIDAndRMD(t, config)
+	rmd.data.Dir.BlockPointer.ID = fakeBlockID(1)
+	rmd.data.Dir.Type = Dir
+
+	ops := getOps(config, id)
+	assert.False(t, ops.identifyDone)
+
+	n, ei, h, err := ops.getRootNode(ctx)
+	require.Nil(t, err)
+	assert.False(t, fboIdentityDone(ops))
+
+	p := ops.nodeCache.PathFromNode(n)
+	assert.Equal(t, id, p.Tlf)
+	require.Equal(t, 1, len(p.path))
+	assert.Equal(t, rmd.data.Dir.ID, p.path[0].ID)
+	assert.Equal(t, rmd.data.Dir.EntryInfo, ei)
+	assert.Equal(t, rmd.GetTlfHandle(), h)
+
+	// Trigger identify.
+	lState := makeFBOLockState()
+	_, err = ops.getMDLocked(ctx, lState, mdReadNeedIdentify)
+	require.Nil(t, err)
+	assert.True(t, ops.identifyDone)
+
+	// The channel is not buffered, when the second value is received
+	// the first round of marking for reidentify will be done.
+	kop := config.KBFSOps().(*KBFSOpsStandard)
+	kop.reIdentifyControlChan <- struct{}{}
+	kop.reIdentifyControlChan <- struct{}{}
+	assert.False(t, fboIdentityDone(ops))
+
+	// Trigger identify.
+	lState = makeFBOLockState()
+	_, err = ops.getMDLocked(ctx, lState, mdReadNeedIdentify)
+	require.Nil(t, err)
+	assert.True(t, ops.identifyDone)
+}
+
+// fboIdentityDone is needed to avoid data races.
+func fboIdentityDone(fbo *folderBranchOps) bool {
+	fbo.identifyLock.Lock()
+	defer fbo.identifyLock.Unlock()
+	return fbo.identifyDone
+}
+
 func TestKBFSOpsGetRootNodeCacheIdentifyFail(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
