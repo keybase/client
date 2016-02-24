@@ -41,10 +41,10 @@ export default class Render extends Component {
         <Container title='Colors - DZ2'>
           <div style={{...globalStyles.flexBoxColumn, flexWrap: 'wrap'}}>
             <Text type='Body'>Colors</Text>
-            <div style={{...globalStyles.flexBoxColumn, flexWrap: 'wrap', height: 350}}>
+            <div style={{...globalStyles.flexBoxRow, flexWrap: 'wrap'}}>
             {Object.keys(globalColorsDZ2).sort().map(c => {
               return (
-                <div style={{...globalStyles.flexBoxRow, height: 60, margin: 5}}>
+                <div style={{...globalStyles.flexBoxRow, height: 60, margin: 5, minWidth: 230}}>
                   <div style={{width: 60, height: 60, backgroundColor: globalColorsDZ2[c]}}></div>
                   <div style={{...globalStyles.flexBoxColumn, justifyContent: 'center', marginLeft: 5}}>
                     <Text type='Body'>{c}</Text>

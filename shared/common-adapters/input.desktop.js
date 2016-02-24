@@ -83,7 +83,7 @@ export default class Input extends Component {
           autoFocus={this.props.autoFocus}
           errorText={this.props.errorText}
           floatingLabelText={this.props.small ? undefined : this.props.floatingLabelText}
-          floatingLabelStyle={{...styles.floatingLabelStyle, ...(this.state.focused ? {color: globalColorsDZ2.blue2} : {})}}
+          floatingLabelStyle={{...styles.floatingLabelStyle, ...(this.state.focused ? {color: globalColorsDZ2.blue} : {})}}
           onFocus={() => this.setState({focused: true})}
           onBlur={() => this.setState({focused: false})}
           hintText={this.props.hintText}
@@ -127,7 +127,7 @@ export const styles = {
     lineHeight: '11px'
   },
   underlineFocusStyle: {
-    borderColor: globalColorsDZ2.blue2,
+    borderColor: globalColorsDZ2.blue,
     transition: ''
   },
   errorStyle: {
