@@ -182,7 +182,7 @@ const headerStyles = {
     fontSize: 14,
     lineHeight: '18px',
     letterSpacing: '0.3px',
-    color: globalColorsDZ2.blue2
+    color: globalColorsDZ2.blue
   }
 }
 
