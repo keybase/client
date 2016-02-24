@@ -3,11 +3,11 @@ import resolveRoot from '../resolve-root'
 import hotPath from '../hot-path'
 import menubar from 'menubar'
 
-export default function () {
-  const isWhite = process.platform === 'linux' ? '_white' : ''
-  const menubarIconPath = resolveRoot(`shared/images/menubarIcon/topbar_iconTemplate${isWhite}.png`)
-  const menubarLoadingIconPath = resolveRoot(`shared/images/menubarIcon/topbar_icon_loadingTemplate${isWhite}.png`)
+const isWhite = ['linux', 'win32'].indexOf(process.platform) !== -1 ? '_white' : ''
+const menubarIconPath = resolveRoot(`shared/images/menubarIcon/topbar_iconTemplate${isWhite}.png`)
+const menubarLoadingIconPath = resolveRoot(`shared/images/menubarIcon/topbar_icon_loadingTemplate${isWhite}.png`)
 
+export default function () {
   const mb = menubar({
     index: `file://${resolveRoot('renderer/launcher.html')}?src=${hotPath('launcher.bundle.js')}&selectorParams=menubar`,
     width: 320,
