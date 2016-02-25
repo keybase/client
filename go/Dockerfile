@@ -1,7 +1,7 @@
 FROM ubuntu:14.04
 MAINTAINER Keybase <admin@keybase.io>
 
-RUN apt-get update && apt-get install -y fuse openssl
+RUN apt-get update && apt-get install -y fuse openssl jq
 
 RUN useradd -m keybase
 RUN mkdir /keybase
