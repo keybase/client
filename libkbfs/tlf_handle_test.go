@@ -73,29 +73,19 @@ func (d *daemonKBPKI) GetNormalizedUsername(ctx context.Context, uid keybase1.UI
 	return userInfo.Name, nil
 }
 
-func newKBPKIAndReporterConfig(users []libkb.NormalizedUsername) (
-	*daemonKBPKI, Config) {
-	localUsers := MakeLocalUsers(users)
+func TestParseTlfHandleNoUserFailure(t *testing.T) {
+	ctx := context.Background()
+
+	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(currentUID, localUsers)
 
 	kbpki := &daemonKBPKI{
 		daemon: daemon,
 	}
-	reporter := NewReporterSimple(wallClock{}, 3)
-	return kbpki, &ConfigLocal{
-		kbpki: kbpki,
-		rep:   reporter,
-	}
-}
 
-func TestParseTlfHandleNoUserFailure(t *testing.T) {
-	ctx := context.Background()
-
-	kbpki, config := newKBPKIAndReporterConfig(
-		[]libkb.NormalizedUsername{"u1", "u2", "u3"})
 	name := "u2,u3#u4"
-	_, err := ParseTlfHandle(ctx, config, name, false)
+	_, err := ParseTlfHandle(ctx, kbpki, name, false)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
 	assert.Equal(t, NoSuchUserError{"u4"}, err)
 }
@@ -103,10 +93,16 @@ func TestParseTlfHandleNoUserFailure(t *testing.T) {
 func TestParseTlfHandleNotReaderFailure(t *testing.T) {
 	ctx := context.Background()
 
-	kbpki, config := newKBPKIAndReporterConfig(
-		[]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	currentUID := localUsers[0].UID
+	daemon := NewKeybaseDaemonMemory(currentUID, localUsers)
+
+	kbpki := &daemonKBPKI{
+		daemon: daemon,
+	}
+
 	name := "u2,u3"
-	_, err := ParseTlfHandle(ctx, config, name, false)
+	_, err := ParseTlfHandle(ctx, kbpki, name, false)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
 	assert.Equal(t, ReadAccessError{"u1", CanonicalTlfName(name), false}, err)
 }
@@ -122,15 +118,10 @@ func TestParseTlfHandleAssertionNotCanonicalFailure(t *testing.T) {
 	kbpki := &daemonKBPKI{
 		daemon: daemon,
 	}
-	reporter := NewReporterSimple(wallClock{}, 3)
-	config := &ConfigLocal{
-		kbpki: kbpki,
-		rep:   reporter,
-	}
 
 	name := "u1,u3#u2"
 	nonCanonicalName := "u1,u3@twitter#u2"
-	_, err := ParseTlfHandle(ctx, config, nonCanonicalName, false)
+	_, err := ParseTlfHandle(ctx, kbpki, nonCanonicalName, false)
 	// Names with assertions should be identified before the error
 	// is returned.
 	assert.Equal(t, 3, kbpki.getIdentifyCalls())
@@ -140,10 +131,16 @@ func TestParseTlfHandleAssertionNotCanonicalFailure(t *testing.T) {
 func TestParseTlfHandleAssertionPrivateSuccess(t *testing.T) {
 	ctx := context.Background()
 
-	kbpki, config := newKBPKIAndReporterConfig(
-		[]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	currentUID := localUsers[0].UID
+	daemon := NewKeybaseDaemonMemory(currentUID, localUsers)
+
+	kbpki := &daemonKBPKI{
+		daemon: daemon,
+	}
+
 	name := "u1,u3"
-	h, err := ParseTlfHandle(ctx, config, name, false)
+	h, err := ParseTlfHandle(ctx, kbpki, name, false)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
 	assert.Nil(t, err)
 	assert.Equal(t, name, h.cachedName)
@@ -152,10 +149,16 @@ func TestParseTlfHandleAssertionPrivateSuccess(t *testing.T) {
 func TestParseTlfHandleAssertionPublicSuccess(t *testing.T) {
 	ctx := context.Background()
 
-	kbpki, config := newKBPKIAndReporterConfig(
-		[]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	currentUID := localUsers[0].UID
+	daemon := NewKeybaseDaemonMemory(currentUID, localUsers)
+
+	kbpki := &daemonKBPKI{
+		daemon: daemon,
+	}
+
 	name := "u1,u2,u3"
-	h, err := ParseTlfHandle(ctx, config, name, true)
+	h, err := ParseTlfHandle(ctx, kbpki, name, true)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
 	assert.Nil(t, err)
 	assert.Equal(t, name+ReaderSep+PublicUIDName, h.cachedName)

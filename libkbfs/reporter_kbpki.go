@@ -56,8 +56,6 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context, err error) {
 //       them in the notifyBuffer as well so that send() can put
 //       them back in its context.
 func (r *ReporterKBPKI) Notify(ctx context.Context, notification *keybase1.FSNotification) {
-	r.log.CDebugf(ctx, "ReporterDaemon: queuing notification: %+v",
-		notification)
 	select {
 	case r.notifyBuffer <- notification:
 	default:
@@ -76,9 +74,6 @@ func (r *ReporterKBPKI) Shutdown() {
 // the keybase daemon.
 func (r *ReporterKBPKI) send(ctx context.Context) {
 	for notification := range r.notifyBuffer {
-		r.log.CDebugf(ctx, "ReporterDaemon: sending notification: %+v",
-			notification)
-
 		if err := r.config.KeybaseDaemon().Notify(ctx, notification); err != nil {
 			r.log.CDebugf(ctx, "ReporterDaemon: error sending notification: %s",
 				err)
