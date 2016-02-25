@@ -39,9 +39,6 @@ func makeFS(t testing.TB, config *libkbfs.ConfigLocal) (
 		log:    logger.NewTestLogger(t),
 		errLog: logger.NewTestLogger(t),
 	}
-	ctx := context.Background()
-	ctx = filesys.WithContext(ctx)
-	ctx, cancelFn := context.WithCancel(ctx)
 	fn := func(mnt *fstestutil.Mount) fs.FS {
 		filesys.fuse = mnt.Server
 		filesys.conn = mnt.Conn
@@ -55,6 +52,11 @@ func makeFS(t testing.TB, config *libkbfs.ConfigLocal) (
 	if err != nil {
 		t.Fatal(err)
 	}
+	// the cancelFn returned will cancel notification processing; the
+	// FUSE serve loop is terminated by unmounting the filesystem
+	ctx := context.Background()
+	ctx = filesys.WithContext(ctx)
+	ctx, cancelFn := context.WithCancel(ctx)
 	filesys.LaunchNotificationProcessor(ctx)
 	return mnt, filesys, cancelFn
 }

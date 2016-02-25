@@ -36,9 +36,6 @@ func createUserFuse(t *testing.T, ith int, config *libkbfs.ConfigLocal, tlf stri
 	}
 
 	filesys := libfuse.NewFS(config, nil, false)
-	ctx := context.Background()
-	ctx = filesys.WithContext(ctx)
-	ctx, cancelFn := context.WithCancel(ctx)
 	fn := func(mnt *fstestutil.Mount) fs.FS {
 		filesys.SetFuseConn(mnt.Server, mnt.Conn)
 		return filesys
@@ -51,6 +48,11 @@ func createUserFuse(t *testing.T, ith int, config *libkbfs.ConfigLocal, tlf stri
 	if err != nil {
 		t.Fatal(err)
 	}
+	// the fsUser.cancel will cancel notification processing; the FUSE
+	// serve loop is terminated by unmounting the filesystem
+	ctx := context.Background()
+	ctx = filesys.WithContext(ctx)
+	ctx, cancelFn := context.WithCancel(ctx)
 	filesys.LaunchNotificationProcessor(ctx)
 	return &fsUser{
 		mntDir: mnt.Dir,
