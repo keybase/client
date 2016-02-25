@@ -1,8 +1,7 @@
 // @flow
 import React, {Component} from 'react'
-import {Text, Button, FormWithCheckbox, Avatar} from '../../common-adapters'
+import {Text, Button, FormWithCheckbox, Avatar, DropDownMenu} from '../../common-adapters'
 import {globalStyles, globalColorsDZ2} from '../../styles/style-guide'
-import {DropDownMenu, MenuItem} from 'material-ui' // TEMP until we get dropdown in
 import type {Props} from './index.render'
 
 type State = {
@@ -56,11 +55,11 @@ export default class LoginRender extends Component {
       <div style={styles.container}>
         <Avatar style={styles.avatar} size={110} url={avatar} />
         <div style={styles.card}>
-          <DropDownMenu value={this.state.selectedUser} onChange={(event, index, value) => { this.setState({selectedUser: value}) }}>
-            {this.props.users.map(u => (
-              <MenuItem key={u} value={u} primaryText={u} />
-            ))}
-          </DropDownMenu>
+          <DropDownMenu
+            type='Username'
+            value={this.state.selectedUser}
+            onChange={selectedUser => this.setState({selectedUser})}
+            options={this.props.users} />
           <FormWithCheckbox
             style={{alignSelf: 'stretch'}}
             inputProps={inputProps}

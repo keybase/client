@@ -96,7 +96,7 @@ class Nav extends Component {
     return (nextProps.tabbedRouter.get('activeTab') !== this.props.tabbedRouter.get('activeTab'))
   }
 
-  render () {
+  componentDidUpdate () {
     const activeTab = this.props.tabbedRouter.get('activeTab')
 
     if (!this._askedResize && (activeTab === loginTab || this._renderedActiveTab === loginTab)) {
@@ -105,6 +105,10 @@ class Nav extends Component {
     }
 
     this._renderedActiveTab = activeTab
+  }
+
+  render () {
+    const activeTab = this.props.tabbedRouter.get('activeTab')
 
     if (activeTab === loginTab) {
       return (

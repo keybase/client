@@ -2,7 +2,7 @@
 import type {Component} from 'react'
 
 export type Props = {
-  lastUser: string | null,
+  lastUser: ?string,
   serverURI: string,
   users: Array<string>,
   onSignup: () => void,

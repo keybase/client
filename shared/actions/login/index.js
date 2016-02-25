@@ -49,7 +49,7 @@ export function navBasedOnLoginState () :AsyncAction {
   }
 }
 
-function getAccounts () :AsyncAction {
+function getAccounts (): AsyncAction {
   return dispatch => {
     const params: login_getConfiguredAccounts_rpc = {
       method: 'login.getConfiguredAccounts',
@@ -57,7 +57,7 @@ function getAccounts () :AsyncAction {
       incomingCallMap: {},
       callback: (error, accounts) => {
         if (error) {
-          console.log('Error getting configured accounts: ', error)
+          dispatch({type: Constants.configuredAccounts, error: true, payload: error})
         } else {
           dispatch({type: Constants.configuredAccounts, payload: {accounts}})
         }
@@ -198,7 +198,7 @@ export function relogin (user: string, passphrase: string, store: boolean) : Asy
           dispatch({type: Constants.loginDone, error: true, payload: error})
         } else {
           dispatch({type: Constants.loginDone, payload: status})
-          dispatch(switchTab(devicesTab))
+          dispatch(navBasedOnLoginState())
         }
       }
     }

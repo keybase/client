@@ -75,7 +75,7 @@ const initialState: LoginState = {
     existingDevices: [],
     deviceName: ''
   },
-  configuredAccounts: []
+  configuredAccounts: null
 }
 
 export default function (state: LoginState = initialState, action: any): LoginState {
@@ -161,14 +161,12 @@ export default function (state: LoginState = initialState, action: any): LoginSt
       toMerge = {deviceName: {deviceName}}
       break
     case Constants.configuredAccounts:
-      if (action.payload) {
-        return {
-          ...state,
-          configuredAccounts: action.payload.accounts
-        }
+      if (action.payload.error) {
+        toMerge = {configuredAccounts: []}
+      } else {
+        toMerge = {configuredAccounts: action.payload.accounts}
       }
-      return state
-
+      break
     default:
       return state
   }

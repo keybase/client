@@ -1,4 +1,4 @@
-// Handles sending requests to objc (then go) and back
+// Handles sending requests to native mobile (then go) and back
 
 import engine from './index.native'
 import Transport from './transport'
@@ -197,6 +197,8 @@ class Engine {
 
     if (sessionID) {
       this.sessionIDToResponse[sessionID] = wrappedResponse
+    } else if (__DEV__) {
+      console.log('Invalid sessionID detected')
     }
     return wrappedResponse
   }
