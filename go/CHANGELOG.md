@@ -1,8 +1,9 @@
-## 1.0.14
+## 1.0.14 (2016-02-24)
 - Fix crasher on passphrase recover on Linux (PR: keybase/client#2062)
 - Local snooze for broken remote proofs (PR: keybase/client#1934)
 - More Gnu S2K Support (commit: 24fc27084690c564464263b9e35936ba9dc40bc1)
 - Remove Gopass and Miniline; use patched ssh/terminal (PR: keybase/client#2078)
+- Modernize and fix up config get/set (PR: keybase/client#2071)
 
 ## 1.0.13 (2016-02-17)
 - Fix service not restarting after version mismatch check
