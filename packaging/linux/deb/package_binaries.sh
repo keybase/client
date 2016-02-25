@@ -28,7 +28,7 @@ if [ "$mode" = "production" ] ; then
   repo_url="http://dist.keybase.io/linux/deb/repo"
 elif [ "$mode" = "prerelease" ] ; then
   repo_url="http://s3.amazonaws.com/prerelease.keybase.io/deb"
-  dependencies="libappindicator1"
+  dependencies="Depends: libappindicator1"
 elif [ "$mode" = "staging" ] ; then
   # Note: This doesn't exist yet. But we need to be distinct from the
   # production URL, because we're moving to a model where we build a clean repo
