@@ -234,9 +234,7 @@ func buildCanonicalPath(public bool, canonicalName CanonicalTlfName) string {
 	return fmt.Sprintf("/keybase/%s/%s", folderType, canonicalName)
 }
 
-func identifyHelper(ctx context.Context, kbpki KBPKI,
-	canonicalName CanonicalTlfName,
-	assertion string, isWriter, public bool) (UserInfo, error) {
+func identifyHelper(ctx context.Context, kbpki KBPKI, _ CanonicalTlfName, assertion string, _ bool, public bool) (UserInfo, error) {
 	var pubOrPri string
 	if public {
 		pubOrPri = "public"
