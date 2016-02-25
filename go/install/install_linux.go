@@ -57,3 +57,11 @@ func AutoInstall(g *libkb.GlobalContext, _ string, _ bool) ( /* newProc */ bool,
 func CheckIfValidLocation() error {
 	return nil
 }
+
+func kbfsBinPath(runMode libkb.RunMode, binPath string) (string, error) {
+	return kbfsBinPathDefault(runMode, binPath)
+}
+
+func RunAfterStartup(g *libkb.GlobalContext, isService bool) error {
+	return nil
+}

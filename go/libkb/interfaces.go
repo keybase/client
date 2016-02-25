@@ -149,6 +149,7 @@ type ConfigReader interface {
 	GetUpdatePreferenceSnoozeUntil() keybase1.Time
 	GetUpdateLastChecked() keybase1.Time
 	GetLocalTrackMaxAge() (time.Duration, bool)
+	GetAppStartMode() AppStartMode
 
 	GetTorMode() (TorMode, error)
 	GetTorHiddenAddress() string
