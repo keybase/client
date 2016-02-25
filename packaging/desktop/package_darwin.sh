@@ -122,6 +122,7 @@ get_deps() {
     ensure_url $kbfs_url "You need to build the binary for this Github release/version. See packaging/github to create/build a release."
     curl -J -L -Ss $kbfs_url | tar zx
   fi
+  echo "Using installer from $installer_url"
   curl -J -L -Ss $installer_url | tar zx
 }
 
