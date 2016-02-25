@@ -1,19 +1,21 @@
 {
-  "protocol" : "NotifySession",
-  "namespace" : "keybase.1",
-  "types" : [ ],
-  "messages" : {
-    "loggedOut" : {
-      "notify" : "",
-      "request" : [ ],
-      "response" : "null"
+  "protocol": "NotifySession",
+  "namespace": "keybase.1",
+  "types": [],
+  "messages": {
+    "loggedOut": {
+      "request": [],
+      "response": "null",
+      "notify": ""
     },
-    "loggedIn" : {
-      "request" : [ {
-        "name" : "username",
-        "type" : "string"
-      } ],
-      "response" : "null"
+    "loggedIn": {
+      "request": [
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": "null"
     }
   }
 }

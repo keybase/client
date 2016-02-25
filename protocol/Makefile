@@ -1,11 +1,11 @@
 default: build
 all: build
 
-AVRO=java -jar jar/avro-tools-1.7.7.jar idl
 ICED=node_modules/.bin/iced
+AVDL2JSON=node_modules/.bin/avdl2json
 
 json/%.json: avdl/%.avdl
-	$(AVRO) $< $@~ && mv $@~ $@
+	$(AVDL2JSON) -i $< -o $@~ && mv $@~ $@
 
 config:
 	npm install -d

@@ -1,473 +1,675 @@
 {
-  "protocol" : "config",
-  "namespace" : "keybase.1",
-  "types" : [ {
-    "type" : "record",
-    "name" : "Time",
-    "fields" : [ ],
-    "typedef" : "long"
-  }, {
-    "type" : "record",
-    "name" : "StringKVPair",
-    "fields" : [ {
-      "name" : "key",
-      "type" : "string"
-    }, {
-      "name" : "value",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "Status",
-    "fields" : [ {
-      "name" : "code",
-      "type" : "int"
-    }, {
-      "name" : "name",
-      "type" : "string"
-    }, {
-      "name" : "desc",
-      "type" : "string"
-    }, {
-      "name" : "fields",
-      "type" : {
-        "type" : "array",
-        "items" : "StringKVPair"
-      }
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "UID",
-    "fields" : [ ],
-    "typedef" : "string"
-  }, {
-    "type" : "record",
-    "name" : "DeviceID",
-    "fields" : [ ],
-    "typedef" : "string"
-  }, {
-    "type" : "record",
-    "name" : "SigID",
-    "fields" : [ ],
-    "typedef" : "string"
-  }, {
-    "type" : "record",
-    "name" : "KID",
-    "fields" : [ ],
-    "typedef" : "string"
-  }, {
-    "type" : "record",
-    "name" : "Text",
-    "fields" : [ {
-      "name" : "data",
-      "type" : "string"
-    }, {
-      "name" : "markup",
-      "type" : "boolean"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "PGPIdentity",
-    "fields" : [ {
-      "name" : "username",
-      "type" : "string"
-    }, {
-      "name" : "comment",
-      "type" : "string"
-    }, {
-      "name" : "email",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "PublicKey",
-    "fields" : [ {
-      "name" : "KID",
-      "type" : "KID"
-    }, {
-      "name" : "PGPFingerprint",
-      "type" : "string"
-    }, {
-      "name" : "PGPIdentities",
-      "type" : {
-        "type" : "array",
-        "items" : "PGPIdentity"
-      }
-    }, {
-      "name" : "isSibkey",
-      "type" : "boolean"
-    }, {
-      "name" : "isEldest",
-      "type" : "boolean"
-    }, {
-      "name" : "parentID",
-      "type" : "string"
-    }, {
-      "name" : "deviceID",
-      "type" : "DeviceID"
-    }, {
-      "name" : "deviceDescription",
-      "type" : "string"
-    }, {
-      "name" : "deviceType",
-      "type" : "string"
-    }, {
-      "name" : "cTime",
-      "type" : "Time"
-    }, {
-      "name" : "eTime",
-      "type" : "Time"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "User",
-    "fields" : [ {
-      "name" : "uid",
-      "type" : "UID"
-    }, {
-      "name" : "username",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "Device",
-    "fields" : [ {
-      "name" : "type",
-      "type" : "string"
-    }, {
-      "name" : "name",
-      "type" : "string"
-    }, {
-      "name" : "deviceID",
-      "type" : "DeviceID"
-    }, {
-      "name" : "cTime",
-      "type" : "Time"
-    }, {
-      "name" : "mTime",
-      "type" : "Time"
-    }, {
-      "name" : "encryptKey",
-      "type" : "KID"
-    }, {
-      "name" : "verifyKey",
-      "type" : "KID"
-    }, {
-      "name" : "status",
-      "type" : "int"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "Stream",
-    "fields" : [ {
-      "name" : "fd",
-      "type" : "int"
-    } ]
-  }, {
-    "type" : "enum",
-    "name" : "LogLevel",
-    "symbols" : [ "NONE_0", "DEBUG_1", "INFO_2", "NOTICE_3", "WARN_4", "ERROR_5", "CRITICAL_6", "FATAL_7" ]
-  }, {
-    "type" : "enum",
-    "name" : "ClientType",
-    "symbols" : [ "NONE_0", "CLI_1", "GUI_2", "KBFS_3" ]
-  }, {
-    "type" : "record",
-    "name" : "UserVersionVector",
-    "fields" : [ {
-      "name" : "id",
-      "type" : "long"
-    }, {
-      "name" : "sigHints",
-      "type" : "int"
-    }, {
-      "name" : "sigChain",
-      "type" : "long"
-    }, {
-      "name" : "cachedAt",
-      "type" : "Time"
-    }, {
-      "name" : "lastIdentifiedAt",
-      "type" : "Time"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "UserPlusKeys",
-    "fields" : [ {
-      "name" : "uid",
-      "type" : "UID"
-    }, {
-      "name" : "username",
-      "type" : "string"
-    }, {
-      "name" : "deviceKeys",
-      "type" : {
-        "type" : "array",
-        "items" : "PublicKey"
-      }
-    }, {
-      "name" : "keys",
-      "type" : {
-        "type" : "array",
-        "items" : "PublicKey"
-      }
-    }, {
-      "name" : "uvv",
-      "type" : "UserVersionVector"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "GetCurrentStatusRes",
-    "fields" : [ {
-      "name" : "configured",
-      "type" : "boolean"
-    }, {
-      "name" : "registered",
-      "type" : "boolean"
-    }, {
-      "name" : "loggedIn",
-      "type" : "boolean"
-    }, {
-      "name" : "user",
-      "type" : [ "null", "User" ]
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "SessionStatus",
-    "fields" : [ {
-      "name" : "SessionFor",
-      "type" : "string"
-    }, {
-      "name" : "Loaded",
-      "type" : "boolean"
-    }, {
-      "name" : "Cleared",
-      "type" : "boolean"
-    }, {
-      "name" : "SaltOnly",
-      "type" : "boolean"
-    }, {
-      "name" : "Expired",
-      "type" : "boolean"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "ClientDetails",
-    "fields" : [ {
-      "name" : "pid",
-      "type" : "int"
-    }, {
-      "name" : "clientType",
-      "type" : "ClientType"
-    }, {
-      "name" : "argv",
-      "type" : {
-        "type" : "array",
-        "items" : "string"
-      }
-    }, {
-      "name" : "desc",
-      "type" : "string"
-    }, {
-      "name" : "version",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "PlatformInfo",
-    "fields" : [ {
-      "name" : "os",
-      "type" : "string"
-    }, {
-      "name" : "arch",
-      "type" : "string"
-    }, {
-      "name" : "goVersion",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "ExtendedStatus",
-    "fields" : [ {
-      "name" : "standalone",
-      "type" : "boolean"
-    }, {
-      "name" : "passphraseStreamCached",
-      "type" : "boolean"
-    }, {
-      "name" : "device",
-      "type" : [ "null", "Device" ]
-    }, {
-      "name" : "logDir",
-      "type" : "string"
-    }, {
-      "name" : "session",
-      "type" : [ "null", "SessionStatus" ]
-    }, {
-      "name" : "defaultUsername",
-      "type" : "string"
-    }, {
-      "name" : "provisionedUsernames",
-      "type" : {
-        "type" : "array",
-        "items" : "string"
-      }
-    }, {
-      "name" : "Clients",
-      "type" : {
-        "type" : "array",
-        "items" : "ClientDetails"
-      }
-    }, {
-      "name" : "platformInfo",
-      "type" : "PlatformInfo"
-    } ]
-  }, {
-    "type" : "enum",
-    "name" : "ForkType",
-    "symbols" : [ "NONE_0", "AUTO_1", "WATCHDOG_2", "LAUNCHD_3" ]
-  }, {
-    "type" : "record",
-    "name" : "Config",
-    "fields" : [ {
-      "name" : "serverURI",
-      "type" : "string"
-    }, {
-      "name" : "socketFile",
-      "type" : "string"
-    }, {
-      "name" : "label",
-      "type" : "string"
-    }, {
-      "name" : "runMode",
-      "type" : "string"
-    }, {
-      "name" : "gpgExists",
-      "type" : "boolean"
-    }, {
-      "name" : "gpgPath",
-      "type" : "string"
-    }, {
-      "name" : "version",
-      "type" : "string"
-    }, {
-      "name" : "path",
-      "type" : "string"
-    }, {
-      "name" : "configPath",
-      "type" : "string"
-    }, {
-      "name" : "versionShort",
-      "type" : "string"
-    }, {
-      "name" : "versionFull",
-      "type" : "string"
-    }, {
-      "name" : "isAutoForked",
-      "type" : "boolean"
-    }, {
-      "name" : "forkType",
-      "type" : "ForkType"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "ConfigValue",
-    "fields" : [ {
-      "name" : "isNull",
-      "type" : "boolean"
-    }, {
-      "name" : "b",
-      "type" : [ "null", "boolean" ]
-    }, {
-      "name" : "i",
-      "type" : [ "null", "int" ]
-    }, {
-      "name" : "s",
-      "type" : [ "null", "string" ]
-    }, {
-      "name" : "o",
-      "type" : [ "null", "string" ]
-    } ]
-  } ],
-  "messages" : {
-    "getCurrentStatus" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      } ],
-      "response" : "GetCurrentStatusRes"
+  "protocol": "config",
+  "namespace": "keybase.1",
+  "types": [
+    {
+      "type": "record",
+      "name": "Time",
+      "fields": [],
+      "typedef": "long"
     },
-    "getExtendedStatus" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      } ],
-      "response" : "ExtendedStatus"
+    {
+      "type": "record",
+      "name": "StringKVPair",
+      "fields": [
+        {
+          "type": "string",
+          "name": "key"
+        },
+        {
+          "type": "string",
+          "name": "value"
+        }
+      ]
     },
-    "getConfig" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      } ],
-      "response" : "Config"
+    {
+      "type": "record",
+      "name": "Status",
+      "fields": [
+        {
+          "type": "int",
+          "name": "code"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "desc"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "StringKVPair"
+          },
+          "name": "fields"
+        }
+      ]
     },
-    "setUserConfig" : {
-      "doc" : "Change user config.\n    For example, to update primary picture source:\n      key=picture.source, value=twitter (or github)",
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "username",
-        "type" : "string"
-      }, {
-        "name" : "key",
-        "type" : "string"
-      }, {
-        "name" : "value",
-        "type" : "string"
-      } ],
-      "response" : "null"
+    {
+      "type": "record",
+      "name": "UID",
+      "fields": [],
+      "typedef": "string"
     },
-    "setPath" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "path",
-        "type" : "string"
-      } ],
-      "response" : "null"
+    {
+      "type": "record",
+      "name": "DeviceID",
+      "fields": [],
+      "typedef": "string"
     },
-    "helloIAm" : {
-      "request" : [ {
-        "name" : "details",
-        "type" : "ClientDetails"
-      } ],
-      "response" : "null"
+    {
+      "type": "record",
+      "name": "SigID",
+      "fields": [],
+      "typedef": "string"
     },
-    "setValue" : {
-      "request" : [ {
-        "name" : "path",
-        "type" : "string"
-      }, {
-        "name" : "value",
-        "type" : "ConfigValue"
-      } ],
-      "response" : "null"
+    {
+      "type": "record",
+      "name": "KID",
+      "fields": [],
+      "typedef": "string"
     },
-    "clearValue" : {
-      "request" : [ {
-        "name" : "path",
-        "type" : "string"
-      } ],
-      "response" : "null"
+    {
+      "type": "record",
+      "name": "Text",
+      "fields": [
+        {
+          "type": "string",
+          "name": "data"
+        },
+        {
+          "type": "boolean",
+          "name": "markup"
+        }
+      ]
     },
-    "getValue" : {
-      "request" : [ {
-        "name" : "path",
-        "type" : "string"
-      } ],
-      "response" : "ConfigValue"
+    {
+      "type": "record",
+      "name": "PGPIdentity",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "comment"
+        },
+        {
+          "type": "string",
+          "name": "email"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PublicKey",
+      "fields": [
+        {
+          "type": "KID",
+          "name": "KID"
+        },
+        {
+          "type": "string",
+          "name": "PGPFingerprint"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PGPIdentity"
+          },
+          "name": "PGPIdentities"
+        },
+        {
+          "type": "boolean",
+          "name": "isSibkey"
+        },
+        {
+          "type": "boolean",
+          "name": "isEldest"
+        },
+        {
+          "type": "string",
+          "name": "parentID"
+        },
+        {
+          "type": "DeviceID",
+          "name": "deviceID"
+        },
+        {
+          "type": "string",
+          "name": "deviceDescription"
+        },
+        {
+          "type": "string",
+          "name": "deviceType"
+        },
+        {
+          "type": "Time",
+          "name": "cTime"
+        },
+        {
+          "type": "Time",
+          "name": "eTime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "User",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Device",
+      "fields": [
+        {
+          "type": "string",
+          "name": "type"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "DeviceID",
+          "name": "deviceID"
+        },
+        {
+          "type": "Time",
+          "name": "cTime"
+        },
+        {
+          "type": "Time",
+          "name": "mTime"
+        },
+        {
+          "type": "KID",
+          "name": "encryptKey"
+        },
+        {
+          "type": "KID",
+          "name": "verifyKey"
+        },
+        {
+          "type": "int",
+          "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Stream",
+      "fields": [
+        {
+          "type": "int",
+          "name": "fd"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "LogLevel",
+      "symbols": [
+        "NONE_0",
+        "DEBUG_1",
+        "INFO_2",
+        "NOTICE_3",
+        "WARN_4",
+        "ERROR_5",
+        "CRITICAL_6",
+        "FATAL_7"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "ClientType",
+      "symbols": [
+        "NONE_0",
+        "CLI_1",
+        "GUI_2",
+        "KBFS_3"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserVersionVector",
+      "fields": [
+        {
+          "type": "long",
+          "name": "id"
+        },
+        {
+          "type": "int",
+          "name": "sigHints"
+        },
+        {
+          "type": "long",
+          "name": "sigChain"
+        },
+        {
+          "type": "Time",
+          "name": "cachedAt"
+        },
+        {
+          "type": "Time",
+          "name": "lastIdentifiedAt"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserPlusKeys",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PublicKey"
+          },
+          "name": "deviceKeys"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PublicKey"
+          },
+          "name": "keys"
+        },
+        {
+          "type": "UserVersionVector",
+          "name": "uvv"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "MerkleTreeID",
+      "symbols": [
+        "MASTER_0",
+        "KBFS_PUBLIC_1",
+        "KBFS_PRIVATE_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "GetCurrentStatusRes",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "configured"
+        },
+        {
+          "type": "boolean",
+          "name": "registered"
+        },
+        {
+          "type": "boolean",
+          "name": "loggedIn"
+        },
+        {
+          "type": [
+            "null",
+            "User"
+          ],
+          "name": "user"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SessionStatus",
+      "fields": [
+        {
+          "type": "string",
+          "name": "SessionFor"
+        },
+        {
+          "type": "boolean",
+          "name": "Loaded"
+        },
+        {
+          "type": "boolean",
+          "name": "Cleared"
+        },
+        {
+          "type": "boolean",
+          "name": "SaltOnly"
+        },
+        {
+          "type": "boolean",
+          "name": "Expired"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ClientDetails",
+      "fields": [
+        {
+          "type": "int",
+          "name": "pid"
+        },
+        {
+          "type": "ClientType",
+          "name": "clientType"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "argv"
+        },
+        {
+          "type": "string",
+          "name": "desc"
+        },
+        {
+          "type": "string",
+          "name": "version"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PlatformInfo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "os"
+        },
+        {
+          "type": "string",
+          "name": "arch"
+        },
+        {
+          "type": "string",
+          "name": "goVersion"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ExtendedStatus",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "standalone"
+        },
+        {
+          "type": "boolean",
+          "name": "passphraseStreamCached"
+        },
+        {
+          "type": [
+            "null",
+            "Device"
+          ],
+          "name": "device"
+        },
+        {
+          "type": "string",
+          "name": "logDir"
+        },
+        {
+          "type": [
+            "null",
+            "SessionStatus"
+          ],
+          "name": "session"
+        },
+        {
+          "type": "string",
+          "name": "defaultUsername"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "provisionedUsernames"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ClientDetails"
+          },
+          "name": "Clients"
+        },
+        {
+          "type": "PlatformInfo",
+          "name": "platformInfo"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "ForkType",
+      "symbols": [
+        "NONE_0",
+        "AUTO_1",
+        "WATCHDOG_2",
+        "LAUNCHD_3"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Config",
+      "fields": [
+        {
+          "type": "string",
+          "name": "serverURI"
+        },
+        {
+          "type": "string",
+          "name": "socketFile"
+        },
+        {
+          "type": "string",
+          "name": "label"
+        },
+        {
+          "type": "string",
+          "name": "runMode"
+        },
+        {
+          "type": "boolean",
+          "name": "gpgExists"
+        },
+        {
+          "type": "string",
+          "name": "gpgPath"
+        },
+        {
+          "type": "string",
+          "name": "version"
+        },
+        {
+          "type": "string",
+          "name": "path"
+        },
+        {
+          "type": "string",
+          "name": "configPath"
+        },
+        {
+          "type": "string",
+          "name": "versionShort"
+        },
+        {
+          "type": "string",
+          "name": "versionFull"
+        },
+        {
+          "type": "boolean",
+          "name": "isAutoForked"
+        },
+        {
+          "type": "ForkType",
+          "name": "forkType"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConfigValue",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "isNull"
+        },
+        {
+          "type": [
+            "null",
+            "boolean"
+          ],
+          "name": "b"
+        },
+        {
+          "type": [
+            "null",
+            "int"
+          ],
+          "name": "i"
+        },
+        {
+          "type": [
+            "null",
+            "string"
+          ],
+          "name": "s"
+        },
+        {
+          "type": [
+            "null",
+            "string"
+          ],
+          "name": "o"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "getCurrentStatus": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "GetCurrentStatusRes"
+    },
+    "getExtendedStatus": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "ExtendedStatus"
+    },
+    "getConfig": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "Config"
+    },
+    "setUserConfig": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "key",
+          "type": "string"
+        },
+        {
+          "name": "value",
+          "type": "string"
+        }
+      ],
+      "response": "null",
+      "doc": "Change user config.\n    For example, to update primary picture source:\n      key=picture.source, value=twitter (or github)"
+    },
+    "setPath": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "path",
+          "type": "string"
+        }
+      ],
+      "response": "null"
+    },
+    "helloIAm": {
+      "request": [
+        {
+          "name": "details",
+          "type": "ClientDetails"
+        }
+      ],
+      "response": "null"
+    },
+    "setValue": {
+      "request": [
+        {
+          "name": "path",
+          "type": "string"
+        },
+        {
+          "name": "value",
+          "type": "ConfigValue"
+        }
+      ],
+      "response": "null"
+    },
+    "clearValue": {
+      "request": [
+        {
+          "name": "path",
+          "type": "string"
+        }
+      ],
+      "response": "null"
+    },
+    "getValue": {
+      "request": [
+        {
+          "name": "path",
+          "type": "string"
+        }
+      ],
+      "response": "ConfigValue"
     }
   }
 }

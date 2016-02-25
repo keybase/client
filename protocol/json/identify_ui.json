@@ -1,721 +1,1100 @@
 {
-  "protocol" : "identifyUi",
-  "namespace" : "keybase.1",
-  "types" : [ {
-    "type" : "record",
-    "name" : "Time",
-    "fields" : [ ],
-    "typedef" : "long"
-  }, {
-    "type" : "record",
-    "name" : "StringKVPair",
-    "fields" : [ {
-      "name" : "key",
-      "type" : "string"
-    }, {
-      "name" : "value",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "Status",
-    "fields" : [ {
-      "name" : "code",
-      "type" : "int"
-    }, {
-      "name" : "name",
-      "type" : "string"
-    }, {
-      "name" : "desc",
-      "type" : "string"
-    }, {
-      "name" : "fields",
-      "type" : {
-        "type" : "array",
-        "items" : "StringKVPair"
-      }
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "UID",
-    "fields" : [ ],
-    "typedef" : "string"
-  }, {
-    "type" : "record",
-    "name" : "DeviceID",
-    "fields" : [ ],
-    "typedef" : "string"
-  }, {
-    "type" : "record",
-    "name" : "SigID",
-    "fields" : [ ],
-    "typedef" : "string"
-  }, {
-    "type" : "record",
-    "name" : "KID",
-    "fields" : [ ],
-    "typedef" : "string"
-  }, {
-    "type" : "record",
-    "name" : "Text",
-    "fields" : [ {
-      "name" : "data",
-      "type" : "string"
-    }, {
-      "name" : "markup",
-      "type" : "boolean"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "PGPIdentity",
-    "fields" : [ {
-      "name" : "username",
-      "type" : "string"
-    }, {
-      "name" : "comment",
-      "type" : "string"
-    }, {
-      "name" : "email",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "PublicKey",
-    "fields" : [ {
-      "name" : "KID",
-      "type" : "KID"
-    }, {
-      "name" : "PGPFingerprint",
-      "type" : "string"
-    }, {
-      "name" : "PGPIdentities",
-      "type" : {
-        "type" : "array",
-        "items" : "PGPIdentity"
-      }
-    }, {
-      "name" : "isSibkey",
-      "type" : "boolean"
-    }, {
-      "name" : "isEldest",
-      "type" : "boolean"
-    }, {
-      "name" : "parentID",
-      "type" : "string"
-    }, {
-      "name" : "deviceID",
-      "type" : "DeviceID"
-    }, {
-      "name" : "deviceDescription",
-      "type" : "string"
-    }, {
-      "name" : "deviceType",
-      "type" : "string"
-    }, {
-      "name" : "cTime",
-      "type" : "Time"
-    }, {
-      "name" : "eTime",
-      "type" : "Time"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "User",
-    "fields" : [ {
-      "name" : "uid",
-      "type" : "UID"
-    }, {
-      "name" : "username",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "Device",
-    "fields" : [ {
-      "name" : "type",
-      "type" : "string"
-    }, {
-      "name" : "name",
-      "type" : "string"
-    }, {
-      "name" : "deviceID",
-      "type" : "DeviceID"
-    }, {
-      "name" : "cTime",
-      "type" : "Time"
-    }, {
-      "name" : "mTime",
-      "type" : "Time"
-    }, {
-      "name" : "encryptKey",
-      "type" : "KID"
-    }, {
-      "name" : "verifyKey",
-      "type" : "KID"
-    }, {
-      "name" : "status",
-      "type" : "int"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "Stream",
-    "fields" : [ {
-      "name" : "fd",
-      "type" : "int"
-    } ]
-  }, {
-    "type" : "enum",
-    "name" : "LogLevel",
-    "symbols" : [ "NONE_0", "DEBUG_1", "INFO_2", "NOTICE_3", "WARN_4", "ERROR_5", "CRITICAL_6", "FATAL_7" ]
-  }, {
-    "type" : "enum",
-    "name" : "ClientType",
-    "symbols" : [ "NONE_0", "CLI_1", "GUI_2", "KBFS_3" ]
-  }, {
-    "type" : "record",
-    "name" : "UserVersionVector",
-    "fields" : [ {
-      "name" : "id",
-      "type" : "long"
-    }, {
-      "name" : "sigHints",
-      "type" : "int"
-    }, {
-      "name" : "sigChain",
-      "type" : "long"
-    }, {
-      "name" : "cachedAt",
-      "type" : "Time"
-    }, {
-      "name" : "lastIdentifiedAt",
-      "type" : "Time"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "UserPlusKeys",
-    "fields" : [ {
-      "name" : "uid",
-      "type" : "UID"
-    }, {
-      "name" : "username",
-      "type" : "string"
-    }, {
-      "name" : "deviceKeys",
-      "type" : {
-        "type" : "array",
-        "items" : "PublicKey"
-      }
-    }, {
-      "name" : "keys",
-      "type" : {
-        "type" : "array",
-        "items" : "PublicKey"
-      }
-    }, {
-      "name" : "uvv",
-      "type" : "UserVersionVector"
-    } ]
-  }, {
-    "type" : "enum",
-    "name" : "ProofState",
-    "symbols" : [ "NONE_0", "OK_1", "TEMP_FAILURE_2", "PERM_FAILURE_3", "LOOKING_4", "SUPERSEDED_5", "POSTED_6", "REVOKED_7" ]
-  }, {
-    "type" : "enum",
-    "name" : "ProofStatus",
-    "doc" : "3: It's been found in the hunt, but not proven yet\n    1xx: Retryable soft errors\n    2xx: Will likely result in a hard error, if repeated enough\n    3xx: Hard final errors",
-    "symbols" : [ "NONE_0", "OK_1", "LOCAL_2", "FOUND_3", "BASE_ERROR_100", "HOST_UNREACHABLE_101", "PERMISSION_DENIED_103", "FAILED_PARSE_106", "DNS_ERROR_107", "AUTH_FAILED_108", "HTTP_429_129", "HTTP_500_150", "TIMEOUT_160", "INTERNAL_ERROR_170", "BASE_HARD_ERROR_200", "NOT_FOUND_201", "CONTENT_FAILURE_202", "BAD_USERNAME_203", "BAD_REMOTE_ID_204", "TEXT_NOT_FOUND_205", "BAD_ARGS_206", "CONTENT_MISSING_207", "TITLE_NOT_FOUND_208", "SERVICE_ERROR_209", "TOR_SKIPPED_210", "TOR_INCOMPATIBLE_211", "HTTP_300_230", "HTTP_400_240", "HTTP_OTHER_260", "EMPTY_JSON_270", "DELETED_301", "SERVICE_DEAD_302", "BAD_SIGNATURE_303", "BAD_API_URL_304", "UNKNOWN_TYPE_305", "NO_HINT_306", "BAD_HINT_TEXT_307" ]
-  }, {
-    "type" : "enum",
-    "name" : "ProofType",
-    "symbols" : [ "NONE_0", "KEYBASE_1", "TWITTER_2", "GITHUB_3", "REDDIT_4", "COINBASE_5", "HACKERNEWS_6", "GENERIC_WEB_SITE_1000", "DNS_1001", "ROOTER_100001" ]
-  }, {
-    "type" : "record",
-    "name" : "TrackToken",
-    "fields" : [ ],
-    "typedef" : "string"
-  }, {
-    "type" : "enum",
-    "name" : "TrackDiffType",
-    "symbols" : [ "NONE_0", "ERROR_1", "CLASH_2", "REVOKED_3", "UPGRADED_4", "NEW_5", "REMOTE_FAIL_6", "REMOTE_WORKING_7", "REMOTE_CHANGED_8", "NEW_ELDEST_9", "NONE_VIA_TEMPORARY_10" ]
-  }, {
-    "type" : "record",
-    "name" : "TrackDiff",
-    "fields" : [ {
-      "name" : "type",
-      "type" : "TrackDiffType"
-    }, {
-      "name" : "displayMarkup",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "TrackSummary",
-    "fields" : [ {
-      "name" : "username",
-      "type" : "string"
-    }, {
-      "name" : "time",
-      "type" : "Time"
-    }, {
-      "name" : "isRemote",
-      "type" : "boolean"
-    } ]
-  }, {
-    "type" : "enum",
-    "name" : "TrackStatus",
-    "doc" : "TrackStatus is a summary of this track before the track is approved by the\n    user.\n    NEW_*: New tracks\n    UPDATE_*: Update to an existing track\n    NEW_OK: Everything ok\n    NEW_ZERO_PROOFS: User being tracked has no proofs\n    NEW_FAIL_PROOFS: User being tracked has some failed proofs\n    UPDATE_BROKEN: Previous tracking statement broken, this one will fix it.\n    UPDATE_NEW_PROOFS: Previous tracking statement ok, but there are new proofs since previous tracking statement generated\n    UPDATE_OK: No changes to previous tracking statement",
-    "symbols" : [ "NEW_OK_1", "NEW_ZERO_PROOFS_2", "NEW_FAIL_PROOFS_3", "UPDATE_BROKEN_4", "UPDATE_NEW_PROOFS_5", "UPDATE_OK_6" ]
-  }, {
-    "type" : "record",
-    "name" : "TrackOptions",
-    "fields" : [ {
-      "name" : "localOnly",
-      "type" : "boolean"
-    }, {
-      "name" : "bypassConfirm",
-      "type" : "boolean"
-    }, {
-      "name" : "forceRetrack",
-      "type" : "boolean"
-    }, {
-      "name" : "expiringLocal",
-      "type" : "boolean"
-    } ]
-  }, {
-    "type" : "enum",
-    "name" : "IdentifyReasonType",
-    "symbols" : [ "NONE_0", "ID_1", "TRACK_2", "ENCRYPT_3", "DECRYPT_4", "VERIFY_5", "RESOURCE_6" ]
-  }, {
-    "type" : "record",
-    "name" : "IdentifyReason",
-    "fields" : [ {
-      "name" : "type",
-      "type" : "IdentifyReasonType"
-    }, {
-      "name" : "reason",
-      "type" : "string"
-    }, {
-      "name" : "resource",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "IdentifyOutcome",
-    "fields" : [ {
-      "name" : "username",
-      "type" : "string"
-    }, {
-      "name" : "status",
-      "type" : [ "null", "Status" ]
-    }, {
-      "name" : "warnings",
-      "type" : {
-        "type" : "array",
-        "items" : "string"
-      }
-    }, {
-      "name" : "trackUsed",
-      "type" : [ "null", "TrackSummary" ]
-    }, {
-      "name" : "trackStatus",
-      "type" : "TrackStatus"
-    }, {
-      "name" : "numTrackFailures",
-      "type" : "int"
-    }, {
-      "name" : "numTrackChanges",
-      "type" : "int"
-    }, {
-      "name" : "numProofFailures",
-      "type" : "int"
-    }, {
-      "name" : "numRevoked",
-      "type" : "int"
-    }, {
-      "name" : "numProofSuccesses",
-      "type" : "int"
-    }, {
-      "name" : "revoked",
-      "type" : {
-        "type" : "array",
-        "items" : "TrackDiff"
-      }
-    }, {
-      "name" : "trackOptions",
-      "type" : "TrackOptions"
-    }, {
-      "name" : "forPGPPull",
-      "type" : "boolean"
-    }, {
-      "name" : "reason",
-      "type" : "IdentifyReason"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "IdentifyRes",
-    "fields" : [ {
-      "name" : "user",
-      "type" : [ "null", "User" ]
-    }, {
-      "name" : "publicKeys",
-      "type" : {
-        "type" : "array",
-        "items" : "PublicKey"
-      }
-    }, {
-      "name" : "outcome",
-      "type" : "IdentifyOutcome"
-    }, {
-      "name" : "trackToken",
-      "type" : "TrackToken"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "RemoteProof",
-    "fields" : [ {
-      "name" : "proofType",
-      "type" : "ProofType"
-    }, {
-      "name" : "key",
-      "type" : "string"
-    }, {
-      "name" : "value",
-      "type" : "string"
-    }, {
-      "name" : "displayMarkup",
-      "type" : "string"
-    }, {
-      "name" : "sigID",
-      "type" : "SigID"
-    }, {
-      "name" : "mTime",
-      "type" : "Time"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "ProofResult",
-    "fields" : [ {
-      "name" : "state",
-      "type" : "ProofState"
-    }, {
-      "name" : "status",
-      "type" : "ProofStatus"
-    }, {
-      "name" : "desc",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "IdentifyRow",
-    "fields" : [ {
-      "name" : "rowId",
-      "type" : "int"
-    }, {
-      "name" : "proof",
-      "type" : "RemoteProof"
-    }, {
-      "name" : "trackDiff",
-      "type" : [ "null", "TrackDiff" ]
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "IdentifyKey",
-    "fields" : [ {
-      "name" : "pgpFingerprint",
-      "type" : "bytes"
-    }, {
-      "name" : "KID",
-      "type" : "KID"
-    }, {
-      "name" : "trackDiff",
-      "type" : [ "null", "TrackDiff" ]
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "Cryptocurrency",
-    "fields" : [ {
-      "name" : "rowId",
-      "type" : "int"
-    }, {
-      "name" : "pkhash",
-      "type" : "bytes"
-    }, {
-      "name" : "address",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "Identity",
-    "fields" : [ {
-      "name" : "status",
-      "type" : [ "null", "Status" ]
-    }, {
-      "name" : "whenLastTracked",
-      "type" : "Time"
-    }, {
-      "name" : "proofs",
-      "type" : {
-        "type" : "array",
-        "items" : "IdentifyRow"
-      }
-    }, {
-      "name" : "cryptocurrency",
-      "type" : {
-        "type" : "array",
-        "items" : "Cryptocurrency"
-      }
-    }, {
-      "name" : "revoked",
-      "type" : {
-        "type" : "array",
-        "items" : "TrackDiff"
-      }
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "SigHint",
-    "fields" : [ {
-      "name" : "remoteId",
-      "type" : "string"
-    }, {
-      "name" : "humanUrl",
-      "type" : "string"
-    }, {
-      "name" : "apiUrl",
-      "type" : "string"
-    }, {
-      "name" : "checkText",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "enum",
-    "name" : "CheckResultFreshness",
-    "symbols" : [ "FRESH_0", "AGED_1", "RANCID_2" ]
-  }, {
-    "type" : "record",
-    "name" : "CheckResult",
-    "fields" : [ {
-      "name" : "proofResult",
-      "type" : "ProofResult"
-    }, {
-      "name" : "time",
-      "type" : "Time"
-    }, {
-      "name" : "freshness",
-      "type" : "CheckResultFreshness"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "LinkCheckResult",
-    "fields" : [ {
-      "name" : "proofId",
-      "type" : "int"
-    }, {
-      "name" : "proofResult",
-      "type" : "ProofResult"
-    }, {
-      "name" : "snoozedResult",
-      "type" : "ProofResult"
-    }, {
-      "name" : "torWarning",
-      "type" : "boolean"
-    }, {
-      "name" : "tmpTrackExpireTime",
-      "type" : "Time"
-    }, {
-      "name" : "cached",
-      "type" : [ "null", "CheckResult" ]
-    }, {
-      "name" : "diff",
-      "type" : [ "null", "TrackDiff" ]
-    }, {
-      "name" : "remoteDiff",
-      "type" : [ "null", "TrackDiff" ]
-    }, {
-      "name" : "hint",
-      "type" : [ "null", "SigHint" ]
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "UserCard",
-    "fields" : [ {
-      "name" : "following",
-      "type" : "int"
-    }, {
-      "name" : "followers",
-      "type" : "int"
-    }, {
-      "name" : "uid",
-      "type" : "UID"
-    }, {
-      "name" : "fullName",
-      "type" : "string"
-    }, {
-      "name" : "location",
-      "type" : "string"
-    }, {
-      "name" : "bio",
-      "type" : "string"
-    }, {
-      "name" : "website",
-      "type" : "string"
-    }, {
-      "name" : "twitter",
-      "type" : "string"
-    }, {
-      "name" : "youFollowThem",
-      "type" : "boolean"
-    }, {
-      "name" : "theyFollowYou",
-      "type" : "boolean"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "ConfirmResult",
-    "fields" : [ {
-      "name" : "identityConfirmed",
-      "type" : "boolean"
-    }, {
-      "name" : "remoteConfirmed",
-      "type" : "boolean"
-    }, {
-      "name" : "expiringLocal",
-      "type" : "boolean"
-    } ]
-  } ],
-  "messages" : {
-    "delegateIdentifyUI" : {
-      "request" : [ ],
-      "response" : "int"
+  "protocol": "identifyUi",
+  "namespace": "keybase.1",
+  "types": [
+    {
+      "type": "record",
+      "name": "Time",
+      "fields": [],
+      "typedef": "long"
     },
-    "start" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "username",
-        "type" : "string"
-      }, {
-        "name" : "reason",
-        "type" : "IdentifyReason"
-      } ],
-      "response" : "null"
+    {
+      "type": "record",
+      "name": "StringKVPair",
+      "fields": [
+        {
+          "type": "string",
+          "name": "key"
+        },
+        {
+          "type": "string",
+          "name": "value"
+        }
+      ]
     },
-    "displayKey" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "key",
-        "type" : "IdentifyKey"
-      } ],
-      "response" : "null"
+    {
+      "type": "record",
+      "name": "Status",
+      "fields": [
+        {
+          "type": "int",
+          "name": "code"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "desc"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "StringKVPair"
+          },
+          "name": "fields"
+        }
+      ]
     },
-    "reportLastTrack" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "track",
-        "type" : [ "null", "TrackSummary" ]
-      } ],
-      "response" : "null"
+    {
+      "type": "record",
+      "name": "UID",
+      "fields": [],
+      "typedef": "string"
     },
-    "launchNetworkChecks" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "identity",
-        "type" : "Identity"
-      }, {
-        "name" : "user",
-        "type" : "User"
-      } ],
-      "response" : "null"
+    {
+      "type": "record",
+      "name": "DeviceID",
+      "fields": [],
+      "typedef": "string"
     },
-    "displayTrackStatement" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "stmt",
-        "type" : "string"
-      } ],
-      "response" : "null"
+    {
+      "type": "record",
+      "name": "SigID",
+      "fields": [],
+      "typedef": "string"
     },
-    "finishWebProofCheck" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "rp",
-        "type" : "RemoteProof"
-      }, {
-        "name" : "lcr",
-        "type" : "LinkCheckResult"
-      } ],
-      "response" : "null"
+    {
+      "type": "record",
+      "name": "KID",
+      "fields": [],
+      "typedef": "string"
     },
-    "finishSocialProofCheck" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "rp",
-        "type" : "RemoteProof"
-      }, {
-        "name" : "lcr",
-        "type" : "LinkCheckResult"
-      } ],
-      "response" : "null"
+    {
+      "type": "record",
+      "name": "Text",
+      "fields": [
+        {
+          "type": "string",
+          "name": "data"
+        },
+        {
+          "type": "boolean",
+          "name": "markup"
+        }
+      ]
     },
-    "displayCryptocurrency" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "c",
-        "type" : "Cryptocurrency"
-      } ],
-      "response" : "null"
+    {
+      "type": "record",
+      "name": "PGPIdentity",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "comment"
+        },
+        {
+          "type": "string",
+          "name": "email"
+        }
+      ]
     },
-    "reportTrackToken" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "trackToken",
-        "type" : "TrackToken"
-      } ],
-      "response" : "null"
+    {
+      "type": "record",
+      "name": "PublicKey",
+      "fields": [
+        {
+          "type": "KID",
+          "name": "KID"
+        },
+        {
+          "type": "string",
+          "name": "PGPFingerprint"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PGPIdentity"
+          },
+          "name": "PGPIdentities"
+        },
+        {
+          "type": "boolean",
+          "name": "isSibkey"
+        },
+        {
+          "type": "boolean",
+          "name": "isEldest"
+        },
+        {
+          "type": "string",
+          "name": "parentID"
+        },
+        {
+          "type": "DeviceID",
+          "name": "deviceID"
+        },
+        {
+          "type": "string",
+          "name": "deviceDescription"
+        },
+        {
+          "type": "string",
+          "name": "deviceType"
+        },
+        {
+          "type": "Time",
+          "name": "cTime"
+        },
+        {
+          "type": "Time",
+          "name": "eTime"
+        }
+      ]
     },
-    "displayUserCard" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "card",
-        "type" : "UserCard"
-      } ],
-      "response" : "null"
+    {
+      "type": "record",
+      "name": "User",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        }
+      ]
     },
-    "confirm" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "outcome",
-        "type" : "IdentifyOutcome"
-      } ],
-      "response" : "ConfirmResult"
+    {
+      "type": "record",
+      "name": "Device",
+      "fields": [
+        {
+          "type": "string",
+          "name": "type"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "DeviceID",
+          "name": "deviceID"
+        },
+        {
+          "type": "Time",
+          "name": "cTime"
+        },
+        {
+          "type": "Time",
+          "name": "mTime"
+        },
+        {
+          "type": "KID",
+          "name": "encryptKey"
+        },
+        {
+          "type": "KID",
+          "name": "verifyKey"
+        },
+        {
+          "type": "int",
+          "name": "status"
+        }
+      ]
     },
-    "finish" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      } ],
-      "response" : "null"
+    {
+      "type": "record",
+      "name": "Stream",
+      "fields": [
+        {
+          "type": "int",
+          "name": "fd"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "LogLevel",
+      "symbols": [
+        "NONE_0",
+        "DEBUG_1",
+        "INFO_2",
+        "NOTICE_3",
+        "WARN_4",
+        "ERROR_5",
+        "CRITICAL_6",
+        "FATAL_7"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "ClientType",
+      "symbols": [
+        "NONE_0",
+        "CLI_1",
+        "GUI_2",
+        "KBFS_3"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserVersionVector",
+      "fields": [
+        {
+          "type": "long",
+          "name": "id"
+        },
+        {
+          "type": "int",
+          "name": "sigHints"
+        },
+        {
+          "type": "long",
+          "name": "sigChain"
+        },
+        {
+          "type": "Time",
+          "name": "cachedAt"
+        },
+        {
+          "type": "Time",
+          "name": "lastIdentifiedAt"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserPlusKeys",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PublicKey"
+          },
+          "name": "deviceKeys"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PublicKey"
+          },
+          "name": "keys"
+        },
+        {
+          "type": "UserVersionVector",
+          "name": "uvv"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "MerkleTreeID",
+      "symbols": [
+        "MASTER_0",
+        "KBFS_PUBLIC_1",
+        "KBFS_PRIVATE_2"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "ProofState",
+      "symbols": [
+        "NONE_0",
+        "OK_1",
+        "TEMP_FAILURE_2",
+        "PERM_FAILURE_3",
+        "LOOKING_4",
+        "SUPERSEDED_5",
+        "POSTED_6",
+        "REVOKED_7"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "ProofStatus",
+      "symbols": [
+        "NONE_0",
+        "OK_1",
+        "LOCAL_2",
+        "FOUND_3",
+        "BASE_ERROR_100",
+        "HOST_UNREACHABLE_101",
+        "PERMISSION_DENIED_103",
+        "FAILED_PARSE_106",
+        "DNS_ERROR_107",
+        "AUTH_FAILED_108",
+        "HTTP_429_129",
+        "HTTP_500_150",
+        "TIMEOUT_160",
+        "INTERNAL_ERROR_170",
+        "BASE_HARD_ERROR_200",
+        "NOT_FOUND_201",
+        "CONTENT_FAILURE_202",
+        "BAD_USERNAME_203",
+        "BAD_REMOTE_ID_204",
+        "TEXT_NOT_FOUND_205",
+        "BAD_ARGS_206",
+        "CONTENT_MISSING_207",
+        "TITLE_NOT_FOUND_208",
+        "SERVICE_ERROR_209",
+        "TOR_SKIPPED_210",
+        "TOR_INCOMPATIBLE_211",
+        "HTTP_300_230",
+        "HTTP_400_240",
+        "HTTP_OTHER_260",
+        "EMPTY_JSON_270",
+        "DELETED_301",
+        "SERVICE_DEAD_302",
+        "BAD_SIGNATURE_303",
+        "BAD_API_URL_304",
+        "UNKNOWN_TYPE_305",
+        "NO_HINT_306",
+        "BAD_HINT_TEXT_307"
+      ],
+      "doc": "3: It's been found in the hunt, but not proven yet\n    1xx: Retryable soft errors\n    2xx: Will likely result in a hard error, if repeated enough\n    3xx: Hard final errors"
+    },
+    {
+      "type": "enum",
+      "name": "ProofType",
+      "symbols": [
+        "NONE_0",
+        "KEYBASE_1",
+        "TWITTER_2",
+        "GITHUB_3",
+        "REDDIT_4",
+        "COINBASE_5",
+        "HACKERNEWS_6",
+        "GENERIC_WEB_SITE_1000",
+        "DNS_1001",
+        "ROOTER_100001"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TrackToken",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "enum",
+      "name": "TrackDiffType",
+      "symbols": [
+        "NONE_0",
+        "ERROR_1",
+        "CLASH_2",
+        "REVOKED_3",
+        "UPGRADED_4",
+        "NEW_5",
+        "REMOTE_FAIL_6",
+        "REMOTE_WORKING_7",
+        "REMOTE_CHANGED_8",
+        "NEW_ELDEST_9",
+        "NONE_VIA_TEMPORARY_10"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TrackDiff",
+      "fields": [
+        {
+          "type": "TrackDiffType",
+          "name": "type"
+        },
+        {
+          "type": "string",
+          "name": "displayMarkup"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TrackSummary",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "Time",
+          "name": "time"
+        },
+        {
+          "type": "boolean",
+          "name": "isRemote"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "TrackStatus",
+      "symbols": [
+        "NEW_OK_1",
+        "NEW_ZERO_PROOFS_2",
+        "NEW_FAIL_PROOFS_3",
+        "UPDATE_BROKEN_4",
+        "UPDATE_NEW_PROOFS_5",
+        "UPDATE_OK_6"
+      ],
+      "doc": "TrackStatus is a summary of this track before the track is approved by the\n    user.\n    NEW_*: New tracks\n    UPDATE_*: Update to an existing track\n    NEW_OK: Everything ok\n    NEW_ZERO_PROOFS: User being tracked has no proofs\n    NEW_FAIL_PROOFS: User being tracked has some failed proofs\n    UPDATE_BROKEN: Previous tracking statement broken, this one will fix it.\n    UPDATE_NEW_PROOFS: Previous tracking statement ok, but there are new proofs since previous tracking statement generated\n    UPDATE_OK: No changes to previous tracking statement"
+    },
+    {
+      "type": "record",
+      "name": "TrackOptions",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "localOnly"
+        },
+        {
+          "type": "boolean",
+          "name": "bypassConfirm"
+        },
+        {
+          "type": "boolean",
+          "name": "forceRetrack"
+        },
+        {
+          "type": "boolean",
+          "name": "expiringLocal"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "IdentifyReasonType",
+      "symbols": [
+        "NONE_0",
+        "ID_1",
+        "TRACK_2",
+        "ENCRYPT_3",
+        "DECRYPT_4",
+        "VERIFY_5",
+        "RESOURCE_6"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "IdentifyReason",
+      "fields": [
+        {
+          "type": "IdentifyReasonType",
+          "name": "type"
+        },
+        {
+          "type": "string",
+          "name": "reason"
+        },
+        {
+          "type": "string",
+          "name": "resource"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "IdentifyOutcome",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": [
+            "null",
+            "Status"
+          ],
+          "name": "status"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "warnings"
+        },
+        {
+          "type": [
+            "null",
+            "TrackSummary"
+          ],
+          "name": "trackUsed"
+        },
+        {
+          "type": "TrackStatus",
+          "name": "trackStatus"
+        },
+        {
+          "type": "int",
+          "name": "numTrackFailures"
+        },
+        {
+          "type": "int",
+          "name": "numTrackChanges"
+        },
+        {
+          "type": "int",
+          "name": "numProofFailures"
+        },
+        {
+          "type": "int",
+          "name": "numRevoked"
+        },
+        {
+          "type": "int",
+          "name": "numProofSuccesses"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TrackDiff"
+          },
+          "name": "revoked"
+        },
+        {
+          "type": "TrackOptions",
+          "name": "trackOptions"
+        },
+        {
+          "type": "boolean",
+          "name": "forPGPPull"
+        },
+        {
+          "type": "IdentifyReason",
+          "name": "reason"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "IdentifyRes",
+      "fields": [
+        {
+          "type": [
+            "null",
+            "User"
+          ],
+          "name": "user"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PublicKey"
+          },
+          "name": "publicKeys"
+        },
+        {
+          "type": "IdentifyOutcome",
+          "name": "outcome"
+        },
+        {
+          "type": "TrackToken",
+          "name": "trackToken"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RemoteProof",
+      "fields": [
+        {
+          "type": "ProofType",
+          "name": "proofType"
+        },
+        {
+          "type": "string",
+          "name": "key"
+        },
+        {
+          "type": "string",
+          "name": "value"
+        },
+        {
+          "type": "string",
+          "name": "displayMarkup"
+        },
+        {
+          "type": "SigID",
+          "name": "sigID"
+        },
+        {
+          "type": "Time",
+          "name": "mTime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ProofResult",
+      "fields": [
+        {
+          "type": "ProofState",
+          "name": "state"
+        },
+        {
+          "type": "ProofStatus",
+          "name": "status"
+        },
+        {
+          "type": "string",
+          "name": "desc"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "IdentifyRow",
+      "fields": [
+        {
+          "type": "int",
+          "name": "rowId"
+        },
+        {
+          "type": "RemoteProof",
+          "name": "proof"
+        },
+        {
+          "type": [
+            "null",
+            "TrackDiff"
+          ],
+          "name": "trackDiff"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "IdentifyKey",
+      "fields": [
+        {
+          "type": "bytes",
+          "name": "pgpFingerprint"
+        },
+        {
+          "type": "KID",
+          "name": "KID"
+        },
+        {
+          "type": [
+            "null",
+            "TrackDiff"
+          ],
+          "name": "trackDiff"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Cryptocurrency",
+      "fields": [
+        {
+          "type": "int",
+          "name": "rowId"
+        },
+        {
+          "type": "bytes",
+          "name": "pkhash"
+        },
+        {
+          "type": "string",
+          "name": "address"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Identity",
+      "fields": [
+        {
+          "type": [
+            "null",
+            "Status"
+          ],
+          "name": "status"
+        },
+        {
+          "type": "Time",
+          "name": "whenLastTracked"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "IdentifyRow"
+          },
+          "name": "proofs"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "Cryptocurrency"
+          },
+          "name": "cryptocurrency"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "TrackDiff"
+          },
+          "name": "revoked"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SigHint",
+      "fields": [
+        {
+          "type": "string",
+          "name": "remoteId"
+        },
+        {
+          "type": "string",
+          "name": "humanUrl"
+        },
+        {
+          "type": "string",
+          "name": "apiUrl"
+        },
+        {
+          "type": "string",
+          "name": "checkText"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "CheckResultFreshness",
+      "symbols": [
+        "FRESH_0",
+        "AGED_1",
+        "RANCID_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "CheckResult",
+      "fields": [
+        {
+          "type": "ProofResult",
+          "name": "proofResult"
+        },
+        {
+          "type": "Time",
+          "name": "time"
+        },
+        {
+          "type": "CheckResultFreshness",
+          "name": "freshness"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "LinkCheckResult",
+      "fields": [
+        {
+          "type": "int",
+          "name": "proofId"
+        },
+        {
+          "type": "ProofResult",
+          "name": "proofResult"
+        },
+        {
+          "type": "ProofResult",
+          "name": "snoozedResult"
+        },
+        {
+          "type": "boolean",
+          "name": "torWarning"
+        },
+        {
+          "type": "Time",
+          "name": "tmpTrackExpireTime"
+        },
+        {
+          "type": [
+            "null",
+            "CheckResult"
+          ],
+          "name": "cached"
+        },
+        {
+          "type": [
+            "null",
+            "TrackDiff"
+          ],
+          "name": "diff"
+        },
+        {
+          "type": [
+            "null",
+            "TrackDiff"
+          ],
+          "name": "remoteDiff"
+        },
+        {
+          "type": [
+            "null",
+            "SigHint"
+          ],
+          "name": "hint"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserCard",
+      "fields": [
+        {
+          "type": "int",
+          "name": "following"
+        },
+        {
+          "type": "int",
+          "name": "followers"
+        },
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "fullName"
+        },
+        {
+          "type": "string",
+          "name": "location"
+        },
+        {
+          "type": "string",
+          "name": "bio"
+        },
+        {
+          "type": "string",
+          "name": "website"
+        },
+        {
+          "type": "string",
+          "name": "twitter"
+        },
+        {
+          "type": "boolean",
+          "name": "youFollowThem"
+        },
+        {
+          "type": "boolean",
+          "name": "theyFollowYou"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "ConfirmResult",
+      "fields": [
+        {
+          "type": "boolean",
+          "name": "identityConfirmed"
+        },
+        {
+          "type": "boolean",
+          "name": "remoteConfirmed"
+        },
+        {
+          "type": "boolean",
+          "name": "expiringLocal"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "delegateIdentifyUI": {
+      "request": [],
+      "response": "int"
+    },
+    "start": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "reason",
+          "type": "IdentifyReason"
+        }
+      ],
+      "response": "null"
+    },
+    "displayKey": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "key",
+          "type": "IdentifyKey"
+        }
+      ],
+      "response": "null"
+    },
+    "reportLastTrack": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "track",
+          "type": [
+            "null",
+            "TrackSummary"
+          ]
+        }
+      ],
+      "response": "null"
+    },
+    "launchNetworkChecks": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "identity",
+          "type": "Identity"
+        },
+        {
+          "name": "user",
+          "type": "User"
+        }
+      ],
+      "response": "null"
+    },
+    "displayTrackStatement": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "stmt",
+          "type": "string"
+        }
+      ],
+      "response": "null"
+    },
+    "finishWebProofCheck": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "rp",
+          "type": "RemoteProof"
+        },
+        {
+          "name": "lcr",
+          "type": "LinkCheckResult"
+        }
+      ],
+      "response": "null"
+    },
+    "finishSocialProofCheck": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "rp",
+          "type": "RemoteProof"
+        },
+        {
+          "name": "lcr",
+          "type": "LinkCheckResult"
+        }
+      ],
+      "response": "null"
+    },
+    "displayCryptocurrency": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "c",
+          "type": "Cryptocurrency"
+        }
+      ],
+      "response": "null"
+    },
+    "reportTrackToken": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "trackToken",
+          "type": "TrackToken"
+        }
+      ],
+      "response": "null"
+    },
+    "displayUserCard": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "card",
+          "type": "UserCard"
+        }
+      ],
+      "response": "null"
+    },
+    "confirm": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "outcome",
+          "type": "IdentifyOutcome"
+        }
+      ],
+      "response": "ConfirmResult"
+    },
+    "finish": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": "null"
     }
   }
 }
