@@ -38,6 +38,8 @@ protocol provisionUi {
     */
   GPGMethod chooseGPGMethod(int sessionID, array<GPGKey> keys);
 
+  DeviceID chooseDevice(int sessionID, array<Device> devices);
+
   enum DeviceType {
     DESKTOP_0,
     MOBILE_1

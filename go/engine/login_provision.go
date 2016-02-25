@@ -6,6 +6,7 @@ package engine
 import (
 	"errors"
 	"fmt"
+	"sort"
 
 	"golang.org/x/net/context"
 
@@ -665,7 +666,48 @@ func (e *LoginProvision) route(ctx *Context) error {
 }
 
 func (e *LoginProvision) chooseDevice(ctx *Context, pgp bool) error {
-	return errors.New("device nyi")
+	ckf := e.arg.User.GetComputedKeyFamily()
+	devices := partitionDeviceList(ckf.GetAllActiveDevices())
+	sort.Sort(devices)
+
+	expDevices := make([]keybase1.Device, len(devices))
+	idMap := make(map[keybase1.DeviceID]*libkb.Device)
+	for i, d := range devices {
+		expDevices[i] = *d.ProtExport()
+		idMap[d.ID] = d
+	}
+
+	arg := keybase1.ChooseDeviceArg{
+		Devices: expDevices,
+	}
+	id, err := ctx.ProvisionUI.ChooseDevice(ctx.GetNetContext(), arg)
+	if err != nil {
+		return err
+	}
+
+	// XXX use an error instead?
+	if len(id) == 0 && pgp {
+		// they chose not to use a device
+		e.G().Log.Debug("user has devices, but chose not to use any of them")
+		return e.tryPGP(ctx)
+	}
+
+	e.G().Log.Debug("user selected device %s", id)
+	selected, ok := idMap[id]
+	if !ok {
+		return fmt.Errorf("selected device %s not in local device map", id)
+	}
+	e.G().Log.Debug("device details: %+v", selected)
+
+	if selected.Type == libkb.DeviceTypePaper {
+		return e.paper3(ctx, selected)
+	}
+
+	return errors.New("rest of device provisioning not implemented")
+}
+
+func (e *LoginProvision) paper3(ctx *Context, device *libkb.Device) error {
+	return errors.New("paper3 not implemented")
 }
 
 func (e *LoginProvision) tryPGP(ctx *Context) error {
@@ -684,6 +726,7 @@ func (e *LoginProvision) tryPGP(ctx *Context) error {
 	return e.tryGPG(ctx)
 }
 
+// XXX make this function smaller
 func (e *LoginProvision) tryGPG(ctx *Context) error {
 	// find any local private gpg keys that are in user's key family
 	matches, err := e.matchingGPGKeys()
@@ -869,8 +912,6 @@ func (e *LoginProvision) eldest(ctx *Context) error {
 		return errors.New("eldest called on user with existing eldest KID")
 	}
 
-	// XXX clean this up:
-	// e.user = e.arg.User
 	return e.addEldestDeviceKey(ctx)
 }
 
@@ -1156,4 +1197,23 @@ func (e *LoginProvision) cleanup() {
 	// the best way to cleanup is to logout...
 	e.G().Log.Debug("an error occurred during provisioning, logging out")
 	e.G().Logout()
+}
+
+var devtypeSortOrder = map[string]int{libkb.DeviceTypeMobile: 0, libkb.DeviceTypeDesktop: 1, libkb.DeviceTypePaper: 2}
+
+type partitionDeviceList []*libkb.Device
+
+func (p partitionDeviceList) Len() int {
+	return len(p)
+}
+
+func (p partitionDeviceList) Less(a, b int) bool {
+	if p[a].Type != p[b].Type {
+		return devtypeSortOrder[p[a].Type] < devtypeSortOrder[p[b].Type]
+	}
+	return *p[a].Description < *p[b].Description
+}
+
+func (p partitionDeviceList) Swap(a, b int) {
+	p[a], p[b] = p[b], p[a]
 }

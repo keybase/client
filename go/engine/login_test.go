@@ -1021,6 +1021,7 @@ type testProvisionUI struct {
 	secretCh               chan kex2.Secret
 	method                 keybase1.ProvisionMethod
 	gpgMethod              keybase1.GPGMethod
+	chooseDevice           string
 	verbose                bool
 	calledChooseDeviceType int
 }
@@ -1049,6 +1050,7 @@ func newTestProvisionUIPassphrase() *testProvisionUI {
 func newTestProvisionUIPaper() *testProvisionUI {
 	ui := newTestProvisionUI()
 	ui.method = keybase1.ProvisionMethod_PAPER_KEY
+	ui.chooseDevice = "backup"
 	return ui
 }
 
@@ -1081,6 +1083,24 @@ func (u *testProvisionUI) ChooseProvisioningMethod(_ context.Context, _ keybase1
 func (u *testProvisionUI) ChooseGPGMethod(_ context.Context, _ keybase1.ChooseGPGMethodArg) (keybase1.GPGMethod, error) {
 	u.printf("ChooseGPGMethod")
 	return u.gpgMethod, nil
+}
+
+func (u *testProvisionUI) ChooseDevice(_ context.Context, arg keybase1.ChooseDeviceArg) (keybase1.DeviceID, error) {
+	u.printf("ChooseDevice")
+	if len(arg.Devices) == 0 {
+		return "", nil
+	}
+
+	fmt.Printf("u.chooseDevice: %q\n", u.chooseDevice)
+	if len(u.chooseDevice) > 0 {
+		for _, d := range arg.Devices {
+			fmt.Printf("device in arg: %+v\n", d)
+			if d.Type == u.chooseDevice {
+				return d.DeviceID, nil
+			}
+		}
+	}
+	return "", nil
 }
 
 func (u *testProvisionUI) ChooseDeviceType(_ context.Context, _ keybase1.ChooseDeviceTypeArg) (keybase1.DeviceType, error) {

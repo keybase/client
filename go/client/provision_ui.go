@@ -123,6 +123,10 @@ func (p ProvisionUI) ChooseGPGMethod(ctx context.Context, arg keybase1.ChooseGPG
 	}
 }
 
+func (p ProvisionUI) ChooseDevice(ctx context.Context, arg keybase1.ChooseDeviceArg) (keybase1.DeviceID, error) {
+	return keybase1.DeviceID(""), nil
+}
+
 func (p ProvisionUI) ChooseDeviceType(ctx context.Context, arg keybase1.ChooseDeviceTypeArg) (keybase1.DeviceType, error) {
 	var res keybase1.DeviceType
 	switch arg.Kind {
