@@ -2,14 +2,7 @@
 
 protocol gpgUi {
   import idl "common.avdl";
-
-  record GPGKey {
-    string algorithm;
-    string keyID;
-    string creation;
-    string expiration;
-    array<PGPIdentity> identities;
-  }
+  import idl "gpg_common.avdl";
 
   record SelectKeyRes {
     string keyID;

@@ -1,0 +1,14 @@
+
+@namespace("keybase.1")
+protocol gpgCommon {
+  import idl "common.avdl";
+
+  record GPGKey {
+    string algorithm;
+    string keyID;
+    string creation;
+    string expiration;
+    array<PGPIdentity> identities;
+  }
+
+}

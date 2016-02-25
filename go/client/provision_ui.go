@@ -4,9 +4,11 @@
 package client
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path"
+	"strings"
 
 	"golang.org/x/net/context"
 
@@ -77,6 +79,48 @@ You have two options.
 		}
 	}
 	return res, fmt.Errorf("invalid provision option: %d", ret)
+}
+
+func (p ProvisionUI) ChooseGPGMethod(ctx context.Context, arg keybase1.ChooseGPGMethodArg) (keybase1.GPGMethod, error) {
+	if len(arg.Keys) == 0 {
+		return keybase1.GPGMethod_GPG_NONE, errors.New("no keys passed to ChooseGPGMethod")
+	}
+
+	p.parent.Output("In order to authorize this installation, keybase needs to sign this installation\n")
+	if len(arg.Keys) == 1 {
+		p.parent.Printf("with your GPG secret key %s.\n", arg.Keys[0].KeyID)
+	} else {
+		ids := make([]string, len(arg.Keys))
+		for i, key := range arg.Keys {
+			ids[i] = key.KeyID
+		}
+
+		p.parent.Printf("with one of these GPG secret keys: %s.\n", strings.Join(ids, ", "))
+	}
+	p.parent.Output("\n")
+	p.parent.Output(`You have two options.
+
+(1) Keybase can use GPG commands to sign the installation.
+
+(2) Keybase can export your secret key from GPG and save it to keybase's local encrypted
+    keyring. This way, it can be used in 'keybase pgp sign' and 'keybase pgp decrypt' 
+    going forward.
+`)
+	gret, err := PromptSelectionOrCancel(PromptDescriptorChooseGPGMethod, p.parent, "Which do you prefer?", 1, 2)
+	if err != nil {
+		if err == ErrInputCanceled {
+			err = libkb.InputCanceledError{}
+		}
+		return keybase1.GPGMethod_GPG_NONE, err
+	}
+	switch gret {
+	case 1:
+		return keybase1.GPGMethod_GPG_SIGN, nil
+	case 2:
+		return keybase1.GPGMethod_GPG_IMPORT, nil
+	default:
+		return keybase1.GPGMethod_GPG_NONE, fmt.Errorf("invalid provision option: %d", gret)
+	}
 }
 
 func (p ProvisionUI) ChooseDeviceType(ctx context.Context, arg keybase1.ChooseDeviceTypeArg) (keybase1.DeviceType, error) {

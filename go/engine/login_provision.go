@@ -669,28 +669,186 @@ func (e *LoginProvision) chooseDevice(ctx *Context, pgp bool) error {
 }
 
 func (e *LoginProvision) tryPGP(ctx *Context) error {
-	if err := e.pgpProvision(ctx); err != nil {
-		if _, ok := err.(libkb.NoSyncedPGPKeyError); ok {
-			e.G().Log.Debug("no synced pgp key found, trying GPG")
-			return tryGPG(ctx)
-		}
+	err := e.pgpProvision(ctx)
+	if err == nil {
+		return nil
+	}
+
+	if _, ok := err.(libkb.NoSyncedPGPKeyError); !ok {
+		// error during pgpProvision was not about no synced pgp key,
+		// so return it
 		return err
 	}
-	return nil
+
+	e.G().Log.Debug("no synced pgp key found, trying GPG")
+	return e.tryGPG(ctx)
 }
 
 func (e *LoginProvision) tryGPG(ctx *Context) error {
+	// find any local private gpg keys that are in user's key family
+	matches, err := e.matchingGPGKeys()
+	if err != nil {
+		if _, ok := err.(libkb.NoSecretKeyError); ok {
+			// no match found
+			// tell the user they need to get a gpg
+			// key onto this device.
+		}
+		return err
+	}
+
+	// have a match
+	e.G().Log.Debug("matching gpg keys: %v", matches)
+
+	// create protocol array of keys
+	var gks []keybase1.GPGKey
+	gkmap := make(map[string]*libkb.GpgPrimaryKey)
+	for _, key := range matches {
+		gk := keybase1.GPGKey{
+			Algorithm:  key.AlgoString(),
+			KeyID:      key.ID64,
+			Creation:   key.CreatedString(),
+			Identities: key.GetPGPIdentities(),
+		}
+		gks = append(gks, gk)
+		gkmap[key.ID64] = key
+	}
+
+	// ask if they want to import or sign
+	arg := keybase1.ChooseGPGMethodArg{
+		Keys: gks,
+	}
+	method, err := ctx.ProvisionUI.ChooseGPGMethod(ctx.GetNetContext(), arg)
+	if err != nil {
+		return err
+	}
+
+	// select the key to use
+	var key *libkb.GpgPrimaryKey
+	if len(matches) == 1 {
+		key = matches[0]
+	} else {
+		// if more than one match, show the user the matching keys, ask for selection
+		keyid, err := ctx.GPGUI.SelectKey(ctx.GetNetContext(), keybase1.SelectKeyArg{Keys: gks})
+		if err != nil {
+			return err
+		}
+
+		var ok bool
+		key, ok = gkmap[keyid]
+		if !ok {
+			return fmt.Errorf("key id %v from select key not in local gpg key map", keyid)
+		}
+	}
+
+	e.G().Log.Debug("using gpg key %v for provisioning", key)
+
+	// depending on the method, get a signing key
+	var signingKey libkb.GenericKey
+	switch method {
+	case keybase1.GPGMethod_GPG_IMPORT:
+		signingKey, err = e.gpgImportKey(ctx, key)
+		if err != nil {
+			// depending on the error, might want to direct user to the
+			// gpg sign option
+			return e.switchToGPGSign(ctx, key, err)
+		}
+	case keybase1.GPGMethod_GPG_SIGN:
+		signingKey, err = e.gpgSignKey(ctx, key)
+		if err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("invalid gpg provisioning method: %v", method)
+	}
+
+	// After obtaining login session, this will be called before the login state is released.
+	// It signs this new device with the gpg key in bundle.
+	var afterLogin = func(lctx libkb.LoginContext) error {
+		ctx.LoginContext = lctx
+		if err := e.makeDeviceKeysWithSigner(ctx, signingKey); err != nil {
+			return err
+		}
+		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
+			// not a fatal error, session will stay in memory
+			e.G().Log.Warning("error saving session file: %s", err)
+		}
+
+		if method == keybase1.GPGMethod_GPG_IMPORT {
+			// store the key in lksec
+			_, err := libkb.WriteLksSKBToKeyring(e.G(), signingKey, e.lks, lctx)
+			if err != nil {
+				e.G().Log.Warning("error saving exported gpg key in lksec: %s", err)
+				return err
+			}
+		}
+
+		return nil
+	}
+
+	// need a session to continue to provision
+	return e.G().LoginState().LoginWithPrompt(e.arg.User.GetName(), ctx.LoginUI, ctx.SecretUI, afterLogin)
+}
+
+func (e *LoginProvision) switchToGPGSign(ctx *Context, key *libkb.GpgPrimaryKey, importErr error) error {
+	return errors.New("switchToGPGSign not implemented")
+}
+
+func (e *LoginProvision) matchingGPGKeys() ([]*libkb.GpgPrimaryKey, error) {
+	index, err := e.gpgPrivateIndex()
+	if err != nil {
+		return nil, err
+	}
+	if index.Len() == 0 {
+		e.G().Log.Debug("no private gpg keys found")
+		// XXX change this error to something more descriptive
+		// XXX tell the user they need to get one of their
+		// XXX private keys onto this machine
+		return nil, libkb.NoSecretKeyError{}
+	}
 
 	// iterate through pgp keys in keyfamily
-	// find matches in gpg index
-	// if none exist, then abort with error that they need to get
-	//    the private key for one of the pgp keys in the keyfamily
-	//    onto this device.
+	kfKeys := e.arg.User.GetComputedKeyFamily().GetActivePGPKeys(false)
+	var matches []*libkb.GpgPrimaryKey
+	for _, kfKey := range kfKeys {
+		// find matches in gpg index
+		gpgKeys := index.Fingerprints.Get(kfKey.GetFingerprint().String())
+		if len(gpgKeys) > 0 {
+			matches = append(matches, gpgKeys...)
+		}
+	}
 
-	// if more than one match, show the user the matching keys, ask for selection
-	// ask if they want to import or sign
+	if len(matches) == 0 {
+		// if none exist, then abort with error that they need to get
+		//    the private key for one of the pgp keys in the keyfamily
+		//    onto this device.
+		// XXX this should do the same as when index.Len() == 0
+		return nil, libkb.NoSecretKeyError{}
+	}
 
-	return errors.New("gpg nyi")
+	return matches, nil
+}
+
+func (e *LoginProvision) gpgSignKey(ctx *Context, key *libkb.GpgPrimaryKey) (libkb.GenericKey, error) {
+	return nil, errors.New("gpgSignKey not implemented")
+}
+
+func (e *LoginProvision) gpgImportKey(ctx *Context, key *libkb.GpgPrimaryKey) (libkb.GenericKey, error) {
+	// import it with gpg
+	cli, err := e.gpgClient()
+	if err != nil {
+		return nil, err
+	}
+	bundle, err := cli.ImportKey(true, *key.GetFingerprint())
+	if err != nil {
+		return nil, err
+	}
+
+	// unlock it
+	if err := bundle.Unlock("sign new device", ctx.SecretUI); err != nil {
+		return nil, err
+	}
+
+	return bundle, nil
 }
 
 func (e *LoginProvision) eldest(ctx *Context) error {

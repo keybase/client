@@ -2,6 +2,7 @@
 
 protocol provisionUi {
   import idl "common.avdl";
+  import idl "gpg_common.avdl";
 
   enum ProvisionMethod {
     DEVICE_0,
@@ -16,6 +17,26 @@ protocol provisionUi {
     should be offered as an option.
     */
   ProvisionMethod chooseProvisioningMethod(int sessionID, boolean gpgOption);
+
+  enum GPGMethod {
+    GPG_NONE_0,
+    GPG_IMPORT_1,
+    GPG_SIGN_2
+  }
+  /**
+    Called during device provisioning for the user to select a 
+    GPG method, either import the key into keybase's local keyring
+    or use GPG to sign a provisioning statement.
+
+    The keys are provided for display purposes, so the UI can 
+    do something like "We found the following GPG keys on this 
+    machine.  How would you like to use one of them to provision
+    this device?"
+
+    After this, gpg_ui.selectKey will be called (if there are
+    multiple keys available).
+    */
+  GPGMethod chooseGPGMethod(int sessionID, array<GPGKey> keys);
 
   enum DeviceType {
     DESKTOP_0,

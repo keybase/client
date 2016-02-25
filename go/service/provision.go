@@ -27,6 +27,11 @@ func (u *RemoteProvisionUI) ChooseProvisioningMethod(ctx context.Context, arg ke
 	return u.cli.ChooseProvisioningMethod(ctx, arg)
 }
 
+func (u *RemoteProvisionUI) ChooseGPGMethod(ctx context.Context, arg keybase1.ChooseGPGMethodArg) (keybase1.GPGMethod, error) {
+	arg.SessionID = u.sessionID
+	return u.cli.ChooseGPGMethod(ctx, arg)
+}
+
 func (u *RemoteProvisionUI) ChooseDeviceType(ctx context.Context, arg keybase1.ChooseDeviceTypeArg) (keybase1.DeviceType, error) {
 	arg.SessionID = u.sessionID
 	return u.cli.ChooseDeviceType(ctx, arg)

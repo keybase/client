@@ -1181,6 +1181,11 @@ export const provisionUi = {
     'gpgImport': 3,
     'gpgSign': 4
   },
+  'GPGMethod': {
+    'gpgNone': 0,
+    'gpgImport': 1,
+    'gpgSign': 2
+  },
   'DeviceType': {
     'desktop': 0,
     'mobile': 1
