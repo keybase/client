@@ -828,10 +828,22 @@ func (e *LoginProvision) matchingGPGKeys() ([]*libkb.GpgPrimaryKey, error) {
 	return matches, nil
 }
 
+// XXX change key to fingerprint
 func (e *LoginProvision) gpgSignKey(ctx *Context, key *libkb.GpgPrimaryKey) (libkb.GenericKey, error) {
-	return nil, errors.New("gpgSignKey not implemented")
+	kf := e.arg.User.GetComputedKeyFamily()
+	if kf == nil {
+		return nil, libkb.KeyFamilyError{Msg: "no key family for user"}
+	}
+	kid, err := kf.FindKIDFromFingerprint(*key.GetFingerprint())
+	if err != nil {
+		return nil, err
+	}
+
+	// create a GPGKey shell around gpg cli with fp, kid
+	return libkb.NewGPGKey(e.G(), key.GetFingerprint(), kid, ctx.GPGUI, e.arg.ClientType), nil
 }
 
+// XXX change key to fingerprint
 func (e *LoginProvision) gpgImportKey(ctx *Context, key *libkb.GpgPrimaryKey) (libkb.GenericKey, error) {
 	// import it with gpg
 	cli, err := e.gpgClient()
