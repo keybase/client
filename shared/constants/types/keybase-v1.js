@@ -23,6 +23,11 @@ export const block = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   }
 }
 
@@ -42,6 +47,11 @@ export const BTC = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   }
 }
 
@@ -61,6 +71,11 @@ export const config = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   },
   'ForkType': {
     'none': 0,
@@ -147,6 +162,11 @@ export const crypto = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   }
 }
 
@@ -166,6 +186,11 @@ export const ctl = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   },
   'ExitCode': {
     'ok': 0,
@@ -192,6 +217,11 @@ export const delegateUiCtl = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   }
 }
 
@@ -211,6 +241,11 @@ export const device = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   }
 }
 
@@ -230,6 +265,11 @@ export const favorite = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   }
 }
 
@@ -249,6 +289,11 @@ export const gpgUi = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   }
 }
 
@@ -268,6 +313,11 @@ export const identify = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   },
   'ProofState': {
     'none': 0,
@@ -378,6 +428,11 @@ export const identifyUi = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   },
   'ProofState': {
     'none': 0,
@@ -494,6 +549,11 @@ export const install = {
     'gui': 2,
     'kbfs': 3
   },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
+  },
   'InstallStatus': {
     'unknown': 0,
     'error': 1,
@@ -541,6 +601,11 @@ export const Kex2Provisionee = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   }
 }
 
@@ -562,6 +627,11 @@ export const log = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   }
 }
 
@@ -581,6 +651,11 @@ export const logUi = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   }
 }
 
@@ -600,6 +675,11 @@ export const login = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   }
 }
 
@@ -619,6 +699,11 @@ export const loginUi = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   }
 }
 
@@ -662,6 +747,11 @@ export const metadataUpdate = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   }
 }
 
@@ -681,6 +771,11 @@ export const notifyCtl = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   }
 }
 
@@ -718,6 +813,11 @@ export const NotifyTracking = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   }
 }
 
@@ -737,6 +837,11 @@ export const NotifyUsers = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   }
 }
 
@@ -756,6 +861,11 @@ export const pgp = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   },
   'ProofState': {
     'none': 0,
@@ -871,6 +981,11 @@ export const pgpUi = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   }
 }
 
@@ -890,6 +1005,11 @@ export const prove = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   },
   'ProofState': {
     'none': 0,
@@ -1001,6 +1121,11 @@ export const proveUi = {
     'gui': 2,
     'kbfs': 3
   },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
+  },
   'PromptOverwriteType': {
     'social': 0,
     'site': 1
@@ -1023,6 +1148,11 @@ export const provisionUi = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   },
   'ProvisionMethod': {
     'device': 0,
@@ -1057,6 +1187,11 @@ export const quota = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   }
 }
 
@@ -1076,6 +1211,11 @@ export const revoke = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   }
 }
 
@@ -1095,6 +1235,11 @@ export const saltpack = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   },
   'ProofState': {
     'none': 0,
@@ -1206,6 +1351,11 @@ export const saltpackUi = {
     'gui': 2,
     'kbfs': 3
   },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
+  },
   'SaltpackSenderType': {
     'notTracked': 0,
     'unknown': 1,
@@ -1241,6 +1391,11 @@ export const SecretKeys = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   }
 }
 
@@ -1260,6 +1415,11 @@ export const session = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   }
 }
 
@@ -1279,6 +1439,11 @@ export const signup = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   }
 }
 
@@ -1298,6 +1463,11 @@ export const sigs = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   }
 }
 
@@ -1317,6 +1487,11 @@ export const streamUi = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   }
 }
 
@@ -1338,6 +1513,11 @@ export const track = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   },
   'ProofState': {
     'none': 0,
@@ -1449,6 +1629,11 @@ export const ui = {
     'gui': 2,
     'kbfs': 3
   },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
+  },
   'PromptDefault': {
     'none': 0,
     'yes': 1,
@@ -1473,6 +1658,11 @@ export const update = {
     'gui': 2,
     'kbfs': 3
   },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
+  },
   'UpdateType': {
     'normal': 0,
     'bugfix': 1,
@@ -1496,6 +1686,11 @@ export const updateUi = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   },
   'UpdateType': {
     'normal': 0,
@@ -1526,6 +1721,11 @@ export const user = {
     'cli': 1,
     'gui': 2,
     'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
   }
 }
 

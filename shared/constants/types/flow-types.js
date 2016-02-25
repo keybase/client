@@ -2088,6 +2088,10 @@ export type UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type block_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
+
+export type MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
+
 export type block_BlockIdCombo = {
   blockHash: string;
   chargedTo: UID;
@@ -2328,6 +2332,8 @@ export type BTC_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type BTC_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
+
 // BTC.registerBTC ////////////////////////////////////////
 
 /* void response */
@@ -2428,6 +2434,8 @@ export type config_UserPlusKeys = {
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
 }
+
+export type config_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
 
 export type config_GetCurrentStatusRes = {
   configured: boolean;
@@ -2768,6 +2776,8 @@ export type crypto_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type crypto_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
+
 export type crypto_ED25519PublicKey = any
 
 export type ED25519PublicKey = any
@@ -2974,6 +2984,8 @@ export type ctl_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type ctl_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
+
 export type ctl_ExitCode = 0 /* 'OK_0' */ | 2 /* 'NOTOK_2' */ | 4 /* 'RESTART_4' */
 
 export type ExitCode = 0 /* 'OK_0' */ | 2 /* 'NOTOK_2' */ | 4 /* 'RESTART_4' */
@@ -3158,6 +3170,8 @@ export type delegateUiCtl_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type delegateUiCtl_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
+
 // delegateUiCtl.registerIdentifyUI ////////////////////////////////////////
 
 /* void response */
@@ -3278,6 +3292,8 @@ export type device_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type device_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
+
 // device.deviceList ////////////////////////////////////////
 
 export type device_deviceList_result = Array<device_Device>
@@ -3386,6 +3402,8 @@ export type favorite_UserPlusKeys = {
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
 }
+
+export type favorite_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
 
 export type favorite_Folder = {
   name: string;
@@ -3522,6 +3540,8 @@ export type gpgUi_UserPlusKeys = {
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
 }
+
+export type gpgUi_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
 
 export type gpgUi_GPGKey = {
   algorithm: string;
@@ -3697,6 +3717,8 @@ export type identify_UserPlusKeys = {
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
 }
+
+export type identify_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
 
 export type identify_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
 
@@ -3998,6 +4020,8 @@ export type identifyUi_UserPlusKeys = {
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
 }
+
+export type identifyUi_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
 
 export type identifyUi_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
 
@@ -4482,6 +4506,8 @@ export type install_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type install_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
+
 export type install_InstallStatus = 0 /* 'UNKNOWN_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'NOT_INSTALLED_2' */ | 4 /* 'INSTALLED_4' */
 
 export type InstallStatus = 0 /* 'UNKNOWN_0' */ | 1 /* 'ERROR_1' */ | 2 /* 'NOT_INSTALLED_2' */ | 4 /* 'INSTALLED_4' */
@@ -4714,6 +4740,8 @@ export type Kex2Provisionee_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type Kex2Provisionee_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
+
 export type Kex2Provisionee_PassphraseStream = {
   passphraseStream: bytes;
   generation: int;
@@ -4864,6 +4892,8 @@ export type log_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type log_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
+
 // log.registerLogger ////////////////////////////////////////
 
 /* void response */
@@ -4965,6 +4995,8 @@ export type logUi_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type logUi_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
+
 // logUi.log ////////////////////////////////////////
 
 /* void response */
@@ -5065,6 +5097,8 @@ export type login_UserPlusKeys = {
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
 }
+
+export type login_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
 
 export type login_ConfiguredAccount = {
   username: string;
@@ -5275,6 +5309,8 @@ export type loginUi_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type loginUi_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
+
 // loginUi.getEmailOrUsername ////////////////////////////////////////
 
 export type loginUi_getEmailOrUsername_result = string
@@ -5414,8 +5450,6 @@ export type metadata_UserPlusKeys = {
 }
 
 export type metadata_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
-
-export type MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
 
 export type metadata_BlockIdCombo = {
   blockHash: string;
@@ -5809,6 +5843,8 @@ export type metadataUpdate_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type metadataUpdate_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
+
 export type metadataUpdate_BlockIdCombo = {
   blockHash: string;
   chargedTo: UID;
@@ -5933,6 +5969,8 @@ export type notifyCtl_UserPlusKeys = {
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
 }
+
+export type notifyCtl_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
 
 export type notifyCtl_NotificationChannels = {
   session: boolean;
@@ -6097,6 +6135,8 @@ export type NotifyTracking_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type NotifyTracking_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
+
 // NotifyTracking.trackingChanged ////////////////////////////////////////
 
 /* void response */
@@ -6198,6 +6238,8 @@ export type NotifyUsers_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type NotifyUsers_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
+
 // NotifyUsers.userChanged ////////////////////////////////////////
 
 /* void response */
@@ -6297,6 +6339,8 @@ export type pgp_UserPlusKeys = {
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
 }
+
+export type pgp_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
 
 export type pgp_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
 
@@ -6742,6 +6786,8 @@ export type pgpUi_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type pgpUi_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
+
 // pgpUi.outputSignatureSuccess ////////////////////////////////////////
 
 /* void response */
@@ -6843,6 +6889,8 @@ export type prove_UserPlusKeys = {
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
 }
+
+export type prove_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
 
 export type prove_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
 
@@ -7051,6 +7099,8 @@ export type proveUi_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type proveUi_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
+
 export type proveUi_PromptOverwriteType = 0 /* 'SOCIAL_0' */ | 1 /* 'SITE_1' */
 
 export type PromptOverwriteType = 0 /* 'SOCIAL_0' */ | 1 /* 'SITE_1' */
@@ -7236,6 +7286,8 @@ export type provisionUi_UserPlusKeys = {
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
 }
+
+export type provisionUi_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
 
 export type provisionUi_ProvisionMethod = 0 /* 'DEVICE_0' */ | 1 /* 'PAPER_KEY_1' */ | 2 /* 'PASSPHRASE_2' */ | 3 /* 'GPG_IMPORT_3' */ | 4 /* 'GPG_SIGN_4' */
 
@@ -7440,6 +7492,8 @@ export type quota_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type quota_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
+
 export type quota_VerifySessionRes = {
   uid: UID;
   sid: string;
@@ -7553,6 +7607,8 @@ export type revoke_UserPlusKeys = {
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
 }
+
+export type revoke_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
 
 // revoke.revokeKey ////////////////////////////////////////
 
@@ -7680,6 +7736,8 @@ export type saltpack_UserPlusKeys = {
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
 }
+
+export type saltpack_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
 
 export type saltpack_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
 
@@ -7957,6 +8015,8 @@ export type saltpackUi_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type saltpackUi_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
+
 export type saltpackUi_SaltpackSenderType = 0 /* 'NOT_TRACKED_0' */ | 1 /* 'UNKNOWN_1' */ | 2 /* 'ANONYMOUS_2' */ | 3 /* 'TRACKING_BROKE_3' */ | 4 /* 'TRACKING_OK_4' */ | 5 /* 'SELF_5' */
 
 export type SaltpackSenderType = 0 /* 'NOT_TRACKED_0' */ | 1 /* 'UNKNOWN_1' */ | 2 /* 'ANONYMOUS_2' */ | 3 /* 'TRACKING_BROKE_3' */ | 4 /* 'TRACKING_OK_4' */ | 5 /* 'SELF_5' */
@@ -8162,6 +8222,8 @@ export type SecretKeys_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type SecretKeys_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
+
 export type SecretKeys_NaclSigningKeyPublic = any
 
 export type NaclSigningKeyPublic = any
@@ -8286,6 +8348,8 @@ export type session_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type session_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
+
 export type session_Session = {
   uid: UID;
   username: string;
@@ -8399,6 +8463,8 @@ export type signup_UserPlusKeys = {
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
 }
+
+export type signup_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
 
 export type signup_SignupRes = {
   passphraseOk: boolean;
@@ -8558,6 +8624,8 @@ export type sigs_UserPlusKeys = {
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
 }
+
+export type sigs_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
 
 export type sigs_Sig = {
   seqno: int;
@@ -8729,6 +8797,8 @@ export type streamUi_UserPlusKeys = {
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
 }
+
+export type streamUi_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
 
 // streamUi.close ////////////////////////////////////////
 
@@ -8904,6 +8974,8 @@ export type track_UserPlusKeys = {
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
 }
+
+export type track_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
 
 export type track_ProofState = 0 /* 'NONE_0' */ | 1 /* 'OK_1' */ | 2 /* 'TEMP_FAILURE_2' */ | 3 /* 'PERM_FAILURE_3' */ | 4 /* 'LOOKING_4' */ | 5 /* 'SUPERSEDED_5' */ | 6 /* 'POSTED_6' */ | 7 /* 'REVOKED_7' */
 
@@ -9129,6 +9201,8 @@ export type ui_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type ui_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
+
 export type ui_PromptDefault = 0 /* 'NONE_0' */ | 1 /* 'YES_1' */ | 2 /* 'NO_2' */
 
 export type PromptDefault = 0 /* 'NONE_0' */ | 1 /* 'YES_1' */ | 2 /* 'NO_2' */
@@ -9233,6 +9307,8 @@ export type update_UserPlusKeys = {
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
 }
+
+export type update_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
 
 export type update_Asset = {
   name: string;
@@ -9415,6 +9491,8 @@ export type updateUi_UserPlusKeys = {
   uvv: UserVersionVector;
 }
 
+export type updateUi_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
+
 export type updateUi_Asset = {
   name: string;
   url: string;
@@ -9581,6 +9659,8 @@ export type user_UserPlusKeys = {
   keys: Array<PublicKey>;
   uvv: UserVersionVector;
 }
+
+export type user_MerkleTreeID = 0 /* 'MASTER_0' */ | 1 /* 'KBFS_PUBLIC_1' */ | 2 /* 'KBFS_PRIVATE_2' */
 
 export type user_Tracker = {
   tracker: UID;

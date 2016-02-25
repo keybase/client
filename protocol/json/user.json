@@ -1,478 +1,644 @@
 {
-  "protocol" : "user",
-  "namespace" : "keybase.1",
-  "types" : [ {
-    "type" : "record",
-    "name" : "Time",
-    "fields" : [ ],
-    "typedef" : "long"
-  }, {
-    "type" : "record",
-    "name" : "StringKVPair",
-    "fields" : [ {
-      "name" : "key",
-      "type" : "string"
-    }, {
-      "name" : "value",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "Status",
-    "fields" : [ {
-      "name" : "code",
-      "type" : "int"
-    }, {
-      "name" : "name",
-      "type" : "string"
-    }, {
-      "name" : "desc",
-      "type" : "string"
-    }, {
-      "name" : "fields",
-      "type" : {
-        "type" : "array",
-        "items" : "StringKVPair"
-      }
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "UID",
-    "fields" : [ ],
-    "typedef" : "string"
-  }, {
-    "type" : "record",
-    "name" : "DeviceID",
-    "fields" : [ ],
-    "typedef" : "string"
-  }, {
-    "type" : "record",
-    "name" : "SigID",
-    "fields" : [ ],
-    "typedef" : "string"
-  }, {
-    "type" : "record",
-    "name" : "KID",
-    "fields" : [ ],
-    "typedef" : "string"
-  }, {
-    "type" : "record",
-    "name" : "Text",
-    "fields" : [ {
-      "name" : "data",
-      "type" : "string"
-    }, {
-      "name" : "markup",
-      "type" : "boolean"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "PGPIdentity",
-    "fields" : [ {
-      "name" : "username",
-      "type" : "string"
-    }, {
-      "name" : "comment",
-      "type" : "string"
-    }, {
-      "name" : "email",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "PublicKey",
-    "fields" : [ {
-      "name" : "KID",
-      "type" : "KID"
-    }, {
-      "name" : "PGPFingerprint",
-      "type" : "string"
-    }, {
-      "name" : "PGPIdentities",
-      "type" : {
-        "type" : "array",
-        "items" : "PGPIdentity"
-      }
-    }, {
-      "name" : "isSibkey",
-      "type" : "boolean"
-    }, {
-      "name" : "isEldest",
-      "type" : "boolean"
-    }, {
-      "name" : "parentID",
-      "type" : "string"
-    }, {
-      "name" : "deviceID",
-      "type" : "DeviceID"
-    }, {
-      "name" : "deviceDescription",
-      "type" : "string"
-    }, {
-      "name" : "deviceType",
-      "type" : "string"
-    }, {
-      "name" : "cTime",
-      "type" : "Time"
-    }, {
-      "name" : "eTime",
-      "type" : "Time"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "User",
-    "fields" : [ {
-      "name" : "uid",
-      "type" : "UID"
-    }, {
-      "name" : "username",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "Device",
-    "fields" : [ {
-      "name" : "type",
-      "type" : "string"
-    }, {
-      "name" : "name",
-      "type" : "string"
-    }, {
-      "name" : "deviceID",
-      "type" : "DeviceID"
-    }, {
-      "name" : "cTime",
-      "type" : "Time"
-    }, {
-      "name" : "mTime",
-      "type" : "Time"
-    }, {
-      "name" : "encryptKey",
-      "type" : "KID"
-    }, {
-      "name" : "verifyKey",
-      "type" : "KID"
-    }, {
-      "name" : "status",
-      "type" : "int"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "Stream",
-    "fields" : [ {
-      "name" : "fd",
-      "type" : "int"
-    } ]
-  }, {
-    "type" : "enum",
-    "name" : "LogLevel",
-    "symbols" : [ "NONE_0", "DEBUG_1", "INFO_2", "NOTICE_3", "WARN_4", "ERROR_5", "CRITICAL_6", "FATAL_7" ]
-  }, {
-    "type" : "enum",
-    "name" : "ClientType",
-    "symbols" : [ "NONE_0", "CLI_1", "GUI_2", "KBFS_3" ]
-  }, {
-    "type" : "record",
-    "name" : "UserVersionVector",
-    "fields" : [ {
-      "name" : "id",
-      "type" : "long"
-    }, {
-      "name" : "sigHints",
-      "type" : "int"
-    }, {
-      "name" : "sigChain",
-      "type" : "long"
-    }, {
-      "name" : "cachedAt",
-      "type" : "Time"
-    }, {
-      "name" : "lastIdentifiedAt",
-      "type" : "Time"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "UserPlusKeys",
-    "fields" : [ {
-      "name" : "uid",
-      "type" : "UID"
-    }, {
-      "name" : "username",
-      "type" : "string"
-    }, {
-      "name" : "deviceKeys",
-      "type" : {
-        "type" : "array",
-        "items" : "PublicKey"
-      }
-    }, {
-      "name" : "keys",
-      "type" : {
-        "type" : "array",
-        "items" : "PublicKey"
-      }
-    }, {
-      "name" : "uvv",
-      "type" : "UserVersionVector"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "Tracker",
-    "fields" : [ {
-      "name" : "tracker",
-      "type" : "UID"
-    }, {
-      "name" : "status",
-      "type" : "int"
-    }, {
-      "name" : "mTime",
-      "type" : "Time"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "TrackProof",
-    "fields" : [ {
-      "name" : "proofType",
-      "type" : "string"
-    }, {
-      "name" : "proofName",
-      "type" : "string"
-    }, {
-      "name" : "idString",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "WebProof",
-    "fields" : [ {
-      "name" : "hostname",
-      "type" : "string"
-    }, {
-      "name" : "protocols",
-      "type" : {
-        "type" : "array",
-        "items" : "string"
-      }
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "Proofs",
-    "fields" : [ {
-      "name" : "social",
-      "type" : {
-        "type" : "array",
-        "items" : "TrackProof"
-      }
-    }, {
-      "name" : "web",
-      "type" : {
-        "type" : "array",
-        "items" : "WebProof"
-      }
-    }, {
-      "name" : "publicKeys",
-      "type" : {
-        "type" : "array",
-        "items" : "PublicKey"
-      }
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "UserSummary",
-    "fields" : [ {
-      "name" : "uid",
-      "type" : "UID"
-    }, {
-      "name" : "username",
-      "type" : "string"
-    }, {
-      "name" : "thumbnail",
-      "type" : "string"
-    }, {
-      "name" : "idVersion",
-      "type" : "int"
-    }, {
-      "name" : "fullName",
-      "type" : "string"
-    }, {
-      "name" : "bio",
-      "type" : "string"
-    }, {
-      "name" : "proofs",
-      "type" : "Proofs"
-    }, {
-      "name" : "sigIDDisplay",
-      "type" : "string"
-    }, {
-      "name" : "trackTime",
-      "type" : "Time"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "SearchComponent",
-    "fields" : [ {
-      "name" : "key",
-      "type" : "string"
-    }, {
-      "name" : "value",
-      "type" : "string"
-    }, {
-      "name" : "score",
-      "type" : "double"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "SearchResult",
-    "fields" : [ {
-      "name" : "uid",
-      "type" : "UID"
-    }, {
-      "name" : "username",
-      "type" : "string"
-    }, {
-      "name" : "components",
-      "type" : {
-        "type" : "array",
-        "items" : "SearchComponent"
-      }
-    }, {
-      "name" : "score",
-      "type" : "double"
-    } ]
-  } ],
-  "messages" : {
-    "listTrackers" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "uid",
-        "type" : "UID"
-      } ],
-      "response" : {
-        "type" : "array",
-        "items" : "Tracker"
-      }
+  "protocol": "user",
+  "namespace": "keybase.1",
+  "types": [
+    {
+      "type": "record",
+      "name": "Time",
+      "fields": [],
+      "typedef": "long"
     },
-    "listTrackersByName" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "username",
-        "type" : "string"
-      } ],
-      "response" : {
-        "type" : "array",
-        "items" : "Tracker"
-      }
-    },
-    "listTrackersSelf" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      } ],
-      "response" : {
-        "type" : "array",
-        "items" : "Tracker"
-      }
-    },
-    "loadUncheckedUserSummaries" : {
-      "doc" : "Load user summaries for the supplied uids.\n    They are \"unchecked\" in that the client is not verifying the info from the server.\n    If len(uids) > 500, the first 500 will be returned.",
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "uids",
-        "type" : {
-          "type" : "array",
-          "items" : "UID"
+    {
+      "type": "record",
+      "name": "StringKVPair",
+      "fields": [
+        {
+          "type": "string",
+          "name": "key"
+        },
+        {
+          "type": "string",
+          "name": "value"
         }
-      } ],
-      "response" : {
-        "type" : "array",
-        "items" : "UserSummary"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Status",
+      "fields": [
+        {
+          "type": "int",
+          "name": "code"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "desc"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "StringKVPair"
+          },
+          "name": "fields"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "DeviceID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "SigID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "KID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "Text",
+      "fields": [
+        {
+          "type": "string",
+          "name": "data"
+        },
+        {
+          "type": "boolean",
+          "name": "markup"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PGPIdentity",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "comment"
+        },
+        {
+          "type": "string",
+          "name": "email"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PublicKey",
+      "fields": [
+        {
+          "type": "KID",
+          "name": "KID"
+        },
+        {
+          "type": "string",
+          "name": "PGPFingerprint"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PGPIdentity"
+          },
+          "name": "PGPIdentities"
+        },
+        {
+          "type": "boolean",
+          "name": "isSibkey"
+        },
+        {
+          "type": "boolean",
+          "name": "isEldest"
+        },
+        {
+          "type": "string",
+          "name": "parentID"
+        },
+        {
+          "type": "DeviceID",
+          "name": "deviceID"
+        },
+        {
+          "type": "string",
+          "name": "deviceDescription"
+        },
+        {
+          "type": "string",
+          "name": "deviceType"
+        },
+        {
+          "type": "Time",
+          "name": "cTime"
+        },
+        {
+          "type": "Time",
+          "name": "eTime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "User",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Device",
+      "fields": [
+        {
+          "type": "string",
+          "name": "type"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "DeviceID",
+          "name": "deviceID"
+        },
+        {
+          "type": "Time",
+          "name": "cTime"
+        },
+        {
+          "type": "Time",
+          "name": "mTime"
+        },
+        {
+          "type": "KID",
+          "name": "encryptKey"
+        },
+        {
+          "type": "KID",
+          "name": "verifyKey"
+        },
+        {
+          "type": "int",
+          "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Stream",
+      "fields": [
+        {
+          "type": "int",
+          "name": "fd"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "LogLevel",
+      "symbols": [
+        "NONE_0",
+        "DEBUG_1",
+        "INFO_2",
+        "NOTICE_3",
+        "WARN_4",
+        "ERROR_5",
+        "CRITICAL_6",
+        "FATAL_7"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "ClientType",
+      "symbols": [
+        "NONE_0",
+        "CLI_1",
+        "GUI_2",
+        "KBFS_3"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserVersionVector",
+      "fields": [
+        {
+          "type": "long",
+          "name": "id"
+        },
+        {
+          "type": "int",
+          "name": "sigHints"
+        },
+        {
+          "type": "long",
+          "name": "sigChain"
+        },
+        {
+          "type": "Time",
+          "name": "cachedAt"
+        },
+        {
+          "type": "Time",
+          "name": "lastIdentifiedAt"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserPlusKeys",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PublicKey"
+          },
+          "name": "deviceKeys"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PublicKey"
+          },
+          "name": "keys"
+        },
+        {
+          "type": "UserVersionVector",
+          "name": "uvv"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "MerkleTreeID",
+      "symbols": [
+        "MASTER_0",
+        "KBFS_PUBLIC_1",
+        "KBFS_PRIVATE_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Tracker",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "tracker"
+        },
+        {
+          "type": "int",
+          "name": "status"
+        },
+        {
+          "type": "Time",
+          "name": "mTime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "TrackProof",
+      "fields": [
+        {
+          "type": "string",
+          "name": "proofType"
+        },
+        {
+          "type": "string",
+          "name": "proofName"
+        },
+        {
+          "type": "string",
+          "name": "idString"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "WebProof",
+      "fields": [
+        {
+          "type": "string",
+          "name": "hostname"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "protocols"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Proofs",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "TrackProof"
+          },
+          "name": "social"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "WebProof"
+          },
+          "name": "web"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PublicKey"
+          },
+          "name": "publicKeys"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserSummary",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "thumbnail"
+        },
+        {
+          "type": "int",
+          "name": "idVersion"
+        },
+        {
+          "type": "string",
+          "name": "fullName"
+        },
+        {
+          "type": "string",
+          "name": "bio"
+        },
+        {
+          "type": "Proofs",
+          "name": "proofs"
+        },
+        {
+          "type": "string",
+          "name": "sigIDDisplay"
+        },
+        {
+          "type": "Time",
+          "name": "trackTime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SearchComponent",
+      "fields": [
+        {
+          "type": "string",
+          "name": "key"
+        },
+        {
+          "type": "string",
+          "name": "value"
+        },
+        {
+          "type": "double",
+          "name": "score"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "SearchResult",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "SearchComponent"
+          },
+          "name": "components"
+        },
+        {
+          "type": "double",
+          "name": "score"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "listTrackers": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "uid",
+          "type": "UID"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "Tracker"
       }
     },
-    "loadUser" : {
-      "doc" : "Load a user from the server.",
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "uid",
-        "type" : "UID"
-      } ],
-      "response" : "User"
-    },
-    "loadUserPlusKeys" : {
-      "doc" : "Load a user + device keys from the server.\n    If cacheOK is true means that a cached value is ok to return.",
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "uid",
-        "type" : "UID"
-      }, {
-        "name" : "cacheOK",
-        "type" : "boolean"
-      } ],
-      "response" : "UserPlusKeys"
-    },
-    "loadPublicKeys" : {
-      "doc" : "Load public keys for a user.",
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "uid",
-        "type" : "UID"
-      } ],
-      "response" : {
-        "type" : "array",
-        "items" : "PublicKey"
+    "listTrackersByName": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "Tracker"
       }
     },
-    "listTracking" : {
-      "doc" : "The list-tracking function get verified data from the tracking statements\n    in the user's own sigchain.",
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "filter",
-        "type" : "string"
-      } ],
-      "response" : {
-        "type" : "array",
-        "items" : "UserSummary"
+    "listTrackersSelf": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "Tracker"
       }
     },
-    "listTrackingJSON" : {
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "filter",
-        "type" : "string"
-      }, {
-        "name" : "verbose",
-        "type" : "boolean"
-      } ],
-      "response" : "string"
+    "loadUncheckedUserSummaries": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "uids",
+          "type": {
+            "type": "array",
+            "items": "UID"
+          }
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "UserSummary"
+      },
+      "doc": "Load user summaries for the supplied uids.\n    They are \"unchecked\" in that the client is not verifying the info from the server.\n    If len(uids) > 500, the first 500 will be returned."
     },
-    "search" : {
-      "doc" : "Search for users who match a given query.",
-      "request" : [ {
-        "name" : "sessionID",
-        "type" : "int"
-      }, {
-        "name" : "query",
-        "type" : "string"
-      } ],
-      "response" : {
-        "type" : "array",
-        "items" : "SearchResult"
-      }
+    "loadUser": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "uid",
+          "type": "UID"
+        }
+      ],
+      "response": "User",
+      "doc": "Load a user from the server."
+    },
+    "loadUserPlusKeys": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "cacheOK",
+          "type": "boolean"
+        }
+      ],
+      "response": "UserPlusKeys",
+      "doc": "Load a user + device keys from the server.\n    If cacheOK is true means that a cached value is ok to return."
+    },
+    "loadPublicKeys": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "uid",
+          "type": "UID"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "PublicKey"
+      },
+      "doc": "Load public keys for a user."
+    },
+    "listTracking": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "filter",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "UserSummary"
+      },
+      "doc": "The list-tracking function get verified data from the tracking statements\n    in the user's own sigchain."
+    },
+    "listTrackingJSON": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "filter",
+          "type": "string"
+        },
+        {
+          "name": "verbose",
+          "type": "boolean"
+        }
+      ],
+      "response": "string"
+    },
+    "search": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "query",
+          "type": "string"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "SearchResult"
+      },
+      "doc": "Search for users who match a given query."
     }
   }
 }

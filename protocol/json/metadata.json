@@ -1,501 +1,670 @@
 {
-  "protocol" : "metadata",
-  "namespace" : "keybase.1",
-  "types" : [ {
-    "type" : "record",
-    "name" : "Time",
-    "fields" : [ ],
-    "typedef" : "long"
-  }, {
-    "type" : "record",
-    "name" : "StringKVPair",
-    "fields" : [ {
-      "name" : "key",
-      "type" : "string"
-    }, {
-      "name" : "value",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "Status",
-    "fields" : [ {
-      "name" : "code",
-      "type" : "int"
-    }, {
-      "name" : "name",
-      "type" : "string"
-    }, {
-      "name" : "desc",
-      "type" : "string"
-    }, {
-      "name" : "fields",
-      "type" : {
-        "type" : "array",
-        "items" : "StringKVPair"
-      }
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "UID",
-    "fields" : [ ],
-    "typedef" : "string"
-  }, {
-    "type" : "record",
-    "name" : "DeviceID",
-    "fields" : [ ],
-    "typedef" : "string"
-  }, {
-    "type" : "record",
-    "name" : "SigID",
-    "fields" : [ ],
-    "typedef" : "string"
-  }, {
-    "type" : "record",
-    "name" : "KID",
-    "fields" : [ ],
-    "typedef" : "string"
-  }, {
-    "type" : "record",
-    "name" : "Text",
-    "fields" : [ {
-      "name" : "data",
-      "type" : "string"
-    }, {
-      "name" : "markup",
-      "type" : "boolean"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "PGPIdentity",
-    "fields" : [ {
-      "name" : "username",
-      "type" : "string"
-    }, {
-      "name" : "comment",
-      "type" : "string"
-    }, {
-      "name" : "email",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "PublicKey",
-    "fields" : [ {
-      "name" : "KID",
-      "type" : "KID"
-    }, {
-      "name" : "PGPFingerprint",
-      "type" : "string"
-    }, {
-      "name" : "PGPIdentities",
-      "type" : {
-        "type" : "array",
-        "items" : "PGPIdentity"
-      }
-    }, {
-      "name" : "isSibkey",
-      "type" : "boolean"
-    }, {
-      "name" : "isEldest",
-      "type" : "boolean"
-    }, {
-      "name" : "parentID",
-      "type" : "string"
-    }, {
-      "name" : "deviceID",
-      "type" : "DeviceID"
-    }, {
-      "name" : "deviceDescription",
-      "type" : "string"
-    }, {
-      "name" : "deviceType",
-      "type" : "string"
-    }, {
-      "name" : "cTime",
-      "type" : "Time"
-    }, {
-      "name" : "eTime",
-      "type" : "Time"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "User",
-    "fields" : [ {
-      "name" : "uid",
-      "type" : "UID"
-    }, {
-      "name" : "username",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "Device",
-    "fields" : [ {
-      "name" : "type",
-      "type" : "string"
-    }, {
-      "name" : "name",
-      "type" : "string"
-    }, {
-      "name" : "deviceID",
-      "type" : "DeviceID"
-    }, {
-      "name" : "cTime",
-      "type" : "Time"
-    }, {
-      "name" : "mTime",
-      "type" : "Time"
-    }, {
-      "name" : "encryptKey",
-      "type" : "KID"
-    }, {
-      "name" : "verifyKey",
-      "type" : "KID"
-    }, {
-      "name" : "status",
-      "type" : "int"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "Stream",
-    "fields" : [ {
-      "name" : "fd",
-      "type" : "int"
-    } ]
-  }, {
-    "type" : "enum",
-    "name" : "LogLevel",
-    "symbols" : [ "NONE_0", "DEBUG_1", "INFO_2", "NOTICE_3", "WARN_4", "ERROR_5", "CRITICAL_6", "FATAL_7" ]
-  }, {
-    "type" : "enum",
-    "name" : "ClientType",
-    "symbols" : [ "NONE_0", "CLI_1", "GUI_2", "KBFS_3" ]
-  }, {
-    "type" : "record",
-    "name" : "UserVersionVector",
-    "fields" : [ {
-      "name" : "id",
-      "type" : "long"
-    }, {
-      "name" : "sigHints",
-      "type" : "int"
-    }, {
-      "name" : "sigChain",
-      "type" : "long"
-    }, {
-      "name" : "cachedAt",
-      "type" : "Time"
-    }, {
-      "name" : "lastIdentifiedAt",
-      "type" : "Time"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "UserPlusKeys",
-    "fields" : [ {
-      "name" : "uid",
-      "type" : "UID"
-    }, {
-      "name" : "username",
-      "type" : "string"
-    }, {
-      "name" : "deviceKeys",
-      "type" : {
-        "type" : "array",
-        "items" : "PublicKey"
-      }
-    }, {
-      "name" : "keys",
-      "type" : {
-        "type" : "array",
-        "items" : "PublicKey"
-      }
-    }, {
-      "name" : "uvv",
-      "type" : "UserVersionVector"
-    } ]
-  }, {
-    "type" : "enum",
-    "name" : "MerkleTreeID",
-    "symbols" : [ "MASTER_0", "KBFS_PUBLIC_1", "KBFS_PRIVATE_2" ]
-  }, {
-    "type" : "record",
-    "name" : "BlockIdCombo",
-    "fields" : [ {
-      "name" : "blockHash",
-      "type" : "string"
-    }, {
-      "name" : "chargedTo",
-      "type" : "UID"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "ChallengeInfo",
-    "fields" : [ {
-      "name" : "now",
-      "type" : "long"
-    }, {
-      "name" : "challenge",
-      "type" : "string"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "KeyHalf",
-    "fields" : [ {
-      "name" : "user",
-      "type" : "UID"
-    }, {
-      "name" : "deviceKID",
-      "type" : "KID"
-    }, {
-      "name" : "key",
-      "type" : "bytes"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "MDBlock",
-    "fields" : [ {
-      "name" : "version",
-      "type" : "int"
-    }, {
-      "name" : "timestamp",
-      "type" : "Time"
-    }, {
-      "name" : "block",
-      "type" : "bytes"
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "MetadataResponse",
-    "fields" : [ {
-      "name" : "folderID",
-      "type" : "string"
-    }, {
-      "name" : "mdBlocks",
-      "type" : {
-        "type" : "array",
-        "items" : "MDBlock"
-      }
-    } ]
-  }, {
-    "type" : "record",
-    "name" : "MerkleRoot",
-    "fields" : [ {
-      "name" : "version",
-      "type" : "int"
-    }, {
-      "name" : "root",
-      "type" : "bytes"
-    } ]
-  } ],
-  "messages" : {
-    "getChallenge" : {
-      "request" : [ ],
-      "response" : "ChallengeInfo"
+  "protocol": "metadata",
+  "namespace": "keybase.1",
+  "types": [
+    {
+      "type": "record",
+      "name": "Time",
+      "fields": [],
+      "typedef": "long"
     },
-    "authenticate" : {
-      "request" : [ {
-        "name" : "signature",
-        "type" : "string"
-      } ],
-      "response" : "int"
-    },
-    "putMetadata" : {
-      "request" : [ {
-        "name" : "mdBlock",
-        "type" : "MDBlock"
-      }, {
-        "name" : "logTags",
-        "type" : {
-          "type" : "map",
-          "values" : "string"
+    {
+      "type": "record",
+      "name": "StringKVPair",
+      "fields": [
+        {
+          "type": "string",
+          "name": "key"
+        },
+        {
+          "type": "string",
+          "name": "value"
         }
-      } ],
-      "response" : "null"
+      ]
     },
-    "getMetadata" : {
-      "request" : [ {
-        "name" : "folderID",
-        "type" : "string"
-      }, {
-        "name" : "folderHandle",
-        "type" : "bytes"
-      }, {
-        "name" : "branchID",
-        "type" : "string"
-      }, {
-        "name" : "unmerged",
-        "type" : "boolean"
-      }, {
-        "name" : "startRevision",
-        "type" : "long"
-      }, {
-        "name" : "stopRevision",
-        "type" : "long"
-      }, {
-        "name" : "logTags",
-        "type" : {
-          "type" : "map",
-          "values" : "string"
+    {
+      "type": "record",
+      "name": "Status",
+      "fields": [
+        {
+          "type": "int",
+          "name": "code"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "desc"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "StringKVPair"
+          },
+          "name": "fields"
         }
-      } ],
-      "response" : "MetadataResponse"
+      ]
     },
-    "registerForUpdates" : {
-      "request" : [ {
-        "name" : "folderID",
-        "type" : "string"
-      }, {
-        "name" : "currRevision",
-        "type" : "long"
-      }, {
-        "name" : "logTags",
-        "type" : {
-          "type" : "map",
-          "values" : "string"
+    {
+      "type": "record",
+      "name": "UID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "DeviceID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "SigID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "KID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "Text",
+      "fields": [
+        {
+          "type": "string",
+          "name": "data"
+        },
+        {
+          "type": "boolean",
+          "name": "markup"
         }
-      } ],
-      "response" : "null"
+      ]
     },
-    "pruneBranch" : {
-      "request" : [ {
-        "name" : "folderID",
-        "type" : "string"
-      }, {
-        "name" : "branchID",
-        "type" : "string"
-      }, {
-        "name" : "logTags",
-        "type" : {
-          "type" : "map",
-          "values" : "string"
+    {
+      "type": "record",
+      "name": "PGPIdentity",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "comment"
+        },
+        {
+          "type": "string",
+          "name": "email"
         }
-      } ],
-      "response" : "null"
+      ]
     },
-    "putKeys" : {
-      "request" : [ {
-        "name" : "keyHalves",
-        "type" : {
-          "type" : "array",
-          "items" : "KeyHalf"
+    {
+      "type": "record",
+      "name": "PublicKey",
+      "fields": [
+        {
+          "type": "KID",
+          "name": "KID"
+        },
+        {
+          "type": "string",
+          "name": "PGPFingerprint"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PGPIdentity"
+          },
+          "name": "PGPIdentities"
+        },
+        {
+          "type": "boolean",
+          "name": "isSibkey"
+        },
+        {
+          "type": "boolean",
+          "name": "isEldest"
+        },
+        {
+          "type": "string",
+          "name": "parentID"
+        },
+        {
+          "type": "DeviceID",
+          "name": "deviceID"
+        },
+        {
+          "type": "string",
+          "name": "deviceDescription"
+        },
+        {
+          "type": "string",
+          "name": "deviceType"
+        },
+        {
+          "type": "Time",
+          "name": "cTime"
+        },
+        {
+          "type": "Time",
+          "name": "eTime"
         }
-      }, {
-        "name" : "logTags",
-        "type" : {
-          "type" : "map",
-          "values" : "string"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "User",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
         }
-      } ],
-      "response" : "null"
+      ]
     },
-    "getKey" : {
-      "request" : [ {
-        "name" : "keyHalfID",
-        "type" : "bytes"
-      }, {
-        "name" : "deviceKID",
-        "type" : "string"
-      }, {
-        "name" : "logTags",
-        "type" : {
-          "type" : "map",
-          "values" : "string"
+    {
+      "type": "record",
+      "name": "Device",
+      "fields": [
+        {
+          "type": "string",
+          "name": "type"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "DeviceID",
+          "name": "deviceID"
+        },
+        {
+          "type": "Time",
+          "name": "cTime"
+        },
+        {
+          "type": "Time",
+          "name": "mTime"
+        },
+        {
+          "type": "KID",
+          "name": "encryptKey"
+        },
+        {
+          "type": "KID",
+          "name": "verifyKey"
+        },
+        {
+          "type": "int",
+          "name": "status"
         }
-      } ],
-      "response" : "bytes"
+      ]
     },
-    "deleteKey" : {
-      "request" : [ {
-        "name" : "uid",
-        "type" : "UID"
-      }, {
-        "name" : "deviceKID",
-        "type" : "KID"
-      }, {
-        "name" : "keyHalfID",
-        "type" : "bytes"
-      }, {
-        "name" : "logTags",
-        "type" : {
-          "type" : "map",
-          "values" : "string"
+    {
+      "type": "record",
+      "name": "Stream",
+      "fields": [
+        {
+          "type": "int",
+          "name": "fd"
         }
-      } ],
-      "response" : "null"
+      ]
     },
-    "truncateLock" : {
-      "request" : [ {
-        "name" : "folderID",
-        "type" : "string"
-      } ],
-      "response" : "boolean"
+    {
+      "type": "enum",
+      "name": "LogLevel",
+      "symbols": [
+        "NONE_0",
+        "DEBUG_1",
+        "INFO_2",
+        "NOTICE_3",
+        "WARN_4",
+        "ERROR_5",
+        "CRITICAL_6",
+        "FATAL_7"
+      ]
     },
-    "truncateUnlock" : {
-      "request" : [ {
-        "name" : "folderID",
-        "type" : "string"
-      } ],
-      "response" : "boolean"
+    {
+      "type": "enum",
+      "name": "ClientType",
+      "symbols": [
+        "NONE_0",
+        "CLI_1",
+        "GUI_2",
+        "KBFS_3"
+      ]
     },
-    "getFolderHandle" : {
-      "request" : [ {
-        "name" : "folderID",
-        "type" : "string"
-      }, {
-        "name" : "signature",
-        "type" : "string"
-      }, {
-        "name" : "challenge",
-        "type" : "string"
-      } ],
-      "response" : "bytes"
+    {
+      "type": "record",
+      "name": "UserVersionVector",
+      "fields": [
+        {
+          "type": "long",
+          "name": "id"
+        },
+        {
+          "type": "int",
+          "name": "sigHints"
+        },
+        {
+          "type": "long",
+          "name": "sigChain"
+        },
+        {
+          "type": "Time",
+          "name": "cachedAt"
+        },
+        {
+          "type": "Time",
+          "name": "lastIdentifiedAt"
+        }
+      ]
     },
-    "getFoldersForRekey" : {
-      "request" : [ {
-        "name" : "deviceKID",
-        "type" : "KID"
-      } ],
-      "response" : "null"
+    {
+      "type": "record",
+      "name": "UserPlusKeys",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PublicKey"
+          },
+          "name": "deviceKeys"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PublicKey"
+          },
+          "name": "keys"
+        },
+        {
+          "type": "UserVersionVector",
+          "name": "uvv"
+        }
+      ]
     },
-    "ping" : {
-      "request" : [ ],
-      "response" : "null"
+    {
+      "type": "enum",
+      "name": "MerkleTreeID",
+      "symbols": [
+        "MASTER_0",
+        "KBFS_PUBLIC_1",
+        "KBFS_PRIVATE_2"
+      ]
     },
-    "getMerkleRoot" : {
-      "request" : [ {
-        "name" : "treeID",
-        "type" : "MerkleTreeID"
-      }, {
-        "name" : "seqNo",
-        "type" : "long"
-      } ],
-      "response" : "MerkleRoot"
+    {
+      "type": "record",
+      "name": "BlockIdCombo",
+      "fields": [
+        {
+          "type": "string",
+          "name": "blockHash"
+        },
+        {
+          "type": "UID",
+          "name": "chargedTo"
+        }
+      ]
     },
-    "getMerkleRootLatest" : {
-      "request" : [ {
-        "name" : "treeID",
-        "type" : "MerkleTreeID"
-      } ],
-      "response" : "MerkleRoot"
+    {
+      "type": "record",
+      "name": "ChallengeInfo",
+      "fields": [
+        {
+          "type": "long",
+          "name": "now"
+        },
+        {
+          "type": "string",
+          "name": "challenge"
+        }
+      ]
     },
-    "getMerkleRootSince" : {
-      "request" : [ {
-        "name" : "treeID",
-        "type" : "MerkleTreeID"
-      }, {
-        "name" : "when",
-        "type" : "Time"
-      } ],
-      "response" : "MerkleRoot"
+    {
+      "type": "record",
+      "name": "KeyHalf",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "user"
+        },
+        {
+          "type": "KID",
+          "name": "deviceKID"
+        },
+        {
+          "type": "bytes",
+          "name": "key"
+        }
+      ]
     },
-    "getMerkleNode" : {
-      "request" : [ {
-        "name" : "hash",
-        "type" : "string"
-      } ],
-      "response" : "bytes"
+    {
+      "type": "record",
+      "name": "MDBlock",
+      "fields": [
+        {
+          "type": "int",
+          "name": "version"
+        },
+        {
+          "type": "Time",
+          "name": "timestamp"
+        },
+        {
+          "type": "bytes",
+          "name": "block"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MetadataResponse",
+      "fields": [
+        {
+          "type": "string",
+          "name": "folderID"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "MDBlock"
+          },
+          "name": "mdBlocks"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "MerkleRoot",
+      "fields": [
+        {
+          "type": "int",
+          "name": "version"
+        },
+        {
+          "type": "bytes",
+          "name": "root"
+        }
+      ]
+    }
+  ],
+  "messages": {
+    "getChallenge": {
+      "request": [],
+      "response": "ChallengeInfo"
+    },
+    "authenticate": {
+      "request": [
+        {
+          "name": "signature",
+          "type": "string"
+        }
+      ],
+      "response": "int"
+    },
+    "putMetadata": {
+      "request": [
+        {
+          "name": "mdBlock",
+          "type": "MDBlock"
+        },
+        {
+          "name": "logTags",
+          "type": {
+            "type": "map",
+            "values": "string"
+          }
+        }
+      ],
+      "response": "null"
+    },
+    "getMetadata": {
+      "request": [
+        {
+          "name": "folderID",
+          "type": "string"
+        },
+        {
+          "name": "folderHandle",
+          "type": "bytes"
+        },
+        {
+          "name": "branchID",
+          "type": "string"
+        },
+        {
+          "name": "unmerged",
+          "type": "boolean"
+        },
+        {
+          "name": "startRevision",
+          "type": "long"
+        },
+        {
+          "name": "stopRevision",
+          "type": "long"
+        },
+        {
+          "name": "logTags",
+          "type": {
+            "type": "map",
+            "values": "string"
+          }
+        }
+      ],
+      "response": "MetadataResponse"
+    },
+    "registerForUpdates": {
+      "request": [
+        {
+          "name": "folderID",
+          "type": "string"
+        },
+        {
+          "name": "currRevision",
+          "type": "long"
+        },
+        {
+          "name": "logTags",
+          "type": {
+            "type": "map",
+            "values": "string"
+          }
+        }
+      ],
+      "response": "null"
+    },
+    "pruneBranch": {
+      "request": [
+        {
+          "name": "folderID",
+          "type": "string"
+        },
+        {
+          "name": "branchID",
+          "type": "string"
+        },
+        {
+          "name": "logTags",
+          "type": {
+            "type": "map",
+            "values": "string"
+          }
+        }
+      ],
+      "response": "null"
+    },
+    "putKeys": {
+      "request": [
+        {
+          "name": "keyHalves",
+          "type": {
+            "type": "array",
+            "items": "KeyHalf"
+          }
+        },
+        {
+          "name": "logTags",
+          "type": {
+            "type": "map",
+            "values": "string"
+          }
+        }
+      ],
+      "response": "null"
+    },
+    "getKey": {
+      "request": [
+        {
+          "name": "keyHalfID",
+          "type": "bytes"
+        },
+        {
+          "name": "deviceKID",
+          "type": "string"
+        },
+        {
+          "name": "logTags",
+          "type": {
+            "type": "map",
+            "values": "string"
+          }
+        }
+      ],
+      "response": "bytes"
+    },
+    "deleteKey": {
+      "request": [
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "deviceKID",
+          "type": "KID"
+        },
+        {
+          "name": "keyHalfID",
+          "type": "bytes"
+        },
+        {
+          "name": "logTags",
+          "type": {
+            "type": "map",
+            "values": "string"
+          }
+        }
+      ],
+      "response": "null"
+    },
+    "truncateLock": {
+      "request": [
+        {
+          "name": "folderID",
+          "type": "string"
+        }
+      ],
+      "response": "boolean"
+    },
+    "truncateUnlock": {
+      "request": [
+        {
+          "name": "folderID",
+          "type": "string"
+        }
+      ],
+      "response": "boolean"
+    },
+    "getFolderHandle": {
+      "request": [
+        {
+          "name": "folderID",
+          "type": "string"
+        },
+        {
+          "name": "signature",
+          "type": "string"
+        },
+        {
+          "name": "challenge",
+          "type": "string"
+        }
+      ],
+      "response": "bytes"
+    },
+    "getFoldersForRekey": {
+      "request": [
+        {
+          "name": "deviceKID",
+          "type": "KID"
+        }
+      ],
+      "response": "null"
+    },
+    "ping": {
+      "request": [],
+      "response": "null"
+    },
+    "getMerkleRoot": {
+      "request": [
+        {
+          "name": "treeID",
+          "type": "MerkleTreeID"
+        },
+        {
+          "name": "seqNo",
+          "type": "long"
+        }
+      ],
+      "response": "MerkleRoot"
+    },
+    "getMerkleRootLatest": {
+      "request": [
+        {
+          "name": "treeID",
+          "type": "MerkleTreeID"
+        }
+      ],
+      "response": "MerkleRoot"
+    },
+    "getMerkleRootSince": {
+      "request": [
+        {
+          "name": "treeID",
+          "type": "MerkleTreeID"
+        },
+        {
+          "name": "when",
+          "type": "Time"
+        }
+      ],
+      "response": "MerkleRoot"
+    },
+    "getMerkleNode": {
+      "request": [
+        {
+          "name": "hash",
+          "type": "string"
+        }
+      ],
+      "response": "bytes"
     }
   }
 }

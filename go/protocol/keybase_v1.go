@@ -217,6 +217,14 @@ type UserPlusKeys struct {
 	Uvv        UserVersionVector `codec:"uvv" json:"uvv"`
 }
 
+type MerkleTreeID int
+
+const (
+	MerkleTreeID_MASTER       MerkleTreeID = 0
+	MerkleTreeID_KBFS_PUBLIC  MerkleTreeID = 1
+	MerkleTreeID_KBFS_PRIVATE MerkleTreeID = 2
+)
+
 type BlockIdCombo struct {
 	BlockHash string `codec:"blockHash" json:"blockHash"`
 	ChargedTo UID    `codec:"chargedTo" json:"chargedTo"`
@@ -3199,14 +3207,6 @@ func (c LoginUiClient) DisplayPrimaryPaperKey(ctx context.Context, __arg Display
 	err = c.Cli.Call(ctx, "keybase.1.loginUi.displayPrimaryPaperKey", []interface{}{__arg}, nil)
 	return
 }
-
-type MerkleTreeID int
-
-const (
-	MerkleTreeID_MASTER       MerkleTreeID = 0
-	MerkleTreeID_KBFS_PUBLIC  MerkleTreeID = 1
-	MerkleTreeID_KBFS_PRIVATE MerkleTreeID = 2
-)
 
 type KeyHalf struct {
 	User      UID    `codec:"user" json:"user"`
