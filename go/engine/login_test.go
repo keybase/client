@@ -988,6 +988,33 @@ func TestProvisionPassphraseNoKeysMultipleAccounts(t *testing.T) {
 	}
 }
 
+// We have obviated the unlock command by combining it with login.
+func TestLoginStreamCache(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u1 := CreateAndSignupFakeUser(tc, "login")
+
+	if !assertStreamCache(tc, true) {
+		t.Fatal("expected valid stream cache after signup")
+	}
+
+	tc.G.LoginState().Account(func(a *libkb.Account) {
+		a.ClearStreamCache()
+	}, "clear stream cache")
+
+	if !assertStreamCache(tc, false) {
+		t.Fatal("expected invalid stream cache after clear")
+	}
+
+	// This should now unlock the stream cache too
+	u1.LoginOrBust(tc)
+
+	if !assertStreamCache(tc, true) {
+		t.Fatal("expected valid stream cache after login")
+	}
+}
+
 type testProvisionUI struct {
 	secretCh               chan kex2.Secret
 	method                 keybase1.ProvisionMethod

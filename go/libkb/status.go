@@ -13,10 +13,11 @@ type UserInfo struct {
 }
 
 type CurrentStatus struct {
-	Configured bool
-	Registered bool
-	LoggedIn   bool
-	User       *User
+	Configured     bool
+	Registered     bool
+	LoggedIn       bool
+	SessionIsValid bool
+	User           *User
 }
 
 func GetCurrentStatus(g *GlobalContext) (res CurrentStatus, err error) {
@@ -29,6 +30,11 @@ func GetCurrentStatus(g *GlobalContext) (res CurrentStatus, err error) {
 		res.Registered = true
 		res.User = NewUserThin(cr.GetUsername().String(), uid)
 	}
-	res.LoggedIn, err = g.LoginState().LoggedInProvisionedLoad()
+	res.SessionIsValid, err = g.LoginState().LoggedInProvisionedLoad()
+	if err == nil {
+		if pps, err := g.LoginState().PassphraseStream(); err == nil {
+			res.LoggedIn = res.SessionIsValid && (pps != nil)
+		}
+	}
 	return
 }

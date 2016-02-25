@@ -53,6 +53,7 @@ type fstatus struct {
 	Device                 *keybase1.Device
 	LoggedInProvisioned    bool `json:"LoggedIn"`
 	PassphraseStreamCached bool `json:"KeychainUnlocked"`
+	SessionIsValid         bool `json:"SessionIsValid"`
 	SessionStatus          string
 	ConfigPath             string
 
@@ -117,6 +118,7 @@ func (c *CmdStatus) load() (*fstatus, error) {
 	}
 
 	status.LoggedInProvisioned = curStatus.LoggedIn
+	status.SessionIsValid = curStatus.SessionIsValid
 	if curStatus.User != nil {
 		status.Username = curStatus.User.Username
 		status.UserID = curStatus.User.Uid.String()
@@ -207,6 +209,7 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 		dui.Printf("    status:    %s\n\n", libkb.DeviceStatusToString(&status.Device.Status))
 	}
 	dui.Printf("Keybase keys:  %s\n", BoolString(status.PassphraseStreamCached, "unlocked", "locked"))
+	dui.Printf("    Session Is Valid: %s\n", BoolString(status.SessionIsValid, "yes", "no"))
 	dui.Printf("Session:       %s\n", status.SessionStatus)
 	dui.Printf("\nKBFS:\n")
 	dui.Printf("    status:    %s\n", BoolString(status.KBFS.Running, "running", "not running"))

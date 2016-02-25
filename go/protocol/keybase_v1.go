@@ -510,10 +510,11 @@ func (c BTCClient) RegisterBTC(ctx context.Context, __arg RegisterBTCArg) (err e
 }
 
 type GetCurrentStatusRes struct {
-	Configured bool  `codec:"configured" json:"configured"`
-	Registered bool  `codec:"registered" json:"registered"`
-	LoggedIn   bool  `codec:"loggedIn" json:"loggedIn"`
-	User       *User `codec:"user,omitempty" json:"user,omitempty"`
+	Configured     bool  `codec:"configured" json:"configured"`
+	Registered     bool  `codec:"registered" json:"registered"`
+	LoggedIn       bool  `codec:"loggedIn" json:"loggedIn"`
+	SessionIsValid bool  `codec:"sessionIsValid" json:"sessionIsValid"`
+	User           *User `codec:"user,omitempty" json:"user,omitempty"`
 }
 
 type SessionStatus struct {

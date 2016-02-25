@@ -326,6 +326,10 @@
           "name": "loggedIn"
         },
         {
+          "type": "boolean",
+          "name": "loggedInSession"
+        },
+        {
           "type": [
             "null",
             "User"

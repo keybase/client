@@ -45,12 +45,8 @@ func (e *LoginCurrentDevice) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-// Run starts the engine.
-func (e *LoginCurrentDevice) Run(ctx *Context) error {
-	e.G().Log.Debug("+- LoginCurrentDevice.Run")
-	defer func() {
-		e.G().Log.Debug("- LoginCurrentDevice.Run")
-	}()
+func (e *LoginCurrentDevice) doLogin(ctx *Context) error {
+
 	// already logged in?
 	in, err := e.G().LoginState().LoggedInProvisionedLoad()
 	if err == nil && in {
@@ -111,4 +107,21 @@ func (e *LoginCurrentDevice) Run(ctx *Context) error {
 		return nil
 	}
 	return e.G().LoginState().LoginWithPrompt(e.username, ctx.LoginUI, ctx.SecretUI, afterLogin)
+}
+
+// Run starts the engine.
+func (e *LoginCurrentDevice) Run(ctx *Context) error {
+	e.G().Log.Debug("+- LoginCurrentDevice.Run")
+	defer func() {
+		e.G().Log.Debug("- LoginCurrentDevice.Run")
+	}()
+
+	ret := e.doLogin(ctx)
+
+	// Unlock the passphrase stream here so the user won't have to
+	// separately
+	if ret == nil {
+		_, ret = e.G().LoginState().GetPassphraseStream(ctx.SecretUI)
+	}
+	return ret
 }
