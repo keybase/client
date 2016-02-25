@@ -239,7 +239,13 @@ export class ProofsRender extends Component {
       checking: colors.grey,
       revoked: colors.orange,
       warning: colors.orange,
-      error: colors.red
+      error: colors.red,
+      // FIXME: the four below states will never be rendered; this is a hack
+      // to keep flow happy.  Will go away when tracker v1 goes away.
+      followed: colors.lightBlue,
+      unfollowed: colors.lightBlue,
+      refollowed: colors.lightBlue,
+      followedProofsAdded: colors.lightBlue
     }[proof.state]
 
     return (
