@@ -9,7 +9,7 @@ import Render from './index.render'
 import {checkPassphrase} from '../../../actions/signup'
 
 class PassphraseForm extends Component {
-  render (): ReactElement {
+  render () {
     return (
       <Render
         passphraseError={this.props.passphraseError}

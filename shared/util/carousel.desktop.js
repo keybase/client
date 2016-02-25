@@ -13,7 +13,7 @@ export type CarouselProps = {
 }
 
 class CarouselThing extends Component {
-  render (): ReactElement {
+  render () {
     return (
       <div style={{...this.props.style}}>
         <Text style={{margin: 20}} type='Body'>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Vivamus sagittis lacus vel augue laoreet.</Text>
@@ -22,7 +22,7 @@ class CarouselThing extends Component {
   }
 }
 
-function PageIndicator ({selectedIndex, itemCount, style, onClickPage}: {selectedIndex: number, itemCount: number, style: Object, onClickPage: (i: number) => void}): ReactElement {
+function PageIndicator ({selectedIndex, itemCount, style, onClickPage}: {selectedIndex: number, itemCount: number, style: Object, onClickPage: (i: number) => void}) {
   const marks = _.range(itemCount).map(n => {
     const color = (n === selectedIndex) ? globalColors.white : globalColors.lightBlue
     return (<Icon type='fa-circle' style={{color, ...styles.pageIndicator}} onClick={() => onClickPage(n)} key={n}/>)
@@ -65,7 +65,7 @@ export default class Carousel extends Component {
     this.interval = setInterval(() => this.incrementIndex(), this.timeout)
   }
 
-  render (): ReactElement {
+  render () {
     const marginLeft = this.state.selectedIndex * -(this.props.itemWidth + 20)
     const itemWidth = this.props.itemWidth
     return (

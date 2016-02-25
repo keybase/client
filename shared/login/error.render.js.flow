@@ -1,5 +1,4 @@
 /* @flow */
 
-export default class ErrorRender extends ReactComponent {
-  props: {currentPath: any};
+export default class ErrorRender extends React$Component<void, {currentPath: any}, void> {
 }

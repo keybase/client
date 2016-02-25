@@ -196,7 +196,8 @@ function trackUser (trackToken: ?string): Promise<boolean> {
   const options: TrackOptions = {
     localOnly: false,
     bypassConfirm: false,
-    forceRetrack: false
+    forceRetrack: false,
+    expiringLocal: false
   }
 
   return new Promise((resolve, reject) => {

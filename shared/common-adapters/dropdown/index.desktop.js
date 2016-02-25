@@ -51,19 +51,19 @@ export default class Dropdown extends Component {
       .popover .kbmenuitem+.kbmenuitem { border-top: 1px solid ${globalColorsDZ2.black10}; }
     `
 
-    let list: ReactElement
-    let selectedValue: ReactElement
+    let list
+    let selectedValue
 
-    const onOther = this.props.onOther && (() => {this.setState({popoverOpen: false}); this.props.onOther()})
+    const onOther = this.props.onOther && (() => {this.setState({popoverOpen: false}); this.props.onOther && this.props.onOther()})
 
     switch (this.props.type) {
       case 'Username':
         list = <UsernameList options={this.props.options} onClick={i => this._clickItemFromList(i)} onOther={onOther}/>
-        selectedValue = <MenuItem type='Username' style={{height: 'initial'}} textStyle={{...styles.labelStyle}}>{this.props.value || this.props.options[0]}</MenuItem>
+        selectedValue = <MenuItem onClick={() => {}} type='Username' style={{height: 'initial'}} textStyle={{...styles.labelStyle}}>{this.props.value || this.props.options[0]}</MenuItem>
         break;
       case 'General':
         list = <GeneralList options={this.props.options} onClick={i => this._clickItemFromList(i)} onOther={onOther}/>
-        selectedValue = <MenuItem type='Pick' style={{height: 'initial'}} textStyle={{...styles.labelStyle}}>{this.props.value || 'Pick an option'}</MenuItem>
+        selectedValue = <MenuItem type='Pick' onClick={() => {}} style={{height: 'initial'}} textStyle={{...styles.labelStyle}}>{this.props.value || 'Pick an option'}</MenuItem>
         break;
     }
 

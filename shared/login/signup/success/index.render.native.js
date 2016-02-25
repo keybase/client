@@ -9,7 +9,7 @@ import type {Props} from './index.render'
 export default class Render extends Component {
   props: Props;
 
-  render (): ReactElement {
+  render () {
     return <View/>
   }
 }

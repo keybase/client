@@ -10,7 +10,7 @@ import type {Props} from './invite-code.render'
 export default class Render extends Component {
   props: Props;
 
-  render (): ReactElement {
+  render () {
     let inviteRef = null
     const submitInviteCode = () => {
       const inviteCode = inviteRef && inviteRef.getValue() || ''

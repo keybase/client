@@ -30,14 +30,14 @@ export default class BioRender extends Component {
     shell.openExternal(`https://keybase.io/${this.props.username}#profile-tracking-section`)
   }
 
-  render (): ReactElement {
+  render () {
     if (flags.tracker2) {
       return this.render2(styles2)
     }
     return this.renderDefault(styles1)
   }
 
-  renderDefault (styles: Object): ReactElement {
+  renderDefault (styles: Object) {
     const {userInfo} = this.props
 
     return (
@@ -66,7 +66,7 @@ export default class BioRender extends Component {
     return null
   }
 
-  render2 (styles: Object): ReactElement {
+  render2 (styles: Object) {
     const {username, userInfo, currentlyFollowing} = this.props
 
     const followsYou = userInfo.followsYou

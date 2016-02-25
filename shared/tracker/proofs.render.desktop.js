@@ -7,8 +7,9 @@ import {Icon} from '../common-adapters/index'
 import {CircularProgress} from 'material-ui'
 import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked, error as proofError, warning as proofWarning} from '../constants/tracker'
 import {metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone} from '../constants/tracker'
-import {Props as IconProps} from '../common-adapters/icon'
 import electron from 'electron'
+
+import type {Props as IconProps} from '../common-adapters/icon'
 
 const shell = electron.shell || electron.remote.shell
 
@@ -85,7 +86,7 @@ export class ProofsRender2 extends Component {
     return color
   }
 
-  renderProofRow (styles: Object, proof: Proof): ReactElement {
+  renderProofRow (styles: Object, proof: Proof) {
     const metaColor = this.metaColor(proof)
     const proofNameColor = this.proofColor(proof)
     const onClickProfile = () => { this.onClickProfile(proof) }
@@ -115,7 +116,7 @@ export class ProofsRender2 extends Component {
     )
   }
 
-  render (): ReactElement {
+  render () {
     return (
       <div style={styles2.container}>
         {this.props.proofs.map(p => this.renderProofRow(styles2, p))}
@@ -194,7 +195,7 @@ export class ProofsRender extends Component {
     shell.openExternal(url)
   }
 
-  renderProofRow (styles: any, proof: Proof): ReactElement {
+  renderProofRow (styles: any, proof: Proof) {
     const metaColor = proof.meta ? {
       [metaNew]: colors.orange,
       [metaUpgraded]: colors.orange,
@@ -262,7 +263,7 @@ export class ProofsRender extends Component {
     shell.openExternal(`https://keybase.io/${this.props.username}`)
   }
 
-  render (): ReactElement {
+  render () {
     const styles = styles1
     return (
       <div style={styles.container}>

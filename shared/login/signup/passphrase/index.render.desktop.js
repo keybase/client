@@ -10,7 +10,7 @@ import type {Props} from './index.render'
 export default class Render extends Component {
   props: Props;
 
-  render (): ReactElement {
+  render () {
     let passphraseRef1 = null
     let passphraseRef2 = null
     const checkPassphrase = () => {

@@ -9,7 +9,7 @@ export type Context = {
 export type Props = {
   style?: Object,
   dz2?: boolean,
-  children?: ReactElement
+  children?: React$Element
 }
 
 declare export default class Terminal extends React.Component {

@@ -7,7 +7,7 @@ import HiddenString from '../../../util/hidden-string'
 import Render from './index.render'
 
 class Success extends Component {
-  render (): ReactElement {
+  render () {
     return (
       <Render
         paperkey={this.props.paperkey}

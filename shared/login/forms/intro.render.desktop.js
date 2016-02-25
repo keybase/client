@@ -10,7 +10,7 @@ import type {IntroProps} from './intro.render'
 export default class Intro extends Component {
   props: IntroProps;
 
-  render (): ReactElement {
+  render () {
     return (
       <div style={styles.loginForm}>
         <Icon type='logo-128'/>

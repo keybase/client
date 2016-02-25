@@ -17,14 +17,14 @@ export default class HeaderRender extends Component {
     this.state = {showCloseWarning: false}
   }
 
-  render (): ReactElement {
+  render () {
     if (flags.tracker2) {
       return this.render2(styles2)
     }
     return this.renderDefault(styles1)
   }
 
-  renderDefault (styles: Object): ReactElement {
+  renderDefault (styles: Object) {
     return (
       <Header
         style={styles.header}

@@ -14,12 +14,12 @@ export default class Text extends Component {
   props: Props;
   context: Context;
 
-  _terminalPrefix (type: Props.type): ?ReactElement {
+  _terminalPrefix (type: Props.type): ?React$Element {
     return ({
       'TerminalEmpty': <span>&nbsp;</span>,
       'TerminalCommand': <span>> </span>,
       'TerminalComment': <span># </span>
-    }: {[key: string]: ReactElement})[type]
+    }: {[key: string]: React$Element})[type]
   }
 
   _inlineStyle (type: Props.type): Object {
@@ -59,7 +59,7 @@ export default class Text extends Component {
     }
   }
 
-  render (): ReactElement {
+  render () {
     if (!this.props.dz2) {
       return <TextOld {...this.props}/>
     }
