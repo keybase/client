@@ -2877,6 +2877,7 @@ func (cr *ConflictResolver) getOpsForLocalNotification(ctx context.Context,
 
 	var ptrs []BlockPointer
 	chainsToUpdate := make(map[BlockPointer]BlockPointer)
+	chainsToAdd := make(map[BlockPointer]*crChain)
 	for ptr, chain := range mergedChains.byMostRecent {
 		if newMostRecent, ok := updates[chain.original]; ok {
 			ptrs = append(ptrs, newMostRecent)
@@ -2892,12 +2893,26 @@ func (cr *ConflictResolver) getOpsForLocalNotification(ctx context.Context,
 		if c, ok := unmergedChains.byOriginal[chain.original]; ok {
 			original = c.mostRecent
 			updates[chain.original] = chain.mostRecent
+
+			// If the node pointer didn't change in the merged chain
+			// (e.g., due to a setattr), fast forward its most-recent
+			// pointer to be the unmerged most recent pointer, so that
+			// local notifications work correctly.
+			if chain.original == chain.mostRecent {
+				ptrs = append(ptrs, c.mostRecent)
+				chainsToAdd[c.mostRecent] = chain
+				delete(mergedChains.byMostRecent, chain.mostRecent)
+				chain.mostRecent = c.mostRecent
+			}
 		}
 
 		newPtrs[ptr] = true
 		dummyOp.AddUpdate(original, chain.mostRecent)
 		updates[original] = chain.mostRecent
 		ptrs = append(ptrs, chain.mostRecent)
+	}
+	for ptr, chain := range chainsToAdd {
+		mergedChains.byMostRecent[ptr] = chain
 	}
 
 	// If any nodes changed only in the unmerged branch, make sure we
