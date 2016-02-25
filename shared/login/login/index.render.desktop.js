@@ -1,12 +1,12 @@
 // @flow
 import React, {Component} from 'react'
-import {Text, Button, FormWithCheckbox, Avatar, DropDownMenu} from '../../common-adapters'
+import {Text, Button, FormWithCheckbox, Avatar, Dropdown} from '../../common-adapters'
 import {globalStyles, globalColorsDZ2} from '../../styles/style-guide'
 import type {Props} from './index.render'
 
 type State = {
-  selectedUser: null | string,
-  error: null | string,
+  selectedUser: ?string,
+  error: ?string,
   saveInKeychain: boolean,
   showTyping: boolean,
   passphrase: string
@@ -55,10 +55,10 @@ export default class LoginRender extends Component {
       <div style={styles.container}>
         <Avatar style={styles.avatar} size={110} url={avatar} />
         <div style={styles.card}>
-          <DropDownMenu
+          <Dropdown
             type='Username'
-            value={this.state.selectedUser}
-            onChange={selectedUser => this.setState({selectedUser})}
+            value={this.state.selectedUser || ''}
+            onClick={selectedUser => this.setState({selectedUser})}
             options={this.props.users} />
           <FormWithCheckbox
             style={{alignSelf: 'stretch'}}

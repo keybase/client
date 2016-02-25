@@ -195,11 +195,11 @@ class Engine {
       }
     }
 
+    // Incoming calls have no sessionID so let's ignore
     if (sessionID) {
       this.sessionIDToResponse[sessionID] = wrappedResponse
-    } else if (__DEV__) {
-      console.log('Invalid sessionID detected')
     }
+
     return wrappedResponse
   }
 
