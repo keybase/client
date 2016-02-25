@@ -77,6 +77,7 @@ func (b *BlockServerRemote) RemoteAddress() string {
 // OnConnect implements the ConnectionHandler interface.
 func (b *BlockServerRemote) OnConnect(ctx context.Context,
 	_ *Connection, client keybase1.GenericClient, _ *rpc.Server) error {
+	// reset auth -- using b.client here would cause problematic recursion.
 	c := keybase1.BlockClient{Cli: cancelableClient{client}}
 	return b.resetAuth(ctx, c)
 }
@@ -86,11 +87,11 @@ func (b *BlockServerRemote) OnConnect(ctx context.Context,
 func (b *BlockServerRemote) resetAuth(ctx context.Context, c keybase1.BlockInterface) error {
 	_, _, err := b.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
-		b.log.Debug("BServerRemote: User logged out, skipping OnConnect")
+		b.log.Debug("BServerRemote: User logged out, skipping resetAuth")
 		return nil
 	}
 
-	// request a challenge -- using b.client here would cause problematic recursion.
+	// request a challenge
 	challenge, err := c.GetSessionChallenge(ctx)
 	if err != nil {
 		return err

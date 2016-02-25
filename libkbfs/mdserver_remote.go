@@ -91,8 +91,10 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 	// reset auth -- using md.client here would cause problematic recursion.
 	c := keybase1.MetadataClient{Cli: cancelableClient{client}}
 	pingIntervalSeconds, err := md.resetAuth(ctx, c)
-	if err != nil || pingIntervalSeconds == -1 {
+	if err != nil {
 		return err
+	} else if pingIntervalSeconds == -1 {
+		return nil
 	}
 
 	// we'll get replies asynchronously as to not block the connection
@@ -115,7 +117,8 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 	return nil
 }
 
-// resetAuth implements the MDServer interface.
+// resetAuth is called to reset the authorization on an MDServer
+// connection.
 func (md *MDServerRemote) resetAuth(ctx context.Context, c keybase1.MetadataClient) (int, error) {
 
 	md.log.Debug("MDServerRemote: resetAuth called with a new connection")
