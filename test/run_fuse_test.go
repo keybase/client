@@ -37,7 +37,7 @@ func createUserFuse(t *testing.T, ith int, config *libkbfs.ConfigLocal, tlf stri
 
 	filesys := libfuse.NewFS(config, nil, false)
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, libfuse.CtxAppIDKey, filesys)
+	ctx = filesys.WithContext(ctx)
 	ctx, cancelFn := context.WithCancel(ctx)
 	fn := func(mnt *fstestutil.Mount) fs.FS {
 		filesys.SetFuseConn(mnt.Server, mnt.Conn)

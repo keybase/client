@@ -119,6 +119,11 @@ func (f *FS) LaunchNotificationProcessor(ctx context.Context) {
 	go f.processNotifications(ctx)
 }
 
+func (f *FS) WithContext(ctx context.Context) context.Context {
+	ctx = context.WithValue(ctx, CtxAppIDKey, f)
+	return ctx
+}
+
 // Serve FS. Will block.
 func (f *FS) Serve(ctx context.Context) error {
 	srv := fs.New(f.conn, &fs.Config{

@@ -40,7 +40,7 @@ func makeFS(t testing.TB, config *libkbfs.ConfigLocal) (
 		errLog: logger.NewTestLogger(t),
 	}
 	ctx := context.Background()
-	ctx = context.WithValue(ctx, CtxAppIDKey, filesys)
+	ctx = filesys.WithContext(ctx)
 	ctx, cancelFn := context.WithCancel(ctx)
 	fn := func(mnt *fstestutil.Mount) fs.FS {
 		filesys.fuse = mnt.Server
