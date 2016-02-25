@@ -2,7 +2,9 @@ package libfuse
 
 import (
 	"os"
+	"runtime"
 	"sync"
+	"time"
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
@@ -124,6 +126,19 @@ func (f *FS) WithContext(ctx context.Context) context.Context {
 	logTags := make(logger.CtxLogTags)
 	logTags[CtxIDKey] = CtxOpID
 	ctx = logger.NewContextWithLogTags(ctx, logTags)
+
+	if runtime.GOOS == "darwin" {
+		// Timeout operations before they hit the osxfuse time limit,
+		// so we don't hose the entire mount (Fixed in OSXFUSE 3.2.0).
+		// The timeout is 60 seconds, but it looks like sometimes it
+		// tries multiple attempts within that 60 seconds, so let's go
+		// a little under 60/3 to be safe.
+		//
+		// It should be safe to ignore the CancelFunc here because our
+		// parent context will be canceled by the FUSE serve loop.
+		ctx, _ = context.WithTimeout(ctx, 19*time.Second)
+	}
+
 	return ctx
 }
 
