@@ -87,7 +87,7 @@ const LogInPrompt = props => {
 export default class Render extends Component {
   props: RenderProps;
 
-  render (): ReactElement {
+  render () {
     const {openKBFS, openKBFSPublic, openKBFSPrivate, showMain,
       showHelp, showUser, logIn, quit, username, loggedIn} = this.props
 

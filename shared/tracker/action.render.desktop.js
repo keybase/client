@@ -14,14 +14,14 @@ import type {ActionProps} from './action.render'
 export default class ActionRender extends Component {
   props: ActionProps;
 
-  render (): ReactElement {
+  render () {
     if (flags.tracker2) {
       return this.render2()
     }
     return this.renderDefault()
   }
 
-  renderDefault (): ReactElement {
+  renderDefault () {
     const {username, state, loggedIn} = this.props
     const styles = styles1
 
@@ -38,7 +38,7 @@ export default class ActionRender extends Component {
     }
   }
 
-  render2 (): ReactElement {
+  render2 () {
     const styles = styles2
     return (
       <div style={{...styles.container}}>
@@ -47,14 +47,14 @@ export default class ActionRender extends Component {
     )
   }
 
-  renderPending (styles: Object, username: ?string): ReactElement {
+  renderPending (styles: Object, username: ?string) {
     const text: string = username ? `Verifying ${username}'s identity` : 'Loading tracker information...'
     return (
       <div><Text style={{textAlign: 'center', paddingTop: 8}} type='Body'>{text}</Text></div>
     )
   }
 
-  renderWarningNotFollowed (styles: Object): ReactElement {
+  renderWarningNotFollowed (styles: Object) {
     const title = this.props.failedProofsNotFollowingText
 
     return (
@@ -73,7 +73,7 @@ export default class ActionRender extends Component {
     )
   }
 
-  renderChanged (styles: Object): ReactElement {
+  renderChanged (styles: Object) {
     const title = this.props.renderChangedTitle
 
     return (
@@ -89,7 +89,7 @@ export default class ActionRender extends Component {
     )
   }
 
-  renderNormal (styles: any, username: string): ReactElement {
+  renderNormal (styles: any, username: string) {
     return (
       <div style={styles.normalContainer}>
         <div style={{...styles.textContainer, ...(this.props.shouldFollow ? {display: 'none'} : {})}}>
@@ -105,7 +105,7 @@ export default class ActionRender extends Component {
     )
   }
 
-  renderLoggedOut (styles: Object): ReactElement {
+  renderLoggedOut (styles: Object) {
     return (
       <div>
         <i style={styles.flagWarning} className='fa fa-exclamation-triangle'></i>

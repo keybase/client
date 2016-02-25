@@ -10,7 +10,7 @@ import type {Props} from './username-email-form.render'
 export default class Render extends Component {
   props: Props;
 
-  render (): ReactElement {
+  render () {
     let usernameRef = null
     let emailRef = null
     const submitUserEmail = () => {

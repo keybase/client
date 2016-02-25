@@ -7,7 +7,7 @@ import type {Props} from './divider'
 export default class Divider extends Component {
   props: Props;
 
-  render (): ReactElement {
+  render () {
     const orientationStyle = this.props.vertical
       ? {maxWidth: 1, minWidth: 1}
       : {maxHeight: 1, minHeight: 1}

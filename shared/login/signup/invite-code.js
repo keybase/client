@@ -8,7 +8,7 @@ import Render from './invite-code.render'
 import * as signupActions from '../../actions/signup'
 
 class InviteCode extends Component {
-  render (): ReactElement {
+  render () {
     return (
       <Render onInviteCodeSubmit={this.props.checkInviteCode} inviteCodeErrorText={this.props.errorText}/>
     )

@@ -9,7 +9,7 @@ import type {Props} from './checkbox'
 export default class Checkbox extends Component {
   props: Props;
 
-  render (): ReactElement {
+  render () {
     if (!this.props.dz2) {
       return this.renderOld()
     }
@@ -43,7 +43,7 @@ export default class Checkbox extends Component {
     )
   }
 
-  renderOld (): ReactElement {
+  renderOld () {
     const color = this.props.style && this.props.style.color
     return (
       <div style={{...styles.container, ...this.props.style}} onClick={() => this.props.onCheck(!this.props.checked)}>

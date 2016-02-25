@@ -6,7 +6,7 @@ import Render from './intro.render'
 import {routeAppend} from '../../actions/router'
 
 class Intro extends Component {
-  render (): ReactElement {
+  render () {
     return (
       <Render onSignup={this.props.onSignup} onLogin={this.props.onLogin}/>
     )

@@ -9,7 +9,7 @@ import resolveRoot from '../../desktop/resolve-root'
 export default class Icon extends Component {
   props: Props;
 
-  render (): ReactElement {
+  render () {
     let color = null
     let hoverColor = null
 

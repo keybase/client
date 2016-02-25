@@ -31,7 +31,7 @@ export default class UpdateRender extends Component {
     autoResize()
   }
 
-  render (): ReactElement {
+  render () {
     const realCSS = `
       .clipboard { color: ${globalColors.grey3}; }
       .clipboard:hover { color: white; }

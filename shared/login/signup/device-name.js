@@ -18,7 +18,7 @@ class DeviceName extends Component {
     this.state = {deviceName: props.deviceName}
   }
 
-  render (): ReactElement {
+  render () {
     return (
       <Render
         deviceName={this.state.deviceName}

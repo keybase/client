@@ -4,7 +4,7 @@ import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide
 import Container from './dev-container.desktop.js'
 import {Button, Input, Text, Terminal, FormWithCheckbox} from '../common-adapters'
 
-import DropdownDemo from './components/dropdown'
+import DropdownDemo from './components/dropdown.desktop'
 
 export default class Render extends Component {
   render () {

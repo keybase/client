@@ -8,7 +8,7 @@ import Render from './username-email-form.render'
 import * as signupActions from '../../actions/signup'
 
 class UsernameEmailForm extends Component {
-  render (): ReactElement {
+  render () {
     return (
       <Render
         username={this.props.username}

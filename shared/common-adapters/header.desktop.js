@@ -9,7 +9,7 @@ import Text from './text'
 export default class Header extends Component {
   props: Props;
 
-  render (): ReactElement {
+  render () {
     return (
       <div style={{...this.props.style, ...styles.container}}>
         {this.props.children}

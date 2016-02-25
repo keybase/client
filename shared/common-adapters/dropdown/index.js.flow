@@ -6,7 +6,7 @@ export type Props = {
   type: 'Username' | 'General',
   options: Array<string>,
   onClick: (option: string, index: number) => void,
-  onOther: () => void,
+  onOther?: () => void,
   value?: string,
   style?: Object
 }

@@ -10,6 +10,17 @@ declare module 'Interpolation' {
   declare var exports: any;
 }
 
+declare module 'react-addons-perf' {
+  declare var exports: {
+    start: () => void,
+    stop: () => void,
+    getLastMeasurements: () => void,
+    printInclusive: () => void,
+    printExclusive: () => void,
+    printWasted: () => void
+  };
+}
+
 declare module 'moment' {
   declare var exports: any;
 }

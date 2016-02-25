@@ -14,14 +14,14 @@ import type {RenderProps} from './render'
 export default class Render extends Component {
   props: RenderProps;
 
-  render (): ReactElement {
+  render () {
     if (flags.tracker2) {
       return this.render2(styles2)
     }
     return this.renderDefault(styles1)
   }
 
-  renderDefault (styles: Object): ReactElement {
+  renderDefault (styles: Object) {
     return (
       <div style={styles.container}>
         <Header {...this.props.headerProps} />
@@ -34,7 +34,7 @@ export default class Render extends Component {
     )
   }
 
-  render2 (styles: Object): ReactElement {
+  render2 (styles: Object) {
     return (
       <div style={styles.container}>
         <Header {...this.props.headerProps} />
