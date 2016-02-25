@@ -15,6 +15,7 @@ import (
 const StatusFileName = ".kbfs_status"
 
 type kbfsStatus struct {
+	CurrentUser string
 	IsConnected bool
 }
 
@@ -40,7 +41,9 @@ func getEncodedFolderStatus(ctx context.Context, fs *FS,
 
 func getEncodedStatus(ctx context.Context, fs *FS) (
 	data []byte, t time.Time, err error) {
+	username, _, _ := fs.config.KBPKI().GetCurrentUserInfo(ctx)
 	data, err = json.MarshalIndent(kbfsStatus{
+		CurrentUser: username.String(),
 		IsConnected: fs.config.MDServer().IsConnected(),
 	}, "", "  ")
 	if err != nil {
