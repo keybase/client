@@ -12,7 +12,7 @@ config:
 
 build-stamp:
 	@mkdir -p json
-	$(AVDL2JSON) -b -o json avdl/*.avdl
+	$(AVDL2JSON) -b -o json -f avdl/constants.avdl -f avdl/install.avdl  avdl/*.avdl
 	date > $@
 
 ../go/protocol/keybase_v1.go: build-stamp ./bin/go.iced
