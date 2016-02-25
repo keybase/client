@@ -57,7 +57,7 @@ export default class LoginRender extends Component {
         <div style={styles.card}>
           <Dropdown
             type='Username'
-            value={this.state.selectedUser || ''}
+            value={this.state.selectedUser}
             onClick={selectedUser => this.setState({selectedUser})}
             options={this.props.users} />
           <FormWithCheckbox
