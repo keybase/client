@@ -68,7 +68,7 @@ func TestQRAfterCR(t *testing.T) {
 			rm("a/b"),
 			reenableUpdates(),
 		),
-		as(alice,
+		as(bob,
 			addTime(2*time.Minute),
 			forceQuotaReclamation(),
 		),
