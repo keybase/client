@@ -121,6 +121,9 @@ func (f *FS) LaunchNotificationProcessor(ctx context.Context) {
 	go f.processNotifications(ctx)
 }
 
+// WithContext adds app- and request-specific values to the context.
+// It is called by FUSE for normal runs, but may be called explicitly
+// in other settings, such as tests.
 func (f *FS) WithContext(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, CtxAppIDKey, f)
 	logTags := make(logger.CtxLogTags)
