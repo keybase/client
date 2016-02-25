@@ -345,6 +345,8 @@
 		004E09C91C28CA0F00E3A061 /* KBLoginItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 004E09C71C28CA0F00E3A061 /* KBLoginItem.m */; };
 		004E09DA1C3DD6C500E3A061 /* KBInstallStatusView.h in Headers */ = {isa = PBXBuildFile; fileRef = 004E09D81C3DD6C500E3A061 /* KBInstallStatusView.h */; };
 		004E09DB1C3DD6C500E3A061 /* KBInstallStatusView.m in Sources */ = {isa = PBXBuildFile; fileRef = 004E09D91C3DD6C500E3A061 /* KBInstallStatusView.m */; };
+		006D68131C7D281400B1CA0B /* KBSharedFileList.h in Headers */ = {isa = PBXBuildFile; fileRef = 006D68111C7D281400B1CA0B /* KBSharedFileList.h */; };
+		006D68141C7D281400B1CA0B /* KBSharedFileList.m in Sources */ = {isa = PBXBuildFile; fileRef = 006D68121C7D281400B1CA0B /* KBSharedFileList.m */; };
 		008949981BFBB60C00CB605A /* KBCustomEnvView.m in Sources */ = {isa = PBXBuildFile; fileRef = 008949961BFBB60C00CB605A /* KBCustomEnvView.m */; };
 		008949991BFBB60C00CB605A /* KBCustomEnvView.h in Headers */ = {isa = PBXBuildFile; fileRef = 008949971BFBB60C00CB605A /* KBCustomEnvView.h */; };
 		00B82BD21BE9424600C1FC72 /* KBTask.h in Headers */ = {isa = PBXBuildFile; fileRef = 00B82BD01BE9424600C1FC72 /* KBTask.h */; };
@@ -708,6 +710,8 @@
 		004E09C71C28CA0F00E3A061 /* KBLoginItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBLoginItem.m; sourceTree = "<group>"; };
 		004E09D81C3DD6C500E3A061 /* KBInstallStatusView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBInstallStatusView.h; sourceTree = "<group>"; };
 		004E09D91C3DD6C500E3A061 /* KBInstallStatusView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBInstallStatusView.m; sourceTree = "<group>"; };
+		006D68111C7D281400B1CA0B /* KBSharedFileList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBSharedFileList.h; sourceTree = "<group>"; };
+		006D68121C7D281400B1CA0B /* KBSharedFileList.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBSharedFileList.m; sourceTree = "<group>"; };
 		008949961BFBB60C00CB605A /* KBCustomEnvView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KBCustomEnvView.m; sourceTree = "<group>"; };
 		008949971BFBB60C00CB605A /* KBCustomEnvView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBCustomEnvView.h; sourceTree = "<group>"; };
 		00B82BD01BE9424600C1FC72 /* KBTask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KBTask.h; sourceTree = "<group>"; };
@@ -968,6 +972,8 @@
 				00B82BD11BE9424600C1FC72 /* KBTask.m */,
 				004E09C61C28CA0F00E3A061 /* KBLoginItem.h */,
 				004E09C71C28CA0F00E3A061 /* KBLoginItem.m */,
+				006D68111C7D281400B1CA0B /* KBSharedFileList.h */,
+				006D68121C7D281400B1CA0B /* KBSharedFileList.m */,
 			);
 			name = System;
 			path = KBKit/System;
@@ -1454,6 +1460,7 @@
 				00010D741BE19F8900A9C285 /* KBPGPEncrypt.h in Headers */,
 				00010D521BE19F8900A9C285 /* KBKeyImportView.h in Headers */,
 				00010CFE1BE19F8900A9C285 /* KBLaunchCtl.h in Headers */,
+				006D68131C7D281400B1CA0B /* KBSharedFileList.h in Headers */,
 				00010CF41BE19F8900A9C285 /* KBRPCRegistration.h in Headers */,
 				00010D321BE19F8900A9C285 /* KBFileSelectView.h in Headers */,
 				00010D221BE19F8900A9C285 /* KBDeviceSetupPromptView.h in Headers */,
@@ -1808,6 +1815,7 @@
 				00010D631BE19F8900A9C285 /* KBPaperKeyDisplayView.m in Sources */,
 				00010DD71BE19F8900A9C285 /* KBUserView.m in Sources */,
 				00010C9A1BE19F8900A9C285 /* KBAppView.m in Sources */,
+				006D68141C7D281400B1CA0B /* KBSharedFileList.m in Sources */,
 				00010D431BE19F8900A9C285 /* KBComposeTextView.m in Sources */,
 				00010D2B1BE19F8900A9C285 /* KBFileIcon.m in Sources */,
 				00010CD71BE19F8900A9C285 /* KBPrefAdvancedView.m in Sources */,

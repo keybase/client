@@ -127,17 +127,6 @@ Text.contextTypes = {
   inTerminal: React.PropTypes.bool
 }
 
-Text.propTypes = {
-  type: React.PropTypes.oneOf(['Header', 'Body', 'TerminalCommand', 'TerminalComment', 'TerminalEmpty']),
-  small: React.PropTypes.bool,
-  children: React.PropTypes.node,
-  style: React.PropTypes.object,
-  onClick: React.PropTypes.func,
-  inline: React.PropTypes.bool,
-  lineClamp: React.PropTypes.number,
-  className: React.PropTypes.string
-}
-
 const textCommon = {
   ...globalStyles.DZ2.fontRegular,
   ...globalStyles.noSelect,

@@ -14,6 +14,7 @@
 
 #import "KBDefines.h"
 #import "KBLoginItem.h"
+#import "KBSharedFileList.h"
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
 #import <GHKit/GHKit.h>
@@ -85,21 +86,32 @@
   [rover run];
 }
 
-+ (void)setRunAtLogin:(BOOL)runAtLogin config:(KBEnvConfig *)config appPath:(NSString *)appPath {
++ (void)setFileListFavoriteEnabled:(BOOL)fileListFavoriteEnabled config:(KBEnvConfig *)config {
+  NSURL *URL = [NSURL fileURLWithPath:config.mountDir];
+  NSString *name = [config appName];
+  NSError *error = nil;
+  DDLogDebug(@"File list favorite %@ (%@)", (fileListFavoriteEnabled ? @"enabled" : @"disabled"), URL);
+  BOOL changed = [KBSharedFileList setEnabled:fileListFavoriteEnabled URL:URL name:name type:kLSSharedFileListFavoriteItems insertAfter:kLSSharedFileListItemBeforeFirst auth:NO error:&error];
+  DDLogDebug(@"Favorites changed: %@", changed ? @"Yes" : @"No");
+  if (error) DDLogError(@"Error setting volume: %@", error);
+}
+
++ (void)setLoginItemEnabled:(BOOL)loginItemEnabled config:(KBEnvConfig *)config appPath:(NSString *)appPath {
   NSBundle *appBundle = [NSBundle bundleWithPath:appPath];
   if (!appBundle) {
     DDLogError(@"No app bundle found (for login item check)");
     return;
   }
-  if (![config isInApplications:appBundle.bundlePath] && ![config isInUserApplications:appBundle.bundlePath]) {
+  if (loginItemEnabled && ![config isInApplications:appBundle.bundlePath] && ![config isInUserApplications:appBundle.bundlePath]) {
     DDLogError(@"Bundle path is invalid for adding login item: %@", appBundle.bundlePath);
     return;
   }
 
-  DDLogDebug(@"Set login item %@ (%@)", (runAtLogin ? @"enabled" : @"disabled"), appPath);
+  DDLogDebug(@"Login item %@ (%@)", (loginItemEnabled ? @"enabled" : @"disabled"), appPath);
   NSError *error = nil;
-  [KBLoginItem setLoginEnabled:runAtLogin URL:appBundle.bundleURL error:&error];
-  if (error) DDLogError(@"Error enabling login item: %@", error);
+  BOOL changed = [KBLoginItem setEnabled:loginItemEnabled URL:appBundle.bundleURL error:&error];
+  if (error) DDLogError(@"Error setting login item: %@", error);
+  DDLogDebug(@"Login item changed: %@", changed ? @"Yes" : @"No");
 }
 
 @end

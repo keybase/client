@@ -16,10 +16,10 @@
 
 @property (readonly) NSURL *URL;
 
-- (BOOL)isLoginEnabled;
-- (BOOL)setLoginEnabled:(BOOL)loginEnabled error:(NSError **)error;
+- (BOOL)isEnabled;
+- (BOOL)setEnabled:(BOOL)loginEnabled error:(NSError **)error;
 
-+ (BOOL)setLoginEnabled:(BOOL)loginEnabled URL:(NSURL *)URL error:(NSError **)error;
-+ (BOOL)isLoginEnabledForURL:(NSURL *)URL;
++ (BOOL)setEnabled:(BOOL)loginEnabled URL:(NSURL *)URL error:(NSError **)error;
++ (BOOL)isEnabledForURL:(NSURL *)URL;
 
 @end
