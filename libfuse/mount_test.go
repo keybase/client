@@ -49,7 +49,7 @@ func makeFS(t testing.TB, config *libkbfs.ConfigLocal) (
 	}
 	mnt, err := fstestutil.MountedFuncT(t, fn, &fs.Config{
 		GetContext: func() context.Context {
-			return ctx
+			return filesys.WithContext(context.TODO())
 		},
 	})
 	if err != nil {

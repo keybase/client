@@ -131,7 +131,7 @@ func (f *FS) WithContext(ctx context.Context) context.Context {
 func (f *FS) Serve(ctx context.Context) error {
 	srv := fs.New(f.conn, &fs.Config{
 		GetContext: func() context.Context {
-			return ctx
+			return f.WithContext(context.TODO())
 		},
 	})
 	f.fuse = srv
