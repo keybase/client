@@ -688,35 +688,37 @@ func RunAfterStartup(g *libkb.GlobalContext, isService bool) error {
 	if g.Env.GetRunMode() != libkb.ProductionRunMode {
 		return nil
 	}
+	g.Log.Debug("App start mode: %s", g.Env.GetAppStartMode())
 	switch g.Env.GetAppStartMode() {
 	case libkb.AppStartModeService:
 		if !isService {
 			return nil
 		}
 	case libkb.AppStartModeDisabled:
-		g.Log.Debug("App start mode is disabled")
 		return nil
 	}
 
 	appPath := "/Applications/Keybase.app"
-	if exists, _ := libkb.FileExists(appPath); exists {
-		ver, err := OSVersion()
-		if err != nil {
-			g.Log.Errorf("Error trying to determine OS version: %s", err)
-			return nil
-		}
-		if ver.LT(semver.MustParse("10.0.0")) {
-			g.Log.Debug("App isn't supported on this OS version: %s", ver)
-			return nil
-		}
+	if exists, _ := libkb.FileExists(appPath); !exists {
+		g.Log.Debug("App start is unavailable (App not found at %s)", appPath)
+		return nil
+	}
+	ver, err := OSVersion()
+	if err != nil {
+		g.Log.Errorf("Error trying to determine OS version: %s", err)
+		return nil
+	}
+	if ver.LT(semver.MustParse("10.0.0")) {
+		g.Log.Debug("App isn't supported on this OS version: %s", ver)
+		return nil
+	}
 
-		g.Log.Debug("Ensuring app is open: %s", appPath)
-		// If app is already open this is a no-op, the -g option will cause to open
-		// in background.
-		out, err := exec.Command("/usr/bin/open", "-g", appPath).Output()
-		if err != nil {
-			g.Log.Errorf("Error trying to open Keybase.app; %s; %s", err, out)
-		}
+	g.Log.Debug("Ensuring app is open: %s", appPath)
+	// If app is already open this is a no-op, the -g option will cause to open
+	// in background.
+	out, err := exec.Command("/usr/bin/open", "-g", appPath).Output()
+	if err != nil {
+		g.Log.Errorf("Error trying to open Keybase.app; %s; %s", err, out)
 	}
 	return nil
 }
