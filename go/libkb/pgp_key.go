@@ -216,6 +216,10 @@ func (k PGPKeyBundle) MatchesKey(key *openpgp.Key) bool {
 		key.Entity.PrimaryKey.Fingerprint[:])
 }
 
+func (k PGPKeyBundle) SamePrimaryAs(k2 PGPKeyBundle) bool {
+	return FastByteArrayEq(k.PrimaryKey.Fingerprint[:], k2.PrimaryKey.Fingerprint[:])
+}
+
 func (k *PGPKeyBundle) Encode() (ret string, err error) {
 	if k.ArmoredPublicKey != "" {
 		return k.ArmoredPublicKey, nil
@@ -346,22 +350,42 @@ func ReadPrivateKeyFromString(s string) (*PGPKeyBundle, error) {
 	return ReadOneKeyFromString(priv)
 }
 
-func finishReadOne(el []*openpgp.Entity, armored string, err error) (*PGPKeyBundle, error) {
+func mergeKeysIfPossible(out *PGPKeyBundle, lst []*openpgp.Entity) error {
+	for _, e := range lst {
+		tmp := PGPKeyBundle{Entity: e}
+		if out.SamePrimaryAs(tmp) {
+			out.MergeKey(&tmp)
+		} else {
+			return TooManyKeysError{len(lst) + 1}
+		}
+	}
+	return nil
+}
+
+func finishReadOne(lst []*openpgp.Entity, armored string, err error) (*PGPKeyBundle, error) {
 	if err != nil {
 		return nil, err
 	}
-	if len(el) == 0 {
+	if len(lst) == 0 {
 		return nil, NoKeyError{"No keys found in primary bundle"}
-	} else if len(el) != 1 {
-		return nil, TooManyKeysError{len(el)}
-	} else {
-		e := el[0]
-		var maybeArmored string
-		if e.PrivateKey == nil {
-			maybeArmored = armored
-		}
-		return &PGPKeyBundle{Entity: e, ArmoredPublicKey: maybeArmored}, nil
 	}
+	first := &PGPKeyBundle{Entity: lst[0]}
+
+	if len(lst) > 1 {
+
+		// Some keys like Sheldon Hern's (https://github.com/keybase/client/issues/2130)
+		// have the same primary key twice in their list of keys. In this case, we should just
+		// perform a merge if possible, since the server-side accepts and merges such key exports.
+		err = mergeKeysIfPossible(first, lst[1:])
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	if first.Entity.PrivateKey == nil {
+		first.ArmoredPublicKey = armored
+	}
+	return first, nil
 }
 
 func ReadOneKeyFromBytes(b []byte) (*PGPKeyBundle, error) {
