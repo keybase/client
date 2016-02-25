@@ -51,6 +51,10 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context, err error) {
 		n = genericErrorNotification(err)
 	}
 
+	if n == nil && err == context.DeadlineExceeded {
+		n = genericErrorNotification(TimeoutError{})
+	}
+
 	if n != nil {
 		r.Notify(ctx, n)
 	}

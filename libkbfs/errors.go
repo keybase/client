@@ -888,3 +888,12 @@ type InvalidByte32DataError struct {
 func (e InvalidByte32DataError) Error() string {
 	return fmt.Sprintf("Invalid byte32 data %v", e.data)
 }
+
+// TimeoutError is just a replacement for context.DeadlineExceeded
+// with a more friendly error string.
+type TimeoutError struct {
+}
+
+func (e TimeoutError) Error() string {
+	return "Operation timed out"
+}
