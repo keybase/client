@@ -1,3 +1,7 @@
+## 1.0.15
+- If a public key really consists of the same key listed twice, then
+  merge the two keys and try again (PR: keybase/client#2130).
+
 ## 1.0.14 (2016-02-24)
 - Fix crasher on passphrase recover on Linux (PR: keybase/client#2062)
 - Local snooze for broken remote proofs (PR: keybase/client#1934)
