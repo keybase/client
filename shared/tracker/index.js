@@ -69,6 +69,8 @@ class Tracker extends Component {
       return (!proof.meta || proof.meta === metaNone)
     })
 
+    const reason = currentlyFollowing && renderChangedTitle ? renderChangedTitle : this.props.reason
+
     const renderProps: RenderProps = {
       bioProps: {
         username: this.props.username,
@@ -76,7 +78,7 @@ class Tracker extends Component {
         currentlyFollowing
       },
       headerProps: {
-        reason: this.props.reason,
+        reason: reason,
         onClose: () => this.props.onClose(this.props.username),
         trackerState: this.props.trackerState,
         currentlyFollowing,

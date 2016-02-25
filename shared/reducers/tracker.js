@@ -501,12 +501,10 @@ function deriveTrackerMessage (
 ): ?string {
   if (allOk) {
     return null
-  } else if (anyDeletedProofs) {
-    return `${username} deleted some proofs.`
-  } else if (anyUnreachableProofs) {
-    return `Some of ${username}’s proofs are compromised or have changed.`
+  } else if (anyDeletedProofs || anyUnreachableProofs) {
+    return `Some of ${username}’s proofs have changed since you last tracked them.`
   } else if (anyUpgradedProofs) {
-    return `${username} added some identity proofs.`
+    return `${username} added new proofs to their profile since you last tracked them.`
   }
 }
 

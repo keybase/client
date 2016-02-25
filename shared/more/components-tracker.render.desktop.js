@@ -77,7 +77,7 @@ const propsNewUserFollowsYou = {
 
 const propsFollowing = {
   ...propsNewUser,
-  reason: 'You have followed gabrielh.',
+  reason: 'You have tracked gabrielh.',
   userInfo: {
     ...propsNewUser.userInfo,
     followsYou: true
@@ -101,7 +101,7 @@ const propsChangedProofs = {
 
 const propsUnfollowed = {
   ...propsDefault,
-  reason: 'You have unfollowed gabrielh.',
+  reason: 'You have untracked gabrielh.',
   userInfo: {
     ...propsNewUser.userInfo,
     followsYou: true
