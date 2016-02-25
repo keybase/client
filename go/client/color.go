@@ -98,6 +98,8 @@ func HasColor() bool {
 		"":        true,
 		"default": true,
 		"fancy":   true,
+		"file":    false,
+		"plain":   false,
 	}
 	return logFormatHasColor[G.Env.GetLogFormat()]
 }
