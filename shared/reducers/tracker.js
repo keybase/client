@@ -58,6 +58,7 @@ function initialTrackerState (username: string): TrackerState {
     hidden: false,
     lastTrack: null,
     trackToken: null,
+    lastAction: null,
     userInfo: {
       fullname: '', // TODO get this info,
       followersCount: -1,
@@ -109,6 +110,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         ...state,
         closed: true,
         hidden: false,
+        lastAction: null,
         shouldFollow: false // don't follow if they close x out the window
       }
     case Constants.onRefollow:
@@ -119,6 +121,30 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
     case Constants.onUnfollow: // TODO
       return state
 
+    case Constants.onFollow:
+      return {
+        ...state,
+        lastAction: 'followed',
+        reason: `You have followed ${state.username}.`
+      }
+    case Constants.onRefollow2:
+      return {
+        ...state,
+        lastAction: 'refollowed',
+        reason: `You have re-followed ${state.username}.`
+      }
+    case Constants.onUnfollow2:
+      return {
+        ...state,
+        lastAction: 'unfollowed',
+        reason: `You have unfollowed ${state.username}.`
+      }
+    case Constants.onError:
+      return {
+        ...state,
+        lastAction: 'error',
+        reason: 'There was an error updating your follow status.'
+      }
     case Constants.updateProofState:
       const proofs = state.proofs
       const allOk: boolean = proofs.reduce((acc, p) => acc && p.state === normal, true)
@@ -475,12 +501,10 @@ function deriveTrackerMessage (
 ): ?string {
   if (allOk) {
     return null
-  } else if (anyDeletedProofs) {
-    return `${username} deleted some proofs.`
-  } else if (anyUnreachableProofs) {
-    return `Some of ${username}’s proofs are compromised or have changed.`
+  } else if (anyDeletedProofs || anyUnreachableProofs) {
+    return `Some of ${username}’s proofs have changed since you last tracked them.`
   } else if (anyUpgradedProofs) {
-    return `${username} added some identity proofs.`
+    return `${username} added new proofs to their profile since you last tracked them.`
   }
 }
 

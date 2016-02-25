@@ -53,6 +53,19 @@ export default class HeaderRender extends Component {
       headerText = 'You will see this window every time you access this folder.'
     }
 
+    // If there's a lastAction, it overrides everything else.
+    switch (this.props.lastAction) {
+      case 'followed':
+      case 'refollowed':
+      case 'unfollowed':
+        headerStyle = styles.headerSuccess
+        headerTextStyle = styles.headerTextNormal
+        break
+      case 'error':
+        headerStyle = styles.headerWarning
+        headerTextStyle = styles.headerTextWarning
+    }
+
     return (
       <div style={styles.outer}>
         <div style={{...styles.header, ...headerStyle}}>

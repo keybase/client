@@ -51,7 +51,7 @@ const propsDefault = {
     avatar: 'https://s3.amazonaws.com/keybase_processed_uploads/71cd3854986d416f60dacd27d5796705_200_200_square_200.jpeg'
   },
   shouldFollow: true,
-  currentlyFollowing: false,
+  lastTrack: false,
   trackerState: normal,
   proofs: proofsDefault,
 
@@ -77,24 +77,14 @@ const propsNewUserFollowsYou = {
 
 const propsFollowing = {
   ...propsNewUser,
-  reason: 'You have followed gabrielh.',
+  reason: 'You have tracked gabrielh.',
   userInfo: {
     ...propsNewUser.userInfo,
     followsYou: true
   },
-  currentlyFollowing: true,
-  proofs: proofsDefault
-}
-
-const propsNewProofs = {
-  ...propsDefault,
-  reason: 'gabrielh has added a new proof to their profile since you last followed them.',
-  userInfo: {
-    ...propsNewUser.userInfo,
-    followsYou: true
-  },
-  currentlyFollowing: true,
-  proofs: proofsNew
+  lastTrack: true,
+  proofs: proofsDefault,
+  lastAction: 'followed'
 }
 
 const propsChangedProofs = {
@@ -104,18 +94,19 @@ const propsChangedProofs = {
     ...propsNewUser.userInfo,
     followsYou: true
   },
-  currentlyFollowing: true,
+  lastTrack: true,
   trackerState: error,
   proofs: proofsChanged
 }
 
 const propsUnfollowed = {
   ...propsDefault,
-  reason: 'You have unfollowed gabrielh.',
+  reason: 'You have untracked gabrielh.',
   userInfo: {
     ...propsNewUser.userInfo,
     followsYou: true
-  }
+  },
+  lastAction: 'unfollowed'
 }
 
 const propsLessData = {
@@ -160,12 +151,6 @@ export default class Render extends Component {
               <Tracker {...propsFollowing} />
             </div>
             <p>Followed</p>
-          </div>
-          <div>
-            <div style={styles.pretendTrackerWindow}>
-              <Tracker {...propsNewProofs} />
-            </div>
-            <p>New proofs</p>
           </div>
           <div>
             <div style={styles.pretendTrackerWindow}>

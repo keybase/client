@@ -130,7 +130,6 @@ export function onFollowChecked (newFollowCheckedValue: boolean, username: strin
 
 export function onRefollow (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
-    console.log('onRefollow')
     const {trackToken} = (getState().tracker.trackers[username] || {})
     const dispatchAction = () => {
       dispatch({
@@ -148,6 +147,59 @@ export function onRefollow (username: string): TrackerActionCreator {
       })
   }
 }
+
+export function onRefollow2 (username: string): TrackerActionCreator {
+  return (dispatch, getState) => {
+    const {trackToken} = (getState().tracker.trackers[username] || {})
+    const dispatchRefollowAction = () => {
+      dispatch({
+        type: Constants.onRefollow2,
+        payload: {username}
+      })
+    }
+    const dispatchErrorAction = () => {
+      dispatch({
+        type: Constants.onError,
+        payload: {username}
+      })
+    }
+
+    trackUser(trackToken)
+      .then(dispatchRefollowAction)
+      .catch(err => {
+        console.error("Couldn't track user:", err)
+        dispatchErrorAction()
+      })
+  }
+}
+export function onUnfollow2 (username: string): TrackerActionCreator {
+  return (dispatch, getState) => {
+    const params : track_untrack_rpc = {
+      method: 'track.untrack',
+      param: {username},
+      incomingCallMap: {},
+      callback: (err, response) => {
+        if (err) {
+          console.log('err untracking', err)
+        } else {
+          dispatch({
+            type: Constants.reportLastTrack,
+            payload: {username}
+          })
+          console.log('success in untracking')
+        }
+      }
+    }
+
+    engine.rpc(params)
+
+    dispatch({
+      type: Constants.onUnfollow2,
+      payload: {username}
+    })
+  }
+}
+
 
 function onUserTrackingLoading (username: string): Action {
   return {
@@ -224,6 +276,23 @@ function trackUser (trackToken: ?string): Promise<boolean> {
   })
 }
 
+export function onFollow (username: string): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
+  return (dispatch, getState) => {
+    const trackerState = getState().tracker.trackers[username]
+    const {trackToken} = (trackerState || {})
+
+    const dispatchFollowedAction = () => dispatch({type: Constants.onFollow, payload: {username}})
+    const dispatchErrorAction = () => dispatch({type: Constants.onError, payload: {username}})
+
+    trackUser(trackToken)
+      .then(dispatchFollowedAction)
+      .catch(err => {
+        console.error("Couldn't track user: ", err)
+        dispatchErrorAction()
+      })
+  }
+}
+
 export function onMaybeTrack (username: string): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
   return (dispatch, getState) => {
     const trackerState = getState().tracker.trackers[username]
@@ -237,7 +306,7 @@ export function onMaybeTrack (username: string): (dispatch: Dispatch, getState: 
       trackUser(trackToken)
         .then(dispatchCloseAction)
         .catch(err => {
-          console.error('Couldn\'t track user:', err)
+          console.error("Couldn't track user: ", err)
           dispatchCloseAction()
         })
     } else {

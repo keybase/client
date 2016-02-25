@@ -38,8 +38,12 @@ export const onUserTrackingLoading = 'tracker:userTrackingLoading'
 export const onMaybeTrack = 'tracker:onMaybeTrack'
 export const onClose = 'tracker:onClose'
 
+export const onFollow = 'tracker:onFollow'
 export const onRefollow = 'tracker:onRefollow'
 export const onUnfollow = 'tracker:onUnfollow'
+export const onRefollow2 = 'tracker:onRefollow2'
+export const onUnfollow2 = 'tracker:onUnfollow2'
+export const onError = 'tracker:onError'
 export const onFollowHelp = 'tracker:onFollowHelp'
 export const onFollowChecked = 'tracker:onFollowChecked'
 

@@ -14,47 +14,84 @@ import type {ActionProps} from './action.render'
 export default class ActionRender extends Component {
   props: ActionProps;
 
-  render () {
+  render (): ReactElement {
     if (flags.tracker2) {
       return this.render2()
     }
-    return this.renderDefault()
+    return this.render1()
   }
 
-  renderDefault () {
+  render1 (): ReactElement {
     const {username, state, loggedIn} = this.props
     const styles = styles1
 
     if (!loggedIn) {
-      return this.renderLoggedOut(styles)
+      return this.render1LoggedOut(styles)
     } else if (state === checking || !username) {
-      return this.renderPending(styles, username)
+      return this.render1Pending(styles, username)
     } else if (this.props.state === normal) {
-      return this.renderNormal(styles, username)
+      return this.render1Normal(styles, username)
     } else if (this.props.currentlyFollowing) {
-      return this.renderChanged(styles)
+      return this.render1Changed(styles)
     } else {
-      return this.renderWarningNotFollowed(styles)
+      return this.render1WarningNotFollowed(styles)
     }
   }
 
-  render2 () {
+  render2 (): ReactElement {
+    const {username} = this.props
     const styles = styles2
+
+    switch (this.props.lastAction) {
+      case 'followed':
+      case 'refollowed':
+      case 'unfollowed':
+      case 'error':
+        return this.renderClose(styles, username)
+    }
+
+    if (this.props.state !== normal) {
+      if (this.props.currentlyFollowing) {
+        return this.renderChanged(styles, username)
+      }
+    }
+
+    return this.renderNormal(styles, username)
+  }
+
+  renderClose(styles: Object, username: string) {
     return (
-      <div style={{...styles.container}}>
-        <Button type='Secondary' label='Close' onClick={() => this.props.onClose()} />
+      <div style={{...styles2.container}}>
+        <Button dz2 type='Secondary' label='Close' onClick={() => this.props.onClose(username)} />
       </div>
     )
   }
 
-  renderPending (styles: Object, username: ?string) {
+  renderNormal (styles: Object, username: string) {
+    return (
+      <div style={{...styles2.container}}>
+        <Button dz2 type='Follow' label='Follow' onClick={() => this.props.onFollow(username)} />
+      </div>
+    )
+  }
+
+  renderChanged (styles: Object, username: string) {
+    return (
+      <div style={{...styles2.container}}>
+        <Button dz2 type='Unfollow' label='Unfollow' onClick={() => this.props.onUnfollow(username)} />
+        <Button dz2 type='Follow' label='Re-follow' onClick={() => this.props.onRefollow(username)} />
+      </div>
+    )
+  }
+
+  render1Pending (styles: Object, username: ?string): ReactElement {
     const text: string = username ? `Verifying ${username}'s identity` : 'Loading tracker information...'
     return (
       <div><Text style={{textAlign: 'center', paddingTop: 8}} type='Body'>{text}</Text></div>
     )
   }
 
-  renderWarningNotFollowed (styles: Object) {
+  render1WarningNotFollowed (styles: Object): ReactElement {
     const title = this.props.failedProofsNotFollowingText
 
     return (
@@ -73,7 +110,7 @@ export default class ActionRender extends Component {
     )
   }
 
-  renderChanged (styles: Object) {
+  render1Changed (styles: Object): ReactElement {
     const title = this.props.renderChangedTitle
 
     return (
@@ -89,7 +126,7 @@ export default class ActionRender extends Component {
     )
   }
 
-  renderNormal (styles: any, username: string) {
+  render1Normal (styles: any, username: string): ReactElement {
     return (
       <div style={styles.normalContainer}>
         <div style={{...styles.textContainer, ...(this.props.shouldFollow ? {display: 'none'} : {})}}>
@@ -105,7 +142,7 @@ export default class ActionRender extends Component {
     )
   }
 
-  renderLoggedOut (styles: Object) {
+  render1LoggedOut (styles: Object): ReactElement {
     return (
       <div>
         <i style={styles.flagWarning} className='fa fa-exclamation-triangle'></i>
@@ -117,21 +154,6 @@ export default class ActionRender extends Component {
       </div>
     )
   }
-}
-
-ActionRender.propTypes = {
-  state: React.PropTypes.any.isRequired,
-  loggedIn: React.PropTypes.bool.isRequired,
-  username: React.PropTypes.string,
-  shouldFollow: React.PropTypes.bool.isRequired,
-  onClose: React.PropTypes.func.isRequired,
-  onMaybeTrack: React.PropTypes.func.isRequired,
-  onRefollow: React.PropTypes.func.isRequired,
-  onUnfollow: React.PropTypes.func.isRequired,
-  onFollowChecked: React.PropTypes.func.isRequired,
-  renderChangedTitle: React.PropTypes.string,
-  failedProofsNotFollowingText: React.PropTypes.string.isRequired,
-  currentlyFollowing: React.PropTypes.bool.isRequired
 }
 
 const styles1 = {
