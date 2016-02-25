@@ -10,6 +10,10 @@ json/%.json: avdl/%.avdl
 config:
 	npm install -d
 
+# By default, all avdl/*.avdl are considered and made into outputs
+# as long as they have messages in them. BUT you can override this
+# check via -f.  So the two files specified here via -f don't have
+# messages but should be made into .json's...
 build-stamp:
 	@mkdir -p json
 	$(AVDL2JSON) -b -o json -f avdl/constants.avdl -f avdl/install.avdl  avdl/*.avdl
