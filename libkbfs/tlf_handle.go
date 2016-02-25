@@ -237,15 +237,13 @@ func buildCanonicalPath(public bool, canonicalName CanonicalTlfName) string {
 func identifyHelper(ctx context.Context, kbpki KBPKI,
 	canonicalName CanonicalTlfName,
 	assertion string, isWriter, public bool) (UserInfo, error) {
-	var userType string
-	if isWriter {
-		userType = "writer"
+	var pubOrPri string
+	if public {
+		pubOrPri = "public"
 	} else {
-		userType = "reader"
+		pubOrPri = "private"
 	}
-	canonicalPath := buildCanonicalPath(public, canonicalName)
-	reason := fmt.Sprintf("To confirm %s is a %s of %s",
-		assertion, userType, canonicalPath)
+	reason := fmt.Sprintf("You accessed a %s folder with %s.", pubOrPri, assertion)
 	return kbpki.Identify(ctx, assertion, reason)
 }
 
