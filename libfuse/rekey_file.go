@@ -32,7 +32,6 @@ var _ fs.HandleWriter = (*RekeyFile)(nil)
 // Write implements the fs.HandleWriter interface for RekeyFile.
 func (f *RekeyFile) Write(ctx context.Context, req *fuse.WriteRequest,
 	resp *fuse.WriteResponse) (err error) {
-	ctx = NewContextWithOpID(ctx, f.folder.fs.log)
 	f.folder.fs.log.CDebugf(ctx, "RekeyFile Write")
 	defer func() { f.folder.fs.reportErr(ctx, err) }()
 	if len(req.Data) == 0 {

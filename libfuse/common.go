@@ -4,9 +4,7 @@ import (
 	"time"
 
 	"bazil.org/fuse"
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/libkbfs"
-	"golang.org/x/net/context"
 )
 
 const (
@@ -30,13 +28,6 @@ const (
 	// CtxIDKey is the type of the tag for unique operation IDs.
 	CtxIDKey CtxTagKey = iota
 )
-
-// NewContextWithOpID adds a unique ID to this context, identifying
-// a particular request.
-func NewContextWithOpID(ctx context.Context,
-	log logger.Logger) context.Context {
-	return ctx
-}
 
 // fillAttr sets attributes based on the entry info. It only handles fields
 // common to all entryinfo types.

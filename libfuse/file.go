@@ -17,7 +17,6 @@ var _ fs.Node = (*File)(nil)
 
 // Attr implements the fs.Node interface for File.
 func (f *File) Attr(ctx context.Context, a *fuse.Attr) (err error) {
-	ctx = NewContextWithOpID(ctx, f.folder.fs.log)
 	f.folder.fs.log.CDebugf(ctx, "File Attr")
 	defer func() { f.folder.fs.reportErr(ctx, err) }()
 
@@ -54,7 +53,6 @@ func (f *File) sync(ctx context.Context) error {
 
 // Fsync implements the fs.NodeFsyncer interface for File.
 func (f *File) Fsync(ctx context.Context, req *fuse.FsyncRequest) (err error) {
-	ctx = NewContextWithOpID(ctx, f.folder.fs.log)
 	f.folder.fs.log.CDebugf(ctx, "File Fsync")
 	defer func() { f.folder.fs.reportErr(ctx, err) }()
 	return f.sync(ctx)
@@ -67,7 +65,6 @@ var _ fs.HandleReader = (*File)(nil)
 // Read implements the fs.HandleReader interface for File.
 func (f *File) Read(ctx context.Context, req *fuse.ReadRequest,
 	resp *fuse.ReadResponse) (err error) {
-	ctx = NewContextWithOpID(ctx, f.folder.fs.log)
 	f.folder.fs.log.CDebugf(ctx, "File Read")
 	defer func() { f.folder.fs.reportErr(ctx, err) }()
 
@@ -85,7 +82,6 @@ var _ fs.HandleWriter = (*File)(nil)
 // Write implements the fs.HandleWriter interface for File.
 func (f *File) Write(ctx context.Context, req *fuse.WriteRequest,
 	resp *fuse.WriteResponse) (err error) {
-	ctx = NewContextWithOpID(ctx, f.folder.fs.log)
 	f.folder.fs.log.CDebugf(ctx, "File Write sz=%d ", len(req.Data))
 	defer func() { f.folder.fs.reportErr(ctx, err) }()
 
@@ -101,7 +97,6 @@ var _ fs.HandleFlusher = (*File)(nil)
 
 // Flush implements the fs.HandleFlusher interface for File.
 func (f *File) Flush(ctx context.Context, req *fuse.FlushRequest) (err error) {
-	ctx = NewContextWithOpID(ctx, f.folder.fs.log)
 	f.folder.fs.log.CDebugf(ctx, "File Flush")
 	// I'm not sure about the guarantees from KBFSOps, so we don't
 	// differentiate between Flush and Fsync.
@@ -114,7 +109,6 @@ var _ fs.NodeSetattrer = (*File)(nil)
 // Setattr implements the fs.NodeSetattrer interface for File.
 func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest,
 	resp *fuse.SetattrResponse) (err error) {
-	ctx = NewContextWithOpID(ctx, f.folder.fs.log)
 	f.folder.fs.log.CDebugf(ctx, "File SetAttr")
 	defer func() { f.folder.fs.reportErr(ctx, err) }()
 
@@ -182,7 +176,6 @@ var _ fs.NodeGetxattrer = (*File)(nil)
 // Getxattr implements the fs.NodeGetxattrer interface for File.
 func (f *File) Getxattr(ctx context.Context, req *fuse.GetxattrRequest,
 	resp *fuse.GetxattrResponse) (err error) {
-	ctx = NewContextWithOpID(ctx, f.folder.fs.log)
 	f.folder.fs.log.CDebugf(ctx, "File GetXattr %s", req.Name)
 	defer func() { f.folder.fs.reportErr(ctx, err) }()
 
@@ -194,7 +187,6 @@ var _ fs.NodeListxattrer = (*File)(nil)
 // Listxattr implements the fs.NodeListxattrer interface for File.
 func (f *File) Listxattr(ctx context.Context, req *fuse.ListxattrRequest,
 	resp *fuse.ListxattrResponse) (err error) {
-	ctx = NewContextWithOpID(ctx, f.folder.fs.log)
 	f.folder.fs.log.CDebugf(ctx, "File ListXattr")
 	defer func() { f.folder.fs.reportErr(ctx, err) }()
 
@@ -206,7 +198,6 @@ var _ fs.NodeSetxattrer = (*File)(nil)
 // Setxattr implements the fs.NodeSetxattrer interface for File.
 func (f *File) Setxattr(ctx context.Context, req *fuse.SetxattrRequest) (
 	err error) {
-	ctx = NewContextWithOpID(ctx, f.folder.fs.log)
 	f.folder.fs.log.CDebugf(ctx, "File SetXattr %s", req.Name)
 	defer func() { f.folder.fs.reportErr(ctx, err) }()
 
@@ -220,7 +211,6 @@ var _ fs.NodeRemovexattrer = (*File)(nil)
 // Removexattr implements the fs.NodeRemovexattrer interface for File.
 func (f *File) Removexattr(ctx context.Context, req *fuse.RemovexattrRequest) (
 	err error) {
-	ctx = NewContextWithOpID(ctx, f.folder.fs.log)
 	f.folder.fs.log.CDebugf(ctx, "File RemoveXattr %s", req.Name)
 	defer func() { f.folder.fs.reportErr(ctx, err) }()
 

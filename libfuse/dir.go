@@ -257,7 +257,6 @@ var _ DirInterface = (*Dir)(nil)
 
 // Attr implements the fs.Node interface for Dir.
 func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) (err error) {
-	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
 	d.folder.fs.log.CDebugf(ctx, "Dir Attr")
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
 
@@ -283,7 +282,6 @@ func (d *Dir) attr(ctx context.Context, a *fuse.Attr) (err error) {
 
 // Lookup implements the fs.NodeRequestLookuper interface for Dir.
 func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (node fs.Node, err error) {
-	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
 	d.folder.fs.log.CDebugf(ctx, "Dir Lookup %s", req.Name)
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
 
@@ -380,7 +378,6 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 
 // Create implements the fs.NodeCreater interface for Dir.
 func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.CreateResponse) (node fs.Node, handle fs.Handle, err error) {
-	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
 	d.folder.fs.log.CDebugf(ctx, "Dir Create %s", req.Name)
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
 
@@ -404,7 +401,6 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 // Mkdir implements the fs.NodeMkdirer interface for Dir.
 func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (
 	node fs.Node, err error) {
-	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
 	d.folder.fs.log.CDebugf(ctx, "Dir Mkdir %s", req.Name)
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
 
@@ -424,7 +420,6 @@ func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (
 // Symlink implements the fs.NodeSymlinker interface for Dir.
 func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (
 	node fs.Node, err error) {
-	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
 	d.folder.fs.log.CDebugf(ctx, "Dir Symlink %s -> %s",
 		req.NewName, req.Target)
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
@@ -444,7 +439,6 @@ func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (
 // Rename implements the fs.NodeRenamer interface for Dir.
 func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest,
 	newDir fs.Node) (err error) {
-	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
 	d.folder.fs.log.CDebugf(ctx, "Dir Rename %s -> %s",
 		req.OldName, req.NewName)
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
@@ -492,7 +486,6 @@ func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest,
 
 // Remove implements the fs.NodeRemover interface for Dir.
 func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) (err error) {
-	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
 	d.folder.fs.log.CDebugf(ctx, "Dir Remove %s", req.Name)
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
 
@@ -513,7 +506,6 @@ func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) (err error) {
 
 // ReadDirAll implements the fs.NodeReadDirAller interface for Dir.
 func (d *Dir) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
-	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
 	d.folder.fs.log.CDebugf(ctx, "Dir ReadDirAll")
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
 
@@ -546,7 +538,6 @@ func (d *Dir) Forget() {
 
 // Setattr implements the fs.NodeSetattrer interface for Dir.
 func (d *Dir) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse.SetattrResponse) (err error) {
-	ctx = NewContextWithOpID(ctx, d.folder.fs.log)
 	d.folder.fs.log.CDebugf(ctx, "Dir SetAttr")
 	defer func() { d.folder.fs.reportErr(ctx, err) }()
 
@@ -653,7 +644,6 @@ func (tlf *TLF) loadDir(ctx context.Context) (dir *Dir, err error) {
 
 // Attr implements the fs.Node interface for TLF.
 func (tlf *TLF) Attr(ctx context.Context, a *fuse.Attr) error {
-	ctx = NewContextWithOpID(ctx, tlf.folder.fs.log)
 	dir := tlf.getStoredDir()
 	if dir == nil {
 		tlf.folder.fs.log.CDebugf(
@@ -675,7 +665,6 @@ func (tlf *TLF) Attr(ctx context.Context, a *fuse.Attr) error {
 
 // Lookup implements the fs.NodeRequestLookuper interface for TLF.
 func (tlf *TLF) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (fs.Node, error) {
-	ctx = NewContextWithOpID(ctx, tlf.folder.fs.log)
 	dir, err := tlf.loadDir(ctx)
 	if err != nil {
 		return nil, err
@@ -685,7 +674,6 @@ func (tlf *TLF) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.
 
 // Create implements the fs.NodeCreater interface for TLF.
 func (tlf *TLF) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.CreateResponse) (fs.Node, fs.Handle, error) {
-	ctx = NewContextWithOpID(ctx, tlf.folder.fs.log)
 	dir, err := tlf.loadDir(ctx)
 	if err != nil {
 		return nil, nil, err
@@ -696,7 +684,6 @@ func (tlf *TLF) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.
 // Mkdir implements the fs.NodeMkdirer interface for TLF.
 func (tlf *TLF) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (
 	fs.Node, error) {
-	ctx = NewContextWithOpID(ctx, tlf.folder.fs.log)
 	dir, err := tlf.loadDir(ctx)
 	if err != nil {
 		return nil, err
@@ -707,7 +694,6 @@ func (tlf *TLF) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (
 // Symlink implements the fs.NodeSymlinker interface for TLF.
 func (tlf *TLF) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (
 	fs.Node, error) {
-	ctx = NewContextWithOpID(ctx, tlf.folder.fs.log)
 	dir, err := tlf.loadDir(ctx)
 	if err != nil {
 		return nil, err
@@ -718,7 +704,6 @@ func (tlf *TLF) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (
 // Rename implements the fs.NodeRenamer interface for TLF.
 func (tlf *TLF) Rename(ctx context.Context, req *fuse.RenameRequest,
 	newDir fs.Node) error {
-	ctx = NewContextWithOpID(ctx, tlf.folder.fs.log)
 	dir, err := tlf.loadDir(ctx)
 	if err != nil {
 		return err
@@ -728,7 +713,6 @@ func (tlf *TLF) Rename(ctx context.Context, req *fuse.RenameRequest,
 
 // Remove implements the fs.NodeRemover interface for TLF.
 func (tlf *TLF) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
-	ctx = NewContextWithOpID(ctx, tlf.folder.fs.log)
 	dir, err := tlf.loadDir(ctx)
 	if err != nil {
 		return err
@@ -764,7 +748,6 @@ func (tlf *TLF) filterEarlyExitError(ctx context.Context, err error) (
 
 // ReadDirAll implements the fs.NodeReadDirAller interface for TLF.
 func (tlf *TLF) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
-	ctx = NewContextWithOpID(ctx, tlf.folder.fs.log)
 	dir, err := tlf.loadDir(ctx)
 	exitEarly, err := tlf.filterEarlyExitError(ctx, err)
 	if err != nil {
@@ -786,7 +769,6 @@ func (tlf *TLF) Forget() {
 
 // Setattr implements the fs.NodeSetattrer interface for TLF.
 func (tlf *TLF) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse.SetattrResponse) error {
-	ctx = NewContextWithOpID(ctx, tlf.folder.fs.log)
 	dir, err := tlf.loadDir(ctx)
 	if err != nil {
 		return err
@@ -801,7 +783,6 @@ var _ fs.NodeOpener = (*TLF)(nil)
 // Open implements the fs.NodeOpener interface for TLF.
 func (tlf *TLF) Open(ctx context.Context, req *fuse.OpenRequest,
 	resp *fuse.OpenResponse) (fs.Handle, error) {
-	ctx = NewContextWithOpID(ctx, tlf.folder.fs.log)
 	// Explicitly load the directory when a TLF is opened, because
 	// some OSX programs like ls have a bug that doesn't report errors
 	// on a ReadDirAll.
