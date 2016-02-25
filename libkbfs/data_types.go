@@ -412,16 +412,6 @@ type path struct {
 	path []pathNode
 }
 
-// tlfPathFromString returns a path placeholder with only one path
-// node.  No FolderBranch or pointers are set.
-func tlfPathFromString(tlfname CanonicalTlfName) path {
-	return path{
-		path: []pathNode{{
-			Name: string(tlfname),
-		}},
-	}
-}
-
 // isValid() returns true if the path has at least one node (for the
 // root).
 func (p path) isValid() bool {

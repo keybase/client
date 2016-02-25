@@ -40,9 +40,9 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context, err error) {
 	var n *keybase1.FSNotification
 	switch e := err.(type) {
 	case ReadAccessError:
-		n = readErrorNotification(tlfPathFromString(e.Tlf), err)
+		n = readTlfErrorNotification(e.Tlf, e.Public, err)
 	case WriteAccessError:
-		n = writeErrorNotification(tlfPathFromString(e.Tlf), err)
+		n = writeTlfErrorNotification(e.Tlf, e.Public, err)
 	}
 
 	if n != nil {
@@ -136,16 +136,17 @@ func baseNotification(file path, finish bool) *keybase1.FSNotification {
 	}
 }
 
-// writeErrorNotification creates FSNotifications from paths for KBFS
-// write error events.
-func writeErrorNotification(file path, err error) *keybase1.FSNotification {
+// writeTlfErrorNotification creates FSNotifications for general KBFS
+// write error events to a TLF.
+func writeTlfErrorNotification(tlf CanonicalTlfName, public bool,
+	err error) *keybase1.FSNotification {
 	n := &keybase1.FSNotification{
-		PublicTopLevelFolder: file.Tlf.IsPublic(),
-		Filename:             file.String(),
+		PublicTopLevelFolder: public,
+		Filename:             buildCanonicalPath(public, tlf),
 		StatusCode:           keybase1.FSStatusCode_ERROR,
 		Status:               err.Error(),
 	}
-	if file.Tlf.IsPublic() {
+	if public {
 		n.NotificationType = keybase1.FSNotificationType_SIGNING
 	} else {
 		n.NotificationType = keybase1.FSNotificationType_ENCRYPTING
@@ -153,16 +154,17 @@ func writeErrorNotification(file path, err error) *keybase1.FSNotification {
 	return n
 }
 
-// readErrorNotification creates FSNotifications from paths for KBFS
-// read error events.
-func readErrorNotification(file path, err error) *keybase1.FSNotification {
+// tlfReadErrorNotification creates FSNotifications for general KBFS
+// read error events to a TLF.
+func readTlfErrorNotification(tlf CanonicalTlfName, public bool,
+	err error) *keybase1.FSNotification {
 	n := &keybase1.FSNotification{
-		PublicTopLevelFolder: file.Tlf.IsPublic(),
-		Filename:             file.String(),
+		PublicTopLevelFolder: public,
+		Filename:             buildCanonicalPath(public, tlf),
 		StatusCode:           keybase1.FSStatusCode_ERROR,
 		Status:               err.Error(),
 	}
-	if file.Tlf.IsPublic() {
+	if public {
 		n.NotificationType = keybase1.FSNotificationType_VERIFYING
 	} else {
 		n.NotificationType = keybase1.FSNotificationType_DECRYPTING
