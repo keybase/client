@@ -834,8 +834,12 @@ type NoCurrentSessionError struct {
 
 // Error implements the error interface for NoCurrentSessionError.
 func (e NoCurrentSessionError) Error() string {
-	return "no current session"
+	return "You are not logged into Keybase.  Try `keybase login`."
 }
+
+// NoCurrentSessionExpectedError is the error text that will get
+// converted into a NoCurrentSessionError.
+var NoCurrentSessionExpectedError = "no current session"
 
 // RekeyPermissionError indicates that the user tried to rekey a
 // top-level folder in a manner inconsistent with their permissions.

@@ -47,6 +47,8 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context, err error) {
 		n = genericErrorNotification(err)
 	case UnverifiableTlfUpdateError:
 		n = genericErrorNotification(err)
+	case NoCurrentSessionError:
+		n = genericErrorNotification(err)
 	}
 
 	if n != nil {
