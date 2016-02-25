@@ -7,7 +7,8 @@ cd "$dir"
 
 GOPATH=${GOPATH:-}
 nobuild=${NOBUILD:-} # Don't build go binaries
-istest=${TEST:-} # Test only
+istest=${TEST:-} # Use test bucket (doesn't trigger prerelease updates)
+nopull=${NOPULL:-} # Don't git pull
 bucket_name=${BUCKET_NAME:-"prerelease.keybase.io"}
 platform=${PLATFORM:-`uname`}
 
@@ -28,7 +29,7 @@ client_dir="$GOPATH/src/github.com/keybase/client"
 
 "$client_dir/packaging/slack/send.sh" "Starting build"
 
-if [ ! "$istest" = "1" ]; then
+if [ ! "$nopull" = "1" ]; then
   "$client_dir/packaging/check_status_and_pull.sh" "$client_dir"
   "$client_dir/packaging/check_status_and_pull.sh" "$GOPATH/src/github.com/keybase/kbfs"
 fi
