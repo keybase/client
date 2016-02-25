@@ -14,11 +14,17 @@ import (
 // reached anywhere within a top-level folder.
 const StatusFileName = ".kbfs_status"
 
-func getEncodedFolderStatus(ctx context.Context, folder *Folder) (
+type kbfsStatus struct {
+	IsConnected bool
+}
+
+func getEncodedFolderStatus(ctx context.Context, fs *FS,
+	folderBranch *libkbfs.FolderBranch) (
 	data []byte, t time.Time, err error) {
+
 	var status libkbfs.FolderBranchStatus
-	status, _, err = folder.fs.config.KBFSOps().
-		Status(ctx, folder.folderBranch)
+	status, _, err = fs.config.KBFSOps().
+		Status(ctx, *folderBranch)
 	if err != nil {
 		return nil, time.Time{}, err
 	}
@@ -32,20 +38,28 @@ func getEncodedFolderStatus(ctx context.Context, folder *Folder) (
 	return data, time.Time{}, err
 }
 
-func getEncodedStatus(ctx context.Context) (data []byte, t time.Time, err error) {
+func getEncodedStatus(ctx context.Context, fs *FS) (
+	data []byte, t time.Time, err error) {
+	data, err = json.MarshalIndent(kbfsStatus{
+		IsConnected: fs.config.MDServer().IsConnected(),
+	}, "", "  ")
+	if err != nil {
+		return nil, t, err
+	}
+	data = append(data, '\n')
 	return data, t, err
 }
 
 // NewStatusFile returns a special read file that contains a text
 // representation of the status of the current TLF.
-func NewStatusFile(folder *Folder, resp *fuse.LookupResponse) *SpecialReadFile {
+func NewStatusFile(fs *FS, folderBranch *libkbfs.FolderBranch, resp *fuse.LookupResponse) *SpecialReadFile {
 	resp.EntryValid = 0
 	return &SpecialReadFile{
 		read: func(ctx context.Context) ([]byte, time.Time, error) {
-			if folder == nil {
-				return getEncodedStatus(ctx)
+			if folderBranch == nil {
+				return getEncodedStatus(ctx, fs)
 			}
-			return getEncodedFolderStatus(ctx, folder)
+			return getEncodedFolderStatus(ctx, fs, folderBranch)
 		},
 	}
 }

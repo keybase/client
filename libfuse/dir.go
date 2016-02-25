@@ -292,7 +292,7 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 
 	switch req.Name {
 	case StatusFileName:
-		return NewStatusFile(d.folder, resp), nil
+		return NewStatusFile(d.folder.fs, &d.folder.folderBranch, resp), nil
 
 	case UpdateHistoryFileName:
 		return NewUpdateHistoryFile(d.folder, resp), nil

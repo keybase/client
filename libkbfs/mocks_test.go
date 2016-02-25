@@ -1889,6 +1889,16 @@ func (_mr *_MockMDServerRecorder) Shutdown() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
 }
 
+func (_m *MockMDServer) IsConnected() bool {
+	ret := _m.ctrl.Call(_m, "IsConnected")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+func (_mr *_MockMDServerRecorder) IsConnected() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsConnected")
+}
+
 // Mock of BlockServer interface
 type MockBlockServer struct {
 	ctrl     *gomock.Controller

@@ -550,6 +550,11 @@ func (md *MDServerRemote) Shutdown() {
 	}
 }
 
+// IsConnected implements the MDServer interface for MDServerLocal
+func (md *MDServerRemote) IsConnected() bool {
+	return md.conn != nil && md.conn.IsConnected()
+}
+
 //
 // The below methods support the MD server acting as the key server.
 // This will be the case for v1 of KBFS but we may move to our own

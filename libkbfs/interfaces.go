@@ -860,6 +860,9 @@ type MDServer interface {
 
 	// Shutdown is called to shutdown an MDServer connection.
 	Shutdown()
+
+	// IsConnected returns whether the MDServer is connected.
+	IsConnected() bool
 }
 
 // BlockServer gets and puts opaque data blocks.  The instantiation

@@ -255,7 +255,7 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 
 	switch req.Name {
 	case StatusFileName:
-		return NewStatusFile(nil, resp), nil
+		return NewStatusFile(r.private.fs, nil, resp), nil
 	case PrivateName:
 		return r.private, nil
 	case PublicName:

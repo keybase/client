@@ -746,6 +746,11 @@ func (md *MDServerLocal) Shutdown() {
 	}
 }
 
+// IsConnected implements the MDServer interface for MDServerLocal.
+func (md *MDServerLocal) IsConnected() bool {
+	return !md.isShutdown()
+}
+
 // RefreshAuthToken implements the MDServer interface for MDServerLocal.
 func (md *MDServerLocal) RefreshAuthToken(ctx context.Context) {}
 
