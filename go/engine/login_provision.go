@@ -665,15 +665,32 @@ func (e *LoginProvision) route(ctx *Context) error {
 }
 
 func (e *LoginProvision) chooseDevice(ctx *Context, pgp bool) error {
-	return errors.New("nyi")
+	return errors.New("device nyi")
 }
 
 func (e *LoginProvision) tryPGP(ctx *Context) error {
 	if err := e.pgpProvision(ctx); err != nil {
-		// XXX try gpg provsion when this fails due to no sync pgp
+		if _, ok := err.(libkb.NoSyncedPGPKeyError); ok {
+			e.G().Log.Debug("no synced pgp key found, trying GPG")
+			return tryGPG(ctx)
+		}
 		return err
 	}
 	return nil
+}
+
+func (e *LoginProvision) tryGPG(ctx *Context) error {
+
+	// iterate through pgp keys in keyfamily
+	// find matches in gpg index
+	// if none exist, then abort with error that they need to get
+	//    the private key for one of the pgp keys in the keyfamily
+	//    onto this device.
+
+	// if more than one match, show the user the matching keys, ask for selection
+	// ask if they want to import or sign
+
+	return errors.New("gpg nyi")
 }
 
 func (e *LoginProvision) eldest(ctx *Context) error {
