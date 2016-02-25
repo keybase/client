@@ -121,6 +121,9 @@ func (f *FS) LaunchNotificationProcessor(ctx context.Context) {
 
 func (f *FS) WithContext(ctx context.Context) context.Context {
 	ctx = context.WithValue(ctx, CtxAppIDKey, f)
+	logTags := make(logger.CtxLogTags)
+	logTags[CtxIDKey] = CtxOpID
+	ctx = logger.NewContextWithLogTags(ctx, logTags)
 	return ctx
 }
 
