@@ -4,13 +4,13 @@
 	"package": [
 		{
 			"path": "bazil.org/fuse",
-			"revision": "a8bc3b86317dc95ed28fdefcebc1dbce8baa88e9",
-			"revisionTime": "2015-12-02T10:18:56-08:00"
+			"revision": "4a4e0029e1364436782cd3cd5073a1e9bb10176f",
+			"revisionTime": "2016-02-19T14:47:17-08:00"
 		},
 		{
 			"path": "bazil.org/fuse/fs",
-			"revision": "a8bc3b86317dc95ed28fdefcebc1dbce8baa88e9",
-			"revisionTime": "2015-12-02T10:18:56-08:00"
+			"revision": "4a4e0029e1364436782cd3cd5073a1e9bb10176f",
+			"revisionTime": "2016-02-19T14:47:17-08:00"
 		},
 		{
 			"path": "bazil.org/fuse/fs/fstestutil",

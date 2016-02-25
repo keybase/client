@@ -130,8 +130,8 @@ func (f *FS) WithContext(ctx context.Context) context.Context {
 // Serve FS. Will block.
 func (f *FS) Serve(ctx context.Context) error {
 	srv := fs.New(f.conn, &fs.Config{
-		GetContext: func() context.Context {
-			return f.WithContext(context.TODO())
+		WithContext: func(ctx context.Context, _ fuse.Request) context.Context {
+			return f.WithContext(ctx)
 		},
 	})
 	f.fuse = srv

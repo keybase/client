@@ -41,8 +41,8 @@ func createUserFuse(t *testing.T, ith int, config *libkbfs.ConfigLocal, tlf stri
 		return filesys
 	}
 	mnt, err := fstestutil.MountedFuncT(t, fn, &fs.Config{
-		GetContext: func() context.Context {
-			return filesys.WithContext(context.TODO())
+		WithContext: func(ctx context.Context, req fuse.Request) context.Context {
+			return filesys.WithContext(ctx)
 		},
 	})
 	if err != nil {
