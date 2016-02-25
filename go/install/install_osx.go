@@ -685,6 +685,9 @@ func RunAfterStartup(g *libkb.GlobalContext, isService bool) error {
 	if libkb.IsBrewBuild {
 		return nil
 	}
+	if g.Env.GetRunMode() != libkb.ProductionRunMode {
+		return nil
+	}
 	switch g.Env.GetAppStartMode() {
 	case libkb.AppStartModeService:
 		if !isService {
