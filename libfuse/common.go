@@ -35,12 +35,7 @@ const (
 // a particular request.
 func NewContextWithOpID(ctx context.Context,
 	log logger.Logger) context.Context {
-	id, err := libkbfs.MakeRandomRequestID()
-	if err != nil {
-		log.Errorf("Couldn't make request ID: %v", err)
-		return ctx
-	}
-	return context.WithValue(ctx, CtxIDKey, id)
+	return ctx
 }
 
 // fillAttr sets attributes based on the entry info. It only handles fields

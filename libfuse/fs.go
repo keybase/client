@@ -127,6 +127,15 @@ func (f *FS) WithContext(ctx context.Context) context.Context {
 	logTags[CtxIDKey] = CtxOpID
 	ctx = logger.NewContextWithLogTags(ctx, logTags)
 
+	// Add a unique ID to this context, identifying a particular
+	// request.
+	id, err := libkbfs.MakeRandomRequestID()
+	if err != nil {
+		f.log.Errorf("Couldn't make request ID: %v", err)
+	} else {
+		ctx = context.WithValue(ctx, CtxIDKey, id)
+	}
+
 	if runtime.GOOS == "darwin" {
 		// Timeout operations before they hit the osxfuse time limit,
 		// so we don't hose the entire mount (Fixed in OSXFUSE 3.2.0).
