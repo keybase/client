@@ -43,6 +43,8 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context, err error) {
 		n = readTlfErrorNotification(e.Tlf, e.Public, err)
 	case WriteAccessError:
 		n = writeTlfErrorNotification(e.Tlf, e.Public, err)
+	case NoSuchUserError:
+		n = genericErrorNotification(err)
 	}
 
 	if n != nil {
@@ -169,5 +171,23 @@ func readTlfErrorNotification(tlf CanonicalTlfName, public bool,
 	} else {
 		n.NotificationType = keybase1.FSNotificationType_DECRYPTING
 	}
+	return n
+}
+
+// genericErrorNotification creates FSNotifications for generic
+// errors, and makes it look like a read error.
+func genericErrorNotification(err error) *keybase1.FSNotification {
+	// The GUI parses this but doesn't use it if the status is filled
+	// in.
+	//
+	// TODO: plumb through at least the TLF name to wherever generates
+	// these errors, and require a path or tlf name here.
+	fakeFile := "/"
+	n := &keybase1.FSNotification{
+		Filename:   fakeFile,
+		StatusCode: keybase1.FSStatusCode_ERROR,
+		Status:     err.Error(),
+	}
+	n.NotificationType = keybase1.FSNotificationType_VERIFYING
 	return n
 }

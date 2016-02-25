@@ -353,12 +353,23 @@ func (k *KeybaseDaemonRPC) ShouldThrottle(err error) bool {
 	return false
 }
 
+func convertIdentifyError(assertion string, err error) error {
+	switch err.(type) {
+	case libkb.AppStatusError:
+		return NoSuchUserError{assertion}
+	case libkb.ResolutionError:
+		return NoSuchUserError{assertion}
+	}
+	return err
+}
+
 // Resolve implements the KeybaseDaemon interface for KeybaseDaemonRPC.
 func (k *KeybaseDaemonRPC) Resolve(ctx context.Context, assertion string) (
 	libkb.NormalizedUsername, keybase1.UID, error) {
 	user, err := k.identifyClient.Resolve2(ctx, assertion)
 	if err != nil {
-		return libkb.NormalizedUsername(""), keybase1.UID(""), err
+		return libkb.NormalizedUsername(""), keybase1.UID(""),
+			convertIdentifyError(assertion, err)
 	}
 	return libkb.NewNormalizedUsername(user.Username), user.Uid, nil
 }
@@ -376,7 +387,7 @@ func (k *KeybaseDaemonRPC) Identify(ctx context.Context, assertion, reason strin
 	}
 	res, err := k.identifyClient.Identify2(ctx, arg)
 	if err != nil {
-		return UserInfo{}, err
+		return UserInfo{}, convertIdentifyError(assertion, err)
 	}
 
 	return k.processUserPlusKeys(ctx, res.Upk)

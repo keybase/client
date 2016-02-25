@@ -52,7 +52,7 @@ type NoSuchUserError struct {
 
 // Error implements the error interface for NoSuchUserError
 func (e NoSuchUserError) Error() string {
-	return fmt.Sprintf("No such user matching %s", e.Input)
+	return fmt.Sprintf("%s is not a Keybase user", e.Input)
 }
 
 // BadTLFNameError indicates a top-level folder name that has an
