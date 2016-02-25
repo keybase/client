@@ -99,10 +99,14 @@
   return _appConfig;
 }
 
-- (id)configValueForKey:(NSString *)keyPath error:(NSError **)error {
+- (id)configValueForKey:(NSString *)keyPath defaultValue:(id)defaultValue error:(NSError **)error {
   NSDictionary *appConfig = [self appConfig:error];
   if (!appConfig) return nil;
-  return [appConfig valueForKeyPath:keyPath];
+  id obj = [appConfig valueForKeyPath:keyPath];
+  if (!obj) {
+    obj = defaultValue;
+  }
+  return obj;
 }
 
 @end

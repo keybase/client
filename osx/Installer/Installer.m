@@ -34,11 +34,11 @@ typedef NS_ENUM (NSInteger, KBExit) {
   [KBAppearance setCurrentAppearance:[KBUIAppearance appearance]];
 
   GBSettings *settings = [GBSettings settingsWithName:@"Settings" parent:nil];
-//#if DEBUG
-//  [settings setObject:@"/Applications/Keybase.app" forKey:@"app-path"];
-//  //  [self.settings setObject:@"/Volumes/Keybase/Keybase.app" forKey:@"app-path"];
-//  [settings setObject:@"prod" forKey:@"run-mode"];
-//#endif
+#if DEBUG
+  [settings setObject:@"/Applications/Keybase.app" forKey:@"app-path"];
+  //  [self.settings setObject:@"/Volumes/Keybase/Keybase.app" forKey:@"app-path"];
+  [settings setObject:@"prod" forKey:@"run-mode"];
+#endif
   _settings = [[Settings alloc] initWithSettings:settings];
 
   if ([_settings isUninstall]) {
@@ -105,8 +105,11 @@ typedef NS_ENUM (NSInteger, KBExit) {
 }
 
 - (void)afterInstall:(KBEnvironment *)environment {
-  BOOL runAtLogin = [[environment configValueForKey:@"osx.login_item" error:nil] boolValue];
-  [KBInstaller setRunAtLogin:runAtLogin config:environment.config appPath:self.settings.appPath];
+  BOOL fileListFavoriteEnabled = [[environment configValueForKey:@"darwin.file_list_favorite" defaultValue:@(YES) error:nil] boolValue];
+  [KBInstaller setFileListFavoriteEnabled:fileListFavoriteEnabled config:environment.config];
+
+  BOOL loginItemEnabled = [[environment configValueForKey:@"darwin.login_item" defaultValue:nil error:nil] boolValue];
+  [KBInstaller setLoginItemEnabled:loginItemEnabled config:environment.config appPath:self.settings.appPath];
 }
 
 - (void)checkError:(NSError *)error environment:(KBEnvironment *)environment completion:(void (^)(NSError *error, KBExit exit))completion {

@@ -29,6 +29,6 @@
 
 - (NSString *)debugInstallables;
 
-- (id)configValueForKey:(NSString *)keyPath error:(NSError **)error;
+- (id)configValueForKey:(NSString *)keyPath defaultValue:(id)defaultValue error:(NSError **)error;
 
 @end
