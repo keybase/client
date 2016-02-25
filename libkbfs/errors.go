@@ -474,6 +474,22 @@ func (e KeyNotFoundError) Error() string {
 	return fmt.Sprintf("Could not find key with kid=%s", e.kid)
 }
 
+// UnverifiableTlfUpdateError indicates that a MD update could not be
+// verified.
+type UnverifiableTlfUpdateError struct {
+	Tlf  string
+	User libkb.NormalizedUsername
+	Err  error
+}
+
+// Error implements the error interface for UnverifiableTlfUpdateError.
+func (e UnverifiableTlfUpdateError) Error() string {
+	return fmt.Sprintf("%s was last written by an unknown device claiming "+
+		"to belong to user %s.  The device has possibly been revoked by the "+
+		"user.  Use `keybase log send` to file an issue with the Keybase "+
+		"admins.", e.Tlf, e.User)
+}
+
 // KeyCacheMissError indicates that a key matching the given TlfID
 // and key generation wasn't found in cache.
 type KeyCacheMissError struct {

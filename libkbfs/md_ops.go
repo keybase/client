@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"fmt"
 
+	"github.com/keybase/client/go/libkb"
 	"golang.org/x/net/context"
 )
 
@@ -11,6 +12,24 @@ import (
 // signed) suitable for passing to/from the MDServer backend.
 type MDOpsStandard struct {
 	config Config
+}
+
+// convertVerifyingKeyError gives a better error when the TLF was
+// signed by a key that is no longer associated with the last writer.
+func (md *MDOpsStandard) convertVerifyingKeyError(ctx context.Context,
+	rmds *RootMetadataSigned, err error) error {
+	if _, ok := err.(KeyNotFoundError); !ok {
+		return err
+	}
+
+	tlf := rmds.MD.GetTlfHandle().GetCanonicalPath(ctx, md.config)
+	writer, nameErr := md.config.KBPKI().GetNormalizedUsername(ctx,
+		rmds.MD.LastModifyingWriter)
+	if nameErr != nil {
+		writer = libkb.NormalizedUsername("uid: " +
+			rmds.MD.LastModifyingWriter.String())
+	}
+	return UnverifiableTlfUpdateError{tlf, writer, err}
 }
 
 func (md *MDOpsStandard) processMetadata(ctx context.Context,
@@ -78,9 +97,10 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 		// TODO: what do we do if the signature is from a revoked
 		// key?
 		kbpki := md.config.KBPKI()
-		err = kbpki.HasVerifyingKey(ctx, writer, rmds.MD.WriterMetadataSigInfo.VerifyingKey)
+		err = kbpki.HasVerifyingKey(ctx, writer,
+			rmds.MD.WriterMetadataSigInfo.VerifyingKey)
 		if err != nil {
-			return err
+			return md.convertVerifyingKeyError(ctx, rmds, err)
 		}
 
 		err = crypto.Verify(buf, rmds.MD.WriterMetadataSigInfo)
@@ -110,7 +130,7 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 		// key?
 		err = kbpki.HasVerifyingKey(ctx, user, rmds.SigInfo.VerifyingKey)
 		if err != nil {
-			return err
+			return md.convertVerifyingKeyError(ctx, rmds, err)
 		}
 
 		err = crypto.Verify(buf, rmds.SigInfo)

@@ -153,7 +153,7 @@ func TestMDOpsGetForHandlePublicFailFindKey(t *testing.T) {
 	verifyMDForPublic(config, rmds, id, KeyNotFoundError{}, nil)
 
 	_, err := config.MDOps().GetForHandle(ctx, h)
-	if _, ok := err.(KeyNotFoundError); !ok {
+	if _, ok := err.(UnverifiableTlfUpdateError); !ok {
 		t.Errorf("Got unexpected error on get: %v", err)
 	}
 }
