@@ -51,11 +51,13 @@ export default function (dispatch: Dispatch, notify: any): incomingCallMapType {
       const tlf = getTLF(notification.publicTopLevelFolder, basedir)
 
       let title = `KBFS: ${action}`
+      let body = `Files in ${tlf} ${notification.status}`
+
       // Don't show starting or finished, but do show error.
       if (notification.statusCode === enums.kbfs.FSStatusCode.error) {
         title += ` ${state}`
+        body = notification.status
       }
-      const body = `Files in ${tlf} ${notification.status}`
 
       function rateLimitAllowsNotify (action, state, tlf) {
         if (!(action in sentNotifications)) {
