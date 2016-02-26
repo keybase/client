@@ -606,10 +606,44 @@ func (tlf *TLF) getStoredDir() *Dir {
 	return tlf.dir
 }
 
-func (tlf *TLF) loadDir(ctx context.Context) (dir *Dir, err error) {
+func (tlf *TLF) filterEarlyExitError(ctx context.Context, err error) (
+	exitEarly bool, retErr error) {
+	switch err := err.(type) {
+	case nil:
+		// No error.
+		return false, nil
+
+	case libkbfs.WriteAccessError:
+		// No permission to create TLF, so pretend it's still
+		// empty.
+		//
+		// In theory, we need to invalidate this once the TLF
+		// is created, but in practice, the Linux kernel
+		// doesn't cache readdir results, and probably not
+		// OSXFUSE either.
+		tlf.folder.fs.log.CDebugf(ctx,
+			"No permission to write to %s, so pretending it's empty",
+			tlf.folder.name)
+		return true, nil
+
+	case libkbfs.MDServerErrorWriteAccess:
+		// Same as above; cannot fallthrough in type switch
+		tlf.folder.fs.log.CDebugf(ctx,
+			"No permission to write to %s, so pretending it's empty",
+			tlf.folder.name)
+		return true, nil
+
+	default:
+		// Some other error.
+		return true, err
+	}
+}
+
+func (tlf *TLF) loadDirHelper(ctx context.Context, filterErr bool) (
+	dir *Dir, exitEarly bool, err error) {
 	dir = tlf.getStoredDir()
 	if dir != nil {
-		return dir, nil
+		return dir, false, nil
 	}
 
 	tlf.dirLock.Lock()
@@ -617,29 +651,47 @@ func (tlf *TLF) loadDir(ctx context.Context) (dir *Dir, err error) {
 	// Need to check for nilness again to avoid racing with other
 	// calls to loadDir().
 	if tlf.dir != nil {
-		return tlf.dir, nil
+		return tlf.dir, true, nil
 	}
 
 	tlf.folder.fs.log.CDebugf(ctx, "Loading root directory for folder %s "+
 		"(public: %t)", tlf.folder.name, tlf.isPublic())
-	defer func() { tlf.folder.fs.reportErr(ctx, err) }()
+	defer func() {
+		if filterErr {
+			exitEarly, err = tlf.filterEarlyExitError(ctx, err)
+		}
+		tlf.folder.fs.reportErr(ctx, err)
+	}()
 
 	rootNode, _, err :=
 		tlf.folder.fs.config.KBFSOps().GetOrCreateRootNode(
 			ctx, tlf.folder.name, tlf.isPublic(),
 			libkbfs.MasterBranch)
 	if err != nil {
-		return nil, err
+		return nil, true, err
 	}
 
 	err = tlf.folder.setFolderBranch(rootNode.GetFolderBranch())
 	if err != nil {
-		return nil, err
+		return nil, true, err
 	}
 
 	tlf.folder.nodes[rootNode.GetID()] = tlf
 	tlf.dir = newDir(tlf.folder, rootNode)
-	return tlf.dir, nil
+	return tlf.dir, false, nil
+}
+
+func (tlf *TLF) loadDir(ctx context.Context) (*Dir, error) {
+	dir, _, err := tlf.loadDirHelper(ctx, false)
+	return dir, err
+}
+
+// loadDirAllowEmpty loads a TLF if it's not already loaded.  If the
+// TLF doesn't yet exist, it still returns a nil error and indicates
+// that the calling function should pretend it's an empty folder.
+func (tlf *TLF) loadDirAllowNonexistent(ctx context.Context) (
+	*Dir, bool, error) {
+	return tlf.loadDirHelper(ctx, true)
 }
 
 // Attr implements the fs.Node interface for TLF.
@@ -720,43 +772,9 @@ func (tlf *TLF) Remove(ctx context.Context, req *fuse.RemoveRequest) error {
 	return dir.Remove(ctx, req)
 }
 
-func (tlf *TLF) filterEarlyExitError(ctx context.Context, err error) (
-	exitEarly bool, retErr error) {
-	switch err := err.(type) {
-	case nil:
-		// No error.
-		return false, nil
-
-	case libkbfs.WriteAccessError:
-		// No permission to create TLF, so pretend it's still
-		// empty.
-		//
-		// In theory, we need to invalidate this once the TLF
-		// is created, but in practice, the Linux kernel
-		// doesn't cache readdir results, and probably not
-		// OSXFUSE either.
-		tlf.folder.fs.log.CDebugf(ctx,
-			"No permission to write to %s, so pretending it's empty",
-			tlf.folder.name)
-		return true, nil
-
-	case libkbfs.MDServerErrorWriteAccess:
-		// Same as above; cannot fallthrough in type switch
-		tlf.folder.fs.log.CDebugf(ctx,
-			"No permission to write to %s, so pretending it's empty",
-			tlf.folder.name)
-		return true, nil
-
-	default:
-		// Some other error.
-		return true, err
-	}
-}
-
 // ReadDirAll implements the fs.NodeReadDirAller interface for TLF.
 func (tlf *TLF) ReadDirAll(ctx context.Context) ([]fuse.Dirent, error) {
-	dir, err := tlf.loadDir(ctx)
-	exitEarly, err := tlf.filterEarlyExitError(ctx, err)
+	dir, exitEarly, err := tlf.loadDirAllowNonexistent(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -793,8 +811,7 @@ func (tlf *TLF) Open(ctx context.Context, req *fuse.OpenRequest,
 	// Explicitly load the directory when a TLF is opened, because
 	// some OSX programs like ls have a bug that doesn't report errors
 	// on a ReadDirAll.
-	_, err := tlf.loadDir(ctx)
-	_, err = tlf.filterEarlyExitError(ctx, err)
+	_, _, err := tlf.loadDirAllowNonexistent(ctx)
 	if err != nil {
 		return nil, err
 	}
