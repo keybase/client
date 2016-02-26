@@ -21,6 +21,9 @@ const (
 	// error operation modes
 	errorModeRead  = "read"
 	errorModeWrite = "write"
+
+	// features that aren't ready yet
+	errorFeatureFileLimit = "2gbFileLimit"
 )
 
 const connectionStatusConnected keybase1.FSStatusCode = keybase1.FSStatusCode_START
@@ -100,6 +103,9 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 			code = keybase1.FSErrorType_BAD_FOLDER
 			params[errorParamTlf] = fmt.Sprintf("/keybase/%s", e.Name)
 		}
+	case FileTooBigError:
+		code = keybase1.FSErrorType_NOT_IMPLEMENTED
+		params[errorParamFeature] = errorFeatureFileLimit
 	}
 
 	if code < 0 && err == context.DeadlineExceeded {
