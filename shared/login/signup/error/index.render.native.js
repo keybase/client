@@ -2,13 +2,15 @@
 /* eslint-disable react/prop-types */
 
 import React, {Component} from 'react'
+import {View} from 'react-native'
 
-export type Props = {
-  onInviteCodeSubmit: () => void,
-  inviteCode: ?string,
-  inviteCodeErrorText: ?string
-}
+import type {Props} from './index.render'
 
 export default class Render extends Component {
   props: Props;
+
+  render (): ReactElement {
+    return <View/>
+  }
 }
+

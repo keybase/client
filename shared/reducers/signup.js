@@ -17,7 +17,8 @@ export type SignupState = {
   deviceNameError: ?string,
   deviceName: ?string,
   paperkey: ?HiddenString,
-  phase: 'inviteCode' | 'usernameAndEmail' | 'passphraseSignup' | 'deviceName' | 'signupLoading' | 'paperkey' | 'success'
+  signupError: ?HiddenString,
+  phase: 'inviteCode' | 'usernameAndEmail' | 'passphraseSignup' | 'deviceName' | 'signupLoading' | 'paperkey' | 'success' | 'signupError'
 }
 
 const initialState: SignupState = {
@@ -31,6 +32,7 @@ const initialState: SignupState = {
   passphrase: null,
   deviceNameError: null,
   paperkey: null,
+  signupError: null,
   deviceName: 'Home Computer',
   phase: 'inviteCode'
 }
@@ -131,6 +133,23 @@ export default function (state: SignupState = initialState, action: SignupAction
           ...state,
           phase: 'success'
         }
+      }
+
+    case Constants.signup:
+      if (action.error) {
+        return {
+          ...state,
+          signupError: action.payload.signupError,
+          phase: 'signupError'
+        }
+      } else {
+        return state
+      }
+
+    case Constants.resetSignup:
+      return {
+        ...state,
+        phase: 'inviteCode'
       }
 
     default:

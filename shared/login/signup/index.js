@@ -9,6 +9,7 @@ import UsernameEmailForm from './username-email-form'
 import PassphraseSignup from './passphrase'
 import DeviceName from './device-name'
 import Success from './success'
+import SignupError from './error'
 
 import {Map} from 'immutable'
 import type {URI} from '../../reducers/router'
@@ -40,6 +41,9 @@ export default function signupRouter (currentPath: Map<string, string>, uri: URI
       case 'paperkey':
       case 'success':
         form = <Success/>
+        break
+      case 'signupError':
+        form = <SignupError/>
         break
     }
   }
