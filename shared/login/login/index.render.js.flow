@@ -10,6 +10,4 @@ export type Props = {
   onLogin: (user: string, passphrase: string, store: boolean) => void
 }
 
-export default class LoginRender extends Component {
-  props: Props;
-}
+export default class LoginRender extends React$Component<void, Props, void> { }

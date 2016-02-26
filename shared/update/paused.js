@@ -11,10 +11,10 @@ type RenderProps = {
   onCancel: () => void
 }
 
-export default class UpdatePaused extends Component {
+class UpdatePaused extends Component {
   props: RenderProps;
 
-  render (): ReactElement {
+  render () {
     return (
       <div style={styles.container}>
         <Header title='Update Paused' icon onClose={() => this.props.onCancel()} />

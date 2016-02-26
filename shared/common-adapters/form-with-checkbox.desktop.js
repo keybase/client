@@ -5,6 +5,7 @@ import {Checkbox, Input} from './index'
 import {globalStyles} from '../styles/style-guide'
 
 import type {Props} from './form-with-checkbox'
+import type {Props as CheckboxProps} from './checkbox'
 
 export default class FormWithCheckbox extends Component {
   props: Props;
@@ -16,7 +17,10 @@ export default class FormWithCheckbox extends Component {
       <div style={{...globalStyles.flexBoxColumn, marginBottom: 15, ...this.props.style}}>
         <Input style={{marginBottom: 0}} errorStyle={{marginTop: 24, textAlign: 'center'}} {...inputProps}/>
         <div style={{...styles.checkboxContainer, ...this.props.checkboxContainerStyle}}>
-          {checkboxesProps.map(p => <Checkbox dz2 key={p.label} {...p}/>)}
+          {checkboxesProps.map(p => {
+            const checkProps: CheckboxProps = {dz2: true, key: p.label, ...p}
+            return <Checkbox {...checkProps}/>
+          })}
         </div>
       </div>
     )

@@ -13,7 +13,7 @@ import type {URI} from '../reducers/router'
 
 function loginRouter (currentPath: Map<string, string>, uri: URI): any {
   // Fallback (for debugging)
-  let form = <ErrorText currentPath={currentPath} />
+  let form = <ErrorText currentPath={currentPath}/>
 
   const path = currentPath.get('path')
 
