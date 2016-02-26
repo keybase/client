@@ -1,0 +1,23 @@
+
+@namespace("keybase.1")
+
+protocol process {
+
+  enum FileType {
+    UNKNOWN_0,
+    DIRECTORY_1,
+    FILE_2
+  }
+
+  record FileDescriptor {
+    string name;
+    FileType type;
+  }
+
+  record Process {
+    string pid;
+    string command;
+    array<FileDescriptor> fileDescriptors;
+  }
+
+}

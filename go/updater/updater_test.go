@@ -20,21 +20,25 @@ func NewTestUpdater(t *testing.T, options keybase1.UpdateOptions) *Updater {
 	return NewUpdater(options, testUpdateSource{}, testConfig{}, logger.NewTestLogger(t))
 }
 
-type testUpdateSource struct{}
+type testUpdateUI struct{}
 
-type nullUpdateUI struct{}
-
-func (u nullUpdateUI) UpdatePrompt(_ context.Context, _ keybase1.UpdatePromptArg) (keybase1.UpdatePromptRes, error) {
+func (u testUpdateUI) UpdatePrompt(_ context.Context, _ keybase1.UpdatePromptArg) (keybase1.UpdatePromptRes, error) {
 	return keybase1.UpdatePromptRes{Action: keybase1.UpdateAction_UPDATE}, nil
 }
 
-func (u nullUpdateUI) UpdateQuit(_ context.Context) (keybase1.UpdateQuitRes, error) {
+func (u testUpdateUI) UpdateQuit(_ context.Context) (keybase1.UpdateQuitRes, error) {
 	return keybase1.UpdateQuitRes{Quit: false}, nil
 }
 
-func (u nullUpdateUI) GetUpdateUI() (libkb.UpdateUI, error) {
+func (u testUpdateUI) GetUpdateUI() (libkb.UpdateUI, error) {
 	return u, nil
 }
+
+func (u testUpdateUI) UpdateAppInUse(context.Context, keybase1.UpdateAppInUseArg) (keybase1.UpdateAppInUseRes, error) {
+	return keybase1.UpdateAppInUseRes{Action: keybase1.UpdateAppInUseAction_CANCEL}, nil
+}
+
+type testUpdateSource struct{}
 
 func (u testUpdateSource) Description() string {
 	return "Test"
@@ -110,6 +114,10 @@ func (c testConfig) GetRunModeAsString() string {
 	return "test"
 }
 
+func (c testConfig) GetMountDir() string {
+	return filepath.Join(os.Getenv("HOME"), "keybase.test")
+}
+
 func NewDefaultTestUpdateConfig() keybase1.UpdateOptions {
 	return keybase1.UpdateOptions{
 		Version:             "1.0.0",
@@ -122,7 +130,7 @@ func NewDefaultTestUpdateConfig() keybase1.UpdateOptions {
 
 func TestUpdater(t *testing.T) {
 	u := NewTestUpdater(t, NewDefaultTestUpdateConfig())
-	update, err := u.Update(nullUpdateUI{}, false, false)
+	update, err := u.Update(testUpdateUI{}, false, false)
 	if err != nil {
 		t.Error(err)
 	}

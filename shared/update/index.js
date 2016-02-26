@@ -1,27 +1,24 @@
 import React, {Component} from 'react'
-import {connect} from 'react-redux'
-import UpdateRender from './index.render'
+import UpdateConfirm from './confirm'
+import UpdatePaused from './paused'
 
-class Update extends Component {
+export default class Update extends Component {
   render () {
-    return <UpdateRender {...this.props} />
+    if (this.props.type === 'confirm') {
+      return <UpdateConfirm {...this.props.options} />
+    } else if (this.props.type === 'paused') {
+      return <UpdatePaused {...this.props.options} />
+    } else {
+      return <div/>
+    }
   }
 
   static parseRoute () {
-    return {componentAtTop: {title: 'update'}}
+    return {componentAtTop: {title: 'Update'}}
   }
 }
 
-Update.propTypes = UpdateRender.propTypes
-
-export default connect(
-  state => state.update,
-    undefined,
-    (stateProps, dispatchProps, ownProps) => {
-      return {
-        ...stateProps,
-        ...dispatchProps,
-        ...ownProps
-      }
-    }
-)(Update)
+Update.propTypes = {
+  type: React.PropTypes.oneOf(['confirm', 'paused']).isRequired,
+  options: React.PropTypes.any
+}

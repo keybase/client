@@ -4,6 +4,7 @@ protocol updateUi {
 
   import idl "common.avdl";
   import idl "update_common.avdl";
+  import idl "process.avdl";
 
   enum UpdateAction {
     UPDATE_0,
@@ -23,6 +24,19 @@ protocol updateUi {
   }
 
   UpdatePromptRes updatePrompt(int sessionID, Update update, UpdatePromptOptions options);
+
+  enum UpdateAppInUseAction {
+    CANCEL_0,
+    FORCE_1, // Proceed with update
+    SNOOZE_2,
+    KILL_PROCESSES_3 // Kill processes and re-check
+  }
+
+  record UpdateAppInUseRes {
+    UpdateAppInUseAction action;
+  }
+
+  UpdateAppInUseRes updateAppInUse(int sessionID, Update update, array<Process> processes);
 
   record UpdateQuitRes {
     boolean quit; // Whether we can quit

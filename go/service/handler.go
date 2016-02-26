@@ -141,8 +141,12 @@ type UpdateUI struct {
 	cli       *keybase1.UpdateUiClient
 }
 
-func (u *UpdateUI) UpdatePrompt(ctx context.Context, arg keybase1.UpdatePromptArg) (res keybase1.UpdatePromptRes, err error) {
+func (u *UpdateUI) UpdatePrompt(ctx context.Context, arg keybase1.UpdatePromptArg) (keybase1.UpdatePromptRes, error) {
 	return u.cli.UpdatePrompt(ctx, arg)
+}
+
+func (u *UpdateUI) UpdateAppInUse(ctx context.Context, arg keybase1.UpdateAppInUseArg) (keybase1.UpdateAppInUseRes, error) {
+	return u.cli.UpdateAppInUse(ctx, arg)
 }
 
 func (u *UpdateUI) UpdateQuit(ctx context.Context) (res keybase1.UpdateQuitRes, err error) {

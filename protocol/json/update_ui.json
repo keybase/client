@@ -386,6 +386,50 @@
     },
     {
       "type": "enum",
+      "name": "FileType",
+      "symbols": [
+        "UNKNOWN_0",
+        "DIRECTORY_1",
+        "FILE_2"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "FileDescriptor",
+      "fields": [
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "FileType",
+          "name": "type"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Process",
+      "fields": [
+        {
+          "type": "string",
+          "name": "pid"
+        },
+        {
+          "type": "string",
+          "name": "command"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "FileDescriptor"
+          },
+          "name": "fileDescriptors"
+        }
+      ]
+    },
+    {
+      "type": "enum",
       "name": "UpdateAction",
       "symbols": [
         "UPDATE_0",
@@ -419,6 +463,26 @@
         {
           "type": "boolean",
           "name": "alwaysAutoInstall"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "UpdateAppInUseAction",
+      "symbols": [
+        "CANCEL_0",
+        "FORCE_1",
+        "SNOOZE_2",
+        "KILL_PROCESSES_3"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UpdateAppInUseRes",
+      "fields": [
+        {
+          "type": "UpdateAppInUseAction",
+          "name": "action"
         }
       ]
     },
@@ -458,6 +522,26 @@
         }
       ],
       "response": "UpdatePromptRes"
+    },
+    "updateAppInUse": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "update",
+          "type": "Update"
+        },
+        {
+          "name": "processes",
+          "type": {
+            "type": "array",
+            "items": "Process"
+          }
+        }
+      ],
+      "response": "UpdateAppInUseRes"
     },
     "updateQuit": {
       "request": [],

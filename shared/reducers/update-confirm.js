@@ -3,9 +3,9 @@
 import * as Constants from '../constants/update'
 
 import type {Asset, UpdateType} from '../constants/types/flow-types'
-import type {UpdateActions} from '../constants/update'
+import type {UpdateConfirmActions} from '../constants/update'
 
-export type ShowUpdateState = {
+export type UpdateConfirmState = {
   started: boolean,
   closed: boolean,
   newVersion: ?string,
@@ -20,7 +20,7 @@ export type ShowUpdateState = {
   canUpdate: ?boolean
 }
 
-const initialState: ShowUpdateState = {
+const initialState: UpdateConfirmState = {
   started: false,
   closed: true,
   newVersion: null,
@@ -35,14 +35,14 @@ const initialState: ShowUpdateState = {
   canUpdate: true
 }
 
-export default function (state: ShowUpdateState = initialState, action: UpdateActions): ShowUpdateState {
+export default function (state: UpdateConfirmState = initialState, action: UpdateConfirmActions): UpdateConfirmState {
   switch (action.type) {
     case Constants.registerUpdateListener:
       return {
         ...state,
         started: !!(action.payload && action.payload.started)
       }
-    case Constants.showUpdatePrompt:
+    case Constants.showUpdateConfirm:
       if (state.started === true && action.payload) {
         const {
           newVersion, oldVersion, description, type, asset, snoozeTime, windowTitle,
@@ -63,7 +63,7 @@ export default function (state: ShowUpdateState = initialState, action: UpdateAc
       }
     case Constants.onSnooze:
       return {...state, closed: true}
-    case Constants.onUpdate:
+    case Constants.onConfirmUpdate:
       return {...state, closed: true}
     case Constants.onCancel:
       return {...state, closed: true}

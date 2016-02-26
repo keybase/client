@@ -612,7 +612,7 @@ type UpdateUI struct {
 func (u UpdateUI) UpdatePrompt(_ context.Context, arg keybase1.UpdatePromptArg) (res keybase1.UpdatePromptRes, err error) {
 	if u.noPrompt {
 		res.Action = keybase1.UpdateAction_UPDATE
-		return res, err
+		return
 	}
 
 	var updateType string
@@ -632,7 +632,7 @@ func (u UpdateUI) UpdatePrompt(_ context.Context, arg keybase1.UpdatePromptArg) 
 	var doUpdate bool
 	doUpdate, err = u.terminal.PromptYesNo(PromptDescriptorUpdateDo, prompt, libkb.PromptDefaultYes)
 	if err != nil {
-		return res, err
+		return
 	}
 	if doUpdate {
 		res.Action = keybase1.UpdateAction_UPDATE
@@ -653,7 +653,26 @@ func (u UpdateUI) UpdatePrompt(_ context.Context, arg keybase1.UpdatePromptArg) 
 			res.Action = keybase1.UpdateAction_CANCEL
 		}
 	}
-	return res, err
+	return
+}
+
+func (u UpdateUI) UpdateAppInUse(ctx context.Context, arg keybase1.UpdateAppInUseArg) (res keybase1.UpdateAppInUseRes, err error) {
+	if u.noPrompt {
+		res.Action = keybase1.UpdateAppInUseAction_FORCE
+		return
+	}
+	u.terminal.Printf("You have files, folders or a terminal open in Keybase.\n")
+	for _, process := range arg.Processes {
+		u.terminal.Printf("  %s (%s)\n", process.Command, process.Pid)
+	}
+	u.terminal.Printf("\n")
+	prompt := "Force update?"
+	var doUpdate bool
+	doUpdate, err = u.terminal.PromptYesNo(PromptDescriptorUpdateDo, prompt, libkb.PromptDefaultYes)
+	if doUpdate {
+		res.Action = keybase1.UpdateAppInUseAction_FORCE
+	}
+	return
 }
 
 func (u UpdateUI) UpdateQuit(_ context.Context) (res keybase1.UpdateQuitRes, err error) {

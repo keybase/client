@@ -1697,11 +1697,22 @@ export const updateUi = {
     'bugfix': 1,
     'critical': 2
   },
+  'FileType': {
+    'unknown': 0,
+    'directory': 1,
+    'file': 2
+  },
   'UpdateAction': {
     'update': 0,
     'skip': 1,
     'snooze': 2,
     'cancel': 3
+  },
+  'UpdateAppInUseAction': {
+    'cancel': 0,
+    'force': 1,
+    'snooze': 2,
+    'killProcesses': 3
   }
 }
 

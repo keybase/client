@@ -80,7 +80,7 @@ func mountInfo(fstype string) ([]keybase1.FuseMountInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	lines := strings.Split(string(string(out)), "\n")
+	lines := strings.Split(string(out), "\n")
 	mountInfos := []keybase1.FuseMountInfo{}
 	for _, line := range lines {
 		if strings.TrimSpace(line) == "" {
