@@ -41,6 +41,14 @@ export default function (dispatch: Dispatch, notify: any): incomingCallMapType {
         [enums.kbfs.FSStatusCode.error]: 'errored'
       }[notification.statusCode]
 
+      // KBFS fires a notification when it changes state between connected
+      // and disconnected (to the mdserver).  For now we just log it.
+      if (notification.notificationType === enums.kbfs.FSNotificationType.connection) {
+        const state = (notification.statusCode === enums.kbfs.FSStatusCode.start) ? 'connected' : 'disconnected'
+        console.log(`KBFS is ${state}`)
+        return
+      }
+
       if (notification.statusCode === enums.kbfs.FSStatusCode.finish) {
         // Since we're aggregating dir operations and not showing state,
         // let's ignore file-finished notifications.
