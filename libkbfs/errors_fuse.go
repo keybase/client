@@ -109,3 +109,10 @@ var _ fuse.ErrorNumber = NoCurrentSessionError{}
 func (e NoCurrentSessionError) Errno() fuse.Errno {
 	return fuse.Errno(syscall.EACCES)
 }
+
+var _ fuse.ErrorNumber = MDServerErrorWriteAccess{}
+
+// Errno implements the fuse.ErrorNumber interface for MDServerErrorWriteAccess.
+func (e MDServerErrorWriteAccess) Errno() fuse.Errno {
+	return fuse.Errno(syscall.EACCES)
+}

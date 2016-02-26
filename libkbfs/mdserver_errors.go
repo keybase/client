@@ -181,7 +181,8 @@ func (e MDServerErrorUnauthorized) ToStatus() (s keybase1.Status) {
 	return
 }
 
-// MDServerErrorWriteAccess is returned when a device requests a key half which doesn't belong to it.
+// MDServerErrorWriteAccess is returned when the client isn't authorized to
+// write to a TLF.
 type MDServerErrorWriteAccess struct{}
 
 // Error implements the Error interface for MDServerErrorWriteAccess.
