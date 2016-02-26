@@ -24,6 +24,7 @@ const (
 
 	// features that aren't ready yet
 	errorFeatureFileLimit = "2gbFileLimit"
+	errorFeatureDirLimit  = "512kbDirLimit"
 )
 
 const connectionStatusConnected keybase1.FSStatusCode = keybase1.FSStatusCode_START
@@ -106,6 +107,9 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 	case FileTooBigError:
 		code = keybase1.FSErrorType_NOT_IMPLEMENTED
 		params[errorParamFeature] = errorFeatureFileLimit
+	case DirTooBigError:
+		code = keybase1.FSErrorType_NOT_IMPLEMENTED
+		params[errorParamFeature] = errorFeatureDirLimit
 	}
 
 	if code < 0 && err == context.DeadlineExceeded {
