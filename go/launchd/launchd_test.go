@@ -7,6 +7,8 @@ package launchd
 
 import (
 	"encoding/xml"
+	"fmt"
+	"math/rand"
 	"os"
 	"testing"
 
@@ -40,7 +42,8 @@ func TestPlist(t *testing.T) {
 }
 
 func TestCheckPlist(t *testing.T) {
-	label := "keybase.testing.checkplist"
+	label := fmt.Sprintf("keybase.testing.checkplist.%s", randStringBytes(32))
+	t.Logf("Label: %s", label)
 	service := NewService(label)
 	defer os.Remove(service.plistDestination())
 
@@ -97,4 +100,13 @@ func TestCheckPlist(t *testing.T) {
 	if !plistNewIsValidAfterInstall {
 		t.Fatalf("New pist should be valid after install")
 	}
+}
+
+func randStringBytes(n int) string {
+	const letterBytes = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	b := make([]byte, n)
+	for i := range b {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+	return string(b)
 }

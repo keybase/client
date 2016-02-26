@@ -152,11 +152,15 @@ func (s Service) WaitForExit(wait time.Duration) error {
 
 // Install will install the launchd service
 func (s Service) Install(p Plist) error {
+	plistDest := s.plistDestination()
+	return s.install(p, plistDest)
+}
+
+func (s Service) install(p Plist, plistDest string) error {
 	if _, ferr := os.Stat(p.binPath); os.IsNotExist(ferr) {
 		return fmt.Errorf("%s doesn't exist", p.binPath)
 	}
 	plist := p.plistXML()
-	plistDest := s.plistDestination()
 
 	// See GH issue: https://github.com/keybase/client/pull/1399#issuecomment-164810645
 	if err := libkb.MakeParentDirs(plistDest); err != nil {
