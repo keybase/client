@@ -321,7 +321,7 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	_, _, err =
 		kbfsOps2Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
-	if _, ok := err.(ReadAccessError); !ok {
+	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
 
@@ -405,7 +405,7 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	// but device 1 should now fail
 	kbfsOps2 := config2.KBFSOps()
 	_, _, err = kbfsOps2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
-	if _, ok := err.(ReadAccessError); !ok {
+	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with revoked key: %v", err)
 	}
 
@@ -465,16 +465,16 @@ func TestKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T) {
 	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2, u3)
 	defer CheckConfigAndShutdown(t, config1)
 
+	// Revoke user 3's device for now, to test the "other" rekey error.
+	_, uid3, err := config1.KBPKI().Resolve(ctx, u3.String())
+	if err != nil {
+		t.Fatalf("Couldn't resolve u3: %v", err)
+	}
+	RevokeDeviceForLocalUserOrBust(t, config1, uid3, 0)
+
 	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)
 	defer CheckConfigAndShutdown(t, config2)
 	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	config3 := ConfigAsUser(config1.(*ConfigLocal), u3)
-	defer CheckConfigAndShutdown(t, config3)
-	_, uid3, err := config3.KBPKI().GetCurrentUserInfo(context.Background())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -498,21 +498,20 @@ func TestKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T) {
 	config2Dev2 := ConfigAsUser(config1.(*ConfigLocal), u2)
 	defer CheckConfigAndShutdown(t, config2Dev2)
 
-	config3Dev2 := ConfigAsUser(config1.(*ConfigLocal), u3)
-	defer CheckConfigAndShutdown(t, config3Dev2)
+	config3 := ConfigAsUser(config1.(*ConfigLocal), u3)
+	defer CheckConfigAndShutdown(t, config3)
 
 	// Now give u2 and u3 new devices.  The configs don't share a
 	// Keybase Daemon so we have to do it in all places.
 	AddDeviceForLocalUserOrBust(t, config1, uid2)
 	AddDeviceForLocalUserOrBust(t, config2, uid2)
-	AddDeviceForLocalUserOrBust(t, config3, uid2)
 	devIndex := AddDeviceForLocalUserOrBust(t, config2Dev2, uid2)
 	SwitchDeviceForLocalUserOrBust(t, config2Dev2, devIndex)
 	AddDeviceForLocalUserOrBust(t, config1, uid3)
 	AddDeviceForLocalUserOrBust(t, config2, uid3)
-	AddDeviceForLocalUserOrBust(t, config3, uid3)
-	devIndex = AddDeviceForLocalUserOrBust(t, config3Dev2, uid3)
-	SwitchDeviceForLocalUserOrBust(t, config3Dev2, devIndex)
+	devIndex = AddDeviceForLocalUserOrBust(t, config3, uid3)
+	t.Logf("Switching to device %d", devIndex)
+	SwitchDeviceForLocalUserOrBust(t, config3, devIndex)
 
 	// Users 2 and 3 should be unable to read the data now since its
 	// device wasn't registered when the folder was originally
@@ -520,13 +519,12 @@ func TestKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T) {
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	_, _, err =
 		kbfsOps2Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
-	if _, ok := err.(ReadAccessError); !ok {
+	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
-	kbfsOps3Dev2 := config3Dev2.KBFSOps()
-	_, _, err =
-		kbfsOps3Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
-	if _, ok := err.(ReadAccessError); !ok {
+	kbfsOps3 := config3.KBFSOps()
+	_, _, err = kbfsOps3.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+	if _, ok := err.(NeedOtherRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
 
@@ -560,7 +558,7 @@ func TestKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T) {
 	}
 
 	_, _, err =
-		kbfsOps3Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+		kbfsOps3.GetOrCreateRootNode(ctx, name, false, MasterBranch)
 	if err != nil {
 		t.Fatalf("Got unexpected error after rekey: %v", err)
 	}
@@ -610,7 +608,7 @@ func TestKeyManagerSelfRekeyAcrossDevices(t *testing.T) {
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	_, _, err =
 		kbfsOps2Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
-	if _, ok := err.(ReadAccessError); !ok {
+	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
 
@@ -714,7 +712,7 @@ func TestKeyManagerReaderRekey(t *testing.T) {
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	_, _, err =
 		kbfsOps2Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
-	if _, ok := err.(ReadAccessError); !ok {
+	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
 
@@ -741,7 +739,7 @@ func TestKeyManagerReaderRekey(t *testing.T) {
 	kbfsOps1Dev2 := config1Dev2.KBFSOps()
 	_, _, err =
 		kbfsOps1Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
-	if _, ok := err.(ReadAccessError); !ok {
+	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
 
@@ -816,7 +814,7 @@ func TestKeyManagerRekeyBit(t *testing.T) {
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	_, _, err =
 		kbfsOps2Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
-	if _, ok := err.(ReadAccessError); !ok {
+	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
 
@@ -881,7 +879,7 @@ func TestKeyManagerRekeyBit(t *testing.T) {
 	kbfsOps3Dev2 := config3Dev2.KBFSOps()
 	_, _, err =
 		kbfsOps3Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
-	if _, ok := err.(ReadAccessError); !ok {
+	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
 
@@ -978,7 +976,7 @@ func TestKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T) {
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	root2Dev2, _, err :=
 		kbfsOps2Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
-	if _, ok := err.(ReadAccessError); !ok {
+	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
 

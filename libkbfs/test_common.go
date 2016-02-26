@@ -317,7 +317,11 @@ func AddDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config,
 	}
 
 	index := len(user.VerifyingKeys)
-	keySalt := libkb.NormalizedUsername(string(user.Name) + " " + string(index))
+	keySalt := user.Name
+	if index > 0 {
+		keySalt = libkb.NormalizedUsername(string(user.Name) + " " +
+			string(index))
+	}
 	newVerifyingKey := MakeLocalUserVerifyingKeyOrBust(keySalt)
 	user.VerifyingKeys = append(user.VerifyingKeys, newVerifyingKey)
 	newCryptPublicKey := MakeLocalUserCryptPublicKeyOrBust(keySalt)

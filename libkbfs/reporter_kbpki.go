@@ -49,6 +49,10 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context, err error) {
 		n = genericErrorNotification(err)
 	case NoCurrentSessionError:
 		n = genericErrorNotification(err)
+	case NeedSelfRekeyError:
+		n = readTlfErrorNotification(e.Tlf, e.Public, err)
+	case NeedOtherRekeyError:
+		n = readTlfErrorNotification(e.Tlf, e.Public, err)
 	}
 
 	if n == nil && err == context.DeadlineExceeded {

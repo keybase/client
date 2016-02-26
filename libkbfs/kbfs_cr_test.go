@@ -716,7 +716,7 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	_, _, err =
 		kbfsOps2Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
-	if _, ok := err.(ReadAccessError); !ok {
+	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
 
@@ -908,7 +908,7 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	_, _, err =
 		kbfsOps2Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
-	if _, ok := err.(ReadAccessError); !ok {
+	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
 

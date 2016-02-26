@@ -44,6 +44,22 @@ func (e WriteAccessError) Errno() fuse.Errno {
 	return fuse.Errno(syscall.EACCES)
 }
 
+var _ fuse.ErrorNumber = NeedSelfRekeyError{}
+
+// Errno implements the fuse.ErrorNumber interface for
+// NeedSelfRekeyError.
+func (e NeedSelfRekeyError) Errno() fuse.Errno {
+	return fuse.Errno(syscall.EACCES)
+}
+
+var _ fuse.ErrorNumber = NeedOtherRekeyError{}
+
+// Errno implements the fuse.ErrorNumber interface for
+// NeedOtherRekeyError.
+func (e NeedOtherRekeyError) Errno() fuse.Errno {
+	return fuse.Errno(syscall.EACCES)
+}
+
 var _ fuse.ErrorNumber = DisallowedPrefixError{}
 
 // Errno implements the fuse.ErrorNumber interface for

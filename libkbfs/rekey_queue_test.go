@@ -75,7 +75,7 @@ func TestRekeyQueueBasic(t *testing.T) {
 	for _, name := range names {
 		_, _, err =
 			kbfsOps2Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
-		if _, ok := err.(ReadAccessError); !ok {
+		if _, ok := err.(NeedSelfRekeyError); !ok {
 			t.Fatalf("Got unexpected error when reading with new key: %v", err)
 		}
 	}

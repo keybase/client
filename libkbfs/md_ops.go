@@ -61,10 +61,12 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 					return uidErr
 				}
 				isReader := handle.IsReader(uid)
-				_, isReadAccessError := err.(ReadAccessError)
-				if isReader && isReadAccessError {
-					// ReadAccessErrors are expected if this client is a valid
-					// folder participant but doesn't have the shared crypt key.
+				_, isSelfRekeyError := err.(NeedSelfRekeyError)
+				_, isOtherRekeyError := err.(NeedOtherRekeyError)
+				if isReader && (isOtherRekeyError || isSelfRekeyError) {
+					// Rekey errors are expected if this client is a
+					// valid folder participant but doesn't have the
+					// shared crypt key.
 				} else {
 					return err
 				}

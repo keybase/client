@@ -526,11 +526,12 @@ func (md *RootMetadata) isReadableOrError(ctx context.Context, config Config) er
 	}
 	// this should only be the case if we're a new device not yet
 	// added to the set of reader/writer keys.
-	username, _, err := config.KBPKI().GetCurrentUserInfo(ctx)
+	username, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return err
 	}
-	return NewReadAccessError(ctx, config, md.GetTlfHandle(), username)
+	return makeRekeyReadError(ctx, config, md, md.LatestKeyGeneration(),
+		uid, username)
 }
 
 // writerKID returns the KID of the writer.

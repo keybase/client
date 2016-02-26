@@ -5135,6 +5135,7 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		rekeyDone, tlfCryptKey, err = fbo.config.KeyManager().Rekey(ctx, md)
 	}
 
+	stillNeedsRekey := false
 	switch err.(type) {
 	case nil:
 		// TODO: implement a "forced" option that rekeys even when the
@@ -5149,10 +5150,19 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 	case RekeyIncompleteError:
 		fbo.log.CDebugf(ctx,
 			"Rekeyed reader devices, but still need writer rekey")
-		// Rekey incomplete, fallthrough without early exit, to ensure we write
-		// the metadata with any potential changes
+	// Rekey incomplete, fallthrough without early exit, to ensure we write
+	// the metadata with any potential changes
 
-	case ReadAccessError:
+	case NeedOtherRekeyError:
+		stillNeedsRekey = true
+	case NeedSelfRekeyError:
+		stillNeedsRekey = true
+
+	default:
+		return err
+	}
+
+	if stillNeedsRekey {
 		fbo.log.CDebugf(ctx, "Device doesn't have access to rekey")
 		if !rekeyWasSet || timerWasSet {
 			// If we didn't have read access, then we don't have any
@@ -5173,9 +5183,6 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 			return nil
 		}
 		// This device hasn't been keyed yet, fall through to set the rekey bit
-
-	default:
-		return err
 	}
 
 	// add an empty operation to satisfy assumptions elsewhere

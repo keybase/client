@@ -183,6 +183,55 @@ func NewWriteAccessError(ctx context.Context, config Config, h *TlfHandle,
 	return WriteAccessError{username, tlfname, h.IsPublic()}
 }
 
+// NeedSelfRekeyError indicates that the folder in question needs to
+// be rekeyed for the local device, and can be done so by one of the
+// other user's devices.
+type NeedSelfRekeyError struct {
+	Tlf    CanonicalTlfName
+	Public bool
+}
+
+// Error implements the error interface for NeedSelfRekeyError
+func (e NeedSelfRekeyError) Error() string {
+	return fmt.Sprintf("This device does not yet have read access to "+
+		"directory %s, log into Keybase from one of your other "+
+		"devices to grant access", buildCanonicalPath(e.Public, e.Tlf))
+}
+
+// NeedOtherRekeyError indicates that the folder in question needs to
+// be rekeyed for the local device, and can only done so by one of the
+// other users.
+type NeedOtherRekeyError struct {
+	Tlf    CanonicalTlfName
+	Public bool
+}
+
+// Error implements the error interface for NeedOtherRekeyError
+func (e NeedOtherRekeyError) Error() string {
+	return fmt.Sprintf("This device does not yet have read access to "+
+		"directory %s, ask one of the other directory participants to "+
+		"log into Keybase to grant you access automatically",
+		buildCanonicalPath(e.Public, e.Tlf))
+}
+
+func makeRekeyReadError(ctx context.Context, config Config, md *RootMetadata,
+	keyGen KeyGen, uid keybase1.UID,
+	username libkb.NormalizedUsername) error {
+	// If the user is not a legitimate reader of the folder, this is a
+	// normal read access error.
+	handle := md.GetTlfHandle()
+	if !handle.IsReader(uid) {
+		return NewReadAccessError(ctx, config, handle, username)
+	}
+
+	// Otherwise, this folder needs to be rekeyed for this device.
+	tlfName := handle.GetCanonicalName(ctx, config)
+	if keys, _ := md.GetTLFCryptPublicKeys(keyGen, uid); len(keys) > 0 {
+		return NeedSelfRekeyError{tlfName, handle.IsPublic()}
+	}
+	return NeedOtherRekeyError{tlfName, handle.IsPublic()}
+}
+
 // NotFileBlockError indicates that a file block was expected but a
 // block of a different type was found.
 //

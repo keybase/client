@@ -130,8 +130,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 			}
 		}
 		if len(keys) == 0 {
-			err = NewReadAccessError(ctx, km.config, md.GetTlfHandle(),
-				username)
+			err = makeRekeyReadError(ctx, km.config, md, keyGen, uid, username)
 			return tlfCryptKey, err
 		}
 		var index int
@@ -141,8 +140,8 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 			// The likely error here is DecryptionError, which we will replace
 			// with a ReadAccessError to communicate to the caller that we were
 			// unable to decrypt because we didn't have a key with access.
-			return tlfCryptKey, NewReadAccessError(ctx, km.config,
-				md.GetTlfHandle(), username)
+			return tlfCryptKey, makeRekeyReadError(ctx, km.config, md, keyGen,
+				uid, username)
 		}
 		info = keysInfo[index]
 		cryptPublicKey = publicKeys[publicKeyLookup[index]]
@@ -158,8 +157,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 			return tlfCryptKey, err
 		}
 		if !ok {
-			err = NewReadAccessError(ctx, km.config, md.GetTlfHandle(),
-				username)
+			err = makeRekeyReadError(ctx, km.config, md, keyGen, uid, username)
 			return tlfCryptKey, err
 		}
 
