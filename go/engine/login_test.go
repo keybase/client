@@ -469,8 +469,8 @@ func TestProvisionPaper(t *testing.T) {
 	if provUI.calledChooseDeviceType != 0 {
 		t.Errorf("expected 0 calls to ChooseDeviceType, got %d", provUI.calledChooseDeviceType)
 	}
-	if provLoginUI.CalledGetEmailOrUsername != 0 {
-		t.Errorf("expected 0 calls to GetEmailOrUsername, got %d", provLoginUI.CalledGetEmailOrUsername)
+	if provLoginUI.CalledGetEmailOrUsername != 1 {
+		t.Errorf("expected 1 call to GetEmailOrUsername, got %d", provLoginUI.CalledGetEmailOrUsername)
 	}
 	var key libkb.GenericKey
 

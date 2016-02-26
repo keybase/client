@@ -266,10 +266,15 @@ func (e *LoginProvision) paper(ctx *Context) error {
 	if err != nil {
 		return err
 	}
-	e.user = user
+
+	if user.GetUID() != e.arg.User.GetUID() {
+		// XXX instead of error, try again
+		e.G().Log.Debug("paper key entered was for a different user")
+		return fmt.Errorf("paper key valid, but for %s, not %s", user.GetName(), e.arg.User.GetName())
+	}
 
 	// found a paper key that can be used for signing
-	e.G().Log.Debug("found paper key match for %s", e.user.GetName())
+	e.G().Log.Debug("found paper key match for %s", e.arg.User.GetName())
 
 	// After obtaining login session, this will be called before the login state is released.
 	// It signs this new device with the paper key.
@@ -292,7 +297,7 @@ func (e *LoginProvision) paper(ctx *Context) error {
 	}
 
 	// need a session to continue to provision, login with paper sigKey
-	return e.G().LoginState().LoginWithKey(ctx.LoginContext, e.user, kp.sigKey, afterLogin)
+	return e.G().LoginState().LoginWithKey(ctx.LoginContext, e.arg.User, kp.sigKey, afterLogin)
 }
 
 // passphrase attempts to provision the device via username and
@@ -707,7 +712,8 @@ func (e *LoginProvision) chooseDevice(ctx *Context, pgp bool) error {
 }
 
 func (e *LoginProvision) paper3(ctx *Context, device *libkb.Device) error {
-	return errors.New("paper3 not implemented")
+	// XXX do we care if they enter a paper key that doesn't match device?
+	return e.paper(ctx)
 }
 
 func (e *LoginProvision) tryPGP(ctx *Context) error {
@@ -1104,6 +1110,7 @@ func (e *LoginProvision) checkUserByPGPFingerprint(ctx *Context, fp *libkb.PGPFi
 	return nil
 }
 
+// XXX this needs to retry instead of erroring out
 func (e *LoginProvision) getPaperKey(ctx *Context) (*keypair, error) {
 	passphrase, err := libkb.GetPaperKeyPassphrase(ctx.SecretUI, "")
 	if err != nil {
@@ -1134,6 +1141,7 @@ func (e *LoginProvision) getPaperKey(ctx *Context) (*keypair, error) {
 	return kp, nil
 }
 
+// XXX change to uidByKID
 func (e *LoginProvision) loadUserByKID(kid keybase1.KID) (*libkb.User, error) {
 	arg := libkb.APIArg{
 		Endpoint:     "key/owner",
@@ -1164,7 +1172,7 @@ func (e *LoginProvision) fetchLKS(ctx *Context, encKey libkb.GenericKey) error {
 	if err != nil {
 		return err
 	}
-	e.lks = libkb.NewLKSecWithClientHalf(clientLKS, gen, e.user.GetUID(), e.G())
+	e.lks = libkb.NewLKSecWithClientHalf(clientLKS, gen, e.arg.User.GetUID(), e.G())
 	return nil
 }
 
