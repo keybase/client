@@ -116,3 +116,11 @@ var _ fuse.ErrorNumber = MDServerErrorWriteAccess{}
 func (e MDServerErrorWriteAccess) Errno() fuse.Errno {
 	return fuse.Errno(syscall.EACCES)
 }
+
+var _ fuse.ErrorNumber = NoSuchFolderListError{}
+
+// Errno implements the fuse.ErrorNumber interface for
+// NoSuchFolderListError
+func (e NoSuchFolderListError) Errno() fuse.Errno {
+	return fuse.Errno(syscall.ENOENT)
+}

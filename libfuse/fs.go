@@ -3,6 +3,7 @@ package libfuse
 import (
 	"os"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 
@@ -263,7 +264,17 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 	case PublicName:
 		return r.public, nil
 	}
-	return nil, fuse.ENOENT
+
+	// Don't want to pop up errors on special OS files.
+	if strings.HasPrefix(req.Name, ".") {
+		return nil, fuse.ENOENT
+	}
+
+	return nil, libkbfs.NoSuchFolderListError{
+		Name:     req.Name,
+		PrivName: PrivateName,
+		PubName:  PublicName,
+	}
 }
 
 var _ fs.Handle = (*Root)(nil)

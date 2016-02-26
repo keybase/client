@@ -26,10 +26,10 @@ const (
 const connectionStatusConnected keybase1.FSStatusCode = keybase1.FSStatusCode_START
 const connectionStatusDisconnected keybase1.FSStatusCode = keybase1.FSStatusCode_ERROR
 
-// noErrorUsernames are user names that should not result in an error
-// notification.  These should all be reserved Keybase usernames that
-// will never be associated with a real account.
-var noErrorUsernames = map[string]bool{
+// noErrorNames are lookup names that should not result in an error
+// notification.  These should all be reserved or illegal Keybase
+// usernames that will never be associated with a real account.
+var noErrorNames = map[string]bool{
 	"objects": true, // git shells
 	"gemfile": true, // rvm
 	"devfs":   true, // lsof?  KBFS-823
@@ -76,7 +76,7 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 	case WriteAccessError:
 		code = keybase1.FSErrorType_ACCESS_DENIED
 	case NoSuchUserError:
-		if !noErrorUsernames[e.Input] {
+		if !noErrorNames[e.Input] {
 			code = keybase1.FSErrorType_USER_NOT_FOUND
 			params[errorParamUsername] = e.Input
 			if strings.ContainsAny(e.Input, "@:") {
@@ -95,6 +95,11 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 	case NeedOtherRekeyError:
 		code = keybase1.FSErrorType_REKEY_NEEDED
 		params[errorParamRekeySelf] = "false"
+	case NoSuchFolderListError:
+		if !noErrorNames[e.Name] {
+			code = keybase1.FSErrorType_BAD_FOLDER
+			params[errorParamTlf] = fmt.Sprintf("/keybase/%s", e.Name)
+		}
 	}
 
 	if code < 0 && err == context.DeadlineExceeded {
