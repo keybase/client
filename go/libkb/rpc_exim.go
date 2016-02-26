@@ -446,6 +446,7 @@ func (c CurrentStatus) Export() (ret keybase1.GetCurrentStatusRes) {
 	ret.Configured = c.Configured
 	ret.Registered = c.Registered
 	ret.LoggedIn = c.LoggedIn
+	ret.SessionIsValid = c.SessionIsValid
 	if c.User != nil {
 		ret.User = c.User.Export()
 	}

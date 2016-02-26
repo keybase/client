@@ -8,6 +8,7 @@ protocol config {
     boolean configured;
     boolean registered;
     boolean loggedIn;
+    boolean sessionIsValid;
     union { null, User } user;
   }
 
