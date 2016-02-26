@@ -36,6 +36,7 @@
     "marked": "^0.3.5",
     "material-ui": "^0.14.4",
     "menubar": "keybase/menubar",
+    "mkdirp": "^0.5.1",
     "moment": "^2.11.2",
     "purepack": "keybase/purepack#nojima/keybase-client-changes",
     "qrcode-generator": "^1.0.0",
