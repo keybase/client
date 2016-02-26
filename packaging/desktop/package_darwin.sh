@@ -32,6 +32,8 @@ comment=""
 keybase_binpath=${KEYBASE_BINPATH:-}
 kbfs_binpath=${KBFS_BINPATH:-}
 
+icon_path="$client_dir/media/icons/Keybase.icns"
+
 echo "Loading release tool"
 "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
 release_bin="$GOPATH/bin/release"
@@ -133,7 +135,7 @@ package_electron() {
 
   rm -rf node_modules
   npm install
-  npm run package -- --appVersion="$app_version" --comment="$comment" --icon="$client_dir/media/icons/Keybase.icns"
+  npm run package -- --appVersion="$app_version" --comment="$comment" --icon="$icon_path"
   rsync -av release/darwin-x64/Keybase-darwin-x64 $build_dir
 }
 
@@ -174,7 +176,7 @@ package_dmg() {
   osx_scripts="$client_dir/osx/Scripts"
   cp $osx_scripts/appdmg/$appdmg .
   cp $osx_scripts/appdmg/Background.png .
-  cp $osx_scripts/appdmg/Keybase.icns .
+  cp $icon_path .
 
   rm -rf $dmg_name
   $node_bin/appdmg $appdmg $dmg_name
