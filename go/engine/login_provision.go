@@ -122,6 +122,12 @@ func (e *LoginProvision) device(ctx *Context) error {
 	}
 	e.G().Log.Debug("provisioner device type: %v", provisionerType)
 
+	return e.deviceWithType(ctx, provisionerType)
+}
+
+// deviceWithType provisions this device with an existing device using the
+// kex2 protocol.  provisionerType is the existing device type.
+func (e *LoginProvision) deviceWithType(ctx *Context, provisionerType keybase1.DeviceType) error {
 	// make a new secret:
 	secret, err := libkb.NewKex2Secret()
 	if err != nil {
@@ -691,10 +697,16 @@ func (e *LoginProvision) chooseDevice(ctx *Context, pgp bool) error {
 	}
 
 	// XXX use an error instead?
-	if len(id) == 0 && pgp {
+	if len(id) == 0 {
 		// they chose not to use a device
 		e.G().Log.Debug("user has devices, but chose not to use any of them")
-		return e.tryPGP(ctx)
+		if pgp {
+			// they have pgp keys, so try that:
+			return e.tryPGP(ctx)
+		}
+		// tell them they need to reset their account
+		// XXX improve this
+		return errors.New("reset account is your only option")
 	}
 
 	e.G().Log.Debug("user selected device %s", id)
@@ -704,11 +716,16 @@ func (e *LoginProvision) chooseDevice(ctx *Context, pgp bool) error {
 	}
 	e.G().Log.Debug("device details: %+v", selected)
 
-	if selected.Type == libkb.DeviceTypePaper {
+	switch selected.Type {
+	case libkb.DeviceTypePaper:
 		return e.paper3(ctx, selected)
+	case libkb.DeviceTypeDesktop:
+		return e.deviceWithType(ctx, keybase1.DeviceType_DESKTOP)
+	case libkb.DeviceTypeMobile:
+		return e.deviceWithType(ctx, keybase1.DeviceType_MOBILE)
+	default:
+		return fmt.Errorf("unknown device type: %v", selected.Type)
 	}
-
-	return errors.New("rest of device provisioning not implemented")
 }
 
 func (e *LoginProvision) paper3(ctx *Context, device *libkb.Device) error {

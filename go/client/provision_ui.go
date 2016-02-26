@@ -124,7 +124,30 @@ func (p ProvisionUI) ChooseGPGMethod(ctx context.Context, arg keybase1.ChooseGPG
 }
 
 func (p ProvisionUI) ChooseDevice(ctx context.Context, arg keybase1.ChooseDeviceArg) (keybase1.DeviceID, error) {
-	return keybase1.DeviceID(""), nil
+	p.parent.Output("\nThe device you are currently using needs to be provisioned.\n")
+	p.parent.Output("Which one of your existing devices would you like to use\n")
+	p.parent.Output("to provision this new device?\n\n")
+	for i, d := range arg.Devices {
+		p.parent.Printf("\t%d. [%s]\t%s\n", i+1, d.Type, d.Name)
+	}
+	p.parent.Printf("\t%d. I don't have access to any of these devices.\n", len(arg.Devices)+1)
+	p.parent.Output("\n")
+
+	ret, err := PromptSelectionOrCancel(PromptDescriptorChooseDevice, p.parent, "Choose a device", 1, len(arg.Devices)+1)
+
+	if err != nil {
+		if err == ErrInputCanceled {
+			return keybase1.DeviceID(""), libkb.InputCanceledError{}
+		}
+		return keybase1.DeviceID(""), err
+	}
+
+	if ret == len(arg.Devices)+1 {
+		// no access selection
+		return keybase1.DeviceID(""), nil
+	}
+
+	return arg.Devices[ret-1].DeviceID, nil
 }
 
 func (p ProvisionUI) ChooseDeviceType(ctx context.Context, arg keybase1.ChooseDeviceTypeArg) (keybase1.DeviceType, error) {

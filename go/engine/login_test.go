@@ -129,7 +129,7 @@ func TestUserInfo(t *testing.T) {
 	}
 }
 
-func TestLogin(t *testing.T) {
+func TestLoginXXX(t *testing.T) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
