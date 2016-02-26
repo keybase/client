@@ -283,6 +283,7 @@ export type GetCurrentStatusRes = {
   configured: boolean;
   registered: boolean;
   loggedIn: boolean;
+  sessionIsValid: boolean;
   user?: ?User;
 }
 
@@ -301,6 +302,7 @@ export type IdentifyKey = {
   pgpFingerprint: bytes;
   KID: KID;
   trackDiff?: ?TrackDiff;
+  breaksTracking: bool;
 }
 
 export type IdentifyOutcome = {
@@ -354,6 +356,7 @@ export type Identity = {
   proofs: Array<IdentifyRow>;
   cryptocurrency: Array<Cryptocurrency>;
   revoked: Array<TrackDiff>;
+  breaksTracking: bool;
 }
 
 export type InstallAction =
@@ -434,6 +437,7 @@ export type LinkCheckResult = {
   diff?: ?TrackDiff;
   remoteDiff?: ?TrackDiff;
   hint?: ?SigHint;
+  breaksTracking: bool;
 }
 
 export type LogLevel =

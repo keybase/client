@@ -117,6 +117,11 @@ func (s *IdentifyState) computeKeyDiffs(dhook func(keybase1.IdentifyKey)) {
 		if fp, ok := s.u.GetKeyFamily().kid2pgp[kid]; ok {
 			k.PGPFingerprint = fp[:]
 		}
+		// Anything other than a no difference here should be displayed to
+		// the user.
+		if diff != nil {
+			k.BreaksTracking = diff.BreaksTracking()
+		}
 		dhook(k)
 	}
 

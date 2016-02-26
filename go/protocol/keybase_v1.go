@@ -2035,6 +2035,7 @@ type IdentifyKey struct {
 	PGPFingerprint []byte     `codec:"pgpFingerprint" json:"pgpFingerprint"`
 	KID            KID        `codec:"KID" json:"KID"`
 	TrackDiff      *TrackDiff `codec:"trackDiff,omitempty" json:"trackDiff,omitempty"`
+	BreaksTracking bool       `codec:"breaksTracking" json:"breaksTracking"`
 }
 
 type Cryptocurrency struct {
@@ -2049,6 +2050,7 @@ type Identity struct {
 	Proofs          []IdentifyRow    `codec:"proofs" json:"proofs"`
 	Cryptocurrency  []Cryptocurrency `codec:"cryptocurrency" json:"cryptocurrency"`
 	Revoked         []TrackDiff      `codec:"revoked" json:"revoked"`
+	BreaksTracking  bool             `codec:"breaksTracking" json:"breaksTracking"`
 }
 
 type SigHint struct {
@@ -2082,6 +2084,7 @@ type LinkCheckResult struct {
 	Diff               *TrackDiff   `codec:"diff,omitempty" json:"diff,omitempty"`
 	RemoteDiff         *TrackDiff   `codec:"remoteDiff,omitempty" json:"remoteDiff,omitempty"`
 	Hint               *SigHint     `codec:"hint,omitempty" json:"hint,omitempty"`
+	BreaksTracking     bool         `codec:"breaksTracking" json:"breaksTracking"`
 }
 
 type UserCard struct {

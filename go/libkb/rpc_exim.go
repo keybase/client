@@ -42,16 +42,24 @@ func (l LinkCheckResult) Export() keybase1.LinkCheckResult {
 	if l.cached != nil {
 		ret.Cached = l.cached.Export()
 	}
+	bt := false
 	if l.diff != nil {
 		ret.Diff = ExportTrackDiff(l.diff)
+		if l.diff.BreaksTracking() {
+			bt = true
+		}
 	}
 	if l.remoteDiff != nil {
 		ret.RemoteDiff = ExportTrackDiff(l.remoteDiff)
+		if l.diff.BreaksTracking() {
+			bt = true
+		}
 	}
 	if l.hint != nil {
 		ret.Hint = l.hint.Export()
 	}
 	ret.TmpTrackExpireTime = keybase1.ToTime(l.tmpTrackExpireTime)
+	ret.BreaksTracking = bt
 	return ret
 }
 
@@ -97,6 +105,7 @@ func (ir IdentifyOutcome) ExportToUncheckedIdentity() *keybase1.Identity {
 	for j, d := range ir.Revoked {
 		// Should have all non-nil elements...
 		tmp.Revoked[j] = *ExportTrackDiff(d)
+		tmp.BreaksTracking = true
 	}
 	return &tmp
 }
