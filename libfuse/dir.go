@@ -20,7 +20,7 @@ import (
 type Folder struct {
 	fs   *FS
 	list *FolderList
-	name string
+	name libkbfs.CanonicalTlfName
 
 	folderBranchMu sync.Mutex
 	folderBranch   libkbfs.FolderBranch
@@ -45,7 +45,7 @@ type Folder struct {
 	updateChan chan<- struct{}
 }
 
-func newFolder(fl *FolderList, name string) *Folder {
+func newFolder(fl *FolderList, name libkbfs.CanonicalTlfName) *Folder {
 	f := &Folder{
 		fs:    fl.fs,
 		list:  fl,
@@ -53,6 +53,22 @@ func newFolder(fl *FolderList, name string) *Folder {
 		nodes: map[libkbfs.NodeID]fs.Node{},
 	}
 	return f
+}
+
+func (f *Folder) reportErr(ctx context.Context,
+	mode libkbfs.ErrorModeType, err error) {
+	if err == nil {
+		f.fs.errLog.CDebugf(ctx, "Request complete")
+		return
+	}
+
+	f.fs.config.Reporter().ReportErr(ctx, f.name, f.list.public, mode, err)
+	// We just log the error as debug, rather than error, because it
+	// might just indicate an expected error such as an ENOENT.
+	//
+	// TODO: Classify errors and escalate the logging level of the
+	// important ones.
+	f.fs.errLog.CDebugf(ctx, err.Error())
 }
 
 func (f *Folder) setFolderBranch(folderBranch libkbfs.FolderBranch) error {
@@ -93,7 +109,7 @@ func (f *Folder) forgetNode(node libkbfs.Node) {
 	delete(f.nodes, node.GetID())
 	if len(f.nodes) == 0 {
 		f.unsetFolderBranch()
-		f.list.forgetFolder(f.name)
+		f.list.forgetFolder(string(f.name))
 	}
 }
 
@@ -259,7 +275,7 @@ var _ DirInterface = (*Dir)(nil)
 // Attr implements the fs.Node interface for Dir.
 func (d *Dir) Attr(ctx context.Context, a *fuse.Attr) (err error) {
 	d.folder.fs.log.CDebugf(ctx, "Dir Attr")
-	defer func() { d.folder.fs.reportErr(ctx, err) }()
+	defer func() { d.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
 
 	return d.attr(ctx, a)
 }
@@ -284,7 +300,7 @@ func (d *Dir) attr(ctx context.Context, a *fuse.Attr) (err error) {
 // Lookup implements the fs.NodeRequestLookuper interface for Dir.
 func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (node fs.Node, err error) {
 	d.folder.fs.log.CDebugf(ctx, "Dir Lookup %s", req.Name)
-	defer func() { d.folder.fs.reportErr(ctx, err) }()
+	defer func() { d.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
 
 	specialNode := handleSpecialFile(req.Name, d.folder.fs, resp)
 	if specialNode != nil {
@@ -380,7 +396,7 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 // Create implements the fs.NodeCreater interface for Dir.
 func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.CreateResponse) (node fs.Node, handle fs.Handle, err error) {
 	d.folder.fs.log.CDebugf(ctx, "Dir Create %s", req.Name)
-	defer func() { d.folder.fs.reportErr(ctx, err) }()
+	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	isExec := (req.Mode.Perm() & 0100) != 0
 	newNode, _, err := d.folder.fs.config.KBFSOps().CreateFile(
@@ -403,7 +419,7 @@ func (d *Dir) Create(ctx context.Context, req *fuse.CreateRequest, resp *fuse.Cr
 func (d *Dir) Mkdir(ctx context.Context, req *fuse.MkdirRequest) (
 	node fs.Node, err error) {
 	d.folder.fs.log.CDebugf(ctx, "Dir Mkdir %s", req.Name)
-	defer func() { d.folder.fs.reportErr(ctx, err) }()
+	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	newNode, _, err := d.folder.fs.config.KBFSOps().CreateDir(
 		ctx, d.node, req.Name)
@@ -423,7 +439,7 @@ func (d *Dir) Symlink(ctx context.Context, req *fuse.SymlinkRequest) (
 	node fs.Node, err error) {
 	d.folder.fs.log.CDebugf(ctx, "Dir Symlink %s -> %s",
 		req.NewName, req.Target)
-	defer func() { d.folder.fs.reportErr(ctx, err) }()
+	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	if _, err := d.folder.fs.config.KBFSOps().CreateLink(
 		ctx, d.node, req.NewName, req.Target); err != nil {
@@ -442,7 +458,7 @@ func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest,
 	newDir fs.Node) (err error) {
 	d.folder.fs.log.CDebugf(ctx, "Dir Rename %s -> %s",
 		req.OldName, req.NewName)
-	defer func() { d.folder.fs.reportErr(ctx, err) }()
+	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	var realNewDir *Dir
 	switch newDir := newDir.(type) {
@@ -488,7 +504,7 @@ func (d *Dir) Rename(ctx context.Context, req *fuse.RenameRequest,
 // Remove implements the fs.NodeRemover interface for Dir.
 func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) (err error) {
 	d.folder.fs.log.CDebugf(ctx, "Dir Remove %s", req.Name)
-	defer func() { d.folder.fs.reportErr(ctx, err) }()
+	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	// node will be removed from Folder.nodes, if it is there in the
 	// first place, by its Forget
@@ -508,7 +524,7 @@ func (d *Dir) Remove(ctx context.Context, req *fuse.RemoveRequest) (err error) {
 // ReadDirAll implements the fs.NodeReadDirAller interface for Dir.
 func (d *Dir) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 	d.folder.fs.log.CDebugf(ctx, "Dir ReadDirAll")
-	defer func() { d.folder.fs.reportErr(ctx, err) }()
+	defer func() { d.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
 
 	children, err := d.folder.fs.config.KBFSOps().GetDirChildren(ctx, d.node)
 	if err != nil {
@@ -540,7 +556,7 @@ func (d *Dir) Forget() {
 // Setattr implements the fs.NodeSetattrer interface for Dir.
 func (d *Dir) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse.SetattrResponse) (err error) {
 	d.folder.fs.log.CDebugf(ctx, "Dir SetAttr")
-	defer func() { d.folder.fs.reportErr(ctx, err) }()
+	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	valid := req.Valid
 
@@ -587,7 +603,7 @@ type TLF struct {
 	dir     *Dir
 }
 
-func newTLF(fl *FolderList, name string) *TLF {
+func newTLF(fl *FolderList, name libkbfs.CanonicalTlfName) *TLF {
 	folder := newFolder(fl, name)
 	tlf := &TLF{
 		folder: folder,
@@ -661,12 +677,12 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, filterErr bool) (
 		if filterErr {
 			exitEarly, err = tlf.filterEarlyExitError(ctx, err)
 		}
-		tlf.folder.fs.reportErr(ctx, err)
+		tlf.folder.reportErr(ctx, libkbfs.ReadMode, err)
 	}()
 
 	rootNode, _, err :=
 		tlf.folder.fs.config.KBFSOps().GetOrCreateRootNode(
-			ctx, tlf.folder.name, tlf.isPublic(),
+			ctx, string(tlf.folder.name), tlf.isPublic(),
 			libkbfs.MasterBranch)
 	if err != nil {
 		return nil, true, err

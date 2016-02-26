@@ -35,7 +35,7 @@ type UpdatesFile struct {
 func (f *UpdatesFile) WriteFile(fi *dokan.FileInfo, bs []byte, offset int64) (n int, err error) {
 	ctx := NewContextWithOpID(f.folder.fs)
 	f.folder.fs.log.CDebugf(ctx, "UpdatesFile (enable: %t) Write", f.enable)
-	defer func() { f.folder.fs.reportErr(ctx, err) }()
+	defer func() { f.folder.fs.reportErr(ctx, libkbfs.WriteMode, err) }()
 	if len(bs) == 0 {
 		return 0, nil
 	}

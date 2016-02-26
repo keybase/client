@@ -883,3 +883,14 @@ type writerInfo struct {
 	kid        keybase1.KID
 	deviceName string
 }
+
+// ErrorModeType indicates what type of operation was being attempted
+// when an error was reported.
+type ErrorModeType int
+
+const (
+	// ReadMode indicates that an error happened while trying to read.
+	ReadMode ErrorModeType = iota
+	// WriteMode indicates that an error happened while trying to write.
+	WriteMode
+)

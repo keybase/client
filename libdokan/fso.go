@@ -28,7 +28,7 @@ type FSO struct {
 func (f *FSO) SetFileTime(fi *dokan.FileInfo, creation time.Time, lastAccess time.Time, lastWrite time.Time) (err error) {
 	ctx := NewContextWithOpID(f.folder.fs)
 	f.folder.fs.log.CDebugf(ctx, "FSO SetFileTime")
-	defer func() { f.folder.fs.reportErr(ctx, err) }()
+	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	if !lastWrite.IsZero() {
 		return f.folder.fs.config.KBFSOps().SetMtime(ctx, f.node, &lastWrite)

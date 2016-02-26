@@ -435,7 +435,8 @@ type KeyManager interface {
 // Reporter exports events (asynchronously) to any number of sinks
 type Reporter interface {
 	// ReportErr records that a given error happened.
-	ReportErr(ctx context.Context, err error)
+	ReportErr(ctx context.Context, tlfName CanonicalTlfName, public bool,
+		mode ErrorModeType, err error)
 	// AllKnownErrors returns all errors known to this Reporter.
 	AllKnownErrors() []ReportedError
 	// Notify sends the given notification to any sink.

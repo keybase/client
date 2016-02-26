@@ -388,7 +388,9 @@ func resolveUIDs(ctx context.Context, config Config,
 		} else if name, err := config.KBPKI().GetNormalizedUsername(ctx, uid); err == nil {
 			names = append(names, string(name))
 		} else {
-			config.Reporter().ReportErr(ctx, err)
+			// TODO: Somehow try to set the tlf name and public field
+			// correctly?
+			config.Reporter().ReportErr(ctx, "", false, ReadMode, err)
 			names = append(names, fmt.Sprintf("uid:%s", uid))
 		}
 	}

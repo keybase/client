@@ -36,7 +36,7 @@ var _ fs.NodeRequestLookuper = (*FolderList)(nil)
 // Lookup implements the fs.NodeRequestLookuper interface.
 func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (node fs.Node, err error) {
 	fl.fs.log.CDebugf(ctx, "FL Lookup %s", req.Name)
-	defer func() { fl.fs.reportErr(ctx, err) }()
+	defer func() { fl.fs.reportErr(ctx, libkbfs.ReadMode, err) }()
 	fl.mu.Lock()
 	defer fl.mu.Unlock()
 
@@ -54,7 +54,7 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		return nil, fuse.ENOENT
 	}
 
-	_, err = libkbfs.ParseTlfHandle(
+	h, err := libkbfs.ParseTlfHandle(
 		ctx, fl.fs.config.KBPKI(), req.Name, fl.public)
 	switch err := err.(type) {
 	case nil:
@@ -77,7 +77,7 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		return nil, err
 	}
 
-	child := newTLF(fl, req.Name)
+	child := newTLF(fl, h.GetCanonicalName(ctx, fl.fs.config))
 	fl.folders[req.Name] = child
 	return child, nil
 }
@@ -96,7 +96,7 @@ var _ fs.HandleReadDirAller = (*FolderList)(nil)
 func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 	fl.fs.log.CDebugf(ctx, "FL ReadDirAll")
 	defer func() {
-		fl.fs.reportErr(ctx, err)
+		fl.fs.reportErr(ctx, libkbfs.ReadMode, err)
 	}()
 	_, _, err = fl.fs.config.KBPKI().GetCurrentUserInfo(ctx)
 	isLoggedIn := err == nil
@@ -127,7 +127,7 @@ var _ fs.NodeRemover = (*FolderList)(nil)
 // Remove implements the fs.NodeRemover interface for FolderList.
 func (fl *FolderList) Remove(ctx context.Context, req *fuse.RemoveRequest) (err error) {
 	fl.fs.log.CDebugf(ctx, "FolderList Remove %s", req.Name)
-	defer func() { fl.fs.reportErr(ctx, err) }()
+	defer func() { fl.fs.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	// TODO trying to delete non-canonical folder handles
 	// could be skipped.

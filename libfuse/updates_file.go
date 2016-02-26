@@ -43,7 +43,7 @@ var _ fs.HandleWriter = (*UpdatesFile)(nil)
 func (f *UpdatesFile) Write(ctx context.Context, req *fuse.WriteRequest,
 	resp *fuse.WriteResponse) (err error) {
 	f.folder.fs.log.CDebugf(ctx, "UpdatesFile (enable: %t) Write", f.enable)
-	defer func() { f.folder.fs.reportErr(ctx, err) }()
+	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 	if len(req.Data) == 0 {
 		return nil
 	}

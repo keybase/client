@@ -21,7 +21,7 @@ import (
 type Folder struct {
 	fs   *FS
 	list *FolderList
-	name string
+	name libkbfs.CanonicalTlfName
 
 	folderBranchMu sync.Mutex
 	folderBranch   libkbfs.FolderBranch
@@ -50,7 +50,7 @@ type Folder struct {
 	noForget bool
 }
 
-func newFolder(fl *FolderList, name string) *Folder {
+func newFolder(fl *FolderList, name libkbfs.CanonicalTlfName) *Folder {
 	f := &Folder{
 		fs:    fl.fs,
 		list:  fl,
@@ -102,6 +102,22 @@ func (f *Folder) forgetNode(node libkbfs.Node) {
 	}
 }
 
+func (f *Folder) reportErr(ctx context.Context,
+	mode libkbfs.ErrorModeType, err error) {
+	if err == nil {
+		f.fs.log.CDebugf(ctx, "Request complete")
+		return
+	}
+
+	f.fs.config.Reporter().ReportErr(ctx, f.name, f.list.public, mode, err)
+	// We just log the error as debug, rather than error, because it
+	// might just indicate an expected error such as an ENOENT.
+	//
+	// TODO: Classify errors and escalate the logging level of the
+	// important ones.
+	f.fs.log.CDebugf(ctx, err.Error())
+}
+
 func (f *Folder) lockedAddNode(node libkbfs.Node, val dokan.File) {
 	f.mu.Lock()
 	f.nodes[node.GetID()] = val
@@ -139,7 +155,7 @@ func newDir(folder *Folder, node libkbfs.Node, name string, parent libkbfs.Node)
 func (d *Dir) GetFileInformation(*dokan.FileInfo) (st *dokan.Stat, err error) {
 	ctx := NewContextWithOpID(d.folder.fs)
 	d.folder.fs.log.CDebugf(ctx, "Dir GetFileInformation")
-	defer func() { d.folder.fs.reportErr(ctx, err) }()
+	defer func() { d.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
 
 	return eiToStat(d.folder.fs.config.KBFSOps().Stat(ctx, d.node))
 }
@@ -313,7 +329,7 @@ func openSymlink(ctx context.Context, oc *openContext, parent *Dir, rootDir *Dir
 func (d *Dir) create(ctx context.Context, oc *openContext, name string) (f dokan.File, isDir bool, err error) {
 	ctx = NewContextWithOpID(d.folder.fs)
 	d.folder.fs.log.CDebugf(ctx, "Dir Create %s", name)
-	defer func() { d.folder.fs.reportErr(ctx, err) }()
+	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	isExec := false // Windows lacks executable modes.
 	newNode, _, err := d.folder.fs.config.KBFSOps().CreateFile(
@@ -330,7 +346,7 @@ func (d *Dir) create(ctx context.Context, oc *openContext, name string) (f dokan
 func (d *Dir) mkdir(ctx context.Context, oc *openContext, name string) (f *Dir, isDir bool, err error) {
 	ctx = NewContextWithOpID(d.folder.fs)
 	d.folder.fs.log.CDebugf(ctx, "Dir Mkdir %s", name)
-	defer func() { d.folder.fs.reportErr(ctx, err) }()
+	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	newNode, _, err := d.folder.fs.config.KBFSOps().CreateDir(
 		ctx, d.node, name)
@@ -347,7 +363,7 @@ func (d *Dir) mkdir(ctx context.Context, oc *openContext, name string) (f *Dir, 
 func (d *Dir) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) (err error) {
 	ctx := NewContextWithOpID(d.folder.fs)
 	d.folder.fs.log.CDebugf(ctx, "Dir ReadDirAll")
-	defer func() { d.folder.fs.reportErr(ctx, err) }()
+	defer func() { d.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
 
 	children, err := d.folder.fs.config.KBFSOps().GetDirChildren(ctx, d.node)
 	d.folder.fs.log.CDebugf(ctx, "Dir ReadDirAll => %v, %v", children, err)
@@ -379,7 +395,7 @@ func (d *Dir) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedStat) erro
 func (d *Dir) CanDeleteDirectory(*dokan.FileInfo) (err error) {
 	ctx := NewContextWithOpID(d.folder.fs)
 	d.folder.fs.log.CDebugf(ctx, "Dir CanDeleteDirectory")
-	defer func() { d.folder.fs.reportErr(ctx, err) }()
+	defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	children, err := d.folder.fs.config.KBFSOps().GetDirChildren(ctx, d.node)
 	if err != nil {
@@ -399,7 +415,7 @@ func (d *Dir) Cleanup(fi *dokan.FileInfo) {
 
 	if fi != nil && fi.DeleteOnClose() && d.parent != nil {
 		d.folder.fs.log.CDebugf(ctx, "Removing dir in cleanup %s", d.name)
-		defer func() { d.folder.fs.reportErr(ctx, err) }()
+		defer func() { d.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 		err = d.folder.fs.config.KBFSOps().RemoveDir(ctx, d.parent, d.name)
 	}

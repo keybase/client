@@ -8,6 +8,7 @@ package libdokan
 
 import (
 	"github.com/keybase/kbfs/dokan"
+	"github.com/keybase/kbfs/libkbfs"
 )
 
 // RekeyFileName is the name of the KBFS unstaging file -- it can be
@@ -25,7 +26,7 @@ type RekeyFile struct {
 func (f *RekeyFile) WriteFile(fi *dokan.FileInfo, bs []byte, offset int64) (n int, err error) {
 	ctx := NewContextWithOpID(f.folder.fs)
 	f.folder.fs.log.CDebugf(ctx, "RekeyFile Write")
-	defer func() { f.folder.fs.reportErr(ctx, err) }()
+	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 	if len(bs) == 0 {
 		return 0, nil
 	}

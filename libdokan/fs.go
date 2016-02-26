@@ -255,7 +255,7 @@ func (f *FS) MoveFile(source *dokan.FileInfo, targetPath string, replaceExisting
 
 	ctx := NewContextWithOpID(f)
 	f.log.CDebugf(ctx, "FS Rename start replaceExisting=%v", replaceExisting)
-	defer func() { f.reportErr(ctx, err) }()
+	defer func() { f.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 	oc := newSyntheticOpenContext()
 	src, _, err := f.openRaw(ctx, source, oc.CreateData)
@@ -460,13 +460,14 @@ func (f *FS) launchNotificationProcessor(ctx context.Context) {
 	go f.processNotifications(ctx)
 }
 
-func (f *FS) reportErr(ctx context.Context, err error) {
+func (f *FS) reportErr(ctx context.Context, mode libkbfs.ErrorModeType,
+	err error) {
 	if err == nil {
 		f.log.CDebugf(ctx, "Request complete")
 		return
 	}
 
-	f.config.Reporter().ReportErr(ctx, err)
+	f.config.Reporter().ReportErr(ctx, "", false, mode, err)
 	// We just log the error as debug, rather than error, because it
 	// might just indicate an expected error such as an ENOENT.
 	//

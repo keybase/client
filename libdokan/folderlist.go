@@ -40,7 +40,7 @@ func (*FolderList) GetFileInformation(*dokan.FileInfo) (*dokan.Stat, error) {
 // Dir.open as necessary.
 func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) (f dokan.File, isDir bool, err error) {
 	fl.fs.log.CDebugf(ctx, "FL Lookup %#v", path)
-	defer func() { fl.fs.reportErr(ctx, err) }()
+	defer func() { fl.fs.reportErr(ctx, libkbfs.ReadMode, err) }()
 
 	if len(path) == 0 {
 		return oc.returnDirNoCleanup(fl)
@@ -119,7 +119,7 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 		}
 
 		fl.fs.log.CDebugf(ctx, "FL Lookup adding new child")
-		child = newTLF(fl, name)
+		child = newTLF(fl, libkbfs.CanonicalTlfName(name))
 		fl.lockedAddChild(name, child)
 		return child.open(ctx, oc, path[1:])
 	}
@@ -136,14 +136,14 @@ func (fl *FolderList) forgetFolder(f *Folder) {
 		fl.fs.log.Info("cannot unregister change notifier for folder %q: %v",
 			f.name, err)
 	}
-	delete(fl.folders, f.name)
+	delete(fl.folders, string(f.name))
 }
 
 // FindFiles for dokan.
 func (fl *FolderList) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) (err error) {
 	ctx := NewContextWithOpID(fl.fs)
 	fl.fs.log.CDebugf(ctx, "FL ReadDirAll")
-	defer func() { fl.fs.reportErr(ctx, err) }()
+	defer func() { fl.fs.reportErr(ctx, libkbfs.ReadMode, err) }()
 
 	_, _, err = fl.fs.config.KBPKI().GetCurrentUserInfo(ctx)
 	isLoggedIn := err == nil

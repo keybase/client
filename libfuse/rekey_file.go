@@ -3,6 +3,7 @@ package libfuse
 import (
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
 
@@ -33,7 +34,7 @@ var _ fs.HandleWriter = (*RekeyFile)(nil)
 func (f *RekeyFile) Write(ctx context.Context, req *fuse.WriteRequest,
 	resp *fuse.WriteResponse) (err error) {
 	f.folder.fs.log.CDebugf(ctx, "RekeyFile Write")
-	defer func() { f.folder.fs.reportErr(ctx, err) }()
+	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 	if len(req.Data) == 0 {
 		return nil
 	}

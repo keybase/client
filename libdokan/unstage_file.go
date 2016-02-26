@@ -8,6 +8,7 @@ package libdokan
 
 import (
 	"github.com/keybase/kbfs/dokan"
+	"github.com/keybase/kbfs/libkbfs"
 )
 
 // UnstageFileName is the name of the KBFS unstaging file -- it can be
@@ -27,7 +28,7 @@ type UnstageFile struct {
 func (f *UnstageFile) WriteFile(fi *dokan.FileInfo, bs []byte, offset int64) (n int, err error) {
 	ctx := NewContextWithOpID(f.folder.fs)
 	f.folder.fs.log.CDebugf(ctx, "UnstageFile Write")
-	defer func() { f.folder.fs.reportErr(ctx, err) }()
+	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 	if len(bs) == 0 {
 		return 0, nil
 	}

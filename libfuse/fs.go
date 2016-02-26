@@ -180,13 +180,14 @@ var _ fs.FS = (*FS)(nil)
 
 var _ fs.FSStatfser = (*FS)(nil)
 
-func (f *FS) reportErr(ctx context.Context, err error) {
+func (f *FS) reportErr(ctx context.Context,
+	mode libkbfs.ErrorModeType, err error) {
 	if err == nil {
 		f.errLog.CDebugf(ctx, "Request complete")
 		return
 	}
 
-	f.config.Reporter().ReportErr(ctx, err)
+	f.config.Reporter().ReportErr(ctx, "", false, mode, err)
 	// We just log the error as debug, rather than error, because it
 	// might just indicate an expected error such as an ENOENT.
 	//
@@ -247,7 +248,7 @@ var _ fs.NodeRequestLookuper = (*Root)(nil)
 // Lookup implements the fs.NodeRequestLookuper interface for Root.
 func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (node fs.Node, err error) {
 	r.private.fs.log.CDebugf(ctx, "FS Lookup %s", req.Name)
-	defer func() { r.private.fs.reportErr(ctx, err) }()
+	defer func() { r.private.fs.reportErr(ctx, libkbfs.ReadMode, err) }()
 
 	specialNode := handleSpecialFile(req.Name, r.private.fs, resp)
 	if specialNode != nil {
@@ -272,7 +273,7 @@ var _ fs.HandleReadDirAller = (*Root)(nil)
 // ReadDirAll implements the ReadDirAll interface for Root.
 func (r *Root) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 	r.private.fs.log.CDebugf(ctx, "FS ReadDirAll")
-	defer func() { r.private.fs.reportErr(ctx, err) }()
+	defer func() { r.private.fs.reportErr(ctx, libkbfs.ReadMode, err) }()
 	res = []fuse.Dirent{
 		{
 			Type: fuse.DT_Dir,

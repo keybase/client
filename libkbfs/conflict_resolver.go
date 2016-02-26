@@ -2952,10 +2952,14 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	cr.log.CDebugf(ctx, "Starting conflict resolution with input %v", ci)
 	var err error
 	defer cr.resolveGroup.Done()
+	lState := makeFBOLockState()
 	defer func() {
 		cr.log.CDebugf(ctx, "Finished conflict resolution: %v", err)
 		if err != nil {
-			cr.config.Reporter().ReportErr(ctx, CRWrapError{err})
+			handle := cr.fbo.getHead(lState).GetTlfHandle()
+			cr.config.Reporter().ReportErr(ctx,
+				handle.GetCanonicalName(ctx, cr.config), handle.IsPublic(),
+				WriteMode, CRWrapError{err})
 		}
 	}()
 
@@ -2964,8 +2968,6 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	if err != nil {
 		return
 	}
-
-	lState := makeFBOLockState()
 
 	// Step 1: Build the chains for each branch, as well as the paths
 	// and necessary extra recreate ops.  The result of this step is:

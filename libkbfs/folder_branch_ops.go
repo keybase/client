@@ -474,6 +474,12 @@ func (fbo *folderBranchOps) getStaged(lState *lockState) bool {
 	return fbo.staged
 }
 
+func (fbo *folderBranchOps) getHead(lState *lockState) *RootMetadata {
+	fbo.headLock.RLock(lState)
+	defer fbo.headLock.RUnlock(lState)
+	return fbo.head
+}
+
 func (fbo *folderBranchOps) transitionState(newState state) {
 	fbo.stateLock.Lock()
 	defer fbo.stateLock.Unlock()
@@ -598,11 +604,7 @@ func (fbo *folderBranchOps) getMDLocked(
 		err = fbo.identifyOnce(ctx, md)
 	}()
 
-	md = func() *RootMetadata {
-		fbo.headLock.RLock(lState)
-		defer fbo.headLock.RUnlock(lState)
-		return fbo.head
-	}()
+	md = fbo.getHead(lState)
 	if md != nil {
 		return md, nil
 	}
@@ -5103,11 +5105,7 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		return errors.New("Can't rekey while staged.")
 	}
 
-	head := func() *RootMetadata {
-		fbo.headLock.RLock(lState)
-		defer fbo.headLock.RUnlock(lState)
-		return fbo.head
-	}()
+	head := fbo.getHead(lState)
 	if head != nil {
 		// If we already have a cached revision, make sure we're
 		// up-to-date with the latest revision before inspecting the

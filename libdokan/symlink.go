@@ -8,6 +8,7 @@ package libdokan
 
 import (
 	"github.com/keybase/kbfs/dokan"
+	"github.com/keybase/kbfs/libkbfs"
 )
 
 // Symlink represents KBFS symlinks.
@@ -29,7 +30,7 @@ type Symlink struct {
 func (s *Symlink) GetFileInformation(*dokan.FileInfo) (a *dokan.Stat, err error) {
 	ctx := NewContextWithOpID(s.parent.folder.fs)
 	s.parent.folder.fs.log.CDebugf(ctx, "Symlink Attr")
-	defer func() { s.parent.folder.fs.reportErr(ctx, err) }()
+	defer func() { s.parent.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
 
 	_, _, err = s.parent.folder.fs.config.KBFSOps().Lookup(ctx, s.parent.node, s.name)
 	if err != nil {
