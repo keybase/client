@@ -34,7 +34,7 @@ script:
       docker build -t kbclient .;
     fi
   - cd ../shared && npm i --global flow-bin@`tail -n1 .flowconfig` && flow
-  - cd ../protocol && make clean && make && git diff --quiet
+  - cd ../protocol && npm i && gem install activesupport; make clean && make && git diff --quiet
 after_failure:
   - if [ $TRAVIS_OS_NAME == 'linux' ]; then
       docker logs kbweb3000;
