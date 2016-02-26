@@ -20,7 +20,6 @@ import (
 type LoginProvision struct {
 	libkb.Contextified
 	arg           *LoginProvisionArg
-	user          *libkb.User
 	lks           *libkb.LKSec
 	signingKey    libkb.GenericKey
 	encryptionKey libkb.GenericKey
@@ -33,9 +32,7 @@ type LoginProvision struct {
 type LoginProvisionArg struct {
 	DeviceType string // desktop or mobile
 	ClientType keybase1.ClientType
-	// XXX leave this here for now just so I don't need to change everything right now.
-	Username string // optional
-	User     *libkb.User
+	User       *libkb.User
 }
 
 // NewLoginProvision creates a LoginProvision engine.
@@ -89,19 +86,6 @@ func (e *LoginProvision) Run(ctx *Context) error {
 		return err
 	}
 
-	/*
-		method, err := e.chooseMethod(ctx)
-		if err != nil {
-			return err
-		}
-
-		if err := e.runMethod(ctx, method); err != nil {
-			// cleanup state because there was an error:
-			e.cleanup()
-			return err
-		}
-	*/
-
 	if err := e.ensurePaperKey(ctx); err != nil {
 		return err
 	}
@@ -111,19 +95,6 @@ func (e *LoginProvision) Run(ctx *Context) error {
 	}
 
 	return nil
-}
-
-// device provisions this device with an existing device using the
-// kex2 protocol.
-func (e *LoginProvision) device(ctx *Context) error {
-	arg := keybase1.ChooseDeviceTypeArg{Kind: keybase1.ChooseType_EXISTING_DEVICE}
-	provisionerType, err := ctx.ProvisionUI.ChooseDeviceType(ctx.GetNetContext(), arg)
-	if err != nil {
-		return err
-	}
-	e.G().Log.Debug("provisioner device type: %v", provisionerType)
-
-	return e.deviceWithType(ctx, provisionerType)
 }
 
 // deviceWithType provisions this device with an existing device using the
@@ -211,52 +182,6 @@ func (e *LoginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 	return nil
 }
 
-// gpg attempts to provision the device via a gpg key.
-func (e *LoginProvision) gpg(ctx *Context, method keybase1.ProvisionMethod) error {
-	var getKey func(*Context) (libkb.GenericKey, error)
-	switch method {
-	case keybase1.ProvisionMethod_GPG_SIGN:
-		getKey = e.chooseGPGKey
-	case keybase1.ProvisionMethod_GPG_IMPORT:
-		getKey = e.chooseAndExportGPGKey
-	default:
-		return fmt.Errorf("invalid gpg provisioning method: %v", method)
-	}
-	key, err := getKey(ctx)
-	if err != nil {
-		return err
-	}
-
-	e.G().Log.Debug("using gpg key %s", key.GetKID())
-
-	// After obtaining login session, this will be called before the login state is released.
-	// It signs this new device with the gpg key in bundle.
-	var afterLogin = func(lctx libkb.LoginContext) error {
-		ctx.LoginContext = lctx
-		if err := e.makeDeviceKeysWithSigner(ctx, key); err != nil {
-			return err
-		}
-		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
-			// not a fatal error, session will stay in memory
-			e.G().Log.Warning("error saving session file: %s", err)
-		}
-
-		if method == keybase1.ProvisionMethod_GPG_IMPORT {
-			// store the key in lksec
-			_, err := libkb.WriteLksSKBToKeyring(e.G(), key, e.lks, lctx)
-			if err != nil {
-				e.G().Log.Warning("error saving exported gpg key in lksec: %s", err)
-				return err
-			}
-		}
-
-		return nil
-	}
-
-	// need a session to continue to provision
-	return e.G().LoginState().LoginWithPrompt(e.user.GetName(), ctx.LoginUI, ctx.SecretUI, afterLogin)
-}
-
 // paper attempts to provision the device via a paper key.
 func (e *LoginProvision) paper(ctx *Context) error {
 	// get the paper key from the user
@@ -305,61 +230,6 @@ func (e *LoginProvision) paper(ctx *Context) error {
 
 	// need a session to continue to provision, login with paper sigKey
 	return e.G().LoginState().LoginWithKey(ctx.LoginContext, e.arg.User, kp.sigKey, afterLogin)
-}
-
-// passphrase attempts to provision the device via username and
-// passphrase.  This will work if the user has no keys or only a
-// synced pgp key.  Any other situations require different
-// provisioning methods.
-func (e *LoginProvision) passphrase(ctx *Context) error {
-	// clear out any existing session:
-	e.G().Logout()
-
-	// prompt for the email or username
-	emailOrUsername, err := e.promptEmailOrUsername(ctx)
-	if err != nil {
-		return err
-	}
-
-	// check if they provided a username or email address.
-	// If email address, checkEmailOrUsername will get a login session
-	// in order to get the username.
-	if err := e.checkEmailOrUsername(ctx, emailOrUsername); err != nil {
-		return err
-	}
-
-	e.user, err = e.loadUser(ctx)
-	if err != nil {
-		return err
-	}
-
-	// check if they have any devices, pgp keys
-	hasPGP := false
-	ckf := e.user.GetComputedKeyFamily()
-	if ckf != nil {
-		hasPGP = len(ckf.GetActivePGPKeys(false)) > 0
-	}
-
-	if !e.user.GetEldestKID().IsNil() && hasPGP {
-		// if they have any pgp keys in their family, there's a chance there is a synced
-		// pgp key, so try provisioning with it.
-		e.G().Log.Debug("user %q has a pgp key, trying to provision with it", e.user.GetName())
-		if err := e.pgpProvision(ctx); err != nil {
-			return err
-		}
-	} else if e.user.GetEldestKID().IsNil() {
-		// they have no keys, so make the device keys the eldest keys:
-		e.G().Log.Debug("user %q has no devices, no pgp keys", e.user.GetName())
-		if err := e.addEldestDeviceKey(ctx); err != nil {
-			return err
-		}
-	} else {
-		// they have keys, but no pgp keys, so passphrase provisioning is impossible.
-		return libkb.PassphraseProvisionImpossibleError{}
-	}
-
-	return nil
-
 }
 
 // pgpProvision attempts to provision with a synced pgp key.  It
@@ -530,50 +400,6 @@ func (e *LoginProvision) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) erro
 	return nil
 }
 
-// promptEmailOrUsername will ask the user for an email address or
-// username (if necessary).
-func (e *LoginProvision) promptEmailOrUsername(ctx *Context) (string, error) {
-	if len(e.arg.Username) != 0 {
-		return e.arg.Username, nil
-	}
-	return ctx.LoginUI.GetEmailOrUsername(ctx.GetNetContext(), 0)
-}
-
-// If emailOrUsername looks like an email address, it will get a
-// login session in order to map the email address to a keybase user.
-func (e *LoginProvision) checkEmailOrUsername(ctx *Context, emailOrUsername string) error {
-	if len(emailOrUsername) == 0 {
-		return libkb.NoUsernameError{}
-	}
-	if libkb.CheckUsername.F(emailOrUsername) {
-		e.username = emailOrUsername
-		return nil
-	}
-	if !libkb.CheckEmail.F(emailOrUsername) {
-		return libkb.BadNameError(emailOrUsername)
-	}
-
-	// emailOrUsername looks like an email address
-	e.G().Log.Debug("%q looks like an email address, must get login session to get user", emailOrUsername)
-	// need to login with it in order to get the username
-	var afterLogin = func(lctx libkb.LoginContext) error {
-		e.username = lctx.LocalSession().GetUsername().String()
-		return nil
-	}
-	return e.G().LoginState().VerifyEmailAddress(emailOrUsername, ctx.SecretUI, afterLogin)
-}
-
-// loadUser will load the user by name specified in e.username.
-func (e *LoginProvision) loadUser(ctx *Context) (*libkb.User, error) {
-	if len(e.username) == 0 {
-		return nil, libkb.NoUsernameError{}
-	}
-	e.G().Log.Debug("LoginProvision: loading user %s", e.username)
-	arg := libkb.NewLoadUserByNameArg(e.G(), e.username)
-	arg.PublicKeyOptional = true
-	return libkb.LoadUser(arg)
-}
-
 // syncedPGPKey looks for a synced pgp key for e.user.  If found,
 // it unlocks it.
 func (e *LoginProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
@@ -589,7 +415,7 @@ func (e *LoginProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
 
 	// unlock it
 	parg := ctx.SecretKeyPromptArg(libkb.SecretKeyArg{}, "sign new device")
-	unlocked, err := key.PromptAndUnlock(parg, "keybase", nil, e.lks, e.user)
+	unlocked, err := key.PromptAndUnlock(parg, "keybase", nil, e.lks, e.arg.User)
 	if err != nil {
 		return nil, err
 	}
@@ -952,27 +778,6 @@ func (e *LoginProvision) chooseMethod(ctx *Context) (keybase1.ProvisionMethod, e
 	return ctx.ProvisionUI.ChooseProvisioningMethod(ctx.GetNetContext(), arg)
 }
 
-// runMethod runs the function for the chosen provisioning method.
-func (e *LoginProvision) runMethod(ctx *Context, method keybase1.ProvisionMethod) error {
-	// if there is an error running one of these, then the engine will
-	// cleanup the state.
-	e.cleanupOnErr = true
-	switch method {
-	case keybase1.ProvisionMethod_DEVICE:
-		return e.device(ctx)
-	case keybase1.ProvisionMethod_GPG_IMPORT, keybase1.ProvisionMethod_GPG_SIGN:
-		return e.gpg(ctx, method)
-	case keybase1.ProvisionMethod_PAPER_KEY:
-		return e.paper(ctx)
-	case keybase1.ProvisionMethod_PASSPHRASE:
-		return e.passphrase(ctx)
-	}
-
-	// no cleanup necessary as nothing ran
-	e.cleanupOnErr = false
-	return libkb.InternalError{Msg: fmt.Sprintf("unhandled provisioning method: %v", method)}
-}
-
 // ensurePaperKey checks to see if e.user has any paper keys.  If
 // not, it makes one.
 func (e *LoginProvision) ensurePaperKey(ctx *Context) error {
@@ -993,77 +798,6 @@ func (e *LoginProvision) ensurePaperKey(ctx *Context) error {
 
 	// make one
 	return e.paperKey(ctx)
-}
-
-// chooseGPGKey asks the user to select a gpg key to use, then
-// checks if the fingerprint exists on keybase.io.
-func (e *LoginProvision) chooseGPGKey(ctx *Context) (libkb.GenericKey, error) {
-	// choose a private gpg key to use
-	fp, err := e.selectAndCheckGPGKey(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	// get KID for the pgp key
-	kf := e.user.GetComputedKeyFamily()
-	if kf == nil {
-		return nil, libkb.KeyFamilyError{Msg: "no key family for user"}
-	}
-	kid, err := kf.FindKIDFromFingerprint(*fp)
-	if err != nil {
-		return nil, err
-	}
-
-	// create a GPGKey shell around gpg cli with fp, kid
-	return libkb.NewGPGKey(e.G(), fp, kid, ctx.GPGUI, e.arg.ClientType), nil
-}
-
-// chooseAndExportGPGKey asks the user to select a gpg key to use,
-// then checks if the fingerprint exists on keybase.io.
-// It uses gpg commands to export the private key from gpg's
-// keyring, then unlocks it with the SecretUI.
-//
-// Note that the key is not imported into lksec here.
-func (e *LoginProvision) chooseAndExportGPGKey(ctx *Context) (libkb.GenericKey, error) {
-	// choose a private gpg key to use
-	fp, err := e.selectAndCheckGPGKey(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	// import it with gpg
-	cli, err := e.gpgClient()
-	if err != nil {
-		return nil, err
-	}
-	bundle, err := cli.ImportKey(true, *fp)
-	if err != nil {
-		return nil, err
-	}
-
-	// unlock it
-	if err := bundle.Unlock("sign new device", ctx.SecretUI); err != nil {
-		return nil, err
-	}
-	return bundle, nil
-}
-
-func (e *LoginProvision) selectAndCheckGPGKey(ctx *Context) (*libkb.PGPFingerprint, error) {
-	// choose a private gpg key to use
-	fp, err := e.selectGPGKey(ctx)
-	if err != nil {
-		return nil, err
-	}
-	if fp == nil {
-		return nil, libkb.NoKeyError{Msg: "selectGPGKey returned nil fingerprint"}
-	}
-
-	// see if public key on keybase, and if so load the user
-	if err := e.checkUserByPGPFingerprint(ctx, fp); err != nil {
-		return nil, err
-	}
-
-	return fp, nil
 }
 
 // selectGPGKey creates an index of the private gpg keys and
@@ -1101,32 +835,6 @@ func (e *LoginProvision) selectGPGKey(ctx *Context) (fp *libkb.PGPFingerprint, e
 	}
 
 	return fp, nil
-}
-
-// checkUserByPGPFingerprint looks up a fingerprint on keybase.io.  If it
-// finds a username for keyid, it loads that user.
-func (e *LoginProvision) checkUserByPGPFingerprint(ctx *Context, fp *libkb.PGPFingerprint) error {
-	// see if public key on keybase
-	username, uid, err := libkb.PGPLookupFingerprint(e.G(), fp)
-	if err != nil {
-		e.G().Log.Debug("error finding user for fp %s: %s", fp, err)
-		if nfe, ok := err.(libkb.NotFoundError); ok {
-			nfe.Msg = fmt.Sprintf("No keybase user found for PGP fingerprint %s; please try a different GPG key or another provisioning method", fp)
-			err = nfe
-		}
-		return err
-	}
-
-	e.G().Log.Debug("found user (%q, %q) for key %s", username, uid, fp)
-
-	// if so, will have username from that
-	e.username = username
-	e.user, err = e.loadUser(ctx)
-	if err != nil {
-		return err
-	}
-
-	return nil
 }
 
 // XXX this needs to retry instead of erroring out
@@ -1206,8 +914,8 @@ func (e *LoginProvision) setSessionDeviceID(id keybase1.DeviceID) error {
 }
 
 func (e *LoginProvision) displaySuccess(ctx *Context) error {
-	if len(e.username) == 0 && e.user != nil {
-		e.username = e.user.GetName()
+	if len(e.username) == 0 && e.arg.User != nil {
+		e.username = e.arg.User.GetName()
 	}
 	sarg := keybase1.ProvisioneeSuccessArg{
 		Username:   e.username,
