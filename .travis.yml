@@ -33,7 +33,6 @@ script:
   - if [ $TRAVIS_OS_NAME == 'linux' ] && [ $TRAVIS_BRANCH == 'master' ] && [ $TRAVIS_PULL_REQUEST == 'false' ]; then
       docker build -t kbclient .;
     fi
-  - cd shared && npm i --global flow-bin@0.22.0 && flow
 after_failure:
   - if [ $TRAVIS_OS_NAME == 'linux' ]; then
       docker logs kbweb3000;
