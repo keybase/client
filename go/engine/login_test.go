@@ -194,9 +194,10 @@ func TestLogin(t *testing.T) {
 	}
 }
 
-// If a user has device keys, selecting the username/passphrase
-// provisioning option should fail.
-func TestProvisionPassphraseFail(t *testing.T) {
+// If a user has device keys and no pgp keys,
+// not selecting a device should result in
+// ProvisionUnavailable.
+func TestProvisionChooseNoDeviceWithoutPGP(t *testing.T) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "provision_x")
 	defer tcX.Cleanup()
@@ -209,7 +210,7 @@ func TestProvisionPassphraseFail(t *testing.T) {
 	defer tcY.Cleanup()
 
 	ctx := &Context{
-		ProvisionUI: newTestProvisionUIPassphrase(),
+		ProvisionUI: newTestProvisionUIChooseNoDevice(),
 		LoginUI:     &libkb.TestLoginUI{Username: userX.Username},
 		LogUI:       tcY.G.UI.GetLogUI(),
 		SecretUI:    &libkb.TestSecretUI{},
@@ -220,8 +221,8 @@ func TestProvisionPassphraseFail(t *testing.T) {
 	if err == nil {
 		t.Fatal("expected login to fail, but it ran without error")
 	}
-	if _, ok := err.(libkb.PassphraseProvisionImpossibleError); !ok {
-		t.Fatalf("expected PassphraseProvisionImpossibleError, got %T (%s)", err, err)
+	if _, ok := err.(libkb.ProvisionUnavailableError); !ok {
+		t.Fatalf("expected ProvisionUnavailableError, got %T (%s)", err, err)
 	}
 
 	if err := AssertLoggedIn(tcY); err == nil {
@@ -598,137 +599,6 @@ func TestProvisionGPGSign(t *testing.T) {
 	}
 }
 
-// Provision device first trying a private GPG key that is not associated
-// with a keybase account.
-func TestProvisionGPGUnknown(t *testing.T) {
-	tc := SetupEngineTest(t, "login")
-	defer tc.Cleanup()
-
-	otherEmail := "gpg@gpg.com"
-	u1 := createFakeUserWithPGPMultSubset(t, tc, otherEmail)
-	Logout(tc)
-
-	// redo SetupEngineTest to get a new home directory...should look like a new device.
-	tc2 := SetupEngineTest(t, "login")
-	defer tc2.Cleanup()
-
-	// we need the gpg keyring that's in the first homedir
-	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
-		t.Fatal(err)
-	}
-
-	// now safe to cleanup first home
-	tc.Cleanup()
-
-	// run login on new device, selecting the key for otherEmail for signing,
-	// which isn't associated with a keybase account.
-	ctx := &Context{
-		ProvisionUI: newTestProvisionUIGPGSign(),
-		LogUI:       tc2.G.UI.GetLogUI(),
-		SecretUI:    u1.NewSecretUI(),
-		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
-		GPGUI:       newGPGSelectEmailUI(otherEmail),
-	}
-	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, u1.Username, keybase1.ClientType_CLI)
-	err := RunEngine(eng, ctx)
-	if err == nil {
-		t.Fatalf("No provisioning error, expected an error using gpg key for %s", otherEmail)
-	}
-	if _, ok := err.(libkb.NotFoundError); !ok {
-		t.Fatalf("provisioning error type: %T, expected libkb.NotFoundError", err)
-	}
-
-	// run login again, selecting the correct key
-	ctx.GPGUI = newGPGSelectEmailUI(u1.Email)
-	eng = NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
-	if err := RunEngine(eng, ctx); err != nil {
-		t.Fatal(err)
-	}
-
-	// make sure everything is ok
-
-	testUserHasDeviceKey(tc2)
-
-	// highly possible they didn't have a paper key, so make sure they have one now:
-	hasOnePaperDev(tc2, u1)
-
-	if err := AssertProvisioned(tc2); err != nil {
-		t.Fatal(err)
-	}
-
-	// since they *did not* import a pgp key, they should *not* be able to pgp sign something:
-	if err := signString(tc2, "sign me", u1.NewSecretUI()); err == nil {
-		t.Error("pgp sign worked after gpg provision w/o import")
-		t.Fatal(err)
-	}
-}
-
-// Provision device first trying a private GPG key that is not associated
-// with a keybase account, selecting the import private to kb
-// lksec option.
-func TestProvisionGPGImportUnknown(t *testing.T) {
-	tc := SetupEngineTest(t, "login")
-	defer tc.Cleanup()
-
-	otherEmail := "gpg@gpg.com"
-	u1 := createFakeUserWithPGPMultSubset(t, tc, otherEmail)
-	Logout(tc)
-
-	// redo SetupEngineTest to get a new home directory...should look like a new device.
-	tc2 := SetupEngineTest(t, "login")
-	defer tc2.Cleanup()
-
-	// we need the gpg keyring that's in the first homedir
-	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
-		t.Fatal(err)
-	}
-
-	// now safe to cleanup first home
-	tc.Cleanup()
-
-	// run login on new device, selecting the key for otherEmail for signing,
-	// which isn't associated with a keybase account.
-	ctx := &Context{
-		ProvisionUI: newTestProvisionUIGPGImport(),
-		LogUI:       tc2.G.UI.GetLogUI(),
-		SecretUI:    u1.NewSecretUI(),
-		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
-		GPGUI:       newGPGSelectEmailUI(otherEmail),
-	}
-	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, u1.Username, keybase1.ClientType_CLI)
-	err := RunEngine(eng, ctx)
-	if err == nil {
-		t.Fatalf("No provisioning error, expected an error using gpg key for %s", otherEmail)
-	}
-	if _, ok := err.(libkb.NotFoundError); !ok {
-		t.Fatalf("provisioning error type: %T, expected libkb.NotFoundError", err)
-	}
-
-	// run login again, selecting the correct key
-	ctx.GPGUI = newGPGSelectEmailUI(u1.Email)
-	eng = NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
-	if err := RunEngine(eng, ctx); err != nil {
-		t.Fatal(err)
-	}
-
-	// make sure everything is ok
-
-	testUserHasDeviceKey(tc2)
-
-	// highly possible they didn't have a paper key, so make sure they have one now:
-	hasOnePaperDev(tc2, u1)
-
-	if err := AssertProvisioned(tc2); err != nil {
-		t.Fatal(err)
-	}
-
-	// since they imported their pgp key, they should be able to pgp sign something:
-	if err := signString(tc2, "sign me", u1.NewSecretUI()); err != nil {
-		t.Error("pgp sign failed after gpg provision w/ import")
-		t.Fatal(err)
-	}
-}
-
 func TestProvisionGPGSignFailedSign(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
@@ -815,64 +685,6 @@ func TestProvisionGPGSignSecretStore(t *testing.T) {
 
 	// highly possible they didn't have a paper key, so make sure they have one now:
 	hasOnePaperDev(tc2, u1)
-
-	if err := AssertProvisioned(tc2); err != nil {
-		t.Fatal(err)
-	}
-}
-
-// User with no eldest key tries to provision via GPG.
-func TestProvisionGPGNoEldest(t *testing.T) {
-	tc := SetupEngineTest(t, "login")
-	defer tc.Cleanup()
-
-	username, passphrase := createFakeUserWithNoKeys(tc)
-	Logout(tc)
-	tc.Cleanup()
-
-	// redo SetupEngineTest to get a new home directory...should look like a new device.
-	tc2 := SetupEngineTest(t, "login")
-	defer tc2.Cleanup()
-
-	// make a gpg keyring
-	if err := tc2.GenerateGPGKeyring(username); err != nil {
-		t.Fatal(err)
-	}
-
-	// run login on new device
-	ctx := &Context{
-		ProvisionUI: newTestProvisionUIGPGImport(),
-		LogUI:       tc2.G.UI.GetLogUI(),
-		SecretUI:    &libkb.TestSecretUI{Passphrase: passphrase},
-		LoginUI:     &libkb.TestLoginUI{Username: username},
-		GPGUI:       &gpgtestui{},
-	}
-	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
-	err := RunEngine(eng, ctx)
-	if err == nil {
-		t.Fatal("expected a failure in login")
-	}
-	if _, ok := err.(libkb.NotFoundError); !ok {
-		t.Fatalf("error type: %T, expected libkb.NotFoundError", err)
-	}
-
-	if err := AssertNotProvisioned(tc2); err != nil {
-		t.Fatal(err)
-	}
-
-	// now try passphrase provisioning
-	ctx.ProvisionUI = newTestProvisionUIPassphrase()
-
-	eng = NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
-	if err := RunEngine(eng, ctx); err != nil {
-		t.Fatal(err)
-	}
-
-	// since this user didn't have any keys, login should have fixed that:
-	testUserHasDeviceKey(tc2)
-
-	// and they should have a paper backup key
-	hasOnePaperDev(tc2, &FakeUser{Username: username, Passphrase: passphrase})
 
 	if err := AssertProvisioned(tc2); err != nil {
 		t.Fatal(err)
@@ -1048,6 +860,12 @@ func newTestProvisionUIPassphrase() *testProvisionUI {
 	return ui
 }
 
+func newTestProvisionUIChooseNoDevice() *testProvisionUI {
+	ui := newTestProvisionUI()
+	ui.chooseDevice = "none"
+	return ui
+}
+
 func newTestProvisionUIPaper() *testProvisionUI {
 	ui := newTestProvisionUI()
 	ui.method = keybase1.ProvisionMethod_PAPER_KEY
@@ -1092,10 +910,12 @@ func (u *testProvisionUI) ChooseDevice(_ context.Context, arg keybase1.ChooseDev
 		return "", nil
 	}
 
-	fmt.Printf("u.chooseDevice: %q\n", u.chooseDevice)
+	if u.chooseDevice == "none" {
+		return "", nil
+	}
+
 	if len(u.chooseDevice) > 0 {
 		for _, d := range arg.Devices {
-			fmt.Printf("device in arg: %+v\n", d)
 			if d.Type == u.chooseDevice {
 				return d.DeviceID, nil
 			}

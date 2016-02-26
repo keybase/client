@@ -80,6 +80,7 @@ func (e *LoginProvision) Run(ctx *Context) error {
 		return err
 	}
 
+	e.cleanupOnErr = true
 	// based on information in e.arg.User, route the user
 	// through the provisioning options
 	if err := e.route(ctx); err != nil {
@@ -705,8 +706,7 @@ func (e *LoginProvision) chooseDevice(ctx *Context, pgp bool) error {
 			return e.tryPGP(ctx)
 		}
 		// tell them they need to reset their account
-		// XXX improve this
-		return errors.New("reset account is your only option")
+		return libkb.ProvisionUnavailableError{}
 	}
 
 	e.G().Log.Debug("user selected device %s", id)
@@ -763,7 +763,9 @@ func (e *LoginProvision) tryGPG(ctx *Context) error {
 	}
 
 	// have a match
-	e.G().Log.Debug("matching gpg keys: %v", matches)
+	for _, m := range matches {
+		e.G().Log.Debug("matching gpg key: %+v", m)
+	}
 
 	// create protocol array of keys
 	var gks []keybase1.GPGKey

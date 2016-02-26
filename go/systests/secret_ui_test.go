@@ -145,6 +145,12 @@ type provisionUI struct {
 func (u *provisionUI) ChooseProvisioningMethod(context.Context, keybase1.ChooseProvisioningMethodArg) (keybase1.ProvisionMethod, error) {
 	return keybase1.ProvisionMethod_PASSPHRASE, nil
 }
+func (u *provisionUI) ChooseGPGMethod(context.Context, keybase1.ChooseGPGMethodArg) (keybase1.GPGMethod, error) {
+	return keybase1.GPGMethod_GPG_IMPORT, nil
+}
+func (u *provisionUI) ChooseDevice(context.Context, keybase1.ChooseDeviceArg) (r keybase1.DeviceID, e error) {
+	return
+}
 func (u *provisionUI) ChooseDeviceType(context.Context, keybase1.ChooseDeviceTypeArg) (r keybase1.DeviceType, e error) {
 	return
 }

@@ -344,7 +344,7 @@ func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 	// provisionee calls login:
 	ctx = &Context{
 		ProvisionUI: newTestProvisionUISecretCh(secretCh),
-		LoginUI:     &libkb.TestLoginUI{},
+		LoginUI:     &libkb.TestLoginUI{Username: userX.Username},
 		LogUI:       tcY.G.UI.GetLogUI(),
 		SecretUI:    &libkb.TestSecretUI{},
 		GPGUI:       &gpgtestui{},

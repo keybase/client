@@ -1224,6 +1224,12 @@ func (e PassphraseProvisionImpossibleError) Error() string {
 	return "Passphrase provision is not possible since you have at least one provisioned device or pgp key already"
 }
 
+type ProvisionUnavailableError struct{}
+
+func (e ProvisionUnavailableError) Error() string {
+	return "Provision unavailable as you don't have access to any of your devices"
+}
+
 type InvalidArgumentError struct {
 	Msg string
 }
