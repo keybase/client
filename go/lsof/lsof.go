@@ -36,12 +36,14 @@ type FileDescriptor struct {
 
 // ExecError is an error running lsof
 type ExecError struct {
-	output string
-	err    error
+	command string
+	args    []string
+	output  string
+	err     error
 }
 
 func (e ExecError) Error() string {
-	return e.output
+	return fmt.Sprintf("Error running %s %s: %s (%s)", e.command, e.args, e.err, e.output)
 }
 
 // MountPoint returns processes using the mountpoint "lsof /dir"
@@ -173,9 +175,11 @@ func parse(s string) ([]Process, error) {
 }
 
 func run(args []string) ([]Process, error) {
-	output, err := exec.Command("lsof", args...).Output()
+	command := "/usr/sbin/lsof"
+	args = append([]string{"-w"}, args...)
+	output, err := exec.Command(command, args...).Output()
 	if err != nil {
-		return nil, ExecError{output: string(output), err: err}
+		return nil, ExecError{command: command, args: args, output: string(output), err: err}
 	}
 	return parse(string(output))
 }

@@ -375,7 +375,8 @@ func (u *Updater) apply(src string, dest string) (err error) {
 
 // Update checks, downloads and performs an update.
 func (u *Updater) Update(ui UI, force bool, requested bool) (update *keybase1.Update, err error) {
-	update, skipped, err := u.updateSingleFlight(ui, force, requested)
+	var skipped bool
+	update, skipped, err = u.updateSingleFlight(ui, force, requested)
 	// Retry if skipped via singleflight
 	if skipped {
 		update, _, err = u.updateSingleFlight(ui, force, requested)
@@ -575,20 +576,28 @@ func toKeybaseProcess(processes []lsof.Process) []keybase1.Process {
 
 func (u *Updater) checkInUse(ui UI, update keybase1.Update) error {
 	mountDir := u.config.GetMountDir()
+	u.log.Debug("Mount dir: %s", mountDir)
 	if mountDir == "" {
 		return nil
 	}
 	if _, serr := os.Stat(mountDir); os.IsNotExist(serr) {
+		u.log.Debug("%s doesn't exist", mountDir)
 		return nil
 	}
 
+	u.log.Debug("Checking mount (lsof)")
 	processes, err := lsof.MountPoint(mountDir)
 	if err != nil {
-		return err
+		// If there is an error in lsof it's likely because the mount is in a bad
+		// state. This usually means we're ok to continue.
+		// TODO(gabe): Investigate this more
+		u.log.Errorf("Continuing despite error in lsof: %s", err)
 	}
 	if len(processes) != 0 {
+		u.log.Debug("Prompting app in use")
 		err = u.promptForAppInUse(ui, update, processes)
 		if err != nil {
+			u.log.Debug("Error prompting")
 			return err
 		}
 	}
