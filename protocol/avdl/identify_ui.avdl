@@ -20,6 +20,7 @@ protocol identifyUi {
     bytes pgpFingerprint;
     KID KID;
     union { null, TrackDiff } trackDiff;
+    bool breaksTracking;
   }
 
   record Cryptocurrency {
@@ -65,6 +66,7 @@ protocol identifyUi {
     union { null, TrackDiff } diff;
     union { null, TrackDiff } remoteDiff;
     union { null, SigHint } hint;
+    bool breaksTracking;
   }
 
   record UserCard {

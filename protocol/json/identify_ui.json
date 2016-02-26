@@ -693,6 +693,10 @@
             "TrackDiff"
           ],
           "name": "trackDiff"
+        },
+        {
+          "type": "bool",
+          "name": "breaksTracking"
         }
       ]
     },
@@ -852,6 +856,10 @@
             "SigHint"
           ],
           "name": "hint"
+        },
+        {
+          "type": "bool",
+          "name": "breaksTracking"
         }
       ]
     },
