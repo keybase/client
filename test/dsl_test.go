@@ -361,7 +361,11 @@ func reenableUpdates() fileOp {
 
 func forceQuotaReclamation() fileOp {
 	return fileOp{func(c *ctx) error {
-		return c.engine.ForceQuotaReclamation(c.user, c.rootNode)
+		err := c.engine.ForceQuotaReclamation(c.user, c.rootNode)
+		if err != nil {
+			return err
+		}
+		return c.engine.SyncFromServer(c.user, c.rootNode)
 	}, Defaults}
 }
 
