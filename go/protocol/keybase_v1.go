@@ -6352,6 +6352,25 @@ func (c UpdateClient) UpdateCheck(ctx context.Context, force bool) (err error) {
 	return
 }
 
+type FileType int
+
+const (
+	FileType_UNKNOWN   FileType = 0
+	FileType_DIRECTORY FileType = 1
+	FileType_FILE      FileType = 2
+)
+
+type FileDescriptor struct {
+	Name string   `codec:"name" json:"name"`
+	Type FileType `codec:"type" json:"type"`
+}
+
+type Process struct {
+	Pid             string           `codec:"pid" json:"pid"`
+	Command         string           `codec:"command" json:"command"`
+	FileDescriptors []FileDescriptor `codec:"fileDescriptors" json:"fileDescriptors"`
+}
+
 type UpdateAction int
 
 const (
@@ -6371,6 +6390,19 @@ type UpdatePromptOptions struct {
 	AlwaysAutoInstall bool `codec:"alwaysAutoInstall" json:"alwaysAutoInstall"`
 }
 
+type UpdateAppInUseAction int
+
+const (
+	UpdateAppInUseAction_CANCEL         UpdateAppInUseAction = 0
+	UpdateAppInUseAction_FORCE          UpdateAppInUseAction = 1
+	UpdateAppInUseAction_SNOOZE         UpdateAppInUseAction = 2
+	UpdateAppInUseAction_KILL_PROCESSES UpdateAppInUseAction = 3
+)
+
+type UpdateAppInUseRes struct {
+	Action UpdateAppInUseAction `codec:"action" json:"action"`
+}
+
 type UpdateQuitRes struct {
 	Quit            bool   `codec:"quit" json:"quit"`
 	Pid             int    `codec:"pid" json:"pid"`
@@ -6383,11 +6415,18 @@ type UpdatePromptArg struct {
 	Options   UpdatePromptOptions `codec:"options" json:"options"`
 }
 
+type UpdateAppInUseArg struct {
+	SessionID int       `codec:"sessionID" json:"sessionID"`
+	Update    Update    `codec:"update" json:"update"`
+	Processes []Process `codec:"processes" json:"processes"`
+}
+
 type UpdateQuitArg struct {
 }
 
 type UpdateUiInterface interface {
 	UpdatePrompt(context.Context, UpdatePromptArg) (UpdatePromptRes, error)
+	UpdateAppInUse(context.Context, UpdateAppInUseArg) (UpdateAppInUseRes, error)
 	UpdateQuit(context.Context) (UpdateQuitRes, error)
 }
 
@@ -6407,6 +6446,22 @@ func UpdateUiProtocol(i UpdateUiInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.UpdatePrompt(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"updateAppInUse": {
+				MakeArg: func() interface{} {
+					ret := make([]UpdateAppInUseArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]UpdateAppInUseArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]UpdateAppInUseArg)(nil), args)
+						return
+					}
+					ret, err = i.UpdateAppInUse(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -6432,6 +6487,11 @@ type UpdateUiClient struct {
 
 func (c UpdateUiClient) UpdatePrompt(ctx context.Context, __arg UpdatePromptArg) (res UpdatePromptRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.updateUi.updatePrompt", []interface{}{__arg}, &res)
+	return
+}
+
+func (c UpdateUiClient) UpdateAppInUse(ctx context.Context, __arg UpdateAppInUseArg) (res UpdateAppInUseRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.updateUi.updateAppInUse", []interface{}{__arg}, &res)
 	return
 }
 

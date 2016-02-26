@@ -207,6 +207,16 @@ export type Feature = {
   label: string;
 }
 
+export type FileDescriptor = {
+  name: string;
+  type: FileType;
+}
+
+export type FileType =
+    0 // UNKNOWN_0
+  | 1 // DIRECTORY_1
+  | 2 // FILE_2
+
 export type FirstStepResult = {
   valPlusTwo: int;
 }
@@ -590,6 +600,12 @@ export type PlatformInfo = {
   os: string;
   arch: string;
   goVersion: string;
+}
+
+export type Process = {
+  pid: string;
+  command: string;
+  fileDescriptors: Array<FileDescriptor>;
 }
 
 export type PromptDefault =
@@ -1053,6 +1069,16 @@ export type UpdateAction =
   | 1 // SKIP_1
   | 2 // SNOOZE_2
   | 3 // CANCEL_3
+
+export type UpdateAppInUseAction =
+    0 // CANCEL_0
+  | 1 // FORCE_1
+  | 2 // SNOOZE_2
+  | 3 // KILL_PROCESSES_3
+
+export type UpdateAppInUseRes = {
+  action: UpdateAppInUseAction;
+}
 
 export type UpdateOptions = {
   version: string;
@@ -2938,6 +2964,18 @@ export type ui_promptYesNo_rpc = {
   callback: (null | (err: ?any, response: ui_promptYesNo_result) => void)
 }
 
+export type updateUi_updateAppInUse_result = UpdateAppInUseRes
+
+export type updateUi_updateAppInUse_rpc = {
+  method: 'updateUi.updateAppInUse',
+  param: {
+    update: Update,
+    processes: Array<Process>
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any, response: updateUi_updateAppInUse_result) => void)
+}
+
 export type updateUi_updatePrompt_result = UpdatePromptRes
 
 export type updateUi_updatePrompt_rpc = {
@@ -3259,6 +3297,7 @@ export type rpc =
   | track_track_rpc
   | track_untrack_rpc
   | ui_promptYesNo_rpc
+  | updateUi_updateAppInUse_rpc
   | updateUi_updatePrompt_rpc
   | updateUi_updateQuit_rpc
   | update_updateCheck_rpc
@@ -4995,6 +5034,17 @@ export type incomingCallMapType = {
     response: {
       error: (err: string) => void,
       result: (result: updateUi_updatePrompt_result) => void
+    }
+  ) => void,
+  'keybase.1.updateUi.updateAppInUse'?: (
+    params: {
+      sessionID: int,
+      update: Update,
+      processes: Array<Process>
+    },
+    response: {
+      error: (err: string) => void,
+      result: (result: updateUi_updateAppInUse_result) => void
     }
   ) => void,
   'keybase.1.updateUi.updateQuit'?: (
