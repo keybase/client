@@ -302,6 +302,16 @@ func AddNewKeysOrBust(t logger.TestLogBackend, rmd *RootMetadata, tkb TLFKeyBund
 	}
 }
 
+func keySaltForUserDevice(name libkb.NormalizedUsername,
+	index int) libkb.NormalizedUsername {
+	if index > 0 {
+		// We can't include the device index when it's 0, because we
+		// have to match what's done in MakeLocalUsers.
+		return libkb.NormalizedUsername(string(name) + " " + string(index))
+	}
+	return name
+}
+
 // AddDeviceForLocalUserOrBust creates a new device for a user and
 // returns the index for that device.
 func AddDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config,
@@ -317,11 +327,7 @@ func AddDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config,
 	}
 
 	index := len(user.VerifyingKeys)
-	keySalt := user.Name
-	if index > 0 {
-		keySalt = libkb.NormalizedUsername(string(user.Name) + " " +
-			string(index))
-	}
+	keySalt := keySaltForUserDevice(user.Name, index)
 	newVerifyingKey := MakeLocalUserVerifyingKeyOrBust(keySalt)
 	user.VerifyingKeys = append(user.VerifyingKeys, newVerifyingKey)
 	newCryptPublicKey := MakeLocalUserCryptPublicKeyOrBust(keySalt)
@@ -403,11 +409,7 @@ func SwitchDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config, inde
 		t.Fatalf("Bad crypto")
 	}
 
-	keySalt := user.Name
-	if index > 0 {
-		keySalt = libkb.NormalizedUsername(string(user.Name) + " " +
-			string(index))
-	}
+	keySalt := keySaltForUserDevice(user.Name, index)
 	crypto.signingKey = MakeLocalUserSigningKeyOrBust(keySalt)
 	crypto.cryptPrivateKey = MakeLocalUserCryptPrivateKeyOrBust(keySalt)
 }
