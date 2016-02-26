@@ -36,8 +36,15 @@ launchctl load ~/Library/LaunchAgents/keybase.prerelease.plist
 
 ### Dev/Local Builds
 
-For faster debugging/testing, you can build Keybase services directly into an
-existing app install:
+To build a version of the app using the local repo without signing or uploading
+to S3:
+
+```
+NOPULL=1 NOS3=1 NOSIGN=1 ./build_app.sh
+```
+
+For faster debugging/testing, you can build Keybase services (go binaries)
+directly into an existing app install:
 
 ```
 BUILD_DIR=/Applications/Keybase.app/Contents/SharedSupport/bin ./build_keybase.sh

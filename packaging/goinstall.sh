@@ -6,8 +6,9 @@ dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd $dir
 
 istest=${TEST:-}
+nopull=${NOPULL:-}
 
-if [ ! "$istest" = "1" ]; then
+if [ ! "$istest" = "1" ] && [ ! "$nopull" = "1" ]; then
   go get -u -f $1
 else
   go get $1

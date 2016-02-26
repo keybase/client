@@ -11,6 +11,7 @@ istest=${TEST:-} # Use test bucket (doesn't trigger prerelease updates)
 nopull=${NOPULL:-} # Don't git pull
 bucket_name=${BUCKET_NAME:-"prerelease.keybase.io"}
 platform=${PLATFORM:-`uname`}
+nos3=${NOS3:-} # Don't sync to S3
 
 if [ "$GOPATH" = "" ]; then
   echo "No GOPATH"
@@ -20,7 +21,14 @@ fi
 # If testing, use test bucket
 if [ "$istest" = "1" ]; then
   bucket_name="prerelease-test.keybase.io"
-  echo "Using test bucket: $bucket_name"
+fi
+
+if [ "$nos3" = "1" ]; then
+  bucket_name=""
+fi
+
+if [ ! "$bucket_name" = "" ]; then
+  echo "Using S3 bucket: $bucket_name"
 fi
 
 build_dir_keybase="/tmp/build_keybase"
