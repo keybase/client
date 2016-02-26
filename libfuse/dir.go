@@ -740,6 +740,13 @@ func (tlf *TLF) filterEarlyExitError(ctx context.Context, err error) (
 			tlf.folder.name)
 		return true, nil
 
+	case libkbfs.MDServerErrorWriteAccess:
+		// Same as above; cannot fallthrough in type switch
+		tlf.folder.fs.log.CDebugf(ctx,
+			"No permission to write to %s, so pretending it's empty",
+			tlf.folder.name)
+		return true, nil
+
 	default:
 		// Some other error.
 		return true, err

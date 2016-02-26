@@ -105,6 +105,11 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 			}
 			return nil, false, dokan.ErrObjectNameNotFound
 
+		case libkbfs.MDServerErrorWriteAccess:
+			if len(path) == 1 {
+				return oc.returnDirNoCleanup(&EmptyFolder{})
+			}
+			return nil, false, dokan.ErrObjectNameNotFound
 		case libkbfs.WriteAccessError:
 			if len(path) == 1 {
 				return oc.returnDirNoCleanup(&EmptyFolder{})

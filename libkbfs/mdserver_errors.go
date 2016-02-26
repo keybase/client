@@ -29,6 +29,9 @@ const (
 	StatusCodeMDServerErrorThrottle = 2807
 	// StatusCodeMDServerErrorConditionFailed is the error code to indicate the write condition failed.
 	StatusCodeMDServerErrorConditionFailed = 2808
+	// StatusCodeMDServerErrorWriteAccess is the error code to indicate the client isn't authorized to
+	// write to a TLF.
+	StatusCodeMDServerErrorWriteAccess = 2809
 )
 
 // MDServerError is a generic server-side error.
@@ -178,6 +181,22 @@ func (e MDServerErrorUnauthorized) ToStatus() (s keybase1.Status) {
 	return
 }
 
+// MDServerErrorWriteAccess is returned when a device requests a key half which doesn't belong to it.
+type MDServerErrorWriteAccess struct{}
+
+// Error implements the Error interface for MDServerErrorWriteAccess.
+func (e MDServerErrorWriteAccess) Error() string {
+	return "WriteAccess"
+}
+
+// ToStatus implements the ExportableError interface for MDServerErrorWriteAccess.
+func (e MDServerErrorWriteAccess) ToStatus() (s keybase1.Status) {
+	s.Code = StatusCodeMDServerErrorWriteAccess
+	s.Name = "WRITE_ACCESS"
+	s.Desc = e.Error()
+	return
+}
+
 // MDServerErrorThrottle is returned when the server wants the client to backoff.
 type MDServerErrorThrottle struct {
 	Err error
@@ -264,6 +283,9 @@ func (eu MDServerErrorUnwrapper) UnwrapError(arg interface{}) (appError error, d
 		break
 	case StatusCodeMDServerErrorConditionFailed:
 		appError = MDServerErrorConditionFailed{errors.New(s.Desc)}
+		break
+	case StatusCodeMDServerErrorWriteAccess:
+		appError = MDServerErrorWriteAccess{}
 		break
 	default:
 		ase := libkb.AppStatusError{
