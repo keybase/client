@@ -2050,6 +2050,7 @@ type Identity struct {
 	Proofs          []IdentifyRow    `codec:"proofs" json:"proofs"`
 	Cryptocurrency  []Cryptocurrency `codec:"cryptocurrency" json:"cryptocurrency"`
 	Revoked         []TrackDiff      `codec:"revoked" json:"revoked"`
+	BreaksTracking  bool             `codec:"breaksTracking" json:"breaksTracking"`
 }
 
 type SigHint struct {

@@ -753,6 +753,10 @@
             "items": "TrackDiff"
           },
           "name": "revoked"
+        },
+        {
+          "type": "bool",
+          "name": "breaksTracking"
         }
       ]
     },

@@ -119,7 +119,9 @@ func (s *IdentifyState) computeKeyDiffs(dhook func(keybase1.IdentifyKey)) {
 		}
 		// Anything other than a no difference here should be displayed to
 		// the user.
-		k.BreaksTracking = diff.BreaksTracking()
+		if diff != nil {
+			k.BreaksTracking = diff.BreaksTracking()
+		}
 		dhook(k)
 	}
 

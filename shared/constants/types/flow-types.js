@@ -356,6 +356,7 @@ export type Identity = {
   proofs: Array<IdentifyRow>;
   cryptocurrency: Array<Cryptocurrency>;
   revoked: Array<TrackDiff>;
+  breaksTracking: bool;
 }
 
 export type InstallAction =

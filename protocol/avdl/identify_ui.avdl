@@ -35,6 +35,7 @@ protocol identifyUi {
     array<IdentifyRow> proofs;
     array<Cryptocurrency> cryptocurrency;
     array<TrackDiff> revoked;
+    bool breaksTracking;
   }
 
   record SigHint {
