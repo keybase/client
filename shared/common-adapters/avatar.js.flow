@@ -1,0 +1,15 @@
+/* @flow */
+
+import React, {Component} from 'react'
+
+export type Props = {
+  size: number,
+  url: ?string,
+  style: object
+}
+
+declare export default class Avatar extends Component {
+  props: Props;
+}
+
+

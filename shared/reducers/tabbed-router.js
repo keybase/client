@@ -27,7 +27,7 @@ const initialState: TabbedRouterState = Immutable.fromJS(initTabbedRouterState({
     [moreTab]: emptyRouterState,
     [loginTab]: emptyRouterState
   },
-  activeTab: moreTab
+  activeTab: loginTab
 }))
 
 export default function (state: TabbedRouterState = initialState, action: any): TabbedRouterState {

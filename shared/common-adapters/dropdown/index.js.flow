@@ -7,7 +7,7 @@ export type Props = {
   options: Array<string>,
   onClick: (option: string, index: number) => void,
   onOther?: () => void,
-  value?: string,
+  value?: ?string,
   style?: Object
 }
 

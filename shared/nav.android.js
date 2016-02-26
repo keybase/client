@@ -93,13 +93,13 @@ class Nav extends Component {
   render () {
     const activeTab = this.props.tabbedRouter.get('activeTab')
 
-    if (this.props.config.navState === Constants.navStartingUp) {
-      return (
-        <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-          <Text>Loading...</Text>
-        </View>
-      )
-    }
+    // if (this.props.config.navState === Constants.navStartingUp) {
+      // return (
+        // <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+          // <Text>Loading...</Text>
+        // </View>
+      // )
+    // }
 
     if (activeTab === startupTab) {
       return this._renderContent(startupTab)
@@ -206,7 +206,6 @@ Nav.propTypes = {
   startup: React.PropTypes.func.isRequired,
   tabbedRouter: React.PropTypes.object.isRequired,
   config: React.PropTypes.shape({
-    navState: React.PropTypes.oneOf([Constants.navStartingUp, Constants.navNeedsRegistration, Constants.navNeedsLogin, Constants.navLoggedIn, Constants.navErrorStartingUp])
   }).isRequired
 }
 

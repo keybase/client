@@ -7,6 +7,8 @@ import type {Props as CheckboxProps} from './checkbox'
 
 export type Props = {
   inputProps: InputProps,
+  style?: Object,
+  checkboxContainerStyle?: Object,
   checkboxesProps: Array<CheckboxProps>
 }
 

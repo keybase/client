@@ -60,7 +60,8 @@ export const globalColorsDZ2 = {
 }
 
 export const globalResizing = {
-  login: {width: 700, height: 580}
+  login: {width: 700, height: 580},
+  normal: {width: 900, height: 900}
 }
 
 const fontCommon = {

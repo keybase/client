@@ -45,7 +45,8 @@ type LoginState = {
     onSubmit: ?Function,
     existingDevices: ?Array<string>,
     deviceName: string | ''
-  }
+  },
+  configuredAccounts: ?Array<{hasStoredSecret: bool, username: string}>;
 }
 
 const initialState: LoginState = {
@@ -73,7 +74,8 @@ const initialState: LoginState = {
     onSubmit: () => {},
     existingDevices: [],
     deviceName: ''
-  }
+  },
+  configuredAccounts: null
 }
 
 export default function (state: LoginState = initialState, action: any): LoginState {
@@ -157,6 +159,13 @@ export default function (state: LoginState = initialState, action: any): LoginSt
     case Constants.actionSetDeviceName:
       const deviceName = action.payload
       toMerge = {deviceName: {deviceName}}
+      break
+    case Constants.configuredAccounts:
+      if (action.payload.error) {
+        toMerge = {configuredAccounts: []}
+      } else {
+        toMerge = {configuredAccounts: action.payload.accounts}
+      }
       break
     default:
       return state

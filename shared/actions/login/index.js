@@ -1,7 +1,7 @@
 /* @flow */
 import * as Constants from '../../constants/login'
 import {isMobile} from '../../constants/platform'
-import {navigateTo, routeAppend, getCurrentURI, getCurrentTab} from '../router'
+import {navigateTo, routeAppend} from '../router'
 import engine from '../../engine'
 import enums from '../../constants/types/keybase-v1'
 import UserPass from '../../login/register/user-pass'
@@ -16,10 +16,56 @@ import {defaultModeForDeviceRoles, qrGenerate} from './provision-helpers'
 import {getCurrentStatus} from '../config'
 import type {Dispatch, GetState, AsyncAction, TypedAction} from '../../constants/types/flux'
 import type {incomingCallMapType, login_recoverAccountFromEmailAddress_rpc,
-  login_login_rpc, login_logout_rpc, device_deviceAdd_rpc} from '../../constants/types/flow-types'
+  login_login_rpc, login_logout_rpc, device_deviceAdd_rpc, login_getConfiguredAccounts_rpc} from '../../constants/types/flow-types'
 import {mobileAppsExist} from '../../util/feature-flags'
-
+import {overrideLoggedInTab} from '../../local-debug'
 let currentLoginSessionID = null
+
+export function navBasedOnLoginState () :AsyncAction {
+  return (dispatch, getState) => {
+    const {config: {status}} = getState()
+
+    // No status?
+    if (!status || !Object.keys(status).length) {
+      dispatch(navigateTo([], loginTab))
+      dispatch(switchTab(loginTab))
+    } else {
+      if (status.loggedIn) { // logged in
+        if (overrideLoggedInTab) {
+          console.log('Loading overridden logged in tab')
+          dispatch(switchTab(overrideLoggedInTab))
+        } else {
+          dispatch(switchTab(devicesTab))
+        }
+      } else if (status.registered) { // relogging in
+        dispatch(getAccounts())
+        dispatch(navigateTo(['login'], loginTab))
+        dispatch(switchTab(loginTab))
+      } else { // no idea
+        dispatch(navigateTo([], loginTab))
+        dispatch(switchTab(loginTab))
+      }
+    }
+  }
+}
+
+function getAccounts (): AsyncAction {
+  return dispatch => {
+    const params: login_getConfiguredAccounts_rpc = {
+      method: 'login.getConfiguredAccounts',
+      param: {},
+      incomingCallMap: {},
+      callback: (error, accounts) => {
+        if (error) {
+          dispatch({type: Constants.configuredAccounts, error: true, payload: error})
+        } else {
+          dispatch({type: Constants.configuredAccounts, payload: {accounts}})
+        }
+      }
+    }
+    engine.rpc(params)
+  }
+}
 
 export function login (): AsyncAction {
   return (dispatch, getState) => {
@@ -121,6 +167,38 @@ export function autoLogin () : AsyncAction {
           dispatch({type: Constants.loginDone, error: true, payload: error})
         } else {
           dispatch({type: Constants.loginDone, payload: status})
+          dispatch(navBasedOnLoginState())
+        }
+      }
+    }
+    engine.rpc(params)
+  }
+}
+
+export function relogin (user: string, passphrase: string, store: boolean) : AsyncAction {
+  return dispatch => {
+    const params : login_login_rpc = {
+      method: 'login.login',
+      param: {
+        deviceType: isMobile ? 'mobile' : 'desktop',
+        username: user,
+        clientType: enums.login.ClientType.gui
+      },
+      incomingCallMap: {
+        'keybase.1.secretUi.getPassphrase': ({pinentry: {type}}, response) => {
+          response.result({
+            passphrase,
+            storeSecret: store
+          })
+        }
+      },
+      callback: (error, status) => {
+        if (error) {
+          console.log(error)
+          dispatch({type: Constants.loginDone, error: true, payload: error})
+        } else {
+          dispatch({type: Constants.loginDone, payload: status})
+          dispatch(navBasedOnLoginState())
         }
       }
     }
@@ -148,8 +226,11 @@ export function logout () : AsyncAction {
 
 export function logoutDone () : AsyncAction {
   // We've logged out, let's check our current status
-  return dispatch => {
+  return (dispatch, getState) => {
     dispatch({type: Constants.logoutDone, payload: undefined})
+
+    dispatch(switchTab(loginTab))
+    dispatch(navBasedOnLoginState())
     dispatch(getCurrentStatus())
   }
 }
@@ -296,7 +377,7 @@ export function registerWithPaperKey () : AsyncAction {
 
 export function cancelLogin () : AsyncAction {
   return (dispatch, getState) => {
-    dispatch(navigateTo([], loginTab))
+    dispatch(navBasedOnLoginState())
     if (currentLoginSessionID) {
       engine.cancelRPC(currentLoginSessionID)
       currentLoginSessionID = null
@@ -330,9 +411,8 @@ function startLoginFlow (dispatch, getState, provisionMethod, userPassTitle, use
           payload: undefined
         })
 
-        dispatch(navigateTo([]))
         dispatch(loadDevices())
-        dispatch(switchTab(devicesTab))
+        dispatch(navBasedOnLoginState())
       }
     }
   }
@@ -438,16 +518,8 @@ function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle
     },
     'keybase.1.provisionUi.ProvisionerSuccess': (param, response) => {
       response.result()
-      const uri = getCurrentURI(getState()).last()
 
-      const onDevicesTab = getCurrentTab(getState()) === devicesTab
-      const onCodePage = uri && uri.getIn(['parseRoute']) &&
-        uri.getIn(['parseRoute']).componentAtTop && uri.getIn(['parseRoute']).componentAtTop.component === CodePage
-
-      if (onDevicesTab && onCodePage) {
-        dispatch(navigateTo([]))
-        dispatch(loadDevices())
-      }
+      dispatch(navBasedOnLoginState())
     },
     'keybase.1.provisionUi.chooseDeviceType': (param, response) => {
       const onSubmit = type => {
