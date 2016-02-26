@@ -224,11 +224,9 @@ if (!info) {
 info = inject(info)
 
 if (info.shell) {
-  console.log(`Calling: ${JSON.stringify(info, null, 2)}`)
   exec(info.shell, info.env)
 }
 
 if (info.code) {
   info.code()
 }
-
