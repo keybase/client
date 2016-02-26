@@ -129,7 +129,7 @@ func TestUserInfo(t *testing.T) {
 	}
 }
 
-func TestLoginXXX(t *testing.T) {
+func TestLogin(t *testing.T) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
 	defer tcX.Cleanup()
@@ -150,7 +150,7 @@ func TestLoginXXX(t *testing.T) {
 	// provisionee calls login:
 	ctx := &Context{
 		ProvisionUI: newTestProvisionUISecretCh(secretCh),
-		LoginUI:     &libkb.TestLoginUI{},
+		LoginUI:     &libkb.TestLoginUI{Username: userX.Username},
 		LogUI:       tcY.G.UI.GetLogUI(),
 		SecretUI:    &libkb.TestSecretUI{},
 		GPGUI:       &gpgtestui{},
@@ -902,7 +902,7 @@ func TestProvisionDupDevice(t *testing.T) {
 	// provisionee calls login:
 	ctx := &Context{
 		ProvisionUI: provui,
-		LoginUI:     &libkb.TestLoginUI{},
+		LoginUI:     &libkb.TestLoginUI{Username: userX.Username},
 		LogUI:       tcY.G.UI.GetLogUI(),
 		SecretUI:    &libkb.TestSecretUI{},
 		GPGUI:       &gpgtestui{},
@@ -1038,6 +1038,7 @@ func newTestProvisionUI() *testProvisionUI {
 func newTestProvisionUISecretCh(ch chan kex2.Secret) *testProvisionUI {
 	ui := newTestProvisionUI()
 	ui.secretCh = ch
+	ui.chooseDevice = "desktop"
 	return ui
 }
 
