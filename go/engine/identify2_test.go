@@ -1,13 +1,14 @@
 package engine
 
 import (
-	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
-	jsonw "github.com/keybase/go-jsonw"
 	"strings"
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol"
+	jsonw "github.com/keybase/go-jsonw"
 )
 
 func importTrackingLink(t *testing.T, g *libkb.GlobalContext) *libkb.TrackChainLink {
@@ -153,6 +154,7 @@ var _ libkb.Identify2Cacher = (*Identify2WithUIDTester)(nil)
 
 func TestIdentify2WithUIDWithoutTrack(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithoutTrack")
+	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.ProofCheckerFactory = i
 	arg := &keybase1.Identify2Arg{
@@ -170,6 +172,7 @@ func TestIdentify2WithUIDWithoutTrack(t *testing.T) {
 
 func TestIdentify2WithUIDWithTrack(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithTrack")
+	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.ProofCheckerFactory = i
 	arg := &keybase1.Identify2Arg{
@@ -195,6 +198,7 @@ func TestIdentify2WithUIDWithTrack(t *testing.T) {
 
 func TestIdentify2WithUIDWithBrokenTrack(t *testing.T) {
 	tc := SetupEngineTest(t, "TestIdentify2WithUIDWithBrokenTrack")
+	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.ProofCheckerFactory = i
 	arg := &keybase1.Identify2Arg{
@@ -227,6 +231,7 @@ func TestIdentify2WithUIDWithBrokenTrack(t *testing.T) {
 
 func TestIdentify2WithUIDWithAssertion(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithAssertion")
+	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.ProofCheckerFactory = i
 	arg := &keybase1.Identify2Arg{
@@ -251,6 +256,7 @@ func TestIdentify2WithUIDWithAssertion(t *testing.T) {
 
 func TestIdentify2WithUIDWithAssertions(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithAssertion")
+	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.ProofCheckerFactory = i
 	arg := &keybase1.Identify2Arg{
@@ -275,6 +281,7 @@ func TestIdentify2WithUIDWithAssertions(t *testing.T) {
 
 func TestIdentify2WithUIDWithNonExistentAssertion(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithNonExistentAssertion")
+	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.ProofCheckerFactory = i
 	arg := &keybase1.Identify2Arg{
@@ -309,6 +316,7 @@ func TestIdentify2WithUIDWithNonExistentAssertion(t *testing.T) {
 
 func TestIdentify2WithUIDWithFailedAssertion(t *testing.T) {
 	tc := SetupEngineTest(t, "TestIdentify2WithUIDWithFailedAssertion")
+	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.ProofCheckerFactory = i
 	arg := &keybase1.Identify2Arg{
@@ -359,6 +367,7 @@ func TestIdentify2WithUIDWithFailedAssertion(t *testing.T) {
 
 func TestIdentify2WithUIDWithFailedAncillaryAssertion(t *testing.T) {
 	tc := SetupEngineTest(t, "TestIdentify2WithUIDWithFailedAncillaryAssertion")
+	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.ProofCheckerFactory = i
 	arg := &keybase1.Identify2Arg{
@@ -408,6 +417,7 @@ func (i *Identify2WithUIDTester) incNow(d time.Duration) {
 
 func TestIdentify2WithUIDCache(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithoutTrack")
+	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.ProofCheckerFactory = i
 	arg := &keybase1.Identify2Arg{
@@ -479,6 +489,7 @@ func TestIdentify2WithUIDCache(t *testing.T) {
 
 func TestIdentify2WithUIDLocalAssertions(t *testing.T) {
 	tc := SetupEngineTest(t, "TestIdentify2WithUIDLocalAssertions")
+	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.ProofCheckerFactory = i
 	arg := &keybase1.Identify2Arg{
@@ -542,6 +553,7 @@ func TestIdentify2WithUIDLocalAssertions(t *testing.T) {
 
 func TestResolveAndIdentify2WithUIDWithAssertions(t *testing.T) {
 	tc := SetupEngineTest(t, "Identify2WithUIDWithAssertion")
+	defer tc.Cleanup()
 	i := newIdentify2WithUIDTester(tc.G)
 	tc.G.ProofCheckerFactory = i
 	arg := &keybase1.Identify2Arg{
