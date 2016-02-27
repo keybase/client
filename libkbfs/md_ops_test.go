@@ -310,8 +310,8 @@ func testMDOpsGetRangeSuccess(t *testing.T, fromStart bool) {
 
 	allRMDSs := []*RootMetadataSigned{rmds3, rmds2, rmds1}
 
-	config.mockMdserv.EXPECT().GetRange(ctx, id, NullBranchID, Merged, start, stop).
-		Return(allRMDSs, nil)
+	config.mockMdserv.EXPECT().GetRange(ctx, id, NullBranchID, Merged, start,
+		stop).Return(allRMDSs, nil)
 	verifyMDForPrivate(config, rmds3, id)
 	verifyMDForPrivate(config, rmds2, id)
 	verifyMDForPrivate(config, rmds1, id)
@@ -353,8 +353,8 @@ func TestMDOpsGetRangeFailBadPrevRoot(t *testing.T) {
 	allRMDSs := []*RootMetadataSigned{rmds3, rmds2, rmds1}
 
 	start, stop := MetadataRevision(200), MetadataRevision(202)
-	config.mockMdserv.EXPECT().GetRange(ctx, id, NullBranchID, Merged, start, stop).
-		Return(allRMDSs, nil)
+	config.mockMdserv.EXPECT().GetRange(ctx, id, NullBranchID, Merged, start,
+		stop).Return(allRMDSs, nil)
 	verifyMDForPrivate(config, rmds3, id)
 	verifyMDForPrivate(config, rmds2, id)
 

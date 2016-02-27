@@ -33,7 +33,7 @@ func (md *MDOpsStandard) convertVerifyingKeyError(ctx context.Context,
 }
 
 func (md *MDOpsStandard) processMetadata(ctx context.Context,
-	handle *TlfHandle, rmds *RootMetadataSigned) error {
+	handle *TlfHandle, rmds *RootMetadataSigned, allowUnverified bool) error {
 	crypto := md.config.Crypto()
 	codec := md.config.Codec()
 	// verify signature and deserialize root data, if the sig is not blank.
@@ -102,7 +102,11 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 		err = kbpki.HasVerifyingKey(ctx, writer,
 			rmds.MD.WriterMetadataSigInfo.VerifyingKey)
 		if err != nil {
-			return md.convertVerifyingKeyError(ctx, rmds, err)
+			if allowUnverified {
+				rmds.MD.unverified = true
+			} else {
+				return md.convertVerifyingKeyError(ctx, rmds, err)
+			}
 		}
 
 		err = crypto.Verify(buf, rmds.MD.WriterMetadataSigInfo)
@@ -132,7 +136,11 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 		// key?
 		err = kbpki.HasVerifyingKey(ctx, user, rmds.SigInfo.VerifyingKey)
 		if err != nil {
-			return md.convertVerifyingKeyError(ctx, rmds, err)
+			if allowUnverified {
+				rmds.MD.unverified = true
+			} else {
+				return md.convertVerifyingKeyError(ctx, rmds, err)
+			}
 		}
 
 		err = crypto.Verify(buf, rmds.SigInfo)
@@ -160,7 +168,7 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
 		rmd := NewRootMetadata(handle, id)
 		rmds = &RootMetadataSigned{MD: *rmd}
 	}
-	if err := md.processMetadata(ctx, handle, rmds); err != nil {
+	if err := md.processMetadata(ctx, handle, rmds, false); err != nil {
 		return nil, err
 	}
 	if rmds.IsInitialized() {
@@ -191,7 +199,8 @@ func (md *MDOpsStandard) GetUnmergedForHandle(ctx context.Context, handle *TlfHa
 }
 
 func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
-	id TlfID, bid BranchID, rmds *RootMetadataSigned) error {
+	id TlfID, bid BranchID, rmds *RootMetadataSigned,
+	allowUnverified bool) error {
 	// Make sure the signed-over ID matches
 	if id != rmds.MD.ID {
 		return MDMismatchError{
@@ -208,7 +217,8 @@ func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
 				"folder id %s", rmds.MD.BID.String(), bid.String(), id.String()),
 		}
 	}
-	return md.processMetadata(ctx, rmds.MD.GetTlfHandle(), rmds)
+	return md.processMetadata(ctx, rmds.MD.GetTlfHandle(), rmds,
+		allowUnverified)
 }
 
 func (md *MDOpsStandard) getForTLF(ctx context.Context, id TlfID,
@@ -221,7 +231,7 @@ func (md *MDOpsStandard) getForTLF(ctx context.Context, id TlfID,
 		// Possible if mStatus is Unmerged
 		return nil, nil
 	}
-	err = md.processMetadataWithID(ctx, id, bid, rmds)
+	err = md.processMetadataWithID(ctx, id, bid, rmds, false)
 	if err != nil {
 		return nil, err
 	}
@@ -240,7 +250,8 @@ func (md *MDOpsStandard) GetUnmergedForTLF(ctx context.Context, id TlfID, bid Br
 }
 
 func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
-	bid BranchID, rmds []*RootMetadataSigned) ([]*RootMetadata, error) {
+	bid BranchID, rmds []*RootMetadataSigned, allowUnverified bool) (
+	[]*RootMetadata, error) {
 	if rmds == nil {
 		return nil, nil
 	}
@@ -275,7 +286,7 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 			}
 		}
 
-		err = md.processMetadataWithID(ctx, id, bid, r)
+		err = md.processMetadataWithID(ctx, id, bid, r, allowUnverified)
 		if err != nil {
 			return nil, err
 		}
@@ -293,13 +304,15 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 }
 
 func (md *MDOpsStandard) getRange(ctx context.Context, id TlfID,
-	bid BranchID, mStatus MergeStatus, start, stop MetadataRevision) (
+	bid BranchID, mStatus MergeStatus, start, stop MetadataRevision,
+	allowUnverified bool) (
 	[]*RootMetadata, error) {
-	rmds, err := md.config.MDServer().GetRange(ctx, id, bid, mStatus, start, stop)
+	rmds, err := md.config.MDServer().GetRange(ctx, id, bid, mStatus, start,
+		stop)
 	if err != nil {
 		return nil, err
 	}
-	rmd, err := md.processRange(ctx, id, bid, rmds)
+	rmd, err := md.processRange(ctx, id, bid, rmds, allowUnverified)
 	if err != nil {
 		return nil, err
 	}
@@ -309,13 +322,19 @@ func (md *MDOpsStandard) getRange(ctx context.Context, id TlfID,
 // GetRange implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetRange(ctx context.Context, id TlfID,
 	start, stop MetadataRevision) ([]*RootMetadata, error) {
-	return md.getRange(ctx, id, NullBranchID, Merged, start, stop)
+	return md.getRange(ctx, id, NullBranchID, Merged, start, stop, false)
+}
+
+// GetRangeAllowUnverified implements the MDOps interface for MDOpsStandard.
+func (md *MDOpsStandard) GetRangeAllowUnverified(ctx context.Context, id TlfID,
+	start, stop MetadataRevision) ([]*RootMetadata, error) {
+	return md.getRange(ctx, id, NullBranchID, Merged, start, stop, true)
 }
 
 // GetUnmergedRange implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetUnmergedRange(ctx context.Context, id TlfID,
 	bid BranchID, start, stop MetadataRevision) ([]*RootMetadata, error) {
-	return md.getRange(ctx, id, bid, Unmerged, start, stop)
+	return md.getRange(ctx, id, bid, Unmerged, start, stop, false)
 }
 
 func (md *MDOpsStandard) readyMD(ctx context.Context, rmd *RootMetadata) (

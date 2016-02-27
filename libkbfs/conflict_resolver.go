@@ -197,8 +197,8 @@ func (cr *ConflictResolver) getMDs(ctx context.Context, lState *lockState) (
 	}
 
 	// now get all the merged MDs, starting from after the branch point
-	merged, err = getMergedMDUpdates(ctx, cr.fbo.config, cr.fbo.id(),
-		branchPoint+1)
+	merged, err = getMergedMDUpdatesAllowUnverified(ctx, cr.fbo.config,
+		cr.fbo.id(), branchPoint+1)
 	if err != nil {
 		return nil, nil, err
 	}

@@ -1589,6 +1589,17 @@ func (_mr *_MockMDOpsRecorder) GetRange(arg0, arg1, arg2, arg3 interface{}) *gom
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRange", arg0, arg1, arg2, arg3)
 }
 
+func (_m *MockMDOps) GetRangeAllowUnverified(ctx context.Context, id TlfID, start MetadataRevision, stop MetadataRevision) ([]*RootMetadata, error) {
+	ret := _m.ctrl.Call(_m, "GetRangeAllowUnverified", ctx, id, start, stop)
+	ret0, _ := ret[0].([]*RootMetadata)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockMDOpsRecorder) GetRangeAllowUnverified(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetRangeAllowUnverified", arg0, arg1, arg2, arg3)
+}
+
 func (_m *MockMDOps) GetUnmergedRange(ctx context.Context, id TlfID, bid BranchID, start MetadataRevision, stop MetadataRevision) ([]*RootMetadata, error) {
 	ret := _m.ctrl.Call(_m, "GetUnmergedRange", ctx, id, bid, start, stop)
 	ret0, _ := ret[0].([]*RootMetadata)

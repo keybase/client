@@ -233,8 +233,7 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context) error 
 		var rmds []*RootMetadata
 		var err error
 		if md.MergedStatus() == Merged {
-			rmds, err = getMergedMDUpdates(ctx, fbm.config, fbm.id,
-				md.Revision)
+			rmds, err = getMergedMDUpdates(ctx, fbm.config, fbm.id, md.Revision)
 		} else {
 			_, rmds, err = getUnmergedMDUpdates(ctx, fbm.config, fbm.id,
 				md.BID, md.Revision)
@@ -408,7 +407,7 @@ func (fbm *folderBlockManager) getMostRecentOldEnoughAndGCRevisions(
 		}
 
 		rmds, err := getMDRange(ctx, fbm.config, fbm.id, NullBranchID, startRev,
-			currHead, Merged)
+			currHead, Merged, true)
 		if err != nil {
 			return MetadataRevisionUninitialized,
 				MetadataRevisionUninitialized, err
@@ -506,7 +505,7 @@ outer:
 		}
 
 		rmds, err := getMDRange(ctx, fbm.config, fbm.id, NullBranchID, startRev,
-			currHead, Merged)
+			currHead, Merged, true)
 		if err != nil {
 			return nil, MetadataRevisionUninitialized, err
 		}

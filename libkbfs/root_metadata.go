@@ -168,6 +168,11 @@ type RootMetadata struct {
 	cachedTlfHandle *TlfHandle
 	// The cached ID for this MD structure (hash)
 	mdID MdID
+	// unverified is set if the MD update was signed by a key that is
+	// not associated with the relevant user, and we intentionally
+	// skipped failing MD verification.  The user in question could be
+	// either the LastModifyingUser or the LastModifyingWriter.
+	unverified bool
 }
 
 func (md RootMetadata) haveOnlyUserRKeysChanged(prevMD RootMetadata, user keybase1.UID) bool {

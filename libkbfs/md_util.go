@@ -13,8 +13,8 @@ type mdRange struct {
 }
 
 func getMDRange(ctx context.Context, config Config, id TlfID, bid BranchID,
-	start MetadataRevision, end MetadataRevision, mStatus MergeStatus) (
-	rmds []*RootMetadata, err error) {
+	start MetadataRevision, end MetadataRevision, mStatus MergeStatus,
+	allowUnverified bool) (rmds []*RootMetadata, err error) {
 	// The range is invalid.  Don't treat as an error though; it just
 	// indicates that we don't yet know about any revisions.
 	if start < MetadataRevisionInitial || end < MetadataRevisionInitial {
@@ -54,8 +54,13 @@ func getMDRange(ctx context.Context, config Config, id TlfID, bid BranchID,
 		var fetchedRmds []*RootMetadata
 		switch mStatus {
 		case Merged:
-			fetchedRmds, err = config.MDOps().GetRange(
-				ctx, id, r.start, r.end)
+			if allowUnverified {
+				fetchedRmds, err = config.MDOps().GetRangeAllowUnverified(
+					ctx, id, r.start, r.end)
+			} else {
+				fetchedRmds, err = config.MDOps().GetRange(
+					ctx, id, r.start, r.end)
+			}
 		case Unmerged:
 			fetchedRmds, err = config.MDOps().GetUnmergedRange(
 				ctx, id, bid, r.start, r.end)
@@ -95,8 +100,9 @@ func getMDRange(ctx context.Context, config Config, id TlfID, bid BranchID,
 	return rmds, nil
 }
 
-func getMergedMDUpdates(ctx context.Context, config Config, id TlfID,
-	startRev MetadataRevision) (mergedRmds []*RootMetadata, err error) {
+func getMergedMDUpdatesHelper(ctx context.Context, config Config, id TlfID,
+	startRev MetadataRevision, allowUnverified bool) (
+	mergedRmds []*RootMetadata, err error) {
 	// We don't yet know about any revisions yet, so there's no range
 	// to get.
 	if startRev < MetadataRevisionInitial {
@@ -106,7 +112,8 @@ func getMergedMDUpdates(ctx context.Context, config Config, id TlfID,
 	start := startRev
 	for {
 		end := start + maxMDsAtATime - 1 // range is inclusive
-		rmds, err := getMDRange(ctx, config, id, NullBranchID, start, end, Merged)
+		rmds, err := getMDRange(ctx, config, id, NullBranchID, start, end,
+			Merged, allowUnverified)
 		if err != nil {
 			return nil, err
 		}
@@ -120,6 +127,17 @@ func getMergedMDUpdates(ctx context.Context, config Config, id TlfID,
 		}
 		start = end + 1
 	}
+}
+
+func getMergedMDUpdates(ctx context.Context, config Config, id TlfID,
+	startRev MetadataRevision) (mergedRmds []*RootMetadata, err error) {
+	return getMergedMDUpdatesHelper(ctx, config, id, startRev, false)
+}
+
+func getMergedMDUpdatesAllowUnverified(ctx context.Context, config Config,
+	id TlfID, startRev MetadataRevision) (
+	mergedRmds []*RootMetadata, err error) {
+	return getMergedMDUpdatesHelper(ctx, config, id, startRev, true)
 }
 
 func getUnmergedMDUpdates(ctx context.Context, config Config, id TlfID,
@@ -140,7 +158,8 @@ func getUnmergedMDUpdates(ctx context.Context, config Config, id TlfID,
 			startRev = MetadataRevisionInitial
 		}
 
-		rmds, err := getMDRange(ctx, config, id, bid, startRev, currHead, Unmerged)
+		rmds, err := getMDRange(ctx, config, id, bid, startRev, currHead,
+			Unmerged, false)
 		if err != nil {
 			return MetadataRevisionUninitialized, nil, err
 		}
