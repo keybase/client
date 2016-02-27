@@ -86,7 +86,7 @@ func (m *MinTerm) readLine() (string, error) {
 	}
 	defer terminal.Restore(fd, oldState)
 	var ret string
-	ret, err = terminal.NewTerminal(m.termIn, "").ReadLine()
+	ret, err = terminal.NewTerminal(m.getReadWriter(), "").ReadLine()
 	return ret, convertErr(err)
 }
 
@@ -98,7 +98,7 @@ func (m *MinTerm) readSecret() (string, error) {
 	}
 	defer terminal.Restore(fd, oldState)
 	var ret string
-	ret, err = terminal.NewTerminal(m.termIn, "").ReadPassword("")
+	ret, err = terminal.NewTerminal(m.getReadWriter(), "").ReadPassword("")
 	return ret, convertErr(err)
 }
 
