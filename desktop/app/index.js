@@ -56,7 +56,7 @@ installer(err => {
   splash()
 })
 
-if (app.dock) {
+if (app.dock && !mw.initiallyVisible) {
   app.dock.hide()
 }
 

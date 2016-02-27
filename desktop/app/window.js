@@ -7,6 +7,7 @@ export default class Window {
     this.filename = filename
     this.opts = opts || {}
     this.window = null
+    this.initiallyVisible = this.opts.show || false
     this.releaseDockIcon = null
 
     app.on('ready', () => {
