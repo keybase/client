@@ -7,8 +7,24 @@ package minterm
 
 import (
 	"golang.org/x/crypto/ssh/terminal"
+	"io"
 	"os"
 )
+
+// terminal takes io.ReadWriter, so for windows we mash
+// stdin and stdout back together with this.
+type WindowsReadWriter struct {
+	r io.Reader
+	w io.Writer
+}
+
+func (rw WindowsReadWriter) Read(p []byte) (n int, err error) {
+	return rw.r.Read(p)
+}
+
+func (rw WindowsReadWriter) Write(p []byte) (n int, err error) {
+	return rw.w.Write(p)
+}
 
 func (m *MinTerm) open() error {
 	// Must be O_RDWR, or we can't mask the password as the user types it.
@@ -32,4 +48,8 @@ func (m *MinTerm) open() error {
 	}
 	m.width, m.height = w, h
 	return nil
+}
+
+func (m *MinTerm) getReadWriter() io.ReadWriter {
+	return WindowsReadWriter{r: m.termIn, w: m.termOut}
 }

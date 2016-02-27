@@ -7,6 +7,7 @@ package minterm
 
 import (
 	"golang.org/x/crypto/ssh/terminal"
+	"io"
 	"os"
 )
 
@@ -25,4 +26,8 @@ func (m *MinTerm) open() error {
 	}
 	m.width, m.height = w, h
 	return nil
+}
+
+func (m *MinTerm) getReadWriter() io.ReadWriter {
+	return m.termIn
 }
