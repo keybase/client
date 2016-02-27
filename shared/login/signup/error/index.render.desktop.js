@@ -10,7 +10,7 @@ import type {Props} from './index.render'
 export default class Render extends Component {
   props: Props;
 
-  render (): ReactElement {
+  render () {
     return (
       <div style={styles.form}>
         <Text type='Header'>Ah Shoot! Something went wrong, wanna try again?</Text>

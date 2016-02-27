@@ -8,7 +8,7 @@ import {resetSignup} from '../../../actions/signup'
 import Render from './index.render'
 
 class SignupError extends Component {
-  render (): ReactElement {
+  render () {
     return (
       <Render
         errorText={this.props.errorText}
