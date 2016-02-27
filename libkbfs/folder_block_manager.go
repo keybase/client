@@ -523,6 +523,9 @@ outer:
 			// Save the latest revision starting at this position:
 			revStartPositions[rmd.Revision] = len(ptrs)
 			for _, op := range rmd.data.Changes.Ops {
+				if _, ok := op.(*gcOp); ok {
+					continue
+				}
 				ptrs = append(ptrs, op.Unrefs()...)
 				for _, update := range op.AllUpdates() {
 					// It's legal for there to be an "update" between
@@ -724,6 +727,9 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 		fbm.getUnreferencedBlocks(ctx, mostRecentOldEnoughRev, lastGCRev)
 	if err != nil {
 		return err
+	}
+	if len(ptrs) == 0 {
+		return nil
 	}
 
 	err = fbm.deleteBlockRefs(ctx, head, ptrs)
