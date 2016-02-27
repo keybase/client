@@ -31,12 +31,12 @@ objc-build-stamp: build-stamp
 
 js/flow-types.js: build-stamp
 	@mkdir -p js/
-	node ./bin/flow.js
+	node --harmony ./bin/flow.js
 	cp ./js/flow-types.js ../shared/constants/types
 
 js/keybase_v1.js: build-stamp
 	@mkdir -p js/
-	node ./bin/js.js
+	node --harmony ./bin/js.js
 	cp ./js/keybase-v1.js ../shared/constants/types
 
 swift-build-stamp: build-stamp
