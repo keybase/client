@@ -34,6 +34,7 @@ script:
       docker build -t kbclient .;
     fi
   - cd ../shared && npm i --global flow-bin@`tail -n1 .flowconfig` && flow
+  - node --version
   - cd ../protocol && npm i && gem install activesupport && make clean && make && git diff --quiet --exit-code
 after_failure:
   - if [ $TRAVIS_OS_NAME == 'linux' ]; then
