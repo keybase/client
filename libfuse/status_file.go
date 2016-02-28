@@ -44,10 +44,10 @@ func getEncodedFolderStatus(ctx context.Context, fs *FS,
 func getEncodedStatus(ctx context.Context, fs *FS) (
 	data []byte, t time.Time, err error) {
 	username, _, _ := fs.config.KBPKI().GetCurrentUserInfo(ctx)
-	quotaInfo, err := fs.config.BlockServer().GetUserQuotaInfo(ctx)
 	var usageBytes int64
 	var limitBytes int64
-	if err != nil {
+	quotaInfo, err := fs.config.BlockServer().GetUserQuotaInfo(ctx)
+	if err == nil {
 		usageBytes = quotaInfo.Total.UsageBytes
 		limitBytes = quotaInfo.Limit
 	}
