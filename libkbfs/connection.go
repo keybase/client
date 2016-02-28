@@ -84,7 +84,9 @@ func (ct *ConnectionTransportTLS) Dial(ctx context.Context) (
 		// connect
 		config := tls.Config{RootCAs: certs}
 		var err error
-		conn, err = tls.Dial("tcp", ct.srvAddr, &config)
+		conn, err = tls.DialWithDialer(&net.Dialer{
+			KeepAlive: 10 * time.Second,
+		}, "tcp", ct.srvAddr, &config)
 		return err
 	})
 	if err != nil {
