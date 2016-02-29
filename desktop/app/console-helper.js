@@ -2,6 +2,8 @@ import {ipcMain, ipcRenderer} from 'electron'
 import util from 'util'
 import {forwardLogs} from '../shared/local-debug'
 import fs from 'fs'
+import path from 'path'
+import mkdirp from 'mkdirp'
 import {logFileName} from '../shared/constants/platform.native.desktop.js'
 import setupLocalLogs, {logLocal, warnLocal, errorLocal} from '../shared/util/local-log'
 
@@ -28,6 +30,9 @@ const logFile = logFileName()
 let fileWritable = null
 // If the file is too big, let's reset the log
 if (logFile) {
+  // ensure it exists
+  mkdirp.sync(path.dirname(logFile))
+
   fs.access(logFile, fs.W_OK, err => {
     if (err && !fileDoesNotExist(err)) {
       console.log("Can't write to log file.", err)
