@@ -71,6 +71,12 @@ type folderBlockManager struct {
 	// Keep track of the last reclamation time, for testing.
 	lastReclamationTimeLock sync.Mutex
 	lastReclamationTime     time.Time
+
+	// Remembers what happened last time during quota reclamation;
+	// should only be accessed by the QR goroutine.
+	lastQRHeadRev      MetadataRevision
+	lastQROldEnoughRev MetadataRevision
+	wasLastQRComplete  bool
 }
 
 func newFolderBlockManager(config Config, fb FolderBranch,
@@ -389,6 +395,16 @@ func (fbm *folderBlockManager) archiveBlocksInBackground() {
 	}
 }
 
+func (fbm *folderBlockManager) isOldEnough(rmd *RootMetadata) bool {
+	// Trust the client-provided timestamp -- it's
+	// possible that a writer with a bad clock could cause
+	// another writer to clear out quotas early.  That's
+	// ok, there's nothing we can really do about that.
+	mtime := time.Unix(0, rmd.data.Dir.Mtime)
+	unrefAge := fbm.config.QuotaReclamationMinUnrefAge()
+	return mtime.Add(unrefAge).Before(fbm.config.Clock().Now())
+}
+
 // getMostRecentOldEnoughAndGCRevisions returns the most recent MD
 // that's older than the unref age, as well as the latest revision
 // that was scrubbed by the previous gc op.
@@ -419,23 +435,14 @@ func (fbm *folderBlockManager) getMostRecentOldEnoughAndGCRevisions(
 		}
 
 		numNew := len(rmds)
-		now := fbm.config.Clock().Now()
-		unrefAge := fbm.config.QuotaReclamationMinUnrefAge()
 		for i := len(rmds) - 1; i >= 0; i-- {
 			rmd := rmds[i]
-			if mostRecentOldEnoughRev == MetadataRevisionUninitialized {
-				// Trust the client-provided timestamp -- it's
-				// possible that a writer with a bad clock could cause
-				// another writer to clear out quotas early.  That's
-				// ok, there's nothing we can really do about that.
-				mtime := time.Unix(0, rmd.data.Dir.Mtime)
-				fbm.log.CDebugf(ctx, "Checking mtime %s on revision %d "+
-					"against unref age %s", mtime, rmd.Revision, unrefAge)
-				if mtime.Add(unrefAge).Before(now) {
-					fbm.log.CDebugf(ctx, "Revision %d is older than the unref "+
-						"age %s", rmd.Revision, unrefAge)
-					mostRecentOldEnoughRev = rmd.Revision
-				}
+			if mostRecentOldEnoughRev == MetadataRevisionUninitialized &&
+				fbm.isOldEnough(rmd) {
+				fbm.log.CDebugf(ctx, "Revision %d is older than the unref "+
+					"age %s", rmd.Revision,
+					fbm.config.QuotaReclamationMinUnrefAge())
+				mostRecentOldEnoughRev = rmd.Revision
 			}
 
 			if lastGCRev == MetadataRevisionUninitialized {
@@ -476,7 +483,8 @@ func (fbm *folderBlockManager) getMostRecentOldEnoughAndGCRevisions(
 // the latest revision represented in the returned slice of pointers.
 func (fbm *folderBlockManager) getUnreferencedBlocks(
 	ctx context.Context, latestRev, earliestRev MetadataRevision) (
-	ptrs []BlockPointer, lastRevConsidered MetadataRevision, err error) {
+	ptrs []BlockPointer, lastRevConsidered MetadataRevision,
+	complete bool, err error) {
 	fbm.log.CDebugf(ctx, "Getting unreferenced blocks between revisions "+
 		"%d and %d", earliestRev, latestRev)
 	defer func() {
@@ -490,7 +498,7 @@ func (fbm *folderBlockManager) getUnreferencedBlocks(
 		// Nothing to do.
 		fbm.log.CDebugf(ctx, "Latest rev %d is included in the previous "+
 			"gc op (%d)", latestRev, earliestRev)
-		return nil, MetadataRevisionUninitialized, nil
+		return nil, MetadataRevisionUninitialized, false, nil
 	}
 
 	// Walk backward, starting from latestRev, until just after
@@ -507,11 +515,11 @@ outer:
 		rmds, err := getMDRange(ctx, fbm.config, fbm.id, NullBranchID, startRev,
 			currHead, Merged)
 		if err != nil {
-			return nil, MetadataRevisionUninitialized, err
+			return nil, MetadataRevisionUninitialized, false, err
 		}
 
 		if err := fbm.helper.reembedForFBM(ctx, rmds); err != nil {
-			return nil, MetadataRevisionUninitialized, err
+			return nil, MetadataRevisionUninitialized, false, err
 		}
 
 		numNew := len(rmds)
@@ -554,6 +562,7 @@ outer:
 		}
 	}
 
+	complete = true
 	if len(ptrs) > numPointersPerGCThreshold {
 		// Find the earliest revision to clean up that lets us send at
 		// least numPointersPerGCThreshold pointers.  The earliest
@@ -573,10 +582,11 @@ outer:
 			fbm.log.CDebugf(ctx, "Shortening GC range from [%d:%d] to [%d:%d],"+
 				" reducing pointers from %d to %d", earliestRev, origLatestRev,
 				earliestRev, latestRev, origPtrsLen, len(ptrs))
+			complete = false
 		}
 	}
 
-	return ptrs, latestRev, nil
+	return ptrs, latestRev, complete, nil
 }
 
 func (fbm *folderBlockManager) deleteBlockRefs(ctx context.Context,
@@ -660,6 +670,23 @@ func (fbm *folderBlockManager) finalizeReclamation(ctx context.Context,
 		func() error { return fbm.helper.finalizeGCOp(ctx, gco) })
 }
 
+func (fbm *folderBlockManager) isQRNecessary(head *RootMetadata) bool {
+	if head == nil {
+		return false
+	}
+
+	// Do QR if:
+	//   * The head has changed since last time, OR
+	//   * The last QR did not completely cleaned every available thing
+	if head.Revision != fbm.lastQRHeadRev || !fbm.wasLastQRComplete {
+		return true
+	}
+
+	// Do QR if the head was not reclaimable at the last QR time, but
+	// is old enough now.
+	return fbm.lastQRHeadRev > fbm.lastQROldEnoughRev && fbm.isOldEnough(head)
+}
+
 func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	ctx, cancel := context.WithCancel(fbm.ctxWithFBMID(context.Background()))
 	fbm.setReclamationCancel(cancel)
@@ -678,6 +705,21 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	if head.MergedStatus() != Merged {
 		return errors.New("Skipping quota reclamation while unstaged")
 	}
+
+	if !fbm.isQRNecessary(head) {
+		// Nothing has changed since last time, so no need to do any QR.
+		return nil
+	}
+	var mostRecentOldEnoughRev MetadataRevision
+	var complete bool
+	defer func() {
+		// Remember the QR we just performed.
+		if err == nil && head != nil {
+			fbm.lastQRHeadRev = head.Revision
+			fbm.lastQROldEnoughRev = mostRecentOldEnoughRev
+			fbm.wasLastQRComplete = complete
+		}
+	}()
 
 	// Then grab the lock for this folder, so we're the only one doing
 	// garbage collection for a while.
@@ -710,6 +752,7 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 		mostRecentOldEnoughRev <= lastGCRev {
 		// TODO: need a log level more fine-grained than Debug to
 		// print out that we're not doing reclamation.
+		complete = true
 		return nil
 	}
 
@@ -723,12 +766,13 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 		fbm.lastReclamationTime = fbm.config.Clock().Now()
 	}()
 
-	ptrs, latestRev, err :=
+	ptrs, latestRev, complete, err :=
 		fbm.getUnreferencedBlocks(ctx, mostRecentOldEnoughRev, lastGCRev)
 	if err != nil {
 		return err
 	}
 	if len(ptrs) == 0 {
+		complete = true
 		return nil
 	}
 
