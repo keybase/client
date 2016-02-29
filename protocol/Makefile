@@ -47,7 +47,7 @@ swift-build-stamp: build-stamp
 	date > $@
 
 clean:
-	rm -rf json/*.json js/keybase_v1.js swift/* *build-stamp
+	rm -rf json/*.json js/*.js *build-stamp
 	$(AVDLC) -c -b -l go -o ../go/protocol avdl/*.avdl
 
 deps:
