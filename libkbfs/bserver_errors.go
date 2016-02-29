@@ -23,6 +23,10 @@ const (
 	StatusCodeBServerErrorBlockArchived = 2705
 	// StatusCodeBServerErrorNoPermission is the error code for when there's no permission
 	StatusCodeBServerErrorNoPermission = 2706
+	// StatusCodeBServerErrorBlockDeleted is the error code for a block has been deleted
+	StatusCodeBServerErrorBlockDeleted = 2707
+	// StatusCodeBServerErrorNonceNonExistent is the error code when a nonce cannot be found
+	StatusCodeBServerErrorNonceNonExistent = 2708
 	// StatusCodeBServerErrorThrottle is the error code to indicate the client should initiate backoff.
 	StatusCodeBServerErrorThrottle = 2799
 )
@@ -150,6 +154,27 @@ func (e BServerErrorBlockArchived) Error() string {
 	return e.Msg
 }
 
+//BServerErrorBlockDeleted is an exportable error from bserver
+type BServerErrorBlockDeleted struct {
+	Msg string
+}
+
+// ToStatus implements the ExportableError interface for BServerErrorBlockDeleted
+func (e BServerErrorBlockDeleted) ToStatus() (s keybase1.Status) {
+	s.Code = StatusCodeBServerErrorBlockDeleted
+	s.Name = "BLOCK_DELETED"
+	s.Desc = e.Msg
+	return
+}
+
+// Error implements the Error interface for BServerErrorBlockDeleted
+func (e BServerErrorBlockDeleted) Error() string {
+	if e.Msg == "" {
+		return "BServer: block is deleted"
+	}
+	return e.Msg
+}
+
 //BServerErrorNoPermission is an exportable error from bserver
 type BServerErrorNoPermission struct {
 	Msg string
@@ -167,6 +192,27 @@ func (e BServerErrorNoPermission) ToStatus() (s keybase1.Status) {
 func (e BServerErrorNoPermission) Error() string {
 	if e.Msg == "" {
 		return "BServer: permission denied"
+	}
+	return e.Msg
+}
+
+//BServerErrorNonceNonExistent is an exportable error from bserver
+type BServerErrorNonceNonExistent struct {
+	Msg string
+}
+
+// ToStatus implements the ExportableError interface for BServerErrorNonceNonExistent
+func (e BServerErrorNonceNonExistent) ToStatus() (s keybase1.Status) {
+	s.Code = StatusCodeBServerErrorNonceNonExistent
+	s.Name = "BLOCK_NONCENONEXISTENT"
+	s.Desc = e.Msg
+	return
+}
+
+// Error implements the Error interface for BServerErrornonceNonExistent.
+func (e BServerErrorNonceNonExistent) Error() string {
+	if e.Msg == "" {
+		return "BServer: reference nonce does not exist"
 	}
 	return e.Msg
 }
