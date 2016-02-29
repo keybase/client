@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import {Paper} from 'material-ui'
-import {Text} from '../common-adapters'
+import {Text, Avatar} from '../common-adapters'
 import commonStyles, {colors} from '../styles/common'
 import {globalStyles, globalColorsDZ2} from '../styles/style-guide'
 import resolveRoot from '../../desktop/resolve-root'
@@ -12,8 +12,6 @@ import flags from '../util/feature-flags'
 const shell = electron.shell || electron.remote.shell
 
 import type {BioProps} from './bio.render'
-
-const noAvatar = `file:///${resolveRoot('shared/images/no-avatar@2x.png')}`
 
 export default class BioRender extends Component {
   props: BioProps;
@@ -39,6 +37,7 @@ export default class BioRender extends Component {
 
   renderDefault (styles: Object) {
     const {userInfo} = this.props
+    const noAvatar = `file:///${resolveRoot('shared/images/no-avatar@2x.png')}`
 
     return (
       <div style={styles.container}>
@@ -76,13 +75,11 @@ export default class BioRender extends Component {
       <div style={styles.outer}>
         <div style={styles.container}>
           <div style={styles.avatarOuter}>
-            <Paper onClick={() => this.onClickAvatar()} style={styles.avatarContainer} zDepth={1} circle>
-              <img src={(userInfo.avatar) || noAvatar} style={styles.avatar}/>
-            </Paper>
+            <Avatar onClick={() => this.onClickAvatar()} url={userInfo.avatar} size={75} />
             {(followsYou || currentlyFollowing) &&
               <div>
-                <div style={followsYou ? {...followBadgeStyles.followBadge, ...followBadgeStyles.followsYou} : {...followBadgeStyles.followBadge, ...followBadgeStyles.notFollowsYou}} />
-                <div style={currentlyFollowing ? {...followBadgeStyles.followBadge, ...followBadgeStyles.following} : {...followBadgeStyles.followBadge, ...followBadgeStyles.notFollowing}} />
+                <div style={followsYou ? followBadgeStyles.followsYou : followBadgeStyles.notFollowsYou} />
+                <div style={currentlyFollowing ? followBadgeStyles.following : followBadgeStyles.notFollowing} />
               </div>
             }
           </div>
@@ -195,17 +192,10 @@ const styles2 = {
     marginTop: -35
   },
   avatarOuter: {
-    width: 70,
-    height: 70,
+    width: 75,
+    height: 75,
     position: 'relative',
     zIndex: 2
-  },
-  avatarContainer: {
-    width: 70,
-    height: 70,
-    minHeight: 70,
-    overflow: 'hidden',
-    boxSizing: 'content-box'
   },
   avatar: {
     ...globalStyles.clickable,
@@ -255,34 +245,42 @@ const styles2 = {
   }
 }
 
+const followBadgeCommon = {
+  position: 'absolute',
+  background: globalColorsDZ2.white,
+  width: 14,
+  height: 14,
+  borderRadius: '50%',
+  border: `2px solid ${globalColorsDZ2.white}`
+}
+
+const followTop = {
+  ...followBadgeCommon,
+  bottom: 5,
+  right: 2
+}
+
+const followBottom = {
+  ...followBadgeCommon,
+  bottom: 0,
+  right: 8
+}
+
 const followBadgeStyles = {
-  followBadge: {
-    position: 'absolute',
-    background: '#fff',
-    width: 14,
-    height: 14,
-    borderRadius: '50%',
-    border: '2px solid #fff',
-    boxShadow: '0px 3px 3px rgba(0,0,0,0.1)'
-  },
   followsYou: {
-    top: 52,
-    left: 55,
+    ...followTop,
     background: globalColorsDZ2.green2
   },
   notFollowsYou: {
-    top: 52,
-    left: 55,
-    background: '#ccc'
+    ...followTop,
+    background: globalColorsDZ2.lightGrey3
   },
   following: {
-    top: 57,
-    left: 48,
+    ...followBottom,
     background: globalColorsDZ2.green2
   },
   notFollowing: {
-    top: 57,
-    left: 48,
-    background: '#ccc'
+    ...followBottom,
+    background: globalColorsDZ2.lightGrey3
   }
 }
