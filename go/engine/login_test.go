@@ -192,6 +192,23 @@ func TestProvisionDesktop(t *testing.T) {
 	if err := AssertProvisioned(tcY); err != nil {
 		t.Fatal(err)
 	}
+
+	// make sure that the provisioned device can use
+	// the passphrase stream cache (use an empty secret ui)
+	arg := &TrackEngineArg{
+		UserAssertion: "t_alice",
+		Options:       keybase1.TrackOptions{BypassConfirm: true},
+	}
+	ctx = &Context{
+		LogUI:      tcY.G.UI.GetLogUI(),
+		IdentifyUI: &FakeIdentifyUI{},
+		SecretUI:   &libkb.TestSecretUI{},
+	}
+
+	teng := NewTrackEngine(arg, tcY.G)
+	if err := RunEngine(teng, ctx); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestProvisionMobile(t *testing.T) {
@@ -826,6 +843,7 @@ func TestProvisionGPGNoGPGInstalled(t *testing.T) {
 	// this should make it unable to find gpg
 	// XXX will lthis work on windows?
 	os.Setenv("GPG", "/dev/null")
+	defer os.Setenv("GPG", "")
 
 	// redo SetupEngineTest to get a new home directory...should look like a new device.
 	tc2 := SetupEngineTest(t, "login")
