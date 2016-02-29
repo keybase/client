@@ -185,28 +185,13 @@ func (e *LoginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 // paper attempts to provision the device via a paper key.
 func (e *LoginProvision) paper(ctx *Context, device *libkb.Device) error {
 	// get the paper key from the user
-	kp, err := e.getPaperKey(ctx)
+	kp, err := e.getValidPaperKey(ctx)
 	if err != nil {
 		return err
 	}
 
 	e.G().Log.Debug("paper signing key kid: %s", kp.sigKey.GetKID())
 	e.G().Log.Debug("paper encryption key kid: %s", kp.encKey.GetKID())
-
-	// use the KID to find the uid
-	uid, err := e.uidByKID(kp.sigKey.GetKID())
-	if err != nil {
-		return err
-	}
-
-	if uid.NotEqual(e.arg.User.GetUID()) {
-		// XXX instead of error, try again
-		e.G().Log.Debug("paper key entered was for a different user")
-		return fmt.Errorf("paper key valid, but for %s, not %s", uid, e.arg.User.GetUID())
-	}
-
-	// found a paper key that can be used for signing
-	e.G().Log.Debug("found paper key match for %s", e.arg.User.GetName())
 
 	// After obtaining login session, this will be called before the login state is released.
 	// It signs this new device with the paper key.
@@ -230,6 +215,40 @@ func (e *LoginProvision) paper(ctx *Context, device *libkb.Device) error {
 
 	// need a session to continue to provision, login with paper sigKey
 	return e.G().LoginState().LoginWithKey(ctx.LoginContext, e.arg.User, kp.sigKey, afterLogin)
+}
+
+func (e *LoginProvision) getValidPaperKey(ctx *Context) (*keypair, error) {
+	var lastErr error
+	for i := 0; i < 10; i++ {
+		// get the paper key from the user
+		kp, err := e.getPaperKey(ctx)
+		if err != nil {
+			e.G().Log.Debug("getValidPaperKey attempt %d: %s", i, err)
+			lastErr = err
+			continue
+		}
+
+		// use the KID to find the uid
+		uid, err := e.uidByKID(kp.sigKey.GetKID())
+		if err != nil {
+			e.G().Log.Debug("getValidPaperKey attempt %d: %s", i, err)
+			lastErr = err
+			continue
+		}
+
+		if uid.NotEqual(e.arg.User.GetUID()) {
+			e.G().Log.Debug("paper key entered was for a different user")
+			lastErr = fmt.Errorf("paper key valid, but for %s, not %s", uid, e.arg.User.GetUID())
+			continue
+		}
+
+		// found a paper key that can be used for signing
+		e.G().Log.Debug("found paper key match for %s", e.arg.User.GetName())
+		return kp, nil
+	}
+
+	e.G().Log.Debug("getValidPaperKey retry attempts exhausted")
+	return nil, lastErr
 }
 
 // pgpProvision attempts to provision with a synced pgp key.  It

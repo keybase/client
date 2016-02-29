@@ -881,6 +881,78 @@ func TestProvisionNilUser(t *testing.T) {
 	}
 }
 
+func userPlusPaper(t *testing.T) (*FakeUser, string) {
+	tc := SetupEngineTest(t, "fake")
+	defer tc.Cleanup()
+	fu := NewFakeUserOrBust(t, "fake")
+	arg := MakeTestSignupEngineRunArg(fu)
+	loginUI := &paperLoginUI{Username: fu.Username}
+	ctx := &Context{
+		LogUI:    tc.G.UI.GetLogUI(),
+		GPGUI:    &gpgtestui{},
+		SecretUI: fu.NewSecretUI(),
+		LoginUI:  loginUI,
+	}
+	s := NewSignupEngine(&arg, tc.G)
+	if err := RunEngine(s, ctx); err != nil {
+		t.Fatal(err)
+	}
+	Logout(tc)
+	return fu, loginUI.PaperPhrase
+}
+
+func TestProvisionPaperFailures(t *testing.T) {
+	// create two users
+	ux, uxPaper := userPlusPaper(t)
+	_, uyPaper := userPlusPaper(t)
+
+	// try provision as ux on a new device with uy's paper key
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	secUI := ux.NewSecretUI()
+	secUI.Passphrase = uyPaper
+	provUI := newTestProvisionUIPaper()
+	provLoginUI := &libkb.TestLoginUI{Username: ux.Username}
+	ctx := &Context{
+		ProvisionUI: provUI,
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    secUI,
+		LoginUI:     provLoginUI,
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err == nil {
+		t.Fatal("provision with another user's paper key worked")
+	}
+
+	// try provision as ux on a new device first with fu's paper key
+	// then with ux's paper key (testing retry works)
+	tc2 := SetupEngineTest(t, "login")
+	defer tc2.Cleanup()
+
+	retrySecUI := &testRetrySecretUI{
+		Passphrases: []string{uyPaper, uxPaper},
+	}
+	provUI = newTestProvisionUIPaper()
+	provLoginUI = &libkb.TestLoginUI{Username: ux.Username}
+	ctx = &Context{
+		ProvisionUI: provUI,
+		LogUI:       tc2.G.UI.GetLogUI(),
+		SecretUI:    retrySecUI,
+		LoginUI:     provLoginUI,
+		GPGUI:       &gpgtestui{},
+	}
+	eng = NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+	if retrySecUI.index != len(retrySecUI.Passphrases) {
+		t.Errorf("retry sec ui index: %d, expected %d", retrySecUI.index, len(retrySecUI.Passphrases))
+	}
+
+}
+
 type testProvisionUI struct {
 	secretCh               chan kex2.Secret
 	method                 keybase1.ProvisionMethod
@@ -1059,4 +1131,22 @@ func signString(tc libkb.TestContext, input string, secUI libkb.SecretUI) error 
 	}
 
 	return RunEngine(eng, &ctx)
+}
+
+type testRetrySecretUI struct {
+	Passphrases []string
+	StoreSecret bool
+	index       int
+}
+
+func (t *testRetrySecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keybase1.SecretEntryArg) (keybase1.GetPassphraseRes, error) {
+	n := t.index
+	if n >= len(t.Passphrases) {
+		n = len(t.Passphrases) - 1
+	}
+	t.index++
+	return keybase1.GetPassphraseRes{
+		Passphrase:  t.Passphrases[n],
+		StoreSecret: p.Features.StoreSecret.Allow && t.StoreSecret,
+	}, nil
 }
