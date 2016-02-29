@@ -112,7 +112,7 @@
   NSError *error = nil;
   BOOL changed = [KBLoginItem setEnabled:loginItemEnabled URL:appBundle.bundleURL error:&error];
   if (error) DDLogError(@"Error setting login item: %@", error);
-  DDLogDebug(@"Login item changed: %@", changed ? @"Yes" : @"No");
+  DDLogDebug(@"Login items changed: %@", changed ? @"Yes" : @"No");
 }
 
 @end

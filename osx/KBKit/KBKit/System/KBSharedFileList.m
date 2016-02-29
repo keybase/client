@@ -76,8 +76,8 @@
     // If not enabling, clear all matched items.
     // If matchedItems count is > 1, then let's clear the found items, and re-add a single item, which fixes an issue with duplicates.
     if (!enabled || [matchedItems count] > 1) {
-      changed = YES;
       for (id item in matchedItems) {
+        changed = YES;
         LSSharedFileListItemRemove(fileListRef, (__bridge LSSharedFileListItemRef)item);
       }
       matchedItems = [NSArray array];
