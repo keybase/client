@@ -107,7 +107,7 @@ class RemoteManager extends Component {
       return (
         <RemoteComponent
           title='Pinentry'
-          windowsOpts={{width: 513, height: 260}}
+          windowsOpts={{width: 500, height: 260}}
           waitForState
           onRemoteClose={onCancel}
           component='pinentry'

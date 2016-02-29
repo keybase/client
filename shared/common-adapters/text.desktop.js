@@ -203,6 +203,19 @@ export const styles = {
     lineHeight: '19px',
     letterSpacing: '0.3px'
   },
+  textBodyBig: {
+    ...textCommon,
+    fontSize: 24,
+    lineHeight: '30px',
+    letterSpacing: '0.3px'
+  },
+  textBodyBigSemibold: {
+    ...textCommon,
+    ...globalStyles.DZ2.fontSemibold,
+    fontSize: 24,
+    lineHeight: '30px',
+    letterSpacing: '0.3px'
+  },
   textError: {
     ...textCommon,
     color: globalColors.highRiskWarning,

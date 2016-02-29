@@ -76,7 +76,7 @@ export default class Input extends Component {
         <TextField
           ref={textField => (this._textField = textField)}
           fullWidth
-          inputStyle={inputStyle}
+          inputStyle={{...inputStyle, textAlign: 'center'}}
           underlineStyle={{bottom: 'auto'}}
           errorStyle={{...styles.errorStyle, ...this.props.errorStyle}}
           style={{...textStyle, ...globalStyles.flexBoxColumn}}
@@ -118,7 +118,8 @@ export const styles = {
     marginTop: 2
   },
   input: {
-    ...TextStyles.textBody
+    ...TextStyles.textBodyBigSemibold,
+    height: 80
   },
   inputSmall: {
     ...TextStyles.textBody,
@@ -149,4 +150,3 @@ export const styles = {
     top: 34
   }
 }
-
