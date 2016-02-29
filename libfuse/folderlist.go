@@ -126,7 +126,6 @@ var _ fs.NodeRemover = (*FolderList)(nil)
 
 // Remove implements the fs.NodeRemover interface for FolderList.
 func (fl *FolderList) Remove(ctx context.Context, req *fuse.RemoveRequest) (err error) {
-	ctx = NewContextWithOpID(ctx, fl.fs.log)
 	fl.fs.log.CDebugf(ctx, "FolderList Remove %s", req.Name)
 	defer func() { fl.fs.reportErr(ctx, err) }()
 
