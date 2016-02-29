@@ -9,8 +9,8 @@ import (
 	"testing"
 )
 
-func parse(t *testing.T) *GpgKeyIndex {
-	buf := bytes.NewBufferString(myKeyring)
+func parse(t *testing.T, kr string) *GpgKeyIndex {
+	buf := bytes.NewBufferString(kr)
 	i, w, e := ParseGpgIndexStream(buf)
 	if e != nil {
 		t.Fatalf("failure in parse: %s", e)
@@ -25,11 +25,11 @@ func parse(t *testing.T) *GpgKeyIndex {
 }
 
 func TestParseMyKeyring(t *testing.T) {
-	parse(t)
+	parse(t, myKeyring)
 }
 
 func TestFindMax(t *testing.T) {
-	index := parse(t)
+	index := parse(t, myKeyring)
 	keylist := index.Emails.Get("themax@gmail.com")
 	if keylist == nil {
 		t.Errorf("nil keylist was not expected")
@@ -50,7 +50,17 @@ func TestFindMax(t *testing.T) {
 	}
 }
 
-var myKeyring = `
+func TestYubikeySecretKeys(t *testing.T) {
+	index := parse(t, yubikey4)
+	keylist := index.Emails.Get("dain@yubico.com")
+	if keylist == nil {
+		t.Errorf("nil keylist was not expected")
+	} else if len(keylist) != 1 {
+		t.Errorf("expected two keys for max")
+	}
+}
+
+const myKeyring = `
 tru::1:1416474053:1439900531:3:1:5
 pub:u:2048:17:76D78F0500D026C4:1282220531:1439900531::u:::scESC:
 fpr:::::::::85E38F69046B44C1EC9FB07B76D78F0500D026C4:
@@ -177,4 +187,11 @@ fpr:::::::::3F00CA464E081B2204AE7842EF64151CD1B1B13E:
 uid:-::::1393625258::3541B4CE1F8EDDAB0A4C04A0C91F01847E183140::keybase.io/paritybit (v0.0.1) <paritybit@keybase.io>:
 sub:-:2048:1:2A0688A6E2DC575B:1393625258:1425161258:::::esa:
 fpr:::::::::E1D8C791E3A2B91C436051272A0688A6E2DC575B:
+`
+
+const yubikey4 = `sec::2048:1:F04367096FBA95E8:1389358404:0::::::::D2760001240102010006042129000000:
+fpr:::::::::20EE325B86A81BCBD3E56798F04367096FBA95E8:
+uid:::::::CBDD6BD90F5A01A814C4E5A0E05F8D7DC7B3D070::Dain Nilsson <dain@yubico.com>:
+ssb::2048:1:BFE3A8E58DB04E9F:1389358404:::::::::D2760001240102010006042129000000:
+ssb::2048:1:3B557A2E4C844B75:1389358510:::::::::D2760001240102010006042129000000:
 `
