@@ -990,6 +990,8 @@ func TestProvisionPassphraseNoKeysMultipleAccounts(t *testing.T) {
 
 // We have obviated the unlock command by combining it with login.
 func TestLoginStreamCache(t *testing.T) {
+	t.Skip()
+
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 

@@ -117,11 +117,5 @@ func (e *LoginCurrentDevice) Run(ctx *Context) error {
 	}()
 
 	ret := e.doLogin(ctx)
-
-	// Unlock the passphrase stream here so the user won't have to
-	// separately
-	if ret == nil {
-		_, ret = e.G().LoginState().GetPassphraseStream(ctx.SecretUI)
-	}
 	return ret
 }
