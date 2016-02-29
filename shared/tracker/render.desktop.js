@@ -84,7 +84,8 @@ const styles2 = {
   content: {
     overflowY: 'auto',
     overflowX: 'hidden',
-    paddingBottom: 120
+    paddingBottom: 120,
+    zIndex: 1
   },
   footer: {
     position: 'absolute',

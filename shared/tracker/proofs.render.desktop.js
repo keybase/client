@@ -127,7 +127,8 @@ export class ProofsRender2 extends Component {
 
 const styles2 = {
   container: {
-    ...globalStyles.flexBoxColumn
+    ...globalStyles.flexBoxColumn,
+    backgroundColor: globalColorsDZ2.white
   },
   row: {
     ...globalStyles.flexBoxRow,
@@ -136,8 +137,6 @@ const styles2 = {
     paddingRight: 30,
     alignItems: 'flex-start',
     justifyContent: 'flex-start',
-    backgroundColor: globalColorsDZ2.orange.white,
-    zIndex: 1
   },
   service: {
     height: 14,

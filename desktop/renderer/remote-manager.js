@@ -78,7 +78,7 @@ class RemoteManager extends Component {
   trackerRemoteComponents () {
     const {trackers} = this.props
     const windowsOpts = flags.tracker2
-      ? {height: 539, width: 320}
+      ? {height: 470, width: 320}
       : {height: 339, width: 520}
     return Object.keys(trackers).filter(username => !trackers[username].closed).map(username => (
       <RemoteComponent

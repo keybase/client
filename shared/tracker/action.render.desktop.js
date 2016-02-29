@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import {FlatButton} from 'material-ui'
 import {Button} from '../common-adapters'
 import commonStyles from '../styles/common'
-import {globalColors} from '../styles/style-guide'
+import {globalColors, globalColorsDZ2} from '../styles/style-guide'
 import {normal, checking, warning} from '../constants/tracker'
 import flags from '../util/feature-flags'
 import {Text} from '../common-adapters'
@@ -221,8 +221,7 @@ const styles2 = {
   container: {
     ...commonStyles.flexBoxRow,
     ...commonStyles.noSelect,
-    backgroundColor: globalColors.white,
-    opacity: 0.9,
+    backgroundColor: globalColorsDZ2.white90,
     width: '100%',
     height: 61,
     boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.15)',
