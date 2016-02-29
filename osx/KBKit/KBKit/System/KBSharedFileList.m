@@ -11,67 +11,84 @@
 
 @implementation KBSharedFileList
 
-+ (void)findLoginItemForURL:(NSURL *)URL completion:(void (^)(LSSharedFileListRef fileListRef, CFArrayRef itemsRef, LSSharedFileListItemRef itemRef))completion {
-  [self findItemForURL:URL type:kLSSharedFileListSessionLoginItems completion:completion];
++ (void)findLoginItemForURL:(NSURL *)URL completion:(void (^)(LSSharedFileListRef fileListRef, CFArrayRef itemsRef, NSArray */*LSSharedFileListItemRef*/foundItems))completion {
+  [self findItemForName:nil URL:URL type:kLSSharedFileListSessionLoginItems completion:completion];
 }
 
-+ (void)findItemForURL:(NSURL *)URL type:(CFStringRef)type completion:(void (^)(LSSharedFileListRef fileListRef, CFArrayRef itemsRef, LSSharedFileListItemRef itemRef))completion {
++ (NSArray *)itemsForType:(CFStringRef)type {
+  LSSharedFileListRef fileListRef = LSSharedFileListCreate(NULL, type, NULL);
+  if (!fileListRef) return nil;
+
+  UInt32 seed = 0U;
+  CFArrayRef itemsRef = LSSharedFileListCopySnapshot(fileListRef, &seed);
+  return CFBridgingRelease(itemsRef);
+}
+
++ (void)findItemForName:(NSString *)name URL:(NSURL *)URL type:(CFStringRef)type completion:(void (^)(LSSharedFileListRef fileListRef, CFArrayRef itemsRef, NSArray */*LSSharedFileListItemRef*/matchedItems))completion {
   LSSharedFileListRef fileListRef = LSSharedFileListCreate(NULL, type, NULL);
   if (!fileListRef) return;
 
   UInt32 seed = 0U;
-  BOOL found = NO;
+  NSMutableArray *foundItems = [NSMutableArray array];
   CFArrayRef itemsRef = LSSharedFileListCopySnapshot(fileListRef, &seed);
   NSArray *items = (__bridge NSArray *)itemsRef;
   for (id itemObject in items) {
     LSSharedFileListItemRef itemRef = (__bridge LSSharedFileListItemRef)itemObject;
 
-    UInt32 resolutionFlags = kLSSharedFileListNoUserInteraction | kLSSharedFileListDoNotMountVolumes;
-    CFErrorRef errorRef;
-    CFURLRef URLRef = LSSharedFileListItemCopyResolvedURL(itemRef, resolutionFlags, &errorRef);
-    if ([URL isEqualTo:(__bridge NSURL *)URLRef]) {
-      completion(fileListRef, itemsRef, itemRef);
-      found = YES;
-      break;
+    BOOL matched = NO;
+    if (name) {
+      CFStringRef displayNameRef = LSSharedFileListItemCopyDisplayName(itemRef);
+      BOOL nameEqual = [name isEqual:(__bridge NSString *)(displayNameRef)];
+      CFRelease(displayNameRef);
+      if (nameEqual) {
+        matched = YES;
+      }
+    }
+
+    if (!matched && URL) {
+      // On El Capitan, the URLRef is null if the mount or path is invalid
+      UInt32 resolutionFlags = kLSSharedFileListNoUserInteraction | kLSSharedFileListDoNotMountVolumes;
+      CFErrorRef errorRef;
+      CFURLRef URLRef = LSSharedFileListItemCopyResolvedURL(itemRef, resolutionFlags, &errorRef);
+      BOOL URLEqual = [URL isEqualTo:(__bridge NSURL *)URLRef];
+      CFRelease(URLRef);
+      if (URLEqual) {
+        matched = YES;
+      }
+    }
+
+    if (matched) {
+      [foundItems addObject:(__bridge id _Nonnull)(itemRef)];
     }
   }
 
-  if (!found) {
-    completion(fileListRef, itemsRef, NULL);
-  }
+  completion(fileListRef, itemsRef, foundItems);
 
   CFRelease(itemsRef);
   CFRelease(fileListRef);
 }
 
-+ (BOOL)setEnabled:(BOOL)enabled URL:(NSURL *)URL name:(NSString *)name type:(CFStringRef)type insertAfter:(LSSharedFileListItemRef)insertAfter auth:(BOOL)auth error:(NSError **)error {
-
++ (BOOL)setEnabled:(BOOL)enabled URL:(NSURL *)URL name:(NSString *)name type:(CFStringRef)type insertAfter:(LSSharedFileListItemRef)insertAfter error:(NSError **)error {
   __block BOOL changed = NO;
   __block NSError *bError = nil;
-  [self findItemForURL:URL type:type completion:^(LSSharedFileListRef fileListRef, CFArrayRef itemsRef, LSSharedFileListItemRef itemRef) {
-    if (enabled && !itemRef) {
-      if (auth) {
-        AuthorizationRef authRef = NULL;
-        AuthorizationCreate(NULL, kAuthorizationEmptyEnvironment, kAuthorizationFlagDefaults, &authRef);
-        LSSharedFileListSetAuthorization(fileListRef, authRef);
+  // Good to use name to match (since on El Capitan the URL can be invalid)
+  [self findItemForName:name URL:nil type:type completion:^(LSSharedFileListRef fileListRef, CFArrayRef itemsRef, NSArray */*LSSharedFileListItemRef*/matchedItems) {
+    // If not enabling, clear all matched items.
+    // If matchedItems count is > 1, then let's clear the found items, and re-add a single item, which fixes an issue with duplicates.
+    if (!enabled || [matchedItems count] > 1) {
+      changed = YES;
+      for (id item in matchedItems) {
+        LSSharedFileListItemRemove(fileListRef, (__bridge LSSharedFileListItemRef)item);
       }
-      itemRef = LSSharedFileListInsertItemURL(fileListRef, insertAfter, (__bridge CFStringRef)name, NULL, (__bridge CFURLRef)URL, NULL, NULL);
+      matchedItems = [NSArray array];
+    }
+
+    if (enabled && [matchedItems count] == 0) {
+      LSSharedFileListItemRef itemRef = LSSharedFileListInsertItemURL(fileListRef, insertAfter, (__bridge CFStringRef)name, NULL, (__bridge CFURLRef)URL, NULL, NULL);
       if (!itemRef) {
         bError = KBMakeError(-1, @"Error adding item");
       } else {
         CFRelease(itemRef);
-        changed = YES;
-      }
-    } else if (!enabled && itemRef) {
-      if (auth) {
-        AuthorizationRef authRef = NULL;
-        AuthorizationCreate(NULL, kAuthorizationEmptyEnvironment, kAuthorizationFlagDefaults, &authRef);
-        LSSharedFileListSetAuthorization(fileListRef, authRef);
-      }
-      OSStatus status = LSSharedFileListItemRemove(fileListRef, itemRef);
-      if (status != noErr) {
-        bError = KBMakeError(status, @"Error removing item: %@", @(status));
-      } else {
         changed = YES;
       }
     }
@@ -83,8 +100,8 @@
 
 + (BOOL)isEnabledForURL:(NSURL *)URL type:(CFStringRef)type {
   __block BOOL found;
-  [self findItemForURL:URL type:type completion:^(LSSharedFileListRef fileListRef, CFArrayRef itemsRef, LSSharedFileListItemRef itemRef) {
-    found = (itemRef != NULL);
+  [self findItemForName:nil URL:URL type:type completion:^(LSSharedFileListRef fileListRef, CFArrayRef itemsRef, NSArray */*LSSharedFileListItemRef*/matchedItems) {
+    found = ([matchedItems count] > 0);
   }];
   return found;
 }

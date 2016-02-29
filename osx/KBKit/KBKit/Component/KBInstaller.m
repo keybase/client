@@ -90,9 +90,10 @@
   NSURL *URL = [NSURL fileURLWithPath:config.mountDir];
   NSString *name = [config appName];
   NSError *error = nil;
+  //DDLogDebug(@"Items: %@", [KBSharedFileList itemsForType:kLSSharedFileListFavoriteItems]);
   DDLogDebug(@"File list favorite %@ (%@)", (fileListFavoriteEnabled ? @"enabled" : @"disabled"), URL);
-  BOOL changed = [KBSharedFileList setEnabled:fileListFavoriteEnabled URL:URL name:name type:kLSSharedFileListFavoriteItems insertAfter:kLSSharedFileListItemBeforeFirst auth:NO error:&error];
-  DDLogDebug(@"Favorites changed: %@", changed ? @"Yes" : @"No");
+  BOOL changed = [KBSharedFileList setEnabled:fileListFavoriteEnabled URL:URL name:name type:kLSSharedFileListFavoriteItems insertAfter:kLSSharedFileListItemBeforeFirst error:&error];
+  DDLogDebug(@"File list favorites changed: %@", changed ? @"Yes" : @"No");
   if (error) DDLogError(@"Error setting volume: %@", error);
 }
 
