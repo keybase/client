@@ -57,13 +57,19 @@ export default class PinentryRender extends Component {
       onChange: event => this.setState({passphrase: event.target.value}),
       onEnterKeyDown: () => this.onSubmit(),
       type: this.state.showTyping ? 'text' : 'password',
-      errorText: this.state.error
+      errorText: this.props.retryLabel
     }
 
-    const checkboxProps = [
-      {label: 'Save in Keychain', checked: this.state.saveInKeychain, onCheck: check => { this.setState({saveInKeychain: check}) }},
-      {label: 'Show Typing', checked: this.state.showTyping, onCheck: check => { this.setState({showTyping: check}) }}
-    ]
+    const checkboxProps = Object.keys(this.props.features).map(feature => {
+      return ({
+        label: this.props.features[feature].label,
+        checked: this.state.features[feature],
+        key: feature,
+        name: feature,
+        style: styles.checkbox,
+        onCheck: checked => this.onCheck(feature, checked)
+      })
+    })
 
     return (
       <div style={styles2.container}>
@@ -86,7 +92,7 @@ export default class PinentryRender extends Component {
           />
         </div>
         <div style={{...styles2.container, alignItems: 'flex-end', padding: 30}}>
-          <Button dz2 type='Primary' label='Continue' onClick={() => this.onSubmit()}
+          <Button dz2 type='Primary' label='Continue' onClick={submitPassphrase}
           />
         </div>
       </div>
