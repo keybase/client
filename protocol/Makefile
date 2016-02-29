@@ -3,6 +3,7 @@ all: build
 
 ICED=node_modules/.bin/iced
 AVDL2JSON=node_modules/.bin/avdl2json
+AVDLC=node_modules/.bin/avdlc
 
 json/%.json: avdl/%.avdl
 	$(AVDL2JSON) -i $< -o $@~ && mv $@~ $@
@@ -14,19 +15,16 @@ config:
 # as long as they have messages in them. BUT you can override this
 # check via -f. So the two files specified here via -f don't have
 # messages but should be made into .json's...
-build-stamp:
+build-stamp: avdl/*.avdl $(AVDL2JSON)
 	@mkdir -p json
 	$(AVDL2JSON) -b -o json -f avdl/constants.avdl -f avdl/install.avdl  avdl/*.avdl
 	date > $@
 
-go-build-stamp:
+go-build-stamp: avdl/*.avdl $(AVDLC)
 	@mkdir -p ../go/protocol
-	./node_modules
-
-../go/protocol/keybase_v1.go: build-stamp ./bin/go.iced
-	@mkdir -p ../go/protocol
-	$(ICED) ./bin/go.iced -v 2 -d json -t go -o $@
-	gofmt -w $@
+	$(AVDLC) -b -l go -o ../go/protocol avdl/*.avdl
+	(cd ../go/protocol && go fmt ./...)
+	date > $@
 
 objc-build-stamp: build-stamp
 	@ # Runs without generating files (to validate)
@@ -49,7 +47,8 @@ swift-build-stamp: build-stamp
 	date > $@
 
 clean:
-	rm -rf json/*.json ../go/protocol/keybase_v1.go js/keybase_v1.js swift/*
+	rm -rf json/*.json js/*.js *build-stamp
+	$(AVDLC) -c -b -l go -o ../go/protocol avdl/*.avdl
 
 deps:
 	npm install
@@ -59,4 +58,4 @@ fmt:
 
 build: fmt build-stamp go-build-stamp js/keybase_v1.js js/flow-types.js objc-build-stamp swift-build-stamp
 
-.PHONY: test setup config build-stamp
+.PHONY: test setup config
