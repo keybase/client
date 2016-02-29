@@ -951,6 +951,60 @@ func TestProvisionPaperFailures(t *testing.T) {
 		t.Errorf("retry sec ui index: %d, expected %d", retrySecUI.index, len(retrySecUI.Passphrases))
 	}
 
+	// try provision as ux on a new device first with garbage paper key
+	// then with ux's paper key (testing retry works)
+	tc3 := SetupEngineTest(t, "login")
+	defer tc3.Cleanup()
+
+	retrySecUI = &testRetrySecretUI{
+		Passphrases: []string{"garbage garbage garbage", uxPaper},
+	}
+	provUI = newTestProvisionUIPaper()
+	provLoginUI = &libkb.TestLoginUI{Username: ux.Username}
+	ctx = &Context{
+		ProvisionUI: provUI,
+		LogUI:       tc3.G.UI.GetLogUI(),
+		SecretUI:    retrySecUI,
+		LoginUI:     provLoginUI,
+		GPGUI:       &gpgtestui{},
+	}
+	eng = NewLogin(tc3.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+	if retrySecUI.index != len(retrySecUI.Passphrases) {
+		t.Errorf("retry sec ui index: %d, expected %d", retrySecUI.index, len(retrySecUI.Passphrases))
+	}
+
+	// try provision as ux on a new device first with invalid version paper key
+	// then with ux's paper key (testing retry works)
+	tc4 := SetupEngineTest(t, "login")
+	defer tc4.Cleanup()
+
+	paperNextVer, err := libkb.MakePaperKeyPhrase(libkb.PaperKeyVersion + 1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	retrySecUI = &testRetrySecretUI{
+		Passphrases: []string{paperNextVer.String(), uxPaper},
+	}
+	provUI = newTestProvisionUIPaper()
+	provLoginUI = &libkb.TestLoginUI{Username: ux.Username}
+	ctx = &Context{
+		ProvisionUI: provUI,
+		LogUI:       tc4.G.UI.GetLogUI(),
+		SecretUI:    retrySecUI,
+		LoginUI:     provLoginUI,
+		GPGUI:       &gpgtestui{},
+	}
+	eng = NewLogin(tc4.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+	if retrySecUI.index != len(retrySecUI.Passphrases) {
+		t.Errorf("retry sec ui index: %d, expected %d", retrySecUI.index, len(retrySecUI.Passphrases))
+	}
+
 }
 
 type testProvisionUI struct {
@@ -1065,7 +1119,7 @@ func (u *testProvisionUI) DisplayAndPromptSecret(_ context.Context, arg keybase1
 
 func (u *testProvisionUI) PromptNewDeviceName(_ context.Context, arg keybase1.PromptNewDeviceNameArg) (string, error) {
 	u.printf("PromptNewDeviceName")
-	return "device_xxx", nil
+	return libkb.RandString("device", 5)
 }
 
 func (u *testProvisionUI) DisplaySecretExchanged(_ context.Context, _ int) error {
