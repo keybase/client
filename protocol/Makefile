@@ -19,6 +19,10 @@ build-stamp:
 	$(AVDL2JSON) -b -o json -f avdl/constants.avdl -f avdl/install.avdl  avdl/*.avdl
 	date > $@
 
+go-build-stamp:
+	@mkdir -p ../go/protocol
+	./node_modules
+
 ../go/protocol/keybase_v1.go: build-stamp ./bin/go.iced
 	@mkdir -p ../go/protocol
 	$(ICED) ./bin/go.iced -v 2 -d json -t go -o $@
@@ -53,6 +57,6 @@ deps:
 fmt:
 	@./fmt.sh
 
-build: fmt build-stamp ../go/protocol/keybase_v1.go js/keybase_v1.js js/flow-types.js objc-build-stamp swift-build-stamp
+build: fmt build-stamp go-build-stamp js/keybase_v1.js js/flow-types.js objc-build-stamp swift-build-stamp
 
 .PHONY: test setup config build-stamp
