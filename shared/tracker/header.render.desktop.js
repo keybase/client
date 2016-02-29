@@ -99,6 +99,8 @@ const styles2 = {
     position: 'relative'
   },
   header: {
+    ...globalStyles.windowDragging,
+    cursor: 'default',
     position: 'absolute',
     top: 0,
     ...globalStyles.flexBoxRow,
@@ -130,6 +132,8 @@ const styles2 = {
     backgroundColor: globalColorsDZ2.red
   },
   close: {
+    ...globalStyles.clickable,
+    zIndex: 2,
     position: 'absolute',
     top: 7,
     right: 4
