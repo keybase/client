@@ -529,8 +529,61 @@ func (e *LoginProvision) tryPGP(ctx *Context) error {
 	return e.tryGPG(ctx)
 }
 
-// XXX make this function smaller
 func (e *LoginProvision) tryGPG(ctx *Context) error {
+	key, method, err := e.chooseGPGKeyAndMethod(ctx)
+	if err != nil {
+		return err
+	}
+
+	// depending on the method, get a signing key
+	var signingKey libkb.GenericKey
+	switch method {
+	case keybase1.GPGMethod_GPG_IMPORT:
+		signingKey, err = e.gpgImportKey(ctx, key.GetFingerprint())
+		if err != nil {
+			// depending on the error, might want to direct user to the
+			// gpg sign option
+			return e.switchToGPGSign(ctx, key, err)
+		}
+	case keybase1.GPGMethod_GPG_SIGN:
+		signingKey, err = e.gpgSignKey(ctx, key.GetFingerprint())
+		if err != nil {
+			return err
+		}
+	default:
+		return fmt.Errorf("invalid gpg provisioning method: %v", method)
+	}
+
+	// After obtaining login session, this will be called before the login state is released.
+	// It signs this new device with the selected gpg key.
+	var afterLogin = func(lctx libkb.LoginContext) error {
+		ctx.LoginContext = lctx
+		if err := e.makeDeviceKeysWithSigner(ctx, signingKey); err != nil {
+			return err
+		}
+		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
+			// not a fatal error, session will stay in memory
+			e.G().Log.Warning("error saving session file: %s", err)
+		}
+
+		if method == keybase1.GPGMethod_GPG_IMPORT {
+			// store the key in lksec
+			_, err := libkb.WriteLksSKBToKeyring(e.G(), signingKey, e.lks, lctx)
+			if err != nil {
+				e.G().Log.Warning("error saving exported gpg key in lksec: %s", err)
+				return err
+			}
+		}
+
+		return nil
+	}
+
+	// need a session to continue to provision
+	return e.G().LoginState().LoginWithPrompt(e.arg.User.GetName(), ctx.LoginUI, ctx.SecretUI, afterLogin)
+}
+
+func (e *LoginProvision) chooseGPGKeyAndMethod(ctx *Context) (*libkb.GpgPrimaryKey, keybase1.GPGMethod, error) {
+	nilMethod := keybase1.GPGMethod_GPG_NONE
 	// find any local private gpg keys that are in user's key family
 	matches, err := e.matchingGPGKeys()
 	if err != nil {
@@ -539,7 +592,7 @@ func (e *LoginProvision) tryGPG(ctx *Context) error {
 			// tell the user they need to get a gpg
 			// key onto this device.
 		}
-		return err
+		return nil, nilMethod, err
 	}
 
 	// have a match
@@ -567,7 +620,7 @@ func (e *LoginProvision) tryGPG(ctx *Context) error {
 	}
 	method, err := ctx.ProvisionUI.ChooseGPGMethod(ctx.GetNetContext(), arg)
 	if err != nil {
-		return err
+		return nil, nilMethod, err
 	}
 
 	// select the key to use
@@ -578,63 +631,19 @@ func (e *LoginProvision) tryGPG(ctx *Context) error {
 		// if more than one match, show the user the matching keys, ask for selection
 		keyid, err := ctx.GPGUI.SelectKey(ctx.GetNetContext(), keybase1.SelectKeyArg{Keys: gks})
 		if err != nil {
-			return err
+			return nil, nilMethod, err
 		}
 
 		var ok bool
 		key, ok = gkmap[keyid]
 		if !ok {
-			return fmt.Errorf("key id %v from select key not in local gpg key map", keyid)
+			return nil, nilMethod, fmt.Errorf("key id %v from select key not in local gpg key map", keyid)
 		}
 	}
 
 	e.G().Log.Debug("using gpg key %v for provisioning", key)
 
-	// depending on the method, get a signing key
-	var signingKey libkb.GenericKey
-	switch method {
-	case keybase1.GPGMethod_GPG_IMPORT:
-		signingKey, err = e.gpgImportKey(ctx, key.GetFingerprint())
-		if err != nil {
-			// depending on the error, might want to direct user to the
-			// gpg sign option
-			return e.switchToGPGSign(ctx, key, err)
-		}
-	case keybase1.GPGMethod_GPG_SIGN:
-		signingKey, err = e.gpgSignKey(ctx, key.GetFingerprint())
-		if err != nil {
-			return err
-		}
-	default:
-		return fmt.Errorf("invalid gpg provisioning method: %v", method)
-	}
-
-	// After obtaining login session, this will be called before the login state is released.
-	// It signs this new device with the gpg key in bundle.
-	var afterLogin = func(lctx libkb.LoginContext) error {
-		ctx.LoginContext = lctx
-		if err := e.makeDeviceKeysWithSigner(ctx, signingKey); err != nil {
-			return err
-		}
-		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
-			// not a fatal error, session will stay in memory
-			e.G().Log.Warning("error saving session file: %s", err)
-		}
-
-		if method == keybase1.GPGMethod_GPG_IMPORT {
-			// store the key in lksec
-			_, err := libkb.WriteLksSKBToKeyring(e.G(), signingKey, e.lks, lctx)
-			if err != nil {
-				e.G().Log.Warning("error saving exported gpg key in lksec: %s", err)
-				return err
-			}
-		}
-
-		return nil
-	}
-
-	// need a session to continue to provision
-	return e.G().LoginState().LoginWithPrompt(e.arg.User.GetName(), ctx.LoginUI, ctx.SecretUI, afterLogin)
+	return key, method, nil
 }
 
 func (e *LoginProvision) switchToGPGSign(ctx *Context, key *libkb.GpgPrimaryKey, importErr error) error {
@@ -747,43 +756,6 @@ func (e *LoginProvision) ensurePaperKey(ctx *Context) error {
 	}
 	eng := NewPaperKeyPrimary(e.G(), args)
 	return RunEngine(eng, ctx)
-}
-
-// selectGPGKey creates an index of the private gpg keys and
-// presents them to the user who chooses one of them.
-func (e *LoginProvision) selectGPGKey(ctx *Context) (fp *libkb.PGPFingerprint, err error) {
-	index, err := e.gpgPrivateIndex()
-	if err != nil {
-		return nil, err
-	}
-	if index.Len() == 0 {
-		return nil, libkb.NoSecretKeyError{}
-	}
-
-	fingerprints := make(map[string]*libkb.PGPFingerprint)
-	var gks []keybase1.GPGKey
-	for _, key := range index.Keys {
-		gk := keybase1.GPGKey{
-			Algorithm:  key.AlgoString(),
-			KeyID:      key.ID64,
-			Creation:   key.CreatedString(),
-			Identities: key.GetPGPIdentities(),
-		}
-		gks = append(gks, gk)
-		fingerprints[key.ID64] = key.GetFingerprint()
-	}
-
-	keyid, err := ctx.GPGUI.SelectKey(ctx.GetNetContext(), keybase1.SelectKeyArg{Keys: gks})
-	if err != nil {
-		return nil, err
-	}
-	e.G().Log.Debug("SelectKey result: %s", keyid)
-	fp, ok := fingerprints[keyid]
-	if !ok {
-		return nil, libkb.NoSecretKeyError{}
-	}
-
-	return fp, nil
 }
 
 // XXX this needs to retry instead of erroring out
