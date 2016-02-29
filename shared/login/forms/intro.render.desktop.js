@@ -2,7 +2,7 @@
 /* eslint-disable react/prop-types */
 
 import React, {Component} from 'react'
-import {globalStyles} from '../../styles/style-guide'
+import {globalColorsDZ2, globalStyles} from '../../styles/style-guide'
 import {Text, Icon, Button} from '../../common-adapters'
 
 import type {IntroProps} from './intro.render'
@@ -13,11 +13,12 @@ export default class Intro extends Component {
   render () {
     return (
       <div style={styles.loginForm}>
-        <Icon type='logo-128'/>
-        <Text style={styles.header} type='Header'>Join Keybase</Text>
-        <Text style={styles.headerSub} type='Body'>Folders for anyone in the world.</Text>
-        <Button style={styles.button} type='Primary' onClick={this.props.onSignup} label='Create an account' />
-        <Text style={styles.loginHeader} type='Body' link onClick={this.props.onLogin}>Already on Keybase?<br/><span>Log in</span></Text>
+        <Icon style={styles.icon} type='logo-256'/>
+        <Text dz2 style={styles.header} type='HeaderJumbo'>Join Keybase</Text>
+        <Text dz2 style={styles.headerSub} type='Body'>Folders for anyone in the world.</Text>
+        <Button dz2 style={styles.button} type='Primary' onClick={this.props.onSignup} label='Create an account' />
+        <Text dz2 style={styles.loginHeader} type='Body' onClick={this.props.onLogin}>Already on Keybase?</Text>
+        <Text dz2 type='BodyPrimaryLink' onClick={this.props.onLogin}>Log in</Text>
       </div>
     )
   }
@@ -30,17 +31,21 @@ const styles = {
     marginTop: 95,
     flex: 1
   },
+  icon: {
+    width: 155
+  },
   header: {
-    marginTop: 35
+    marginTop: 27,
+    color: globalColorsDZ2.orange
   },
   headerSub: {
-    marginTop: 10
+    marginTop: 3
   },
   loginHeader: {
-    marginTop: 95,
+    marginTop: 91,
     textAlign: 'center'
   },
   button: {
-    marginTop: 20
+    marginTop: 15
   }
 }
