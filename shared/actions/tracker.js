@@ -1,5 +1,6 @@
 /* @flow */
 
+import {showAllTrackers} from '../local-debug'
 import * as Constants from '../constants/tracker'
 import {routeAppend} from './router'
 import engine from '../engine'
@@ -8,11 +9,10 @@ import {flattenCallMap, promisifyResponses} from '../engine/call-map-middleware'
 
 import setNotifications from '../util/set-notifications'
 
+import type {CallMap} from '../engine/call-map-middleware'
 import type {State as RootTrackerState} from '../reducers/tracker'
 import type {ConfigState} from '../reducers/config'
-
-import type {CallMap} from '../engine/call-map-middleware'
-import type {Action, Dispatch} from '../constants/types/flux'
+import type {AsyncAction, Action, Dispatch} from '../constants/types/flux'
 
 import type {RemoteProof, LinkCheckResult, TrackOptions, UserCard, delegateUiCtl_registerIdentifyUI_rpc,
   track_checkTracking_rpc, track_untrack_rpc, track_trackWithToken_rpc, incomingCallMapType} from '../constants/types/flow-types'
@@ -200,7 +200,6 @@ export function onUnfollow2 (username: string): TrackerActionCreator {
   }
 }
 
-
 function onUserTrackingLoading (username: string): Action {
   return {
     type: Constants.onUserTrackingLoading,
@@ -345,11 +344,8 @@ function updateUserInfo (userCard: UserCard, username: string, getState: () => {
 function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
   /* eslint-disable arrow-parens */
   const sessionIDToUsername: { [key: number]: string } = {}
-
-  // TODO the promisifyResponses is actually dangerous. you can't send errors back and it makes typing it more difficult
   const identifyUi = {
-    start: params => {
-      const {username, sessionID, reason} = params
+    start: ({username, sessionID, reason}) => {
       sessionIDToUsername[sessionID] = username
 
       dispatch({
@@ -372,70 +368,84 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
         payload: {username}
       })
     },
-    displayKey: params => {
+    displayKey: ({sessionID, key}) => {
+      const username = sessionIDToUsername[sessionID]
+
+      if (key.breaksTracking) {
+        dispatch({type: Constants.showTracker, payload: {username}})
+      }
     },
-    reportLastTrack: params => {
-      const username = sessionIDToUsername[params.sessionID]
+    reportLastTrack: ({sessionID, track}) => {
+      const username = sessionIDToUsername[sessionID]
       dispatch({
         type: Constants.reportLastTrack,
-        payload: {
-          username,
-          track: params.track
-        }
+        payload: {username, track}
       })
+
+      if (!track) {
+        dispatch({type: Constants.showTracker, payload: {username}})
+      }
     },
 
-    launchNetworkChecks: params => {
-      const username = sessionIDToUsername[params.sessionID]
+    launchNetworkChecks: ({sessionID, identity}) => {
+      const username = sessionIDToUsername[sessionID]
       // This is the first spot that we have access to the user, so let's use that to get
       // The user information
 
       dispatch({
         type: Constants.setProofs,
-        payload: {
-          identity: params.identity,
-          username
-        }
+        payload: {username, identity}
       })
       dispatch({type: Constants.updateProofState, payload: {username}})
+      if (identity.breaksTracking) {
+        dispatch({type: Constants.showTracker, payload: {username}})
+      }
     },
 
     displayTrackStatement: params => {
     },
 
-    finishWebProofCheck: params => {
-      const username = sessionIDToUsername[params.sessionID]
-      dispatch(updateProof(params.rp, params.lcr, username))
+    finishWebProofCheck: ({sessionID, rp, lcr}) => {
+      const username = sessionIDToUsername[sessionID]
+      dispatch(updateProof(rp, lcr, username))
       dispatch({type: Constants.updateProofState, payload: {username}})
-      dispatch({type: Constants.decideToShowTracker, payload: {username}})
+
+      if (lcr.breaksTracking) {
+        dispatch({type: Constants.showTracker, payload: {username}})
+      }
     },
-    finishSocialProofCheck: params => {
-      const username = sessionIDToUsername[params.sessionID]
-      dispatch(updateProof(params.rp, params.lcr, username))
+    finishSocialProofCheck: ({sessionID, rp, lcr}) => {
+      const username = sessionIDToUsername[sessionID]
+      dispatch(updateProof(rp, lcr, username))
       dispatch({type: Constants.updateProofState, payload: {username}})
-      dispatch({type: Constants.decideToShowTracker, payload: {username}})
+
+      if (lcr.breaksTracking) {
+        dispatch({type: Constants.showTracker, payload: {username}})
+      }
     },
     displayCryptocurrency: params => {
     },
-    displayUserCard: params => {
-      const username = sessionIDToUsername[params.sessionID]
-      dispatch(updateUserInfo(params.card, username, getState))
+    displayUserCard: ({sessionID, card}) => {
+      const username = sessionIDToUsername[sessionID]
+      dispatch(updateUserInfo(card, username, getState))
     },
-    reportTrackToken: params => {
-      const username = sessionIDToUsername[params.sessionID]
-      const {trackToken} = params
+    reportTrackToken: ({sessionID, trackToken}) => {
+      const username = sessionIDToUsername[sessionID]
       dispatch({type: Constants.updateTrackToken, payload: {username, trackToken}})
     },
-    confirm: params => {
-      return {
-        identityConfirmed: false,
-        remoteConfirmed: false
-      }
-    },
-    finish: params => {
-      const username = sessionIDToUsername[params.sessionID]
+    // Do we use this????
+    // 'keybase.1.identifyUi.confirm': params => ({
+      // identityConfirmed: false,
+      // remoteConfirmed: false
+    // }),
+    finish: ({sessionID}) => {
+      const username = sessionIDToUsername[sessionID]
       // Check if there were any errors in the proofs
       dispatch({type: Constants.updateProofState, payload: {username}})
+
+      if (showAllTrackers) {
+        dispatch({type: Constants.showTracker, payload: {username}})
+      }
 
       dispatch({
         type: Constants.markActiveIdentifyUi,

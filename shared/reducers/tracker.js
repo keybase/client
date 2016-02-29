@@ -1,7 +1,5 @@
 /* @flow */
 
-import {showAllTrackers} from '../local-debug'
-
 import * as Constants from '../constants/tracker'
 
 import {normal, warning, error, checking} from '../constants/tracker'
@@ -219,28 +217,12 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         hidden: true
       }
 
-    case Constants.decideToShowTracker:
-      if (showAllTrackers) {
-        return {
-          ...state,
-          closed: false,
-          hidden: false
-        }
+    case Constants.showTracker:
+      return {
+        ...state,
+        closed: false,
+        hidden: false
       }
-
-      // The tracker is already open
-      if (!state.closed) {
-        return state
-      }
-
-      if (state.trackerState !== checking && (state.trackerState !== normal || !state.lastTrack)) {
-        return {
-          ...state,
-          closed: false,
-          hidden: false
-        }
-      }
-      return state
 
     default:
       return state
