@@ -130,19 +130,14 @@ func (fl *FolderList) Remove(ctx context.Context, req *fuse.RemoveRequest) (err 
 	fl.fs.log.CDebugf(ctx, "FolderList Remove %s", req.Name)
 	defer func() { fl.fs.reportErr(ctx, err) }()
 
-	// Do not try to delete non-canonical favorites with fuse.
-	// Note that other errors are allowed since e.g. removing
-	// a favorite to a non-existing tlf should be fine...
+	// TODO trying to delete non-canonical folder handles
+	// could be skipped.
 	//
 	// TODO how to handle closing down the folderbranchops
 	// object? Open files may still exist long after removing
 	// the favorite.
-	_, err = libkbfs.ParseTlfHandle(
-		ctx, fl.fs.config.KBPKI(), req.Name, fl.public)
-	if !isTlfNameNotCanonical(err) {
-		fld := keybase1.Folder{Name: req.Name, Private: !fl.public}
-		err = fl.fs.config.KeybaseDaemon().FavoriteDelete(ctx, fld)
-	}
+	fld := keybase1.Folder{Name: req.Name, Private: !fl.public}
+	err = fl.fs.config.KeybaseDaemon().FavoriteDelete(ctx, fld)
 	return err
 }
 
