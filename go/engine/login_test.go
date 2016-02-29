@@ -829,6 +829,58 @@ func TestLoginStreamCache(t *testing.T) {
 	}
 }
 
+// Check the device type
+func TestLoginInvalidDeviceType(t *testing.T) {
+	tcWeb := SetupEngineTest(t, "web")
+	defer tcWeb.Cleanup()
+
+	username, passphrase := createFakeUserWithNoKeys(tcWeb)
+
+	Logout(tcWeb)
+
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIPassphrase(),
+		LoginUI:     &libkb.TestLoginUI{Username: username},
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    &libkb.TestSecretUI{Passphrase: passphrase},
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc.G, libkb.DeviceTypePaper, "", keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err == nil {
+		t.Fatal("login with paper device type worked")
+	} else if _, ok := err.(libkb.InvalidArgumentError); !ok {
+		t.Errorf("err type: %T, expected libkb.InvalidArgumentError", err)
+	}
+}
+
+// Test that login provision checks for nil user in argument.
+func TestProvisionNilUser(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	arg := LoginProvisionArg{
+		DeviceType: libkb.DeviceTypeDesktop,
+		ClientType: keybase1.ClientType_CLI,
+		User:       nil,
+	}
+	eng := NewLoginProvision(tc.G, &arg)
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIPassphrase(),
+		LoginUI:     &libkb.TestLoginUI{},
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    &libkb.TestSecretUI{},
+		GPGUI:       &gpgtestui{},
+	}
+	if err := RunEngine(eng, ctx); err == nil {
+		t.Fatal("loginprovision with nil user worked")
+	} else if _, ok := err.(libkb.InvalidArgumentError); !ok {
+		t.Errorf("err type: %T, expected libkb.InvalidArgumentError", err)
+	}
+}
+
 type testProvisionUI struct {
 	secretCh               chan kex2.Secret
 	method                 keybase1.ProvisionMethod
