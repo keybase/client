@@ -55,7 +55,7 @@ export default class PinentryRender extends Component {
       floatingLabelText: 'Passphrase',
       style: {marginBottom: 0},
       onChange: event => this.setState({passphrase: event.target.value}),
-      onEnterKeyDown: () => this.onSubmit(),
+      onEnterKeyDown: () => submitPassphrase(),
       type: this.state.showTyping ? 'text' : 'password',
       errorText: this.props.retryLabel
     }
