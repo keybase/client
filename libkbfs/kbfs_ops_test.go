@@ -238,36 +238,7 @@ func TestKBFSOpsGetRootNodeCacheSuccess(t *testing.T) {
 	rmd.data.Dir.Type = Dir
 
 	ops := getOps(config, id)
-	assert.False(t, ops.identifyDone)
-
-	n, ei, h, err := ops.getRootNode(ctx)
-	require.Nil(t, err)
-	assert.False(t, ops.identifyDone)
-
-	p := ops.nodeCache.PathFromNode(n)
-	assert.Equal(t, id, p.Tlf)
-	require.Equal(t, 1, len(p.path))
-	assert.Equal(t, rmd.data.Dir.ID, p.path[0].ID)
-	assert.Equal(t, rmd.data.Dir.EntryInfo, ei)
-	assert.Equal(t, rmd.GetTlfHandle(), h)
-
-	// Trigger identify.
-	lState := makeFBOLockState()
-	_, err = ops.getMDLocked(ctx, lState, mdReadNeedIdentify)
-	require.Nil(t, err)
-	assert.True(t, ops.identifyDone)
-}
-
-func TestKBFSOpsGetRootNodeReIdentify(t *testing.T) {
-	mockCtrl, config, ctx := kbfsOpsInit(t, false)
-	defer kbfsTestShutdown(mockCtrl, config)
-
-	_, id, rmd := makeIDAndRMD(t, config)
-	rmd.data.Dir.BlockPointer.ID = fakeBlockID(1)
-	rmd.data.Dir.Type = Dir
-
-	ops := getOps(config, id)
-	assert.False(t, ops.identifyDone)
+	assert.False(t, fboIdentityDone(ops))
 
 	n, ei, h, err := ops.getRootNode(ctx)
 	require.Nil(t, err)
@@ -284,7 +255,36 @@ func TestKBFSOpsGetRootNodeReIdentify(t *testing.T) {
 	lState := makeFBOLockState()
 	_, err = ops.getMDLocked(ctx, lState, mdReadNeedIdentify)
 	require.Nil(t, err)
-	assert.True(t, ops.identifyDone)
+	assert.True(t, fboIdentityDone(ops))
+}
+
+func TestKBFSOpsGetRootNodeReIdentify(t *testing.T) {
+	mockCtrl, config, ctx := kbfsOpsInit(t, false)
+	defer kbfsTestShutdown(mockCtrl, config)
+
+	_, id, rmd := makeIDAndRMD(t, config)
+	rmd.data.Dir.BlockPointer.ID = fakeBlockID(1)
+	rmd.data.Dir.Type = Dir
+
+	ops := getOps(config, id)
+	assert.False(t, fboIdentityDone(ops))
+
+	n, ei, h, err := ops.getRootNode(ctx)
+	require.Nil(t, err)
+	assert.False(t, fboIdentityDone(ops))
+
+	p := ops.nodeCache.PathFromNode(n)
+	assert.Equal(t, id, p.Tlf)
+	require.Equal(t, 1, len(p.path))
+	assert.Equal(t, rmd.data.Dir.ID, p.path[0].ID)
+	assert.Equal(t, rmd.data.Dir.EntryInfo, ei)
+	assert.Equal(t, rmd.GetTlfHandle(), h)
+
+	// Trigger identify.
+	lState := makeFBOLockState()
+	_, err = ops.getMDLocked(ctx, lState, mdReadNeedIdentify)
+	require.Nil(t, err)
+	assert.True(t, fboIdentityDone(ops))
 
 	// The channel is not buffered, when the second value is received
 	// the first round of marking for reidentify will be done.
@@ -297,7 +297,7 @@ func TestKBFSOpsGetRootNodeReIdentify(t *testing.T) {
 	lState = makeFBOLockState()
 	_, err = ops.getMDLocked(ctx, lState, mdReadNeedIdentify)
 	require.Nil(t, err)
-	assert.True(t, ops.identifyDone)
+	assert.True(t, fboIdentityDone(ops))
 }
 
 // fboIdentityDone is needed to avoid data races.
@@ -334,7 +334,7 @@ func TestKBFSOpsGetRootNodeCacheIdentifyFail(t *testing.T) {
 	lState := makeFBOLockState()
 	_, err := ops.getMDLocked(ctx, lState, mdReadNeedIdentify)
 	assert.Equal(t, expectedErr, err)
-	assert.False(t, ops.identifyDone)
+	assert.False(t, fboIdentityDone(ops))
 }
 
 func expectBlock(config *ConfigMock, rmd *RootMetadata, blockPtr BlockPointer, block Block, err error) {
@@ -416,10 +416,10 @@ func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, public bool) {
 	config.mockMdcache.EXPECT().Put(rmd).Return(nil)
 
 	ops := getOps(config, id)
-	assert.False(t, ops.identifyDone)
+	assert.False(t, fboIdentityDone(ops))
 	n, ei, h, err := ops.getRootNode(ctx)
 	require.Nil(t, err)
-	assert.True(t, ops.identifyDone)
+	assert.True(t, fboIdentityDone(ops))
 
 	p := ops.nodeCache.PathFromNode(n)
 	if p.Tlf != id {
@@ -482,7 +482,7 @@ func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
 	} else if err.Error() != expectedErr.Error() {
 		t.Errorf("Got unexpected error on root MD: %v", err)
 	}
-	assert.False(t, ops.identifyDone)
+	assert.False(t, fboIdentityDone(ops))
 }
 
 func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
@@ -510,14 +510,14 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 		nil, nil)
 	config.mockMdops.EXPECT().GetForHandle(gomock.Any(), h).Return(rmd, nil)
 	ops := getOps(config, id)
-	assert.False(t, ops.identifyDone)
+	assert.False(t, fboIdentityDone(ops))
 
 	ops.head = rmd
 	name := h.ToString(ctx, config)
 	n, ei, err :=
 		config.KBFSOps().GetOrCreateRootNode(ctx, name, false, MasterBranch)
 	require.Nil(t, err)
-	assert.True(t, ops.identifyDone)
+	assert.True(t, fboIdentityDone(ops))
 
 	p := ops.nodeCache.PathFromNode(n)
 	if p.Tlf != id {
