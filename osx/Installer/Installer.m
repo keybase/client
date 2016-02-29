@@ -105,7 +105,7 @@ typedef NS_ENUM (NSInteger, KBExit) {
 }
 
 - (void)afterInstall:(KBEnvironment *)environment {
-  BOOL fileListFavoriteEnabled = [[environment configValueForKey:@"darwin.file_list_favorite" defaultValue:@(YES) error:nil] boolValue];
+  BOOL fileListFavoriteEnabled = [[environment configValueForKey:@"darwin.file_list_favorite" defaultValue:nil error:nil] boolValue];
   [KBInstaller setFileListFavoriteEnabled:fileListFavoriteEnabled config:environment.config];
 
   BOOL loginItemEnabled = [[environment configValueForKey:@"darwin.login_item" defaultValue:nil error:nil] boolValue];

@@ -21,7 +21,30 @@
 
   UInt32 seed = 0U;
   CFArrayRef itemsRef = LSSharedFileListCopySnapshot(fileListRef, &seed);
-  return CFBridgingRelease(itemsRef);
+  NSArray *items = CFBridgingRelease(itemsRef);
+  CFRelease(itemsRef);
+  CFRelease(fileListRef);
+  return items;
+}
+
++ (NSArray *)debugItemsForType:(CFStringRef)type {
+  LSSharedFileListRef fileListRef = LSSharedFileListCreate(NULL, type, NULL);
+  if (!fileListRef) return nil;
+  UInt32 seed = 0U;
+  CFArrayRef itemsRef = LSSharedFileListCopySnapshot(fileListRef, &seed);
+  NSMutableArray *info = [NSMutableArray array];
+  for (id item in (__bridge NSArray *)itemsRef) {
+    LSSharedFileListItemRef itemRef = (__bridge LSSharedFileListItemRef)item;
+    NSString *displayName = (__bridge NSString *)(LSSharedFileListItemCopyDisplayName(itemRef));
+    UInt32 resolutionFlags = kLSSharedFileListNoUserInteraction | kLSSharedFileListDoNotMountVolumes;
+    CFErrorRef errorRef;
+    NSURL *URL = (__bridge NSURL *)(LSSharedFileListItemCopyResolvedURL(itemRef, resolutionFlags, &errorRef));
+
+    [info addObject:[NSString stringWithFormat:@"Name: %@, URL: %@ (%@)", displayName, URL, itemRef]];
+  }
+  CFRelease(itemsRef);
+  CFRelease(fileListRef);
+  return info;
 }
 
 + (void)findItemForName:(NSString *)name URL:(NSURL *)URL type:(CFStringRef)type completion:(void (^)(LSSharedFileListRef fileListRef, CFArrayRef itemsRef, NSArray */*LSSharedFileListItemRef*/matchedItems))completion {
@@ -38,11 +61,10 @@
     BOOL matched = NO;
     if (name) {
       CFStringRef displayNameRef = LSSharedFileListItemCopyDisplayName(itemRef);
-      BOOL nameEqual = [name isEqual:(__bridge NSString *)(displayNameRef)];
-      CFRelease(displayNameRef);
-      if (nameEqual) {
+      if ([name isEqual:(__bridge NSString *)(displayNameRef)]) {
         matched = YES;
       }
+      CFRelease(displayNameRef);
     }
 
     if (!matched && URL) {
@@ -50,11 +72,11 @@
       UInt32 resolutionFlags = kLSSharedFileListNoUserInteraction | kLSSharedFileListDoNotMountVolumes;
       CFErrorRef errorRef;
       CFURLRef URLRef = LSSharedFileListItemCopyResolvedURL(itemRef, resolutionFlags, &errorRef);
-      BOOL URLEqual = [URL isEqualTo:(__bridge NSURL *)URLRef];
-      CFRelease(URLRef);
-      if (URLEqual) {
+      NSURL *itemURL = (__bridge NSURL *)URLRef;
+      if ([URL isEqual:itemURL]) {
         matched = YES;
       }
+      CFRelease(URLRef);
     }
 
     if (matched) {
@@ -72,7 +94,7 @@
   __block BOOL changed = NO;
   __block NSError *bError = nil;
   // Good to use name to match (since on El Capitan the URL can be invalid)
-  [self findItemForName:name URL:nil type:type completion:^(LSSharedFileListRef fileListRef, CFArrayRef itemsRef, NSArray */*LSSharedFileListItemRef*/matchedItems) {
+  [self findItemForName:name URL:URL type:type completion:^(LSSharedFileListRef fileListRef, CFArrayRef itemsRef, NSArray */*LSSharedFileListItemRef*/matchedItems) {
     // If not enabling, clear all matched items.
     // If matchedItems count is > 1, then let's clear the found items, and re-add a single item, which fixes an issue with duplicates.
     if (!enabled || [matchedItems count] > 1) {

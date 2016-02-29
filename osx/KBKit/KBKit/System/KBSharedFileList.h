@@ -18,4 +18,6 @@
 
 + (NSArray *)itemsForType:(CFStringRef)type;
 
++ (NSArray *)debugItemsForType:(CFStringRef)type;
+
 @end
