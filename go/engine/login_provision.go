@@ -183,7 +183,7 @@ func (e *LoginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 }
 
 // paper attempts to provision the device via a paper key.
-func (e *LoginProvision) paper(ctx *Context) error {
+func (e *LoginProvision) paper(ctx *Context, device *libkb.Device) error {
 	// get the paper key from the user
 	kp, err := e.getPaperKey(ctx)
 	if err != nil {
@@ -193,16 +193,16 @@ func (e *LoginProvision) paper(ctx *Context) error {
 	e.G().Log.Debug("paper signing key kid: %s", kp.sigKey.GetKID())
 	e.G().Log.Debug("paper encryption key kid: %s", kp.encKey.GetKID())
 
-	// use the KID to find (and load) the user
-	user, err := e.loadUserByKID(kp.sigKey.GetKID())
+	// use the KID to find the uid
+	uid, err := e.uidByKID(kp.sigKey.GetKID())
 	if err != nil {
 		return err
 	}
 
-	if user.GetUID() != e.arg.User.GetUID() {
+	if uid.NotEqual(e.arg.User.GetUID()) {
 		// XXX instead of error, try again
 		e.G().Log.Debug("paper key entered was for a different user")
-		return fmt.Errorf("paper key valid, but for %s, not %s", user.GetName(), e.arg.User.GetName())
+		return fmt.Errorf("paper key valid, but for %s, not %s", uid, e.arg.User.GetUID())
 	}
 
 	// found a paper key that can be used for signing
@@ -270,33 +270,6 @@ func (e *LoginProvision) makeDeviceKeysWithSigner(ctx *Context, signer libkb.Gen
 	args.EldestKID = e.arg.User.GetEldestKID()
 
 	return e.makeDeviceKeys(ctx, args)
-}
-
-// addEldestDeviceKey makes the device keys the eldest keys for
-// e.user.
-func (e *LoginProvision) addEldestDeviceKey(ctx *Context) error {
-	args, err := e.makeDeviceWrapArgs(ctx)
-	if err != nil {
-		return err
-	}
-	args.IsEldest = true
-
-	if err := e.makeDeviceKeys(ctx, args); err != nil {
-		return err
-	}
-
-	// save provisioned device id in the session
-	return e.setSessionDeviceID(e.G().Env.GetDeviceID())
-}
-
-// paperKey generates a primary paper key for the user.
-func (e *LoginProvision) paperKey(ctx *Context) error {
-	args := &PaperKeyPrimaryArgs{
-		SigningKey: e.signingKey,
-		Me:         e.arg.User,
-	}
-	eng := NewPaperKeyPrimary(e.G(), args)
-	return RunEngine(eng, ctx)
 }
 
 // makeDeviceWrapArgs creates a base set of args for DeviceWrap.
@@ -424,20 +397,6 @@ func (e *LoginProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
 	return unlocked, nil
 }
 
-// hasGPGPrivate returns true if GPG is available and contains
-// private keys.
-func (e *LoginProvision) hasGPGPrivate() bool {
-	index, err := e.gpgPrivateIndex()
-	if err != nil {
-		e.G().Log.Debug("gpg not an option: get index error: %s", err)
-		return false
-	}
-
-	e.G().Log.Debug("have gpg. num private keys: %d", index.Len())
-
-	return index.Len() > 0
-}
-
 // gpgPrivateIndex returns an index of the private gpg keys.
 func (e *LoginProvision) gpgPrivateIndex() (*libkb.GpgKeyIndex, error) {
 	cli, err := e.gpgClient()
@@ -544,7 +503,7 @@ func (e *LoginProvision) chooseDevice(ctx *Context, pgp bool) error {
 
 	switch selected.Type {
 	case libkb.DeviceTypePaper:
-		return e.paper3(ctx, selected)
+		return e.paper(ctx, selected)
 	case libkb.DeviceTypeDesktop:
 		return e.deviceWithType(ctx, keybase1.DeviceType_DESKTOP)
 	case libkb.DeviceTypeMobile:
@@ -552,11 +511,6 @@ func (e *LoginProvision) chooseDevice(ctx *Context, pgp bool) error {
 	default:
 		return fmt.Errorf("unknown device type: %v", selected.Type)
 	}
-}
-
-func (e *LoginProvision) paper3(ctx *Context, device *libkb.Device) error {
-	// XXX do we care if they enter a paper key that doesn't match device?
-	return e.paper(ctx)
 }
 
 func (e *LoginProvision) tryPGP(ctx *Context) error {
@@ -640,14 +594,14 @@ func (e *LoginProvision) tryGPG(ctx *Context) error {
 	var signingKey libkb.GenericKey
 	switch method {
 	case keybase1.GPGMethod_GPG_IMPORT:
-		signingKey, err = e.gpgImportKey(ctx, key)
+		signingKey, err = e.gpgImportKey(ctx, key.GetFingerprint())
 		if err != nil {
 			// depending on the error, might want to direct user to the
 			// gpg sign option
 			return e.switchToGPGSign(ctx, key, err)
 		}
 	case keybase1.GPGMethod_GPG_SIGN:
-		signingKey, err = e.gpgSignKey(ctx, key)
+		signingKey, err = e.gpgSignKey(ctx, key.GetFingerprint())
 		if err != nil {
 			return err
 		}
@@ -722,29 +676,27 @@ func (e *LoginProvision) matchingGPGKeys() ([]*libkb.GpgPrimaryKey, error) {
 	return matches, nil
 }
 
-// XXX change key to fingerprint
-func (e *LoginProvision) gpgSignKey(ctx *Context, key *libkb.GpgPrimaryKey) (libkb.GenericKey, error) {
+func (e *LoginProvision) gpgSignKey(ctx *Context, fp *libkb.PGPFingerprint) (libkb.GenericKey, error) {
 	kf := e.arg.User.GetComputedKeyFamily()
 	if kf == nil {
 		return nil, libkb.KeyFamilyError{Msg: "no key family for user"}
 	}
-	kid, err := kf.FindKIDFromFingerprint(*key.GetFingerprint())
+	kid, err := kf.FindKIDFromFingerprint(*fp)
 	if err != nil {
 		return nil, err
 	}
 
 	// create a GPGKey shell around gpg cli with fp, kid
-	return libkb.NewGPGKey(e.G(), key.GetFingerprint(), kid, ctx.GPGUI, e.arg.ClientType), nil
+	return libkb.NewGPGKey(e.G(), fp, kid, ctx.GPGUI, e.arg.ClientType), nil
 }
 
-// XXX change key to fingerprint
-func (e *LoginProvision) gpgImportKey(ctx *Context, key *libkb.GpgPrimaryKey) (libkb.GenericKey, error) {
+func (e *LoginProvision) gpgImportKey(ctx *Context, fp *libkb.PGPFingerprint) (libkb.GenericKey, error) {
 	// import it with gpg
 	cli, err := e.gpgClient()
 	if err != nil {
 		return nil, err
 	}
-	bundle, err := cli.ImportKey(true, *key.GetFingerprint())
+	bundle, err := cli.ImportKey(true, *fp)
 	if err != nil {
 		return nil, err
 	}
@@ -763,31 +715,23 @@ func (e *LoginProvision) eldest(ctx *Context) error {
 		return errors.New("eldest called on user with existing eldest KID")
 	}
 
-	return e.addEldestDeviceKey(ctx)
-}
-
-// chooseMethod uses ProvisionUI to let user choose a provisioning
-// method.
-func (e *LoginProvision) chooseMethod(ctx *Context) (keybase1.ProvisionMethod, error) {
-	hasGPGPrivate := e.hasGPGPrivate()
-	e.G().Log.Debug("found gpg with private keys?: %v", hasGPGPrivate)
-
-	arg := keybase1.ChooseProvisioningMethodArg{
-		GpgOption: hasGPGPrivate,
+	args, err := e.makeDeviceWrapArgs(ctx)
+	if err != nil {
+		return err
 	}
-	return ctx.ProvisionUI.ChooseProvisioningMethod(ctx.GetNetContext(), arg)
+	args.IsEldest = true
+
+	if err := e.makeDeviceKeys(ctx, args); err != nil {
+		return err
+	}
+
+	// save provisioned device id in the session
+	return e.setSessionDeviceID(e.G().Env.GetDeviceID())
 }
 
 // ensurePaperKey checks to see if e.user has any paper keys.  If
 // not, it makes one.
 func (e *LoginProvision) ensurePaperKey(ctx *Context) error {
-	/*
-		// device provisioning doesn't load a user:
-		if e.user == nil {
-			return nil
-		}
-	*/
-
 	// see if they have a paper key already
 	cki := e.arg.User.GetComputedKeyInfos()
 	if cki != nil {
@@ -797,7 +741,12 @@ func (e *LoginProvision) ensurePaperKey(ctx *Context) error {
 	}
 
 	// make one
-	return e.paperKey(ctx)
+	args := &PaperKeyPrimaryArgs{
+		SigningKey: e.signingKey,
+		Me:         e.arg.User,
+	}
+	eng := NewPaperKeyPrimary(e.G(), args)
+	return RunEngine(eng, ctx)
 }
 
 // selectGPGKey creates an index of the private gpg keys and
@@ -868,8 +817,8 @@ func (e *LoginProvision) getPaperKey(ctx *Context) (*keypair, error) {
 	return kp, nil
 }
 
-// XXX change to uidByKID
-func (e *LoginProvision) loadUserByKID(kid keybase1.KID) (*libkb.User, error) {
+func (e *LoginProvision) uidByKID(kid keybase1.KID) (keybase1.UID, error) {
+	var nilUID keybase1.UID
 	arg := libkb.APIArg{
 		Endpoint:     "key/owner",
 		NeedSession:  false,
@@ -878,20 +827,13 @@ func (e *LoginProvision) loadUserByKID(kid keybase1.KID) (*libkb.User, error) {
 	}
 	res, err := e.G().API.Get(arg)
 	if err != nil {
-		return nil, err
+		return nilUID, err
 	}
 	suid, err := res.Body.AtPath("uid").GetString()
 	if err != nil {
-		return nil, err
+		return nilUID, err
 	}
-	uid, err := keybase1.UIDFromString(suid)
-	if err != nil {
-		return nil, err
-	}
-	e.G().Log.Debug("key/owner result uid: %s", uid)
-	loadArg := libkb.NewLoadUserArg(e.G())
-	loadArg.UID = uid
-	return libkb.LoadUser(loadArg)
+	return keybase1.UIDFromString(suid)
 }
 
 func (e *LoginProvision) fetchLKS(ctx *Context, encKey libkb.GenericKey) error {
