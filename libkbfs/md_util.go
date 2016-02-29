@@ -81,6 +81,13 @@ func getMDRange(ctx context.Context, config Config, id TlfID, bid BranchID,
 			}
 
 			rmds[slot] = rmd
+
+			if !rmd.unverified {
+				if err := mdcache.Put(rmd); err != nil {
+					config.MakeLogger("").CDebugf(ctx, "Error putting md "+
+						"%d into the cache: %v", rmd.Revision, err)
+				}
+			}
 		}
 	}
 

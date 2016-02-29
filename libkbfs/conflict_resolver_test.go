@@ -59,6 +59,7 @@ func TestCRInput(t *testing.T) {
 		Revision: unmergedHead,
 	}
 	// serve all the MDs from the cache
+	config.mockMdcache.EXPECT().Put(gomock.Any()).AnyTimes().Return(nil)
 	for i := unmergedHead; i >= branchPoint+1; i-- {
 		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, Unmerged).Return(
 			&RootMetadata{
@@ -124,6 +125,7 @@ func TestCRInputFracturedRange(t *testing.T) {
 		Revision: unmergedHead,
 	}
 	// serve all the MDs from the cache
+	config.mockMdcache.EXPECT().Put(gomock.Any()).AnyTimes().Return(nil)
 	for i := unmergedHead; i >= branchPoint+1; i-- {
 		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, Unmerged).Return(
 			&RootMetadata{
