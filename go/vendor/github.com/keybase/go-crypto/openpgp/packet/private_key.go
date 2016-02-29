@@ -47,6 +47,13 @@ func NewDSAPrivateKey(currentTime time.Time, priv *dsa.PrivateKey) *PrivateKey {
 	return pk
 }
 
+func NewElGamalPrivateKey(currentTime time.Time, priv *elgamal.PrivateKey) *PrivateKey {
+	pk := new(PrivateKey)
+	pk.PublicKey = *NewElGamalPublicKey(currentTime, &priv.PublicKey)
+	pk.PrivateKey = priv
+	return pk
+}
+
 func (pk *PrivateKey) parse(r io.Reader) (err error) {
 	err = (&pk.PublicKey).parse(r)
 	if err != nil {

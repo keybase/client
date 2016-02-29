@@ -69,6 +69,9 @@ type Signature struct {
 	// PolicyURI is optional. See RFC 4880, Section 5.2.3.20 for details
 	PolicyURI string
 
+	// Regex is a regex that can match a PGP UID. See RFC 4880, 5.2.3.14 for details
+	Regex string
+
 	// MDC is set if this signature has a feature packet that indicates
 	// support for MDC subpackets.
 	MDC bool
@@ -77,6 +80,11 @@ type Signature struct {
 	// this key. This prevents an attacker from claiming another's signing
 	// subkey as their own.
 	EmbeddedSignature *Signature
+
+	// StubbedOutCriticalError is not fail-stop, since it shouldn't break key parsing
+	// when appearing in WoT-style cross signatures. But it should prevent a signature
+	// from being applied to a primary or subkey.
+	StubbedOutCriticalError error
 
 	outSubpackets []outputSubpacket
 }
@@ -202,13 +210,14 @@ type signatureSubpacketType uint8
 const (
 	creationTimeSubpacket        signatureSubpacketType = 2
 	signatureExpirationSubpacket signatureSubpacketType = 3
+	regularExpressionSubpacket   signatureSubpacketType = 6
 	keyExpirationSubpacket       signatureSubpacketType = 9
 	prefSymmetricAlgosSubpacket  signatureSubpacketType = 11
 	issuerSubpacket              signatureSubpacketType = 16
 	prefHashAlgosSubpacket       signatureSubpacketType = 21
 	prefCompressionSubpacket     signatureSubpacketType = 22
 	primaryUserIdSubpacket       signatureSubpacketType = 25
-	policyURI                    signatureSubpacketType = 26
+	policyURISubpacket           signatureSubpacketType = 26
 	keyFlagsSubpacket            signatureSubpacketType = 27
 	reasonForRevocationSubpacket signatureSubpacketType = 29
 	featuresSubpacket            signatureSubpacketType = 30
@@ -390,9 +399,14 @@ func parseSignatureSubpacket(sig *Signature, subpacket []byte, isHashed bool) (r
 		if sigType := sig.EmbeddedSignature.SigType; sigType != SigTypePrimaryKeyBinding {
 			return nil, errors.StructuralError("cross-signature has unexpected type " + strconv.Itoa(int(sigType)))
 		}
-	case policyURI:
+	case policyURISubpacket:
 		// See RFC 4880, Section 5.2.3.20
 		sig.PolicyURI = string(subpacket[:])
+	case regularExpressionSubpacket:
+		sig.Regex = string(subpacket[:])
+		if isCritical {
+			sig.StubbedOutCriticalError = errors.UnsupportedError("regex support is stubbed out")
+		}
 	default:
 		if isCritical {
 			err = errors.UnsupportedError("unknown critical signature subpacket type " + strconv.Itoa(int(packetType)))
