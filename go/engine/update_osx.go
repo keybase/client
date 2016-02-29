@@ -7,20 +7,21 @@ package engine
 
 import (
 	"github.com/keybase/client/go/install"
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol"
 )
 
-func (u *UpdateEngine) AfterUpdateApply(willRestart bool) error {
+func AfterUpdateApply(g *libkb.GlobalContext, willRestart bool) error {
 	if !willRestart {
 		return nil
 	}
 
-	fuseStatus, err := install.KeybaseFuseStatusForAppBundle("/Applications/Keybase.app", u.G().Log)
+	fuseStatus, err := install.KeybaseFuseStatusForAppBundle("/Applications/Keybase.app", g.Log)
 	if err != nil {
 		return err
 	}
 
-	u.G().Log.Debug("Fuse status: %s", fuseStatus)
+	g.Log.Debug("Fuse status: %s", fuseStatus)
 
 	hasKBFuseMounts := false
 	for _, mountInfo := range fuseStatus.MountInfos {
@@ -31,8 +32,8 @@ func (u *UpdateEngine) AfterUpdateApply(willRestart bool) error {
 	}
 
 	if fuseStatus.InstallAction == keybase1.InstallAction_UPGRADE && hasKBFuseMounts {
-		u.G().Log.Info("Fuse needs upgrade and we have mounts, let's uninstall KBFS so the installer can upgrade after app restart")
-		install.Uninstall(u.G(), []string{"kbfs"})
+		g.Log.Info("Fuse needs upgrade and we have mounts, let's uninstall KBFS so the installer can upgrade after app restart")
+		install.Uninstall(g, []string{"kbfs"})
 	}
 
 	return nil

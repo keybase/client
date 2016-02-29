@@ -8,6 +8,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 
 	"github.com/keybase/client/go/logger"
@@ -44,18 +45,39 @@ func digest(URL string) (digest string, err error) {
 	return
 }
 
+func readFile(path string) (string, error) {
+	sigFile, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer sigFile.Close()
+	data, err := ioutil.ReadAll(sigFile)
+	if err != nil {
+		return "", err
+	}
+	return string(data), nil
+}
+
 func (k LocalUpdateSource) FindUpdate(options keybase1.UpdateOptions) (update *keybase1.Update, err error) {
 	digest, err := digest(options.URL)
 	if err != nil {
 		return nil, err
 	}
+	var signature string
+	if options.SignaturePath != "" {
+		signature, err = readFile(options.SignaturePath)
+		if err != nil {
+			return nil, err
+		}
+	}
 	return &keybase1.Update{
 		Version: options.Version,
 		Name:    fmt.Sprintf("v%s", options.Version),
 		Asset: &keybase1.Asset{
-			Name:   fmt.Sprintf("Keybase-%s.zip", options.Version),
-			Url:    options.URL,
-			Digest: digest,
+			Name:      fmt.Sprintf("Keybase-%s.zip", options.Version),
+			Url:       options.URL,
+			Digest:    digest,
+			Signature: signature,
 		},
 	}, nil
 }

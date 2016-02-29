@@ -93,7 +93,11 @@ var MerkleStagingKIDs = []string{
 	"0101bed85ce72cc315828367c28b41af585b6b7d95646a62ca829691d70f49184fa70a",
 }
 
-var CodeSigningProdKIDs = []string{}
+var CodeSigningProdKIDs = []string{
+// Enable codesigning by having valid KIDs below
+// "01209092ae4e790763dc7343851b977930f35b16cf43ab0ad900a2af3d3ad5cea1a10a", // Keybot (build machine)
+// "0120ad6ec4c0132ca7627b3c4d72c650323abec004da51dc086fd0ec2b4f82e6e4860a", // Gabriel's Macbook
+}
 var CodeSigningTestKIDs = []string{}
 var CodeSigningStagingKIDs = []string{}
 

@@ -5,6 +5,7 @@ package basic
 
 import (
 	"crypto/rand"
+
 	"github.com/agl/ed25519"
 	"github.com/keybase/client/go/saltpack"
 	"golang.org/x/crypto/nacl/box"
@@ -255,13 +256,17 @@ func (k SigningPublicKey) Verify(msg []byte, sig []byte) error {
 
 var _ saltpack.SigningPublicKey = SigningPublicKey{}
 
-// NewSigningSecretKey creates a new baisic signing key fromm the
-// input raw byte arrays.
+// NewSigningSecretKey creates a new basic signing key from byte arrays.
 func NewSigningSecretKey(pub *[ed25519.PublicKeySize]byte, sec *[ed25519.PrivateKeySize]byte) SigningSecretKey {
 	return SigningSecretKey{
 		sec: rawSigningSecretKey(*sec),
 		pub: SigningPublicKey(*pub),
 	}
+}
+
+// NewSigningPublicKey creates a new public signing key from a byte array.
+func NewSigningPublicKey(pub *[ed25519.PublicKeySize]byte) SigningPublicKey {
+	return SigningPublicKey(*pub)
 }
 
 func kidToSigningPublicKey(kid []byte) SigningPublicKey {

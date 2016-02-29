@@ -11,6 +11,7 @@ protocol updateCommon {
     string name;
     string url;
     string digest;
+    string signature;
     string localPath; // If downloaded, path to file locally
   }
 

@@ -5,6 +5,8 @@
 
 package engine
 
-func (u *UpdateEngine) AfterUpdateApply(willRestart bool) error {
+import "github.com/keybase/client/go/libkb"
+
+func AfterUpdateApply(g *libkb.GlobalContext, willRestart bool) error {
 	return nil
 }

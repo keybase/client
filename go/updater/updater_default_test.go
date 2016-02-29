@@ -5,6 +5,14 @@
 
 package updater
 
-func createTestUpdateFile(version string) (string, string, error) {
-	return "", "", nil
+import (
+	"io/ioutil"
+	"path/filepath"
+)
+
+func createTestUpdateFile(path string, version string) (name string, err error) {
+	name = filepath.Base(path)
+	data := randString(256)
+	err = ioutil.WriteFile(path, []byte(data), 0644)
+	return
 }

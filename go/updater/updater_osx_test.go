@@ -9,11 +9,9 @@ import (
 	"archive/zip"
 	"fmt"
 	"os"
-	"path/filepath"
 )
 
-func createTestUpdateFile(version string) (path string, name string, err error) {
-	path = filepath.Join(os.TempDir(), "Test.zip")
+func createTestUpdateFile(path string, version string) (name string, err error) {
 	// Clear if exists
 	if _, ferr := os.Stat(path); ferr == nil {
 		err = os.Remove(path)
@@ -32,7 +30,7 @@ func createTestUpdateFile(version string) (path string, name string, err error) 
 	if err != nil {
 		return
 	}
-	_, err = f.Write([]byte("This is a test file for updates"))
+	_, err = f.Write([]byte(randString(256)))
 	if err != nil {
 	}
 	err = w.Close()

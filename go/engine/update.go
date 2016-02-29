@@ -5,10 +5,12 @@ package engine
 
 import (
 	"fmt"
+	"io"
 	"runtime"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/saltpack"
 	"github.com/keybase/client/go/updater"
 	"github.com/keybase/client/go/updater/sources"
 )
@@ -56,7 +58,7 @@ func (u *UpdateEngine) Run(ctx *Context) (err error) {
 	}
 
 	updr := updater.NewUpdater(u.options, source, u.G().Env, u.G().Log)
-	update, err := updr.Update(UpdaterContext{ctx: ctx, engine: u}, u.options.Force, true)
+	update, err := updr.Update(NewUpdaterEngineContext(u.G(), ctx), u.options.Force, true)
 	if err != nil {
 		return
 	}
@@ -66,16 +68,53 @@ func (u *UpdateEngine) Run(ctx *Context) (err error) {
 }
 
 type UpdaterContext struct {
-	ctx    *Context
-	engine *UpdateEngine
+	g   *libkb.GlobalContext
+	ctx *Context
+}
+
+func NewUpdaterContext(g *libkb.GlobalContext) UpdaterContext {
+	return UpdaterContext{g: g}
+}
+
+func NewUpdaterEngineContext(g *libkb.GlobalContext, ctx *Context) UpdaterContext {
+	return UpdaterContext{g: g, ctx: ctx}
 }
 
 func (u UpdaterContext) GetUpdateUI() (libkb.UpdateUI, error) {
-	return u.ctx.GetUpdateUI()
+	if u.ctx != nil {
+		return u.ctx.GetUpdateUI()
+	}
+	if u.g.UIRouter != nil {
+		return u.g.UIRouter.GetUpdateUI()
+	}
+	ui := u.g.UI.GetUpdateUI()
+	return ui, nil
 }
 
 func (u UpdaterContext) AfterUpdateApply(willRestart bool) error {
-	return u.engine.AfterUpdateApply(willRestart)
+	return AfterUpdateApply(u.g, willRestart)
+}
+
+func (u UpdaterContext) Verify(r io.Reader, signature string) error {
+	checkSender := func(key saltpack.SigningPublicKey) error {
+		kid := libkb.SigningPublicKeyToKeybaseKID(key)
+		u.g.Log.Info("Signed by %s", kid)
+		validKIDs := u.g.Env.GetCodeSigningKIDs()
+		if len(validKIDs) == 0 {
+			u.g.Log.Warning("No codesigning keys to verify")
+			return nil
+		}
+		if kid.IsIn(validKIDs) {
+			u.g.Log.Debug("Valid KID")
+			return nil
+		}
+		return fmt.Errorf("Unknown signer KID: %s", kid)
+	}
+	err := libkb.SaltpackVerifyDetached(u.g, r, []byte(signature), checkSender)
+	if err != nil {
+		return fmt.Errorf("Error verifying signature: %s", err)
+	}
+	return nil
 }
 
 func NewDefaultUpdater(g *libkb.GlobalContext) *updater.Updater {
