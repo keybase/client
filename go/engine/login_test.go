@@ -756,6 +756,96 @@ func TestProvisionGPGSignSecretStore(t *testing.T) {
 	}
 }
 
+// User with pgp keys, but on a device without any gpg keyring.
+func TestProvisionGPGNoKeyring(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	u1 := createFakeUserWithPGPPubOnly(t, tc)
+	Logout(tc)
+	tc.Cleanup()
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc2 := SetupEngineTest(t, "login")
+	defer tc2.Cleanup()
+
+	// run login on new device
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIGPGImport(),
+		LogUI:       tc2.G.UI.GetLogUI(),
+		SecretUI:    u1.NewSecretUI(),
+		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err == nil {
+		t.Fatal("provision worked without gpg keyring")
+	} else if _, ok := err.(libkb.NoSecretKeyError); !ok {
+		t.Errorf("error %T, expected libkb.NoSecretKeyError", err)
+	}
+}
+
+// User with pgp keys, but on a device with gpg keys that don't
+// match.
+func TestProvisionGPGNoMatch(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	u1 := createFakeUserWithPGPPubOnly(t, tc)
+	Logout(tc)
+	tc.Cleanup()
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc2 := SetupEngineTest(t, "login")
+	defer tc2.Cleanup()
+
+	// make a new keyring, not associated with keybase
+	if err := tc2.GenerateGPGKeyring(u1.Email); err != nil {
+		t.Fatal(err)
+	}
+
+	// run login on new device
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIGPGImport(),
+		LogUI:       tc2.G.UI.GetLogUI(),
+		SecretUI:    u1.NewSecretUI(),
+		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err == nil {
+		t.Fatal("provision worked without matching gpg key")
+	} else if _, ok := err.(libkb.NoSecretKeyError); !ok {
+		t.Errorf("error %T, expected libkb.NoSecretKeyError", err)
+	}
+}
+
+// User with pgp keys, but on a device without gpg.
+func TestProvisionGPGNoGPGInstalled(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	u1 := createFakeUserWithPGPPubOnly(t, tc)
+	Logout(tc)
+	tc.Cleanup()
+
+	// this should make it unable to find gpg
+	// XXX will lthis work on windows?
+	os.Setenv("GPG", "/dev/null")
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc2 := SetupEngineTest(t, "login")
+	defer tc2.Cleanup()
+
+	// run login on new device
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIGPGImport(),
+		LogUI:       tc2.G.UI.GetLogUI(),
+		SecretUI:    u1.NewSecretUI(),
+		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err == nil {
+		t.Fatal("provision worked without gpg")
+	}
+	// XXX test a specific error, currently it's just returning an error string
+}
+
 func TestProvisionDupDevice(t *testing.T) {
 	// device X (provisioner) context:
 	tcX := SetupEngineTest(t, "kex2provision")
