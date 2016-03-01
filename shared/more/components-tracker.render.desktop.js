@@ -128,12 +128,28 @@ const propsLessData = {
   ]
 }
 
+const propsLoggedOut = {...propsDefault, loggedIn: false, reason: 'You accessed a public folder with gabrielh.'}
+
+const propsOneProof = {...propsDefault, proofs: [proofsDefault[0]]}
+
 export default class Render extends Component {
   render () {
     const styles = (flags.tracker2 ? styles2 : styles1)
     return (
       <div style={{...commonStyles.flexBoxColumn, flex: 1}}>
         <div style={{...commonStyles.flexBoxRow, flex: 1, padding: 20}}>
+          <div>
+            <div style={styles.pretendTrackerWindow}>
+              <Tracker {...propsLoggedOut} />
+            </div>
+            <p>Logged out</p>
+          </div>
+          <div>
+            <div style={styles.pretendTrackerWindow}>
+              <Tracker {...propsOneProof} />
+            </div>
+            <p>Only one proof</p>
+          </div>
           <div>
             <div style={styles.pretendTrackerWindow}>
               <Tracker {...propsNewUser} />

@@ -98,6 +98,7 @@ export class ProofsRender2 extends Component {
         <div style={styles.proofNameSection}>
           <div style={styles.proofNameContainer}>
             <span
+              className='hover-underline'
               style={{...styles.proofName, ...(proof.meta === metaDeleted ? {textDecoration: 'line-through'} : {}), color: proofNameColor}}
               onClick={onClickProfile}>
               {proof.name}
@@ -139,6 +140,7 @@ const styles2 = {
     justifyContent: 'flex-start',
   },
   service: {
+    ...globalStyles.clickable,
     height: 14,
     width: 14,
     color: globalColors.grey1,
@@ -156,6 +158,7 @@ const styles2 = {
     alignItems: 'flex-start'
   },
   proofName: {
+    ...commonStyles.clickable,
     // TODO: This doesn't ellipsis since the proof names are a single word,
     // using word-wrap or text-wrap doesn't work either. We should try
     // interspersing blank whitespace to wrap on
@@ -176,6 +179,7 @@ const styles2 = {
     textTransform: 'uppercase'
   },
   serviceStatus: {
+    ...globalStyles.clickable,
     marginTop: 1
   },
   loader: {
