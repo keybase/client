@@ -14,15 +14,23 @@ import type {Dispatch} from '../constants/types/flux'
 // notification listeners, store the sentNotifications map in it.
 var sentNotifications = {}
 
+// Keep track of the last time we notified and ignore if its the same
+let lastLoggedInNotifyUsername = null
+
 // TODO(mm) Move these to their own actions
 export default function (dispatch: Dispatch, notify: any): incomingCallMapType {
   return {
     'keybase.1.NotifySession.loggedOut': params => {
+      lastLoggedInNotifyUsername = null
       notify('Logged out of Keybase')
       dispatch(logoutDone())
     },
     'keybase.1.NotifySession.loggedIn': ({username}, response) => {
-      notify('Logged in to Keybase as: ' + username)
+      if (lastLoggedInNotifyUsername !== username) {
+        lastLoggedInNotifyUsername = username
+        notify('Logged in to Keybase as: ' + username)
+      }
+
       dispatch(getCurrentStatus())
       response.result()
     },
