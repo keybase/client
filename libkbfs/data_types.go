@@ -371,6 +371,13 @@ func NewFavoriteFromFolder(folder keybase1.Folder) *Favorite {
 	}
 }
 
+func (f Favorite) toKBFolder() keybase1.Folder {
+	return keybase1.Folder{
+		Name:    f.Name,
+		Private: !f.Public,
+	}
+}
+
 // PathNode is a single node along an KBFS path, pointing to the top
 // block for that node of the path.
 type pathNode struct {

@@ -7,7 +7,6 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
-	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -101,7 +100,7 @@ func (fl *FolderList) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err er
 	_, _, err = fl.fs.config.KBPKI().GetCurrentUserInfo(ctx)
 	isLoggedIn := err == nil
 
-	var favs []*libkbfs.Favorite
+	var favs []libkbfs.Favorite
 	if isLoggedIn {
 		favs, err = fl.fs.config.KBFSOps().GetFavorites(ctx)
 		if err != nil {
@@ -135,9 +134,7 @@ func (fl *FolderList) Remove(ctx context.Context, req *fuse.RemoveRequest) (err 
 	// TODO how to handle closing down the folderbranchops
 	// object? Open files may still exist long after removing
 	// the favorite.
-	fld := keybase1.Folder{Name: req.Name, Private: !fl.public}
-	err = fl.fs.config.KeybaseDaemon().FavoriteDelete(ctx, fld)
-	return err
+	return fl.fs.config.KBFSOps().DeleteFavorite(ctx, req.Name, fl.public)
 }
 
 func isTlfNameNotCanonical(err error) bool {

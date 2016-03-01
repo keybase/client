@@ -9,7 +9,6 @@ package libdokan
 import (
 	"sync"
 
-	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -133,11 +132,8 @@ func (tlf *TLF) CanDeleteDirectory(*dokan.FileInfo) (err error) {
 func (tlf *TLF) Cleanup(fi *dokan.FileInfo) {
 	if fi != nil && fi.DeleteOnClose() {
 		ctx := NewContextWithOpID(tlf.folder.fs)
-		fld := keybase1.Folder{
-			Name:    string(tlf.folder.name),
-			Private: !tlf.isPublic(),
-		}
-		err := tlf.folder.fs.config.KeybaseDaemon().FavoriteDelete(ctx, fld)
+		err := tlf.folder.fs.config.KBFSOps().DeleteFavorite(ctx,
+			string(tlf.folder.name), tlf.isPublic())
 		tlf.folder.reportErr(ctx, libkbfs.WriteMode, err)
 	}
 

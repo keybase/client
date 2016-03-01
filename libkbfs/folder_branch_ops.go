@@ -457,8 +457,19 @@ func (fbo *folderBranchOps) branch() BranchName {
 	return fbo.folderBranch.Branch
 }
 
-func (fbo *folderBranchOps) GetFavorites(ctx context.Context) ([]*Favorite, error) {
+func (fbo *folderBranchOps) GetFavorites(ctx context.Context) (
+	[]Favorite, error) {
 	return nil, errors.New("GetFavorites is not supported by folderBranchOps")
+}
+
+func (fbo *folderBranchOps) RefreshCachedFavorites(ctx context.Context) error {
+	return errors.New("RefreshCachedFavorites is not supported by " +
+		"folderBranchOps")
+}
+
+func (fbo *folderBranchOps) DeleteFavorite(ctx context.Context,
+	name string, public bool) error {
+	return errors.New("DeleteFavorite is not supported by folderBranchOps")
 }
 
 func (fbo *folderBranchOps) getState() state {

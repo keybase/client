@@ -24,6 +24,8 @@ type KBFSOpsStandard struct {
 	// Closing this channel will shutdown the reidentification
 	// watcher.
 	reIdentifyControlChan chan struct{}
+
+	favs *Favorites
 }
 
 var _ KBFSOps = (*KBFSOpsStandard)(nil)
@@ -36,6 +38,7 @@ func NewKBFSOpsStandard(config Config) *KBFSOpsStandard {
 		log:    log,
 		ops:    make(map[FolderBranch]*folderBranchOps),
 		reIdentifyControlChan: make(chan struct{}),
+		favs: NewFavorites(config),
 	}
 	go kops.markForReIdentifyIfNeededLoop()
 	return kops
@@ -79,6 +82,7 @@ func (fs *KBFSOpsStandard) markForReIdentifyIfNeeded(now time.Time, maxValid tim
 // been launched by KBFSOpsStandard.
 func (fs *KBFSOpsStandard) Shutdown() error {
 	close(fs.reIdentifyControlChan)
+	fs.favs.Shutdown()
 	var errors []error
 	for _, ops := range fs.ops {
 		if err := ops.Shutdown(); err != nil {
@@ -97,26 +101,36 @@ func (fs *KBFSOpsStandard) Shutdown() error {
 
 // GetFavorites implements the KBFSOps interface for
 // KBFSOpsStandard.
-func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) ([]*Favorite, error) {
-	kbd := fs.config.KBPKI()
-	folders, err := kbd.FavoriteList(ctx)
-	if err != nil {
-		return nil, err
-	}
+func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) (
+	[]Favorite, error) {
+	return fs.favs.GetFavorites(ctx)
+}
 
-	favorites := make([]*Favorite, 0, len(folders))
-	favoritesSeen := make(map[Favorite]bool)
-	for _, folder := range folders {
-		f := NewFavoriteFromFolder(folder)
-		// There might be duplicates when you take the old "#public"
-		// suffix into account.  TODO: remove dedup when all the old
-		// client using that prefix are retired.
-		if !favoritesSeen[*f] {
-			favorites = append(favorites, f)
-			favoritesSeen[*f] = true
+// RefreshCachedFavorites implements the KBFSOps interface for
+// KBFSOpsStandard.
+func (fs *KBFSOpsStandard) RefreshCachedFavorites(ctx context.Context) error {
+	return fs.favs.RefreshCachedFavorites(ctx)
+}
+
+// DeleteFavorite implements the KBFSOps interface for
+// KBFSOpsStandard.
+func (fs *KBFSOpsStandard) DeleteFavorite(ctx context.Context,
+	name string, public bool) error {
+	kbpki := fs.config.KBPKI()
+	_, _, err := kbpki.GetCurrentUserInfo(ctx)
+	isLoggedIn := err == nil
+
+	if isLoggedIn {
+		err := fs.favs.DeleteFavorite(ctx, Favorite{name, public})
+		if err != nil {
+			return err
 		}
 	}
-	return favorites, nil
+
+	// TODO: Shut down the running folderBranchOps, if one exists?
+	// What about open file handles?
+
+	return nil
 }
 
 func (fs *KBFSOpsStandard) getOps(fb FolderBranch) *folderBranchOps {
@@ -154,7 +168,7 @@ func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context, handle *TlfHandle
 	fs.opsLock.RUnlock()
 
 	if !exists && isLoggedIn && fb.Branch == MasterBranch {
-		err := kbpki.FavoriteAdd(ctx, handle.ToKBFolder(ctx, fs.config))
+		err := fs.favs.AddFavorite(ctx, handle.ToFavorite(ctx, fs.config))
 		if err != nil {
 			return nil, err
 		}

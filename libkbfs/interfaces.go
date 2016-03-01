@@ -104,7 +104,15 @@ type Node interface {
 type KBFSOps interface {
 	// GetFavorites returns the logged-in user's list of favorite
 	// top-level folders.  This is a remote-access operation.
-	GetFavorites(ctx context.Context) ([]*Favorite, error)
+	GetFavorites(ctx context.Context) ([]Favorite, error)
+	// RefreshCachedFavorites tells the instances to forget any cached
+	// favorites list and fetch a new list from the server.
+	RefreshCachedFavorites(ctx context.Context) error
+	// DeleteFavorite deletes the favorite from both the server and
+	// the local cache.  Idempotent, so it succeeds even if the folder
+	// isn't favorited.
+	DeleteFavorite(ctx context.Context, name string, public bool) error
+
 	// GetOrCreateRootNode returns the root node and root entry
 	// info associated with the given name, public flag, and
 	// branch, if the name is the canonical name, and the

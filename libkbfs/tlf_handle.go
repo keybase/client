@@ -437,12 +437,12 @@ func (h *TlfHandle) ToBytes(config Config) (out []byte, err error) {
 	return out, err
 }
 
-// ToKBFolder converts a TlfHandle into a keybase1.Folder,
-// suitable for KBPKI calls.
-func (h *TlfHandle) ToKBFolder(ctx context.Context, config Config) keybase1.Folder {
-	return keybase1.Folder{
-		Name:    string(h.GetCanonicalName(ctx, config)),
-		Private: !h.IsPublic(),
+// ToFavorite converts a TlfHandle into a Favorite, suitable for
+// Favorites calls.
+func (h *TlfHandle) ToFavorite(ctx context.Context, config Config) Favorite {
+	return Favorite{
+		Name:   string(h.GetCanonicalName(ctx, config)),
+		Public: h.IsPublic(),
 	}
 }
 

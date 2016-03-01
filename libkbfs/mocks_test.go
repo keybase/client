@@ -248,6 +248,26 @@ func (_mr *_MockKBFSOpsRecorder) GetFavorites(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetFavorites", arg0)
 }
 
+func (_m *MockKBFSOps) RefreshCachedFavorites(ctx context.Context) error {
+	ret := _m.ctrl.Call(_m, "RefreshCachedFavorites", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockKBFSOpsRecorder) RefreshCachedFavorites(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RefreshCachedFavorites", arg0)
+}
+
+func (_m *MockKBFSOps) DeleteFavorite(ctx context.Context, name string, public bool) error {
+	ret := _m.ctrl.Call(_m, "DeleteFavorite", ctx, name, public)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockKBFSOpsRecorder) DeleteFavorite(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteFavorite", arg0, arg1, arg2)
+}
+
 func (_m *MockKBFSOps) GetOrCreateRootNode(ctx context.Context, name string, public bool, branch BranchName) (Node, EntryInfo, error) {
 	ret := _m.ctrl.Call(_m, "GetOrCreateRootNode", ctx, name, public, branch)
 	ret0, _ := ret[0].(Node)
