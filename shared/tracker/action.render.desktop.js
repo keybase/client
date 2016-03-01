@@ -74,8 +74,7 @@ export default class ActionRender extends Component {
             <Text dz2 type='BodySmall' inline> from the terminal for more options.</Text>
           </div>
         </div>
-        <div
-          style={styles.closeContainer}>
+        <div style={styles.closeContainer}>
           <Button dz2 style={styles.actionButton} type='Secondary' label='Close' onClick={() => this.props.onClose(username)} />
         </div>
       </div>
