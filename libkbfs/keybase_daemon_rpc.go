@@ -209,6 +209,7 @@ func (k *KeybaseDaemonRPC) LoggedIn(ctx context.Context, name string) error {
 	if k.config != nil {
 		k.config.MDServer().RefreshAuthToken(ctx)
 		k.config.BlockServer().RefreshAuthToken(ctx)
+		k.config.KBFSOps().RefreshCachedFavorites(ctx)
 	}
 	return nil
 }
@@ -220,6 +221,7 @@ func (k *KeybaseDaemonRPC) LoggedOut(ctx context.Context) error {
 	if k.config != nil {
 		k.config.MDServer().RefreshAuthToken(ctx)
 		k.config.BlockServer().RefreshAuthToken(ctx)
+		k.config.KBFSOps().RefreshCachedFavorites(ctx)
 	}
 	return nil
 }

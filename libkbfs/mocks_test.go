@@ -237,9 +237,9 @@ func (_m *MockKBFSOps) EXPECT() *_MockKBFSOpsRecorder {
 	return _m.recorder
 }
 
-func (_m *MockKBFSOps) GetFavorites(ctx context.Context) ([]*Favorite, error) {
+func (_m *MockKBFSOps) GetFavorites(ctx context.Context) ([]Favorite, error) {
 	ret := _m.ctrl.Call(_m, "GetFavorites", ctx)
-	ret0, _ := ret[0].([]*Favorite)
+	ret0, _ := ret[0].([]Favorite)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -248,10 +248,8 @@ func (_mr *_MockKBFSOpsRecorder) GetFavorites(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetFavorites", arg0)
 }
 
-func (_m *MockKBFSOps) RefreshCachedFavorites(ctx context.Context) error {
-	ret := _m.ctrl.Call(_m, "RefreshCachedFavorites", ctx)
-	ret0, _ := ret[0].(error)
-	return ret0
+func (_m *MockKBFSOps) RefreshCachedFavorites(ctx context.Context) {
+	_m.ctrl.Call(_m, "RefreshCachedFavorites", ctx)
 }
 
 func (_mr *_MockKBFSOpsRecorder) RefreshCachedFavorites(arg0 interface{}) *gomock.Call {

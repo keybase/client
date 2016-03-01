@@ -106,8 +106,10 @@ type KBFSOps interface {
 	// top-level folders.  This is a remote-access operation.
 	GetFavorites(ctx context.Context) ([]Favorite, error)
 	// RefreshCachedFavorites tells the instances to forget any cached
-	// favorites list and fetch a new list from the server.
-	RefreshCachedFavorites(ctx context.Context) error
+	// favorites list and fetch a new list from the server.  The
+	// effects are asychronous; if there's an error refreshing the
+	// favorites, the cached favorites will become empty.
+	RefreshCachedFavorites(ctx context.Context)
 	// DeleteFavorite deletes the favorite from both the server and
 	// the local cache.  Idempotent, so it succeeds even if the folder
 	// isn't favorited.

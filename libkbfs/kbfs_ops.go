@@ -108,8 +108,8 @@ func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) (
 
 // RefreshCachedFavorites implements the KBFSOps interface for
 // KBFSOpsStandard.
-func (fs *KBFSOpsStandard) RefreshCachedFavorites(ctx context.Context) error {
-	return fs.favs.RefreshCachedFavorites(ctx)
+func (fs *KBFSOpsStandard) RefreshCachedFavorites(ctx context.Context) {
+	fs.favs.RefreshCachedFavorites(ctx)
 }
 
 // DeleteFavorite implements the KBFSOps interface for

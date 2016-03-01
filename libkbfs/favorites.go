@@ -57,13 +57,13 @@ func (f *Favorites) handleFavReq(ctx context.Context, req favReq) {
 	//  * We haven't fetched it before
 	//  * The user wants the list of favorites.  TODO: use the cached list?
 	if req.refresh || f.knownFavorites == nil || req.favs != nil {
+		f.knownFavorites = make(map[Favorite]bool)
 		folders, err := kbpki.FavoriteList(ctx)
 		if err != nil {
 			req.done <- err
 			return
 		}
 
-		f.knownFavorites = make(map[Favorite]bool)
 		for _, folder := range folders {
 			f.knownFavorites[*NewFavoriteFromFolder(folder)] = true
 		}
@@ -141,8 +141,8 @@ func (f *Favorites) DeleteFavorite(ctx context.Context, fav Favorite) error {
 }
 
 // RefreshCachedFavorites refreshes the cached list of favorites.
-func (f *Favorites) RefreshCachedFavorites(ctx context.Context) error {
-	return f.sendReq(ctx, favReq{refresh: true})
+func (f *Favorites) RefreshCachedFavorites(ctx context.Context) {
+	f.favReqChan <- favReq{refresh: true, done: make(chan error, 1)}
 }
 
 // GetFavorites returns the logged-in users list of favorites. It
