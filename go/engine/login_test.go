@@ -919,6 +919,62 @@ func TestProvisionGPGSwitchToSign(t *testing.T) {
 	}
 }
 
+// Try provision device using a private GPG key (not synced to keybase
+// server). Import private key to lksec fails, user does not want
+// to switch to gpg sign, so provisioning fails.
+func TestProvisionGPGNoSwitchToSign(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u1 := createFakeUserWithPGPPubOnly(t, tc)
+	Logout(tc)
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc2 := SetupEngineTest(t, "login")
+	defer tc2.Cleanup()
+
+	// we need the gpg keyring that's in the first homedir
+	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
+		t.Fatal(err)
+	}
+
+	// now safe to cleanup first home
+	tc.Cleanup()
+
+	// load the user (bypassing LoginUsername for this test...)
+	user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc2.G, u1.Username))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// instruct provisioning ui to not allow the switch to gpg sign:
+	provUI := newTestProvisionUIGPGImport()
+	provUI.abortSwitchToGPGSign = true
+
+	// run login on new device
+	ctx := &Context{
+		ProvisionUI: provUI,
+		LogUI:       tc2.G.UI.GetLogUI(),
+		SecretUI:    u1.NewSecretUI(),
+		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
+		GPGUI:       &gpgtestui{},
+	}
+
+	arg := LoginProvisionArg{
+		DeviceType: libkb.DeviceTypeDesktop,
+		ClientType: keybase1.ClientType_CLI,
+		User:       user,
+	}
+
+	eng := NewLoginProvision(tc2.G, &arg)
+	// use a gpg client that will fail to import any gpg key
+	eng.gpgCli = newGPGImportFailer(tc2.G)
+
+	if err := RunEngine(eng, ctx); err == nil {
+		t.Fatal("provisioning worked despite not allowing switch to gpg sign")
+	}
+}
+
 // User with pgp keys, but on a device without any gpg keyring.
 func TestProvisionGPGNoKeyring(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
@@ -1433,6 +1489,7 @@ type testProvisionUI struct {
 	chooseDevice           string
 	verbose                bool
 	calledChooseDeviceType int
+	abortSwitchToGPGSign   bool
 }
 
 func newTestProvisionUI() *testProvisionUI {
@@ -1501,6 +1558,9 @@ func (u *testProvisionUI) ChooseGPGMethod(_ context.Context, _ keybase1.ChooseGP
 }
 
 func (u *testProvisionUI) SwitchToGPGSignOK(ctx context.Context, arg keybase1.SwitchToGPGSignOKArg) (bool, error) {
+	if u.abortSwitchToGPGSign {
+		return false, nil
+	}
 	return true, nil
 }
 
