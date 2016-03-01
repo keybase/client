@@ -86,8 +86,7 @@ export default class PinentryRender extends Component {
           />
         </div>
         <div style={{...styles2.container, alignItems: 'flex-end', paddingRight: 40, paddingBottom: 20}}>
-          <Button dz2 type='Primary' label='Continue' onClick={submitPassphrase}
-          />
+          <Button dz2 type='Primary' label='Continue' onClick={submitPassphrase} />
         </div>
       </div>
     )
