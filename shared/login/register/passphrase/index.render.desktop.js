@@ -4,7 +4,7 @@ import {Text, Icon, Input, Button} from '../../../common-adapters'
 import Container from '../../forms/container.desktop'
 import type {Props} from './index.render'
 
-type State = {usernameOrEmail: string}
+type State = {passphrase: string}
 
 class Render extends Component<void, Props, State> {
   state: State;
@@ -12,17 +12,17 @@ class Render extends Component<void, Props, State> {
   constructor (props: Props) {
     super(props)
 
-    this.state = {usernameOrEmail: ''}
+    this.state = {passphrase: ''}
   }
 
   onSubmit () {
-    if (this.state.usernameOrEmail) {
-      this.props.onSubmit(this.state.usernameOrEmail)
+    if (this.state.passphrase) {
+      this.props.onSubmit(this.state.passphrase)
     }
   }
 
-  onChange (usernameOrEmail: string) {
-    this.setState({usernameOrEmail})
+  onChange (passphrase: string) {
+    this.setState({passphrase})
   }
 
   render () {
@@ -30,22 +30,23 @@ class Render extends Component<void, Props, State> {
       <Container
         style={styles.container}
         onBack={() => this.props.onBack()}>
-        <Text dz2 type='Header' style={styles.header}>Enter your username or email:</Text>
-        <Icon type='fa-sign-in' style={styles.icon}/>
+        <Text dz2 type='Header' style={styles.header}>Enter your passphrase:</Text>
+        <Icon type='fa-unlock' style={styles.icon}/>
         <Input
           dz2
           style={styles.input}
-          floatingLabelText='Username or email'
+          type='password'
+          floatingLabelText='Passphrase'
           onEnterKeyDown={() => this.onSubmit()}
           onChange={event => this.onChange(event.target.value)}
-          value={this.state.usernameOrEmail}
+          value={this.state.passphrase}
         />
         <Button
           dz2
           label='Continue'
           type='Primary'
           onClick={() => this.onSubmit()}
-          enabled={this.state.usernameOrEmail}
+          enabled={this.state.passphrase}
         />
       </Container>
     )

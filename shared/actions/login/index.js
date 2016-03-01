@@ -6,8 +6,9 @@ import engine from '../../engine'
 import enums from '../../constants/types/keybase-v1'
 // import SelectOtherDevice from '../../login/register/select-other-device'
 // import UsernameOrEmail from '../../login/register/username-or-email'
-import GPGMissingPinentry from '../../login/register/gpg-missing-pinentry'
-import GPGSign from '../../login/register/gpg-sign'
+// import GPGMissingPinentry from '../../login/register/gpg-missing-pinentry'
+// import GPGSign from '../../login/register/gpg-sign'
+import Passphrase from '../../login/register/passphrase'
 import UserPass from '../../login/register/user-pass'
 import PaperKey from '../../login/register/paper-key'
 import CodePage from '../../login/register/code-page'
@@ -374,7 +375,7 @@ function TEST_MOCK_SCREEN (dispatch) {
   dispatch(routeAppend({
     parseRoute: {
       componentAtTop: {
-        component: GPGSign,
+        component: Passphrase,
         props: {}}
     }
   }))
