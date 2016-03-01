@@ -80,6 +80,12 @@ func (p CommandLine) GetDbFilename() string {
 	return p.GetGString("db")
 }
 func (p CommandLine) GetDebug() (bool, bool) {
+	// --no-debug suppresses --debug. Note that although we don't define a
+	// separate GetNoDebug() accessor, fork_server.go still looks for
+	// --no-debug by name, to pass it along to an autoforked daemon.
+	if noDebug, _ := p.GetBool("no-debug", true); noDebug {
+		return false /* val */, true /* isSet */
+	}
 	return p.GetBool("debug", true)
 }
 func (p CommandLine) GetVDebugSetting() string {
@@ -328,6 +334,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.BoolFlag{
 			Name:  "debug, d",
 			Usage: "Enable debugging mode.",
+		},
+		cli.BoolFlag{
+			Name:  "no-debug",
+			Usage: "Suppress debugging mode; takes precedence over --debug.",
 		},
 		cli.StringFlag{
 			Name:  "vdebug",
