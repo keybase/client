@@ -26,12 +26,11 @@ export default function (dispatch: Dispatch, notify: any): incomingCallMapType {
       dispatch(logoutDone())
     },
     'keybase.1.NotifySession.loggedIn': ({username}, response) => {
-      if (lastLoggedInNotifyUsername === username) {
-        return
+      if (lastLoggedInNotifyUsername !== username) {
+        lastLoggedInNotifyUsername = username
+        notify('Logged in to Keybase as: ' + username)
       }
 
-      lastLoggedInNotifyUsername = username
-      notify('Logged in to Keybase as: ' + username)
       dispatch(getCurrentStatus())
       response.result()
     },
