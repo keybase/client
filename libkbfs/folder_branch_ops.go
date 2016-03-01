@@ -1881,8 +1881,9 @@ func (fbo *folderBranchOps) syncBlockAndCheckEmbed(ctx context.Context,
 
 func isRecoverableBlockError(err error) bool {
 	_, isArchiveError := err.(BServerErrorBlockArchived)
+	_, isDeleteError := err.(BServerErrorBlockDeleted)
 	_, isRefError := err.(BServerErrorBlockNonExistent)
-	return isArchiveError || isRefError
+	return isArchiveError || isDeleteError || isRefError
 }
 
 func isRetriableError(err error, retries int) bool {
