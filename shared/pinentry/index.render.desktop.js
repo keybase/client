@@ -85,7 +85,7 @@ export default class PinentryRender extends Component {
             checkboxesProps={checkboxProps}
           />
         </div>
-        <div style={{...styles2.container, alignItems: 'flex-end', paddingRight: 40, paddingBottom: 20}}>
+        <div style={{...styles2.container, alignItems: 'flex-end', paddingRight: 20, paddingBottom: 20}}>
           <Button dz2 type='Primary' label='Continue' onClick={submitPassphrase} />
         </div>
       </div>
