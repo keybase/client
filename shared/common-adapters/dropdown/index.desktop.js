@@ -1,11 +1,8 @@
 // @flow
 import React, {Component} from 'react'
 
-import Icon from '../icon'
 import Text from '../text'
-
 import {transition, globalColorsDZ2, globalStyles} from '../../styles/style-guide'
-import {intersperse} from '../../util/arrays'
 
 import type {Props, MenuItemProps} from './index'
 import type {Props as TextProps} from '../text'
@@ -54,17 +51,17 @@ export default class Dropdown extends Component {
     let list
     let selectedValue
 
-    const onOther = this.props.onOther && (() => {this.setState({popoverOpen: false}); this.props.onOther && this.props.onOther()})
+    const onOther = this.props.onOther && (() => { this.setState({popoverOpen: false}); this.props.onOther && this.props.onOther() })
 
     switch (this.props.type) {
       case 'Username':
         list = <UsernameList options={this.props.options} onClick={i => this._clickItemFromList(i)} onOther={onOther}/>
         selectedValue = <MenuItem onClick={() => {}} type='Username' style={{height: 'initial'}} textStyle={{...styles.labelStyle}}>{this.props.value || this.props.options[0]}</MenuItem>
-        break;
+        break
       case 'General':
         list = <GeneralList options={this.props.options} onClick={i => this._clickItemFromList(i)} onOther={onOther}/>
         selectedValue = <MenuItem type='Pick' onClick={() => {}} style={{height: 'initial'}} textStyle={{...styles.labelStyle}}>{this.props.value || 'Pick an option'}</MenuItem>
-        break;
+        break
     }
 
     return (
@@ -115,7 +112,7 @@ class MenuItem extends Component<void, MenuItemProps, void> {
     }
 
     return (
-      <div className="kbmenuitem" style={{...styles.menuItem, ...this.props.style}} onClick={this.props.onClick}>
+      <div className='kbmenuitem' style={{...styles.menuItem, ...this.props.style}} onClick={this.props.onClick}>
         <Text dz2 style={{...textStyle, ...this.props.textStyle}} type={textType}>{this.props.children}</Text>
       </div>
     )
@@ -176,7 +173,7 @@ const styles = {
   iconStyle: {
     position: 'absolute',
     top: 5,
-    right: 8,
+    right: 8
   },
 
   menuStyle: {
@@ -184,7 +181,7 @@ const styles = {
     borderColor: globalColorsDZ2.blue,
     transformOrigin: 'center top',
     borderStyle: 'solid',
-    borderWidth: 1,
+    borderWidth: 1
   },
 
   popover: {

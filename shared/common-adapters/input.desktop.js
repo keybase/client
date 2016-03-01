@@ -57,7 +57,7 @@ export default class Input extends Component {
 
   render () {
     if (!this.props.dz2) {
-      return <InputOld ref="inputOld" {...this.props}/>
+      return <InputOld ref='inputOld' {...this.props}/>
     }
 
     const style = this.props.small ? styles.containerSmall : styles.container

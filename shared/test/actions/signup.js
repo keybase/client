@@ -3,11 +3,10 @@ import assert from 'assert'
 import engine from '../../engine'
 import configureStore from '../../store/configure-store'
 import * as signupActions from '../../actions/signup'
-import chai from 'chai';
+import chai from 'chai'
 import chaiAsPromised from 'chai-as-promised'
 
 chai.use(chaiAsPromised)
-const should = chai.should()
 
 console.groupCollapsed = () => {}
 console.groupEnd = () => {}

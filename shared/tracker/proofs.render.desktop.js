@@ -136,7 +136,7 @@ const styles2 = {
     paddingLeft: 30,
     paddingRight: 30,
     alignItems: 'flex-start',
-    justifyContent: 'flex-start',
+    justifyContent: 'flex-start'
   },
   service: {
     height: 14,

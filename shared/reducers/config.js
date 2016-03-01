@@ -1,7 +1,6 @@
 /* @flow */
 
 import * as Constants from '../constants/config'
-import * as LoginConstants from '../constants/login'
 
 import type {Action} from '../constants/types/flux'
 import type {Config, GetCurrentStatusRes, ExtendedStatus} from '../constants/types/flow-types'
@@ -21,7 +20,7 @@ const initialState: ConfigState = {
   extendedConfig: null,
   kbfsPath: Constants.defaultKBFSPath,
   error: null,
-  devConfig: null,
+  devConfig: null
 }
 
 export default function (state: ConfigState = initialState, action: Action): ConfigState {
