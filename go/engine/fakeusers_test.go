@@ -266,6 +266,7 @@ func createFakeUserWithPGPSibkeyPushed(tc libkb.TestContext) *FakeUser {
 		},
 		PushSecret: true,
 		NoSave:     true,
+		Ctx:        tc.G,
 	}
 	arg.Gen.MakeAllIds()
 	ctx := Context{
