@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import {TextField} from 'material-ui'
 import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide'
-import {styles as TextStyles} from './text'
+import {styles as TextStyles, specialStyles} from './text'
 import materialTheme from '../styles/material-theme.desktop'
 
 import InputOld from './input.old.desktop'
@@ -76,14 +76,14 @@ export default class Input extends Component {
         <TextField
           ref={textField => (this._textField = textField)}
           fullWidth
-          inputStyle={inputStyle}
+          inputStyle={{...inputStyle, textAlign: 'center'}}
           underlineStyle={{bottom: 'auto'}}
           errorStyle={{...styles.errorStyle, ...this.props.errorStyle}}
           style={{...textStyle, ...globalStyles.flexBoxColumn}}
           autoFocus={this.props.autoFocus}
           errorText={this.props.errorText}
           floatingLabelText={this.props.small ? undefined : this.props.floatingLabelText}
-          floatingLabelStyle={{...styles.floatingLabelStyle, ...(this.state.focused ? {color: globalColorsDZ2.blue} : {})}}
+          floatingLabelStyle={{...styles.floatingLabelStyle, ...(this.state.value || this.state.focused ? {color: globalColorsDZ2.blue, transform: 'perspective(1px) scale(0.65) translate3d(2px, -28px, 0)', transformOrigin: 'center top'} : {transform: 'scale(1) translate3d(0, 0, 0)'})}}
           onFocus={() => this.setState({focused: true})}
           onBlur={() => this.setState({focused: false})}
           hintText={this.props.hintText}
@@ -118,7 +118,8 @@ export const styles = {
     marginTop: 2
   },
   input: {
-    ...TextStyles.textBody
+    ...specialStyles.textInput,
+    height: 80
   },
   inputSmall: {
     ...TextStyles.textBody,
@@ -128,6 +129,7 @@ export const styles = {
   },
   underlineFocusStyle: {
     borderColor: globalColorsDZ2.blue,
+    borderBottom: 'solid 1px',
     transition: ''
   },
   errorStyle: {
@@ -149,4 +151,3 @@ export const styles = {
     top: 34
   }
 }
-

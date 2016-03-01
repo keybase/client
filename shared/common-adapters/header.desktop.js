@@ -54,9 +54,9 @@ const styles = {
     ...globalStyles.windowDraggingClickable,
     color: globalColors.grey4,
     fontSize: 16,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: 'flex-start',
+    justifyContent: 'flex-end',
     width: 30,
-    height: 30
+    height: 24
   }
 }
