@@ -271,6 +271,11 @@ export type GPGKey = {
   identities: Array<PGPIdentity>;
 }
 
+export type GPGMethod =
+    0 // GPG_NONE_0
+  | 1 // GPG_IMPORT_1
+  | 2 // GPG_SIGN_2
+
 export type GUIEntryArg = {
   windowTitle: string;
   prompt: string;
@@ -2618,6 +2623,28 @@ export type provisionUi_chooseDeviceType_rpc = {
   callback: (null | (err: ?any, response: provisionUi_chooseDeviceType_result) => void)
 }
 
+export type provisionUi_chooseDevice_result = DeviceID
+
+export type provisionUi_chooseDevice_rpc = {
+  method: 'provisionUi.chooseDevice',
+  param: {
+    devices: Array<Device>
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any, response: provisionUi_chooseDevice_result) => void)
+}
+
+export type provisionUi_chooseGPGMethod_result = GPGMethod
+
+export type provisionUi_chooseGPGMethod_rpc = {
+  method: 'provisionUi.chooseGPGMethod',
+  param: {
+    keys: Array<GPGKey>
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any, response: provisionUi_chooseGPGMethod_result) => void)
+}
+
 export type provisionUi_chooseProvisioningMethod_result = ProvisionMethod
 
 export type provisionUi_chooseProvisioningMethod_rpc = {
@@ -3282,6 +3309,8 @@ export type rpc =
   | provisionUi_ProvisioneeSuccess_rpc
   | provisionUi_ProvisionerSuccess_rpc
   | provisionUi_chooseDeviceType_rpc
+  | provisionUi_chooseDevice_rpc
+  | provisionUi_chooseGPGMethod_rpc
   | provisionUi_chooseProvisioningMethod_rpc
   | quota_verifySession_rpc
   | revoke_revokeDevice_rpc
@@ -4627,6 +4656,26 @@ export type incomingCallMapType = {
     response: {
       error: (err: string) => void,
       result: (result: provisionUi_chooseProvisioningMethod_result) => void
+    }
+  ) => void,
+  'keybase.1.provisionUi.chooseGPGMethod'?: (
+    params: {
+      sessionID: int,
+      keys: Array<GPGKey>
+    },
+    response: {
+      error: (err: string) => void,
+      result: (result: provisionUi_chooseGPGMethod_result) => void
+    }
+  ) => void,
+  'keybase.1.provisionUi.chooseDevice'?: (
+    params: {
+      sessionID: int,
+      devices: Array<Device>
+    },
+    response: {
+      error: (err: string) => void,
+      result: (result: provisionUi_chooseDevice_result) => void
     }
   ) => void,
   'keybase.1.provisionUi.chooseDeviceType'?: (

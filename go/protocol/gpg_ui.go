@@ -8,14 +8,6 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type GPGKey struct {
-	Algorithm  string        `codec:"algorithm" json:"algorithm"`
-	KeyID      string        `codec:"keyID" json:"keyID"`
-	Creation   string        `codec:"creation" json:"creation"`
-	Expiration string        `codec:"expiration" json:"expiration"`
-	Identities []PGPIdentity `codec:"identities" json:"identities"`
-}
-
 type SelectKeyRes struct {
 	KeyID        string `codec:"keyID" json:"keyID"`
 	DoSecretPush bool   `codec:"doSecretPush" json:"doSecretPush"`

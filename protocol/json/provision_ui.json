@@ -310,6 +310,35 @@
       ]
     },
     {
+      "type": "record",
+      "name": "GPGKey",
+      "fields": [
+        {
+          "type": "string",
+          "name": "algorithm"
+        },
+        {
+          "type": "string",
+          "name": "keyID"
+        },
+        {
+          "type": "string",
+          "name": "creation"
+        },
+        {
+          "type": "string",
+          "name": "expiration"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PGPIdentity"
+          },
+          "name": "identities"
+        }
+      ]
+    },
+    {
       "type": "enum",
       "name": "ProvisionMethod",
       "symbols": [
@@ -318,6 +347,15 @@
         "PASSPHRASE_2",
         "GPG_IMPORT_3",
         "GPG_SIGN_4"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "GPGMethod",
+      "symbols": [
+        "GPG_NONE_0",
+        "GPG_IMPORT_1",
+        "GPG_SIGN_2"
       ]
     },
     {
@@ -366,6 +404,39 @@
       ],
       "response": "ProvisionMethod",
       "doc": "Called during device provisioning for the user to select a\n    method for provisioning.  gpgOption will be true if GPG\n    should be offered as an option."
+    },
+    "chooseGPGMethod": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "keys",
+          "type": {
+            "type": "array",
+            "items": "GPGKey"
+          }
+        }
+      ],
+      "response": "GPGMethod",
+      "doc": "Called during device provisioning for the user to select a \n    GPG method, either import the key into keybase's local keyring\n    or use GPG to sign a provisioning statement.\n\n    The keys are provided for display purposes, so the UI can \n    do something like \"We found the following GPG keys on this \n    machine.  How would you like to use one of them to provision\n    this device?\"\n\n    After this, gpg_ui.selectKey will be called (if there are\n    multiple keys available)."
+    },
+    "chooseDevice": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "devices",
+          "type": {
+            "type": "array",
+            "items": "Device"
+          }
+        }
+      ],
+      "response": "DeviceID"
     },
     "chooseDeviceType": {
       "request": [
