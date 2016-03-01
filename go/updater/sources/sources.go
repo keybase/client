@@ -16,11 +16,12 @@ type UpdateSourceName string
 const (
 	KeybaseSource    UpdateSourceName = "keybase"
 	RemoteSource                      = "remote"
+	LocalSource                       = "local"
 	PrereleaseSource                  = "prerelease"
 	ErrorSource                       = "error"
 )
 
-var UpdateSourceNames = []UpdateSourceName{KeybaseSource, RemoteSource, PrereleaseSource}
+var UpdateSourceNames = []UpdateSourceName{KeybaseSource, RemoteSource, PrereleaseSource, LocalSource}
 
 func DefaultUpdateSourceName() UpdateSourceName {
 	if IsPrerelease {
@@ -47,6 +48,8 @@ func UpdateSourceNameFromString(name string, defaultSourceName UpdateSourceName)
 		return RemoteSource
 	case string(PrereleaseSource):
 		return PrereleaseSource
+	case string(LocalSource):
+		return LocalSource
 	default:
 		return defaultSourceName
 	}

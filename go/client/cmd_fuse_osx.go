@@ -8,6 +8,7 @@ import (
 	"os"
 
 	"github.com/keybase/cli"
+	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 )
@@ -62,7 +63,7 @@ func (v *CmdFuseStatus) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *CmdFuseStatus) Run() error {
-	status := KeybaseFuseStatus(v.G(), v.bundleVersion)
+	status := install.KeybaseFuseStatus(v.bundleVersion, v.G().Log)
 	out, err := json.MarshalIndent(status, "", "  ")
 	if err != nil {
 		return err
