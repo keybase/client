@@ -175,6 +175,16 @@ const headerStyles = {
   }
 }
 
+export const specialStyles = {
+  textInput: {
+    ...textCommon,
+    ...globalStyles.DZ2.fontSemibold,
+    fontSize: 24,
+    lineHeight: '29px',
+    letterSpacing: '0.3px'
+  }
+}
+
 export const styles = {
   ...headerStyles,
   textBody: {
@@ -201,19 +211,6 @@ export const styles = {
     ...globalStyles.DZ2.fontSemibold,
     fontSize: 14,
     lineHeight: '19px',
-    letterSpacing: '0.3px'
-  },
-  textBodyBig: {
-    ...textCommon,
-    fontSize: 24,
-    lineHeight: '30px',
-    letterSpacing: '0.3px'
-  },
-  textBodyBigSemibold: {
-    ...textCommon,
-    ...globalStyles.DZ2.fontSemibold,
-    fontSize: 24,
-    lineHeight: '30px',
     letterSpacing: '0.3px'
   },
   textError: {

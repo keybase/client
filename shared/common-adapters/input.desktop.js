@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import {TextField} from 'material-ui'
 import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide'
-import {styles as TextStyles} from './text'
+import {styles as TextStyles, specialStyles} from './text'
 import materialTheme from '../styles/material-theme.desktop'
 
 import InputOld from './input.old.desktop'
@@ -118,7 +118,7 @@ export const styles = {
     marginTop: 2
   },
   input: {
-    ...TextStyles.textBodyBigSemibold,
+    ...specialStyles.textInput,
     height: 80
   },
   inputSmall: {
