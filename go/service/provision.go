@@ -32,6 +32,11 @@ func (u *RemoteProvisionUI) ChooseGPGMethod(ctx context.Context, arg keybase1.Ch
 	return u.cli.ChooseGPGMethod(ctx, arg)
 }
 
+func (u *RemoteProvisionUI) SwitchToGPGSignOK(ctx context.Context, arg keybase1.SwitchToGPGSignOKArg) (bool, error) {
+	arg.SessionID = u.sessionID
+	return u.cli.SwitchToGPGSignOK(ctx, arg)
+}
+
 func (u *RemoteProvisionUI) ChooseDevice(ctx context.Context, arg keybase1.ChooseDeviceArg) (keybase1.DeviceID, error) {
 	arg.SessionID = u.sessionID
 	return u.cli.ChooseDevice(ctx, arg)

@@ -123,6 +123,12 @@ func (p ProvisionUI) ChooseGPGMethod(ctx context.Context, arg keybase1.ChooseGPG
 	}
 }
 
+func (p ProvisionUI) SwitchToGPGSignOK(ctx context.Context, arg keybase1.SwitchToGPGSignOKArg) (bool, error) {
+	p.parent.Printf("\nThere was a problem importing your GPG secret key %s.\n\n", arg.Key.KeyID)
+	p.parent.Printf("\t%s\n\n", arg.ImportError)
+	return p.parent.PromptYesNo(PromptDescriptorProvisionSwitchToGPGSign, "Would you like to try using GPG commands to sign this installation instead?", libkb.PromptDefaultYes)
+}
+
 func (p ProvisionUI) ChooseDevice(ctx context.Context, arg keybase1.ChooseDeviceArg) (keybase1.DeviceID, error) {
 	p.parent.Output("\nThe device you are currently using needs to be provisioned.\n")
 	p.parent.Output("Which one of your existing devices would you like to use\n")

@@ -55,6 +55,12 @@ type ChooseGPGMethodArg struct {
 	Keys      []GPGKey `codec:"keys" json:"keys"`
 }
 
+type SwitchToGPGSignOKArg struct {
+	SessionID   int    `codec:"sessionID" json:"sessionID"`
+	Key         GPGKey `codec:"key" json:"key"`
+	ImportError string `codec:"importError" json:"importError"`
+}
+
 type ChooseDeviceArg struct {
 	SessionID int      `codec:"sessionID" json:"sessionID"`
 	Devices   []Device `codec:"devices" json:"devices"`
@@ -97,6 +103,7 @@ type ProvisionerSuccessArg struct {
 type ProvisionUiInterface interface {
 	ChooseProvisioningMethod(context.Context, ChooseProvisioningMethodArg) (ProvisionMethod, error)
 	ChooseGPGMethod(context.Context, ChooseGPGMethodArg) (GPGMethod, error)
+	SwitchToGPGSignOK(context.Context, SwitchToGPGSignOKArg) (bool, error)
 	ChooseDevice(context.Context, ChooseDeviceArg) (DeviceID, error)
 	ChooseDeviceType(context.Context, ChooseDeviceTypeArg) (DeviceType, error)
 	DisplayAndPromptSecret(context.Context, DisplayAndPromptSecretArg) (SecretResponse, error)
@@ -138,6 +145,22 @@ func ProvisionUiProtocol(i ProvisionUiInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.ChooseGPGMethod(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"switchToGPGSignOK": {
+				MakeArg: func() interface{} {
+					ret := make([]SwitchToGPGSignOKArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SwitchToGPGSignOKArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SwitchToGPGSignOKArg)(nil), args)
+						return
+					}
+					ret, err = i.SwitchToGPGSignOK(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -269,6 +292,11 @@ func (c ProvisionUiClient) ChooseProvisioningMethod(ctx context.Context, __arg C
 
 func (c ProvisionUiClient) ChooseGPGMethod(ctx context.Context, __arg ChooseGPGMethodArg) (res GPGMethod, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.provisionUi.chooseGPGMethod", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ProvisionUiClient) SwitchToGPGSignOK(ctx context.Context, __arg SwitchToGPGSignOKArg) (res bool, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.switchToGPGSignOK", []interface{}{__arg}, &res)
 	return
 }
 

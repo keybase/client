@@ -6,6 +6,7 @@ package engine
 import (
 	"bytes"
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -851,6 +852,73 @@ func TestProvisionGPGSignSecretStore(t *testing.T) {
 	}
 }
 
+// Provision device using a private GPG key (not synced to keybase
+// server). Import private key to lksec fails, switches to gpg
+// sign, which works.
+func TestProvisionGPGSwitchToSign(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u1 := createFakeUserWithPGPPubOnly(t, tc)
+	Logout(tc)
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc2 := SetupEngineTest(t, "login")
+	defer tc2.Cleanup()
+
+	// we need the gpg keyring that's in the first homedir
+	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
+		t.Fatal(err)
+	}
+
+	// now safe to cleanup first home
+	tc.Cleanup()
+
+	// load the user (bypassing LoginUsername for this test...)
+	user, err := libkb.LoadUser(libkb.NewLoadUserByNameArg(tc2.G, u1.Username))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// run login on new device
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIGPGImport(),
+		LogUI:       tc2.G.UI.GetLogUI(),
+		SecretUI:    u1.NewSecretUI(),
+		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
+		GPGUI:       &gpgtestui{},
+	}
+
+	arg := LoginProvisionArg{
+		DeviceType: libkb.DeviceTypeDesktop,
+		ClientType: keybase1.ClientType_CLI,
+		User:       user,
+	}
+
+	eng := NewLoginProvision(tc2.G, &arg)
+	// use a gpg client that will fail to import any gpg key
+	eng.gpgCli = newGPGImportFailer(tc2.G)
+
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	testUserHasDeviceKey(tc2)
+
+	// highly possible they didn't have a paper key, so make sure they have one now:
+	hasOnePaperDev(tc2, u1)
+
+	if err := AssertProvisioned(tc2); err != nil {
+		t.Fatal(err)
+	}
+
+	// since they did not import their pgp key, they should not be able
+	// to pgp sign something:
+	if err := signString(tc2, "sign me", u1.NewSecretUI()); err == nil {
+		t.Fatal("pgp sign worked after gpg sign provisioning")
+	}
+}
+
 // User with pgp keys, but on a device without any gpg keyring.
 func TestProvisionGPGNoKeyring(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
@@ -1424,13 +1492,16 @@ func (u *testProvisionUI) printf(format string, a ...interface{}) {
 }
 
 func (u *testProvisionUI) ChooseProvisioningMethod(_ context.Context, _ keybase1.ChooseProvisioningMethodArg) (keybase1.ProvisionMethod, error) {
-	u.printf("ChooseProvisioningMethod")
-	return u.method, nil
+	panic("ChooseProvisioningMethod deprecated")
 }
 
 func (u *testProvisionUI) ChooseGPGMethod(_ context.Context, _ keybase1.ChooseGPGMethodArg) (keybase1.GPGMethod, error) {
 	u.printf("ChooseGPGMethod")
 	return u.gpgMethod, nil
+}
+
+func (u *testProvisionUI) SwitchToGPGSignOK(ctx context.Context, arg keybase1.SwitchToGPGSignOKArg) (bool, error) {
+	return true, nil
 }
 
 func (u *testProvisionUI) ChooseDevice(_ context.Context, arg keybase1.ChooseDeviceArg) (keybase1.DeviceID, error) {
@@ -1554,4 +1625,25 @@ func (t *testRetrySecretUI) GetPassphrase(p keybase1.GUIEntryArg, terminal *keyb
 		Passphrase:  t.Passphrases[n],
 		StoreSecret: p.Features.StoreSecret.Allow && t.StoreSecret,
 	}, nil
+}
+
+type gpgImportFailer struct {
+	g *libkb.GlobalContext
+}
+
+func newGPGImportFailer(g *libkb.GlobalContext) *gpgImportFailer {
+	return &gpgImportFailer{g: g}
+}
+
+func (g *gpgImportFailer) ImportKey(secret bool, fp libkb.PGPFingerprint) (*libkb.PGPKeyBundle, error) {
+	return nil, errors.New("failed to import key")
+}
+
+func (g *gpgImportFailer) Index(secret bool, query string) (ki *libkb.GpgKeyIndex, w libkb.Warnings, err error) {
+	// use real gpg for this part
+	gpg := g.g.GetGpgClient()
+	if err := gpg.Configure(); err != nil {
+		return nil, w, err
+	}
+	return gpg.Index(secret, query)
 }

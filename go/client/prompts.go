@@ -41,6 +41,7 @@ const (
 	PromptDescriptorChooseDeviceType
 	PromptDescriptorProvisionPhrase
 	PromptDescriptorProvisionDeviceName
+	PromptDescriptorProvisionSwitchToGPGSign
 	PromptDescriptorExportSecretKeyFromGPG
 	PromptDescriptorDeprovisionWhichUser
 	PromptDescriptorUpdateDo

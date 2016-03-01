@@ -23,10 +23,17 @@ type LoginProvision struct {
 	lks           *libkb.LKSec
 	signingKey    libkb.GenericKey
 	encryptionKey libkb.GenericKey
-	gpgCli        *libkb.GpgCLI
+	gpgCli        gpgInterface
 	username      string
 	devname       string
 	cleanupOnErr  bool
+}
+
+// gpgInterface defines the portions of gpg client that provision
+// needs.  This allows tests to stub out gpg client calls.
+type gpgInterface interface {
+	ImportKey(secret bool, fp libkb.PGPFingerprint) (*libkb.PGPKeyBundle, error)
+	Index(secret bool, query string) (ki *libkb.GpgKeyIndex, w libkb.Warnings, err error)
 }
 
 type LoginProvisionArg struct {
@@ -434,7 +441,7 @@ func (e *LoginProvision) gpgPrivateIndex() (*libkb.GpgKeyIndex, error) {
 }
 
 // gpgClient returns a gpg client.
-func (e *LoginProvision) gpgClient() (*libkb.GpgCLI, error) {
+func (e *LoginProvision) gpgClient() (gpgInterface, error) {
 	if e.gpgCli != nil {
 		return e.gpgCli, nil
 	}
@@ -561,9 +568,14 @@ func (e *LoginProvision) tryGPG(ctx *Context) error {
 	case keybase1.GPGMethod_GPG_IMPORT:
 		signingKey, err = e.gpgImportKey(ctx, key.GetFingerprint())
 		if err != nil {
-			// depending on the error, might want to direct user to the
-			// gpg sign option
-			return e.switchToGPGSign(ctx, key, err)
+			// there was an error importing the key.
+			// so offer to switch to using gpg to sign
+			// the provisioning statement:
+			signingKey, err = e.switchToGPGSign(ctx, key, err)
+			if err != nil {
+				return err
+			}
+			method = keybase1.GPGMethod_GPG_SIGN
 		}
 	case keybase1.GPGMethod_GPG_SIGN:
 		signingKey, err = e.gpgSignKey(ctx, key.GetFingerprint())
@@ -666,8 +678,27 @@ func (e *LoginProvision) chooseGPGKeyAndMethod(ctx *Context) (*libkb.GpgPrimaryK
 	return key, method, nil
 }
 
-func (e *LoginProvision) switchToGPGSign(ctx *Context, key *libkb.GpgPrimaryKey, importErr error) error {
-	return errors.New("switchToGPGSign not implemented")
+func (e *LoginProvision) switchToGPGSign(ctx *Context, key *libkb.GpgPrimaryKey, importError error) (libkb.GenericKey, error) {
+	gk := keybase1.GPGKey{
+		Algorithm:  key.AlgoString(),
+		KeyID:      key.ID64,
+		Creation:   key.CreatedString(),
+		Identities: key.GetPGPIdentities(),
+	}
+	arg := keybase1.SwitchToGPGSignOKArg{
+		Key:         gk,
+		ImportError: importError.Error(),
+	}
+	ok, err := ctx.ProvisionUI.SwitchToGPGSignOK(ctx.GetNetContext(), arg)
+	if err != nil {
+		return nil, err
+	}
+	if !ok {
+		return nil, fmt.Errorf("user chose not to switch to GPG sign, original import error: %s", importError)
+	}
+
+	e.G().Log.Debug("switching to GPG sign")
+	return e.gpgSignKey(ctx, key.GetFingerprint())
 }
 
 func (e *LoginProvision) matchingGPGKeys() ([]*libkb.GpgPrimaryKey, error) {

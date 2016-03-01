@@ -2656,6 +2656,18 @@ export type provisionUi_chooseProvisioningMethod_rpc = {
   callback: (null | (err: ?any, response: provisionUi_chooseProvisioningMethod_result) => void)
 }
 
+export type provisionUi_switchToGPGSignOK_result = boolean
+
+export type provisionUi_switchToGPGSignOK_rpc = {
+  method: 'provisionUi.switchToGPGSignOK',
+  param: {
+    key: GPGKey,
+    importError: string
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any, response: provisionUi_switchToGPGSignOK_result) => void)
+}
+
 export type quota_verifySession_result = VerifySessionRes
 
 export type quota_verifySession_rpc = {
@@ -3312,6 +3324,7 @@ export type rpc =
   | provisionUi_chooseDevice_rpc
   | provisionUi_chooseGPGMethod_rpc
   | provisionUi_chooseProvisioningMethod_rpc
+  | provisionUi_switchToGPGSignOK_rpc
   | quota_verifySession_rpc
   | revoke_revokeDevice_rpc
   | revoke_revokeKey_rpc
@@ -4666,6 +4679,17 @@ export type incomingCallMapType = {
     response: {
       error: (err: string) => void,
       result: (result: provisionUi_chooseGPGMethod_result) => void
+    }
+  ) => void,
+  'keybase.1.provisionUi.switchToGPGSignOK'?: (
+    params: {
+      sessionID: int,
+      key: GPGKey,
+      importError: string
+    },
+    response: {
+      error: (err: string) => void,
+      result: (result: provisionUi_switchToGPGSignOK_result) => void
     }
   ) => void,
   'keybase.1.provisionUi.chooseDevice'?: (

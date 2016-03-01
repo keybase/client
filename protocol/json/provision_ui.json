@@ -403,7 +403,7 @@
         }
       ],
       "response": "ProvisionMethod",
-      "doc": "Called during device provisioning for the user to select a\n    method for provisioning.  gpgOption will be true if GPG\n    should be offered as an option."
+      "doc": "DEPRECATED:\n    Called during device provisioning for the user to select a\n    method for provisioning.  gpgOption will be true if GPG\n    should be offered as an option."
     },
     "chooseGPGMethod": {
       "request": [
@@ -421,6 +421,24 @@
       ],
       "response": "GPGMethod",
       "doc": "Called during device provisioning for the user to select a \n    GPG method, either import the key into keybase's local keyring\n    or use GPG to sign a provisioning statement.\n\n    The keys are provided for display purposes, so the UI can \n    do something like \"We found the following GPG keys on this \n    machine.  How would you like to use one of them to provision\n    this device?\"\n\n    After this, gpg_ui.selectKey will be called (if there are\n    multiple keys available)."
+    },
+    "switchToGPGSignOK": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "key",
+          "type": "GPGKey"
+        },
+        {
+          "name": "importError",
+          "type": "string"
+        }
+      ],
+      "response": "boolean",
+      "doc": "If there was an error importing a gpg key into the local\n    keyring, tell the user and offer to switch to GPG signing\n    with this key.  Return true to switch to GPG signing, \n    false to abort provisioning."
     },
     "chooseDevice": {
       "request": [

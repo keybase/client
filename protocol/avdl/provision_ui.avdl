@@ -4,6 +4,7 @@ protocol provisionUi {
   import idl "common.avdl";
   import idl "gpg_common.avdl";
 
+  // DEPRECATED:
   enum ProvisionMethod {
     DEVICE_0,
     PAPER_KEY_1,
@@ -12,6 +13,7 @@ protocol provisionUi {
     GPG_SIGN_4
   }
   /**
+    DEPRECATED:
     Called during device provisioning for the user to select a
     method for provisioning.  gpgOption will be true if GPG
     should be offered as an option.
@@ -37,6 +39,14 @@ protocol provisionUi {
     multiple keys available).
     */
   GPGMethod chooseGPGMethod(int sessionID, array<GPGKey> keys);
+
+  /**
+    If there was an error importing a gpg key into the local
+    keyring, tell the user and offer to switch to GPG signing
+    with this key.  Return true to switch to GPG signing, 
+    false to abort provisioning.
+    */
+  boolean switchToGPGSignOK(int sessionID, GPGKey key, string importError);
 
   DeviceID chooseDevice(int sessionID, array<Device> devices);
 
