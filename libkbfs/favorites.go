@@ -16,25 +16,26 @@ type Favorites struct {
 	config Config
 
 	// Channels for interacting with the favorites cache
-	favReqChan chan favReq
+	reqChan chan favReq
 
-	// knownFavorites tracks the favorites for this user, that we know
-	// about.  It may not include favorites that were added by other
-	// devices.
-	knownFavorites map[Favorite]bool
+	// cache tracks the favorites for this user, that we know about.
+	// It may not be consistent with the server's view of the user's
+	// favorites list, if other devices have modified the list since
+	// the last refresh.
+	cache map[Favorite]bool
 }
 
 // NewFavorites constructs a new Favorites instance.
 func NewFavorites(config Config) *Favorites {
 	f := &Favorites{
-		config:     config,
-		favReqChan: make(chan favReq),
+		config:  config,
+		reqChan: make(chan favReq),
 	}
-	go f.favoritesLoop()
+	go f.loop()
 	return f
 }
 
-func (f *Favorites) handleFavReq(ctx context.Context, req favReq) {
+func (f *Favorites) handleReq(ctx context.Context, req favReq) {
 	// Tie the calling context together with this one.
 	if req.canceled != nil {
 		var cancel context.CancelFunc
@@ -56,8 +57,8 @@ func (f *Favorites) handleFavReq(ctx context.Context, req favReq) {
 	//  * The user asked us to refresh
 	//  * We haven't fetched it before
 	//  * The user wants the list of favorites.  TODO: use the cached list?
-	if req.refresh || f.knownFavorites == nil || req.favs != nil {
-		f.knownFavorites = make(map[Favorite]bool)
+	if req.refresh || f.cache == nil || req.favs != nil {
+		f.cache = make(map[Favorite]bool)
 		folders, err := kbpki.FavoriteList(ctx)
 		if err != nil {
 			req.done <- err
@@ -65,19 +66,19 @@ func (f *Favorites) handleFavReq(ctx context.Context, req favReq) {
 		}
 
 		for _, folder := range folders {
-			f.knownFavorites[*NewFavoriteFromFolder(folder)] = true
+			f.cache[*NewFavoriteFromFolder(folder)] = true
 		}
 	}
 
 	for _, fav := range req.toAdd {
 		// Only add the favorite if it's not already known.
-		if _, ok := f.knownFavorites[fav]; !ok {
+		if _, ok := f.cache[fav]; !ok {
 			err := kbpki.FavoriteAdd(ctx, fav.toKBFolder())
 			if err != nil {
 				req.done <- err
 				return
 			}
-			f.knownFavorites[fav] = true
+			f.cache[fav] = true
 		}
 	}
 
@@ -89,12 +90,12 @@ func (f *Favorites) handleFavReq(ctx context.Context, req favReq) {
 			req.done <- err
 			return
 		}
-		delete(f.knownFavorites, fav)
+		delete(f.cache, fav)
 	}
 
 	if req.favs != nil {
-		favorites := make([]Favorite, 0, len(f.knownFavorites))
-		for fav := range f.knownFavorites {
+		favorites := make([]Favorite, 0, len(f.cache))
+		for fav := range f.cache {
 			favorites = append(favorites, fav)
 		}
 		req.favs <- favorites
@@ -103,23 +104,23 @@ func (f *Favorites) handleFavReq(ctx context.Context, req favReq) {
 	req.done <- nil
 }
 
-func (f *Favorites) favoritesLoop() {
-	for req := range f.favReqChan {
+func (f *Favorites) loop() {
+	for req := range f.reqChan {
 		ctx := context.Background() // TODO: add debug tags
-		f.handleFavReq(ctx, req)
+		f.handleReq(ctx, req)
 	}
 }
 
 // Shutdown shuts down this Favorites instance.
 func (f *Favorites) Shutdown() {
-	close(f.favReqChan)
+	close(f.reqChan)
 }
 
 func (f *Favorites) sendReq(ctx context.Context, req favReq) error {
 	errChan := make(chan error, 1)
 	req.done = errChan
 	req.canceled = ctx.Done()
-	f.favReqChan <- req
+	f.reqChan <- req
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -128,26 +129,26 @@ func (f *Favorites) sendReq(ctx context.Context, req favReq) error {
 	}
 }
 
-// AddFavorite adds a favorite to your favorites list, unless it
+// Add adds a favorite to your favorites list, unless it
 // already exists in the cached list of favorites.
-func (f *Favorites) AddFavorite(ctx context.Context, fav Favorite) error {
+func (f *Favorites) Add(ctx context.Context, fav Favorite) error {
 	return f.sendReq(ctx, favReq{toAdd: []Favorite{fav}})
 }
 
-// DeleteFavorite deletes a favorite from the favorites list.  It is
+// Delete deletes a favorite from the favorites list.  It is
 // idempotent.
-func (f *Favorites) DeleteFavorite(ctx context.Context, fav Favorite) error {
+func (f *Favorites) Delete(ctx context.Context, fav Favorite) error {
 	return f.sendReq(ctx, favReq{toDel: []Favorite{fav}})
 }
 
-// RefreshCachedFavorites refreshes the cached list of favorites.
-func (f *Favorites) RefreshCachedFavorites(ctx context.Context) {
-	f.favReqChan <- favReq{refresh: true, done: make(chan error, 1)}
+// RefreshCache refreshes the cached list of favorites.
+func (f *Favorites) RefreshCache(ctx context.Context) {
+	f.reqChan <- favReq{refresh: true, done: make(chan error, 1)}
 }
 
-// GetFavorites returns the logged-in users list of favorites. It
+// Get returns the logged-in users list of favorites. It
 // doesn't use the cache.
-func (f *Favorites) GetFavorites(ctx context.Context) ([]Favorite, error) {
+func (f *Favorites) Get(ctx context.Context) ([]Favorite, error) {
 	favChan := make(chan []Favorite, 1)
 	req := favReq{
 		favs: favChan,

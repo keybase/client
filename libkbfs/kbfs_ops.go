@@ -103,13 +103,13 @@ func (fs *KBFSOpsStandard) Shutdown() error {
 // KBFSOpsStandard.
 func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) (
 	[]Favorite, error) {
-	return fs.favs.GetFavorites(ctx)
+	return fs.favs.Get(ctx)
 }
 
 // RefreshCachedFavorites implements the KBFSOps interface for
 // KBFSOpsStandard.
 func (fs *KBFSOpsStandard) RefreshCachedFavorites(ctx context.Context) {
-	fs.favs.RefreshCachedFavorites(ctx)
+	fs.favs.RefreshCache(ctx)
 }
 
 // DeleteFavorite implements the KBFSOps interface for
@@ -121,7 +121,7 @@ func (fs *KBFSOpsStandard) DeleteFavorite(ctx context.Context,
 	isLoggedIn := err == nil
 
 	if isLoggedIn {
-		err := fs.favs.DeleteFavorite(ctx, Favorite{name, public})
+		err := fs.favs.Delete(ctx, Favorite{name, public})
 		if err != nil {
 			return err
 		}
@@ -168,7 +168,7 @@ func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context, handle *TlfHandle
 	fs.opsLock.RUnlock()
 
 	if !exists && isLoggedIn && fb.Branch == MasterBranch {
-		err := fs.favs.AddFavorite(ctx, handle.ToFavorite(ctx, fs.config))
+		err := fs.favs.Add(ctx, handle.ToFavorite(ctx, fs.config))
 		if err != nil {
 			return nil, err
 		}
