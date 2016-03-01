@@ -248,6 +248,7 @@ export const styles = {
   textTerminalInline: {
     backgroundColor: globalColorsDZ2.blue4,
     wordWrap: 'break-word',
+    padding: 2,
     display: 'inline'
   },
   textSmallMixin: {
