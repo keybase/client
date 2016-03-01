@@ -74,20 +74,15 @@ func BoolForString(s string) bool {
 	return true
 }
 
-// CustomBuild can be set at compile time to override Build
-var CustomBuild string
-
-// Build returns the custom or default build
-func Build() string {
-	if CustomBuild != "" {
-		return CustomBuild
-	}
-	return DefaultBuild
-}
+// PrereleaseBuild is set at compile time for prerelease builds
+var PrereleaseBuild string
 
 // VersionString returns semantic version string
 func VersionString() string {
-	return fmt.Sprintf("%s-%s", Version, Build())
+	if PrereleaseBuild != "" {
+		return fmt.Sprintf("%s-%s", Version, PrereleaseBuild)
+	}
+	return Version
 }
 
 const (

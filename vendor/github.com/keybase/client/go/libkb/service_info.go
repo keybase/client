@@ -28,10 +28,13 @@ func KeybaseServiceInfo(g *GlobalContext) ServiceInfo {
 	}
 }
 
-// NewServiceInfo for generating service info for other services (like KBFS).
-func NewServiceInfo(version string, build string, label string, pid int) ServiceInfo {
+// NewServiceInfo generates service info for other services (like KBFS).
+func NewServiceInfo(version string, prerelease string, label string, pid int) ServiceInfo {
+	if prerelease != "" {
+		version = fmt.Sprintf("%s-%s", version, prerelease)
+	}
 	return ServiceInfo{
-		Version: fmt.Sprintf("%s-%s", version, build),
+		Version: version,
 		Label:   label,
 		Pid:     pid,
 	}
