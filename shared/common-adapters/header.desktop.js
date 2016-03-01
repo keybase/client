@@ -55,7 +55,7 @@ const styles = {
     color: globalColors.grey4,
     fontSize: 16,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
     width: 30,
     height: 30
   }
