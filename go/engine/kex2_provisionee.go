@@ -484,6 +484,10 @@ func (e *Kex2Provisionee) pushLKSServerHalf() error {
 		return err
 	}
 
+	// Cache the passphrase stream.  Note that we don't have the triplesec
+	// portion of the stream cache.
+	e.ctx.LoginContext.CreateStreamCache(nil, ppstream)
+
 	return nil
 }
 
