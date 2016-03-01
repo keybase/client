@@ -1,6 +1,7 @@
 import React, {Component} from 'react'
 import commonStyles from '../../styles/common'
 import shell from 'shell'
+import {Button} from '../../common-adapters'
 
 export default class WelcomeRender extends Component {
   render () {

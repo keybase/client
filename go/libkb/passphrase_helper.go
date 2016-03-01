@@ -40,6 +40,8 @@ func GetPaperKeyPassphrase(ui SecretUI, username string) (string, error) {
 	arg.Prompt = fmt.Sprintf("Please enter a paper backup key passphrase for %s", username)
 	arg.Features.StoreSecret.Allow = false
 	arg.Features.StoreSecret.Readonly = true
+	arg.Features.ShowTyping.Allow = true
+	arg.Features.ShowTyping.DefaultValue = true
 	res, err := GetPassphraseUntilCheck(arg, newUIPrompter(ui), &CheckPassphraseSimple)
 	if err != nil {
 		return "", err

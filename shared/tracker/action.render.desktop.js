@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import {FlatButton} from 'material-ui'
 import {Button} from '../common-adapters'
 import commonStyles from '../styles/common'
-import {globalColors, globalColorsDZ2} from '../styles/style-guide'
+import {globalColorsDZ2} from '../styles/style-guide'
 import {normal, checking, warning} from '../constants/tracker'
 import flags from '../util/feature-flags'
 import {Text} from '../common-adapters'
@@ -59,7 +59,7 @@ export default class ActionRender extends Component {
     return this.renderNormal(styles, username)
   }
 
-  renderClose(styles: Object, username: string) {
+  renderClose (styles: Object, username: string) {
     return (
       <div style={{...styles2.container}}>
         <Button dz2 type='Secondary' label='Close' onClick={() => this.props.onClose(username)} />

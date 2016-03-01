@@ -31,7 +31,7 @@ export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInvi
         invitationCode: inviteCode
       },
       incomingCallMap: {},
-      callback: (err) => {
+      callback: err => {
         if (err) {
           console.error('error in inviteCode:', err)
           dispatch({type: Constants.checkInviteCode, error: true, payload: {errorText: 'Invite code is invalid'}})
@@ -100,7 +100,7 @@ export function checkUsernameEmail (username: ?string, email: ?string): TypedAsy
       method: 'signup.checkUsernameAvailable',
       param: {username},
       incomingCallMap: {},
-      callback: (err) => {
+      callback: err => {
         if (err) {
           console.error("username isn't available:", err)
           dispatch({

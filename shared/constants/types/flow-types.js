@@ -196,7 +196,7 @@ export type FSNotification = {
   statusCode: FSStatusCode;
   notificationType: FSNotificationType;
   errorType: FSErrorType;
-  params: [object Object];
+  params: {string: string};
 }
 
 export type FSNotificationType =

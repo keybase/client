@@ -1,7 +1,8 @@
 import React, {Component} from 'react'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide'
 import {autoResize} from '../../desktop/renderer/remote-component-helper'
-import {Checkbox, Header, Input, Text, Button} from '../common-adapters'
+import {Button, Checkbox, FormWithCheckbox, Header, Input, Text} from '../common-adapters'
+import flags from '../util/feature-flags'
 
 export default class PinentryRender extends Component {
   constructor (props) {
@@ -39,6 +40,59 @@ export default class PinentryRender extends Component {
   }
 
   render () {
+    if (flags.dz2) {
+      return this.render2()
+    } else {
+      return this.render1()
+    }
+  }
+
+  render2 () {
+    const submitPassphrase = () => this.props.onSubmit(this.state.passphrase, this.state.features)
+
+    const inputProps = {
+      dz2: true,
+      floatingLabelText: 'Passphrase',
+      style: {marginBottom: 0},
+      onChange: event => this.setState({passphrase: event.target.value}),
+      onEnterKeyDown: () => submitPassphrase(),
+      type: this.state.showTyping ? 'text' : 'password',
+      errorText: this.props.retryLabel
+    }
+
+    const checkboxProps = Object.keys(this.props.features).map(feature => {
+      return ({
+        label: this.props.features[feature].label,
+        checked: this.state.features[feature],
+        key: feature,
+        name: feature,
+        style: styles.checkbox,
+        onCheck: checked => this.onCheck(feature, checked)
+      })
+    })
+
+    return (
+      <div>
+        <Header icon title='' onClose={() => this.props.onCancel()} />
+        <div style={{...styles2.container, alignItems: 'center', padding: 10}}>
+          <Text type='Body'>{this.props.prompt}</Text>
+        </div>
+        <div style={{...styles2.container, alignItems: 'center', padding: 10, paddingLeft: 30, paddingRight: 30}}>
+          <FormWithCheckbox
+            style={{alignSelf: 'stretch'}}
+            inputProps={inputProps}
+            checkboxContainerStyle={{paddingLeft: 60, paddingRight: 60}}
+            checkboxesProps={checkboxProps}
+          />
+        </div>
+        <div style={{...styles2.container, alignItems: 'flex-end', paddingRight: 20, paddingBottom: 20}}>
+          <Button dz2 type='Primary' label='Continue' onClick={submitPassphrase} />
+        </div>
+      </div>
+    )
+  }
+
+  render1 () {
     const submitPassphrase = () => this.props.onSubmit(this.state.passphrase, this.state.features)
 
     return (
@@ -94,6 +148,13 @@ PinentryRender.propTypes = {
   cancelLabel: React.PropTypes.string,
   submitLabel: React.PropTypes.string,
   windowTitle: React.PropTypes.string.isRequired
+}
+
+const styles2 = {
+  container: {
+    ...globalStyles.flexBoxColumn,
+    backgroundColor: globalColorsDZ2.white
+  }
 }
 
 const styles = {

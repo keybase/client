@@ -5,7 +5,7 @@ import commonStyles from '../styles/common'
 import Tracker from '../tracker/index.js'
 import flags from '../util/feature-flags'
 import {normal, checking, revoked, error} from '../constants/tracker'
-import {metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted} from '../constants/tracker'
+import {metaUpgraded, metaUnreachable, metaPending, metaDeleted} from '../constants/tracker'
 
 const proofGithub = {name: 'githubuser', type: 'github', id: 'githubId', state: normal, humanUrl: 'github.com', profileUrl: 'http://github.com'}
 const proofTwitter = {name: 'twitteruser', type: 'twitter', id: 'twitterId', state: normal, humanUrl: 'twitter.com', profileUrl: 'http://twitter.com'}
@@ -15,14 +15,6 @@ const proofRooter = {name: 'roooooooter', type: 'rooter', state: normal, id: 'ro
 
 const proofsDefault = [
   proofGithub,
-  proofTwitter,
-  proofWeb,
-  proofHN,
-  proofRooter
-]
-
-const proofsNew = [
-  {...proofGithub, meta: metaNew},
   proofTwitter,
   proofWeb,
   proofHN,

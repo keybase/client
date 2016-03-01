@@ -18,8 +18,6 @@ import {switchTab} from './actions/tabbed-router'
 import {navigateBack} from './actions/router'
 import {startup} from './actions/startup'
 
-import * as Constants from './constants/config'
-
 const tabs = {
   [folderTab]: Folders,
   [chatTab]: Chat,
