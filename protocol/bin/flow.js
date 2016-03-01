@@ -136,10 +136,8 @@ function parseInnerType (t) {
   switch (t.type) {
     case 'record':
       return parseRecord(t)
-    case 'array':
-      return `Array<${t.items}>`
     default:
-      return t
+      return figureType(t)
   }
 }
 
