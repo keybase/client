@@ -68,6 +68,7 @@ export default class Text extends Component {
       'HeaderJumbo': styles.textHeaderJumbo,
       'HeaderBig': styles.textHeaderBig,
       'Header': styles.textHeader,
+      'HeaderError': {...styles.textHeader, color: globalColorsDZ2.red},
       'BodySemibold': styles.textBodySemibold,
       'Body': styles.textBody,
       'BodyPrimaryLink': styles.textBody,

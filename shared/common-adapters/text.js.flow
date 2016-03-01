@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 
 export type Background = 'Normal' | 'Announcements' | 'Success' | 'Information' | 'HighRisk' | 'Documentation' | 'Terminal'
 export type Props = {
-  type: 'HeaderJumbo' | 'HeaderBig' | 'Header'
+  type: 'HeaderJumbo' | 'HeaderBig' | 'Header' | 'HeaderError'
           | 'Body' | 'BodySemibold' | 'BodySmall' | 'BodySmallSemibold' | 'BodyPrimaryLink' | 'BodySecondaryLink'
           | 'Error'
           | 'Terminal'
