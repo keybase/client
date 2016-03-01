@@ -6,6 +6,7 @@ import engine from '../../engine'
 import enums from '../../constants/types/keybase-v1'
 import SelectOtherDevice from '../../login/register/select-other-device'
 import UsernameOrEmail from '../../login/register/username-or-email'
+import GPGMissingPinentry from '../../login/register/gpg-missing-pinentry'
 import UserPass from '../../login/register/user-pass'
 import PaperKey from '../../login/register/paper-key'
 import CodePage from '../../login/register/code-page'
@@ -372,7 +373,7 @@ function TEST_MOCK_SCREEN (dispatch) {
   dispatch(routeAppend({
     parseRoute: {
       componentAtTop: {
-        component: UsernameOrEmail,
+        component: GPGMissingPinentry,
         props: {}}
     }
   }))
