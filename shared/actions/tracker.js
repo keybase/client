@@ -372,6 +372,9 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
       const username = sessionIDToUsername[sessionID]
 
       if (key.breaksTracking) {
+        dispatch({type: Constants.updateEldestKidChanged, payload: {username}})
+        dispatch({type: Constants.updateReason, payload: {username, reason: `${username} has reset their account!`}})
+        dispatch({type: Constants.updateProofState, payload: {username}})
         dispatch({type: Constants.showTracker, payload: {username}})
       }
     },

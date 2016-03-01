@@ -15,6 +15,7 @@ import type {Identity, RemoteProof, LinkCheckResult, ProofState, TrackDiff, Trac
 import type {Action} from '../constants/types/flux'
 
 export type TrackerState = {
+  eldestKidChanged: boolean,
   serverActive: boolean,
   trackerState: SimpleProofState,
   trackerMessage: ?string,
@@ -45,6 +46,7 @@ const initialState: State = {
 
 function initialTrackerState (username: string): TrackerState {
   return {
+    eldestKidChanged: false,
     serverActive: false,
     username,
     trackerState: initialProofState,
@@ -143,6 +145,12 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         lastAction: 'error',
         reason: 'There was an error updating your follow status.'
       }
+    case Constants.updateEldestKidChanged: {
+      return {
+        ...state,
+        eldestKidChanged: true
+      }
+    }
     case Constants.updateProofState:
       const proofs = state.proofs
       const allOk: boolean = proofs.reduce((acc, p) => acc && p.state === normal, true)
@@ -161,7 +169,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       return {
         ...state,
         shouldFollow: deriveShouldFollow(allOk),
-        trackerState: deriveTrackerState(allOk, anyWarnings, anyError, anyPending, anyDeletedProofs, anyUnreachableProofs),
+        trackerState: deriveTrackerState(allOk, anyWarnings, anyError, anyPending, anyDeletedProofs, anyUnreachableProofs, state.eldestKidChanged),
         trackerMessage: deriveTrackerMessage(state.username, allOk, anyDeletedProofs, anyUnreachableProofs, anyUpgradedProofs, anyNewProofs)
       }
 
@@ -459,7 +467,12 @@ function deriveTrackerState (
   anyPending: boolean,
   anyDeletedProofs : boolean,
   anyUnreachableProofs : boolean,
+  eldestKidChanged: boolean
 ): SimpleProofState {
+  if (eldestKidChanged) {
+    return error
+  }
+
   if (allOk) {
     return normal
   } else if (anyPending) {
