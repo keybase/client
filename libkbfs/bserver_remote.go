@@ -2,6 +2,7 @@ package libkbfs
 
 import (
 	"encoding/hex"
+	"strconv"
 	"time"
 
 	"github.com/keybase/go-framed-msgpack-rpc"
@@ -231,88 +232,122 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 
 // RemoveBlockReference implements the BlockServer interface for
 // BlockServerRemote
-func (b *BlockServerRemote) RemoveBlockReference(ctx context.Context, id BlockID,
-	tlfID TlfID, context BlockContext) error {
-	var err error
+func (b *BlockServerRemote) RemoveBlockReference(ctx context.Context,
+	tlfID TlfID, contexts map[BlockID][]BlockContext) (liveCounts map[BlockID]int, err error) {
 	defer func() {
-		b.log.CDebugf(ctx, "RemoveBlockReference id=%s uid=%s err=%v",
-			id, context.GetWriter(), err)
+		b.log.CDebugf(ctx, "RemoveBlockReference err=%v", err)
 	}()
-
-	ref := keybase1.BlockReference{
-		Bid: keybase1.BlockIdCombo{
-			ChargedTo: context.GetCreator(),
-			BlockHash: id.String(),
-		},
-		ChargedTo: context.GetWriter(), //the actual writer to decrement quota from
-		Nonce:     keybase1.BlockRefNonce(context.GetRefNonce()),
-	}
-
-	err = b.client.DelReference(ctx, keybase1.DelReferenceArg{
-		Ref:    ref,
-		Folder: tlfID.String(),
-	})
-	return err
-}
-
-func (b *BlockServerRemote) archiveBlockReferences(ctx context.Context,
-	tlfID TlfID, refs []keybase1.BlockReference) (err error) {
-	doneRefs := make(map[string]bool)
-	notDone := refs
-	prevProgress := true
-	var res []keybase1.BlockReference
-	for len(notDone) > 0 {
-
-		res, err = b.client.ArchiveReference(ctx, keybase1.ArchiveReferenceArg{
-			Refs:   notDone,
-			Folder: tlfID.String(),
-		})
-		b.log.CDebugf(ctx, "ArchiveBlockReference request to archive %d refs actual archived %d",
-			len(notDone), len(res))
-		if err != nil {
-			b.log.CWarningf(ctx, "ArchiveBlockReference err=%v", err)
-		}
-		if len(res) == 0 && !prevProgress {
-			b.log.CErrorf(ctx, "ArchiveBlockReference failed to make progress err=%v", err)
-			break
-		}
-		prevProgress = len(res) != 0
-		for _, ref := range res {
-			doneRefs[ref.Bid.BlockHash+string(ref.Nonce[:])] = true
-		}
-		notDone = b.getNotDoneRefs(refs, doneRefs)
-	}
-	return err
-}
-
-func (b *BlockServerRemote) getNotDoneRefs(refs []keybase1.BlockReference, done map[string]bool) (
-	notDone []keybase1.BlockReference) {
-	for _, ref := range refs {
-		if _, ok := done[ref.Bid.BlockHash+string(ref.Nonce[:])]; ok {
-		} else {
-			notDone = append(notDone, ref)
+	doneRefs, err := b.batchDowngradeReferences(ctx, tlfID, contexts, false)
+	liveCounts = make(map[BlockID]int)
+	for id, nonces := range doneRefs {
+		for _, count := range nonces {
+			if existing, ok := liveCounts[id]; !ok || existing > count {
+				liveCounts[id] = count
+			}
 		}
 	}
-	return notDone
-}
+	return liveCounts, err
 
-// GetUserQuotaInfo implements the BlockServer interface for BlockServerRemote
-func (b *BlockServerRemote) GetUserQuotaInfo(ctx context.Context) (info *UserQuotaInfo, err error) {
-	res, err := b.client.GetUserQuotaInfo(ctx)
-	if err != nil {
-		return nil, err
-	}
-	return UserQuotaInfoDecode(res, b.config)
 }
 
 // ArchiveBlockReferences implements the BlockServer interface for
 // BlockServerRemote
 func (b *BlockServerRemote) ArchiveBlockReferences(ctx context.Context,
-	tlfID TlfID, contexts map[BlockID][]BlockContext) error {
-	refs := make([]keybase1.BlockReference, 0, len(contexts))
-	for id, idContexts := range contexts {
+	tlfID TlfID, contexts map[BlockID][]BlockContext) (err error) {
+	defer func() {
+		b.log.CDebugf(ctx, "ArchiveBlockReferences err=%v", err)
+	}()
+	_, err = b.batchDowngradeReferences(ctx, tlfID, contexts, true)
+	return err
+}
+
+// batchDowngradeReferences archives or deletes a batch of references
+func (b *BlockServerRemote) batchDowngradeReferences(ctx context.Context,
+	tlfID TlfID, contexts map[BlockID][]BlockContext, archive bool) (
+	doneRefs map[BlockID]map[BlockRefNonce]int, finalError error) {
+	tries := 0
+	doneRefs = make(map[BlockID]map[BlockRefNonce]int)
+	notDone := b.getNotDone(contexts, doneRefs)
+	var res keybase1.DowngradeReferenceRes
+	var err error
+	for len(notDone) > 0 {
+		if archive {
+			res, err = b.client.ArchiveReferenceWithCount(ctx, keybase1.ArchiveReferenceWithCountArg{
+				Refs:   notDone,
+				Folder: tlfID.String(),
+			})
+		} else {
+			res, err = b.client.DelReferenceWithCount(ctx, keybase1.DelReferenceWithCountArg{
+				Refs:   notDone,
+				Folder: tlfID.String(),
+			})
+		}
+		tries++
+		b.log.CDebugf(ctx, "batchDowngradeReferences archive %t (tries %d) sent=%s done=%s\n",
+			archive, tries, b.getDebugStrRefs(notDone), b.getDebugStrRefCounts(res.Completed))
+		if err != nil {
+			b.log.CDebugf(ctx, "batchDowngradeReferences archive %t (tries %d) sent=%s done=%s failedRef=<%s,%s> err=%v\n",
+				archive, tries, b.getDebugStrRefs(notDone), b.getDebugStrRefCounts(res.Completed),
+				res.Failed.Bid.BlockHash, hex.EncodeToString(res.Failed.Nonce[:]), err)
+			//if Failed reference is not a throttle error, do not retry it
+			_, tmpErr := err.(BServerErrorThrottle)
+			if !tmpErr {
+				finalError = err
+				bid, err := BlockIDFromString(res.Failed.Bid.BlockHash)
+				if err == nil {
+					if refs, ok := contexts[bid]; ok {
+						for i := range refs {
+							if refs[i].GetRefNonce() == BlockRefNonce(res.Failed.Nonce) {
+								refs = append(refs[:i], refs[i+1:]...)
+								contexts[bid] = refs
+								break
+							}
+						}
+					}
+				}
+			}
+		}
+
+		//update the set of completed reference
+		for _, ref := range res.Completed {
+			bid, err := BlockIDFromString(ref.Ref.Bid.BlockHash)
+			if err != nil {
+				continue
+			}
+			nonces, ok := doneRefs[bid]
+			if !ok {
+				nonces = make(map[BlockRefNonce]int)
+				doneRefs[bid] = nonces
+			}
+			nonces[BlockRefNonce(ref.Ref.Nonce)] = ref.LiveCount
+		}
+
+		//figure out the not-yet-deleted references
+		notDone = b.getNotDone(contexts, doneRefs)
+
+		//if context is cancelled, return immediately
+		select {
+		case <-ctx.Done():
+			return doneRefs, ctx.Err()
+		default:
+		}
+
+	}
+	return doneRefs, finalError
+}
+
+// getNotDone returns the set of block references in "all" that do not yet appear in "results"
+func (b *BlockServerRemote) getNotDone(all map[BlockID][]BlockContext, doneRefs map[BlockID]map[BlockRefNonce]int) (
+	notDone []keybase1.BlockReference) {
+	for id, idContexts := range all {
+		if _, ok := doneRefs[id]; ok {
+			continue
+		}
 		for _, context := range idContexts {
-			refs = append(refs, keybase1.BlockReference{
+			if _, ok := doneRefs[id][context.GetRefNonce()]; ok {
+				continue
+			}
+			notDone = append(notDone, keybase1.BlockReference{
 				Bid: keybase1.BlockIdCombo{
 					ChargedTo: context.GetCreator(),
 					BlockHash: id.String(),
@@ -322,7 +357,34 @@ func (b *BlockServerRemote) ArchiveBlockReferences(ctx context.Context,
 			})
 		}
 	}
-	return b.archiveBlockReferences(ctx, tlfID, refs)
+	return notDone
+}
+
+// getDebugStrRefs returns a string concatenating the list of block references
+func (b *BlockServerRemote) getDebugStrRefs(refs []keybase1.BlockReference) (
+	debugStr string) {
+	for _, ref := range refs {
+		debugStr += ref.Bid.BlockHash + ":" + hex.EncodeToString(ref.Nonce[:]) + " "
+	}
+	return debugStr
+}
+
+// getDebugStrRefCounts returns a string concatenating the list of block reference with counts
+func (b *BlockServerRemote) getDebugStrRefCounts(refs []keybase1.BlockReferenceCount) (
+	debugStr string) {
+	for _, ref := range refs {
+		debugStr += ref.Ref.Bid.BlockHash + ":" + hex.EncodeToString(ref.Ref.Nonce[:]) + ":" + strconv.Itoa(ref.LiveCount) + " "
+	}
+	return debugStr
+}
+
+// GetUserQuotaInfo implements the BlockServer interface for BlockServerRemote
+func (b *BlockServerRemote) GetUserQuotaInfo(ctx context.Context) (info *UserQuotaInfo, err error) {
+	res, err := b.client.GetUserQuotaInfo(ctx)
+	if err != nil {
+		return nil, err
+	}
+	return UserQuotaInfoDecode(res, b.config)
 }
 
 // Shutdown implements the BlockServer interface for BlockServerRemote.

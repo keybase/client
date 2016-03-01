@@ -140,10 +140,12 @@ func (b *BlockOpsStandard) Put(ctx context.Context, md *RootMetadata,
 
 // Delete implements the BlockOps interface for BlockOpsStandard.
 func (b *BlockOpsStandard) Delete(ctx context.Context, md *RootMetadata,
-	id BlockID, context BlockContext) error {
-	bserv := b.config.BlockServer()
-	err := bserv.RemoveBlockReference(ctx, id, md.ID, context)
-	return err
+	ptrs []BlockPointer) (liveCounts map[BlockID]int, err error) {
+	contexts := make(map[BlockID][]BlockContext)
+	for _, ptr := range ptrs {
+		contexts[ptr.ID] = append(contexts[ptr.ID], ptr)
+	}
+	return b.config.BlockServer().RemoveBlockReference(ctx, md.ID, contexts)
 }
 
 // Archive implements the BlockOps interface for BlockOpsStandard.

@@ -34,7 +34,7 @@ type bserverLocalStorage interface {
 	getAll(tlf TlfID) (map[BlockID]map[BlockRefNonce]blockRefLocalStatus, error)
 	put(id BlockID, entry blockEntry) error
 	addReference(id BlockID, refNonce BlockRefNonce) error
-	removeReference(id BlockID, refNonce BlockRefNonce) error
+	removeReference(id BlockID, refNonce BlockRefNonce) (int, error)
 	archiveReference(id BlockID, refNonce BlockRefNonce) error
 	shutdown()
 }
@@ -110,14 +110,15 @@ func (s *bserverMemStorage) addReference(id BlockID, refNonce BlockRefNonce) err
 		"been archived and cannot be referenced.", id)}
 }
 
-func (s *bserverMemStorage) removeReference(id BlockID, refNonce BlockRefNonce) error {
+func (s *bserverMemStorage) removeReference(id BlockID, refNonce BlockRefNonce) (
+	liveCount int, err error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
 	entry, ok := s.m[id]
 	if !ok {
 		// This block is already gone; no error.
-		return nil
+		return 0, nil
 	}
 
 	delete(entry.Refs, refNonce)
@@ -126,7 +127,8 @@ func (s *bserverMemStorage) removeReference(id BlockID, refNonce BlockRefNonce) 
 	} else {
 		s.m[id] = entry
 	}
-	return nil
+	liveCount = len(entry.Refs)
+	return liveCount, nil
 }
 
 func (s *bserverMemStorage) archiveReference(id BlockID, refNonce BlockRefNonce) error {
@@ -256,7 +258,8 @@ func (s *bserverFileStorage) addReference(id BlockID, refNonce BlockRefNonce) er
 		"been archived and cannot be referenced.", id)}
 }
 
-func (s *bserverFileStorage) removeReference(id BlockID, refNonce BlockRefNonce) error {
+func (s *bserverFileStorage) removeReference(id BlockID, refNonce BlockRefNonce) (
+	liveCount int, err error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -265,16 +268,16 @@ func (s *bserverFileStorage) removeReference(id BlockID, refNonce BlockRefNonce)
 	if err != nil {
 		if os.IsNotExist(err) {
 			// This block is already gone; no error.
-			return nil
+			return 0, nil
 		}
-		return err
+		return -1, err
 	}
 
 	delete(entry.Refs, refNonce)
 	if len(entry.Refs) == 0 {
-		return os.Remove(p)
+		return 0, os.Remove(p)
 	}
-	return s.putLocked(p, entry)
+	return len(entry.Refs), s.putLocked(p, entry)
 }
 
 func (s *bserverFileStorage) archiveReference(id BlockID, refNonce BlockRefNonce) error {
@@ -392,7 +395,8 @@ func (s *bserverLeveldbStorage) addReference(id BlockID, refNonce BlockRefNonce)
 		"been archived and cannot be referenced.", id)}
 }
 
-func (s *bserverLeveldbStorage) removeReference(id BlockID, refNonce BlockRefNonce) error {
+func (s *bserverLeveldbStorage) removeReference(id BlockID, refNonce BlockRefNonce) (
+	liveCount int, err error) {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -400,16 +404,16 @@ func (s *bserverLeveldbStorage) removeReference(id BlockID, refNonce BlockRefNon
 	if err != nil {
 		if err == leveldb.ErrNotFound {
 			// This block is already gone; no error.
-			return nil
+			return 0, nil
 		}
-		return err
+		return -1, err
 	}
 
 	delete(entry.Refs, refNonce)
 	if len(entry.Refs) == 0 {
-		return s.db.Delete(id.Bytes(), nil)
+		return 0, s.db.Delete(id.Bytes(), nil)
 	}
-	return s.putLocked(id, entry)
+	return len(entry.Refs), s.putLocked(id, entry)
 }
 
 func (s *bserverLeveldbStorage) archiveReference(id BlockID, refNonce BlockRefNonce) error {

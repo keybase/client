@@ -46,8 +46,8 @@ func (cbo *CheckBlockOps) Put(ctx context.Context, md *RootMetadata,
 }
 
 func (cbo *CheckBlockOps) Delete(ctx context.Context, md *RootMetadata,
-	id BlockID, context BlockContext) error {
-	return cbo.delegate.Delete(ctx, md, id, context)
+	ptrs []BlockPointer) (map[BlockID]int, error) {
+	return cbo.delegate.Delete(ctx, md, ptrs)
 }
 
 func (cbo *CheckBlockOps) Archive(ctx context.Context, md *RootMetadata,

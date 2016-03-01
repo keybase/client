@@ -781,10 +781,11 @@ type BlockOps interface {
 	Put(ctx context.Context, md *RootMetadata, blockPtr BlockPointer,
 		readyBlockData ReadyBlockData) error
 
-	// Delete instructs the server to delete the block data associated
-	// with the given ID and context.
-	Delete(ctx context.Context, md *RootMetadata, id BlockID,
-		context BlockContext) error
+	// Delete instructs the server to delete the given block references.
+	// It returns the number of not-yet deleted references to
+	// each block reference
+	Delete(ctx context.Context, md *RootMetadata, ptrs []BlockPointer) (
+		liveCounts map[BlockID]int, err error)
 
 	// Archive instructs the server to mark the given block references
 	// as "archived"; that is, they are not being used in the current
@@ -904,8 +905,10 @@ type BlockServer interface {
 	// remain after this call, the server is allowed to delete the
 	// corresponding block permanently.  If the reference defined by
 	// the count has already been removed, the call is a no-op.
-	RemoveBlockReference(ctx context.Context, id BlockID, tlfID TlfID,
-		context BlockContext) error
+	// It returns the number of remaining not-yet-deleted references after this
+	// reference has been removed
+	RemoveBlockReference(ctx context.Context, tlfID TlfID,
+		contexts map[BlockID][]BlockContext) (liveCounts map[BlockID]int, err error)
 
 	// ArchiveBlockReferences marks the given block references as
 	// "archived"; that is, they are not being used in the current

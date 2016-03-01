@@ -80,13 +80,24 @@ func (b *BlockServerLocal) AddBlockReference(ctx context.Context, id BlockID,
 
 // RemoveBlockReference implements the BlockServer interface for
 // BlockServerLocal
-func (b *BlockServerLocal) RemoveBlockReference(ctx context.Context, id BlockID,
-	tlfID TlfID, context BlockContext) error {
-	refNonce := context.GetRefNonce()
-	b.log.CDebugf(ctx, "BlockServerLocal.RemoveBlockReference id=%s uid=%s",
-		id, context.GetWriter())
-
-	return b.s.removeReference(id, refNonce)
+func (b *BlockServerLocal) RemoveBlockReference(ctx context.Context,
+	tlfID TlfID, contexts map[BlockID][]BlockContext) (
+	liveCounts map[BlockID]int, err error) {
+	b.log.CDebugf(ctx, "BlockServerLocal.RemoveBlockReference ")
+	liveCounts = make(map[BlockID]int)
+	for bid, refs := range contexts {
+		for _, ref := range refs {
+			count, err := b.s.removeReference(bid, ref.GetRefNonce())
+			if err != nil {
+				return liveCounts, err
+			}
+			existing, ok := liveCounts[bid]
+			if !ok || existing > count {
+				liveCounts[bid] = count
+			}
+		}
+	}
+	return liveCounts, nil
 }
 
 // ArchiveBlockReferences implements the BlockServer interface for

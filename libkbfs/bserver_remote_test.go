@@ -101,8 +101,18 @@ func (fc *FakeBServerClient) DelReference(context.Context, keybase1.DelReference
 	return errors.New("DelReference not implemented")
 }
 
+func (fc *FakeBServerClient) DelReferenceWithCount(context.Context, keybase1.DelReferenceWithCountArg) (
+	res keybase1.DowngradeReferenceRes, err error) {
+	return res, errors.New("DelReferenceWithCount not implemented")
+}
+
 func (fc *FakeBServerClient) ArchiveReference(context.Context, keybase1.ArchiveReferenceArg) ([]keybase1.BlockReference, error) {
 	return nil, errors.New("ArchiveReference not implemented")
+}
+
+func (fc *FakeBServerClient) ArchiveReferenceWithCount(context.Context, keybase1.ArchiveReferenceWithCountArg) (
+	res keybase1.DowngradeReferenceRes, err error) {
+	return res, errors.New("ArchiveReference not implemented")
 }
 
 func (fc *FakeBServerClient) GetUserQuotaInfo(context.Context) ([]byte, error) {

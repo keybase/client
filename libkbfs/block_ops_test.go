@@ -341,16 +341,21 @@ func TestBlockOpsDeleteSuccess(t *testing.T) {
 	mockCtrl, config, ctx := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
 
-	// expect one call to delete a block
+	// expect one call to delete several blocks
 	rmd := makeRMD()
 
-	id := fakeBlockID(1)
-	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().RemoveBlockReference(ctx, id, rmd.ID, blockPtr).
-		Return(nil)
+	contexts := make(map[BlockID][]BlockContext)
+	b1 := BlockPointer{ID: fakeBlockID(1)}
+	contexts[b1.ID] = []BlockContext{b1}
+	b2 := BlockPointer{ID: fakeBlockID(2)}
+	contexts[b2.ID] = []BlockContext{b2}
+	blockPtrs := []BlockPointer{b1, b2}
+	var liveCounts map[BlockID]int
+	config.mockBserv.EXPECT().RemoveBlockReference(ctx, rmd.ID, contexts).
+		Return(liveCounts, nil)
 
-	if err := config.BlockOps().Delete(ctx, rmd, id, blockPtr); err != nil {
-		t.Errorf("Got error on put: %v", err)
+	if _, err := config.BlockOps().Delete(ctx, rmd, blockPtrs); err != nil {
+		t.Errorf("Got error on delete: %v", err)
 	}
 }
 
@@ -361,13 +366,18 @@ func TestBlockOpsDeleteFail(t *testing.T) {
 	// fail the delete call
 	rmd := makeRMD()
 
-	id := fakeBlockID(1)
+	contexts := make(map[BlockID][]BlockContext)
+	b1 := BlockPointer{ID: fakeBlockID(1)}
+	contexts[b1.ID] = []BlockContext{b1}
+	b2 := BlockPointer{ID: fakeBlockID(2)}
+	contexts[b2.ID] = []BlockContext{b2}
+	blockPtrs := []BlockPointer{b1, b2}
 	err := errors.New("Fake fail")
-	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().RemoveBlockReference(ctx, id, rmd.ID, blockPtr).
-		Return(err)
+	var liveCounts map[BlockID]int
+	config.mockBserv.EXPECT().RemoveBlockReference(ctx, rmd.ID, contexts).
+		Return(liveCounts, err)
 
-	if err2 := config.BlockOps().Delete(ctx, rmd, id, blockPtr); err2 != err {
-		t.Errorf("Got bad error on put: %v", err2)
+	if _, err2 := config.BlockOps().Delete(ctx, rmd, blockPtrs); err2 != err {
+		t.Errorf("Got bad error on delete: %v", err2)
 	}
 }

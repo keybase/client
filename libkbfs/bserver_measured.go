@@ -68,12 +68,13 @@ func (b BlockServerMeasured) AddBlockReference(ctx context.Context, id BlockID,
 
 // RemoveBlockReference implements the BlockServer interface for
 // BlockServerMeasured.
-func (b BlockServerMeasured) RemoveBlockReference(ctx context.Context, id BlockID,
-	tlfID TlfID, context BlockContext) (err error) {
+func (b BlockServerMeasured) RemoveBlockReference(ctx context.Context,
+	tlfID TlfID, contexts map[BlockID][]BlockContext) (
+	liveCounts map[BlockID]int, err error) {
 	b.removeBlockReferenceTimer.Time(func() {
-		err = b.delegate.RemoveBlockReference(ctx, id, tlfID, context)
+		liveCounts, err = b.delegate.RemoveBlockReference(ctx, tlfID, contexts)
 	})
-	return err
+	return liveCounts, err
 }
 
 // ArchiveBlockReferences implements the BlockServer interface for

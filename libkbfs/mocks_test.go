@@ -1756,14 +1756,15 @@ func (_mr *_MockBlockOpsRecorder) Put(arg0, arg1, arg2, arg3 interface{}) *gomoc
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockBlockOps) Delete(ctx context.Context, md *RootMetadata, id BlockID, context BlockContext) error {
-	ret := _m.ctrl.Call(_m, "Delete", ctx, md, id, context)
-	ret0, _ := ret[0].(error)
-	return ret0
+func (_m *MockBlockOps) Delete(ctx context.Context, md *RootMetadata, ptrs []BlockPointer) (map[BlockID]int, error) {
+	ret := _m.ctrl.Call(_m, "Delete", ctx, md, ptrs)
+	ret0, _ := ret[0].(map[BlockID]int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-func (_mr *_MockBlockOpsRecorder) Delete(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete", arg0, arg1, arg2, arg3)
+func (_mr *_MockBlockOpsRecorder) Delete(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete", arg0, arg1, arg2)
 }
 
 func (_m *MockBlockOps) Archive(ctx context.Context, md *RootMetadata, ptrs []BlockPointer) error {
@@ -1979,14 +1980,15 @@ func (_mr *_MockBlockServerRecorder) AddBlockReference(arg0, arg1, arg2, arg3 in
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "AddBlockReference", arg0, arg1, arg2, arg3)
 }
 
-func (_m *MockBlockServer) RemoveBlockReference(ctx context.Context, id BlockID, tlfID TlfID, context BlockContext) error {
-	ret := _m.ctrl.Call(_m, "RemoveBlockReference", ctx, id, tlfID, context)
-	ret0, _ := ret[0].(error)
-	return ret0
+func (_m *MockBlockServer) RemoveBlockReference(ctx context.Context, tlfID TlfID, contexts map[BlockID][]BlockContext) (map[BlockID]int, error) {
+	ret := _m.ctrl.Call(_m, "RemoveBlockReference", ctx, tlfID, contexts)
+	ret0, _ := ret[0].(map[BlockID]int)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
 }
 
-func (_mr *_MockBlockServerRecorder) RemoveBlockReference(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "RemoveBlockReference", arg0, arg1, arg2, arg3)
+func (_mr *_MockBlockServerRecorder) RemoveBlockReference(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "RemoveBlockReference", arg0, arg1, arg2)
 }
 
 func (_m *MockBlockServer) ArchiveBlockReferences(ctx context.Context, tlfID TlfID, contexts map[BlockID][]BlockContext) error {

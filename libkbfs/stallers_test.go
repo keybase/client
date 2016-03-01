@@ -74,10 +74,10 @@ func (f *stallingBlockOps) Put(
 }
 
 func (f *stallingBlockOps) Delete(
-	ctx context.Context, md *RootMetadata, id BlockID,
-	context BlockContext) error {
+	ctx context.Context, md *RootMetadata,
+	ptrs []BlockPointer) (map[BlockID]int, error) {
 	f.maybeStall(ctx, "Delete")
-	return f.delegate.Delete(ctx, md, id, context)
+	return f.delegate.Delete(ctx, md, ptrs)
 }
 
 func (f *stallingBlockOps) Archive(
