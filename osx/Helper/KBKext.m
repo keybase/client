@@ -78,7 +78,10 @@
 
 + (BOOL)updateLoaderFileAttributes:(NSString *)destination error:(NSError **)error {
   NSString *path = [NSString stringWithFormat:@"%@/Contents/Resources/load_kbfuse", destination];
-  NSDictionary *fileAttributes = [NSFileManager.defaultManager attributesOfItemAtPath:path error:NULL];
+  NSDictionary *fileAttributes = [NSFileManager.defaultManager attributesOfItemAtPath:path error:error];
+  if (!fileAttributes) {
+    return NO;
+  }
   NSMutableDictionary *attributes = [NSMutableDictionary dictionaryWithDictionary:fileAttributes];
   attributes[NSFilePosixPermissions] = [NSNumber numberWithShort:04755];
   attributes[NSFileOwnerAccountID] = @(0);
