@@ -124,7 +124,7 @@ const styles2 = {
     opacity: 1
   },
   headerTextWarning: {
-    color: globalColorsDZ2.black,
+    color: globalColorsDZ2.brown60,
     fontSize: 14,
     lineHeight: 'normal',
     opacity: 1
@@ -137,7 +137,7 @@ const styles2 = {
     zIndex: 2,
     position: 'absolute',
     top: 7,
-    right: 4
+    right: 9
   },
   text: {
     ...globalStyles.flexBoxRow,

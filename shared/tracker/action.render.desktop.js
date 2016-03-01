@@ -278,7 +278,7 @@ const styles2 = {
 
   loggedOutContainer: {
     ...commonStyles.flexBoxColumn,
-    backgroundColor: globalColorsDZ2.white90,
+    backgroundColor: globalColorsDZ2.white,
     width: '100%',
     height: calcFooterHeight(false),
     boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.15)',

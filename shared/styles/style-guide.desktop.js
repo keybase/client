@@ -42,8 +42,8 @@ export const globalColorsDZ2 = {
   yellowGreen: '#b3db39',
   yellowGreen2: '#89a82c',
 
-  lightGrey: '#ebebeb',
-  lightGrey2: '#f6f6f6',
+  lightGrey: '#f6f6f6',
+  lightGrey2: '#ebebeb',
   lightGrey3: '#e0e0e0',
 
   white: '#ffffff',

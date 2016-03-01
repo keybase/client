@@ -140,15 +140,15 @@ const styles2 = {
     paddingLeft: 30,
     paddingRight: 30,
     alignItems: 'flex-start',
-    justifyContent: 'flex-start',
+    justifyContent: 'flex-start'
   },
   service: {
     ...globalStyles.clickable,
     height: 14,
     width: 14,
     color: globalColors.grey1,
-    marginRight: 11,
-    marginTop: 1
+    marginRight: 9,
+    marginTop: 4
   },
   proofNameSection: {
     ...globalStyles.flexBoxRow,
@@ -169,7 +169,7 @@ const styles2 = {
     flex: 1
   },
   proofType: {
-    color: globalColorsDZ2.lightGrey
+    color: globalColorsDZ2.black10
   },
   meta: {
     color: globalColorsDZ2.white,

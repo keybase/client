@@ -28,7 +28,7 @@ export default class RegisterRender extends Component {
 
       .register-row:hover .register-icon { transform: translateX(15px)}
 
-      .register-row .register-background { background-color: ${globalColorsDZ2.lightGrey2}; }
+      .register-row .register-background { background-color: ${globalColorsDZ2.lightGrey}; }
       .register-row:hover .register-background { background-color: ${globalColorsDZ2.blue4}; transform: scale(0)}
     `
 
