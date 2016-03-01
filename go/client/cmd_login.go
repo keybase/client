@@ -5,6 +5,7 @@ package client
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	"golang.org/x/net/context"
@@ -87,12 +88,14 @@ func (c *CmdLogin) Run() error {
 		})
 	c.done <- struct{}{}
 
-	// Provide explicit error messages in these two cases.
-	switch err.(type) {
+	// Provide explicit error messages for these cases.
+	switch x := err.(type) {
 	case libkb.NoSyncedPGPKeyError:
 		err = c.errNoSyncedKey()
 	case libkb.PassphraseError:
 		err = c.errPassphrase()
+	case libkb.NoMatchingGPGKeysError:
+		err = c.errNoMatchingGPGKeys(x.Fingerprints)
 	}
 
 	return err
@@ -167,4 +170,29 @@ The server rejected your login attempt.
 
 If you'd like to reset your passphrase, go to https://keybase.io/#password-reset
 `)
+}
+
+func (c *CmdLogin) errNoMatchingGPGKeys(fingerprints []string) error {
+	plural := len(fingerprints) > 1
+
+	first := "Sorry, your account is already established with a PGP public key, but this\nutility cannot find the corresponding private key on this machine."
+	pre := "This is the fingerprint of the PGP key in your account:"
+	if plural {
+		first = "Sorry, your account is already established with PGP public keys, but this\nutility cannot find a corresponding private key on this machine."
+		pre = "These are the fingerprints of the PGP keys in your account:"
+	}
+
+	fpsIndent := make([]string, len(fingerprints))
+	for i, fp := range fingerprints {
+		fpsIndent[i] = "   " + fp
+	}
+
+	after := `You need to prove you're you.  We suggest one of the following:
+
+   - put one of the PGP private keys listed above on this machine and try again
+   - reset your account and start fresh: https://keybase.io/#account-reset
+`
+
+	out := first + "\n" + pre + "\n\n" + strings.Join(fpsIndent, "\n") + "\n\n" + after
+	return errors.New(out)
 }

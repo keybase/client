@@ -967,6 +967,7 @@ export type StatusCode =
   | 927 // SCKeyNoPGPEncryption_927
   | 928 // SCKeyNoNaClEncryption_928
   | 929 // SCKeySyncedPGPNotFound_929
+  | 930 // SCKeyNoMatchingGPG_930
   | 1301 // SCBadTrackSession_1301
   | 1409 // SCDeviceNotFound_1409
   | 1410 // SCDeviceMismatch_1410

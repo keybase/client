@@ -122,6 +122,7 @@ export const constants = {
     'sckeynopgpencryption': 927,
     'sckeynonaclencryption': 928,
     'sckeysyncedpgpnotfound': 929,
+    'sckeynomatchinggpg': 930,
     'scbadtracksession': 1301,
     'scdevicenotfound': 1409,
     'scdevicemismatch': 1410,

@@ -9,6 +9,7 @@ import (
 	"errors"
 	"io"
 	"sort"
+	"strings"
 
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/go-crypto/openpgp"
@@ -305,6 +306,15 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return ret
 	case SCKeySyncedPGPNotFound:
 		return NoSyncedPGPKeyError{}
+	case SCKeyNoMatchingGPG:
+		ret := NoMatchingGPGKeysError{}
+		for _, field := range s.Fields {
+			switch field.Key {
+			case "fingerprints":
+				ret.Fingerprints = strings.Split(field.Value, ",")
+			}
+		}
+		return ret
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -1055,4 +1065,14 @@ func (e WrongCryptoFormatError) ToStatus() keybase1.Status {
 		},
 	}
 	return ret
+}
+
+func (e NoMatchingGPGKeysError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCKeyNoMatchingGPG,
+		Name: "SC_KEY_NO_MATCHING_GPG",
+		Fields: []keybase1.StringKVPair{
+			{"fingerprints", strings.Join(e.Fingerprints, ",")},
+		},
+	}
 }

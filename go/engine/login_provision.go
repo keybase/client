@@ -706,16 +706,15 @@ func (e *LoginProvision) matchingGPGKeys() ([]*libkb.GpgPrimaryKey, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	kfKeys := e.arg.User.GetComputedKeyFamily().GetActivePGPKeys(false)
+
 	if index.Len() == 0 {
 		e.G().Log.Debug("no private gpg keys found")
-		// XXX change this error to something more descriptive
-		// XXX tell the user they need to get one of their
-		// XXX private keys onto this machine
-		return nil, libkb.NoSecretKeyError{}
+		return nil, e.newGPGMatchErr(kfKeys)
 	}
 
 	// iterate through pgp keys in keyfamily
-	kfKeys := e.arg.User.GetComputedKeyFamily().GetActivePGPKeys(false)
 	var matches []*libkb.GpgPrimaryKey
 	for _, kfKey := range kfKeys {
 		// find matches in gpg index
@@ -727,13 +726,21 @@ func (e *LoginProvision) matchingGPGKeys() ([]*libkb.GpgPrimaryKey, error) {
 
 	if len(matches) == 0 {
 		// if none exist, then abort with error that they need to get
-		//    the private key for one of the pgp keys in the keyfamily
-		//    onto this device.
-		// XXX this should do the same as when index.Len() == 0
-		return nil, libkb.NoSecretKeyError{}
+		// the private key for one of the pgp keys in the keyfamily
+		// onto this device.
+		e.G().Log.Debug("no matching private gpg keys found")
+		return nil, e.newGPGMatchErr(kfKeys)
 	}
 
 	return matches, nil
+}
+
+func (e *LoginProvision) newGPGMatchErr(keys []*libkb.PGPKeyBundle) error {
+	fps := make([]string, len(keys))
+	for i, k := range keys {
+		fps[i] = k.GetFingerprint().String()
+	}
+	return libkb.NoMatchingGPGKeysError{Fingerprints: fps}
 }
 
 func (e *LoginProvision) gpgSignKey(ctx *Context, fp *libkb.PGPFingerprint) (libkb.GenericKey, error) {

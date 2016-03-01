@@ -1358,3 +1358,11 @@ type BadInvitationCodeError struct{}
 func (e BadInvitationCodeError) Error() string {
 	return "bad invitation code"
 }
+
+type NoMatchingGPGKeysError struct {
+	Fingerprints []string
+}
+
+func (e NoMatchingGPGKeysError) Error() string {
+	return fmt.Sprintf("No private GPG keys found on this device that match account PGP keys %s", strings.Join(e.Fingerprints, ", "))
+}

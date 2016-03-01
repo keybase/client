@@ -997,8 +997,8 @@ func TestProvisionGPGNoKeyring(t *testing.T) {
 	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	if err := RunEngine(eng, ctx); err == nil {
 		t.Fatal("provision worked without gpg keyring")
-	} else if _, ok := err.(libkb.NoSecretKeyError); !ok {
-		t.Errorf("error %T, expected libkb.NoSecretKeyError", err)
+	} else if _, ok := err.(libkb.NoMatchingGPGKeysError); !ok {
+		t.Errorf("error %T, expected libkb.NoMatchingGPGKeysError", err)
 	}
 }
 
@@ -1030,8 +1030,8 @@ func TestProvisionGPGNoMatch(t *testing.T) {
 	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
 	if err := RunEngine(eng, ctx); err == nil {
 		t.Fatal("provision worked without matching gpg key")
-	} else if _, ok := err.(libkb.NoSecretKeyError); !ok {
-		t.Errorf("error %T, expected libkb.NoSecretKeyError", err)
+	} else if _, ok := err.(libkb.NoMatchingGPGKeysError); !ok {
+		t.Errorf("error %T, expected libkb.NoMatchingGPGKeysError", err)
 	}
 }
 
