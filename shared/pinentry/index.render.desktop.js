@@ -80,10 +80,10 @@ export default class PinentryRender extends Component {
             onClose={() => this.props.onCancel()}
           />
         </div>
-        <div style={{...styles2.container, alignItems: 'center', padding: 30}}>
+        <div style={{...styles2.container, alignItems: 'center', padding: 10}}>
           <Text type='Body'>{this.props.prompt}</Text>
         </div>
-        <div style={{...styles2.container, alignItems: 'center', padding: 30}}>
+        <div style={{...styles2.container, alignItems: 'center', padding: 10}}>
           <FormWithCheckbox
             style={{alignSelf: 'stretch'}}
             inputProps={inputProps}
@@ -91,7 +91,7 @@ export default class PinentryRender extends Component {
             checkboxesProps={checkboxProps}
           />
         </div>
-        <div style={{...styles2.container, alignItems: 'flex-end', padding: 30}}>
+        <div style={{...styles2.container, alignItems: 'flex-end', paddingRight: 40, paddingBottom: 20}}>
           <Button dz2 type='Primary' label='Continue' onClick={submitPassphrase}
           />
         </div>
