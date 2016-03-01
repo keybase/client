@@ -129,6 +129,7 @@ export const styles = {
   },
   underlineFocusStyle: {
     borderColor: globalColorsDZ2.blue,
+    borderBottom: 'solid 1px',
     transition: ''
   },
   errorStyle: {
