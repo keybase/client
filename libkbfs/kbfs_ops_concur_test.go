@@ -1668,3 +1668,23 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 		t.Fatalf("Unexpected write err: %v", writeErr)
 	}
 }
+
+func TestKBFSOpsCancelGetFavorites(t *testing.T) {
+	config, _, ctx := kbfsOpsConcurInit(t, "test_user")
+	defer CheckConfigAndShutdown(t, config)
+
+	daemon, c := newKeybaseDaemonRPCWithFakeClient(t)
+	config.SetKeybaseDaemon(daemon)
+	ctx, cancel := context.WithCancel(ctx)
+	errChan := make(chan error)
+	go func() {
+		_, err := config.KBFSOps().GetFavorites(ctx)
+		errChan <- err
+	}()
+	<-c
+	cancel()
+	err := <-errChan
+	if err != context.Canceled {
+		t.Fatalf("Unexpected error after cancel: %v", err)
+	}
+}
