@@ -56,12 +56,26 @@ func (u *UpdateEngine) Run(ctx *Context) (err error) {
 	}
 
 	updr := updater.NewUpdater(u.options, source, u.G().Env, u.G().Log)
-	update, err := updr.Update(ctx, u.options.Force, true)
+	update, err := updr.Update(UpdaterContext{ctx: ctx, engine: u}, u.options.Force, true)
 	if err != nil {
 		return
 	}
+
 	u.Result = update
 	return
+}
+
+type UpdaterContext struct {
+	ctx    *Context
+	engine *UpdateEngine
+}
+
+func (u UpdaterContext) GetUpdateUI() (libkb.UpdateUI, error) {
+	return u.ctx.GetUpdateUI()
+}
+
+func (u UpdaterContext) AfterUpdateApply() error {
+	return u.engine.AfterUpdateApply()
 }
 
 func NewDefaultUpdater(g *libkb.GlobalContext) *updater.Updater {
@@ -99,6 +113,8 @@ func NewUpdateSource(g *libkb.GlobalContext, sourceName sources.UpdateSourceName
 		return sources.NewRemoteUpdateSource(g.Log, g.Env.GetRunMode(), ""), nil
 	case sources.PrereleaseSource:
 		return sources.NewRemoteUpdateSource(g.Log, g.Env.GetRunMode(), PrereleaseURI), nil
+	case sources.LocalSource:
+		return sources.NewLocalUpdateSource(g.Log), nil
 	}
 	return nil, fmt.Errorf("Invalid update source: %s", string(sourceName))
 }

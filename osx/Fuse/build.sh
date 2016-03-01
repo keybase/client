@@ -5,9 +5,11 @@ set -e -u -o pipefail # Fail on error
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd "$dir"
 
+version=${VERSION:-"3.2.0"}
+
 # Checkout
 rm -rf osxfuse
-git clone --recursive -b osxfuse-3.2.0 git://github.com/osxfuse/osxfuse.git osxfuse
+git clone --recursive -b osxfuse-$version git://github.com/osxfuse/osxfuse.git osxfuse
 
 # Rename osxfuse to kbfuse
 # Run multiple times to workaround dir renames (TODO: Fix hack)
