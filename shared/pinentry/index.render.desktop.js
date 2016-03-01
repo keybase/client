@@ -77,7 +77,7 @@ export default class PinentryRender extends Component {
         <div style={{...styles2.container, alignItems: 'center', padding: 10}}>
           <Text type='Body'>{this.props.prompt}</Text>
         </div>
-        <div style={{...styles2.container, alignItems: 'center', padding: 10}}>
+        <div style={{...styles2.container, alignItems: 'center', padding: 10, paddingLeft: 30, paddingRight: 30}}>
           <FormWithCheckbox
             style={{alignSelf: 'stretch'}}
             inputProps={inputProps}
