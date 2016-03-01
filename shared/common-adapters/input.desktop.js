@@ -83,7 +83,7 @@ export default class Input extends Component {
           autoFocus={this.props.autoFocus}
           errorText={this.props.errorText}
           floatingLabelText={this.props.small ? undefined : this.props.floatingLabelText}
-          floatingLabelStyle={{...styles.floatingLabelStyle, ...(this.state.focused ? {color: globalColorsDZ2.blue} : {})}}
+          floatingLabelStyle={{...styles.floatingLabelStyle, ...(this.state.focused ? {color: globalColorsDZ2.blue, transform: 'perspective(1px) scale(0.65) translate3d(2px, -28px, 0)', transformOrigin: 'center top'} : {transform: 'scale(1) translate3d(0, 0, 0)'})}}
           onFocus={() => this.setState({focused: true})}
           onBlur={() => this.setState({focused: false})}
           hintText={this.props.hintText}
