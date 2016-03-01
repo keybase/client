@@ -46,7 +46,7 @@ export default class HeaderRender extends Component {
       case 'error': headerStyle = styles.headerError; break
     }
 
-    let headerText:string = this.props.reason
+    let headerText: string = this.props.reason
     if (!this.props.currentlyFollowing && this.state.showCloseWarning) {
       headerStyle = styles.headerWarning
       headerTextStyle = styles.headerTextWarning
@@ -60,6 +60,7 @@ export default class HeaderRender extends Component {
       case 'unfollowed':
         headerStyle = styles.headerSuccess
         headerTextStyle = styles.headerTextNormal
+        headerText = this.props.reason
         break
       case 'error':
         headerStyle = styles.headerWarning

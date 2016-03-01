@@ -93,7 +93,7 @@ export default class ActionRender extends Component {
   renderNormal (styles: Object, username: string) {
     return (
       <div style={{...styles2.container}}>
-        <Button dz2 style={styles.actionButton} type='Follow' label='Follow' onClick={() => this.props.onFollow(username)} />
+        <Button dz2 style={styles.actionButton} type='Follow' label='Track' onClick={() => this.props.onFollow(username)} />
       </div>
     )
   }
