@@ -24,6 +24,20 @@
       ]
     },
     {
+      "type": "enum",
+      "name": "FSErrorType",
+      "symbols": [
+        "ACCESS_DENIED_0",
+        "USER_NOT_FOUND_1",
+        "REVOKED_DATA_DETECTED_2",
+        "NOT_LOGGED_IN_3",
+        "TIMEOUT_4",
+        "REKEY_NEEDED_5",
+        "BAD_FOLDER_6",
+        "NOT_IMPLEMENTED_7"
+      ]
+    },
+    {
       "type": "record",
       "name": "FSNotification",
       "fields": [
@@ -46,6 +60,17 @@
         {
           "type": "FSNotificationType",
           "name": "notificationType"
+        },
+        {
+          "type": "FSErrorType",
+          "name": "errorType"
+        },
+        {
+          "type": {
+            "type": "map",
+            "values": "string"
+          },
+          "name": "params"
         }
       ]
     }
