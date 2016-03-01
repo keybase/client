@@ -4,7 +4,6 @@ import React, {Component} from 'react'
 import {FlatButton} from 'material-ui'
 import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide'
 import type {Props} from './button'
-import flags from '../util/feature-flags'
 
 export default class Button extends Component {
   props: Props;

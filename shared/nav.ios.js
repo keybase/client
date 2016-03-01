@@ -18,12 +18,9 @@ import {switchTab} from './actions/tabbed-router'
 import {navigateTo, navigateUp} from './actions/router'
 import {startup} from './actions/startup'
 
-import * as Constants from './constants/config'
-
 import {constants as styleConstants} from './styles/common'
 
 import {folderTab, chatTab, peopleTab, devicesTab, moreTab, startupTab} from './constants/tabs'
-import Button from './common-adapters/button'
 
 const tabs = {
   [folderTab]: {module: Folders, name: 'Folders'},
