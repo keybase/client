@@ -447,6 +447,33 @@ func TestProvisionPassphraseSyncedPGPEmail(t *testing.T) {
 	}
 }
 
+// Check that a bad passphrase fails to unlock a synced pgp key
+func TestProvisionSyncedPGPBadPassphrase(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	u1 := createFakeUserWithPGPOnly(t, tc)
+	t.Log("Created fake user")
+	Logout(tc)
+	tc.Cleanup()
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc = SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIPassphrase(),
+		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    &libkb.TestSecretUI{Passphrase: u1.Passphrase + u1.Passphrase},
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err == nil {
+		t.Fatal("sync pgp provision worked with bad passphrase")
+	} else if _, ok := err.(libkb.PassphraseError); !ok {
+		t.Errorf("error: %T, expected libkb.PassphraseError", err)
+	}
+}
+
 // If a user is logged in as alice, then logs in as bob (who has
 // no keys), provision via passphrase should work.
 // Bug https://keybase.atlassian.net/browse/CORE-2605
@@ -588,6 +615,57 @@ func TestProvisionGPGImportOK(t *testing.T) {
 	defer tc.Cleanup()
 
 	u1 := createFakeUserWithPGPPubOnly(t, tc)
+	Logout(tc)
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc2 := SetupEngineTest(t, "login")
+	defer tc2.Cleanup()
+
+	// we need the gpg keyring that's in the first homedir
+	if err := tc.MoveGpgKeyringTo(tc2); err != nil {
+		t.Fatal(err)
+	}
+
+	// now safe to cleanup first home
+	tc.Cleanup()
+
+	// run login on new device
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIGPGImport(),
+		LogUI:       tc2.G.UI.GetLogUI(),
+		SecretUI:    u1.NewSecretUI(),
+		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	testUserHasDeviceKey(tc2)
+
+	// highly possible they didn't have a paper key, so make sure they have one now:
+	hasOnePaperDev(tc2, u1)
+
+	if err := AssertProvisioned(tc2); err != nil {
+		t.Fatal(err)
+	}
+
+	// since they imported their pgp key, they should be able to pgp sign something:
+	if err := signString(tc2, "sign me", u1.NewSecretUI()); err != nil {
+		t.Error("pgp sign failed after gpg provision w/ import")
+		t.Fatal(err)
+	}
+}
+
+// Provision device using a private GPG key (not synced to keybase
+// server), import private key to lksec.  User selects key from
+// several matching keys.
+func TestProvisionGPGImportMultiple(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u1 := createFakeUserWithPGPMult(t, tc)
 	Logout(tc)
 
 	// redo SetupEngineTest to get a new home directory...should look like a new device.
