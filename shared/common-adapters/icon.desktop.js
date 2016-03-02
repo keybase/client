@@ -11,37 +11,36 @@ export default class Icon extends Component {
 
   _defaultColor (type: Props.type): ?string {
     switch (type) {
-    case 'fa-custom-icon-proof-broken':
-      return globalColorsDZ2.red
-    case 'fa-custom-icon-proof-good-followed':
-      return globalColorsDZ2.green
-    case 'fa-custom-icon-proof-good-new':
-      return globalColorsDZ2.blue2
-    default:
-      return null
+      case 'fa-custom-icon-proof-broken':
+        return globalColorsDZ2.red
+      case 'fa-custom-icon-proof-good-followed':
+        return globalColorsDZ2.green
+      case 'fa-custom-icon-proof-good-new':
+        return globalColorsDZ2.blue2
+      default:
+        return null
     }
   }
 
   _defaultHoverColor (type: Props.type): ?string {
     switch (type) {
-    case 'fa-custom-icon-proof-broken':
-    case 'fa-custom-icon-proof-good-followed':
-    case 'fa-custom-icon-proof-good-new':
-      return this._defaultColor(type)
-    default:
-      return null
+      case 'fa-custom-icon-proof-broken':
+      case 'fa-custom-icon-proof-good-followed':
+      case 'fa-custom-icon-proof-good-new':
+        return this._defaultColor(type)
+      default:
+        return null
     }
   }
-
 
   // Some types are the same underlying icon.
   _typeToIconMapper (type: Props.type): Props.type {
     switch (type) {
-    case 'fa-custom-icon-proof-good-followed':
-    case 'fa-custom-icon-proof-good-new':
-      return 'fa-custom-icon-proof-good'
-    default:
-      return type
+      case 'fa-custom-icon-proof-good-followed':
+      case 'fa-custom-icon-proof-good-new':
+        return 'fa-custom-icon-proof-good'
+      default:
+        return type
     }
   }
 
