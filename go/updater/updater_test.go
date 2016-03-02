@@ -34,7 +34,7 @@ func (u testUpdateUI) GetUpdateUI() (libkb.UpdateUI, error) {
 	return u, nil
 }
 
-func (u testUpdateUI) AfterUpdateApply() error {
+func (u testUpdateUI) AfterUpdateApply(willRestart bool) error {
 	return nil
 }
 

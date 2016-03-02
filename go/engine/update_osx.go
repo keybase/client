@@ -10,7 +10,11 @@ import (
 	"github.com/keybase/client/go/protocol"
 )
 
-func (u *UpdateEngine) AfterUpdateApply() error {
+func (u *UpdateEngine) AfterUpdateApply(willRestart bool) error {
+	if !willRestart {
+		return nil
+	}
+
 	fuseStatus, err := install.KeybaseFuseStatusForAppBundle("/Applications/Keybase.app", u.G().Log)
 	if err != nil {
 		return err
