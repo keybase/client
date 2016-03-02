@@ -1482,6 +1482,93 @@ func TestProvisionKexUseSyncPGP(t *testing.T) {
 	}
 }
 
+// Provision one (physical) device with multiple users.
+func TestProvisionMultipleUsers(t *testing.T) {
+	// make some users with synced pgp keys
+	users := make([]*FakeUser, 3)
+	for i := 0; i < len(users); i++ {
+		tc := SetupEngineTest(t, "login")
+		users[i] = createFakeUserWithPGPOnly(t, tc)
+		Logout(tc)
+		tc.Cleanup()
+	}
+
+	// provision user[0] on a new device
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIPassphrase(),
+		LoginUI:     &libkb.TestLoginUI{Username: users[0].Email},
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    users[0].NewSecretUI(),
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	testUserHasDeviceKey(tc)
+	hasOnePaperDev(tc, users[0])
+	if err := AssertProvisioned(tc); err != nil {
+		t.Fatal(err)
+	}
+
+	// provision user[1] on the same device, specifying username
+	ctx = &Context{
+		ProvisionUI: newTestProvisionUIPassphrase(),
+		LoginUI:     &libkb.TestLoginUI{},
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    users[1].NewSecretUI(),
+		GPGUI:       &gpgtestui{},
+	}
+	eng = NewLogin(tc.G, libkb.DeviceTypeDesktop, users[1].Username, keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	testUserHasDeviceKey(tc)
+	hasOnePaperDev(tc, users[1])
+	if err := AssertProvisioned(tc); err != nil {
+		t.Fatal(err)
+	}
+
+	// provision user[2] on the same device, specifying email
+	ctx = &Context{
+		ProvisionUI: newTestProvisionUIPassphrase(),
+		LoginUI:     &libkb.TestLoginUI{},
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    users[2].NewSecretUI(),
+		GPGUI:       &gpgtestui{},
+	}
+	eng = NewLogin(tc.G, libkb.DeviceTypeDesktop, users[2].Email, keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	testUserHasDeviceKey(tc)
+	hasOnePaperDev(tc, users[2])
+	if err := AssertProvisioned(tc); err != nil {
+		t.Fatal(err)
+	}
+
+	// when you specify an email address, you are forcing provisioning
+	// to happen, so make sure that it detects that the device is already
+	// registered for this user.
+	ctx = &Context{
+		ProvisionUI: newTestProvisionUIPassphrase(),
+		LoginUI:     &libkb.TestLoginUI{},
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    users[2].NewSecretUI(),
+		GPGUI:       &gpgtestui{},
+	}
+	eng = NewLogin(tc.G, libkb.DeviceTypeDesktop, users[2].Email, keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err != ErrDeviceAlreadyRegistered {
+		t.Fatalf("err: %v, expected ErrDeviceAlreadyRegistered", err)
+	}
+}
+
 type testProvisionUI struct {
 	secretCh               chan kex2.Secret
 	method                 keybase1.ProvisionMethod

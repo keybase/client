@@ -1972,7 +1972,7 @@ export type login_login_rpc = {
   method: 'login.login',
   param: {
     deviceType: string,
-    username: string,
+    usernameOrEmail: string,
     clientType: ClientType
   },
   incomingCallMap: ?incomingCallMapType,
@@ -4048,7 +4048,7 @@ export type incomingCallMapType = {
     params: {
       sessionID: int,
       deviceType: string,
-      username: string,
+      usernameOrEmail: string,
       clientType: ClientType
     },
     response: {

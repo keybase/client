@@ -65,7 +65,9 @@ func (e *Login) Run(ctx *Context) error {
 		e.G().NotifyRouter.HandleLogin(string(e.G().Env.GetUsername()))
 	}
 
-	// first see if this device is already provisioned and it is possible to log in:
+	// First see if this device is already provisioned and it is possible to log in.
+	// Note that if e.username is an email address, this will always fail, which it
+	// should.
 	eng := NewLoginCurrentDevice(e.G(), e.username)
 	err := RunEngine(eng, ctx)
 	if err == nil {

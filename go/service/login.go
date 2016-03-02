@@ -105,6 +105,6 @@ func (h *LoginHandler) Login(ctx context.Context, arg keybase1.LoginArg) error {
 		NetContext:  ctx,
 		SessionID:   arg.SessionID,
 	}
-	eng := engine.NewLogin(h.G(), arg.DeviceType, arg.Username, arg.ClientType)
+	eng := engine.NewLogin(h.G(), arg.DeviceType, arg.UsernameOrEmail, arg.ClientType)
 	return engine.RunEngine(eng, ectx)
 }
