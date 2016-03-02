@@ -352,8 +352,7 @@ func TestReaddirPrivateDeleteFavorite(t *testing.T) {
 		t.Fatalf("Removing favorite failed: %v", err)
 	}
 
-	checkDir(t, path.Join(mnt.Dir, PrivateName), map[string]fileInfoCheck{
-	})
+	checkDir(t, path.Join(mnt.Dir, PrivateName), map[string]fileInfoCheck{})
 }
 
 func TestReaddirPublic(t *testing.T) {
