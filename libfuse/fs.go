@@ -91,13 +91,16 @@ func (f *FS) processNotifications(ctx context.Context) {
 
 func (f *FS) queueNotification(fn func()) {
 	f.notificationGroup.Add(1)
-	f.notificationMutex.RLock()
-	if f.notifications == nil {
+	channel := func() channels.Channel {
+		f.notificationMutex.RLock()
+		defer f.notificationMutex.RUnlock()
+		return f.notifications
+	}()
+	if channel == nil {
 		f.log.Warning("Ignoring notification, no available channel")
 		return
 	}
-	f.notificationMutex.RUnlock()
-	f.notifications.In() <- fn
+	channel.In() <- fn
 }
 
 // LaunchNotificationProcessor launches the  notification  processor.
