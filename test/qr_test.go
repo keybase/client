@@ -88,3 +88,36 @@ func TestQRWithMultiBlockFiles(t *testing.T) {
 		),
 	)
 }
+
+// Test that conflict resolution fails gracefully after quota
+// reclamation deletes some necessary blocks.
+func TestCRAfterQR(t *testing.T) {
+	test(t,
+		writers("alice", "bob"),
+		as(alice,
+			mkfile("a/b", "hello"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			rm("a/b"),
+		),
+		as(bob, noSync(),
+			setex("a/b", true),
+		),
+		as(alice,
+			addTime(2*time.Minute),
+			// Force rmd.data.Dir.MTime to something recent. TODO: remove me.
+			mkfile("c", "test"),
+			forceQuotaReclamation(),
+		),
+		as(bob, noSync(),
+			reenableUpdates(),
+			notExists("a/b"),
+		),
+		as(alice,
+			notExists("a/b"),
+		),
+	)
+}
