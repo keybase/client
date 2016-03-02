@@ -66,12 +66,15 @@ export class ProofsRender2 extends Component {
     return color
   }
 
+  _isTracked (proof: Proof): boolean {
+    return this.props.currentlyFollowing && (!proof.meta || proof.meta === metaNone)
+  }
+
   proofColor (proof: Proof): string {
     let color = globalColorsDZ2.blue
-    let tracked = this.props.currentlyFollowing && (!proof.meta || proof.meta === metaNone)
     switch (proof.state) {
       case proofNormal: {
-        color = tracked ? globalColorsDZ2.green : globalColorsDZ2.blue
+        color = this._isTracked(proof) ? globalColorsDZ2.green : globalColorsDZ2.blue
         break
       }
       case proofChecking:color = color = '#999'; break
@@ -86,9 +89,23 @@ export class ProofsRender2 extends Component {
     return color
   }
 
+  proofStatusIcon (proof: Proof): ?IconProps.type {
+    switch (proof.state) {
+      case proofNormal:
+        return this._isTracked(proof) ? 'fa-icon-proof-good-followed' : 'fa-icon-proof-good-new'
+
+      case proofError:
+      case proofRevoked:
+        return 'fa-icon-proof-broken'
+      default:
+        return null
+    }
+  }
+
   renderProofRow (styles: Object, proof: Proof) {
     const metaColor = this.metaColor(proof)
     const proofNameColor = this.proofColor(proof)
+    const proofStatusIcon = this.proofStatusIcon(proof)
     const onClickProfile = () => { this.onClickProfile(proof) }
     // TODO: State is deprecated, will refactor after nuking v1
     let isChecking = (proof.state === proofChecking)
@@ -113,8 +130,8 @@ export class ProofsRender2 extends Component {
         {isChecking &&
           <CircularProgress style={styles.loader} mode='indeterminate' color='#999' size={0.2} />
         }
-        {!isChecking &&
-          <Icon type='fa-certificate' style={{...styles.serviceStatus, color: proofNameColor}} onClick={onClickProfile} />
+        {!isChecking && proofStatusIcon &&
+          <Icon type={proofStatusIcon} style={{...globalStyles.clickable, fontSize: 20}} onClick={onClickProfile} />
         }
       </div>
     )

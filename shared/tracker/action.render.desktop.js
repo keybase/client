@@ -178,7 +178,7 @@ export default class ActionRender extends Component {
   }
 }
 
-export function calcFooterHeight (loggedIn: boolean) {
+export function calcFooterHeight (loggedIn: boolean): number {
   return loggedIn ? 61 : 151
 }
 

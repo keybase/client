@@ -30,11 +30,11 @@ const proofsNew = [
 ]
 
 const proofsChanged = [
-  {name: 'deleted', type: 'rooter', id: 'warningId', state: revoked, meta: metaDeleted, humanUrl: ''},
-  {name: 'unreachable', type: 'rooter', id: 'unreachableId', state: error, meta: metaUnreachable, humanUrl: ''},
+  {name: 'deleted', type: 'github', id: 'warningId', state: revoked, meta: metaDeleted, humanUrl: ''},
+  {name: 'unreachable', type: 'twitter', id: 'unreachableId', state: error, meta: metaUnreachable, humanUrl: ''},
   // TODO: Need to use state for checking; Refactor after nuking v1
-  {name: 'checking', type: 'rooter', id: 'checkingId', state: checking, humanUrl: ''},
-  {name: 'pending', type: 'rooter', id: 'pendingId', state: normal, meta: metaPending, humanUrl: ''},
+  {name: 'checking', type: 'twitter', id: 'checkingId', state: checking, humanUrl: ''},
+  {name: 'pending', type: 'web', id: 'pendingId', state: normal, meta: metaPending, humanUrl: ''},
   {name: 'upgraded', type: 'rooter', id: 'upgradedId', state: normal, meta: metaUpgraded, humanUrl: ''}
 ]
 
