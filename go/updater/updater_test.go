@@ -34,6 +34,10 @@ func (u testUpdateUI) GetUpdateUI() (libkb.UpdateUI, error) {
 	return u, nil
 }
 
+func (u testUpdateUI) AfterUpdateApply() error {
+	return nil
+}
+
 func (u testUpdateUI) UpdateAppInUse(context.Context, keybase1.UpdateAppInUseArg) (keybase1.UpdateAppInUseRes, error) {
 	return keybase1.UpdateAppInUseRes{Action: keybase1.UpdateAppInUseAction_CANCEL}, nil
 }

@@ -6,7 +6,7 @@ of relying on 3rd party binaries from other developers.
 
 ### Building KBFuse from OSXFuse
 
-    build.sh
+    ./build.sh
 
 ### Manual Install
 
@@ -14,8 +14,7 @@ If you are upgrading you should uninstall the kext first (see below).
 
 To install:
 
-    sudo /bin/cp -RfX kbfuse.bundle /Library/Filesystems/kbfuse.fs
-    sudo chmod +s /Library/Filesystems/kbfuse.fs/Contents/Resources/load_kbfuse
+    ./install.sh
 
 ### Uninstall
 

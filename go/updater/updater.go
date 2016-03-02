@@ -34,8 +34,9 @@ type Updater struct {
 	cancelPrompt context.CancelFunc
 }
 
-type UI interface {
+type Context interface {
 	GetUpdateUI() (libkb.UpdateUI, error)
+	AfterUpdateApply() error
 }
 
 type Config interface {
@@ -374,24 +375,24 @@ func (u *Updater) apply(src string, dest string) (err error) {
 }
 
 // Update checks, downloads and performs an update.
-func (u *Updater) Update(ui UI, force bool, requested bool) (update *keybase1.Update, err error) {
+func (u *Updater) Update(ctx Context, force bool, requested bool) (update *keybase1.Update, err error) {
 	var skipped bool
-	update, skipped, err = u.updateSingleFlight(ui, force, requested)
+	update, skipped, err = u.updateSingleFlight(ctx, force, requested)
 	// Retry if skipped via singleflight
 	if skipped {
-		update, _, err = u.updateSingleFlight(ui, force, requested)
+		update, _, err = u.updateSingleFlight(ctx, force, requested)
 	}
 	return
 }
 
-func (u *Updater) updateSingleFlight(ui UI, force bool, requested bool) (*keybase1.Update, bool, error) {
+func (u *Updater) updateSingleFlight(ctx Context, force bool, requested bool) (*keybase1.Update, bool, error) {
 	if u.cancelPrompt != nil {
 		u.log.Info("Canceling update that was waiting on a prompt")
 		u.cancelPrompt()
 	}
 
 	do := func() (interface{}, error) {
-		return u.update(ui, force, requested)
+		return u.update(ctx, force, requested)
 	}
 	any, cached, err := u.callGroup.Do("update", do)
 	if cached {
@@ -406,7 +407,7 @@ func (u *Updater) updateSingleFlight(ui UI, force bool, requested bool) (*keybas
 	return update, false, err
 }
 
-func (u *Updater) update(ui UI, force bool, requested bool) (update *keybase1.Update, err error) {
+func (u *Updater) update(ctx Context, force bool, requested bool) (update *keybase1.Update, err error) {
 	update, err = u.checkForUpdate(false, force, requested)
 	if err != nil {
 		return
@@ -416,12 +417,12 @@ func (u *Updater) update(ui UI, force bool, requested bool) (update *keybase1.Up
 		return
 	}
 
-	err = u.promptForUpdateAction(ui, *update)
+	err = u.promptForUpdateAction(ctx, *update)
 	if err != nil {
 		return
 	}
 
-	err = u.checkInUse(ui, *update)
+	err = u.checkInUse(ctx, *update)
 	if err != nil {
 		return
 	}
@@ -441,7 +442,12 @@ func (u *Updater) update(ui UI, force bool, requested bool) (update *keybase1.Up
 		return
 	}
 
-	_, err = u.restart(ui)
+	err = ctx.AfterUpdateApply()
+	if err != nil {
+		return
+	}
+
+	_, err = u.restart(ctx)
 
 	if update.Asset != nil {
 		u.cleanup([]string{unzipDestination(update.Asset.LocalPath), update.Asset.LocalPath})
@@ -450,16 +456,16 @@ func (u *Updater) update(ui UI, force bool, requested bool) (update *keybase1.Up
 	return
 }
 
-func (u *Updater) updateUI(ui UI) (updateUI libkb.UpdateUI, err error) {
-	if ui == nil {
+func (u *Updater) updateUI(ctx Context) (updateUI libkb.UpdateUI, err error) {
+	if ctx == nil {
 		err = libkb.NoUIError{Which: "Update"}
 		return
 	}
 
-	return u.waitForUI(ui, 5*time.Second)
+	return u.waitForUI(ctx, 5*time.Second)
 }
 
-func (u *Updater) promptForUpdateAction(ui UI, update keybase1.Update) (err error) {
+func (u *Updater) promptForUpdateAction(ctx Context, update keybase1.Update) (err error) {
 
 	u.log.Debug("+ Updater.promptForUpdateAction")
 	defer func() {
@@ -472,7 +478,7 @@ func (u *Updater) promptForUpdateAction(ui UI, update keybase1.Update) (err erro
 		return
 	}
 
-	updateUI, err := u.updateUI(ui)
+	updateUI, err := u.updateUI(ctx)
 	if err != nil {
 		return
 	}
@@ -530,8 +536,8 @@ func (u *Updater) applyZip(localPath string, destinationPath string) (err error)
 	return
 }
 
-func (u *Updater) promptForAppInUse(ui UI, update keybase1.Update, processes []lsof.Process) error {
-	updateUI, err := u.updateUI(ui)
+func (u *Updater) promptForAppInUse(ctx Context, update keybase1.Update, processes []lsof.Process) error {
+	updateUI, err := u.updateUI(ctx)
 	if err != nil {
 		return err
 	}
@@ -574,7 +580,7 @@ func toKeybaseProcess(processes []lsof.Process) []keybase1.Process {
 	return kbProcesses
 }
 
-func (u *Updater) checkInUse(ui UI, update keybase1.Update) error {
+func (u *Updater) checkInUse(ctx Context, update keybase1.Update) error {
 	mountDir := u.config.GetMountDir()
 	u.log.Debug("Mount dir: %s", mountDir)
 	if mountDir == "" {
@@ -595,7 +601,7 @@ func (u *Updater) checkInUse(ui UI, update keybase1.Update) error {
 	}
 	if len(processes) != 0 {
 		u.log.Debug("Prompting app in use")
-		err = u.promptForAppInUse(ui, update, processes)
+		err = u.promptForAppInUse(ctx, update, processes)
 		if err != nil {
 			u.log.Debug("Error prompting")
 			return err
@@ -604,15 +610,15 @@ func (u *Updater) checkInUse(ui UI, update keybase1.Update) error {
 	return nil
 }
 
-func (u *Updater) restart(ui UI) (didQuit bool, err error) {
-	if ui == nil {
+func (u *Updater) restart(ctx Context) (didQuit bool, err error) {
+	if ctx == nil {
 		err = libkb.NoUIError{Which: "Update"}
 		return
 	}
 
 	u.log.Info("Restarting app")
 	u.log.Debug("Asking if it safe to quit the app")
-	updateUI, err := u.updateUI(ui)
+	updateUI, err := u.updateUI(ctx)
 	if err != nil {
 		return
 	}
@@ -694,11 +700,11 @@ func copyFile(sourcePath string, destinationPath string) error {
 
 // waitForUI waits for a UI to be available. A UI might be missing for a few
 // seconds between restarts.
-func (u *Updater) waitForUI(ui UI, wait time.Duration) (updateUI libkb.UpdateUI, err error) {
+func (u *Updater) waitForUI(ctx Context, wait time.Duration) (updateUI libkb.UpdateUI, err error) {
 	t := time.Now()
 	i := 1
 	for time.Now().Sub(t) < wait {
-		updateUI, err = ui.GetUpdateUI()
+		updateUI, err = ctx.GetUpdateUI()
 		if err != nil || updateUI != nil {
 			return
 		}

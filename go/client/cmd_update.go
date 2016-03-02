@@ -198,6 +198,10 @@ func (v *CmdUpdateRunLocal) GetUpdateUI() (libkb.UpdateUI, error) {
 	return v.G().UI.GetUpdateUI(), nil
 }
 
+func (v *CmdUpdateRunLocal) AfterUpdateApply() error {
+	return nil
+}
+
 func (v *CmdUpdateRunLocal) Run() error {
 	source, err := engine.NewUpdateSourceFromString(v.G(), v.options.Source)
 	if err != nil {
