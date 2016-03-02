@@ -134,6 +134,7 @@ const styles2 = {
   },
   close: {
     ...globalStyles.clickable,
+    ...globalStyles.windowDraggingClickable,
     zIndex: 2,
     position: 'absolute',
     top: 7,
