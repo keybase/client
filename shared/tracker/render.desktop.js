@@ -5,9 +5,8 @@ import React, {Component} from 'react'
 import Header from './header.render.desktop'
 import Action, {calcFooterHeight} from './action.render.desktop'
 import Bio from './bio.render.desktop'
-import {ProofsRender, ProofsRender2} from './proofs.render.desktop'
+import {ProofsRender} from './proofs.render.desktop'
 import commonStyles from '../styles/common'
-import flags from '../util/feature-flags'
 
 import type {RenderProps} from './render'
 
@@ -26,7 +25,7 @@ export default class Render extends Component {
         <Header {...this.props.headerProps} />
         <div style={{...styles.content, paddingBottom: calculatedPadding}} className='hide-scrollbar'>
           <Bio {...this.props.bioProps} />
-          <ProofsRender2 {...this.props.proofsProps} />
+          <ProofsRender {...this.props.proofsProps} />
         </div>
         <div style={styles.footer}>
           <Action {...this.props.actionProps}/>
