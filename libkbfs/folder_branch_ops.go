@@ -5008,7 +5008,7 @@ func (fbo *folderBranchOps) undoUnmergedMDUpdatesLocked(
 	return unmergedPtrs, nil
 }
 
-func (fbo *folderBranchOps) unstageForTestingLocked(ctx context.Context,
+func (fbo *folderBranchOps) unstageLocked(ctx context.Context,
 	lState *lockState) error {
 	fbo.mdWriterLock.AssertLocked(lState)
 
@@ -5083,7 +5083,7 @@ func (fbo *folderBranchOps) UnstageForTesting(
 			lState := makeFBOLockState()
 			c <- fbo.doMDWriteWithRetry(ctx, lState,
 				func(lState *lockState) error {
-					return fbo.unstageForTestingLocked(freshCtx, lState)
+					return fbo.unstageLocked(freshCtx, lState)
 				})
 		}()
 
@@ -5588,6 +5588,24 @@ func (fbo *folderBranchOps) finalizeResolution(ctx context.Context,
 		fbo.notifyOneOpLocked(ctx, lState, op, md)
 	}
 	return nil
+}
+
+func (fbo *folderBranchOps) unstageAfterFailedResolution(ctx context.Context,
+	lState *lockState) error {
+	// Take the writer lock.
+	fbo.mdWriterLock.Lock(lState)
+	defer fbo.mdWriterLock.Unlock(lState)
+
+	// Last chance to get pre-empted.
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
+
+	fbo.log.CWarningf(ctx, "Unstaging branch %s after a resolution failure",
+		fbo.bid)
+	return fbo.unstageLocked(ctx, lState)
 }
 
 // GetUpdateHistory implements the KBFSOps interface for folderBranchOps
