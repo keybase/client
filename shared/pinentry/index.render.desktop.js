@@ -57,7 +57,8 @@ export default class PinentryRender extends Component {
       onChange: event => this.setState({passphrase: event.target.value}),
       onEnterKeyDown: () => submitPassphrase(),
       type: this.state.showTyping ? 'text' : 'password',
-      errorText: this.props.retryLabel
+      errorText: this.props.retryLabel,
+      autoFocus: true
     }
 
     const checkboxProps = Object.keys(this.props.features).map(feature => {
