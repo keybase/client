@@ -111,27 +111,19 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         lastAction: null,
         shouldFollow: false // don't follow if they close x out the window
       }
-    case Constants.onRefollow:
-      return {
-        ...state,
-        closed: true
-      }
-    case Constants.onUnfollow: // TODO
-      return state
-
     case Constants.onFollow:
       return {
         ...state,
         lastAction: 'followed',
         reason: `You have followed ${state.username}.`
       }
-    case Constants.onRefollow2:
+    case Constants.onRefollow:
       return {
         ...state,
         lastAction: 'refollowed',
         reason: `You have re-followed ${state.username}.`
       }
-    case Constants.onUnfollow2:
+    case Constants.onUnfollow:
       return {
         ...state,
         lastAction: 'unfollowed',

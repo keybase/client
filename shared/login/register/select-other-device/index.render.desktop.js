@@ -10,7 +10,7 @@ const Row = ({id, name, type, onSelect}) => {
   return (
     <div style={styles.row} onClick={e => onSelect(id)}>
       <Icon style={styles.icon} type={iconType}/>
-      <Text dz2 type='Body' onClick={e => onSelect(id)}>{name}</Text>
+      <Text type='Body' onClick={e => onSelect(id)}>{name}</Text>
     </div>)
 }
 
@@ -22,7 +22,7 @@ const Render = ({onBack, devices, onWont, onSelect}: Props) => (
     <div style={styles.devicesContainer}>
       {devices.map(d => <Row onSelect={onSelect} {...d}/>)}
     </div>
-    <Text style={styles.wont} dz2 type='BodySecondaryLink' onClick={onWont}>I don't have one of these devices</Text>
+    <Text style={styles.wont} type='BodySecondaryLink' onClick={onWont}>I don't have one of these devices</Text>
   </Container>
 )
 

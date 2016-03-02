@@ -18,7 +18,7 @@ export default class FormWithCheckbox extends Component {
         <Input style={{marginBottom: 0}} errorStyle={{marginTop: 24, textAlign: 'center'}} {...inputProps}/>
         <div style={{...styles.checkboxContainer, ...this.props.checkboxContainerStyle}}>
           {checkboxesProps.map(p => {
-            const checkProps: CheckboxProps = {dz2: true, key: p.label, ...p}
+            const checkProps: CheckboxProps = {key: p.label, ...p}
             return <Checkbox {...checkProps}/>
           })}
         </div>

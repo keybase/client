@@ -74,25 +74,6 @@ const fontCommon = {
 const font = {
   fontRegular: {
     ...fontCommon,
-    fontFamily: 'Noto Sans'
-  },
-  fontBold: {
-    ...fontCommon,
-    fontFamily: 'Noto Sans Bold'
-  },
-  fontItalic: {
-    ...fontCommon,
-    fontFamily: 'Noto Sans Italic'
-  },
-  fontTerminal: {
-    ...fontCommon,
-    fontFamily: 'Source Code Pro'
-  }
-}
-
-const fontDZ2 = {
-  fontRegular: {
-    ...fontCommon,
     fontFamily: 'Lato',
     fontWeight: 400
   },
@@ -159,7 +140,6 @@ const util = {
 
 export const globalStyles = {
   ...font,
-  DZ2: {...fontDZ2},
   ...util
 }
 

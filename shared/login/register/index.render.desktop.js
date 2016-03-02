@@ -12,8 +12,8 @@ const Row = ({onClick, icon, title, subTitle, children, style}) => {
         <Icon type={icon} style={styles.icon}/>
       </div>
       <div>
-        <Text dz2 type='Header' inline={false} style={styles.header}>{title}</Text>
-        <Text dz2 type='Body' small>{subTitle}</Text>
+        <Text type='Header' inline={false} style={styles.header}>{title}</Text>
+        <Text type='Body' small>{subTitle}</Text>
         {children}
       </div>
     </div>
@@ -42,7 +42,7 @@ export default class RegisterRender extends Component {
           subTitle='If your PGP key is on the Keybase server, we can sign you in right away.'>
           <div style={styles.instantContainer}>
             <Icon type='fa-bolt' style={styles.instantIcon}/>
-            <Text dz2 type='Body' style={styles.instant} small>Instant</Text>
+            <Text type='Body' style={styles.instant} small>Instant</Text>
           </div>
         </Row>
         <Row

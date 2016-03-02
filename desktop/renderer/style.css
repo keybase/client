@@ -50,32 +50,6 @@ table {
 
 /* End reset */
 
-/* Noto Sans */
-@font-face {
-    font-family: "Noto Sans";
-    font-style: normal;
-    font-weight: normal;
-    src: url(fonts/NotoSans-Regular.ttf);
-}
-@font-face {
-    font-family: "Noto Sans Italic";
-    font-style: italic;
-    font-weight: normal;
-    src: url(fonts/NotoSans-Italic.ttf);
-}
-@font-face {
-    font-family: "Noto Sans Bold";
-    font-style: normal;
-    font-weight: bold;
-    src: url(fonts/NotoSans-Bold.ttf);
-}
-@font-face {
-    font-family: "Noto Sans Italic";
-    font-style: italic;
-    font-weight: bold;
-    src: url(fonts/NotoSans-BoldItalic.ttf);
-}
-
 /* Roboto */
 @font-face {
     font-family: 'Roboto';
