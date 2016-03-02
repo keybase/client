@@ -48,7 +48,7 @@ export default class ActionRender extends Component {
           </div>
         </div>
         <div style={styles.closeContainer}>
-          <Button dz2 style={styles.actionButton} type='Secondary' label='Close' onClick={() => this.props.onClose(username)} />
+          <Button  style={styles.actionButton} type='Secondary' label='Close' onClick={() => this.props.onClose(username)} />
         </div>
       </div>
     )
@@ -57,7 +57,7 @@ export default class ActionRender extends Component {
   renderClose (styles: Object, username: string) {
     return (
       <div style={{...styles.container}}>
-        <Button dz2 style={styles.actionButton} type='Secondary' label='Close' onClick={() => this.props.onClose(username)} />
+        <Button  style={styles.actionButton} type='Secondary' label='Close' onClick={() => this.props.onClose(username)} />
       </div>
     )
   }
@@ -65,7 +65,7 @@ export default class ActionRender extends Component {
   renderNormal (styles: Object, username: string) {
     return (
       <div style={{...styles.container}}>
-        <Button dz2 style={styles.actionButton} type='Follow' label='Track' onClick={() => this.props.onFollow(username)} />
+        <Button  style={styles.actionButton} type='Follow' label='Track' onClick={() => this.props.onFollow(username)} />
       </div>
     )
   }
@@ -73,8 +73,8 @@ export default class ActionRender extends Component {
   renderChanged (styles: Object, username: string) {
     return (
       <div style={{...styles.container}}>
-        <Button dz2 type='Unfollow' label='Ignore for 24 hrs' onClick={() => this.props.onUnfollow(username)} />
-        <Button dz2 style={styles.actionButton} type='Follow' label='Accept' onClick={() => this.props.onRefollow(username)} />
+        <Button  type='Unfollow' label='Ignore for 24 hrs' onClick={() => this.props.onUnfollow(username)} />
+        <Button  style={styles.actionButton} type='Follow' label='Accept' onClick={() => this.props.onRefollow(username)} />
       </div>
     )
   }
