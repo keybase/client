@@ -956,3 +956,15 @@ type InvalidOpError struct {
 func (e InvalidOpError) Error() string {
 	return fmt.Sprintf("Invalid operation: %s", e.op)
 }
+
+// CRAbandonStagedBranchError indicates that conflict resolution had to
+// abandon a staged branch due to an unresolvable error.
+type CRAbandonStagedBranchError struct {
+	Err error
+	Bid BranchID
+}
+
+func (e CRAbandonStagedBranchError) Error() string {
+	return fmt.Sprintf("Abandoning staged branch %s due to an error: %v",
+		e.Bid, e.Err)
+}

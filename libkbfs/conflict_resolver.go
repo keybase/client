@@ -894,36 +894,36 @@ func (cr *ConflictResolver) buildChainsAndPaths(
 	ctx context.Context, lState *lockState) (
 	unmergedChains *crChains, mergedChains *crChains, unmergedPaths []path,
 	mergedPaths map[BlockPointer]path, recreateOps []*createOp,
-	unmerged []*RootMetadata, err error) {
+	unmerged []*RootMetadata, merged []*RootMetadata, err error) {
 	// Fetch the merged and unmerged MDs
-	unmerged, merged, err := cr.getMDs(ctx, lState)
+	unmerged, merged, err = cr.getMDs(ctx, lState)
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, nil, err
 	}
 
 	if u, m := len(unmerged), len(merged); u == 0 || m == 0 {
 		cr.log.CDebugf(ctx, "Skipping merge process due to empty MD list: "+
 			"%d unmerged, %d merged", u, m)
-		return nil, nil, nil, nil, nil, nil, nil
+		return nil, nil, nil, nil, nil, nil, nil, nil
 	}
 
 	// Update the current input to reflect the MDs we'll actually be
 	// working with.
 	err = cr.updateCurrInput(ctx, unmerged, merged)
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, nil, err
 	}
 
 	// Canceled before we start the heavy lifting?
 	err = cr.checkDone(ctx)
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, nil, err
 	}
 
 	// Make the chains
 	unmergedChains, mergedChains, err = cr.makeChains(ctx, unmerged, merged)
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, nil, err
 	}
 
 	// TODO: if the root node didn't change in either chain, we can
@@ -936,14 +936,14 @@ func (cr *ConflictResolver) buildChainsAndPaths(
 	unmergedPaths, err = cr.getPathsFromChains(ctx, unmergedChains,
 		cr.fbo.nodeCache)
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, nil, err
 	}
 
 	// Add in any directory paths that were created in both branches.
 	newUnmergedPaths, err := cr.findCreatedDirsToMerge(ctx, unmergedPaths,
 		unmergedChains, mergedChains)
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, nil, err
 	}
 	unmergedPaths = append(unmergedPaths, newUnmergedPaths...)
 	if len(newUnmergedPaths) > 0 {
@@ -956,7 +956,9 @@ func (cr *ConflictResolver) buildChainsAndPaths(
 	mergedPaths, recreateOps, newUnmergedPaths, err = cr.resolveMergedPaths(
 		ctx, lState, unmergedPaths, unmergedChains, mergedChains)
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, err
+		// Return mergedChains in this error case, to allow the error
+		// handling code to unstage if necessary.
+		return nil, nil, nil, nil, nil, nil, merged, err
 	}
 	unmergedPaths = append(unmergedPaths, newUnmergedPaths...)
 	if len(newUnmergedPaths) > 0 {
@@ -964,7 +966,7 @@ func (cr *ConflictResolver) buildChainsAndPaths(
 	}
 
 	return unmergedChains, mergedChains, unmergedPaths, mergedPaths,
-		recreateOps, unmerged, nil
+		recreateOps, unmerged, merged, nil
 }
 
 // addRecreateOpsToUnmergedChains inserts each recreateOp, into its
@@ -2938,6 +2940,48 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 	return nil
 }
 
+// maybeUnstageAfterFailure abandons this branch if there was a
+// conflict resolution failure due to missing blocks, caused by a
+// concurrent gcOp on the main branch.
+func (cr *ConflictResolver) maybeUnstageAfterFailure(ctx context.Context,
+	lState *lockState, mergedMDs []*RootMetadata, err error) error {
+	// Make sure the error is related to a missing block.
+	_, isBlockNotFound := err.(BServerErrorBlockNonExistent)
+	_, isBlockDeleted := err.(BServerErrorBlockDeleted)
+	if !isBlockNotFound && !isBlockDeleted {
+		return err
+	}
+
+	// Make sure there was a gcOp on the main branch.
+	foundGCOp := false
+outer:
+	for _, rmd := range mergedMDs {
+		for _, op := range rmd.data.Changes.Ops {
+			if _, ok := op.(*gcOp); ok {
+				foundGCOp = true
+				break outer
+			}
+		}
+	}
+	if !foundGCOp {
+		return err
+	}
+
+	cr.log.CDebugf(ctx, "Unstaging due to a failed resolution: %v", err)
+	reportedError := CRAbandonStagedBranchError{err, cr.fbo.bid}
+	unstageErr := cr.fbo.unstageAfterFailedResolution(ctx, lState)
+	if unstageErr != nil {
+		cr.log.CDebugf(ctx, "Couldn't unstage: %v", unstageErr)
+		return err
+	}
+
+	handle := cr.fbo.getHead(lState).GetTlfHandle()
+	cr.config.Reporter().ReportErr(ctx,
+		handle.GetCanonicalName(ctx, cr.config), handle.IsPublic(),
+		WriteMode, reportedError)
+	return nil
+}
+
 // CRWrapError wraps an error that happens during conflict resolution.
 type CRWrapError struct {
 	err error
@@ -2969,6 +3013,13 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 		return
 	}
 
+	var mergedMDs []*RootMetadata
+	defer func() {
+		if err != nil {
+			err = cr.maybeUnstageAfterFailure(ctx, lState, mergedMDs, err)
+		}
+	}()
+
 	// Step 1: Build the chains for each branch, as well as the paths
 	// and necessary extra recreate ops.  The result of this step is:
 	//   * A set of conflict resolution "chains" for both the unmerged and
@@ -2979,7 +3030,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	//     to recreate any directories that were modified in the unmerged
 	//     branch but removed in the merged branch.
 	unmergedChains, mergedChains, unmergedPaths, mergedPaths, recOps,
-		unmergedMDs, err := cr.buildChainsAndPaths(ctx, lState)
+		unmergedMDs, mergedMDs, err := cr.buildChainsAndPaths(ctx, lState)
 	if err != nil {
 		return
 	}

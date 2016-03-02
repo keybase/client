@@ -244,7 +244,7 @@ func testCRCheckPathsAndActions(t *testing.T, cr *ConflictResolver,
 
 	// Step 1 -- check the chains and paths
 	unmergedChains, mergedChains, unmergedPaths, mergedPaths,
-		recreateOps, _, err := cr.buildChainsAndPaths(ctx, lState)
+		recreateOps, _, _, err := cr.buildChainsAndPaths(ctx, lState)
 	if err != nil {
 		t.Fatalf("Couldn't build chains and paths: %v", err)
 	}
@@ -1120,7 +1120,7 @@ func TestCRDoActionsSimple(t *testing.T) {
 
 	// Now run through conflict resolution manually for user2.
 	unmergedChains, mergedChains, unmergedPaths, mergedPaths,
-		recreateOps, _, err := cr2.buildChainsAndPaths(ctx, lState)
+		recreateOps, _, _, err := cr2.buildChainsAndPaths(ctx, lState)
 	if err != nil {
 		t.Fatalf("Couldn't build chains and paths: %v", err)
 	}
@@ -1236,7 +1236,7 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 
 	// Now run through conflict resolution manually for user2.
 	unmergedChains, mergedChains, unmergedPaths, mergedPaths,
-		recreateOps, _, err := cr2.buildChainsAndPaths(ctx, lState)
+		recreateOps, _, _, err := cr2.buildChainsAndPaths(ctx, lState)
 	if err != nil {
 		t.Fatalf("Couldn't build chains and paths: %v", err)
 	}
