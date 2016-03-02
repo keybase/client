@@ -67,6 +67,7 @@ func (f *FS) processNotifications(ctx context.Context) {
 		case <-ctx.Done():
 			f.notificationMutex.Lock()
 			c := f.notifications
+			f.log.CDebugf(ctx, "Nilling notifications channel")
 			f.notifications = nil
 			f.notificationMutex.Unlock()
 			c.Close()
@@ -108,6 +109,7 @@ func (f *FS) LaunchNotificationProcessor(ctx context.Context) {
 	f.notificationMutex.Lock()
 	defer f.notificationMutex.Unlock()
 
+	f.log.CDebugf(ctx, "Launching notifications channel")
 	// The notifications channel needs to have "infinite" capacity,
 	// because otherwise we risk a deadlock between libkbfs and
 	// libfuse.  The notification processor sends invalidates to the
