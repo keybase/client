@@ -2,7 +2,6 @@
 import React, {Component} from 'react'
 import {TextField} from 'material-ui'
 import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide'
-import {styles as TextStyles} from './text'
 import materialTheme from '../styles/material-theme.desktop'
 
 import InputOld from './input.old.desktop'
@@ -29,17 +28,10 @@ export default class Input extends Component {
   }
 
   getValue (): ?string {
-    if (!this.props.dz2) {
-      return this.refs.inputOld && this.refs.inputOld.getValue()
-    }
     return this.state.value
   }
 
   clearValue () {
-    if (!this.props.dz2) {
-      this.refs.inputOld && this.refs.inputOld.clearValue()
-      return
-    }
     this.setState({value: null})
   }
 
@@ -48,18 +40,10 @@ export default class Input extends Component {
   }
 
   blur () {
-    if (!this.props.dz2) {
-      return this.refs.inputOld && this.refs.inputOld.blur()
-    }
-
     this._textField && this._textField.blur()
   }
 
   render () {
-    if (!this.props.dz2) {
-      return <InputOld ref="inputOld" {...this.props}/>
-    }
-
     const style = this.props.small ? styles.containerSmall : styles.container
     const textStyle = this.props.small ? styles.inputSmall : styles.input
 
@@ -149,4 +133,3 @@ export const styles = {
     top: 34
   }
 }
-
