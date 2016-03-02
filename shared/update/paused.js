@@ -19,7 +19,9 @@ class UpdatePaused extends Component {
       <div style={styles.container}>
         <Header title='Update Paused' icon onClose={() => this.props.onCancel()} />
         <div style={styles.info}>
+          <p style={styles.info}/>
           <Text type='Header' style={styles.infoHeader}>You have files, folders or a terminal open in Keybase.</Text>
+          <p style={styles.info}/>
           <Text type='Body' style={styles.infoBody}>
             You can force the update. That would be like yanking a USB drive and plugging it right back in.
             It'll instantly give you the latest version of Keybase, but you'll need to reopen any files you're working with.
@@ -42,7 +44,9 @@ const styles = {
   },
   info: {
     marginLeft: 30,
-    marginRight: 30
+    marginRight: 30,
+    marginTop: 10,
+    marginBottom: 20
   },
   infoHeader: {
     marginTop: 30
