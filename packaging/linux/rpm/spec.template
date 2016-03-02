@@ -3,6 +3,7 @@ Version: @@VERSION@@
 Release: 1
 Summary: Keybase command line client
 License: BSD
+AutoReqProv: no
 
 %description
 Keybase command line client
