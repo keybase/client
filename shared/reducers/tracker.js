@@ -64,6 +64,7 @@ function initialTrackerState (username: string): TrackerState {
       followersCount: -1,
       followingCount: -1,
       followsYou: false,
+      bio: '',
       avatar: null,
       location: '' // TODO: get this information
     }

@@ -332,6 +332,7 @@ function updateUserInfo (userCard: UserCard, username: string, getState: () => {
         followersCount: userCard.followers,
         followingCount: userCard.following,
         followsYou: userCard.theyFollowYou,
+        bio: userCard.bio,
         avatar: `${serverURI}/${username}/picture`,
         location: userCard.location
       },

@@ -5,6 +5,7 @@ export type UserInfo = {
   followersCount: number,
   followingCount: number,
   followsYou: boolean,
+  bio: string,
   avatar: ?string,
   location: string
 }
