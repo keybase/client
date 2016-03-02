@@ -3,7 +3,7 @@
 import React, {Component} from 'react'
 import {Header} from '../common-adapters'
 import {Icon, Text} from '../common-adapters/index'
-import {globalStyles, globalColorsDZ2} from '../styles/style-guide'
+import {globalStyles, globalColorsDZ2, transitionColor} from '../styles/style-guide'
 import flags from '../util/feature-flags'
 
 import type {HeaderProps} from './header.render'
@@ -101,6 +101,7 @@ const styles2 = {
   },
   header: {
     ...globalStyles.windowDragging,
+    ...transitionColor(),
     cursor: 'default',
     position: 'absolute',
     top: 0,
