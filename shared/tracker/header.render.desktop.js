@@ -106,7 +106,8 @@ const styles2 = {
     top: 0,
     ...globalStyles.flexBoxRow,
     height: 90,
-    width: 320
+    width: 320,
+    transition: 'background 0.2s linear'
   },
   headerNormal: {
     backgroundColor: globalColorsDZ2.blue
