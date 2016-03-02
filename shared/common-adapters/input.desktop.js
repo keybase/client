@@ -113,7 +113,7 @@ export const styles = {
     transition: ''
   },
   errorStyle: {
-    ...globalStyles.DZ2.fontRegular,
+    ...globalStyles.fontRegular,
     color: globalColors.highRiskWarning,
     alignSelf: 'center',
     fontSize: 13,
@@ -122,10 +122,10 @@ export const styles = {
     marginTop: 4
   },
   hintStyle: {
-    ...globalStyles.DZ2.fontRegular
+    ...globalStyles.fontRegular
   },
   floatingLabelStyle: {
-    ...globalStyles.DZ2.fontRegular,
+    ...globalStyles.fontRegular,
     alignSelf: 'center',
     position: 'inherit',
     top: 34

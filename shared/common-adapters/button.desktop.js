@@ -101,7 +101,7 @@ export default class Button extends Component {
 }
 
 const buttonCommon2 = {
-  ...globalStyles.DZ2.fontSemibold,
+  ...globalStyles.fontSemibold,
   color: globalColorsDZ2.white,
   borderRadius: 55,
   fontSize: 16,
@@ -160,7 +160,7 @@ export const styles = {
     paddingRight: 25
   },
   buttonSmallLabel: {
-    ...globalStyles.DZ2.fontRegular,
+    ...globalStyles.fontRegular,
     paddingLeft: 20,
     paddingRight: 20
   }

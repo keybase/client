@@ -121,13 +121,13 @@ Text.contextTypes = {
 }
 
 const textCommon = {
-  ...globalStyles.DZ2.fontRegular,
+  ...globalStyles.fontRegular,
   ...globalStyles.noSelect,
   cursor: 'inherit'
 }
 
 const textTerminal = {
-  ...globalStyles.DZ2.fontTerminalSemibold,
+  ...globalStyles.fontTerminalSemibold,
   fontSize: 14,
   lineHeight: '21px',
   letterSpacing: '0.3px'
@@ -136,7 +136,7 @@ const textTerminal = {
 const headerStyles = {
   textHeaderJumbo: {
     ...textCommon,
-    ...globalStyles.DZ2.fontBold,
+    ...globalStyles.fontBold,
     fontSize: 32,
     lineHeight: '38px',
     letterSpacing: '0.3px'
@@ -144,7 +144,7 @@ const headerStyles = {
 
   textHeaderBig: {
     ...textCommon,
-    ...globalStyles.DZ2.fontBold,
+    ...globalStyles.fontBold,
     fontSize: 24,
     lineHeight: '31px',
     letterSpacing: '0.3px'
@@ -152,7 +152,7 @@ const headerStyles = {
 
   textHeader: {
     ...textCommon,
-    ...globalStyles.DZ2.fontBold,
+    ...globalStyles.fontBold,
     fontSize: 18,
     lineHeight: '25px',
     letterSpacing: '0.3px'
@@ -160,7 +160,7 @@ const headerStyles = {
 
   textInputHeader: {
     ...textCommon,
-    ...globalStyles.DZ2.fontSemibold,
+    ...globalStyles.fontSemibold,
     fontSize: 14,
     lineHeight: '18px',
     letterSpacing: '0.3px',
@@ -178,7 +178,7 @@ export const styles = {
   },
   textBodySemibold: {
     ...textCommon,
-    ...globalStyles.DZ2.fontSemibold,
+    ...globalStyles.fontSemibold,
     fontSize: 16,
     lineHeight: '22px',
     letterSpacing: '0.3px'
@@ -191,7 +191,7 @@ export const styles = {
   },
   textBodySmallSemibold: {
     ...textCommon,
-    ...globalStyles.DZ2.fontSemibold,
+    ...globalStyles.fontSemibold,
     fontSize: 14,
     lineHeight: '19px',
     letterSpacing: '0.3px'

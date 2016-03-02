@@ -127,7 +127,7 @@ export default class Render extends Component {
             <Input multiLine hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas' style={{marginTop: 30}} />
             <Input small hintText='user1,user2,etc' style={{width: '100%', marginLeft: 2}} />
             <FormWithCheckbox
-              inputProps={{dz2: true, floatingLabelText: 'Passphrase', style: {marginBottom: 0}, errorText: 'Error Message'}}
+              inputProps={{floatingLabelText: 'Passphrase', style: {marginBottom: 0}, errorText: 'Error Message'}}
               checkboxesProps={[
                 {label: 'Save in Keychain', checked: true, onCheck: () => {}},
                 {label: 'Show Typing', checked: true, onCheck: () => {}}
@@ -197,7 +197,7 @@ class DZ2Font extends Component {
               <Text type='Terminal'>inline command line</Text>
             </p>
           </div>
-          <Terminal dz2 style={{flex: 1, overflow: 'scroll'}}>
+          <Terminal style={{flex: 1, overflow: 'scroll'}}>
             <p>
               <Text type='Terminal'>command line stuff </Text>
               <Text type='TerminalUsername'>username </Text>

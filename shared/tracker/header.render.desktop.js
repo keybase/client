@@ -51,7 +51,7 @@ export default class HeaderRender extends Component {
     return (
       <div style={styles.outer}>
         <div style={{...styles.header, ...headerStyle}}>
-          <Text type='BodySemibold' dz2 lineClamp={2} style={{...styles.text, ...headerTextStyle, flex: 1}}>{headerText}</Text>
+          <Text type='BodySemibold' lineClamp={2} style={{...styles.text, ...headerTextStyle, flex: 1}}>{headerText}</Text>
           <Icon type='fa-times' opacity style={styles.close}
             onClick={() => this.props.onClose()}
             onMouseEnter={() => this.closeMouseEnter()}

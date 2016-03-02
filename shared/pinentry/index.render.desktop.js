@@ -42,7 +42,6 @@ export default class PinentryRender extends Component {
     const submitPassphrase = () => this.props.onSubmit(this.state.passphrase, this.state.features)
 
     const inputProps = {
-      dz2: true,
       floatingLabelText: 'Passphrase',
       style: {marginBottom: 0},
       onChange: event => this.setState({passphrase: event.target.value}),

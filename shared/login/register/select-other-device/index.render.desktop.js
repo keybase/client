@@ -22,7 +22,7 @@ const Render = ({onBack, devices, onWont, onSelect}: Props) => (
     <div style={styles.devicesContainer}>
       {devices.map(d => <Row onSelect={onSelect} {...d}/>)}
     </div>
-    <Text style={styles.wont} dz2 type='BodySecondaryLink' onClick={onWont}>I don't have one of these devices</Text>
+    <Text style={styles.wont} type='BodySecondaryLink' onClick={onWont}>I don't have one of these devices</Text>
   </Container>
 )
 
