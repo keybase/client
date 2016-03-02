@@ -56,7 +56,8 @@ func (f *Favorites) handleReq(ctx context.Context, req favReq) {
 	// Fetch a new list if:
 	//  * The user asked us to refresh
 	//  * We haven't fetched it before
-	//  * The user wants the list of favorites.  TODO: use the cached list?
+	//  * The user wants the list of favorites.  TODO: use the cached list
+	//    once we have proper invalidation from the server.
 	if req.refresh || f.cache == nil || req.favs != nil {
 		f.cache = make(map[Favorite]bool)
 		folders, err := kbpki.FavoriteList(ctx)
@@ -71,14 +72,13 @@ func (f *Favorites) handleReq(ctx context.Context, req favReq) {
 	}
 
 	for _, fav := range req.toAdd {
-		// Only add the favorite if it's not already known.
-		if _, ok := f.cache[fav]; !ok {
-			err := kbpki.FavoriteAdd(ctx, fav.toKBFolder())
-			if err != nil {
-				req.done <- err
-				return
-			}
-			f.cache[fav] = true
+		// TODO: once we have proper cache invalidation from the API
+		// server, we should only call FavoriteAdd if the folder isn't
+		// already favorited.
+		err := kbpki.FavoriteAdd(ctx, fav.toKBFolder())
+		if err != nil {
+			req.done <- err
+			return
 		}
 	}
 
