@@ -26,6 +26,7 @@ script:
   - go vet $(go list ./... 2>/dev/null | grep -v /vendor/)
   - go build ./...
   - cd libkbfs && go test -i && go test -c && ./libkbfs.test -test.timeout 4m
+  - cd ../serverutil && go test -i && go test -c && ./serverutil.test -test.timeout 10s
   - cd ../bserver && go test -i && go test -c && ./bserver.test -test.timeout 4m
   - go test -c -tags integration
   - cd ../mdserver && go test -i && go test -c -tags integration && ./mdserver.test -test.timeout 4m
