@@ -101,11 +101,13 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 	// reset auth -- using md.client here would cause problematic recursion.
 	c := keybase1.MetadataClient{Cli: cancelableClient{client}}
 	pingIntervalSeconds, err := md.resetAuth(ctx, c)
-	if err != nil {
-		return err
-	} else if pingIntervalSeconds == -1 {
-		md.resetPingTicker(MdServerDefaultPingIntervalSeconds)
+	switch err.(type) {
+	case nil:
+	case NoCurrentSessionError:
+		md.resetPingTicker(pingIntervalSeconds)
 		return nil
+	default:
+		return err
 	}
 
 	// we'll get replies asynchronously as to not block the connection
@@ -137,7 +139,7 @@ func (md *MDServerRemote) resetAuth(ctx context.Context, c keybase1.MetadataClie
 	_, _, err := md.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		md.log.Debug("MDServerRemote: User logged out, skipping resetAuth")
-		return -1, nil
+		return MdServerDefaultPingIntervalSeconds, NoCurrentSessionError{}
 	}
 
 	challenge, err := c.GetChallenge(ctx)
@@ -168,7 +170,11 @@ func (md *MDServerRemote) resetAuth(ctx context.Context, c keybase1.MetadataClie
 
 // RefreshAuthToken implements the AuthTokenRefreshHandler interface.
 func (md *MDServerRemote) RefreshAuthToken(ctx context.Context) {
-	if _, err := md.resetAuth(ctx, md.client); err != nil {
+	_, err := md.resetAuth(ctx, md.client)
+	switch err.(type) {
+	case nil:
+	case NoCurrentSessionError:
+	default:
 		md.log.Debug("MDServerRemote: error refreshing auth token: %v", err)
 	}
 }
