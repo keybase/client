@@ -17,7 +17,8 @@ import (
 
 func NewCmdUnlock(cl *libcmdline.CommandLine) cli.Command {
 	return cli.Command{
-		Name: "unlock",
+		Name:  "unlock",
+		Usage: "Unlock local key storage",
 		Description: `"keybase unlock" can be used to restore access to your local key store
    when the keybase service restarts unexpectedly.
 
