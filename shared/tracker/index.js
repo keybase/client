@@ -15,8 +15,6 @@ import type {SimpleProofState} from '../constants/tracker'
 
 import type {TrackSummary} from '../constants/types/flow-types'
 
-import flags from '../util/feature-flags'
-
 type TrackerProps = {
   loggedIn: boolean,
   trackerState: SimpleProofState,
@@ -30,8 +28,6 @@ type TrackerProps = {
   onMaybeTrack: () => void,
   onRefollow: () => void,
   onUnfollow: () => void,
-  onRefollow2: () => void,
-  onUnfollow2: () => void,
   onFollow: () => void,
   onFollowHelp: () => void,
   onFollowChecked: () => void,
@@ -94,8 +90,8 @@ class Tracker extends Component {
         shouldFollow: this.props.shouldFollow,
         onClose: () => this.props.onClose(this.props.username),
         onMaybeTrack: () => this.props.onMaybeTrack(this.props.username),
-        onRefollow: () => flags.tracker2 ? this.props.onRefollow2(this.props.username) : this.props.onRefollow(this.props.username),
-        onUnfollow: () => flags.tracker2 ? this.props.onUnfollow2(this.props.username) : this.props.onUnfollow(this.props.username),
+        onRefollow: () => this.props.onRefollow2(this.props.username),
+        onUnfollow: () => this.props.onUnfollow2(this.props.username),
         onFollow: () => this.props.onFollow(this.props.username),
         onFollowHelp: () => this.props.onFollowHelp(this.props.username),
         onFollowChecked: checked => this.props.onFollowChecked(checked, this.props.username),
