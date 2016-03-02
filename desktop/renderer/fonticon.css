@@ -1,9 +1,9 @@
 @font-face {
     font-family: 'kb';
     src:
-        url('fonts/kb.ttf?jwd81g') format('truetype'),
-        url('fonts/kb.woff?jwd81g') format('woff'),
-        url('fonts/kb.svg?jwd81g#kb') format('svg');
+        url('fonts/kb.ttf?s2jez2') format('truetype'),
+        url('fonts/kb.woff?s2jez2') format('woff'),
+        url('fonts/kb.svg?s2jez2#kb') format('svg');
     font-weight: normal;
     font-style: normal;
 }
@@ -23,14 +23,20 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
-.fa-custom-copy:before {
+.fa-custom-icon-proof-broken:before {
     content: "\e900";
 }
-.fa-custom-eye:before {
+.fa-custom-icon-proof-good:before {
     content: "\e901";
 }
+.fa-custom-copy:before {
+    content: "\e903";
+}
+.fa-custom-eye:before {
+    content: "\e904";
+}
 .fa-custom-key:before {
-    content: "\e902";
+    content: "\e905";
 }
 .fa-glass:before {
     content: "\f000";

@@ -3,7 +3,7 @@
 import React, {Component} from 'react'
 import {Header} from '../common-adapters'
 import {Icon, Text} from '../common-adapters/index'
-import {globalStyles, globalColorsDZ2} from '../styles/style-guide'
+import {globalStyles, globalColorsDZ2, transitionColor} from '../styles/style-guide'
 import flags from '../util/feature-flags'
 
 import type {HeaderProps} from './header.render'
@@ -46,7 +46,7 @@ export default class HeaderRender extends Component {
       case 'error': headerStyle = styles.headerError; break
     }
 
-    let headerText:string = this.props.reason
+    let headerText: string = this.props.reason
     if (!this.props.currentlyFollowing && this.state.showCloseWarning) {
       headerStyle = styles.headerWarning
       headerTextStyle = styles.headerTextWarning
@@ -60,6 +60,7 @@ export default class HeaderRender extends Component {
       case 'unfollowed':
         headerStyle = styles.headerSuccess
         headerTextStyle = styles.headerTextNormal
+        headerText = this.props.reason
         break
       case 'error':
         headerStyle = styles.headerWarning
@@ -100,6 +101,7 @@ const styles2 = {
   },
   header: {
     ...globalStyles.windowDragging,
+    ...transitionColor(),
     cursor: 'default',
     position: 'absolute',
     top: 0,
@@ -123,7 +125,7 @@ const styles2 = {
     opacity: 1
   },
   headerTextWarning: {
-    color: globalColorsDZ2.black,
+    color: globalColorsDZ2.brown60,
     fontSize: 14,
     lineHeight: 'normal',
     opacity: 1
@@ -133,10 +135,11 @@ const styles2 = {
   },
   close: {
     ...globalStyles.clickable,
+    ...globalStyles.windowDraggingClickable,
     zIndex: 2,
     position: 'absolute',
     top: 7,
-    right: 4
+    right: 9
   },
   text: {
     ...globalStyles.flexBoxRow,

@@ -22,11 +22,11 @@ const proofsDefault = [
 ]
 
 const proofsChanged = [
-  {name: 'deleted', type: 'rooter', id: 'warningId', state: revoked, meta: metaDeleted, humanUrl: ''},
-  {name: 'unreachable', type: 'rooter', id: 'unreachableId', state: error, meta: metaUnreachable, humanUrl: ''},
+  {name: 'deleted', type: 'github', id: 'warningId', state: revoked, meta: metaDeleted, humanUrl: ''},
+  {name: 'unreachable', type: 'twitter', id: 'unreachableId', state: error, meta: metaUnreachable, humanUrl: ''},
   // TODO: Need to use state for checking; Refactor after nuking v1
-  {name: 'checking', type: 'rooter', id: 'checkingId', state: checking, humanUrl: ''},
-  {name: 'pending', type: 'rooter', id: 'pendingId', state: normal, meta: metaPending, humanUrl: ''},
+  {name: 'checking', type: 'twitter', id: 'checkingId', state: checking, humanUrl: ''},
+  {name: 'pending', type: 'web', id: 'pendingId', state: normal, meta: metaPending, humanUrl: ''},
   {name: 'upgraded', type: 'rooter', id: 'upgradedId', state: normal, meta: metaUpgraded, humanUrl: ''}
 ]
 
@@ -120,12 +120,28 @@ const propsLessData = {
   ]
 }
 
+const propsLoggedOut = {...propsDefault, loggedIn: false, reason: 'You accessed a public folder with gabrielh.'}
+
+const propsOneProof = {...propsDefault, proofs: [proofsDefault[0]]}
+
 export default class Render extends Component {
   render () {
     const styles = (flags.tracker2 ? styles2 : styles1)
     return (
       <div style={{...commonStyles.flexBoxColumn, flex: 1}}>
         <div style={{...commonStyles.flexBoxRow, flex: 1, padding: 20}}>
+          <div>
+            <div style={styles.pretendTrackerWindow}>
+              <Tracker {...propsLoggedOut} />
+            </div>
+            <p>Logged out</p>
+          </div>
+          <div>
+            <div style={styles.pretendTrackerWindow}>
+              <Tracker {...propsOneProof} />
+            </div>
+            <p>Only one proof</p>
+          </div>
           <div>
             <div style={styles.pretendTrackerWindow}>
               <Tracker {...propsNewUser} />

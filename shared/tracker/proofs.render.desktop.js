@@ -3,7 +3,7 @@
 import React, {Component} from 'react'
 import commonStyles, {colors} from '../styles/common'
 import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide'
-import {Icon} from '../common-adapters/index'
+import {Icon, Text} from '../common-adapters/index'
 import {CircularProgress} from 'material-ui'
 import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked, error as proofError, warning as proofWarning} from '../constants/tracker'
 import {metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone} from '../constants/tracker'
@@ -66,12 +66,15 @@ export class ProofsRender2 extends Component {
     return color
   }
 
+  _isTracked (proof: Proof): boolean {
+    return this.props.currentlyFollowing && (!proof.meta || proof.meta === metaNone)
+  }
+
   proofColor (proof: Proof): string {
     let color = globalColorsDZ2.blue
-    let tracked = this.props.currentlyFollowing && (!proof.meta || proof.meta === metaNone)
     switch (proof.state) {
       case proofNormal: {
-        color = tracked ? globalColorsDZ2.green : globalColorsDZ2.blue
+        color = this._isTracked(proof) ? globalColorsDZ2.green : globalColorsDZ2.blue
         break
       }
       case proofChecking:color = color = '#999'; break
@@ -86,9 +89,23 @@ export class ProofsRender2 extends Component {
     return color
   }
 
+  proofStatusIcon (proof: Proof): ?IconProps.type {
+    switch (proof.state) {
+      case proofNormal:
+        return this._isTracked(proof) ? 'fa-custom-icon-proof-good-followed' : 'fa-custom-icon-proof-good-new'
+
+      case proofError:
+      case proofRevoked:
+        return 'fa-custom-icon-proof-broken'
+      default:
+        return null
+    }
+  }
+
   renderProofRow (styles: Object, proof: Proof) {
     const metaColor = this.metaColor(proof)
     const proofNameColor = this.proofColor(proof)
+    const proofStatusIcon = this.proofStatusIcon(proof)
     const onClickProfile = () => { this.onClickProfile(proof) }
     // TODO: State is deprecated, will refactor after nuking v1
     let isChecking = (proof.state === proofChecking)
@@ -96,21 +113,25 @@ export class ProofsRender2 extends Component {
       <div style={styles.row} key={proof.id}>
         <Icon style={styles.service} type={this.iconNameForProof(proof)} title={proof.type} onClick={onClickProfile} />
         <div style={styles.proofNameSection}>
-          <div style={styles.proofNameContainer}>
-            <span
-              style={{...styles.proofName, ...(proof.meta === metaDeleted ? {textDecoration: 'line-through'} : {}), color: proofNameColor}}
-              onClick={onClickProfile}>
-              {proof.name}
+          <div style={styles.proofNameLabelContainer}>
+            <span style={styles.proofNameContainer}>
+              <span
+                className='hover-underline'
+                style={{...styles.proofName, ...(proof.meta === metaDeleted ? {textDecoration: 'line-through'} : {}), color: proofNameColor}}
+                onClick={onClickProfile}>
+                <Text dz2 inline style={{color: proofNameColor}} type='Body'>{proof.name}</Text>
+              </span>
+              <wbr/>
+              <Text dz2 inline type='Body' style={styles.proofType}>@{proof.type}</Text>
             </span>
-            <span style={styles.proofType}>@{proof.type}</span>
+          {proof.meta && <Text dz2 type='Header' style={{...styles.meta, backgroundColor: metaColor}}>{proof.meta}</Text>}
           </div>
-          {proof.meta && <span style={{...styles.meta, backgroundColor: metaColor}}>{proof.meta}</span>}
         </div>
         {isChecking &&
           <CircularProgress style={styles.loader} mode='indeterminate' color='#999' size={0.2} />
         }
-        {!isChecking &&
-          <Icon type='fa-certificate' style={{...styles.serviceStatus, color: proofNameColor}} onClick={onClickProfile} />
+        {!isChecking && proofStatusIcon &&
+          <Icon type={proofStatusIcon} style={{...globalStyles.clickable, fontSize: 20}} onClick={onClickProfile} />
         }
       </div>
     )
@@ -139,43 +160,47 @@ const styles2 = {
     justifyContent: 'flex-start'
   },
   service: {
+    ...globalStyles.clickable,
     height: 14,
     width: 14,
     color: globalColors.grey1,
-    marginRight: 11,
-    marginTop: 1
+    marginRight: 9,
+    marginTop: 4
   },
   proofNameSection: {
-    ...globalStyles.flexBoxColumn,
+    ...globalStyles.flexBoxRow,
     alignItems: 'flex-start',
     flex: 1
   },
+  proofNameLabelContainer: {
+    ...globalStyles.flexBoxColumn,
+    flex: 1
+  },
   proofNameContainer: {
-    ...globalStyles.flexBoxRow,
-    flexWrap: 'wrap',
-    alignItems: 'flex-start'
+    wordWrap: 'break-word',
+    marginRight: 15,
+    flex: 1
   },
   proofName: {
-    // TODO: This doesn't ellipsis since the proof names are a single word,
-    // using word-wrap or text-wrap doesn't work either. We should try
-    // interspersing blank whitespace to wrap on
-    // ...lineClamp(1)
+    ...commonStyles.clickable,
+    flex: 1
   },
   proofType: {
-    color: globalColorsDZ2.lightGrey
+    color: globalColorsDZ2.black10
   },
   meta: {
-    ...globalStyles.fontBold,
     color: globalColorsDZ2.white,
-    fontSize: 9,
+    fontSize: 10,
     height: 13,
     lineHeight: '13px',
     marginTop: 2,
     paddingLeft: 4,
     paddingRight: 4,
+    alignSelf: 'flex-start',
     textTransform: 'uppercase'
   },
   serviceStatus: {
+    ...globalStyles.clickable,
     marginTop: 1
   },
   loader: {

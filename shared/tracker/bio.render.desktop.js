@@ -78,7 +78,9 @@ export default class BioRender extends Component {
             <Avatar onClick={() => this.onClickAvatar()} url={userInfo.avatar} size={75} />
             {(followsYou || currentlyFollowing) &&
               <div>
-                <div style={followsYou ? followBadgeStyles.followsYou : followBadgeStyles.notFollowsYou} />
+                {followsYou
+                  ? <div style={followBadgeStyles.followsYou}> <div style={{...followBadgeCommon, height: 6, width: 6, top: 2, right: 2}}/></div>
+                  : <div style={followBadgeStyles.notFollowsYou}/>}
                 <div style={currentlyFollowing ? followBadgeStyles.following : followBadgeStyles.notFollowing} />
               </div>
             }
@@ -91,13 +93,13 @@ export default class BioRender extends Component {
             }
             <Text type='BodySmall' dz2 style={styles.following}>
               <span className='hover-underline' onClick={() => this.onClickFollowers()}>
-                {userInfo.followersCount} Followers
+                <Text dz2 type='BodySmall' style={{...globalStyles.DZ2.fontBold}}>{userInfo.followersCount}</Text> Followers
               </span>
               &nbsp;
               &middot;
               &nbsp;
               <span className='hover-underline' onClick={() => this.onClickFollowing()}>
-                Following {userInfo.followingCount}
+                Following <Text dz2 type='BodySmall' style={{...globalStyles.DZ2.fontBold}}>{userInfo.followingCount}</Text>
               </span>
             </Text>
             {userInfo.bio &&
@@ -210,7 +212,6 @@ const styles2 = {
     width: 320,
     marginTop: -35,
     paddingTop: 35,
-    paddingBottom: 18,
     zIndex: 1
   },
   username: {

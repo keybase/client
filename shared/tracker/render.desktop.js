@@ -3,7 +3,7 @@
 import React, {Component} from 'react'
 
 import Header from './header.render.desktop'
-import Action from './action.render.desktop'
+import Action, {calcFooterHeight} from './action.render.desktop'
 import Bio from './bio.render.desktop'
 import {ProofsRender, ProofsRender2} from './proofs.render.desktop'
 import commonStyles from '../styles/common'
@@ -35,15 +35,21 @@ export default class Render extends Component {
   }
 
   render2 (styles: Object) {
+    // We have to calculate the height of the footer.
+    // It's positioned absolute, so flex won't work here.
+    // It's positioned absolute because we want the background transparency.
+    // So we use the existing paddingBottom and add the height of the footer
+    const footerHeight = calcFooterHeight(this.props.actionProps.loggedIn)
+    const calculatedPadding = styles.content.paddingBottom + footerHeight
     return (
       <div style={styles.container}>
         <Header {...this.props.headerProps} />
-        <div style={styles.content} className='hide-scrollbar'>
+        <div style={{...styles.content, paddingBottom: calculatedPadding}} className='hide-scrollbar'>
           <Bio {...this.props.bioProps} />
           <ProofsRender2 {...this.props.proofsProps} />
         </div>
         <div style={styles.footer}>
-          <Action {...this.props.actionProps} />
+          <Action {...this.props.actionProps}/>
         </div>
       </div>
     )
@@ -72,8 +78,6 @@ const styles1 = {
   }
 }
 
-const footerHeight = 61
-
 const styles2 = {
   container: {
     ...commonStyles.flexBoxColumn,
@@ -84,13 +88,14 @@ const styles2 = {
   content: {
     overflowY: 'auto',
     overflowX: 'hidden',
-    paddingBottom: 120,
+    // This value is added to the footer height to set the actual paddingBottom
+    paddingBottom: 20,
     zIndex: 1
   },
   footer: {
     position: 'absolute',
-    width: 320,
-    height: footerHeight,
-    bottom: 0
+    bottom: 0,
+    left: 0,
+    right: 0
   }
 }

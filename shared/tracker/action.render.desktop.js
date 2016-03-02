@@ -2,12 +2,11 @@
 
 import React, {Component} from 'react'
 import {FlatButton} from 'material-ui'
-import {Button} from '../common-adapters'
+import {Button, Text, Icon} from '../common-adapters'
 import commonStyles from '../styles/common'
-import {globalColorsDZ2} from '../styles/style-guide'
+import {globalStyles, globalColorsDZ2} from '../styles/style-guide'
 import {normal, checking, warning} from '../constants/tracker'
 import flags from '../util/feature-flags'
-import {Text} from '../common-adapters'
 
 import type {ActionProps} from './action.render'
 
@@ -39,8 +38,12 @@ export default class ActionRender extends Component {
   }
 
   render2 () {
-    const {username} = this.props
+    const {username, loggedIn} = this.props
     const styles = styles2
+
+    if (!loggedIn) {
+      return this.renderLoggedOut(styles, username)
+    }
 
     switch (this.props.lastAction) {
       case 'followed':
@@ -59,10 +62,29 @@ export default class ActionRender extends Component {
     return this.renderNormal(styles, username)
   }
 
+  renderLoggedOut (styles: Object, username: string) {
+    return (
+      <div style={{...styles.loggedOutContainer}}>
+        <div style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'space-between', alignItems: 'center'}}>
+          <Icon type='terminal' style={{width: 29}}/>
+          <div style={{textAlign: 'center'}}>
+            <Text dz2 type='Terminal' inline>keybase login</Text>
+            <Text dz2 type='BodySmall' inline> or </Text>
+            <Text dz2 type='Terminal' inline>keybase signup</Text>
+            <Text dz2 type='BodySmall' inline> from the terminal for more options.</Text>
+          </div>
+        </div>
+        <div style={styles.closeContainer}>
+          <Button dz2 style={styles.actionButton} type='Secondary' label='Close' onClick={() => this.props.onClose(username)} />
+        </div>
+      </div>
+    )
+  }
+
   renderClose (styles: Object, username: string) {
     return (
       <div style={{...styles2.container}}>
-        <Button dz2 type='Secondary' label='Close' onClick={() => this.props.onClose(username)} />
+        <Button dz2 style={styles.actionButton} type='Secondary' label='Close' onClick={() => this.props.onClose(username)} />
       </div>
     )
   }
@@ -70,7 +92,7 @@ export default class ActionRender extends Component {
   renderNormal (styles: Object, username: string) {
     return (
       <div style={{...styles2.container}}>
-        <Button dz2 type='Follow' label='Follow' onClick={() => this.props.onFollow(username)} />
+        <Button dz2 style={styles.actionButton} type='Follow' label='Track' onClick={() => this.props.onFollow(username)} />
       </div>
     )
   }
@@ -78,8 +100,8 @@ export default class ActionRender extends Component {
   renderChanged (styles: Object, username: string) {
     return (
       <div style={{...styles2.container}}>
-        <Button dz2 type='Unfollow' label='Unfollow' onClick={() => this.props.onUnfollow(username)} />
-        <Button dz2 type='Follow' label='Re-follow' onClick={() => this.props.onRefollow(username)} />
+        <Button dz2 type='Unfollow' label='Ignore for 24 hrs' onClick={() => this.props.onUnfollow(username)} />
+        <Button dz2 style={styles.actionButton} type='Follow' label='Accept' onClick={() => this.props.onRefollow(username)} />
       </div>
     )
   }
@@ -156,6 +178,10 @@ export default class ActionRender extends Component {
   }
 }
 
+export function calcFooterHeight (loggedIn: boolean): number {
+  return loggedIn ? 61 : 151
+}
+
 const styles1 = {
   normalContainer: {
     ...commonStyles.flexBoxRow,
@@ -223,13 +249,42 @@ const styles2 = {
     ...commonStyles.noSelect,
     backgroundColor: globalColorsDZ2.white90,
     width: '100%',
-    height: 61,
+    height: calcFooterHeight(true),
     boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.15)',
     alignItems: 'center',
     justifyContent: 'flex-end',
     paddingTop: 15,
     paddingBottom: 18,
     paddingRight: 15,
+    position: 'relative',
+    zIndex: 1
+  },
+
+  closeContainer: {
+    ...commonStyles.flexBoxRow,
+    ...commonStyles.noSelect,
+    backgroundColor: globalColorsDZ2.white90,
+    width: '100%',
+    alignItems: 'center',
+    marginTop: 15,
+    justifyContent: 'flex-end'
+  },
+
+  actionButton: {
+    width: 102,
+    minWidth: 102,
+    marginRight: 0
+  },
+
+  loggedOutContainer: {
+    ...commonStyles.flexBoxColumn,
+    backgroundColor: globalColorsDZ2.white,
+    width: '100%',
+    height: calcFooterHeight(false),
+    boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.15)',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    padding: 15,
     position: 'relative',
     zIndex: 1
   }

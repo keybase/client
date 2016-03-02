@@ -17,7 +17,7 @@ const Item = ({onClick, icon, title}) => {
 const Render = ({onBack, onSubmitComputer, onSubmitPhone}) => {
   const realCSS = `
   .existing-device-container .existing-device-item {
-    background-color: ${globalColorsDZ2.lightGrey2};
+    background-color: ${globalColorsDZ2.lightGrey};
     color: ${globalColorsDZ2.black75};
   }
   .existing-device-container:hover .existing-device-item {
