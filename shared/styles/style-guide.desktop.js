@@ -168,3 +168,9 @@ export function transition (...properties: Array<string>) : Object {
     transition: properties.map(p => `${p} 0.3s ease-in`).join(', ')
   }
 }
+
+export function transitionColor () : Object {
+  return {
+    transition: 'background 0.2s linear'
+  }
+}
