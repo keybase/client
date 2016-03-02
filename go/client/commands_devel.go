@@ -23,7 +23,6 @@ func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 		NewCmdStress(cl),
 		NewCmdTestPassphrase(cl, g),
 		NewCmdTestFSNotify(cl, g),
-		NewCmdUnlock(cl),
 	}
 }
 
