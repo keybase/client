@@ -63,9 +63,9 @@ class UpdateConfirm extends Component {
           onClose={() => this.props.onSnooze()}
         />
         <div style={styles.headerContainer}>
-          <Text type='Header' reversed>Version {this.props.newVersion}</Text>
-          <Text type='Body' reversed style={{marginTop: 20}}>Fellow Keybaser!</Text>
-          <Text type='Body' reversed>{`The version you are currently running (${this.props.oldVersion}) is outdated. We highly recommend that you upgrade now.`}</Text>
+          <Text type='Header' backgroundMode='Announcements'>Version {this.props.newVersion}</Text>
+          <Text type='Body' backgroundMode='Announcements' style={{marginTop: 20}}>Fellow Keybaser!</Text>
+          <Text type='Body' backgroundMode='Announcements'>{`The version you are currently running (${this.props.oldVersion}) is outdated. We highly recommend that you upgrade now.`}</Text>
         </div>
         <div style={styles.body}>
           <Text type='Body'>What's new?</Text>
@@ -75,7 +75,7 @@ class UpdateConfirm extends Component {
           <Text style={styles.updateCommandHeader} type='Body'>Terminal command:</Text>}
         {this.props.updateCommand &&
           <div style={styles.command}>
-            <Text type='Body' reversed style={{flex: 1}}>&gt; {this.props.updateCommand}</Text>
+            <Text type='Body' backgroundMode='Announcements' style={{flex: 1}}>&gt; {this.props.updateCommand}</Text>
             <div className='clipboard' title='Copy to clipboard' style={styles.clipboard} onClick={() => this.onCopy()}>
               <i className='fa fa-clipboard'></i>
             </div>
