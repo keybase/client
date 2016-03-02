@@ -92,11 +92,11 @@ export class ProofsRender2 extends Component {
   proofStatusIcon (proof: Proof): ?IconProps.type {
     switch (proof.state) {
       case proofNormal:
-        return this._isTracked(proof) ? 'fa-icon-proof-good-followed' : 'fa-icon-proof-good-new'
+        return this._isTracked(proof) ? 'fa-custom-icon-proof-good-followed' : 'fa-custom-icon-proof-good-new'
 
       case proofError:
       case proofRevoked:
-        return 'fa-icon-proof-broken'
+        return 'fa-custom-icon-proof-broken'
       default:
         return null
     }
