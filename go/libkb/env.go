@@ -753,9 +753,7 @@ func (e *Env) GetSplitLogOutput() bool {
 }
 
 func (e *Env) GetLogFile() string {
-	return e.GetString(
-		func() string { return filepath.Join(e.GetLogDir(), ServiceLogFileName) },
-	)
+	return filepath.Join(e.GetLogDir(), ServiceLogFileName)
 }
 
 func (e *Env) GetTorMode() TorMode {

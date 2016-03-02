@@ -40,10 +40,7 @@ func spawnServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1
 	if g.Env.GetSplitLogOutput() {
 		files = append(files, uintptr(1), uintptr(2))
 	} else {
-		if _, log, err = libkb.OpenLogFile(g); err != nil {
-			return
-		}
-		files = append(files, log.Fd(), log.Fd())
+		files = append(files, devnull.Fd(), devnull.Fd())
 	}
 
 	attr := syscall.ProcAttr{

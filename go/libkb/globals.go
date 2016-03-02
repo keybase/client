@@ -70,7 +70,7 @@ type GlobalContext struct {
 }
 
 func NewGlobalContext() *GlobalContext {
-	log := logger.New("keybase", ErrorWriter())
+	log := logger.New("keybase")
 	return &GlobalContext{
 		Log:                 log,
 		VDL:                 NewVDebugLog(log),

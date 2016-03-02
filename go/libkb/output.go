@@ -1,19 +1,17 @@
-// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// Copyright 2016 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
-
-// +build !windows
 
 package libkb
 
 import (
 	"io"
-	"os"
+	"github.com/keybase/client/go/logger"
 )
 
 func OutputWriter() io.Writer {
-	return os.Stdout
+	return logger.OutputWriter()
 }
 
 func ErrorWriter() io.Writer {
-	return os.Stderr
+	return logger.ErrorWriter()
 }
