@@ -12,7 +12,6 @@ import (
 	"github.com/cenkalti/backoff"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
-	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
 )
@@ -38,7 +37,7 @@ type ConnectionHandler interface {
 	// OnConnect is called immediately after a connection has been
 	// established.  An implementation would likely log something,
 	// register served protocols, and/or perform authentication.
-	OnConnect(context.Context, *Connection, keybase1.GenericClient, *rpc.Server) error
+	OnConnect(context.Context, *Connection, rpc.GenericClient, *rpc.Server) error
 
 	// OnConnectError is called whenever there is an error during connection.
 	OnConnectError(err error, reconnectThrottleDuration time.Duration)
@@ -186,7 +185,7 @@ type Connection struct {
 
 	// protects everything below.
 	mutex             sync.Mutex
-	client            keybase1.GenericClient
+	client            rpc.GenericClient
 	server            *rpc.Server
 	reconnectChan     chan struct{}
 	reconnectErrPtr   *error             // Filled in with fatal reconnect err (if any) before reconnectChan is closed
@@ -270,7 +269,7 @@ func (c *Connection) connect(ctx context.Context) error {
 }
 
 // DoCommand executes the specific rpc command wrapped in rpcFunc.
-func (c *Connection) DoCommand(ctx context.Context, rpcFunc func(keybase1.GenericClient) error) error {
+func (c *Connection) DoCommand(ctx context.Context, rpcFunc func(rpc.GenericClient) error) error {
 	for {
 		// we may or may not be in the process of reconnecting.
 		// if so we'll block here unless canceled by the caller.
@@ -283,7 +282,7 @@ func (c *Connection) DoCommand(ctx context.Context, rpcFunc func(keybase1.Generi
 
 		// retry throttle errors w/backoff
 		throttleErr := backoff.RetryNotify(func() error {
-			rawClient := func() keybase1.GenericClient {
+			rawClient := func() rpc.GenericClient {
 				c.mutex.Lock()
 				defer c.mutex.Unlock()
 				return c.client
@@ -431,7 +430,7 @@ func (c *Connection) doReconnect(ctx context.Context, disconnectStatus Disconnec
 
 // GetClient returns an RPC client that uses DoCommand() for RPC
 // calls, and thus handles throttling, disconnections, etc.
-func (c *Connection) GetClient() keybase1.GenericClient {
+func (c *Connection) GetClient() rpc.GenericClient {
 	return connectionClient{c}
 }
 
@@ -461,10 +460,10 @@ type connectionClient struct {
 	conn *Connection
 }
 
-var _ keybase1.GenericClient = connectionClient{}
+var _ rpc.GenericClient = connectionClient{}
 
 func (c connectionClient) Call(ctx context.Context, s string, args interface{}, res interface{}) error {
-	return c.conn.DoCommand(ctx, func(rawClient keybase1.GenericClient) error {
+	return c.conn.DoCommand(ctx, func(rawClient rpc.GenericClient) error {
 		tags, ok := logger.LogTagsFromContext(ctx)
 		if ok {
 			rpcTags := make(rpc.CtxRpcTags)
@@ -480,7 +479,7 @@ func (c connectionClient) Call(ctx context.Context, s string, args interface{}, 
 }
 
 func (c connectionClient) Notify(ctx context.Context, s string, args interface{}) error {
-	return c.conn.DoCommand(ctx, func(rawClient keybase1.GenericClient) error {
+	return c.conn.DoCommand(ctx, func(rawClient rpc.GenericClient) error {
 		rawClient.Notify(ctx, s, args)
 		return nil
 	})

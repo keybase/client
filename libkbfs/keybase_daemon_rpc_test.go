@@ -8,6 +8,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
@@ -17,7 +18,7 @@ type blockingClient struct {
 	ctlChan chan struct{}
 }
 
-var _ keybase1.GenericClient = blockingClient{}
+var _ rpc.GenericClient = blockingClient{}
 
 func (b blockingClient) Call(ctx context.Context, s string, args interface{},
 	res interface{}) error {
@@ -71,7 +72,7 @@ type fakeKeybaseClient struct {
 	loadUserPlusKeysCalled bool
 }
 
-var _ keybase1.GenericClient = (*fakeKeybaseClient)(nil)
+var _ rpc.GenericClient = (*fakeKeybaseClient)(nil)
 
 func (c *fakeKeybaseClient) Call(ctx context.Context, s string, args interface{},
 	res interface{}) error {

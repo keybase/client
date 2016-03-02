@@ -67,6 +67,7 @@ func (n NullConfiguration) GetUpdateLastChecked() keybase1.Time           { retu
 func (n NullConfiguration) GetUpdatePreferenceSkip() string               { return "" }
 func (n NullConfiguration) GetVDebugSetting() string                      { return "" }
 func (n NullConfiguration) GetLocalTrackMaxAge() (time.Duration, bool)    { return 0, false }
+func (n NullConfiguration) GetAppStartMode() AppStartMode                 { return AppStartModeDisabled }
 
 func (n NullConfiguration) GetUserConfig() (*UserConfig, error) { return nil, nil }
 func (n NullConfiguration) GetUserConfigForUsername(s NormalizedUsername) (*UserConfig, error) {
@@ -900,4 +901,24 @@ func (e *Env) GetVDebugSetting() string {
 
 func (e *Env) GetRunModeAsString() string {
 	return string(e.GetRunMode())
+}
+
+func (e *Env) GetMountDir() string {
+	switch e.GetRunMode() {
+	case DevelRunMode:
+		return "/keybase.devel"
+
+	case StagingRunMode:
+		return "/keybase.staging"
+
+	case ProductionRunMode:
+		return "/keybase"
+
+	default:
+		panic("Invalid run mode")
+	}
+}
+
+func (e *Env) GetAppStartMode() AppStartMode {
+	return e.config.GetAppStartMode()
 }

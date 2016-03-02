@@ -4,7 +4,7 @@
 package libkb
 
 // Version is the current version (should be MAJOR.MINOR.PATCH)
-const Version = "1.0.13"
+const Version = "1.0.14"
 
 // DefaultBuild is the current build number
-const DefaultBuild = "0"
+const DefaultBuild = "1"

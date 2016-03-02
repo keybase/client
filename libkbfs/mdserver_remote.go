@@ -83,7 +83,7 @@ func NewMDServerRemote(config Config, srvAddr string) *MDServerRemote {
 
 // OnConnect implements the ConnectionHandler interface.
 func (md *MDServerRemote) OnConnect(ctx context.Context,
-	conn *Connection, client keybase1.GenericClient,
+	conn *Connection, client rpc.GenericClient,
 	server *rpc.Server) error {
 
 	md.log.Debug("MDServerRemote: OnConnect called with a new connection")
@@ -439,7 +439,7 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id TlfID,
 
 	// register
 	var c chan error
-	err := md.conn.DoCommand(ctx, func(rawClient keybase1.GenericClient) error {
+	err := md.conn.DoCommand(ctx, func(rawClient rpc.GenericClient) error {
 		// set up the server to receive updates, since we may
 		// get disconnected between retries.
 		server := md.conn.GetServer()

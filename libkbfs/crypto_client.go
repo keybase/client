@@ -36,7 +36,7 @@ func NewCryptoClient(config Config, kbCtx *libkb.GlobalContext, log logger.Logge
 }
 
 // newCryptoClientWithClient should only be used for testing.
-func newCryptoClientWithClient(codec Codec, client keybase1.GenericClient,
+func newCryptoClientWithClient(codec Codec, client rpc.GenericClient,
 	log logger.Logger) *CryptoClient {
 	return &CryptoClient{
 		CryptoCommon: CryptoCommon{
@@ -49,7 +49,7 @@ func newCryptoClientWithClient(codec Codec, client keybase1.GenericClient,
 
 // OnConnect implements the ConnectionHandler interface.
 func (c *CryptoClient) OnConnect(ctx context.Context,
-	conn *Connection, _ keybase1.GenericClient,
+	conn *Connection, _ rpc.GenericClient,
 	server *rpc.Server) error {
 	return nil
 }

@@ -145,38 +145,38 @@
 		},
 		{
 			"path": "github.com/keybase/client/go/auth",
-			"revision": "30bebf0c2302a7fda1b6a5edd9347e27e5c4dc77",
-			"revisionTime": "2016-02-16T14:56:44-08:00"
+			"revision": "1db65e2acacadc636e057c281971d3e9a43838e2",
+			"revisionTime": "2016-03-01T15:02:20-08:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/encoding/basex",
-			"revision": "30bebf0c2302a7fda1b6a5edd9347e27e5c4dc77",
-			"revisionTime": "2016-02-16T14:56:44-08:00"
+			"revision": "1db65e2acacadc636e057c281971d3e9a43838e2",
+			"revisionTime": "2016-03-01T15:02:20-08:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/kex2",
-			"revision": "30bebf0c2302a7fda1b6a5edd9347e27e5c4dc77",
-			"revisionTime": "2016-02-16T14:56:44-08:00"
+			"revision": "1db65e2acacadc636e057c281971d3e9a43838e2",
+			"revisionTime": "2016-03-01T15:02:20-08:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/libkb",
-			"revision": "30bebf0c2302a7fda1b6a5edd9347e27e5c4dc77",
-			"revisionTime": "2016-02-16T14:56:44-08:00"
+			"revision": "1db65e2acacadc636e057c281971d3e9a43838e2",
+			"revisionTime": "2016-03-01T15:02:20-08:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/logger",
-			"revision": "30bebf0c2302a7fda1b6a5edd9347e27e5c4dc77",
-			"revisionTime": "2016-02-16T14:56:44-08:00"
+			"revision": "1db65e2acacadc636e057c281971d3e9a43838e2",
+			"revisionTime": "2016-03-01T15:02:20-08:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/protocol",
-			"revision": "30bebf0c2302a7fda1b6a5edd9347e27e5c4dc77",
-			"revisionTime": "2016-02-16T14:56:44-08:00"
+			"revision": "1db65e2acacadc636e057c281971d3e9a43838e2",
+			"revisionTime": "2016-03-01T15:02:20-08:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/saltpack",
-			"revision": "30bebf0c2302a7fda1b6a5edd9347e27e5c4dc77",
-			"revisionTime": "2016-02-16T14:56:44-08:00"
+			"revision": "1db65e2acacadc636e057c281971d3e9a43838e2",
+			"revisionTime": "2016-03-01T15:02:20-08:00"
 		},
 		{
 			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-crypto/openpgp",
@@ -229,8 +229,8 @@
 		{
 			"origin": "github.com/keybase/kbfs/vendor/github.com/keybase/go-framed-msgpack-rpc",
 			"path": "github.com/keybase/go-framed-msgpack-rpc",
-			"revision": "4b3f93d2c091ad2964a6bffa346cc29b1e88d944",
-			"revisionTime": "2016-02-03T22:31:06-08:00"
+			"revision": "1a388e533c8cd1e2eb4dc9dc70d6b70fb7cfb1a6",
+			"revisionTime": "2016-03-01T09:50:31-08:00"
 		},
 		{
 			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-jsonw",

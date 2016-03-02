@@ -8,8 +8,8 @@ import (
 	"encoding/binary"
 	"encoding/hex"
 	"fmt"
-	"strings"
 	"strconv"
+	"strings"
 	"time"
 
 	jsonw "github.com/keybase/go-jsonw"

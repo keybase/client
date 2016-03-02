@@ -387,3 +387,11 @@ func (t *TestLoginUI) DisplayPaperKeyPhrase(_ context.Context, arg keybase1.Disp
 func (t *TestLoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayPrimaryPaperKeyArg) error {
 	return nil
 }
+
+type TestLoginCancelUI struct {
+	TestLoginUI
+}
+
+func (t *TestLoginCancelUI) GetEmailOrUsername(_ context.Context, _ int) (string, error) {
+	return "", InputCanceledError{}
+}

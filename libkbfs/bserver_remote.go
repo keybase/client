@@ -76,7 +76,7 @@ func (b *BlockServerRemote) RemoteAddress() string {
 
 // OnConnect implements the ConnectionHandler interface.
 func (b *BlockServerRemote) OnConnect(ctx context.Context,
-	_ *Connection, client keybase1.GenericClient, _ *rpc.Server) error {
+	_ *Connection, client rpc.GenericClient, _ *rpc.Server) error {
 	// reset auth -- using b.client here would cause problematic recursion.
 	c := keybase1.BlockClient{Cli: cancelableClient{client}}
 	return b.resetAuth(ctx, c)

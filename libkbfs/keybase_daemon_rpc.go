@@ -66,7 +66,7 @@ func NewKeybaseDaemonRPC(config Config, kbCtx *libkb.GlobalContext, log logger.L
 }
 
 // For testing.
-func newKeybaseDaemonRPCWithClient(kbCtx *libkb.GlobalContext, client keybase1.GenericClient,
+func newKeybaseDaemonRPCWithClient(kbCtx *libkb.GlobalContext, client rpc.GenericClient,
 	log logger.Logger) *KeybaseDaemonRPC {
 	k := newKeybaseDaemonRPC(kbCtx, log)
 	k.fillClients(client)
@@ -82,7 +82,7 @@ func newKeybaseDaemonRPC(kbCtx *libkb.GlobalContext, log logger.Logger) *Keybase
 	return &k
 }
 
-func (k *KeybaseDaemonRPC) fillClients(client keybase1.GenericClient) {
+func (k *KeybaseDaemonRPC) fillClients(client rpc.GenericClient) {
 	k.identifyClient = keybase1.IdentifyClient{Cli: client}
 	k.userClient = keybase1.UserClient{Cli: client}
 	k.sessionClient = keybase1.SessionClient{Cli: client}
@@ -294,7 +294,7 @@ func (d daemonIdentifyUI) Finish(ctx context.Context, sessionID int) error {
 
 // OnConnect implements the ConnectionHandler interface.
 func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
-	conn *Connection, rawClient keybase1.GenericClient,
+	conn *Connection, rawClient rpc.GenericClient,
 	server *rpc.Server) error {
 	protocols := []rpc.Protocol{
 		keybase1.LogUiProtocol(daemonLogUI{k.daemonLog}),

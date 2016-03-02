@@ -390,3 +390,10 @@ const DesktopLogFileName = "Keybase.app.log"
 const (
 	PGPAssertionKey = "pgp"
 )
+
+type AppStartMode string
+
+const (
+	AppStartModeDisabled AppStartMode = ""
+	AppStartModeService  AppStartMode = "service" // Open app after service start
+)

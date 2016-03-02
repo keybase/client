@@ -22,7 +22,7 @@ type unitTester struct {
 }
 
 // OnConnect implements the ConnectionHandler interface.
-func (ut *unitTester) OnConnect(context.Context, *Connection, keybase1.GenericClient, *rpc.Server) error {
+func (ut *unitTester) OnConnect(context.Context, *Connection, rpc.GenericClient, *rpc.Server) error {
 	ut.numConnects++
 	return nil
 }
@@ -128,7 +128,7 @@ func TestReconnectCanceled(t *testing.T) {
 	defer conn.Shutdown()
 	// Test that any command fails with the expected error.
 	err := conn.DoCommand(context.Background(),
-		func(keybase1.GenericClient) error { return nil })
+		func(rpc.GenericClient) error { return nil })
 	if err != cancelErr {
 		t.Fatalf("Error wasn't InputCanceled: %v", err)
 	}
@@ -193,7 +193,7 @@ func TestDoCommandThrottle(t *testing.T) {
 
 	throttle := true
 	ctx := context.Background()
-	err := conn.DoCommand(ctx, func(keybase1.GenericClient) error {
+	err := conn.DoCommand(ctx, func(rpc.GenericClient) error {
 		if throttle {
 			throttle = false
 			err, _ := conn.errorUnwrapper.UnwrapError(libkb.WrapError(throttleError{Err: throttleErr}))
