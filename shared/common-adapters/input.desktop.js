@@ -3,9 +3,7 @@ import React, {Component} from 'react'
 import {TextField} from 'material-ui'
 import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide'
 import materialTheme from '../styles/material-theme.desktop'
-
-import InputOld from './input.old.desktop'
-
+import {styles as TextStyles} from './text'
 import type {Props} from './input'
 
 export default class Input extends Component {

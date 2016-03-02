@@ -9,7 +9,6 @@ export type Props = {
   type: 'Primary' | 'Secondary' | 'Danger' | 'Follow' | 'Following' | 'Unfollow',
   disabled?: ?bool,
   small?: ?bool,
-  dz2?: boolean, // Use DZ2 styling?
   fullWidth?: ?bool
 }
 

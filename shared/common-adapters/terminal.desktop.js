@@ -14,7 +14,7 @@ export default class Terminal extends Component {
   }
 
   render () {
-    const style = {...styles.container, ...(this.props.dz2 ? styles.DZ2 : {})}
+    const style = {...styles.container, ...styles.DZ2}
     return (
       <div style={{...style, ...this.props.style}}>
         {this.props.children}
@@ -28,8 +28,7 @@ Terminal.childContextTypes = {
 }
 
 Terminal.propTypes = {
-  style: React.PropTypes.object,
-  dz2: React.PropTypes.bool
+  style: React.PropTypes.object
 }
 
 const styles = {

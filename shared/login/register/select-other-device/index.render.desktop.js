@@ -10,7 +10,7 @@ const Row = ({id, name, type, onSelect}) => {
   return (
     <div style={styles.row} onClick={e => onSelect(id)}>
       <Icon style={styles.icon} type={iconType}/>
-      <Text dz2 type='Body' onClick={e => onSelect(id)}>{name}</Text>
+      <Text type='Body' onClick={e => onSelect(id)}>{name}</Text>
     </div>)
 }
 

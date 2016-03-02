@@ -34,7 +34,7 @@ export default class Checkbox extends Component {
         <div style={boxStyle}>
           <Icon type='fa-check' style={{...styles.icon, ...(this.props.checked ? {} : {opacity: 0})}} />
         </div>
-        <Text dz2 type='Body' small style={{color: this.props.checked ? globalColorsDZ2.black75 : globalColorsDZ2.black40}}>{this.props.label}</Text>
+        <Text type='Body' small style={{color: this.props.checked ? globalColorsDZ2.black75 : globalColorsDZ2.black40}}>{this.props.label}</Text>
       </div>
     )
   }
@@ -45,7 +45,6 @@ Checkbox.propTypes = {
   onCheck: React.PropTypes.func.isRequired,
   checked: React.PropTypes.bool.isRequired,
   style: React.PropTypes.object,
-  dz2: React.PropTypes.bool,
   disabled: React.PropTypes.bool
 }
 

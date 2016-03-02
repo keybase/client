@@ -8,7 +8,6 @@ export type Context = {
 
 export type Props = {
   style?: Object,
-  dz2?: boolean,
   children?: React$Element
 }
 

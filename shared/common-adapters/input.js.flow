@@ -16,8 +16,7 @@ export type Props = {
   type?: 'password' | 'text',
   value?: string,
   small?: bool,
-  errorStyle?: Object,
-  dz2?: bool
+  errorStyle?: Object
 }
 
 declare export default class Input extends React.Component {
