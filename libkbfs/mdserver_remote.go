@@ -25,6 +25,9 @@ const (
 	// waits between runs.  The timer gets reset to this period after
 	// every incoming FolderNeedsRekey RPC.
 	MdServerBackgroundRekeyPeriod = 1 * time.Hour
+	// MdServerDefaultPingIntervalSeconds is the default interval on which the
+	// client should contact the MD Server
+	MdServerDefaultPingIntervalSeconds = 10
 )
 
 // MDServerRemote is an implementation of the MDServer interface.
@@ -101,6 +104,7 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 	if err != nil {
 		return err
 	} else if pingIntervalSeconds == -1 {
+		md.resetPingTicker(MdServerDefaultPingIntervalSeconds)
 		return nil
 	}
 
