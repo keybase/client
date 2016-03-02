@@ -12,7 +12,7 @@ export default class BackButton extends Component {
     return (
       <div style={{...styles.container, ...this.props.style}} onClick={this.props.onClick}>
         <Icon type='fa-arrow-left' style={styles.icon}/>
-        <Text inline type='Body' onClick={() => this.props.onClick()}>Back</Text>
+        <Text dz2 type='BodyPrimaryLink' onClick={() => this.props.onClick()}>Back</Text>
       </div>
     )
   }
@@ -30,7 +30,8 @@ export const styles = {
     alignItems: 'center'
   },
   icon: {
-    marginRight: 10
+    fontSize: 12,
+    marginRight: 8
   }
 }
 

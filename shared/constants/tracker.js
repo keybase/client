@@ -25,6 +25,7 @@ export const markActiveIdentifyUi = 'tracker:markActive'
 export const updateUsername = 'tracker:updateUsername'
 export const updateUserInfo = 'tracker:updateUserInfo'
 export const updateReason = 'tracker:updateReason'
+export const updateEldestKidChanged = 'tracker:updateEldestKidChanged'
 
 export const setProofs = 'tracker:setProofs'
 export const updateProof = 'tracker:updateProof'

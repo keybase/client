@@ -179,12 +179,24 @@ export type ExtendedStatus = {
   platformInfo: PlatformInfo;
 }
 
+export type FSErrorType =
+    0 // ACCESS_DENIED_0
+  | 1 // USER_NOT_FOUND_1
+  | 2 // REVOKED_DATA_DETECTED_2
+  | 3 // NOT_LOGGED_IN_3
+  | 4 // TIMEOUT_4
+  | 5 // REKEY_NEEDED_5
+  | 6 // BAD_FOLDER_6
+  | 7 // NOT_IMPLEMENTED_7
+
 export type FSNotification = {
   publicTopLevelFolder: boolean;
   filename: string;
   status: string;
   statusCode: FSStatusCode;
   notificationType: FSNotificationType;
+  errorType: FSErrorType;
+  params: {string: string};
 }
 
 export type FSNotificationType =

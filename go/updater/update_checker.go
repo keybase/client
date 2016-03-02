@@ -13,15 +13,15 @@ import (
 
 type UpdateChecker struct {
 	updater *Updater
-	ui      UI
+	ctx     Context
 	ticker  *time.Ticker
 	log     logger.Logger
 }
 
-func NewUpdateChecker(updater *Updater, ui UI, log logger.Logger) UpdateChecker {
+func NewUpdateChecker(updater *Updater, ctx Context, log logger.Logger) UpdateChecker {
 	return UpdateChecker{
 		updater: updater,
-		ui:      ui,
+		ctx:     ctx,
 		log:     log,
 	}
 }
@@ -40,7 +40,7 @@ func (u *UpdateChecker) Check(force bool, requested bool) error {
 	}
 
 	checkTime := time.Now()
-	_, err := u.updater.Update(u.ui, force, requested)
+	_, err := u.updater.Update(u.ctx, force, requested)
 	if err != nil {
 		return err
 	}

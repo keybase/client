@@ -582,6 +582,16 @@ export const kbfs = {
     'verifying': 3,
     'rekeying': 4,
     'connection': 5
+  },
+  'FSErrorType': {
+    'accessDenied': 0,
+    'userNotFound': 1,
+    'revokedDataDetected': 2,
+    'notLoggedIn': 3,
+    'timeout': 4,
+    'rekeyNeeded': 5,
+    'badFolder': 6,
+    'notImplemented': 7
   }
 }
 
@@ -792,6 +802,16 @@ export const NotifyFS = {
     'verifying': 3,
     'rekeying': 4,
     'connection': 5
+  },
+  'FSErrorType': {
+    'accessDenied': 0,
+    'userNotFound': 1,
+    'revokedDataDetected': 2,
+    'notLoggedIn': 3,
+    'timeout': 4,
+    'rekeyNeeded': 5,
+    'badFolder': 6,
+    'notImplemented': 7
   }
 }
 

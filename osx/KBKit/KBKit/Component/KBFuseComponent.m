@@ -149,6 +149,7 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
         return;
       }
 
+      DDLogInfo(@"Fuse install is OK");
       completion(nil);
     }
   }];
@@ -184,8 +185,22 @@ typedef void (^KBOnFuseStatus)(NSError *error, KBRFuseStatus *fuseStatus);
 
 // Check if we need to do a fix instead of a full install
 - (BOOL)needsFix {
+  return [self missingSymlink] || [self invalidLoadPermissions];
+}
+
+- (BOOL)missingSymlink {
   // Check if missing 10.11 symlink in extensions directory
   return [NSFileManager.defaultManager fileExistsAtPath:self.destination] && ![NSFileManager.defaultManager attributesOfItemAtPath:[self.destination stringByAppendingPathComponent:@"Contents/Extensions/10.11"] error:nil];
+}
+
+- (BOOL)invalidLoadPermissions {
+  // A user reported an issue and the cause was invalid permissions on load script. This double checks the permissions.
+  NSString *path = [NSString stringWithFormat:@"%@/Contents/Resources/load_kbfuse", self.destination];
+  NSDictionary *fileAttributes = [NSFileManager.defaultManager attributesOfItemAtPath:path error:nil];
+  if (!fileAttributes) return YES;
+  NSNumber *loadPermissions = fileAttributes[NSFilePosixPermissions];
+  DDLogDebug(@"Load permissions: %@", loadPermissions);
+  return ![loadPermissions isEqual:[NSNumber numberWithShort:04755]];
 }
 
 - (void)fix:(KBCompletion)completion {

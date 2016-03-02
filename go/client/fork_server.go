@@ -96,7 +96,7 @@ func makeServerCommandLine(cl libkb.CommandLine, forkType keybase1.ForkType) (ar
 	// we should automate the reconstruction of the argument vector.  Let's do
 	// this when we yank out keybase/cli
 	bools := []string{
-		"debug",
+		"no-debug",
 		"api-dump-unsafe",
 		"plain-logging",
 	}
@@ -122,6 +122,11 @@ func makeServerCommandLine(cl libkb.CommandLine, forkType keybase1.ForkType) (ar
 		"tor-hidden-address",
 	}
 	args = append(args, arg0)
+
+	// Always pass --debug to the server for more verbose logging, as other
+	// startup mechanisms do (launchd, run_keybase, etc). This can be
+	// overridden with --no-debug though.
+	args = append(args, "--debug")
 
 	for _, b := range bools {
 		if isSet, isTrue := cl.GetBool(b, true); isSet && isTrue {

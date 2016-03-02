@@ -10,12 +10,14 @@
 
 @interface KBSharedFileList : NSObject
 
-+ (void)findLoginItemForURL:(NSURL *)URL completion:(void (^)(LSSharedFileListRef fileListRef, CFArrayRef itemsRef, LSSharedFileListItemRef itemRef))completion;
++ (void)findLoginItemForURL:(NSURL *)URL completion:(void (^)(LSSharedFileListRef fileListRef, CFArrayRef itemsRef, NSArray */*LSSharedFileListItemRef*/foundItems))completion;
 
 + (BOOL)isEnabledForURL:(NSURL *)URL type:(CFStringRef)type;
 
-+ (BOOL)setEnabled:(BOOL)enabled URL:(NSURL *)URL name:(NSString *)name type:(CFStringRef)type insertAfter:(LSSharedFileListItemRef)insertAfter auth:(BOOL)auth error:(NSError **)error;
++ (BOOL)setEnabled:(BOOL)enabled URL:(NSURL *)URL name:(NSString *)name type:(CFStringRef)type insertAfter:(LSSharedFileListItemRef)insertAfter error:(NSError **)error;
 
-//+ (BOOL)addVolumeFavoriteWithURL:(NSURL *)URL name:(NSString *)name;
++ (NSArray *)itemsForType:(CFStringRef)type;
+
++ (NSArray *)debugItemsForType:(CFStringRef)type;
 
 @end

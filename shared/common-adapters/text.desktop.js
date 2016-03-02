@@ -68,6 +68,7 @@ export default class Text extends Component {
       'HeaderJumbo': styles.textHeaderJumbo,
       'HeaderBig': styles.textHeaderBig,
       'Header': styles.textHeader,
+      'HeaderError': {...styles.textHeader, color: globalColorsDZ2.red},
       'BodySemibold': styles.textBodySemibold,
       'Body': styles.textBody,
       'BodyPrimaryLink': styles.textBody,
@@ -175,6 +176,16 @@ const headerStyles = {
   }
 }
 
+export const specialStyles = {
+  textInput: {
+    ...textCommon,
+    ...globalStyles.DZ2.fontSemibold,
+    fontSize: 24,
+    lineHeight: '29px',
+    letterSpacing: '0.3px'
+  }
+}
+
 export const styles = {
   ...headerStyles,
   textBody: {
@@ -237,6 +248,7 @@ export const styles = {
   textTerminalInline: {
     backgroundColor: globalColorsDZ2.blue4,
     wordWrap: 'break-word',
+    padding: 2,
     display: 'inline'
   },
   textSmallMixin: {

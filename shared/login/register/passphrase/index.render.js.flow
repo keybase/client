@@ -1,0 +1,9 @@
+/* @flow */
+import React, {Component} from 'react'
+
+export type Props = {
+  onSubmit: (passphrase: string) => void,
+  onBack: () => void
+}
+
+export default class PaperKey extends React$Component<void, Props, void> { }

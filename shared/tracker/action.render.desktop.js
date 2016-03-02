@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import {FlatButton} from 'material-ui'
 import {Button, Text, Icon} from '../common-adapters'
 import commonStyles from '../styles/common'
-import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide'
+import {globalStyles, globalColorsDZ2} from '../styles/style-guide'
 import {normal, checking, warning} from '../constants/tracker'
 import flags from '../util/feature-flags'
 

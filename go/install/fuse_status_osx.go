@@ -1,20 +1,26 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
 // +build darwin
 
-package client
+package install
 
 import (
 	"fmt"
+	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"regexp"
 	"strings"
 
-	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/go-kext"
 )
 
-func KeybaseFuseStatus(g *libkb.GlobalContext, bundleVersion string) keybase1.FuseStatus {
+func KeybaseFuseStatus(bundleVersion string, log logger.Logger) keybase1.FuseStatus {
 	st := keybase1.FuseStatus{
 		BundleVersion: bundleVersion,
 		InstallStatus: keybase1.InstallStatus_UNKNOWN,
@@ -60,14 +66,14 @@ func KeybaseFuseStatus(g *libkb.GlobalContext, bundleVersion string) keybase1.Fu
 	// Try to get mount info, it's non-critical if we fail though.
 	mountInfos, err := mountInfo("kbfuse")
 	if err != nil {
-		g.Log.Errorf("Error trying to read mount info: %s", err)
+		log.Errorf("Error trying to read mount info: %s", err)
 	}
 	st.MountInfos = mountInfos
 
 	st.Version = kextInfo.Version
 	st.KextStarted = kextInfo.Started
 
-	installStatus, installAction, status := install.ResolveInstallStatus(st.Version, st.BundleVersion, "")
+	installStatus, installAction, status := ResolveInstallStatus(st.Version, st.BundleVersion, "")
 	st.InstallStatus = installStatus
 	st.InstallAction = installAction
 	st.Status = status
@@ -98,4 +104,38 @@ func mountInfo(fstype string) ([]keybase1.FuseMountInfo, error) {
 		})
 	}
 	return mountInfos, nil
+}
+
+func KeybaseFuseStatusForAppBundle(appPath string, log logger.Logger) (keybase1.FuseStatus, error) {
+	bundleVersion, err := fuseBundleVersion(appPath)
+	if err != nil {
+		return keybase1.FuseStatus{}, err
+	}
+	fuseStatus := KeybaseFuseStatus(bundleVersion, log)
+	return fuseStatus, err
+}
+
+func fuseBundleVersion(appPath string) (string, error) {
+	plistPath := filepath.Join(appPath, "Contents/Resources/KeybaseInstaller.app/Contents/Info.plist")
+
+	if _, err := os.Stat(plistPath); os.IsNotExist(err) {
+		return "", nil
+	}
+
+	f, err := os.Open(plistPath)
+	if err != nil {
+		return "", err
+	}
+	data, err := ioutil.ReadAll(f)
+	if err != nil {
+		return "", err
+	}
+
+	// Hack to parse plist
+	re := regexp.MustCompile(`<key>KBFuseVersion<\/key>\s*<string>(\S+)<\/string>`)
+	submatch := re.FindStringSubmatch(string(data))
+	if len(submatch) == 2 {
+		return submatch[1], nil
+	}
+	return "", nil
 }

@@ -1,8 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-
-import Dropdown, {MenuItem} from '../../common-adapters/dropdown'
-import {Text} from '../../common-adapters'
+import Dropdown from '../../common-adapters/dropdown'
 
 export default class DropdownDemo extends Component {
   state: any;

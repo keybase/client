@@ -31,10 +31,6 @@ func GetCurrentStatus(g *GlobalContext) (res CurrentStatus, err error) {
 		res.User = NewUserThin(cr.GetUsername().String(), uid)
 	}
 	res.SessionIsValid, err = g.LoginState().LoggedInProvisionedLoad()
-	if err == nil {
-		if pps, err := g.LoginState().PassphraseStream(); err == nil {
-			res.LoggedIn = res.SessionIsValid && (pps != nil)
-		}
-	}
+	res.LoggedIn = res.SessionIsValid
 	return
 }

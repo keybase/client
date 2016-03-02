@@ -16,11 +16,24 @@ protocol kbfsCommon {
     CONNECTION_5
   }
 
+  enum FSErrorType {
+    ACCESS_DENIED_0,
+    USER_NOT_FOUND_1,
+    REVOKED_DATA_DETECTED_2,
+    NOT_LOGGED_IN_3,
+    TIMEOUT_4,
+    REKEY_NEEDED_5,
+    BAD_FOLDER_6,
+    NOT_IMPLEMENTED_7
+  }
+
   record FSNotification {
     boolean publicTopLevelFolder;
     string filename;
     string status;
     FSStatusCode statusCode;
     FSNotificationType notificationType;
+    FSErrorType errorType;
+    map<string> params;
   }
 }

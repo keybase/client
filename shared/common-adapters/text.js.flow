@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 
 export type Background = 'Normal' | 'Announcements' | 'Success' | 'Information' | 'HighRisk' | 'Documentation' | 'Terminal'
 export type Props = {
-  type: 'HeaderJumbo' | 'HeaderBig' | 'Header'
+  type: 'HeaderJumbo' | 'HeaderBig' | 'Header' | 'HeaderError'
           | 'Body' | 'BodySemibold' | 'BodySmall' | 'BodySmallSemibold' | 'BodyPrimaryLink' | 'BodySecondaryLink'
           | 'Error'
           | 'Terminal'
@@ -28,5 +28,6 @@ declare export default class Text extends React.Component {
 }
 
 declare export var styles: Object
+declare export var specialStyles: Object
 
 declare function lineClamp (lines: number): Object

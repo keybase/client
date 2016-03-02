@@ -12,7 +12,7 @@ import setNotifications from '../util/set-notifications'
 import type {CallMap} from '../engine/call-map-middleware'
 import type {State as RootTrackerState} from '../reducers/tracker'
 import type {ConfigState} from '../reducers/config'
-import type {AsyncAction, Action, Dispatch} from '../constants/types/flux'
+import type {Action, Dispatch} from '../constants/types/flux'
 
 import type {RemoteProof, LinkCheckResult, TrackOptions, UserCard, delegateUiCtl_registerIdentifyUI_rpc,
   track_checkTracking_rpc, track_untrack_rpc, track_trackWithToken_rpc, incomingCallMapType} from '../constants/types/flow-types'
@@ -372,6 +372,9 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
       const username = sessionIDToUsername[sessionID]
 
       if (key.breaksTracking) {
+        dispatch({type: Constants.updateEldestKidChanged, payload: {username}})
+        dispatch({type: Constants.updateReason, payload: {username, reason: `${username} has reset their account!`}})
+        dispatch({type: Constants.updateProofState, payload: {username}})
         dispatch({type: Constants.showTracker, payload: {username}})
       }
     },
