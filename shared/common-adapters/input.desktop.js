@@ -134,7 +134,7 @@ export const styles = {
   },
   errorStyle: {
     ...globalStyles.DZ2.fontRegular,
-    color: globalColors.highRiskWarning,
+    color: globalColorsDZ2.red,
     alignSelf: 'center',
     fontSize: 13,
     lineHeight: '17px',
