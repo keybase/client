@@ -20,20 +20,21 @@ export default class Avatar extends Component {
   }
 
   render () {
+    const width = this.props.size
+    const height = this.props.size
+
     return (
-      <div style={{position: 'relative'}}>
+      <div style={{position: 'relative', width, height, ...this.props.style}}>
         <div
           style={{...avatarStyle(this.props.size),
             backgroundImage: `url('${noAvatar}')`,
-            backgroundSize: 'cover',
-            ...this.props.style
+            backgroundSize: 'cover'
           }}/>
         <img
           src={this.props.url}
           style={{...avatarStyle(this.props.size),
             display: this.state.avatarLoaded ? 'block' : 'none',
-            backgroundColor: globalColorsDZ2.white,
-            ...this.props.style
+            backgroundColor: globalColorsDZ2.white
           }}
           onLoad={() => this.setState({avatarLoaded: true})}/>
       </div>
