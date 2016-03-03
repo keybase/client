@@ -198,7 +198,7 @@ func (v *CmdUpdateRunLocal) GetUpdateUI() (libkb.UpdateUI, error) {
 	return v.G().UI.GetUpdateUI(), nil
 }
 
-func (v *CmdUpdateRunLocal) AfterUpdateApply() error {
+func (v *CmdUpdateRunLocal) AfterUpdateApply(willRestart bool) error {
 	return nil
 }
 

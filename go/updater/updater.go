@@ -36,7 +36,7 @@ type Updater struct {
 
 type Context interface {
 	GetUpdateUI() (libkb.UpdateUI, error)
-	AfterUpdateApply() error
+	AfterUpdateApply(willRestart bool) error
 }
 
 type Config interface {
@@ -442,12 +442,17 @@ func (u *Updater) update(ctx Context, force bool, requested bool) (update *keyba
 		return
 	}
 
-	err = ctx.AfterUpdateApply()
+	updateQuitResponse, err := u.checkRestart(ctx)
 	if err != nil {
 		return
 	}
 
-	_, err = u.restart(ctx)
+	err = ctx.AfterUpdateApply(updateQuitResponse.Quit)
+	if err != nil {
+		return
+	}
+
+	_, err = u.restart(ctx, updateQuitResponse)
 
 	if update.Asset != nil {
 		u.cleanup([]string{unzipDestination(update.Asset.LocalPath), update.Asset.LocalPath})
@@ -610,7 +615,7 @@ func (u *Updater) checkInUse(ctx Context, update keybase1.Update) error {
 	return nil
 }
 
-func (u *Updater) restart(ctx Context) (didQuit bool, err error) {
+func (u *Updater) checkRestart(ctx Context) (updateQuitResponse keybase1.UpdateQuitRes, err error) {
 	if ctx == nil {
 		err = libkb.NoUIError{Which: "Update"}
 		return
@@ -622,16 +627,18 @@ func (u *Updater) restart(ctx Context) (didQuit bool, err error) {
 	if err != nil {
 		return
 	}
-	updateQuitResponse, err := updateUI.UpdateQuit(context.TODO())
+	updateQuitResponse, err = updateUI.UpdateQuit(context.TODO())
 	if err != nil {
 		return
 	}
 
 	if !updateQuitResponse.Quit {
 		u.log.Warning("App quit (for restart) was canceled or unsupported after update")
-		return
 	}
+	return
+}
 
+func (u *Updater) restart(ctx Context, updateQuitResponse keybase1.UpdateQuitRes) (didQuit bool, err error) {
 	if updateQuitResponse.Pid == 0 {
 		err = fmt.Errorf("Invalid PID: %d", updateQuitResponse.Pid)
 		return

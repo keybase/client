@@ -74,8 +74,8 @@ func (u UpdaterContext) GetUpdateUI() (libkb.UpdateUI, error) {
 	return u.ctx.GetUpdateUI()
 }
 
-func (u UpdaterContext) AfterUpdateApply() error {
-	return u.engine.AfterUpdateApply()
+func (u UpdaterContext) AfterUpdateApply(willRestart bool) error {
+	return u.engine.AfterUpdateApply(willRestart)
 }
 
 func NewDefaultUpdater(g *libkb.GlobalContext) *updater.Updater {

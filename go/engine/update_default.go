@@ -5,6 +5,6 @@
 
 package engine
 
-func (u *UpdateEngine) AfterUpdateApply() error {
+func (u *UpdateEngine) AfterUpdateApply(willRestart bool) error {
 	return nil
 }

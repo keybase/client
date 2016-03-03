@@ -398,6 +398,6 @@ func (d *Service) GetUpdateUI() (libkb.UpdateUI, error) {
 	return d.G().UIRouter.GetUpdateUI()
 }
 
-func (d *Service) AfterUpdateApply() error {
+func (d *Service) AfterUpdateApply(willRestart bool) error {
 	return nil
 }
