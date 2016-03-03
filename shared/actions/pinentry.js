@@ -7,6 +7,7 @@ import type {GUIEntryFeatures, incomingCallMapType, delegateUiCtl_registerSecret
 import type {NewPinentryAction, RegisterPinentryListenerAction} from '../constants/pinentry'
 
 import type {Dispatch, AsyncAction} from '../constants/types/flux'
+import typeof Engine from '../engine'
 import {constants} from '../constants/types/keybase-v1'
 
 const uglySessionIDResponseMapper: {[key: number]: any} = {}
@@ -51,7 +52,7 @@ export function onSubmit (sessionID: number, passphrase: string, features: GUIEn
   }
 }
 
-export function onCancel (sessionID: number): AsyncAction {
+export function onCancel (sessionID: number, engine: Engine): AsyncAction {
   return (dispatch, getState) => {
     dispatch({type: Constants.onCancel, payload: {sessionID}})
     const {seqid} = getState().pinentry.pinentryStates[sessionID]

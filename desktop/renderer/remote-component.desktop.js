@@ -3,6 +3,7 @@ import {remote, ipcRenderer} from 'electron'
 import resolveRoot from '../resolve-root'
 import menuHelper from '../app/menu-helper'
 import hotPath from '../hot-path'
+import engine from '../shared/engine'
 
 const {BrowserWindow} = remote
 
@@ -44,7 +45,7 @@ export default class RemoteComponent extends Component {
 
     this.remoteWindow.on('needProps', () => {
       try {
-        this.remoteWindow.emit('hasProps', {...this.props})
+        this.remoteWindow.emit('hasProps', {...this.props, getEngine: () => engine})
       } catch (_) { }
     })
 

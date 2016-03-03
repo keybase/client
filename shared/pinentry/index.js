@@ -22,8 +22,9 @@ export default connect(
   },
   (dispatch, ownProps) => {
     const {sessionID} = ownProps
+    debugger;
     return {
-      onCancel: () => dispatch(onCancel(sessionID))
+      onCancel: () => dispatch(onCancel(sessionID, ownProps.getEngine()))
     }
   }
 )(Pinentry)
