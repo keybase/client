@@ -4,7 +4,6 @@
 package logger
 
 import (
-	"os"
 	"sync"
 	"testing"
 
@@ -21,11 +20,11 @@ func TestInitLogging(t *testing.T) {
 	// New must be race-free.
 	go func() {
 		defer wg.Done()
-		l1 = New("l1", os.Stderr)
+		l1 = New("l1")
 	}()
 	go func() {
 		defer wg.Done()
-		l2 = New("l2", os.Stderr)
+		l2 = New("l2")
 	}()
 
 	wg.Wait()

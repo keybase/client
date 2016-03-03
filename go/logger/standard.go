@@ -5,14 +5,12 @@ package logger
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"strings"
 	"sync"
 
 	logging "github.com/keybase/go-logging"
-	isatty "github.com/mattn/go-isatty"
 	"golang.org/x/net/context"
 
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -20,12 +18,9 @@ import (
 
 const permDir os.FileMode = 0700
 
-var initLoggingBackendOnce sync.Once
-var logRotateMutex sync.Mutex
-
 // Map from module name to whether SetLevel() has been called for that
 // module.
-var initLoggingSetLevelCalled map[string]bool
+var initLoggingSetLevelCalled = map[string]struct{}{}
 
 // Protects access to initLoggingSetLevelCalled and the actual
 // SetLevel call.
@@ -80,9 +75,7 @@ type Standard struct {
 	filename       string
 	configureMutex sync.Mutex
 	module         string
-	isTerminal     bool
 
-	shutdown        bool
 	externalHandler ExternalHandler
 }
 
@@ -90,53 +83,32 @@ type Standard struct {
 var _ Logger = (*Standard)(nil)
 
 // New creates a new Standard logger for module.
-func New(module string, iow io.Writer) *Standard {
-	return NewWithCallDepth(module, 0, iow)
+func New(module string) *Standard {
+	return NewWithCallDepth(module, 0)
 }
 
 // NewWithCallDepth creates a new Standard logger for module, and when
 // printing file names and line numbers, it goes extraCallDepth up the
 // stack from where logger was invoked.
-func NewWithCallDepth(module string, extraCallDepth int, iow io.Writer) *Standard {
+func NewWithCallDepth(module string, extraCallDepth int) *Standard {
 	log := logging.MustGetLogger(module)
 	log.ExtraCalldepth = 1 + extraCallDepth
 
-	// If iow's implementation has an Fd() method, call it and
-	// check if the underlying file descriptor is a terminal.
-	isTerminal := false
-	if fdOwner, ok := iow.(interface {
-		Fd() uintptr
-	}); ok {
-		isTerminal = isatty.IsTerminal(fdOwner.Fd())
-	}
-
 	ret := &Standard{
-		internal:   log,
-		module:     module,
-		isTerminal: isTerminal,
+		internal: log,
+		module:   module,
 	}
-	ret.initLogging(iow)
+	ret.setLogLevelInfo()
 	return ret
 }
 
-func (log *Standard) initLogging(iow io.Writer) {
-	// Logging is always done to the given io.Writer. It's the
-	// responsibility of the launcher (like launchd on OSX, or the
-	// autoforking code) to set it up to point to the appropriate
-	// log file.
-	initLoggingBackendOnce.Do(func() {
-		logBackend := logging.NewLogBackend(iow, "", 0)
-		logging.SetBackend(logBackend)
-	})
-
+func (log *Standard) setLogLevelInfo() {
 	initLoggingSetLevelMutex.Lock()
 	defer initLoggingSetLevelMutex.Unlock()
-	if initLoggingSetLevelCalled == nil {
-		initLoggingSetLevelCalled = make(map[string]bool)
-	}
-	if !initLoggingSetLevelCalled[log.module] {
+
+	if _, found := initLoggingSetLevelCalled[log.module]; !found {
 		logging.SetLevel(logging.INFO, log.module)
-		initLoggingSetLevelCalled[log.module] = true
+		initLoggingSetLevelCalled[log.module] = struct{}{}
 	}
 }
 
@@ -262,6 +234,10 @@ func (log *Standard) Profile(fmts string, arg ...interface{}) {
 	log.Debug(fmts, arg...)
 }
 
+// Configure sets the style of the log file, whether debugging (verbose)
+// is enabled and a filename. If a filename is provided here it will
+// be used for logging straight away (this is a new feature).
+// SetLogFileConfig provides a way to set the log file with more control on rotation.
 func (log *Standard) Configure(style string, debug bool, filename string) {
 	log.configureMutex.Lock()
 	defer log.configureMutex.Unlock()
@@ -269,7 +245,13 @@ func (log *Standard) Configure(style string, debug bool, filename string) {
 	log.filename = filename
 
 	var logfmt string
-	if log.isTerminal {
+
+	globalLock.Lock()
+	isTerm := stderrIsTerminal
+	globalLock.Unlock()
+
+	// TODO: how should setting the log file after a Configure be handled?
+	if isTerm {
 		if debug {
 			logfmt = fancyFormat
 		} else {
@@ -296,6 +278,7 @@ func (log *Standard) Configure(style string, debug bool, filename string) {
 	}
 
 	logging.SetFormatter(logging.MustStringFormatter(logfmt))
+
 }
 
 func OpenLogFile(filename string) (name string, file *os.File, err error) {

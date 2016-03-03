@@ -83,7 +83,8 @@ func pingLoop(g *libkb.GlobalContext) error {
 	return nil
 }
 
-func makeServerCommandLine(cl libkb.CommandLine, forkType keybase1.ForkType) (arg0 string, args []string, err error) {
+func makeServerCommandLine(g *libkb.GlobalContext, cl libkb.CommandLine,
+	forkType keybase1.ForkType) (arg0 string, args []string, err error) {
 	// ForkExec requires an absolute path to the binary. LookPath() gets this
 	// for us, or correctly leaves arg0 alone if it's already a path.
 	arg0, err = exec.LookPath(os.Args[0])
@@ -138,6 +139,12 @@ func makeServerCommandLine(cl libkb.CommandLine, forkType keybase1.ForkType) (ar
 		if v := cl.GetGString(s); len(v) > 0 {
 			args = append(args, "--"+s, v)
 		}
+	}
+
+	// If there is no explicit log file add one when autoforking.
+	// otherwise it was added in the previous block already.
+	if g.Env.GetLogFile() == "" {
+		args = append(args, "--log-file", g.Env.GetDefaultLogFile())
 	}
 
 	args = append(args, "service")

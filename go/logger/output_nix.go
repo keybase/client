@@ -3,7 +3,7 @@
 
 // +build !windows
 
-package libkb
+package logger
 
 import (
 	"io"

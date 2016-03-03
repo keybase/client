@@ -70,7 +70,7 @@ type GlobalContext struct {
 }
 
 func NewGlobalContext() *GlobalContext {
-	log := logger.New("keybase", ErrorWriter())
+	log := logger.New("keybase")
 	return &GlobalContext{
 		Log:                 log,
 		VDL:                 NewVDebugLog(log),
@@ -162,8 +162,15 @@ func (g *GlobalContext) Logout() error {
 }
 
 func (g *GlobalContext) ConfigureLogging() error {
-	g.Log.Configure(g.Env.GetLogFormat(), g.Env.GetDebug(),
-		g.Env.GetLogFile())
+	style := g.Env.GetLogFormat()
+	debug := g.Env.GetDebug()
+	logFile := g.Env.GetLogFile()
+	if logFile == "" {
+		g.Log.Configure(style, debug, g.Env.GetDefaultLogFile())
+	} else {
+		g.Log.Configure(style, debug, logFile)
+		g.Log.RotateLogFile()
+	}
 	g.Output = os.Stdout
 	g.VDL.Configure(g.Env.GetVDebugSetting())
 	return nil

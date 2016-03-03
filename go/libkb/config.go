@@ -604,9 +604,6 @@ func (f JSONConfigFile) GetProxyCACerts() (ret []string, err error) {
 func (f JSONConfigFile) GetLogFile() string {
 	return f.GetTopLevelString("log_file")
 }
-func (f JSONConfigFile) GetSplitLogOutput() (bool, bool) {
-	return f.GetTopLevelBool("split_log_output")
-}
 
 func (f JSONConfigFile) GetSecurityAccessGroupOverride() (bool, bool) {
 	return false, false
