@@ -139,7 +139,8 @@ export const styles = {
     fontSize: 14,
     lineHeight: '17px',
     position: 'initial',
-    marginTop: 4
+    marginTop: 4,
+    paddingTop: 4
   },
   hintStyle: {
     ...globalStyles.DZ2.fontRegular
