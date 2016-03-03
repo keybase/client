@@ -117,7 +117,7 @@ func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
 	}
 	uplus := kf.UsersPlusKeys()
 	for _, up := range uplus {
-		for _, k := range up.Keys {
+		for _, k := range up.DeviceKeys {
 			gk, err := libkb.ImportKeypairFromKID(k.KID)
 			if err != nil {
 				return err

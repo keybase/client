@@ -49,6 +49,20 @@ type PublicKey struct {
 	ETime             Time          `codec:"eTime" json:"eTime"`
 }
 
+type RevokedKey struct {
+	KID               KID      `codec:"KID" json:"KID"`
+	IsSibkey          bool     `codec:"isSibkey" json:"isSibkey"`
+	IsEldest          bool     `codec:"isEldest" json:"isEldest"`
+	ParentID          string   `codec:"parentID" json:"parentID"`
+	DeviceID          DeviceID `codec:"deviceID" json:"deviceID"`
+	DeviceDescription string   `codec:"deviceDescription" json:"deviceDescription"`
+	DeviceType        string   `codec:"deviceType" json:"deviceType"`
+	CTime             Time     `codec:"cTime" json:"cTime"`
+	ETime             Time     `codec:"eTime" json:"eTime"`
+	RevokedAt         Time     `codec:"revokedAt" json:"revokedAt"`
+	RevokedSeqno      int      `codec:"revokedSeqno" json:"revokedSeqno"`
+}
+
 type User struct {
 	Uid      UID    `codec:"uid" json:"uid"`
 	Username string `codec:"username" json:"username"`
@@ -100,11 +114,12 @@ type UserVersionVector struct {
 }
 
 type UserPlusKeys struct {
-	Uid        UID               `codec:"uid" json:"uid"`
-	Username   string            `codec:"username" json:"username"`
-	DeviceKeys []PublicKey       `codec:"deviceKeys" json:"deviceKeys"`
-	Keys       []PublicKey       `codec:"keys" json:"keys"`
-	Uvv        UserVersionVector `codec:"uvv" json:"uvv"`
+	Uid         UID               `codec:"uid" json:"uid"`
+	Username    string            `codec:"username" json:"username"`
+	DeviceKeys  []PublicKey       `codec:"deviceKeys" json:"deviceKeys"`
+	RevokedKeys []RevokedKey      `codec:"revokedKeys" json:"revokedKeys"`
+	PGPKeyCount int               `codec:"pgpKeyCount" json:"pgpKeyCount"`
+	Uvv         UserVersionVector `codec:"uvv" json:"uvv"`
 }
 
 type MerkleTreeID int

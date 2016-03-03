@@ -653,6 +653,7 @@ func (bundle *PGPKeyBundle) Export() keybase1.PublicKey {
 	}
 }
 
+// Export is used by IDRes.  It includes PGP keys.
 func (ckf ComputedKeyFamily) Export() []keybase1.PublicKey {
 	exportedKeys := []keybase1.PublicKey{}
 	addKey := func(key GenericKey) {
@@ -706,10 +707,13 @@ func (ckf ComputedKeyFamily) Export() []keybase1.PublicKey {
 	return exportedKeys
 }
 
-func (ckf ComputedKeyFamily) ExportDeviceKeys() []keybase1.PublicKey {
-	exportedKeys := []keybase1.PublicKey{}
+// ExportDeviceKeys is used by LoadUserPlusKeys.  The key list
+// only contains device keys.  It also returns the number of PGP
+// keys in the key family.
+func (ckf ComputedKeyFamily) ExportDeviceKeys() (exportedKeys []keybase1.PublicKey, pgpKeyCount int) {
 	addKey := func(key GenericKey) {
 		if _, isPGP := key.(*PGPKeyBundle); isPGP {
+			pgpKeyCount++
 			return
 		}
 		kid := key.GetKID()
@@ -749,7 +753,7 @@ func (ckf ComputedKeyFamily) ExportDeviceKeys() []keybase1.PublicKey {
 		addKey(subkey)
 	}
 	sort.Sort(PublicKeyList(exportedKeys))
-	return exportedKeys
+	return exportedKeys, pgpKeyCount
 }
 
 func (u *User) Export() *keybase1.User {
@@ -776,9 +780,7 @@ func (u *User) ExportToUserPlusKeys(idTime keybase1.Time) keybase1.UserPlusKeys 
 	}
 	ckf := u.GetComputedKeyFamily()
 	if ckf != nil {
-		// DeviceKeys is poorly named, so let's deprecate it.
-		ret.DeviceKeys = ckf.Export()
-		ret.Keys = ret.DeviceKeys
+		ret.DeviceKeys, ret.PGPKeyCount = ckf.ExportDeviceKeys()
 	}
 
 	ret.Uvv = u.ExportToVersionVector(idTime)

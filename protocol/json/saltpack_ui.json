@@ -158,6 +158,56 @@
     },
     {
       "type": "record",
+      "name": "RevokedKey",
+      "fields": [
+        {
+          "type": "KID",
+          "name": "KID"
+        },
+        {
+          "type": "boolean",
+          "name": "isSibkey"
+        },
+        {
+          "type": "boolean",
+          "name": "isEldest"
+        },
+        {
+          "type": "string",
+          "name": "parentID"
+        },
+        {
+          "type": "DeviceID",
+          "name": "deviceID"
+        },
+        {
+          "type": "string",
+          "name": "deviceDescription"
+        },
+        {
+          "type": "string",
+          "name": "deviceType"
+        },
+        {
+          "type": "Time",
+          "name": "cTime"
+        },
+        {
+          "type": "Time",
+          "name": "eTime"
+        },
+        {
+          "type": "Time",
+          "name": "revokedAt"
+        },
+        {
+          "type": "int",
+          "name": "revokedSeqno"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "User",
       "fields": [
         {
@@ -290,9 +340,13 @@
         {
           "type": {
             "type": "array",
-            "items": "PublicKey"
+            "items": "RevokedKey"
           },
-          "name": "keys"
+          "name": "revokedKeys"
+        },
+        {
+          "type": "int",
+          "name": "pgpKeyCount"
         },
         {
           "type": "UserVersionVector",

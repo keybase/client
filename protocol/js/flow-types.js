@@ -742,6 +742,20 @@ export type RemoteProof = {
   mTime: Time;
 }
 
+export type RevokedKey = {
+  KID: KID;
+  isSibkey: boolean;
+  isEldest: boolean;
+  parentID: string;
+  deviceID: DeviceID;
+  deviceDescription: string;
+  deviceType: string;
+  cTime: Time;
+  eTime: Time;
+  revokedAt: Time;
+  revokedSeqno: int;
+}
+
 export type SaltpackDecryptOptions = {
   interactive: boolean;
   forceRemoteCheck: boolean;
@@ -1164,7 +1178,8 @@ export type UserPlusKeys = {
   uid: UID;
   username: string;
   deviceKeys: Array<PublicKey>;
-  keys: Array<PublicKey>;
+  revokedKeys: Array<RevokedKey>;
+  pgpKeyCount: int;
   uvv: UserVersionVector;
 }
 
