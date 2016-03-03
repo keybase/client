@@ -1593,7 +1593,7 @@ func newTestProvisionUI() *testProvisionUI {
 func newTestProvisionUISecretCh(ch chan kex2.Secret) *testProvisionUI {
 	ui := newTestProvisionUI()
 	ui.secretCh = ch
-	ui.chooseDevice = "desktop"
+	ui.chooseDevice = "computer"
 	return ui
 }
 
@@ -1612,7 +1612,7 @@ func newTestProvisionUIChooseNoDevice() *testProvisionUI {
 func newTestProvisionUIPaper() *testProvisionUI {
 	ui := newTestProvisionUI()
 	ui.method = keybase1.ProvisionMethod_PAPER_KEY
-	ui.chooseDevice = "backup"
+	ui.chooseDevice = "paper key"
 	return ui
 }
 
