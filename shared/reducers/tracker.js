@@ -22,6 +22,7 @@ export type TrackerState = {
   username: string,
   shouldFollow: ?boolean,
   reason: ?string,
+  waiting: boolean,
   userInfo: UserInfo,
   proofs: Array<Proof>,
   closed: boolean,
@@ -55,6 +56,7 @@ function initialTrackerState (username: string): TrackerState {
     proofs: [],
     reason: null,
     closed: true,
+    waiting: false,
     hidden: false,
     lastTrack: null,
     trackToken: null,
@@ -122,6 +124,11 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
     case Constants.onUnfollow: // TODO
       return state
 
+    case Constants.onWaiting:
+      return {
+        ...state,
+        waiting: action.payload.waiting
+      }
     case Constants.onFollow:
       return {
         ...state,

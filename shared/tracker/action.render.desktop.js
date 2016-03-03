@@ -92,7 +92,7 @@ export default class ActionRender extends Component {
   renderNormal (styles: Object, username: string) {
     return (
       <div style={{...styles2.container}}>
-        <Button dz2 style={styles.actionButton} type='Follow' label='Track' onClick={() => this.props.onFollow(username)} />
+        <Button waiting={this.props.waiting} dz2 style={styles.actionButton} type='Follow' label='Track' onClick={() => this.props.onFollow(username)} />
       </div>
     )
   }
@@ -100,8 +100,8 @@ export default class ActionRender extends Component {
   renderChanged (styles: Object, username: string) {
     return (
       <div style={{...styles2.container}}>
-        <Button dz2 type='Unfollow' label='Ignore for 24 hrs' onClick={() => this.props.onUnfollow(username)} />
-        <Button dz2 style={styles.actionButton} type='Follow' label='Accept' onClick={() => this.props.onRefollow(username)} />
+        <Button waiting={this.props.waiting} dz2 type='Unfollow' label='Ignore for 24 hrs' onClick={() => this.props.onUnfollow(username)} />
+        <Button waiting={this.props.waiting} dz2 style={styles.actionButton} type='Follow' label='Accept' onClick={() => this.props.onRefollow(username)} />
       </div>
     )
   }

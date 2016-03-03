@@ -7,10 +7,11 @@ export type Props = {
   label: ?string,
   style?: ?Object,
   type: 'Primary' | 'Secondary' | 'Danger' | 'Follow' | 'Following' | 'Unfollow',
-  disabled?: ?bool,
-  small?: ?bool,
+  disabled?: bool,
+  waiting?: bool,
+  small?: bool,
   dz2?: boolean, // Use DZ2 styling?
-  fullWidth?: ?bool
+  fullWidth?: bool
 }
 
 declare export default class Button extends Component {

@@ -47,6 +47,7 @@ export const onUnfollow2 = 'tracker:onUnfollow2'
 export const onError = 'tracker:onError'
 export const onFollowHelp = 'tracker:onFollowHelp'
 export const onFollowChecked = 'tracker:onFollowChecked'
+export const onWaiting = 'tracker:onWaiting'
 
 export const showTracker = 'tracker:showTracker'
 export const updateTrackToken = 'tracker:updateTrackToken'
