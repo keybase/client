@@ -38,12 +38,15 @@ export default class HeaderRender extends Component {
   render2 (styles: Object) {
     let headerStyle = (this.props.currentlyFollowing && !this.props.changed) ? styles.headerSuccess : styles.headerNormal
     let headerTextStyle = styles.headerTextNormal
-    switch (this.props.trackerState) {
-      case 'warning':
-        headerStyle = styles.headerWarning
-        headerTextStyle = styles.headerTextWarning
-        break
-      case 'error': headerStyle = styles.headerError; break
+
+    if (this.props.currentlyFollowing) {
+      switch (this.props.trackerState) {
+        case 'warning':
+          headerStyle = styles.headerWarning
+          headerTextStyle = styles.headerTextWarning
+          break
+        case 'error': headerStyle = styles.headerError; break
+      }
     }
 
     let headerText: string = this.props.reason

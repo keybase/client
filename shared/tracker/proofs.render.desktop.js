@@ -77,10 +77,14 @@ export class ProofsRender2 extends Component {
         color = this._isTracked(proof) ? globalColorsDZ2.green : globalColorsDZ2.blue
         break
       }
-      case proofChecking:color = color = '#999'; break
-      case proofRevoked: color = globalColorsDZ2.red; break
-      case proofWarning: color = globalColorsDZ2.orange; break
-      case proofError: color = globalColorsDZ2.red; break
+      case proofChecking:
+        color = color = '#999'
+        break
+      case proofRevoked:
+      case proofWarning:
+      case proofError:
+        color = globalColorsDZ2.red
+        break
     }
 
     // TODO: State is deprecated, will refactor after nuking v1
@@ -94,6 +98,7 @@ export class ProofsRender2 extends Component {
       case proofNormal:
         return this._isTracked(proof) ? 'fa-custom-icon-proof-good-followed' : 'fa-custom-icon-proof-good-new'
 
+      case proofWarning:
       case proofError:
       case proofRevoked:
         return 'fa-custom-icon-proof-broken'
