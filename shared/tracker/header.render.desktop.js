@@ -47,7 +47,9 @@ export default class HeaderRender extends Component {
     }
 
     let headerText: string = this.props.reason
+    let isWarning = false
     if (!this.props.currentlyFollowing && this.state.showCloseWarning) {
+      isWarning = true
       headerStyle = styles.headerWarning
       headerTextStyle = styles.headerTextWarning
       headerText = 'You will see this window every time you access this folder.'
@@ -70,7 +72,8 @@ export default class HeaderRender extends Component {
     return (
       <div style={styles.outer}>
         <div style={{...styles.header, ...headerStyle}}>
-          <Text type='BodySemibold' dz2 lineClamp={2} style={{...styles.text, ...headerTextStyle, flex: 1}}>{headerText}</Text>
+          <div style={{...styles.header, ...headerStyle, height: 54, zIndex: 2, opacity: isWarning ? 1 : 0, backgroundColor: globalColorsDZ2.yellow}}/>
+          <Text type='BodySemibold' dz2 lineClamp={2} style={{...styles.text, ...headerTextStyle, flex: 1, zIndex: isWarning ? 2 : 'inherit'}}>{headerText}</Text>
           <Icon type='fa-times' opacity style={styles.close}
             onClick={() => this.props.onClose()}
             onMouseEnter={() => this.closeMouseEnter()}
@@ -101,7 +104,6 @@ const styles2 = {
   },
   header: {
     ...globalStyles.windowDragging,
-    ...transitionColor(),
     cursor: 'default',
     position: 'absolute',
     top: 0,
