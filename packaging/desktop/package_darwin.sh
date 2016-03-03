@@ -77,6 +77,7 @@ installer_url="https://github.com/keybase/client/releases/download/v1.0.14-0/Key
 keybase_bin="$tmp_dir/keybase"
 kbfs_bin="$tmp_dir/kbfs"
 installer_app="$tmp_dir/KeybaseInstaller.app"
+sig_path="$tmp_dir/update.sig"
 
 app_version=$keybase_version
 dmg_name="${app_name}-${app_version}${comment}.dmg"
@@ -159,11 +160,11 @@ update_plist() {
 }
 
 sign() {
+  cd $out_dir
   if [ "$nosign" = "1" ]; then
-    echo "Skipping signing"
+    echo "Skipping signing (OS X)"
     return
   fi
-  cd $out_dir
   code_sign_identity="Developer ID Application: Keybase, Inc. (99229SGT5K)"
   codesign --verbose --force --deep --timestamp=none --sign "$code_sign_identity" $app_name.app
 }
@@ -222,7 +223,8 @@ save() {
   fi
 
   if [ ! "$s3host" = "" ]; then
-    $release_bin update-json --version=$app_version --src="$platform-updates/$zip_name" --uri="$s3host/$platform-updates" > update-$platform-$run_mode.json
+    keybase sign -d -i "$platform-updates/$zip_name" -o $sig_path
+    $release_bin update-json --version=$app_version --src="$platform-updates/$zip_name" --uri="$s3host/$platform-updates" --signature="$sig_path" > update-$platform-$run_mode.json
   fi
 
   s3sync
