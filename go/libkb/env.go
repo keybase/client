@@ -119,6 +119,7 @@ func (n NullConfiguration) GetSecurityAccessGroupOverride() (bool, bool) {
 type TestParameters struct {
 	ConfigFilename string
 	Home           string
+	GPG            string
 	GPGHome        string
 	GPGOptions     []string
 	Debug          bool
@@ -692,6 +693,7 @@ func (e *Env) GetCodeSigningKIDs() []keybase1.KID {
 
 func (e *Env) GetGpg() string {
 	return e.GetString(
+		func() string { return e.Test.GPG },
 		func() string { return e.cmd.GetGpg() },
 		func() string { return os.Getenv("GPG") },
 		func() string { return e.config.GetGpg() },

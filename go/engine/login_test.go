@@ -1042,14 +1042,12 @@ func TestProvisionGPGNoGPGInstalled(t *testing.T) {
 	Logout(tc)
 	tc.Cleanup()
 
-	// this should make it unable to find gpg
-	// XXX will lthis work on windows?
-	os.Setenv("GPG", "/dev/null")
-	defer os.Setenv("GPG", "")
-
 	// redo SetupEngineTest to get a new home directory...should look like a new device.
 	tc2 := SetupEngineTest(t, "login")
 	defer tc2.Cleanup()
+
+	// this should make it unable to find gpg
+	tc2.G.Env.Test.GPG = "/dev/null"
 
 	// run login on new device
 	ctx := &Context{
