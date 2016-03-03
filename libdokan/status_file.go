@@ -10,19 +10,18 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
 
-// StatusFileName is the name of the KBFS status file -- it can be
-// reached anywhere within a top-level folder.
-const StatusFileName = ".kbfs_status"
-
-func getEncodedStatus(ctx context.Context, folder *Folder) (
+func getEncodedFolderStatus(ctx context.Context, fs *FS,
+	folderBranch *libkbfs.FolderBranch) (
 	data []byte, t time.Time, err error) {
+
 	var status libkbfs.FolderBranchStatus
-	status, _, err = folder.fs.config.KBFSOps().
-		Status(ctx, folder.folderBranch)
+	status, _, err = fs.config.KBFSOps().
+		Status(ctx, *folderBranch)
 	if err != nil {
 		return nil, time.Time{}, err
 	}
@@ -36,12 +35,36 @@ func getEncodedStatus(ctx context.Context, folder *Folder) (
 	return data, time.Time{}, err
 }
 
-// NewStatusFile returns a special read file that contains a text
-// representation of the status of the current TLF.
-func NewStatusFile(folder *Folder) *SpecialReadFile {
+func getEncodedStatus(ctx context.Context, fs *FS) (
+	data []byte, t time.Time, err error) {
+	username, _, _ := fs.config.KBPKI().GetCurrentUserInfo(ctx)
+	var usageBytes int64
+	var limitBytes int64
+	quotaInfo, err := fs.config.BlockServer().GetUserQuotaInfo(ctx)
+	if err == nil {
+		usageBytes = quotaInfo.Total.UsageBytes
+		limitBytes = quotaInfo.Limit
+	}
+	data, err = json.MarshalIndent(libfs.KbfsStatus{
+		CurrentUser: username.String(),
+		IsConnected: fs.config.MDServer().IsConnected(),
+		UsageBytes:  usageBytes,
+		LimitBytes:  limitBytes,
+	}, "", "  ")
+	if err != nil {
+		return nil, t, err
+	}
+	data = append(data, '\n')
+	return data, t, err
+}
+
+func NewStatusFile(fs *FS, folderBranch *libkbfs.FolderBranch) *SpecialReadFile {
 	return &SpecialReadFile{
 		read: func(ctx context.Context) ([]byte, time.Time, error) {
-			return getEncodedStatus(ctx, folder)
+			if folderBranch == nil {
+				return getEncodedStatus(ctx, fs)
+			}
+			return getEncodedFolderStatus(ctx, fs, folderBranch)
 		},
 		fs: folder.fs,
 	}

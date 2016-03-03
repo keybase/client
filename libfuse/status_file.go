@@ -6,20 +6,10 @@ import (
 
 	"bazil.org/fuse"
 
+	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
-
-// StatusFileName is the name of the KBFS status file -- it can be
-// reached anywhere within a top-level folder.
-const StatusFileName = ".kbfs_status"
-
-type kbfsStatus struct {
-	CurrentUser string
-	IsConnected bool
-	UsageBytes  int64
-	LimitBytes  int64
-}
 
 func getEncodedFolderStatus(ctx context.Context, fs *FS,
 	folderBranch *libkbfs.FolderBranch) (
@@ -51,7 +41,7 @@ func getEncodedStatus(ctx context.Context, fs *FS) (
 		usageBytes = quotaInfo.Total.UsageBytes
 		limitBytes = quotaInfo.Limit
 	}
-	data, err = json.MarshalIndent(kbfsStatus{
+	data, err = json.MarshalIndent(libfs.KbfsStatus{
 		CurrentUser: username.String(),
 		IsConnected: fs.config.MDServer().IsConnected(),
 		UsageBytes:  usageBytes,

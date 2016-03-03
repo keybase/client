@@ -10,6 +10,7 @@ import (
 
 	"bazil.org/fuse"
 	"bazil.org/fuse/fs"
+	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -291,7 +292,7 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 	}
 
 	switch req.Name {
-	case StatusFileName:
+	case libfs.StatusFileName:
 		return NewStatusFile(d.folder.fs, &d.folder.folderBranch, resp), nil
 
 	case UpdateHistoryFileName:

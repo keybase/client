@@ -12,6 +12,7 @@ import (
 	"sync"
 
 	"github.com/keybase/kbfs/dokan"
+	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -162,8 +163,8 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 	// Error and metrics file already handled in fs.go.
 	switch lastStr(path) {
 
-	case StatusFileName:
-		return NewStatusFile(d.folder), false, nil
+	case libfs.StatusFileName:
+		return NewStatusFile(d.folder.fs, &d.folder.folderBranch), false, nil
 
 	case UnstageFileName:
 		child := &UnstageFile{

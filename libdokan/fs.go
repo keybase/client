@@ -224,6 +224,8 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 		return NewErrorFile(f), false, nil
 	case libfs.MetricsFileName == ps[psl-1]:
 		return NewMetricsFile(f), false, nil
+	case libfs.StatusFileName == ps[0]:
+		return NewStatusFile(f.root.private.fs, nil), false, nil
 	case PublicName == ps[0]:
 		return f.root.public.open(ctx, oc, ps[1:])
 	case PrivateName == ps[0]:

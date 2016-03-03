@@ -2456,7 +2456,7 @@ func TestStatusFile(t *testing.T) {
 	// expect.  Checking the exact content should be left for tests
 	// within libkbfs.
 	buf, err := ioutil.ReadFile(path.Join(mnt.Dir, PublicName, "jdoe",
-		StatusFileName))
+		libfs.StatusFileName))
 	if err != nil {
 		t.Fatalf("Couldn't read KBFS status file: %v", err)
 	}
