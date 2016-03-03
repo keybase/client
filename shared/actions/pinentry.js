@@ -7,6 +7,7 @@ import type {GUIEntryFeatures, incomingCallMapType, delegateUiCtl_registerSecret
 import type {NewPinentryAction, RegisterPinentryListenerAction} from '../constants/pinentry'
 
 import type {Dispatch, AsyncAction} from '../constants/types/flux'
+import typeof Engine from '../engine'
 import {constants} from '../constants/types/keybase-v1'
 
 const uglySessionIDResponseMapper: {[key: number]: any} = {}
@@ -51,13 +52,18 @@ export function onSubmit (sessionID: number, passphrase: string, features: GUIEn
   }
 }
 
-export function onCancel (sessionID: number): AsyncAction {
-  return dispatch => {
+export function onCancel (sessionID: number, engine: Engine): AsyncAction {
+  return (dispatch, getState) => {
     dispatch({type: Constants.onCancel, payload: {sessionID}})
-    uglyResponse(sessionID, null, {
+    const {seqid} = getState().pinentry.pinentryStates[sessionID]
+    engine.rpcResponse(sessionID, seqid, {
       code: constants.StatusCode.scinputcanceled,
       desc: 'Input canceled'
-    })
+    }, true)
+    // uglyResponse(sessionID, null, {
+      // code: constants.StatusCode.scinputcanceled,
+      // desc: 'Input canceled'
+    // })
   }
 }
 
@@ -80,15 +86,17 @@ function uglyResponse (sessionID: number, result: any, err: ?any): void {
 function pinentryListenersCreator (dispatch: Dispatch): incomingCallMapType {
   return {
     'keybase.1.secretUi.getPassphrase': (payload, response) => {
-      console.log('Asked for passphrase')
+      console.log('Asked for passphrase', payload)
 
       const {prompt, submitLabel, cancelLabel, windowTitle, retryLabel, features} = payload.pinentry
       const sessionID = payload.sessionID
+      const seqid = response.seqid
 
       dispatch(({
         type: Constants.newPinentry,
         payload: {
           sessionID,
+          seqid,
           features,
           prompt,
           submitLabel,

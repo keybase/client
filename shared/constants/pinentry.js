@@ -23,6 +23,7 @@ type sessionIDSpecificPayload = {
 type newPinentryPayload = {
   features: GUIEntryFeatures,
   sessionID: number,
+  seqid: number,
   prompt: string,
   windowTitle: string,
   submitLabel: ?string,

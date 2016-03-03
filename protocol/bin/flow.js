@@ -88,6 +88,7 @@ function analyzeMessages (json) {
     if (!isNotify) {
       const type = (responseType === 'null') ? '' : `result: ${name}_result`
       r = `,\n    response: {
+      seqid: number,
       error: (err: string) => void,
       result: (${type}) => void
     }`

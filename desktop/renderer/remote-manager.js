@@ -10,6 +10,7 @@ import {registerUpdateListener, onCancel as updateOnCancel, onSkip as updateOnSk
 import {onForce as updateOnForce, onPauseCancel as updateOnPauseCancel} from '../shared/actions/update'
 // $FlowIssue platform files
 import RemoteComponent from './remote-component'
+import engine from '../shared/engine'
 import flags from '../shared/util/feature-flags'
 
 import type {GUIEntryFeatures} from '../shared/constants/types/flow-types'
@@ -102,8 +103,8 @@ class RemoteManager extends Component {
 
     return Object.keys(pinentryStates).filter(sid => !pinentryStates[sid].closed).map(pSessionID => {
       const sid = parseInt(pSessionID, 10)
-      const onCancel = () => this.props.pinentryOnCancel(sid)
       const onSubmit = this.props.pinentryOnSubmit.bind(null, sid)
+      const onCancel = () => this.props.pinentryOnCancel(sid)
       const windowsOpts = flags.dz2
         ? {width: 500, height: 260}
         : {width: 513, height: 260}
@@ -116,7 +117,6 @@ class RemoteManager extends Component {
           component='pinentry'
           key={'pinentry:' + pSessionID}
           onSubmit={onSubmit}
-          onCancel={onCancel}
           sessionID={sid} />
       )
     })

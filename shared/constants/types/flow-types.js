@@ -3385,6 +3385,7 @@ export type incomingCallMapType = {
       force: boolean
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3395,6 +3396,7 @@ export type incomingCallMapType = {
       guiArg: GUIEntryArg
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: account_passphrasePrompt_result) => void
     }
@@ -3402,6 +3404,7 @@ export type incomingCallMapType = {
   'keybase.1.block.getSessionChallenge'?: (
     params: {},
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: block_getSessionChallenge_result) => void
     }
@@ -3411,6 +3414,7 @@ export type incomingCallMapType = {
       signature: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3423,6 +3427,7 @@ export type incomingCallMapType = {
       buf: bytes
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3433,6 +3438,7 @@ export type incomingCallMapType = {
       folder: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: block_getBlock_result) => void
     }
@@ -3443,6 +3449,7 @@ export type incomingCallMapType = {
       ref: BlockReference
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3453,6 +3460,7 @@ export type incomingCallMapType = {
       ref: BlockReference
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3463,6 +3471,7 @@ export type incomingCallMapType = {
       refs: Array<BlockReference>
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: block_archiveReference_result) => void
     }
@@ -3470,6 +3479,7 @@ export type incomingCallMapType = {
   'keybase.1.block.getUserQuotaInfo'?: (
     params: {},
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: block_getUserQuotaInfo_result) => void
     }
@@ -3481,6 +3491,7 @@ export type incomingCallMapType = {
       force: boolean
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3490,6 +3501,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: config_getCurrentStatus_result) => void
     }
@@ -3499,6 +3511,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: config_getExtendedStatus_result) => void
     }
@@ -3508,6 +3521,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: config_getConfig_result) => void
     }
@@ -3520,6 +3534,7 @@ export type incomingCallMapType = {
       value: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3530,6 +3545,7 @@ export type incomingCallMapType = {
       path: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3539,6 +3555,7 @@ export type incomingCallMapType = {
       details: ClientDetails
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3549,6 +3566,7 @@ export type incomingCallMapType = {
       value: ConfigValue
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3558,6 +3576,7 @@ export type incomingCallMapType = {
       path: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3567,6 +3586,7 @@ export type incomingCallMapType = {
       path: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: config_getValue_result) => void
     }
@@ -3578,6 +3598,7 @@ export type incomingCallMapType = {
       reason: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: crypto_signED25519_result) => void
     }
@@ -3589,6 +3610,7 @@ export type incomingCallMapType = {
       reason: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: crypto_signToString_result) => void
     }
@@ -3602,6 +3624,7 @@ export type incomingCallMapType = {
       reason: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: crypto_unboxBytes32_result) => void
     }
@@ -3614,6 +3637,7 @@ export type incomingCallMapType = {
       promptPaper: boolean
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: crypto_unboxBytes32Any_result) => void
     }
@@ -3624,6 +3648,7 @@ export type incomingCallMapType = {
       exitCode: ExitCode
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3633,6 +3658,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3642,6 +3668,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3651,6 +3678,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3661,6 +3689,7 @@ export type incomingCallMapType = {
       val: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: debugging_firstStep_result) => void
     }
@@ -3671,6 +3700,7 @@ export type incomingCallMapType = {
       val: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: debugging_secondStep_result) => void
     }
@@ -3681,6 +3711,7 @@ export type incomingCallMapType = {
       val: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: debugging_increment_result) => void
     }
@@ -3688,6 +3719,7 @@ export type incomingCallMapType = {
   'keybase.1.delegateUiCtl.registerIdentifyUI'?: (
     params: {},
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3695,6 +3727,7 @@ export type incomingCallMapType = {
   'keybase.1.delegateUiCtl.registerSecretUI'?: (
     params: {},
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3702,6 +3735,7 @@ export type incomingCallMapType = {
   'keybase.1.delegateUiCtl.registerUpdateUI'?: (
     params: {},
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3711,6 +3745,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: device_deviceList_result) => void
     }
@@ -3720,6 +3755,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3730,6 +3766,7 @@ export type incomingCallMapType = {
       folder: Folder
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3740,6 +3777,7 @@ export type incomingCallMapType = {
       folder: Folder
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3749,6 +3787,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: favorite_favoriteList_result) => void
     }
@@ -3758,6 +3797,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: gpgUi_wantToAddGPGKey_result) => void
     }
@@ -3767,6 +3807,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: gpgUi_confirmDuplicateKeyChosen_result) => void
     }
@@ -3777,6 +3818,7 @@ export type incomingCallMapType = {
       keys: Array<GPGKey>
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: gpgUi_selectKeyAndPushOption_result) => void
     }
@@ -3787,6 +3829,7 @@ export type incomingCallMapType = {
       keys: Array<GPGKey>
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: gpgUi_selectKey_result) => void
     }
@@ -3797,6 +3840,7 @@ export type incomingCallMapType = {
       fingerprint: bytes
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: gpgUi_sign_result) => void
     }
@@ -3806,6 +3850,7 @@ export type incomingCallMapType = {
       assertion: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: identify_Resolve_result) => void
     }
@@ -3815,6 +3860,7 @@ export type incomingCallMapType = {
       assertion: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: identify_Resolve2_result) => void
     }
@@ -3830,6 +3876,7 @@ export type incomingCallMapType = {
       source: ClientType
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: identify_identify_result) => void
     }
@@ -3847,6 +3894,7 @@ export type incomingCallMapType = {
       needProofSet: boolean
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: identify_identify2_result) => void
     }
@@ -3854,6 +3902,7 @@ export type incomingCallMapType = {
   'keybase.1.identifyUi.delegateIdentifyUI'?: (
     params: {},
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: identifyUi_delegateIdentifyUI_result) => void
     }
@@ -3865,6 +3914,7 @@ export type incomingCallMapType = {
       reason: IdentifyReason
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3875,6 +3925,7 @@ export type incomingCallMapType = {
       key: IdentifyKey
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3885,6 +3936,7 @@ export type incomingCallMapType = {
       track: (null | TrackSummary)
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3896,6 +3948,7 @@ export type incomingCallMapType = {
       user: User
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3906,6 +3959,7 @@ export type incomingCallMapType = {
       stmt: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3917,6 +3971,7 @@ export type incomingCallMapType = {
       lcr: LinkCheckResult
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3928,6 +3983,7 @@ export type incomingCallMapType = {
       lcr: LinkCheckResult
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3938,6 +3994,7 @@ export type incomingCallMapType = {
       c: Cryptocurrency
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3948,6 +4005,7 @@ export type incomingCallMapType = {
       trackToken: TrackToken
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3958,6 +4016,7 @@ export type incomingCallMapType = {
       card: UserCard
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3968,6 +4027,7 @@ export type incomingCallMapType = {
       outcome: IdentifyOutcome
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: identifyUi_confirm_result) => void
     }
@@ -3977,6 +4037,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3986,6 +4047,7 @@ export type incomingCallMapType = {
       event: FSNotification
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -3999,6 +4061,7 @@ export type incomingCallMapType = {
       sigBody: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: Kex2Provisionee_hello_result) => void
     }
@@ -4008,6 +4071,7 @@ export type incomingCallMapType = {
       sig: bytes
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4024,6 +4088,7 @@ export type incomingCallMapType = {
       level: LogLevel
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4035,6 +4100,7 @@ export type incomingCallMapType = {
       text: Text
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4044,6 +4110,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: login_getConfiguredAccounts_result) => void
     }
@@ -4056,6 +4123,7 @@ export type incomingCallMapType = {
       clientType: ClientType
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4066,6 +4134,7 @@ export type incomingCallMapType = {
       username: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4075,6 +4144,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4086,6 +4156,7 @@ export type incomingCallMapType = {
       doRevoke: boolean
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4095,6 +4166,7 @@ export type incomingCallMapType = {
       email: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4104,6 +4176,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4113,6 +4186,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4123,6 +4197,7 @@ export type incomingCallMapType = {
       passphrase: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4132,6 +4207,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: loginUi_getEmailOrUsername_result) => void
     }
@@ -4143,6 +4219,7 @@ export type incomingCallMapType = {
       index: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: loginUi_promptRevokePaperKeys_result) => void
     }
@@ -4153,6 +4230,7 @@ export type incomingCallMapType = {
       phrase: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4163,6 +4241,7 @@ export type incomingCallMapType = {
       phrase: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4170,6 +4249,7 @@ export type incomingCallMapType = {
   'keybase.1.metadata.getChallenge'?: (
     params: {},
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: metadata_getChallenge_result) => void
     }
@@ -4179,6 +4259,7 @@ export type incomingCallMapType = {
       signature: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: metadata_authenticate_result) => void
     }
@@ -4189,6 +4270,7 @@ export type incomingCallMapType = {
       logTags: {string: string}
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4204,6 +4286,7 @@ export type incomingCallMapType = {
       logTags: {string: string}
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: metadata_getMetadata_result) => void
     }
@@ -4215,6 +4298,7 @@ export type incomingCallMapType = {
       logTags: {string: string}
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4226,6 +4310,7 @@ export type incomingCallMapType = {
       logTags: {string: string}
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4236,6 +4321,7 @@ export type incomingCallMapType = {
       logTags: {string: string}
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4247,6 +4333,7 @@ export type incomingCallMapType = {
       logTags: {string: string}
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: metadata_getKey_result) => void
     }
@@ -4259,6 +4346,7 @@ export type incomingCallMapType = {
       logTags: {string: string}
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4268,6 +4356,7 @@ export type incomingCallMapType = {
       folderID: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: metadata_truncateLock_result) => void
     }
@@ -4277,6 +4366,7 @@ export type incomingCallMapType = {
       folderID: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: metadata_truncateUnlock_result) => void
     }
@@ -4288,6 +4378,7 @@ export type incomingCallMapType = {
       challenge: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: metadata_getFolderHandle_result) => void
     }
@@ -4297,6 +4388,7 @@ export type incomingCallMapType = {
       deviceKID: KID
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4304,6 +4396,7 @@ export type incomingCallMapType = {
   'keybase.1.metadata.ping'?: (
     params: {},
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4314,6 +4407,7 @@ export type incomingCallMapType = {
       seqNo: long
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: metadata_getMerkleRoot_result) => void
     }
@@ -4323,6 +4417,7 @@ export type incomingCallMapType = {
       treeID: MerkleTreeID
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: metadata_getMerkleRootLatest_result) => void
     }
@@ -4333,6 +4428,7 @@ export type incomingCallMapType = {
       when: Time
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: metadata_getMerkleRootSince_result) => void
     }
@@ -4342,6 +4438,7 @@ export type incomingCallMapType = {
       hash: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: metadata_getMerkleNode_result) => void
     }
@@ -4352,6 +4449,7 @@ export type incomingCallMapType = {
       revision: long
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4362,6 +4460,7 @@ export type incomingCallMapType = {
       revision: long
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4371,6 +4470,7 @@ export type incomingCallMapType = {
       channels: NotificationChannels
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4392,6 +4492,7 @@ export type incomingCallMapType = {
       username: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4419,6 +4520,7 @@ export type incomingCallMapType = {
       opts: PGPSignOptions
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4429,6 +4531,7 @@ export type incomingCallMapType = {
       userAsserts: Array<string>
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4441,6 +4544,7 @@ export type incomingCallMapType = {
       opts: PGPEncryptOptions
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4453,6 +4557,7 @@ export type incomingCallMapType = {
       opts: PGPDecryptOptions
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: pgp_pgpDecrypt_result) => void
     }
@@ -4464,6 +4569,7 @@ export type incomingCallMapType = {
       opts: PGPVerifyOptions
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: pgp_pgpVerify_result) => void
     }
@@ -4475,6 +4581,7 @@ export type incomingCallMapType = {
       pushSecret: boolean
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4485,6 +4592,7 @@ export type incomingCallMapType = {
       options: PGPQuery
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: pgp_pgpExport_result) => void
     }
@@ -4495,6 +4603,7 @@ export type incomingCallMapType = {
       options: PGPQuery
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: pgp_pgpExportByFingerprint_result) => void
     }
@@ -4505,6 +4614,7 @@ export type incomingCallMapType = {
       options: PGPQuery
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: pgp_pgpExportByKID_result) => void
     }
@@ -4520,6 +4630,7 @@ export type incomingCallMapType = {
       pushSecret: boolean
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4529,6 +4640,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4542,6 +4654,7 @@ export type incomingCallMapType = {
       onlyImport: boolean
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4553,6 +4666,7 @@ export type incomingCallMapType = {
       fingerprints: Array<string>
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4565,6 +4679,7 @@ export type incomingCallMapType = {
       signedAt: Time
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4578,6 +4693,7 @@ export type incomingCallMapType = {
       promptPosted: boolean
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: prove_startProof_result) => void
     }
@@ -4588,6 +4704,7 @@ export type incomingCallMapType = {
       sigID: SigID
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: prove_checkProof_result) => void
     }
@@ -4599,6 +4716,7 @@ export type incomingCallMapType = {
       typ: PromptOverwriteType
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: proveUi_promptOverwrite_result) => void
     }
@@ -4610,6 +4728,7 @@ export type incomingCallMapType = {
       prevError: (null | Status)
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: proveUi_promptUsername_result) => void
     }
@@ -4620,6 +4739,7 @@ export type incomingCallMapType = {
       text: Text
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4630,6 +4750,7 @@ export type incomingCallMapType = {
       text: Text
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: proveUi_preProofWarning_result) => void
     }
@@ -4641,6 +4762,7 @@ export type incomingCallMapType = {
       proof: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4652,6 +4774,7 @@ export type incomingCallMapType = {
       attempt: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: proveUi_okToCheck_result) => void
     }
@@ -4662,6 +4785,7 @@ export type incomingCallMapType = {
       text: Text
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4672,6 +4796,7 @@ export type incomingCallMapType = {
       gpgOption: boolean
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: provisionUi_chooseProvisioningMethod_result) => void
     }
@@ -4713,6 +4838,7 @@ export type incomingCallMapType = {
       kind: ChooseType
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: provisionUi_chooseDeviceType_result) => void
     }
@@ -4725,6 +4851,7 @@ export type incomingCallMapType = {
       otherDeviceType: DeviceType
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: provisionUi_DisplayAndPromptSecret_result) => void
     }
@@ -4734,6 +4861,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4745,6 +4873,7 @@ export type incomingCallMapType = {
       errorMessage: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: provisionUi_PromptNewDeviceName_result) => void
     }
@@ -4756,6 +4885,7 @@ export type incomingCallMapType = {
       deviceName: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4767,6 +4897,7 @@ export type incomingCallMapType = {
       deviceType: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4776,6 +4907,7 @@ export type incomingCallMapType = {
       session: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: quota_verifySession_result) => void
     }
@@ -4786,6 +4918,7 @@ export type incomingCallMapType = {
       keyID: KID
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4797,6 +4930,7 @@ export type incomingCallMapType = {
       force: boolean
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4807,6 +4941,7 @@ export type incomingCallMapType = {
       sigIDQueries: Array<string>
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4819,6 +4954,7 @@ export type incomingCallMapType = {
       opts: SaltpackEncryptOptions
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4831,6 +4967,7 @@ export type incomingCallMapType = {
       opts: SaltpackDecryptOptions
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: saltpack_saltpackDecrypt_result) => void
     }
@@ -4843,6 +4980,7 @@ export type incomingCallMapType = {
       opts: SaltpackSignOptions
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4855,6 +4993,7 @@ export type incomingCallMapType = {
       opts: SaltpackVerifyOptions
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4865,6 +5004,7 @@ export type incomingCallMapType = {
       sender: SaltpackSender
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4876,6 +5016,7 @@ export type incomingCallMapType = {
       sender: SaltpackSender
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4887,6 +5028,7 @@ export type incomingCallMapType = {
       terminal: (null | SecretEntryArg)
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: secretUi_getPassphrase_result) => void
     }
@@ -4896,6 +5038,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: SecretKeys_getSecretKeys_result) => void
     }
@@ -4905,6 +5048,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: session_currentSession_result) => void
     }
@@ -4915,6 +5059,7 @@ export type incomingCallMapType = {
       username: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4931,6 +5076,7 @@ export type incomingCallMapType = {
       skipMail: boolean
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: signup_signup_result) => void
     }
@@ -4943,6 +5089,7 @@ export type incomingCallMapType = {
       notes: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4953,6 +5100,7 @@ export type incomingCallMapType = {
       invitationCode: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4963,6 +5111,7 @@ export type incomingCallMapType = {
       arg: SigListArgs
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: sigs_sigList_result) => void
     }
@@ -4973,6 +5122,7 @@ export type incomingCallMapType = {
       arg: SigListArgs
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: sigs_sigListJSON_result) => void
     }
@@ -4983,6 +5133,7 @@ export type incomingCallMapType = {
       s: Stream
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -4994,6 +5145,7 @@ export type incomingCallMapType = {
       sz: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: streamUi_read_result) => void
     }
@@ -5005,6 +5157,7 @@ export type incomingCallMapType = {
       buf: bytes
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: streamUi_write_result) => void
     }
@@ -5015,6 +5168,7 @@ export type incomingCallMapType = {
       name: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: test_test_result) => void
     }
@@ -5025,6 +5179,7 @@ export type incomingCallMapType = {
       name: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: test_testCallback_result) => void
     }
@@ -5034,6 +5189,7 @@ export type incomingCallMapType = {
       message: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -5046,6 +5202,7 @@ export type incomingCallMapType = {
       forceRemoteCheck: boolean
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -5057,6 +5214,7 @@ export type incomingCallMapType = {
       options: TrackOptions
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -5067,6 +5225,7 @@ export type incomingCallMapType = {
       username: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -5076,6 +5235,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -5086,6 +5246,7 @@ export type incomingCallMapType = {
       username: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -5097,6 +5258,7 @@ export type incomingCallMapType = {
       promptDefault: PromptDefault
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: ui_promptYesNo_result) => void
     }
@@ -5106,6 +5268,7 @@ export type incomingCallMapType = {
       options: UpdateOptions
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: update_update_result) => void
     }
@@ -5115,6 +5278,7 @@ export type incomingCallMapType = {
       force: boolean
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: () => void
     }
@@ -5126,6 +5290,7 @@ export type incomingCallMapType = {
       options: UpdatePromptOptions
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: updateUi_updatePrompt_result) => void
     }
@@ -5137,6 +5302,7 @@ export type incomingCallMapType = {
       processes: Array<Process>
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: updateUi_updateAppInUse_result) => void
     }
@@ -5144,6 +5310,7 @@ export type incomingCallMapType = {
   'keybase.1.updateUi.updateQuit'?: (
     params: {},
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: updateUi_updateQuit_result) => void
     }
@@ -5154,6 +5321,7 @@ export type incomingCallMapType = {
       uid: UID
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: user_listTrackers_result) => void
     }
@@ -5164,6 +5332,7 @@ export type incomingCallMapType = {
       username: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: user_listTrackersByName_result) => void
     }
@@ -5173,6 +5342,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: user_listTrackersSelf_result) => void
     }
@@ -5183,6 +5353,7 @@ export type incomingCallMapType = {
       uids: Array<UID>
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: user_loadUncheckedUserSummaries_result) => void
     }
@@ -5193,6 +5364,7 @@ export type incomingCallMapType = {
       uid: UID
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: user_loadUser_result) => void
     }
@@ -5204,6 +5376,7 @@ export type incomingCallMapType = {
       cacheOK: boolean
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: user_loadUserPlusKeys_result) => void
     }
@@ -5214,6 +5387,7 @@ export type incomingCallMapType = {
       uid: UID
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: user_loadPublicKeys_result) => void
     }
@@ -5224,6 +5398,7 @@ export type incomingCallMapType = {
       filter: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: user_listTracking_result) => void
     }
@@ -5235,6 +5410,7 @@ export type incomingCallMapType = {
       verbose: boolean
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: user_listTrackingJSON_result) => void
     }
@@ -5245,6 +5421,7 @@ export type incomingCallMapType = {
       query: string
     },
     response: {
+      seqid: number,
       error: (err: string) => void,
       result: (result: user_search_result) => void
     }
