@@ -756,6 +756,49 @@ func (ckf ComputedKeyFamily) ExportDeviceKeys() (exportedKeys []keybase1.PublicK
 	return exportedKeys, pgpKeyCount
 }
 
+func (ckf ComputedKeyFamily) ExportRevokedKeys() []keybase1.RevokedKey {
+	var ex []keybase1.RevokedKey
+	for _, rkey := range ckf.GetRevokedKeys() {
+		if _, isPGP := rkey.Key.(*PGPKeyBundle); isPGP {
+			continue
+		}
+
+		kid := rkey.Key.GetKID()
+		cki := ckf.cki.Infos[kid]
+		deviceID := ckf.cki.KIDToDeviceID[kid]
+		device := ckf.cki.Devices[deviceID]
+		deviceDescription := ""
+		deviceType := ""
+		if device != nil {
+			if device.Description != nil {
+				deviceDescription = *device.Description
+			}
+			if device.Type != "" {
+				deviceType = device.Type
+			}
+		}
+		parentID := ""
+		if cki.Parent.IsValid() {
+			parentID = cki.Parent.String()
+		}
+		ex = append(ex, keybase1.RevokedKey{
+			KID:               kid,
+			IsSibkey:          cki.Sibkey,
+			IsEldest:          cki.Eldest,
+			ParentID:          parentID,
+			DeviceID:          deviceID,
+			DeviceType:        deviceType,
+			DeviceDescription: deviceDescription,
+			CTime:             keybase1.TimeFromSeconds(cki.CTime),
+			ETime:             keybase1.TimeFromSeconds(cki.ETime),
+			RevokedAt:         keybase1.TimeFromSeconds(rkey.RevokedAt.Unix),
+			RevokedChain:      rkey.RevokedAt.Chain,
+		})
+	}
+
+	return ex
+}
+
 func (u *User) Export() *keybase1.User {
 	return &keybase1.User{
 		Uid:      u.GetUID(),
@@ -781,6 +824,7 @@ func (u *User) ExportToUserPlusKeys(idTime keybase1.Time) keybase1.UserPlusKeys 
 	ckf := u.GetComputedKeyFamily()
 	if ckf != nil {
 		ret.DeviceKeys, ret.PGPKeyCount = ckf.ExportDeviceKeys()
+		ret.RevokedKeys = ckf.ExportRevokedKeys()
 	}
 
 	ret.Uvv = u.ExportToVersionVector(idTime)

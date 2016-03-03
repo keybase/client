@@ -65,7 +65,7 @@ protocol Common {
     Time cTime;
     Time eTime;
     Time revokedAt;
-    int revokedSeqno;
+    int revokedChain;
   }
 
   record User {

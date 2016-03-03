@@ -411,6 +411,17 @@ func (ckf ComputedKeyFamily) getCkiIfActiveNow(kid keybase1.KID) (ret *ComputedK
 	return ckf.getCkiIfActiveAtTime(kid, time.Now())
 }
 
+func (ckf ComputedKeyFamily) getCkiIfRevoked(kid keybase1.KID) (*ComputedKeyInfo, error) {
+	ki := ckf.cki.Infos[kid]
+	if ki == nil {
+		return nil, NoKeyError{fmt.Sprintf("The key '%s' wasn't found", kid)}
+	}
+	if ki.Status != KeyRevoked {
+		return nil, NoKeyError{fmt.Sprintf("The key '%s' wasn't revoked (%v)", kid, ki.Status)}
+	}
+	return ki, nil
+}
+
 // FindActiveSibkey takes a given KID and finds the corresponding active sibkey
 // in the current key family. If it cannot find the key, or if the key is no
 // longer active (either by revocation, or by expiring), it will return an
@@ -726,6 +737,36 @@ func (ckf ComputedKeyFamily) GetActivePGPKeys(sibkey bool) (ret []*PGPKeyBundle)
 		}
 	}
 	return
+}
+
+type RevokedKey struct {
+	Key       GenericKey
+	RevokedAt *KeybaseTime
+}
+
+func (ckf ComputedKeyFamily) GetRevokedKeys() []RevokedKey {
+	var revokedKeys []RevokedKey
+	for kid := range ckf.kf.AllKIDs {
+		ki := ckf.cki.Infos[kid]
+		if ki == nil {
+			continue
+		}
+		if ki.Status != KeyRevoked {
+			continue
+		}
+		if ki.RevokedAt == nil {
+			continue
+		}
+
+		key, err := ckf.FindKeyWithKIDUnsafe(kid)
+		if err != nil {
+			continue
+		}
+
+		revokedKeys = append(revokedKeys, RevokedKey{Key: key, RevokedAt: ki.RevokedAt})
+	}
+
+	return revokedKeys
 }
 
 // UpdateDevices takes the Device object from the given ChainLink

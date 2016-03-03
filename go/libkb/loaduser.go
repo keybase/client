@@ -340,7 +340,7 @@ func lookupMerkleLeaf(g *GlobalContext, uid keybase1.UID, local *User) (f *Merkl
 	return
 }
 
-func LoadUserPlusKeys(g *GlobalContext, uid keybase1.UID, cacheOK bool) (keybase1.UserPlusKeys, error) {
+func LoadUserPlusKeys(g *GlobalContext, uid keybase1.UID) (keybase1.UserPlusKeys, error) {
 	var up keybase1.UserPlusKeys
 	if uid.IsNil() {
 		return up, fmt.Errorf("Nil UID")

@@ -60,7 +60,7 @@ type RevokedKey struct {
 	CTime             Time     `codec:"cTime" json:"cTime"`
 	ETime             Time     `codec:"eTime" json:"eTime"`
 	RevokedAt         Time     `codec:"revokedAt" json:"revokedAt"`
-	RevokedSeqno      int      `codec:"revokedSeqno" json:"revokedSeqno"`
+	RevokedChain      int      `codec:"revokedChain" json:"revokedChain"`
 }
 
 type User struct {

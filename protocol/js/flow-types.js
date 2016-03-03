@@ -753,7 +753,7 @@ export type RevokedKey = {
   cTime: Time;
   eTime: Time;
   revokedAt: Time;
-  revokedSeqno: int;
+  revokedChain: int;
 }
 
 export type SaltpackDecryptOptions = {
