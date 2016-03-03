@@ -18,20 +18,20 @@ var errNoDevice = errors.New("No device provisioned locally for this user")
 // Login is an engine.
 type Login struct {
 	libkb.Contextified
-	deviceType string
-	username   string
-	clientType keybase1.ClientType
+	deviceType      string
+	usernameOrEmail string
+	clientType      keybase1.ClientType
 }
 
 // NewLogin creates a Login engine.  username is optional.
 // deviceType should be libkb.DeviceTypeDesktop or
 // libkb.DeviceTypeMobile.
-func NewLogin(g *libkb.GlobalContext, deviceType string, username string, ct keybase1.ClientType) *Login {
+func NewLogin(g *libkb.GlobalContext, deviceType string, usernameOrEmail string, ct keybase1.ClientType) *Login {
 	return &Login{
-		Contextified: libkb.NewContextified(g),
-		deviceType:   deviceType,
-		username:     username,
-		clientType:   ct,
+		Contextified:    libkb.NewContextified(g),
+		deviceType:      deviceType,
+		usernameOrEmail: usernameOrEmail,
+		clientType:      ct,
 	}
 }
 
@@ -60,32 +60,32 @@ func (e *Login) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *Login) Run(ctx *Context) error {
+	if len(e.usernameOrEmail) > 0 && libkb.CheckEmail.F(e.usernameOrEmail) {
+		// If e.usernameOrEmail is provided and it is an email address, then
+		// LoginCurrentDevice is pointless.  It would return an error,
+		// but might as well not even use it.
+		e.G().Log.Debug("skipping LoginCurrentDevice since %q provided to Login, which looks like an email address.", e.usernameOrEmail)
+	} else {
+		// First see if this device is already provisioned and it is possible to log in.
+		eng := NewLoginCurrentDevice(e.G(), e.usernameOrEmail)
+		err := RunEngine(eng, ctx)
+		if err == nil {
+			// login successful
+			e.G().Log.Debug("LoginCurrentDevice.Run() was successful")
+			e.sendNotification()
+			return nil
+		}
 
-	sendNotification := func() {
-		e.G().NotifyRouter.HandleLogin(string(e.G().Env.GetUsername()))
+		// if this device has been provisioned already and there was an error, then
+		// return that error.  Otherwise, ignore it and keep going.
+		if !e.notProvisionedErr(err) {
+			return err
+		}
+
+		e.G().Log.Debug("LoginCurrentDevice error: %s (continuing with device provisioning...)", err)
 	}
 
-	// First see if this device is already provisioned and it is possible to log in.
-	// Note that if e.username is an email address, this will always fail, which it
-	// should.
-	eng := NewLoginCurrentDevice(e.G(), e.username)
-	err := RunEngine(eng, ctx)
-	if err == nil {
-		// login successful
-		e.G().Log.Debug("LoginCurrentDevice.Run() was successful")
-		sendNotification()
-		return nil
-	}
-
-	// if this device has been provisioned already and there was an error, then
-	// return that error.  Otherwise, ignore it and keep going.
-	if !e.notProvisionedErr(err) {
-		return err
-	}
-
-	e.G().Log.Debug("LoginCurrentDevice error: %s (continuing with device provisioning...)", err)
-
-	// this device needs to be provisioned
+	e.G().Log.Debug("attempting device provisioning")
 
 	// clear out any existing session:
 	e.G().Logout()
@@ -105,7 +105,7 @@ func (e *Login) Run(ctx *Context) error {
 	}()
 
 	// run the username engine to load a user
-	ueng := NewLoginUsername(e.G(), e.username)
+	ueng := NewLoginUsername(e.G(), e.usernameOrEmail)
 	if err = RunEngine(ueng, ctx); err != nil {
 		return err
 	}
@@ -129,7 +129,7 @@ func (e *Login) Run(ctx *Context) error {
 	// exit.
 	tx = nil
 
-	sendNotification()
+	e.sendNotification()
 	return nil
 }
 
@@ -146,4 +146,8 @@ func (e *Login) notProvisionedErr(err error) bool {
 	e.G().Log.Debug("notProvisioned, not handling error %s (err type: %T)", err, err)
 
 	return false
+}
+
+func (e *Login) sendNotification() {
+	e.G().NotifyRouter.HandleLogin(string(e.G().Env.GetUsername()))
 }
