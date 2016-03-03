@@ -67,7 +67,7 @@ export default class PinentryRender extends Component {
         checked: this.state.features[feature],
         key: feature,
         name: feature,
-        style: styles.checkbox,
+        style: styles2.checkbox,
         onCheck: checked => this.onCheck(feature, checked)
       })
     })
@@ -75,10 +75,10 @@ export default class PinentryRender extends Component {
     return (
       <div>
         <Header icon title='' onClose={() => this.props.onCancel()} />
-        <div style={{...styles2.container, alignItems: 'center', padding: 10}}>
-          <Text type='Body'>{this.props.prompt}</Text>
+        <div style={{...styles2.container, textAlign: 'center', paddingLeft: 30, paddingRight: 30}}>
+          <Text dz2 type='Body'>{this.props.prompt}</Text>
         </div>
-        <div style={{...styles2.container, alignItems: 'center', padding: 10, paddingLeft: 30, paddingRight: 30}}>
+        <div style={{...styles2.container, alignItems: 'center', paddingLeft: 30, paddingRight: 30}}>
           <FormWithCheckbox
             style={{alignSelf: 'stretch'}}
             inputProps={inputProps}
@@ -86,8 +86,8 @@ export default class PinentryRender extends Component {
             checkboxesProps={checkboxProps}
           />
         </div>
-        <div style={{...styles2.container, alignItems: 'flex-end', paddingRight: 20, paddingBottom: 20}}>
-          <Button dz2 type='Primary' label='Continue' onClick={submitPassphrase} />
+        <div style={{...styles2.container, alignItems: 'flex-end', paddingLeft: 30, paddingRight: 30, paddingBottom: 30}}>
+          <Button dz2 type='Primary' label='Continue' onClick={submitPassphrase} disabled={!this.state.passphrase}/>
         </div>
       </div>
     )
@@ -155,6 +155,11 @@ const styles2 = {
   container: {
     ...globalStyles.flexBoxColumn,
     backgroundColor: globalColorsDZ2.white
+  },
+  checkbox: {
+    ...globalStyles.topMost,
+    color: globalColorsDZ2.black100,
+    marginLeft: 10
   }
 }
 
@@ -185,11 +190,6 @@ const styles = {
     marginTop: 22,
     marginBottom: 2,
     flex: 1
-  },
-  checkbox: {
-    ...globalStyles.topMost,
-    color: globalColors.black,
-    marginLeft: 10
   },
   input: {
     marginTop: -35

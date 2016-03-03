@@ -77,7 +77,7 @@ export default class Input extends Component {
           ref={textField => (this._textField = textField)}
           fullWidth
           inputStyle={{...inputStyle, textAlign: 'center'}}
-          underlineStyle={{bottom: 'auto'}}
+          underlineStyle={{borderColor: globalColorsDZ2.black10, bottom: 'auto'}}
           errorStyle={{...styles.errorStyle, ...this.props.errorStyle}}
           style={{...textStyle, ...globalStyles.flexBoxColumn}}
           autoFocus={this.props.autoFocus}
@@ -147,6 +147,7 @@ export const styles = {
   },
   floatingLabelStyle: {
     ...globalStyles.DZ2.fontRegular,
+    color: globalColorsDZ2.black10,
     alignSelf: 'center',
     position: 'inherit',
     top: 34
