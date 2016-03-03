@@ -134,7 +134,7 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 // connection.
 func (md *MDServerRemote) resetAuth(ctx context.Context, c keybase1.MetadataClient) (int, error) {
 
-	md.log.Debug("MDServerRemote: resetAuth called with a new connection")
+	md.log.Debug("MDServerRemote: resetAuth called")
 
 	_, _, err := md.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
@@ -170,10 +170,14 @@ func (md *MDServerRemote) resetAuth(ctx context.Context, c keybase1.MetadataClie
 
 // RefreshAuthToken implements the AuthTokenRefreshHandler interface.
 func (md *MDServerRemote) RefreshAuthToken(ctx context.Context) {
+	md.log.Debug("MDServerRemote: Refreshing auth token...")
+
 	_, err := md.resetAuth(ctx, md.client)
 	switch err.(type) {
 	case nil:
+		md.log.Debug("MDServerRemote: auth token refreshed")
 	case NoCurrentSessionError:
+		md.log.Debug("MDServerRemote: no session available, connection remains anonymous")
 	default:
 		md.log.Debug("MDServerRemote: error refreshing auth token: %v", err)
 	}
