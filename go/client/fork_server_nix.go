@@ -44,7 +44,7 @@ func spawnServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1
 		Files: files,
 	}
 
-	cmd, args, err = makeServerCommandLine(cl, forkType)
+	cmd, args, err = makeServerCommandLine(g, cl, forkType)
 	if err != nil {
 		return
 	}

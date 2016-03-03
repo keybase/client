@@ -17,6 +17,7 @@ import (
 	"sync"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/client/go/spotty"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
@@ -1037,11 +1038,11 @@ func (ui *UI) OutputDesc(_ libkb.OutputDescriptor, s string) error {
 }
 
 func (ui *UI) OutputWriter() io.Writer {
-	return libkb.OutputWriter()
+	return logger.OutputWriter()
 }
 
 func (ui *UI) ErrorWriter() io.Writer {
-	return libkb.ErrorWriter()
+	return logger.ErrorWriter()
 }
 
 func (ui *UI) Printf(format string, a ...interface{}) (n int, err error) {
