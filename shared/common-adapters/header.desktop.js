@@ -1,8 +1,8 @@
 /* @flow */
 
 import React, {Component} from 'react'
+import {Icon} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles/style-guide'
-import resolveRoot from '../../desktop/resolve-root'
 import type {Props} from './header'
 import Text from './text'
 
@@ -13,7 +13,7 @@ export default class Header extends Component {
     return (
       <div style={{...this.props.style, ...styles.container}}>
         {this.props.children}
-        {this.props.icon && <img style={styles.logo} src={`file://${resolveRoot('shared/images/service/keybase.png')}`}/>}
+        {this.props.icon && <Icon type='logo-24' />}
         <Text type='Body' style={{flex: 1}}>{this.props.title}</Text>
         {this.props.onClose && (
           <div style={styles.close} onClick={() => this.props.onClose()}>
