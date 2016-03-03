@@ -35,13 +35,8 @@ func spawnServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1
 	if devnull, err = os.OpenFile("nul", os.O_RDONLY, 0); err != nil {
 		return
 	}
-	files = append(files, devnull.Fd())
-
-	if g.Env.GetSplitLogOutput() {
-		files = append(files, uintptr(1), uintptr(2))
-	} else {
-		files = append(files, devnull.Fd(), devnull.Fd())
-	}
+	nullfd := devnull.Fd()
+	files = append(files, nullfd, nullfd, nullfd)
 
 	// On 'nix this would include Setsid: true, which means
 	// the new process inherits the session/terminal from the parent.

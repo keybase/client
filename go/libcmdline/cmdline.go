@@ -55,9 +55,6 @@ func (p CommandLine) IsNoStandalone() bool        { return p.noStandalone }
 func (p *CommandLine) SetLogForward(f LogForward) { p.logForward = f }
 func (p *CommandLine) GetLogForward() LogForward  { return p.logForward }
 
-func (p CommandLine) GetSplitLogOutput() (bool, bool) {
-	return p.GetBool("split-log-output", true)
-}
 func (p CommandLine) GetNoAutoFork() (bool, bool) {
 	return p.GetBool("no-auto-fork", true)
 }
@@ -96,6 +93,9 @@ func (p CommandLine) GetPGPFingerprint() *libkb.PGPFingerprint {
 }
 func (p CommandLine) GetProxy() string {
 	return p.GetGString("proxy")
+}
+func (p CommandLine) GetLogFile() string {
+	return p.GetGString("log-file")
 }
 func (p CommandLine) GetLogFormat() string {
 	return p.GetGString("log-format")
@@ -394,10 +394,6 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "log-file",
 			Usage: "Specify a log file for the keybase service.",
-		},
-		cli.BoolFlag{
-			Name:  "split-log-output",
-			Usage: "Output service log messages to current terminal.",
 		},
 		cli.StringFlag{
 			Name:  "timers",

@@ -124,11 +124,6 @@ func (d *Service) Run() (err error) {
 		d.G().Log.Debug("From Service.Run(): exit with code %d\n", d.G().ExitCode)
 	}()
 
-	if !d.G().Env.GetSplitLogOutput() {
-		// Log to file for real.
-		d.G().Log.RotateLogFile()
-	}
-
 	d.G().Log.Debug("+ service starting up; forkType=%v", d.ForkType)
 
 	// Sets this global context to "service" mode which will toggle a flag

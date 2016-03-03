@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"io"
+
 	"github.com/keybase/client/go/logger"
 )
 

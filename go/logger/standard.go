@@ -84,15 +84,13 @@ var _ Logger = (*Standard)(nil)
 
 // New creates a new Standard logger for module.
 func New(module string) *Standard {
-	return NewWithCallDepth(module, 0, nil)
+	return NewWithCallDepth(module, 0)
 }
 
 // NewWithCallDepth creates a new Standard logger for module, and when
 // printing file names and line numbers, it goes extraCallDepth up the
 // stack from where logger was invoked.
-// The last argument is ignored and exists for historic reasons.
-// TODO: remove the last argument from all call sites and here.
-func NewWithCallDepth(module string, extraCallDepth int, deprecatedIgnored interface{}) *Standard {
+func NewWithCallDepth(module string, extraCallDepth int) *Standard {
 	log := logging.MustGetLogger(module)
 	log.ExtraCalldepth = 1 + extraCallDepth
 
@@ -108,7 +106,7 @@ func (log *Standard) setLogLevelInfo() {
 	initLoggingSetLevelMutex.Lock()
 	defer initLoggingSetLevelMutex.Unlock()
 
-	if _, found := initLoggingSetLevelCalled[log.module]; found {
+	if _, found := initLoggingSetLevelCalled[log.module]; !found {
 		logging.SetLevel(logging.INFO, log.module)
 		initLoggingSetLevelCalled[log.module] = struct{}{}
 	}

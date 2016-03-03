@@ -140,6 +140,12 @@ func makeServerCommandLine(cl libkb.CommandLine, forkType keybase1.ForkType) (ar
 		}
 	}
 
+	// If there is no explicit log file add one when autoforking.
+	// otherwise it was added in the previous block already.
+	if cl.GetLogFile() == "" {
+		args = append(args, "--log-file", G.Env.GetDefaultLogFile())
+	}
+
 	args = append(args, "service")
 
 	var chdir string

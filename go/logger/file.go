@@ -21,22 +21,32 @@ type LogFileConfig struct {
 
 // SetLogFileConfig sets the log file config to be used globally.
 func SetLogFileConfig(lfc *LogFileConfig) error {
-	var w = logFileWriter{config: *lfc}
 	globalLock.Lock()
 	defer globalLock.Unlock()
 
-	// Close current logFileWriter if it exists. Safe to call on nil.
-	currentLogFileWriter.Close()
+	first := true
+	var w = currentLogFileWriter
+	if w != nil {
+		first = false
+		w.lock.Lock()
+		defer w.lock.Unlock()
+		w.Close()
+	} else {
+		w = &logFileWriter{}
+	}
+	w.config = *lfc
 
 	err := w.Open(time.Now())
-	if err!=nil {
+	if err != nil {
 		return err
 	}
-	fileBackend := logging.NewLogBackend(&w, "", 0)
-	logging.SetBackend(fileBackend)
 
-	stderrIsTerminal = false
+	if first {
+		fileBackend := logging.NewLogBackend(w, "", 0)
+		logging.SetBackend(fileBackend)
 
+		stderrIsTerminal = false
+	}
 	return nil
 }
 
