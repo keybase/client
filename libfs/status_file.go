@@ -24,8 +24,8 @@ type kbfsStatus struct {
 	LimitBytes  int64
 }
 
-// GetEncodedStatus returns serialized JSON containing status information for a
-// folder
+// GetEncodedFolderStatus returns serialized JSON containing status information
+// for a folder
 func GetEncodedFolderStatus(ctx context.Context, config libkbfs.Config,
 	folderBranch *libkbfs.FolderBranch) (
 	data []byte, t time.Time, err error) {
@@ -51,12 +51,14 @@ func GetEncodedFolderStatus(ctx context.Context, config libkbfs.Config,
 func GetEncodedStatus(ctx context.Context, config libkbfs.Config) (
 	data []byte, t time.Time, err error) {
 	username, _, _ := config.KBPKI().GetCurrentUserInfo(ctx)
-	var usageBytes int64
-	var limitBytes int64
+	var usageBytes int64 = -1
+	var limitBytes int64 = -1
 	quotaInfo, err := config.BlockServer().GetUserQuotaInfo(ctx)
 	if err == nil {
 		usageBytes = quotaInfo.Total.UsageBytes
 		limitBytes = quotaInfo.Limit
+	} else {
+		config.Reporter().ReportErr(ctx, err)
 	}
 	data, err = json.MarshalIndent(kbfsStatus{
 		CurrentUser: username.String(),
