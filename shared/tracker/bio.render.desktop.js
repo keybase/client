@@ -16,45 +16,51 @@ import type {BioProps} from './bio.render'
 export default class BioRender extends Component {
   props: BioProps;
 
-  onClickAvatar () {
+  _onClickAvatar () {
     shell.openExternal(`https://keybase.io/${this.props.username}`)
   }
 
-  onClickFollowers () {
+  _onClickFollowers () {
     shell.openExternal(`https://keybase.io/${this.props.username}#profile-tracking-section`)
   }
 
-  onClickFollowing () {
+  _onClickFollowing () {
     shell.openExternal(`https://keybase.io/${this.props.username}#profile-tracking-section`)
   }
 
   render () {
-    if (flags.tracker2) {
-      return this.render2(styles2)
+    if (!this.props.userInfo) {
+      return null
     }
-    return this.renderDefault(styles1)
+    if (flags.tracker2) {
+      return this._render2(styles2)
+    }
+    return this._renderDefault(styles1)
   }
 
-  renderDefault (styles: Object) {
+  _renderDefault (styles: Object) {
     const {userInfo} = this.props
     const noAvatar = `file:///${resolveRoot('shared/images/no-avatar@2x.png')}`
 
     return (
       <div style={styles.container}>
-        <Paper onClick={() => this.onClickAvatar()} style={styles.avatarContainer} zDepth={1} circle>
+        <Paper onClick={() => this._onClickAvatar()} style={styles.avatarContainer} zDepth={1} circle>
           <img src={(userInfo && userInfo.avatar) || noAvatar} style={styles.avatar}/>
         </Paper>
         {userInfo && userInfo.followsYou && <span style={styles.followsYou}>Tracks you</span>}
         <p style={styles.fullname}>{userInfo && userInfo.fullname}</p>
         <p style={styles.location}>{userInfo && userInfo.location}</p>
-        <p className='hover-underline' onClick={() => this.onClickFollowing()} style={styles.following}>Tracking: {userInfo && userInfo.followingCount}</p>
-        <p className='hover-underline' onClick={() => this.onClickFollowers()} style={styles.followers}>Trackers: {userInfo && userInfo.followersCount}</p>
+        <p className='hover-underline' onClick={() => this._onClickFollowing()} style={styles.following}>Tracking: {userInfo && userInfo.followingCount}</p>
+        <p className='hover-underline' onClick={() => this._onClickFollowers()} style={styles.followers}>Trackers: {userInfo && userInfo.followersCount}</p>
       </div>
     )
   }
 
-  followLabel (): ?string {
+  _followLabel (): ?string {
     const {userInfo, currentlyFollowing} = this.props
+    if (!userInfo) {
+      return null
+    }
 
     if (userInfo.followsYou && currentlyFollowing) {
       return 'You follow each other'
@@ -65,17 +71,20 @@ export default class BioRender extends Component {
     return null
   }
 
-  render2 (styles: Object) {
+  _render2 (styles: Object) {
     const {username, userInfo, currentlyFollowing} = this.props
+    if (!userInfo) {
+      return null
+    }
 
     const followsYou = userInfo.followsYou
-    const followLabel = this.followLabel()
+    const followLabel = this._followLabel()
 
     return (
       <div style={styles.outer}>
         <div style={styles.container}>
           <div style={styles.avatarOuter}>
-            <Avatar onClick={() => this.onClickAvatar()} url={userInfo.avatar} size={75} />
+            <Avatar onClick={() => this._onClickAvatar()} url={userInfo.avatar} size={75} />
             {(followsYou || currentlyFollowing) &&
               <div>
                 {followsYou
@@ -92,13 +101,13 @@ export default class BioRender extends Component {
               <Text type='BodySmall' dz2 style={styles.followLabel}>{followLabel}</Text>
             }
             <Text type='BodySmall' dz2 style={styles.following}>
-              <span className='hover-underline' onClick={() => this.onClickFollowers()}>
+              <span className='hover-underline' onClick={() => this._onClickFollowers()}>
                 <Text dz2 type='BodySmall' style={{...globalStyles.DZ2.fontBold}}>{userInfo.followersCount}</Text> Followers
               </span>
               &nbsp;
               &middot;
               &nbsp;
-              <span className='hover-underline' onClick={() => this.onClickFollowing()}>
+              <span className='hover-underline' onClick={() => this._onClickFollowing()}>
                 Following <Text dz2 type='BodySmall' style={{...globalStyles.DZ2.fontBold}}>{userInfo.followingCount}</Text>
               </span>
             </Text>

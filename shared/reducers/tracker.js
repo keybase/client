@@ -95,10 +95,14 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         trackToken: action.payload && action.payload.trackToken
       }
     case Constants.userUpdated:
-      return {
-        ...state,
-        closed: true,
-        hidden: false
+      if (state.lastAction) {
+        return state
+      } else {
+        return {
+          ...state,
+          closed: true,
+          hidden: false
+        }
       }
     case Constants.onMaybeTrack:
       return {
@@ -125,6 +129,11 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
     case Constants.onFollow:
       return {
         ...state,
+        lastTrack: {
+          username: 'Mock',
+          time: Date.now(),
+          isRemote: true
+        },
         lastAction: 'followed',
         reason: `You have followed ${state.username}.`
       }
