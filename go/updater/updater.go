@@ -606,7 +606,7 @@ func (u *Updater) checkInUse(ctx Context, update keybase1.Update) error {
 		// If there is an error in lsof it's likely because the mount is in a bad
 		// state. This usually means we're ok to continue.
 		// TODO(gabe): Investigate this more
-		u.log.Errorf("Continuing despite error in lsof: %s", err)
+		u.log.Warning("Continuing despite error in lsof: %s", err)
 	}
 	if len(processes) != 0 {
 		u.log.Debug("Prompting app in use")
