@@ -7,33 +7,33 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-// LoginCurrentDevice is an engine that tries to login using the
+// loginProvisionedDevice is an engine that tries to login using the
 // current device, if there is an existing provisioned device.
-type LoginCurrentDevice struct {
+type loginProvisionedDevice struct {
 	libkb.Contextified
 	username string
 }
 
-// NewLoginCurrentDevice creates a LoginCurrentDevice engine.
-func NewLoginCurrentDevice(g *libkb.GlobalContext, username string) *LoginCurrentDevice {
-	return &LoginCurrentDevice{
+// newLoginCurrentDevice creates a loginProvisionedDevice engine.
+func newLoginProvisionedDevice(g *libkb.GlobalContext, username string) *loginProvisionedDevice {
+	return &loginProvisionedDevice{
 		username:     username,
 		Contextified: libkb.NewContextified(g),
 	}
 }
 
 // Name is the unique engine name.
-func (e *LoginCurrentDevice) Name() string {
-	return "LoginCurrentDevice"
+func (e *loginProvisionedDevice) Name() string {
+	return "loginProvisionedDevice"
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *LoginCurrentDevice) Prereqs() Prereqs {
+func (e *loginProvisionedDevice) Prereqs() Prereqs {
 	return Prereqs{}
 }
 
 // RequiredUIs returns the required UIs.
-func (e *LoginCurrentDevice) RequiredUIs() []libkb.UIKind {
+func (e *loginProvisionedDevice) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.LoginUIKind,
 		libkb.SecretUIKind,
@@ -41,11 +41,11 @@ func (e *LoginCurrentDevice) RequiredUIs() []libkb.UIKind {
 }
 
 // SubConsumers returns the other UI consumers for this engine.
-func (e *LoginCurrentDevice) SubConsumers() []libkb.UIConsumer {
+func (e *loginProvisionedDevice) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
-func (e *LoginCurrentDevice) Run(ctx *Context) error {
+func (e *loginProvisionedDevice) Run(ctx *Context) error {
 	// already logged in?
 	in, err := e.G().LoginState().LoggedInProvisionedLoad()
 	if err == nil && in {

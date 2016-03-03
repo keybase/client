@@ -23,7 +23,7 @@ func TestLoginDeviceIDConfigIssues(t *testing.T) {
 		LogUI:    tc.G.UI.GetLogUI(),
 		SecretUI: fu.NewSecretUI(),
 	}
-	eng := NewLoginCurrentDevice(tc.G, fu.Username)
+	eng := newLoginProvisionedDevice(tc.G, fu.Username)
 	err := RunEngine(eng, ctx)
 	if err != errNoDevice {
 		t.Errorf("run error: %v, expected %v", err, errNoDevice)
@@ -31,7 +31,7 @@ func TestLoginDeviceIDConfigIssues(t *testing.T) {
 
 	// put a device id into config file that is not this user's device
 	tc.G.Env.GetConfigWriter().SetDeviceID("31a7669bfa163eed3619780ebac8ee18")
-	eng = NewLoginCurrentDevice(tc.G, fu.Username)
+	eng = newLoginProvisionedDevice(tc.G, fu.Username)
 	err = RunEngine(eng, ctx)
 	if err != errNoDevice {
 		t.Errorf("run error: %v, expected %v", err, errNoDevice)

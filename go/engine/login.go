@@ -53,7 +53,7 @@ func (e *Login) RequiredUIs() []libkb.UIKind {
 // SubConsumers returns the other UI consumers for this engine.
 func (e *Login) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
-		&LoginCurrentDevice{},
+		&loginProvisionedDevice{},
 		&loginLoadUser{},
 		&loginProvision{},
 	}
@@ -63,16 +63,16 @@ func (e *Login) SubConsumers() []libkb.UIConsumer {
 func (e *Login) Run(ctx *Context) error {
 	if len(e.usernameOrEmail) > 0 && libkb.CheckEmail.F(e.usernameOrEmail) {
 		// If e.usernameOrEmail is provided and it is an email address, then
-		// LoginCurrentDevice is pointless.  It would return an error,
+		// loginProvisionedDevice is pointless.  It would return an error,
 		// but might as well not even use it.
-		e.G().Log.Debug("skipping LoginCurrentDevice since %q provided to Login, which looks like an email address.", e.usernameOrEmail)
+		e.G().Log.Debug("skipping loginProvisionedDevice since %q provided to Login, which looks like an email address.", e.usernameOrEmail)
 	} else {
 		// First see if this device is already provisioned and it is possible to log in.
-		eng := NewLoginCurrentDevice(e.G(), e.usernameOrEmail)
+		eng := newLoginProvisionedDevice(e.G(), e.usernameOrEmail)
 		err := RunEngine(eng, ctx)
 		if err == nil {
 			// login successful
-			e.G().Log.Debug("LoginCurrentDevice.Run() was successful")
+			e.G().Log.Debug("LoginProvisionedDevice.Run() was successful")
 			e.sendNotification()
 			return nil
 		}
@@ -83,7 +83,7 @@ func (e *Login) Run(ctx *Context) error {
 			return err
 		}
 
-		e.G().Log.Debug("LoginCurrentDevice error: %s (continuing with device provisioning...)", err)
+		e.G().Log.Debug("loginProvisionedDevice error: %s (continuing with device provisioning...)", err)
 	}
 
 	e.G().Log.Debug("attempting device provisioning")
