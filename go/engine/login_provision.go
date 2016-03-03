@@ -486,7 +486,9 @@ func (e *LoginProvision) route(ctx *Context) error {
 		return e.tryPGP(ctx)
 	}
 
-	return e.eldest(ctx)
+	// User has no existing devices or pgp keys, so create
+	// the eldest device.
+	return e.makeEldestDevice(ctx)
 }
 
 func (e *LoginProvision) chooseDevice(ctx *Context, pgp bool) error {
@@ -775,7 +777,7 @@ func (e *LoginProvision) gpgImportKey(ctx *Context, fp *libkb.PGPFingerprint) (l
 	return bundle, nil
 }
 
-func (e *LoginProvision) eldest(ctx *Context) error {
+func (e *LoginProvision) makeEldestDevice(ctx *Context) error {
 	if !e.arg.User.GetEldestKID().IsNil() {
 		// this shouldn't happen, but make sure
 		return errors.New("eldest called on user with existing eldest KID")
