@@ -889,13 +889,13 @@ func TestProvisionGPGSwitchToSign(t *testing.T) {
 		GPGUI:       &gpgtestui{},
 	}
 
-	arg := LoginProvisionArg{
+	arg := loginProvisionArg{
 		DeviceType: libkb.DeviceTypeDesktop,
 		ClientType: keybase1.ClientType_CLI,
 		User:       user,
 	}
 
-	eng := NewLoginProvision(tc2.G, &arg)
+	eng := newLoginProvision(tc2.G, &arg)
 	// use a gpg client that will fail to import any gpg key
 	eng.gpgCli = newGPGImportFailer(tc2.G)
 
@@ -960,13 +960,13 @@ func TestProvisionGPGNoSwitchToSign(t *testing.T) {
 		GPGUI:       &gpgtestui{},
 	}
 
-	arg := LoginProvisionArg{
+	arg := loginProvisionArg{
 		DeviceType: libkb.DeviceTypeDesktop,
 		ClientType: keybase1.ClientType_CLI,
 		User:       user,
 	}
 
-	eng := NewLoginProvision(tc2.G, &arg)
+	eng := newLoginProvision(tc2.G, &arg)
 	// use a gpg client that will fail to import any gpg key
 	eng.gpgCli = newGPGImportFailer(tc2.G)
 
@@ -1236,12 +1236,12 @@ func TestProvisionNilUser(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
-	arg := LoginProvisionArg{
+	arg := loginProvisionArg{
 		DeviceType: libkb.DeviceTypeDesktop,
 		ClientType: keybase1.ClientType_CLI,
 		User:       nil,
 	}
-	eng := NewLoginProvision(tc.G, &arg)
+	eng := newLoginProvision(tc.G, &arg)
 	ctx := &Context{
 		ProvisionUI: newTestProvisionUIPassphrase(),
 		LoginUI:     &libkb.TestLoginUI{},

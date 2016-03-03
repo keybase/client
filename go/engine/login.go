@@ -55,7 +55,7 @@ func (e *Login) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		&LoginCurrentDevice{},
 		&loginLoadUser{},
-		&LoginProvision{},
+		&loginProvision{},
 	}
 }
 
@@ -118,12 +118,12 @@ func (e *Login) Run(ctx *Context) error {
 		return libkb.DeviceAlreadyProvisionedError{}
 	}
 
-	darg := &LoginProvisionArg{
+	darg := &loginProvisionArg{
 		DeviceType: e.deviceType,
 		ClientType: e.clientType,
 		User:       ueng.User(),
 	}
-	deng := NewLoginProvision(e.G(), darg)
+	deng := newLoginProvision(e.G(), darg)
 	if err = RunEngine(deng, ctx); err != nil {
 		return err
 	}

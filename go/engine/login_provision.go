@@ -15,11 +15,11 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
-// LoginProvision is an engine that will provision the current
-// device.
-type LoginProvision struct {
+// loginProvision is an engine that will provision the current
+// device.  Only the Login engine should run it.
+type loginProvision struct {
 	libkb.Contextified
-	arg           *LoginProvisionArg
+	arg           *loginProvisionArg
 	lks           *libkb.LKSec
 	signingKey    libkb.GenericKey
 	encryptionKey libkb.GenericKey
@@ -36,32 +36,32 @@ type gpgInterface interface {
 	Index(secret bool, query string) (ki *libkb.GpgKeyIndex, w libkb.Warnings, err error)
 }
 
-type LoginProvisionArg struct {
+type loginProvisionArg struct {
 	DeviceType string // desktop or mobile
 	ClientType keybase1.ClientType
 	User       *libkb.User
 }
 
-// NewLoginProvision creates a LoginProvision engine.
-func NewLoginProvision(g *libkb.GlobalContext, arg *LoginProvisionArg) *LoginProvision {
-	return &LoginProvision{
+// newLoginProvision creates a loginProvision engine.
+func newLoginProvision(g *libkb.GlobalContext, arg *loginProvisionArg) *loginProvision {
+	return &loginProvision{
 		Contextified: libkb.NewContextified(g),
 		arg:          arg,
 	}
 }
 
 // Name is the unique engine name.
-func (e *LoginProvision) Name() string {
-	return "LoginProvision"
+func (e *loginProvision) Name() string {
+	return "loginProvision"
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *LoginProvision) Prereqs() Prereqs {
+func (e *loginProvision) Prereqs() Prereqs {
 	return Prereqs{}
 }
 
 // RequiredUIs returns the required UIs.
-func (e *LoginProvision) RequiredUIs() []libkb.UIKind {
+func (e *loginProvision) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.ProvisionUIKind,
 		libkb.LoginUIKind,
@@ -71,7 +71,7 @@ func (e *LoginProvision) RequiredUIs() []libkb.UIKind {
 }
 
 // SubConsumers returns the other UI consumers for this engine.
-func (e *LoginProvision) SubConsumers() []libkb.UIConsumer {
+func (e *loginProvision) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		&DeviceWrap{},
 		&PaperKeyPrimary{},
@@ -79,7 +79,7 @@ func (e *LoginProvision) SubConsumers() []libkb.UIConsumer {
 }
 
 // Run starts the engine.
-func (e *LoginProvision) Run(ctx *Context) error {
+func (e *loginProvision) Run(ctx *Context) error {
 	if err := e.checkArg(); err != nil {
 		return err
 	}
@@ -106,7 +106,7 @@ func (e *LoginProvision) Run(ctx *Context) error {
 
 // deviceWithType provisions this device with an existing device using the
 // kex2 protocol.  provisionerType is the existing device type.
-func (e *LoginProvision) deviceWithType(ctx *Context, provisionerType keybase1.DeviceType) error {
+func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.DeviceType) error {
 	// make a new secret:
 	secret, err := libkb.NewKex2Secret()
 	if err != nil {
@@ -171,7 +171,7 @@ func (e *LoginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 		ctx.LoginContext = lctx
 		return RunEngine(provisionee, ctx)
 	}
-	if err := e.G().LoginState().ExternalFunc(f, "LoginProvision.device - Run provisionee"); err != nil {
+	if err := e.G().LoginState().ExternalFunc(f, "loginProvision.device - Run provisionee"); err != nil {
 		return err
 	}
 
@@ -190,7 +190,7 @@ func (e *LoginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 }
 
 // paper attempts to provision the device via a paper key.
-func (e *LoginProvision) paper(ctx *Context, device *libkb.Device) error {
+func (e *loginProvision) paper(ctx *Context, device *libkb.Device) error {
 	// get the paper key from the user
 	kp, err := e.getValidPaperKey(ctx)
 	if err != nil {
@@ -224,7 +224,7 @@ func (e *LoginProvision) paper(ctx *Context, device *libkb.Device) error {
 	return e.G().LoginState().LoginWithKey(ctx.LoginContext, e.arg.User, kp.sigKey, afterLogin)
 }
 
-func (e *LoginProvision) getValidPaperKey(ctx *Context) (*keypair, error) {
+func (e *loginProvision) getValidPaperKey(ctx *Context) (*keypair, error) {
 	var lastErr error
 	for i := 0; i < 10; i++ {
 		// get the paper key from the user
@@ -260,7 +260,7 @@ func (e *LoginProvision) getValidPaperKey(ctx *Context) (*keypair, error) {
 
 // pgpProvision attempts to provision with a synced pgp key.  It
 // needs to get a session first to look for a synced pgp key.
-func (e *LoginProvision) pgpProvision(ctx *Context) error {
+func (e *loginProvision) pgpProvision(ctx *Context) error {
 	// After obtaining login session, this will be called before the login state is released.
 	// It tries to get the pgp key and uses it to provision new device keys for this device.
 	var afterLogin = func(lctx libkb.LoginContext) error {
@@ -286,7 +286,7 @@ func (e *LoginProvision) pgpProvision(ctx *Context) error {
 
 // makeDeviceKeysWithSigner creates device keys given a signing
 // key.
-func (e *LoginProvision) makeDeviceKeysWithSigner(ctx *Context, signer libkb.GenericKey) error {
+func (e *loginProvision) makeDeviceKeysWithSigner(ctx *Context, signer libkb.GenericKey) error {
 	args, err := e.makeDeviceWrapArgs(ctx)
 	if err != nil {
 		return err
@@ -301,7 +301,7 @@ func (e *LoginProvision) makeDeviceKeysWithSigner(ctx *Context, signer libkb.Gen
 // makeDeviceWrapArgs creates a base set of args for DeviceWrap.
 // It ensures that LKSec is created.  It also gets a new device
 // name for this device.
-func (e *LoginProvision) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs, error) {
+func (e *loginProvision) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs, error) {
 	if err := e.ensureLKSec(ctx); err != nil {
 		return nil, err
 	}
@@ -321,7 +321,7 @@ func (e *LoginProvision) makeDeviceWrapArgs(ctx *Context) (*DeviceWrapArgs, erro
 }
 
 // ensureLKSec ensures we have LKSec for saving device keys.
-func (e *LoginProvision) ensureLKSec(ctx *Context) error {
+func (e *loginProvision) ensureLKSec(ctx *Context) error {
 	if e.lks != nil {
 		return nil
 	}
@@ -337,11 +337,11 @@ func (e *LoginProvision) ensureLKSec(ctx *Context) error {
 
 // ppStream gets the passphrase stream, either cached or via
 // SecretUI.
-func (e *LoginProvision) ppStream(ctx *Context) (*libkb.PassphraseStream, error) {
+func (e *loginProvision) ppStream(ctx *Context) (*libkb.PassphraseStream, error) {
 	if ctx.LoginContext != nil {
 		cached := ctx.LoginContext.PassphraseStreamCache()
 		if cached == nil {
-			return nil, errors.New("LoginProvision: ppStream() -> nil PassphraseStreamCache")
+			return nil, errors.New("loginProvision: ppStream() -> nil PassphraseStreamCache")
 		}
 		return cached.PassphraseStream(), nil
 	}
@@ -349,7 +349,7 @@ func (e *LoginProvision) ppStream(ctx *Context) (*libkb.PassphraseStream, error)
 }
 
 // deviceName gets a new device name from the user.
-func (e *LoginProvision) deviceName(ctx *Context) (string, error) {
+func (e *loginProvision) deviceName(ctx *Context) (string, error) {
 	names, err := e.arg.User.DeviceNames()
 	if err != nil {
 		e.G().Log.Debug("error getting device names: %s", err)
@@ -388,7 +388,7 @@ func (e *LoginProvision) deviceName(ctx *Context) (string, error) {
 }
 
 // makeDeviceKeys uses DeviceWrap to generate device keys.
-func (e *LoginProvision) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) error {
+func (e *loginProvision) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) error {
 	eng := NewDeviceWrap(args, e.G())
 	if err := RunEngine(eng, ctx); err != nil {
 		return err
@@ -401,7 +401,7 @@ func (e *LoginProvision) makeDeviceKeys(ctx *Context, args *DeviceWrapArgs) erro
 
 // syncedPGPKey looks for a synced pgp key for e.user.  If found,
 // it unlocks it.
-func (e *LoginProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
+func (e *loginProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
 	key, err := e.arg.User.SyncedSecretKey(ctx.LoginContext)
 	if err != nil {
 		return nil, err
@@ -425,7 +425,7 @@ func (e *LoginProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
 }
 
 // gpgPrivateIndex returns an index of the private gpg keys.
-func (e *LoginProvision) gpgPrivateIndex() (*libkb.GpgKeyIndex, error) {
+func (e *loginProvision) gpgPrivateIndex() (*libkb.GpgKeyIndex, error) {
 	cli, err := e.gpgClient()
 	if err != nil {
 		return nil, err
@@ -441,7 +441,7 @@ func (e *LoginProvision) gpgPrivateIndex() (*libkb.GpgKeyIndex, error) {
 }
 
 // gpgClient returns a gpg client.
-func (e *LoginProvision) gpgClient() (gpgInterface, error) {
+func (e *loginProvision) gpgClient() (gpgInterface, error) {
 	if e.gpgCli != nil {
 		return e.gpgCli, nil
 	}
@@ -454,8 +454,8 @@ func (e *LoginProvision) gpgClient() (gpgInterface, error) {
 	return e.gpgCli, nil
 }
 
-// checkArg checks LoginProvisionArg for sane arguments.
-func (e *LoginProvision) checkArg() error {
+// checkArg checks loginProvisionArg for sane arguments.
+func (e *loginProvision) checkArg() error {
 	// check we have a good device type:
 	if e.arg.DeviceType != libkb.DeviceTypeDesktop && e.arg.DeviceType != libkb.DeviceTypeMobile {
 		return libkb.InvalidArgumentError{Msg: fmt.Sprintf("device type must be %q or %q, not %q", libkb.DeviceTypeDesktop, libkb.DeviceTypeMobile, e.arg.DeviceType)}
@@ -468,7 +468,7 @@ func (e *LoginProvision) checkArg() error {
 	return nil
 }
 
-func (e *LoginProvision) route(ctx *Context) error {
+func (e *loginProvision) route(ctx *Context) error {
 	// check if User has any pgp keys, active devices
 	pgp := false
 	device := false
@@ -491,7 +491,7 @@ func (e *LoginProvision) route(ctx *Context) error {
 	return e.makeEldestDevice(ctx)
 }
 
-func (e *LoginProvision) chooseDevice(ctx *Context, pgp bool) error {
+func (e *loginProvision) chooseDevice(ctx *Context, pgp bool) error {
 	ckf := e.arg.User.GetComputedKeyFamily()
 	devices := partitionDeviceList(ckf.GetAllActiveDevices())
 	sort.Sort(devices)
@@ -541,7 +541,7 @@ func (e *LoginProvision) chooseDevice(ctx *Context, pgp bool) error {
 	}
 }
 
-func (e *LoginProvision) tryPGP(ctx *Context) error {
+func (e *loginProvision) tryPGP(ctx *Context) error {
 	err := e.pgpProvision(ctx)
 	if err == nil {
 		return nil
@@ -557,7 +557,7 @@ func (e *LoginProvision) tryPGP(ctx *Context) error {
 	return e.tryGPG(ctx)
 }
 
-func (e *LoginProvision) tryGPG(ctx *Context) error {
+func (e *loginProvision) tryGPG(ctx *Context) error {
 	key, method, err := e.chooseGPGKeyAndMethod(ctx)
 	if err != nil {
 		return err
@@ -615,7 +615,7 @@ func (e *LoginProvision) tryGPG(ctx *Context) error {
 	return e.G().LoginState().LoginWithPrompt(e.arg.User.GetName(), ctx.LoginUI, ctx.SecretUI, afterLogin)
 }
 
-func (e *LoginProvision) chooseGPGKeyAndMethod(ctx *Context) (*libkb.GpgPrimaryKey, keybase1.GPGMethod, error) {
+func (e *loginProvision) chooseGPGKeyAndMethod(ctx *Context) (*libkb.GpgPrimaryKey, keybase1.GPGMethod, error) {
 	nilMethod := keybase1.GPGMethod_GPG_NONE
 	// find any local private gpg keys that are in user's key family
 	matches, err := e.matchingGPGKeys()
@@ -679,7 +679,7 @@ func (e *LoginProvision) chooseGPGKeyAndMethod(ctx *Context) (*libkb.GpgPrimaryK
 	return key, method, nil
 }
 
-func (e *LoginProvision) switchToGPGSign(ctx *Context, key *libkb.GpgPrimaryKey, importError error) (libkb.GenericKey, error) {
+func (e *loginProvision) switchToGPGSign(ctx *Context, key *libkb.GpgPrimaryKey, importError error) (libkb.GenericKey, error) {
 	gk := keybase1.GPGKey{
 		Algorithm:  key.AlgoString(),
 		KeyID:      key.ID64,
@@ -702,7 +702,7 @@ func (e *LoginProvision) switchToGPGSign(ctx *Context, key *libkb.GpgPrimaryKey,
 	return e.gpgSignKey(ctx, key.GetFingerprint())
 }
 
-func (e *LoginProvision) matchingGPGKeys() ([]*libkb.GpgPrimaryKey, error) {
+func (e *loginProvision) matchingGPGKeys() ([]*libkb.GpgPrimaryKey, error) {
 	index, err := e.gpgPrivateIndex()
 	if err != nil {
 		return nil, err
@@ -736,7 +736,7 @@ func (e *LoginProvision) matchingGPGKeys() ([]*libkb.GpgPrimaryKey, error) {
 	return matches, nil
 }
 
-func (e *LoginProvision) newGPGMatchErr(keys []*libkb.PGPKeyBundle) error {
+func (e *loginProvision) newGPGMatchErr(keys []*libkb.PGPKeyBundle) error {
 	fps := make([]string, len(keys))
 	for i, k := range keys {
 		fps[i] = k.GetFingerprint().ToQuads()
@@ -744,7 +744,7 @@ func (e *LoginProvision) newGPGMatchErr(keys []*libkb.PGPKeyBundle) error {
 	return libkb.NoMatchingGPGKeysError{Fingerprints: fps}
 }
 
-func (e *LoginProvision) gpgSignKey(ctx *Context, fp *libkb.PGPFingerprint) (libkb.GenericKey, error) {
+func (e *loginProvision) gpgSignKey(ctx *Context, fp *libkb.PGPFingerprint) (libkb.GenericKey, error) {
 	kf := e.arg.User.GetComputedKeyFamily()
 	if kf == nil {
 		return nil, libkb.KeyFamilyError{Msg: "no key family for user"}
@@ -758,7 +758,7 @@ func (e *LoginProvision) gpgSignKey(ctx *Context, fp *libkb.PGPFingerprint) (lib
 	return libkb.NewGPGKey(e.G(), fp, kid, ctx.GPGUI, e.arg.ClientType), nil
 }
 
-func (e *LoginProvision) gpgImportKey(ctx *Context, fp *libkb.PGPFingerprint) (libkb.GenericKey, error) {
+func (e *loginProvision) gpgImportKey(ctx *Context, fp *libkb.PGPFingerprint) (libkb.GenericKey, error) {
 	// import it with gpg
 	cli, err := e.gpgClient()
 	if err != nil {
@@ -777,7 +777,7 @@ func (e *LoginProvision) gpgImportKey(ctx *Context, fp *libkb.PGPFingerprint) (l
 	return bundle, nil
 }
 
-func (e *LoginProvision) makeEldestDevice(ctx *Context) error {
+func (e *loginProvision) makeEldestDevice(ctx *Context) error {
 	if !e.arg.User.GetEldestKID().IsNil() {
 		// this shouldn't happen, but make sure
 		return errors.New("eldest called on user with existing eldest KID")
@@ -799,7 +799,7 @@ func (e *LoginProvision) makeEldestDevice(ctx *Context) error {
 
 // ensurePaperKey checks to see if e.user has any paper keys.  If
 // not, it makes one.
-func (e *LoginProvision) ensurePaperKey(ctx *Context) error {
+func (e *loginProvision) ensurePaperKey(ctx *Context) error {
 	// see if they have a paper key already
 	cki := e.arg.User.GetComputedKeyInfos()
 	if cki != nil {
@@ -817,8 +817,7 @@ func (e *LoginProvision) ensurePaperKey(ctx *Context) error {
 	return RunEngine(eng, ctx)
 }
 
-// XXX this needs to retry instead of erroring out
-func (e *LoginProvision) getPaperKey(ctx *Context) (*keypair, error) {
+func (e *loginProvision) getPaperKey(ctx *Context) (*keypair, error) {
 	passphrase, err := libkb.GetPaperKeyPassphrase(ctx.SecretUI, "")
 	if err != nil {
 		return nil, err
@@ -848,7 +847,7 @@ func (e *LoginProvision) getPaperKey(ctx *Context) (*keypair, error) {
 	return kp, nil
 }
 
-func (e *LoginProvision) uidByKID(kid keybase1.KID) (keybase1.UID, error) {
+func (e *loginProvision) uidByKID(kid keybase1.KID) (keybase1.UID, error) {
 	var nilUID keybase1.UID
 	arg := libkb.APIArg{
 		Endpoint:     "key/owner",
@@ -867,7 +866,7 @@ func (e *LoginProvision) uidByKID(kid keybase1.KID) (keybase1.UID, error) {
 	return keybase1.UIDFromString(suid)
 }
 
-func (e *LoginProvision) fetchLKS(ctx *Context, encKey libkb.GenericKey) error {
+func (e *loginProvision) fetchLKS(ctx *Context, encKey libkb.GenericKey) error {
 	gen, clientLKS, err := fetchLKS(ctx, e.G(), encKey)
 	if err != nil {
 		return err
@@ -876,17 +875,17 @@ func (e *LoginProvision) fetchLKS(ctx *Context, encKey libkb.GenericKey) error {
 	return nil
 }
 
-func (e *LoginProvision) setSessionDeviceID(id keybase1.DeviceID) error {
+func (e *loginProvision) setSessionDeviceID(id keybase1.DeviceID) error {
 	var serr error
 	if err := e.G().LoginState().LocalSession(func(s *libkb.Session) {
 		serr = s.SetDeviceProvisioned(id)
-	}, "LoginProvision - device"); err != nil {
+	}, "loginProvision - device"); err != nil {
 		return err
 	}
 	return serr
 }
 
-func (e *LoginProvision) displaySuccess(ctx *Context) error {
+func (e *loginProvision) displaySuccess(ctx *Context) error {
 	if len(e.username) == 0 && e.arg.User != nil {
 		e.username = e.arg.User.GetName()
 	}
@@ -897,7 +896,7 @@ func (e *LoginProvision) displaySuccess(ctx *Context) error {
 	return ctx.ProvisionUI.ProvisioneeSuccess(ctx.GetNetContext(), sarg)
 }
 
-func (e *LoginProvision) cleanup() {
+func (e *loginProvision) cleanup() {
 	if !e.cleanupOnErr {
 		return
 	}
