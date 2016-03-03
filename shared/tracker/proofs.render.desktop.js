@@ -131,7 +131,7 @@ export class ProofsRender2 extends Component {
           <CircularProgress style={styles.loader} mode='indeterminate' color='#999' size={0.2} />
         }
         {!isChecking && proofStatusIcon &&
-          <Icon type={proofStatusIcon} style={{...globalStyles.clickable, fontSize: 20}} onClick={onClickProfile} />
+          <Icon type={proofStatusIcon} style={styles.statusIcon} onClick={onClickProfile} />
         }
       </div>
     )
@@ -167,6 +167,11 @@ const styles2 = {
     marginRight: 9,
     marginTop: 4
   },
+  statusIcon: {
+    ...globalStyles.clickable,
+    fontSize: 20,
+    marginLeft: 10
+  },
   proofNameSection: {
     ...globalStyles.flexBoxRow,
     alignItems: 'flex-start',
@@ -178,7 +183,6 @@ const styles2 = {
   },
   proofNameContainer: {
     wordWrap: 'break-word',
-    marginRight: 15,
     flex: 1
   },
   proofName: {
