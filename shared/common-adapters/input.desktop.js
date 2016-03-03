@@ -146,6 +146,7 @@ export const styles = {
   },
   floatingLabelStyle: {
     ...globalStyles.DZ2.fontRegular,
+    color: globalColorsDZ2.black10,
     alignSelf: 'center',
     position: 'inherit',
     top: 34
