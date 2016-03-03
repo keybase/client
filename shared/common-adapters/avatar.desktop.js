@@ -2,6 +2,7 @@
 
 import React, {Component} from 'react'
 import resolveRoot from '../../desktop/resolve-root'
+import {globalColorsDZ2} from '../styles/style-guide'
 import type {Props} from './avatar'
 
 const noAvatar = `file:///${resolveRoot('shared/images/no-avatar@2x.png')}`
@@ -12,7 +13,7 @@ export default class Avatar extends Component {
   render () {
     return (
       <img
-        style={{width: this.props.size, height: this.props.size, borderRadius: this.props.size / 2, ...this.props.style}}
+        style={{width: this.props.size, height: this.props.size, borderRadius: this.props.size / 2, backgroundColor: globalColorsDZ2.white, ...this.props.style}}
         src={this.props.url}
         onError={event => (event.target.src = noAvatar)}/>)
   }
