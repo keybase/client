@@ -5,6 +5,7 @@ import (
 	"reflect"
 	"sort"
 	"strconv"
+	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
@@ -550,6 +551,9 @@ type RootMetadataSigned struct {
 	SigInfo SignatureInfo `codec:",omitempty"`
 	// all the metadata
 	MD RootMetadata
+	// When does the server say this MD update was received?  (This is
+	// not necessarily trustworthy, just for informational purposes.)
+	untrustedServerTimestamp time.Time
 }
 
 // IsInitialized returns whether or not this RootMetadataSigned object

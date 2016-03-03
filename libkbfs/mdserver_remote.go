@@ -337,6 +337,7 @@ func (md *MDServerRemote) get(ctx context.Context, id TlfID, handle *TlfHandle,
 		if err != nil {
 			return id, rmdses, err
 		}
+		rmds.untrustedServerTimestamp = keybase1.FromTime(block.Timestamp)
 		rmdses[i] = &rmds
 	}
 	return id, rmdses, nil

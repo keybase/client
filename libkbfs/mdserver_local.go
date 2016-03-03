@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"sync"
+	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/syndtr/goleveldb/leveldb"
@@ -14,11 +15,16 @@ import (
 	"golang.org/x/net/context"
 )
 
+type mdBlockLocal struct {
+	MD        *RootMetadataSigned
+	Timestamp time.Time
+}
+
 // MDServerLocal just stores blocks in local leveldb instances.
 type MDServerLocal struct {
 	config   Config
 	handleDb *leveldb.DB // folder handle                  -> folderId
-	mdDb     *leveldb.DB // folderId+[branchId]+[revision] -> root metadata (signed)
+	mdDb     *leveldb.DB // folderId+[branchId]+[revision] -> mdBlockLocal
 	branchDb *leveldb.DB // folderId+deviceKID             -> branchId
 
 	locksMutex *sync.Mutex
@@ -229,6 +235,17 @@ func (md *MDServerLocal) GetForTLF(ctx context.Context, id TlfID,
 	return rmds, nil
 }
 
+func (md *MDServerLocal) rmdsFromBlockBytes(buf []byte) (
+	*RootMetadataSigned, error) {
+	block := new(mdBlockLocal)
+	err := md.config.Codec().Decode(buf, block)
+	if err != nil {
+		return nil, err
+	}
+	block.MD.untrustedServerTimestamp = block.Timestamp
+	return block.MD, nil
+}
+
 func (md *MDServerLocal) getHeadForTLF(ctx context.Context, id TlfID,
 	bid BranchID, mStatus MergeStatus) (rmds *RootMetadataSigned, err error) {
 	key, err := md.getMDKey(id, 0, bid, mStatus)
@@ -243,12 +260,7 @@ func (md *MDServerLocal) getHeadForTLF(ctx context.Context, id TlfID,
 		}
 		return
 	}
-	rmds = new(RootMetadataSigned)
-	err = md.config.Codec().Decode(buf, rmds)
-	if err != nil {
-		return nil, err
-	}
-	return rmds, nil
+	return md.rmdsFromBlockBytes(buf)
 }
 
 func (md *MDServerLocal) getMDKey(id TlfID, revision MetadataRevision,
@@ -361,12 +373,11 @@ func (md *MDServerLocal) GetRange(ctx context.Context, id TlfID,
 	defer iter.Release()
 	for iter.Next() {
 		buf := iter.Value()
-		var rmds RootMetadataSigned
-		err := md.config.Codec().Decode(buf, &rmds)
+		rmds, err := md.rmdsFromBlockBytes(buf)
 		if err != nil {
 			return rmdses, MDServerError{err}
 		}
-		rmdses = append(rmdses, &rmds)
+		rmdses = append(rmdses, rmds)
 	}
 	if err := iter.Error(); err != nil {
 		return rmdses, MDServerError{err}
@@ -480,7 +491,8 @@ func (md *MDServerLocal) Put(ctx context.Context, rmds *RootMetadataSigned) erro
 		}
 	}
 
-	buf, err := md.config.Codec().Encode(rmds)
+	block := &mdBlockLocal{rmds, md.config.Clock().Now()}
+	buf, err := md.config.Codec().Encode(block)
 	if err != nil {
 		return MDServerError{err}
 	}
