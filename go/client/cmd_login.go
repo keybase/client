@@ -104,6 +104,8 @@ func (c *CmdLogin) Run() error {
 		err = c.errNoMatchingGPGKeys(x.Fingerprints)
 	case libkb.DeviceAlreadyProvisionedError:
 		err = c.errDeviceAlreadyProvisioned()
+	case libkb.ProvisionUnavailableError:
+		err = c.errProvisionUnavailable()
 	}
 
 	return err
@@ -222,5 +224,16 @@ func (c *CmdLogin) errDeviceAlreadyProvisioned() error {
 
 You have already provisioned this device. Please use 'keybase login [username]'
 to log in.
+`)
+}
+
+func (c *CmdLogin) errProvisionUnavailable() error {
+	return errors.New(`in Login
+
+The only way to provision this device is with access to one of your existing
+devices. You can try again later, or if you have lost access to all your
+existing devices you can reset your account and start fresh.
+
+If you'd like to reset your account:  https://keybase.io/#account-reset
 `)
 }

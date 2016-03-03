@@ -150,6 +150,7 @@ const (
 	SCDeviceMismatch         = int(keybase1.StatusCode_SCDeviceMismatch)
 	SCDeviceRequired         = int(keybase1.StatusCode_SCDeviceRequired)
 	SCDevicePrevProvisioned  = int(keybase1.StatusCode_SCDevicePrevProvisioned)
+	SCDeviceNoProvision      = int(keybase1.StatusCode_SCDeviceNoProvision)
 	SCStreamExists           = int(keybase1.StatusCode_SCStreamExists)
 	SCStreamNotFound         = int(keybase1.StatusCode_SCStreamNotFound)
 	SCStreamWrongKind        = int(keybase1.StatusCode_SCStreamWrongKind)

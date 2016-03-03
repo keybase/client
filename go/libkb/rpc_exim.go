@@ -317,6 +317,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return ret
 	case SCDevicePrevProvisioned:
 		return DeviceAlreadyProvisionedError{}
+	case SCDeviceNoProvision:
+		return ProvisionUnavailableError{}
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -1083,5 +1085,12 @@ func (e DeviceAlreadyProvisionedError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCDevicePrevProvisioned,
 		Name: "SC_DEVICE_PREV_PROVISIONED",
+	}
+}
+
+func (e ProvisionUnavailableError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCDeviceNoProvision,
+		Name: "SC_DEVICE_NO_PROVISION",
 	}
 }
