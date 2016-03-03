@@ -152,8 +152,11 @@ class Engine {
   _wrapResponseOnceOnly (method, param, response) {
     const {sessionID} = param
 
+    const seqid = response && response.seqid
     let once = false
+
     const wrappedResponse = {
+      seqid,
       result: (...args) => {
         if (once) {
           if (printRPC) {
@@ -316,6 +319,26 @@ class Engine {
   rpc (params) {
     const {method, param, incomingCallMap, callback} = params
     return this.rpc_unchecked(method, param, incomingCallMap, callback)
+  }
+
+  // If you just have a sessionID / seqId
+  rpcResponse (sessionID, seqid, params, isError) {
+    const response = {
+      result: () => {
+        this.rpcClient.transport.respond(seqid, null, params)
+      },
+      error: () => {
+        this.rpcClient.transport.respond(seqid, params, null)
+      },
+      seqid
+    }
+
+    const wrappedResponse = this._wrapResponseOnceOnly('rpcResponse', {sessionID}, response)
+    if (isError) {
+      wrappedResponse.error(params)
+    } else {
+      wrappedResponse.result(params)
+    }
   }
 
   cancelRPC (sessionID) {

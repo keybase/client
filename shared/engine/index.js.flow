@@ -7,6 +7,7 @@ declare class Engine {
   cancelRPC (sessionID: number): void;
   listenOnConnect (key: string, f: () => void): void;
   listenGeneralIncomingRpc (m: incomingCallMapType): void;
+  rpcResponse (sessionID: number, seqid: number, params: any, isError: bool): void;
 }
 
 var engine = new Engine()

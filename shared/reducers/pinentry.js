@@ -10,6 +10,7 @@ import type {PinentryActions} from '../constants/pinentry'
 export type PinentryState = {
   closed: boolean,
   sessionID: number,
+  seqid: number,
   features: GUIEntryFeatures,
   prompt: string,
   windowTitle: string,
@@ -90,8 +91,8 @@ export default function (state: RootPinentryState = initialState, action: Pinent
 
 function updatePinentryState (state: PinentryState, action: PinentryActions): PinentryState {
   switch (action.type) {
-    case Constants.onCancel:
-      return {...state, canceled: true, closed: true}
+    // case Constants.onCancel:
+      // return {...state, canceled: true, closed: true}
     case Constants.onSubmit:
       return {...state, submitted: true, closed: true}
     default:

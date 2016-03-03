@@ -53,7 +53,7 @@ export function generatePaperKey () : AsyncAction {
       'keybase.1.secretUi.getPassphrase': (param, response) => {
         console.log(param)
       },
-      'keybase.1.loginUi.displayPaperKeyPhrase': ({phrase: paperKey}, response) => {
+      'keybase.1.loginUi.displayPaperKeyPhrase': ({phrase: paperKey, sessionID}, response) => {
         dispatch({
           type: Constants.paperKeyLoaded,
           payload: paperKey
