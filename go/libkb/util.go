@@ -216,6 +216,11 @@ func Pluralize(n int, singular string, plural string, nshow bool) string {
 	return plural
 }
 
+// Contains returns true if string is contained in string slice
+func Contains(s string, list []string) bool {
+	return IsIn(s, list, false)
+}
+
 // IsIn checks for needle in haystack, ci means case-insensitive.
 func IsIn(needle string, haystack []string, ci bool) bool {
 	for _, h := range haystack {
@@ -424,19 +429,23 @@ func IsSystemAdminUser() (isAdminUser bool, match string, err error) {
 }
 
 // DigestForFileAtPath returns a SHA256 digest for file at specified path
-func DigestForFileAtPath(path string) (digest string, err error) {
-	hasher := sha256.New()
+func DigestForFileAtPath(path string) (string, error) {
 	f, err := os.Open(path)
 	if err != nil {
-		return
+		return "", err
 	}
 	defer f.Close()
-	if _, ioerr := io.Copy(hasher, f); ioerr != nil {
-		err = ioerr
-		return
+	return Digest(f)
+}
+
+// Digest returns a SHA256 digest
+func Digest(r io.Reader) (string, error) {
+	hasher := sha256.New()
+	if _, err := io.Copy(hasher, r); err != nil {
+		return "", err
 	}
-	digest = hex.EncodeToString(hasher.Sum(nil))
-	return
+	digest := hex.EncodeToString(hasher.Sum(nil))
+	return digest, nil
 }
 
 // TimeLog calls out with the time since start.  Use like this:

@@ -9,6 +9,7 @@ export type Asset = {
   name: string;
   url: string;
   digest: string;
+  signature: string;
   localPath: string;
 }
 
@@ -1113,6 +1114,7 @@ export type UpdateOptions = {
   channel: string;
   force: boolean;
   defaultInstructions: string;
+  signaturePath: string;
 }
 
 export type UpdatePromptOptions = {

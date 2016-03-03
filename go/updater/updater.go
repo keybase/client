@@ -37,6 +37,7 @@ type Updater struct {
 type Context interface {
 	GetUpdateUI() (libkb.UpdateUI, error)
 	AfterUpdateApply(willRestart bool) error
+	Verify(r io.Reader, signature string) error
 }
 
 type Config interface {
@@ -416,6 +417,14 @@ func (u *Updater) update(ctx Context, force bool, requested bool) (update *keyba
 		// No update available
 		return
 	}
+	if update.Asset == nil {
+		u.log.Info("No update asset to apply")
+		return
+	}
+	if update.Asset.LocalPath == "" {
+		err = fmt.Errorf("No local asset path for update")
+		return
+	}
 
 	err = u.promptForUpdateAction(ctx, *update)
 	if err != nil {
@@ -427,13 +436,8 @@ func (u *Updater) update(ctx Context, force bool, requested bool) (update *keyba
 		return
 	}
 
-	if update.Asset == nil {
-		u.log.Info("No update asset to apply")
-		return
-	}
-
-	if update.Asset.LocalPath == "" {
-		err = fmt.Errorf("No local asset path for update")
+	err = u.verifySignature(ctx, *update)
+	if err != nil {
 		return
 	}
 
@@ -628,17 +632,15 @@ func (u *Updater) checkRestart(ctx Context) (updateQuitResponse keybase1.UpdateQ
 		return
 	}
 	updateQuitResponse, err = updateUI.UpdateQuit(context.TODO())
-	if err != nil {
-		return
-	}
-
-	if !updateQuitResponse.Quit {
-		u.log.Warning("App quit (for restart) was canceled or unsupported after update")
-	}
 	return
 }
 
 func (u *Updater) restart(ctx Context, updateQuitResponse keybase1.UpdateQuitRes) (didQuit bool, err error) {
+	if !updateQuitResponse.Quit {
+		u.log.Warning("App quit (for restart) was canceled or unsupported after update")
+		return
+	}
+
 	if updateQuitResponse.Pid == 0 {
 		err = fmt.Errorf("Invalid PID: %d", updateQuitResponse.Pid)
 		return
@@ -703,6 +705,22 @@ func copyFile(sourcePath string, destinationPath string) error {
 		return err
 	}
 	return cerr
+}
+
+func (u *Updater) verifySignature(ctx Context, update keybase1.Update) error {
+	file, err := os.Open(update.Asset.LocalPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	if update.Asset.Signature == "" {
+		u.log.Warning("No signature to verify")
+		// TODO: Return error here to enable signature verification
+		// return fmt.Errorf("No signature to verify")
+		return nil
+	}
+	u.log.Info("Verifying signature %s", update.Asset.Signature)
+	return ctx.Verify(file, update.Asset.Signature)
 }
 
 // waitForUI waits for a UI to be available. A UI might be missing for a few

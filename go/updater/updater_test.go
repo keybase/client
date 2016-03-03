@@ -4,7 +4,9 @@
 package updater
 
 import (
+	"crypto/rand"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -16,8 +18,15 @@ import (
 	"golang.org/x/net/context"
 )
 
-func NewTestUpdater(t *testing.T, options keybase1.UpdateOptions) *Updater {
-	return NewUpdater(options, testUpdateSource{}, testConfig{}, logger.NewTestLogger(t))
+type processUpdate func(update *keybase1.Update, path string)
+
+func NewTestUpdater(t *testing.T, options keybase1.UpdateOptions, p processUpdate) (*Updater, error) {
+	updateSource, err := newTestUpdateSource(p)
+	if err != nil {
+		return nil, err
+	}
+	config := testConfig{}
+	return NewUpdater(options, updateSource, config, logger.NewTestLogger(t)), nil
 }
 
 type testUpdateUI struct{}
@@ -42,13 +51,30 @@ func (u testUpdateUI) UpdateAppInUse(context.Context, keybase1.UpdateAppInUseArg
 	return keybase1.UpdateAppInUseRes{Action: keybase1.UpdateAppInUseAction_CANCEL}, nil
 }
 
-type testUpdateSource struct{}
+func (u testUpdateUI) Verify(r io.Reader, signature string) error {
+	digest, err := libkb.Digest(r)
+	if err != nil {
+		return err
+	}
+	if signature != digest {
+		return fmt.Errorf("Verify failed")
+	}
+	return nil
+}
+
+type testUpdateSource struct {
+	processUpdate processUpdate
+}
+
+func newTestUpdateSource(p processUpdate) (testUpdateSource, error) {
+	return testUpdateSource{processUpdate: p}, nil
+}
 
 func (u testUpdateSource) Description() string {
 	return "Test"
 }
 
-func (u testUpdateSource) FindUpdate(config keybase1.UpdateOptions) (release *keybase1.Update, err error) {
+func (u testUpdateSource) FindUpdate(config keybase1.UpdateOptions) (*keybase1.Update, error) {
 	version := "1.0.1"
 	update := keybase1.Update{
 		Version:     version,
@@ -56,7 +82,8 @@ func (u testUpdateSource) FindUpdate(config keybase1.UpdateOptions) (release *ke
 		Description: "Bug fixes",
 	}
 
-	path, assetName, err := createTestUpdateFile(version)
+	path := filepath.Join(os.TempDir(), "Test.zip")
+	assetName, err := createTestUpdateFile(path, version)
 	if err != nil {
 		return nil, err
 	}
@@ -68,17 +95,23 @@ func (u testUpdateSource) FindUpdate(config keybase1.UpdateOptions) (release *ke
 		}
 
 		update.Asset = &keybase1.Asset{
-			Name:   assetName,
-			Url:    fmt.Sprintf("file://%s", path),
-			Digest: digest,
+			Name:      assetName,
+			Url:       fmt.Sprintf("file://%s", path),
+			Digest:    digest,
+			Signature: digest, // Use digest as signature in test
 		}
+	}
+
+	if u.processUpdate != nil {
+		u.processUpdate(&update, path)
 	}
 
 	return &update, nil
 }
 
 type testConfig struct {
-	lastChecked keybase1.Time
+	lastChecked  keybase1.Time
+	publicKeyHex string
 }
 
 func (c testConfig) GetUpdatePreferenceAuto() (bool, bool) {
@@ -133,10 +166,24 @@ func NewDefaultTestUpdateConfig() keybase1.UpdateOptions {
 }
 
 func TestUpdater(t *testing.T) {
-	u := NewTestUpdater(t, NewDefaultTestUpdateConfig())
+	u, err := NewTestUpdater(t, NewDefaultTestUpdateConfig(), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	update, err := u.Update(testUpdateUI{}, false, false)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
+	}
+	t.Logf("Update: %#v\n", update)
+
+	if update.Asset == nil {
+		t.Errorf("No asset")
+	}
+
+	t.Logf("Asset: %#v\n", *update.Asset)
+
+	if update.Asset.Signature == "" {
+		t.Errorf("No signature")
 	}
 
 	if update == nil {
@@ -145,7 +192,10 @@ func TestUpdater(t *testing.T) {
 }
 
 func TestUpdateCheckErrorIfLowerVersion(t *testing.T) {
-	u := NewTestUpdater(t, NewDefaultTestUpdateConfig())
+	u, err := NewTestUpdater(t, NewDefaultTestUpdateConfig(), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
 	u.options.Version = "100000000.0.0"
 
 	update, err := u.checkForUpdate(true, false, false)
@@ -155,4 +205,33 @@ func TestUpdateCheckErrorIfLowerVersion(t *testing.T) {
 	if update != nil {
 		t.Fatal("Shouldn't have update since our version is newer")
 	}
+}
+
+func TestChangeUpdateFailSignature(t *testing.T) {
+	changeAsset := func(u *keybase1.Update, path string) {
+		// Write new file over existing (fix digest but not signature)
+		createTestUpdateFile(path, u.Version)
+		digest, _ := libkb.DigestForFileAtPath(path)
+		t.Logf("Wrote a new update file: %s (%s)", path, digest)
+		u.Asset.Digest = digest
+	}
+	updater, err := NewTestUpdater(t, NewDefaultTestUpdateConfig(), changeAsset)
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = updater.Update(testUpdateUI{}, false, false)
+	t.Logf("Err: %s\n", err)
+	if err == nil {
+		t.Fatal("Should have failed")
+	}
+}
+
+func randString(n int) string {
+	const alphanum = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+	var bytes = make([]byte, n)
+	rand.Read(bytes)
+	for i, b := range bytes {
+		bytes[i] = alphanum[b%byte(len(alphanum))]
+	}
+	return string(bytes)
 }

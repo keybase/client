@@ -327,6 +327,10 @@
         },
         {
           "type": "string",
+          "name": "signature"
+        },
+        {
+          "type": "string",
           "name": "localPath"
         }
       ],

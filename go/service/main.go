@@ -172,7 +172,7 @@ func (d *Service) Run() (err error) {
 		updater.CleanupFix() // TODO(gabriel): Remove anytime after March 2016
 		updr := engine.NewDefaultUpdater(d.G())
 		if updr != nil {
-			updateChecker := updater.NewUpdateChecker(updr, d, d.G().Log)
+			updateChecker := updater.NewUpdateChecker(updr, engine.NewUpdaterContext(d.G()), d.G().Log)
 			d.updateChecker = &updateChecker
 			d.updateChecker.Start()
 		}
@@ -392,12 +392,4 @@ func GetCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Comma
 	return []cli.Command{
 		NewCmdService(cl, g),
 	}
-}
-
-func (d *Service) GetUpdateUI() (libkb.UpdateUI, error) {
-	return d.G().UIRouter.GetUpdateUI()
-}
-
-func (d *Service) AfterUpdateApply(willRestart bool) error {
-	return nil
 }

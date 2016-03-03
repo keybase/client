@@ -194,21 +194,14 @@ func (v *CmdUpdateRunLocal) ParseArgv(ctx *cli.Context) error {
 	return parseOptions(ctx, v.options)
 }
 
-func (v *CmdUpdateRunLocal) GetUpdateUI() (libkb.UpdateUI, error) {
-	return v.G().UI.GetUpdateUI(), nil
-}
-
-func (v *CmdUpdateRunLocal) AfterUpdateApply(willRestart bool) error {
-	return nil
-}
-
 func (v *CmdUpdateRunLocal) Run() error {
 	source, err := engine.NewUpdateSourceFromString(v.G(), v.options.Source)
 	if err != nil {
 		return err
 	}
 	upd := updater.NewUpdater(*v.options, source, v.G().Env, v.G().Log)
-	_, err = upd.Update(v, v.options.Force, true)
+	ctx := engine.NewUpdaterContext(v.G())
+	_, err = upd.Update(ctx, v.options.Force, true)
 	return err
 }
 
@@ -230,6 +223,7 @@ func parseOptions(ctx *cli.Context, options *keybase1.UpdateOptions) error {
 
 	options.URL = ctx.String("url")
 	options.Force = ctx.Bool("force")
+	options.SignaturePath = ctx.String("signature")
 
 	if options.DestinationPath == "" {
 		return fmt.Errorf("No default destination path for this environment")
@@ -260,6 +254,10 @@ func optionFlags(defaultOptions *keybase1.UpdateOptions) []cli.Flag {
 		cli.BoolFlag{
 			Name:  "f, force",
 			Usage: "Force update.",
+		},
+		cli.StringFlag{
+			Name:  "v, signature",
+			Usage: "Signature",
 		},
 	}
 }
