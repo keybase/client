@@ -179,7 +179,7 @@ export default class ActionRender extends Component {
 }
 
 export function calcFooterHeight (loggedIn: boolean): number {
-  return loggedIn ? 61 : 151
+  return loggedIn ? 62 : 151
 }
 
 const styles1 = {
@@ -254,7 +254,7 @@ const styles2 = {
     alignItems: 'center',
     justifyContent: 'flex-end',
     paddingTop: 15,
-    paddingBottom: 18,
+    paddingBottom: 15,
     paddingRight: 15,
     position: 'relative',
     zIndex: 1
