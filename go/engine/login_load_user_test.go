@@ -25,7 +25,7 @@ var lutests = []luTest{
 	{name: "invalid input", input: "spaces aren't allowed", err: libkb.BadNameError("")},
 }
 
-func TestLoginUsername(t *testing.T) {
+func TestLoginLoadUser(t *testing.T) {
 	tc := SetupEngineTest(t, "lu")
 	defer tc.Cleanup()
 
@@ -34,7 +34,7 @@ func TestLoginUsername(t *testing.T) {
 			LoginUI:  &libkb.TestLoginUI{},
 			SecretUI: &libkb.TestSecretUI{},
 		}
-		eng := NewLoginUsername(tc.G, test.input)
+		eng := NewLoginLoadUser(tc.G, test.input)
 		if err := RunEngine(eng, ctx); err != nil {
 			if test.err == nil {
 				t.Errorf("%s: run error %s", test.name, err)
@@ -63,7 +63,7 @@ func TestLoginUsername(t *testing.T) {
 	}
 }
 
-func TestLoginUsernamePrompt(t *testing.T) {
+func TestLoginLoadUserPrompt(t *testing.T) {
 	tc := SetupEngineTest(t, "lu")
 	defer tc.Cleanup()
 
@@ -78,7 +78,7 @@ func TestLoginUsernamePrompt(t *testing.T) {
 			},
 			SecretUI: &libkb.TestSecretUI{},
 		}
-		eng := NewLoginUsername(tc.G, "")
+		eng := NewLoginLoadUser(tc.G, "")
 		if err := RunEngine(eng, ctx); err != nil {
 			if test.err == nil {
 				t.Errorf("%s: run error %s", test.name, err)
@@ -107,14 +107,14 @@ func TestLoginUsernamePrompt(t *testing.T) {
 }
 
 // test user canceling GetEmailOrUsername prompt:
-func TestLoginUsernamePromptCancel(t *testing.T) {
+func TestLoginLoadUserPromptCancel(t *testing.T) {
 	tc := SetupEngineTest(t, "lu")
 	defer tc.Cleanup()
 	ctx := &Context{
 		LoginUI:  &libkb.TestLoginCancelUI{},
 		SecretUI: &libkb.TestSecretUI{},
 	}
-	eng := NewLoginUsername(tc.G, "")
+	eng := NewLoginLoadUser(tc.G, "")
 	err := RunEngine(eng, ctx)
 	if err == nil {
 		t.Fatal("expected an error")
@@ -124,32 +124,32 @@ func TestLoginUsernamePromptCancel(t *testing.T) {
 	}
 }
 
-func TestLoginUsernameEmail(t *testing.T) {
+func TestLoginLoadUserEmail(t *testing.T) {
 	tcX := SetupEngineTest(t, "other")
 	fu := CreateAndSignupFakeUser(tcX, "login")
 	Logout(tcX)
 	tcX.Cleanup()
 
 	// own email address
-	user, err := testLoginUsernameEmail(t, fu, fu.Email)
+	user, err := testLoginLoadUserEmail(t, fu, fu.Email)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if user.GetName() != fu.Username {
-		t.Errorf("LoginUsername %q => %q, expected username %q", fu.Email, user.GetName(), fu.Username)
+		t.Errorf("LoginLoadUser %q => %q, expected username %q", fu.Email, user.GetName(), fu.Username)
 	}
 
 	// prompt for email address
-	user, err = testLoginUsernameEmail(t, fu, "")
+	user, err = testLoginLoadUserEmail(t, fu, "")
 	if err != nil {
 		t.Fatal(err)
 	}
 	if user.GetName() != fu.Username {
-		t.Errorf("LoginUsername %q => %q, expected username %q", fu.Email, user.GetName(), fu.Username)
+		t.Errorf("LoginLoadUser %q => %q, expected username %q", fu.Email, user.GetName(), fu.Username)
 	}
 
 	// someone else's email address
-	user, err = testLoginUsernameEmail(t, fu, "test+t_bob@test.keybase.io")
+	user, err = testLoginLoadUserEmail(t, fu, "test+t_bob@test.keybase.io")
 	if err == nil {
 		t.Errorf("bob's email address worked with invalid secret")
 	} else if _, ok := err.(libkb.PassphraseError); !ok {
@@ -160,7 +160,7 @@ func TestLoginUsernameEmail(t *testing.T) {
 	}
 
 	// nobody's email address
-	user, err = testLoginUsernameEmail(t, fu, "XXXYYYXXX@test.keybase.io")
+	user, err = testLoginLoadUserEmail(t, fu, "XXXYYYXXX@test.keybase.io")
 	if err == nil {
 		t.Errorf("unknown email address worked with invalid secret")
 	} else if _, ok := err.(libkb.NotFoundError); !ok {
@@ -171,7 +171,7 @@ func TestLoginUsernameEmail(t *testing.T) {
 	}
 }
 
-func testLoginUsernameEmail(t *testing.T, fu *FakeUser, input string) (*libkb.User, error) {
+func testLoginLoadUserEmail(t *testing.T, fu *FakeUser, input string) (*libkb.User, error) {
 	tc := SetupEngineTest(t, "lu")
 	defer tc.Cleanup()
 
@@ -181,7 +181,7 @@ func testLoginUsernameEmail(t *testing.T, fu *FakeUser, input string) (*libkb.Us
 		},
 		SecretUI: fu.NewSecretUI(),
 	}
-	eng := NewLoginUsername(tc.G, input)
+	eng := NewLoginLoadUser(tc.G, input)
 	if err := RunEngine(eng, ctx); err != nil {
 		return nil, err
 	}

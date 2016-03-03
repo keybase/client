@@ -54,6 +54,7 @@ func (e *Login) RequiredUIs() []libkb.UIKind {
 func (e *Login) SubConsumers() []libkb.UIConsumer {
 	return []libkb.UIConsumer{
 		&LoginCurrentDevice{},
+		&LoginLoadUser{},
 		&LoginProvision{},
 	}
 }
@@ -104,8 +105,8 @@ func (e *Login) Run(ctx *Context) error {
 		}
 	}()
 
-	// run the username engine to load a user
-	ueng := NewLoginUsername(e.G(), e.usernameOrEmail)
+	// run the LoginLoadUser sub-engine to load a user
+	ueng := NewLoginLoadUser(e.G(), e.usernameOrEmail)
 	if err = RunEngine(ueng, ctx); err != nil {
 		return err
 	}
