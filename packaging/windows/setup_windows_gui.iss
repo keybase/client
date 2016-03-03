@@ -98,7 +98,7 @@ WelcomeLabel2=This will install [name/ver] on your computer.
 [Run]
 Filename: "{tmp}\vc_redist.x86.exe"; Parameters: "/quiet /Q:a /c:""msiexec /qb /i vcredist.msi"""; StatusMsg: "Installing VisualStudio 2015 RunTime..."
 Filename: "{app}\{#MyExeName}"; Parameters: "ctl watchdog"; Flags: runasoriginaluser runhidden nowait
-Filename: "{pf32}\Dokan\DokanLibrary\dokanctl.exe"; Parameters: "/i a"; WorkingDir: "{pf32}\Dokan\DokanLibrary"; Flags: runhidden; Description: "Install Dokan Service"; Check: IsDokanBeingUpdated
+Filename: "{pf32}\Dokan\DokanLibrary\dokanctl.exe"; Parameters: "/i a"; WorkingDir: "{pf32}\Dokan\DokanLibrary"; Flags: runhidden; Description: "Install Dokan Service"
 Filename: "{app}\gui\Keybase.exe"; WorkingDir: "{app}\gui"; Flags: nowait runasoriginaluser
 
 [UninstallDelete]

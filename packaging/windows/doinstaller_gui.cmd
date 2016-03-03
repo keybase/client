@@ -45,10 +45,15 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 "%ProgramFiles(x86)%\Inno Setup 5\iscc.exe" /DMyExePathName=%PathName% /DMyAppVersion=%BUILDVER% /DMySemVersion=%SEMVER% /DNewDokanVersion=%DOKANVER% "/sSignCommand=signtool.exe sign /tr http://timestamp.digicert.com $f" %GOPATH%\src\github.com\keybase\client\packaging\windows\setup_windows_gui.iss
 
-:: After sanity checking, do:
+echo off
+for /f %%i in ('dir Output /od /b') do set KEYBASE_INSTALLER_NAME=%%i
+echo %KEYBASE_INSTALLER_NAME%
 
-::%GOPATH%\bin\windows_386\release update-json --version=%KEYBASE_VERSION% --src=Output/keybase_setup_gui-1.0.13-20160218110300+95d6179.386.exe --uri=https://s3.amazonaws.com/prerelease.keybase.io/windows-updates > update-windows-prod.json
-::"%ProgramFiles%\S3 Browser\s3browser-con.exe" upload keybase Output\keybase_setup_gui-1.0.13-20160218110300+95d6179.386.exe prerelease.keybase.io/windows
+pushd Output
+%GOPATH%\bin\windows_386\release update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://s3.amazonaws.com/prerelease.keybase.io/windows > update-windows-prod.json
+"%ProgramFiles%\S3 Browser\s3browser-con.exe" upload keybase Output\%KEYBASE_INSTALLER_NAME% prerelease.keybase.io/windows
+:: After sanity checking, do:
 ::"%ProgramFiles%\S3 Browser\s3browser-con.exe" upload keybase update-windows-prod.json prerelease.keybase.io
+:: popd
 ::%GOPATH%\bin\windows_386\release index-html --bucket-name=prerelease.keybase.io --prefixes="darwin/,linux_binaries/deb/,linux_binaries/rpm/,windows/" --dest=index.html
 ::"%ProgramFiles%\S3 Browser\s3browser-con.exe" upload keybase index.html prerelease.keybase.io

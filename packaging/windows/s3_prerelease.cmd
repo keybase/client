@@ -6,7 +6,7 @@ IF [%BUCKET_NAME%]==[] (
 )
 
 echo "Loading release tool"
-::go install github.com/keybase/release
+go install github.com/keybase/release
 set release_bin=%GOPATH%\bin\windows_386\release.exe
 set SAVE_DIR=%TEMP%\s3index
 
