@@ -78,7 +78,7 @@ export class ProofsRender2 extends Component {
         break
       }
       case proofChecking:
-        color = color = '#999'
+        color = globalColorsDZ2.black20
         break
       case proofRevoked:
       case proofWarning:
@@ -88,7 +88,7 @@ export class ProofsRender2 extends Component {
     }
 
     // TODO: State is deprecated, will refactor after nuking v1
-    if (proof.state === proofChecking) color = '#999'
+    if (proof.state === proofChecking) color = globalColorsDZ2.black20
 
     return color
   }
@@ -133,7 +133,7 @@ export class ProofsRender2 extends Component {
           </div>
         </div>
         {isChecking &&
-          <CircularProgress style={styles.loader} mode='indeterminate' color='#999' size={0.2} />
+          <CircularProgress style={styles.loader} mode='indeterminate' color={globalColorsDZ2.black20} size={0.2} />
         }
         {!isChecking && proofStatusIcon &&
           <Icon type={proofStatusIcon} style={{...globalStyles.clickable, fontSize: 20}} onClick={onClickProfile} />
