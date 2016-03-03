@@ -115,7 +115,7 @@ export default class Button extends Component {
         //
         // So let's just say that a fullWidth button can't have siblings.
       outterStyle = {...outterStyle, minWidth: '100%'}
-      backgroundStyle = {...backgroundStyle, minWidth: '100%'}
+      backgroundStyle = {...backgroundStyle, minWidth: '100%', height: 38}
     }
 
     if (this.props.waiting) {
