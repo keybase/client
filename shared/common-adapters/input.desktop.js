@@ -134,12 +134,13 @@ export const styles = {
   },
   errorStyle: {
     ...globalStyles.DZ2.fontRegular,
-    color: globalColors.highRiskWarning,
+    color: globalColorsDZ2.red,
     alignSelf: 'center',
-    fontSize: 13,
+    fontSize: 14,
     lineHeight: '17px',
     position: 'initial',
-    marginTop: 4
+    marginTop: 4,
+    paddingTop: 4
   },
   hintStyle: {
     ...globalStyles.DZ2.fontRegular
