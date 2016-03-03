@@ -253,8 +253,8 @@ export const styles = {
   },
   textSmallMixin: {
     color: globalColors.grey2,
-    fontSize: 13,
-    lineHeight: '17px'
+    fontSize: 14,
+    lineHeight: '19px'
   }
 }
 
