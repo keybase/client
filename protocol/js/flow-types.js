@@ -972,6 +972,7 @@ export type StatusCode =
   | 1409 // SCDeviceNotFound_1409
   | 1410 // SCDeviceMismatch_1410
   | 1411 // SCDeviceRequired_1411
+  | 1413 // SCDevicePrevProvisioned_1413
   | 1501 // SCStreamExists_1501
   | 1502 // SCStreamNotFound_1502
   | 1503 // SCStreamWrongKind_1503

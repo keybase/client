@@ -127,6 +127,7 @@ export const constants = {
     'scdevicenotfound': 1409,
     'scdevicemismatch': 1410,
     'scdevicerequired': 1411,
+    'scdeviceprevprovisioned': 1413,
     'scstreamexists': 1501,
     'scstreamnotfound': 1502,
     'scstreamwrongkind': 1503,

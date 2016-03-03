@@ -110,6 +110,13 @@ func (e *Login) Run(ctx *Context) error {
 		return err
 	}
 
+	// make sure the user isn't already provisioned (can
+	// get here if usernameOrEmail is an email address
+	// for an already provisioned on this device user).
+	if ueng.User().HasCurrentDeviceInCurrentInstall() {
+		return libkb.DeviceAlreadyProvisionedError{}
+	}
+
 	darg := &LoginProvisionArg{
 		DeviceType: e.deviceType,
 		ClientType: e.clientType,

@@ -1564,8 +1564,10 @@ func TestProvisionMultipleUsers(t *testing.T) {
 		GPGUI:       &gpgtestui{},
 	}
 	eng = NewLogin(tc.G, libkb.DeviceTypeDesktop, users[2].Email, keybase1.ClientType_CLI)
-	if err := RunEngine(eng, ctx); err != ErrDeviceAlreadyRegistered {
-		t.Fatalf("err: %v, expected ErrDeviceAlreadyRegistered", err)
+	if err := RunEngine(eng, ctx); err == nil {
+		t.Fatal("login provision via email successful for already provisioned device/user combo")
+	} else if _, ok := err.(libkb.DeviceAlreadyProvisionedError); !ok {
+		t.Fatalf("err: %T, expected libkb.DeviceAlreadyProvisionedError", err)
 	}
 }
 

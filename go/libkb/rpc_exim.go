@@ -315,6 +315,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 			}
 		}
 		return ret
+	case SCDevicePrevProvisioned:
+		return DeviceAlreadyProvisionedError{}
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -1074,5 +1076,12 @@ func (e NoMatchingGPGKeysError) ToStatus() keybase1.Status {
 		Fields: []keybase1.StringKVPair{
 			{"fingerprints", strings.Join(e.Fingerprints, ",")},
 		},
+	}
+}
+
+func (e DeviceAlreadyProvisionedError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCDevicePrevProvisioned,
+		Name: "SC_DEVICE_PREV_PROVISIONED",
 	}
 }

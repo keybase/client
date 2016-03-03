@@ -1366,3 +1366,9 @@ type NoMatchingGPGKeysError struct {
 func (e NoMatchingGPGKeysError) Error() string {
 	return fmt.Sprintf("No private GPG keys found on this device that match account PGP keys %s", strings.Join(e.Fingerprints, ", "))
 }
+
+type DeviceAlreadyProvisionedError struct{}
+
+func (e DeviceAlreadyProvisionedError) Error() string {
+	return "Device already provisioned for current user"
+}

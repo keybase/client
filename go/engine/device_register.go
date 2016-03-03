@@ -4,8 +4,6 @@
 package engine
 
 import (
-	"errors"
-
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
@@ -21,8 +19,6 @@ type DeviceRegister struct {
 	deviceID keybase1.DeviceID
 	libkb.Contextified
 }
-
-var ErrDeviceAlreadyRegistered = errors.New("Device already registered (device id exists in config)")
 
 func NewDeviceRegister(args *DeviceRegisterArgs, g *libkb.GlobalContext) *DeviceRegister {
 	return &DeviceRegister{
@@ -47,7 +43,7 @@ func (d *DeviceRegister) Prereqs() Prereqs { return Prereqs{} }
 
 func (d *DeviceRegister) Run(ctx *Context) error {
 	if d.args.Me.HasCurrentDeviceInCurrentInstall() {
-		return ErrDeviceAlreadyRegistered
+		return libkb.DeviceAlreadyProvisionedError{}
 	}
 
 	var err error

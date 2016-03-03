@@ -102,6 +102,8 @@ func (c *CmdLogin) Run() error {
 		err = c.errPassphrase()
 	case libkb.NoMatchingGPGKeysError:
 		err = c.errNoMatchingGPGKeys(x.Fingerprints)
+	case libkb.DeviceAlreadyProvisionedError:
+		err = c.errDeviceAlreadyProvisioned()
 	}
 
 	return err
@@ -205,7 +207,7 @@ func (c *CmdLogin) errNoMatchingGPGKeys(fingerprints []string) error {
 		fpsIndent[i] = "   " + fp
 	}
 
-	after := `You need to prove you're you.  We suggest one of the following:
+	after := `You need to prove you're you. We suggest one of the following:
 
    - put one of the PGP private keys listed above on this machine and try again
    - reset your account and start fresh: https://keybase.io/#account-reset
@@ -213,4 +215,12 @@ func (c *CmdLogin) errNoMatchingGPGKeys(fingerprints []string) error {
 
 	out := first + "\n" + pre + "\n\n" + strings.Join(fpsIndent, "\n") + "\n\n" + after
 	return errors.New(out)
+}
+
+func (c *CmdLogin) errDeviceAlreadyProvisioned() error {
+	return errors.New(`in Login
+
+You have already provisioned this device. Please use 'keybase login [username]'
+to log in.
+`)
 }

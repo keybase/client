@@ -14,7 +14,7 @@ This is the fingerprint of the PGP key in your account:
 
    ababababab
 
-You need to prove you're you.  We suggest one of the following:
+You need to prove you're you. We suggest one of the following:
 
    - put one of the PGP private keys listed above on this machine and try again
    - reset your account and start fresh: https://keybase.io/#account-reset`
@@ -26,7 +26,7 @@ These are the fingerprints of the PGP keys in your account:
    ababababab
    cdcdcdcdcd
 
-You need to prove you're you.  We suggest one of the following:
+You need to prove you're you. We suggest one of the following:
 
    - put one of the PGP private keys listed above on this machine and try again
    - reset your account and start fresh: https://keybase.io/#account-reset`

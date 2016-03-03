@@ -737,7 +737,7 @@ func (e *LoginProvision) matchingGPGKeys() ([]*libkb.GpgPrimaryKey, error) {
 func (e *LoginProvision) newGPGMatchErr(keys []*libkb.PGPKeyBundle) error {
 	fps := make([]string, len(keys))
 	for i, k := range keys {
-		fps[i] = k.GetFingerprint().String()
+		fps[i] = k.GetFingerprint().ToQuads()
 	}
 	return libkb.NoMatchingGPGKeysError{Fingerprints: fps}
 }
