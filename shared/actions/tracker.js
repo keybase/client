@@ -275,14 +275,27 @@ function trackUser (trackToken: ?string): Promise<boolean> {
   })
 }
 
+function onWaiting (username: string, waiting: bool): (dispatch: Dispatch) => void {
+  return dispatch => {
+    dispatch({type: Constants.onWaiting, payload: {username, waiting}})
+  }
+}
+
 export function onFollow (username: string): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
   return (dispatch, getState) => {
     const trackerState = getState().tracker.trackers[username]
     const {trackToken} = (trackerState || {})
 
-    const dispatchFollowedAction = () => dispatch({type: Constants.onFollow, payload: {username}})
-    const dispatchErrorAction = () => dispatch({type: Constants.onError, payload: {username}})
+    const dispatchFollowedAction = () => {
+      dispatch({type: Constants.onFollow, payload: {username}})
+      dispatch(onWaiting(username, false))
+    }
+    const dispatchErrorAction = () => {
+      dispatch({type: Constants.onError, payload: {username}})
+      dispatch(onWaiting(username, false))
+    }
 
+    dispatch(onWaiting(username, true))
     trackUser(trackToken)
       .then(dispatchFollowedAction)
       .catch(err => {

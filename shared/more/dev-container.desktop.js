@@ -5,7 +5,7 @@ import {Paper, AppBar} from 'material-ui'
 export default class Container extends Component {
   render () {
     return (
-      <Paper zDepth={5} style={{margin: 20}}>
+      <Paper zDepth={5} style={{...this.props.style, margin: 20}}>
         <AppBar title={this.props.title}/>
         <div style={{margin: 10}}>
           {this.props.children}

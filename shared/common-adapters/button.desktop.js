@@ -1,14 +1,14 @@
 /* @flow */
 
 import React, {Component} from 'react'
-import {FlatButton} from 'material-ui'
+import {FlatButton, CircularProgress} from 'material-ui'
 import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide'
 import type {Props} from './button'
 
 export default class Button extends Component {
   props: Props;
 
-  render1 () {
+  _render1 () {
     const rootStyle = this.props.type === 'Primary' ? styles1.buttonPrimary : styles1.buttonSecondary
     const smallStyle = this.props.small ? styles1.buttonSmall : {}
     const smallLabelStyle = this.props.small ? styles1.buttonSmallLabel : {}
@@ -28,61 +28,66 @@ export default class Button extends Component {
   _styles (type: Props.type): Object {
     let backgroundStyle = {}
     let labelStyle = {}
+    let progressColor = globalColorsDZ2.white
+
+    const disabled = this.props.disabled || this.props.waiting
 
     switch (this.props.type) {
       case 'Primary':
         backgroundStyle = {
           ...styles2.buttonPrimary,
-          opacity: this.props.disabled ? styles2.buttonPrimary.disabledOpacity : 1
+          opacity: disabled ? styles2.buttonPrimary.disabledOpacity : 1
         }
         break
       case 'Follow':
         backgroundStyle = {
           ...styles2.buttonFollow,
-          opacity: this.props.disabled ? styles2.buttonFollow.disabledOpacity : 1
+          opacity: disabled ? styles2.buttonFollow.disabledOpacity : 1
         }
         break
       case 'Following':
         backgroundStyle = {
           ...styles2.buttonFollowing,
-          opacity: this.props.disabled ? styles2.buttonFollowing.disabledOpacity : 1
+          opacity: disabled ? styles2.buttonFollowing.disabledOpacity : 1
         }
         labelStyle = {
           color: globalColorsDZ2.green
         }
+        progressColor = globalColorsDZ2.black75
         break
       case 'Unfollow':
         backgroundStyle = {
           ...styles2.buttonUnfollow,
-          opacity: this.props.disabled ? styles2.buttonUnfollow.disabledOpacity : 1
+          opacity: disabled ? styles2.buttonUnfollow.disabledOpacity : 1
         }
         break
       case 'Danger':
         backgroundStyle = {
           ...styles2.buttonDanger,
-          opacity: this.props.disabled ? styles2.buttonDanger.disabledOpacity : 1
+          opacity: disabled ? styles2.buttonDanger.disabledOpacity : 1
         }
         break
       case 'Secondary':
       default:
         backgroundStyle = {
           ...styles2.buttonSecondary,
-          opacity: this.props.disabled ? styles2.buttonSecondary.disabledOpacity : 1
+          opacity: disabled ? styles2.buttonSecondary.disabledOpacity : 1
         }
         labelStyle = {
           color: globalColorsDZ2.black75
         }
+        progressColor = globalColorsDZ2.black75
     }
-    return {backgroundStyle, labelStyle}
+    return {backgroundStyle, labelStyle, progressColor}
   }
 
   render () {
     if (!this.props.dz2) {
-      return this.render1()
+      return this._render1()
     }
 
     // First apply styles for the main button types.
-    let {backgroundStyle, labelStyle} = this._styles(this.props.type)
+    let {backgroundStyle, labelStyle, progressColor} = this._styles(this.props.type)
     let smallStyle = {}
 
     // Then some overrides that apply to all button types.
@@ -94,29 +99,53 @@ export default class Button extends Component {
       }
     }
 
+    if (this.props.waiting) {
+      labelStyle = {
+        ...labelStyle,
+        opacity: 0
+      }
+    }
+
+    let outerStyle = {position: 'relative'}
+
     if (this.props.fullWidth) {
-      backgroundStyle = {
-        ...backgroundStyle,
         // Using minWidth here means we can't have a full-width button on the
         // same line/row as another button, the right thing is very unlikely to
         // happen.  The alternative is 'flex: 1' here, which would work but is
         // dangerous, because we'd be modifying our container.
         //
         // So let's just say that a fullWidth button can't have siblings.
-        minWidth: '100%'
-      }
+      outerStyle = {...outerStyle, minWidth: '100%'}
+      backgroundStyle = {...backgroundStyle, minWidth: '100%', height: 38}
+    }
+
+    if (this.props.waiting) {
+      outerStyle = {...outerStyle, cursor: 'wait'}
+    }
+
+    let label = this.props.label
+
+    if (this.props.more) {
+      label = '•••'
     }
 
     return (
-      <FlatButton
-        onClick={this.props.onClick}
-        style={{...backgroundStyle, ...smallStyle, ...this.props.style}}
-        labelStyle={{...styles2.buttonLabel, ...labelStyle}}
-        label={this.props.label || this.props.more && '•••'}
-        primary={this.props.type === 'Primary'}
-        secondary={this.props.type === 'Secondary'}
-        disabled={this.props.disabled}
-      />
+      <div style={outerStyle}>
+        <FlatButton
+          onClick={this.props.onClick}
+          style={{...backgroundStyle, ...smallStyle, ...this.props.style}}
+          labelStyle={{...styles2.buttonLabel, ...labelStyle}}
+          label={label}
+          primary={this.props.type === 'Primary'}
+          secondary={this.props.type === 'Secondary'}
+          disabled={this.props.disabled || this.props.waiting}/>
+        {this.props.waiting && (
+          <CircularProgress
+            size={0.25}
+            style={{...styles2.progress}}
+            color={progressColor}
+          />)}
+      </div>
     )
   }
 }
@@ -136,6 +165,7 @@ const buttonCommon1 = {
 const buttonCommon2 = {
   ...globalStyles.DZ2.fontSemibold,
   color: globalColorsDZ2.white,
+  whiteSpace: 'nowrap',
   borderRadius: 55,
   fontSize: 16,
   height: 32,
@@ -144,7 +174,7 @@ const buttonCommon2 = {
   minWidth: 10
 }
 
-export const styles2 = {
+const styles2 = {
   buttonPrimary: {
     ...buttonCommon2,
     backgroundColor: globalColorsDZ2.blue,
@@ -196,10 +226,15 @@ export const styles2 = {
     ...globalStyles.DZ2.fontRegular,
     paddingLeft: 20,
     paddingRight: 20
+  },
+  progress: {
+    position: 'absolute',
+    left: 'calc(50% - 32px)',
+    top: -10
   }
 }
 
-export const styles1 = {
+const styles1 = {
   buttonPrimary: {
     ...buttonCommon1,
     backgroundColor: globalColors.green
