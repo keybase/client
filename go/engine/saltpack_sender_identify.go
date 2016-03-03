@@ -76,6 +76,7 @@ func (e *SaltpackSenderIdentify) Run(ctx *Context) (err error) {
 
 func (e *SaltpackSenderIdentify) lookupSender() (err error) {
 	defer e.G().Trace("SaltpackDecrypt::lookupSender", func() error { return err })()
+	e.G().Log.Debug("Lookup KID: %s", e.arg.publicKey)
 	e.res.Username, e.res.Uid, err = libkb.KeyLookupKID(e.G(), e.arg.publicKey)
 	return err
 }
