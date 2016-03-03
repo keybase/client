@@ -76,6 +76,7 @@ export default class Button extends Component {
         labelStyle = {
           color: globalColorsDZ2.black75
         }
+        progressColor = globalColorsDZ2.black75
     }
     return {backgroundStyle, labelStyle, progressColor}
   }
@@ -105,7 +106,7 @@ export default class Button extends Component {
       }
     }
 
-    let outterStyle = {position: 'relative'}
+    let outerStyle = {position: 'relative'}
 
     if (this.props.fullWidth) {
         // Using minWidth here means we can't have a full-width button on the
@@ -114,12 +115,12 @@ export default class Button extends Component {
         // dangerous, because we'd be modifying our container.
         //
         // So let's just say that a fullWidth button can't have siblings.
-      outterStyle = {...outterStyle, minWidth: '100%'}
+      outerStyle = {...outerStyle, minWidth: '100%'}
       backgroundStyle = {...backgroundStyle, minWidth: '100%', height: 38}
     }
 
     if (this.props.waiting) {
-      outterStyle = {...outterStyle, cursor: 'wait'}
+      outerStyle = {...outerStyle, cursor: 'wait'}
     }
 
     let label = this.props.label
@@ -129,7 +130,7 @@ export default class Button extends Component {
     }
 
     return (
-      <div style={outterStyle}>
+      <div style={outerStyle}>
         <FlatButton
           onClick={this.props.onClick}
           style={{...backgroundStyle, ...smallStyle, ...this.props.style}}
