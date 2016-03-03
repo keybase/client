@@ -75,7 +75,7 @@ export default class PinentryRender extends Component {
     return (
       <div>
         <Header icon title='' onClose={() => this.props.onCancel()} />
-        <div style={{...styles2.container, alignItems: 'center', padding: 5}}>
+        <div style={{...styles2.container, alignItems: 'center', padding: 5, paddingLeft: 30, paddingRight: 30}}>
           <Text dz2 type='Body'>{this.props.prompt}</Text>
         </div>
         <div style={{...styles2.container, alignItems: 'center', padding: 10, paddingLeft: 30, paddingRight: 30}}>
