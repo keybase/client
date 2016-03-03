@@ -162,6 +162,12 @@ export default class Render extends Component {
           </div>
           <div>
             <div style={styles.pretendTrackerWindow}>
+              <Tracker {...{...propsChangedProofs, lastTrack: false}} />\
+            </div>
+            <p>Changed/Broken proofs user you dont follow</p>
+          </div>
+          <div>
+            <div style={styles.pretendTrackerWindow}>
               <Tracker {...propsChangedProofs} />\
             </div>
             <p>Changed/Broken proofs</p>
