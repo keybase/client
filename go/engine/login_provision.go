@@ -497,7 +497,7 @@ func (e *LoginProvision) chooseDevice(ctx *Context, pgp bool) error {
 	expDevices := make([]keybase1.Device, len(devices))
 	idMap := make(map[keybase1.DeviceID]*libkb.Device)
 	for i, d := range devices {
-		expDevices[i] = *d.ProtExport()
+		expDevices[i] = *d.ProtExportFriendly()
 		idMap[d.ID] = d
 	}
 
@@ -509,7 +509,6 @@ func (e *LoginProvision) chooseDevice(ctx *Context, pgp bool) error {
 		return err
 	}
 
-	// XXX use an error instead?
 	if len(id) == 0 {
 		// they chose not to use a device
 		e.G().Log.Debug("user has devices, but chose not to use any of them")
