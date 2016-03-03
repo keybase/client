@@ -1,9 +1,11 @@
 // Copyright 2015 Keybase, Inc. All rights reserved. Use of
 // this source code is governed by the included BSD license.
 
-// LoginLoadUser is an engine that will get a username or email
+// loginLoadUser is an engine that will get a username or email
 // address from the user and load that user, for the purposes of
 // preparing for provisioning a new device.
+//
+// It is only meant to be used by the Login engine.
 
 package engine
 
@@ -11,34 +13,34 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-// LoginLoadUser is an engine.
-type LoginLoadUser struct {
+// loginLoadUser is an engine.
+type loginLoadUser struct {
 	libkb.Contextified
 	user            *libkb.User
 	usernameOrEmail string
 }
 
-// NewLoginLoadUser creates a LoginLoadUser engine.
+// newLoginLoadUser creates a loginLoadUser engine.
 // usernameOrEmail is optional.
-func NewLoginLoadUser(g *libkb.GlobalContext, usernameOrEmail string) *LoginLoadUser {
-	return &LoginLoadUser{
+func newLoginLoadUser(g *libkb.GlobalContext, usernameOrEmail string) *loginLoadUser {
+	return &loginLoadUser{
 		Contextified:    libkb.NewContextified(g),
 		usernameOrEmail: usernameOrEmail,
 	}
 }
 
 // Name is the unique engine name.
-func (e *LoginLoadUser) Name() string {
-	return "LoginLoadUser"
+func (e *loginLoadUser) Name() string {
+	return "loginLoadUser"
 }
 
 // GetPrereqs returns the engine prereqs.
-func (e *LoginLoadUser) Prereqs() Prereqs {
+func (e *loginLoadUser) Prereqs() Prereqs {
 	return Prereqs{}
 }
 
 // RequiredUIs returns the required UIs.
-func (e *LoginLoadUser) RequiredUIs() []libkb.UIKind {
+func (e *loginLoadUser) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
 		libkb.LoginUIKind,
 		libkb.SecretUIKind,
@@ -46,18 +48,18 @@ func (e *LoginLoadUser) RequiredUIs() []libkb.UIKind {
 }
 
 // SubConsumers returns the other UI consumers for this engine.
-func (e *LoginLoadUser) SubConsumers() []libkb.UIConsumer {
+func (e *loginLoadUser) SubConsumers() []libkb.UIConsumer {
 	return nil
 }
 
 // Run starts the engine.
-func (e *LoginLoadUser) Run(ctx *Context) error {
+func (e *loginLoadUser) Run(ctx *Context) error {
 	username, err := e.findUsername(ctx)
 	if err != nil {
 		return err
 	}
 
-	e.G().Log.Debug("LoginLoadUser: found username %q", username)
+	e.G().Log.Debug("loginLoadUser: found username %q", username)
 
 	arg := libkb.NewLoadUserByNameArg(e.G(), username)
 	arg.PublicKeyOptional = true
@@ -67,16 +69,16 @@ func (e *LoginLoadUser) Run(ctx *Context) error {
 	}
 	e.user = user
 
-	e.G().Log.Debug("LoginLoadUser: found user %s for username %q", e.user.GetUID(), username)
+	e.G().Log.Debug("loginLoadUser: found user %s for username %q", e.user.GetUID(), username)
 
 	return nil
 }
 
-func (e *LoginLoadUser) User() *libkb.User {
+func (e *loginLoadUser) User() *libkb.User {
 	return e.user
 }
 
-func (e *LoginLoadUser) findUsername(ctx *Context) (string, error) {
+func (e *loginLoadUser) findUsername(ctx *Context) (string, error) {
 	if len(e.usernameOrEmail) == 0 {
 		if err := e.prompt(ctx); err != nil {
 			return "", err
@@ -112,7 +114,7 @@ func (e *LoginLoadUser) findUsername(ctx *Context) (string, error) {
 	return username, nil
 }
 
-func (e *LoginLoadUser) prompt(ctx *Context) error {
+func (e *loginLoadUser) prompt(ctx *Context) error {
 	res, err := ctx.LoginUI.GetEmailOrUsername(ctx.GetNetContext(), 0)
 	if err != nil {
 		return err
@@ -123,7 +125,7 @@ func (e *LoginLoadUser) prompt(ctx *Context) error {
 
 // LoadUser and VerifyEmailAddress can return an AppStatusError when a user isn't found.
 // Convert that to a libkb.NotFoundError.
-func (e *LoginLoadUser) convertNotFound(in error) error {
+func (e *loginLoadUser) convertNotFound(in error) error {
 	if aerr, ok := in.(libkb.AppStatusError); ok {
 		if aerr.Code == libkb.SCNotFound || aerr.Code == libkb.SCBadLoginUserNotFound {
 			return libkb.NotFoundError{}

@@ -34,7 +34,7 @@ func TestLoginLoadUser(t *testing.T) {
 			LoginUI:  &libkb.TestLoginUI{},
 			SecretUI: &libkb.TestSecretUI{},
 		}
-		eng := NewLoginLoadUser(tc.G, test.input)
+		eng := newLoginLoadUser(tc.G, test.input)
 		if err := RunEngine(eng, ctx); err != nil {
 			if test.err == nil {
 				t.Errorf("%s: run error %s", test.name, err)
@@ -78,7 +78,7 @@ func TestLoginLoadUserPrompt(t *testing.T) {
 			},
 			SecretUI: &libkb.TestSecretUI{},
 		}
-		eng := NewLoginLoadUser(tc.G, "")
+		eng := newLoginLoadUser(tc.G, "")
 		if err := RunEngine(eng, ctx); err != nil {
 			if test.err == nil {
 				t.Errorf("%s: run error %s", test.name, err)
@@ -114,7 +114,7 @@ func TestLoginLoadUserPromptCancel(t *testing.T) {
 		LoginUI:  &libkb.TestLoginCancelUI{},
 		SecretUI: &libkb.TestSecretUI{},
 	}
-	eng := NewLoginLoadUser(tc.G, "")
+	eng := newLoginLoadUser(tc.G, "")
 	err := RunEngine(eng, ctx)
 	if err == nil {
 		t.Fatal("expected an error")
@@ -136,7 +136,7 @@ func TestLoginLoadUserEmail(t *testing.T) {
 		t.Fatal(err)
 	}
 	if user.GetName() != fu.Username {
-		t.Errorf("LoginLoadUser %q => %q, expected username %q", fu.Email, user.GetName(), fu.Username)
+		t.Errorf("loginLoadUser %q => %q, expected username %q", fu.Email, user.GetName(), fu.Username)
 	}
 
 	// prompt for email address
@@ -145,7 +145,7 @@ func TestLoginLoadUserEmail(t *testing.T) {
 		t.Fatal(err)
 	}
 	if user.GetName() != fu.Username {
-		t.Errorf("LoginLoadUser %q => %q, expected username %q", fu.Email, user.GetName(), fu.Username)
+		t.Errorf("loginLoadUser %q => %q, expected username %q", fu.Email, user.GetName(), fu.Username)
 	}
 
 	// someone else's email address
@@ -181,7 +181,7 @@ func testLoginLoadUserEmail(t *testing.T, fu *FakeUser, input string) (*libkb.Us
 		},
 		SecretUI: fu.NewSecretUI(),
 	}
-	eng := NewLoginLoadUser(tc.G, input)
+	eng := newLoginLoadUser(tc.G, input)
 	if err := RunEngine(eng, ctx); err != nil {
 		return nil, err
 	}
