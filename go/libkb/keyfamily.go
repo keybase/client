@@ -411,17 +411,6 @@ func (ckf ComputedKeyFamily) getCkiIfActiveNow(kid keybase1.KID) (ret *ComputedK
 	return ckf.getCkiIfActiveAtTime(kid, time.Now())
 }
 
-func (ckf ComputedKeyFamily) getCkiIfRevoked(kid keybase1.KID) (*ComputedKeyInfo, error) {
-	ki := ckf.cki.Infos[kid]
-	if ki == nil {
-		return nil, NoKeyError{fmt.Sprintf("The key '%s' wasn't found", kid)}
-	}
-	if ki.Status != KeyRevoked {
-		return nil, NoKeyError{fmt.Sprintf("The key '%s' wasn't revoked (%v)", kid, ki.Status)}
-	}
-	return ki, nil
-}
-
 // FindActiveSibkey takes a given KID and finds the corresponding active sibkey
 // in the current key family. If it cannot find the key, or if the key is no
 // longer active (either by revocation, or by expiring), it will return an
