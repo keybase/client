@@ -30,6 +30,7 @@ export default class Text extends Component {
       case 'TerminalUsername':
       case 'TerminalPublic':
       case 'TerminalPrivate':
+      case 'TerminalSmall':
         return this.context.inTerminal ? {} : styles.textTerminalInline
       default:
         return {}
@@ -83,6 +84,7 @@ export default class Text extends Component {
       'TerminalPublic': styles.textTerminalPublic,
       'TerminalPrivate': styles.textTerminalPrivate,
       'TerminalEmpty': styles.textTerminalEmpty,
+      'TerminalSmall': styles.textTerminalSmall,
       'InputHeader': styles.textInputHeader
     }[this.props.type]
 
@@ -244,6 +246,11 @@ export const styles = {
   textTerminalEmpty: {
     ...textTerminal,
     minHeight: 20
+  },
+  textTerminalSmall: {
+    ...textTerminal,
+    fontSize: 14,
+    lineHeight: '19px'
   },
   textTerminalInline: {
     backgroundColor: globalColorsDZ2.blue4,

@@ -21,16 +21,20 @@ class UpdatePaused extends Component {
         <Header type='Strong' title='Update Paused' icon onClose={() => this.props.onCancel()} />
         <div style={styles.body}>
           <div style={{...globalStyles.flexBoxCenter, paddingTop: 15, paddingBottom: 15}}>
-            <Icon type='logo-64' style={{width: 64, height: 64}} />
+            <Icon type='keybase-update-pause' />
           </div>
           <div style={{paddingBottom: 15}}>
-            <Text type='Header' dz2>You have files, folders or a terminal open in Keybase.</Text>
+            <Text type='BodySemibold' dz2>You have files, folders or a terminal open in Keybase.</Text>
           </div>
-          <Text type='Body' dz2 style={{paddingBottom: 15}}>
+          <Text type='BodySmall' dz2 style={{paddingBottom: 15}}>
             You can force the update. That would be like yanking a USB drive and plugging it right back in.
             It'll instantly give you the latest version of Keybase, but you'll need to reopen any files you're working with.
             If you're working in the terminal, you'll need to&nbsp;
-          </Text><Text dz2 type='Terminal'>cd</Text><Text type='Body' dz2>&nbsp;out of&nbsp;</Text><Text type='Terminal' dz2>/keybase</Text><Text type='Body' dz2>&nbsp;and back in.</Text>
+          </Text>
+          <Text dz2 type='TerminalSmall'>cd</Text>
+          <Text type='BodySmall' dz2>&nbsp;out of&nbsp;</Text>
+          <Text type='TerminalSmall' dz2>/keybase</Text>
+          <Text type='BodySmall' dz2>&nbsp;and back in.</Text>
 
           <div style={styles.actions}>
             <Button type='Secondary' dz2 label='Force' onClick={() => this.props.onForce()} />

@@ -9,7 +9,7 @@ export type Props = {
           | 'Error'
           | 'Terminal'
           | 'TerminalUsername' | 'TerminalPublic' | 'TerminalPrivate'
-          | 'TerminalCommand' | 'TerminalComment' | 'TerminalEmpty',
+          | 'TerminalCommand' | 'TerminalComment' | 'TerminalEmpty' | 'TerminalSmall',
   backgroundMode?: Background,
   inline?: boolean,
   link?: boolean,

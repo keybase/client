@@ -3,11 +3,11 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import {Snackbar} from 'material-ui'
-import {Header, Text, Button, Checkbox, Icon} from '../common-adapters'
+import {Header, Text, Button, Checkbox, Icon, Terminal} from '../common-adapters'
 import {clipboard} from 'electron'
 import marked from 'marked'
 import {autoResize} from '../../desktop/renderer/remote-component-helper'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColorsDZ2} from '../styles/style-guide'
 
 type RenderProps = {
   isCritical: bool,
@@ -59,7 +59,7 @@ class UpdateConfirm extends Component {
         />
         <div style={{...styles.headerContainer}}>
           <div style={{...globalStyles.flexBoxCenter, paddingBottom: 15}}>
-            <Icon type='logo-64' style={{width: 64, height: 64}} />
+            <Icon type='keybase-update' />
           </div>
           {!this.props.updateCommand &&
             <Text type='BodySemibold' dz2 style={{paddingLeft: 30, paddingRight: 30, textAlign: 'center'}}>
@@ -70,11 +70,11 @@ class UpdateConfirm extends Component {
               <Text type='BodySemibold' dz2 style={{paddingLeft: 30, paddingRight: 30, textAlign: 'center'}}>
                 {`The version you are currently running (${this.props.oldVersion}) is outdated. Run this command to update:`}
               </Text>
-              <div style={{paddingTop: 15}}>
-                <Text type='Terminal' dz2 style={{display: 'block', flex: 1, paddingTop: 15, paddingLeft: 30, paddingBottom: 15, paddingRight: 30}}>
+              <Terminal dz2 style={{marginTop: 15}}>
+                <Text type='Terminal' dz2 style={{paddingLeft: 20, paddingRight: 20, paddingTop: 5, paddingBottom: 5}}>
                   {this.props.updateCommand}
                 </Text>
-              </div>
+              </Terminal>
             </div>}
         </div>
 
@@ -92,7 +92,7 @@ class UpdateConfirm extends Component {
         </div>
         {this.props.canUpdate &&
           <div style={{...styles.actionsContainer, paddingTop: 9, paddingRight: 10}}>
-            <Checkbox
+            <Checkbox dz2
               checked={this.props.alwaysUpdate}
               label='Update automatically'
               onCheck={checked => this.props.setAlwaysUpdate(checked)}/>
@@ -130,33 +130,15 @@ const styles = {
   },
   descriptionBlock: {
     ...globalStyles.DZ2.fontTerminal,
-    ...globalStyles.rounded,
-    backgroundColor: globalColors.grey5,
-    border: `solid ${globalColors.grey3} 1px`,
+    lineHeight: '21px',
+    fontSize: 14,
+    color: globalColorsDZ2.black75,
+    backgroundColor: globalColorsDZ2.lightGrey,
+    border: `solid ${globalColorsDZ2.black10} 1px`,
     minHeight: 130,
     maxHeight: 175,
-    fontSize: 14,
     overflowY: 'auto',
     padding: 15
-  },
-  updateCommandHeader: {
-    margin: 20
-  },
-  command: {
-    ...globalStyles.flexBoxRow,
-    color: globalColors.white,
-    backgroundColor: globalColors.grey1,
-    paddingLeft: 30,
-    marginBottom: 20,
-    alignItems: 'center'
-  },
-  clipboard: {
-    ...globalStyles.flexBoxRow,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 110,
-    height: 90,
-    borderLeft: `solid ${globalColors.grey2} 1px`
   }
 }
 
