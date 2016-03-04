@@ -12,14 +12,14 @@ const MerkleRootVersion = 1
 
 // MerkleRoot represents a signed Merkle tree root.
 type MerkleRoot struct {
-	Version   int                   `codec:"v"`
-	TreeID    keybase1.MerkleTreeID `codec:"t"`
-	SeqNo     int64                 `codec:"sn"`
-	Timestamp int64                 `codec:"ts"`
-	Hash      merkle.Hash           `codec:"h"`
-	PrevRoot  merkle.Hash           `codec:"pr"`
-	EPubKey   TLFEphemeralPublicKey `codec:"epk"`
-	Nonce     [24]byte              `codec:"non"`
+	Version   int                    `codec:"v"`
+	TreeID    keybase1.MerkleTreeID  `codec:"t"`
+	SeqNo     int64                  `codec:"sn"`
+	Timestamp int64                  `codec:"ts"`
+	Hash      merkle.Hash            `codec:"h"`
+	PrevRoot  merkle.Hash            `codec:"pr"`
+	EPubKey   *TLFEphemeralPublicKey `codec:"epk,omitempty"`
+	Nonce     *[24]byte              `codec:"non,omitempty"`
 }
 
 // MerkleLeaf is the value of a Merkle leaf node.
