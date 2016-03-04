@@ -20,6 +20,9 @@ kbfs_copy="/root/kbfs"
 serverops_copy="/root/server-ops"
 build_dir="/root/build"
 
+# Copy the s3cmd config to root's home dir.
+cp /S3CMD/.s3cfg ~
+
 # Import the code signing key, kick off the gpg agent, and sign an empty
 # message with it. This makes the password prompt happen now, so that we don't
 # interrupt the build later.
