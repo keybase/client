@@ -169,8 +169,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-kext",
-			"revision": "4a39c32c0ce35476802576498a92b31ee2b1a8b3",
-			"revisionTime": "2015-11-02T15:09:01-08:00"
+			"revision": "812245fc176f35fbb18f9344ad0a9f363bd95435",
+			"revisionTime": "2016-03-04T13:56:34-08:00"
 		},
 		{
 			"path": "github.com/keybase/go-keychain",
