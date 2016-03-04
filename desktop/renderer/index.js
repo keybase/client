@@ -28,6 +28,7 @@ ipcLogsRenderer()
 
 if (module.hot) {
   debugCancelLogin()
+  // $FlowIssue
   module.hot.accept()
 }
 
