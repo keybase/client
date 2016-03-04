@@ -20,7 +20,6 @@ if [ -z "$build_root" ] ; then
   exit 1
 fi
 
-version="$(cat "$build_root/VERSION")"
 mode="$(cat "$build_root/MODE")"
 
 name="$("$here/../../binary_name.sh" "$mode")"
@@ -53,8 +52,10 @@ for debian_arch in amd64 i386 ; do
   # PGP fingerprint of our code signing key.
   reprepro --basedir "$repo_root/repo" includedeb stable "$debfile"
 
-  # Update the latest pointer.
-  ln -sf "repo/pool/main/k/$name/${name}_${version}_${debian_arch}.deb" \
+  # Update the latest pointer. (We use * to handle the version, because there's
+  # package_binaries.sh has special handling of + chars, and we don't want to
+  # duplicate it here.)
+  ln -sf "repo/pool/main/k/$name/${name}_"*"_${debian_arch}.deb" \
     "$repo_root/$name-latest-$debian_arch.deb"
 done
 

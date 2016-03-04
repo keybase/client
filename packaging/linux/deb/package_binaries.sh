@@ -18,7 +18,9 @@ if [ -z "$build_root" ] ; then
   exit 1
 fi
 
-version="$(cat "$build_root/VERSION")"
+# S3 mishandles + characters in the version. See
+# https://github.com/keybase/keybase-issues/issues/2116.
+version="$(cat "$build_root/VERSION" | sed 's/+/./g')"
 mode="$(cat "$build_root/MODE")"
 
 name="$("$here/../../binary_name.sh" "$mode")"
