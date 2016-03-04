@@ -50,7 +50,7 @@ func (t *testCRObserver) BatchChanges(ctx context.Context,
 func checkStatus(t *testing.T, ctx context.Context, kbfsOps KBFSOps,
 	staged bool, headWriter libkb.NormalizedUsername, dirtyPaths []string, fb FolderBranch,
 	prefix string) {
-	status, _, err := kbfsOps.Status(ctx, fb)
+	status, _, err := kbfsOps.FolderStatus(ctx, fb)
 	if err != nil {
 		t.Fatalf("%s: Couldn't get status", prefix)
 	}
@@ -87,7 +87,7 @@ func TestBasicMDUpdate(t *testing.T) {
 		t.Fatalf("Couldn't get root: %v", err)
 	}
 
-	_, statusChan, err := kbfsOps2.Status(ctx, rootNode2.GetFolderBranch())
+	_, statusChan, err := kbfsOps2.FolderStatus(ctx, rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't get status")
 	}

@@ -228,11 +228,16 @@ type KBFSOps interface {
 	// system interface, this may include modifications done via
 	// multiple file handles.  This is a remote-sync operation.
 	Sync(ctx context.Context, file Node) error
-	// Status returns the status of a particular folder/branch, along
+	// FolderStatus returns the status of a particular folder/branch, along
 	// with a channel that will be closed when the status has been
 	// updated (to eliminate the need for polling this method).
-	Status(ctx context.Context, folderBranch FolderBranch) (
+	FolderStatus(ctx context.Context, folderBranch FolderBranch) (
 		FolderBranchStatus, <-chan StatusUpdate, error)
+	// Status returns the status of KBFS, along with a channel that will be
+	// closed when the status has been updated (to eliminate the need for
+	// polling this method).
+	Status(ctx context.Context) (
+		KBFSStatus, <-chan StatusUpdate, error)
 	// UnstageForTesting clears out this device's staged state, if
 	// any, and fast-forwards to the current head of this
 	// folder-branch. TODO: remove this once we have automatic

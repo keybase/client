@@ -2447,7 +2447,7 @@ func TestStatusFile(t *testing.T) {
 	ops := config.KBFSOps()
 	jdoe, _, err := ops.GetOrCreateRootNode(
 		ctx, "jdoe", false, libkbfs.MasterBranch)
-	status, _, err := ops.Status(ctx, jdoe.GetFolderBranch())
+	status, _, err := ops.FolderStatus(ctx, jdoe.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't get KBFS status: %v", err)
 	}

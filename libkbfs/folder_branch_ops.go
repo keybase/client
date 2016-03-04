@@ -4280,7 +4280,7 @@ func (fbo *folderBranchOps) Sync(ctx context.Context, file Node) (err error) {
 	return nil
 }
 
-func (fbo *folderBranchOps) Status(
+func (fbo *folderBranchOps) FolderStatus(
 	ctx context.Context, folderBranch FolderBranch) (
 	fbs FolderBranchStatus, updateChan <-chan StatusUpdate, err error) {
 	fbo.log.CDebugf(ctx, "Status")
@@ -4295,6 +4295,12 @@ func (fbo *folderBranchOps) Status(
 	fbo.cr.Wait(ctx)
 
 	return fbo.status.getStatus(ctx)
+}
+
+func (fbo *folderBranchOps) Status(
+	ctx context.Context) (
+	fbs KBFSStatus, updateChan <-chan StatusUpdate, err error) {
+	return KBFSStatus{}, nil, InvalidOpError{}
 }
 
 // RegisterForChanges registers a single Observer to receive

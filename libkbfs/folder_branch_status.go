@@ -27,6 +27,16 @@ type FolderBranchStatus struct {
 	Merged   []*crChainSummary
 }
 
+// KBFSStatus represents the content of the top-level status file. It is
+// suitable for encoding directly as JSON.
+// TODO: implement magical status update like FolderBranchStatus
+type KBFSStatus struct {
+	CurrentUser string
+	IsConnected bool
+	UsageBytes  int64
+	LimitBytes  int64
+}
+
 // StatusUpdate is a dummy type used to indicate status has been updated.
 type StatusUpdate struct{}
 

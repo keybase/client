@@ -16,14 +16,6 @@ import (
 // anywhere within a top-level folder or inside the Keybase root
 const StatusFileName = ".kbfs_status"
 
-// KbfsStatus represents the content of the top-level status file
-type kbfsStatus struct {
-	CurrentUser string
-	IsConnected bool
-	UsageBytes  int64
-	LimitBytes  int64
-}
-
 // GetEncodedFolderStatus returns serialized JSON containing status information
 // for a folder
 func GetEncodedFolderStatus(ctx context.Context, config libkbfs.Config,
@@ -31,8 +23,7 @@ func GetEncodedFolderStatus(ctx context.Context, config libkbfs.Config,
 	data []byte, t time.Time, err error) {
 
 	var status libkbfs.FolderBranchStatus
-	status, _, err = config.KBFSOps().
-		Status(ctx, *folderBranch)
+	status, _, err = config.KBFSOps().FolderStatus(ctx, *folderBranch)
 	if err != nil {
 		return nil, time.Time{}, err
 	}
@@ -50,22 +41,11 @@ func GetEncodedFolderStatus(ctx context.Context, config libkbfs.Config,
 // information
 func GetEncodedStatus(ctx context.Context, config libkbfs.Config) (
 	data []byte, t time.Time, err error) {
-	username, _, _ := config.KBPKI().GetCurrentUserInfo(ctx)
-	var usageBytes int64 = -1
-	var limitBytes int64 = -1
-	quotaInfo, err := config.BlockServer().GetUserQuotaInfo(ctx)
-	if err == nil {
-		usageBytes = quotaInfo.Total.UsageBytes
-		limitBytes = quotaInfo.Limit
-	} else {
+	status, _, err := config.KBFSOps().Status(ctx)
+	if err != nil {
 		config.Reporter().ReportErr(ctx, err)
 	}
-	data, err = json.MarshalIndent(kbfsStatus{
-		CurrentUser: username.String(),
-		IsConnected: config.MDServer().IsConnected(),
-		UsageBytes:  usageBytes,
-		LimitBytes:  limitBytes,
-	}, "", "  ")
+	data, err = json.MarshalIndent(status, "", "  ")
 	if err != nil {
 		return nil, t, err
 	}

@@ -325,12 +325,31 @@ func (fs *KBFSOpsStandard) Sync(ctx context.Context, file Node) error {
 	return ops.Sync(ctx, file)
 }
 
-// Status implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) Status(
+// FolderStatus implements the KBFSOps interface for KBFSOpsStandard
+func (fs *KBFSOpsStandard) FolderStatus(
 	ctx context.Context, folderBranch FolderBranch) (
 	FolderBranchStatus, <-chan StatusUpdate, error) {
 	ops := fs.getOps(folderBranch)
-	return ops.Status(ctx, folderBranch)
+	return ops.FolderStatus(ctx, folderBranch)
+}
+
+// Status implements the KBFSOps interface for KBFSOpsStandard
+func (fs *KBFSOpsStandard) Status(ctx context.Context) (
+	KBFSStatus, <-chan StatusUpdate, error) {
+	username, _, _ := fs.config.KBPKI().GetCurrentUserInfo(ctx)
+	var usageBytes int64 = -1
+	var limitBytes int64 = -1
+	quotaInfo, err := fs.config.BlockServer().GetUserQuotaInfo(ctx)
+	if err == nil {
+		usageBytes = quotaInfo.Total.UsageBytes
+		limitBytes = quotaInfo.Limit
+	}
+	return KBFSStatus{
+		CurrentUser: username.String(),
+		IsConnected: fs.config.MDServer().IsConnected(),
+		UsageBytes:  usageBytes,
+		LimitBytes:  limitBytes,
+	}, nil, err
 }
 
 // UnstageForTesting implements the KBFSOps interface for KBFSOpsStandard

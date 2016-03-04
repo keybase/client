@@ -946,3 +946,13 @@ type TimeoutError struct {
 func (e TimeoutError) Error() string {
 	return "Operation timed out"
 }
+
+// InvalidOpError is returned when an operation is called that isn't supported
+// by the current implementation.
+type InvalidOpError struct {
+	op string
+}
+
+func (e InvalidOpError) Error() string {
+	return fmt.Sprintf("Invalid operation: %s", e.op)
+}
