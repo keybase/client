@@ -170,7 +170,6 @@ const buttonCommon2 = {
   fontSize: 16,
   height: 32,
   lineHeight: '24px',
-  letterSpacing: '0.3px',
   textTransform: 'none',
   minWidth: 10
 }
