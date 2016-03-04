@@ -22,8 +22,7 @@ export default function (state: State = initialState, action: FavoriteAction): S
       }
     case logoutDone: {
       return {
-        ...state,
-        folders: null
+        ...initialState
       }
     }
     default:
