@@ -44,8 +44,8 @@ func TestLoadUserPlusKeysRevoked(t *testing.T) {
 	if len(up.DeviceKeys) != 4 {
 		t.Errorf("device keys: %d, expected 4", len(up.DeviceKeys))
 	}
-	if len(up.RevokedKeys) != 0 {
-		t.Errorf("revoked keys: %d, expected 0", len(up.RevokedKeys))
+	if len(up.RevokedDeviceKeys) != 0 {
+		t.Errorf("revoked keys: %d, expected 0", len(up.RevokedDeviceKeys))
 	}
 
 	devices, _ := getActiveDevicesAndKeys(tc, fu)
@@ -69,7 +69,7 @@ func TestLoadUserPlusKeysRevoked(t *testing.T) {
 	if len(up2.DeviceKeys) != 2 {
 		t.Errorf("device keys: %d, expected 2", len(up2.DeviceKeys))
 	}
-	if len(up2.RevokedKeys) != 2 {
-		t.Errorf("revoked keys: %d, expected 2", len(up2.RevokedKeys))
+	if len(up2.RevokedDeviceKeys) != 2 {
+		t.Errorf("revoked keys: %d, expected 2", len(up2.RevokedDeviceKeys))
 	}
 }

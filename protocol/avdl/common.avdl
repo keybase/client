@@ -118,8 +118,8 @@ protocol Common {
       // not include PGP keys.
       array<PublicKey> deviceKeys;
 
-      // revokedKeys is a list of revoked device keys.
-      array<RevokedKey> revokedKeys;
+      // revokedDeviceKeys is a list of revoked device keys.
+      array<RevokedKey> revokedDeviceKeys;
 
       // number of pgp keys associated with this user
       int pgpKeyCount;

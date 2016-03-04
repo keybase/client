@@ -765,7 +765,7 @@ func (u *User) ExportToUserPlusKeys(idTime keybase1.Time) keybase1.UserPlusKeys 
 	ckf := u.GetComputedKeyFamily()
 	if ckf != nil {
 		ret.DeviceKeys, ret.PGPKeyCount = ckf.ExportDeviceKeys()
-		ret.RevokedKeys = ckf.ExportRevokedDeviceKeys()
+		ret.RevokedDeviceKeys = ckf.ExportRevokedDeviceKeys()
 	}
 
 	ret.Uvv = u.ExportToVersionVector(idTime)

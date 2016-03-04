@@ -1174,7 +1174,7 @@ export type UserPlusKeys = {
   uid: UID;
   username: string;
   deviceKeys: Array<PublicKey>;
-  revokedKeys: Array<RevokedKey>;
+  revokedDeviceKeys: Array<RevokedKey>;
   pgpKeyCount: int;
   uvv: UserVersionVector;
 }

@@ -22,8 +22,8 @@ func TestLoadUserPlusKeys(t *testing.T) {
 		if u.Username != "t_alice" {
 			t.Errorf("username: %s, expected t_alice", u.Username)
 		}
-		if len(u.RevokedKeys) > 0 {
-			t.Errorf("t_alice found with %d revoked keys, expected 0", len(u.RevokedKeys))
+		if len(u.RevokedDeviceKeys) > 0 {
+			t.Errorf("t_alice found with %d revoked keys, expected 0", len(u.RevokedDeviceKeys))
 		}
 	}
 
