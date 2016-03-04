@@ -181,7 +181,7 @@ func (api *BaseAPIEngine) PreparePost(url url.URL, arg APIArg, sendJSON bool) (*
 // The returned response, if non-nil, should have
 // DiscardAndCloseBody() called on it.
 func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes bool) (
-	resp *http.Response, jw *jsonw.Wrapper, err error) {
+	_ *http.Response, jw *jsonw.Wrapper, err error) {
 	if !arg.G().Env.GetTorMode().UseSession() && arg.NeedSession {
 		err = TorSessionRequiredError{}
 		return
@@ -215,21 +215,21 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	if err != nil {
 		return nil, nil, APINetError{err: err}
 	}
-	arg.G().Log.Debug(fmt.Sprintf("| Result is: %s", resp.Status))
+	arg.G().Log.Debug(fmt.Sprintf("| Result is: %s", internalResp.Status))
 
 	// Check for a code 200 or rather which codes were allowed in arg.HttpStatus
-	err = checkHTTPStatus(arg, resp)
+	err = checkHTTPStatus(arg, internalResp)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	err = api.consumeHeaders(resp)
+	err = api.consumeHeaders(internalResp)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	if wantJSONRes {
-		decoder := json.NewDecoder(resp.Body)
+		decoder := json.NewDecoder(internalResp.Body)
 		var obj interface{}
 		decoder.UseNumber()
 		err = decoder.Decode(&obj)
