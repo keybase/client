@@ -6,7 +6,7 @@ package client
 import (
 	"encoding/json"
 	"fmt"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"golang.org/x/net/context"
@@ -143,7 +143,7 @@ func (c *CmdStatus) load() (*fstatus, error) {
 		status.Service.Running = false
 	} else {
 		status.Service.Running = true
-		status.Service.Log = path.Join(extStatus.LogDir, libkb.ServiceLogFileName)
+		status.Service.Log = filepath.Join(extStatus.LogDir, libkb.ServiceLogFileName)
 	}
 
 	status.SessionStatus = c.sessionStatus(extStatus.Session)
@@ -164,8 +164,8 @@ func (c *CmdStatus) load() (*fstatus, error) {
 		status.Desktop.Version = desktop.Version
 	}
 
-	status.KBFS.Log = path.Join(extStatus.LogDir, libkb.KBFSLogFileName)
-	status.Desktop.Log = path.Join(extStatus.LogDir, libkb.DesktopLogFileName)
+	status.KBFS.Log = filepath.Join(extStatus.LogDir, libkb.KBFSLogFileName)
+	status.Desktop.Log = filepath.Join(extStatus.LogDir, libkb.DesktopLogFileName)
 
 	status.DefaultUsername = extStatus.DefaultUsername
 	status.ProvisionedUsernames = extStatus.ProvisionedUsernames
