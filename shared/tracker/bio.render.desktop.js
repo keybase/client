@@ -197,7 +197,7 @@ const styles2 = {
     alignItems: 'center',
     justifyContent: 'center',
     width: 320,
-    marginTop: -35
+    marginTop: -40
   },
   avatarOuter: {
     width: 75,

@@ -151,8 +151,8 @@ const styles2 = {
     alignItems: 'center',
     justifyContent: 'center',
     color: globalColorsDZ2.white,
-    marginLeft: 15,
-    marginRight: 15,
+    marginLeft: 30,
+    marginRight: 30,
     marginBottom: 32,
     fontSize: 14,
     textAlign: 'center'

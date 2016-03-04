@@ -7,7 +7,12 @@ import flags from '../util/feature-flags'
 import {normal, checking, revoked, error} from '../constants/tracker'
 import {metaUpgraded, metaUnreachable, metaPending, metaDeleted} from '../constants/tracker'
 
-const proofGithub = {name: 'githubuser', type: 'github', id: 'githubId', state: normal, humanUrl: 'github.com', profileUrl: 'http://github.com'}
+function proofGithubMaker (name) {
+  return {name: 'githubuser' + name, type: 'github', id: 'githubId' + name, state: normal, humanUrl: 'github.com', profileUrl: 'http://github.com'}
+}
+
+const proofGithub = proofGithubMaker('')
+
 const proofTwitter = {name: 'twitteruser', type: 'twitter', id: 'twitterId', state: normal, humanUrl: 'twitter.com', profileUrl: 'http://twitter.com'}
 const proofWeb = {name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', type: 'web', id: 'webId', state: normal, humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com'}
 const proofHN = {name: 'pg', type: 'hackernews', id: 'hnId', state: normal, humanUrl: 'news.ycombinator.com', profileUrl: 'http://news.ycombinator.com'}
@@ -123,6 +128,8 @@ const propsLessData = {
 const propsLoggedOut = {...propsDefault, loggedIn: false, reason: 'You accessed a public folder with gabrielh.'}
 
 const propsOneProof = {...propsDefault, proofs: [proofsDefault[0]]}
+const smallBio = {...propsDefault.userInfo, bio: 'bio'}
+const propsFiveProof = {...propsDefault, userInfo: smallBio, proofs: [0,1,2,3,4].map(proofGithubMaker)}
 
 export default class Render extends Component {
   render () {
@@ -141,6 +148,12 @@ export default class Render extends Component {
               <Tracker {...propsOneProof} />
             </div>
             <p>Only one proof</p>
+          </div>
+          <div>
+            <div style={styles.pretendTrackerWindow}>
+              <Tracker {...propsFiveProof} />
+            </div>
+            <p>5 proofs</p>
           </div>
           <div>
             <div style={styles.pretendTrackerWindow}>

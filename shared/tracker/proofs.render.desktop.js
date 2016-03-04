@@ -60,7 +60,7 @@ export class ProofsRender2 extends Component {
       case metaNew: color = globalColorsDZ2.blue; break
       case metaUpgraded: color = globalColorsDZ2.blue; break
       case metaUnreachable: color = globalColorsDZ2.red; break
-      case metaPending: color = globalColorsDZ2.orange; break
+      case metaPending: color = globalColorsDZ2.black40; break
       case metaDeleted: color = globalColorsDZ2.red; break
     }
     return color
@@ -114,6 +114,10 @@ export class ProofsRender2 extends Component {
     const onClickProfile = () => { this.onClickProfile(proof) }
     // TODO: State is deprecated, will refactor after nuking v1
     let isChecking = (proof.state === proofChecking)
+
+    const targetSpinnerSize = 20 // This is how big we actually want the spinner in px
+    const spinnerSize = ((targetSpinnerSize / 50) / 1.4) // material ui doesn't make this easy for you. We calculate the scale, then divide by 1.4 because they multiply by that
+
     return (
       <div style={styles.row} key={proof.id}>
         <Icon style={styles.service} type={this.iconNameForProof(proof)} title={proof.type} onClick={onClickProfile} />
@@ -133,7 +137,7 @@ export class ProofsRender2 extends Component {
           </div>
         </div>
         {isChecking &&
-          <CircularProgress style={styles.loader} mode='indeterminate' color={globalColorsDZ2.black20} size={0.2} />
+          <CircularProgress style={styles.loader} mode='indeterminate' color={globalColorsDZ2.black20} size={spinnerSize} />
         }
         {!isChecking && proofStatusIcon &&
           <Icon type={proofStatusIcon} style={styles.statusIcon} onClick={onClickProfile} />
@@ -158,7 +162,7 @@ const styles2 = {
   },
   row: {
     ...globalStyles.flexBoxRow,
-    paddingTop: 12,
+    paddingTop: 8,
     paddingLeft: 30,
     paddingRight: 30,
     alignItems: 'flex-start',
@@ -199,10 +203,10 @@ const styles2 = {
   },
   meta: {
     color: globalColorsDZ2.white,
+    borderRadius: 1,
     fontSize: 10,
     height: 13,
     lineHeight: '13px',
-    marginTop: 2,
     paddingLeft: 4,
     paddingRight: 4,
     alignSelf: 'flex-start',
