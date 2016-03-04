@@ -445,6 +445,11 @@ export type KeyInfo = {
   desc: string;
 }
 
+export type KeybaseTime = {
+  unix: Time;
+  chain: int;
+}
+
 export type LinkCheckResult = {
   proofId: int;
   proofResult: ProofResult;
@@ -743,17 +748,8 @@ export type RemoteProof = {
 }
 
 export type RevokedKey = {
-  KID: KID;
-  isSibkey: boolean;
-  isEldest: boolean;
-  parentID: string;
-  deviceID: DeviceID;
-  deviceDescription: string;
-  deviceType: string;
-  cTime: Time;
-  eTime: Time;
-  revokedAt: Time;
-  revokedChain: int;
+  key: PublicKey;
+  time: KeybaseTime;
 }
 
 export type SaltpackDecryptOptions = {
@@ -3175,8 +3171,7 @@ export type user_loadUserPlusKeys_result = UserPlusKeys
 export type user_loadUserPlusKeys_rpc = {
   method: 'user.loadUserPlusKeys',
   param: {
-    uid: UID,
-    cacheOK: boolean
+    uid: UID
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any, response: user_loadUserPlusKeys_result) => void)
@@ -5215,8 +5210,7 @@ export type incomingCallMapType = {
   'keybase.1.user.loadUserPlusKeys'?: (
     params: {
       sessionID: int,
-      uid: UID,
-      cacheOK: boolean
+      uid: UID
     },
     response: {
       error: (err: string) => void,

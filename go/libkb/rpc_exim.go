@@ -653,55 +653,47 @@ func (bundle *PGPKeyBundle) Export() keybase1.PublicKey {
 	}
 }
 
+func (ckf ComputedKeyFamily) exportPublicKey(key GenericKey) (pk keybase1.PublicKey) {
+	pk.KID = key.GetKID()
+	if pgpBundle, isPGP := key.(*PGPKeyBundle); isPGP {
+		pk.PGPFingerprint = pgpBundle.GetFingerprint().String()
+		ids := make([]keybase1.PGPIdentity, len(pgpBundle.Identities))
+		i := 0
+		for _, identity := range pgpBundle.Identities {
+			ids[i] = ExportPGPIdentity(identity)
+			i++
+		}
+		pk.PGPIdentities = ids
+	}
+	pk.DeviceID = ckf.cki.KIDToDeviceID[pk.KID]
+	device := ckf.cki.Devices[pk.DeviceID]
+	if device != nil {
+		if device.Description != nil {
+			pk.DeviceDescription = *device.Description
+		}
+		pk.DeviceType = device.Type
+	}
+	cki, ok := ckf.cki.Infos[pk.KID]
+	if ok && cki != nil {
+		if cki.Parent.IsValid() {
+			pk.ParentID = cki.Parent.String()
+		}
+		pk.IsSibkey = cki.Sibkey
+		pk.IsEldest = cki.Eldest
+		pk.CTime = keybase1.TimeFromSeconds(cki.CTime)
+		pk.ETime = keybase1.TimeFromSeconds(cki.ETime)
+	}
+	return pk
+}
+
 // Export is used by IDRes.  It includes PGP keys.
 func (ckf ComputedKeyFamily) Export() []keybase1.PublicKey {
-	exportedKeys := []keybase1.PublicKey{}
-	addKey := func(key GenericKey) {
-		kid := key.GetKID()
-		fingerprintStr := ""
-		identities := []keybase1.PGPIdentity{}
-		if pgpBundle, isPGP := key.(*PGPKeyBundle); isPGP {
-			fingerprintStr = pgpBundle.GetFingerprint().String()
-			for _, identity := range pgpBundle.Identities {
-				identities = append(identities, ExportPGPIdentity(identity))
-			}
-		}
-		cki := ckf.cki.Infos[kid]
-		deviceID := ckf.cki.KIDToDeviceID[kid]
-		device := ckf.cki.Devices[deviceID]
-		deviceDescription := ""
-		deviceType := ""
-		if device != nil {
-			if device.Description != nil {
-				deviceDescription = *device.Description
-			}
-			if device.Type != "" {
-				deviceType = device.Type
-			}
-		}
-		parentID := ""
-		if cki.Parent.IsValid() {
-			parentID = cki.Parent.String()
-		}
-		exportedKeys = append(exportedKeys, keybase1.PublicKey{
-			KID:               kid,
-			PGPFingerprint:    fingerprintStr,
-			PGPIdentities:     identities,
-			IsSibkey:          cki.Sibkey,
-			IsEldest:          cki.Eldest,
-			ParentID:          parentID,
-			DeviceID:          deviceID,
-			DeviceType:        deviceType,
-			DeviceDescription: deviceDescription,
-			CTime:             keybase1.TimeFromSeconds(cki.CTime),
-			ETime:             keybase1.TimeFromSeconds(cki.ETime),
-		})
+	var exportedKeys []keybase1.PublicKey
+	for _, key := range ckf.GetAllActiveSibkeys() {
+		exportedKeys = append(exportedKeys, ckf.exportPublicKey(key))
 	}
-	for _, sibkey := range ckf.GetAllActiveSibkeys() {
-		addKey(sibkey)
-	}
-	for _, subkey := range ckf.GetAllActiveSubkeys() {
-		addKey(subkey)
+	for _, key := range ckf.GetAllActiveSubkeys() {
+		exportedKeys = append(exportedKeys, ckf.exportPublicKey(key))
 	}
 	sort.Sort(PublicKeyList(exportedKeys))
 	return exportedKeys
@@ -711,89 +703,38 @@ func (ckf ComputedKeyFamily) Export() []keybase1.PublicKey {
 // only contains device keys.  It also returns the number of PGP
 // keys in the key family.
 func (ckf ComputedKeyFamily) ExportDeviceKeys() (exportedKeys []keybase1.PublicKey, pgpKeyCount int) {
-	addKey := func(key GenericKey) {
+	for _, key := range ckf.GetAllActiveSibkeys() {
 		if _, isPGP := key.(*PGPKeyBundle); isPGP {
 			pgpKeyCount++
-			return
+			continue
 		}
-		kid := key.GetKID()
-		cki := ckf.cki.Infos[kid]
-		deviceID := ckf.cki.KIDToDeviceID[kid]
-		device := ckf.cki.Devices[deviceID]
-		deviceDescription := ""
-		deviceType := ""
-		if device != nil {
-			if device.Description != nil {
-				deviceDescription = *device.Description
-			}
-			if device.Type != "" {
-				deviceType = device.Type
-			}
-		}
-		parentID := ""
-		if cki.Parent.IsValid() {
-			parentID = cki.Parent.String()
-		}
-		exportedKeys = append(exportedKeys, keybase1.PublicKey{
-			KID:               kid,
-			IsSibkey:          cki.Sibkey,
-			IsEldest:          cki.Eldest,
-			ParentID:          parentID,
-			DeviceID:          deviceID,
-			DeviceType:        deviceType,
-			DeviceDescription: deviceDescription,
-			CTime:             keybase1.TimeFromSeconds(cki.CTime),
-			ETime:             keybase1.TimeFromSeconds(cki.ETime),
-		})
+		exportedKeys = append(exportedKeys, ckf.exportPublicKey(key))
 	}
-	for _, sibkey := range ckf.GetAllActiveSibkeys() {
-		addKey(sibkey)
-	}
-	for _, subkey := range ckf.GetAllActiveSubkeys() {
-		addKey(subkey)
+	for _, key := range ckf.GetAllActiveSubkeys() {
+		if _, isPGP := key.(*PGPKeyBundle); isPGP {
+			pgpKeyCount++
+			continue
+		}
+		exportedKeys = append(exportedKeys, ckf.exportPublicKey(key))
 	}
 	sort.Sort(PublicKeyList(exportedKeys))
 	return exportedKeys, pgpKeyCount
 }
 
-func (ckf ComputedKeyFamily) ExportRevokedKeys() []keybase1.RevokedKey {
+func (ckf ComputedKeyFamily) ExportRevokedDeviceKeys() []keybase1.RevokedKey {
 	var ex []keybase1.RevokedKey
-	for _, rkey := range ckf.GetRevokedKeys() {
-		if _, isPGP := rkey.Key.(*PGPKeyBundle); isPGP {
+	for _, key := range ckf.GetRevokedKeys() {
+		if _, isPGP := key.Key.(*PGPKeyBundle); isPGP {
 			continue
 		}
-
-		kid := rkey.Key.GetKID()
-		cki := ckf.cki.Infos[kid]
-		deviceID := ckf.cki.KIDToDeviceID[kid]
-		device := ckf.cki.Devices[deviceID]
-		deviceDescription := ""
-		deviceType := ""
-		if device != nil {
-			if device.Description != nil {
-				deviceDescription = *device.Description
-			}
-			if device.Type != "" {
-				deviceType = device.Type
-			}
+		rkey := keybase1.RevokedKey{
+			Key: ckf.exportPublicKey(key.Key),
+			Time: keybase1.KeybaseTime{
+				Unix:  keybase1.TimeFromSeconds(key.RevokedAt.Unix),
+				Chain: key.RevokedAt.Chain,
+			},
 		}
-		parentID := ""
-		if cki.Parent.IsValid() {
-			parentID = cki.Parent.String()
-		}
-		ex = append(ex, keybase1.RevokedKey{
-			KID:               kid,
-			IsSibkey:          cki.Sibkey,
-			IsEldest:          cki.Eldest,
-			ParentID:          parentID,
-			DeviceID:          deviceID,
-			DeviceType:        deviceType,
-			DeviceDescription: deviceDescription,
-			CTime:             keybase1.TimeFromSeconds(cki.CTime),
-			ETime:             keybase1.TimeFromSeconds(cki.ETime),
-			RevokedAt:         keybase1.TimeFromSeconds(rkey.RevokedAt.Unix),
-			RevokedChain:      rkey.RevokedAt.Chain,
-		})
+		ex = append(ex, rkey)
 	}
 
 	return ex
@@ -824,7 +765,7 @@ func (u *User) ExportToUserPlusKeys(idTime keybase1.Time) keybase1.UserPlusKeys 
 	ckf := u.GetComputedKeyFamily()
 	if ckf != nil {
 		ret.DeviceKeys, ret.PGPKeyCount = ckf.ExportDeviceKeys()
-		ret.RevokedKeys = ckf.ExportRevokedKeys()
+		ret.RevokedKeys = ckf.ExportRevokedDeviceKeys()
 	}
 
 	ret.Uvv = u.ExportToVersionVector(idTime)

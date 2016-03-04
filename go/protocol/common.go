@@ -49,18 +49,14 @@ type PublicKey struct {
 	ETime             Time          `codec:"eTime" json:"eTime"`
 }
 
+type KeybaseTime struct {
+	Unix  Time `codec:"unix" json:"unix"`
+	Chain int  `codec:"chain" json:"chain"`
+}
+
 type RevokedKey struct {
-	KID               KID      `codec:"KID" json:"KID"`
-	IsSibkey          bool     `codec:"isSibkey" json:"isSibkey"`
-	IsEldest          bool     `codec:"isEldest" json:"isEldest"`
-	ParentID          string   `codec:"parentID" json:"parentID"`
-	DeviceID          DeviceID `codec:"deviceID" json:"deviceID"`
-	DeviceDescription string   `codec:"deviceDescription" json:"deviceDescription"`
-	DeviceType        string   `codec:"deviceType" json:"deviceType"`
-	CTime             Time     `codec:"cTime" json:"cTime"`
-	ETime             Time     `codec:"eTime" json:"eTime"`
-	RevokedAt         Time     `codec:"revokedAt" json:"revokedAt"`
-	RevokedChain      int      `codec:"revokedChain" json:"revokedChain"`
+	Key  PublicKey   `codec:"key" json:"key"`
+	Time KeybaseTime `codec:"time" json:"time"`
 }
 
 type User struct {

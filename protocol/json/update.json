@@ -158,51 +158,29 @@
     },
     {
       "type": "record",
-      "name": "RevokedKey",
+      "name": "KeybaseTime",
       "fields": [
         {
-          "type": "KID",
-          "name": "KID"
-        },
-        {
-          "type": "boolean",
-          "name": "isSibkey"
-        },
-        {
-          "type": "boolean",
-          "name": "isEldest"
-        },
-        {
-          "type": "string",
-          "name": "parentID"
-        },
-        {
-          "type": "DeviceID",
-          "name": "deviceID"
-        },
-        {
-          "type": "string",
-          "name": "deviceDescription"
-        },
-        {
-          "type": "string",
-          "name": "deviceType"
-        },
-        {
           "type": "Time",
-          "name": "cTime"
-        },
-        {
-          "type": "Time",
-          "name": "eTime"
-        },
-        {
-          "type": "Time",
-          "name": "revokedAt"
+          "name": "unix"
         },
         {
           "type": "int",
-          "name": "revokedChain"
+          "name": "chain"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RevokedKey",
+      "fields": [
+        {
+          "type": "PublicKey",
+          "name": "key"
+        },
+        {
+          "type": "KeybaseTime",
+          "name": "time"
         }
       ]
     },

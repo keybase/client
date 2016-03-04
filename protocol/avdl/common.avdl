@@ -54,18 +54,14 @@ protocol Common {
     Time eTime;
   }
 
+  record KeybaseTime {
+    Time unix;
+    int chain;
+  }
+
   record RevokedKey {
-    KID KID;
-    boolean isSibkey;
-    boolean isEldest;
-    string parentID;
-    DeviceID deviceID;
-    string deviceDescription;
-    string deviceType;
-    Time cTime;
-    Time eTime;
-    Time revokedAt;
-    int revokedChain;
+    PublicKey key;
+    KeybaseTime time;
   }
 
   record User {
