@@ -1,4 +1,5 @@
 // constants
+
 export const codePageDeviceRoleExistingPhone = 'codePageDeviceRoleExistingPhone'
 export const codePageDeviceRoleNewPhone = 'codePageDeviceRoleNewPhone'
 export const codePageDeviceRoleExistingComputer = 'codePageDeviceRoleExistingComputer'
@@ -36,3 +37,5 @@ export const actionSetDeviceName = 'login:actionSetDeviceName'
 export const actionRegisteredWithUserPass = 'login:actionRegisteredWithUserPass'
 export const actionRegisteredWithPaperKey = 'login:actionRegisteredWithPaperKey'
 export const actionRegisteredWithExistingDevice = 'login:actionRegisteredWithExistingDevice'
+
+export type deviceRole = 'codePageDeviceRoleExistingPhone' | 'codePageDeviceRoleNewPhone' | 'codePageDeviceRoleExistingComputer' | 'codePageDeviceRoleNewComputer'

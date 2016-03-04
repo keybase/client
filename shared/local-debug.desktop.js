@@ -71,3 +71,20 @@ export function initTabbedRouterState (state) {
     }
   }
 }
+
+let cancel = null
+export function setupCancelLogin (cancelFunc) {
+  if (!__DEV__) {
+    return
+  }
+
+  cancel = cancelFunc
+}
+
+export function debugCancelLogin () {
+  if (!__DEV__) {
+    return
+  }
+
+  cancel && cancel()
+}

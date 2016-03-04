@@ -4,6 +4,10 @@ export type int = number
 export type long = number
 export type double = number
 export type bytes = any
+export type RPCError = {
+  code: number,
+  desc: string
+}
 
 export type Asset = {
   name: string;
@@ -3395,7 +3399,7 @@ export type incomingCallMapType = {
       force: boolean
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3405,14 +3409,14 @@ export type incomingCallMapType = {
       guiArg: GUIEntryArg
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: account_passphrasePrompt_result) => void
     }
   ) => void,
   'keybase.1.block.getSessionChallenge'?: (
     params: {},
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: block_getSessionChallenge_result) => void
     }
   ) => void,
@@ -3421,7 +3425,7 @@ export type incomingCallMapType = {
       signature: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3433,7 +3437,7 @@ export type incomingCallMapType = {
       buf: bytes
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3443,7 +3447,7 @@ export type incomingCallMapType = {
       folder: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: block_getBlock_result) => void
     }
   ) => void,
@@ -3453,7 +3457,7 @@ export type incomingCallMapType = {
       ref: BlockReference
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3463,7 +3467,7 @@ export type incomingCallMapType = {
       ref: BlockReference
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3473,14 +3477,14 @@ export type incomingCallMapType = {
       refs: Array<BlockReference>
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: block_archiveReference_result) => void
     }
   ) => void,
   'keybase.1.block.getUserQuotaInfo'?: (
     params: {},
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: block_getUserQuotaInfo_result) => void
     }
   ) => void,
@@ -3491,7 +3495,7 @@ export type incomingCallMapType = {
       force: boolean
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3500,7 +3504,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: config_getCurrentStatus_result) => void
     }
   ) => void,
@@ -3509,7 +3513,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: config_getExtendedStatus_result) => void
     }
   ) => void,
@@ -3518,7 +3522,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: config_getConfig_result) => void
     }
   ) => void,
@@ -3530,7 +3534,7 @@ export type incomingCallMapType = {
       value: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3540,7 +3544,7 @@ export type incomingCallMapType = {
       path: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3549,7 +3553,7 @@ export type incomingCallMapType = {
       details: ClientDetails
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3559,7 +3563,7 @@ export type incomingCallMapType = {
       value: ConfigValue
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3568,7 +3572,7 @@ export type incomingCallMapType = {
       path: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3577,7 +3581,7 @@ export type incomingCallMapType = {
       path: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: config_getValue_result) => void
     }
   ) => void,
@@ -3588,7 +3592,7 @@ export type incomingCallMapType = {
       reason: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: crypto_signED25519_result) => void
     }
   ) => void,
@@ -3599,7 +3603,7 @@ export type incomingCallMapType = {
       reason: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: crypto_signToString_result) => void
     }
   ) => void,
@@ -3612,7 +3616,7 @@ export type incomingCallMapType = {
       reason: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: crypto_unboxBytes32_result) => void
     }
   ) => void,
@@ -3624,7 +3628,7 @@ export type incomingCallMapType = {
       promptPaper: boolean
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: crypto_unboxBytes32Any_result) => void
     }
   ) => void,
@@ -3634,7 +3638,7 @@ export type incomingCallMapType = {
       exitCode: ExitCode
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3643,7 +3647,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3652,7 +3656,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3661,7 +3665,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3671,7 +3675,7 @@ export type incomingCallMapType = {
       val: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: debugging_firstStep_result) => void
     }
   ) => void,
@@ -3681,7 +3685,7 @@ export type incomingCallMapType = {
       val: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: debugging_secondStep_result) => void
     }
   ) => void,
@@ -3691,28 +3695,28 @@ export type incomingCallMapType = {
       val: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: debugging_increment_result) => void
     }
   ) => void,
   'keybase.1.delegateUiCtl.registerIdentifyUI'?: (
     params: {},
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
   'keybase.1.delegateUiCtl.registerSecretUI'?: (
     params: {},
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
   'keybase.1.delegateUiCtl.registerUpdateUI'?: (
     params: {},
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3721,7 +3725,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: device_deviceList_result) => void
     }
   ) => void,
@@ -3730,7 +3734,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3740,7 +3744,7 @@ export type incomingCallMapType = {
       folder: Folder
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3750,7 +3754,7 @@ export type incomingCallMapType = {
       folder: Folder
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3759,7 +3763,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: favorite_favoriteList_result) => void
     }
   ) => void,
@@ -3768,7 +3772,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: gpgUi_wantToAddGPGKey_result) => void
     }
   ) => void,
@@ -3777,7 +3781,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: gpgUi_confirmDuplicateKeyChosen_result) => void
     }
   ) => void,
@@ -3787,7 +3791,7 @@ export type incomingCallMapType = {
       keys: Array<GPGKey>
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: gpgUi_selectKeyAndPushOption_result) => void
     }
   ) => void,
@@ -3797,7 +3801,7 @@ export type incomingCallMapType = {
       keys: Array<GPGKey>
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: gpgUi_selectKey_result) => void
     }
   ) => void,
@@ -3807,7 +3811,7 @@ export type incomingCallMapType = {
       fingerprint: bytes
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: gpgUi_sign_result) => void
     }
   ) => void,
@@ -3816,7 +3820,7 @@ export type incomingCallMapType = {
       assertion: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: identify_Resolve_result) => void
     }
   ) => void,
@@ -3825,7 +3829,7 @@ export type incomingCallMapType = {
       assertion: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: identify_Resolve2_result) => void
     }
   ) => void,
@@ -3840,7 +3844,7 @@ export type incomingCallMapType = {
       source: ClientType
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: identify_identify_result) => void
     }
   ) => void,
@@ -3857,14 +3861,14 @@ export type incomingCallMapType = {
       needProofSet: boolean
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: identify_identify2_result) => void
     }
   ) => void,
   'keybase.1.identifyUi.delegateIdentifyUI'?: (
     params: {},
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: identifyUi_delegateIdentifyUI_result) => void
     }
   ) => void,
@@ -3875,7 +3879,7 @@ export type incomingCallMapType = {
       reason: IdentifyReason
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3885,7 +3889,7 @@ export type incomingCallMapType = {
       key: IdentifyKey
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3895,7 +3899,7 @@ export type incomingCallMapType = {
       track: (null | TrackSummary)
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3906,7 +3910,7 @@ export type incomingCallMapType = {
       user: User
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3916,7 +3920,7 @@ export type incomingCallMapType = {
       stmt: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3927,7 +3931,7 @@ export type incomingCallMapType = {
       lcr: LinkCheckResult
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3938,7 +3942,7 @@ export type incomingCallMapType = {
       lcr: LinkCheckResult
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3948,7 +3952,7 @@ export type incomingCallMapType = {
       c: Cryptocurrency
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3958,7 +3962,7 @@ export type incomingCallMapType = {
       trackToken: TrackToken
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3968,7 +3972,7 @@ export type incomingCallMapType = {
       card: UserCard
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3978,7 +3982,7 @@ export type incomingCallMapType = {
       outcome: IdentifyOutcome
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: identifyUi_confirm_result) => void
     }
   ) => void,
@@ -3987,7 +3991,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -3996,7 +4000,7 @@ export type incomingCallMapType = {
       event: FSNotification
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4009,7 +4013,7 @@ export type incomingCallMapType = {
       sigBody: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: Kex2Provisionee_hello_result) => void
     }
   ) => void,
@@ -4018,7 +4022,7 @@ export type incomingCallMapType = {
       sig: bytes
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4034,7 +4038,7 @@ export type incomingCallMapType = {
       level: LogLevel
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4045,7 +4049,7 @@ export type incomingCallMapType = {
       text: Text
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4054,7 +4058,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: login_getConfiguredAccounts_result) => void
     }
   ) => void,
@@ -4066,7 +4070,7 @@ export type incomingCallMapType = {
       clientType: ClientType
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4076,7 +4080,7 @@ export type incomingCallMapType = {
       username: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4085,7 +4089,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4096,7 +4100,7 @@ export type incomingCallMapType = {
       doRevoke: boolean
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4105,7 +4109,7 @@ export type incomingCallMapType = {
       email: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4114,7 +4118,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4123,7 +4127,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4133,7 +4137,7 @@ export type incomingCallMapType = {
       passphrase: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4142,7 +4146,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: loginUi_getEmailOrUsername_result) => void
     }
   ) => void,
@@ -4153,7 +4157,7 @@ export type incomingCallMapType = {
       index: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: loginUi_promptRevokePaperKeys_result) => void
     }
   ) => void,
@@ -4163,7 +4167,7 @@ export type incomingCallMapType = {
       phrase: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4173,14 +4177,14 @@ export type incomingCallMapType = {
       phrase: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
   'keybase.1.metadata.getChallenge'?: (
     params: {},
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: metadata_getChallenge_result) => void
     }
   ) => void,
@@ -4189,7 +4193,7 @@ export type incomingCallMapType = {
       signature: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: metadata_authenticate_result) => void
     }
   ) => void,
@@ -4199,7 +4203,7 @@ export type incomingCallMapType = {
       logTags: {string: string}
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4214,7 +4218,7 @@ export type incomingCallMapType = {
       logTags: {string: string}
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: metadata_getMetadata_result) => void
     }
   ) => void,
@@ -4225,7 +4229,7 @@ export type incomingCallMapType = {
       logTags: {string: string}
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4236,7 +4240,7 @@ export type incomingCallMapType = {
       logTags: {string: string}
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4246,7 +4250,7 @@ export type incomingCallMapType = {
       logTags: {string: string}
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4257,7 +4261,7 @@ export type incomingCallMapType = {
       logTags: {string: string}
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: metadata_getKey_result) => void
     }
   ) => void,
@@ -4269,7 +4273,7 @@ export type incomingCallMapType = {
       logTags: {string: string}
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4278,7 +4282,7 @@ export type incomingCallMapType = {
       folderID: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: metadata_truncateLock_result) => void
     }
   ) => void,
@@ -4287,7 +4291,7 @@ export type incomingCallMapType = {
       folderID: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: metadata_truncateUnlock_result) => void
     }
   ) => void,
@@ -4298,7 +4302,7 @@ export type incomingCallMapType = {
       challenge: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: metadata_getFolderHandle_result) => void
     }
   ) => void,
@@ -4307,14 +4311,14 @@ export type incomingCallMapType = {
       deviceKID: KID
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
   'keybase.1.metadata.ping'?: (
     params: {},
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4324,7 +4328,7 @@ export type incomingCallMapType = {
       seqNo: long
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: metadata_getMerkleRoot_result) => void
     }
   ) => void,
@@ -4333,7 +4337,7 @@ export type incomingCallMapType = {
       treeID: MerkleTreeID
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: metadata_getMerkleRootLatest_result) => void
     }
   ) => void,
@@ -4343,7 +4347,7 @@ export type incomingCallMapType = {
       when: Time
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: metadata_getMerkleRootSince_result) => void
     }
   ) => void,
@@ -4352,7 +4356,7 @@ export type incomingCallMapType = {
       hash: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: metadata_getMerkleNode_result) => void
     }
   ) => void,
@@ -4362,7 +4366,7 @@ export type incomingCallMapType = {
       revision: long
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4372,7 +4376,7 @@ export type incomingCallMapType = {
       revision: long
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4381,7 +4385,7 @@ export type incomingCallMapType = {
       channels: NotificationChannels
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4402,7 +4406,7 @@ export type incomingCallMapType = {
       username: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4429,7 +4433,7 @@ export type incomingCallMapType = {
       opts: PGPSignOptions
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4439,7 +4443,7 @@ export type incomingCallMapType = {
       userAsserts: Array<string>
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4451,7 +4455,7 @@ export type incomingCallMapType = {
       opts: PGPEncryptOptions
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4463,7 +4467,7 @@ export type incomingCallMapType = {
       opts: PGPDecryptOptions
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: pgp_pgpDecrypt_result) => void
     }
   ) => void,
@@ -4474,7 +4478,7 @@ export type incomingCallMapType = {
       opts: PGPVerifyOptions
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: pgp_pgpVerify_result) => void
     }
   ) => void,
@@ -4485,7 +4489,7 @@ export type incomingCallMapType = {
       pushSecret: boolean
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4495,7 +4499,7 @@ export type incomingCallMapType = {
       options: PGPQuery
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: pgp_pgpExport_result) => void
     }
   ) => void,
@@ -4505,7 +4509,7 @@ export type incomingCallMapType = {
       options: PGPQuery
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: pgp_pgpExportByFingerprint_result) => void
     }
   ) => void,
@@ -4515,7 +4519,7 @@ export type incomingCallMapType = {
       options: PGPQuery
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: pgp_pgpExportByKID_result) => void
     }
   ) => void,
@@ -4530,7 +4534,7 @@ export type incomingCallMapType = {
       pushSecret: boolean
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4539,7 +4543,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4552,7 +4556,7 @@ export type incomingCallMapType = {
       onlyImport: boolean
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4563,7 +4567,7 @@ export type incomingCallMapType = {
       fingerprints: Array<string>
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4575,7 +4579,7 @@ export type incomingCallMapType = {
       signedAt: Time
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4588,7 +4592,7 @@ export type incomingCallMapType = {
       promptPosted: boolean
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: prove_startProof_result) => void
     }
   ) => void,
@@ -4598,7 +4602,7 @@ export type incomingCallMapType = {
       sigID: SigID
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: prove_checkProof_result) => void
     }
   ) => void,
@@ -4609,7 +4613,7 @@ export type incomingCallMapType = {
       typ: PromptOverwriteType
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: proveUi_promptOverwrite_result) => void
     }
   ) => void,
@@ -4620,7 +4624,7 @@ export type incomingCallMapType = {
       prevError: (null | Status)
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: proveUi_promptUsername_result) => void
     }
   ) => void,
@@ -4630,7 +4634,7 @@ export type incomingCallMapType = {
       text: Text
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4640,7 +4644,7 @@ export type incomingCallMapType = {
       text: Text
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: proveUi_preProofWarning_result) => void
     }
   ) => void,
@@ -4651,7 +4655,7 @@ export type incomingCallMapType = {
       proof: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4662,7 +4666,7 @@ export type incomingCallMapType = {
       attempt: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: proveUi_okToCheck_result) => void
     }
   ) => void,
@@ -4672,7 +4676,7 @@ export type incomingCallMapType = {
       text: Text
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4682,7 +4686,7 @@ export type incomingCallMapType = {
       gpgOption: boolean
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: provisionUi_chooseProvisioningMethod_result) => void
     }
   ) => void,
@@ -4692,7 +4696,7 @@ export type incomingCallMapType = {
       keys: Array<GPGKey>
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: provisionUi_chooseGPGMethod_result) => void
     }
   ) => void,
@@ -4703,7 +4707,7 @@ export type incomingCallMapType = {
       importError: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: provisionUi_switchToGPGSignOK_result) => void
     }
   ) => void,
@@ -4713,7 +4717,7 @@ export type incomingCallMapType = {
       devices: Array<Device>
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: provisionUi_chooseDevice_result) => void
     }
   ) => void,
@@ -4723,7 +4727,7 @@ export type incomingCallMapType = {
       kind: ChooseType
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: provisionUi_chooseDeviceType_result) => void
     }
   ) => void,
@@ -4735,7 +4739,7 @@ export type incomingCallMapType = {
       otherDeviceType: DeviceType
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: provisionUi_DisplayAndPromptSecret_result) => void
     }
   ) => void,
@@ -4744,7 +4748,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4755,7 +4759,7 @@ export type incomingCallMapType = {
       errorMessage: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: provisionUi_PromptNewDeviceName_result) => void
     }
   ) => void,
@@ -4766,7 +4770,7 @@ export type incomingCallMapType = {
       deviceName: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4777,7 +4781,7 @@ export type incomingCallMapType = {
       deviceType: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4786,7 +4790,7 @@ export type incomingCallMapType = {
       session: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: quota_verifySession_result) => void
     }
   ) => void,
@@ -4796,7 +4800,7 @@ export type incomingCallMapType = {
       keyID: KID
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4807,7 +4811,7 @@ export type incomingCallMapType = {
       force: boolean
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4817,7 +4821,7 @@ export type incomingCallMapType = {
       sigIDQueries: Array<string>
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4829,7 +4833,7 @@ export type incomingCallMapType = {
       opts: SaltpackEncryptOptions
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4841,7 +4845,7 @@ export type incomingCallMapType = {
       opts: SaltpackDecryptOptions
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: saltpack_saltpackDecrypt_result) => void
     }
   ) => void,
@@ -4853,7 +4857,7 @@ export type incomingCallMapType = {
       opts: SaltpackSignOptions
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4865,7 +4869,7 @@ export type incomingCallMapType = {
       opts: SaltpackVerifyOptions
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4875,7 +4879,7 @@ export type incomingCallMapType = {
       sender: SaltpackSender
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4886,7 +4890,7 @@ export type incomingCallMapType = {
       sender: SaltpackSender
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4897,7 +4901,7 @@ export type incomingCallMapType = {
       terminal: (null | SecretEntryArg)
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: secretUi_getPassphrase_result) => void
     }
   ) => void,
@@ -4906,7 +4910,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: SecretKeys_getSecretKeys_result) => void
     }
   ) => void,
@@ -4915,7 +4919,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: session_currentSession_result) => void
     }
   ) => void,
@@ -4925,7 +4929,7 @@ export type incomingCallMapType = {
       username: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4941,7 +4945,7 @@ export type incomingCallMapType = {
       skipMail: boolean
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: signup_signup_result) => void
     }
   ) => void,
@@ -4953,7 +4957,7 @@ export type incomingCallMapType = {
       notes: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4963,7 +4967,7 @@ export type incomingCallMapType = {
       invitationCode: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -4973,7 +4977,7 @@ export type incomingCallMapType = {
       arg: SigListArgs
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: sigs_sigList_result) => void
     }
   ) => void,
@@ -4983,7 +4987,7 @@ export type incomingCallMapType = {
       arg: SigListArgs
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: sigs_sigListJSON_result) => void
     }
   ) => void,
@@ -4993,7 +4997,7 @@ export type incomingCallMapType = {
       s: Stream
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -5004,7 +5008,7 @@ export type incomingCallMapType = {
       sz: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: streamUi_read_result) => void
     }
   ) => void,
@@ -5015,7 +5019,7 @@ export type incomingCallMapType = {
       buf: bytes
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: streamUi_write_result) => void
     }
   ) => void,
@@ -5025,7 +5029,7 @@ export type incomingCallMapType = {
       name: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: test_test_result) => void
     }
   ) => void,
@@ -5035,7 +5039,7 @@ export type incomingCallMapType = {
       name: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: test_testCallback_result) => void
     }
   ) => void,
@@ -5044,7 +5048,7 @@ export type incomingCallMapType = {
       message: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -5056,7 +5060,7 @@ export type incomingCallMapType = {
       forceRemoteCheck: boolean
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -5067,7 +5071,7 @@ export type incomingCallMapType = {
       options: TrackOptions
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -5077,7 +5081,7 @@ export type incomingCallMapType = {
       username: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -5086,7 +5090,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -5096,7 +5100,7 @@ export type incomingCallMapType = {
       username: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -5107,7 +5111,7 @@ export type incomingCallMapType = {
       promptDefault: PromptDefault
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: ui_promptYesNo_result) => void
     }
   ) => void,
@@ -5116,7 +5120,7 @@ export type incomingCallMapType = {
       options: UpdateOptions
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: update_update_result) => void
     }
   ) => void,
@@ -5125,7 +5129,7 @@ export type incomingCallMapType = {
       force: boolean
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: () => void
     }
   ) => void,
@@ -5136,7 +5140,7 @@ export type incomingCallMapType = {
       options: UpdatePromptOptions
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: updateUi_updatePrompt_result) => void
     }
   ) => void,
@@ -5147,14 +5151,14 @@ export type incomingCallMapType = {
       processes: Array<Process>
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: updateUi_updateAppInUse_result) => void
     }
   ) => void,
   'keybase.1.updateUi.updateQuit'?: (
     params: {},
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: updateUi_updateQuit_result) => void
     }
   ) => void,
@@ -5164,7 +5168,7 @@ export type incomingCallMapType = {
       uid: UID
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: user_listTrackers_result) => void
     }
   ) => void,
@@ -5174,7 +5178,7 @@ export type incomingCallMapType = {
       username: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: user_listTrackersByName_result) => void
     }
   ) => void,
@@ -5183,7 +5187,7 @@ export type incomingCallMapType = {
       sessionID: int
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: user_listTrackersSelf_result) => void
     }
   ) => void,
@@ -5193,7 +5197,7 @@ export type incomingCallMapType = {
       uids: Array<UID>
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: user_loadUncheckedUserSummaries_result) => void
     }
   ) => void,
@@ -5203,7 +5207,7 @@ export type incomingCallMapType = {
       uid: UID
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: user_loadUser_result) => void
     }
   ) => void,
@@ -5213,7 +5217,7 @@ export type incomingCallMapType = {
       uid: UID
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: user_loadUserPlusKeys_result) => void
     }
   ) => void,
@@ -5223,7 +5227,7 @@ export type incomingCallMapType = {
       uid: UID
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: user_loadPublicKeys_result) => void
     }
   ) => void,
@@ -5233,7 +5237,7 @@ export type incomingCallMapType = {
       filter: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: user_listTracking_result) => void
     }
   ) => void,
@@ -5244,7 +5248,7 @@ export type incomingCallMapType = {
       verbose: boolean
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: user_listTrackingJSON_result) => void
     }
   ) => void,
@@ -5254,7 +5258,7 @@ export type incomingCallMapType = {
       query: string
     },
     response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (result: user_search_result) => void
     }
   ) => void

@@ -27,6 +27,7 @@ import merge from 'lodash/merge'
 ipcLogsRenderer()
 
 if (module.hot) {
+  window.CANCELLOGIN && window.CANCELLOGIN()
   module.hot.accept()
 }
 

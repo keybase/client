@@ -88,7 +88,7 @@ function analyzeMessages (json) {
     if (!isNotify) {
       const type = (responseType === 'null') ? '' : `result: ${name}_result`
       r = `,\n    response: {
-      error: (err: string) => void,
+      error: (err: RPCError) => void,
       result: (${type}) => void
     }`
     } else {
@@ -202,6 +202,10 @@ export type int = number
 export type long = number
 export type double = number
 export type bytes = any
+export type RPCError = {
+  code: number,
+  desc: string
+}
 
 `
 

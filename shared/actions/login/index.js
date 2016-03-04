@@ -4,15 +4,14 @@ import {isMobile} from '../../constants/platform'
 import {navigateTo, routeAppend} from '../router'
 import engine from '../../engine'
 import enums from '../../constants/types/keybase-v1'
-// import SelectOtherDevice from '../../login/register/select-other-device'
-// import UsernameOrEmail from '../../login/register/username-or-email'
+import SelectOtherDevice from '../../login/register/select-other-device'
+import UsernameOrEmail from '../../login/register/username-or-email'
 // import GPGMissingPinentry from '../../login/register/gpg-missing-pinentry'
 // import GPGSign from '../../login/register/gpg-sign'
 import Passphrase from '../../login/register/passphrase'
-import UserPass from '../../login/register/user-pass'
+// import UserPass from '../../login/register/user-pass'
 import PaperKey from '../../login/register/paper-key'
 import CodePage from '../../login/register/code-page'
-import ExistingDevice from '../../login/register/existing-device'
 import SetPublicName from '../../login/register/set-public-name'
 import {switchTab} from '../tabbed-router'
 import {devicesTab, loginTab} from '../../constants/tabs'
@@ -22,8 +21,9 @@ import {getCurrentStatus} from '../config'
 import type {Dispatch, GetState, AsyncAction, TypedAction} from '../../constants/types/flux'
 import type {incomingCallMapType, login_recoverAccountFromEmailAddress_rpc,
   login_login_rpc, login_logout_rpc, device_deviceAdd_rpc, login_getConfiguredAccounts_rpc} from '../../constants/types/flow-types'
-import {mobileAppsExist} from '../../util/feature-flags'
-import {overrideLoggedInTab} from '../../local-debug'
+import {overrideLoggedInTab, setupCancelLogin} from '../../local-debug'
+import type {deviceRole} from '../../constants/login'
+
 let currentLoginSessionID = null
 
 export function navBasedOnLoginState () :AsyncAction {
@@ -74,7 +74,7 @@ function getAccounts (): AsyncAction {
 
 export function login (): AsyncAction {
   return (dispatch, getState) => {
-    startLoginFlow(dispatch, getState, enums.provisionUi.ProvisionMethod.device, 'Keybase username', 'lorem ipsum', Constants.loginDone)
+    startLoginFlow(dispatch, getState, Constants.loginDone)
   }
 }
 
@@ -83,7 +83,7 @@ export function doneRegistering (): TypedAction<'login:doneRegistering', void, v
   return {type: Constants.doneRegistering, payload: undefined}
 }
 
-function setCodePageOtherDeviceRole (otherDeviceRole) : AsyncAction {
+function setCodePageOtherDeviceRole (otherDeviceRole: deviceRole) : AsyncAction {
   return (dispatch, getState) => {
     const store = getState().login.codePage
     dispatch(setCodePageMode(defaultModeForDeviceRoles(store.myDeviceRole, otherDeviceRole, false)))
@@ -165,7 +165,14 @@ export function autoLogin () : AsyncAction {
         usernameOrEmail: '',
         clientType: enums.login.ClientType.gui
       },
-      incomingCallMap: {},
+      incomingCallMap: {
+        'keybase.1.loginUi.getEmailOrUsername': (_, response) => {
+          response.error({
+            code: enums.constants.StatusCode.scnoui,
+            desc: 'Attempting auto login'
+          })
+        }
+      },
       callback: (error, status) => {
         if (error) {
           console.log(error)
@@ -242,83 +249,25 @@ export function logoutDone () : AsyncAction {
 
 // Show a user/pass screen, call cb() when done
 // title/subTitle to customize the screen
-function askForUserPass (title, subTitle, cb) : AsyncAction {
-  return dispatch => {
-    const props = {
-      title,
-      subTitle,
-      mapStateToProps: state => state.login.userPass,
-      onSubmit: (username, passphrase) => {
-        dispatch({type: Constants.actionSetUserPass, payload: {username, passphrase: passphrase.stringValue()}})
-        cb()
-      }
-    }
+// function askForUserPass (title, subTitle, cb) : AsyncAction {
+  // return dispatch => {
+    // const props = {
+      // title,
+      // subTitle,
+      // mapStateToProps: state => state.login.userPass,
+      // onSubmit: (username, passphrase) => {
+        // dispatch({type: Constants.actionSetUserPass, payload: {username, passphrase: passphrase.stringValue()}})
+        // cb()
+      // }
+    // }
 
-    dispatch(routeAppend({
-      parseRoute: {
-        componentAtTop: {component: UserPass, props}
-      }
-    }))
-  }
-}
-
-function askForPaperKey (cb) : AsyncAction {
-  return dispatch => {
-    const props = {
-      mapStateToProps: state => state.login,
-      onSubmit: paperKey => { cb(paperKey) }
-    }
-
-    dispatch(routeAppend({
-      parseRoute: {
-        componentAtTop: {component: PaperKey, props}
-      }
-    }))
-  }
-}
-
-// Show a device naming page, call cb() when done
-// existing devices are blacklisted
-function askForDeviceName (existingDevices, cb) : AsyncAction {
-  return dispatch => {
-    dispatch({
-      type: Constants.actionAskDeviceName,
-      payload: {
-        existingDevices,
-        onSubmit: deviceName => {
-          dispatch({type: Constants.actionSetDeviceName, payload: deviceName})
-          cb()
-        }
-      }
-    })
-
-    dispatch(routeAppend({
-      parseRoute: {
-        componentAtTop: {
-          component: SetPublicName,
-          props: {
-            mapStateToProps: state => state.login.deviceName
-          }
-        }
-      }
-    }))
-  }
-}
-
-function askForOtherDeviceType (cb) : AsyncAction {
-  return dispatch => {
-    const props = {
-      mapStateToProps: state => state.login.codePage,
-      onSubmit: otherDeviceRole => { cb(otherDeviceRole) }
-    }
-
-    dispatch(routeAppend({
-      parseRoute: {
-        componentAtTop: {component: ExistingDevice, props}
-      }
-    }))
-  }
-}
+    // dispatch(routeAppend({
+      // parseRoute: {
+        // componentAtTop: {component: UserPass, props}
+      // }
+    // }))
+  // }
+// }
 
 function askForCodePage (cb) : AsyncAction {
   return dispatch => {
@@ -355,46 +304,6 @@ function askForCodePage (cb) : AsyncAction {
   }
 }
 
-export function registerWithExistingDevice () : AsyncAction {
-  return (dispatch, getState) => {
-    const provisionMethod = enums.provisionUi.ProvisionMethod.device
-    startLoginFlow(dispatch, getState, provisionMethod, null, null, Constants.actionRegisteredWithExistingDevice)
-  }
-}
-
-export function registerWithUserPass () : AsyncAction {
-  return (dispatch, getState) => {
-    const title = 'Registering with your Keybase passphrase'
-    const subTitle = 'lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum'
-    const provisionMethod = enums.provisionUi.ProvisionMethod.passphrase
-    startLoginFlow(dispatch, getState, provisionMethod, title, subTitle, Constants.actionRegisteredWithUserPass)
-  }
-}
-
-function TEST_MOCK_SCREEN (dispatch) {
-  dispatch(routeAppend({
-    parseRoute: {
-      componentAtTop: {
-        component: Passphrase,
-        props: {}}
-    }
-  }))
-}
-
-export function registerWithPaperKey () : AsyncAction {
-  return (dispatch, getState) => {
-    if (__DEV__) {
-      TEST_MOCK_SCREEN(dispatch)
-      return
-    }
-
-    const title = 'Registering with your paperkey requires your username'
-    const subTitle = 'Different lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum'
-    const provisionMethod = enums.provisionUi.ProvisionMethod.paperKey
-    startLoginFlow(dispatch, getState, provisionMethod, title, subTitle, Constants.actionRegisteredWithPaperKey)
-  }
-}
-
 export function cancelLogin () : AsyncAction {
   return (dispatch, getState) => {
     dispatch(navBasedOnLoginState())
@@ -405,9 +314,13 @@ export function cancelLogin () : AsyncAction {
   }
 }
 
-function startLoginFlow (dispatch, getState, provisionMethod, userPassTitle, userPassSubtitle, successType) {
+function startLoginFlow (dispatch, getState/*, provisionMethod, userPassTitle, userPassSubtitle*/, successType) {
+  if (__DEV__) {
+    setupCancelLogin(() => dispatch(cancelLogin()))
+  }
+
   const deviceType = isMobile ? 'mobile' : 'desktop'
-  const incomingMap = makeKex2IncomingMap(dispatch, getState, provisionMethod, userPassTitle, userPassSubtitle)
+  const incomingMap = makeKex2IncomingMap(dispatch, getState)
   const params : login_login_rpc = {
     method: 'login.login',
     param: {
@@ -442,10 +355,7 @@ function startLoginFlow (dispatch, getState, provisionMethod, userPassTitle, use
 
 export function addANewDevice () : AsyncAction {
   return (dispatch, getState) => {
-    const provisionMethod = enums.provisionUi.ProvisionMethod.device
-    const userPassTitle = 'Registering a new device requires your Keybase username and passphrase'
-    const userPassSubtitle = 'reggy lorem ipsum lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum'
-    const incomingMap = makeKex2IncomingMap(dispatch, getState, provisionMethod, userPassTitle, userPassSubtitle)
+    const incomingMap = makeKex2IncomingMap(dispatch, getState)
     const params : device_deviceAdd_rpc = {
       method: 'device.deviceAdd',
       param: {},
@@ -458,79 +368,99 @@ export function addANewDevice () : AsyncAction {
   }
 }
 
-function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle, userPassSubtitle) : incomingCallMapType {
+function makeKex2IncomingMap (dispatch, getState/*, provisionMethod, userPassTitle, userPassSubtitle*/) : incomingCallMapType {
   return {
-    'keybase.1.provisionUi.chooseProvisioningMethod': (param, response) => {
-      response.result(provisionMethod)
-    },
     'keybase.1.loginUi.getEmailOrUsername': (param, response) => {
-      const {username} = getState().login.userPass
-      if (!username) {
-        dispatch(askForUserPass(userPassTitle, userPassSubtitle, () => {
-          const {username} = getState().login.userPass
-          response.result(username)
-        }))
-      } else {
-        response.result(username)
+      const props = {
+        onSubmit: usernameOrEmail => response.result(usernameOrEmail)
       }
+
+      dispatch(routeAppend({
+        parseRoute: {componentAtTop: {component: UsernameOrEmail, props}}
+      }))
+    },
+    'keybase.1.provisionUi.chooseDevice': ({devices}, response) => {
+      const props = {
+        devices,
+        onSelect: deviceID => {
+          const type: deviceRole = devices[devices.findIndex(d => d.deviceID === deviceID)].type
+          const role = {
+            mobile: Constants.codePageDeviceRoleExistingPhone,
+            computer: Constants.codePageDeviceRoleExistingComputer
+          }[type]
+          dispatch(setCodePageOtherDeviceRole(role))
+          response.result(deviceID)
+        },
+        onWont: () => response.result('')
+      }
+
+      dispatch(routeAppend({
+        parseRoute: {componentAtTop: {component: SelectOtherDevice, props}}
+      }))
     },
     'keybase.1.secretUi.getPassphrase': ({pinentry: {type}}, response) => {
       switch (type) {
         case enums.secretUi.PassphraseType.paperKey: {
-          dispatch(askForPaperKey(paperKey => {
-            response.result({
-              passphrase: paperKey,
+          const props = {
+            mapStateToProps: state => state.login,
+            onSubmit: passphrase => response.result({
+              passphrase,
               storeSecret: false
             })
+          }
+
+          dispatch(routeAppend({
+            parseRoute: {componentAtTop: {component: PaperKey, props}}
           }))
           break
         }
         case enums.secretUi.PassphraseType.passPhrase: {
-          // TODO
+          const props = {
+            onSubmit: passphrase => response.result({
+              passphrase,
+              storeSecret: false
+            })
+          }
+
+          dispatch(routeAppend({
+            parseRoute: {componentAtTop: {component: Passphrase, props}}
+          }))
           break
         }
-        case enums.secretUi.PassphraseType.verifyPassPhrase: {
-          // TODO
-          break
-        }
+        // case enums.secretUi.PassphraseType.verifyPassPhrase: {
+          // // TODO
+          // break
+        // }
         default:
-          response.error('Unknown getPassphrase type')
+          response.error({
+            code: enums.constants.StatusCode.scnotfound,
+            desc: 'Unknown getPassphrase type'
+          })
       }
     },
-    // 'keybase.1.secretUi.getKeybasePassphrase': (param, response) => {
-      // const {passphrase} = getState().login.userPass
-      // if (!passphrase) {
-        // dispatch(askForUserPass(userPassTitle, userPassSubtitle, () => {
-          // const {passphrase} = getState().login.userPass
-          // response.result({passphrase: passphrase.stringValue(), storeSecret: false})
-        // }))
-      // } else {
-        // response.result({passphrase, storeSecret: false})
-      // }
-    // },
-    // 'keybase.1.secretUi.getSecret': (param, response) => {
-      // const {passphrase} = getState().login.userPass
-      // if (!passphrase) {
-        // dispatch(askForUserPass(userPassTitle, userPassSubtitle, () => {
-          // const {passphrase} = getState().login.userPass
-          // response.result({
-            // text: passphrase.stringValue(),
-            // canceled: false,
-            // storeSecret: true
-          // })
-        // }))
-      // } else {
-        // response.result({
-          // text: passphrase.stringValue(),
-          // canceled: false,
-          // storeSecret: true
-        // })
-      // }
-    // },
+    'keybase.1.provisionUi.DisplayAndPromptSecret': ({phrase, secret}, response) => {
+      dispatch({type: Constants.setTextCode, payload: phrase})
+      generateQRCode(dispatch, getState)
+      dispatch(askForCodePage(phrase => { response.result({phrase, secret: null}) }))
+    },
     'keybase.1.provisionUi.PromptNewDeviceName': ({existingDevices}, response) => {
-      dispatch(askForDeviceName(existingDevices, () => {
-        const {deviceName} = getState().login.deviceName
-        response.result(deviceName)
+      dispatch({
+        type: Constants.actionAskDeviceName,
+        payload: {
+          existingDevices,
+          onSubmit: deviceName => {
+            response.result(deviceName)
+          }
+        }
+      })
+
+      dispatch(routeAppend({
+        parseRoute: {
+          componentAtTop: {
+            component: SetPublicName,
+            props: {mapStateToProps: state => state.login.deviceName}
+          }
+        }
       }))
     },
     'keybase.1.provisionUi.ProvisioneeSuccess': (param, response) => {
@@ -540,28 +470,6 @@ function makeKex2IncomingMap (dispatch, getState, provisionMethod, userPassTitle
       response.result()
 
       dispatch(navBasedOnLoginState())
-    },
-    'keybase.1.provisionUi.chooseDeviceType': (param, response) => {
-      const onSubmit = type => {
-        const typeMap = {
-          [Constants.codePageDeviceRoleExistingPhone]: enums.provisionUi.DeviceType.mobile,
-          [Constants.codePageDeviceRoleExistingComputer]: enums.provisionUi.DeviceType.desktop
-        }
-
-        dispatch(setCodePageOtherDeviceRole(type))
-        response.result(typeMap[type])
-      }
-
-      if (!mobileAppsExist) {
-        onSubmit(Constants.codePageDeviceRoleExistingComputer)
-      } else {
-        dispatch(askForOtherDeviceType(onSubmit))
-      }
-    },
-    'keybase.1.provisionUi.DisplayAndPromptSecret': ({phrase, secret}, response) => {
-      dispatch({type: Constants.setTextCode, payload: phrase})
-      generateQRCode(dispatch, getState)
-      dispatch(askForCodePage(phrase => { response.result({phrase, secret: null}) }))
     },
     'keybase.1.provisionUi.DisplaySecretExchanged': (param, response) => {
       response.result()

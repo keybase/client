@@ -5,12 +5,24 @@ import {globalStyles, globalColorsDZ2} from '../../../styles/style-guide'
 import Container from '../../forms/container.desktop'
 import type {Props} from './index.render'
 
-const Row = ({id, name, type, onSelect}) => {
-  const iconType = type === 'mobile' ? 'fa-mobile' : 'fa-laptop'
+const Row = ({deviceID, name, type, onSelect}) => {
+  const iconType = {
+    'mobile': 'fa-mobile',
+    'computer': 'fa-laptop',
+    'paper key': 'paper-key'
+  }[type]
+
+  const onClick = e => {
+    onSelect(deviceID)
+    e && e.preventDefault()
+  }
+
   return (
-    <div style={styles.row} onClick={e => onSelect(id)}>
-      <Icon style={styles.icon} type={iconType}/>
-      <Text dz2 type='Body' onClick={e => onSelect(id)}>{name}</Text>
+    <div style={styles.row} onClick={onClick}>
+      <div style={styles.iconContainer}>
+        <Icon style={styles.icon} type={iconType}/>
+      </div>
+      <Text dz2 type='Body' onClick={onClick}>{name}</Text>
     </div>)
 }
 
@@ -45,11 +57,15 @@ const styles = {
     padding: 10,
     alignItems: 'center'
   },
+  iconContainer: {
+    ...globalStyles.flexBoxRow,
+    width: 50,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
   icon: {
     color: globalColorsDZ2.black,
-    fontSize: 40,
-    minWidth: 60,
-    textAlign: 'center'
+    fontSize: 40
   },
   wont: {
     marginTop: 10,
