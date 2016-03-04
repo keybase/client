@@ -328,11 +328,6 @@
 			"revisionTime": "2015-12-11T09:06:21+09:00"
 		},
 		{
-			"path": "github.com/mattn/go-sqlite3",
-			"revision": "5510da399572b4962c020184bb291120c0a412e2",
-			"revisionTime": "2015-12-30T23:39:53+09:00"
-		},
-		{
 			"origin": "github.com/keybase/client/go/vendor/github.com/natefinch/npipe",
 			"path": "github.com/natefinch/npipe",
 			"revision": "ab1231f74425ffdc3693e7ca09f9925ecec72c97",
