@@ -32,6 +32,10 @@ type UserInfo struct {
 	VerifyingKeys   []VerifyingKey
 	CryptPublicKeys []CryptPublicKey
 	KIDNames        map[keybase1.KID]string
+
+	// Revoked keys, and the time at which they were revoked.
+	RevokedVerifyingKeys   map[VerifyingKey]keybase1.KeybaseTime
+	RevokedCryptPublicKeys map[CryptPublicKey]keybase1.KeybaseTime
 }
 
 // SessionInfo contains all the info about the keybase session that

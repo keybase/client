@@ -90,38 +90,80 @@ func (k *KeybaseDaemonRPC) fillClients(client rpc.GenericClient) {
 	k.kbfsClient = keybase1.KbfsClient{Cli: client}
 }
 
-func (k *KeybaseDaemonRPC) filterKeys(ctx context.Context, uid keybase1.UID,
-	keys []keybase1.PublicKey) ([]VerifyingKey, []CryptPublicKey, map[keybase1.KID]string, error) {
+type addVerifyingKeyFunc func(VerifyingKey)
+type addCryptPublicKeyFunc func(CryptPublicKey)
+
+// processKey adds the given public key to the appropriate verifying
+// or crypt list (as return values), and also updates the given name
+// map in place.
+func processKey(publicKey keybase1.PublicKey,
+	addVerifyingKey addVerifyingKeyFunc,
+	addCryptPublicKey addCryptPublicKeyFunc,
+	kidNames map[keybase1.KID]string) error {
+	if len(publicKey.PGPFingerprint) > 0 {
+		return nil
+	}
+	// Import the KID to validate it.
+	key, err := libkb.ImportKeypairFromKID(publicKey.KID)
+	if err != nil {
+		return err
+	}
+	if publicKey.IsSibkey {
+		addVerifyingKey(MakeVerifyingKey(key.GetKID()))
+	} else {
+		addCryptPublicKey(MakeCryptPublicKey(key.GetKID()))
+	}
+	if publicKey.DeviceDescription != "" {
+		kidNames[publicKey.KID] = publicKey.DeviceDescription
+	}
+	return nil
+}
+
+func filterKeys(keys []keybase1.PublicKey) (
+	[]VerifyingKey, []CryptPublicKey, map[keybase1.KID]string, error) {
 	var verifyingKeys []VerifyingKey
 	var cryptPublicKeys []CryptPublicKey
 	var kidNames = map[keybase1.KID]string{}
+
+	addVerifyingKey := func(key VerifyingKey) {
+		verifyingKeys = append(verifyingKeys, key)
+	}
+	addCryptPublicKey := func(key CryptPublicKey) {
+		cryptPublicKeys = append(cryptPublicKeys, key)
+	}
+
 	for _, publicKey := range keys {
-		if len(publicKey.PGPFingerprint) > 0 {
-			continue
-		}
-		// Import the KID to validate it.
-		key, err := libkb.ImportKeypairFromKID(publicKey.KID)
+		err := processKey(publicKey, addVerifyingKey, addCryptPublicKey,
+			kidNames)
 		if err != nil {
 			return nil, nil, nil, err
 		}
-		if publicKey.IsSibkey {
-			k.log.CDebugf(
-				ctx, "got verifying key %s for user %s",
-				key.VerboseDescription(), uid)
-			verifyingKeys = append(
-				verifyingKeys, MakeVerifyingKey(key.GetKID()))
-		} else {
-			k.log.CDebugf(
-				ctx, "got crypt public key %s for user %s",
-				key.VerboseDescription(), uid)
-			cryptPublicKeys = append(
-				cryptPublicKeys, MakeCryptPublicKey(key.GetKID()))
+	}
+	return verifyingKeys, cryptPublicKeys, kidNames, nil
+}
+
+func filterRevokedKeys(keys []keybase1.RevokedKey) (
+	map[VerifyingKey]keybase1.KeybaseTime,
+	map[CryptPublicKey]keybase1.KeybaseTime, map[keybase1.KID]string, error) {
+	verifyingKeys := make(map[VerifyingKey]keybase1.KeybaseTime)
+	cryptPublicKeys := make(map[CryptPublicKey]keybase1.KeybaseTime)
+	var kidNames = map[keybase1.KID]string{}
+
+	for _, revokedKey := range keys {
+		addVerifyingKey := func(key VerifyingKey) {
+			verifyingKeys[key] = revokedKey.Time
 		}
-		if publicKey.DeviceDescription != "" {
-			kidNames[publicKey.KID] = publicKey.DeviceDescription
+		addCryptPublicKey := func(key CryptPublicKey) {
+			cryptPublicKeys[key] = revokedKey.Time
+		}
+		err := processKey(revokedKey.Key, addVerifyingKey, addCryptPublicKey,
+			kidNames)
+		if err != nil {
+			return nil, nil, nil, err
 		}
 	}
 	return verifyingKeys, cryptPublicKeys, kidNames, nil
+
 }
 
 func (k *KeybaseDaemonRPC) getCachedCurrentSession() SessionInfo {
@@ -401,7 +443,7 @@ func (k *KeybaseDaemonRPC) Identify(ctx context.Context, assertion, reason strin
 		return UserInfo{}, convertIdentifyError(assertion, err)
 	}
 
-	return k.processUserPlusKeys(ctx, res.Upk)
+	return k.processUserPlusKeys(res.Upk)
 }
 
 // LoadUserPlusKeys implements the KeybaseDaemon interface for KeybaseDaemonRPC.
@@ -418,22 +460,36 @@ func (k *KeybaseDaemonRPC) LoadUserPlusKeys(ctx context.Context, uid keybase1.UI
 		return UserInfo{}, err
 	}
 
-	return k.processUserPlusKeys(ctx, res)
+	return k.processUserPlusKeys(res)
 }
 
-func (k *KeybaseDaemonRPC) processUserPlusKeys(
-	ctx context.Context, upk keybase1.UserPlusKeys) (UserInfo, error) {
-	verifyingKeys, cryptPublicKeys, kidNames, err := k.filterKeys(ctx, upk.Uid, upk.DeviceKeys)
+func (k *KeybaseDaemonRPC) processUserPlusKeys(upk keybase1.UserPlusKeys) (
+	UserInfo, error) {
+	verifyingKeys, cryptPublicKeys, kidNames, err := filterKeys(upk.DeviceKeys)
 	if err != nil {
 		return UserInfo{}, err
 	}
 
+	revokedVerifyingKeys, revokedCryptPublicKeys, revokedKidNames, err :=
+		filterRevokedKeys(upk.RevokedDeviceKeys)
+	if err != nil {
+		return UserInfo{}, err
+	}
+
+	if len(revokedKidNames) > 0 {
+		for k, v := range revokedKidNames {
+			kidNames[k] = v
+		}
+	}
+
 	u := UserInfo{
-		Name:            libkb.NewNormalizedUsername(upk.Username),
-		UID:             upk.Uid,
-		VerifyingKeys:   verifyingKeys,
-		CryptPublicKeys: cryptPublicKeys,
-		KIDNames:        kidNames,
+		Name:                   libkb.NewNormalizedUsername(upk.Username),
+		UID:                    upk.Uid,
+		VerifyingKeys:          verifyingKeys,
+		CryptPublicKeys:        cryptPublicKeys,
+		KIDNames:               kidNames,
+		RevokedVerifyingKeys:   revokedVerifyingKeys,
+		RevokedCryptPublicKeys: revokedCryptPublicKeys,
 	}
 
 	k.setCachedUserInfo(upk.Uid, u)
