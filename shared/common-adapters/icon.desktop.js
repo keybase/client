@@ -17,6 +17,8 @@ export default class Icon extends Component {
         return globalColorsDZ2.green
       case 'fa-custom-icon-proof-good-new':
         return globalColorsDZ2.blue2
+      case 'fa-close':
+        return globalColorsDZ2.black20
       default:
         return null
     }
@@ -28,8 +30,19 @@ export default class Icon extends Component {
       case 'fa-custom-icon-proof-good-followed':
       case 'fa-custom-icon-proof-good-new':
         return this._defaultColor(type)
+      case 'fa-close':
+        return globalColorsDZ2.black60
       default:
         return null
+    }
+  }
+
+  _defaultOpacity (type: Props.type): ?string {
+    switch (type) {
+      case 'fa-close':
+        return 1.0
+      default:
+        return 0.35
     }
   }
 
@@ -47,6 +60,7 @@ export default class Icon extends Component {
   render () {
     let color = this._defaultColor(this.props.type)
     let hoverColor = this._defaultHoverColor(this.props.type)
+    let defaultOpacity = this._defaultOpacity(this.props.type)
     let iconType = this._typeToIconMapper(this.props.type)
 
     if (this.props.inheritColor) {
@@ -62,7 +76,7 @@ export default class Icon extends Component {
     if (isFontIcon) {
       return <FontIcon
         title={this.props.hint}
-        style={{...styles.icon, opacity: this.props.opacity ? 0.35 : 1.0, ...this.props.style}}
+        style={{...styles.icon, opacity: this.props.opacity ? defaultOpacity : 1.0, ...this.props.style}}
         className={`fa ${iconType}`}
         color={color}
         hoverColor={this.props.onClick ? hoverColor : null}
