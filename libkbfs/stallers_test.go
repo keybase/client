@@ -133,12 +133,6 @@ func (m *stallingMDOps) GetRange(ctx context.Context, id TlfID,
 	m.maybeStall(ctx, "GetRange")
 	return m.delegate.GetRange(ctx, id, start, stop)
 }
-func (m *stallingMDOps) GetRangeAllowUnverified(ctx context.Context, id TlfID,
-	start, stop MetadataRevision) (
-	[]*RootMetadata, error) {
-	m.maybeStall(ctx, "GetRangeAllowUnverified")
-	return m.delegate.GetRangeAllowUnverified(ctx, id, start, stop)
-}
 
 func (m *stallingMDOps) GetUnmergedRange(ctx context.Context, id TlfID,
 	bid BranchID, start, stop MetadataRevision) ([]*RootMetadata, error) {

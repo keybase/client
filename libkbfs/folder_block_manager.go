@@ -407,7 +407,7 @@ func (fbm *folderBlockManager) getMostRecentOldEnoughAndGCRevisions(
 		}
 
 		rmds, err := getMDRange(ctx, fbm.config, fbm.id, NullBranchID, startRev,
-			currHead, Merged, true)
+			currHead, Merged)
 		if err != nil {
 			return MetadataRevisionUninitialized,
 				MetadataRevisionUninitialized, err
@@ -505,7 +505,7 @@ outer:
 		}
 
 		rmds, err := getMDRange(ctx, fbm.config, fbm.id, NullBranchID, startRev,
-			currHead, Merged, true)
+			currHead, Merged)
 		if err != nil {
 			return nil, MetadataRevisionUninitialized, err
 		}

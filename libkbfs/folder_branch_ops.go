@@ -4963,7 +4963,7 @@ func (fbo *folderBranchOps) undoUnmergedMDUpdatesLocked(
 	fbo.setStagedLocked(lState, false, NullBranchID)
 
 	rmds, err := getMDRange(ctx, fbo.config, fbo.id(), NullBranchID,
-		currHead, currHead, Merged, false)
+		currHead, currHead, Merged)
 	if err != nil {
 		return nil, err
 	}
@@ -5604,7 +5604,7 @@ func (fbo *folderBranchOps) GetUpdateHistory(ctx context.Context,
 
 	lState := makeFBOLockState()
 
-	rmds, err := getMergedMDUpdatesAllowUnverified(ctx, fbo.config, fbo.id(),
+	rmds, err := getMergedMDUpdates(ctx, fbo.config, fbo.id(),
 		MetadataRevisionInitial)
 	if err != nil {
 		return TLFUpdateHistory{}, err
