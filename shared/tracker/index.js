@@ -127,20 +127,15 @@ class Tracker extends Component {
 }
 
 export default connect(
-  state => ({...state.tracker, loggedIn: state.config && state.config.status && state.config.status.loggedIn}),
+  (state, ownProps) => ({
+    proofs: [],
+    ...state.tracker,
+    loggedIn: state.config && state.config.status && state.config.status.loggedIn,
+    ...state.tracker.trackers[ownProps.username]
+  }),
   dispatch => {
     return bindActionCreators(trackerActions, dispatch)
-  },
-  (stateProps, dispatchProps, ownProps) => {
-    return {
-      proofs: [],
-      loggedIn: stateProps.loggedIn,
-      ...stateProps.trackers[ownProps.username],
-      ...dispatchProps,
-      ...ownProps
-    }
-  }
-)(Tracker)
+  })(Tracker)
 
 export function selector (username: string): (store: Object) => Object {
   return store => {

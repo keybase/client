@@ -63,13 +63,5 @@ const styles = {
 }
 
 export default connect(
-  state => state.updatePaused,
-    undefined,
-    (stateProps, dispatchProps, ownProps) => {
-      return {
-        ...stateProps,
-        ...dispatchProps,
-        ...ownProps
-      }
-    }
+  state => state.updatePaused
 )(UpdatePaused)
