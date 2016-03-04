@@ -77,9 +77,59 @@
 			"revisionTime": "2015-09-15T09:53:35-07:00"
 		},
 		{
+			"path": "github.com/camlistore/go4/lock",
+			"revision": "40a0492aa096a3be30c750c4e2216de52a6cf2e3",
+			"revisionTime": "2016-02-08T16:52:32+01:00"
+		},
+		{
 			"path": "github.com/cenkalti/backoff",
 			"revision": "4dc77674aceaabba2c7e3da25d4c823edfb73f99",
 			"revisionTime": "2015-08-14T12:43:33+03:00"
+		},
+		{
+			"path": "github.com/cznic/b",
+			"revision": "47184dd8c1d2c7e7f87dae8448ee2007cdf0c6c4",
+			"revisionTime": "2016-02-10T12:46:12+01:00"
+		},
+		{
+			"path": "github.com/cznic/bufs",
+			"revision": "3dcccbd7064a1689f9c093a988ea11ac00e21f51",
+			"revisionTime": "2014-08-18T14:20:33+02:00"
+		},
+		{
+			"path": "github.com/cznic/exp/lldb",
+			"revision": "c21cce1fce3e6e5bc84854aa3d02a808de44229b",
+			"revisionTime": "2015-12-07T22:20:10+01:00"
+		},
+		{
+			"path": "github.com/cznic/fileutil",
+			"revision": "1c9c88fbf552b3737c7b97e1f243860359687976",
+			"revisionTime": "2015-07-08T10:07:34+02:00"
+		},
+		{
+			"path": "github.com/cznic/mathutil",
+			"revision": "38a5fe05cd94d69433fd1c928417834c604f281d",
+			"revisionTime": "2016-01-19T17:31:16+01:00"
+		},
+		{
+			"path": "github.com/cznic/ql",
+			"revision": "9cddc341060180c73b0a57b0b0592884b0e05c51",
+			"revisionTime": "2016-02-03T13:00:28+01:00"
+		},
+		{
+			"path": "github.com/cznic/sortutil",
+			"revision": "4c7342852e65c2088c981288f2c5610d10b9f7f4",
+			"revisionTime": "2015-06-17T10:33:42+02:00"
+		},
+		{
+			"path": "github.com/cznic/strutil",
+			"revision": "1eb03e3cc9d345307a45ec82bd3016cde4bd4464",
+			"revisionTime": "2015-04-30T14:47:30+02:00"
+		},
+		{
+			"path": "github.com/cznic/zappy",
+			"revision": "47331054e4f96186e3ff772877c0443909368a45",
+			"revisionTime": "2014-08-20T10:20:20+02:00"
 		},
 		{
 			"path": "github.com/davecgh/go-spew/spew",
