@@ -37,7 +37,7 @@ export default class Icon extends Component {
     }
   }
 
-  _defaultOpacity (type: Props.type): ?string {
+  _defaultOpacity (type: Props.type): number {
     switch (type) {
       case 'fa-close':
         return 1.0
