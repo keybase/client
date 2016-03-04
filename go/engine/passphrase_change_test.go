@@ -415,7 +415,7 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStore(t *testing.T) {
 	// this call will cause the login state to be reloaded.
 	assertLoadSecretKeys(tc, u, "logged out w/ backup key, before passphrase change")
 
-	tc.ResetLoginState()
+	tc.ClearLoginStateSecretCaches()
 
 	secretUI := libkb.TestSecretUI{}
 	ctx := &Context{
@@ -612,7 +612,7 @@ func TestPassphraseChangeLoggedOutBackupKeySecretStorePGP(t *testing.T) {
 	// this call will cause the login state to be reloaded.
 	assertLoadSecretKeys(tc, u, "logged out w/ backup key, before passphrase change")
 
-	tc.ResetLoginState()
+	tc.ClearLoginStateSecretCaches()
 
 	secretUI := libkb.TestSecretUI{}
 	ctx = &Context{

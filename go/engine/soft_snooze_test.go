@@ -4,12 +4,13 @@
 package engine
 
 import (
-	"github.com/jonboulle/clockwork"
-	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
 	"strings"
 	"testing"
 	"time"
+
+	"github.com/jonboulle/clockwork"
+	"github.com/keybase/client/go/libkb"
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 type flakeyRooterAPI struct {
@@ -61,12 +62,13 @@ func (e *flakeyRooterAPI) PostHTML(arg libkb.APIArg) (res *libkb.ExternalHTMLRes
 func TestSoftSnooze(t *testing.T) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
-	fu := CreateAndSignupFakeUser(tc, "track")
 
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.Clock = fakeClock
 	// to pick up the new clock...
-	tc.G.ResetLoginState()
+	tc.ResetLoginState()
+
+	fu := CreateAndSignupFakeUser(tc, "track")
 
 	flakeyAPI := flakeyRooterAPI{orig: tc.G.XAPI, flakeOut: false, G: tc.G}
 	tc.G.XAPI = &flakeyAPI

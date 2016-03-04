@@ -71,12 +71,10 @@ func TestDeprovision(t *testing.T) {
 	}
 
 	dbPath := tc.G.Env.GetDbFilename()
-	sessionPath := tc.G.Env.GetSessionFilename()
 	secretKeysPath := tc.G.SKBFilenameForUser(fu.NormalizedUsername())
 	numKeys := getNumKeys(tc, *fu)
 
 	assertFileExists(t, dbPath)
-	assertFileExists(t, sessionPath)
 	assertFileExists(t, secretKeysPath)
 	if !isUserInConfigFile(tc, *fu) {
 		t.Fatalf("User %s is not in the config file %s", fu.Username, tc.G.Env.GetConfigFilename())
@@ -111,7 +109,6 @@ func TestDeprovision(t *testing.T) {
 	}
 
 	assertFileDoesNotExist(t, dbPath)
-	assertFileDoesNotExist(t, sessionPath)
 	assertFileDoesNotExist(t, secretKeysPath)
 	if isUserInConfigFile(tc, *fu) {
 		t.Fatalf("User %s is still in the config file %s", fu.Username, tc.G.Env.GetConfigFilename())
@@ -156,12 +153,10 @@ func TestDeprovisionLoggedOut(t *testing.T) {
 	}
 
 	dbPath := tc.G.Env.GetDbFilename()
-	sessionPath := tc.G.Env.GetSessionFilename()
 	secretKeysPath := tc.G.SKBFilenameForUser(fu.NormalizedUsername())
 	numKeys := getNumKeys(tc, *fu)
 
 	assertFileExists(t, dbPath)
-	assertFileExists(t, sessionPath)
 	assertFileExists(t, secretKeysPath)
 	if !isUserInConfigFile(tc, *fu) {
 		t.Fatalf("User %s is not in the config file %s", fu.Username, tc.G.Env.GetConfigFilename())
@@ -201,7 +196,6 @@ func TestDeprovisionLoggedOut(t *testing.T) {
 	}
 
 	assertFileDoesNotExist(t, dbPath)
-	assertFileDoesNotExist(t, sessionPath)
 	assertFileDoesNotExist(t, secretKeysPath)
 	if isUserInConfigFile(tc, *fu) {
 		t.Fatalf("User %s is still in the config file %s", fu.Username, tc.G.Env.GetConfigFilename())
@@ -246,12 +240,10 @@ func TestCurrentDeviceRevoked(t *testing.T) {
 	}
 
 	dbPath := tc.G.Env.GetDbFilename()
-	sessionPath := tc.G.Env.GetSessionFilename()
 	secretKeysPath := tc.G.SKBFilenameForUser(fu.NormalizedUsername())
 	numKeys := getNumKeys(tc, *fu)
 
 	assertFileExists(t, dbPath)
-	assertFileExists(t, sessionPath)
 	assertFileExists(t, secretKeysPath)
 	if !isUserInConfigFile(tc, *fu) {
 		t.Fatalf("User %s is not in the config file %s", fu.Username, tc.G.Env.GetConfigFilename())
@@ -293,7 +285,6 @@ func TestCurrentDeviceRevoked(t *testing.T) {
 	}
 
 	assertFileDoesNotExist(t, dbPath)
-	assertFileDoesNotExist(t, sessionPath)
 	assertFileDoesNotExist(t, secretKeysPath)
 	if isUserInConfigFile(tc, *fu) {
 		t.Fatalf("User %s is still in the config file %s", fu.Username, tc.G.Env.GetConfigFilename())

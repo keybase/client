@@ -61,12 +61,8 @@ func TestConcurrentLogin(t *testing.T) {
 					tc.G.LoginState().LocalSession(func(s *libkb.Session) {
 						s.GetUID()
 					}, "GetUID")
-					tc.G.LoginState().LocalSession(func(s *libkb.Session) {
-						s.Load()
-					}, "session Load")
 					tc.G.LoginState().LoggedIn()
 					tc.G.LoginState().LoggedInLoad()
-					// tc.G.LoginState.Shutdown()
 				}
 			}
 		}(i)

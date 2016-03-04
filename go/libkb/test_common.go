@@ -158,11 +158,20 @@ func (tc *TestContext) MakePGPKey(id string) (*PGPKeyBundle, error) {
 	return GeneratePGPKeyBundle(arg, tc.G.UI.GetLogUI())
 }
 
-// ResetLoginStateForTest simulates a shutdown and restart (for client
-// state). Used by tests that need to clear out cached login state
-// without logging out.
+// ResetLoginState simulates a shutdown and restart (for client
+// state). Used by tests that need to clear out cached login
+// state.
 func (tc *TestContext) ResetLoginState() {
 	tc.G.createLoginState()
+}
+
+// ClearLoginStateSecretCaches removes the stream cache and the cached
+// secret keys.
+func (tc *TestContext) ClearLoginStateSecretCaches() {
+	tc.G.LoginState().Account(func(a *Account) {
+		a.ClearStreamCache()
+		a.ClearCachedSecretKeys()
+	}, "TestContext - ClearLoginStateSecretCaches")
 }
 
 func (tc TestContext) ClearAllStoredSecrets() error {

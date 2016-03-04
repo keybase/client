@@ -4,13 +4,11 @@
 package libkb
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
-	jsonw "github.com/keybase/go-jsonw"
 )
 
 type SessionReader interface {
@@ -21,7 +19,6 @@ type SessionReader interface {
 
 type Session struct {
 	Contextified
-	file     *JSONFile
 	token    string
 	csrf     string
 	inFile   bool
@@ -101,53 +98,21 @@ func (s *Session) SetLoggedIn(sessionID, csrfToken string, username NormalizedUs
 	s.uid = uid
 	s.username = &username
 	s.token = sessionID
-	if s.file == nil {
-		if err := s.Load(); err != nil {
-			return err
-		}
-	}
-	if s.GetDictionary() == nil {
-		G.Log.Warning("s.GetDict() == nil")
-	}
-	s.GetDictionary().SetKey("session", jsonw.NewString(sessionID))
-
 	s.SetCsrf(csrfToken)
-
 	s.deviceID = deviceID
-	if s.file == nil {
-		return errors.New("no session file")
-	}
-	s.GetDictionary().SetKey("device_provisioned", jsonw.NewString(deviceID.String()))
+	s.mtime = time.Now()
 
-	return s.save()
-}
-
-func (s *Session) save() error {
-	mtime := time.Now()
-	s.GetDictionary().SetKey("mtime", jsonw.NewInt64(mtime.Unix()))
-	if err := s.file.Save(); err != nil {
-		return err
-	}
-	s.mtime = mtime
 	return nil
 }
 
 func (s *Session) SetCsrf(t string) {
 	s.csrf = t
-	if s.file == nil {
-		return
-	}
-	s.GetDictionary().SetKey("csrf", jsonw.NewString(t))
 }
 
 func (s *Session) SetDeviceProvisioned(devid keybase1.DeviceID) error {
 	s.G().Log.Debug("Local Session:  setting provisioned device id: %s", devid)
 	s.deviceID = devid
-	if s.file == nil {
-		return errors.New("no session file")
-	}
-	s.GetDictionary().SetKey("device_provisioned", jsonw.NewString(devid.String()))
-	return s.save()
+	return nil
 }
 
 func (s *Session) isConfigLoggedIn() bool {
@@ -166,74 +131,6 @@ func (s *Session) nukeSessionFileIfOutOfSync() error {
 		return os.Remove(sessionFile)
 	}
 	return nil
-}
-
-func (s *Session) Load() error {
-	s.G().Log.Debug("+ Loading session")
-	if s.loaded {
-		s.G().Log.Debug("- Skipped; already loaded")
-		return nil
-	}
-
-	err := s.nukeSessionFileIfOutOfSync()
-	if err != nil {
-		return err
-	}
-
-	s.file = NewJSONFile(s.G(), s.G().Env.GetSessionFilename(), "session")
-	err = s.file.Load(false)
-	s.loaded = true
-
-	if err != nil {
-		s.G().Log.Error("Failed to load session file")
-		return err
-	}
-
-	if s.file.Exists() {
-		var tmp error
-		var token, csrf, devid string
-		ok := true
-		s.file.jw.AtKey("session").GetStringVoid(&token, &tmp)
-		if tmp != nil {
-			s.G().Log.Warning("Bad 'session' value in session file %s: %s",
-				s.file.filename, tmp)
-			ok = false
-		}
-		s.file.jw.AtKey("csrf").GetStringVoid(&csrf, &tmp)
-		if tmp != nil {
-			s.G().Log.Warning("Bad 'csrf' value in session file %s: %s",
-				s.file.filename, tmp)
-			ok = false
-		}
-		var did keybase1.DeviceID
-		s.file.jw.AtKey("device_provisioned").GetStringVoid(&devid, &tmp)
-		if tmp != nil {
-			s.G().Log.Debug("Bad 'device_provisioned' value in session file %s: %s", s.file.filename, tmp)
-			ok = false
-		} else {
-			var err error
-			did, err = keybase1.DeviceIDFromString(devid)
-			if err != nil {
-				s.G().Log.Debug("Bad 'device_provisioned' value in session file %s: %s (%s)", s.file.filename, err, devid)
-				ok = false
-
-			}
-		}
-		mtime, _ := s.file.jw.AtKey("mtime").GetInt64()
-		if ok {
-			s.token = token
-			s.csrf = csrf
-			s.inFile = true
-			s.deviceID = did
-			s.mtime = time.Unix(mtime, 0)
-		}
-	}
-	s.G().Log.Debug("- Loaded session")
-	return nil
-}
-
-func (s *Session) GetDictionary() *jsonw.Wrapper {
-	return s.file.jw
 }
 
 func (s *Session) IsRecent() bool {
@@ -281,9 +178,6 @@ func (s *Session) check() error {
 		nu := NewNormalizedUsername(username)
 		s.username = &nu
 		s.SetCsrf(csrf)
-		if err = s.save(); err != nil {
-			return err
-		}
 	} else {
 		s.G().Log.Notice("Stored session expired")
 		s.Invalidate()
@@ -329,26 +223,14 @@ func (s *Session) postLogout() error {
 }
 
 func (s *Session) Logout() error {
-	err := s.Load()
-	var e2 error
-	if err == nil && s.HasSessionToken() {
-		e2 = s.postLogout()
-		if e3 := s.file.Nuke(); e3 != nil {
-			s.inFile = false
-			s.G().Log.Warning("Failed to remove session file: %s", e3)
-		}
+	if s.HasSessionToken() {
+		return s.postLogout()
 	}
-	if err == nil && e2 != nil {
-		err = e2
-	}
-	return err
+	return nil
 }
 
 func (s *Session) loadAndCheck() (bool, error) {
-	err := s.Load()
-	if err != nil {
-		return false, err
-	}
+	var err error
 	if s.HasSessionToken() {
 		err = s.check()
 	}
