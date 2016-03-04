@@ -2,6 +2,7 @@ package libkbfs
 
 import (
 	"testing"
+	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
@@ -14,6 +15,27 @@ func makeTestKBPKIClient(t *testing.T) (
 	currentUID = keybase1.MakeTestUID(1)
 	names := []libkb.NormalizedUsername{"test_name1", "test_name2"}
 	users = MakeLocalUsers(names)
+	daemon := NewKeybaseDaemonMemory(currentUID, users)
+	config := &ConfigLocal{codec: NewCodecMsgpack(), daemon: daemon}
+	setTestLogger(config, t)
+	return NewKBPKIClient(config), currentUID, users
+}
+
+func makeTestKBPKIClientWithRevokedKey(t *testing.T, revokeTime time.Time) (
+	client *KBPKIClient, currentUID keybase1.UID, users []LocalUser) {
+	currentUID = keybase1.MakeTestUID(1)
+	names := []libkb.NormalizedUsername{"test_name1", "test_name2"}
+	users = MakeLocalUsers(names)
+	// Give each user a revoked key
+	for i, user := range users {
+		index := 99
+		keySalt := keySaltForUserDevice(user.Name, index)
+		newVerifyingKey := MakeLocalUserVerifyingKeyOrBust(keySalt)
+		user.RevokedVerifyingKeys = map[VerifyingKey]keybase1.KeybaseTime{
+			newVerifyingKey: {Unix: keybase1.ToTime(revokeTime), Chain: 100},
+		}
+		users[i] = user
+	}
 	daemon := NewKeybaseDaemonMemory(currentUID, users)
 	config := &ConfigLocal{codec: NewCodecMsgpack(), daemon: daemon}
 	setTestLogger(config, t)
@@ -48,13 +70,38 @@ func TestKBPKIClientHasVerifyingKey(t *testing.T) {
 	c, _, localUsers := makeTestKBPKIClient(t)
 
 	err := c.HasVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
-		localUsers[0].VerifyingKeys[0])
+		localUsers[0].VerifyingKeys[0], time.Now())
 	if err != nil {
 		t.Error(err)
 	}
 
 	err = c.HasVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
-		VerifyingKey{})
+		VerifyingKey{}, time.Now())
+	if err == nil {
+		t.Error("HasVerifyingKey unexpectedly succeeded")
+	}
+}
+
+func TestKBPKIClientHasRevokedVerifyingKey(t *testing.T) {
+	revokeTime := time.Now()
+	c, _, localUsers := makeTestKBPKIClientWithRevokedKey(t, revokeTime)
+
+	var revokedKey VerifyingKey
+	for k := range localUsers[0].RevokedVerifyingKeys {
+		revokedKey = k
+		break
+	}
+
+	// Something verified before the key was revoked
+	err := c.HasVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
+		revokedKey, revokeTime.Add(-10*time.Second))
+	if err != nil {
+		t.Error(err)
+	}
+
+	// Something verified after the key was revoked
+	err = c.HasVerifyingKey(context.Background(), keybase1.MakeTestUID(1),
+		revokedKey, revokeTime.Add(10*time.Second))
 	if err == nil {
 		t.Error("HasVerifyingKey unexpectedly succeeded")
 	}
@@ -89,7 +136,7 @@ func TestKBPKIClientHasVerifyingKeyStaleCache(t *testing.T) {
 	config.mockKbd.EXPECT().LoadUserPlusKeys(gomock.Any(), u).
 		Return(info2, nil)
 
-	err := c.HasVerifyingKey(context.Background(), u, key2)
+	err := c.HasVerifyingKey(context.Background(), u, key2, time.Now())
 	if err != nil {
 		t.Error(err)
 	}

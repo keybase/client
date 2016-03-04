@@ -2,6 +2,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
@@ -89,7 +90,7 @@ func (k *KBPKIClient) GetNormalizedUsername(ctx context.Context, uid keybase1.UI
 }
 
 func (k *KBPKIClient) hasVerifyingKey(ctx context.Context, uid keybase1.UID,
-	verifyingKey VerifyingKey) (bool, error) {
+	verifyingKey VerifyingKey, atServerTime time.Time) (bool, error) {
 	userInfo, err := k.loadUserPlusKeys(ctx, uid)
 	if err != nil {
 		return false, err
@@ -97,8 +98,22 @@ func (k *KBPKIClient) hasVerifyingKey(ctx context.Context, uid keybase1.UID,
 
 	for _, key := range userInfo.VerifyingKeys {
 		if verifyingKey.kid.Equal(key.kid) {
-			k.log.CDebugf(ctx, "found verifying key %s for user %s",
-				verifyingKey.kid, uid)
+			return true, nil
+		}
+	}
+
+	for key, t := range userInfo.RevokedVerifyingKeys {
+		if !verifyingKey.kid.Equal(key.kid) {
+			continue
+		}
+		revokedTime := keybase1.FromTime(t.Unix)
+		// Trust the server times -- if the key was valid at the given
+		// time, we are good to go.  TODO: use Merkle data to check
+		// the server timestamps, to prove the server isn't lying.
+		if atServerTime.Before(revokedTime) {
+			k.log.CDebugf(ctx, "Trusting revoked verifying key %s for user %s "+
+				"(revoked time: %v vs. server time %v)", verifyingKey.kid, uid,
+				revokedTime, atServerTime)
 			return true, nil
 		}
 	}
@@ -108,8 +123,8 @@ func (k *KBPKIClient) hasVerifyingKey(ctx context.Context, uid keybase1.UID,
 
 // HasVerifyingKey implements the KBPKI interface for KBPKIClient.
 func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
-	verifyingKey VerifyingKey) error {
-	ok, err := k.hasVerifyingKey(ctx, uid, verifyingKey)
+	verifyingKey VerifyingKey, atServerTime time.Time) error {
+	ok, err := k.hasVerifyingKey(ctx, uid, verifyingKey, atServerTime)
 	if err != nil {
 		return err
 	}
@@ -122,7 +137,7 @@ func (k *KBPKIClient) HasVerifyingKey(ctx context.Context, uid keybase1.UID,
 	// service hasn't learned of the users' new key yet.
 	k.config.KeybaseDaemon().FlushUserFromLocalCache(ctx, uid)
 
-	ok, err = k.hasVerifyingKey(ctx, uid, verifyingKey)
+	ok, err = k.hasVerifyingKey(ctx, uid, verifyingKey, atServerTime)
 	if err != nil {
 		return err
 	}

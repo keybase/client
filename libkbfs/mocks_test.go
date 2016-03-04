@@ -718,14 +718,14 @@ func (_mr *_MockKBPKIRecorder) GetNormalizedUsername(arg0, arg1 interface{}) *go
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetNormalizedUsername", arg0, arg1)
 }
 
-func (_m *MockKBPKI) HasVerifyingKey(ctx context.Context, uid protocol.UID, verifyingKey VerifyingKey) error {
-	ret := _m.ctrl.Call(_m, "HasVerifyingKey", ctx, uid, verifyingKey)
+func (_m *MockKBPKI) HasVerifyingKey(ctx context.Context, uid protocol.UID, verifyingKey VerifyingKey, atServerTime time.Time) error {
+	ret := _m.ctrl.Call(_m, "HasVerifyingKey", ctx, uid, verifyingKey, atServerTime)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockKBPKIRecorder) HasVerifyingKey(arg0, arg1, arg2 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "HasVerifyingKey", arg0, arg1, arg2)
+func (_mr *_MockKBPKIRecorder) HasVerifyingKey(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "HasVerifyingKey", arg0, arg1, arg2, arg3)
 }
 
 func (_m *MockKBPKI) GetCryptPublicKeys(ctx context.Context, uid protocol.UID) ([]CryptPublicKey, error) {

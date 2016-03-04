@@ -100,7 +100,8 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 		// key?
 		kbpki := md.config.KBPKI()
 		err = kbpki.HasVerifyingKey(ctx, writer,
-			rmds.MD.WriterMetadataSigInfo.VerifyingKey)
+			rmds.MD.WriterMetadataSigInfo.VerifyingKey,
+			rmds.untrustedServerTimestamp)
 		if err != nil {
 			if allowUnverified {
 				rmds.MD.unverified = true
@@ -134,7 +135,8 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 
 		// TODO: what do we do if the signature is from a revoked
 		// key?
-		err = kbpki.HasVerifyingKey(ctx, user, rmds.SigInfo.VerifyingKey)
+		err = kbpki.HasVerifyingKey(ctx, user, rmds.SigInfo.VerifyingKey,
+			rmds.untrustedServerTimestamp)
 		if err != nil {
 			if allowUnverified {
 				rmds.MD.unverified = true

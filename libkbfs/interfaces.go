@@ -363,11 +363,8 @@ type KBPKI interface {
 
 	// HasVerifyingKey returns nil if the given user has the given
 	// VerifyingKey, and an error otherwise.
-	//
-	// TODO: Add a timestamp argument (or similar) so that we can
-	// check for revocation.
 	HasVerifyingKey(ctx context.Context, uid keybase1.UID,
-		verifyingKey VerifyingKey) error
+		verifyingKey VerifyingKey, atServerTime time.Time) error
 	// GetCryptPublicKeys gets all of a user's crypt public keys (including
 	// paper keys).
 	GetCryptPublicKeys(ctx context.Context, uid keybase1.UID) (
