@@ -17,6 +17,7 @@ import pinentry from '../pinentry'
 import tracker from '../tracker'
 import components from './component-sheet'
 import componentsTracker from './components-tracker'
+import componentsUpdate from './components-update'
 import styleSheet from './style-sheet'
 
 class Foo extends Component {
@@ -77,6 +78,9 @@ class DevMenu extends Component {
       {name: 'Components (Tracker)', hasChildren: true, onClick: () => {
         this.props.routeAppend(['componentsTracker'])
       }},
+      {name: 'Components (Update)', hasChildren: true, onClick: () => {
+        this.props.routeAppend(['componentsUpdate'])
+      }},
       {name: 'Stylesheet', hasChildren: true, onClick: () => {
         this.props.routeAppend(['styleSheet'])
       }}
@@ -89,7 +93,7 @@ class DevMenu extends Component {
   static parseRoute () {
     return {
       componentAtTop: {title: 'Dev Menu'},
-      subRoutes: {developer, login, pinentry, tracker, components, componentsTracker, styleSheet}
+      subRoutes: {developer, login, pinentry, tracker, components, componentsTracker, componentsUpdate, styleSheet}
     }
   }
 }

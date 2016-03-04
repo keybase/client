@@ -182,6 +182,7 @@ class DZ2Font extends Component {
                   padding: 40,
                   minWidth: 500,
                   backgroundColor: background}}>
+                <Text dz2 backgroundMode={backgroundMode} type='HeaderJumbo'>{backgroundMode}</Text>
                 <Text dz2 backgroundMode={backgroundMode} type='HeaderJumbo'>Header Jumbo</Text>
                 <Text dz2 backgroundMode={backgroundMode} type='HeaderJumbo'>Header Jumbo</Text>
                 <Space/>
