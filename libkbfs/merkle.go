@@ -18,8 +18,8 @@ type MerkleRoot struct {
 	Timestamp int64                  `codec:"ts"`
 	Hash      merkle.Hash            `codec:"h"`
 	PrevRoot  merkle.Hash            `codec:"pr"`
-	EPubKey   *TLFEphemeralPublicKey `codec:"epk,omitempty"`
-	Nonce     *[24]byte              `codec:"non,omitempty"`
+	EPubKey   *TLFEphemeralPublicKey `codec:"epk,omitempty"` // these two are only necessary with encrypted leaves.
+	Nonce     *[24]byte              `codec:"non,omitempty"` // the public tree leaves are in the clear.
 }
 
 // MerkleLeaf is the value of a Merkle leaf node.
