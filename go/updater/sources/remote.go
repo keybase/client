@@ -49,7 +49,7 @@ func (k RemoteUpdateSource) FindUpdate(options keybase1.UpdateOptions) (update *
 	k.log.Info("Request %#v", sourceURL)
 	resp, err := client.Do(req)
 	if resp != nil {
-		defer resp.Body.Close()
+		defer libkb.DiscardAndCloseBody(resp)
 	}
 	if err != nil {
 		return
