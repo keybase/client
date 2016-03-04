@@ -177,9 +177,11 @@ func (api *BaseAPIEngine) PreparePost(url url.URL, arg APIArg, sendJSON bool) (*
 //============================================================================
 // Shared code
 //
+
+// The returned response, if non-nil, should have
+// DiscardAndCloseBody() called on it.
 func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes bool) (
 	resp *http.Response, jw *jsonw.Wrapper, err error) {
-
 	if !arg.G().Env.GetTorMode().UseSession() && arg.NeedSession {
 		err = TorSessionRequiredError{}
 		return
@@ -201,7 +203,13 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	}
 
 	timer := arg.G().Timers.Start(timerType)
-	resp, err = cli.cli.Do(req)
+	internalResp, err := cli.cli.Do(req)
+	defer func() {
+		if internalResp != nil && err != nil {
+			DiscardAndCloseBody(internalResp)
+		}
+	}()
+
 	timer.Report(req.Method + " " + arg.Endpoint)
 
 	if err != nil {
@@ -221,12 +229,10 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	}
 
 	if wantJSONRes {
-
 		decoder := json.NewDecoder(resp.Body)
 		var obj interface{}
 		decoder.UseNumber()
 		err = decoder.Decode(&obj)
-		resp.Body.Close()
 		if err != nil {
 			err = fmt.Errorf("Error in parsing JSON reply from server: %s", err)
 			return nil, nil, err
@@ -239,7 +245,7 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 		}
 	}
 
-	return resp, jw, nil
+	return internalResp, jw, nil
 }
 
 func checkHTTPStatus(arg APIArg, resp *http.Response) error {
@@ -405,7 +411,9 @@ func (a *InternalAPIEngine) Get(arg APIArg) (*APIRes, error) {
 	return a.DoRequest(arg, req)
 }
 
-// GetResp performs a GET request and returns the http response.
+// GetResp performs a GET request and returns the http response.  The
+// returned response, if non-nil, should have DiscardAndCloseBody()
+// called on it.
 func (a *InternalAPIEngine) GetResp(arg APIArg) (*http.Response, error) {
 	url := a.getURL(arg)
 	req, err := a.PrepareGet(url, arg)
@@ -455,6 +463,8 @@ func (a *InternalAPIEngine) PostJSON(arg APIArg) (*APIRes, error) {
 }
 
 // PostResp performs a POST request and returns the http response.
+// The returned response, if non-nil, should have
+// DiscardAndCloseBody() called on it.
 func (a *InternalAPIEngine) PostResp(arg APIArg) (*http.Response, error) {
 	url := a.getURL(arg)
 	req, err := a.PreparePost(url, arg, false)
@@ -500,6 +510,7 @@ func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, e
 	if err != nil {
 		return nil, err
 	}
+	defer DiscardAndCloseBody(resp)
 
 	status, err := jw.AtKey("status").ToDictionary()
 	if err != nil {
@@ -570,6 +581,7 @@ func (api *ExternalAPIEngine) DoRequest(
 	if err != nil {
 		return
 	}
+	defer DiscardAndCloseBody(resp)
 
 	switch restype {
 	case XAPIResJSON:
