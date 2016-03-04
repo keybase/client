@@ -11,6 +11,7 @@ const mobileAppsExistKey = 'mobileAppsExist'
 
 type FeatureFlags = {
   'admin': boolean,
+  'dz2': boolean,
   'login': boolean,
   'mobileAppsExist': boolean,
   'tracker2': boolean
