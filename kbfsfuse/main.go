@@ -70,7 +70,7 @@ func start() *libfs.Error {
 	}
 
 	if kbfsParams.Debug {
-		fuseLog := logger.NewWithCallDepth("FUSE", 1, os.Stderr)
+		fuseLog := logger.NewWithCallDepth("FUSE", 1)
 		fuseLog.Configure("", true, "")
 		fuse.Debug = func(msg interface{}) {
 			fuseLog.Debug("%s", msg)

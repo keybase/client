@@ -54,7 +54,6 @@ func (n NullConfiguration) GetProxyCACerts() ([]string, error)            { retu
 func (n NullConfiguration) GetAutoFork() (bool, bool)                     { return false, false }
 func (n NullConfiguration) GetRunMode() (RunMode, error)                  { return NoRunMode, nil }
 func (n NullConfiguration) GetNoAutoFork() (bool, bool)                   { return false, false }
-func (n NullConfiguration) GetSplitLogOutput() (bool, bool)               { return false, false }
 func (n NullConfiguration) GetLogFile() string                            { return "" }
 func (n NullConfiguration) GetScraperTimeout() (time.Duration, bool)      { return 0, false }
 func (n NullConfiguration) GetAPITimeout() (time.Duration, bool)          { return 0, false }
@@ -120,6 +119,7 @@ func (n NullConfiguration) GetSecurityAccessGroupOverride() (bool, bool) {
 type TestParameters struct {
 	ConfigFilename string
 	Home           string
+	GPG            string
 	GPGHome        string
 	GPGOptions     []string
 	Debug          bool
@@ -693,6 +693,7 @@ func (e *Env) GetCodeSigningKIDs() []keybase1.KID {
 
 func (e *Env) GetGpg() string {
 	return e.GetString(
+		func() string { return e.Test.GPG },
 		func() string { return e.cmd.GetGpg() },
 		func() string { return os.Getenv("GPG") },
 		func() string { return e.config.GetGpg() },
@@ -744,18 +745,15 @@ func (e *Env) GetDeviceID() keybase1.DeviceID {
 	return e.config.GetDeviceID()
 }
 
-func (e *Env) GetSplitLogOutput() bool {
-	return e.GetBool(false,
-		func() (bool, bool) { return e.cmd.GetSplitLogOutput() },
-		func() (bool, bool) { return e.getEnvBool("KEYBASE_SPLIT_LOG_OUTPUT") },
-		func() (bool, bool) { return e.config.GetSplitLogOutput() },
+func (e *Env) GetLogFile() string {
+	return e.GetString(
+		func() string { return e.cmd.GetLogFile() },
+		func() string { return os.Getenv("KEYBASE_LOG_FILE") },
 	)
 }
 
-func (e *Env) GetLogFile() string {
-	return e.GetString(
-		func() string { return filepath.Join(e.GetLogDir(), ServiceLogFileName) },
-	)
+func (e *Env) GetDefaultLogFile() string {
+	return filepath.Join(e.GetLogDir(), ServiceLogFileName)
 }
 
 func (e *Env) GetTorMode() TorMode {

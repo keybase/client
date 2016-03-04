@@ -18,10 +18,10 @@ type GetConfiguredAccountsArg struct {
 }
 
 type LoginArg struct {
-	SessionID  int        `codec:"sessionID" json:"sessionID"`
-	DeviceType string     `codec:"deviceType" json:"deviceType"`
-	Username   string     `codec:"username" json:"username"`
-	ClientType ClientType `codec:"clientType" json:"clientType"`
+	SessionID       int        `codec:"sessionID" json:"sessionID"`
+	DeviceType      string     `codec:"deviceType" json:"deviceType"`
+	UsernameOrEmail string     `codec:"usernameOrEmail" json:"usernameOrEmail"`
+	ClientType      ClientType `codec:"clientType" json:"clientType"`
 }
 
 type ClearStoredSecretArg struct {

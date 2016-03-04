@@ -49,6 +49,16 @@ type PublicKey struct {
 	ETime             Time          `codec:"eTime" json:"eTime"`
 }
 
+type KeybaseTime struct {
+	Unix  Time `codec:"unix" json:"unix"`
+	Chain int  `codec:"chain" json:"chain"`
+}
+
+type RevokedKey struct {
+	Key  PublicKey   `codec:"key" json:"key"`
+	Time KeybaseTime `codec:"time" json:"time"`
+}
+
 type User struct {
 	Uid      UID    `codec:"uid" json:"uid"`
 	Username string `codec:"username" json:"username"`
@@ -100,11 +110,12 @@ type UserVersionVector struct {
 }
 
 type UserPlusKeys struct {
-	Uid        UID               `codec:"uid" json:"uid"`
-	Username   string            `codec:"username" json:"username"`
-	DeviceKeys []PublicKey       `codec:"deviceKeys" json:"deviceKeys"`
-	Keys       []PublicKey       `codec:"keys" json:"keys"`
-	Uvv        UserVersionVector `codec:"uvv" json:"uvv"`
+	Uid               UID               `codec:"uid" json:"uid"`
+	Username          string            `codec:"username" json:"username"`
+	DeviceKeys        []PublicKey       `codec:"deviceKeys" json:"deviceKeys"`
+	RevokedDeviceKeys []RevokedKey      `codec:"revokedDeviceKeys" json:"revokedDeviceKeys"`
+	PGPKeyCount       int               `codec:"pgpKeyCount" json:"pgpKeyCount"`
+	Uvv               UserVersionVector `codec:"uvv" json:"uvv"`
 }
 
 type MerkleTreeID int

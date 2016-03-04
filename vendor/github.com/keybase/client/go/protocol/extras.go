@@ -160,6 +160,15 @@ func (k KID) ToJsonw() *jsonw.Wrapper {
 	return jsonw.NewString(string(k))
 }
 
+func (k KID) IsIn(list []KID) bool {
+	for _, h := range list {
+		if h.Equal(k) {
+			return true
+		}
+	}
+	return false
+}
+
 func DeviceIDFromBytes(b [DeviceIDLen]byte) DeviceID {
 	return DeviceID(hex.EncodeToString(b[:]))
 }

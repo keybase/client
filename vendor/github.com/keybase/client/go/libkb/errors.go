@@ -335,7 +335,7 @@ type PassphraseError struct {
 func (p PassphraseError) Error() string {
 	msg := "Bad passphrase"
 	if len(p.Msg) != 0 {
-		msg = msg + ": " + p.Msg
+		msg = msg + ": " + p.Msg + "."
 	}
 	return msg
 }
@@ -1224,6 +1224,12 @@ func (e PassphraseProvisionImpossibleError) Error() string {
 	return "Passphrase provision is not possible since you have at least one provisioned device or pgp key already"
 }
 
+type ProvisionUnavailableError struct{}
+
+func (e ProvisionUnavailableError) Error() string {
+	return "Provision unavailable as you don't have access to any of your devices"
+}
+
 type InvalidArgumentError struct {
 	Msg string
 }
@@ -1351,4 +1357,18 @@ type BadInvitationCodeError struct{}
 
 func (e BadInvitationCodeError) Error() string {
 	return "bad invitation code"
+}
+
+type NoMatchingGPGKeysError struct {
+	Fingerprints []string
+}
+
+func (e NoMatchingGPGKeysError) Error() string {
+	return fmt.Sprintf("No private GPG keys found on this device that match account PGP keys %s", strings.Join(e.Fingerprints, ", "))
+}
+
+type DeviceAlreadyProvisionedError struct{}
+
+func (e DeviceAlreadyProvisionedError) Error() string {
+	return "Device already provisioned for current user"
 }

@@ -62,7 +62,7 @@ func realMain() (exitStatus int) {
 		return 1
 	}
 
-	log := logger.NewWithCallDepth("", 1, os.Stderr)
+	log := logger.NewWithCallDepth("", 1)
 
 	config, err := libkbfs.Init(*kbfsParams, nil, log)
 	if err != nil {

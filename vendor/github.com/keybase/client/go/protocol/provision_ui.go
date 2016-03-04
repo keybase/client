@@ -18,6 +18,14 @@ const (
 	ProvisionMethod_GPG_SIGN   ProvisionMethod = 4
 )
 
+type GPGMethod int
+
+const (
+	GPGMethod_GPG_NONE   GPGMethod = 0
+	GPGMethod_GPG_IMPORT GPGMethod = 1
+	GPGMethod_GPG_SIGN   GPGMethod = 2
+)
+
 type DeviceType int
 
 const (
@@ -40,6 +48,22 @@ type SecretResponse struct {
 type ChooseProvisioningMethodArg struct {
 	SessionID int  `codec:"sessionID" json:"sessionID"`
 	GpgOption bool `codec:"gpgOption" json:"gpgOption"`
+}
+
+type ChooseGPGMethodArg struct {
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Keys      []GPGKey `codec:"keys" json:"keys"`
+}
+
+type SwitchToGPGSignOKArg struct {
+	SessionID   int    `codec:"sessionID" json:"sessionID"`
+	Key         GPGKey `codec:"key" json:"key"`
+	ImportError string `codec:"importError" json:"importError"`
+}
+
+type ChooseDeviceArg struct {
+	SessionID int      `codec:"sessionID" json:"sessionID"`
+	Devices   []Device `codec:"devices" json:"devices"`
 }
 
 type ChooseDeviceTypeArg struct {
@@ -78,6 +102,9 @@ type ProvisionerSuccessArg struct {
 
 type ProvisionUiInterface interface {
 	ChooseProvisioningMethod(context.Context, ChooseProvisioningMethodArg) (ProvisionMethod, error)
+	ChooseGPGMethod(context.Context, ChooseGPGMethodArg) (GPGMethod, error)
+	SwitchToGPGSignOK(context.Context, SwitchToGPGSignOKArg) (bool, error)
+	ChooseDevice(context.Context, ChooseDeviceArg) (DeviceID, error)
 	ChooseDeviceType(context.Context, ChooseDeviceTypeArg) (DeviceType, error)
 	DisplayAndPromptSecret(context.Context, DisplayAndPromptSecretArg) (SecretResponse, error)
 	DisplaySecretExchanged(context.Context, int) error
@@ -102,6 +129,54 @@ func ProvisionUiProtocol(i ProvisionUiInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.ChooseProvisioningMethod(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"chooseGPGMethod": {
+				MakeArg: func() interface{} {
+					ret := make([]ChooseGPGMethodArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChooseGPGMethodArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChooseGPGMethodArg)(nil), args)
+						return
+					}
+					ret, err = i.ChooseGPGMethod(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"switchToGPGSignOK": {
+				MakeArg: func() interface{} {
+					ret := make([]SwitchToGPGSignOKArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SwitchToGPGSignOKArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SwitchToGPGSignOKArg)(nil), args)
+						return
+					}
+					ret, err = i.SwitchToGPGSignOK(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"chooseDevice": {
+				MakeArg: func() interface{} {
+					ret := make([]ChooseDeviceArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ChooseDeviceArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ChooseDeviceArg)(nil), args)
+						return
+					}
+					ret, err = i.ChooseDevice(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -212,6 +287,21 @@ type ProvisionUiClient struct {
 
 func (c ProvisionUiClient) ChooseProvisioningMethod(ctx context.Context, __arg ChooseProvisioningMethodArg) (res ProvisionMethod, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.provisionUi.chooseProvisioningMethod", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ProvisionUiClient) ChooseGPGMethod(ctx context.Context, __arg ChooseGPGMethodArg) (res GPGMethod, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.chooseGPGMethod", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ProvisionUiClient) SwitchToGPGSignOK(ctx context.Context, __arg SwitchToGPGSignOKArg) (res bool, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.switchToGPGSignOK", []interface{}{__arg}, &res)
+	return
+}
+
+func (c ProvisionUiClient) ChooseDevice(ctx context.Context, __arg ChooseDeviceArg) (res DeviceID, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.provisionUi.chooseDevice", []interface{}{__arg}, &res)
 	return
 }
 

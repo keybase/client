@@ -45,10 +45,13 @@ const (
 	StatusCode_SCKeyNoPGPEncryption     StatusCode = 927
 	StatusCode_SCKeyNoNaClEncryption    StatusCode = 928
 	StatusCode_SCKeySyncedPGPNotFound   StatusCode = 929
+	StatusCode_SCKeyNoMatchingGPG       StatusCode = 930
 	StatusCode_SCBadTrackSession        StatusCode = 1301
 	StatusCode_SCDeviceNotFound         StatusCode = 1409
 	StatusCode_SCDeviceMismatch         StatusCode = 1410
 	StatusCode_SCDeviceRequired         StatusCode = 1411
+	StatusCode_SCDevicePrevProvisioned  StatusCode = 1413
+	StatusCode_SCDeviceNoProvision      StatusCode = 1414
 	StatusCode_SCStreamExists           StatusCode = 1501
 	StatusCode_SCStreamNotFound         StatusCode = 1502
 	StatusCode_SCStreamWrongKind        StatusCode = 1503

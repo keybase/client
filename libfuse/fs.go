@@ -38,10 +38,10 @@ type FS struct {
 
 // NewFS creates an FS
 func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool) *FS {
-	log := logger.NewWithCallDepth("kbfsfuse", 1, os.Stderr)
+	log := logger.NewWithCallDepth("kbfsfuse", 1)
 	// We need extra depth for errors, so that we can report the line
 	// number for the caller of reportErr, not reportErr itself.
-	errLog := logger.NewWithCallDepth("kbfsfuse", 2, os.Stderr)
+	errLog := logger.NewWithCallDepth("kbfsfuse", 2)
 	if debug {
 		// Turn on debugging.  TODO: allow a proper log file and
 		// style to be specified.

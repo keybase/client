@@ -28,7 +28,7 @@ type StartOptions struct {
 func Start(mounter Mounter, options StartOptions) *libfs.Error {
 	var err error
 
-	log := logger.NewWithCallDepth("", 1, os.Stderr)
+	log := logger.NewWithCallDepth("", 1)
 	log.Info("KBFS version %s", libkbfs.VersionString())
 
 	onInterruptFn := func() {

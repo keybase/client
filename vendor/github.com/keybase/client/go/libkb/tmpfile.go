@@ -6,7 +6,7 @@ package libkb
 import (
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 )
 
 // OpenTempFile creates an opened termporary file. Use mode=0 for default
@@ -46,5 +46,5 @@ func TempFile(prefix string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return path.Join(os.TempDir(), tmp), nil
+	return filepath.Join(os.TempDir(), tmp), nil
 }

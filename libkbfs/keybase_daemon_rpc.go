@@ -58,7 +58,7 @@ func NewKeybaseDaemonRPC(config Config, kbCtx *libkb.GlobalContext, log logger.L
 	conn := NewSharedKeybaseConnection(kbCtx, config, k)
 	k.fillClients(conn.GetClient())
 	k.shutdownFn = conn.Shutdown
-	k.daemonLog = logger.NewWithCallDepth("daemon", 1, os.Stderr)
+	k.daemonLog = logger.NewWithCallDepth("daemon", 1)
 	if debug {
 		k.daemonLog.Configure("", true, "")
 	}
@@ -412,7 +412,7 @@ func (k *KeybaseDaemonRPC) LoadUserPlusKeys(ctx context.Context, uid keybase1.UI
 		return cachedUserInfo, nil
 	}
 
-	arg := keybase1.LoadUserPlusKeysArg{Uid: uid, CacheOK: true}
+	arg := keybase1.LoadUserPlusKeysArg{Uid: uid}
 	res, err := k.userClient.LoadUserPlusKeys(ctx, arg)
 	if err != nil {
 		return UserInfo{}, err

@@ -102,7 +102,6 @@ func (s *Session) SetLoggedIn(sessionID, csrfToken string, username NormalizedUs
 	s.username = &username
 	s.token = sessionID
 	if s.file == nil {
-		G.Log.Warning("s.file == nil")
 		if err := s.Load(); err != nil {
 			return err
 		}

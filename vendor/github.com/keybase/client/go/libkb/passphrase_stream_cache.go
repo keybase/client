@@ -63,8 +63,10 @@ func (s *PassphraseStreamCache) Clear() {
 	if s == nil {
 		return
 	}
-	s.tsec.Scrub()
-	s.tsec = nil
+	if s.tsec != nil {
+		s.tsec.Scrub()
+		s.tsec = nil
+	}
 	s.passphraseStream = nil
 }
 
