@@ -89,7 +89,7 @@ const styles2 = {
     overflowY: 'auto',
     overflowX: 'hidden',
     // This value is added to the footer height to set the actual paddingBottom
-    paddingBottom: 20,
+    paddingBottom: 12,
     zIndex: 1
   },
   footer: {
