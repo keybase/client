@@ -133,6 +133,7 @@ export default connect(
   },
   (stateProps, dispatchProps, ownProps) => {
     return {
+      proofs: [],
       loggedIn: stateProps.loggedIn,
       ...stateProps.trackers[ownProps.username],
       ...dispatchProps,
