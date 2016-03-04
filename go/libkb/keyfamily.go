@@ -747,19 +747,22 @@ type RevokedKey struct {
 func (ckf ComputedKeyFamily) GetRevokedKeys() []RevokedKey {
 	var revokedKeys []RevokedKey
 	for kid := range ckf.kf.AllKIDs {
-		ki := ckf.cki.Infos[kid]
-		if ki == nil {
+		ki, ok := ckf.cki.Infos[kid]
+		if !ok || ki == nil {
+			ckf.G().Log.Errorf("KID %s not in cki.Infos", kid)
 			continue
 		}
 		if ki.Status != KeyRevoked {
 			continue
 		}
 		if ki.RevokedAt == nil {
+			ckf.G().Log.Errorf("KID %s: status is KeyRevoked, but RevokedAt is nil", kid)
 			continue
 		}
 
 		key, err := ckf.FindKeyWithKIDUnsafe(kid)
 		if err != nil {
+			ckf.G().Log.Errorf("No key found for %s in ckf", kid)
 			continue
 		}
 
