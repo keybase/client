@@ -307,7 +307,6 @@ function askForCodePage (cb) : AsyncAction {
 export function cancelLogin () : AsyncAction {
   return (dispatch, getState) => {
     dispatch(navBasedOnLoginState())
-    console.log('aaaa cancel called', currentLoginSessionID)
     if (currentLoginSessionID) {
       engine.cancelRPC(currentLoginSessionID)
       currentLoginSessionID = null
