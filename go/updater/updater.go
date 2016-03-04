@@ -250,7 +250,7 @@ func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool
 		err = fmt.Errorf("No response")
 		return
 	}
-	defer resp.Body.Close()
+	defer libkb.DiscardAndCloseBody(resp)
 	if resp.StatusCode == http.StatusNotModified {
 		u.log.Info("Using cached file: %s", fpath)
 		cached = true

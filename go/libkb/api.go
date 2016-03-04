@@ -436,8 +436,8 @@ func (a *InternalAPIEngine) GetDecode(arg APIArg, v APIResponseWrapper) error {
 	if err != nil {
 		return err
 	}
+	defer DiscardAndCloseBody(resp)
 	dec := json.NewDecoder(resp.Body)
-	defer resp.Body.Close()
 	if err = dec.Decode(&v); err != nil {
 		return err
 	}
@@ -485,8 +485,8 @@ func (a *InternalAPIEngine) PostDecode(arg APIArg, v APIResponseWrapper) error {
 	if err != nil {
 		return err
 	}
+	defer DiscardAndCloseBody(resp)
 	dec := json.NewDecoder(resp.Body)
-	defer resp.Body.Close()
 	if err = dec.Decode(&v); err != nil {
 		return err
 	}
@@ -595,7 +595,6 @@ func (api *ExternalAPIEngine) DoRequest(
 	case XAPIResText:
 		var buf bytes.Buffer
 		_, err = buf.ReadFrom(resp.Body)
-		defer resp.Body.Close()
 		if err == nil {
 			tr = &ExternalTextRes{resp.StatusCode, string(buf.Bytes())}
 		}
