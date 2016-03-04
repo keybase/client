@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {TextField} from 'material-ui'
-import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide'
+import {globalStyles, globalColorsDZ2} from '../styles/style-guide'
 import {styles as TextStyles, specialStyles} from './text'
 import materialTheme from '../styles/material-theme.desktop'
 

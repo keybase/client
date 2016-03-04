@@ -129,7 +129,7 @@ const propsLoggedOut = {...propsDefault, loggedIn: false, reason: 'You accessed 
 
 const propsOneProof = {...propsDefault, proofs: [proofsDefault[0]]}
 const smallBio = {...propsDefault.userInfo, bio: 'bio'}
-const propsFiveProof = {...propsDefault, userInfo: smallBio, proofs: [0,1,2,3,4].map(proofGithubMaker)}
+const propsFiveProof = {...propsDefault, userInfo: smallBio, proofs: [0, 1, 2, 3, 4].map(proofGithubMaker)}
 
 export default class Render extends Component {
   render () {

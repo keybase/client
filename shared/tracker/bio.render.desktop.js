@@ -99,7 +99,7 @@ export default class BioRender extends Component {
               type='HeaderBig'
               className='hover-underline'
               style={{...styles.username, ...(currentlyFollowing ? styles.usernameFollowing : styles.usernameNotFollowing)}}
-              onClick={() => this.onClickAvatar()}>
+              onClick={() => this._onClickAvatar()}>
               {username}
             </Text>
             <Text type='BodySemibold' dz2 style={styles.fullname}>{userInfo.fullname}</Text>

@@ -162,7 +162,7 @@ export function autoLogin () : AsyncAction {
       method: 'login.login',
       param: {
         deviceType: isMobile ? 'mobile' : 'desktop',
-        username: '',
+        usernameOrEmail: '',
         clientType: enums.login.ClientType.gui
       },
       incomingCallMap: {},
@@ -186,7 +186,7 @@ export function relogin (user: string, passphrase: string, store: boolean) : Asy
       method: 'login.login',
       param: {
         deviceType: isMobile ? 'mobile' : 'desktop',
-        username: user,
+        usernameOrEmail: user,
         clientType: enums.login.ClientType.gui
       },
       incomingCallMap: {
@@ -412,7 +412,7 @@ function startLoginFlow (dispatch, getState, provisionMethod, userPassTitle, use
     method: 'login.login',
     param: {
       deviceType,
-      username: '',
+      usernameOrEmail: '',
       clientType: enums.login.ClientType.gui
     },
     incomingCallMap: incomingMap,
