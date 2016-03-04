@@ -78,13 +78,13 @@ export default class Text extends Component {
       'BodySmallSemibold': styles.textBodySmallSemibold,
       'Error': styles.textError,
       'Terminal': {...styles.textTerminal, color: (this.context.inTerminal ? globalColorsDZ2.blue3 : globalColorsDZ2.darkBlue)},
+      'TerminalSmall': {...styles.textTerminalSmall, color: (this.context.inTerminal ? globalColorsDZ2.blue3 : globalColorsDZ2.darkBlue)},
       'TerminalCommand': styles.textTerminalCommand,
       'TerminalComment': styles.textTerminalComment,
       'TerminalUsername': styles.textTerminalUsername,
       'TerminalPublic': styles.textTerminalPublic,
       'TerminalPrivate': styles.textTerminalPrivate,
       'TerminalEmpty': styles.textTerminalEmpty,
-      'TerminalSmall': styles.textTerminalSmall,
       'InputHeader': styles.textInputHeader
     }[this.props.type]
 
