@@ -38,21 +38,17 @@ eval "$(gpg-agent --daemon --max-cache-ttl 315360000 --default-cache-ttl 3153600
 gpg --sign --use-agent --default-key "$code_signing_fingerprint" \
   --output /dev/null /dev/null
 
-# Copy the repos we'll be using to build. There are two reasons we do this:
-# 1) We don't want builds to get confused by changes made on the host after
-#    the build has started. This especially applies to nightly builds, which
-#    require a repo that always remains at master.
-# 2) Even if we wanted to have changes in the container be reflected back in
-#    the host, all files written by a Docker container will appear on the host
-#    to be written by root. That interacts poorly with a user's repos.
-# Thus we have the host share these directories read-only, and we copy them.
-echo "Copying the client repo..."
-cp -r /CLIENT "$client_copy"
+# Make fresh clones of the repos we want to build, so that we don't get
+# confused by any state in the host's working copy. Using the --reference flag
+# means that these clones can still use the git objects that the host already
+# has.
+echo "Cloning the client repo..."
+git clone git@github.com:keybase/client "$client_copy" --reference /CLIENT
 echo "Copying the kbfs repo..."
-cp -r /KBFS "$kbfs_copy"
+git clone git@github.com:keybase/kbfs "$kbfs_copy" --reference /KBFS
 if [ "$mode" != prerelease ] && [ "$mode" != nightly ] ; then
   echo "Copying the server-ops repo..."
-  cp -r /SERVEROPS "$serverops_copy"
+  git clone git@github.com:keybase/server-ops "$serverops_copy" --reference /SERVEROPS
   git -C "$serverops_copy" config user.name "Keybase Linux Build"
   git -C "$serverops_copy" config user.email "example@example.com"
 fi

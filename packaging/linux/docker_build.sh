@@ -29,10 +29,6 @@ clientdir="$(git -C "$here" rev-parse --show-toplevel)"
 kbfsdir="$clientdir/../kbfs"
 serveropsdir="$clientdir/../server-ops"
 
-# Make sure KBFS is there and up to date. (This assumes that we always build
-# KBFS from master.)
-"$here/../check_status_and_pull.sh" "$kbfsdir"
-
 # Pushing will require either S3 credentials or the server-ops dir, depending
 # on the build mode. Make sure the appropriate one is available.
 s3cmd_temp="$(mktemp -d)"
