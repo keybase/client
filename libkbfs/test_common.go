@@ -176,6 +176,7 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 
 	c.SetBlockSplitter(config.BlockSplitter())
 	c.SetKeyManager(NewKeyManagerStandard(c))
+	c.SetClock(config.Clock())
 
 	daemon := config.KeybaseDaemon().(KeybaseDaemonLocal)
 	loggedInUID, ok := daemon.asserts[string(loggedInUser)]
@@ -357,6 +358,21 @@ func RevokeDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config,
 		(kbd.currentUID == uid && index == user.CurrentCryptPublicKeyIndex) {
 		t.Fatalf("Can't revoke index %d", index)
 	}
+
+	if user.RevokedVerifyingKeys == nil {
+		user.RevokedVerifyingKeys = make(map[VerifyingKey]keybase1.KeybaseTime)
+	}
+	if user.RevokedCryptPublicKeys == nil {
+		user.RevokedCryptPublicKeys =
+			make(map[CryptPublicKey]keybase1.KeybaseTime)
+	}
+
+	kbtime := keybase1.KeybaseTime{
+		Unix:  keybase1.ToTime(config.Clock().Now()),
+		Chain: 100,
+	}
+	user.RevokedVerifyingKeys[user.VerifyingKeys[index]] = kbtime
+	user.RevokedCryptPublicKeys[user.CryptPublicKeys[index]] = kbtime
 
 	user.VerifyingKeys = append(user.VerifyingKeys[:index],
 		user.VerifyingKeys[index+1:]...)

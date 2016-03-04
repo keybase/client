@@ -282,6 +282,8 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2)
 	defer CheckConfigAndShutdown(t, config1)
+	clock := &TestClock{time.Now()}
+	config1.SetClock(clock)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)
 	defer CheckConfigAndShutdown(t, config2)
@@ -302,6 +304,19 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 
 	// user 1 creates a file
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	kbfsOps2 := config2.KBFSOps()
+	rootNode2, _, err :=
+		kbfsOps2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+
+	// user 2 creates a file
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "b", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -363,7 +378,8 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	devIndex = AddDeviceForLocalUserOrBust(t, config2Dev3, uid2)
 	SwitchDeviceForLocalUserOrBust(t, config2Dev3, devIndex)
 
-	// Now revoke the original user 2 device
+	// Now revoke the original user 2 device (the last writer)
+	clock.T = clock.T.Add(1 * time.Minute)
 	RevokeDeviceForLocalUserOrBust(t, config1, uid2, 0)
 	RevokeDeviceForLocalUserOrBust(t, config2Dev2, uid2, 0)
 	RevokeDeviceForLocalUserOrBust(t, config2Dev3, uid2, 0)
@@ -380,7 +396,7 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	}
 
 	// force re-encryption of the root dir
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "b", false)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "c", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -391,22 +407,34 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	}
 
 	// device 2 should still work
-	rootNode2, _, err :=
+	rootNode2Dev2, _, err :=
 		kbfsOps2Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
 	if err != nil {
 		t.Fatalf("Got unexpected error after rekey: %v", err)
 	}
 
-	children, err := kbfsOps2Dev2.GetDirChildren(ctx, rootNode2)
-	if _, ok := children["b"]; !ok {
+	children, err := kbfsOps2Dev2.GetDirChildren(ctx, rootNode2Dev2)
+	if _, ok := children["c"]; !ok {
 		t.Fatalf("Device 2 couldn't see the new dir entry")
 	}
 
-	// but device 1 should now fail
-	kbfsOps2 := config2.KBFSOps()
-	_, _, err = kbfsOps2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
-	if _, ok := err.(NeedSelfRekeyError); !ok {
-		t.Fatalf("Got unexpected error when reading with revoked key: %v", err)
+	// But device 1 should now fail to see any updates.  TODO: when a
+	// device sees it has been revoked from the TLF, we should delete
+	// all its cached data and refuse to serve any more.  (However, in
+	// production the device's session would likely be revoked,
+	// probably leading to NoCurrentSession errors anyway.)
+	err = kbfsOps2.SyncFromServer(ctx, rootNode2.GetFolderBranch())
+	if err != nil {
+		// This is expected to succeed; the node will be unable to
+		// deserialize the private MD, but it will still set the HEAD
+		// (which lists the new set of keys) and return a nil error.
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+	// Should still be seeing the old children, since the updates from
+	// the latest revision were never applied.
+	children, err = kbfsOps2.GetDirChildren(ctx, rootNode2)
+	if _, ok := children["c"]; ok {
+		t.Fatalf("Found c unexpectedly: %v", children)
 	}
 
 	// meanwhile, device 3 should be able to read both the new and the
