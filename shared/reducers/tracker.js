@@ -295,13 +295,13 @@ export default function (state: State = initialState, action: Action): State {
         if (!action.payload) {
           return state
         }
-        const username = action.payload.username
+        const username2 = action.payload.username
 
         return {
           ...state,
           trackers: {
             ...state.trackers,
-            [username]: initialTrackerState(username)
+            [username]: initialTrackerState(username2)
           }
         }
       default:
