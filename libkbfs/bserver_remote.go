@@ -16,10 +16,6 @@ const (
 	BServerTokenServer = "kbfs_block"
 	// BServerTokenExpireIn is the TTL to use when constructing an authentication token.
 	BServerTokenExpireIn = 2 * 60 * 60 // 2 hours
-	// BServerClientName is the client name to include in an authentication token.
-	BServerClientName = "libkbfs_bserver_remote"
-	// BServerClientVersion is the client version to include in an authentication token.
-	BServerClientVersion = Version
 )
 
 // BlockServerRemote implements the BlockServer interface and
@@ -50,7 +46,7 @@ func NewBlockServerRemote(config Config, blkSrvAddr string) *BlockServerRemote {
 	bs.log.Debug("new instance server addr %s", blkSrvAddr)
 	bs.authToken = NewAuthToken(config,
 		BServerTokenServer, BServerTokenExpireIn,
-		BServerClientName, BServerClientVersion, bs)
+		"libkbfs_bserver_remote", bs)
 	// This will connect only on-demand due to the last argument.
 	conn := NewTLSConnection(config, blkSrvAddr, GetRootCerts(blkSrvAddr), bServerErrorUnwrapper{}, bs, false)
 	bs.client = keybase1.BlockClient{Cli: conn.GetClient()}

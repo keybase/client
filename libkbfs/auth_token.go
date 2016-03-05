@@ -2,6 +2,8 @@ package libkbfs
 
 import (
 	"errors"
+	"fmt"
+	"runtime"
 	"sync"
 	"time"
 
@@ -27,13 +29,14 @@ type AuthToken struct {
 
 // NewAuthToken creates a new authentication token.
 func NewAuthToken(config Config, tokenType string, expireIn int,
-	clientName, clientVersion string, rh AuthTokenRefreshHandler) *AuthToken {
+	submoduleName string, rh AuthTokenRefreshHandler) *AuthToken {
+	clientName := fmt.Sprintf("go %s %s %s", submoduleName, runtime.GOOS, runtime.GOARCH)
 	authToken := &AuthToken{
 		config:         config,
 		tokenType:      tokenType,
 		expireIn:       expireIn,
 		clientName:     clientName,
-		clientVersion:  clientVersion,
+		clientVersion:  Version,
 		refreshHandler: rh,
 	}
 	return authToken

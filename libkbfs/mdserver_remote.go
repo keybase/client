@@ -17,10 +17,6 @@ const (
 	MdServerTokenServer = "kbfs_md"
 	// MdServerTokenExpireIn is the TTL to use when constructing an authentication token.
 	MdServerTokenExpireIn = 2 * 60 * 60 // 2 hours
-	// MdServerClientName is the client name to include in an authentication token.
-	MdServerClientName = "libkbfs_mdserver_remote"
-	// MdServerClientVersion is the client version to include in an authentication token.
-	MdServerClientVersion = Version
 	// MdServerBackgroundRekeyPeriod is how long the rekey checker
 	// waits between runs.  The timer gets reset to this period after
 	// every incoming FolderNeedsRekey RPC.
@@ -71,7 +67,7 @@ func NewMDServerRemote(config Config, srvAddr string) *MDServerRemote {
 	}
 	mdServer.authToken = NewAuthToken(config,
 		MdServerTokenServer, MdServerTokenExpireIn,
-		MdServerClientName, MdServerClientVersion, mdServer)
+		"libkbfs_mdserver_remote", mdServer)
 	conn := NewTLSConnection(config, srvAddr, GetRootCerts(srvAddr), MDServerErrorUnwrapper{}, mdServer, true)
 	mdServer.conn = conn
 	mdServer.client = keybase1.MetadataClient{Cli: conn.GetClient()}
