@@ -37,15 +37,6 @@ export default class Icon extends Component {
     }
   }
 
-  _defaultOpacity (type: Props.type): number {
-    switch (type) {
-      case 'fa-close':
-        return 1.0
-      default:
-        return 0.35
-    }
-  }
-
   // Some types are the same underlying icon.
   _typeToIconMapper (type: Props.type): Props.type {
     switch (type) {
@@ -60,7 +51,6 @@ export default class Icon extends Component {
   render () {
     let color = this._defaultColor(this.props.type)
     let hoverColor = this._defaultHoverColor(this.props.type)
-    let defaultOpacity = this._defaultOpacity(this.props.type)
     let iconType = this._typeToIconMapper(this.props.type)
 
     if (this.props.inheritColor) {
@@ -76,7 +66,7 @@ export default class Icon extends Component {
     if (isFontIcon) {
       return <FontIcon
         title={this.props.hint}
-        style={{...styles.icon, opacity: this.props.opacity ? defaultOpacity : 1.0, ...this.props.style}}
+        style={{...styles.icon, ...this.props.style}}
         className={`fa ${iconType}`}
         color={color}
         hoverColor={this.props.onClick ? hoverColor : null}
@@ -86,7 +76,7 @@ export default class Icon extends Component {
     } else {
       return <img
         title={this.props.hint}
-        style={{opacity: this.props.opacity ? 0.35 : 1.0, ...this.props.style}}
+        style={{...this.props.style}}
         onClick={this.props.onClick}
         srcSet={`${[1, 2, 3].map(mult => `${resolveRoot('shared/images/icons', this.props.type)}${mult > 1 ? `@${mult}x` : ''}.png ${mult}x`).join(', ')}`} />
     }
@@ -95,7 +85,6 @@ export default class Icon extends Component {
 
 Icon.propTypes = {
   type: React.PropTypes.string.isRequired,
-  opacity: React.PropTypes.bool,
   hint: React.PropTypes.string,
   onClick: React.PropTypes.func,
   onMouseEnter: React.PropTypes.func,

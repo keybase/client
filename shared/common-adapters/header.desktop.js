@@ -29,7 +29,7 @@ export default class Header extends Component {
       <div style={{...this.props.style, ...styles.container, ...styles.strongContainer}}>
         <Text type='Header' dz2 backgroundMode='Announcements' style={{flex: 1, ...globalStyles.flexBoxCenter, paddingTop: 6, cursor: 'default'}}>{this.props.title}</Text>
         {this.props.onClose && (
-          <Icon type='fa-times' opacity onClick={() => this.props.onClose()} />
+          <Icon type='fa-close' onClick={() => this.props.onClose()} />
         )}
       </div>
     )
