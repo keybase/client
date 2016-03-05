@@ -55,7 +55,7 @@ func (m *MinTerm) Size() (int, int) {
 
 // Write writes a string to the terminal.
 func (m *MinTerm) Write(s string) error {
-	_, err := fmt.Fprint(m.termOut, s)
+	_, err := fmt.Fprint(m.getReadWriter(), s)
 	return err
 }
 

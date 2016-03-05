@@ -6,6 +6,7 @@
 package minterm
 
 import (
+	"github.com/keybase/client/go/logger"
 	"golang.org/x/crypto/ssh/terminal"
 	"io"
 	"os"
@@ -50,6 +51,8 @@ func (m *MinTerm) open() error {
 	return nil
 }
 
+// Use a Windows output writer to eat control codes that look ugly on legacy terminals.
+// As a bonus, we can do color prompts this way.
 func (m *MinTerm) getReadWriter() io.ReadWriter {
-	return WindowsReadWriter{r: m.termIn, w: m.termOut}
+	return WindowsReadWriter{r: m.termIn, w: logger.OutputWriterFromFile(m.termOut)}
 }
