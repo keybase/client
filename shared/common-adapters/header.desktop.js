@@ -3,11 +3,11 @@
 import React, {Component} from 'react'
 import {Icon} from '../common-adapters'
 import {globalStyles, globalColorsDZ2} from '../styles/style-guide'
-import type {Props} from './header'
+import type {Props, DefaultProps} from './header'
 import Text from './text'
 
-export default class Header extends Component {
-  props: Props;
+export default class Header extends Component<DefaultProps, Props, void> {
+  static defaultProps: DefaultProps;
 
   renderDefault () {
     return (

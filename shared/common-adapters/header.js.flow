@@ -12,9 +12,9 @@ export type Props = {
 }
 
 export type DefaultProps = {
-  type: 'Default'
+  type: Props.type
 }
 
 declare export default class Header extends React.Component<DefaultProps, Props, void> {
-
+  static defaultProps: DefaultProps;
 }
