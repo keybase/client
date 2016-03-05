@@ -116,6 +116,10 @@ func (k *KBPKIClient) hasVerifyingKey(ctx context.Context, uid keybase1.UID,
 				revokedTime, atServerTime)
 			return true, nil
 		}
+		k.log.CDebugf(ctx, "Not trusting revoked verifying key %s for "+
+			"user %s (revoked time: %v vs. server time %v)",
+			verifyingKey.kid, uid, revokedTime, atServerTime)
+		return false, nil
 	}
 
 	return false, nil
