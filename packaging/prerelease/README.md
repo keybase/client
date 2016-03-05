@@ -66,3 +66,9 @@ ditto -c -k --keepParent -rsrc /Applications/Keybase.app /tmp/Keybase.zip
 keybase sign -d -i /tmp/Keybase.zip -o /tmp/keybase.sig
 keybase -d update run --source=local --url=file:///tmp/Keybase.zip --signature=/tmp/keybase.sig --force
 ```
+
+### Running Update from Test build_kbfs
+
+```
+keybase update run --source=remote --url="https://s3.amazonaws.com/prerelease-test.keybase.io/update-darwin-prod.json"
+```
