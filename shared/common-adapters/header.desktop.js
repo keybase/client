@@ -16,9 +16,7 @@ export default class Header extends Component {
         {this.props.icon && <Icon type='logo-24' />}
         <Text type='Body' style={{flex: 1, paddingLeft: 6}}>{this.props.title}</Text>
         {this.props.onClose && (
-          <div style={styles.close} onClick={() => this.props.onClose()}>
-            <i className='fa fa-times' ></i>
-          </div>
+          <Icon type='fa-close' onClick={() => this.props.onClose()} />
         )}
       </div>
     )
