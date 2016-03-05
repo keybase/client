@@ -22,7 +22,9 @@ script:
   - export GO15VENDOREXPERIMENT=1
   - go get -u github.com/golang/lint/golint
   - go install github.com/golang/lint/golint
-  - make lint
+  - lint=$(make -s lint)
+    echo 2>&1 "$lint"
+    [ -z "$lint" -o "$lint" = "Lint-free!" ]
   - go vet $(go list ./... 2>/dev/null | grep -v /vendor/)
   - go build ./...
   - cd libkbfs && go test -i && go test -c && ./libkbfs.test -test.timeout 4m
