@@ -10,6 +10,15 @@ import (
 const connectionStatusConnected keybase1.FSStatusCode = keybase1.FSStatusCode_START
 const connectionStatusDisconnected keybase1.FSStatusCode = keybase1.FSStatusCode_ERROR
 
+// noErrorUsernames are user names that should not result in an error
+// notification.  These should all be reserved Keybase usernames that
+// will never be associated with a real account.
+var noErrorUsernames = map[string]bool{
+	"objects": true, // git shells
+	"gemfile": true, // rvm
+	"devfs":   true, // lsof?  KBFS-823
+}
+
 // ReporterKBPKI implements the Notify function of the Reporter
 // interface in addition to embedding ReporterSimple for error
 // tracking.  Notify will make RPCs to the keybase daemon.
@@ -47,7 +56,9 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context, err error) {
 	case WriteAccessError:
 		n = writeTlfErrorNotification(e.Tlf, e.Public, err)
 	case NoSuchUserError:
-		n = genericErrorNotification(err)
+		if !noErrorUsernames[e.Input] {
+			n = genericErrorNotification(err)
+		}
 	case UnverifiableTlfUpdateError:
 		n = genericErrorNotification(err)
 	case NoCurrentSessionError:
