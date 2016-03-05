@@ -14,6 +14,7 @@ import (
 	"strconv"
 	"time"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 )
 
@@ -96,7 +97,7 @@ func (tdr *TestDynamoDBRunner) downloadIfNecessary() error {
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
+	defer libkb.DiscardAndCloseBody(response)
 
 	// read body into buffer and compute the hash
 	var buf bytes.Buffer
