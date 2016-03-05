@@ -133,6 +133,11 @@ const util = {
     ...flexBoxCommon,
     flexDirection: 'row'
   },
+  flexBoxCenter: {
+    ...flexBoxCommon,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
   noSelect: {
     WebkitUserSelect: 'none'
   },

@@ -1,12 +1,13 @@
 /* @flow */
+
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import {Snackbar} from 'material-ui'
-import {Header, Text, Button, Checkbox} from '../common-adapters'
+import {Header, Text, Button, Checkbox, Icon, Terminal} from '../common-adapters'
 import {clipboard} from 'electron'
 import marked from 'marked'
 import {autoResize} from '../../desktop/renderer/remote-component-helper'
-import {globalStyles, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColorsDZ2} from '../styles/style-guide'
 
 type RenderProps = {
   isCritical: bool,
@@ -47,49 +48,51 @@ class UpdateConfirm extends Component {
   }
 
   render () {
-    const realCSS = `
-      .clipboard { color: ${globalColors.grey3}; }
-      .clipboard:hover { color: white; }
-    `
-
-    const whatsNew = this.props.description ? marked(this.props.description, {sanitize: true}) : 'Bug fixes'
+    const descriptionHTML = this.props.description ? marked(this.props.description, {sanitize: true}) : 'What\'s new?<br/>Bug fixes'
 
     return (
       <div style={styles.container}>
-        <style>{realCSS}</style>
         <Header
-          icon
-          title={this.props.isCritical ? 'Critical Update' : this.props.windowTitle}
+          type='Strong'
+          title={this.props.windowTitle}
           onClose={() => this.props.onSnooze()}
         />
-        <div style={styles.headerContainer}>
-          <Text type='Header' reversed>Version {this.props.newVersion}</Text>
-          <Text type='Body' reversed style={{marginTop: 20}}>Fellow Keybaser!</Text>
-          <Text type='Body' reversed>{`The version you are currently running (${this.props.oldVersion}) is outdated. We highly recommend that you upgrade now.`}</Text>
+        <div style={{...styles.headerContainer}}>
+          <div style={{...globalStyles.flexBoxCenter, paddingBottom: 15}}>
+            <Icon type='keybase-update' />
+          </div>
+          {!this.props.updateCommand &&
+            <Text type='BodySemibold' dz2 style={{paddingLeft: 30, paddingRight: 30, textAlign: 'center'}}>
+              {`The version you are currently running (${this.props.oldVersion}) is outdated.`}
+            </Text>}
+          {this.props.updateCommand &&
+            <div style={{flex: 1, ...globalStyles.flexBoxColumn}}>
+              <Text type='BodySemibold' dz2 style={{paddingLeft: 30, paddingRight: 30, textAlign: 'center'}}>
+                {`The version you are currently running (${this.props.oldVersion}) is outdated. Run this command to update:`}
+              </Text>
+              <Terminal dz2 style={{marginTop: 15}}>
+                <Text type='Terminal' dz2 style={{paddingLeft: 20, paddingRight: 20, paddingTop: 5, paddingBottom: 5}}>
+                  {this.props.updateCommand}
+                </Text>
+              </Terminal>
+            </div>}
         </div>
-        <div style={styles.body}>
-          <Text type='Body'>What's new?</Text>
-          <div style={styles.descriptionBlock} dangerouslySetInnerHTML={{__html: whatsNew}} />
+
+        <div style={{...styles.body}}>
+          <div style={styles.descriptionBlock} dangerouslySetInnerHTML={{__html: descriptionHTML}} />
         </div>
-        {this.props.updateCommand &&
-          <Text style={styles.updateCommandHeader} type='Body'>Terminal command:</Text>}
-        {this.props.updateCommand &&
-          <div style={styles.command}>
-            <Text type='Body' reversed style={{flex: 1}}>&gt; {this.props.updateCommand}</Text>
-            <div className='clipboard' title='Copy to clipboard' style={styles.clipboard} onClick={() => this.onCopy()}>
-              <i className='fa fa-clipboard'></i>
-            </div>
-          </div>}
-        <div style={styles.actions}>
-          <Button type='Secondary' label={`Ignore for ${this.props.snoozeTime}`} onClick={() => this.props.onSnooze()} />
+
+        <div style={{...styles.actionsContainer}}>
+          <Button type='Secondary' dz2 label={`Ignore for ${this.props.snoozeTime}`} onClick={() => this.props.onSnooze()} />
           {this.props.canUpdate &&
-            <Button type='Primary' label='Update' onClick={() => this.props.onUpdate()} />}
+            <Button type='Primary' dz2 label='Update' onClick={() => this.props.onUpdate()} />}
           {!this.props.canUpdate &&
-            <Button type='Primary' label='Done, close!' onClick={() => this.props.onSnooze()} />}
+            this.props.updateCommand &&
+            <Button type='Primary' dz2 label='I ran the above command' onClick={() => this.props.onSnooze()} />}
         </div>
         {this.props.canUpdate &&
-          <div style={{...styles.actions, justifyContent: 'flex-end'}}>
-            <Checkbox
+          <div style={{...styles.actionsContainer, paddingTop: 9, paddingRight: 10}}>
+            <Checkbox dz2
               checked={this.props.alwaysUpdate}
               label='Update automatically'
               onCheck={checked => this.props.setAlwaysUpdate(checked)}/>
@@ -107,62 +110,35 @@ class UpdateConfirm extends Component {
 
 const styles = {
   container: {
-    ...globalStyles.flexBoxColumn
+    ...globalStyles.flexBoxColumn,
+    paddingBottom: 30
   },
   headerContainer: {
     ...globalStyles.flexBoxColumn,
-    color: globalColors.white,
-    padding: 20,
-    backgroundColor: globalColors.blue
+    paddingTop: 20,
+    paddingBottom: 15
   },
   actionsContainer: {
     ...globalStyles.flexBoxRow,
-    justifyContent: 'flex-end'
-  },
-  why: {
-    margin: 0
-  },
-  critical: {
-    margin: 0,
-    fontSize: 12
+    justifyContent: 'flex-end',
+    marginRight: 20
   },
   body: {
-    padding: 20
+    paddingLeft: 30,
+    paddingRight: 30,
+    paddingBottom: 15
   },
   descriptionBlock: {
-    ...globalStyles.fontCourier,
-    ...globalStyles.rounded,
-    backgroundColor: globalColors.grey5,
-    border: `solid ${globalColors.grey3} 1px`,
-    marginTop: 20,
-    maxHeight: 205,
+    ...globalStyles.DZ2.fontTerminal,
+    lineHeight: '21px',
+    fontSize: 14,
+    color: globalColorsDZ2.black75,
+    backgroundColor: globalColorsDZ2.lightGrey,
+    border: `solid ${globalColorsDZ2.black10} 1px`,
+    minHeight: 130,
+    maxHeight: 175,
     overflowY: 'auto',
-    padding: 20
-  },
-  actions: {
-    ...globalStyles.flexBoxRow,
-    justifyContent: 'flex-end',
-    padding: 20,
-    paddingTop: 0
-  },
-  updateCommandHeader: {
-    margin: 20
-  },
-  command: {
-    ...globalStyles.flexBoxRow,
-    color: globalColors.white,
-    backgroundColor: globalColors.grey1,
-    paddingLeft: 30,
-    marginBottom: 20,
-    alignItems: 'center'
-  },
-  clipboard: {
-    ...globalStyles.flexBoxRow,
-    justifyContent: 'center',
-    alignItems: 'center',
-    width: 110,
-    height: 90,
-    borderLeft: `solid ${globalColors.grey2} 1px`
+    padding: 15
   }
 }
 

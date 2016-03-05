@@ -30,6 +30,7 @@ export default class Text extends Component {
       case 'TerminalUsername':
       case 'TerminalPublic':
       case 'TerminalPrivate':
+      case 'TerminalSmall':
         return this.context.inTerminal ? {} : styles.textTerminalInline
       default:
         return {}
@@ -77,6 +78,7 @@ export default class Text extends Component {
       'BodySmallSemibold': styles.textBodySmallSemibold,
       'Error': styles.textError,
       'Terminal': {...styles.textTerminal, color: (this.context.inTerminal ? globalColorsDZ2.blue3 : globalColorsDZ2.darkBlue)},
+      'TerminalSmall': {...styles.textTerminalSmall, color: (this.context.inTerminal ? globalColorsDZ2.blue3 : globalColorsDZ2.darkBlue)},
       'TerminalCommand': styles.textTerminalCommand,
       'TerminalComment': styles.textTerminalComment,
       'TerminalUsername': styles.textTerminalUsername,
@@ -244,6 +246,11 @@ export const styles = {
   textTerminalEmpty: {
     ...textTerminal,
     minHeight: 20
+  },
+  textTerminalSmall: {
+    ...textTerminal,
+    fontSize: 14,
+    lineHeight: '19px'
   },
   textTerminalInline: {
     backgroundColor: globalColorsDZ2.blue4,

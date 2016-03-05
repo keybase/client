@@ -59,9 +59,9 @@ function updateListenersCreator (dispatch: Dispatch, getState: () => {config: Co
       const {alwaysAutoInstall} = payload.options
 
       const windowTitle = {
-        [updateUi.UpdateType.normal]: 'Keybase Update',
-        [updateUi.UpdateType.bugfix]: 'Keybase Update',
-        [updateUi.UpdateType.critical]: 'Critical Keybase Update'
+        [updateUi.UpdateType.normal]: 'Update: Version ' + version,
+        [updateUi.UpdateType.bugfix]: 'Update: Version ' + version,
+        [updateUi.UpdateType.critical]: 'Critical Update: Version ' + version
       }[type]
 
       let oldVersion = ''
