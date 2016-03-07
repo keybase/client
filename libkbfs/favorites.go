@@ -120,7 +120,11 @@ func (f *Favorites) sendReq(ctx context.Context, req favReq) error {
 	errChan := make(chan error, 1)
 	req.done = errChan
 	req.canceled = ctx.Done()
-	f.reqChan <- req
+	select {
+	case f.reqChan <- req:
+	case <-ctx.Done():
+		return ctx.Err()
+	}
 	select {
 	case <-ctx.Done():
 		return ctx.Err()
@@ -143,7 +147,12 @@ func (f *Favorites) Delete(ctx context.Context, fav Favorite) error {
 
 // RefreshCache refreshes the cached list of favorites.
 func (f *Favorites) RefreshCache(ctx context.Context) {
-	f.reqChan <- favReq{refresh: true, done: make(chan error, 1)}
+	req := favReq{refresh: true, done: make(chan error, 1)}
+	select {
+	case f.reqChan <- req:
+	case <-ctx.Done():
+		return
+	}
 }
 
 // Get returns the logged-in users list of favorites. It
