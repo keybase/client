@@ -441,7 +441,7 @@ func (h *TlfHandle) ToBytes(config Config) (out []byte, err error) {
 // suitable for KBPKI calls.
 func (h *TlfHandle) ToKBFolder(ctx context.Context, config Config) keybase1.Folder {
 	return keybase1.Folder{
-		Name:    h.ToString(ctx, config),
+		Name:    string(h.GetCanonicalName(ctx, config)),
 		Private: !h.IsPublic(),
 	}
 }

@@ -356,11 +356,18 @@ type Favorite struct {
 // NewFavoriteFromFolder creates a Favorite from a
 // keybase1.Folder.
 func NewFavoriteFromFolder(folder keybase1.Folder) *Favorite {
-	const publicSuffix = ReaderSep + PublicUIDName
-	name := strings.TrimSuffix(folder.Name, publicSuffix)
+	name := folder.Name
+	if !folder.Private {
+		// Old versions of the client still use an outdated "#public"
+		// suffix for favorited public folders. TODO: remove this once
+		// those old versions of the client are retired.
+		const oldPublicSuffix = ReaderSep + "public"
+		name = strings.TrimSuffix(folder.Name, oldPublicSuffix)
+	}
+
 	return &Favorite{
 		Name:   name,
-		Public: len(name) != len(folder.Name),
+		Public: !folder.Private,
 	}
 }
 

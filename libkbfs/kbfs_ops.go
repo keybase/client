@@ -104,9 +104,17 @@ func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) ([]*Favorite, error
 		return nil, err
 	}
 
-	favorites := make([]*Favorite, len(folders))
-	for i, folder := range folders {
-		favorites[i] = NewFavoriteFromFolder(folder)
+	favorites := make([]*Favorite, 0, len(folders))
+	favoritesSeen := make(map[Favorite]bool)
+	for _, folder := range folders {
+		f := NewFavoriteFromFolder(folder)
+		// There might be duplicates when you take the old "#public"
+		// suffix into account.  TODO: remove dedup when all the old
+		// client using that prefix are retired.
+		if !favoritesSeen[*f] {
+			favorites = append(favorites, f)
+			favoritesSeen[*f] = true
+		}
 	}
 	return favorites, nil
 }

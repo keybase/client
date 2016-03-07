@@ -167,8 +167,9 @@ func TestKBFSOpsGetFavoritesSuccess(t *testing.T) {
 
 	// expect one call to fetch favorites
 	_, handle1, _ := newDir(t, config, 1, true, false)
-	_, handle2, _ := newDir(t, config, 2, true, false)
-	handles := []*TlfHandle{handle1, handle2}
+	_, handle2, _ := newDir(t, config, 2, true, true)
+	_, handle3, _ := newDir(t, config, 2, true, true) // dup for testing
+	handles := []*TlfHandle{handle1, handle2, handle3}
 	folders := []keybase1.Folder{handle1.ToKBFolder(ctx, config), handle2.ToKBFolder(ctx, config)}
 
 	config.mockKbpki.EXPECT().FavoriteList(ctx).Return(folders, nil)
@@ -177,7 +178,7 @@ func TestKBFSOpsGetFavoritesSuccess(t *testing.T) {
 	if err != nil {
 		t.Errorf("Got error on favorites: %v", err)
 	}
-	if len(handles2) != len(handles) {
+	if len(handles2) != len(handles)-1 {
 		t.Errorf("Got bad handles back: %v", handles2)
 	}
 }
