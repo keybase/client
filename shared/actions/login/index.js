@@ -21,7 +21,7 @@ import type {Dispatch, GetState, AsyncAction, TypedAction} from '../../constants
 import type {incomingCallMapType, login_recoverAccountFromEmailAddress_rpc,
   login_login_rpc, login_logout_rpc, device_deviceAdd_rpc, login_getConfiguredAccounts_rpc} from '../../constants/types/flow-types'
 import {overrideLoggedInTab, setupCancelLogin} from '../../local-debug'
-import type {deviceRole} from '../../constants/login'
+import type {DeviceRole} from '../../constants/login'
 
 let currentLoginSessionID = null
 
@@ -73,7 +73,42 @@ function getAccounts (): AsyncAction {
 
 export function login (): AsyncAction {
   return (dispatch, getState) => {
-    startLoginFlow(dispatch, getState, Constants.loginDone)
+    if (__DEV__) {
+      setupCancelLogin(() => dispatch(cancelLogin()))
+    }
+
+    const deviceType = isMobile ? 'mobile' : 'desktop'
+    const incomingMap = makeKex2IncomingMap(dispatch, getState)
+    const params : login_login_rpc = {
+      method: 'login.login',
+      param: {
+        deviceType,
+        usernameOrEmail: '',
+        clientType: enums.login.ClientType.gui
+      },
+      incomingCallMap: incomingMap,
+      callback: (error, response) => {
+        currentLoginSessionID = null
+        if (error) {
+          dispatch({
+            type: Constants.loginDone,
+            error: true,
+            payload: error
+          })
+        } else {
+          dispatch({
+            type: Constants.loginDone,
+            error: false,
+            payload: undefined
+          })
+
+          dispatch(loadDevices())
+          dispatch(navBasedOnLoginState())
+        }
+      }
+    }
+
+    currentLoginSessionID = engine.rpc(params)
   }
 }
 
@@ -82,7 +117,7 @@ export function doneRegistering (): TypedAction<'login:doneRegistering', void, v
   return {type: Constants.doneRegistering, payload: undefined}
 }
 
-function setCodePageOtherDeviceRole (otherDeviceRole: deviceRole) : AsyncAction {
+function setCodePageOtherDeviceRole (otherDeviceRole: DeviceRole) : AsyncAction {
   return (dispatch, getState) => {
     const store = getState().login.codePage
     dispatch(setCodePageMode(defaultModeForDeviceRoles(store.myDeviceRole, otherDeviceRole, false)))
@@ -291,45 +326,6 @@ export function cancelLogin () : AsyncAction {
   }
 }
 
-function startLoginFlow (dispatch, getState, successType) {
-  if (__DEV__) {
-    setupCancelLogin(() => dispatch(cancelLogin()))
-  }
-
-  const deviceType = isMobile ? 'mobile' : 'desktop'
-  const incomingMap = makeKex2IncomingMap(dispatch, getState)
-  const params : login_login_rpc = {
-    method: 'login.login',
-    param: {
-      deviceType,
-      usernameOrEmail: '',
-      clientType: enums.login.ClientType.gui
-    },
-    incomingCallMap: incomingMap,
-    callback: (error, response) => {
-      currentLoginSessionID = null
-      if (error) {
-        dispatch({
-          type: successType,
-          error: true,
-          payload: error
-        })
-      } else {
-        dispatch({
-          type: successType,
-          error: false,
-          payload: undefined
-        })
-
-        dispatch(loadDevices())
-        dispatch(navBasedOnLoginState())
-      }
-    }
-  }
-
-  currentLoginSessionID = engine.rpc(params)
-}
-
 export function addANewDevice () : AsyncAction {
   return (dispatch, getState) => {
     const incomingMap = makeKex2IncomingMap(dispatch, getState)
@@ -360,7 +356,7 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
       const props = {
         devices,
         onSelect: deviceID => {
-          const type: deviceRole = devices[devices.findIndex(d => d.deviceID === deviceID)].type
+          const type: DeviceRole = devices[devices.findIndex(d => d.deviceID === deviceID)].type
           const role = {
             mobile: Constants.codePageDeviceRoleExistingPhone,
             computer: Constants.codePageDeviceRoleExistingComputer
