@@ -182,6 +182,8 @@ func (f JSONConfigFile) GetUserConfig() (*UserConfig, error) {
 	return f.getUserConfigWithLock()
 }
 
+const currentUser = "current_user"
+
 // GetUserConfig looks for the `current_user` field to see if there's
 // a corresponding user object in the `users` table. There really should be.
 func (f JSONConfigFile) getUserConfigWithLock() (ret *UserConfig, err error) {
@@ -190,7 +192,7 @@ func (f JSONConfigFile) getUserConfigWithLock() (ret *UserConfig, err error) {
 	if ret = f.userConfigWrapper.userConfig; ret != nil {
 		return
 	}
-	if s, err = f.jw.AtKey("current_user").GetString(); err != nil {
+	if s, err = f.jw.AtKey(currentUser).GetString(); err != nil {
 		return
 	}
 	nu := NewNormalizedUsername(s)
@@ -218,7 +220,7 @@ func (f *JSONConfigFile) SwitchUser(nu NormalizedUsername) error {
 		return UserNotFoundError{Msg: nu.String()}
 	}
 
-	f.jw.SetKey("current_user", jsonw.NewString(nu.String()))
+	f.jw.SetKey(currentUser, jsonw.NewString(nu.String()))
 	f.userConfigWrapper.userConfig = nil
 	return f.Save()
 }
@@ -228,7 +230,7 @@ func (f *JSONConfigFile) NukeUser(nu NormalizedUsername) error {
 	defer f.userConfigWrapper.Unlock()
 
 	if cu := f.getCurrentUser(); cu.Eq(nu) {
-		err := f.jw.DeleteValueAtPath("current_user")
+		err := f.jw.DeleteValueAtPath(currentUser)
 		if err != nil {
 			return err
 		}
@@ -296,8 +298,26 @@ func (f *JSONConfigFile) SetDeviceID(did keybase1.DeviceID) (err error) {
 	return
 }
 
+func (f JSONConfigFile) GetLoggedIn() bool {
+	x := f.jw.AtKey("logged_in")
+	if x.IsNil() {
+		return false
+	}
+	b, err := x.GetBool()
+	if err != nil {
+		f.G().Log.Debug("| error getting logged_in bool: %s", err)
+		return false
+	}
+	return b
+}
+
+func (f *JSONConfigFile) SetLoggedIn(loggedIn bool) error {
+	f.jw.SetKey("logged_in", jsonw.NewBool(loggedIn))
+	return f.Save()
+}
+
 func (f *JSONConfigFile) getCurrentUser() NormalizedUsername {
-	s, _ := f.jw.AtKey("current_user").GetString()
+	s, _ := f.jw.AtKey(currentUser).GetString()
 	return NormalizedUsername(s)
 }
 
@@ -316,7 +336,7 @@ func (f *JSONConfigFile) setUserConfigWithLock(u *UserConfig, overwrite bool) er
 
 	if u == nil {
 		f.G().Log.Debug("| SetUserConfig(nil)")
-		f.jw.DeleteKey("current_user")
+		f.jw.DeleteKey(currentUser)
 		f.userConfigWrapper.userConfig = nil
 		return f.Save()
 	}
@@ -338,7 +358,7 @@ func (f *JSONConfigFile) setUserConfigWithLock(u *UserConfig, overwrite bool) er
 	}
 
 	if !f.getCurrentUser().Eq(un) {
-		f.jw.SetKey("current_user", jsonw.NewString(un.String()))
+		f.jw.SetKey(currentUser, jsonw.NewString(un.String()))
 		f.userConfigWrapper.userConfig = nil
 	}
 
