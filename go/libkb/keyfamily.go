@@ -734,11 +734,14 @@ type RevokedKey struct {
 }
 
 func (ckf ComputedKeyFamily) GetRevokedKeys() []RevokedKey {
+	ckf.G().Log.Debug("+ GetRevokedKeys")
+	defer ckf.G().Log.Debug("- GetRevokedKeys")
+
 	var revokedKeys []RevokedKey
 	for kid := range ckf.kf.AllKIDs {
 		ki, ok := ckf.cki.Infos[kid]
 		if !ok || ki == nil {
-			ckf.G().Log.Errorf("KID %s not in cki.Infos", kid)
+			ckf.G().Log.Debug("KID %s not in cki.Infos (likely belongs to a previous subchain). Skipping.", kid)
 			continue
 		}
 		if ki.Status != KeyRevoked {
