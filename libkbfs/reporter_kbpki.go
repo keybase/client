@@ -17,6 +17,7 @@ var noErrorUsernames = map[string]bool{
 	"objects": true, // git shells
 	"gemfile": true, // rvm
 	"devfs":   true, // lsof?  KBFS-823
+	"_mtn":    true, // emacs on Linux
 }
 
 // ReporterKBPKI implements the Notify function of the Reporter
