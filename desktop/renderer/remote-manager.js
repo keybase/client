@@ -130,7 +130,7 @@ class RemoteManager extends Component {
 
     let updateType = 'confirm'
     let onRemoteClose = () => this.props.updateOnCancel()
-    let windowOpts = {width: 480, height: 430}
+    let windowOpts = {width: 480, height: 440}
     let options = {
       onCancel: () => this.props.updateOnCancel(),
       onSkip: () => this.props.updateOnSkip(),
@@ -159,7 +159,7 @@ class RemoteManager extends Component {
 
     let updateType = 'paused'
     let onRemoteClose = () => this.props.updateOnPauseCancel()
-    let windowOpts = {width: 500, height: 309}
+    let windowOpts = {width: 500, height: 345}
     let options = {
       onCancel: () => this.props.updateOnPauseCancel(),
       onForce: () => this.props.updateOnForce()

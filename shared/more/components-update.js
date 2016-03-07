@@ -7,7 +7,7 @@ export default class ComponentsUpdate extends Component {
   render () {
     return (
       <div style={{...globalStyles.flexBoxRow, alignItems: 'flex-start', overflowY: 'auto', flexWrap: 'wrap'}}>
-        <div style={{...styles.container, ...styles.containerPopup, width: 480}}>
+        <div style={{...styles.container, ...styles.containerPopup, width: 480, height: 440}}>
           <UpdateConfirm
             windowTitle='Update: Version 3.2.1'
             oldVersion='1.2.3'
@@ -22,7 +22,7 @@ export default class ComponentsUpdate extends Component {
             onSnooze={() => { console.log('Snooze') }}
           />
         </div>
-        <div style={{...styles.container, ...styles.containerPopup, width: 480}}>
+        <div style={{...styles.container, ...styles.containerPopup, width: 480, height: 440}}>
           <UpdateConfirm
             windowTitle='Update: Version 3.2.1'
             oldVersion='1.2.3'
@@ -35,7 +35,7 @@ export default class ComponentsUpdate extends Component {
             onSnooze={() => { console.log('Snooze') }}
           />
         </div>
-        <div style={{...styles.container, ...styles.containerPopup, width: 500}}>
+        <div style={{...styles.container, ...styles.containerPopup, width: 500, height: 345}}>
           <Update
             type='paused'
             options={{

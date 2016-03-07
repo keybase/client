@@ -43,10 +43,6 @@ class UpdateConfirm extends Component {
     this.setState({snackbarOpen: true})
   }
 
-  componentDidMount () {
-    autoResize()
-  }
-
   render () {
     const descriptionHTML = this.props.description ? marked(this.props.description, {sanitize: true}) : 'What\'s new?<br/>Bug fixes'
 
@@ -111,7 +107,7 @@ class UpdateConfirm extends Component {
 const styles = {
   container: {
     ...globalStyles.flexBoxColumn,
-    paddingBottom: 30
+    marginBottom: 30
   },
   headerContainer: {
     ...globalStyles.flexBoxColumn,
@@ -136,7 +132,7 @@ const styles = {
     backgroundColor: globalColorsDZ2.lightGrey,
     border: `solid ${globalColorsDZ2.black10} 1px`,
     minHeight: 130,
-    maxHeight: 175,
+    maxHeight: 130,
     overflowY: 'auto',
     padding: 15
   }
