@@ -20,6 +20,16 @@ type BlockReference struct {
 	ChargedTo UID           `codec:"chargedTo" json:"chargedTo"`
 }
 
+type BlockReferenceCount struct {
+	Ref       BlockReference `codec:"ref" json:"ref"`
+	LiveCount int            `codec:"liveCount" json:"liveCount"`
+}
+
+type DowngradeReferenceRes struct {
+	Completed []BlockReferenceCount `codec:"completed" json:"completed"`
+	Failed    BlockReference        `codec:"failed" json:"failed"`
+}
+
 type GetSessionChallengeArg struct {
 }
 
@@ -54,6 +64,16 @@ type ArchiveReferenceArg struct {
 	Refs   []BlockReference `codec:"refs" json:"refs"`
 }
 
+type ArchiveReferenceWithCountArg struct {
+	Folder string           `codec:"folder" json:"folder"`
+	Refs   []BlockReference `codec:"refs" json:"refs"`
+}
+
+type DelReferenceWithCountArg struct {
+	Folder string           `codec:"folder" json:"folder"`
+	Refs   []BlockReference `codec:"refs" json:"refs"`
+}
+
 type GetUserQuotaInfoArg struct {
 }
 
@@ -65,6 +85,8 @@ type BlockInterface interface {
 	AddReference(context.Context, AddReferenceArg) error
 	DelReference(context.Context, DelReferenceArg) error
 	ArchiveReference(context.Context, ArchiveReferenceArg) ([]BlockReference, error)
+	ArchiveReferenceWithCount(context.Context, ArchiveReferenceWithCountArg) (DowngradeReferenceRes, error)
+	DelReferenceWithCount(context.Context, DelReferenceWithCountArg) (DowngradeReferenceRes, error)
 	GetUserQuotaInfo(context.Context) ([]byte, error)
 }
 
@@ -179,6 +201,38 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"archiveReferenceWithCount": {
+				MakeArg: func() interface{} {
+					ret := make([]ArchiveReferenceWithCountArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ArchiveReferenceWithCountArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ArchiveReferenceWithCountArg)(nil), args)
+						return
+					}
+					ret, err = i.ArchiveReferenceWithCount(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"delReferenceWithCount": {
+				MakeArg: func() interface{} {
+					ret := make([]DelReferenceWithCountArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DelReferenceWithCountArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DelReferenceWithCountArg)(nil), args)
+						return
+					}
+					ret, err = i.DelReferenceWithCount(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"getUserQuotaInfo": {
 				MakeArg: func() interface{} {
 					ret := make([]GetUserQuotaInfoArg, 1)
@@ -231,6 +285,16 @@ func (c BlockClient) DelReference(ctx context.Context, __arg DelReferenceArg) (e
 
 func (c BlockClient) ArchiveReference(ctx context.Context, __arg ArchiveReferenceArg) (res []BlockReference, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.block.archiveReference", []interface{}{__arg}, &res)
+	return
+}
+
+func (c BlockClient) ArchiveReferenceWithCount(ctx context.Context, __arg ArchiveReferenceWithCountArg) (res DowngradeReferenceRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.block.archiveReferenceWithCount", []interface{}{__arg}, &res)
+	return
+}
+
+func (c BlockClient) DelReferenceWithCount(ctx context.Context, __arg DelReferenceWithCountArg) (res DowngradeReferenceRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.block.delReferenceWithCount", []interface{}{__arg}, &res)
 	return
 }
 

@@ -555,7 +555,3 @@ func (m MerkleTreeID) Number() int {
 func (m MerkleTreeID) String() string {
 	return strconv.Itoa(int(m))
 }
-
-func (r BlockReference) String() string {
-	return r.Bid.BlockHash + string(r.Nonce[:])
-}
