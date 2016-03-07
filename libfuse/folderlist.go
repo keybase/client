@@ -49,9 +49,8 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		return child, nil
 	}
 
-	// Shortcut for dreaded extraneous OSX finder lookups and weird
-	// Linux stuff like "_mtn".
-	if strings.HasPrefix(req.Name, "._") || strings.HasPrefix(req.Name, "_") {
+	// Shortcut for dreaded extraneous OSX finder lookups
+	if strings.HasPrefix(req.Name, "._") {
 		return nil, fuse.ENOENT
 	}
 
