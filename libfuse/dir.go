@@ -586,6 +586,17 @@ func (d *Dir) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse.
 	// things we don't need to explicitly handle
 	valid &^= fuse.SetattrLockOwner | fuse.SetattrHandle
 
+	if valid.Uid() || valid.Gid() {
+		// You can't set the UID/GID on KBFS directories, but we don't
+		// want to return ENOSYS because that causes scary warnings on
+		// some programs like mv.  Instead ignore it, print a debg
+		// message, and advertise this behavior on the
+		// "understand_kbfs" doc online.
+		d.folder.fs.log.CDebugf(ctx, "Ignoring unsupported attempt to set "+
+			"the UID/GID on a directory")
+		valid &^= fuse.SetattrUid | fuse.SetattrGid
+	}
+
 	if valid != 0 {
 		// don't let an unhandled operation slip by without error
 		d.folder.fs.log.CInfof(ctx, "Setattr did not handle %v", valid)
