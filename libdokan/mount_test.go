@@ -1583,10 +1583,10 @@ func TestReaddirOtherFolderAsAnyone(t *testing.T) {
 
 }
 
-func syncFolderToServer(t *testing.T, tlf string, fs *FS) {
+func syncFolderToServerHelper(t *testing.T, tlf string, public bool, fs *FS) {
 	ctx := context.Background()
 	root, _, err := fs.config.KBFSOps().GetOrCreateRootNode(
-		ctx, tlf, false, libkbfs.MasterBranch)
+		ctx, tlf, public, libkbfs.MasterBranch)
 	if err != nil {
 		t.Fatalf("cannot get root for %s: %v", tlf, err)
 	}
@@ -1598,8 +1598,12 @@ func syncFolderToServer(t *testing.T, tlf string, fs *FS) {
 	fs.NotificationGroupWait()
 }
 
+func syncFolderToServer(t *testing.T, tlf string, fs *FS) {
+	syncFolderToServerHelper(t, tlf, false, fs)
+}
+
 func syncPublicFolderToServer(t *testing.T, tlf string, fs *FS) {
-	syncFolderToServer(t, tlf+libkbfs.ReaderSep+libkbfs.PublicUIDName, fs)
+	syncFolderToServerHelper(t, tlf, true, fs)
 }
 
 func TestInvalidateDataOnWrite(t *testing.T) {
