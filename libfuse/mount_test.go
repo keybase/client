@@ -1388,13 +1388,9 @@ func TestChmodDir(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	switch err := os.Chmod(p, 0655); err := err.(type) {
-	case *os.PathError:
-		if g, e := err.Err, syscall.EPERM; g != e {
-			t.Fatalf("wrong error: %v != %v", g, e)
-		}
-	default:
-		t.Fatalf("expected a PathError, got %T: %v", err, err)
+	if err := os.Chmod(p, 0655); err != nil {
+		t.Fatalf("Expecting the dir chmod to get swallowed silently, "+
+			"but got: %v", err)
 	}
 }
 
