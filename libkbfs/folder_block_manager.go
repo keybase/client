@@ -498,7 +498,7 @@ func (fbm *folderBlockManager) getUnreferencedBlocks(
 		// Nothing to do.
 		fbm.log.CDebugf(ctx, "Latest rev %d is included in the previous "+
 			"gc op (%d)", latestRev, earliestRev)
-		return nil, MetadataRevisionUninitialized, false, nil
+		return nil, MetadataRevisionUninitialized, true, nil
 	}
 
 	// Walk backward, starting from latestRev, until just after
@@ -677,7 +677,7 @@ func (fbm *folderBlockManager) isQRNecessary(head *RootMetadata) bool {
 
 	// Do QR if:
 	//   * The head has changed since last time, OR
-	//   * The last QR did not completely cleaned every available thing
+	//   * The last QR did not completely clean every available thing
 	if head.Revision != fbm.lastQRHeadRev || !fbm.wasLastQRComplete {
 		return true
 	}
