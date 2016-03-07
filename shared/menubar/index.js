@@ -30,25 +30,14 @@ export type MenubarProps = {
 
 class Menubar extends Component {
   props: MenubarProps;
-  state: {
-    loading: boolean;
-  };
 
   constructor (props) {
     super(props)
 
-    // Normally I'd put this into the store but it's just too slow to get the state correctly through props so we'd get flashes so
-    // instead we manually manage loading state in this one circumstance. DO NOT DO THIS normally
-    this.state = {
-      loading: !!props.username
-    }
-
     const onMenubarShow = () => {
       setImmediate(() => {
         engine.listenOnConnect('menubar', () => {
-          setImmediate(() => {
-            this.checkForFolders()
-          })
+          this.checkForFolders(true)
         })
       })
     }
@@ -76,23 +65,16 @@ class Menubar extends Component {
     } catch (_) { }
   }
 
-  checkForFolders () {
-    if (this.props.username && this.props.loggedIn && !this.state.loading) {
-      setImmediate(() => {
-        this.setState({loading: true})
+  checkForFolders (force) {
+    setImmediate(() => {
+      if (!force && this.props.folders) {
+        return
+      }
+
+      if (this.props.username && this.props.loggedIn) {
         this.props.favoriteList()
-      })
-    }
-  }
-
-  componentWillReceiveProps (nextProps) {
-    if (this.state.loading && (this.props.folders !== nextProps.folders)) {
-      this.setState({loading: false})
-    }
-
-    if (!this.props.username && nextProps.username) {
-      setImmediate(() => { this.checkForFolders() })
-    }
+      }
+    })
   }
 
   componentDidMount () {
@@ -167,7 +149,7 @@ class Menubar extends Component {
       logIn={() => this.logIn()}
       quit={() => remote.app.quit()}
       folders={folders}
-      loading={this.state.loading && !!username}
+      loading={!!username && !this.props.folders}
       loggedIn={this.props.loggedIn || false}
     />
   }

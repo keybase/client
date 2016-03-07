@@ -216,22 +216,14 @@ const styles = StyleSheet.create({
 })
 
 export default connect(
-  state => state,
+  (state, ownProps) => ({
+    profile: state.profile,
+    ...state.search.get(ownProps.base).toObject()
+  }),
   dispatch => {
     return {
       submitSearch: (base, search) => dispatch(submitSearch(base, search)),
       pushNewProfile: username => dispatch(pushNewProfile(username)),
       selectService: (base, service) => dispatch(selectService(base, service))
     }
-  },
-  (stateProps, dispatchProps, ownProps) => {
-    return {
-      ...ownProps,
-      ...{
-        profile: stateProps.profile,
-        ...stateProps.search.get(ownProps.base).toObject()
-      },
-      ...dispatchProps
-    }
-  }
-)(Search)
+  })(Search)

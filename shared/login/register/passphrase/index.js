@@ -14,7 +14,6 @@ class Passphrase extends Component<void, Props, void> {
 export default connect(
   state => ({}),
   dispatch => ({
-    onBack: () => dispatch(cancelLogin()),
-    onSubmit: passphrase => console.log('TODO submit passphrase: ', passphrase)
+    onBack: () => dispatch(cancelLogin())
   })
 )(Passphrase)

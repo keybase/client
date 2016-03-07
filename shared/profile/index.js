@@ -60,13 +60,5 @@ const styles = StyleSheet.create({
 })
 
 export default connect(
-  state => state,
-  null,
-  (stateProps, dispatchProps, ownProps) => {
-    return {
-      ...ownProps,
-      ...stateProps.profile.get(ownProps.username).toObject(),
-      ...dispatchProps
-    }
-  }
+  (state, ownProps) => state.profile.get(ownProps.username).toObject()
 )(Profile)

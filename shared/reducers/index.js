@@ -16,6 +16,7 @@ import favorite from './favorite'
 import updateConfirm from './update-confirm'
 import updatePaused from './update-paused'
 import signup from './signup'
+import {logoutDone} from '../constants/login'
 
 import devEdit from './dev-edit'
 
@@ -71,4 +72,10 @@ if (__DEV__) {
   reducer = combinedReducer
 }
 
-export default reducer
+export default function (state: Object = {}, action: any): State {
+  // Reset our state if we logout
+  if (action.type === logoutDone) {
+    state = {}
+  }
+  return reducer(state, action)
+}

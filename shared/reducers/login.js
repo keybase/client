@@ -12,7 +12,6 @@ import {
   codePageDeviceRoleExistingComputer} from '../constants/login'
 
 export type DeviceRole = 'codePageDeviceRoleExistingPhone' | 'codePageDeviceRoleNewPhone' | 'codePageDeviceRoleExistingComputer' | 'codePageDeviceRoleNewComputer'
-
 export type Mode = 'codePageModeScanCode' | 'codePageModeShowCode' | 'codePageModeEnterText' | 'codePageModeShowText'
 
 // It's the b64 encoded value used to render the image
