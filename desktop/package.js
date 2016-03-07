@@ -85,7 +85,8 @@ function startPack () {
   console.log('start pack...')
   webpack(cfg, (err, stats) => {
     if (err) {
-      return console.error(err)
+      console.error(err)
+      process.exit(1)
     }
 
     fs.copySync('./dist', 'build/desktop/sourcemaps', {filter: f => f.endsWith('.map')})
@@ -113,6 +114,7 @@ function startPack () {
     })
     .catch(err => {
       console.error(err)
+      process.exit(1)
     })
   })
 }
@@ -133,7 +135,10 @@ function pack (plat, arch, cb) {
 
 function log (plat, arch) {
   return (err, filepath) => {
-    if (err) return console.error(err)
+    if (err) {
+      console.error(err)
+      process.exit(1)
+    }
     console.log(`${plat}-${arch} finished!`)
   }
 }

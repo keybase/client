@@ -113,7 +113,7 @@ const commands = {
   'build-prod': {
     nodeEnv: 'production',
     nodePathDesktop: true,
-    shell: 'webpack --config webpack.config.production.js --progress --profile --colors',
+    shell: 'webpack --config webpack.config.production.js --progress --profile --colors --bail',
     help: 'Make a production build of the js code'
   },
   'package': {
@@ -207,11 +207,7 @@ function exec (command, env, options) {
     env = process.env
   }
 
-  try {
-    console.log(execSync(command, {env: env, stdio: 'inherit', encoding: 'utf8', ...options}))
-  } catch (err) {
-    console.log('Exec errored out: ', err)
-  }
+  console.log(execSync(command, {env: env, stdio: 'inherit', encoding: 'utf8', ...options}))
 }
 
 let info = commands[command]
