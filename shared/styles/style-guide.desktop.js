@@ -68,7 +68,8 @@ export const globalResizing = {
 
 const fontCommon = {
   WebkitFontSmoothing: 'antialiased',
-  textRendering: 'optimizeLegibility'
+  textRendering: 'optimizeLegibility',
+  letterSpacing: '0.3px'
 }
 
 const font = {
