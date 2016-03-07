@@ -1376,7 +1376,7 @@ func TestChmodNonExec(t *testing.T) {
 	}
 }
 
-func TestChmodDir(t *testing.T) {
+func TestChownFileIgnored(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
@@ -1384,6 +1384,40 @@ func TestChmodDir(t *testing.T) {
 	defer cancelFn()
 
 	p := path.Join(mnt.Dir, PrivateName, "jdoe", "myfile")
+	const input = "hello, world\n"
+	if err := ioutil.WriteFile(p, []byte(input), 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	fi, err := os.Lstat(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	oldOwner := int(fi.Sys().(*syscall.Stat_t).Uid)
+
+	if err := os.Chown(p, oldOwner+1, oldOwner+1); err != nil {
+		t.Fatalf("Expecting the file chown to get swallowed silently, "+
+			"but got: %v", err)
+	}
+
+	newFi, err := os.Lstat(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	newOwner := int(newFi.Sys().(*syscall.Stat_t).Uid)
+	if oldOwner != newOwner {
+		t.Fatalf("Owner changed unexpectedly to %d after a chown", newOwner)
+	}
+}
+
+func TestChmodDir(t *testing.T) {
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	defer libkbfs.CheckConfigAndShutdown(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
+	defer mnt.Close()
+	defer cancelFn()
+
+	p := path.Join(mnt.Dir, PrivateName, "jdoe", "mydir")
 	if err := os.Mkdir(p, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -1391,6 +1425,39 @@ func TestChmodDir(t *testing.T) {
 	if err := os.Chmod(p, 0655); err != nil {
 		t.Fatalf("Expecting the dir chmod to get swallowed silently, "+
 			"but got: %v", err)
+	}
+}
+
+func TestChownDirIgnored(t *testing.T) {
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	defer libkbfs.CheckConfigAndShutdown(t, config)
+	mnt, _, cancelFn := makeFS(t, config)
+	defer mnt.Close()
+	defer cancelFn()
+
+	p := path.Join(mnt.Dir, PrivateName, "jdoe", "mydir")
+	if err := os.Mkdir(p, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	fi, err := os.Lstat(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	oldOwner := int(fi.Sys().(*syscall.Stat_t).Uid)
+
+	if err := os.Chown(p, 1, 1); err != nil {
+		t.Fatalf("Expecting the dir chown to get swallowed silently, "+
+			"but got: %v", err)
+	}
+
+	newFi, err := os.Lstat(p)
+	if err != nil {
+		t.Fatal(err)
+	}
+	newOwner := int(newFi.Sys().(*syscall.Stat_t).Uid)
+	if oldOwner != newOwner {
+		t.Fatalf("Owner changed unexpectedly to %d after a chown", newOwner)
 	}
 }
 
