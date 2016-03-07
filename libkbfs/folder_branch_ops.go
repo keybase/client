@@ -976,7 +976,7 @@ func (fbo *folderBranchOps) getRootNode(ctx context.Context) (
 
 	handle = md.GetTlfHandle()
 	node, err = fbo.nodeCache.GetOrCreate(md.data.Dir.BlockPointer,
-		handle.ToString(ctx, fbo.config), nil)
+		string(handle.GetCanonicalName(ctx, fbo.config)), nil)
 	if err != nil {
 		return nil, EntryInfo{}, nil, err
 	}
