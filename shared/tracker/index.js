@@ -154,3 +154,18 @@ export function selector (username: string): (store: Object) => Object {
     }
   }
 }
+
+export function remoteComponentProps (username: string, store: Object, managerProps: Object): Object {
+  return {
+    windowsOpts: flags.tracker2 ? {height: 470, width: 320} : {height: 339, width: 520},
+    title: `tracker - ${username}`,
+    hidden: store.hidden,
+    component: 'tracker',
+    username,
+    selectorParams: username,
+    key: username,
+    onRemoteClose: () => managerProps.trackerOnClose(username),
+    startTimer: managerProps.trackerStartTimer,
+    stopTimer: managerProps.trackerStopTimer
+  }
+}

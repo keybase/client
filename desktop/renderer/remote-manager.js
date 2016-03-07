@@ -11,6 +11,7 @@ import {onForce as updateOnForce, onPauseCancel as updateOnPauseCancel} from '..
 // $FlowIssue platform files
 import RemoteComponent from './remote-component'
 import flags from '../shared/util/feature-flags'
+import {remoteComponentProps as trackerComponentProps} from '../shared/tracker'
 
 import type {GUIEntryFeatures} from '../shared/constants/types/flow-types'
 import type {Action, Dispatch} from '../shared/constants/types/flux'
@@ -77,23 +78,8 @@ class RemoteManager extends Component {
 
   trackerRemoteComponents () {
     const {trackers} = this.props
-    const windowsOpts = flags.tracker2
-      ? {height: 470, width: 320}
-      : {height: 339, width: 520}
     return Object.keys(trackers).filter(username => !trackers[username].closed).map(username => (
-      <RemoteComponent
-        windowsOpts={windowsOpts}
-        title={`tracker - ${username}`}
-        waitForState
-        ignoreNewProps
-        hidden={trackers[username].hidden}
-        onRemoteClose={() => this.props.trackerOnClose(username)}
-        component='tracker'
-        username={username}
-        startTimer={this.props.trackerStartTimer}
-        stopTimer={this.props.trackerStopTimer}
-        selectorParams={username}
-        key={username} />
+      <RemoteComponent {...trackerComponentProps(username, trackers[username], this.props)} waitForState ignoreNewProps />
     ))
   }
 
