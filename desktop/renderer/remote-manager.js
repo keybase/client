@@ -10,8 +10,9 @@ import {registerUpdateListener, onCancel as updateOnCancel, onSkip as updateOnSk
 import {onForce as updateOnForce, onPauseCancel as updateOnPauseCancel} from '../shared/actions/update'
 // $FlowIssue platform files
 import RemoteComponent from './remote-component'
-import flags from '../shared/util/feature-flags'
 import {remoteComponentProps as trackerComponentProps} from '../shared/tracker'
+import {remoteComponentProps as pinentryComponentProps} from '../shared/pinentry'
+import {remoteComponentPropsUpdate, remoteComponentPropsPaused} from '../shared/update'
 
 import type {GUIEntryFeatures} from '../shared/constants/types/flow-types'
 import type {Action, Dispatch} from '../shared/constants/types/flux'
@@ -57,55 +58,24 @@ class RemoteManager extends Component {
 
   shouldComponentUpdate (nextProps, nextState) {
     // different window states
-    if (nextProps.trackers !== this.props.trackers) {
-      return true
-    }
-
-    if (nextProps.pinentryStates !== this.props.pinentryStates) {
-      return true
-    }
-
-    if (nextProps.updateConfirmState !== this.props.updateConfirmState) {
-      return true
-    }
-
-    if (nextProps.updatePausedState !== this.props.updatePausedState) {
-      return true
-    }
-
-    return false
+    return nextProps.trackers !== this.props.trackers ||
+      nextProps.pinentryStates !== this.props.pinentryStates ||
+      nextProps.updateConfirmState !== this.props.updateConfirmState ||
+      nextProps.updatePausedState !== this.props.updatePausedState
   }
 
   trackerRemoteComponents () {
     const {trackers} = this.props
     return Object.keys(trackers).filter(username => !trackers[username].closed).map(username => (
-      <RemoteComponent {...trackerComponentProps(username, trackers[username], this.props)} waitForState ignoreNewProps />
+      <RemoteComponent {...trackerComponentProps(username, trackers[username], this.props)} />
     ))
   }
 
   pinentryRemoteComponents () {
     const {pinentryStates} = this.props
-
-    return Object.keys(pinentryStates).filter(sid => !pinentryStates[sid].closed).map(pSessionID => {
-      const sid = parseInt(pSessionID, 10)
-      const onCancel = () => this.props.pinentryOnCancel(sid)
-      const onSubmit = this.props.pinentryOnSubmit.bind(null, sid)
-      const windowsOpts = flags.dz2
-        ? {width: 500, height: 260}
-        : {width: 513, height: 260}
-      return (
-        <RemoteComponent
-          title='Pinentry'
-          windowsOpts={windowsOpts}
-          waitForState
-          onRemoteClose={onCancel}
-          component='pinentry'
-          key={'pinentry:' + pSessionID}
-          onSubmit={onSubmit}
-          onCancel={onCancel}
-          sessionID={sid} />
-      )
-    })
+    return Object.keys(pinentryStates).filter(sid => !pinentryStates[sid].closed).map(pSessionID => (
+      <RemoteComponent {...pinentryComponentProps(pSessionID, this.props)}/>
+    ))
   }
 
   showUpdateConfirmComponents () {
@@ -114,27 +84,7 @@ class RemoteManager extends Component {
       return
     }
 
-    let updateType = 'confirm'
-    let onRemoteClose = () => this.props.updateOnCancel()
-    let windowOpts = {width: 480, height: 430}
-    let options = {
-      onCancel: () => this.props.updateOnCancel(),
-      onSkip: () => this.props.updateOnSkip(),
-      onSnooze: () => this.props.updateOnSnooze(),
-      onUpdate: () => this.props.updateOnUpdate(),
-      setAlwaysUpdate: alwaysUpdate => this.props.setAlwaysUpdate(alwaysUpdate)
-    }
-    return (
-      <RemoteComponent
-        title='Update'
-        windowsOpts={windowOpts}
-        waitForState
-        component='update'
-        onRemoteClose={onRemoteClose}
-        type={updateType}
-        options={options}
-      />
-    )
+    return <RemoteComponent {...remoteComponentPropsUpdate(this.props)} />
   }
 
   showUpdatePausedComponents () {
@@ -143,25 +93,7 @@ class RemoteManager extends Component {
       return
     }
 
-    let updateType = 'paused'
-    let onRemoteClose = () => this.props.updateOnPauseCancel()
-    let windowOpts = {width: 500, height: 309}
-    let options = {
-      onCancel: () => this.props.updateOnPauseCancel(),
-      onForce: () => this.props.updateOnForce()
-    }
-
-    return (
-      <RemoteComponent
-        title='Update'
-        windowsOpts={windowOpts}
-        waitForState
-        component='update'
-        onRemoteClose={onRemoteClose}
-        type={updateType}
-        options={options}
-      />
-    )
+    return <RemoteComponent {...remoteComponentPropsPaused(this.props)} />
   }
 
   render () {
