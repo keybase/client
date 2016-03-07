@@ -1,7 +1,6 @@
 /* @flow */
 
 import * as Constants from '../constants/favorite'
-import {logoutDone} from '../constants/login'
 import type {FavoriteAction} from '../constants/favorite'
 import type {Folder} from '../constants/types/flow-types'
 
@@ -20,11 +19,6 @@ export default function (state: State = initialState, action: FavoriteAction): S
         ...state,
         folders: action.payload && action.payload.folders
       }
-    case logoutDone: {
-      return {
-        ...initialState
-      }
-    }
     default:
       return state
   }

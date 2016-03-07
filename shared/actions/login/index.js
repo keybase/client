@@ -9,7 +9,6 @@ import UsernameOrEmail from '../../login/register/username-or-email'
 // import GPGMissingPinentry from '../../login/register/gpg-missing-pinentry'
 // import GPGSign from '../../login/register/gpg-sign'
 import Passphrase from '../../login/register/passphrase'
-// import UserPass from '../../login/register/user-pass'
 import PaperKey from '../../login/register/paper-key'
 import CodePage from '../../login/register/code-page'
 import SetPublicName from '../../login/register/set-public-name'
@@ -247,28 +246,6 @@ export function logoutDone () : AsyncAction {
   }
 }
 
-// Show a user/pass screen, call cb() when done
-// title/subTitle to customize the screen
-// function askForUserPass (title, subTitle, cb) : AsyncAction {
-  // return dispatch => {
-    // const props = {
-      // title,
-      // subTitle,
-      // mapStateToProps: state => state.login.userPass,
-      // onSubmit: (username, passphrase) => {
-        // dispatch({type: Constants.actionSetUserPass, payload: {username, passphrase: passphrase.stringValue()}})
-        // cb()
-      // }
-    // }
-
-    // dispatch(routeAppend({
-      // parseRoute: {
-        // componentAtTop: {component: UserPass, props}
-      // }
-    // }))
-  // }
-// }
-
 function askForCodePage (cb) : AsyncAction {
   return dispatch => {
     const mapStateToProps = state => {
@@ -368,7 +345,7 @@ export function addANewDevice () : AsyncAction {
   }
 }
 
-function makeKex2IncomingMap (dispatch, getState/*, provisionMethod, userPassTitle, userPassSubtitle*/) : incomingCallMapType {
+function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
   return {
     'keybase.1.loginUi.getEmailOrUsername': (param, response) => {
       const props = {
@@ -427,10 +404,6 @@ function makeKex2IncomingMap (dispatch, getState/*, provisionMethod, userPassTit
           }))
           break
         }
-        // case enums.secretUi.PassphraseType.verifyPassPhrase: {
-          // // TODO
-          // break
-        // }
         default:
           response.error({
             code: enums.constants.StatusCode.scnotfound,
