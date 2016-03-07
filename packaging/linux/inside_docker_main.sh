@@ -116,8 +116,14 @@ last_build_day=""
 while true ; do
   current_day="$(ny_date +%d)"
   current_hour="$(ny_date +%H)"
-  # Build if it's noon and we haven't already built today.
-  if [ "$current_day" != "$last_build_day" ] && [ "$current_hour" = 12 ] ; then
+  day_of_the_week="$(ny_date +%A)"
+  # Build if it's noon on a weekday and we haven't already built today.
+  # NOTE: If you restart this script between 12pm and 1pm, it will forget
+  # whether it's already built today, and it will build again. Not ideal.
+  if [ "$current_day" != "$last_build_day" ] &&
+     [ "$current_hour" = 12 ] &&
+     [ "$day_of_the_week" != Saturday ] &&
+     [ "$day_of_the_week" != Sunday ] ; then
     last_build_day="$current_day"
     echo -e "\n\n\n=================== STARTING A BUILD ===================="
     ny_date
