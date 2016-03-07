@@ -228,14 +228,14 @@ func (h ConfigHandler) SetPath(_ context.Context, arg keybase1.SetPathArg) error
 	h.G().Log.Debug("SetPath: service path = %s", svcPath)
 	h.G().Log.Debug("SetPath: client path =  %s", arg.Path)
 
-	pathenv := strings.Split(svcPath, ":")
+	pathenv := filepath.SplitList(svcPath)
 	pathset := make(map[string]bool)
 	for _, p := range pathenv {
 		pathset[p] = true
 	}
 
 	var clientAdditions []string
-	for _, dir := range strings.Split(arg.Path, ":") {
+	for _, dir := range filepath.SplitList(arg.Path) {
 		if _, ok := pathset[dir]; ok {
 			continue
 		}
@@ -243,7 +243,7 @@ func (h ConfigHandler) SetPath(_ context.Context, arg keybase1.SetPathArg) error
 	}
 
 	pathenv = append(pathenv, clientAdditions...)
-	combined := strings.Join(pathenv, ":")
+	combined := strings.Join(pathenv, string(os.PathListSeparator))
 
 	if combined == svcPath {
 		return nil
