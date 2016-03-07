@@ -16,8 +16,9 @@ const (
 	// TLF name.
 	ReaderSep = "#"
 
-	// PublicUIDName is the name given to keybase1.PublicUID.
-	PublicUIDName = "public"
+	// PublicUIDName is the name given to keybase1.PublicUID.  This string
+	// should correspond to an illegal or reserved Keybase user name.
+	PublicUIDName = "_public"
 )
 
 // disallowedPrefixes must not be allowed at the beginning of any
