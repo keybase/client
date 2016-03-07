@@ -41,6 +41,10 @@ Download the appropriate package:
 
 ### Building
 
+Here's how to build the command line client on Linux or OSX. You need to
+have both Git and **Go 1.5 or higher** installed. (Run `go version` to
+see what version you have.)
+
 ```bash
 # First we need to set up a GOPATH. This is a standard first step for
 # building Go programs, so if you've done this already, skip on ahead.
