@@ -6,7 +6,6 @@ import CommunicationVpnKey from 'material-ui/lib/svg-icons/communication/vpn-key
 import ActionNoteAdd from 'material-ui/lib/svg-icons/action/note-add'
 
 import moment from 'moment'
-import View from 'react-flexbox'
 import commonStyles from '../styles/common'
 
 export default class DevicesRender extends Component {
@@ -66,8 +65,8 @@ export default class DevicesRender extends Component {
 
   render () {
     return (
-      <View column>
-        <View row style={styles.deviceContainer}>
+      <div>
+        <div style={styles.deviceContainer}>
           <div style={{...styles.deviceOuter, ...styles.deviceAction}} onClick={() => this.props.showExistingDevicePage()}>
             <div style={styles.device}>
               <ActionNoteAdd style={styles.deviceIcon} />
@@ -83,12 +82,12 @@ export default class DevicesRender extends Component {
               <p style={{...styles.line4, ...styles.actionDesc}}>Portland Bushwick mumblecore.</p>
             </div>
           </div>
-        </View>
+        </div>
 
-        <View auto row style={styles.deviceContainer}>
+        <div style={styles.deviceContainer}>
           {this.props.devices && this.props.devices.map(device => this.renderDevice(device))}
-        </View>
-      </View>
+        </div>
+      </div>
     )
   }
 }
