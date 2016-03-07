@@ -36,7 +36,7 @@ func NewAuthToken(config Config, tokenType string, expireIn int,
 		tokenType:      tokenType,
 		expireIn:       expireIn,
 		clientName:     clientName,
-		clientVersion:  Version,
+		clientVersion:  VersionString(),
 		refreshHandler: rh,
 	}
 	return authToken
