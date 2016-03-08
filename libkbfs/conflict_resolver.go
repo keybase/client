@@ -890,11 +890,16 @@ func (cr *ConflictResolver) resolveMergedPaths(ctx context.Context,
 	return mergedPaths, recreateOps, newUnmergedPaths, nil
 }
 
+// buildChainsAndPaths make crChains for both the unmerged and merged
+// branches since the branch point, the corresponding full paths for
+// those changes, any new recreate ops, and returns the MDs used to
+// compute all this.  Note that even if err is nil, the merged MD list
+// might be non-nil to allow for better error handling.
 func (cr *ConflictResolver) buildChainsAndPaths(
 	ctx context.Context, lState *lockState) (
-	unmergedChains *crChains, mergedChains *crChains, unmergedPaths []path,
+	unmergedChains, mergedChains *crChains, unmergedPaths []path,
 	mergedPaths map[BlockPointer]path, recreateOps []*createOp,
-	unmerged []*RootMetadata, merged []*RootMetadata, err error) {
+	unmerged, merged []*RootMetadata, err error) {
 	// Fetch the merged and unmerged MDs
 	unmerged, merged, err = cr.getMDs(ctx, lState)
 	if err != nil {
