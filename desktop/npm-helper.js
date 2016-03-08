@@ -113,7 +113,7 @@ const commands = {
   'build-prod': {
     nodeEnv: 'production',
     nodePathDesktop: true,
-    shell: 'webpack --config webpack.config.production.js --progress --profile --colors --bail',
+    shell: 'webpack --config webpack.config.production.js --progress --profile --colors',
     help: 'Make a production build of the js code'
   },
   'package': {
