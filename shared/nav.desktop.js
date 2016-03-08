@@ -19,9 +19,9 @@ const globalRoutes = {}
 
 import {folderTab, chatTab, peopleTab, devicesTab, moreTab, loginTab} from './constants/tabs'
 import {switchTab} from './actions/tabbed-router'
-import {startup} from './actions/startup'
 import {Tab, Tabs} from 'material-ui'
 
+import {bootstrap} from './actions/config'
 import {globalResizing} from './styles/style-guide'
 
 const tabs = {
@@ -50,11 +50,11 @@ TabTemplate.propTypes = {
 class Nav extends Component {
   constructor (props) {
     super(props)
-    this.props.startup()
+    this.props.bootstrap()
 
     // Restartup when we connect online.
     // If you startup while offline, you'll stay in an errored state
-    window.addEventListener('online', this.props.startup)
+    window.addEventListener('online', () => this.props.bootstrap())
 
     this._renderedActiveTab = null // the last tab we actually drew
   }
@@ -174,7 +174,6 @@ const styles = {
 
 Nav.propTypes = {
   switchTab: React.PropTypes.func.isRequired,
-  startup: React.PropTypes.func.isRequired,
   tabbedRouter: React.PropTypes.object.isRequired,
   config: React.PropTypes.shape({
     error: React.PropTypes.object
@@ -186,7 +185,7 @@ export default connect(
   dispatch => {
     return {
       switchTab: tab => dispatch(switchTab(tab)),
-      startup: () => dispatch(startup())
+      bootstrap: () => dispatch(bootstrap())
     }
   }
 )(Nav)

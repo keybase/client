@@ -16,7 +16,7 @@ import {switchTab} from '../tabbed-router'
 import {devicesTab, loginTab} from '../../constants/tabs'
 import {loadDevices} from '../devices'
 import {defaultModeForDeviceRoles, qrGenerate} from './provision-helpers'
-import {getCurrentStatus} from '../config'
+import {bootstrap} from '../config'
 import type {Dispatch, GetState, AsyncAction, TypedAction} from '../../constants/types/flux'
 import type {incomingCallMapType, login_recoverAccountFromEmailAddress_rpc,
   login_login_rpc, login_logout_rpc, device_deviceAdd_rpc, login_getConfiguredAccounts_rpc} from '../../constants/types/flow-types'
@@ -277,7 +277,7 @@ export function logoutDone () : AsyncAction {
 
     dispatch(switchTab(loginTab))
     dispatch(navBasedOnLoginState())
-    dispatch(getCurrentStatus())
+    dispatch(bootstrap())
   }
 }
 

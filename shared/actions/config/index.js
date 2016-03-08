@@ -44,7 +44,7 @@ export function getConfig (): AsyncAction {
   }
 }
 
-export function getExtendedConfig (): AsyncAction {
+function getExtendedStatus (): AsyncAction {
   return dispatch => {
     return new Promise((resolve, reject) => {
       const params : config_getExtendedStatus_rpc = {
@@ -67,7 +67,25 @@ export function getExtendedConfig (): AsyncAction {
   }
 }
 
-export function getCurrentStatus (): AsyncAction {
+let bootstrapSetup = false
+export function bootstrap (): AsyncAction {
+  return dispatch => {
+    if (!bootstrapSetup) {
+      bootstrapSetup = true
+      console.log('Registered bootstrap')
+      engine.listenOnConnect('bootstrap', () => {
+        console.log('Bootstrapping')
+        dispatch(bootstrap())
+      })
+    } else {
+      Promise.all([dispatch(getCurrentStatus()), dispatch(getExtendedStatus())]).then(() => {
+        dispatch(navBasedOnLoginState())
+      })
+    }
+  }
+}
+
+function getCurrentStatus (): AsyncAction {
   return dispatch => {
     return new Promise((resolve, reject) => {
       const params : config_getCurrentStatus_rpc = {
@@ -84,8 +102,6 @@ export function getCurrentStatus (): AsyncAction {
             type: Constants.statusLoaded,
             payload: {status}
           })
-
-          dispatch(navBasedOnLoginState())
 
           resolve()
         }
