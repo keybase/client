@@ -77,9 +77,7 @@ class RemoteManager extends Component {
 
   trackerRemoteComponents () {
     const {trackers} = this.props
-    const windowsOpts = flags.tracker2
-      ? {height: 470, width: 320}
-      : {height: 339, width: 520}
+    const windowsOpts = {height: 470, width: 320}
     return Object.keys(trackers).filter(username => !trackers[username].closed).map(username => (
       <RemoteComponent
         windowsOpts={windowsOpts}
@@ -104,9 +102,7 @@ class RemoteManager extends Component {
       const sid = parseInt(pSessionID, 10)
       const onCancel = () => this.props.pinentryOnCancel(sid)
       const onSubmit = this.props.pinentryOnSubmit.bind(null, sid)
-      const windowsOpts = flags.dz2
-        ? {width: 500, height: 260}
-        : {width: 513, height: 260}
+      const windowsOpts = {width: 500, height: 260}
       return (
         <RemoteComponent
           title='Pinentry'
