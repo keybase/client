@@ -72,25 +72,6 @@ const fontCommon = {
   letterSpacing: '0.3px'
 }
 
-const font = {
-  fontRegular: {
-    ...fontCommon,
-    fontFamily: 'Noto Sans'
-  },
-  fontBold: {
-    ...fontCommon,
-    fontFamily: 'Noto Sans Bold'
-  },
-  fontItalic: {
-    ...fontCommon,
-    fontFamily: 'Noto Sans Italic'
-  },
-  fontTerminal: {
-    ...fontCommon,
-    fontFamily: 'Source Code Pro'
-  }
-}
-
 const fontDZ2 = {
   fontRegular: {
     ...fontCommon,
