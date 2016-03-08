@@ -3,8 +3,9 @@ import React from 'react'
 
 export type Props = {
     onBack: () => void,
-    children: ?Array<any>,
-    style: ?Object
+    children?: ?Array<any>,
+    style?: ?Object,
+    outerStyle?: ?Object
 };
 
 declare export default class Container extends React.Component {

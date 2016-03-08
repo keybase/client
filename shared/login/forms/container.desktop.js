@@ -4,9 +4,9 @@ import {globalStyles} from '../../styles/style-guide'
 import {BackButton} from '../../common-adapters'
 import type {Props} from './container'
 
-export default ({children, onBack, style}: Props) => {
+export default ({children, onBack, style, outerStyle}: Props) => {
   return (
-    <div style={styles.container}>
+    <div style={{...styles.container, ...outerStyle}}>
       <BackButton onClick={() => onBack()}/>
       <div style={{...styles.innerContainer, ...style}}>
         {children}
@@ -21,7 +21,7 @@ const styles = {
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
-    margin: 65,
+    padding: 65,
     position: 'relative'
   },
   innerContainer: {
