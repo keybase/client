@@ -28,14 +28,15 @@ const (
 
 // MDServerRemote is an implementation of the MDServer interface.
 type MDServerRemote struct {
-	config           Config
-	conn             *Connection
-	client           keybase1.MetadataClient
-	log              logger.Logger
-	authToken        *AuthToken
-	squelchRekey     bool
-	isAuthenticated  bool
+	config       Config
+	conn         *Connection
+	client       keybase1.MetadataClient
+	log          logger.Logger
+	authToken    *AuthToken
+	squelchRekey bool
+
 	authenticatedMtx sync.Mutex
+	isAuthenticated  bool
 
 	observerMu sync.Mutex // protects observers
 	observers  map[TlfID]chan<- error
@@ -127,8 +128,8 @@ func (md *MDServerRemote) resetAuth(ctx context.Context, c keybase1.MetadataClie
 	md.log.Debug("MDServerRemote: resetAuth called")
 
 	isAuthenticated := false
+	md.authenticatedMtx.Lock()
 	defer func() {
-		md.authenticatedMtx.Lock()
 		md.isAuthenticated = isAuthenticated
 		md.authenticatedMtx.Unlock()
 	}()
