@@ -86,6 +86,9 @@ export default class Button extends Component {
     }
 
     let outerStyle = {position: 'relative'}
+    if (this.props.style) {
+      outerStyle = {...outerStyle, alignSelf: this.props.style.alignSelf}
+    }
 
     if (this.props.fullWidth) {
         // Using minWidth here means we can't have a full-width button on the
