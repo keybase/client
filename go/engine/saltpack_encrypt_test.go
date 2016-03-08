@@ -149,7 +149,8 @@ func TestSaltpackEncryptLoggedOut(t *testing.T) {
 	sink := libkb.NewBufferCloser()
 	arg := &SaltpackEncryptArg{
 		Opts: keybase1.SaltpackEncryptOptions{
-			Recipients: []string{"t_tracy+t_tracy@rooter", "t_george", "t_kb+gbrltest@twitter"},
+			Recipients:    []string{"t_tracy+t_tracy@rooter", "t_george", "t_kb+gbrltest@twitter"},
+			NoSelfEncrypt: true,
 		},
 		Source: strings.NewReader("track and encrypt, track and encrypt"),
 		Sink:   sink,
