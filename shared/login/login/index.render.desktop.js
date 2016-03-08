@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {Text, Button, FormWithCheckbox, Avatar, Dropdown} from '../../common-adapters'
+import {UserCard, Text, Button, FormWithCheckbox, Dropdown} from '../../common-adapters'
 import {globalStyles, globalColorsDZ2} from '../../styles/style-guide'
 import type {Props} from './index.render'
 
@@ -34,7 +34,6 @@ export default class LoginRender extends Component<void, Props, State> {
   }
 
   render () {
-    const avatar = this.state.selectedUser && `${this.props.serverURI}/${this.state.selectedUser}/picture`
     const inputProps = {
       dz2: true,
       floatingLabelText: 'Passphrase',
@@ -52,8 +51,7 @@ export default class LoginRender extends Component<void, Props, State> {
 
     return (
       <div style={styles.container}>
-        <Avatar style={styles.avatar} size={110} url={avatar} />
-        <div style={styles.card}>
+        <UserCard username={this.state.selectedUser}>
           <Dropdown
             type='Username'
             value={this.state.selectedUser}
@@ -72,7 +70,7 @@ export default class LoginRender extends Component<void, Props, State> {
             label='Log in'
             onClick={() => this.onSubmit()} />
           <Text dz2 link type='Body'>Forgot passphrase?</Text>
-        </div>
+        </UserCard>
         <Text style={{marginTop: 28}} dz2 link type='Body' onClick={this.props.onSignup}>Create an account</Text>
       </div>
     )
@@ -94,22 +92,5 @@ const styles = {
     alignItems: 'center',
     flex: 1,
     backgroundColor: globalColorsDZ2.black10
-  },
-  card: {
-    ...globalStyles.flexBoxColumn,
-    justifyContent: 'space-between',
-    paddingTop: 105,
-    paddingBottom: 30,
-    paddingLeft: 30,
-    paddingRight: 30,
-    width: 410,
-    height: 375,
-    marginTop: -110 / 2,
-    alignItems: 'center',
-    backgroundColor: globalColorsDZ2.white
-  },
-  avatar: {
-    marginTop: 60,
-    zIndex: 1
   }
 }
