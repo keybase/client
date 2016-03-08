@@ -124,7 +124,7 @@ const styles = {
     paddingBottom: 15
   },
   descriptionBlock: {
-    ...globalStyles.DZ2.fontTerminal,
+    ...globalStyles.fontTerminal,
     lineHeight: '21px',
     fontSize: 14,
     color: globalColors.black75,

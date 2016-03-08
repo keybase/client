@@ -76,13 +76,13 @@ export default class BioRender extends Component {
             }
             <Text type='BodySmall' style={styles.following}>
               <span className='hover-underline' onClick={() => this._onClickFollowers()}>
-                <Text type='BodySmall' style={{...globalStyles.DZ2.fontBold}}>{userInfo.followersCount}</Text> Followers
+                <Text type='BodySmall' style={{...globalStyles.fontBold}}>{userInfo.followersCount}</Text> Followers
               </span>
               &nbsp;
               &middot;
               &nbsp;
               <span className='hover-underline' onClick={() => this._onClickFollowing()}>
-                Following <Text type='BodySmall' style={{...globalStyles.DZ2.fontBold}}>{userInfo.followingCount}</Text>
+                Following <Text type='BodySmall' style={{...globalStyles.fontBold}}>{userInfo.followingCount}</Text>
               </span>
             </Text>
             {userInfo.bio &&

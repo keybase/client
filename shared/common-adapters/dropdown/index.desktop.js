@@ -107,7 +107,7 @@ class MenuItem extends Component<void, MenuItemProps, void> {
       case 'Other':
       case 'Pick':
         textType = 'Header'
-        textStyle = globalStyles.DZ2.fontSemibold
+        textStyle = globalStyles.fontSemibold
         break
     }
 
