@@ -11,7 +11,6 @@ const mobileAppsExistKey = 'mobileAppsExist'
 
 type FeatureFlags = {
   'admin': boolean,
-  'dz2': boolean,
   'login': boolean,
   'mobileAppsExist': boolean,
   'tracker2': boolean
@@ -20,14 +19,12 @@ type FeatureFlags = {
 let features = getenv.array('KEYBASE_FEATURES', 'string', '')
 
 const admin = features.includes(adminKey)
-const dz2 = true
 const login = features.includes(loginKey)
 const mobileAppsExist = features.includes(mobileAppsExistKey)
 const tracker2 = true
 
 const ff: FeatureFlags = {
   admin,
-  dz2,
   login,
   mobileAppsExist,
   tracker2
@@ -40,7 +37,6 @@ if (__DEV__) {
 export default ff
 export {
   admin,
-  dz2,
   login,
   mobileAppsExist,
   tracker2
