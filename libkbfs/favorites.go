@@ -2,13 +2,24 @@ package libkbfs
 
 import "golang.org/x/net/context"
 
+// favReq represents a request to access the logged-in user's
+// favorites list.  A single request can do one or more of the
+// following: refresh the current cached list, add a favorite, remove
+// a favorite, and get all the favorites.  When the request is done,
+// the resulting error (or nil) is sent over the done channel.  The
+// given ctx is used for all network operations.
 type favReq struct {
-	refresh  bool
-	toAdd    []Favorite
-	toDel    []Favorite
-	favs     chan<- []Favorite
-	done     chan<- error
-	canceled <-chan struct{}
+	// Request types
+	refresh bool
+	toAdd   []Favorite
+	toDel   []Favorite
+	favs    chan<- []Favorite
+
+	// Signaled when the request is done
+	done chan<- error
+
+	// Context
+	ctx context.Context
 }
 
 // Favorites manages a user's favorite list.
@@ -35,23 +46,7 @@ func NewFavorites(config Config) *Favorites {
 	return f
 }
 
-func (f *Favorites) handleReq(ctx context.Context, req favReq) {
-	// Tie the calling context together with this one.
-	if req.canceled != nil {
-		var cancel context.CancelFunc
-		ctx, cancel = context.WithCancel(ctx)
-		defer cancel()
-		// Wait for either the request to complete or be cancelled.
-		go func() {
-			select {
-			case <-req.canceled:
-				req.done <- context.Canceled
-				cancel()
-			case <-ctx.Done():
-			}
-		}()
-	}
-
+func (f *Favorites) handleReq(req favReq) {
 	kbpki := f.config.KBPKI()
 	// Fetch a new list if:
 	//  * The user asked us to refresh
@@ -60,7 +55,7 @@ func (f *Favorites) handleReq(ctx context.Context, req favReq) {
 	//    once we have proper invalidation from the server.
 	if req.refresh || f.cache == nil || req.favs != nil {
 		f.cache = make(map[Favorite]bool)
-		folders, err := kbpki.FavoriteList(ctx)
+		folders, err := kbpki.FavoriteList(req.ctx)
 		if err != nil {
 			req.done <- err
 			return
@@ -75,7 +70,7 @@ func (f *Favorites) handleReq(ctx context.Context, req favReq) {
 		// TODO: once we have proper cache invalidation from the API
 		// server, we should only call FavoriteAdd if the folder isn't
 		// already favorited.
-		err := kbpki.FavoriteAdd(ctx, fav.toKBFolder())
+		err := kbpki.FavoriteAdd(req.ctx, fav.toKBFolder())
 		if err != nil {
 			req.done <- err
 			return
@@ -85,7 +80,7 @@ func (f *Favorites) handleReq(ctx context.Context, req favReq) {
 	for _, fav := range req.toDel {
 		// Since our cache isn't necessarily up-to-date, always delete
 		// the favorite.
-		err := kbpki.FavoriteDelete(ctx, fav.toKBFolder())
+		err := kbpki.FavoriteDelete(req.ctx, fav.toKBFolder())
 		if err != nil {
 			req.done <- err
 			return
@@ -106,8 +101,7 @@ func (f *Favorites) handleReq(ctx context.Context, req favReq) {
 
 func (f *Favorites) loop() {
 	for req := range f.reqChan {
-		ctx := context.Background() // TODO: add debug tags
-		f.handleReq(ctx, req)
+		f.handleReq(req)
 	}
 }
 
@@ -119,7 +113,7 @@ func (f *Favorites) Shutdown() {
 func (f *Favorites) sendReq(ctx context.Context, req favReq) error {
 	errChan := make(chan error, 1)
 	req.done = errChan
-	req.canceled = ctx.Done()
+	req.ctx = ctx
 	select {
 	case f.reqChan <- req:
 	case <-ctx.Done():
@@ -147,7 +141,13 @@ func (f *Favorites) Delete(ctx context.Context, fav Favorite) error {
 
 // RefreshCache refreshes the cached list of favorites.
 func (f *Favorites) RefreshCache(ctx context.Context) {
-	req := favReq{refresh: true, done: make(chan error, 1)}
+	// This request is non-blocking, so use a throw-away done channel
+	// and context.
+	req := favReq{
+		refresh: true,
+		done:    make(chan error, 1),
+		ctx:     context.Background(),
+	}
 	select {
 	case f.reqChan <- req:
 	case <-ctx.Done():
