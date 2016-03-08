@@ -7,6 +7,10 @@ cd "$dir"
 
 build_dir=${BUILD_DIR:-/tmp/build_kbfs}
 nosign=${NOSIGN:-}
+gopath=${GOPATH:-}
+
+kbfs_dir="$gopath/src/github.com/keybase/kbfs"
+cd $kbfs_dir
 
 mkdir -p $build_dir
 
