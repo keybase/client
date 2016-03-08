@@ -56,12 +56,14 @@ func (u *UpdateChecker) Start() {
 	}
 	u.ticker = time.NewTicker(tickDuration())
 	go func() {
-		for range u.ticker.C {
-			u.log.Debug("Checking for update (ticker)")
-			err := u.Check(false, false)
-			if err != nil {
-				u.log.Errorf("Error in update: %s", err)
-			}
+		for _ = range u.ticker.C {
+			go func() {
+				u.log.Debug("Checking for update (ticker)")
+				err := u.Check(false, false)
+				if err != nil {
+					u.log.Errorf("Error in update: %s", err)
+				}
+			}()
 		}
 	}()
 }
