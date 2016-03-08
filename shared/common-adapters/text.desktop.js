@@ -101,13 +101,16 @@ export default class Text extends Component {
       ...typeStyle,
       ...linkStyle,
       ...(this.props.lineClamp ? lineClamp(this.props.lineClamp) : {}),
+      ...this._colorStyleBackgroundMode(this.props.backgroundMode || 'Normal', this.props.type),
       ...(this.props.small ? styles.textSmallMixin : {}),
       ...(this.props.onClick ? globalStyles.clickable : {}),
       ...(inline ? {...this._inlineStyle(this.props.type)} : {display: 'block'}),
-      ...this._colorStyleBackgroundMode(this.props.backgroundMode || 'Normal', this.props.type),
       ...this.props.style
     }
 
+    console.log('style')
+    console.log(globalColors.lightGrey2)
+    console.log(style)
     const terminalPrefix = this._terminalPrefix(this.props.type)
     const className = (this.props.className || '') + ' ' + (linkClassname || '')
 
@@ -252,7 +255,7 @@ export const styles = {
     display: 'inline'
   },
   textSmallMixin: {
-    color: globalColors.grey2,
+    color: globalColors.black40,
     fontSize: 14,
     lineHeight: '19px'
   }

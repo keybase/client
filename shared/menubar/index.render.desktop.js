@@ -351,8 +351,8 @@ const styles = {
   },
   header: {
     ...globalStyles.flexBoxRow,
-    backgroundColor: globalColors.grey5,
-    color: globalColors.grey2,
+    backgroundColor: globalColors.lightGrey1,
+    color: globalColors.green,
     minHeight: 31,
     maxHeight: 32,
     padding: 10
@@ -393,7 +393,7 @@ const styles = {
     color: globalColors.white,
     ...globalStyles.fontBold,
     fontSize: 8,
-    backgroundColor: globalColors.grey3,
+    backgroundColor: globalColors.lightGrey3,
     minWidth: 16,
     minHeight: 11,
     borderRadius: 2,
@@ -402,7 +402,7 @@ const styles = {
   },
   entryArrow: {
     ...globalStyles.clickable,
-    color: globalColors.grey2,
+    color: globalColors.lightGrey2,
     width: 25,
     fontSize: 13,
     height: 25,

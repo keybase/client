@@ -57,8 +57,8 @@ export default class Icon extends Component {
       color = 'inherit'
       hoverColor = 'inherit'
     } else {
-      color = this.props.style && this.props.style.color || color || (this.props.opacity ? globalColors.grey1 : globalColors.grey2)
-      hoverColor = this.props.style && this.props.style.hoverColor || hoverColor || (this.props.opacity ? globalColors.black : globalColors.grey1)
+      color = this.props.style && this.props.style.color || color || (this.props.opacity ? globalColors.lightGrey : globalColors.lightGrey3)
+      hoverColor = this.props.style && this.props.style.hoverColor || hoverColor || (this.props.opacity ? globalColors.black : globalColors.lightGrey2)
     }
 
     const isFontIcon = iconType.startsWith('fa-')

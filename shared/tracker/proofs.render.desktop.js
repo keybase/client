@@ -172,7 +172,7 @@ const styles = {
     ...globalStyles.clickable,
     height: 14,
     width: 14,
-    color: globalColors.grey1,
+    color: globalColors.lightGrey,
     marginRight: 9,
     marginTop: 4
   },
