@@ -108,10 +108,10 @@ type CmdUpdateRun struct {
 	options *keybase1.UpdateOptions
 }
 
-func NewCmdUpdateRunRunner(g *libkb.GlobalContext, options *keybase1.UpdateOptions) *CmdUpdateRun {
+func NewCmdUpdateRunRunner(g *libkb.GlobalContext, options keybase1.UpdateOptions) *CmdUpdateRun {
 	return &CmdUpdateRun{
 		Contextified: libkb.NewContextified(g),
-		options:      options,
+		options:      &options,
 	}
 }
 
@@ -176,10 +176,10 @@ func NewCmdUpdateRunLocal(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 	}
 }
 
-func NewCmdUpdateRunLocalRunner(g *libkb.GlobalContext, options *keybase1.UpdateOptions) *CmdUpdateRunLocal {
+func NewCmdUpdateRunLocalRunner(g *libkb.GlobalContext, options keybase1.UpdateOptions) *CmdUpdateRunLocal {
 	return &CmdUpdateRunLocal{
 		Contextified: libkb.NewContextified(g),
-		options:      options,
+		options:      &options,
 	}
 }
 
@@ -231,7 +231,7 @@ func parseOptions(ctx *cli.Context, options *keybase1.UpdateOptions) error {
 	return nil
 }
 
-func optionFlags(defaultOptions *keybase1.UpdateOptions) []cli.Flag {
+func optionFlags(defaultOptions keybase1.UpdateOptions) []cli.Flag {
 	return []cli.Flag{
 		cli.StringFlag{
 			Name:  "e, current-version",

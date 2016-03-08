@@ -55,7 +55,7 @@ export GOPATH="$HOME/gopath"     # Consider putting this in your ~/.bashrc.
 export PATH="$PATH:$GOPATH/bin"  # Ditto.
 
 # Now for the actual clone and build.
-go get github.com/keybase/client
+go get github.com/keybase/client/go/keybase
 GO15VENDOREXPERIMENT=1 go install -tags production github.com/keybase/client/go/keybase
 
 # If you did the PATH bit above, this should just work.
