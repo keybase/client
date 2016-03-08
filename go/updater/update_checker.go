@@ -12,17 +12,27 @@ import (
 )
 
 type UpdateChecker struct {
-	updater *Updater
-	ctx     Context
-	ticker  *time.Ticker
-	log     logger.Logger
+	updater       *Updater
+	ctx           Context
+	ticker        *time.Ticker
+	log           logger.Logger
+	tickDuration  time.Duration // tickDuration is the ticker delay
+	checkDuration time.Duration // checkDuration is how ofter to check for updates
+	count         int           // count is number of time we've checked
 }
 
+// NewUpdateChecker creates an update checker
 func NewUpdateChecker(updater *Updater, ctx Context, log logger.Logger) UpdateChecker {
+	return newUpdateChecker(updater, ctx, log, DefaultTickDuration(), DefaultCheckDuration())
+}
+
+func newUpdateChecker(updater *Updater, ctx Context, log logger.Logger, tickDuration time.Duration, checkDuration time.Duration) UpdateChecker {
 	return UpdateChecker{
-		updater: updater,
-		ctx:     ctx,
-		log:     log,
+		updater:       updater,
+		ctx:           ctx,
+		log:           log,
+		tickDuration:  tickDuration,
+		checkDuration: checkDuration,
 	}
 }
 
@@ -32,7 +42,7 @@ func (u *UpdateChecker) Check(force bool, requested bool) error {
 	if !requested && !force {
 		if lastCheckedPTime := u.updater.config.GetUpdateLastChecked(); lastCheckedPTime > 0 {
 			lastChecked := keybase1.FromTime(lastCheckedPTime)
-			if time.Now().Before(lastChecked.Add(checkDuration())) {
+			if time.Now().Before(lastChecked.Add(u.checkDuration)) {
 				u.log.Debug("Already checked: %s", lastChecked)
 				return nil
 			}
@@ -40,6 +50,7 @@ func (u *UpdateChecker) Check(force bool, requested bool) error {
 	}
 
 	checkTime := time.Now()
+	u.count++
 	_, err := u.updater.Update(u.ctx, force, requested)
 	if err != nil {
 		return err
@@ -50,11 +61,12 @@ func (u *UpdateChecker) Check(force bool, requested bool) error {
 	return nil
 }
 
+// Start starts the update checker
 func (u *UpdateChecker) Start() {
 	if u.ticker != nil {
 		return
 	}
-	u.ticker = time.NewTicker(tickDuration())
+	u.ticker = time.NewTicker(u.tickDuration)
 	go func() {
 		for _ = range u.ticker.C {
 			go func() {
@@ -68,21 +80,27 @@ func (u *UpdateChecker) Start() {
 	}()
 }
 
+// Stop stops the update checker
 func (u *UpdateChecker) Stop() {
 	u.ticker.Stop()
 	u.ticker = nil
 }
 
-// checkDuration is how often to check for updates
-func checkDuration() time.Duration {
+// Count is number of times the check has been called
+func (u UpdateChecker) Count() int {
+	return u.count
+}
+
+// DefaultCheckDuration is default for how often to check for updates (e.g. daily)
+func DefaultCheckDuration() time.Duration {
 	if sources.IsPrerelease {
 		return time.Hour
 	}
 	return 24 * time.Hour
 }
 
-// tickDuration is how often to call check (should be less than checkDuration or snooze min)
-func tickDuration() time.Duration {
+// DefaultTickDuration is how often to call check (should be less than checkDuration or snooze min)
+func DefaultTickDuration() time.Duration {
 	if sources.IsPrerelease {
 		return 15 * time.Minute
 	}
