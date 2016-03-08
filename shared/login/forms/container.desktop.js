@@ -7,7 +7,7 @@ import type {Props} from './container'
 export default ({children, onBack, style, outerStyle}: Props) => {
   return (
     <div style={{...styles.container, ...outerStyle}}>
-      <BackButton onClick={() => onBack()}/>
+      <BackButton style={styles.button} onClick={() => onBack()}/>
       <div style={{...styles.innerContainer, ...style}}>
         {children}
       </div>
@@ -32,5 +32,8 @@ const styles = {
     left: 0,
     right: 0,
     bottom: 0
+  },
+  button: {
+    zIndex: 9999
   }
 }
