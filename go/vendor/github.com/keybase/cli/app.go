@@ -73,7 +73,7 @@ func NewApp() *App {
 		Version:      "0.0.0",
 		BashComplete: DefaultAppComplete,
 		Action:       helpCommand.Action,
-		Compiled:     compileTime(),
+		Compiled:     time.Now(), // avoid compileTime() because of the Stat()
 		Writer:       os.Stdout,
 	}
 }
