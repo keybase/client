@@ -67,7 +67,7 @@ export default class PinentryRender extends Component {
       <div>
         <Header icon title='' onClose={() => this.props.onCancel()} />
         <div style={{...styles.container, textAlign: 'center', paddingLeft: 30, paddingRight: 30}}>
-          <Text dz2 type='Body'>{this.props.prompt}</Text>
+          <Text type='Body'>{this.props.prompt}</Text>
         </div>
         <div style={{...styles.container, alignItems: 'center', paddingLeft: 30, paddingRight: 30}}>
           <FormWithCheckbox
@@ -78,7 +78,7 @@ export default class PinentryRender extends Component {
           />
         </div>
         <div style={{...styles.container, alignItems: 'flex-end', paddingLeft: 30, paddingRight: 30, paddingBottom: 30}}>
-          <Button dz2 type='Primary' label='Continue' onClick={submitPassphrase} disabled={!this.state.passphrase}/>
+          <Button type='Primary' label='Continue' onClick={submitPassphrase} disabled={!this.state.passphrase}/>
         </div>
       </div>
     )

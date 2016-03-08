@@ -71,9 +71,9 @@ export default class LoginRender extends Component<void, Props, State> {
             type='Primary'
             label='Log in'
             onClick={() => this.onSubmit()} />
-          <Text dz2 link type='Body'>Forgot passphrase?</Text>
+          <Text link type='Body'>Forgot passphrase?</Text>
         </div>
-        <Text style={{marginTop: 28}} dz2 link type='Body' onClick={this.props.onSignup}>Create an account</Text>
+        <Text style={{marginTop: 28}} link type='Body' onClick={this.props.onSignup}>Create an account</Text>
       </div>
     )
   }

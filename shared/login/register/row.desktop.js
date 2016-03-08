@@ -26,8 +26,8 @@ const Row = ({onClick, icon, title, subTitle, children, style}:Props) => {
         <Icon type={icon} style={styles.icon}/>
       </div>
       <div>
-        <Text dz2 type='Header' inline={false} style={styles.header}>{title}</Text>
-        <Text dz2 type='BodySmall'>{subTitle}</Text>
+        <Text type='Header' inline={false} style={styles.header}>{title}</Text>
+        <Text type='BodySmall'>{subTitle}</Text>
         {children}
       </div>
     </div>

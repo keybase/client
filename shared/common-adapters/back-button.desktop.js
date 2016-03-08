@@ -12,7 +12,7 @@ export default class BackButton extends Component {
     return (
       <div style={{...styles.container, ...this.props.style}} onClick={this.props.onClick}>
         <Icon type='fa-arrow-left' style={styles.icon}/>
-        <Text dz2 type='BodyPrimaryLink' onClick={() => this.props.onClick()}>Back</Text>
+        <Text type='BodyPrimaryLink' onClick={() => this.props.onClick()}>Back</Text>
       </div>
     )
   }

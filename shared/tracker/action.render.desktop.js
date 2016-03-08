@@ -41,14 +41,14 @@ export default class ActionRender extends Component {
         <div style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'space-between', alignItems: 'center'}}>
           <Icon type='terminal' style={{width: 29}}/>
           <div style={{textAlign: 'center'}}>
-            <Text dz2 type='Terminal' inline>keybase login</Text>
-            <Text dz2 type='BodySmall' inline> or </Text>
-            <Text dz2 type='Terminal' inline>keybase signup</Text>
-            <Text dz2 type='BodySmall' inline> from the terminal for more options.</Text>
+            <Text type='Terminal' inline>keybase login</Text>
+            <Text type='BodySmall' inline> or </Text>
+            <Text type='Terminal' inline>keybase signup</Text>
+            <Text type='BodySmall' inline> from the terminal for more options.</Text>
           </div>
         </div>
         <div style={styles.closeContainer}>
-          <Button dz2 style={styles.actionButton} type='Secondary' label='Close' onClick={() => this.props.onClose(username)} />
+          <Button style={styles.actionButton} type='Secondary' label='Close' onClick={() => this.props.onClose(username)} />
         </div>
       </div>
     )
@@ -57,7 +57,7 @@ export default class ActionRender extends Component {
   renderClose (styles: Object, username: string) {
     return (
       <div style={{...styles.container}}>
-        <Button dz2 style={styles.actionButton} type='Secondary' label='Close' onClick={() => this.props.onClose(username)} />
+        <Button style={styles.actionButton} type='Secondary' label='Close' onClick={() => this.props.onClose(username)} />
       </div>
     )
   }
@@ -65,7 +65,7 @@ export default class ActionRender extends Component {
   renderNormal (styles: Object, username: string) {
     return (
       <div style={{...styles.container}}>
-        <Button waiting={this.props.waiting} dz2 style={styles.actionButton} type='Follow' label='Track' onClick={() => this.props.onFollow(username)} />
+        <Button waiting={this.props.waiting} style={styles.actionButton} type='Follow' label='Track' onClick={() => this.props.onFollow(username)} />
       </div>
     )
   }
@@ -73,8 +73,8 @@ export default class ActionRender extends Component {
   renderChanged (styles: Object, username: string) {
     return (
       <div style={{...styles.container}}>
-        <Button waiting={this.props.waiting} dz2 type='Unfollow' label='Ignore for 24 hrs' onClick={() => this.props.onUnfollow(username)} />
-        <Button waiting={this.props.waiting} dz2 style={styles.actionButton} type='Follow' label='Accept' onClick={() => this.props.onRefollow(username)} />
+        <Button waiting={this.props.waiting} type='Unfollow' label='Ignore for 24 hrs' onClick={() => this.props.onUnfollow(username)} />
+        <Button waiting={this.props.waiting} style={styles.actionButton} type='Follow' label='Accept' onClick={() => this.props.onRefollow(username)} />
       </div>
     )
   }

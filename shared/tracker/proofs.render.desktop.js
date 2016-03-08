@@ -128,12 +128,12 @@ export class ProofsRender extends Component {
                 className='hover-underline'
                 style={{...styles.proofName, ...(proof.meta === metaDeleted ? {textDecoration: 'line-through'} : {}), color: proofNameColor}}
                 onClick={onClickProfile}>
-                <Text dz2 inline style={{color: proofNameColor}} type='Body'>{proof.name}</Text>
+                <Text inline style={{color: proofNameColor}} type='Body'>{proof.name}</Text>
               </span>
               <wbr/>
-              <Text dz2 inline type='Body' style={styles.proofType}>@{proof.type}</Text>
+              <Text inline type='Body' style={styles.proofType}>@{proof.type}</Text>
             </span>
-          {proof.meta && <Text dz2 type='Header' style={{...styles.meta, backgroundColor: metaColor}}>{proof.meta}</Text>}
+          {proof.meta && <Text type='Header' style={{...styles.meta, backgroundColor: metaColor}}>{proof.meta}</Text>}
           </div>
         </div>
         {isChecking &&

@@ -113,7 +113,7 @@ class MenuItem extends Component<void, MenuItemProps, void> {
 
     return (
       <div className='kbmenuitem' style={{...styles.menuItem, ...this.props.style}} onClick={this.props.onClick}>
-        <Text dz2 style={{...textStyle, ...this.props.textStyle}} type={textType}>{this.props.children}</Text>
+        <Text style={{...textStyle, ...this.props.textStyle}} type={textType}>{this.props.children}</Text>
       </div>
     )
   }

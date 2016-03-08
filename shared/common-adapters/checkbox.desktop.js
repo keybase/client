@@ -38,7 +38,7 @@ export default class Checkbox extends Component {
         <div style={boxStyle}>
           <Icon type='fa-check' style={{...dz2Styles.icon, ...(this.props.checked ? {} : {opacity: 0})}} />
         </div>
-        <Text dz2 type='Body' small style={{color: this.props.checked ? globalColorsDZ2.black75 : globalColorsDZ2.black75}}>{this.props.label}</Text>
+        <Text type='Body' small style={{color: this.props.checked ? globalColorsDZ2.black75 : globalColorsDZ2.black75}}>{this.props.label}</Text>
       </div>
     )
   }

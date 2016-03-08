@@ -18,7 +18,7 @@ export default class RegisterRender extends Component {
           onClick={() => { console.log('TODO') }}>
           <div style={styles.instantContainer}>
             <Icon type='fa-bolt' style={styles.instantIcon}/>
-            <Text dz2 type='Body' style={styles.instant} small>Instant</Text>
+            <Text type='Body' style={styles.instant} small>Instant</Text>
           </div>
         </Row>
         <Row

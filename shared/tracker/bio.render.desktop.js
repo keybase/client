@@ -63,35 +63,35 @@ export default class BioRender extends Component {
             }
           </div>
           <div style={styles.content}>
-            <Text dz2
+            <Text
               type='HeaderBig'
               className='hover-underline'
               style={{...styles.username, ...(currentlyFollowing ? styles.usernameFollowing : styles.usernameNotFollowing)}}
               onClick={() => this._onClickAvatar()}>
               {username}
             </Text>
-            <Text type='BodySemibold' dz2 style={styles.fullname}>{userInfo.fullname}</Text>
+            <Text type='BodySemibold' style={styles.fullname}>{userInfo.fullname}</Text>
             {followLabel &&
-              <Text type='BodySmall' dz2 style={styles.followLabel}>{followLabel}</Text>
+              <Text type='BodySmall' style={styles.followLabel}>{followLabel}</Text>
             }
-            <Text type='BodySmall' dz2 style={styles.following}>
+            <Text type='BodySmall' style={styles.following}>
               <span className='hover-underline' onClick={() => this._onClickFollowers()}>
-                <Text dz2 type='BodySmall' style={{...globalStyles.DZ2.fontBold}}>{userInfo.followersCount}</Text> Followers
+                <Text type='BodySmall' style={{...globalStyles.DZ2.fontBold}}>{userInfo.followersCount}</Text> Followers
               </span>
               &nbsp;
               &middot;
               &nbsp;
               <span className='hover-underline' onClick={() => this._onClickFollowing()}>
-                Following <Text dz2 type='BodySmall' style={{...globalStyles.DZ2.fontBold}}>{userInfo.followingCount}</Text>
+                Following <Text type='BodySmall' style={{...globalStyles.DZ2.fontBold}}>{userInfo.followingCount}</Text>
               </span>
             </Text>
             {userInfo.bio &&
-              <Text type='BodySmall' dz2 style={styles.bio} lineClamp={userInfo.location ? 2 : 3}>
+              <Text type='BodySmall' style={styles.bio} lineClamp={userInfo.location ? 2 : 3}>
                 {userInfo.bio}
               </Text>
             }
             {userInfo.location &&
-              <Text type='BodySmall' dz2 style={styles.location} lineClamp={1}>{userInfo.location}</Text>
+              <Text type='BodySmall' style={styles.location} lineClamp={1}>{userInfo.location}</Text>
             }
           </div>
         </div>

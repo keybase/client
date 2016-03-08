@@ -30,7 +30,7 @@ class Render extends Component<void, Props, State> {
       <Container
         style={styles.container}
         onBack={() => this.props.onBack()}>
-        <Text dz2 type='Header' style={styles.header}>Enter your username or email:</Text>
+        <Text type='Header' style={styles.header}>Enter your username or email:</Text>
         <Icon type='fa-sign-in' style={styles.icon}/>
         <Input
           dz2
