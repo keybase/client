@@ -27,10 +27,11 @@ let currentLoginSessionID = null
 
 export function navBasedOnLoginState () :AsyncAction {
   return (dispatch, getState) => {
-    const {config: {status}} = getState()
+    const {config: {status, extendedConfig}} = getState()
 
     // No status?
-    if (!status || !Object.keys(status).length) {
+    if (!status || !Object.keys(status).length || !extendedConfig || !Object.keys(extendedConfig).length ||
+      !extendedConfig.device) { // Not provisioned?
       dispatch(navigateTo([], loginTab))
       dispatch(switchTab(loginTab))
     } else {
@@ -103,7 +104,7 @@ export function login (): AsyncAction {
           })
 
           dispatch(loadDevices())
-          dispatch(navBasedOnLoginState())
+          dispatch(bootstrap())
         }
       }
     }
