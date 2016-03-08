@@ -34,10 +34,11 @@ const connectionStatusDisconnected keybase1.FSStatusCode = keybase1.FSStatusCode
 // notification.  These should all be reserved or illegal Keybase
 // usernames that will never be associated with a real account.
 var noErrorNames = map[string]bool{
-	"objects": true, // git shells
-	"gemfile": true, // rvm
-	"devfs":   true, // lsof?  KBFS-823
-	"_mtn":    true, // emacs on Linux
+	"objects":        true, // git shells
+	"gemfile":        true, // rvm
+	"devfs":          true, // lsof?  KBFS-823
+	"_mtn":           true, // emacs on Linux
+	"docker-machine": true, // docker shell stuff
 }
 
 // ReporterKBPKI implements the Notify function of the Reporter
