@@ -351,8 +351,7 @@ const styles = {
   },
   header: {
     ...globalStyles.flexBoxRow,
-    backgroundColor: globalColors.lightGrey1,
-    color: globalColors.green,
+    backgroundColor: globalColors.lightGrey,
     minHeight: 31,
     maxHeight: 32,
     padding: 10
@@ -380,7 +379,7 @@ const styles = {
   },
   footer: {
     ...globalStyles.flexBoxRow,
-    backgroundColor: globalColors.grey5,
+    backgroundColor: globalColors.lightGrey,
     justifyContent: 'space-between',
     padding: 10
   },

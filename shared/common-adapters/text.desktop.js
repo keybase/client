@@ -100,17 +100,14 @@ export default class Text extends Component {
     const style = {
       ...typeStyle,
       ...linkStyle,
-      ...(this.props.lineClamp ? lineClamp(this.props.lineClamp) : {}),
       ...this._colorStyleBackgroundMode(this.props.backgroundMode || 'Normal', this.props.type),
+      ...(this.props.lineClamp ? lineClamp(this.props.lineClamp) : {}),
       ...(this.props.small ? styles.textSmallMixin : {}),
       ...(this.props.onClick ? globalStyles.clickable : {}),
       ...(inline ? {...this._inlineStyle(this.props.type)} : {display: 'block'}),
       ...this.props.style
     }
 
-    console.log('style')
-    console.log(globalColors.lightGrey2)
-    console.log(style)
     const terminalPrefix = this._terminalPrefix(this.props.type)
     const className = (this.props.className || '') + ' ' + (linkClassname || '')
 
