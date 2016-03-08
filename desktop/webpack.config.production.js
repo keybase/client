@@ -59,4 +59,5 @@ if (!SKIP_OPTIMIZE) {
 }
 
 config.target = webpackTargetElectronRenderer(config)
+config.bail = true
 module.exports = config

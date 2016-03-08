@@ -207,11 +207,7 @@ function exec (command, env, options) {
     env = process.env
   }
 
-  try {
-    console.log(execSync(command, {env: env, stdio: 'inherit', encoding: 'utf8', ...options}))
-  } catch (err) {
-    console.log('Exec errored out: ', err)
-  }
+  console.log(execSync(command, {env: env, stdio: 'inherit', encoding: 'utf8', ...options}))
 }
 
 let info = commands[command]
