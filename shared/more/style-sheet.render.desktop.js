@@ -1,6 +1,6 @@
 /* @flow */
 import React, {Component} from 'react'
-import {globalStyles, globalColors, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles/style-guide'
 import Container from './dev-container.desktop.js'
 import {Button, Input, Text, Terminal, FormWithCheckbox} from '../common-adapters'
 
@@ -12,33 +12,13 @@ export default class Render extends Component {
 
     return (
       <div style={{...globalStyles.flexBoxColumn, margin: 20}}>
-        <Container title='Dropdown - DZ2'>
+        <Container title='Dropdown'>
           <DropdownDemo/>
         </Container>
-        <Container title='Text - DZ2'>
-          <DZ2Font/>
-        </Container>
         <Container title='Text'>
-          <div style={{...globalStyles.flexBoxRow}}>
-            <div style={{...globalStyles.flexBoxColumn, flex: 1, padding: 20}}>
-              <Text type='Header'>Header</Text>
-              <Text type='Header' link>Header link</Text>
-              <Text type='Body'>Body</Text>
-              <Text type='Body' link>Body link</Text>
-              <Text type='Body' small>Body small</Text>
-              <Text type='Body' link small>Body link small</Text>
-            </div>
-            <div style={{...globalStyles.flexBoxColumn, flex: 1, padding: 20, backgroundColor: globalColors.blue}}>
-              <Text type='Header' reversed>Header</Text>
-              <Text type='Header' link reversed>Header link</Text>
-              <Text type='Body' reversed>Body</Text>
-              <Text type='Body' link reversed>Body link</Text>
-              <Text type='Body' small reversed>Body small</Text>
-              <Text type='Body' link small reversed>Body link small</Text>
-            </div>
-          </div>
+          <Font/>
         </Container>
-        <Container title='Colors - DZ2'>
+        <Container title='Colors'>
           <div style={{...globalStyles.flexBoxColumn, flexWrap: 'wrap'}}>
             <Text type='Body'>Colors</Text>
             <div style={{...globalStyles.flexBoxRow, flexWrap: 'wrap'}}>
@@ -54,21 +34,6 @@ export default class Render extends Component {
               ) }
             )}
             </div>
-          </div>
-        </Container>
-        <Container title='Colors'>
-          <div style={{...globalStyles.flexBoxColumn, flexWrap: 'wrap', height: 350}}>
-          {Object.keys(this.props.colors).sort().map(c => {
-            return (
-              <div style={{...globalStyles.flexBoxRow, height: 60, margin: 5}}>
-                <div style={{width: 60, height: 60, backgroundColor: this.props.colors[c]}}></div>
-                <div style={{...globalStyles.flexBoxColumn, justifyContent: 'center', marginLeft: 5}}>
-                  <Text type='Body'>{c}</Text>
-                  <Text type='Body' small>{this.props.colors[c]}</Text>
-                </div>
-              </div>
-            ) }
-          )}
           </div>
         </Container>
         <Container title='Buttons' style={{order: -1}}>
@@ -127,7 +92,6 @@ export default class Render extends Component {
               </div>
             </div>
           </div>
-
         </Container>
         <Container title='Icons'>
           <div style={{...globalStyles.flexBoxColumn}}>
@@ -158,7 +122,7 @@ export default class Render extends Component {
   }
 }
 
-class DZ2Font extends Component {
+class Font extends Component {
   render () {
     const Space = () => <div style={{height: 20}}/>
     return (
