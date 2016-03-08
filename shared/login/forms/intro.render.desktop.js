@@ -2,7 +2,7 @@
 /* eslint-disable react/prop-types */
 
 import React, {Component} from 'react'
-import {globalColorsDZ2, globalStyles} from '../../styles/style-guide'
+import {globalColors, globalStyles} from '../../styles/style-guide'
 import {Text, Icon, Button} from '../../common-adapters'
 
 import type {IntroProps} from './intro.render'
@@ -36,7 +36,7 @@ const styles = {
   },
   header: {
     marginTop: 27,
-    color: globalColorsDZ2.orange
+    color: globalColors.orange
   },
   headerSub: {
     marginTop: 3

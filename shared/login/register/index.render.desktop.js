@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {globalStyles, globalColorsDZ2} from '../../styles/style-guide'
+import {globalStyles, globalColors} from '../../styles/style-guide'
 import {Icon, Text} from '../../common-adapters'
 import Container from '../forms/container.desktop'
 import Row, {RowCSS} from './row'
@@ -57,10 +57,10 @@ const styles = {
     alignItems: 'center'
   },
   instant: {
-    color: globalColorsDZ2.green2
+    color: globalColors.green2
   },
   instantIcon: {
-    color: globalColorsDZ2.green2,
+    color: globalColors.green2,
     width: 12
   }
 }

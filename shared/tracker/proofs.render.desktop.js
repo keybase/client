@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import commonStyles from '../styles/common'
-import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide'
+import {globalStyles, globalColors, globalColors} from '../styles/style-guide'
 import {Icon, Text} from '../common-adapters/index'
 import {CircularProgress} from 'material-ui'
 import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked, error as proofError, warning as proofWarning} from '../constants/tracker'
@@ -55,13 +55,13 @@ export class ProofsRender extends Component {
   }
 
   metaColor (proof: Proof): string {
-    let color = globalColorsDZ2.blue
+    let color = globalColors.blue
     switch (proof.meta) {
-      case metaNew: color = globalColorsDZ2.blue; break
-      case metaUpgraded: color = globalColorsDZ2.blue; break
-      case metaUnreachable: color = globalColorsDZ2.red; break
-      case metaPending: color = globalColorsDZ2.black40; break
-      case metaDeleted: color = globalColorsDZ2.red; break
+      case metaNew: color = globalColors.blue; break
+      case metaUpgraded: color = globalColors.blue; break
+      case metaUnreachable: color = globalColors.red; break
+      case metaPending: color = globalColors.black40; break
+      case metaDeleted: color = globalColors.red; break
     }
     return color
   }
@@ -71,24 +71,24 @@ export class ProofsRender extends Component {
   }
 
   proofColor (proof: Proof): string {
-    let color = globalColorsDZ2.blue
+    let color = globalColors.blue
     switch (proof.state) {
       case proofNormal: {
-        color = this._isTracked(proof) ? globalColorsDZ2.green : globalColorsDZ2.blue
+        color = this._isTracked(proof) ? globalColors.green : globalColors.blue
         break
       }
       case proofChecking:
-        color = globalColorsDZ2.black20
+        color = globalColors.black20
         break
       case proofRevoked:
       case proofWarning:
       case proofError:
-        color = globalColorsDZ2.red
+        color = globalColors.red
         break
     }
 
     // TODO: State is deprecated, will refactor after nuking v1
-    if (proof.state === proofChecking) color = globalColorsDZ2.black20
+    if (proof.state === proofChecking) color = globalColors.black20
 
     return color
   }
@@ -137,7 +137,7 @@ export class ProofsRender extends Component {
           </div>
         </div>
         {isChecking &&
-          <CircularProgress style={styles.loader} mode='indeterminate' color={globalColorsDZ2.black20} size={spinnerSize} />
+          <CircularProgress style={styles.loader} mode='indeterminate' color={globalColors.black20} size={spinnerSize} />
         }
         {!isChecking && proofStatusIcon &&
           <Icon type={proofStatusIcon} style={styles.statusIcon} onClick={onClickProfile} />
@@ -158,7 +158,7 @@ export class ProofsRender extends Component {
 const styles = {
   container: {
     ...globalStyles.flexBoxColumn,
-    backgroundColor: globalColorsDZ2.white
+    backgroundColor: globalColors.white
   },
   row: {
     ...globalStyles.flexBoxRow,
@@ -199,10 +199,10 @@ const styles = {
     flex: 1
   },
   proofType: {
-    color: globalColorsDZ2.black10
+    color: globalColors.black10
   },
   meta: {
-    color: globalColorsDZ2.white,
+    color: globalColors.white,
     borderRadius: 1,
     fontSize: 10,
     height: 13,

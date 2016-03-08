@@ -7,7 +7,7 @@ import {Header, Text, Button, Checkbox, Icon, Terminal} from '../common-adapters
 import {clipboard} from 'electron'
 import marked from 'marked'
 import {autoResize} from '../../desktop/renderer/remote-component-helper'
-import {globalStyles, globalColorsDZ2} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles/style-guide'
 
 type RenderProps = {
   isCritical: bool,
@@ -128,9 +128,9 @@ const styles = {
     ...globalStyles.DZ2.fontTerminal,
     lineHeight: '21px',
     fontSize: 14,
-    color: globalColorsDZ2.black75,
-    backgroundColor: globalColorsDZ2.lightGrey,
-    border: `solid ${globalColorsDZ2.black10} 1px`,
+    color: globalColors.black75,
+    backgroundColor: globalColors.lightGrey,
+    border: `solid ${globalColors.black10} 1px`,
     minHeight: 130,
     maxHeight: 130,
     overflowY: 'auto',

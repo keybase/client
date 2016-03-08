@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import {FlatButton, CircularProgress} from 'material-ui'
-import {globalStyles, globalColorsDZ2} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props} from './button'
 
 export default class Button extends Component {
@@ -11,7 +11,7 @@ export default class Button extends Component {
   _styles (type: Props.type): Object {
     let backgroundStyle = {}
     let labelStyle = {}
-    let progressColor = globalColorsDZ2.white
+    let progressColor = globalColors.white
 
     const disabled = this.props.disabled || this.props.waiting
 
@@ -34,9 +34,9 @@ export default class Button extends Component {
           opacity: disabled ? styles.buttonFollowing.disabledOpacity : 1
         }
         labelStyle = {
-          color: globalColorsDZ2.green
+          color: globalColors.green
         }
-        progressColor = globalColorsDZ2.black75
+        progressColor = globalColors.black75
         break
       case 'Unfollow':
         backgroundStyle = {
@@ -57,9 +57,9 @@ export default class Button extends Component {
           opacity: disabled ? styles.buttonSecondary.disabledOpacity : 1
         }
         labelStyle = {
-          color: globalColorsDZ2.black75
+          color: globalColors.black75
         }
-        progressColor = globalColorsDZ2.black75
+        progressColor = globalColors.black75
     }
     return {backgroundStyle, labelStyle, progressColor}
   }
@@ -131,7 +131,7 @@ export default class Button extends Component {
 
 const buttonCommon = {
   ...globalStyles.DZ2.fontSemibold,
-  color: globalColorsDZ2.white,
+  color: globalColors.white,
   whiteSpace: 'nowrap',
   borderRadius: 55,
   fontSize: 16,
@@ -144,39 +144,39 @@ const buttonCommon = {
 const styles = {
   buttonPrimary: {
     ...buttonCommon,
-    backgroundColor: globalColorsDZ2.blue,
+    backgroundColor: globalColors.blue,
     disabledOpacity: 0.2,
     marginRight: 10
   },
   buttonSecondary: {
     ...buttonCommon,
-    backgroundColor: globalColorsDZ2.lightGrey2,
+    backgroundColor: globalColors.lightGrey2,
     disabledOpacity: 0.3,
     marginRight: 10
   },
   buttonDanger: {
     ...buttonCommon,
-    backgroundColor: globalColorsDZ2.red,
+    backgroundColor: globalColors.red,
     disabledOpacity: 0.2,
     marginRight: 10
   },
   buttonFollow: {
     ...buttonCommon,
-    backgroundColor: globalColorsDZ2.green,
+    backgroundColor: globalColors.green,
     disabledOpacity: 0.3,
     marginRight: 10,
     minWidth: 125
   },
   buttonFollowing: {
     ...buttonCommon,
-    backgroundColor: globalColorsDZ2.white,
-    border: `solid 2px ${globalColorsDZ2.green}`,
+    backgroundColor: globalColors.white,
+    border: `solid 2px ${globalColors.green}`,
     marginRight: 10,
     minWidth: 125
   },
   buttonUnfollow: {
     ...buttonCommon,
-    backgroundColor: globalColorsDZ2.blue,
+    backgroundColor: globalColors.blue,
     disabledOpacity: 0.2,
     marginRight: 10,
     minWidth: 125

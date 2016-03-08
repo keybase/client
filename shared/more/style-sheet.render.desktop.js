@@ -1,6 +1,6 @@
 /* @flow */
 import React, {Component} from 'react'
-import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide'
+import {globalStyles, globalColors, globalColors} from '../styles/style-guide'
 import Container from './dev-container.desktop.js'
 import {Button, Input, Text, Terminal, FormWithCheckbox} from '../common-adapters'
 
@@ -42,13 +42,13 @@ export default class Render extends Component {
           <div style={{...globalStyles.flexBoxColumn, flexWrap: 'wrap'}}>
             <Text type='Body'>Colors</Text>
             <div style={{...globalStyles.flexBoxRow, flexWrap: 'wrap'}}>
-            {Object.keys(globalColorsDZ2).sort().map(c => {
+            {Object.keys(globalColors).sort().map(c => {
               return (
                 <div style={{...globalStyles.flexBoxRow, height: 60, margin: 5, minWidth: 230}}>
-                  <div style={{width: 60, height: 60, backgroundColor: globalColorsDZ2[c]}}></div>
+                  <div style={{width: 60, height: 60, backgroundColor: globalColors[c]}}></div>
                   <div style={{...globalStyles.flexBoxColumn, justifyContent: 'center', marginLeft: 5}}>
                     <Text type='Body'>{c}</Text>
-                    <Text type='Body' small>{globalColorsDZ2[c]}</Text>
+                    <Text type='Body' small>{globalColors[c]}</Text>
                   </div>
                 </div>
               ) }
@@ -167,13 +167,13 @@ class DZ2Font extends Component {
 
           {['Normal', 'Announcements', 'Success', 'Information', 'HighRisk', 'Documentation', 'Terminal'].map(backgroundMode => {
             const background = {
-              'Normal': globalColorsDZ2.white,
-              'Announcements': globalColorsDZ2.blue,
-              'Success': globalColorsDZ2.green,
-              'Information': globalColorsDZ2.yellow,
-              'HighRisk': globalColorsDZ2.red,
-              'Documentation': globalColorsDZ2.darkBlue,
-              'Terminal': globalColorsDZ2.darkBlue3
+              'Normal': globalColors.white,
+              'Announcements': globalColors.blue,
+              'Success': globalColors.green,
+              'Information': globalColors.yellow,
+              'HighRisk': globalColors.red,
+              'Documentation': globalColors.darkBlue,
+              'Terminal': globalColors.darkBlue3
             }[backgroundMode]
 
             return (

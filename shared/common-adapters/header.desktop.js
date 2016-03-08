@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import {Icon} from '../common-adapters'
-import {globalStyles, globalColorsDZ2} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props, DefaultProps} from './header'
 import Text from './text'
 
@@ -64,7 +64,7 @@ const styles = {
     paddingBottom: 6
   },
   strongContainer: {
-    backgroundColor: globalColorsDZ2.blue,
+    backgroundColor: globalColors.blue,
     paddingTop: 6,
     paddingBottom: 12
   }

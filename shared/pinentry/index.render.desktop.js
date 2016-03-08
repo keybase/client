@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import {globalStyles, globalColorsDZ2} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles/style-guide'
 import {autoResize} from '../../desktop/renderer/remote-component-helper'
 import {Button, FormWithCheckbox, Header, Text} from '../common-adapters'
 
@@ -99,11 +99,11 @@ PinentryRender.propTypes = {
 const styles = {
   container: {
     ...globalStyles.flexBoxColumn,
-    backgroundColor: globalColorsDZ2.white
+    backgroundColor: globalColors.white
   },
   checkbox: {
     ...globalStyles.topMost,
-    color: globalColorsDZ2.black100,
+    color: globalColors.black100,
     marginLeft: 10
   }
 }

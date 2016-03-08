@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import {Text, Avatar} from '../common-adapters'
-import {globalStyles, globalColorsDZ2} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles/style-guide'
 import electron from 'electron'
 
 const shell = electron.shell || electron.remote.shell
@@ -123,7 +123,7 @@ const styles = {
     height: 70
   },
   content: {
-    backgroundColor: globalColorsDZ2.white,
+    backgroundColor: globalColors.white,
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
     justifyContent: 'center',
@@ -136,10 +136,10 @@ const styles = {
     marginTop: 7
   },
   usernameFollowing: {
-    color: globalColorsDZ2.green2
+    color: globalColors.green2
   },
   usernameNotFollowing: {
-    color: globalColorsDZ2.orange
+    color: globalColors.orange
   },
   fullname: {
     textAlign: 'center',
@@ -166,11 +166,11 @@ const styles = {
 
 const followBadgeCommon = {
   position: 'absolute',
-  background: globalColorsDZ2.white,
+  background: globalColors.white,
   width: 14,
   height: 14,
   borderRadius: '50%',
-  border: `2px solid ${globalColorsDZ2.white}`
+  border: `2px solid ${globalColors.white}`
 }
 
 const followTop = {
@@ -188,18 +188,18 @@ const followBottom = {
 const followBadgeStyles = {
   followsYou: {
     ...followTop,
-    background: globalColorsDZ2.green2
+    background: globalColors.green2
   },
   notFollowsYou: {
     ...followTop,
-    background: globalColorsDZ2.lightGrey3
+    background: globalColors.lightGrey3
   },
   following: {
     ...followBottom,
-    background: globalColorsDZ2.green2
+    background: globalColors.green2
   },
   notFollowing: {
     ...followBottom,
-    background: globalColorsDZ2.lightGrey3
+    background: globalColors.lightGrey3
   }
 }

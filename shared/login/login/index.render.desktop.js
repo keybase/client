@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {Text, Button, FormWithCheckbox, Avatar, Dropdown} from '../../common-adapters'
-import {globalStyles, globalColorsDZ2} from '../../styles/style-guide'
+import {globalStyles, globalColors} from '../../styles/style-guide'
 import type {Props} from './index.render'
 
 type State = {
@@ -93,7 +93,7 @@ const styles = {
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
     flex: 1,
-    backgroundColor: globalColorsDZ2.black10
+    backgroundColor: globalColors.black10
   },
   card: {
     ...globalStyles.flexBoxColumn,
@@ -106,7 +106,7 @@ const styles = {
     height: 375,
     marginTop: -110 / 2,
     alignItems: 'center',
-    backgroundColor: globalColorsDZ2.white
+    backgroundColor: globalColors.white
   },
   avatar: {
     marginTop: 60,

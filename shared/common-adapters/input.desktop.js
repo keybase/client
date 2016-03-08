@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import {TextField} from 'material-ui'
-import {globalStyles, globalColorsDZ2} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles/style-guide'
 import {styles as TextStyles, specialStyles} from './text'
 import materialTheme from '../styles/material-theme.desktop'
 
@@ -60,13 +60,13 @@ export default class Input extends Component {
           ref={textField => (this._textField = textField)}
           fullWidth
           inputStyle={{...inputStyle, textAlign: 'center'}}
-          underlineStyle={{borderColor: globalColorsDZ2.black10, bottom: 'auto'}}
+          underlineStyle={{borderColor: globalColors.black10, bottom: 'auto'}}
           errorStyle={{...styles.errorStyle, ...this.props.errorStyle}}
           style={{...textStyle, ...globalStyles.flexBoxColumn}}
           autoFocus={this.props.autoFocus}
           errorText={this.props.errorText}
           floatingLabelText={this.props.small ? undefined : this.props.floatingLabelText}
-          floatingLabelStyle={{...styles.floatingLabelStyle, ...(this.state.value || this.state.focused ? {color: globalColorsDZ2.blue, transform: 'perspective(1px) scale(0.64) translate3d(2px, -28px, 0)', transformOrigin: 'center top'} : {transform: 'scale(1) translate3d(0, 0, 0)'})}}
+          floatingLabelStyle={{...styles.floatingLabelStyle, ...(this.state.value || this.state.focused ? {color: globalColors.blue, transform: 'perspective(1px) scale(0.64) translate3d(2px, -28px, 0)', transformOrigin: 'center top'} : {transform: 'scale(1) translate3d(0, 0, 0)'})}}
           onFocus={() => this.setState({focused: true})}
           onBlur={() => this.setState({focused: false})}
           hintText={this.props.hintText}
@@ -111,13 +111,13 @@ export const styles = {
     lineHeight: '11px'
   },
   underlineFocusStyle: {
-    borderColor: globalColorsDZ2.blue,
+    borderColor: globalColors.blue,
     borderBottom: 'solid 1px',
     transition: ''
   },
   errorStyle: {
     ...globalStyles.DZ2.fontRegular,
-    color: globalColorsDZ2.red,
+    color: globalColors.red,
     alignSelf: 'center',
     fontSize: 14,
     lineHeight: '17px',
@@ -130,7 +130,7 @@ export const styles = {
   },
   floatingLabelStyle: {
     ...globalStyles.DZ2.fontRegular,
-    color: globalColorsDZ2.black10,
+    color: globalColors.black10,
     alignSelf: 'center',
     position: 'inherit',
     top: 34

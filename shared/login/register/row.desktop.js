@@ -1,17 +1,17 @@
 // @flow
 import React from 'react'
-import {globalStyles, globalColorsDZ2, transition} from '../../styles/style-guide'
+import {globalStyles, globalColors, transition} from '../../styles/style-guide'
 import {Icon, Text} from '../../common-adapters'
 import type {Props} from './row'
 
 const realCSS = `
-  .register-row { background-color: ${globalColorsDZ2.white}; }
-  .register-row:hover { background-color: ${globalColorsDZ2.blue4}; }
+  .register-row { background-color: ${globalColors.white}; }
+  .register-row:hover { background-color: ${globalColors.blue4}; }
 
   .register-row:hover .register-icon { transform: translateX(15px)}
 
-  .register-row .register-background { background-color: ${globalColorsDZ2.lightGrey2}; }
-  .register-row:hover .register-background { background-color: ${globalColorsDZ2.blue4}; transform: scale(0)}
+  .register-row .register-background { background-color: ${globalColors.lightGrey2}; }
+  .register-row:hover .register-background { background-color: ${globalColors.blue4}; transform: scale(0)}
 `
 
 const RowCSS = () => (
@@ -45,7 +45,7 @@ const styles = {
     padding: 20
   },
   header: {
-    color: globalColorsDZ2.blue
+    color: globalColors.blue
   },
   iconContainer: {
     ...globalStyles.flexBoxRow,
@@ -64,7 +64,7 @@ const styles = {
     textAlign: 'center',
     height: 'inherit',
     width: 'inherit',
-    color: globalColorsDZ2.black75,
+    color: globalColors.black75,
     zIndex: 1
   },
   iconBackground: {

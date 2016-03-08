@@ -5,7 +5,7 @@
  */
 
 import React, {Component} from 'react'
-import {globalStyles, globalColorsDZ2} from '../../../styles/style-guide'
+import {globalStyles, globalColors} from '../../../styles/style-guide'
 import {Text, Icon, Input, Button} from '../../../common-adapters'
 import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
         codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer} from '../../../constants/login'
@@ -128,7 +128,7 @@ const styles = {
     alignSelf: 'stretch',
     marginLeft: -65,
     marginRight: -65,
-    backgroundColor: globalColorsDZ2.blue2
+    backgroundColor: globalColors.blue2
   },
   qr: {
     width: 190,

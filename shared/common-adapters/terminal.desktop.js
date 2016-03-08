@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide'
+import {globalStyles, globalColors, globalColors} from '../styles/style-guide'
 
 import type {Props, Context} from './terminal'
 
@@ -43,7 +43,7 @@ const styles = {
   },
 
   DZ2: {
-    backgroundColor: globalColorsDZ2.darkBlue3
+    backgroundColor: globalColors.darkBlue3
   }
 }
 

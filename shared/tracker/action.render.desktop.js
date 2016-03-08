@@ -3,7 +3,7 @@
 import React, {Component} from 'react'
 import {Button, Text, Icon} from '../common-adapters'
 import commonStyles from '../styles/common'
-import {globalStyles, globalColorsDZ2} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles/style-guide'
 import {normal} from '../constants/tracker'
 
 import type {ActionProps} from './action.render'
@@ -88,7 +88,7 @@ const styles = {
   container: {
     ...commonStyles.flexBoxRow,
     ...commonStyles.noSelect,
-    backgroundColor: globalColorsDZ2.white90,
+    backgroundColor: globalColors.white90,
     width: '100%',
     height: calcFooterHeight(true),
     boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.15)',
@@ -104,7 +104,7 @@ const styles = {
   closeContainer: {
     ...commonStyles.flexBoxRow,
     ...commonStyles.noSelect,
-    backgroundColor: globalColorsDZ2.white90,
+    backgroundColor: globalColors.white90,
     width: '100%',
     alignItems: 'center',
     marginTop: 15,
@@ -119,7 +119,7 @@ const styles = {
 
   loggedOutContainer: {
     ...commonStyles.flexBoxColumn,
-    backgroundColor: globalColorsDZ2.white,
+    backgroundColor: globalColors.white,
     width: '100%',
     height: calcFooterHeight(false),
     boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.15)',

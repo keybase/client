@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 
 import Text from '../text'
-import {transition, globalColorsDZ2, globalStyles} from '../../styles/style-guide'
+import {transition, globalColors, globalStyles} from '../../styles/style-guide'
 
 import type {Props, MenuItemProps} from './index'
 import type {Props as TextProps} from '../text'
@@ -38,14 +38,14 @@ export default class Dropdown extends Component {
 
   render () {
     const realCSS = `
-      .kbdropdown { color: ${globalColorsDZ2.black10}; }
-      .kbdropdown:hover { color: ${globalColorsDZ2.blue}; }
+      .kbdropdown { color: ${globalColors.black10}; }
+      .kbdropdown:hover { color: ${globalColors.blue}; }
 
-      .kbdropdown svg { fill: ${globalColorsDZ2.black10} !important; }
-      .kbdropdown:hover svg { fill: ${globalColorsDZ2.blue} !important; }
+      .kbdropdown svg { fill: ${globalColors.black10} !important; }
+      .kbdropdown:hover svg { fill: ${globalColors.blue} !important; }
 
-      .popover .kbmenuitem:hover { background-color: ${globalColorsDZ2.blue4}; }
-      .popover .kbmenuitem+.kbmenuitem { border-top: 1px solid ${globalColorsDZ2.black10}; }
+      .popover .kbmenuitem:hover { background-color: ${globalColors.blue4}; }
+      .popover .kbmenuitem+.kbmenuitem { border-top: 1px solid ${globalColors.black10}; }
     `
 
     let list
@@ -102,7 +102,7 @@ class MenuItem extends Component<void, MenuItemProps, void> {
       case 'Normal':
         break
       case 'Username':
-        textStyle = {color: globalColorsDZ2.orange}
+        textStyle = {color: globalColors.orange}
         break
       case 'Other':
       case 'Pick':
@@ -178,7 +178,7 @@ const styles = {
 
   menuStyle: {
     ...globalStyles.rounded,
-    borderColor: globalColorsDZ2.blue,
+    borderColor: globalColors.blue,
     transformOrigin: 'center top',
     borderStyle: 'solid',
     borderWidth: 1

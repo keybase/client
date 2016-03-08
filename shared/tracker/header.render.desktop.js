@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import {Icon, Text} from '../common-adapters/index'
-import {globalStyles, globalColorsDZ2} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles/style-guide'
 
 import type {HeaderProps} from './header.render'
 
@@ -55,7 +55,7 @@ export default class HeaderRender extends Component {
     return (
       <div style={styles.outer}>
         <div style={{...styles.header, ...headerStyle}}>
-          <div style={{...styles.header, ...headerStyle, height: 54, zIndex: 2, opacity: isWarning ? 1 : 0, backgroundColor: globalColorsDZ2.yellow}}/>
+          <div style={{...styles.header, ...headerStyle, height: 54, zIndex: 2, opacity: isWarning ? 1 : 0, backgroundColor: globalColors.yellow}}/>
           <Text type='BodySemibold' lineClamp={2} style={{...styles.text, ...headerTextStyle, flex: 1, zIndex: isWarning ? 2 : 'inherit'}}>{headerText}</Text>
           <Icon type='fa-close' style={styles.close}
             onClick={() => this.props.onClose()}
@@ -89,28 +89,28 @@ const styles = {
     width: 320
   },
   headerNormal: {
-    backgroundColor: globalColorsDZ2.blue
+    backgroundColor: globalColors.blue
   },
   headerSuccess: {
-    backgroundColor: globalColorsDZ2.green
+    backgroundColor: globalColors.green
   },
   headerWarning: {
-    backgroundColor: globalColorsDZ2.yellow
+    backgroundColor: globalColors.yellow
   },
   headerTextNormal: {
-    color: globalColorsDZ2.white,
+    color: globalColors.white,
     fontSize: 14,
     lineHeight: 'normal',
     opacity: 1
   },
   headerTextWarning: {
-    color: globalColorsDZ2.brown60,
+    color: globalColors.brown60,
     fontSize: 14,
     lineHeight: 'normal',
     opacity: 1
   },
   headerError: {
-    backgroundColor: globalColorsDZ2.red
+    backgroundColor: globalColors.red
   },
   close: {
     ...globalStyles.clickable,
@@ -124,7 +124,7 @@ const styles = {
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
     justifyContent: 'center',
-    color: globalColorsDZ2.white,
+    color: globalColors.white,
     marginLeft: 30,
     marginRight: 30,
     marginBottom: 32,

@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {Text, Icon} from '../../../common-adapters'
-import {globalStyles, globalColorsDZ2} from '../../../styles/style-guide'
+import {globalStyles, globalColors} from '../../../styles/style-guide'
 import Container from '../../forms/container.desktop'
 import type {Props} from './index.render'
 
@@ -64,7 +64,7 @@ const styles = {
     alignItems: 'center'
   },
   icon: {
-    color: globalColorsDZ2.black,
+    color: globalColors.black,
     fontSize: 40
   },
   wont: {
