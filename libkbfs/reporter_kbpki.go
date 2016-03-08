@@ -209,7 +209,7 @@ func errorNotification(err error, errType keybase1.FSErrorType,
 	tlfName CanonicalTlfName, public bool, mode ErrorModeType,
 	params map[string]string) *keybase1.FSNotification {
 	if tlfName != "" {
-		params[errorParamTlf] = buildCanonicalPath(public, tlfName)
+		params[errorParamTlf] = string(tlfName)
 	}
 	var nType keybase1.FSNotificationType
 	switch mode {
