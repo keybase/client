@@ -1,13 +1,9 @@
 /* @flow */
 
 import React, {Component} from 'react'
-import {Paper} from 'material-ui'
 import {Text, Avatar} from '../common-adapters'
-import commonStyles, {colors} from '../styles/common'
 import {globalStyles, globalColorsDZ2} from '../styles/style-guide'
-import resolveRoot from '../../desktop/resolve-root'
 import electron from 'electron'
-import flags from '../util/feature-flags'
 
 const shell = electron.shell || electron.remote.shell
 
@@ -28,34 +24,6 @@ export default class BioRender extends Component {
     shell.openExternal(`https://keybase.io/${this.props.username}#profile-tracking-section`)
   }
 
-  render () {
-    if (!this.props.userInfo) {
-      return null
-    }
-    if (flags.tracker2) {
-      return this._render2(styles2)
-    }
-    return this._renderDefault(styles1)
-  }
-
-  _renderDefault (styles: Object) {
-    const {userInfo} = this.props
-    const noAvatar = `file:///${resolveRoot('shared/images/no-avatar@2x.png')}`
-
-    return (
-      <div style={styles.container}>
-        <Paper onClick={() => this._onClickAvatar()} style={styles.avatarContainer} zDepth={1} circle>
-          <img src={(userInfo && userInfo.avatar) || noAvatar} style={styles.avatar}/>
-        </Paper>
-        {userInfo && userInfo.followsYou && <span style={styles.followsYou}>Tracks you</span>}
-        <p style={styles.fullname}>{userInfo && userInfo.fullname}</p>
-        <p style={styles.location}>{userInfo && userInfo.location}</p>
-        <p className='hover-underline' onClick={() => this._onClickFollowing()} style={styles.following}>Tracking: {userInfo && userInfo.followingCount}</p>
-        <p className='hover-underline' onClick={() => this._onClickFollowers()} style={styles.followers}>Trackers: {userInfo && userInfo.followersCount}</p>
-      </div>
-    )
-  }
-
   _followLabel (): ?string {
     const {userInfo, currentlyFollowing} = this.props
     if (!userInfo) {
@@ -71,7 +39,7 @@ export default class BioRender extends Component {
     return null
   }
 
-  _render2 (styles: Object) {
+  render () {
     const {username, userInfo, currentlyFollowing} = this.props
     if (!userInfo) {
       return null
@@ -132,72 +100,7 @@ export default class BioRender extends Component {
   }
 }
 
-const styles1 = {
-  container: {
-    ...commonStyles.flexBoxColumn,
-    alignItems: 'center',
-    backgroundColor: colors.greyBackground,
-    justifyContent: 'flex-start',
-    paddingTop: 12,
-    width: 202
-  },
-  avatarContainer: {
-    border: '3px solid #cccccc',
-    height: 100,
-    minHeight: 100,
-    overflow: 'hidden',
-    boxSizing: 'content-box',
-    width: 100
-  },
-  avatar: {
-    ...commonStyles.clickable,
-    width: 100,
-    height: 100
-  },
-  followsYou: {
-    ...commonStyles.fontBold,
-    backgroundColor: '#CCCCCC',
-    color: '#4A4A4A',
-    width: 70,
-    height: 12,
-    fontSize: 9,
-    lineHeight: '12px',
-    textAlign: 'center',
-    textTransform: 'uppercase',
-    marginTop: -10
-  },
-  fullname: {
-    fontSize: 16,
-    margin: 0,
-    marginTop: 4,
-    textAlign: 'center'
-  },
-  location: {
-    fontSize: 13,
-    color: '#8283A3',
-    lineHeight: '17px',
-    margin: 0,
-    marginTop: 4
-  },
-  following: {
-    ...commonStyles.clickable,
-    color: colors.lightBlue,
-    fontSize: 13,
-    lineHeight: '16px',
-    margin: 0,
-    marginTop: 4
-  },
-  followers: {
-    ...commonStyles.clickable,
-    color: colors.lightBlue,
-    fontSize: 13,
-    lineHeight: '16px',
-    margin: 0,
-    marginTop: 4
-  }
-}
-
-const styles2 = {
+const styles = {
   outer: {
     marginTop: 90
   },

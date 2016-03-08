@@ -1,10 +1,8 @@
 /* @flow */
 
 import React, {Component} from 'react'
-import {Header} from '../common-adapters'
 import {Icon, Text} from '../common-adapters/index'
 import {globalStyles, globalColorsDZ2} from '../styles/style-guide'
-import flags from '../util/feature-flags'
 
 import type {HeaderProps} from './header.render'
 
@@ -18,24 +16,6 @@ export default class HeaderRender extends Component {
   }
 
   render () {
-    if (flags.tracker2) {
-      return this.render2(styles2)
-    }
-    return this.renderDefault(styles1)
-  }
-
-  renderDefault (styles: Object) {
-    return (
-      <Header
-        style={styles.header}
-        icon
-        title={this.props.reason}
-        onClose={this.props.onClose}
-      />
-    )
-  }
-
-  render2 (styles: Object) {
     let headerStyle = (this.props.currentlyFollowing && !this.props.changed) ? styles.headerSuccess : styles.headerNormal
     let headerTextStyle = styles.headerTextNormal
 
@@ -95,13 +75,7 @@ export default class HeaderRender extends Component {
   }
 }
 
-const styles1 = {
-  header: {
-    paddingLeft: 15
-  }
-}
-
-const styles2 = {
+const styles = {
   outer: {
     position: 'relative'
   },
