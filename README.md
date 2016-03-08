@@ -103,7 +103,6 @@ Please see [test/README.md](test/README.md) for more information.
 
 First, make sure you have these prereqs:
     sudo apt-get install openjdk-7-jre
-    go get github.com/mattn/go-sqlite3
 
 From bserver/:
 	make test
