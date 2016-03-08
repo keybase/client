@@ -54,12 +54,13 @@ export default class Input extends Component {
       marginTop: 6
     }
     const inputStyle = this.props.multiLine ? multiLineStyleFix : {height: 'auto'}
+    const alignStyle = {textAlign: 'center', ...{textAlign: this.props.style && this.props.style.textAlign}}
     return (
       <div style={{...style, ...this.props.style}} onClick={() => { this._textField && this._textField.focus() }}>
         <TextField
           ref={textField => (this._textField = textField)}
           fullWidth
-          inputStyle={{...inputStyle, textAlign: 'center'}}
+          inputStyle={{...inputStyle, ...alignStyle}}
           underlineStyle={{borderColor: globalColors.black10, bottom: 'auto'}}
           errorStyle={{...styles.errorStyle, ...this.props.errorStyle}}
           style={{...textStyle, ...globalStyles.flexBoxColumn}}

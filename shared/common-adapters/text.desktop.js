@@ -211,7 +211,7 @@ export const styles = {
   },
   textError: {
     ...textCommon,
-    color: globalColors.highRiskWarning,
+    color: globalColors.red,
     fontSize: 13,
     lineHeight: '17px',
     letterSpacing: '0.2px'
