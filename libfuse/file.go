@@ -153,9 +153,9 @@ func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest,
 	if valid.Uid() || valid.Gid() {
 		// You can't set the UID/GID on KBFS files, but we don't want
 		// to return ENOSYS because that causes scary warnings on some
-		// programs like mv.  Instead ignore it, print a debg message,
-		// and advertise this behavior on the "understand_kbfs" doc
-		// online.
+		// programs like mv.  Instead ignore it, print a debug
+		// message, and advertise this behavior on the
+		// "understand_kbfs" doc online.
 		f.folder.fs.log.CDebugf(ctx, "Ignoring unsupported attempt to set "+
 			"the UID/GID on a file")
 		valid &^= fuse.SetattrUid | fuse.SetattrGid

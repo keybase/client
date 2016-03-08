@@ -1410,7 +1410,7 @@ func TestChownFileIgnored(t *testing.T) {
 	}
 }
 
-func TestChmodDir(t *testing.T) {
+func TestChmodDirIgnored(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(t, config)
 	mnt, _, cancelFn := makeFS(t, config)

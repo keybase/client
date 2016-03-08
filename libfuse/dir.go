@@ -563,7 +563,7 @@ func (d *Dir) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse.
 	if valid.Mode() {
 		// You can't set the mode on KBFS directories, but we don't
 		// want to return EPERM because that unnecessarily fails some
-		// applications like unzip.  Instead ignore it, print a debg
+		// applications like unzip.  Instead ignore it, print a debug
 		// message, and advertise this behavior on the
 		// "understand_kbfs" doc online.
 		d.folder.fs.log.CDebugf(ctx, "Ignoring unsupported attempt to set "+
@@ -589,7 +589,7 @@ func (d *Dir) Setattr(ctx context.Context, req *fuse.SetattrRequest, resp *fuse.
 	if valid.Uid() || valid.Gid() {
 		// You can't set the UID/GID on KBFS directories, but we don't
 		// want to return ENOSYS because that causes scary warnings on
-		// some programs like mv.  Instead ignore it, print a debg
+		// some programs like mv.  Instead ignore it, print a debug
 		// message, and advertise this behavior on the
 		// "understand_kbfs" doc online.
 		d.folder.fs.log.CDebugf(ctx, "Ignoring unsupported attempt to set "+
