@@ -3,7 +3,6 @@
 import React, {Component} from 'react'
 import commonStyles from '../styles/common'
 import Tracker from '../tracker/index.js'
-import flags from '../util/feature-flags'
 import {normal, checking, revoked, error} from '../constants/tracker'
 import {metaUpgraded, metaUnreachable, metaPending, metaDeleted} from '../constants/tracker'
 
@@ -133,7 +132,6 @@ const propsFiveProof = {...propsDefault, userInfo: smallBio, proofs: [0, 1, 2, 3
 
 export default class Render extends Component {
   render () {
-    const styles = (flags.tracker2 ? styles2 : styles1)
     return (
       <div style={{...commonStyles.flexBoxColumn, flex: 1}}>
         <div style={{...commonStyles.flexBoxRow, flex: 1, padding: 20}}>
@@ -202,17 +200,7 @@ export default class Render extends Component {
   }
 }
 
-const styles1 = {
-  pretendTrackerWindow: {
-    width: 520 + 1,
-    height: 332 + 1,
-    boxShadow: '0px 5px 6px rgba(0,0,0,0.4)',
-    marginRight: 20,
-    marginBottom: 20
-  }
-}
-
-const styles2 = {
+const styles = {
   pretendTrackerWindow: {
     width: 320 + 1,
     height: 470 + 1,
