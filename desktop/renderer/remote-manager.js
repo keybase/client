@@ -10,7 +10,6 @@ import {registerUpdateListener, onCancel as updateOnCancel, onSkip as updateOnSk
 import {onForce as updateOnForce, onPauseCancel as updateOnPauseCancel} from '../shared/actions/update'
 // $FlowIssue platform files
 import RemoteComponent from './remote-component'
-import flags from '../shared/util/feature-flags'
 
 import type {GUIEntryFeatures} from '../shared/constants/types/flow-types'
 import type {Action, Dispatch} from '../shared/constants/types/flux'

@@ -131,29 +131,9 @@ export function onFollowChecked (newFollowCheckedValue: boolean, username: strin
 export function onRefollow (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
     const {trackToken} = (getState().tracker.trackers[username] || {})
-    const dispatchAction = () => {
-      dispatch({
-        type: Constants.onRefollow,
-        payload: {username}
-      })
-    }
-
-    dispatch(onUserTrackingLoading(username))
-    trackUser(trackToken)
-      .then(dispatchAction)
-      .catch(err => {
-        console.error("Couldn't track user:", err)
-        dispatchAction()
-      })
-  }
-}
-
-export function onRefollow2 (username: string): TrackerActionCreator {
-  return (dispatch, getState) => {
-    const {trackToken} = (getState().tracker.trackers[username] || {})
     const dispatchRefollowAction = () => {
       dispatch({
-        type: Constants.onRefollow2,
+        type: Constants.onRefollow,
         payload: {username}
       })
     }
@@ -172,41 +152,6 @@ export function onRefollow2 (username: string): TrackerActionCreator {
       })
   }
 }
-export function onUnfollow2 (username: string): TrackerActionCreator {
-  return (dispatch, getState) => {
-    const params : track_untrack_rpc = {
-      method: 'track.untrack',
-      param: {username},
-      incomingCallMap: {},
-      callback: (err, response) => {
-        if (err) {
-          console.log('err untracking', err)
-        } else {
-          dispatch({
-            type: Constants.reportLastTrack,
-            payload: {username}
-          })
-          console.log('success in untracking')
-        }
-      }
-    }
-
-    engine.rpc(params)
-
-    dispatch({
-      type: Constants.onUnfollow2,
-      payload: {username}
-    })
-  }
-}
-
-function onUserTrackingLoading (username: string): Action {
-  return {
-    type: Constants.onUserTrackingLoading,
-    payload: {username}
-  }
-}
-
 export function onUnfollow (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
     const params : track_untrack_rpc = {
@@ -232,6 +177,13 @@ export function onUnfollow (username: string): TrackerActionCreator {
       type: Constants.onUnfollow,
       payload: {username}
     })
+  }
+}
+
+function onUserTrackingLoading (username: string): Action {
+  return {
+    type: Constants.onUserTrackingLoading,
+    payload: {username}
   }
 }
 
