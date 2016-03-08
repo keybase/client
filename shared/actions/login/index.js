@@ -22,6 +22,7 @@ import type {incomingCallMapType, login_recoverAccountFromEmailAddress_rpc,
   login_login_rpc, login_logout_rpc, device_deviceAdd_rpc, login_getConfiguredAccounts_rpc} from '../../constants/types/flow-types'
 import {overrideLoggedInTab, setupCancelLogin} from '../../local-debug'
 import type {DeviceRole} from '../../constants/login'
+import openURL from '../../util/open-url'
 
 let currentLoginSessionID = null
 
@@ -338,6 +339,12 @@ export function addANewDevice () : AsyncAction {
       }
     }
     engine.rpc(params)
+  }
+}
+
+export function openAccountResetPage () : AsyncAction {
+  return () => {
+    openURL('https://keybase.io/#password-reset')
   }
 }
 
