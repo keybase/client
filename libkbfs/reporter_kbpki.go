@@ -144,7 +144,7 @@ func rekeyNotification(ctx context.Context, config Config, handle *TlfHandle, fi
 
 	return &keybase1.FSNotification{
 		PublicTopLevelFolder: handle.IsPublic(),
-		Filename:             handle.GetCanonicalPath(ctx, config),
+		Filename:             string(handle.GetCanonicalName(ctx, config)),
 		StatusCode:           code,
 		NotificationType:     keybase1.FSNotificationType_REKEYING,
 	}
