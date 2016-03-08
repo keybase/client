@@ -6,7 +6,6 @@ import {Snackbar} from 'material-ui'
 import {Header, Text, Button, Checkbox, Icon, Terminal} from '../common-adapters'
 import {clipboard} from 'electron'
 import marked from 'marked'
-import {autoResize} from '../../desktop/renderer/remote-component-helper'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
 type RenderProps = {

@@ -1,7 +1,7 @@
 /* @flow */
 
 import React, {Component} from 'react'
-import {globalColors, globalColors} from '../styles/style-guide'
+import {globalColors} from '../styles/style-guide'
 import {FontIcon} from 'material-ui'
 import type {Props} from './icon'
 import resolveRoot from '../../desktop/resolve-root'

@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {globalStyles, globalColors, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles/style-guide'
 
 import type {Props, Context} from './terminal'
 

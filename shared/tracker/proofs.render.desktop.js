@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import commonStyles from '../styles/common'
-import {globalStyles, globalColors, globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles/style-guide'
 import {Icon, Text} from '../common-adapters/index'
 import {CircularProgress} from 'material-ui'
 import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked, error as proofError, warning as proofWarning} from '../constants/tracker'
