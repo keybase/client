@@ -36,7 +36,6 @@ export default class LoginRender extends Component<void, Props, State> {
   render () {
     const avatar = this.state.selectedUser && `${this.props.serverURI}/${this.state.selectedUser}/picture`
     const inputProps = {
-      dz2: true,
       floatingLabelText: 'Passphrase',
       style: {marginBottom: 0},
       onChange: event => this.setState({passphrase: event.target.value}),
@@ -66,7 +65,6 @@ export default class LoginRender extends Component<void, Props, State> {
             checkboxesProps={checkboxProps}
           />
           <Button
-            dz2
             fullWidth
             type='Primary'
             label='Log in'

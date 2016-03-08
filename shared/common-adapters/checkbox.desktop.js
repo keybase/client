@@ -45,7 +45,6 @@ Checkbox.propTypes = {
   onCheck: React.PropTypes.func.isRequired,
   checked: React.PropTypes.bool.isRequired,
   style: React.PropTypes.object,
-  dz2: React.PropTypes.bool,
   disabled: React.PropTypes.bool
 }
 

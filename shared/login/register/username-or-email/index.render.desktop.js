@@ -33,7 +33,6 @@ class Render extends Component<void, Props, State> {
         <Text type='Header' style={styles.header}>Enter your username or email:</Text>
         <Icon type='fa-sign-in' style={styles.icon}/>
         <Input
-          dz2
           style={styles.input}
           floatingLabelText='Username or email'
           onEnterKeyDown={() => this.onSubmit()}
@@ -41,7 +40,6 @@ class Render extends Component<void, Props, State> {
           value={this.state.usernameOrEmail}
         />
         <Button
-          dz2
           label='Continue'
           type='Primary'
           onClick={() => this.onSubmit()}

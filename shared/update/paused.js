@@ -24,7 +24,7 @@ class UpdatePaused extends Component {
             <Icon type='keybase-update-pause' />
           </div>
           <div style={{paddingBottom: 15}}>
-            <Text type='BodySemibold' dz2>You have files, folders or a terminal open in Keybase.</Text>
+            <Text type='BodySemibold'>You have files, folders or a terminal open in Keybase.</Text>
           </div>
           <Text type='BodySmall' style={{paddingBottom: 15}}>
             You can force the update. That would be like yanking a USB drive and plugging it right back in.
@@ -32,9 +32,9 @@ class UpdatePaused extends Component {
             If you're working in the terminal, you'll need to&nbsp;
           </Text>
           <Text type='TerminalSmall'>cd</Text>
-          <Text type='BodySmall' dz2>&nbsp;out of&nbsp;</Text>
-          <Text type='TerminalSmall' dz2>/keybase</Text>
-          <Text type='BodySmall' dz2>&nbsp;and back in.</Text>
+          <Text type='BodySmall'>&nbsp;out of&nbsp;</Text>
+          <Text type='TerminalSmall'>/keybase</Text>
+          <Text type='BodySmall'>&nbsp;and back in.</Text>
 
           <div style={styles.actions}>
             <Button type='Secondary' label='Force' onClick={() => this.props.onForce()} />

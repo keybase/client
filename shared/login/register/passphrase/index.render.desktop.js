@@ -33,7 +33,6 @@ class Render extends Component<void, Props, State> {
         <Text type='Header' style={styles.header}>Enter your passphrase:</Text>
         <Icon type='fa-unlock' style={styles.icon}/>
         <Input
-          dz2
           style={styles.input}
           type='password'
           floatingLabelText='Passphrase'
@@ -42,7 +41,6 @@ class Render extends Component<void, Props, State> {
           value={this.state.passphrase}
         />
         <Button
-          dz2
           label='Continue'
           type='Primary'
           onClick={() => this.onSubmit()}

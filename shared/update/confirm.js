@@ -87,7 +87,7 @@ class UpdateConfirm extends Component {
         </div>
         {this.props.canUpdate &&
           <div style={{...styles.actionsContainer, paddingTop: 9, paddingRight: 10}}>
-            <Checkbox dz2
+            <Checkbox
               checked={this.props.alwaysUpdate}
               label='Update automatically'
               onCheck={checked => this.props.setAlwaysUpdate(checked)}/>
