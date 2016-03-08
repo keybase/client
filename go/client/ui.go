@@ -439,7 +439,7 @@ func (ui BaseIdentifyUI) DisplayKey(key keybase1.IdentifyKey) {
 	}
 	if key.TrackDiff != nil {
 		mark := CHECK
-		if key.TrackDiff.Type == keybase1.TrackDiffType_NEW_ELDEST {
+		if key.TrackDiff.Type == keybase1.TrackDiffType_NEW_ELDEST || key.TrackDiff.Type == keybase1.TrackDiffType_REVOKED {
 			mark = BADX
 		}
 		msg := mark + " " + trackDiffToColoredString(*key.TrackDiff)
