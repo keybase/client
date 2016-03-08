@@ -4,9 +4,6 @@
 import React, {Component} from 'react'
 import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide'
 
-// $FlowFixMe remove when we stop using the old version of text
-import TextOld from './text.old'
-
 import type {Props, Background} from './text'
 import type {Context} from './terminal'
 
@@ -61,10 +58,6 @@ export default class Text extends Component {
   }
 
   render () {
-    if (!this.props.dz2) {
-      return <TextOld {...this.props}/>
-    }
-
     const typeStyle = {
       'HeaderJumbo': styles.textHeaderJumbo,
       'HeaderBig': styles.textHeaderBig,
