@@ -28,12 +28,14 @@ const (
 
 // MDServerRemote is an implementation of the MDServer interface.
 type MDServerRemote struct {
-	config       Config
-	conn         *Connection
-	client       keybase1.MetadataClient
-	log          logger.Logger
-	authToken    *AuthToken
-	squelchRekey bool
+	config           Config
+	conn             *Connection
+	client           keybase1.MetadataClient
+	log              logger.Logger
+	authToken        *AuthToken
+	squelchRekey     bool
+	isAuthenticated  bool
+	authenticatedMtx sync.Mutex
 
 	observerMu sync.Mutex // protects observers
 	observers  map[TlfID]chan<- error
@@ -100,8 +102,6 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 	switch err.(type) {
 	case nil:
 	case NoCurrentSessionError:
-		md.resetPingTicker(pingIntervalSeconds)
-		return nil
 	default:
 		return err
 	}
@@ -115,12 +115,6 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 		}
 	}
 
-	// request a list of folders needing rekey action
-	if err := md.getFoldersForRekey(ctx, c); err != nil {
-		md.log.Warning("MDServerRemote: getFoldersForRekey failed with %v", err)
-	}
-	md.log.Debug("MDServerRemote: requested list of folders for rekey")
-
 	// start pinging
 	md.resetPingTicker(pingIntervalSeconds)
 	return nil
@@ -131,6 +125,13 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 func (md *MDServerRemote) resetAuth(ctx context.Context, c keybase1.MetadataClient) (int, error) {
 
 	md.log.Debug("MDServerRemote: resetAuth called")
+
+	isAuthenticated := false
+	defer func() {
+		md.authenticatedMtx.Lock()
+		md.isAuthenticated = isAuthenticated
+		md.authenticatedMtx.Unlock()
+	}()
 
 	_, _, err := md.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
@@ -160,6 +161,15 @@ func (md *MDServerRemote) resetAuth(ctx context.Context, c keybase1.MetadataClie
 		return 0, err
 	}
 	md.log.Debug("MDServerRemote: authentication successful; ping interval: %ds", pingIntervalSeconds)
+	isAuthenticated = true
+
+	if !md.isAuthenticated {
+		// request a list of folders needing rekey action
+		if err := md.getFoldersForRekey(ctx, c); err != nil {
+			md.log.Warning("MDServerRemote: getFoldersForRekey failed with %v", err)
+		}
+		md.log.Debug("MDServerRemote: requested list of folders for rekey")
+	}
 
 	return pingIntervalSeconds, nil
 }
