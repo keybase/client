@@ -86,10 +86,21 @@ func (f *Favorites) handleReq(req favReq) {
 	for _, fav := range req.toDel {
 		// Since our cache isn't necessarily up-to-date, always delete
 		// the favorite.
-		err := kbpki.FavoriteDelete(req.ctx, fav.toKBFolder())
+		folder := fav.toKBFolder()
+		err := kbpki.FavoriteDelete(req.ctx, folder)
 		if err != nil {
 			req.done <- err
 			return
+		}
+		if !folder.Private {
+			// Public folders may be stored under a different name,
+			// pending CORE-2695.  TODO: remove me!
+			folder.Name = folder.Name + ReaderSep + "public"
+			err := kbpki.FavoriteDelete(req.ctx, folder)
+			if err != nil {
+				req.done <- err
+				return
+			}
 		}
 		delete(f.cache, fav)
 	}
