@@ -128,8 +128,8 @@ func (md *MDServerRemote) resetAuth(ctx context.Context, c keybase1.MetadataClie
 	md.log.Debug("MDServerRemote: resetAuth called")
 
 	isAuthenticated := false
-	md.authenticatedMtx.Lock()
 	defer func() {
+		md.authenticatedMtx.Lock()
 		md.isAuthenticated = isAuthenticated
 		md.authenticatedMtx.Unlock()
 	}()
@@ -162,15 +162,22 @@ func (md *MDServerRemote) resetAuth(ctx context.Context, c keybase1.MetadataClie
 		return 0, err
 	}
 	md.log.Debug("MDServerRemote: authentication successful; ping interval: %ds", pingIntervalSeconds)
+
 	isAuthenticated = true
 
+	md.authenticatedMtx.Lock()
 	if !md.isAuthenticated {
-		// request a list of folders needing rekey action
-		if err := md.getFoldersForRekey(ctx, c); err != nil {
-			md.log.Warning("MDServerRemote: getFoldersForRekey failed with %v", err)
-		}
-		md.log.Debug("MDServerRemote: requested list of folders for rekey")
+		defer func() {
+			// request a list of folders needing rekey action
+			if err := md.getFoldersForRekey(ctx, c); err != nil {
+				md.log.Warning("MDServerRemote: getFoldersForRekey failed with %v", err)
+			}
+			md.log.Debug("MDServerRemote: requested list of folders for rekey")
+		}()
 	}
+	// Need to ensure that any conflicting thread gets the updated value
+	md.isAuthenticated = true
+	md.authenticatedMtx.Unlock()
 
 	return pingIntervalSeconds, nil
 }
