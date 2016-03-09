@@ -19,7 +19,7 @@ type fbmHelper interface {
 const (
 	// How many pointers to delete in a single Delete call.  TODO:
 	// update this when a batched Delete RPC is available.
-	numPointersToDeletePerChunk = 1
+	numPointersToDeletePerChunk = 20
 	// Once the number of pointers being deleted in a single gc op
 	// passes this threshold, we'll stop garbage collection at the
 	// current revision.

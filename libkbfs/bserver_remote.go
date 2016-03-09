@@ -363,12 +363,11 @@ func (b *BlockServerRemote) batchDowngradeReferences(ctx context.Context,
 func (b *BlockServerRemote) getNotDone(all map[BlockID][]BlockContext, doneRefs map[BlockID]map[BlockRefNonce]int) (
 	notDone []keybase1.BlockReference) {
 	for id, idContexts := range all {
-		if _, ok := doneRefs[id]; ok {
-			continue
-		}
 		for _, context := range idContexts {
-			if _, ok := doneRefs[id][context.GetRefNonce()]; ok {
-				continue
+			if _, ok := doneRefs[id]; ok {
+				if _, ok1 := doneRefs[id][context.GetRefNonce()]; ok1 {
+					continue
+				}
 			}
 			notDone = append(notDone, keybase1.BlockReference{
 				Bid: keybase1.BlockIdCombo{
