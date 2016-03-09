@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import Render from './index.render'
-import {cancelLogin} from '../../../actions/login'
+import {openAccountResetPage, cancelLogin} from '../../../actions/login'
 import type {Props} from './index.render'
 
 class Passphrase extends Component<void, Props, void> {
@@ -14,6 +14,10 @@ class Passphrase extends Component<void, Props, void> {
 export default connect(
   state => ({}),
   dispatch => ({
-    onBack: () => dispatch(cancelLogin())
+    onBack: () => dispatch(cancelLogin()),
+    onForgotPassphrase: () => {
+      dispatch(openAccountResetPage())
+      dispatch(cancelLogin())
+    }
   })
 )(Passphrase)
