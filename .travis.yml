@@ -25,7 +25,7 @@ script:
   - if [ $TRAVIS_OS_NAME == 'linux' ]; then
       cd shared && npm i --global flow-bin@`tail -n1 .flowconfig` && flow &&
       cd ../protocol && npm i && gem install activesupport && make clean && make && git diff --quiet --exit-code &&
-      docker login -e $CI_EMAIL -u $CI_USER -p $CI_PASS $CI_HOST &&
+      docker login -e "$CI_EMAIL" -u "$CI_USER" -p "$CI_PASS" "$CI_HOST" &&
       docker pull $CI_HOST/kbweb &&
       travis_retry docker run --name kbweb3000 -d -p 3000:3000 $CI_HOST/kbweb &&
       cd ../go && ./test/check_or_start_kbweb.sh && ./test/run_tests.sh;
