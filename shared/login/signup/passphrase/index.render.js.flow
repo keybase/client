@@ -6,7 +6,8 @@ import HiddenString from '../../../util/hidden-string'
 
 export type Props = {
   passphraseError: ?HiddenString,
-  checkPassphrase: (passphrase: string, passphrase2: string) => void
+  checkPassphrase: (passphrase: string, passphrase2: string) => void,
+  onBack: () => void
 }
 
 export default class Render extends Component {

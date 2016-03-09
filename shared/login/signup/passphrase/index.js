@@ -6,14 +6,16 @@ import {bindActionCreators} from 'redux'
 import HiddenString from '../../../util/hidden-string'
 
 import Render from './index.render'
-import {checkPassphrase} from '../../../actions/signup'
+import {checkPassphrase, resetSignup} from '../../../actions/signup'
 
 class PassphraseForm extends Component {
   render () {
     return (
       <Render
         passphraseError={this.props.passphraseError}
-        checkPassphrase={this.props.checkPassphrase}/>
+        checkPassphrase={this.props.checkPassphrase}
+        onBack={this.props.resetSignup}
+        />
     )
   }
 }
@@ -27,5 +29,5 @@ export default connect(
   state => ({
     passphraseError: state.signup.passphraseError
   }),
-  dispatch => bindActionCreators({checkPassphrase}, dispatch)
+  dispatch => bindActionCreators({checkPassphrase, resetSignup}, dispatch)
 )(PassphraseForm)
