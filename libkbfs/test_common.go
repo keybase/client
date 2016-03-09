@@ -178,7 +178,7 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 	c.SetKeyManager(NewKeyManagerStandard(c))
 	c.SetClock(config.Clock())
 
-	daemon := config.KeybaseDaemon().(KeybaseDaemonLocal)
+	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
 	loggedInUID, ok := daemon.asserts[string(loggedInUser)]
 	if !ok {
 		panic("bad test: unknown user: " + loggedInUser)
@@ -317,14 +317,14 @@ func keySaltForUserDevice(name libkb.NormalizedUsername,
 // returns the index for that device.
 func AddDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config,
 	uid keybase1.UID) int {
-	kbd, ok := config.KeybaseDaemon().(KeybaseDaemonLocal)
+	kbd, ok := config.KeybaseDaemon().(*KeybaseDaemonLocal)
 	if !ok {
 		t.Fatalf("Bad keybase daemon")
 	}
 
-	user, ok := kbd.localUsers[uid]
-	if !ok {
-		t.Fatalf("No such user: %s", uid)
+	user, err := kbd.getLocalUser(uid)
+	if err != nil {
+		t.Fatalf("No such user %s: %v", uid, err)
 	}
 
 	index := len(user.VerifyingKeys)
@@ -334,8 +334,7 @@ func AddDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config,
 	newCryptPublicKey := MakeLocalUserCryptPublicKeyOrBust(keySalt)
 	user.CryptPublicKeys = append(user.CryptPublicKeys, newCryptPublicKey)
 
-	// kbd is just a copy, but kbd.localUsers is the same map
-	kbd.localUsers[uid] = user
+	kbd.setLocalUser(uid, user)
 
 	return index
 }
@@ -344,14 +343,14 @@ func AddDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config,
 // given index.
 func RevokeDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config,
 	uid keybase1.UID, index int) {
-	kbd, ok := config.KeybaseDaemon().(KeybaseDaemonLocal)
+	kbd, ok := config.KeybaseDaemon().(*KeybaseDaemonLocal)
 	if !ok {
 		t.Fatalf("Bad keybase daemon")
 	}
 
-	user, ok := kbd.localUsers[uid]
-	if !ok {
-		t.Fatalf("No such user: %s", uid)
+	user, err := kbd.getLocalUser(uid)
+	if err != nil {
+		t.Fatalf("No such user %s: %v", uid, err)
 	}
 
 	if index >= len(user.VerifyingKeys) ||
@@ -386,8 +385,7 @@ func RevokeDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config,
 		user.CurrentVerifyingKeyIndex--
 	}
 
-	// kbd is just a copy, but kbd.localUsers is the same map
-	kbd.localUsers[uid] = user
+	kbd.setLocalUser(uid, user)
 }
 
 // SwitchDeviceForLocalUserOrBust switches the current user's current device
@@ -397,14 +395,14 @@ func SwitchDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config, inde
 		t.Fatalf("Couldn't get UID: %v", err)
 	}
 
-	kbd, ok := config.KeybaseDaemon().(KeybaseDaemonLocal)
+	kbd, ok := config.KeybaseDaemon().(*KeybaseDaemonLocal)
 	if !ok {
 		t.Fatalf("Bad keybase daemon")
 	}
 
-	user, ok := kbd.localUsers[uid]
-	if !ok {
-		t.Fatalf("No such user: %s", uid)
+	user, err := kbd.getLocalUser(uid)
+	if err != nil {
+		t.Fatalf("No such user %s: %v", uid, err)
 	}
 
 	if index >= len(user.CryptPublicKeys) {
@@ -417,8 +415,7 @@ func SwitchDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config, inde
 	}
 	user.CurrentVerifyingKeyIndex = index
 
-	// kbd is just a copy, but kbd.localUsers is the same map
-	kbd.localUsers[uid] = user
+	kbd.setLocalUser(uid, user)
 
 	crypto, ok := config.Crypto().(*CryptoLocal)
 	if !ok {

@@ -2,6 +2,7 @@ package libkbfs
 
 import (
 	"fmt"
+	"sync"
 
 	"golang.org/x/net/context"
 
@@ -107,17 +108,22 @@ func (c memoryFavoriteClient) Shutdown() {}
 // KeybaseDaemonLocal implements KeybaseDaemon using an in-memory user
 // and session store, and a given favorite store.
 type KeybaseDaemonLocal struct {
-	localUsers    localUserMap
-	asserts       map[string]keybase1.UID
+	// lock protects localUsers and asserts against races.
+	lock       sync.Mutex
+	localUsers localUserMap
+	asserts    map[string]keybase1.UID
+
 	currentUID    keybase1.UID
 	favoriteStore favoriteStore
 }
 
-var _ KeybaseDaemon = KeybaseDaemonLocal{}
+var _ KeybaseDaemon = &KeybaseDaemonLocal{}
 
 // Resolve implements KeybaseDaemon for KeybaseDaemonLocal.
-func (k KeybaseDaemonLocal) Resolve(ctx context.Context, assertion string) (
+func (k *KeybaseDaemonLocal) Resolve(ctx context.Context, assertion string) (
 	libkb.NormalizedUsername, keybase1.UID, error) {
+	k.lock.Lock()
+	defer k.lock.Unlock()
 	uid, ok := k.asserts[assertion]
 	if !ok {
 		return libkb.NormalizedUsername(""), keybase1.UID(""),
@@ -128,8 +134,10 @@ func (k KeybaseDaemonLocal) Resolve(ctx context.Context, assertion string) (
 }
 
 // Identify implements KeybaseDaemon for KeybaseDaemonLocal.
-func (k KeybaseDaemonLocal) Identify(ctx context.Context, assertion, reason string) (
+func (k *KeybaseDaemonLocal) Identify(ctx context.Context, assertion, reason string) (
 	UserInfo, error) {
+	k.lock.Lock()
+	defer k.lock.Unlock()
 	uid, ok := k.asserts[assertion]
 	if !ok {
 		return UserInfo{}, NoSuchUserError{assertion}
@@ -144,7 +152,9 @@ func (k KeybaseDaemonLocal) Identify(ctx context.Context, assertion, reason stri
 }
 
 // LoadUserPlusKeys implements KeybaseDaemon for KeybaseDaemonLocal.
-func (k KeybaseDaemonLocal) LoadUserPlusKeys(ctx context.Context, uid keybase1.UID) (UserInfo, error) {
+func (k *KeybaseDaemonLocal) LoadUserPlusKeys(ctx context.Context, uid keybase1.UID) (UserInfo, error) {
+	k.lock.Lock()
+	defer k.lock.Unlock()
 	u, err := k.localUsers.getLocalUser(uid)
 	if err != nil {
 		return UserInfo{}, err
@@ -154,8 +164,10 @@ func (k KeybaseDaemonLocal) LoadUserPlusKeys(ctx context.Context, uid keybase1.U
 }
 
 // CurrentSession implements KeybaseDaemon for KeybaseDaemonLocal.
-func (k KeybaseDaemonLocal) CurrentSession(ctx context.Context, sessionID int) (
+func (k *KeybaseDaemonLocal) CurrentSession(ctx context.Context, sessionID int) (
 	SessionInfo, error) {
+	k.lock.Lock()
+	defer k.lock.Unlock()
 	u, err := k.localUsers.getLocalUser(k.currentUID)
 	if err != nil {
 		return SessionInfo{}, err
@@ -169,48 +181,60 @@ func (k KeybaseDaemonLocal) CurrentSession(ctx context.Context, sessionID int) (
 	}, nil
 }
 
+func (k *KeybaseDaemonLocal) getLocalUser(uid keybase1.UID) (LocalUser, error) {
+	k.lock.Lock()
+	defer k.lock.Unlock()
+	return k.localUsers.getLocalUser(uid)
+}
+
+func (k *KeybaseDaemonLocal) setLocalUser(uid keybase1.UID, user LocalUser) {
+	k.lock.Lock()
+	defer k.lock.Unlock()
+	k.localUsers[uid] = user
+}
+
 // FavoriteAdd implements KeybaseDaemon for KeybaseDaemonLocal.
-func (k KeybaseDaemonLocal) FavoriteAdd(
+func (k *KeybaseDaemonLocal) FavoriteAdd(
 	ctx context.Context, folder keybase1.Folder) error {
 	return k.favoriteStore.FavoriteAdd(folder)
 }
 
 // FavoriteDelete implements KeybaseDaemon for KeybaseDaemonLocal.
-func (k KeybaseDaemonLocal) FavoriteDelete(
+func (k *KeybaseDaemonLocal) FavoriteDelete(
 	ctx context.Context, folder keybase1.Folder) error {
 	return k.favoriteStore.FavoriteDelete(folder)
 }
 
 // FavoriteList implements KeybaseDaemon for KeybaseDaemonLocal.
-func (k KeybaseDaemonLocal) FavoriteList(
+func (k *KeybaseDaemonLocal) FavoriteList(
 	ctx context.Context, sessionID int) ([]keybase1.Folder, error) {
 	return k.favoriteStore.FavoriteList(sessionID)
 }
 
 // Notify implements KeybaseDaemon for KeybaseDeamonLocal.
-func (k KeybaseDaemonLocal) Notify(ctx context.Context, notification *keybase1.FSNotification) error {
+func (k *KeybaseDaemonLocal) Notify(ctx context.Context, notification *keybase1.FSNotification) error {
 	return nil
 }
 
 // FlushUserFromLocalCache implements the KeybaseDaemon interface for
 // KeybaseDaemonLocal.
-func (k KeybaseDaemonLocal) FlushUserFromLocalCache(ctx context.Context,
+func (k *KeybaseDaemonLocal) FlushUserFromLocalCache(ctx context.Context,
 	uid keybase1.UID) {
 	// Do nothing.
 }
 
 // Shutdown implements KeybaseDaemon for KeybaseDaemonLocal.
-func (k KeybaseDaemonLocal) Shutdown() {
+func (k *KeybaseDaemonLocal) Shutdown() {
 	k.favoriteStore.Shutdown()
 }
 
 // NewKeybaseDaemonDisk constructs a KeybaseDaemonLocal object given a
 // set of possible users, and one user that should be "logged in".
 // Any storage (e.g. the favorites) persists to disk.
-func NewKeybaseDaemonDisk(currentUID keybase1.UID, users []LocalUser, favDBFile string, codec Codec) (KeybaseDaemonLocal, error) {
+func NewKeybaseDaemonDisk(currentUID keybase1.UID, users []LocalUser, favDBFile string, codec Codec) (*KeybaseDaemonLocal, error) {
 	favoriteDb, err := leveldb.OpenFile(favDBFile, leveldbOptions)
 	if err != nil {
-		return KeybaseDaemonLocal{}, err
+		return nil, err
 	}
 	favoriteStore := diskFavoriteClient{currentUID, favoriteDb, codec}
 	return newKeybaseDaemonLocal(currentUID, users, favoriteStore), nil
@@ -219,7 +243,7 @@ func NewKeybaseDaemonDisk(currentUID keybase1.UID, users []LocalUser, favDBFile 
 // NewKeybaseDaemonMemory constructs a KeybaseDaemonLocal object given
 // a set of possible users, and one user that should be "logged in".
 // Any storage (e.g. the favorites) is kept in memory only.
-func NewKeybaseDaemonMemory(currentUID keybase1.UID, users []LocalUser) KeybaseDaemonLocal {
+func NewKeybaseDaemonMemory(currentUID keybase1.UID, users []LocalUser) *KeybaseDaemonLocal {
 	favoriteStore := memoryFavoriteClient{
 		favorites: make(map[string]keybase1.Folder),
 	}
@@ -228,7 +252,7 @@ func NewKeybaseDaemonMemory(currentUID keybase1.UID, users []LocalUser) KeybaseD
 
 func newKeybaseDaemonLocal(
 	currentUID keybase1.UID, users []LocalUser,
-	favoriteStore favoriteStore) KeybaseDaemonLocal {
+	favoriteStore favoriteStore) *KeybaseDaemonLocal {
 	localUserMap := make(localUserMap)
 	asserts := make(map[string]keybase1.UID)
 	for _, u := range users {
@@ -239,7 +263,7 @@ func newKeybaseDaemonLocal(
 		asserts[string(u.Name)] = u.UID
 		asserts["uid:"+u.UID.String()] = u.UID
 	}
-	return KeybaseDaemonLocal{
+	return &KeybaseDaemonLocal{
 		localUsers:    localUserMap,
 		asserts:       asserts,
 		currentUID:    currentUID,
