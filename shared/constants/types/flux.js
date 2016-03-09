@@ -16,4 +16,4 @@ export type AsyncAction = (dispatch: Dispatch, getState: GetState) => ?Promise
 export type Dispatch = (action: TypedAction | AsyncAction) => ?Promise
 
 export type TypedAsyncAction<A> = (dispatch: TypedDispatch<A>, getState: GetState) => ?Promise
-export type TypedDispatch<A> = (action: A | TypedAsyncAction<A>) => ?Promise
+export type TypedDispatch<A> = (action: TypedAsyncAction<A> | A) => ?Promise
