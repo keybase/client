@@ -2,10 +2,7 @@
 /* eslint-disable react/prop-types */
 
 import React, {Component} from 'react'
-import {globalStyles, globalColors, globalColorsDZ2} from '../styles/style-guide'
-
-// $FlowFixMe remove when we stop using the old version of text
-import TextOld from './text.old'
+import {globalStyles, globalColors} from '../styles/style-guide'
 
 import type {Props, Background} from './text'
 import type {Context} from './terminal'
@@ -39,7 +36,7 @@ export default class Text extends Component {
 
   _colorStyleBackgroundMode (backgroundMode: Background, type: Props.type): Object {
     if (backgroundMode === 'Information') {
-      return {color: globalColorsDZ2.brown60}
+      return {color: globalColors.brown60}
     }
     switch (type) {
       case 'HeaderJumbo':
@@ -48,28 +45,24 @@ export default class Text extends Component {
       case 'BodySemibold':
       case 'BodySmallSemibold':
       case 'Body':
-        return {color: backgroundMode === 'Normal' ? globalColorsDZ2.black75 : globalColorsDZ2.white}
+        return {color: backgroundMode === 'Normal' ? globalColors.black75 : globalColors.white}
       case 'BodySmall':
-        return {color: backgroundMode === 'Normal' ? globalColorsDZ2.black40 : globalColorsDZ2.white40}
+        return {color: backgroundMode === 'Normal' ? globalColors.black40 : globalColors.white40}
       case 'BodyPrimaryLink':
-        return {color: globalColorsDZ2.blue}
+        return {color: globalColors.blue}
       case 'BodySecondaryLink':
-        return {color: globalColorsDZ2.black40}
+        return {color: globalColors.black40}
       default:
         return {}
     }
   }
 
   render () {
-    if (!this.props.dz2) {
-      return <TextOld {...this.props}/>
-    }
-
     const typeStyle = {
       'HeaderJumbo': styles.textHeaderJumbo,
       'HeaderBig': styles.textHeaderBig,
       'Header': styles.textHeader,
-      'HeaderError': {...styles.textHeader, color: globalColorsDZ2.red},
+      'HeaderError': {...styles.textHeader, color: globalColors.red},
       'BodySemibold': styles.textBodySemibold,
       'Body': styles.textBody,
       'BodyPrimaryLink': styles.textBody,
@@ -77,8 +70,8 @@ export default class Text extends Component {
       'BodySmall': styles.textBodySmall,
       'BodySmallSemibold': styles.textBodySmallSemibold,
       'Error': styles.textError,
-      'Terminal': {...styles.textTerminal, color: (this.context.inTerminal ? globalColorsDZ2.blue3 : globalColorsDZ2.darkBlue)},
-      'TerminalSmall': {...styles.textTerminalSmall, color: (this.context.inTerminal ? globalColorsDZ2.blue3 : globalColorsDZ2.darkBlue)},
+      'Terminal': {...styles.textTerminal, color: (this.context.inTerminal ? globalColors.blue3 : globalColors.darkBlue)},
+      'TerminalSmall': {...styles.textTerminalSmall, color: (this.context.inTerminal ? globalColors.blue3 : globalColors.darkBlue)},
       'TerminalCommand': styles.textTerminalCommand,
       'TerminalComment': styles.textTerminalComment,
       'TerminalUsername': styles.textTerminalUsername,
@@ -107,11 +100,11 @@ export default class Text extends Component {
     const style = {
       ...typeStyle,
       ...linkStyle,
+      ...this._colorStyleBackgroundMode(this.props.backgroundMode || 'Normal', this.props.type),
       ...(this.props.lineClamp ? lineClamp(this.props.lineClamp) : {}),
       ...(this.props.small ? styles.textSmallMixin : {}),
       ...(this.props.onClick ? globalStyles.clickable : {}),
       ...(inline ? {...this._inlineStyle(this.props.type)} : {display: 'block'}),
-      ...this._colorStyleBackgroundMode(this.props.backgroundMode || 'Normal', this.props.type),
       ...this.props.style
     }
 
@@ -131,13 +124,13 @@ Text.contextTypes = {
 }
 
 const textCommon = {
-  ...globalStyles.DZ2.fontRegular,
+  ...globalStyles.fontRegular,
   ...globalStyles.noSelect,
   cursor: 'inherit'
 }
 
 const textTerminal = {
-  ...globalStyles.DZ2.fontTerminalSemibold,
+  ...globalStyles.fontTerminalSemibold,
   fontSize: 14,
   lineHeight: '21px',
   letterSpacing: '0.3px'
@@ -146,7 +139,7 @@ const textTerminal = {
 const headerStyles = {
   textHeaderJumbo: {
     ...textCommon,
-    ...globalStyles.DZ2.fontBold,
+    ...globalStyles.fontBold,
     fontSize: 32,
     lineHeight: '38px',
     letterSpacing: '0.3px'
@@ -154,7 +147,7 @@ const headerStyles = {
 
   textHeaderBig: {
     ...textCommon,
-    ...globalStyles.DZ2.fontBold,
+    ...globalStyles.fontBold,
     fontSize: 24,
     lineHeight: '31px',
     letterSpacing: '0.3px'
@@ -162,7 +155,7 @@ const headerStyles = {
 
   textHeader: {
     ...textCommon,
-    ...globalStyles.DZ2.fontBold,
+    ...globalStyles.fontBold,
     fontSize: 18,
     lineHeight: '25px',
     letterSpacing: '0.3px'
@@ -170,18 +163,18 @@ const headerStyles = {
 
   textInputHeader: {
     ...textCommon,
-    ...globalStyles.DZ2.fontSemibold,
+    ...globalStyles.fontSemibold,
     fontSize: 14,
     lineHeight: '18px',
     letterSpacing: '0.3px',
-    color: globalColorsDZ2.blue
+    color: globalColors.blue
   }
 }
 
 export const specialStyles = {
   textInput: {
     ...textCommon,
-    ...globalStyles.DZ2.fontSemibold,
+    ...globalStyles.fontSemibold,
     fontSize: 24,
     lineHeight: '29px',
     letterSpacing: '0.3px'
@@ -198,7 +191,7 @@ export const styles = {
   },
   textBodySemibold: {
     ...textCommon,
-    ...globalStyles.DZ2.fontSemibold,
+    ...globalStyles.fontSemibold,
     fontSize: 16,
     lineHeight: '22px',
     letterSpacing: '0.3px'
@@ -211,14 +204,14 @@ export const styles = {
   },
   textBodySmallSemibold: {
     ...textCommon,
-    ...globalStyles.DZ2.fontSemibold,
+    ...globalStyles.fontSemibold,
     fontSize: 14,
     lineHeight: '19px',
     letterSpacing: '0.3px'
   },
   textError: {
     ...textCommon,
-    color: globalColors.highRiskWarning,
+    color: globalColors.red,
     fontSize: 13,
     lineHeight: '17px',
     letterSpacing: '0.2px'
@@ -229,19 +222,19 @@ export const styles = {
   },
   textTerminalComment: {
     ...textTerminal,
-    color: globalColorsDZ2.white40
+    color: globalColors.white40
   },
   textTerminalUsername: {
     ...textTerminal,
-    color: globalColorsDZ2.orange
+    color: globalColors.orange
   },
   textTerminalPublic: {
     ...textTerminal,
-    color: globalColorsDZ2.yellowGreen2
+    color: globalColors.yellowGreen2
   },
   textTerminalPrivate: {
     ...textTerminal,
-    color: globalColorsDZ2.darkBlue2
+    color: globalColors.darkBlue2
   },
   textTerminalEmpty: {
     ...textTerminal,
@@ -253,13 +246,13 @@ export const styles = {
     lineHeight: '19px'
   },
   textTerminalInline: {
-    backgroundColor: globalColorsDZ2.blue4,
+    backgroundColor: globalColors.blue4,
     wordWrap: 'break-word',
     padding: 2,
     display: 'inline'
   },
   textSmallMixin: {
-    color: globalColors.grey2,
+    color: globalColors.black40,
     fontSize: 14,
     lineHeight: '19px'
   }

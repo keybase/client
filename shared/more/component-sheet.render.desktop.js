@@ -19,23 +19,19 @@ export default class Render extends Component {
       <div style={{...globalStyles.flexBoxRow, alignItems: 'flex-start', overflowY: 'auto', flexWrap: 'wrap'}}>
         <div style={styles.container}>
           <Checkbox
-            dz2
             label='Normal - checked'
             onCheck={checked => this.setState({normalChecked: checked})}
             checked={this.state.normalChecked} />
           <Checkbox
-            dz2
             label='Normal - unchecked'
             onCheck={checked => this.setState({normalUnchecked: checked})}
             checked={this.state.normalUnchecked} />
           <Checkbox
-            dz2
             label='Disabled - checked'
             onCheck={checked => this.setState({disabledChecked: checked})}
             disabled
             checked={this.state.disabledChecked} />
           <Checkbox
-            dz2
             label='Disabled - unchecked'
             disabled
             onCheck={checked => this.setState({disabledUnchecked: checked})}

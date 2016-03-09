@@ -1,6 +1,6 @@
 import React from 'react'
 import {Text, Icon} from '../../../common-adapters'
-import {globalStyles, globalColorsDZ2, transition} from '../../../styles/style-guide'
+import {globalStyles, globalColors, transition} from '../../../styles/style-guide'
 import Container from '../../forms/container'
 
 const Item = ({onClick, icon, title}) => {
@@ -17,12 +17,12 @@ const Item = ({onClick, icon, title}) => {
 const Render = ({onBack, onSubmitComputer, onSubmitPhone}) => {
   const realCSS = `
   .existing-device-container .existing-device-item {
-    background-color: ${globalColorsDZ2.lightGrey};
-    color: ${globalColorsDZ2.black75};
+    background-color: ${globalColors.lightGrey};
+    color: ${globalColors.black75};
   }
   .existing-device-container:hover .existing-device-item {
-    background-color: ${globalColorsDZ2.blue4};
-    color: ${globalColorsDZ2.black};
+    background-color: ${globalColors.blue4};
+    color: ${globalColors.black};
   }
   `
 

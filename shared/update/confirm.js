@@ -6,8 +6,7 @@ import {Snackbar} from 'material-ui'
 import {Header, Text, Button, Checkbox, Icon, Terminal} from '../common-adapters'
 import {clipboard} from 'electron'
 import marked from 'marked'
-import {autoResize} from '../../desktop/renderer/remote-component-helper'
-import {globalStyles, globalColorsDZ2} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles/style-guide'
 
 type RenderProps = {
   isCritical: bool,
@@ -58,16 +57,16 @@ class UpdateConfirm extends Component {
             <Icon type='keybase-update' />
           </div>
           {!this.props.updateCommand &&
-            <Text type='BodySemibold' dz2 style={{paddingLeft: 30, paddingRight: 30, textAlign: 'center'}}>
+            <Text type='BodySemibold' style={{paddingLeft: 30, paddingRight: 30, textAlign: 'center'}}>
               {`The version you are currently running (${this.props.oldVersion}) is outdated.`}
             </Text>}
           {this.props.updateCommand &&
             <div style={{flex: 1, ...globalStyles.flexBoxColumn}}>
-              <Text type='BodySemibold' dz2 style={{paddingLeft: 30, paddingRight: 30, textAlign: 'center'}}>
+              <Text type='BodySemibold' style={{paddingLeft: 30, paddingRight: 30, textAlign: 'center'}}>
                 {`The version you are currently running (${this.props.oldVersion}) is outdated. Run this command to update:`}
               </Text>
-              <Terminal dz2 style={{marginTop: 15}}>
-                <Text type='Terminal' dz2 style={{paddingLeft: 20, paddingRight: 20, paddingTop: 5, paddingBottom: 5}}>
+              <Terminal style={{marginTop: 15}}>
+                <Text type='Terminal' style={{paddingLeft: 20, paddingRight: 20, paddingTop: 5, paddingBottom: 5}}>
                   {this.props.updateCommand}
                 </Text>
               </Terminal>
@@ -79,16 +78,16 @@ class UpdateConfirm extends Component {
         </div>
 
         <div style={{...styles.actionsContainer}}>
-          <Button type='Secondary' dz2 label={`Ignore for ${this.props.snoozeTime}`} onClick={() => this.props.onSnooze()} />
+          <Button type='Secondary' label={`Ignore for ${this.props.snoozeTime}`} onClick={() => this.props.onSnooze()} />
           {this.props.canUpdate &&
-            <Button type='Primary' dz2 label='Update' onClick={() => this.props.onUpdate()} />}
+            <Button type='Primary' label='Update' onClick={() => this.props.onUpdate()} />}
           {!this.props.canUpdate &&
             this.props.updateCommand &&
-            <Button type='Primary' dz2 label='I ran the above command' onClick={() => this.props.onSnooze()} />}
+            <Button type='Primary' label='I ran the above command' onClick={() => this.props.onSnooze()} />}
         </div>
         {this.props.canUpdate &&
           <div style={{...styles.actionsContainer, paddingTop: 9, paddingRight: 10}}>
-            <Checkbox dz2
+            <Checkbox
               checked={this.props.alwaysUpdate}
               label='Update automatically'
               onCheck={checked => this.props.setAlwaysUpdate(checked)}/>
@@ -125,12 +124,12 @@ const styles = {
     paddingBottom: 15
   },
   descriptionBlock: {
-    ...globalStyles.DZ2.fontTerminal,
+    ...globalStyles.fontTerminal,
     lineHeight: '21px',
     fontSize: 14,
-    color: globalColorsDZ2.black75,
-    backgroundColor: globalColorsDZ2.lightGrey,
-    border: `solid ${globalColorsDZ2.black10} 1px`,
+    color: globalColors.black75,
+    backgroundColor: globalColors.lightGrey,
+    border: `solid ${globalColors.black10} 1px`,
     minHeight: 130,
     maxHeight: 130,
     overflowY: 'auto',

@@ -18,7 +18,6 @@ export type Props = {
   onClick?: () => void,
   lineClamp?: number,
   style?: Object,
-  dz2?: boolean, // Use DZ2 styling?
   children?: React$Element,
   className?: string
 }

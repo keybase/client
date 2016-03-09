@@ -1,7 +1,7 @@
 /* @flow */
 
 import React, {Component} from 'react'
-import {globalColors, globalColorsDZ2} from '../styles/style-guide'
+import {globalColors} from '../styles/style-guide'
 import {FontIcon} from 'material-ui'
 import type {Props} from './icon'
 import resolveRoot from '../../desktop/resolve-root'
@@ -12,13 +12,13 @@ export default class Icon extends Component {
   _defaultColor (type: Props.type): ?string {
     switch (type) {
       case 'fa-custom-icon-proof-broken':
-        return globalColorsDZ2.red
+        return globalColors.red
       case 'fa-custom-icon-proof-good-followed':
-        return globalColorsDZ2.green
+        return globalColors.green
       case 'fa-custom-icon-proof-good-new':
-        return globalColorsDZ2.blue2
+        return globalColors.blue2
       case 'fa-close':
-        return globalColorsDZ2.black20
+        return globalColors.black20
       default:
         return null
     }
@@ -31,7 +31,7 @@ export default class Icon extends Component {
       case 'fa-custom-icon-proof-good-new':
         return this._defaultColor(type)
       case 'fa-close':
-        return globalColorsDZ2.black60
+        return globalColors.black60
       default:
         return null
     }
@@ -57,8 +57,8 @@ export default class Icon extends Component {
       color = 'inherit'
       hoverColor = 'inherit'
     } else {
-      color = this.props.style && this.props.style.color || color || (this.props.opacity ? globalColors.grey1 : globalColors.grey2)
-      hoverColor = this.props.style && this.props.style.hoverColor || hoverColor || (this.props.opacity ? globalColors.black : globalColors.grey1)
+      color = this.props.style && this.props.style.color || color || (this.props.opacity ? globalColors.lightGrey : globalColors.black40)
+      hoverColor = this.props.style && this.props.style.hoverColor || hoverColor || (this.props.opacity ? globalColors.black : globalColors.black75)
     }
 
     const isFontIcon = iconType.startsWith('fa-')

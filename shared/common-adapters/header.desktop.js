@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import {Icon} from '../common-adapters'
-import {globalStyles, globalColorsDZ2} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props, DefaultProps} from './header'
 import Text from './text'
 
@@ -25,7 +25,7 @@ export default class Header extends Component<DefaultProps, Props, void> {
   renderStrong () {
     return (
       <div style={{...this.props.style, ...styles.container, ...styles.strongContainer}}>
-        <Text type='Header' dz2 backgroundMode='Announcements' style={{flex: 1, ...globalStyles.flexBoxCenter, paddingTop: 6, cursor: 'default'}}>{this.props.title}</Text>
+        <Text type='Header' backgroundMode='Announcements' style={{flex: 1, ...globalStyles.flexBoxCenter, paddingTop: 6, cursor: 'default'}}>{this.props.title}</Text>
         {this.props.onClose && (
           <Icon type='fa-close' onClick={() => this.props.onClose()} />
         )}
@@ -64,7 +64,7 @@ const styles = {
     paddingBottom: 6
   },
   strongContainer: {
-    backgroundColor: globalColorsDZ2.blue,
+    backgroundColor: globalColors.blue,
     paddingTop: 6,
     paddingBottom: 12
   }

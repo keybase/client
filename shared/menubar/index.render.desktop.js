@@ -58,7 +58,7 @@ const Footer = props => {
 const LogInTerminalMessage = props => {
   return (
     <div style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.grey5}}>
-      <Icon type='fa-exclamation-triangle' style={{alignSelf: 'center', color: globalColors.lowRiskWarning, marginTop: 12}} />
+      <Icon type='fa-exclamation-triangle' style={{alignSelf: 'center', color: globalColors.yellow, marginTop: 12}} />
       <Text type='Body' small style={{alignSelf: 'center', marginTop: 6}}>You're logged out!</Text>
       <Text type='Body' small style={{marginTop: 23, marginBottom: 5, marginLeft: 10}}>From the terminal:</Text>
       <Terminal>
@@ -76,7 +76,7 @@ const LogInPrompt = props => {
   const logIn: () => void = props.logIn
   return (
     <div style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.grey5}}>
-      <Icon type='fa-exclamation-triangle' style={{alignSelf: 'center', color: globalColors.lowRiskWarning, marginTop: 12}} />
+      <Icon type='fa-exclamation-triangle' style={{alignSelf: 'center', color: globalColors.yellow, marginTop: 12}} />
       <Text type='Body' small style={{alignSelf: 'center', marginTop: 6}}>You're logged out!</Text>
       <Button type='Primary' label='Log In' onClick={logIn} style={{alignSelf: 'center', minWidth: 160, marginTop: 12, marginRight: 0}}/>
       {allowLoggedOutKBFS && <Text type='Body' small style={{marginTop: 22, marginBottom: 7, marginLeft: 10}}>Or access someone's public folder:</Text>}
@@ -164,7 +164,7 @@ const FolderEntryRow = props => {
         small
         hintText='user1,user2,etc'
         onEnterKeyDown={() => openFolder()}
-        style={{width: '100%', marginLeft: entry.prefix ? 2 : 0}} />
+        style={{width: '100%', marginLeft: entry.prefix ? 2 : 0, textAlign: 'left'}} />
       <i className='fa fa-arrow-right' style={styles.entryArrow} onClick={() => openFolder()}></i>
     </Row>)
 }
@@ -351,8 +351,7 @@ const styles = {
   },
   header: {
     ...globalStyles.flexBoxRow,
-    backgroundColor: globalColors.grey5,
-    color: globalColors.grey2,
+    backgroundColor: globalColors.lightGrey,
     minHeight: 31,
     maxHeight: 32,
     padding: 10
@@ -380,7 +379,7 @@ const styles = {
   },
   footer: {
     ...globalStyles.flexBoxRow,
-    backgroundColor: globalColors.grey5,
+    backgroundColor: globalColors.lightGrey,
     justifyContent: 'space-between',
     padding: 10
   },
@@ -393,7 +392,7 @@ const styles = {
     color: globalColors.white,
     ...globalStyles.fontBold,
     fontSize: 8,
-    backgroundColor: globalColors.grey3,
+    backgroundColor: globalColors.lightGrey3,
     minWidth: 16,
     minHeight: 11,
     borderRadius: 2,
@@ -402,7 +401,7 @@ const styles = {
   },
   entryArrow: {
     ...globalStyles.clickable,
-    color: globalColors.grey2,
+    color: globalColors.lightGrey2,
     width: 25,
     fontSize: 13,
     height: 25,

@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {Text, Icon} from '../../../common-adapters'
-import {globalStyles, globalColorsDZ2} from '../../../styles/style-guide'
+import {globalStyles, globalColors} from '../../../styles/style-guide'
 import Container from '../../forms/container.desktop'
 import type {Props} from './index.render'
 
@@ -22,7 +22,7 @@ const Row = ({deviceID, name, type, onSelect}) => {
       <div style={styles.iconContainer}>
         <Icon style={styles.icon} type={iconType}/>
       </div>
-      <Text dz2 type='Body' onClick={onClick}>{name}</Text>
+      <Text type='Body' onClick={onClick}>{name}</Text>
     </div>)
 }
 
@@ -34,7 +34,7 @@ const Render = ({onBack, devices, onWont, onSelect}: Props) => (
     <div style={styles.devicesContainer}>
       {devices.map(d => <Row onSelect={onSelect} {...d}/>)}
     </div>
-    <Text style={styles.wont} dz2 type='BodySecondaryLink' onClick={onWont}>I don't have one of these devices</Text>
+    <Text style={styles.wont} type='BodySecondaryLink' onClick={onWont}>I don't have one of these devices</Text>
   </Container>
 )
 
@@ -64,7 +64,7 @@ const styles = {
     alignItems: 'center'
   },
   icon: {
-    color: globalColorsDZ2.black,
+    color: globalColors.black,
     fontSize: 40
   },
   wont: {
