@@ -34,7 +34,11 @@ func runPrereqs(e Engine, ctx *Context) (err error) {
 		var ok bool
 		ok, _, err = IsLoggedIn(e, ctx)
 		if !ok {
-			if serr := tryStandaloneLogin(e, ctx); serr != nil {
+			if e.G().Env.GetStandalone() {
+				if serr := tryStandaloneLogin(e, ctx); serr == nil {
+					return nil
+				}
+			} else {
 				urlError, isURLError := err.(*url.Error)
 				context := ""
 				if isURLError {
@@ -55,9 +59,13 @@ func runPrereqs(e Engine, ctx *Context) (err error) {
 			return err
 		}
 		if !ok {
-			if serr := tryStandaloneLogin(e, ctx); serr != nil {
-				return libkb.DeviceRequiredError{}
+			if e.G().Env.GetStandalone() {
+				if serr := tryStandaloneLogin(e, ctx); serr == nil {
+					return nil
+				}
 			}
+
+			return libkb.DeviceRequiredError{}
 		}
 	}
 
