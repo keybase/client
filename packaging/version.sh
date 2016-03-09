@@ -12,13 +12,12 @@ mode="$("$here/build_mode.sh" "$@")"
 
 version_file="$(dirname "$BASH_SOURCE")/../go/libkb/version.go"
 version="$(cat "$version_file" | grep 'Version =' | grep -oE '[0-9]+(.[0-9]+)+')"
+build=""
 
-if [ "$mode" = "production" ] ; then
-  build="$(cat "$version_file" | grep 'Build =' | grep -oE '[0-9]+')"
-else
+if [ ! "$mode" = "production" ] ; then
   current_date="$(date -u +%Y%m%d%H%M%S)" # UTC
   commit_short="$(git -C "$here" log -1 --pretty=format:%h)"
-  build="$current_date+$commit_short"
+  build="-$current_date+$commit_short"
 fi
 
-echo "$version-$build"
+echo "$version$build"

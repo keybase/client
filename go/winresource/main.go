@@ -52,10 +52,6 @@ func main() {
 		log.Printf("Error parsing version %v", err)
 		os.Exit(3)
 	}
-	if int, err := fmt.Sscanf(libkb.Build(), "%d", &fv.Build); int != 1 || err != nil {
-		log.Printf("Error parsing build %v", err)
-		os.Exit(3)
-	}
 
 	semVer := fmt.Sprintf("%d.%d.%d-%d", fv.Major, fv.Minor, fv.Patch, fv.Build)
 	customVer := fmt.Sprintf("%d.%d.%d-%s", fv.Major, fv.Minor, fv.Patch, GetBuildName())
