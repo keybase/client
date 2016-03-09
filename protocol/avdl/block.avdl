@@ -22,6 +22,11 @@ protocol block {
     int liveCount;
   }
 
+  record DowngradeReferenceRes{
+    array<BlockReferenceCount> completed;
+    BlockReference failed;
+  }
+
   ChallengeInfo getSessionChallenge();
   void authenticateSession(string signature);
 
@@ -30,8 +35,10 @@ protocol block {
 
   void addReference(string folder, BlockReference ref);
   void delReference(string folder, BlockReference ref);
-  array<BlockReferenceCount> delReferenceWithCount(string folder, array<BlockReference> refs);
   array<BlockReference> archiveReference(string folder, array<BlockReference> refs);
+
+  DowngradeReferenceRes delReferenceWithCount(string folder, array<BlockReference> refs);
+  DowngradeReferenceRes archiveReferenceWithCount(string folder, array<BlockReference> refs);
 
   bytes getUserQuotaInfo();
  

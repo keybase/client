@@ -419,6 +419,23 @@
           "name": "liveCount"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "DowngradeReferenceRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "BlockReferenceCount"
+          },
+          "name": "completed"
+        },
+        {
+          "type": "BlockReference",
+          "name": "failed"
+        }
+      ]
     }
   ],
   "messages": {
@@ -495,25 +512,6 @@
       ],
       "response": "null"
     },
-    "delReferenceWithCount": {
-      "request": [
-        {
-          "name": "folder",
-          "type": "string"
-        },
-        {
-          "name": "refs",
-          "type": {
-            "type": "array",
-            "items": "BlockReference"
-          }
-        }
-      ],
-      "response": {
-        "type": "array",
-        "items": "BlockReferenceCount"
-      }
-    },
     "archiveReference": {
       "request": [
         {
@@ -532,6 +530,38 @@
         "type": "array",
         "items": "BlockReference"
       }
+    },
+    "delReferenceWithCount": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "string"
+        },
+        {
+          "name": "refs",
+          "type": {
+            "type": "array",
+            "items": "BlockReference"
+          }
+        }
+      ],
+      "response": "DowngradeReferenceRes"
+    },
+    "archiveReferenceWithCount": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "string"
+        },
+        {
+          "name": "refs",
+          "type": {
+            "type": "array",
+            "items": "BlockReference"
+          }
+        }
+      ],
+      "response": "DowngradeReferenceRes"
     },
     "getUserQuotaInfo": {
       "request": [],
