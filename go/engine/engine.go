@@ -30,18 +30,6 @@ type UIDelegateWanter interface {
 func runPrereqs(e Engine, ctx *Context) (err error) {
 	prq := e.Prereqs()
 
-	// in standalone mode, try logging in if necessary:
-	/*
-		if e.G().Env.GetStandalone() && (prq.Session || prq.Device) {
-			e.G().Log.Debug("standalone mode + session prereq = %v, device prereq = %v: attempting autologin", prq.Session, prq.Device)
-			eng := newLoginProvisionedDevice(e.G(), "")
-			if err = RunEngine(eng, ctx); err != nil {
-				e.G().Log.Debug("standalone mode autologin failed: %s", err)
-				return err
-			}
-		}
-	*/
-
 	if prq.Session {
 		var ok bool
 		ok, _, err = IsLoggedIn(e, ctx)
