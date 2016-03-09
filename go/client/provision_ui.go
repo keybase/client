@@ -7,7 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 	"strings"
 
 	"golang.org/x/net/context"
@@ -220,7 +220,7 @@ func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.Di
 			if err == nil {
 				p.parent.Output("Or, scan this QR Code with the keybase app on your mobile phone:\n\n")
 				p.parent.Output(encodings.Terminal)
-				fname := path.Join(os.TempDir(), "keybase_qr.png")
+				fname := filepath.Join(os.TempDir(), "keybase_qr.png")
 				f, ferr := os.Create(fname)
 				if ferr == nil {
 					f.Write(encodings.PNG)

@@ -2,24 +2,6 @@
 // Styles from our designers
 
 export const globalColors = {
-  blue: '#00bff0',
-  green: '#90d05c',
-  red: '#e66272',
-  grey1: '#444444',
-  grey2: '#9e9e9e',
-  grey3: '#cccccc',
-  grey4: '#e1e1e1',
-  grey5: '#f6f6f6',
-  highRiskWarning: '#d0021b',
-  lightBlue: '#86e2f9',
-  lightOrange: '#fc8558',
-  lowRiskWarning: '#f5a623',
-  orange: '#ff602e',
-  white: '#ffffff',
-  black: '#000000'
-}
-
-export const globalColorsDZ2 = {
   // Keybase Brand Colors
   blue: '#33a0ff',
   blue2: '#66b8ff',
@@ -68,29 +50,11 @@ export const globalResizing = {
 
 const fontCommon = {
   WebkitFontSmoothing: 'antialiased',
-  textRendering: 'optimizeLegibility'
+  textRendering: 'optimizeLegibility',
+  letterSpacing: '0.3px'
 }
 
 const font = {
-  fontRegular: {
-    ...fontCommon,
-    fontFamily: 'Noto Sans'
-  },
-  fontBold: {
-    ...fontCommon,
-    fontFamily: 'Noto Sans Bold'
-  },
-  fontItalic: {
-    ...fontCommon,
-    fontFamily: 'Noto Sans Italic'
-  },
-  fontTerminal: {
-    ...fontCommon,
-    fontFamily: 'Source Code Pro'
-  }
-}
-
-const fontDZ2 = {
   fontRegular: {
     ...fontCommon,
     fontFamily: 'Lato',
@@ -133,6 +97,11 @@ const util = {
     ...flexBoxCommon,
     flexDirection: 'row'
   },
+  flexBoxCenter: {
+    ...flexBoxCommon,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
   noSelect: {
     WebkitUserSelect: 'none'
   },
@@ -146,7 +115,7 @@ const util = {
     borderRadius: 3
   },
   windowBorder: {
-    border: `solid ${globalColors.grey4}`,
+    border: `solid ${globalColors.lightGrey3}`,
     borderWidth: 1
   },
   clickable: {
@@ -159,7 +128,6 @@ const util = {
 
 export const globalStyles = {
   ...font,
-  DZ2: {...fontDZ2},
   ...util
 }
 

@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"strings"
 
@@ -107,7 +106,7 @@ func ResolveInstallStatus(version string, bundleVersion string, lastExitStatus s
 }
 
 func serviceInfoPath(context Context) string {
-	return path.Join(context.GetRuntimeDir(), "keybased.info")
+	return filepath.Join(context.GetRuntimeDir(), "keybased.info")
 }
 
 func KBFSBundleVersion(context Context, binPath string) (string, error) {

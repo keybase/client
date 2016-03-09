@@ -22,17 +22,17 @@ const base = {
   spacing: Spacing,
   fontFamily: globalStyles.fontRegular.fontFamily,
   palette: {
-    primary1Color: globalColors.grey1,
-    primary2Color: globalColors.grey1,
-    primary3Color: globalColors.grey1,
-    accent1Color: globalColors.grey1,
-    accent2Color: globalColors.grey1,
-    accent3Color: globalColors.grey1,
-    textColor: globalColors.grey1,
-    alternateTextColor: globalColors.grey1,
+    primary1Color: globalColors.black75,
+    primary2Color: globalColors.black75,
+    primary3Color: globalColors.black75,
+    accent1Color: globalColors.black75,
+    accent2Color: globalColors.black75,
+    accent3Color: globalColors.black75,
+    textColor: globalColors.black75,
+    alternateTextColor: globalColors.black75,
     canvasColor: globalColors.white,
-    borderColor: globalColors.grey3,
-    disabledColor: globalColors.grey3
+    borderColor: globalColors.black75,
+    disabledColor: globalColors.black75
   }
 }
 

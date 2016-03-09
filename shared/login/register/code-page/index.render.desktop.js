@@ -5,7 +5,7 @@
  */
 
 import React, {Component} from 'react'
-import {globalStyles, globalColorsDZ2} from '../../../styles/style-guide'
+import {globalStyles, globalColors} from '../../../styles/style-guide'
 import {Text, Icon, Input, Button} from '../../../common-adapters'
 import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
         codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer} from '../../../constants/login'
@@ -15,9 +15,9 @@ import type {Props} from './index.render'
 
 const subTitle = () => (
   <p>
-    <Text dz2 type='BodySmall'>In the Keybase app on your phone, go to</Text>
-    <Icon dz2 type='fa-mobile' style={styles.phoneIcon} />
-    <Text dz2 type='BodySmall'>Devices > Add a new device.</Text>
+    <Text type='BodySmall'>In the Keybase app on your phone, go to</Text>
+    <Icon type='fa-mobile' style={styles.phoneIcon} />
+    <Text type='BodySmall'>Devices > Add a new device.</Text>
   </p>
 )
 
@@ -42,14 +42,14 @@ export default class CodePageRender extends Component {
       <Container
         style={styles.container}
         onBack={this.props.onBack}>
-        <Text style={{marginTop: 38, marginBottom: 11}} dz2 type='Header'>Scan this QR code</Text>
+        <Text style={{marginTop: 38, marginBottom: 11}} type='Header'>Scan this QR code</Text>
         {subTitle()}
         <div style={styles.qrContainer}>
           <div style={{...qr, ...styles.qr}} />
         </div>
         <p style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}} onClick={() => this.props.setCodePageMode(codePageModeEnterText)}>
           <Icon style={{marginRight: 15}} type='phone-text-code-small' />
-          <Text dz2 type='BodyPrimaryLink' onClick={() => this.props.setCodePageMode(codePageModeEnterText)}>Type text code instead</Text>
+          <Text type='BodyPrimaryLink' onClick={() => this.props.setCodePageMode(codePageModeEnterText)}>Type text code instead</Text>
         </p>
       </Container>
     )
@@ -60,12 +60,11 @@ export default class CodePageRender extends Component {
       <Container
         style={styles.container}
         onBack={this.props.onBack}>
-        <Text style={{marginTop: 38, marginBottom: 11}} dz2 type='Header'>Type in text code</Text>
+        <Text style={{marginTop: 38, marginBottom: 11}} type='Header'>Type in text code</Text>
         {subTitle()}
 
         <Icon style={{marginTop: 30, marginBottom: 40}} type='phone-text-code' />
         <Input
-          dz2
           style={{alignSelf: 'stretch'}}
           fullWidth
           hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
@@ -74,10 +73,10 @@ export default class CodePageRender extends Component {
           value={this.props.enterText}
           onChange={event => this.props.onChangeText(event.target.value)}
         />
-        <Button dz2 type='Primary' style={{alignSelf: 'flex-end', marginTop: 35, marginBottom: 20}} label='Continue' onClick={() => this.props.textEntered(codePageModeEnterText)} />
+        <Button type='Primary' style={{alignSelf: 'flex-end', marginTop: 35, marginBottom: 20}} label='Continue' onClick={() => this.props.textEntered(codePageModeEnterText)} />
         <p style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}} onClick={() => this.props.setCodePageMode(codePageModeShowCode)}>
           <Icon style={{marginRight: 15}} type='phone-q-r-code' />
-          <Text dz2 type='BodyPrimaryLink' onClick={() => this.props.setCodePageMode(codePageModeShowCode)}>Scan QR code instead</Text>
+          <Text type='BodyPrimaryLink' onClick={() => this.props.setCodePageMode(codePageModeShowCode)}>Scan QR code instead</Text>
         </p>
       </Container>
     )
@@ -128,7 +127,7 @@ const styles = {
     alignSelf: 'stretch',
     marginLeft: -65,
     marginRight: -65,
-    backgroundColor: globalColorsDZ2.blue2
+    backgroundColor: globalColors.blue2
   },
   qr: {
     width: 190,

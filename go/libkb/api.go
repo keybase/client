@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -177,9 +178,11 @@ func (api *BaseAPIEngine) PreparePost(url url.URL, arg APIArg, sendJSON bool) (*
 //============================================================================
 // Shared code
 //
-func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes bool) (
-	resp *http.Response, jw *jsonw.Wrapper, err error) {
 
+// The returned response, if non-nil, should have
+// DiscardAndCloseBody() called on it.
+func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes bool) (
+	_ *http.Response, jw *jsonw.Wrapper, err error) {
 	if !arg.G().Env.GetTorMode().UseSession() && arg.NeedSession {
 		err = TorSessionRequiredError{}
 		return
@@ -201,32 +204,36 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	}
 
 	timer := arg.G().Timers.Start(timerType)
-	resp, err = cli.cli.Do(req)
+	internalResp, err := cli.cli.Do(req)
+	defer func() {
+		if internalResp != nil && err != nil {
+			DiscardAndCloseBody(internalResp)
+		}
+	}()
+
 	timer.Report(req.Method + " " + arg.Endpoint)
 
 	if err != nil {
 		return nil, nil, APINetError{err: err}
 	}
-	arg.G().Log.Debug(fmt.Sprintf("| Result is: %s", resp.Status))
+	arg.G().Log.Debug(fmt.Sprintf("| Result is: %s", internalResp.Status))
 
 	// Check for a code 200 or rather which codes were allowed in arg.HttpStatus
-	err = checkHTTPStatus(arg, resp)
+	err = checkHTTPStatus(arg, internalResp)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	err = api.consumeHeaders(resp)
+	err = api.consumeHeaders(internalResp)
 	if err != nil {
 		return nil, nil, err
 	}
 
 	if wantJSONRes {
-
-		decoder := json.NewDecoder(resp.Body)
+		decoder := json.NewDecoder(internalResp.Body)
 		var obj interface{}
 		decoder.UseNumber()
 		err = decoder.Decode(&obj)
-		resp.Body.Close()
 		if err != nil {
 			err = fmt.Errorf("Error in parsing JSON reply from server: %s", err)
 			return nil, nil, err
@@ -239,7 +246,7 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 		}
 	}
 
-	return resp, jw, nil
+	return internalResp, jw, nil
 }
 
 func checkHTTPStatus(arg APIArg, resp *http.Response) error {
@@ -341,7 +348,8 @@ func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
 	}
 	if a.G().Env.GetTorMode().UseHeaders() {
 		req.Header.Set("User-Agent", UserAgent)
-		req.Header.Set("X-Keybase-Client", IdentifyAs)
+		identifyAs := GoClientID + " v" + VersionString() + " " + runtime.GOOS
+		req.Header.Set("X-Keybase-Client", identifyAs)
 	}
 }
 
@@ -405,7 +413,9 @@ func (a *InternalAPIEngine) Get(arg APIArg) (*APIRes, error) {
 	return a.DoRequest(arg, req)
 }
 
-// GetResp performs a GET request and returns the http response.
+// GetResp performs a GET request and returns the http response.  The
+// returned response, if non-nil, should have DiscardAndCloseBody()
+// called on it.
 func (a *InternalAPIEngine) GetResp(arg APIArg) (*http.Response, error) {
 	url := a.getURL(arg)
 	req, err := a.PrepareGet(url, arg)
@@ -428,8 +438,8 @@ func (a *InternalAPIEngine) GetDecode(arg APIArg, v APIResponseWrapper) error {
 	if err != nil {
 		return err
 	}
+	defer DiscardAndCloseBody(resp)
 	dec := json.NewDecoder(resp.Body)
-	defer resp.Body.Close()
 	if err = dec.Decode(&v); err != nil {
 		return err
 	}
@@ -455,6 +465,8 @@ func (a *InternalAPIEngine) PostJSON(arg APIArg) (*APIRes, error) {
 }
 
 // PostResp performs a POST request and returns the http response.
+// The returned response, if non-nil, should have
+// DiscardAndCloseBody() called on it.
 func (a *InternalAPIEngine) PostResp(arg APIArg) (*http.Response, error) {
 	url := a.getURL(arg)
 	req, err := a.PreparePost(url, arg, false)
@@ -475,8 +487,8 @@ func (a *InternalAPIEngine) PostDecode(arg APIArg, v APIResponseWrapper) error {
 	if err != nil {
 		return err
 	}
+	defer DiscardAndCloseBody(resp)
 	dec := json.NewDecoder(resp.Body)
-	defer resp.Body.Close()
 	if err = dec.Decode(&v); err != nil {
 		return err
 	}
@@ -500,6 +512,7 @@ func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, e
 	if err != nil {
 		return nil, err
 	}
+	defer DiscardAndCloseBody(resp)
 
 	status, err := jw.AtKey("status").ToDictionary()
 	if err != nil {
@@ -570,6 +583,7 @@ func (api *ExternalAPIEngine) DoRequest(
 	if err != nil {
 		return
 	}
+	defer DiscardAndCloseBody(resp)
 
 	switch restype {
 	case XAPIResJSON:
@@ -583,7 +597,6 @@ func (api *ExternalAPIEngine) DoRequest(
 	case XAPIResText:
 		var buf bytes.Buffer
 		_, err = buf.ReadFrom(resp.Body)
-		defer resp.Body.Close()
 		if err == nil {
 			tr = &ExternalTextRes{resp.StatusCode, string(buf.Bytes())}
 		}

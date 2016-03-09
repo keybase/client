@@ -728,6 +728,42 @@ func (ckf ComputedKeyFamily) GetActivePGPKeys(sibkey bool) (ret []*PGPKeyBundle)
 	return
 }
 
+type RevokedKey struct {
+	Key       GenericKey
+	RevokedAt *KeybaseTime
+}
+
+func (ckf ComputedKeyFamily) GetRevokedKeys() []RevokedKey {
+	ckf.G().Log.Debug("+ GetRevokedKeys")
+	defer ckf.G().Log.Debug("- GetRevokedKeys")
+
+	var revokedKeys []RevokedKey
+	for kid := range ckf.kf.AllKIDs {
+		ki, ok := ckf.cki.Infos[kid]
+		if !ok || ki == nil {
+			ckf.G().Log.Debug("KID %s not in cki.Infos (likely belongs to a previous subchain). Skipping.", kid)
+			continue
+		}
+		if ki.Status != KeyRevoked {
+			continue
+		}
+		if ki.RevokedAt == nil {
+			ckf.G().Log.Errorf("KID %s: status is KeyRevoked, but RevokedAt is nil", kid)
+			continue
+		}
+
+		key, err := ckf.FindKeyWithKIDUnsafe(kid)
+		if err != nil {
+			ckf.G().Log.Errorf("No key found for %s in ckf", kid)
+			continue
+		}
+
+		revokedKeys = append(revokedKeys, RevokedKey{Key: key, RevokedAt: ki.RevokedAt})
+	}
+
+	return revokedKeys
+}
+
 // UpdateDevices takes the Device object from the given ChainLink
 // and updates keys to reflects any device changes encoded therein.
 func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {

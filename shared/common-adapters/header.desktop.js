@@ -3,35 +3,48 @@
 import React, {Component} from 'react'
 import {Icon} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles/style-guide'
-import type {Props} from './header'
+import type {Props, DefaultProps} from './header'
 import Text from './text'
 
-export default class Header extends Component {
-  props: Props;
+export default class Header extends Component<DefaultProps, Props, void> {
+  static defaultProps: DefaultProps;
 
-  render () {
+  renderDefault () {
     return (
-      <div style={{...this.props.style, ...styles.container}}>
+      <div style={{...this.props.style, ...styles.container, ...styles.defaultContainer}}>
         {this.props.children}
         {this.props.icon && <Icon type='logo-24' />}
-        <Text type='Body' style={{flex: 1}}>{this.props.title}</Text>
+        <Text type='Body' style={{flex: 1, paddingLeft: 6}}>{this.props.title}</Text>
         {this.props.onClose && (
-          <div style={styles.close} onClick={() => this.props.onClose()}>
-            <i className='fa fa-times' ></i>
-          </div>
+          <Icon type='fa-close' onClick={() => this.props.onClose()} />
         )}
       </div>
     )
   }
+
+  renderStrong () {
+    return (
+      <div style={{...this.props.style, ...styles.container, ...styles.strongContainer}}>
+        <Text type='Header' backgroundMode='Announcements' style={{flex: 1, ...globalStyles.flexBoxCenter, paddingTop: 6, cursor: 'default'}}>{this.props.title}</Text>
+        {this.props.onClose && (
+          <Icon type='fa-close' onClick={() => this.props.onClose()} />
+        )}
+      </div>
+    )
+  }
+
+  render () {
+    if (this.props.type === 'Default') {
+      return this.renderDefault()
+    } else if (this.props.type === 'Strong') {
+      return this.renderStrong()
+    } else {
+      return <div/>
+    }
+  }
 }
 
-Header.propTypes = {
-  icon: React.PropTypes.bool,
-  children: React.PropTypes.any,
-  title: React.PropTypes.string,
-  onClose: React.PropTypes.func,
-  style: React.PropTypes.object
-}
+Header.defaultProps = {type: 'Default'}
 
 const styles = {
   container: {
@@ -39,24 +52,20 @@ const styles = {
     ...globalStyles.windowDragging,
     ...globalStyles.noSelect,
     paddingLeft: 10,
-    paddingRight: 10,
-    alignItems: 'center',
-    height: 35
+    paddingRight: 10
   },
   logo: {
     width: 22,
     height: 22,
     marginRight: 8
   },
-  close: {
-    ...globalStyles.flexBoxRow,
-    ...globalStyles.clickable,
-    ...globalStyles.windowDraggingClickable,
-    color: globalColors.grey4,
-    fontSize: 16,
-    alignItems: 'flex-start',
-    justifyContent: 'flex-end',
-    width: 30,
-    height: 24
+  defaultContainer: {
+    paddingTop: 6,
+    paddingBottom: 6
+  },
+  strongContainer: {
+    backgroundColor: globalColors.blue,
+    paddingTop: 6,
+    paddingBottom: 12
   }
 }

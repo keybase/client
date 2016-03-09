@@ -61,7 +61,7 @@ func TestLoginLogout(t *testing.T) {
 	}
 
 	secretUI := &libkb.TestSecretUI{Passphrase: fu.Passphrase}
-	if err := tc.G.LoginState().LoginWithPrompt("", nil, secretUI, nil); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt("", secretUI, nil); err != nil {
 		t.Error(err)
 	}
 
@@ -111,11 +111,11 @@ func TestLoginWhileAlreadyLoggedIn(t *testing.T) {
 
 	// These should all work, since the username matches.
 
-	if err := tc.G.LoginState().LoginWithPrompt("", nil, nil, nil); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt("", nil, nil); err != nil {
 		t.Error(err)
 	}
 
-	if err := tc.G.LoginState().LoginWithPrompt(fu.Username, nil, nil, nil); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt(fu.Username, nil, nil); err != nil {
 		t.Error(err)
 	}
 
@@ -128,23 +128,23 @@ func TestLoginWhileAlreadyLoggedIn(t *testing.T) {
 	}
 
 	// This should fail.
-	if _, ok := tc.G.LoginState().LoginWithPrompt("other", nil, nil, nil).(libkb.LoggedInWrongUserError); !ok {
+	if _, ok := tc.G.LoginState().LoginWithPrompt("other", nil, nil).(libkb.LoggedInWrongUserError); !ok {
 		t.Fatal("Did not get expected LoggedIn error")
 	}
 }
 
 // Test that login works while already logged in and after a login
 // state reset.
-func TestLoginAfterLoginStateReset(t *testing.T) {
+func TestLoginAfterClearLoginStateSecretCaches(t *testing.T) {
 	tc := SetupEngineTest(t, "login while already logged in")
 	defer tc.Cleanup()
 
 	// Logs the user in.
 	_ = CreateAndSignupFakeUser(tc, "li")
 
-	tc.ResetLoginState()
+	tc.ClearLoginStateSecretCaches()
 
-	if err := tc.G.LoginState().LoginWithPrompt("", nil, nil, nil); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt("", nil, nil); err != nil {
 		t.Error(err)
 	}
 }
@@ -159,7 +159,7 @@ func TestLoginNonexistent(t *testing.T) {
 	Logout(tc)
 
 	secretUI := &libkb.TestSecretUI{Passphrase: "XXXXXXXXXXXX"}
-	err := tc.G.LoginState().LoginWithPrompt("nonexistent", nil, secretUI, nil)
+	err := tc.G.LoginState().LoginWithPrompt("nonexistent", secretUI, nil)
 	if _, ok := err.(libkb.AppStatusError); !ok {
 		t.Errorf("error type: %T, expected libkb.AppStatusError", err)
 	}
@@ -211,7 +211,7 @@ func TestLoginWithPromptPassphrase(t *testing.T) {
 	mockGetKeybasePassphrase := &GetPassphraseMock{
 		Passphrase: fu.Passphrase,
 	}
-	if err := tc.G.LoginState().LoginWithPrompt("", nil, mockGetKeybasePassphrase, nil); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt("", mockGetKeybasePassphrase, nil); err != nil {
 		t.Error(err)
 	}
 
@@ -222,35 +222,11 @@ func TestLoginWithPromptPassphrase(t *testing.T) {
 	Logout(tc)
 
 	mockGetKeybasePassphrase.Called = false
-	if err := tc.G.LoginState().LoginWithPrompt(fu.Username, nil, mockGetKeybasePassphrase, nil); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt(fu.Username, mockGetKeybasePassphrase, nil); err != nil {
 		t.Error(err)
 	}
 
 	mockGetKeybasePassphrase.CheckLastErr(t)
-
-	if !mockGetKeybasePassphrase.Called {
-		t.Errorf("secretUI.GetKeybasePassphrase() unexpectedly not called")
-	}
-
-	Logout(tc)
-
-	// Clear out the username stored in G.Env.
-	tc.G.Env.GetConfigWriter().SetUserConfig(nil, true)
-
-	mockGetUsername := &GetUsernameMock{
-		Username: fu.Username,
-	}
-	mockGetKeybasePassphrase.Called = false
-	if err := tc.G.LoginState().LoginWithPrompt("", mockGetUsername, mockGetKeybasePassphrase, nil); err != nil {
-		t.Error(err)
-	}
-
-	mockGetUsername.CheckLastErr(t)
-	mockGetKeybasePassphrase.CheckLastErr(t)
-
-	if !mockGetUsername.Called {
-		t.Errorf("loginUI.GetEmailOrUsername() unexpectedly not called")
-	}
 
 	if !mockGetKeybasePassphrase.Called {
 		t.Errorf("secretUI.GetKeybasePassphrase() unexpectedly not called")
@@ -315,7 +291,7 @@ func TestLoginWithStoredSecret(t *testing.T) {
 		Passphrase:  fu.Passphrase,
 		StoreSecret: true,
 	}
-	if err := tc.G.LoginState().LoginWithPrompt("", nil, mockGetPassphrase, nil); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt("", mockGetPassphrase, nil); err != nil {
 		t.Fatal(err)
 	}
 

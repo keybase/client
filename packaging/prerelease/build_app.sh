@@ -9,6 +9,8 @@ GOPATH=${GOPATH:-}
 nobuild=${NOBUILD:-} # Don't build go binaries
 istest=${TEST:-} # Use test bucket (doesn't trigger prerelease updates)
 nopull=${NOPULL:-} # Don't git pull
+client_commit=${CLIENT_COMMIT:-} # Commit hash on client to build from
+kbfs_commit=${KBFS_COMMIT:-} # Commit hash on kbfs to build from
 bucket_name=${BUCKET_NAME:-"prerelease.keybase.io"}
 platform=${PLATFORM:-`uname`}
 nos3=${NOS3:-} # Don't sync to S3
@@ -34,12 +36,27 @@ fi
 build_dir_keybase="/tmp/build_keybase"
 build_dir_kbfs="/tmp/build_kbfs"
 client_dir="$GOPATH/src/github.com/keybase/client"
+kbfs_dir="$GOPATH/src/github.com/keybase/kbfs"
 
 "$client_dir/packaging/slack/send.sh" "Starting build"
 
 if [ ! "$nopull" = "1" ]; then
   "$client_dir/packaging/check_status_and_pull.sh" "$client_dir"
-  "$client_dir/packaging/check_status_and_pull.sh" "$GOPATH/src/github.com/keybase/kbfs"
+  "$client_dir/packaging/check_status_and_pull.sh" "$kbfs_dir"
+fi
+
+if [ -n "$client_commit" ]; then
+  echo "Checking out $client_commit on client"
+  (cd "$client_dir" && git checkout "$client_commit")
+else
+  (cd "$client_dir" && git checkout master)
+fi
+
+if [ -n "$kbfs_commit" ]; then
+  echo "Checking out $kbfs_commit on kbfs"
+  (cd "$kbfs_dir" && git checkout "$kbfs_commit")
+else
+  (cd "$kbfs_dir" && git checkout master)
 fi
 
 if [ ! "$nobuild" = "1" ]; then

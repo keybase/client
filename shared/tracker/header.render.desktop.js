@@ -1,10 +1,8 @@
 /* @flow */
 
 import React, {Component} from 'react'
-import {Header} from '../common-adapters'
 import {Icon, Text} from '../common-adapters/index'
-import {globalStyles, globalColorsDZ2} from '../styles/style-guide'
-import flags from '../util/feature-flags'
+import {globalStyles, globalColors} from '../styles/style-guide'
 
 import type {HeaderProps} from './header.render'
 
@@ -18,24 +16,6 @@ export default class HeaderRender extends Component {
   }
 
   render () {
-    if (flags.tracker2) {
-      return this.render2(styles2)
-    }
-    return this.renderDefault(styles1)
-  }
-
-  renderDefault (styles: Object) {
-    return (
-      <Header
-        style={styles.header}
-        icon
-        title={this.props.reason}
-        onClose={this.props.onClose}
-      />
-    )
-  }
-
-  render2 (styles: Object) {
     let headerStyle = (this.props.currentlyFollowing && !this.props.changed) ? styles.headerSuccess : styles.headerNormal
     let headerTextStyle = styles.headerTextNormal
 
@@ -75,9 +55,9 @@ export default class HeaderRender extends Component {
     return (
       <div style={styles.outer}>
         <div style={{...styles.header, ...headerStyle}}>
-          <div style={{...styles.header, ...headerStyle, height: 54, zIndex: 2, opacity: isWarning ? 1 : 0, backgroundColor: globalColorsDZ2.yellow}}/>
-          <Text type='BodySemibold' dz2 lineClamp={2} style={{...styles.text, ...headerTextStyle, flex: 1, zIndex: isWarning ? 2 : 'inherit'}}>{headerText}</Text>
-          <Icon type='fa-times' opacity style={styles.close}
+          <div style={{...styles.header, ...headerStyle, height: 54, zIndex: 2, opacity: isWarning ? 1 : 0, backgroundColor: globalColors.yellow}}/>
+          <Text type='BodySemibold' lineClamp={2} style={{...styles.text, ...headerTextStyle, flex: 1, zIndex: isWarning ? 2 : 'inherit'}}>{headerText}</Text>
+          <Icon type='fa-close' style={styles.close}
             onClick={() => this.props.onClose()}
             onMouseEnter={() => this.closeMouseEnter()}
             onMouseLeave={() => this.closeMouseLeave()} />
@@ -95,13 +75,7 @@ export default class HeaderRender extends Component {
   }
 }
 
-const styles1 = {
-  header: {
-    paddingLeft: 15
-  }
-}
-
-const styles2 = {
+const styles = {
   outer: {
     position: 'relative'
   },
@@ -115,28 +89,28 @@ const styles2 = {
     width: 320
   },
   headerNormal: {
-    backgroundColor: globalColorsDZ2.blue
+    backgroundColor: globalColors.blue
   },
   headerSuccess: {
-    backgroundColor: globalColorsDZ2.green
+    backgroundColor: globalColors.green
   },
   headerWarning: {
-    backgroundColor: globalColorsDZ2.yellow
+    backgroundColor: globalColors.yellow
   },
   headerTextNormal: {
-    color: globalColorsDZ2.white,
+    color: globalColors.white,
     fontSize: 14,
     lineHeight: 'normal',
     opacity: 1
   },
   headerTextWarning: {
-    color: globalColorsDZ2.brown60,
+    color: globalColors.brown60,
     fontSize: 14,
     lineHeight: 'normal',
     opacity: 1
   },
   headerError: {
-    backgroundColor: globalColorsDZ2.red
+    backgroundColor: globalColors.red
   },
   close: {
     ...globalStyles.clickable,
@@ -150,9 +124,9 @@ const styles2 = {
     ...globalStyles.flexBoxRow,
     alignItems: 'center',
     justifyContent: 'center',
-    color: globalColorsDZ2.white,
-    marginLeft: 15,
-    marginRight: 15,
+    color: globalColors.white,
+    marginLeft: 30,
+    marginRight: 30,
     marginBottom: 32,
     fontSize: 14,
     textAlign: 'center'

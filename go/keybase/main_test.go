@@ -13,7 +13,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"path"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -38,7 +38,7 @@ func compileBinary() error {
 // keybase binary.
 func keybaseBinaryPath() string {
 	gopath := os.Getenv("GOPATH")
-	binpath := path.Join(gopath, "bin", "keybase")
+	binpath := filepath.Join(gopath, "bin", "keybase")
 	return binpath
 }
 
@@ -87,7 +87,7 @@ func newUser(t *testing.T) *user {
 // makeHome creates a new home directory for this user, and returns where
 // it is, so that our keybase command-line can use it during tests.
 func (u user) makeHome(t *testing.T) string {
-	p := path.Join(".", "scratch", "home", u.name)
+	p := filepath.Join(".", "scratch", "home", u.name)
 	err := os.MkdirAll(p, 0755)
 	if err != nil {
 		t.Fatalf("Error in MkdirAll %s: %v", p, err)

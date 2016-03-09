@@ -1,7 +1,7 @@
 /* @flow */
 
 import React, {Component} from 'react'
-import {globalColors, globalColorsDZ2} from '../styles/style-guide'
+import {globalColors} from '../styles/style-guide'
 import {FontIcon} from 'material-ui'
 import type {Props} from './icon'
 import resolveRoot from '../../desktop/resolve-root'
@@ -12,11 +12,13 @@ export default class Icon extends Component {
   _defaultColor (type: Props.type): ?string {
     switch (type) {
       case 'fa-custom-icon-proof-broken':
-        return globalColorsDZ2.red
+        return globalColors.red
       case 'fa-custom-icon-proof-good-followed':
-        return globalColorsDZ2.green
+        return globalColors.green
       case 'fa-custom-icon-proof-good-new':
-        return globalColorsDZ2.blue2
+        return globalColors.blue2
+      case 'fa-close':
+        return globalColors.black20
       default:
         return null
     }
@@ -28,6 +30,8 @@ export default class Icon extends Component {
       case 'fa-custom-icon-proof-good-followed':
       case 'fa-custom-icon-proof-good-new':
         return this._defaultColor(type)
+      case 'fa-close':
+        return globalColors.black60
       default:
         return null
     }
@@ -53,8 +57,8 @@ export default class Icon extends Component {
       color = 'inherit'
       hoverColor = 'inherit'
     } else {
-      color = this.props.style && this.props.style.color || color || (this.props.opacity ? globalColors.grey1 : globalColors.grey2)
-      hoverColor = this.props.style && this.props.style.hoverColor || hoverColor || (this.props.opacity ? globalColors.black : globalColors.grey1)
+      color = this.props.style && this.props.style.color || color || (this.props.opacity ? globalColors.lightGrey : globalColors.black40)
+      hoverColor = this.props.style && this.props.style.hoverColor || hoverColor || (this.props.opacity ? globalColors.black : globalColors.black75)
     }
 
     const isFontIcon = iconType.startsWith('fa-')
@@ -62,7 +66,7 @@ export default class Icon extends Component {
     if (isFontIcon) {
       return <FontIcon
         title={this.props.hint}
-        style={{...styles.icon, opacity: this.props.opacity ? 0.35 : 1.0, ...this.props.style}}
+        style={{...styles.icon, ...this.props.style}}
         className={`fa ${iconType}`}
         color={color}
         hoverColor={this.props.onClick ? hoverColor : null}
@@ -72,7 +76,7 @@ export default class Icon extends Component {
     } else {
       return <img
         title={this.props.hint}
-        style={{opacity: this.props.opacity ? 0.35 : 1.0, ...this.props.style}}
+        style={{...this.props.style}}
         onClick={this.props.onClick}
         srcSet={`${[1, 2, 3].map(mult => `${resolveRoot('shared/images/icons', this.props.type)}${mult > 1 ? `@${mult}x` : ''}.png ${mult}x`).join(', ')}`} />
     }
@@ -81,7 +85,6 @@ export default class Icon extends Component {
 
 Icon.propTypes = {
   type: React.PropTypes.string.isRequired,
-  opacity: React.PropTypes.bool,
   hint: React.PropTypes.string,
   onClick: React.PropTypes.func,
   onMouseEnter: React.PropTypes.func,

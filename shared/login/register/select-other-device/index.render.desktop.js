@@ -1,16 +1,28 @@
 // @flow
 import React from 'react'
 import {Text, Icon} from '../../../common-adapters'
-import {globalStyles, globalColorsDZ2} from '../../../styles/style-guide'
+import {globalStyles, globalColors} from '../../../styles/style-guide'
 import Container from '../../forms/container.desktop'
 import type {Props} from './index.render'
 
-const Row = ({id, name, type, onSelect}) => {
-  const iconType = type === 'mobile' ? 'fa-mobile' : 'fa-laptop'
+const Row = ({deviceID, name, type, onSelect}) => {
+  const iconType = {
+    'mobile': 'fa-mobile',
+    'computer': 'fa-laptop',
+    'paper key': 'paper-key'
+  }[type]
+
+  const onClick = e => {
+    onSelect(deviceID)
+    e && e.preventDefault()
+  }
+
   return (
-    <div style={styles.row} onClick={e => onSelect(id)}>
-      <Icon style={styles.icon} type={iconType}/>
-      <Text dz2 type='Body' onClick={e => onSelect(id)}>{name}</Text>
+    <div style={styles.row} onClick={onClick}>
+      <div style={styles.iconContainer}>
+        <Icon style={styles.icon} type={iconType}/>
+      </div>
+      <Text type='Body' onClick={onClick}>{name}</Text>
     </div>)
 }
 
@@ -22,7 +34,7 @@ const Render = ({onBack, devices, onWont, onSelect}: Props) => (
     <div style={styles.devicesContainer}>
       {devices.map(d => <Row onSelect={onSelect} {...d}/>)}
     </div>
-    <Text style={styles.wont} dz2 type='BodySecondaryLink' onClick={onWont}>I don't have one of these devices</Text>
+    <Text style={styles.wont} type='BodySecondaryLink' onClick={onWont}>I don't have one of these devices</Text>
   </Container>
 )
 
@@ -45,11 +57,15 @@ const styles = {
     padding: 10,
     alignItems: 'center'
   },
+  iconContainer: {
+    ...globalStyles.flexBoxRow,
+    width: 50,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
   icon: {
-    color: globalColorsDZ2.black,
-    fontSize: 40,
-    minWidth: 60,
-    textAlign: 'center'
+    color: globalColors.black,
+    fontSize: 40
   },
   wont: {
     marginTop: 10,

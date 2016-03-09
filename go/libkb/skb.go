@@ -252,8 +252,8 @@ func (s *SKB) RawUnlockedKey() []byte {
 }
 
 func (s *SKB) unlockSecretKeyFromSecretRetriever(secretRetriever SecretRetriever) (key GenericKey, err error) {
-	if key = s.decryptedSecret; key != nil {
-		return
+	if s.decryptedSecret != nil {
+		return s.decryptedSecret, nil
 	}
 
 	var unlocked []byte
@@ -262,14 +262,14 @@ func (s *SKB) unlockSecretKeyFromSecretRetriever(secretRetriever SecretRetriever
 		unlocked = s.Priv.Data
 	case LKSecVersion:
 		unlocked, err = s.lksUnlockWithSecretRetriever(secretRetriever)
+		if err != nil {
+			return nil, err
+		}
 	default:
-		err = BadKeyError{fmt.Sprintf("Can't unlock secret from secret retriever with protection type %d", int(s.Priv.Encryption))}
+		return nil, BadKeyError{fmt.Sprintf("Can't unlock secret from secret retriever with protection type %d", int(s.Priv.Encryption))}
 	}
 
-	if err == nil {
-		key, err = s.parseUnlocked(unlocked)
-	}
-	return
+	return s.parseUnlocked(unlocked)
 }
 
 // unverifiedPassphraseStream takes a passphrase as a parameter and
@@ -438,7 +438,7 @@ func (s *SKB) lksUnlockWithSecretRetriever(secretRetriever SecretRetriever) (unl
 	}
 	lks := NewLKSecWithFullSecret(secret, s.uid, s.G())
 	unlocked, _, err = lks.Decrypt(nil, s.Priv.Data)
-	return
+	return unlocked, err
 }
 
 func (s *SKB) SetUID(uid keybase1.UID) {
@@ -663,8 +663,8 @@ func (s *SKB) UnlockWithStoredSecret(secretRetriever SecretRetriever) (ret Gener
 		s.G().Log.Debug("- UnlockWithStoredSecret -> %s", ErrToOk(err))
 	}()
 
-	if ret = s.decryptedSecret; ret != nil {
-		return
+	if s.decryptedSecret != nil {
+		return s.decryptedSecret, nil
 	}
 
 	return s.unlockSecretKeyFromSecretRetriever(secretRetriever)
@@ -779,6 +779,7 @@ func (s *SKB) PromptAndUnlock(arg SecretKeyPromptArg, which string, secretStore 
 	// First try to unlock without prompting the user.
 	ret, err = s.UnlockNoPrompt(arg.LoginContext, secretStore, lksPreload)
 	if err == nil {
+		s.G().Log.Debug("| PromptAndUnlock: UnlockNoPrompt success")
 		return
 	}
 	if err != errUnlockNotPossible {

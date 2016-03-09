@@ -12,6 +12,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path"
+	"path/filepath"
 	"sync"
 	"testing"
 
@@ -101,7 +102,7 @@ func (tc *TestContext) Cleanup() {
 func (tc TestContext) MoveGpgKeyringTo(dst TestContext) error {
 
 	mv := func(f string) (err error) {
-		return os.Rename(path.Join(tc.Tp.GPGHome, f), path.Join(dst.Tp.GPGHome, f))
+		return os.Rename(path.Join(tc.Tp.GPGHome, f), filepath.Join(dst.Tp.GPGHome, f))
 	}
 
 	if err := mv("secring.gpg"); err != nil {
@@ -157,11 +158,20 @@ func (tc *TestContext) MakePGPKey(id string) (*PGPKeyBundle, error) {
 	return GeneratePGPKeyBundle(arg, tc.G.UI.GetLogUI())
 }
 
-// ResetLoginStateForTest simulates a shutdown and restart (for client
-// state). Used by tests that need to clear out cached login state
-// without logging out.
+// ResetLoginState simulates a shutdown and restart (for client
+// state). Used by tests that need to clear out cached login
+// state.
 func (tc *TestContext) ResetLoginState() {
 	tc.G.createLoginState()
+}
+
+// ClearLoginStateSecretCaches removes the stream cache and the cached
+// secret keys.
+func (tc *TestContext) ClearLoginStateSecretCaches() {
+	tc.G.LoginState().Account(func(a *Account) {
+		a.ClearStreamCache()
+		a.ClearCachedSecretKeys()
+	}, "TestContext - ClearLoginStateSecretCaches")
 }
 
 func (tc TestContext) ClearAllStoredSecrets() error {

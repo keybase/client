@@ -35,7 +35,6 @@ func (e *loginProvisionedDevice) Prereqs() Prereqs {
 // RequiredUIs returns the required UIs.
 func (e *loginProvisionedDevice) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
-		libkb.LoginUIKind,
 		libkb.SecretUIKind,
 	}
 }
@@ -98,6 +97,9 @@ func (e *loginProvisionedDevice) Run(ctx *Context) error {
 	// and it has a device id, so this should be a provisioned device.  Thus, they should
 	// just login normally.
 
+	// set e.username for LoginWithPrompt
+	e.username = me.GetName()
+
 	var afterLogin = func(lctx libkb.LoginContext) error {
 		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
 			// not a fatal error, session will stay in memory
@@ -105,5 +107,5 @@ func (e *loginProvisionedDevice) Run(ctx *Context) error {
 		}
 		return nil
 	}
-	return e.G().LoginState().LoginWithPrompt(e.username, ctx.LoginUI, ctx.SecretUI, afterLogin)
+	return e.G().LoginState().LoginWithPrompt(e.username, ctx.SecretUI, afterLogin)
 }

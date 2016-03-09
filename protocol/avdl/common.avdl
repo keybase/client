@@ -54,6 +54,16 @@ protocol Common {
     Time eTime;
   }
 
+  record KeybaseTime {
+    Time unix;
+    int chain;
+  }
+
+  record RevokedKey {
+    PublicKey key;
+    KeybaseTime time;
+  }
+
   record User {
     UID uid;
     string username;
@@ -104,12 +114,15 @@ protocol Common {
       UID uid;
       string username;
 
-      // This is a misnomer; it's actually all keys, including PGP; let's deprecate
-      // this field in a few versions
+      // deviceKeys is a list of active device keys.  It does
+      // not include PGP keys.
       array<PublicKey> deviceKeys;
 
-      // A duplicate of deviceKeys above, but with a better name
-      array<PublicKey> keys;
+      // revokedDeviceKeys is a list of revoked device keys.
+      array<RevokedKey> revokedDeviceKeys;
+
+      // number of pgp keys associated with this user
+      int pgpKeyCount;
 
       UserVersionVector uvv;
   }

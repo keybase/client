@@ -64,6 +64,7 @@ func (n NullConfiguration) GetUpdatePreferenceAuto() (bool, bool)         { retu
 func (n NullConfiguration) GetUpdatePreferenceSnoozeUntil() keybase1.Time { return keybase1.Time(0) }
 func (n NullConfiguration) GetUpdateLastChecked() keybase1.Time           { return keybase1.Time(0) }
 func (n NullConfiguration) GetUpdatePreferenceSkip() string               { return "" }
+func (n NullConfiguration) GetUpdateURL() string                          { return "" }
 func (n NullConfiguration) GetVDebugSetting() string                      { return "" }
 func (n NullConfiguration) GetLocalTrackMaxAge() (time.Duration, bool)    { return 0, false }
 func (n NullConfiguration) GetAppStartMode() AppStartMode                 { return AppStartModeDisabled }
@@ -115,6 +116,7 @@ func (n NullConfiguration) GetNullAtPath(string) bool {
 func (n NullConfiguration) GetSecurityAccessGroupOverride() (bool, bool) {
 	return false, false
 }
+func (n NullConfiguration) GetLoggedIn() bool { return false }
 
 type TestParameters struct {
 	ConfigFilename string
@@ -886,6 +888,10 @@ func (e *Env) SetUpdatePreferenceSnoozeUntil(t keybase1.Time) error {
 
 func (e *Env) SetUpdateLastChecked(t keybase1.Time) error {
 	return e.GetConfigWriter().SetUpdateLastChecked(t)
+}
+
+func (e *Env) GetUpdateURL() string {
+	return e.config.GetUpdateURL()
 }
 
 func (e *Env) GetVDebugSetting() string {

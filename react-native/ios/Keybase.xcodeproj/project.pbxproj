@@ -398,7 +398,6 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "Keybase" */;
 			buildPhases = (
-				DB6D76B71BD00A3E00A0E560 /* Run Script */,
 				2D21EB5734D7CE24B4074751 /* Check Pods Manifest.lock */,
 				13B07F871A680F5B00A75B9A /* Sources */,
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
@@ -660,21 +659,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
 			shellScript = "../node_modules/react-native/packager/react-native-xcode.sh";
-		};
-		DB6D76B71BD00A3E00A0E560 /* Run Script */ = {
-			isa = PBXShellScriptBuildPhase;
-			buildActionMask = 8;
-			files = (
-			);
-			inputPaths = (
-			);
-			name = "Run Script";
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-			shellPath = /bin/bash;
-			shellScript = "env -i SRCROOT=$SRCROOT bash \"$SRCROOT/archiveBuild.sh\" # clear flags from xcode itself which breaks the go build";
-			showEnvVarsInLog = 0;
 		};
 		E6762398B1C5E12235589F5D /* Copy Pods Resources */ = {
 			isa = PBXShellScriptBuildPhase;

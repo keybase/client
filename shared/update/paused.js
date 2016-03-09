@@ -1,7 +1,8 @@
 /* @flow */
+
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import {Header, Text} from '../common-adapters/index.desktop'
+import {Header, Text, Icon} from '../common-adapters'
 import {Button} from '../common-adapters'
 import {globalStyles} from '../styles/style-guide'
 
@@ -17,56 +18,50 @@ class UpdatePaused extends Component {
   render () {
     return (
       <div style={styles.container}>
-        <Header title='Update Paused' icon onClose={() => this.props.onCancel()} />
-        <div style={styles.info}>
-          <Text type='Header' style={styles.infoHeader}>You have files, folders or a terminal open in Keybase.</Text>
-          <Text type='Body' style={styles.infoBody}>
+        <Header type='Strong' title='Update Paused' icon onClose={() => this.props.onCancel()} />
+        <div style={styles.body}>
+          <div style={{...globalStyles.flexBoxCenter, paddingTop: 15, paddingBottom: 15}}>
+            <Icon type='keybase-update-pause' />
+          </div>
+          <div style={{paddingBottom: 15}}>
+            <Text type='BodySemibold'>You have files, folders or a terminal open in Keybase.</Text>
+          </div>
+          <Text type='BodySmall' style={{paddingBottom: 15}}>
             You can force the update. That would be like yanking a USB drive and plugging it right back in.
             It'll instantly give you the latest version of Keybase, but you'll need to reopen any files you're working with.
-            If you're working in the terminal, you'll need to cd out of /keybase and back in.
+            If you're working in the terminal, you'll need to&nbsp;
           </Text>
-        </div>
-        <div style={styles.actions}>
-          <Button type='Secondary' label='Force' onClick={() => this.props.onForce()} />
-          <Button type='Primary' label='Try Later' onClick={() => this.props.onCancel()} />
+          <Text type='TerminalSmall'>cd</Text>
+          <Text type='BodySmall'>&nbsp;out of&nbsp;</Text>
+          <Text type='TerminalSmall'>/keybase</Text>
+          <Text type='BodySmall'>&nbsp;and back in.</Text>
+
+          <div style={styles.actions}>
+            <Button type='Secondary' label='Force' onClick={() => this.props.onForce()} />
+            <Button type='Primary' label='Try again later' onClick={() => this.props.onCancel()} />
+          </div>
         </div>
       </div>
     )
   }
-  // <Button label='Quit Processes' onClick={() => this.props.onKillProcesses()} />
 }
 
 const styles = {
   container: {
     ...globalStyles.flexBoxColumn
   },
-  info: {
-    marginLeft: 30,
-    marginRight: 30
-  },
-  infoHeader: {
-    marginTop: 30
-  },
-  infoBody: {
-    marginTop: 15
+  body: {
+    paddingLeft: 30,
+    paddingRight: 30,
+    paddingBottom: 30
   },
   actions: {
     ...globalStyles.flexBoxRow,
     justifyContent: 'flex-end',
-    marginTop: 20,
-    marginRight: 30,
-    marginBottom: 30
+    marginTop: 15
   }
 }
 
 export default connect(
-  state => state.updatePaused,
-    undefined,
-    (stateProps, dispatchProps, ownProps) => {
-      return {
-        ...stateProps,
-        ...dispatchProps,
-        ...ownProps
-      }
-    }
+  state => state.updatePaused
 )(UpdatePaused)

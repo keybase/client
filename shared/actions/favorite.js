@@ -20,6 +20,10 @@ export function favoriteList (): (dispatch: Dispatch) => void {
           return
         }
 
+        if (!folders) {
+          folders = []
+        }
+
         const action: FavoriteList = {type: Constants.favoriteList, payload: {folders}}
         dispatch(action)
       }

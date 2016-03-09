@@ -4,11 +4,12 @@
 package engine
 
 import (
+	"testing"
+	"time"
+
 	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"testing"
-	"time"
 )
 
 func TestTrackToken(t *testing.T) {
@@ -82,12 +83,11 @@ func TestTrackTokenIdentify2(t *testing.T) {
 func TestTrackLocalThenLocalTemp(t *testing.T) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
+
 	fu := CreateAndSignupFakeUser(tc, "track")
 
 	fakeClock := clockwork.NewFakeClock()
 	tc.G.Clock = fakeClock
-	// to pick up the new clock...
-	tc.G.ResetLoginState()
 
 	flakeyAPI := flakeyRooterAPI{orig: tc.G.XAPI, flakeOut: false, G: tc.G}
 	tc.G.XAPI = &flakeyAPI
@@ -207,13 +207,14 @@ func TestTrackLocalThenLocalTemp(t *testing.T) {
 func TestTrackRemoteThenLocalTemp(t *testing.T) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
-	fu := CreateAndSignupFakeUser(tc, "track")
 
 	// Tracking remote means we have to agree what time it is
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc.G.Clock = fakeClock
 	// to pick up the new clock...
-	tc.G.ResetLoginState()
+	tc.ResetLoginState()
+
+	fu := CreateAndSignupFakeUser(tc, "track")
 
 	flakeyAPI := flakeyRooterAPI{orig: tc.G.XAPI, flakeOut: false, G: tc.G}
 	tc.G.XAPI = &flakeyAPI
@@ -329,12 +330,11 @@ func TestTrackRemoteThenLocalTemp(t *testing.T) {
 func TestTrackFailTempRecover(t *testing.T) {
 	tc := SetupEngineTest(t, "track")
 	defer tc.Cleanup()
+
 	fu := CreateAndSignupFakeUser(tc, "track")
 
 	fakeClock := clockwork.NewFakeClock()
 	tc.G.Clock = fakeClock
-	// to pick up the new clock...
-	tc.G.ResetLoginState()
 
 	flakeyAPI := flakeyRooterAPI{orig: tc.G.XAPI, flakeOut: false, G: tc.G}
 	tc.G.XAPI = &flakeyAPI

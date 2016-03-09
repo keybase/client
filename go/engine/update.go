@@ -9,7 +9,7 @@ import (
 	"runtime"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/client/go/saltpack"
 	"github.com/keybase/client/go/updater"
 	"github.com/keybase/client/go/updater/sources"
@@ -119,20 +119,19 @@ func (u UpdaterContext) Verify(r io.Reader, signature string) error {
 
 func NewDefaultUpdater(g *libkb.GlobalContext) *updater.Updater {
 	options := DefaultUpdaterOptions(g)
-	if options == nil {
-		g.Log.Info("No updater available for this environment")
-		return nil
-	}
 	source := DefaultUpdateSource(g)
 	if source == nil {
 		g.Log.Info("No updater source available for this environment")
 		return nil
 	}
-	return updater.NewUpdater(*options, source, g.Env, g.Log)
+	return updater.NewUpdater(options, source, g.Env, g.Log)
 }
 
 func DefaultUpdateSource(g *libkb.GlobalContext) sources.UpdateSource {
-	u, _ := NewUpdateSource(g, sources.DefaultUpdateSourceName())
+	u, err := NewUpdateSource(g, sources.DefaultUpdateSourceName())
+	if err != nil {
+		g.Log.Errorf("Invalid update source: %s", err)
+	}
 	return u
 }
 
@@ -159,16 +158,23 @@ func NewUpdateSource(g *libkb.GlobalContext, sourceName sources.UpdateSourceName
 }
 
 // DefaultUpdaterOptions returns update config for this environment
-func DefaultUpdaterOptions(g *libkb.GlobalContext) *keybase1.UpdateOptions {
-	ret := &keybase1.UpdateOptions{
+func DefaultUpdaterOptions(g *libkb.GlobalContext) keybase1.UpdateOptions {
+	updateOptions := keybase1.UpdateOptions{
 		Version:  libkb.VersionString(),
 		Channel:  "main", // The default channel
 		Platform: runtime.GOOS,
 		Source:   string(sources.DefaultUpdateSourceName()),
 	}
+
+	url := g.Env.GetUpdateURL()
+	if url != "" {
+		updateOptions.URL = url
+		updateOptions.Source = string(sources.RemoteSource)
+	}
+
 	switch {
 	case runtime.GOOS == "darwin" && g.Env.GetRunMode() == libkb.ProductionRunMode:
-		ret.DestinationPath = "/Applications/Keybase.app"
+		updateOptions.DestinationPath = "/Applications/Keybase.app"
 	}
-	return ret
+	return updateOptions
 }

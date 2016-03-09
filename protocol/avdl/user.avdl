@@ -55,9 +55,8 @@ protocol user {
 
   /**
     Load a user + device keys from the server.
-    If cacheOK is true means that a cached value is ok to return.
     */
-  UserPlusKeys loadUserPlusKeys(int sessionID, UID uid, boolean cacheOK);
+  UserPlusKeys loadUserPlusKeys(int sessionID, UID uid);
 
   /**
     Load public keys for a user.

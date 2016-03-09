@@ -340,7 +340,7 @@ func lookupMerkleLeaf(g *GlobalContext, uid keybase1.UID, local *User) (f *Merkl
 	return
 }
 
-func LoadUserPlusKeys(g *GlobalContext, uid keybase1.UID, cacheOK bool) (keybase1.UserPlusKeys, error) {
+func LoadUserPlusKeys(g *GlobalContext, uid keybase1.UID) (keybase1.UserPlusKeys, error) {
 	var up keybase1.UserPlusKeys
 	if uid.IsNil() {
 		return up, fmt.Errorf("Nil UID")
@@ -357,12 +357,5 @@ func LoadUserPlusKeys(g *GlobalContext, uid keybase1.UID, cacheOK bool) (keybase
 		return up, fmt.Errorf("Nil user, nil error from LoadUser")
 	}
 
-	// export user to UserPlusKeys
-	up.Uid = u.GetUID()
-	up.Username = u.GetNormalizedName().String()
-	if u.GetComputedKeyFamily() != nil {
-		up.DeviceKeys = u.GetComputedKeyFamily().ExportDeviceKeys()
-	}
-
-	return up, nil
+	return u.ExportToUserPlusKeys(keybase1.Time(0)), nil
 }

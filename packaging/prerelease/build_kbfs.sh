@@ -7,6 +7,10 @@ cd "$dir"
 
 build_dir=${BUILD_DIR:-/tmp/build_kbfs}
 nosign=${NOSIGN:-}
+gopath=${GOPATH:-}
+
+kbfs_dir="$gopath/src/github.com/keybase/kbfs"
+cd $kbfs_dir
 
 mkdir -p $build_dir
 
@@ -16,7 +20,7 @@ build="$current_date+$commit_short"
 kbfs_build=${KBFS_BUILD:-$build}
 tags=${TAGS:-"prerelease production"}
 platform=${PLATFORM:-`uname`}
-ldflags="-X github.com/keybase/kbfs/libkbfs.CustomBuild=$kbfs_build"
+ldflags="-X github.com/keybase/kbfs/libkbfs.PrereleaseBuild=$kbfs_build"
 
 if [ "$platform" = "Darwin" ]; then
   # To get codesign to work you have to use -ldflags "-s ...", see https://github.com/golang/go/issues/11887

@@ -45,14 +45,6 @@ SetPublicName.propTypes = {
 }
 
 export default connect(
-  state => state,
-  null,
-  (stateProps, dispatchProps, ownProps) => {
-    return {
-      ...ownProps,
-      ...ownProps.mapStateToProps(stateProps),
-      ...dispatchProps
-    }
-  }
+  (state, ownProps) => ownProps.mapStateToProps(state)
 )(SetPublicName)
 

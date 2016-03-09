@@ -158,6 +158,34 @@
     },
     {
       "type": "record",
+      "name": "KeybaseTime",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "unix"
+        },
+        {
+          "type": "int",
+          "name": "chain"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RevokedKey",
+      "fields": [
+        {
+          "type": "PublicKey",
+          "name": "key"
+        },
+        {
+          "type": "KeybaseTime",
+          "name": "time"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "User",
       "fields": [
         {
@@ -290,9 +318,13 @@
         {
           "type": {
             "type": "array",
-            "items": "PublicKey"
+            "items": "RevokedKey"
           },
-          "name": "keys"
+          "name": "revokedDeviceKeys"
+        },
+        {
+          "type": "int",
+          "name": "pgpKeyCount"
         },
         {
           "type": "UserVersionVector",
@@ -563,14 +595,10 @@
         {
           "name": "uid",
           "type": "UID"
-        },
-        {
-          "name": "cacheOK",
-          "type": "boolean"
         }
       ],
       "response": "UserPlusKeys",
-      "doc": "Load a user + device keys from the server.\n    If cacheOK is true means that a cached value is ok to return."
+      "doc": "Load a user + device keys from the server."
     },
     "loadPublicKeys": {
       "request": [

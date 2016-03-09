@@ -97,10 +97,14 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         trackToken: action.payload && action.payload.trackToken
       }
     case Constants.userUpdated:
-      return {
-        ...state,
-        closed: true,
-        hidden: false
+      if (state.lastAction) {
+        return state
+      } else {
+        return {
+          ...state,
+          closed: true,
+          hidden: false
+        }
       }
     case Constants.onMaybeTrack:
       return {
@@ -116,14 +120,6 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         lastAction: null,
         shouldFollow: false // don't follow if they close x out the window
       }
-    case Constants.onRefollow:
-      return {
-        ...state,
-        closed: true
-      }
-    case Constants.onUnfollow: // TODO
-      return state
-
     case Constants.onWaiting:
       return {
         ...state,
@@ -132,16 +128,21 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
     case Constants.onFollow:
       return {
         ...state,
+        lastTrack: {
+          username: 'Mock',
+          time: Date.now(),
+          isRemote: true
+        },
         lastAction: 'followed',
         reason: `You have followed ${state.username}.`
       }
-    case Constants.onRefollow2:
+    case Constants.onRefollow:
       return {
         ...state,
         lastAction: 'refollowed',
         reason: `You have re-followed ${state.username}.`
       }
-    case Constants.onUnfollow2:
+    case Constants.onUnfollow:
       return {
         ...state,
         lastAction: 'unfollowed',
@@ -286,13 +287,13 @@ export default function (state: State = initialState, action: Action): State {
         if (!action.payload) {
           return state
         }
-        const username = action.payload.username
+        const username2 = action.payload.username
 
         return {
           ...state,
           trackers: {
             ...state.trackers,
-            [username]: initialTrackerState(username)
+            [username]: initialTrackerState(username2)
           }
         }
       default:

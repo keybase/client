@@ -41,11 +41,25 @@ Download the appropriate package:
 
 ### Building
 
+Here's how to build the command line client on Linux or OSX. You need to
+have both Git and **Go 1.5 or higher** installed. (Run `go version` to
+see what version you have.)
+
 ```bash
-cd $GOPATH/src/github.com/keybase/client/go/keybase # assuming a proper $GOPATH
-export GO15VENDOREXPERIMENT=1                       # all dependencies are vendored
-go install --tags production                        # otherwise it will default to 'devel' mode
-export PATH=$PATH:$GOPATH/bin                       # if it's not in your path already
+# First we need to set up a GOPATH. This is a standard first step for
+# building Go programs, so if you've done this already, skip on ahead.
+# See also https://golang.org/doc/install.
+mkdir ~/gopath
+cd ~/gopath
+export GOPATH="$HOME/gopath"     # Consider putting this in your ~/.bashrc.
+export PATH="$PATH:$GOPATH/bin"  # Ditto.
+
+# Now for the actual clone and build.
+go get github.com/keybase/client/go/keybase
+GO15VENDOREXPERIMENT=1 go install -tags production github.com/keybase/client/go/keybase
+
+# If you did the PATH bit above, this should just work.
+keybase
 ```
 
 ### Run the service

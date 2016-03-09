@@ -14,7 +14,6 @@ class UsernameOrEmail extends Component<void, Props, void> {
 export default connect(
   state => ({}),
   dispatch => ({
-    onBack: () => dispatch(cancelLogin()),
-    onSubmit: usernameOrEmail => console.log('TODO submit username: ', usernameOrEmail) // dispatch(submitUsername(UsernameOrEmail))
+    onBack: () => dispatch(cancelLogin())
   })
 )(UsernameOrEmail)

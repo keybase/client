@@ -52,15 +52,6 @@ export const styles = {
     ...flexBox,
     flexDirection: 'row'
   },
-  fontRegular: {
-    fontFamily: 'Noto Sans'
-  },
-  fontBold: {
-    fontFamily: 'Noto Sans Bold'
-  },
-  fontItalic: {
-    fontFamily: 'Noto Sans Italic'
-  },
   vr: {
     maxWidth: 1,
     minWidth: 1,
@@ -79,4 +70,3 @@ export const styles = {
 export function sheet (obj) {
   return obj
 }
-

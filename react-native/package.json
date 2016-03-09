@@ -8,7 +8,7 @@
     "gobuild-ios": "GO15VENDOREXPERIMENT=1 $GOPATH/bin/gomobile bind -target=ios -o ios/keybase.framework github.com/keybase/client/go/loopback",
     "gobuild-android": "GO15VENDOREXPERIMENT=1 $GOPATH/bin/gomobile bind -target=android -o android/keybaselib/keybaselib.aar github.com/keybase/client/go/loopback",
     "packager-wipe-cache": "node ../shared/packager/wipe-cache.js",
-    "build-ios": "npm run pod-install && npm run gobuild-ios && npm run reactbundle-ios"
+    "build-ios": "npm run pod-install && npm run gobuild-ios"
   },
   "dependencies": {
     "buffer": "^4.3.1",

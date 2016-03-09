@@ -67,7 +67,24 @@ export function initTabbedRouterState (state) {
     tabs: {
       ...state.tabs,
       [Tabs.loginTab]: createRouterState([], []),
-      [Tabs.moreTab]: createRouterState(['devMenu', 'styleSheet'], [])
+      [Tabs.moreTab]: createRouterState(['devMenu', 'componentsUpdate'], [])
     }
   }
+}
+
+let cancel = null
+export function setupCancelLogin (cancelFunc) {
+  if (!__DEV__) {
+    return
+  }
+
+  cancel = cancelFunc
+}
+
+export function debugCancelLogin () {
+  if (!__DEV__) {
+    return
+  }
+
+  cancel && cancel()
 }

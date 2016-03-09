@@ -11,11 +11,11 @@ class Render extends Component<void, Props, void> {
         style={styles.container}
         onBack={() => this.props.onBack()}>
         <Icon type='no-gpg' style={styles.icon}/>
-        <Text dz2 type='HeaderError' style={styles.header}>You don't have a GPG pinentry app installed.</Text>
+        <Text type='HeaderError' style={styles.header}>You don't have a GPG pinentry app installed.</Text>
         <p style={styles.paragraph}>
-          <Text dz2 type='Body' inline>If you want to use GPG to provision this device, you’ll need to use the </Text>
-          <Text dz2 type='Terminal' inline>keybase</Text>
-          <Text dz2 type='Body' inline> command line application or choose another way to provision this device.</Text>
+          <Text type='Body' inline>If you want to use GPG to provision this device, you’ll need to use the </Text>
+          <Text type='Terminal' inline>keybase</Text>
+          <Text type='Body' inline> command line application or choose another way to provision this device.</Text>
         </p>
       </Container>
     )

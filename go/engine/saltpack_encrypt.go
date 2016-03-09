@@ -39,7 +39,10 @@ func (e *SaltpackEncrypt) Name() string {
 
 // GetPrereqs returns the engine prereqs.
 func (e *SaltpackEncrypt) Prereqs() Prereqs {
-	return Prereqs{}
+	if e.arg.Opts.NoSelfEncrypt {
+		return Prereqs{}
+	}
+	return Prereqs{Device: true}
 }
 
 // RequiredUIs returns the required UIs.
@@ -117,7 +120,7 @@ func (e *SaltpackEncrypt) Run(ctx *Context) (err error) {
 	}
 	uplus := kf.UsersPlusKeys()
 	for _, up := range uplus {
-		for _, k := range up.Keys {
+		for _, k := range up.DeviceKeys {
 			gk, err := libkb.ImportKeypairFromKID(k.KID)
 			if err != nil {
 				return err

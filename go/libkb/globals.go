@@ -134,11 +134,6 @@ func (g *GlobalContext) LoginState() *LoginState {
 	return g.loginState
 }
 
-// ResetLoginState is mainly used for testing...
-func (g *GlobalContext) ResetLoginState() {
-	g.createLoginStateLocked()
-}
-
 func (g *GlobalContext) Logout() error {
 	g.loginStateMu.Lock()
 	defer g.loginStateMu.Unlock()
@@ -154,6 +149,8 @@ func (g *GlobalContext) Logout() error {
 	}
 	g.TrackCache = NewTrackCache()
 	g.Identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())
+
+	g.Env.GetConfigWriter().SetLoggedIn(false)
 
 	// get a clean LoginState:
 	g.createLoginStateLocked()

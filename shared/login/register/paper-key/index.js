@@ -35,15 +35,7 @@ PaperKey.propTypes = {
 }
 
 export default connect(
-  state => state,
+  (state, ownProps) => ownProps.mapStateToProps(state),
   dispatch => ({
     onBack: () => dispatch(cancelLogin())
-  }),
-  (stateProps, dispatchProps, ownProps) => {
-    return {
-      ...ownProps,
-      ...ownProps.mapStateToProps(stateProps),
-      ...dispatchProps
-    }
-  }
-)(PaperKey)
+  }))(PaperKey)

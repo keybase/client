@@ -67,7 +67,7 @@
 - (NSString *)debugInstallables {
   NSMutableString *info = [NSMutableString string];
   NSDictionary *installerInfo = NSBundle.mainBundle.infoDictionary;
-  [info appendString:NSStringWithFormat(@"%@: %@\n", installerInfo[@"CFBundleName"], installerInfo[@"CFBundleVersion"])];
+  [info appendString:NSStringWithFormat(@"Installer: %@\n", installerInfo[@"CFBundleVersion"])];
 
   for (KBInstallable *installable in self.installables) {
     NSString *name = installable.name;
@@ -87,21 +87,24 @@
   return info;
 }
 
+// Returns nil if config file isn't available
 - (NSDictionary *)appConfig:(NSError **)error {
   // TODO: We should detect if changed and reload
   if (!_appConfig) {
     NSData *data = [NSData dataWithContentsOfFile:[_config appPath:@"config.json" options:0]];
     if (!data) {
-      if (error) *error = KBMakeError(-1, @"No config file found");
+      return nil;
     }
-    _appConfig = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:nil];
+    _appConfig = [NSJSONSerialization JSONObjectWithData:data options:kNilOptions error:error];
   }
   return _appConfig;
 }
 
 - (id)configValueForKey:(NSString *)keyPath defaultValue:(id)defaultValue error:(NSError **)error {
   NSDictionary *appConfig = [self appConfig:error];
-  if (!appConfig) return nil;
+  if (!appConfig) {
+    return defaultValue;
+  }
   id obj = [appConfig valueForKeyPath:keyPath];
   if (!obj) {
     obj = defaultValue;

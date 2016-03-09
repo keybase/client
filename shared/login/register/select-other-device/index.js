@@ -10,9 +10,7 @@ class SelectOtherDevice extends Component<void, Props, void> {
 }
 
 export default connect(
-  state => ({devices: state.login.provisionDevices}),
+  state => ({}), // ({devices: state.login.provisionDevices}),
   dispatch => ({
-    onSelect: deviceID => console.log('TODO selectProvisionDevice: ', deviceID),
-    onWont: () => console.log('TODO wontChooseProvisionDevice'),
     onBack: () => { dispatch(cancelLogin()) }
   }))(SelectOtherDevice)

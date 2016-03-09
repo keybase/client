@@ -10,17 +10,7 @@ import * as native from './index.native'
 import type {AsyncAction} from '../../constants/types/flux'
 import type {config_getConfig_rpc, config_getExtendedStatus_rpc, config_getCurrentStatus_rpc} from '../../constants/types/flow-types'
 
-function switchTabs () : AsyncAction {
-  return (dispatch, getState) => {
-    const {config: {status}} = getState()
-    if (!status) {
-      console.error('Config switching tabs with null status')
-      return
-    }
-  }
-}
-
-export function getConfig (): AsyncAction {
+function getConfig (): AsyncAction {
   return (dispatch, getState) => {
     return new Promise((resolve, reject) => {
       const params : config_getConfig_rpc = {
@@ -34,7 +24,6 @@ export function getConfig (): AsyncAction {
           }
 
           dispatch({type: Constants.configLoaded, payload: {config}})
-          dispatch(switchTabs())
           resolve()
         }
       }
@@ -44,7 +33,7 @@ export function getConfig (): AsyncAction {
   }
 }
 
-export function getExtendedConfig (): AsyncAction {
+function getExtendedStatus (): AsyncAction {
   return dispatch => {
     return new Promise((resolve, reject) => {
       const params : config_getExtendedStatus_rpc = {
@@ -67,7 +56,28 @@ export function getExtendedConfig (): AsyncAction {
   }
 }
 
-export function getCurrentStatus (): AsyncAction {
+let bootstrapSetup = false
+export function bootstrap (): AsyncAction {
+  return dispatch => {
+    if (!bootstrapSetup) {
+      bootstrapSetup = true
+      console.log('Registered bootstrap')
+      engine.listenOnConnect('bootstrap', () => {
+        console.log('Bootstrapping')
+        dispatch(bootstrap())
+      })
+    } else {
+      Promise.all(
+        [dispatch(getCurrentStatus()), dispatch(getExtendedStatus()), dispatch(getConfig())]).then(() => {
+          dispatch(navBasedOnLoginState())
+        }).catch(error => {
+          console.error('Error bootstrapping: ', error)
+        })
+    }
+  }
+}
+
+function getCurrentStatus (): AsyncAction {
   return dispatch => {
     return new Promise((resolve, reject) => {
       const params : config_getCurrentStatus_rpc = {
@@ -84,8 +94,6 @@ export function getCurrentStatus (): AsyncAction {
             type: Constants.statusLoaded,
             payload: {status}
           })
-
-          dispatch(navBasedOnLoginState())
 
           resolve()
         }

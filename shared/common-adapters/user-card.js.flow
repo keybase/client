@@ -1,0 +1,14 @@
+/* @flow */
+
+import React, {Component} from 'react'
+
+export type Props = {
+  onAvatarClicked?: () => void,
+  style?: Object,
+  username?: ?string,
+  children?: Array<any>
+}
+
+declare export default class UserCard extends Component<void, Props, void> { }
+
+

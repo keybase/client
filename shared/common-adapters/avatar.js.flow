@@ -3,9 +3,10 @@
 import React, {Component} from 'react'
 
 export type Props = {
-  size: number,
+  size: 180 | 110 | 75 | 60 | 45,
   url: ?string,
-  style?: ?Object
+  style?: ?Object,
+  onClick?: ?(() => void)
 }
 
 declare export default class Avatar extends Component {

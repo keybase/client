@@ -158,6 +158,34 @@
     },
     {
       "type": "record",
+      "name": "KeybaseTime",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "unix"
+        },
+        {
+          "type": "int",
+          "name": "chain"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RevokedKey",
+      "fields": [
+        {
+          "type": "PublicKey",
+          "name": "key"
+        },
+        {
+          "type": "KeybaseTime",
+          "name": "time"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "User",
       "fields": [
         {
@@ -290,9 +318,13 @@
         {
           "type": {
             "type": "array",
-            "items": "PublicKey"
+            "items": "RevokedKey"
           },
-          "name": "keys"
+          "name": "revokedDeviceKeys"
+        },
+        {
+          "type": "int",
+          "name": "pgpKeyCount"
         },
         {
           "type": "UserVersionVector",

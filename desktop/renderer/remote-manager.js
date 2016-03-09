@@ -10,7 +10,6 @@ import {registerUpdateListener, onCancel as updateOnCancel, onSkip as updateOnSk
 import {onForce as updateOnForce, onPauseCancel as updateOnPauseCancel} from '../shared/actions/update'
 // $FlowIssue platform files
 import RemoteComponent from './remote-component'
-import flags from '../shared/util/feature-flags'
 
 import type {GUIEntryFeatures} from '../shared/constants/types/flow-types'
 import type {Action, Dispatch} from '../shared/constants/types/flux'
@@ -77,9 +76,7 @@ class RemoteManager extends Component {
 
   trackerRemoteComponents () {
     const {trackers} = this.props
-    const windowsOpts = flags.tracker2
-      ? {height: 470, width: 320}
-      : {height: 339, width: 520}
+    const windowsOpts = {height: 470, width: 320}
     return Object.keys(trackers).filter(username => !trackers[username].closed).map(username => (
       <RemoteComponent
         windowsOpts={windowsOpts}
@@ -104,9 +101,7 @@ class RemoteManager extends Component {
       const sid = parseInt(pSessionID, 10)
       const onCancel = () => this.props.pinentryOnCancel(sid)
       const onSubmit = this.props.pinentryOnSubmit.bind(null, sid)
-      const windowsOpts = flags.dz2
-        ? {width: 500, height: 260}
-        : {width: 513, height: 260}
+      const windowsOpts = {width: 500, height: 260}
       return (
         <RemoteComponent
           title='Pinentry'
@@ -130,7 +125,7 @@ class RemoteManager extends Component {
 
     let updateType = 'confirm'
     let onRemoteClose = () => this.props.updateOnCancel()
-    let windowOpts = {width: 480, height: 430}
+    let windowOpts = {width: 480, height: 440}
     let options = {
       onCancel: () => this.props.updateOnCancel(),
       onSkip: () => this.props.updateOnSkip(),
@@ -159,7 +154,7 @@ class RemoteManager extends Component {
 
     let updateType = 'paused'
     let onRemoteClose = () => this.props.updateOnPauseCancel()
-    let windowOpts = {width: 500, height: 309}
+    let windowOpts = {width: 500, height: 345}
     let options = {
       onCancel: () => this.props.updateOnPauseCancel(),
       onForce: () => this.props.updateOnForce()

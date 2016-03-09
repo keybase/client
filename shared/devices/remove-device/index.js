@@ -29,19 +29,9 @@ RemoveDevice.propTypes = {
 
 export default connect(
   null,
-  dispatch => {
+  (dispatch, ownProps) => {
     return {
       navigateUp: () => dispatch(navigateUp()),
-      removeDevice: deviceID => dispatch(removeDevice(deviceID))
+      removeDevice: () => dispatch(removeDevice(ownProps.device.deviceID))
     }
-  },
-  (stateProps, dispatchProps, ownProps) => {
-    return {
-      ...ownProps,
-      ...stateProps,
-      ...dispatchProps,
-      removeDevice: () => dispatchProps.removeDevice(ownProps.device.deviceID)
-    }
-  }
-
-)(RemoveDevice)
+  })(RemoveDevice)

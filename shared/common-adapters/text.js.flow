@@ -9,7 +9,7 @@ export type Props = {
           | 'Error'
           | 'Terminal'
           | 'TerminalUsername' | 'TerminalPublic' | 'TerminalPrivate'
-          | 'TerminalCommand' | 'TerminalComment' | 'TerminalEmpty',
+          | 'TerminalCommand' | 'TerminalComment' | 'TerminalEmpty' | 'TerminalSmall',
   backgroundMode?: Background,
   inline?: boolean,
   link?: boolean,
@@ -18,7 +18,6 @@ export type Props = {
   onClick?: () => void,
   lineClamp?: number,
   style?: Object,
-  dz2?: boolean, // Use DZ2 styling?
   children?: React$Element,
   className?: string
 }

@@ -16,7 +16,7 @@ build="$current_date+$commit_short"
 keybase_build=${KEYBASE_BUILD:-$build}
 tags=${TAGS:-"prerelease production"}
 platform=${PLATFORM:-`uname`}
-ldflags="-X github.com/keybase/client/go/libkb.CustomBuild=$keybase_build"
+ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$keybase_build"
 
 if [ "$platform" = "Darwin" ]; then
   # To get codesign to work you have to use -ldflags "-s ...", see https://github.com/golang/go/issues/11887

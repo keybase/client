@@ -12,18 +12,18 @@ class Render extends Component<void, Props, void> {
         style={styles.container}
         onBack={() => this.props.onBack()}>
         <RowCSS />
-        <Text dz2 type='Header' style={styles.header}>Let's sign your installation of keybase with GPG</Text>
-        <Text dz2 type='Body' style={styles.subHeader}>Allow Keybase to run PGP commands?</Text>
+        <Text type='Header' style={styles.header}>Let's sign your installation of keybase with GPG</Text>
+        <Text type='Body' style={styles.subHeader}>Allow Keybase to run PGP commands?</Text>
         <Row
           onClick={() => this.props.onSubmit(true)}
           icon='GPG-export'
           title='Export your secret key from GPG'>
           <p>
-            <Text dz2 type='BodySmall'>This copies your PGP pair into Keybase's local encrypted keyring. Later, you can </Text>
-            <Text dz2 type='Terminal' inline>keybase pgp sign</Text>
-            <Text dz2 type='BodySmall'> and </Text>
-            <Text dz2 type='Terminal' inline>keybase pgp decrypt</Text>
-            <Text dz2 type='BodySmall'> messages and files.</Text>
+            <Text type='BodySmall'>This copies your PGP pair into Keybase's local encrypted keyring. Later, you can </Text>
+            <Text type='Terminal' inline>keybase pgp sign</Text>
+            <Text type='BodySmall'> and </Text>
+            <Text type='Terminal' inline>keybase pgp decrypt</Text>
+            <Text type='BodySmall'> messages and files.</Text>
           </p>
         </Row>
         <Row
@@ -31,9 +31,9 @@ class Render extends Component<void, Props, void> {
           icon='terminal'
           title='One-time shell to GPG'>
           <p>
-            <Text dz2 type='BodySmall'>Keybase can ask GPG to sign this install. You won't be able to use </Text>
-            <Text dz2 type='Terminal' inline>keybase pgp</Text>
-            <Text dz2 type='BodySmall'> commands on this computer.</Text>
+            <Text type='BodySmall'>Keybase can ask GPG to sign this install. You won't be able to use </Text>
+            <Text type='Terminal' inline>keybase pgp</Text>
+            <Text type='BodySmall'> commands on this computer.</Text>
           </p>
         </Row>
       </Container>
