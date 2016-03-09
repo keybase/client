@@ -64,7 +64,17 @@ if [ $? -eq 0 ]; then
     set -e
     echo "Launching new container"
     docker run -d -p $KBWEB_PORT:$KBWEB_PORT -p $QUOTA_PORT:$QUOTA_PORT -d --name=$KBWEB_CONTAINER_NAME $KBWEB_IMAGE_NAME
-    check_server 1 $TIMEOUT
+    t=0
+    while ! curl -s -o /dev/null "http://localhost:$KBWEB_PORT"
+    do
+        if [ "$t" -gt "$TIMEOUT" ]; then
+            echo "Timed out waiting for kbweb to start"
+            docker-compose down
+            exit 2
+        fi
+        sleep 1
+        ((t++))
+    done
     exit 0
 fi
 
