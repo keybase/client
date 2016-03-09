@@ -36,6 +36,7 @@ const connectionStatusDisconnected keybase1.FSStatusCode = keybase1.FSStatusCode
 var noErrorNames = map[string]bool{
 	"objects":        true, // git shells
 	"gemfile":        true, // rvm
+	"Gemfile":        true, // rvm
 	"devfs":          true, // lsof?  KBFS-823
 	"_mtn":           true, // emacs on Linux
 	"docker-machine": true, // docker shell stuff
