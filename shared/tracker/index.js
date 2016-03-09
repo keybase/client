@@ -169,7 +169,7 @@ export function remoteComponentActions (dispatch: Dispatch) : RemoteActions {
     onClose,
     startTimer,
     stopTimer
-  })
+  }, dispatch)
 }
 
 export function remoteComponentProps (username: string, store: Object, remoteActions: RemoteActions): Object {
