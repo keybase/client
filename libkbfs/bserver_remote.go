@@ -2,13 +2,11 @@ package libkbfs
 
 import (
 	"encoding/hex"
-	"strconv"
 	"time"
-
-	"github.com/keybase/go-framed-msgpack-rpc"
 
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
 )
 
@@ -128,9 +126,9 @@ func (b *BlockServerRemote) OnDoCommandError(err error, wait time.Duration) {
 }
 
 // OnDisconnected implements the ConnectionHandler interface.
-func (b *BlockServerRemote) OnDisconnected(_ context.Context, status DisconnectStatus) {
+func (b *BlockServerRemote) OnDisconnected(ctx context.Context, status DisconnectStatus) {
 	if status == StartingNonFirstConnection {
-		b.log.Warning("disconnected")
+		b.log.CWarningf(ctx, "disconnected")
 	}
 	if b.authToken != nil {
 		b.authToken.Shutdown()
@@ -152,8 +150,13 @@ func (b *BlockServerRemote) Get(ctx context.Context, id BlockID, tlfID TlfID,
 	var err error
 	size := -1
 	defer func() {
-		b.log.CDebugf(ctx, "Get id=%s uid=%s sz=%d err=%v",
-			id, context.GetWriter(), size, err)
+		if err != nil {
+			b.log.CWarningf(ctx, "Get id=%s uid=%s sz=%d err=%v",
+				id, context.GetWriter(), size, err)
+		} else {
+			b.log.CDebugf(ctx, "Get id=%s uid=%s sz=%d",
+				id, context.GetWriter(), size)
+		}
 	}()
 
 	arg := keybase1.GetBlockArg{
@@ -187,8 +190,13 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	var err error
 	size := len(buf)
 	defer func() {
-		b.log.CDebugf(ctx, "Put id=%s uid=%s sz=%d err=%v",
-			id, context.GetWriter(), size, err)
+		if err != nil {
+			b.log.CWarningf(ctx, "Put id=%s uid=%s sz=%d err=%v",
+				id, context.GetWriter(), size, err)
+		} else {
+			b.log.CDebugf(ctx, "Put id=%s uid=%s sz=%d",
+				id, context.GetWriter(), size)
+		}
 	}()
 
 	arg := keybase1.PutBlockArg{
@@ -210,8 +218,13 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 	tlfID TlfID, context BlockContext) error {
 	var err error
 	defer func() {
-		b.log.CDebugf(ctx, "AddBlockReference id=%s uid=%s err=%v",
-			id, context.GetWriter(), err)
+		if err != nil {
+			b.log.CWarningf(ctx, "AddBlockReference id=%s uid=%s err=%v",
+				id, context.GetWriter(), err)
+		} else {
+			b.log.CDebugf(ctx, "AddBlockReference id=%s uid=%s",
+				id, context.GetWriter())
+		}
 	}()
 
 	ref := keybase1.BlockReference{
@@ -235,7 +248,11 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 func (b *BlockServerRemote) RemoveBlockReference(ctx context.Context,
 	tlfID TlfID, contexts map[BlockID][]BlockContext) (liveCounts map[BlockID]int, err error) {
 	defer func() {
-		b.log.CDebugf(ctx, "RemoveBlockReference err=%v", err)
+		if err != nil {
+			b.log.CWarningf(ctx, "RemoveBlockReference batch size=%d err=%v", len(contexts), err)
+		} else {
+			b.log.CDebugf(ctx, "RemoveBlockReference batch size=%d", len(contexts))
+		}
 	}()
 	doneRefs, err := b.batchDowngradeReferences(ctx, tlfID, contexts, false)
 	liveCounts = make(map[BlockID]int)
@@ -255,7 +272,11 @@ func (b *BlockServerRemote) RemoveBlockReference(ctx context.Context,
 func (b *BlockServerRemote) ArchiveBlockReferences(ctx context.Context,
 	tlfID TlfID, contexts map[BlockID][]BlockContext) (err error) {
 	defer func() {
-		b.log.CDebugf(ctx, "ArchiveBlockReferences err=%v", err)
+		if err != nil {
+			b.log.CWarningf(ctx, "ArchiveBlockReferences batch size=%d err=%v", len(contexts), err)
+		} else {
+			b.log.CDebugf(ctx, "ArchiveBlockReferences batch size=%d", len(contexts))
+		}
 	}()
 	_, err = b.batchDowngradeReferences(ctx, tlfID, contexts, true)
 	return err
@@ -283,12 +304,14 @@ func (b *BlockServerRemote) batchDowngradeReferences(ctx context.Context,
 			})
 		}
 		tries++
-		b.log.CDebugf(ctx, "batchDowngradeReferences archive %t (tries %d) sent=%s done=%s\n",
-			archive, tries, b.getDebugStrRefs(notDone), b.getDebugStrRefCounts(res.Completed))
 		if err != nil {
-			b.log.CDebugf(ctx, "batchDowngradeReferences archive %t (tries %d) sent=%s done=%s failedRef=<%s,%s> err=%v\n",
-				archive, tries, b.getDebugStrRefs(notDone), b.getDebugStrRefCounts(res.Completed),
-				res.Failed.Bid.BlockHash, hex.EncodeToString(res.Failed.Nonce[:]), err)
+			b.log.CWarningf(ctx, "batchDowngradeReferences archive %t (tries %d) sent=%s done=%s failedRef=%s err=%v",
+				archive, tries, notDone, res.Completed, res.Failed, err)
+		} else {
+			b.log.CDebugf(ctx, "batchDowngradeReferences archive %t (tries %d) sent=%s all succeeded",
+				archive, tries, notDone)
+		}
+		if err != nil {
 			//if Failed reference is not a throttle error, do not retry it
 			_, tmpErr := err.(BServerErrorThrottle)
 			if !tmpErr {
@@ -358,24 +381,6 @@ func (b *BlockServerRemote) getNotDone(all map[BlockID][]BlockContext, doneRefs 
 		}
 	}
 	return notDone
-}
-
-// getDebugStrRefs returns a string concatenating the list of block references
-func (b *BlockServerRemote) getDebugStrRefs(refs []keybase1.BlockReference) (
-	debugStr string) {
-	for _, ref := range refs {
-		debugStr += ref.Bid.BlockHash + ":" + hex.EncodeToString(ref.Nonce[:]) + " "
-	}
-	return debugStr
-}
-
-// getDebugStrRefCounts returns a string concatenating the list of block reference with counts
-func (b *BlockServerRemote) getDebugStrRefCounts(refs []keybase1.BlockReferenceCount) (
-	debugStr string) {
-	for _, ref := range refs {
-		debugStr += ref.Ref.Bid.BlockHash + ":" + hex.EncodeToString(ref.Ref.Nonce[:]) + ":" + strconv.Itoa(ref.LiveCount) + " "
-	}
-	return debugStr
 }
 
 // GetUserQuotaInfo implements the BlockServer interface for BlockServerRemote
