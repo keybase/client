@@ -40,7 +40,7 @@ ldflags=""
 if [ "$mode" != "production" ] ; then
   # The non-production build number is everything in the version after the hyphen.
   build_number="$(echo -n "$version" | sed 's/.*-//')"
-  ldflags="-X github.com/keybase/client/go/libkb.CustomBuild=$build_number"
+  ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$build_number"
 fi
 echo "-ldflags '$ldflags'"
 
