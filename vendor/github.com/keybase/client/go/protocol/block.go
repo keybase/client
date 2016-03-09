@@ -64,12 +64,12 @@ type ArchiveReferenceArg struct {
 	Refs   []BlockReference `codec:"refs" json:"refs"`
 }
 
-type ArchiveReferenceWithCountArg struct {
+type DelReferenceWithCountArg struct {
 	Folder string           `codec:"folder" json:"folder"`
 	Refs   []BlockReference `codec:"refs" json:"refs"`
 }
 
-type DelReferenceWithCountArg struct {
+type ArchiveReferenceWithCountArg struct {
 	Folder string           `codec:"folder" json:"folder"`
 	Refs   []BlockReference `codec:"refs" json:"refs"`
 }
@@ -85,8 +85,8 @@ type BlockInterface interface {
 	AddReference(context.Context, AddReferenceArg) error
 	DelReference(context.Context, DelReferenceArg) error
 	ArchiveReference(context.Context, ArchiveReferenceArg) ([]BlockReference, error)
-	ArchiveReferenceWithCount(context.Context, ArchiveReferenceWithCountArg) (DowngradeReferenceRes, error)
 	DelReferenceWithCount(context.Context, DelReferenceWithCountArg) (DowngradeReferenceRes, error)
+	ArchiveReferenceWithCount(context.Context, ArchiveReferenceWithCountArg) (DowngradeReferenceRes, error)
 	GetUserQuotaInfo(context.Context) ([]byte, error)
 }
 
@@ -201,22 +201,6 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"archiveReferenceWithCount": {
-				MakeArg: func() interface{} {
-					ret := make([]ArchiveReferenceWithCountArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]ArchiveReferenceWithCountArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]ArchiveReferenceWithCountArg)(nil), args)
-						return
-					}
-					ret, err = i.ArchiveReferenceWithCount(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
 			"delReferenceWithCount": {
 				MakeArg: func() interface{} {
 					ret := make([]DelReferenceWithCountArg, 1)
@@ -229,6 +213,22 @@ func BlockProtocol(i BlockInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.DelReferenceWithCount(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"archiveReferenceWithCount": {
+				MakeArg: func() interface{} {
+					ret := make([]ArchiveReferenceWithCountArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ArchiveReferenceWithCountArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ArchiveReferenceWithCountArg)(nil), args)
+						return
+					}
+					ret, err = i.ArchiveReferenceWithCount(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -288,13 +288,13 @@ func (c BlockClient) ArchiveReference(ctx context.Context, __arg ArchiveReferenc
 	return
 }
 
-func (c BlockClient) ArchiveReferenceWithCount(ctx context.Context, __arg ArchiveReferenceWithCountArg) (res DowngradeReferenceRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.block.archiveReferenceWithCount", []interface{}{__arg}, &res)
+func (c BlockClient) DelReferenceWithCount(ctx context.Context, __arg DelReferenceWithCountArg) (res DowngradeReferenceRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.block.delReferenceWithCount", []interface{}{__arg}, &res)
 	return
 }
 
-func (c BlockClient) DelReferenceWithCount(ctx context.Context, __arg DelReferenceWithCountArg) (res DowngradeReferenceRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.block.delReferenceWithCount", []interface{}{__arg}, &res)
+func (c BlockClient) ArchiveReferenceWithCount(ctx context.Context, __arg ArchiveReferenceWithCountArg) (res DowngradeReferenceRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.block.archiveReferenceWithCount", []interface{}{__arg}, &res)
 	return
 }
 
