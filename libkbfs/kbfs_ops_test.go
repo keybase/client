@@ -166,9 +166,9 @@ func TestKBFSOpsGetFavoritesSuccess(t *testing.T) {
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	// expect one call to fetch favorites
-	_, handle1, _ := newDir(t, config, 1, true, false)
+	_, handle1, _ := newDir(t, config, 1, false, false)
 	_, handle2, _ := newDir(t, config, 2, true, true)
-	_, handle3, _ := newDir(t, config, 2, true, true) // dup for testing
+	_, handle3, _ := newDir(t, config, 3, true, true) // dup for testing
 	handles := []*TlfHandle{handle1, handle2, handle3}
 	var folders []keybase1.Folder
 	for _, h := range handles {
@@ -176,6 +176,11 @@ func TestKBFSOpsGetFavoritesSuccess(t *testing.T) {
 	}
 
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(folders, nil)
+
+	// The favorites list contains our own public dir by default, even
+	// if KBPKI doesn't return it.
+	_, handle4, _ := newDir(t, config, 4, false, true)
+	handles = append(handles, handle4)
 
 	handles2, err := config.KBFSOps().GetFavorites(ctx)
 	if err != nil {

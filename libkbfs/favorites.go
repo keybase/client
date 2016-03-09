@@ -64,6 +64,12 @@ func (f *Favorites) handleReq(req favReq) {
 		for _, folder := range folders {
 			f.cache[*NewFavoriteFromFolder(folder)] = true
 		}
+		username, _, err := f.config.KBPKI().GetCurrentUserInfo(req.ctx)
+		if err == nil {
+			// Add favorites for the current user, that cannot be deleted.
+			f.cache[Favorite{string(username), true}] = true
+			f.cache[Favorite{string(username), false}] = true
+		}
 	}
 
 	for _, fav := range req.toAdd {

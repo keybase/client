@@ -301,7 +301,7 @@ func TestReaddirRoot(t *testing.T) {
 }
 
 func TestReaddirPrivate(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "janedoe")
 	defer libkbfs.CheckConfigAndShutdown(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
@@ -312,22 +312,23 @@ func TestReaddirPrivate(t *testing.T) {
 		// as favorites. Don't go through VFS to avoid caching causing
 		// false positives.
 		if _, _, err := config.KBFSOps().GetOrCreateRootNode(
-			context.Background(), "jdoe", false, libkbfs.MasterBranch); err != nil {
+			context.Background(), "janedoe,jdoe", false, libkbfs.MasterBranch); err != nil {
 			t.Fatalf("cannot set up a favorite: %v", err)
 		}
 		if _, _, err := config.KBFSOps().GetOrCreateRootNode(
-			context.Background(), "jdoe", true, libkbfs.MasterBranch); err != nil {
+			context.Background(), "janedoe,jdoe", true, libkbfs.MasterBranch); err != nil {
 			t.Fatalf("cannot set up a favorite: %v", err)
 		}
 	}
 
 	checkDir(t, path.Join(mnt.Dir, PrivateName), map[string]fileInfoCheck{
-		"jdoe": mustBeDir,
+		"janedoe,jdoe": mustBeDir,
+		"jdoe":         mustBeDir, // default home directory
 	})
 }
 
 func TestReaddirPrivateDeleteFavorite(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "janedoe")
 	defer libkbfs.CheckConfigAndShutdown(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
@@ -338,25 +339,27 @@ func TestReaddirPrivateDeleteFavorite(t *testing.T) {
 		// as favorites. Don't go through VFS to avoid caching causing
 		// false positives.
 		if _, _, err := config.KBFSOps().GetOrCreateRootNode(
-			context.Background(), "jdoe", false, libkbfs.MasterBranch); err != nil {
+			context.Background(), "janedoe,jdoe", false, libkbfs.MasterBranch); err != nil {
 			t.Fatalf("cannot set up a favorite: %v", err)
 		}
 		if _, _, err := config.KBFSOps().GetOrCreateRootNode(
-			context.Background(), "jdoe", true, libkbfs.MasterBranch); err != nil {
+			context.Background(), "janedoe,jdoe", true, libkbfs.MasterBranch); err != nil {
 			t.Fatalf("cannot set up a favorite: %v", err)
 		}
 	}
 
-	err := os.Remove(path.Join(mnt.Dir, PrivateName, "jdoe"))
+	err := os.Remove(path.Join(mnt.Dir, PrivateName, "janedoe,jdoe"))
 	if err != nil {
 		t.Fatalf("Removing favorite failed: %v", err)
 	}
 
-	checkDir(t, path.Join(mnt.Dir, PrivateName), map[string]fileInfoCheck{})
+	checkDir(t, path.Join(mnt.Dir, PrivateName), map[string]fileInfoCheck{
+		"jdoe": mustBeDir, // default home directory
+	})
 }
 
 func TestReaddirPublic(t *testing.T) {
-	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "janedoe")
 	defer libkbfs.CheckConfigAndShutdown(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
 	defer mnt.Close()
@@ -367,17 +370,18 @@ func TestReaddirPublic(t *testing.T) {
 		// as favorites. Don't go through VFS to avoid caching causing
 		// false positives.
 		if _, _, err := config.KBFSOps().GetOrCreateRootNode(
-			context.Background(), "jdoe", false, libkbfs.MasterBranch); err != nil {
+			context.Background(), "janedoe,jdoe", false, libkbfs.MasterBranch); err != nil {
 			t.Fatalf("cannot set up a favorite: %v", err)
 		}
 		if _, _, err := config.KBFSOps().GetOrCreateRootNode(
-			context.Background(), "jdoe", true, libkbfs.MasterBranch); err != nil {
+			context.Background(), "janedoe,jdoe", true, libkbfs.MasterBranch); err != nil {
 			t.Fatalf("cannot set up a favorite: %v", err)
 		}
 	}
 
 	checkDir(t, path.Join(mnt.Dir, PublicName), map[string]fileInfoCheck{
-		"jdoe": mustBeDir,
+		"janedoe,jdoe": mustBeDir,
+		"jdoe":         mustBeDir, // default personal public directory
 	})
 }
 
