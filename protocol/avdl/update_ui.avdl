@@ -39,10 +39,10 @@ protocol updateUi {
   UpdateAppInUseRes updateAppInUse(int sessionID, Update update, array<Process> processes);
 
   record UpdateQuitRes {
-    boolean quit; // Whether we can quit
+    boolean quit; // Whether we app should be killed
     int pid;
     string applicationPath; // So the updater can restart
   }
 
-  UpdateQuitRes updateQuit();
+  UpdateQuitRes updateQuit(int sessionID, Update update, Status status);
 }

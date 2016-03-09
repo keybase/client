@@ -361,7 +361,7 @@ func (u *Updater) checkUpdate(sourcePath string, destinationPath string) error {
 	return u.checkPlatformSpecificUpdate(sourcePath, destinationPath)
 }
 
-func (u *Updater) apply(src string, dest string) (err error) {
+func (u *Updater) applyFile(src string, dest string) (err error) {
 	if _, sterr := os.Stat(dest); sterr == nil {
 		u.log.Info("Removing %s", dest)
 		err = os.RemoveAll(dest)
@@ -436,17 +436,13 @@ func (u *Updater) update(ctx Context, force bool, requested bool) (update *keyba
 		return
 	}
 
-	err = u.verifySignature(ctx, *update)
-	if err != nil {
+	applyError := u.apply(ctx, *update)
+
+	updateQuitResponse, err := u.checkRestart(ctx, *update, statusFromError(applyError))
+	if applyError != nil {
+		err = applyError
 		return
 	}
-
-	err = u.applyUpdate(update.Asset.LocalPath)
-	if err != nil {
-		return
-	}
-
-	updateQuitResponse, err := u.checkRestart(ctx)
 	if err != nil {
 		return
 	}
@@ -462,6 +458,16 @@ func (u *Updater) update(ctx Context, force bool, requested bool) (update *keyba
 		u.cleanup([]string{unzipDestination(update.Asset.LocalPath), update.Asset.LocalPath})
 	}
 
+	return
+}
+
+func (u *Updater) apply(ctx Context, update keybase1.Update) (err error) {
+	err = u.verifySignature(ctx, update)
+	if err != nil {
+		return
+	}
+
+	err = u.applyUpdate(update.Asset.LocalPath)
 	return
 }
 
@@ -541,7 +547,7 @@ func (u *Updater) applyZip(localPath string, destinationPath string) (err error)
 		return
 	}
 
-	err = u.apply(sourcePath, destinationPath)
+	err = u.applyFile(sourcePath, destinationPath)
 	return
 }
 
@@ -619,19 +625,22 @@ func (u *Updater) checkInUse(ctx Context, update keybase1.Update) error {
 	return nil
 }
 
-func (u *Updater) checkRestart(ctx Context) (updateQuitResponse keybase1.UpdateQuitRes, err error) {
+func (u *Updater) checkRestart(ctx Context, update keybase1.Update, status keybase1.Status) (updateQuitResponse keybase1.UpdateQuitRes, err error) {
 	if ctx == nil {
 		err = libkb.NoUIError{Which: "Update"}
 		return
 	}
 
-	u.log.Info("Restarting app")
 	u.log.Debug("Asking if it safe to quit the app")
 	updateUI, err := u.updateUI(ctx)
 	if err != nil {
 		return
 	}
-	updateQuitResponse, err = updateUI.UpdateQuit(context.TODO())
+	arg := keybase1.UpdateQuitArg{
+		Update: update,
+		Status: status,
+	}
+	updateQuitResponse, err = updateUI.UpdateQuit(context.TODO(), arg)
 	return
 }
 
@@ -741,6 +750,20 @@ func (u *Updater) waitForUI(ctx Context, wait time.Duration) (updateUI libkb.Upd
 		i++
 	}
 	return nil, fmt.Errorf("No UI available for updater")
+}
+
+func statusFromError(err error) keybase1.Status {
+	if err == nil {
+		return keybase1.StatusOK("")
+	}
+
+	switch err.(type) {
+	case libkb.CanceledError:
+		// Canceled errors aren't really errors
+		return keybase1.StatusOK(err.Error())
+	default:
+		return keybase1.FromError(err).Status()
+	}
 }
 
 // CleanupFix remove updater backup dir, fixes https://keybase.atlassian.net/browse/DESKTOP-526

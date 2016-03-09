@@ -117,16 +117,26 @@ function updateListenersCreator (dispatch: Dispatch, getState: () => {config: Co
       }: ShowUpdatePausedAction))
     },
 
-    'keybase.1.updateUi.updateQuit': (param, response) => {
-      console.log('Update (quit/restart) prompt')
-      const appPath = remote.app.getAppPath()
+    'keybase.1.updateUi.updateQuit': (payload, response) => {
+      console.log('Update (quit/restart)')
 
-      // This returns the app bundle path on OS X in production mode.
-      // TODO: Find a better, cross-platform way of resolving the real app path.
-      const applicationPath = path.resolve(appPath, '..', '..', '..')
+      const {code, desc} = payload.status
+      const errored = (code > 0)
       var quit = false
-      if (path.basename(applicationPath) === 'Keybase.app') {
-        quit = true
+      var applicationPath = ''
+      if (errored) {
+        remote.dialog.showErrorBox('Keybase Update Error', `There was an error trying to update; ${desc} (${code})`)
+      }
+
+      if (!errored) {
+        const appPath = remote.app.getAppPath()
+
+        // This returns the app bundle path on OS X in production mode.
+        // TODO: Find a better, cross-platform way of resolving the real app path.
+        applicationPath = path.resolve(appPath, '..', '..', '..')
+        if (path.basename(applicationPath) === 'Keybase.app') {
+          quit = true
+        }
       }
 
       response.result({

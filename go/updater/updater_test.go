@@ -35,7 +35,7 @@ func (u testUpdateUI) UpdatePrompt(_ context.Context, _ keybase1.UpdatePromptArg
 	return keybase1.UpdatePromptRes{Action: keybase1.UpdateAction_UPDATE}, nil
 }
 
-func (u testUpdateUI) UpdateQuit(_ context.Context) (keybase1.UpdateQuitRes, error) {
+func (u testUpdateUI) UpdateQuit(_ context.Context, _ keybase1.UpdateQuitArg) (keybase1.UpdateQuitRes, error) {
 	return keybase1.UpdateQuitRes{Quit: false}, nil
 }
 

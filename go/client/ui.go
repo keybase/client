@@ -676,7 +676,7 @@ func (u UpdateUI) UpdateAppInUse(ctx context.Context, arg keybase1.UpdateAppInUs
 	return
 }
 
-func (u UpdateUI) UpdateQuit(_ context.Context) (res keybase1.UpdateQuitRes, err error) {
+func (u UpdateUI) UpdateQuit(_ context.Context, _ keybase1.UpdateQuitArg) (res keybase1.UpdateQuitRes, err error) {
 	return keybase1.UpdateQuitRes{Quit: false}, nil
 }
 
