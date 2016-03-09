@@ -2,10 +2,16 @@
 :: $1 is full path to keybase.exe
 :: todo: specify output?
 ::
+:: For Jenkins:
+if DEFINED WORKSPACE set GOPATH=%WORKSPACE%
+set GOARCH=386
+::
 :: get the target build folder. Assume winresource.exe has been built.
 :: If not, go there and do "go generate"
 set Folder=%GOPATH%\src\github.com\keybase\client\go\keybase\
 set PathName=%Folder%keybase.exe
+
+pushd %GOPATH%\src\github.com\keybase\client\packaging\windows
 
 :: Capture the windows style version - this is the only way to store it in a .cmd variable
 for /f %%i in ('%Folder%winresource.exe -w') do set BUILDVER=%%i
@@ -25,6 +31,11 @@ echo %SEMVER%
 ::IF %ERRORLEVEL% NEQ 0 (
 ::  EXIT /B 1
 ::)
+
+SignTool.exe sign /a /tr http://timestamp.digicert.com %PathName%
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
 
 "%ProgramFiles(x86)%\Inno Setup 5\iscc.exe" /DMyExePathName=%PathName% /DMyAppVersion=%BUILDVER% /DMySemVersion=%SEMVER% "/sSignCommand=signtool.exe sign /tr http://timestamp.digicert.com $f" %GOPATH%\src\github.com\keybase\client\packaging\windows\setup_windows.iss
 
