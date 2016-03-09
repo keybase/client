@@ -44,32 +44,34 @@ export default class LoginRender extends Component<void, Props, State> {
     }
 
     const checkboxProps = [
-      {label: 'Save in Keychain', checked: this.state.saveInKeychain, onCheck: check => { this.setState({saveInKeychain: check}) }},
+      {label: 'Save in Keychain', checked: this.state.saveInKeychain, onCheck: check => { this.setState({saveInKeychain: check}) }, style: {marginRight: 13}},
       {label: 'Show Typing', checked: this.state.showTyping, onCheck: check => { this.setState({showTyping: check}) }}
     ]
 
     return (
       <div style={styles.container}>
-        <UserCard username={this.state.selectedUser}>
+        <UserCard username={this.state.selectedUser} style={styles.card}>
           <Dropdown
             type='Username'
+            style={{marginTop: 50}}
             value={this.state.selectedUser}
             onClick={selectedUser => this.setState({selectedUser})}
             options={this.props.users} />
           <FormWithCheckbox
             style={{alignSelf: 'stretch'}}
             inputProps={inputProps}
-            checkboxContainerStyle={{paddingLeft: 60, paddingRight: 60}}
+            checkboxContainerStyle={{paddingLeft: 50, paddingRight: 50}}
             checkboxesProps={checkboxProps}
           />
           <Button
+            style={{marginTop: 0}}
             fullWidth
             type='Primary'
             label='Log in'
             onClick={() => this.onSubmit()} />
-          <Text link type='Body'>Forgot passphrase?</Text>
+          <Text link type='BodySecondaryLink' style={{marginTop: 24}}>Forgot passphrase?</Text>
         </UserCard>
-        <Text style={{marginTop: 28}} link type='Body' onClick={this.props.onSignup}>Create an account</Text>
+        <Text style={{marginTop: 30}} type='BodyPrimaryLink' onClick={this.props.onSignup}>Create an account</Text>
       </div>
     )
   }
@@ -90,5 +92,10 @@ const styles = {
     alignItems: 'center',
     flex: 1,
     backgroundColor: globalColors.black10
+  },
+  card: {
+    marginTop: 115,
+    paddingLeft: 30,
+    paddingRight: 30
   }
 }
