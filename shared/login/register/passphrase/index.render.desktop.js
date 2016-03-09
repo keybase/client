@@ -44,7 +44,7 @@ class Render extends Component<void, Props, State> {
           type='Primary'
           onClick={() => this.onSubmit()}
           enabled={this.state.passphrase}/>
-        <Text style={styles.forgot} dz2 type='BodySecondaryLink' onClick={this.props.onForgotPassphrase}>Forgot passphrase?</Text>
+        <Text style={styles.forgot} type='BodySecondaryLink' onClick={this.props.onForgotPassphrase}>Forgot passphrase?</Text>
       </Container>
     )
   }
