@@ -73,8 +73,8 @@ func (c *CryptoClient) OnDisconnected(_ context.Context, status DisconnectStatus
 	}
 }
 
-// ShouldThrottle implements the ConnectionHandler interface.
-func (c *CryptoClient) ShouldThrottle(err error) bool {
+// ShouldRetry implements the ConnectionHandler interface.
+func (c *CryptoClient) ShouldRetry(rpcName string, err error) bool {
 	return false
 }
 

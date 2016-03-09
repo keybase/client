@@ -135,9 +135,15 @@ func (b *BlockServerRemote) OnDisconnected(ctx context.Context, status Disconnec
 	}
 }
 
-// ShouldThrottle implements the ConnectionHandler interface.
-func (b *BlockServerRemote) ShouldThrottle(err error) bool {
-	if err == nil {
+// ShouldRetry implements the ConnectionHandler interface.
+func (b *BlockServerRemote) ShouldRetry(rpcName string, err error) bool {
+	//do not retry batch rpcs automatically
+	switch rpcName {
+	case "keybase.1.block.delReferenceWithCount":
+		return false
+	case "keybase.1.block.archiveReferenceWithCount":
+		return false
+	case "keybase.1.block.archiveReference":
 		return false
 	}
 	_, shouldThrottle := err.(BServerErrorThrottle)

@@ -49,11 +49,11 @@ type ConnectionHandler interface {
 	// is disconnected.
 	OnDisconnected(ctx context.Context, status DisconnectStatus)
 
-	// ShouldThrottle is called whenever an error is returned by
+	// ShouldRetry is called whenever an error is returned by
 	// an RPC function passed to Connection.DoCommand(), and
 	// should return whether or not that error signifies that that
-	// RPC is throttled.
-	ShouldThrottle(error) bool
+	// RPC should retried (with backoff)
+	ShouldRetry(name string, err error) bool
 }
 
 // ConnectionTransportTLS is a ConnectionTransport implementation that uses TLS+rpc.
@@ -271,7 +271,7 @@ func (c *Connection) connect(ctx context.Context) error {
 }
 
 // DoCommand executes the specific rpc command wrapped in rpcFunc.
-func (c *Connection) DoCommand(ctx context.Context, rpcFunc func(rpc.GenericClient) error) error {
+func (c *Connection) DoCommand(ctx context.Context, name string, rpcFunc func(rpc.GenericClient) error) error {
 	for {
 		// we may or may not be in the process of reconnecting.
 		// if so we'll block here unless canceled by the caller.
@@ -295,7 +295,7 @@ func (c *Connection) DoCommand(ctx context.Context, rpcFunc func(rpc.GenericClie
 			throttleErr := runUnlessCanceled(ctx, func() error {
 				return rpcFunc(rawClient)
 			})
-			if c.handler.ShouldThrottle(throttleErr) {
+			if throttleErr != nil && c.handler.ShouldRetry(name, throttleErr) {
 				return throttleErr
 			}
 			rpcErr = throttleErr
@@ -465,7 +465,7 @@ type connectionClient struct {
 var _ rpc.GenericClient = connectionClient{}
 
 func (c connectionClient) Call(ctx context.Context, s string, args interface{}, res interface{}) error {
-	return c.conn.DoCommand(ctx, func(rawClient rpc.GenericClient) error {
+	return c.conn.DoCommand(ctx, s, func(rawClient rpc.GenericClient) error {
 		tags, ok := logger.LogTagsFromContext(ctx)
 		if ok {
 			rpcTags := make(rpc.CtxRpcTags)
@@ -481,7 +481,7 @@ func (c connectionClient) Call(ctx context.Context, s string, args interface{}, 
 }
 
 func (c connectionClient) Notify(ctx context.Context, s string, args interface{}) error {
-	return c.conn.DoCommand(ctx, func(rawClient rpc.GenericClient) error {
+	return c.conn.DoCommand(ctx, s, func(rawClient rpc.GenericClient) error {
 		rawClient.Notify(ctx, s, args)
 		return nil
 	})

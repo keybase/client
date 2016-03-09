@@ -403,8 +403,8 @@ func (k *KeybaseDaemonRPC) OnDisconnected(_ context.Context, status DisconnectSt
 	k.clearCaches()
 }
 
-// ShouldThrottle implements the ConnectionHandler interface.
-func (k *KeybaseDaemonRPC) ShouldThrottle(err error) bool {
+// ShouldRetry implements the ConnectionHandler interface.
+func (k *KeybaseDaemonRPC) ShouldRetry(rpcName string, err error) bool {
 	return false
 }
 

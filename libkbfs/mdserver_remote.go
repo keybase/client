@@ -269,11 +269,8 @@ func (md *MDServerRemote) OnDisconnected(ctx context.Context, status DisconnectS
 	md.rekeyTimer.Reset(MdServerBackgroundRekeyPeriod)
 }
 
-// ShouldThrottle implements the ConnectionHandler interface.
-func (md *MDServerRemote) ShouldThrottle(err error) bool {
-	if err == nil {
-		return false
-	}
+// ShouldRetry implements the ConnectionHandler interface.
+func (md *MDServerRemote) ShouldRetry(name string, err error) bool {
 	_, shouldThrottle := err.(MDServerErrorThrottle)
 	return shouldThrottle
 }
@@ -477,7 +474,7 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id TlfID,
 
 	// register
 	var c chan error
-	err := md.conn.DoCommand(ctx, func(rawClient rpc.GenericClient) error {
+	err := md.conn.DoCommand(ctx, "register", func(rawClient rpc.GenericClient) error {
 		// set up the server to receive updates, since we may
 		// get disconnected between retries.
 		server := md.conn.GetServer()
