@@ -1,8 +1,9 @@
 /* @flow */
 
 import HiddenString from '../util/hidden-string'
+
 import type {TypedAction} from '../constants/types/flux'
-import type {DeviceID} from '../constants/types/flow-types'
+import type {DeviceID, Device as ServiceDevice} from '../constants/types/flow-types'
 
 export type Device = {
   type: 'desktop' | 'mobile',
@@ -11,21 +12,17 @@ export type Device = {
 }
 
 export const loadDevices = 'unlockFolders:loadDevices'
-export type LoadDevices = TypedAction<'unlockFolders:loadDevices', {devices: Array<Device>}, {}>
+export type LoadDevices = TypedAction<'unlockFolders:loadDevices', {devices: Array<ServiceDevice>}, {error: any}>
 
 // transistions to the next paper key phase
 export const toPaperKeyInput = 'unlockFolders:toPaperKeyInput'
 export type ToPaperKeyInput = TypedAction<'unlockFolders:toPaperKeyInput', {}, {}>
 
-// TODO: not sure if we even need this, we might be able to do it all without having to store the paperkey
-export const storePaperKey = 'unlockFolders:toPaperKeyInput'
-export type StorePaperKey = TypedAction<'unlockFolders:toPaperKeyInput', {paperKey: HiddenString}, {}>
-
 export const checkPaperKey = 'unlockFolders:checkPaperKey'
-export type CheckPaperKey = TypedAction<'unlockFolders:checkPaperKey', {success: true}, {error: string}>
+export type CheckPaperKey = TypedAction<'unlockFolders:checkPaperKey', {success: true}, {error: HiddenString}>
 
 export const finish = 'unlockFolders:finish'
 export type Finish = TypedAction<'unlockFolders:finish', {}, {}>
 
-export type UnlockFolderActions = LoadDevices | ToPaperKeyInput | StorePaperKey | CheckPaperKey | Finish
+export type UnlockFolderActions = LoadDevices | ToPaperKeyInput | CheckPaperKey | Finish
 
