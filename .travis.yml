@@ -33,7 +33,7 @@ script:
       cd go && export KEYBASE_SERVER_URI=http://ci1.keybase.io && travis_wait 40 ./test/run_tests.sh;
     fi
   - if [ $TRAVIS_OS_NAME == 'linux' ] && [ $TRAVIS_BRANCH == 'master' ] && [ $TRAVIS_PULL_REQUEST == 'false' ]; then
-      docker build -t kbclient .;
+      go build github.com/keybase/client/go/keybase && docker build -t kbclient .;
     fi
 after_failure:
   - if [ $TRAVIS_OS_NAME == 'linux' ]; then
