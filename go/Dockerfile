@@ -8,7 +8,7 @@ RUN mkdir /keybase
 RUN chown keybase:keybase /keybase
 USER keybase
 WORKDIR /home/keybase
-ADD $GOPATH/src/github.com/keybase/client/go/keybase/keybase /home/keybase/keybase
+ADD keybase/keybase /home/keybase/keybase
 
 ENV KEYBASE_DEBUG=0
 ENV KEYBASE_RUN_MODE=devel
