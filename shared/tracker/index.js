@@ -8,10 +8,13 @@ import * as trackerActions from '../actions/tracker'
 import {bindActionCreators} from 'redux'
 import {metaNone} from '../constants/tracker'
 
+import {onClose, startTimer, stopTimer} from '../actions/tracker'
+
 import type {RenderProps} from './render'
 import type {UserInfo} from './bio.render'
 import type {Proof} from './proofs.render'
 import type {SimpleProofState} from '../constants/tracker'
+import type {Dispatch} from '../constants/types/flux'
 
 import type {TrackSummary} from '../constants/types/flow-types'
 
@@ -155,16 +158,30 @@ export function selector (username: string): (store: Object) => Object {
   }
 }
 
-export function remoteComponentProps (username: string, store: Object, managerProps: Object): Object {
+export type RemoteActions = {
+  onClose: (username: string) => void,
+  startTimer: () => void,
+  stopTimer: () => void
+}
+
+export function remoteComponentActions (dispatch: Dispatch) : RemoteActions {
+  return bindActionCreators({
+    onClose,
+    startTimer,
+    stopTimer
+  })
+}
+
+export function remoteComponentProps (username: string, store: Object, remoteActions: RemoteActions): Object {
   return {
     component: 'tracker',
     hidden: store.hidden,
     ignoreNewProps: true,
     key: username,
-    onRemoteClose: () => managerProps.trackerOnClose(username),
+    onRemoteClose: () => remoteActions.onClose(username),
     selectorParams: username,
-    startTimer: managerProps.trackerStartTimer,
-    stopTimer: managerProps.trackerStopTimer,
+    startTimer: remoteActions.startTimer,
+    stopTimer: remoteActions.stopTimer,
     title: `tracker - ${username}`,
     username,
     waitForState: true,

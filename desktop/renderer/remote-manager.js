@@ -3,21 +3,21 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import {bindActionCreators} from 'redux'
-import {registerIdentifyUi, onClose as trackerOnClose, startTimer as trackerStartTimer, stopTimer as trackerStopTimer} from '../shared/actions/tracker'
+import {registerIdentifyUi} from '../shared/actions/tracker'
 import {registerPinentryListener, onCancel as pinentryOnCancel, onSubmit as pinentryOnSubmit} from '../shared/actions/pinentry'
 import {registerTrackerChangeListener} from '../shared/actions/tracker'
 import {registerUpdateListener, onCancel as updateOnCancel, onSkip as updateOnSkip, onSnooze as updateOnSnooze, onUpdate as updateOnUpdate, setAlwaysUpdate} from '../shared/actions/update'
 import {onForce as updateOnForce, onPauseCancel as updateOnPauseCancel} from '../shared/actions/update'
 // $FlowIssue platform files
 import RemoteComponent from './remote-component'
-import {remoteComponentProps as trackerComponentProps} from '../shared/tracker'
+import {remoteComponentProps as trackerComponentProps, remoteComponentActions as trackerRemoteComponentActions} from '../shared/tracker'
 import {remoteComponentProps as pinentryComponentProps} from '../shared/pinentry'
 import {remoteComponentPropsUpdate, remoteComponentPropsPaused} from '../shared/update'
 
 import type {GUIEntryFeatures} from '../shared/constants/types/flow-types'
-import type {Action, Dispatch} from '../shared/constants/types/flux'
 
 import type {TrackerState} from '../shared/reducers/tracker'
+import type {RemoteActions as TrackerRemoteActions} from '../shared/tracker'
 import type {PinentryState} from '../shared/reducers/pinentry'
 import type {UpdateConfirmState} from '../shared/reducers/update-confirm'
 import type {UpdatePausedState} from '../shared/reducers/update-paused'
@@ -29,10 +29,7 @@ export type RemoteManagerProps = {
   pinentryOnSubmit: (sessionID: number, passphrase: string, features: GUIEntryFeatures) => void,
   registerIdentifyUi: () => void,
   registerTrackerChangeListener: () => void,
-  trackerOnClose: () => void,
   trackerServerStarted: boolean,
-  trackerStartTimer: (dispatch: Dispatch, getState: any) => void,
-  trackerStopTimer: () => Action,
   trackers: {[key: string]: TrackerState},
   pinentryStates: {[key: string]: PinentryState},
   updateConfirmState: UpdateConfirmState,
@@ -43,7 +40,8 @@ export type RemoteManagerProps = {
   setAlwaysUpdate: (alwaysUpdate: bool) => void,
   updatePausedState: UpdatePausedState,
   updateOnForce: () => void,
-  updateOnPauseCancel: () => void
+  updateOnPauseCancel: () => void,
+  trackerActions: TrackerRemoteActions
 }
 
 class RemoteManager extends Component {
@@ -67,7 +65,7 @@ class RemoteManager extends Component {
   trackerRemoteComponents () {
     const {trackers} = this.props
     return Object.keys(trackers).filter(username => !trackers[username].closed).map(username => (
-      <RemoteComponent {...trackerComponentProps(username, trackers[username], this.props)} />
+      <RemoteComponent {...trackerComponentProps(username, trackers[username], this.props.trackerActions)} />
     ))
   }
 
@@ -115,10 +113,7 @@ RemoteManager.propTypes = {
   registerUpdateListener: React.PropTypes.func,
   registerIdentifyUi: React.PropTypes.func,
   registerTrackerChangeListener: React.PropTypes.any,
-  trackerOnClose: React.PropTypes.func,
   trackerServerStarted: React.PropTypes.bool,
-  trackerStartTimer: React.PropTypes.func,
-  trackerStopTimer: React.PropTypes.func,
   trackers: React.PropTypes.any,
   pinentryStates: React.PropTypes.any,
   updateConfirmState: React.PropTypes.any,
@@ -142,22 +137,22 @@ export default connect(
       updatePausedState: state.updatePaused
     }
   },
-  dispatch => bindActionCreators({
-    registerIdentifyUi,
-    trackerStartTimer,
-    trackerStopTimer,
-    trackerOnClose,
-    registerPinentryListener,
-    registerTrackerChangeListener,
-    pinentryOnCancel,
-    pinentryOnSubmit,
-    registerUpdateListener,
-    updateOnCancel,
-    updateOnSkip,
-    updateOnSnooze,
-    updateOnUpdate,
-    setAlwaysUpdate,
-    updateOnForce,
-    updateOnPauseCancel
-  }, dispatch)
+  dispatch => ({
+    ...bindActionCreators({
+      registerIdentifyUi,
+      registerPinentryListener,
+      registerTrackerChangeListener,
+      pinentryOnCancel,
+      pinentryOnSubmit,
+      registerUpdateListener,
+      updateOnCancel,
+      updateOnSkip,
+      updateOnSnooze,
+      updateOnUpdate,
+      setAlwaysUpdate,
+      updateOnForce,
+      updateOnPauseCancel
+    }, dispatch),
+    trackerActions: trackerRemoteComponentActions(dispatch)
+  })
 )(RemoteManager)
