@@ -41,16 +41,16 @@ var (
 // was created, an increasing id, filename and line and finally the actual
 // formatted log line.
 type Record struct {
-	Id     uint64
+	ID     uint64
 	Time   time.Time
 	Module string
 	Level  Level
+	Args   []interface{}
 
 	// message is kept as a pointer to have shallow copies update this once
 	// needed.
 	message   *string
-	args      []interface{}
-	fmt       string
+	fmt       *string
 	formatter Formatter
 	formatted string
 }
@@ -69,12 +69,20 @@ func (r *Record) Formatted(calldepth int) string {
 func (r *Record) Message() string {
 	if r.message == nil {
 		// Redact the arguments that implements the Redactor interface
-		for i, arg := range r.args {
+		for i, arg := range r.Args {
 			if redactor, ok := arg.(Redactor); ok == true {
-				r.args[i] = redactor.Redacted()
+				r.Args[i] = redactor.Redacted()
 			}
 		}
-		msg := fmt.Sprintf(r.fmt, r.args...)
+		var buf bytes.Buffer
+		if r.fmt != nil {
+			fmt.Fprintf(&buf, *r.fmt, r.Args...)
+		} else {
+			// use Fprintln to make sure we always get space between arguments
+			fmt.Fprintln(&buf, r.Args...)
+			buf.Truncate(buf.Len() - 1) // strip newline
+		}
+		msg := buf.String()
 		r.message = &msg
 	}
 	return *r.message
@@ -132,19 +140,19 @@ func (l *Logger) IsEnabledFor(level Level) bool {
 	return defaultBackend.IsEnabledFor(level, l.Module)
 }
 
-func (l *Logger) log(lvl Level, format string, args ...interface{}) {
+func (l *Logger) log(lvl Level, format *string, args ...interface{}) {
 	if !l.IsEnabledFor(lvl) {
 		return
 	}
 
 	// Create the logging record and pass it in to the backend
 	record := &Record{
-		Id:     atomic.AddUint64(&sequenceNo, 1),
+		ID:     atomic.AddUint64(&sequenceNo, 1),
 		Time:   timeNow(),
 		Module: l.Module,
 		Level:  lvl,
 		fmt:    format,
-		args:   args,
+		Args:   args,
 	}
 
 	// TODO use channels to fan out the records to all backends?
@@ -159,89 +167,93 @@ func (l *Logger) log(lvl Level, format string, args ...interface{}) {
 		return
 	}
 
+	defaultBackendMutex.Lock()
 	defaultBackend.Log(lvl, 2+l.ExtraCalldepth, record)
+	defaultBackendMutex.Unlock()
 }
 
 // Fatal is equivalent to l.Critical(fmt.Sprint()) followed by a call to os.Exit(1).
 func (l *Logger) Fatal(args ...interface{}) {
-	s := fmt.Sprint(args...)
-	l.log(CRITICAL, "%s", s)
+	l.log(CRITICAL, nil, args...)
 	os.Exit(1)
 }
 
 // Fatalf is equivalent to l.Critical followed by a call to os.Exit(1).
 func (l *Logger) Fatalf(format string, args ...interface{}) {
-	l.log(CRITICAL, format, args...)
+	l.log(CRITICAL, &format, args...)
 	os.Exit(1)
 }
 
 // Panic is equivalent to l.Critical(fmt.Sprint()) followed by a call to panic().
 func (l *Logger) Panic(args ...interface{}) {
-	s := fmt.Sprint(args...)
-	l.log(CRITICAL, "%s", s)
-	panic(s)
+	l.log(CRITICAL, nil, args...)
+	panic(fmt.Sprint(args...))
 }
 
 // Panicf is equivalent to l.Critical followed by a call to panic().
 func (l *Logger) Panicf(format string, args ...interface{}) {
-	s := fmt.Sprintf(format, args...)
-	l.log(CRITICAL, "%s", s)
-	panic(s)
+	l.log(CRITICAL, &format, args...)
+	panic(fmt.Sprintf(format, args...))
 }
 
 // Critical logs a message using CRITICAL as log level.
-func (l *Logger) Critical(format string, args ...interface{}) {
-	l.log(CRITICAL, format, args...)
+func (l *Logger) Critical(args ...interface{}) {
+	l.log(CRITICAL, nil, args...)
+}
+
+// Criticalf logs a message using CRITICAL as log level.
+func (l *Logger) Criticalf(format string, args ...interface{}) {
+	l.log(CRITICAL, &format, args...)
 }
 
 // Error logs a message using ERROR as log level.
-func (l *Logger) Error(format string, args ...interface{}) {
-	l.log(ERROR, format, args...)
+func (l *Logger) Error(args ...interface{}) {
+	l.log(ERROR, nil, args...)
 }
 
 // Errorf logs a message using ERROR as log level.
 func (l *Logger) Errorf(format string, args ...interface{}) {
-	l.log(ERROR, format, args...)
+	l.log(ERROR, &format, args...)
 }
 
 // Warning logs a message using WARNING as log level.
-func (l *Logger) Warning(format string, args ...interface{}) {
-	l.log(WARNING, format, args...)
+func (l *Logger) Warning(args ...interface{}) {
+	l.log(WARNING, nil, args...)
 }
 
 // Warningf logs a message using WARNING as log level.
 func (l *Logger) Warningf(format string, args ...interface{}) {
-	l.log(WARNING, format, args...)
+	l.log(WARNING, &format, args...)
 }
 
 // Notice logs a message using NOTICE as log level.
-func (l *Logger) Notice(format string, args ...interface{}) {
-	l.log(NOTICE, format, args...)
+func (l *Logger) Notice(args ...interface{}) {
+	l.log(NOTICE, nil, args...)
 }
 
 // Noticef logs a message using NOTICE as log level.
 func (l *Logger) Noticef(format string, args ...interface{}) {
-	l.log(NOTICE, format, args...)
+	l.log(NOTICE, &format, args...)
 }
 
 // Info logs a message using INFO as log level.
-func (l *Logger) Info(format string, args ...interface{}) {
-	l.log(INFO, format, args...)
+func (l *Logger) Info(args ...interface{}) {
+	l.log(INFO, nil, args...)
 }
 
 // Infof logs a message using INFO as log level.
 func (l *Logger) Infof(format string, args ...interface{}) {
-	l.log(INFO, format, args...)
+	l.log(INFO, &format, args...)
 }
 
 // Debug logs a message using DEBUG as log level.
-func (l *Logger) Debug(format string, args ...interface{}) {
-	l.log(DEBUG, format, args...)
+func (l *Logger) Debug(args ...interface{}) {
+	l.log(DEBUG, nil, args...)
 }
 
 // Debugf logs a message using DEBUG as log level.
 func (l *Logger) Debugf(format string, args ...interface{}) {
-	l.log(DEBUG, format, args...)
+	l.log(DEBUG, &format, args...)
 }
 
 func init() {
