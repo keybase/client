@@ -16,7 +16,7 @@ import {switchTab} from '../tabbed-router'
 import {devicesTab, loginTab} from '../../constants/tabs'
 import {loadDevices} from '../devices'
 import {defaultModeForDeviceRoles, qrGenerate} from './provision-helpers'
-import {getCurrentStatus} from '../config'
+import {bootstrap} from '../config'
 import type {Dispatch, GetState, AsyncAction, TypedAction} from '../../constants/types/flux'
 import type {incomingCallMapType, login_recoverAccountFromEmailAddress_rpc,
   login_login_rpc, login_logout_rpc, device_deviceAdd_rpc, login_getConfiguredAccounts_rpc} from '../../constants/types/flow-types'
@@ -28,10 +28,11 @@ let currentLoginSessionID = null
 
 export function navBasedOnLoginState () :AsyncAction {
   return (dispatch, getState) => {
-    const {config: {status}} = getState()
+    const {config: {status, extendedConfig}} = getState()
 
     // No status?
-    if (!status || !Object.keys(status).length) {
+    if (!status || !Object.keys(status).length || !extendedConfig || !Object.keys(extendedConfig).length ||
+      !extendedConfig.device) { // Not provisioned?
       dispatch(navigateTo([], loginTab))
       dispatch(switchTab(loginTab))
     } else {
@@ -104,7 +105,7 @@ export function login (): AsyncAction {
           })
 
           dispatch(loadDevices())
-          dispatch(navBasedOnLoginState())
+          dispatch(bootstrap())
         }
       }
     }
@@ -278,7 +279,7 @@ export function logoutDone () : AsyncAction {
 
     dispatch(switchTab(loginTab))
     dispatch(navBasedOnLoginState())
-    dispatch(getCurrentStatus())
+    dispatch(bootstrap())
   }
 }
 

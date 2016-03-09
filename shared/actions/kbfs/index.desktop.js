@@ -1,12 +1,8 @@
 /* @flow */
 
 import {shell} from 'electron'
-
-import {getExtendedConfig} from '../config'
 import * as Constants from '../../constants/config'
-
 import {config} from '../../constants/types/keybase-v1'
-
 import type {AsyncAction} from '../../constants/types/flux'
 
 export function openInKBFS (path: string = ''): AsyncAction {
@@ -17,9 +13,9 @@ export function openInKBFS (path: string = ''): AsyncAction {
     // On windows the path isn't /keybase
     // We can figure it out by looking at the extendedConfig though
     if (process.platform === 'win32' && kbfsPath === Constants.defaultKBFSPath) {
-      const extendedConfigPromise = state.config.extendedConfig ? Promise.resolve(state.config.extendedConfig) : (dispatch(getExtendedConfig()) || Promise.reject('Extended config did not return promise'))
+      const extendedConfig = Promise.resolve(state.config.extendedConfig)
 
-      extendedConfigPromise.then(extendedConfig => {
+      extendedConfig.then(extendedConfig => {
         const kbfsClients = extendedConfig.Clients.filter(c => c.clientType === config.ClientType.kbfs)
         if (kbfsClients.length !== 1) {
           return Promise.reject("There isn't exactly one kbfs client")

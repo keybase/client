@@ -5,7 +5,7 @@ import type {incomingCallMapType} from '../constants/types/flow-types'
 import path from 'path'
 import {getTLF} from '../util/kbfs'
 
-import {getCurrentStatus} from '../actions/config'
+import {bootstrap} from '../actions/config'
 import {logoutDone} from '../actions/login'
 
 import type {Dispatch} from '../constants/types/flux'
@@ -31,7 +31,7 @@ export default function (dispatch: Dispatch, notify: any): incomingCallMapType {
         notify('Logged in to Keybase as: ' + username)
       }
 
-      dispatch(getCurrentStatus())
+      dispatch(bootstrap())
       response.result()
     },
     'keybase.1.NotifyFS.FSActivity': ({notification}) => {
