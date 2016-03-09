@@ -137,7 +137,8 @@ func (b *BlockServerRemote) OnDisconnected(ctx context.Context, status Disconnec
 
 // ShouldRetry implements the ConnectionHandler interface.
 func (b *BlockServerRemote) ShouldRetry(rpcName string, err error) bool {
-	//do not retry batch rpcs automatically
+	//do not let connection.go's DoCommand retry any batch rpcs automatically
+	//because i will manually retry them without successfully completed references
 	switch rpcName {
 	case "keybase.1.block.delReferenceWithCount":
 		return false
