@@ -66,7 +66,7 @@ export default class Text extends Component {
       'BodySemibold': styles.textBodySemibold,
       'Body': styles.textBody,
       'BodyPrimaryLink': styles.textBody,
-      'BodySecondaryLink': styles.textBody,
+      'BodySecondaryLink': styles.textBodySmall,
       'BodySmall': styles.textBodySmall,
       'BodySmallSemibold': styles.textBodySmallSemibold,
       'Error': styles.textError,
