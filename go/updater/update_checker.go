@@ -11,6 +11,7 @@ import (
 	"github.com/keybase/client/go/updater/sources"
 )
 
+// UpdateChecker runs updates checks every check duration
 type UpdateChecker struct {
 	updater       *Updater
 	ctx           Context
@@ -18,7 +19,7 @@ type UpdateChecker struct {
 	log           logger.Logger
 	tickDuration  time.Duration // tickDuration is the ticker delay
 	checkDuration time.Duration // checkDuration is how ofter to check for updates
-	count         int           // count is number of time we've checked
+	count         int           // count is number of times we've checked
 }
 
 // NewUpdateChecker creates an update checker
@@ -42,7 +43,7 @@ func (u *UpdateChecker) Check(force bool, requested bool) error {
 	if !requested && !force {
 		if lastCheckedPTime := u.updater.config.GetUpdateLastChecked(); lastCheckedPTime > 0 {
 			lastChecked := keybase1.FromTime(lastCheckedPTime)
-			if time.Now().Before(lastChecked.Add(u.checkDuration)) {
+			if time.Since(lastChecked) > u.checkDuration {
 				u.log.Debug("Already checked: %s", lastChecked)
 				return nil
 			}
