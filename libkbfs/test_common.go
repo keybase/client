@@ -385,7 +385,6 @@ func RevokeDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config,
 		user.CurrentVerifyingKeyIndex--
 	}
 
-	// kbd is just a copy, but kbd.localUsers is the same map
 	kbd.setLocalUser(uid, user)
 }
 

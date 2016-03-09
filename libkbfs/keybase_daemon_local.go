@@ -108,9 +108,11 @@ func (c memoryFavoriteClient) Shutdown() {}
 // KeybaseDaemonLocal implements KeybaseDaemon using an in-memory user
 // and session store, and a given favorite store.
 type KeybaseDaemonLocal struct {
-	lock          sync.Mutex
-	localUsers    localUserMap
-	asserts       map[string]keybase1.UID
+	// lock protects localUsers and asserts against races.
+	lock       sync.Mutex
+	localUsers localUserMap
+	asserts    map[string]keybase1.UID
+
 	currentUID    keybase1.UID
 	favoriteStore favoriteStore
 }
