@@ -37,7 +37,9 @@ export default class RemoteComponent extends Component {
       ...this.props.windowsOpts}
 
     this.remoteWindow = new BrowserWindow(windowsOpts)
-    remoteIdsToComponents[this.remoteWindow.id] = this
+    // Keep remoteWindowId since remoteWindow properties are not accessible if destroyed
+    this.remoteWindowId = this.remoteWindow.id
+    remoteIdsToComponents[this.remoteWindowId] = this
 
     menuHelper(this.remoteWindow)
     this.closed = false
@@ -48,26 +50,24 @@ export default class RemoteComponent extends Component {
       } catch (_) { }
     })
 
-    ipcRenderer.send('showDockIconForRemoteWindow', this.remoteWindow.id)
-    ipcRenderer.send('listenForRemoteWindowClosed', this.remoteWindow.id)
+    ipcRenderer.send('showDockIconForRemoteWindow', this.remoteWindowId)
+    ipcRenderer.send('listenForRemoteWindowClosed', this.remoteWindowId)
 
     const componentRequireName = this.props.component
     this.remoteWindow.loadUrl(`file://${resolveRoot('renderer/remoteComponent.html')}?component=${componentRequireName || ''}&src=${hotPath('remote-component-loader.bundle.js')}&selectorParams=${this.props.selectorParams}&title=${encodeURI(this.props.title || '')}`)
   }
 
   componentWillUnmount () {
-    if (this.remoteWindow) {
-      remoteIdsToComponents[this.remoteWindow.id] = null
-    }
+    remoteIdsToComponents[this.remoteWindowId] = null
 
     if (!this.closed) {
       this.closed = true
-      ipcRenderer.send('remoteUnmount', this.remoteWindow.id)
+      ipcRenderer.send('remoteUnmount', this.remoteWindowId)
     }
   }
 
   render () {
-    return (<div>{this.props.component}:{this.remoteWindow.id}</div>)
+    return (<div>{this.props.component}:{this.remoteWindowId}</div>)
   }
 
   shouldComponentUpdate (nextProps) {
