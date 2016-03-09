@@ -54,7 +54,7 @@ export default class Input extends Component {
       marginTop: 6
     }
     const inputStyle = this.props.multiLine ? multiLineStyleFix : {height: 'auto'}
-    const alignStyle = {textAlign: 'center', ...{textAlign: this.props.style && this.props.style.textAlign}}
+    const alignStyle = this.props.style && this.props.style.textAlign ? this.props.style.textAlign : {textAlign: 'center'}
     return (
       <div style={{...style, ...this.props.style}} onClick={() => { this._textField && this._textField.focus() }}>
         <TextField
