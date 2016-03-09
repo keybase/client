@@ -10,13 +10,13 @@ import (
 	"github.com/keybase/client/go/libkb"
 )
 
-func assertFileExists(t *testing.T, path string) {
+func assertFileExists(t testing.TB, path string) {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		t.Fatalf("%s unexpectedly does not exist", path)
 	}
 }
 
-func assertFileDoesNotExist(t *testing.T, path string) {
+func assertFileDoesNotExist(t testing.TB, path string) {
 	if _, err := os.Stat(path); err == nil {
 		t.Fatalf("%s unexpectedly exists", path)
 	}
@@ -41,15 +41,13 @@ func getNumKeys(tc libkb.TestContext, fu FakeUser) int {
 	return len(ckf.GetAllActiveSibkeys()) + len(ckf.GetAllActiveSubkeys())
 }
 
-func TestDeprovision(t *testing.T) {
-	tc := SetupEngineTest(t, "deprovision")
-	defer tc.Cleanup()
-
+func assertDeprovisionWithSetup(tc libkb.TestContext) {
 	// Sign up a new user and have it store its secret in the
 	// secret store (if possible).
 	fu := NewFakeUserOrBust(tc.T, "dpr")
 	arg := MakeTestSignupEngineRunArg(fu)
-	arg.StoreSecret = libkb.HasSecretStore()
+
+	arg.StoreSecret = tc.G.SecretStoreAll != nil
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
@@ -62,11 +60,11 @@ func TestDeprovision(t *testing.T) {
 		tc.T.Fatal(err)
 	}
 
-	if libkb.HasSecretStore() {
+	if tc.G.SecretStoreAll != nil {
 		secretStore := libkb.NewSecretStore(tc.G, fu.NormalizedUsername())
 		_, err := secretStore.RetrieveSecret()
 		if err != nil {
-			t.Fatal(err)
+			tc.T.Fatal(err)
 		}
 	}
 
@@ -75,18 +73,18 @@ func TestDeprovision(t *testing.T) {
 	secretKeysPath := tc.G.SKBFilenameForUser(fu.NormalizedUsername())
 	numKeys := getNumKeys(tc, *fu)
 
-	assertFileExists(t, dbPath)
-	assertFileExists(t, sessionPath)
-	assertFileExists(t, secretKeysPath)
+	assertFileExists(tc.T, dbPath)
+	assertFileExists(tc.T, sessionPath)
+	assertFileExists(tc.T, secretKeysPath)
 	if !isUserInConfigFile(tc, *fu) {
-		t.Fatalf("User %s is not in the config file %s", fu.Username, tc.G.Env.GetConfigFilename())
+		tc.T.Fatalf("User %s is not in the config file %s", fu.Username, tc.G.Env.GetConfigFilename())
 	}
 	if !isUserConfigInMemory(tc) {
-		t.Fatalf("user config is not in memory")
+		tc.T.Fatal("user config is not in memory")
 	}
 
 	if !LoggedIn(tc) {
-		t.Fatal("Unexpectedly logged out")
+		tc.T.Fatal("Unexpectedly logged out")
 	}
 
 	e := NewDeprovisionEngine(tc.G, fu.Username, true /* doRevoke */)
@@ -95,46 +93,58 @@ func TestDeprovision(t *testing.T) {
 		SecretUI: fu.NewSecretUI(),
 	}
 	if err := RunEngine(e, ctx); err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 
 	if LoggedIn(tc) {
-		t.Error("Unexpectedly still logged in")
+		tc.T.Error("Unexpectedly still logged in")
 	}
 
-	if libkb.HasSecretStore() {
+	if tc.G.SecretStoreAll != nil {
 		secretStore := libkb.NewSecretStore(tc.G, fu.NormalizedUsername())
 		secret, err := secretStore.RetrieveSecret()
 		if err == nil {
-			t.Errorf("Unexpectedly got secret %v", secret)
+			tc.T.Errorf("Unexpectedly got secret %v", secret)
 		}
 	}
 
-	assertFileDoesNotExist(t, dbPath)
-	assertFileDoesNotExist(t, sessionPath)
-	assertFileDoesNotExist(t, secretKeysPath)
+	assertFileDoesNotExist(tc.T, dbPath)
+	assertFileDoesNotExist(tc.T, sessionPath)
+	assertFileDoesNotExist(tc.T, secretKeysPath)
 	if isUserInConfigFile(tc, *fu) {
-		t.Fatalf("User %s is still in the config file %s", fu.Username, tc.G.Env.GetConfigFilename())
+		tc.T.Fatalf("User %s is still in the config file %s", fu.Username, tc.G.Env.GetConfigFilename())
 	}
 	if isUserConfigInMemory(tc) {
-		t.Fatalf("user config is still in memory")
+		tc.T.Fatal("user config is still in memory")
 	}
 
 	newNumKeys := getNumKeys(tc, *fu)
 	if newNumKeys != numKeys-2 {
-		t.Fatalf("failed to revoke device keys, before: %d, after: %d", numKeys, newNumKeys)
+		tc.T.Fatalf("failed to revoke device keys, before: %d, after: %d", numKeys, newNumKeys)
 	}
 }
 
-func TestDeprovisionLoggedOut(t *testing.T) {
+func TestDeprovision(t *testing.T) {
 	tc := SetupEngineTest(t, "deprovision")
 	defer tc.Cleanup()
+	if tc.G.SecretStoreAll == nil {
+		t.Fatal("Need a secret store for this test")
+	}
+	assertDeprovisionWithSetup(tc)
+
+	// Now, test deprovision codepath with no secret store
+	tc.G.SecretStoreAll = nil
+	assertDeprovisionWithSetup(tc)
+}
+
+func assertDeprovisionLoggedOut(tc libkb.TestContext) {
 
 	// Sign up a new user and have it store its secret in the
 	// secret store (if possible).
 	fu := NewFakeUserOrBust(tc.T, "dpr")
 	arg := MakeTestSignupEngineRunArg(fu)
-	arg.StoreSecret = libkb.HasSecretStore()
+
+	arg.StoreSecret = tc.G.SecretStoreAll != nil
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
@@ -147,11 +157,11 @@ func TestDeprovisionLoggedOut(t *testing.T) {
 		tc.T.Fatal(err)
 	}
 
-	if libkb.HasSecretStore() {
+	if tc.G.SecretStoreAll != nil {
 		secretStore := libkb.NewSecretStore(tc.G, fu.NormalizedUsername())
 		_, err := secretStore.RetrieveSecret()
 		if err != nil {
-			t.Fatal(err)
+			tc.T.Fatal(err)
 		}
 	}
 
@@ -160,18 +170,18 @@ func TestDeprovisionLoggedOut(t *testing.T) {
 	secretKeysPath := tc.G.SKBFilenameForUser(fu.NormalizedUsername())
 	numKeys := getNumKeys(tc, *fu)
 
-	assertFileExists(t, dbPath)
-	assertFileExists(t, sessionPath)
-	assertFileExists(t, secretKeysPath)
+	assertFileExists(tc.T, dbPath)
+	assertFileExists(tc.T, sessionPath)
+	assertFileExists(tc.T, secretKeysPath)
 	if !isUserInConfigFile(tc, *fu) {
-		t.Fatalf("User %s is not in the config file %s", fu.Username, tc.G.Env.GetConfigFilename())
+		tc.T.Fatalf("User %s is not in the config file %s", fu.Username, tc.G.Env.GetConfigFilename())
 	}
 	if !isUserConfigInMemory(tc) {
-		t.Fatalf("user config is not in memory")
+		tc.T.Fatalf("user config is not in memory")
 	}
 
 	if !LoggedIn(tc) {
-		t.Fatal("Unexpectedly logged out")
+		tc.T.Fatal("Unexpectedly logged out")
 	}
 
 	// Unlike the first test, this time we log out before we run the
@@ -185,46 +195,57 @@ func TestDeprovisionLoggedOut(t *testing.T) {
 		SecretUI: fu.NewSecretUI(),
 	}
 	if err := RunEngine(e, ctx); err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 
 	if LoggedIn(tc) {
-		t.Error("Unexpectedly still logged in")
+		tc.T.Error("Unexpectedly still logged in")
 	}
 
-	if libkb.HasSecretStore() {
+	if tc.G.SecretStoreAll != nil {
 		secretStore := libkb.NewSecretStore(tc.G, fu.NormalizedUsername())
 		secret, err := secretStore.RetrieveSecret()
 		if err == nil {
-			t.Errorf("Unexpectedly got secret %v", secret)
+			tc.T.Errorf("Unexpectedly got secret %v", secret)
 		}
 	}
 
-	assertFileDoesNotExist(t, dbPath)
-	assertFileDoesNotExist(t, sessionPath)
-	assertFileDoesNotExist(t, secretKeysPath)
+	assertFileDoesNotExist(tc.T, dbPath)
+	assertFileDoesNotExist(tc.T, sessionPath)
+	assertFileDoesNotExist(tc.T, secretKeysPath)
 	if isUserInConfigFile(tc, *fu) {
-		t.Fatalf("User %s is still in the config file %s", fu.Username, tc.G.Env.GetConfigFilename())
+		tc.T.Fatalf("User %s is still in the config file %s", fu.Username, tc.G.Env.GetConfigFilename())
 	}
 	if isUserConfigInMemory(tc) {
-		t.Fatalf("user config is still in memory")
+		tc.T.Fatalf("user config is still in memory")
 	}
 
 	newNumKeys := getNumKeys(tc, *fu)
 	if newNumKeys != numKeys {
-		t.Fatalf("expected the same number of device keys, before: %d, after: %d", numKeys, newNumKeys)
+		tc.T.Fatalf("expected the same number of device keys, before: %d, after: %d", numKeys, newNumKeys)
 	}
 }
 
-func TestCurrentDeviceRevoked(t *testing.T) {
+func TestDeprovisionLoggedOut(t *testing.T) {
 	tc := SetupEngineTest(t, "deprovision")
 	defer tc.Cleanup()
+	if tc.G.SecretStoreAll == nil {
+		t.Fatalf("Need a secret store for this test")
+	}
+	assertDeprovisionLoggedOut(tc)
+
+	// Now, test codepath with no secret store
+	tc.G.SecretStoreAll = nil
+	assertDeprovisionLoggedOut(tc)
+}
+
+func assertCurrentDeviceRevoked(tc libkb.TestContext) {
 
 	// Sign up a new user and have it store its secret in the
 	// secret store (if possible).
 	fu := NewFakeUserOrBust(tc.T, "dpr")
 	arg := MakeTestSignupEngineRunArg(fu)
-	arg.StoreSecret = libkb.HasSecretStore()
+	arg.StoreSecret = tc.G.SecretStoreAll != nil
 	ctx := &Context{
 		LogUI:    tc.G.UI.GetLogUI(),
 		GPGUI:    &gpgtestui{},
@@ -237,11 +258,11 @@ func TestCurrentDeviceRevoked(t *testing.T) {
 		tc.T.Fatal(err)
 	}
 
-	if libkb.HasSecretStore() {
+	if tc.G.SecretStoreAll != nil {
 		secretStore := libkb.NewSecretStore(tc.G, fu.NormalizedUsername())
 		_, err := secretStore.RetrieveSecret()
 		if err != nil {
-			t.Fatal(err)
+			tc.T.Fatal(err)
 		}
 	}
 
@@ -250,25 +271,25 @@ func TestCurrentDeviceRevoked(t *testing.T) {
 	secretKeysPath := tc.G.SKBFilenameForUser(fu.NormalizedUsername())
 	numKeys := getNumKeys(tc, *fu)
 
-	assertFileExists(t, dbPath)
-	assertFileExists(t, sessionPath)
-	assertFileExists(t, secretKeysPath)
+	assertFileExists(tc.T, dbPath)
+	assertFileExists(tc.T, sessionPath)
+	assertFileExists(tc.T, secretKeysPath)
 	if !isUserInConfigFile(tc, *fu) {
-		t.Fatalf("User %s is not in the config file %s", fu.Username, tc.G.Env.GetConfigFilename())
+		tc.T.Fatalf("User %s is not in the config file %s", fu.Username, tc.G.Env.GetConfigFilename())
 	}
 	if !isUserConfigInMemory(tc) {
-		t.Fatalf("user config is not in memory")
+		tc.T.Fatal("user config is not in memory")
 	}
 
 	if !LoggedIn(tc) {
-		t.Fatal("Unexpectedly logged out")
+		tc.T.Fatal("Unexpectedly logged out")
 	}
 
 	// Revoke the current device! This will cause an error when deprovision
 	// tries to revoke the device again, but deprovision should carry on.
 	err = doRevokeDevice(tc, fu, tc.G.Env.GetDeviceID(), true /* force */)
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 
 	e := NewDeprovisionEngine(tc.G, fu.Username, true /* doRevoke */)
@@ -277,33 +298,46 @@ func TestCurrentDeviceRevoked(t *testing.T) {
 		SecretUI: fu.NewSecretUI(),
 	}
 	if err := RunEngine(e, ctx); err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 
 	if LoggedIn(tc) {
-		t.Error("Unexpectedly still logged in")
+		tc.T.Error("Unexpectedly still logged in")
 	}
 
-	if libkb.HasSecretStore() {
+	if tc.G.SecretStoreAll != nil {
 		secretStore := libkb.NewSecretStore(tc.G, fu.NormalizedUsername())
 		secret, err := secretStore.RetrieveSecret()
 		if err == nil {
-			t.Errorf("Unexpectedly got secret %v", secret)
+			tc.T.Errorf("Unexpectedly got secret %v", secret)
 		}
 	}
 
-	assertFileDoesNotExist(t, dbPath)
-	assertFileDoesNotExist(t, sessionPath)
-	assertFileDoesNotExist(t, secretKeysPath)
+	assertFileDoesNotExist(tc.T, dbPath)
+	assertFileDoesNotExist(tc.T, sessionPath)
+	assertFileDoesNotExist(tc.T, secretKeysPath)
 	if isUserInConfigFile(tc, *fu) {
-		t.Fatalf("User %s is still in the config file %s", fu.Username, tc.G.Env.GetConfigFilename())
+		tc.T.Fatalf("User %s is still in the config file %s", fu.Username, tc.G.Env.GetConfigFilename())
 	}
 	if isUserConfigInMemory(tc) {
-		t.Fatalf("user config is still in memory")
+		tc.T.Fatal("user config is still in memory")
 	}
 
 	newNumKeys := getNumKeys(tc, *fu)
 	if newNumKeys != numKeys-2 {
-		t.Fatalf("failed to revoke device keys, before: %d, after: %d", numKeys, newNumKeys)
+		tc.T.Fatalf("failed to revoke device keys, before: %d, after: %d", numKeys, newNumKeys)
 	}
+}
+
+func TestCurrentDeviceRevoked(t *testing.T) {
+	tc := SetupEngineTest(t, "deprovision")
+	defer tc.Cleanup()
+	if tc.G.SecretStoreAll == nil {
+		t.Fatalf("Need a secret store for this test")
+	}
+	assertCurrentDeviceRevoked(tc)
+
+	// Now, test codepath with no secret store
+	tc.G.SecretStoreAll = nil
+	assertCurrentDeviceRevoked(tc)
 }

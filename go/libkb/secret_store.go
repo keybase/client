@@ -16,7 +16,13 @@ type SecretStorer interface {
 type SecretStore interface {
 	SecretRetriever
 	SecretStorer
-	ClearSecret() error
+}
+
+type SecretStoreAll interface {
+	RetrieveSecret(username NormalizedUsername) ([]byte, error)
+	StoreSecret(username NormalizedUsername, secret []byte) error
+	ClearSecret(username NormalizedUsername) error
+	GetUsersWithStoredSecrets() (ret []string, err error)
 }
 
 type SecretStoreContext interface {
@@ -25,7 +31,27 @@ type SecretStoreContext interface {
 	GetStoredSecretAccessGroup() string
 }
 
-func GetConfiguredAccounts(c SecretStoreContext) ([]keybase1.ConfiguredAccount, error) {
+type SecretStoreImp struct {
+	username NormalizedUsername
+	store    SecretStoreAll
+}
+
+func (s SecretStoreImp) RetrieveSecret() ([]byte, error) {
+	return s.store.RetrieveSecret(s.username)
+}
+
+func (s SecretStoreImp) StoreSecret(secret []byte) error {
+	return s.store.StoreSecret(s.username, secret)
+}
+
+func NewSecretStore(g *GlobalContext, username NormalizedUsername) SecretStore {
+	if g.SecretStoreAll != nil {
+		return SecretStoreImp{username, g.SecretStoreAll}
+	}
+	return nil
+}
+
+func GetConfiguredAccounts(c SecretStoreContext, s SecretStoreAll) ([]keybase1.ConfiguredAccount, error) {
 	currentUsername, otherUsernames, err := c.GetAllUserNames()
 	if err != nil {
 		return nil, err
@@ -40,8 +66,10 @@ func GetConfiguredAccounts(c SecretStoreContext) ([]keybase1.ConfiguredAccount, 
 			Username: username.String(),
 		}
 	}
-
-	storedSecretUsernames, err := GetUsersWithStoredSecrets(c)
+	var storedSecretUsernames []string
+	if s != nil {
+		storedSecretUsernames, err = s.GetUsersWithStoredSecrets()
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -64,9 +92,8 @@ func GetConfiguredAccounts(c SecretStoreContext) ([]keybase1.ConfiguredAccount, 
 }
 
 func ClearStoredSecret(g *GlobalContext, username NormalizedUsername) error {
-	secretStore := NewSecretStore(g, username)
-	if secretStore == nil {
+	if g.SecretStoreAll == nil {
 		return nil
 	}
-	return secretStore.ClearSecret()
+	return g.SecretStoreAll.ClearSecret(username)
 }
