@@ -1,7 +1,7 @@
 // @flow
 
 import React, {Component} from 'react'
-import {globalStyles, globalColorsDZ2} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props} from './user-card'
 import Avatar from './avatar'
 
@@ -23,7 +23,7 @@ const styles = {
     alignItems: 'center',
     width: 410,
     height: 375,
-    backgroundColor: globalColorsDZ2.white
+    backgroundColor: globalColors.white
   },
   avatar: {
     marginTop: -110 / 2
