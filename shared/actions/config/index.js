@@ -67,9 +67,12 @@ export function bootstrap (): AsyncAction {
         dispatch(bootstrap())
       })
     } else {
-      Promise.all([dispatch(getCurrentStatus()), dispatch(getExtendedStatus()), dispatch(getConfig())]).then(() => {
-        dispatch(navBasedOnLoginState())
-      })
+      Promise.all(
+        [dispatch(getCurrentStatus()), dispatch(getExtendedStatus()), dispatch(getConfig())]).then(() => {
+          dispatch(navBasedOnLoginState())
+        }).catch(error => {
+          console.error('Error bootstrapping: ', error)
+        })
     }
   }
 }
