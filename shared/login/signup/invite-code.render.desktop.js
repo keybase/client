@@ -18,11 +18,11 @@ export default class Render extends Component {
     }
     return (
       <Container onBack={this.props.onBack} style={styles.container}>
-        <Text style={{paddingTop: 15}} type='Header'>Type in your invite code:</Text>
-        <Icon style={{paddingTop: 50}} type='invite-code'/>
-        <Input style={{alignSelf: 'stretch', paddingTop: 20, paddingBottom: 60, height: 50}} ref={r => (inviteRef = r)} floatingLabelText='Invite Code' value={this.props.inviteCode || ''} errorText={this.props.inviteCodeErrorText} onEnterKeyDown={submitInviteCode}/>
-        <Button style={{alignSelf: 'flex-end'}} type='Primary' label='Continue' onClick={submitInviteCode}/>
-        <Text type='Body'>Not invited?</Text>
+        <Text style={{marginTop: 30}} type='Header'>Type in your invite code:</Text>
+        <Icon style={{marginTop: 80}} type='invite-code'/>
+        <Input style={{marginTop: 40, alignSelf: 'stretch', height: 50}} ref={r => (inviteRef = r)} floatingLabelText='goddess brown result reject' value={this.props.inviteCode || ''} errorText={this.props.inviteCodeErrorText} onEnterKeyDown={submitInviteCode}/>
+        <Button style={{marginTop: 40, marginRight: 0, alignSelf: 'flex-end'}} type='Primary' label='Continue' onClick={submitInviteCode}/>
+        <Text style={{marginTop: 40}} type='Body'>Not invited?</Text>
         <Text type='Body'>Request an invite code</Text>
       </Container>
     )
@@ -32,9 +32,7 @@ export default class Render extends Component {
 const styles = {
   container: {
     ...globalStyles.flexBoxColumn,
-    justifyContent: 'space-around',
-    alignItems: 'center',
-    flex: 1
+    alignItems: 'center'
   },
   continue: {
     justifyContent: 'flex-end'
