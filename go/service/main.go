@@ -181,16 +181,13 @@ func (d *Service) Run() (err error) {
 	// If daemon and they were logged in before, then try logging in
 	// automatically.
 	if d.isDaemon {
-		if d.G().Env.GetConfig().GetLoggedIn() {
+		in := d.G().Env.GetConfig().GetLoggedIn()
+		if in {
 			un := d.G().Env.GetUsername()
-			d.G().Log.Debug("autologin: user %q was previously logged in, trying autologin", un)
+			d.G().Log.Debug("user %q was previously logged in, trying autologin", un)
 			if err := d.G().LoginState().LoginWithStoredSecret(un.String(), nil); err != nil {
-				d.G().Log.Debug("autologin: %q failed: %s", un, err)
-			} else {
-				d.G().Log.Debug("autologin: success")
+				d.G().Log.Debug("autologin %q failed: %s", un, err)
 			}
-		} else {
-			d.G().Log.Debug("autologin: logged_in config flag not set, skipping autologin")
 		}
 	}
 

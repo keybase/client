@@ -150,8 +150,6 @@ func (g *GlobalContext) Logout() error {
 	g.TrackCache = NewTrackCache()
 	g.Identify2Cache = NewIdentify2Cache(g.Env.GetUserCacheMaxAge())
 
-	g.Env.GetConfigWriter().SetLoggedIn(false)
-
 	// get a clean LoginState:
 	g.createLoginStateLocked()
 
