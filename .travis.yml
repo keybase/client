@@ -15,8 +15,6 @@ before_install:
       chmod +x docker-compose;
       sudo mv docker-compose /usr/local/bin;
       docker login -e $CI_EMAIL -u $CI_USER -p $CI_PASS $CI_HOST;
-      docker pull $CI_HOST/kbweb && docker tag $CI_HOST/kbweb kbweb;
-      docker pull $CI_HOST/kbclient && docker tag $CI_HOST/kbclient kbclient;
     fi
 script:
   - export GO15VENDOREXPERIMENT=1
