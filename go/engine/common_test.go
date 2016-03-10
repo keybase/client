@@ -236,7 +236,9 @@ func Logout(tc libkb.TestContext) {
 // testEngineWithSecretStore takes a given engine-running function and
 // makes sure that it works with the secret store, i.e. that it stores
 // data into it when told to and reads data out from it.
-func testEngineWithSecretStore(t *testing.T, runEngine func(libkb.TestContext, *FakeUser, libkb.SecretUI)) {
+func testEngineWithSecretStore(
+	t *testing.T,
+	runEngine func(libkb.TestContext, *FakeUser, libkb.SecretUI)) {
 	// TODO: Get this working on non-OS X platforms (by mocking
 	// out the SecretStore).
 	if !libkb.HasSecretStore() {
@@ -246,12 +248,9 @@ func testEngineWithSecretStore(t *testing.T, runEngine func(libkb.TestContext, *
 	tc := SetupEngineTest(t, "wss")
 	defer tc.Cleanup()
 
-	t.Logf("testEngineWithSecretStore: creating fake user")
 	fu := CreateAndSignupFakeUser(tc, "wss")
-	t.Logf("testEngineWithSecretStore: clearing login state secret caches after signup")
-	tc.ClearLoginStateSecretCaches()
+	tc.ResetLoginState()
 
-	t.Logf("testEngineWithSecretStore: running engine first time, storing secret")
 	testSecretUI := libkb.TestSecretUI{
 		Passphrase:  fu.Passphrase,
 		StoreSecret: true,
@@ -262,10 +261,8 @@ func testEngineWithSecretStore(t *testing.T, runEngine func(libkb.TestContext, *
 		t.Fatal("GetPassphrase() unexpectedly not called")
 	}
 
-	t.Logf("testEngineWithSecretStore: clearing login state secret caches after first engine run")
-	tc.ClearLoginStateSecretCaches()
+	tc.ResetLoginState()
 
-	t.Logf("testEngineWithSecretStore: running engine second time, using stored secret")
 	testSecretUI = libkb.TestSecretUI{}
 	runEngine(tc, fu, &testSecretUI)
 

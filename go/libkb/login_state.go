@@ -974,6 +974,11 @@ func (s *LoginState) LoginSession(h func(*LoginSession), name string) error {
 func (s *LoginState) SecretSyncer(h func(*SecretSyncer), name string) error {
 	var err error
 	aerr := s.Account(func(a *Account) {
+		// SecretSyncer needs session loaded:
+		err = a.localSession.Load()
+		if err != nil {
+			return
+		}
 		h(a.SecretSyncer())
 	}, name)
 	if aerr != nil {

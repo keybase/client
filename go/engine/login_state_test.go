@@ -135,14 +135,14 @@ func TestLoginWhileAlreadyLoggedIn(t *testing.T) {
 
 // Test that login works while already logged in and after a login
 // state reset.
-func TestLoginAfterClearLoginStateSecretCaches(t *testing.T) {
+func TestLoginAfterLoginStateReset(t *testing.T) {
 	tc := SetupEngineTest(t, "login while already logged in")
 	defer tc.Cleanup()
 
 	// Logs the user in.
 	_ = CreateAndSignupFakeUser(tc, "li")
 
-	tc.ClearLoginStateSecretCaches()
+	tc.ResetLoginState()
 
 	if err := tc.G.LoginState().LoginWithPrompt("", nil, nil, nil); err != nil {
 		t.Error(err)

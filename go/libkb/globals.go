@@ -134,6 +134,11 @@ func (g *GlobalContext) LoginState() *LoginState {
 	return g.loginState
 }
 
+// ResetLoginState is mainly used for testing...
+func (g *GlobalContext) ResetLoginState() {
+	g.createLoginStateLocked()
+}
+
 func (g *GlobalContext) Logout() error {
 	g.loginStateMu.Lock()
 	defer g.loginStateMu.Unlock()
