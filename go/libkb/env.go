@@ -116,7 +116,6 @@ func (n NullConfiguration) GetNullAtPath(string) bool {
 func (n NullConfiguration) GetSecurityAccessGroupOverride() (bool, bool) {
 	return false, false
 }
-func (n NullConfiguration) GetLoggedIn() bool { return false }
 
 type TestParameters struct {
 	ConfigFilename string
