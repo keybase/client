@@ -1347,7 +1347,7 @@ func TestFsync(t *testing.T) {
 
 }
 
-func TestReaddirPrivateDeleteFavorite(t *testing.T) {
+func TestReaddirPrivateDeleteAndReaddFavorite(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "janedoe")
 	defer libkbfs.CheckConfigAndShutdown(t, config)
 	mnt, _, cancelFn := makeFS(t, config)
@@ -1375,6 +1375,15 @@ func TestReaddirPrivateDeleteFavorite(t *testing.T) {
 
 	checkDir(t, filepath.Join(mnt.Dir, PrivateName), map[string]fileInfoCheck{
 		"jdoe": mustBeDir, // default home directory
+	})
+
+	// Re-add the favorite by doing a readdir
+	checkDir(t, path.Join(mnt.Dir, PrivateName, "janedoe,jdoe"),
+		map[string]fileInfoCheck{})
+
+	checkDir(t, path.Join(mnt.Dir, PrivateName), map[string]fileInfoCheck{
+		"janedoe,jdoe": mustBeDir,
+		"jdoe":         mustBeDir, // default home directory
 	})
 }
 
