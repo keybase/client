@@ -6,7 +6,7 @@ install: true
 services:
   - docker
 before_install:
-  - if [ $TRAVIS_BRANCH == 'master' ] && [ $TRAVIS_PULL_REQUEST == 'false' ]; then
+  - if [ $TRAVIS_BRANCH == 'master' ]; then
       export DEBIAN_FRONTEND=noninteractive;
       sudo apt-get update;
       sudo apt-get install -q -y --force-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" docker-engine;
@@ -37,7 +37,7 @@ script:
   - cd ../test
   - go test -i && go test
   - go test -c -tags fuse
-  - if [ $TRAVIS_BRANCH == 'master' ]; then # && [ $TRAVIS_PULL_REQUEST == 'false' ]; then
+  - if [ $TRAVIS_BRANCH == 'master' ]; then
       cd ../kbfsdocker && go test -i -tags docker && go test -c -tags docker && ./kbfsdocker.test -test.v -test.timeout 6m;
     else
       echo "Not pushing to Docker, because this isn't a push to master.";
