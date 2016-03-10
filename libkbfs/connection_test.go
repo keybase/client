@@ -41,8 +41,8 @@ func (ut *unitTester) OnDisconnected(context.Context, DisconnectStatus) {
 	ut.numDisconnects++
 }
 
-// ShouldThrottle implements the ConnectionHandler interface.
-func (ut *unitTester) ShouldThrottle(err error) bool {
+// ShouldRetry implements the ConnectionHandler interface.
+func (ut *unitTester) ShouldRetry(name string, err error) bool {
 	_, isThrottle := err.(throttleError)
 	return isThrottle
 }
@@ -127,7 +127,7 @@ func TestReconnectCanceled(t *testing.T) {
 	conn := newConnectionWithTransport(config, unitTester, unitTester, libkb.ErrorUnwrapper{}, true)
 	defer conn.Shutdown()
 	// Test that any command fails with the expected error.
-	err := conn.DoCommand(context.Background(),
+	err := conn.DoCommand(context.Background(), "test",
 		func(rpc.GenericClient) error { return nil })
 	if err != cancelErr {
 		t.Fatalf("Error wasn't InputCanceled: %v", err)
@@ -193,7 +193,7 @@ func TestDoCommandThrottle(t *testing.T) {
 
 	throttle := true
 	ctx := context.Background()
-	err := conn.DoCommand(ctx, func(rpc.GenericClient) error {
+	err := conn.DoCommand(ctx, "test", func(rpc.GenericClient) error {
 		if throttle {
 			throttle = false
 			err, _ := conn.errorUnwrapper.UnwrapError(libkb.WrapError(throttleError{Err: throttleErr}))
