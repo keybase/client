@@ -35,6 +35,7 @@ func (e *loginProvisionedDevice) Prereqs() Prereqs {
 // RequiredUIs returns the required UIs.
 func (e *loginProvisionedDevice) RequiredUIs() []libkb.UIKind {
 	return []libkb.UIKind{
+		libkb.LoginUIKind,
 		libkb.SecretUIKind,
 	}
 }
