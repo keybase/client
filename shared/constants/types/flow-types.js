@@ -1964,18 +1964,6 @@ export type login_clearStoredSecret_rpc = {
   callback: (null | (err: ?any) => void)
 }
 
-export type login_commandLineLoginWithPassphrase_result = void
-
-export type login_commandLineLoginWithPassphrase_rpc = {
-  method: 'login.commandLineLoginWithPassphrase',
-  param: {
-    username: string,
-    passphrase: string
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
 export type login_deprovision_result = void
 
 export type login_deprovision_rpc = {
@@ -3294,7 +3282,6 @@ export type rpc =
   | loginUi_getEmailOrUsername_rpc
   | loginUi_promptRevokePaperKeys_rpc
   | login_clearStoredSecret_rpc
-  | login_commandLineLoginWithPassphrase_rpc
   | login_deprovision_rpc
   | login_getConfiguredAccounts_rpc
   | login_login_rpc
@@ -4147,17 +4134,6 @@ export type incomingCallMapType = {
   'keybase.1.login.unlockWithPassphrase'?: (
     params: {
       sessionID: int,
-      passphrase: string
-    },
-    response: {
-      error: (err: RPCError) => void,
-      result: () => void
-    }
-  ) => void,
-  'keybase.1.login.commandLineLoginWithPassphrase'?: (
-    params: {
-      sessionID: int,
-      username: string,
       passphrase: string
     },
     response: {

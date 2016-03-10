@@ -56,12 +56,6 @@ type UnlockWithPassphraseArg struct {
 	Passphrase string `codec:"passphrase" json:"passphrase"`
 }
 
-type CommandLineLoginWithPassphraseArg struct {
-	SessionID  int    `codec:"sessionID" json:"sessionID"`
-	Username   string `codec:"username" json:"username"`
-	Passphrase string `codec:"passphrase" json:"passphrase"`
-}
-
 type LoginInterface interface {
 	GetConfiguredAccounts(context.Context, int) ([]ConfiguredAccount, error)
 	Login(context.Context, LoginArg) error
@@ -72,7 +66,6 @@ type LoginInterface interface {
 	PaperKey(context.Context, int) error
 	Unlock(context.Context, int) error
 	UnlockWithPassphrase(context.Context, UnlockWithPassphraseArg) error
-	CommandLineLoginWithPassphrase(context.Context, CommandLineLoginWithPassphraseArg) error
 }
 
 func LoginProtocol(i LoginInterface) rpc.Protocol {
@@ -223,22 +216,6 @@ func LoginProtocol(i LoginInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"commandLineLoginWithPassphrase": {
-				MakeArg: func() interface{} {
-					ret := make([]CommandLineLoginWithPassphraseArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]CommandLineLoginWithPassphraseArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]CommandLineLoginWithPassphraseArg)(nil), args)
-						return
-					}
-					err = i.CommandLineLoginWithPassphrase(ctx, (*typedArgs)[0])
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
 		},
 	}
 }
@@ -294,10 +271,5 @@ func (c LoginClient) Unlock(ctx context.Context, sessionID int) (err error) {
 
 func (c LoginClient) UnlockWithPassphrase(ctx context.Context, __arg UnlockWithPassphraseArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.login.unlockWithPassphrase", []interface{}{__arg}, nil)
-	return
-}
-
-func (c LoginClient) CommandLineLoginWithPassphrase(ctx context.Context, __arg CommandLineLoginWithPassphraseArg) (err error) {
-	err = c.Cli.Call(ctx, "keybase.1.login.commandLineLoginWithPassphrase", []interface{}{__arg}, nil)
 	return
 }
