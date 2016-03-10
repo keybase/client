@@ -14,10 +14,11 @@ import (
 // safe by forwarding requests to individual per-folder-branch
 // handlers that are go-routine-safe.
 type KBFSOpsStandard struct {
-	config  Config
-	log     logger.Logger
-	ops     map[FolderBranch]*folderBranchOps
-	opsLock sync.RWMutex
+	config   Config
+	log      logger.Logger
+	ops      map[FolderBranch]*folderBranchOps
+	opsByFav map[Favorite]*folderBranchOps
+	opsLock  sync.RWMutex
 	// reIdentifyControlChan controls reidentification.
 	// Sending a value to this channel forces all fbos
 	// to be marked for revalidation.
@@ -34,9 +35,10 @@ var _ KBFSOps = (*KBFSOpsStandard)(nil)
 func NewKBFSOpsStandard(config Config) *KBFSOpsStandard {
 	log := config.MakeLogger("")
 	kops := &KBFSOpsStandard{
-		config: config,
-		log:    log,
-		ops:    make(map[FolderBranch]*folderBranchOps),
+		config:                config,
+		log:                   log,
+		ops:                   make(map[FolderBranch]*folderBranchOps),
+		opsByFav:              make(map[Favorite]*folderBranchOps),
 		reIdentifyControlChan: make(chan struct{}),
 		favs: NewFavorites(config),
 	}
@@ -120,8 +122,19 @@ func (fs *KBFSOpsStandard) DeleteFavorite(ctx context.Context,
 	_, _, err := kbpki.GetCurrentUserInfo(ctx)
 	isLoggedIn := err == nil
 
+	// Let this ops remove itself, if we have one available.
+	fav := Favorite{name, public}
+	ops := func() *folderBranchOps {
+		fs.opsLock.Lock()
+		defer fs.opsLock.Unlock()
+		return fs.opsByFav[fav]
+	}()
+	if ops != nil {
+		return ops.removeFromFavorites(ctx, fs.favs)
+	}
+
 	if isLoggedIn {
-		err := fs.favs.Delete(ctx, Favorite{name, public})
+		err := fs.favs.Delete(ctx, fav)
 		if err != nil {
 			return err
 		}
@@ -170,6 +183,18 @@ func (fs *KBFSOpsStandard) getOpsByNode(ctx context.Context,
 	return fs.getOps(ctx, node.GetFolderBranch())
 }
 
+func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context,
+	handle *TlfHandle, fb FolderBranch) *folderBranchOps {
+	ops := fs.getOps(ctx, fb)
+	fs.opsLock.Lock()
+	defer fs.opsLock.Unlock()
+	// Track under its name, so we can later tell it to remove itself
+	// from the favorites list.  TODO: fix this when unresolved
+	// assertions are allowed and become resolved.
+	fs.opsByFav[handle.ToFavorite(ctx, fs.config)] = ops
+	return ops
+}
+
 // GetOrCreateRootNode implements the KBFSOps interface for
 // KBFSOpsStandard
 func (fs *KBFSOpsStandard) GetOrCreateRootNode(
@@ -203,7 +228,7 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNode(
 	}
 
 	fb := FolderBranch{Tlf: md.ID, Branch: branch}
-	ops := fs.getOps(ctx, fb)
+	ops := fs.getOpsByHandle(ctx, h, fb)
 	if branch == MasterBranch {
 		// For now, only the master branch can be initialized with a
 		// branch new MD object.
