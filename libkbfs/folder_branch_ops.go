@@ -437,7 +437,7 @@ func (fbo *folderBranchOps) addToFavorites(ctx context.Context,
 	return nil
 }
 
-func (fbo *folderBranchOps) removeFromFavorites(ctx context.Context,
+func (fbo *folderBranchOps) deleteFromFavorites(ctx context.Context,
 	favorites *Favorites) error {
 	if _, _, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx); err != nil {
 		// Can't favorite while not logged in

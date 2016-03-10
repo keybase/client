@@ -130,7 +130,7 @@ func (fs *KBFSOpsStandard) DeleteFavorite(ctx context.Context,
 		return fs.opsByFav[fav]
 	}()
 	if ops != nil {
-		return ops.removeFromFavorites(ctx, fs.favs)
+		return ops.deleteFromFavorites(ctx, fs.favs)
 	}
 
 	if isLoggedIn {
