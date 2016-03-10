@@ -17,7 +17,7 @@ export function logUiLog ({text, level}: {text: KBText, level: LogLevel}, respon
 
 var initialized = false
 export function listenForNotifications (): (dispatch: Dispatch) => void {
-  return dispatch => {
+  return (dispatch, getState) => {
     if (initialized) {
       return
     }
@@ -28,7 +28,7 @@ export function listenForNotifications (): (dispatch: Dispatch) => void {
       kbfs: true
     })
 
-    const listeners: incomingCallMapType = ListenerCreator(dispatch, NotifyPopup)
+    const listeners: incomingCallMapType = ListenerCreator(dispatch, getState, NotifyPopup)
     engine.listenGeneralIncomingRpc(listeners)
     initialized = true
   }

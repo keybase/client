@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import {cancelLogin, relogin} from '../../actions/login'
+import {relogin} from '../../actions/login'
 import {navigateTo} from '../../actions/router'
 import Render from './index.render'
 
@@ -42,7 +42,6 @@ export default connect(
   dispatch => {
     return {
       onLogin: (user, passphrase, store) => dispatch(relogin(user, passphrase, store)),
-      onBack: () => dispatch(cancelLogin()),
       onSignup: () => dispatch(navigateTo(['signup']))
     }
   }

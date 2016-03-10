@@ -18,7 +18,7 @@ const Row = ({deviceID, name, type, onSelect}) => {
   }
 
   return (
-    <div style={styles.row} onClick={onClick}>
+    <div style={styles.row} onClick={onClick} key={deviceID}>
       <div style={styles.iconContainer}>
         <Icon style={styles.icon} type={iconType}/>
       </div>

@@ -8,7 +8,6 @@ import {connect} from 'react-redux'
 import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
         codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer} from '../../../constants/login'
 import Render from './index.render'
-import {cancelLogin} from '../../../actions/login'
 
 class CodePage extends Component {
   constructor (props) {
@@ -59,7 +58,5 @@ CodePage.propTypes = {
 }
 
 export default connect(
-  (state, ownProps) => ownProps.mapStateToProps(state),
-  dispatch => ({
-    onBack: () => dispatch(cancelLogin())
-  }))(CodePage)
+  (state, ownProps) => ownProps.mapStateToProps(state)
+)(CodePage)
