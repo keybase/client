@@ -580,7 +580,20 @@
       "response": "UpdateAppInUseRes"
     },
     "updateQuit": {
-      "request": [],
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "update",
+          "type": "Update"
+        },
+        {
+          "name": "status",
+          "type": "Status"
+        }
+      ],
       "response": "UpdateQuitRes"
     }
   }

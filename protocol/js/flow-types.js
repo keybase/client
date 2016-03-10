@@ -3067,7 +3067,10 @@ export type updateUi_updateQuit_result = UpdateQuitRes
 
 export type updateUi_updateQuit_rpc = {
   method: 'updateUi.updateQuit',
-  param: {},
+  param: {
+    update: Update,
+    status: Status
+  },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any, response: updateUi_updateQuit_result) => void)
 }
@@ -5156,7 +5159,11 @@ export type incomingCallMapType = {
     }
   ) => void,
   'keybase.1.updateUi.updateQuit'?: (
-    params: {},
+    params: {
+      sessionID: int,
+      update: Update,
+      status: Status
+    },
     response: {
       error: (err: RPCError) => void,
       result: (result: updateUi_updateQuit_result) => void
