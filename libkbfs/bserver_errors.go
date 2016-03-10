@@ -278,6 +278,12 @@ func (eu bServerErrorUnwrapper) UnwrapError(arg interface{}) (appError error, di
 	case StatusCodeBServerErrorThrottle:
 		appError = BServerErrorThrottle{Msg: s.Desc}
 		break
+	case StatusCodeBServerErrorBlockDeleted:
+		appError = BServerErrorBlockDeleted{Msg: s.Desc}
+		break
+	case StatusCodeBServerErrorNonceNonExistent:
+		appError = BServerErrorNonceNonExistent{Msg: s.Desc}
+		break
 	default:
 		ase := libkb.AppStatusError{
 			Code:   s.Code,
