@@ -73,9 +73,9 @@ if (__DEV__) {
 }
 
 export default function (state: Object = {}, action: any): State {
-  // Reset our state if we logout
+  // Reset most of out state if we logout
   if (action.type === logoutDone) {
-    state = {}
+    state = {tracker: state.tracker, pinentry: state.pinentry, update: state.update}
   }
   return reducer(state, action)
 }
