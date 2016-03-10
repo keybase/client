@@ -395,7 +395,7 @@ func (k kbdaemonBrokenIdentify) Identify(ctx context.Context, assertion,
 }
 
 // Regression test for KBFS-772 on OSX.  (There's a bug where ls only
-// respectes errors from Open, not from ReadDirAll.)
+// respects errors from Open, not from ReadDirAll.)
 func TestReaddirPublicFailedIdentifyViaOSCall(t *testing.T) {
 	config1 := libkbfs.MakeTestConfigOrBust(t, "u1", "u2")
 	defer libkbfs.CheckConfigAndShutdown(t, config1)
@@ -1732,6 +1732,21 @@ func TestReaddirMissingOtherFolderAsReader(t *testing.T) {
 	// Check that folder that doesn't exist yet looks empty
 	checkDir(t, path.Join(mnt.Dir, PrivateName, "jdoe#wsmith"),
 		map[string]fileInfoCheck{})
+}
+
+func TestLookupMissingOtherFolderAsReader(t *testing.T) {
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe", "wsmith")
+	defer config.Shutdown()
+	c2 := libkbfs.ConfigAsUser(config, "wsmith")
+	defer c2.Shutdown()
+	mnt, _, cancelFn := makeFS(t, c2)
+	defer mnt.Close()
+	defer cancelFn()
+
+	p := path.Join(mnt.Dir, PrivateName, "jdoe#wsmith", "foo")
+	if _, err := os.Stat(p); !os.IsNotExist(err) {
+		t.Errorf("Expected ENOENT, but got: %v", err)
+	}
 }
 
 func TestStatOtherFolder(t *testing.T) {
