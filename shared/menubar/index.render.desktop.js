@@ -162,6 +162,7 @@ const FolderEntryRow = props => {
       <Input
         ref={input => (inputRef = input)}
         small
+        hintStyle={styles.dz1InputHint}
         hintText='user1,user2,etc'
         onEnterKeyDown={() => openFolder()}
         style={{width: '100%', marginLeft: entry.prefix ? 2 : 0, textAlign: 'left'}} />
@@ -409,6 +410,12 @@ const styles = {
     position: 'absolute',
     right: 0,
     top: 5
+  },
+  dz1InputHint: {
+    color: globalColors.black,
+    // This is because normal <Input/> does center-aligned hints by using
+    // width: 100% on position: absolute
+    width: ''
   }
 }
 

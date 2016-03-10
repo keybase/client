@@ -10,20 +10,30 @@ import type {Props} from './invite-code.render'
 export default class Render extends Component {
   props: Props;
 
-  render () {
-    let inviteRef = null
-    const submitInviteCode = () => {
-      const inviteCode = inviteRef && inviteRef.getValue() || ''
-      this.props.onInviteCodeSubmit(inviteCode)
+  state: {
+    inviteCode: ?string
+  };
+
+  constructor (props: Props) {
+    super(props)
+    this.state = {
+      inviteCode: ''
     }
+  }
+
+  render () {
+    const submitInviteCode = () => {
+      this.props.onInviteCodeSubmit(this.state.inviteCode)
+    }
+
     return (
       <Container onBack={this.props.onBack} style={styles.container}>
         <Text style={{marginTop: 30}} type='Header'>Type in your invite code:</Text>
         <Icon style={{marginTop: 80}} type='invite-code'/>
-        <Input style={{marginTop: 40, alignSelf: 'stretch', height: 50}} ref={r => (inviteRef = r)} floatingLabelText='goddess brown result reject' value={this.props.inviteCode || ''} errorText={this.props.inviteCodeErrorText} onEnterKeyDown={submitInviteCode}/>
-        <Button style={{marginTop: 40, marginRight: 0, alignSelf: 'flex-end'}} type='Primary' label='Continue' onClick={submitInviteCode}/>
+        <Input style={{marginTop: 40, alignSelf: 'stretch', height: 50}} hintText='goddess brown result reject' value={this.props.inviteCode || ''} errorText={this.props.inviteCodeErrorText} onEnterKeyDown={submitInviteCode} onChange={event => this.setState({inviteCode: event.target.value})}/>
+        <Button style={{marginTop: 40, marginRight: 0, alignSelf: 'flex-end'}} type='Primary' label='Continue' onClick={submitInviteCode} disabled={!this.state.inviteCode}/>
         <Text style={{marginTop: 40}} type='Body'>Not invited?</Text>
-        <Text type='Body'>Request an invite code</Text>
+        <Text type='BodyPrimaryLink' oncCick={this.props.onRequestInvite}>Request an invite code</Text>
       </Container>
     )
   }
