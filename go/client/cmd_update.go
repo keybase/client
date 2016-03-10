@@ -225,9 +225,6 @@ func parseOptions(ctx *cli.Context, options *keybase1.UpdateOptions) error {
 	options.Force = ctx.Bool("force")
 	options.SignaturePath = ctx.String("signature")
 
-	if options.DestinationPath == "" {
-		return fmt.Errorf("No default destination path for this environment")
-	}
 	return nil
 }
 
