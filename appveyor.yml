@@ -56,3 +56,8 @@ build_script:
 
 # to run your custom scripts instead of automatic tests
 test_script:
+
+# only run on pull requests and pushes to master
+branches:
+    only:
+        - master
