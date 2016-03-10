@@ -167,7 +167,7 @@ func NewCmdUpdateRunLocal(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 		Name:         "client",
 		Flags:        optionFlags(defaultOptions),
 		ArgumentHelp: "",
-		Usage:        "Run update client",
+		Usage:        "Run update with custom options from the client",
 		Action: func(c *cli.Context) {
 			cl.SetLogForward(libcmdline.LogForwardNone)
 			cl.SetForkCmd(libcmdline.NoFork)
@@ -195,6 +195,10 @@ func (v *CmdUpdateRunLocal) ParseArgv(ctx *cli.Context) error {
 }
 
 func (v *CmdUpdateRunLocal) Run() error {
+	if err := checkBrew(); err != nil {
+		return err
+	}
+
 	source, err := engine.NewUpdateSourceFromString(v.G(), v.options.Source)
 	if err != nil {
 		return err
@@ -232,25 +236,25 @@ func optionFlags(defaultOptions keybase1.UpdateOptions) []cli.Flag {
 	return []cli.Flag{
 		cli.StringFlag{
 			Name:  "e, current-version",
-			Usage: fmt.Sprintf("Current version. Default is %q.", defaultOptions.Version),
+			Usage: fmt.Sprintf("Current version, default is %q", defaultOptions.Version),
 		},
 		cli.StringFlag{
 			Name:  "d, destination-path",
-			Usage: fmt.Sprintf("Destination of where to apply update. Default is %q.", defaultOptions.DestinationPath),
+			Usage: fmt.Sprintf("Destination of where to apply update, default is %q", defaultOptions.DestinationPath),
 		},
 		cli.StringFlag{
 			Name: "s, source",
-			Usage: fmt.Sprintf("Update source (%s). Default is %q.",
+			Usage: fmt.Sprintf("Update source (%s), default is %q",
 				sources.UpdateSourcesDescription(", "),
 				defaultOptions.Source),
 		},
 		cli.StringFlag{
 			Name:  "u, url",
-			Usage: "Custom URL.",
+			Usage: "Custom URL",
 		},
 		cli.BoolFlag{
 			Name:  "f, force",
-			Usage: "Force update.",
+			Usage: "Force update",
 		},
 		cli.StringFlag{
 			Name:  "v, signature",
