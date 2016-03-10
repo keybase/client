@@ -178,7 +178,7 @@ func (c *CmdLogin) ParseArgv(ctx *cli.Context) error {
 		if err != nil {
 			return err
 		}
-		c.stdinPassphrase = strings.Trim(string(stdinBytes), "\t\r\n")
+		c.stdinPassphrase = strings.TrimSpace(string(stdinBytes))
 		if !libkb.CheckPassphraseNew.F(c.stdinPassphrase) {
 			return fmt.Errorf("error with stdin passphrase: %s", libkb.CheckPassphraseNew.Hint)
 		}
