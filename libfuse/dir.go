@@ -751,9 +751,12 @@ func (tlf *TLF) Attr(ctx context.Context, a *fuse.Attr) error {
 
 // Lookup implements the fs.NodeRequestLookuper interface for TLF.
 func (tlf *TLF) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (fs.Node, error) {
-	dir, err := tlf.loadDir(ctx)
+	dir, exitEarly, err := tlf.loadDirAllowNonexistent(ctx)
 	if err != nil {
 		return nil, err
+	}
+	if exitEarly {
+		return nil, fuse.ENOENT
 	}
 	return dir.Lookup(ctx, req, resp)
 }
