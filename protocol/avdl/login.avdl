@@ -51,4 +51,9 @@ protocol login {
   void unlock(int sessionID);
   void unlockWithPassphrase(int sessionID, string passphrase);
 
+  /**
+    This is only meant for usage by `keybase login --stdin`.  Everything else
+    should use the standard login(...) function above.
+    */
+  void commandLineLoginWithPassphrase(int sessionID, string username, string passphrase);
 }

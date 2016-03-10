@@ -5,6 +5,9 @@ package client
 
 import (
 	"errors"
+	"fmt"
+	"io/ioutil"
+	"os"
 	"strings"
 	"time"
 
@@ -30,6 +33,10 @@ func NewCmdLogin(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command
 				Name:  "provision-by-email",
 				Usage: "Use an email address associated with a keybase account to provision a device",
 			},
+			cli.BoolFlag{
+				Name:  "stdin",
+				Usage: "Read a passphrase from stdin instead of a prompt",
+			},
 		},
 	}
 	// Note we'll only be able to set this via mode via Environment variable
@@ -45,11 +52,12 @@ func NewCmdLogin(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command
 
 type CmdLogin struct {
 	libkb.Contextified
-	username   string
-	clientType keybase1.ClientType
-	cancel     func()
-	done       chan struct{}
-	SessionID  int
+	username        string
+	clientType      keybase1.ClientType
+	cancel          func()
+	done            chan struct{}
+	SessionID       int
+	stdinPassphrase string
 }
 
 func NewCmdLoginRunner(g *libkb.GlobalContext) *CmdLogin {
@@ -61,6 +69,13 @@ func NewCmdLoginRunner(g *libkb.GlobalContext) *CmdLogin {
 }
 
 func (c *CmdLogin) Run() error {
+	if len(c.stdinPassphrase) > 0 {
+		return c.runWithPassphrase()
+	}
+	return c.runNormal()
+}
+
+func (c *CmdLogin) runNormal() error {
 	protocols := []rpc.Protocol{
 		NewProvisionUIProtocol(c.G(), libkb.KexRoleProvisionee),
 		NewLoginUIProtocol(c.G()),
@@ -111,6 +126,22 @@ func (c *CmdLogin) Run() error {
 	return err
 }
 
+func (c *CmdLogin) runWithPassphrase() error {
+	c.G().Log.Debug("passphrase specified via stdin")
+
+	client, err := GetLoginClient(c.G())
+	if err != nil {
+		return err
+	}
+
+	arg := keybase1.CommandLineLoginWithPassphraseArg{
+		Username:   c.username,
+		Passphrase: c.stdinPassphrase,
+	}
+
+	return client.CommandLineLoginWithPassphrase(context.TODO(), arg)
+}
+
 func (c *CmdLogin) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
 	if nargs > 1 {
@@ -139,6 +170,17 @@ func (c *CmdLogin) ParseArgv(ctx *cli.Context) error {
 
 		if ctx.Bool("emulate-gui") {
 			c.clientType = keybase1.ClientType_GUI
+		}
+	}
+
+	if ctx.Bool("stdin") {
+		stdinBytes, err := ioutil.ReadAll(os.Stdin)
+		if err != nil {
+			return err
+		}
+		c.stdinPassphrase = strings.TrimSpace(string(stdinBytes))
+		if !libkb.CheckPassphraseNew.F(c.stdinPassphrase) {
+			return fmt.Errorf("error with stdin passphrase: %s", libkb.CheckPassphraseNew.Hint)
 		}
 	}
 	return nil

@@ -108,3 +108,13 @@ func (h *LoginHandler) Login(ctx context.Context, arg keybase1.LoginArg) error {
 	eng := engine.NewLogin(h.G(), arg.DeviceType, arg.UsernameOrEmail, arg.ClientType)
 	return engine.RunEngine(eng, ectx)
 }
+
+func (h *LoginHandler) CommandLineLoginWithPassphrase(ctx context.Context, arg keybase1.CommandLineLoginWithPassphraseArg) error {
+	ectx := &engine.Context{
+		LogUI:      h.getLogUI(arg.SessionID),
+		NetContext: ctx,
+		SessionID:  arg.SessionID,
+	}
+	eng := engine.NewLoginWithPassphrase(h.G(), arg.Username, arg.Passphrase)
+	return engine.RunEngine(eng, ectx)
+}
