@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -20,6 +21,8 @@ type Session struct {
 	Contextified
 	token    string
 	csrf     string
+	inFile   bool
+	loaded   bool
 	deviceID keybase1.DeviceID
 	valid    bool
 	uid      keybase1.UID
@@ -30,6 +33,14 @@ type Session struct {
 
 func newSession(g *GlobalContext) *Session {
 	return &Session{Contextified: Contextified{g}}
+}
+
+// NewSessionThin creates a minimal (thin) session of just the uid and username.
+// Clients of the daemon that use the session protocol need this.
+func NewSessionThin(uid keybase1.UID, username NormalizedUsername, token string) *Session {
+	// XXX should this set valid to true?  daemon won't return a
+	// session unless valid is true, so...
+	return &Session{uid: uid, username: &username, token: token, valid: true}
 }
 
 func (s *Session) IsLoggedIn() bool {
@@ -70,6 +81,10 @@ func (s *Session) GetToken() string {
 	return s.token
 }
 
+func (s *Session) GetCsrf() string {
+	return s.csrf
+}
+
 func (s *Session) APIArgs() (token, csrf string) {
 	return s.token, s.csrf
 }
@@ -83,11 +98,15 @@ func (s *Session) SetLoggedIn(sessionID, csrfToken string, username NormalizedUs
 	s.uid = uid
 	s.username = &username
 	s.token = sessionID
-	s.csrf = csrfToken
+	s.SetCsrf(csrfToken)
 	s.deviceID = deviceID
 	s.mtime = time.Now()
 
 	return nil
+}
+
+func (s *Session) SetCsrf(t string) {
+	s.csrf = t
 }
 
 func (s *Session) SetDeviceProvisioned(devid keybase1.DeviceID) error {
@@ -96,7 +115,25 @@ func (s *Session) SetDeviceProvisioned(devid keybase1.DeviceID) error {
 	return nil
 }
 
-func (s *Session) isRecent() bool {
+func (s *Session) isConfigLoggedIn() bool {
+	reader := s.G().Env.GetConfig()
+	return reader.GetUsername() != "" && reader.GetDeviceID().Exists() && reader.GetUID().Exists()
+}
+
+// The session file can be out of sync with the config file, particularly when
+// switching between the node and go clients.
+func (s *Session) nukeSessionFileIfOutOfSync() error {
+	sessionFile := s.G().Env.GetSessionFilename()
+	// Use stat to check existence.
+	_, statErr := os.Lstat(sessionFile)
+	if statErr == nil && !s.isConfigLoggedIn() {
+		s.G().Log.Warning("Session file found but user is not logged in. Deleting session file.")
+		return os.Remove(sessionFile)
+	}
+	return nil
+}
+
+func (s *Session) IsRecent() bool {
 	if s.mtime.IsZero() {
 		return false
 	}
@@ -105,7 +142,7 @@ func (s *Session) isRecent() bool {
 
 func (s *Session) check() error {
 	s.G().Log.Debug("+ Checking session")
-	if s.isRecent() && s.checked {
+	if s.IsRecent() && s.checked {
 		s.G().Log.Debug("- session is recent, short-circuiting")
 		s.valid = true
 		return nil
@@ -140,7 +177,7 @@ func (s *Session) check() error {
 		s.uid = uid
 		nu := NewNormalizedUsername(username)
 		s.username = &nu
-		s.csrf = csrf
+		s.SetCsrf(csrf)
 	} else {
 		s.G().Log.Notice("Stored session expired")
 		s.Invalidate()
@@ -167,7 +204,12 @@ func (s *Session) HasSessionToken() bool {
 	return len(s.token) > 0
 }
 
+func (s *Session) IsValid() bool {
+	return s.valid
+}
+
 func (s *Session) postLogout() error {
+
 	_, err := s.G().API.Post(APIArg{
 		SessionR:    s,
 		Endpoint:    "logout",
@@ -192,7 +234,7 @@ func (s *Session) loadAndCheck() (bool, error) {
 	if s.HasSessionToken() {
 		err = s.check()
 	}
-	return s.valid, err
+	return s.IsValid(), err
 }
 
 func (s *Session) loadAndCheckProvisioned() (bool, error) {
