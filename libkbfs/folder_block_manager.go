@@ -272,9 +272,10 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context) error 
 			err := bops.Delete(ctx, md, ptr.ID, ptr)
 			// Ignore permanent errors
 			_, isPermErr := err.(BServerError)
+			_, isNonceNonExistentErr := err.(BServerErrorNonceNonExistent)
 			if err != nil {
 				fbm.log.CWarningf(ctx, "Couldn't delete ref %v: %v", ptr, err)
-				if !isPermErr {
+				if !isPermErr && !isNonceNonExistentErr {
 					toDeleteAgain[md] = append(toDeleteAgain[md], ptr)
 				}
 			}
