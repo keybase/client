@@ -4,6 +4,7 @@
 package service
 
 import (
+	"errors"
 	"io"
 	"net"
 	"os"
@@ -195,7 +196,7 @@ func (d *Service) tryAutoLogin() {
 	}
 
 	if !libkb.HasSecretStore() {
-		return
+		return errors.New("no secret store")
 	}
 
 	if !d.G().Env.GetConfig().GetLoggedIn() {
