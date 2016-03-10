@@ -24,7 +24,7 @@ script:
     echo 2>&1 "$lint"
     [ -z "$lint" -o "$lint" = "Lint-free!" ]
   - go vet $(go list ./... 2>/dev/null | grep -v /vendor/)
-  - go build ./...
+  - go install ./...
   - cd libkbfs && go test -i && go test -c && ./libkbfs.test -test.timeout 4m
   - cd ../serverutil && go test -i && go test -c && ./serverutil.test -test.timeout 10s
   - cd ../bserver && go test -i && go test -c && ./bserver.test -test.timeout 4m
