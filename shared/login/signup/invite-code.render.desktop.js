@@ -3,8 +3,8 @@
 
 import React, {Component} from 'react'
 import {globalStyles} from '../../styles/style-guide'
-import {Text, Input, Button} from '../../common-adapters'
-
+import {Text, Input, Button, Icon} from '../../common-adapters'
+import Container from '../forms/container'
 import type {Props} from './invite-code.render'
 
 export default class Render extends Component {
@@ -17,22 +17,26 @@ export default class Render extends Component {
       this.props.onInviteCodeSubmit(inviteCode)
     }
     return (
-      <div style={styles.form}>
-        <Text style={styles.topMargin} type='Header'>Enter your special invite code</Text>
-        <Input ref={r => (inviteRef = r)} hintText='Invite Code' value={this.props.inviteCode || ''} errorText={this.props.inviteCodeErrorText} onEnterKeyDown={submitInviteCode}/>
-        <Button type='Secondary' label='Check' onClick={submitInviteCode}/>
-      </div>
+      <Container onBack={this.props.onBack} style={styles.container}>
+        <Text style={{paddingTop: 15}} type='Header'>Type in your invite code:</Text>
+        <Icon style={{paddingTop: 50}} type='invite-code'/>
+        <Input style={{alignSelf: 'stretch', paddingTop: 20, paddingBottom: 60, height: 50}} ref={r => (inviteRef = r)} floatingLabelText='Invite Code' value={this.props.inviteCode || ''} errorText={this.props.inviteCodeErrorText} onEnterKeyDown={submitInviteCode}/>
+        <Button style={{alignSelf: 'flex-end'}} type='Primary' label='Continue' onClick={submitInviteCode}/>
+        <Text type='Body'>Not invited?</Text>
+        <Text type='Body'>Request an invite code</Text>
+      </Container>
     )
   }
 }
 
 const styles = {
-  form: {
+  container: {
     ...globalStyles.flexBoxColumn,
+    justifyContent: 'space-around',
+    alignItems: 'center',
     flex: 1
   },
-
-  topMargin: {
-    marginTop: 20
+  continue: {
+    justifyContent: 'flex-end'
   }
 }
