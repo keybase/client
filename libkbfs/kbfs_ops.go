@@ -133,7 +133,7 @@ func (fs *KBFSOpsStandard) DeleteFavorite(ctx context.Context,
 	return nil
 }
 
-func (fs *KBFSOpsStandard) getOps(fb FolderBranch) *folderBranchOps {
+func (fs *KBFSOpsStandard) getOpsNoAdd(fb FolderBranch) *folderBranchOps {
 	fs.opsLock.RLock()
 	if ops, ok := fs.ops[fb]; ok {
 		fs.opsLock.RUnlock()
@@ -154,27 +154,20 @@ func (fs *KBFSOpsStandard) getOps(fb FolderBranch) *folderBranchOps {
 	return ops
 }
 
-func (fs *KBFSOpsStandard) getOpsByNode(node Node) *folderBranchOps {
-	return fs.getOps(node.GetFolderBranch())
+func (fs *KBFSOpsStandard) getOps(
+	ctx context.Context, fb FolderBranch) *folderBranchOps {
+	ops := fs.getOpsNoAdd(fb)
+	if err := ops.addToFavorites(ctx, fs.favs); err != nil {
+		// Failure to favorite shouldn't cause a failure.  Just log
+		// and move on.
+		fs.log.CDebugf(ctx, "Couldn't add favorite: %v", err)
+	}
+	return ops
 }
 
-func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context, handle *TlfHandle, fb FolderBranch) (*folderBranchOps, error) {
-	kbpki := fs.config.KBPKI()
-	_, _, err := kbpki.GetCurrentUserInfo(ctx)
-	isLoggedIn := err == nil
-
-	fs.opsLock.RLock()
-	_, exists := fs.ops[fb]
-	fs.opsLock.RUnlock()
-
-	if !exists && isLoggedIn && fb.Branch == MasterBranch {
-		err := fs.favs.Add(ctx, handle.ToFavorite(ctx, fs.config))
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return fs.getOps(fb), nil
+func (fs *KBFSOpsStandard) getOpsByNode(ctx context.Context,
+	node Node) *folderBranchOps {
+	return fs.getOps(ctx, node.GetFolderBranch())
 }
 
 // GetOrCreateRootNode implements the KBFSOps interface for
@@ -210,10 +203,7 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNode(
 	}
 
 	fb := FolderBranch{Tlf: md.ID, Branch: branch}
-	ops, err := fs.getOpsByHandle(ctx, h, fb)
-	if err != nil {
-		return nil, EntryInfo{}, err
-	}
+	ops := fs.getOps(ctx, fb)
 	if branch == MasterBranch {
 		// For now, only the master branch can be initialized with a
 		// branch new MD object.
@@ -234,28 +224,28 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNode(
 // GetDirChildren implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) GetDirChildren(ctx context.Context, dir Node) (
 	map[string]EntryInfo, error) {
-	ops := fs.getOpsByNode(dir)
+	ops := fs.getOpsByNode(ctx, dir)
 	return ops.GetDirChildren(ctx, dir)
 }
 
 // Lookup implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) Lookup(ctx context.Context, dir Node, name string) (
 	Node, EntryInfo, error) {
-	ops := fs.getOpsByNode(dir)
+	ops := fs.getOpsByNode(ctx, dir)
 	return ops.Lookup(ctx, dir, name)
 }
 
 // Stat implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) Stat(ctx context.Context, node Node) (
 	EntryInfo, error) {
-	ops := fs.getOpsByNode(node)
+	ops := fs.getOpsByNode(ctx, node)
 	return ops.Stat(ctx, node)
 }
 
 // CreateDir implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) CreateDir(
 	ctx context.Context, dir Node, name string) (Node, EntryInfo, error) {
-	ops := fs.getOpsByNode(dir)
+	ops := fs.getOpsByNode(ctx, dir)
 	return ops.CreateDir(ctx, dir, name)
 }
 
@@ -263,7 +253,7 @@ func (fs *KBFSOpsStandard) CreateDir(
 func (fs *KBFSOpsStandard) CreateFile(
 	ctx context.Context, dir Node, name string, isExec bool) (
 	Node, EntryInfo, error) {
-	ops := fs.getOpsByNode(dir)
+	ops := fs.getOpsByNode(ctx, dir)
 	return ops.CreateFile(ctx, dir, name, isExec)
 }
 
@@ -271,21 +261,21 @@ func (fs *KBFSOpsStandard) CreateFile(
 func (fs *KBFSOpsStandard) CreateLink(
 	ctx context.Context, dir Node, fromName string, toPath string) (
 	EntryInfo, error) {
-	ops := fs.getOpsByNode(dir)
+	ops := fs.getOpsByNode(ctx, dir)
 	return ops.CreateLink(ctx, dir, fromName, toPath)
 }
 
 // RemoveDir implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) RemoveDir(
 	ctx context.Context, dir Node, name string) error {
-	ops := fs.getOpsByNode(dir)
+	ops := fs.getOpsByNode(ctx, dir)
 	return ops.RemoveDir(ctx, dir, name)
 }
 
 // RemoveEntry implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) RemoveEntry(
 	ctx context.Context, dir Node, name string) error {
-	ops := fs.getOpsByNode(dir)
+	ops := fs.getOpsByNode(ctx, dir)
 	return ops.RemoveEntry(ctx, dir, name)
 }
 
@@ -301,7 +291,7 @@ func (fs *KBFSOpsStandard) Rename(
 		return RenameAcrossDirsError{}
 	}
 
-	ops := fs.getOpsByNode(oldParent)
+	ops := fs.getOpsByNode(ctx, oldParent)
 	return ops.Rename(ctx, oldParent, oldName, newParent, newName)
 }
 
@@ -309,41 +299,41 @@ func (fs *KBFSOpsStandard) Rename(
 func (fs *KBFSOpsStandard) Read(
 	ctx context.Context, file Node, dest []byte, off int64) (
 	numRead int64, err error) {
-	ops := fs.getOpsByNode(file)
+	ops := fs.getOpsByNode(ctx, file)
 	return ops.Read(ctx, file, dest, off)
 }
 
 // Write implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) Write(
 	ctx context.Context, file Node, data []byte, off int64) error {
-	ops := fs.getOpsByNode(file)
+	ops := fs.getOpsByNode(ctx, file)
 	return ops.Write(ctx, file, data, off)
 }
 
 // Truncate implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) Truncate(
 	ctx context.Context, file Node, size uint64) error {
-	ops := fs.getOpsByNode(file)
+	ops := fs.getOpsByNode(ctx, file)
 	return ops.Truncate(ctx, file, size)
 }
 
 // SetEx implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) SetEx(
 	ctx context.Context, file Node, ex bool) error {
-	ops := fs.getOpsByNode(file)
+	ops := fs.getOpsByNode(ctx, file)
 	return ops.SetEx(ctx, file, ex)
 }
 
 // SetMtime implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) SetMtime(
 	ctx context.Context, file Node, mtime *time.Time) error {
-	ops := fs.getOpsByNode(file)
+	ops := fs.getOpsByNode(ctx, file)
 	return ops.SetMtime(ctx, file, mtime)
 }
 
 // Sync implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) Sync(ctx context.Context, file Node) error {
-	ops := fs.getOpsByNode(file)
+	ops := fs.getOpsByNode(ctx, file)
 	return ops.Sync(ctx, file)
 }
 
@@ -351,7 +341,7 @@ func (fs *KBFSOpsStandard) Sync(ctx context.Context, file Node) error {
 func (fs *KBFSOpsStandard) FolderStatus(
 	ctx context.Context, folderBranch FolderBranch) (
 	FolderBranchStatus, <-chan StatusUpdate, error) {
-	ops := fs.getOps(folderBranch)
+	ops := fs.getOps(ctx, folderBranch)
 	return ops.FolderStatus(ctx, folderBranch)
 }
 
@@ -378,28 +368,28 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 // TODO: remove once we have automatic conflict resolution
 func (fs *KBFSOpsStandard) UnstageForTesting(
 	ctx context.Context, folderBranch FolderBranch) error {
-	ops := fs.getOps(folderBranch)
+	ops := fs.getOps(ctx, folderBranch)
 	return ops.UnstageForTesting(ctx, folderBranch)
 }
 
 // Rekey implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) Rekey(ctx context.Context, id TlfID) error {
 	// We currently only support rekeys of master branches.
-	ops := fs.getOps(FolderBranch{Tlf: id, Branch: MasterBranch})
+	ops := fs.getOps(ctx, FolderBranch{Tlf: id, Branch: MasterBranch})
 	return ops.Rekey(ctx, id)
 }
 
 // SyncFromServerForTesting implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) SyncFromServerForTesting(
 	ctx context.Context, folderBranch FolderBranch) error {
-	ops := fs.getOps(folderBranch)
+	ops := fs.getOps(ctx, folderBranch)
 	return ops.SyncFromServerForTesting(ctx, folderBranch)
 }
 
 // GetUpdateHistory implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) GetUpdateHistory(ctx context.Context,
 	folderBranch FolderBranch) (history TLFUpdateHistory, err error) {
-	ops := fs.getOps(folderBranch)
+	ops := fs.getOps(ctx, folderBranch)
 	return ops.GetUpdateHistory(ctx, folderBranch)
 }
 
@@ -411,7 +401,7 @@ func (fs *KBFSOpsStandard) RegisterForChanges(
 	folderBranches []FolderBranch, obs Observer) error {
 	for _, fb := range folderBranches {
 		// TODO: add branch parameter to notifier interface
-		ops := fs.getOps(fb)
+		ops := fs.getOpsNoAdd(fb)
 		return ops.RegisterForChanges(obs)
 	}
 	return nil
@@ -422,7 +412,7 @@ func (fs *KBFSOpsStandard) UnregisterFromChanges(
 	folderBranches []FolderBranch, obs Observer) error {
 	for _, fb := range folderBranches {
 		// TODO: add branch parameter to notifier interface
-		ops := fs.getOps(fb)
+		ops := fs.getOpsNoAdd(fb)
 		return ops.UnregisterFromChanges(obs)
 	}
 	return nil

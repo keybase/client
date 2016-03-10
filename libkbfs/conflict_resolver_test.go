@@ -329,7 +329,7 @@ func testCRGetCROrBust(t *testing.T, config Config,
 	if !ok {
 		t.Fatalf("Unexpected KBFSOps type")
 	}
-	ops := kbfsOpsCast.getOps(fb)
+	ops := kbfsOpsCast.getOpsNoAdd(fb)
 	return ops.cr
 }
 

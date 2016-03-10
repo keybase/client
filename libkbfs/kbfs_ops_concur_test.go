@@ -619,7 +619,7 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 
 	lState := makeFBOLockState()
 
-	fbo := kbfsOps.(*KBFSOpsStandard).getOps(rootNode.GetFolderBranch())
+	fbo := kbfsOps.(*KBFSOpsStandard).getOpsNoAdd(rootNode.GetFolderBranch())
 	if fbo.blocks.GetState(lState) != dirtyState {
 		t.Fatal("Unexpectedly not in dirty state")
 	}
@@ -730,7 +730,7 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 
 	lState := makeFBOLockState()
 
-	fbo := kbfsOps.(*KBFSOpsStandard).getOps(rootNode.GetFolderBranch())
+	fbo := kbfsOps.(*KBFSOpsStandard).getOpsNoAdd(rootNode.GetFolderBranch())
 	if fbo.blocks.GetState(lState) != dirtyState {
 		t.Fatal("Unexpectedly not in dirty state")
 	}
@@ -1201,19 +1201,19 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	c = b.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 		gomock.Any(), gomock.Any()).
 		Do(func(ctx context.Context, id BlockID, tlfID TlfID,
-			context BlockContext, buf []byte,
-			serverHalf BlockCryptKeyServerHalf) {
-			errPtrChan <- context.(BlockPointer)
-		}).After(c).Return(putErr)
+		context BlockContext, buf []byte,
+		serverHalf BlockCryptKeyServerHalf) {
+		errPtrChan <- context.(BlockPointer)
+	}).After(c).Return(putErr)
 	// let the rest through
 	proceedChan := make(chan struct{})
 	b.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), gomock.Any(),
 		gomock.Any(), gomock.Any()).AnyTimes().
 		Do(func(ctx context.Context, id BlockID, tlfID TlfID,
-			context BlockContext, buf []byte,
-			serverHalf BlockCryptKeyServerHalf) {
-			<-proceedChan
-		}).After(c).Return(nil)
+		context BlockContext, buf []byte,
+		serverHalf BlockCryptKeyServerHalf) {
+		<-proceedChan
+	}).After(c).Return(nil)
 	b.EXPECT().Shutdown().AnyTimes()
 
 	var errPtr BlockPointer

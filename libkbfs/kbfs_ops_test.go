@@ -100,6 +100,12 @@ func kbfsOpsInit(t *testing.T, changeMd bool) (mockCtrl *gomock.Controller,
 	config.mockBops.EXPECT().Archive(gomock.Any(), gomock.Any(),
 		gomock.Any()).AnyTimes().Return(nil)
 
+	// Ignore favorites
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).AnyTimes().
+		Return(nil, nil)
+	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), gomock.Any()).
+		AnyTimes().Return(nil)
+
 	// make the context identifiable, to verify that it is passed
 	// correctly to the observer
 	ctx = context.WithValue(context.Background(), tCtxID, rand.Int())
@@ -175,6 +181,9 @@ func TestKBFSOpsGetFavoritesSuccess(t *testing.T) {
 		folders = append(folders, h.ToFavorite(ctx, config).toKBFolder())
 	}
 
+	// Replace the old one (added in init function) and add a new one
+	config.mockKbpki = NewMockKBPKI(mockCtrl)
+	config.SetKBPKI(config.mockKbpki)
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(folders, nil)
 
 	// The favorites list contains our own public dir by default, even
@@ -196,6 +205,11 @@ func TestKBFSOpsGetFavoritesFail(t *testing.T) {
 	defer kbfsTestShutdown(mockCtrl, config)
 
 	err := errors.New("Fake fail")
+
+	// Replace the old one (added in init function)
+	config.mockKbpki = NewMockKBPKI(mockCtrl)
+	config.SetKBPKI(config.mockKbpki)
+
 	// expect one call to favorites, and fail it
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil, err)
 
@@ -220,7 +234,7 @@ func makeID(t *testing.T, config *ConfigMock, public bool) (keybase1.UID, TlfID,
 
 func getOps(config Config, id TlfID) *folderBranchOps {
 	return config.KBFSOps().(*KBFSOpsStandard).
-		getOps(FolderBranch{id, MasterBranch})
+		getOpsNoAdd(FolderBranch{id, MasterBranch})
 }
 
 func makeIDAndRMD(t *testing.T, config *ConfigMock) (
@@ -2420,7 +2434,7 @@ func TestRenameFailAcrossBranches(t *testing.T) {
 	p2 := path{FolderBranch{id1, "test"}, []pathNode{node1, aNode1}}
 	ops1 := getOps(config, id1)
 	n1 := nodeFromPath(t, ops1, p1)
-	ops2 := config.KBFSOps().(*KBFSOpsStandard).getOps(
+	ops2 := config.KBFSOps().(*KBFSOpsStandard).getOpsNoAdd(
 		FolderBranch{id1, "test"})
 	n2 := nodeFromPath(t, ops2, p2)
 

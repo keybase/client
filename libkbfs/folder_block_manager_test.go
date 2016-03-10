@@ -61,7 +61,7 @@ func TestQuotaReclamationSimple(t *testing.T) {
 		t.Fatalf("Couldn't get blocks: %v", err)
 	}
 
-	ops := kbfsOps.(*KBFSOpsStandard).getOpsByNode(rootNode)
+	ops := kbfsOps.(*KBFSOpsStandard).getOpsByNode(ctx, rootNode)
 	ops.fbm.forceQuotaReclamation()
 	err = ops.fbm.waitForQuotaReclamations(ctx)
 	if err != nil {
@@ -143,7 +143,7 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 	clock.T = now.Add(2 * config.QuotaReclamationMinUnrefAge())
 
 	// Run it.
-	ops := kbfsOps.(*KBFSOpsStandard).getOpsByNode(rootNode)
+	ops := kbfsOps.(*KBFSOpsStandard).getOpsByNode(ctx, rootNode)
 	ops.fbm.forceQuotaReclamation()
 	err = ops.fbm.waitForQuotaReclamations(ctx)
 	if err != nil {
@@ -264,7 +264,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	}
 
 	clock.T = now.Add(2 * config1.QuotaReclamationMinUnrefAge())
-	ops1 := kbfsOps1.(*KBFSOpsStandard).getOpsByNode(rootNode1)
+	ops1 := kbfsOps1.(*KBFSOpsStandard).getOpsByNode(ctx, rootNode1)
 	ops1.fbm.forceQuotaReclamation()
 	err = ops1.fbm.waitForQuotaReclamations(ctx)
 	if err != nil {

@@ -485,7 +485,7 @@ func DisableUpdatesForTesting(config Config, folderBranch FolderBranch) (
 		return nil, errors.New("Unexpected KBFSOps type")
 	}
 
-	ops := kbfsOps.getOps(folderBranch)
+	ops := kbfsOps.getOpsNoAdd(folderBranch)
 	c := make(chan struct{})
 	ops.updatePauseChan <- c
 	return c, nil
@@ -499,7 +499,7 @@ func DisableCRForTesting(config Config, folderBranch FolderBranch) error {
 		return errors.New("Unexpected KBFSOps type")
 	}
 
-	ops := kbfsOps.getOps(folderBranch)
+	ops := kbfsOps.getOpsNoAdd(folderBranch)
 	ops.cr.Pause()
 	return nil
 }
@@ -512,7 +512,7 @@ func RestartCRForTesting(config Config, folderBranch FolderBranch) error {
 		return errors.New("Unexpected KBFSOps type")
 	}
 
-	ops := kbfsOps.getOps(folderBranch)
+	ops := kbfsOps.getOpsNoAdd(folderBranch)
 	ops.cr.Restart()
 	// Start a resolution for anything we've missed.
 	if ops.staged {
@@ -531,7 +531,7 @@ func ForceQuotaReclamationForTesting(config Config,
 		return errors.New("Unexpected KBFSOps type")
 	}
 
-	ops := kbfsOps.getOps(folderBranch)
+	ops := kbfsOps.getOpsNoAdd(folderBranch)
 	ops.fbm.forceQuotaReclamation()
 	return nil
 }
