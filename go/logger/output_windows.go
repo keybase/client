@@ -3,10 +3,17 @@
 
 // +build windows
 
+// Windows 10 has a new terminal that can do ANSI codes by itself, so all this
+// other stuff is legacy - EXCEPT that the colors are not right! If they ever
+// get it right, a capable terminal can be identified by
+// calling GetConsoleMode and checking for
+// ENABLE_VIRTUAL_TERMINAL_PROCESSING 0x0004
+
 package logger
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"os"
 	"sync"
@@ -52,44 +59,51 @@ const (
 )
 
 var codesWin = map[byte]WORD{
-	0:  fgWhite | bgBlack,     //	"reset":
-	1:  fgIntensity | fgWhite, //CpBold          = CodePair{1, 22}
-	22: fgWhite,               //	UnBold:        // Just assume this means reset to white fg
-	39: fgWhite,               //	"resetfg":
-	49: fgWhite,               //	"resetbg":        // Just assume this means reset to white fg
-	30: fgBlack,               //	"black":
-	31: fgRed,                 //	"red":
-	32: fgGreen,               //	"green":
-	33: fgYellow,              //	"yellow":
-	34: fgBlue,                //	"blue":
-	35: fgMagenta,             //	"magenta":
-	36: fgCyan,                //	"cyan":
-	37: fgWhite,               //	"white":
-	90: fgWhite,               //	"grey":
-	40: bgBlack,               //	"bgBlack":
-	41: bgRed,                 //	"bgRed":
-	42: bgGreen,               //	"bgGreen":
-	43: bgYellow,              //	"bgYellow":
-	44: bgBlue,                //	"bgBlue":
-	45: bgMagenta,             //	"bgMagenta":
-	46: bgCyan,                //	"bgCyan":
-	47: bgWhite,               //	"bgWhite":
+	0:  fgWhite | bgBlack, //	"reset":
+	1:  fgIntensity,       //CpBold          = CodePair{1, 22}
+	22: fgWhite,           //	UnBold:        // Just assume this means reset to white fg
+	39: fgWhite,           //	"resetfg":
+	49: fgWhite,           //	"resetbg":        // Just assume this means reset to white fg
+	30: fgBlack,           //	"black":
+	31: fgRed,             //	"red":
+	32: fgGreen,           //	"green":
+	33: fgYellow,          //	"yellow":
+	34: fgBlue,            //	"blue":
+	35: fgMagenta,         //	"magenta":
+	36: fgCyan,            //	"cyan":
+	37: fgWhite,           //	"white":
+	90: fgWhite,           //	"grey":
+	40: bgBlack,           //	"bgBlack":
+	41: bgRed,             //	"bgRed":
+	42: bgGreen,           //	"bgGreen":
+	43: bgYellow,          //	"bgYellow":
+	44: bgBlue,            //	"bgBlue":
+	45: bgMagenta,         //	"bgMagenta":
+	46: bgCyan,            //	"bgCyan":
+	47: bgWhite,           //	"bgWhite":
+}
+
+// Return our writer so we can override Write()
+func OutputWriterFromFile(out *os.File) io.Writer {
+	return &ColorWriter{w: out, fd: out.Fd(), mutex: &stdOutMutex, lastFgColor: fgWhite}
 }
 
 // Return our writer so we can override Write()
 func OutputWriter() io.Writer {
-	return &ColorWriter{os.Stdout, os.Stdout.Fd(), &stdOutMutex}
+	return OutputWriterFromFile(os.Stdout)
 }
 
 // Return our writer so we can override Write()
 func ErrorWriter() io.Writer {
-	return &ColorWriter{os.Stderr, os.Stderr.Fd(), &stdErrMutex}
+	return &ColorWriter{w: os.Stderr, fd: os.Stderr.Fd(), mutex: &stdErrMutex, lastFgColor: fgWhite}
 }
 
 type ColorWriter struct {
-	w     io.Writer
-	fd    uintptr
-	mutex *sync.Mutex
+	w           io.Writer
+	fd          uintptr
+	mutex       *sync.Mutex
+	lastFgColor WORD
+	bold        bool
 }
 
 // Fd returns the underlying file descriptor. This is mainly to
@@ -119,36 +133,82 @@ func (cw *ColorWriter) Write(p []byte) (n int, err error) {
 
 	for nextIndex := 0; len(p) > 0; {
 
-		var controlIndex int = -1
 		// search for the next control code
 		nextIndex = bytes.Index(p, ctlStart)
 		if nextIndex == -1 {
 			nextIndex = len(p)
-		} else {
-			controlIndex = nextIndex + 2
 		}
 
 		cw.w.Write(p[0:nextIndex])
+		if nextIndex+2 < len(p) {
+			// Skip past the control code
+			nextIndex += 2
+		}
 
-		if controlIndex != -1 {
+		p = p[nextIndex:]
+
+		if len(p) > 0 {
 			// The control code is written as separate ascii digits. usually 2,
 			// ending with 'm'.
 			// Stop at 4 as a sanity check.
-			controlCode := p[controlIndex] - '0'
-			controlIndex++
-			for i := 0; p[controlIndex] != 'm' && i < 4; i++ {
-				controlCode *= 10
-				controlCode += p[controlIndex] - '0'
-				controlIndex++
+			if '0' <= p[0] && p[0] <= '9' {
+				p = cw.parseColorControl(p)
+			} else {
+				p = cw.parseControlCode(p)
 			}
-			if code, ok := codesWin[controlCode]; ok {
-				setConsoleTextAttribute(cw.fd, code)
-			}
-			nextIndex = controlIndex + 1
 		}
-		p = p[nextIndex:]
+
 	}
 	return totalWritten, nil
+}
+
+func (cw *ColorWriter) parseColorControl(p []byte) []byte {
+
+	var controlIndex int
+	controlCode := p[controlIndex] - '0'
+	controlIndex++
+	for i := 0; controlIndex < len(p) && p[controlIndex] != 'm' && i < 4; i++ {
+		if '0' <= p[controlIndex] && p[controlIndex] <= '9' {
+			controlCode *= 10
+			controlCode += p[controlIndex] - '0'
+		}
+		controlIndex++
+	}
+
+	if code, ok := codesWin[controlCode]; ok {
+		if controlCode == 1 {
+			// intensity
+			cw.bold = true
+		} else if controlCode == 0 || controlCode == 22 || controlCode == 39 {
+			// reset
+			code = fgWhite
+			cw.bold = false
+		}
+		if code >= fgBlue && code <= fgWhite {
+			cw.lastFgColor = code
+		} else {
+			code = cw.lastFgColor
+		}
+		if cw.bold {
+			code = code | fgIntensity
+		}
+		setConsoleTextAttribute(cw.fd, code)
+	}
+	if controlIndex+1 <= len(p) {
+		controlIndex += 1
+	}
+
+	return p[controlIndex:]
+}
+
+// parseControlCode is for absorbing backspaces, which
+// caused junk tocome out on the console, and whichever
+// other control code we're probably unprepared for
+func (cw *ColorWriter) parseControlCode(p []byte) []byte {
+	if p[0] == 'D' {
+		cw.w.Write([]byte(fmt.Sprintf("\b")))
+	}
+	return p[1:]
 }
 
 // setConsoleTextAttribute sets the attributes of characters written to the
