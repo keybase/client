@@ -176,9 +176,9 @@ func (*fsEngine) ReenableUpdates(u User, dir Node) {
 	ioutil.WriteFile(n.path+"/.kbfs_enable_updates", []byte("on"), 0644)
 }
 
-// SyncFromServer is called by the test harness as the given user to actively retrieve new
-// metadata for a folder.
-func (e *fsEngine) SyncFromServer(user User, dir Node) (err error) {
+// SyncFromServerForTesting is called by the test harness as the given
+// user to actively retrieve new metadata for a folder.
+func (e *fsEngine) SyncFromServerForTesting(user User, dir Node) (err error) {
 	u := user.(*fsUser)
 	ctx := context.Background()
 	root, _, err := u.config.KBFSOps().GetOrCreateRootNode(
@@ -187,7 +187,7 @@ func (e *fsEngine) SyncFromServer(user User, dir Node) (err error) {
 		return fmt.Errorf("cannot get root for %s: %v", u.tlf, err)
 	}
 
-	err = u.config.KBFSOps().SyncFromServer(ctx, root.GetFolderBranch())
+	err = u.config.KBFSOps().SyncFromServerForTesting(ctx, root.GetFolderBranch())
 	if err != nil {
 		return fmt.Errorf("Couldn't sync from server: %v", err)
 	}

@@ -46,7 +46,7 @@ func TestQuotaReclamationSimple(t *testing.T) {
 	}
 
 	// Wait for outstanding archives
-	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch())
+	err = kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
@@ -248,7 +248,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	}
 
 	// Wait for outstanding archives
-	err = kbfsOps1.SyncFromServer(ctx, rootNode1.GetFolderBranch())
+	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
@@ -283,7 +283,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	}
 
 	// Sync u2
-	err = kbfsOps2.SyncFromServer(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
@@ -339,7 +339,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	}
 
 	// Wait for outstanding archives
-	err = kbfsOps2.SyncFromServer(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}

@@ -4864,7 +4864,7 @@ func TestKBFSOpsCreateFileWithArchivedBlock(t *testing.T) {
 	}
 
 	// Wait for the archiving to finish
-	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch())
+	err = kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server")
 	}
@@ -4923,7 +4923,7 @@ func TestKBFSOpsMultiBlockSyncWithArchivedBlock(t *testing.T) {
 	}
 
 	// Wait for the archiving to finish
-	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch())
+	err = kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server")
 	}

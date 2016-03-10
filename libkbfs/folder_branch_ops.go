@@ -430,7 +430,7 @@ func (fbo *folderBranchOps) Shutdown() error {
 			fbo.log.CDebugf(ctx, "Skipping state-checking due to being staged")
 		} else {
 			// Make sure we're up to date first
-			if err := fbo.SyncFromServer(ctx, fbo.folderBranch); err != nil {
+			if err := fbo.SyncFromServerForTesting(ctx, fbo.folderBranch); err != nil {
 				return err
 			}
 
@@ -5258,9 +5258,9 @@ func (fbo *folderBranchOps) Rekey(ctx context.Context, tlf TlfID) (err error) {
 		})
 }
 
-func (fbo *folderBranchOps) SyncFromServer(
+func (fbo *folderBranchOps) SyncFromServerForTesting(
 	ctx context.Context, folderBranch FolderBranch) (err error) {
-	fbo.log.CDebugf(ctx, "SyncFromServer")
+	fbo.log.CDebugf(ctx, "SyncFromServerForTesting")
 	defer func() { fbo.log.CDebugf(ctx, "Done: %v", err) }()
 
 	if folderBranch != fbo.folderBranch {

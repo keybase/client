@@ -98,7 +98,7 @@ func TestBasicMDUpdate(t *testing.T) {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
 
-	err = kbfsOps2.SyncFromServer(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
@@ -175,7 +175,7 @@ func testMultipleMDUpdates(t *testing.T, unembedChanges bool) {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
 
-	err = kbfsOps2.SyncFromServer(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
@@ -327,11 +327,11 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	}
 
 	if err := config1B.KBFSOps().
-		SyncFromServer(ctx, rootNode1.GetFolderBranch()); err != nil {
+		SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch()); err != nil {
 		t.Fatal("Couldn't sync user 1 from server")
 	}
 	if err := config2B.KBFSOps().
-		SyncFromServer(ctx, rootNode2.GetFolderBranch()); err != nil {
+		SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch()); err != nil {
 		t.Fatal("Couldn't sync user 2 from server")
 	}
 
@@ -476,12 +476,12 @@ func TestBasicCRNoConflict(t *testing.T) {
 
 	// re-enable updates, and wait for CR to complete
 	c <- struct{}{}
-	err = kbfsOps2.SyncFromServer(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
 
-	err = kbfsOps1.SyncFromServer(ctx, rootNode1.GetFolderBranch())
+	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
@@ -592,12 +592,12 @@ func TestBasicCRFileConflict(t *testing.T) {
 
 	// re-enable updates, and wait for CR to complete
 	c <- struct{}{}
-	err = kbfsOps2.SyncFromServer(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
 
-	err = kbfsOps1.SyncFromServer(ctx, rootNode1.GetFolderBranch())
+	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
@@ -721,7 +721,7 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	}
 
 	// User 2 syncs
-	err = kbfsOps2.SyncFromServer(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
@@ -750,7 +750,7 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	}
 
 	// User 1 syncs
-	err = kbfsOps1.SyncFromServer(ctx, rootNode1.GetFolderBranch())
+	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
@@ -769,7 +769,7 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	// re-enable updates, and wait for CR to complete.
 	// this should also cause a rekey of the folder.
 	c <- struct{}{}
-	err = kbfsOps2.SyncFromServer(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
@@ -779,12 +779,12 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	// wait for the rekey to happen
 	waitForRekey(t, config2, rootNode2.GetFolderBranch().Tlf)
 
-	err = kbfsOps1.SyncFromServer(ctx, rootNode1.GetFolderBranch())
+	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
 
-	err = kbfsOps2Dev2.SyncFromServer(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2Dev2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
@@ -913,7 +913,7 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	}
 
 	// User 2 syncs
-	err = kbfsOps2.SyncFromServer(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
@@ -944,7 +944,7 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	// re-enable updates, and wait for CR to complete.
 	// this should also cause a rekey of the folder.
 	c <- struct{}{}
-	err = kbfsOps1.SyncFromServer(ctx, rootNode1.GetFolderBranch())
+	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
@@ -954,17 +954,17 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	// wait for the rekey to happen
 	waitForRekey(t, config1, rootNode1.GetFolderBranch().Tlf)
 
-	err = kbfsOps1.SyncFromServer(ctx, rootNode1.GetFolderBranch())
+	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
 
-	err = kbfsOps2.SyncFromServer(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
 
-	err = kbfsOps2Dev2.SyncFromServer(ctx, rootNode2.GetFolderBranch())
+	err = kbfsOps2Dev2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}

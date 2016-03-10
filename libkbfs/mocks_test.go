@@ -482,14 +482,14 @@ func (_mr *_MockKBFSOpsRecorder) Rekey(arg0, arg1 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Rekey", arg0, arg1)
 }
 
-func (_m *MockKBFSOps) SyncFromServer(ctx context.Context, folderBranch FolderBranch) error {
-	ret := _m.ctrl.Call(_m, "SyncFromServer", ctx, folderBranch)
+func (_m *MockKBFSOps) SyncFromServerForTesting(ctx context.Context, folderBranch FolderBranch) error {
+	ret := _m.ctrl.Call(_m, "SyncFromServerForTesting", ctx, folderBranch)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-func (_mr *_MockKBFSOpsRecorder) SyncFromServer(arg0, arg1 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "SyncFromServer", arg0, arg1)
+func (_mr *_MockKBFSOpsRecorder) SyncFromServerForTesting(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SyncFromServerForTesting", arg0, arg1)
 }
 
 func (_m *MockKBFSOps) GetUpdateHistory(ctx context.Context, folderBranch FolderBranch) (TLFUpdateHistory, error) {

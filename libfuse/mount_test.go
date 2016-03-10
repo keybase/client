@@ -1923,7 +1923,7 @@ func syncFolderToServerHelper(t *testing.T, tlf string, public bool, fs *FS) {
 		t.Fatalf("cannot get root for %s: %v", tlf, err)
 	}
 
-	err = fs.config.KBFSOps().SyncFromServer(ctx, root.GetFolderBranch())
+	err = fs.config.KBFSOps().SyncFromServerForTesting(ctx, root.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}

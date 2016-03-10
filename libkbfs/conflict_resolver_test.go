@@ -216,7 +216,7 @@ func testCRSharedFolderForUsers(t *testing.T, name string, createAs keybase1.UID
 		}
 
 		kbfsOps := config.KBFSOps()
-		kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch())
+		kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch())
 		rootNode, _, err :=
 			kbfsOps.GetOrCreateRootNode(
 				ctx, name, false, MasterBranch)
@@ -698,7 +698,7 @@ func TestCRMergedChainsComplex(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
-	config2.KBFSOps().SyncFromServer(ctx, fb)
+	config2.KBFSOps().SyncFromServerForTesting(ctx, fb)
 
 	// pause user 2
 	_, err = DisableUpdatesForTesting(config2, fb)
@@ -1004,7 +1004,7 @@ func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 	}
 
 	// user2 lookup
-	err = config2.KBFSOps().SyncFromServer(ctx, fb)
+	err = config2.KBFSOps().SyncFromServerForTesting(ctx, fb)
 	if err != nil {
 		t.Fatalf("Couldn't sync user 2")
 	}
@@ -1192,7 +1192,7 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 	}
 
 	// user2 lookup
-	err = config2.KBFSOps().SyncFromServer(ctx, fb)
+	err = config2.KBFSOps().SyncFromServerForTesting(ctx, fb)
 	if err != nil {
 		t.Fatalf("Couldn't sync user 2")
 	}

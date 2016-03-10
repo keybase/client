@@ -389,11 +389,11 @@ func (fs *KBFSOpsStandard) Rekey(ctx context.Context, id TlfID) error {
 	return ops.Rekey(ctx, id)
 }
 
-// SyncFromServer implements the KBFSOps interface for KBFSOpsStandard
-func (fs *KBFSOpsStandard) SyncFromServer(
+// SyncFromServerForTesting implements the KBFSOps interface for KBFSOpsStandard
+func (fs *KBFSOpsStandard) SyncFromServerForTesting(
 	ctx context.Context, folderBranch FolderBranch) error {
 	ops := fs.getOps(folderBranch)
-	return ops.SyncFromServer(ctx, folderBranch)
+	return ops.SyncFromServerForTesting(ctx, folderBranch)
 }
 
 // GetUpdateHistory implements the KBFSOps interface for KBFSOpsStandard

@@ -256,12 +256,13 @@ type KBFSOps interface {
 	UnstageForTesting(ctx context.Context, folderBranch FolderBranch) error
 	// Rekey rekeys this folder.
 	Rekey(ctx context.Context, id TlfID) error
-	// SyncFromServer blocks until the local client has contacted the
-	// server and guaranteed that all known updates for the given
-	// top-level folder have been applied locally (and notifications
-	// sent out to any observers).  It returns an error if this
-	// folder-branch is currently unmerged or dirty locally.
-	SyncFromServer(ctx context.Context, folderBranch FolderBranch) error
+	// SyncFromServerForTesting blocks until the local client has
+	// contacted the server and guaranteed that all known updates
+	// for the given top-level folder have been applied locally
+	// (and notifications sent out to any observers).  It returns
+	// an error if this folder-branch is currently unmerged or
+	// dirty locally.
+	SyncFromServerForTesting(ctx context.Context, folderBranch FolderBranch) error
 	// GetUpdateHistory returns a complete history of all the merged
 	// updates of the given folder, in a data structure that's
 	// suitable for encoding directly into JSON.  This is an expensive

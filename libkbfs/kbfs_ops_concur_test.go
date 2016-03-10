@@ -1304,7 +1304,7 @@ func TestKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T) {
 		t.Fatalf("Couldn't remove file: %v", err)
 	}
 
-	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch())
+	err = kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
@@ -1440,10 +1440,11 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 
 	unpauseArchives <- struct{}{}
 
-	// The first put actually succeeded, so SyncFromServer and make
-	// sure it worked.  This should also finish removing any blocks
-	// that would be removed.
-	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch())
+	// The first put actually succeeded, so
+	// SyncFromServerForTesting and make sure it worked.  This
+	// should also finish removing any blocks that would be
+	// removed.
+	err = kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
@@ -1510,7 +1511,7 @@ func TestKBFSOpsTruncateWithDupBlockCanceled(t *testing.T) {
 		t.Fatalf("Couldn't remove file: %v", err)
 	}
 
-	err = kbfsOps.SyncFromServer(ctx, rootNode.GetFolderBranch())
+	err = kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}

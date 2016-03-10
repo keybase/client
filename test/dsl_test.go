@@ -215,8 +215,8 @@ func as(user username, fops ...fileOp) optionOp {
 		for _, fop := range fops {
 			if !initDone && fop.flags&IsInit == 0 {
 				if !ctx.noSyncInit {
-					err = o.engine.SyncFromServer(ctx.user, ctx.rootNode)
-					ctx.expectSuccess("SyncFromServer", err)
+					err = o.engine.SyncFromServerForTesting(ctx.user, ctx.rootNode)
+					ctx.expectSuccess("SyncFromServerForTesting", err)
 				}
 				initDone = true
 			}
@@ -355,7 +355,7 @@ func disableUpdates() fileOp {
 func reenableUpdates() fileOp {
 	return fileOp{func(c *ctx) error {
 		c.engine.ReenableUpdates(c.user, c.rootNode)
-		return c.engine.SyncFromServer(c.user, c.rootNode)
+		return c.engine.SyncFromServerForTesting(c.user, c.rootNode)
 	}, Defaults}
 }
 
@@ -365,7 +365,7 @@ func forceQuotaReclamation() fileOp {
 		if err != nil {
 			return err
 		}
-		return c.engine.SyncFromServer(c.user, c.rootNode)
+		return c.engine.SyncFromServerForTesting(c.user, c.rootNode)
 	}, Defaults}
 }
 

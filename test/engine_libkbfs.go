@@ -312,11 +312,11 @@ func (k *LibKBFS) ReenableUpdates(u User, dir Node) {
 	}
 }
 
-// SyncFromServer implements the Engine interface.
-func (k *LibKBFS) SyncFromServer(u User, dir Node) (err error) {
+// SyncFromServerForTesting implements the Engine interface.
+func (k *LibKBFS) SyncFromServerForTesting(u User, dir Node) (err error) {
 	kbfsOps := u.(*libkbfs.ConfigLocal).KBFSOps()
 	d := dir.(libkbfs.Node)
-	return kbfsOps.SyncFromServer(context.Background(), d.GetFolderBranch())
+	return kbfsOps.SyncFromServerForTesting(context.Background(), d.GetFolderBranch())
 }
 
 // ForceQuotaReclamation implements the Engine interface.
