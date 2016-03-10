@@ -44,4 +44,6 @@ script:
     fi
 notifications:
   slack: keybase:WKlhs55Mb4am4obv1rNRg8P0
-
+branches:
+  only:
+    - master
