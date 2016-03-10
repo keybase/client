@@ -40,6 +40,7 @@ var noErrorNames = map[string]bool{
 	"devfs":          true, // lsof?  KBFS-823
 	"_mtn":           true, // emacs on Linux
 	"docker-machine": true, // docker shell stuff
+	"HEAD":           true, // git shell
 }
 
 // ReporterKBPKI implements the Notify function of the Reporter
