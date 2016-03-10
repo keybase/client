@@ -14,6 +14,7 @@ kbfs_commit=${KBFS_COMMIT:-} # Commit hash on kbfs to build from
 bucket_name=${BUCKET_NAME:-"prerelease.keybase.io"}
 platform=${PLATFORM:-`uname`}
 nos3=${NOS3:-} # Don't sync to S3
+build_desc="build"
 
 if [ "$gopath" = "" ]; then
   echo "No GOPATH"
@@ -23,6 +24,7 @@ fi
 # If testing, use test bucket
 if [ "$istest" = "1" ]; then
   bucket_name="prerelease-test.keybase.io"
+  build_desc="test build"
 fi
 
 if [ "$nos3" = "1" ]; then
@@ -38,7 +40,10 @@ build_dir_kbfs="/tmp/build_kbfs"
 client_dir="$gopath/src/github.com/keybase/client"
 kbfs_dir="$gopath/src/github.com/keybase/kbfs"
 
-"$client_dir/packaging/slack/send.sh" "Starting build"
+"$client_dir/packaging/slack/send.sh" "Starting $build_desc"
+
+(cd "$client_dir" && git checkout master)
+(cd "$kbfs_dir" && git checkout master)
 
 if [ ! "$nopull" = "1" ]; then
   "$client_dir/packaging/check_status_and_pull.sh" "$client_dir"
@@ -88,4 +93,4 @@ fi
 cd $dir
 BUCKET_NAME=$bucket_name ./s3_index.sh
 
-"$client_dir/packaging/slack/send.sh" "Finished build. See https://s3.amazonaws.com/$bucket_name/index.html"
+"$client_dir/packaging/slack/send.sh" "Finished $build_desc. See https://s3.amazonaws.com/$bucket_name/index.html"

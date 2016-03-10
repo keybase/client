@@ -77,19 +77,20 @@ installer_url="https://github.com/keybase/client/releases/download/v1.0.14-0/Key
 keybase_bin="$tmp_dir/keybase"
 kbfs_bin="$tmp_dir/kbfs"
 installer_app="$tmp_dir/KeybaseInstaller.app"
-sig_path="$tmp_dir/update.sig"
 
-app_version=$keybase_version
+app_version="$keybase_version"
 dmg_name="${app_name}-${app_version}${comment}.dmg"
 zip_name="${app_name}-${app_version}${comment}.zip"
 sourcemap_name="${app_name}-${app_version}${comment}.map.zip"
+sig_name="${app_name}-${app_version}${comment}.sig"
+update_json_name="update-${platform}-${run_mode}-${app_version}.json"
 
 clean() {
   echo "Cleaning"
-  rm -rf $build_dir
-  rm -rf $tmp_dir
-  mkdir -p $build_dir
-  mkdir -p $tmp_dir
+  rm -rf "$build_dir"
+  rm -rf "$tmp_dir"
+  mkdir -p "$build_dir"
+  mkdir -p "$tmp_dir"
 }
 
 ensure_url() {
@@ -102,132 +103,142 @@ ensure_url() {
   fi
 }
 
-get_deps() {
-  cd $tmp_dir
+get_deps() {(
+  cd "$tmp_dir"
   echo "Downloading dependencies"
 
   if [ ! "$keybase_binpath" = "" ]; then
     echo "Using local keybase binpath: $keybase_binpath"
-    cp $keybase_binpath .
+    cp "$keybase_binpath" .
   else
     keybase_url="https://github.com/keybase/client/releases/download/v$keybase_version/keybase-$keybase_version-darwin.tgz"
     echo "Getting $keybase_url"
-    ensure_url $keybase_url "You need to build the binary for this Github release/version. See packaging/github to create/build a release."
-    curl -J -L -Ss $keybase_url | tar zx
+    ensure_url "$keybase_url" "You need to build the binary for this Github release/version. See packaging/github to create/build a release."
+    curl -J -L -Ss "$keybase_url" | tar zx
   fi
 
   if [ ! "$kbfs_binpath" = "" ]; then
     echo "Using local kbfs binpath: $kbfs_binpath"
-    cp $kbfs_binpath .
+    cp "$kbfs_binpath" .
   else
     kbfs_url="https://github.com/keybase/kbfs-beta/releases/download/v$kbfs_version/kbfs-$kbfs_version-darwin.tgz"
     echo "Getting $kbfs_url"
     ensure_url $kbfs_url "You need to build the binary for this Github release/version. See packaging/github to create/build a release."
-    curl -J -L -Ss $kbfs_url | tar zx
+    curl -J -L -Ss "$kbfs_url" | tar zx
   fi
   echo "Using installer from $installer_url"
-  curl -J -L -Ss $installer_url | tar zx
-}
+  curl -J -L -Ss "$installer_url" | tar zx
+)}
 
 # Build Keybase.app
-package_electron() {
-  cd $client_dir
-  cd desktop
+package_electron() {(
+  cd "$client_dir/desktop"
 
   rm -rf node_modules
   npm install
   npm run package -- --appVersion="$app_version" --comment="$comment" --icon="$icon_path"
-  rsync -av release/darwin-x64/Keybase-darwin-x64 $build_dir
-}
+  rsync -av release/darwin-x64/Keybase-darwin-x64 "$build_dir"
+)}
 
 # Adds the keybase binaries and Installer.app bundle to Keybase.app
-package_app() {
-  cd $build_dir
+package_app() {(
+  cd "$build_dir"
   echo "Copying keybase binaries"
-  mkdir -p $shared_support_dir/bin
-  cp $keybase_bin $shared_support_dir/bin
-  cp $kbfs_bin $shared_support_dir/bin
+  mkdir -p "$shared_support_dir/bin"
+  cp "$keybase_bin" "$shared_support_dir/bin"
+  cp "$kbfs_bin" "$shared_support_dir/bin"
   echo "Copying installer"
-  mkdir -p $resources_dir
-  cp -R $installer_app $resources_dir/KeybaseInstaller.app
-}
+  mkdir -p "$resources_dir"
+  cp -R "$installer_app" "$resources_dir/KeybaseInstaller.app"
+)}
 
-update_plist() {
-  cd $out_dir
+update_plist() {(
+  cd "$out_dir"
   # App shouldn't display dock icon on startup
-  /usr/libexec/plistBuddy -c "Add :LSUIElement bool true" $app_name.app/Contents/Info.plist
-  /usr/libexec/plistBuddy -c "Add :NSSupportsSuddenTermination bool true" $app_name.app/Contents/Info.plist
-}
+  /usr/libexec/plistBuddy -c "Add :LSUIElement bool true" "$app_name.app/Contents/Info.plist"
+  /usr/libexec/plistBuddy -c "Add :NSSupportsSuddenTermination bool true" "$app_name.app/Contents/Info.plist"
+)}
 
-sign() {
-  cd $out_dir
+sign() {(
+  cd "$out_dir"
   if [ "$nosign" = "1" ]; then
     echo "Skipping signing (OS X)"
     return
   fi
   code_sign_identity="Developer ID Application: Keybase, Inc. (99229SGT5K)"
-  codesign --verbose --force --deep --timestamp=none --sign "$code_sign_identity" $app_name.app
-}
+  codesign --verbose --force --deep --timestamp=none --sign "$code_sign_identity" "$app_name.app"
+)}
 
 # Create dmg from Keybase.app
-package_dmg() {
-  cd $out_dir
+package_dmg() {(
+  cd "$out_dir"
   appdmg="appdmg.json"
 
   osx_scripts="$client_dir/osx/Scripts"
-  cp $osx_scripts/appdmg/$appdmg .
-  cp $osx_scripts/appdmg/Background.png .
-  cp $icon_path .
+  cp "$osx_scripts/appdmg/$appdmg" .
+  cp "$osx_scripts/appdmg/Background.png" .
+  cp "$icon_path" .
 
-  rm -rf $dmg_name
-  $node_bin/appdmg $appdmg $dmg_name
-}
+  rm -rf "$dmg_name"
+  "$node_bin/appdmg" "$appdmg" "$dmg_name"
+)}
 
-create_sourcemap_zip() {
-  cd $out_dir
+create_sourcemap_zip() {(
+  cd "$out_dir"
   echo "Creating $sourcemap_name from $client_dir/desktop/dist"
-  zip -j $sourcemap_name $client_dir/desktop/dist/*.map
-}
+  zip -j "$sourcemap_name" "$client_dir/desktop/dist"/*.map
+)}
 
-create_zip() {
-  cd $out_dir
+create_zip() {(
+  cd "$out_dir"
   echo "Creating $zip_name"
   #zip -r $zip_name $app_name.app
-  ditto -c -k --sequesterRsrc --keepParent $app_name.app $zip_name
-}
+  ditto -c -k --sequesterRsrc --keepParent "$app_name.app" "$zip_name"
+)}
+
+kbsign() {(
+  cd "$out_dir"
+  keybase sign -d -i "$zip_name" -o "$sig_name"
+)}
+
+update_json() {(
+  cd "$out_dir"
+  if [ -n "$s3host" ]; then
+    "$release_bin" update-json --version="$app_version" --src="$zip_name" \
+      --uri="$s3host/$platform-updates" --signature="$out_dir/$sig_name" > "$update_json_name"
+  fi
+)}
+
+save() {(
+  cd "$out_dir"
+  if [ "$save_dir" = "" ]; then
+    echo "Saved files to $out_dir"
+    return
+  fi
+  mkdir -p $save_dir
+  cd "$save_dir"
+  platform_dir="$save_dir/$platform"
+  echo "Saving files to $platform_dir"
+  # DMG
+  mkdir -p "$platform_dir"
+  mv "$out_dir/$dmg_name" "$platform_dir"
+  # Zip
+  mkdir -p "$platform_dir-updates"
+  mv "$out_dir/$zip_name" "$platform_dir-updates"
+  # Sourcemap
+  mkdir -p "$save_dir/electron-sourcemaps"
+  mv "$out_dir/$sourcemap_name" "$save_dir/electron-sourcemaps"
+  # Support files
+  mkdir -p "$platform_dir-support"
+  mv "$out_dir/$update_json_name" "$platform_dir-support"
+)}
 
 s3sync() {
   if [ ! "$bucket_name" = "" ] && [ ! "$save_dir" = "" ]; then
     s3cmd sync --acl-public --disable-multipart $save_dir/* s3://$bucket_name/
-  fi
-}
-
-save() {
-  cd $out_dir
-  if [ "$save_dir" = "" ]; then
-    echo "Saved files to $out_dir"
   else
-    mkdir -p $save_dir
-    cd $save_dir
-    platform_dir="$save_dir/$platform"
-    echo "Saving files to $platform_dir"
-    # DMG
-    mkdir -p $platform_dir
-    mv $out_dir/$dmg_name $platform_dir
-    # Zip
-    mkdir -p "$platform_dir-updates"
-    mv $out_dir/$zip_name "$platform_dir-updates"
-    # Sourcemap
-    mkdir -p "$save_dir/electron-sourcemaps"
-    mv "$out_dir/$sourcemap_name" "$save_dir/electron-sourcemaps"
+    echo "S3 sync disabled"
   fi
-
-  if [ ! "$s3host" = "" ]; then
-    keybase sign -d -i "$platform-updates/$zip_name" -o $sig_path
-    $release_bin update-json --version=$app_version --src="$platform-updates/$zip_name" --uri="$s3host/$platform-updates" --signature="$sig_path" > update-$platform-$run_mode.json
-  fi
-
-  s3sync
 }
 
 clean
@@ -239,4 +250,7 @@ sign
 package_dmg
 create_sourcemap_zip
 create_zip
+kbsign
+update_json
 save
+s3sync
