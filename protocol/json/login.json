@@ -473,24 +473,6 @@
         }
       ],
       "response": "null"
-    },
-    "commandLineLoginWithPassphrase": {
-      "request": [
-        {
-          "name": "sessionID",
-          "type": "int"
-        },
-        {
-          "name": "username",
-          "type": "string"
-        },
-        {
-          "name": "passphrase",
-          "type": "string"
-        }
-      ],
-      "response": "null",
-      "doc": "This is only meant for usage by `keybase login --stdin`.  Everything else\n    should use the standard login(...) function above."
     }
   }
 }

@@ -11,24 +11,15 @@ import (
 // current device, if there is an existing provisioned device.
 type loginProvisionedDevice struct {
 	libkb.Contextified
-	username   string
-	passphrase string // optional
+	username string
 }
 
-// newLoginProvisionedDevice creates a loginProvisionedDevice engine.
+// newLoginCurrentDevice creates a loginProvisionedDevice engine.
 func newLoginProvisionedDevice(g *libkb.GlobalContext, username string) *loginProvisionedDevice {
 	return &loginProvisionedDevice{
 		username:     username,
 		Contextified: libkb.NewContextified(g),
 	}
-}
-
-// newLoginProvisionedDeviceWithPassphrase creates a
-// loginProvisionedDevice engine that knows the passphrase.
-func newLoginProvisionedDeviceWithPassphrase(g *libkb.GlobalContext, username, passphrase string) *loginProvisionedDevice {
-	e := newLoginProvisionedDevice(g, username)
-	e.passphrase = passphrase
-	return e
 }
 
 // Name is the unique engine name.
@@ -43,11 +34,8 @@ func (e *loginProvisionedDevice) Prereqs() Prereqs {
 
 // RequiredUIs returns the required UIs.
 func (e *loginProvisionedDevice) RequiredUIs() []libkb.UIKind {
-	if len(e.passphrase) > 0 {
-		return []libkb.UIKind{}
-	}
-
 	return []libkb.UIKind{
+		libkb.LoginUIKind,
 		libkb.SecretUIKind,
 	}
 }
@@ -110,9 +98,6 @@ func (e *loginProvisionedDevice) Run(ctx *Context) error {
 	// and it has a device id, so this should be a provisioned device.  Thus, they should
 	// just login normally.
 
-	// set e.username for LoginWithPrompt
-	e.username = me.GetName()
-
 	var afterLogin = func(lctx libkb.LoginContext) error {
 		if err := lctx.LocalSession().SetDeviceProvisioned(e.G().Env.GetDeviceID()); err != nil {
 			// not a fatal error, session will stay in memory
@@ -120,11 +105,5 @@ func (e *loginProvisionedDevice) Run(ctx *Context) error {
 		}
 		return nil
 	}
-
-	// if passphrase was provided, then use it:
-	if len(e.passphrase) > 0 {
-		return e.G().LoginState().LoginWithPassphrase(e.username, e.passphrase, false /* storeSecret */, afterLogin)
-	}
-
-	return e.G().LoginState().LoginWithPrompt(e.username, ctx.SecretUI, afterLogin)
+	return e.G().LoginState().LoginWithPrompt(e.username, ctx.LoginUI, ctx.SecretUI, afterLogin)
 }

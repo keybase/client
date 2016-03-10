@@ -281,7 +281,7 @@ func (e *loginProvision) pgpProvision(ctx *Context) error {
 	}
 
 	// need a session to try to get synced private key
-	return e.G().LoginState().LoginWithPrompt(e.arg.User.GetName(), ctx.SecretUI, afterLogin)
+	return e.G().LoginState().LoginWithPrompt(e.arg.User.GetName(), ctx.LoginUI, ctx.SecretUI, afterLogin)
 }
 
 // makeDeviceKeysWithSigner creates device keys given a signing
@@ -612,7 +612,7 @@ func (e *loginProvision) tryGPG(ctx *Context) error {
 	}
 
 	// need a session to continue to provision
-	return e.G().LoginState().LoginWithPrompt(e.arg.User.GetName(), ctx.SecretUI, afterLogin)
+	return e.G().LoginState().LoginWithPrompt(e.arg.User.GetName(), ctx.LoginUI, ctx.SecretUI, afterLogin)
 }
 
 func (e *loginProvision) chooseGPGKeyAndMethod(ctx *Context) (*libkb.GpgPrimaryKey, keybase1.GPGMethod, error) {
