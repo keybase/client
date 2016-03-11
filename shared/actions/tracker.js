@@ -6,6 +6,7 @@ import {routeAppend} from './router'
 import engine from '../engine'
 import {createServer} from '../engine/server'
 import {flattenCallMap, promisifyResponses} from '../engine/call-map-middleware'
+import {identify} from '../constants/types/keybase-v1'
 
 import setNotifications from '../util/set-notifications'
 
@@ -15,11 +16,9 @@ import type {ConfigState} from '../reducers/config'
 import type {Action, Dispatch} from '../constants/types/flux'
 
 import type {RemoteProof, LinkCheckResult, TrackOptions, UserCard, delegateUiCtl_registerIdentifyUI_rpc,
-  track_checkTracking_rpc, track_untrack_rpc, track_trackWithToken_rpc, incomingCallMapType} from '../constants/types/flow-types'
+  track_checkTracking_rpc, track_untrack_rpc, track_trackWithToken_rpc, incomingCallMapType, identify_identify2_rpc} from '../constants/types/flow-types'
 
-type TrackerActionCreator = (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void
-
-// TODO make actions for all the call back stuff.
+type TrackerActionCreator = (dispatch: Dispatch, getState: () => {tracker: RootTrackerState, config: ConfigState}) => void
 
 export function startTimer (): TrackerActionCreator {
   return (dispatch, getState) => {
@@ -69,6 +68,55 @@ export function registerTrackerChangeListener (): TrackerActionCreator {
     engine.listenGeneralIncomingRpc(params)
     setNotifications({tracking: true})
   }
+}
+
+export function registerUserChangeListener (): TrackerActionCreator {
+  return dispatch => {
+    const params: incomingCallMapType = {
+      'keybase.1.NotifyUsers.userChanged': ({uid}) => {
+        dispatch(triggerIdentify(uid))
+      }
+    }
+
+    engine.listenGeneralIncomingRpc(params)
+    setNotifications({users: true})
+  }
+}
+
+export function triggerIdentify (uid: string): TrackerActionCreator {
+  return (dispatch, getState) => new Promise((resolve, reject) => {
+    const params: identify_identify2_rpc = {
+      method: 'identify.identify2',
+      param: {
+        uid,
+        userAssertion: '',
+        alwaysBlock: false,
+        noErrorOnTrackFailure: true,
+        forceRemoteCheck: false,
+        useDelegateUI: true,
+        needProofSet: false,
+        reason: {
+          type: identify.IdentifyReasonType.id,
+          reason: '',
+          resource: ''
+        },
+        source: identify.ClientType.gui
+      },
+      incomingCallMap: {},
+      callback: (error, response) => {
+        console.log('called identify and got back', error, response)
+        resolve()
+      }
+    }
+
+    const status = getState().config.status
+    const myUID = status && status.user && status.user.uid
+
+    // Don't identify ourself
+    if (myUID !== uid) {
+      engine.rpc(params)
+    }
+  })
 }
 
 export function registerIdentifyUi (): TrackerActionCreator {
