@@ -37,9 +37,11 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-"%ProgramFiles(x86)%\Inno Setup 5\iscc.exe" /DMyExePathName=%PathName% /DMyAppVersion=%BUILDVER% /DMySemVersion=%SEMVER% "/sSignCommand=signtool.exe sign /tr http://timestamp.digicert.com $f" %GOPATH%\src\github.com\keybase\client\packaging\windows\setup_windows.iss
+if NOT DEFINED BUILD_TAG set BUILD_TAG=%SEMVER%
 
-:: Publish to servers (requires bash)
+"%ProgramFiles(x86)%\Inno Setup 5\iscc.exe"  /O%BUILD_TAG% /DMyExePathName=%PathName% /DMyAppVersion=%BUILDVER% /DMySemVersion=%SEMVER% "/sSignCommand=signtool.exe sign /tr http://timestamp.digicert.com $f" %GOPATH%\src\github.com\keybase\client\packaging\windows\setup_windows.iss
+
+:: Publish to servers (requires bash)l
 ::ssh-agent bash
 ::ssh-add [path/to/your/key]
 ::ssh -A steve@gw1.keybase.io
