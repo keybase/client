@@ -707,8 +707,11 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	defer timer.Reset(fbm.config.QuotaReclamationPeriod())
 	defer fbm.reclamationGroup.Done()
 
-	ctx, cancel = context.WithTimeout(ctx, backgroundTaskTimeout)
-	defer cancel()
+	// Don't set a context deadline.  For users that have written a
+	// lot of updates since their last QR, this might involve fetching
+	// a lot of MD updates in small chunks.  It doesn't hold locks for
+	// any considerable amount of time, so it should be safe to let it
+	// run indefinitely.
 
 	// First get the current head, and see if we're staged or not.
 	head, err := fbm.helper.getMDForFBM(ctx)
