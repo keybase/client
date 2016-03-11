@@ -6,6 +6,9 @@ import Tracker from '../tracker/index.js'
 import {normal, checking, revoked, error} from '../constants/tracker'
 import {metaUpgraded, metaUnreachable, metaPending, metaDeleted} from '../constants/tracker'
 
+import type {TrackerProps} from '../tracker'
+import type {Proof} from '../tracker/proofs.render'
+
 function proofGithubMaker (name) {
   return {name: 'githubuser' + name, type: 'github', id: 'githubId' + name, state: normal, humanUrl: 'github.com', profileUrl: 'http://github.com'}
 }
@@ -17,7 +20,7 @@ const proofWeb = {name: 'thelongestdomainnameintheworldandthensomeandthensomemor
 const proofHN = {name: 'pg', type: 'hackernews', id: 'hnId', state: normal, humanUrl: 'news.ycombinator.com', profileUrl: 'http://news.ycombinator.com'}
 const proofRooter = {name: 'roooooooter', type: 'rooter', state: normal, id: 'rooterId', humanUrl: ''}
 
-const proofsDefault = [
+const proofsDefault: Array<Proof> = [
   proofGithub,
   proofTwitter,
   proofWeb,
@@ -47,7 +50,20 @@ const propsDefault = {
     avatar: 'https://s3.amazonaws.com/keybase_processed_uploads/71cd3854986d416f60dacd27d5796705_200_200_square_200.jpeg'
   },
   shouldFollow: true,
-  lastTrack: false,
+  lastTrack: null,
+  currentlyFollowing: false,
+  onFollowChecked: () => {},
+  onFollowHelp: () => {},
+  onFollow: () => {},
+  onRefollow: () => {},
+  onUnfollow: () => {},
+  onClose: () => {},
+  startTimer: () => {},
+  stopTimer: () => {},
+  waiting: false,
+  trackerMessage: 'foo',
+  onMaybeTrack: () => {},
+  lastAction: 'unfollowed',
   trackerState: normal,
   proofs: proofsDefault,
 
@@ -59,7 +75,7 @@ const propsDefault = {
   }
 }
 
-const propsNewUser = {
+const propsNewUser: TrackerProps = {
   ...propsDefault
 }
 
@@ -124,7 +140,7 @@ const propsLessData = {
   ]
 }
 
-const propsLoggedOut = {...propsDefault, loggedIn: false, reason: 'You accessed a public folder with gabrielh.'}
+const propsLoggedOut: TrackerProps = {...propsDefault, loggedIn: false, reason: 'You accessed a public folder with gabrielh.'}
 
 const propsOneProof = {...propsDefault, proofs: [proofsDefault[0]]}
 const smallBio = {...propsDefault.userInfo, bio: 'bio'}

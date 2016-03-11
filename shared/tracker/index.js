@@ -15,7 +15,7 @@ import type {SimpleProofState} from '../constants/tracker'
 
 import type {TrackSummary} from '../constants/types/flow-types'
 
-type TrackerProps = {
+export type TrackerProps = {
   loggedIn: boolean,
   trackerState: SimpleProofState,
   trackerMessage: ?string,
@@ -32,8 +32,6 @@ type TrackerProps = {
   onFollow: () => void,
   onFollowHelp: () => void,
   onFollowChecked: () => void,
-  registerIdentifyUi: () => void,
-  registerTrackerChangeListener: () => void,
   closed: boolean,
   lastTrack: ?TrackSummary,
   startTimer: () => void,
