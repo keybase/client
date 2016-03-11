@@ -2803,32 +2803,6 @@ export type saltpack_saltpackDecrypt_rpc = {
   callback: (null | (err: ?any, response: saltpack_saltpackDecrypt_result) => void)
 }
 
-export type saltpack_saltpackDecrypt_result = SaltpackEncryptedMessageInfo
-
-export type saltpack_saltpackDecrypt_rpc = {
-  method: 'saltpack.saltpackDecrypt',
-  param: {
-    source: Stream,
-    sink: Stream,
-    opts: SaltpackDecryptOptions
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: saltpack_saltpackDecrypt_result) => void)
-}
-
-export type saltpack_saltpackEncrypt_result = void
-
-export type saltpack_saltpackEncrypt_rpc = {
-  method: 'saltpack.saltpackEncrypt',
-  param: {
-    source: Stream,
-    sink: Stream,
-    opts: SaltpackEncryptOptions
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
 export type saltpack_saltpackEncrypt_result = void
 
 export type saltpack_saltpackEncrypt_rpc = {
@@ -2850,32 +2824,6 @@ export type saltpack_saltpackSign_rpc = {
     source: Stream,
     sink: Stream,
     opts: SaltpackSignOptions
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type saltpack_saltpackSign_result = void
-
-export type saltpack_saltpackSign_rpc = {
-  method: 'saltpack.saltpackSign',
-  param: {
-    source: Stream,
-    sink: Stream,
-    opts: SaltpackSignOptions
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type saltpack_saltpackVerify_result = void
-
-export type saltpack_saltpackVerify_rpc = {
-  method: 'saltpack.saltpackVerify',
-  param: {
-    source: Stream,
-    sink: Stream,
-    opts: SaltpackVerifyOptions
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any) => void)
@@ -3439,12 +3387,8 @@ export type rpc =
   | saltpackUi_saltpackPromptForDecrypt_rpc
   | saltpackUi_saltpackVerifySuccess_rpc
   | saltpack_saltpackDecrypt_rpc
-  | saltpack_saltpackDecrypt_rpc
-  | saltpack_saltpackEncrypt_rpc
   | saltpack_saltpackEncrypt_rpc
   | saltpack_saltpackSign_rpc
-  | saltpack_saltpackSign_rpc
-  | saltpack_saltpackVerify_rpc
   | saltpack_saltpackVerify_rpc
   | secretUi_getPassphrase_rpc
   | session_currentSession_rpc
