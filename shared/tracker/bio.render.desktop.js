@@ -136,7 +136,7 @@ const styles = {
     marginTop: 7
   },
   usernameFollowing: {
-    color: globalColors.green2
+    color: globalColors.green
   },
   usernameNotFollowing: {
     color: globalColors.orange
