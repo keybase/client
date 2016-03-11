@@ -17,9 +17,8 @@ type fbmHelper interface {
 }
 
 const (
-	// How many pointers to delete in a single Delete call.  TODO:
-	// update this when a batched Delete RPC is available.
-	numPointersToDeletePerChunk = 20
+	// How many pointers to downgrade in a single Archive/Delete call.
+	numPointersToDowngradePerChunk = 20
 	// Once the number of pointers being deleted in a single gc op
 	// passes this threshold, we'll stop garbage collection at the
 	// current revision.
@@ -213,6 +212,78 @@ func (fbm *folderBlockManager) forceQuotaReclamation() {
 	}
 }
 
+func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
+	md *RootMetadata, ptrs []BlockPointer, archive bool) error {
+	fbm.log.CDebugf(ctx, "Downgrading %d pointers (archive=%t)",
+		len(ptrs), archive)
+	bops := fbm.config.BlockOps()
+
+	var wg sync.WaitGroup
+	// Round up to find the number of chunks.
+	numChunks := (len(ptrs) + numPointersToDowngradePerChunk - 1) /
+		numPointersToDowngradePerChunk
+	numWorkers := numChunks
+	if numWorkers > maxParallelBlockPuts {
+		numWorkers = maxParallelBlockPuts
+	}
+	wg.Add(numWorkers)
+	chunks := make(chan []BlockPointer, numChunks)
+
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
+	errChan := make(chan error, 1)
+	worker := func() {
+		defer wg.Done()
+		for chunk := range chunks {
+			fbm.log.CDebugf(ctx, "Downgrading chunk of %d pointers", len(chunk))
+			var err error
+			if archive {
+				err = bops.Archive(ctx, md, chunk)
+			} else {
+				_, err = bops.Delete(ctx, md, chunk)
+			}
+			if err != nil {
+				select {
+				case errChan <- err:
+					// First error wins.
+				default:
+				}
+				return
+			}
+			select {
+			// return early if the context has been canceled
+			case <-ctx.Done():
+				return
+			default:
+			}
+		}
+	}
+	for i := 0; i < numWorkers; i++ {
+		go worker()
+	}
+
+	for start := 0; start < len(ptrs); start += numPointersToDowngradePerChunk {
+		end := start + numPointersToDowngradePerChunk
+		if end > len(ptrs) {
+			end = len(ptrs)
+		}
+		chunks <- ptrs[start:end]
+	}
+	close(chunks)
+
+	go func() {
+		wg.Wait()
+		close(errChan)
+	}()
+	return <-errChan
+}
+
+func (fbm *folderBlockManager) deleteBlockRefs(ctx context.Context,
+	md *RootMetadata, ptrs []BlockPointer) error {
+	return fbm.doChunkedDowngrades(ctx, md, ptrs, false)
+}
+
 func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context) error {
 	// also attempt to delete any error references
 	var toDelete map[*RootMetadata][]BlockPointer
@@ -229,7 +300,6 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context) error 
 	}
 
 	toDeleteAgain := make(map[*RootMetadata][]BlockPointer)
-	bops := fbm.config.BlockOps()
 	for md, ptrs := range toDelete {
 		fbm.log.CDebugf(ctx, "Checking deleted blocks for revision %d",
 			md.Revision)
@@ -269,7 +339,7 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context) error 
 		fbm.log.CDebugf(ctx, "Cleaning up blocks for failed revision %d",
 			md.Revision)
 
-		_, err = bops.Delete(ctx, md, ptrs)
+		err = fbm.deleteBlockRefs(ctx, md, ptrs)
 		// Ignore permanent errors
 		_, isPermErr := err.(BServerError)
 		_, isNonceNonExistentErr := err.(BServerErrorNonceNonExistent)
@@ -333,6 +403,11 @@ func (fbm *folderBlockManager) runUnlessShutdown(
 	}
 }
 
+func (fbm *folderBlockManager) archiveBlockRefs(ctx context.Context,
+	md *RootMetadata, ptrs []BlockPointer) error {
+	return fbm.doChunkedDowngrades(ctx, md, ptrs, true)
+}
+
 func (fbm *folderBlockManager) archiveBlocksInBackground() {
 	for {
 		select {
@@ -362,8 +437,7 @@ func (fbm *folderBlockManager) archiveBlocksInBackground() {
 
 				fbm.log.CDebugf(ctx, "Archiving %d block pointers as a result "+
 					"of revision %d", len(ptrs), md.Revision)
-				bops := fbm.config.BlockOps()
-				err = bops.Archive(ctx, md, ptrs)
+				err = fbm.archiveBlockRefs(ctx, md, ptrs)
 				if err != nil {
 					fbm.log.CWarningf(ctx, "Couldn't archive blocks: %v", err)
 					return err
@@ -593,69 +667,6 @@ outer:
 	}
 
 	return ptrs, latestRev, complete, nil
-}
-
-func (fbm *folderBlockManager) deleteBlockRefs(ctx context.Context,
-	md *RootMetadata, ptrs []BlockPointer) error {
-	fbm.log.CDebugf(ctx, "Deleting %d pointers", len(ptrs))
-	bops := fbm.config.BlockOps()
-
-	var wg sync.WaitGroup
-	// Round up to find the number of chunks.
-	numChunks := (len(ptrs) + numPointersToDeletePerChunk - 1) /
-		numPointersToDeletePerChunk
-	numWorkers := numChunks
-	if numWorkers > maxParallelBlockPuts {
-		numWorkers = maxParallelBlockPuts
-	}
-	wg.Add(numWorkers)
-	chunks := make(chan []BlockPointer, numChunks)
-
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	errChan := make(chan error, 1)
-	worker := func() {
-		defer wg.Done()
-		for chunk := range chunks {
-			fbm.log.CDebugf(ctx, "Deleting chunk of %d pointers", len(chunk))
-			// TODO: send the whole chunk at once whenever the batched
-			// Delete RPC is ready.
-			_, err := bops.Delete(ctx, md, chunk)
-			if err != nil {
-				select {
-				case errChan <- err:
-					// First error wins.
-				default:
-				}
-				return
-			}
-			select {
-			// return early if the context has been canceled
-			case <-ctx.Done():
-				return
-			default:
-			}
-		}
-	}
-	for i := 0; i < numWorkers; i++ {
-		go worker()
-	}
-
-	for start := 0; start < len(ptrs); start += numPointersToDeletePerChunk {
-		end := start + numPointersToDeletePerChunk
-		if end > len(ptrs) {
-			end = len(ptrs)
-		}
-		chunks <- ptrs[start:end]
-	}
-	close(chunks)
-
-	go func() {
-		wg.Wait()
-		close(errChan)
-	}()
-	return <-errChan
 }
 
 func (fbm *folderBlockManager) finalizeReclamation(ctx context.Context,
