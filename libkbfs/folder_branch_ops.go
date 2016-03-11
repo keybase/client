@@ -479,8 +479,8 @@ func (fbo *folderBranchOps) DeleteFavorite(ctx context.Context,
 }
 
 func (fbo *folderBranchOps) getState(lState *lockState) state {
-	fbo.blockLock.Lock(lState)
-	defer fbo.blockLock.Unlock(lState)
+	fbo.blockLock.RLock(lState)
+	defer fbo.blockLock.RUnlock(lState)
 	if len(fbo.deCache) == 0 {
 		return cleanState
 	}
