@@ -16,7 +16,6 @@ type ExternalKeyStore interface {
 	ClearSecret(username string) error
 	GetUsersWithStoredSecretsMsgPack() ([]byte, error)
 	SetupKeyStore(username string) error
-	GetTerminalPrompt() string
 }
 
 func SetGlobalExternalKeyStore(s ExternalKeyStore) {

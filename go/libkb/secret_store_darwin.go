@@ -12,33 +12,32 @@ import (
 )
 
 type KeychainSecretStore struct {
-	context     SecretStoreContext
-	accountName string
+	context SecretStoreContext
 }
 
-var _ SecretStore = KeychainSecretStore{}
+var _ SecretStoreAll = KeychainSecretStore{}
 
 func (k KeychainSecretStore) serviceName() string {
 	return k.context.GetStoredSecretServiceName()
 }
 
-func (k KeychainSecretStore) StoreSecret(secret []byte) (err error) {
+func (k KeychainSecretStore) StoreSecret(accountName NormalizedUsername, secret []byte) (err error) {
 	// Base64 encode to make it easy to work with Keychain Access (since we are using a password item and secret is not utf-8)
 	encodedSecret := base64.StdEncoding.EncodeToString(secret)
-	item := keychain.NewGenericPassword(k.serviceName(), k.accountName, "", []byte(encodedSecret), k.accessGroup())
+	item := keychain.NewGenericPassword(k.serviceName(), string(accountName), "", []byte(encodedSecret), k.accessGroup())
 	item.SetSynchronizable(k.synchronizable())
 	item.SetAccessible(k.accessible())
 	keychain.DeleteItem(item)
 	return keychain.AddItem(item)
 }
 
-func (k KeychainSecretStore) RetrieveSecret() ([]byte, error) {
-	encodedSecret, err := keychain.GetGenericPassword(k.serviceName(), k.accountName, "", "")
+func (k KeychainSecretStore) RetrieveSecret(accountName NormalizedUsername) ([]byte, error) {
+	encodedSecret, err := keychain.GetGenericPassword(k.serviceName(), string(accountName), "", "")
 	if err != nil {
 		return nil, err
 	}
 	if encodedSecret == nil {
-		return nil, SecretStoreError{Msg: "No secret for " + k.accountName}
+		return nil, SecretStoreError{Msg: "No secret for " + string(accountName)}
 	}
 
 	secret, err := base64.StdEncoding.DecodeString(string(encodedSecret))
@@ -49,8 +48,8 @@ func (k KeychainSecretStore) RetrieveSecret() ([]byte, error) {
 	return secret, nil
 }
 
-func (k KeychainSecretStore) ClearSecret() error {
-	query := keychain.NewGenericPassword(k.serviceName(), k.accountName, "", nil, "")
+func (k KeychainSecretStore) ClearSecret(accountName NormalizedUsername) error {
+	query := keychain.NewGenericPassword(k.serviceName(), string(accountName), "", nil, "")
 	query.SetMatchLimit(keychain.MatchLimitAll)
 	err := keychain.DeleteItem(query)
 	if err == keychain.ErrorItemNotFound {
@@ -59,19 +58,22 @@ func (k KeychainSecretStore) ClearSecret() error {
 	return err
 }
 
-func NewSecretStore(context SecretStoreContext, username NormalizedUsername) SecretStore {
+func NewSecretStoreAll(g *GlobalContext) SecretStoreAll {
 	return KeychainSecretStore{
-		context:     context,
-		accountName: username.String(),
+		context: g,
 	}
+}
+
+func NewTestSecretStoreAll(c SecretStoreContext, g *GlobalContext) SecretStoreAll {
+	return nil
 }
 
 func HasSecretStore() bool {
 	return true
 }
 
-func GetUsersWithStoredSecrets(c SecretStoreContext) ([]string, error) {
-	return keychain.GetAccountsForService(c.GetStoredSecretServiceName())
+func (k KeychainSecretStore) GetUsersWithStoredSecrets() ([]string, error) {
+	return keychain.GetAccountsForService(k.context.GetStoredSecretServiceName())
 }
 
 func GetTerminalPrompt() string {

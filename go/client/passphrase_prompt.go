@@ -13,7 +13,7 @@ import (
 // promptPassphrase asks the user for a passphrase.
 // Used during signup.
 func PromptPassphrase(g *libkb.GlobalContext) (keybase1.GetPassphraseRes, error) {
-	arg := libkb.DefaultPassphraseArg()
+	arg := libkb.DefaultPassphraseArg(g.SecretStoreAll != nil)
 	arg.WindowTitle = "Passphrase"
 	arg.Prompt = "Pick a strong passphrase (12+ characters)"
 	arg.Type = keybase1.PassphraseType_PASS_PHRASE
@@ -23,7 +23,7 @@ func PromptPassphrase(g *libkb.GlobalContext) (keybase1.GetPassphraseRes, error)
 // promptNewPassphrase asks the user for a new passphrase.
 // Used when changing passphrases.
 func PromptNewPassphrase(g *libkb.GlobalContext) (string, error) {
-	arg := libkb.DefaultPassphraseArg()
+	arg := libkb.DefaultPassphraseArg(g.SecretStoreAll != nil)
 	arg.WindowTitle = "Pick a new passphrase"
 	arg.Prompt = "Pick a new strong passphrase (12+ characters)"
 	arg.Type = keybase1.PassphraseType_VERIFY_PASS_PHRASE

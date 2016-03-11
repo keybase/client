@@ -114,13 +114,13 @@ func makeTestSKB(t *testing.T, lks *LKSec) *SKB {
 	return skb
 }
 
-func testPromptAndUnlock(t *testing.T, skb *SKB, secretStore SecretStore) {
+func testPromptAndUnlock(t *testing.T, skb *SKB) {
 	// XXX check nil, nil at end of this...
 	parg := SecretKeyPromptArg{
 		Reason:   "test reason",
 		SecretUI: &TestSecretUI{Passphrase: "test passphrase", StoreSecret: true},
 	}
-	key, err := skb.PromptAndUnlock(parg, "test which", secretStore, nil, nil)
+	key, err := skb.PromptAndUnlock(parg, "test which", NewSecretStore(skb.G(), "testusername"), nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -141,10 +141,10 @@ func TestBasicSecretStore(t *testing.T) {
 	}
 
 	skb := makeTestSKB(t, lks)
-	testSecretStore := TestSecretStore{}
-	testPromptAndUnlock(t, skb, &testSecretStore)
+	testPromptAndUnlock(t, skb)
 
-	if string(testSecretStore.Secret) != string(expectedSecret) {
+	secret, _ := tc.G.SecretStoreAll.RetrieveSecret("testusername")
+	if string(secret) != string(expectedSecret) {
 		t.Errorf("secret doesn't match expected value")
 	}
 
@@ -156,7 +156,7 @@ func TestBasicSecretStore(t *testing.T) {
 		t.Errorf("newLKSecForTest unexpectedly called")
 		return lks
 	}
-	testPromptAndUnlock(t, skb, &testSecretStore)
+	testPromptAndUnlock(t, skb)
 }
 
 func TestCorruptSecretStore(t *testing.T) {
@@ -170,14 +170,13 @@ func TestCorruptSecretStore(t *testing.T) {
 	}
 
 	skb := makeTestSKB(t, lks)
-	testSecretStore := TestSecretStore{
-		Secret: []byte("corrupt"),
-	}
-	testPromptAndUnlock(t, skb, &testSecretStore)
+	tc.G.SecretStoreAll.StoreSecret("testusername", []byte("corrupt"))
+	testPromptAndUnlock(t, skb)
 
 	// The corrupt secret value should be overwritten by the new
 	// correct one.
-	if string(testSecretStore.Secret) != string(expectedSecret) {
+	secret, _ := tc.G.SecretStoreAll.RetrieveSecret("testusername")
+	if string(secret) != string(expectedSecret) {
 		t.Errorf("secret doesn't match expected value")
 	}
 }
@@ -198,13 +197,13 @@ func TestUnusedSecretStore(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	testSecretStore := TestSecretStore{}
-	testPromptAndUnlock(t, skb, &testSecretStore)
+	testPromptAndUnlock(t, skb)
 
 	// Since there is a non-nil passphraseStream in the login
 	// state, nothing should be stored in the secret store (since
 	// no prompt was shown).
-	if len(testSecretStore.Secret) > 0 {
+	secret, _ := tc.G.SecretStoreAll.RetrieveSecret("testusername")
+	if len(secret) > 0 {
 		t.Errorf("secret unexpectedly non-empty")
 	}
 }
@@ -219,9 +218,8 @@ func TestPromptCancelCache(t *testing.T) {
 	lks := makeTestLKSec(t, tc.G)
 	skb := makeTestSKB(t, lks)
 
-	store := &TestSecretStore{}
 	ui := &TestCancelSecretUI{}
-	err := testErrUnlock(t, skb, store, ui)
+	err := testErrUnlock(t, skb, ui)
 	if _, ok := err.(InputCanceledError); !ok {
 		t.Errorf("PromptAndUnlock returned error %s (%T), expected InputCanceled", err, err)
 	}
@@ -231,7 +229,7 @@ func TestPromptCancelCache(t *testing.T) {
 
 	// try again 5s later: should still get an error, but CallCount should not increase
 	fakeClock.Advance(5 * time.Second)
-	err = testErrUnlock(t, skb, store, ui)
+	err = testErrUnlock(t, skb, ui)
 	if _, ok := err.(SkipSecretPromptError); !ok {
 		t.Errorf("PromptAndUnlock returned %s (%T), expected SkipSecretPromptError", err, err)
 	}
@@ -241,7 +239,7 @@ func TestPromptCancelCache(t *testing.T) {
 
 	// wait 10 minutes: should get input canceled and CallCount should go up 1
 	fakeClock.Advance(10 * time.Minute)
-	err = testErrUnlock(t, skb, store, ui)
+	err = testErrUnlock(t, skb, ui)
 	if _, ok := err.(InputCanceledError); !ok {
 		t.Errorf("PromptAndUnlock returned error %s (%T)", err, err)
 	}
@@ -251,7 +249,7 @@ func TestPromptCancelCache(t *testing.T) {
 
 	// try again 5s later: should still get an error, but CallCount should not increase
 	fakeClock.Advance(5 * time.Second)
-	err = testErrUnlock(t, skb, store, ui)
+	err = testErrUnlock(t, skb, ui)
 	if _, ok := err.(SkipSecretPromptError); !ok {
 		t.Errorf("PromptAndUnlock returned %s (%T), expected SkipSecretPromptError", err, err)
 	}
@@ -265,7 +263,7 @@ func TestPromptCancelCache(t *testing.T) {
 		Reason:   "test reason",
 		SecretUI: &TestSecretUI{Passphrase: "passphrase"},
 	}
-	key, err := skb.PromptAndUnlock(parg, "test which", store, nil, nil)
+	key, err := skb.PromptAndUnlock(parg, "test which", NewSecretStore(tc.G, "testusername"), nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -274,13 +272,13 @@ func TestPromptCancelCache(t *testing.T) {
 	}
 }
 
-func testErrUnlock(t *testing.T, skb *SKB, store *TestSecretStore, ui *TestCancelSecretUI) error {
+func testErrUnlock(t *testing.T, skb *SKB, ui *TestCancelSecretUI) error {
 	parg := SecretKeyPromptArg{
 		Reason:         "test reason",
 		SecretUI:       ui,
 		UseCancelCache: true,
 	}
-	key, err := skb.PromptAndUnlock(parg, "test which", store, nil, nil)
+	key, err := skb.PromptAndUnlock(parg, "test which", NewSecretStore(skb.G(), "testusername"), nil, nil)
 	if err == nil {
 		t.Fatal("PromptAndUnlock returned nil error")
 	}

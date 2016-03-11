@@ -194,7 +194,7 @@ func TestLocalKeySecurityStoreSecret(t *testing.T) {
 		t.Errorf("Expected %v, got %v", secret, storedSecret)
 	}
 
-	err = secretStore.ClearSecret()
+	err = tc.G.SecretStoreAll.ClearSecret(fu.NormalizedUsername())
 	if err != nil {
 		t.Error(err)
 	}
