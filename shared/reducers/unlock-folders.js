@@ -24,7 +24,7 @@ export default function (state: State = initialState, action: UnlockFolderAction
   // TODO: Fill out the rest of this reducer
   switch (action.type) {
     case CommonConstants.resetStore:
-      return initialState
+      return {...initialState}
     case Constants.toPaperKeyInput:
       if (action.error) {
         return state

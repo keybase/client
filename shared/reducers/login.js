@@ -104,7 +104,7 @@ export default function (state: LoginState = initialState, action: any): LoginSt
 
   switch (action.type) {
     case CommonConstants.resetStore:
-      return initialState
+      return {...initialState}
 
     case ConfigConstants.statusLoaded:
       if (action.error || action.payload == null) {

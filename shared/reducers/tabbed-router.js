@@ -35,7 +35,7 @@ const initialState: TabbedRouterState = Immutable.fromJS(initTabbedRouterState({
 export default function (state: TabbedRouterState = initialState, action: any): TabbedRouterState {
   switch (action.type) {
     case CommonConstants.resetStore:
-      return initialState
+      return {...initialState}
 
     case Constants.switchTab:
       return state.set('activeTab', action.payload)

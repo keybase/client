@@ -27,7 +27,7 @@ const initialState: ConfigState = {
 export default function (state: ConfigState = initialState, action: Action): ConfigState {
   switch (action.type) {
     case CommonConstants.resetStore:
-      return initialState
+      return {...initialState}
 
     case Constants.startupLoading:
       return {
