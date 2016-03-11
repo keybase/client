@@ -2712,6 +2712,13 @@ func checkSyncOpInCache(t *testing.T, ops *folderBranchOps,
 	checkSyncOp(t, si.op, filePtr, writes)
 }
 
+func getUpdatedDirBlock(ctx context.Context, ops *folderBranchOps,
+	lState *lockState, block *DirBlock) *DirBlock {
+	ops.blockLock.RLock(lState)
+	defer ops.blockLock.RUnlock(lState)
+	return ops.getUpdatedDirBlockLocked(ctx, lState, block)
+}
+
 func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
@@ -2754,7 +2761,7 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 		p.Branch)
 	newRootBlock := getDirBlockFromCache(t, config, node.BlockPointer, p.Branch)
 	lState := makeFBOLockState()
-	newRootBlock = ops.getUpdatedDirBlock(ctx, lState, newRootBlock)
+	newRootBlock = getUpdatedDirBlock(ctx, ops, lState, newRootBlock)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).path) !=
 		len(p.path) {
@@ -2961,7 +2968,7 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	b, _ := config.BlockCache().Get(node.BlockPointer, p.Branch)
 	newRootBlock := b.(*DirBlock)
 	lState := makeFBOLockState()
-	newRootBlock = ops.getUpdatedDirBlock(ctx, lState, newRootBlock)
+	newRootBlock = getUpdatedDirBlock(ctx, ops, lState, newRootBlock)
 
 	b, _ = config.BlockCache().Get(fileNode.BlockPointer, p.Branch)
 	pblock := b.(*FileBlock)
@@ -3010,6 +3017,13 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 		})
 	checkSyncOpInCache(t, ops, fileNode.BlockPointer,
 		[]WriteRange{{1, uint64(len(newData))}})
+}
+
+func mergeUnrefCache(
+	ops *folderBranchOps, lState *lockState, file path, md *RootMetadata) {
+	ops.blockLock.RLock(lState)
+	defer ops.blockLock.RUnlock(lState)
+	ops.mergeUnrefCacheLocked(lState, file, md)
 }
 
 func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
@@ -3091,10 +3105,12 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 		t.Errorf("Wrote bad contents to block 2: %v", block2.Contents)
 	}
 
+	lState := makeFBOLockState()
+
 	// merge the unref cache to make it easy to check for changes
 	checkSyncOpInCache(t, ops, fileNode.BlockPointer,
 		[]WriteRange{{2, uint64(len(data))}})
-	ops.mergeUnrefCacheLocked(p, rmd) // no need to lock in test
+	mergeUnrefCache(ops, lState, p, rmd)
 	checkBlockCache(t, config, []BlockID{rootID, fileID, id1, id2},
 		map[BlockPointer]BranchName{
 			fileNode.BlockPointer:           p.Branch,
@@ -3182,7 +3198,7 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 		p.Branch)
 	newRootBlock := getDirBlockFromCache(t, config, node.BlockPointer, p.Branch)
 	lState := makeFBOLockState()
-	newRootBlock = ops.getUpdatedDirBlock(ctx, lState, newRootBlock)
+	newRootBlock = getUpdatedDirBlock(ctx, ops, lState, newRootBlock)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).path) !=
 		len(p.path) {
@@ -3353,10 +3369,12 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 	newBlock2 := getFileBlockFromCache(t, config,
 		fileBlock.IPtrs[1].BlockPointer, p.Branch)
 
+	lState := makeFBOLockState()
+
 	// merge unref changes so we can easily check the block changes
 	checkSyncOpInCache(t, ops, fileNode.BlockPointer,
 		[]WriteRange{{7, 0}})
-	ops.mergeUnrefCacheLocked(p, rmd) // no need to lock in test
+	mergeUnrefCache(ops, lState, p, rmd)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).path) !=
 		len(p.path) {
@@ -3432,10 +3450,12 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	newBlock1 := getFileBlockFromCache(t, config,
 		fileBlock.IPtrs[0].BlockPointer, p.Branch)
 
+	lState := makeFBOLockState()
+
 	// merge unref changes so we can easily check the block changes
 	checkSyncOpInCache(t, ops, fileNode.BlockPointer,
 		[]WriteRange{{4, 0}})
-	ops.mergeUnrefCacheLocked(p, rmd) // no need to lock in test
+	mergeUnrefCache(ops, lState, p, rmd)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).path) !=
 		len(p.path) {
@@ -3810,6 +3830,13 @@ func TestMtimeFailNoSuchName(t *testing.T) {
 	}
 }
 
+func getOrCreateSyncInfo(
+	ops *folderBranchOps, lState *lockState, de DirEntry) *syncInfo {
+	ops.blockLock.Lock(lState)
+	defer ops.blockLock.Unlock(lState)
+	return ops.getOrCreateSyncInfoLocked(lState, de)
+}
+
 // SetMtime failure cases are all the same as any other block sync
 
 func testSyncDirtySuccess(t *testing.T, isUnmerged bool) {
@@ -3836,7 +3863,9 @@ func testSyncDirtySuccess(t *testing.T, isUnmerged bool) {
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
 
-	si := ops.getOrCreateSyncInfoLocked(rootBlock.Children["a"])
+	lState := makeFBOLockState()
+
+	si := getOrCreateSyncInfo(ops, lState, rootBlock.Children["a"])
 	si.op.addWrite(0, 10)
 
 	// fsync a
@@ -4011,7 +4040,9 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
 
-	si := ops.getOrCreateSyncInfoLocked(rootBlock.Children["a"])
+	lState := makeFBOLockState()
+
+	si := getOrCreateSyncInfo(ops, lState, rootBlock.Children["a"])
 	// add the dirty blocks to the unref list
 	si.op.addWrite(5, 5)
 	si.op.addWrite(15, 5)
@@ -4120,7 +4151,9 @@ func TestSyncDirtyDupBlockSuccess(t *testing.T) {
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
 
-	si := ops.getOrCreateSyncInfoLocked(rootBlock.Children["b"])
+	lState := makeFBOLockState()
+
+	si := getOrCreateSyncInfo(ops, lState, rootBlock.Children["b"])
 	si.op.addWrite(0, 10)
 
 	config.BlockCache().PutDirty(bNode.BlockPointer, p.Branch, bBlock)
@@ -4251,7 +4284,10 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
-	ops.getOrCreateSyncInfoLocked(rootBlock.Children["a"])
+
+	lState := makeFBOLockState()
+
+	getOrCreateSyncInfo(ops, lState, rootBlock.Children["a"])
 
 	// fsync a, only block 2 is dirty
 	config.mockBcache.EXPECT().IsDirty(ptrMatcher{fileNode.BlockPointer},
@@ -4434,7 +4470,10 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, fileNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
-	ops.getOrCreateSyncInfoLocked(rootBlock.Children["a"])
+
+	lState := makeFBOLockState()
+
+	getOrCreateSyncInfo(ops, lState, rootBlock.Children["a"])
 
 	// fsync a, only block 2 is dirty
 	config.mockBcache.EXPECT().IsDirty(ptrMatcher{fileNode.BlockPointer},
@@ -4576,7 +4615,10 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 	p := path{FolderBranch{Tlf: id}, []pathNode{node, aNode}}
 	ops := getOps(config, id)
 	n := nodeFromPath(t, ops, p)
-	ops.getOrCreateSyncInfoLocked(rootBlock.Children["a"])
+
+	lState := makeFBOLockState()
+
+	getOrCreateSyncInfo(ops, lState, rootBlock.Children["a"])
 
 	// fsync a
 	config.BlockCache().PutDirty(aNode.BlockPointer, p.Branch, aBlock)

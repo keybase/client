@@ -617,8 +617,10 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 		t.Fatalf("Couldn't write to file: %v", err)
 	}
 
+	lState := makeFBOLockState()
+
 	fbo := kbfsOps.(*KBFSOpsStandard).getOps(rootNode.GetFolderBranch())
-	if fbo.getState() != dirtyState {
+	if fbo.getState(lState) != dirtyState {
 		t.Fatal("Unexpectedly not in dirty state")
 	}
 
@@ -659,8 +661,6 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 	if err != nil {
 		t.Errorf("Couldn't write file: %v", err)
 	}
-
-	lState := makeFBOLockState()
 
 	deferredWriteLen := func() int {
 		fbo.blockLock.Lock(lState)
@@ -728,8 +728,10 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 		t.Fatalf("Couldn't write to file: %v", err)
 	}
 
+	lState := makeFBOLockState()
+
 	fbo := kbfsOps.(*KBFSOpsStandard).getOps(rootNode.GetFolderBranch())
-	if fbo.getState() != dirtyState {
+	if fbo.getState(lState) != dirtyState {
 		t.Fatal("Unexpectedly not in dirty state")
 	}
 
@@ -771,8 +773,6 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 	if err != nil {
 		t.Errorf("Couldn't truncate file: %v", err)
 	}
-
-	lState := makeFBOLockState()
 
 	deferredWriteLen := func() int {
 		fbo.blockLock.Lock(lState)

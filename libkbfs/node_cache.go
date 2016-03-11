@@ -30,7 +30,7 @@ func newNodeCacheStandard(fb FolderBranch) *nodeCacheStandard {
 
 // lock must be locked for writing by the caller
 func (ncs *nodeCacheStandard) forgetLocked(core *nodeCore) {
-	ref := core.pathNode.BlockPointer.ref()
+	ref := core.pathNode.ref()
 
 	entry, ok := ncs.nodes[ref]
 	if !ok {
@@ -60,7 +60,7 @@ func (ncs *nodeCacheStandard) newChildForParentLocked(parent Node) (*nodeStandar
 		return nil, ParentNodeNotFoundError{blockRef{}}
 	}
 
-	ref := nodeStandard.core.pathNode.BlockPointer.ref()
+	ref := nodeStandard.core.pathNode.ref()
 	entry, ok := ncs.nodes[ref]
 	if !ok {
 		return nil, ParentNodeNotFoundError{ref}

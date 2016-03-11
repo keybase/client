@@ -418,12 +418,16 @@ func (so *syncOp) resetUpdateState() {
 	so.customUpdates[so.File.Unref] = &so.File
 }
 
-func (so *syncOp) addWrite(off uint64, length uint64) {
-	so.Writes = append(so.Writes, WriteRange{off, length})
+func (so *syncOp) addWrite(off uint64, length uint64) WriteRange {
+	latestWrite := WriteRange{off, length}
+	so.Writes = append(so.Writes, latestWrite)
+	return latestWrite
 }
 
-func (so *syncOp) addTruncate(off uint64) {
-	so.Writes = append(so.Writes, WriteRange{off, 0})
+func (so *syncOp) addTruncate(off uint64) WriteRange {
+	latestWrite := WriteRange{off, 0}
+	so.Writes = append(so.Writes, latestWrite)
+	return latestWrite
 }
 
 func (so *syncOp) SizeExceptUpdates() uint64 {
