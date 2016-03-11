@@ -44,7 +44,8 @@ export const globalColors = {
 }
 
 export const globalResizing = {
-  login: {width: 700, height: 580},
+  // Add 25px to login for the OS menubar
+  login: {width: 700, height: 605},
   normal: {width: 900, height: 900}
 }
 
