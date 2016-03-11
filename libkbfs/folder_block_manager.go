@@ -205,10 +205,11 @@ func (fbm *folderBlockManager) waitForQuotaReclamations(
 }
 
 func (fbm *folderBlockManager) forceQuotaReclamation() {
+	fbm.reclamationGroup.Add(1)
 	select {
 	case fbm.forceReclamationChan <- struct{}{}:
-		fbm.reclamationGroup.Add(1)
 	default:
+		fbm.reclamationGroup.Done()
 	}
 }
 
