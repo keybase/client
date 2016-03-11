@@ -136,7 +136,7 @@ const styles = {
     marginTop: 7
   },
   usernameFollowing: {
-    color: globalColors.green
+    color: globalColors.green2
   },
   usernameNotFollowing: {
     color: globalColors.orange
@@ -188,7 +188,7 @@ const followBottom = {
 const followBadgeStyles = {
   followsYou: {
     ...followTop,
-    background: globalColors.green2
+    background: globalColors.green
   },
   notFollowsYou: {
     ...followTop,
@@ -196,7 +196,7 @@ const followBadgeStyles = {
   },
   following: {
     ...followBottom,
-    background: globalColors.green2
+    background: globalColors.green
   },
   notFollowing: {
     ...followBottom,
