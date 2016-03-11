@@ -27,6 +27,8 @@ type loginProvision struct {
 	username      string
 	devname       string
 	cleanupOnErr  bool
+	hasPGP        bool
+	hasDevice     bool
 }
 
 // gpgInterface defines the portions of gpg client that provision
@@ -470,19 +472,17 @@ func (e *loginProvision) checkArg() error {
 
 func (e *loginProvision) route(ctx *Context) error {
 	// check if User has any pgp keys, active devices
-	pgp := false
-	device := false
 	ckf := e.arg.User.GetComputedKeyFamily()
 	if ckf != nil {
-		pgp = len(ckf.GetActivePGPKeys(false)) > 0
-		device = ckf.HasActiveDevice()
+		e.hasPGP = len(ckf.GetActivePGPKeys(false)) > 0
+		e.hasDevice = ckf.HasActiveDevice()
 	}
 
-	if device {
-		return e.chooseDevice(ctx, pgp)
+	if e.hasDevice {
+		return e.chooseDevice(ctx, e.hasPGP)
 	}
 
-	if pgp {
+	if e.hasPGP {
 		return e.tryPGP(ctx)
 	}
 
@@ -741,7 +741,7 @@ func (e *loginProvision) newGPGMatchErr(keys []*libkb.PGPKeyBundle) error {
 	for i, k := range keys {
 		fps[i] = k.GetFingerprint().ToQuads()
 	}
-	return libkb.NoMatchingGPGKeysError{Fingerprints: fps}
+	return libkb.NoMatchingGPGKeysError{Fingerprints: fps, HasActiveDevice: e.hasDevice}
 }
 
 func (e *loginProvision) gpgSignKey(ctx *Context, fp *libkb.PGPFingerprint) (libkb.GenericKey, error) {

@@ -1360,7 +1360,8 @@ func (e BadInvitationCodeError) Error() string {
 }
 
 type NoMatchingGPGKeysError struct {
-	Fingerprints []string
+	Fingerprints    []string
+	HasActiveDevice bool // true if the user has an active device that they chose not to use
 }
 
 func (e NoMatchingGPGKeysError) Error() string {
