@@ -203,11 +203,7 @@ func NewConfigLocal() *ConfigLocal {
 	config.maxDirBytes = maxDirBytesDefault
 	config.rwpWaitTime = rekeyWithPromptWaitTimeDefault
 
-	// Until quota reclamation is ready, keep it turned off.  TODO:
-	// undo this.
-	config.qrPeriod = 0
-	// config.qrPeriod = qrPeriodDefault
-
+	config.qrPeriod = qrPeriodDefault
 	config.qrUnrefAge = qrUnrefAgeDefault
 
 	// Don't bother creating the registry if UseNilMetrics is set.
