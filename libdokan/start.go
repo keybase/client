@@ -11,7 +11,6 @@ import (
 	"path"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -26,10 +25,10 @@ type StartOptions struct {
 
 // Start the filesystem
 func Start(mounter Mounter, options StartOptions) *libfs.Error {
-	var err error
-
-	log := logger.NewWithCallDepth("", 1)
-	log.Info("KBFS version %s", libkbfs.VersionString())
+	log, err := libkbfs.InitLog(options.KbfsParams)
+	if err!=nil {
+		return libfs.InitError(err.Error())
+	}
 
 	onInterruptFn := func() {
 		mounter.Unmount()

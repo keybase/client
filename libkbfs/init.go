@@ -43,6 +43,11 @@ type InitParams struct {
 	// TLFValidDuration is the duration that TLFs are valid
 	// before marked for lazy revalidation.
 	TLFValidDuration time.Duration
+
+	// LogToFile log to file or stderr.
+	LogToFile bool
+	// LogFilePath is path to the log file if LogToFile is true.
+	LogFilePath string
 }
 
 var libkbOnce sync.Once
@@ -101,6 +106,10 @@ func AddFlags(flags *flag.FlagSet) *InitParams {
 	flags.StringVar(&params.ServerRootDir, "server-root", "", "directory to put local server files (and ignore -bserver and -mdserver)")
 	flags.StringVar(&params.LocalUser, "localuser", "", "fake local user (used only with -server-in-memory or -server-root)")
 	flags.DurationVar(&params.TLFValidDuration, "tlf-valid", tlfValidDurationDefault, "time tlfs are valid before redoing identification")
+	flags.BoolVar(&params.LogToFile, "log-to-file", false, "Use a log file instead of stderr.")
+	// TODO is there a better way to get G here?
+	defLogName := filepath.Join(libkb.G.Env.GetLogDir(), libkb.KBFSLogFileName)
+	flags.StringVar(&params.LogFilePath, "log-file-path", defLogName, "Default log file path.")
 	return &params
 }
 
@@ -214,6 +223,27 @@ func makeKeybaseDaemon(config Config, serverInMemory bool, serverRootDir string,
 	}
 
 	return nil, errors.New("Can't user localuser without a local server")
+}
+
+func InitLog(params InitParams) (logger.Logger, error) {
+	log := logger.NewWithCallDepth("kbfs", 1)
+
+	// Setup logging here, switch to file if wanted
+	// TODO: should more of these be exposed to command line in future?
+	if params.LogToFile {
+		err := logger.SetLogFileConfig(&logger.LogFileConfig{
+			Path:    params.LogFilePath,
+			MaxAge:  30 * 24 * time.Hour, // 30 days
+			MaxSize: 128 * 1024 * 1024,   // 128mb
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	log.Configure("", params.Debug, "")
+	log.Info("KBFS version %s", VersionString())
+	return log,nil
 }
 
 // Init initializes a config and returns it.
