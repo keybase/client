@@ -74,7 +74,7 @@ export class ProofsRender extends Component {
     let color = globalColors.blue
     switch (proof.state) {
       case proofNormal: {
-        color = this._isTracked(proof) ? globalColors.green : globalColors.blue
+        color = this._isTracked(proof) ? globalColors.green2 : globalColors.blue
         break
       }
       case proofChecking:
