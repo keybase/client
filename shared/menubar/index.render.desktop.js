@@ -415,7 +415,7 @@ const styles = {
     color: globalColors.black,
     // This is because normal <Input/> does center-aligned hints by using
     // width: 100% on position: absolute
-    width: '',
+    width: 'auto',
     marginTop: 0
   }
 }
