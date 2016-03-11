@@ -335,6 +335,26 @@ func (u *Updater) unpack(filename string) (string, error) {
 	return unzipDestination, nil
 }
 
+func (u *Updater) ensureAssetExists(asset keybase1.Asset) error {
+	if !strings.HasPrefix(asset.Url, "http://") && !strings.HasPrefix(asset.Url, "https://") {
+		u.log.Debug("Skipping re-check for non-http asset")
+		return nil
+	}
+	u.log.Debug("Checking asset still exists") // In case the update was revoked
+	resp, err := http.Head(asset.Url)
+	if err != nil {
+		return err
+	}
+	if resp == nil {
+		return fmt.Errorf("No response")
+	}
+	defer libkb.DiscardAndCloseBody(resp)
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("Update is no longer available (%d)", resp.StatusCode)
+	}
+	return nil
+}
+
 func (u *Updater) checkUpdate(sourcePath string, destinationPath string) error {
 	u.log.Info("Checking update for %s", destinationPath)
 	if _, err := os.Stat(sourcePath); os.IsNotExist(err) {
@@ -432,6 +452,11 @@ func (u *Updater) update(ctx Context, force bool, requested bool) (update *keyba
 	}
 
 	err = u.checkInUse(ctx, *update)
+	if err != nil {
+		return
+	}
+
+	err = u.ensureAssetExists(*update.Asset)
 	if err != nil {
 		return
 	}
