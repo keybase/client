@@ -34,7 +34,7 @@ export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInvi
       callback: err => {
         if (err) {
           console.error('error in inviteCode:', err)
-          dispatch({type: Constants.checkInviteCode, error: true, payload: {errorText: 'Invite code is invalid'}})
+          dispatch({type: Constants.checkInviteCode, error: true, payload: {errorText: "Sorry, that's not a valid invite code."}})
           reject(err)
         } else {
           dispatch({type: Constants.checkInviteCode, payload: {inviteCode}})
