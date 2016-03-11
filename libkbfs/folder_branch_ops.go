@@ -4080,7 +4080,6 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 
 	parentPath := file.parentPath()
 	lbc := make(localBcache)
-	doDeleteDe := false
 	err = func() error {
 		fbo.blockLock.RLock(lState)
 		defer fbo.blockLock.RUnlock(lState)
@@ -4102,7 +4101,6 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 			de.EncodedSize = si.oldInfo.EncodedSize
 			dblock.Children[file.tailName()] = de
 			lbc[parentPath.tailPointer()] = dblock
-			doDeleteDe = true
 		}
 
 		return nil
@@ -4166,29 +4164,6 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 	}
 	syncIndirectFileBlockPtrs = nil
 
-	err = func() error {
-		fbo.cacheLock.Lock()
-		defer fbo.cacheLock.Unlock()
-
-		// Clear the updated de from the cache.  We are guaranteed that
-		// any concurrent write to this file was deferred, even if it was
-		// to a block that wasn't currently being sync'd, since the
-		// top-most block is always in fileBlockStates and is always
-		// dirtied during a write/truncate.
-		if doDeleteDe {
-			delete(fbo.deCache, fileRef)
-		}
-
-		// we can get rid of all the sync state that might have
-		// happened during the sync, since we will replay the writes
-		// below anyway.
-		delete(fbo.unrefCache, fileRef)
-		return nil
-	}()
-	if err != nil {
-		return true, err
-	}
-
 	fbo.fileBlockStates = make(map[BlockPointer]syncBlockState)
 	// Redo any writes or truncates that happened to our file while
 	// the sync was happening.
@@ -4203,11 +4178,21 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 			return true, err
 		}
 	}
-	// Clear the old deCache entry
+
+	// Clear the updated de from the cache.  We are guaranteed
+	// that any concurrent write to this file was deferred, even
+	// if it was to a block that wasn't currently being sync'd,
+	// since the top-most block is always in fileBlockStates and
+	// is always dirtied during a write/truncate.
+	//
+	// Also, we can get rid of all the sync state that might have
+	// happened during the sync, since we will replay the writes
+	// below anyway.
 	func() {
 		fbo.cacheLock.Lock()
 		defer fbo.cacheLock.Unlock()
-		delete(fbo.deCache, file.tailPointer().ref())
+		delete(fbo.deCache, fileRef)
+		delete(fbo.unrefCache, fileRef)
 	}()
 	for _, f := range writes {
 		// we can safely read head here because we hold mdWriterLock
