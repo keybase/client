@@ -2,6 +2,7 @@
 
 import * as Constants from '../constants/login'
 import * as ConfigConstants from '../constants/config'
+import * as CommonConstants from '../constants/common'
 import Immutable from 'immutable'
 import HiddenString from '../util/hidden-string'
 import {isMobile} from '../constants/platform'
@@ -102,6 +103,9 @@ export default function (state: LoginState = initialState, action: any): LoginSt
   let toMerge = null
 
   switch (action.type) {
+    case CommonConstants.resetStore:
+      return initialState
+
     case ConfigConstants.statusLoaded:
       if (action.error || action.payload == null) {
         return state

@@ -1,6 +1,7 @@
 /* @flow */
 
 import * as Constants from '../constants/pinentry'
+import * as CommonConstants from '../constants/common'
 
 import type {Feature, GUIEntryFeatures} from '../constants/types/flow-types'
 import type {PinentryActions} from '../constants/pinentry'
@@ -39,6 +40,17 @@ const initialState: RootPinentryState = {
 export default function (state: RootPinentryState = initialState, action: PinentryActions): RootPinentryState {
   const sessionID: ?number = (action.payload && action.payload.sessionID != null) ? action.payload.sessionID : null
   switch (action.type) {
+    case CommonConstants.resetStore:
+      if (state.started === 1) {
+        return {
+          started: 1,
+          pinentryStates: {}
+        }
+      } else {
+        return {
+          started: 0
+        }
+      }
     case Constants.registerPinentryListener:
       if (action.payload && action.payload.started) {
         return {

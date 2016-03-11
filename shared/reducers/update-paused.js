@@ -1,6 +1,7 @@
 /* @flow */
 
 import * as Constants from '../constants/update'
+import * as CommonConstants from '../constants/common'
 
 import type {UpdatePausedActions} from '../constants/update'
 
@@ -14,6 +15,8 @@ const initialState: UpdatePausedState = {
 
 export default function (state: UpdatePausedState = initialState, action: UpdatePausedActions): UpdatePausedState {
   switch (action.type) {
+    case CommonConstants.resetStore:
+      return initialState
     case Constants.showUpdatePaused:
       return {
         ...state,

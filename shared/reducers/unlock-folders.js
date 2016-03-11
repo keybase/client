@@ -1,6 +1,7 @@
 /* @flow */
 
 import * as Constants from '../constants/unlock-folders'
+import * as CommonConstants from '../constants/common'
 import HiddenString from '../util/hidden-string'
 
 import type {UnlockFolderActions, Device} from '../constants/unlock-folders'
@@ -22,6 +23,8 @@ const initialState: State = {
 export default function (state: State = initialState, action: UnlockFolderActions): State {
   // TODO: Fill out the rest of this reducer
   switch (action.type) {
+    case CommonConstants.resetStore:
+      return initialState
     case Constants.toPaperKeyInput:
       if (action.error) {
         return state

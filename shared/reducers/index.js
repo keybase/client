@@ -72,10 +72,4 @@ if (__DEV__) {
   reducer = combinedReducer
 }
 
-export default function (state: Object = {}, action: any): State {
-  // Reset most of out state if we logout
-  if (action.type === logoutDone) {
-    state = {tracker: state.tracker, pinentry: state.pinentry, update: state.update}
-  }
-  return reducer(state, action)
-}
+export default reducer

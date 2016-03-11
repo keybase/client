@@ -8,6 +8,7 @@ import Immutable from 'immutable'
 import {subReducer as routerReducer, createRouterState} from './router'
 import {startupTab, folderTab, chatTab, peopleTab, devicesTab, moreTab, loginTab} from '../constants/tabs'
 import * as Constants from '../constants/tabbed-router'
+import * as CommonConstants from '../constants/common'
 import * as RouterConstants from '../constants/router'
 import {initTabbedRouterState} from '../local-debug'
 import type {RouterState} from './router'
@@ -33,6 +34,9 @@ const initialState: TabbedRouterState = Immutable.fromJS(initTabbedRouterState({
 
 export default function (state: TabbedRouterState = initialState, action: any): TabbedRouterState {
   switch (action.type) {
+    case CommonConstants.resetStore:
+      return initialState
+
     case Constants.switchTab:
       return state.set('activeTab', action.payload)
     case RouterConstants.navigateUp:

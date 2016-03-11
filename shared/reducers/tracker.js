@@ -1,6 +1,7 @@
 /* @flow */
 
 import * as Constants from '../constants/tracker'
+import * as CommonConstants from '../constants/common'
 
 import {normal, warning, error, checking} from '../constants/tracker'
 import {metaNew, metaUpgraded, metaUnreachable, metaDeleted} from '../constants/tracker'
@@ -250,6 +251,11 @@ export default function (state: State = initialState, action: Action): State {
   const username: string = (action.payload && action.payload.username) ? action.payload.username : ''
   const trackerState = username ? state.trackers[username] : null
   switch (action.type) {
+    case CommonConstants.resetStore:
+      return {
+        ...state,
+        trackers: {}
+      }
     case Constants.startTimer:
       return {
         ...state,

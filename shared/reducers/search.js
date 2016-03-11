@@ -1,6 +1,8 @@
 /* @flow */
 
 import * as Constants from '../constants/search'
+import * as CommonConstants from '../constants/common'
+
 import Immutable from 'immutable'
 
 import type {URI} from './router'
@@ -23,6 +25,8 @@ export default function (state: SearchState = initialState, action: any): Search
 
   return state.update(action.payload.base, oldValue => {
     switch (action.type) {
+      case CommonConstants.resetStore:
+        return initialState
       case Constants.initSearch:
         return Immutable.fromJS({
           base: action.payload.base,

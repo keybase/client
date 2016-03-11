@@ -1,4 +1,5 @@
 import * as Constants from '../constants/profile'
+import * as CommonConstants from '../constants/common'
 import Immutable from 'immutable'
 
 const initialState = Immutable.Map()
@@ -7,6 +8,9 @@ export default function (state = initialState, action) {
   let update = null
 
   switch (action.type) {
+    case CommonConstants.resetStore:
+      return initialState
+
     case Constants.initProfile:
       update = {
         username: action.payload.username,
