@@ -6,16 +6,17 @@ install: true
 services:
   - docker
 before_install:
-  - if [ $TRAVIS_BRANCH == 'master' ]; then
-      export DEBIAN_FRONTEND=noninteractive;
-      sudo apt-get update;
-      sudo apt-get install -q -y --force-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" docker-engine;
-      sudo rm /usr/local/bin/docker-compose;
-      curl -L https://github.com/docker/compose/releases/download/1.6.0/docker-compose-`uname -s`-`uname -m` > docker-compose;
-      chmod +x docker-compose;
-      sudo mv docker-compose /usr/local/bin;
-      docker login -e $CI_EMAIL -u $CI_USER -p $CI_PASS $CI_HOST;
-    fi
+  - export DEBIAN_FRONTEND=noninteractive;
+  - sudo apt-get update;
+  - sudo apt-get install -q -y --force-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" docker-engine;
+  - sudo rm /usr/local/bin/docker-compose;
+  - curl -L https://github.com/docker/compose/releases/download/1.6.0/docker-compose-`uname -s`-`uname -m` > docker-compose;
+  - chmod +x docker-compose;
+  - sudo mv docker-compose /usr/local/bin;
+  - docker login -e $CI_EMAIL -u $CI_USER -p $CI_PASS $CI_HOST;
+  - docker pull $CI_HOST/kbweb && docker tag $CI_HOST/kbweb kbweb;
+  - docker pull $CI_HOST/kbdb && docker tag $CI_HOST/kbdb kbdb || echo "Failed to docker pull kbdb";
+  - docker pull $CI_HOST/kbclient && docker tag $CI_HOST/kbclient kbclient || echo "Failed to docker pull kbclient";
 script:
   - export GO15VENDOREXPERIMENT=1
   - go get -u github.com/golang/lint/golint
@@ -37,11 +38,7 @@ script:
   - cd ../test
   - go test -i && go test
   - go test -c -tags fuse
-  - if [ $TRAVIS_BRANCH == 'master' ]; then
-      cd ../kbfsdocker && go test -i -tags docker && go test -c -tags docker && ./kbfsdocker.test -test.v -test.timeout 6m;
-    else
-      echo "Not pushing to Docker, because this isn't a push to master.";
-    fi
+  - cd ../kbfsdocker && go test -i -tags docker && go test -c -tags docker && ./kbfsdocker.test -test.v -test.timeout 6m;
 notifications:
   slack: keybase:WKlhs55Mb4am4obv1rNRg8P0
 branches:
