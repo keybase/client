@@ -604,7 +604,7 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 			}
 		}
 
-		_, de, err := cr.fbo.getEntry(
+		de, err := cr.fbo.getEntry(
 			ctx, lState, unmergedChains.mostRecentMD, currPath)
 		if err != nil {
 			return path{}, BlockPointer{}, nil, err
