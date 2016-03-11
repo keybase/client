@@ -17,7 +17,6 @@ before_install:
   - docker pull $CI_HOST/kbweb && docker tag $CI_HOST/kbweb kbweb;
   - docker pull $CI_HOST/kbclient && docker tag $CI_HOST/kbclient kbclient;
   - docker pull $CI_HOST/kbdb && docker tag $CI_HOST/kbdb kbdb || echo "Failed to docker pull kbdb";
-  - docker-compose -f $GOPATH/src/github.com/keybase/kbfs/kbfsdocker/docker-compose.yml up -d kbweb.local
 script:
   - export GO15VENDOREXPERIMENT=1
   - go get -u github.com/golang/lint/golint
