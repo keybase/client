@@ -19,14 +19,16 @@ type SearchState = Immutable.Map<Base, SubSearchState>
 const initialState: SearchState = Immutable.Map()
 
 export default function (state: SearchState = initialState, action: any): SearchState {
+  if (action.type === CommonConstants.resetStore) {
+    return {...initialState}
+  }
+
   if (!action.payload || !action.payload.base) {
     return state
   }
 
   return state.update(action.payload.base, oldValue => {
     switch (action.type) {
-      case CommonConstants.resetStore:
-        return initialState
       case Constants.initSearch:
         return Immutable.fromJS({
           base: action.payload.base,

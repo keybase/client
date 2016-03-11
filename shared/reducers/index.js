@@ -16,7 +16,8 @@ import favorite from './favorite'
 import updateConfirm from './update-confirm'
 import updatePaused from './update-paused'
 import signup from './signup'
-import {logoutDone} from '../constants/login'
+
+import {resetStore} from '../constants/common.js'
 
 import devEdit from './dev-edit'
 
@@ -72,4 +73,12 @@ if (__DEV__) {
   reducer = combinedReducer
 }
 
-export default reducer
+export default function (state: State, action: any): State {
+  // Warn if any keys did not change after a resetStore action
+  if (action.type === resetStore) {
+    const nextState = reducer(state, action)
+    Object.keys(nextState).forEach(k => nextState[k] === state[k] && console.warn('Key %s did not change after resetStore action', k))
+    return nextState
+  }
+  return reducer(state, action)
+}

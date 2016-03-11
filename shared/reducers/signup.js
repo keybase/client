@@ -43,7 +43,7 @@ const initialState: SignupState = {
 export default function (state: SignupState = initialState, action: SignupActions): SignupState {
   switch (action.type) {
     case CommonConstants.resetStore:
-      return initialState
+      return {...initialState}
 
     case Constants.checkInviteCode:
       if (action.error) {

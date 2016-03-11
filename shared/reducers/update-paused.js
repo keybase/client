@@ -16,7 +16,7 @@ const initialState: UpdatePausedState = {
 export default function (state: UpdatePausedState = initialState, action: UpdatePausedActions): UpdatePausedState {
   switch (action.type) {
     case CommonConstants.resetStore:
-      return initialState
+      return {...initialState}
     case Constants.showUpdatePaused:
       return {
         ...state,
