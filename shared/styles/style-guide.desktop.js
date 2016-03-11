@@ -44,7 +44,8 @@ export const globalColors = {
 }
 
 export const globalResizing = {
-  login: {width: 700, height: 580},
+  // 600px instead of 580px, since the top chrome counts too.
+  login: {width: 700, height: 605},
   normal: {width: 900, height: 900}
 }
 

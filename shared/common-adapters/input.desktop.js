@@ -131,7 +131,8 @@ export const styles = {
     ...globalStyles.fontRegular,
     color: globalColors.black10,
     width: '100%',
-    textAlign: 'center'
+    textAlign: 'center',
+    marginTop: -3
   },
   floatingLabelStyle: {
     ...globalStyles.fontRegular,
