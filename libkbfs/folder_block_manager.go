@@ -23,6 +23,8 @@ const (
 	// passes this threshold, we'll stop garbage collection at the
 	// current revision.
 	numPointersPerGCThreshold = 100
+	// The most revisions to consider for each QR run.
+	numMaxRevisionsPerQR = 100
 )
 
 // folderBlockManager is a helper class for managing the blocks in a
@@ -767,6 +769,13 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 		return nil
 	}
 
+	// Don't try to do too many at a time.
+	shortened := false
+	if mostRecentOldEnoughRev-lastGCRev > numMaxRevisionsPerQR {
+		mostRecentOldEnoughRev = lastGCRev + numMaxRevisionsPerQR
+		shortened = true
+	}
+
 	// Don't print these until we know for sure that we'll be
 	// reclaiming some quota, to avoid log pollution.
 	fbm.log.CDebugf(ctx, "Starting quota reclamation process")
@@ -782,7 +791,7 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	if err != nil {
 		return err
 	}
-	if len(ptrs) == 0 {
+	if len(ptrs) == 0 && !shortened {
 		complete = true
 		return nil
 	}
