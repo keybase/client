@@ -84,7 +84,7 @@ class Nav extends Component {
     } else {
       if (this._originalSize) {
         const {width, height} = this._originalSize
-        currentWindow.setSize(width, height, true)
+        currentWindow.setContentSize(width, height, true)
       } else {
         currentWindow.setContentSize(globalResizing.normal.width, globalResizing.normal.height, true)
       }
