@@ -31,6 +31,7 @@ type Kex2Provisionee struct {
 	csrfToken    keybase1.CsrfToken
 	pps          keybase1.PassphraseStream
 	lks          *libkb.LKSec
+	kex2Cancel   func()
 	ctx          *Context
 }
 
@@ -93,8 +94,12 @@ func (e *Kex2Provisionee) Run(ctx *Context) error {
 		panic("empty secret")
 	}
 
+	var nctx context.Context
+	nctx, e.kex2Cancel = context.WithCancel(ctx.GetNetContext())
+	defer e.kex2Cancel()
+
 	karg := kex2.KexBaseArg{
-		Ctx:           ctx.GetNetContext(),
+		Ctx:           nctx,
 		Mr:            libkb.NewKexRouter(e.G()),
 		DeviceID:      e.device.ID,
 		Secret:        e.secret,
@@ -110,6 +115,14 @@ func (e *Kex2Provisionee) Run(ctx *Context) error {
 	}
 
 	return nil
+}
+
+// Cancel cancels the kex2 run if it is running.
+func (e *Kex2Provisionee) Cancel() {
+	if e.kex2Cancel == nil {
+		return
+	}
+	e.kex2Cancel()
 }
 
 // AddSecret inserts a received secret into the provisionee's
