@@ -15,7 +15,7 @@ import type {SimpleProofState} from '../constants/tracker'
 
 import type {TrackSummary} from '../constants/types/flow-types'
 
-type TrackerProps = {
+export type TrackerProps = {
   loggedIn: boolean,
   trackerState: SimpleProofState,
   trackerMessage: ?string,
@@ -32,14 +32,12 @@ type TrackerProps = {
   onFollow: () => void,
   onFollowHelp: () => void,
   onFollowChecked: () => void,
-  registerIdentifyUi: () => void,
-  registerTrackerChangeListener: () => void,
   closed: boolean,
   lastTrack: ?TrackSummary,
   startTimer: () => void,
   stopTimer: () => void,
   currentlyFollowing: boolean,
-  lastAction: 'followed' | 'refollowed' | 'unfollowed' | 'error'
+  lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error')
 }
 
 class Tracker extends Component {
@@ -124,10 +122,10 @@ class Tracker extends Component {
 
 export default connect(
   (state, ownProps) => ({
-    proofs: [],
     ...state.tracker,
     loggedIn: state.config && state.config.status && state.config.status.loggedIn,
-    ...state.tracker.trackers[ownProps.username]
+    ...state.tracker.trackers[ownProps.username],
+    ...ownProps
   }),
   dispatch => {
     return bindActionCreators(trackerActions, dispatch)
