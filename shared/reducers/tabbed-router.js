@@ -18,24 +18,28 @@ type TabbedRouterState = MapADT2<'tabs', Immutable.Map<TabName, RouterState>, 'a
 
 const emptyRouterState: RouterState = createRouterState([], [])
 
-const initialState: TabbedRouterState = Immutable.fromJS(initTabbedRouterState({
-  // a map from tab name to router obj
-  tabs: {
-    [startupTab]: emptyRouterState,
-    [folderTab]: emptyRouterState,
-    [chatTab]: emptyRouterState,
-    [peopleTab]: emptyRouterState,
-    [devicesTab]: emptyRouterState,
-    [moreTab]: emptyRouterState,
-    [loginTab]: emptyRouterState
-  },
-  activeTab: loginTab
-}))
+function initialStateFn (): TabbedRouterState {
+  return Immutable.fromJS(initTabbedRouterState({
+    // a map from tab name to router obj
+    tabs: {
+      [startupTab]: emptyRouterState,
+      [folderTab]: emptyRouterState,
+      [chatTab]: emptyRouterState,
+      [peopleTab]: emptyRouterState,
+      [devicesTab]: emptyRouterState,
+      [moreTab]: emptyRouterState,
+      [loginTab]: emptyRouterState
+    },
+    activeTab: loginTab
+  }))
+}
+
+const initialState: TabbedRouterState = initialStateFn()
 
 export default function (state: TabbedRouterState = initialState, action: any): TabbedRouterState {
   switch (action.type) {
     case CommonConstants.resetStore:
-      return {...initialState}
+      return initialStateFn()
 
     case Constants.switchTab:
       return state.set('activeTab', action.payload)
