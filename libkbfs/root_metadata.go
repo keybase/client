@@ -162,6 +162,8 @@ type RootMetadata struct {
 	// WriterMetadata.WKeys. If there are no readers, each generation
 	// is empty.
 	RKeys TLFReaderKeyGenerations `codec:",omitempty"`
+	// The client's timestamp on when the MD update was created.
+	UpdateTime int64 `codec:"ut"` // in unix nanoseconds
 
 	// The plaintext, deserialized PrivateMetadata
 	data PrivateMetadata
@@ -317,6 +319,7 @@ func (md RootMetadata) MakeSuccessor(config Config, isWriter bool) (RootMetadata
 	copy(newMd.Writers, md.Writers)
 	newMd.WKeys = md.WKeys.DeepCopy()
 	newMd.RKeys = md.RKeys.DeepCopy()
+	newMd.UpdateTime = config.Clock().Now().UnixNano()
 	if md.IsReadable() && isWriter {
 		newMd.ClearBlockChanges()
 		// no need to deep copy the full data since we just cleared the

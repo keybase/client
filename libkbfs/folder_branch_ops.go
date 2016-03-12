@@ -816,6 +816,7 @@ func (fbo *folderBranchOps) initMDLocked(
 	md.AddOp(newCreateOp("", BlockPointer{}, Dir))
 	md.AddRefBlock(md.data.Dir.BlockInfo)
 	md.UnrefBytes = 0
+	md.UpdateTime = now
 
 	if err = fbo.config.BlockOps().Put(ctx, md, info.BlockPointer,
 		readyBlockData); err != nil {
@@ -5661,9 +5662,14 @@ func (fbo *folderBranchOps) GetUpdateHistory(ctx context.Context,
 			writer = string(name)
 			writerNames[rmd.LastModifyingWriter] = writer
 		}
+		// Use the UpdateTime if it's been populated
+		dateNano := rmd.UpdateTime
+		if dateNano == 0 {
+			dateNano = rmd.data.Dir.Mtime
+		}
 		updateSummary := UpdateSummary{
 			Revision:  rmd.Revision,
-			Date:      time.Unix(0, rmd.data.Dir.Mtime),
+			Date:      time.Unix(0, dateNano),
 			Writer:    writer,
 			LiveBytes: rmd.DiskUsage,
 			Ops:       make([]OpSummary, 0, len(rmd.data.Changes.Ops)),
