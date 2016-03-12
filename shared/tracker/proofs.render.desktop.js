@@ -23,7 +23,6 @@ export class ProofsRender extends Component {
   }
 
   onClickProof (proof: Proof): void {
-    // TODO: State is deprecated, will refactor after nuking v1
     if (proof.state !== proofChecking) {
       proof.humanUrl && this.openLink(proof.humanUrl)
     }
@@ -31,7 +30,6 @@ export class ProofsRender extends Component {
 
   onClickProfile (proof: Proof): void {
     console.log('Opening profile link:', proof)
-    // TODO: State is deprecated, will refactor after nuking v1
     if (proof.state !== proofChecking) {
       proof.profileUrl && this.openLink(proof.profileUrl)
     }
@@ -87,7 +85,6 @@ export class ProofsRender extends Component {
         break
     }
 
-    // TODO: State is deprecated, will refactor after nuking v1
     if (proof.state === proofChecking) color = globalColors.black20
 
     return color
@@ -218,7 +215,7 @@ const styles = {
   },
   loader: {
     // Using negative margins cause we can't override height for CircularProgress
-    marginTop: -18,
+    marginTop: -14,
     marginBottom: -16,
     marginLeft: -16,
     marginRight: -16

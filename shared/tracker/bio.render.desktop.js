@@ -31,9 +31,9 @@ export default class BioRender extends Component {
     }
 
     if (userInfo.followsYou && currentlyFollowing) {
-      return 'You follow each other'
+      return 'You track each other'
     } else if (userInfo.followsYou) {
-      return 'Follows you'
+      return 'Tracks you'
     }
 
     return null
@@ -76,13 +76,13 @@ export default class BioRender extends Component {
             }
             <Text type='BodySmall' style={styles.following}>
               <span className='hover-underline' onClick={() => this._onClickFollowers()}>
-                <Text type='BodySmall' style={{...globalStyles.fontBold}}>{userInfo.followersCount}</Text> Followers
+                <Text type='BodySmall' style={{...globalStyles.fontBold}}>{userInfo.followersCount}</Text> Trackers
               </span>
               &nbsp;
               &middot;
               &nbsp;
               <span className='hover-underline' onClick={() => this._onClickFollowing()}>
-                Following <Text type='BodySmall' style={{...globalStyles.fontBold}}>{userInfo.followingCount}</Text>
+                Tracking <Text type='BodySmall' style={{...globalStyles.fontBold}}>{userInfo.followingCount}</Text>
               </span>
             </Text>
             {userInfo.bio &&
