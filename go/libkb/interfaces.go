@@ -150,6 +150,7 @@ type ConfigReader interface {
 	GetUpdateURL() string
 	GetLocalTrackMaxAge() (time.Duration, bool)
 	GetAppStartMode() AppStartMode
+	IsAdmin() (bool, bool)
 
 	GetTorMode() (TorMode, error)
 	GetTorHiddenAddress() string
