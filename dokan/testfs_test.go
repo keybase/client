@@ -251,6 +251,7 @@ func (t errorFS) WriteFile(fi *FileInfo, bs []byte, offset int64) (int, error)  
 func (t errorFS) SetFileTime(*FileInfo, time.Time, time.Time, time.Time) error             { return t }
 func (t errorFS) SetFileAttributes(fi *FileInfo, fileAttributes uint32) error              { return t }
 func (t errorFS) SetEndOfFile(fi *FileInfo, length int64) error                            { return t }
+func (t errorFS) SetAllocationSize(fi *FileInfo, length int64) error                       { return t }
 func (t errorFS) MoveFile(source *FileInfo, targetPath string, replaceExisting bool) error { return t }
 func (t errorFS) Mounted() error                                                           { return t }
 
@@ -287,6 +288,10 @@ func (t emptyFile) CanDeleteDirectory(*FileInfo) error {
 }
 func (t emptyFile) SetEndOfFile(fi *FileInfo, length int64) error {
 	debug("emptyFile.SetEndOfFile")
+	return nil
+}
+func (t emptyFile) SetAllocationSize(fi *FileInfo, length int64) error {
+	debug("emptyFile.SetAllocationSize")
 	return nil
 }
 func (t emptyFS) MoveFile(source *FileInfo, targetPath string, replaceExisting bool) error {
@@ -484,7 +489,7 @@ func (r *ramFile) SetFileTime(fi *FileInfo, creationTime time.Time, lastReadTime
 	return nil
 }
 func (r *ramFile) SetEndOfFile(fi *FileInfo, length int64) error {
-	debug("ramFile.SetFileTime")
+	debug("ramFile.SetEndOfFile")
 	r.lock.Lock()
 	defer r.lock.Unlock()
 	r.lastWriteTime = time.Now()
@@ -493,6 +498,17 @@ func (r *ramFile) SetEndOfFile(fi *FileInfo, length int64) error {
 		r.contents = r.contents[:int(length)]
 	case int(length) > len(r.contents):
 		r.contents = append(r.contents, make([]byte, int(length)-len(r.contents))...)
+	}
+	return nil
+}
+func (r *ramFile) SetAllocationSize(fi *FileInfo, length int64) error {
+	debug("ramFile.SetAllocationSize")
+	r.lock.Lock()
+	defer r.lock.Unlock()
+	r.lastWriteTime = time.Now()
+	switch {
+	case int(length) < len(r.contents):
+		r.contents = r.contents[:int(length)]
 	}
 	return nil
 }

@@ -253,15 +253,15 @@ func kbfs_libdokan_SetEndOfFile(
 	return errToNT(err)
 }
 
-/* Disabled as per dokan fuse
 //export kbfs_libdokan_SetAllocationSize
 func kbfs_libdokan_SetAllocationSize(
 	fname C.LPCWSTR,
 	length C.LONGLONG,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
-
+	debugf("SetAllocationSize '%v' %d %v", d16{fname}, length, *pfi)
+	err := getfi(pfi).SetAllocationSize(makeFI(fname, pfi), int64(length))
+	return errToNT(err)
 }
-*/
 
 //export kbfs_libdokan_LockFile
 func kbfs_libdokan_LockFile(
