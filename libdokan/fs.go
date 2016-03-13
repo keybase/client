@@ -227,9 +227,12 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 		return NewMetricsFile(f), false, nil
 	case libfs.StatusFileName == ps[0]:
 		return NewStatusFile(f.root.private.fs, nil), false, nil
-	case PublicName == ps[0]:
+	// TODO
+	// Unfortunately sometimes we end up in this case while using
+	// reparse points.
+	case PublicName == ps[0], "PUBLIC" == ps[0]:
 		return f.root.public.open(ctx, oc, ps[1:])
-	case PrivateName == ps[0]:
+	case PrivateName == ps[0], "PRIVATE" == ps[0]:
 		return f.root.private.open(ctx, oc, ps[1:])
 	case libfs.ProfileListDirName == ps[0]:
 		return (ProfileList{fs: f}).open(ctx, oc, ps[1:])
