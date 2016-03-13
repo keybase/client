@@ -275,7 +275,8 @@ struct kbfs_libdokan_ctx* kbfs_libdokan_alloc_ctx(ULONG64 slot) {
   ctx->dokan_options.Version = DOKAN_VERSION;
   ctx->dokan_options.GlobalContext = slot;
 
-  ctx->dokan_options.Options = DOKAN_OPTION_REMOVABLE;
+  ctx->dokan_options.Options = DOKAN_OPTION_REMOVABLE |
+                               DOKAN_OPTION_CURRENT_SESSION;
   ctx->dokan_operations.ZwCreateFile = kbfs_libdokan_c_CreateFile;
   ctx->dokan_operations.Cleanup = kbfs_libdokan_c_Cleanup;
   ctx->dokan_operations.CloseFile = kbfs_libdokan_c_CloseFile;
