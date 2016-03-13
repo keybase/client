@@ -85,7 +85,8 @@ var vinfo = dokan.VolumeInformation{
 	VolumeName:             "KBFS",
 	MaximumComponentLength: 0xFF, // This can be changed.
 	FileSystemFlags: dokan.FileCasePreservedNames | dokan.FileCaseSensitiveSearch |
-		dokan.FileUnicodeOnDisk | dokan.FileSupportsReparsePoints,
+		dokan.FileUnicodeOnDisk | dokan.FileSupportsReparsePoints |
+		dokan.FileSupportsRemoteStorage,
 	FileSystemName: "KBFS",
 }
 

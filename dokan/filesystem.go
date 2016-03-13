@@ -99,6 +99,7 @@ const (
 	FileSupportsHardLinks          = FileSystemFlags(0x400000)
 	FileSupportObjectIDs           = FileSystemFlags(0x10000)
 	FileSupportsOpenByFileID       = FileSystemFlags(0x1000000)
+	FileSupportsRemoteStorage      = FileSystemFlags(0x100)
 	FileSupportsReparsePoints      = FileSystemFlags(0x80)
 	FileSupportsSparseFiles        = FileSystemFlags(0x40)
 	FileSupportsTransactions       = FileSystemFlags(0x200000)
