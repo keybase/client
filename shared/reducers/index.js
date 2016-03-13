@@ -16,6 +16,7 @@ import favorite from './favorite'
 import updateConfirm from './update-confirm'
 import updatePaused from './update-paused'
 import signup from './signup'
+import unlockFolders from './unlock-folders.js'
 import {logoutDone} from '../constants/login'
 
 import devEdit from './dev-edit'
@@ -52,7 +53,8 @@ const combinedReducer = combineReducers({
   favorite,
   updateConfirm,
   updatePaused,
-  signup
+  signup,
+  unlockFolders
 })
 
 let reducer
