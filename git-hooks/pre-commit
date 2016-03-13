@@ -74,8 +74,27 @@ check_make_lint() {
     exit 1
 }
 
+#
+# Don't allow path.Join()
+#
+check_path_Join()
+{
+    for file in $(git diff --cached --name-only --diff-filter=ACM | grep '.go$' | grep -v go/vendor/ | grep -v vendor/)
+    do
+      pathjoins=$(git diff --cached -- $file | grep "^\+" | grep -E '\bpath\.Join\(') 
+      if [ -n "$pathjoins" ]; then
+          echo >&2 "path.Join() does not work on all platforms. Use filepath.Join instead." 
+          echo >&2 "$file"
+          echo "$pathjoins"          
+          exit 1
+      fi
+    done
+}
+
+
 #-----------------------------------------------------------------------------
 
 check_go_fmt
 check_go_vet
 check_make_lint
+check_path_Join
