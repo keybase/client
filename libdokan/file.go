@@ -141,3 +141,11 @@ func (f *File) SetAllocationSize(fi *dokan.FileInfo, newSize int64) (err error) 
 
 	return f.folder.fs.config.KBFSOps().Truncate(ctx, f.node, uint64(newSize))
 }
+
+// SetFileAttributes for Dokan.
+func (f *File) SetFileAttributes(fi *dokan.FileInfo, fileAttributes uint32) error {
+	ctx := NewContextWithOpID(f.folder.fs)
+	f.folder.fs.log.CDebugf(ctx, "File SetFileAttributes %X", fileAttributes)
+	// TODO handle attributes for real.
+	return nil
+}
