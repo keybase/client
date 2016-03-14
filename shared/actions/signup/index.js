@@ -95,6 +95,7 @@ export function checkUsernameEmail (username: ?string, email: ?string): TypedAsy
       resolve()
       return
     }
+
     const params: signup_checkUsernameAvailable_rpc = {
       method: 'signup.checkUsernameAvailable',
       param: {username},
