@@ -143,7 +143,8 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 		contxt, canceler = context.WithCancel(context.Background())
 		receivedSecret, err := ctx.ProvisionUI.DisplayAndPromptSecret(contxt, arg)
 		if err != nil {
-			// could cancel provisionee run here?
+			// cancel provisionee run:
+			provisionee.Cancel()
 			e.G().Log.Warning("DisplayAndPromptSecret error: %s", err)
 		} else if receivedSecret.Secret != nil && len(receivedSecret.Secret) > 0 {
 			e.G().Log.Debug("received secret, adding to provisionee")
