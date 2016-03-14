@@ -94,7 +94,7 @@ export function triggerIdentify (uid: string): TrackerActionCreator {
         noErrorOnTrackFailure: true,
         forceRemoteCheck: false,
         useDelegateUI: true,
-        needProofSet: false,
+        needProofSet: true,
         reason: {
           type: identify.IdentifyReasonType.id,
           reason: '',
