@@ -440,14 +440,14 @@ func (fbo *folderBranchOps) addToFavorites(ctx context.Context,
 func (fbo *folderBranchOps) deleteFromFavorites(ctx context.Context,
 	favorites *Favorites) error {
 	if _, _, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx); err != nil {
-		// Can't favorite while not logged in
+		// Can't unfavorite while not logged in
 		return nil
 	}
 
 	lState := makeFBOLockState()
 	head := fbo.getHead(lState)
 	if head == nil {
-		return errors.New("Can't add a favorite without a handle")
+		return errors.New("Can't delete a favorite without a handle")
 	}
 
 	fbo.favAddedLock.Lock()
