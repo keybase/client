@@ -17,7 +17,7 @@ type TestSecretStoreAll struct {
 }
 
 func (t TestSecretStoreAll) GetUsersWithStoredSecrets() (ret []string, err error) {
-	for name, _ := range t.secretStoreNoneMap {
+	for name := range t.secretStoreNoneMap {
 		ret = append(ret, string(name))
 	}
 	return
