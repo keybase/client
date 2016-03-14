@@ -1,9 +1,10 @@
 /* @flow */
-/* eslint-disable react/prop-types */
 
 import React, {Component} from 'react'
-import {globalStyles} from '../../../styles/style-guide'
-import {Text, Button, Checkbox} from '../../../common-adapters'
+import {globalStyles, globalColors} from '../../../styles/style-guide'
+import {Text, Button, Checkbox, Icon} from '../../../common-adapters'
+import {specialStyles as textStyles} from '../../../common-adapters/text'
+import Container from '../../forms/container'
 
 import type {Props} from './index.render'
 
@@ -21,26 +22,56 @@ export default class Render extends Component {
 
   render () {
     return (
-      <div style={styles.form}>
-        <Text type='Header'>{"House-ton we have lift off! you've just joined Keybase"}</Text>
-        <Text type='Body'>{'Here is your paperkey, save it in your wallet!'}</Text>
-        <Text type='TerminalComment'>{this.props.paperkey.stringValue()}</Text>
-
-        <Text type='Body'>{'Is this in your wallet?'}</Text>
-        <Checkbox label={'Yes, it is in my wallet. I pinky promise.'} checked={this.state.inWallet} onCheck={inWallet => this.setState({inWallet})} />
-        {this.state.inWallet && <Button type='Secondary' label='Continue' onClick={() => this.props.onFinish()} />}
-      </div>
+      <Container onBack={this.props.onBack} style={styles.container}>
+        <Text type='Header' style={styles.header}>Congratulations, you’ve just joined Keybase!</Text>
+        <Text type='Body' style={styles.body}>Here is your unique paper key, it will allow you to perform important Keybase tasks in the future. This is the only time you’ll see this so be sure to write it down.</Text>
+        <div style={styles.paperKeyContainer}>
+          <Text type='Body' style={textStyles.paperKey}>{this.props.paperkey.stringValue()}</Text>
+          <Icon type='paper-key-corner' style={styles.paperCorner}/>
+        </div>
+        <Checkbox style={styles.check} label='Yes, I wrote this down.' checked={this.state.inWallet} onCheck={inWallet => this.setState({inWallet})} />
+        <Button style={styles.button} type='Primary' label='Done' onClick={() => this.props.onFinish()} disabled={!this.state.inWallet} />
+      </Container>
     )
   }
 }
 
 const styles = {
-  form: {
+  container: {
     ...globalStyles.flexBoxColumn,
-    flex: 1
+    alignItems: 'center',
+    marginTop: 15
   },
-
-  topMargin: {
-    marginTop: 20
+  header: {
+    marginTop: 22,
+    marginBottom: 5
+  },
+  body: {
+    paddingLeft: 15,
+    paddingRight: 15,
+    marginBottom: 35
+  },
+  paperKeyContainer: {
+    position: 'relative',
+    width: 400,
+    marginBottom: 35,
+    paddingTop: 12,
+    paddingBottom: 12,
+    paddingLeft: 30,
+    paddingRight: 45,
+    borderRadius: 1,
+    backgroundColor: globalColors.white,
+    border: `solid 4px ${globalColors.darkBlue}`
+  },
+  paperCorner: {
+    position: 'absolute',
+    top: -4,
+    right: -4
+  },
+  check: {
+    marginBottom: 60
+  },
+  button: {
+    alignSelf: 'flex-end'
   }
 }

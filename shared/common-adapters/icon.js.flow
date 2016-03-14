@@ -30,6 +30,7 @@ export type Props = {
     | 'paper-key-m'
     | 'paper-key-success-m'
     | 'paper-key'
+    | 'paper-key-corner'
     | 'phone-big'
     | 'phone-oblique'
     | 'phone-q-r-code-small'

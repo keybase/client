@@ -12,7 +12,9 @@ class Success extends Component {
     return (
       <Render
         paperkey={this.props.paperkey}
-        onFinish={this.props.onFinish}/>
+        onFinish={this.props.onFinish}
+        onBack={this.props.onBack}
+        />
     )
   }
 }
@@ -24,5 +26,8 @@ Success.propTypes = {
 
 export default connect(
   state => ({paperkey: state.signup.paperkey}),
-  dispatch => ({onFinish: () => dispatch(sawPaperKey())})
+  dispatch => ({
+    onFinish: () => dispatch(sawPaperKey()),
+    onBack: () => {}
+  })
 )(Success)
