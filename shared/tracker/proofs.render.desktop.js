@@ -137,7 +137,7 @@ export class ProofsRender extends Component {
           <CircularProgress style={styles.loader} mode='indeterminate' color={globalColors.black20} size={spinnerSize} />
         }
         {!isChecking && proofStatusIcon &&
-          <Icon type={proofStatusIcon} style={styles.statusIcon} onClick={onClickProfile} />
+          <Icon type={proofStatusIcon} style={styles.statusIcon} onClick={() => this.onClickProof(proof)} />
         }
       </div>
     )
