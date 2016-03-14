@@ -20,6 +20,7 @@ type CmdID struct {
 	user           string
 	trackStatement bool
 	useDelegateUI  bool
+	skipProofCache bool
 }
 
 func (v *CmdID) ParseArgv(ctx *cli.Context) error {
@@ -33,15 +34,17 @@ func (v *CmdID) ParseArgv(ctx *cli.Context) error {
 	}
 	v.trackStatement = ctx.Bool("track-statement")
 	v.useDelegateUI = ctx.Bool("ui")
+	v.skipProofCache = ctx.Bool("skip-proof-cache")
 	return nil
 }
 
 func (v *CmdID) makeArg() keybase1.IdentifyArg {
 	return keybase1.IdentifyArg{
-		UserAssertion:  v.user,
-		TrackStatement: v.trackStatement,
-		UseDelegateUI:  v.useDelegateUI,
-		Reason:         keybase1.IdentifyReason{Reason: "CLI id command"},
+		UserAssertion:    v.user,
+		TrackStatement:   v.trackStatement,
+		UseDelegateUI:    v.useDelegateUI,
+		Reason:           keybase1.IdentifyReason{Reason: "CLI id command"},
+		ForceRemoteCheck: v.skipProofCache,
 	}
 }
 
@@ -87,6 +90,11 @@ func NewCmdID(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 			cli.BoolFlag{
 				Name:      "ui",
 				Usage:     "Use identify UI.",
+				HideUsage: !develUsage,
+			},
+			cli.BoolFlag{
+				Name:      "s, skip-proof-cache",
+				Usage:     "Skip cached proofs, force re-check",
 				HideUsage: !develUsage,
 			},
 		},
