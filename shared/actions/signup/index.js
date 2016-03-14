@@ -7,7 +7,7 @@ import engine from '../../engine'
 
 import {routeAppend} from '../../actions/router'
 
-import type {TypedAsyncAction} from '../../constants/types/flux'
+import type {TypedAsyncAction, AsyncAction} from '../../constants/types/flux'
 import type {RouteAppend} from '../../constants/router'
 import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName, Signup, ShowPaperKey, ShowSuccess, ResetSignup} from '../../constants/signup'
 import type {signup_signup_rpc, signup_checkInvitationCode_rpc, signup_checkUsernameAvailable_rpc} from '../../constants/types/flow-types'
@@ -188,9 +188,20 @@ export function submitDeviceName (deviceName: string, skipMail?: boolean): Typed
   }
 }
 
-function signup (skipMail): TypedAsyncAction<Signup | ShowPaperKey> {
+let paperKeyResponse = null
+export function sawPaperKey (): AsyncAction {
+  return () => {
+    if (paperKeyResponse) {
+      paperKeyResponse.result()
+      paperKeyResponse = null
+    }
+  }
+}
+
+function signup (skipMail): TypedAsyncAction<Signup | ShowPaperKey | RouteAppend> {
   return (dispatch, getState) => new Promise((resolve, reject) => {
     const {email, username, inviteCode, passphrase, deviceName} = getState().signup
+    paperKeyResponse = null
 
     if (email && username && inviteCode && passphrase && deviceName) {
       const params: signup_signup_rpc = {
@@ -205,13 +216,13 @@ function signup (skipMail): TypedAsyncAction<Signup | ShowPaperKey> {
           skipMail
         },
         incomingCallMap: {
-          'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, {error, result}) => {
-            // TODO if the user doesn't Ack the paper key we should error
+          'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, response) => {
+            paperKeyResponse = response
             dispatch({
               type: Constants.showPaperKey,
               payload: {paperkey: new HiddenString(phrase)}
             })
-            result()
+            dispatch(nextPhase())
           },
           'keybase.1.gpgUi.wantToAddGPGKey': (params, {error, result}) => {
             // Do not add a gpg key for now
