@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import {bindActionCreators} from 'redux'
 import Render from '../register/set-public-name/index.render'
-import {submitDeviceName} from '../../actions/signup'
+import * as signupActions from '../../actions/signup'
 
 class DeviceName extends Component {
   state: {
@@ -22,7 +22,8 @@ class DeviceName extends Component {
         deviceName={this.state.deviceName}
         deviceNameError={this.props.deviceNameError}
         onChange={deviceName => this.setState({deviceName})}
-        onSubmit={() => this.props.submitDeviceName(this.state.deviceName || '')} />
+        onSubmit={() => this.props.submitDeviceName(this.state.deviceName || '')}
+        onBack={this.props.resetSignup} />
     )
   }
 }
@@ -32,5 +33,5 @@ export default connect(
     deviceNameError: state.signup.deviceNameError,
     deviceName: state.signup.deviceName
   }),
-  dispatch => bindActionCreators({submitDeviceName}, dispatch)
+  dispatch => bindActionCreators(signupActions, dispatch)
 )(DeviceName)
