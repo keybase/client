@@ -32,5 +32,5 @@ s3cmd sync --acl-public --disable-multipart $save_dir/* s3://$bucket_name/
 echo "Linking latest"
 "$release_bin" latest --bucket-name="$bucket_name"
 
-echo "Promoting releases"
+echo "Checking releases"
 "$release_bin" promote-releases --bucket-name="$bucket_name"
