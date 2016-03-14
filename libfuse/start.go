@@ -19,10 +19,8 @@ type StartOptions struct {
 
 // Start the filesystem
 func Start(mounter Mounter, options StartOptions) *libfs.Error {
-	log, err := libkbfs.InitLog(options.KbfsParams)
-	if err!=nil {
-		return libfs.InitError(err.Error())
-	}
+	// InitLog errors are non-fatal and are ignored.
+	log, _ := libkbfs.InitLog(options.KbfsParams)
 
 	if options.RuntimeDir != "" {
 		info := libkb.NewServiceInfo(libkbfs.Version, libkbfs.PrereleaseBuild, options.Label, os.Getpid())

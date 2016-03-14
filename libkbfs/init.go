@@ -225,25 +225,32 @@ func makeKeybaseDaemon(config Config, serverInMemory bool, serverRootDir string,
 	return nil, errors.New("Can't user localuser without a local server")
 }
 
+// InitLog sets up logging switching to a log file if necessary.
+// Returns a valid logger even on error, which are non-fatal, thus
+// errors from this function may be ignored.
+// Possible errors are logged to the logger returned.
 func InitLog(params InitParams) (logger.Logger, error) {
+	var err error
 	log := logger.NewWithCallDepth("kbfs", 1)
 
 	// Setup logging here, switch to file if wanted
 	// TODO: should more of these be exposed to command line in future?
 	if params.LogToFile {
-		err := logger.SetLogFileConfig(&logger.LogFileConfig{
+		err = logger.SetLogFileConfig(&logger.LogFileConfig{
 			Path:    params.LogFilePath,
 			MaxAge:  30 * 24 * time.Hour, // 30 days
 			MaxSize: 128 * 1024 * 1024,   // 128mb
 		})
-		if err != nil {
-			return nil, err
-		}
 	}
 
 	log.Configure("", params.Debug, "")
 	log.Info("KBFS version %s", VersionString())
-	return log,nil
+
+	if err != nil {
+		log.Warning("Failed to setup log file %q: %v", params.LogFilePath, err)
+	}
+
+	return log, err
 }
 
 // Init initializes a config and returns it.
