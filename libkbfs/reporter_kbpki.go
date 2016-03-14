@@ -41,6 +41,8 @@ var noErrorNames = map[string]bool{
 	"_mtn":           true, // emacs on Linux
 	"docker-machine": true, // docker shell stuff
 	"HEAD":           true, // git shell
+	"Keybase.app":    true, // some OSX mount thing
+	"DCIM":           true, // looking for digital pic folder
 }
 
 // ReporterKBPKI implements the Notify function of the Reporter
