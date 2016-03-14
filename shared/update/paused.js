@@ -42,7 +42,7 @@ class UpdatePaused extends Component {
           <Text type='BodySmall'>&nbsp;and back in.</Text>
 
           <div style={styles.actions}>
-            <Button type='Secondary' label='Force' onClick={() => this.props.onForce()} />
+            <Button type='Secondary' label='Force update' onClick={() => this.props.onForce()} />
             <Button type='Primary' label='Try again later' onClick={() => this.props.onCancel()} />
           </div>
         </div>
