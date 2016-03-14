@@ -18,7 +18,7 @@ const Row = ({deviceID, name, type, onSelect}) => {
   }
 
   return (
-    <div style={styles.row} onClick={onClick} key={deviceID}>
+    <div style={styles.row} onClick={onClick}>
       <div style={styles.iconContainer}>
         <Icon style={styles.icon} type={iconType}/>
       </div>
@@ -32,7 +32,7 @@ const Render = ({onBack, devices, onWont, onSelect}: Props) => (
     onBack={onBack}>
     <Text type='Header' style={styles.header}>Select a device to connect with:</Text>
     <div style={styles.devicesContainer}>
-      {devices.map(d => <Row onSelect={onSelect} {...d}/>)}
+      {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID}/>)}
     </div>
     <Text style={styles.wont} type='BodySecondaryLink' onClick={onWont}>I don't have one of these devices</Text>
   </Container>

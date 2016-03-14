@@ -19,16 +19,14 @@ export default class EngineError extends Error {
     if (!err) {
       err = {}
     }
-    super(err.desc)
+
+    const niceFunc = niceMap[nameFix(err.name)]
+    super(niceFunc && niceFunc(err) || err.desc || err.code)
+
     this.code = err.code
     this.desc = err.desc
     this.name = err.name
     this.raw = err
-  }
-
-  toString () {
-    const niceFunc = niceMap[nameFix(this.name)]
-    return niceFunc && niceFunc(this.err) || this.desc || this.code
   }
 }
 

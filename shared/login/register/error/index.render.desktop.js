@@ -7,24 +7,52 @@ import {errorMap} from '../../../engine/errors'
 import openURL from '../../../util/open-url'
 
 const renderError = error => {
+  const fields = (error.raw && error.raw.fields || []).reduce((acc, f) => {
+    acc[f.key] = f.value
+    return acc
+  }, {})
   switch (error.code) {
     case errorMap['scdevicenoprovision']:
-      return <Text type='Body'>{`The only way to provision this device is with access to one of your existing
-      devices. You can try again later, or if you have lost access to all your
-      existing devices you can reset your account and start fresh.
-
-      If you'd like to reset your account:  https://keybase.io/#account-reset`}</Text>
+      return (
+        <div>
+          <p style={{marginBottom: 10}}><Text type='Body'>Sorry!</Text></p>
+          <p style={{marginBottom: 10}}><Text type='Body' inline={false}>You can’t authorize by passphrase, since you have established device or paper keys.</Text></p>
+          <p>
+            <Text type='Body' inline={false}>What you can do:</Text>
+            <Text type='Body' inline={false}> - Go back and pick a device or paper key</Text>
+            <Text type='Body'> - Reset your account entirely: </Text><Text type='BodyPrimaryLink' onClick={() => openURL('https://keybase.io/#account-reset')}>https://keybase.io/#account-reset</Text>
+          </p>
+        </div>)
     case errorMap['scdeviceprevprovisioned']:
       return <Text type='Body'>You have already provisioned this device. Please use 'keybase login [username]' to log in.</Text>
     case errorMap['sckeynomatchinggpg']:
-      return (
-        <p>
-          <Text type='Body' style={{display: 'inline-block', marginBottom: 10}}>Sorry, your account is already established with a PGP public key, but we can't find the corresponding private key on this machine. These are the fingerprints of the PGP keys in your account:</Text>
-          {error.raw && error.raw.fields && error.raw.fields.map(f => <Text type='BodySmall' style={{display: 'inline-block'}}>{f.value}</Text>)}
-          <Text type='Body' style={{display: 'inline-block', marginTop: 10, marginBottom: 10}}>You need to prove you're you. We suggest one of the following:</Text>
-          <Text type='BodySmall' style={{display: 'inline-block'}}> - Put one of the PGP private keys listed above on this machine and try again</Text>
-          <Text type='BodySmall' style={{display: 'inline-block'}}> - Reset your account and start fresh: </Text><Text type='BodyPrimaryLink' onClick={() => openURL('https://keybase.io/#account-reset')}>https://keybase.io/#account-reset</Text>
-        </p>)
+      if (fields.has_active_device) {
+        return (
+          <div>
+            <p style={{marginBottom: 10}}><Text type='Body'>Sorry!</Text></p>
+            <p style={{marginBottom: 10}}><Text type='Body' inline={false}>You can’t provision using solely a passphrase, since you have active device keys.</Text></p>
+            <p>
+              <Text type='Body' inline={false}>You have options:</Text>
+              <Text type='Body' inline={false}> - Go back and select a device or paper key</Text>
+              <Text type='Body' inline={false}> - Install Keybase on a machine that has your PGP private key in it</Text>
+              <Text type='Body' inline={false}> - Login to the website and host an encrypted copy of your PGP private key</Text>
+              <Text type='Body'> - or, reset your account entirely: </Text><Text type='BodyPrimaryLink' onClick={() => openURL('https://keybase.io/#account-reset')}>https://keybase.io/#account-reset</Text>
+            </p>
+          </div>)
+      } else {
+        return (
+          <div>
+            <p style={{marginBottom: 10}}><Text type='Body'>Sorry!</Text></p>
+            <p style={{marginBottom: 10}}><Text type='Body' inline={false}>You can’t provision using a passphrase, since you’ve established a PGP key.</Text></p>
+            <p>
+              <Text type='Body' inline={false}>You have options:</Text>
+              <Text type='Body' inline={false}> - Install GPG on this machine and import your PGP private key into it</Text>
+              <Text type='Body' inline={false}> - Install Keybase on a different machine that has your PGP key</Text>
+              <Text type='Body' inline={false}> - Login to the website and host an encrypted copy of your PGP private key</Text>
+              <Text type='Body'> - Or, reset your account entirely: </Text><Text type='BodyPrimaryLink' onClick={() => openURL('https://keybase.io/#account-reset')}>https://keybase.io/#account-reset</Text>
+            </p>
+          </div>)
+      }
     case errorMap['scbadloginpassword']:
       return (
         <p>
