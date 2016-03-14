@@ -3,6 +3,7 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import HiddenString from '../../../util/hidden-string'
+import {sawPaperKey} from '../../../actions/signup'
 
 import Render from './index.render'
 
@@ -23,6 +24,5 @@ Success.propTypes = {
 
 export default connect(
   state => ({paperkey: state.signup.paperkey}),
-  // TODO
-  dispatch => ({onFinish: () => console.log('TODO: do something here. Finished signup in!')})
+  dispatch => ({onFinish: () => dispatch(sawPaperKey())})
 )(Success)
