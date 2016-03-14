@@ -163,7 +163,7 @@ type RootMetadata struct {
 	// is empty.
 	RKeys TLFReaderKeyGenerations `codec:",omitempty"`
 	// The client's timestamp on when the MD update was created.
-	UpdateTime int64 `codec:"ut"` // in unix nanoseconds
+	UpdateTime int64 `codec:"ut,omitempty"` // in unix nanoseconds
 
 	// The plaintext, deserialized PrivateMetadata
 	data PrivateMetadata
