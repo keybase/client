@@ -2,7 +2,6 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import Render from './index.render'
-import {cancelLogin} from '../../../actions/login'
 import type {Props, State} from './index'
 
 class PaperKey extends Component {
@@ -35,7 +34,5 @@ PaperKey.propTypes = {
 }
 
 export default connect(
-  (state, ownProps) => ownProps.mapStateToProps(state),
-  dispatch => ({
-    onBack: () => dispatch(cancelLogin())
-  }))(PaperKey)
+  (state, ownProps) => ownProps.mapStateToProps(state)
+)(PaperKey)

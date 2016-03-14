@@ -10,7 +10,7 @@ import configureStore from '../shared/store/configure-store'
 import Nav from '../shared/nav.desktop'
 import injectTapEventPlugin from 'react-tap-event-plugin'
 import ListenLogUi from '../shared/native/listen-log-ui'
-import {reduxDevToolsEnable, devStoreChangingFunctions, debugCancelLogin} from '../shared/local-debug.desktop'
+import {reduxDevToolsEnable, devStoreChangingFunctions} from '../shared/local-debug.desktop'
 import {listenForNotifications} from '../shared/actions/notifications'
 import hello from '../shared/util/hello'
 
@@ -27,8 +27,6 @@ import merge from 'lodash/merge'
 ipcLogsRenderer()
 
 if (module.hot) {
-  debugCancelLogin()
-  // $FlowIssue
   module.hot.accept()
 }
 

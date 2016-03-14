@@ -3,8 +3,6 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import {bindActionCreators} from 'redux'
-
-// $FlowFixMe we should flow type this component
 import Render from '../register/set-public-name/index.render'
 import {submitDeviceName} from '../../actions/signup'
 
@@ -23,17 +21,10 @@ class DeviceName extends Component {
       <Render
         deviceName={this.state.deviceName}
         deviceNameError={this.props.deviceNameError}
-        onChangeDeviceName={deviceName => this.setState({deviceName})}
-        onSubmit={() => this.props.submitDeviceName(this.state.deviceName || '')}
-        submitEnabled/>
+        onChange={deviceName => this.setState({deviceName})}
+        onSubmit={() => this.props.submitDeviceName(this.state.deviceName || '')} />
     )
   }
-}
-
-DeviceName.propTypes = {
-  deviceName: React.PropTypes.string,
-  deviceNameError: React.PropTypes.string,
-  submitDeviceName: React.PropTypes.func
 }
 
 export default connect(
