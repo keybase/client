@@ -836,6 +836,15 @@ type UserQuotaInfo struct {
 	Limit   int64
 }
 
+// AccumOne combines one quota charge to the existing UserQuotaInfo
+func (u *UserQuotaInfo) AccumOne(change int, folder string, archived bool) {
+	if _, ok := u.Folders[folder]; !ok {
+		u.Folders[folder] = &UsageStat{}
+	}
+	u.Folders[folder].AccumOne(change, archived)
+	u.Total.AccumOne(change, archived)
+}
+
 // Accum combines changes to the existing UserQuotaInfo object using accumulation function accumF.
 func (u *UserQuotaInfo) Accum(another *UserQuotaInfo, accumF func(int64, int64) int64) {
 	if another == nil {
