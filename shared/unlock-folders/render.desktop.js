@@ -9,7 +9,6 @@ import type {Props} from './render'
 
 export default class Render extends Component<void, Props, void> {
   render () {
-    // return <DeviceList devices={this.props.devices}/>
     let innerComponent
 
     switch (this.props.phase) {

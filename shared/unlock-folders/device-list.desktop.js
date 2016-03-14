@@ -63,14 +63,18 @@ const styles = {
 
   buttonsContainer: {
     ...globalStyles.flexBoxRow,
-    marginTop: 15
+    marginTop: 15,
+    marginRight: 30,
+    marginLeft: 'auto'
   },
 
   enterPaperKey: {
     height: 32,
-    width: 236
+    width: 236,
+    marginRight: 7
   },
 
   accessFolders: {
+    marginRight: 0
   }
 }
