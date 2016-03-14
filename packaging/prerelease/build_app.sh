@@ -42,9 +42,6 @@ kbfs_dir="$gopath/src/github.com/keybase/kbfs"
 
 "$client_dir/packaging/slack/send.sh" "Starting $build_desc"
 
-(cd "$client_dir" && git checkout master)
-(cd "$kbfs_dir" && git checkout master)
-
 if [ ! "$nopull" = "1" ]; then
   "$client_dir/packaging/check_status_and_pull.sh" "$client_dir"
   "$client_dir/packaging/check_status_and_pull.sh" "$kbfs_dir"
