@@ -24,7 +24,6 @@ export default class Render extends Component {
   render () {
     const submitInviteCode = () => {
       this.props.onInviteCodeSubmit(this.state.inviteCode)
-      this.setState({inviteCode: ''})
     }
 
     return (
@@ -34,7 +33,7 @@ export default class Render extends Component {
         <Input style={styles.input} hintText='goddess brown result reject' value={this.state.inviteCode || ''} errorText={this.props.inviteCodeErrorText} onEnterKeyDown={submitInviteCode} onChange={event => this.setState({inviteCode: event.target.value})}/>
         <Button style={styles.button} type='Primary' label='Continue' onClick={submitInviteCode} disabled={!this.state.inviteCode}/>
         <Text style={styles.text} type='Body'>Not invited?</Text>
-        <Text type='BodyPrimaryLink' onClick={() => {}}>Request an invite code</Text>
+        <Text type='BodyPrimaryLink' onClick={this.props.onRequestInvite}>Request an invite code</Text>
       </Container>
     )
   }
