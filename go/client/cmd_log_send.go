@@ -8,8 +8,10 @@ import (
 	"bytes"
 	"compress/gzip"
 	"encoding/json"
+	"fmt"
 	"mime/multipart"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/rogpeppe/rog-go/reverse"
@@ -23,6 +25,12 @@ const (
 	defaultLines = 1e5
 	maxLines     = 1e6
 )
+
+type logs struct {
+	desktop string
+	kbfs    string
+	service string
+}
 
 func NewCmdLogSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
@@ -50,27 +58,38 @@ func (c *CmdLogSend) Run() error {
 		return err
 	}
 
-	c.G().Log.Debug("getting keybase status")
+	// if this fails for any reason, it is not a fatal error.
+	// highly possible that the service isn't running and thus
+	// can't get status.
+	c.G().Log.Debug("attempting retrieval of keybase service status")
+	var statusJSON string
 	statusCmd := &CmdStatus{Contextified: libkb.NewContextified(c.G())}
 	status, err := statusCmd.load()
 	if err != nil {
-		return err
+		c.G().Log.Info("ignoring error getting keybase status: %s", err)
+		statusJSON = fmt.Sprintf("{\"Error\":%q}", err)
+	} else {
+		json, err := json.Marshal(status)
+		if err != nil {
+			c.G().Log.Info("ignoring status json marshal error: %s", err)
+			statusJSON = fmt.Sprintf("{\"Error\":%q}", err)
+		} else {
+			statusJSON = string(json)
+		}
 	}
-	statusJSON, err := json.Marshal(status)
-	if err != nil {
-		return err
-	}
 
-	c.G().Log.Debug("tailing kbfs log %q", status.KBFS.Log)
-	kbfsLog := c.tail(status.KBFS.Log, c.numLines)
+	logs := c.logFiles(status)
 
-	c.G().Log.Debug("tailing service log %q", status.Service.Log)
-	svcLog := c.tail(status.Service.Log, c.numLines)
+	c.G().Log.Debug("tailing kbfs log %q", logs.kbfs)
+	kbfsLog := c.tail(logs.kbfs, c.numLines)
 
-	c.G().Log.Debug("tailing desktop log %q", status.Desktop.Log)
-	desktopLog := c.tail(status.Desktop.Log, c.numLines)
+	c.G().Log.Debug("tailing service log %q", logs.service)
+	svcLog := c.tail(logs.service, c.numLines)
 
-	return c.post(string(statusJSON), kbfsLog, svcLog, desktopLog)
+	c.G().Log.Debug("tailing desktop log %q", logs.desktop)
+	desktopLog := c.tail(logs.desktop, c.numLines)
+
+	return c.post(statusJSON, kbfsLog, svcLog, desktopLog)
 }
 
 func (c *CmdLogSend) confirm() error {
@@ -201,5 +220,22 @@ func (c *CmdLogSend) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config: true,
 		API:    true,
+	}
+}
+
+func (c *CmdLogSend) logFiles(status *fstatus) logs {
+	if status != nil {
+		return logs{
+			desktop: status.Desktop.Log,
+			kbfs:    status.KBFS.Log,
+			service: status.Service.Log,
+		}
+	}
+
+	logDir := c.G().Env.GetLogDir()
+	return logs{
+		desktop: filepath.Join(logDir, libkb.DesktopLogFileName),
+		kbfs:    filepath.Join(logDir, libkb.KBFSLogFileName),
+		service: filepath.Join(logDir, libkb.ServiceLogFileName),
 	}
 }
