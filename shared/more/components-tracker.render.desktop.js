@@ -209,7 +209,7 @@ export default class Render extends Component {
           </div>
           <div>
             <div style={styles.pretendTrackerWindow}>
-              <Tracker {...{...propsChangedProofs, lastTrack: false}} />\
+              <Tracker {...{...propsChangedProofs, lastTrack: false}} />
             </div>
             <p>Changed/Broken proofs user you dont follow</p>
           </div>
@@ -218,6 +218,14 @@ export default class Render extends Component {
               <Tracker {...propsChangedProofs} />\
             </div>
             <p>Changed/Broken proofs</p>
+          </div>
+          <div>
+            <div style={styles.pretendTrackerWindow}>
+              <Tracker {...{...propsFollowing, userInfo: {
+                ...propsNewUser.userInfo,
+                followsYou: false}}} />
+            </div>
+            <p>You track them</p>
           </div>
           <div>
             <div style={styles.pretendTrackerWindow}>
