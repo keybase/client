@@ -273,15 +273,10 @@ func userHasStoredSecretViaConfiguredAccounts(tc *libkb.TestContext, username st
 }
 
 func userHasStoredSecretViaSecretStore(tc *libkb.TestContext, username string) bool {
-	secretStore := libkb.NewSecretStore(tc.G, libkb.NewNormalizedUsername(username))
-	if secretStore == nil {
-		tc.T.Errorf("SecretStore for %s unexpectedly nil", username)
-		return false
-	}
-	_, err := secretStore.RetrieveSecret()
+	secret, err := tc.G.SecretStoreAll.RetrieveSecret(libkb.NewNormalizedUsername(username))
 	// TODO: Have RetrieveSecret return platform-independent errors
 	// so that we can make sure we got the right one.
-	return (err == nil)
+	return (len(secret) > 0 && err == nil)
 }
 
 func userHasStoredSecret(tc *libkb.TestContext, username string) bool {
@@ -295,11 +290,6 @@ func userHasStoredSecret(tc *libkb.TestContext, username string) bool {
 
 // Test that the login flow using the secret store works.
 func TestLoginWithStoredSecret(t *testing.T) {
-	// TODO: Get this working on non-OS X platforms (by mocking
-	// out the SecretStore).
-	if !libkb.HasSecretStore() {
-		t.Skip("Skipping test since there is no secret store")
-	}
 
 	tc := SetupEngineTest(t, "login with stored secret")
 	defer tc.Cleanup()
@@ -386,11 +376,6 @@ func TestLoginWithPassphraseErrors(t *testing.T) {
 // Test that the login flow with passphrase but without saving the
 // secret works.
 func TestLoginWithPassphraseNoStore(t *testing.T) {
-	// TODO: Get this working on non-OS X platforms (by mocking
-	// out the SecretStore).
-	if !libkb.HasSecretStore() {
-		t.Skip("Skipping test since there is no secret store")
-	}
 
 	tc := SetupEngineTest(t, "login with passphrase (no store)")
 	defer tc.Cleanup()
@@ -416,11 +401,6 @@ func TestLoginWithPassphraseNoStore(t *testing.T) {
 // Test that the login flow with passphrase and with saving the secret
 // works.
 func TestLoginWithPassphraseWithStore(t *testing.T) {
-	// TODO: Get this working on non-OS X platforms (by mocking
-	// out the SecretStore).
-	if !libkb.HasSecretStore() {
-		t.Skip("Skipping test since there is no secret store")
-	}
 
 	tc := SetupEngineTest(t, "login with passphrase (with store)")
 	defer tc.Cleanup()
@@ -462,11 +442,6 @@ func TestLoginWithPassphraseWithStore(t *testing.T) {
 // Test that the signup with saving the secret, logout, then login
 // flow works.
 func TestSignupWithStoreThenLogin(t *testing.T) {
-	// TODO: Get this working on non-OS X platforms (by mocking
-	// out the SecretStore).
-	if !libkb.HasSecretStore() {
-		t.Skip("Skipping test since there is no secret store")
-	}
 
 	tc := SetupEngineTest(t, "signup with store then login")
 	defer tc.Cleanup()

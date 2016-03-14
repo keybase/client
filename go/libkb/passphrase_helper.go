@@ -8,8 +8,8 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
-func GetKeybasePassphrase(ui SecretUI, username, retryMsg string) (keybase1.GetPassphraseRes, error) {
-	arg := DefaultPassphraseArg()
+func GetKeybasePassphrase(ui SecretUI, username, retryMsg string, allowSecretStore bool) (keybase1.GetPassphraseRes, error) {
+	arg := DefaultPassphraseArg(allowSecretStore)
 	arg.WindowTitle = "Keybase passphrase"
 	arg.Type = keybase1.PassphraseType_PASS_PHRASE
 	arg.Prompt = fmt.Sprintf("Please enter the Keybase passphrase for %s (12+ characters)", username)
@@ -18,7 +18,7 @@ func GetKeybasePassphrase(ui SecretUI, username, retryMsg string) (keybase1.GetP
 }
 
 func GetSecret(ui SecretUI, title, prompt, retryMsg string, allowSecretStore bool) (keybase1.GetPassphraseRes, error) {
-	arg := DefaultPassphraseArg()
+	arg := DefaultPassphraseArg(allowSecretStore)
 	arg.WindowTitle = title
 	arg.Type = keybase1.PassphraseType_PASS_PHRASE
 	arg.Prompt = prompt
@@ -31,7 +31,7 @@ func GetSecret(ui SecretUI, title, prompt, retryMsg string, allowSecretStore boo
 }
 
 func GetPaperKeyPassphrase(ui SecretUI, username string) (string, error) {
-	arg := DefaultPassphraseArg()
+	arg := DefaultPassphraseArg(false)
 	arg.WindowTitle = "Paper backup key passphrase"
 	arg.Type = keybase1.PassphraseType_PAPER_KEY
 	if len(username) == 0 {
@@ -53,7 +53,7 @@ func GetPaperKeyForCryptoPassphrase(ui SecretUI, reason string, devices []*Devic
 	if len(devices) == 0 {
 		return "", errors.New("empty device list")
 	}
-	arg := DefaultPassphraseArg()
+	arg := DefaultPassphraseArg(false)
 	arg.WindowTitle = "Paper backup key passphrase"
 	arg.Type = keybase1.PassphraseType_PAPER_KEY
 	arg.Features.StoreSecret.Allow = false
@@ -112,7 +112,7 @@ func GetPassphraseUntilCheck(arg keybase1.GUIEntryArg, prompter PassphrasePrompt
 	return keybase1.GetPassphraseRes{}, RetryExhaustedError{}
 }
 
-func DefaultPassphraseArg() keybase1.GUIEntryArg {
+func DefaultPassphraseArg(allowSecretStore bool) keybase1.GUIEntryArg {
 	return keybase1.GUIEntryArg{
 		SubmitLabel: "Submit",
 		CancelLabel: "Cancel",
@@ -124,7 +124,7 @@ func DefaultPassphraseArg() keybase1.GUIEntryArg {
 				Label:        "Show typing",
 			},
 			StoreSecret: keybase1.Feature{
-				Allow:        HasSecretStore(),
+				Allow:        allowSecretStore,
 				DefaultValue: false,
 				Readonly:     false,
 				Label:        "Save in Keychain",

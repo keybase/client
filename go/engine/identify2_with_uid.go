@@ -137,7 +137,7 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 		return err
 	}
 
-	if !e.useAnyAssertions() && e.checkFastCacheHit() {
+	if !e.useAnyAssertions() && e.checkFastCacheHit() && e.allowEarlyOuts() {
 		e.G().Log.Debug("| hit fast cache")
 		return nil
 	}
@@ -156,7 +156,7 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 		return nil
 	}
 
-	if !e.useRemoteAssertions() && e.checkSlowCacheHit() {
+	if !e.useRemoteAssertions() && e.checkSlowCacheHit() && e.allowEarlyOuts() {
 		e.G().Log.Debug("| hit slow cache, first check")
 		return nil
 	}
@@ -179,7 +179,7 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 		return err
 	}
 
-	if e.useRemoteAssertions() && e.checkSlowCacheHit() {
+	if e.useRemoteAssertions() && e.checkSlowCacheHit() && e.allowEarlyOuts() {
 		e.G().Log.Debug("| hit slow cache, second check")
 		return nil
 	}
@@ -187,15 +187,18 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 	// If we're not using tracking and we're not using remote assertions,
 	// we can unblock the RPC caller here, and perform the identifyUI operations
 	// in the background.
-	if !e.useTracking && !e.useRemoteAssertions() {
+	if !e.useTracking && !e.useRemoteAssertions() && e.allowEarlyOuts() {
 		e.unblock( /* isFinal */ false, nil)
 	}
 
 	if err = e.runIdentifyUI(ctx); err != nil {
 		return err
 	}
-
 	return nil
+}
+
+func (e *Identify2WithUID) allowEarlyOuts() bool {
+	return !e.arg.NeedProofSet
 }
 
 func (e *Identify2WithUID) getNow() time.Time {
@@ -318,7 +321,7 @@ func (e *Identify2WithUID) useLocalAssertions() bool {
 
 // If we need a ProofSet, it's as if we need remote assertions.
 func (e *Identify2WithUID) useRemoteAssertions() bool {
-	return (e.remoteAssertion.Len() > 0 || e.arg.NeedProofSet)
+	return (e.remoteAssertion.Len() > 0)
 }
 
 func (e *Identify2WithUID) runIdentifyPrecomputation() (err error) {

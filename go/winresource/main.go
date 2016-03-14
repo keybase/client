@@ -42,7 +42,7 @@ func main() {
 	printCustomVerPtr := flag.Bool("cv", false, "print custom version to console (no .syso output)")
 	printCustomBuildPtr := flag.Bool("cb", false, "print custom build number to console (no .syso output)")
 	printWinVerPtr := flag.Bool("w", false, "print windows format version to console (no .syso output)")
-	iconPtr := flag.String("i", "../../../keybase/public/images/favicon.ico", "icon pathname")
+	iconPtr := flag.String("i", "../../packaging/windows/keybase.ico", "icon pathname")
 
 	flag.Parse()
 
@@ -54,7 +54,6 @@ func main() {
 	}
 
 	semVer := fmt.Sprintf("%d.%d.%d-%d", fv.Major, fv.Minor, fv.Patch, fv.Build)
-	customVer := fmt.Sprintf("%d.%d.%d-%s", fv.Major, fv.Minor, fv.Patch, GetBuildName())
 
 	if *printverPtr {
 		fmt.Print(semVer)
@@ -67,6 +66,7 @@ func main() {
 	}
 
 	if *printCustomVerPtr {
+		customVer := fmt.Sprintf("%d.%d.%d-%s", fv.Major, fv.Minor, fv.Patch, GetBuildName())
 		fmt.Print(customVer)
 		return
 	}

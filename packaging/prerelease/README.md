@@ -69,3 +69,9 @@ keybase -d update run --source=local --url=file:///tmp/Keybase.zip --signature=/
 ```
 keybase update run --source=remote --url="https://s3.amazonaws.com/prerelease-test.keybase.io/update-darwin-prod.json"
 ```
+
+### Testing S3 Index
+
+```
+NOPULL=1 BUCKET_NAME=prerelease-test.keybase.io ./s3_index.sh
+```

@@ -7,6 +7,7 @@ export type Props = {
   errorText?: ?string,
   floatingLabelText?: string,
   hintText?: string,
+  hintStyle?: Object,
   multiLine?: bool,
   onChange?: (event: Object) => void,
   onEnterKeyDown?: (event: Object) => void,

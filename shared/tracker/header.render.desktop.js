@@ -55,7 +55,7 @@ export default class HeaderRender extends Component {
     return (
       <div style={styles.outer}>
         <div style={{...styles.header, ...headerStyle}}>
-          <div style={{...styles.header, ...headerStyle, height: 54, zIndex: 2, opacity: isWarning ? 1 : 0, backgroundColor: globalColors.yellow}}/>
+          <div style={{...styles.header, ...headerStyle, height: 48, zIndex: 2, opacity: isWarning ? 1 : 0, backgroundColor: globalColors.yellow}}/>
           <Text type='BodySemibold' lineClamp={2} style={{...styles.text, ...headerTextStyle, flex: 1, zIndex: isWarning ? 2 : 'inherit'}}>{headerText}</Text>
           <Icon type='fa-close' style={styles.close}
             onClick={() => this.props.onClose()}

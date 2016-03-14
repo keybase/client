@@ -67,6 +67,7 @@ type GlobalContext struct {
 	ExitCode            keybase1.ExitCode   // Value to return to OS on Exit()
 	RateLimits          *RateLimits         // tracks the last time certain actions were taken
 	Clock               clockwork.Clock     // RealClock unless we're testing
+	SecretStoreAll      SecretStoreAll      // nil except for tests and supported platforms
 }
 
 func NewGlobalContext() *GlobalContext {
@@ -95,6 +96,7 @@ func (g *GlobalContext) Init() *GlobalContext {
 	g.createLoginState()
 	g.Resolver = NewResolver(g)
 	g.RateLimits = NewRateLimits(g)
+	g.SecretStoreAll = NewSecretStoreAll(g)
 	return g
 }
 
@@ -448,7 +450,7 @@ type Contexitifier interface {
 }
 
 func (g *GlobalContext) GetConfiguredAccounts() ([]keybase1.ConfiguredAccount, error) {
-	return GetConfiguredAccounts(g)
+	return GetConfiguredAccounts(g, g.SecretStoreAll)
 }
 
 func (g *GlobalContext) GetAllUserNames() (NormalizedUsername, []NormalizedUsername, error) {
@@ -464,7 +466,10 @@ func (g *GlobalContext) GetStoredSecretAccessGroup() string {
 }
 
 func (g *GlobalContext) GetUsersWithStoredSecrets() ([]string, error) {
-	return GetUsersWithStoredSecrets(g)
+	if g.SecretStoreAll != nil {
+		return g.SecretStoreAll.GetUsersWithStoredSecrets()
+	}
+	return []string{}, nil
 }
 
 func (g *GlobalContext) GetCacheDir() string {

@@ -647,6 +647,10 @@ func (f JSONConfigFile) GetUpdateURL() string {
 	return s
 }
 
+func (f JSONConfigFile) IsAdmin() (bool, bool) {
+	return f.GetBoolAtPath("is_admin")
+}
+
 func (f JSONConfigFile) GetAppStartMode() AppStartMode {
 	s, isSet := f.GetStringAtPath("app_start_mode")
 	if s == "service" || !isSet {

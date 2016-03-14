@@ -555,3 +555,11 @@ func (m MerkleTreeID) Number() int {
 func (m MerkleTreeID) String() string {
 	return strconv.Itoa(int(m))
 }
+
+func (r BlockReference) String() string {
+	return fmt.Sprintf("%s,%s", r.Bid.BlockHash, hex.EncodeToString(r.Nonce[:]))
+}
+
+func (r BlockReferenceCount) String() string {
+	return fmt.Sprintf("%s,%d", r.Ref.String(), r.LiveCount)
+}

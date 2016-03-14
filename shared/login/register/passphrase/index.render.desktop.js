@@ -30,7 +30,7 @@ class Render extends Component<void, Props, State> {
       <Container
         style={styles.container}
         onBack={() => this.props.onBack()}>
-        <Text type='Header' style={styles.header}>Enter your passphrase:</Text>
+        <Text type='Header' style={styles.header}>{this.props.prompt}</Text>
         <Icon type='fa-unlock' style={styles.icon}/>
         <Input
           style={styles.input}

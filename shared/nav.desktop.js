@@ -72,7 +72,7 @@ class Nav extends Component {
     }
 
     if (this._renderedActiveTab === loginTab) {
-      const [width, height] = currentWindow.getSize()
+      const [width, height] = currentWindow.getContentSize()
 
       // Did we actually change the size
       if (width !== globalResizing.login.width && height !== globalResizing.login.height) {
@@ -84,7 +84,7 @@ class Nav extends Component {
     } else {
       if (this._originalSize) {
         const {width, height} = this._originalSize
-        currentWindow.setSize(width, height, true)
+        currentWindow.setContentSize(width, height, true)
       } else {
         currentWindow.setContentSize(globalResizing.normal.width, globalResizing.normal.height, true)
       }

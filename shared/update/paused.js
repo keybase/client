@@ -53,7 +53,8 @@ const styles = {
   body: {
     paddingLeft: 30,
     paddingRight: 30,
-    paddingBottom: 30
+    paddingBottom: 30,
+    textAlign: 'center'
   },
   actions: {
     ...globalStyles.flexBoxRow,

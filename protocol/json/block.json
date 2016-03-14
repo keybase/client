@@ -405,6 +405,37 @@
           "name": "chargedTo"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "BlockReferenceCount",
+      "fields": [
+        {
+          "type": "BlockReference",
+          "name": "ref"
+        },
+        {
+          "type": "int",
+          "name": "liveCount"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "DowngradeReferenceRes",
+      "fields": [
+        {
+          "type": {
+            "type": "array",
+            "items": "BlockReferenceCount"
+          },
+          "name": "completed"
+        },
+        {
+          "type": "BlockReference",
+          "name": "failed"
+        }
+      ]
     }
   ],
   "messages": {
@@ -499,6 +530,38 @@
         "type": "array",
         "items": "BlockReference"
       }
+    },
+    "delReferenceWithCount": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "string"
+        },
+        {
+          "name": "refs",
+          "type": {
+            "type": "array",
+            "items": "BlockReference"
+          }
+        }
+      ],
+      "response": "DowngradeReferenceRes"
+    },
+    "archiveReferenceWithCount": {
+      "request": [
+        {
+          "name": "folder",
+          "type": "string"
+        },
+        {
+          "name": "refs",
+          "type": {
+            "type": "array",
+            "items": "BlockReference"
+          }
+        }
+      ],
+      "response": "DowngradeReferenceRes"
     },
     "getUserQuotaInfo": {
       "request": [],

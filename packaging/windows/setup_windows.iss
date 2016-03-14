@@ -14,9 +14,6 @@
 #define MyAppURL "http://www.keybase.io/"
 #define MyExeName "keybase.exe"
 #define MyGoPath GetEnv('GOPATH')
-#ifndef MyGoPath
-#define MyGoPath "c:\work\"
-#endif
 #ifndef MyExePathName
 #define MyExePathName MyGoPath + "\src\github.com\keybase\client\go\keybase\" + MyExeName
 #endif
@@ -41,8 +38,8 @@ AppCopyright=Copyright (c) 2015, Keybase
 DefaultDirName={pf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
-OutputBaseFilename=keybase_setup_{#MySemVersion}_{#MyGoArch}
-SetupIconFile={#MyGoPath}\src\github.com\keybase\keybase\public\images\favicon.ico
+OutputBaseFilename=keybase_setup_{#MySemVersion}.{#MyGoArch}
+SetupIconFile={#MyGoPath}\src\github.com\keybase\client\packaging\windows\keybase.ico
 Compression=lzma
 SolidCompression=yes
 UninstallDisplayIcon={app}\keybase.exe
