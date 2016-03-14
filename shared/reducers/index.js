@@ -75,7 +75,7 @@ if (__DEV__) {
 
 export default function (state: State, action: any): State {
   // Warn if any keys did not change after a resetStore action
-  if (action.type === resetStore) {
+  if (__DEV__ && action.type === resetStore) {
     const nextState = reducer(state, action)
     Object.keys(nextState).forEach(k => nextState[k] === state[k] && console.warn('Key %s did not change after resetStore action', k))
     return nextState
