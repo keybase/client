@@ -5,6 +5,7 @@ import {connect} from 'react-redux'
 import {Header, Text, Icon} from '../common-adapters'
 import {Button} from '../common-adapters'
 import {globalStyles} from '../styles/style-guide'
+import {autoResize} from '../../desktop/renderer/remote-component-helper'
 
 type RenderProps = {
   onForce: () => void,
@@ -14,6 +15,10 @@ type RenderProps = {
 
 class UpdatePaused extends Component {
   props: RenderProps;
+
+  componentDidMount () {
+    autoResize()
+  }
 
   render () {
     return (
@@ -51,6 +56,7 @@ const styles = {
     ...globalStyles.flexBoxColumn
   },
   body: {
+    paddingTop: 15,
     paddingLeft: 30,
     paddingRight: 30,
     paddingBottom: 30,
