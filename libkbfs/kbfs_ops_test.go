@@ -350,15 +350,15 @@ func expectBlock(config *ConfigMock, rmd *RootMetadata, blockPtr BlockPointer, b
 	config.mockBops.EXPECT().Get(gomock.Any(), rmdMatcher{rmd},
 		ptrMatcher{blockPtr}, gomock.Any()).
 		Do(func(ctx context.Context, md *RootMetadata,
-		blockPtr BlockPointer, getBlock Block) {
-		switch v := getBlock.(type) {
-		case *FileBlock:
-			*v = *block.(*FileBlock)
+			blockPtr BlockPointer, getBlock Block) {
+			switch v := getBlock.(type) {
+			case *FileBlock:
+				*v = *block.(*FileBlock)
 
-		case *DirBlock:
-			*v = *block.(*DirBlock)
-		}
-	}).Return(err)
+			case *DirBlock:
+				*v = *block.(*DirBlock)
+			}
+		}).Return(err)
 }
 
 // ptrMatcher implements the gomock.Matcher interface to compare
@@ -387,8 +387,8 @@ func fillInNewMD(t *testing.T, config *ConfigMock, rmd *RootMetadata) (
 	if !rmd.ID.IsPublic() {
 		config.mockKeyman.EXPECT().Rekey(gomock.Any(), rmd).
 			Do(func(ctx context.Context, rmd *RootMetadata) {
-			AddNewKeysOrBust(t, rmd, *NewTLFKeyBundle())
-		}).Return(true, nil, nil)
+				AddNewKeysOrBust(t, rmd, *NewTLFKeyBundle())
+			}).Return(true, nil, nil)
 	}
 	rootPtr = BlockPointer{
 		ID:      fakeBlockID(42),
@@ -999,29 +999,29 @@ func expectSyncBlockHelper(
 			config.mockMdops.EXPECT().PutUnmerged(
 				gomock.Any(), gomock.Any(), gomock.Any()).
 				Do(func(ctx context.Context, rmd *RootMetadata, bid BranchID) {
-				// add some serialized metadata to satisfy the check
-				rmd.SerializedPrivateMetadata = make([]byte, 1)
-			}).Return(nil)
+					// add some serialized metadata to satisfy the check
+					rmd.SerializedPrivateMetadata = make([]byte, 1)
+				}).Return(nil)
 		} else {
 			config.mockMdops.EXPECT().Put(gomock.Any(), gomock.Any()).
 				Do(func(ctx context.Context, rmd *RootMetadata) {
-				// add some serialized metadata to satisfy the check
-				rmd.SerializedPrivateMetadata = make([]byte, 1)
-			}).Return(nil)
+					// add some serialized metadata to satisfy the check
+					rmd.SerializedPrivateMetadata = make([]byte, 1)
+				}).Return(nil)
 		}
 		config.mockMdcache.EXPECT().Put(gomock.Any()).
 			Do(func(rmd *RootMetadata) {
-			*newRmd = rmd
-			// Check that the ref bytes are correct.
-			if rmd.RefBytes != refBytes {
-				t.Errorf("Unexpected refbytes: %d vs %d",
-					rmd.RefBytes, refBytes)
-			}
-			if rmd.UnrefBytes != unrefBytes {
-				t.Errorf("Unexpected unrefbytes: %d vs %d",
-					rmd.UnrefBytes, unrefBytes)
-			}
-		}).Return(nil)
+				*newRmd = rmd
+				// Check that the ref bytes are correct.
+				if rmd.RefBytes != refBytes {
+					t.Errorf("Unexpected refbytes: %d vs %d",
+						rmd.RefBytes, refBytes)
+				}
+				if rmd.UnrefBytes != unrefBytes {
+					t.Errorf("Unexpected unrefbytes: %d vs %d",
+						rmd.UnrefBytes, unrefBytes)
+				}
+			}).Return(nil)
 	}
 	return newPath, lastCall
 }
@@ -2750,8 +2750,8 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), data, int64(0)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
-		block.Contents = data
-	}).Return(int64(len(data)))
+			block.Contents = data
+		}).Return(int64(len(data)))
 
 	if err := config.KBFSOps().Write(ctx, n, data, 0); err != nil {
 		t.Errorf("Got error on write: %v", err)
@@ -2820,8 +2820,8 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), data, int64(5)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
-		block.Contents = expectedFullData
-	}).Return(int64(len(data)))
+			block.Contents = expectedFullData
+		}).Return(int64(len(data)))
 
 	if err := config.KBFSOps().Write(ctx, n, data, 5); err != nil {
 		t.Errorf("Got error on write: %v", err)
@@ -2881,8 +2881,8 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), data, int64(7)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
-		block.Contents = expectedFullData
-	}).Return(int64(len(data)))
+			block.Contents = expectedFullData
+		}).Return(int64(len(data)))
 
 	if err := config.KBFSOps().Write(ctx, n, data, 7); err != nil {
 		t.Errorf("Got error on write: %v", err)
@@ -2944,8 +2944,8 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), newData, int64(1)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
-		block.Contents = append([]byte{0}, data[0:5]...)
-	}).Return(int64(5))
+			block.Contents = append([]byte{0}, data[0:5]...)
+		}).Return(int64(5))
 
 	id1 := fakeBlockID(44)
 	id2 := fakeBlockID(45)
@@ -2959,8 +2959,8 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), newData[5:10], int64(0)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
-		block.Contents = data
-	}).Return(int64(5))
+			block.Contents = data
+		}).Return(int64(5))
 
 	if err := config.KBFSOps().Write(ctx, n, newData, 1); err != nil {
 		t.Errorf("Got error on write: %v", err)
@@ -3073,15 +3073,15 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), data, int64(2)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
-		block.Contents = append(block1.Contents[0:2], data[0:3]...)
-	}).Return(int64(3))
+			block.Contents = append(block1.Contents[0:2], data[0:3]...)
+		}).Return(int64(3))
 
 	// update block 2
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), data[3:], int64(0)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
-		block.Contents = append(data, block2.Contents[2:]...)
-	}).Return(int64(2))
+			block.Contents = append(data, block2.Contents[2:]...)
+		}).Return(int64(2))
 
 	if err := config.KBFSOps().Write(ctx, n, data, 2); err != nil {
 		t.Errorf("Got error on write: %v", err)
@@ -3511,8 +3511,8 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), []byte{0, 0, 0, 0, 0}, int64(5)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
-		block.Contents = append(block.Contents, data...)
-	}).Return(int64(5))
+			block.Contents = append(block.Contents, data...)
+		}).Return(int64(5))
 
 	data := []byte{1, 2, 3, 4, 5, 0, 0, 0, 0, 0}
 	if err := config.KBFSOps().Truncate(ctx, n, 10); err != nil {
@@ -4229,10 +4229,10 @@ func TestSyncDirtyDupBlockSuccess(t *testing.T) {
 func putAndCleanAnyBlock(config *ConfigMock, p path) {
 	config.mockBcache.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), TransientEntry).
 		Do(func(ptr BlockPointer, tlf TlfID, block Block, lifetime BlockCacheLifetime) {
-		config.mockBcache.EXPECT().
-			Get(ptrMatcher{BlockPointer{ID: ptr.ID}}, p.Branch).
-			AnyTimes().Return(block, nil)
-	}).AnyTimes().Return(nil)
+			config.mockBcache.EXPECT().
+				Get(ptrMatcher{BlockPointer{ID: ptr.ID}}, p.Branch).
+				AnyTimes().Return(block, nil)
+		}).AnyTimes().Return(nil)
 	config.mockBcache.EXPECT().DeleteDirty(gomock.Any(), p.Branch).
 		AnyTimes().Return(nil)
 }
@@ -4325,12 +4325,12 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	config.mockBcache.EXPECT().PutDirty(fileBlock.IPtrs[2].BlockPointer,
 		p.Branch, gomock.Any()).
 		Do(func(ptr BlockPointer, branch BranchName, block Block) {
-		newBlock3 = block.(*FileBlock)
-		// id3 syncs just fine
-		config.mockBcache.EXPECT().IsDirty(ptrMatcher{ptr}, branch).
-			AnyTimes().Return(true)
-		expectSyncDirtyBlock(config, rmd, ptr, newBlock3, int64(0), pad3)
-	}).Return(nil)
+			newBlock3 = block.(*FileBlock)
+			// id3 syncs just fine
+			config.mockBcache.EXPECT().IsDirty(ptrMatcher{ptr}, branch).
+				AnyTimes().Return(true)
+			expectSyncDirtyBlock(config, rmd, ptr, newBlock3, int64(0), pad3)
+		}).Return(nil)
 
 	// id4 is the final block, and the split causes a new block to be made
 	pad4 := 9
@@ -4344,13 +4344,13 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	config.mockBcache.EXPECT().PutDirty(ptrMatcher{BlockPointer{ID: id5}},
 		p.Branch, gomock.Any()).
 		Do(func(ptr BlockPointer, branch BranchName, block Block) {
-		newID5 = ptr.ID
-		newBlock5 = block.(*FileBlock)
-		// id5 syncs just fine
-		expectSyncDirtyBlock(config, rmd, ptr, newBlock5, int64(0), pad5)
-		config.mockBcache.EXPECT().IsDirty(ptrMatcher{ptr}, branch).
-			AnyTimes().Return(true)
-	}).Return(nil)
+			newID5 = ptr.ID
+			newBlock5 = block.(*FileBlock)
+			// id5 syncs just fine
+			expectSyncDirtyBlock(config, rmd, ptr, newBlock5, int64(0), pad5)
+			config.mockBcache.EXPECT().IsDirty(ptrMatcher{ptr}, branch).
+				AnyTimes().Return(true)
+		}).Return(nil)
 
 	// The parent is dirtied too since the pointers changed
 	config.mockBcache.EXPECT().PutDirty(fileNode.BlockPointer, p.Branch,
@@ -4507,8 +4507,8 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), block2.Contents, int64(5)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
-		block.Contents = append(block.Contents, data...)
-	}).Return(int64(5))
+			block.Contents = append(block.Contents, data...)
+		}).Return(int64(5))
 	// now block 2 is empty, and should be deleted
 
 	// block 3 is dirty too, just copy part of block 4
@@ -4520,19 +4520,19 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), block4.Contents, int64(5)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
-		block.Contents = append(block.Contents, data[:3]...)
-	}).Return(split4At)
+			block.Contents = append(block.Contents, data[:3]...)
+		}).Return(split4At)
 	var newBlock4 *FileBlock
 	config.mockBcache.EXPECT().PutDirty(fileBlock.IPtrs[3].BlockPointer,
 		p.Branch, gomock.Any()).
 		Do(func(ptr BlockPointer, branch BranchName, block Block) {
-		newBlock4 = block.(*FileBlock)
-		// now block 4 is dirty, but it's the end of the line,
-		// so nothing else to do
-		expectSyncDirtyBlock(config, rmd, ptr, newBlock4, int64(-1), pad4)
-		config.mockBcache.EXPECT().IsDirty(ptrMatcher{ptr}, branch).
-			AnyTimes().Return(false)
-	}).Return(nil)
+			newBlock4 = block.(*FileBlock)
+			// now block 4 is dirty, but it's the end of the line,
+			// so nothing else to do
+			expectSyncDirtyBlock(config, rmd, ptr, newBlock4, int64(-1), pad4)
+			config.mockBcache.EXPECT().IsDirty(ptrMatcher{ptr}, branch).
+				AnyTimes().Return(false)
+		}).Return(nil)
 
 	// The parent is dirtied too since the pointers changed
 	config.mockBcache.EXPECT().PutDirty(fileNode.BlockPointer, p.Branch,
@@ -4761,8 +4761,8 @@ func TestKBFSOpsBackgroundFlush(t *testing.T) {
 	config.mockBsplit.EXPECT().CopyUntilSplit(
 		gomock.Any(), gomock.Any(), data, int64(0)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
-		block.Contents = data
-	}).Return(int64(len(data)))
+			block.Contents = data
+		}).Return(int64(len(data)))
 
 	if err := config.KBFSOps().Write(ctx, n, data, 0); err != nil {
 		t.Errorf("Got error on write: %v", err)

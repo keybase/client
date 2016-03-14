@@ -100,11 +100,11 @@ func expectBlockDecrypt(config *ConfigMock, rmd *RootMetadata, blockPtr BlockPoi
 	config.mockCodec.EXPECT().Decode(encData, gomock.Any()).Return(nil)
 	config.mockCrypto.EXPECT().DecryptBlock(gomock.Any(), BlockCryptKey{}, gomock.Any()).
 		Do(func(encryptedBlock EncryptedBlock, key BlockCryptKey, b Block) {
-		if b != nil {
-			tb := b.(*TestBlock)
-			*tb = block
-		}
-	}).Return(err)
+			if b != nil {
+				tb := b.(*TestBlock)
+				*tb = block
+			}
+		}).Return(err)
 }
 
 func makeRMD() *RootMetadata {
