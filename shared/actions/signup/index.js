@@ -242,8 +242,12 @@ function signup (skipMail): TypedAsyncAction<Signup | ShowPaperKey> {
   })
 }
 
-export function resetSignup (): ResetSignup {
-  return {type: Constants.resetSignup, payload: {}}
+export function resetSignup (): TypedAsyncAction<ResetSignup | RouteAppend> {
+  return dispatch => new Promise((resolve, reject) => {
+    dispatch({type: Constants.resetSignup, payload: {}})
+    dispatch(nextPhase())
+    resolve()
+  })
 }
 
 export function showSuccess (): ShowSuccess {

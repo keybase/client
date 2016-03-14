@@ -10,7 +10,7 @@ import * as signupActions from '../../actions/signup'
 class InviteCode extends Component {
   render () {
     return (
-      <Render inviteCode={this.props.inviteCode} onRequestInvite={() => {}} onInviteCodeSubmit={this.props.checkInviteCode} inviteCodeErrorText={this.props.errorText} onBack={() => {}}/>
+      <Render inviteCode={this.props.inviteCode} onRequestInvite={() => {}} onInviteCodeSubmit={this.props.checkInviteCode} inviteCodeErrorText={this.props.errorText} onBack={this.props.resetSignup}/>
     )
   }
 }
