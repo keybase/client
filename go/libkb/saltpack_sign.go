@@ -10,7 +10,7 @@ import (
 	"github.com/agl/ed25519"
 
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/keybase/client/go/saltpack"
+	"github.com/keybase/saltpack"
 )
 
 type streamfn func(io.Writer, saltpack.SigningSecretKey, string) (io.WriteCloser, error)

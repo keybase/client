@@ -5,7 +5,7 @@ package libkb
 
 import (
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/keybase/client/go/saltpack"
+	"github.com/keybase/saltpack"
 )
 
 func PGPLookup(g *GlobalContext, id uint64) (username string, uid keybase1.UID, err error) {
