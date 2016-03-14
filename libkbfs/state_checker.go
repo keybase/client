@@ -232,7 +232,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 		// op, it is.  Note that this assumes that if QR is ever run,
 		// it will be run completely and not left partially done due
 		// to there being too many pointers to collect in one sweep.
-		mtime := rmd.getUpdateTime()
+		mtime := time.Unix(0, rmd.data.Dir.Mtime)
 		if !lastGCRevisionTime.Before(mtime) {
 			if rmd.Revision > gcRevision {
 				return fmt.Errorf("Revision %d happened before the last "+
