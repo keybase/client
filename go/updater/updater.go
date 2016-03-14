@@ -437,17 +437,20 @@ func (u *Updater) update(ctx Context, force bool, requested bool) (update *keyba
 		// No update available
 		return
 	}
+
+	err = u.promptForUpdateAction(ctx, *update)
+	if err != nil {
+		return
+	}
+
+	// Linux updates don't have assets so it's ok to prompt for update before
+	// asset checks.
 	if update.Asset == nil {
 		u.log.Info("No update asset to apply")
 		return
 	}
 	if update.Asset.LocalPath == "" {
 		err = fmt.Errorf("No local asset path for update")
-		return
-	}
-
-	err = u.promptForUpdateAction(ctx, *update)
-	if err != nil {
 		return
 	}
 
