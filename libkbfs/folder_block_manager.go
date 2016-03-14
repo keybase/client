@@ -472,13 +472,17 @@ func (fbm *folderBlockManager) archiveBlocksInBackground() {
 }
 
 func (fbm *folderBlockManager) isOldEnough(rmd *RootMetadata) bool {
-	// Trust the client-provided timestamp -- it's possible that a
-	// writer with a bad clock could cause another writer to clear out
-	// quotas early, or to delay cleanup for a long time.  That's ok,
-	// there's nothing we can really do about that.
-
-	// Use the UpdateTime if it's been populated
-	mtime := rmd.getUpdateTime()
+	// Trust the client-provided timestamp -- it's
+	// possible that a writer with a bad clock could cause
+	// another writer to clear out quotas early.  That's
+	// ok, there's nothing we can really do about that.
+	//
+	// TODO: rmd.data.Dir.Mtime does not necessarily reflect when the
+	// MD was made, since it only gets updated if the root directory
+	// mtime needs to be updated.  As a result, some updates may be
+	// cleaned up earlier than desired.  We need to find a more stable
+	// way to record MD update time (KBFS-821).
+	mtime := time.Unix(0, rmd.data.Dir.Mtime)
 	unrefAge := fbm.config.QuotaReclamationMinUnrefAge()
 	return mtime.Add(unrefAge).Before(fbm.config.Clock().Now())
 }

@@ -5663,10 +5663,13 @@ func (fbo *folderBranchOps) GetUpdateHistory(ctx context.Context,
 			writerNames[rmd.LastModifyingWriter] = writer
 		}
 		// Use the UpdateTime if it's been populated
-		date := rmd.getUpdateTime()
+		dateNano := rmd.UpdateTime
+		if dateNano == 0 {
+			dateNano = rmd.data.Dir.Mtime
+		}
 		updateSummary := UpdateSummary{
 			Revision:  rmd.Revision,
-			Date:      date,
+			Date:      time.Unix(0, dateNano),
 			Writer:    writer,
 			LiveBytes: rmd.DiskUsage,
 			Ops:       make([]OpSummary, 0, len(rmd.data.Changes.Ops)),

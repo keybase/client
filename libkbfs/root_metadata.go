@@ -548,14 +548,6 @@ func (md RootMetadata) writerKID() keybase1.KID {
 	return md.WriterMetadataSigInfo.VerifyingKey.KID()
 }
 
-func (md RootMetadata) getUpdateTime() time.Time {
-	dateNano := md.UpdateTime
-	if dateNano == 0 {
-		dateNano = md.data.Dir.Mtime
-	}
-	return time.Unix(0, dateNano)
-}
-
 // RootMetadataSigned is the top-level MD object stored in MD server
 type RootMetadataSigned struct {
 	// signature over the root metadata by the private signing key
