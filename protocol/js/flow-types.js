@@ -185,6 +185,7 @@ export type ExitCode =
 export type ExtendedStatus = {
   standalone: boolean;
   passphraseStreamCached: boolean;
+  lksecLoaded: boolean;
   device?: ?Device;
   logDir: string;
   session?: ?SessionStatus;

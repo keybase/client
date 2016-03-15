@@ -234,7 +234,7 @@ func (s *LKSec) apiServerHalf(lctx LoginContext, devid keybase1.DeviceID) error 
 
 // NewLKSForEncrypt gets a verified passphrase stream, and returns
 // an LKS that works for encryption.
-func NewLKSForEncrypt(ui SecretUI, uid keybase1.UID, gc *GlobalContext) (ret *LKSec, err error) {
+func NewLKSecForEncrypt(ui SecretUI, uid keybase1.UID, gc *GlobalContext) (ret *LKSec, err error) {
 	var pps *PassphraseStream
 	if pps, err = gc.LoginState().GetPassphraseStream(ui); err != nil {
 		return
@@ -244,7 +244,7 @@ func NewLKSForEncrypt(ui SecretUI, uid keybase1.UID, gc *GlobalContext) (ret *LK
 }
 
 // EncryptClientHalfRecovery takes the client half of the LKS secret
-// and ecrypts it for the given key.  This is for recovery of passphrases
+// and encrypts it for the given key.  This is for recovery of passphrases
 // on device recovery operations.
 func (s *LKSec) EncryptClientHalfRecovery(key GenericKey) (string, error) {
 	return key.EncryptToString(s.clientHalf, nil)
