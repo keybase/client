@@ -33,7 +33,13 @@ class Engine {
     this.program = 'keybase.1'
     this.rpcClient = new RpcClient(
       new Transport(
-        payload => { this._rpcIncoming(payload) },
+        payload => {
+          if (__DEV__ && process.env.KEYBASE_RPC_DELAY_RESULT) {
+            setTimeout(() => this._rpcIncoming(payload), process.env.KEYBASE_RPC_DELAY_RESULT)
+          } else {
+            this._rpcIncoming(payload)
+          }
+        },
         this._rpcWrite,
         () => this.onConnect()
       ),
@@ -51,7 +57,7 @@ class Engine {
     this.setupListener()
     this.sessionID = 123
 
-    // to find callMap for rpc callbacks
+    // to find callMap for rpc callbacks, including waitingHandler
     this.sessionIDToIncomingCall = {}
 
     // any non-responded to response objects
@@ -135,7 +141,7 @@ class Engine {
     const sid = this.getSessionID()
     const cbs = {
       start: callMap => {
-        this.sessionIDToIncomingCall[sid] = callMap
+        this.sessionIDToIncomingCall[sid] = {incomingCallMap: callMap, waitingHandler: null}
         response.result(sid)
       },
       end: () => {
@@ -149,7 +155,7 @@ class Engine {
     engine.runWithData(data)
   }
 
-  _wrapResponseOnceOnly (method, param, response) {
+  _wrapResponseOnceOnly (method, param, response, waitingHandler) {
     const {sessionID} = param
 
     let once = false
@@ -168,6 +174,9 @@ class Engine {
         }
         if (response) {
           this.sessionIDToResponse[sessionID] = null
+          if (waitingHandler) {
+            waitingHandler(true, method, sessionID)
+          }
           response.result(...args)
         } else if (__DEV__) {
           console.warn('Calling response.result on non-response object: ', method)
@@ -188,10 +197,26 @@ class Engine {
 
         if (response) {
           this.sessionIDToResponse[sessionID] = null
+          if (waitingHandler) {
+            waitingHandler(true, method, sessionID)
+          }
           response.error(...args)
         } else if (__DEV__) {
           console.warn('Calling response.error on non-response object: ', method)
         }
+      }
+    }
+
+    if (__DEV__ && process.env.KEYBASE_RPC_DELAY) {
+      const result = wrappedResponse.result
+      const error = wrappedResponse.error
+      wrappedResponse.result = (...args) => {
+        console.log('RPC Delayed')
+        setTimeout(() => { result(...args) }, process.env.KEYBASE_RPC_DELAY)
+      }
+      wrappedResponse.error = (...args) => {
+        console.log('RPC Delayed')
+        setTimeout(() => { error(...args) }, process.env.KEYBASE_RPC_DELAY)
       }
     }
 
@@ -232,15 +257,19 @@ class Engine {
 
     const {sessionID} = param
 
-    const callMap = this.sessionIDToIncomingCall[sessionID]
+    const {incomingCallMap, waitingHandler} = this.sessionIDToIncomingCall[sessionID] || {}
+    const callMap = incomingCallMap
 
     if (printRPC) {
       logLocal('RPC ◀ incoming: ', payload)
     }
     // make wrapper so we only call this once
-    const wrappedResponse = this._wrapResponseOnceOnly(method, param, response)
+    const wrappedResponse = this._wrapResponseOnceOnly(method, param, response, waitingHandler)
 
     if (callMap && callMap[method]) {
+      if (waitingHandler) {
+        waitingHandler(false, method, sessionID)
+      }
       callMap[method](param, wrappedResponse)
     } else if (method === 'keybase.1.logUi.log' && this._hasNoHandler(method, callMap || {}, this._generalIncomingRpc)) {
       log(param)
@@ -272,33 +301,49 @@ class Engine {
   }
 
   // Make an RPC and call callbacks in the incomingCallMap
-  // (name of call, {arguments object}, {methodName: function(params, response)}, function(err, data)
+  // (name of call, {arguments object}, {methodName: function(params, response)}, function(err, data), function(waiting, method, sessionID)
   // Use rpc() instead
-  rpc_unchecked (method, param, incomingCallMap, callback) {
+  rpc_unchecked (method, param, incomingCallMap, callback, waitingHandler) {
     if (!param) {
       param = {}
     }
 
     const sessionID = param.sessionID = this.getSessionID()
-    this.sessionIDToIncomingCall[sessionID] = incomingCallMap
+    this.sessionIDToIncomingCall[sessionID] = {incomingCallMap, waitingHandler}
     this.sessionIDToResponse[sessionID] = null
+
+    const invokeCallback = (err, data) => {
+      if (waitingHandler) {
+        waitingHandler(false, method, sessionID)
+      }
+
+      if (printRPC) {
+        logLocal('RPC ◀', method, param, err, err && err.raw, JSON.stringify(data))
+      }
+      // deregister incomingCallbacks
+      delete this.sessionIDToIncomingCall[sessionID]
+      delete this.sessionIDToResponse[sessionID]
+      if (callback) {
+        callback(err, data)
+      }
+    }
 
     const invoke = () => {
       if (printRPC) {
         logLocal('RPC ▶', method, param)
       }
 
-      this.rpcClient.invoke(method, [param], (err, data) => {
-        if (printRPC) {
-          logLocal('RPC ◀', method, param, err, err && err.raw, JSON.stringify(data))
-        }
-        // deregister incomingCallbacks
-        delete this.sessionIDToIncomingCall[sessionID]
-        delete this.sessionIDToResponse[sessionID]
-        if (callback) {
-          callback(err, data)
-        }
-      })
+      if (waitingHandler) {
+        waitingHandler(true, method, sessionID)
+      }
+
+      if (__DEV__ && process.env.KEYBASE_RPC_DELAY_RESULT) {
+        this.rpcClient.invoke(method, [param], (err, data) => {
+          setTimeout(() => invokeCallback(err, data), process.env.KEYBASE_RPC_DELAY_RESULT)
+        })
+      } else {
+        this.rpcClient.invoke(method, [param], invokeCallback)
+      }
     }
 
     if (__DEV__ && process.env.KEYBASE_RPC_DELAY) {
@@ -314,8 +359,8 @@ class Engine {
   }
 
   rpc (params) {
-    const {method, param, incomingCallMap, callback} = params
-    return this.rpc_unchecked(method, param, incomingCallMap, callback)
+    const {method, param, incomingCallMap, callback, waitingHandler} = params
+    return this.rpc_unchecked(method, param, incomingCallMap, callback, waitingHandler)
   }
 
   cancelRPC (response) {

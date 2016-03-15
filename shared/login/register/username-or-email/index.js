@@ -11,5 +11,5 @@ class UsernameOrEmail extends Component<void, Props, void> {
 }
 
 export default connect(
-  state => ({})
+  state => ({waitingForResponse: state.login.waitingForResponse})
 )(UsernameOrEmail)

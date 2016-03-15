@@ -3,7 +3,7 @@ import {connect} from 'react-redux'
 
 import CodePage from '../login/register/code-page'
 import GenPaperKey from './gen-paper-key'
-import ExistingDevice from '../login/register/existing-device'
+import ExistingDevice from './existing-device'
 import RemoveDevice from './remove-device'
 
 import {loadDevices} from '../actions/devices'

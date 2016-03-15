@@ -45,6 +45,7 @@ class Render extends Component<void, Props, State> {
           type='Primary'
           onClick={() => this.onSubmit()}
           enabled={this.state.usernameOrEmail}
+          waiting={this.props.waitingForResponse}
         />
       </Container>
     )

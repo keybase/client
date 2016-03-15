@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import {Text} from '../../../common-adapters'
 import Container from '../../forms/container.desktop'
-import Row, {RowCSS} from '../row'
+import Row, {RowCSS} from './row'
 import type {Props} from './index.render'
 
 class Render extends Component<void, Props, void> {

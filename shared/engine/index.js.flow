@@ -2,9 +2,13 @@
 
 import type {rpc, incomingCallMapType} from '../constants/types/flow-types'
 
+export type responseError = {
+  error: (err: Object) => void
+}
+
 declare class Engine {
   rpc (params: rpc): void;
-  cancelRPC (response: {error: (err: Object) => void}): void;
+  cancelRPC (response: responseError): void;
   listenOnConnect (key: string, f: () => void): void;
   listenGeneralIncomingRpc (m: incomingCallMapType): void;
 }

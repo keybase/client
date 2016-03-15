@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
-import {globalStyles, globalColors, transition} from '../../styles/style-guide'
-import {Icon, Text} from '../../common-adapters'
+import {globalStyles, globalColors, transition} from '../../../styles/style-guide'
+import {Icon, Text} from '../../../common-adapters'
 import type {Props} from './row'
 
 const realCSS = `

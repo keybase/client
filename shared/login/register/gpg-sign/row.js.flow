@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import type {Props as IconProps} from '../../common-adapters/icon'
+import type {Props as IconProps} from '../../../common-adapters/icon'
 
 export type Props = {
   onClick: () => void,
