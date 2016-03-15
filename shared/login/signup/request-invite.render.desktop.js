@@ -2,11 +2,11 @@
 /* eslint-disable react/prop-types */
 
 import React, {Component} from 'react'
-import {globalStyles, globalColors} from '../../styles/style-guide'
+import {globalStyles} from '../../styles/style-guide'
 import {Text, Icon, Input, Button} from '../../common-adapters'
 import Container from '../forms/container'
 
-import type {Props} from './username-email-form.render'
+import type {Props} from './request-invite.render'
 
 export default class Render extends Component {
   props: Props;
@@ -20,7 +20,7 @@ export default class Render extends Component {
     super(props)
     this.state = {
       email: this.props.email || '',
-      name: this.props.name || ''
+      name: this.props.name || '',
     }
   }
 
@@ -36,16 +36,24 @@ export default class Render extends Component {
         <Input
           style={styles.input}
           floatingLabelText='Your email address'
-          value={this.state.email || ''} errorText={this.props.requestInviteError}
+          value={this.state.email || ''}
+          errorText={this.props.emailErrorText}
           onChange={event => this.setState({email: event.target.value})}
         />
         <Input
           style={styles.input}
           floatingLabelText='Your name'
           value={this.state.name || ''}
+          errorText={this.props.nameErrorText}
           onChange={event => this.setState({name: event.target.value})}
         />
-        <Button style={styles.button} type='Primary' label='Request' onClick={submitRequestInvite}/>
+        <Button
+          style={styles.button}
+          type='Primary'
+          label='Request'
+          onClick={submitRequestInvite}
+          disabled={!this.state.email}
+        />
       </Container>
     )
   }

@@ -9,11 +9,13 @@ import * as signupActions from '../../actions/signup'
 
 class RequestInvite extends Component {
   render () {
+    console.error(this.props.emailErrorText)
     return (
       <Render
         name={this.props.name}
         email={this.props.email}
-        error={this.props.error}
+        emailErrorText={this.props.emailErrorText}
+        nameErrorText={this.props.nameErrorText}
         onBack={this.props.resetSignup}
         onRequestInvite={this.props.requestInvite}
       />
@@ -22,6 +24,9 @@ class RequestInvite extends Component {
 }
 
 export default connect(
-  state => ({error: state.signup.requestInviteError}),
+  state => ({
+    emailErrorText: state.signup.emailError,
+    nameErrorText: state.signup.nameError
+  }),
   dispatch => bindActionCreators(signupActions, dispatch)
 )(RequestInvite)

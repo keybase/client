@@ -56,7 +56,17 @@ export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInvi
 
 export function requestInvite (email: string, name: string): TypedAsyncAction<RequestInvite | RouteAppend> {
   return dispatch => new Promise((resolve, reject) => {
-    dispatch({type: Constants.requestInvite, payload: {email, name}})
+    // Returns an error string if not valid
+    const emailError = isValidEmail(email)
+    const nameError = isValidCommon(name)
+    if (emailError || !email || !name) {
+      dispatch({
+        type: Constants.requestInvite,
+        payload: {error: true, emailError, nameError, email, name}
+      })
+      resolve()
+      return
+    }
 
     const params: signup_inviteRequest_rpc = {
       method: 'signup.inviteRequest',
@@ -68,11 +78,9 @@ export function requestInvite (email: string, name: string): TypedAsyncAction<Re
       incomingCallMap: {},
       callback: err => {
         if (err) {
-          console.error('error in requestInvite')
           dispatch({
             type: Constants.requestInvite,
-            error: true,
-            payload: {error: err, email, name}
+            payload: {error: null, emailError: err.desc, nameError: null, email, name}
           })
           resolve()
         } else {
@@ -101,6 +109,10 @@ function hasSpaces (s: string): boolean {
   return s.indexOf(' ') !== -1
 }
 
+function hasAtSign (s: string): boolean {
+  return s.indexOf('@') !== -1
+}
+
 // Returns an error string if not valid
 function isValidCommon (thing: ?string): ?string {
   if (!thing || isBlank(thing)) {
@@ -123,6 +135,10 @@ function isValidEmail (email: ?string): ?string {
   const commonError = isValidCommon(email)
   if (commonError) {
     return commonError
+  }
+
+  if (email && !hasAtSign(email)) {
+    return 'Invalid email address'
   }
 }
 

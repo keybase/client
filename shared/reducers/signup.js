@@ -12,6 +12,7 @@ export type SignupState = {
   inviteCodeError: ?string,
   usernameError: ?string,
   emailError: ?string,
+  nameError: ?string,
   passphraseError: ?HiddenString,
   passphrase: ?HiddenString,
   deviceNameError: ?string,
@@ -28,6 +29,7 @@ const initialState: SignupState = {
   inviteCodeError: null,
   usernameError: null,
   emailError: null,
+  nameError: null,
   passphraseError: null,
   passphrase: null,
   deviceNameError: null,
@@ -85,10 +87,12 @@ export default function (state: SignupState = initialState, action: SignupAction
 
     case Constants.requestInvite:
       if (action.error) {
-        const {error} = action.payload
+        const {emailError, nameError} = action.payload
+        console.log(emailError)
         return {
           ...state,
-          error
+          emailError: emailError,
+          nameError
         }
       } else {
         const {email, name} = action.payload

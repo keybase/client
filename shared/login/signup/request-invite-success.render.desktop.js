@@ -7,7 +7,7 @@ import Container from '../forms/container'
 
 import type {Props} from './request-invite-success.render'
 
-class RequestInviteSuccess extends Component {
+export default class Render extends Component {
   props: Props;
 
   render () {
@@ -15,7 +15,9 @@ class RequestInviteSuccess extends Component {
       <Container onBack={this.props.onBack} style={styles.container}>
         <Icon style={styles.icon} type='invite-code-m'/>
         <Text style={styles.header} type='Header'>Invite request sent</Text>
-        <Text style={styles.body} type='Body'>Foo.</Text>
+        <Text style={styles.body} type='Body'>
+          Thanks for requesting an invite to Keybase. When one becomes available,  we will send it to you via email.
+        </Text>
       </Container>
     )
   }
@@ -27,9 +29,16 @@ const styles = {
     alignItems: 'center'
   },
   icon: {
-    marginTop: 55
+    marginTop: 80
   },
-  text: {
-    marginTop: 40
+  header: {
+    marginTop: 50,
+    marginBottom: 10
+  },
+  body: {
+    paddingLeft: 15,
+    paddingRight: 15,
+    marginBottom: 35,
+    textAlign: 'center'
   }
 }
