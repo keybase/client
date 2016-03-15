@@ -15,6 +15,7 @@ type ServiceType interface {
 	AllStringKeys() []string
 	CheckUsername(string) error
 	NormalizeUsername(string) (string, error)
+	CaseSensitiveUsername() bool
 	ToChecker() Checker
 	GetPrompt() string
 	LastWriterWins() bool
@@ -130,6 +131,14 @@ func (t BaseServiceType) BaseCheckProofTextFull(text string, id keybase1.SigID, 
 
 func (t BaseServiceType) NormalizeUsername(s string) (string, error) {
 	return strings.ToLower(s), nil
+}
+
+// Note: this is a bit of duplication of NormalizeUsername(), but
+// there are some ServiceType implementations (coinbase) that do
+// more than username normalization in their NormalizeUsername()
+// function.
+func (t BaseServiceType) CaseSensitiveUsername() bool {
+	return false
 }
 
 func (t BaseServiceType) BaseCheckProofForURL(text string, id keybase1.SigID) (err error) {
