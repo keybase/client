@@ -620,7 +620,7 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 	lState := makeFBOLockState()
 
 	fbo := kbfsOps.(*KBFSOpsStandard).getOps(rootNode.GetFolderBranch())
-	if fbo.getState(lState) != dirtyState {
+	if fbo.blocks.GetState(lState) != dirtyState {
 		t.Fatal("Unexpectedly not in dirty state")
 	}
 
@@ -663,9 +663,9 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 	}
 
 	deferredWriteLen := func() int {
-		fbo.blockLock.Lock(lState)
-		defer fbo.blockLock.Unlock(lState)
-		return len(fbo.deferredWrites)
+		fbo.blocks.blockLock.Lock(lState)
+		defer fbo.blocks.blockLock.Unlock(lState)
+		return len(fbo.blocks.deferredWrites)
 	}()
 	if deferredWriteLen != 1 {
 		t.Errorf("Unexpected deferred write count %d",
@@ -731,7 +731,7 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 	lState := makeFBOLockState()
 
 	fbo := kbfsOps.(*KBFSOpsStandard).getOps(rootNode.GetFolderBranch())
-	if fbo.getState(lState) != dirtyState {
+	if fbo.blocks.GetState(lState) != dirtyState {
 		t.Fatal("Unexpectedly not in dirty state")
 	}
 
@@ -775,9 +775,9 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 	}
 
 	deferredWriteLen := func() int {
-		fbo.blockLock.Lock(lState)
-		defer fbo.blockLock.Unlock(lState)
-		return len(fbo.deferredWrites)
+		fbo.blocks.blockLock.Lock(lState)
+		defer fbo.blocks.blockLock.Unlock(lState)
+		return len(fbo.blocks.deferredWrites)
 	}()
 	if deferredWriteLen != 1 {
 		t.Errorf("Unexpected deferred write count %d",
@@ -1647,12 +1647,12 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 	ops := getOps(config, rootNode.GetFolderBranch().Tlf)
 	func() {
 		lState := makeFBOLockState()
-		ops.blockLock.Lock(lState)
-		defer ops.blockLock.Unlock(lState)
-		for len(ops.syncListeners) == 0 {
-			ops.blockLock.Unlock(lState)
+		ops.blocks.blockLock.Lock(lState)
+		defer ops.blocks.blockLock.Unlock(lState)
+		for len(ops.blocks.syncListeners) == 0 {
+			ops.blocks.blockLock.Unlock(lState)
 			runtime.Gosched()
-			ops.blockLock.Lock(lState)
+			ops.blocks.blockLock.Lock(lState)
 		}
 	}()
 

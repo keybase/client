@@ -492,7 +492,7 @@ func (cr *ConflictResolver) addChildBlocksIfIndirectFile(ctx context.Context,
 	}
 	// For files with indirect pointers, and all child blocks
 	// as refblocks for the re-created file.
-	fblock, err := cr.fbo.getFileBlockForReading(ctx, lState,
+	fblock, err := cr.fbo.blocks.GetFileBlockForReading(ctx, lState,
 		unmergedChains.mostRecentMD, mostRecent, currPath.Branch, currPath)
 	if err != nil {
 		return err
@@ -604,7 +604,7 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 			}
 		}
 
-		de, err := cr.fbo.getEntry(
+		de, err := cr.fbo.blocks.GetEntry(
 			ctx, lState, unmergedChains.mostRecentMD, currPath)
 		if err != nil {
 			return path{}, BlockPointer{}, nil, err
@@ -1669,7 +1669,7 @@ func (cr *ConflictResolver) fetchDirBlockCopy(ctx context.Context,
 	if block, ok := lbc[ptr]; ok {
 		return block, nil
 	}
-	dblock, err := cr.fbo.getDirBlockForReading(
+	dblock, err := cr.fbo.blocks.GetDirBlockForReading(
 		ctx, lState, md, ptr, dir.Branch, dir)
 	if err != nil {
 		return nil, err
@@ -1688,7 +1688,7 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 	name string, ptr BlockPointer, blocks fileBlockMap) (
 	BlockPointer, error) {
 	md := chains.mostRecentMD
-	fblock, err := cr.fbo.getFileBlockForReading(ctx, lState, md, ptr,
+	fblock, err := cr.fbo.blocks.GetFileBlockForReading(ctx, lState, md, ptr,
 		parentPath.Branch, parentPath.ChildPath(name, ptr))
 	if err != nil {
 		return BlockPointer{}, err
@@ -1868,7 +1868,7 @@ func (cr *ConflictResolver) doActions(ctx context.Context,
 						// Fetch the specified one. Don't need to make
 						// a copy since this will just be a source
 						// block.
-						dBlock, err := cr.fbo.getDirBlockForReading(ctx, lState,
+						dBlock, err := cr.fbo.blocks.GetDirBlockForReading(ctx, lState,
 							mergedChains.mostRecentMD, newPtr,
 							mergedPath.Branch, path{})
 						if err != nil {
@@ -2075,7 +2075,7 @@ func (cr *ConflictResolver) createResolvedMD(ctx context.Context,
 					FolderBranch: cr.fbo.folderBranch,
 					path:         []pathNode{{BlockPointer: ptr}},
 				}
-				fblock, err := cr.fbo.getFileBlockForReading(ctx, lState,
+				fblock, err := cr.fbo.blocks.GetFileBlockForReading(ctx, lState,
 					unmergedChains.mostRecentMD, ptr, file.Branch, file)
 				if err != nil {
 					return nil, err
@@ -2488,7 +2488,7 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 			// from other sources as well (such as its directory entry
 			// or its indirect file block) if we happened to have come
 			// across it before.
-			block, err = cr.fbo.getBlockForReading(ctx, lState, md, ptr,
+			block, err = cr.fbo.blocks.GetBlockForReading(ctx, lState, md, ptr,
 				cr.fbo.branch())
 			if err != nil {
 				return err
@@ -2523,7 +2523,7 @@ func (cr *ConflictResolver) calculateResolutionUsage(ctx context.Context,
 			continue
 		}
 
-		block, err := cr.fbo.getBlockForReading(ctx, lState,
+		block, err := cr.fbo.blocks.GetBlockForReading(ctx, lState,
 			mergedChains.mostRecentMD, ptr, cr.fbo.branch())
 		if err != nil {
 			return err

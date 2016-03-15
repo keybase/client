@@ -50,42 +50,6 @@ const (
 	archiveOffline                   // an offline, read-only branch
 )
 
-type state int
-
-const (
-	// cleanState: no outstanding local writes.
-	cleanState state = iota
-	// dirtyState: there are outstanding local writes that haven't yet been
-	// synced.
-	dirtyState
-)
-
-type syncInfo struct {
-	oldInfo    BlockInfo
-	op         *syncOp
-	unrefs     []BlockInfo
-	bps        *blockPutState
-	refBytes   uint64
-	unrefBytes uint64
-}
-
-func (si *syncInfo) DeepCopy() *syncInfo {
-	newSi := &syncInfo{
-		oldInfo:    si.oldInfo,
-		refBytes:   si.refBytes,
-		unrefBytes: si.unrefBytes,
-	}
-	newSi.unrefs = make([]BlockInfo, len(si.unrefs))
-	copy(newSi.unrefs, si.unrefs)
-	if si.bps != nil {
-		newSi.bps = si.bps.DeepCopy()
-	}
-	if si.op != nil {
-		newSi.op = si.op.DeepCopy()
-	}
-	return newSi
-}
-
 // Constants used in this file.  TODO: Make these configurable?
 const (
 	maxParallelBlockPuts = 10
@@ -178,22 +142,6 @@ func (bl *blockLock) DoRUnlockedIfPossible(lState *lockState, f func(*lockState)
 	f(lState)
 }
 
-// syncBlockState represents that state of a block with respect to
-// whether it's currently being synced.  There can be three states:
-//  1) Not being synced
-//  2) Being synced and not yet re-dirtied: any write needs to
-//     make a copy of the block before dirtying it.  Also, all writes must be
-//     deferred.
-//  3) Being synced and already re-dirtied: no copies are needed, but all
-//     writes must still be deferred.
-type syncBlockState int
-
-const (
-	blockNotBeingSynced syncBlockState = iota
-	blockSyncingNotDirty
-	blockSyncingAndDirty
-)
-
 // folderBranchOps implements the KBFSOps interface for a specific
 // branch of a specific folder.  It is go-routine safe for operations
 // within the folder.
@@ -255,46 +203,13 @@ type folderBranchOps struct {
 	bType        branchType
 	head         *RootMetadata
 	observers    []Observer
-	// Which blocks are currently being synced, so that writes and
-	// truncates can do copy-on-write to avoid messing up the ongoing
-	// sync.  If it is blockSyncingNotDirty, then any write to the
-	// block should result in a deep copy and those writes should be
-	// deferred; if it is blockSyncingAndDirty, then just defer the
-	// writes.
-	fileBlockStates map[BlockPointer]syncBlockState
-
-	// Writes and truncates for blocks that were being sync'd, and
-	// need to be replayed after the sync finishes on top of the new
-	// versions of the blocks.
-	deferredWrites []func(context.Context, *lockState, *RootMetadata, path) error
-	// Blocks that need to be deleted from the dirty cache before any
-	// deferred writes are replayed.
-	deferredDirtyDeletes []BlockPointer
-	// set to true if this write or truncate should be deferred
-	doDeferWrite bool
-	// If there are too many deferred bytes outstanding, writes should
-	// add themselves to this list (while holding blockLock).  They
-	// will be able to receive on the channel on an outstanding Sync()
-	// completes.  If they receive an error, they should fail the
-	// write.
-	syncListeners []chan error
-
-	// For writes and truncates, track the unsynced to-be-unref'd
-	// block infos, per-path.
-	unrefCache map[blockRef]*syncInfo
-	// For writes and truncates, track the modified (but not yet
-	// committed) directory entries. Maps the entry blockRef to a
-	// modified entry.
-	deCache map[blockRef]DirEntry
 
 	// these locks, when locked concurrently by the same goroutine,
 	// should only be taken in the following order to avoid deadlock:
 	mdWriterLock leveledMutex   // taken by any method making MD modifications
 	headLock     leveledRWMutex // protects access to the MD
 
-	// protects access to blocks in this folder, fileBlockStates,
-	// syncListeners, unrefCache, deCache, and deferredWrites et al.
-	blockLock blockLock
+	blocks folderBlockOps
 
 	obsLock sync.RWMutex // protects access to observers
 
@@ -319,10 +234,6 @@ type folderBranchOps struct {
 	// device.  This means the device has forked from the main branch
 	// seen by other devices.  Protected by mdWriterLock.
 	staged bool
-
-	// The current state of this folder-branch.
-	stateLock sync.Mutex
-	state     state
 
 	// Whether we've identified this TLF or not.
 	identifyLock sync.Mutex
@@ -384,21 +295,26 @@ func newFolderBranchOps(config Config, fb FolderBranch,
 	blockLockMu := makeLeveledRWMutex(mutexLevel(fboBlock), &sync.RWMutex{})
 
 	fbo := &folderBranchOps{
-		config:          config,
-		folderBranch:    fb,
-		bid:             BranchID{},
-		bType:           bType,
-		observers:       make([]Observer, 0),
-		fileBlockStates: make(map[BlockPointer]syncBlockState),
-		deferredWrites: make(
-			[]func(context.Context, *lockState, *RootMetadata, path) error, 0),
-		unrefCache:   make(map[blockRef]*syncInfo),
-		deCache:      make(map[blockRef]DirEntry),
+		config:       config,
+		folderBranch: fb,
+		bid:          BranchID{},
+		bType:        bType,
+		observers:    make([]Observer, 0),
 		status:       newFolderBranchStatusKeeper(config, nodeCache),
 		mdWriterLock: mdWriterLock,
 		headLock:     headLock,
-		blockLock: blockLock{
-			leveledRWMutex: blockLockMu,
+		blocks: folderBlockOps{
+			config:       config,
+			log:          log,
+			folderBranch: fb,
+			blockLock: blockLock{
+				leveledRWMutex: blockLockMu,
+			},
+			fileBlockStates: make(map[BlockPointer]syncBlockState),
+			unrefCache:      make(map[blockRef]*syncInfo),
+			deCache:         make(map[blockRef]DirEntry),
+			deferredWrites: make(
+				[]func(context.Context, *lockState, *RootMetadata, path) error, 0),
 		},
 		nodeCache:       nodeCache,
 		log:             log,
@@ -432,7 +348,7 @@ func (fbo *folderBranchOps) Shutdown() error {
 		ctx := context.TODO()
 		lState := makeFBOLockState()
 
-		if fbo.getState(lState) == dirtyState {
+		if fbo.blocks.GetState(lState) == dirtyState {
 			fbo.log.CDebugf(ctx, "Skipping state-checking due to dirty state")
 		} else if fbo.getStaged(lState) {
 			fbo.log.CDebugf(ctx, "Skipping state-checking due to being staged")
@@ -476,15 +392,6 @@ func (fbo *folderBranchOps) RefreshCachedFavorites(ctx context.Context) {
 func (fbo *folderBranchOps) DeleteFavorite(ctx context.Context,
 	name string, public bool) error {
 	return errors.New("DeleteFavorite is not supported by folderBranchOps")
-}
-
-func (fbo *folderBranchOps) getState(lState *lockState) state {
-	fbo.blockLock.RLock(lState)
-	defer fbo.blockLock.RUnlock(lState)
-	if len(fbo.deCache) == 0 {
-		return cleanState
-	}
-	return dirtyState
 }
 
 // getStaged should not be called if mdWriterLock is already taken.
@@ -990,339 +897,6 @@ func (fbo *folderBranchOps) getRootNode(ctx context.Context) (
 
 type makeNewBlock func() Block
 
-// getBlockHelperLocked retrieves the block pointed to by ptr, which
-// must be valid, either from the cache or from the server. If
-// notifyPath is valid and the block isn't cached, trigger a read
-// notification.
-//
-// This must be called only by get{File,Dir}BlockHelperLocked().
-func (fbo *folderBranchOps) getBlockHelperLocked(ctx context.Context,
-	lState *lockState, md *RootMetadata, ptr BlockPointer, branch BranchName,
-	newBlock makeNewBlock, doCache bool, notifyPath path) (
-	Block, error) {
-	fbo.blockLock.AssertAnyLocked(lState)
-
-	if !ptr.IsValid() {
-		return nil, InvalidBlockRefError{ptr.ref()}
-	}
-
-	bcache := fbo.config.BlockCache()
-	if block, err := bcache.Get(ptr, branch); err == nil {
-		return block, nil
-	}
-
-	// TODO: add an optimization here that will avoid fetching the
-	// same block twice from over the network
-
-	// fetch the block, and add to cache
-	block := newBlock()
-
-	bops := fbo.config.BlockOps()
-
-	if notifyPath.isValid() {
-		fbo.config.Reporter().Notify(ctx, readNotification(notifyPath, false))
-		defer fbo.config.Reporter().Notify(ctx,
-			readNotification(notifyPath, true))
-	}
-
-	// Unlock the blockLock while we wait for the network, only if
-	// it's locked for reading.  If it's locked for writing, that
-	// indicates we are performing an atomic write operation, and we
-	// need to ensure that nothing else comes in and modifies the
-	// blocks, so don't unlock.
-	var err error
-	fbo.blockLock.DoRUnlockedIfPossible(lState, func(*lockState) {
-		err = bops.Get(ctx, md, ptr, block)
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if doCache {
-		if err := bcache.Put(ptr, fbo.id(), block, TransientEntry); err != nil {
-			return nil, err
-		}
-	}
-	return block, nil
-}
-
-// getFileBlockHelperLocked retrieves the block pointed to by ptr,
-// which must be valid, either from an internal cache, the block
-// cache, or from the server. An error is returned if the retrieved
-// block is not a file block.
-//
-// This must be called only by getFileBlockForReading(),
-// getFileBlockLocked(), and getFileLocked().
-//
-// p is used only when reporting errors and sending read
-// notifications, and can be empty.
-func (fbo *folderBranchOps) getFileBlockHelperLocked(ctx context.Context,
-	lState *lockState, md *RootMetadata, ptr BlockPointer,
-	branch BranchName, p path) (
-	*FileBlock, error) {
-	fbo.blockLock.AssertAnyLocked(lState)
-
-	block, err := fbo.getBlockHelperLocked(
-		ctx, lState, md, ptr, branch, NewFileBlock, true, p)
-	if err != nil {
-		return nil, err
-	}
-
-	fblock, ok := block.(*FileBlock)
-	if !ok {
-		return nil, NotFileBlockError{ptr, branch, p}
-	}
-
-	return fblock, nil
-}
-
-// getBlockForReading retrieves the block pointed to by ptr, which
-// must be valid, either from the cache or from the server.  The
-// returned block may have a generic type (not DirBlock or FileBlock).
-//
-// This should be called for "internal" operations, like conflict
-// resolution and state checking, which don't know what kind of block
-// the pointer refers to.  The block will not be cached, if it wasn't
-// in the cache already.
-func (fbo *folderBranchOps) getBlockForReading(ctx context.Context,
-	lState *lockState, md *RootMetadata, ptr BlockPointer, branch BranchName) (
-	Block, error) {
-	fbo.blockLock.RLock(lState)
-	defer fbo.blockLock.RUnlock(lState)
-	return fbo.getBlockHelperLocked(ctx, lState, md, ptr, branch,
-		NewCommonBlock, false, path{})
-}
-
-// getDirBlockHelperLocked retrieves the block pointed to by ptr, which
-// must be valid, either from the cache or from the server. An error
-// is returned if the retrieved block is not a dir block.
-//
-// This must be called only by getDirBlockForReading() and
-// getDirLocked().
-//
-// p is used only when reporting errors, and can be empty.
-func (fbo *folderBranchOps) getDirBlockHelperLocked(ctx context.Context,
-	lState *lockState, md *RootMetadata, ptr BlockPointer,
-	branch BranchName, p path) (*DirBlock, error) {
-	fbo.blockLock.AssertAnyLocked(lState)
-
-	// Pass in an empty notify path because notifications should only
-	// trigger for file reads.
-	block, err := fbo.getBlockHelperLocked(
-		ctx, lState, md, ptr, branch, NewDirBlock, true, path{})
-	if err != nil {
-		return nil, err
-	}
-
-	dblock, ok := block.(*DirBlock)
-	if !ok {
-		return nil, NotDirBlockError{ptr, branch, p}
-	}
-
-	return dblock, nil
-}
-
-// getFileBlockForReading retrieves the block pointed to by ptr, which
-// must be valid, either from the cache or from the server. An error
-// is returned if the retrieved block is not a file block.
-//
-// This should be called for "internal" operations, like conflict
-// resolution and state checking. "Real" operations should use
-// getFileBlockLocked() and getFileLocked() instead.
-//
-// p is used only when reporting errors, and can be empty.
-func (fbo *folderBranchOps) getFileBlockForReading(ctx context.Context,
-	lState *lockState, md *RootMetadata, ptr BlockPointer,
-	branch BranchName, p path) (*FileBlock, error) {
-	fbo.blockLock.RLock(lState)
-	defer fbo.blockLock.RUnlock(lState)
-	return fbo.getFileBlockHelperLocked(ctx, lState, md, ptr, branch, p)
-}
-
-// getDirBlockForReading retrieves the block pointed to by ptr, which
-// must be valid, either from the cache or from the server. An error
-// is returned if the retrieved block is not a dir block.
-//
-// This should be called for "internal" operations, like conflict
-// resolution and state checking. "Real" operations should use
-// getDirLocked() instead.
-//
-// p is used only when reporting errors, and can be empty.
-func (fbo *folderBranchOps) getDirBlockForReading(ctx context.Context,
-	lState *lockState, md *RootMetadata, ptr BlockPointer,
-	branch BranchName, p path) (*DirBlock, error) {
-	fbo.blockLock.RLock(lState)
-	defer fbo.blockLock.RUnlock(lState)
-	return fbo.getDirBlockHelperLocked(ctx, lState, md, ptr, branch, p)
-}
-
-// getFileBlockLocked retrieves the block pointed to by ptr, which
-// must be valid, either from the cache or from the server. An error
-// is returned if the retrieved block is not a file block.
-//
-// The given path must be valid, and the given pointer must be its
-// tail pointer or an indirect pointer from it. A read notification is
-// triggered for the given path only if the block isn't in the cache.
-//
-// This shouldn't be called for "internal" operations, like conflict
-// resolution and state checking -- use getFileBlockForReading() for
-// those instead.
-//
-// When rtype == blockWrite and the cached version of the block is
-// currently clean, or the block is currently being synced, this
-// method makes a copy of the file block and returns it.  If this
-// method might be called again for the same block within a single
-// operation, it is the caller's responsibility to write that block
-// back to the cache as dirty.
-//
-// Note that blockLock must be locked exactly when rtype ==
-// blockWrite, and must be r-locked otherwise.  (This differs from
-// getDirLocked.)  This is because a write operation (like write,
-// truncate and sync which lock blockLock) fetching a file block will
-// almost always need to modify that block, and so will pass in
-// blockWrite.
-func (fbo *folderBranchOps) getFileBlockLocked(ctx context.Context,
-	lState *lockState, md *RootMetadata, ptr BlockPointer,
-	file path, rtype blockReqType) (*FileBlock, error) {
-	if rtype == blockRead {
-		fbo.blockLock.AssertRLocked(lState)
-	} else {
-		fbo.blockLock.AssertLocked(lState)
-	}
-
-	// Callers should have already done this check, but it doesn't
-	// hurt to do it again.
-	if !file.isValid() {
-		return nil, InvalidPathError{file}
-	}
-
-	fblock, err := fbo.getFileBlockHelperLocked(
-		ctx, lState, md, ptr, file.Branch, file)
-	if err != nil {
-		return nil, err
-	}
-
-	if rtype == blockWrite {
-		// Copy the block if it's for writing, and either the
-		// block is not yet dirty or the block is currently
-		// being sync'd and needs a copy even though it's
-		// already dirty.
-		if !fbo.config.BlockCache().IsDirty(ptr, file.Branch) ||
-			fbo.fileBlockStates[ptr] == blockSyncingNotDirty {
-			fblock = fblock.DeepCopy()
-		}
-	}
-	return fblock, nil
-}
-
-// getFileLocked is getFileBlockLocked called with file.tailPointer().
-func (fbo *folderBranchOps) getFileLocked(ctx context.Context,
-	lState *lockState, md *RootMetadata, file path,
-	rtype blockReqType) (*FileBlock, error) {
-	return fbo.getFileBlockLocked(
-		ctx, lState, md, file.tailPointer(), file, rtype)
-}
-
-// getDirLocked retrieves the block pointed to by the tail pointer of
-// the given path, which must be valid, either from the cache or from
-// the server. An error is returned if the retrieved block is not a
-// dir block.
-//
-// This shouldn't be called for "internal" operations, like conflict
-// resolution and state checking -- use getDirBlockForReading() for
-// those instead.
-//
-// When rtype == blockWrite and the cached version of the block is
-// currently clean, this method makes a copy of the directory block
-// and returns it.  If this method might be called again for the same
-// block within a single operation, it is the caller's responsibility
-// to write that block back to the cache as dirty.
-//
-// Note that blockLock must be either r-locked or locked, but
-// independently of rtype. (This differs from getFileLocked and
-// getFileBlockLocked.) File write operations (which lock blockLock)
-// don't need a copy of parent dir blocks, and non-file write
-// operations do need to copy dir blocks for modifications.
-func (fbo *folderBranchOps) getDirLocked(ctx context.Context,
-	lState *lockState, md *RootMetadata, dir path, rtype blockReqType) (
-	*DirBlock, error) {
-	fbo.blockLock.AssertAnyLocked(lState)
-
-	// Callers should have already done this check, but it doesn't
-	// hurt to do it again.
-	if !dir.isValid() {
-		return nil, InvalidPathError{dir}
-	}
-
-	// Get the block for the last element in the path.
-	dblock, err := fbo.getDirBlockHelperLocked(
-		ctx, lState, md, dir.tailPointer(), dir.Branch, dir)
-	if err != nil {
-		return nil, err
-	}
-
-	if rtype == blockWrite && !fbo.config.BlockCache().IsDirty(
-		dir.tailPointer(), dir.Branch) {
-		// Copy the block if it's for writing and the block is
-		// not yet dirty.
-		dblock = dblock.DeepCopy()
-	}
-	return dblock, nil
-}
-
-// getUpdatedDirBlockLocked checks if the given DirBlock has any
-// entries that are in deCache. If so, it makes a copy with all such
-// entries replaced with the ones in deCache and returns it. If not,
-// it just returns the given one.
-func (fbo *folderBranchOps) getUpdatedDirBlockLocked(ctx context.Context,
-	lState *lockState, block *DirBlock) *DirBlock {
-	fbo.blockLock.AssertAnyLocked(lState)
-	// see if this directory has any outstanding writes/truncates that
-	// require an updated DirEntry
-
-	// Save some time for the common case of having no dirty
-	// files.
-	if len(fbo.deCache) == 0 {
-		return block
-	}
-
-	var dblockCopy *DirBlock
-	var uid keybase1.UID
-	var uidErr error
-
-	for k, v := range block.Children {
-		de, ok := fbo.deCache[v.ref()]
-		if !ok {
-			continue
-		}
-
-		if dblockCopy == nil {
-			dblockCopy = block.DeepCopy()
-			// If there's an error, just log it and keep
-			// going because having the correct writer is
-			// not important enough to fail the whole
-			// lookup.
-			_, uid, uidErr = fbo.config.KBPKI().GetCurrentUserInfo(ctx)
-			if uidErr != nil {
-				fbo.log.CDebugf(ctx, "Ignoring error while getting "+
-					"logged-in user during directory entry lookup: %v", uidErr)
-			}
-		}
-
-		if uidErr == nil {
-			de.SetWriter(uid)
-		}
-
-		dblockCopy.Children[k] = de
-	}
-
-	if dblockCopy == nil {
-		return block
-	}
-
-	return dblockCopy
-}
-
 // pathFromNodeHelper() shouldn't be called except by the helper
 // functions below.
 func (fbo *folderBranchOps) pathFromNodeHelper(n Node) (path, error) {
@@ -1340,9 +914,10 @@ func (fbo *folderBranchOps) pathFromNodeForRead(n Node) (path, error) {
 	return fbo.pathFromNodeHelper(n)
 }
 
+// TODO: Rename.
 func (fbo *folderBranchOps) pathFromNodeForWriteLocked(
 	lState *lockState, n Node) (path, error) {
-	fbo.blockLock.AssertLocked(lState)
+	fbo.blocks.blockLock.AssertLocked(lState)
 	return fbo.pathFromNodeHelper(n)
 }
 
@@ -1376,15 +951,15 @@ func (fbo *folderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 			return err
 		}
 
-		fbo.blockLock.RLock(lState)
-		defer fbo.blockLock.RUnlock(lState)
-		dblock, err := fbo.getDirLocked(
+		fbo.blocks.blockLock.RLock(lState)
+		defer fbo.blocks.blockLock.RUnlock(lState)
+		dblock, err := fbo.blocks.getDirLocked(
 			ctx, lState, md, dirPath, blockRead)
 		if err != nil {
 			return err
 		}
 
-		dblock = fbo.getUpdatedDirBlockLocked(ctx, lState, dblock)
+		dblock = fbo.blocks.getUpdatedDirBlockLocked(ctx, lState, dblock)
 
 		children = make(map[string]EntryInfo)
 		for k, de := range dblock.Children {
@@ -1396,61 +971,6 @@ func (fbo *folderBranchOps) GetDirChildren(ctx context.Context, dir Node) (
 		return nil, err
 	}
 	return children, nil
-}
-
-// file must have a valid parent.
-func (fbo *folderBranchOps) getDirBlockAndEntryLocked(ctx context.Context,
-	lState *lockState, md *RootMetadata, file path, rtype blockReqType) (
-	*DirBlock, DirEntry, error) {
-	fbo.blockLock.AssertAnyLocked(lState)
-
-	if !file.hasValidParent() {
-		return nil, DirEntry{}, InvalidParentPathError{file}
-	}
-
-	parentPath := file.parentPath()
-	dblock, err := fbo.getDirLocked(ctx, lState, md, *parentPath, rtype)
-	if err != nil {
-		return nil, DirEntry{}, err
-	}
-
-	dblock = fbo.getUpdatedDirBlockLocked(ctx, lState, dblock)
-
-	// make sure it exists
-	name := file.tailName()
-	de, ok := dblock.Children[name]
-	if !ok {
-		return nil, DirEntry{}, NoSuchNameError{name}
-	}
-
-	return dblock, de, err
-}
-
-// file must have a valid parent. A copy of the parent DirBlock is
-// returned for modification. Use getEntry() if you only need the
-// DirEntry.
-func (fbo *folderBranchOps) getDirBlockAndEntry(
-	ctx context.Context, lState *lockState, md *RootMetadata, file path) (
-	*DirBlock, DirEntry, error) {
-	fbo.blockLock.RLock(lState)
-	defer fbo.blockLock.RUnlock(lState)
-	return fbo.getDirBlockAndEntryLocked(ctx, lState, md, file, blockWrite)
-}
-
-// file must have a valid parent.
-func (fbo *folderBranchOps) getEntryLocked(ctx context.Context,
-	lState *lockState, md *RootMetadata, file path) (DirEntry, error) {
-	_, de, err := fbo.getDirBlockAndEntryLocked(
-		ctx, lState, md, file, blockRead)
-	return de, err
-}
-
-// file must have a valid parent.
-func (fbo *folderBranchOps) getEntry(ctx context.Context, lState *lockState,
-	md *RootMetadata, file path) (DirEntry, error) {
-	fbo.blockLock.RLock(lState)
-	defer fbo.blockLock.RUnlock(lState)
-	return fbo.getEntryLocked(ctx, lState, md, file)
 }
 
 func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
@@ -1479,7 +999,7 @@ func (fbo *folderBranchOps) Lookup(ctx context.Context, dir Node, name string) (
 
 		childPath := dirPath.ChildPathNoPtr(name)
 
-		de, err = fbo.getEntry(ctx, lState, md, childPath)
+		de, err = fbo.blocks.GetEntry(ctx, lState, md, childPath)
 		if err != nil {
 			return err
 		}
@@ -1534,7 +1054,7 @@ func (fbo *folderBranchOps) statEntry(ctx context.Context, node Node) (
 	}
 
 	if nodePath.hasValidParent() {
-		de, err = fbo.getEntry(ctx, lState, md, nodePath)
+		de, err = fbo.blocks.GetEntry(ctx, lState, md, nodePath)
 		if err != nil {
 			return DirEntry{}, err
 		}
@@ -1677,40 +1197,6 @@ func (fbo *folderBranchOps) unembedBlockChanges(
 	return
 }
 
-// cacheBlockIfNotYetDirtyLocked puts a block into the cache, but only
-// does so if the block isn't already marked as dirty in the cache.
-// This is useful when operating on a dirty copy of a block that may
-// already be in the cache.
-func (fbo *folderBranchOps) cacheBlockIfNotYetDirtyLocked(
-	lState *lockState, ptr BlockPointer, branch BranchName, block Block) error {
-	fbo.blockLock.AssertLocked(lState)
-
-	if !fbo.config.BlockCache().IsDirty(ptr, branch) {
-		return fbo.config.BlockCache().PutDirty(ptr, branch, block)
-	}
-
-	switch fbo.fileBlockStates[ptr] {
-	case blockNotBeingSynced:
-		// Nothing to do
-	case blockSyncingNotDirty:
-		// Overwrite the dirty block if this is a copy-on-write during
-		// a sync.  Don't worry, the old dirty block is safe in the
-		// sync goroutine (and also probably saved to the cache under
-		// its new ID already.
-		err := fbo.config.BlockCache().PutDirty(ptr, branch, block)
-		if err != nil {
-			return err
-		}
-		// Future writes can use this same block.
-		fbo.fileBlockStates[ptr] = blockSyncingAndDirty
-		fbo.doDeferWrite = true
-	case blockSyncingAndDirty:
-		fbo.doDeferWrite = true
-	}
-
-	return nil
-}
-
 type localBcache map[BlockPointer]*DirBlock
 
 // syncBlock updates, and readies, the blocks along the path for the
@@ -1786,9 +1272,9 @@ func (fbo *folderBranchOps) syncBlock(
 					// Directory blocks are only ever modified while
 					// holding mdWriterLock, so it's safe to release the
 					// blockLock in between fetches.
-					fbo.blockLock.RLock(lState)
-					defer fbo.blockLock.RUnlock(lState)
-					return fbo.getDirLocked(
+					fbo.blocks.blockLock.RLock(lState)
+					defer fbo.blocks.blockLock.RUnlock(lState)
+					return fbo.blocks.getDirLocked(
 						ctx, lState, md, prevDir,
 						blockWrite)
 				}()
@@ -2250,7 +1736,7 @@ func (fbo *folderBranchOps) syncBlockAndFinalizeLocked(ctx context.Context,
 	name string, entryType EntryType, mtime bool, ctime bool,
 	stopAt BlockPointer) (de DirEntry, err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
-	fbo.blockLock.AssertUnlocked(lState)
+	fbo.blocks.blockLock.AssertUnlocked(lState)
 
 	_, de, bps, err := fbo.syncBlockAndCheckEmbed(
 		ctx, lState, md, newBlock, dir, name, entryType, mtime,
@@ -2290,7 +1776,7 @@ func (fbo *folderBranchOps) checkNewDirSize(ctx context.Context,
 	// Check that the directory isn't past capacity already.
 	var currSize uint64
 	if dirPath.hasValidParent() {
-		de, err := fbo.getEntry(ctx, lState, md, dirPath)
+		de, err := fbo.blocks.GetEntry(ctx, lState, md, dirPath)
 		if err != nil {
 			return err
 		}
@@ -2337,10 +1823,10 @@ func (fbo *folderBranchOps) createEntryLocked(
 	}
 
 	dblock, err := func() (*DirBlock, error) {
-		fbo.blockLock.RLock(lState)
-		defer fbo.blockLock.RUnlock(lState)
+		fbo.blocks.blockLock.RLock(lState)
+		defer fbo.blocks.blockLock.RUnlock(lState)
 
-		dblock, err := fbo.getDirLocked(
+		dblock, err := fbo.blocks.getDirLocked(
 			ctx, lState, md, dirPath, blockWrite)
 		if err != nil {
 			return nil, err
@@ -2523,9 +2009,9 @@ func (fbo *folderBranchOps) createLinkLocked(
 	}
 
 	dblock, err := func() (*DirBlock, error) {
-		fbo.blockLock.RLock(lState)
-		defer fbo.blockLock.RUnlock(lState)
-		return fbo.getDirLocked(ctx, lState, md, dirPath, blockWrite)
+		fbo.blocks.blockLock.RLock(lState)
+		defer fbo.blocks.blockLock.RUnlock(lState)
+		return fbo.blocks.getDirLocked(ctx, lState, md, dirPath, blockWrite)
 	}()
 	if err != nil {
 		return DirEntry{}, err
@@ -2605,9 +2091,9 @@ func (fbo *folderBranchOps) unrefEntry(ctx context.Context,
 	// no need to check for indirect directory blocks here.
 	if de.Type == File || de.Type == Exec {
 		fBlock, err := func() (*FileBlock, error) {
-			fbo.blockLock.RLock(lState)
-			defer fbo.blockLock.RUnlock(lState)
-			return fbo.getFileLocked(
+			fbo.blocks.blockLock.RLock(lState)
+			defer fbo.blocks.blockLock.RUnlock(lState)
+			return fbo.blocks.getFileLocked(
 				ctx, lState, md, childPath, blockRead)
 		}()
 		if err != nil {
@@ -2627,9 +2113,9 @@ func (fbo *folderBranchOps) removeEntryLocked(ctx context.Context,
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	pblock, err := func() (*DirBlock, error) {
-		fbo.blockLock.RLock(lState)
-		defer fbo.blockLock.RUnlock(lState)
-		return fbo.getDirLocked(ctx, lState, md, dir, blockWrite)
+		fbo.blocks.blockLock.RLock(lState)
+		defer fbo.blocks.blockLock.RUnlock(lState)
+		return fbo.blocks.getDirLocked(ctx, lState, md, dir, blockWrite)
 	}()
 	if err != nil {
 		return err
@@ -2676,9 +2162,9 @@ func (fbo *folderBranchOps) removeDirLocked(ctx context.Context,
 	}
 
 	err = func() error {
-		fbo.blockLock.RLock(lState)
-		defer fbo.blockLock.RUnlock(lState)
-		pblock, err := fbo.getDirLocked(
+		fbo.blocks.blockLock.RLock(lState)
+		defer fbo.blocks.blockLock.RUnlock(lState)
+		pblock, err := fbo.blocks.getDirLocked(
 			ctx, lState, md, dirPath, blockRead)
 		de, ok := pblock.Children[dirName]
 		if !ok {
@@ -2688,7 +2174,7 @@ func (fbo *folderBranchOps) removeDirLocked(ctx context.Context,
 		// construct a path for the child so we can check for an empty dir
 		childPath := dirPath.ChildPath(dirName, de.BlockPointer)
 
-		childBlock, err := fbo.getDirLocked(
+		childBlock, err := fbo.blocks.getDirLocked(
 			ctx, lState, md, childPath, blockRead)
 		if err != nil {
 			return err
@@ -2762,15 +2248,15 @@ func (fbo *folderBranchOps) renameLocked(
 	}
 
 	doUnlock := true
-	fbo.blockLock.RLock(lState)
+	fbo.blocks.blockLock.RLock(lState)
 	defer func() {
 		if doUnlock {
-			fbo.blockLock.RUnlock(lState)
+			fbo.blocks.blockLock.RUnlock(lState)
 		}
 	}()
 
 	// look up in the old path
-	oldPBlock, err := fbo.getDirLocked(
+	oldPBlock, err := fbo.blocks.getDirLocked(
 		ctx, lState, md, oldParent, blockWrite)
 	if err != nil {
 		return err
@@ -2792,7 +2278,7 @@ func (fbo *folderBranchOps) renameLocked(
 	if oldParent.tailPointer().ID == newParent.tailPointer().ID {
 		newPBlock = oldPBlock
 	} else {
-		newPBlock, err = fbo.getDirLocked(
+		newPBlock, err = fbo.blocks.getDirLocked(
 			ctx, lState, md, newParent, blockWrite)
 		if err != nil {
 			return err
@@ -2805,7 +2291,7 @@ func (fbo *folderBranchOps) renameLocked(
 			// oldGrandparent is the same as newParent (in which case, the
 			// syncBlockAndCheckEmbed call will take care of it).
 			if oldGrandparent.tailPointer().ID != newParent.tailPointer().ID {
-				b, err := fbo.getDirLocked(ctx, lState, md, oldGrandparent, blockWrite)
+				b, err := fbo.blocks.getDirLocked(ctx, lState, md, oldGrandparent, blockWrite)
 				if err != nil {
 					return err
 				}
@@ -2823,7 +2309,7 @@ func (fbo *folderBranchOps) renameLocked(
 		}
 	}
 	doUnlock = false
-	fbo.blockLock.RUnlock(lState)
+	fbo.blocks.blockLock.RUnlock(lState)
 
 	// does name exist?
 	if de, ok := newPBlock.Children[newName]; ok {
@@ -2963,56 +2449,13 @@ func (fbo *folderBranchOps) Rename(
 		})
 }
 
-func (fbo *folderBranchOps) getFileBlockAtOffsetLocked(ctx context.Context,
-	lState *lockState, md *RootMetadata, file path, topBlock *FileBlock,
-	off int64, rtype blockReqType) (
-	ptr BlockPointer, parentBlock *FileBlock, indexInParent int,
-	block *FileBlock, more bool, startOff int64, err error) {
-	fbo.blockLock.AssertAnyLocked(lState)
-
-	// find the block matching the offset, if it exists
-	ptr = file.tailPointer()
-	block = topBlock
-	more = false
-	startOff = 0
-	// search until it's not an indirect block
-	for block.IsInd {
-		nextIndex := len(block.IPtrs) - 1
-		for i, ptr := range block.IPtrs {
-			if ptr.Off == off {
-				// small optimization to avoid iterating past the right ptr
-				nextIndex = i
-				break
-			} else if ptr.Off > off {
-				// i can never be 0, because the first ptr always has
-				// an offset at the beginning of the range
-				nextIndex = i - 1
-				break
-			}
-		}
-		nextPtr := block.IPtrs[nextIndex]
-		parentBlock = block
-		indexInParent = nextIndex
-		startOff = nextPtr.Off
-		// there is more to read if we ever took a path through a
-		// ptr that wasn't the final ptr in its respective list
-		more = more || (nextIndex != len(block.IPtrs)-1)
-		ptr = nextPtr.BlockPointer
-		if block, err = fbo.getFileBlockLocked(ctx, lState, md, ptr, file, rtype); err != nil {
-			return
-		}
-	}
-
-	return
-}
-
 func (fbo *folderBranchOps) readLocked(
 	ctx context.Context, lState *lockState, md *RootMetadata, file path,
 	dest []byte, off int64) (int64, error) {
-	fbo.blockLock.AssertRLocked(lState)
+	fbo.blocks.blockLock.AssertRLocked(lState)
 
 	// getFileLocked already checks read permissions
-	fblock, err := fbo.getFileLocked(ctx, lState, md, file, blockRead)
+	fblock, err := fbo.blocks.getFileLocked(ctx, lState, md, file, blockRead)
 	if err != nil {
 		return 0, err
 	}
@@ -3023,7 +2466,7 @@ func (fbo *folderBranchOps) readLocked(
 	for nRead < n {
 		nextByte := nRead + off
 		toRead := n - nRead
-		_, _, _, block, _, startOff, err := fbo.getFileBlockAtOffsetLocked(
+		_, _, _, block, _, startOff, err := fbo.blocks.getFileBlockAtOffsetLocked(
 			ctx, lState, md, file, fblock, nextByte, blockRead)
 		if err != nil {
 			return 0, err
@@ -3071,8 +2514,8 @@ func (fbo *folderBranchOps) Read(
 			return err
 		}
 
-		fbo.blockLock.RLock(lState)
-		defer fbo.blockLock.RUnlock(lState)
+		fbo.blocks.blockLock.RLock(lState)
+		defer fbo.blocks.blockLock.RUnlock(lState)
 		n, err = fbo.readLocked(ctx, lState, md, filePath, dest, off)
 		return err
 	})
@@ -3082,71 +2525,12 @@ func (fbo *folderBranchOps) Read(
 	return n, nil
 }
 
-func (fbo *folderBranchOps) newRightBlockLocked(
-	ctx context.Context, lState *lockState, ptr BlockPointer,
-	branch BranchName, pblock *FileBlock,
-	off int64, md *RootMetadata) error {
-	fbo.blockLock.AssertLocked(lState)
-
-	newRID, err := fbo.config.Crypto().MakeTemporaryBlockID()
-	if err != nil {
-		return err
-	}
-	_, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
-	if err != nil {
-		return err
-	}
-	rblock := &FileBlock{}
-
-	newPtr := BlockPointer{
-		ID:       newRID,
-		KeyGen:   md.LatestKeyGeneration(),
-		DataVer:  fbo.config.DataVersion(),
-		Creator:  uid,
-		RefNonce: zeroBlockRefNonce,
-	}
-
-	pblock.IPtrs = append(pblock.IPtrs, IndirectFilePtr{
-		BlockInfo: BlockInfo{
-			BlockPointer: newPtr,
-			EncodedSize:  0,
-		},
-		Off: off,
-	})
-
-	if err := fbo.config.BlockCache().PutDirty(
-		newPtr, branch, rblock); err != nil {
-		return err
-	}
-
-	if err = fbo.cacheBlockIfNotYetDirtyLocked(
-		lState, ptr, branch, pblock); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (fbo *folderBranchOps) getOrCreateSyncInfoLocked(
-	lState *lockState, de DirEntry) *syncInfo {
-	fbo.blockLock.AssertLocked(lState)
-	ref := de.ref()
-	si, ok := fbo.unrefCache[ref]
-	if !ok {
-		si = &syncInfo{
-			oldInfo: de.BlockInfo,
-			op:      newSyncOp(de.BlockPointer),
-		}
-		fbo.unrefCache[ref] = si
-	}
-	return si
-}
-
 // Returns the set of blocks dirtied during this write that might need
 // to be cleaned up if the write is deferred.
 func (fbo *folderBranchOps) writeDataLocked(
 	ctx context.Context, lState *lockState, md *RootMetadata, file path,
 	data []byte, off int64, doNotify bool) ([]BlockPointer, error) {
-	fbo.blockLock.AssertLocked(lState)
+	fbo.blocks.blockLock.AssertLocked(lState)
 
 	if sz := off + int64(len(data)); uint64(sz) > fbo.config.MaxFileBytes() {
 		return nil, FileTooBigError{file, sz, fbo.config.MaxFileBytes()}
@@ -3161,7 +2545,7 @@ func (fbo *folderBranchOps) writeDataLocked(
 		return nil, NewWriteAccessError(ctx, fbo.config, md.GetTlfHandle(), username)
 	}
 
-	fblock, err := fbo.getFileLocked(ctx, lState, md, file, blockWrite)
+	fblock, err := fbo.blocks.getFileLocked(ctx, lState, md, file, blockWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -3171,16 +2555,16 @@ func (fbo *folderBranchOps) writeDataLocked(
 	n := int64(len(data))
 	nCopied := int64(0)
 
-	de, err := fbo.getEntryLocked(ctx, lState, md, file)
+	de, err := fbo.blocks.getEntryLocked(ctx, lState, md, file)
 	if err != nil {
 		return nil, err
 	}
 
-	si := fbo.getOrCreateSyncInfoLocked(lState, de)
+	si := fbo.blocks.getOrCreateSyncInfoLocked(lState, de)
 	var dirtyPtrs []BlockPointer
 	for nCopied < n {
 		ptr, parentBlock, indexInParent, block, more, startOff, err :=
-			fbo.getFileBlockAtOffsetLocked(
+			fbo.blocks.getFileBlockAtOffsetLocked(
 				ctx, lState, md, file, fblock,
 				off+nCopied, blockWrite)
 		if err != nil {
@@ -3241,7 +2625,7 @@ func (fbo *folderBranchOps) writeDataLocked(
 
 			// Make a new right block and update the parent's
 			// indirect block list
-			err := fbo.newRightBlockLocked(ctx, lState, file.tailPointer(),
+			err := fbo.blocks.newRightBlockLocked(ctx, lState, file.tailPointer(),
 				file.Branch, fblock, startOff+int64(len(block.Contents)), md)
 			if err != nil {
 				return nil, err
@@ -3252,7 +2636,7 @@ func (fbo *folderBranchOps) writeDataLocked(
 			de.EncodedSize = 0
 			// update the file info
 			de.Size += uint64(len(block.Contents) - oldLen)
-			fbo.deCache[file.tailPointer().ref()] = de
+			fbo.blocks.deCache[file.tailPointer().ref()] = de
 		}
 
 		if parentBlock != nil {
@@ -3262,7 +2646,7 @@ func (fbo *folderBranchOps) writeDataLocked(
 			parentBlock.IPtrs[indexInParent].EncodedSize = 0
 		}
 		// keep the old block ID while it's dirty
-		if err = fbo.cacheBlockIfNotYetDirtyLocked(lState, ptr, file.Branch,
+		if err = fbo.blocks.cacheBlockIfNotYetDirtyLocked(lState, ptr, file.Branch,
 			block); err != nil {
 			return nil, err
 		}
@@ -3276,7 +2660,7 @@ func (fbo *folderBranchOps) writeDataLocked(
 		// deferred, even if it's to a block that's not currently
 		// being sync'd, since this top-most block will always be in
 		// the fileBlockStates map.
-		if err = fbo.cacheBlockIfNotYetDirtyLocked(lState,
+		if err = fbo.blocks.cacheBlockIfNotYetDirtyLocked(lState,
 			file.tailPointer(), file.Branch, fblock); err != nil {
 			return nil, err
 		}
@@ -3303,12 +2687,12 @@ func (fbo *folderBranchOps) writeDataLocked(
 
 func (fbo *folderBranchOps) maybeWaitOnDeferredWritesLocked(
 	ctx context.Context, lState *lockState) error {
-	fbo.blockLock.AssertLocked(lState)
+	fbo.blocks.blockLock.AssertLocked(lState)
 
 	doLock := false
 	defer func() {
 		if doLock {
-			fbo.blockLock.Lock(lState)
+			fbo.blocks.blockLock.Lock(lState)
 		}
 	}()
 
@@ -3326,11 +2710,11 @@ func (fbo *folderBranchOps) maybeWaitOnDeferredWritesLocked(
 			dirtyBytes)
 		if syncBlockingCh == nil {
 			syncBlockingCh = make(chan error, 1)
-			fbo.syncListeners =
-				append(fbo.syncListeners, syncBlockingCh)
+			fbo.blocks.syncListeners =
+				append(fbo.blocks.syncListeners, syncBlockingCh)
 		}
 		doLock = true
-		fbo.blockLock.Unlock(lState)
+		fbo.blocks.blockLock.Unlock(lState)
 
 		select {
 		// If we can't send on the channel, that means a sync is
@@ -3357,7 +2741,7 @@ func (fbo *folderBranchOps) maybeWaitOnDeferredWritesLocked(
 		case <-ctx.Done():
 			return ctx.Err()
 		}
-		fbo.blockLock.Lock(lState)
+		fbo.blocks.blockLock.Lock(lState)
 		doLock = false
 		fbo.log.CDebugf(ctx, "Write unblocked")
 	}
@@ -3385,8 +2769,8 @@ func (fbo *folderBranchOps) Write(
 			return err
 		}
 
-		fbo.blockLock.Lock(lState)
-		defer fbo.blockLock.Unlock(lState)
+		fbo.blocks.blockLock.Lock(lState)
+		defer fbo.blocks.blockLock.Unlock(lState)
 		if err := fbo.maybeWaitOnDeferredWritesLocked(ctx, lState); err != nil {
 			return err
 		}
@@ -3397,7 +2781,7 @@ func (fbo *folderBranchOps) Write(
 		}
 
 		defer func() {
-			fbo.doDeferWrite = false
+			fbo.blocks.doDeferWrite = false
 		}()
 
 		dirtyPtrs, err :=
@@ -3406,7 +2790,7 @@ func (fbo *folderBranchOps) Write(
 			return err
 		}
 
-		if fbo.doDeferWrite {
+		if fbo.blocks.doDeferWrite {
 			// There's an ongoing sync, and this write altered dirty
 			// blocks that are in the process of syncing.  So, we have to
 			// redo this write once the sync is complete, using the new
@@ -3419,9 +2803,9 @@ func (fbo *folderBranchOps) Write(
 			copy(dataCopy, data)
 			fbo.log.CDebugf(ctx, "Deferring a write to file %v off=%d len=%d",
 				filePath.tailPointer(), off, len(data))
-			fbo.deferredDirtyDeletes = append(fbo.deferredDirtyDeletes,
+			fbo.blocks.deferredDirtyDeletes = append(fbo.blocks.deferredDirtyDeletes,
 				dirtyPtrs...)
-			fbo.deferredWrites = append(fbo.deferredWrites,
+			fbo.blocks.deferredWrites = append(fbo.blocks.deferredWrites,
 				func(ctx context.Context, lState *lockState, rmd *RootMetadata, f path) error {
 					// Write the data again.  We know this won't be
 					// deferred, so no need to check the new ptrs.
@@ -3441,7 +2825,7 @@ func (fbo *folderBranchOps) Write(
 func (fbo *folderBranchOps) truncateLocked(
 	ctx context.Context, lState *lockState, md *RootMetadata,
 	file path, size uint64, doNotify bool) ([]BlockPointer, error) {
-	fbo.blockLock.AssertLocked(lState)
+	fbo.blocks.blockLock.AssertLocked(lState)
 
 	// check writer status explicitly
 	username, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
@@ -3452,7 +2836,7 @@ func (fbo *folderBranchOps) truncateLocked(
 		return nil, NewWriteAccessError(ctx, fbo.config, md.GetTlfHandle(), username)
 	}
 
-	fblock, err := fbo.getFileLocked(ctx, lState, md, file, blockWrite)
+	fblock, err := fbo.blocks.getFileLocked(ctx, lState, md, file, blockWrite)
 	if err != nil {
 		return nil, err
 	}
@@ -3460,7 +2844,7 @@ func (fbo *folderBranchOps) truncateLocked(
 	// find the block where the file should now end
 	iSize := int64(size) // TODO: deal with overflow
 	ptr, parentBlock, indexInParent, block, more, startOff, err :=
-		fbo.getFileBlockAtOffsetLocked(
+		fbo.blocks.getFileBlockAtOffsetLocked(
 			ctx, lState, md, file, fblock, iSize, blockWrite)
 
 	currLen := int64(startOff) + int64(len(block.Contents))
@@ -3475,7 +2859,7 @@ func (fbo *folderBranchOps) truncateLocked(
 	}
 
 	// update the local entry size
-	de, err := fbo.getEntryLocked(ctx, lState, md, file)
+	de, err := fbo.blocks.getEntryLocked(ctx, lState, md, file)
 	if err != nil {
 		return nil, err
 	}
@@ -3483,7 +2867,7 @@ func (fbo *folderBranchOps) truncateLocked(
 	// otherwise, we need to delete some data (and possibly entire blocks)
 	block.Contents = append([]byte(nil), block.Contents[:iSize-startOff]...)
 
-	si := fbo.getOrCreateSyncInfoLocked(lState, de)
+	si := fbo.blocks.getOrCreateSyncInfoLocked(lState, de)
 	if more {
 		// TODO: if indexInParent == 0, we can remove the level of indirection
 		for _, ptr := range parentBlock.IPtrs[indexInParent+1:] {
@@ -3491,7 +2875,7 @@ func (fbo *folderBranchOps) truncateLocked(
 		}
 		parentBlock.IPtrs = parentBlock.IPtrs[:indexInParent+1]
 		// always make the parent block dirty, so we will sync it
-		if err = fbo.cacheBlockIfNotYetDirtyLocked(lState,
+		if err = fbo.blocks.cacheBlockIfNotYetDirtyLocked(lState,
 			file.tailPointer(), file.Branch, parentBlock); err != nil {
 			return nil, err
 		}
@@ -3504,7 +2888,7 @@ func (fbo *folderBranchOps) truncateLocked(
 		// deferred, even if it's to a block that's not currently
 		// being sync'd, since this top-most block will always be in
 		// the fileBlockStates map.
-		if err = fbo.cacheBlockIfNotYetDirtyLocked(lState,
+		if err = fbo.blocks.cacheBlockIfNotYetDirtyLocked(lState,
 			file.tailPointer(), file.Branch, fblock); err != nil {
 			return nil, err
 		}
@@ -3523,10 +2907,10 @@ func (fbo *folderBranchOps) truncateLocked(
 
 	de.EncodedSize = 0
 	de.Size = size
-	fbo.deCache[file.tailPointer().ref()] = de
+	fbo.blocks.deCache[file.tailPointer().ref()] = de
 
 	// Keep the old block ID while it's dirty.
-	if err = fbo.cacheBlockIfNotYetDirtyLocked(lState,
+	if err = fbo.blocks.cacheBlockIfNotYetDirtyLocked(lState,
 		ptr, file.Branch, block); err != nil {
 		return nil, err
 	}
@@ -3558,8 +2942,8 @@ func (fbo *folderBranchOps) Truncate(
 			return err
 		}
 
-		fbo.blockLock.Lock(lState)
-		defer fbo.blockLock.Unlock(lState)
+		fbo.blocks.blockLock.Lock(lState)
+		defer fbo.blocks.blockLock.Unlock(lState)
 		if err := fbo.maybeWaitOnDeferredWritesLocked(ctx, lState); err != nil {
 			return err
 		}
@@ -3570,7 +2954,7 @@ func (fbo *folderBranchOps) Truncate(
 		}
 
 		defer func() {
-			fbo.doDeferWrite = false
+			fbo.blocks.doDeferWrite = false
 		}()
 
 		dirtyPtrs, err :=
@@ -3579,16 +2963,16 @@ func (fbo *folderBranchOps) Truncate(
 			return err
 		}
 
-		if fbo.doDeferWrite {
+		if fbo.blocks.doDeferWrite {
 			// There's an ongoing sync, and this truncate altered
 			// dirty blocks that are in the process of syncing.  So,
 			// we have to redo this truncate once the sync is complete,
 			// using the new file path.
 			fbo.log.CDebugf(ctx, "Deferring a truncate to file %v",
 				filePath.tailPointer())
-			fbo.deferredDirtyDeletes = append(fbo.deferredDirtyDeletes,
+			fbo.blocks.deferredDirtyDeletes = append(fbo.blocks.deferredDirtyDeletes,
 				dirtyPtrs...)
-			fbo.deferredWrites = append(fbo.deferredWrites,
+			fbo.blocks.deferredWrites = append(fbo.blocks.deferredWrites,
 				func(ctx context.Context, lState *lockState, rmd *RootMetadata, f path) error {
 					// Truncate the file again.  We know this won't be
 					// deferred, so no need to check the new ptrs.
@@ -3614,7 +2998,7 @@ func (fbo *folderBranchOps) setExLocked(
 		return
 	}
 
-	dblock, de, err := fbo.getDirBlockAndEntry(ctx, lState, md, file)
+	dblock, de, err := fbo.blocks.GetDirBlockAndEntry(ctx, lState, md, file)
 	if err != nil {
 		return
 	}
@@ -3677,7 +3061,7 @@ func (fbo *folderBranchOps) setMtimeLocked(
 		return err
 	}
 
-	dblock, de, err := fbo.getDirBlockAndEntry(ctx, lState, md, file)
+	dblock, de, err := fbo.blocks.GetDirBlockAndEntry(ctx, lState, md, file)
 	if err != nil {
 		return err
 	}
@@ -3722,84 +3106,6 @@ func (fbo *folderBranchOps) SetMtime(
 		})
 }
 
-func (fbo *folderBranchOps) mergeUnrefCacheLocked(
-	lState *lockState, file path, md *RootMetadata) {
-	fbo.blockLock.AssertRLocked(lState)
-	fileRef := file.tailPointer().ref()
-	for _, info := range fbo.unrefCache[fileRef].unrefs {
-		// it's ok if we push the same ptr.ID/RefNonce multiple times,
-		// because the subsequent ones should have a QuotaSize of 0.
-		md.AddUnrefBlock(info)
-	}
-}
-
-// fixChildBlocksAfterRecoverableError should be called when a sync
-// failed with a recoverable block error on a multi-block file.  It
-// makes sure that any outstanding dirty versions of the file are
-// fixed up to reflect the fact that some of the indirect pointers now
-// need to change.
-//
-// blockLock may or may not be held, indicated by doLock.
-func (fbo *folderBranchOps) fixChildBlocksAfterRecoverableError(
-	ctx context.Context, doLock bool, lState *lockState, file path,
-	redirtyOnRecoverableError map[BlockPointer]BlockPointer) {
-	if doLock {
-		fbo.blockLock.Lock(lState)
-		defer fbo.blockLock.Unlock(lState)
-	} else {
-		fbo.blockLock.AssertLocked(lState)
-	}
-
-	bcache := fbo.config.BlockCache()
-
-	// If a copy of the top indirect block was made, we need to
-	// redirty all the sync'd blocks under their new IDs, so that
-	// future syncs will know they failed.
-	state := fbo.fileBlockStates[file.tailPointer()]
-	if state != blockSyncingAndDirty {
-		return
-	}
-
-	topBlock, err := bcache.Get(file.tailPointer(), fbo.branch())
-	fblock, ok := topBlock.(*FileBlock)
-	if err != nil || !ok {
-		fbo.log.CWarningf(ctx, "Couldn't find dirtied "+
-			"top-block for %v: %v", file.tailPointer(), err)
-		return
-	}
-	for newPtr, oldPtr := range redirtyOnRecoverableError {
-		found := false
-		for i, iptr := range fblock.IPtrs {
-			if iptr.BlockPointer == newPtr {
-				found = true
-				fblock.IPtrs[i].EncodedSize = 0
-			}
-		}
-		if !found {
-			continue
-		}
-
-		fbo.log.CDebugf(ctx, "Re-dirtying %v (and deleting dirty block %v)",
-			newPtr, oldPtr)
-		// These block would have been permanent,
-		// so they're definitely still in the
-		// cache
-		b, err := bcache.Get(newPtr, fbo.branch())
-		if err != nil {
-			fbo.log.CWarningf(ctx, "Couldn't re-dirty %v: %v", newPtr, err)
-			continue
-		}
-		err = bcache.PutDirty(newPtr, fbo.branch(), b)
-		if err != nil {
-			fbo.log.CWarningf(ctx, "Couldn't re-dirty %v: %v", newPtr, err)
-		}
-		err = bcache.DeleteDirty(oldPtr, fbo.branch())
-		if err != nil {
-			fbo.log.CDebugf(ctx, "Couldn't del-dirty %v: %v", oldPtr, err)
-		}
-	}
-}
-
 // revertSyncInfoAfterRecoverableError updates the saved sync info to
 // include all the blocks from before the error, except for those that
 // have encountered recoverable block errors themselves.
@@ -3831,13 +3137,13 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	// if the cache for this file isn't dirty, we're done
-	fbo.blockLock.RLock(lState)
+	fbo.blocks.blockLock.RLock(lState)
 	bcache := fbo.config.BlockCache()
 	if !bcache.IsDirty(file.tailPointer(), file.Branch) {
-		fbo.blockLock.RUnlock(lState)
+		fbo.blocks.blockLock.RUnlock(lState)
 		return false, nil
 	}
-	fbo.blockLock.RUnlock(lState)
+	fbo.blocks.blockLock.RUnlock(lState)
 
 	// Verify we have permission to write.  We do this after the dirty
 	// check because otherwise readers who sync clean files on close
@@ -3853,15 +3159,15 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 	if md.data.Dir.BlockPointer != file.path[0].BlockPointer {
 		fbo.log.CDebugf(ctx, "Skipping sync for a removed file %v",
 			file.tailPointer())
-		fbo.blockLock.Lock(lState)
-		defer fbo.blockLock.Unlock(lState)
+		fbo.blocks.blockLock.Lock(lState)
+		defer fbo.blocks.blockLock.Unlock(lState)
 		// Removing the cache entry here is a little sketchy,
 		// since there's no guarantee that this sync comes
 		// from closing the file, and we still want to serve
 		// stat calls accurately if the user still has an open
 		// handle to this file. TODO: Hook this in with the
 		// node cache GC logic to be perfectly accurate.
-		delete(fbo.deCache, file.tailPointer().ref())
+		delete(fbo.blocks.deCache, file.tailPointer().ref())
 		return true, nil
 	}
 
@@ -3895,22 +3201,22 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 	defer fbo.config.Reporter().Notify(ctx, writeNotification(file, true))
 
 	doUnlock := true
-	fbo.blockLock.Lock(lState)
+	fbo.blocks.blockLock.Lock(lState)
 	defer func() {
 		if doUnlock {
-			fbo.blockLock.Unlock(lState)
+			fbo.blocks.blockLock.Unlock(lState)
 		}
 	}()
 
 	// update the parent directories, and write all the new blocks out
 	// to disk
-	fblock, err := fbo.getFileLocked(ctx, lState, md, file, blockWrite)
+	fblock, err := fbo.blocks.getFileLocked(ctx, lState, md, file, blockWrite)
 	if err != nil {
 		return true, err
 	}
 
 	fileRef := file.tailPointer().ref()
-	si, ok := fbo.unrefCache[fileRef]
+	si, ok := fbo.blocks.unrefCache[fileRef]
 	if !ok {
 		return true, fmt.Errorf("No syncOp found for file ref %v", fileRef)
 	}
@@ -3932,7 +3238,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 					blocksToRemove, si, savedSi)
 				if fblock.IsInd {
 					*fblock = *oldFblock
-					fbo.fixChildBlocksAfterRecoverableError(ctx, !doUnlock,
+					fbo.blocks.FixChildBlocksAfterRecoverableError(ctx, !doUnlock,
 						lState, file, redirtyOnRecoverableError)
 				}
 			}
@@ -3984,7 +3290,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 			}
 			if isDirty {
 				_, _, _, block, more, _, err :=
-					fbo.getFileBlockAtOffsetLocked(
+					fbo.blocks.getFileBlockAtOffsetLocked(
 						ctx, lState, md, file, fblock,
 						ptr.Off, blockWrite)
 				if err != nil {
@@ -4002,21 +3308,21 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 					// put the extra bytes in front of the next block
 					if !more {
 						// need to make a new block
-						if err := fbo.newRightBlockLocked(
+						if err := fbo.blocks.newRightBlockLocked(
 							ctx, lState, file.tailPointer(), file.Branch, fblock,
 							endOfBlock, md); err != nil {
 							return true, err
 						}
 					}
 					rPtr, _, _, rblock, _, _, err :=
-						fbo.getFileBlockAtOffsetLocked(
+						fbo.blocks.getFileBlockAtOffsetLocked(
 							ctx, lState, md, file, fblock,
 							endOfBlock, blockWrite)
 					if err != nil {
 						return true, err
 					}
 					rblock.Contents = append(extraBytes, rblock.Contents...)
-					if err = fbo.cacheBlockIfNotYetDirtyLocked(
+					if err = fbo.blocks.cacheBlockIfNotYetDirtyLocked(
 						lState, rPtr, file.Branch, rblock); err != nil {
 						return true, err
 					}
@@ -4031,7 +3337,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 
 					endOfBlock := ptr.Off + int64(len(block.Contents))
 					rPtr, _, _, rblock, _, _, err :=
-						fbo.getFileBlockAtOffsetLocked(
+						fbo.blocks.getFileBlockAtOffsetLocked(
 							ctx, lState, md, file, fblock,
 							endOfBlock, blockWrite)
 					if err != nil {
@@ -4042,7 +3348,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 						rblock.Contents, int64(len(block.Contents)))
 					rblock.Contents = rblock.Contents[nCopied:]
 					if len(rblock.Contents) > 0 {
-						if err = fbo.cacheBlockIfNotYetDirtyLocked(
+						if err = fbo.blocks.cacheBlockIfNotYetDirtyLocked(
 							lState, rPtr, file.Branch, rblock); err != nil {
 							return true, err
 						}
@@ -4073,7 +3379,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 				return true, InconsistentEncodedSizeError{ptr.BlockInfo}
 			}
 			if isDirty {
-				_, _, _, block, _, _, err := fbo.getFileBlockAtOffsetLocked(
+				_, _, _, block, _, _, err := fbo.blocks.getFileBlockAtOffsetLocked(
 					ctx, lState, md, file, fblock, ptr.Off, blockWrite)
 				if err != nil {
 					return true, err
@@ -4103,33 +3409,33 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 				fblock.IPtrs[i].BlockInfo = newInfo
 				md.AddRefBlock(newInfo)
 				si.bps.addNewBlock(newInfo.BlockPointer, block, readyBlockData)
-				fbo.fileBlockStates[localPtr] = blockSyncingNotDirty
+				fbo.blocks.fileBlockStates[localPtr] = blockSyncingNotDirty
 				redirtyOnRecoverableError[newInfo.BlockPointer] = localPtr
 			}
 		}
 	}
 
-	fbo.fileBlockStates[file.tailPointer()] = blockSyncingNotDirty
+	fbo.blocks.fileBlockStates[file.tailPointer()] = blockSyncingNotDirty
 	doUnlock = false
-	fbo.blockLock.Unlock(lState)
+	fbo.blocks.blockLock.Unlock(lState)
 
 	parentPath := file.parentPath()
 	lbc := make(localBcache)
 	err = func() error {
-		fbo.blockLock.RLock(lState)
-		defer fbo.blockLock.RUnlock(lState)
+		fbo.blocks.blockLock.RLock(lState)
+		defer fbo.blocks.blockLock.RUnlock(lState)
 
-		dblock, err := fbo.getDirLocked(
+		dblock, err := fbo.blocks.getDirLocked(
 			ctx, lState, md, *parentPath, blockWrite)
 		if err != nil {
 			return err
 		}
 
 		// add in the cached unref pieces and fixup the dir entry
-		fbo.mergeUnrefCacheLocked(lState, file, md)
+		fbo.blocks.mergeUnrefCacheLocked(lState, file, md)
 
 		// update the file's directory entry to the cached copy
-		if de, ok := fbo.deCache[fileRef]; ok {
+		if de, ok := fbo.blocks.deCache[fileRef]; ok {
 			// remember the old info
 			de.EncodedSize = si.oldInfo.EncodedSize
 			dblock.Children[file.tailName()] = de
@@ -4176,8 +3482,8 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 		return true, err
 	}
 
-	fbo.blockLock.Lock(lState)
-	defer fbo.blockLock.Unlock(lState)
+	fbo.blocks.blockLock.Lock(lState)
+	defer fbo.blocks.blockLock.Unlock(lState)
 
 	for _, f := range deferredDirtyDeletes {
 		// This will also clear any dirty blocks that resulted from a
@@ -4197,14 +3503,14 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 	}
 	syncIndirectFileBlockPtrs = nil
 
-	fbo.fileBlockStates = make(map[BlockPointer]syncBlockState)
+	fbo.blocks.fileBlockStates = make(map[BlockPointer]syncBlockState)
 	// Redo any writes or truncates that happened to our file while
 	// the sync was happening.
-	deletes := fbo.deferredDirtyDeletes
-	writes := fbo.deferredWrites
-	stillDirty = len(fbo.deferredWrites) != 0
-	fbo.deferredDirtyDeletes = nil
-	fbo.deferredWrites = nil
+	deletes := fbo.blocks.deferredDirtyDeletes
+	writes := fbo.blocks.deferredWrites
+	stillDirty = len(fbo.blocks.deferredWrites) != 0
+	fbo.blocks.deferredDirtyDeletes = nil
+	fbo.blocks.deferredWrites = nil
 
 	for _, ptr := range deletes {
 		if err := bcache.DeleteDirty(ptr, fbo.branch()); err != nil {
@@ -4221,8 +3527,8 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 	// Also, we can get rid of all the sync state that might have
 	// happened during the sync, since we will replay the writes
 	// below anyway.
-	delete(fbo.deCache, fileRef)
-	delete(fbo.unrefCache, fileRef)
+	delete(fbo.blocks.deCache, fileRef)
+	delete(fbo.blocks.unrefCache, fileRef)
 
 	for _, f := range writes {
 		// we can safely read head here because we hold mdWriterLock
@@ -4239,10 +3545,10 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 
 func (fbo *folderBranchOps) notifyDeferredListeners(
 	lState *lockState, err error) {
-	fbo.blockLock.Lock(lState)
-	defer fbo.blockLock.Unlock(lState)
-	listeners := fbo.syncListeners
-	fbo.syncListeners = nil
+	fbo.blocks.blockLock.Lock(lState)
+	defer fbo.blocks.blockLock.Unlock(lState)
+	listeners := fbo.blocks.syncListeners
+	fbo.blocks.syncListeners = nil
 	for _, listener := range listeners {
 		listener <- err
 	}
@@ -4366,9 +3672,9 @@ func (fbo *folderBranchOps) searchForNodesInDirLocked(ctx context.Context,
 	lState *lockState, cache NodeCache, newPtrs map[BlockPointer]bool,
 	md *RootMetadata, currDir path, nodeMap map[BlockPointer]Node,
 	numNodesFoundSoFar int) (int, error) {
-	fbo.blockLock.AssertAnyLocked(lState)
+	fbo.blocks.blockLock.AssertAnyLocked(lState)
 
-	dirBlock, err := fbo.getDirLocked(
+	dirBlock, err := fbo.blocks.getDirLocked(
 		ctx, lState, md, currDir, blockRead)
 	if err != nil {
 		return 0, err
@@ -4424,8 +3730,8 @@ func (fbo *folderBranchOps) searchForNodes(ctx context.Context,
 	cache NodeCache, ptrs []BlockPointer, newPtrs map[BlockPointer]bool,
 	md *RootMetadata) (map[BlockPointer]Node, error) {
 	lState := makeFBOLockState()
-	fbo.blockLock.RLock(lState)
-	defer fbo.blockLock.RUnlock(lState)
+	fbo.blocks.blockLock.RLock(lState)
+	defer fbo.blocks.blockLock.RUnlock(lState)
 
 	nodeMap := make(map[BlockPointer]Node)
 	for _, ptr := range ptrs {
@@ -4674,7 +3980,7 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 
 		// find the node for the actual change; requires looking up
 		// the child entry to get the BlockPointer, unfortunately.
-		de, err := fbo.getEntry(ctx, lState, md, childPath)
+		de, err := fbo.blocks.GetEntry(ctx, lState, md, childPath)
 		if err != nil {
 			return
 		}
@@ -4687,17 +3993,17 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 		// If there's a cache entry, we need to update it, so
 		// try and fetch the real entry (under an r-lock).
 		realEntry, err := func() (*DirEntry, error) {
-			fbo.blockLock.RLock(lState)
-			defer fbo.blockLock.RUnlock(lState)
+			fbo.blocks.blockLock.RLock(lState)
+			defer fbo.blocks.blockLock.RUnlock(lState)
 
-			_, ok := fbo.deCache[de.ref()]
+			_, ok := fbo.blocks.deCache[de.ref()]
 			if !ok {
 				return nil, nil
 			}
 
-			// Get the real dir block; we can't use getEntry()
+			// Get the real dir block; we can't use GetEntry()
 			// since it swaps in the cached dir entry.
-			dblock, err := fbo.getDirLocked(
+			dblock, err := fbo.blocks.getDirLocked(
 				ctx, lState, md, p, blockRead)
 			if err != nil {
 				return nil, err
@@ -4718,10 +4024,10 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 			// entry, fix up the cached de entry, if it's
 			// still there.
 			func() {
-				fbo.blockLock.Lock(lState)
-				defer fbo.blockLock.Unlock(lState)
+				fbo.blocks.blockLock.Lock(lState)
+				defer fbo.blocks.blockLock.Unlock(lState)
 
-				fileEntry, ok := fbo.deCache[de.ref()]
+				fileEntry, ok := fbo.blocks.deCache[de.ref()]
 				if !ok {
 					return
 				}
@@ -4732,7 +4038,7 @@ func (fbo *folderBranchOps) notifyOneOpLocked(ctx context.Context,
 				case mtimeAttr:
 					fileEntry.Mtime = realEntry.Mtime
 				}
-				fbo.deCache[de.ref()] = fileEntry
+				fbo.blocks.deCache[de.ref()] = fileEntry
 			}()
 		}
 
@@ -4784,7 +4090,7 @@ func (fbo *folderBranchOps) reembedBlockChanges(ctx context.Context,
 			continue
 		}
 
-		fblock, err := fbo.getFileBlockForReading(ctx, lState, rmd,
+		fblock, err := fbo.blocks.GetFileBlockForReading(ctx, lState, rmd,
 			info.BlockPointer, fbo.folderBranch.Branch, path{})
 		if err != nil {
 			return err
@@ -4833,7 +4139,7 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 	// Don't allow updates while we're in the dirty state; the next
 	// sync will put us into an unmerged state anyway and we'll
 	// require conflict resolution.
-	if fbo.getState(lState) != cleanState {
+	if fbo.blocks.GetState(lState) != cleanState {
 		return errors.New("Ignoring MD updates while writes are dirty")
 	}
 
@@ -4875,7 +4181,7 @@ func (fbo *folderBranchOps) undoMDUpdatesLocked(ctx context.Context,
 	// Don't allow updates while we're in the dirty state; the next
 	// sync will put us into an unmerged state anyway and we'll
 	// require conflict resolution.
-	if fbo.getState(lState) != cleanState {
+	if fbo.blocks.GetState(lState) != cleanState {
 		return NotPermittedWhileDirtyError{}
 	}
 
@@ -5079,7 +4385,7 @@ func (fbo *folderBranchOps) UnstageForTesting(
 			return nil
 		}
 
-		if fbo.getState(lState) != cleanState {
+		if fbo.blocks.GetState(lState) != cleanState {
 			return NotPermittedWhileDirtyError{}
 		}
 
@@ -5307,7 +4613,7 @@ func (fbo *folderBranchOps) SyncFromServerForTesting(
 		}
 	}
 
-	dirtyRefs := fbo.getDirtyRefs(lState)
+	dirtyRefs := fbo.blocks.GetDirtyRefs(lState)
 	if len(dirtyRefs) > 0 {
 		for ref := range dirtyRefs {
 			fbo.log.CDebugf(ctx, "DeCache entry left: %v", ref)
@@ -5471,16 +4777,6 @@ func (fbo *folderBranchOps) waitForAndProcessUpdates(
 	}
 }
 
-func (fbo *folderBranchOps) getDirtyRefs(lState *lockState) []blockRef {
-	fbo.blockLock.RLock(lState)
-	defer fbo.blockLock.RUnlock(lState)
-	var dirtyRefs []blockRef
-	for ref := range fbo.deCache {
-		dirtyRefs = append(dirtyRefs, ref)
-	}
-	return dirtyRefs
-}
-
 func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 	ticker := time.NewTicker(betweenFlushes)
 	defer ticker.Stop()
@@ -5492,7 +4788,7 @@ func (fbo *folderBranchOps) backgroundFlusher(betweenFlushes time.Duration) {
 		case <-fbo.shutdownChan:
 			return
 		}
-		dirtyRefs := fbo.getDirtyRefs(lState)
+		dirtyRefs := fbo.blocks.GetDirtyRefs(lState)
 		fbo.runUnlessShutdown(func(ctx context.Context) (err error) {
 			// Denote that these are coming from a background
 			// goroutine, not directly from any user.

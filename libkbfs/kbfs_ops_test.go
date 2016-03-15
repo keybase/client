@@ -2705,7 +2705,7 @@ func checkSyncOp(t *testing.T, so *syncOp, filePtr BlockPointer,
 func checkSyncOpInCache(t *testing.T, ops *folderBranchOps,
 	filePtr BlockPointer, writes []WriteRange) {
 	// check the in-progress syncOp
-	si, ok := ops.unrefCache[filePtr.ref()]
+	si, ok := ops.blocks.unrefCache[filePtr.ref()]
 	if !ok {
 		t.Error("No sync info for written file!")
 	}
@@ -2714,9 +2714,9 @@ func checkSyncOpInCache(t *testing.T, ops *folderBranchOps,
 
 func getUpdatedDirBlock(ctx context.Context, ops *folderBranchOps,
 	lState *lockState, block *DirBlock) *DirBlock {
-	ops.blockLock.RLock(lState)
-	defer ops.blockLock.RUnlock(lState)
-	return ops.getUpdatedDirBlockLocked(ctx, lState, block)
+	ops.blocks.blockLock.RLock(lState)
+	defer ops.blocks.blockLock.RUnlock(lState)
+	return ops.blocks.getUpdatedDirBlockLocked(ctx, lState, block)
 }
 
 func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
@@ -3021,9 +3021,9 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 
 func mergeUnrefCache(
 	ops *folderBranchOps, lState *lockState, file path, md *RootMetadata) {
-	ops.blockLock.RLock(lState)
-	defer ops.blockLock.RUnlock(lState)
-	ops.mergeUnrefCacheLocked(lState, file, md)
+	ops.blocks.blockLock.RLock(lState)
+	defer ops.blocks.blockLock.RUnlock(lState)
+	ops.blocks.mergeUnrefCacheLocked(lState, file, md)
 }
 
 func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
@@ -3832,9 +3832,9 @@ func TestMtimeFailNoSuchName(t *testing.T) {
 
 func getOrCreateSyncInfo(
 	ops *folderBranchOps, lState *lockState, de DirEntry) *syncInfo {
-	ops.blockLock.Lock(lState)
-	defer ops.blockLock.Unlock(lState)
-	return ops.getOrCreateSyncInfoLocked(lState, de)
+	ops.blocks.blockLock.Lock(lState)
+	defer ops.blocks.blockLock.Unlock(lState)
+	return ops.blocks.getOrCreateSyncInfoLocked(lState, de)
 }
 
 // SetMtime failure cases are all the same as any other block sync
