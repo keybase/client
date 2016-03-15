@@ -46,6 +46,7 @@ func SetLogFileConfig(lfc *LogFileConfig) error {
 		logging.SetBackend(fileBackend)
 
 		stderrIsTerminal = false
+		currentLogFileWriter = w
 	}
 	return nil
 }
