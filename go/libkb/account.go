@@ -255,6 +255,13 @@ func (a *Account) LKSec() *LKSec {
 	return a.lksec
 }
 
+func (a *Account) LKSecUnlock(locked []byte) ([]byte, PassphraseGeneration, error) {
+	if a.lksec == nil {
+		return nil, 0, errors.New("LKSecUnlock: no lksec in account")
+	}
+	return a.lksec.Decrypt(a, locked)
+}
+
 func (a *Account) SecretSyncer() *SecretSyncer {
 	return a.secretSyncer
 }

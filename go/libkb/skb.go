@@ -331,7 +331,8 @@ func (s *SKB) UnlockSecretKey(lctx LoginContext, passphrase string, tsec *triple
 				return nil, fmt.Errorf("UnlockSecretKey: %s", err)
 			}
 		}
-		if unlocked, err = s.lksUnlock(lctx, pps, secretStorer); err == nil && ppsIn == nil {
+		unlocked, err = s.lksUnlock(lctx, pps, secretStorer)
+		if err == nil && ppsIn == nil {
 			// the unverified tsec, pps has been verified, so cache it:
 			if lctx != nil {
 				lctx.CreateStreamCache(tsec, pps)
@@ -344,7 +345,7 @@ func (s *SKB) UnlockSecretKey(lctx LoginContext, passphrase string, tsec *triple
 				}
 			}
 		} else {
-			s.G().Log.Debug("| not caching passphrase stream: err = %v", err)
+			s.G().Log.Debug("| not caching passphrase stream: err = %v, ppsIn == nil? %v", err, ppsIn == nil)
 		}
 	default:
 		err = BadKeyError{fmt.Sprintf("Can't unlock secret with protection type %d", int(s.Priv.Encryption))}
