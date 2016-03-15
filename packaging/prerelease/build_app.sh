@@ -75,6 +75,9 @@ if [ ! "$nobuild" = "1" ]; then
   BUILD_DIR=$build_dir_kbfs ./build_kbfs.sh
 fi
 
+version=`$build_dir_keybase/keybase version -S`
+kbfs_version=`$build_dir_kbfs/kbfs -version`
+
 cd $dir/../desktop
 save_dir="/tmp/build_desktop"
 rm -rf $save_dir
@@ -88,6 +91,8 @@ else
 fi
 
 cd $dir
-BUCKET_NAME=$bucket_name ./s3_index.sh
+BUCKET_NAME="$bucket_name" ./s3_index.sh
 
-"$client_dir/packaging/slack/send.sh" "Finished $build_desc. See https://s3.amazonaws.com/$bucket_name/index.html"
+"$client_dir/packaging/slack/send.sh" "Finished $build_desc (keybase: $version, kbfs: %kbfs_version). See https://s3.amazonaws.com/$bucket_name/index.html"
+
+BUCKET_NAME="$bucket_name" ./report.sh
