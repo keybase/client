@@ -45,5 +45,6 @@ func (h *UpdateHandler) UpdateCheck(_ context.Context, force bool) error {
 	if h.updateChecker == nil {
 		return fmt.Errorf("No updater available")
 	}
-	return h.updateChecker.Check(force, true)
+	_, err := h.updateChecker.Check(force, true)
+	return err
 }
