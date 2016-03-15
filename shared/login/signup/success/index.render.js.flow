@@ -5,7 +5,8 @@ import HiddenString from '../../../util/hidden-string'
 
 export type Props = {
   paperkey: HiddenString,
-  onFinish: () => void
+  onFinish: () => void,
+  onBack: () => void
 }
 
 export default class Render extends Component {

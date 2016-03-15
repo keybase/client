@@ -12,6 +12,7 @@ const Render = ({onBack, onSubmit, onChangePaperKey, paperKey}: Props) => {
       <Text type='Header' style={styles.header}>Type in your paper key:</Text>
       <Icon type='fa-file-text-o' style={styles.icon}/>
       <Input
+        autoFocus
         multiLine
         style={styles.input}
         floatingLabelText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'

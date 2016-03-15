@@ -131,6 +131,7 @@ const styles = {
     zIndex: 1
   },
   username: {
+    ...globalStyles.selectable,
     marginTop: 7
   },
   usernameFollowing: {
@@ -140,6 +141,7 @@ const styles = {
     color: globalColors.orange
   },
   fullname: {
+    ...globalStyles.selectable,
     textAlign: 'center',
     color: '#444444'
   },
@@ -151,11 +153,13 @@ const styles = {
     ...globalStyles.clickable
   },
   bio: {
+    ...globalStyles.selectable,
     paddingLeft: 30,
     paddingRight: 30,
     textAlign: 'center'
   },
   location: {
+    ...globalStyles.selectable,
     paddingLeft: 30,
     paddingRight: 30,
     textAlign: 'center'

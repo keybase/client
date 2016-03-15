@@ -33,6 +33,7 @@ class Render extends Component<void, Props, State> {
         <Text type='Header' style={styles.header}>{this.props.prompt}</Text>
         <Icon type='fa-unlock' style={styles.icon}/>
         <Input
+          autoFocus
           style={styles.input}
           type='password'
           floatingLabelText='Passphrase'
