@@ -38,6 +38,8 @@ func NewCmdLogSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 		Usage: "Send recent debug logs to keybase",
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(&CmdLogSend{Contextified: libkb.NewContextified(g)}, "send", c)
+			cl.SetForkCmd(libcmdline.NoFork)
+			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
 		Flags: []cli.Flag{
 			cli.IntFlag{
@@ -67,12 +69,12 @@ func (c *CmdLogSend) Run() error {
 	status, err := statusCmd.load()
 	if err != nil {
 		c.G().Log.Info("ignoring error getting keybase status: %s", err)
-		statusJSON = fmt.Sprintf("{\"Error\":%q}", err)
+		statusJSON = c.errJSON(err)
 	} else {
 		json, err := json.Marshal(status)
 		if err != nil {
 			c.G().Log.Info("ignoring status json marshal error: %s", err)
-			statusJSON = fmt.Sprintf("{\"Error\":%q}", err)
+			statusJSON = c.errJSON(err)
 		} else {
 			statusJSON = string(json)
 		}
@@ -238,4 +240,8 @@ func (c *CmdLogSend) logFiles(status *fstatus) logs {
 		kbfs:    filepath.Join(logDir, libkb.KBFSLogFileName),
 		service: filepath.Join(logDir, libkb.ServiceLogFileName),
 	}
+}
+
+func (c *CmdLogSend) errJSON(err error) string {
+	return fmt.Sprintf("{\"Error\":%q}", err)
 }
