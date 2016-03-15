@@ -77,6 +77,12 @@ export default function (state: SignupState = initialState, action: SignupAction
         }
       }
 
+    case Constants.startRequestInvite:
+      return {
+        ...state,
+        phase: 'requestInvite'
+      }
+
     case Constants.requestInvite:
       if (action.error) {
         const {error} = action.payload
@@ -164,7 +170,6 @@ export default function (state: SignupState = initialState, action: SignupAction
       }
 
     case Constants.resetSignup:
-
       return {
         ...state,
         phase: 'inviteCode'

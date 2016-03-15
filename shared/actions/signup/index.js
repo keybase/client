@@ -9,7 +9,7 @@ import {routeAppend} from '../../actions/router'
 
 import type {TypedAsyncAction, AsyncAction} from '../../constants/types/flux'
 import type {RouteAppend} from '../../constants/router'
-import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName, Signup, ShowPaperKey, ShowSuccess, ResetSignup, RequestInvite} from '../../constants/signup'
+import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName, Signup, ShowPaperKey, ShowSuccess, ResetSignup, RequestInvite, StartRequestInvite} from '../../constants/signup'
 import type {signup_signup_rpc, signup_checkInvitationCode_rpc, signup_checkUsernameAvailable_rpc, signup_inviteRequest_rpc} from '../../constants/types/flow-types'
 
 function nextPhase (): TypedAsyncAction<RouteAppend> {
@@ -18,6 +18,13 @@ function nextPhase (): TypedAsyncAction<RouteAppend> {
     const phase: string = getState().signup.phase
     dispatch(routeAppend(phase))
   }
+}
+
+export function startRequestInvite (): TypedAsyncAction<StartRequestInvite | RouteAppend> {
+  return dispatch => new Promise((resolve, reject) => {
+    dispatch({type: Constants.startRequestInvite, payload: {}})
+    dispatch(nextPhase())
+  })
 }
 
 export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInviteCode | RouteAppend> {
@@ -64,8 +71,8 @@ export function requestInvite (email: string, name: string): TypedAsyncAction<Re
           console.error('error in requestInvite')
           dispatch({
             type: Constants.requestInvite,
-            error: err,
-            payload: {error: true, email, name}
+            error: true,
+            payload: {error: err, email, name}
           })
           resolve()
         } else {

@@ -6,6 +6,9 @@ import type {TypedAction} from '../constants/types/flux'
 export const checkInviteCode = 'signup:checkInviteCode'
 export type CheckInviteCode = TypedAction<'signup:checkInviteCode', {inviteCode: string}, {errorText: string}>
 
+export const startRequestInvite = 'signup:startRequestInvite'
+export type StartRequestInvite = TypedAction<'signup:startRequestInvite', {}, {}>
+
 export const requestInvite = 'signup:requestInvite'
 export type RequestInvite = TypedAction<'signup:requestInvite', {email: string, name: string}, {error: ?string}>
 
