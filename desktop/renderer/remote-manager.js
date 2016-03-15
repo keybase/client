@@ -125,7 +125,7 @@ class RemoteManager extends Component {
 
     let updateType = 'confirm'
     let onRemoteClose = () => this.props.updateOnCancel()
-    let windowOpts = {width: 480, height: 440}
+    let windowOpts = {width: 500, height: 440}
     let options = {
       onCancel: () => this.props.updateOnCancel(),
       onSkip: () => this.props.updateOnSkip(),
