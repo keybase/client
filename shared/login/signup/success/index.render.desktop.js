@@ -26,7 +26,7 @@ export default class Render extends Component {
         <Text type='Header' style={styles.header}>Congratulations, you’ve just joined Keybase!</Text>
         <Text type='Body' style={styles.body}>Here is your unique paper key, it will allow you to perform important Keybase tasks in the future. This is the only time you’ll see this so be sure to write it down.</Text>
         <div style={styles.paperKeyContainer}>
-          <Text type='Body' style={textStyles.paperKey}>{this.props.paperkey.stringValue()}</Text>
+          <Text type='Body' style={styles.paperkey}>{this.props.paperkey.stringValue()}</Text>
           <Icon type='paper-key-corner' style={styles.paperCorner}/>
         </div>
         <Checkbox style={styles.check} label='Yes, I wrote this down.' checked={this.state.inWallet} onCheck={inWallet => this.setState({inWallet})} />
@@ -49,14 +49,14 @@ const styles = {
   body: {
     paddingLeft: 15,
     paddingRight: 15,
-    marginBottom: 35
+    marginBottom: 35,
+    textAlign: 'center'
   },
   paperKeyContainer: {
     position: 'relative',
     width: 400,
     marginBottom: 35,
     paddingTop: 12,
-    paddingBottom: 12,
     paddingLeft: 30,
     paddingRight: 45,
     borderRadius: 1,
@@ -73,5 +73,11 @@ const styles = {
   },
   button: {
     alignSelf: 'flex-end'
+  },
+  paperkey: {
+    ...textStyles.paperKey,
+    ...globalStyles.selectable,
+    marginBottom: 15,
+    display: 'inline-block'
   }
 }
