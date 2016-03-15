@@ -421,7 +421,7 @@ func crActionCopyFile(ctx context.Context, copier fileBlockDeepCopier,
 	}
 
 	var ptr BlockPointer
-	if toSymPath == "" {
+	if toSymPath == "" && fromEntry.BlockPointer.IsInitialized() {
 		// Fetch the top block for copyable files.
 		var err error
 		ptr, err = copier(ctx, name, fromEntry.BlockPointer)

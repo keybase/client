@@ -72,6 +72,39 @@ func TestCrConflictCreateWithDifferentTypes(t *testing.T) {
 	)
 }
 
+// bob and alice both create the same file with different types
+func TestCrConflictCreateFileWithDifferentTypes(t *testing.T) {
+	test(t,
+		writers("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+			mkfile("a/b", "hello"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			mkfile("a/c", ""),
+		),
+		as(bob, noSync(),
+			link("a/c", "b"),
+			reenableUpdates(),
+			lsdir("a/", m{"b$": "FILE", "c$": "FILE",
+				crnameEsc("c", bob): "SYM"}),
+			read("a/b", "hello"),
+			read("a/c", ""),
+			read(crname("a/c", bob), "hello"),
+		),
+		as(alice,
+			lsdir("a/", m{"b$": "FILE", "c$": "FILE",
+				crnameEsc("c", bob): "SYM"}),
+			read("a/b", "hello"),
+			read("a/c", ""),
+			read(crname("a/c", bob), "hello"),
+		),
+	)
+}
+
 // bob and alice both write(to the same file), but on a non-default day.
 func TestCrConflictWriteFileWithAddTime(t *testing.T) {
 	timeInc := 25 * time.Hour
