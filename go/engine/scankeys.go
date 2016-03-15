@@ -286,7 +286,7 @@ func (s *ScanKeys) unlockByID(id uint64) openpgp.EntityList {
 			Reason:   unlockReason,
 			SecretUI: s.secui,
 		}
-		unlocked, err := skb.PromptAndUnlock(parg, "", nil, nil, s.me)
+		unlocked, err := skb.PromptAndUnlock(parg, "", nil, s.me)
 		if err != nil {
 			s.G().Log.Warning("error unlocking key: %s", err)
 			continue
@@ -308,7 +308,7 @@ func (s *ScanKeys) unlockAll() openpgp.EntityList {
 			Reason:   unlockReason,
 			SecretUI: s.secui,
 		}
-		unlocked, err := skb.PromptAndUnlock(parg, "", nil, nil, s.me)
+		unlocked, err := skb.PromptAndUnlock(parg, "", nil, s.me)
 		if err != nil {
 			s.G().Log.Warning("error unlocking key: %s", err)
 			continue

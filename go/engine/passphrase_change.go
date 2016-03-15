@@ -397,7 +397,7 @@ func (c *PassphraseChange) findAndDecryptPrivatePGPKeys(ctx *Context) ([]libkb.G
 
 	for _, block := range blocks {
 		parg := ctx.SecretKeyPromptArg(libkb.SecretKeyArg{}, "passphrase change")
-		key, err := block.PromptAndUnlock(parg, "your keybase passphrase", secretRetriever, nil, c.me)
+		key, err := block.PromptAndUnlock(parg, "your keybase passphrase", secretRetriever, c.me)
 		if err != nil {
 			return nil, err
 		}

@@ -356,7 +356,7 @@ func (k *Keyrings) GetSecretKeyWithoutPrompt(lctx LoginContext, ska SecretKeyArg
 		return nil, err
 	}
 
-	key, err = skb.UnlockNoPrompt(lctx, secretStore, nil)
+	key, err = skb.UnlockNoPrompt(lctx, secretStore)
 	if key != nil && err == nil {
 		k.setCachedSecretKey(lctx, ska, key)
 	}
@@ -379,7 +379,7 @@ func (k *Keyrings) GetSecretKeyAndSKBWithPrompt(arg SecretKeyPromptArg) (key Gen
 		skb.SetUID(arg.Ska.Me.GetUID())
 		secretStore = NewSecretStore(k.G(), arg.Ska.Me.GetNormalizedName())
 	}
-	if key, err = skb.PromptAndUnlock(arg, which, secretStore, nil, arg.Ska.Me); err != nil {
+	if key, err = skb.PromptAndUnlock(arg, which, secretStore, arg.Ska.Me); err != nil {
 		key = nil
 		skb = nil
 		return
@@ -427,7 +427,7 @@ func (k *Keyrings) GetSecretKeyWithPassphrase(lctx LoginContext, me *User, passp
 			pps = sc.PassphraseStream()
 		}, "StreamCache - tsec, pps")
 	}
-	return skb.UnlockSecretKey(lctx, passphrase, tsec, pps, secretStorer, nil)
+	return skb.UnlockSecretKey(lctx, passphrase, tsec, pps, secretStorer)
 }
 
 type EmptyKeyRing struct{}

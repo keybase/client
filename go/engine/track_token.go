@@ -206,7 +206,7 @@ func (e *TrackToken) storeRemoteTrack(ctx *Context) (err error) {
 	}
 	// need to unlock private key
 	parg := ctx.SecretKeyPromptArg(libkb.SecretKeyArg{}, "tracking signature")
-	e.signingKeyPriv, err = e.lockedKey.PromptAndUnlock(parg, e.lockedWhich, secretStore, nil, e.arg.Me)
+	e.signingKeyPriv, err = e.lockedKey.PromptAndUnlock(parg, e.lockedWhich, secretStore, e.arg.Me)
 	if err != nil {
 		return err
 	}
