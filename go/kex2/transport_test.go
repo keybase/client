@@ -307,7 +307,7 @@ func TestReadTimeout(t *testing.T) {
 
 func TestReadDelayedWrite(t *testing.T) {
 	c1, c2, _, _ := genConnPair(t, GoodRouter, time.Duration(0))
-	wait := time.Duration(10) * time.Millisecond
+	wait := time.Duration(20) * time.Millisecond
 	c2.SetReadDeadline(time.Now().Add(wait))
 	text := "hello friend"
 	go func() {
@@ -462,7 +462,7 @@ func TestErrAgain(t *testing.T) {
 
 func TestPollLoopSuccess(t *testing.T) {
 
-	wait := time.Duration(8) * time.Millisecond
+	wait := time.Duration(16) * time.Millisecond
 	r := newMockRouterWithBehaviorAndMaxPoll(GoodRouter, wait/32)
 	s := genSecret(t)
 	d1 := genDeviceID(t)
