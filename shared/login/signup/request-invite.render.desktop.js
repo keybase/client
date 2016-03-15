@@ -36,7 +36,7 @@ export default class Render extends Component {
         <Input
           style={styles.input}
           floatingLabelText='Your email address'
-          value={this.state.email || ''}
+          value={this.state.email}
           errorText={this.props.emailErrorText}
           onChange={event => this.setState({email: event.target.value})}
           autoFocus
@@ -44,7 +44,7 @@ export default class Render extends Component {
         <Input
           style={styles.input}
           floatingLabelText='Your name'
-          value={this.state.name || ''}
+          value={this.state.name}
           errorText={this.props.nameErrorText}
           onChange={event => this.setState({name: event.target.value})}
         />

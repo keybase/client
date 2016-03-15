@@ -14,7 +14,7 @@ const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName}
       floatingLabelText='Device name'
       onEnterKeyDown={() => onSubmit()}
       onChange={event => onChange(event.target.value)}
-      value={deviceName || ''}/>
+      value={deviceName}/>
     <Button
       type='Primary'
       style={styles.button}
