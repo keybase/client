@@ -105,6 +105,42 @@ func TestCrConflictCreateFileWithDifferentTypes(t *testing.T) {
 	)
 }
 
+// bob and alice both create the same symlink with different contents
+func TestCrConflictCreateSymlinkWithDifferentContents(t *testing.T) {
+	test(t,
+		writers("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+			mkfile("a/b", "hello"),
+			mkfile("a/c", "world"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			link("a/d", "b"),
+		),
+		as(bob, noSync(),
+			link("a/d", "c"),
+			reenableUpdates(),
+			lsdir("a/", m{"b$": "FILE", "c$": "FILE", "d$": "SYM",
+				crnameEsc("d", bob): "SYM"}),
+			read("a/b", "hello"),
+			read("a/c", "world"),
+			read("a/d", "hello"),
+			read(crname("a/d", bob), "world"),
+		),
+		as(alice,
+			lsdir("a/", m{"b$": "FILE", "c$": "FILE", "d$": "SYM",
+				crnameEsc("d", bob): "SYM"}),
+			read("a/b", "hello"),
+			read("a/c", "world"),
+			read("a/d", "hello"),
+			read(crname("a/d", bob), "world"),
+		),
+	)
+}
+
 // bob and alice both write(to the same file), but on a non-default day.
 func TestCrConflictWriteFileWithAddTime(t *testing.T) {
 	timeInc := 25 * time.Hour
