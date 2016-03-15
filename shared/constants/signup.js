@@ -10,7 +10,7 @@ export const startRequestInvite = 'signup:startRequestInvite'
 export type StartRequestInvite = TypedAction<'signup:startRequestInvite', {}, {}>
 
 export const requestInvite = 'signup:requestInvite'
-export type RequestInvite = TypedAction<'signup:requestInvite', {email: string, name: string}, {error: ?string}>
+export type RequestInvite = TypedAction<'signup:requestInvite', {email: string, name: string}, {emailError: ?string, nameError: ?string, email: ?string, name: ?string}>
 
 export const checkUsernameEmail = 'signup:checkUsernameEmail'
 export type CheckUsernameEmail = TypedAction<'signup:checkUsernameEmail', {username: string, email: string}, {emailError: ?string, usernameError: ?string, email: ?string, username: ?string}>

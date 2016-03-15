@@ -87,12 +87,13 @@ export default function (state: SignupState = initialState, action: SignupAction
 
     case Constants.requestInvite:
       if (action.error) {
-        const {emailError, nameError} = action.payload
-        console.log(emailError)
+        const {emailError, nameError, email, name} = action.payload
         return {
           ...state,
-          emailError: emailError,
-          nameError
+          emailError,
+          nameError,
+          email,
+          name
         }
       } else {
         const {email, name} = action.payload

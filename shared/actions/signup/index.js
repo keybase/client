@@ -58,11 +58,12 @@ export function requestInvite (email: string, name: string): TypedAsyncAction<Re
   return dispatch => new Promise((resolve, reject) => {
     // Returns an error string if not valid
     const emailError = isValidEmail(email)
-    const nameError = isValidCommon(name)
-    if (emailError || !email || !name) {
+    const nameError = isValidName(name)
+    if (emailError || nameError || !email || !name) {
       dispatch({
         type: Constants.requestInvite,
-        payload: {error: true, emailError, nameError, email, name}
+        error: true,
+        payload: {emailError, nameError, email, name}
       })
       resolve()
       return
@@ -80,7 +81,7 @@ export function requestInvite (email: string, name: string): TypedAsyncAction<Re
         if (err) {
           dispatch({
             type: Constants.requestInvite,
-            payload: {error: null, emailError: err.desc, nameError: null, email, name}
+            payload: {error: true, emailError: err.desc, nameError: null, email, name}
           })
           resolve()
         } else {
@@ -113,13 +114,17 @@ function hasAtSign (s: string): boolean {
   return s.indexOf('@') !== -1
 }
 
+function isEmptyOrBlank (thing: ?string): boolean {
+  if (!thing || isBlank(thing)) {
+    return true
+  }
+  return false
+}
+
 // Returns an error string if not valid
 function isValidCommon (thing: ?string): ?string {
-  if (!thing || isBlank(thing)) {
-    return 'Cannot be blank'
-  }
-
-  if (hasSpaces(thing)) return 'No spaces allowed'
+  if (isEmptyOrBlank(thing)) return 'Cannot be blank'
+  if (thing && hasSpaces(thing)) return 'No spaces allowed'
 }
 
 // Returns an error string if not valid
@@ -138,8 +143,13 @@ function isValidEmail (email: ?string): ?string {
   }
 
   if (email && !hasAtSign(email)) {
-    return 'Invalid email address'
+    return 'Invalid email address.'
   }
+}
+
+// Returns an error string if not valid
+function isValidName (name: ?string): ?string {
+  if (isEmptyOrBlank(name)) return 'Please provide your name.'
 }
 
 export function checkUsernameEmail (username: ?string, email: ?string): TypedAsyncAction<CheckUsernameEmail | RouteAppend> {
