@@ -49,7 +49,8 @@ type Account struct {
 	streamCache  *PassphraseStreamCache
 	skbKeyring   *SKBKeyringFile
 	secSigKey    GenericKey // cached secret signing key
-	secEncKey    GenericKey // cache secret encryption key
+	secEncKey    GenericKey // cached secret encryption key
+	lksec        *LKSec     // local key security
 
 	paperSigKey *timedGenericKey // cached, unlocked paper signing key
 	paperEncKey *timedGenericKey // cached, unlocked paper encryption key
@@ -158,6 +159,8 @@ func (a *Account) Logout() error {
 
 	a.ClearCachedSecretKeys()
 
+	a.lksec = nil
+
 	return nil
 }
 
@@ -166,6 +169,7 @@ func (a *Account) CreateStreamCache(tsec *triplesec.Cipher, pps *PassphraseStrea
 		a.G().Log.Warning("Account.CreateStreamCache overwriting exisitng StreamCache")
 	}
 	a.streamCache = NewPassphraseStreamCache(tsec, pps)
+	a.SetLKSec(NewLKSec(pps, a.GetUID(), a.G()))
 }
 
 // SetStreamGeneration sets the passphrase generation on the cached stream
@@ -207,6 +211,8 @@ func (a *Account) CreateStreamCacheViaStretch(passphrase string) error {
 
 	a.streamCache = NewPassphraseStreamCache(tsec, pps)
 
+	a.SetLKSec(NewLKSec(pps, a.GetUID(), a.G()))
+
 	return nil
 }
 
@@ -229,6 +235,7 @@ func (a *Account) PassphraseStreamRef() *PassphraseStream {
 func (a *Account) ClearStreamCache() {
 	a.streamCache.Clear()
 	a.streamCache = nil
+	a.lksec = nil
 }
 
 // ClearLoginSession clears out any cached login sessions with the account
@@ -238,6 +245,14 @@ func (a *Account) ClearLoginSession() {
 		a.loginSession.Clear()
 		a.loginSession = nil
 	}
+}
+
+func (a *Account) SetLKSec(lks *LKSec) {
+	a.lksec = lks
+}
+
+func (a *Account) LKSec() *LKSec {
+	return a.lksec
 }
 
 func (a *Account) SecretSyncer() *SecretSyncer {

@@ -398,7 +398,7 @@ func (k *Keyrings) GetSecretKeyWithStoredSecret(lctx LoginContext, ska SecretKey
 		return
 	}
 	skb.SetUID(me.GetUID())
-	return skb.UnlockWithStoredSecret(secretRetriever)
+	return skb.UnlockWithStoredSecret(lctx, secretRetriever)
 }
 
 func (k *Keyrings) GetSecretKeyWithPassphrase(lctx LoginContext, me *User, passphrase string, secretStorer SecretStorer) (key GenericKey, err error) {

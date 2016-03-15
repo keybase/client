@@ -251,7 +251,7 @@ func (s *SKB) RawUnlockedKey() []byte {
 	return s.decryptedRaw
 }
 
-func (s *SKB) unlockSecretKeyFromSecretRetriever(secretRetriever SecretRetriever) (key GenericKey, err error) {
+func (s *SKB) unlockSecretKeyFromSecretRetriever(lctx LoginContext, secretRetriever SecretRetriever) (key GenericKey, err error) {
 	if key = s.decryptedSecret; key != nil {
 		return
 	}
@@ -261,7 +261,7 @@ func (s *SKB) unlockSecretKeyFromSecretRetriever(secretRetriever SecretRetriever
 	case 0:
 		unlocked = s.Priv.Data
 	case LKSecVersion:
-		unlocked, err = s.lksUnlockWithSecretRetriever(secretRetriever)
+		unlocked, err = s.lksUnlockWithSecretRetriever(lctx, secretRetriever)
 	default:
 		err = BadKeyError{fmt.Sprintf("Can't unlock secret from secret retriever with protection type %d", int(s.Priv.Encryption))}
 	}
@@ -428,7 +428,7 @@ func (s *SKB) lksUnlock(lctx LoginContext, pps *PassphraseStream, secretStorer S
 	return
 }
 
-func (s *SKB) lksUnlockWithSecretRetriever(secretRetriever SecretRetriever) (unlocked []byte, err error) {
+func (s *SKB) lksUnlockWithSecretRetriever(lctx LoginContext, secretRetriever SecretRetriever) (unlocked []byte, err error) {
 	secret, err := secretRetriever.RetrieveSecret()
 	if err != nil {
 		return
@@ -438,6 +438,12 @@ func (s *SKB) lksUnlockWithSecretRetriever(secretRetriever SecretRetriever) (unl
 	}
 	lks := NewLKSecWithFullSecret(secret, s.uid, s.G())
 	unlocked, _, err = lks.Decrypt(nil, s.Priv.Data)
+
+	// if unlock was successful, lks can be saved in the account:
+	if err == nil && lctx != nil {
+		lctx.SetLKSec(lks)
+	}
+
 	return
 }
 
@@ -657,7 +663,7 @@ func (p KeybasePackets) ToListOfSKBs() ([]*SKB, error) {
 	return ret, nil
 }
 
-func (s *SKB) UnlockWithStoredSecret(secretRetriever SecretRetriever) (ret GenericKey, err error) {
+func (s *SKB) UnlockWithStoredSecret(lctx LoginContext, secretRetriever SecretRetriever) (ret GenericKey, err error) {
 	s.G().Log.Debug("+ UnlockWithStoredSecret()")
 	defer func() {
 		s.G().Log.Debug("- UnlockWithStoredSecret -> %s", ErrToOk(err))
@@ -667,7 +673,7 @@ func (s *SKB) UnlockWithStoredSecret(secretRetriever SecretRetriever) (ret Gener
 		return
 	}
 
-	return s.unlockSecretKeyFromSecretRetriever(secretRetriever)
+	return s.unlockSecretKeyFromSecretRetriever(lctx, secretRetriever)
 }
 
 var errUnlockNotPossible = errors.New("unlock not possible")
@@ -680,7 +686,7 @@ func (s *SKB) UnlockNoPrompt(lctx LoginContext, secretStore SecretStore, lksPrel
 
 	// try using the secret store:
 	if secretStore != nil {
-		key, err := s.unlockSecretKeyFromSecretRetriever(secretStore)
+		key, err := s.unlockSecretKeyFromSecretRetriever(lctx, secretStore)
 		s.G().Log.Debug("| unlockSecretKeyFromSecretRetriever -> %s", ErrToOk(err))
 		if err == nil {
 			return key, nil
