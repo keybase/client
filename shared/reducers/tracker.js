@@ -87,9 +87,10 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         shouldFollow
       }
     case Constants.updateReason:
+      // In case the reason is null, let's use our existing reason
       return {
         ...state,
-        reason: action.payload && action.payload.reason
+        reason: action.payload && action.payload.reason || state.reason
       }
     case Constants.updateTrackToken:
       return {
@@ -128,11 +129,6 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
     case Constants.onFollow:
       return {
         ...state,
-        lastTrack: {
-          username: 'Mock',
-          time: Date.now(),
-          isRemote: true
-        },
         lastAction: 'followed',
         reason: `You have followed ${state.username}.`
       }
