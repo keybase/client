@@ -3,7 +3,7 @@
 import React from 'react'
 
 export type Props = {
-  devices: Array<{id: string, name: string, type: 'mobile' | 'desktop'}>,
+  devices: Array<{deviceID: string, name: string, type: 'mobile' | 'desktop'}>,
   onSelect: (id: string) => void,
   onWont: () => void,
   onBack: () => void

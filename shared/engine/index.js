@@ -290,7 +290,7 @@ class Engine {
 
       this.rpcClient.invoke(method, [param], (err, data) => {
         if (printRPC) {
-          logLocal('RPC ◀', method, param, err, data)
+          logLocal('RPC ◀', method, param, err, err && err.raw, JSON.stringify(data))
         }
         // deregister incomingCallbacks
         delete this.sessionIDToIncomingCall[sessionID]
