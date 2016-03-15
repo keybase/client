@@ -941,8 +941,8 @@ func TestCRMergedChainsConflictSimple(t *testing.T) {
 		t.Fatalf("Couldn't make file: %v", err)
 	}
 
-	// user2 also create file1
-	_, _, err = config2.KBFSOps().CreateFile(ctx, dirRoot2, "file1", false)
+	// user2 also create file1, but makes it executable
+	_, _, err = config2.KBFSOps().CreateFile(ctx, dirRoot2, "file1", true)
 	if err != nil {
 		t.Fatalf("Couldn't make dir: %v", err)
 	}
