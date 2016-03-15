@@ -5,14 +5,14 @@ import {globalStyles, globalColors} from '../../../styles/style-guide'
 import Container from '../../forms/container.desktop'
 import type {Props} from './index.render'
 import type {Props as IconProps} from '../../../common-adapters/icon'
-import type {DeviceType} from '../../../constants/types/more'
+import type {ProvisionUI_ChooseDeviceType} from '../../../constants/types/more'
 
 const Row = ({deviceID, name, type, onSelect}) => {
   const iconType: IconProps.type = ({
     'mobile': 'fa-mobile',
     'computer': 'fa-laptop',
     'paper key': 'paper-key'
-  }: {[key: DeviceType]: IconProps.type})[type]
+  }: {[key: ProvisionUI_ChooseDeviceType]: IconProps.type})[type]
 
   const onClick = e => {
     onSelect(deviceID)

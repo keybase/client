@@ -17,6 +17,8 @@ import {devicesTab, loginTab} from '../../constants/tabs'
 import {loadDevices} from '../devices'
 import {defaultModeForDeviceRoles, qrGenerate} from './provision-helpers'
 import {bootstrap} from '../config'
+
+import type {DeviceType} from '../../constants/types/more'
 import type {Dispatch, GetState, AsyncAction, TypedAction} from '../../constants/types/flux'
 import type {incomingCallMapType, login_recoverAccountFromEmailAddress_rpc,
   login_login_rpc, login_logout_rpc, device_deviceAdd_rpc, login_getConfiguredAccounts_rpc} from '../../constants/types/flow-types'
@@ -79,7 +81,7 @@ export function login (): AsyncAction {
       setupCancelLogin(() => dispatch(cancelLogin()))
     }
 
-    const deviceType = isMobile ? 'mobile' : 'desktop'
+    const deviceType: DeviceType = isMobile ? 'mobile' : 'desktop'
     const incomingMap = makeKex2IncomingMap(dispatch, getState)
     const params : login_login_rpc = {
       method: 'login.login',
@@ -194,10 +196,11 @@ export function submitForgotPassword () : AsyncAction {
 
 export function autoLogin () : AsyncAction {
   return dispatch => {
+    const deviceType: DeviceType = isMobile ? 'mobile' : 'desktop'
     const params : login_login_rpc = {
       method: 'login.login',
       param: {
-        deviceType: isMobile ? 'mobile' : 'desktop',
+        deviceType,
         usernameOrEmail: '',
         clientType: enums.login.ClientType.gui
       },
@@ -225,10 +228,11 @@ export function autoLogin () : AsyncAction {
 
 export function relogin (user: string, passphrase: string, store: boolean) : AsyncAction {
   return dispatch => {
+    const deviceType: DeviceType = isMobile ? 'mobile' : 'desktop'
     const params : login_login_rpc = {
       method: 'login.login',
       param: {
-        deviceType: isMobile ? 'mobile' : 'desktop',
+        deviceType,
         usernameOrEmail: user,
         clientType: enums.login.ClientType.gui
       },

@@ -67,14 +67,14 @@ export default function (state: State = initialState, action: UnlockFolderAction
 export const mocks: {[key: string]: State} = {
   promptOtherSingleDevice: {
     phase: 'promptOtherDevice',
-    devices: [{type: 'computer', name: 'Cray', deviceID: 'bada55'}],
+    devices: [{type: 'desktop', name: 'Cray', deviceID: 'bada55'}],
     paperkeyError: null
   },
   promptOtherMultiDevice: {
     phase: 'promptOtherDevice',
     devices: [
-      {type: 'computer', name: 'Cray', deviceID: 'c0ffee'},
-      {type: 'computer', name: 'Watson', deviceID: 'beef'},
+      {type: 'desktop', name: 'Cray', deviceID: 'c0ffee'},
+      {type: 'desktop', name: 'Watson', deviceID: 'beef'},
       {type: 'mobile', name: 'Newton', deviceID: 'dead'}
     ],
     paperkeyError: null
