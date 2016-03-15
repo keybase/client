@@ -7,11 +7,13 @@ import getenv from 'getenv'
 
 const adminKey = 'admin'
 const loginKey = 'login'
+const mainWindowKey = 'mainWindow'
 const mobileAppsExistKey = 'mobileAppsExist'
 
 type FeatureFlags = {
   'admin': boolean,
   'login': boolean,
+  'mainWindow': boolean,
   'mobileAppsExist': boolean
 }
 
@@ -19,11 +21,13 @@ let features = getenv.array('KEYBASE_FEATURES', 'string', '')
 
 const admin = features.includes(adminKey)
 const login = features.includes(loginKey) || admin
+const mainWindow = features.includes(mainWindowKey)
 const mobileAppsExist = features.includes(mobileAppsExistKey)
 
 const ff: FeatureFlags = {
   admin,
   login,
+  mainWindow,
   mobileAppsExist
 }
 
@@ -35,5 +39,6 @@ export default ff
 export {
   admin,
   login,
+  mainWindow,
   mobileAppsExist
 }

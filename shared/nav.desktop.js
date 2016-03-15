@@ -12,6 +12,7 @@ import NoTab from './no-tab'
 import More from './more'
 import Login from './login'
 import commonStyles from './styles/common'
+import flags from './util/feature-flags'
 
 // TODO global routes
 // import globalRoutes from './router/global-routes'
@@ -56,7 +57,7 @@ class Nav extends Component {
     // If you startup while offline, you'll stay in an errored state
     window.addEventListener('online', () => this.props.bootstrap())
 
-    this._renderedActiveTab = null // the last tab we actually drew
+    this._lastResizedTab = null // the last tab we resized for
   }
 
   _handleTabsChange (e, key, payload) {
@@ -64,51 +65,77 @@ class Nav extends Component {
   }
 
   _resizeWindow () {
-    this._askedResize = false
-    const currentWindow = remote.getCurrentWindow()
-
-    if (!currentWindow) {
+    if (this._askedResize) {
       return
     }
 
-    if (this._renderedActiveTab === loginTab) {
-      const [width, height] = currentWindow.getContentSize()
+    this._askedResize = true
 
-      // Did we actually change the size
-      if (width !== globalResizing.login.width && height !== globalResizing.login.height) {
-        this._originalSize = {width, height}
+    setImmediate(() => {
+      this._askedResize = false
+      const currentWindow = remote.getCurrentWindow()
+
+      if (!currentWindow) {
+        return
       }
 
-      currentWindow.setContentSize(globalResizing.login.width, globalResizing.login.height, true)
-      currentWindow.setResizable(false)
-    } else {
-      if (this._originalSize) {
-        const {width, height} = this._originalSize
-        currentWindow.setContentSize(width, height, true)
-      } else {
-        currentWindow.setContentSize(globalResizing.normal.width, globalResizing.normal.height, true)
+      const activeTab = this._activeTab()
+
+      if (this._lastResizedTab === activeTab) {
+        return
       }
-      currentWindow.setResizable(true)
-    }
+
+      const oldWasLogin = this._lastResizedTab === loginTab
+      const newIsLogin = activeTab === loginTab
+
+      // going to/from login?
+      if (newIsLogin) {
+        const [width, height] = currentWindow.getContentSize()
+
+        // Did we actually change the size
+        if (width !== globalResizing.login.width && height !== globalResizing.login.height) {
+          this._originalSize = {width, height}
+        }
+
+        currentWindow.setContentSize(globalResizing.login.width, globalResizing.login.height, true)
+        currentWindow.setResizable(false)
+        currentWindow.show()
+      } else if (oldWasLogin) {
+        if (!flags.mainWindow) {
+          currentWindow.hide()
+        }
+
+        if (this._originalSize) {
+          const {width, height} = this._originalSize
+          currentWindow.setContentSize(width, height, true)
+        } else {
+          currentWindow.setContentSize(globalResizing.normal.width, globalResizing.normal.height, true)
+        }
+        currentWindow.setResizable(true)
+      }
+
+      this._lastResizedTab = activeTab
+    })
+  }
+
+  _activeTab () {
+    return this.props.tabbedRouter.get('activeTab')
   }
 
   shouldComponentUpdate (nextProps, nextState) {
-    return (nextProps.tabbedRouter.get('activeTab') !== this.props.tabbedRouter.get('activeTab'))
+    return (nextProps.tabbedRouter.get('activeTab') !== this._activeTab())
+  }
+
+  componentDidMount () {
+    this._resizeWindow()
   }
 
   componentDidUpdate () {
-    const activeTab = this.props.tabbedRouter.get('activeTab')
-
-    if (!this._askedResize && (activeTab === loginTab || this._renderedActiveTab === loginTab)) {
-      this._askedResize = true
-      setImmediate(() => this._resizeWindow())
-    }
-
-    this._renderedActiveTab = activeTab
+    this._resizeWindow()
   }
 
   render () {
-    const activeTab = this.props.tabbedRouter.get('activeTab')
+    const activeTab = this._activeTab()
 
     if (activeTab === loginTab) {
       return (
@@ -119,6 +146,10 @@ class Nav extends Component {
             rootComponent={Login} />
         </div>
       )
+    }
+
+    if (!flags.mainWindow) {
+      return <div>Coming soon!</div>
     }
 
     return (
