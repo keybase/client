@@ -156,8 +156,10 @@ function postInstall () {
     fixupSymlinks()
   }
 
-  const modules = Object.keys(postinstallGlobals).map(k => `${k}${postinstallGlobals[k]}`).join(' ')
-  exec(`npm install -g ${modules}`)
+  if (!process.env.KEYBASE_SKIP_DEV_TOOLS) {
+    const modules = Object.keys(postinstallGlobals).map(k => `${k}${postinstallGlobals[k]}`).join(' ')
+    exec(`npm install -g ${modules}`)
+  }
 }
 
 function setupDebugMain () {
