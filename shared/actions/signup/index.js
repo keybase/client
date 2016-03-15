@@ -83,7 +83,7 @@ export function requestInvite (email: string, name: string): TypedAsyncAction<Re
             type: Constants.requestInvite,
             payload: {error: true, emailError: err.desc, nameError: null, email, name}
           })
-          resolve()
+          reject(err)
         } else {
           if (email && name) {
             dispatch({
@@ -93,7 +93,7 @@ export function requestInvite (email: string, name: string): TypedAsyncAction<Re
             dispatch(nextPhase())
             resolve()
           } else {
-            reject()
+            reject(err)
           }
         }
       }
