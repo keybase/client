@@ -9,8 +9,8 @@ import {routeAppend} from '../../actions/router'
 
 import type {TypedAsyncAction, AsyncAction} from '../../constants/types/flux'
 import type {RouteAppend} from '../../constants/router'
-import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName, Signup, ShowPaperKey, ShowSuccess, ResetSignup} from '../../constants/signup'
-import type {signup_signup_rpc, signup_checkInvitationCode_rpc, signup_checkUsernameAvailable_rpc} from '../../constants/types/flow-types'
+import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName, Signup, ShowPaperKey, ShowSuccess, ResetSignup, RequestInvite, StartRequestInvite} from '../../constants/signup'
+import type {signup_signup_rpc, signup_checkInvitationCode_rpc, signup_checkUsernameAvailable_rpc, signup_inviteRequest_rpc} from '../../constants/types/flow-types'
 
 function nextPhase (): TypedAsyncAction<RouteAppend> {
   return (dispatch, getState) => {
@@ -20,9 +20,15 @@ function nextPhase (): TypedAsyncAction<RouteAppend> {
   }
 }
 
+export function startRequestInvite (): TypedAsyncAction<StartRequestInvite | RouteAppend> {
+  return dispatch => new Promise((resolve, reject) => {
+    dispatch({type: Constants.startRequestInvite, payload: {}})
+    dispatch(nextPhase())
+  })
+}
+
 export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInviteCode | RouteAppend> {
   return dispatch => new Promise((resolve, reject) => {
-    // TODO make service call
     dispatch({type: Constants.checkInviteCode, payload: {inviteCode}})
 
     const params: signup_checkInvitationCode_rpc = {
@@ -48,6 +54,54 @@ export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInvi
   })
 }
 
+export function requestInvite (email: string, name: string): TypedAsyncAction<RequestInvite | RouteAppend> {
+  return dispatch => new Promise((resolve, reject) => {
+    // Returns an error string if not valid
+    const emailError = isValidEmail(email)
+    const nameError = isValidName(name)
+    if (emailError || nameError || !email || !name) {
+      dispatch({
+        type: Constants.requestInvite,
+        error: true,
+        payload: {emailError, nameError, email, name}
+      })
+      resolve()
+      return
+    }
+
+    const params: signup_inviteRequest_rpc = {
+      method: 'signup.inviteRequest',
+      param: {
+        email: email,
+        fullname: name,
+        notes: 'Requested through GUI app'
+      },
+      incomingCallMap: {},
+      callback: err => {
+        if (err) {
+          dispatch({
+            type: Constants.requestInvite,
+            payload: {error: true, emailError: err.desc, nameError: null, email, name}
+          })
+          reject(err)
+        } else {
+          if (email && name) {
+            dispatch({
+              type: Constants.requestInvite,
+              payload: {error: null, email, name}
+            })
+            dispatch(nextPhase())
+            resolve()
+          } else {
+            reject(err)
+          }
+        }
+      }
+    }
+    engine.rpc(params)
+  })
+}
+
 function isBlank (s: string): boolean {
   return _.trim(s).length === 0
 }
@@ -56,13 +110,21 @@ function hasSpaces (s: string): boolean {
   return s.indexOf(' ') !== -1
 }
 
+function hasAtSign (s: string): boolean {
+  return s.indexOf('@') !== -1
+}
+
+function isEmptyOrBlank (thing: ?string): boolean {
+  if (!thing || isBlank(thing)) {
+    return true
+  }
+  return false
+}
+
 // Returns an error string if not valid
 function isValidCommon (thing: ?string): ?string {
-  if (!thing || isBlank(thing)) {
-    return 'Cannot be blank'
-  }
-
-  if (hasSpaces(thing)) return 'No spaces allowed'
+  if (isEmptyOrBlank(thing)) return 'Cannot be blank'
+  if (thing && hasSpaces(thing)) return 'No spaces allowed'
 }
 
 // Returns an error string if not valid
@@ -79,6 +141,15 @@ function isValidEmail (email: ?string): ?string {
   if (commonError) {
     return commonError
   }
+
+  if (email && !hasAtSign(email)) {
+    return 'Invalid email address.'
+  }
+}
+
+// Returns an error string if not valid
+function isValidName (name: ?string): ?string {
+  if (isEmptyOrBlank(name)) return 'Please provide your name.'
 }
 
 export function checkUsernameEmail (username: ?string, email: ?string): TypedAsyncAction<CheckUsernameEmail | RouteAppend> {

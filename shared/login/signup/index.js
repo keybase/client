@@ -5,6 +5,8 @@ import ErrorText from '../error.render'
 
 // Signup Components
 import InviteCode from './invite-code'
+import RequestInvite from './request-invite'
+import RequestInviteSuccess from './request-invite-success'
 import UsernameEmailForm from './username-email-form'
 import PassphraseSignup from './passphrase'
 import DeviceName from './device-name'
@@ -28,6 +30,12 @@ export default function signupRouter (currentPath: Map<string, string>, uri: URI
       case 'signup':
       case 'inviteCode':
         form = <InviteCode/>
+        break
+      case 'requestInvite':
+        form = <RequestInvite/>
+        break
+      case 'requestInviteSuccess':
+        form = <RequestInviteSuccess/>
         break
       case 'usernameAndEmail':
         form = <UsernameEmailForm/>

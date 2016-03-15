@@ -12,13 +12,14 @@ export type SignupState = {
   inviteCodeError: ?string,
   usernameError: ?string,
   emailError: ?string,
+  nameError: ?string,
   passphraseError: ?HiddenString,
   passphrase: ?HiddenString,
   deviceNameError: ?string,
   deviceName: ?string,
   paperkey: ?HiddenString,
   signupError: ?HiddenString,
-  phase: 'inviteCode' | 'usernameAndEmail' | 'passphraseSignup' | 'deviceName' | 'signupLoading' | 'paperkey' | 'success' | 'signupError'
+  phase: 'inviteCode' | 'usernameAndEmail' | 'passphraseSignup' | 'deviceName' | 'signupLoading' | 'paperkey' | 'success' | 'signupError' | 'requestInvite' | 'requestInviteSuccess'
 }
 
 const initialState: SignupState = {
@@ -28,6 +29,7 @@ const initialState: SignupState = {
   inviteCodeError: null,
   usernameError: null,
   emailError: null,
+  nameError: null,
   passphraseError: null,
   passphrase: null,
   deviceNameError: null,
@@ -74,6 +76,32 @@ export default function (state: SignupState = initialState, action: SignupAction
           usernameError: null,
           username,
           email
+        }
+      }
+
+    case Constants.startRequestInvite:
+      return {
+        ...state,
+        phase: 'requestInvite'
+      }
+
+    case Constants.requestInvite:
+      if (action.error) {
+        const {emailError, nameError, email, name} = action.payload
+        return {
+          ...state,
+          emailError,
+          nameError,
+          email,
+          name
+        }
+      } else {
+        const {email, name} = action.payload
+        return {
+          ...state,
+          phase: 'requestInviteSuccess',
+          email,
+          name
         }
       }
 
