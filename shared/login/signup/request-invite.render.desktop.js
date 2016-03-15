@@ -20,7 +20,7 @@ export default class Render extends Component {
     super(props)
     this.state = {
       email: this.props.email || '',
-      name: this.props.name || '',
+      name: this.props.name || ''
     }
   }
 
