@@ -10,6 +10,7 @@ install: true
 services:
   - docker
 before_install:
+  - export GO15VENDOREXPERIMENT=1;
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then
       export DEBIAN_FRONTEND=noninteractive;
       sudo apt-get update;
@@ -19,7 +20,6 @@ before_install:
       chmod +x docker-compose;
       sudo mv docker-compose /usr/local/bin;
       docker login -e $CI_EMAIL -u $CI_USER -p $CI_PASS $CI_HOST;
-      export GO15VENDOREXPERIMENT=1;
       $GOPATH/src/github.com/keybase/kbfs/kbfsdocker/build_dockers.sh & export build_dockers_pid=$!;
     fi
 script:
