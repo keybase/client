@@ -39,6 +39,7 @@ export default class Render extends Component {
           value={this.state.email || ''}
           errorText={this.props.emailErrorText}
           onChange={event => this.setState({email: event.target.value})}
+          autoFocus
         />
         <Input
           style={styles.input}

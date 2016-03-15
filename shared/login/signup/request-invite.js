@@ -9,7 +9,6 @@ import * as signupActions from '../../actions/signup'
 
 class RequestInvite extends Component {
   render () {
-    console.error(this.props.emailErrorText)
     return (
       <Render
         name={this.props.name}
