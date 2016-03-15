@@ -1,7 +1,6 @@
 // @flow
 
 import React, {Component} from 'react'
-import {bindActionCreators} from 'redux'
 import typedConnect, {ConnectedComponent} from '../util/typed-connect'
 
 import type {State as UnlockFoldersState} from '../reducers/unlock-folders'
