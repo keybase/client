@@ -3,6 +3,7 @@
 import * as Constants from '../constants/unlock-folders'
 import HiddenString from '../util/hidden-string'
 
+import {toDeviceType} from '../constants/types/more'
 import type {UnlockFolderActions, Device} from '../constants/unlock-folders'
 
 export type State = {
@@ -25,7 +26,7 @@ export default function (state: State = initialState, action: UnlockFolderAction
         return state
       } else {
         const devices = action.payload.devices.map(({name, type, deviceID}) => ({
-          type: type === 'mobile' ? 'mobile' : 'desktop',
+          type: toDeviceType(type),
           name, deviceID
         }))
         return {
@@ -66,14 +67,14 @@ export default function (state: State = initialState, action: UnlockFolderAction
 export const mocks: {[key: string]: State} = {
   promptOtherSingleDevice: {
     phase: 'promptOtherDevice',
-    devices: [{type: 'desktop', name: 'Cray', deviceID: 'bada55'}],
+    devices: [{type: 'computer', name: 'Cray', deviceID: 'bada55'}],
     paperkeyError: null
   },
   promptOtherMultiDevice: {
     phase: 'promptOtherDevice',
     devices: [
-      {type: 'desktop', name: 'Cray', deviceID: 'c0ffee'},
-      {type: 'desktop', name: 'Watson', deviceID: 'beef'},
+      {type: 'computer', name: 'Cray', deviceID: 'c0ffee'},
+      {type: 'computer', name: 'Watson', deviceID: 'beef'},
       {type: 'mobile', name: 'Newton', deviceID: 'dead'}
     ],
     paperkeyError: null

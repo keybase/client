@@ -4,9 +4,10 @@ import HiddenString from '../util/hidden-string'
 
 import type {TypedAction} from '../constants/types/flux'
 import type {DeviceID, Device as ServiceDevice} from '../constants/types/flow-types'
+import type {DeviceType} from '../constants/types/more'
 
 export type Device = {
-  type: 'desktop' | 'mobile',
+  type: DeviceType,
   name: string,
   deviceID: DeviceID
 }
