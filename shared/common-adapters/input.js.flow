@@ -15,7 +15,7 @@ export type Props = {
   rowsMax?: number,
   style?: Object,
   type?: 'password' | 'text',
-  value?: string,
+  value?: ?string,
   small?: bool,
   errorStyle?: Object
 }
