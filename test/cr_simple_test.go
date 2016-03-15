@@ -640,3 +640,81 @@ func TestCrUnmergedBothRmfile(t *testing.T) {
 		),
 	)
 }
+
+// alice and bob both create the same file, but neither write to it
+func TestCrBothCreateFile(t *testing.T) {
+	test(t,
+		writers("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			mkfile("a/b", ""),
+		),
+		as(bob, noSync(),
+			mkfile("a/b", ""),
+			reenableUpdates(),
+			lsdir("a/", m{"b$": "FILE"}),
+			read("a/b", ""),
+		),
+		as(alice,
+			lsdir("a/", m{"b$": "FILE"}),
+			read("a/b", ""),
+		),
+	)
+}
+
+// alice and bob both create the same file, and alice wrote to it
+func TestCrBothCreateFileMergedWrite(t *testing.T) {
+	test(t,
+		writers("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			mkfile("a/b", "hello"),
+		),
+		as(bob, noSync(),
+			mkfile("a/b", ""),
+			reenableUpdates(),
+			lsdir("a/", m{"b$": "FILE"}),
+			read("a/b", "hello"),
+		),
+		as(alice,
+			lsdir("a/", m{"b$": "FILE"}),
+			read("a/b", "hello"),
+		),
+	)
+}
+
+// alice and bob both create the same file, and bob wrote to it
+func TestCrBothCreateFileUnmergedWrite(t *testing.T) {
+	test(t,
+		writers("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			mkfile("a/b", ""),
+		),
+		as(bob, noSync(),
+			mkfile("a/b", "hello"),
+			reenableUpdates(),
+			lsdir("a/", m{"b$": "FILE"}),
+			read("a/b", "hello"),
+		),
+		as(alice,
+			lsdir("a/", m{"b$": "FILE"}),
+			read("a/b", "hello"),
+		),
+	)
+}

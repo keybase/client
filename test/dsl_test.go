@@ -283,6 +283,15 @@ func mkfile(name string, contents string) fileOp {
 		if err != nil {
 			return err
 		}
+		// Skip the write if the contents already matches (to allow
+		// tests of file creation only).
+		res, err := c.engine.ReadFile(c.user, f, 0, int64(len(contents)+1))
+		if err != nil {
+			return err
+		}
+		if res == contents {
+			return nil
+		}
 		return c.engine.WriteFile(c.user, f, contents, 0, true)
 	}, Defaults}
 }
