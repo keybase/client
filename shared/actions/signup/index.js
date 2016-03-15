@@ -9,8 +9,8 @@ import {routeAppend} from '../../actions/router'
 
 import type {TypedAsyncAction, AsyncAction} from '../../constants/types/flux'
 import type {RouteAppend} from '../../constants/router'
-import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName, Signup, ShowPaperKey, ShowSuccess, ResetSignup} from '../../constants/signup'
-import type {signup_signup_rpc, signup_checkInvitationCode_rpc, signup_checkUsernameAvailable_rpc} from '../../constants/types/flow-types'
+import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName, Signup, ShowPaperKey, ShowSuccess, ResetSignup, RequestInvite} from '../../constants/signup'
+import type {signup_signup_rpc, signup_checkInvitationCode_rpc, signup_checkUsernameAvailable_rpc, signup_inviteRequest_rpc} from '../../constants/types/flow-types'
 
 function nextPhase (): TypedAsyncAction<RouteAppend> {
   return (dispatch, getState) => {
@@ -22,7 +22,6 @@ function nextPhase (): TypedAsyncAction<RouteAppend> {
 
 export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInviteCode | RouteAppend> {
   return dispatch => new Promise((resolve, reject) => {
-    // TODO make service call
     dispatch({type: Constants.checkInviteCode, payload: {inviteCode}})
 
     const params: signup_checkInvitationCode_rpc = {
@@ -44,6 +43,45 @@ export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInvi
       }
     }
 
+    engine.rpc(params)
+  })
+}
+
+export function requestInvite (email: string, name: string): TypedAsyncAction<RequestInvite | RouteAppend> {
+  return dispatch => new Promise((resolve, reject) => {
+    dispatch({type: Constants.requestInvite, payload: {email, name}})
+
+    const params: signup_inviteRequest_rpc = {
+      method: 'signup.inviteRequest',
+      param: {
+        email: email,
+        fullname: name,
+        notes: 'Requested through GUI app'
+      },
+      incomingCallMap: {},
+      callback: err => {
+        if (err) {
+          console.error('error in requestInvite')
+          dispatch({
+            type: Constants.requestInvite,
+            error: err,
+            payload: {error: true, email, name}
+          })
+          resolve()
+        } else {
+          if (email && name) {
+            dispatch({
+              type: Constants.requestInvite,
+              payload: {error: null, email, name}
+            })
+            dispatch(nextPhase())
+            resolve()
+          } else {
+            reject()
+          }
+        }
+      }
+    }
     engine.rpc(params)
   })
 }
