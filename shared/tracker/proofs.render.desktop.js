@@ -169,7 +169,8 @@ const styles = {
     ...globalStyles.clickable,
     height: 14,
     width: 14,
-    color: globalColors.lightGrey,
+    color: globalColors.black75,
+    hoverColor: globalColors.black75,
     marginRight: 9,
     marginTop: 4
   },
