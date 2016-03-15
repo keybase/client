@@ -58,7 +58,7 @@ const propsBase = {
 
 const propsDefault: TrackerProps = {
   ...propsBase,
-  username: 'gabrielh',
+  username: 'darksim905',
   reason: 'You accessed a private folder with gabrielh.',
   userInfo: {
     fullname: 'Gabriel Handford',
@@ -66,7 +66,7 @@ const propsDefault: TrackerProps = {
     followingCount: 356,
     location: 'San Francisco, California, USA, Earth, Milky Way',
     bio: 'Etsy photo booth mlkshk semiotics, 8-bit literally slow-carb keytar bushwick +1. Plaid migas etsy yuccie, locavore street art mlkshk lumbersexual. Literally microdosing pug disrupt iPhone raw denim, quinoa meggings kitsch. ',
-    avatar: 'https://s3.amazonaws.com/keybase_processed_uploads/71cd3854986d416f60dacd27d5796705_200_200_square_200.jpeg',
+    avatar: 'https://keybase.io/darksim905/picture',
     followsYou: false
   },
   shouldFollow: true,
