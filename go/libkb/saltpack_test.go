@@ -8,7 +8,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/keybase/client/go/saltpack"
+	"github.com/keybase/saltpack"
 )
 
 type outputBuffer struct {

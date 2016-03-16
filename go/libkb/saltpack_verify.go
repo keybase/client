@@ -8,7 +8,7 @@ import (
 	"crypto/hmac"
 	"io"
 
-	"github.com/keybase/client/go/saltpack"
+	"github.com/keybase/saltpack"
 )
 
 func SaltpackVerify(g *GlobalContext, source io.Reader, sink io.WriteCloser, checkSender func(saltpack.SigningPublicKey) error) error {

@@ -6,7 +6,7 @@ package saltpack
 import (
 	"bytes"
 	"fmt"
-	basex "github.com/keybase/client/go/encoding/basex"
+	basex "github.com/keybase/saltpack/encoding/basex"
 	"io"
 	"io/ioutil"
 	"strings"

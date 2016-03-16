@@ -6,9 +6,9 @@ package client
 import (
 	"errors"
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/encoding/basex"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/saltpack/encoding/basex"
 	"io"
 	"os"
 )

@@ -203,6 +203,16 @@
 			"revisionTime": "2015-10-20T11:39:53-04:00"
 		},
 		{
+			"path": "github.com/keybase/saltpack",
+			"revision": "203e36cfb2c85e26a18d306f08fac0df64a38781",
+			"revisionTime": "2016-03-14T16:16:15-07:00"
+		},
+		{
+			"path": "github.com/keybase/saltpack/encoding/basex",
+			"revision": "203e36cfb2c85e26a18d306f08fac0df64a38781",
+			"revisionTime": "2016-03-14T16:16:15-07:00"
+		},
+		{
 			"path": "github.com/kr/pty",
 			"revision": "f7ee69f31298ecbe5d2b349c711e2547a617d398",
 			"revisionTime": "2015-10-07T16:04:24-07:00"

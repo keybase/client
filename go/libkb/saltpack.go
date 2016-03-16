@@ -7,7 +7,7 @@ import (
 	"bytes"
 
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/keybase/client/go/saltpack"
+	"github.com/keybase/saltpack"
 	"golang.org/x/crypto/nacl/box"
 )
 

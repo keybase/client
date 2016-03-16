@@ -13,7 +13,7 @@ import (
 	"fmt"
 
 	"github.com/agl/ed25519"
-	"github.com/keybase/client/go/saltpack"
+	"github.com/keybase/saltpack"
 )
 
 type sigPubKey struct {
