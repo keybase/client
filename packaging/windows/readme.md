@@ -31,6 +31,10 @@ Switch to Node 5.7.0:
 - [NVM for Windows](https://github.com/coreybutler/nvm-windows/releases/download/1.1.0/nvm-setup.zip)  
 Issue the commands "nvm install 5.7.0" and "nvm use 5.7.0"  
 - [VisualStudio 2013](https://go.microsoft.com/fwlink/?LinkId=532495&clcid=0x409) 
+- Update npm. In an elevated command prompt (right-click cmd icon and select "Run As Administrator"), issue these commands, and select 3.8.1:
+    `npm install -g npm-windows-upgrade`  
+    `npm-windows-upgrade`  
+- Open a new command window to capture the environment changes and enter:
 npm i  
 npm run package -- --arch ia32 --platform win32 --appVersion [version]  
 
