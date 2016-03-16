@@ -2,9 +2,9 @@
 
 This is a list of problems that people run into frequently.
 
-## `getpin` doesn't work.
+## `pinentry` doesn't work.
 
-We use `getpin` in situations where we need a password, but there are many
+We use `pinentry` in situations where we need a password, but there are many
 exciting ways for it to break. Here are a couple examples of what that looks
 like:
 
@@ -27,15 +27,15 @@ $ keybase decrypt -i my_encrypted_message
 
 These errors can be an interaction of several different things:
 
-- What version of `getpin` you have in your `PATH`. Some of them try to create
-  a graphical window but fall back to the terminal. Some do only one of those
-  things.
+- What version of `pinentry` you have in your `PATH`. Some of them try to
+  create a graphical window but fall back to the terminal. Some do only one of
+  those things.
 - Interesting terminal gymnastics. Running in screen or tmux can confuse the
-  curses versions of `getpin`. Depending on where you first started tmux, you
+  curses versions of `pinentry`. Depending on where you first started tmux, you
   might also end up with an invalid `DISPLAY` environment variable.
 - Curious account permissions. If you log into your desktop as `userfoo`, and
   you run something like `sudo -u userbar keybase login`, that might prevent
-  `getpin` from creating windows.
+  `pinentry` from creating windows.
 
 One workaround for these problems is to disable pinentry, so that `keybase`
 reads your password as ordinary terminal input. Use the `--pinentry` flag to do
