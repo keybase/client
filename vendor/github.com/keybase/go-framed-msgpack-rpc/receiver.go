@@ -63,9 +63,6 @@ func (r *receiveHandler) taskLoop() {
 	for {
 		select {
 		case <-r.stopCh:
-			for _, cancelFunc := range tasks {
-				cancelFunc()
-			}
 			close(r.closedCh)
 			return
 		case t := <-r.taskBeginCh:

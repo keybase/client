@@ -68,6 +68,8 @@ type LoginContext interface {
 
 	CachedSecretKey(ska SecretKeyArg) (GenericKey, error)
 	SetCachedSecretKey(ska SecretKeyArg, key GenericKey) error
+
+	SetLKSec(lksec *LKSec)
 }
 
 type LoggedInHelper interface {
@@ -707,7 +709,7 @@ func (s *LoginState) stretchPassphraseIfNecessary(lctx LoginContext, un string, 
 		}
 
 		s.G().Log.Debug("| stretchPassphraseIfNecessary: getting keybase passphrase via ui")
-		res, err := GetKeybasePassphrase(ui, un, retry)
+		res, err := GetKeybasePassphrase(ui, un, retry, s.G().SecretStoreAll != nil)
 		if err != nil {
 			return false, err
 		}

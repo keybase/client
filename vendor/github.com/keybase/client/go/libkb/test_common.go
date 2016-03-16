@@ -255,6 +255,10 @@ func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestC
 	tc.G = g
 	tc.T = tb
 
+	if G.SecretStoreAll == nil {
+		G.SecretStoreAll = NewTestSecretStoreAll(G, G)
+	}
+
 	return
 }
 

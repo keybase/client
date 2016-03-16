@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -347,7 +348,8 @@ func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
 	}
 	if a.G().Env.GetTorMode().UseHeaders() {
 		req.Header.Set("User-Agent", UserAgent)
-		req.Header.Set("X-Keybase-Client", IdentifyAs)
+		identifyAs := GoClientID + " v" + VersionString() + " " + runtime.GOOS
+		req.Header.Set("X-Keybase-Client", identifyAs)
 	}
 }
 

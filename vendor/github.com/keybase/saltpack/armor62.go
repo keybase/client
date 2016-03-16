@@ -4,7 +4,7 @@
 package saltpack
 
 import (
-	basex "github.com/keybase/client/go/encoding/basex"
+	basex "github.com/keybase/saltpack/encoding/basex"
 	"io"
 )
 

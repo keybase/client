@@ -27,20 +27,17 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
-// CustomBuild can be set at compile time to override Build
-var CustomBuild string
-
-// Build returns the custom or default build
-func Build() string {
-	if CustomBuild != "" {
-		return CustomBuild
-	}
-	return DefaultBuild
-}
+// PrereleaseBuild can be set at compile time for prerelease builds.
+// CAUTION: Don't change the name of this variable without grepping for
+// occurrences in shell scripts!
+var PrereleaseBuild string
 
 // VersionString returns semantic version string
 func VersionString() string {
-	return fmt.Sprintf("%s-%s", Version, Build())
+	if PrereleaseBuild != "" {
+		return fmt.Sprintf("%s-%s", Version, PrereleaseBuild)
+	}
+	return Version
 }
 
 func ErrToOk(err error) string {
@@ -463,4 +460,15 @@ func WhitespaceNormalize(s string) string {
 		v = v[0 : len(v)-1]
 	}
 	return strings.Join(v, " ")
+}
+
+// JoinPredicate joins strings with predicate
+func JoinPredicate(arr []string, delimeter string, f func(s string) bool) string {
+	arrNew := make([]string, 0, len(arr))
+	for _, s := range arr {
+		if f(s) {
+			arrNew = append(arrNew, s)
+		}
+	}
+	return strings.Join(arrNew, delimeter)
 }

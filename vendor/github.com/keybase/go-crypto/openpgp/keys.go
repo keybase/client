@@ -393,7 +393,20 @@ EachPacket:
 			current.UserId = pkt
 		case *packet.Signature:
 
-			// First handle the case of a self-signature. According to RFC8440,
+			// These are signatures by other people on this key. Let's just ignore them
+			// from the beginning, since they shouldn't affect our key decoding one way
+			// or the other.
+			if pkt.IssuerKeyId != nil && *pkt.IssuerKeyId != e.PrimaryKey.KeyId {
+				continue
+			}
+
+			// If this is a signature made by the keyholder, and the signature has stubbed out
+			// critical packets, then *now* we need to bail out.
+			if e := pkt.StubbedOutCriticalError; e != nil {
+				return nil, e
+			}
+
+			// Next handle the case of a self-signature. According to RFC8440,
 			// Section 5.2.3.3, if there are several self-signatures,
 			// we should take the newer one.
 			if current != nil &&

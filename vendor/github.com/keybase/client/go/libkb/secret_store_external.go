@@ -18,7 +18,6 @@ type ExternalKeyStore interface {
 	ClearSecret(username string) error
 	GetUsersWithStoredSecretsMsgPack() ([]byte, error)
 	SetupKeyStore(username string) error
-	GetTerminalPrompt() string
 }
 
 // externalKeyStore is the reference to some external key store
@@ -41,42 +40,41 @@ func getGlobalExternalKeyStore() ExternalKeyStore {
 
 type secretStoreAccountName struct {
 	externalKeyStore ExternalKeyStore
-	accountName      string
 }
 
 var _ SecretStore = secretStoreAccountName{}
 
-func (s secretStoreAccountName) StoreSecret(secret []byte) (err error) {
-	return s.externalKeyStore.StoreSecret(s.accountName, secret)
+func (s secretStoreAccountName) StoreSecret(username NormalizedUsername, secret []byte) (err error) {
+	externalKeyStore.SetupKeyStore(string(username))
+	return s.externalKeyStore.StoreSecret(username, secret)
 }
 
-func (s secretStoreAccountName) RetrieveSecret() ([]byte, error) {
-	return s.externalKeyStore.RetrieveSecret(s.accountName)
+func (s secretStoreAccountName) RetrieveSecret(username NormalizedUsername) ([]byte, error) {
+	externalKeyStore.SetupKeyStore(string(username))
+	return s.externalKeyStore.RetrieveSecret(username)
 }
 
-func (s secretStoreAccountName) ClearSecret() (err error) {
-	return s.externalKeyStore.ClearSecret(s.accountName)
+func (s secretStoreAccountName) ClearSecret(username NormalizedUsername) (err error) {
+	return s.externalKeyStore.ClearSecret(username)
 }
 
-func NewSecretStore(c SecretStoreContext, username NormalizedUsername) SecretStore {
+func NewSecretStoreAll(g *GlobalContext) SecretStoreAll {
 	externalKeyStore := getGlobalExternalKeyStore()
 	if externalKeyStore == nil {
 		return nil
 	}
-	externalKeyStore.SetupKeyStore(string(username))
-	return secretStoreAccountName{externalKeyStore, string(username)}
+	return secretStoreAccountName{externalKeyStore}
 }
 
-func HasSecretStore() bool {
-	return getGlobalExternalKeyStore() != nil
+func NewTestSecretStoreAll(c SecretStoreContext, g *GlobalContext) SecretStoreAll {
+	return nil
 }
 
-func GetUsersWithStoredSecrets(c SecretStoreContext) ([]string, error) {
-	externalKeyStore := getGlobalExternalKeyStore()
-	if externalKeyStore == nil {
+func (s secretStoreAccountName) GetUsersWithStoredSecrets() ([]string, error) {
+	if s.externalKeyStore == nil {
 		return nil, nil
 	}
-	usersMsgPack, err := externalKeyStore.GetUsersWithStoredSecretsMsgPack()
+	usersMsgPack, err := s.externalKeyStore.GetUsersWithStoredSecretsMsgPack()
 	if err != nil {
 		return nil, err
 	}

@@ -14,6 +14,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -39,6 +40,7 @@ const (
 	fmtVerbShortpkg
 	fmtVerbLongfunc
 	fmtVerbShortfunc
+	fmtVerbCallpath
 	fmtVerbLevelColor
 
 	// Keep last, there are no match for these below.
@@ -60,6 +62,7 @@ var fmtVerbs = []string{
 	"shortpkg",
 	"longfunc",
 	"shortfunc",
+	"callpath",
 	"color",
 }
 
@@ -79,6 +82,7 @@ var defaultVerbsLayout = []string{
 	"s",
 	"s",
 	"s",
+	"0",
 	"",
 }
 
@@ -159,6 +163,7 @@ type stringFormatter struct {
 //     %{message}   Message (string)
 //     %{longfile}  Full file name and line number: /a/b/c/d.go:23
 //     %{shortfile} Final file name element and line number: d.go:23
+//     %{callpath}  Callpath like main.a.b.c...c  "..." meaning recursive call ~. meaning truncated path
 //     %{color}     ANSI color based on log level
 //
 // For normal types, the output can be customized by using the 'verbs' defined
@@ -175,6 +180,9 @@ type stringFormatter struct {
 // "%{color:bold}%{time:15:04:05} %{level:-8s}%{color:reset} %{message}" will
 // just colorize the time and level, leaving the message uncolored.
 //
+// For the 'callpath' verb, the output can be adjusted to limit the printing
+// the stack depth. i.e. '%{callpath:3}' will print '~.a.b.c'
+//
 // Colors on Windows is unfortunately not supported right now and is currently
 // a no-op.
 //
@@ -187,6 +195,7 @@ type stringFormatter struct {
 //     %{shortpkg}  Base package path, eg. go-logging
 //     %{longfunc}  Full function name, eg. littleEndian.PutUint32
 //     %{shortfunc} Base function name, eg. PutUint32
+//     %{callpath}  Call function path, eg. main.a.b.c
 func NewStringFormatter(format string) (Formatter, error) {
 	var fmter = &stringFormatter{}
 
@@ -211,12 +220,12 @@ func NewStringFormatter(format string) (Formatter, error) {
 		}
 
 		// Handle layout customizations or use the default. If this is not for the
-		// time or color formatting, we need to prefix with %.
+		// time, color formatting or callpath, we need to prefix with %.
 		layout := defaultVerbsLayout[verb]
 		if m[4] != -1 {
 			layout = format[m[4]:m[5]]
 		}
-		if verb != fmtVerbTime && verb != fmtVerbLevelColor {
+		if verb != fmtVerbTime && verb != fmtVerbLevelColor && verb != fmtVerbCallpath {
 			layout = "%" + layout
 		}
 
@@ -233,12 +242,13 @@ func NewStringFormatter(format string) (Formatter, error) {
 	if err != nil {
 		panic(err)
 	}
+	testFmt := "hello %s"
 	r := &Record{
-		Id:     12345,
+		ID:     12345,
 		Time:   t,
 		Module: "logger",
-		fmt:    "hello %s",
-		args:   []interface{}{"go"},
+		Args:   []interface{}{"go"},
+		fmt:    &testFmt,
 	}
 	if err := fmter.Format(0, r, &bytes.Buffer{}); err != nil {
 		return nil, err
@@ -269,6 +279,12 @@ func (f *stringFormatter) Format(calldepth int, r *Record, output io.Writer) err
 			output.Write([]byte(r.Time.Format(part.layout)))
 		} else if part.verb == fmtVerbLevelColor {
 			doFmtVerbLevelColor(part.layout, r.Level, output)
+		} else if part.verb == fmtVerbCallpath {
+			depth, err := strconv.Atoi(part.layout)
+			if err != nil {
+				depth = 0
+			}
+			output.Write([]byte(formatCallpath(calldepth+1, depth)))
 		} else {
 			var v interface{}
 			switch part.verb {
@@ -276,7 +292,7 @@ func (f *stringFormatter) Format(calldepth int, r *Record, output io.Writer) err
 				v = r.Level
 				break
 			case fmtVerbID:
-				v = r.Id
+				v = r.ID
 				break
 			case fmtVerbPid:
 				v = pid
@@ -341,6 +357,39 @@ func formatFuncName(v fmtVerb, f string) string {
 		return fun[i+1:]
 	}
 	panic("unexpected func formatter")
+}
+
+func formatCallpath(calldepth int, depth int) string {
+	v := ""
+	callers := make([]uintptr, 64)
+	n := runtime.Callers(calldepth+2, callers)
+	oldPc := callers[n-1]
+
+	start := n - 3
+	if depth > 0 && start >= depth {
+		start = depth - 1
+		v += "~."
+	}
+	recursiveCall := false
+	for i := start; i >= 0; i-- {
+		pc := callers[i]
+		if oldPc == pc {
+			recursiveCall = true
+			continue
+		}
+		oldPc = pc
+		if recursiveCall {
+			recursiveCall = false
+			v += ".."
+		}
+		if i < start {
+			v += "."
+		}
+		if f := runtime.FuncForPC(pc); f != nil {
+			v += formatFuncName(fmtVerbShortfunc, f.Name())
+		}
+	}
+	return v
 }
 
 // backendFormatter combines a backend with a specific formatter making it

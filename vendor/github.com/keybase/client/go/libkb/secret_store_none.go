@@ -5,19 +5,66 @@
 
 package libkb
 
-func NewSecretStore(c SecretStoreContext, username NormalizedUsername) SecretStore {
-	return nil
+import (
+	"errors"
+)
+
+// Used by tests that want to mock out the secret store.
+type TestSecretStoreAll struct {
+	context            SecretStoreContext
+	secretStoreNoneMap map[NormalizedUsername][]byte
+	Contextified
 }
 
-func HasSecretStore() bool {
-	return false
-}
-
-func GetUsersWithStoredSecrets(c SecretStoreContext) ([]string, error) {
-	return nil, nil
+func (t TestSecretStoreAll) GetUsersWithStoredSecrets() (ret []string, err error) {
+	for name := range t.secretStoreNoneMap {
+		ret = append(ret, string(name))
+	}
+	return
 }
 
 func GetTerminalPrompt() string {
 	// TODO: Come up with specific prompts for other platforms.
 	return "Store your key in the local secret store?"
+}
+
+func NewSecretStoreAll(g *GlobalContext) SecretStoreAll {
+	return nil
+}
+
+func NewTestSecretStoreAll(c SecretStoreContext, g *GlobalContext) SecretStoreAll {
+	ret := TestSecretStoreAll{context: c, secretStoreNoneMap: map[NormalizedUsername][]byte{}}
+	ret.SetGlobalContext(g)
+	return ret
+}
+
+func (t TestSecretStoreAll) GetAllUserNames() (NormalizedUsername, []NormalizedUsername, error) {
+	return t.context.GetAllUserNames()
+}
+
+func (t TestSecretStoreAll) RetrieveSecret(accountName NormalizedUsername) (ret []byte, err error) {
+
+	ret, ok := t.secretStoreNoneMap[accountName]
+
+	t.G().Log.Debug("| TestSecretStore::RetrieveSecret(%d)", len(ret))
+
+	if !ok {
+		return nil, errors.New("No secret to retrieve")
+	}
+
+	return
+}
+
+func (t TestSecretStoreAll) StoreSecret(accountName NormalizedUsername, secret []byte) error {
+	t.G().Log.Debug("| TestSecretStore::StoreSecret(%d)", len(secret))
+
+	t.secretStoreNoneMap[accountName] = secret
+	return nil
+}
+
+func (t TestSecretStoreAll) ClearSecret(accountName NormalizedUsername) error {
+	t.G().Log.Debug("| TestSecretStore::ClearSecret()")
+
+	delete(t.secretStoreNoneMap, accountName)
+	return nil
 }

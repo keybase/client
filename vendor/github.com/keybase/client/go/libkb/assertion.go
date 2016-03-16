@@ -413,6 +413,10 @@ func RegisterSocialNetwork(s string) {
 	_socialNetworks[s] = true
 }
 
+func ValidSocialNetwork(s string) bool {
+	return _socialNetworks[s]
+}
+
 func FindBestIdentifyComponentURL(e AssertionExpression) AssertionURL {
 	urls := e.CollectUrls(nil)
 	if len(urls) == 0 {

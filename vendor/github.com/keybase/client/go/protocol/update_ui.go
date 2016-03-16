@@ -59,12 +59,15 @@ type UpdateAppInUseArg struct {
 }
 
 type UpdateQuitArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Update    Update `codec:"update" json:"update"`
+	Status    Status `codec:"status" json:"status"`
 }
 
 type UpdateUiInterface interface {
 	UpdatePrompt(context.Context, UpdatePromptArg) (UpdatePromptRes, error)
 	UpdateAppInUse(context.Context, UpdateAppInUseArg) (UpdateAppInUseRes, error)
-	UpdateQuit(context.Context) (UpdateQuitRes, error)
+	UpdateQuit(context.Context, UpdateQuitArg) (UpdateQuitRes, error)
 }
 
 func UpdateUiProtocol(i UpdateUiInterface) rpc.Protocol {
@@ -109,7 +112,12 @@ func UpdateUiProtocol(i UpdateUiInterface) rpc.Protocol {
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					ret, err = i.UpdateQuit(ctx)
+					typedArgs, ok := args.(*[]UpdateQuitArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]UpdateQuitArg)(nil), args)
+						return
+					}
+					ret, err = i.UpdateQuit(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -132,7 +140,7 @@ func (c UpdateUiClient) UpdateAppInUse(ctx context.Context, __arg UpdateAppInUse
 	return
 }
 
-func (c UpdateUiClient) UpdateQuit(ctx context.Context) (res UpdateQuitRes, err error) {
-	err = c.Cli.Call(ctx, "keybase.1.updateUi.updateQuit", []interface{}{UpdateQuitArg{}}, &res)
+func (c UpdateUiClient) UpdateQuit(ctx context.Context, __arg UpdateQuitArg) (res UpdateQuitRes, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.updateUi.updateQuit", []interface{}{__arg}, &res)
 	return
 }

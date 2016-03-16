@@ -51,7 +51,6 @@ const (
 	APIURIPathPrefix     = "/_/api/" + APIVersion
 	DaemonPort           = 40933
 	GoClientID           = "keybase.io go client"
-	IdentifyAs           = GoClientID + " v" + Version + " " + runtime.GOOS
 	KeybaseSaltpackBrand = "KEYBASE"
 )
 
