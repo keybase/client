@@ -17,8 +17,7 @@ class DeviceRow extends Component<void, {device: Device}, void> {
     return (
       <div style={{...globalStyles.flexBoxRow, marginBottom: 16}}>
         <div style={deviceRowStyles.iconWrapper}>
-          // TODO use the right size icon here
-          <Icon type={isDesktop ? 'computer-big' : 'phone-big'} style={{height: 21}}/>
+          <Icon type={isDesktop ? 'icon-computer-bw-xs' : 'icon-phone-bw-xs'} style={{height: 22}}/>
         </div>
         <Text type='BodySemiboldItalic' style={{marginLeft: 16}}>{this.props.device.name}</Text>
       </div>
@@ -86,6 +85,5 @@ const deviceRowStyles = {
     marginLeft: 33,
     display: 'flex',
     justifyContent: 'center'
-  },
-
+  }
 }
