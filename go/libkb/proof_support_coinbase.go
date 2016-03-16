@@ -94,6 +94,8 @@ func coinbaseSettingsURL(s string) string {
 
 func (t CoinbaseServiceType) NormalizeUsername(s string) (ret string, err error) {
 	ret = strings.ToLower(s)
+
+	// XXX this function should not be making an API call.
 	_, err = G.XAPI.GetHTML(APIArg{
 		Endpoint:    coinbaseUserURL(ret),
 		NeedSession: false,

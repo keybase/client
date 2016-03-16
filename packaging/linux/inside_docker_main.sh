@@ -25,6 +25,11 @@ if [ -e /S3CMD/.s3cfg ] ; then
   cp /S3CMD/.s3cfg ~
 fi
 
+# Copy the SSH configs to the home dir. We do this because SSH complains if
+# ~/.ssh/config is owned by anyone other than the current user, which is the
+# case if the directory is shared.
+cp -r /SSH ~/.ssh
+
 # Import the code signing key, kick off the gpg agent, and sign an empty
 # message with it. This makes the password prompt happen now, so that we don't
 # interrupt the build later.

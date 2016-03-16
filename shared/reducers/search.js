@@ -1,6 +1,8 @@
 /* @flow */
 
 import * as Constants from '../constants/search'
+import * as CommonConstants from '../constants/common'
+
 import Immutable from 'immutable'
 
 import type {URI} from './router'
@@ -17,6 +19,10 @@ type SearchState = Immutable.Map<Base, SubSearchState>
 const initialState: SearchState = Immutable.Map()
 
 export default function (state: SearchState = initialState, action: any): SearchState {
+  if (action.type === CommonConstants.resetStore) {
+    return {...initialState}
+  }
+
   if (!action.payload || !action.payload.base) {
     return state
   }

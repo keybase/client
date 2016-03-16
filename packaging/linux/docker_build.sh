@@ -99,10 +99,10 @@ gpg --export-secret-key --armor "$code_signing_fingerprint" > "$gpg_tempfile"
 # serverops_args and osx_args, see http://stackoverflow.com/a/7577209/823869.
 docker run -ti \
   -v "$shared_dir:/root" \
-  -v "$HOME/.ssh:/root/.ssh:ro" \
   -v "$clientdir:/CLIENT:ro" \
   -v "$kbfsdir:/KBFS:ro" \
   -v "$gpg_tempdir:/GPG" \
+  -v "$HOME/.ssh:/SSH:ro" \
   -v "$s3cmd_temp:/S3CMD:ro" \
   "${serverops_args[@]:+${serverops_args[@]}}" \
   -e BUCKET_NAME \

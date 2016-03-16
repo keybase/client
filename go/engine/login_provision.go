@@ -143,7 +143,8 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 		contxt, canceler = context.WithCancel(context.Background())
 		receivedSecret, err := ctx.ProvisionUI.DisplayAndPromptSecret(contxt, arg)
 		if err != nil {
-			// could cancel provisionee run here?
+			// cancel provisionee run:
+			provisionee.Cancel()
 			e.G().Log.Warning("DisplayAndPromptSecret error: %s", err)
 		} else if receivedSecret.Secret != nil && len(receivedSecret.Secret) > 0 {
 			e.G().Log.Debug("received secret, adding to provisionee")
@@ -417,7 +418,7 @@ func (e *loginProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
 	// unlock it
 	// XXX improve this prompt
 	parg := ctx.SecretKeyPromptArg(libkb.SecretKeyArg{}, "sign new device")
-	unlocked, err := key.PromptAndUnlock(parg, "keybase", nil, e.lks, e.arg.User)
+	unlocked, err := key.PromptAndUnlock(parg, "keybase", nil, e.arg.User)
 	if err != nil {
 		return nil, err
 	}

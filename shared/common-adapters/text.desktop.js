@@ -180,6 +180,14 @@ export const specialStyles = {
     fontSize: 24,
     lineHeight: '29px',
     letterSpacing: '0.3px'
+  },
+  paperKey: {
+    ...textCommon,
+    ...globalStyles.fontTerminalSemibold,
+    color: globalColors.black75,
+    fontSize: 18,
+    lineHeight: '24px',
+    letterSpacing: '0.3px'
   }
 }
 

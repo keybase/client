@@ -1,4 +1,5 @@
 import * as Constants from '../constants/devices'
+import * as CommonConstants from '../constants/common'
 
 const initialState = {
   waitingForServer: false,
@@ -10,6 +11,9 @@ const initialState = {
 
 export default function (state = initialState, action) {
   switch (action.type) {
+    case CommonConstants.resetStore:
+      return {...initialState}
+
     case Constants.loadingDevices:
       return {
         ...state,

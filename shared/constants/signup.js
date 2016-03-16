@@ -6,6 +6,12 @@ import type {TypedAction} from '../constants/types/flux'
 export const checkInviteCode = 'signup:checkInviteCode'
 export type CheckInviteCode = TypedAction<'signup:checkInviteCode', {inviteCode: string}, {errorText: string}>
 
+export const startRequestInvite = 'signup:startRequestInvite'
+export type StartRequestInvite = TypedAction<'signup:startRequestInvite', {}, {}>
+
+export const requestInvite = 'signup:requestInvite'
+export type RequestInvite = TypedAction<'signup:requestInvite', {email: string, name: string}, {emailError: ?string, nameError: ?string, email: ?string, name: ?string}>
+
 export const checkUsernameEmail = 'signup:checkUsernameEmail'
 export type CheckUsernameEmail = TypedAction<'signup:checkUsernameEmail', {username: string, email: string}, {emailError: ?string, usernameError: ?string, email: ?string, username: ?string}>
 
@@ -28,4 +34,3 @@ export const resetSignup = 'signup:resetSignup'
 export type ResetSignup = TypedAction<'signup:resetSignup', {}, {}>
 
 export type SignupActions = CheckInviteCode | CheckUsernameEmail | CheckPassphrase | SubmitDeviceName | Signup | ShowPaperKey | ShowSuccess | ResetSignup
-

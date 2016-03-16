@@ -18,12 +18,18 @@ var sentNotifications = {}
 let lastLoggedInNotifyUsername = null
 
 // TODO(mm) Move these to their own actions
-export default function (dispatch: Dispatch, notify: any): incomingCallMapType {
+export default function (dispatch: Dispatch, getState: () => Object, notify: any): incomingCallMapType {
   return {
     'keybase.1.NotifySession.loggedOut': params => {
       lastLoggedInNotifyUsername = null
-      notify('Logged out of Keybase')
-      dispatch(logoutDone())
+
+      // Do we actually think we're logged in?
+      if (getState().config &&
+        getState().config.status &&
+        getState().config.status.loggedIn) {
+        notify('Logged out of Keybase')
+        dispatch(logoutDone())
+      }
     },
     'keybase.1.NotifySession.loggedIn': ({username}, response) => {
       if (lastLoggedInNotifyUsername !== username) {

@@ -31,9 +31,6 @@ export const actionForgotPasswordDone = 'login:actionForgotPasswordDone'
 
 export const actionSetUserPass = 'login:actionSetUserPass'
 
-export const actionAskDeviceName = 'login:actionAskDeviceName'
-export const actionSetDeviceName = 'login:actionSetDeviceName'
-
 export const actionRegisteredWithUserPass = 'login:actionRegisteredWithUserPass'
 export const actionRegisteredWithPaperKey = 'login:actionRegisteredWithPaperKey'
 export const actionRegisteredWithExistingDevice = 'login:actionRegisteredWithExistingDevice'

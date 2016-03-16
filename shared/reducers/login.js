@@ -2,6 +2,7 @@
 
 import * as Constants from '../constants/login'
 import * as ConfigConstants from '../constants/config'
+import * as CommonConstants from '../constants/common'
 import Immutable from 'immutable'
 import HiddenString from '../util/hidden-string'
 import {isMobile} from '../constants/platform'
@@ -39,11 +40,6 @@ type LoginState = {
   userPass: {
     username: string | '',
     passphrase: ?HiddenString
-  },
-  deviceName: {
-    onSubmit: ?Function,
-    existingDevices: ?Array<string>,
-    deviceName: string | ''
   },
   configuredAccounts: ?Array<{hasStoredSecret: bool, username: string}>,
   provisionDevices: Array<{
@@ -102,6 +98,9 @@ export default function (state: LoginState = initialState, action: any): LoginSt
   let toMerge = null
 
   switch (action.type) {
+    case CommonConstants.resetStore:
+      return {...initialState}
+
     case ConfigConstants.statusLoaded:
       if (action.error || action.payload == null) {
         return state
@@ -171,15 +170,6 @@ export default function (state: LoginState = initialState, action: any): LoginSt
       toMerge = {userPass: {username, passphrase}}
       break
     }
-    case Constants.actionAskDeviceName: {
-      const {onSubmit, existingDevices} = action.payload
-      toMerge = {deviceName: {onSubmit, existingDevices}}
-      break
-    }
-    case Constants.actionSetDeviceName:
-      const deviceName = action.payload
-      toMerge = {deviceName: {deviceName}}
-      break
     case Constants.configuredAccounts:
       if (action.payload.error) {
         toMerge = {configuredAccounts: []}

@@ -2,7 +2,6 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import Render from './index.render'
-import {cancelLogin} from '../../../actions/login'
 import type {Props} from './index.render'
 
 class GPGMissingPinentry extends Component<void, Props, void> {
@@ -12,8 +11,5 @@ class GPGMissingPinentry extends Component<void, Props, void> {
 }
 
 export default connect(
-  state => ({}),
-  dispatch => ({
-    onBack: () => dispatch(cancelLogin())
-  })
+  state => ({})
 )(GPGMissingPinentry)

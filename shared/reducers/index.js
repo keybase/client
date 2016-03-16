@@ -17,7 +17,8 @@ import updateConfirm from './update-confirm'
 import updatePaused from './update-paused'
 import signup from './signup'
 import unlockFolders from './unlock-folders.js'
-import {logoutDone} from '../constants/login'
+
+import {resetStore} from '../constants/common.js'
 
 import devEdit from './dev-edit'
 
@@ -74,10 +75,12 @@ if (__DEV__) {
   reducer = combinedReducer
 }
 
-export default function (state: Object = {}, action: any): State {
-  // Reset most of out state if we logout
-  if (action.type === logoutDone) {
-    state = {tracker: state.tracker, pinentry: state.pinentry, update: state.update}
+export default function (state: State, action: any): State {
+  // Warn if any keys did not change after a resetStore action
+  if (__DEV__ && action.type === resetStore) {
+    const nextState = reducer(state, action)
+    Object.keys(nextState).forEach(k => nextState[k] === state[k] && console.warn('Key %s did not change after resetStore action', k))
+    return nextState
   }
   return reducer(state, action)
 }

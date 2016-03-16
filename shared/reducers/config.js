@@ -1,6 +1,7 @@
 /* @flow */
 
 import * as Constants from '../constants/config'
+import * as CommonConstants from '../constants/common'
 
 import type {Action} from '../constants/types/flux'
 import type {Config, GetCurrentStatusRes, ExtendedStatus} from '../constants/types/flow-types'
@@ -25,6 +26,9 @@ const initialState: ConfigState = {
 
 export default function (state: ConfigState = initialState, action: Action): ConfigState {
   switch (action.type) {
+    case CommonConstants.resetStore:
+      return {...initialState}
+
     case Constants.startupLoading:
       return {
         ...state,

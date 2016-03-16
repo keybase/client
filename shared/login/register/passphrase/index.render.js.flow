@@ -2,6 +2,7 @@
 import React, {Component} from 'react'
 
 export type Props = {
+  prompt: string,
   onSubmit: (passphrase: string) => void,
   onBack: () => void,
   onForgotPassphrase: () => void

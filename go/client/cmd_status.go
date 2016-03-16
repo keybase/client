@@ -53,6 +53,7 @@ type fstatus struct {
 	Device                 *keybase1.Device
 	LoggedInProvisioned    bool `json:"LoggedIn"`
 	PassphraseStreamCached bool `json:"KeychainUnlocked"`
+	LKSecLoaded            bool `json:"LocalKeySecurityLoaded"`
 	SessionIsValid         bool `json:"SessionIsValid"`
 	SessionStatus          string
 	ConfigPath             string
@@ -148,6 +149,7 @@ func (c *CmdStatus) load() (*fstatus, error) {
 
 	status.SessionStatus = c.sessionStatus(extStatus.Session)
 	status.PassphraseStreamCached = extStatus.PassphraseStreamCached
+	status.LKSecLoaded = extStatus.LksecLoaded
 
 	if kbfs := getFirstClient(extStatus.Clients, keybase1.ClientType_KBFS); kbfs != nil {
 		status.KBFS.Version = kbfs.Version
@@ -211,6 +213,7 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	dui.Printf("Session:       %s\n", status.SessionStatus)
 	dui.Printf("    is valid:  %s\n", BoolString(status.SessionIsValid, "yes", "no"))
 	dui.Printf("    keys:      %s\n", BoolString(status.PassphraseStreamCached, "unlocked", "locked"))
+	dui.Printf("    lksec:     %s\n", BoolString(status.LKSecLoaded, "loaded", "not loaded"))
 	dui.Printf("\nKBFS:\n")
 	dui.Printf("    status:    %s\n", BoolString(status.KBFS.Running, "running", "not running"))
 	dui.Printf("    version:   %s\n", status.KBFS.Version)

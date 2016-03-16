@@ -1,38 +1,47 @@
-import React, {Component} from 'react'
-import {TextField, RaisedButton} from 'material-ui'
+// @flow
+import React from 'react'
+import {Text, Button, Input, Icon} from '../../../common-adapters'
+import Container from '../../forms/container.desktop'
+import type {Props} from './index.render'
 
-export default class SetPublicNameRender extends Component {
-  render () {
-    return (
-      <div style={{display: 'flex', flexDirection: 'column', flex: 1, padding: 20}}>
-        <h1>Set a public name for this device</h1>
-        <h2>We need this because lorem iplorem iplorem iplorem iplorem ipssssslorem ips</h2>
-        <TextField
-          hintText='Device Nickname'
-          floatingLabelText='Nickname'
-          value={this.props.deviceName}
-          onEnterKeyDown={() => this.props.onSubmit()}
-          onChange={event => this.props.onChangeDeviceName(event.target.value)}
-        />
-        {this.props.deviceNameError &&
-          <p>{this.props.deviceNameError}</p>
-        }
-        <RaisedButton
-          style={{alignSelf: 'flex-end', marginTop: 20}}
-          label='Submit'
-          primary
-          onClick={() => this.props.onSubmit()}
-          disabled={!this.props.submitEnabled}
-        />
-      </div>
-    )
+const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName}: Props) => (
+  <Container style={styles.container} onBack={onBack}>
+    <Text type='Header' style={styles.header}>Set a public name for this device:</Text>
+    <Icon type='computer-color-m' style={styles.icon}/>
+    <Input
+      autoFocus
+      errorText={deviceNameError}
+      style={styles.input}
+      floatingLabelText='Device name'
+      onEnterKeyDown={() => onSubmit()}
+      onChange={event => onChange(event.target.value)}
+      value={deviceName}/>
+    <Button
+      type='Primary'
+      style={styles.button}
+      label='Continue'
+      onClick={() => onSubmit()} />
+  </Container>
+)
+
+const styles = {
+  container: {
+    alignItems: 'center'
+  },
+  input: {
+    marginTop: 15,
+    alignSelf: 'stretch'
+  },
+  icon: {
+    marginTop: 60
+  },
+  button: {
+    alignSelf: 'flex-end',
+    marginTop: 40
+  },
+  header: {
+    marginTop: 35
   }
 }
 
-SetPublicNameRender.propTypes = {
-  deviceName: React.PropTypes.string,
-  onSubmit: React.PropTypes.func.isRequired,
-  onChangeDeviceName: React.PropTypes.func.isRequired,
-  deviceNameError: React.PropTypes.string,
-  submitEnabled: React.PropTypes.bool.isRequired
-}
+export default SetPublicName

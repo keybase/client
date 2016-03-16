@@ -23,7 +23,6 @@ export class ProofsRender extends Component {
   }
 
   onClickProof (proof: Proof): void {
-    // TODO: State is deprecated, will refactor after nuking v1
     if (proof.state !== proofChecking) {
       proof.humanUrl && this.openLink(proof.humanUrl)
     }
@@ -31,7 +30,6 @@ export class ProofsRender extends Component {
 
   onClickProfile (proof: Proof): void {
     console.log('Opening profile link:', proof)
-    // TODO: State is deprecated, will refactor after nuking v1
     if (proof.state !== proofChecking) {
       proof.profileUrl && this.openLink(proof.profileUrl)
     }
@@ -74,7 +72,7 @@ export class ProofsRender extends Component {
     let color = globalColors.blue
     switch (proof.state) {
       case proofNormal: {
-        color = this._isTracked(proof) ? globalColors.green : globalColors.blue
+        color = this._isTracked(proof) ? globalColors.green2 : globalColors.blue
         break
       }
       case proofChecking:
@@ -87,7 +85,6 @@ export class ProofsRender extends Component {
         break
     }
 
-    // TODO: State is deprecated, will refactor after nuking v1
     if (proof.state === proofChecking) color = globalColors.black20
 
     return color
@@ -128,7 +125,7 @@ export class ProofsRender extends Component {
                 className='hover-underline'
                 style={{...styles.proofName, ...(proof.meta === metaDeleted ? {textDecoration: 'line-through'} : {}), color: proofNameColor}}
                 onClick={onClickProfile}>
-                <Text inline style={{color: proofNameColor}} type='Body'>{proof.name}</Text>
+                <Text inline style={{...globalStyles.selectable, color: proofNameColor}} type='Body'>{proof.name}</Text>
               </span>
               <wbr/>
               <Text inline type='Body' style={styles.proofType}>@{proof.type}</Text>
@@ -140,7 +137,7 @@ export class ProofsRender extends Component {
           <CircularProgress style={styles.loader} mode='indeterminate' color={globalColors.black20} size={spinnerSize} />
         }
         {!isChecking && proofStatusIcon &&
-          <Icon type={proofStatusIcon} style={styles.statusIcon} onClick={onClickProfile} />
+          <Icon type={proofStatusIcon} style={styles.statusIcon} onClick={() => this.onClickProof(proof)} />
         }
       </div>
     )
@@ -172,7 +169,8 @@ const styles = {
     ...globalStyles.clickable,
     height: 14,
     width: 14,
-    color: globalColors.lightGrey,
+    color: globalColors.black75,
+    hoverColor: globalColors.black75,
     marginRight: 9,
     marginTop: 4
   },
@@ -218,7 +216,7 @@ const styles = {
   },
   loader: {
     // Using negative margins cause we can't override height for CircularProgress
-    marginTop: -18,
+    marginTop: -14,
     marginBottom: -16,
     marginLeft: -16,
     marginRight: -16

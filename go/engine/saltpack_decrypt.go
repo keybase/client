@@ -8,7 +8,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/keybase/client/go/saltpack"
+	"github.com/keybase/saltpack"
 	"golang.org/x/net/context"
 )
 

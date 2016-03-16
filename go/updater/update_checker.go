@@ -39,13 +39,13 @@ func newUpdateChecker(updater *Updater, ctx Context, log logger.Logger, tickDura
 
 // Check checks for an update. If not requested (by user) and not forced it will
 // exit early if check has already been applied within checkDuration().
-func (u *UpdateChecker) Check(force bool, requested bool) error {
+func (u *UpdateChecker) Check(force bool, requested bool) (bool, error) {
 	if !requested && !force {
 		if lastCheckedPTime := u.updater.config.GetUpdateLastChecked(); lastCheckedPTime > 0 {
 			lastChecked := keybase1.FromTime(lastCheckedPTime)
-			if time.Since(lastChecked) > u.checkDuration {
-				u.log.Debug("Already checked: %s", lastChecked)
-				return nil
+			if time.Since(lastChecked) < u.checkDuration {
+				u.log.Debug("Already checked: %s (%s ago)", lastChecked, time.Since(lastChecked))
+				return false, nil
 			}
 		}
 	}
@@ -54,12 +54,12 @@ func (u *UpdateChecker) Check(force bool, requested bool) error {
 	u.count++
 	_, err := u.updater.Update(u.ctx, force, requested)
 	if err != nil {
-		return err
+		return true, err
 	}
 
 	u.log.Debug("Saving updater last checked: %s", checkTime)
 	u.updater.config.SetUpdateLastChecked(keybase1.ToTime(checkTime))
-	return nil
+	return true, nil
 }
 
 // Start starts the update checker
@@ -72,7 +72,7 @@ func (u *UpdateChecker) Start() {
 		for _ = range u.ticker.C {
 			go func() {
 				u.log.Debug("Checking for update (ticker)")
-				err := u.Check(false, false)
+				_, err := u.Check(false, false)
 				if err != nil {
 					u.log.Errorf("Error in update: %s", err)
 				}

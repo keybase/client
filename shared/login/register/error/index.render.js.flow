@@ -1,0 +1,11 @@
+// @flow
+
+import React from 'react'
+import type {EngineErrorType} from '../../../engine/errors'
+
+export type Props = {
+  error: EngineErrorType,
+  onBack: () => void
+}
+
+export default class Render extends React$Component<void, Props, void> { }

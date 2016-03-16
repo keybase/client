@@ -1,0 +1,17 @@
+/* @flow */
+/* eslint-disable react/prop-types */
+
+import React, {Component} from 'react'
+
+export type Props = {
+  name: ?string,
+  email: ?string,
+  nameErrorText: ?string,
+  emailErrorText: ?string,
+  onRequestInvite: () => void,
+  onBack: () => void
+}
+
+export default class Render extends Component {
+  props: Props;
+}

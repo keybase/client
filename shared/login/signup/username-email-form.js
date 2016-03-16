@@ -15,7 +15,8 @@ class UsernameEmailForm extends Component {
         email={this.props.email}
         submitUserEmail={this.props.checkUsernameEmail}
         usernameErrorText={this.props.usernameErrorText}
-        emailErrorText={this.props.emailErrorText}/>
+        emailErrorText={this.props.emailErrorText}
+        onBack={this.props.resetSignup}/>
     )
   }
 }

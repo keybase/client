@@ -8,6 +8,7 @@ import Immutable from 'immutable'
 import {subReducer as routerReducer, createRouterState} from './router'
 import {startupTab, folderTab, chatTab, peopleTab, devicesTab, moreTab, loginTab} from '../constants/tabs'
 import * as Constants from '../constants/tabbed-router'
+import * as CommonConstants from '../constants/common'
 import * as RouterConstants from '../constants/router'
 import {initTabbedRouterState} from '../local-debug'
 import type {RouterState} from './router'
@@ -17,22 +18,29 @@ type TabbedRouterState = MapADT2<'tabs', Immutable.Map<TabName, RouterState>, 'a
 
 const emptyRouterState: RouterState = createRouterState([], [])
 
-const initialState: TabbedRouterState = Immutable.fromJS(initTabbedRouterState({
-  // a map from tab name to router obj
-  tabs: {
-    [startupTab]: emptyRouterState,
-    [folderTab]: emptyRouterState,
-    [chatTab]: emptyRouterState,
-    [peopleTab]: emptyRouterState,
-    [devicesTab]: emptyRouterState,
-    [moreTab]: emptyRouterState,
-    [loginTab]: emptyRouterState
-  },
-  activeTab: loginTab
-}))
+function initialStateFn (): TabbedRouterState {
+  return Immutable.fromJS(initTabbedRouterState({
+    // a map from tab name to router obj
+    tabs: {
+      [startupTab]: emptyRouterState,
+      [folderTab]: emptyRouterState,
+      [chatTab]: emptyRouterState,
+      [peopleTab]: emptyRouterState,
+      [devicesTab]: emptyRouterState,
+      [moreTab]: emptyRouterState,
+      [loginTab]: emptyRouterState
+    },
+    activeTab: loginTab
+  }))
+}
+
+const initialState: TabbedRouterState = initialStateFn()
 
 export default function (state: TabbedRouterState = initialState, action: any): TabbedRouterState {
   switch (action.type) {
+    case CommonConstants.resetStore:
+      return initialStateFn()
+
     case Constants.switchTab:
       return state.set('activeTab', action.payload)
     case RouterConstants.navigateUp:

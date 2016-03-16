@@ -11,7 +11,7 @@ export type ActionProps = {
   shouldFollow: ?boolean,
   renderChangedTitle: ?string,
   failedProofsNotFollowingText: string,
-  lastAction: 'followed' | 'refollowed' | 'unfollowed' | 'error',
+  lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error'),
   onClose: () => void,
   onFollow: () => void,
   onMaybeTrack: () => void,

@@ -1,6 +1,8 @@
 /* @flow */
 
 import * as Constants from '../constants/signup'
+import * as CommonConstants from '../constants/common'
+
 import HiddenString from '../util/hidden-string'
 
 import type {SignupActions} from '../constants/signup'
@@ -12,13 +14,14 @@ export type SignupState = {
   inviteCodeError: ?string,
   usernameError: ?string,
   emailError: ?string,
+  nameError: ?string,
   passphraseError: ?HiddenString,
   passphrase: ?HiddenString,
   deviceNameError: ?string,
   deviceName: ?string,
   paperkey: ?HiddenString,
   signupError: ?HiddenString,
-  phase: 'inviteCode' | 'usernameAndEmail' | 'passphraseSignup' | 'deviceName' | 'signupLoading' | 'paperkey' | 'success' | 'signupError'
+  phase: 'inviteCode' | 'usernameAndEmail' | 'passphraseSignup' | 'deviceName' | 'signupLoading' | 'paperkey' | 'success' | 'signupError' | 'requestInvite' | 'requestInviteSuccess'
 }
 
 const initialState: SignupState = {
@@ -28,6 +31,7 @@ const initialState: SignupState = {
   inviteCodeError: null,
   usernameError: null,
   emailError: null,
+  nameError: null,
   passphraseError: null,
   passphrase: null,
   deviceNameError: null,
@@ -40,6 +44,9 @@ const initialState: SignupState = {
 /* eslint-disable no-fallthrough */
 export default function (state: SignupState = initialState, action: SignupActions): SignupState {
   switch (action.type) {
+    case CommonConstants.resetStore:
+      return {...initialState}
+
     case Constants.checkInviteCode:
       if (action.error) {
         return {
@@ -74,6 +81,32 @@ export default function (state: SignupState = initialState, action: SignupAction
           usernameError: null,
           username,
           email
+        }
+      }
+
+    case Constants.startRequestInvite:
+      return {
+        ...state,
+        phase: 'requestInvite'
+      }
+
+    case Constants.requestInvite:
+      if (action.error) {
+        const {emailError, nameError, email, name} = action.payload
+        return {
+          ...state,
+          emailError,
+          nameError,
+          email,
+          name
+        }
+      } else {
+        const {email, name} = action.payload
+        return {
+          ...state,
+          phase: 'requestInviteSuccess',
+          email,
+          name
         }
       }
 

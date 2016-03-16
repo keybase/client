@@ -4,11 +4,12 @@ import type {rpc, incomingCallMapType} from '../constants/types/flow-types'
 
 declare class Engine {
   rpc (params: rpc): void;
-  cancelRPC (sessionID: number): void;
+  cancelRPC (response: {error: (err: Object) => void}): void;
   listenOnConnect (key: string, f: () => void): void;
   listenGeneralIncomingRpc (m: incomingCallMapType): void;
 }
 
 var engine = new Engine()
 
+export function isRPCCancelError (err: Object) : bool { return false }
 export default engine

@@ -2,8 +2,9 @@
 /* eslint-disable react/prop-types */
 
 import React, {Component} from 'react'
-import {globalStyles} from '../../styles/style-guide'
-import {Text, Input, Button} from '../../common-adapters'
+import {globalStyles, globalColors} from '../../styles/style-guide'
+import {UserCard, Input, Button} from '../../common-adapters'
+import Container from '../forms/container'
 
 import type {Props} from './username-email-form.render'
 
@@ -18,12 +19,13 @@ export default class Render extends Component {
     }
 
     return (
-      <div style={styles.form}>
-        <Text style={styles.topMargin} type='Header'>Choose your Username and enter your email</Text>
-        <Input ref={r => (usernameRef = r)} value={this.props.username || ''} hintText='Username' errorText={this.props.usernameErrorText}/>
-        <Input ref={r => (emailRef = r)} value={this.props.email || ''} hintText='email' errorText={this.props.emailErrorText} onEnterKeyDown={submitUserEmail}/>
-        <Button type='Secondary' label='Next' onClick={submitUserEmail}/>
-      </div>
+      <Container onBack={this.props.onBack} style={styles.container} outerStyle={styles.outer}>
+        <UserCard style={styles.card}>
+          <Input style={styles.first} floatingLabelText='Create a username' value={this.props.username} ref={r => (usernameRef = r)} errorText={this.props.usernameErrorText}/>
+          <Input floatingLabelText='Email address' value={this.props.email} ref={r => (emailRef = r)} errorText={this.props.emailErrorText}/>
+          <Button fullWidth type='Primary' label='Continue' onClick={submitUserEmail}/>
+        </UserCard>
+      </Container>
     )
   }
 }
@@ -36,5 +38,21 @@ const styles = {
 
   topMargin: {
     marginTop: 20
+  },
+  outer: {
+    backgroundColor: globalColors.black10
+  },
+  container: {
+    ...globalStyles.flexBoxColumn,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 15
+  },
+  card: {
+    paddingLeft: 30,
+    paddingRight: 30
+  },
+  first: {
+    marginTop: 35
   }
 }

@@ -1,6 +1,7 @@
 /* @flow */
 
 import * as Constants from '../constants/pinentry'
+import * as CommonConstants from '../constants/common'
 
 import type {Feature, GUIEntryFeatures} from '../constants/types/flow-types'
 import type {PinentryActions} from '../constants/pinentry'
@@ -20,37 +21,38 @@ export type PinentryState = {
   retryLabel: ?string
 }
 
-// Hack until flow allows disjoint unions by boolean types: https://github.com/facebook/flow/issues/577
 export type RootPinentryState = {
-  started: 1,
+  started: boolean,
   pinentryStates: {
     [key: number]: PinentryState
   }
-} | {
-  started: 0
 }
 
 type EnabledFeatures = {[key: string]: Feature}
 
 const initialState: RootPinentryState = {
-  started: 0
+  started: false,
+  pinentryStates: {}
 }
 
 export default function (state: RootPinentryState = initialState, action: PinentryActions): RootPinentryState {
   const sessionID: ?number = (action.payload && action.payload.sessionID != null) ? action.payload.sessionID : null
   switch (action.type) {
+    case CommonConstants.resetStore:
+      return {
+        started: state.started,
+        ...initialState
+      }
     case Constants.registerPinentryListener:
       if (action.payload && action.payload.started) {
         return {
-          started: 1,
+          started: true,
           pinentryStates: {}
         }
       }
-      return {
-        started: 0
-      }
+      return initialState
     case Constants.newPinentry:
-      if (state.started === 1 && action.payload && sessionID != null) {
+      if (state.started && action.payload && sessionID != null) {
         const features = action.payload.features
         // Long form function to add annotation to help flow
         const reducer = function (m, f): EnabledFeatures {
@@ -75,7 +77,7 @@ export default function (state: RootPinentryState = initialState, action: Pinent
       }
       return state
     default:
-      if (state.started === 1 && sessionID != null) {
+      if (state.started && sessionID != null) {
         return {
           ...state,
           pinentryStates: {

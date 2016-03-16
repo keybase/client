@@ -33,6 +33,7 @@ class Render extends Component<void, Props, State> {
         <Text type='Header' style={styles.header}>Enter your username or email:</Text>
         <Icon type='fa-sign-in' style={styles.icon}/>
         <Input
+          autoFocus
           style={styles.input}
           floatingLabelText='Username or email'
           onEnterKeyDown={() => this.onSubmit()}

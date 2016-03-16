@@ -17,7 +17,7 @@ class DeviceRow extends Component<void, {device: Device}, void> {
     return (
       <div style={{...globalStyles.flexBoxRow, marginBottom: 16}}>
         <div style={deviceRowStyles.iconWrapper}>
-          <Icon type={isDesktop ? 'icon-computer-bw-xs' : 'icon-phone-bw-xs'} style={{height: 22}}/>
+          <Icon type={isDesktop ? 'computer-bw-xs' : 'phone-bw-xs'} style={{height: 22}}/>
         </div>
         <Text type='BodySemiboldItalic' style={{marginLeft: 16}}>{this.props.device.name}</Text>
       </div>

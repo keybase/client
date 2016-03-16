@@ -456,6 +456,10 @@
           "name": "passphraseStreamCached"
         },
         {
+          "type": "boolean",
+          "name": "lksecLoaded"
+        },
+        {
           "type": [
             "null",
             "Device"

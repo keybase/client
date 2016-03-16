@@ -102,6 +102,9 @@ const util = {
     justifyContent: 'center',
     alignItems: 'center'
   },
+  selectable: {
+    WebkitUserSelect: 'initial'
+  },
   noSelect: {
     WebkitUserSelect: 'none'
   },

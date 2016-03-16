@@ -3,36 +3,67 @@
 
 import React, {Component} from 'react'
 import {globalStyles} from '../../styles/style-guide'
-import {Text, Input, Button} from '../../common-adapters'
-
+import {Text, Input, Button, Icon} from '../../common-adapters'
+import Container from '../forms/container'
 import type {Props} from './invite-code.render'
 
 export default class Render extends Component {
   props: Props;
 
-  render () {
-    let inviteRef = null
-    const submitInviteCode = () => {
-      const inviteCode = inviteRef && inviteRef.getValue() || ''
-      this.props.onInviteCodeSubmit(inviteCode)
+  state: {
+    inviteCode: ?string
+  };
+
+  constructor (props: Props) {
+    super(props)
+    this.state = {
+      inviteCode: this.props.inviteCode || ''
     }
+  }
+
+  render () {
+    const submitInviteCode = () => {
+      this.props.onInviteCodeSubmit(this.state.inviteCode)
+    }
+
     return (
-      <div style={styles.form}>
-        <Text style={styles.topMargin} type='Header'>Enter your special invite code</Text>
-        <Input ref={r => (inviteRef = r)} hintText='Invite Code' value={this.props.inviteCode || ''} errorText={this.props.inviteCodeErrorText} onEnterKeyDown={submitInviteCode}/>
-        <Button type='Secondary' label='Check' onClick={submitInviteCode}/>
-      </div>
+      <Container onBack={this.props.onBack} style={styles.container}>
+        <Text style={styles.header} type='Header'>Type in your invite code:</Text>
+        <Icon style={styles.icon} type='invite-code-m'/>
+        <Input style={styles.input} hintText='goddess brown result reject' value={this.state.inviteCode} errorText={this.props.inviteCodeErrorText} onEnterKeyDown={submitInviteCode} onChange={event => this.setState({inviteCode: event.target.value})}/>
+        <Button style={styles.button} type='Primary' label='Continue' onClick={submitInviteCode} disabled={!this.state.inviteCode}/>
+        <Text style={styles.text} type='Body'>Not invited?</Text>
+        <Text type='BodyPrimaryLink' onClick={this.props.onRequestInvite}>Request an invite code</Text>
+      </Container>
     )
   }
 }
 
 const styles = {
-  form: {
-    ...globalStyles.flexBoxColumn,
-    flex: 1
+  button: {
+    marginTop: 10,
+    marginRight: 0,
+    alignSelf: 'flex-end'
   },
-
-  topMargin: {
-    marginTop: 20
+  container: {
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'center'
+  },
+  continue: {
+    justifyContent: 'flex-end'
+  },
+  header: {
+    marginTop: 30
+  },
+  icon: {
+    marginTop: 75
+  },
+  input: {
+    alignSelf: 'stretch',
+    height: 45,
+    marginTop: 75
+  },
+  text: {
+    marginTop: 40
   }
 }

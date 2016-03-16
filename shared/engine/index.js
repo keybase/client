@@ -290,7 +290,7 @@ class Engine {
 
       this.rpcClient.invoke(method, [param], (err, data) => {
         if (printRPC) {
-          logLocal('RPC ◀', method, param, err, data)
+          logLocal('RPC ◀', method, param, err, err && err.raw, JSON.stringify(data))
         }
         // deregister incomingCallbacks
         delete this.sessionIDToIncomingCall[sessionID]
@@ -318,23 +318,28 @@ class Engine {
     return this.rpc_unchecked(method, param, incomingCallMap, callback)
   }
 
-  cancelRPC (sessionID) {
-    const response = this.sessionIDToResponse[sessionID]
+  cancelRPC (response) {
     if (response) {
       if (response.error) {
-        response.error({
-          code: constants.StatusCode.scgeneric,
-          desc: 'Canceling RPC'
-        })
+        response.error(cancelError)
       }
     } else {
-      logLocal('Invalid sessionID sent to cancelRPC: ', sessionID)
+      logLocal('Invalid response sent to cancelRPC')
     }
   }
 
   reset () {
     engine.reset()
   }
+}
+
+const cancelError = {
+  code: constants.StatusCode.scgeneric,
+  desc: 'Canceling RPC'
+}
+
+export function isRPCCancelError (err) {
+  return err && err.code === cancelError.code && err.desc === cancelError.desc
 }
 
 export default new Engine()

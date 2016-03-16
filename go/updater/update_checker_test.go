@@ -23,7 +23,7 @@ func TestUpdateCheckerIsAsync(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	checker := newUpdateChecker(updater, testUpdateCheckUI{}, logger.NewTestLogger(t), 50*time.Millisecond, 100*time.Millisecond)
+	checker := newUpdateChecker(updater, testUpdateCheckUI{promptDelay: 400 * time.Millisecond}, logger.NewTestLogger(t), 50*time.Millisecond, 100*time.Millisecond)
 	defer checker.Stop()
 	checker.Start()
 
@@ -34,10 +34,12 @@ func TestUpdateCheckerIsAsync(t *testing.T) {
 	}
 }
 
-type testUpdateCheckUI struct{}
+type testUpdateCheckUI struct {
+	promptDelay time.Duration
+}
 
 func (u testUpdateCheckUI) UpdatePrompt(_ context.Context, _ keybase1.UpdatePromptArg) (keybase1.UpdatePromptRes, error) {
-	time.Sleep(400 * time.Millisecond)
+	time.Sleep(u.promptDelay)
 	return keybase1.UpdatePromptRes{Action: keybase1.UpdateAction_UPDATE}, nil
 }
 
@@ -59,4 +61,28 @@ func (u testUpdateCheckUI) Verify(r io.Reader, signature string) error {
 
 func (u testUpdateCheckUI) UpdateAppInUse(context.Context, keybase1.UpdateAppInUseArg) (keybase1.UpdateAppInUseRes, error) {
 	return keybase1.UpdateAppInUseRes{Action: keybase1.UpdateAppInUseAction_CANCEL}, nil
+}
+
+func TestUpdateCheckerSince(t *testing.T) {
+	updater, err := NewTestUpdater(t, NewDefaultTestUpdateConfig(), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	checker := newUpdateChecker(updater, testUpdateCheckUI{}, logger.NewTestLogger(t), time.Second, 300*time.Millisecond)
+	if err != nil {
+		t.Fatal(err)
+	}
+	checked, err := checker.Check(false, false)
+	if !checked {
+		t.Fatal("Should have checked (1)")
+	}
+	checked, err = checker.Check(false, false)
+	if checked {
+		t.Fatal("Should not have checked (2)")
+	}
+	time.Sleep(300 * time.Millisecond)
+	checked, err = checker.Check(false, false)
+	if !checked {
+		t.Fatal("Should have checked (3)")
+	}
 }

@@ -39,6 +39,7 @@ protocol config {
   record ExtendedStatus {
     boolean standalone;
     boolean passphraseStreamCached;
+    boolean lksecLoaded;
     union { null, Device } device;
     string logDir;
     union { null, SessionStatus } session;

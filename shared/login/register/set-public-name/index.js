@@ -1,9 +1,17 @@
+// @flow
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import Render from './index.render'
+import type {Props} from './index.render'
 
-export default class SetPublicName extends Component {
-  constructor (props) {
+type State = {
+  deviceName: ?string
+}
+
+export class SetPublicName extends Component<void, Props, State> {
+  state: State;
+
+  constructor (props: Props) {
     super(props)
 
     this.state = {
@@ -19,9 +27,10 @@ export default class SetPublicName extends Component {
     return (
       <Render
         deviceName={this.state.deviceName}
-        onChangeDeviceName={deviceName => this.setState({deviceName})}
+        onChange={deviceName => this.setState({deviceName})}
         onSubmit={() => this.props.onSubmit(this.state.deviceName)}
-        deviceNameError={nameTakenError}
+        onBack={this.props.onBack}
+        deviceNameError={nameTakenError || this.props.deviceNameError}
         submitEnabled={submitEnabled}
       />
     )
@@ -38,13 +47,7 @@ export default class SetPublicName extends Component {
   }
 }
 
-SetPublicName.propTypes = {
-  deviceName: React.PropTypes.string,
-  existingDevices: React.PropTypes.array,
-  onSubmit: React.PropTypes.func.isRequired
-}
-
 export default connect(
-  (state, ownProps) => ownProps.mapStateToProps(state)
+  state => ({})
 )(SetPublicName)
 

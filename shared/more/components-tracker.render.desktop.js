@@ -4,20 +4,24 @@ import React, {Component} from 'react'
 import commonStyles from '../styles/common'
 import Tracker from '../tracker/index.js'
 import {normal, checking, revoked, error} from '../constants/tracker'
-import {metaUpgraded, metaUnreachable, metaPending, metaDeleted} from '../constants/tracker'
+import {metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone} from '../constants/tracker'
 
-function proofGithubMaker (name) {
-  return {name: 'githubuser' + name, type: 'github', id: 'githubId' + name, state: normal, humanUrl: 'github.com', profileUrl: 'http://github.com'}
+import type {TrackerProps} from '../tracker'
+import type {Proof} from '../tracker/proofs.render'
+import type {TrackSummary} from '../constants/types/flow-types'
+
+function proofGithubMaker (name): Proof {
+  return {name: 'githubuser' + name, type: 'github', id: 'githubId' + name, state: normal, meta: metaNone, humanUrl: 'github.com', profileUrl: 'http://github.com'}
 }
 
 const proofGithub = proofGithubMaker('')
 
-const proofTwitter = {name: 'twitteruser', type: 'twitter', id: 'twitterId', state: normal, humanUrl: 'twitter.com', profileUrl: 'http://twitter.com'}
-const proofWeb = {name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', type: 'web', id: 'webId', state: normal, humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com'}
-const proofHN = {name: 'pg', type: 'hackernews', id: 'hnId', state: normal, humanUrl: 'news.ycombinator.com', profileUrl: 'http://news.ycombinator.com'}
-const proofRooter = {name: 'roooooooter', type: 'rooter', state: normal, id: 'rooterId', humanUrl: ''}
+const proofTwitter: Proof = {name: 'twitteruser', type: 'twitter', id: 'twitterId', state: normal, meta: metaNone, humanUrl: 'twitter.com', profileUrl: 'http://twitter.com'}
+const proofWeb: Proof = {name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', type: 'web', id: 'webId', state: normal, meta: metaNone, humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', profileUrl: ''}
+const proofHN: Proof = {name: 'pg', type: 'hackernews', id: 'hnId', state: normal, meta: metaNone, humanUrl: 'news.ycombinator.com', profileUrl: 'http://news.ycombinator.com'}
+const proofRooter: Proof = {name: 'roooooooter', type: 'rooter', state: normal, meta: metaNone, id: 'rooterId', humanUrl: '', profileUrl: ''}
 
-const proofsDefault = [
+const proofsDefault: Array<Proof> = [
   proofGithub,
   proofTwitter,
   proofWeb,
@@ -25,18 +29,36 @@ const proofsDefault = [
   proofRooter
 ]
 
-const proofsChanged = [
-  {name: 'deleted', type: 'github', id: 'warningId', state: revoked, meta: metaDeleted, humanUrl: ''},
-  {name: 'unreachable', type: 'twitter', id: 'unreachableId', state: error, meta: metaUnreachable, humanUrl: ''},
-  // TODO: Need to use state for checking; Refactor after nuking v1
-  {name: 'checking', type: 'twitter', id: 'checkingId', state: checking, humanUrl: ''},
-  {name: 'pending', type: 'web', id: 'pendingId', state: normal, meta: metaPending, humanUrl: ''},
-  {name: 'upgraded', type: 'rooter', id: 'upgradedId', state: normal, meta: metaUpgraded, humanUrl: ''}
+const proofsChanged: Array<Proof> = [
+  {name: 'deleted', type: 'github', id: 'warningId', state: revoked, meta: metaDeleted, humanUrl: '', profileUrl: ''},
+  {name: 'unreachable', type: 'twitter', id: 'unreachableId', state: error, meta: metaUnreachable, humanUrl: '', profileUrl: ''},
+  {name: 'checking', type: 'twitter', id: 'checkingId', state: checking, meta: metaNone, humanUrl: '', profileUrl: ''},
+  {name: 'pending', type: 'web', id: 'pendingId', state: normal, meta: metaPending, humanUrl: '', profileUrl: ''},
+  {name: 'upgraded', type: 'rooter', id: 'upgradedId', state: normal, meta: metaUpgraded, humanUrl: '', profileUrl: ''}
 ]
 
-const propsDefault = {
+const propsBase = {
   closed: false,
-  username: 'gabrielh',
+  lastTrack: null,
+  currentlyFollowing: false,
+  onFollowChecked: () => {},
+  onFollowHelp: () => {},
+  onFollow: () => {},
+  onRefollow: () => {},
+  onUnfollow: () => {},
+  onClose: () => {},
+  startTimer: () => {},
+  stopTimer: () => {},
+  waiting: false,
+  loggedIn: true,
+  onMaybeTrack: () => {},
+  trackerMessage: null,
+  lastAction: null
+}
+
+const propsDefault: TrackerProps = {
+  ...propsBase,
+  username: 'darksim905',
   reason: 'You accessed a private folder with gabrielh.',
   userInfo: {
     fullname: 'Gabriel Handford',
@@ -44,10 +66,10 @@ const propsDefault = {
     followingCount: 356,
     location: 'San Francisco, California, USA, Earth, Milky Way',
     bio: 'Etsy photo booth mlkshk semiotics, 8-bit literally slow-carb keytar bushwick +1. Plaid migas etsy yuccie, locavore street art mlkshk lumbersexual. Literally microdosing pug disrupt iPhone raw denim, quinoa meggings kitsch. ',
-    avatar: 'https://s3.amazonaws.com/keybase_processed_uploads/71cd3854986d416f60dacd27d5796705_200_200_square_200.jpeg'
+    avatar: 'https://keybase.io/darksim905/picture',
+    followsYou: false
   },
   shouldFollow: true,
-  lastTrack: false,
   trackerState: normal,
   proofs: proofsDefault,
 
@@ -59,11 +81,17 @@ const propsDefault = {
   }
 }
 
-const propsNewUser = {
+const lastTrackMax: TrackSummary = {
+  username: 'max',
+  time: 0,
+  isRemote: true
+}
+
+const propsNewUser: TrackerProps = {
   ...propsDefault
 }
 
-const propsNewUserFollowsYou = {
+const propsNewUserFollowsYou: TrackerProps = {
   ...propsDefault,
   userInfo: {
     ...propsNewUser.userInfo,
@@ -71,31 +99,31 @@ const propsNewUserFollowsYou = {
   }
 }
 
-const propsFollowing = {
+const propsFollowing: TrackerProps = {
   ...propsNewUser,
   reason: 'You have tracked gabrielh.',
   userInfo: {
     ...propsNewUser.userInfo,
     followsYou: true
   },
-  lastTrack: true,
+  lastTrack: lastTrackMax,
   proofs: proofsDefault,
   lastAction: 'followed'
 }
 
-const propsChangedProofs = {
+const propsChangedProofs: TrackerProps = {
   ...propsDefault,
   reason: 'Some of gabrielh\'s proofs have changed since you last tracked them.',
   userInfo: {
     ...propsNewUser.userInfo,
     followsYou: true
   },
-  lastTrack: true,
+  lastTrack: lastTrackMax,
   trackerState: error,
   proofs: proofsChanged
 }
 
-const propsUnfollowed = {
+const propsUnfollowed: TrackerProps = {
   ...propsDefault,
   reason: 'You have untracked gabrielh.',
   userInfo: {
@@ -105,16 +133,18 @@ const propsUnfollowed = {
   lastAction: 'unfollowed'
 }
 
-const propsLessData = {
-  closed: false,
+const propsLessData: TrackerProps = {
+  ...propsBase,
   username: '00',
   reason: 'I\'m a user with not much data.',
   userInfo: {
     fullname: 'Hi',
+    bio: '',
     followersCount: 1,
     followingCount: 0,
     followsYou: false,
-    avatar: 'http://placehold.it/140x140/ffffff/000000'
+    avatar: 'http://placehold.it/140x140/ffffff/000000',
+    location: ''
   },
   shouldFollow: true,
   currentlyFollowing: false,
@@ -124,11 +154,17 @@ const propsLessData = {
   ]
 }
 
-const propsLoggedOut = {...propsDefault, loggedIn: false, reason: 'You accessed a public folder with gabrielh.'}
-
-const propsOneProof = {...propsDefault, proofs: [proofsDefault[0]]}
-const smallBio = {...propsDefault.userInfo, bio: 'bio'}
-const propsFiveProof = {...propsDefault, userInfo: smallBio, proofs: [0, 1, 2, 3, 4].map(proofGithubMaker)}
+const propsLoggedOut: TrackerProps = {...propsDefault, loggedIn: false, reason: 'You accessed a public folder with gabrielh.'}
+const propsOneProof: TrackerProps = {...propsDefault, proofs: [proofsDefault[0]]}
+const propsFiveProof: TrackerProps = {
+  ...propsDefault,
+  userInfo: {
+    ...propsDefault.userInfo,
+    bio: 'bio',
+    location: ''
+  },
+  proofs: [0, 1, 2, 3, 4].map(proofGithubMaker)
+}
 
 export default class Render extends Component {
   render () {
@@ -173,7 +209,7 @@ export default class Render extends Component {
           </div>
           <div>
             <div style={styles.pretendTrackerWindow}>
-              <Tracker {...{...propsChangedProofs, lastTrack: false}} />\
+              <Tracker {...{...propsChangedProofs, lastTrack: false}} />
             </div>
             <p>Changed/Broken proofs user you dont follow</p>
           </div>
@@ -182,6 +218,14 @@ export default class Render extends Component {
               <Tracker {...propsChangedProofs} />\
             </div>
             <p>Changed/Broken proofs</p>
+          </div>
+          <div>
+            <div style={styles.pretendTrackerWindow}>
+              <Tracker {...{...propsFollowing, userInfo: {
+                ...propsNewUser.userInfo,
+                followsYou: false}}} />
+            </div>
+            <p>You track them</p>
           </div>
           <div>
             <div style={styles.pretendTrackerWindow}>

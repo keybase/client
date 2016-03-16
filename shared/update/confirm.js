@@ -7,6 +7,7 @@ import {Header, Text, Button, Checkbox, Icon, Terminal} from '../common-adapters
 import {clipboard} from 'electron'
 import marked from 'marked'
 import {globalStyles, globalColors} from '../styles/style-guide'
+import {autoResize} from '../../desktop/renderer/remote-component-helper'
 
 type RenderProps = {
   isCritical: bool,
@@ -40,6 +41,10 @@ class UpdateConfirm extends Component {
   onCopy () {
     clipboard.writeText(this.props.updateCommand)
     this.setState({snackbarOpen: true})
+  }
+
+  componentDidMount () {
+    autoResize()
   }
 
   render () {
@@ -110,7 +115,7 @@ const styles = {
   },
   headerContainer: {
     ...globalStyles.flexBoxColumn,
-    paddingTop: 20,
+    paddingTop: 35,
     paddingBottom: 15
   },
   actionsContainer: {
