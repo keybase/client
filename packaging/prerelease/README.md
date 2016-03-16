@@ -73,5 +73,5 @@ keybase update run --source=remote --url="https://s3.amazonaws.com/prerelease-te
 ### Testing S3 Index
 
 ```
-NOPULL=1 BUCKET_NAME=prerelease-test.keybase.io ./s3_index.sh
+NOPULL=1 BUCKET_NAME=prerelease-test.keybase.io PLATFORM=darwin ./s3_index.sh
 ```
