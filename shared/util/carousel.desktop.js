@@ -24,7 +24,7 @@ class CarouselThing extends Component {
 
 function PageIndicator ({selectedIndex, itemCount, style, onClickPage}: {selectedIndex: number, itemCount: number, style: Object, onClickPage: (i: number) => void}) {
   const marks = _.range(itemCount).map(n => {
-    const color = (n === selectedIndex) ? globalColors.white : globalColors.lightBlue
+    const color = (n === selectedIndex) ? globalColors.white : globalColors.blue2
     return (<Icon type='fa-circle' style={{color, ...styles.pageIndicator}} onClick={() => onClickPage(n)} key={n}/>)
   })
   return (
