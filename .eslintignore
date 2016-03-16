@@ -1,8 +1,10 @@
 /desktop/build/**
+/desktop/dist/**
 /desktop/release/**
 /desktop/node_modules
 /react-native/node_modules
 /shared/libs/immutable-interface.js
+/shared/libs/flow-interface.js
 /git-hooks
 /go
 /media
