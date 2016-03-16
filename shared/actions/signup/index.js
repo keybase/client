@@ -177,7 +177,7 @@ export function checkUsernameEmail (username: ?string, email: ?string): TypedAsy
           dispatch({
             type: Constants.checkUsernameEmail,
             error: true,
-            payload: {emailError, usernameError: 'Username is taken', email, username}
+            payload: {emailError, usernameError: `Username error: ${err.desc || err.toString()}`, email, username}
           })
           resolve()
         } else {
