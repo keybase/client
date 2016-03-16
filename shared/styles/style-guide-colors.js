@@ -14,13 +14,14 @@ export default {
   darkBlue: '#195080',
   darkBlue2: '#2470b3',
   darkBlue3: '#001b33',
+  darkBlue4: '#0a3052',
 
   green: '#3dcc8e',
   green2: '#36b37c',
 
   red: '#ff4d61',
 
-  yellowGreen: '#b3db39',
+  yellowGreen: '#a8cf36',
   yellowGreen2: '#89a82c',
 
   lightGrey: '#f6f6f6',
