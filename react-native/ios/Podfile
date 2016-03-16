@@ -1,5 +1,4 @@
 target "Keybase" do
  platform :ios, '8.0'
- pod "Alamofire"
  use_frameworks!
 end
