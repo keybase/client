@@ -1,10 +1,25 @@
+// @flow
 import React, {Component} from 'react'
 import {globalStyles} from '../styles/style-guide'
 import {Checkbox} from '../common-adapters'
 import Menubar from '../menubar'
+import UnlockFolders from '../unlock-folders'
 
-export default class Render extends Component {
-  constructor (props) {
+import Mock from '../util/mock-provider'
+
+import {mocks} from '../reducers/unlock-folders'
+
+type ComponentState = {
+  normalChecked: boolean,
+  normalUnchecked: boolean,
+  disabledChecked: boolean,
+  disabledUnchecked: boolean
+}
+
+export default class Render extends Component<void, void, ComponentState> {
+  state: ComponentState;
+
+  constructor (props: {}) {
     super(props)
     this.state = {
       normalChecked: true,
@@ -39,6 +54,18 @@ export default class Render extends Component {
         </div>
         <div style={{...styles.container, ...styles.containerPopup, width: 320}}>
           <Menubar/>
+        </div>
+        <div style={{...styles.container}}>
+          {Object.keys(mocks).map(m => (
+            <div>
+              <div> Mock State: {m} </div>
+              <div style={{...styles.container, ...styles.containerPopup}}>
+                <Mock state={{unlockFolders: mocks[m]}}>
+                  <UnlockFolders/>
+                </Mock>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
     )

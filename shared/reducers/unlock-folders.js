@@ -58,6 +58,28 @@ export const mocks: {[key: string]: State} = {
     paperkey: null,
     paperkeyError: null
   },
+  promptOtherLotsaDevice: {
+    phase: 'promptOtherDevice',
+    devices: [
+      {type: 'desktop', name: 'Cray', deviceID: 'c0ffee'},
+      {type: 'desktop', name: 'Watson', deviceID: 'beef1'},
+      {type: 'desktop', name: 'Watson', deviceID: 'beef2'},
+      {type: 'mobile', name: 'Newton', deviceID: 'dead'},
+      {type: 'desktop', name: 'Watson', deviceID: 'beef3'},
+      {type: 'desktop', name: 'Watson', deviceID: 'beef4'},
+      {type: 'mobile', name: 'Newton', deviceID: 'dead2'},
+      {type: 'desktop', name: 'Watson', deviceID: 'beef8'},
+      {type: 'mobile', name: 'Newton', deviceID: 'dead4'},
+      {type: 'desktop', name: 'Watson', deviceID: 'beef9'},
+      {type: 'mobile', name: 'Newton', deviceID: 'deade'},
+      {type: 'desktop', name: 'Watson', deviceID: 'beeff'},
+      {type: 'mobile', name: 'Newton', deviceID: 'deada'},
+      {type: 'desktop', name: 'Watson', deviceID: 'beefc'},
+      {type: 'mobile', name: 'Newton', deviceID: 'dead1'}
+    ],
+    paperkey: null,
+    paperkeyError: null
+  },
   paperKeyInput: {
     phase: 'paperKeyInput',
     devices: [],

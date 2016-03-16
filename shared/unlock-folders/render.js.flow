@@ -1,0 +1,14 @@
+// @flow
+
+import {Component} from 'react'
+import type {State} from '../reducers/unlock-folders'
+import type {Device} from '../constants/unlock-folders'
+
+export type Props = {
+  phase: State.phase,
+  devices: ?Array<Device>,
+  onClose: () => void,
+  toPaperKeyInput: () => void
+}
+
+export default class Render extends Component<void, Props, void> {}

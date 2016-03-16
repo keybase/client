@@ -6,6 +6,7 @@ export type Background = 'Normal' | 'Announcements' | 'Success' | 'Information' 
 export type Props = {
   type: 'HeaderJumbo' | 'HeaderBig' | 'Header' | 'HeaderError'
           | 'Body' | 'BodySemibold' | 'BodySmall' | 'BodySmallSemibold' | 'BodyPrimaryLink' | 'BodySecondaryLink'
+          | 'BodySemiboldItalic'
           | 'Error'
           | 'Terminal'
           | 'TerminalUsername' | 'TerminalPublic' | 'TerminalPrivate'

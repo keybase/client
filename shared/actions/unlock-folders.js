@@ -5,7 +5,7 @@ import {routeAppend} from '../actions/router'
 
 import type {RouteAppend} from '../constants/router'
 import type {TypedAsyncAction} from '../constants/types/flux'
-import type {LoadDevices, ToPaperKeyInput, CheckPaperKey, Finish} from '../constants/unlock-folders'
+import type {LoadDevices, ToPaperKeyInput, CheckPaperKey, Finish, Close} from '../constants/unlock-folders'
 
 // TODO this won't work in a remote component until we have a synchronous way to get the latest state in a remote component.
 
@@ -36,4 +36,8 @@ export function checkPaperKey (): TypedAsyncAction<CheckPaperKey> {
 
 export function finish (): TypedAsyncAction<Finish> {
   return dispatch => {}
+}
+
+export function close (): Close {
+  return {type: Constants.close, payload: {}}
 }

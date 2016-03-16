@@ -27,5 +27,8 @@ export type CheckPaperKey = TypedAction<'unlockFolders:checkPaperKey', {success:
 export const finish = 'unlockFolders:finish'
 export type Finish = TypedAction<'unlockFolders:finish', {}, {}>
 
-export type UnlockFolderActions = LoadDevices | ToPaperKeyInput | StorePaperKey | CheckPaperKey | Finish
+export const close = 'unlockFolders:close'
+export type Close = TypedAction<'unlockFolders:close', {}, {}>
+
+export type UnlockFolderActions = LoadDevices | ToPaperKeyInput | StorePaperKey | CheckPaperKey | Finish | Close
 
