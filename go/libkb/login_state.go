@@ -354,7 +354,7 @@ func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lgpw []byt
 			"hmac_pwh":          S{hex.EncodeToString(lgpw)},
 			"login_session":     S{loginSessionEncoded},
 		},
-		AppStatusCodes: []int{SCOk, SCBadLoginPassword},
+		AppStatusCodes: []int{SCOk, SCBadLoginPassword, SCBadLoginUserNotFound},
 	})
 	if err != nil {
 		return nil, err
@@ -362,6 +362,9 @@ func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lgpw []byt
 	if res.AppStatus.Code == SCBadLoginPassword {
 		err = PassphraseError{"server rejected login attempt"}
 		return nil, err
+	}
+	if res.AppStatus.Code == SCBadLoginUserNotFound {
+		return nil, NotFoundError{}
 	}
 
 	b := res.Body

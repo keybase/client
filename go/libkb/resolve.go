@@ -4,10 +4,11 @@
 package libkb
 
 import (
+	"time"
+
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
 	"stathat.com/c/ramcache"
-	"time"
 )
 
 type ResolveResult struct {
@@ -140,12 +141,17 @@ func (r *Resolver) resolveURLViaServerLookup(au AssertionURL, input string, with
 	}
 	ha.Add("fields", S{fields})
 	ares, res.err = r.G().API.Get(APIArg{
-		Endpoint:    "user/lookup",
-		NeedSession: false,
-		Args:        ha,
+		Endpoint:       "user/lookup",
+		NeedSession:    false,
+		Args:           ha,
+		AppStatusCodes: []int{SCOk, SCNotFound},
 	})
 
 	if res.err != nil {
+		return
+	}
+	if ares.AppStatus.Code == SCNotFound {
+		res.err = NotFoundError{}
 		return
 	}
 
