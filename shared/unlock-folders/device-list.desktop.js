@@ -16,10 +16,11 @@ class DeviceRow extends Component<void, {device: Device}, void> {
     const isDesktop = this.props.device.type === 'desktop'
     return (
       <div style={{...globalStyles.flexBoxRow, marginBottom: 16}}>
-        <div style={{width: 24, marginLeft: 33, display: 'flex', justifyContent: 'center'}}>
+        <div style={deviceRowStyles.iconWrapper}>
+          // TODO use the right size icon here
           <Icon type={isDesktop ? 'computer-big' : 'phone-big'} style={{height: 21}}/>
         </div>
-        <Text type='BodySemibold' style={{...globalStyles.italic, marginLeft: 16, cursor: 'default'}}>{this.props.device.name}</Text>
+        <Text type='BodySemiboldItalic' style={{marginLeft: 16}}>{this.props.device.name}</Text>
       </div>
     )
   }
@@ -31,7 +32,7 @@ export default class DeviceList extends Component<void, Props, void> {
       <div style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
         <Text type='Body' style={styles.infoText}>Turn on one of your devices to unlock your folders:</Text>
         <div style={styles.devicesContainer}>
-          {this.props.devices && this.props.devices.map(d => <DeviceRow device={d}/>)}
+          {this.props.devices && this.props.devices.map(d => <DeviceRow key={d.deviceID} device={d}/>)}
         </div>
         <div style={styles.buttonsContainer}>
           <Button type='Secondary' label='Enter a paper key instead' style={styles.enterPaperKey}
@@ -65,7 +66,7 @@ const styles = {
     ...globalStyles.flexBoxRow,
     marginTop: 15,
     marginRight: 30,
-    marginLeft: 'auto'
+    alignSelf: 'flex-end'
   },
 
   enterPaperKey: {
@@ -77,4 +78,14 @@ const styles = {
   accessFolders: {
     marginRight: 0
   }
+}
+
+const deviceRowStyles = {
+  iconWrapper: {
+    width: 24,
+    marginLeft: 33,
+    display: 'flex',
+    justifyContent: 'center'
+  },
+
 }
