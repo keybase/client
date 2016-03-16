@@ -4,18 +4,20 @@ import child_process, {execSync} from 'child_process'
 import fs from 'fs'
 
 const postinstallGlobals = {
-  'eslint/eslint': '#798ac54518ff161e5ff3394fc62c55200d7e6f64', // need fix for https://github.com/eslint/eslint/issues/5261, can go mainline soon
+  'babel-eslint': '@5.0.0',
+  'eslint': '@2.4.0',
   'eslint-config-standard': '@5.1.0',
+  'eslint-config-standard-jsx': '@1.1.1',
   'eslint-config-standard-react': '@2.3.0',
-  'eslint-plugin-mocha': '@2.0.0',
   'eslint-plugin-babel': '@3.1.0',
   'eslint-plugin-filenames': '@0.2.0',
-  'eslint-plugin-react': '@3.16.1',
+  'eslint-plugin-flow-vars': '@0.2.1',
+  'eslint-plugin-mocha': '@2.0.0',
+  'eslint-plugin-promise': '@1.1.0',
+  'eslint-plugin-react': '@4.2.3',
   'eslint-plugin-standard': '@1.3.2',
-  'eslint-plugin-promise': '@1.0.8',
-  'eslint-config-standard-jsx': '@1.1.1',
-  'babel-eslint': '@5.0.0',
-  'marudor/eslint-plugin-flow-vars': '#eslint-2.0' // this is a PR that makes it compat w/ eslint 2.*
+  'estraverse': '@4.2.0',
+  'estraverse-fb': '@1.3.1'
 }
 
 const [,, command, ...rest] = process.argv
@@ -158,7 +160,7 @@ function postInstall () {
 
   if (!process.env.KEYBASE_SKIP_DEV_TOOLS) {
     const modules = Object.keys(postinstallGlobals).map(k => `${k}${postinstallGlobals[k]}`).join(' ')
-    exec(`npm install -g ${modules}`)
+    exec(`npm install -g -E ${modules}`)
   }
 }
 
