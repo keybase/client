@@ -1,6 +1,7 @@
 /* @flow */
 
 import * as Constants from '../constants/update'
+import * as CommonConstants from '../constants/common'
 
 import type {Asset, UpdateType} from '../constants/types/flow-types'
 import type {UpdateConfirmActions} from '../constants/update'
@@ -37,6 +38,11 @@ const initialState: UpdateConfirmState = {
 
 export default function (state: UpdateConfirmState = initialState, action: UpdateConfirmActions): UpdateConfirmState {
   switch (action.type) {
+    case CommonConstants.resetStore:
+      return {
+        ...initialState,
+        started: state.started
+      }
     case Constants.registerUpdateListener:
       return {
         ...state,

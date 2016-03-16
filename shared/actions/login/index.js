@@ -1,5 +1,6 @@
 /* @flow */
 import * as Constants from '../../constants/login'
+import * as CommonConstants from '../../constants/common'
 import {isMobile} from '../../constants/platform'
 import {navigateTo, routeAppend} from '../router'
 import engine, {isRPCCancelError} from '../../engine'
@@ -275,6 +276,7 @@ export function logoutDone () : AsyncAction {
   // We've logged out, let's check our current status
   return (dispatch, getState) => {
     dispatch({type: Constants.logoutDone, payload: undefined})
+    dispatch({type: CommonConstants.resetStore, payload: undefined})
 
     dispatch(switchTab(loginTab))
     dispatch(navBasedOnLoginState())

@@ -1,6 +1,8 @@
 /* @flow */
 
 import * as Constants from '../constants/signup'
+import * as CommonConstants from '../constants/common'
+
 import HiddenString from '../util/hidden-string'
 
 import type {SignupActions} from '../constants/signup'
@@ -42,6 +44,9 @@ const initialState: SignupState = {
 /* eslint-disable no-fallthrough */
 export default function (state: SignupState = initialState, action: SignupActions): SignupState {
   switch (action.type) {
+    case CommonConstants.resetStore:
+      return {...initialState}
+
     case Constants.checkInviteCode:
       if (action.error) {
         return {
