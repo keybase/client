@@ -2,10 +2,12 @@
 
 import _ from 'lodash'
 import * as Constants from '../../constants/signup'
+import {Map} from 'immutable'
 import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
+import {loginTab} from '../../constants/tabs'
 
-import {routeAppend} from '../../actions/router'
+import {routeAppend, navigateUp} from '../../actions/router'
 
 import type {TypedAsyncAction, AsyncAction} from '../../constants/types/flux'
 import type {RouteAppend} from '../../constants/router'
@@ -327,7 +329,8 @@ function signup (skipMail): TypedAsyncAction<Signup | ShowPaperKey | RouteAppend
 export function resetSignup (): TypedAsyncAction<ResetSignup | RouteAppend> {
   return dispatch => new Promise((resolve, reject) => {
     dispatch({type: Constants.resetSignup, payload: {}})
-    dispatch(nextPhase())
+    dispatch(navigateUp(loginTab, Map({path: 'signup'})))
+    dispatch(navigateUp())
     resolve()
   })
 }
