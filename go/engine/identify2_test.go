@@ -296,10 +296,15 @@ func TestIdentify2WithUIDWithNonExistentAssertion(t *testing.T) {
 
 	ctx := Context{IdentifyUI: i}
 
+	done := make(chan bool)
 	starts := 0
 	go func() {
-		<-i.startCh
-		starts++
+		select {
+		case <-i.startCh:
+			starts++
+		case <-done:
+			return
+		}
 	}()
 
 	err := eng.Run(&ctx)
@@ -312,6 +317,8 @@ func TestIdentify2WithUIDWithNonExistentAssertion(t *testing.T) {
 	if starts > 0 {
 		t.Fatalf("Didn't expect the identify UI to start in this case")
 	}
+
+	done <- true
 }
 
 func TestIdentify2WithUIDWithFailedAssertion(t *testing.T) {
