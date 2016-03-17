@@ -4,8 +4,8 @@
 	"package": [
 		{
 			"path": "bazil.org/fuse",
-			"revision": "4a4e0029e1364436782cd3cd5073a1e9bb10176f",
-			"revisionTime": "2016-02-19T14:47:17-08:00"
+			"revision": "37bfa8be929171feec943f3496bc4befdeaf10db",
+			"revisionTime": "2016-03-17T11:10:31-07:00"
 		},
 		{
 			"path": "bazil.org/fuse/fs",

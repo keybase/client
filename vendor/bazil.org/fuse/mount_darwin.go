@@ -14,9 +14,8 @@ import (
 )
 
 var (
-	errNoAvail         = errors.New("no available fuse devices")
-	errNotLoaded       = errors.New("osxfuse is not loaded")
-	errOSXFUSENotFound = errors.New("cannot locate OSXFUSE")
+	errNoAvail   = errors.New("no available fuse devices")
+	errNotLoaded = errors.New("osxfuse is not loaded")
 )
 
 func loadOSXFUSE(bin string) error {
@@ -202,5 +201,5 @@ func mount(dir string, conf *mountConfig, ready chan<- struct{}, errp *error) (*
 		}
 		return f, nil
 	}
-	return nil, errOSXFUSENotFound
+	return nil, ErrOSXFUSENotFound
 }

@@ -39,8 +39,7 @@ func getPlatformSpecificMountOptions(dir string, platformParams PlatformParams) 
 }
 
 func translatePlatformSpecificError(err error, platformParams PlatformParams) error {
-	// TODO: Have a better way to detect this case.
-	if err.Error() == "cannot locate OSXFUSE" {
+	if err == fuse.ErrOSXFUSENotFound {
 		if platformParams.UseSystemFuse {
 			return errors.New(
 				"cannot locate OSXFUSE 3.x (3.2 recommended)")
