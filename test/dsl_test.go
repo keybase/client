@@ -229,14 +229,14 @@ func as(user username, fops ...fileOp) optionOp {
 
 func mkdir(name string) fileOp {
 	return fileOp{func(c *ctx) error {
-		_, err := c.getNode(name, true, false)
+		_, _, err := c.getNode(name, true, false)
 		return err
 	}, Defaults}
 }
 
 func write(name string, contents string) fileOp {
 	return fileOp{func(c *ctx) error {
-		f, err := c.getNode(name, true, true)
+		f, _, err := c.getNode(name, true, true)
 		if err != nil {
 			return err
 		}
@@ -246,7 +246,7 @@ func write(name string, contents string) fileOp {
 
 func read(name string, contents string) fileOp {
 	return fileOp{func(c *ctx) error {
-		file, err := c.getNode(name, false, true)
+		file, _, err := c.getNode(name, false, true)
 		if err != nil {
 			return err
 		}
@@ -263,13 +263,13 @@ func read(name string, contents string) fileOp {
 
 func exists(filename string) fileOp {
 	return fileOp{func(c *ctx) error {
-		_, err := c.getNode(filename, false, false)
+		_, _, err := c.getNode(filename, false, false)
 		return err
 	}, Defaults}
 }
 func notExists(filename string) fileOp {
 	return fileOp{func(c *ctx) error {
-		_, err := c.getNode(filename, false, false)
+		_, _, err := c.getNode(filename, false, false)
 		if err == nil {
 			return fmt.Errorf("File that should not exist exists: %q", filename)
 		}
@@ -279,17 +279,16 @@ func notExists(filename string) fileOp {
 
 func mkfile(name string, contents string) fileOp {
 	return fileOp{func(c *ctx) error {
-		f, err := c.getNode(name, true, true)
+		f, wasCreated, err := c.getNode(name, true, true)
 		if err != nil {
 			return err
 		}
-		// Skip the write if the contents already matches (to allow
-		// tests of file creation only).
-		res, err := c.engine.ReadFile(c.user, f, 0, int64(len(contents)+1))
-		if err != nil {
-			return err
+		if !wasCreated {
+			return fmt.Errorf("File %s already existed when mkfile was called",
+				name)
 		}
-		if res == contents {
+		// Skip the write if the requested contents is empty.
+		if len(contents) == 0 {
 			return nil
 		}
 		return c.engine.WriteFile(c.user, f, contents, 0, true)
@@ -299,7 +298,7 @@ func mkfile(name string, contents string) fileOp {
 func link(fromName, toPath string) fileOp {
 	return fileOp{func(c *ctx) error {
 		dir, name := path.Split(fromName)
-		parent, err := c.getNode(dir, false, false)
+		parent, _, err := c.getNode(dir, false, false)
 		if err != nil {
 			return err
 		}
@@ -309,7 +308,7 @@ func link(fromName, toPath string) fileOp {
 
 func setex(filepath string, ex bool) fileOp {
 	return fileOp{func(c *ctx) error {
-		file, err := c.getNode(filepath, false, true)
+		file, _, err := c.getNode(filepath, false, true)
 		if err != nil {
 			return err
 		}
@@ -320,7 +319,7 @@ func setex(filepath string, ex bool) fileOp {
 func rm(filepath string) fileOp {
 	return fileOp{func(c *ctx) error {
 		dir, name := path.Split(filepath)
-		parent, err := c.getNode(dir, false, false)
+		parent, _, err := c.getNode(dir, false, false)
 		if err != nil {
 			return err
 		}
@@ -331,7 +330,7 @@ func rm(filepath string) fileOp {
 func rmdir(filepath string) fileOp {
 	return fileOp{func(c *ctx) error {
 		dir, name := path.Split(filepath)
-		parent, err := c.getNode(dir, false, false)
+		parent, _, err := c.getNode(dir, false, false)
 		if err != nil {
 			return err
 		}
@@ -342,12 +341,12 @@ func rmdir(filepath string) fileOp {
 func rename(src, dst string) fileOp {
 	return fileOp{func(c *ctx) error {
 		sdir, sname := path.Split(src)
-		sparent, err := c.getNode(sdir, false, false)
+		sparent, _, err := c.getNode(sdir, false, false)
 		if err != nil {
 			return err
 		}
 		ddir, dname := path.Split(dst)
-		dparent, err := c.getNode(ddir, true, false)
+		dparent, _, err := c.getNode(ddir, true, false)
 		if err != nil {
 			return err
 		}
@@ -380,7 +379,7 @@ func forceQuotaReclamation() fileOp {
 
 func lsdir(name string, contents m) fileOp {
 	return fileOp{func(c *ctx) error {
-		folder, err := c.getNode(name, false, false)
+		folder, _, err := c.getNode(name, false, false)
 		if err != nil {
 			return err
 		}
@@ -410,9 +409,10 @@ func lsdir(name string, contents m) fileOp {
 	}, Defaults}
 }
 
-func (c *ctx) getNode(filepath string, create bool, isFile bool) (Node, error) {
+func (c *ctx) getNode(filepath string, create bool, isFile bool) (
+	Node, bool, error) {
 	if filepath == "" || filepath == "/" {
-		return c.rootNode, nil
+		return c.rootNode, false, nil
 	}
 	if filepath[len(filepath)-1] == '/' {
 		filepath = filepath[:len(filepath)-1]
@@ -423,6 +423,7 @@ func (c *ctx) getNode(filepath string, create bool, isFile bool) (Node, error) {
 	var err error
 	var node, parent Node
 	parent = c.rootNode
+	wasCreated := false
 	for i, name := range components {
 		node, sym, err = c.engine.Lookup(c.user, parent, name)
 		c.t.Log("getNode:", i, name, node, sym, err)
@@ -434,9 +435,10 @@ func (c *ctx) getNode(filepath string, create bool, isFile bool) (Node, error) {
 				c.t.Log("getNode: CreateDir")
 				node, err = c.engine.CreateDir(c.user, parent, name)
 			}
+			wasCreated = true
 		}
 		if err != nil {
-			return nil, err
+			return nil, false, err
 		}
 		parent = node
 		if len(sym) > 0 {
@@ -453,7 +455,7 @@ func (c *ctx) getNode(filepath string, create bool, isFile bool) (Node, error) {
 			return c.getNode(newpath, create, isFile)
 		}
 	}
-	return node, nil
+	return node, wasCreated, nil
 }
 
 // crnameAtTime returns the name of a conflict file, at a given
