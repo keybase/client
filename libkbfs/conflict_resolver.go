@@ -352,8 +352,8 @@ func (cr *ConflictResolver) getPathsFromChains(ctx context.Context,
 
 func fileWithConflictingWrite(unmergedChains *crChains, mergedChains *crChains,
 	unmergedOriginal BlockPointer, mergedOriginal BlockPointer) bool {
-	mergedChain, _ := mergedChains.byOriginal[mergedOriginal]
-	unmergedChain, _ := unmergedChains.byOriginal[unmergedOriginal]
+	mergedChain := mergedChains.byOriginal[mergedOriginal]
+	unmergedChain := unmergedChains.byOriginal[unmergedOriginal]
 	if mergedChain != nil && unmergedChain != nil {
 		mergedSync := false
 		unmergedSync := false
