@@ -46,7 +46,7 @@ build_dir_kbfs="/tmp/build_kbfs"
 client_dir="$gopath/src/github.com/keybase/client"
 kbfs_dir="$gopath/src/github.com/keybase/kbfs"
 
-"$client_dir/packaging/slack/send.sh" "Starting $build_desc"
+"$client_dir/packaging/slack/send.sh" "Starting $platform $build_desc"
 
 if [ ! "$nopull" = "1" ]; then
   "$client_dir/packaging/check_status_and_pull.sh" "$client_dir"
@@ -87,7 +87,7 @@ save_dir="/tmp/build_desktop"
 rm -rf $save_dir
 
 if [ "$platform" = "darwin" ]; then
-  SAVE_DIR=$save_dir KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" BUCKET_NAME=$bucket_name "$dir/../desktop/package_darwin.sh"
+  SAVE_DIR="$save_dir" KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" BUCKET_NAME=$bucket_name "$dir/../desktop/package_darwin.sh"  
 else
   # TODO: Support linux build here?
   echo "Unknown platform: $platform"

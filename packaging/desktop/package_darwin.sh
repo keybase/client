@@ -12,7 +12,6 @@ tmp_dir="/tmp/package_darwin/tmp"
 bucket_name=${BUCKET_NAME:-}
 run_mode="prod"
 platform="darwin"
-nosign=${NOSIGN:-}
 
 s3host=""
 if [ ! "$bucket_name" = "" ]; then
@@ -161,12 +160,13 @@ update_plist() {(
 
 sign() {(
   cd "$out_dir"
-  if [ "$nosign" = "1" ]; then
-    echo "Skipping signing (OS X)"
-    return
-  fi
   code_sign_identity="Developer ID Application: Keybase, Inc. (99229SGT5K)"
-  codesign --verbose --force --deep --timestamp=none --sign "$code_sign_identity" "$app_name.app"
+  codesign --verbose --force --deep --sign "$code_sign_identity" "$app_name.app"
+
+  echo "Verify codesigning..."
+  codesign -v "$app_name.app"
+  codesign -v "$app_name.app/Contents/SharedSupport/bin/keybase"
+  codesign -v "$app_name.app/Contents/SharedSupport/bin/kbfs"
 )}
 
 # Create dmg from Keybase.app
