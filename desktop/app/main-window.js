@@ -9,7 +9,8 @@ export default function () {
     resolveRoot(`renderer/index.html?src=${hotPath('index.bundle.js')}`), {
       useContentSize: true,
       width: globalResizing.login.width,
-      height: globalResizing.login.height
+      height: globalResizing.login.height,
+      show: false
     }
   )
 
