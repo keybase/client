@@ -82,7 +82,7 @@ func TestFavoritesAddAsync(t *testing.T) {
 	defer favTestShutdown(mockCtrl, config)
 
 	// Only one task at a time
-	f := newFavoritesWithChan(config, make(chan favReq, 1))
+	f := newFavoritesWithChan(config, make(chan *favReq, 1))
 	// Call Add twice in a row, but only get one Add KBPKI call
 	fav1 := Favorite{"test", true}
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil, nil)

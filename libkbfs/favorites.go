@@ -19,9 +19,10 @@ type favReq struct {
 	toDel   []Favorite
 	favs    chan<- []Favorite
 
-	// Signaled when the request is done.  Protected by
-	// Favorites.inFlightLock.
-	done []chan<- error
+	// Closed when the request is done.
+	done chan struct{}
+	// Set before done is closed
+	err error
 
 	// Context
 	ctx context.Context
@@ -32,7 +33,7 @@ type Favorites struct {
 	config Config
 
 	// Channels for interacting with the favorites cache
-	reqChan chan favReq
+	reqChan chan *favReq
 
 	// cache tracks the favorites for this user, that we know about.
 	// It may not be consistent with the server's view of the user's
@@ -41,14 +42,14 @@ type Favorites struct {
 	cache map[Favorite]bool
 
 	inFlightLock sync.Mutex
-	inFlightAdds map[Favorite]favReq
+	inFlightAdds map[Favorite]*favReq
 }
 
-func newFavoritesWithChan(config Config, reqChan chan favReq) *Favorites {
+func newFavoritesWithChan(config Config, reqChan chan *favReq) *Favorites {
 	f := &Favorites{
 		config:       config,
 		reqChan:      reqChan,
-		inFlightAdds: make(map[Favorite]favReq),
+		inFlightAdds: make(map[Favorite]*favReq),
 	}
 	go f.loop()
 	return f
@@ -56,15 +57,16 @@ func newFavoritesWithChan(config Config, reqChan chan favReq) *Favorites {
 
 // NewFavorites constructs a new Favorites instance.
 func NewFavorites(config Config) *Favorites {
-	return newFavoritesWithChan(config, make(chan favReq, 100))
+	return newFavoritesWithChan(config, make(chan *favReq, 100))
 }
 
-func (f *Favorites) handleReq(req favReq) (err error) {
+func (f *Favorites) handleReq(req *favReq) (err error) {
 	defer func() {
 		f.inFlightLock.Lock()
 		defer f.inFlightLock.Unlock()
-		for _, ch := range req.done {
-			ch <- err
+		req.err = err
+		if req.done != nil {
+			close(req.done)
 		}
 		for _, fav := range req.toAdd {
 			delete(f.inFlightAdds, fav)
@@ -150,12 +152,13 @@ func (f *Favorites) Shutdown() {
 	close(f.reqChan)
 }
 
-func (f *Favorites) waitOnErrChan(ctx context.Context,
-	errChan <-chan error) (retry bool, err error) {
+func (f *Favorites) waitOnReq(ctx context.Context,
+	req *favReq) (retry bool, err error) {
 	select {
 	case <-ctx.Done():
 		return false, ctx.Err()
-	case err := <-errChan:
+	case <-req.done:
+		err = req.err
 		// If the request was canceled due to a context timeout that
 		// wasn't our own, try it again.
 		if err == context.Canceled || err == context.DeadlineExceeded {
@@ -170,9 +173,10 @@ func (f *Favorites) waitOnErrChan(ctx context.Context,
 	}
 }
 
-func (f *Favorites) sendReq(ctx context.Context, req favReq) error {
-	errChan := make(chan error, 1)
-	req.done = append(req.done, errChan)
+func (f *Favorites) sendReq(ctx context.Context, req *favReq) error {
+	if req.done == nil {
+		req.done = make(chan struct{})
+	}
 	req.ctx = ctx
 	select {
 	case f.reqChan <- req:
@@ -181,36 +185,39 @@ func (f *Favorites) sendReq(ctx context.Context, req favReq) error {
 	}
 	// With a direct sendReq call, we'll never have a shared request,
 	// so no need to check the retry status.
-	_, err := f.waitOnErrChan(ctx, errChan)
+	_, err := f.waitOnReq(ctx, req)
 	return err
 }
 
 func (f *Favorites) startOrJoinAddReq(
-	ctx context.Context, fav Favorite) (*favReq, <-chan error) {
+	ctx context.Context, fav Favorite) (req *favReq, doSend bool) {
 	f.inFlightLock.Lock()
 	defer f.inFlightLock.Unlock()
 	req, ok := f.inFlightAdds[fav]
-	var startReq *favReq
 	if !ok {
-		req = favReq{ctx: ctx, toAdd: []Favorite{fav}}
+		req = &favReq{
+			ctx:   ctx,
+			toAdd: []Favorite{fav},
+			done:  make(chan struct{}),
+		}
 		f.inFlightAdds[fav] = req
-		startReq = &req
+		doSend = true
 	}
-	errChan := make(chan error, 1)
-	req.done = append(req.done, errChan)
-	return startReq, errChan
+	return req, doSend
 }
 
 // Add adds a favorite to your favorites list.
 func (f *Favorites) Add(ctx context.Context, fav Favorite) error {
 	doAdd := true
 	var err error
+	// Retry until we get an error that wasn't related to someone
+	// else's context being canceled.
 	for doAdd {
-		startReq, errChan := f.startOrJoinAddReq(ctx, fav)
-		if startReq != nil {
-			return f.sendReq(ctx, *startReq)
+		req, doSend := f.startOrJoinAddReq(ctx, fav)
+		if doSend {
+			return f.sendReq(ctx, req)
 		}
-		doAdd, err = f.waitOnErrChan(ctx, errChan)
+		doAdd, err = f.waitOnReq(ctx, req)
 	}
 	return err
 }
@@ -220,10 +227,10 @@ func (f *Favorites) Add(ctx context.Context, fav Favorite) error {
 // result.  (It could block while kicking off the request, if lots of
 // different favorite operations are in flight.)
 func (f *Favorites) AddAsync(ctx context.Context, fav Favorite) {
-	startReq, _ := f.startOrJoinAddReq(ctx, fav)
-	if startReq != nil {
+	req, doSend := f.startOrJoinAddReq(ctx, fav)
+	if doSend {
 		select {
-		case f.reqChan <- *startReq:
+		case f.reqChan <- req:
 		case <-ctx.Done():
 			return
 		}
@@ -233,16 +240,16 @@ func (f *Favorites) AddAsync(ctx context.Context, fav Favorite) {
 // Delete deletes a favorite from the favorites list.  It is
 // idempotent.
 func (f *Favorites) Delete(ctx context.Context, fav Favorite) error {
-	return f.sendReq(ctx, favReq{toDel: []Favorite{fav}})
+	return f.sendReq(ctx, &favReq{toDel: []Favorite{fav}})
 }
 
 // RefreshCache refreshes the cached list of favorites.
 func (f *Favorites) RefreshCache(ctx context.Context) {
 	// This request is non-blocking, so use a throw-away done channel
 	// and context.
-	req := favReq{
+	req := &favReq{
 		refresh: true,
-		done:    []chan<- error{make(chan error, 1)},
+		done:    make(chan struct{}),
 		ctx:     context.Background(),
 	}
 	select {
@@ -256,7 +263,7 @@ func (f *Favorites) RefreshCache(ctx context.Context) {
 // doesn't use the cache.
 func (f *Favorites) Get(ctx context.Context) ([]Favorite, error) {
 	favChan := make(chan []Favorite, 1)
-	req := favReq{
+	req := &favReq{
 		favs: favChan,
 	}
 	err := f.sendReq(ctx, req)
