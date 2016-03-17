@@ -1,0 +1,11 @@
+/* @flow */
+
+import React, {Component} from 'react'
+
+export type Props = {
+  style?: Object,
+  white?: boolean
+}
+
+declare export default class ProgressIndicator extends React.Component<void, Props, void> {
+}

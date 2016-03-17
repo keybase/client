@@ -48,6 +48,16 @@ export default class Icon extends Component {
     }
   }
 
+  _typeExtension (type: Props.type): string {
+    switch (type) {
+      case 'progress-white':
+      case 'progress-grey':
+        return 'gif'
+      default:
+        return 'png'
+    }
+  }
+
   render () {
     let color = this._defaultColor(this.props.type)
     let hoverColor = this._defaultHoverColor(this.props.type)
@@ -60,6 +70,8 @@ export default class Icon extends Component {
       color = this.props.style && this.props.style.color || color || (this.props.opacity ? globalColors.lightGrey : globalColors.black40)
       hoverColor = this.props.style && this.props.style.hoverColor || hoverColor || (this.props.opacity ? globalColors.black : globalColors.black75)
     }
+
+    const ext = this._typeExtension(iconType)
 
     const isFontIcon = iconType.startsWith('fa-')
 
@@ -78,7 +90,7 @@ export default class Icon extends Component {
         title={this.props.hint}
         style={{...this.props.style}}
         onClick={this.props.onClick}
-        srcSet={`${[1, 2, 3].map(mult => `${resolveRoot('shared/images/icons', this.props.type)}${mult > 1 ? `@${mult}x` : ''}.png ${mult}x`).join(', ')}`} />
+        srcSet={`${[1, 2, 3].map(mult => `${resolveRoot('shared/images/icons', this.props.type)}${mult > 1 ? `@${mult}x` : ''}.${ext} ${mult}x`).join(', ')}`} />
     }
   }
 }

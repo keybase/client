@@ -9,9 +9,8 @@ import {intersperse} from '../util/arrays'
 import {parseFolderNameToUsers, canonicalizeUsernames, stripPublicTag} from '../util/kbfs'
 
 import {globalStyles, globalColors} from '../styles/style-guide'
-import {Button, Text, Input, Terminal, Icon} from '../common-adapters/index'
+import {Button, Text, Input, Terminal, Icon, ProgressIndicator} from '../common-adapters/index'
 
-import {CircularProgress} from 'material-ui'
 import {cleanup, allowLoggedOut as allowLoggedOutKBFS} from '../util/kbfs'
 
 // This is the only data that the renderer cares about for a folder
@@ -309,7 +308,7 @@ class FolderList extends Component<void, FolderListProps, FolderState> {
       <div style={{...styles.folderList, overflowY: loggedIn ? 'scroll' : 'hidden'}}>
         {this.props.loading && (
           <div style={styles.loader}>
-            <CircularProgress style={styles.loader} mode='indeterminate' size={0.5}/>
+            <ProgressIndicator style={styles.loader} />
           </div>)}
         {!!privateFolders.length && (
           <div>
@@ -374,6 +373,7 @@ const styles = {
   loader: {
     position: 'absolute',
     alignSelf: 'center',
+    width: 30,
     top: 0,
     right: 0,
     opacity: 0.8

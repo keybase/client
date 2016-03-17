@@ -3,8 +3,7 @@
 import React, {Component} from 'react'
 import commonStyles from '../styles/common'
 import {globalStyles, globalColors} from '../styles/style-guide'
-import {Icon, Text} from '../common-adapters/index'
-import {CircularProgress} from 'material-ui'
+import {Icon, Text, ProgressIndicator} from '../common-adapters/index'
 import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked, error as proofError, warning as proofWarning} from '../constants/tracker'
 import {metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone} from '../constants/tracker'
 import electron from 'electron'
@@ -112,9 +111,6 @@ export class ProofsRender extends Component {
     // TODO: State is deprecated, will refactor after nuking v1
     let isChecking = (proof.state === proofChecking)
 
-    const targetSpinnerSize = 20 // This is how big we actually want the spinner in px
-    const spinnerSize = ((targetSpinnerSize / 50) / 1.4) // material ui doesn't make this easy for you. We calculate the scale, then divide by 1.4 because they multiply by that
-
     return (
       <div style={styles.row} key={proof.id}>
         <Icon style={styles.service} type={this.iconNameForProof(proof)} title={proof.type} onClick={onClickProfile} />
@@ -134,7 +130,7 @@ export class ProofsRender extends Component {
           </div>
         </div>
         {isChecking &&
-          <CircularProgress style={styles.loader} mode='indeterminate' color={globalColors.black20} size={spinnerSize} />
+          <ProgressIndicator style={styles.loader} />
         }
         {!isChecking && proofStatusIcon &&
           <Icon type={proofStatusIcon} style={styles.statusIcon} onClick={() => this.onClickProof(proof)} />
@@ -215,10 +211,6 @@ const styles = {
     marginTop: 1
   },
   loader: {
-    // Using negative margins cause we can't override height for CircularProgress
-    marginTop: -14,
-    marginBottom: -16,
-    marginLeft: -16,
-    marginRight: -16
+    width: 20
   }
 }
