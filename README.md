@@ -9,7 +9,7 @@ To run the KBFS FUSE client:
 * Check out https://github.com/keybase/keybase, and follow its
   README.md to install and run a local copy of the Keybase webserver
   on port 3000.
-* Install Go 1.5.
+* Install Go 1.6.
 
 * Check out https://github.com/keybase/client, and do:
 
