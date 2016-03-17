@@ -2,7 +2,7 @@ import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import {bindActionCreators} from 'redux'
 
-import {FlatButton} from 'material-ui'
+import {BackButton} from '../common-adapters'
 import {navigateUp} from '../actions/router'
 import {globalStyles} from '../styles/style-guide'
 
@@ -20,7 +20,7 @@ class MetaNavigatorRender extends Component {
     return (
       <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
         <Module {...componentAtTop.props} />
-        {!hideBack && uri && uri.count() > 1 && <FlatButton onClick={() => this.onBack()} style={styles.backButton} label='Back'/>}
+        {!hideBack && uri && uri.count() > 1 && <BackButton onClick={() => this.onBack()} style={styles.backButton}/>}
       </div>
     )
   }
@@ -43,7 +43,6 @@ const styles = {
     position: 'absolute',
     top: 0,
     right: 0,
-    backgroundColor: '#cccccc',
     opacity: 0.8,
     zIndex: 9999
   }

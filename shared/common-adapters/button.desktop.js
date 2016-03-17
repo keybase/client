@@ -1,7 +1,8 @@
 /* @flow */
 
 import React, {Component} from 'react'
-import {FlatButton, CircularProgress} from 'material-ui'
+import {FlatButton} from 'material-ui'
+import ProgressIndicator from './progress-indicator'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props} from './button'
 
@@ -122,10 +123,9 @@ export default class Button extends Component {
           secondary={this.props.type === 'Secondary'}
           disabled={this.props.disabled || this.props.waiting}/>
         {this.props.waiting && (
-          <CircularProgress
-            size={0.25}
+          <ProgressIndicator
+            white={progressColor === globalColors.white}
             style={{...styles.progress}}
-            color={progressColor}
           />)}
       </div>
     )
@@ -199,7 +199,11 @@ const styles = {
   },
   progress: {
     position: 'absolute',
-    left: 'calc(50% - 32px)',
-    top: -10
+    height: 'calc(100% - 4px)',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    margin: 'auto'
   }
 }

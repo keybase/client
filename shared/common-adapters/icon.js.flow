@@ -39,6 +39,8 @@ export type Props = {
     | 'phone-text-code-small'
     | 'phone-text-code'
     | 'placeholder-avatar'
+    | 'progress-white'
+    | 'progress-grey'
     | 'terminal'
     | 'user-card-m'
     | 'user-card'
