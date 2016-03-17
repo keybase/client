@@ -240,7 +240,7 @@ func (e *PGPPullEngine) exportKeysToGPG(ctx *Context, user *libkb.User, tfp map[
 
 func (e *PGPPullEngine) rateLimit(start time.Time, index int) time.Time {
 	// server currently limiting to 32 req/s, but there can be 4 requests for each loaduser call.
-	const loadUserPerSec = 8
+	const loadUserPerSec = 4
 	if index == 0 {
 		return start
 	}
