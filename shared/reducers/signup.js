@@ -25,7 +25,7 @@ export type SignupState = {
 }
 
 const initialState: SignupState = {
-  inviteCode: '202020202020202020202020',
+  inviteCode: null,
   username: null,
   email: null,
   inviteCodeError: null,
