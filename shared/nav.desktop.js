@@ -99,7 +99,10 @@ class Nav extends Component {
 
         currentWindow.setContentSize(globalResizing.login.width, globalResizing.login.height, true)
         currentWindow.setResizable(false)
-        currentWindow.show()
+
+        if (flags.mainWindow) {
+          currentWindow.show()
+        }
       } else if (oldWasLogin) {
         if (!flags.mainWindow) {
           currentWindow.hide()
