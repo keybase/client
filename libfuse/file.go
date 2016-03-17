@@ -179,55 +179,6 @@ func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest,
 	return nil
 }
 
-// TODO: Have real implementations of the xattr operations below: see
-// KBFS-409.
-
-var _ fs.NodeGetxattrer = (*File)(nil)
-
-// Getxattr implements the fs.NodeGetxattrer interface for File.
-func (f *File) Getxattr(ctx context.Context, req *fuse.GetxattrRequest,
-	resp *fuse.GetxattrResponse) (err error) {
-	f.folder.fs.log.CDebugf(ctx, "File GetXattr %s", req.Name)
-	defer func() { f.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
-
-	return fuse.ErrNoXattr
-}
-
-var _ fs.NodeListxattrer = (*File)(nil)
-
-// Listxattr implements the fs.NodeListxattrer interface for File.
-func (f *File) Listxattr(ctx context.Context, req *fuse.ListxattrRequest,
-	resp *fuse.ListxattrResponse) (err error) {
-	f.folder.fs.log.CDebugf(ctx, "File ListXattr")
-	defer func() { f.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
-
-	return nil
-}
-
-var _ fs.NodeSetxattrer = (*File)(nil)
-
-// Setxattr implements the fs.NodeSetxattrer interface for File.
-func (f *File) Setxattr(ctx context.Context, req *fuse.SetxattrRequest) (
-	err error) {
-	f.folder.fs.log.CDebugf(ctx, "File SetXattr %s", req.Name)
-	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
-
-	f.folder.fs.log.CWarningf(ctx, "Dropping %v", req)
-
-	return nil
-}
-
-var _ fs.NodeRemovexattrer = (*File)(nil)
-
-// Removexattr implements the fs.NodeRemovexattrer interface for File.
-func (f *File) Removexattr(ctx context.Context, req *fuse.RemovexattrRequest) (
-	err error) {
-	f.folder.fs.log.CDebugf(ctx, "File RemoveXattr %s", req.Name)
-	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
-
-	return fuse.ErrNoXattr
-}
-
 var _ fs.NodeForgetter = (*File)(nil)
 
 // Forget kernel reference to this node.
