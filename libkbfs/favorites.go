@@ -92,13 +92,14 @@ func (f *Favorites) handleReq(req favReq) (err error) {
 	}
 
 	for _, fav := range req.toAdd {
-		// TODO: once we have proper cache invalidation from the API
-		// server, we should only call FavoriteAdd if the folder isn't
-		// already favorited.
+		if f.cache[fav] {
+			continue
+		}
 		err := kbpki.FavoriteAdd(req.ctx, fav.toKBFolder())
 		if err != nil {
 			return err
 		}
+		f.cache[fav] = true
 	}
 
 	for _, fav := range req.toDel {
