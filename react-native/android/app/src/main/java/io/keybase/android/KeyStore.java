@@ -33,10 +33,12 @@ public class KeyStore extends Keybase.ExternalKeyStore.Stub {
     private final SharedPreferences prefs;
     private final java.security.KeyStore ks;
 
-    private static final String PREFS_KEY = "wrappedKey_";
-    private static final String KEY_ALIAS = "keybase-rsa-wrapper_";
+    // Prefix for the key we use when we place the data in shared preferences
+    private static final String PREFS_KEY = "_wrappedKey_";
+    // The name of the key we use to store our created RSA keypair in android's keystore
+    private static final String KEY_ALIAS = "_keybase-rsa-wrapper_";
 
-    private static final String ALGORITHM = "SECRETBOX";
+    private static final String ALGORITHM = "RSA_SECRETBOX";
 
     public KeyStore(final Context context, final SharedPreferences prefs) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
         this.context = context;
@@ -46,22 +48,29 @@ public class KeyStore extends Keybase.ExternalKeyStore.Stub {
         ks.load(null);
     }
 
+    private String sharedPrefKeyPrefix(final String serviceName) {
+        return serviceName + PREFS_KEY;
+    }
+
+    private String keyStoreAlias(final String serviceName) {
+        return serviceName + KEY_ALIAS;
+    }
 
     @SuppressLint("CommitPrefEdits")
     @Override
-    public void ClearSecret(final String username) throws Exception {
-        prefs.edit().remove(PREFS_KEY + username).commit();
+    public void ClearSecret(final String serviceName, final String key) throws Exception {
+        prefs.edit().remove(sharedPrefKeyPrefix(serviceName) + key).commit();
     }
 
     @Override
-    public synchronized byte[] GetUsersWithStoredSecretsMsgPack() throws Exception {
+    public synchronized byte[] GetUsersWithStoredSecretsMsgPack(final String serviceName) throws Exception {
         final Iterator<String> keyIterator = prefs.getAll().keySet().iterator();
         final ArrayList<String> userNames = new ArrayList<>();
 
         while (keyIterator.hasNext()) {
             final String key = keyIterator.next();
-            if (key.indexOf(PREFS_KEY) == 0) {
-                userNames.add(key.substring(PREFS_KEY.length()));
+            if (key.indexOf(sharedPrefKeyPrefix(serviceName)) == 0) {
+                userNames.add(key.substring(sharedPrefKeyPrefix(serviceName).length()));
             }
         }
 
@@ -70,11 +79,11 @@ public class KeyStore extends Keybase.ExternalKeyStore.Stub {
     }
 
     @Override
-    public synchronized byte[] RetrieveSecret(final String username) throws Exception {
-        final byte[] wrappedSecret = readWrappedSecret(prefs, PREFS_KEY + username);
+    public synchronized byte[] RetrieveSecret(final String serviceName, final String key) throws Exception {
+        final byte[] wrappedSecret = readWrappedSecret(prefs, sharedPrefKeyPrefix(serviceName) + key);
         Entry entry;
         try {
-            entry = ks.getEntry(KEY_ALIAS, null);
+            entry = ks.getEntry(keyStoreAlias(serviceName), null);
         } catch (Exception e) {
             return null;
         }
@@ -91,14 +100,9 @@ public class KeyStore extends Keybase.ExternalKeyStore.Stub {
     }
 
     @Override
-    public String GetTerminalPrompt() {
-        return "Store secret in Android's KeyStore?";
-    }
-
-    @Override
-    public synchronized void SetupKeyStore(final String username) throws Exception {
-        if (!ks.containsAlias(KEY_ALIAS)) {
-            KeyStoreHelper.generateRSAKeyPair(context, KEY_ALIAS);
+    public synchronized void SetupKeyStore(final String serviceName, final String key) throws Exception {
+        if (!ks.containsAlias(keyStoreAlias(serviceName))) {
+            KeyStoreHelper.generateRSAKeyPair(context, keyStoreAlias(serviceName));
         }
 
         // Try to read the entry from the keystore.
@@ -108,22 +112,22 @@ public class KeyStore extends Keybase.ExternalKeyStore.Stub {
         // Note we are purposely not recursing to avoid a state where we
         // Constantly try to generate new RSA keys (which is slow)
         try {
-            final Entry entry = ks.getEntry(KEY_ALIAS, null);
+            final Entry entry = ks.getEntry(keyStoreAlias(serviceName), null);
             if (entry == null) {
                 throw new NullPointerException("Null Entry");
             }
         } catch (Exception e) {
-            ks.deleteEntry(KEY_ALIAS);
-            KeyStoreHelper.generateRSAKeyPair(context, KEY_ALIAS);
+            ks.deleteEntry(keyStoreAlias(serviceName));
+            KeyStoreHelper.generateRSAKeyPair(context, keyStoreAlias(serviceName));
         }
     }
 
     @Override
-    public synchronized void StoreSecret(final String username, final byte[] bytes) throws Exception {
+    public synchronized void StoreSecret(final String serviceName, final String key, final byte[] bytes) throws Exception {
         Entry entry = null;
 
         try {
-            entry = ks.getEntry(KEY_ALIAS, null);
+            entry = ks.getEntry(keyStoreAlias(serviceName), null);
         } catch (Exception e) {
             throw new KeyStoreException("Failed to get the RSA keys from the keystore");
         }
@@ -138,7 +142,7 @@ public class KeyStore extends Keybase.ExternalKeyStore.Stub {
             throw new IOException("Null return when wrapping secret");
         }
 
-        saveWrappedSecret(prefs, PREFS_KEY + username, wrappedSecret);
+        saveWrappedSecret(prefs, sharedPrefKeyPrefix(serviceName) + key, wrappedSecret);
     }
 
     private static void saveWrappedSecret(SharedPreferences prefs, String prefsKey, byte[] wrappedSecret) {
