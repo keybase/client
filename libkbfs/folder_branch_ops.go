@@ -2374,6 +2374,7 @@ func (fbo *folderBranchOps) Read(
 		return 0, err
 	}
 
+	var bytesRead int64
 	err = runUnlessCanceled(ctx, func() error {
 		lState := makeFBOLockState()
 
@@ -2388,13 +2389,13 @@ func (fbo *folderBranchOps) Read(
 			return err
 		}
 
-		n, err = fbo.blocks.Read(ctx, lState, md, filePath, dest, off)
+		bytesRead, err = fbo.blocks.Read(ctx, lState, md, filePath, dest, off)
 		return err
 	})
 	if err != nil {
 		return 0, err
 	}
-	return n, nil
+	return bytesRead, nil
 }
 
 // Returns the set of blocks dirtied during this write that might need
