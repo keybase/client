@@ -29,12 +29,18 @@ protocol identifyUi {
     string address;
   }
 
+  record RevokedProof {
+    RemoteProof proof;
+    TrackDiff diff;
+  }
+
   record Identity {
     union { null, Status } status;
     Time whenLastTracked;
     array<IdentifyRow> proofs;
     array<Cryptocurrency> cryptocurrency;
     array<TrackDiff> revoked;
+    array<RevokedProof> revokedDetails;
     bool breaksTracking;
   }
 

@@ -185,3 +185,5 @@ func (p ProofLinkWithState) ToIDString() string {
 func (p ProofLinkWithState) ToKeyValuePair() (string, string) {
 	return p.link.ToKeyValuePair()
 }
+
+func (p ProofLinkWithState) GetProofType() keybase1.ProofType { return p.link.GetProofType() }

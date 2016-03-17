@@ -381,6 +381,7 @@ export const identify = {
     'hackernews': 6,
     'genericWebSite': 1000,
     'dns': 1001,
+    'pgp': 1002,
     'rooter': 100001
   },
   'TrackDiffType': {
@@ -496,6 +497,7 @@ export const identifyUi = {
     'hackernews': 6,
     'genericWebSite': 1000,
     'dns': 1001,
+    'pgp': 1002,
     'rooter': 100001
   },
   'TrackDiffType': {
@@ -949,6 +951,7 @@ export const pgp = {
     'hackernews': 6,
     'genericWebSite': 1000,
     'dns': 1001,
+    'pgp': 1002,
     'rooter': 100001
   },
   'TrackDiffType': {
@@ -1093,6 +1096,7 @@ export const prove = {
     'hackernews': 6,
     'genericWebSite': 1000,
     'dns': 1001,
+    'pgp': 1002,
     'rooter': 100001
   },
   'TrackDiffType': {
@@ -1328,6 +1332,7 @@ export const saltpack = {
     'hackernews': 6,
     'genericWebSite': 1000,
     'dns': 1001,
+    'pgp': 1002,
     'rooter': 100001
   },
   'TrackDiffType': {
@@ -1606,6 +1611,7 @@ export const track = {
     'hackernews': 6,
     'genericWebSite': 1000,
     'dns': 1001,
+    'pgp': 1002,
     'rooter': 100001
   },
   'TrackDiffType': {

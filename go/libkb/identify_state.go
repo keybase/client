@@ -61,6 +61,7 @@ func (s *IdentifyState) computeRevokedProofs() {
 		// the we have a problem.  Mark the proof as "REVOKED"
 		if e.GetProofState() == keybase1.ProofState_OK {
 			s.res.Revoked = append(s.res.Revoked, TrackDiffRevoked{e})
+			s.res.RevokedDetails = append(s.res.RevokedDetails, ExportTrackIDComponentToRevokedProof(e))
 		}
 	}
 }
