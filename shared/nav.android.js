@@ -16,7 +16,7 @@ import {folderTab, chatTab, peopleTab, devicesTab, moreTab, startupTab, prettify
 
 import {switchTab} from './actions/tabbed-router'
 import {navigateBack} from './actions/router'
-import {startup} from './actions/startup'
+import {bootstrap} from './actions/config'
 
 const tabs = {
   [folderTab]: Folders,
@@ -57,7 +57,7 @@ AndroidNavigator.propTypes = {
 class Nav extends Component {
   constructor (props) {
     super(props)
-    this.props.startup()
+    this.props.bootstrap()
   }
 
   _renderContent (activeTab) {
@@ -201,7 +201,7 @@ class Nav extends Component {
 Nav.propTypes = {
   switchTab: React.PropTypes.func.isRequired,
   navigateBack: React.PropTypes.func.isRequired,
-  startup: React.PropTypes.func.isRequired,
+  bootstrap: React.PropTypes.func.isRequired,
   tabbedRouter: React.PropTypes.object.isRequired,
   config: React.PropTypes.shape({
   }).isRequired
@@ -252,7 +252,7 @@ export default connect(
     return {
       switchTab: tab => dispatch(switchTab(tab)),
       navigateBack: () => dispatch(navigateBack()),
-      startup: () => dispatch(startup())
+      bootstrap: () => dispatch(bootstrap())
     }
   }
 )(Nav)
