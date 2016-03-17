@@ -19,17 +19,18 @@ type Mounter interface {
 
 // DefaultMounter will only call fuse.Mount and fuse.Unmount directly
 type DefaultMounter struct {
-	dir string
+	dir            string
+	platformParams PlatformParams
 }
 
 // NewDefaultMounter creates a default mounter.
-func NewDefaultMounter(dir string) DefaultMounter {
-	return DefaultMounter{dir: dir}
+func NewDefaultMounter(dir string, platformParams PlatformParams) DefaultMounter {
+	return DefaultMounter{dir: dir, platformParams: platformParams}
 }
 
 // Mount uses default mount
 func (m DefaultMounter) Mount() (*fuse.Conn, error) {
-	return fuseMountDir(m.dir)
+	return fuseMountDir(m.dir, m.platformParams)
 }
 
 // Unmount uses default unmount
@@ -44,17 +45,18 @@ func (m DefaultMounter) Dir() string {
 
 // ForceMounter will try its best to get it a mount
 type ForceMounter struct {
-	dir string
+	dir            string
+	platformParams PlatformParams
 }
 
 // NewForceMounter creates a force mounter.
-func NewForceMounter(dir string) ForceMounter {
-	return ForceMounter{dir: dir}
+func NewForceMounter(dir string, platformParams PlatformParams) ForceMounter {
+	return ForceMounter{dir: dir, platformParams: platformParams}
 }
 
 // Mount tries to mount and then unmount, re-mount if unsuccessful
 func (m ForceMounter) Mount() (*fuse.Conn, error) {
-	c, err := fuseMountDir(m.dir)
+	c, err := fuseMountDir(m.dir, m.platformParams)
 	if err == nil {
 		return c, nil
 	}
@@ -63,7 +65,7 @@ func (m ForceMounter) Mount() (*fuse.Conn, error) {
 	// if unmounting errors here.
 	m.Unmount()
 
-	c, err = fuseMountDir(m.dir)
+	c, err = fuseMountDir(m.dir, m.platformParams)
 	return c, err
 }
 
@@ -94,12 +96,17 @@ func (m ForceMounter) Dir() string {
 	return m.dir
 }
 
-func fuseMountDir(dir string) (*fuse.Conn, error) {
-	options, err := getPlatformSpecificMountOptions(dir)
+func fuseMountDir(dir string, platformParams PlatformParams) (*fuse.Conn, error) {
+	options, err := getPlatformSpecificMountOptions(dir, platformParams)
 	if err != nil {
 		return nil, err
 	}
-	return fuse.Mount(dir, options...)
+	c, err := fuse.Mount(dir, options...)
+	if err != nil {
+		err = translatePlatformSpecificError(err, platformParams)
+		return nil, err
+	}
+	return c, nil
 }
 
 // volumeName returns the directory (base) name

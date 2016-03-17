@@ -28,14 +28,14 @@ To run against remote KBFS servers:
     [-bserver=%s] [-mdserver=%s]
     [-runtime-dir=path/to/dir] [-label=label] [-mount-type=force]
     [-log-to-file [-log-file-path=path/to/file]]
-    /path/to/mountpoint
+    %s/path/to/mountpoint
 
 To run in a local testing environment:
   kbfsfuse [-debug] [-cpuprofile=path/to/dir]
     [-server-in-memory|-server-root=path/to/dir] [-localuser=<user>]
     [-runtime-dir=path/to/dir] [-label=label] [-mount-type=force]
     [-log-to-file [-log-file-path=path/to/file]]
-    /path/to/mountpoint
+    %s/path/to/mountpoint
 
 `
 
@@ -48,11 +48,15 @@ func getUsageStr() string {
 	if len(defaultMDServer) == 0 {
 		defaultMDServer = "host:port"
 	}
-	return fmt.Sprintf(usageFormatStr, defaultBServer, defaultMDServer)
+	platformUsageString := libfuse.GetPlatformUsageString()
+	return fmt.Sprintf(
+		usageFormatStr, defaultBServer, defaultMDServer,
+		platformUsageString, platformUsageString)
 }
 
 func start() *libfs.Error {
 	kbfsParams := libkbfs.AddFlags(flag.CommandLine)
+	platformParams := libfuse.AddPlatformFlags(flag.CommandLine)
 
 	flag.Parse()
 
@@ -82,9 +86,9 @@ func start() *libfs.Error {
 	mountpoint := flag.Arg(0)
 	var mounter libfuse.Mounter
 	if *mountType == "force" {
-		mounter = libfuse.NewForceMounter(mountpoint)
+		mounter = libfuse.NewForceMounter(mountpoint, *platformParams)
 	} else {
-		mounter = libfuse.NewDefaultMounter(mountpoint)
+		mounter = libfuse.NewDefaultMounter(mountpoint, *platformParams)
 	}
 
 	options := libfuse.StartOptions{
