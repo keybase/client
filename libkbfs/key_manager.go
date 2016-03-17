@@ -469,9 +469,6 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 		}
 	}
 
-	// send rekey start notification
-	km.config.Reporter().Notify(ctx, rekeyNotification(ctx, km.config, handle, false))
-
 	// For addNewDevice, we only use the ephemeral keys; incKeyGen
 	// needs all of them.  ePrivKey will be discarded at the end of the
 	// function in either case.
@@ -515,6 +512,11 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 		// we're done!
 		return true, nil, nil
 	}
+
+	// Send rekey start notification once we're sure that this device
+	// can perform the rekey.
+	km.config.Reporter().Notify(ctx, rekeyNotification(ctx, km.config, handle,
+		false))
 
 	newClientKeys := TLFKeyBundle{
 		TLFWriterKeyBundle: &TLFWriterKeyBundle{
