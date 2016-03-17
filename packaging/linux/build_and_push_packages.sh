@@ -103,7 +103,7 @@ END
 
   # Generate and push the index.html file.
   export GOPATH="$HOME/s3_gopath"  # for building the Go release binary
-  "$here/../prerelease/s3_index.sh"
+  PLATFORM="linux" "$here/../prerelease/s3_index.sh"
 }
 
 if [ "$mode" = "prerelease" ] ; then
