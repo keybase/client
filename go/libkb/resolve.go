@@ -213,6 +213,13 @@ func (r *Resolver) EnableCaching() {
 	r.cache = cache
 }
 
+func (r *Resolver) Shutdown() {
+	if r.cache == nil {
+		return
+	}
+	r.cache.Shutdown()
+}
+
 func (r *Resolver) getCache(key string) *ResolveResult {
 	if r.cache == nil {
 		return nil
