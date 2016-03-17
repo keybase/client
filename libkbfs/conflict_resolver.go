@@ -3143,8 +3143,13 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 
 	if status, _, err := cr.fbo.status.getStatus(ctx); err == nil {
 		if statusString, err := json.Marshal(status); err == nil {
+			ci := func() conflictInput {
+				cr.inputLock.Lock()
+				defer cr.inputLock.Unlock()
+				return cr.currInput
+			}()
 			cr.log.CInfof(ctx, "Current status during conflict resolution "+
-				"(input %v): %s", cr.currInput, statusString)
+				"(input %v): %s", ci, statusString)
 		}
 	}
 	cr.log.CDebugf(ctx, "Recreate ops: %s", recOps)
