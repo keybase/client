@@ -5,7 +5,7 @@ os:
   - osx
 language: go
 go:
-  - 1.5
+  - 1.6
 install: true
 services:
   - docker
