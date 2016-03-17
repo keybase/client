@@ -1,6 +1,7 @@
 /* @flow */
 import * as Constants from '../../constants/login'
 import * as CommonConstants from '../../constants/common'
+import {bindActionCreators} from 'redux'
 import {isMobile} from '../../constants/platform'
 import {navigateTo, routeAppend} from '../router'
 import engine, {isRPCCancelError} from '../../engine'
@@ -29,9 +30,7 @@ import openURL from '../../util/open-url'
 
 function makeWaitingHandler (dispatch: Dispatch): {waitingHandler: (waiting: boolean) => void} {
   return {
-    waitingHandler: waiting => {
-      dispatch(waitingForResponse(waiting))
-    }
+    waitingHandler: bindActionCreators(waitingForResponse, dispatch)
   }
 }
 

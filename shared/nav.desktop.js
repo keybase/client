@@ -57,22 +57,22 @@ class Nav extends Component {
     // If you startup while offline, you'll stay in an errored state
     window.addEventListener('online', () => this.props.bootstrap())
 
-    this._lastResizedTab = null // the last tab we resized for
+    this._lastCheckedTab = null // the last tab we resized for
   }
 
   _handleTabsChange (e, key, payload) {
     this.props.switchTab(e)
   }
 
-  _resizeWindow () {
-    if (this._askedResize) {
+  _checkTabChanged () {
+    if (this._checkingTab) {
       return
     }
 
-    this._askedResize = true
+    this._checkingTab = true
 
     setImmediate(() => {
-      this._askedResize = false
+      this._checkingTab = false
       const currentWindow = remote.getCurrentWindow()
 
       if (!currentWindow) {
@@ -81,11 +81,11 @@ class Nav extends Component {
 
       const activeTab = this._activeTab()
 
-      if (this._lastResizedTab === activeTab) {
+      if (this._lastCheckedTab === activeTab) {
         return
       }
 
-      const oldWasLogin = this._lastResizedTab === loginTab
+      const oldWasLogin = this._lastCheckedTab === loginTab
       const newIsLogin = activeTab === loginTab
 
       // going to/from login?
@@ -114,7 +114,7 @@ class Nav extends Component {
         currentWindow.setResizable(true)
       }
 
-      this._lastResizedTab = activeTab
+      this._lastCheckedTab = activeTab
     })
   }
 
@@ -127,11 +127,11 @@ class Nav extends Component {
   }
 
   componentDidMount () {
-    this._resizeWindow()
+    this._checkTabChanged()
   }
 
   componentDidUpdate () {
-    this._resizeWindow()
+    this._checkTabChanged()
   }
 
   render () {

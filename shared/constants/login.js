@@ -30,8 +30,6 @@ export const actionUpdateForgotPasswordEmailAddress = 'login:actionUpdateForgotP
 export const actionSetForgotPasswordSubmitting = 'login:actionSetForgotPasswordSubmitting'
 export const actionForgotPasswordDone = 'login:actionForgotPasswordDone'
 
-export const actionSetUserPass = 'login:actionSetUserPass'
-
 export const actionRegisteredWithUserPass = 'login:actionRegisteredWithUserPass'
 export const actionRegisteredWithPaperKey = 'login:actionRegisteredWithPaperKey'
 export const actionRegisteredWithExistingDevice = 'login:actionRegisteredWithExistingDevice'
