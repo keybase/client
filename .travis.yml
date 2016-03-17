@@ -30,7 +30,7 @@ script:
     [ -z "$lint" -o "$lint" = "Lint-free!" ]
   - go vet $(go list ./... 2>/dev/null | grep -v /vendor/)
   - go install ./...
-  - cd libkbfs && go test -i && go test -c && ./libkbfs.test -test.timeout 4m
+  - cd libkbfs && go test -i && go test -race -c && ./libkbfs.test -test.timeout 4m
   - cd ../serverutil && go test -i && go test -c && ./serverutil.test -test.timeout 10s
   - cd ../bserver && go test -i && go test -c && ./bserver.test -test.timeout 4m
   - go test -c -tags integration
@@ -40,7 +40,7 @@ script:
   #- cd mdserver && go build && { KBFS_BIND_ADDR=127.0.0.1:8125 ./mdserver 2> /dev/null & } && cd ../../libkbfs/ && KEYBASE_TEST_MDSERVER_ADDR=127.0.0.1:8125 go test && killall -9 mdserver
   - cd ../libfuse && go test -i && go test -c
   - cd ../test
-  - go test -i && go test
+  - go test -i && go test -race -c && ./test.test -test.timeout 4m
   - go test -c -tags fuse
   - wait $build_dockers_pid; # Ensure all backgrounded jobs have completed before continuing
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then
