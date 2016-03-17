@@ -8,6 +8,13 @@ import (
 	"bazil.org/fuse"
 )
 
+var kbfusePath = fuse.OSXFUSEPaths{
+	DevicePrefix: "/dev/kbfuse",
+	Load:         "/Library/Filesystems/kbfuse.fs/Contents/Resources/load_kbfuse",
+	Mount:        "/Library/Filesystems/kbfuse.fs/Contents/Resources/mount_kbfuse",
+	DaemonVar:    "MOUNT_KBFUSE_DAEMON_PATH",
+}
+
 func getPlatformSpecificMountOptions(dir string, platformParams PlatformParams) ([]fuse.MountOption, error) {
 	options := []fuse.MountOption{}
 
@@ -17,12 +24,6 @@ func getPlatformSpecificMountOptions(dir string, platformParams PlatformParams) 
 		locationOption = fuse.OSXFUSELocations(fuse.OSXFUSELocationV3)
 	} else {
 		// Only allow kbfuse.
-		kbfusePath := fuse.OSXFUSEPaths{
-			DevicePrefix: "/dev/kbfuse",
-			Load:         "/Library/Filesystems/kbfuse.fs/Contents/Resources/load_kbfuse",
-			Mount:        "/Library/Filesystems/kbfuse.fs/Contents/Resources/mount_kbfuse",
-			DaemonVar:    "MOUNT_KBFUSE_DAEMON_PATH",
-		}
 		locationOption = fuse.OSXFUSELocations(kbfusePath)
 	}
 	options = append(options, locationOption)
@@ -36,6 +37,14 @@ func getPlatformSpecificMountOptions(dir string, platformParams PlatformParams) 
 	options = append(options, fuse.VolumeName(volName))
 
 	return options, nil
+}
+
+func getPlatformSpecificMountOptionsForTest() []fuse.MountOption {
+	// For now, test with either kbfuse or OSXFUSE for now.
+	// TODO: Consider mandate testing with kbfuse?
+	return []fuse.MountOption{
+		fuse.OSXFUSELocations(kbfusePath, fuse.OSXFUSELocationV3),
+	}
 }
 
 func translatePlatformSpecificError(err error, platformParams PlatformParams) error {

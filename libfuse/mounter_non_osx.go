@@ -8,6 +8,10 @@ func getPlatformSpecificMountOptions(dir string, platformParams PlatformParams) 
 	return []fuse.MountOption{}, nil
 }
 
+func getPlatformSpecificMountOptionsForTest() []fuse.MountOption {
+	return []fuse.MountOption{}
+}
+
 func translatePlatformSpecificError(err error, platformParams PlatformParams) error {
 	return err
 }
