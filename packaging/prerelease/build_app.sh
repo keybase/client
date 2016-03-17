@@ -22,7 +22,7 @@ if [ "$gopath" = "" ]; then
 fi
 
 if [ "$platform" = "" ]; then
-  echo "No PLATFORM"
+  echo "No PLATFORM. Yo can specify darwin, linux or windows."
   exit 1
 fi
 echo "Platform: $platform"
@@ -76,28 +76,26 @@ if [ -n "$kbfs_commit" ]; then
 fi
 
 if [ ! "$nobuild" = "1" ]; then
-  cd $dir
-  BUILD_DIR=$build_dir_keybase ./build_keybase.sh
-  BUILD_DIR=$build_dir_kbfs ./build_kbfs.sh
+  BUILD_DIR=$build_dir_keybase "$dir/build_keybase.sh"
+  BUILD_DIR=$build_dir_kbfs "$dir/build_kbfs.sh"
 fi
 
 version=`$build_dir_keybase/keybase version -S`
 kbfs_version=`$build_dir_kbfs/kbfs -version`
 
-cd $dir/../desktop
 save_dir="/tmp/build_desktop"
 rm -rf $save_dir
 
 if [ "$platform" = "darwin" ]; then
-  SAVE_DIR=$save_dir KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" BUCKET_NAME=$bucket_name ./package_darwin.sh
+  SAVE_DIR=$save_dir KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" BUCKET_NAME=$bucket_name "$dir/../desktop/package_darwin.sh"
 else
   # TODO: Support linux build here?
   echo "Unknown platform: $platform"
   exit 1
 fi
 
-BUCKET_NAME="$bucket_name" PLATFORM="$platform" ./s3_index.sh
+BUCKET_NAME="$bucket_name" PLATFORM="$platform" "$dir/s3_index.sh"
 
 "$client_dir/packaging/slack/send.sh" "Finished $platform $build_desc (keybase: $version, kbfs: $kbfs_version). See https://s3.amazonaws.com/$bucket_name/index.html"
 
-BUCKET_NAME="$bucket_name" ./report.sh
+BUCKET_NAME="$bucket_name" "$dir/report.sh"
