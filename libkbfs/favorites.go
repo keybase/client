@@ -44,15 +44,19 @@ type Favorites struct {
 	inFlightAdds map[Favorite]favReq
 }
 
-// NewFavorites constructs a new Favorites instance.
-func NewFavorites(config Config) *Favorites {
+func newFavoritesWithChan(config Config, reqChan chan favReq) *Favorites {
 	f := &Favorites{
 		config:       config,
-		reqChan:      make(chan favReq, 100),
+		reqChan:      reqChan,
 		inFlightAdds: make(map[Favorite]favReq),
 	}
 	go f.loop()
 	return f
+}
+
+// NewFavorites constructs a new Favorites instance.
+func NewFavorites(config Config) *Favorites {
+	return newFavoritesWithChan(config, make(chan favReq, 100))
 }
 
 func (f *Favorites) handleReq(req favReq) (err error) {
