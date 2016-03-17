@@ -4,7 +4,6 @@ import * as Constants from '../constants/login'
 import * as ConfigConstants from '../constants/config'
 import * as CommonConstants from '../constants/common'
 import Immutable from 'immutable'
-import HiddenString from '../util/hidden-string'
 import {isMobile} from '../constants/platform'
 import {
   codePageDeviceRoleNewPhone,
@@ -37,16 +36,8 @@ type LoginState = {
   forgotPasswordSubmitting: boolean,
   forgotPasswordSuccess: boolean,
   forgotPasswordError: ?Error,
-  userPass: {
-    username: string | '',
-    passphrase: ?HiddenString
-  },
   configuredAccounts: ?Array<{hasStoredSecret: bool, username: string}>,
-  provisionDevices: Array<{
-    name: string,
-    id: string,
-    type: 'mobile' | 'laptop'
-  }>
+  waitingForResponse: boolean
 }
 
 const initialState: LoginState = {
@@ -66,32 +57,13 @@ const initialState: LoginState = {
   forgotPasswordSubmitting: false,
   forgotPasswordSuccess: false,
   forgotPasswordError: null,
-  userPass: {
-    username: '',
-    passphrase: null
-  },
   deviceName: {
     onSubmit: () => {},
     existingDevices: [],
     deviceName: ''
   },
   configuredAccounts: null,
-  provisionDevices: [
-    {name: 'desk', id: 'deskid', type: 'laptop'},
-    {name: 'mob1', id: '1', type: 'mobile'},
-    {name: 'mob2', id: '2', type: 'mobile'},
-    {name: 'mob2', id: '2', type: 'mobile'},
-    {name: 'mob2', id: '2', type: 'mobile'},
-    {name: 'mob2', id: '2', type: 'mobile'},
-    {name: 'mob2', id: '2', type: 'mobile'},
-    {name: 'mob2', id: '2', type: 'mobile'},
-    {name: 'mob2', id: '2', type: 'mobile'},
-    {name: 'mob2', id: '2', type: 'mobile'},
-    {name: 'mob2', id: '2', type: 'mobile'},
-    {name: 'mob2', id: '2', type: 'mobile'},
-    {name: 'mob2', id: '2', type: 'mobile'},
-    {name: 'mob2', id: '2', type: 'mobile'}
-  ]
+  waitingForResponse: false
 }
 
 export default function (state: LoginState = initialState, action: any): LoginState {
@@ -165,17 +137,15 @@ export default function (state: LoginState = initialState, action: any): LoginSt
       }
       break
     }
-    case Constants.actionSetUserPass: {
-      const {username, passphrase} = action.payload
-      toMerge = {userPass: {username, passphrase}}
-      break
-    }
     case Constants.configuredAccounts:
       if (action.payload.error) {
         toMerge = {configuredAccounts: []}
       } else {
         toMerge = {configuredAccounts: action.payload.accounts}
       }
+      break
+    case Constants.waitingForResponse:
+      toMerge = {waitingForResponse: action.payload}
       break
     default:
       return state

@@ -39,8 +39,10 @@ class Render extends Component<void, Props, State> {
           floatingLabelText='Passphrase'
           onEnterKeyDown={() => this.onSubmit()}
           onChange={event => this.onChange(event.target.value)}
-          value={this.state.passphrase}/>
+          value={this.state.passphrase}
+          errorText={this.props.error}/>
         <Button
+          waiting={this.props.waitingForResponse}
           label='Continue'
           type='Primary'
           onClick={() => this.onSubmit()}

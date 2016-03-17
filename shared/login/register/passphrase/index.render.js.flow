@@ -5,7 +5,9 @@ export type Props = {
   prompt: string,
   onSubmit: (passphrase: string) => void,
   onBack: () => void,
-  onForgotPassphrase: () => void
+  onForgotPassphrase: () => void,
+  waitingForResponse: boolean,
+  error?: ?string
 }
 
 export default class PaperKey extends React$Component<void, Props, void> { }

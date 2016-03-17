@@ -1,7 +1,7 @@
 import React from 'react'
-import {Text, Icon} from '../../../common-adapters'
-import {globalStyles, globalColors, transition} from '../../../styles/style-guide'
-import Container from '../../forms/container'
+import {Text, Icon} from '../../common-adapters'
+import {globalStyles, globalColors, transition} from '../../styles/style-guide'
+import Container from '../../login/forms/container'
 
 const Item = ({onClick, icon, title}) => {
   return (

@@ -41,6 +41,7 @@ Environment variables:
  - `KEYBASE_SHOW_DEVTOOLS` (bool): Show devtools
  - `KEYBASE_FEATURES`: Feature flags
  - `KEYBASE_RPC_DELAY`: Number of ms to delay all RPC calls (requires debug mode)
+ - `KEYBASE_RPC_DELAY_RESULT`: Number of ms to delay all RPC call callbacks (requires debug mode)
 
 
 ### Sourcemaps

@@ -1,9 +1,11 @@
 /* @flow */
 import * as Constants from '../../constants/login'
 import * as CommonConstants from '../../constants/common'
+import {bindActionCreators} from 'redux'
 import {isMobile} from '../../constants/platform'
 import {navigateTo, routeAppend} from '../router'
 import engine, {isRPCCancelError} from '../../engine'
+import type {responseError} from '../../engine'
 import enums from '../../constants/types/keybase-v1'
 import SelectOtherDevice from '../../login/register/select-other-device'
 import UsernameOrEmail from '../../login/register/username-or-email'
@@ -25,6 +27,19 @@ import type {incomingCallMapType, login_recoverAccountFromEmailAddress_rpc,
 import {overrideLoggedInTab} from '../../local-debug'
 import type {DeviceRole} from '../../constants/login'
 import openURL from '../../util/open-url'
+
+function makeWaitingHandler (dispatch: Dispatch): {waitingHandler: (waiting: boolean) => void} {
+  return {
+    waitingHandler: bindActionCreators(waitingForResponse, dispatch)
+  }
+}
+
+function waitingForResponse (waiting: boolean) : TypedAction<'login:waitingForResponse', boolean, void> {
+  return {
+    type: Constants.waitingForResponse,
+    payload: waiting
+  }
+}
 
 export function navBasedOnLoginState () :AsyncAction {
   return (dispatch, getState) => {
@@ -58,6 +73,7 @@ export function navBasedOnLoginState () :AsyncAction {
 function getAccounts (): AsyncAction {
   return dispatch => {
     const params: login_getConfiguredAccounts_rpc = {
+      ...makeWaitingHandler(dispatch),
       method: 'login.getConfiguredAccounts',
       param: {},
       incomingCallMap: {},
@@ -78,6 +94,7 @@ export function login (): AsyncAction {
     const deviceType = isMobile ? 'mobile' : 'desktop'
     const incomingMap = makeKex2IncomingMap(dispatch, getState)
     const params : login_login_rpc = {
+      ...makeWaitingHandler(dispatch),
       method: 'login.login',
       param: {
         deviceType,
@@ -95,7 +112,10 @@ export function login (): AsyncAction {
 
           if (!isRPCCancelError(error)) {
             dispatch(routeAppend({
-              parseRoute: {componentAtTop: {component: Error, props: {error}}}
+              parseRoute: {componentAtTop: {component: Error, props: {
+                error,
+                onBack: () => dispatch(cancelLogin())
+              }}}
             }))
           }
         } else {
@@ -110,6 +130,7 @@ export function login (): AsyncAction {
         }
       }
     }
+
     engine.rpc(params)
   }
 }
@@ -168,6 +189,7 @@ export function submitForgotPassword () : AsyncAction {
     dispatch({type: Constants.actionSetForgotPasswordSubmitting, payload: undefined})
 
     const params : login_recoverAccountFromEmailAddress_rpc = {
+      ...makeWaitingHandler(dispatch),
       method: 'login.recoverAccountFromEmailAddress',
       param: {email: getState().login.forgotPasswordEmailAddress},
       incomingCallMap: {},
@@ -195,6 +217,7 @@ export function submitForgotPassword () : AsyncAction {
 export function autoLogin () : AsyncAction {
   return dispatch => {
     const params : login_login_rpc = {
+      ...makeWaitingHandler(dispatch),
       method: 'login.login',
       param: {
         deviceType: isMobile ? 'mobile' : 'desktop',
@@ -226,6 +249,7 @@ export function autoLogin () : AsyncAction {
 export function relogin (user: string, passphrase: string, store: boolean) : AsyncAction {
   return dispatch => {
     const params : login_login_rpc = {
+      ...makeWaitingHandler(dispatch),
       method: 'login.login',
       param: {
         deviceType: isMobile ? 'mobile' : 'desktop',
@@ -257,6 +281,7 @@ export function relogin (user: string, passphrase: string, store: boolean) : Asy
 export function logout () : AsyncAction {
   return dispatch => {
     const params : login_logout_rpc = {
+      ...makeWaitingHandler(dispatch),
       method: 'login.logout',
       param: {},
       incomingCallMap: {},
@@ -319,10 +344,12 @@ function askForCodePage (cb) : AsyncAction {
   }
 }
 
-function cancelLogin (response) : AsyncAction {
+function cancelLogin (response: ?responseError) : AsyncAction {
   return (dispatch, getState) => {
     dispatch(navBasedOnLoginState())
-    engine.cancelRPC(response)
+    if (response) {
+      engine.cancelRPC(response)
+    }
   }
 }
 
@@ -330,6 +357,7 @@ export function addANewDevice () : AsyncAction {
   return (dispatch, getState) => {
     const incomingMap = makeKex2IncomingMap(dispatch, getState)
     const params : device_deviceAdd_rpc = {
+      ...makeWaitingHandler(dispatch),
       method: 'device.deviceAdd',
       param: {},
       incomingCallMap: incomingMap,
@@ -379,7 +407,7 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
         onBack: () => dispatch(cancelLogin(response))
       })
     },
-    'keybase.1.secretUi.getPassphrase': ({pinentry: {type, prompt}}, response) => {
+    'keybase.1.secretUi.getPassphrase': ({pinentry: {type, prompt, retryLabel}}, response) => {
       switch (type) {
         case enums.secretUi.PassphraseType.paperKey: {
           appendRoute(PaperKey, {
@@ -388,7 +416,8 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
               passphrase,
               storeSecret: false
             }),
-            onBack: () => dispatch(cancelLogin(response))
+            onBack: () => dispatch(cancelLogin(response)),
+            error: retryLabel
           })
           break
         }
@@ -399,7 +428,8 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
               passphrase,
               storeSecret: false
             }),
-            onBack: () => dispatch(cancelLogin(response))
+            onBack: () => dispatch(cancelLogin(response)),
+            error: retryLabel
           })
           break
         }

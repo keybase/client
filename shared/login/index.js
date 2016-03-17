@@ -5,7 +5,6 @@ import Intro from './forms/intro'
 import ErrorText from './error.render'
 
 import signupRouter from './signup'
-import Register from './register'
 import Login from './login'
 
 import {Map} from 'immutable'
@@ -27,9 +26,6 @@ function loginRouter (currentPath: Map<string, string>, uri: URI): any {
         break
       case 'signup':
         return signupRouter(currentPath, uri)
-      case 'register':
-        form = <Register />
-        break
       case 'login':
         form = <Login />
         break
