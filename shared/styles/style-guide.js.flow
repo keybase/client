@@ -1,3 +1,8 @@
-declare export var globalColors: Object
+/* @flow */
+// Styles from our designers
+
+export {default as globalColors} from './style-guide-colors'
+
+declare export var transition: (...properties: Array<string>) => Object
 declare export var globalStyles: Object
 declare export var globalResizing: Object

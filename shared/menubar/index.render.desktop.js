@@ -56,7 +56,7 @@ const Footer = props => {
 
 const LogInTerminalMessage = props => {
   return (
-    <div style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.grey5}}>
+    <div style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.black10}}>
       <Icon type='fa-exclamation-triangle' style={{alignSelf: 'center', color: globalColors.yellow, marginTop: 12}} />
       <Text type='Body' small style={{alignSelf: 'center', marginTop: 6}}>You're logged out!</Text>
       <Text type='Body' small style={{marginTop: 23, marginBottom: 5, marginLeft: 10}}>From the terminal:</Text>
@@ -74,7 +74,7 @@ const LogInTerminalMessage = props => {
 const LogInPrompt = props => {
   const logIn: () => void = props.logIn
   return (
-    <div style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.grey5}}>
+    <div style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.black10}}>
       <Icon type='fa-exclamation-triangle' style={{alignSelf: 'center', color: globalColors.yellow, marginTop: 12}} />
       <Text type='Body' small style={{alignSelf: 'center', marginTop: 6}}>You're logged out!</Text>
       <Button type='Primary' label='Log In' onClick={logIn} style={{alignSelf: 'center', minWidth: 160, marginTop: 12, marginRight: 0}}/>
@@ -248,7 +248,7 @@ class FolderList extends Component<void, FolderListProps, FolderState> {
     const {username, loggedIn} = this.props
 
     if (!loggedIn && !allowLoggedOutKBFS) {
-      return <div style={{flex: 1, backgroundColor: globalColors.grey5}}/>
+      return <div style={{flex: 1, backgroundColor: globalColors.black10}}/>
     }
 
     // Remove folders that are just our personal ones, we'll add those in later
@@ -387,7 +387,7 @@ const styles = {
   personalTLDStyle: {
     fontSize: 15,
     lineHeight: '18px',
-    color: globalColors.lightBlue
+    color: globalColors.blue2
   },
   showAllBox: {
     color: globalColors.white,
