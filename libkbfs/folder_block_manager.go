@@ -726,6 +726,16 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 		return errors.New("Skipping quota reclamation while unstaged")
 	}
 
+	// Make sure we're a writer
+	username, uid, err := fbm.config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		return err
+	}
+	if !head.GetTlfHandle().IsWriter(uid) {
+		return NewWriteAccessError(ctx, fbm.config, head.GetTlfHandle(),
+			username)
+	}
+
 	if !fbm.isQRNecessary(head) {
 		// Nothing has changed since last time, so no need to do any QR.
 		return nil
@@ -829,7 +839,14 @@ func (fbm *folderBlockManager) reclaimQuotaInBackground() {
 		case <-fbm.forceReclamationChan:
 		}
 
-		fbm.doReclamation(timer)
+		err := fbm.doReclamation(timer)
+		if _, ok := err.(WriteAccessError); ok {
+			// If we got a write access error, don't bother with the
+			// timer anymore. Don't completely shut down, since we
+			// don't want forced reclamations to hang.
+			timer.Stop()
+			timerChan = make(chan time.Time)
+		}
 	}
 }
 
