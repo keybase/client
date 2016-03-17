@@ -1,10 +1,14 @@
 package libkbfs
 
 import (
+	"crypto/rand"
 	"crypto/tls"
 	"crypto/x509"
 	"errors"
+	"fmt"
 	"io"
+	"math"
+	"math/big"
 	"net"
 	"sync"
 	"time"
@@ -220,6 +224,8 @@ func newConnectionWithTransport(config Config,
 	reconnectBackoff := backoff.NewExponentialBackOff()
 	// never give up reconnecting
 	reconnectBackoff.MaxElapsedTime = 0
+	randint, _ := rand.Int(rand.Reader, big.NewInt(math.MaxUint32))
+	connectionPrefix := fmt.Sprintf("CONN %x", randint.Bytes())
 	connection := &Connection{
 		config:           config,
 		handler:          handler,
@@ -227,7 +233,7 @@ func newConnectionWithTransport(config Config,
 		errorUnwrapper:   errorUnwrapper,
 		reconnectBackoff: reconnectBackoff,
 		doCommandBackoff: backoff.NewExponentialBackOff(),
-		log:              config.MakeLogger(""),
+		log:              config.MakeLogger(connectionPrefix),
 	}
 	if connectNow {
 		// start connecting now
