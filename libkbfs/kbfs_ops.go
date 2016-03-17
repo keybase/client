@@ -243,6 +243,11 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNode(
 		return nil, EntryInfo{}, err
 	}
 
+	if err := ops.addToFavorites(ctx, fs.favs); err != nil {
+		// Failure to favorite shouldn't cause a failure.  Just log
+		// and move on.
+		fs.log.CDebugf(ctx, "Couldn't add favorite: %v", err)
+	}
 	return node, ei, nil
 }
 

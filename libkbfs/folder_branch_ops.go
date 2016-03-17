@@ -259,10 +259,6 @@ type folderBranchOps struct {
 	// rekey with a paper key prompt, if enough time has passed.
 	// Protected by mdWriterLock
 	rekeyWithPromptTimer *time.Timer
-
-	// Track whether or not this FBO has been added as a favorite.
-	favAddedLock sync.Mutex
-	favAdded     bool
 }
 
 var _ KBFSOps = (*folderBranchOps)(nil)
@@ -403,27 +399,6 @@ func (fbo *folderBranchOps) addToFavorites(ctx context.Context,
 		return nil
 	}
 
-	// This is only necessary until we have favorite cache
-	// invalidations from the server -- then we can always send the
-	// Add() along to the Favorites cache, if we want.
-	doAdd := func() bool {
-		fbo.favAddedLock.Lock()
-		defer fbo.favAddedLock.Unlock()
-		doAdd := !fbo.favAdded
-		fbo.favAdded = true
-		return doAdd
-	}()
-	if !doAdd {
-		return nil
-	}
-	defer func() {
-		if err != nil {
-			fbo.favAddedLock.Lock()
-			fbo.favAdded = false
-			fbo.favAddedLock.Unlock()
-		}
-	}()
-
 	lState := makeFBOLockState()
 	head := fbo.getHead(lState)
 	if head == nil {
@@ -431,9 +406,7 @@ func (fbo *folderBranchOps) addToFavorites(ctx context.Context,
 	}
 
 	h := head.GetTlfHandle()
-	if err := favorites.Add(ctx, h.ToFavorite(ctx, fbo.config)); err != nil {
-		return err
-	}
+	favorites.AddAsync(ctx, h.ToFavorite(ctx, fbo.config))
 	return nil
 }
 
@@ -450,14 +423,10 @@ func (fbo *folderBranchOps) deleteFromFavorites(ctx context.Context,
 		return errors.New("Can't delete a favorite without a handle")
 	}
 
-	fbo.favAddedLock.Lock()
-	defer fbo.favAddedLock.Unlock()
-
 	h := head.GetTlfHandle()
 	if err := favorites.Delete(ctx, h.ToFavorite(ctx, fbo.config)); err != nil {
 		return err
 	}
-	fbo.favAdded = false
 	return nil
 }
 

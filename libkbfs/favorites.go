@@ -101,6 +101,8 @@ func (f *Favorites) handleReq(req favReq) (err error) {
 		}
 		err := kbpki.FavoriteAdd(req.ctx, fav.toKBFolder())
 		if err != nil {
+			f.config.MakeLogger("").CDebugf(req.ctx,
+				"Failure adding favorite %v: %v", fav, err)
 			return err
 		}
 		f.cache[fav] = true
