@@ -134,7 +134,16 @@ func (p ProvisionUI) ChooseDevice(ctx context.Context, arg keybase1.ChooseDevice
 	p.parent.Output("Which one of your existing devices would you like to use\n")
 	p.parent.Output("to provision this new device?\n\n")
 	for i, d := range arg.Devices {
-		p.parent.Printf("\t%d. [%s]\t%s\n", i+1, d.Type, d.Name)
+		var ft string
+		switch d.Type {
+		case libkb.DeviceTypePaper:
+			ft = "paper key"
+		case libkb.DeviceTypeDesktop:
+			ft = "computer"
+		case libkb.DeviceTypeMobile:
+			ft = "mobile"
+		}
+		p.parent.Printf("\t%d. [%s]\t%s\n", i+1, ft, d.Name)
 	}
 	p.parent.Printf("\t%d. I don't have access to any of these devices.\n", len(arg.Devices)+1)
 	p.parent.Output("\n")
