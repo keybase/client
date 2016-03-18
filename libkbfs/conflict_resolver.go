@@ -656,7 +656,7 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 			}
 		}
 
-		de, err := cr.fbo.blocks.GetEntry(
+		de, err := cr.fbo.blocks.GetDirtyEntry(
 			ctx, lState, unmergedChains.mostRecentMD, currPath)
 		if err != nil {
 			return path{}, BlockPointer{}, nil, err
@@ -2440,7 +2440,8 @@ func (cr *ConflictResolver) syncTree(ctx context.Context, lState *lockState,
 		}
 
 		// TODO: fix mtime and ctime?
-		_, _, bps, err := cr.fbo.syncBlock(ctx, lState, uid, newMD, block,
+		_, _, bps, err := cr.fbo.syncBlockForConflictResolution(
+			ctx, lState, uid, newMD, block,
 			*node.mergedPath.parentPath(), node.mergedPath.tailName(),
 			entryType, false, false, stopAt, lbc)
 		if err != nil {

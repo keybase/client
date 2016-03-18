@@ -2712,11 +2712,11 @@ func checkSyncOpInCache(t *testing.T, ops *folderBranchOps,
 	checkSyncOp(t, si.op, filePtr, writes)
 }
 
-func getUpdatedDirBlock(ctx context.Context, ops *folderBranchOps,
+func updateWithDirtyEntries(ctx context.Context, ops *folderBranchOps,
 	lState *lockState, block *DirBlock) *DirBlock {
 	ops.blocks.blockLock.RLock(lState)
 	defer ops.blocks.blockLock.RUnlock(lState)
-	return ops.blocks.getUpdatedDirBlockLocked(ctx, lState, block)
+	return ops.blocks.updateWithDirtyEntriesLocked(ctx, lState, block)
 }
 
 func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
@@ -2761,7 +2761,7 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 		p.Branch)
 	newRootBlock := getDirBlockFromCache(t, config, node.BlockPointer, p.Branch)
 	lState := makeFBOLockState()
-	newRootBlock = getUpdatedDirBlock(ctx, ops, lState, newRootBlock)
+	newRootBlock = updateWithDirtyEntries(ctx, ops, lState, newRootBlock)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).path) !=
 		len(p.path) {
@@ -2968,7 +2968,7 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	b, _ := config.BlockCache().Get(node.BlockPointer, p.Branch)
 	newRootBlock := b.(*DirBlock)
 	lState := makeFBOLockState()
-	newRootBlock = getUpdatedDirBlock(ctx, ops, lState, newRootBlock)
+	newRootBlock = updateWithDirtyEntries(ctx, ops, lState, newRootBlock)
 
 	b, _ = config.BlockCache().Get(fileNode.BlockPointer, p.Branch)
 	pblock := b.(*FileBlock)
@@ -3198,7 +3198,7 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 		p.Branch)
 	newRootBlock := getDirBlockFromCache(t, config, node.BlockPointer, p.Branch)
 	lState := makeFBOLockState()
-	newRootBlock = getUpdatedDirBlock(ctx, ops, lState, newRootBlock)
+	newRootBlock = updateWithDirtyEntries(ctx, ops, lState, newRootBlock)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).path) !=
 		len(p.path) {
