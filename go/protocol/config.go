@@ -41,6 +41,7 @@ type PlatformInfo struct {
 type ExtendedStatus struct {
 	Standalone             bool            `codec:"standalone" json:"standalone"`
 	PassphraseStreamCached bool            `codec:"passphraseStreamCached" json:"passphraseStreamCached"`
+	LksecLoaded            bool            `codec:"lksecLoaded" json:"lksecLoaded"`
 	Device                 *Device         `codec:"device,omitempty" json:"device,omitempty"`
 	LogDir                 string          `codec:"logDir" json:"logDir"`
 	Session                *SessionStatus  `codec:"session,omitempty" json:"session,omitempty"`

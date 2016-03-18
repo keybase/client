@@ -144,6 +144,7 @@ func (h ConfigHandler) GetExtendedStatus(_ context.Context, sessionID int) (res 
 
 	h.G().LoginState().Account(func(a *libkb.Account) {
 		res.PassphraseStreamCached = a.PassphraseStreamCache().Valid()
+		res.LksecLoaded = a.LKSec() != nil
 		if a.LoginSession() != nil {
 			res.Session = a.LoginSession().Status()
 		}

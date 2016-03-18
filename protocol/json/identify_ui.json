@@ -412,6 +412,7 @@
         "HACKERNEWS_6",
         "GENERIC_WEB_SITE_1000",
         "DNS_1001",
+        "PGP_1002",
         "ROOTER_100001"
       ]
     },
@@ -752,6 +753,20 @@
     },
     {
       "type": "record",
+      "name": "RevokedProof",
+      "fields": [
+        {
+          "type": "RemoteProof",
+          "name": "proof"
+        },
+        {
+          "type": "TrackDiff",
+          "name": "diff"
+        }
+      ]
+    },
+    {
+      "type": "record",
       "name": "Identity",
       "fields": [
         {
@@ -785,6 +800,13 @@
             "items": "TrackDiff"
           },
           "name": "revoked"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RevokedProof"
+          },
+          "name": "revokedDetails"
         },
         {
           "type": "bool",

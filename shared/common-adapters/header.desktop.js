@@ -16,7 +16,7 @@ export default class Header extends Component<DefaultProps, Props, void> {
         {this.props.icon && <Icon type='logo-24' />}
         <Text type='Body' style={{flex: 1, paddingLeft: 6}}>{this.props.title}</Text>
         {this.props.onClose && (
-          <Icon type='fa-close' onClick={() => this.props.onClose()} />
+          <Icon style={styles.closeIcon} type='fa-close' onClick={() => this.props.onClose()} />
         )}
       </div>
     )
@@ -67,5 +67,10 @@ const styles = {
     backgroundColor: globalColors.blue,
     paddingTop: 6,
     paddingBottom: 12
+  },
+
+  closeIcon: {
+    ...globalStyles.windowDraggingClickable,
+    ...globalStyles.clickable
   }
 }

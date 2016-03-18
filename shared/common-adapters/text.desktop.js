@@ -43,6 +43,7 @@ export default class Text extends Component {
       case 'HeaderBig':
       case 'Header':
       case 'BodySemibold':
+      case 'BodySemiboldItalic':
       case 'BodySmallSemibold':
       case 'Body':
         return {color: backgroundMode === 'Normal' ? globalColors.black75 : globalColors.white}
@@ -64,6 +65,7 @@ export default class Text extends Component {
       'Header': styles.textHeader,
       'HeaderError': {...styles.textHeader, color: globalColors.red},
       'BodySemibold': styles.textBodySemibold,
+      'BodySemiboldItalic': {...styles.textBodySemibold, ...globalStyles.italic, cursor: 'default'},
       'Body': styles.textBody,
       'BodyPrimaryLink': styles.textBody,
       'BodySecondaryLink': styles.textBodySmall,
@@ -178,6 +180,22 @@ export const specialStyles = {
     fontSize: 24,
     lineHeight: '29px',
     letterSpacing: '0.3px'
+  },
+  paperKey: {
+    ...textCommon,
+    ...globalStyles.fontTerminalSemibold,
+    color: globalColors.black75,
+    fontSize: 18,
+    lineHeight: '24px',
+    letterSpacing: '0.3px'
+  },
+  username: {
+    ...textCommon,
+    ...globalStyles.fontBold,
+    fontSize: 24,
+    lineHeight: '31px',
+    letterSpacing: '0.3px',
+    color: globalColors.orange
   }
 }
 

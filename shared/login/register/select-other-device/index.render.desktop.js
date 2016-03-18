@@ -5,14 +5,14 @@ import {globalStyles, globalColors} from '../../../styles/style-guide'
 import Container from '../../forms/container.desktop'
 import type {Props} from './index.render'
 import type {Props as IconProps} from '../../../common-adapters/icon'
-import type {ProvisionUI_ChooseDeviceType} from '../../../constants/types/more'
+import type {DeviceType} from '../../../constants/types/more'
 
 const Row = ({deviceID, name, type, onSelect}) => {
   const iconType: IconProps.type = ({
     'mobile': 'fa-mobile',
     'computer': 'fa-laptop',
     'paper key': 'paper-key'
-  }: {[key: ProvisionUI_ChooseDeviceType]: IconProps.type})[type]
+  }: {[key: DeviceType]: IconProps.type})[type]
 
   const onClick = e => {
     onSelect(deviceID)
@@ -21,10 +21,12 @@ const Row = ({deviceID, name, type, onSelect}) => {
 
   return (
     <div style={styles.row} onClick={onClick}>
-      <div style={styles.iconContainer}>
-        <Icon style={styles.icon} type={iconType}/>
+      <div style={styles.iconName}>
+        <div style={styles.iconContainer}>
+          <Icon style={styles.icon} type={iconType}/>
+        </div>
+        <Text type='BodySemiboldItalic' onClick={onClick}>{name}</Text>
       </div>
-      <Text type='Body' onClick={onClick}>{name}</Text>
     </div>)
 }
 
@@ -32,11 +34,11 @@ const Render = ({onBack, devices, onWont, onSelect}: Props) => (
   <Container
     style={styles.container}
     onBack={onBack}>
-    <Text type='Header' style={styles.header}>Select a device to connect with:</Text>
+    <Text type='Header' style={styles.header}>Which device would you like to connect with?</Text>
     <div style={styles.devicesContainer}>
-      {devices.map(d => <Row onSelect={onSelect} {...d}/>)}
+      {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID}/>)}
     </div>
-    <Text style={styles.wont} type='BodySecondaryLink' onClick={onWont}>I don't have one of these devices</Text>
+    <Text style={styles.wont} type='BodySecondaryLink' onClick={onWont}>Log in with your passphrase</Text>
   </Container>
 )
 
@@ -50,24 +52,32 @@ const styles = {
   devicesContainer: {
     ...globalStyles.flexBoxColumn,
     flex: 1,
-    overflow: 'auto'
+    overflow: 'auto',
+    width: 375,
+    alignSelf: 'center'
   },
   row: {
-    ...globalStyles.flexBoxRow,
+    ...globalStyles.flexBoxColumn,
     ...globalStyles.clickable,
-    minHeight: 50,
+    justifyContent: 'center',
+    minHeight: 80,
     padding: 10,
+    borderBottom: `solid ${globalColors.black10} 1px`
+  },
+  iconName: {
+    ...globalStyles.flexBoxRow,
     alignItems: 'center'
   },
   iconContainer: {
     ...globalStyles.flexBoxRow,
-    width: 50,
     justifyContent: 'center',
     alignItems: 'center'
   },
   icon: {
     color: globalColors.black,
-    fontSize: 40
+    marginLeft: 32,
+    marginRight: 22,
+    maxHeight: 60
   },
   wont: {
     marginTop: 10,

@@ -61,7 +61,7 @@ func TestLoginLogout(t *testing.T) {
 	}
 
 	secretUI := &libkb.TestSecretUI{Passphrase: fu.Passphrase}
-	if err := tc.G.LoginState().LoginWithPrompt("", secretUI, nil); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt("", nil, secretUI, nil); err != nil {
 		t.Error(err)
 	}
 
@@ -111,11 +111,11 @@ func TestLoginWhileAlreadyLoggedIn(t *testing.T) {
 
 	// These should all work, since the username matches.
 
-	if err := tc.G.LoginState().LoginWithPrompt("", nil, nil); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt("", nil, nil, nil); err != nil {
 		t.Error(err)
 	}
 
-	if err := tc.G.LoginState().LoginWithPrompt(fu.Username, nil, nil); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt(fu.Username, nil, nil, nil); err != nil {
 		t.Error(err)
 	}
 
@@ -128,23 +128,23 @@ func TestLoginWhileAlreadyLoggedIn(t *testing.T) {
 	}
 
 	// This should fail.
-	if _, ok := tc.G.LoginState().LoginWithPrompt("other", nil, nil).(libkb.LoggedInWrongUserError); !ok {
+	if _, ok := tc.G.LoginState().LoginWithPrompt("other", nil, nil, nil).(libkb.LoggedInWrongUserError); !ok {
 		t.Fatal("Did not get expected LoggedIn error")
 	}
 }
 
 // Test that login works while already logged in and after a login
 // state reset.
-func TestLoginAfterClearLoginStateSecretCaches(t *testing.T) {
+func TestLoginAfterLoginStateReset(t *testing.T) {
 	tc := SetupEngineTest(t, "login while already logged in")
 	defer tc.Cleanup()
 
 	// Logs the user in.
 	_ = CreateAndSignupFakeUser(tc, "li")
 
-	tc.ClearLoginStateSecretCaches()
+	tc.ResetLoginState()
 
-	if err := tc.G.LoginState().LoginWithPrompt("", nil, nil); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt("", nil, nil, nil); err != nil {
 		t.Error(err)
 	}
 }
@@ -159,9 +159,9 @@ func TestLoginNonexistent(t *testing.T) {
 	Logout(tc)
 
 	secretUI := &libkb.TestSecretUI{Passphrase: "XXXXXXXXXXXX"}
-	err := tc.G.LoginState().LoginWithPrompt("nonexistent", secretUI, nil)
-	if _, ok := err.(libkb.AppStatusError); !ok {
-		t.Errorf("error type: %T, expected libkb.AppStatusError", err)
+	err := tc.G.LoginState().LoginWithPrompt("nonexistent", nil, secretUI, nil)
+	if _, ok := err.(libkb.NotFoundError); !ok {
+		t.Errorf("error type: %T, expected libkb.NotFoundError", err)
 	}
 }
 
@@ -211,7 +211,7 @@ func TestLoginWithPromptPassphrase(t *testing.T) {
 	mockGetKeybasePassphrase := &GetPassphraseMock{
 		Passphrase: fu.Passphrase,
 	}
-	if err := tc.G.LoginState().LoginWithPrompt("", mockGetKeybasePassphrase, nil); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt("", nil, mockGetKeybasePassphrase, nil); err != nil {
 		t.Error(err)
 	}
 
@@ -222,11 +222,35 @@ func TestLoginWithPromptPassphrase(t *testing.T) {
 	Logout(tc)
 
 	mockGetKeybasePassphrase.Called = false
-	if err := tc.G.LoginState().LoginWithPrompt(fu.Username, mockGetKeybasePassphrase, nil); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt(fu.Username, nil, mockGetKeybasePassphrase, nil); err != nil {
 		t.Error(err)
 	}
 
 	mockGetKeybasePassphrase.CheckLastErr(t)
+
+	if !mockGetKeybasePassphrase.Called {
+		t.Errorf("secretUI.GetKeybasePassphrase() unexpectedly not called")
+	}
+
+	Logout(tc)
+
+	// Clear out the username stored in G.Env.
+	tc.G.Env.GetConfigWriter().SetUserConfig(nil, true)
+
+	mockGetUsername := &GetUsernameMock{
+		Username: fu.Username,
+	}
+	mockGetKeybasePassphrase.Called = false
+	if err := tc.G.LoginState().LoginWithPrompt("", mockGetUsername, mockGetKeybasePassphrase, nil); err != nil {
+		t.Error(err)
+	}
+
+	mockGetUsername.CheckLastErr(t)
+	mockGetKeybasePassphrase.CheckLastErr(t)
+
+	if !mockGetUsername.Called {
+		t.Errorf("loginUI.GetEmailOrUsername() unexpectedly not called")
+	}
 
 	if !mockGetKeybasePassphrase.Called {
 		t.Errorf("secretUI.GetKeybasePassphrase() unexpectedly not called")
@@ -249,15 +273,10 @@ func userHasStoredSecretViaConfiguredAccounts(tc *libkb.TestContext, username st
 }
 
 func userHasStoredSecretViaSecretStore(tc *libkb.TestContext, username string) bool {
-	secretStore := libkb.NewSecretStore(tc.G, libkb.NewNormalizedUsername(username))
-	if secretStore == nil {
-		tc.T.Errorf("SecretStore for %s unexpectedly nil", username)
-		return false
-	}
-	_, err := secretStore.RetrieveSecret()
+	secret, err := tc.G.SecretStoreAll.RetrieveSecret(libkb.NewNormalizedUsername(username))
 	// TODO: Have RetrieveSecret return platform-independent errors
 	// so that we can make sure we got the right one.
-	return (err == nil)
+	return (len(secret) > 0 && err == nil)
 }
 
 func userHasStoredSecret(tc *libkb.TestContext, username string) bool {
@@ -271,11 +290,6 @@ func userHasStoredSecret(tc *libkb.TestContext, username string) bool {
 
 // Test that the login flow using the secret store works.
 func TestLoginWithStoredSecret(t *testing.T) {
-	// TODO: Get this working on non-OS X platforms (by mocking
-	// out the SecretStore).
-	if !libkb.HasSecretStore() {
-		t.Skip("Skipping test since there is no secret store")
-	}
 
 	tc := SetupEngineTest(t, "login with stored secret")
 	defer tc.Cleanup()
@@ -291,7 +305,7 @@ func TestLoginWithStoredSecret(t *testing.T) {
 		Passphrase:  fu.Passphrase,
 		StoreSecret: true,
 	}
-	if err := tc.G.LoginState().LoginWithPrompt("", mockGetPassphrase, nil); err != nil {
+	if err := tc.G.LoginState().LoginWithPrompt("", nil, mockGetPassphrase, nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -362,11 +376,6 @@ func TestLoginWithPassphraseErrors(t *testing.T) {
 // Test that the login flow with passphrase but without saving the
 // secret works.
 func TestLoginWithPassphraseNoStore(t *testing.T) {
-	// TODO: Get this working on non-OS X platforms (by mocking
-	// out the SecretStore).
-	if !libkb.HasSecretStore() {
-		t.Skip("Skipping test since there is no secret store")
-	}
 
 	tc := SetupEngineTest(t, "login with passphrase (no store)")
 	defer tc.Cleanup()
@@ -392,11 +401,6 @@ func TestLoginWithPassphraseNoStore(t *testing.T) {
 // Test that the login flow with passphrase and with saving the secret
 // works.
 func TestLoginWithPassphraseWithStore(t *testing.T) {
-	// TODO: Get this working on non-OS X platforms (by mocking
-	// out the SecretStore).
-	if !libkb.HasSecretStore() {
-		t.Skip("Skipping test since there is no secret store")
-	}
 
 	tc := SetupEngineTest(t, "login with passphrase (with store)")
 	defer tc.Cleanup()
@@ -438,11 +442,6 @@ func TestLoginWithPassphraseWithStore(t *testing.T) {
 // Test that the signup with saving the secret, logout, then login
 // flow works.
 func TestSignupWithStoreThenLogin(t *testing.T) {
-	// TODO: Get this working on non-OS X platforms (by mocking
-	// out the SecretStore).
-	if !libkb.HasSecretStore() {
-		t.Skip("Skipping test since there is no secret store")
-	}
 
 	tc := SetupEngineTest(t, "signup with store then login")
 	defer tc.Cleanup()

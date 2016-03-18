@@ -4,7 +4,9 @@
 import React, {Component} from 'react'
 
 export type Props = {
+  onBack: () => void,
   onInviteCodeSubmit: () => void,
+  onRequestInvite: () => void,
   inviteCode: ?string,
   inviteCodeErrorText: ?string
 }

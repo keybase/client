@@ -3,6 +3,9 @@ package logger
 import (
 	"fmt"
 	"os"
+	"path/filepath"
+	"regexp"
+	"sort"
 	"sync"
 	"time"
 
@@ -15,8 +18,11 @@ type LogFileConfig struct {
 	Path string
 	// MaxSize is the size of log file before rotation, 0 for infinite.
 	MaxSize int64
-	// MaxAge is th duration before log rotation, zero value for infinite.
+	// MaxAge is the duration before log rotation, zero value for infinite.
 	MaxAge time.Duration
+	// MaxKeepFiles is maximum number of log files for this service, older
+	// files are deleted.
+	MaxKeepFiles int
 }
 
 // SetLogFileConfig sets the log file config to be used globally.
@@ -46,6 +52,7 @@ func SetLogFileConfig(lfc *LogFileConfig) error {
 		logging.SetBackend(fileBackend)
 
 		stderrIsTerminal = false
+		currentLogFileWriter = w
 	}
 	return nil
 }
@@ -119,6 +126,71 @@ func (lfw *logFileWriter) Write(bs []byte) (int, error) {
 	if err != nil {
 		return n, err
 	}
+	// Spawn old log deletion worker if we have a max-amount of log-files.
+	if lfw.config.MaxKeepFiles > 0 {
+		go deleteOldLogFilesIfNeeded(lfw.config)
+	}
 	err = lfw.Open(now)
 	return n, err
+}
+
+func deleteOldLogFilesIfNeeded(config LogFileConfig) {
+	err := deleteOldLogFilesIfNeededWorker(config)
+	if err != nil {
+		log := New("logger")
+		log.Warning("Deletion of old log files failed: %v", err)
+	}
+}
+
+func deleteOldLogFilesIfNeededWorker(config LogFileConfig) error {
+	// Returns list of old log files (not the current one) sorted.
+	// The oldest one is first in the list.
+	entries, err := scanOldLogFiles(config.Path)
+	if err != nil {
+		return err
+	}
+	// entries has only the old renamed log files, not the current
+	// log file. E.g. if MaxKeepFiles is 2 then we keep the current
+	// file and one archived log file. If there are 3 archived files
+	// then removeN = 1 + 3 - 2 = 2.
+	removeN := 1 + len(entries) - config.MaxKeepFiles
+	if config.MaxKeepFiles <= 0 || removeN <= 0 {
+		return nil
+	}
+	// Try to remove all old log files that we want to remove, and
+	// don't stop on the first error.
+	for i := 0; i < removeN; i++ {
+		err2 := os.Remove(entries[i])
+		if err == nil {
+			err = err2
+		}
+	}
+	return err
+}
+
+// scanOldLogFiles finds old archived log files corresponding to the log file path.
+// Returns the list of such log files sorted with the eldest one first.
+func scanOldLogFiles(path string) ([]string, error) {
+	dname, fname := filepath.Split(path)
+	dir, err := os.Open(dname)
+	if err != nil {
+		return nil, err
+	}
+	defer dir.Close()
+	ns, err := dir.Readdirnames(-1)
+	if err != nil {
+		return nil, err
+	}
+	var res []string
+	re, err := regexp.Compile(`^` + regexp.QuoteMeta(fname) + `-\d{8}T\d{6}-\d{8}T\d{6}$`)
+	if err != nil {
+		return nil, err
+	}
+	for _, name := range ns {
+		if re.MatchString(name) {
+			res = append(res, filepath.Join(dname, name))
+		}
+	}
+	sort.Strings(res)
+	return res, nil
 }

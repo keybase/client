@@ -1,6 +1,7 @@
 /* @flow */
 
 import * as Constants from '../constants/tracker'
+import * as CommonConstants from '../constants/common'
 
 import {normal, warning, error, checking} from '../constants/tracker'
 import {metaNew, metaUpgraded, metaUnreachable, metaDeleted} from '../constants/tracker'
@@ -87,9 +88,10 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         shouldFollow
       }
     case Constants.updateReason:
+      // In case the reason is null, let's use our existing reason
       return {
         ...state,
-        reason: action.payload && action.payload.reason
+        reason: action.payload && action.payload.reason || state.reason
       }
     case Constants.updateTrackToken:
       return {
@@ -128,11 +130,6 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
     case Constants.onFollow:
       return {
         ...state,
-        lastTrack: {
-          username: 'Mock',
-          time: Date.now(),
-          isRemote: true
-        },
         lastAction: 'followed',
         reason: `You have followed ${state.username}.`
       }
@@ -250,6 +247,11 @@ export default function (state: State = initialState, action: Action): State {
   const username: string = (action.payload && action.payload.username) ? action.payload.username : ''
   const trackerState = username ? state.trackers[username] : null
   switch (action.type) {
+    case CommonConstants.resetStore:
+      return {
+        ...state,
+        trackers: {}
+      }
     case Constants.startTimer:
       return {
         ...state,

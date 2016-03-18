@@ -4,7 +4,6 @@
 package engine
 
 import (
-	"errors"
 	"fmt"
 	"net/url"
 
@@ -34,18 +33,12 @@ func runPrereqs(e Engine, ctx *Context) (err error) {
 		var ok bool
 		ok, _, err = IsLoggedIn(e, ctx)
 		if !ok {
-			if e.G().Env.GetStandalone() {
-				if serr := tryStandaloneLogin(e, ctx); serr == nil {
-					return nil
-				}
-			} else {
-				urlError, isURLError := err.(*url.Error)
-				context := ""
-				if isURLError {
-					context = fmt.Sprintf("Encountered a network error: %s", urlError.Err)
-				}
-				err = libkb.LoginRequiredError{Context: context}
+			urlError, isURLError := err.(*url.Error)
+			context := ""
+			if isURLError {
+				context = fmt.Sprintf("Encountered a network error: %s", urlError.Err)
 			}
+			err = libkb.LoginRequiredError{Context: context}
 		}
 		if err != nil {
 			return err
@@ -59,33 +52,13 @@ func runPrereqs(e Engine, ctx *Context) (err error) {
 			return err
 		}
 		if !ok {
-			if e.G().Env.GetStandalone() {
-				if serr := tryStandaloneLogin(e, ctx); serr == nil {
-					return nil
-				}
-			}
-
-			return libkb.DeviceRequiredError{}
+			err = libkb.DeviceRequiredError{}
+			return err
 		}
 	}
 
 	return
 
-}
-
-func tryStandaloneLogin(e Engine, ctx *Context) error {
-	if !e.G().Env.GetStandalone() {
-		return errors.New("not standalone")
-	}
-
-	e.G().Log.Debug("standalone mode, attempting autologin")
-	eng := newLoginProvisionedDevice(e.G(), "")
-	if err := RunEngine(eng, ctx); err != nil {
-		e.G().Log.Debug("standalone mode autologin failed: %s", err)
-		return err
-	}
-	e.G().Log.Debug("standalone mode autologin success")
-	return nil
 }
 
 func RunEngine(e Engine, ctx *Context) (err error) {

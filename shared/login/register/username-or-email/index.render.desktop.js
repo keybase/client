@@ -1,6 +1,7 @@
 // @flow
 import React, {Component} from 'react'
-import {Text, Icon, Input, Button} from '../../../common-adapters'
+import {Input, Button, UserCard} from '../../../common-adapters'
+import {globalColors} from '../../../styles/style-guide'
 import Container from '../../forms/container.desktop'
 import type {Props} from './index.render'
 
@@ -29,22 +30,26 @@ class Render extends Component<void, Props, State> {
     return (
       <Container
         style={styles.container}
+        outerStyle={{backgroundColor: globalColors.lightGrey}}
         onBack={() => this.props.onBack()}>
-        <Text type='Header' style={styles.header}>Enter your username or email:</Text>
-        <Icon type='fa-sign-in' style={styles.icon}/>
-        <Input
-          style={styles.input}
-          floatingLabelText='Username or email'
-          onEnterKeyDown={() => this.onSubmit()}
-          onChange={event => this.onChange(event.target.value)}
-          value={this.state.usernameOrEmail}
-        />
-        <Button
-          label='Continue'
-          type='Primary'
-          onClick={() => this.onSubmit()}
-          enabled={this.state.usernameOrEmail}
-        />
+        <UserCard outerStyle={styles.card}>
+          <Input
+            autoFocus
+            style={styles.input}
+            floatingLabelText='Username or email'
+            onEnterKeyDown={() => this.onSubmit()}
+            onChange={event => this.onChange(event.target.value)}
+            value={this.state.usernameOrEmail}
+          />
+          <Button
+            fullWidth
+            label='Continue'
+            type='Primary'
+            onClick={() => this.onSubmit()}
+            enabled={this.state.usernameOrEmail}
+            waiting={this.props.waitingForResponse}
+          />
+        </UserCard>
       </Container>
     )
   }
@@ -55,15 +60,15 @@ const styles = {
     flex: 1,
     alignItems: 'center'
   },
-  header: {
-    marginTop: 80
-  },
   input: {
     marginBottom: 48
   },
   icon: {
     fontSize: 30,
     marginTop: 10
+  },
+  card: {
+    marginTop: 40
   }
 }
 

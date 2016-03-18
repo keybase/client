@@ -132,6 +132,9 @@ func (s *SignupJoinEngine) Run(lctx libkb.LoginContext, arg SignupJoinEngineRunA
 }
 
 func (s *SignupJoinEngine) WriteOut(lctx libkb.LoginContext, salt []byte) error {
+	if err := lctx.LocalSession().Load(); err != nil {
+		return err
+	}
 	if err := lctx.CreateLoginSessionWithSalt(s.username.String(), salt); err != nil {
 		return err
 	}

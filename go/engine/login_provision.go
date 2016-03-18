@@ -27,6 +27,8 @@ type loginProvision struct {
 	username      string
 	devname       string
 	cleanupOnErr  bool
+	hasPGP        bool
+	hasDevice     bool
 }
 
 // gpgInterface defines the portions of gpg client that provision
@@ -141,7 +143,8 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 		contxt, canceler = context.WithCancel(context.Background())
 		receivedSecret, err := ctx.ProvisionUI.DisplayAndPromptSecret(contxt, arg)
 		if err != nil {
-			// could cancel provisionee run here?
+			// cancel provisionee run:
+			provisionee.Cancel()
 			e.G().Log.Warning("DisplayAndPromptSecret error: %s", err)
 		} else if receivedSecret.Secret != nil && len(receivedSecret.Secret) > 0 {
 			e.G().Log.Debug("received secret, adding to provisionee")
@@ -281,7 +284,7 @@ func (e *loginProvision) pgpProvision(ctx *Context) error {
 	}
 
 	// need a session to try to get synced private key
-	return e.G().LoginState().LoginWithPrompt(e.arg.User.GetName(), ctx.SecretUI, afterLogin)
+	return e.G().LoginState().LoginWithPrompt(e.arg.User.GetName(), ctx.LoginUI, ctx.SecretUI, afterLogin)
 }
 
 // makeDeviceKeysWithSigner creates device keys given a signing
@@ -415,7 +418,7 @@ func (e *loginProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
 	// unlock it
 	// XXX improve this prompt
 	parg := ctx.SecretKeyPromptArg(libkb.SecretKeyArg{}, "sign new device")
-	unlocked, err := key.PromptAndUnlock(parg, "keybase", nil, e.lks, e.arg.User)
+	unlocked, err := key.PromptAndUnlock(parg, "keybase", nil, e.arg.User)
 	if err != nil {
 		return nil, err
 	}
@@ -470,19 +473,17 @@ func (e *loginProvision) checkArg() error {
 
 func (e *loginProvision) route(ctx *Context) error {
 	// check if User has any pgp keys, active devices
-	pgp := false
-	device := false
 	ckf := e.arg.User.GetComputedKeyFamily()
 	if ckf != nil {
-		pgp = len(ckf.GetActivePGPKeys(false)) > 0
-		device = ckf.HasActiveDevice()
+		e.hasPGP = len(ckf.GetActivePGPKeys(false)) > 0
+		e.hasDevice = ckf.HasActiveDevice()
 	}
 
-	if device {
-		return e.chooseDevice(ctx, pgp)
+	if e.hasDevice {
+		return e.chooseDevice(ctx, e.hasPGP)
 	}
 
-	if pgp {
+	if e.hasPGP {
 		return e.tryPGP(ctx)
 	}
 
@@ -499,7 +500,7 @@ func (e *loginProvision) chooseDevice(ctx *Context, pgp bool) error {
 	expDevices := make([]keybase1.Device, len(devices))
 	idMap := make(map[keybase1.DeviceID]*libkb.Device)
 	for i, d := range devices {
-		expDevices[i] = *d.ProtExportFriendly()
+		expDevices[i] = *d.ProtExport()
 		idMap[d.ID] = d
 	}
 
@@ -612,7 +613,7 @@ func (e *loginProvision) tryGPG(ctx *Context) error {
 	}
 
 	// need a session to continue to provision
-	return e.G().LoginState().LoginWithPrompt(e.arg.User.GetName(), ctx.SecretUI, afterLogin)
+	return e.G().LoginState().LoginWithPrompt(e.arg.User.GetName(), ctx.LoginUI, ctx.SecretUI, afterLogin)
 }
 
 func (e *loginProvision) chooseGPGKeyAndMethod(ctx *Context) (*libkb.GpgPrimaryKey, keybase1.GPGMethod, error) {
@@ -741,7 +742,7 @@ func (e *loginProvision) newGPGMatchErr(keys []*libkb.PGPKeyBundle) error {
 	for i, k := range keys {
 		fps[i] = k.GetFingerprint().ToQuads()
 	}
-	return libkb.NoMatchingGPGKeysError{Fingerprints: fps}
+	return libkb.NoMatchingGPGKeysError{Fingerprints: fps, HasActiveDevice: e.hasDevice}
 }
 
 func (e *loginProvision) gpgSignKey(ctx *Context, fp *libkb.PGPFingerprint) (libkb.GenericKey, error) {

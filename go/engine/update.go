@@ -10,9 +10,9 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/keybase/client/go/saltpack"
 	"github.com/keybase/client/go/updater"
 	"github.com/keybase/client/go/updater/sources"
+	"github.com/keybase/saltpack"
 )
 
 type UpdateEngine struct {
@@ -144,13 +144,19 @@ func NewUpdateSourceFromString(g *libkb.GlobalContext, name string) (sources.Upd
 const PrereleaseURI = "https://s3.amazonaws.com/prerelease.keybase.io"
 
 func NewUpdateSource(g *libkb.GlobalContext, sourceName sources.UpdateSourceName) (sources.UpdateSource, error) {
+	channel := ""
+	if g.Env.IsAdmin() {
+		// Use test channel if admin (this gets updates immediately after building
+		channel = "test"
+	}
+
 	switch sourceName {
 	case sources.KeybaseSource:
-		return sources.NewKeybaseUpdateSource(g.Log, g.API, g.Env.GetRunMode()), nil
+		return sources.NewKeybaseUpdateSource(g.Log, g.API, g.Env.GetRunMode(), channel), nil
 	case sources.RemoteSource:
-		return sources.NewRemoteUpdateSource(g.Log, g.Env.GetRunMode(), ""), nil
+		return sources.NewRemoteUpdateSource(g.Log), nil
 	case sources.PrereleaseSource:
-		return sources.NewRemoteUpdateSource(g.Log, g.Env.GetRunMode(), PrereleaseURI), nil
+		return sources.NewRemoteUpdateSourceForOptions(g.Log, PrereleaseURI, runtime.GOOS, string(g.Env.GetRunMode()), channel), nil
 	case sources.LocalSource:
 		return sources.NewLocalUpdateSource(g.Log), nil
 	}

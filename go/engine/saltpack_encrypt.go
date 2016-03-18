@@ -39,10 +39,7 @@ func (e *SaltpackEncrypt) Name() string {
 
 // GetPrereqs returns the engine prereqs.
 func (e *SaltpackEncrypt) Prereqs() Prereqs {
-	if e.arg.Opts.NoSelfEncrypt {
-		return Prereqs{}
-	}
-	return Prereqs{Device: true}
+	return Prereqs{}
 }
 
 // RequiredUIs returns the required UIs.

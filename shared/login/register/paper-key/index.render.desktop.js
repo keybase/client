@@ -10,8 +10,9 @@ const Render = ({onBack, onSubmit, onChangePaperKey, paperKey}: Props) => {
       style={styles.container}
       onBack={() => onBack()}>
       <Text type='Header' style={styles.header}>Type in your paper key:</Text>
-      <Icon type='fa-file-text-o' style={styles.icon}/>
+      <Icon type='paper-key-m' style={styles.icon}/>
       <Input
+        autoFocus
         multiLine
         style={styles.input}
         floatingLabelText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
@@ -38,13 +39,13 @@ const styles = {
     marginTop: 46
   },
   icon: {
-    fontSize: 40,
     marginTop: 45,
     marginBottom: 65
   },
   input: {
     minHeight: 100,
-    alignSelf: 'stretch'
+    alignSelf: 'stretch',
+    marginBottom: 40
   }
 }
 

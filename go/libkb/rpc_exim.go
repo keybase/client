@@ -108,6 +108,7 @@ func (ir IdentifyOutcome) ExportToUncheckedIdentity() *keybase1.Identity {
 		tmp.Revoked[j] = *ExportTrackDiff(d)
 		tmp.BreaksTracking = true
 	}
+	tmp.RevokedDetails = ir.RevokedDetails
 	return &tmp
 }
 
@@ -312,6 +313,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 			switch field.Key {
 			case "fingerprints":
 				ret.Fingerprints = strings.Split(field.Value, ",")
+			case "has_active_device":
+				ret.HasActiveDevice = true
 			}
 		}
 		return ret
@@ -1059,13 +1062,17 @@ func (e WrongCryptoFormatError) ToStatus() keybase1.Status {
 }
 
 func (e NoMatchingGPGKeysError) ToStatus() keybase1.Status {
-	return keybase1.Status{
+	s := keybase1.Status{
 		Code: SCKeyNoMatchingGPG,
 		Name: "SC_KEY_NO_MATCHING_GPG",
 		Fields: []keybase1.StringKVPair{
 			{"fingerprints", strings.Join(e.Fingerprints, ",")},
 		},
 	}
+	if e.HasActiveDevice {
+		s.Fields = append(s.Fields, keybase1.StringKVPair{Key: "has_active_device", Value: "1"})
+	}
+	return s
 }
 
 func (e DeviceAlreadyProvisionedError) ToStatus() keybase1.Status {
@@ -1080,4 +1087,18 @@ func (e ProvisionUnavailableError) ToStatus() keybase1.Status {
 		Code: SCDeviceNoProvision,
 		Name: "SC_DEVICE_NO_PROVISION",
 	}
+}
+
+func ExportTrackIDComponentToRevokedProof(tidc TrackIDComponent) keybase1.RevokedProof {
+	key, value := tidc.ToKeyValuePair()
+	ret := keybase1.RevokedProof{
+		Diff: *ExportTrackDiff(TrackDiffRevoked{tidc}),
+		Proof: keybase1.RemoteProof{
+			Key:           key,
+			Value:         value,
+			DisplayMarkup: value,
+			ProofType:     tidc.GetProofType(),
+		},
+	}
+	return ret
 }

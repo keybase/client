@@ -26,7 +26,9 @@ export default class Avatar extends Component {
     return (
       <div onClick={this.props.onClick} style={{position: 'relative', width, height, ...this.props.style}}>
         <div
-          style={{...avatarStyle(this.props.size),
+          style={{...avatarStyle(this.props.size - 2),
+            top: 1,
+            left: 1,
             backgroundImage: `url('${noAvatar}')`,
             backgroundSize: 'cover'
           }}/>

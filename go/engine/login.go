@@ -74,7 +74,6 @@ func (e *Login) Run(ctx *Context) error {
 			// login successful
 			e.G().Log.Debug("LoginProvisionedDevice.Run() was successful")
 			e.sendNotification()
-			e.G().Env.GetConfigWriter().SetLoggedIn(true)
 			return nil
 		}
 
@@ -128,8 +127,6 @@ func (e *Login) Run(ctx *Context) error {
 	if err = RunEngine(deng, ctx); err != nil {
 		return err
 	}
-
-	e.G().Env.GetConfigWriter().SetLoggedIn(true)
 
 	// commit the config changes
 	if err := tx.Commit(); err != nil {

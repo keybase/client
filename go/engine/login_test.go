@@ -550,7 +550,7 @@ func TestProvisionPaper(t *testing.T) {
 	fakeClock := clockwork.NewFakeClockAt(time.Now())
 	tc2.G.Clock = fakeClock
 	// to pick up the new clock...
-	tc2.ResetLoginState()
+	tc2.G.ResetLoginState()
 	defer tc2.Cleanup()
 
 	secUI := fu.NewSecretUI()
@@ -1591,7 +1591,7 @@ func newTestProvisionUI() *testProvisionUI {
 func newTestProvisionUISecretCh(ch chan kex2.Secret) *testProvisionUI {
 	ui := newTestProvisionUI()
 	ui.secretCh = ch
-	ui.chooseDevice = "computer"
+	ui.chooseDevice = "desktop"
 	return ui
 }
 
@@ -1610,7 +1610,7 @@ func newTestProvisionUIChooseNoDevice() *testProvisionUI {
 func newTestProvisionUIPaper() *testProvisionUI {
 	ui := newTestProvisionUI()
 	ui.method = keybase1.ProvisionMethod_PAPER_KEY
-	ui.chooseDevice = "paper key"
+	ui.chooseDevice = "backup"
 	return ui
 }
 

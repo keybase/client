@@ -6,6 +6,7 @@ export type Background = 'Normal' | 'Announcements' | 'Success' | 'Information' 
 export type Props = {
   type: 'HeaderJumbo' | 'HeaderBig' | 'Header' | 'HeaderError'
           | 'Body' | 'BodySemibold' | 'BodySmall' | 'BodySmallSemibold' | 'BodyPrimaryLink' | 'BodySecondaryLink'
+          | 'BodySemiboldItalic'
           | 'Error'
           | 'Terminal'
           | 'TerminalUsername' | 'TerminalPublic' | 'TerminalPrivate'
@@ -15,7 +16,7 @@ export type Props = {
   link?: boolean,
   small?: boolean,
   reversed?: boolean,
-  onClick?: () => void,
+  onClick?: (e: SyntheticEvent) => void,
   lineClamp?: number,
   style?: Object,
   children?: React$Element,

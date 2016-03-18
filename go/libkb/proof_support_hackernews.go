@@ -112,6 +112,10 @@ func (t HackerNewsServiceType) NormalizeUsername(s string) (string, error) {
 	return s, nil
 }
 
+func (t HackerNewsServiceType) CaseSensitiveUsername() bool {
+	return true
+}
+
 func (t HackerNewsServiceType) ToChecker() Checker {
 	return t.BaseToChecker(t, "alphanumeric, 2 to 15 characters")
 }

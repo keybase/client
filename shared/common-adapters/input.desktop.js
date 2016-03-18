@@ -60,6 +60,7 @@ export default class Input extends Component {
         <TextField
           ref={textField => (this._textField = textField)}
           fullWidth
+          textAlign='center'
           inputStyle={{...inputStyle, ...alignStyle}}
           underlineStyle={{borderColor: globalColors.black10, bottom: 'auto'}}
           errorStyle={{...styles.errorStyle, ...this.props.errorStyle}}
@@ -71,7 +72,7 @@ export default class Input extends Component {
           onFocus={() => this.setState({focused: true})}
           onBlur={() => this.setState({focused: false})}
           hintText={this.props.hintText}
-          hintStyle={{...styles.hintStyle, ...(this.props.multiLine ? {textAlign: 'center'} : {top: 3, bottom: 'auto'})}}
+          hintStyle={{...styles.hintStyle, ...(this.props.multiLine ? {textAlign: 'center'} : {top: 3, bottom: 'auto'}), ...this.props.hintStyle}}
           multiLine={this.props.multiLine}
           onChange={event => {
             this.onChange(event)
@@ -127,7 +128,11 @@ export const styles = {
     paddingTop: 4
   },
   hintStyle: {
-    ...globalStyles.fontRegular
+    ...globalStyles.fontRegular,
+    color: globalColors.black10,
+    width: '100%',
+    textAlign: 'center',
+    marginTop: -3
   },
   floatingLabelStyle: {
     ...globalStyles.fontRegular,

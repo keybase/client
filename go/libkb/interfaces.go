@@ -142,7 +142,6 @@ type ConfigReader interface {
 	GetScraperTimeout() (time.Duration, bool)
 	GetAPITimeout() (time.Duration, bool)
 	GetSecurityAccessGroupOverride() (bool, bool)
-	GetLoggedIn() bool
 
 	GetUpdatePreferenceAuto() (bool, bool)
 	GetUpdatePreferenceSkip() string
@@ -151,6 +150,7 @@ type ConfigReader interface {
 	GetUpdateURL() string
 	GetLocalTrackMaxAge() (time.Duration, bool)
 	GetAppStartMode() AppStartMode
+	IsAdmin() (bool, bool)
 
 	GetTorMode() (TorMode, error)
 	GetTorHiddenAddress() string
@@ -177,7 +177,6 @@ type ConfigWriter interface {
 	SetUpdatePreferenceSkip(string) error
 	SetUpdatePreferenceSnoozeUntil(keybase1.Time) error
 	SetUpdateLastChecked(keybase1.Time) error
-	SetLoggedIn(bool) error
 	Reset()
 	BeginTransaction() (ConfigWriterTransacter, error)
 }

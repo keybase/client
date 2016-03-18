@@ -20,16 +20,18 @@ func (k *updateResponse) GetAppStatus() *libkb.AppStatus {
 
 // KeybaseUpdateSource finds releases/updates from custom url (used primarily for testing)
 type KeybaseUpdateSource struct {
-	log     logger.Logger
-	api     libkb.API
-	runMode libkb.RunMode
+	log            logger.Logger
+	api            libkb.API
+	runMode        libkb.RunMode
+	defaultChannel string
 }
 
-func NewKeybaseUpdateSource(log logger.Logger, api libkb.API, runMode libkb.RunMode) KeybaseUpdateSource {
+func NewKeybaseUpdateSource(log logger.Logger, api libkb.API, runMode libkb.RunMode, defaultChannel string) KeybaseUpdateSource {
 	return KeybaseUpdateSource{
-		log:     log,
-		api:     api,
-		runMode: runMode,
+		log:            log,
+		api:            api,
+		runMode:        runMode,
+		defaultChannel: defaultChannel,
 	}
 }
 
@@ -38,11 +40,16 @@ func (k KeybaseUpdateSource) Description() string {
 }
 
 func (k KeybaseUpdateSource) FindUpdate(options keybase1.UpdateOptions) (update *keybase1.Update, err error) {
+	channel := k.defaultChannel
+	if options.Channel != "" {
+		channel = options.Channel
+	}
+
 	APIArgs := libkb.HTTPArgs{
 		"version":  libkb.S{Val: options.Version},
 		"platform": libkb.S{Val: options.Platform},
 		"run_mode": libkb.S{Val: string(k.runMode)},
-		"channel":  libkb.S{Val: options.Channel},
+		"channel":  libkb.S{Val: channel},
 	}
 
 	var res updateResponse

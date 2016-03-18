@@ -9,9 +9,8 @@ import {intersperse} from '../util/arrays'
 import {parseFolderNameToUsers, canonicalizeUsernames, stripPublicTag} from '../util/kbfs'
 
 import {globalStyles, globalColors} from '../styles/style-guide'
-import {Button, Text, Input, Terminal, Icon} from '../common-adapters/index'
+import {Button, Text, Input, Terminal, Icon, ProgressIndicator} from '../common-adapters/index'
 
-import {CircularProgress} from 'material-ui'
 import {cleanup, allowLoggedOut as allowLoggedOutKBFS} from '../util/kbfs'
 
 // This is the only data that the renderer cares about for a folder
@@ -57,7 +56,7 @@ const Footer = props => {
 
 const LogInTerminalMessage = props => {
   return (
-    <div style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.grey5}}>
+    <div style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.black10}}>
       <Icon type='fa-exclamation-triangle' style={{alignSelf: 'center', color: globalColors.yellow, marginTop: 12}} />
       <Text type='Body' small style={{alignSelf: 'center', marginTop: 6}}>You're logged out!</Text>
       <Text type='Body' small style={{marginTop: 23, marginBottom: 5, marginLeft: 10}}>From the terminal:</Text>
@@ -75,7 +74,7 @@ const LogInTerminalMessage = props => {
 const LogInPrompt = props => {
   const logIn: () => void = props.logIn
   return (
-    <div style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.grey5}}>
+    <div style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.black10}}>
       <Icon type='fa-exclamation-triangle' style={{alignSelf: 'center', color: globalColors.yellow, marginTop: 12}} />
       <Text type='Body' small style={{alignSelf: 'center', marginTop: 6}}>You're logged out!</Text>
       <Button type='Primary' label='Log In' onClick={logIn} style={{alignSelf: 'center', minWidth: 160, marginTop: 12, marginRight: 0}}/>
@@ -162,6 +161,7 @@ const FolderEntryRow = props => {
       <Input
         ref={input => (inputRef = input)}
         small
+        hintStyle={styles.dz1InputHint}
         hintText='user1,user2,etc'
         onEnterKeyDown={() => openFolder()}
         style={{width: '100%', marginLeft: entry.prefix ? 2 : 0, textAlign: 'left'}} />
@@ -248,7 +248,7 @@ class FolderList extends Component<void, FolderListProps, FolderState> {
     const {username, loggedIn} = this.props
 
     if (!loggedIn && !allowLoggedOutKBFS) {
-      return <div style={{flex: 1, backgroundColor: globalColors.grey5}}/>
+      return <div style={{flex: 1, backgroundColor: globalColors.black10}}/>
     }
 
     // Remove folders that are just our personal ones, we'll add those in later
@@ -308,7 +308,7 @@ class FolderList extends Component<void, FolderListProps, FolderState> {
       <div style={{...styles.folderList, overflowY: loggedIn ? 'scroll' : 'hidden'}}>
         {this.props.loading && (
           <div style={styles.loader}>
-            <CircularProgress style={styles.loader} mode='indeterminate' size={0.5}/>
+            <ProgressIndicator style={styles.loader} />
           </div>)}
         {!!privateFolders.length && (
           <div>
@@ -373,6 +373,7 @@ const styles = {
   loader: {
     position: 'absolute',
     alignSelf: 'center',
+    width: 30,
     top: 0,
     right: 0,
     opacity: 0.8
@@ -386,7 +387,7 @@ const styles = {
   personalTLDStyle: {
     fontSize: 15,
     lineHeight: '18px',
-    color: globalColors.lightBlue
+    color: globalColors.blue2
   },
   showAllBox: {
     color: globalColors.white,
@@ -409,6 +410,13 @@ const styles = {
     position: 'absolute',
     right: 0,
     top: 5
+  },
+  dz1InputHint: {
+    color: globalColors.black,
+    // This is because normal <Input/> does center-aligned hints by using
+    // width: 100% on position: absolute
+    width: 'auto',
+    marginTop: 0
   }
 }
 

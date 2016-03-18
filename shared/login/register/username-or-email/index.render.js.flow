@@ -3,7 +3,8 @@ import React, {Component} from 'react'
 
 export type Props = {
   onSubmit: (usernameOrEmail: string) => void,
-  onBack: () => void
+  onBack: () => void,
+  waitingForResponse: boolean
 }
 
 export default class PaperKey extends React$Component<void, Props, void> { }

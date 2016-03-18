@@ -2,22 +2,23 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import Render from './index.render'
-import {openAccountResetPage, cancelLogin} from '../../../actions/login'
+import {openAccountResetPage} from '../../../actions/login'
 import type {Props} from './index.render'
 
 class Passphrase extends Component<void, Props, void> {
   render () {
-    return <Render {...this.props} />
+    return <Render {...this.props}
+      onForgotPassphrase={() => {
+        this.props.onForgotPassphrase()
+        this.props.onBack()
+      }}
+      />
   }
 }
 
 export default connect(
-  state => ({}),
+  state => ({waitingForResponse: state.login.waitingForResponse}),
   dispatch => ({
-    onBack: () => dispatch(cancelLogin()),
-    onForgotPassphrase: () => {
-      dispatch(openAccountResetPage())
-      dispatch(cancelLogin())
-    }
+    onForgotPassphrase: () => { dispatch(openAccountResetPage()) }
   })
 )(Passphrase)

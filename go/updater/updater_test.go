@@ -25,7 +25,7 @@ func NewTestUpdater(t *testing.T, options keybase1.UpdateOptions, p processUpdat
 	if err != nil {
 		return nil, err
 	}
-	config := testConfig{}
+	config := &testConfig{}
 	return NewUpdater(options, updateSource, config, logger.NewTestLogger(t)), nil
 }
 
@@ -35,7 +35,7 @@ func (u testUpdateUI) UpdatePrompt(_ context.Context, _ keybase1.UpdatePromptArg
 	return keybase1.UpdatePromptRes{Action: keybase1.UpdateAction_UPDATE}, nil
 }
 
-func (u testUpdateUI) UpdateQuit(_ context.Context) (keybase1.UpdateQuitRes, error) {
+func (u testUpdateUI) UpdateQuit(_ context.Context, _ keybase1.UpdateQuitArg) (keybase1.UpdateQuitRes, error) {
 	return keybase1.UpdateQuitRes{Quit: false}, nil
 }
 
@@ -130,19 +130,19 @@ func (c testConfig) GetUpdatePreferenceSkip() string {
 	return ""
 }
 
-func (c testConfig) SetUpdatePreferenceAuto(b bool) error {
+func (c *testConfig) SetUpdatePreferenceAuto(b bool) error {
 	return nil
 }
 
-func (c testConfig) SetUpdatePreferenceSkip(v string) error {
+func (c *testConfig) SetUpdatePreferenceSkip(v string) error {
 	return nil
 }
 
-func (c testConfig) SetUpdatePreferenceSnoozeUntil(t keybase1.Time) error {
+func (c *testConfig) SetUpdatePreferenceSnoozeUntil(t keybase1.Time) error {
 	return nil
 }
 
-func (c testConfig) SetUpdateLastChecked(t keybase1.Time) error {
+func (c *testConfig) SetUpdateLastChecked(t keybase1.Time) error {
 	c.lastChecked = t
 	return nil
 }

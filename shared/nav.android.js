@@ -11,12 +11,13 @@ import People from './people'
 import Devices from './devices'
 import NoTab from './no-tab'
 import More from './more'
+import Login from './login'
 
-import {folderTab, chatTab, peopleTab, devicesTab, moreTab, startupTab, prettify} from './constants/tabs'
+import {folderTab, chatTab, peopleTab, devicesTab, moreTab, loginTab, prettify} from './constants/tabs'
 
 import {switchTab} from './actions/tabbed-router'
 import {navigateBack} from './actions/router'
-import {startup} from './actions/startup'
+import {bootstrap} from './actions/config'
 
 const tabs = {
   [folderTab]: Folders,
@@ -57,11 +58,10 @@ AndroidNavigator.propTypes = {
 class Nav extends Component {
   constructor (props) {
     super(props)
-    this.props.startup()
+    this.props.bootstrap()
   }
 
-  _renderContent (activeTab) {
-    const module = tabs[activeTab]
+  _renderContent (activeTab, module) {
     return (
       <View style={styles.tabContent} collapsable={false}>
         <MetaNavigator
@@ -91,16 +91,8 @@ class Nav extends Component {
   render () {
     const activeTab = this.props.tabbedRouter.get('activeTab')
 
-    // if (this.props.config.navState === Constants.navStartingUp) {
-      // return (
-        // <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-          // <Text>Loading...</Text>
-        // </View>
-      // )
-    // }
-
-    if (activeTab === startupTab) {
-      return this._renderContent(startupTab)
+    if (activeTab === loginTab) {
+      return this._renderContent(loginTab, Login)
     }
 
     const drawerContnet = (
@@ -117,7 +109,7 @@ class Nav extends Component {
     const tabViews = tabKeys.map(k => {
       return (
         <View key={k}>
-          {this._renderContent(k)}
+          {this._renderContent(k, tabs[k])}
         </View>
       )
     })
@@ -201,7 +193,7 @@ class Nav extends Component {
 Nav.propTypes = {
   switchTab: React.PropTypes.func.isRequired,
   navigateBack: React.PropTypes.func.isRequired,
-  startup: React.PropTypes.func.isRequired,
+  bootstrap: React.PropTypes.func.isRequired,
   tabbedRouter: React.PropTypes.object.isRequired,
   config: React.PropTypes.shape({
   }).isRequired
@@ -252,7 +244,7 @@ export default connect(
     return {
       switchTab: tab => dispatch(switchTab(tab)),
       navigateBack: () => dispatch(navigateBack()),
-      startup: () => dispatch(startup())
+      bootstrap: () => dispatch(bootstrap())
     }
   }
 )(Nav)

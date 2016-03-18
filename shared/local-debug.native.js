@@ -6,25 +6,59 @@ import {createRouterState} from './reducers/router'
 import * as Tabs from './constants/tabs'
 
 let config = {
-  overrideRouterState: null,
-  overrideActiveTab: null,
-  skipLoginRouteToRoot: false,
   allowStartupFailure: false,
-  printRPC: false
+  printRPC: false,
+  showAllTrackers: false,
+  redirectOnLogout: true,
+  enableStoreLogging: false,
+  enableActionLogging: true,
+  forwardLogs: true,
+  devStoreChangingFunctions: false,
+  printOutstandingRPCs: false,
+  reactPerf: false,
+  overrideLoggedInTab: null
 }
 
 if (__DEV__ && false) {
-  config.overrideRouterState = createRouterState([], [])
-  config.overrideActiveTab = Tabs.devicesTab
-  config.skipLoginRouteToRoot = true
   config.allowStartupFailure = true
   config.printRPC = true
+  config.showAllTrackers = false
+  config.redirectOnLogout = false
+  config.enableStoreLogging = true
+  config.enableActionLogging = false
+  config.forwardLogs = true
+  config.devStoreChangingFunctions = true
+  config.printOutstandingRPCs = true
+  config.reactPerf = false
+  config.overrideLoggedInTab = Tabs.moreTab
 }
 
 export const {
-  overrideRouterState,
-  overrideActiveTab,
-  skipLoginRouteToRoot,
+  enableActionLogging,
   allowStartupFailure,
-  printRPC
+  printRPC,
+  showDevTools,
+  showAllTrackers,
+  reduxDevToolsSelect,
+  enableStoreLogging,
+  forwardLogs,
+  devStoreChangingFunctions,
+  printOutstandingRPCs,
+  reactPerf,
+  overrideLoggedInTab
 } = config
+
+export function initTabbedRouterState (state) {
+  if (!__DEV__) {
+    return state
+  }
+
+  return {
+    ...state,
+    tabs: {
+      ...state.tabs,
+      [Tabs.loginTab]: createRouterState([], []),
+      [Tabs.moreTab]: createRouterState(['devMenu'], [])
+    }
+  }
+}

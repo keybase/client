@@ -24,15 +24,11 @@ export const setQRCode = 'login:setQRCode'
 export const cameraBrokenMode = 'login:cameraBrokenMode'
 export const doneRegistering = 'login:doneRegistering'
 export const configuredAccounts = 'login:configuredAccounts'
+export const waitingForResponse = 'login:waitingForResponse'
 
 export const actionUpdateForgotPasswordEmailAddress = 'login:actionUpdateForgotPasswordEmailAddress'
 export const actionSetForgotPasswordSubmitting = 'login:actionSetForgotPasswordSubmitting'
 export const actionForgotPasswordDone = 'login:actionForgotPasswordDone'
-
-export const actionSetUserPass = 'login:actionSetUserPass'
-
-export const actionAskDeviceName = 'login:actionAskDeviceName'
-export const actionSetDeviceName = 'login:actionSetDeviceName'
 
 export const actionRegisteredWithUserPass = 'login:actionRegisteredWithUserPass'
 export const actionRegisteredWithPaperKey = 'login:actionRegisteredWithPaperKey'

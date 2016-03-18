@@ -11,76 +11,97 @@ import (
 	"github.com/keybase/client/go/updater/sources"
 )
 
+// UpdateChecker runs updates checks every check duration
 type UpdateChecker struct {
-	updater *Updater
-	ctx     Context
-	ticker  *time.Ticker
-	log     logger.Logger
+	updater       *Updater
+	ctx           Context
+	ticker        *time.Ticker
+	log           logger.Logger
+	tickDuration  time.Duration // tickDuration is the ticker delay
+	checkDuration time.Duration // checkDuration is how ofter to check for updates
+	count         int           // count is number of times we've checked
 }
 
+// NewUpdateChecker creates an update checker
 func NewUpdateChecker(updater *Updater, ctx Context, log logger.Logger) UpdateChecker {
+	return newUpdateChecker(updater, ctx, log, DefaultTickDuration(), DefaultCheckDuration())
+}
+
+func newUpdateChecker(updater *Updater, ctx Context, log logger.Logger, tickDuration time.Duration, checkDuration time.Duration) UpdateChecker {
 	return UpdateChecker{
-		updater: updater,
-		ctx:     ctx,
-		log:     log,
+		updater:       updater,
+		ctx:           ctx,
+		log:           log,
+		tickDuration:  tickDuration,
+		checkDuration: checkDuration,
 	}
 }
 
 // Check checks for an update. If not requested (by user) and not forced it will
 // exit early if check has already been applied within checkDuration().
-func (u *UpdateChecker) Check(force bool, requested bool) error {
+func (u *UpdateChecker) Check(force bool, requested bool) (bool, error) {
 	if !requested && !force {
 		if lastCheckedPTime := u.updater.config.GetUpdateLastChecked(); lastCheckedPTime > 0 {
 			lastChecked := keybase1.FromTime(lastCheckedPTime)
-			if time.Now().Before(lastChecked.Add(checkDuration())) {
-				u.log.Debug("Already checked: %s", lastChecked)
-				return nil
+			if time.Since(lastChecked) < u.checkDuration {
+				u.log.Debug("Already checked: %s (%s ago)", lastChecked, time.Since(lastChecked))
+				return false, nil
 			}
 		}
 	}
 
 	checkTime := time.Now()
+	u.count++
 	_, err := u.updater.Update(u.ctx, force, requested)
 	if err != nil {
-		return err
+		return true, err
 	}
 
 	u.log.Debug("Saving updater last checked: %s", checkTime)
 	u.updater.config.SetUpdateLastChecked(keybase1.ToTime(checkTime))
-	return nil
+	return true, nil
 }
 
+// Start starts the update checker
 func (u *UpdateChecker) Start() {
 	if u.ticker != nil {
 		return
 	}
-	u.ticker = time.NewTicker(tickDuration())
+	u.ticker = time.NewTicker(u.tickDuration)
 	go func() {
-		for range u.ticker.C {
-			u.log.Debug("Checking for update (ticker)")
-			err := u.Check(false, false)
-			if err != nil {
-				u.log.Errorf("Error in update: %s", err)
-			}
+		for _ = range u.ticker.C {
+			go func() {
+				u.log.Debug("Checking for update (ticker)")
+				_, err := u.Check(false, false)
+				if err != nil {
+					u.log.Errorf("Error in update: %s", err)
+				}
+			}()
 		}
 	}()
 }
 
+// Stop stops the update checker
 func (u *UpdateChecker) Stop() {
 	u.ticker.Stop()
 	u.ticker = nil
 }
 
-// checkDuration is how often to check for updates
-func checkDuration() time.Duration {
+// Count is number of times the check has been called
+func (u UpdateChecker) Count() int {
+	return u.count
+}
+
+// DefaultCheckDuration is default for how often to check for updates (e.g. daily)
+func DefaultCheckDuration() time.Duration {
 	if sources.IsPrerelease {
 		return time.Hour
 	}
 	return 24 * time.Hour
 }
 
-// tickDuration is how often to call check (should be less than checkDuration or snooze min)
-func tickDuration() time.Duration {
+// DefaultTickDuration is how often to call check (should be less than checkDuration or snooze min)
+func DefaultTickDuration() time.Duration {
 	if sources.IsPrerelease {
 		return 15 * time.Minute
 	}

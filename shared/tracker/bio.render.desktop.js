@@ -31,9 +31,9 @@ export default class BioRender extends Component {
     }
 
     if (userInfo.followsYou && currentlyFollowing) {
-      return 'You follow each other'
+      return 'You track each other'
     } else if (userInfo.followsYou) {
-      return 'Follows you'
+      return 'Tracks you'
     }
 
     return null
@@ -55,9 +55,7 @@ export default class BioRender extends Component {
             <Avatar onClick={() => this._onClickAvatar()} style={globalStyles.clickable} url={userInfo.avatar} size={75} />
             {(followsYou || currentlyFollowing) &&
               <div>
-                {followsYou
-                  ? <div style={followBadgeStyles.followsYou}> <div style={{...followBadgeCommon, height: 6, width: 6, top: 2, right: 2}}/></div>
-                  : <div style={followBadgeStyles.notFollowsYou}/>}
+                {followsYou && <div style={followBadgeStyles.followsYou}> <div style={{...followBadgeCommon, height: 6, width: 6, top: 2, right: 2}}/></div>}
                 <div style={currentlyFollowing ? followBadgeStyles.following : followBadgeStyles.notFollowing} />
               </div>
             }
@@ -65,7 +63,6 @@ export default class BioRender extends Component {
           <div style={styles.content}>
             <Text
               type='HeaderBig'
-              className='hover-underline'
               style={{...styles.username, ...(currentlyFollowing ? styles.usernameFollowing : styles.usernameNotFollowing)}}
               onClick={() => this._onClickAvatar()}>
               {username}
@@ -76,13 +73,13 @@ export default class BioRender extends Component {
             }
             <Text type='BodySmall' style={styles.following}>
               <span className='hover-underline' onClick={() => this._onClickFollowers()}>
-                <Text type='BodySmall' style={{...globalStyles.fontBold}}>{userInfo.followersCount}</Text> Followers
+                <Text type='BodySmall' style={{...globalStyles.fontBold}}>{userInfo.followersCount}</Text> {userInfo.followersCount === 1 ? 'Tracker' : 'Trackers'}
               </span>
               &nbsp;
               &middot;
               &nbsp;
               <span className='hover-underline' onClick={() => this._onClickFollowing()}>
-                Following <Text type='BodySmall' style={{...globalStyles.fontBold}}>{userInfo.followingCount}</Text>
+                Tracking <Text type='BodySmall' style={{...globalStyles.fontBold}}>{userInfo.followingCount}</Text>
               </span>
             </Text>
             {userInfo.bio &&
@@ -133,6 +130,7 @@ const styles = {
     zIndex: 1
   },
   username: {
+    ...globalStyles.selectable,
     marginTop: 7
   },
   usernameFollowing: {
@@ -142,6 +140,7 @@ const styles = {
     color: globalColors.orange
   },
   fullname: {
+    ...globalStyles.selectable,
     textAlign: 'center',
     color: '#444444'
   },
@@ -153,11 +152,13 @@ const styles = {
     ...globalStyles.clickable
   },
   bio: {
+    ...globalStyles.selectable,
     paddingLeft: 30,
     paddingRight: 30,
     textAlign: 'center'
   },
   location: {
+    ...globalStyles.selectable,
     paddingLeft: 30,
     paddingRight: 30,
     textAlign: 'center'
@@ -188,7 +189,7 @@ const followBottom = {
 const followBadgeStyles = {
   followsYou: {
     ...followTop,
-    background: globalColors.green2
+    background: globalColors.green
   },
   notFollowsYou: {
     ...followTop,
@@ -196,7 +197,7 @@ const followBadgeStyles = {
   },
   following: {
     ...followBottom,
-    background: globalColors.green2
+    background: globalColors.green
   },
   notFollowing: {
     ...followBottom,

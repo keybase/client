@@ -9,10 +9,10 @@ export function getCurrentTab (state) {
   return state.tabbedRouter.get('activeTab')
 }
 
-export function navigateUp (tab) {
+export function navigateUp (tab, till) {
   return {
     type: Constants.navigateUp,
-    payload: {tab}
+    payload: {tab, till}
   }
 }
 

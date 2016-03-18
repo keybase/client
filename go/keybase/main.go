@@ -61,6 +61,9 @@ func main() {
 		// Had to change from Error to Errorf because of go vet because of:
 		// https://github.com/golang/go/issues/6407
 		g.Log.Errorf("%s", err.Error())
+		if g.ExitCode == keybase1.ExitCode_OK {
+			g.ExitCode = keybase1.ExitCode_NOTOK
+		}
 	}
 	if g.ExitCode != keybase1.ExitCode_OK {
 		os.Exit(int(g.ExitCode))

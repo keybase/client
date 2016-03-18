@@ -64,8 +64,14 @@ keybase sign -d -i /tmp/Keybase.zip -o /tmp/keybase.sig
 keybase -d update run --source=local --url=file:///tmp/Keybase.zip --signature=/tmp/keybase.sig --force
 ```
 
-### Running Update from Test build_kbfs
+### Updating from Test Builds
 
 ```
 keybase update run --source=remote --url="https://s3.amazonaws.com/prerelease-test.keybase.io/update-darwin-prod.json"
+```
+
+### Testing S3 Index
+
+```
+NOPULL=1 BUCKET_NAME=prerelease-test.keybase.io PLATFORM=darwin ./s3_index.sh
 ```

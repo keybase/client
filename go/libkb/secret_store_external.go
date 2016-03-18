@@ -13,18 +13,21 @@ import "sync"
 
 // ExternalKeyStore is the interface for the actual (external) keystore.
 type ExternalKeyStore interface {
-	RetrieveSecret(username string) ([]byte, error)
-	StoreSecret(username string, secret []byte) error
-	ClearSecret(username string) error
-	GetUsersWithStoredSecretsMsgPack() ([]byte, error)
-	SetupKeyStore(username string) error
-	GetTerminalPrompt() string
+	RetrieveSecret(serviceName string, key string) ([]byte, error)
+	StoreSecret(serviceName string, key string, secret []byte) error
+	ClearSecret(serviceName string, key string) error
+	GetUsersWithStoredSecretsMsgPack(serviceName string) ([]byte, error)
+	SetupKeyStore(serviceName string, key string) error
 }
 
 // externalKeyStore is the reference to some external key store
 var externalKeyStore ExternalKeyStore
 
 var externalKeyStoreMu sync.Mutex
+
+func (s secretStoreAccountName) serviceName() string {
+	return s.context.GetStoredSecretServiceName()
+}
 
 // SetGlobalExternalKeyStore is called by Android to register Android's KeyStore with Go
 func SetGlobalExternalKeyStore(s ExternalKeyStore) {
@@ -41,42 +44,42 @@ func getGlobalExternalKeyStore() ExternalKeyStore {
 
 type secretStoreAccountName struct {
 	externalKeyStore ExternalKeyStore
-	accountName      string
+	context          SecretStoreContext
 }
 
-var _ SecretStore = secretStoreAccountName{}
+var _ SecretStoreAll = secretStoreAccountName{}
 
-func (s secretStoreAccountName) StoreSecret(secret []byte) (err error) {
-	return s.externalKeyStore.StoreSecret(s.accountName, secret)
+func (s secretStoreAccountName) StoreSecret(username NormalizedUsername, secret []byte) (err error) {
+	s.externalKeyStore.SetupKeyStore(s.serviceName(), string(username))
+	return s.externalKeyStore.StoreSecret(s.serviceName(), string(username), secret)
 }
 
-func (s secretStoreAccountName) RetrieveSecret() ([]byte, error) {
-	return s.externalKeyStore.RetrieveSecret(s.accountName)
+func (s secretStoreAccountName) RetrieveSecret(username NormalizedUsername) ([]byte, error) {
+	s.externalKeyStore.SetupKeyStore(s.serviceName(), string(username))
+	return s.externalKeyStore.RetrieveSecret(s.serviceName(), string(username))
 }
 
-func (s secretStoreAccountName) ClearSecret() (err error) {
-	return s.externalKeyStore.ClearSecret(s.accountName)
+func (s secretStoreAccountName) ClearSecret(username NormalizedUsername) (err error) {
+	return s.externalKeyStore.ClearSecret(s.serviceName(), string(username))
 }
 
-func NewSecretStore(c SecretStoreContext, username NormalizedUsername) SecretStore {
+func NewSecretStoreAll(g *GlobalContext) SecretStoreAll {
 	externalKeyStore := getGlobalExternalKeyStore()
 	if externalKeyStore == nil {
 		return nil
 	}
-	externalKeyStore.SetupKeyStore(string(username))
-	return secretStoreAccountName{externalKeyStore, string(username)}
+	return secretStoreAccountName{externalKeyStore, g}
 }
 
-func HasSecretStore() bool {
-	return getGlobalExternalKeyStore() != nil
+func NewTestSecretStoreAll(c SecretStoreContext, g *GlobalContext) SecretStoreAll {
+	return nil
 }
 
-func GetUsersWithStoredSecrets(c SecretStoreContext) ([]string, error) {
-	externalKeyStore := getGlobalExternalKeyStore()
-	if externalKeyStore == nil {
+func (s secretStoreAccountName) GetUsersWithStoredSecrets() ([]string, error) {
+	if s.externalKeyStore == nil {
 		return nil, nil
 	}
-	usersMsgPack, err := externalKeyStore.GetUsersWithStoredSecretsMsgPack()
+	usersMsgPack, err := s.externalKeyStore.GetUsersWithStoredSecretsMsgPack(s.serviceName())
 	if err != nil {
 		return nil, err
 	}
@@ -87,9 +90,5 @@ func GetUsersWithStoredSecrets(c SecretStoreContext) ([]string, error) {
 }
 
 func GetTerminalPrompt() string {
-	externalKeyStore := getGlobalExternalKeyStore()
-	if externalKeyStore == nil {
-		return ""
-	}
-	return externalKeyStore.GetTerminalPrompt()
+	return "Store secret in Android's KeyStore?"
 }

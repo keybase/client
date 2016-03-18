@@ -13,14 +13,15 @@ import Devices from './devices'
 import NoTab from './no-tab'
 import More from './more'
 import Startup from './start-up'
+import Login from './login'
 
 import {switchTab} from './actions/tabbed-router'
 import {navigateTo, navigateUp} from './actions/router'
-import {startup} from './actions/startup'
+import {bootstrap} from './actions/config'
 
 import {constants as styleConstants} from './styles/common'
 
-import {folderTab, chatTab, peopleTab, devicesTab, moreTab, startupTab} from './constants/tabs'
+import {folderTab, chatTab, peopleTab, devicesTab, moreTab, startupTab, loginTab} from './constants/tabs'
 
 const tabs = {
   [folderTab]: {module: Folders, name: 'Folders'},
@@ -84,7 +85,7 @@ class Nav extends Component {
   constructor (props) {
     super(props)
 
-    this.props.startup()
+    this.props.bootstrap()
   }
 
   navBar () {
@@ -95,9 +96,7 @@ class Nav extends Component {
     )
   }
 
-  _renderContent () {
-    const tab = this.props.tabbedRouter.get('activeTab')
-    const {module} = tabs[tab]
+  _renderContent (tab, module) {
     return (
       <View style={styles.tabContent}>
         <MetaNavigator
@@ -146,8 +145,13 @@ class Nav extends Component {
       // )
     // }
 
+    if (activeTab === loginTab) {
+      return this._renderContent(loginTab, Login)
+    }
+
+    const {module} = tabs[activeTab]
     if (activeTab === startupTab) {
-      return this._renderContent()
+      return this._renderContent(activeTab, module)
     }
 
     return (
@@ -162,7 +166,7 @@ class Nav extends Component {
               title={name}
               selected={activeTab === tab}
               onPress={() => this.props.switchTab(tab)}>
-              {activeTab === tab && this._renderContent()}
+              {activeTab === tab && this._renderContent(tab, module)}
             </TabBarIOS.Item>
           ) })
         }
@@ -170,17 +174,6 @@ class Nav extends Component {
       </View>
     )
   }
-}
-
-Nav.propTypes = {
-  switchTab: React.PropTypes.func.isRequired,
-  navigateUp: React.PropTypes.func.isRequired,
-  navigateTo: React.PropTypes.func.isRequired,
-  startup: React.PropTypes.func.isRequired,
-  tabbedRouter: React.PropTypes.object.isRequired,
-  config: React.PropTypes.shape({
-    error: React.PropTypes.object
-  }).isRequired
 }
 
 const styles = StyleSheet.create({
@@ -218,7 +211,7 @@ export default connect(
       switchTab: tab => dispatch(switchTab(tab)),
       navigateUp: () => dispatch(navigateUp()),
       navigateTo: uri => dispatch(navigateTo(uri)),
-      startup: () => dispatch(startup())
+      bootstrap: () => dispatch(bootstrap())
     }
   }
 )(Nav)

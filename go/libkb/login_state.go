@@ -12,6 +12,8 @@ import (
 	"runtime/debug"
 	"time"
 
+	"golang.org/x/net/context"
+
 	keybase1 "github.com/keybase/client/go/protocol"
 	triplesec "github.com/keybase/go-triplesec"
 )
@@ -66,6 +68,8 @@ type LoginContext interface {
 
 	CachedSecretKey(ska SecretKeyArg) (GenericKey, error)
 	SetCachedSecretKey(ska SecretKeyArg, key GenericKey) error
+
+	SetLKSec(lksec *LKSec)
 }
 
 type LoggedInHelper interface {
@@ -112,12 +116,12 @@ func NewLoginState(g *GlobalContext) *LoginState {
 	return res
 }
 
-func (s *LoginState) LoginWithPrompt(username string, secretUI SecretUI, after afterFn) (err error) {
+func (s *LoginState) LoginWithPrompt(username string, loginUI LoginUI, secretUI SecretUI, after afterFn) (err error) {
 	s.G().Log.Debug("+ LoginWithPrompt(%s) called", username)
 	defer func() { s.G().Log.Debug("- LoginWithPrompt -> %s", ErrToOk(err)) }()
 
 	err = s.loginHandle(func(lctx LoginContext) error {
-		return s.loginWithPromptHelper(lctx, username, secretUI, false)
+		return s.loginWithPromptHelper(lctx, username, loginUI, secretUI, false)
 	}, after, "loginWithPromptHelper")
 	return
 }
@@ -224,7 +228,7 @@ func (s *LoginState) GetPassphraseStreamForUser(ui SecretUI, username string) (p
 		return pps, nil
 	}
 	err = s.loginHandle(func(lctx LoginContext) error {
-		return s.loginWithPromptHelper(lctx, username, ui, true)
+		return s.loginWithPromptHelper(lctx, username, nil, ui, true)
 	}, nil, "LoginState - GetPassphraseStreamForUser")
 	if err != nil {
 		return nil, err
@@ -350,7 +354,7 @@ func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lgpw []byt
 			"hmac_pwh":          S{hex.EncodeToString(lgpw)},
 			"login_session":     S{loginSessionEncoded},
 		},
-		AppStatusCodes: []int{SCOk, SCBadLoginPassword},
+		AppStatusCodes: []int{SCOk, SCBadLoginPassword, SCBadLoginUserNotFound},
 	})
 	if err != nil {
 		return nil, err
@@ -358,6 +362,9 @@ func (s *LoginState) postLoginToServer(lctx LoginContext, eOu string, lgpw []byt
 	if res.AppStatus.Code == SCBadLoginPassword {
 		err = PassphraseError{"server rejected login attempt"}
 		return nil, err
+	}
+	if res.AppStatus.Code == SCBadLoginUserNotFound {
+		return nil, NotFoundError{}
 	}
 
 	b := res.Body
@@ -569,16 +576,36 @@ func (s *LoginState) tryPassphrasePromptLogin(lctx LoginContext, username string
 	return
 }
 
-func (s *LoginState) getEmailOrUsername(lctx LoginContext, username *string) error {
+func (s *LoginState) getEmailOrUsername(lctx LoginContext, username *string, loginUI LoginUI) (err error) {
 	if len(*username) != 0 {
-		return nil
+		return
 	}
 
 	*username = s.G().Env.GetEmailOrUsername()
-	if len(*username) == 0 {
-		return NoUsernameError{}
+	if len(*username) != 0 {
+		return
 	}
-	return nil
+
+	if loginUI != nil {
+		if *username, err = loginUI.GetEmailOrUsername(context.TODO(), 0); err != nil {
+			*username = ""
+			return
+		}
+	}
+
+	if len(*username) == 0 {
+		err = NoUsernameError{}
+	}
+
+	if err != nil {
+		return err
+	}
+
+	// username set, so redo config
+	if err = s.G().ConfigureConfig(); err != nil {
+		return
+	}
+	return s.switchUser(lctx, *username)
 }
 
 func (s *LoginState) verifyPlaintextPassphraseForLoggedInUser(lctx LoginContext, passphrase string) (err error) {
@@ -588,7 +615,7 @@ func (s *LoginState) verifyPlaintextPassphraseForLoggedInUser(lctx LoginContext,
 	}()
 
 	var username string
-	if err = s.getEmailOrUsername(lctx, &username); err != nil {
+	if err = s.getEmailOrUsername(lctx, &username, nil); err != nil {
 		return
 	}
 
@@ -685,7 +712,7 @@ func (s *LoginState) stretchPassphraseIfNecessary(lctx LoginContext, un string, 
 		}
 
 		s.G().Log.Debug("| stretchPassphraseIfNecessary: getting keybase passphrase via ui")
-		res, err := GetKeybasePassphrase(ui, un, retry)
+		res, err := GetKeybasePassphrase(ui, un, retry, s.G().SecretStoreAll != nil)
 		if err != nil {
 			return false, err
 		}
@@ -703,21 +730,21 @@ func (s *LoginState) stretchPassphraseIfNecessary(lctx LoginContext, un string, 
 
 func (s *LoginState) verifyPassphraseWithServer(ui SecretUI) error {
 	return s.loginHandle(func(lctx LoginContext) error {
-		return s.loginWithPromptHelper(lctx, s.G().Env.GetUsername().String(), ui, true)
+		return s.loginWithPromptHelper(lctx, s.G().Env.GetUsername().String(), nil, ui, true)
 	}, nil, "LoginState - verifyPassphrase")
 }
 
-func (s *LoginState) loginWithPromptHelper(lctx LoginContext, username string, secretUI SecretUI, force bool) (err error) {
+func (s *LoginState) loginWithPromptHelper(lctx LoginContext, username string, loginUI LoginUI, secretUI SecretUI, force bool) (err error) {
 	var loggedIn bool
 	if loggedIn, err = s.checkLoggedIn(lctx, username, force); err != nil || loggedIn {
 		return
 	}
 
-	if err = s.getEmailOrUsername(lctx, &username); err != nil {
+	if err = s.switchUser(lctx, username); err != nil {
 		return
 	}
 
-	if err = s.switchUser(lctx, username); err != nil {
+	if err = s.getEmailOrUsername(lctx, &username, loginUI); err != nil {
 		return
 	}
 
@@ -952,6 +979,11 @@ func (s *LoginState) LoginSession(h func(*LoginSession), name string) error {
 func (s *LoginState) SecretSyncer(h func(*SecretSyncer), name string) error {
 	var err error
 	aerr := s.Account(func(a *Account) {
+		// SecretSyncer needs session loaded:
+		err = a.localSession.Load()
+		if err != nil {
+			return
+		}
 		h(a.SecretSyncer())
 	}, name)
 	if aerr != nil {

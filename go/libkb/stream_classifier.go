@@ -11,7 +11,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/keybase/client/go/saltpack"
+	"github.com/keybase/saltpack"
 	"github.com/ugorji/go/codec"
 )
 

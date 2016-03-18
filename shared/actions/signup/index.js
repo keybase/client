@@ -2,15 +2,17 @@
 
 import _ from 'lodash'
 import * as Constants from '../../constants/signup'
+import {Map} from 'immutable'
 import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
+import {loginTab} from '../../constants/tabs'
 
-import {routeAppend} from '../../actions/router'
+import {routeAppend, navigateUp} from '../../actions/router'
 
-import type {TypedAsyncAction} from '../../constants/types/flux'
+import type {TypedAsyncAction, AsyncAction} from '../../constants/types/flux'
 import type {RouteAppend} from '../../constants/router'
-import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName, Signup, ShowPaperKey, ShowSuccess, ResetSignup} from '../../constants/signup'
-import type {signup_signup_rpc, signup_checkInvitationCode_rpc, signup_checkUsernameAvailable_rpc} from '../../constants/types/flow-types'
+import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName, Signup, ShowPaperKey, ShowSuccess, ResetSignup, RequestInvite, StartRequestInvite} from '../../constants/signup'
+import type {signup_signup_rpc, signup_checkInvitationCode_rpc, signup_checkUsernameAvailable_rpc, signup_inviteRequest_rpc} from '../../constants/types/flow-types'
 
 function nextPhase (): TypedAsyncAction<RouteAppend> {
   return (dispatch, getState) => {
@@ -20,9 +22,15 @@ function nextPhase (): TypedAsyncAction<RouteAppend> {
   }
 }
 
+export function startRequestInvite (): TypedAsyncAction<StartRequestInvite | RouteAppend> {
+  return dispatch => new Promise((resolve, reject) => {
+    dispatch({type: Constants.startRequestInvite, payload: {}})
+    dispatch(nextPhase())
+  })
+}
+
 export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInviteCode | RouteAppend> {
   return dispatch => new Promise((resolve, reject) => {
-    // TODO make service call
     dispatch({type: Constants.checkInviteCode, payload: {inviteCode}})
 
     const params: signup_checkInvitationCode_rpc = {
@@ -34,7 +42,7 @@ export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInvi
       callback: err => {
         if (err) {
           console.error('error in inviteCode:', err)
-          dispatch({type: Constants.checkInviteCode, error: true, payload: {errorText: 'Invite code is invalid'}})
+          dispatch({type: Constants.checkInviteCode, error: true, payload: {errorText: "Sorry, that's not a valid invite code."}})
           reject(err)
         } else {
           dispatch({type: Constants.checkInviteCode, payload: {inviteCode}})
@@ -48,6 +56,54 @@ export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInvi
   })
 }
 
+export function requestInvite (email: string, name: string): TypedAsyncAction<RequestInvite | RouteAppend> {
+  return dispatch => new Promise((resolve, reject) => {
+    // Returns an error string if not valid
+    const emailError = isValidEmail(email)
+    const nameError = isValidName(name)
+    if (emailError || nameError || !email || !name) {
+      dispatch({
+        type: Constants.requestInvite,
+        error: true,
+        payload: {emailError, nameError, email, name}
+      })
+      resolve()
+      return
+    }
+
+    const params: signup_inviteRequest_rpc = {
+      method: 'signup.inviteRequest',
+      param: {
+        email: email,
+        fullname: name,
+        notes: 'Requested through GUI app'
+      },
+      incomingCallMap: {},
+      callback: err => {
+        if (err) {
+          dispatch({
+            type: Constants.requestInvite,
+            payload: {error: true, emailError: err.desc, nameError: null, email, name}
+          })
+          reject(err)
+        } else {
+          if (email && name) {
+            dispatch({
+              type: Constants.requestInvite,
+              payload: {error: null, email, name}
+            })
+            dispatch(nextPhase())
+            resolve()
+          } else {
+            reject(err)
+          }
+        }
+      }
+    }
+    engine.rpc(params)
+  })
+}
+
 function isBlank (s: string): boolean {
   return _.trim(s).length === 0
 }
@@ -56,13 +112,21 @@ function hasSpaces (s: string): boolean {
   return s.indexOf(' ') !== -1
 }
 
+function hasAtSign (s: string): boolean {
+  return s.indexOf('@') !== -1
+}
+
+function isEmptyOrBlank (thing: ?string): boolean {
+  if (!thing || isBlank(thing)) {
+    return true
+  }
+  return false
+}
+
 // Returns an error string if not valid
 function isValidCommon (thing: ?string): ?string {
-  if (!thing || isBlank(thing)) {
-    return 'Cannot be blank'
-  }
-
-  if (hasSpaces(thing)) return 'No spaces allowed'
+  if (isEmptyOrBlank(thing)) return 'Cannot be blank'
+  if (thing && hasSpaces(thing)) return 'No spaces allowed'
 }
 
 // Returns an error string if not valid
@@ -79,6 +143,15 @@ function isValidEmail (email: ?string): ?string {
   if (commonError) {
     return commonError
   }
+
+  if (email && !hasAtSign(email)) {
+    return 'Invalid email address.'
+  }
+}
+
+// Returns an error string if not valid
+function isValidName (name: ?string): ?string {
+  if (isEmptyOrBlank(name)) return 'Please provide your name.'
 }
 
 export function checkUsernameEmail (username: ?string, email: ?string): TypedAsyncAction<CheckUsernameEmail | RouteAppend> {
@@ -106,7 +179,7 @@ export function checkUsernameEmail (username: ?string, email: ?string): TypedAsy
           dispatch({
             type: Constants.checkUsernameEmail,
             error: true,
-            payload: {emailError, usernameError: 'Username is taken', email, username}
+            payload: {emailError, usernameError: `Username error: ${err.desc || err.toString()}`, email, username}
           })
           resolve()
         } else {
@@ -188,9 +261,20 @@ export function submitDeviceName (deviceName: string, skipMail?: boolean): Typed
   }
 }
 
-function signup (skipMail): TypedAsyncAction<Signup | ShowPaperKey> {
+let paperKeyResponse = null
+export function sawPaperKey (): AsyncAction {
+  return () => {
+    if (paperKeyResponse) {
+      paperKeyResponse.result()
+      paperKeyResponse = null
+    }
+  }
+}
+
+function signup (skipMail): TypedAsyncAction<Signup | ShowPaperKey | RouteAppend> {
   return (dispatch, getState) => new Promise((resolve, reject) => {
     const {email, username, inviteCode, passphrase, deviceName} = getState().signup
+    paperKeyResponse = null
 
     if (email && username && inviteCode && passphrase && deviceName) {
       const params: signup_signup_rpc = {
@@ -205,13 +289,13 @@ function signup (skipMail): TypedAsyncAction<Signup | ShowPaperKey> {
           skipMail
         },
         incomingCallMap: {
-          'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, {error, result}) => {
-            // TODO if the user doesn't Ack the paper key we should error
+          'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, response) => {
+            paperKeyResponse = response
             dispatch({
               type: Constants.showPaperKey,
               payload: {paperkey: new HiddenString(phrase)}
             })
-            result()
+            dispatch(nextPhase())
           },
           'keybase.1.gpgUi.wantToAddGPGKey': (params, {error, result}) => {
             // Do not add a gpg key for now
@@ -242,8 +326,13 @@ function signup (skipMail): TypedAsyncAction<Signup | ShowPaperKey> {
   })
 }
 
-export function resetSignup (): ResetSignup {
-  return {type: Constants.resetSignup, payload: {}}
+export function resetSignup (): TypedAsyncAction<ResetSignup | RouteAppend> {
+  return dispatch => new Promise((resolve, reject) => {
+    dispatch({type: Constants.resetSignup, payload: {}})
+    dispatch(navigateUp(loginTab, Map({path: 'signup'})))
+    dispatch(navigateUp())
+    resolve()
+  })
 }
 
 export function showSuccess (): ShowSuccess {

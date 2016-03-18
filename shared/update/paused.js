@@ -5,6 +5,7 @@ import {connect} from 'react-redux'
 import {Header, Text, Icon} from '../common-adapters'
 import {Button} from '../common-adapters'
 import {globalStyles} from '../styles/style-guide'
+import {autoResize} from '../../desktop/renderer/remote-component-helper'
 
 type RenderProps = {
   onForce: () => void,
@@ -14,6 +15,10 @@ type RenderProps = {
 
 class UpdatePaused extends Component {
   props: RenderProps;
+
+  componentDidMount () {
+    autoResize()
+  }
 
   render () {
     return (
@@ -37,7 +42,7 @@ class UpdatePaused extends Component {
           <Text type='BodySmall'>&nbsp;and back in.</Text>
 
           <div style={styles.actions}>
-            <Button type='Secondary' label='Force' onClick={() => this.props.onForce()} />
+            <Button type='Secondary' label='Force update' onClick={() => this.props.onForce()} />
             <Button type='Primary' label='Try again later' onClick={() => this.props.onCancel()} />
           </div>
         </div>
@@ -51,9 +56,11 @@ const styles = {
     ...globalStyles.flexBoxColumn
   },
   body: {
+    paddingTop: 15,
     paddingLeft: 30,
     paddingRight: 30,
-    paddingBottom: 30
+    paddingBottom: 30,
+    textAlign: 'center'
   },
   actions: {
     ...globalStyles.flexBoxRow,

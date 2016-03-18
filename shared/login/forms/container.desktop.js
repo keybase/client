@@ -7,7 +7,7 @@ import type {Props} from './container'
 export default ({children, onBack, style, outerStyle}: Props) => {
   return (
     <div style={{...styles.container, ...outerStyle}}>
-      <BackButton style={styles.button} onClick={() => onBack()}/>
+      <BackButton style={styles.button} onClick={onBack}/>
       <div style={{...styles.innerContainer, ...style}}>
         {children}
       </div>

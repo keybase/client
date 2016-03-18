@@ -4,7 +4,7 @@ import engine from '../engine'
 import * as Constants from '../constants/unlock-folders'
 
 import type {TypedAsyncAction} from '../constants/types/flux'
-import type {LoadDevices, ToPaperKeyInput, CheckPaperKey, Finish} from '../constants/unlock-folders'
+import type {LoadDevices, ToPaperKeyInput, CheckPaperKey, Finish, Close} from '../constants/unlock-folders'
 import type {device_deviceList_rpc} from '../constants/types/flow-types'
 
 export function loadDevice (): TypedAsyncAction<LoadDevices> {
@@ -47,4 +47,8 @@ export function checkPaperKey (): TypedAsyncAction<CheckPaperKey> {
 
 export function finish (): Finish {
   return {type: Constants.finish, payload: {}}
+}
+
+export function close (): Close {
+  return {type: Constants.close, payload: {}}
 }

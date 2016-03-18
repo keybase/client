@@ -25,8 +25,8 @@ export default class Render extends Component {
 
     return (
       <Container onBack={this.props.onBack} style={styles.container} outerStyle={styles.outer}>
-        <UserCard style={styles.card}>
-          <Input style={styles.first} type='password' ref={r => (passphraseRef1 = r)}
+        <UserCard>
+          <Input autoFocus style={styles.first} type='password' ref={r => (passphraseRef1 = r)}
             hintText='Create a passphrase' errorText={passphraseError} />
           <Input type='password' ref={r => (passphraseRef2 = r)} hintText='Confirm passphrase' onEnterKeyDown={checkPassphrase}/>
           <Button fullWidth type='Secondary' label='Continue' onClick={checkPassphrase}/>
@@ -45,10 +45,6 @@ const styles = {
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: 15
-  },
-  card: {
-    paddingLeft: 30,
-    paddingRight: 30
   },
   first: {
     marginTop: 35

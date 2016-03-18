@@ -42,6 +42,11 @@ export type BlockReference = {
   chargedTo: UID;
 }
 
+export type BlockReferenceCount = {
+  ref: BlockReference;
+  liveCount: int;
+}
+
 export type BoxNonce = any
 
 export type BoxPublicKey = any
@@ -156,6 +161,11 @@ export type DeviceType =
     0 // DESKTOP_0
   | 1 // MOBILE_1
 
+export type DowngradeReferenceRes = {
+  completed: Array<BlockReferenceCount>;
+  failed: BlockReference;
+}
+
 export type ED25519PublicKey = any
 
 export type ED25519Signature = any
@@ -175,6 +185,7 @@ export type ExitCode =
 export type ExtendedStatus = {
   standalone: boolean;
   passphraseStreamCached: boolean;
+  lksecLoaded: boolean;
   device?: ?Device;
   logDir: string;
   session?: ?SessionStatus;
@@ -378,6 +389,7 @@ export type Identity = {
   proofs: Array<IdentifyRow>;
   cryptocurrency: Array<Cryptocurrency>;
   revoked: Array<TrackDiff>;
+  revokedDetails: Array<RevokedProof>;
   breaksTracking: bool;
 }
 
@@ -713,6 +725,7 @@ export type ProofType =
   | 6 // HACKERNEWS_6
   | 1000 // GENERIC_WEB_SITE_1000
   | 1001 // DNS_1001
+  | 1002 // PGP_1002
   | 100001 // ROOTER_100001
 
 export type Proofs = {
@@ -754,6 +767,11 @@ export type RemoteProof = {
 export type RevokedKey = {
   key: PublicKey;
   time: KeybaseTime;
+}
+
+export type RevokedProof = {
+  proof: RemoteProof;
+  diff: TrackDiff;
 }
 
 export type SaltpackDecryptOptions = {
@@ -1251,6 +1269,18 @@ export type block_addReference_rpc = {
   callback: (null | (err: ?any) => void)
 }
 
+export type block_archiveReferenceWithCount_result = DowngradeReferenceRes
+
+export type block_archiveReferenceWithCount_rpc = {
+  method: 'block.archiveReferenceWithCount',
+  param: {
+    folder: string,
+    refs: Array<BlockReference>
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any, response: block_archiveReferenceWithCount_result) => void)
+}
+
 export type block_archiveReference_result = Array<BlockReference>
 
 export type block_archiveReference_rpc = {
@@ -1272,6 +1302,18 @@ export type block_authenticateSession_rpc = {
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any) => void)
+}
+
+export type block_delReferenceWithCount_result = DowngradeReferenceRes
+
+export type block_delReferenceWithCount_rpc = {
+  method: 'block.delReferenceWithCount',
+  param: {
+    folder: string,
+    refs: Array<BlockReference>
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any, response: block_delReferenceWithCount_result) => void)
 }
 
 export type block_delReference_result = void
@@ -3067,7 +3109,10 @@ export type updateUi_updateQuit_result = UpdateQuitRes
 
 export type updateUi_updateQuit_rpc = {
   method: 'updateUi.updateQuit',
-  param: {},
+  param: {
+    update: Update,
+    status: Status
+  },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any, response: updateUi_updateQuit_result) => void)
 }
@@ -3217,8 +3262,10 @@ export type rpc =
   | account_passphraseChange_rpc
   | account_passphrasePrompt_rpc
   | block_addReference_rpc
+  | block_archiveReferenceWithCount_rpc
   | block_archiveReference_rpc
   | block_authenticateSession_rpc
+  | block_delReferenceWithCount_rpc
   | block_delReference_rpc
   | block_getBlock_rpc
   | block_getSessionChallenge_rpc
@@ -3479,6 +3526,26 @@ export type incomingCallMapType = {
     response: {
       error: (err: RPCError) => void,
       result: (result: block_archiveReference_result) => void
+    }
+  ) => void,
+  'keybase.1.block.delReferenceWithCount'?: (
+    params: {
+      folder: string,
+      refs: Array<BlockReference>
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: block_delReferenceWithCount_result) => void
+    }
+  ) => void,
+  'keybase.1.block.archiveReferenceWithCount'?: (
+    params: {
+      folder: string,
+      refs: Array<BlockReference>
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: block_archiveReferenceWithCount_result) => void
     }
   ) => void,
   'keybase.1.block.getUserQuotaInfo'?: (
@@ -5156,7 +5223,11 @@ export type incomingCallMapType = {
     }
   ) => void,
   'keybase.1.updateUi.updateQuit'?: (
-    params: {},
+    params: {
+      sessionID: int,
+      update: Update,
+      status: Status
+    },
     response: {
       error: (err: RPCError) => void,
       result: (result: updateUi_updateQuit_result) => void

@@ -65,7 +65,7 @@ func (e *loginLoadUser) Run(ctx *Context) error {
 	arg.PublicKeyOptional = true
 	user, err := libkb.LoadUser(arg)
 	if err != nil {
-		return e.convertNotFound(err)
+		return err
 	}
 	e.user = user
 
@@ -106,7 +106,7 @@ func (e *loginLoadUser) findUsername(ctx *Context) (string, error) {
 		return nil
 	}
 	if err := e.G().LoginState().VerifyEmailAddress(e.usernameOrEmail, ctx.SecretUI, afterLogin); err != nil {
-		return "", e.convertNotFound(err)
+		return "", err
 	}
 
 	e.G().Log.Debug("VerifyEmailAddress %q => %q", e.usernameOrEmail, username)
@@ -121,15 +121,4 @@ func (e *loginLoadUser) prompt(ctx *Context) error {
 	}
 	e.usernameOrEmail = res
 	return nil
-}
-
-// LoadUser and VerifyEmailAddress can return an AppStatusError when a user isn't found.
-// Convert that to a libkb.NotFoundError.
-func (e *loginLoadUser) convertNotFound(in error) error {
-	if aerr, ok := in.(libkb.AppStatusError); ok {
-		if aerr.Code == libkb.SCNotFound || aerr.Code == libkb.SCBadLoginUserNotFound {
-			return libkb.NotFoundError{}
-		}
-	}
-	return in
 }

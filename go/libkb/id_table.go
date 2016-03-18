@@ -289,6 +289,7 @@ type ServiceBlock struct {
 	typ        string
 	id         string
 	proofState keybase1.ProofState
+	proofType  keybase1.ProofType
 }
 
 func (sb ServiceBlock) GetProofState() keybase1.ProofState { return sb.proofState }
@@ -310,7 +311,9 @@ func (sb ServiceBlock) LastWriterWins() bool {
 	return sb.social
 }
 
-func ParseServiceBlock(jw *jsonw.Wrapper) (sb *ServiceBlock, err error) {
+func (sb ServiceBlock) GetProofType() keybase1.ProofType { return sb.proofType }
+
+func ParseServiceBlock(jw *jsonw.Wrapper, pt keybase1.ProofType) (sb *ServiceBlock, err error) {
 	var social bool
 	var typ, id string
 
@@ -345,7 +348,7 @@ func ParseServiceBlock(jw *jsonw.Wrapper) (sb *ServiceBlock, err error) {
 	if len(typ) == 0 {
 		err = fmt.Errorf("Unrecognized Web proof @%s", jw.MarshalToDebug())
 	}
-	sb = &ServiceBlock{social: social, typ: typ, id: id}
+	sb = &ServiceBlock{social: social, typ: typ, id: id, proofType: pt}
 	return
 }
 
@@ -362,7 +365,7 @@ func ParseWebServiceBinding(base GenericChainLink) (ret RemoteProofChainLink, e 
 
 	if jw.IsNil() {
 		ret, e = ParseSelfSigChainLink(base)
-	} else if sb, err := ParseServiceBlock(jw); err != nil {
+	} else if sb, err := ParseServiceBlock(jw, keybase1.ProofType_NONE); err != nil {
 		e = fmt.Errorf("%s @%s", err, base.ToDebugString())
 	} else if sb.social {
 		ret = NewSocialProofChainLink(base, sb.typ, sb.id, sptf)
@@ -519,8 +522,10 @@ func (l *TrackChainLink) ToServiceBlocks() (ret []*ServiceBlock) {
 	for index := 0; index < ln; index++ {
 		proof := w.AtIndex(index).AtKey("remote_key_proof")
 		if i, e := proof.AtKey("state").GetInt(); e != nil {
-			G.Log.Warning("Bad 'state' in track statement: %s", e)
-		} else if sb, e := ParseServiceBlock(proof.AtKey("check_data_json")); e != nil {
+			l.G().Log.Warning("Bad 'state' in track statement: %s", e)
+		} else if t, e := proof.AtKey("proof_type").GetInt(); e != nil {
+			l.G().Log.Warning("Bad 'proof_type' in track statement: %s", e)
+		} else if sb, e := ParseServiceBlock(proof.AtKey("check_data_json"), keybase1.ProofType(t)); e != nil {
 			G.Log.Warning("Bad remote_key_proof.check_data_json: %s", e)
 		} else {
 			sb.proofState = keybase1.ProofState(i)

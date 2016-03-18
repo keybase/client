@@ -131,7 +131,7 @@ func (log *Standard) prepareString(
 }
 
 func (log *Standard) Debug(fmt string, arg ...interface{}) {
-	log.internal.Debug(fmt, arg...)
+	log.internal.Debugf(fmt, arg...)
 	if log.externalHandler != nil {
 		log.externalHandler.Log(keybase1.LogLevel_DEBUG, fmt, arg)
 	}
@@ -145,7 +145,7 @@ func (log *Standard) CDebugf(ctx context.Context, fmt string,
 }
 
 func (log *Standard) Info(fmt string, arg ...interface{}) {
-	log.internal.Info(fmt, arg...)
+	log.internal.Infof(fmt, arg...)
 	if log.externalHandler != nil {
 		log.externalHandler.Log(keybase1.LogLevel_INFO, fmt, arg)
 	}
@@ -159,7 +159,7 @@ func (log *Standard) CInfof(ctx context.Context, fmt string,
 }
 
 func (log *Standard) Notice(fmt string, arg ...interface{}) {
-	log.internal.Notice(fmt, arg...)
+	log.internal.Noticef(fmt, arg...)
 	if log.externalHandler != nil {
 		log.externalHandler.Log(keybase1.LogLevel_NOTICE, fmt, arg)
 	}
@@ -173,7 +173,7 @@ func (log *Standard) CNoticef(ctx context.Context, fmt string,
 }
 
 func (log *Standard) Warning(fmt string, arg ...interface{}) {
-	log.internal.Warning(fmt, arg...)
+	log.internal.Warningf(fmt, arg...)
 	if log.externalHandler != nil {
 		log.externalHandler.Log(keybase1.LogLevel_WARN, fmt, arg)
 	}
@@ -187,7 +187,7 @@ func (log *Standard) CWarningf(ctx context.Context, fmt string,
 }
 
 func (log *Standard) Error(fmt string, arg ...interface{}) {
-	log.internal.Error(fmt, arg...)
+	log.internal.Errorf(fmt, arg...)
 	if log.externalHandler != nil {
 		log.externalHandler.Log(keybase1.LogLevel_ERROR, fmt, arg)
 	}
@@ -205,7 +205,7 @@ func (log *Standard) CErrorf(ctx context.Context, fmt string,
 }
 
 func (log *Standard) Critical(fmt string, arg ...interface{}) {
-	log.internal.Critical(fmt, arg...)
+	log.internal.Criticalf(fmt, arg...)
 	if log.externalHandler != nil {
 		log.externalHandler.Log(keybase1.LogLevel_CRITICAL, fmt, arg)
 	}
@@ -339,9 +339,11 @@ func (log *Standard) GetUnforwardedLogger() *UnforwardedLogger {
 	return (*UnforwardedLogger)(log)
 }
 
-func (log *UnforwardedLogger) Debug(s string, args ...interface{})   { log.internal.Debug(s, args...) }
-func (log *UnforwardedLogger) Error(s string, args ...interface{})   { log.internal.Error(s, args...) }
-func (log *UnforwardedLogger) Errorf(s string, args ...interface{})  { log.internal.Error(s, args...) }
-func (log *UnforwardedLogger) Warning(s string, args ...interface{}) { log.internal.Warning(s, args...) }
-func (log *UnforwardedLogger) Info(s string, args ...interface{})    { log.internal.Info(s, args...) }
-func (log *UnforwardedLogger) Profile(s string, args ...interface{}) { log.internal.Debug(s, args...) }
+func (log *UnforwardedLogger) Debug(s string, args ...interface{})  { log.internal.Debugf(s, args...) }
+func (log *UnforwardedLogger) Error(s string, args ...interface{})  { log.internal.Errorf(s, args...) }
+func (log *UnforwardedLogger) Errorf(s string, args ...interface{}) { log.internal.Errorf(s, args...) }
+func (log *UnforwardedLogger) Warning(s string, args ...interface{}) {
+	log.internal.Warningf(s, args...)
+}
+func (log *UnforwardedLogger) Info(s string, args ...interface{})    { log.internal.Infof(s, args...) }
+func (log *UnforwardedLogger) Profile(s string, args ...interface{}) { log.internal.Debugf(s, args...) }

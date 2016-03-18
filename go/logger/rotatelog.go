@@ -15,8 +15,9 @@ func (log *Standard) RotateLogFile() error {
 		return errors.New("No log filename specified")
 	}
 	return SetLogFileConfig(&LogFileConfig{
-		Path:    log.filename,
-		MaxAge:  30 * 24 * time.Hour, // 30 days
-		MaxSize: 128 * 1024 * 1024,   // 128mb
+		Path:         log.filename,
+		MaxAge:       30 * 24 * time.Hour, // 30 days
+		MaxSize:      128 * 1024 * 1024,   // 128mb
+		MaxKeepFiles: 0,
 	})
 }

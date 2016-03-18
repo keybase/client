@@ -5,9 +5,9 @@ import {connect} from 'react-redux'
 import {bindActionCreators} from 'redux'
 import {registerIdentifyUi, onClose as trackerOnClose, startTimer as trackerStartTimer, stopTimer as trackerStopTimer} from '../shared/actions/tracker'
 import {registerPinentryListener, onCancel as pinentryOnCancel, onSubmit as pinentryOnSubmit} from '../shared/actions/pinentry'
-import {registerTrackerChangeListener} from '../shared/actions/tracker'
-import {registerUpdateListener, onCancel as updateOnCancel, onSkip as updateOnSkip, onSnooze as updateOnSnooze, onUpdate as updateOnUpdate, setAlwaysUpdate} from '../shared/actions/update'
-import {onForce as updateOnForce, onPauseCancel as updateOnPauseCancel} from '../shared/actions/update'
+import {registerTrackerChangeListener, registerUserChangeListener} from '../shared/actions/tracker'
+import {registerUpdateListener, onCancel as updateOnCancel, onSkip as updateOnSkip, onSnooze as updateOnSnooze, onUpdate as updateOnUpdate, setAlwaysUpdate} from '../shared/actions/update.desktop'
+import {onForce as updateOnForce, onPauseCancel as updateOnPauseCancel} from '../shared/actions/update.desktop'
 // $FlowIssue platform files
 import RemoteComponent from './remote-component'
 
@@ -26,6 +26,7 @@ export type RemoteManagerProps = {
   pinentryOnSubmit: (sessionID: number, passphrase: string, features: GUIEntryFeatures) => void,
   registerIdentifyUi: () => void,
   registerTrackerChangeListener: () => void,
+  registerUserChangeListener: () => void,
   trackerOnClose: () => void,
   trackerServerStarted: boolean,
   trackerStartTimer: (dispatch: Dispatch, getState: any) => void,
@@ -50,6 +51,7 @@ class RemoteManager extends Component {
     this.props.registerIdentifyUi()
     this.props.registerPinentryListener()
     this.props.registerTrackerChangeListener()
+    this.props.registerUserChangeListener()
     this.props.registerUpdateListener()
   }
 
@@ -125,7 +127,7 @@ class RemoteManager extends Component {
 
     let updateType = 'confirm'
     let onRemoteClose = () => this.props.updateOnCancel()
-    let windowOpts = {width: 480, height: 440}
+    let windowOpts = {width: 500, height: 440}
     let options = {
       onCancel: () => this.props.updateOnCancel(),
       onSkip: () => this.props.updateOnSkip(),
@@ -192,6 +194,7 @@ RemoteManager.propTypes = {
   registerUpdateListener: React.PropTypes.func,
   registerIdentifyUi: React.PropTypes.func,
   registerTrackerChangeListener: React.PropTypes.any,
+  registerUserChangeListener: React.PropTypes.any,
   trackerOnClose: React.PropTypes.func,
   trackerServerStarted: React.PropTypes.bool,
   trackerStartTimer: React.PropTypes.func,
@@ -226,6 +229,7 @@ export default connect(
     trackerOnClose,
     registerPinentryListener,
     registerTrackerChangeListener,
+    registerUserChangeListener,
     pinentryOnCancel,
     pinentryOnSubmit,
     registerUpdateListener,

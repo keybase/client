@@ -41,6 +41,7 @@ Environment variables:
  - `KEYBASE_SHOW_DEVTOOLS` (bool): Show devtools
  - `KEYBASE_FEATURES`: Feature flags
  - `KEYBASE_RPC_DELAY`: Number of ms to delay all RPC calls (requires debug mode)
+ - `KEYBASE_RPC_DELAY_RESULT`: Number of ms to delay all RPC call callbacks (requires debug mode)
 
 
 ### Sourcemaps
@@ -61,3 +62,16 @@ If you have a crash of a non-sourcemapped build (like a screenshot with a crash)
 npm install -g sourcemap-finder
 smfinder --position 1200:10 path-to-your-source-map
 ```
+
+### Dependencies
+
+Updating packages
+
+Some of these steps are theoretically not needed but in practice npm is buggy as hell. Make sure your npm is updated globally
+```npm install -g npm```
+
+1. Remove old shrinkwrap: Run ```rm npm-shrinkwrap.json```
+2. Find outdated packages: Run ```npm outdated```
+3. Install updated packages: Run ```npm install -E -S packageName@specificVersion``` or ```npm install -E -D devPackageName@specificVersion```
+4. Build shrinkwrap: Run ```npm shrinkwrap --dev```
+

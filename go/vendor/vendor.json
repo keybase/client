@@ -179,8 +179,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-logging",
-			"revision": "d7b8c00ee8a21d4cfe58c75c0f09c6d3d030d80f",
-			"revisionTime": "2015-12-09T11:25:47-08:00"
+			"revision": "fd7c815c339f930ba61b060d1fa8037d3acc3b69",
+			"revisionTime": "2016-03-09T18:35:02Z"
 		},
 		{
 			"path": "github.com/keybase/go-triplesec",
@@ -201,6 +201,16 @@
 			"path": "github.com/keybase/keybase-test-vectors/go",
 			"revision": "a5147a659b4a69f77e027e301e726e05492474d6",
 			"revisionTime": "2015-10-20T11:39:53-04:00"
+		},
+		{
+			"path": "github.com/keybase/saltpack",
+			"revision": "203e36cfb2c85e26a18d306f08fac0df64a38781",
+			"revisionTime": "2016-03-14T16:16:15-07:00"
+		},
+		{
+			"path": "github.com/keybase/saltpack/encoding/basex",
+			"revision": "203e36cfb2c85e26a18d306f08fac0df64a38781",
+			"revisionTime": "2016-03-14T16:16:15-07:00"
 		},
 		{
 			"path": "github.com/kr/pty",

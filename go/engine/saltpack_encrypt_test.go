@@ -9,7 +9,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/keybase/client/go/saltpack"
+	"github.com/keybase/saltpack"
 	"github.com/ugorji/go/codec"
 )
 
@@ -132,8 +132,8 @@ func TestSaltpackEncryptSelfNoKey(t *testing.T) {
 
 	eng := NewSaltpackEncrypt(arg, tc.G)
 	err := RunEngine(eng, ctx)
-	if _, ok := err.(libkb.DeviceRequiredError); !ok {
-		t.Fatalf("expected error type libkb.DeviceRequiredError, got %T (%s)", err, err)
+	if _, ok := err.(libkb.NoKeyError); !ok {
+		t.Fatalf("expected error type libkb.NoKeyError, got %T (%s)", err, err)
 	}
 }
 
@@ -149,8 +149,7 @@ func TestSaltpackEncryptLoggedOut(t *testing.T) {
 	sink := libkb.NewBufferCloser()
 	arg := &SaltpackEncryptArg{
 		Opts: keybase1.SaltpackEncryptOptions{
-			Recipients:    []string{"t_tracy+t_tracy@rooter", "t_george", "t_kb+gbrltest@twitter"},
-			NoSelfEncrypt: true,
+			Recipients: []string{"t_tracy+t_tracy@rooter", "t_george", "t_kb+gbrltest@twitter"},
 		},
 		Source: strings.NewReader("track and encrypt, track and encrypt"),
 		Sink:   sink,

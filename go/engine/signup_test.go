@@ -71,7 +71,7 @@ func TestSignupEngine(t *testing.T) {
 	mockGetPassphrase := &GetPassphraseMock{
 		Passphrase: fu.Passphrase,
 	}
-	if err = tc.G.LoginState().LoginWithPrompt(fu.Username, mockGetPassphrase, nil); err != nil {
+	if err = tc.G.LoginState().LoginWithPrompt(fu.Username, nil, mockGetPassphrase, nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -194,7 +194,7 @@ func TestLocalKeySecurityStoreSecret(t *testing.T) {
 		t.Errorf("Expected %v, got %v", secret, storedSecret)
 	}
 
-	err = secretStore.ClearSecret()
+	err = tc.G.SecretStoreAll.ClearSecret(fu.NormalizedUsername())
 	if err != nil {
 		t.Error(err)
 	}

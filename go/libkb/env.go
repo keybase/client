@@ -68,6 +68,7 @@ func (n NullConfiguration) GetUpdateURL() string                          { retu
 func (n NullConfiguration) GetVDebugSetting() string                      { return "" }
 func (n NullConfiguration) GetLocalTrackMaxAge() (time.Duration, bool)    { return 0, false }
 func (n NullConfiguration) GetAppStartMode() AppStartMode                 { return AppStartModeDisabled }
+func (n NullConfiguration) IsAdmin() (bool, bool)                         { return false, false }
 
 func (n NullConfiguration) GetUserConfig() (*UserConfig, error) { return nil, nil }
 func (n NullConfiguration) GetUserConfigForUsername(s NormalizedUsername) (*UserConfig, error) {
@@ -116,7 +117,6 @@ func (n NullConfiguration) GetNullAtPath(string) bool {
 func (n NullConfiguration) GetSecurityAccessGroupOverride() (bool, bool) {
 	return false, false
 }
-func (n NullConfiguration) GetLoggedIn() bool { return false }
 
 type TestParameters struct {
 	ConfigFilename string
@@ -892,6 +892,11 @@ func (e *Env) SetUpdateLastChecked(t keybase1.Time) error {
 
 func (e *Env) GetUpdateURL() string {
 	return e.config.GetUpdateURL()
+}
+
+func (e *Env) IsAdmin() bool {
+	b, _ := e.config.IsAdmin()
+	return b
 }
 
 func (e *Env) GetVDebugSetting() string {

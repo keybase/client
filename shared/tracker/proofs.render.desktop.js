@@ -3,8 +3,7 @@
 import React, {Component} from 'react'
 import commonStyles from '../styles/common'
 import {globalStyles, globalColors} from '../styles/style-guide'
-import {Icon, Text} from '../common-adapters/index'
-import {CircularProgress} from 'material-ui'
+import {Icon, Text, ProgressIndicator} from '../common-adapters/index'
 import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked, error as proofError, warning as proofWarning} from '../constants/tracker'
 import {metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone} from '../constants/tracker'
 import electron from 'electron'
@@ -23,7 +22,6 @@ export class ProofsRender extends Component {
   }
 
   onClickProof (proof: Proof): void {
-    // TODO: State is deprecated, will refactor after nuking v1
     if (proof.state !== proofChecking) {
       proof.humanUrl && this.openLink(proof.humanUrl)
     }
@@ -31,7 +29,6 @@ export class ProofsRender extends Component {
 
   onClickProfile (proof: Proof): void {
     console.log('Opening profile link:', proof)
-    // TODO: State is deprecated, will refactor after nuking v1
     if (proof.state !== proofChecking) {
       proof.profileUrl && this.openLink(proof.profileUrl)
     }
@@ -74,7 +71,7 @@ export class ProofsRender extends Component {
     let color = globalColors.blue
     switch (proof.state) {
       case proofNormal: {
-        color = this._isTracked(proof) ? globalColors.green : globalColors.blue
+        color = this._isTracked(proof) ? globalColors.green2 : globalColors.blue
         break
       }
       case proofChecking:
@@ -87,7 +84,6 @@ export class ProofsRender extends Component {
         break
     }
 
-    // TODO: State is deprecated, will refactor after nuking v1
     if (proof.state === proofChecking) color = globalColors.black20
 
     return color
@@ -115,9 +111,6 @@ export class ProofsRender extends Component {
     // TODO: State is deprecated, will refactor after nuking v1
     let isChecking = (proof.state === proofChecking)
 
-    const targetSpinnerSize = 20 // This is how big we actually want the spinner in px
-    const spinnerSize = ((targetSpinnerSize / 50) / 1.4) // material ui doesn't make this easy for you. We calculate the scale, then divide by 1.4 because they multiply by that
-
     return (
       <div style={styles.row} key={proof.id}>
         <Icon style={styles.service} type={this.iconNameForProof(proof)} title={proof.type} onClick={onClickProfile} />
@@ -128,7 +121,7 @@ export class ProofsRender extends Component {
                 className='hover-underline'
                 style={{...styles.proofName, ...(proof.meta === metaDeleted ? {textDecoration: 'line-through'} : {}), color: proofNameColor}}
                 onClick={onClickProfile}>
-                <Text inline style={{color: proofNameColor}} type='Body'>{proof.name}</Text>
+                <Text inline style={{...globalStyles.selectable, color: proofNameColor}} type='Body'>{proof.name}</Text>
               </span>
               <wbr/>
               <Text inline type='Body' style={styles.proofType}>@{proof.type}</Text>
@@ -137,10 +130,10 @@ export class ProofsRender extends Component {
           </div>
         </div>
         {isChecking &&
-          <CircularProgress style={styles.loader} mode='indeterminate' color={globalColors.black20} size={spinnerSize} />
+          <ProgressIndicator style={styles.loader} />
         }
         {!isChecking && proofStatusIcon &&
-          <Icon type={proofStatusIcon} style={styles.statusIcon} onClick={onClickProfile} />
+          <Icon type={proofStatusIcon} style={styles.statusIcon} onClick={() => this.onClickProof(proof)} />
         }
       </div>
     )
@@ -172,7 +165,8 @@ const styles = {
     ...globalStyles.clickable,
     height: 14,
     width: 14,
-    color: globalColors.lightGrey,
+    color: globalColors.black75,
+    hoverColor: globalColors.black75,
     marginRight: 9,
     marginTop: 4
   },
@@ -205,10 +199,10 @@ const styles = {
     color: globalColors.white,
     borderRadius: 1,
     fontSize: 10,
-    height: 13,
-    lineHeight: '13px',
-    paddingLeft: 4,
-    paddingRight: 4,
+    height: 11,
+    lineHeight: '11px',
+    paddingLeft: 2,
+    paddingRight: 2,
     alignSelf: 'flex-start',
     textTransform: 'uppercase'
   },
@@ -217,10 +211,6 @@ const styles = {
     marginTop: 1
   },
   loader: {
-    // Using negative margins cause we can't override height for CircularProgress
-    marginTop: -18,
-    marginBottom: -16,
-    marginLeft: -16,
-    marginRight: -16
+    width: 20
   }
 }
