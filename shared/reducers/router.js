@@ -2,7 +2,6 @@
 
 import * as RouterConstants from '../constants/router'
 import Immutable, {List, Map} from 'immutable'
-import * as _ from 'lodash'
 export type URI = List<Map<string, string>>
 type History = List<URI>
 
@@ -58,7 +57,7 @@ export function subReducer (state: RouterState = initialState, action: any): Rou
       if (uri.count() > 1) {
         if (action.payload.till) {
           let current = uri
-          while (current.count() > 0 && !_.isEqual(current.last(), action.payload.till)) { // eslint-disable-line eqeqeq
+          while (current.count() > 0 && !Immutable.is(current.last(), action.payload.till)) {
             current = current.pop()
           }
 
