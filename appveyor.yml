@@ -1,5 +1,3 @@
-install:
-
 environment:
   global:
     GOPATH: c:\work\
@@ -9,6 +7,13 @@ environment:
     GO15VENDOREXPERIMENT: 1
     CC: c:\MinGW\bin\gcc
     CPATH: C:\MinGW\include;C:\MinGW\include\ddk
+    GOVERSION: 1.6
+
+install:
+  - appveyor DownloadFile https://storage.googleapis.com/golang/go%GOVERSION%.windows-amd64.zip
+  - ps: rmdir C:\go -Force -Recurse -Confirm:$false
+  - 7z x go%GOVERSION%.windows-amd64.zip -o"C:\" -y > nul
+  - set Path=c:\go\bin;%Path%
 
 # clone directory
 clone_folder: c:\work\src\github.com\keybase\kbfs
