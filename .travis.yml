@@ -3,6 +3,7 @@ dist: trusty
 os:
   - linux
   - osx
+osx_image: xcode7.3
 language: go
 go:
   - 1.6
@@ -14,13 +15,22 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then
       export DEBIAN_FRONTEND=noninteractive;
       sudo apt-get update;
-      sudo apt-get install -q -y --force-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" docker-engine;
+      sudo apt-get install -q -y --force-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" docker-engine fuse;
       sudo rm /usr/local/bin/docker-compose;
       curl -L https://github.com/docker/compose/releases/download/1.6.0/docker-compose-`uname -s`-`uname -m` > docker-compose;
       chmod +x docker-compose;
       sudo mv docker-compose /usr/local/bin;
       docker login -e $CI_EMAIL -u $CI_USER -p $CI_PASS $CI_HOST;
       $GOPATH/src/github.com/keybase/kbfs/kbfsdocker/build_dockers.sh & export build_dockers_pid=$!;
+    else
+      cd $GOPATH/src/github.com/keybase &&
+      echo "Cloning client" &&
+      git clone git@github.com:keybase/client.git &&
+      cd client/osx/Fuse &&
+      echo "Installing OSXFuse" &&
+      ./install.sh &&
+      echo "OSXFuse installed";
+      cd $GOPATH/src/github.com/keybase/kbfs;
     fi
   - if [ "$TRAVIS_OS_NAME" == "osx" ]; then
       brew install redis;
@@ -42,13 +52,13 @@ script:
   # run libkbfs test suite against the real mdserver
   # TODO: why does the below sometimes hang? uncomment when fixed
   #- cd mdserver && go build && { KBFS_BIND_ADDR=127.0.0.1:8125 ./mdserver 2> /dev/null & } && cd ../../libkbfs/ && KEYBASE_TEST_MDSERVER_ADDR=127.0.0.1:8125 go test && killall -9 mdserver
-  - cd ../libfuse && go test -i && go test -c
+  - cd ../libfuse && go test -i && go test -c && ./libfuse.test -test.timeout 2m
   - cd ../test
-  - go test -i && go test -race -c && ./test.test -test.timeout 4m
-  - go test -c -tags fuse
+  - go test -i -tags fuse && go test -race -c && ./test.test -test.timeout 4m
+  - go test -c -tags fuse && ./test.test -test.timeout 4m
   - wait $build_dockers_pid || echo "Dockers already finished building"; # Ensure all backgrounded jobs have completed before continuing
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then
-      cd ../kbfsdocker && go test -i -tags docker && go test -c -tags docker && ./kbfsdocker.test -test.v -test.timeout 6m;
+      cd ../kbfsdocker && go test -i -tags docker && go test -c -tags docker && ./kbfsdocker.test -test.timeout 6m;
     fi
 notifications:
   slack: keybase:WKlhs55Mb4am4obv1rNRg8P0

@@ -8,7 +8,8 @@ func getPlatformSpecificMountOptions(dir string, platformParams PlatformParams) 
 	return []fuse.MountOption{}, nil
 }
 
-func getPlatformSpecificMountOptionsForTest() []fuse.MountOption {
+// GetPlatformSpecificMountOptionsForTest makes cross-platform tests work
+func GetPlatformSpecificMountOptionsForTest() []fuse.MountOption {
 	return []fuse.MountOption{}
 }
 

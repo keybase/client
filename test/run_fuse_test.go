@@ -40,11 +40,12 @@ func createUserFuse(t *testing.T, ith int, config *libkbfs.ConfigLocal, tlf stri
 		filesys.SetFuseConn(mnt.Server, mnt.Conn)
 		return filesys
 	}
+	options := libfuse.GetPlatformSpecificMountOptionsForTest()
 	mnt, err := fstestutil.MountedFuncT(t, fn, &fs.Config{
 		WithContext: func(ctx context.Context, req fuse.Request) context.Context {
 			return filesys.WithContext(ctx)
 		},
-	})
+	}, options...)
 	if err != nil {
 		t.Fatal(err)
 	}

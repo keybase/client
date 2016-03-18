@@ -39,7 +39,8 @@ func getPlatformSpecificMountOptions(dir string, platformParams PlatformParams) 
 	return options, nil
 }
 
-func getPlatformSpecificMountOptionsForTest() []fuse.MountOption {
+// GetPlatformSpecificMountOptionsForTest makes cross-platform tests work
+func GetPlatformSpecificMountOptionsForTest() []fuse.MountOption {
 	// For now, test with either kbfuse or OSXFUSE for now.
 	// TODO: Consider mandate testing with kbfuse?
 	return []fuse.MountOption{
