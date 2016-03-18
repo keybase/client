@@ -241,6 +241,10 @@ type folderBranchOps struct {
 	// Can be used to turn off notifications for a while (e.g., for testing)
 	updatePauseChan chan (<-chan struct{})
 
+	// After a shutdown, this channel will be closed when the register
+	// goroutine completes.
+	updateDoneChan chan struct{}
+
 	// forceSyncChan can be sent on to trigger an immediate Sync().
 	// It is a blocking channel.
 	forceSyncChan chan struct{}
@@ -358,6 +362,11 @@ func (fbo *folderBranchOps) Shutdown() error {
 	close(fbo.shutdownChan)
 	fbo.cr.Shutdown()
 	fbo.fbm.shutdown()
+	// Wait for the update goroutine to finish, so that we don't have
+	// any races with logging during test reporting.
+	if fbo.updateDoneChan != nil {
+		<-fbo.updateDoneChan
+	}
 	return nil
 }
 
@@ -463,6 +472,7 @@ func (fbo *folderBranchOps) setHeadLocked(ctx context.Context,
 		// as a starting point. For now only the master branch can
 		// get updates
 		if fbo.branch() == MasterBranch {
+			fbo.updateDoneChan = make(chan struct{})
 			go fbo.registerAndWaitForUpdates()
 		}
 	}
@@ -2374,6 +2384,10 @@ func (fbo *folderBranchOps) Read(
 		return 0, err
 	}
 
+	// Don't let the goroutine below write directly to the return
+	// variable, since if the context is canceled the goroutine might
+	// outlast this function call, and end up in a read/write race
+	// with the caller.
 	var bytesRead int64
 	err = runUnlessCanceled(ctx, func() error {
 		lState := makeFBOLockState()
@@ -4532,6 +4546,8 @@ func (fbo *folderBranchOps) ctxWithFBOID(ctx context.Context) context.Context {
 	return ctxWithRandomID(ctx, CtxFBOIDKey, CtxFBOOpID, fbo.log)
 }
 
+var errShutdownHappened = errors.New("Shutdown happened")
+
 // Run the passed function with a context that's canceled on shutdown.
 func (fbo *folderBranchOps) runUnlessShutdown(fn func(ctx context.Context) error) error {
 	ctx := fbo.ctxWithFBOID(context.Background())
@@ -4546,12 +4562,15 @@ func (fbo *folderBranchOps) runUnlessShutdown(fn func(ctx context.Context) error
 	case err := <-errChan:
 		return err
 	case <-fbo.shutdownChan:
-		return errors.New("shutdown received")
+		return errShutdownHappened
 	}
 }
 
 func (fbo *folderBranchOps) registerAndWaitForUpdates() {
+	defer close(fbo.updateDoneChan)
+	childDone := make(chan struct{})
 	err := fbo.runUnlessShutdown(func(ctx context.Context) error {
+		defer close(childDone)
 		// If we fail to register for or process updates, try again
 		// with an exponential backoff, so we don't overwhelm the
 		// server or ourselves with too many attempts in a hopeless
@@ -4599,6 +4618,7 @@ func (fbo *folderBranchOps) registerAndWaitForUpdates() {
 			"registerAndWaitForUpdates failed unexpectedly with an error: %v",
 			err)
 	}
+	<-childDone
 }
 
 func (fbo *folderBranchOps) registerForUpdates(ctx context.Context) (
