@@ -39,11 +39,6 @@
 			"revisionTime": "2015-12-04T09:14:43-05:00"
 		},
 		{
-			"path": "github.com/aalness/go",
-			"revision": "6cd611483e6c291377897c4e732221d8b73e6693",
-			"revisionTime": "2016-03-03T16:10:11-08:00"
-		},
-		{
 			"path": "github.com/aalness/goamz/dynamodb",
 			"revision": "a1b8eaa6c3e81f140fef6225e7bf99bfa2083105",
 			"revisionTime": "2016-02-18T16:55:53-08:00"
@@ -350,8 +345,8 @@
 		},
 		{
 			"path": "github.com/stathat/go",
-			"revision": "cf69b0bcb80478755dc0ea1120b36000e35dcbbb",
-			"revisionTime": "2016-01-26T16:21:15-06:00"
+			"revision": "91dfa3a59c5b233fef9a346a1460f6e2bc889d93",
+			"revisionTime": "2016-03-03T20:46:57-06:00"
 		},
 		{
 			"path": "github.com/stretchr/testify/assert",
