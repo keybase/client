@@ -155,3 +155,24 @@ body {
 	display: none;
 	width: 0;
 }
+
+.tracker-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  background-color: rgba(0, 0, 0, 0);
+  -webkit-border-radius: 100px;
+}
+
+.tracker-scrollbar::-webkit-scrollbar-track {
+	background-color: rgba(0, 0, 0, 0);
+  margin-top: 92px;
+}
+
+.tracker-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.25);
+  -webkit-border-radius: 100px;
+}
+
+.tracker-scrollbar::-webkit-scrollbar-thumb:active {
+  background: rgba(0, 0, 0, 0.61);
+  -webkit-border-radius: 100px;
+}
