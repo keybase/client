@@ -188,6 +188,14 @@ export const specialStyles = {
     fontSize: 18,
     lineHeight: '24px',
     letterSpacing: '0.3px'
+  },
+  username: {
+    ...textCommon,
+    ...globalStyles.fontBold,
+    fontSize: 24,
+    lineHeight: '31px',
+    letterSpacing: '0.3px',
+    color: globalColors.orange
   }
 }
 

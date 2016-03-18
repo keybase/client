@@ -309,7 +309,7 @@ export function logoutDone () : AsyncAction {
   }
 }
 
-function askForCodePage (cb) : AsyncAction {
+function askForCodePage (cb, response) : AsyncAction {
   return dispatch => {
     const mapStateToProps = state => {
       const {
@@ -329,6 +329,7 @@ function askForCodePage (cb) : AsyncAction {
 
     const props = {
       mapStateToProps,
+      onBack: () => dispatch(cancelLogin(response)),
       setCodePageMode: mode => dispatch(setCodePageMode(mode)),
       qrScanned: code => cb(code.data),
       setCameraBrokenMode: broken => dispatch(setCameraBrokenMode(broken)),
@@ -384,10 +385,15 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
     }))
   }
 
+  let username = null
+
   return {
     'keybase.1.loginUi.getEmailOrUsername': (param, response) => {
       appendRoute(UsernameOrEmail, {
-        onSubmit: usernameOrEmail => response.result(usernameOrEmail),
+        onSubmit: usernameOrEmail => {
+          username = usernameOrEmail
+          response.result(usernameOrEmail)
+        },
         onBack: () => dispatch(cancelLogin(response))
       })
     },
@@ -429,7 +435,8 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
               storeSecret: false
             }),
             onBack: () => dispatch(cancelLogin(response)),
-            error: retryLabel
+            error: retryLabel,
+            username
           })
           break
         }
@@ -443,7 +450,7 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
     'keybase.1.provisionUi.DisplayAndPromptSecret': ({phrase, secret}, response) => {
       dispatch({type: Constants.setTextCode, payload: phrase})
       generateQRCode(dispatch, getState)
-      dispatch(askForCodePage(phrase => { response.result({phrase, secret: null}) }))
+      dispatch(askForCodePage(phrase => { response.result({phrase, secret: null}) }, response))
     },
     'keybase.1.provisionUi.PromptNewDeviceName': ({existingDevices, errorMessage}, response) => {
       appendRoute(SetPublicName, {

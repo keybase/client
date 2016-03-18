@@ -4,7 +4,8 @@ import React, {Component} from 'react'
 
 export type Props = {
   onAvatarClicked?: () => void,
-  style?: Object,
+  outerStyle?: ?Object,
+  style?: ?Object,
   username?: ?string,
   children?: Array<any>
 }

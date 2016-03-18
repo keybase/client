@@ -7,7 +7,8 @@ export type Props = {
   onBack: () => void,
   onForgotPassphrase: () => void,
   waitingForResponse: boolean,
-  error?: ?string
+  error?: ?string,
+  username: ?string
 }
 
 export default class PaperKey extends React$Component<void, Props, void> { }
