@@ -1,3 +1,4 @@
+// TODO flow type this file
 import React, {Component} from 'react'
 
 import HardwarePhoneIphone from 'material-ui/lib/svg-icons/hardware/phone-iphone'
@@ -52,11 +53,11 @@ export default class DevicesRender extends Component {
   }
 
   renderDevice (device) {
-    if (device.type === 'desktop') {
+    if (device.type === 'computer') {
       return this.renderDesktop(device)
     } else if (device.type === 'mobile') {
       return this.renderPhone(device)
-    } else if (device.type === 'backup') {
+    } else if (device.type === 'paper key') {
       return this.renderPaperKey(device)
     } else {
       console.error('Unknown device type: ' + device.type)

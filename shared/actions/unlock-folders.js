@@ -1,41 +1,52 @@
 /* @flow */
 
+import engine from '../engine'
 import * as Constants from '../constants/unlock-folders'
-import {routeAppend} from '../actions/router'
 
-import type {RouteAppend} from '../constants/router'
 import type {TypedAsyncAction} from '../constants/types/flux'
 import type {LoadDevices, ToPaperKeyInput, CheckPaperKey, Finish, Close} from '../constants/unlock-folders'
+import type {device_deviceList_rpc} from '../constants/types/flow-types'
 
-// TODO this won't work in a remote component until we have a synchronous way to get the latest state in a remote component.
-
-function nextPhase (): TypedAsyncAction<RouteAppend> {
-  return (dispatch, getState) => {
-    // TODO careful here since this will not be sync on a remote component!
-    const phase: string = getState().unlockFolders.phase
-    dispatch(routeAppend(phase))
-  }
-}
-
-export function loadDevice (): TypedAsyncAction<LoadDevices | RouteAppend> {
+export function loadDevice (): TypedAsyncAction<LoadDevices> {
   return dispatch => {
-    // TODO: make engine call to get devices
-    dispatch({type: Constants.loadDevices, payload: {devices: []}})
-    // Then we go to the navigate to the next phase that the reducer determined
-    dispatch(nextPhase())
+    const params : device_deviceList_rpc = {
+      method: 'device.deviceList',
+      param: {},
+      incomingCallMap: {},
+      callback: (error, devices) => {
+        if (error) {
+          console.log('Error fetching devices. Not handling this error')
+          dispatch({
+            type: Constants.loadDevices,
+            error: true,
+            payload: {error}
+          })
+        } else {
+          dispatch({
+            type: Constants.loadDevices,
+            payload: {devices}
+          })
+        }
+      }
+    }
+
+    engine.rpc(params)
   }
 }
 
-export function toPaperKeyInput (): TypedAsyncAction<ToPaperKeyInput> {
-  return dispatch => {}
+export function toPaperKeyInput (): ToPaperKeyInput {
+  return {type: Constants.toPaperKeyInput, payload: {}}
 }
 
 export function checkPaperKey (): TypedAsyncAction<CheckPaperKey> {
-  return dispatch => {}
+  return dispatch => {
+    // TODO figure out what service request to ask for
+    dispatch({type: Constants.checkPaperKey, payload: {success: true}})
+  }
 }
 
-export function finish (): TypedAsyncAction<Finish> {
-  return dispatch => {}
+export function finish (): Finish {
+  return {type: Constants.finish, payload: {}}
 }
 
 export function close (): Close {
