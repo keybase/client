@@ -2363,46 +2363,6 @@ func (fbo *folderBranchOps) Rename(
 		})
 }
 
-func (fbo *folderBranchOps) readLocked(
-	ctx context.Context, lState *lockState, md *RootMetadata, file path,
-	dest []byte, off int64) (int64, error) {
-	fbo.blocks.blockLock.AssertRLocked(lState)
-
-	// getFileLocked already checks read permissions
-	fblock, err := fbo.blocks.getFileLocked(ctx, lState, md, file, blockRead)
-	if err != nil {
-		return 0, err
-	}
-
-	nRead := int64(0)
-	n := int64(len(dest))
-
-	for nRead < n {
-		nextByte := nRead + off
-		toRead := n - nRead
-		_, _, _, block, _, startOff, err := fbo.blocks.getFileBlockAtOffsetLocked(
-			ctx, lState, md, file, fblock, nextByte, blockRead)
-		if err != nil {
-			return 0, err
-		}
-		blockLen := int64(len(block.Contents))
-		lastByteInBlock := startOff + blockLen
-
-		if nextByte >= lastByteInBlock {
-			return nRead, nil
-		} else if toRead > lastByteInBlock-nextByte {
-			toRead = lastByteInBlock - nextByte
-		}
-
-		firstByteToRead := nextByte - startOff
-		copy(dest[nRead:nRead+toRead],
-			block.Contents[firstByteToRead:toRead+firstByteToRead])
-		nRead += toRead
-	}
-
-	return n, nil
-}
-
 func (fbo *folderBranchOps) Read(
 	ctx context.Context, file Node, dest []byte, off int64) (
 	n int64, err error) {
@@ -2428,9 +2388,7 @@ func (fbo *folderBranchOps) Read(
 			return err
 		}
 
-		fbo.blocks.blockLock.RLock(lState)
-		defer fbo.blocks.blockLock.RUnlock(lState)
-		n, err = fbo.readLocked(ctx, lState, md, filePath, dest, off)
+		n, err = fbo.blocks.Read(ctx, lState, md, filePath, dest, off)
 		return err
 	})
 	if err != nil {

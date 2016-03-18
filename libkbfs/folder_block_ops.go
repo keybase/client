@@ -921,3 +921,47 @@ func (fbo *folderBlockOps) PrepRename(
 	}
 	return oldPBlock, newPBlock, newDe, lbc, nil
 }
+
+// Read reads from the given file into the given buffer at the given
+// offset. It returns the number of bytes read and nil, or 0 and the
+// error if there was one.
+func (fbo *folderBlockOps) Read(
+	ctx context.Context, lState *lockState, md *RootMetadata, file path,
+	dest []byte, off int64) (int64, error) {
+	fbo.blockLock.RLock(lState)
+	defer fbo.blockLock.RUnlock(lState)
+
+	// getFileLocked already checks read permissions
+	fblock, err := fbo.getFileLocked(ctx, lState, md, file, blockRead)
+	if err != nil {
+		return 0, err
+	}
+
+	nRead := int64(0)
+	n := int64(len(dest))
+
+	for nRead < n {
+		nextByte := nRead + off
+		toRead := n - nRead
+		_, _, _, block, _, startOff, err := fbo.getFileBlockAtOffsetLocked(
+			ctx, lState, md, file, fblock, nextByte, blockRead)
+		if err != nil {
+			return 0, err
+		}
+		blockLen := int64(len(block.Contents))
+		lastByteInBlock := startOff + blockLen
+
+		if nextByte >= lastByteInBlock {
+			return nRead, nil
+		} else if toRead > lastByteInBlock-nextByte {
+			toRead = lastByteInBlock - nextByte
+		}
+
+		firstByteToRead := nextByte - startOff
+		copy(dest[nRead:nRead+toRead],
+			block.Contents[firstByteToRead:toRead+firstByteToRead])
+		nRead += toRead
+	}
+
+	return n, nil
+}
