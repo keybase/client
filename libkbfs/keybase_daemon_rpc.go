@@ -336,6 +336,11 @@ func (d daemonIdentifyUI) Finish(ctx context.Context, sessionID int) error {
 	return nil
 }
 
+// HandlerName implements the ConnectionHandler interface.
+func (KeybaseDaemonRPC) HandlerName() string {
+	return "KeybaseDaemonRPC"
+}
+
 // OnConnect implements the ConnectionHandler interface.
 func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 	conn *Connection, rawClient rpc.GenericClient,

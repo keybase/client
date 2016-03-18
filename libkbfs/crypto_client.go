@@ -47,6 +47,11 @@ func newCryptoClientWithClient(codec Codec, client rpc.GenericClient,
 	}
 }
 
+// HandlerName implements the ConnectionHandler interface.
+func (CryptoClient) HandlerName() string {
+	return "CryptoClient"
+}
+
 // OnConnect implements the ConnectionHandler interface.
 func (c *CryptoClient) OnConnect(ctx context.Context,
 	conn *Connection, _ rpc.GenericClient,

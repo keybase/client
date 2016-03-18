@@ -58,6 +58,10 @@ type ConnectionHandler interface {
 	// should return whether or not that error signifies that that
 	// RPC should retried (with backoff)
 	ShouldRetry(name string, err error) bool
+
+	// HandlerName returns a string representing the type of the connection
+	// handler.
+	HandlerName() string
 }
 
 // ConnectionTransportTLS is a ConnectionTransport implementation that uses TLS+rpc.
@@ -225,7 +229,7 @@ func newConnectionWithTransport(config Config,
 	// never give up reconnecting
 	reconnectBackoff.MaxElapsedTime = 0
 	randint, _ := rand.Int(rand.Reader, big.NewInt(math.MaxUint32))
-	connectionPrefix := fmt.Sprintf("CONN %x", randint.Bytes())
+	connectionPrefix := fmt.Sprintf("CONN %s %x", handler.HandlerName(), randint.Bytes())
 	connection := &Connection{
 		config:           config,
 		handler:          handler,

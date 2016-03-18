@@ -69,6 +69,11 @@ func (b *BlockServerRemote) RemoteAddress() string {
 	return b.blkSrvAddr
 }
 
+// HandlerName implements the ConnectionHandler interface.
+func (BlockServerRemote) HandlerName() string {
+	return "BlockServerRemote"
+}
+
 // OnConnect implements the ConnectionHandler interface.
 func (b *BlockServerRemote) OnConnect(ctx context.Context,
 	_ *Connection, client rpc.GenericClient, _ *rpc.Server) error {

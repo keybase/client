@@ -83,6 +83,11 @@ func NewMDServerRemote(config Config, srvAddr string) *MDServerRemote {
 	return mdServer
 }
 
+// HandlerName implements the ConnectionHandler interface.
+func (MDServerRemote) HandlerName() string {
+	return "MDServerRemote"
+}
+
 // OnConnect implements the ConnectionHandler interface.
 func (md *MDServerRemote) OnConnect(ctx context.Context,
 	conn *Connection, client rpc.GenericClient,
