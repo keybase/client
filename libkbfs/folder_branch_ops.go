@@ -2207,8 +2207,7 @@ func (fbo *folderBranchOps) RemoveEntry(ctx context.Context, dir Node,
 
 func (fbo *folderBranchOps) renameLocked(
 	ctx context.Context, lState *lockState, oldParent path,
-	oldName string, newParent path, newName string,
-	newParentNode Node) (err error) {
+	oldName string, newParent path, newName string) (err error) {
 	fbo.mdWriterLock.AssertLocked(lState)
 
 	// verify we have permission to write
@@ -2217,70 +2216,12 @@ func (fbo *folderBranchOps) renameLocked(
 		return err
 	}
 
-	doUnlock := true
-	fbo.blocks.blockLock.RLock(lState)
-	defer func() {
-		if doUnlock {
-			fbo.blocks.blockLock.RUnlock(lState)
-		}
-	}()
+	oldPBlock, newPBlock, newDe, lbc, err := fbo.blocks.PrepRename(
+		ctx, lState, md, oldParent, oldName, newParent, newName)
 
-	// look up in the old path
-	oldPBlock, err := fbo.blocks.getDirLocked(
-		ctx, lState, md, oldParent, blockWrite)
 	if err != nil {
 		return err
 	}
-	newDe, ok := oldPBlock.Children[oldName]
-	// does the name exist?
-	if !ok {
-		return NoSuchNameError{oldName}
-	}
-
-	md.AddOp(newRenameOp(oldName, oldParent.tailPointer(), newName,
-		newParent.tailPointer(), newDe.BlockPointer, newDe.Type))
-
-	lbc := make(localBcache)
-	// look up in the old path
-	var newPBlock *DirBlock
-	// TODO: Write a SameBlock() function that can deal properly with
-	// dedup'd blocks that share an ID but can be updated separately.
-	if oldParent.tailPointer().ID == newParent.tailPointer().ID {
-		newPBlock = oldPBlock
-	} else {
-		newPBlock, err = fbo.blocks.getDirLocked(
-			ctx, lState, md, newParent, blockWrite)
-		if err != nil {
-			return err
-		}
-		now := fbo.nowUnixNano()
-
-		oldGrandparent := *oldParent.parentPath()
-		if len(oldGrandparent.path) > 0 {
-			// Update the old parent's mtime/ctime, unless the
-			// oldGrandparent is the same as newParent (in which
-			// case, the syncBlockAndCheckEmbedLocked call will take
-			// care of it).
-			if oldGrandparent.tailPointer().ID != newParent.tailPointer().ID {
-				b, err := fbo.blocks.getDirLocked(ctx, lState, md, oldGrandparent, blockWrite)
-				if err != nil {
-					return err
-				}
-				if de, ok := b.Children[oldParent.tailName()]; ok {
-					de.Ctime = now
-					de.Mtime = now
-					b.Children[oldParent.tailName()] = de
-					// Put this block back into the local cache as dirty
-					lbc[oldGrandparent.tailPointer()] = b
-				}
-			}
-		} else {
-			md.data.Dir.Ctime = now
-			md.data.Dir.Mtime = now
-		}
-	}
-	doUnlock = false
-	fbo.blocks.blockLock.RUnlock(lState)
 
 	// does name exist?
 	if de, ok := newPBlock.Children[newName]; ok {
@@ -2418,7 +2359,7 @@ func (fbo *folderBranchOps) Rename(
 			}
 
 			return fbo.renameLocked(ctx, lState, oldParentPath, oldName,
-				newParentPath, newName, newParent)
+				newParentPath, newName)
 		})
 }
 

@@ -850,3 +850,74 @@ func (fbo *folderBlockOps) FixChildBlocksAfterRecoverableError(
 		}
 	}
 }
+
+func (fbo *folderBlockOps) nowUnixNano() int64 {
+	return fbo.config.Clock().Now().UnixNano()
+}
+
+// PrepRename prepares the given rename operation. It returns copies
+// of the old and new parent block (which may be the same), what is to
+// be the new DirEntry, and a local block cache. It also modifies md,
+// which must be a copy.
+func (fbo *folderBlockOps) PrepRename(
+	ctx context.Context, lState *lockState, md *RootMetadata,
+	oldParent path, oldName string, newParent path, newName string) (
+	oldPBlock, newPBlock *DirBlock, newDe DirEntry, lbc localBcache,
+	err error) {
+	fbo.blockLock.RLock(lState)
+	defer fbo.blockLock.RUnlock(lState)
+
+	// look up in the old path
+	oldPBlock, err = fbo.getDirLocked(
+		ctx, lState, md, oldParent, blockWrite)
+	if err != nil {
+		return nil, nil, DirEntry{}, nil, err
+	}
+	newDe, ok := oldPBlock.Children[oldName]
+	// does the name exist?
+	if !ok {
+		return nil, nil, DirEntry{}, nil, NoSuchNameError{oldName}
+	}
+
+	md.AddOp(newRenameOp(oldName, oldParent.tailPointer(), newName,
+		newParent.tailPointer(), newDe.BlockPointer, newDe.Type))
+
+	lbc = make(localBcache)
+	// TODO: Write a SameBlock() function that can deal properly with
+	// dedup'd blocks that share an ID but can be updated separately.
+	if oldParent.tailPointer().ID == newParent.tailPointer().ID {
+		newPBlock = oldPBlock
+	} else {
+		newPBlock, err = fbo.getDirLocked(
+			ctx, lState, md, newParent, blockWrite)
+		if err != nil {
+			return nil, nil, DirEntry{}, nil, err
+		}
+		now := fbo.nowUnixNano()
+
+		oldGrandparent := *oldParent.parentPath()
+		if len(oldGrandparent.path) > 0 {
+			// Update the old parent's mtime/ctime, unless the
+			// oldGrandparent is the same as newParent (in which
+			// case, the syncBlockAndCheckEmbedLocked call by the
+			// caller will take care of it).
+			if oldGrandparent.tailPointer().ID != newParent.tailPointer().ID {
+				b, err := fbo.getDirLocked(ctx, lState, md, oldGrandparent, blockWrite)
+				if err != nil {
+					return nil, nil, DirEntry{}, nil, err
+				}
+				if de, ok := b.Children[oldParent.tailName()]; ok {
+					de.Ctime = now
+					de.Mtime = now
+					b.Children[oldParent.tailName()] = de
+					// Put this block back into the local cache as dirty
+					lbc[oldGrandparent.tailPointer()] = b
+				}
+			}
+		} else {
+			md.data.Dir.Ctime = now
+			md.data.Dir.Mtime = now
+		}
+	}
+	return oldPBlock, newPBlock, newDe, lbc, nil
+}
