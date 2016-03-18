@@ -139,7 +139,7 @@ const styles = {
   },
   phoneIcon: {
     fontSize: 30,
-    marginRight: 18,
+    marginRight: 25,
     transform: 'rotate(-325deg) translateX(18px)'
   }
 }
