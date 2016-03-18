@@ -1,8 +1,6 @@
 -----------------------------
 
-[![Build Status](https://travis-ci.com/keybase/kbfs.svg?token=o83uSEjtx4xskKjG2ZyS&branch=master)](https://travis-ci.com/keybase/kbfs) [![Build status](https://ci.appveyor.com/api/projects/status/xpxqhgpl60m1h3sb/branch/master?svg=true)](https://ci.appveyor.com/project/keybase/kbfs/branch/master)
-
-# Running KBFS
+# Running KBFS [![Build Status](https://travis-ci.com/keybase/kbfs.svg?token=o83uSEjtx4xskKjG2ZyS&branch=master)](https://travis-ci.com/keybase/kbfs) [![Build status](https://ci.appveyor.com/api/projects/status/xpxqhgpl60m1h3sb/branch/master?svg=true)](https://ci.appveyor.com/project/keybase/kbfs/branch/master)
 
 To run the KBFS FUSE client:
 
