@@ -1378,10 +1378,10 @@ func TestReaddirPrivateDeleteAndReaddFavorite(t *testing.T) {
 	})
 
 	// Re-add the favorite by doing a readdir
-	checkDir(t, path.Join(mnt.Dir, PrivateName, "janedoe,jdoe"),
+	checkDir(t, filepath.Join(mnt.Dir, PrivateName, "janedoe,jdoe"),
 		map[string]fileInfoCheck{})
 
-	checkDir(t, path.Join(mnt.Dir, PrivateName), map[string]fileInfoCheck{
+	checkDir(t, filepath.Join(mnt.Dir, PrivateName), map[string]fileInfoCheck{
 		"janedoe,jdoe": mustBeDir,
 		"jdoe":         mustBeDir, // default home directory
 	})
