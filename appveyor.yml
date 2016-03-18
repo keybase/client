@@ -4,7 +4,6 @@ environment:
     KEYBASE_SERVER_URI: https://ci1.keybase.io
     CGO_ENABLED: 1
     GOARCH: 386
-    GO15VENDOREXPERIMENT: 1
     CC: c:\MinGW\bin\gcc
     CPATH: C:\MinGW\include;C:\MinGW\include\ddk
     GOVERSION: 1.6
