@@ -16,12 +16,12 @@ const objToJS = state => {
 }
 
 export const actionLogger = store => next => action => {
-  console.groupCollapsed(`Dispatching action: ${action.type}`)
+  console.groupCollapsed && console.groupCollapsed(`Dispatching action: ${action.type}`)
 
   console.log(`Dispatching action: ${action.type}: ${JSON.stringify(action)} `)
   let result = next(action)
 
   console.log('Next state:', JSON.stringify(objToJS(store.getState())))
-  console.groupEnd()
+  console.groupEnd && console.groupEnd()
   return result
 }

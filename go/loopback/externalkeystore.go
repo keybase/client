@@ -11,11 +11,11 @@ import "github.com/keybase/client/go/libkb"
 // Otherwise we get an undefined param error when we use this as an argument
 // in an exported func
 type ExternalKeyStore interface {
-	RetrieveSecret(username string) ([]byte, error)
-	StoreSecret(username string, secret []byte) error
-	ClearSecret(username string) error
-	GetUsersWithStoredSecretsMsgPack() ([]byte, error)
-	SetupKeyStore(username string) error
+	RetrieveSecret(serviceName string, key string) ([]byte, error)
+	StoreSecret(serviceName string, key string, secret []byte) error
+	ClearSecret(serviceName string, key string) error
+	GetUsersWithStoredSecretsMsgPack(serviceName string) ([]byte, error)
+	SetupKeyStore(serviceName string, key string) error
 }
 
 func SetGlobalExternalKeyStore(s ExternalKeyStore) {
