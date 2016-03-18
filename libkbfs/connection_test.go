@@ -21,6 +21,11 @@ type unitTester struct {
 	alwaysFail       bool
 }
 
+// HandlerName implements the ConnectionHandler interface.
+func (unitTester) HandlerName() string {
+	return "unitTester"
+}
+
 // OnConnect implements the ConnectionHandler interface.
 func (ut *unitTester) OnConnect(context.Context, *Connection, rpc.GenericClient, *rpc.Server) error {
 	ut.numConnects++
