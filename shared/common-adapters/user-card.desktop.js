@@ -5,13 +5,17 @@ import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props} from './user-card'
 import Avatar from './avatar'
 
+const avatarSize = 110
+
 export default class UserCard extends Component<void, Props, void> {
   render () {
     const url = this.props.username ? `https://keybase.io/${this.props.username}` : null
     return (
-      <div style={{...styles.container, ...this.props.style}}>
-        <Avatar size={110} style={styles.avatar} onClick={this.props.onAvatarClicked} url={url}/>
-        {this.props.children}
+      <div style={{...styles.container, ...this.props.outerStyle}}>
+        <Avatar size={avatarSize} style={styles.avatar} onClick={this.props.onAvatarClicked} url={url}/>
+        <div style={{...styles.inside, ...this.props.style}}>
+          {this.props.children}
+        </div>
       </div>
     )
   }
@@ -23,9 +27,23 @@ const styles = {
     alignItems: 'center',
     width: 410,
     height: 375,
-    backgroundColor: globalColors.white
+    backgroundColor: globalColors.white,
+    position: 'relative'
+  },
+  inside: {
+    ...globalStyles.flexBoxColumn,
+    alignItems: 'center',
+    marginTop: avatarSize / 2,
+    padding: 30,
+    width: '100%',
+    height: '100%'
   },
   avatar: {
-    marginTop: -110 / 2
+    position: 'absolute',
+    top: -avatarSize / 2,
+    left: 0,
+    right: 0,
+    marginLeft: 'auto',
+    marginRight: 'auto'
   }
 }

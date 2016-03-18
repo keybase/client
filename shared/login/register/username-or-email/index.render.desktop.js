@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {Text, Input, Button, UserCard} from '../../../common-adapters'
+import {Input, Button, UserCard} from '../../../common-adapters'
 import {globalColors} from '../../../styles/style-guide'
 import Container from '../../forms/container.desktop'
 import type {Props} from './index.render'
@@ -32,8 +32,7 @@ class Render extends Component<void, Props, State> {
         style={styles.container}
         outerStyle={{backgroundColor: globalColors.lightGrey}}
         onBack={() => this.props.onBack()}>
-        <UserCard style={styles.card}>
-          <Text type='Header' style={styles.header}>Enter your username or email:</Text>
+        <UserCard outerStyle={styles.card}>
           <Input
             autoFocus
             style={styles.input}
@@ -43,6 +42,7 @@ class Render extends Component<void, Props, State> {
             value={this.state.usernameOrEmail}
           />
           <Button
+            fullWidth
             label='Continue'
             type='Primary'
             onClick={() => this.onSubmit()}
@@ -59,9 +59,6 @@ const styles = {
   container: {
     flex: 1,
     alignItems: 'center'
-  },
-  header: {
-    marginTop: 80
   },
   input: {
     marginBottom: 48

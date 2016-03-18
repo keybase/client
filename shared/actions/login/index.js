@@ -385,10 +385,15 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
     }))
   }
 
+  let username = null
+
   return {
     'keybase.1.loginUi.getEmailOrUsername': (param, response) => {
       appendRoute(UsernameOrEmail, {
-        onSubmit: usernameOrEmail => response.result(usernameOrEmail),
+        onSubmit: usernameOrEmail => {
+          username = usernameOrEmail
+          response.result(usernameOrEmail)
+        },
         onBack: () => dispatch(cancelLogin(response))
       })
     },
@@ -430,7 +435,8 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
               storeSecret: false
             }),
             onBack: () => dispatch(cancelLogin(response)),
-            error: retryLabel
+            error: retryLabel,
+            username
           })
           break
         }

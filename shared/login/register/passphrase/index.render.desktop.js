@@ -1,6 +1,8 @@
 // @flow
 import React, {Component} from 'react'
-import {Text, Icon, Input, Button} from '../../../common-adapters'
+import {Text, Input, Button, UserCard} from '../../../common-adapters'
+import {globalColors} from '../../../styles/style-guide'
+import {specialStyles} from '../../../common-adapters/text'
 import Container from '../../forms/container.desktop'
 import type {Props} from './index.render'
 
@@ -29,25 +31,28 @@ class Render extends Component<void, Props, State> {
     return (
       <Container
         style={styles.container}
+        outerStyle={{backgroundColor: globalColors.lightGrey}}
         onBack={() => this.props.onBack()}>
-        <Text type='Header' style={styles.header}>{this.props.prompt}</Text>
-        <Icon type='fa-unlock' style={styles.icon}/>
-        <Input
-          autoFocus
-          style={styles.input}
-          type='password'
-          floatingLabelText='Passphrase'
-          onEnterKeyDown={() => this.onSubmit()}
-          onChange={event => this.onChange(event.target.value)}
-          value={this.state.passphrase}
-          errorText={this.props.error}/>
-        <Button
-          waiting={this.props.waitingForResponse}
-          label='Continue'
-          type='Primary'
-          onClick={() => this.onSubmit()}
-          enabled={this.state.passphrase}/>
-        <Text style={styles.forgot} type='BodySecondaryLink' onClick={this.props.onForgotPassphrase}>Forgot passphrase?</Text>
+        <UserCard username={this.props.username} style={styles.card}>
+          <Text type='HeaderBig' style={{...specialStyles.username}}>{this.props.username}</Text>
+          <Input
+            autoFocus
+            style={styles.input}
+            type='password'
+            floatingLabelText='Passphrase'
+            onEnterKeyDown={() => this.onSubmit()}
+            onChange={event => this.onChange(event.target.value)}
+            value={this.state.passphrase}
+            errorText={this.props.error}/>
+          <Button
+            fullWidth
+            waiting={this.props.waitingForResponse}
+            label='Continue'
+            type='Primary'
+            onClick={() => this.onSubmit()}
+            enabled={this.state.passphrase}/>
+          <Text style={styles.forgot} type='BodySecondaryLink' onClick={this.props.onForgotPassphrase}>Forgot passphrase?</Text>
+        </UserCard>
       </Container>
     )
   }
@@ -62,6 +67,7 @@ const styles = {
     marginTop: 80
   },
   input: {
+    marginTop: 40,
     marginBottom: 48
   },
   icon: {
@@ -71,6 +77,9 @@ const styles = {
   forgot: {
     marginTop: 20,
     alignSelf: 'flex-end'
+  },
+  card: {
+    padding: 30
   }
 }
 
