@@ -461,6 +461,10 @@ func TestBasicCRNoConflict(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't disable updates: %v", err)
 	}
+	err = DisableCRForTesting(config2, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
 
 	// User 1 makes a new file
 	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "b", false)
@@ -476,6 +480,10 @@ func TestBasicCRNoConflict(t *testing.T) {
 
 	// re-enable updates, and wait for CR to complete
 	c <- struct{}{}
+	err = RestartCRForTesting(config2, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
 	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
@@ -567,6 +575,10 @@ func TestBasicCRFileConflict(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't disable updates: %v", err)
 	}
+	err = DisableCRForTesting(config2, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
 
 	// User 1 writes the file
 	data1 := []byte{1, 2, 3, 4, 5}
@@ -592,6 +604,10 @@ func TestBasicCRFileConflict(t *testing.T) {
 
 	// re-enable updates, and wait for CR to complete
 	c <- struct{}{}
+	err = RestartCRForTesting(config2, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
 	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
@@ -674,8 +690,12 @@ func TestBasicCRFileCreateUnmergedWriteConflict(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't lookup dir: %v", err)
 	}
-	// disable updates on user 2
+	// disable updates and CR on user 2
 	c, err := DisableUpdatesForTesting(config2, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
+	err = DisableCRForTesting(config2, rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't disable updates: %v", err)
 	}
@@ -703,6 +723,10 @@ func TestBasicCRFileCreateUnmergedWriteConflict(t *testing.T) {
 
 	// re-enable updates, and wait for CR to complete
 	c <- struct{}{}
+	err = RestartCRForTesting(config2, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
 	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
@@ -840,6 +864,10 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't disable updates: %v", err)
 	}
+	err = DisableCRForTesting(config2, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
 
 	// User 1 writes the file
 	data1 := []byte{1, 2, 3, 4, 5}
@@ -878,6 +906,10 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	// re-enable updates, and wait for CR to complete.
 	// this should also cause a rekey of the folder.
 	c <- struct{}{}
+	err = RestartCRForTesting(config2, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
 	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
@@ -1032,6 +1064,10 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't disable updates: %v", err)
 	}
+	err = DisableCRForTesting(config1, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
 
 	// User 2 dev 2 should set the rekey bit
 	err = kbfsOps2Dev2.Rekey(ctx, rootNode2.GetFolderBranch().Tlf)
@@ -1053,6 +1089,10 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	// re-enable updates, and wait for CR to complete.
 	// this should also cause a rekey of the folder.
 	c <- struct{}{}
+	err = RestartCRForTesting(config1, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
 	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
