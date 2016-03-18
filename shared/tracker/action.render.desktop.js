@@ -73,7 +73,7 @@ export default class ActionRender extends Component {
   renderChanged (styles: Object, username: string) {
     return (
       <div style={{...styles.container}}>
-        <Button waiting={this.props.waiting} type='Unfollow' label='Ignore for 24 hrs' onClick={() => this.props.onUnfollow(username)} />
+        <Button waiting={this.props.waiting} type='Unfollow' label='Ignore for 24 hrs' onClick={() => this.props.onClose(username)} />
         <Button waiting={this.props.waiting} style={styles.actionButton} type='Follow' label='Accept' onClick={() => this.props.onRefollow(username)} />
       </div>
     )
