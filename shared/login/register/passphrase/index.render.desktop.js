@@ -33,7 +33,7 @@ class Render extends Component<void, Props, State> {
         style={styles.container}
         outerStyle={{backgroundColor: globalColors.lightGrey}}
         onBack={() => this.props.onBack()}>
-        <UserCard username={this.props.username} style={styles.card}>
+        <UserCard username={this.props.username}>
           <Text type='HeaderBig' style={{...specialStyles.username}}>{this.props.username}</Text>
           <Input
             autoFocus
@@ -61,7 +61,8 @@ class Render extends Component<void, Props, State> {
 const styles = {
   container: {
     flex: 1,
-    alignItems: 'center'
+    alignItems: 'center',
+    marginTop: 40
   },
   header: {
     marginTop: 80
@@ -77,9 +78,6 @@ const styles = {
   forgot: {
     marginTop: 20,
     alignSelf: 'flex-end'
-  },
-  card: {
-    padding: 30
   }
 }
 
