@@ -50,17 +50,15 @@ export default class LoginRender extends Component<void, Props, State> {
 
     return (
       <div style={styles.container}>
-        <UserCard username={this.state.selectedUser} style={styles.card}>
+        <UserCard username={this.state.selectedUser} outerStyle={styles.card}>
           <Dropdown
             type='Username'
-            style={{marginTop: 50}}
             value={this.state.selectedUser}
             onClick={selectedUser => this.setState({selectedUser})}
             options={this.props.users} />
           <FormWithCheckbox
             style={{alignSelf: 'stretch'}}
             inputProps={inputProps}
-            checkboxContainerStyle={{paddingLeft: 50, paddingRight: 50}}
             checkboxesProps={checkboxProps}
           />
           <Button
@@ -94,8 +92,6 @@ const styles = {
     backgroundColor: globalColors.black10
   },
   card: {
-    marginTop: 115,
-    paddingLeft: 30,
-    paddingRight: 30
+    marginTop: 115
   }
 }

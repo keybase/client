@@ -30,7 +30,7 @@ export default class FormWithCheckbox extends Component {
 const styles = {
   checkboxContainer: {
     ...globalStyles.flexBoxRow,
-    justifyContent: 'space-around',
+    justifyContent: 'center',
     position: 'relative',
     bottom: 8
   }
