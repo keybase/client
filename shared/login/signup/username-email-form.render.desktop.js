@@ -21,7 +21,7 @@ export default class Render extends Component {
     return (
       <Container onBack={this.props.onBack} style={styles.container} outerStyle={styles.outer}>
         <UserCard>
-          <Input autoFocus style={styles.first} floatingLabelText='Create a username' value={this.props.username} ref={r => (usernameRef = r)} errorText={this.props.usernameErrorText}/>
+          <Input autoFocus floatingLabelText='Create a username' value={this.props.username} ref={r => (usernameRef = r)} errorText={this.props.usernameErrorText}/>
           <Input floatingLabelText='Email address' value={this.props.email} ref={r => (emailRef = r)} errorText={this.props.emailErrorText}/>
           <Button style={{marginTop: 40}} fullWidth type='Primary' label='Continue' onClick={submitUserEmail}/>
         </UserCard>
