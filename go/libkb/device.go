@@ -123,19 +123,6 @@ func (d *Device) ProtExport() *keybase1.Device {
 	return ex
 }
 
-// ProtExportFriendly changes the device type to a "friendly"
-// name for the user instead of internal names.
-func (d *Device) ProtExportFriendly() *keybase1.Device {
-	r := d.ProtExport()
-	switch r.Type {
-	case DeviceTypePaper:
-		r.Type = "paper key"
-	case DeviceTypeDesktop:
-		r.Type = "computer"
-	}
-	return r
-}
-
 func (d *Device) IsActive() bool {
 	if d.Status == nil {
 		return false
