@@ -19,6 +19,9 @@ echo %KEYBASE_BUILD%
 go build -a -tags "prerelease production" -ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=%KEYBASE_BUILD%"
 
 :: Then build kbfsdokan
+if NOT EXIST %GOPATH%\src\github.com\keybase\kbfs\dokan\dokan1.lib copy %GOPATH%\bin\dokan-dev\dokan-v1.0.0-RC2\Win32\Release\dokan1.lib %GOPATH%\src\github.com\keybase\kbfs\dokan
+for /f "usebackq tokens=2*" %%i in (`powershell Get-FileHash -Algorithm sha1 %GOPATH%\src\github.com\keybase\kbfs\dokan\dokan1.lib`) do set DOKANLIBHASH=%%i
+if NOT %DOKANLIBHASH%==8FCFE265C5558FBA9FC6BFF4AF8BB0B83A159611 exit /B 1
 pushd %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan
 go build -tags "production prerelease"
 popd

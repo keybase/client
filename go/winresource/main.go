@@ -53,6 +53,13 @@ func main() {
 		os.Exit(3)
 	}
 
+	// Ugly special case hack: fv.Build went from 1 to 0 at 1.0.14, which makes Windows
+	// think it's a downgrade (1.0.14.1 -> 1.0.14.0), so artificially bump build until we
+	// get past 1.0.14
+	if fv.Major == 1 && fv.Minor == 0 && fv.Patch == 14 {
+		fv.Build = 1
+	}
+
 	semVer := fmt.Sprintf("%d.%d.%d-%d", fv.Major, fv.Minor, fv.Patch, fv.Build)
 
 	if *printverPtr {
