@@ -32,6 +32,3 @@ export function cleanup (folderName: string): string {
 
   return folderName.replace(/\s/g, '').replace(/\.\./g, '').replace(/\//g, '').replace(/\\/g, '')
 }
-
-// Set to true to allow logged out kbfs access
-export const allowLoggedOut = false
