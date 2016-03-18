@@ -13,6 +13,7 @@ import Devices from './devices'
 import NoTab from './no-tab'
 import More from './more'
 import Startup from './start-up'
+import Login from './login'
 
 import {switchTab} from './actions/tabbed-router'
 import {navigateTo, navigateUp} from './actions/router'
@@ -20,7 +21,7 @@ import {bootstrap} from './actions/config'
 
 import {constants as styleConstants} from './styles/common'
 
-import {folderTab, chatTab, peopleTab, devicesTab, moreTab, startupTab} from './constants/tabs'
+import {folderTab, chatTab, peopleTab, devicesTab, moreTab, startupTab, loginTab} from './constants/tabs'
 
 const tabs = {
   [folderTab]: {module: Folders, name: 'Folders'},
@@ -95,9 +96,7 @@ class Nav extends Component {
     )
   }
 
-  _renderContent () {
-    const tab = this.props.tabbedRouter.get('activeTab')
-    const {module} = tabs[tab]
+  _renderContent (tab, module) {
     return (
       <View style={styles.tabContent}>
         <MetaNavigator
@@ -146,8 +145,13 @@ class Nav extends Component {
       // )
     // }
 
+    if (activeTab === loginTab) {
+      return this._renderContent(loginTab, Login)
+    }
+
+    const {module} = tabs[activeTab]
     if (activeTab === startupTab) {
-      return this._renderContent()
+      return this._renderContent(activeTab, module)
     }
 
     return (
@@ -162,7 +166,7 @@ class Nav extends Component {
               title={name}
               selected={activeTab === tab}
               onPress={() => this.props.switchTab(tab)}>
-              {activeTab === tab && this._renderContent()}
+              {activeTab === tab && this._renderContent(tab, module)}
             </TabBarIOS.Item>
           ) })
         }
