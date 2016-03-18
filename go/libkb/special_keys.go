@@ -68,6 +68,7 @@ func (sk *SpecialKeyRing) Load(kid keybase1.KID) (GenericKey, error) {
 
 	if !sk.IsValidKID(kid) {
 		err := UnknownSpecialKIDError{kid}
+		sk.G().Log.Debug("- SpecialKeyRing.Load(%s) -> %v", kid, err)
 		return nil, err
 	}
 
@@ -106,7 +107,7 @@ func (sk *SpecialKeyRing) Load(kid keybase1.KID) (GenericKey, error) {
 		sk.keys[kid] = key
 	}
 
-	sk.G().Log.Debug("- SpecialKeyRing.Load(%s)", kid)
+	sk.G().Log.Debug("- SpecialKeyRing.Load(%s) -> %s", kid, ErrToOk(err))
 
 	return key, err
 }
