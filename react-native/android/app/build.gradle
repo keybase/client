@@ -14,12 +14,6 @@ import com.android.build.OutputFile
  */
 
 project.ext.react = [
-        // the name of the generated asset file containing your JS bundle
-        bundleAssetName: "index.bundle",
-
-        // the entry file for bundle generation
-        entryFile: "shared/index.js",
-
         // whether to bundle JS and assets in debug mode
         bundleInDebug: true,
 
@@ -70,7 +64,6 @@ apply from: "react.gradle"
  * Upload all the APKs to the Play Store and people will download
  * the correct one based on the CPU architecture of their device.
  */
-// TODO we actually can't build in x86 because of gobind right now
 def enableSeparateBuildPerCPUArchitecture = true
 
 /**
@@ -89,7 +82,7 @@ android {
         versionCode 2
         versionName "1.0.0-alpha-1"
         ndk {
-            abiFilters "armeabi-v7a", "x86"
+            abiFilters "armeabi-v7a"
         }
     }
     splits {
@@ -97,7 +90,7 @@ android {
             reset()
             enable enableSeparateBuildPerCPUArchitecture
             universalApk false  // If true, also generate a universal APK
-            include "armeabi-v7a", "x86"
+            include "armeabi-v7a"
         }
     }
     buildTypes {
@@ -111,7 +104,7 @@ android {
         variant.outputs.each { output ->
             // For each separate APK per architecture, set a unique version code as described here:
             // http://tools.android.com/tech-docs/new-build-system/user-guide/apk-splits
-            def versionCodes = ["armeabi-v7a":1, "x86":2]
+            def versionCodes = ["armeabi-v7a":1]
             def abi = output.getFilter(OutputFile.ABI)
             if (abi != null) {  // null for the universal-debug, universal-release variants
                 output.versionCodeOverride =
