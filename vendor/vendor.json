@@ -195,28 +195,28 @@
 		},
 		{
 			"path": "github.com/keybase/client/go/auth",
-			"revision": "64f61c25cc3595b1aeecdaf86a61bfec00b04c5f",
-			"revisionTime": "2016-03-16T16:25:20-04:00"
+			"revision": "3c24a3e709e3602e241d434ec9e5a85adcc769ff",
+			"revisionTime": "2016-03-18T15:15:32-04:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/kex2",
-			"revision": "64f61c25cc3595b1aeecdaf86a61bfec00b04c5f",
-			"revisionTime": "2016-03-16T16:25:20-04:00"
+			"revision": "3c24a3e709e3602e241d434ec9e5a85adcc769ff",
+			"revisionTime": "2016-03-18T15:15:32-04:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/libkb",
-			"revision": "64f61c25cc3595b1aeecdaf86a61bfec00b04c5f",
-			"revisionTime": "2016-03-16T16:25:20-04:00"
+			"revision": "3c24a3e709e3602e241d434ec9e5a85adcc769ff",
+			"revisionTime": "2016-03-18T15:15:32-04:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/logger",
-			"revision": "64f61c25cc3595b1aeecdaf86a61bfec00b04c5f",
-			"revisionTime": "2016-03-16T16:25:20-04:00"
+			"revision": "3c24a3e709e3602e241d434ec9e5a85adcc769ff",
+			"revisionTime": "2016-03-18T15:15:32-04:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/protocol",
-			"revision": "64f61c25cc3595b1aeecdaf86a61bfec00b04c5f",
-			"revisionTime": "2016-03-16T16:25:20-04:00"
+			"revision": "3c24a3e709e3602e241d434ec9e5a85adcc769ff",
+			"revisionTime": "2016-03-18T15:15:32-04:00"
 		},
 		{
 			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-crypto/openpgp",

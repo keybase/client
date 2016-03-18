@@ -299,6 +299,9 @@ func (g *GlobalContext) Shutdown() error {
 		if g.LinkCache != nil {
 			g.LinkCache.Shutdown()
 		}
+		if g.Resolver != nil {
+			g.Resolver.Shutdown()
+		}
 
 		for _, hook := range g.ShutdownHooks {
 			epick.Push(hook())
