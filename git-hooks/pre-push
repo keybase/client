@@ -22,6 +22,9 @@
 # check, but comparing against the remote HEAD, which is passed in as
 # one of the parameters.
 
+# Resolve the repo root in case it's a symlink.
+cd "$(git rev-parse --show-toplevel)"
+
 check_go_fmt() {
 	gofiles=$(git ls-files | grep '.go$' | grep -v go/vendor/ | grep -v vendor/)
 	[ -z "$gofiles" ] && return 0
