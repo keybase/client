@@ -102,7 +102,8 @@ func (cr *ConflictResolver) stopProcessing() {
 // channel instead of accessing cr.inputChan directly so that it
 // doesn't have to hold inputChanLock.
 func (cr *ConflictResolver) processInput(inputChan <-chan conflictInput) {
-	var cancel func()
+	var cancel context.CancelFunc
+	var prevCRDone chan struct{}
 	defer func() {
 		if cancel != nil {
 			cancel()
@@ -136,8 +137,12 @@ func (cr *ConflictResolver) processInput(inputChan <-chan conflictInput) {
 			continue
 		}
 
+		if cancel != nil {
+			<-prevCRDone // wait for the last one to finish
+		}
 		ctx, cancel = context.WithCancel(ctx)
-		go cr.doResolve(ctx, ci)
+		prevCRDone = make(chan struct{}) // closed when doResolve finishes
+		go cr.doResolve(ctx, ci, prevCRDone)
 	}
 }
 
@@ -3084,10 +3089,12 @@ func (e CRWrapError) Error() string {
 	return "Conflict resolution error: " + e.err.Error()
 }
 
-func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
+func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput,
+	done chan<- struct{}) {
 	cr.log.CDebugf(ctx, "Starting conflict resolution with input %v", ci)
 	var err error
 	defer cr.resolveGroup.Done()
+	defer close(done)
 	lState := makeFBOLockState()
 	defer func() {
 		cr.log.CDebugf(ctx, "Finished conflict resolution: %v", err)
