@@ -84,7 +84,7 @@ func NewMDServerRemote(config Config, srvAddr string) *MDServerRemote {
 }
 
 // HandlerName implements the ConnectionHandler interface.
-func (MDServerRemote) HandlerName() string {
+func (*MDServerRemote) HandlerName() string {
 	return "MDServerRemote"
 }
 

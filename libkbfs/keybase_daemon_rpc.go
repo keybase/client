@@ -337,7 +337,7 @@ func (d daemonIdentifyUI) Finish(ctx context.Context, sessionID int) error {
 }
 
 // HandlerName implements the ConnectionHandler interface.
-func (KeybaseDaemonRPC) HandlerName() string {
+func (*KeybaseDaemonRPC) HandlerName() string {
 	return "KeybaseDaemonRPC"
 }
 

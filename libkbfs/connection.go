@@ -7,8 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"math"
-	"math/big"
 	"net"
 	"sync"
 	"time"
@@ -228,8 +226,9 @@ func newConnectionWithTransport(config Config,
 	reconnectBackoff := backoff.NewExponentialBackOff()
 	// never give up reconnecting
 	reconnectBackoff.MaxElapsedTime = 0
-	randint, _ := rand.Int(rand.Reader, big.NewInt(math.MaxUint32))
-	connectionPrefix := fmt.Sprintf("CONN %s %x", handler.HandlerName(), randint.Bytes())
+	randBytes := make([]byte, 4)
+	rand.Read(randBytes)
+	connectionPrefix := fmt.Sprintf("CONN %s %x", handler.HandlerName(), randBytes)
 	connection := &Connection{
 		config:           config,
 		handler:          handler,

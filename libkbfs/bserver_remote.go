@@ -70,7 +70,7 @@ func (b *BlockServerRemote) RemoteAddress() string {
 }
 
 // HandlerName implements the ConnectionHandler interface.
-func (BlockServerRemote) HandlerName() string {
+func (*BlockServerRemote) HandlerName() string {
 	return "BlockServerRemote"
 }
 
