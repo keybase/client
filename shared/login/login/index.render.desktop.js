@@ -20,7 +20,7 @@ export default class LoginRender extends Component<void, Props, State> {
 
     this.state = {
       selectedUser: props.lastUser,
-      error: null,
+      error: props.error,
       saveInKeychain: true,
       showTyping: false,
       passphrase: ''
@@ -56,6 +56,7 @@ export default class LoginRender extends Component<void, Props, State> {
             style={{marginTop: 50}}
             value={this.state.selectedUser}
             onClick={selectedUser => this.setState({selectedUser})}
+            onOther={() => this.props.onSomeoneElse()}
             options={this.props.users} />
           <FormWithCheckbox
             style={{alignSelf: 'stretch'}}
@@ -64,6 +65,7 @@ export default class LoginRender extends Component<void, Props, State> {
             checkboxesProps={checkboxProps}
           />
           <Button
+            waiting={this.props.waitingForResponse}
             style={{marginTop: 0}}
             fullWidth
             type='Primary'
@@ -75,15 +77,6 @@ export default class LoginRender extends Component<void, Props, State> {
       </div>
     )
   }
-}
-
-LoginRender.propTypes = {
-  serverURI: React.PropTypes.string.isRequired,
-  onBack: React.PropTypes.func.isRequired,
-  onSignup: React.PropTypes.func.isRequired,
-  onLogin: React.PropTypes.func.isRequired,
-  lastUser: React.PropTypes.string,
-  users: React.PropTypes.array
 }
 
 const styles = {

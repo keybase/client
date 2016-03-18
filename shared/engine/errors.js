@@ -22,18 +22,11 @@ export default class EngineError extends Error {
 
     const niceFunc = niceMap[nameFix(err.name)]
     super(niceFunc && niceFunc(err) || err.desc || err.code)
-
-    this.code = err.code
-    this.desc = err.desc
-    this.name = err.name
     this.raw = err
   }
 }
 
 export type EngineErrorType = {
-  code: number,
-  desc: ?string,
-  name: string,
-  raw: ?any,
-  toString: () => string
+  raw: any,
+  message: string
 }

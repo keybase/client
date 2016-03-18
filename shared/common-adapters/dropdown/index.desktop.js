@@ -134,7 +134,7 @@ const UsernameList = ({options, onClick, onOther}: OptionsListProps) => {
   return (
     <div style={styles.popover}>
       {optionsList({onClick, options, username: true})}
-      {onOther && <MenuItem onClick={onOther} type='Other'>someone else...</MenuItem>}
+      {onOther && <MenuItem onClick={onOther} type='Other'>Someone else...</MenuItem>}
     </div>
   )
 }
