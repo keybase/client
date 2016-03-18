@@ -33,12 +33,18 @@ type Cryptocurrency struct {
 	Address string `codec:"address" json:"address"`
 }
 
+type RevokedProof struct {
+	Proof RemoteProof `codec:"proof" json:"proof"`
+	Diff  TrackDiff   `codec:"diff" json:"diff"`
+}
+
 type Identity struct {
 	Status          *Status          `codec:"status,omitempty" json:"status,omitempty"`
 	WhenLastTracked Time             `codec:"whenLastTracked" json:"whenLastTracked"`
 	Proofs          []IdentifyRow    `codec:"proofs" json:"proofs"`
 	Cryptocurrency  []Cryptocurrency `codec:"cryptocurrency" json:"cryptocurrency"`
 	Revoked         []TrackDiff      `codec:"revoked" json:"revoked"`
+	RevokedDetails  []RevokedProof   `codec:"revokedDetails" json:"revokedDetails"`
 	BreaksTracking  bool             `codec:"breaksTracking" json:"breaksTracking"`
 }
 

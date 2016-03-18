@@ -389,6 +389,7 @@ export type Identity = {
   proofs: Array<IdentifyRow>;
   cryptocurrency: Array<Cryptocurrency>;
   revoked: Array<TrackDiff>;
+  revokedDetails: Array<RevokedProof>;
   breaksTracking: bool;
 }
 
@@ -724,6 +725,7 @@ export type ProofType =
   | 6 // HACKERNEWS_6
   | 1000 // GENERIC_WEB_SITE_1000
   | 1001 // DNS_1001
+  | 1002 // PGP_1002
   | 100001 // ROOTER_100001
 
 export type Proofs = {
@@ -765,6 +767,11 @@ export type RemoteProof = {
 export type RevokedKey = {
   key: PublicKey;
   time: KeybaseTime;
+}
+
+export type RevokedProof = {
+  proof: RemoteProof;
+  diff: TrackDiff;
 }
 
 export type SaltpackDecryptOptions = {

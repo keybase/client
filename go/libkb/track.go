@@ -21,6 +21,7 @@ type TrackIDComponent interface {
 	ToKeyValuePair() (string, string)
 	GetProofState() keybase1.ProofState
 	LastWriterWins() bool
+	GetProofType() keybase1.ProofType
 }
 
 type TrackSet struct {

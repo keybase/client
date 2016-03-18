@@ -728,4 +728,8 @@ func (p PGPFingerprint) LastWriterWins() bool {
 	return false
 }
 
+func (p PGPFingerprint) GetProofType() keybase1.ProofType {
+	return keybase1.ProofType_PGP
+}
+
 //===================================================
