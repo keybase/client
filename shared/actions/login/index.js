@@ -91,47 +91,54 @@ function getAccounts (): AsyncAction {
 
 export function login (): AsyncAction {
   return (dispatch, getState) => {
-    const deviceType = isMobile ? 'mobile' : 'desktop'
-    const incomingMap = makeKex2IncomingMap(dispatch, getState)
-    const params : login_login_rpc = {
-      ...makeWaitingHandler(dispatch),
-      method: 'login.login',
-      param: {
-        deviceType,
-        usernameOrEmail: '',
-        clientType: enums.login.ClientType.gui
-      },
-      incomingCallMap: incomingMap,
-      callback: (error, response) => {
-        if (error) {
-          dispatch({
-            type: Constants.loginDone,
-            error: true,
-            payload: error
-          })
+    const props = {
+      onBack: () => dispatch(cancelLogin()),
+      onSubmit: usernameOrEmail => {
+        const deviceType = isMobile ? 'mobile' : 'desktop'
+        const incomingMap = makeKex2IncomingMap(dispatch, getState)
+        const params : login_login_rpc = {
+          ...makeWaitingHandler(dispatch),
+          method: 'login.login',
+          param: {
+            deviceType,
+            usernameOrEmail: usernameOrEmail,
+            clientType: enums.login.ClientType.gui
+          },
+          incomingCallMap: incomingMap,
+          callback: (error, response) => {
+            if (error) {
+              dispatch({
+                type: Constants.loginDone,
+                error: true,
+                payload: error
+              })
 
-          if (!isRPCCancelError(error)) {
-            dispatch(routeAppend({
-              parseRoute: {componentAtTop: {component: Error, props: {
-                error,
-                onBack: () => dispatch(cancelLogin())
-              }}}
-            }))
+              if (!isRPCCancelError(error)) {
+                dispatch(routeAppend({
+                  parseRoute: {componentAtTop: {component: Error, props: {
+                    error,
+                    onBack: () => dispatch(cancelLogin())
+                  }}}
+                }))
+              }
+            } else {
+              dispatch({
+                type: Constants.loginDone,
+                error: false,
+                payload: undefined
+              })
+
+              dispatch(loadDevices())
+              dispatch(bootstrap())
+            }
           }
-        } else {
-          dispatch({
-            type: Constants.loginDone,
-            error: false,
-            payload: undefined
-          })
-
-          dispatch(loadDevices())
-          dispatch(bootstrap())
         }
+
+        engine.rpc(params)
       }
     }
-
-    engine.rpc(params)
+    // We ask for user since the login will auto login with the last user which we don't always want
+    dispatch(routeAppend({parseRoute: {componentAtTop: {component: UsernameOrEmail, props}}}))
   }
 }
 

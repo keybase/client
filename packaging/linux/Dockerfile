@@ -22,9 +22,11 @@ RUN pip install s3cmd
 RUN curl -sL https://deb.nodesource.com/setup_5.x | bash -
 RUN apt-get update
 RUN apt-get install -y nodejs
+RUN npm install -g npm
+RUN npm cache clean
 
 # Install Go 1.5, which doesn't exist in the Ubuntu repos yet.
-RUN wget https://storage.googleapis.com/golang/go1.5.3.linux-amd64.tar.gz -O /root/go.tar
+RUN wget https://storage.googleapis.com/golang/go1.6.linux-amd64.tar.gz -O /root/go.tar
 RUN tar -C /usr/local -xzf /root/go.tar
 RUN rm /root/go.tar
 ENV PATH "$PATH:/usr/local/go/bin"

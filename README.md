@@ -1,4 +1,4 @@
-## Keybase
+## Keybase [![Build Status](https://travis-ci.org/keybase/client.svg?branch=master)](https://travis-ci.org/keybase/client) [![Build status](https://ci.appveyor.com/api/projects/status/90mxorxtj6vixnum/branch/master?svg=true)](https://ci.appveyor.com/project/keybase/client-x5qrt/branch/master)
 
 Hi, and welcome to the Keybase client repo.  All our client apps (OSX, Windows, Linux, iOS, and Android) are being actively developed in this repository. Please, dig around.
 

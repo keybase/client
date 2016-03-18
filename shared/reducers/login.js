@@ -37,7 +37,8 @@ type LoginState = {
   forgotPasswordSuccess: boolean,
   forgotPasswordError: ?Error,
   configuredAccounts: ?Array<{hasStoredSecret: bool, username: string}>,
-  waitingForResponse: boolean
+  waitingForResponse: boolean,
+  loginError: ?string
 }
 
 const initialState: LoginState = {
@@ -63,7 +64,8 @@ const initialState: LoginState = {
     deviceName: ''
   },
   configuredAccounts: null,
-  waitingForResponse: false
+  waitingForResponse: false,
+  loginError: null
 }
 
 export default function (state: LoginState = initialState, action: any): LoginState {
@@ -146,6 +148,13 @@ export default function (state: LoginState = initialState, action: any): LoginSt
       break
     case Constants.waitingForResponse:
       toMerge = {waitingForResponse: action.payload}
+      break
+    case Constants.loginDone:
+      if (action.error) {
+        toMerge = {loginError: action.payload && action.payload.message}
+      } else {
+        return state
+      }
       break
     default:
       return state

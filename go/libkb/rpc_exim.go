@@ -108,6 +108,7 @@ func (ir IdentifyOutcome) ExportToUncheckedIdentity() *keybase1.Identity {
 		tmp.Revoked[j] = *ExportTrackDiff(d)
 		tmp.BreaksTracking = true
 	}
+	tmp.RevokedDetails = ir.RevokedDetails
 	return &tmp
 }
 
@@ -1086,4 +1087,18 @@ func (e ProvisionUnavailableError) ToStatus() keybase1.Status {
 		Code: SCDeviceNoProvision,
 		Name: "SC_DEVICE_NO_PROVISION",
 	}
+}
+
+func ExportTrackIDComponentToRevokedProof(tidc TrackIDComponent) keybase1.RevokedProof {
+	key, value := tidc.ToKeyValuePair()
+	ret := keybase1.RevokedProof{
+		Diff: *ExportTrackDiff(TrackDiffRevoked{tidc}),
+		Proof: keybase1.RemoteProof{
+			Key:           key,
+			Value:         value,
+			DisplayMarkup: value,
+			ProofType:     tidc.GetProofType(),
+		},
+	}
+	return ret
 }

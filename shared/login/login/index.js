@@ -1,21 +1,12 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import {relogin} from '../../actions/login'
+import {relogin, login} from '../../actions/login'
 import {routeAppend} from '../../actions/router'
 import Render from './index.render'
 
 class Login extends Component {
   render () {
-    return (
-      <Render
-        onLogin={this.props.onLogin}
-        onBack={this.props.onBack}
-        onSignup={this.props.onSignup}
-        serverURI={this.props.serverURI}
-        users={this.props.users}
-        lastUser={this.props.lastUser}
-      />
-    )
+    return <Render {...this.props} />
   }
 
   static parseRoute (store, currentPath, nextPath) {
@@ -36,13 +27,16 @@ export default connect(
 
     return {
       serverURI: /* store.config && store.config.config && store.config.config.serverURI */'https://keybase.io',
-      users, lastUser
+      users, lastUser,
+      error: store.login.loginError,
+      waitingForResponse: store.login.waitingForResponse
     }
   },
   dispatch => {
     return {
       onLogin: (user, passphrase, store) => dispatch(relogin(user, passphrase, store)),
-      onSignup: () => dispatch(routeAppend(['signup']))
+      onSignup: () => dispatch(routeAppend(['signup'])),
+      onSomeoneElse: () => { dispatch(login()) }
     }
   }
 )(Login)

@@ -26,6 +26,12 @@ typedef NS_ENUM (NSInteger, KBExit) {
 @implementation Installer
 
 - (void)applicationDidFinishLaunching:(NSNotification *)notification {
+  dispatch_async(dispatch_get_main_queue(), ^{
+    [self run];
+  });
+}
+
+- (void)run {
   [KBWorkspace setupLogging];
 
   _memLogger = [[KBMemLogger alloc] init];

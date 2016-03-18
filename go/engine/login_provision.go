@@ -500,7 +500,7 @@ func (e *loginProvision) chooseDevice(ctx *Context, pgp bool) error {
 	expDevices := make([]keybase1.Device, len(devices))
 	idMap := make(map[keybase1.DeviceID]*libkb.Device)
 	for i, d := range devices {
-		expDevices[i] = *d.ProtExportFriendly()
+		expDevices[i] = *d.ProtExport()
 		idMap[d.ID] = d
 	}
 

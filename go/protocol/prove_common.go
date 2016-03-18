@@ -74,6 +74,7 @@ const (
 	ProofType_HACKERNEWS       ProofType = 6
 	ProofType_GENERIC_WEB_SITE ProofType = 1000
 	ProofType_DNS              ProofType = 1001
+	ProofType_PGP              ProofType = 1002
 	ProofType_ROOTER           ProofType = 100001
 )
 
