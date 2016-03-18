@@ -12,7 +12,7 @@ import type {UserInfo} from '../tracker/bio.render'
 import type {Proof} from '../tracker/proofs.render'
 import type {SimpleProofState, SimpleProofMeta} from '../constants/tracker'
 
-import type {Identity, RemoteProof, LinkCheckResult, ProofState, TrackDiff, TrackDiffType, ProofStatus, TrackSummary} from '../constants/types/flow-types'
+import type {Identity, RemoteProof, RevokedProof, LinkCheckResult, ProofState, TrackDiff, TrackDiffType, ProofStatus, ProofType, TrackSummary} from '../constants/types/flow-types'
 import type {Action} from '../constants/types/flux'
 
 export type TrackerState = {
@@ -185,10 +185,12 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       }
 
       const identity: Identity = action.payload.identity
-
       return {
         ...state,
-        proofs: identity.proofs.map(rp => remoteProofToProof(rp.proof))
+        proofs: [
+          ...(identity.revokedDetails || []).map(rv => revokedProofToProof(rv)),
+          ...identity.proofs.map(rp => remoteProofToProof(rp.proof))
+        ]
       }
 
     case Constants.updateProof:
@@ -421,16 +423,31 @@ function proofUrlToProfileUrl (proofType: string, name: string, key: ?string, hu
 }
 /* eslint-enable no-multi-spaces */
 
-function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
-  const proofState: SimpleProofState = lcr && proofStateToSimpleProofState(lcr.proofResult.state, lcr.diff, lcr.remoteDiff) || checking
-
+function remoteProofToProofType (rp: RemoteProof): string {
   let proofType: string = ''
   if (rp.proofType === identify.ProofType.genericWebSite || rp.proofType === identify.ProofType.dns) {
     proofType = 'web'
   } else {
     proofType = mapTagToName(identify.ProofType, rp.proofType) || ''
   }
+  return proofType
+}
 
+function revokedProofToProof (rv: RevokedProof): Proof {
+  return {
+    state: error,
+    id: rv.proof.sigID,
+    meta: metaDeleted,
+    type: remoteProofToProofType(rv.proof),
+    color: stateToColor(error),
+    name: rv.proof.displayMarkup,
+    humanUrl: '',
+    profileUrl: ''
+  }
+}
+
+function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
+  const proofState: SimpleProofState = lcr && proofStateToSimpleProofState(lcr.proofResult.state, lcr.diff, lcr.remoteDiff) || checking
   let diffMeta: ?SimpleProofMeta
   let statusMeta: ?SimpleProofMeta
   if (lcr && lcr.diff && lcr.diff.type != null) {
@@ -446,11 +463,11 @@ function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
     state: proofState,
     id: rp.sigID,
     meta: statusMeta || diffMeta,
-    type: proofType,
+    type: remoteProofToProofType(rp),
     color: stateToColor(proofState),
     name: rp.displayMarkup,
     humanUrl: humanUrl,
-    profileUrl: rp.displayMarkup && proofUrlToProfileUrl(rp.proofType, rp.displayMarkup, rp.key, humanUrl)
+    profileUrl: rp.displayMarkup && proofUrlToProfileUrl(rp.proofType.toString(), rp.displayMarkup, rp.key, humanUrl)
   }
 }
 
