@@ -90,9 +90,9 @@ export default class Window {
         this.window.focus()
       }
       return
+    } else {
+      this.createWindow()
     }
-
-    this.createWindow()
 
     if (this.opts.openDevTools) {
       this.window.openDevTools()

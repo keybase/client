@@ -1,4 +1,4 @@
-import {remote} from 'electron'
+import {remote, ipcRenderer} from 'electron'
 
 import {Component} from 'react'
 import {connect} from 'react-redux'
@@ -101,7 +101,7 @@ class Nav extends Component {
         currentWindow.setResizable(false)
 
         if (flags.mainWindow) {
-          currentWindow.show()
+          ipcRenderer.send('showMain')
         }
       } else if (oldWasLogin) {
         if (!flags.mainWindow) {
