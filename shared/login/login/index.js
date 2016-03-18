@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import {relogin} from '../../actions/login'
-import {navigateTo} from '../../actions/router'
+import {routeAppend} from '../../actions/router'
 import Render from './index.render'
 
 class Login extends Component {
@@ -42,7 +42,7 @@ export default connect(
   dispatch => {
     return {
       onLogin: (user, passphrase, store) => dispatch(relogin(user, passphrase, store)),
-      onSignup: () => dispatch(navigateTo(['signup']))
+      onSignup: () => dispatch(routeAppend(['signup']))
     }
   }
 )(Login)

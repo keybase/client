@@ -53,7 +53,25 @@ export function subReducer (state: RouterState = initialState, action: any): Rou
     // or a child of it
     // we get rid of everything after it
     case RouterConstants.navigateUp:
-      return state.update('uri', uri => uri.count() > 1 ? uri.pop() : uri)
+      const uri = state.get('uri')
+      if (uri.count() > 1) {
+        if (action.payload.till) {
+          let current = uri
+          while (current.count() > 0 && !Immutable.is(current.last(), action.payload.till)) {
+            current = current.pop()
+          }
+
+          if (current.count()) {
+            return state.set('uri', current)
+          } else {
+            console.error(`Navigate till unfound: ${action.payload.till}`)
+            return state
+          }
+        } else {
+          return state.set('uri', uri.pop())
+        }
+      }
+      return state
     case RouterConstants.navigateBack:
       const lastUri = state.get('history').last() || parseUri([])
       return state.update('history', history => history.count() > 1 ? history.pop() : parseUri([]))

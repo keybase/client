@@ -8,11 +8,19 @@ import type {Props} from './back-button'
 export default class BackButton extends Component {
   props: Props;
 
+  onClick (event: SyntheticEvent) {
+    event.preventDefault()
+    event.stopPropagation()
+    if (this.props.onClick) {
+      this.props.onClick()
+    }
+  }
+
   render () {
     return (
-      <div style={{...styles.container, ...this.props.style}} onClick={this.props.onClick}>
+      <div style={{...styles.container, ...this.props.style}} onClick={e => this.onClick(e)}>
         <Icon type='fa-arrow-left' style={styles.icon}/>
-        <Text type='BodyPrimaryLink' onClick={() => this.props.onClick()}>Back</Text>
+        <Text type='BodyPrimaryLink' onClick={e => this.onClick(e)}>Back</Text>
       </div>
     )
   }
