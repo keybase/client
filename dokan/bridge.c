@@ -156,9 +156,14 @@ static DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_SetEndOfFile(LPCWSTR FileName,
   return kbfs_libdokan_SetEndOfFile(FileName, Length, FileInfo);
 }
 
-//extern NTSTATUS kbfs_libdokan_SetAllocationSize(LPCWSTR FileName,
-//												LONGLONG Length,
-//												PDOKAN_FILE_INFO FileInfo);
+extern NTSTATUS kbfs_libdokan_SetAllocationSize(LPCWSTR FileName,
+												LONGLONG Length,
+												PDOKAN_FILE_INFO FileInfo);
+static DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_SetAllocationSize(LPCWSTR FileName,
+												LONGLONG Length,
+												PDOKAN_FILE_INFO FileInfo) {
+  return kbfs_libdokan_SetAllocationSize(FileName, Length, FileInfo);
+}
 
 extern NTSTATUS kbfs_libdokan_LockFile(LPCWSTR FileName,
 				       LONGLONG ByteOffset,
@@ -270,7 +275,8 @@ struct kbfs_libdokan_ctx* kbfs_libdokan_alloc_ctx(ULONG64 slot) {
   ctx->dokan_options.Version = DOKAN_VERSION;
   ctx->dokan_options.GlobalContext = slot;
 
-  ctx->dokan_options.Options = DOKAN_OPTION_REMOVABLE;
+  ctx->dokan_options.Options = DOKAN_OPTION_REMOVABLE |
+                               DOKAN_OPTION_CURRENT_SESSION;
   ctx->dokan_operations.ZwCreateFile = kbfs_libdokan_c_CreateFile;
   ctx->dokan_operations.Cleanup = kbfs_libdokan_c_Cleanup;
   ctx->dokan_operations.CloseFile = kbfs_libdokan_c_CloseFile;
@@ -287,8 +293,7 @@ struct kbfs_libdokan_ctx* kbfs_libdokan_alloc_ctx(ULONG64 slot) {
   ctx->dokan_operations.DeleteDirectory = kbfs_libdokan_c_DeleteDirectory;
   ctx->dokan_operations.MoveFile = kbfs_libdokan_c_MoveFile;
   ctx->dokan_operations.SetEndOfFile = kbfs_libdokan_c_SetEndOfFile;
-  //FIXME: this is disabled as per Dokan-Fuse
-  //ctx->dokan_operations.SetAllocationSize = kbfs_libdokan_c_SetAllocationSize;
+  ctx->dokan_operations.SetAllocationSize = kbfs_libdokan_c_SetAllocationSize;
   ctx->dokan_operations.LockFile = kbfs_libdokan_c_LockFile;
   ctx->dokan_operations.UnlockFile = kbfs_libdokan_c_UnlockFile;
   ctx->dokan_operations.GetDiskFreeSpace = kbfs_libdokan_c_GetDiskFreeSpace;

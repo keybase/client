@@ -52,7 +52,11 @@ type File interface {
 	// whether they should be set.
 	SetFileTime(fi *FileInfo, creation time.Time, lastAccess time.Time, lastWrite time.Time) error
 	SetFileAttributes(fi *FileInfo, fileAttributes uint32) error
+
 	SetEndOfFile(fi *FileInfo, length int64) error
+	// SetAllocationSize see FILE_ALLOCATION_INFORMATION on msdn.
+	// For simple semantics if length > filesize then ignore else truncate(length).
+	SetAllocationSize(fi *FileInfo, length int64) error
 
 	LockFile(fi *FileInfo, offset int64, length int64) error
 	UnlockFile(fi *FileInfo, offset int64, length int64) error
@@ -95,6 +99,7 @@ const (
 	FileSupportsHardLinks          = FileSystemFlags(0x400000)
 	FileSupportObjectIDs           = FileSystemFlags(0x10000)
 	FileSupportsOpenByFileID       = FileSystemFlags(0x1000000)
+	FileSupportsRemoteStorage      = FileSystemFlags(0x100)
 	FileSupportsReparsePoints      = FileSystemFlags(0x80)
 	FileSupportsSparseFiles        = FileSystemFlags(0x40)
 	FileSupportsTransactions       = FileSystemFlags(0x200000)

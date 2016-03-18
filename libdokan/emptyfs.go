@@ -22,7 +22,9 @@ func (t emptyFile) CloseFile(*dokan.FileInfo) {
 }
 func (t emptyFile) SetEndOfFile(fi *dokan.FileInfo, length int64) error {
 	return dokan.ErrAccessDenied
-
+}
+func (t emptyFile) SetAllocationSize(fi *dokan.FileInfo, length int64) error {
+	return dokan.ErrAccessDenied
 }
 func (t emptyFile) ReadFile(fi *dokan.FileInfo, bs []byte, offset int64) (int, error) {
 	return 0, dokan.ErrAccessDenied

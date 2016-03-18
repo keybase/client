@@ -119,3 +119,33 @@ func (f *File) SetEndOfFile(fi *dokan.FileInfo, length int64) (err error) {
 
 	return f.folder.fs.config.KBFSOps().Truncate(ctx, f.node, uint64(length))
 }
+
+// SetAllocationSize for dokan (f)truncates but does not grow
+// file size (it may fallocate, but that is not done at the
+// moment).
+func (f *File) SetAllocationSize(fi *dokan.FileInfo, newSize int64) (err error) {
+	ctx := NewContextWithOpID(f.folder.fs)
+	f.folder.fs.log.CDebugf(ctx, "File SetFileTime")
+	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
+
+	ei, err := f.folder.fs.config.KBFSOps().Stat(ctx, f.node)
+	if err != nil {
+		return err
+	}
+	current := int64(ei.Size)
+
+	// Refuse to grow the file.
+	if current <= newSize {
+		return nil
+	}
+
+	return f.folder.fs.config.KBFSOps().Truncate(ctx, f.node, uint64(newSize))
+}
+
+// SetFileAttributes for Dokan.
+func (f *File) SetFileAttributes(fi *dokan.FileInfo, fileAttributes uint32) error {
+	ctx := NewContextWithOpID(f.folder.fs)
+	f.folder.fs.log.CDebugf(ctx, "File SetFileAttributes %X", fileAttributes)
+	// TODO handle attributes for real.
+	return nil
+}
