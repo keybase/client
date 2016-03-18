@@ -1,9 +1,9 @@
 // @flow
 
-// TODO: Kill this. We only need it because chooseDevice from the engine gives us these alternate types
-export type ProvisionUI_ChooseDeviceType = 'mobile' | 'computer' | 'paper key'
+import type {Device as _Device} from './flow-types'
 
 export type DeviceType = 'mobile' | 'desktop' | 'backup'
+export type Device = {type: DeviceType} & _Device
 
 // Converts a string to the DeviceType enum, logging an error if it doesn't match
 export function toDeviceType (s: string): DeviceType {

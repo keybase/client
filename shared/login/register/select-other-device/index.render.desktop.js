@@ -10,8 +10,8 @@ import type {DeviceType} from '../../../constants/types/more'
 const Row = ({deviceID, name, type, onSelect}) => {
   const iconType: IconProps.type = ({
     'mobile': 'fa-mobile',
-    'computer': 'fa-laptop',
-    'paper key': 'paper-key'
+    'desktop': 'fa-laptop',
+    'backup': 'paper-key'
   }: {[key: DeviceType]: IconProps.type})[type]
 
   const onClick = e => {

@@ -1,10 +1,10 @@
 // @flow
 
 import React from 'react'
-import type {DeviceType} from '../../../constants/types/more'
+import type {Device} from '../../../constants/types/more'
 
 export type Props = {
-  devices: Array<{id: string, name: string, type: DeviceType}>,
+  devices: Array<Device>,
   onSelect: (id: string) => void,
   onWont: () => void,
   onBack: () => void
