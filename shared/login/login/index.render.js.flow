@@ -7,7 +7,10 @@ export type Props = {
   users: Array<string>,
   onSignup: () => void,
   onBack: () => void,
-  onLogin: (user: string, passphrase: string, store: boolean) => void
+  onLogin: (user: string, passphrase: string, store: boolean) => void,
+  onSomeoneElse: () => void,
+  error: ?string,
+  waitingForResponse: boolean
 }
 
 export default class LoginRender extends React$Component<void, Props, void> { }
