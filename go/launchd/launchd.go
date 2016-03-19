@@ -115,12 +115,17 @@ func (s Service) Stop(wait bool) error {
 		// it seems more like 5 seconds before it resorts to a SIGKILL.
 		// Because of the SIGKILL fallback we can use a large timeout here of 25
 		// seconds, which we'll likely never reach unless the process is zombied.
-		err = s.WaitForExit(time.Second * 2)
+		err = s.WaitForExit(time.Second * 5)
 		if err != nil {
 			return err
 		}
 	}
 	return err
+}
+
+// Restart a service.
+func (s Service) Restart() error {
+	return Restart(s.Label(), s.log)
 }
 
 // WaitForExit waits for service to exit

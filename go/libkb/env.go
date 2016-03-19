@@ -931,3 +931,7 @@ func (e *Env) GetMountDir() string {
 func (e *Env) GetAppStartMode() AppStartMode {
 	return e.config.GetAppStartMode()
 }
+
+func (e *Env) GetServiceInfoPath() string {
+	return filepath.Join(e.GetRuntimeDir(), "keybased.info")
+}

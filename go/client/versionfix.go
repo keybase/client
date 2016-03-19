@@ -122,18 +122,30 @@ func FixVersionClash(g *libkb.GlobalContext, cl libkb.CommandLine) (err error) {
 	}
 
 	if serviceConfig.ForkType == keybase1.ForkType_LAUNCHD {
-		err = launchd.Restart(serviceConfig.Label, g.Log)
-	} else {
-		ctlCli = keybase1.CtlClient{Cli: gcli}
-		err = ctlCli.Stop(context.TODO(), keybase1.StopArg{})
+		launchService := launchd.NewService(serviceConfig.Label)
+		launchService.SetLogger(g.Log)
+		err = launchService.Restart()
+		if err != nil {
+			return err
+		}
+		launchdStatus, err := launchService.LoadStatus()
+		if err != nil {
+			return err
+		}
+		_, err = libkb.WaitForServiceInfoFile(g, g.Env.GetServiceInfoPath(), launchdStatus.Label(), launchdStatus.Pid(), 25, 400*time.Millisecond, "version restart")
+		return err
 	}
+
+	ctlCli = keybase1.CtlClient{Cli: gcli}
+	err = ctlCli.Stop(context.TODO(), keybase1.StopArg{})
 	if err != nil && origPid >= 0 {
 		// A fallback approach. I haven't seen a need for it, but it can't really hurt.
 		// If we fail to restart via Stop() then revert to kill techniques.
 
 		g.Log.Warning("Error in Stopping %d via RPC: %v; trying fallback (kill via pidfile)", origPid, err)
 		time.Sleep(time.Second)
-		newPid, err := getPid(g)
+		var newPid int
+		newPid, err = getPid(g)
 		if err != nil {
 			g.Log.Warning("No pid; shutdown must have worked (%v)", err)
 		} else if newPid != origPid {

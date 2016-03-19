@@ -194,7 +194,7 @@ func installKeybaseService(g *libkb.GlobalContext, service launchd.Service, plis
 		return nil, err
 	}
 
-	st, err := serviceStatusFromLaunchd(g, service, serviceInfoPath(g))
+	st, err := serviceStatusFromLaunchd(g, service, g.Env.GetServiceInfoPath())
 	return &st, err
 }
 
