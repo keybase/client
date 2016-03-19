@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/blang/semver"
-	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
@@ -122,18 +121,7 @@ func FixVersionClash(g *libkb.GlobalContext, cl libkb.CommandLine) (err error) {
 	}
 
 	if serviceConfig.ForkType == keybase1.ForkType_LAUNCHD {
-		launchService := launchd.NewService(serviceConfig.Label)
-		launchService.SetLogger(g.Log)
-		err = launchService.Restart()
-		if err != nil {
-			return err
-		}
-		launchdStatus, err := launchService.LoadStatus()
-		if err != nil {
-			return err
-		}
-		_, err = libkb.WaitForServiceInfoFile(g, g.Env.GetServiceInfoPath(), launchdStatus.Label(), launchdStatus.Pid(), 25, 400*time.Millisecond, "version restart")
-		return err
+		return RestartLaunchdService(g, serviceConfig.Label)
 	}
 
 	ctlCli = keybase1.CtlClient{Cli: gcli}

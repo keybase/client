@@ -6,6 +6,8 @@
 package client
 
 import (
+	"fmt"
+
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
@@ -13,6 +15,10 @@ import (
 
 func getPlatformSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
 	return []cli.Command{}
+}
+
+func RestartLaunchdService(g *libkb.GlobalContext, label string) error {
+	return fmt.Errorf("Unsupported on this platform")
 }
 
 // DebugSocketError allows platforms to help the user diagnose and resolve
