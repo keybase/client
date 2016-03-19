@@ -6,7 +6,24 @@
 
 protocol kbfs {
 
+  import idl "common.avdl";
   import idl "kbfs_common.avdl";
+
+  record TLFMetadataNotification {
+      UID creator;
+      UID lastWriter;
+      string folderName;
+      string folderID;
+      long folderRevision;
+
+      long usageBytes;
+
+      // Members of the TLF
+      array<UID> resolvedWriters;
+      array<UID> resolvedReaders;
+      array<string> unresolvedWriters;
+      array<string> unresolvedReaders;
+  }
 
   /**
     Idea is that kbfs would call the function below whenever these actions are
@@ -20,4 +37,9 @@ protocol kbfs {
         */
   void FSEvent(FSNotification event);
 
+  /**
+    TLFMetadataUpdate is called with a batch of TLFMetadata objects containing
+    new TLF metadata.
+    */
+  void TLFMetadataUpdate(array<TLFMetadataNotification> md);
 }

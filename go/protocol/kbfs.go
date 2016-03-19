@@ -8,12 +8,30 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type TLFMetadataNotification struct {
+	Creator           UID      `codec:"creator" json:"creator"`
+	LastWriter        UID      `codec:"lastWriter" json:"lastWriter"`
+	FolderName        string   `codec:"folderName" json:"folderName"`
+	FolderID          string   `codec:"folderID" json:"folderID"`
+	FolderRevision    int64    `codec:"folderRevision" json:"folderRevision"`
+	UsageBytes        int64    `codec:"usageBytes" json:"usageBytes"`
+	ResolvedWriters   []UID    `codec:"resolvedWriters" json:"resolvedWriters"`
+	ResolvedReaders   []UID    `codec:"resolvedReaders" json:"resolvedReaders"`
+	UnresolvedWriters []string `codec:"unresolvedWriters" json:"unresolvedWriters"`
+	UnresolvedReaders []string `codec:"unresolvedReaders" json:"unresolvedReaders"`
+}
+
 type FSEventArg struct {
 	Event FSNotification `codec:"event" json:"event"`
 }
 
+type TLFMetadataUpdateArg struct {
+	Md []TLFMetadataNotification `codec:"md" json:"md"`
+}
+
 type KbfsInterface interface {
 	FSEvent(context.Context, FSNotification) error
+	TLFMetadataUpdate(context.Context, []TLFMetadataNotification) error
 }
 
 func KbfsProtocol(i KbfsInterface) rpc.Protocol {
@@ -36,6 +54,22 @@ func KbfsProtocol(i KbfsInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"TLFMetadataUpdate": {
+				MakeArg: func() interface{} {
+					ret := make([]TLFMetadataUpdateArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]TLFMetadataUpdateArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]TLFMetadataUpdateArg)(nil), args)
+						return
+					}
+					err = i.TLFMetadataUpdate(ctx, (*typedArgs)[0].Md)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -47,5 +81,11 @@ type KbfsClient struct {
 func (c KbfsClient) FSEvent(ctx context.Context, event FSNotification) (err error) {
 	__arg := FSEventArg{Event: event}
 	err = c.Cli.Call(ctx, "keybase.1.kbfs.FSEvent", []interface{}{__arg}, nil)
+	return
+}
+
+func (c KbfsClient) TLFMetadataUpdate(ctx context.Context, md []TLFMetadataNotification) (err error) {
+	__arg := TLFMetadataUpdateArg{Md: md}
+	err = c.Cli.Call(ctx, "keybase.1.kbfs.TLFMetadataUpdate", []interface{}{__arg}, nil)
 	return
 }

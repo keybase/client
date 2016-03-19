@@ -3,6 +3,345 @@
   "namespace": "keybase.1",
   "types": [
     {
+      "type": "record",
+      "name": "Time",
+      "fields": [],
+      "typedef": "long"
+    },
+    {
+      "type": "record",
+      "name": "StringKVPair",
+      "fields": [
+        {
+          "type": "string",
+          "name": "key"
+        },
+        {
+          "type": "string",
+          "name": "value"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Status",
+      "fields": [
+        {
+          "type": "int",
+          "name": "code"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "string",
+          "name": "desc"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "StringKVPair"
+          },
+          "name": "fields"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "DeviceID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "SigID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "KID",
+      "fields": [],
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "Text",
+      "fields": [
+        {
+          "type": "string",
+          "name": "data"
+        },
+        {
+          "type": "boolean",
+          "name": "markup"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PGPIdentity",
+      "fields": [
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": "string",
+          "name": "comment"
+        },
+        {
+          "type": "string",
+          "name": "email"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "PublicKey",
+      "fields": [
+        {
+          "type": "KID",
+          "name": "KID"
+        },
+        {
+          "type": "string",
+          "name": "PGPFingerprint"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PGPIdentity"
+          },
+          "name": "PGPIdentities"
+        },
+        {
+          "type": "boolean",
+          "name": "isSibkey"
+        },
+        {
+          "type": "boolean",
+          "name": "isEldest"
+        },
+        {
+          "type": "string",
+          "name": "parentID"
+        },
+        {
+          "type": "DeviceID",
+          "name": "deviceID"
+        },
+        {
+          "type": "string",
+          "name": "deviceDescription"
+        },
+        {
+          "type": "string",
+          "name": "deviceType"
+        },
+        {
+          "type": "Time",
+          "name": "cTime"
+        },
+        {
+          "type": "Time",
+          "name": "eTime"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "KeybaseTime",
+      "fields": [
+        {
+          "type": "Time",
+          "name": "unix"
+        },
+        {
+          "type": "int",
+          "name": "chain"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "RevokedKey",
+      "fields": [
+        {
+          "type": "PublicKey",
+          "name": "key"
+        },
+        {
+          "type": "KeybaseTime",
+          "name": "time"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "User",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Device",
+      "fields": [
+        {
+          "type": "string",
+          "name": "type"
+        },
+        {
+          "type": "string",
+          "name": "name"
+        },
+        {
+          "type": "DeviceID",
+          "name": "deviceID"
+        },
+        {
+          "type": "Time",
+          "name": "cTime"
+        },
+        {
+          "type": "Time",
+          "name": "mTime"
+        },
+        {
+          "type": "KID",
+          "name": "encryptKey"
+        },
+        {
+          "type": "KID",
+          "name": "verifyKey"
+        },
+        {
+          "type": "int",
+          "name": "status"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "Stream",
+      "fields": [
+        {
+          "type": "int",
+          "name": "fd"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "LogLevel",
+      "symbols": [
+        "NONE_0",
+        "DEBUG_1",
+        "INFO_2",
+        "NOTICE_3",
+        "WARN_4",
+        "ERROR_5",
+        "CRITICAL_6",
+        "FATAL_7"
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "ClientType",
+      "symbols": [
+        "NONE_0",
+        "CLI_1",
+        "GUI_2",
+        "KBFS_3"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserVersionVector",
+      "fields": [
+        {
+          "type": "long",
+          "name": "id"
+        },
+        {
+          "type": "int",
+          "name": "sigHints"
+        },
+        {
+          "type": "long",
+          "name": "sigChain"
+        },
+        {
+          "type": "Time",
+          "name": "cachedAt"
+        },
+        {
+          "type": "Time",
+          "name": "lastIdentifiedAt"
+        }
+      ]
+    },
+    {
+      "type": "record",
+      "name": "UserPlusKeys",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "username"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "PublicKey"
+          },
+          "name": "deviceKeys"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "RevokedKey"
+          },
+          "name": "revokedDeviceKeys"
+        },
+        {
+          "type": "int",
+          "name": "pgpKeyCount"
+        },
+        {
+          "type": "UserVersionVector",
+          "name": "uvv"
+        }
+      ]
+    },
+    {
+      "type": "enum",
+      "name": "MerkleTreeID",
+      "symbols": [
+        "MASTER_0",
+        "KBFS_PUBLIC_1",
+        "KBFS_PRIVATE_2"
+      ]
+    },
+    {
       "type": "enum",
       "name": "FSStatusCode",
       "symbols": [
@@ -73,6 +412,64 @@
           "name": "params"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "TLFMetadataNotification",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "creator"
+        },
+        {
+          "type": "UID",
+          "name": "lastWriter"
+        },
+        {
+          "type": "string",
+          "name": "folderName"
+        },
+        {
+          "type": "string",
+          "name": "folderID"
+        },
+        {
+          "type": "long",
+          "name": "folderRevision"
+        },
+        {
+          "type": "long",
+          "name": "usageBytes"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UID"
+          },
+          "name": "resolvedWriters"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "UID"
+          },
+          "name": "resolvedReaders"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "unresolvedWriters"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "string"
+          },
+          "name": "unresolvedReaders"
+        }
+      ]
     }
   ],
   "messages": {
@@ -85,6 +482,19 @@
       ],
       "response": "null",
       "doc": "Idea is that kbfs would call the function below whenever these actions are\n    performed on a file.\n\n    Note that this list/interface is very temporary and highly likely to change\n    significantly.\n\n    It is just a starting point to get kbfs notifications through the daemon to\n    the clients."
+    },
+    "TLFMetadataUpdate": {
+      "request": [
+        {
+          "name": "md",
+          "type": {
+            "type": "array",
+            "items": "TLFMetadataNotification"
+          }
+        }
+      ],
+      "response": "null",
+      "doc": "TLFMetadataUpdate is called with a batch of TLFMetadata objects containing\n    new TLF metadata."
     }
   }
 }

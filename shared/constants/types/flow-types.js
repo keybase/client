@@ -1034,6 +1034,19 @@ export type StringKVPair = {
   value: string;
 }
 
+export type TLFMetadataNotification = {
+  creator: UID;
+  lastWriter: UID;
+  folderName: string;
+  folderID: string;
+  folderRevision: long;
+  usageBytes: long;
+  resolvedWriters: Array<UID>;
+  resolvedReaders: Array<UID>;
+  unresolvedWriters: Array<string>;
+  unresolvedReaders: Array<string>;
+}
+
 export type Test = {
   reply: string;
 }
@@ -1923,6 +1936,17 @@ export type kbfs_FSEvent_rpc = {
   method: 'kbfs.FSEvent',
   param: {
     event: FSNotification
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type kbfs_TLFMetadataUpdate_result = void
+
+export type kbfs_TLFMetadataUpdate_rpc = {
+  method: 'kbfs.TLFMetadataUpdate',
+  param: {
+    md: Array<TLFMetadataNotification>
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any) => void)
@@ -3322,6 +3346,7 @@ export type rpc =
   | identify_identify2_rpc
   | identify_identify_rpc
   | kbfs_FSEvent_rpc
+  | kbfs_TLFMetadataUpdate_rpc
   | logUi_log_rpc
   | log_registerLogger_rpc
   | loginUi_displayPaperKeyPhrase_rpc
@@ -4065,6 +4090,15 @@ export type incomingCallMapType = {
   'keybase.1.kbfs.FSEvent'?: (
     params: {
       event: FSNotification
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.kbfs.TLFMetadataUpdate'?: (
+    params: {
+      md: Array<TLFMetadataNotification>
     },
     response: {
       error: (err: RPCError) => void,
