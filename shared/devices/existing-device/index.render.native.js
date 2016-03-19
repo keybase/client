@@ -1,7 +1,8 @@
+// @flow
 import React, {Component} from 'react'
 import {StyleSheet, Text, TouchableHighlight, View} from 'react-native'
 
-import commonStyles from '../../../styles/common'
+import commonStyles from '../../styles/common'
 
 export default class ExistingDeviceRender extends Component {
   render () {
