@@ -8,10 +8,11 @@ package s2k // import "github.com/keybase/go-crypto/openpgp/s2k"
 
 import (
 	"crypto"
-	"github.com/keybase/go-crypto/openpgp/errors"
 	"hash"
 	"io"
 	"strconv"
+
+	"github.com/keybase/go-crypto/openpgp/errors"
 )
 
 // Config collects configuration parameters for s2k key-stretching
@@ -175,7 +176,7 @@ func parseGNUExtensions(r io.Reader) (f func(out, in []byte), err error) {
 		// Read a serial number, which is prefixed by a 1-byte length.
 		// The maximum length is 16.
 		var lenBuf [1]byte
-		_, err = io.ReadFull(r, buf[:1])
+		_, err = io.ReadFull(r, lenBuf[:])
 		if err != nil {
 			return
 		}
