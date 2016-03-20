@@ -142,6 +142,16 @@
 			"revisionTime": "2015-06-06T07:53:03-04:00"
 		},
 		{
+			"path": "github.com/garyburd/redigo/internal",
+			"revision": "4ed1111375cbeb698249ffe48dd463e9b0a63a7a",
+			"revisionTime": "2016-03-02T15:46:02-08:00"
+		},
+		{
+			"path": "github.com/garyburd/redigo/redis",
+			"revision": "4ed1111375cbeb698249ffe48dd463e9b0a63a7a",
+			"revisionTime": "2016-03-02T15:46:02-08:00"
+		},
+		{
 			"path": "github.com/go-errors/errors",
 			"revision": "a41850380601eeb43f4350f7d17c6bbd8944aaf8",
 			"revisionTime": "2015-09-05T19:33:21-07:00"
@@ -303,6 +313,11 @@
 			"path": "github.com/keybase/go-merkle-tree",
 			"revision": "a2a53a828cf58801efa8285c651b0941b5abae8c",
 			"revisionTime": "2016-03-24T14:23:35-05:00"
+		},
+		{
+			"path": "github.com/keybase/go-redis-pubsub",
+			"revision": "48e6460e48e436fdafd9cda2b1611eb80915de3a",
+			"revisionTime": "2016-03-23T21:54:41-07:00"
 		},
 		{
 			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-triplesec",

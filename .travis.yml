@@ -9,6 +9,7 @@ go:
 install: true
 services:
   - docker
+  - redis-server
 before_install:
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then
       export DEBIAN_FRONTEND=noninteractive;
