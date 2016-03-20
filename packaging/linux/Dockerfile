@@ -25,7 +25,7 @@ RUN apt-get install -y nodejs
 RUN npm install -g npm
 RUN npm cache clean
 
-# Install Go 1.5, which doesn't exist in the Ubuntu repos yet.
+# Install Go directly from Google, because the Debian repos tend to be behind.
 RUN wget https://storage.googleapis.com/golang/go1.6.linux-amd64.tar.gz -O /root/go.tar
 RUN tar -C /usr/local -xzf /root/go.tar
 RUN rm /root/go.tar
