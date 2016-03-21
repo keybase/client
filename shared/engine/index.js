@@ -384,7 +384,7 @@ const cancelError = {
 }
 
 export function isRPCCancelError (err) {
-  return err && err.code === cancelError.code && err.desc === cancelError.desc
+  return err && err.code === cancelError.code && err.message === cancelError.message
 }
 
 export default new Engine()
