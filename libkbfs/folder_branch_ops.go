@@ -4203,20 +4203,26 @@ func (fbo *folderBranchOps) registerAndWaitForUpdates() {
 			default:
 			}
 			err := backoff.RetryNotify(func() error {
+				// Replace the FBOID one with a fresh id for every attempt
+				newCtx := fbo.ctxWithFBOID(ctx)
+				updateChan, err := fbo.registerForUpdates(newCtx)
+				if err != nil {
+					select {
+					case <-ctx.Done():
+						// Shortcut the retry, we're done.
+						return nil
+					default:
+						return err
+					}
+				}
+				err = fbo.waitForAndProcessUpdates(newCtx, updateChan)
 				select {
 				case <-ctx.Done():
 					// Shortcut the retry, we're done.
 					return nil
 				default:
-				}
-
-				// Replace the FBOID one with a fresh id for every attempt
-				newCtx := fbo.ctxWithFBOID(ctx)
-				updateChan, err := fbo.registerForUpdates(newCtx)
-				if err != nil {
 					return err
 				}
-				return fbo.waitForAndProcessUpdates(newCtx, updateChan)
 			},
 				expBackoff,
 				func(err error, nextTime time.Duration) {
