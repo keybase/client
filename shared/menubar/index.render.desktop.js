@@ -385,7 +385,7 @@ const stylesFooter = {
 
 const stylesEntryArrow = {
   ...globalStyles.clickable,
-  color: globalColors.lightGrey2,
+  color: globalColors.lightGrey,
   width: 25,
   fontSize: 13,
   height: 25,

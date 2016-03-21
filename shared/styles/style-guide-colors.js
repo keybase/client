@@ -26,6 +26,7 @@ export default {
 
   lightGrey: '#f0f0f0',
   lightGrey2: '#e6e6e6',
+  grey: '#cccccc',
 
   white: '#ffffff',
   white90: 'rgba(255, 255, 255, 0.90)',
