@@ -215,7 +215,8 @@ func (fbm *folderBlockManager) forceQuotaReclamation() {
 }
 
 func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
-	md *RootMetadata, ptrs []BlockPointer, archive bool) error {
+	md *RootMetadata, ptrs []BlockPointer, archive bool) (
+	[]BlockID, error) {
 	fbm.log.CDebugf(ctx, "Downgrading %d pointers (archive=%t)",
 		len(ptrs), archive)
 	bops := fbm.config.BlockOps()
@@ -234,6 +235,9 @@ func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
+	var zeroRefCountsLock sync.Mutex
+	var zeroRefCounts []BlockID
+
 	errChan := make(chan error, 1)
 	worker := func() {
 		defer wg.Done()
@@ -243,7 +247,21 @@ func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
 			if archive {
 				err = bops.Archive(ctx, md, chunk)
 			} else {
-				_, err = bops.Delete(ctx, md, chunk)
+				var liveCounts map[BlockID]int
+				liveCounts, err = bops.Delete(ctx, md, chunk)
+				if err == nil {
+					// Remember which IDs now have zero references, and
+					// should be deleted from other client caches.
+					func() {
+						zeroRefCountsLock.Lock()
+						defer zeroRefCountsLock.Unlock()
+						for id, count := range liveCounts {
+							if count == 0 {
+								zeroRefCounts = append(zeroRefCounts, id)
+							}
+						}
+					}()
+				}
 			}
 			if err != nil {
 				select {
@@ -278,11 +296,15 @@ func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
 		wg.Wait()
 		close(errChan)
 	}()
-	return <-errChan
+	err := <-errChan
+	if err != nil {
+		return nil, err
+	}
+	return zeroRefCounts, nil
 }
 
 func (fbm *folderBlockManager) deleteBlockRefs(ctx context.Context,
-	md *RootMetadata, ptrs []BlockPointer) error {
+	md *RootMetadata, ptrs []BlockPointer) ([]BlockID, error) {
 	return fbm.doChunkedDowngrades(ctx, md, ptrs, false)
 }
 
@@ -341,7 +363,7 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context) error 
 		fbm.log.CDebugf(ctx, "Cleaning up blocks for failed revision %d",
 			md.Revision)
 
-		err = fbm.deleteBlockRefs(ctx, md, ptrs)
+		_, err = fbm.deleteBlockRefs(ctx, md, ptrs)
 		// Ignore permanent errors
 		_, isPermErr := err.(BServerError)
 		_, isNonceNonExistentErr := err.(BServerErrorNonceNonExistent)
@@ -407,7 +429,8 @@ func (fbm *folderBlockManager) runUnlessShutdown(
 
 func (fbm *folderBlockManager) archiveBlockRefs(ctx context.Context,
 	md *RootMetadata, ptrs []BlockPointer) error {
-	return fbm.doChunkedDowngrades(ctx, md, ptrs, true)
+	_, err := fbm.doChunkedDowngrades(ctx, md, ptrs, true)
+	return err
 }
 
 func (fbm *folderBlockManager) archiveBlocksInBackground() {
@@ -672,12 +695,11 @@ outer:
 }
 
 func (fbm *folderBlockManager) finalizeReclamation(ctx context.Context,
-	ptrs []BlockPointer, latestRev MetadataRevision) error {
+	ptrs []BlockPointer, zeroRefCounts []BlockID,
+	latestRev MetadataRevision) error {
 	gco := newGCOp(latestRev)
-	for _, ptr := range ptrs {
-		// TODO: only add to the gc op if the bserver indicated that
-		// this was the final reference for this block ID.
-		gco.AddUnrefBlock(ptr)
+	for _, id := range zeroRefCounts {
+		gco.AddUnrefBlock(BlockPointer{ID: id})
 	}
 	fbm.log.CDebugf(ctx, "Finalizing reclamation %s with %d ptrs", gco,
 		len(ptrs))
@@ -813,12 +835,12 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 		return nil
 	}
 
-	err = fbm.deleteBlockRefs(ctx, head, ptrs)
+	zeroRefCounts, err := fbm.deleteBlockRefs(ctx, head, ptrs)
 	if err != nil {
 		return err
 	}
 
-	return fbm.finalizeReclamation(ctx, ptrs, latestRev)
+	return fbm.finalizeReclamation(ctx, ptrs, zeroRefCounts, latestRev)
 }
 
 func (fbm *folderBlockManager) reclaimQuotaInBackground() {
