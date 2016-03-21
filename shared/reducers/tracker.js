@@ -12,7 +12,7 @@ import type {UserInfo} from '../tracker/bio.render'
 import type {Proof} from '../tracker/proofs.render'
 import type {SimpleProofState, SimpleProofMeta} from '../constants/tracker'
 
-import type {Identity, RemoteProof, RevokedProof, LinkCheckResult, ProofState, TrackDiff, TrackDiffType, ProofStatus, ProofType, TrackSummary} from '../constants/types/flow-types'
+import type {Identity, RemoteProof, RevokedProof, LinkCheckResult, ProofState, TrackDiff, TrackDiffType, ProofStatus, TrackSummary} from '../constants/types/flow-types'
 import type {Action} from '../constants/types/flux'
 
 export type TrackerState = {
@@ -409,7 +409,7 @@ function proofStatusToSimpleProofMeta (status: ProofStatus): ?SimpleProofMeta {
 // TODO Have the service give this information.
 // Currently this is copied from the website: https://github.com/keybase/keybase/blob/658aa97a9ad63733444298353a528e7f8499d8b9/lib/mod/user_lol.iced#L971
 /* eslint-disable no-multi-spaces */
-function proofUrlToProfileUrl (proofType: string, name: string, key: ?string, humanUrl: ?string): string {
+function proofUrlToProfileUrl (proofType: number, name: string, key: ?string, humanUrl: ?string): string {
   switch (proofType) {
     case identify.ProofType.dns            : return `http://${name}`
     case identify.ProofType.genericWebSite : return `${key}://${name}`
@@ -467,7 +467,7 @@ function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
     color: stateToColor(proofState),
     name: rp.displayMarkup,
     humanUrl: humanUrl,
-    profileUrl: rp.displayMarkup && proofUrlToProfileUrl(rp.proofType.toString(), rp.displayMarkup, rp.key, humanUrl)
+    profileUrl: rp.displayMarkup && proofUrlToProfileUrl(rp.proofType, rp.displayMarkup, rp.key, humanUrl)
   }
 }
 
