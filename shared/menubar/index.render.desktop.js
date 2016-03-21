@@ -11,7 +11,7 @@ import {parseFolderNameToUsers, canonicalizeUsernames, stripPublicTag} from '../
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {Button, Text, Input, Terminal, Icon, ProgressIndicator} from '../common-adapters/index'
 
-import {cleanup, allowLoggedOut as allowLoggedOutKBFS} from '../util/kbfs'
+import {cleanup} from '../util/kbfs'
 
 // This is the only data that the renderer cares about for a folder
 import type {FolderInfo, FolderEntry, RenderProps} from './index.render'
@@ -56,17 +56,16 @@ const Footer = props => {
 
 const LogInTerminalMessage = props => {
   return (
-    <div style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.black10}}>
-      <Icon type='fa-exclamation-triangle' style={{alignSelf: 'center', color: globalColors.yellow, marginTop: 12}} />
+    <div style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.white}}>
+      <Icon type='fa-exclamation-triangle' style={{alignSelf: 'center', color: globalColors.red, marginTop: 12}} />
       <Text type='Body' small style={{alignSelf: 'center', marginTop: 6}}>You're logged out!</Text>
-      <Text type='Body' small style={{marginTop: 23, marginBottom: 5, marginLeft: 10}}>From the terminal:</Text>
+      <Text type='Body' small style={{marginTop: 10, marginBottom: 5, marginLeft: 10}}>From the terminal:</Text>
       <Terminal>
         <Text type='TerminalCommand'>keybase login</Text>
         <Text type='TerminalEmpty'/>
         <Text type='TerminalComment'>or if you're new to Keybase:</Text>
         <Text type='TerminalCommand'>keybase signup</Text>
       </Terminal>
-      {allowLoggedOutKBFS && <Text type='Body' small style={{marginTop: 22, marginBottom: 7, marginLeft: 10}}>Or access someone's public folder:</Text>}
     </div>
   )
 }
@@ -74,11 +73,10 @@ const LogInTerminalMessage = props => {
 const LogInPrompt = props => {
   const logIn: () => void = props.logIn
   return (
-    <div style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.black10}}>
+    <div style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.white}}>
       <Icon type='fa-exclamation-triangle' style={{alignSelf: 'center', color: globalColors.yellow, marginTop: 12}} />
       <Text type='Body' small style={{alignSelf: 'center', marginTop: 6}}>You're logged out!</Text>
       <Button type='Primary' label='Log In' onClick={logIn} style={{alignSelf: 'center', minWidth: 160, marginTop: 12, marginRight: 0}}/>
-      {allowLoggedOutKBFS && <Text type='Body' small style={{marginTop: 22, marginBottom: 7, marginLeft: 10}}>Or access someone's public folder:</Text>}
     </div>
   )
 }
@@ -247,10 +245,6 @@ class FolderList extends Component<void, FolderListProps, FolderState> {
   render () {
     const {username, loggedIn} = this.props
 
-    if (!loggedIn && !allowLoggedOutKBFS) {
-      return <div style={{flex: 1, backgroundColor: globalColors.black10}}/>
-    }
-
     // Remove folders that are just our personal ones, we'll add those in later
     // For consistency. Since we aren't gauranteed we have favorited our own folders.
     const folders = this.props.folders.filter(f => f.type === 'entry' || stripPublicTag(f.folderName) !== username)
@@ -306,7 +300,7 @@ class FolderList extends Component<void, FolderListProps, FolderState> {
 
     return (
       <div style={{...styles.folderList, overflowY: loggedIn ? 'scroll' : 'hidden'}}>
-        {this.props.loading && (
+        {this.props.loading && loggedIn && (
           <div style={styles.loader}>
             <ProgressIndicator style={styles.loader} />
           </div>)}
@@ -322,6 +316,11 @@ class FolderList extends Component<void, FolderListProps, FolderState> {
               collapsed={this.state.privateCollapsed} />
           </div>
         )}
+        {!loggedIn &&
+          <Text type='Body' small style={{marginBottom: 7}}>
+            Or access someone's public folder:
+          </Text>
+        }
         <Text type='Body' onClick={() => this.props.openKBFSPublic('')}>/keybase/public/</Text>
         <CollapsableFolderList
           username={username}
