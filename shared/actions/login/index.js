@@ -1,4 +1,5 @@
 /* @flow */
+import React from 'react'
 import * as Constants from '../../constants/login'
 import * as CommonConstants from '../../constants/common'
 import {bindActionCreators} from 'redux'
@@ -375,71 +376,60 @@ export function openAccountResetPage () : AsyncAction {
 }
 
 function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
-  function appendRoute (component: any, props: Object) {
-    dispatch(routeAppend({
-      parseRoute: {
-        componentAtTop: {
-          component, props
-        }
-      }
-    }))
+  function appendRouteElement (element: React$Element) {
+    dispatch(routeAppend({parseRoute: {componentAtTop: {element}}}))
   }
 
   let username = null
 
   return {
     'keybase.1.loginUi.getEmailOrUsername': (param, response) => {
-      appendRoute(UsernameOrEmail, {
-        onSubmit: usernameOrEmail => {
-          username = usernameOrEmail
-          response.result(usernameOrEmail)
-        },
-        onBack: () => dispatch(cancelLogin(response))
-      })
+      appendRouteElement((
+        <UsernameOrEmail
+          onSubmit={usernameOrEmail => {
+            username = usernameOrEmail
+            response.result(usernameOrEmail)
+          }}
+          onBack={() => dispatch(cancelLogin(response))} />))
     },
     'keybase.1.provisionUi.chooseDevice': ({devices}, response) => {
-      appendRoute(SelectOtherDevice, {
-        devices,
-        onSelect: deviceID => {
-          const type: DeviceRole = devices[devices.findIndex(d => d.deviceID === deviceID)].type
-          const role = {
-            mobile: Constants.codePageDeviceRoleExistingPhone,
-            computer: Constants.codePageDeviceRoleExistingComputer
-          }[type]
-          dispatch(setCodePageOtherDeviceRole(role))
-          response.result(deviceID)
-        },
-        onWont: () => response.result(''),
-        onBack: () => dispatch(cancelLogin(response))
-      })
+      appendRouteElement((
+        <SelectOtherDevice
+          devices={devices}
+          onSelect={deviceID => {
+            const type: DeviceRole = devices[devices.findIndex(d => d.deviceID === deviceID)].type
+            const role = {
+              mobile: Constants.codePageDeviceRoleExistingPhone,
+              computer: Constants.codePageDeviceRoleExistingComputer
+            }[type]
+            dispatch(setCodePageOtherDeviceRole(role))
+            response.result(deviceID)
+          }}
+          onWont={() => response.result('')}
+          onBack={() => dispatch(cancelLogin(response))}/>))
     },
     'keybase.1.secretUi.getPassphrase': ({pinentry: {type, prompt, retryLabel}}, response) => {
       switch (type) {
-        case enums.secretUi.PassphraseType.paperKey: {
-          appendRoute(PaperKey, {
-            mapStateToProps: state => state.login,
-            onSubmit: passphrase => response.result({
-              passphrase,
-              storeSecret: false
-            }),
-            onBack: () => dispatch(cancelLogin(response)),
-            error: retryLabel
-          })
+        case enums.secretUi.PassphraseType.paperKey:
+          appendRouteElement((
+            <PaperKey
+              mapStateToProps={state => state.login}
+              onSubmit={(passphrase: string) => { response.result({passphrase, storeSecret: false}) }} // eslint-disable-line arrow-parens
+              onBack={() => { dispatch(cancelLogin(response)) }}
+              error={retryLabel}/>))
           break
-        }
-        case enums.secretUi.PassphraseType.passPhrase: {
-          appendRoute(Passphrase, {
-            prompt,
-            onSubmit: passphrase => response.result({
-              passphrase,
-              storeSecret: false
-            }),
-            onBack: () => dispatch(cancelLogin(response)),
-            error: retryLabel,
-            username
-          })
+        case enums.secretUi.PassphraseType.passPhrase:
+          appendRouteElement((
+            <Passphrase
+              prompt={prompt}
+              onSubmit={passphrase => response.result({
+                passphrase,
+                storeSecret: false
+              })}
+              onBack={() => dispatch(cancelLogin(response))}
+              error={retryLabel}
+              username={username} />))
           break
-        }
         default:
           response.error({
             code: enums.constants.StatusCode.scnotfound,
@@ -453,18 +443,18 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
       dispatch(askForCodePage(phrase => { response.result({phrase, secret: null}) }, response))
     },
     'keybase.1.provisionUi.PromptNewDeviceName': ({existingDevices, errorMessage}, response) => {
-      appendRoute(SetPublicName, {
-        existingDevices,
-        deviceNameError: errorMessage,
-        onSubmit: deviceName => { response.result(deviceName) },
-        onBack: () => dispatch(cancelLogin(response))
-      })
+      appendRouteElement((
+        <SetPublicName
+          existingDevices={existingDevices}
+          deviceNameError={errorMessage}
+          onSubmit={deviceName => { response.result(deviceName) }}
+          onBack={() => dispatch(cancelLogin(response))} />))
     },
     'keybase.1.provisionUi.chooseGPGMethod': (param, response) => {
-      appendRoute(GPGSign, {
-        onSubmit: exportKey => response.result(exportKey ? enums.provisionUi.GPGMethod.gpgImport : enums.provisionUi.GPGMethod.gpgSign),
-        onBack: () => dispatch(cancelLogin(response))
-      })
+      appendRouteElement((
+        <GPGSign
+          onSubmit={exportKey => response.result(exportKey ? enums.provisionUi.GPGMethod.gpgImport : enums.provisionUi.GPGMethod.gpgSign)}
+          onBack={() => dispatch(cancelLogin(response))} />))
     },
     'keybase.1.provisionUi.ProvisioneeSuccess': (param, response) => {
       response.result()
