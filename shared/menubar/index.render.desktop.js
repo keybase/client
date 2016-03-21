@@ -411,7 +411,7 @@ const styles = {
     top: 5
   },
   dz1InputHint: {
-    color: globalColors.black10,
+    color: globalColors.black20,
     // This is because normal <Input/> does center-aligned hints by using
     // width: 100% on position: absolute
     width: 'auto',
