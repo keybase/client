@@ -105,10 +105,6 @@ func ResolveInstallStatus(version string, bundleVersion string, lastExitStatus s
 	return
 }
 
-func serviceInfoPath(context Context) string {
-	return filepath.Join(context.GetRuntimeDir(), "keybased.info")
-}
-
 func KBFSBundleVersion(context Context, binPath string) (string, error) {
 	runMode := context.GetRunMode()
 	kbfsBinPath, err := kbfsBinPath(runMode, binPath)

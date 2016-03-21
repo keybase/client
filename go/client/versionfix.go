@@ -13,7 +13,6 @@ import (
 	"time"
 
 	"github.com/blang/semver"
-	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
@@ -122,18 +121,19 @@ func FixVersionClash(g *libkb.GlobalContext, cl libkb.CommandLine) (err error) {
 	}
 
 	if serviceConfig.ForkType == keybase1.ForkType_LAUNCHD {
-		err = launchd.Restart(serviceConfig.Label, g.Log)
-	} else {
-		ctlCli = keybase1.CtlClient{Cli: gcli}
-		err = ctlCli.Stop(context.TODO(), keybase1.StopArg{})
+		return RestartLaunchdService(g, serviceConfig.Label)
 	}
+
+	ctlCli = keybase1.CtlClient{Cli: gcli}
+	err = ctlCli.Stop(context.TODO(), keybase1.StopArg{})
 	if err != nil && origPid >= 0 {
 		// A fallback approach. I haven't seen a need for it, but it can't really hurt.
 		// If we fail to restart via Stop() then revert to kill techniques.
 
 		g.Log.Warning("Error in Stopping %d via RPC: %v; trying fallback (kill via pidfile)", origPid, err)
 		time.Sleep(time.Second)
-		newPid, err := getPid(g)
+		var newPid int
+		newPid, err = getPid(g)
 		if err != nil {
 			g.Log.Warning("No pid; shutdown must have worked (%v)", err)
 		} else if newPid != origPid {

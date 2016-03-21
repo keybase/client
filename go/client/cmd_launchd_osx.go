@@ -9,6 +9,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/install"
@@ -325,4 +326,19 @@ func (v *CmdLaunchdAction) Run() error {
 	}
 
 	return nil
+}
+
+func RestartLaunchdService(g *libkb.GlobalContext, label string) error {
+	launchService := launchd.NewService(label)
+	launchService.SetLogger(g.Log)
+	err := launchService.Restart()
+	if err != nil {
+		return err
+	}
+	launchdStatus, err := launchService.LoadStatus()
+	if err != nil {
+		return err
+	}
+	_, err = libkb.WaitForServiceInfoFile(g, g.Env.GetServiceInfoPath(), launchdStatus.Label(), launchdStatus.Pid(), 25, 400*time.Millisecond, "restart")
+	return err
 }
