@@ -4,6 +4,8 @@
 package service
 
 import (
+	"errors"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -48,4 +50,14 @@ func (h *DeviceHandler) DeviceAdd(_ context.Context, sessionID int) error {
 	}
 	eng := engine.NewDeviceAdd(h.G())
 	return engine.RunEngine(eng, ctx)
+}
+
+// CheckDeviceNameFormat verifies that the device name has a valid
+// format.
+func (h *DeviceHandler) CheckDeviceNameFormat(_ context.Context, arg keybase1.CheckDeviceNameFormatArg) (bool, error) {
+	ok := libkb.CheckDeviceName.F(arg.Name)
+	if ok {
+		return ok, nil
+	}
+	return false, errors.New(libkb.CheckDeviceName.Hint)
 }

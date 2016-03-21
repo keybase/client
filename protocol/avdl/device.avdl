@@ -14,4 +14,10 @@ protocol device {
     This is for kex2.
     */
   void deviceAdd(int sessionID);
+
+  /**
+    Checks the device name format.
+    */
+  boolean checkDeviceNameFormat(int sessionID, string name);
 }
+

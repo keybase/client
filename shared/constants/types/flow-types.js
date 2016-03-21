@@ -1617,6 +1617,17 @@ export type delegateUiCtl_registerUpdateUI_rpc = {
   callback: (null | (err: ?any) => void)
 }
 
+export type device_checkDeviceNameFormat_result = boolean
+
+export type device_checkDeviceNameFormat_rpc = {
+  method: 'device.checkDeviceNameFormat',
+  param: {
+    name: string
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any, response: device_checkDeviceNameFormat_result) => void)
+}
+
 export type device_deviceAdd_result = void
 
 export type device_deviceAdd_rpc = {
@@ -3294,6 +3305,7 @@ export type rpc =
   | delegateUiCtl_registerIdentifyUI_rpc
   | delegateUiCtl_registerSecretUI_rpc
   | delegateUiCtl_registerUpdateUI_rpc
+  | device_checkDeviceNameFormat_rpc
   | device_deviceAdd_rpc
   | device_deviceList_rpc
   | favorite_favoriteAdd_rpc
@@ -3803,6 +3815,16 @@ export type incomingCallMapType = {
     response: {
       error: (err: RPCError) => void,
       result: () => void
+    }
+  ) => void,
+  'keybase.1.device.checkDeviceNameFormat'?: (
+    params: {
+      sessionID: int,
+      name: string
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: device_checkDeviceNameFormat_result) => void
     }
   ) => void,
   'keybase.1.favorite.favoriteAdd'?: (
