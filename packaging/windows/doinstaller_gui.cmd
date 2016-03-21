@@ -74,7 +74,15 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 
 echo off
-for /f %%i in ('dir %BUILD_TAG% /od /b') do set KEYBASE_INSTALLER_NAME=%%i
+
+go get github.com/keybase/release
+go install github.com/keybase/release
+set release_bin=%GOPATH%\bin\windows_386\release.exe
+
+
+pushd %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
+
+for /f %%i in ('dir /od /b') do set KEYBASE_INSTALLER_NAME=%%i
 echo %KEYBASE_INSTALLER_NAME%
 
 :: Double check that the installer is codesigned
@@ -83,12 +91,6 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-go get github.com/keybase/release
-go install github.com/keybase/release
-set release_bin=%GOPATH%\bin\windows_386\release.exe
-
-
-pushd %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
 %GOPATH%\bin\windows_386\release update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://s3.amazonaws.com/prerelease.keybase.io/windows > update-windows-prod.json
 ::"%ProgramFiles%\S3 Browser\s3browser-con.exe" upload keybase %KEYBASE_INSTALLER_NAME% prerelease.keybase.io/windows
 :: After sanity checking, do:
