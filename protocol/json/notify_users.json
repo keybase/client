@@ -1,6 +1,5 @@
 {
   "protocol": "NotifyUsers",
-  "namespace": "keybase.1",
   "types": [
     {
       "type": "record",
@@ -353,5 +352,6 @@
       "response": "null",
       "notify": ""
     }
-  }
+  },
+  "namespace": "keybase.1"
 }

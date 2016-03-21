@@ -1,6 +1,5 @@
 {
   "protocol": "device",
-  "namespace": "keybase.1",
   "types": [
     {
       "type": "record",
@@ -366,5 +365,6 @@
       "response": "null",
       "doc": "Starts the process of adding a new device using an existing\n    device.  It is called on the existing device. \n    This is for kex2."
     }
-  }
+  },
+  "namespace": "keybase.1"
 }

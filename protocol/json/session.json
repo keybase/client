@@ -1,6 +1,5 @@
 {
   "protocol": "session",
-  "namespace": "keybase.1",
   "types": [
     {
       "type": "record",
@@ -378,5 +377,6 @@
       ],
       "response": "Session"
     }
-  }
+  },
+  "namespace": "keybase.1"
 }

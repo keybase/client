@@ -1,6 +1,5 @@
 {
   "protocol": "quota",
-  "namespace": "keybase.1",
   "types": [
     {
       "type": "record",
@@ -374,5 +373,6 @@
       ],
       "response": "VerifySessionRes"
     }
-  }
+  },
+  "namespace": "keybase.1"
 }

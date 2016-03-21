@@ -1,6 +1,5 @@
 {
   "protocol": "identify",
-  "namespace": "keybase.1",
   "types": [
     {
       "type": "record",
@@ -784,5 +783,6 @@
       ],
       "response": "Identify2Res"
     }
-  }
+  },
+  "namespace": "keybase.1"
 }
