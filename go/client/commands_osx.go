@@ -9,7 +9,6 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol"
 )
 
 func getPlatformSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
@@ -20,5 +19,3 @@ func getPlatformSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalCont
 		NewCmdUninstall(cl, g),
 	}
 }
-
-const defaultForkType = keybase1.ForkType_LAUNCHD
