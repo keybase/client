@@ -218,13 +218,17 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	}
 	arg.G().Log.Debug(fmt.Sprintf("| Result is: %s", internalResp.Status))
 
-	// Check for a code 200 or rather which codes were allowed in arg.HttpStatus
-	err = checkHTTPStatus(arg, internalResp)
+	// The server sends "client version out of date" messages through the API
+	// headers. If the client is *really* out of date, the request status will
+	// be a 400 error, but these headers will still be present. So we need to
+	// handle headers *before* we abort based on status below.
+	err = api.consumeHeaders(internalResp)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	err = api.consumeHeaders(internalResp)
+	// Check for a code 200 or rather which codes were allowed in arg.HttpStatus
+	err = checkHTTPStatus(arg, internalResp)
 	if err != nil {
 		return nil, nil, err
 	}
