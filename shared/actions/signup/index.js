@@ -12,7 +12,7 @@ import {routeAppend, navigateUp} from '../../actions/router'
 import type {TypedAsyncAction, AsyncAction} from '../../constants/types/flux'
 import type {RouteAppend} from '../../constants/router'
 import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName, Signup, ShowPaperKey, ShowSuccess, ResetSignup, RequestInvite, StartRequestInvite} from '../../constants/signup'
-import type {signup_signup_rpc, signup_checkInvitationCode_rpc, signup_checkUsernameAvailable_rpc, signup_inviteRequest_rpc} from '../../constants/types/flow-types'
+import type {signup_signup_rpc, signup_checkInvitationCode_rpc, signup_checkUsernameAvailable_rpc, signup_inviteRequest_rpc, device_checkDeviceNameFormat_rpc} from '../../constants/types/flow-types'
 
 function nextPhase (): TypedAsyncAction<RouteAppend> {
   return (dispatch, getState) => {
@@ -232,11 +232,11 @@ export function checkPassphrase (passphrase1: string, passphrase2: string): Type
 }
 
 export function submitDeviceName (deviceName: string, skipMail?: boolean): TypedAsyncAction<SubmitDeviceName | RouteAppend | Signup | ShowPaperKey> {
-  return dispatch => {
+  return dispatch => new Promise((resolve, reject) => {
     // TODO do some checking on the device name - ideally this is done on the service side
     let deviceNameError = null
     if (_.trim(deviceName).length === 0) {
-      deviceNameError = 'Device name must not be empty'
+      deviceNameError = 'Device name must not be empty.'
     }
 
     if (deviceNameError) {
@@ -246,19 +246,38 @@ export function submitDeviceName (deviceName: string, skipMail?: boolean): Typed
         payload: {deviceNameError}
       })
     } else {
-      dispatch({
-        type: Constants.submitDeviceName,
-        payload: {deviceName}
-      })
-
-      const signupPromise = dispatch(signup(skipMail || false))
-      if (signupPromise) {
-        return signupPromise.then(() => dispatch(nextPhase()) || Promise.resolve())
-      } else {
-        throw new Error('did not get promise from signup')
+      const params: device_checkDeviceNameFormat_rpc = {
+        method: 'device.checkDeviceNameFormat',
+        param: {name: deviceName},
+        incomingCallMap: {},
+        callback: err => {
+          if (err) {
+            console.error('device name is invalid: ', err)
+            dispatch({
+              type: Constants.submitDeviceName,
+              error: true,
+              payload: {deviceNameError: `Device name is invalid: ${err.message}.`, deviceName}
+            })
+            reject(err)
+          } else {
+            if (deviceName) {
+              dispatch({
+                type: Constants.submitDeviceName,
+                payload: {deviceName}
+              })
+              const signupPromise = dispatch(signup(skipMail || false))
+              if (signupPromise) {
+                return signupPromise.then(() => dispatch(nextPhase()) || Promise.resolve())
+              } else {
+                throw new Error('did not get promise from signup')
+              }
+            }
+          }
+        }
       }
+      engine.rpc(params)
     }
-  }
+  })
 }
 
 let paperKeyResponse = null
