@@ -563,17 +563,3 @@ func (r BlockReference) String() string {
 func (r BlockReferenceCount) String() string {
 	return fmt.Sprintf("%s,%d", r.Ref.String(), r.LiveCount)
 }
-
-func (f ForkType) String() string {
-	switch f {
-	case ForkType_NONE:
-		return "none"
-	case ForkType_AUTO:
-		return "auto"
-	case ForkType_WATCHDOG:
-		return "watchdog"
-	case ForkType_LAUNCHD:
-		return "launchd"
-	}
-	return ""
-}
