@@ -104,7 +104,7 @@ export default class Render extends Component {
             <Input floatingLabelText='Label' errorText='Error lorem ipsum dolor sit amet.'/>
             <Input multiLine floatingLabelText='Multiline'/>
             <Input multiLine floatingLabelText='Multiline' errorText='Error lorem ipsum dolor sit amet.'/>
-            <Input floatingLabelText='Label' defaultValue='Blah'/>
+            <Input floatingLabelText='Label'/>
             <Input floatingLabelText='foo' rows={1} rowsMax={3} multiLine />
             <Input hintText='foo' rows={1} rowsMax={3} multiLine />
             <Input multiLine hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas' style={{marginTop: 30}} />
