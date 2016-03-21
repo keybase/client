@@ -37,21 +37,21 @@ To build a version of the app using the local repo without signing or uploading
 to S3:
 
 ```
-NOPULL=1 NOS3=1 NOSIGN=1 ./build_app.sh
+NOPULL=1 NOS3=1 ./build_app.sh
 ```
 
 For faster debugging/testing, you can build Keybase services (go binaries)
 directly into an existing app install:
 
 ```
-BUILD_DIR=/Applications/Keybase.app/Contents/SharedSupport/bin ./build_keybase.sh
-BUILD_DIR=/Applications/Keybase.app/Contents/SharedSupport/bin ./build_kbfs.sh
+BUILD_DIR=/Applications/Keybase.app/Contents/SharedSupport/bin PLATFORM=darwin ./build_keybase.sh
+BUILD_DIR=/Applications/Keybase.app/Contents/SharedSupport/bin PLATFORM=darwin ./build_kbfs.sh
 ```
 
 To build the app and services from a local copy (for testing):
 
 ```
-TEST=1 NOSIGN=1 ./build_app.sh
+TEST=1 ./build_app.sh
 ```
 
 ### Testing Updates
