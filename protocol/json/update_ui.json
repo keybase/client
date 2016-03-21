@@ -1,6 +1,5 @@
 {
   "protocol": "updateUi",
-  "namespace": "keybase.1",
   "types": [
     {
       "type": "record",
@@ -596,5 +595,6 @@
       ],
       "response": "UpdateQuitRes"
     }
-  }
+  },
+  "namespace": "keybase.1"
 }
