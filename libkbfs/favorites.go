@@ -65,9 +65,7 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 		f.inFlightLock.Lock()
 		defer f.inFlightLock.Unlock()
 		req.err = err
-		if req.done != nil {
-			close(req.done)
-		}
+		close(req.done)
 		for _, fav := range req.toAdd {
 			delete(f.inFlightAdds, fav)
 		}
@@ -174,10 +172,6 @@ func (f *Favorites) waitOnReq(ctx context.Context,
 }
 
 func (f *Favorites) sendReq(ctx context.Context, req *favReq) error {
-	if req.done == nil {
-		req.done = make(chan struct{})
-	}
-	req.ctx = ctx
 	select {
 	case f.reqChan <- req:
 	case <-ctx.Done():
@@ -240,7 +234,11 @@ func (f *Favorites) AddAsync(ctx context.Context, fav Favorite) {
 // Delete deletes a favorite from the favorites list.  It is
 // idempotent.
 func (f *Favorites) Delete(ctx context.Context, fav Favorite) error {
-	return f.sendReq(ctx, &favReq{toDel: []Favorite{fav}})
+	return f.sendReq(ctx, &favReq{
+		ctx:   ctx,
+		toDel: []Favorite{fav},
+		done:  make(chan struct{}),
+	})
 }
 
 // RefreshCache refreshes the cached list of favorites.
@@ -264,7 +262,9 @@ func (f *Favorites) RefreshCache(ctx context.Context) {
 func (f *Favorites) Get(ctx context.Context) ([]Favorite, error) {
 	favChan := make(chan []Favorite, 1)
 	req := &favReq{
+		ctx:  ctx,
 		favs: favChan,
+		done: make(chan struct{}),
 	}
 	err := f.sendReq(ctx, req)
 	if err != nil {
