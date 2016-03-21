@@ -1569,6 +1569,14 @@ func TestProvisionMultipleUsers(t *testing.T) {
 	}
 }
 
+func TestResetAccount(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "login")
+	ResetAccount(tc, u)
+}
+
 type testProvisionUI struct {
 	secretCh               chan kex2.Secret
 	method                 keybase1.ProvisionMethod
