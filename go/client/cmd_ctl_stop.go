@@ -36,6 +36,19 @@ func (s *CmdCtlStop) ParseArgv(ctx *cli.Context) error {
 }
 
 func (s *CmdCtlStop) Run() (err error) {
+	configCli, err := GetConfigClient(s.G())
+	if err != nil {
+		return err
+	}
+	config, err := configCli.GetConfig(context.TODO(), 0)
+	if err != nil {
+		return err
+	}
+
+	if config.ForkType == keybase1.ForkType_LAUNCHD {
+		return StopLaunchdService(s.G(), config.Label, true)
+	}
+
 	cli, err := GetCtlClient(s.G())
 	if err != nil {
 		return err

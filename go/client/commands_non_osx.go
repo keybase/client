@@ -11,10 +11,21 @@ import (
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/protocol"
 )
 
 func getPlatformSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
 	return []cli.Command{}
+}
+
+const defaultForkType = keybase1.ForkType_AUTO
+
+func StartLaunchdService(g *libkb.GlobalContext, label string, wait bool) error {
+	return fmt.Errorf("Unsupported on this platform")
+}
+
+func StopLaunchdService(g *libkb.GlobalContext, label string, wait bool) error {
+	return fmt.Errorf("Unsupported on this platform")
 }
 
 func RestartLaunchdService(g *libkb.GlobalContext, label string) error {

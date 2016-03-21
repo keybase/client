@@ -328,6 +328,25 @@ func (v *CmdLaunchdAction) Run() error {
 	return nil
 }
 
+func StartLaunchdService(g *libkb.GlobalContext, label string, wait bool) error {
+	launchService := launchd.NewService(label)
+	launchService.SetLogger(g.Log)
+	err := launchService.Start()
+	if err != nil {
+		return err
+	}
+	if wait {
+		return WaitForService(g, launchService)
+	}
+	return nil
+}
+
+func StopLaunchdService(g *libkb.GlobalContext, label string, wait bool) error {
+	launchService := launchd.NewService(label)
+	launchService.SetLogger(g.Log)
+	return launchService.Stop(wait)
+}
+
 func RestartLaunchdService(g *libkb.GlobalContext, label string) error {
 	launchService := launchd.NewService(label)
 	launchService.SetLogger(g.Log)
@@ -335,6 +354,10 @@ func RestartLaunchdService(g *libkb.GlobalContext, label string) error {
 	if err != nil {
 		return err
 	}
+	return WaitForService(g, launchService)
+}
+
+func WaitForService(g *libkb.GlobalContext, launchService launchd.Service) error {
 	launchdStatus, err := launchService.LoadStatus()
 	if err != nil {
 		return err

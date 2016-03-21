@@ -27,12 +27,10 @@ func NewCtlHandler(xp rpc.Transporter, v *Service, g *libkb.GlobalContext) *CtlH
 }
 
 // Stop is called on the rpc keybase.1.ctl.stop, which shuts down the service.
-//
-// stop() is defined in ctl_osx.go and ctl_non_osx.go for
-// OS-specific functionality.
 func (c *CtlHandler) Stop(_ context.Context, args keybase1.StopArg) error {
 	c.G().Log.Debug("Received stop(%d) RPC; shutting down", args.ExitCode)
-	return c.stop(args)
+	go c.service.Stop(args.ExitCode)
+	return nil
 }
 
 func (c *CtlHandler) LogRotate(_ context.Context, sessionID int) error {
