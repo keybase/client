@@ -203,11 +203,6 @@ func createTestProtocol(i TestInterface) Protocol {
 //---------------------------------------------------------------------
 // Client
 
-type GenericClient interface {
-	Call(ctx context.Context, method string, arg interface{}, res interface{}) error
-	Notify(ctx context.Context, method string, arg interface{}) error
-}
-
 type TestClient struct {
 	GenericClient
 }
