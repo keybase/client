@@ -1574,7 +1574,22 @@ func TestResetAccount(t *testing.T) {
 	defer tc.Cleanup()
 
 	u := CreateAndSignupFakeUser(tc, "login")
+	originalDevice := tc.G.Env.GetDeviceID()
 	ResetAccount(tc, u)
+
+	Logout(tc)
+
+	// this will reprovision as an eldest device:
+	u.LoginOrBust(tc)
+	if err := AssertProvisioned(tc); err != nil {
+		t.Fatal(err)
+	}
+
+	newDevice := tc.G.Env.GetDeviceID()
+
+	if newDevice == originalDevice {
+		t.Errorf("device id did not change: %s", newDevice)
+	}
 }
 
 type testProvisionUI struct {
