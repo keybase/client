@@ -8,7 +8,7 @@ import Container from '../../forms/container'
 
 import type {Props} from './index.render'
 
-export default class Render extends Component {
+class Render extends Component {
   props: Props;
 
   render () {
@@ -24,29 +24,33 @@ export default class Render extends Component {
     const passphraseError = this.props.passphraseError && this.props.passphraseError.stringValue()
 
     return (
-      <Container onBack={this.props.onBack} style={styles.container} outerStyle={styles.outer}>
-        <UserCard>
-          <Input autoFocus style={styles.first} type='password' ref={r => (passphraseRef1 = r)}
+      <Container onBack={this.props.onBack} style={stylesContainer} outerStyle={stylesOuter}>
+        <UserCard style={stylesCard}>
+          <Input autoFocus style={stylesFirst} type='password' ref={r => (passphraseRef1 = r)}
             hintText='Create a passphrase' errorText={passphraseError} />
           <Input type='password' ref={r => (passphraseRef2 = r)} hintText='Confirm passphrase' onEnterKeyDown={checkPassphrase}/>
-          <Button fullWidth type='Secondary' label='Continue' onClick={checkPassphrase}/>
+          <Button fullWidth type='Primary' label='Continue' onClick={checkPassphrase}/>
         </UserCard>
       </Container>
     )
   }
 }
 
-const styles = {
-  outer: {
-    backgroundColor: globalColors.black10
-  },
-  container: {
-    ...globalStyles.flexBoxColumn,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 15
-  },
-  first: {
-    marginTop: 35
-  }
+const stylesOuter = {
+  backgroundColor: globalColors.black10
 }
+const stylesContainer = {
+  ...globalStyles.flexBoxColumn,
+  justifyContent: 'center',
+  alignItems: 'center',
+  marginTop: 15
+}
+const stylesFirst = {
+  marginTop: 35
+}
+
+const stylesCard = {
+  alignItems: 'stretch'
+}
+
+export default Render
