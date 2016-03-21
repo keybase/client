@@ -93,9 +93,8 @@ func NewCmdID(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 				HideUsage: !develUsage,
 			},
 			cli.BoolFlag{
-				Name:      "s, skip-proof-cache",
-				Usage:     "Skip cached proofs, force re-check",
-				HideUsage: !develUsage,
+				Name:  "s, skip-proof-cache",
+				Usage: "Skip cached proofs, force re-check",
 			},
 		},
 		Action: func(c *cli.Context) {
