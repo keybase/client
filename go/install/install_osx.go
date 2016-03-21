@@ -22,16 +22,6 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
-type ServiceLabel string
-
-const (
-	AppServiceLabel  ServiceLabel = "keybase.service"
-	AppKBFSLabel     ServiceLabel = "keybase.kbfs"
-	BrewServiceLabel ServiceLabel = "homebrew.mxcl.keybase"
-	BrewKBFSLabel    ServiceLabel = "homebrew.mxcl.kbfs"
-	UnknownLabel     ServiceLabel = ""
-)
-
 func KeybaseServiceStatus(g *libkb.GlobalContext, label string) (status keybase1.ServiceStatus) {
 	if label == "" {
 		label = DefaultServiceLabel(g.Env.GetRunMode())

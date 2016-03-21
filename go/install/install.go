@@ -57,6 +57,16 @@ func ComponentNameFromString(s string) ComponentName {
 	return ComponentNameUnknown
 }
 
+type ServiceLabel string
+
+const (
+	AppServiceLabel  ServiceLabel = "keybase.service"
+	AppKBFSLabel     ServiceLabel = "keybase.kbfs"
+	BrewServiceLabel ServiceLabel = "homebrew.mxcl.keybase"
+	BrewKBFSLabel    ServiceLabel = "homebrew.mxcl.kbfs"
+	UnknownLabel     ServiceLabel = ""
+)
+
 func ResolveInstallStatus(version string, bundleVersion string, lastExitStatus string) (installStatus keybase1.InstallStatus, installAction keybase1.InstallAction, status keybase1.Status) {
 	installStatus = keybase1.InstallStatus_UNKNOWN
 	installAction = keybase1.InstallAction_UNKNOWN
