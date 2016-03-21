@@ -12,7 +12,7 @@ import type {UserInfo} from '../tracker/bio.render'
 import type {Proof} from '../tracker/proofs.render'
 import type {SimpleProofState, SimpleProofMeta} from '../constants/tracker'
 
-import type {Identity, RemoteProof, LinkCheckResult, ProofState, TrackDiff, TrackDiffType, ProofStatus, TrackSummary} from '../constants/types/flow-types'
+import type {Identity, RemoteProof, RevokedProof, LinkCheckResult, ProofState, TrackDiff, TrackDiffType, ProofStatus, TrackSummary} from '../constants/types/flow-types'
 import type {Action} from '../constants/types/flux'
 
 export type TrackerState = {
@@ -185,10 +185,12 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       }
 
       const identity: Identity = action.payload.identity
-
       return {
         ...state,
-        proofs: identity.proofs.map(rp => remoteProofToProof(rp.proof))
+        proofs: [
+          ...(identity.revokedDetails || []).map(rv => revokedProofToProof(rv)),
+          ...identity.proofs.map(rp => remoteProofToProof(rp.proof))
+        ]
       }
 
     case Constants.updateProof:
@@ -407,7 +409,7 @@ function proofStatusToSimpleProofMeta (status: ProofStatus): ?SimpleProofMeta {
 // TODO Have the service give this information.
 // Currently this is copied from the website: https://github.com/keybase/keybase/blob/658aa97a9ad63733444298353a528e7f8499d8b9/lib/mod/user_lol.iced#L971
 /* eslint-disable no-multi-spaces */
-function proofUrlToProfileUrl (proofType: string, name: string, key: ?string, humanUrl: ?string): string {
+function proofUrlToProfileUrl (proofType: number, name: string, key: ?string, humanUrl: ?string): string {
   switch (proofType) {
     case identify.ProofType.dns            : return `http://${name}`
     case identify.ProofType.genericWebSite : return `${key}://${name}`
@@ -421,16 +423,31 @@ function proofUrlToProfileUrl (proofType: string, name: string, key: ?string, hu
 }
 /* eslint-enable no-multi-spaces */
 
-function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
-  const proofState: SimpleProofState = lcr && proofStateToSimpleProofState(lcr.proofResult.state, lcr.diff, lcr.remoteDiff) || checking
-
+function remoteProofToProofType (rp: RemoteProof): string {
   let proofType: string = ''
   if (rp.proofType === identify.ProofType.genericWebSite || rp.proofType === identify.ProofType.dns) {
     proofType = 'web'
   } else {
     proofType = mapTagToName(identify.ProofType, rp.proofType) || ''
   }
+  return proofType
+}
 
+function revokedProofToProof (rv: RevokedProof): Proof {
+  return {
+    state: error,
+    id: rv.proof.sigID,
+    meta: metaDeleted,
+    type: remoteProofToProofType(rv.proof),
+    color: stateToColor(error),
+    name: rv.proof.displayMarkup,
+    humanUrl: '',
+    profileUrl: ''
+  }
+}
+
+function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
+  const proofState: SimpleProofState = lcr && proofStateToSimpleProofState(lcr.proofResult.state, lcr.diff, lcr.remoteDiff) || checking
   let diffMeta: ?SimpleProofMeta
   let statusMeta: ?SimpleProofMeta
   if (lcr && lcr.diff && lcr.diff.type != null) {
@@ -446,7 +463,7 @@ function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
     state: proofState,
     id: rp.sigID,
     meta: statusMeta || diffMeta,
-    type: proofType,
+    type: remoteProofToProofType(rp),
     color: stateToColor(proofState),
     name: rp.displayMarkup,
     humanUrl: humanUrl,
