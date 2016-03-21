@@ -54,8 +54,9 @@ if should_build_kbfs ; then
   # Can't seem to get the right packages installed under NODE_ENV=production.
   export NODE_ENV=development
   export KEYBASE_SKIP_DEV_TOOLS=1
-  npm cache clean
-  (cd "$this_repo/desktop" && npm i)
+  # --no-shrinkwrap is needed to avoid crashing `npm install` with Z_BUF_ERROR.
+  # Not sure why.
+  (cd "$this_repo/desktop" && npm i --no-shrinkwrap)
   unset KEYBASE_SKIP_DEV_TOOLS
   export NODE_ENV=production
 fi
