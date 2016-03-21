@@ -36,7 +36,6 @@ const (
 // server objects (no KBFS operations used RPCs).
 type ConfigLocal struct {
 	kbfs    KBFSOps
-	kbpki   KBPKI
 	keyman  KeyManager
 	rep     Reporter
 	mdcache MDCache
@@ -64,6 +63,9 @@ type ConfigLocal struct {
 
 	clockLock sync.RWMutex
 	clock     Clock
+
+	kbpkiLock sync.RWMutex
+	kbpki     KBPKI
 
 	renamer      ConflictRenamer
 	registry     metrics.Registry
@@ -235,11 +237,15 @@ func (c *ConfigLocal) SetKBFSOps(k KBFSOps) {
 
 // KBPKI implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) KBPKI() KBPKI {
+	c.kbpkiLock.RLock()
+	defer c.kbpkiLock.RUnlock()
 	return c.kbpki
 }
 
 // SetKBPKI implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) SetKBPKI(k KBPKI) {
+	c.kbpkiLock.Lock()
+	defer c.kbpkiLock.Unlock()
 	c.kbpki = k
 }
 
