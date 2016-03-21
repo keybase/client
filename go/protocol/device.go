@@ -16,9 +16,15 @@ type DeviceAddArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type CheckDeviceNameFormatArg struct {
+	SessionID int    `codec:"sessionID" json:"sessionID"`
+	Name      string `codec:"name" json:"name"`
+}
+
 type DeviceInterface interface {
 	DeviceList(context.Context, int) ([]Device, error)
 	DeviceAdd(context.Context, int) error
+	CheckDeviceNameFormat(context.Context, CheckDeviceNameFormatArg) (bool, error)
 }
 
 func DeviceProtocol(i DeviceInterface) rpc.Protocol {
@@ -57,6 +63,22 @@ func DeviceProtocol(i DeviceInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"checkDeviceNameFormat": {
+				MakeArg: func() interface{} {
+					ret := make([]CheckDeviceNameFormatArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]CheckDeviceNameFormatArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]CheckDeviceNameFormatArg)(nil), args)
+						return
+					}
+					ret, err = i.CheckDeviceNameFormat(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -74,5 +96,10 @@ func (c DeviceClient) DeviceList(ctx context.Context, sessionID int) (res []Devi
 func (c DeviceClient) DeviceAdd(ctx context.Context, sessionID int) (err error) {
 	__arg := DeviceAddArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.device.deviceAdd", []interface{}{__arg}, nil)
+	return
+}
+
+func (c DeviceClient) CheckDeviceNameFormat(ctx context.Context, __arg CheckDeviceNameFormatArg) (res bool, err error) {
+	err = c.Cli.Call(ctx, "keybase.1.device.checkDeviceNameFormat", []interface{}{__arg}, &res)
 	return
 }

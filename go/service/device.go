@@ -49,3 +49,9 @@ func (h *DeviceHandler) DeviceAdd(_ context.Context, sessionID int) error {
 	eng := engine.NewDeviceAdd(h.G())
 	return engine.RunEngine(eng, ctx)
 }
+
+// CheckDeviceNameFormat verifies that the device name has a valid
+// format.
+func (h *DeviceHandler) CheckDeviceNameFormat(_ context.Context, arg keybase1.CheckDeviceNameFormatArg) (bool, error) {
+	return libkb.CheckDeviceName.F(arg.Name), nil
+}
