@@ -15,7 +15,7 @@ func NewSharedKeybaseConnection(kbCtx *libkb.GlobalContext, config Config,
 	transport := &SharedKeybaseTransport{kbCtx: kbCtx}
 	return rpc.NewConnectionWithTransport(handler, transport,
 		libkb.ErrorUnwrapper{}, true, libkb.WrapError,
-		config.MakeLogger(""), logTagsFromContext)
+		config.MakeLogger(""), LogTagsFromContext)
 }
 
 // SharedKeybaseTransport is a ConnectionTransport implementation that

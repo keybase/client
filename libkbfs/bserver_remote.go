@@ -50,7 +50,7 @@ func NewBlockServerRemote(config Config, blkSrvAddr string) *BlockServerRemote {
 	// This will connect only on-demand due to the last argument.
 	conn := rpc.NewTLSConnection(blkSrvAddr, GetRootCerts(blkSrvAddr),
 		bServerErrorUnwrapper{}, bs, false, libkb.NewRPCLogFactory(libkb.G),
-		libkb.WrapError, config.MakeLogger(""), logTagsFromContext)
+		libkb.WrapError, config.MakeLogger(""), LogTagsFromContext)
 	bs.client = keybase1.BlockClient{Cli: conn.GetClient()}
 	bs.shutdownFn = conn.Shutdown
 	return bs

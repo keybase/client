@@ -74,7 +74,7 @@ func NewMDServerRemote(config Config, srvAddr string) *MDServerRemote {
 	conn := rpc.NewTLSConnection(srvAddr, GetRootCerts(srvAddr),
 		MDServerErrorUnwrapper{}, mdServer, true,
 		libkb.NewRPCLogFactory(libkb.G), libkb.WrapError,
-		config.MakeLogger(""), logTagsFromContext)
+		config.MakeLogger(""), LogTagsFromContext)
 	mdServer.conn = conn
 	mdServer.client = keybase1.MetadataClient{Cli: conn.GetClient()}
 
