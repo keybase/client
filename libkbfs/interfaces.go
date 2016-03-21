@@ -7,7 +7,6 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
-	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	metrics "github.com/rcrowley/go-metrics"
 	"golang.org/x/net/context"
 )
@@ -1144,22 +1143,6 @@ type NodeCache interface {
 	Unlink(ref blockRef, oldPath path)
 	// PathFromNode creates the path up to a given Node.
 	PathFromNode(node Node) path
-}
-
-// ConnectionTransport is a container for an underlying transport to be
-// used by a Connection instance.
-type ConnectionTransport interface {
-	// Dial is called to connect to the server.
-	Dial(ctx context.Context) (rpc.Transporter, error)
-
-	// IsConnected is called to check for connection status.
-	IsConnected() bool
-
-	// Finalize is used to indicate the result of Dial is complete.
-	Finalize()
-
-	// Close is used to close any open connection.
-	Close()
 }
 
 // fileBlockDeepCopier fetches a file block, makes a deep copy of it

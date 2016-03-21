@@ -5,10 +5,10 @@ import (
 	"sync"
 	"time"
 
-	"github.com/keybase/go-framed-msgpack-rpc"
-
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
 )
 
@@ -29,7 +29,7 @@ const (
 // MDServerRemote is an implementation of the MDServer interface.
 type MDServerRemote struct {
 	config       Config
-	conn         *Connection
+	conn         *rpc.Connection
 	client       keybase1.MetadataClient
 	log          logger.Logger
 	authToken    *AuthToken
@@ -58,7 +58,7 @@ var _ KeyServer = (*MDServerRemote)(nil)
 var _ AuthTokenRefreshHandler = (*MDServerRemote)(nil)
 
 // Test that MDServerRemote fully implements the ConnectionHandler interface.
-var _ ConnectionHandler = (*MDServerRemote)(nil)
+var _ rpc.ConnectionHandler = (*MDServerRemote)(nil)
 
 // NewMDServerRemote returns a new instance of MDServerRemote.
 func NewMDServerRemote(config Config, srvAddr string) *MDServerRemote {
@@ -71,7 +71,10 @@ func NewMDServerRemote(config Config, srvAddr string) *MDServerRemote {
 	mdServer.authToken = NewAuthToken(config,
 		MdServerTokenServer, MdServerTokenExpireIn,
 		"libkbfs_mdserver_remote", mdServer)
-	conn := NewTLSConnection(config, srvAddr, GetRootCerts(srvAddr), MDServerErrorUnwrapper{}, mdServer, true)
+	conn := rpc.NewTLSConnection(srvAddr, GetRootCerts(srvAddr),
+		MDServerErrorUnwrapper{}, mdServer, true,
+		libkb.NewRPCLogFactory(libkb.G), libkb.WrapError,
+		config.MakeLogger(""), logTagsFromContext)
 	mdServer.conn = conn
 	mdServer.client = keybase1.MetadataClient{Cli: conn.GetClient()}
 
@@ -90,7 +93,7 @@ func (*MDServerRemote) HandlerName() string {
 
 // OnConnect implements the ConnectionHandler interface.
 func (md *MDServerRemote) OnConnect(ctx context.Context,
-	conn *Connection, client rpc.GenericClient,
+	conn *rpc.Connection, client rpc.GenericClient,
 	server *rpc.Server) (err error) {
 
 	defer func() {
@@ -259,7 +262,8 @@ func (md *MDServerRemote) OnDoCommandError(err error, wait time.Duration) {
 }
 
 // OnDisconnected implements the ConnectionHandler interface.
-func (md *MDServerRemote) OnDisconnected(ctx context.Context, status DisconnectStatus) {
+func (md *MDServerRemote) OnDisconnected(ctx context.Context,
+	status rpc.DisconnectStatus) {
 	md.log.Warning("MDServerRemote is disconnected: %v", status)
 	md.config.Reporter().Notify(ctx,
 		connectionNotification(connectionStatusDisconnected))
@@ -278,6 +282,12 @@ func (md *MDServerRemote) OnDisconnected(ctx context.Context, status DisconnectS
 func (md *MDServerRemote) ShouldRetry(name string, err error) bool {
 	_, shouldThrottle := err.(MDServerErrorThrottle)
 	return shouldThrottle
+}
+
+// ShouldRetryOnConnect implements the ConnectionHandler interface.
+func (md *MDServerRemote) ShouldRetryOnConnect(err error) bool {
+	_, inputCanceled := err.(libkb.InputCanceledError)
+	return !inputCanceled
 }
 
 // Signal errors and clear any registered observers.

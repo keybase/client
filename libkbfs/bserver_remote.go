@@ -4,9 +4,10 @@ import (
 	"encoding/hex"
 	"time"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/keybase/go-framed-msgpack-rpc"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
 )
 
@@ -47,7 +48,9 @@ func NewBlockServerRemote(config Config, blkSrvAddr string) *BlockServerRemote {
 		BServerTokenServer, BServerTokenExpireIn,
 		"libkbfs_bserver_remote", bs)
 	// This will connect only on-demand due to the last argument.
-	conn := NewTLSConnection(config, blkSrvAddr, GetRootCerts(blkSrvAddr), bServerErrorUnwrapper{}, bs, false)
+	conn := rpc.NewTLSConnection(blkSrvAddr, GetRootCerts(blkSrvAddr),
+		bServerErrorUnwrapper{}, bs, false, libkb.NewRPCLogFactory(libkb.G),
+		libkb.WrapError, config.MakeLogger(""), logTagsFromContext)
 	bs.client = keybase1.BlockClient{Cli: conn.GetClient()}
 	bs.shutdownFn = conn.Shutdown
 	return bs
@@ -76,7 +79,7 @@ func (*BlockServerRemote) HandlerName() string {
 
 // OnConnect implements the ConnectionHandler interface.
 func (b *BlockServerRemote) OnConnect(ctx context.Context,
-	_ *Connection, client rpc.GenericClient, _ *rpc.Server) error {
+	_ *rpc.Connection, client rpc.GenericClient, _ *rpc.Server) error {
 	// reset auth -- using b.client here would cause problematic recursion.
 	c := keybase1.BlockClient{Cli: cancelableClient{client}}
 	return b.resetAuth(ctx, c)
@@ -131,8 +134,9 @@ func (b *BlockServerRemote) OnDoCommandError(err error, wait time.Duration) {
 }
 
 // OnDisconnected implements the ConnectionHandler interface.
-func (b *BlockServerRemote) OnDisconnected(ctx context.Context, status DisconnectStatus) {
-	if status == StartingNonFirstConnection {
+func (b *BlockServerRemote) OnDisconnected(ctx context.Context,
+	status rpc.DisconnectStatus) {
+	if status == rpc.StartingNonFirstConnection {
 		b.log.CWarningf(ctx, "disconnected")
 	}
 	if b.authToken != nil {
@@ -154,6 +158,12 @@ func (b *BlockServerRemote) ShouldRetry(rpcName string, err error) bool {
 	}
 	_, shouldThrottle := err.(BServerErrorThrottle)
 	return shouldThrottle
+}
+
+// ShouldRetryOnConnect implements the ConnectionHandler interface.
+func (b *BlockServerRemote) ShouldRetryOnConnect(err error) bool {
+	_, inputCanceled := err.(libkb.InputCanceledError)
+	return !inputCanceled
 }
 
 // Get implements the BlockServer interface for BlockServerRemote.

@@ -6,7 +6,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/keybase/go-framed-msgpack-rpc"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
 )
 
@@ -20,6 +20,8 @@ type CryptoClient struct {
 }
 
 var _ Crypto = (*CryptoClient)(nil)
+
+var _ rpc.ConnectionHandler = (*CryptoClient)(nil)
 
 // NewCryptoClient constructs a new CryptoClient.
 func NewCryptoClient(config Config, kbCtx *libkb.GlobalContext, log logger.Logger) *CryptoClient {
@@ -53,9 +55,8 @@ func (CryptoClient) HandlerName() string {
 }
 
 // OnConnect implements the ConnectionHandler interface.
-func (c *CryptoClient) OnConnect(ctx context.Context,
-	conn *Connection, _ rpc.GenericClient,
-	server *rpc.Server) error {
+func (c *CryptoClient) OnConnect(ctx context.Context, conn *rpc.Connection,
+	_ rpc.GenericClient, server *rpc.Server) error {
 	return nil
 }
 
@@ -72,8 +73,9 @@ func (c *CryptoClient) OnDoCommandError(err error, wait time.Duration) {
 }
 
 // OnDisconnected implements the ConnectionHandler interface.
-func (c *CryptoClient) OnDisconnected(_ context.Context, status DisconnectStatus) {
-	if status == StartingNonFirstConnection {
+func (c *CryptoClient) OnDisconnected(_ context.Context,
+	status rpc.DisconnectStatus) {
+	if status == rpc.StartingNonFirstConnection {
 		c.log.Warning("CryptoClient is disconnected")
 	}
 }
@@ -81,6 +83,12 @@ func (c *CryptoClient) OnDisconnected(_ context.Context, status DisconnectStatus
 // ShouldRetry implements the ConnectionHandler interface.
 func (c *CryptoClient) ShouldRetry(rpcName string, err error) bool {
 	return false
+}
+
+// ShouldRetryOnConnect implements the ConnectionHandler interface.
+func (c *CryptoClient) ShouldRetryOnConnect(err error) bool {
+	_, inputCanceled := err.(libkb.InputCanceledError)
+	return !inputCanceled
 }
 
 // Sign implements the Crypto interface for CryptoClient.

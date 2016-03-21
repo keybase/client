@@ -109,3 +109,8 @@ func ctxWithRandomID(ctx context.Context, tagKey interface{},
 	}
 	return newCtx
 }
+
+func logTagsFromContext(ctx context.Context) (map[interface{}]string, bool) {
+	tags, ok := logger.LogTagsFromContext(ctx)
+	return map[interface{}]string(tags), ok
+}

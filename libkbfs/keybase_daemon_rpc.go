@@ -46,7 +46,7 @@ var _ keybase1.NotifySessionInterface = (*KeybaseDaemonRPC)(nil)
 
 var _ keybase1.NotifyUsersInterface = (*KeybaseDaemonRPC)(nil)
 
-var _ ConnectionHandler = (*KeybaseDaemonRPC)(nil)
+var _ rpc.ConnectionHandler = (*KeybaseDaemonRPC)(nil)
 
 var _ KeybaseDaemon = (*KeybaseDaemonRPC)(nil)
 
@@ -343,7 +343,7 @@ func (*KeybaseDaemonRPC) HandlerName() string {
 
 // OnConnect implements the ConnectionHandler interface.
 func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
-	conn *Connection, rawClient rpc.GenericClient,
+	conn *rpc.Connection, rawClient rpc.GenericClient,
 	server *rpc.Server) error {
 	protocols := []rpc.Protocol{
 		keybase1.LogUiProtocol(daemonLogUI{k.daemonLog}),
@@ -400,8 +400,9 @@ func (k *KeybaseDaemonRPC) OnDoCommandError(err error, wait time.Duration) {
 }
 
 // OnDisconnected implements the ConnectionHandler interface.
-func (k *KeybaseDaemonRPC) OnDisconnected(_ context.Context, status DisconnectStatus) {
-	if status == StartingNonFirstConnection {
+func (k *KeybaseDaemonRPC) OnDisconnected(_ context.Context,
+	status rpc.DisconnectStatus) {
+	if status == rpc.StartingNonFirstConnection {
 		k.log.Warning("KeybaseDaemonRPC is disconnected")
 	}
 
@@ -411,6 +412,12 @@ func (k *KeybaseDaemonRPC) OnDisconnected(_ context.Context, status DisconnectSt
 // ShouldRetry implements the ConnectionHandler interface.
 func (k *KeybaseDaemonRPC) ShouldRetry(rpcName string, err error) bool {
 	return false
+}
+
+// ShouldRetryOnConnect implements the ConnectionHandler interface.
+func (k *KeybaseDaemonRPC) ShouldRetryOnConnect(err error) bool {
+	_, inputCanceled := err.(libkb.InputCanceledError)
+	return !inputCanceled
 }
 
 func convertIdentifyError(assertion string, err error) error {

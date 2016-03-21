@@ -188,7 +188,7 @@ func TestKeybaseDaemonSessionCache(t *testing.T) {
 	testCurrentSession(t, client, c, session, expectCached)
 
 	// Should invalidate cache.
-	c.OnDisconnected(context.Background(), UsingExistingConnection)
+	c.OnDisconnected(context.Background(), rpc.UsingExistingConnection)
 
 	// Should fill cache again.
 	testCurrentSession(t, client, c, session, expectCall)
@@ -275,7 +275,7 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 	testLoadUserPlusKeys(t, client, c, uid2, name2, expectCached)
 
 	// Should invalidate cache for all users.
-	c.OnDisconnected(context.Background(), UsingExistingConnection)
+	c.OnDisconnected(context.Background(), rpc.UsingExistingConnection)
 
 	// Should fill cache again.
 	testLoadUserPlusKeys(t, client, c, uid1, name1, expectCall)
