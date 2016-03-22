@@ -46,8 +46,8 @@ type InitParams struct {
 
 	// LogToFile log to file or stderr.
 	LogToFile bool
-	// LogFilePath is path to the log file if LogToFile is true.
-	LogFilePath string
+	// LogFileConfig is the LogFileConfig if LogToFile is true.
+	LogFileConfig logger.LogFileConfig
 }
 
 var libkbOnce sync.Once
@@ -109,7 +109,12 @@ func AddFlags(flags *flag.FlagSet) *InitParams {
 	flags.BoolVar(&params.LogToFile, "log-to-file", false, "Use a log file instead of stderr.")
 	// TODO is there a better way to get G here?
 	defLogName := filepath.Join(libkb.G.Env.GetLogDir(), libkb.KBFSLogFileName)
-	flags.StringVar(&params.LogFilePath, "log-file-path", defLogName, "Default log file path.")
+	flags.StringVar(&params.LogFileConfig.Path, "log-file-path", defLogName, "Default log file path.")
+	flags.DurationVar(&params.LogFileConfig.MaxAge, "log-file-max-age", 30*24*time.Hour, "Maximum age of a log file before rotation")
+	params.LogFileConfig.MaxSize = 128 * 1024 * 1024
+	flag.Var(SizeFlag{&params.LogFileConfig.MaxSize}, "log-file-max-size", "Maximum size of a log file before rotation")
+	// The default is to *DELETE* old log files for kbfs.
+	flag.IntVar(&params.LogFileConfig.MaxKeepFiles, "log-file-max-keep-files", 3, "Maximum number of log files for this service, older ones are deleted. 0 for infinite.")
 	return &params
 }
 
@@ -236,18 +241,14 @@ func InitLog(params InitParams) (logger.Logger, error) {
 	// Setup logging here, switch to file if wanted
 	// TODO: should more of these be exposed to command line in future?
 	if params.LogToFile {
-		err = logger.SetLogFileConfig(&logger.LogFileConfig{
-			Path:    params.LogFilePath,
-			MaxAge:  30 * 24 * time.Hour, // 30 days
-			MaxSize: 128 * 1024 * 1024,   // 128mb
-		})
+		err = logger.SetLogFileConfig(&params.LogFileConfig)
 	}
 
 	log.Configure("", params.Debug, "")
 	log.Info("KBFS version %s", VersionString())
 
 	if err != nil {
-		log.Warning("Failed to setup log file %q: %v", params.LogFilePath, err)
+		log.Warning("Failed to setup log file %q: %v", params.LogFileConfig.Path, err)
 	}
 
 	return log, err
