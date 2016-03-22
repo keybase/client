@@ -2,6 +2,7 @@ package libkbfs
 
 import (
 	"errors"
+	"strconv"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -94,6 +95,12 @@ func (e BServerErrorUnauthorized) Error() string {
 // BServerErrorOverQuota is a generic client-side error.
 type BServerErrorOverQuota struct {
 	Msg string
+	// Usage indicates the current usage
+	Usage int64
+	// Limit indicates the current quota limit
+	Limit int64
+	// Throttled indicates if request has not been completed due to server throttle
+	Throttled bool
 }
 
 // ToStatus implements the ExportableError interface for BServerErrorOverQuota.
@@ -101,6 +108,18 @@ func (e BServerErrorOverQuota) ToStatus() (s keybase1.Status) {
 	s.Code = StatusCodeBServerErrorOverQuota
 	s.Name = "QUOTA_EXCEEDED"
 	s.Desc = e.Msg
+	s.Fields = append(s.Fields, keybase1.StringKVPair{
+		Key:   "QUOTA_USAGE",
+		Value: strconv.FormatInt(e.Usage, 10),
+	})
+	s.Fields = append(s.Fields, keybase1.StringKVPair{
+		Key:   "QUOTA_LIMIT",
+		Value: strconv.FormatInt(e.Limit, 10),
+	})
+	s.Fields = append(s.Fields, keybase1.StringKVPair{
+		Key:   "QUOTA_THROTTLE",
+		Value: strconv.FormatBool(e.Throttled),
+	})
 	return
 }
 
@@ -230,7 +249,7 @@ func (e BServerErrorThrottle) Error() string {
 // ToStatus implements the ExportableError interface for BServerErrorThrottle.
 func (e BServerErrorThrottle) ToStatus() (s keybase1.Status) {
 	s.Code = StatusCodeBServerErrorThrottle
-	s.Name = "THROTTLE"
+	s.Name = "ERROR_THROTTLE"
 	s.Desc = e.Msg
 	return
 }
@@ -264,7 +283,17 @@ func (eu bServerErrorUnwrapper) UnwrapError(arg interface{}) (appError error, di
 		appError = BServerErrorUnauthorized{Msg: s.Desc}
 		break
 	case StatusCodeBServerErrorOverQuota:
-		appError = BServerErrorOverQuota{Msg: s.Desc}
+		quotaErr := BServerErrorOverQuota{Msg: s.Desc}
+		for _, f := range s.Fields {
+			if f.Key == "QUOTA_USAGE" {
+				quotaErr.Usage, _ = strconv.ParseInt(f.Value, 10, 64)
+			} else if f.Key == "QUOTA_LIMIT" {
+				quotaErr.Limit, _ = strconv.ParseInt(f.Value, 10, 64)
+			} else if f.Key == "QUOTA_THROTTLE" {
+				quotaErr.Throttled, _ = strconv.ParseBool(f.Value)
+			}
+		}
+		appError = quotaErr
 		break
 	case StatusCodeBServerErrorBlockNonExistent:
 		appError = BServerErrorBlockNonExistent{Msg: s.Desc}

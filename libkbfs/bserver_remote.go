@@ -156,8 +156,17 @@ func (b *BlockServerRemote) ShouldRetry(rpcName string, err error) bool {
 	case "keybase.1.block.archiveReference":
 		return false
 	}
-	_, shouldThrottle := err.(BServerErrorThrottle)
-	return shouldThrottle
+	_, ok := err.(BServerErrorThrottle)
+	if ok {
+		return true
+	}
+
+	quotaErr, ok := err.(BServerErrorOverQuota)
+	if ok && quotaErr.Throttled {
+		return true
+	}
+
+	return false
 }
 
 // ShouldRetryOnConnect implements the ConnectionHandler interface.
