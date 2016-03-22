@@ -1,5 +1,5 @@
 #!/bin/bash
-
+#
 set -e -u -o xtrace
 
 export GO15VENDOREXPERIMENT=1
