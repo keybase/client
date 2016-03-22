@@ -55,10 +55,7 @@ func getUsageStr() string {
 }
 
 func start() *libfs.Error {
-	kbfsParams, err := libkbfs.AddFlags(flag.CommandLine)
-	if err != nil {
-		return libfs.InitError(fmt.Sprintf("error reading flags: %s", err))
-	}
+	kbfsParams := libkbfs.AddFlags(flag.CommandLine)
 
 	flag.Parse()
 
