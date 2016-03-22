@@ -1,6 +1,6 @@
 #!/bin/bash
 
-set -e -u
+set -e -u -o xtrace
 
 export GO15VENDOREXPERIMENT=1
 cd shared
