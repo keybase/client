@@ -1794,10 +1794,6 @@ func TestResetAccountLikeNistur(t *testing.T) {
 	// now reset account
 	ResetAccount(tc, u)
 
-	// without this sleep, get
-	// ERROR: can't find a race-free state for 98ef54a78e482ae8be06f254fa4f9d19 (error 236)
-	time.Sleep(time.Second)
-
 	// create provisioner device
 	tcX := SetupEngineTest(t, "login")
 	defer tcX.Cleanup()
@@ -1880,55 +1876,6 @@ func TestResetAccountLikeNistur(t *testing.T) {
 	if err := RunEngine(teng, ctx); err != nil {
 		t.Fatal(err)
 	}
-}
-
-func TestResetAccountRaceFreeState(t *testing.T) {
-	// max: here's a test that generates error 236 reliably
-	t.Skip()
-	tc := SetupEngineTest(t, "login")
-	defer tc.Cleanup()
-
-	// user with synced pgp key
-	u := createFakeUserWithPGPOnly(t, tc)
-	Logout(tc)
-	tc.Cleanup()
-
-	// provision a device with that key
-	tc = SetupEngineTest(t, "login")
-	defer tc.Cleanup()
-
-	ctx := &Context{
-		ProvisionUI: newTestProvisionUIPassphrase(),
-		LoginUI:     &libkb.TestLoginUI{Username: u.Username},
-		LogUI:       tc.G.UI.GetLogUI(),
-		SecretUI:    u.NewSecretUI(),
-		GPGUI:       &gpgtestui{},
-	}
-	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
-	if err := RunEngine(eng, ctx); err != nil {
-		t.Fatal(err)
-	}
-
-	// since this user didn't have any device keys, login should have fixed that:
-	testUserHasDeviceKey(tc)
-
-	// now reset account
-	ResetAccount(tc, u)
-
-	// without this sleep, get
-	// ERROR: can't find a race-free state for 98ef54a78e482ae8be06f254fa4f9d19 (error 236)
-	// time.Sleep(time.Second)
-
-	// create provisioner device
-	tcX := SetupEngineTest(t, "login")
-	defer tcX.Cleanup()
-
-	// this will reprovision as an eldest device:
-	u.LoginOrBust(tcX)
-	if err := AssertProvisioned(tcX); err != nil {
-		t.Fatal(err)
-	}
-	testUserHasDeviceKey(tcX)
 }
 
 type testProvisionUI struct {
