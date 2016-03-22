@@ -30,6 +30,7 @@ type logs struct {
 	desktop string
 	kbfs    string
 	service string
+	start   string
 }
 
 func NewCmdLogSend(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
@@ -91,7 +92,10 @@ func (c *CmdLogSend) Run() error {
 	c.G().Log.Debug("tailing desktop log %q", logs.desktop)
 	desktopLog := c.tail(logs.desktop, c.numLines)
 
-	return c.post(statusJSON, kbfsLog, svcLog, desktopLog)
+	c.G().Log.Debug("tailing start log %q", logs.start)
+	startLog := c.tail(logs.start, c.numLines)
+
+	return c.post(statusJSON, kbfsLog, svcLog, desktopLog, startLog)
 }
 
 func (c *CmdLogSend) confirm() error {
@@ -104,7 +108,7 @@ func (c *CmdLogSend) confirm() error {
 	return ui.PromptForConfirmation("Continue sending logs to keybase.io?")
 }
 
-func (c *CmdLogSend) post(status, kbfsLog, svcLog, desktopLog string) error {
+func (c *CmdLogSend) post(status, kbfsLog, svcLog, desktopLog, startLog string) error {
 	c.G().Log.Debug("sending status + logs to keybase")
 
 	var body bytes.Buffer
@@ -120,6 +124,9 @@ func (c *CmdLogSend) post(status, kbfsLog, svcLog, desktopLog string) error {
 		return err
 	}
 	if err := addFile(mpart, "gui_log_gz", "gui_log.gz", desktopLog); err != nil {
+		return err
+	}
+	if err := addFile(mpart, "start_log_gz", "start_log.gz", startLog); err != nil {
 		return err
 	}
 
@@ -226,19 +233,21 @@ func (c *CmdLogSend) GetUsage() libkb.Usage {
 }
 
 func (c *CmdLogSend) logFiles(status *fstatus) logs {
+	logDir := c.G().Env.GetLogDir()
 	if status != nil {
 		return logs{
 			desktop: status.Desktop.Log,
 			kbfs:    status.KBFS.Log,
 			service: status.Service.Log,
+			start:   filepath.Join(logDir, libkb.StartLogFileName),
 		}
 	}
 
-	logDir := c.G().Env.GetLogDir()
 	return logs{
 		desktop: filepath.Join(logDir, libkb.DesktopLogFileName),
 		kbfs:    filepath.Join(logDir, libkb.KBFSLogFileName),
 		service: filepath.Join(logDir, libkb.ServiceLogFileName),
+		start:   filepath.Join(logDir, libkb.StartLogFileName),
 	}
 }
 

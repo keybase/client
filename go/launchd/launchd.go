@@ -394,7 +394,7 @@ func launchdHomeDir() string {
 	return currentUser.HomeDir
 }
 
-func launchdLogDir() string {
+func LogDir() string {
 	return filepath.Join(launchdHomeDir(), "Library", "Logs")
 }
 
@@ -432,7 +432,7 @@ func (p Plist) Check(path string) (bool, error) {
 
 // TODO Use go-plist library
 func (p Plist) plistXML() string {
-	logFile := filepath.Join(launchdLogDir(), p.logFileName)
+	logFile := filepath.Join(LogDir(), p.logFileName)
 
 	encodeTag := func(name, val string) string {
 		return fmt.Sprintf("<%s>%s</%s>", name, val, name)
