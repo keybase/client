@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 
 export type Props = {
-  onSubmit: () => void,
+  onSubmit: (paperKey: string) => void,
   onBack: () => void
 }
 

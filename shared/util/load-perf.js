@@ -7,7 +7,7 @@ function print (...rest) {
 
 export default function () {
   let start = false
-  const onPerf = () => {
+  const onPerf = showDom => {
     setImmediate(() => {
       const Perf = require('react-addons-perf')
 
@@ -24,6 +24,10 @@ export default function () {
         Perf.printExclusive(measurements)
         print('Wasted')
         Perf.printWasted(measurements)
+        if (showDom) {
+          print('DOM')
+          Perf.printDOM(measurements)
+        }
       }
 
       start = !start
@@ -31,7 +35,7 @@ export default function () {
   }
 
   if (reactPerf) {
-    onPerf()
+    onPerf(false)
   }
 
   window.KBPERF = onPerf
