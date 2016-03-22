@@ -119,6 +119,14 @@ build_one_architecture() {
   apps_dir="$layout_dir/usr/share/applications"
   mkdir -p "$apps_dir"
   cp "$here/keybase.desktop" "$apps_dir"
+
+  # Check for whitespace in all the filenames we've copied. We don't support
+  # whitespace in our later build scripts (for example RPM packaging), and even
+  # if we did, it would be bad practice to use it.
+  if (find "$layout_dir" | grep " ") ; then
+    echo 'ERROR: whitespace in filenames! (shown above)'
+    exit 1
+  fi
 }
 
 export GOARCH=amd64
