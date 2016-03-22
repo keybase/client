@@ -18,7 +18,6 @@ import (
 type CmdID struct {
 	libkb.Contextified
 	user           string
-	trackStatement bool
 	useDelegateUI  bool
 	skipProofCache bool
 }
@@ -32,19 +31,19 @@ func (v *CmdID) ParseArgv(ctx *cli.Context) error {
 	if nargs == 1 {
 		v.user = ctx.Args()[0]
 	}
-	v.trackStatement = ctx.Bool("track-statement")
 	v.useDelegateUI = ctx.Bool("ui")
 	v.skipProofCache = ctx.Bool("skip-proof-cache")
 	return nil
 }
 
-func (v *CmdID) makeArg() keybase1.IdentifyArg {
-	return keybase1.IdentifyArg{
+func (v *CmdID) makeArg() keybase1.Identify2Arg {
+	return keybase1.Identify2Arg{
 		UserAssertion:    v.user,
-		TrackStatement:   v.trackStatement,
 		UseDelegateUI:    v.useDelegateUI,
 		Reason:           keybase1.IdentifyReason{Reason: "CLI id command"},
 		ForceRemoteCheck: v.skipProofCache,
+		AlwaysBlock:      true,
+		NeedProofSet:     true,
 	}
 }
 
@@ -64,7 +63,7 @@ func (v *CmdID) Run() error {
 	}
 
 	arg := v.makeArg()
-	_, err = cli.Identify(context.TODO(), arg)
+	_, err = cli.Identify2(context.TODO(), arg)
 	if _, ok := err.(libkb.SelfNotFoundError); ok {
 		msg := `Could not find UID or username for you on this device.
 You can either specify a user to id: keybase id <username>
@@ -83,10 +82,6 @@ func NewCmdID(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 		Usage:        "Identify a user and check their signature chain",
 		Description:  "Identify a user and check their signature chain. Don't specify a username to identify yourself. You can also specify proof assertions like user@twitter.",
 		Flags: []cli.Flag{
-			cli.BoolFlag{
-				Name:  "t, track-statement",
-				Usage: "Output a tracking statement (in JSON format).",
-			},
 			cli.BoolFlag{
 				Name:      "ui",
 				Usage:     "Use identify UI.",

@@ -15,7 +15,7 @@ type IDRes struct {
 	ComputedKeyFamily *libkb.ComputedKeyFamily
 }
 
-// IDEnginge is the type used by cmd_id Run, daemon id handler.
+// IDEngine is the type used by cmd_id Run, daemon id handler.
 type IDEngine struct {
 	arg *keybase1.IdentifyArg
 	res *IDRes
