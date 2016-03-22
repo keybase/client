@@ -3,6 +3,7 @@
 import React, {Component} from 'react'
 
 import DeviceList from './device-list.desktop'
+import PaperKeyInput from './paper-key-input.desktop'
 import {Header} from '../common-adapters'
 
 import type {Props} from './render'
@@ -17,6 +18,15 @@ export default class Render extends Component<void, Props, void> {
         innerComponent = <DeviceList devices={this.props.devices} toPaperKeyInput={this.props.toPaperKeyInput}/>
         break
       case 'paperKeyInput':
+        innerComponent = (
+          <PaperKeyInput
+            toPaperKeyInput={this.props.toPaperKeyInput}
+            onBack={this.props.onBackFromPaperKey}
+            onContinue={this.props.onContinueFromPaperKey}
+            paperkeyError={this.props.paperkeyError}
+            waiting={this.props.waiting}/>
+        )
+        break
       case 'success':
         innerComponent = (<div>todo</div>)
     }

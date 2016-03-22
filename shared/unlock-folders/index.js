@@ -2,13 +2,14 @@
 
 import React, {Component} from 'react'
 import typedConnect, {ConnectedComponent} from '../util/typed-connect'
+import HiddenString from '../util/hidden-string'
 
 import type {State as UnlockFoldersState} from '../reducers/unlock-folders'
 import type {Device, UnlockFolderActions} from '../constants/unlock-folders'
 import type {TypedState} from '../constants/reducer'
 import type {TypedDispatch} from '../constants/types/flux'
 
-import {close, toPaperKeyInput} from '../actions/unlock-folders'
+import * as actions from '../actions/unlock-folders'
 
 import Render from './render'
 
@@ -18,16 +19,26 @@ export type Props = {
   devices: ?Array<Device>,
   phase: UnlockFoldersState.phase,
   close: () => void,
-  toPaperKeyInput: () => void
+  toPaperKeyInput: () => void,
+  onBackFromPaperKey: () => void,
+  onContinueFromPaperKey: (paperkey: HiddenString) => void,
+  paperkeyError: ?HiddenString,
+  waiting: boolean
 }
 
 class UnlockFolders extends Component<void, Props, void> {
   render () {
     return (
       <Render
-        devices={this.props.devices} phase={this.props.phase}
+        phase={this.props.phase}
+        devices={this.props.devices}
         onClose={this.props.close}
-        toPaperKeyInput={this.props.toPaperKeyInput}/>
+        toPaperKeyInput={this.props.toPaperKeyInput}
+        onBackFromPaperKey={this.props.onBackFromPaperKey}
+        onContinueFromPaperKey={this.props.onContinueFromPaperKey}
+        paperkeyError={this.props.paperkeyError}
+        waiting={this.props.waiting}
+        />
     )
   }
 }
@@ -37,9 +48,13 @@ type Dispatch = TypedDispatch<UnlockFolderActions>
 // otherwise flow doesn't type it quite correctly and you loose OwnProps checking
 // Luckily if this declared type is wrong, flow will tell us.
 const Connected: Class<ConnectedComponent<OwnProps>> = typedConnect(
-  ({unlockFolders: {devices, phase}}: TypedState, dispatch: Dispatch, ownProps: OwnProps): Props => ({
-    close: () => { dispatch(close()) },
-    toPaperKeyInput: () => { dispatch(toPaperKeyInput()) },
+  ({unlockFolders: {devices, phase, paperkeyError, waiting}}: TypedState, dispatch: Dispatch, ownProps: OwnProps): Props => ({
+    close: () => { dispatch(actions.close()) },
+    toPaperKeyInput: () => { dispatch(actions.toPaperKeyInput()) },
+    onBackFromPaperKey: () => { dispatch(actions.onBackFromPaperKey()) },
+    onContinueFromPaperKey: pk => { dispatch(actions.checkPaperKey(pk)) },
+    paperkeyError,
+    waiting,
     devices,
     phase
   })
