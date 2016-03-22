@@ -65,7 +65,7 @@ type dokanCtx struct {
 }
 
 func allocCtx(slot uint32) *dokanCtx {
-	return &dokanCtx{C.kbfsLibdokanAlloc_ctx(C.ULONG64(slot)), slot}
+	return &dokanCtx{C.kbfsLibdokanAllocCtx(C.ULONG64(slot)), slot}
 }
 
 func (ctx *dokanCtx) Run(path string) error {

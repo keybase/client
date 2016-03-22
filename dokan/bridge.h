@@ -34,10 +34,10 @@ struct kbfsLibdokanCtx {
   DOKAN_OPTIONS dokan_options;
 };
 
-struct kbfsLibdokanCtx* kbfs_libdokan_alloc_ctx(ULONG64 fsslot);
-error_t kbfsLibdokanFree(struct kbfs_libdokan_ctx* ctx);
-error_t kbfsLibdokanRun(struct kbfs_libdokan_ctx* ctx);
-void kbfsLibdokanSet_path(struct kbfs_libdokan_ctx* ctx, void*);
+struct kbfsLibdokanCtx* kbfsLibdokanAllocCtx(ULONG64 fsslot);
+error_t kbfsLibdokanFree(struct kbfsLibdokanCtx* ctx);
+error_t kbfsLibdokanRun(struct kbfsLibdokanCtx* ctx);
+void kbfsLibdokanSet_path(struct kbfsLibdokanCtx* ctx, void*);
 
 int kbfsLibdokanFill_find(PFillFindData, PWIN32_FIND_DATAW, PDOKAN_FILE_INFO);
 

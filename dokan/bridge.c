@@ -267,8 +267,8 @@ extern NTSTATUS kbfsLibdokanFindStreams(LPCWSTR FileName,
 
 
 
-struct kbfsLibdokanCtx* kbfs_libdokan_alloc_ctx(ULONG64 slot) {
-  struct kbfsLibdokanCtx *ctx = malloc(sizeof(struct kbfs_libdokan_ctx));
+struct kbfsLibdokanCtx* kbfsLibdokanAllocCtx(ULONG64 slot) {
+  struct kbfsLibdokanCtx *ctx = malloc(sizeof(struct kbfsLibdokanCtx));
   if(!ctx)
     return ctx;
   memset(ctx, 0, sizeof(struct kbfsLibdokanCtx));
@@ -306,13 +306,13 @@ struct kbfsLibdokanCtx* kbfs_libdokan_alloc_ctx(ULONG64 slot) {
   return ctx;
 }
 
-void kbfsLibdokanSet_path(struct kbfs_libdokan_ctx* ctx, void* ptr) {
+void kbfsLibdokanSet_path(struct kbfsLibdokanCtx* ctx, void* ptr) {
 	if(ctx->dokan_options.MountPoint)
 		free((void*)ctx->dokan_options.MountPoint);
 	ctx->dokan_options.MountPoint = wcsdup(ptr);
 }
 
-error_t kbfsLibdokanFree(struct kbfs_libdokan_ctx* ctx) {
+error_t kbfsLibdokanFree(struct kbfsLibdokanCtx* ctx) {
 	if(ctx) {
 		if(ctx->dokan_options.MountPoint)
 			free((void*)ctx->dokan_options.MountPoint);
@@ -321,7 +321,7 @@ error_t kbfsLibdokanFree(struct kbfs_libdokan_ctx* ctx) {
 	return 0;
 }
 
-error_t kbfsLibdokanRun(struct kbfs_libdokan_ctx* ctx) {
+error_t kbfsLibdokanRun(struct kbfsLibdokanCtx* ctx) {
 	int status = DokanMain(&ctx->dokan_options, &ctx->dokan_operations);
 	return status;
 }

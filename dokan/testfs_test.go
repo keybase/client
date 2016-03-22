@@ -365,7 +365,7 @@ func (t *testFS) CreateFile(fi *FileInfo, cd *CreateData) (File, bool, error) {
 		return t.ramFile, false, nil
 	// SL_OPEN_TARGET_DIRECTORY may get empty paths...
 	case `\`, ``:
-		if cd.CreateOptions&FILE_NON_DIRECTORY_FILE != 0 {
+		if cd.CreateOptions&FileNonDirectoryFile != 0 {
 			return nil, true, ErrFileIsADirectory
 		}
 		return testDir{}, true, nil
