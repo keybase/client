@@ -111,7 +111,7 @@ func AddFlags(flags *flag.FlagSet) *InitParams {
 	defLogName := filepath.Join(libkb.G.Env.GetLogDir(), libkb.KBFSLogFileName)
 	flags.StringVar(&params.LogFileConfig.Path, "log-file-path", defLogName, "Default log file path.")
 	flags.DurationVar(&params.LogFileConfig.MaxAge, "log-file-max-age", 30*24*time.Hour, "Maximum age of a log file before rotation")
-	params.LogFileConfig.MaxSize = 128 * 1000 * 1000
+	params.LogFileConfig.MaxSize = 128 * 1024 * 1024
 	flag.Var(SizeFlag{&params.LogFileConfig.MaxSize}, "log-file-max-size", "Maximum size of a log file before rotation")
 	// The default is to *DELETE* old log files for kbfs.
 	flag.IntVar(&params.LogFileConfig.MaxKeepFiles, "log-file-max-keep-files", 3, "Maximum number of log files for this service, older ones are deleted. 0 for infinite.")
