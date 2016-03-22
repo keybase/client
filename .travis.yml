@@ -41,7 +41,7 @@ script:
   - cd ../test
   - go test -i && go test -race -c && ./test.test -test.timeout 4m
   - go test -c -tags fuse
-  - wait $build_dockers_pid; # Ensure all backgrounded jobs have completed before continuing
+  - wait $build_dockers_pid || echo "Dockers already finished building"; # Ensure all backgrounded jobs have completed before continuing
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then
       cd ../kbfsdocker && go test -i -tags docker && go test -c -tags docker && ./kbfsdocker.test -test.v -test.timeout 6m;
     fi
