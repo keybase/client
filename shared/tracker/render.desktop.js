@@ -23,7 +23,7 @@ export default class Render extends Component {
     return (
       <div style={styles.container}>
         <Header {...this.props.headerProps} />
-        <div style={{...styles.content, paddingBottom: calculatedPadding}} className='hide-scrollbar'>
+        <div style={{...styles.content, paddingBottom: calculatedPadding}}>
           <Bio {...this.props.bioProps} />
           <ProofsRender {...this.props.proofsProps} />
         </div>
@@ -50,7 +50,7 @@ const styles = {
     position: 'relative'
   },
   content: {
-    overflowY: 'auto',
+    overflowY: 'scroll',
     overflowX: 'hidden',
     // This value is added to the footer height to set the actual paddingBottom
     paddingBottom: 12,
