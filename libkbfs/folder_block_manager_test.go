@@ -221,6 +221,24 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 		t.Fatalf("Couldn't sync file: %v", err)
 	}
 
+	// Make two more files that share a block, only one of which will
+	// be deleted.
+	otherData := []byte{5, 4, 3, 2, 1}
+	for _, name := range []string{"b", "c"} {
+		node, _, err := kbfsOps1.CreateFile(ctx, rootNode1, name, false)
+		if err != nil {
+			t.Fatalf("Couldn't create dir: %v", err)
+		}
+		err = kbfsOps1.Write(ctx, node, otherData, 0)
+		if err != nil {
+			t.Fatalf("Couldn't write file: %v", err)
+		}
+		err = kbfsOps1.Sync(ctx, node)
+		if err != nil {
+			t.Fatalf("Couldn't sync file: %v", err)
+		}
+	}
+
 	// u2 reads the file
 	kbfsOps2 := config2.KBFSOps()
 	rootNode2, _, err :=
@@ -240,9 +258,25 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	if !bytes.Equal(data, data2) {
 		t.Fatalf("Read bad data: %v", data2)
 	}
+	bNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "b")
+	if err != nil {
+		t.Fatalf("Couldn't create dir: %v", err)
+	}
+	data2 = make([]byte, len(data))
+	_, err = kbfsOps2.Read(ctx, bNode2, data2, 0)
+	if err != nil {
+		t.Fatalf("Couldn't read file: %v", err)
+	}
+	if !bytes.Equal(otherData, data2) {
+		t.Fatalf("Read bad data: %v", data2)
+	}
 
-	// Remove the file
+	// Remove two of the files
 	err = kbfsOps1.RemoveEntry(ctx, rootNode1, "a")
+	if err != nil {
+		t.Fatalf("Couldn't remove file: %v", err)
+	}
+	err = kbfsOps1.RemoveEntry(ctx, rootNode1, "b")
 	if err != nil {
 		t.Fatalf("Couldn't remove file: %v", err)
 	}
@@ -288,13 +322,35 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
 
+	// Make a file with the other data on node 2, which uses a block
+	// for which one reference has been deleted, but the other should
+	// still be live.  This will cause one dedup reference, and 3 new
+	// blocks (2 from the create, and 1 from the sync).
+	dNode, _, err := kbfsOps2.CreateFile(ctx, rootNode2, "d", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+	err = kbfsOps2.Write(ctx, dNode, otherData, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %v", err)
+	}
+	err = kbfsOps2.Sync(ctx, dNode)
+	if err != nil {
+		t.Fatalf("Couldn't write file: %v", err)
+	}
+	// Wait for outstanding archives
+	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+
 	// Make the same file on node 2, making sure this doesn't try to
 	// reuse the same block (i.e., there are only 2 put calls).
-	bNode, _, err := kbfsOps2.CreateFile(ctx, rootNode2, "b", false)
+	eNode, _, err := kbfsOps2.CreateFile(ctx, rootNode2, "e", false)
 	if err != nil {
 		t.Fatalf("Couldn't create dir: %v", err)
 	}
-	err = kbfsOps2.Write(ctx, bNode, data, 0)
+	err = kbfsOps2.Write(ctx, eNode, data, 0)
 	if err != nil {
 		t.Fatalf("Couldn't write file: %v", err)
 	}
@@ -320,7 +376,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	errChan := make(chan error)
 	go func() {
 		syncCtx := context.WithValue(ctx, stallKey, writeValue)
-		errChan <- kbfsOps2.Sync(syncCtx, bNode)
+		errChan <- kbfsOps2.Sync(syncCtx, eNode)
 	}()
 	<-onWriteStalledCh
 	<-onWriteStalledCh
@@ -333,29 +389,44 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 		t.Fatalf("Couldn't sync file: %v", err)
 	}
 
-	postBBlocks, err := bserverLocal.getAll(rootNode2.GetFolderBranch().Tlf)
-	if err != nil {
-		t.Fatalf("Couldn't get blocks: %v", err)
-	}
-
 	// Wait for outstanding archives
 	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
 
-	// There should be exactly 4 extra blocks (2 for the create, and 2
-	// for the write/sync) as a result of the operations, and none
-	// should have more than one reference.
+	// Delete any blocks that happened to be put during a failed (due
+	// to recoverable block errors) update.
+	clock.T = now.Add(2 * config1.QuotaReclamationMinUnrefAge())
+	ops1.fbm.forceQuotaReclamation()
+	err = ops1.fbm.waitForQuotaReclamations(ctx)
+	if err != nil {
+		t.Fatalf("Couldn't wait for QR: %v", err)
+	}
+
+	endBlocks, err := bserverLocal.getAll(rootNode2.GetFolderBranch().Tlf)
+	if err != nil {
+		t.Fatalf("Couldn't get blocks: %v", err)
+	}
+
+	// There should be exactly 8 extra blocks refs (2 for the create,
+	// and 2 for the write/sync, for both files above) as a result of
+	// the operations, and exactly one should have more than one
+	// reference.
 	if pre, post := totalBlockRefs(postQRBlocks),
-		totalBlockRefs(postBBlocks); post != pre+4 {
+		totalBlockRefs(endBlocks); post != pre+8 {
 		t.Errorf("Different number of blocks than expected: pre: %d, post %d",
 			pre, post)
 	}
-	for id, refs := range postBBlocks {
-		if len(refs) > 1 {
+	oneDedupFound := false
+	for id, refs := range endBlocks {
+		if len(refs) > 1 && (len(refs) > 2 || oneDedupFound) {
 			t.Errorf("Block %v unexpectedly had %d references", id, len(refs))
+		} else if len(refs) == 2 {
+			oneDedupFound = true
 		}
 	}
-
+	if !oneDedupFound {
+		t.Error("No dedup reference found")
+	}
 }
