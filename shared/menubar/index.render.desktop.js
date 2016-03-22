@@ -31,7 +31,7 @@ const Header = props => {
   const version = __VERSION__ // eslint-disable-line no-undef
 
   return (
-    <div style={styles.header}>
+    <div style={stylesHeader}>
       <Icon hint='Open KBFS folder' type='fa-folder' style={{marginRight: 10}} onClick={openKBFS}/>
       <Icon hint='Open keybase.io web' type='fa-globe' onClick={showUser}/>
       <div style={{flex: 1}}/>
@@ -47,7 +47,7 @@ const Footer = props => {
   const quit: () => void = props.quit
 
   return (
-    <div style={styles.footer}>
+    <div style={stylesFooter}>
       <Text type='Body' small onClick={showHelp}>Help</Text>
       <Text type='Body' small onClick={quit}>Quit</Text>
     </div>
@@ -89,8 +89,8 @@ export default class Render extends Component {
       showHelp, showUser, logIn, quit, username, loggedIn} = this.props
 
     return (
-      <div style={styles.container}>
-        <div style={styles.body}>
+      <div style={stylesContainer}>
+        <div style={stylesBody}>
           <Header openKBFS={openKBFS} showUser={() => showUser(username)}/>
           {!loggedIn && (flags.login ? <LogInPrompt logIn={logIn} /> : <LogInTerminalMessage />)}
           <FolderList loading={this.props.loading} username={this.props.username} openKBFSPublic={openKBFSPublic} openKBFSPrivate={openKBFSPrivate} folders={this.props.folders} loggedIn={loggedIn}/>
@@ -159,11 +159,11 @@ const FolderEntryRow = props => {
       <Input
         ref={input => (inputRef = input)}
         small
-        hintStyle={styles.dz1InputHint}
+        hintStyle={stylesDz1InputHint}
         hintText='user1,user2,etc'
         onEnterKeyDown={() => openFolder()}
         style={{width: '100%', marginLeft: entry.prefix ? 2 : 0, textAlign: 'left'}} />
-      <i className='fa fa-arrow-right' style={styles.entryArrow} onClick={() => openFolder()}></i>
+      <i className='fa fa-arrow-right' style={stylesEntryArrow} onClick={() => openFolder()}></i>
     </Row>)
 }
 
@@ -299,10 +299,10 @@ class FolderList extends Component<void, FolderListProps, FolderState> {
     const folderDisplayLimit = 5
 
     return (
-      <div style={{...styles.folderList, overflowY: loggedIn ? 'scroll' : 'hidden'}}>
+      <div style={{...stylesFolderList, overflowY: loggedIn ? 'scroll' : 'hidden'}}>
         {this.props.loading && loggedIn && (
-          <div style={styles.loader}>
-            <ProgressIndicator style={styles.loader} />
+          <div style={stylesLoader}>
+            <ProgressIndicator style={stylesLoader} />
           </div>)}
         {!!privateFolders.length && (
           <div>
@@ -334,89 +334,73 @@ class FolderList extends Component<void, FolderListProps, FolderState> {
   }
 }
 
-const styles = {
-  container: {
-    ...globalStyles.flexBoxColumn,
-    flex: 1
-  },
-  body: {
-    ...globalStyles.flexBoxColumn,
-    position: 'relative',
-    overflow: 'hidden',
-    height: 364,
-    minHeight: 364,
-    maxHeight: 364,
-    flex: 1
-  },
-  header: {
-    ...globalStyles.flexBoxRow,
-    backgroundColor: globalColors.lightGrey,
-    minHeight: 31,
-    maxHeight: 32,
-    padding: 10
-  },
-  folderHeader: {
-    ...globalStyles.flexBoxRow,
-    justifyContent: 'space-between',
-    paddingRight: 18
-  },
-  folderList: {
-    ...globalStyles.flexBoxColumn,
-    backgroundColor: globalColors.white,
-    position: 'relative',
-    flex: 1,
-    padding: 10,
-    overflowY: 'scroll',
-    overflowX: 'hidden'
-  },
-  loader: {
-    position: 'absolute',
-    alignSelf: 'center',
-    width: 30,
-    top: 0,
-    right: 0,
-    opacity: 0.8
-  },
-  footer: {
-    ...globalStyles.flexBoxRow,
-    backgroundColor: globalColors.lightGrey,
-    justifyContent: 'space-between',
-    padding: 10
-  },
-  personalTLDStyle: {
-    fontSize: 15,
-    lineHeight: '18px',
-    color: globalColors.blue2
-  },
-  showAllBox: {
-    color: globalColors.white,
-    ...globalStyles.fontBold,
-    fontSize: 8,
-    backgroundColor: globalColors.lightGrey3,
-    minWidth: 16,
-    minHeight: 11,
-    borderRadius: 2,
-    alignSelf: 'center',
-    marginRight: 8
-  },
-  entryArrow: {
-    ...globalStyles.clickable,
-    color: globalColors.lightGrey2,
-    width: 25,
-    fontSize: 13,
-    height: 25,
-    textAlign: 'center',
-    position: 'absolute',
-    right: 0,
-    top: 5
-  },
-  dz1InputHint: {
-    color: globalColors.black20,
-    // This is because normal <Input/> does center-aligned hints by using
-    // width: 100% on position: absolute
-    width: 'auto',
-    marginTop: 0
-  }
+const stylesContainer = {
+  ...globalStyles.flexBoxColumn,
+  flex: 1
+}
+
+const stylesBody = {
+  ...globalStyles.flexBoxColumn,
+  position: 'relative',
+  overflow: 'hidden',
+  height: 364,
+  minHeight: 364,
+  maxHeight: 364,
+  flex: 1
+}
+
+const stylesHeader = {
+  ...globalStyles.flexBoxRow,
+  backgroundColor: globalColors.lightGrey,
+  minHeight: 31,
+  maxHeight: 32,
+  padding: 10
+}
+
+const stylesFolderList = {
+  ...globalStyles.flexBoxColumn,
+  backgroundColor: globalColors.white,
+  position: 'relative',
+  flex: 1,
+  padding: 10,
+  overflowY: 'scroll',
+  overflowX: 'hidden'
+}
+
+const stylesLoader = {
+  position: 'absolute',
+  alignSelf: 'center',
+  width: 30,
+  top: 0,
+  right: 0,
+  opacity: 0.8
+}
+
+const stylesFooter = {
+  ...globalStyles.flexBoxRow,
+  backgroundColor: globalColors.lightGrey,
+  justifyContent: 'space-between',
+  padding: 10
+}
+
+const stylesEntryArrow = {
+  ...globalStyles.clickable,
+  color: globalColors.lightGrey,
+  width: 25,
+  fontSize: 13,
+  height: 25,
+  textAlign: 'center',
+  position: 'absolute',
+  right: 0,
+  top: 5
+}
+
+const stylesDz1InputHint = {
+  color: globalColors.black20,
+  // This is because normal <Input/> does center-aligned hints by using
+  // width: 100% on position: absolute
+  width: 'auto',
+  marginTop: 0
 }
 
 const SVGFolderIcon = svgPath => ({

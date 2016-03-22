@@ -8,7 +8,7 @@ import Container from '../forms/container'
 
 import type {Props} from './username-email-form.render'
 
-export default class Render extends Component {
+class Render extends Component {
   props: Props;
 
   render () {
@@ -19,10 +19,10 @@ export default class Render extends Component {
     }
 
     return (
-      <Container onBack={this.props.onBack} style={styles.container} outerStyle={styles.outer}>
-        <UserCard>
+      <Container onBack={this.props.onBack} style={stylesContainer} outerStyle={stylesOuter}>
+        <UserCard style={stylesCard}>
           <Input autoFocus floatingLabelText='Create a username' value={this.props.username} ref={r => (usernameRef = r)} errorText={this.props.usernameErrorText}/>
-          <Input floatingLabelText='Email address' value={this.props.email} ref={r => (emailRef = r)} errorText={this.props.emailErrorText}/>
+          <Input floatingLabelText='Email address' value={this.props.email} ref={r => (emailRef = r)} errorText={this.props.emailErrorText} onEnterKeyDown={submitUserEmail}/>
           <Button style={{marginTop: 40}} fullWidth type='Primary' label='Continue' onClick={submitUserEmail}/>
         </UserCard>
       </Container>
@@ -30,22 +30,17 @@ export default class Render extends Component {
   }
 }
 
-const styles = {
-  form: {
-    ...globalStyles.flexBoxColumn,
-    flex: 1
-  },
-
-  topMargin: {
-    marginTop: 20
-  },
-  outer: {
-    backgroundColor: globalColors.black10
-  },
-  container: {
-    ...globalStyles.flexBoxColumn,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: 15
-  }
+const stylesOuter = {
+  backgroundColor: globalColors.black10
 }
+const stylesContainer = {
+  ...globalStyles.flexBoxColumn,
+  justifyContent: 'center',
+  alignItems: 'center',
+  marginTop: 15
+}
+const stylesCard = {
+  alignItems: 'stretch'
+}
+
+export default Render

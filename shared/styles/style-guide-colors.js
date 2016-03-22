@@ -24,9 +24,9 @@ export default {
   yellowGreen: '#a8cf36',
   yellowGreen2: '#89a82c',
 
-  lightGrey: '#f6f6f6',
-  lightGrey2: '#ebebeb',
-  lightGrey3: '#e0e0e0',
+  lightGrey: '#f0f0f0',
+  lightGrey2: '#e6e6e6',
+  grey: '#cccccc',
 
   white: '#ffffff',
   white90: 'rgba(255, 255, 255, 0.90)',

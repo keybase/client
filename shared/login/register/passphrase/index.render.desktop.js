@@ -30,14 +30,14 @@ class Render extends Component<void, Props, State> {
   render () {
     return (
       <Container
-        style={styles.container}
+        style={stylesContainer}
         outerStyle={{backgroundColor: globalColors.lightGrey}}
         onBack={() => this.props.onBack()}>
-        <UserCard username={this.props.username}>
+        <UserCard style={stylesCard} username={this.props.username}>
           <Text type='HeaderBig' style={{...specialStyles.username}}>{this.props.username}</Text>
           <Input
             autoFocus
-            style={styles.input}
+            style={stylesInput}
             type='password'
             floatingLabelText='Passphrase'
             onEnterKeyDown={() => this.onSubmit()}
@@ -51,34 +51,27 @@ class Render extends Component<void, Props, State> {
             type='Primary'
             onClick={() => this.onSubmit()}
             enabled={this.state.passphrase}/>
-          <Text style={styles.forgot} type='BodySecondaryLink' onClick={this.props.onForgotPassphrase}>Forgot passphrase?</Text>
+          <Text style={stylesForgot} type='BodySecondaryLink' onClick={this.props.onForgotPassphrase}>Forgot passphrase?</Text>
         </UserCard>
       </Container>
     )
   }
 }
 
-const styles = {
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    marginTop: 40
-  },
-  header: {
-    marginTop: 80
-  },
-  input: {
-    marginTop: 40,
-    marginBottom: 48
-  },
-  icon: {
-    fontSize: 30,
-    marginTop: 10
-  },
-  forgot: {
-    marginTop: 20,
-    alignSelf: 'flex-end'
-  }
+const stylesContainer = {
+  flex: 1,
+  alignItems: 'center',
+  marginTop: 40
+}
+const stylesInput = {
+  marginTop: 40,
+  marginBottom: 48
+}
+const stylesForgot = {
+  marginTop: 20
+}
+const stylesCard = {
+  alignSelf: 'stretch'
 }
 
 export default Render

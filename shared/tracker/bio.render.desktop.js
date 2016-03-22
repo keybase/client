@@ -49,9 +49,9 @@ export default class BioRender extends Component {
     const followLabel = this._followLabel()
 
     return (
-      <div style={styles.outer}>
-        <div style={styles.container}>
-          <div style={styles.avatarOuter}>
+      <div style={stylesOuter}>
+        <div style={stylesContainer}>
+          <div style={stylesAvatarOuter}>
             <Avatar onClick={() => this._onClickAvatar()} style={globalStyles.clickable} url={userInfo.avatar} size={75} />
             {(followsYou || currentlyFollowing) &&
               <div>
@@ -60,18 +60,18 @@ export default class BioRender extends Component {
               </div>
             }
           </div>
-          <div style={styles.content}>
+          <div style={stylesContent}>
             <Text
               type='HeaderBig'
-              style={{...styles.username, ...(currentlyFollowing ? styles.usernameFollowing : styles.usernameNotFollowing)}}
+              style={{...stylesUsername, ...(currentlyFollowing ? stylesUsernameFollowing : stylesUsernameNotFollowing)}}
               onClick={() => this._onClickAvatar()}>
               {username}
             </Text>
-            <Text type='BodySemibold' style={styles.fullname}>{userInfo.fullname}</Text>
+            <Text type='BodySemibold' style={stylesFullname}>{userInfo.fullname}</Text>
             {followLabel &&
-              <Text type='BodySmall' style={styles.followLabel}>{followLabel}</Text>
+              <Text type='BodySmall' style={stylesFollowLabel}>{followLabel}</Text>
             }
-            <Text type='BodySmall' style={styles.following}>
+            <Text type='BodySmall' style={stylesFollowing}>
               <span className='hover-underline' onClick={() => this._onClickFollowers()}>
                 <Text type='BodySmall' style={{...globalStyles.fontBold}}>{userInfo.followersCount}</Text> {userInfo.followersCount === 1 ? 'Tracker' : 'Trackers'}
               </span>
@@ -83,12 +83,12 @@ export default class BioRender extends Component {
               </span>
             </Text>
             {userInfo.bio &&
-              <Text type='BodySmall' style={styles.bio} lineClamp={userInfo.location ? 2 : 3}>
+              <Text type='BodySmall' style={stylesBio} lineClamp={userInfo.location ? 2 : 3}>
                 {userInfo.bio}
               </Text>
             }
             {userInfo.location &&
-              <Text type='BodySmall' style={styles.location} lineClamp={1}>{userInfo.location}</Text>
+              <Text type='BodySmall' style={stylesLocation} lineClamp={1}>{userInfo.location}</Text>
             }
           </div>
         </div>
@@ -97,72 +97,65 @@ export default class BioRender extends Component {
   }
 }
 
-const styles = {
-  outer: {
-    marginTop: 90
-  },
-  container: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 320,
-    marginTop: -40
-  },
-  avatarOuter: {
-    width: 75,
-    height: 75,
-    position: 'relative',
-    zIndex: 2
-  },
-  avatar: {
-    ...globalStyles.clickable,
-    width: 70,
-    height: 70
-  },
-  content: {
-    backgroundColor: globalColors.white,
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 320,
-    marginTop: -35,
-    paddingTop: 35,
-    zIndex: 1
-  },
-  username: {
-    ...globalStyles.selectable,
-    marginTop: 7
-  },
-  usernameFollowing: {
-    color: globalColors.green2
-  },
-  usernameNotFollowing: {
-    color: globalColors.orange
-  },
-  fullname: {
-    ...globalStyles.selectable,
-    textAlign: 'center',
-    color: '#444444'
-  },
-  followLabel: {
-    fontSize: 11,
-    textTransform: 'uppercase'
-  },
-  following: {
-    ...globalStyles.clickable
-  },
-  bio: {
-    ...globalStyles.selectable,
-    paddingLeft: 30,
-    paddingRight: 30,
-    textAlign: 'center'
-  },
-  location: {
-    ...globalStyles.selectable,
-    paddingLeft: 30,
-    paddingRight: 30,
-    textAlign: 'center'
-  }
+const stylesOuter = {
+  marginTop: 90
+}
+const stylesContainer = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: 320,
+  marginTop: -40
+}
+const stylesAvatarOuter = {
+  width: 75,
+  height: 75,
+  position: 'relative',
+  zIndex: 2
+}
+const stylesContent = {
+  backgroundColor: globalColors.white,
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  justifyContent: 'center',
+  width: 320,
+  marginTop: -35,
+  paddingTop: 35,
+  zIndex: 1
+}
+const stylesUsername = {
+  ...globalStyles.selectable,
+  marginTop: 7
+}
+const stylesUsernameFollowing = {
+  color: globalColors.green2
+}
+const stylesUsernameNotFollowing = {
+  color: globalColors.orange
+}
+const stylesFullname = {
+  ...globalStyles.selectable,
+  textAlign: 'center',
+  color: '#444444'
+}
+const stylesFollowLabel = {
+  fontSize: 11,
+  textTransform: 'uppercase'
+}
+const stylesFollowing = {
+  ...globalStyles.clickable
+}
+const stylesBio = {
+  ...globalStyles.selectable,
+  paddingLeft: 30,
+  paddingRight: 30,
+  textAlign: 'center'
+}
+const stylesLocation = {
+  ...globalStyles.selectable,
+  paddingLeft: 30,
+  paddingRight: 30,
+  textAlign: 'center'
 }
 
 const followBadgeCommon = {
@@ -193,7 +186,7 @@ const followBadgeStyles = {
   },
   notFollowsYou: {
     ...followTop,
-    background: globalColors.lightGrey3
+    background: globalColors.grey
   },
   following: {
     ...followBottom,
@@ -201,6 +194,6 @@ const followBadgeStyles = {
   },
   notFollowing: {
     ...followBottom,
-    background: globalColors.lightGrey3
+    background: globalColors.grey
   }
 }

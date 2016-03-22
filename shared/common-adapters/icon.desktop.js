@@ -63,6 +63,11 @@ export default class Icon extends Component {
     let hoverColor = this._defaultHoverColor(this.props.type)
     let iconType = this._typeToIconMapper(this.props.type)
 
+    if (!iconType) {
+      console.error('Null iconType passed')
+      return null
+    }
+
     if (this.props.inheritColor) {
       color = 'inherit'
       hoverColor = 'inherit'
