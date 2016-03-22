@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"path"
 	"sync"
+	"time"
 
 	"github.com/keybase/kbfs/dokan"
 )
@@ -41,10 +42,21 @@ func NewForceMounter(dir string) *DefaultMounter {
 
 // Mount uses default mount and blocks.
 func (m *DefaultMounter) Mount(fs dokan.FileSystem) error {
-	if m.force {
+	var err error
+	var h *dokan.MountHandle
+	// Retry loop
+	for i := 1; true; i++ {
+		h, err = m.mountHelper(fs)
+		// break if success, no force or too many tries.
+		if err == nil || !m.force || i > 3 {
+			break
+		}
+		// Sleep two times 100ms, 200ms, ...
+		time.Sleep(time.Duration(i) * 100 * time.Millisecond)
 		dokan.Unmount(m.dir)
+		time.Sleep(time.Duration(i) * 100 * time.Millisecond)
 	}
-	h, err := m.mountHelper(fs)
+
 	if err != nil {
 		return err
 	}
