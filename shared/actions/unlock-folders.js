@@ -50,6 +50,7 @@ function waiting (currentlyWaiting: boolean): Waiting {
 export function checkPaperKey (paperKey: HiddenString): TypedAsyncAction<CheckPaperKey | Waiting> {
   return dispatch => {
     // TODO figure out what service request to ask for
+    // TODO Use the waiting ability of the engine instead of manually dispatching
 
     dispatch(waiting(true))
     setTimeout(() => {
