@@ -16,7 +16,7 @@ func favTestInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config = NewConfigMock(mockCtrl, ctr)
 	config.mockKbpki.EXPECT().GetCurrentUserInfo(gomock.Any()).AnyTimes().
 		Return(libkb.NormalizedUsername("tester"),
-		keybase1.MakeTestUID(16), nil)
+			keybase1.MakeTestUID(16), nil)
 
 	return mockCtrl, config, context.Background()
 }
@@ -91,8 +91,8 @@ func TestFavoritesAddAsync(t *testing.T) {
 	// Block until thereare multiple outstanding calls
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), fav1.toKBFolder()).
 		Do(func(_ context.Context, _ keybase1.Folder) {
-		<-c
-	}).Return(nil)
+			<-c
+		}).Return(nil)
 
 	// There should only be one FavoriteAdd call for all of these, and
 	// none of them should block.
