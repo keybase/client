@@ -16,14 +16,6 @@ func NewCmdCtlStart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 	return cli.Command{
 		Name:  "start",
 		Usage: "Start the keybase service",
-		Flags: []cli.Flag{
-			// Using autofork bool instead of enum to be more like other autofork flags?
-			// https://github.com/keybase/client/pull/2414
-			cli.BoolFlag{
-				Name:  "auto-fork",
-				Usage: "Use auto forking",
-			},
-		},
 		Action: func(c *cli.Context) {
 			cl.ChooseCommand(NewCmdCtlStartRunner(g), "start", c)
 			cl.SetForkCmd(libcmdline.NoFork)
@@ -34,20 +26,18 @@ func NewCmdCtlStart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 
 type CmdCtlStart struct {
 	libkb.Contextified
-	autoFork bool
 }
 
 func NewCmdCtlStartRunner(g *libkb.GlobalContext) *CmdCtlStart {
-	return &CmdCtlStart{Contextified: libkb.NewContextified(g)}
+	return &CmdCtlStart{libkb.NewContextified(g)}
 }
 
 func (s *CmdCtlStart) ParseArgv(ctx *cli.Context) error {
-	s.autoFork = ctx.Bool("auto-fork")
 	return nil
 }
 
 func (s *CmdCtlStart) Run() error {
-	if s.autoFork {
+	if s.G().Env.GetAutoFork() {
 		_, err := AutoForkServer(s.G(), s.G().Env.GetCommandLine())
 		return err
 	}
