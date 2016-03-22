@@ -21,8 +21,8 @@ import (
 
 const ntstatusOk = C.NTSTATUS(0)
 
-//export kbfs_libdokan_CreateFile
-func kbfs_libdokan_CreateFile(
+//export kbfsLibdokanCreateFile
+func kbfsLibdokanCreateFile(
 	fname C.LPCWSTR,
 	psec C.PDOKAN_IO_SECURITY_CONTEXT,
 	DesiredAccess C.ACCESS_MASK,
@@ -47,22 +47,22 @@ func kbfs_libdokan_CreateFile(
 	return fiStore(pfi, fi, err)
 }
 
-//export kbfs_libdokan_Cleanup
-func kbfs_libdokan_Cleanup(fname C.LPCWSTR, pfi C.PDOKAN_FILE_INFO) {
+//export kbfsLibdokanCleanup
+func kbfsLibdokanCleanup(fname C.LPCWSTR, pfi C.PDOKAN_FILE_INFO) {
 	debugf("Cleanup '%v' %v\n", d16{fname}, *pfi)
 	getfi(pfi).Cleanup(makeFI(fname, pfi))
 }
 
-//export kbfs_libdokan_CloseFile
-func kbfs_libdokan_CloseFile(fname C.LPCWSTR, pfi C.PDOKAN_FILE_INFO) {
+//export kbfsLibdokanCloseFile
+func kbfsLibdokanCloseFile(fname C.LPCWSTR, pfi C.PDOKAN_FILE_INFO) {
 	debugf("CloseFile '%v' %v\n", d16{fname}, *pfi)
 	getfi(pfi).CloseFile(makeFI(fname, pfi))
 	fiTableFreeFile(uint32(pfi.DokanOptions.GlobalContext), uint32(pfi.Context))
 	pfi.Context = 0
 }
 
-//export kbfs_libdokan_ReadFile
-func kbfs_libdokan_ReadFile(
+//export kbfsLibdokanReadFile
+func kbfsLibdokanReadFile(
 	fname C.LPCWSTR,
 	Buffer C.LPVOID,
 	NumberOfBytesToRead C.DWORD,
@@ -83,8 +83,8 @@ func kbfs_libdokan_ReadFile(
 	return errToNT(err)
 }
 
-//export kbfs_libdokan_WriteFile
-func kbfs_libdokan_WriteFile(
+//export kbfsLibdokanWriteFile
+func kbfsLibdokanWriteFile(
 	fname C.LPCWSTR,
 	Buffer C.LPCVOID,
 	NumberOfBytesToWrite C.DWORD,
@@ -101,8 +101,8 @@ func kbfs_libdokan_WriteFile(
 	return errToNT(err)
 }
 
-//export kbfs_libdokan_FlushFileBuffers
-func kbfs_libdokan_FlushFileBuffers(
+//export kbfsLibdokanFlushFileBuffers
+func kbfsLibdokanFlushFileBuffers(
 	fname C.LPCWSTR,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debugf("FlushFileBuffers '%v' %v", d16{fname}, *pfi)
@@ -110,8 +110,8 @@ func kbfs_libdokan_FlushFileBuffers(
 	return errToNT(err)
 }
 
-//export kbfs_libdokan_GetFileInformation
-func kbfs_libdokan_GetFileInformation(
+//export kbfsLibdokanGetFileInformation
+func kbfsLibdokanGetFileInformation(
 	fname C.LPCWSTR,
 	sbuf C.LPBY_HANDLE_FILE_INFORMATION,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
@@ -135,8 +135,8 @@ func kbfs_libdokan_GetFileInformation(
 
 var errFindNoSpace = errors.New("Find out of space")
 
-//export kbfs_libdokan_FindFiles
-func kbfs_libdokan_FindFiles(
+//export kbfsLibdokanFindFiles
+func kbfsLibdokanFindFiles(
 	PathName C.LPCWSTR,
 	FindData C.PFillFindData, // call this function with PWIN32_FIND_DATAW
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
@@ -159,7 +159,7 @@ func kbfs_libdokan_FindFiles(
 				C.DWORD(14))
 		}
 
-		v := C.kbfs_libdokan_fill_find(FindData, &fdata, pfi)
+		v := C.kbfsLibdokanFill_find(FindData, &fdata, pfi)
 		if v != 0 {
 			return errFindNoSpace
 		}
@@ -170,8 +170,8 @@ func kbfs_libdokan_FindFiles(
 }
 
 /* This is disabled from the C side currently.
-//export kbfs_libdokan_FindFilesWithPattern
-func kbfs_libdokan_FindFilesWithPattern (
+//export kbfsLibdokanFindFilesWithPattern
+func kbfsLibdokanFindFilesWithPattern (
 	PathName C.LPCWSTR,
 	SearchPattern C.LPCWSTR,
 	PFillFindData uintptr, // call this function with PWIN32_FIND_DATAW
@@ -181,8 +181,8 @@ func kbfs_libdokan_FindFilesWithPattern (
 }
 */
 
-//export kbfs_libdokan_SetFileAttributes
-func kbfs_libdokan_SetFileAttributes(
+//export kbfsLibdokanSetFileAttributes
+func kbfsLibdokanSetFileAttributes(
 	fname C.LPCWSTR,
 	fileAttributes C.DWORD,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
@@ -191,8 +191,8 @@ func kbfs_libdokan_SetFileAttributes(
 	return errToNT(err)
 }
 
-//export kbfs_libdokan_SetFileTime
-func kbfs_libdokan_SetFileTime(
+//export kbfsLibdokanSetFileTime
+func kbfsLibdokanSetFileTime(
 	fname C.LPCWSTR,
 	creation *C.FILETIME,
 	lastAccess *C.FILETIME,
@@ -213,8 +213,8 @@ func kbfs_libdokan_SetFileTime(
 	return errToNT(err)
 }
 
-//export kbfs_libdokan_DeleteFile
-func kbfs_libdokan_DeleteFile(
+//export kbfsLibdokanDeleteFile
+func kbfsLibdokanDeleteFile(
 	fname C.LPCWSTR,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debugf("DeleteFile '%v' %v", d16{fname}, *pfi)
@@ -222,8 +222,8 @@ func kbfs_libdokan_DeleteFile(
 	return errToNT(err)
 }
 
-//export kbfs_libdokan_DeleteDirectory
-func kbfs_libdokan_DeleteDirectory(
+//export kbfsLibdokanDeleteDirectory
+func kbfsLibdokanDeleteDirectory(
 	fname C.LPCWSTR,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debugf("DeleteDirectory '%v' %v", d16{fname}, *pfi)
@@ -231,8 +231,8 @@ func kbfs_libdokan_DeleteDirectory(
 	return errToNT(err)
 }
 
-//export kbfs_libdokan_MoveFile
-func kbfs_libdokan_MoveFile(
+//export kbfsLibdokanMoveFile
+func kbfsLibdokanMoveFile(
 	oldFName C.LPCWSTR,
 	newFName C.LPCWSTR,
 	replaceExisiting C.BOOL,
@@ -243,8 +243,8 @@ func kbfs_libdokan_MoveFile(
 	return errToNT(err)
 }
 
-//export kbfs_libdokan_SetEndOfFile
-func kbfs_libdokan_SetEndOfFile(
+//export kbfsLibdokanSetEndOfFile
+func kbfsLibdokanSetEndOfFile(
 	fname C.LPCWSTR,
 	length C.LONGLONG,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
@@ -253,8 +253,8 @@ func kbfs_libdokan_SetEndOfFile(
 	return errToNT(err)
 }
 
-//export kbfs_libdokan_SetAllocationSize
-func kbfs_libdokan_SetAllocationSize(
+//export kbfsLibdokanSetAllocationSize
+func kbfsLibdokanSetAllocationSize(
 	fname C.LPCWSTR,
 	length C.LONGLONG,
 	pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
@@ -263,8 +263,8 @@ func kbfs_libdokan_SetAllocationSize(
 	return errToNT(err)
 }
 
-//export kbfs_libdokan_LockFile
-func kbfs_libdokan_LockFile(
+//export kbfsLibdokanLockFile
+func kbfsLibdokanLockFile(
 	fname C.LPCWSTR,
 	offset C.LONGLONG,
 	length C.LONGLONG,
@@ -274,8 +274,8 @@ func kbfs_libdokan_LockFile(
 	return errToNT(err)
 }
 
-//export kbfs_libdokan_UnlockFile
-func kbfs_libdokan_UnlockFile(
+//export kbfsLibdokanUnlockFile
+func kbfsLibdokanUnlockFile(
 	fname C.LPCWSTR,
 	offset C.LONGLONG,
 	length C.LONGLONG,
@@ -285,8 +285,8 @@ func kbfs_libdokan_UnlockFile(
 	return errToNT(err)
 }
 
-//export kbfs_libdokan_GetDiskFreeSpace
-func kbfs_libdokan_GetDiskFreeSpace(
+//export kbfsLibdokanGetDiskFreeSpace
+func kbfsLibdokanGetDiskFreeSpace(
 	FreeBytesAvailable *C.ULONGLONG,
 	TotalNumberOfBytes *C.ULONGLONG,
 	TotalNumberOfFreeBytes *C.ULONGLONG,
@@ -309,8 +309,8 @@ func kbfs_libdokan_GetDiskFreeSpace(
 	return ntstatusOk
 }
 
-//export kbfs_libdokan_GetVolumeInformation
-func kbfs_libdokan_GetVolumeInformation(
+//export kbfsLibdokanGetVolumeInformation
+func kbfsLibdokanGetVolumeInformation(
 	VolumeNameBuffer C.LPWSTR,
 	VolumeNameSize C.DWORD, // in num of chars
 	VolumeSerialNumber C.LPDWORD,
@@ -344,8 +344,8 @@ func kbfs_libdokan_GetVolumeInformation(
 	return ntstatusOk
 }
 
-//export kbfs_libdokan_Mounted
-func kbfs_libdokan_Mounted(pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
+//export kbfsLibdokanMounted
+func kbfsLibdokanMounted(pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	debug("Mounted")
 	// Signal that the filesystem is mounted and can be used.
 	fsTableGetErrChan(uint32(pfi.DokanOptions.GlobalContext)) <- nil
@@ -354,8 +354,8 @@ func kbfs_libdokan_Mounted(pfi C.PDOKAN_FILE_INFO) C.NTSTATUS {
 	return errToNT(err)
 }
 
-//export kbfs_libdokan_GetFileSecurity
-func kbfs_libdokan_GetFileSecurity(
+//export kbfsLibdokanGetFileSecurity
+func kbfsLibdokanGetFileSecurity(
 	fname C.LPCWSTR,
 	//A pointer to SECURITY_INFORMATION value being requested
 	input C.PSECURITY_INFORMATION,
@@ -368,8 +368,8 @@ func kbfs_libdokan_GetFileSecurity(
 	return ntstatusOk
 }
 
-//export kbfs_libdokan_SetFileSecurity
-func kbfs_libdokan_SetFileSecurity(
+//export kbfsLibdokanSetFileSecurity
+func kbfsLibdokanSetFileSecurity(
 	fname C.LPCWSTR,
 	SecurityInformation C.PSECURITY_INFORMATION,
 	SecurityDescriptor C.PSECURITY_DESCRIPTOR,
@@ -380,8 +380,8 @@ func kbfs_libdokan_SetFileSecurity(
 }
 
 /* FIXME add support for multiple streams per file?
-//export kbfs_libdokan_FindStreams
-func kbfs_libdokan_FindStreams (
+//export kbfsLibdokanFindStreams
+func kbfsLibdokanFindStreams (
 	fname C.LPCWSTR,
 	// call this function with PWIN32_FIND_STREAM_DATA
 	FindStreamData uintptr,
