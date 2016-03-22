@@ -1,6 +1,8 @@
 package libkbfs
 
 import (
+	"time"
+
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
@@ -77,6 +79,11 @@ type folderBlockOps struct {
 	config       Config
 	log          logger.Logger
 	folderBranch FolderBranch
+	observers    *observerList
+
+	// forceSyncChan can be sent on to trigger an immediate
+	// Sync().  It is a blocking channel.
+	forceSyncChan chan<- struct{}
 
 	// protects access to blocks in this folder and all fields
 	// below.
@@ -114,6 +121,11 @@ type folderBlockOps struct {
 
 	// set to true if this write or truncate should be deferred
 	doDeferWrite bool
+
+	// nodeCache itself is goroutine-safe, but write/truncate must
+	// call PathFromNode() only under blockLock (see nodeCache
+	// comments in folder_branch_ops.go).
+	nodeCache NodeCache
 }
 
 // Only exported methods of folderBlockOps should be used outside of this
@@ -687,7 +699,7 @@ func (fbo *folderBlockOps) cacheBlockIfNotYetDirtyLocked(
 		// Overwrite the dirty block if this is a copy-on-write during
 		// a sync.  Don't worry, the old dirty block is safe in the
 		// sync goroutine (and also probably saved to the cache under
-		// its new ID already.
+		// its new ID already).
 		err := fbo.config.BlockCache().PutDirty(ptr, branch, block)
 		if err != nil {
 			return err
@@ -964,4 +976,440 @@ func (fbo *folderBlockOps) Read(
 	}
 
 	return n, nil
+}
+
+func (fbo *folderBlockOps) maybeWaitOnDeferredWrites(
+	ctx context.Context, lState *lockState) error {
+	// If there is too much unflushed data, we should wait until some
+	// of it gets flush so our memory usage doesn't grow without
+	// bound.
+	bcache := fbo.config.BlockCache()
+	var syncBlockingCh chan error
+	for {
+		overThreshold := func() bool {
+			fbo.blockLock.Lock(lState)
+			defer fbo.blockLock.Unlock(lState)
+			dirtyBytes := bcache.DirtyBytesEstimate()
+			if dirtyBytes < dirtyBytesThreshold {
+				return false
+			}
+			fbo.log.CDebugf(ctx, "Blocking a write because of %d dirty bytes",
+				dirtyBytes)
+			if syncBlockingCh == nil {
+				syncBlockingCh = make(chan error, 1)
+				fbo.syncListeners =
+					append(fbo.syncListeners, syncBlockingCh)
+			}
+			return true
+		}()
+		if !overThreshold {
+			break
+		}
+
+		select {
+		// If we can't send on the channel, that means a sync is
+		// already in progress
+		case fbo.forceSyncChan <- struct{}{}:
+		default:
+		}
+
+		// Check again periodically, in case some other TLF is hogging
+		// all the dirty bytes.
+		t := time.NewTimer(100 * time.Millisecond)
+		select {
+		case err := <-syncBlockingCh:
+			syncBlockingCh = nil
+			if err != nil {
+				// XXX: should we ignore non-fatal errors (like
+				// context.Canceled), or errors that are specific only
+				// to some other file being sync'd (e.g.,
+				// "recoverable" block errors from which we couldn't
+				// recover)?
+				return err
+			}
+		case <-t.C:
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+
+		fbo.log.CDebugf(ctx, "Write unblocked")
+	}
+	return nil
+}
+
+func (fbo *folderBlockOps) pathFromNodeForBlockWriteLocked(
+	lState *lockState, n Node) (path, error) {
+	fbo.blockLock.AssertLocked(lState)
+	p := fbo.nodeCache.PathFromNode(n)
+	if !p.isValid() {
+		return path{}, InvalidPathError{p}
+	}
+	return p, nil
+}
+
+// Returns the set of blocks dirtied during this write that might need
+// to be cleaned up if the write is deferred.
+func (fbo *folderBlockOps) writeDataLocked(
+	ctx context.Context, lState *lockState, md *RootMetadata, file path,
+	data []byte, off int64) (WriteRange, []BlockPointer, error) {
+	fbo.blockLock.AssertLocked(lState)
+
+	if sz := off + int64(len(data)); uint64(sz) > fbo.config.MaxFileBytes() {
+		return WriteRange{}, nil, FileTooBigError{file, sz, fbo.config.MaxFileBytes()}
+	}
+
+	// check writer status explicitly
+	username, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		return WriteRange{}, nil, err
+	}
+	if !md.GetTlfHandle().IsWriter(uid) {
+		return WriteRange{}, nil, NewWriteAccessError(ctx, fbo.config, md.GetTlfHandle(), username)
+	}
+
+	fblock, err := fbo.getFileLocked(ctx, lState, md, file, blockWrite)
+	if err != nil {
+		return WriteRange{}, nil, err
+	}
+
+	bcache := fbo.config.BlockCache()
+	bsplit := fbo.config.BlockSplitter()
+	n := int64(len(data))
+	nCopied := int64(0)
+
+	de, err := fbo.getDirtyEntryLocked(ctx, lState, md, file)
+	if err != nil {
+		return WriteRange{}, nil, err
+	}
+
+	si := fbo.getOrCreateSyncInfoLocked(lState, de)
+	var dirtyPtrs []BlockPointer
+	for nCopied < n {
+		ptr, parentBlock, indexInParent, block, more, startOff, err :=
+			fbo.getFileBlockAtOffsetLocked(
+				ctx, lState, md, file, fblock,
+				off+nCopied, blockWrite)
+		if err != nil {
+			return WriteRange{}, nil, err
+		}
+
+		oldLen := len(block.Contents)
+		nCopied += bsplit.CopyUntilSplit(block, !more, data[nCopied:],
+			off+nCopied-startOff)
+
+		// the block splitter could only have copied to the end of the
+		// existing block (or appended to the end of the final block), so
+		// we shouldn't ever hit this case:
+		if more && oldLen < len(block.Contents) {
+			return WriteRange{}, nil, BadSplitError{}
+		}
+
+		// TODO: support multiple levels of indirection.  Right now the
+		// code only does one but it should be straightforward to
+		// generalize, just annoying
+
+		// if we need another block but there are no more, then make one
+		if nCopied < n && !more {
+			// If the block doesn't already have a parent block, make one.
+			if ptr == file.tailPointer() {
+				// pick a new id for this block, and use this block's ID for
+				// the parent
+				newID, err := fbo.config.Crypto().MakeTemporaryBlockID()
+				if err != nil {
+					return WriteRange{}, nil, err
+				}
+				fblock = &FileBlock{
+					CommonBlock: CommonBlock{
+						IsInd: true,
+					},
+					IPtrs: []IndirectFilePtr{
+						{
+							BlockInfo: BlockInfo{
+								BlockPointer: BlockPointer{
+									ID:       newID,
+									KeyGen:   md.LatestKeyGeneration(),
+									DataVer:  fbo.config.DataVersion(),
+									Creator:  uid,
+									RefNonce: zeroBlockRefNonce,
+								},
+								EncodedSize: 0,
+							},
+							Off: 0,
+						},
+					},
+				}
+				if err := bcache.PutDirty(
+					file.tailPointer(), file.Branch, fblock); err != nil {
+					return WriteRange{}, nil, err
+				}
+				ptr = fblock.IPtrs[0].BlockPointer
+			}
+
+			// Make a new right block and update the parent's
+			// indirect block list
+			err := fbo.newRightBlockLocked(ctx, lState, file.tailPointer(),
+				file.Branch, fblock, startOff+int64(len(block.Contents)), md)
+			if err != nil {
+				return WriteRange{}, nil, err
+			}
+		}
+
+		if oldLen != len(block.Contents) || de.Writer != uid {
+			de.EncodedSize = 0
+			// update the file info
+			de.Size += uint64(len(block.Contents) - oldLen)
+			fbo.deCache[file.tailPointer().ref()] = de
+		}
+
+		if parentBlock != nil {
+			// remember how many bytes it was
+			si.unrefs = append(si.unrefs,
+				parentBlock.IPtrs[indexInParent].BlockInfo)
+			parentBlock.IPtrs[indexInParent].EncodedSize = 0
+		}
+		// keep the old block ID while it's dirty
+		if err = fbo.cacheBlockIfNotYetDirtyLocked(lState, ptr, file.Branch,
+			block); err != nil {
+			return WriteRange{}, nil, err
+		}
+		dirtyPtrs = append(dirtyPtrs, ptr)
+	}
+
+	if fblock.IsInd {
+		// Always make the top block dirty, so we will sync its
+		// indirect blocks.  This has the added benefit of ensuring
+		// that any write to a file while it's being sync'd will be
+		// deferred, even if it's to a block that's not currently
+		// being sync'd, since this top-most block will always be in
+		// the fileBlockStates map.
+		if err = fbo.cacheBlockIfNotYetDirtyLocked(lState,
+			file.tailPointer(), file.Branch, fblock); err != nil {
+			return WriteRange{}, nil, err
+		}
+		dirtyPtrs = append(dirtyPtrs, file.tailPointer())
+	}
+	latestWrite := si.op.addWrite(uint64(off), uint64(len(data)))
+
+	if d := bcache.DirtyBytesEstimate(); d > dirtyBytesThreshold {
+		fbo.log.CDebugf(ctx, "Forcing a sync due to %d dirty bytes", d)
+		select {
+		// If we can't send on the channel, that means a sync is
+		// already in progress
+		case fbo.forceSyncChan <- struct{}{}:
+		default:
+		}
+	}
+
+	return latestWrite, dirtyPtrs, nil
+}
+
+// Write writes the given data to the given file.
+func (fbo *folderBlockOps) Write(
+	ctx context.Context, lState *lockState, md *RootMetadata,
+	file Node, data []byte, off int64) error {
+	if err := fbo.maybeWaitOnDeferredWrites(ctx, lState); err != nil {
+		return err
+	}
+
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
+
+	filePath, err := fbo.pathFromNodeForBlockWriteLocked(lState, file)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		fbo.doDeferWrite = false
+	}()
+
+	latestWrite, dirtyPtrs, err := fbo.writeDataLocked(
+		ctx, lState, md, filePath, data, off)
+	if err != nil {
+		return err
+	}
+
+	fbo.observers.localChange(ctx, file, latestWrite)
+
+	if fbo.doDeferWrite {
+		// There's an ongoing sync, and this write altered dirty
+		// blocks that are in the process of syncing.  So, we have to
+		// redo this write once the sync is complete, using the new
+		// file path.
+		//
+		// There is probably a less terrible of doing this that
+		// doesn't involve so much copying and rewriting, but this is
+		// the most obviously correct way.
+		dataCopy := make([]byte, len(data))
+		copy(dataCopy, data)
+		fbo.log.CDebugf(ctx, "Deferring a write to file %v off=%d len=%d",
+			filePath.tailPointer(), off, len(data))
+		fbo.deferredDirtyDeletes = append(fbo.deferredDirtyDeletes,
+			dirtyPtrs...)
+		fbo.deferredWrites = append(fbo.deferredWrites,
+			func(ctx context.Context, lState *lockState, rmd *RootMetadata, f path) error {
+				// Write the data again.  We know this won't be
+				// deferred, so no need to check the new ptrs.
+				_, _, err = fbo.writeDataLocked(
+					ctx, lState, rmd, f, dataCopy, off)
+				return err
+			})
+	}
+
+	return nil
+}
+
+// Returns the set of newly-ID'd blocks created during this truncate
+// that might need to be cleaned up if the truncate is deferred.
+func (fbo *folderBlockOps) truncateLocked(
+	ctx context.Context, lState *lockState, md *RootMetadata,
+	file path, size uint64) (*WriteRange, []BlockPointer, error) {
+	fbo.blockLock.AssertLocked(lState)
+
+	// check writer status explicitly
+	username, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		return nil, nil, err
+	}
+	if !md.GetTlfHandle().IsWriter(uid) {
+		return nil, nil, NewWriteAccessError(ctx, fbo.config, md.GetTlfHandle(), username)
+	}
+
+	fblock, err := fbo.getFileLocked(ctx, lState, md, file, blockWrite)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// find the block where the file should now end
+	iSize := int64(size) // TODO: deal with overflow
+	ptr, parentBlock, indexInParent, block, more, startOff, err :=
+		fbo.getFileBlockAtOffsetLocked(
+			ctx, lState, md, file, fblock, iSize, blockWrite)
+
+	currLen := int64(startOff) + int64(len(block.Contents))
+	if currLen < iSize {
+		// if we need to extend the file, let's just do a write
+		moreNeeded := iSize - currLen
+		latestWrite, dirtyPtrs, err := fbo.writeDataLocked(
+			ctx, lState, md, file,
+			make([]byte, moreNeeded, moreNeeded), currLen)
+		if err != nil {
+			return nil, nil, err
+		}
+		return &latestWrite, dirtyPtrs, err
+	} else if currLen == iSize {
+		// same size!
+		return nil, nil, nil
+	}
+
+	// update the local entry size
+	de, err := fbo.getDirtyEntryLocked(ctx, lState, md, file)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// otherwise, we need to delete some data (and possibly entire blocks)
+	block.Contents = append([]byte(nil), block.Contents[:iSize-startOff]...)
+
+	si := fbo.getOrCreateSyncInfoLocked(lState, de)
+	if more {
+		// TODO: if indexInParent == 0, we can remove the level of indirection
+		for _, ptr := range parentBlock.IPtrs[indexInParent+1:] {
+			si.unrefs = append(si.unrefs, ptr.BlockInfo)
+		}
+		parentBlock.IPtrs = parentBlock.IPtrs[:indexInParent+1]
+		// always make the parent block dirty, so we will sync it
+		if err = fbo.cacheBlockIfNotYetDirtyLocked(lState,
+			file.tailPointer(), file.Branch, parentBlock); err != nil {
+			return nil, nil, err
+		}
+	}
+
+	if fblock.IsInd {
+		// Always make the top block dirty, so we will sync its
+		// indirect blocks.  This has the added benefit of ensuring
+		// that any truncate to a file while it's being sync'd will be
+		// deferred, even if it's to a block that's not currently
+		// being sync'd, since this top-most block will always be in
+		// the fileBlockStates map.
+		if err = fbo.cacheBlockIfNotYetDirtyLocked(lState,
+			file.tailPointer(), file.Branch, fblock); err != nil {
+			return nil, nil, err
+		}
+	}
+
+	if parentBlock != nil {
+		// TODO: When we implement more than one level of indirection,
+		// make sure that the pointer to parentBlock in the grandparent block
+		// has EncodedSize 0.
+		si.unrefs = append(si.unrefs,
+			parentBlock.IPtrs[indexInParent].BlockInfo)
+		parentBlock.IPtrs[indexInParent].EncodedSize = 0
+	}
+
+	latestWrite := si.op.addTruncate(size)
+
+	de.EncodedSize = 0
+	de.Size = size
+	fbo.deCache[file.tailPointer().ref()] = de
+
+	// Keep the old block ID while it's dirty.
+	if err = fbo.cacheBlockIfNotYetDirtyLocked(lState,
+		ptr, file.Branch, block); err != nil {
+		return nil, nil, err
+	}
+
+	return &latestWrite, nil, nil
+}
+
+// Truncate truncates or extends the given file to the given size.
+func (fbo *folderBlockOps) Truncate(
+	ctx context.Context, lState *lockState, md *RootMetadata,
+	file Node, size uint64) error {
+	if err := fbo.maybeWaitOnDeferredWrites(ctx, lState); err != nil {
+		return err
+	}
+
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
+
+	filePath, err := fbo.pathFromNodeForBlockWriteLocked(lState, file)
+	if err != nil {
+		return err
+	}
+
+	defer func() {
+		fbo.doDeferWrite = false
+	}()
+
+	latestWrite, dirtyPtrs, err := fbo.truncateLocked(
+		ctx, lState, md, filePath, size)
+	if err != nil {
+		return err
+	}
+
+	if latestWrite != nil {
+		fbo.observers.localChange(ctx, file, *latestWrite)
+	}
+
+	if fbo.doDeferWrite {
+		// There's an ongoing sync, and this truncate altered
+		// dirty blocks that are in the process of syncing.  So,
+		// we have to redo this truncate once the sync is complete,
+		// using the new file path.
+		fbo.log.CDebugf(ctx, "Deferring a truncate to file %v",
+			filePath.tailPointer())
+		fbo.deferredDirtyDeletes = append(fbo.deferredDirtyDeletes,
+			dirtyPtrs...)
+		fbo.deferredWrites = append(fbo.deferredWrites,
+			func(ctx context.Context, lState *lockState, rmd *RootMetadata, f path) error {
+				// Truncate the file again.  We know this won't be
+				// deferred, so no need to check the new ptrs.
+				_, _, err := fbo.truncateLocked(
+					ctx, lState, rmd, f, size)
+				return err
+			})
+	}
+
+	return nil
 }
