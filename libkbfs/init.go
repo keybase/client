@@ -94,6 +94,7 @@ func GetDefaultMDServer() string {
 }
 
 func defaultLogPath() string {
+	// TODO is there a better way to get G here?
 	return filepath.Join(libkb.G.Env.GetLogDir(), libkb.KBFSLogFileName)
 }
 
