@@ -40,13 +40,13 @@
 		},
 		{
 			"path": "github.com/aalness/goamz/dynamodb",
-			"revision": "a1b8eaa6c3e81f140fef6225e7bf99bfa2083105",
-			"revisionTime": "2016-02-18T16:55:53-08:00"
+			"revision": "f7b5c669c11553a81344cc40b5f91de77b1c7315",
+			"revisionTime": "2016-03-21T13:51:32-04:00"
 		},
 		{
 			"path": "github.com/aalness/goamz/s3",
-			"revision": "6cf7ff1707eccf4b0fcf89609517b91a339bf2c1",
-			"revisionTime": "2016-02-18T18:09:51-08:00"
+			"revision": "f7b5c669c11553a81344cc40b5f91de77b1c7315",
+			"revisionTime": "2016-03-21T13:51:32-04:00"
 		},
 		{
 			"origin": "github.com/keybase/client/go/vendor/github.com/agl/ed25519",
