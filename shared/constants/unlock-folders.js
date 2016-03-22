@@ -19,6 +19,9 @@ export type LoadDevices = TypedAction<'unlockFolders:loadDevices', {devices: Arr
 export const toPaperKeyInput = 'unlockFolders:toPaperKeyInput'
 export type ToPaperKeyInput = TypedAction<'unlockFolders:toPaperKeyInput', {}, {}>
 
+export const onBackFromPaperKey = 'unlockFolders:onBackFromPaperKey'
+export type OnBackFromPaperKey = TypedAction<'unlockFolders:onBackFromPaperKey', {}, {}>
+
 export const checkPaperKey = 'unlockFolders:checkPaperKey'
 export type CheckPaperKey = TypedAction<'unlockFolders:checkPaperKey', {success: true}, {error: HiddenString}>
 
@@ -28,4 +31,7 @@ export type Finish = TypedAction<'unlockFolders:finish', {}, {}>
 export const close = 'unlockFolders:close'
 export type Close = TypedAction<'unlockFolders:close', {}, {}>
 
-export type UnlockFolderActions = LoadDevices | ToPaperKeyInput | CheckPaperKey | Finish | Close
+export const waiting = 'unlockFolders:waiting'
+export type Waiting = TypedAction<'unlockFolders:waiting', boolean, {}>
+
+export type UnlockFolderActions = LoadDevices | ToPaperKeyInput | OnBackFromPaperKey | CheckPaperKey | Finish | Close | Waiting
