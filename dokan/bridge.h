@@ -29,20 +29,20 @@ typedef struct kbfs_WIN32_FIND_STREAM_DATA_ {
 typedef uint32_t error_t;
 typedef uint32_t go_fs_id;
 
-struct kbfs_libdokan_ctx {
+struct kbfsLibdokanCtx {
   DOKAN_OPERATIONS dokan_operations;
   DOKAN_OPTIONS dokan_options;
 };
 
-struct kbfs_libdokan_ctx* kbfs_libdokan_alloc_ctx(ULONG64 fsslot);
-error_t kbfs_libdokan_free(struct kbfs_libdokan_ctx* ctx);
-error_t kbfs_libdokan_run(struct kbfs_libdokan_ctx* ctx);
-void kbfs_libdokan_set_path(struct kbfs_libdokan_ctx* ctx, void*);
+struct kbfsLibdokanCtx* kbfs_libdokan_alloc_ctx(ULONG64 fsslot);
+error_t kbfsLibdokanFree(struct kbfs_libdokan_ctx* ctx);
+error_t kbfsLibdokanRun(struct kbfs_libdokan_ctx* ctx);
+void kbfsLibdokanSet_path(struct kbfs_libdokan_ctx* ctx, void*);
 
-int kbfs_libdokan_fill_find(PFillFindData, PWIN32_FIND_DATAW, PDOKAN_FILE_INFO);
+int kbfsLibdokanFill_find(PFillFindData, PWIN32_FIND_DATAW, PDOKAN_FILE_INFO);
 
 enum {
-  kbfs_libdokan_debug = DOKAN_OPTION_DEBUG|DOKAN_OPTION_STDERR,
+  kbfsLibdokanDebug = DOKAN_OPTION_DEBUG|DOKAN_OPTION_STDERR,
 };
 
 #endif /* windows check */

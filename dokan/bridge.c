@@ -6,7 +6,7 @@
 
 #include "bridge.h"
 
-extern NTSTATUS kbfs_libdokan_CreateFile(LPCWSTR FileName,
+extern NTSTATUS kbfsLibdokanCreateFile(LPCWSTR FileName,
 					 PDOKAN_IO_SECURITY_CONTEXT psec,
 					 ACCESS_MASK DesiredAccess,
 					 ULONG FileAttributes,
@@ -15,7 +15,7 @@ extern NTSTATUS kbfs_libdokan_CreateFile(LPCWSTR FileName,
 					 ULONG CreateOptions,
 					 PDOKAN_FILE_INFO pfi);
 
-extern DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_CreateFile(LPCWSTR FileName,
+extern DOKAN_CALLBACK NTSTATUS kbfsLibdokanC_CreateFile(LPCWSTR FileName,
 							  PDOKAN_IO_SECURITY_CONTEXT psec,
 							  ACCESS_MASK DesiredAccess,
 							  ULONG FileAttributes,
@@ -23,186 +23,186 @@ extern DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_CreateFile(LPCWSTR FileName,
 							  ULONG CreateDisposition,
 							  ULONG CreateOptions,
 							  PDOKAN_FILE_INFO pfi) {
-  return kbfs_libdokan_CreateFile(FileName,psec,DesiredAccess,FileAttributes,ShareAccess,CreateDisposition,CreateOptions,pfi);
+  return kbfsLibdokanCreateFile(FileName,psec,DesiredAccess,FileAttributes,ShareAccess,CreateDisposition,CreateOptions,pfi);
 }
 
-extern void kbfs_libdokan_Cleanup(LPCWSTR FileName, PDOKAN_FILE_INFO FileInfo);
+extern void kbfsLibdokanCleanup(LPCWSTR FileName, PDOKAN_FILE_INFO FileInfo);
 
-static DOKAN_CALLBACK void kbfs_libdokan_c_Cleanup(LPCWSTR FileName, PDOKAN_FILE_INFO FileInfo) {
-  kbfs_libdokan_Cleanup(FileName,FileInfo);
+static DOKAN_CALLBACK void kbfsLibdokanC_Cleanup(LPCWSTR FileName, PDOKAN_FILE_INFO FileInfo) {
+  kbfsLibdokanCleanup(FileName,FileInfo);
 }
 
-extern void kbfs_libdokan_CloseFile(LPCWSTR FileName, PDOKAN_FILE_INFO FileInfo);
+extern void kbfsLibdokanCloseFile(LPCWSTR FileName, PDOKAN_FILE_INFO FileInfo);
 
-static DOKAN_CALLBACK void kbfs_libdokan_c_CloseFile(LPCWSTR FileName, PDOKAN_FILE_INFO FileInfo) {
-  kbfs_libdokan_CloseFile(FileName,FileInfo);
+static DOKAN_CALLBACK void kbfsLibdokanC_CloseFile(LPCWSTR FileName, PDOKAN_FILE_INFO FileInfo) {
+  kbfsLibdokanCloseFile(FileName,FileInfo);
 }
 
-extern NTSTATUS kbfs_libdokan_ReadFile(LPCWSTR FileName,
+extern NTSTATUS kbfsLibdokanReadFile(LPCWSTR FileName,
 					LPVOID Buffer,
 					DWORD NumberOfBytesToRead,
 					LPDWORD NumberOfBytesRead,
 					LONGLONG Offset,
 					PDOKAN_FILE_INFO FileInfo);
 
-static DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_ReadFile(LPCWSTR FileName,
+static DOKAN_CALLBACK NTSTATUS kbfsLibdokanC_ReadFile(LPCWSTR FileName,
 						      LPVOID Buffer,
 						      DWORD NumberOfBytesToRead,
 						      LPDWORD NumberOfBytesRead,
 						      LONGLONG Offset,
 						      PDOKAN_FILE_INFO FileInfo) {
-  return kbfs_libdokan_ReadFile(FileName, Buffer, NumberOfBytesToRead, NumberOfBytesRead, Offset, FileInfo);
+  return kbfsLibdokanReadFile(FileName, Buffer, NumberOfBytesToRead, NumberOfBytesRead, Offset, FileInfo);
 }
 
-extern NTSTATUS kbfs_libdokan_WriteFile(LPCWSTR FileName,
+extern NTSTATUS kbfsLibdokanWriteFile(LPCWSTR FileName,
 					LPCVOID Buffer,
 					DWORD NumberOfBytesToWrite,
 					LPDWORD NumberOfBytesWritten,
 					LONGLONG Offset,
 					PDOKAN_FILE_INFO FileInfo);
 
-static DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_WriteFile(LPCWSTR FileName,
+static DOKAN_CALLBACK NTSTATUS kbfsLibdokanC_WriteFile(LPCWSTR FileName,
 							 LPCVOID Buffer,
 							 DWORD NumberOfBytesToWrite,
 							 LPDWORD NumberOfBytesWritten,
 							 LONGLONG Offset,
 							 PDOKAN_FILE_INFO FileInfo) {
-  return kbfs_libdokan_WriteFile(FileName, Buffer, NumberOfBytesToWrite, NumberOfBytesWritten, Offset, FileInfo);
+  return kbfsLibdokanWriteFile(FileName, Buffer, NumberOfBytesToWrite, NumberOfBytesWritten, Offset, FileInfo);
 }
 
-extern NTSTATUS kbfs_libdokan_FlushFileBuffers(LPCWSTR FileName, PDOKAN_FILE_INFO FileInfo);
+extern NTSTATUS kbfsLibdokanFlushFileBuffers(LPCWSTR FileName, PDOKAN_FILE_INFO FileInfo);
 
-static DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_FlushFileBuffers(LPCWSTR FileName, PDOKAN_FILE_INFO FileInfo) {
-  return kbfs_libdokan_FlushFileBuffers(FileName, FileInfo);
+static DOKAN_CALLBACK NTSTATUS kbfsLibdokanC_FlushFileBuffers(LPCWSTR FileName, PDOKAN_FILE_INFO FileInfo) {
+  return kbfsLibdokanFlushFileBuffers(FileName, FileInfo);
 }
 
-extern NTSTATUS kbfs_libdokan_GetFileInformation(LPCWSTR FileName,
+extern NTSTATUS kbfsLibdokanGetFileInformation(LPCWSTR FileName,
 						 LPBY_HANDLE_FILE_INFORMATION Buffer,
 						 PDOKAN_FILE_INFO FileInfo);
 
-static DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_GetFileInformation(LPCWSTR FileName,
+static DOKAN_CALLBACK NTSTATUS kbfsLibdokanC_GetFileInformation(LPCWSTR FileName,
 								LPBY_HANDLE_FILE_INFORMATION Buffer,
 								PDOKAN_FILE_INFO FileInfo) {
-  return kbfs_libdokan_GetFileInformation(FileName, Buffer, FileInfo);
+  return kbfsLibdokanGetFileInformation(FileName, Buffer, FileInfo);
 }
 
-extern  NTSTATUS kbfs_libdokan_FindFiles(LPCWSTR PathName,
+extern  NTSTATUS kbfsLibdokanFindFiles(LPCWSTR PathName,
 					 PFillFindData FindData,	// call this function with PWIN32_FIND_DATAW
 					 PDOKAN_FILE_INFO FileInfo);
 
-static DOKAN_CALLBACK  NTSTATUS kbfs_libdokan_c_FindFiles(LPCWSTR PathName,
+static DOKAN_CALLBACK  NTSTATUS kbfsLibdokanC_FindFiles(LPCWSTR PathName,
 							  PFillFindData FindData,	// call this function with PWIN32_FIND_DATAW
 							  PDOKAN_FILE_INFO FileInfo) {
-  return kbfs_libdokan_FindFiles(PathName, FindData, FileInfo);
+  return kbfsLibdokanFindFiles(PathName, FindData, FileInfo);
 }
 
 /*
-extern NTSTATUS kbfs_libdokan_FindFilesWithPattern(LPCWSTR PathName,
+extern NTSTATUS kbfsLibdokanFindFilesWithPattern(LPCWSTR PathName,
 						   LPCWSTR SearchPattern,
 						   PFillFindData FindData, // call this function with PWIN32_FIND_DATAW
 						   PDOKAN_FILE_INFO FileInfo);
 */
-extern NTSTATUS kbfs_libdokan_SetFileAttributes(LPCWSTR FileName,
+extern NTSTATUS kbfsLibdokanSetFileAttributes(LPCWSTR FileName,
 						DWORD FileAttributes,
 						PDOKAN_FILE_INFO FileInfo);
-static DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_SetFileAttributes(LPCWSTR FileName,
+static DOKAN_CALLBACK NTSTATUS kbfsLibdokanC_SetFileAttributes(LPCWSTR FileName,
 								 DWORD FileAttributes,
 								 PDOKAN_FILE_INFO FileInfo) {
-  return kbfs_libdokan_SetFileAttributes(FileName, FileAttributes, FileInfo);
+  return kbfsLibdokanSetFileAttributes(FileName, FileAttributes, FileInfo);
 }
 
-extern NTSTATUS kbfs_libdokan_SetFileTime(LPCWSTR FileName,
+extern NTSTATUS kbfsLibdokanSetFileTime(LPCWSTR FileName,
 										   CONST FILETIME* CreationTime,
 										   CONST FILETIME* LastAccessTime,
 										   CONST FILETIME* LastWriteTime,
 										   PDOKAN_FILE_INFO FileInfo);
-static DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_SetFileTime(LPCWSTR FileName,
+static DOKAN_CALLBACK NTSTATUS kbfsLibdokanC_SetFileTime(LPCWSTR FileName,
 							   CONST FILETIME* CreationTime,
 							   CONST FILETIME* LastAccessTime,
 							   CONST FILETIME* LastWriteTime,
 							   PDOKAN_FILE_INFO FileInfo) {
-  return kbfs_libdokan_SetFileTime(FileName, CreationTime, LastAccessTime, LastWriteTime, FileInfo);
+  return kbfsLibdokanSetFileTime(FileName, CreationTime, LastAccessTime, LastWriteTime, FileInfo);
 }
 
-extern NTSTATUS kbfs_libdokan_DeleteFile(LPCWSTR FileName, PDOKAN_FILE_INFO FileInfo);
+extern NTSTATUS kbfsLibdokanDeleteFile(LPCWSTR FileName, PDOKAN_FILE_INFO FileInfo);
 
-static DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_DeleteFile(LPCWSTR FileName, PDOKAN_FILE_INFO FileInfo) {
-  return kbfs_libdokan_DeleteFile(FileName, FileInfo);
+static DOKAN_CALLBACK NTSTATUS kbfsLibdokanC_DeleteFile(LPCWSTR FileName, PDOKAN_FILE_INFO FileInfo) {
+  return kbfsLibdokanDeleteFile(FileName, FileInfo);
 }
 
-extern NTSTATUS kbfs_libdokan_DeleteDirectory(LPCWSTR FileName, PDOKAN_FILE_INFO FileInfo);
+extern NTSTATUS kbfsLibdokanDeleteDirectory(LPCWSTR FileName, PDOKAN_FILE_INFO FileInfo);
 
-static DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_DeleteDirectory(LPCWSTR FileName, PDOKAN_FILE_INFO FileInfo) {
-  return kbfs_libdokan_DeleteDirectory(FileName, FileInfo);
+static DOKAN_CALLBACK NTSTATUS kbfsLibdokanC_DeleteDirectory(LPCWSTR FileName, PDOKAN_FILE_INFO FileInfo) {
+  return kbfsLibdokanDeleteDirectory(FileName, FileInfo);
 }
 
-extern NTSTATUS kbfs_libdokan_MoveFile(LPCWSTR ExistingFileName,
+extern NTSTATUS kbfsLibdokanMoveFile(LPCWSTR ExistingFileName,
 				       LPCWSTR NewFileName,
 				       BOOL ReplaceExisiting,
 				       PDOKAN_FILE_INFO FileInfo);
-static DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_MoveFile(LPCWSTR ExistingFileName,
+static DOKAN_CALLBACK NTSTATUS kbfsLibdokanC_MoveFile(LPCWSTR ExistingFileName,
 							LPCWSTR NewFileName,
 							BOOL ReplaceExisiting,
 							PDOKAN_FILE_INFO FileInfo) {
-  return kbfs_libdokan_MoveFile(ExistingFileName, NewFileName, ReplaceExisiting, FileInfo);
+  return kbfsLibdokanMoveFile(ExistingFileName, NewFileName, ReplaceExisiting, FileInfo);
 }
 
-extern NTSTATUS kbfs_libdokan_SetEndOfFile(LPCWSTR FileName,
+extern NTSTATUS kbfsLibdokanSetEndOfFile(LPCWSTR FileName,
 					   LONGLONG Length,
 					   PDOKAN_FILE_INFO FileInfo);
-static DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_SetEndOfFile(LPCWSTR FileName,
+static DOKAN_CALLBACK NTSTATUS kbfsLibdokanC_SetEndOfFile(LPCWSTR FileName,
 							    LONGLONG Length,
 							    PDOKAN_FILE_INFO FileInfo) {
-  return kbfs_libdokan_SetEndOfFile(FileName, Length, FileInfo);
+  return kbfsLibdokanSetEndOfFile(FileName, Length, FileInfo);
 }
 
-extern NTSTATUS kbfs_libdokan_SetAllocationSize(LPCWSTR FileName,
+extern NTSTATUS kbfsLibdokanSetAllocationSize(LPCWSTR FileName,
 												LONGLONG Length,
 												PDOKAN_FILE_INFO FileInfo);
-static DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_SetAllocationSize(LPCWSTR FileName,
+static DOKAN_CALLBACK NTSTATUS kbfsLibdokanC_SetAllocationSize(LPCWSTR FileName,
 												LONGLONG Length,
 												PDOKAN_FILE_INFO FileInfo) {
-  return kbfs_libdokan_SetAllocationSize(FileName, Length, FileInfo);
+  return kbfsLibdokanSetAllocationSize(FileName, Length, FileInfo);
 }
 
-extern NTSTATUS kbfs_libdokan_LockFile(LPCWSTR FileName,
+extern NTSTATUS kbfsLibdokanLockFile(LPCWSTR FileName,
 				       LONGLONG ByteOffset,
 				       LONGLONG Length,
 				       PDOKAN_FILE_INFO FileInfo);
 
-static DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_LockFile(LPCWSTR FileName,
+static DOKAN_CALLBACK NTSTATUS kbfsLibdokanC_LockFile(LPCWSTR FileName,
 							LONGLONG ByteOffset,
 							LONGLONG Length,
 							PDOKAN_FILE_INFO FileInfo) {
-  return kbfs_libdokan_LockFile(FileName, ByteOffset, Length, FileInfo);
+  return kbfsLibdokanLockFile(FileName, ByteOffset, Length, FileInfo);
 }
 
-extern NTSTATUS kbfs_libdokan_UnlockFile(LPCWSTR FileName,
+extern NTSTATUS kbfsLibdokanUnlockFile(LPCWSTR FileName,
 					 LONGLONG ByteOffset,
 					 LONGLONG Length,
 					 PDOKAN_FILE_INFO FileInfo);
-static DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_UnlockFile(LPCWSTR FileName,
+static DOKAN_CALLBACK NTSTATUS kbfsLibdokanC_UnlockFile(LPCWSTR FileName,
 							LONGLONG ByteOffset,
 							LONGLONG Length,
 							PDOKAN_FILE_INFO FileInfo) {
-  return kbfs_libdokan_UnlockFile(FileName, ByteOffset, Length, FileInfo);
+  return kbfsLibdokanUnlockFile(FileName, ByteOffset, Length, FileInfo);
 }
 
 
 // see Win32 API GetDiskFreeSpaceEx
-extern NTSTATUS kbfs_libdokan_GetDiskFreeSpace(ULONGLONG* FreeBytesAvailable,
+extern NTSTATUS kbfsLibdokanGetDiskFreeSpace(ULONGLONG* FreeBytesAvailable,
 					       ULONGLONG* TotalNumberOfBytes,
 					       ULONGLONG* TotalNumberOfFreeBytes,
 					       PDOKAN_FILE_INFO FileInfo);
-static DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_GetDiskFreeSpace(PULONGLONG FreeBytesAvailable,
+static DOKAN_CALLBACK NTSTATUS kbfsLibdokanC_GetDiskFreeSpace(PULONGLONG FreeBytesAvailable,
 								PULONGLONG TotalNumberOfBytes,
 								PULONGLONG TotalNumberOfFreeBytes,
 								PDOKAN_FILE_INFO FileInfo) {
-  return kbfs_libdokan_GetDiskFreeSpace((ULONGLONG*)FreeBytesAvailable, (ULONGLONG*)TotalNumberOfBytes, (ULONGLONG*)TotalNumberOfFreeBytes, FileInfo);
+  return kbfsLibdokanGetDiskFreeSpace((ULONGLONG*)FreeBytesAvailable, (ULONGLONG*)TotalNumberOfBytes, (ULONGLONG*)TotalNumberOfFreeBytes, FileInfo);
 }
 
 // see Win32 API GetVolumeInformation
-extern NTSTATUS kbfs_libdokan_GetVolumeInformation(LPWSTR VolumeNameBuffer,
+extern NTSTATUS kbfsLibdokanGetVolumeInformation(LPWSTR VolumeNameBuffer,
 						   DWORD VolumeNameSize, // in num of chars
 						   LPDWORD VolumeSerialNumber,
 						   LPDWORD MaximumComponentLength, // in num of chars
@@ -210,7 +210,7 @@ extern NTSTATUS kbfs_libdokan_GetVolumeInformation(LPWSTR VolumeNameBuffer,
 						   LPWSTR FileSystemNameBuffer,
 						   DWORD FileSystemNameSize, // in num of chars
 						   PDOKAN_FILE_INFO FileInfo);
-static DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_GetVolumeInformation(LPWSTR VolumeNameBuffer,
+static DOKAN_CALLBACK NTSTATUS kbfsLibdokanC_GetVolumeInformation(LPWSTR VolumeNameBuffer,
 								    DWORD VolumeNameSize, // in num of chars
 								    LPDWORD VolumeSerialNumber,
 								    LPDWORD MaximumComponentLength, // in num of chars
@@ -218,15 +218,15 @@ static DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_GetVolumeInformation(LPWSTR Volum
 								    LPWSTR FileSystemNameBuffer,
 								    DWORD FileSystemNameSize, // in num of chars
 								    PDOKAN_FILE_INFO FileInfo) {
-  return kbfs_libdokan_GetVolumeInformation(VolumeNameBuffer, VolumeNameSize, VolumeSerialNumber, MaximumComponentLength, FileSystemFlags, FileSystemNameBuffer, FileSystemNameSize, FileInfo);
+  return kbfsLibdokanGetVolumeInformation(VolumeNameBuffer, VolumeNameSize, VolumeSerialNumber, MaximumComponentLength, FileSystemFlags, FileSystemNameBuffer, FileSystemNameSize, FileInfo);
 }
 
-extern NTSTATUS kbfs_libdokan_Mounted(PDOKAN_FILE_INFO FileInfo);
-static DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_Mounted(PDOKAN_FILE_INFO FileInfo) {
-  return kbfs_libdokan_Mounted(FileInfo);
+extern NTSTATUS kbfsLibdokanMounted(PDOKAN_FILE_INFO FileInfo);
+static DOKAN_CALLBACK NTSTATUS kbfsLibdokanC_Mounted(PDOKAN_FILE_INFO FileInfo) {
+  return kbfsLibdokanMounted(FileInfo);
 }
 
-extern NTSTATUS kbfs_libdokan_GetFileSecurity(LPCWSTR FileName,
+extern NTSTATUS kbfsLibdokanGetFileSecurity(LPCWSTR FileName,
 											  //A pointer to SECURITY_INFORMATION value being requested
 											  PSECURITY_INFORMATION input,
 											  // A pointer to SECURITY_DESCRIPTOR buffer to be filled
@@ -234,7 +234,7 @@ extern NTSTATUS kbfs_libdokan_GetFileSecurity(LPCWSTR FileName,
 											  ULONG outlen,// length of Security descriptor buffer
 											  PULONG LengthNeeded,
 											  PDOKAN_FILE_INFO FileInfo);
-static DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_GetFileSecurity(LPCWSTR FileName,
+static DOKAN_CALLBACK NTSTATUS kbfsLibdokanC_GetFileSecurity(LPCWSTR FileName,
 											  //A pointer to SECURITY_INFORMATION value being requested
 											  PSECURITY_INFORMATION input,
 											  // A pointer to SECURITY_DESCRIPTOR buffer to be filled
@@ -242,24 +242,24 @@ static DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_GetFileSecurity(LPCWSTR FileName,
 											  ULONG outlen,// length of Security descriptor buffer
 											  PULONG LengthNeeded,
 											  PDOKAN_FILE_INFO FileInfo) {
-	return kbfs_libdokan_GetFileSecurity(FileName, input, output, outlen, LengthNeeded, FileInfo);
+	return kbfsLibdokanGetFileSecurity(FileName, input, output, outlen, LengthNeeded, FileInfo);
 }
 
-extern NTSTATUS kbfs_libdokan_SetFileSecurity(LPCWSTR FileName,
+extern NTSTATUS kbfsLibdokanSetFileSecurity(LPCWSTR FileName,
 											  PSECURITY_INFORMATION SecurityInformation,
 											  PSECURITY_DESCRIPTOR SecurityDescriptor,
 											  ULONG SecurityDescriptorLength,
 											  PDOKAN_FILE_INFO FileInfo);
-static DOKAN_CALLBACK NTSTATUS kbfs_libdokan_c_SetFileSecurity(LPCWSTR FileName,
+static DOKAN_CALLBACK NTSTATUS kbfsLibdokanC_SetFileSecurity(LPCWSTR FileName,
 											  PSECURITY_INFORMATION SecurityInformation,
 											  PSECURITY_DESCRIPTOR SecurityDescriptor,
 											  ULONG SecurityDescriptorLength,
 											  PDOKAN_FILE_INFO FileInfo) {
-	return kbfs_libdokan_SetFileSecurity(FileName, SecurityInformation, SecurityDescriptor, SecurityDescriptorLength, FileInfo);
+	return kbfsLibdokanSetFileSecurity(FileName, SecurityInformation, SecurityDescriptor, SecurityDescriptorLength, FileInfo);
 }
 
 /*
-extern NTSTATUS kbfs_libdokan_FindStreams(LPCWSTR FileName,
+extern NTSTATUS kbfsLibdokanFindStreams(LPCWSTR FileName,
 										  // call this function with PWIN32_FIND_STREAM_DATA
 										  PFillFindStreamData FindStreamData, 
 										  PDOKAN_FILE_INFO FileInfo);
@@ -267,52 +267,52 @@ extern NTSTATUS kbfs_libdokan_FindStreams(LPCWSTR FileName,
 
 
 
-struct kbfs_libdokan_ctx* kbfs_libdokan_alloc_ctx(ULONG64 slot) {
-  struct kbfs_libdokan_ctx *ctx = malloc(sizeof(struct kbfs_libdokan_ctx));
+struct kbfsLibdokanCtx* kbfs_libdokan_alloc_ctx(ULONG64 slot) {
+  struct kbfsLibdokanCtx *ctx = malloc(sizeof(struct kbfs_libdokan_ctx));
   if(!ctx)
     return ctx;
-  memset(ctx, 0, sizeof(struct kbfs_libdokan_ctx));
+  memset(ctx, 0, sizeof(struct kbfsLibdokanCtx));
   ctx->dokan_options.Version = DOKAN_VERSION;
   ctx->dokan_options.GlobalContext = slot;
 
   ctx->dokan_options.Options = DOKAN_OPTION_REMOVABLE |
                                DOKAN_OPTION_CURRENT_SESSION;
-  ctx->dokan_operations.ZwCreateFile = kbfs_libdokan_c_CreateFile;
-  ctx->dokan_operations.Cleanup = kbfs_libdokan_c_Cleanup;
-  ctx->dokan_operations.CloseFile = kbfs_libdokan_c_CloseFile;
-  ctx->dokan_operations.ReadFile = kbfs_libdokan_c_ReadFile;
-  ctx->dokan_operations.WriteFile = kbfs_libdokan_c_WriteFile;
-  ctx->dokan_operations.FlushFileBuffers = kbfs_libdokan_c_FlushFileBuffers;
-  ctx->dokan_operations.GetFileInformation = kbfs_libdokan_c_GetFileInformation;
-  ctx->dokan_operations.FindFiles = kbfs_libdokan_c_FindFiles;
+  ctx->dokan_operations.ZwCreateFile = kbfsLibdokanC_CreateFile;
+  ctx->dokan_operations.Cleanup = kbfsLibdokanC_Cleanup;
+  ctx->dokan_operations.CloseFile = kbfsLibdokanC_CloseFile;
+  ctx->dokan_operations.ReadFile = kbfsLibdokanC_ReadFile;
+  ctx->dokan_operations.WriteFile = kbfsLibdokanC_WriteFile;
+  ctx->dokan_operations.FlushFileBuffers = kbfsLibdokanC_FlushFileBuffers;
+  ctx->dokan_operations.GetFileInformation = kbfsLibdokanC_GetFileInformation;
+  ctx->dokan_operations.FindFiles = kbfsLibdokanC_FindFiles;
   //FIXME: perhaps switch to FindFilesWithPattern later?
-  //  ctx->dokan_operations.FindFilesWithPattern = kbfs_libdokan_c_FindFilesWithPattern;
-  ctx->dokan_operations.SetFileAttributes = kbfs_libdokan_c_SetFileAttributes;
-  ctx->dokan_operations.SetFileTime = kbfs_libdokan_c_SetFileTime;
-  ctx->dokan_operations.DeleteFile = kbfs_libdokan_c_DeleteFile;
-  ctx->dokan_operations.DeleteDirectory = kbfs_libdokan_c_DeleteDirectory;
-  ctx->dokan_operations.MoveFile = kbfs_libdokan_c_MoveFile;
-  ctx->dokan_operations.SetEndOfFile = kbfs_libdokan_c_SetEndOfFile;
-  ctx->dokan_operations.SetAllocationSize = kbfs_libdokan_c_SetAllocationSize;
-  ctx->dokan_operations.LockFile = kbfs_libdokan_c_LockFile;
-  ctx->dokan_operations.UnlockFile = kbfs_libdokan_c_UnlockFile;
-  ctx->dokan_operations.GetDiskFreeSpace = kbfs_libdokan_c_GetDiskFreeSpace;
-  ctx->dokan_operations.GetVolumeInformation = kbfs_libdokan_c_GetVolumeInformation;
-  ctx->dokan_operations.Mounted = kbfs_libdokan_c_Mounted;
-  ctx->dokan_operations.GetFileSecurity = kbfs_libdokan_c_GetFileSecurity;
-  ctx->dokan_operations.SetFileSecurity = kbfs_libdokan_c_SetFileSecurity;
+  //  ctx->dokan_operations.FindFilesWithPattern = kbfsLibdokanC_FindFilesWithPattern;
+  ctx->dokan_operations.SetFileAttributes = kbfsLibdokanC_SetFileAttributes;
+  ctx->dokan_operations.SetFileTime = kbfsLibdokanC_SetFileTime;
+  ctx->dokan_operations.DeleteFile = kbfsLibdokanC_DeleteFile;
+  ctx->dokan_operations.DeleteDirectory = kbfsLibdokanC_DeleteDirectory;
+  ctx->dokan_operations.MoveFile = kbfsLibdokanC_MoveFile;
+  ctx->dokan_operations.SetEndOfFile = kbfsLibdokanC_SetEndOfFile;
+  ctx->dokan_operations.SetAllocationSize = kbfsLibdokanC_SetAllocationSize;
+  ctx->dokan_operations.LockFile = kbfsLibdokanC_LockFile;
+  ctx->dokan_operations.UnlockFile = kbfsLibdokanC_UnlockFile;
+  ctx->dokan_operations.GetDiskFreeSpace = kbfsLibdokanC_GetDiskFreeSpace;
+  ctx->dokan_operations.GetVolumeInformation = kbfsLibdokanC_GetVolumeInformation;
+  ctx->dokan_operations.Mounted = kbfsLibdokanC_Mounted;
+  ctx->dokan_operations.GetFileSecurity = kbfsLibdokanC_GetFileSecurity;
+  ctx->dokan_operations.SetFileSecurity = kbfsLibdokanC_SetFileSecurity;
   // FIXME: Multiple streams per file for e.g. resource forks
-  //   ctx->dokan_operations.FindStreams = kbfs_libdokan_c_FindStreams;
+  //   ctx->dokan_operations.FindStreams = kbfsLibdokanC_FindStreams;
   return ctx;
 }
 
-void kbfs_libdokan_set_path(struct kbfs_libdokan_ctx* ctx, void* ptr) {
+void kbfsLibdokanSet_path(struct kbfs_libdokan_ctx* ctx, void* ptr) {
 	if(ctx->dokan_options.MountPoint)
 		free((void*)ctx->dokan_options.MountPoint);
 	ctx->dokan_options.MountPoint = wcsdup(ptr);
 }
 
-error_t kbfs_libdokan_free(struct kbfs_libdokan_ctx* ctx) {
+error_t kbfsLibdokanFree(struct kbfs_libdokan_ctx* ctx) {
 	if(ctx) {
 		if(ctx->dokan_options.MountPoint)
 			free((void*)ctx->dokan_options.MountPoint);
@@ -321,12 +321,12 @@ error_t kbfs_libdokan_free(struct kbfs_libdokan_ctx* ctx) {
 	return 0;
 }
 
-error_t kbfs_libdokan_run(struct kbfs_libdokan_ctx* ctx) {
+error_t kbfsLibdokanRun(struct kbfs_libdokan_ctx* ctx) {
 	int status = DokanMain(&ctx->dokan_options, &ctx->dokan_operations);
 	return status;
 }
 
-int kbfs_libdokan_fill_find(PFillFindData fptr, PWIN32_FIND_DATAW a1, PDOKAN_FILE_INFO a2) {
+int kbfsLibdokanFill_find(PFillFindData fptr, PWIN32_FIND_DATAW a1, PDOKAN_FILE_INFO a2) {
   return fptr(a1, a2);
 }
 

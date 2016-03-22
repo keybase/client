@@ -60,20 +60,20 @@ func errToNT(err error) C.NTSTATUS {
 }
 
 type dokanCtx struct {
-	ptr  *C.struct_kbfs_libdokan_ctx
+	ptr  *C.struct_kbfsLibdokanCtx
 	slot uint32
 }
 
 func allocCtx(slot uint32) *dokanCtx {
-	return &dokanCtx{C.kbfs_libdokan_alloc_ctx(C.ULONG64(slot)), slot}
+	return &dokanCtx{C.kbfsLibdokanAlloc_ctx(C.ULONG64(slot)), slot}
 }
 
 func (ctx *dokanCtx) Run(path string) error {
 	if isDebug {
-		ctx.ptr.dokan_options.Options |= C.kbfs_libdokan_debug
+		ctx.ptr.dokan_options.Options |= C.kbfsLibdokanDebug
 	}
-	C.kbfs_libdokan_set_path(ctx.ptr, stringToUtf16Ptr(path))
-	ec := C.kbfs_libdokan_run(ctx.ptr)
+	C.kbfsLibdokanSet_path(ctx.ptr, stringToUtf16Ptr(path))
+	ec := C.kbfsLibdokanRun(ctx.ptr)
 	if ec != 0 {
 		return errors.New("Dokan failed")
 	}
@@ -82,6 +82,6 @@ func (ctx *dokanCtx) Run(path string) error {
 
 func (ctx *dokanCtx) Free() {
 	debug("dokanCtx.Free")
-	C.kbfs_libdokan_free(ctx.ptr)
+	C.kbfsLibdokanFree(ctx.ptr)
 	fsTableFree(ctx.slot)
 }

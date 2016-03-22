@@ -31,6 +31,7 @@ func makeFI(fname C.LPCWSTR, pfi C.PDOKAN_FILE_INFO) *FileInfo {
 	return &FileInfo{pfi, fname}
 }
 
+// File replacement flags for CreateFile
 const (
 	FILE_SUPERSEDE    = C.FILE_SUPERSEDE
 	FILE_CREATE       = C.FILE_CREATE
