@@ -44,7 +44,10 @@ type InitParams struct {
 	// before marked for lazy revalidation.
 	TLFValidDuration time.Duration
 
-	// LogFileConfig tells us where to log and rotation config
+	// LogToFile if true, logs to a default file location.
+	LogToFile bool
+
+	// LogFileConfig tells us where to log and rotation config.
 	LogFileConfig logger.LogFileConfig
 }
 
@@ -90,6 +93,10 @@ func GetDefaultMDServer() string {
 	}
 }
 
+func defaultLogPath() string {
+	return filepath.Join(libkb.G.Env.GetLogDir(), libkb.KBFSLogFileName)
+}
+
 // AddFlags adds libkbfs flags to the given FlagSet. Returns an
 // InitParams that will be filled in once the given FlagSet is parsed.
 func AddFlags(flags *flag.FlagSet) *InitParams {
@@ -104,6 +111,7 @@ func AddFlags(flags *flag.FlagSet) *InitParams {
 	flags.StringVar(&params.ServerRootDir, "server-root", "", "directory to put local server files (and ignore -bserver and -mdserver)")
 	flags.StringVar(&params.LocalUser, "localuser", "", "fake local user (used only with -server-in-memory or -server-root)")
 	flags.DurationVar(&params.TLFValidDuration, "tlf-valid", tlfValidDurationDefault, "time tlfs are valid before redoing identification")
+	flags.BoolVar(&params.LogToFile, "log-to-file", false, fmt.Sprintf("Log to default file: %s", defaultLogPath()))
 	flags.StringVar(&params.LogFileConfig.Path, "log-file", "", "Path to log file")
 	flags.DurationVar(&params.LogFileConfig.MaxAge, "log-file-max-age", 30*24*time.Hour, "Maximum age of a log file before rotation")
 	params.LogFileConfig.MaxSize = 128 * 1024 * 1024
@@ -232,6 +240,14 @@ func makeKeybaseDaemon(config Config, serverInMemory bool, serverRootDir string,
 func InitLog(params InitParams) (logger.Logger, error) {
 	var err error
 	log := logger.NewWithCallDepth("kbfs", 1)
+
+	// Set log file to default if log-to-file was specified
+	if params.LogToFile {
+		if params.LogFileConfig.Path != "" {
+			return nil, fmt.Errorf("log-to-file and log-file flags can't be specified together")
+		}
+		params.LogFileConfig.Path = defaultLogPath()
+	}
 
 	if params.LogFileConfig.Path != "" {
 		err = logger.SetLogFileConfig(&params.LogFileConfig)

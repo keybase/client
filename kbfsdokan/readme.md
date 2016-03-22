@@ -50,7 +50,7 @@ Fix this by setting CGOENABLED=1 and recheck `go env`.
 For local only functionality:
 ```kbfsdokan.exe -debug -localuser <user> -server-in-memory M:```
 For normal functionality:
-```kbfsdokan.exe -debug -log-file path/to/my.log M:```
+```kbfsdokan.exe -debug -log-to-file M:```
 
 ## From an another console
 

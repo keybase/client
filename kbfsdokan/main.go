@@ -30,14 +30,14 @@ To run against remote KBFS servers:
   kbfsdokan [-debug] [-cpuprofile=path/to/dir]
     [-bserver=%s] [-mdserver=%s]
     [-runtime-dir=path/to/dir] [-label=label] [-mount-type=force]
-    [-log-file=path/to/file]
+    [-log-to-file] [-log-file=path/to/file]
     /path/to/mountpoint
 
 To run in a local testing environment:
   kbfsdokan [-debug] [-cpuprofile=path/to/dir]
     [-server-in-memory|-server-root=path/to/dir] [-localuser=<user>]
     [-runtime-dir=path/to/dir] [-label=label] [-mount-type=force]
-    [-log-file=path/to/file]
+    [-log-to-file] [-log-file=path/to/file]
     /path/to/mountpoint
 
 `
@@ -55,7 +55,10 @@ func getUsageStr() string {
 }
 
 func start() *libfs.Error {
-	kbfsParams := libkbfs.AddFlags(flag.CommandLine)
+	kbfsParams, err := libkbfs.AddFlags(flag.CommandLine)
+	if err != nil {
+		return libfs.InitError(fmt.Sprintf("error reading flags: %s", err))
+	}
 
 	flag.Parse()
 
