@@ -2,8 +2,7 @@
 
 import React, {Component} from 'react'
 import {globalStyles} from '../styles/style-guide'
-import {Text, Button, BackButton, Icon} from '../common-adapters'
-import MultiLineInput from '../common-adapters/multi-line-input.desktop'
+import {Text, Button, BackButton, Icon, Input} from '../common-adapters'
 import HiddenString from '../util/hidden-string'
 
 export type Props = {
@@ -33,7 +32,7 @@ export default class PaperKeyInput extends Component<void, Props, State> {
         <BackButton onClick={this.props.onBack} style={backStyle}/>
         <Text style={headerTextStyle} type='Body'>Type in your paper key:</Text>
         <Icon style={paperKeyIconStyle} type='paper-key-m'/>
-        <MultiLineInput style={paperKeyInputStyle}
+        <Input multiLine style={paperKeyInputStyle}
           onChange={e => this.setState({paperkey: e.target.textContent})}
           errorText={errorText}
           hintText='elephont sturm cectus opp blezzard tofi pando agg whi pany yaga jocket daubt ruril globil cose'/>
