@@ -33,16 +33,16 @@ func makeFI(fname C.LPCWSTR, pfi C.PDOKAN_FILE_INFO) *FileInfo {
 
 // File replacement flags for CreateFile
 const (
-	FILE_SUPERSEDE    = C.FILE_SUPERSEDE
-	FILE_CREATE       = C.FILE_CREATE
-	FILE_OPEN         = C.FILE_OPEN
-	FILE_OPEN_IF      = C.FILE_OPEN_IF
-	FILE_OVERWRITE    = C.FILE_OVERWRITE
-	FILE_OVERWRITE_IF = C.FILE_OVERWRITE_IF
+	FileSupersede   = C.FILE_SUPERSEDE
+	FileCreate      = C.FILE_CREATE
+	FileOpen        = C.FILE_OPEN
+	FileOpenIf      = C.FILE_OPEN_IF
+	FileOverwrite   = C.FILE_OVERWRITE
+	FileOverwriteIf = C.FILE_OVERWRITE_IF
 )
 
 // CreateOptions stuff
 const (
-	FILE_DIRECTORY_FILE     = C.FILE_DIRECTORY_FILE
-	FILE_NON_DIRECTORY_FILE = C.FILE_NON_DIRECTORY_FILE
+	FileDirectoryFile    = C.FILE_DIRECTORY_FILE
+	FileNonDirectoryFile = C.FILE_NON_DIRECTORY_FILE
 )
