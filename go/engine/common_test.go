@@ -348,4 +348,5 @@ func ResetAccount(tc libkb.TestContext, u *FakeUser) {
 		tc.T.Fatal(err)
 	}
 	tc.T.Logf("nuke api result: %+v", res)
+	Logout(tc)
 }
