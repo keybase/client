@@ -141,14 +141,14 @@ const fileDirectoryFile = 1
 // isCreation checks the flags whether a file creation is wanted.
 func (oc *openContext) isCreation() bool {
 	switch oc.CreateDisposition {
-	case dokan.FILE_SUPERSEDE, dokan.FILE_CREATE, dokan.FILE_OPEN_IF, dokan.FILE_OVERWRITE_IF:
+	case dokan.FileSupersede, dokan.FileCreate, dokan.FileOpenIf, dokan.FileOverwriteIf:
 		return true
 	}
 	return false
 }
 func (oc *openContext) isExistingError() bool {
 	switch oc.CreateDisposition {
-	case dokan.FILE_CREATE:
+	case dokan.FileCreate:
 		return true
 	}
 	return false
@@ -157,7 +157,7 @@ func (oc *openContext) isExistingError() bool {
 // isTruncate checks the flags whether a file truncation is wanted.
 func (oc *openContext) isTruncate() bool {
 	switch oc.CreateDisposition {
-	case dokan.FILE_SUPERSEDE, dokan.FILE_OVERWRITE, dokan.FILE_OVERWRITE_IF:
+	case dokan.FileSupersede, dokan.FileOverwrite, dokan.FileOverwriteIf:
 		return true
 	}
 	return false
@@ -178,13 +178,13 @@ func (oc *openContext) returnDirNoCleanup(f dokan.File) (dokan.File, bool, error
 }
 
 func (oc *openContext) mayNotBeDirectory() bool {
-	return oc.CreateOptions&dokan.FILE_NON_DIRECTORY_FILE != 0
+	return oc.CreateOptions&dokan.FileNonDirectoryFile != 0
 }
 
 func newSyntheticOpenContext() *openContext {
 	var oc openContext
 	oc.CreateData = &dokan.CreateData{}
-	oc.CreateDisposition = dokan.FILE_OPEN
+	oc.CreateDisposition = dokan.FileOpen
 	oc.redirectionsLeft = 30
 	return &oc
 }
