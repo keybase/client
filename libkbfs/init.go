@@ -44,9 +44,7 @@ type InitParams struct {
 	// before marked for lazy revalidation.
 	TLFValidDuration time.Duration
 
-	// LogToFile log to file or stderr.
-	LogToFile bool
-	// LogFileConfig is the LogFileConfig if LogToFile is true.
+	// LogFileConfig tells us where to log and rotation config
 	LogFileConfig logger.LogFileConfig
 }
 
@@ -106,10 +104,7 @@ func AddFlags(flags *flag.FlagSet) *InitParams {
 	flags.StringVar(&params.ServerRootDir, "server-root", "", "directory to put local server files (and ignore -bserver and -mdserver)")
 	flags.StringVar(&params.LocalUser, "localuser", "", "fake local user (used only with -server-in-memory or -server-root)")
 	flags.DurationVar(&params.TLFValidDuration, "tlf-valid", tlfValidDurationDefault, "time tlfs are valid before redoing identification")
-	flags.BoolVar(&params.LogToFile, "log-to-file", false, "Use a log file instead of stderr.")
-	// TODO is there a better way to get G here?
-	defLogName := filepath.Join(libkb.G.Env.GetLogDir(), libkb.KBFSLogFileName)
-	flags.StringVar(&params.LogFileConfig.Path, "log-file-path", defLogName, "Default log file path.")
+	flags.StringVar(&params.LogFileConfig.Path, "log-file", "", "Path to log file")
 	flags.DurationVar(&params.LogFileConfig.MaxAge, "log-file-max-age", 30*24*time.Hour, "Maximum age of a log file before rotation")
 	params.LogFileConfig.MaxSize = 128 * 1024 * 1024
 	flag.Var(SizeFlag{&params.LogFileConfig.MaxSize}, "log-file-max-size", "Maximum size of a log file before rotation")
@@ -238,9 +233,7 @@ func InitLog(params InitParams) (logger.Logger, error) {
 	var err error
 	log := logger.NewWithCallDepth("kbfs", 1)
 
-	// Setup logging here, switch to file if wanted
-	// TODO: should more of these be exposed to command line in future?
-	if params.LogToFile {
+	if params.LogFileConfig.Path != "" {
 		err = logger.SetLogFileConfig(&params.LogFileConfig)
 	}
 
