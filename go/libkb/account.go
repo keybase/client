@@ -430,7 +430,8 @@ func (a *Account) saveUserConfig(username NormalizedUsername, uid keybase1.UID, 
 
 	// XXX I don't understand the intent of clearing the login session here.
 	// All tests pass with this removed, but I'm wary of making any changes.
-	// The git history didn't help, and this is the
+	// The git history didn't help, and this is the only place this function
+	// is used (where it matters).
 	if err := a.LoginSession().Clear(); err != nil {
 		return err
 	}
