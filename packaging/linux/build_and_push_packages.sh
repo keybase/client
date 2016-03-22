@@ -90,14 +90,12 @@ release_prerelease() {
 
   json_tmp=`mktemp`
   echo "Writing version into JSON to $json_tmp"
-  cat > "$json_tmp" <<END
-{
-"version": "$version",
-"name": "v$version",
-"description": "Latest Linux release",
-"type": 0
-}
-END
+
+  echo "Loading release tool"
+  "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
+  release_bin="$GOPATH/bin/release"
+
+  "$release_bin" update-json --version="$version" --description="Latest Linux release" > "$json_tmp"
 
   s3cmd put --mime-type application/json "$json_tmp" "s3://$BUCKET_NAME/update-linux-prod.json"
 
