@@ -4,6 +4,7 @@ import React, {Component} from 'react'
 
 import DeviceList from './device-list.desktop'
 import PaperKeyInput from './paper-key-input.desktop'
+import Success from './success.desktop'
 import {Header} from '../common-adapters'
 
 import type {Props} from './render'
@@ -28,7 +29,10 @@ export default class Render extends Component<void, Props, void> {
         )
         break
       case 'success':
-        innerComponent = (<div>todo</div>)
+        innerComponent = (
+          <Success onAccessFolders={this.props.onFinish}/>
+        )
+        break
     }
 
     return (

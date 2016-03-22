@@ -23,7 +23,8 @@ export type Props = {
   onBackFromPaperKey: () => void,
   onContinueFromPaperKey: (paperkey: HiddenString) => void,
   paperkeyError: ?HiddenString,
-  waiting: boolean
+  waiting: boolean,
+  onFinish: () => void
 }
 
 class UnlockFolders extends Component<void, Props, void> {
@@ -38,7 +39,7 @@ class UnlockFolders extends Component<void, Props, void> {
         onContinueFromPaperKey={this.props.onContinueFromPaperKey}
         paperkeyError={this.props.paperkeyError}
         waiting={this.props.waiting}
-        />
+        onFinish={this.props.onFinish}/>
     )
   }
 }
@@ -53,6 +54,7 @@ const Connected: Class<ConnectedComponent<OwnProps>> = typedConnect(
     toPaperKeyInput: () => { dispatch(actions.toPaperKeyInput()) },
     onBackFromPaperKey: () => { dispatch(actions.onBackFromPaperKey()) },
     onContinueFromPaperKey: pk => { dispatch(actions.checkPaperKey(pk)) },
+    onFinish: () => { dispatch(actions.finish()) },
     paperkeyError,
     waiting,
     devices,
