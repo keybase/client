@@ -29,6 +29,11 @@ func makeSigningKey(secret SigningKeySecret) (SigningKey, error) {
 	return SigningKey{kp}, nil
 }
 
+// NewSigningKey returns a SigningKey using the given key pair.
+func NewSigningKey(kp libkb.NaclSigningKeyPair) SigningKey {
+	return SigningKey{kp}
+}
+
 // getVerifyingKey returns the public key half of this signing key.
 func (k SigningKey) getVerifyingKey() VerifyingKey {
 	return MakeVerifyingKey(k.kp.Public.GetKID())
