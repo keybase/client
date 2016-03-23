@@ -329,7 +329,7 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
             dispatch({
               type: Constants.signup,
               error: true,
-              payload: {signupError: new HiddenString(err)}
+              payload: {signupError: new HiddenString(err + '')}
             })
             dispatch(nextPhase())
             reject()

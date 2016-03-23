@@ -1,9 +1,9 @@
 /* @flow */
-/* eslint-disable react/prop-types */
 
 import React, {Component} from 'react'
 import {globalStyles} from '../../../styles/style-guide'
 import {Text, Button} from '../../../common-adapters'
+import Container from '../../forms/container'
 
 import type {Props} from './index.render'
 
@@ -12,11 +12,11 @@ export default class Render extends Component {
 
   render () {
     return (
-      <div style={container}>
+      <Container onBack={this.props.resetSignup} style={container}>
         <Text type='Header' style={topMargin}>Ah Shoot! Something went wrong, wanna try again?</Text>
-        <Text type='Error' style={topMargin}>{this.props.errorText.stringValue() + ''}</Text>
+        <Text type='Error' style={topMargin}>{this.props.errorText.stringValue()}</Text>
         <Button style={topMargin} type='Secondary' label='Try Again' onClick={() => this.props.resetSignup()}/>
-      </div>
+      </Container>
     )
   }
 }
