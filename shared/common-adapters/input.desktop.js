@@ -4,6 +4,7 @@ import {TextField} from 'material-ui'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {styles as TextStyles, specialStyles} from './text'
 import materialTheme from '../styles/material-theme.desktop'
+import MultiLineInput from './multi-line-input.desktop'
 
 import type {Props} from './input'
 
@@ -43,6 +44,18 @@ export default class Input extends Component {
   }
 
   render () {
+    if (this.props.multiLine) {
+      return (
+        <MultiLineInput
+          autoFocus={this.props.autoFocus}
+          errorText={this.props.errorText}
+          onChange={this.props.onChange}
+          onEnterKeyDown={this.props.onEnterKeyDown}
+          hintText={this.props.hintText}
+          style={this.props.style}/>
+      )
+    }
+
     const style = this.props.small ? styles.containerSmall : styles.container
     const textStyle = this.props.small ? styles.inputSmall : styles.input
 

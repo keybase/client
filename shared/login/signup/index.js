@@ -18,47 +18,47 @@ import type {URI} from '../../reducers/router'
 
 export default function signupRouter (currentPath: Map<string, string>, uri: URI): any {
   // Fallback (for debugging)
-  let form = <ErrorText currentPath={currentPath} />
+  let element = <ErrorText currentPath={currentPath} />
 
   const path = currentPath.get('path')
 
   const {component: Component, props} = currentPath.get('parseRoute') || {}
   if (Component) {
-    form = <Component {...props}/>
+    element = <Component {...props}/>
   } else {
     switch (path) {
       case 'signup':
       case 'inviteCode':
-        form = <InviteCode/>
+        element = <InviteCode />
         break
       case 'requestInvite':
-        form = <RequestInvite/>
+        element = <RequestInvite />
         break
       case 'requestInviteSuccess':
-        form = <RequestInviteSuccess/>
+        element = <RequestInviteSuccess />
         break
       case 'usernameAndEmail':
-        form = <UsernameEmailForm/>
+        element = <UsernameEmailForm />
         break
       case 'passphraseSignup':
-        form = <PassphraseSignup/>
+        element = <PassphraseSignup />
         break
       case 'deviceName':
-        form = <DeviceName/>
+        element = <DeviceName />
         break
       case 'paperkey':
       case 'success':
-        form = <Success/>
+        element = <Success />
         break
       case 'signupError':
-        form = <SignupError/>
+        element = <SignupError />
         break
     }
   }
 
   return {
     componentAtTop: {
-      component: () => form,
+      element,
       hideBack: true
     },
     parseNextRoute: signupRouter

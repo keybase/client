@@ -15,7 +15,7 @@ type IDRes struct {
 	ComputedKeyFamily *libkb.ComputedKeyFamily
 }
 
-// IDEnginge is the type used by cmd_id Run, daemon id handler.
+// IDEngine is the type used by cmd_id Run, daemon id handler.
 type IDEngine struct {
 	arg *keybase1.IdentifyArg
 	res *IDRes
@@ -34,7 +34,7 @@ func (e *IDEngine) Name() string {
 }
 
 func (e *IDEngine) Prereqs() Prereqs {
-	return Prereqs{Device: e.arg.TrackStatement}
+	return Prereqs{}
 }
 
 func (e *IDEngine) RequiredUIs() []libkb.UIKind {
@@ -60,7 +60,7 @@ func (e *IDEngine) Result() *IDRes {
 }
 
 func (e *IDEngine) run(ctx *Context) (*IDRes, error) {
-	iarg := NewIdentifyArg(e.arg.UserAssertion, e.arg.TrackStatement, e.arg.ForceRemoteCheck)
+	iarg := NewIdentifyArg(e.arg.UserAssertion, false, e.arg.ForceRemoteCheck)
 	iarg.Source = e.arg.Source
 	ieng := NewIdentify(iarg, e.G())
 	if err := RunEngine(ieng, ctx); err != nil {
@@ -80,37 +80,7 @@ func (e *IDEngine) run(ctx *Context) (*IDRes, error) {
 		return nil, err
 	}
 
-	if !e.arg.TrackStatement {
-		ctx.IdentifyUI.Finish()
-		return res, nil
-	}
-
-	// they want a json tracking statement:
-
-	// check to make sure they aren't identifying themselves
-	me, err := libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
-	if err != nil {
-		return nil, err
-	}
-	if me.Equal(user) {
-		e.G().Log.Warning("can't generate track statement on yourself")
-		// but let's not call this an error...they'll see the warning.
-		ctx.IdentifyUI.Finish()
-		return res, nil
-	}
-
-	stmt, err := me.TrackStatementJSON(user, ieng.Outcome())
-	if err != nil {
-		e.G().Log.Warning("error getting track statement: %s", err)
-		return nil, err
-	}
-
-	if err = ctx.IdentifyUI.DisplayTrackStatement(stmt); err != nil {
-		return nil, err
-	}
-
 	ctx.IdentifyUI.Finish()
-
 	return res, nil
 }
 

@@ -1,6 +1,7 @@
 import showDockIcon from './dock-icon'
 import menuHelper from './menu-helper'
 import {app, ipcMain, BrowserWindow} from 'electron'
+import {focusOnShow} from '../shared/local-debug'
 
 export default class Window {
   constructor (filename, opts) {
@@ -86,7 +87,7 @@ export default class Window {
       if (!this.window.isVisible()) {
         this.window.show()
       }
-      if (!this.window.isFocused()) {
+      if (!this.window.isFocused() && focusOnShow) {
         this.window.focus()
       }
       return

@@ -3,12 +3,18 @@
 import {Component} from 'react'
 import type {State} from '../reducers/unlock-folders'
 import type {Device} from '../constants/unlock-folders'
+import HiddenString from '../util/hidden-string'
 
 export type Props = {
   phase: State.phase,
   devices: ?Array<Device>,
   onClose: () => void,
-  toPaperKeyInput: () => void
+  toPaperKeyInput: () => void,
+  onBackFromPaperKey: () => void,
+  onContinueFromPaperKey: (paperkey: HiddenString) => void,
+  paperkeyError: ?HiddenString,
+  waiting: boolean,
+  onFinish: () => void
 }
 
 export default class Render extends Component<void, Props, void> {}

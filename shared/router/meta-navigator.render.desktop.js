@@ -15,11 +15,13 @@ class MetaNavigatorRender extends Component {
     const {rootComponent, uri, getComponentAtTop} = this.props
     const {componentAtTop} = getComponentAtTop(rootComponent, uri)
     const Module = componentAtTop.component
+    const element = componentAtTop.element
     const hideBack = !!componentAtTop.hideBack
 
     return (
       <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
-        <Module {...componentAtTop.props} />
+        {element}
+        {!element && Module && <Module {...componentAtTop.props}/>}
         {!hideBack && uri && uri.count() > 1 && <BackButton onClick={() => this.onBack()} style={styles.backButton}/>}
       </div>
     )

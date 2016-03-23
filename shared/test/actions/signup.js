@@ -23,11 +23,15 @@ describe('Signup', function () {
 
   describe('Check valid invite code', () => {
     it('should accept a valid invite code', () => {
-      return store.dispatch(signupActions.checkInviteCode(inviteCode)).should.be.fulfilled
+      return store.dispatch(signupActions.checkInviteCode(inviteCode)).then(() => {
+
+      })
     })
 
     it('should reject an invalid invite code', () => {
-      return store.dispatch(signupActions.checkInviteCode('fakecode')).should.be.rejected.then(() => {
+      return store.dispatch(signupActions.checkInviteCode('fakecode')).then(() => {
+        assert.fail(null, null, 'Should have rejected a fake invite code')
+      }).catch(() => {
         assert(store.getState().signup.inviteCodeError != null, 'Invite code error')
       })
     })
@@ -105,7 +109,7 @@ describe('Signup', function () {
     })
   })
 
-  describe('Signup for an account', () => {
+  describe('For an account', () => {
     const username = `Test${Math.floor(Math.random() * 1e5)}`
     console.log(`Using username: ${username}`)
 
@@ -113,16 +117,15 @@ describe('Signup', function () {
       return store.dispatch(signupActions.checkInviteCode(inviteCode))
         .then(() => store.dispatch(signupActions.checkUsernameEmail(username, `null+${username}@keyba.se`)))
         .then(() => store.dispatch(signupActions.checkPassphrase('asdfasdfasdf', 'asdfasdfasdf')))
-        .then(() => store.dispatch(signupActions.submitDeviceName('TEST1', true)))
+        .then(() => store.dispatch(signupActions.submitDeviceName('TEST1', true, () => {
+          const {phase, paperkey} = store.getState().signup
+          assert.equal(phase, 'paperkey')
+          assert(paperkey != null, 'Paperkey is not null')
+          store.dispatch(signupActions.sawPaperKey())
+        })))
     })
 
-    it('is in the paper key phase and we have a paperkey', () => {
-      const {phase, paperkey} = store.getState().signup
-      assert.equal(phase, 'paperkey')
-      assert(paperkey != null, 'Paperkey is not null')
-    })
-
-    it('is in the success phase and we have a paper key', () => {
+    it('is in the success phase', () => {
       store.dispatch(signupActions.showSuccess())
       const {phase} = store.getState().signup
       assert.equal(phase, 'success')

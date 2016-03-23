@@ -23,7 +23,6 @@ type Resolve2Arg struct {
 type IdentifyArg struct {
 	SessionID        int            `codec:"sessionID" json:"sessionID"`
 	UserAssertion    string         `codec:"userAssertion" json:"userAssertion"`
-	TrackStatement   bool           `codec:"trackStatement" json:"trackStatement"`
 	ForceRemoteCheck bool           `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
 	UseDelegateUI    bool           `codec:"useDelegateUI" json:"useDelegateUI"`
 	Reason           IdentifyReason `codec:"reason" json:"reason"`
@@ -40,6 +39,7 @@ type Identify2Arg struct {
 	NoErrorOnTrackFailure bool           `codec:"noErrorOnTrackFailure" json:"noErrorOnTrackFailure"`
 	ForceRemoteCheck      bool           `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
 	NeedProofSet          bool           `codec:"needProofSet" json:"needProofSet"`
+	AllowEmptySelfID      bool           `codec:"allowEmptySelfID" json:"allowEmptySelfID"`
 }
 
 type IdentifyInterface interface {

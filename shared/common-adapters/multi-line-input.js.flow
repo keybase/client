@@ -1,0 +1,14 @@
+/* @flow */
+
+import React, {Component} from 'react'
+
+export type Props = $Shape<{
+  autoFocus?: bool,
+  errorText?: ?string,
+  onChange?: (event: Object) => void,
+  onEnterKeyDown?: (event: Object) => void,
+  hintText: ?string,
+  style?: Object
+}>
+
+declare export default class Input extends React.Component<void, Props, void> {}
