@@ -95,7 +95,10 @@ declare module 'redux-devtools' {
 }
 
 declare module 'resolveRoot' {
-  declare var exports: (s: string) => string;
+  declare var exports: {
+    default: (paths: any) => string;
+    resolveImage: (paths: any) => string;
+  }
 }
 
 declare var __VERSION__: string;

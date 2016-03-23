@@ -6,7 +6,7 @@ import {globalResizing} from '../shared/styles/style-guide'
 
 export default function () {
   const mainWindow = new Window(
-    resolveRoot(`renderer/index.html?src=${hotPath('index.bundle.js')}`), {
+    resolveRoot('renderer', `index.html?src=${hotPath('index.bundle.js')}`), {
       useContentSize: true,
       width: globalResizing.login.width,
       height: globalResizing.login.height,

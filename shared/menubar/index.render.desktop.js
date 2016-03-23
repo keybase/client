@@ -3,7 +3,7 @@
 
 import React, {Component} from 'react'
 import {shell} from 'electron'
-import resolveRoot from '../../desktop/resolve-root'
+import {resolveImage} from '../../desktop/resolve-root'
 
 import {intersperse} from '../util/arrays'
 import {parseFolderNameToUsers, canonicalizeUsernames, stripPublicTag} from '../util/kbfs'
@@ -21,7 +21,7 @@ import flags from '../util/feature-flags'
 function iconPath (isPublic, isEmpty) {
   const pubPart = isPublic ? 'public' : 'private'
   const emptyPart = isEmpty ? 'empty' : 'full'
-  return `file:///${resolveRoot(`shared/images/folders/kb-folder-${pubPart}-${emptyPart}.svg`)}`
+  return `file:///${resolveImage('folders', `kb-folder-${pubPart}-${emptyPart}.svg`)}`
 }
 
 const Header = props => {
@@ -171,7 +171,7 @@ const ShowAll = props => {
   return <Row
     onClick={props.onClick}
     text='Show All'
-    iconStyle={{...SVGFolderIcon(`file:///${resolveRoot('shared/images/see-more.svg')}`), marginTop: 2}}
+    iconStyle={{...SVGFolderIcon(`file:///${resolveImage('see-more.svg')}`), marginTop: 2}}
     textStyle={{}}
     key={props.isPublic + 'showAll'}/>
 }

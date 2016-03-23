@@ -13,3 +13,4 @@ if (!__DEV__) { // eslint-disable-line no-undef
 }
 
 export default (...to) => path.resolve(root, ...to)
+export const resolveImage = (...to) => path.resolve(root, 'shared', 'images', ...to)
