@@ -275,7 +275,6 @@ type IdentifyUI interface {
 	DisplayTrackStatement(string) error
 	DisplayUserCard(keybase1.UserCard)
 	ReportTrackToken(keybase1.TrackToken) error
-	SetStrict(b bool)
 	Finish()
 }
 
