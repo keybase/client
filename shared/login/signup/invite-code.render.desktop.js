@@ -31,7 +31,7 @@ export default class Render extends Component {
         <Text style={styles.header} type='Header'>Type in your invite code:</Text>
         <Icon style={styles.icon} type='invite-code-m'/>
         <Input autoFocus style={styles.input} hintText='goddess brown result reject' value={this.state.inviteCode} errorText={this.props.inviteCodeErrorText} onEnterKeyDown={submitInviteCode} onChange={event => this.setState({inviteCode: event.target.value})}/>
-        <Button style={styles.button} type='Primary' label='Continue' onClick={submitInviteCode} disabled={!this.state.inviteCode}/>
+        <Button style={styles.button} waiting={this.props.waiting} type='Primary' label='Continue' onClick={submitInviteCode} disabled={!this.state.inviteCode}/>
         <Text style={styles.text} type='Body'>Not invited?</Text>
         <Text type='BodyPrimaryLink' onClick={this.props.onRequestInvite}>Request an invite code</Text>
       </Container>
