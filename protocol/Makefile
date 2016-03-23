@@ -47,7 +47,7 @@ swift-build-stamp: build-stamp | config
 	date > $@
 
 clean:
-	rm -rf json/*.json js/*.js *build-stamp config-stamp
+	rm -rf json/*.json js/*.js *build-stamp
 	$(AVDLC) -c -b -l go -o ../go/protocol avdl/*.avdl
 
 fmt:
