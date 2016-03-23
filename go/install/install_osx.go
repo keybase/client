@@ -207,8 +207,8 @@ func uninstallKeybaseServices(g *libkb.GlobalContext, runMode libkb.RunMode) err
 
 func kbfsPlist(g *libkb.GlobalContext, kbfsBinPath string, label string) (plist launchd.Plist, err error) {
 	mountDir := g.Env.GetMountDir()
-	// TODO: Remove when doing real release
 	logFile := filepath.Join(launchd.LogDir(), libkb.KBFSLogFileName)
+	// TODO: Remove debug flag when doing real release
 	plistArgs := []string{
 		"-debug",
 		fmt.Sprintf("-log-file=%s", logFile),
