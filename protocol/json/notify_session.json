@@ -1,5 +1,6 @@
 {
   "protocol": "NotifySession",
+  "namespace": "keybase.1",
   "types": [],
   "messages": {
     "loggedOut": {
@@ -16,6 +17,5 @@
       ],
       "response": "null"
     }
-  },
-  "namespace": "keybase.1"
+  }
 }

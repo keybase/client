@@ -1,5 +1,6 @@
 {
   "protocol": "crypto",
+  "namespace": "keybase.1",
   "types": [
     {
       "type": "record",
@@ -512,6 +513,5 @@
       ],
       "response": "UnboxAnyRes"
     }
-  },
-  "namespace": "keybase.1"
+  }
 }

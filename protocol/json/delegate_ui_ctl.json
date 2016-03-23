@@ -1,5 +1,6 @@
 {
   "protocol": "delegateUiCtl",
+  "namespace": "keybase.1",
   "types": [
     {
       "type": "record",
@@ -354,6 +355,5 @@
       "request": [],
       "response": "null"
     }
-  },
-  "namespace": "keybase.1"
+  }
 }

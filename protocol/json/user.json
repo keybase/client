@@ -1,5 +1,6 @@
 {
   "protocol": "user",
+  "namespace": "keybase.1",
   "types": [
     {
       "type": "record",
@@ -667,6 +668,5 @@
       },
       "doc": "Search for users who match a given query."
     }
-  },
-  "namespace": "keybase.1"
+  }
 }

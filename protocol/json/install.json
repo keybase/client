@@ -1,5 +1,6 @@
 {
   "protocol": "install",
+  "namespace": "keybase.1",
   "types": [
     {
       "type": "record",
@@ -536,6 +537,5 @@
       ]
     }
   ],
-  "messages": {},
-  "namespace": "keybase.1"
+  "messages": {}
 }

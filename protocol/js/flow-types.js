@@ -1906,7 +1906,8 @@ export type identify_identify2_rpc = {
     alwaysBlock: boolean,
     noErrorOnTrackFailure: boolean,
     forceRemoteCheck: boolean,
-    needProofSet: boolean
+    needProofSet: boolean,
+    allowEmptySelfID: boolean
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any, response: identify_identify2_result) => void)
@@ -1918,7 +1919,6 @@ export type identify_identify_rpc = {
   method: 'identify.identify',
   param: {
     userAssertion: string,
-    trackStatement: boolean,
     forceRemoteCheck: boolean,
     useDelegateUI: boolean,
     reason: IdentifyReason,
@@ -3926,7 +3926,6 @@ export type incomingCallMapType = {
     params: {
       sessionID: int,
       userAssertion: string,
-      trackStatement: boolean,
       forceRemoteCheck: boolean,
       useDelegateUI: boolean,
       reason: IdentifyReason,
@@ -3947,7 +3946,8 @@ export type incomingCallMapType = {
       alwaysBlock: boolean,
       noErrorOnTrackFailure: boolean,
       forceRemoteCheck: boolean,
-      needProofSet: boolean
+      needProofSet: boolean,
+      allowEmptySelfID: boolean
     },
     response: {
       error: (err: RPCError) => void,
