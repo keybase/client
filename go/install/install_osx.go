@@ -161,9 +161,7 @@ func ListServices(g *libkb.GlobalContext) (*keybase1.ServicesStatus, error) {
 func DefaultLaunchdEnvVars(g *libkb.GlobalContext, label string) []launchd.EnvVar {
 	return []launchd.EnvVar{
 		launchd.NewEnvVar("KEYBASE_LABEL", label),
-		launchd.NewEnvVar("KEYBASE_SERVICE_TYPE", "launchd"), // This was added 03/22/16
-		launchd.NewEnvVar("KEYBASE_LOG_FORMAT", "file"),
-		launchd.NewEnvVar("KEYBASE_RUNTIME_DIR", g.Env.GetRuntimeDir()),
+		launchd.NewEnvVar("KEYBASE_SERVICE_TYPE", "launchd"),
 	}
 }
 
@@ -211,7 +209,12 @@ func kbfsPlist(g *libkb.GlobalContext, kbfsBinPath string, label string) (plist 
 	mountDir := g.Env.GetMountDir()
 	// TODO: Remove when doing real release
 	logFile := filepath.Join(launchd.LogDir(), libkb.KBFSLogFileName)
-	plistArgs := []string{"-debug", fmt.Sprintf("-log-file=%s", logFile), mountDir}
+	plistArgs := []string{
+		"-debug",
+		fmt.Sprintf("-log-file=%s", logFile),
+		fmt.Sprintf("-runtime-dir=%s", g.Env.GetRuntimeDir()),
+		mountDir,
+	}
 	envVars := DefaultLaunchdEnvVars(g, label)
 	comment := "It's not advisable to edit this plist, it may be overwritten"
 	plist = launchd.NewPlist(label, kbfsBinPath, plistArgs, envVars, libkb.StartLogFileName, comment)
