@@ -231,7 +231,7 @@ export function checkPassphrase (passphrase1: string, passphrase2: string): Type
   })
 }
 
-export function submitDeviceName (deviceName: string, skipMail?: boolean): TypedAsyncAction<SubmitDeviceName | RouteAppend | Signup | ShowPaperKey> {
+export function submitDeviceName (deviceName: string, skipMail?: boolean, onDisplayPaperKey?: () => void): TypedAsyncAction<SubmitDeviceName | RouteAppend | Signup | ShowPaperKey> {
   return dispatch => new Promise((resolve, reject) => {
     // TODO do some checking on the device name - ideally this is done on the service side
     let deviceNameError = null
@@ -265,9 +265,10 @@ export function submitDeviceName (deviceName: string, skipMail?: boolean): Typed
                 type: Constants.submitDeviceName,
                 payload: {deviceName}
               })
-              const signupPromise = dispatch(signup(skipMail || false))
+
+              const signupPromise = dispatch(signup(skipMail || false, onDisplayPaperKey))
               if (signupPromise) {
-                return signupPromise.then(() => dispatch(nextPhase()) || Promise.resolve())
+                resolve(signupPromise.then(() => dispatch(nextPhase()) || Promise.resolve()))
               } else {
                 throw new Error('did not get promise from signup')
               }
@@ -290,7 +291,7 @@ export function sawPaperKey (): AsyncAction {
   }
 }
 
-function signup (skipMail): TypedAsyncAction<Signup | ShowPaperKey | RouteAppend> {
+function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncAction<Signup | ShowPaperKey | RouteAppend> {
   return (dispatch, getState) => new Promise((resolve, reject) => {
     const {email, username, inviteCode, passphrase, deviceName} = getState().signup
     paperKeyResponse = null
@@ -314,6 +315,7 @@ function signup (skipMail): TypedAsyncAction<Signup | ShowPaperKey | RouteAppend
               type: Constants.showPaperKey,
               payload: {paperkey: new HiddenString(phrase)}
             })
+            onDisplayPaperKey && onDisplayPaperKey()
             dispatch(nextPhase())
           },
           'keybase.1.gpgUi.wantToAddGPGKey': (params, {error, result}) => {
@@ -329,6 +331,7 @@ function signup (skipMail): TypedAsyncAction<Signup | ShowPaperKey | RouteAppend
               error: true,
               payload: {signupError: new HiddenString(err)}
             })
+            dispatch(nextPhase())
             reject()
           } else {
             console.log('Successful signup', passphraseOk, postOk, writeOk)
