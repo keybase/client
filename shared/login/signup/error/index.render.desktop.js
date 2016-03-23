@@ -12,18 +12,19 @@ export default class Render extends Component {
 
   render () {
     return (
-      <div style={styles.form}>
-        <Text type='Header'>Ah Shoot! Something went wrong, wanna try again?</Text>
-        <Text type='Body'>Error: {this.props.errorText.stringValue()}</Text>
-        <Button type='Secondary' label='Try Again' onClick={() => this.props.resetSignup()}/>
+      <div style={container}>
+        <Text type='Header' style={topMargin}>Ah Shoot! Something went wrong, wanna try again?</Text>
+        <Text type='Error' style={topMargin}>{this.props.errorText.stringValue() + ''}</Text>
+        <Button style={topMargin} type='Secondary' label='Try Again' onClick={() => this.props.resetSignup()}/>
       </div>
     )
   }
 }
 
-const styles = {
-  form: {
-    ...globalStyles.flexBoxColumn,
-    flex: 1
-  }
+const container = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  flex: 1
 }
+
+const topMargin = {marginTop: 30}
