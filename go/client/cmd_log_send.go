@@ -239,7 +239,7 @@ func (c *CmdLogSend) logFiles(status *fstatus) logs {
 			desktop: status.Desktop.Log,
 			kbfs:    status.KBFS.Log,
 			service: status.Service.Log,
-			start:   filepath.Join(logDir, libkb.StartLogFileName),
+			start:   status.Start.Log,
 		}
 	}
 
