@@ -131,15 +131,19 @@ export default connect(
     return bindActionCreators(trackerActions, dispatch)
   })(Tracker)
 
-export function selector (username: string): (store: Object) => Object {
+export function selector (username: string): (store: Object) => ?Object {
   return store => {
-    return {
-      tracker: {
-        trackers: {
-          [username]: store.tracker.trackers[username]
-        }
-      },
-      config: store.config
+    if (store.tracker.trackers[username]) {
+      return {
+        tracker: {
+          trackers: {
+            [username]: store.tracker.trackers[username]
+          }
+        },
+        config: store.config
+      }
     }
+
+    return null
   }
 }

@@ -1,5 +1,4 @@
 import electron from 'electron'
-import {globalStyles} from '../shared/styles/style-guide'
 
 const remote = electron.remote
 
@@ -17,7 +16,7 @@ export function autoResize () {
           // Height of remote component + offset from parent + top/bottom border
           const originalResizableState = browserWindow.isResizable()
           browserWindow.setResizable(true)
-          browserWindow.setContentSize(browserWindow.getSize()[0], element.scrollHeight + 2 * element.offsetTop + 2 * globalStyles.windowBorder.borderWidth)
+          browserWindow.setContentSize(browserWindow.getSize()[0], element.scrollHeight + 2 * element.offsetTop + 2)
           browserWindow.setResizable(originalResizableState)
         })
       }

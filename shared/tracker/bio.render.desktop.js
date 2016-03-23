@@ -48,70 +48,74 @@ export default class BioRender extends Component {
     const followsYou = userInfo.followsYou
     const followLabel = this._followLabel()
 
+    // $FlowFixMe we need to change how the props work in these components
+    const backgroundStyle = this.props.backgroundStyle
+
     return (
-      <div style={stylesOuter}>
-        <div style={stylesContainer}>
-          <div style={stylesAvatarOuter}>
-            <Avatar onClick={() => this._onClickAvatar()} style={globalStyles.clickable} url={userInfo.avatar} size={75} />
-            {(followsYou || currentlyFollowing) &&
-              <div>
-                {followsYou && <div style={followBadgeStyles.followsYou}> <div style={{...followBadgeCommon, height: 6, width: 6, top: 2, right: 2}}/></div>}
-                <div style={currentlyFollowing ? followBadgeStyles.following : followBadgeStyles.notFollowing} />
-              </div>
-            }
-          </div>
-          <div style={stylesContent}>
-            <Text
-              type='HeaderBig'
-              style={{...stylesUsername, ...(currentlyFollowing ? stylesUsernameFollowing : stylesUsernameNotFollowing)}}
-              onClick={() => this._onClickAvatar()}>
-              {username}
+      <div style={stylesContainer}>
+        <div style={{...headerBackground, ...backgroundStyle}} />
+        <div style={stylesAvatarOuter}>
+          <Avatar onClick={() => this._onClickAvatar()} style={globalStyles.clickable} url={userInfo.avatar} size={75} />
+          {(followsYou || currentlyFollowing) &&
+            <div>
+              {followsYou && <div style={followBadgeStyles.followsYou}> <div style={{...followBadgeCommon, height: 6, width: 6, top: 2, right: 2}}/></div>}
+              <div style={currentlyFollowing ? followBadgeStyles.following : followBadgeStyles.notFollowing} />
+            </div>
+          }
+        </div>
+        <div style={stylesContent}>
+          <Text
+            type='HeaderBig'
+            style={{...stylesUsername, ...(currentlyFollowing ? stylesUsernameFollowing : stylesUsernameNotFollowing)}}
+            onClick={() => this._onClickAvatar()}>
+            {username}
+          </Text>
+          <Text type='BodySemibold' style={stylesFullname}>{userInfo.fullname}</Text>
+          {followLabel &&
+            <Text type='BodySmall' style={stylesFollowLabel}>{followLabel}</Text>
+          }
+          <Text type='BodySmall' style={stylesFollowing}>
+            <span className='hover-underline' onClick={() => this._onClickFollowers()}>
+              <Text type='BodySmall' style={{...globalStyles.fontBold}}>{userInfo.followersCount}</Text> {userInfo.followersCount === 1 ? 'Tracker' : 'Trackers'}
+            </span>
+            &nbsp;
+            &middot;
+            &nbsp;
+            <span className='hover-underline' onClick={() => this._onClickFollowing()}>
+              Tracking <Text type='BodySmall' style={{...globalStyles.fontBold}}>{userInfo.followingCount}</Text>
+            </span>
+          </Text>
+          {userInfo.bio &&
+            <Text type='BodySmall' style={stylesBio} lineClamp={userInfo.location ? 2 : 3}>
+              {userInfo.bio}
             </Text>
-            <Text type='BodySemibold' style={stylesFullname}>{userInfo.fullname}</Text>
-            {followLabel &&
-              <Text type='BodySmall' style={stylesFollowLabel}>{followLabel}</Text>
-            }
-            <Text type='BodySmall' style={stylesFollowing}>
-              <span className='hover-underline' onClick={() => this._onClickFollowers()}>
-                <Text type='BodySmall' style={{...globalStyles.fontBold}}>{userInfo.followersCount}</Text> {userInfo.followersCount === 1 ? 'Tracker' : 'Trackers'}
-              </span>
-              &nbsp;
-              &middot;
-              &nbsp;
-              <span className='hover-underline' onClick={() => this._onClickFollowing()}>
-                Tracking <Text type='BodySmall' style={{...globalStyles.fontBold}}>{userInfo.followingCount}</Text>
-              </span>
-            </Text>
-            {userInfo.bio &&
-              <Text type='BodySmall' style={stylesBio} lineClamp={userInfo.location ? 2 : 3}>
-                {userInfo.bio}
-              </Text>
-            }
-            {userInfo.location &&
-              <Text type='BodySmall' style={stylesLocation} lineClamp={1}>{userInfo.location}</Text>
-            }
-          </div>
+          }
+          {userInfo.location &&
+            <Text type='BodySmall' style={stylesLocation} lineClamp={1}>{userInfo.location}</Text>
+          }
         </div>
       </div>
     )
   }
 }
 
-const stylesOuter = {
-  marginTop: 90
-}
+const avatarSize = 75
+
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'center',
   justifyContent: 'center',
-  width: 320,
-  marginTop: -40
+  width: 320
+}
+const headerBackground = {
+  height: avatarSize / 2,
+  width: '100%'
 }
 const stylesAvatarOuter = {
-  width: 75,
-  height: 75,
+  width: avatarSize,
+  height: avatarSize,
   position: 'relative',
-  zIndex: 2
+  marginTop: -avatarSize / 2
 }
 const stylesContent = {
   backgroundColor: globalColors.white,
@@ -120,8 +124,7 @@ const stylesContent = {
   justifyContent: 'center',
   width: 320,
   marginTop: -35,
-  paddingTop: 35,
-  zIndex: 1
+  paddingTop: 35
 }
 const stylesUsername = {
   ...globalStyles.selectable,
