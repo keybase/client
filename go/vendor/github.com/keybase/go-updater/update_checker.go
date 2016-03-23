@@ -8,7 +8,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/keybase/client/go/updater/sources"
+	"github.com/keybase/go-updater/sources"
 )
 
 // UpdateChecker runs updates checks every check duration

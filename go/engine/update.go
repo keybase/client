@@ -10,8 +10,8 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/keybase/client/go/updater"
-	"github.com/keybase/client/go/updater/sources"
+	"github.com/keybase/go-updater"
+	"github.com/keybase/go-updater/sources"
 	"github.com/keybase/saltpack"
 )
 

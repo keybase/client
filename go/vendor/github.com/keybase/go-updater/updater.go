@@ -21,7 +21,7 @@ import (
 	"github.com/keybase/client/go/lsof"
 	keybase1 "github.com/keybase/client/go/protocol"
 	zip "github.com/keybase/client/go/tools/zip"
-	"github.com/keybase/client/go/updater/sources"
+	"github.com/keybase/go-updater/sources"
 	"golang.org/x/net/context"
 )
 

@@ -193,6 +193,16 @@
 			"revisionTime": "2015-06-12T09:33:55-07:00"
 		},
 		{
+			"path": "github.com/keybase/go-updater",
+			"revision": "44e1c9d05e297028aee0434006b7db6ad8ec089b",
+			"revisionTime": "2016-03-23T16:34:55-07:00"
+		},
+		{
+			"path": "github.com/keybase/go-updater/sources",
+			"revision": "44e1c9d05e297028aee0434006b7db6ad8ec089b",
+			"revisionTime": "2016-03-23T16:34:55-07:00"
+		},
+		{
 			"path": "github.com/keybase/gopass",
 			"revision": "8cb3611ab4d378cb4ff58ed723a4ea0557f81adb",
 			"revisionTime": "2016-01-05T18:46:37-05:00"
