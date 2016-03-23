@@ -275,6 +275,9 @@ func (s *SKB) unlockSecretKeyFromSecretRetriever(lctx LoginContext, secretRetrie
 // unverifiedPassphraseStream takes a passphrase as a parameter and
 // also the salt from the Account and computes a Triplesec and
 // a passphrase stream.  It's not verified through a Login.
+//
+// question: why is this a member of SKB?
+//
 func (s *SKB) unverifiedPassphraseStream(lctx LoginContext, passphrase string) (tsec *triplesec.Cipher, ret *PassphraseStream, err error) {
 	var salt []byte
 	username := s.G().Env.GetUsername().String()

@@ -108,6 +108,8 @@ func (s *LoginSession) NotExpired() bool {
 	return false
 }
 
+// Clear removes the loginSession value from s. It does not
+// clear the salt. Unclear how this is useful.
 func (s *LoginSession) Clear() error {
 	if s == nil {
 		return nil
