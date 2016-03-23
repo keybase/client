@@ -3,7 +3,7 @@ package sources
 import (
 	"strings"
 
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/updater/protocol"
 )
 
 type UpdateSource interface {

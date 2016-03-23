@@ -22,6 +22,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	keybase1 "github.com/keybase/client/go/protocol"
+	up "github.com/keybase/client/go/updater/protocol"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -339,7 +340,7 @@ type ProvisionUI interface {
 }
 
 type UpdateUI interface {
-	keybase1.UpdateUiInterface
+	up.UpdateUiInterface
 }
 
 type PromptDefault int

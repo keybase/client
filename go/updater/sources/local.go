@@ -12,7 +12,7 @@ import (
 	"os"
 
 	"github.com/keybase/client/go/logger"
-	keybase1 "github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/updater/protocol"
 )
 
 // LocalUpdateSource finds releases/updates from custom url feed (used primarily for testing)
