@@ -39,44 +39,8 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	// verify signature and deserialize root data, if the sig is not blank.
 	// a blank sig means this is a brand new MD object, nothing to check
 	if rmds.IsInitialized() {
-		if handle.IsPublic() {
-			if err := codec.Decode(rmds.MD.SerializedPrivateMetadata, &rmds.MD.data); err != nil {
-				return err
-			}
-		} else {
-			// decrypt the root data for non-public directories
-			var encryptedPrivateMetadata EncryptedPrivateMetadata
-			if err := codec.Decode(rmds.MD.SerializedPrivateMetadata, &encryptedPrivateMetadata); err != nil {
-				return err
-			}
-
-			k, err := md.config.KeyManager().
-				GetTLFCryptKeyForMDDecryption(ctx, &rmds.MD)
-
-			privateMetadata := &PrivateMetadata{}
-			if err != nil {
-				// Get current UID.
-				_, uid, uidErr := md.config.KBPKI().GetCurrentUserInfo(ctx)
-				if uidErr != nil {
-					return uidErr
-				}
-				isReader := handle.IsReader(uid)
-				_, isSelfRekeyError := err.(NeedSelfRekeyError)
-				_, isOtherRekeyError := err.(NeedOtherRekeyError)
-				if isReader && (isOtherRekeyError || isSelfRekeyError) {
-					// Rekey errors are expected if this client is a
-					// valid folder participant but doesn't have the
-					// shared crypt key.
-				} else {
-					return err
-				}
-			} else {
-				privateMetadata, err = crypto.DecryptPrivateMetadata(encryptedPrivateMetadata, k)
-				if err != nil {
-					return err
-				}
-			}
-			rmds.MD.data = *privateMetadata
+		if err := decryptMDPrivateData(ctx, md.config, &rmds.MD); err != nil {
+			return err
 		}
 
 		// Make sure the last writer is really a valid writer

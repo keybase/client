@@ -3990,8 +3990,16 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 			fbo.log.CDebugf(ctx, "No rekey necessary")
 			return nil
 		}
-		// clear the rekey bit
+		// Clear the rekey bit if any.
 		md.Flags &= ^MetadataFlagRekey
+		md.clearLastRevision()
+		// If we couldn't read it before, we should now be able to
+		// decrypt the private data.
+		if !md.IsReadable() {
+			if err := decryptMDPrivateData(ctx, fbo.config, md); err != nil {
+				return err
+			}
+		}
 
 	case RekeyIncompleteError:
 		fbo.log.CDebugf(ctx,

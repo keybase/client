@@ -1082,7 +1082,8 @@ func TestKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T) {
 // promptPaper set or not.
 type cryptoLocalTrapAny struct {
 	Crypto
-	promptCh chan<- bool
+	promptCh    chan<- bool
+	cryptoToUse Crypto
 }
 
 func (clta *cryptoLocalTrapAny) DecryptTLFCryptKeyClientHalfAny(
@@ -1090,7 +1091,9 @@ func (clta *cryptoLocalTrapAny) DecryptTLFCryptKeyClientHalfAny(
 	keys []EncryptedTLFCryptKeyClientAndEphemeral, promptPaper bool) (
 	TLFCryptKeyClientHalf, int, error) {
 	clta.promptCh <- promptPaper
-	return TLFCryptKeyClientHalf{}, 0, nil
+	// Decrypt the key half with the given config object
+	return clta.cryptoToUse.DecryptTLFCryptKeyClientHalfAny(
+		ctx, keys, promptPaper)
 }
 
 func TestKeyManagerRekeyAddDeviceWithPrompt(t *testing.T) {
@@ -1160,7 +1163,8 @@ func TestKeyManagerRekeyAddDeviceWithPrompt(t *testing.T) {
 	}
 
 	c := make(chan bool)
-	clta := &cryptoLocalTrapAny{config2Dev2.Crypto(), c}
+	// Use our other device as a standin for the paper key.
+	clta := &cryptoLocalTrapAny{config2Dev2.Crypto(), c, config2.Crypto()}
 	config2Dev2.SetCrypto(clta)
 
 	ops.rekeyWithPromptTimer.Reset(1 * time.Millisecond)
@@ -1168,14 +1172,38 @@ func TestKeyManagerRekeyAddDeviceWithPrompt(t *testing.T) {
 	if !promptPaper {
 		t.Fatalf("Didn't prompt paper")
 	}
+	<-c // called a second time for decrypting the private data
 
 	// Take the mdWriterLock to ensure that the rekeyWithPrompt finishes.
 	lState := makeFBOLockState()
 	ops.mdWriterLock.Lock(lState)
-	t.Logf("Got lock!")
 	ops.mdWriterLock.Unlock(lState)
 
-	// State checking won't work since we fakes out the key in clta,
-	// so shutdown the shared MDServer to avoid it.
-	config1.MDServer().Shutdown()
+	config2Dev2.SetCrypto(clta.Crypto)
+	kbfsOps2 := config2Dev2.KBFSOps()
+	rootNode2, _, err :=
+		kbfsOps2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+
+	children, err := kbfsOps2.GetDirChildren(ctx, rootNode2)
+	if _, ok := children["a"]; !ok {
+		t.Fatalf("Device 2 couldn't see the dir entry after rekey")
+	}
+	// user 2 creates another file to make a new revision
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "b", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// device 1 should be able to read the new file
+	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+	children, err = kbfsOps1.GetDirChildren(ctx, rootNode1)
+	if _, ok := children["b"]; !ok {
+		t.Fatalf("Device 2 couldn't see the dir entry after rekey")
+	}
 }

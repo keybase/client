@@ -549,6 +549,7 @@ func (c *ConfigLocal) TLFValidDuration() time.Duration {
 
 // Shutdown implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) Shutdown() error {
+	c.RekeyQueue().Clear()
 	if c.CheckStateOnShutdown() {
 		// Before we do anything, wait for all archiving to finish.
 		for _, config := range *c.allKnownConfigsForTesting {
@@ -567,7 +568,6 @@ func (c *ConfigLocal) Shutdown() error {
 
 	err := c.KBFSOps().Shutdown()
 	// Continue with shutdown regardless of err.
-	c.RekeyQueue().Clear()
 	c.MDServer().Shutdown()
 	c.KeyServer().Shutdown()
 	c.KeybaseDaemon().Shutdown()

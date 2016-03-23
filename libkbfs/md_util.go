@@ -171,3 +171,53 @@ func getUnmergedMDUpdates(ctx context.Context, config Config, id TlfID,
 	}
 	return currHead, unmergedRmds, nil
 }
+
+func decryptMDPrivateData(ctx context.Context, config Config,
+	rmd *RootMetadata) error {
+	handle := rmd.GetTlfHandle()
+	crypto := config.Crypto()
+	codec := config.Codec()
+
+	if handle.IsPublic() {
+		if err := codec.Decode(rmd.SerializedPrivateMetadata,
+			&rmd.data); err != nil {
+			return err
+		}
+	} else {
+		// decrypt the root data for non-public directories
+		var encryptedPrivateMetadata EncryptedPrivateMetadata
+		if err := codec.Decode(rmd.SerializedPrivateMetadata,
+			&encryptedPrivateMetadata); err != nil {
+			return err
+		}
+
+		k, err := config.KeyManager().GetTLFCryptKeyForMDDecryption(ctx, rmd)
+
+		privateMetadata := &PrivateMetadata{}
+		if err != nil {
+			// Get current UID.
+			_, uid, uidErr := config.KBPKI().GetCurrentUserInfo(ctx)
+			if uidErr != nil {
+				return uidErr
+			}
+			isReader := handle.IsReader(uid)
+			_, isSelfRekeyError := err.(NeedSelfRekeyError)
+			_, isOtherRekeyError := err.(NeedOtherRekeyError)
+			if isReader && (isOtherRekeyError || isSelfRekeyError) {
+				// Rekey errors are expected if this client is a
+				// valid folder participant but doesn't have the
+				// shared crypt key.
+			} else {
+				return err
+			}
+		} else {
+			privateMetadata, err =
+				crypto.DecryptPrivateMetadata(encryptedPrivateMetadata, k)
+			if err != nil {
+				return err
+			}
+		}
+		rmd.data = *privateMetadata
+	}
+	return nil
+}

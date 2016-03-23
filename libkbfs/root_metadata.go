@@ -307,6 +307,12 @@ func (md *RootMetadata) increment(config Config, currMD *RootMetadata) error {
 	return nil
 }
 
+func (md *RootMetadata) clearLastRevision() {
+	md.ClearBlockChanges()
+	// remove the copied flag (if any.)
+	md.Flags &= ^MetadataFlagWriterMetadataCopied
+}
+
 // MakeSuccessor returns a complete copy of this RootMetadata (but
 // with cleared block change lists and cleared serialized metadata),
 // with the revision incremented and a correct backpointer.
@@ -318,14 +324,12 @@ func (md RootMetadata) MakeSuccessor(config Config, isWriter bool) (RootMetadata
 	newMd.WKeys = md.WKeys.DeepCopy()
 	newMd.RKeys = md.RKeys.DeepCopy()
 	if md.IsReadable() && isWriter {
-		newMd.ClearBlockChanges()
+		newMd.clearLastRevision()
 		// no need to deep copy the full data since we just cleared the
 		// block changes.
 		newMd.data.TLFPrivateKey = md.data.TLFPrivateKey
 		// clear the serialized data.
 		newMd.SerializedPrivateMetadata = nil
-		// remove the copied flag (if any.)
-		newMd.Flags &= ^MetadataFlagWriterMetadataCopied
 	} else {
 		// if we can't read it it means we're simply setting the rekey bit
 		// and copying the previous data.
