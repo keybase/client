@@ -1,5 +1,6 @@
 {
   "protocol": "device",
+  "namespace": "keybase.1",
   "types": [
     {
       "type": "record",
@@ -379,6 +380,5 @@
       "response": "boolean",
       "doc": "Checks the device name format."
     }
-  },
-  "namespace": "keybase.1"
+  }
 }

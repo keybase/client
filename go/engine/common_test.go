@@ -330,3 +330,23 @@ func SetupTwoDevices(t *testing.T, nm string) (user *FakeUser, dev1 libkb.TestCo
 
 	return user, dev1, dev2, cleanup
 }
+
+func ResetAccount(tc libkb.TestContext, u *FakeUser) {
+	pps, err := tc.G.LoginState().GetPassphraseStreamWithPassphrase(u.Passphrase)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+	arg := libkb.APIArg{
+		Endpoint:    "nuke",
+		NeedSession: true,
+		Args: libkb.HTTPArgs{
+			"pwh": libkb.HexArg(pps.PWHash()),
+		},
+	}
+	res, err := tc.G.API.Post(arg)
+	if err != nil {
+		tc.T.Fatal(err)
+	}
+	tc.T.Logf("nuke api result: %+v", res)
+	Logout(tc)
+}

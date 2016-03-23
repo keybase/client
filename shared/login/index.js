@@ -1,6 +1,6 @@
 /* @flow */
 
-import React, {Component} from 'react'
+import React from 'react'
 import Intro from './forms/intro'
 import ErrorText from './error.render'
 
@@ -12,29 +12,31 @@ import type {URI} from '../reducers/router'
 
 function loginRouter (currentPath: Map<string, string>, uri: URI): any {
   // Fallback (for debugging)
-  let form = <ErrorText currentPath={currentPath}/>
+  let element = <ErrorText currentPath={currentPath}/>
 
   const path = currentPath.get('path')
+  let {componentAtTop: {component: Component, props, element: dynamicElement}} = currentPath.get('parseRoute') || {componentAtTop: {}}
 
-  const {componentAtTop: {component: Component, props}} = currentPath.get('parseRoute') || {componentAtTop: {}}
-  if (Component) {
-    form = <Component {...props}/>
+  if (dynamicElement) {
+    element = dynamicElement
+  } else if (Component) {
+    element = <Component {...props} />
   } else {
     switch (path) {
       case 'root':
-        form = <Intro/>
+        element = <Intro />
         break
       case 'signup':
         return signupRouter(currentPath, uri)
       case 'login':
-        form = <Login />
+        element = <Login />
         break
     }
   }
 
   return {
     componentAtTop: {
-      component: () => form,
+      element,
       hideBack: true
     },
     parseNextRoute: loginRouter

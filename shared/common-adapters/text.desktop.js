@@ -58,6 +58,12 @@ export default class Text extends Component {
     }
   }
 
+  focus () {
+    if (this.refs && this.refs.text) {
+      this.refs.text.focus()
+    }
+  }
+
   render () {
     const typeStyle = {
       'HeaderJumbo': styles.textHeaderJumbo,
@@ -112,6 +118,18 @@ export default class Text extends Component {
 
     const terminalPrefix = this._terminalPrefix(this.props.type)
     const className = (this.props.className || '') + ' ' + (linkClassname || '')
+
+    if (this.props.contentEditable) {
+      return (
+        <span
+          ref='text'
+          className={className}
+          style={style}
+          contentEditable
+          onKeyUp={this.props.onKeyUp}
+          onKeyDown={this.props.onKeyDown}
+          onClick={this.props.onClick}/>)
+    }
 
     return (
       <span
@@ -230,7 +248,7 @@ export const styles = {
   textError: {
     ...textCommon,
     color: globalColors.red,
-    fontSize: 13,
+    fontSize: 14,
     lineHeight: '17px',
     letterSpacing: '0.2px'
   },

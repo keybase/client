@@ -1,3 +1,4 @@
+/*eslint-disable */
 declare module 'electron' {
   declare var exports: any;
 }
@@ -65,10 +66,11 @@ declare module 'react-addons-perf' {
   declare var exports: {
     start: () => void,
     stop: () => void,
-    getLastMeasurements: () => void,
-    printInclusive: () => void,
-    printExclusive: () => void,
-    printWasted: () => void
+    getLastMeasurements: () => Object,
+    printInclusive: (measurements: Object) => void,
+    printExclusive: (measurements: Object) => void,
+    printWasted: (measurements: Object) => void,
+    printDOM: (measurements: Object) => void
   };
 }
 

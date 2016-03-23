@@ -29,13 +29,13 @@ class Render extends Component<void, Props, State> {
   render () {
     return (
       <Container
-        style={styles.container}
+        style={stylesContainer}
         outerStyle={{backgroundColor: globalColors.lightGrey}}
         onBack={() => this.props.onBack()}>
-        <UserCard outerStyle={styles.card}>
+        <UserCard style={stylesCard} outerStyle={stylesOuterCard}>
           <Input
             autoFocus
-            style={styles.input}
+            style={stylesInput}
             floatingLabelText='Username or email'
             onEnterKeyDown={() => this.onSubmit()}
             onChange={event => this.onChange(event.target.value)}
@@ -55,21 +55,18 @@ class Render extends Component<void, Props, State> {
   }
 }
 
-const styles = {
-  container: {
-    flex: 1,
-    alignItems: 'center'
-  },
-  input: {
-    marginBottom: 48
-  },
-  icon: {
-    fontSize: 30,
-    marginTop: 10
-  },
-  card: {
-    marginTop: 40
-  }
+const stylesContainer = {
+  flex: 1,
+  alignItems: 'center'
+}
+const stylesInput = {
+  marginBottom: 48
+}
+const stylesOuterCard = {
+  marginTop: 40
+}
+const stylesCard = {
+  alignItems: 'stretch'
 }
 
 export default Render

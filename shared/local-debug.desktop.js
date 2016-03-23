@@ -20,7 +20,8 @@ let config = {
   devStoreChangingFunctions: false,
   printOutstandingRPCs: false,
   reactPerf: false,
-  overrideLoggedInTab: null
+  overrideLoggedInTab: null,
+  focusOnShow: true
 }
 
 if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
@@ -38,6 +39,7 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.printOutstandingRPCs = true
   config.reactPerf = false
   config.overrideLoggedInTab = Tabs.moreTab
+  config.focusOnShow = false
 }
 
 config = updateConfig(config)
@@ -54,7 +56,8 @@ export const {
   devStoreChangingFunctions,
   printOutstandingRPCs,
   reactPerf,
-  overrideLoggedInTab
+  overrideLoggedInTab,
+  focusOnShow
 } = config
 
 export function initTabbedRouterState (state) {

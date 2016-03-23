@@ -1569,6 +1569,315 @@ func TestProvisionMultipleUsers(t *testing.T) {
 	}
 }
 
+// create a standard user with device keys, reset account, login.
+func TestResetAccount(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "login")
+	originalDevice := tc.G.Env.GetDeviceID()
+	ResetAccount(tc, u)
+
+	// this will reprovision as an eldest device:
+	u.LoginOrBust(tc)
+	if err := AssertProvisioned(tc); err != nil {
+		t.Fatal(err)
+	}
+
+	newDevice := tc.G.Env.GetDeviceID()
+
+	if newDevice == originalDevice {
+		t.Errorf("device id did not change: %s", newDevice)
+	}
+
+	testUserHasDeviceKey(tc)
+}
+
+// After resetting account, try provisioning in a clean home dir.
+func TestResetAccountNewHome(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "login")
+	originalDevice := tc.G.Env.GetDeviceID()
+	ResetAccount(tc, u)
+
+	tcp := SetupEngineTest(t, "login")
+	// this will reprovision as an eldest device:
+	u.LoginOrBust(tcp)
+	if err := AssertProvisioned(tcp); err != nil {
+		t.Fatal(err)
+	}
+
+	newDevice := tcp.G.Env.GetDeviceID()
+
+	if newDevice == originalDevice {
+		t.Errorf("device id did not change: %s", newDevice)
+	}
+
+	testUserHasDeviceKey(tcp)
+}
+
+// After account reset, establish new eldest keys, paper key.
+// Provision another device with paper key.
+func TestResetAccountPaper(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "login")
+	ResetAccount(tc, u)
+
+	// login, creating new eldest key, new paper keys
+	loginUI := &paperLoginUI{Username: u.Username}
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUI(),
+		LogUI:       tc.G.UI.GetLogUI(),
+		GPGUI:       &gpgtestui{},
+		SecretUI:    u.NewSecretUI(),
+		LoginUI:     loginUI,
+	}
+	li := NewLogin(tc.G, libkb.DeviceTypeDesktop, u.Username, keybase1.ClientType_CLI)
+	if err := RunEngine(li, ctx); err != nil {
+		t.Fatal(err)
+	}
+	paper := loginUI.PaperPhrase
+	if len(paper) == 0 {
+		t.Fatal("no paper phrase in login ui")
+	}
+	testUserHasDeviceKey(tc)
+
+	// provision on new device with paper key
+	tcp := SetupEngineTest(t, "login")
+	defer tcp.Cleanup()
+
+	secUI := u.NewSecretUI()
+	secUI.Passphrase = paper
+	provUI := newTestProvisionUIPaper()
+	provLoginUI := &libkb.TestLoginUI{Username: u.Username}
+	ctx = &Context{
+		ProvisionUI: provUI,
+		LogUI:       tcp.G.UI.GetLogUI(),
+		SecretUI:    secUI,
+		LoginUI:     provLoginUI,
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tcp.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	testUserHasDeviceKey(tcp)
+}
+
+// After resetting account, try kex2 provisioning.
+func TestResetAccountKexProvision(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	u := CreateAndSignupFakeUser(tc, "login")
+
+	ResetAccount(tc, u)
+
+	// create provisioner device
+	tcX := SetupEngineTest(t, "login")
+	defer tcX.Cleanup()
+	// this will reprovision as an eldest device:
+	u.LoginOrBust(tcX)
+	if err := AssertProvisioned(tcX); err != nil {
+		t.Fatal(err)
+	}
+	testUserHasDeviceKey(tcX)
+	var secretX kex2.Secret
+	if _, err := rand.Read(secretX[:]); err != nil {
+		t.Fatal(err)
+	}
+	secretCh := make(chan kex2.Secret)
+
+	// provisionee context:
+	tcY := SetupEngineTest(t, "template")
+	defer tcY.Cleanup()
+
+	// provisionee calls login:
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUISecretCh(secretCh),
+		LoginUI:     &libkb.TestLoginUI{Username: u.Username},
+		LogUI:       tcY.G.UI.GetLogUI(),
+		SecretUI:    &libkb.TestSecretUI{},
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+
+	var wg sync.WaitGroup
+
+	// start provisionee
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := RunEngine(eng, ctx); err != nil {
+			t.Errorf("login error: %s", err)
+			return
+		}
+	}()
+
+	// start provisioner
+	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		ctx := &Context{
+			SecretUI:    u.NewSecretUI(),
+			ProvisionUI: newTestProvisionUI(),
+		}
+		if err := RunEngine(provisioner, ctx); err != nil {
+			t.Errorf("provisioner error: %s", err)
+			return
+		}
+	}()
+	secretFromY := <-secretCh
+	provisioner.AddSecret(secretFromY)
+
+	wg.Wait()
+
+	if err := AssertProvisioned(tcY); err != nil {
+		t.Fatal(err)
+	}
+
+	// make sure that the provisioned device can use
+	// the passphrase stream cache (use an empty secret ui)
+	arg := &TrackEngineArg{
+		UserAssertion: "t_alice",
+		Options:       keybase1.TrackOptions{BypassConfirm: true},
+	}
+	ctx = &Context{
+		LogUI:      tcY.G.UI.GetLogUI(),
+		IdentifyUI: &FakeIdentifyUI{},
+		SecretUI:   &libkb.TestSecretUI{},
+	}
+
+	teng := NewTrackEngine(arg, tcY.G)
+	if err := RunEngine(teng, ctx); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// Try to replicate @nistur sigchain.
+// github issue: https://github.com/keybase/client/issues/2356
+func TestResetAccountLikeNistur(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	// user with synced pgp key
+	u := createFakeUserWithPGPOnly(t, tc)
+	Logout(tc)
+	tc.Cleanup()
+
+	// provision a device with that key
+	tc = SetupEngineTest(t, "login")
+	defer tc.Cleanup()
+
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIPassphrase(),
+		LoginUI:     &libkb.TestLoginUI{Username: u.Username},
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    u.NewSecretUI(),
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	// since this user didn't have any device keys, login should have fixed that:
+	testUserHasDeviceKey(tc)
+
+	// now reset account
+	ResetAccount(tc, u)
+
+	// create provisioner device
+	tcX := SetupEngineTest(t, "login")
+	defer tcX.Cleanup()
+
+	// this will reprovision as an eldest device:
+	u.LoginOrBust(tcX)
+	if err := AssertProvisioned(tcX); err != nil {
+		t.Fatal(err)
+	}
+	testUserHasDeviceKey(tcX)
+	var secretX kex2.Secret
+	if _, err := rand.Read(secretX[:]); err != nil {
+		t.Fatal(err)
+	}
+	secretCh := make(chan kex2.Secret)
+
+	// provisionee context:
+	tcY := SetupEngineTest(t, "template")
+	defer tcY.Cleanup()
+
+	// provisionee calls login:
+	ctx = &Context{
+		ProvisionUI: newTestProvisionUISecretCh(secretCh),
+		LoginUI:     &libkb.TestLoginUI{Username: u.Username},
+		LogUI:       tcY.G.UI.GetLogUI(),
+		SecretUI:    &libkb.TestSecretUI{},
+		GPGUI:       &gpgtestui{},
+	}
+	eng = NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+
+	var wg sync.WaitGroup
+
+	// start provisionee
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := RunEngine(eng, ctx); err != nil {
+			t.Errorf("login error: %s", err)
+			return
+		}
+	}()
+
+	// start provisioner
+	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		ctx := &Context{
+			SecretUI:    u.NewSecretUI(),
+			ProvisionUI: newTestProvisionUI(),
+		}
+		if err := RunEngine(provisioner, ctx); err != nil {
+			t.Errorf("provisioner error: %s", err)
+			return
+		}
+	}()
+	secretFromY := <-secretCh
+	provisioner.AddSecret(secretFromY)
+
+	wg.Wait()
+
+	if err := AssertProvisioned(tcY); err != nil {
+		t.Fatal(err)
+	}
+
+	// make sure that the provisioned device can use
+	// the passphrase stream cache (use an empty secret ui)
+	arg := &TrackEngineArg{
+		UserAssertion: "t_alice",
+		Options:       keybase1.TrackOptions{BypassConfirm: true},
+	}
+	ctx = &Context{
+		LogUI:      tcY.G.UI.GetLogUI(),
+		IdentifyUI: &FakeIdentifyUI{},
+		SecretUI:   &libkb.TestSecretUI{},
+	}
+
+	teng := NewTrackEngine(arg, tcY.G)
+	if err := RunEngine(teng, ctx); err != nil {
+		t.Fatal(err)
+	}
+}
+
 type testProvisionUI struct {
 	secretCh               chan kex2.Secret
 	method                 keybase1.ProvisionMethod

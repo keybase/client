@@ -1,8 +1,6 @@
 /* @flow */
 // Styles from our designers
 
-import globalColors from './style-guide-colors'
-
 export {default as globalColors} from './style-guide-colors'
 
 export const globalResizing = {
@@ -78,10 +76,6 @@ const util = {
   },
   rounded: {
     borderRadius: 3
-  },
-  windowBorder: {
-    border: `solid ${globalColors.lightGrey3}`,
-    borderWidth: 1
   },
   clickable: {
     cursor: 'pointer'

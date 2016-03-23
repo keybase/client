@@ -5,7 +5,6 @@ export default class MetaNavigatorRender extends Component {
   render () {
     const {rootComponent, uri, NavBar, Navigator, getComponentAtTop} = this.props
     const {componentAtTop, routeStack} = getComponentAtTop(rootComponent, uri)
-    const Module = componentAtTop.component
 
     return (
       <Navigator
@@ -14,10 +13,12 @@ export default class MetaNavigatorRender extends Component {
         initialRouteStack={routeStack.toJS()}
         configureScene={route => route.sceneConfig || Navigator.SceneConfigs.FloatFromRight}
         renderScene={(route, navigator) => {
+          const element = route.element
           const Module = route.component
           return (
             <View style={{flex: 1, marginTop: route.hideNavBar ? 0 : this.props.navBarHeight}}>
-              <Module {...route.props} />
+              {element}
+              {!element && Module && <Module {...route.props}/>}
             </View>
           )
         }}

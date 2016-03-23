@@ -48,6 +48,24 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
+:: Double check that keybase is codesigned
+signtool verify /pa %PathName%
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
+
+:: Double check that kbfs is codesigned
+signtool verify /pa %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
+
+:: Double check that Keybase.exe gui is codesigned
+signtool verify /pa %GOPATH%\src\github.com\keybase\client\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
+
 if NOT DEFINED BUILD_TAG set BUILD_TAG=%SEMVER%
 
 "%ProgramFiles(x86)%\Inno Setup 5\iscc.exe" /O%BUILD_TAG% /DMyExePathName=%PathName% /DMyAppVersion=%BUILDVER% /DMySemVersion=%SEMVER% /DNewDokanVersion=%DOKANVER% "/sSignCommand=signtool.exe sign /tr http://timestamp.digicert.com $f" %GOPATH%\src\github.com\keybase\client\packaging\windows\setup_windows_gui.iss
@@ -56,8 +74,6 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 
 echo off
-for /f %%i in ('dir %BUILD_TAG% /od /b') do set KEYBASE_INSTALLER_NAME=%%i
-echo %KEYBASE_INSTALLER_NAME%
 
 go get github.com/keybase/release
 go install github.com/keybase/release
@@ -65,6 +81,16 @@ set release_bin=%GOPATH%\bin\windows_386\release.exe
 
 
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
+
+for /f %%i in ('dir /od /b') do set KEYBASE_INSTALLER_NAME=%%i
+echo %KEYBASE_INSTALLER_NAME%
+
+:: Double check that the installer is codesigned
+signtool verify /pa %KEYBASE_INSTALLER_NAME%
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
+
 %GOPATH%\bin\windows_386\release update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://s3.amazonaws.com/prerelease.keybase.io/windows > update-windows-prod.json
 ::"%ProgramFiles%\S3 Browser\s3browser-con.exe" upload keybase %KEYBASE_INSTALLER_NAME% prerelease.keybase.io/windows
 :: After sanity checking, do:

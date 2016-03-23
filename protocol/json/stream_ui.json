@@ -1,5 +1,6 @@
 {
   "protocol": "streamUi",
+  "namespace": "keybase.1",
   "types": [
     {
       "type": "record",
@@ -389,6 +390,5 @@
       ],
       "response": "int"
     }
-  },
-  "namespace": "keybase.1"
+  }
 }

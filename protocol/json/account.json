@@ -1,5 +1,6 @@
 {
   "protocol": "account",
+  "namespace": "keybase.1",
   "types": [
     {
       "type": "record",
@@ -132,6 +133,5 @@
       ],
       "response": "GetPassphraseRes"
     }
-  },
-  "namespace": "keybase.1"
+  }
 }

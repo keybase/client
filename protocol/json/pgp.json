@@ -1,5 +1,6 @@
 {
   "protocol": "pgp",
+  "namespace": "keybase.1",
   "types": [
     {
       "type": "record",
@@ -1086,6 +1087,5 @@
       "response": "null",
       "doc": "Push updated key(s) to the server."
     }
-  },
-  "namespace": "keybase.1"
+  }
 }
