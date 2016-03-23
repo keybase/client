@@ -1902,12 +1902,12 @@ export type identify_identify2_rpc = {
     uid: UID,
     userAssertion: string,
     reason: IdentifyReason,
-    useDelegateUI: boolean,
-    alwaysBlock: boolean,
-    noErrorOnTrackFailure: boolean,
-    forceRemoteCheck: boolean,
-    needProofSet: boolean,
-    allowEmptySelfID: boolean
+    useDelegateUI?: boolean,
+    alwaysBlock?: boolean,
+    noErrorOnTrackFailure?: boolean,
+    forceRemoteCheck?: boolean,
+    needProofSet?: boolean,
+    allowEmptySelfID?: boolean
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any, response: identify_identify2_result) => void)
@@ -1919,8 +1919,8 @@ export type identify_identify_rpc = {
   method: 'identify.identify',
   param: {
     userAssertion: string,
-    forceRemoteCheck: boolean,
-    useDelegateUI: boolean,
+    forceRemoteCheck?: boolean,
+    useDelegateUI?: boolean,
     reason: IdentifyReason,
     source: ClientType
   },
@@ -3926,8 +3926,8 @@ export type incomingCallMapType = {
     params: {
       sessionID: int,
       userAssertion: string,
-      forceRemoteCheck: boolean,
-      useDelegateUI: boolean,
+      forceRemoteCheck?: boolean,
+      useDelegateUI?: boolean,
       reason: IdentifyReason,
       source: ClientType
     },
@@ -3942,12 +3942,12 @@ export type incomingCallMapType = {
       uid: UID,
       userAssertion: string,
       reason: IdentifyReason,
-      useDelegateUI: boolean,
-      alwaysBlock: boolean,
-      noErrorOnTrackFailure: boolean,
-      forceRemoteCheck: boolean,
-      needProofSet: boolean,
-      allowEmptySelfID: boolean
+      useDelegateUI?: boolean,
+      alwaysBlock?: boolean,
+      noErrorOnTrackFailure?: boolean,
+      forceRemoteCheck?: boolean,
+      needProofSet?: boolean,
+      allowEmptySelfID?: boolean
     },
     response: {
       error: (err: RPCError) => void,

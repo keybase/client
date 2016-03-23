@@ -1,6 +1,5 @@
 {
   "protocol": "config",
-  "namespace": "keybase.1",
   "types": [
     {
       "type": "record",
@@ -711,5 +710,6 @@
       ],
       "response": "ConfigValue"
     }
-  }
+  },
+  "namespace": "keybase.1"
 }

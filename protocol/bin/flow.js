@@ -75,7 +75,7 @@ function analyzeMessages (json) {
       return message.request.filter(r => {
         return incoming || (r.name !== 'sessionID') // We have the engine handle this under the hood
       }).map(r => {
-        return `${prefix}${r.name}: ${figureType(r.type)}`
+        return `${prefix}${r.name}${r.hasOwnProperty('default') ? '?' : ''}: ${figureType(r.type)}`
       }).join(',\n')
     }
 
