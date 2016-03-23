@@ -1,6 +1,5 @@
 {
   "protocol": "block",
-  "namespace": "keybase.1",
   "types": [
     {
       "type": "record",
@@ -567,5 +566,6 @@
       "request": [],
       "response": "bytes"
     }
-  }
+  },
+  "namespace": "keybase.1"
 }

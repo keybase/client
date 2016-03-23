@@ -1,6 +1,5 @@
 {
   "protocol": "constants",
-  "namespace": "keybase.1",
   "types": [
     {
       "type": "enum",
@@ -68,5 +67,6 @@
       ]
     }
   ],
-  "messages": {}
+  "messages": {},
+  "namespace": "keybase.1"
 }

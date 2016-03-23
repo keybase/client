@@ -1,6 +1,5 @@
 {
   "protocol": "test",
-  "namespace": "keybase.1",
   "types": [
     {
       "type": "record",
@@ -53,5 +52,6 @@
       "response": "null",
       "doc": "For testing crashes."
     }
-  }
+  },
+  "namespace": "keybase.1"
 }

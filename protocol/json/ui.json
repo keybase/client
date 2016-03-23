@@ -1,6 +1,5 @@
 {
   "protocol": "ui",
-  "namespace": "keybase.1",
   "types": [
     {
       "type": "record",
@@ -369,5 +368,6 @@
       ],
       "response": "boolean"
     }
-  }
+  },
+  "namespace": "keybase.1"
 }

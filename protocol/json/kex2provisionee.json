@@ -1,6 +1,5 @@
 {
   "protocol": "Kex2Provisionee",
-  "namespace": "keybase.1",
   "types": [
     {
       "type": "record",
@@ -409,5 +408,6 @@
       ],
       "response": "null"
     }
-  }
+  },
+  "namespace": "keybase.1"
 }
