@@ -1,6 +1,5 @@
 {
   "protocol": "prove",
-  "namespace": "keybase.1",
   "types": [
     {
       "type": "record",
@@ -737,5 +736,6 @@
       ],
       "response": "CheckProofStatus"
     }
-  }
+  },
+  "namespace": "keybase.1"
 }

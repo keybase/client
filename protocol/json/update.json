@@ -1,6 +1,5 @@
 {
   "protocol": "update",
-  "namespace": "keybase.1",
   "types": [
     {
       "type": "record",
@@ -498,5 +497,6 @@
       "response": "null",
       "doc": "Perform an update check."
     }
-  }
+  },
+  "namespace": "keybase.1"
 }

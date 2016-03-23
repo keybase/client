@@ -1,6 +1,5 @@
 {
   "protocol": "kbfs",
-  "namespace": "keybase.1",
   "types": [
     {
       "type": "enum",
@@ -86,5 +85,6 @@
       "response": "null",
       "doc": "Idea is that kbfs would call the function below whenever these actions are\n    performed on a file.\n\n    Note that this list/interface is very temporary and highly likely to change\n    significantly.\n\n    It is just a starting point to get kbfs notifications through the daemon to\n    the clients."
     }
-  }
+  },
+  "namespace": "keybase.1"
 }

@@ -1,6 +1,5 @@
 {
   "protocol": "provisionUi",
-  "namespace": "keybase.1",
   "types": [
     {
       "type": "record",
@@ -591,5 +590,6 @@
       "response": "null",
       "doc": "ProvisionerSuccess is called on provisioner when it successfully provisions another device."
     }
-  }
+  },
+  "namespace": "keybase.1"
 }

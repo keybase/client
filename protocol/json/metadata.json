@@ -1,6 +1,5 @@
 {
   "protocol": "metadata",
-  "namespace": "keybase.1",
   "types": [
     {
       "type": "record",
@@ -698,5 +697,6 @@
       ],
       "response": "bytes"
     }
-  }
+  },
+  "namespace": "keybase.1"
 }

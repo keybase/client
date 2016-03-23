@@ -1,6 +1,5 @@
 {
   "protocol": "gpgUi",
-  "namespace": "keybase.1",
   "types": [
     {
       "type": "record",
@@ -449,5 +448,6 @@
       ],
       "response": "string"
     }
-  }
+  },
+  "namespace": "keybase.1"
 }
