@@ -20,6 +20,7 @@ func NewCmdCtlStart(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 			cl.ChooseCommand(NewCmdCtlStartRunner(g), "start", c)
 			cl.SetForkCmd(libcmdline.NoFork)
 			cl.SetLogForward(libcmdline.LogForwardNone)
+			cl.SetNoStandalone()
 		},
 	}
 }
