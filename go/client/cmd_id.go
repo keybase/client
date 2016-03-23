@@ -44,6 +44,7 @@ func (v *CmdID) makeArg() keybase1.Identify2Arg {
 		ForceRemoteCheck: v.skipProofCache,
 		AlwaysBlock:      true,
 		NeedProofSet:     true,
+		AllowEmptySelfID: true,
 	}
 }
 

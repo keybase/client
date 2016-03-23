@@ -1,5 +1,6 @@
 {
   "protocol": "favorite",
+  "namespace": "keybase.1",
   "types": [
     {
       "type": "record",
@@ -402,6 +403,5 @@
       },
       "doc": "Returns all of a user's favorite folders."
     }
-  },
-  "namespace": "keybase.1"
+  }
 }

@@ -1,5 +1,6 @@
 {
   "protocol": "identify",
+  "namespace": "keybase.1",
   "types": [
     {
       "type": "record",
@@ -711,11 +712,6 @@
           "type": "string"
         },
         {
-          "name": "trackStatement",
-          "type": "boolean",
-          "default": false
-        },
-        {
           "name": "forceRemoteCheck",
           "type": "boolean",
           "default": false
@@ -735,7 +731,7 @@
         }
       ],
       "response": "IdentifyRes",
-      "doc": "Identify a user from a username or assertion (e.g. kbuser, twuser@twitter).\n    If trackStatement is true, we'll return a generated JSON tracking statement.\n    If forceRemoteCheck is true, we force all remote proofs to be checked (otherwise a cache is used)."
+      "doc": "Identify a user from a username or assertion (e.g. kbuser, twuser@twitter).\n    If forceRemoteCheck is true, we force all remote proofs to be checked (otherwise a cache is used)."
     },
     "identify2": {
       "request": [
@@ -779,10 +775,14 @@
           "name": "needProofSet",
           "type": "boolean",
           "default": false
+        },
+        {
+          "name": "allowEmptySelfID",
+          "type": "boolean",
+          "default": false
         }
       ],
       "response": "Identify2Res"
     }
-  },
-  "namespace": "keybase.1"
+  }
 }
