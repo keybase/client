@@ -17,6 +17,10 @@ func getPlatformSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalCont
 	return []cli.Command{}
 }
 
+func StopLaunchdService(g *libkb.GlobalContext, label string, wait bool) error {
+	return fmt.Errorf("Unsupported on this platform")
+}
+
 func RestartLaunchdService(g *libkb.GlobalContext, label string) error {
 	return fmt.Errorf("Unsupported on this platform")
 }

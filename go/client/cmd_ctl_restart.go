@@ -44,6 +44,10 @@ func (s *CmdCtlRestart) Run() error {
 		return err
 	}
 
+	if config.ForkType == keybase1.ForkType_LAUNCHD {
+		return RestartLaunchdService(s.G(), config.Label)
+	}
+
 	cli, err := GetCtlClient(s.G())
 	if err != nil {
 		return err
@@ -53,9 +57,9 @@ func (s *CmdCtlRestart) Run() error {
 		return err
 	}
 
-	// If the watchdog or launchd started this process, it will do the restarting.
+	// If the watchdog started this process, it will do the restarting.
 	// Otherwise we have to.
-	if config.ForkType != keybase1.ForkType_WATCHDOG && config.ForkType != keybase1.ForkType_LAUNCHD {
+	if config.ForkType != keybase1.ForkType_WATCHDOG {
 		// Wait a few seconds before the server stops
 		s.G().Log.Info("Delaying for shutdown...")
 		time.Sleep(2 * time.Second)
