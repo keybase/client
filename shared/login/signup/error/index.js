@@ -24,5 +24,5 @@ SignupError.propTypes = {
 
 export default connect(
   state => ({errorText: state.signup.signupError}),
-  dispatch => ({resetSignup: dispatch(resetSignup)})
+  dispatch => ({resetSignup: () => dispatch(resetSignup())})
 )(SignupError)

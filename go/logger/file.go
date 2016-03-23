@@ -172,6 +172,9 @@ func deleteOldLogFilesIfNeededWorker(config LogFileConfig) error {
 // Returns the list of such log files sorted with the eldest one first.
 func scanOldLogFiles(path string) ([]string, error) {
 	dname, fname := filepath.Split(path)
+	if dname == "" {
+		dname = "."
+	}
 	dir, err := os.Open(dname)
 	if err != nil {
 		return nil, err

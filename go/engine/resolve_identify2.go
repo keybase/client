@@ -49,6 +49,19 @@ func (e *ResolveThenIdentify2) resolveUID(ctx *Context) (err error) {
 		return nil
 	}
 
+	// if no uid and no assertion, then if logged in use self uid:
+	if len(e.arg.UserAssertion) == 0 && e.arg.AllowEmptySelfID {
+		ok, uid, err := IsLoggedIn(e, ctx)
+		if ok {
+			e.arg.Uid = uid
+			return nil
+		}
+		if err != nil {
+			return err
+		}
+		return libkb.LoginRequiredError{Context: "to identify without specifying a user assertion"}
+	}
+
 	rres := e.G().Resolver.ResolveFullExpressionWithBody(e.arg.UserAssertion)
 	if err = rres.GetError(); err != nil {
 		return err

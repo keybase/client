@@ -13,7 +13,6 @@ import (
 
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
@@ -157,9 +156,6 @@ func (h *IdentifyHandler) makeContext(sessionID int, arg keybase1.IdentifyArg) (
 	}
 
 	logui := h.getLogUI(sessionID)
-	if arg.TrackStatement {
-		logui = logger.NewNull()
-	}
 
 	ctx := engine.Context{
 		LogUI:      logui,

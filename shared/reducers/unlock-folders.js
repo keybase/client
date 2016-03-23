@@ -10,11 +10,13 @@ import type {UnlockFolderActions, Device} from '../constants/unlock-folders'
 export type State = {
   phase: 'dead' | 'promptOtherDevice' | 'paperKeyInput' | 'success',
   devices: ?Array<Device>,
+  waiting: boolean,
   paperkeyError: ?HiddenString
 }
 
 const initialState: State = {
   phase: 'dead',
+  waiting: false,
   devices: null,
   paperkeyError: null
 }
@@ -37,6 +39,22 @@ export default function (state: State = initialState, action: UnlockFolderAction
           ...state,
           devices
         }
+      }
+
+    case Constants.waiting:
+      if (action.error) {
+        return state
+      }
+
+      return {
+        ...state,
+        waiting: action.payload
+      }
+
+    case Constants.onBackFromPaperKey:
+      return {
+        ...state,
+        phase: 'promptOtherDevice'
       }
 
     case Constants.toPaperKeyInput:
@@ -71,11 +89,13 @@ export default function (state: State = initialState, action: UnlockFolderAction
 export const mocks: {[key: string]: State} = {
   promptOtherSingleDevice: {
     phase: 'promptOtherDevice',
+    waiting: false,
     devices: [{type: 'desktop', name: 'Cray', deviceID: 'bada55'}],
     paperkeyError: null
   },
   promptOtherMultiDevice: {
     phase: 'promptOtherDevice',
+    waiting: false,
     devices: [
       {type: 'desktop', name: 'Cray', deviceID: 'c0ffee'},
       {type: 'desktop', name: 'Watson', deviceID: 'beef'},
@@ -85,6 +105,7 @@ export const mocks: {[key: string]: State} = {
   },
   promptOtherLotsaDevice: {
     phase: 'promptOtherDevice',
+    waiting: false,
     devices: [
       {type: 'desktop', name: 'Cray', deviceID: 'c0ffee'},
       {type: 'desktop', name: 'Watson', deviceID: 'beef1'},
@@ -107,16 +128,25 @@ export const mocks: {[key: string]: State} = {
   },
   paperKeyInput: {
     phase: 'paperKeyInput',
+    waiting: false,
     devices: [],
     paperkeyError: null
   },
   paperKeyInputWithError: {
     phase: 'paperKeyInput',
+    waiting: false,
+    devices: [],
+    paperkeyError: new HiddenString('Invalid paper key')
+  },
+  paperKeyInputWithErrorWaiting: {
+    phase: 'paperKeyInput',
+    waiting: true,
     devices: [],
     paperkeyError: new HiddenString('Invalid paper key')
   },
   success: {
     phase: 'success',
+    waiting: false,
     devices: [],
     paperkeyError: null
   }

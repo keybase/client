@@ -242,6 +242,7 @@ func (a *Account) ClearStreamCache() {
 // object
 func (a *Account) ClearLoginSession() {
 	if a.loginSession != nil {
+		// calling this is pointless since setting to nil next:
 		a.loginSession.Clear()
 		a.loginSession = nil
 	}
@@ -427,6 +428,10 @@ func (a *Account) saveUserConfig(username NormalizedUsername, uid keybase1.UID, 
 		return NoConfigWriterError{}
 	}
 
+	// XXX I don't understand the intent of clearing the login session here.
+	// All tests pass with this removed, but I'm wary of making any changes.
+	// The git history didn't help, and this is the only place this function
+	// is used (where it matters).
 	if err := a.LoginSession().Clear(); err != nil {
 		return err
 	}

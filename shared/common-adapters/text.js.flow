@@ -20,7 +20,10 @@ export type Props = {
   lineClamp?: number,
   style?: Object,
   children?: React$Element,
-  className?: string
+  className?: string,
+  contentEditable?: boolean,
+  onKeyDown?: (e: SyntheticEvent) => void,
+  onKeyUp?: (e: SyntheticEvent) => void
 }
 
 declare export default class Text extends React.Component {
