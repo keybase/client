@@ -9,8 +9,8 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/keybase/saltpack"
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/saltpack"
 )
 
 func TestSaltpackEncrypt(t *testing.T) {

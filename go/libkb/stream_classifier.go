@@ -11,8 +11,8 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/keybase/saltpack"
 	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/saltpack"
 )
 
 // StreamPeeker is a reader that takes another reader and allow you to

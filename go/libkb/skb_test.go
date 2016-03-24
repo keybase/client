@@ -11,9 +11,9 @@ import (
 
 	"github.com/jonboulle/clockwork"
 
+	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/go-crypto/openpgp"
 	triplesec "github.com/keybase/go-triplesec"
-	"github.com/keybase/go-codec/codec"
 )
 
 type Foo struct {
