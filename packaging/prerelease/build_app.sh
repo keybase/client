@@ -22,10 +22,16 @@ if [ "$gopath" = "" ]; then
 fi
 
 if [ "$platform" = "" ]; then
-  echo "No PLATFORM. Yo can specify darwin, linux or windows."
+  echo "No PLATFORM. You can specify darwin, linux or windows."
   exit 1
 fi
 echo "Platform: $platform"
+
+s3host=""
+if [ "$bucket_name" = "prerelease.keybase.io" ]; then
+  # We have a CNAME for the prerelease bucket
+  s3host="https://prerelease.keybase.io"
+fi
 
 # If testing, use test bucket
 if [ "$istest" = "1" ]; then
@@ -87,7 +93,7 @@ save_dir="/tmp/build_desktop"
 rm -rf $save_dir
 
 if [ "$platform" = "darwin" ]; then
-  SAVE_DIR="$save_dir" KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" BUCKET_NAME=$bucket_name "$dir/../desktop/package_darwin.sh"  
+  SAVE_DIR="$save_dir" KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" BUCKET_NAME="$bucket_name" S3HOST="$s3host" "$dir/../desktop/package_darwin.sh"
 else
   # TODO: Support linux build here?
   echo "Unknown platform: $platform"
@@ -96,6 +102,6 @@ fi
 
 BUCKET_NAME="$bucket_name" PLATFORM="$platform" "$dir/s3_index.sh"
 
-"$client_dir/packaging/slack/send.sh" "Finished $platform $build_desc (keybase: $version, kbfs: $kbfs_version). See https://s3.amazonaws.com/$bucket_name/index.html"
+"$client_dir/packaging/slack/send.sh" "Finished $platform $build_desc (keybase: $version, kbfs: $kbfs_version). See $s3host"
 
 BUCKET_NAME="$bucket_name" "$dir/report.sh"
