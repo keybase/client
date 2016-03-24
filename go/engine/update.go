@@ -80,7 +80,7 @@ func NewUpdaterEngineContext(g *libkb.GlobalContext, ctx *Context) UpdaterContex
 	return UpdaterContext{g: g, ctx: ctx}
 }
 
-func (u UpdaterContext) GetUpdateUI() (libkb.UpdateUI, error) {
+func (u UpdaterContext) GetUpdateUI() (updater.UpdateUI, error) {
 	if u.ctx != nil {
 		return u.ctx.GetUpdateUI()
 	}

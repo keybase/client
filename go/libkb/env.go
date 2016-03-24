@@ -935,3 +935,7 @@ func (e *Env) GetAppStartMode() AppStartMode {
 func (e *Env) GetServiceInfoPath() string {
 	return filepath.Join(e.GetRuntimeDir(), "keybased.info")
 }
+
+func (e *Env) GetUpdateDefaultInstructions() (string, error) {
+	return PlatformSpecificUpgradeInstructionsString()
+}

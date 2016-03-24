@@ -34,8 +34,12 @@ type Updater struct {
 	cancelPrompt context.CancelFunc
 }
 
+type UpdateUI interface {
+	keybase1.UpdateUiInterface
+}
+
 type Context interface {
-	GetUpdateUI() (libkb.UpdateUI, error)
+	GetUpdateUI() (UpdateUI, error)
 	AfterUpdateApply(willRestart bool) error
 	Verify(r io.Reader, signature string) error
 }
@@ -51,6 +55,19 @@ type Config interface {
 	SetUpdateLastChecked(t keybase1.Time) error
 	GetRunModeAsString() string
 	GetMountDir() string
+	GetUpdateDefaultInstructions() (string, error)
+}
+
+type CanceledError struct {
+	message string
+}
+
+func (c CanceledError) Error() string {
+	return c.message
+}
+
+func NewCanceledError(message string) CanceledError {
+	return CanceledError{message}
 }
 
 func NewUpdater(options keybase1.UpdateOptions, source sources.UpdateSource, config Config, log logger.Logger) *Updater {
@@ -109,7 +126,7 @@ func (u *Updater) checkForUpdate(skipAssetDownload bool, force bool, requested b
 	// Update instruction might be empty, if so we'll fill in with the default
 	// instructions for the platform.
 	if update.Instructions == nil || *update.Instructions == "" {
-		instructions, err := libkb.PlatformSpecificUpgradeInstructionsString()
+		instructions, err := u.config.GetUpdateDefaultInstructions()
 		if err != nil {
 			u.log.Errorf("Error trying to get update instructions: %s", err)
 		}
@@ -499,9 +516,9 @@ func (u *Updater) apply(ctx Context, update keybase1.Update) (err error) {
 	return
 }
 
-func (u *Updater) updateUI(ctx Context) (updateUI libkb.UpdateUI, err error) {
+func (u *Updater) updateUI(ctx Context) (updateUI UpdateUI, err error) {
 	if ctx == nil {
-		err = libkb.NoUIError{Which: "Update"}
+		err = fmt.Errorf("No update UI available")
 		return
 	}
 
@@ -548,15 +565,15 @@ func (u *Updater) promptForUpdateAction(ctx Context, update keybase1.Update) (er
 	switch updatePromptResponse.Action {
 	case keybase1.UpdateAction_UPDATE:
 	case keybase1.UpdateAction_SKIP:
-		err = libkb.NewCanceledError("Skipped update")
+		err = NewCanceledError("Skipped update")
 		u.config.SetUpdatePreferenceSkip(update.Version)
 	case keybase1.UpdateAction_SNOOZE:
-		err = libkb.NewCanceledError("Snoozed update")
+		err = NewCanceledError("Snoozed update")
 		u.config.SetUpdatePreferenceSnoozeUntil(updatePromptResponse.SnoozeUntil)
 	case keybase1.UpdateAction_CANCEL:
-		err = libkb.NewCanceledError("Canceled by user")
+		err = NewCanceledError("Canceled by user")
 	default:
-		err = libkb.NewCanceledError("Canceled by service")
+		err = NewCanceledError("Canceled by service")
 	}
 	return
 }
@@ -600,13 +617,13 @@ func (u *Updater) promptForAppInUse(ctx Context, update keybase1.Update, process
 	u.log.Debug("Update (app in use) response: %#v", updateInUseResponse)
 	switch updateInUseResponse.Action {
 	case keybase1.UpdateAppInUseAction_CANCEL:
-		return libkb.NewCanceledError("Canceled by user")
+		return NewCanceledError("Canceled by user")
 	case keybase1.UpdateAppInUseAction_FORCE:
 		// Continue
 	case keybase1.UpdateAppInUseAction_KILL_PROCESSES:
 		panic("Unimplemented") // TODO: Kill processes
 	default:
-		return libkb.NewCanceledError("Canceled by service")
+		return NewCanceledError("Canceled by service")
 	}
 	return nil
 }
@@ -655,7 +672,7 @@ func (u *Updater) checkInUse(ctx Context, update keybase1.Update) error {
 
 func (u *Updater) checkRestart(ctx Context, update keybase1.Update, status keybase1.Status) (updateQuitResponse keybase1.UpdateQuitRes, err error) {
 	if ctx == nil {
-		err = libkb.NoUIError{Which: "Update"}
+		err = fmt.Errorf("No update UI available")
 		return
 	}
 
@@ -762,7 +779,7 @@ func (u *Updater) verifySignature(ctx Context, update keybase1.Update) error {
 
 // waitForUI waits for a UI to be available. A UI might be missing for a few
 // seconds between restarts.
-func (u *Updater) waitForUI(ctx Context, wait time.Duration) (updateUI libkb.UpdateUI, err error) {
+func (u *Updater) waitForUI(ctx Context, wait time.Duration) (updateUI UpdateUI, err error) {
 	t := time.Now()
 	i := 1
 	for time.Now().Sub(t) < wait {
@@ -786,7 +803,7 @@ func statusFromError(err error) keybase1.Status {
 	}
 
 	switch err.(type) {
-	case libkb.CanceledError:
+	case CanceledError:
 		// Canceled errors aren't really errors
 		return keybase1.StatusOK(err.Error())
 	default:
