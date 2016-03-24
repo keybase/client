@@ -73,11 +73,14 @@ func (ui BaseIdentifyUI) ReportTrackToken(_ keybase1.TrackToken) error {
 func (ui BaseIdentifyUI) Finish() {
 }
 
-func (ui BaseIdentifyUI) baseConfirm(o *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
+func (ui BaseIdentifyUI) Confirm(o *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
 	warnings := libkb.ImportWarnings(o.Warnings)
 	if !warnings.IsEmpty() {
 		ui.ShowWarnings(warnings)
 	}
+
+	ui.ReportRevoked(o.Revoked)
+
 	if o.TrackOptions.BypassConfirm {
 		return keybase1.ConfirmResult{IdentityConfirmed: true, RemoteConfirmed: true}, nil
 	}
@@ -88,21 +91,18 @@ func (ui BaseIdentifyUI) LaunchNetworkChecks(i *keybase1.Identity, u *keybase1.U
 	return
 }
 
-func (ui IdentifyUI) Confirm(o *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
-	return ui.baseConfirm(o)
+func (ui BaseIdentifyUI) ReportRevoked(del []keybase1.TrackDiff) {
+	if len(del) == 0 {
+		return
+	}
+	ui.G().Log.Warning("Some proofs you previously tracked were revoked:")
+	for _, d := range del {
+		ui.ReportHook(BADX + " " + trackDiffToColoredString(d))
+	}
 }
 
 type IdentifyTrackUI struct {
 	BaseIdentifyUI
-}
-
-func (ui IdentifyTrackUI) ReportRevoked(del []keybase1.TrackDiff) {
-	if len(del) > 0 {
-		ui.G().Log.Warning("Some proofs you previously tracked were revoked:")
-		for _, d := range del {
-			ui.ReportHook(BADX + " " + trackDiffToColoredString(d))
-		}
-	}
 }
 
 func (ui IdentifyTrackUI) confirmFailedTrackProofs(o *keybase1.IdentifyOutcome) (result keybase1.ConfirmResult, err error) {
