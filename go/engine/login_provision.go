@@ -234,6 +234,9 @@ func (e *loginProvision) getValidPaperKey(ctx *Context) (*keypair, error) {
 		kp, err := e.getPaperKey(ctx)
 		if err != nil {
 			e.G().Log.Debug("getValidPaperKey attempt %d: %s", i, err)
+			if _, ok := err.(libkb.InputCanceledError); ok {
+				return nil, err
+			}
 			lastErr = err
 			continue
 		}
