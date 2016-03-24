@@ -164,8 +164,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-framed-msgpack-rpc",
-			"revision": "8290ec13128f8375b58c7ff301b8de8775725e13",
-			"revisionTime": "2016-02-05T19:42:04-06:00"
+			"revision": "f6fef575469bdad86d21f5c8e2c1aafde1cf0a2e",
+			"revisionTime": "2016-03-23T19:13:04-05:00"
 		},
 		{
 			"path": "github.com/keybase/go-jsonw",
@@ -209,8 +209,8 @@
 		},
 		{
 			"path": "github.com/keybase/saltpack",
-			"revision": "203e36cfb2c85e26a18d306f08fac0df64a38781",
-			"revisionTime": "2016-03-14T16:16:15-07:00"
+			"revision": "4804ac34f11533bfd1b08c2e5385ef66c6dba9aa",
+			"revisionTime": "2016-03-23T19:53:58-05:00"
 		},
 		{
 			"path": "github.com/keybase/saltpack/encoding/basex",
