@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"github.com/keybase/saltpack"
-	"github.com/ugorji/go/codec"
+	"github.com/keybase/go-codec/codec"
 )
 
 // StreamPeeker is a reader that takes another reader and allow you to

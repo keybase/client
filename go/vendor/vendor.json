@@ -113,6 +113,11 @@
 			"revisionTime": "2016-03-08T10:58:20-08:00"
 		},
 		{
+			"path": "github.com/keybase/go-codec/codec",
+			"revision": "c062049c1793b01a3cc3fe786108edabbaf7756b",
+			"revisionTime": "2016-03-14T13:21:18-04:00"
+		},
+		{
 			"path": "github.com/keybase/go-crypto/openpgp",
 			"revision": "c9f75daf8cf5fc3d670337035f84753d7610a411",
 			"revisionTime": "2016-02-29T10:42:14-05:00"
@@ -296,11 +301,6 @@
 			"path": "github.com/syndtr/goleveldb/leveldb/util",
 			"revision": "a06509502ca32565bdf74afc1e573050023f261c",
 			"revisionTime": "2015-06-10T06:54:26+07:00"
-		},
-		{
-			"path": "github.com/ugorji/go/codec",
-			"revision": "646ae4a518c1c3be0739df898118d9bccf993858",
-			"revisionTime": "2015-12-18T14:34:38-05:00"
 		},
 		{
 			"path": "golang.org/x/crypto/cast5",
