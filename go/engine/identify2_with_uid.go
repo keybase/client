@@ -4,11 +4,12 @@
 package engine
 
 import (
+	"sync"
+	"time"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
-	"sync"
-	"time"
 )
 
 var locktab libkb.LockTable
@@ -350,6 +351,9 @@ func (e *Identify2WithUID) runIdentifyUI(ctx *Context) (err error) {
 	e.them.IDTable().Identify(e.state, e.arg.ForceRemoteCheck, ctx.IdentifyUI, e)
 
 	waiter()
+
+	// use Confirm to display the IdentifyOutcome
+	ctx.IdentifyUI.Confirm(e.state.Result().Export())
 
 	e.insertTrackToken(ctx)
 	ctx.IdentifyUI.Finish()
