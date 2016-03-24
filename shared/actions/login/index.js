@@ -361,7 +361,7 @@ function cancelLogin (response: ?responseError) : AsyncAction {
   return (dispatch, getState) => {
     dispatch(navBasedOnLoginState())
     if (response) {
-      engine.cancelRPC(response)
+      engine.cancelRPC(response, {desc: 'Cancel Login', code: enums.constants.StatusCode.scinputcanceled})
     }
   }
 }
@@ -424,7 +424,7 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
         case enums.secretUi.PassphraseType.paperKey:
           appendRouteElement((
             <PaperKey
-              mapStateToProps={state => state.login}
+              mapStateToProps={state => ({})}
               onSubmit={(passphrase: string) => { response.result({passphrase, storeSecret: false}) }} // eslint-disable-line arrow-parens
               onBack={() => { dispatch(cancelLogin(response)) }}
               error={retryLabel}/>))
