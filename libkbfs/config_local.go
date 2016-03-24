@@ -151,7 +151,7 @@ func MakeLocalUserSigningKeyOrBust(name libkb.NormalizedUsername) SigningKey {
 // MakeLocalUserVerifyingKeyOrBust makes a new verifying key
 // corresponding to the signing key for this user.
 func MakeLocalUserVerifyingKeyOrBust(name libkb.NormalizedUsername) VerifyingKey {
-	return MakeLocalUserSigningKeyOrBust(name).getVerifyingKey()
+	return MakeLocalUserSigningKeyOrBust(name).GetVerifyingKey()
 }
 
 // MakeLocalUserCryptPrivateKeyOrBust returns a unique private

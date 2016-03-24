@@ -34,8 +34,8 @@ func NewSigningKey(kp libkb.NaclSigningKeyPair) SigningKey {
 	return SigningKey{kp}
 }
 
-// getVerifyingKey returns the public key half of this signing key.
-func (k SigningKey) getVerifyingKey() VerifyingKey {
+// GetVerifyingKey returns the public key half of this signing key.
+func (k SigningKey) GetVerifyingKey() VerifyingKey {
 	return MakeVerifyingKey(k.kp.Public.GetKID())
 }
 
@@ -93,7 +93,7 @@ func (c *CryptoLocal) Sign(ctx context.Context, msg []byte) (
 	sigInfo = SignatureInfo{
 		Version:      SigED25519,
 		Signature:    c.signingKey.kp.Private.Sign(msg)[:],
-		VerifyingKey: c.signingKey.getVerifyingKey(),
+		VerifyingKey: c.signingKey.GetVerifyingKey(),
 	}
 	return
 }

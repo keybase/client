@@ -276,7 +276,7 @@ func TestCryptoCommonVerifyFailures(t *testing.T) {
 	sigInfo := SignatureInfo{
 		Version:      SigED25519,
 		Signature:    signingKey.kp.Private.Sign(msg)[:],
-		VerifyingKey: signingKey.getVerifyingKey(),
+		VerifyingKey: signingKey.GetVerifyingKey(),
 	}
 
 	config := testCryptoClientConfig(t)

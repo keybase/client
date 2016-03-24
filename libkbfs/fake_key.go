@@ -34,7 +34,7 @@ func MakeFakeSigningKeyOrBust(seed string) SigningKey {
 // signatures made from the fake signing key made with the same seed.
 func MakeFakeVerifyingKeyOrBust(seed string) VerifyingKey {
 	sk := MakeFakeSigningKeyOrBust(seed)
-	return sk.getVerifyingKey()
+	return sk.GetVerifyingKey()
 }
 
 // MakeFakeCryptPrivateKeyOrBust makes a new crypt private key from
