@@ -323,41 +323,6 @@
 			"revisionTime": "2015-07-28T12:55:38-05:00"
 		},
 		{
-			"path": "golang.org/x/crypto/openpgp",
-			"revision": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec",
-			"revisionTime": "2015-07-28T12:55:38-05:00"
-		},
-		{
-			"path": "golang.org/x/crypto/openpgp/armor",
-			"revision": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec",
-			"revisionTime": "2015-07-28T12:55:38-05:00"
-		},
-		{
-			"path": "golang.org/x/crypto/openpgp/clearsign",
-			"revision": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec",
-			"revisionTime": "2015-07-28T12:55:38-05:00"
-		},
-		{
-			"path": "golang.org/x/crypto/openpgp/elgamal",
-			"revision": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec",
-			"revisionTime": "2015-07-28T12:55:38-05:00"
-		},
-		{
-			"path": "golang.org/x/crypto/openpgp/errors",
-			"revision": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec",
-			"revisionTime": "2015-07-28T12:55:38-05:00"
-		},
-		{
-			"path": "golang.org/x/crypto/openpgp/packet",
-			"revision": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec",
-			"revisionTime": "2015-07-28T12:55:38-05:00"
-		},
-		{
-			"path": "golang.org/x/crypto/openpgp/s2k",
-			"revision": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec",
-			"revisionTime": "2015-07-28T12:55:38-05:00"
-		},
-		{
 			"path": "golang.org/x/crypto/pbkdf2",
 			"revision": "aedad9a179ec1ea11b7064c57cbc6dc30d7724ec",
 			"revisionTime": "2015-07-28T12:55:38-05:00"
