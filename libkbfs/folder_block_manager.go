@@ -221,7 +221,6 @@ func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
 		len(ptrs), archive)
 	bops := fbm.config.BlockOps()
 
-	var wg sync.WaitGroup
 	// Round up to find the number of chunks.
 	numChunks := (len(ptrs) + numPointersToDowngradePerChunk - 1) /
 		numPointersToDowngradePerChunk
@@ -229,48 +228,35 @@ func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
 	if numWorkers > maxParallelBlockPuts {
 		numWorkers = maxParallelBlockPuts
 	}
-	wg.Add(numWorkers)
 	chunks := make(chan []BlockPointer, numChunks)
 
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	var zeroRefCountsLock sync.Mutex
-	var zeroRefCounts []BlockID
+	type workerResult struct {
+		zeroRefCounts []BlockID
+		err           error
+	}
 
-	errChan := make(chan error, 1)
+	chunkResults := make(chan workerResult, numChunks)
 	worker := func() {
-		defer wg.Done()
 		for chunk := range chunks {
 			fbm.log.CDebugf(ctx, "Downgrading chunk of %d pointers", len(chunk))
-			var err error
+			var res workerResult
 			if archive {
-				err = bops.Archive(ctx, md, chunk)
+				res.err = bops.Archive(ctx, md, chunk)
 			} else {
 				var liveCounts map[BlockID]int
-				liveCounts, err = bops.Delete(ctx, md, chunk)
-				if err == nil {
-					// Remember which IDs now have zero references, and
-					// should be deleted from other client caches.
-					func() {
-						zeroRefCountsLock.Lock()
-						defer zeroRefCountsLock.Unlock()
-						for id, count := range liveCounts {
-							if count == 0 {
-								zeroRefCounts = append(zeroRefCounts, id)
-							}
+				liveCounts, res.err = bops.Delete(ctx, md, chunk)
+				if res.err == nil {
+					for id, count := range liveCounts {
+						if count == 0 {
+							res.zeroRefCounts = append(res.zeroRefCounts, id)
 						}
-					}()
+					}
 				}
 			}
-			if err != nil {
-				select {
-				case errChan <- err:
-					// First error wins.
-				default:
-				}
-				return
-			}
+			chunkResults <- res
 			select {
 			// return early if the context has been canceled
 			case <-ctx.Done():
@@ -292,13 +278,14 @@ func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
 	}
 	close(chunks)
 
-	go func() {
-		wg.Wait()
-		close(errChan)
-	}()
-	err := <-errChan
-	if err != nil {
-		return nil, err
+	var zeroRefCounts []BlockID
+	for i := 0; i < numChunks; i++ {
+		result := <-chunkResults
+		if result.err != nil {
+			// deferred cancel will stop the other workers.
+			return nil, result.err
+		}
+		zeroRefCounts = append(zeroRefCounts, result.zeroRefCounts...)
 	}
 	return zeroRefCounts, nil
 }
