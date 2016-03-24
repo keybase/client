@@ -30,13 +30,17 @@ gomobile init
 npm install
 ```
 
-#### iOS
+Due to the react-native packager not handling symlinks (https://github.com/facebook/react-native/issues/637) we're watching our shared folder and copying the files over as they change. We use watchman to watch the folder and rsync to copy over the changes
 
-Install CocoaPods (if not installed):
-
-```sh
-sudo gem install cocoapods
 ```
+# Install watchman (the npm version has issues)
+brew install watchman
+
+# Start watching changes
+npm run watch
+```
+
+#### iOS
 
 Build and install dependencies:
 
@@ -54,6 +58,7 @@ Then select the target `Keybase` and run.
 
 #### Android Specific
 This will only work on an actual device or arm emulator. see: (https://github.com/golang/go/issues/10743)
+
 ```sh
 # inside react-native/
 
