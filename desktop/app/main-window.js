@@ -1,6 +1,6 @@
 import Window from './window'
 import {ipcMain} from 'electron'
-import resolveRoot from '../resolve-root'
+import {resolveRoot} from '../resolve-root'
 import hotPath from '../hot-path'
 import {globalResizing} from '../shared/styles/style-guide'
 

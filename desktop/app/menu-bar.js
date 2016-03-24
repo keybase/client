@@ -1,5 +1,5 @@
 import {ipcMain} from 'electron'
-import resolveRoot, {resolveImage} from '../resolve-root'
+import {resolveImage, resolveRootAsURL} from '../resolve-root'
 import hotPath from '../hot-path'
 import menubar from 'menubar'
 
@@ -9,7 +9,7 @@ const menubarLoadingIconPath = resolveImage('menubarIcon', `topbar_icon_loadingT
 
 export default function () {
   const mb = menubar({
-    index: `file://${resolveRoot('renderer', 'launcher.html')}?src=${hotPath('launcher.bundle.js')}&selectorParams=menubar`,
+    index: `${resolveRootAsURL('renderer', 'launcher.html')}?src=${hotPath('launcher.bundle.js')}&selectorParams=menubar`,
     width: 320,
     height: 364,
     frame: false,

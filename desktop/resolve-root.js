@@ -12,5 +12,13 @@ if (!__DEV__) { // eslint-disable-line no-undef
   root = path.join(__dirname)
 }
 
-export default (...to) => path.resolve(root, ...to)
+function fixSep (str) {
+  return str && str.replace(new RegExp(path.sep, 'g'), '/')
+}
+
+export const resolveRoot = (...to) => path.resolve(root, ...to)
+export const resolveRootAsURL = (...to) => `file://${fixSep(resolveRoot(resolveRoot(...to)))}`
 export const resolveImage = (...to) => path.resolve(root, 'shared', 'images', ...to)
+export const resolveImageAsURL = (...to) => `file://${fixSep(resolveImage(...to))}`
+
+export default resolveRoot
