@@ -450,11 +450,6 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
       const username = sessionIDToUsername[sessionID]
       dispatch({type: Constants.updateTrackToken, payload: {username, trackToken}})
     },
-    // Do we use this????
-    // 'keybase.1.identifyUi.confirm': params => ({
-      // identityConfirmed: false,
-      // remoteConfirmed: false
-    // }),
     finish: ({sessionID}) => {
       const username = sessionIDToUsername[sessionID]
       // Check if there were any errors in the proofs
