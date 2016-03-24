@@ -68,6 +68,11 @@
 			"revisionTime": "2015-06-20T10:58:49+02:00"
 		},
 		{
+			"path": "github.com/cenkalti/backoff",
+			"revision": "32cd0c5b3aef12c76ed64aaf678f6c79736be7dc",
+			"revisionTime": "2015-08-27T15:34:15+03:00"
+		},
+		{
 			"path": "github.com/dustin/go-humanize",
 			"revision": "c20a8bde38c8f5ba06f6600edf473705c96829d1",
 			"revisionTime": "2015-08-24T01:38:10-07:00"
