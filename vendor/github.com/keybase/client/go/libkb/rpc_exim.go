@@ -1079,6 +1079,7 @@ func (e DeviceAlreadyProvisionedError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCDevicePrevProvisioned,
 		Name: "SC_DEVICE_PREV_PROVISIONED",
+		Desc: e.Error(),
 	}
 }
 
@@ -1086,6 +1087,7 @@ func (e ProvisionUnavailableError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCDeviceNoProvision,
 		Name: "SC_DEVICE_NO_PROVISION",
+		Desc: e.Error(),
 	}
 }
 

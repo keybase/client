@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/ugorji/go/codec"
+	"github.com/keybase/go-codec/codec"
 )
 
 // ext is a no-op extension that's useful for tagging interfaces with

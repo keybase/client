@@ -218,13 +218,17 @@ func doRequestShared(api Requester, arg APIArg, req *http.Request, wantJSONRes b
 	}
 	arg.G().Log.Debug(fmt.Sprintf("| Result is: %s", internalResp.Status))
 
-	// Check for a code 200 or rather which codes were allowed in arg.HttpStatus
-	err = checkHTTPStatus(arg, internalResp)
+	// The server sends "client version out of date" messages through the API
+	// headers. If the client is *really* out of date, the request status will
+	// be a 400 error, but these headers will still be present. So we need to
+	// handle headers *before* we abort based on status below.
+	err = api.consumeHeaders(internalResp)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	err = api.consumeHeaders(internalResp)
+	// Check for a code 200 or rather which codes were allowed in arg.HttpStatus
+	err = checkHTTPStatus(arg, internalResp)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -323,7 +327,7 @@ func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) error {
 		lastUpgradeWarningMu.Lock()
 		if lastUpgradeWarning == nil || now.Sub(*lastUpgradeWarning) > 3*time.Minute {
 			a.G().Log.Warning("Upgrade recommended to client version %s or above (you have v%s)",
-				u, Version)
+				u, VersionString())
 			platformSpecificUpgradeInstructions(a.G(), p)
 			lastUpgradeWarning = &now
 		}
@@ -350,6 +354,9 @@ func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
 		req.Header.Set("User-Agent", UserAgent)
 		identifyAs := GoClientID + " v" + VersionString() + " " + runtime.GOOS
 		req.Header.Set("X-Keybase-Client", identifyAs)
+		if a.G().Env.GetDeviceID().Exists() {
+			req.Header.Set("X-Keybase-Device-ID", a.G().Env.GetDeviceID().String())
+		}
 	}
 }
 

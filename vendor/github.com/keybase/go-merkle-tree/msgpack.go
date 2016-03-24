@@ -2,7 +2,7 @@ package merkleTree
 
 import (
 	"bytes"
-	"github.com/ugorji/go/codec"
+	"github.com/keybase/go-codec/codec"
 )
 
 func codecHandle() *codec.MsgpackHandle {

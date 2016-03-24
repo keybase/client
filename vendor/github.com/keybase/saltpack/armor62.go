@@ -4,8 +4,9 @@
 package saltpack
 
 import (
-	basex "github.com/keybase/saltpack/encoding/basex"
 	"io"
+
+	"github.com/keybase/saltpack/encoding/basex"
 )
 
 // Armor62Params are the armoring parameters we recommend for use with

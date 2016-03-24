@@ -6,10 +6,11 @@ package saltpack
 import (
 	"bytes"
 	"fmt"
-	basex "github.com/keybase/saltpack/encoding/basex"
 	"io"
 	"io/ioutil"
 	"strings"
+
+	"github.com/keybase/saltpack/encoding/basex"
 )
 
 // armorParams specify armor formatting, encoding and punctuation.

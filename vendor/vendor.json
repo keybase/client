@@ -200,13 +200,13 @@
 		},
 		{
 			"path": "github.com/keybase/client/go/kex2",
-			"revision": "3c24a3e709e3602e241d434ec9e5a85adcc769ff",
-			"revisionTime": "2016-03-18T15:15:32-04:00"
+			"revision": "e7ca9bd5770e09ff773f464ced933cb7d8d5dc0d",
+			"revisionTime": "2016-03-24T14:12:42-05:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/libkb",
-			"revision": "3c24a3e709e3602e241d434ec9e5a85adcc769ff",
-			"revisionTime": "2016-03-18T15:15:32-04:00"
+			"revision": "e7ca9bd5770e09ff773f464ced933cb7d8d5dc0d",
+			"revisionTime": "2016-03-24T14:12:42-05:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/logger",
@@ -217,6 +217,11 @@
 			"path": "github.com/keybase/client/go/protocol",
 			"revision": "3c24a3e709e3602e241d434ec9e5a85adcc769ff",
 			"revisionTime": "2016-03-18T15:15:32-04:00"
+		},
+		{
+			"path": "github.com/keybase/go-codec/codec",
+			"revision": "c062049c1793b01a3cc3fe786108edabbaf7756b",
+			"revisionTime": "2016-03-14T13:21:18-04:00"
 		},
 		{
 			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-crypto/openpgp",
@@ -269,8 +274,8 @@
 		{
 			"origin": "github.com/keybase/kbfs/vendor/github.com/keybase/go-framed-msgpack-rpc",
 			"path": "github.com/keybase/go-framed-msgpack-rpc",
-			"revision": "7b1bd4ed1433405ab795bd07d91f568f0fc3e851",
-			"revisionTime": "2016-03-21T15:05:25-07:00"
+			"revision": "f6fef575469bdad86d21f5c8e2c1aafde1cf0a2e",
+			"revisionTime": "2016-03-23T19:13:04-05:00"
 		},
 		{
 			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-jsonw",
@@ -292,8 +297,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-merkle-tree",
-			"revision": "94090372642a4b6fcac21e6f1e71f4050c19d908",
-			"revisionTime": "2016-02-04T14:18:14-08:00"
+			"revision": "a2a53a828cf58801efa8285c651b0941b5abae8c",
+			"revisionTime": "2016-03-24T14:23:35-05:00"
 		},
 		{
 			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-triplesec",
@@ -309,8 +314,8 @@
 		},
 		{
 			"path": "github.com/keybase/saltpack",
-			"revision": "64f61c25cc3595b1aeecdaf86a61bfec00b04c5f",
-			"revisionTime": "2016-03-16T16:25:20-04:00"
+			"revision": "4804ac34f11533bfd1b08c2e5385ef66c6dba9aa",
+			"revisionTime": "2016-03-23T19:53:58-05:00"
 		},
 		{
 			"path": "github.com/keybase/saltpack/encoding/basex",
@@ -427,12 +432,6 @@
 		{
 			"origin": "github.com/keybase/kbfs/vendor/github.com/syndtr/goleveldb/leveldb/util",
 			"path": "github.com/syndtr/goleveldb/leveldb/util",
-			"revision": "64f61c25cc3595b1aeecdaf86a61bfec00b04c5f",
-			"revisionTime": "2016-03-16T16:25:20-04:00"
-		},
-		{
-			"origin": "github.com/keybase/kbfs/vendor/github.com/ugorji/go/codec",
-			"path": "github.com/ugorji/go/codec",
 			"revision": "64f61c25cc3595b1aeecdaf86a61bfec00b04c5f",
 			"revisionTime": "2016-03-16T16:25:20-04:00"
 		},
