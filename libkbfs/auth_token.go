@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/auth"
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
 )
@@ -43,22 +44,9 @@ func NewAuthToken(config Config, tokenType string, expireIn int,
 }
 
 // Sign is called to create a new signed authentication token.
-func (a *AuthToken) Sign(ctx context.Context, challengeInfo keybase1.ChallengeInfo) (string, error) {
-	// make sure we're being asked to sign a legit challenge
-	if !auth.IsValidChallenge(challengeInfo.Challenge) {
-		return "", errors.New("Invalid challenge")
-	}
-
-	// get UID, deviceKID and normalized username
-	username, uid, err := a.config.KBPKI().GetCurrentUserInfo(ctx)
-	if err != nil {
-		return "", err
-	}
-	key, err := a.config.KBPKI().GetCurrentVerifyingKey(ctx)
-	if err != nil {
-		return "", err
-	}
-
+func (a *AuthToken) signWithUserAndKeyInfo(ctx context.Context,
+	challengeInfo keybase1.ChallengeInfo, uid keybase1.UID,
+	username libkb.NormalizedUsername, key VerifyingKey) (string, error) {
 	// create the token
 	token := auth.NewToken(uid, username, key.kid, a.tokenType,
 		challengeInfo.Challenge, challengeInfo.Now, a.expireIn,
@@ -78,6 +66,37 @@ func (a *AuthToken) Sign(ctx context.Context, challengeInfo keybase1.ChallengeIn
 	a.startTicker(refreshSeconds)
 
 	return signature, nil
+}
+
+// Sign is called to create a new signed authentication token,
+// including a challenge and username/uid/kid identifiers.
+func (a *AuthToken) Sign(ctx context.Context, challengeInfo keybase1.ChallengeInfo) (string, error) {
+	// make sure we're being asked to sign a legit challenge
+	if !auth.IsValidChallenge(challengeInfo.Challenge) {
+		return "", errors.New("Invalid challenge")
+	}
+
+	// get UID, deviceKID and normalized username
+	username, uid, err := a.config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		return "", err
+	}
+	key, err := a.config.KBPKI().GetCurrentVerifyingKey(ctx)
+	if err != nil {
+		return "", err
+	}
+
+	return a.signWithUserAndKeyInfo(ctx, challengeInfo, uid, username, key)
+}
+
+// SignUserless signs the token without a username, UID, or challenge.
+// This is useful for server-to-server communication where identity is
+// established using only the KID.
+func (a *AuthToken) SignUserless(ctx context.Context, key VerifyingKey) (
+	string, error) {
+	// Pass in a reserved, meaningless UID.
+	return a.signWithUserAndKeyInfo(ctx, keybase1.ChallengeInfo{},
+		keybase1.PublicUID, "", key)
 }
 
 // Shutdown is called to stop the refresh ticker.
