@@ -214,6 +214,9 @@ func (fbm *folderBlockManager) forceQuotaReclamation() {
 	}
 }
 
+// doChunkedDowngrades sends batched archive or delete messages to the
+// block server for the given block pointers.  For deletes, it returns
+// a list of block IDs that no longer have any references.
 func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
 	md *RootMetadata, ptrs []BlockPointer, archive bool) (
 	[]BlockID, error) {
@@ -290,6 +293,9 @@ func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
 	return zeroRefCounts, nil
 }
 
+// deleteBlockRefs sends batched delete messages to the block server
+// for the given block pointers.  It returns a list of block IDs that
+// no longer have any references.
 func (fbm *folderBlockManager) deleteBlockRefs(ctx context.Context,
 	md *RootMetadata, ptrs []BlockPointer) ([]BlockID, error) {
 	return fbm.doChunkedDowngrades(ctx, md, ptrs, false)
