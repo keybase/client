@@ -3,7 +3,7 @@ package rpc
 import (
 	"io"
 
-	"github.com/ugorji/go/codec"
+	"github.com/keybase/go-codec/codec"
 	"golang.org/x/net/context"
 )
 

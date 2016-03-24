@@ -15,7 +15,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/ugorji/go/codec"
+	"github.com/keybase/go-codec/codec"
 )
 
 type FishyMsgpackError struct {

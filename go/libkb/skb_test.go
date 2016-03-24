@@ -13,7 +13,7 @@ import (
 
 	"github.com/keybase/go-crypto/openpgp"
 	triplesec "github.com/keybase/go-triplesec"
-	"github.com/ugorji/go/codec"
+	"github.com/keybase/go-codec/codec"
 )
 
 type Foo struct {

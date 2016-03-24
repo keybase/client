@@ -1,6 +1,6 @@
 {
-	"comment": "",
-	"ignore": "test",
+	"comment": "Ignore solaris flag because of go-isatty",
+	"ignore": "test solaris",
 	"package": [
 		{
 			"path": "bazil.org/fuse",
@@ -68,6 +68,11 @@
 			"revisionTime": "2015-06-20T10:58:49+02:00"
 		},
 		{
+			"path": "github.com/cenkalti/backoff",
+			"revision": "32cd0c5b3aef12c76ed64aaf678f6c79736be7dc",
+			"revisionTime": "2015-08-27T15:34:15+03:00"
+		},
+		{
 			"path": "github.com/dustin/go-humanize",
 			"revision": "c20a8bde38c8f5ba06f6600edf473705c96829d1",
 			"revisionTime": "2015-08-24T01:38:10-07:00"
@@ -111,6 +116,11 @@
 			"path": "github.com/keybase/cli",
 			"revision": "18b3e3986cf707f059fd443667525dbc664a5716",
 			"revisionTime": "2016-03-08T10:58:20-08:00"
+		},
+		{
+			"path": "github.com/keybase/go-codec/codec",
+			"revision": "c062049c1793b01a3cc3fe786108edabbaf7756b",
+			"revisionTime": "2016-03-14T13:21:18-04:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp",
@@ -159,8 +169,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-framed-msgpack-rpc",
-			"revision": "8290ec13128f8375b58c7ff301b8de8775725e13",
-			"revisionTime": "2016-02-05T19:42:04-06:00"
+			"revision": "f6fef575469bdad86d21f5c8e2c1aafde1cf0a2e",
+			"revisionTime": "2016-03-23T19:13:04-05:00"
 		},
 		{
 			"path": "github.com/keybase/go-jsonw",
@@ -204,8 +214,8 @@
 		},
 		{
 			"path": "github.com/keybase/saltpack",
-			"revision": "203e36cfb2c85e26a18d306f08fac0df64a38781",
-			"revisionTime": "2016-03-14T16:16:15-07:00"
+			"revision": "4804ac34f11533bfd1b08c2e5385ef66c6dba9aa",
+			"revisionTime": "2016-03-23T19:53:58-05:00"
 		},
 		{
 			"path": "github.com/keybase/saltpack/encoding/basex",
@@ -296,11 +306,6 @@
 			"path": "github.com/syndtr/goleveldb/leveldb/util",
 			"revision": "a06509502ca32565bdf74afc1e573050023f261c",
 			"revisionTime": "2015-06-10T06:54:26+07:00"
-		},
-		{
-			"path": "github.com/ugorji/go/codec",
-			"revision": "646ae4a518c1c3be0739df898118d9bccf993858",
-			"revisionTime": "2015-12-18T14:34:38-05:00"
 		},
 		{
 			"path": "golang.org/x/crypto/cast5",

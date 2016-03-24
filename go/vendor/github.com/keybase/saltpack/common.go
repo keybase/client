@@ -10,7 +10,7 @@ import (
 	"crypto/sha512"
 	"encoding/binary"
 
-	"github.com/ugorji/go/codec"
+	"github.com/keybase/go-codec/codec"
 	"golang.org/x/crypto/poly1305"
 )
 
