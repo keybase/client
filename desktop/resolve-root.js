@@ -13,7 +13,7 @@ if (!__DEV__) { // eslint-disable-line no-undef
 }
 
 function fixSep (str) {
-  return str && str.replace(new RegExp(path.sep, 'g'), '/')
+  return str && str.replace(new RegExp('\\' + path.sep, 'g'), '/')
 }
 
 export const resolveRoot = (...to) => path.resolve(root, ...to)
