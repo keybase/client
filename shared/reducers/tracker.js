@@ -427,8 +427,6 @@ function remoteProofToProofType (rp: RemoteProof): string {
   let proofType: string = ''
   if (rp.proofType === identify.ProofType.genericWebSite) {
     proofType = 'web'
-  } else if (rp.proofType === identify.ProofType.dns) {
-    proofType = 'dns'
   } else {
     proofType = mapTagToName(identify.ProofType, rp.proofType) || ''
   }
