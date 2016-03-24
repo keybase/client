@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import {globalColors} from '../styles/style-guide'
 import {FontIcon} from 'material-ui'
 import type {Props} from './icon'
-import resolveRoot from '../../desktop/resolve-root'
+import {resolveImage} from '../../desktop/resolve-root'
 
 export default class Icon extends Component {
   props: Props;
@@ -95,7 +95,7 @@ export default class Icon extends Component {
         title={this.props.hint}
         style={{...this.props.style}}
         onClick={this.props.onClick}
-        srcSet={`${[1, 2, 3].map(mult => `${resolveRoot('shared/images/icons', this.props.type)}${mult > 1 ? `@${mult}x` : ''}.${ext} ${mult}x`).join(', ')}`} />
+        srcSet={`${[1, 2, 3].map(mult => `${resolveImage('icons', this.props.type)}${mult > 1 ? `@${mult}x` : ''}.${ext} ${mult}x`).join(', ')}`} />
     }
   }
 }

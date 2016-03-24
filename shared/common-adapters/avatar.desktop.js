@@ -1,11 +1,11 @@
 // @flow
 
 import React, {Component} from 'react'
-import resolveRoot from '../../desktop/resolve-root'
+import {resolveImageAsURL} from '../../desktop/resolve-root'
 import {globalColors} from '../styles/style-guide'
 import type {Props} from './avatar'
 
-const noAvatar = `file:///${resolveRoot('shared/images/icons/placeholder-avatar@2x.png')}`
+const noAvatar = resolveImageAsURL('icons', 'placeholder-avatar@2x.png')
 
 export default class Avatar extends Component {
   props: Props;
