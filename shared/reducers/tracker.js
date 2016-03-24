@@ -425,7 +425,7 @@ function proofUrlToProfileUrl (proofType: number, name: string, key: ?string, hu
 
 function remoteProofToProofType (rp: RemoteProof): string {
   let proofType: string = ''
-  if (rp.proofType === identify.ProofType.genericWebSite || rp.proofType === identify.ProofType.dns) {
+  if (rp.proofType === identify.ProofType.genericWebSite) {
     proofType = 'web'
   } else {
     proofType = mapTagToName(identify.ProofType, rp.proofType) || ''
