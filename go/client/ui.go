@@ -84,6 +84,11 @@ func (ui BaseIdentifyUI) Confirm(o *keybase1.IdentifyOutcome) (keybase1.ConfirmR
 	if o.TrackOptions.BypassConfirm {
 		return keybase1.ConfirmResult{IdentityConfirmed: true, RemoteConfirmed: true}, nil
 	}
+
+	if len(o.Revoked) > 0 {
+		ui.G().ExitCode = keybase1.ExitCode_NOTOK
+	}
+
 	return keybase1.ConfirmResult{IdentityConfirmed: false, RemoteConfirmed: false}, nil
 }
 
