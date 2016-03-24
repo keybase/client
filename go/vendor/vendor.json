@@ -1,6 +1,6 @@
 {
-	"comment": "",
-	"ignore": "test",
+	"comment": "Ignore solaris flag because of go-isatty",
+	"ignore": "test solaris",
 	"package": [
 		{
 			"path": "bazil.org/fuse",
