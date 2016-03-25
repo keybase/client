@@ -7,18 +7,21 @@ import (
 	"bytes"
 	"fmt"
 	"math/big"
+	"sync"
 )
 
 var alphabet = []byte("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
 var alphabetMap map[byte]uint8
+var alphabetOnce = &sync.Once{}
 
 func getAlphabetMap() map[byte]uint8 {
-	if alphabetMap == nil {
+	initAlphabetMap := func() {
 		alphabetMap = make(map[byte]uint8)
 		for i, c := range []byte(alphabet) {
 			alphabetMap[c] = uint8(i)
 		}
 	}
+	alphabetOnce.Do(initAlphabetMap)
 	return alphabetMap
 }
 
