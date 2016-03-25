@@ -91,7 +91,7 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-%GOPATH%\bin\windows_386\release update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://s3.amazonaws.com/prerelease.keybase.io/windows > update-windows-prod.json
+%GOPATH%\bin\windows_386\release update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows > update-windows-prod.json
 ::"%ProgramFiles%\S3 Browser\s3browser-con.exe" upload keybase %KEYBASE_INSTALLER_NAME% prerelease.keybase.io/windows
 :: After sanity checking, do:
 ::"%ProgramFiles%\S3 Browser\s3browser-con.exe" upload keybase update-windows-prod.json prerelease.keybase.io

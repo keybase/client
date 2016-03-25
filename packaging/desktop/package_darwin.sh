@@ -12,9 +12,9 @@ tmp_dir="/tmp/package_darwin/tmp"
 bucket_name=${BUCKET_NAME:-}
 run_mode="prod"
 platform="darwin"
+s3host=${S3HOST:-}
 
-s3host=""
-if [ ! "$bucket_name" = "" ]; then
+if [ ! "$bucket_name" = "" ] && [ "$s3host" = "" ]; then
   # Use this syntax since bucket_name might have dots (.)
   s3host="https://s3.amazonaws.com/$bucket_name"
 fi

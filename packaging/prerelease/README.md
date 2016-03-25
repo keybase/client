@@ -33,11 +33,10 @@ launchctl load ~/Library/LaunchAgents/keybase.prerelease.plist
 
 ### Dev/Local Builds
 
-To build a version of the app using the local repo without signing or uploading
-to S3:
+To build a version of the app using the local repo without uploading to S3:
 
 ```
-NOPULL=1 NOS3=1 ./build_app.sh
+NOPULL=1 NOS3=1 PLATFORM=darwin ./build_app.sh
 ```
 
 For faster debugging/testing, you can build Keybase services (go binaries)
@@ -48,10 +47,10 @@ BUILD_DIR=/Applications/Keybase.app/Contents/SharedSupport/bin PLATFORM=darwin .
 BUILD_DIR=/Applications/Keybase.app/Contents/SharedSupport/bin PLATFORM=darwin ./build_kbfs.sh
 ```
 
-To build the app and services from a local copy (for testing):
+To test a local build (using test bucket):
 
 ```
-TEST=1 ./build_app.sh
+NOPULL=1 TEST=1 PLATFORM=darwin ./build_app.sh
 ```
 
 ### Testing Updates
