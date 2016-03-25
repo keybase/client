@@ -536,6 +536,18 @@ export type NotifyFS_FSActivity_rpc = {
   callback: (null | (err: ?any) => void)
 }
 
+export type NotifySession_clientOutOfDate_result = void
+
+export type NotifySession_clientOutOfDate_rpc = {
+  method: 'NotifySession.clientOutOfDate',
+  param: {
+    upgradeTo: string,
+    upgradeURI: string
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
 export type NotifySession_loggedIn_result = void
 
 export type NotifySession_loggedIn_rpc = {
@@ -3265,6 +3277,7 @@ export type rpc =
   | Kex2Provisionee_hello_rpc
   | Kex2Provisioner_kexStart_rpc
   | NotifyFS_FSActivity_rpc
+  | NotifySession_clientOutOfDate_rpc
   | NotifySession_loggedIn_rpc
   | NotifySession_loggedOut_rpc
   | NotifyTracking_trackingChanged_rpc
@@ -4493,6 +4506,16 @@ export type incomingCallMapType = {
   'keybase.1.NotifySession.loggedIn'?: (
     params: {
       username: string
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.NotifySession.clientOutOfDate'?: (
+    params: {
+      upgradeTo: string,
+      upgradeURI: string
     },
     response: {
       error: (err: RPCError) => void,

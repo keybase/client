@@ -165,18 +165,20 @@ func randomUser(prefix string) *signupInfo {
 }
 
 type notifyHandler struct {
-	logoutCh chan struct{}
-	loginCh  chan string
-	userCh   chan keybase1.UID
-	errCh    chan error
+	logoutCh    chan struct{}
+	loginCh     chan string
+	outOfDateCh chan keybase1.ClientOutOfDateArg
+	userCh      chan keybase1.UID
+	errCh       chan error
 }
 
 func newNotifyHandler() *notifyHandler {
 	return &notifyHandler{
-		logoutCh: make(chan struct{}),
-		loginCh:  make(chan string),
-		userCh:   make(chan keybase1.UID),
-		errCh:    make(chan error),
+		logoutCh:    make(chan struct{}),
+		loginCh:     make(chan string),
+		outOfDateCh: make(chan keybase1.ClientOutOfDateArg),
+		userCh:      make(chan keybase1.UID),
+		errCh:       make(chan error),
 	}
 }
 
@@ -187,6 +189,11 @@ func (h *notifyHandler) LoggedOut(_ context.Context) error {
 
 func (h *notifyHandler) LoggedIn(_ context.Context, un string) error {
 	h.loginCh <- un
+	return nil
+}
+
+func (h *notifyHandler) ClientOutOfDate(_ context.Context, arg keybase1.ClientOutOfDateArg) error {
+	h.outOfDateCh <- arg
 	return nil
 }
 
