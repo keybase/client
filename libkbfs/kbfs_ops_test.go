@@ -4996,3 +4996,52 @@ func TestKBFSOpsMultiBlockSyncWithArchivedBlock(t *testing.T) {
 		t.Fatalf("Couldn't sync file: %v", err)
 	}
 }
+
+type corruptBlockServer struct {
+	BlockServer
+}
+
+func (cbs *corruptBlockServer) Put(ctx context.Context, id BlockID, tlfID TlfID,
+	context BlockContext, buf []byte,
+	serverHalf BlockCryptKeyServerHalf) error {
+	return cbs.BlockServer.Put(ctx, id, tlfID, context, append(buf, 0),
+		serverHalf)
+}
+
+func TestKBFSOpsFailToReadUnverifiableBlock(t *testing.T) {
+	config, _, ctx := kbfsOpsInitNoMocks(t, "test_user")
+	defer CheckConfigAndShutdown(t, config)
+	config.SetBlockServer(&corruptBlockServer{
+		BlockServer: config.BlockServer(),
+	})
+
+	// create a file.
+	kbfsOps := config.KBFSOps()
+	rootNode, _, err :=
+		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+	_, _, err = kbfsOps.CreateFile(ctx, rootNode, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// Read using a different "device"
+	config2 := ConfigAsUser(config.(*ConfigLocal), "test_user")
+	defer CheckConfigAndShutdown(t, config2)
+	// Shutdown the mdserver explicitly before the state checker tries to run
+	defer config2.MDServer().Shutdown()
+
+	kbfsOps2 := config2.KBFSOps()
+	rootNode2, _, err :=
+		kbfsOps2.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+	// Lookup the file, which should fail on block ID verification
+	_, _, err = kbfsOps2.Lookup(ctx, rootNode2, "a")
+	if _, ok := err.(HashMismatchError); !ok {
+		t.Fatalf("Could unexpectedly lookup the file: %v", err)
+	}
+}
