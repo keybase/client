@@ -94,6 +94,7 @@ func expectBlockEncrypt(config *ConfigMock, rmd *RootMetadata, decData Block, pl
 }
 
 func expectBlockDecrypt(config *ConfigMock, rmd *RootMetadata, blockPtr BlockPointer, encData []byte, block TestBlock, err error) {
+	config.mockCrypto.EXPECT().VerifyBlockID(encData, blockPtr.ID).Return(nil)
 	expectGetTLFCryptKeyForBlockDecryption(config, rmd, blockPtr)
 	config.mockCrypto.EXPECT().UnmaskBlockCryptKey(gomock.Any(), gomock.Any()).
 		Return(BlockCryptKey{}, nil)

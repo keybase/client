@@ -30,6 +30,11 @@ func (b *BlockOpsStandard) Get(ctx context.Context, md *RootMetadata,
 		return err
 	}
 
+	crypto := b.config.Crypto()
+	if err := crypto.VerifyBlockID(buf, blockPtr.ID); err != nil {
+		return err
+	}
+
 	tlfCryptKey, err := b.config.KeyManager().
 		GetTLFCryptKeyForBlockDecryption(ctx, md, blockPtr)
 	if err != nil {
@@ -37,7 +42,7 @@ func (b *BlockOpsStandard) Get(ctx context.Context, md *RootMetadata,
 	}
 
 	// construct the block crypt key
-	blockCryptKey, err := b.config.Crypto().UnmaskBlockCryptKey(
+	blockCryptKey, err := crypto.UnmaskBlockCryptKey(
 		blockServerHalf, tlfCryptKey)
 	if err != nil {
 		return err
@@ -50,7 +55,7 @@ func (b *BlockOpsStandard) Get(ctx context.Context, md *RootMetadata,
 	}
 
 	// decrypt the block
-	err = b.config.Crypto().DecryptBlock(encryptedBlock, blockCryptKey, block)
+	err = crypto.DecryptBlock(encryptedBlock, blockCryptKey, block)
 	if err != nil {
 		return err
 	}
