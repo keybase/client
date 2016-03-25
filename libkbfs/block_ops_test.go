@@ -157,6 +157,25 @@ func TestBlockOpsGetFailGet(t *testing.T) {
 	}
 }
 
+func TestBlockOpsGetFailVerify(t *testing.T) {
+	mockCtrl, config, ctx := blockOpsInit(t)
+	defer blockOpsShutdown(mockCtrl, config)
+
+	rmd := makeRMD()
+	// fail the fetch call
+	id := fakeBlockID(1)
+	err := errors.New("Fake verification fail")
+	blockPtr := BlockPointer{ID: id}
+	encData := []byte{1, 2, 3}
+	config.mockBserv.EXPECT().Get(ctx, id, rmd.ID, blockPtr).Return(
+		encData, BlockCryptKeyServerHalf{}, nil)
+	config.mockCrypto.EXPECT().VerifyBlockID(encData, id).Return(err)
+
+	if err2 := config.BlockOps().Get(ctx, rmd, blockPtr, nil); err2 != err {
+		t.Errorf("Got bad error: %v", err2)
+	}
+}
+
 func TestBlockOpsGetFailDecryptBlockData(t *testing.T) {
 	mockCtrl, config, ctx := blockOpsInit(t)
 	defer blockOpsShutdown(mockCtrl, config)
