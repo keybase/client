@@ -15,9 +15,9 @@ import (
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/keybase/client/go/updater"
-	"github.com/keybase/client/go/updater/sources"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/go-updater"
+	"github.com/keybase/go-updater/sources"
 )
 
 type Service struct {
@@ -165,7 +165,6 @@ func (d *Service) Run() (err error) {
 	}
 
 	if sources.IsPrerelease {
-		updater.CleanupFix() // TODO(gabriel): Remove anytime after March 2016
 		updr := engine.NewDefaultUpdater(d.G())
 		if updr != nil {
 			updateChecker := updater.NewUpdateChecker(updr, engine.NewUpdaterContext(d.G()), d.G().Log)

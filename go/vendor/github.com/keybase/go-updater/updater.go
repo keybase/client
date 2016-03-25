@@ -21,10 +21,11 @@ import (
 	"github.com/keybase/client/go/lsof"
 	keybase1 "github.com/keybase/client/go/protocol"
 	zip "github.com/keybase/client/go/tools/zip"
-	"github.com/keybase/client/go/updater/sources"
+	"github.com/keybase/go-updater/sources"
 	"golang.org/x/net/context"
 )
 
+// Updater knows how to find and apply updates
 type Updater struct {
 	options      keybase1.UpdateOptions
 	source       sources.UpdateSource
@@ -34,12 +35,19 @@ type Updater struct {
 	cancelPrompt context.CancelFunc
 }
 
+// UpdateUI defines the interface to UI components
+type UpdateUI interface {
+	keybase1.UpdateUiInterface
+}
+
+// Context defines state during an update session
 type Context interface {
-	GetUpdateUI() (libkb.UpdateUI, error)
+	GetUpdateUI() (UpdateUI, error)
 	AfterUpdateApply(willRestart bool) error
 	Verify(r io.Reader, signature string) error
 }
 
+// Config defines configuration for the Updater
 type Config interface {
 	GetUpdatePreferenceAuto() (bool, bool)
 	GetUpdatePreferenceSnoozeUntil() keybase1.Time
@@ -51,8 +59,25 @@ type Config interface {
 	SetUpdateLastChecked(t keybase1.Time) error
 	GetRunModeAsString() string
 	GetMountDir() string
+	GetUpdateDefaultInstructions() (string, error)
 }
 
+// CanceledError is for when an update is canceled
+type CanceledError struct {
+	message string
+}
+
+// Error returns canceled message
+func (c CanceledError) Error() string {
+	return c.message
+}
+
+// NewCanceledError constructs a CanceledError
+func NewCanceledError(message string) CanceledError {
+	return CanceledError{message}
+}
+
+// NewUpdater constructs an Updater
 func NewUpdater(options keybase1.UpdateOptions, source sources.UpdateSource, config Config, log logger.Logger) *Updater {
 	log.Debug("New updater with options: %#v", options)
 	return &Updater{
@@ -63,6 +88,7 @@ func NewUpdater(options keybase1.UpdateOptions, source sources.UpdateSource, con
 	}
 }
 
+// Options returns current updater options
 func (u *Updater) Options() keybase1.UpdateOptions {
 	return u.options
 }
@@ -109,9 +135,9 @@ func (u *Updater) checkForUpdate(skipAssetDownload bool, force bool, requested b
 	// Update instruction might be empty, if so we'll fill in with the default
 	// instructions for the platform.
 	if update.Instructions == nil || *update.Instructions == "" {
-		instructions, err := libkb.PlatformSpecificUpgradeInstructionsString()
-		if err != nil {
-			u.log.Errorf("Error trying to get update instructions: %s", err)
+		instructions, cerr := u.config.GetUpdateDefaultInstructions()
+		if cerr != nil {
+			u.log.Errorf("Error trying to get update instructions: %s", cerr)
 		}
 		if instructions == "" {
 			instructions = u.options.DefaultInstructions
@@ -126,7 +152,7 @@ func (u *Updater) checkForUpdate(skipAssetDownload bool, force bool, requested b
 
 	if skipVersion := u.config.GetUpdatePreferenceSkip(); len(skipVersion) != 0 {
 		u.log.Debug("Update preference: skip %s", skipVersion)
-		if vers, err := semver.Make(skipVersion); err != nil {
+		if vers, verr := semver.Make(skipVersion); verr != nil {
 			u.log.Warning("Bad 'skipVersion' in config file: %q", skipVersion)
 		} else if vers.GE(updateSemVersion) {
 			u.log.Info("Skipping updated version via config preference: %q", update.Version)
@@ -237,7 +263,7 @@ func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool
 		u.log.Info("Using etag: %s", etag)
 		req.Header.Set("If-None-Match", etag)
 	}
-	timeout := time.Duration(20 * time.Minute)
+	timeout := 20 * time.Minute
 	client := &http.Client{
 		Timeout: timeout,
 	}
@@ -499,9 +525,9 @@ func (u *Updater) apply(ctx Context, update keybase1.Update) (err error) {
 	return
 }
 
-func (u *Updater) updateUI(ctx Context) (updateUI libkb.UpdateUI, err error) {
+func (u *Updater) updateUI(ctx Context) (updateUI UpdateUI, err error) {
 	if ctx == nil {
-		err = libkb.NoUIError{Which: "Update"}
+		err = fmt.Errorf("No update UI available")
 		return
 	}
 
@@ -548,15 +574,15 @@ func (u *Updater) promptForUpdateAction(ctx Context, update keybase1.Update) (er
 	switch updatePromptResponse.Action {
 	case keybase1.UpdateAction_UPDATE:
 	case keybase1.UpdateAction_SKIP:
-		err = libkb.NewCanceledError("Skipped update")
+		err = NewCanceledError("Skipped update")
 		u.config.SetUpdatePreferenceSkip(update.Version)
 	case keybase1.UpdateAction_SNOOZE:
-		err = libkb.NewCanceledError("Snoozed update")
+		err = NewCanceledError("Snoozed update")
 		u.config.SetUpdatePreferenceSnoozeUntil(updatePromptResponse.SnoozeUntil)
 	case keybase1.UpdateAction_CANCEL:
-		err = libkb.NewCanceledError("Canceled by user")
+		err = NewCanceledError("Canceled by user")
 	default:
-		err = libkb.NewCanceledError("Canceled by service")
+		err = NewCanceledError("Canceled by service")
 	}
 	return
 }
@@ -600,13 +626,13 @@ func (u *Updater) promptForAppInUse(ctx Context, update keybase1.Update, process
 	u.log.Debug("Update (app in use) response: %#v", updateInUseResponse)
 	switch updateInUseResponse.Action {
 	case keybase1.UpdateAppInUseAction_CANCEL:
-		return libkb.NewCanceledError("Canceled by user")
+		return NewCanceledError("Canceled by user")
 	case keybase1.UpdateAppInUseAction_FORCE:
 		// Continue
 	case keybase1.UpdateAppInUseAction_KILL_PROCESSES:
 		panic("Unimplemented") // TODO: Kill processes
 	default:
-		return libkb.NewCanceledError("Canceled by service")
+		return NewCanceledError("Canceled by service")
 	}
 	return nil
 }
@@ -655,7 +681,7 @@ func (u *Updater) checkInUse(ctx Context, update keybase1.Update) error {
 
 func (u *Updater) checkRestart(ctx Context, update keybase1.Update, status keybase1.Status) (updateQuitResponse keybase1.UpdateQuitRes, err error) {
 	if ctx == nil {
-		err = libkb.NoUIError{Which: "Update"}
+		err = fmt.Errorf("No update UI available")
 		return
 	}
 
@@ -762,7 +788,7 @@ func (u *Updater) verifySignature(ctx Context, update keybase1.Update) error {
 
 // waitForUI waits for a UI to be available. A UI might be missing for a few
 // seconds between restarts.
-func (u *Updater) waitForUI(ctx Context, wait time.Duration) (updateUI libkb.UpdateUI, err error) {
+func (u *Updater) waitForUI(ctx Context, wait time.Duration) (updateUI UpdateUI, err error) {
 	t := time.Now()
 	i := 1
 	for time.Now().Sub(t) < wait {
@@ -786,16 +812,10 @@ func statusFromError(err error) keybase1.Status {
 	}
 
 	switch err.(type) {
-	case libkb.CanceledError:
+	case CanceledError:
 		// Canceled errors aren't really errors
 		return keybase1.StatusOK(err.Error())
 	default:
 		return keybase1.FromError(err).Status()
 	}
-}
-
-// CleanupFix remove updater backup dir, fixes https://keybase.atlassian.net/browse/DESKTOP-526
-// TODO(gabriel): Remove anytime after March 2016
-func CleanupFix() {
-	os.RemoveAll(filepath.Join(os.TempDir(), "KeybaseBackup"))
 }

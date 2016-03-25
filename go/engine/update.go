@@ -10,8 +10,8 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/keybase/client/go/updater"
-	"github.com/keybase/client/go/updater/sources"
+	"github.com/keybase/go-updater"
+	"github.com/keybase/go-updater/sources"
 	"github.com/keybase/saltpack"
 )
 
@@ -80,7 +80,7 @@ func NewUpdaterEngineContext(g *libkb.GlobalContext, ctx *Context) UpdaterContex
 	return UpdaterContext{g: g, ctx: ctx}
 }
 
-func (u UpdaterContext) GetUpdateUI() (libkb.UpdateUI, error) {
+func (u UpdaterContext) GetUpdateUI() (updater.UpdateUI, error) {
 	if u.ctx != nil {
 		return u.ctx.GetUpdateUI()
 	}
