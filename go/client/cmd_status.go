@@ -78,6 +78,9 @@ type fstatus struct {
 		Running bool
 		Log     string
 	}
+	Start struct {
+		Log string
+	}
 
 	DefaultUsername      string
 	ProvisionedUsernames []string
@@ -168,6 +171,8 @@ func (c *CmdStatus) load() (*fstatus, error) {
 
 	status.KBFS.Log = filepath.Join(extStatus.LogDir, libkb.KBFSLogFileName)
 	status.Desktop.Log = filepath.Join(extStatus.LogDir, libkb.DesktopLogFileName)
+
+	status.Start.Log = filepath.Join(extStatus.LogDir, libkb.StartLogFileName)
 
 	status.DefaultUsername = extStatus.DefaultUsername
 	status.ProvisionedUsernames = extStatus.ProvisionedUsernames

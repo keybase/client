@@ -389,9 +389,13 @@ const (
 	SecretPromptCancelDuration = 5 * time.Minute
 )
 
-const ServiceLogFileName = "keybase.service.log"
-const KBFSLogFileName = "keybase.kbfs.log"
-const DesktopLogFileName = "Keybase.app.log"
+const (
+	ServiceLogFileName = "keybase.service.log"
+	KBFSLogFileName    = "keybase.kbfs.log"
+	DesktopLogFileName = "Keybase.app.log"
+	// StartLogFileName is where services can log to (on startup) before they handle their own logging
+	StartLogFileName = "keybase.start.log"
+)
 
 const (
 	PGPAssertionKey = "pgp"

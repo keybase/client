@@ -161,8 +161,7 @@ func ListServices(g *libkb.GlobalContext) (*keybase1.ServicesStatus, error) {
 func DefaultLaunchdEnvVars(g *libkb.GlobalContext, label string) []launchd.EnvVar {
 	return []launchd.EnvVar{
 		launchd.NewEnvVar("KEYBASE_LABEL", label),
-		launchd.NewEnvVar("KEYBASE_LOG_FORMAT", "file"),
-		launchd.NewEnvVar("KEYBASE_RUNTIME_DIR", g.Env.GetRuntimeDir()),
+		launchd.NewEnvVar("KEYBASE_SERVICE_TYPE", "launchd"),
 	}
 }
 
@@ -182,10 +181,11 @@ func DefaultKBFSLabel(runMode libkb.RunMode) string {
 
 func keybasePlist(g *libkb.GlobalContext, binPath string, label string) launchd.Plist {
 	// TODO: Remove -d when doing real release
-	plistArgs := []string{"-d", "service"}
+	logFile := filepath.Join(launchd.LogDir(), libkb.ServiceLogFileName)
+	plistArgs := []string{"-d", fmt.Sprintf("--log-file=%s", logFile), "service"}
 	envVars := DefaultLaunchdEnvVars(g, label)
 	comment := "It's not advisable to edit this plist, it may be overwritten"
-	return launchd.NewPlist(label, binPath, plistArgs, envVars, libkb.ServiceLogFileName, comment)
+	return launchd.NewPlist(label, binPath, plistArgs, envVars, libkb.StartLogFileName, comment)
 }
 
 func installKeybaseService(g *libkb.GlobalContext, service launchd.Service, plist launchd.Plist) (*keybase1.ServiceStatus, error) {
@@ -207,11 +207,17 @@ func uninstallKeybaseServices(g *libkb.GlobalContext, runMode libkb.RunMode) err
 
 func kbfsPlist(g *libkb.GlobalContext, kbfsBinPath string, label string) (plist launchd.Plist, err error) {
 	mountDir := g.Env.GetMountDir()
-	// TODO: Remove when doing real release
-	plistArgs := []string{"-debug", mountDir}
+	logFile := filepath.Join(launchd.LogDir(), libkb.KBFSLogFileName)
+	// TODO: Remove debug flag when doing real release
+	plistArgs := []string{
+		"-debug",
+		fmt.Sprintf("-log-file=%s", logFile),
+		fmt.Sprintf("-runtime-dir=%s", g.Env.GetRuntimeDir()),
+		mountDir,
+	}
 	envVars := DefaultLaunchdEnvVars(g, label)
 	comment := "It's not advisable to edit this plist, it may be overwritten"
-	plist = launchd.NewPlist(label, kbfsBinPath, plistArgs, envVars, libkb.KBFSLogFileName, comment)
+	plist = launchd.NewPlist(label, kbfsBinPath, plistArgs, envVars, libkb.StartLogFileName, comment)
 
 	_, err = os.Stat(mountDir)
 	if err != nil {
