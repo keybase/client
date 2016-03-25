@@ -92,6 +92,7 @@ release_prerelease() {
   echo "Writing version into JSON to $json_tmp"
 
   echo "Loading release tool"
+  export GOPATH="$HOME/s3_gopath"  # for building the Go release binary
   "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
   release_bin="$GOPATH/bin/release"
 
@@ -100,7 +101,6 @@ release_prerelease() {
   s3cmd put --mime-type application/json "$json_tmp" "s3://$BUCKET_NAME/update-linux-prod.json"
 
   # Generate and push the index.html file.
-  export GOPATH="$HOME/s3_gopath"  # for building the Go release binary
   PLATFORM="linux" "$here/../prerelease/s3_index.sh"
 }
 
