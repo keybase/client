@@ -8,7 +8,9 @@
     "gobuild-ios": "GO15VENDOREXPERIMENT=1 $GOPATH/bin/gomobile bind -target=ios -tags='ios' -o ios/keybase.framework github.com/keybase/client/go/loopback",
     "gobuild-android": "GO15VENDOREXPERIMENT=1 $GOPATH/bin/gomobile bind -target=android -o android/keybaselib/keybaselib.aar github.com/keybase/client/go/loopback",
     "packager-wipe-cache": "node ../shared/packager/wipe-cache.js",
-    "build-ios": "npm run pod-install && npm run gobuild-ios"
+    "build-ios": "npm run pod-install && npm run gobuild-ios",
+    "watch": "npm run sync && cd ../shared && watchman-make -p '**' --make 'cd ../react-native && npm run sync && cd ../shared' -t all",
+    "sync": "rsync -avhW --delete --exclude='*.desktop.js' ../shared/ ./shared/"
   },
   "dependencies": {
     "buffer": "4.5.1",
@@ -20,6 +22,7 @@
     "moment": "2.12.0",
     "purepack": "keybase/purepack#nojima/keybase-client-changes",
     "qrcode-generator": "1.0.0",
+    "react": "0.14.7",
     "react-native": "0.22.2",
     "react-native-camera": "0.3.8",
     "react-redux": "4.4.1",
