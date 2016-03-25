@@ -194,8 +194,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-updater",
-			"revision": "85345e29cd0531a308636e9da538045ed5f99a2c",
-			"revisionTime": "2016-03-24T12:34:52-07:00"
+			"revision": "d18ba27c71bd73ed367a6677a21df3693f3bbb60",
+			"revisionTime": "2016-03-25T12:34:14-07:00"
 		},
 		{
 			"path": "github.com/keybase/go-updater/sources",

@@ -25,6 +25,7 @@ import (
 	"golang.org/x/net/context"
 )
 
+// Updater knows how to find and apply updates
 type Updater struct {
 	options      keybase1.UpdateOptions
 	source       sources.UpdateSource
@@ -34,16 +35,19 @@ type Updater struct {
 	cancelPrompt context.CancelFunc
 }
 
+// UpdateUI defines the interface to UI components
 type UpdateUI interface {
 	keybase1.UpdateUiInterface
 }
 
+// Context defines state during an update session
 type Context interface {
 	GetUpdateUI() (UpdateUI, error)
 	AfterUpdateApply(willRestart bool) error
 	Verify(r io.Reader, signature string) error
 }
 
+// Config defines configuration for the Updater
 type Config interface {
 	GetUpdatePreferenceAuto() (bool, bool)
 	GetUpdatePreferenceSnoozeUntil() keybase1.Time
@@ -58,18 +62,22 @@ type Config interface {
 	GetUpdateDefaultInstructions() (string, error)
 }
 
+// CanceledError is for when an update is canceled
 type CanceledError struct {
 	message string
 }
 
+// Error returns canceled message
 func (c CanceledError) Error() string {
 	return c.message
 }
 
+// NewCanceledError constructs a CanceledError
 func NewCanceledError(message string) CanceledError {
 	return CanceledError{message}
 }
 
+// NewUpdater constructs an Updater
 func NewUpdater(options keybase1.UpdateOptions, source sources.UpdateSource, config Config, log logger.Logger) *Updater {
 	log.Debug("New updater with options: %#v", options)
 	return &Updater{
@@ -80,6 +88,7 @@ func NewUpdater(options keybase1.UpdateOptions, source sources.UpdateSource, con
 	}
 }
 
+// Options returns current updater options
 func (u *Updater) Options() keybase1.UpdateOptions {
 	return u.options
 }
@@ -126,9 +135,9 @@ func (u *Updater) checkForUpdate(skipAssetDownload bool, force bool, requested b
 	// Update instruction might be empty, if so we'll fill in with the default
 	// instructions for the platform.
 	if update.Instructions == nil || *update.Instructions == "" {
-		instructions, err := u.config.GetUpdateDefaultInstructions()
-		if err != nil {
-			u.log.Errorf("Error trying to get update instructions: %s", err)
+		instructions, cerr := u.config.GetUpdateDefaultInstructions()
+		if cerr != nil {
+			u.log.Errorf("Error trying to get update instructions: %s", cerr)
 		}
 		if instructions == "" {
 			instructions = u.options.DefaultInstructions
@@ -143,7 +152,7 @@ func (u *Updater) checkForUpdate(skipAssetDownload bool, force bool, requested b
 
 	if skipVersion := u.config.GetUpdatePreferenceSkip(); len(skipVersion) != 0 {
 		u.log.Debug("Update preference: skip %s", skipVersion)
-		if vers, err := semver.Make(skipVersion); err != nil {
+		if vers, verr := semver.Make(skipVersion); verr != nil {
 			u.log.Warning("Bad 'skipVersion' in config file: %q", skipVersion)
 		} else if vers.GE(updateSemVersion) {
 			u.log.Info("Skipping updated version via config preference: %q", update.Version)
@@ -254,7 +263,7 @@ func (u *Updater) downloadAsset(asset keybase1.Asset) (fpath string, cached bool
 		u.log.Info("Using etag: %s", etag)
 		req.Header.Set("If-None-Match", etag)
 	}
-	timeout := time.Duration(20 * time.Minute)
+	timeout := 20 * time.Minute
 	client := &http.Client{
 		Timeout: timeout,
 	}
@@ -809,10 +818,4 @@ func statusFromError(err error) keybase1.Status {
 	default:
 		return keybase1.FromError(err).Status()
 	}
-}
-
-// CleanupFix remove updater backup dir, fixes https://keybase.atlassian.net/browse/DESKTOP-526
-// TODO(gabriel): Remove anytime after March 2016
-func CleanupFix() {
-	os.RemoveAll(filepath.Join(os.TempDir(), "KeybaseBackup"))
 }
