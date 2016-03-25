@@ -22,6 +22,10 @@ before_install:
       docker login -e $CI_EMAIL -u $CI_USER -p $CI_PASS $CI_HOST;
       $GOPATH/src/github.com/keybase/kbfs/kbfsdocker/build_dockers.sh & export build_dockers_pid=$!;
     fi
+  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+      brew install redis;
+      (redis-server &);
+    fi
 script:
   - go get -u github.com/golang/lint/golint
   - go install github.com/golang/lint/golint
