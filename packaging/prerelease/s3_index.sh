@@ -26,8 +26,18 @@ echo "Loading release tool"
 release_bin="$GOPATH/bin/release"
 
 echo "Creating index files"
-"$release_bin" index-html --bucket-name="$bucket_name" --prefixes="darwin/,linux_binaries/deb/,linux_binaries/rpm/,windows/" --upload="index.html"
-"$release_bin" index-html --bucket-name="$bucket_name" --prefixes="electron-sourcemaps/" --upload="electron-sourcemaps/index.html"
+if [ "$platform" = "darwin" ]; then
+  "$release_bin" index-html --bucket-name="$bucket_name" --prefixes="darwin/" --upload="darwin/index.html"
+  "$release_bin" index-html --bucket-name="$bucket_name" --prefixes="electron-sourcemaps/" --upload="electron-sourcemaps/index.html"
+elif [ "$platform" = "linux" ]; then
+  "$release_bin" index-html --bucket-name="$bucket_name" --prefixes="linux_binaries/deb/" --upload="linux_binaries/deb/index.html"
+  "$release_bin" index-html --bucket-name="$bucket_name" --prefixes="linux_binaries/rpm/" --upload="linux_binaries/rpm/index.html"
+elif [ "$platform" = "windows" ]; then
+  "$release_bin" index-html --bucket-name="$bucket_name" --prefixes="windows/" --upload="windows/index.html"
+else
+  echo "Invalid platform: $paltform"
+  exit 1
+fi
 
 echo "Linking latest ($platform)"
 "$release_bin" latest --bucket-name="$bucket_name" --platform="$platform"
