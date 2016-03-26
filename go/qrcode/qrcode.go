@@ -7,7 +7,7 @@ import (
 	"bytes"
 	"strings"
 
-	"github.com/rsc/rsc/qr"
+	"code.google.com/p/rsc/qr"
 )
 
 // Encodings is the result of QR encoding.  It has three different
