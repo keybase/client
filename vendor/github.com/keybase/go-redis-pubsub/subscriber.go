@@ -195,12 +195,8 @@ func (c *redisSubscriberConn) receiveLoop() {
 		switch msg := c.conn.Receive().(type) {
 		case error:
 			if c.isDisconnectError(msg) {
-				func() {
-					c.mutex.Lock()
-					defer c.mutex.Unlock()
-					// close the connection
-					c.closeLocked()
-				}()
+				// close the connection
+				c.close()
 				// notify the subscription handler of channels we're no longer tracking
 				c.subscriber.handler.OnDisconnected(msg, c.slot)
 				// reconnect
@@ -234,10 +230,7 @@ func (c *redisSubscriberConn) receiveLoop() {
 func (c *redisSubscriberConn) close() {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
-	c.closeLocked()
-}
 
-func (c *redisSubscriberConn) closeLocked() {
 	// close the connection
 	c.conn.Close()
 	// clear channel subscription counts
