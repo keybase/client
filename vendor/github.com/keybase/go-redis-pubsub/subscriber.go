@@ -54,8 +54,7 @@ type SubscriptionHandler interface {
 	// OnReceiveError is called for any non-fatal error received.
 	OnReceiveError(err error)
 	// OnDisconnected is called whenever a connection is disconnected.
-	// "channels" contains the list of channels this connection was subscribed to at the time.
-	OnDisconnected(err error, slot int, channels []string)
+	OnDisconnected(err error, slot int)
 	// GetUnsubscribeTimeout returns how long the implementation should wait prior to unsubscribing
 	// from a channel after the subscriber count drops to 0.
 	GetUnsubscribeTimeout() time.Duration
@@ -196,18 +195,14 @@ func (c *redisSubscriberConn) receiveLoop() {
 		switch msg := c.conn.Receive().(type) {
 		case error:
 			if c.isDisconnectError(msg) {
-				var channels []string
 				func() {
 					c.mutex.Lock()
 					defer c.mutex.Unlock()
-					for channel := range c.counts {
-						channels = append(channels, channel)
-					}
 					// close the connection
 					c.closeLocked()
 				}()
 				// notify the subscription handler of channels we're no longer tracking
-				c.subscriber.handler.OnDisconnected(msg, c.slot, channels)
+				c.subscriber.handler.OnDisconnected(msg, c.slot)
 				// reconnect
 				c.subscriber.reconnectSlot(c.slot, c.token)
 				return
