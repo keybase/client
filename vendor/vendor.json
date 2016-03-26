@@ -220,8 +220,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-codec/codec",
-			"revision": "c062049c1793b01a3cc3fe786108edabbaf7756b",
-			"revisionTime": "2016-03-14T13:21:18-04:00"
+			"revision": "88baf6e770ec4e4147c6808521700f49db96cc7e",
+			"revisionTime": "2016-03-26T01:10:26-05:00"
 		},
 		{
 			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-crypto/openpgp",

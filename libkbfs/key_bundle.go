@@ -4,6 +4,7 @@ import (
 	"reflect"
 
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/go-codec/codec"
 )
 
 // All section references below are to https://keybase.io/blog/kbfs-crypto
@@ -33,14 +34,17 @@ type TLFCryptKeyInfo struct {
 	ClientHalf   EncryptedTLFCryptKeyClientHalf
 	ServerHalfID TLFCryptKeyServerHalfID
 	EPubKeyIndex int `codec:"i,omitempty"`
+
+	codec.UnknownFieldSet
 }
 
 // DeepCopy returns a complete copy of a TLFCryptKeyInfo.
 func (info TLFCryptKeyInfo) DeepCopy() TLFCryptKeyInfo {
 	return TLFCryptKeyInfo{
-		ClientHalf:   info.ClientHalf.DeepCopy(),
-		ServerHalfID: info.ServerHalfID.DeepCopy(),
-		EPubKeyIndex: info.EPubKeyIndex,
+		ClientHalf:      info.ClientHalf.DeepCopy(),
+		ServerHalfID:    info.ServerHalfID.DeepCopy(),
+		EPubKeyIndex:    info.EPubKeyIndex,
+		UnknownFieldSet: info.UnknownFieldSet.DeepCopy(),
 	}
 }
 

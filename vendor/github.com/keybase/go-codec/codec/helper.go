@@ -275,6 +275,8 @@ var (
 
 	selferTyp = reflect.TypeOf((*Selfer)(nil)).Elem()
 
+	unknownFieldHandlerTyp = reflect.TypeOf((*UnknownFieldHandler)(nil)).Elem()
+
 	uint8SliceTypId = reflect.ValueOf(uint8SliceTyp).Pointer()
 	rawExtTypId     = reflect.ValueOf(rawExtTyp).Pointer()
 	intfTypId       = reflect.ValueOf(intfTyp).Pointer()
@@ -307,6 +309,63 @@ var defTypeInfos = NewTypeInfos([]string{"codec", "json"})
 type Selfer interface {
 	CodecEncodeSelf(*Encoder)
 	CodecDecodeSelf(*Decoder)
+}
+
+// An UnknownFieldSet holds information about unknown fields
+// encountered during decoding. The zero value is an empty
+// set.
+//
+// UnknownFieldSet implements UnknownFieldHandler, so you can just
+// embed it in a struct type and it will automatically preserve
+// unknown fields.
+type UnknownFieldSet struct {
+	// Map from field name to encoded value.
+	fields map[string][]byte
+}
+
+var _ UnknownFieldHandler = (*UnknownFieldSet)(nil)
+
+func (ufs *UnknownFieldSet) CodecSetUnknownFields(other UnknownFieldSet) {
+	*ufs = other
+}
+
+func (ufs UnknownFieldSet) CodecGetUnknownFields() UnknownFieldSet {
+	return ufs
+}
+
+// DeepCopy returns a deep copy of the receiver.
+func (ufs UnknownFieldSet) DeepCopy() UnknownFieldSet {
+	// UnknownFieldSet is externally immutable, so it's okay to
+	// just return the receiver.
+	return ufs
+}
+
+func (ufs *UnknownFieldSet) add(name string, encodedVal []byte) {
+	if ufs.fields == nil {
+		ufs.fields = make(map[string][]byte)
+	} else {
+		if _, ok := ufs.fields[name]; ok {
+			panic(fmt.Errorf("Duplicate unknown field with name %q", name))
+		}
+	}
+	// In general, encodedVal is a slice into a buffer, so we need
+	// to store a copy.
+	encodedValCopy := make([]byte, len(encodedVal))
+	copy(encodedValCopy, encodedVal)
+	ufs.fields[name] = encodedValCopy
+}
+
+// UnknownFieldHandler defines methods by which a value can store
+// unknown fields encountered during decoding.
+type UnknownFieldHandler interface {
+	// CodecSetUnknownFields is called exactly once during
+	// decoding with the set of all unknown fields encountered.
+	CodecSetUnknownFields(UnknownFieldSet)
+	// CodecGetUnknownFields is called exactly once during
+	// encoding to get the set of unknown fields to include in the
+	// encoding. Encoding must be done with the same handle type
+	// as what was used when decoding.
+	CodecGetUnknownFields() UnknownFieldSet
 }
 
 // MapBySlice represents a slice which should be encoded as a map in the stream.
@@ -730,6 +789,9 @@ type typeInfo struct {
 	cs      bool // base type (T or *T) is a Selfer
 	csIndir int8 // number of indirections to get to Selfer type
 
+	ufh      bool // base type (T or *T) is an UnknownFieldHandler
+	ufhIndir int8 // number of indirections to get to UnknownFieldHandler type
+
 	toArray bool // whether this (struct) type should be encoded as an array
 }
 
@@ -827,6 +889,9 @@ func (x *TypeInfos) get(rtid uintptr, rt reflect.Type) (pti *typeInfo) {
 	}
 	if ok, indir = implementsIntf(rt, selferTyp); ok {
 		ti.cs, ti.csIndir = true, indir
+	}
+	if ok, indir = implementsIntf(rt, unknownFieldHandlerTyp); ok {
+		ti.ufh, ti.ufhIndir = true, indir
 	}
 	if ok, _ = implementsIntf(rt, mapBySliceTyp); ok {
 		ti.mbs = true
