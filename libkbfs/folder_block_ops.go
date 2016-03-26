@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/keybase/client/go/logger"
@@ -1203,7 +1204,9 @@ func (fbo *folderBlockOps) writeDataLocked(
 	return latestWrite, dirtyPtrs, nil
 }
 
-// Write writes the given data to the given file.
+// Write writes the given data to the given file. May block if there
+// is too much unflushed data; in that case, it will be unblocked by a
+// future sync (as controlled by NotifyBlockedWrites).
 func (fbo *folderBlockOps) Write(
 	ctx context.Context, lState *lockState, md *RootMetadata,
 	file Node, data []byte, off int64) error {
@@ -1363,6 +1366,9 @@ func (fbo *folderBlockOps) truncateLocked(
 }
 
 // Truncate truncates or extends the given file to the given size.
+// May block if there is too much unflushed data; in that case, it
+// will be unblocked by a future sync (as controlled by
+// NotifyBlockedWrites).
 func (fbo *folderBlockOps) Truncate(
 	ctx context.Context, lState *lockState, md *RootMetadata,
 	file Node, size uint64) error {
@@ -1412,4 +1418,225 @@ func (fbo *folderBlockOps) Truncate(
 	}
 
 	return nil
+}
+
+// NotifyBlockedWrites notifies any write operations that are blocked
+// so that they can check if they can be unblocked. Should be called
+// after a sync.
+func (fbo *folderBlockOps) NotifyBlockedWrites(lState *lockState, err error) {
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
+	listeners := fbo.syncListeners
+	fbo.syncListeners = nil
+	for _, listener := range listeners {
+		listener <- err
+	}
+}
+
+// searchForNodesInDirLocked recursively tries to find a path, and
+// ultimately a node, to ptr, given the set of pointers that were
+// updated in a particular operation.  The keys in nodeMap make up the
+// set of BlockPointers that are being searched for, and nodeMap is
+// updated in place to include the corresponding discovered nodes.
+//
+// Returns the number of nodes found by this invocation.
+func (fbo *folderBlockOps) searchForNodesInDirLocked(ctx context.Context,
+	lState *lockState, cache NodeCache, newPtrs map[BlockPointer]bool,
+	md *RootMetadata, currDir path, nodeMap map[BlockPointer]Node,
+	numNodesFoundSoFar int) (int, error) {
+	fbo.blockLock.AssertAnyLocked(lState)
+
+	dirBlock, err := fbo.getDirLocked(
+		ctx, lState, md, currDir, blockRead)
+	if err != nil {
+		return 0, err
+	}
+
+	if numNodesFoundSoFar >= len(nodeMap) {
+		return 0, nil
+	}
+
+	numNodesFound := 0
+	for name, de := range dirBlock.Children {
+		if _, ok := nodeMap[de.BlockPointer]; ok {
+			childPath := currDir.ChildPath(name, de.BlockPointer)
+			// make a node for every pathnode
+			var n Node
+			for _, pn := range childPath.path {
+				n, err = cache.GetOrCreate(pn.BlockPointer, pn.Name, n)
+				if err != nil {
+					return 0, err
+				}
+			}
+			nodeMap[de.BlockPointer] = n
+			numNodesFound++
+			if numNodesFoundSoFar+numNodesFound >= len(nodeMap) {
+				return numNodesFound, nil
+			}
+		}
+
+		// otherwise, recurse if this represents an updated block
+		if _, ok := newPtrs[de.BlockPointer]; de.Type == Dir && ok {
+			childPath := currDir.ChildPath(name, de.BlockPointer)
+			n, err := fbo.searchForNodesInDirLocked(ctx, lState, cache, newPtrs, md,
+				childPath, nodeMap, numNodesFoundSoFar+numNodesFound)
+			if err != nil {
+				return 0, err
+			}
+			numNodesFound += n
+			if numNodesFoundSoFar+numNodesFound >= len(nodeMap) {
+				return numNodesFound, nil
+			}
+		}
+	}
+
+	return numNodesFound, nil
+}
+
+// SearchForNodes tries to resolve all the given pointers to a Node
+// object, using only the updated pointers specified in newPtrs.
+// Returns an error if any subset of the pointer paths do not exist;
+// it is the caller's responsibility to decide to error on particular
+// unresolved nodes.
+func (fbo *folderBlockOps) SearchForNodes(ctx context.Context,
+	cache NodeCache, ptrs []BlockPointer, newPtrs map[BlockPointer]bool,
+	md *RootMetadata) (map[BlockPointer]Node, error) {
+	lState := makeFBOLockState()
+	fbo.blockLock.RLock(lState)
+	defer fbo.blockLock.RUnlock(lState)
+
+	nodeMap := make(map[BlockPointer]Node)
+	for _, ptr := range ptrs {
+		nodeMap[ptr] = nil
+	}
+
+	if len(ptrs) == 0 {
+		return nodeMap, nil
+	}
+
+	// Start with the root node
+	rootPtr := md.data.Dir.BlockPointer
+	node := cache.Get(rootPtr.ref())
+	if node == nil {
+		return nil, fmt.Errorf("Cannot find root node corresponding to %v",
+			rootPtr)
+	}
+
+	// are they looking for the root directory?
+	numNodesFound := 0
+	if _, ok := nodeMap[rootPtr]; ok {
+		nodeMap[rootPtr] = node
+		numNodesFound++
+		if numNodesFound >= len(nodeMap) {
+			return nodeMap, nil
+		}
+	}
+
+	rootPath := cache.PathFromNode(node)
+	if len(rootPath.path) != 1 {
+		return nil, fmt.Errorf("Invalid root path for %v: %s",
+			md.data.Dir.BlockPointer, rootPath)
+	}
+
+	_, err := fbo.searchForNodesInDirLocked(ctx, lState, cache, newPtrs, md, rootPath,
+		nodeMap, numNodesFound)
+	if err != nil {
+		return nil, err
+	}
+
+	// Return the whole map even if some nodes weren't found.
+	return nodeMap, nil
+}
+
+// getUndirtiedEntry returns the clean entry for the given path
+// corresponding to a cached dirty entry. If there is no dirty or
+// clean entry, nil is returned.
+func (fbo *folderBlockOps) getUndirtiedEntry(
+	ctx context.Context, lState *lockState, md *RootMetadata,
+	file path) (*DirEntry, error) {
+	fbo.blockLock.RLock(lState)
+	defer fbo.blockLock.RUnlock(lState)
+
+	_, ok := fbo.deCache[file.tailPointer().ref()]
+	if !ok {
+		return nil, nil
+	}
+
+	// Get the undirtied dir block.
+	dblock, err := fbo.getDirLocked(
+		ctx, lState, md, *file.parentPath(), blockRead)
+	if err != nil {
+		return nil, err
+	}
+
+	undirtiedEntry, ok := dblock.Children[file.tailName()]
+	if !ok {
+		return nil, nil
+	}
+
+	return &undirtiedEntry, nil
+}
+
+func (fbo *folderBlockOps) setCachedAttr(
+	ctx context.Context, lState *lockState,
+	ref blockRef, op *setAttrOp, realEntry *DirEntry) {
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
+
+	fileEntry, ok := fbo.deCache[ref]
+	if !ok {
+		return
+	}
+
+	switch op.Attr {
+	case exAttr:
+		fileEntry.Type = realEntry.Type
+	case mtimeAttr:
+		fileEntry.Mtime = realEntry.Mtime
+	}
+	fbo.deCache[ref] = fileEntry
+}
+
+// UpdateCachedEntryAttributes updates any cached entry for the given
+// path according to the given op. The node for the path is returned
+// if there is one.
+func (fbo *folderBlockOps) UpdateCachedEntryAttributes(
+	ctx context.Context, lState *lockState, md *RootMetadata,
+	dir path, op *setAttrOp) (Node, error) {
+	childPath := dir.ChildPathNoPtr(op.Name)
+
+	// find the node for the actual change; requires looking up
+	// the child entry to get the BlockPointer, unfortunately.
+	de, err := fbo.GetDirtyEntry(ctx, lState, md, childPath)
+	if err != nil {
+		return nil, err
+	}
+
+	childNode := fbo.nodeCache.Get(de.ref())
+	if childNode == nil {
+		// Nothing to do, since the cache entry won't be
+		// accessible from any node.
+		return nil, nil
+	}
+
+	childPath = dir.ChildPath(op.Name, de.BlockPointer)
+
+	// If there's a cache entry, we need to update it, so try and
+	// fetch the undirtied entry.
+	cleanEntry, err := fbo.getUndirtiedEntry(ctx, lState, md, childPath)
+	if err != nil {
+		return nil, err
+	}
+
+	if cleanEntry != nil {
+		fbo.setCachedAttr(ctx, lState, de.ref(), op, cleanEntry)
+	}
+
+	return childNode, nil
+}
+
+func (fbo *folderBlockOps) getDeferredWriteCountForTest(lState *lockState) int {
+	fbo.blockLock.RLock(lState)
+	defer fbo.blockLock.RUnlock(lState)
+	return len(fbo.deferredWrites)
 }

@@ -662,14 +662,10 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 		t.Errorf("Couldn't write file: %v", err)
 	}
 
-	deferredWriteLen := func() int {
-		fbo.blocks.blockLock.Lock(lState)
-		defer fbo.blocks.blockLock.Unlock(lState)
-		return len(fbo.blocks.deferredWrites)
-	}()
-	if deferredWriteLen != 1 {
+	deferredWriteCount := fbo.blocks.getDeferredWriteCountForTest(lState)
+	if deferredWriteCount != 1 {
 		t.Errorf("Unexpected deferred write count %d",
-			deferredWriteLen)
+			deferredWriteCount)
 	}
 
 	// Unstall the sync.
@@ -774,14 +770,10 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 		t.Errorf("Couldn't truncate file: %v", err)
 	}
 
-	deferredWriteLen := func() int {
-		fbo.blocks.blockLock.Lock(lState)
-		defer fbo.blocks.blockLock.Unlock(lState)
-		return len(fbo.blocks.deferredWrites)
-	}()
-	if deferredWriteLen != 1 {
+	deferredWriteCount := fbo.blocks.getDeferredWriteCountForTest(lState)
+	if deferredWriteCount != 1 {
 		t.Errorf("Unexpected deferred write count %d",
-			deferredWriteLen)
+			deferredWriteCount)
 	}
 
 	// Unstall the sync.

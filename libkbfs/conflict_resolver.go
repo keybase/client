@@ -319,8 +319,8 @@ func (cr *ConflictResolver) getPathsFromChains(ctx context.Context,
 		}
 	}
 
-	nodeMap, err := cr.fbo.searchForNodes(ctx, nodeCache, ptrs, newPtrs,
-		chains.mostRecentMD)
+	nodeMap, err := cr.fbo.blocks.SearchForNodes(
+		ctx, nodeCache, ptrs, newPtrs, chains.mostRecentMD)
 	if err != nil {
 		return nil, err
 	}
@@ -727,9 +727,10 @@ func (cr *ConflictResolver) resolveMergedPathTail(ctx context.Context,
 	// current merged path to the most recent version of that
 	// original.  We can do that as follows:
 	// * If the pointer has been changed in the merged branch, we
-	//   can search for it later using fbo.searchForNodes
+	//   can search for it later using fbo.blocks.SearchForNodes
 	// * If it hasn't been changed, check if it has been renamed to
-	//   somewhere else.  If so, use fbo.searchForNodes on that parent later.
+	//   somewhere else.  If so, use fbo.blocks.SearchForNodes on
+	//   that parent later.
 	// * Otherwise, iterate up the path towards the root.
 	var mostRecent BlockPointer
 	for i := len(currPath.path) - 1; i >= 0; i-- {
@@ -906,8 +907,8 @@ func (cr *ConflictResolver) resolveMergedPaths(ctx context.Context,
 		return mergedPaths, recreateOps, newUnmergedPaths, nil
 	}
 
-	nodeMap, err := cr.fbo.searchForNodes(ctx, mergedNodeCache, ptrs, newPtrs,
-		mergedChains.mostRecentMD)
+	nodeMap, err := cr.fbo.blocks.SearchForNodes(
+		ctx, mergedNodeCache, ptrs, newPtrs, mergedChains.mostRecentMD)
 	if err != nil {
 		return nil, nil, nil, err
 	}
@@ -1419,8 +1420,8 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 	mergedNodeCache := newNodeCacheStandard(cr.fbo.folderBranch)
 	mergedNodeCache.GetOrCreate(mergedChains.mostRecentMD.data.Dir.BlockPointer,
 		mergedChains.mostRecentMD.GetTlfHandle().ToString(ctx, cr.config), nil)
-	nodeMap, err := cr.fbo.searchForNodes(ctx, mergedNodeCache, ptrs, newPtrs,
-		mergedChains.mostRecentMD)
+	nodeMap, err := cr.fbo.blocks.SearchForNodes(
+		ctx, mergedNodeCache, ptrs, newPtrs, mergedChains.mostRecentMD)
 	if err != nil {
 		return nil, err
 	}
@@ -2293,8 +2294,9 @@ func (cr *ConflictResolver) resolveOnePath(ctx context.Context,
 				newPtrs[ptr] = true
 			}
 
-			nodeMap, err := cr.fbo.searchForNodes(ctx, cr.fbo.nodeCache, ptrs,
-				newPtrs, unmergedChains.mostRecentMD)
+			nodeMap, err := cr.fbo.blocks.SearchForNodes(
+				ctx, cr.fbo.nodeCache, ptrs, newPtrs,
+				unmergedChains.mostRecentMD)
 			if err != nil {
 				return path{}, err
 			}
@@ -2948,8 +2950,8 @@ func (cr *ConflictResolver) getOpsForLocalNotification(ctx context.Context,
 	// Initialize the root node.
 	mergedNodeCache.GetOrCreate(md.data.Dir.BlockPointer,
 		md.GetTlfHandle().ToString(ctx, cr.config), nil)
-	nodeMap, err := cr.fbo.searchForNodes(ctx, mergedNodeCache, ptrs, newPtrs,
-		md)
+	nodeMap, err := cr.fbo.blocks.SearchForNodes(
+		ctx, mergedNodeCache, ptrs, newPtrs, md)
 	if err != nil {
 		return nil, err
 	}
