@@ -19,12 +19,17 @@ var ErrNotSubscribed = errors.New("Not subscribed")
 // DefaultSubscriberPoolSize is the default subscription worker pool size.
 const DefaultSubscriberPoolSize = 16
 
+// ConnectionToken is an opaque token used to identify a particular connection's generation.
+// It's returned on any reconnection as well as from the subscribe command. The same token
+// returned when subscribing is expected to be submitted when unsubscribing.
+type ConnectionToken int
+
 // Subscriber is an interface to a subscriber implementation. This library implements it with Redis.
 type Subscriber interface {
 	// Subscribe is called to subscribe for messages broadcast on the given channel.
-	Subscribe(channel string) <-chan error
+	Subscribe(channel string) (token ConnectionToken, retChan <-chan error)
 	// Unsubscribe is called to unsubscribe from the given channel.
-	Unsubscribe(channel string, count int) (currentCount int, err error)
+	Unsubscribe(channel string, token ConnectionToken, count int) (currentCount int, err error)
 	// GetSlot returns the slot number for the given channel.
 	GetSlot(channel string) int
 	// Shutdown is called to close all connections.
@@ -34,7 +39,8 @@ type Subscriber interface {
 // SubscriptionHandler is an interface for receiving notification of subscriber events.
 type SubscriptionHandler interface {
 	// OnSubscriberConnect is called upon each successful connection.
-	OnSubscriberConnect(s Subscriber, conn redis.Conn, address string, slot int)
+	OnSubscriberConnect(s Subscriber, conn redis.Conn,
+		address string, slot int, token ConnectionToken)
 	// OnSubscriberConnectError is called whenever there is an error connecting.
 	OnSubscriberConnectError(err error, nextTime time.Duration)
 	// OnSubscribe is called upon successful channel subscription.
@@ -57,15 +63,17 @@ type SubscriptionHandler interface {
 
 type redisSubscriberConn struct {
 	slot       int
+	token      int
 	subscriber *redisSubscriber
 	mutex      sync.Mutex
 	conn       *redis.PubSubConn
 	counts     map[string]int
-	pending    map[string][]chan error
+	pending    map[string]chan error
 	timers     map[string]context.CancelFunc
 }
 
-func (c *redisSubscriberConn) subscribe(channel string) <-chan error {
+func (c *redisSubscriberConn) subscribe(channel string) (
+	token int, retChan <-chan error) {
 	errChan := make(chan error, 1)
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
@@ -77,13 +85,7 @@ func (c *redisSubscriberConn) subscribe(channel string) <-chan error {
 	}
 	// update subscriber count
 	c.counts[channel] = count
-	// add to the pending list
-	if errChans, ok := c.pending[channel]; ok {
-		if count == 1 {
-			panic("pending list not empty")
-		}
-		errChans = append(errChans, errChan)
-	} else {
+	if pendingChan, ok := c.pending[channel]; !ok {
 		// first subscriber
 		if count == 1 {
 			if _, ok := c.timers[channel]; ok {
@@ -92,8 +94,8 @@ func (c *redisSubscriberConn) subscribe(channel string) <-chan error {
 				// already subscribed
 				errChan <- nil
 			} else {
-				// add to pending list
-				c.pending[channel] = []chan error{errChan}
+				// save as pending
+				c.pending[channel] = errChan
 				// send the SUBSCRIBE+FLUSH commands
 				if err := c.conn.Subscribe(channel); err != nil {
 					errChan <- err
@@ -105,13 +107,20 @@ func (c *redisSubscriberConn) subscribe(channel string) <-chan error {
 			// already subscribed
 			errChan <- nil
 		}
+	} else {
+		// still pending
+		errChan = pendingChan
 	}
-	return errChan
+	return c.token, errChan
 }
 
-func (c *redisSubscriberConn) unsubscribe(channel string, count int) (int, error) {
+func (c *redisSubscriberConn) unsubscribe(channel string,
+	token, count int) (int, error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
+	if token != c.token {
+		return 0, ErrNotSubscribed
+	}
 	currentCount, ok := 0, false
 	if currentCount, ok = c.counts[channel]; ok {
 		currentCount -= count
@@ -200,7 +209,7 @@ func (c *redisSubscriberConn) receiveLoop() {
 				// notify the subscription handler of channels we're no longer tracking
 				c.subscriber.handler.OnDisconnected(msg, c.slot, channels)
 				// reconnect
-				c.subscriber.reconnectSlot(c.slot)
+				c.subscriber.reconnectSlot(c.slot, c.token)
 				return
 			}
 			c.subscriber.handler.OnReceiveError(msg)
@@ -211,13 +220,11 @@ func (c *redisSubscriberConn) receiveLoop() {
 			// notify handler of new subscription event
 			if msg.Kind == "subscribe" {
 				func() {
-					// send signal for all pending subscriptions to this channel
+					// signal waiting subscribers
 					c.mutex.Lock()
 					defer c.mutex.Unlock()
-					if chans, ok := c.pending[msg.Channel]; ok {
-						for _, errChan := range chans {
-							errChan <- nil
-						}
+					if pendingChan, ok := c.pending[msg.Channel]; ok {
+						pendingChan <- nil
 					}
 					delete(c.pending, msg.Channel)
 				}()
@@ -246,12 +253,10 @@ func (c *redisSubscriberConn) closeLocked() {
 	}
 	c.timers = make(map[string]context.CancelFunc)
 	// send error signal for all pending subscriptions
-	for _, chans := range c.pending {
-		for _, errChan := range chans {
-			errChan <- io.EOF
-		}
+	for _, pendingChan := range c.pending {
+		pendingChan <- io.EOF
 	}
-	c.pending = make(map[string][]chan error)
+	c.pending = make(map[string]chan error)
 }
 
 type redisSubscriber struct {
@@ -276,12 +281,12 @@ func NewRedisSubscriber(address string, handler SubscriptionHandler, poolSize in
 		slots:       make([]*redisSubscriberConn, poolSize),
 	}
 	for slot := 0; slot < poolSize; slot++ {
-		subscriber.reconnectSlot(slot)
+		subscriber.reconnectSlot(slot, 0)
 	}
 	return subscriber
 }
 
-func (s *redisSubscriber) reconnectSlot(slot int) {
+func (s *redisSubscriber) reconnectSlot(slot, lastToken int) {
 	// connect. todo: let handler specify backoff parameters
 	expBackoff := backoff.NewExponentialBackOff()
 	// don't quit trying
@@ -313,13 +318,17 @@ func (s *redisSubscriber) reconnectSlot(slot int) {
 		return
 	}
 
+	// don't care if this overflows
+	lastToken++
+
 	// create the connection
 	connection := &redisSubscriberConn{
 		slot:       slot,
+		token:      lastToken,
 		subscriber: s,
 		conn:       &redis.PubSubConn{Conn: conn},
 		counts:     make(map[string]int),
-		pending:    make(map[string][]chan error),
+		pending:    make(map[string]chan error),
 		timers:     make(map[string]context.CancelFunc),
 	}
 	func() {
@@ -330,7 +339,7 @@ func (s *redisSubscriber) reconnectSlot(slot int) {
 	}()
 
 	// call the callback
-	s.handler.OnSubscriberConnect(s, conn, s.address, slot)
+	s.handler.OnSubscriberConnect(s, conn, s.address, slot, ConnectionToken(lastToken))
 
 	// start the receive loop
 	go connection.receiveLoop()
@@ -352,19 +361,22 @@ func (s *redisSubscriber) GetSlot(channel string) int {
 }
 
 // Subscribe implements the Subscriber interface.
-func (s *redisSubscriber) Subscribe(channel string) <-chan error {
+func (s *redisSubscriber) Subscribe(channel string) (
+	token ConnectionToken, retChan <-chan error) {
 	slot := s.GetSlot(channel)
 	s.slotMutexes[slot].RLock()
 	defer s.slotMutexes[slot].RUnlock()
-	return s.slots[slot].subscribe(channel)
+	t, retChan := s.slots[slot].subscribe(channel)
+	return ConnectionToken(t), retChan
 }
 
 // Unsubscribe implements the Subscriber interface.
-func (s *redisSubscriber) Unsubscribe(channel string, count int) (int, error) {
+func (s *redisSubscriber) Unsubscribe(channel string,
+	token ConnectionToken, count int) (int, error) {
 	slot := s.GetSlot(channel)
 	s.slotMutexes[slot].RLock()
 	defer s.slotMutexes[slot].RUnlock()
-	return s.slots[slot].unsubscribe(channel, count)
+	return s.slots[slot].unsubscribe(channel, int(token), count)
 }
 
 // Shutdown implements the Subscriber interface.
