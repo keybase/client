@@ -26,18 +26,19 @@ type PGPKeyImportEngine struct {
 }
 
 type PGPKeyImportEngineArg struct {
-	Gen        *libkb.PGPGenArg
-	Pregen     *libkb.PGPKeyBundle
-	SigningKey libkb.GenericKey
-	Me         *libkb.User
-	Ctx        *libkb.GlobalContext
-	Lks        *libkb.LKSec
-	NoSave     bool
-	PushSecret bool
-	OnlySave   bool
-	AllowMulti bool
-	DoExport   bool
-	DoUnlock   bool
+	Gen         *libkb.PGPGenArg
+	Pregen      *libkb.PGPKeyBundle
+	SigningKey  libkb.GenericKey
+	Me          *libkb.User
+	Ctx         *libkb.GlobalContext
+	Lks         *libkb.LKSec
+	NoSave      bool
+	PushSecret  bool
+	OnlySave    bool
+	AllowMulti  bool
+	DoExport    bool
+	DoUnlock    bool
+	GPGFallback bool
 }
 
 func NewPGPKeyImportEngineFromBytes(key []byte, pushPrivate bool, gc *libkb.GlobalContext) (eng *PGPKeyImportEngine, err error) {
@@ -317,6 +318,9 @@ func (e *PGPKeyImportEngine) prepareSecretPush(ctx *Context) error {
 
 func (e *PGPKeyImportEngine) push(ctx *Context) (err error) {
 	e.G().Log.Debug("+ PGP::Push")
+	if e.arg.GPGFallback {
+		e.bundle.InitGPGKey()
+	}
 	e.del.NewKey = e.bundle
 	e.del.EncodedPrivateKey = e.epk
 	if err = e.del.Run(ctx.LoginContext); err != nil {
