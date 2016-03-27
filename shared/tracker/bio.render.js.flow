@@ -13,5 +13,6 @@ export type UserInfo = {
 export type BioProps = {
   username: ?string,
   userInfo: ?UserInfo,
-  currentlyFollowing: boolean
+  currentlyFollowing: boolean,
+  style?: ?Object
 }

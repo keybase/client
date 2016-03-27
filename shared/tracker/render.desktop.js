@@ -7,11 +7,23 @@ import Action, {calcFooterHeight} from './action.render.desktop'
 import Bio from './bio.render.desktop'
 import {ProofsRender} from './proofs.render.desktop'
 import commonStyles from '../styles/common'
+import {globalColors} from '../styles/style-guide'
 
 import type {RenderProps} from './render'
 
 export default class Render extends Component {
   props: RenderProps;
+  state: {showCloseWarning: boolean};
+
+  constructor (props: RenderProps) {
+    super(props)
+
+    this.state = {showCloseWarning: false}
+  }
+
+  onShowCloseWarning (showCloseWarning: boolean): void {
+    this.setState({showCloseWarning})
+  }
 
   render () {
     // We have to calculate the height of the footer.
@@ -20,11 +32,40 @@ export default class Render extends Component {
     // So we use the existing paddingBottom and add the height of the footer
     const footerHeight = calcFooterHeight(this.props.actionProps.loggedIn)
     const calculatedPadding = styles.content.paddingBottom + footerHeight
+
+    let backgroundStyle = (this.props.headerProps.currentlyFollowing && !this.props.headerProps.changed) ? styles.headerSuccess : styles.headerNormal
+
+    if (this.props.headerProps.currentlyFollowing) {
+      switch (this.props.headerProps.trackerState) {
+        case 'warning': backgroundStyle = styles.headerWarning; break
+        case 'error': backgroundStyle = styles.headerError; break
+      }
+    }
+
+    if (this.props.actionProps.loggedIn && !this.props.headerProps.currentlyFollowing && this.state.showCloseWarning) {
+      backgroundStyle = styles.headerWarning
+    }
+
+    // If there's a lastAction, it overrides everything else.
+    switch (this.props.headerProps.lastAction) {
+      case 'followed':
+      case 'refollowed':
+      case 'unfollowed':
+        backgroundStyle = styles.headerSuccess
+        break
+      case 'error':
+        backgroundStyle = styles.headerWarning
+    }
+
     return (
       <div style={styles.container}>
-        <Header {...this.props.headerProps} />
-        <div style={{...styles.content, paddingBottom: calculatedPadding}} className='hide-scrollbar'>
-          <Bio {...this.props.bioProps} />
+        <Header {...this.props.headerProps}
+          backgroundStyle={backgroundStyle}
+          headerWarning={styles.headerWarning}
+          showCloseWarning={this.state.showCloseWarning}
+          onShowCloseWarning={show => this.onShowCloseWarning(show)}/>
+        <div style={{...styles.content, paddingBottom: calculatedPadding}}>
+          <Bio {...this.props.bioProps} backgroundStyle={backgroundStyle} />
           <ProofsRender {...this.props.proofsProps} />
         </div>
         <div style={styles.footer}>
@@ -50,16 +91,27 @@ const styles = {
     position: 'relative'
   },
   content: {
-    overflowY: 'auto',
+    overflowY: 'scroll',
     overflowX: 'hidden',
     // This value is added to the footer height to set the actual paddingBottom
-    paddingBottom: 12,
-    zIndex: 1
+    paddingBottom: 12
   },
   footer: {
     position: 'absolute',
     bottom: 0,
     left: 0,
     right: 0
+  },
+  headerNormal: {
+    backgroundColor: globalColors.blue
+  },
+  headerSuccess: {
+    backgroundColor: globalColors.green
+  },
+  headerWarning: {
+    backgroundColor: globalColors.yellow
+  },
+  headerError: {
+    backgroundColor: globalColors.red
   }
 }

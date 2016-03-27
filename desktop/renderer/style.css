@@ -150,8 +150,3 @@ body {
 .hover-underline:hover {
   text-decoration: underline;
 }
-
-.hide-scrollbar::-webkit-scrollbar {
-	display: none;
-	width: 0;
-}

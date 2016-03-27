@@ -20,7 +20,10 @@ export default function (mainWindow) {
     subscribeStoreSubscribers.push({sender, selector})
 
     try {
-      sender.send('stateChange', selector ? selector(store) : store)
+      const newStore = selector ? selector(store) : store
+      if (newStore) {
+        sender.send('stateChange', newStore)
+      }
     } catch (_) { }
   })
 
@@ -30,7 +33,10 @@ export default function (mainWindow) {
     let dead = []
     subscribeStoreSubscribers.forEach((sub, idx) => {
       try {
-        sub.sender.send('stateChange', sub.selector ? sub.selector(store) : store)
+        const newStore = sub.selector ? sub.selector(store) : store
+        if (newStore) {
+          sub.sender.send('stateChange', newStore)
+        }
       } catch (_) {
         dead.push(idx)
       }
