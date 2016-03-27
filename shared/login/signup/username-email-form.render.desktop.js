@@ -23,7 +23,7 @@ class Render extends Component {
         <UserCard style={stylesCard}>
           <Input autoFocus floatingLabelText='Create a username' value={this.props.username} ref={r => (usernameRef = r)} errorText={this.props.usernameErrorText}/>
           <Input floatingLabelText='Email address' value={this.props.email} ref={r => (emailRef = r)} errorText={this.props.emailErrorText} onEnterKeyDown={submitUserEmail}/>
-          <Button style={{marginTop: 40}} fullWidth type='Primary' label='Continue' onClick={submitUserEmail}/>
+          <Button waiting={this.props.waiting} style={{marginTop: 40}} fullWidth type='Primary' label='Continue' onClick={submitUserEmail}/>
         </UserCard>
       </Container>
     )

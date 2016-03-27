@@ -121,12 +121,13 @@ class Button extends Component {
           label={label}
           primary={this.props.type === 'Primary'}
           secondary={this.props.type === 'Secondary'}
-          disabled={this.props.disabled || this.props.waiting}/>
-        {this.props.waiting && (
-          <ProgressIndicator
-            white={progressColor === globalColors.white}
-            style={{...stylesProgress}}
-          />)}
+          disabled={this.props.disabled || this.props.waiting}>
+          {this.props.waiting && (
+            <ProgressIndicator
+              white={progressColor === globalColors.white}
+              style={{...stylesProgress}}
+            />)}
+        </FlatButton>
       </div>
     )
   }

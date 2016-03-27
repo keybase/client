@@ -9,7 +9,8 @@ export type Props = {
   usernameErrorText: ?string,
   emailErrorText: ?string,
   submitUserEmail: () => void,
-  onBack: () => void
+  onBack: () => void,
+  waiting: boolean
 }
 
 export default class Render extends Component {

@@ -9,7 +9,8 @@ export type Props = {
   nameErrorText: ?string,
   emailErrorText: ?string,
   onRequestInvite: () => void,
-  onBack: () => void
+  onBack: () => void,
+  waiting: boolean
 }
 
 export default class Render extends Component {

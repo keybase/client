@@ -22,7 +22,7 @@ export default class Render extends Component {
 
   render () {
     return (
-      <Container onBack={this.props.onBack} style={styles.container}>
+      <Container style={styles.container}>
         <Text type='Header' style={styles.header}>Congratulations, you’ve just joined Keybase!</Text>
         <Text type='Body' style={styles.body}>Here is your unique paper key, it will allow you to perform important Keybase tasks in the future. This is the only time you’ll see this so be sure to write it down.</Text>
         <div style={styles.paperKeyContainer}>
@@ -38,12 +38,10 @@ export default class Render extends Component {
 
 const styles = {
   container: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    marginTop: 15
+    alignItems: 'center'
   },
   header: {
-    marginTop: 22,
+    marginTop: 60,
     marginBottom: 5
   },
   body: {
