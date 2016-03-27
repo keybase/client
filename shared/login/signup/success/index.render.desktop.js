@@ -22,7 +22,7 @@ export default class Render extends Component {
 
   render () {
     return (
-      <div style={styles.container}>
+      <Container style={styles.container}>
         <Text type='Header' style={styles.header}>Congratulations, you’ve just joined Keybase!</Text>
         <Text type='Body' style={styles.body}>Here is your unique paper key, it will allow you to perform important Keybase tasks in the future. This is the only time you’ll see this so be sure to write it down.</Text>
         <div style={styles.paperKeyContainer}>
@@ -31,16 +31,14 @@ export default class Render extends Component {
         </div>
         <Checkbox style={styles.check} label='Yes, I wrote this down.' checked={this.state.inWallet} onCheck={inWallet => this.setState({inWallet})} />
         <Button style={styles.button} type='Primary' label='Done' onClick={() => this.props.onFinish()} disabled={!this.state.inWallet} />
-      </div>
+      </Container>
     )
   }
 }
 
 const styles = {
   container: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    padding: 60
+    alignItems: 'center'
   },
   header: {
     marginTop: 60,
