@@ -182,6 +182,11 @@
 			"revisionTime": "2015-11-16T10:08:30+11:00"
 		},
 		{
+			"path": "github.com/golang/time/rate",
+			"revision": "a4bde12657593d5e90d0533a3e4fd95e635124cb",
+			"revisionTime": "2016-02-02T10:34:45-08:00"
+		},
+		{
 			"origin": "github.com/keybase/client/go/vendor/github.com/google/go-snappy/snappy",
 			"path": "github.com/google/go-snappy/snappy",
 			"revision": "64f61c25cc3595b1aeecdaf86a61bfec00b04c5f",
