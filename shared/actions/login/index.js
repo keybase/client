@@ -5,7 +5,7 @@ import * as CommonConstants from '../../constants/common'
 import {bindActionCreators} from 'redux'
 import {isMobile} from '../../constants/platform'
 import {navigateTo, routeAppend} from '../router'
-import engine, {isRPCCancelError} from '../../engine'
+import engine from '../../engine'
 import type {responseError} from '../../engine'
 import enums from '../../constants/types/keybase-v1'
 import SelectOtherDevice from '../../login/register/select-other-device'
@@ -30,6 +30,8 @@ import type {incomingCallMapType, login_recoverAccountFromEmailAddress_rpc,
 import {overrideLoggedInTab} from '../../local-debug'
 import type {DeviceRole} from '../../constants/login'
 import openURL from '../../util/open-url'
+
+const InputCancelError = {desc: 'Cancel Login', code: enums.constants.StatusCode.scinputcanceled}
 
 function makeWaitingHandler (dispatch: Dispatch): {waitingHandler: (waiting: boolean) => void} {
   return {
@@ -116,7 +118,7 @@ export function login (): AsyncAction {
                 payload: error
               })
 
-              if (!isRPCCancelError(error)) {
+              if (!(error.raw && error.raw.code === InputCancelError.code)) {
                 dispatch(routeAppend({
                   parseRoute: {componentAtTop: {component: Error, props: {
                     error,
@@ -361,7 +363,7 @@ function cancelLogin (response: ?responseError) : AsyncAction {
   return (dispatch, getState) => {
     dispatch(navBasedOnLoginState())
     if (response) {
-      engine.cancelRPC(response)
+      engine.cancelRPC(response, InputCancelError)
     }
   }
 }
@@ -424,7 +426,7 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
         case enums.secretUi.PassphraseType.paperKey:
           appendRouteElement((
             <PaperKey
-              mapStateToProps={state => state.login}
+              mapStateToProps={state => ({})}
               onSubmit={(passphrase: string) => { response.result({passphrase, storeSecret: false}) }} // eslint-disable-line arrow-parens
               onBack={() => { dispatch(cancelLogin(response)) }}
               error={retryLabel}/>))

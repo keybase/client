@@ -21,11 +21,18 @@ class Engine {
     windowsHack()
     setupLocalLogs()
 
+    // Keep some meta data from session ID to response meta
+    // To help debug outstanding requests
+    this.responseMeta = {}
+
     if (printOutstandingRPCs) {
       setInterval(() => {
         const keys = Object.keys(this.sessionIDToResponse).filter(k => this.sessionIDToResponse[k])
         if (keys.length) {
-          console.log('Outstanding RPC sessionIDs: ', keys)
+          keys.forEach(k => {
+            const {method, param} = this.responseMeta[k]
+            logLocal('Outstanding RPC sessionIDs: %s.\nMethod: %s with param: %O', k, method, param)
+          })
         }
       }, 10 * 1000)
     }
@@ -223,6 +230,10 @@ class Engine {
     // Incoming calls have no sessionID so let's ignore
     if (sessionID) {
       this.sessionIDToResponse[sessionID] = wrappedResponse
+
+      if (printOutstandingRPCs) {
+        this.responseMeta[sessionID] = {method, param}
+      }
     }
 
     return wrappedResponse
@@ -363,10 +374,10 @@ class Engine {
     return this.rpc_unchecked(method, param, incomingCallMap, callback, waitingHandler)
   }
 
-  cancelRPC (response) {
+  cancelRPC (response, error) {
     if (response) {
       if (response.error) {
-        response.error(cancelError)
+        response.error(error || cancelError)
       }
     } else {
       logLocal('Invalid response sent to cancelRPC')
