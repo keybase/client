@@ -285,6 +285,7 @@ let paperKeyResponse = null
 export function sawPaperKey (): AsyncAction {
   return () => {
     if (paperKeyResponse) {
+      console.log('in signup -> sawPaperKey')
       paperKeyResponse.result()
       paperKeyResponse = null
     }

@@ -17,7 +17,7 @@ import PaperKey from '../../login/register/paper-key'
 import CodePage from '../../login/register/code-page'
 import Error from '../../login/register/error'
 import SetPublicName from '../../login/register/set-public-name'
-import Success from '../../login/signup/success'
+import SuccessRender from '../../login/signup/success/index.render'
 import {switchTab} from '../tabbed-router'
 import {devicesTab, loginTab} from '../../constants/tabs'
 import {loadDevices} from '../devices'
@@ -313,7 +313,9 @@ export function logout () : AsyncAction {
 
 let paperKeyResponse = null
 export function sawPaperKey (): AsyncAction {
+  console.log('in login -> sawPaperKey')
   return () => {
+    console.log('in login2 -> sawPaperKey')
     if (paperKeyResponse) {
       paperKeyResponse.result()
       paperKeyResponse = null
@@ -482,8 +484,9 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
     'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, response) => {
       paperKeyResponse = response
       let hiddenphrase = new HiddenString(phrase)
+      console.log('in displayPrimaryPaperKey')
       appendRouteElement((
-        <Success
+        <SuccessRender
           paperkey={hiddenphrase}
           onFinish={() => dispatch(sawPaperKey())}
           onBack={() => dispatch(cancelLogin(response))}
