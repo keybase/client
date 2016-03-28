@@ -28,7 +28,7 @@ Success.propTypes = {
 export default connect(
   state => ({paperkey: state.signup.paperkey}),
   dispatch => ({
-    onFinish: dispatch(sawPaperKey()),
+    onFinish: () => dispatch(sawPaperKey()),
     onBack: () => {}
   })
 )(Success)
