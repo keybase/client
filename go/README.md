@@ -88,6 +88,13 @@ keybase id max
 keybase --standalone id max
 ```
 
+### Run tests
+
+```bash
+# skip tests in vendored projects
+go test $(go list ./... | grep -v /vendor/)
+```
+
 ### License
 
 Most code is released under the New BSD (3 Clause) License.
