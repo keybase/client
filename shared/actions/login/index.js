@@ -313,16 +313,6 @@ export function logout () : AsyncAction {
   }
 }
 
-let paperKeyResponse = null
-export function sawPaperKey (): AsyncAction {
-  return () => {
-    if (paperKeyResponse) {
-      paperKeyResponse.result()
-      paperKeyResponse = null
-    }
-  }
-}
-
 export function logoutDone () : AsyncAction {
   // We've logged out, let's check our current status
   return (dispatch, getState) => {
@@ -482,12 +472,10 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
           onBack={() => dispatch(cancelLogin(response))} />))
     },
     'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, response) => {
-      paperKeyResponse = response
-      let hiddenphrase = new HiddenString(phrase)
       appendRouteElement((
         <SuccessRender
-          paperkey={hiddenphrase}
-          onFinish={() => { dispatch(sawPaperKey()) }}
+          paperkey={new HiddenString(phrase)}
+          onFinish={() => { response.result() }}
           onBack={() => { dispatch(cancelLogin(response)) }}
           title={"Your new paper key!"} />))
     },
