@@ -192,18 +192,6 @@ function fixupSymlinks () {
       exec('mklink /j shared ..\\shared', null, {cwd: path.join(process.cwd(), '.')})
     } catch (_) { }
   }
-
-  s = fs.lstatSync('../react-native/shared')
-  if (!s.isSymbolicLink()) {
-    console.log('Fixing up shared symlinks')
-
-    try {
-      exec('del shared', null, {cwd: path.join(process.cwd(), '..', 'react-native')})
-    } catch (_) { }
-    try {
-      exec('mklink /j shared ..\\shared', null, {cwd: path.join(process.cwd(), '..', 'react-native')})
-    } catch (_) { }
-  }
 }
 
 function exec (command, env, options) {
