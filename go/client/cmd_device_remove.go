@@ -73,7 +73,7 @@ func (c *CmdDeviceRemove) lookup(name string) (keybase1.DeviceID, error) {
 			return dev.DeviceID, nil
 		}
 	}
-	return "", fmt.Errorf("Unknown Device ID or Name")
+	return "", fmt.Errorf("Invalid Device ID or Unknown Device Name")
 }
 
 func NewCmdDeviceRemove(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
