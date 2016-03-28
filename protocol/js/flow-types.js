@@ -1919,7 +1919,8 @@ export type identify_identify2_rpc = {
     noErrorOnTrackFailure?: boolean,
     forceRemoteCheck?: boolean,
     needProofSet?: boolean,
-    allowEmptySelfID?: boolean
+    allowEmptySelfID?: boolean,
+    noSkipSelf?: boolean
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any, response: identify_identify2_result) => void)
@@ -3960,7 +3961,8 @@ export type incomingCallMapType = {
       noErrorOnTrackFailure?: boolean,
       forceRemoteCheck?: boolean,
       needProofSet?: boolean,
-      allowEmptySelfID?: boolean
+      allowEmptySelfID?: boolean,
+      noSkipSelf?: boolean
     },
     response: {
       error: (err: RPCError) => void,

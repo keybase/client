@@ -45,6 +45,7 @@ func (v *CmdID) makeArg() keybase1.Identify2Arg {
 		AlwaysBlock:      true,
 		NeedProofSet:     true,
 		AllowEmptySelfID: true,
+		NoSkipSelf:       true,
 	}
 }
 

@@ -152,8 +152,8 @@ func (e *Identify2WithUID) runReturnError(ctx *Context) (err error) {
 		return err
 	}
 
-	if e.isSelfLoad() {
-		e.G().Log.Debug("| was a self load")
+	if e.isSelfLoad() && !e.arg.NoSkipSelf {
+		e.G().Log.Debug("| was a self load, short-circuiting")
 		return nil
 	}
 

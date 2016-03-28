@@ -40,6 +40,7 @@ type Identify2Arg struct {
 	ForceRemoteCheck      bool           `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
 	NeedProofSet          bool           `codec:"needProofSet" json:"needProofSet"`
 	AllowEmptySelfID      bool           `codec:"allowEmptySelfID" json:"allowEmptySelfID"`
+	NoSkipSelf            bool           `codec:"noSkipSelf" json:"noSkipSelf"`
 }
 
 type IdentifyInterface interface {

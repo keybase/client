@@ -779,6 +779,11 @@
           "name": "allowEmptySelfID",
           "type": "boolean",
           "default": false
+        },
+        {
+          "name": "noSkipSelf",
+          "type": "boolean",
+          "default": true
         }
       ],
       "response": "Identify2Res"
