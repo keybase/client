@@ -31,7 +31,7 @@ export default class HeaderRender extends Component {
 
     let headerText: string = this.props.reason
     let isWarning = false
-    if (!this.props.currentlyFollowing && this.state.showCloseWarning) {
+    if (this.props.loggedIn && !this.props.currentlyFollowing && this.state.showCloseWarning) {
       isWarning = true
       headerStyle = styles.headerWarning
       headerTextStyle = styles.headerTextWarning

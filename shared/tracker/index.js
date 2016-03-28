@@ -78,7 +78,8 @@ class Tracker extends Component {
         trackerState: this.props.trackerState,
         currentlyFollowing,
         changed,
-        lastAction: this.props.lastAction
+        lastAction: this.props.lastAction,
+        loggedIn: this.props.loggedIn
       },
       actionProps: {
         loggedIn: this.props.loggedIn,
@@ -131,15 +132,19 @@ export default connect(
     return bindActionCreators(trackerActions, dispatch)
   })(Tracker)
 
-export function selector (username: string): (store: Object) => Object {
+export function selector (username: string): (store: Object) => ?Object {
   return store => {
-    return {
-      tracker: {
-        trackers: {
-          [username]: store.tracker.trackers[username]
-        }
-      },
-      config: store.config
+    if (store.tracker.trackers[username]) {
+      return {
+        tracker: {
+          trackers: {
+            [username]: store.tracker.trackers[username]
+          }
+        },
+        config: store.config
+      }
     }
+
+    return null
   }
 }
