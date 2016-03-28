@@ -31,6 +31,13 @@ func (c *CmdDeviceRemove) ParseArgv(ctx *cli.Context) error {
 }
 
 func (c *CmdDeviceRemove) Run() (err error) {
+	protocols := []rpc.Protocol{
+		NewSecretUIProtocol(c.G()),
+	}
+	if err = RegisterProtocolsWithContext(protocols, c.G()); err != nil {
+		return err
+	}
+
 	var id keybase1.DeviceID
 	id, err = keybase1.DeviceIDFromString(c.idOrName)
 	if err != nil {
@@ -45,13 +52,6 @@ func (c *CmdDeviceRemove) Run() (err error) {
 		return err
 	}
 
-	protocols := []rpc.Protocol{
-		NewSecretUIProtocol(c.G()),
-	}
-	if err = RegisterProtocols(protocols); err != nil {
-		return err
-	}
-
 	return cli.RevokeDevice(context.TODO(), keybase1.RevokeDeviceArg{
 		Force:    c.force,
 		DeviceID: id,
@@ -61,9 +61,6 @@ func (c *CmdDeviceRemove) Run() (err error) {
 func (c *CmdDeviceRemove) lookup(name string) (keybase1.DeviceID, error) {
 	cli, err := GetDeviceClient()
 	if err != nil {
-		return "", err
-	}
-	if err := RegisterProtocols(nil); err != nil {
 		return "", err
 	}
 	devs, err := cli.DeviceList(context.TODO(), 0)
