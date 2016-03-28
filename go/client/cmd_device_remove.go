@@ -16,25 +16,29 @@ import (
 )
 
 type CmdDeviceRemove struct {
-	id    keybase1.DeviceID
+	id    string
 	force bool
 	libkb.Contextified
 }
 
 func (c *CmdDeviceRemove) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
-		return fmt.Errorf("Device remove only takes one argument, the device ID.")
+		return fmt.Errorf("Device remove only takes one argument: the device ID or name.")
 	}
-	id, err := keybase1.DeviceIDFromString(ctx.Args()[0])
-	if err != nil {
-		return err
-	}
-	c.id = id
+	c.id = ctx.Args()[0]
 	c.force = ctx.Bool("force")
 	return nil
 }
 
 func (c *CmdDeviceRemove) Run() (err error) {
+	id, err := keybase1.DeviceIDFromString(c.id)
+	if err != nil {
+		id, err = c.lookup(c.id)
+		if err != nil {
+			return err
+		}
+	}
+
 	cli, err := GetRevokeClient()
 	if err != nil {
 		return err
@@ -49,14 +53,35 @@ func (c *CmdDeviceRemove) Run() (err error) {
 
 	return cli.RevokeDevice(context.TODO(), keybase1.RevokeDeviceArg{
 		Force:    c.force,
-		DeviceID: c.id,
+		DeviceID: id,
 	})
+}
+
+func (c *CmdDeviceRemove) lookup(name string) (keybase1.DeviceID, error) {
+	cli, err := GetDeviceClient()
+	if err != nil {
+		return "", err
+	}
+	if err := RegisterProtocols(nil); err != nil {
+		return "", err
+	}
+	devs, err := cli.DeviceList(context.TODO(), 0)
+	if err != nil {
+		return "", err
+	}
+
+	for _, dev := range devs {
+		if dev.Name == name {
+			return dev.DeviceID, nil
+		}
+	}
+	return "", fmt.Errorf("Unknown Device ID or Name")
 }
 
 func NewCmdDeviceRemove(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "remove",
-		ArgumentHelp: "<id>",
+		ArgumentHelp: "<id|name>",
 		Usage:        "Remove a device",
 		Flags: []cli.Flag{
 			cli.BoolFlag{
