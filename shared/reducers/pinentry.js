@@ -40,8 +40,8 @@ export default function (state: RootPinentryState = initialState, action: Pinent
   switch (action.type) {
     case CommonConstants.resetStore:
       return {
-        started: state.started,
-        ...initialState
+        ...initialState,
+        started: state.started
       }
     case Constants.registerPinentryListener:
       if (action.payload && action.payload.started) {
