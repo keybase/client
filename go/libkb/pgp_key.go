@@ -621,10 +621,10 @@ func (k *PGPKeyBundle) CheckFingerprint(fp *PGPFingerprint) error {
 }
 
 func (k *PGPKeyBundle) SignToString(msg []byte) (sig string, id keybase1.SigID, err error) {
-	if k.GPGFallbackKey != nil {
+	if sig, id, err = SimpleSign(msg, *k); err != nil && k.GPGFallbackKey != nil {
 		return k.GPGFallbackKey.SignToString(msg)
 	}
-	return SimpleSign(msg, *k)
+	return
 }
 
 func (k PGPKeyBundle) VerifyStringAndExtract(sig string) (msg []byte, id keybase1.SigID, err error) {
