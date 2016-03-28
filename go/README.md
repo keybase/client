@@ -91,7 +91,9 @@ keybase --standalone id max
 ### Run tests
 
 ```bash
-# skip tests in vendored projects
+# Skip tests in vendored projects. (This runs non-vendor tests in the
+# current directory and below. So at the project root it will run
+# everything.)
 go test $(go list ./... | grep -v /vendor/)
 ```
 
