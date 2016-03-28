@@ -11,6 +11,7 @@ class Success extends Component {
   render () {
     return (
       <Render
+        title={this.props.title}
         paperkey={this.props.paperkey}
         onFinish={this.props.onFinish}
         onBack={this.props.onBack}

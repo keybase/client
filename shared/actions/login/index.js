@@ -17,6 +17,7 @@ import PaperKey from '../../login/register/paper-key'
 import CodePage from '../../login/register/code-page'
 import Error from '../../login/register/error'
 import SetPublicName from '../../login/register/set-public-name'
+import SuccessRender from '../../login/signup/success/index.render'
 import {switchTab} from '../tabbed-router'
 import {devicesTab, loginTab} from '../../constants/tabs'
 import {loadDevices} from '../devices'
@@ -29,6 +30,7 @@ import type {incomingCallMapType, login_recoverAccountFromEmailAddress_rpc,
   login_login_rpc, login_logout_rpc, device_deviceAdd_rpc, login_getConfiguredAccounts_rpc} from '../../constants/types/flow-types'
 import {overrideLoggedInTab} from '../../local-debug'
 import type {DeviceRole} from '../../constants/login'
+import HiddenString from '../../util/hidden-string'
 import openURL from '../../util/open-url'
 
 const InputCancelError = {desc: 'Cancel Login', code: enums.constants.StatusCode.scinputcanceled}
@@ -468,6 +470,14 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
         <GPGSign
           onSubmit={exportKey => response.result(exportKey ? enums.provisionUi.GPGMethod.gpgImport : enums.provisionUi.GPGMethod.gpgSign)}
           onBack={() => dispatch(cancelLogin(response))} />))
+    },
+    'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, response) => {
+      appendRouteElement((
+        <SuccessRender
+          paperkey={new HiddenString(phrase)}
+          onFinish={() => { response.result() }}
+          onBack={() => { dispatch(cancelLogin(response)) }}
+          title={"Your new paper key!"} />))
     },
     'keybase.1.provisionUi.ProvisioneeSuccess': (param, response) => {
       response.result()
