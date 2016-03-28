@@ -30,9 +30,10 @@ module.exports = {
     libraryTarget: 'commonjs2'
   },
   resolve: {
+    modulesDirectories: [path.join(__dirname, 'node_modules')],
+    root: [path.join(__dirname)],
     extensions: ['', '.desktop.js', '.js', '.jsx', '.json'],
-    packageMains: ['webpack', 'browser', 'web', 'browserify', ['jam', 'main'], 'main'],
-    fallback: path.join(__dirname, 'node_modules')
+    packageMains: ['webpack', 'browser', 'web', 'browserify', ['jam', 'main'], 'main']
   },
   resolveLoader: {
     modulesDirectories: ['web_loaders', 'web_modules', 'node_loaders', 'node_modules', path.join(__dirname, 'node_modules')],
