@@ -16,8 +16,8 @@ import (
 )
 
 type CmdDeviceRemove struct {
-	id    string
-	force bool
+	idOrName string
+	force    bool
 	libkb.Contextified
 }
 
@@ -25,15 +25,16 @@ func (c *CmdDeviceRemove) ParseArgv(ctx *cli.Context) error {
 	if len(ctx.Args()) != 1 {
 		return fmt.Errorf("Device remove only takes one argument: the device ID or name.")
 	}
-	c.id = ctx.Args()[0]
+	c.idOrName = ctx.Args()[0]
 	c.force = ctx.Bool("force")
 	return nil
 }
 
 func (c *CmdDeviceRemove) Run() (err error) {
-	id, err := keybase1.DeviceIDFromString(c.id)
+	var id keybase1.DeviceID
+	id, err = keybase1.DeviceIDFromString(c.idOrName)
 	if err != nil {
-		id, err = c.lookup(c.id)
+		id, err = c.lookup(c.idOrName)
 		if err != nil {
 			return err
 		}
