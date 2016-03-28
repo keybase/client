@@ -23,7 +23,7 @@ export default class Render extends Component {
   render () {
     return (
       <Container onBack={this.props.onBack} style={styles.container}>
-        <Text type='Header' style={styles.header}>{this.props.title ? this.props.title : 'Congratulations, you’ve just joined Keybase!'}</Text>
+        <Text type='Header' style={styles.header}>{this.props.title || 'Congratulations, you’ve just joined Keybase!'}</Text>
         <Text type='Body' style={styles.body}>Here is your unique paper key, it will allow you to perform important Keybase tasks in the future. This is the only time you’ll see this so be sure to write it down.</Text>
         <div style={styles.paperKeyContainer}>
           <Text type='Body' style={styles.paperkey}>{this.props.paperkey.stringValue()}</Text>
