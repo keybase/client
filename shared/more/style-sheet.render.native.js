@@ -13,13 +13,17 @@ export default class Render extends Component {
 
     return (
       <ScrollView>
-        <Container title='Dropdown'/>
-        <Container title='Text'/>
+        <Container title='Dropdown'>
+          <Text>TODO</Text>
+        </Container>
+        <Container title='Text'>
+          <Text>TODO</Text>
+        </Container>
         <Container title='Colors'>
           <Box style={{...globalStyles.flexBoxColumn}}>
             {Object.keys(globalColors).sort().map(c => {
               return (
-                <Box style={{...globalStyles.flexBoxRow, margin: 5}}>
+                <Box key={c} style={{...globalStyles.flexBoxRow, margin: 5}}>
                   <Box style={{width: 60, height: 60, backgroundColor: globalColors[c]}}/>
                   <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', marginLeft: 5}}>
                     <Text type='Body'>{c}</Text>
@@ -30,9 +34,15 @@ export default class Render extends Component {
             )}
           </Box>
         </Container>
-        <Container title='Buttons'/>
-        <Container title='Icons'/>
-        <Container title='Inputs'/>
+        <Container title='Buttons'>
+          <Text>TODO</Text>
+        </Container>
+        <Container title='Icons'>
+          <Text>TODO</Text>
+        </Container>
+        <Container title='Inputs'>
+          <Text>TODO</Text>
+        </Container>
       </ScrollView>
     )
 
