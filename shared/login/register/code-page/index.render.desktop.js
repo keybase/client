@@ -7,6 +7,7 @@
 import React, {Component} from 'react'
 import {globalStyles, globalColors} from '../../../styles/style-guide'
 import {Text, Icon, Input, Button} from '../../../common-adapters'
+import {specialStyles as textStyles} from '../../../common-adapters/text'
 import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
         codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer} from '../../../constants/login'
 import {codePageModeShowCode, codePageModeEnterText, codePageModeShowText} from '../../../constants/login'
@@ -26,10 +27,16 @@ export default class CodePageRender extends Component {
 
   renderText () {
     return (
-      <div style={{display: 'flex', flexDirection: 'column', flex: 1, backgroundColor: 'green', alignItems: 'center', justifyContent: 'center', padding: 20}}>
-        <h1>Type this verification code into your other device</h1>
-        <p style={{backgroundColor: 'grey', padding: 20, marginTop: 20}}>{this.props.textCode}</p>
-      </div>
+      <Container
+        style={styles.container}
+        onBack={this.props.onBack}>
+
+        <Text type='Header' style={{marginTop: 60}}>Type in text code</Text>
+        <Text type='BodySmall'>Type this code on your other device</Text>
+        <Icon type='computer-bw-m' style={{marginTop: 28}}/>
+
+        <Text type='Body' style={styles.paperkey}>{this.props.textCode}</Text>
+      </Container>
     )
   }
 
@@ -116,6 +123,13 @@ const styles = {
   container: {
     flex: 1,
     alignItems: 'center'
+  },
+  paperkey: {
+    ...textStyles.paperKey,
+    ...globalStyles.selectable,
+    textAlign: 'center',
+    marginTop: 30,
+    display: 'inline-block'
   },
   qrContainer: {
     ...globalStyles.flexBoxColumn,
