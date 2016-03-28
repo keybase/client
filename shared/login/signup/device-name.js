@@ -23,7 +23,8 @@ class DeviceName extends Component {
         deviceNameError={this.props.deviceNameError}
         onChange={deviceName => this.setState({deviceName})}
         onSubmit={() => this.props.submitDeviceName(this.state.deviceName || '')}
-        onBack={this.props.resetSignup} />
+        onBack={this.props.resetSignup}
+        waiting={this.props.waiting}/>
     )
   }
 }
@@ -31,7 +32,8 @@ class DeviceName extends Component {
 export default connect(
   state => ({
     deviceNameError: state.signup.deviceNameError,
-    deviceName: state.signup.deviceName
+    deviceName: state.signup.deviceName,
+    waiting: state.signup.waiting
   }),
   dispatch => bindActionCreators(signupActions, dispatch)
 )(DeviceName)

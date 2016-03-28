@@ -16,7 +16,8 @@ class InviteCode extends Component {
         onRequestInvite={this.props.startRequestInvite}
         onInviteCodeSubmit={this.props.checkInviteCode}
         inviteCodeErrorText={this.props.errorText}
-        onBack={this.props.navigateUp}/>
+        onBack={this.props.navigateUp}
+        waiting={this.props.waiting}/>
     )
   }
 }
@@ -27,7 +28,11 @@ InviteCode.propTypes = {
 }
 
 export default connect(
-  state => ({errorText: state.signup.inviteCodeError, inviteCode: state.signup.inviteCode}),
+  state => ({
+    errorText: state.signup.inviteCodeError,
+    inviteCode: state.signup.inviteCode,
+    waiting: state.signup.waiting
+  }),
     dispatch => bindActionCreators({
       ...signupActions,
       navigateUp

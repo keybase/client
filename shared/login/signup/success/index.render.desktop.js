@@ -38,12 +38,10 @@ export default class Render extends Component {
 
 const styles = {
   container: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    marginTop: 15
+    alignItems: 'center'
   },
   header: {
-    marginTop: 22,
+    marginTop: 60,
     marginBottom: 5
   },
   body: {

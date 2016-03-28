@@ -50,6 +50,7 @@ export default class Render extends Component {
         />
         <Button
           style={styles.button}
+          waiting={this.props.waiting}
           type='Primary'
           label='Request'
           onClick={submitRequestInvite}

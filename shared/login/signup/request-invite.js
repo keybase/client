@@ -17,7 +17,7 @@ class RequestInvite extends Component {
         nameErrorText={this.props.nameErrorText}
         onBack={this.props.resetSignup}
         onRequestInvite={this.props.requestInvite}
-      />
+        waiting={this.props.waiting}/>
     )
   }
 }
@@ -25,7 +25,8 @@ class RequestInvite extends Component {
 export default connect(
   state => ({
     emailErrorText: state.signup.emailError,
-    nameErrorText: state.signup.nameError
+    nameErrorText: state.signup.nameError,
+    waiting: state.signup.waiting
   }),
   dispatch => bindActionCreators(signupActions, dispatch)
 )(RequestInvite)

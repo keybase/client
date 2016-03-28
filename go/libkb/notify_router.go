@@ -138,6 +138,34 @@ func (n *NotifyRouter) HandleLogin(u string) {
 	n.G().Log.Debug("- Login notification sent")
 }
 
+// ClientOutOfDate is called whenever the API server tells us our client is out
+// of date. (This is done by adding special headers to every API response that
+// an out-of-date client makes.)
+func (n *NotifyRouter) HandleClientOutOfDate(upgradeTo string, upgradeURI string) {
+	if n == nil {
+		return
+	}
+	n.G().Log.Debug("+ Sending client-out-of-date notfication")
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Session` notification type
+		if n.getNotificationChannels(id).Session {
+			// In the background do...
+			go func() {
+				// A send of a `ClientOutOfDate` RPC
+				(keybase1.NotifySessionClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
+				}).ClientOutOfDate(context.TODO(), keybase1.ClientOutOfDateArg{
+					UpgradeTo:  upgradeTo,
+					UpgradeURI: upgradeURI,
+				})
+			}()
+		}
+		return true
+	})
+	n.G().Log.Debug("- Login notification sent")
+}
+
 // HandleUserChanged is called whenever we know that a given user has
 // changed (and must be cache-busted). It will broadcast the messages
 // to all curious listeners.

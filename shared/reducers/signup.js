@@ -21,6 +21,7 @@ export type SignupState = {
   deviceName: ?string,
   paperkey: ?HiddenString,
   signupError: ?HiddenString,
+  waiting: boolean,
   phase: 'inviteCode' | 'usernameAndEmail' | 'passphraseSignup' | 'deviceName' | 'signupLoading' | 'paperkey' | 'success' | 'signupError' | 'requestInvite' | 'requestInviteSuccess'
 }
 
@@ -38,6 +39,7 @@ const initialState: SignupState = {
   paperkey: null,
   signupError: null,
   deviceName: 'Home Computer',
+  waiting: false,
   phase: 'inviteCode'
 }
 
@@ -46,6 +48,12 @@ export default function (state: SignupState = initialState, action: SignupAction
   switch (action.type) {
     case CommonConstants.resetStore:
       return {...initialState}
+
+    case Constants.signupWaiting:
+      if (action.error) {
+        return state
+      }
+      return {...state, waiting: action.payload}
 
     case Constants.checkInviteCode:
       if (action.error) {

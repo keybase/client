@@ -11,7 +11,7 @@ import {routeAppend, navigateUp} from '../../actions/router'
 
 import type {TypedAsyncAction, AsyncAction} from '../../constants/types/flux'
 import type {RouteAppend} from '../../constants/router'
-import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName, Signup, ShowPaperKey, ShowSuccess, ResetSignup, RequestInvite, StartRequestInvite} from '../../constants/signup'
+import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName, Signup, ShowPaperKey, ShowSuccess, ResetSignup, RequestInvite, StartRequestInvite, SignupWaiting} from '../../constants/signup'
 import type {signup_signup_rpc, signup_checkInvitationCode_rpc, signup_checkUsernameAvailable_rpc, signup_inviteRequest_rpc, device_checkDeviceNameFormat_rpc} from '../../constants/types/flow-types'
 
 function nextPhase (): TypedAsyncAction<RouteAppend> {
@@ -29,7 +29,7 @@ export function startRequestInvite (): TypedAsyncAction<StartRequestInvite | Rou
   })
 }
 
-export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInviteCode | RouteAppend> {
+export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInviteCode | RouteAppend | SignupWaiting> {
   return dispatch => new Promise((resolve, reject) => {
     dispatch({type: Constants.checkInviteCode, payload: {inviteCode}})
 
@@ -39,6 +39,7 @@ export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInvi
         invitationCode: inviteCode
       },
       incomingCallMap: {},
+      waitingHandler: isWaiting => dispatch(waiting(isWaiting)),
       callback: err => {
         if (err) {
           console.error('error in inviteCode:', err)
@@ -56,7 +57,7 @@ export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInvi
   })
 }
 
-export function requestInvite (email: string, name: string): TypedAsyncAction<RequestInvite | RouteAppend> {
+export function requestInvite (email: string, name: string): TypedAsyncAction<RequestInvite | RouteAppend | SignupWaiting> {
   return dispatch => new Promise((resolve, reject) => {
     // Returns an error string if not valid
     const emailError = isValidEmail(email)
@@ -78,6 +79,7 @@ export function requestInvite (email: string, name: string): TypedAsyncAction<Re
         fullname: name,
         notes: 'Requested through GUI app'
       },
+      waitingHandler: isWaiting => dispatch(waiting(isWaiting)),
       incomingCallMap: {},
       callback: err => {
         if (err) {
@@ -154,7 +156,7 @@ function isValidName (name: ?string): ?string {
   if (isEmptyOrBlank(name)) return 'Please provide your name.'
 }
 
-export function checkUsernameEmail (username: ?string, email: ?string): TypedAsyncAction<CheckUsernameEmail | RouteAppend> {
+export function checkUsernameEmail (username: ?string, email: ?string): TypedAsyncAction<CheckUsernameEmail | RouteAppend | SignupWaiting> {
   return dispatch => new Promise((resolve, reject) => {
     const emailError = isValidEmail(email)
     const usernameError = isValidUsername(username)
@@ -172,6 +174,7 @@ export function checkUsernameEmail (username: ?string, email: ?string): TypedAsy
     const params: signup_checkUsernameAvailable_rpc = {
       method: 'signup.checkUsernameAvailable',
       param: {username},
+      waitingHandler: isWaiting => dispatch(waiting(isWaiting)),
       incomingCallMap: {},
       callback: err => {
         if (err) {
@@ -249,6 +252,7 @@ export function submitDeviceName (deviceName: string, skipMail?: boolean, onDisp
       const params: device_checkDeviceNameFormat_rpc = {
         method: 'device.checkDeviceNameFormat',
         param: {name: deviceName},
+        waitingHandler: isWaiting => dispatch(waiting(isWaiting)),
         incomingCallMap: {},
         callback: err => {
           if (err) {
@@ -291,7 +295,7 @@ export function sawPaperKey (): AsyncAction {
   }
 }
 
-function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncAction<Signup | ShowPaperKey | RouteAppend> {
+function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncAction<Signup | ShowPaperKey | RouteAppend | SignupWaiting> {
   return (dispatch, getState) => new Promise((resolve, reject) => {
     const {email, username, inviteCode, passphrase, deviceName} = getState().signup
     paperKeyResponse = null
@@ -299,6 +303,7 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
     if (email && username && inviteCode && passphrase && deviceName) {
       const params: signup_signup_rpc = {
         method: 'signup.signup',
+        waitingHandler: isWaiting => dispatch(waiting(isWaiting)),
         param: {
           email,
           inviteCode,
@@ -346,6 +351,13 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
       reject()
     }
   })
+}
+
+function waiting (isWaiting: boolean): SignupWaiting {
+  return {
+    type: Constants.signupWaiting,
+    payload: isWaiting
+  }
 }
 
 export function resetSignup (): TypedAsyncAction<ResetSignup | RouteAppend> {

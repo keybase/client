@@ -9,8 +9,8 @@ import (
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"github.com/keybase/go-updater"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	"github.com/keybase/go-updater"
 	"golang.org/x/net/context"
 )
 

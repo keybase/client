@@ -323,6 +323,7 @@ func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) error {
 	u := resp.Header.Get("X-Keybase-Client-Upgrade-To")
 	p := resp.Header.Get("X-Keybase-Upgrade-URI")
 	if len(u) > 0 {
+		a.G().NotifyRouter.HandleClientOutOfDate(u, p)
 		now := time.Now()
 		lastUpgradeWarningMu.Lock()
 		if lastUpgradeWarning == nil || now.Sub(*lastUpgradeWarning) > 3*time.Minute {

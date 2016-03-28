@@ -8,5 +8,6 @@ export type HeaderProps = {
   trackerState: SimpleProofState,
   currentlyFollowing: boolean,
   changed: boolean,
-  lastAction: ?string
+  lastAction: ?string,
+  loggedIn: boolean
 }

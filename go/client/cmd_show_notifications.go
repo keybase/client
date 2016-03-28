@@ -99,6 +99,9 @@ func (d *notificationDisplay) LoggedOut(_ context.Context) error {
 func (d *notificationDisplay) LoggedIn(_ context.Context, un string) error {
 	return d.printf("Logged in as %q\n", un)
 }
+func (d *notificationDisplay) ClientOutOfDate(_ context.Context, arg keybase1.ClientOutOfDateArg) error {
+	return d.printf("Client out of date, upgrade to \"%s\", uri \"%s\"\n", arg.UpgradeTo, arg.UpgradeURI)
+}
 
 func (d *notificationDisplay) UserChanged(_ context.Context, uid keybase1.UID) error {
 	return d.printf("User %s changed\n", uid)

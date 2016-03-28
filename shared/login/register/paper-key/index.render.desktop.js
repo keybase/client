@@ -15,7 +15,7 @@ const Render = ({onBack, onSubmit, onChangePaperKey, paperKey}: Props) => {
         autoFocus
         multiLine
         style={styles.input}
-        floatingLabelText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
+        hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
         onEnterKeyDown={() => onSubmit()}
         onChange={event => onChangePaperKey(event.target.value)}
         value={paperKey}
@@ -23,6 +23,7 @@ const Render = ({onBack, onSubmit, onChangePaperKey, paperKey}: Props) => {
       <Button
         label='Continue'
         type='Primary'
+        style={{alignSelf: 'flex-end'}}
         onClick={() => onSubmit()}
         enabled={paperKey}
       />
@@ -43,9 +44,8 @@ const styles = {
     marginBottom: 65
   },
   input: {
-    minHeight: 100,
     alignSelf: 'stretch',
-    marginBottom: 40
+    marginBottom: 55
   }
 }
 

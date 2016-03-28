@@ -17,6 +17,12 @@ export default class MultiLineInput extends Component<void, Props, State> {
   _handleKeyUp (e: SyntheticEvent) {
     // $FlowIssue
     this.setState({textContent: e.target.textContent})
+    // This is a content editable text, not input.
+    // People using onChange may expect text to be in target.value
+    // but on content editable it is in target.textContent
+    // Copy this to provide a uniform api
+    // $FlowIssue
+    e.target.value = e.target.textContent
     this.props.onChange && this.props.onChange(e)
   }
 
@@ -54,7 +60,8 @@ export default class MultiLineInput extends Component<void, Props, State> {
 
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
-  position: 'relative'
+  position: 'relative',
+  justifyContent: 'flex-end'
 }
 
 const hintTextStyle = {

@@ -56,7 +56,9 @@ export default class Render extends Component {
                 <Button onClick={() => {}} type='Follow' disabled label='Follow disabled'/><Space/>
               </div>
               <div style={{...globalStyles.flexBoxColumn, alignItems: 'flex-start', justifyContents: 'flex-start', padding: 10, paddingRight: 100}}>
-                <Button onClick={() => {}} type='Primary' label='Primary' waiting/><Space/>
+                <div>
+                  <Button style={{alignSelf: 'flex-end', marginTop: 40}} onClick={() => {}} type='Primary' label='Primary' waiting/><Space/>
+                </div>
                 <Button onClick={() => {}} type='Secondary' label='Secondary' waiting/><Space/>
                 <Button onClick={() => {}} type='Danger' danger label='Danger' waiting/><Space/>
                 <Space/>
