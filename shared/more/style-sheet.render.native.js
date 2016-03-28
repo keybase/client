@@ -1,9 +1,9 @@
 /* @flow */
 import React, {Component} from 'react'
-import {ScrollView, Text} from 'react-native'
+import {ScrollView} from 'react-native'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import Container from './dev-container.native'
-import {Box} from '../common-adapters'
+import {Box, Text, Terminal} from '../common-adapters'
 // import {Button, Input, Text, Terminal, FormWithCheckbox} from '../common-adapters'
 // import DropdownDemo from './components/dropdown.desktop'
 
@@ -14,10 +14,10 @@ export default class Render extends Component {
     return (
       <ScrollView>
         <Container title='Dropdown'>
-          <Text>TODO</Text>
+          <Text type='HeaderJumbo'>TODO</Text>
         </Container>
         <Container title='Text'>
-          <Text>TODO</Text>
+          <Font/>
         </Container>
         <Container title='Colors'>
           <Box style={{...globalStyles.flexBoxColumn}}>
@@ -35,13 +35,13 @@ export default class Render extends Component {
           </Box>
         </Container>
         <Container title='Buttons'>
-          <Text>TODO</Text>
+          <Text type='HeaderJumbo'>TODO</Text>
         </Container>
         <Container title='Icons'>
-          <Text>TODO</Text>
+          <Text type='HeaderJumbo'>TODO</Text>
         </Container>
         <Container title='Inputs'>
-          <Text>TODO</Text>
+          <Text type='HeaderJumbo'>TODO</Text>
         </Container>
       </ScrollView>
     )
@@ -158,83 +158,76 @@ export default class Render extends Component {
   }
 }
 
-// class Font extends Component {
-  // render () {
-    // const Space = () => <div style={{height: 20}}/>
-    // return (
-      // <div style={globalStyles.flexBoxColumn}>
-        // <div style={{...globalStyles.flexBoxRow, flexWrap: 'wrap'}}>
+class Font extends Component {
+  render () {
+    const Space = () => <Box style={{height: 20}}/>
+    return (
+      <Box style={globalStyles.flexBoxColumn}>
+        {['Normal', 'Announcements', 'Success', 'Information', 'HighRisk', 'Documentation', 'Terminal'].map(backgroundMode => {
+          const background = {
+            'Normal': globalColors.white,
+            'Announcements': globalColors.blue,
+            'Success': globalColors.green,
+            'Information': globalColors.yellow,
+            'HighRisk': globalColors.red,
+            'Documentation': globalColors.darkBlue,
+            'Terminal': globalColors.darkBlue3
+          }[backgroundMode]
 
-          // {['Normal', 'Announcements', 'Success', 'Information', 'HighRisk', 'Documentation', 'Terminal'].map(backgroundMode => {
-            // const background = {
-              // 'Normal': globalColors.white,
-              // 'Announcements': globalColors.blue,
-              // 'Success': globalColors.green,
-              // 'Information': globalColors.yellow,
-              // 'HighRisk': globalColors.red,
-              // 'Documentation': globalColors.darkBlue,
-              // 'Terminal': globalColors.darkBlue3
-            // }[backgroundMode]
+          return (
+            <Box key={background} style={
+              {...globalStyles.flexBoxColumn,
+                padding: 40,
+                backgroundColor: background}}>
+              <Text backgroundMode={backgroundMode} type='HeaderJumbo'>{backgroundMode}</Text>
+              <Text backgroundMode={backgroundMode} type='HeaderJumbo'>Header Jumbo</Text>
+              <Text backgroundMode={backgroundMode} type='HeaderJumbo'>Header Jumbo</Text>
+              <Space/>
+              <Text backgroundMode={backgroundMode} type='HeaderBig'>Header Big Header Big</Text>
+              <Text backgroundMode={backgroundMode} type='HeaderBig'>Header Big Header Big</Text>
+              <Space/>
+              <Text backgroundMode={backgroundMode} type='Header'>Header Header Header</Text>
+              <Text backgroundMode={backgroundMode} type='Header'>Header Header Header</Text>
+              <Space/>
+              <Text backgroundMode={backgroundMode} type='Body'>Body Body</Text>
+              <Text backgroundMode={backgroundMode} type='Body'>Body Body</Text>
+              <Space/>
+              <Text backgroundMode={backgroundMode} type='BodySemibold'>Body Semibold Body Semibold</Text>
+              <Text backgroundMode={backgroundMode} type='BodySemibold'>Body Semibold Body Semibold</Text>
+              <Space/>
+              <Text backgroundMode={backgroundMode} type='BodySmallSemibold'>Body small Semibold Body Small Semibold</Text>
+              <Text backgroundMode={backgroundMode} type='BodySmallSemibold'>Body small Semibold Body Small Semibold</Text>
+              <Space/>
+              <Text backgroundMode={backgroundMode} type='BodySmall'>Body small Body Small</Text>
+              <Text backgroundMode={backgroundMode} type='BodySmall'>Body small Body Small</Text>
+            </Box>) })}
+        <Box style={{...globalStyles.flexBoxColumn, flex: 1, padding: 10}}>
+          <Text type='Body'>
+            <Text type='BodySmall'>Word word </Text>
+            <Text type='Terminal'>inline command line </Text>
+            <Text type='TerminalUsername'>username </Text>
+            <Text type='TerminalPrivate'>'secret'</Text>
+            <Text type='BodySmall'> word word word word word </Text>
+            <Text type='Terminal'>inline command line</Text>
+          </Text>
+        </Box>
+        <Terminal style={{flex: 1}}>
+          <Text type='Body'>
+            <Text type='Terminal'>command line stuff </Text>
+            <Text type='TerminalUsername'>username </Text>
+            <Text type='TerminalPrivate'>'something secret'</Text>
+          </Text>
 
-            // return (
-              // <div style={
-                // {...globalStyles.flexBoxColumn,
-                  // padding: 40,
-                  // minWidth: 500,
-                  // backgroundColor: background}}>
-                // <Text backgroundMode={backgroundMode} type='HeaderJumbo'>{backgroundMode}</Text>
-                // <Text backgroundMode={backgroundMode} type='HeaderJumbo'>Header Jumbo</Text>
-                // <Text backgroundMode={backgroundMode} type='HeaderJumbo'>Header Jumbo</Text>
-                // <Space/>
-                // <Text backgroundMode={backgroundMode} type='HeaderBig'>Header Big Header Big</Text>
-                // <Text backgroundMode={backgroundMode} type='HeaderBig'>Header Big Header Big</Text>
-                // <Space/>
-                // <Text backgroundMode={backgroundMode} type='Header'>Header Header Header</Text>
-                // <Text backgroundMode={backgroundMode} type='Header'>Header Header Header</Text>
-                // <Space/>
-                // <Text backgroundMode={backgroundMode} type='Body'>Body Body</Text>
-                // <Text backgroundMode={backgroundMode} type='Body'>Body Body</Text>
-                // <Space/>
-                // <Text backgroundMode={backgroundMode} type='BodySemibold'>Body Semibold Body Semibold</Text>
-                // <Text backgroundMode={backgroundMode} type='BodySemibold'>Body Semibold Body Semibold</Text>
-                // <Space/>
-                // <Text backgroundMode={backgroundMode} type='BodySmallSemibold'>Body small Semibold Body Small Semibold</Text>
-                // <Text backgroundMode={backgroundMode} type='BodySmallSemibold'>Body small Semibold Body Small Semibold</Text>
-                // <Space/>
-                // <Text backgroundMode={backgroundMode} type='BodySmall'>Body small Body Small</Text>
-                // <Text backgroundMode={backgroundMode} type='BodySmall'>Body small Body Small</Text>
-              // </div>) })}
-        // </div>
+          <Text type='Body'>
+            <Text type='Terminal'>command line stuff </Text>
+            <Text type='TerminalUsername'>username </Text>
+            <Text type='TerminalPublic'>'something public'</Text>
+          </Text>
 
-        // <div style={globalStyles.flexBoxRow}>
-          // <div style={{...globalStyles.flexBoxColumn, flex: 1, padding: 10}}>
-            // <p>
-              // <Text type='BodySmall'>Word word </Text>
-              // <Text type='Terminal'>inline command line </Text>
-              // <Text type='TerminalUsername'>username </Text>
-              // <Text type='TerminalPrivate'>'secret'</Text>
-              // <Text type='BodySmall'> word word word word word </Text>
-              // <Text type='Terminal'>inline command line</Text>
-            // </p>
-          // </div>
-          // <Terminal style={{flex: 1, overflow: 'scroll'}}>
-            // <p>
-              // <Text type='Terminal'>command line stuff </Text>
-              // <Text type='TerminalUsername'>username </Text>
-              // <Text type='TerminalPrivate'>'something secret'</Text>
-            // </p>
-
-            // <p>
-              // <Text type='Terminal'>command line stuff </Text>
-              // <Text type='TerminalUsername'>username </Text>
-              // <Text type='TerminalPublic'>'something public'</Text>
-            // </p>
-
-            // <Text type='TerminalComment'>comment</Text>
-            // <Text type='TerminalComment'>comment</Text>
-          // </Terminal>
-        // </div>
-      // </div>
-    // )
-  // }
-// }
+          <Text type='TerminalComment'>comment</Text>
+          <Text type='TerminalComment'>comment</Text>
+        </Terminal>
+      </Box>
+    )
+  }
+}

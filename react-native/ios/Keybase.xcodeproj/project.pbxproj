@@ -20,6 +20,14 @@
 		146834051AC3E58100842450 /* libReact.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 146834041AC3E56700842450 /* libReact.a */; };
 		832341BD1AAA6AB300B99B32 /* libRCTText.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 832341B51AAA6A8300B99B32 /* libRCTText.a */; };
 		DB0846051BA75DC800F54960 /* keybase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = DB0846041BA75DC800F54960 /* keybase.framework */; };
+		DB1D5FEC1CA99E67006DC784 /* kb.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DB1D5FE21CA99E67006DC784 /* kb.ttf */; };
+		DB1D5FED1CA99E67006DC784 /* Lato-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DB1D5FE41CA99E67006DC784 /* Lato-Bold.ttf */; };
+		DB1D5FEE1CA99E67006DC784 /* Lato-Italic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DB1D5FE51CA99E67006DC784 /* Lato-Italic.ttf */; };
+		DB1D5FEF1CA99E67006DC784 /* Lato-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DB1D5FE61CA99E67006DC784 /* Lato-Regular.ttf */; };
+		DB1D5FF01CA99E67006DC784 /* Lato-Semibold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DB1D5FE71CA99E67006DC784 /* Lato-Semibold.ttf */; };
+		DB1D5FF11CA99E67006DC784 /* Lato-SemiboldItalic.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DB1D5FE81CA99E67006DC784 /* Lato-SemiboldItalic.ttf */; };
+		DB1D5FF21CA99E67006DC784 /* SourceCodePro-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DB1D5FEA1CA99E67006DC784 /* SourceCodePro-Regular.ttf */; };
+		DB1D5FF31CA99E67006DC784 /* SourceCodePro-Semibold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = DB1D5FEB1CA99E67006DC784 /* SourceCodePro-Semibold.ttf */; };
 		DBCE36251B90F14800ECADDE /* Engine.m in Sources */ = {isa = PBXBuildFile; fileRef = DBCE36241B90F14800ECADDE /* Engine.m */; };
 		DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */; };
 		DBDCF3531B8D04FD00BA95D8 /* ObjcTest.m in Sources */ = {isa = PBXBuildFile; fileRef = DBDCF3501B8D04FD00BA95D8 /* ObjcTest.m */; };
@@ -139,6 +147,14 @@
 		832341B01AAA6A8300B99B32 /* RCTText.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RCTText.xcodeproj; path = "../node_modules/react-native/Libraries/Text/RCTText.xcodeproj"; sourceTree = "<group>"; };
 		B01B0A0DD7B9A98B314CE2FB /* Pods-Keybase.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Keybase.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Keybase/Pods-Keybase.debug.xcconfig"; sourceTree = "<group>"; };
 		DB0846041BA75DC800F54960 /* keybase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = keybase.framework; sourceTree = "<group>"; };
+		DB1D5FE21CA99E67006DC784 /* kb.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = kb.ttf; path = ../../../desktop/renderer/fonts/kb.ttf; sourceTree = "<group>"; };
+		DB1D5FE41CA99E67006DC784 /* Lato-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Lato-Bold.ttf"; sourceTree = "<group>"; };
+		DB1D5FE51CA99E67006DC784 /* Lato-Italic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Lato-Italic.ttf"; sourceTree = "<group>"; };
+		DB1D5FE61CA99E67006DC784 /* Lato-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Lato-Regular.ttf"; sourceTree = "<group>"; };
+		DB1D5FE71CA99E67006DC784 /* Lato-Semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Lato-Semibold.ttf"; sourceTree = "<group>"; };
+		DB1D5FE81CA99E67006DC784 /* Lato-SemiboldItalic.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Lato-SemiboldItalic.ttf"; sourceTree = "<group>"; };
+		DB1D5FEA1CA99E67006DC784 /* SourceCodePro-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodePro-Regular.ttf"; sourceTree = "<group>"; };
+		DB1D5FEB1CA99E67006DC784 /* SourceCodePro-Semibold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceCodePro-Semibold.ttf"; sourceTree = "<group>"; };
 		DBCE36231B90F14800ECADDE /* Engine.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Engine.h; sourceTree = "<group>"; };
 		DBCE36241B90F14800ECADDE /* Engine.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Engine.m; sourceTree = "<group>"; };
 		DBDCF3081B8D03DD00BA95D8 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
@@ -342,9 +358,43 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		DB1D5FD61CA99DF4006DC784 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				DB1D5FE21CA99E67006DC784 /* kb.ttf */,
+				DB1D5FE31CA99E67006DC784 /* lato */,
+				DB1D5FE91CA99E67006DC784 /* SourceCodePro */,
+			);
+			name = Fonts;
+			sourceTree = "<group>";
+		};
+		DB1D5FE31CA99E67006DC784 /* lato */ = {
+			isa = PBXGroup;
+			children = (
+				DB1D5FE41CA99E67006DC784 /* Lato-Bold.ttf */,
+				DB1D5FE51CA99E67006DC784 /* Lato-Italic.ttf */,
+				DB1D5FE61CA99E67006DC784 /* Lato-Regular.ttf */,
+				DB1D5FE71CA99E67006DC784 /* Lato-Semibold.ttf */,
+				DB1D5FE81CA99E67006DC784 /* Lato-SemiboldItalic.ttf */,
+			);
+			name = lato;
+			path = ../../../desktop/renderer/fonts/lato;
+			sourceTree = "<group>";
+		};
+		DB1D5FE91CA99E67006DC784 /* SourceCodePro */ = {
+			isa = PBXGroup;
+			children = (
+				DB1D5FEA1CA99E67006DC784 /* SourceCodePro-Regular.ttf */,
+				DB1D5FEB1CA99E67006DC784 /* SourceCodePro-Semibold.ttf */,
+			);
+			name = SourceCodePro;
+			path = ../../../desktop/renderer/fonts/SourceCodePro;
+			sourceTree = "<group>";
+		};
 		DBDCF3031B8D03DD00BA95D8 /* Keybase */ = {
 			isa = PBXGroup;
 			children = (
+				DB1D5FD61CA99DF4006DC784 /* Fonts */,
 				005BF9961BB9C6B000BD8953 /* Keybase.entitlements */,
 				E94938FF1BCC1E4300137015 /* AppDefault.swift */,
 				E964581C1BC8542000902F39 /* AppDelegate.swift */,
@@ -606,8 +656,16 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DB1D5FF01CA99E67006DC784 /* Lato-Semibold.ttf in Resources */,
+				DB1D5FF21CA99E67006DC784 /* SourceCodePro-Regular.ttf in Resources */,
+				DB1D5FEE1CA99E67006DC784 /* Lato-Italic.ttf in Resources */,
+				DB1D5FEF1CA99E67006DC784 /* Lato-Regular.ttf in Resources */,
 				0044E59D1BCD7CEA008EF7EE /* LaunchScreen.storyboard in Resources */,
+				DB1D5FF31CA99E67006DC784 /* SourceCodePro-Semibold.ttf in Resources */,
+				DB1D5FEC1CA99E67006DC784 /* kb.ttf in Resources */,
+				DB1D5FF11CA99E67006DC784 /* Lato-SemiboldItalic.ttf in Resources */,
 				DBDCF30E1B8D03DD00BA95D8 /* Images.xcassets in Resources */,
+				DB1D5FED1CA99E67006DC784 /* Lato-Bold.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
