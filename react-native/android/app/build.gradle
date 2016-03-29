@@ -80,8 +80,8 @@ android {
         applicationId "io.keybase.android"
         minSdkVersion 16
         targetSdkVersion 23
-        versionCode 2
-        versionName "1.0.0-alpha-1"
+        versionCode 3
+        versionName "1.0.0-alpha-2"
         ndk {
             abiFilters "armeabi-v7a", "x86"
         }
