@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
 import {View, ListView, Text, StyleSheet} from 'react-native'
-import Button from '../common-adapters/button'
+import {Button} from '../common-adapters'
 import commonStyles from '../styles/common'
 
 export default class MenuList extends Component {
