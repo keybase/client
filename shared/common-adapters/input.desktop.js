@@ -152,6 +152,7 @@ export const styles = {
     color: globalColors.black10,
     alignSelf: 'center',
     position: 'inherit',
-    top: 34
+    top: 34,
+    transition: 'color 450ms cubic-bezier(0.23, 1, 0.32, 1) 0ms'
   }
 }
