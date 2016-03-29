@@ -84,11 +84,16 @@ type Conn struct {
 	writeMutex sync.Mutex
 	writeSeqno Seqno
 
+	// Protects the pollLoopRunning mutex. We expose this mainly for testing purposes
+	pollLoopRunningMutex sync.Mutex
+	pollLoopRunning      bool
+
 	// Protects the setting of error states. Only one thread should be setting or
 	// accessing these errors at a time.
 	errMutex sync.Mutex
 	readErr  error
 	writeErr error
+	closed   bool
 
 	ctx context.Context
 }
@@ -198,6 +203,19 @@ func (c *Conn) getErrorForWrite() error {
 	return err
 }
 
+func (c *Conn) setClosed() {
+	c.errMutex.Lock()
+	c.closed = true
+	c.errMutex.Unlock()
+}
+
+func (c *Conn) getClosed() bool {
+	c.errMutex.Lock()
+	ret := c.closed
+	c.errMutex.Unlock()
+	return ret
+}
+
 func (c *Conn) getErrorForRead() error {
 	var err error
 	c.errMutex.Lock()
@@ -208,6 +226,19 @@ func (c *Conn) getErrorForRead() error {
 	}
 	c.errMutex.Unlock()
 	return err
+}
+
+func (c *Conn) setPollLoopRunning(b bool) {
+	c.pollLoopRunningMutex.Lock()
+	c.pollLoopRunning = b
+	c.pollLoopRunningMutex.Unlock()
+}
+
+func (c *Conn) getPollLoopRunning() bool {
+	c.pollLoopRunningMutex.Lock()
+	ret := c.pollLoopRunning
+	c.pollLoopRunningMutex.Unlock()
+	return ret
 }
 
 type outerMsg struct {
@@ -339,12 +370,17 @@ func (c *Conn) pollLoop(poll time.Duration) (msgs [][]byte, err error) {
 
 	var totalWaitTime time.Duration
 
+	c.setPollLoopRunning(true)
+	defer func() {
+		c.setPollLoopRunning(false)
+	}()
+
 	start := time.Now()
 	for {
 		newPoll := poll - totalWaitTime
 		msgs, err = c.router.Get(c.sessionID, c.deviceID, c.readSeqno+1, newPoll)
 		totalWaitTime = time.Since(start)
-		if err != nil || len(msgs) > 0 || totalWaitTime >= poll {
+		if err != nil || len(msgs) > 0 || totalWaitTime >= poll || c.getClosed() {
 			return
 		}
 
@@ -479,7 +515,6 @@ func (c *Conn) writeWithLock(buf []byte) (n int, err error) {
 	if err = c.getErrorForWrite(); err != nil {
 		return 0, err
 	}
-
 	seqno := c.nextWriteSeqno()
 
 	ctext, err = c.encryptOutgoingMessage(seqno, buf)
@@ -501,6 +536,9 @@ func (c *Conn) Close() error {
 	c.writeMutex.Lock()
 	defer c.writeMutex.Unlock()
 
+	// set closed so that the read loop will bail out above
+	c.setClosed()
+
 	// Write an empty buffer to signal EOF
 	if _, err := c.writeWithLock([]byte{}); err != nil {
 		return err
@@ -508,6 +546,7 @@ func (c *Conn) Close() error {
 
 	// All subsequent writes should fail.
 	c.setWriteError(io.EOF)
+
 	return nil
 }
 
