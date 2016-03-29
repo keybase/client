@@ -797,22 +797,16 @@ func (fbo *folderBlockOps) GetDirtyRefs(lState *lockState) []blockRef {
 	return dirtyRefs
 }
 
-// FixChildBlocksAfterRecoverableError should be called when a sync
+// fixChildBlocksAfterRecoverableError should be called when a sync
 // failed with a recoverable block error on a multi-block file.  It
 // makes sure that any outstanding dirty versions of the file are
 // fixed up to reflect the fact that some of the indirect pointers now
 // need to change.
-//
-// blockLock may or may not be held, indicated by doLock.
-func (fbo *folderBlockOps) FixChildBlocksAfterRecoverableError(
-	ctx context.Context, doLock bool, lState *lockState, file path,
+func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableError(
+	ctx context.Context, lState *lockState, file path,
 	redirtyOnRecoverableError map[BlockPointer]BlockPointer) {
-	if doLock {
-		fbo.blockLock.Lock(lState)
-		defer fbo.blockLock.Unlock(lState)
-	} else {
-		fbo.blockLock.AssertLocked(lState)
-	}
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
 
 	bcache := fbo.config.BlockCache()
 
@@ -1418,6 +1412,513 @@ func (fbo *folderBlockOps) Truncate(
 	}
 
 	return nil
+}
+
+// IsDirty returns whether the given file is dirty; if false is
+// returned, then the file doesn't need to be synced.
+func (fbo *folderBlockOps) IsDirty(lState *lockState, file path) bool {
+	fbo.blockLock.RLock(lState)
+	defer fbo.blockLock.RUnlock(lState)
+	return fbo.config.BlockCache().IsDirty(file.tailPointer(), file.Branch)
+}
+
+func (fbo *folderBlockOps) clearCacheInfoLocked(lState *lockState, file path) {
+	fbo.blockLock.AssertLocked(lState)
+	ref := file.tailPointer().ref()
+	delete(fbo.deCache, ref)
+	delete(fbo.unrefCache, ref)
+}
+
+// ClearCacheInfo removes any cached info for the the given file.
+func (fbo *folderBlockOps) ClearCacheInfo(lState *lockState, file path) {
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
+	fbo.clearCacheInfoLocked(lState, file)
+}
+
+// revertSyncInfoAfterRecoverableError updates the saved sync info to
+// include all the blocks from before the error, except for those that
+// have encountered recoverable block errors themselves.
+func (fbo *folderBlockOps) revertSyncInfoAfterRecoverableError(
+	blocksToRemove []BlockPointer, si, savedSi *syncInfo) {
+	// This sync will be retried and needs new blocks, so
+	// reset everything in the sync info.
+	*si = *savedSi
+	if si.bps == nil {
+		return
+	}
+
+	si.bps.blockStates = nil
+
+	// Mark any bad pointers so they get skipped next time.
+	blocksToRemoveSet := make(map[BlockPointer]bool)
+	for _, ptr := range blocksToRemove {
+		blocksToRemoveSet[ptr] = true
+	}
+
+	for _, bs := range savedSi.bps.blockStates {
+		// Only save the good pointers
+		if !blocksToRemoveSet[bs.blockPtr] {
+			si.bps.blockStates = append(si.bps.blockStates, bs)
+		}
+	}
+}
+
+// ReadyBlock is a thin wrapper around BlockOps.Ready() that handles
+// checking for duplicates.
+func (fbo *folderBlockOps) ReadyBlock(ctx context.Context, md *RootMetadata,
+	block Block, uid keybase1.UID) (
+	info BlockInfo, plainSize int, readyBlockData ReadyBlockData, err error) {
+	var ptr BlockPointer
+	if fBlock, ok := block.(*FileBlock); ok && !fBlock.IsInd {
+		// first see if we are duplicating any known blocks in this folder
+		ptr, err = fbo.config.BlockCache().CheckForKnownPtr(fbo.id(), fBlock)
+		if err != nil {
+			return
+		}
+	}
+
+	// Ready the block, even in the case where we can reuse an
+	// existing block, just so that we know what the size of the
+	// encrypted data will be.
+	id, plainSize, readyBlockData, err :=
+		fbo.config.BlockOps().Ready(ctx, md, block)
+	if err != nil {
+		return
+	}
+
+	if ptr.IsInitialized() {
+		ptr.RefNonce, err = fbo.config.Crypto().MakeBlockRefNonce()
+		if err != nil {
+			return
+		}
+		ptr.SetWriter(uid)
+	} else {
+		ptr = BlockPointer{
+			ID:       id,
+			KeyGen:   md.LatestKeyGeneration(),
+			DataVer:  fbo.config.DataVersion(),
+			Creator:  uid,
+			RefNonce: zeroBlockRefNonce,
+		}
+	}
+
+	info = BlockInfo{
+		BlockPointer: ptr,
+		EncodedSize:  uint32(readyBlockData.GetEncodedSize()),
+	}
+	return
+}
+
+// fileSyncState holds state for a sync operation for a single
+// file.
+type fileSyncState struct {
+	// If fblock is non-nil, the (dirty, indirect, cached) block
+	// it points to will be set to savedFblock on a recoverable
+	// error.
+	fblock, savedFblock *FileBlock
+
+	// redirtyOnRecoverableError, which is non-nil only when
+	// fblock is non-nil, contains pointers that need to be
+	// re-dirtied if the top block gets copied during the sync,
+	// and a recoverable error happens.  Maps to the old block
+	// pointer for the block, which would need a DeleteDirty.
+	redirtyOnRecoverableError map[BlockPointer]BlockPointer
+
+	// If si is non-nil, its updated state will be reset on
+	// error. Also, if the error is recoverable, it will be
+	// reverted to savedSi.
+	//
+	// TODO: Working with si in this way is racy, since si is a
+	// member of unrefCache.
+	si, savedSi *syncInfo
+
+	// oldFileBlockPtrs is a list of transient entries in the
+	// block cache for the file, which should be removed when the
+	// sync finishes.
+	oldFileBlockPtrs []BlockPointer
+
+	// newIndirectFileBlockPtrs is a list of permanent entries
+	// added to the block cache for the file, which should be
+	// removed after the blocks have been sent to the server.
+	// They are not removed on an error, because in that case the
+	// file is still dirty locally and may get another chance to
+	// be sync'd.
+	//
+	// TODO: This can be a list of IDs instead.
+	newIndirectFileBlockPtrs []BlockPointer
+}
+
+// startSyncWriteLocked contains the portion of StartSync() that's
+// done while write-locking blockLock.
+func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
+	lState *lockState, md *RootMetadata, uid keybase1.UID, file path) (
+	fblock *FileBlock, bps *blockPutState, syncState fileSyncState,
+	err error) {
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
+
+	// update the parent directories, and write all the new blocks out
+	// to disk
+	fblock, err = fbo.getFileLocked(ctx, lState, md, file, blockWrite)
+	if err != nil {
+		return nil, nil, syncState, err
+	}
+
+	fileRef := file.tailPointer().ref()
+	si, ok := fbo.unrefCache[fileRef]
+	if !ok {
+		return nil, nil, syncState, fmt.Errorf("No syncOp found for file ref %v", fileRef)
+	}
+
+	md.AddOp(si.op)
+
+	// Fill in syncState.
+	if fblock.IsInd {
+		syncState.fblock = fblock
+		syncState.savedFblock = fblock.DeepCopy()
+		syncState.redirtyOnRecoverableError = make(map[BlockPointer]BlockPointer)
+	}
+	syncState.si = si
+	syncState.savedSi = si.DeepCopy()
+
+	if si.bps == nil {
+		si.bps = newBlockPutState(1)
+	} else {
+		// reinstate byte accounting from the previous Sync
+		md.RefBytes = si.refBytes
+		md.DiskUsage += si.refBytes
+		md.UnrefBytes = si.unrefBytes
+		md.DiskUsage -= si.unrefBytes
+		syncState.newIndirectFileBlockPtrs = append(
+			syncState.newIndirectFileBlockPtrs, si.op.Refs()...)
+	}
+	defer func() {
+		si.refBytes = md.RefBytes
+		si.unrefBytes = md.UnrefBytes
+	}()
+
+	bcache := fbo.config.BlockCache()
+
+	// Note: below we add possibly updated file blocks as "unref" and
+	// "ref" blocks.  This is fine, since conflict resolution or
+	// notifications will never happen within a file.
+
+	// if this is an indirect block:
+	//   1) check if each dirty block is split at the right place.
+	//   2) if it needs fewer bytes, prepend the extra bytes to the next
+	//      block (making a new one if it doesn't exist), and the next block
+	//      gets marked dirty
+	//   3) if it needs more bytes, then use copyUntilSplit() to fetch bytes
+	//      from the next block (if there is one), remove the copied bytes
+	//      from the next block and mark it dirty
+	//   4) Then go through once more, and ready and finalize each
+	//      dirty block, updating its ID in the indirect pointer list
+	bsplit := fbo.config.BlockSplitter()
+	if fblock.IsInd {
+		// TODO: Verify that any getFileBlock... calls here
+		// only use the dirty cache and not the network, since
+		// the blocks are be dirty.
+		for i := 0; i < len(fblock.IPtrs); i++ {
+			ptr := fblock.IPtrs[i]
+			isDirty := bcache.IsDirty(ptr.BlockPointer, file.Branch)
+			if (ptr.EncodedSize > 0) && isDirty {
+				return nil, nil, syncState, InconsistentEncodedSizeError{ptr.BlockInfo}
+			}
+			if isDirty {
+				_, _, _, block, more, _, err :=
+					fbo.getFileBlockAtOffsetLocked(
+						ctx, lState, md, file, fblock,
+						ptr.Off, blockWrite)
+				if err != nil {
+					return nil, nil, syncState, err
+				}
+
+				splitAt := bsplit.CheckSplit(block)
+				switch {
+				case splitAt == 0:
+					continue
+				case splitAt > 0:
+					endOfBlock := ptr.Off + int64(len(block.Contents))
+					extraBytes := block.Contents[splitAt:]
+					block.Contents = block.Contents[:splitAt]
+					// put the extra bytes in front of the next block
+					if !more {
+						// need to make a new block
+						if err := fbo.newRightBlockLocked(
+							ctx, lState, file.tailPointer(), file.Branch, fblock,
+							endOfBlock, md); err != nil {
+							return nil, nil, syncState, err
+						}
+					}
+					rPtr, _, _, rblock, _, _, err :=
+						fbo.getFileBlockAtOffsetLocked(
+							ctx, lState, md, file, fblock,
+							endOfBlock, blockWrite)
+					if err != nil {
+						return nil, nil, syncState, err
+					}
+					rblock.Contents = append(extraBytes, rblock.Contents...)
+					if err = fbo.cacheBlockIfNotYetDirtyLocked(
+						lState, rPtr, file.Branch, rblock); err != nil {
+						return nil, nil, syncState, err
+					}
+					fblock.IPtrs[i+1].Off = ptr.Off + int64(len(block.Contents))
+					md.AddUnrefBlock(fblock.IPtrs[i+1].BlockInfo)
+					fblock.IPtrs[i+1].EncodedSize = 0
+				case splitAt < 0:
+					if !more {
+						// end of the line
+						continue
+					}
+
+					endOfBlock := ptr.Off + int64(len(block.Contents))
+					rPtr, _, _, rblock, _, _, err :=
+						fbo.getFileBlockAtOffsetLocked(
+							ctx, lState, md, file, fblock,
+							endOfBlock, blockWrite)
+					if err != nil {
+						return nil, nil, syncState, err
+					}
+					// copy some of that block's data into this block
+					nCopied := bsplit.CopyUntilSplit(block, false,
+						rblock.Contents, int64(len(block.Contents)))
+					rblock.Contents = rblock.Contents[nCopied:]
+					if len(rblock.Contents) > 0 {
+						if err = fbo.cacheBlockIfNotYetDirtyLocked(
+							lState, rPtr, file.Branch, rblock); err != nil {
+							return nil, nil, syncState, err
+						}
+						fblock.IPtrs[i+1].Off =
+							ptr.Off + int64(len(block.Contents))
+						md.AddUnrefBlock(fblock.IPtrs[i+1].BlockInfo)
+						fblock.IPtrs[i+1].EncodedSize = 0
+					} else {
+						// TODO: delete the block, and if we're down
+						// to just one indirect block, remove the
+						// layer of indirection
+						//
+						// TODO: When we implement more than one level
+						// of indirection, make sure that the pointer
+						// to the parent block in the grandparent
+						// block has EncodedSize 0.
+						md.AddUnrefBlock(fblock.IPtrs[i+1].BlockInfo)
+						fblock.IPtrs =
+							append(fblock.IPtrs[:i+1], fblock.IPtrs[i+2:]...)
+					}
+				}
+			}
+		}
+
+		for i, ptr := range fblock.IPtrs {
+			localPtr := ptr.BlockPointer
+			isDirty := bcache.IsDirty(localPtr, file.Branch)
+			if (ptr.EncodedSize > 0) && isDirty {
+				return nil, nil, syncState, InconsistentEncodedSizeError{ptr.BlockInfo}
+			}
+			if isDirty {
+				_, _, _, block, _, _, err := fbo.getFileBlockAtOffsetLocked(
+					ctx, lState, md, file, fblock, ptr.Off, blockWrite)
+				if err != nil {
+					return nil, nil, syncState, err
+				}
+
+				newInfo, _, readyBlockData, err :=
+					fbo.ReadyBlock(ctx, md, block, uid)
+				if err != nil {
+					return nil, nil, syncState, err
+				}
+
+				syncState.newIndirectFileBlockPtrs = append(syncState.newIndirectFileBlockPtrs, newInfo.BlockPointer)
+				err = bcache.Put(newInfo.BlockPointer, fbo.id(), block, PermanentEntry)
+				if err != nil {
+					return nil, nil, syncState, err
+				}
+
+				// Defer the DeleteDirty until after the new path is
+				// ready, in case anyone tries to read the dirty file
+				// in the meantime.
+				syncState.oldFileBlockPtrs =
+					append(syncState.oldFileBlockPtrs, localPtr)
+
+				fblock.IPtrs[i].BlockInfo = newInfo
+				md.AddRefBlock(newInfo)
+				si.bps.addNewBlock(newInfo.BlockPointer, block, readyBlockData)
+				fbo.fileBlockStates[localPtr] = blockSyncingNotDirty
+				syncState.redirtyOnRecoverableError[newInfo.BlockPointer] = localPtr
+			}
+		}
+	}
+
+	fbo.fileBlockStates[file.tailPointer()] = blockSyncingNotDirty
+	syncState.oldFileBlockPtrs = append(syncState.oldFileBlockPtrs, file.tailPointer())
+	// TODO: Returning si.bps in this way is racy, since si is a
+	// member of unrefCache.
+	return fblock, si.bps, syncState, nil
+}
+
+func (fbo *folderBlockOps) makeLocalBcache(ctx context.Context,
+	lState *lockState, md *RootMetadata, file path, si *syncInfo) (
+	lbc localBcache, err error) {
+	fbo.blockLock.RLock(lState)
+	defer fbo.blockLock.RUnlock(lState)
+
+	parentPath := file.parentPath()
+
+	dblock, err := fbo.getDirLocked(
+		ctx, lState, md, *parentPath, blockWrite)
+	if err != nil {
+		return nil, err
+	}
+
+	// add in the cached unref pieces and fixup the dir entry
+	fbo.mergeUnrefCacheLocked(lState, file, md)
+
+	fileRef := file.tailPointer().ref()
+
+	lbc = make(localBcache)
+
+	// update the file's directory entry to the cached copy
+	if de, ok := fbo.deCache[fileRef]; ok {
+		// remember the old info
+		de.EncodedSize = si.oldInfo.EncodedSize
+		dblock.Children[file.tailName()] = de
+		lbc[parentPath.tailPointer()] = dblock
+	}
+
+	return lbc, nil
+}
+
+// StartSync starts a sync for the given file. It returns the new
+// FileBlock which has the readied top-level block which includes all
+// writes since the last sync. Must be used with CleanupSyncState()
+// and FinishSync() like so:
+//
+// 	fblock, bps, lbc, syncState, err :=
+//		...fbo.StartSync(ctx, lState, md, uid, file)
+//	defer func() {
+//		...fbo.CleanupSyncState(
+//			ctx, lState, file, ..., syncState, err)
+//	}()
+//	if err != nil {
+//		...
+//	}
+//      ...
+//
+//	... = ...fbo.FinishSync(ctx, lState, file, ..., syncState)
+func (fbo *folderBlockOps) StartSync(ctx context.Context,
+	lState *lockState, md *RootMetadata, uid keybase1.UID, file path) (
+	fblock *FileBlock, bps *blockPutState, lbc localBcache,
+	syncState fileSyncState, err error) {
+	fblock, bps, syncState, err = fbo.startSyncWriteLocked(
+		ctx, lState, md, uid, file)
+	if err != nil {
+		return nil, nil, nil, syncState, err
+	}
+
+	lbc, err = fbo.makeLocalBcache(ctx, lState, md, file, syncState.si)
+	if err != nil {
+		return nil, nil, nil, syncState, err
+	}
+	return fblock, bps, lbc, syncState, err
+}
+
+// Does any clean-up for a sync of the given file, given an error
+// (which may be nil) that happens during or after StartSync() and
+// before FinishSync(). blocksToRemove may be nil.
+func (fbo *folderBlockOps) CleanupSyncState(
+	ctx context.Context, lState *lockState,
+	file path, blocksToRemove []BlockPointer,
+	result fileSyncState, err error) {
+	if err == nil {
+		return
+	}
+
+	// If there was an error, we need to back out any changes that
+	// might have been filled into the sync op, because it could
+	// get reused again in a later Sync call.
+	if result.si != nil {
+		result.si.op.resetUpdateState()
+	}
+	if isRecoverableBlockError(err) {
+		if result.si != nil {
+			fbo.revertSyncInfoAfterRecoverableError(
+				blocksToRemove, result.si, result.savedSi)
+		}
+		if result.fblock != nil {
+			*result.fblock = *result.savedFblock
+			fbo.fixChildBlocksAfterRecoverableError(
+				ctx, lState, file,
+				result.redirtyOnRecoverableError)
+		}
+	}
+
+	// TODO: Clear deferredWrites and deferredDirtyDeletes?
+}
+
+// FinishSync finishes the sync process for a file, given the state
+// from StartSync. Specifically, it re-applies any writes that
+// happened since the call to StartSync.
+func (fbo *folderBlockOps) FinishSync(
+	ctx context.Context, lState *lockState,
+	oldPath, newPath path, md *RootMetadata,
+	syncState fileSyncState) (stillDirty bool, err error) {
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
+
+	bcache := fbo.config.BlockCache()
+
+	for _, ptr := range syncState.oldFileBlockPtrs {
+		if err := bcache.DeleteDirty(ptr, fbo.branch()); err != nil {
+			return true, err
+		}
+	}
+
+	for _, ptr := range syncState.newIndirectFileBlockPtrs {
+		err := bcache.DeletePermanent(ptr.ID)
+		if err != nil {
+			fbo.log.CWarningf(ctx, "Error when deleting %v from cache: %v", ptr.ID, err)
+		}
+	}
+
+	fbo.fileBlockStates = make(map[BlockPointer]syncBlockState)
+	// Redo any writes or truncates that happened to our file while
+	// the sync was happening.
+	deletes := fbo.deferredDirtyDeletes
+	writes := fbo.deferredWrites
+	stillDirty = len(fbo.deferredWrites) != 0
+	fbo.deferredDirtyDeletes = nil
+	fbo.deferredWrites = nil
+
+	// Clear any dirty blocks that resulted from a write/truncate
+	// happening during the sync, since we're redoing them below.
+	for _, ptr := range deletes {
+		if err := bcache.DeleteDirty(ptr, fbo.branch()); err != nil {
+			return true, err
+		}
+	}
+
+	// Clear cached info for the old path.  We are guaranteed that
+	// any concurrent write to this file was deferred, even if it
+	// was to a block that wasn't currently being sync'd, since
+	// the top-most block is always in fileBlockStates and is
+	// always dirtied during a write/truncate.
+	//
+	// Also, we can get rid of all the sync state that might have
+	// happened during the sync, since we will replay the writes
+	// below anyway.
+	fbo.clearCacheInfoLocked(lState, oldPath)
+
+	for _, f := range writes {
+		err = f(ctx, lState, md, newPath)
+		if err != nil {
+			// It's a little weird to return an error from a deferred
+			// write here. Hopefully that will never happen.
+			return true, err
+		}
+	}
+
+	return stillDirty, nil
 }
 
 // NotifyBlockedWrites notifies any write operations that are blocked

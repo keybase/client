@@ -149,12 +149,22 @@ func (fbm *folderBlockManager) shutdown() {
 	fbm.cancelReclamation()
 }
 
+// cleanUpBlockState cleans up any blocks that may have been orphaned
+// by a failure during or after blocks have been sent to the
+// server. This is usually used in a defer right before a call to
+// fbo.doBlockPuts like so:
+//
+//  defer func() {
+//    if err != nil {
+//      ...cleanUpBlockState(md, bps)
+//    }
+//  }()
+//
+//  ... = ...doBlockPuts(ctx, md, *bps)
 func (fbm *folderBlockManager) cleanUpBlockState(
 	md *RootMetadata, bps *blockPutState) {
 	fbm.blocksToDeleteLock.Lock()
 	defer fbm.blocksToDeleteLock.Unlock()
-	// Clean up any blocks that may have been orphaned by this
-	// failure.
 	for _, bs := range bps.blockStates {
 		fbm.blocksToDeleteAfterError[md] =
 			append(fbm.blocksToDeleteAfterError[md], bs.blockPtr)
