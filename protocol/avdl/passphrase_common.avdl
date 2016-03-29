@@ -23,6 +23,7 @@ protocol passphraseCommon {
   record GUIEntryArg {
     string windowTitle;
     string prompt;
+    string username;
     string submitLabel;
     string cancelLabel;
     string retryLabel;

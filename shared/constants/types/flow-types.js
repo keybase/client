@@ -295,6 +295,7 @@ export type GPGMethod =
 export type GUIEntryArg = {
   windowTitle: string;
   prompt: string;
+  username: string;
   submitLabel: string;
   cancelLabel: string;
   retryLabel: string;

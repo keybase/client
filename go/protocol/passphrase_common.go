@@ -31,6 +31,7 @@ const (
 type GUIEntryArg struct {
 	WindowTitle string           `codec:"windowTitle" json:"windowTitle"`
 	Prompt      string           `codec:"prompt" json:"prompt"`
+	Username    string           `codec:"username" json:"username"`
 	SubmitLabel string           `codec:"submitLabel" json:"submitLabel"`
 	CancelLabel string           `codec:"cancelLabel" json:"cancelLabel"`
 	RetryLabel  string           `codec:"retryLabel" json:"retryLabel"`
