@@ -32,7 +32,9 @@ export default class CodePageRender extends Component {
         onBack={this.props.onBack}>
 
         <Text type='Header' style={{marginTop: 60}}>Type in text code</Text>
-        <Text type='BodySmall'>Type this code on your other device</Text>
+        <p style={{marginTop: 10}}>
+          <Text type='BodySmall' inline>Run&nbsp;</Text><Text type='TerminalSmall' inline>keybase device add</Text><Text type='BodySmall' inline>&nbsp;on your other device and type this code there: </Text>
+        </p>
         <Icon type='computer-bw-m' style={{marginTop: 28}}/>
 
         <Text type='Body' style={styles.paperkey}>{this.props.textCode}</Text>
