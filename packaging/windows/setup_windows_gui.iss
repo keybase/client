@@ -129,6 +129,16 @@ var
   g_currentDokanVer: String;
   Restarted: Boolean;
 
+function IsX64: Boolean;
+begin
+  Result := Is64BitInstallMode and (ProcessorArchitecture = paX64);
+end;
+
+function IsIA64: Boolean;
+begin
+  Result := Is64BitInstallMode and (ProcessorArchitecture = paIA64);
+end;
+
 /////////////////////////////////////////////////////////////////////
 function GetUninstallString(var AppIdString: String): String;
 var
@@ -141,10 +151,11 @@ begin
   sUnInstPath := 'Software\Microsoft\Windows\CurrentVersion\Uninstall\' + AppIdString + '_is1';
   sUnInstallString := '';
   
-  if not RegQueryStringValue(HKLM64, sUnInstPath, 'UninstallString', sUnInstallString) then
+  if not RegQueryStringValue(HKCU32, sUnInstPath, 'UninstallString', sUnInstallString) then
     if not RegQueryStringValue(HKLM32, sUnInstPath, 'UninstallString', sUnInstallString) then
-      if not RegQueryStringValue(HKCU64, sUnInstPath, 'UninstallString', sUnInstallString) then
-        RegQueryStringValue(HKCU32, sUnInstPath, 'UninstallString', sUnInstallString);
+      if IsX64() then
+        if not RegQueryStringValue(HKCU64, sUnInstPath, 'UninstallString', sUnInstallString) then
+          RegQueryStringValue(HKLM64, sUnInstPath, 'UninstallString', sUnInstallString);
   Result := sUnInstallString;
 end;
 
@@ -402,17 +413,6 @@ begin
       Result := true;
       DeleteFile(ExpandConstant('{sys}\drivers\dokan.sys'));
     end;
-end;
-
-function IsX64: Boolean;
-begin
-  Result := Is64BitInstallMode and (ProcessorArchitecture = paX64);
-end;
-
-
-function IsIA64: Boolean;
-begin
-  Result := Is64BitInstallMode and (ProcessorArchitecture = paIA64);
 end;
 
 

@@ -29,5 +29,6 @@ popd
 :: Then the desktop:
 pushd  %GOPATH%\src\github.com\keybase\client\desktop
 npm i
-npm run package -- --arch ia32 --platform win32 --appVersion %KEYBASE_VERSION%
+
+buildui.bat
 popd
