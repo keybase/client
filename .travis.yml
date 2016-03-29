@@ -38,7 +38,7 @@ script:
   - cd ../serverutil && go test -i && go test -c && ./serverutil.test -test.timeout 10s
   - cd ../bserver && go test -i && go test -c && ./bserver.test -test.timeout 4m
   - go test -c -tags integration
-  - cd ../mdserver && go test -i && go test -c -tags integration && ./mdserver.test -short -test.timeout 4m
+  - cd ../mdserver && go test -i && go test -c -tags integration && ./mdserver.test -test.short -test.timeout 4m
   # run libkbfs test suite against the real mdserver
   # TODO: why does the below sometimes hang? uncomment when fixed
   #- cd mdserver && go build && { KBFS_BIND_ADDR=127.0.0.1:8125 ./mdserver 2> /dev/null & } && cd ../../libkbfs/ && KEYBASE_TEST_MDSERVER_ADDR=127.0.0.1:8125 go test && killall -9 mdserver
