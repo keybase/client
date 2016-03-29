@@ -22,7 +22,7 @@ const styles = {
     bottom: 0,
     justifyContent: 'flex-start',
     left: 0,
-    padding: 65,
+    padding: 60,
     position: 'absolute',
     right: 0,
     top: 0
@@ -34,6 +34,7 @@ const styles = {
     height: '100%'
   },
   button: {
-    zIndex: 9999
+    zIndex: 9999,
+    position: 'absolute'
   }
 }
