@@ -169,7 +169,7 @@ const headerStyles = {
 
   textHeader: {
     ...textCommon,
-    ...globalStyles.fontBold,
+    ...globalStyles.fontSemibold,
     fontSize: 22,
     lineHeight: 28
   },
