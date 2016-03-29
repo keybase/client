@@ -6,7 +6,6 @@ import type {Props} from './index.render'
 
 type State = {
   selectedUser: ?string,
-  error: ?string,
   saveInKeychain: boolean,
   showTyping: boolean,
   passphrase: string
@@ -20,7 +19,6 @@ export default class LoginRender extends Component<void, Props, State> {
 
     this.state = {
       selectedUser: props.lastUser,
-      error: props.error,
       saveInKeychain: true,
       showTyping: false,
       passphrase: ''
@@ -40,7 +38,7 @@ export default class LoginRender extends Component<void, Props, State> {
       onChange: event => this.setState({passphrase: event.target.value}),
       onEnterKeyDown: () => this.onSubmit(),
       type: this.state.showTyping ? 'text' : 'password',
-      errorText: this.state.error
+      errorText: this.props.error
     }
 
     const checkboxProps = [
