@@ -89,6 +89,9 @@ export default function (state: LoginState = initialState, action: any): LoginSt
 
       toMerge = {codePage: {myDeviceRole}}
       break
+    case Constants.setMyDeviceCodeState:
+      toMerge = {codePage: {myDeviceRole: action.payload}}
+      break
     case Constants.setOtherDeviceCodeState:
       toMerge = {codePage: {otherDeviceRole: action.payload}}
       break

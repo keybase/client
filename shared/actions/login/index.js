@@ -145,6 +145,11 @@ export function login (): AsyncAction {
       }
     }
     // We ask for user since the login will auto login with the last user which we don't always want
+    if (isMobile) {
+      dispatch({type: Constants.setMyDeviceCodeState, payload: Constants.codePageDeviceRoleNewPhone})
+    } else {
+      dispatch({type: Constants.setMyDeviceCodeState, payload: Constants.codePageDeviceRoleNewComputer})
+    }
     dispatch(routeAppend({parseRoute: {componentAtTop: {component: UsernameOrEmail, props}}}))
   }
 }

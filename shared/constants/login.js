@@ -16,6 +16,7 @@ export const countDownTime = 5 * 60
 export const login = 'login:login'
 export const loginDone = 'login:loginDone'
 export const logoutDone = 'login:logoutDone'
+export const setMyDeviceCodeState = 'login:setMyDeviceCodeState'
 export const setOtherDeviceCodeState = 'login:setOtherDeviceCodeState'
 export const setCodeMode = 'login:setCodeMode'
 export const setTextCode = 'login:setTextCode'
