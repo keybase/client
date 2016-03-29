@@ -4,12 +4,6 @@ import * as Constants from '../constants/login'
 import * as ConfigConstants from '../constants/config'
 import * as CommonConstants from '../constants/common'
 import Immutable from 'immutable'
-import {isMobile} from '../constants/platform'
-import {
-  codePageDeviceRoleNewPhone,
-  codePageDeviceRoleNewComputer,
-  codePageDeviceRoleExistingPhone,
-  codePageDeviceRoleExistingComputer} from '../constants/login'
 
 export type DeviceRole = 'codePageDeviceRoleExistingPhone' | 'codePageDeviceRoleNewPhone' | 'codePageDeviceRoleExistingComputer' | 'codePageDeviceRoleNewComputer'
 export type Mode = 'codePageModeScanCode' | 'codePageModeShowCode' | 'codePageModeEnterText' | 'codePageModeShowText'
@@ -79,15 +73,9 @@ export default function (state: LoginState = initialState, action: any): LoginSt
       if (action.error || action.payload == null) {
         return state
       }
-      let myDeviceRole = null
-
-      if (action.payload.status.registered) {
-        myDeviceRole = isMobile ? codePageDeviceRoleExistingPhone : codePageDeviceRoleExistingComputer
-      } else {
-        myDeviceRole = isMobile ? codePageDeviceRoleNewPhone : codePageDeviceRoleNewComputer
-      }
-
-      toMerge = {codePage: {myDeviceRole}}
+      break
+    case Constants.setMyDeviceCodeState:
+      toMerge = {codePage: {myDeviceRole: action.payload}}
       break
     case Constants.setOtherDeviceCodeState:
       toMerge = {codePage: {otherDeviceRole: action.payload}}
