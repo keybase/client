@@ -423,7 +423,7 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
           onWont={() => response.result('')}
           onBack={() => dispatch(cancelLogin(response))}/>))
     },
-    'keybase.1.secretUi.getPassphrase': ({pinentry: {type, prompt, retryLabel}}, response) => {
+    'keybase.1.secretUi.getPassphrase': ({pinentry: {type, prompt, username, retryLabel}}, response) => {
       switch (type) {
         case enums.secretUi.PassphraseType.paperKey:
           appendRouteElement((
