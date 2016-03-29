@@ -141,14 +141,14 @@ export const styles = {
     paddingTop: 4
   },
   hintStyle: {
-    ...globalStyles.fontRegular,
+    ...globalStyles.fontSemibold,
     color: globalColors.black10,
     width: '100%',
     textAlign: 'center',
     marginTop: -3
   },
   floatingLabelStyle: {
-    ...globalStyles.fontRegular,
+    ...globalStyles.fontSemibold,
     color: globalColors.black10,
     alignSelf: 'center',
     position: 'inherit',
