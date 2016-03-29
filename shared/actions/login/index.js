@@ -150,7 +150,7 @@ export function login (): AsyncAction {
     if (isMobile) {
       dispatch({
         type: Constants.setMyDeviceCodeState,
-        payload: Constants.codePageDeviceRoleNewPhon
+        payload: Constants.codePageDeviceRoleNewPhone
       })
     } else {
       dispatch({
