@@ -4,12 +4,6 @@ import * as Constants from '../constants/login'
 import * as ConfigConstants from '../constants/config'
 import * as CommonConstants from '../constants/common'
 import Immutable from 'immutable'
-import {isMobile} from '../constants/platform'
-import {
-  codePageDeviceRoleNewPhone,
-  codePageDeviceRoleNewComputer,
-  codePageDeviceRoleExistingPhone,
-  codePageDeviceRoleExistingComputer} from '../constants/login'
 
 export type DeviceRole = 'codePageDeviceRoleExistingPhone' | 'codePageDeviceRoleNewPhone' | 'codePageDeviceRoleExistingComputer' | 'codePageDeviceRoleNewComputer'
 export type Mode = 'codePageModeScanCode' | 'codePageModeShowCode' | 'codePageModeEnterText' | 'codePageModeShowText'
