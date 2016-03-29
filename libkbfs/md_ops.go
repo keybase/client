@@ -34,78 +34,67 @@ func (md *MDOpsStandard) convertVerifyingKeyError(ctx context.Context,
 
 func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	handle *TlfHandle, rmds *RootMetadataSigned) error {
-	crypto := md.config.Crypto()
-	codec := md.config.Codec()
-	// verify signature and deserialize root data, if the sig is not blank.
-	// a blank sig means this is a brand new MD object, nothing to check
-	if rmds.IsInitialized() {
-		if err := decryptMDPrivateData(ctx, md.config, &rmds.MD); err != nil {
-			return err
-		}
+	// A blank sig means this is a brand new MD object, and
+	// there's nothing to do.
+	if !rmds.IsInitialized() {
+		return nil
+	}
 
-		// Make sure the last writer is really a valid writer
-		writer := rmds.MD.LastModifyingWriter
-		if !handle.IsWriter(writer) {
-			return MDMismatchError{
-				handle.ToString(ctx, md.config),
-				fmt.Sprintf("Writer MD (id=%s) was written by a non-writer %s",
-					rmds.MD.ID, writer)}
-		}
+	// Otherwise, verify signatures and deserialize private data.
 
-		// re-marshal the WriterMetadata
-		// TODO: can we somehow avoid the re-marshaling by saving the
-		// marshalled metadata somewhere?
-		buf, err := codec.Encode(rmds.MD.WriterMetadata)
-		if err != nil {
-			return err
-		}
+	// Make sure the last writer is really a valid writer
+	writer := rmds.MD.LastModifyingWriter
+	if !handle.IsWriter(writer) {
+		return MDMismatchError{
+			handle.ToString(ctx, md.config),
+			fmt.Sprintf("Writer MD (id=%s) was written by a non-writer %s",
+				rmds.MD.ID, writer)}
+	}
 
-		// TODO: what do we do if the signature is from a revoked
-		// key?
-		kbpki := md.config.KBPKI()
-		err = kbpki.HasVerifyingKey(ctx, writer,
-			rmds.MD.WriterMetadataSigInfo.VerifyingKey,
-			rmds.untrustedServerTimestamp)
-		if err != nil {
-			return md.convertVerifyingKeyError(ctx, rmds, err)
-		}
-
-		err = crypto.Verify(buf, rmds.MD.WriterMetadataSigInfo)
-		if err != nil {
-			return err
-		}
-
-		// Make sure the last user to change the blob is really a valid reader
-		user := rmds.MD.LastModifyingUser
-		if !handle.IsReader(user) {
-			return MDMismatchError{
-				handle.ToString(ctx, md.config),
-				fmt.Sprintf("MD (id=%s) was changed by a non-reader %s",
-					rmds.MD.ID, user),
-			}
-		}
-
-		// re-marshal the whole RootMetadata
-		// TODO: can we somehow avoid the re-marshaling by saving the
-		// marshalled metadata somewhere?
-		buf, err = codec.Encode(rmds.MD)
-		if err != nil {
-			return err
-		}
-
-		// TODO: what do we do if the signature is from a revoked
-		// key?
-		err = kbpki.HasVerifyingKey(ctx, user, rmds.SigInfo.VerifyingKey,
-			rmds.untrustedServerTimestamp)
-		if err != nil {
-			return md.convertVerifyingKeyError(ctx, rmds, err)
-		}
-
-		err = crypto.Verify(buf, rmds.SigInfo)
-		if err != nil {
-			return err
+	// Make sure the last user to change the blob is really a valid reader
+	user := rmds.MD.LastModifyingUser
+	if !handle.IsReader(user) {
+		return MDMismatchError{
+			handle.ToString(ctx, md.config),
+			fmt.Sprintf("MD (id=%s) was changed by a non-reader %s",
+				rmds.MD.ID, user),
 		}
 	}
+
+	// TODO: what do we do if the signature is from a revoked key?
+	kbpki := md.config.KBPKI()
+	err := kbpki.HasVerifyingKey(ctx, writer,
+		rmds.MD.WriterMetadataSigInfo.VerifyingKey,
+		rmds.untrustedServerTimestamp)
+	if err != nil {
+		return md.convertVerifyingKeyError(ctx, rmds, err)
+	}
+
+	codec := md.config.Codec()
+	crypto := md.config.Crypto()
+
+	err = rmds.MD.VerifyWriterMetadata(codec, crypto)
+	if err != nil {
+		return err
+	}
+
+	// TODO: what do we do if the signature is from a revoked key?
+	err = kbpki.HasVerifyingKey(ctx, user,
+		rmds.SigInfo.VerifyingKey, rmds.untrustedServerTimestamp)
+	if err != nil {
+		return md.convertVerifyingKeyError(ctx, rmds, err)
+	}
+
+	err = rmds.VerifyRootMetadata(codec, crypto)
+	if err != nil {
+		return err
+	}
+
+	err = decryptMDPrivateData(ctx, md.config, &rmds.MD)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 

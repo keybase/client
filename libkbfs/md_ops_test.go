@@ -40,17 +40,19 @@ func newDir(t *testing.T, config *ConfigMock, x byte, share bool, public bool) (
 
 func verifyMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
 	id TlfID, hasVerifyingKeyErr error, verifyErr error) {
-	config.mockCodec.EXPECT().Decode(rmds.MD.SerializedPrivateMetadata, &rmds.MD.data).
-		Return(nil)
-
 	packedData := []byte{4, 3, 2, 1}
-	config.mockCodec.EXPECT().Encode(rmds.MD).AnyTimes().Return(packedData, nil)
-	config.mockCodec.EXPECT().Encode(rmds.MD.WriterMetadata).Return(packedData, nil)
 	config.mockKbpki.EXPECT().HasVerifyingKey(gomock.Any(), gomock.Any(),
 		gomock.Any(), gomock.Any()).AnyTimes().Return(hasVerifyingKeyErr)
 	if hasVerifyingKeyErr == nil {
+		config.mockCodec.EXPECT().Encode(rmds.MD.WriterMetadata).Return(packedData, nil)
 		config.mockCrypto.EXPECT().Verify(packedData, rmds.MD.WriterMetadataSigInfo).Return(nil)
+		config.mockCodec.EXPECT().Encode(rmds.MD).AnyTimes().Return(packedData, nil)
 		config.mockCrypto.EXPECT().Verify(packedData, rmds.SigInfo).Return(verifyErr)
+		if verifyErr == nil {
+			config.mockCodec.EXPECT().Decode(
+				rmds.MD.SerializedPrivateMetadata,
+				&rmds.MD.data).Return(nil)
+		}
 	}
 }
 

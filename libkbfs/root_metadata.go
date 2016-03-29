@@ -8,6 +8,7 @@ import (
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/go-codec/codec"
 	"golang.org/x/net/context"
 )
 
@@ -77,6 +78,11 @@ const (
 
 // WriterMetadata stores the metadata for a TLF that is
 // only editable by users with writer permissions.
+//
+// NOTE: Don't add new fields to this type! Instead, add them to
+// WriterMetadataExtra. This is because we want old clients to
+// preserve unknown fields, and we're unable to do that for
+// WriterMetadata directly because it's embedded in RootMetadata.
 type WriterMetadata struct {
 	// Serialized, possibly encrypted, version of the PrivateMetadata
 	SerializedPrivateMetadata []byte `codec:"data"`
@@ -102,9 +108,23 @@ type WriterMetadata struct {
 	RefBytes uint64
 	// The total number of bytes in unreferenced blocks
 	UnrefBytes uint64
+
+	// This has to be a pointer for omitempty to work.
+	//
+	// TODO: Figure out how to avoid the need for nil checks?
+	Extra *WriterMetadataExtra `codec:"x,omitempty"`
+}
+
+// WriterMetadataExtra stores more fields for WriterMetadata. (See
+// WriterMetadata comments as to why this type is needed.)
+type WriterMetadataExtra struct {
+	codec.UnknownFieldSet
 }
 
 // Equals compares two sets of WriterMetadata and returns true if they match.
+//
+// This function is needed because reflect.DeepEqual() doesn't
+// consider nil slices and non-nil empty slices to be equal.
 func (wm WriterMetadata) Equals(rhs WriterMetadata) bool {
 	if wm.ID != rhs.ID {
 		return false
@@ -138,13 +158,35 @@ func (wm WriterMetadata) Equals(rhs WriterMetadata) bool {
 			return false
 		}
 	}
-	return wm.WKeys.DeepEqual(rhs.WKeys)
+	if !wm.WKeys.DeepEqual(rhs.WKeys) {
+		return false
+	}
+
+	if wm.Extra == nil {
+		return rhs.Extra == nil
+	}
+
+	return wm.Extra.Equals(*rhs.Extra)
+}
+
+// Equals compares two sets of WriterMetadataExtra and returns true if
+// they match.
+func (wme WriterMetadataExtra) Equals(rhs WriterMetadataExtra) bool {
+	// reflect.DeepEqual works with UnknownFieldSet, so this is
+	// ok.
+	return reflect.DeepEqual(wme, rhs)
 }
 
 // RootMetadata is the MD that is signed by the reader or writer.
 type RootMetadata struct {
-	// The metadata that is only editable by the writer
+	// The metadata that is only editable by the writer.
+	//
+	// TODO: If we ever get a chance to update RootMetadata
+	// without having to be backwards-compatible, WriterMetadata
+	// should be unembedded; see comments to WriterMetadata as for
+	// why.
 	WriterMetadata
+
 	// The signature for the writer metadata, to prove
 	// that it's only been changed by writers.
 	WriterMetadataSigInfo SignatureInfo
@@ -549,6 +591,24 @@ func (md RootMetadata) writerKID() keybase1.KID {
 	return md.WriterMetadataSigInfo.VerifyingKey.KID()
 }
 
+// VerifyWriterMetadata verifies md's WriterMetadata against md's
+// WriterMetadataSigInfo, assuming the verifying key there is valid.
+func (md RootMetadata) VerifyWriterMetadata(codec Codec, crypto Crypto) error {
+	// We have to re-marshal the WriterMetadata, since it's
+	// embedded.
+	buf, err := codec.Encode(md.WriterMetadata)
+	if err != nil {
+		return err
+	}
+
+	err = crypto.Verify(buf, md.WriterMetadataSigInfo)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // RootMetadataSigned is the top-level MD object stored in MD server
 type RootMetadataSigned struct {
 	// signature over the root metadata by the private signing key
@@ -565,6 +625,24 @@ type RootMetadataSigned struct {
 func (rmds *RootMetadataSigned) IsInitialized() bool {
 	// The data is initialized only if there is a signature.
 	return !rmds.SigInfo.IsNil()
+}
+
+// VerifyRootMetadata verifies rmd's MD against rmd's SigInfo,
+// assuming the verifying key there is valid.
+func (rmds RootMetadataSigned) VerifyRootMetadata(codec Codec, crypto Crypto) error {
+	// Re-marshal the whole RootMetadata. This is not avoidable
+	// without support from ugorji/codec.
+	buf, err := codec.Encode(rmds.MD)
+	if err != nil {
+		return err
+	}
+
+	err = crypto.Verify(buf, rmds.SigInfo)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // MerkleHash computes a hash of this RootMetadataSigned object for inclusion

@@ -9,34 +9,20 @@ import (
 	"golang.org/x/net/context"
 )
 
-// extra contains some fake extra fields that can be embedded into a
-// struct to test handling of unknown fields.
-type extra struct {
-	Extra1 encryptedData
-	Extra2 HMAC
-	Extra3 string
+type tlfCryptKeyInfoUnknownFieldTest struct {
+	t *testing.T
 }
 
-func makeExtraOrBust(t *testing.T) extra {
-	extraHMAC, err := DefaultHMAC([]byte("fake extra key"), []byte("fake extra buf"))
-	require.Nil(t, err)
-	return extra{
-		Extra1: encryptedData{
-			Version:       EncryptionSecretbox + 1,
-			EncryptedData: []byte("fake extra encrypted data"),
-			Nonce:         []byte("fake extra nonce"),
-		},
-		Extra2: extraHMAC,
-		Extra3: "extra string",
-	}
+var _ structUnknownFieldsTest = tlfCryptKeyInfoUnknownFieldTest{}
+
+func (tlfCryptKeyInfoUnknownFieldTest) makeEmptyStruct() interface{} {
+	return TLFCryptKeyInfo{}
 }
 
-// Make sure that hypothetical future versions of TLFCryptKeyInfo can
-// be deserialized by current clients and preserve unknown fields.
-func TestTLFCryptKeyInfoBackwardsCompatibility(t *testing.T) {
+func (t tlfCryptKeyInfoUnknownFieldTest) makeFilledStruct() interface{} {
 	hmac, err := DefaultHMAC([]byte("fake key"), []byte("fake buf"))
-	require.Nil(t, err)
-	info := TLFCryptKeyInfo{
+	require.Nil(t.t, err)
+	return TLFCryptKeyInfo{
 		ClientHalf: EncryptedTLFCryptKeyClientHalf{
 			Version:       EncryptionSecretbox,
 			EncryptedData: []byte("fake encrypted data"),
@@ -46,50 +32,32 @@ func TestTLFCryptKeyInfoBackwardsCompatibility(t *testing.T) {
 			ID: hmac,
 		},
 	}
+}
 
-	type tlfCryptKeyInfoFuture struct {
-		TLFCryptKeyInfo
-		extra
+func (tlfCryptKeyInfoUnknownFieldTest) filterKnownFields(i interface{}) interface{} {
+	s := i.(TLFCryptKeyInfo)
+	s.UnknownFieldSet = codec.UnknownFieldSet{}
+	return s
+}
+
+type tlfCryptKeyInfoFuture struct {
+	TLFCryptKeyInfo
+	extra
+}
+
+func (tlfCryptKeyInfoUnknownFieldTest) makeEmptyFutureStruct() interface{} {
+	return tlfCryptKeyInfoFuture{}
+}
+
+func (t tlfCryptKeyInfoUnknownFieldTest) makeFilledFutureStruct() interface{} {
+	return tlfCryptKeyInfoFuture{
+		TLFCryptKeyInfo: t.makeFilledStruct().(TLFCryptKeyInfo),
+		extra:           makeExtraOrBust(t.t),
 	}
+}
 
-	infoFuture := tlfCryptKeyInfoFuture{
-		TLFCryptKeyInfo: info,
-		extra:           makeExtraOrBust(t),
-	}
-
-	c := NewCodecMsgpack()
-
-	buf, err := c.Encode(infoFuture)
-	require.Nil(t, err)
-
-	// Make sure tlfCryptKeyInfoFuture round-trips correctly.
-	var infoFuture2 tlfCryptKeyInfoFuture
-	err = c.Decode(buf, &infoFuture2)
-	require.Nil(t, err)
-	require.Equal(t, infoFuture, infoFuture2)
-
-	var info2 TLFCryptKeyInfo
-	err = c.Decode(buf, &info2)
-	require.Nil(t, err)
-
-	knownInfo2 := info2
-	knownInfo2.UnknownFieldSet = codec.UnknownFieldSet{}
-
-	// Make sure known fields are the same.
-	require.Equal(t, info, knownInfo2)
-
-	buf2, err := c.Encode(info2)
-	require.Nil(t, err)
-
-	// Make sure serializing info preserves the extra fields.
-	require.Equal(t, buf, buf2)
-
-	// As a sanity test, make sure tlfCryptKeyInfoFuture decodes
-	// back from buf2.
-	var infoFuture3 tlfCryptKeyInfoFuture
-	err = c.Decode(buf2, &infoFuture3)
-	require.Nil(t, err)
-	require.Equal(t, infoFuture, infoFuture3)
+func TestTLFCryptKeyInfoUnknownFields(t *testing.T) {
+	testStructUnknownFields(t, tlfCryptKeyInfoUnknownFieldTest{t})
 }
 
 func testKeyBundleGetKeysOrBust(t *testing.T, config Config, uid keybase1.UID,
