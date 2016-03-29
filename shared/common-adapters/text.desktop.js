@@ -175,7 +175,7 @@ const headerStyles = {
 
   textHeader: {
     ...textCommon,
-    ...globalStyles.fontBold,
+    ...globalStyles.fontSemibold,
     fontSize: 18,
     lineHeight: '25px',
     letterSpacing: '0.3px'
