@@ -8,10 +8,11 @@ const realCSS = `
   .register-row { background-color: ${globalColors.white}; }
   .register-row:hover { background-color: ${globalColors.blue4}; }
 
+  .register-row .register-background {  }
+  .register-row:hover .register-background { opacity: 0 }
+
   .register-row:hover .register-icon { transform: translateX(15px)}
 
-  .register-row .register-background { background-color: ${globalColors.lightGrey}; }
-  .register-row:hover .register-background { background-color: ${globalColors.blue4}; transform: scale(0)}
 `
 
 const RowCSS = () => (
@@ -21,9 +22,9 @@ const RowCSS = () => (
 const Row = ({onClick, icon, title, subTitle, children, style}:Props) => {
   return (
     <div className='register-row' style={{...stylesRowContainer, ...style}} onClick={onClick}>
-      <div className='register-icon' style={stylesIconContainer}>
+      <div style={stylesIconContainer}>
         <div className='register-background' style={stylesIconBackground}/>
-        <Icon type={icon} style={stylesIcon}/>
+        <Icon className='register-icon' type={icon} style={stylesIcon}/>
       </div>
       <div>
         <Text type='Header' inline={false} style={stylesHeader}>{title}</Text>
@@ -37,7 +38,7 @@ const Row = ({onClick, icon, title, subTitle, children, style}:Props) => {
 const stylesRowContainer = {
   ...globalStyles.flexBoxRow,
   ...globalStyles.clickable,
-  ...transition('background'),
+  transition: 'background 0.1s ease-out',
   minHeight: 100,
   maxHeight: 100,
   alignItems: 'center',
@@ -48,7 +49,6 @@ const stylesHeader = {
 }
 const stylesIconContainer = {
   ...globalStyles.flexBoxRow,
-  ...transition('transform'),
   maxWidth: 80,
   maxHeight: 80,
   minWidth: 80,
@@ -59,6 +59,7 @@ const stylesIconContainer = {
   position: 'relative'
 }
 const stylesIcon = {
+  ...transition('transform'),
   fontSize: 35,
   textAlign: 'center',
   height: 'inherit',
@@ -67,7 +68,8 @@ const stylesIcon = {
   zIndex: 1
 }
 const stylesIconBackground = {
-  ...transition('background', 'transform'),
+  ...transition('opacity'),
+  backgroundColor: globalColors.lightGrey,
   borderRadius: 40,
   maxWidth: 80,
   maxHeight: 80,
