@@ -48,7 +48,7 @@ func linuxUpgradeInstructionsString() (string, error) {
 
 	var start string
 	if hasPackageManager("apt-get") {
-		start = "cd && sudo apt-get update && sudo apt-get install " + packageName
+		start = "sudo apt-get update; sudo apt-get install " + packageName
 	} else if hasPackageManager("dnf") {
 		start = "sudo dnf upgrade " + packageName
 	} else if hasPackageManager("yum") {
