@@ -20,7 +20,7 @@ type FeatureFlags = {
 let features = getenv.array('KEYBASE_FEATURES', 'string', '')
 
 const admin = features.includes(adminKey)
-const login = features.includes(loginKey) || admin
+const login = true
 const mainWindow = features.includes(mainWindowKey)
 const mobileAppsExist = features.includes(mobileAppsExistKey)
 
