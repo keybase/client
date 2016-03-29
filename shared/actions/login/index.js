@@ -413,10 +413,10 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
           devices={devices}
           onSelect={deviceID => {
             const type: DeviceRole = devices[devices.findIndex(d => d.deviceID === deviceID)].type
-            const role = {
+            const role = ({
               mobile: Constants.codePageDeviceRoleExistingPhone,
-              computer: Constants.codePageDeviceRoleExistingComputer
-            }[type]
+              desktop: Constants.codePageDeviceRoleExistingComputer
+            }: {[key: DeviceType]: string})[type]
             dispatch(setCodePageOtherDeviceRole(role))
             response.result(deviceID)
           }}
