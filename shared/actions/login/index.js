@@ -144,12 +144,16 @@ export function login (): AsyncAction {
         engine.rpc(params)
       }
     }
-    // We ask for user since the login will auto login with the last user which we don't always want
+    // We can either be a newDevice or an existingDevice.
+    // Here in the login flow, let's set ourselves to be
+    // a newDevice.  If we were in the Devices tab flow,
+    // we'd want the opposite.
     if (isMobile) {
       dispatch({type: Constants.setMyDeviceCodeState, payload: Constants.codePageDeviceRoleNewPhone})
     } else {
       dispatch({type: Constants.setMyDeviceCodeState, payload: Constants.codePageDeviceRoleNewComputer})
     }
+    // We ask for user since the login will auto login with the last user which we don't always want
     dispatch(routeAppend({parseRoute: {componentAtTop: {component: UsernameOrEmail, props}}}))
   }
 }

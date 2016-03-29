@@ -79,15 +79,6 @@ export default function (state: LoginState = initialState, action: any): LoginSt
       if (action.error || action.payload == null) {
         return state
       }
-      let myDeviceRole = null
-
-      if (action.payload.status.registered) {
-        myDeviceRole = isMobile ? codePageDeviceRoleExistingPhone : codePageDeviceRoleExistingComputer
-      } else {
-        myDeviceRole = isMobile ? codePageDeviceRoleNewPhone : codePageDeviceRoleNewComputer
-      }
-
-      toMerge = {codePage: {myDeviceRole}}
       break
     case Constants.setMyDeviceCodeState:
       toMerge = {codePage: {myDeviceRole: action.payload}}
