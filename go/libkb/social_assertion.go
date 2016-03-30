@@ -9,6 +9,16 @@ import "strings"
 // network.  It should be created via NormalizeSocialAssertion.
 type SocialAssertion string
 
+func (s SocialAssertion) Username() string {
+	pieces := strings.Split(s, "@")
+	return pieces[0]
+}
+
+func (s SocialAssertion) Service() string {
+	pieces := strings.Split(s, "@")
+	return pieces[1]
+}
+
 // IsSocialAssertion returns true for strings that are valid
 // social assertions.  They do not need to be normalized, so
 // user@twitter and twitter:user will work, as will
