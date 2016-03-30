@@ -24,7 +24,8 @@ protocol kbfsCommon {
     TIMEOUT_4,
     REKEY_NEEDED_5,
     BAD_FOLDER_6,
-    NOT_IMPLEMENTED_7
+    NOT_IMPLEMENTED_7,
+    OLD_VERSION_8
   }
 
   record FSNotification {
