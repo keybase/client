@@ -6,7 +6,6 @@ import getenv from 'getenv'
 // For example, KEYBASE_FEATURES=tracker2,login,awesomefeature
 
 const adminKey = 'admin'
-const loginKey = 'login'
 const mainWindowKey = 'mainWindow'
 const mobileAppsExistKey = 'mobileAppsExist'
 
@@ -20,7 +19,7 @@ type FeatureFlags = {
 let features = getenv.array('KEYBASE_FEATURES', 'string', '')
 
 const admin = features.includes(adminKey)
-const login = features.includes(loginKey) || admin
+const login = true
 const mainWindow = features.includes(mainWindowKey)
 const mobileAppsExist = features.includes(mobileAppsExistKey)
 
