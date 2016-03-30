@@ -204,6 +204,7 @@ export type FSErrorType =
   | 5 // REKEY_NEEDED_5
   | 6 // BAD_FOLDER_6
   | 7 // NOT_IMPLEMENTED_7
+  | 8 // OLD_VERSION_8
 
 export type FSNotification = {
   publicTopLevelFolder: boolean;

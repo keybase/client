@@ -596,7 +596,8 @@ export const kbfs = {
     'timeout': 4,
     'rekeyNeeded': 5,
     'badFolder': 6,
-    'notImplemented': 7
+    'notImplemented': 7,
+    'oldVersion': 8
   }
 }
 
@@ -816,7 +817,8 @@ export const NotifyFS = {
     'timeout': 4,
     'rekeyNeeded': 5,
     'badFolder': 6,
-    'notImplemented': 7
+    'notImplemented': 7,
+    'oldVersion': 8
   }
 }
 

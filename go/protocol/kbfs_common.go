@@ -37,6 +37,7 @@ const (
 	FSErrorType_REKEY_NEEDED          FSErrorType = 5
 	FSErrorType_BAD_FOLDER            FSErrorType = 6
 	FSErrorType_NOT_IMPLEMENTED       FSErrorType = 7
+	FSErrorType_OLD_VERSION           FSErrorType = 8
 )
 
 type FSNotification struct {
