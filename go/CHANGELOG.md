@@ -9,6 +9,7 @@
 - Add `keybase pgp list` command (PR: keybase/client#2338)
 - `keybase id` uses Identify2 (PR: keybase/client#2426)
 - Identify2 displays revoked proofs (PR: keybase/client#2445)
+- Add --skip-proof-cache option to id command (PR: keybase/client#2310)
 
 ## 1.0.14 (2016-02-24)
 - Fix crasher on passphrase recover on Linux (PR: keybase/client#2062)
