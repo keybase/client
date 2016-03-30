@@ -6,13 +6,11 @@ import getenv from 'getenv'
 // For example, KEYBASE_FEATURES=tracker2,login,awesomefeature
 
 const adminKey = 'admin'
-const loginKey = 'login'
 const mainWindowKey = 'mainWindow'
 const mobileAppsExistKey = 'mobileAppsExist'
 
 type FeatureFlags = {
   'admin': boolean,
-  'login': boolean,
   'mainWindow': boolean,
   'mobileAppsExist': boolean
 }
