@@ -11,6 +11,7 @@ const mobileAppsExistKey = 'mobileAppsExist'
 
 type FeatureFlags = {
   'admin': boolean,
+  'login': boolean,
   'mainWindow': boolean,
   'mobileAppsExist': boolean
 }
