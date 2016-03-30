@@ -10,6 +10,9 @@
 - `keybase id` uses Identify2 (PR: keybase/client#2426)
 - Identify2 displays revoked proofs (PR: keybase/client#2445)
 - Add --skip-proof-cache option to id command (PR: keybase/client#2310)
+- Return non-zero status when showing an error (PR: keybase/client#2361)
+- Include device ID in non-Tor-mode requests to keybase.io, for logging (PR: keybase/client##2434)
+- Fix a bug where `keybase id` printed nothing (PR: keybase/client#2468)
 
 ## 1.0.14 (2016-02-24)
 - Fix crasher on passphrase recover on Linux (PR: keybase/client#2062)
