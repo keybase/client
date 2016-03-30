@@ -2,6 +2,7 @@
 - If a public key really consists of the same key listed twice, then
   merge the two keys and try again (PR: keybase/client#2130).
 - Support for sneak's public key (via vendored PR: keybase/go-crypto#17)
+- Support for Brainpool elliptic curves in PGP keys (via vendored PR: keybase/go-crypto#18)
 - Support for selecting keys from GPG smart cards/YubiKeys (PRs: keybase/go-crypto#22 keybase/client#2440)
 
 ## 1.0.14 (2016-02-24)
