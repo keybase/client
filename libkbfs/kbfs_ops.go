@@ -383,7 +383,7 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 	var limitBytes int64 = -1
 	quotaInfo, err := fs.config.BlockServer().GetUserQuotaInfo(ctx)
 	if err == nil {
-		usageBytes = quotaInfo.Total.UsageBytes
+		usageBytes = quotaInfo.Total.Bytes[UsageWrite]
 		limitBytes = quotaInfo.Limit
 	}
 	return KBFSStatus{
