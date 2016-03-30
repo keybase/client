@@ -124,6 +124,8 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 		}
 	}
 
+	pushConnectionStatusChange(MDServiceName, nil)
+
 	// start pinging
 	md.resetPingTicker(pingIntervalSeconds)
 	return nil
@@ -253,12 +255,15 @@ func (md *MDServerRemote) OnConnectError(err error, wait time.Duration) {
 	if md.authToken != nil {
 		md.authToken.Shutdown()
 	}
+
+	pushConnectionStatusChange(MDServiceName, err)
 }
 
 // OnDoCommandError implements the ConnectionHandler interface.
 func (md *MDServerRemote) OnDoCommandError(err error, wait time.Duration) {
 	md.log.Warning("MDServerRemote: DoCommand error: %q; retrying in %s",
 		err, wait)
+	pushConnectionStatusChange(MDServiceName, err)
 }
 
 // OnDisconnected implements the ConnectionHandler interface.
@@ -276,6 +281,8 @@ func (md *MDServerRemote) OnDisconnected(ctx context.Context,
 	// Reset the timer since we will get folders for rekey again on
 	// the re-connect.
 	md.rekeyTimer.Reset(MdServerBackgroundRekeyPeriod)
+
+	pushConnectionStatusChange(MDServiceName, errDisconnected{})
 }
 
 // ShouldRetry implements the ConnectionHandler interface.
