@@ -73,13 +73,6 @@ func checkDisplayKeys(t *testing.T, idUI *FakeIdentifyUI, callCount, keyCount in
 			t.Logf("key: %+v, %+v", k, v)
 		}
 	}
-
-	// this doesn't work anymore:
-	//	for k := range idUI.Keys {
-	//		if k.PGPFingerprint == nil {
-	//			t.Errorf("key %v: not pgp.  only pgp keys should be displayed.", k)
-	//		}
-	//	}
 }
 
 func TestIdAlice(t *testing.T) {
@@ -177,6 +170,7 @@ type FakeIdentifyUI struct {
 	Outcome         *keybase1.IdentifyOutcome
 	StartCount      int
 	Token           keybase1.TrackToken
+	BrokenTracking  bool
 	sync.Mutex
 }
 
@@ -192,6 +186,9 @@ func (ui *FakeIdentifyUI) FinishWebProofCheck(proof keybase1.RemoteProof, result
 		ui.ProofResults = make(map[string]keybase1.LinkCheckResult)
 	}
 	ui.ProofResults[proof.Key] = result
+	if result.BreaksTracking {
+		ui.BrokenTracking = true
+	}
 }
 
 func (ui *FakeIdentifyUI) FinishSocialProofCheck(proof keybase1.RemoteProof, result keybase1.LinkCheckResult) {
@@ -205,6 +202,9 @@ func (ui *FakeIdentifyUI) FinishSocialProofCheck(proof keybase1.RemoteProof, res
 		ui.ProofResults = make(map[string]keybase1.LinkCheckResult)
 	}
 	ui.ProofResults[proof.Key] = result
+	if result.BreaksTracking {
+		ui.BrokenTracking = true
+	}
 }
 
 func (ui *FakeIdentifyUI) Confirm(outcome *keybase1.IdentifyOutcome) (result keybase1.ConfirmResult, err error) {
