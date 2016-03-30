@@ -115,6 +115,12 @@ func (r *ReporterKBPKI) ReportErr(ctx context.Context,
 	case DirTooBigError:
 		code = keybase1.FSErrorType_NOT_IMPLEMENTED
 		params[errorParamFeature] = errorFeatureDirLimit
+	case NewMetadataVersionError:
+		code = keybase1.FSErrorType_OLD_VERSION
+		err = OutdatedVersionError{}
+	case NewDataVersionError:
+		code = keybase1.FSErrorType_OLD_VERSION
+		err = OutdatedVersionError{}
 	}
 
 	if code < 0 && err == context.DeadlineExceeded {

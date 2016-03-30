@@ -417,6 +417,18 @@ func (e NewDataVersionError) Error() string {
 		e.path, e.DataVer, e.path.Tlf)
 }
 
+// OutdatedVersionError indicates that we have encountered some new
+// data version we don't understand, and the user should be prompted
+// to upgrade.
+type OutdatedVersionError struct {
+}
+
+// Error implements the error interface for OutdatedVersionError.
+func (e OutdatedVersionError) Error() string {
+	return "Your software is out of date, and cannot read this data.  " +
+		"Please use `keybase update check` to upgrade your software."
+}
+
 // InvalidKeyGenerationError indicates that an invalid key generation
 // was used.
 type InvalidKeyGenerationError struct {
