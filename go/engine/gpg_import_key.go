@@ -181,13 +181,14 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 	e.G().Log.Info("Bundle unlocked: %s", selected.GetFingerprint().ToKeyID())
 
 	eng := NewPGPKeyImportEngine(PGPKeyImportEngineArg{
-		Pregen:     bundle,
-		SigningKey: e.arg.Signer,
-		Me:         me,
-		AllowMulti: e.arg.AllowMulti,
-		NoSave:     e.arg.SkipImport,
-		OnlySave:   e.arg.OnlyImport,
-		Lks:        e.arg.Lks,
+		Pregen:      bundle,
+		SigningKey:  e.arg.Signer,
+		Me:          me,
+		AllowMulti:  e.arg.AllowMulti,
+		NoSave:      e.arg.SkipImport,
+		OnlySave:    e.arg.OnlyImport,
+		Lks:         e.arg.Lks,
+		GPGFallback: true,
 	})
 
 	if err = RunEngine(eng, ctx); err != nil {

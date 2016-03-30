@@ -100,6 +100,7 @@ func (e *PGPUpdateEngine) Run(ctx *Context) error {
 			}
 		}
 
+		bundle.InitGPGKey()
 		del.NewKey = bundle
 
 		ctx.LogUI.Info("Posting update for key %s.", fingerprint.String())

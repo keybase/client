@@ -123,49 +123,54 @@
 			"revisionTime": "2016-03-14T13:21:18-04:00"
 		},
 		{
+			"path": "github.com/keybase/go-crypto/brainpool",
+			"revision": "6af3ef04486846fc4b04673b6552bfea75c6af18",
+			"revisionTime": "2016-03-19T10:18:54-07:00"
+		},
+		{
 			"path": "github.com/keybase/go-crypto/openpgp",
-			"revision": "c9f75daf8cf5fc3d670337035f84753d7610a411",
-			"revisionTime": "2016-02-29T10:42:14-05:00"
+			"revision": "6af3ef04486846fc4b04673b6552bfea75c6af18",
+			"revisionTime": "2016-03-19T10:18:54-07:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/armor",
-			"revision": "37775caa3ccd71d0bd7bab8bcd6af282b577dc22",
-			"revisionTime": "2015-12-04T17:01:02-05:00"
+			"revision": "6af3ef04486846fc4b04673b6552bfea75c6af18",
+			"revisionTime": "2016-03-19T10:18:54-07:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/clearsign",
-			"revision": "67d171e99a58463b40209d86a5438f5b708d8ad0",
-			"revisionTime": "2015-10-12T10:46:00-04:00"
+			"revision": "6af3ef04486846fc4b04673b6552bfea75c6af18",
+			"revisionTime": "2016-03-19T10:18:54-07:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/elgamal",
-			"revision": "67d171e99a58463b40209d86a5438f5b708d8ad0",
-			"revisionTime": "2015-10-12T10:46:00-04:00"
+			"revision": "6af3ef04486846fc4b04673b6552bfea75c6af18",
+			"revisionTime": "2016-03-19T10:18:54-07:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/errors",
-			"revision": "67d171e99a58463b40209d86a5438f5b708d8ad0",
-			"revisionTime": "2015-10-12T10:46:00-04:00"
+			"revision": "6af3ef04486846fc4b04673b6552bfea75c6af18",
+			"revisionTime": "2016-03-19T10:18:54-07:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/packet",
-			"revision": "c9f75daf8cf5fc3d670337035f84753d7610a411",
-			"revisionTime": "2016-02-29T10:42:14-05:00"
+			"revision": "6af3ef04486846fc4b04673b6552bfea75c6af18",
+			"revisionTime": "2016-03-19T10:18:54-07:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/s2k",
-			"revision": "c9f75daf8cf5fc3d670337035f84753d7610a411",
-			"revisionTime": "2016-02-29T10:42:14-05:00"
+			"revision": "6af3ef04486846fc4b04673b6552bfea75c6af18",
+			"revisionTime": "2016-03-19T10:18:54-07:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/rsa",
-			"revision": "b4f45187e14b066cfd7e90f9c3d796ee147d9f4f",
-			"revisionTime": "2016-02-07T15:39:06-05:00"
+			"revision": "6af3ef04486846fc4b04673b6552bfea75c6af18",
+			"revisionTime": "2016-03-19T10:18:54-07:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/ssh/terminal",
-			"revision": "0829a5f1b577747f1935b43155b575f397c3848a",
-			"revisionTime": "2016-02-19T22:08:28-05:00"
+			"revision": "6af3ef04486846fc4b04673b6552bfea75c6af18",
+			"revisionTime": "2016-03-19T10:18:54-07:00"
 		},
 		{
 			"path": "github.com/keybase/go-framed-msgpack-rpc",
