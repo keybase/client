@@ -38,7 +38,8 @@ export default class LoginRender extends Component<void, Props, State> {
       onChange: event => this.setState({passphrase: event.target.value}),
       onEnterKeyDown: () => this.onSubmit(),
       type: this.state.showTyping ? 'text' : 'password',
-      errorText: this.props.error
+      errorText: this.props.error,
+      autoFocus: true
     }
 
     const checkboxProps = [
