@@ -371,9 +371,7 @@ func (c *Conn) pollLoop(poll time.Duration) (msgs [][]byte, err error) {
 	var totalWaitTime time.Duration
 
 	c.setPollLoopRunning(true)
-	defer func() {
-		c.setPollLoopRunning(false)
-	}()
+	defer c.setPollLoopRunning(false)
 
 	start := time.Now()
 	for {
