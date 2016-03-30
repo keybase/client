@@ -13,7 +13,7 @@ export default class Intro extends Component {
   render () {
     return (
       <div style={styles.loginForm}>
-        <Icon style={styles.icon} type='logo-256'/>
+        <Icon type='logo-160'/>
         <Text style={styles.header} type='HeaderJumbo'>Join Keybase</Text>
         <Text style={styles.headerSub} type='Body'>Folders for anyone in the world.</Text>
         <Button style={styles.button} type='Primary' onClick={this.props.onSignup} label='Create an account' />
@@ -30,9 +30,6 @@ const styles = {
     alignItems: 'center',
     marginTop: 95,
     flex: 1
-  },
-  icon: {
-    width: 155
   },
   header: {
     marginTop: 27,

@@ -26,6 +26,7 @@ export type Props = {
     | 'keybase-update'
     | 'logo-128'
     | 'logo-16'
+    | 'logo-160'
     | 'logo-24'
     | 'logo-256'
     | 'logo-32'
