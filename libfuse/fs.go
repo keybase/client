@@ -35,6 +35,9 @@ type FS struct {
 	// protects access to the notifications channel member (though not
 	// sending/receiving)
 	notificationMutex sync.RWMutex
+
+	// remoteStatus is the current status of remote connections.
+	remoteStatus libfs.RemoteStatus
 }
 
 // NewFS creates an FS
@@ -49,7 +52,9 @@ func NewFS(config libkbfs.Config, conn *fuse.Conn, debug bool) *FS {
 		log.Configure("", true, "")
 		errLog.Configure("", true, "")
 	}
-	return &FS{config: config, conn: conn, log: log, errLog: errLog}
+	fs := &FS{config: config, conn: conn, log: log, errLog: errLog}
+	fs.remoteStatus.Init()
+	return fs
 }
 
 // SetFuseConn sets fuse connection for this FS.
@@ -263,6 +268,9 @@ func (r *Root) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.L
 		return r.private, nil
 	case PublicName:
 		return r.public, nil
+	case libfs.HumanErrorFileName, libfs.HumanNoLoginFileName:
+		resp.EntryValid = 0
+		return &SpecialReadFile{r.private.fs.remoteStatus.NewSpecialReadFunc}, nil
 	}
 
 	// Don't want to pop up errors on special OS files.
@@ -294,6 +302,11 @@ func (r *Root) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 			Type: fuse.DT_Dir,
 			Name: PublicName,
 		},
+	}
+	r.private.fs.remoteStatus.RLock()
+	defer r.private.fs.remoteStatus.RUnlock()
+	if name := r.private.fs.remoteStatus.ExtraFileName; name != "" {
+		res = append(res, fuse.Dirent{Type: fuse.DT_File, Name: name})
 	}
 	return res, nil
 }

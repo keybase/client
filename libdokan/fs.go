@@ -45,6 +45,9 @@ type FS struct {
 	// currentUserSID stores the Windows identity of the user running
 	// this process.
 	currentUserSID *syscall.SID
+
+	// remoteStatus is the current status of remote connections.
+	remoteStatus libfs.RemoteStatus
 }
 
 // NewFS creates an FS
@@ -76,6 +79,7 @@ func NewFS(ctx context.Context, config libkbfs.Config, log logger.Logger) (*FS, 
 	ctx = logger.NewContextWithLogTags(ctx, logTags)
 	f.context = ctx
 
+	f.remoteStatus.Init()
 	f.launchNotificationProcessor(ctx)
 
 	return f, nil
@@ -236,6 +240,10 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 		return f.root.private.open(ctx, oc, ps[1:])
 	case libfs.ProfileListDirName == ps[0]:
 		return (ProfileList{fs: f}).open(ctx, oc, ps[1:])
+	case libfs.HumanErrorFileName == ps[0], libfs.HumanNoLoginFileName == ps[0]:
+		return &SpecialReadFile{
+			read: f.remoteStatus.NewSpecialReadFunc,
+			fs:   f}, false, nil
 	}
 	return nil, false, dokan.ErrObjectNameNotFound
 }
@@ -509,5 +517,15 @@ func (r *Root) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedStat) err
 	}
 	ns.Name = PublicName
 	err = callback(&ns)
+	if err != nil {
+		return err
+	}
+	r.private.fs.remoteStatus.RLock()
+	defer r.private.fs.remoteStatus.RUnlock()
+	if name := r.private.fs.remoteStatus.ExtraFileName; name != "" {
+		ns.Name = name
+		ns.FileAttributes = fileAttributeNormal
+		err = callback(&ns)
+	}
 	return err
 }
