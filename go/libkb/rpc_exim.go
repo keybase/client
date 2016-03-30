@@ -52,7 +52,7 @@ func (l LinkCheckResult) Export() keybase1.LinkCheckResult {
 	}
 	if l.remoteDiff != nil {
 		ret.RemoteDiff = ExportTrackDiff(l.remoteDiff)
-		if l.diff.BreaksTracking() {
+		if l.remoteDiff.BreaksTracking() {
 			bt = true
 		}
 	}

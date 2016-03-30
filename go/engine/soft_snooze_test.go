@@ -129,6 +129,8 @@ func TestSoftSnooze(t *testing.T) {
 	fakeClock.Advance(tc.G.Env.GetProofCacheLongDur())
 	eng = NewResolveThenIdentify2(tc.G, arg)
 	eng.testArgs = &Identify2WithUIDTestArgs{noCache: true}
+	idUI = &FakeIdentifyUI{}
+	ctx.IdentifyUI = idUI
 	if err := RunEngine(eng, ctx); err == nil {
 		t.Fatal("Expected a failure in our proof")
 	}
@@ -139,6 +141,9 @@ func TestSoftSnooze(t *testing.T) {
 	}
 	if pe := libkb.ImportProofError(result.ProofResult); pe == nil {
 		t.Fatal("expected a Rooter error result")
+	}
+	if !idUI.BrokenTracking {
+		t.Fatal("expected broken tracking!")
 	}
 
 	assertTracking(tc, username)
