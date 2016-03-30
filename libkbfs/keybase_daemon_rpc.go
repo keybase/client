@@ -233,6 +233,13 @@ func (k *KeybaseDaemonRPC) UserChanged(ctx context.Context, uid keybase1.UID) er
 	return nil
 }
 
+// ClientOutOfDate implements keybase1.NotifySessionInterface.
+func (k *KeybaseDaemonRPC) ClientOutOfDate(ctx context.Context,
+	arg keybase1.ClientOutOfDateArg) error {
+	k.log.CDebugf(ctx, "Client out of date: %v", arg)
+	return nil
+}
+
 type daemonLogUI struct {
 	log logger.Logger
 }

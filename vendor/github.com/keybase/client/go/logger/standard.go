@@ -306,6 +306,10 @@ func FileExists(path string) (bool, error) {
 
 func MakeParentDirs(filename string) error {
 	dir, _ := filepath.Split(filename)
+	// If passed a plain file name as a path
+	if dir == "" {
+		return nil
+	}
 	exists, err := FileExists(dir)
 	if err != nil {
 		return err

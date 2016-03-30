@@ -426,6 +426,12 @@ func (e *Env) GetLabel() string {
 	)
 }
 
+func (e *Env) GetServiceType() string {
+	return e.GetString(
+		func() string { return os.Getenv("KEYBASE_SERVICE_TYPE") },
+	)
+}
+
 func (e *Env) GetAPIDump() bool {
 	return e.GetBool(false,
 		func() (bool, bool) { return e.cmd.GetAPIDump() },
@@ -934,4 +940,8 @@ func (e *Env) GetAppStartMode() AppStartMode {
 
 func (e *Env) GetServiceInfoPath() string {
 	return filepath.Join(e.GetRuntimeDir(), "keybased.info")
+}
+
+func (e *Env) GetUpdateDefaultInstructions() (string, error) {
+	return PlatformSpecificUpgradeInstructionsString()
 }

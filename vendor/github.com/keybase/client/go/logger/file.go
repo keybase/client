@@ -16,7 +16,7 @@ import (
 type LogFileConfig struct {
 	// Path is the path of the log file to use
 	Path string
-	// MaxSize is the size of log file before rotation, 0 for infinite.
+	// MaxSize is the size of log file (in bytes) before rotation, 0 for infinite.
 	MaxSize int64
 	// MaxAge is the duration before log rotation, zero value for infinite.
 	MaxAge time.Duration
@@ -172,6 +172,9 @@ func deleteOldLogFilesIfNeededWorker(config LogFileConfig) error {
 // Returns the list of such log files sorted with the eldest one first.
 func scanOldLogFiles(path string) ([]string, error) {
 	dname, fname := filepath.Split(path)
+	if dname == "" {
+		dname = "."
+	}
 	dir, err := os.Open(dname)
 	if err != nil {
 		return nil, err

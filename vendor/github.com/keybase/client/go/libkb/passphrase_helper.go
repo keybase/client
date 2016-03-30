@@ -12,6 +12,7 @@ func GetKeybasePassphrase(ui SecretUI, username, retryMsg string, allowSecretSto
 	arg := DefaultPassphraseArg(allowSecretStore)
 	arg.WindowTitle = "Keybase passphrase"
 	arg.Type = keybase1.PassphraseType_PASS_PHRASE
+	arg.Username = username
 	arg.Prompt = fmt.Sprintf("Please enter the Keybase passphrase for %s (12+ characters)", username)
 	arg.RetryLabel = retryMsg
 	return GetPassphraseUntilCheck(arg, newUIPrompter(ui), &CheckPassphraseSimple)
@@ -38,6 +39,7 @@ func GetPaperKeyPassphrase(ui SecretUI, username string) (string, error) {
 		username = "your account"
 	}
 	arg.Prompt = fmt.Sprintf("Please enter a paper backup key passphrase for %s", username)
+	arg.Username = username
 	arg.Features.StoreSecret.Allow = false
 	arg.Features.StoreSecret.Readonly = true
 	arg.Features.ShowTyping.Allow = true

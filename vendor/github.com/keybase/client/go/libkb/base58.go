@@ -9,18 +9,21 @@ import (
 	"math/big"
 )
 
-var alphabet = []byte("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
-var alphabetMap map[byte]uint8
+const base58InvalidIndex = 0xFF
 
-func getAlphabetMap() map[byte]uint8 {
-	if alphabetMap == nil {
-		alphabetMap = make(map[byte]uint8)
-		for i, c := range []byte(alphabet) {
-			alphabetMap[c] = uint8(i)
-		}
+var alphabet = []byte("123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz")
+var alphabetMap = func() [256]byte {
+	var res [256]byte
+	// First initialize to 0xFF
+	for i := range res {
+		res[i] = base58InvalidIndex
 	}
-	return alphabetMap
-}
+	// And reset the real contents to their values.
+	for i, c := range alphabet {
+		res[c] = uint8(i)
+	}
+	return res
+}()
 
 func reverseBuf(buf []byte) {
 	tot := len(buf)
@@ -30,6 +33,7 @@ func reverseBuf(buf []byte) {
 	}
 }
 
+// Encode58 base58 encodes the input.
 func Encode58(inp []byte) string {
 	num := new(big.Int).SetBytes(inp)
 	buf := make([]byte, 0, len(inp))
@@ -57,6 +61,7 @@ func Encode58(inp []byte) string {
 	return string(buf)
 }
 
+// Decode58 base58 decodes the input or returns an error.
 func Decode58(inp string) (outp []byte, err error) {
 	place := big.NewInt(1)
 	base := big.NewInt(58)
@@ -72,14 +77,12 @@ func Decode58(inp string) (outp []byte, err error) {
 	buf = buf[padlen:]
 	reverseBuf(buf)
 
-	amap := getAlphabetMap()
-
 	tmp := new(big.Int)
 	res := big.NewInt(0)
 
 	for i, c := range buf {
-		charIndex, found := amap[c]
-		if !found {
+		charIndex := alphabetMap[c]
+		if charIndex == base58InvalidIndex {
 			err = fmt.Errorf("Bad character '%c' found at pos %d", c, i)
 			return
 		}

@@ -684,6 +684,10 @@ func (s *LoginState) passphraseLogin(lctx LoginContext, username, passphrase str
 			return nil
 		}
 		secretStore := NewSecretStore(s.G(), NewNormalizedUsername(username))
+		if secretStore == nil {
+			s.G().Log.Debug("secret store requested, but unable to create one")
+			return nil
+		}
 		storeSecretErr := secretStore.StoreSecret(secret)
 		if storeSecretErr != nil {
 			// Ignore any errors storing the secret.

@@ -93,9 +93,11 @@ var MerkleStagingKIDs = []string{
 }
 
 var CodeSigningProdKIDs = []string{
-// Enable codesigning by having valid KIDs below
-// "01209092ae4e790763dc7343851b977930f35b16cf43ab0ad900a2af3d3ad5cea1a10a", // Keybot (build machine)
-// "0120ad6ec4c0132ca7627b3c4d72c650323abec004da51dc086fd0ec2b4f82e6e4860a", // Gabriel's Macbook
+	"01209092ae4e790763dc7343851b977930f35b16cf43ab0ad900a2af3d3ad5cea1a10a", // keybot (device)
+	"0120d3458bbecdfc0d0ae39fec05722c6e3e897c169223835977a8aa208dfcd902d30a", // max (device, home)
+	"012065ae849d1949a8b0021b165b0edaf722e2a7a9036e07817e056e2d721bddcc0e0a", // max (paper key)
+	"01203a5a45c545ef4f661b8b7573711aaecee3fd5717053484a3a3e725cd68abaa5a0a", // chris (device, ccpro)
+	"012003d86864fb20e310590042ad3d5492c3f5d06728620175b03c717c211bfaccc20a", // chris (paper key, clay harbor)
 }
 var CodeSigningTestKIDs = []string{}
 var CodeSigningStagingKIDs = []string{}
@@ -389,9 +391,13 @@ const (
 	SecretPromptCancelDuration = 5 * time.Minute
 )
 
-const ServiceLogFileName = "keybase.service.log"
-const KBFSLogFileName = "keybase.kbfs.log"
-const DesktopLogFileName = "Keybase.app.log"
+const (
+	ServiceLogFileName = "keybase.service.log"
+	KBFSLogFileName    = "keybase.kbfs.log"
+	DesktopLogFileName = "Keybase.app.log"
+	// StartLogFileName is where services can log to (on startup) before they handle their own logging
+	StartLogFileName = "keybase.start.log"
+)
 
 const (
 	PGPAssertionKey = "pgp"

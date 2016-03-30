@@ -195,28 +195,28 @@
 		},
 		{
 			"path": "github.com/keybase/client/go/auth",
-			"revision": "3c24a3e709e3602e241d434ec9e5a85adcc769ff",
-			"revisionTime": "2016-03-18T15:15:32-04:00"
+			"revision": "44fb2e7fd0e1825a753b2161b30a1e29f5645e1a",
+			"revisionTime": "2016-03-30T10:52:20-04:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/kex2",
-			"revision": "e7ca9bd5770e09ff773f464ced933cb7d8d5dc0d",
-			"revisionTime": "2016-03-24T14:12:42-05:00"
+			"revision": "44fb2e7fd0e1825a753b2161b30a1e29f5645e1a",
+			"revisionTime": "2016-03-30T10:52:20-04:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/libkb",
-			"revision": "e7ca9bd5770e09ff773f464ced933cb7d8d5dc0d",
-			"revisionTime": "2016-03-24T14:12:42-05:00"
+			"revision": "44fb2e7fd0e1825a753b2161b30a1e29f5645e1a",
+			"revisionTime": "2016-03-30T10:52:20-04:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/logger",
-			"revision": "3c24a3e709e3602e241d434ec9e5a85adcc769ff",
-			"revisionTime": "2016-03-18T15:15:32-04:00"
+			"revision": "44fb2e7fd0e1825a753b2161b30a1e29f5645e1a",
+			"revisionTime": "2016-03-30T10:52:20-04:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/protocol",
-			"revision": "3c24a3e709e3602e241d434ec9e5a85adcc769ff",
-			"revisionTime": "2016-03-18T15:15:32-04:00"
+			"revision": "44fb2e7fd0e1825a753b2161b30a1e29f5645e1a",
+			"revisionTime": "2016-03-30T10:52:20-04:00"
 		},
 		{
 			"path": "github.com/keybase/go-codec/codec",
