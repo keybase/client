@@ -58,7 +58,7 @@ release_serverops() {
   git -C "$serverops_dir" push
 
   echo "DON'T FORGET THE LAST STEP! ssh into dist and run:"
-  echo "  cd src/keybase/server_ops"
+  echo "  cd src/keybase/server-ops"
   echo "  git pull"
 }
 
