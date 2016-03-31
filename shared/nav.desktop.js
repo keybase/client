@@ -105,7 +105,8 @@ class Nav extends Component {
         }
       } else if (oldWasLogin) {
         if (!flags.mainWindow) {
-          currentWindow.hide()
+          // We close since that will hide the window and release the dock icon
+          currentWindow.close()
         }
 
         if (this._originalSize) {
