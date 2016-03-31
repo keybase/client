@@ -27,7 +27,7 @@ export default class Header extends Component<DefaultProps, Props, void> {
       <div style={{...this.props.style, ...styles.container, ...styles.strongContainer}}>
         <Text type='Header' backgroundMode='Announcements' style={{flex: 1, ...globalStyles.flexBoxCenter, paddingTop: 6, cursor: 'default'}}>{this.props.title}</Text>
         {this.props.onClose && (
-          <Icon type='fa-close' onClick={() => this.props.onClose()} />
+          <Icon style={styles.closeIcon} type='fa-close' onClick={() => this.props.onClose()} />
         )}
       </div>
     )
