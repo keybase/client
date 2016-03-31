@@ -32,10 +32,29 @@ func (*FolderList) Attr(ctx context.Context, a *fuse.Attr) error {
 
 var _ fs.NodeRequestLookuper = (*FolderList)(nil)
 
+func (fl *FolderList) reportErr(ctx context.Context,
+	mode libkbfs.ErrorModeType, tlfName libkbfs.CanonicalTlfName, err error) {
+	if err == nil {
+		fl.fs.errLog.CDebugf(ctx, "Request complete")
+		return
+	}
+
+	fl.fs.config.Reporter().ReportErr(ctx, tlfName, fl.public, mode, err)
+	// We just log the error as debug, rather than error, because it
+	// might just indicate an expected error such as an ENOENT.
+	//
+	// TODO: Classify errors and escalate the logging level of the
+	// important ones.
+	fl.fs.errLog.CDebugf(ctx, err.Error())
+}
+
 // Lookup implements the fs.NodeRequestLookuper interface.
 func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.LookupResponse) (node fs.Node, err error) {
 	fl.fs.log.CDebugf(ctx, "FL Lookup %s", req.Name)
-	defer func() { fl.fs.reportErr(ctx, libkbfs.ReadMode, err) }()
+	defer func() {
+		fl.reportErr(ctx, libkbfs.ReadMode,
+			libkbfs.CanonicalTlfName(req.Name), err)
+	}()
 	fl.mu.Lock()
 	defer fl.mu.Unlock()
 
