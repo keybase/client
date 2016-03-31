@@ -20,7 +20,7 @@ func (s SocialAssertion) Service() string {
 	return s.service
 }
 
-func (s SocialAssertion) Normalized() string {
+func (s SocialAssertion) String() string {
 	return s.username + "@" + s.service
 }
 
