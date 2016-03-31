@@ -1,12 +1,10 @@
 /* @flow */
 import React, {Component} from 'react'
+import {Switch} from 'react-native'
 import {ScrollView} from 'react-native'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import Container from './dev-container.native'
-import {Button, Box, Text, Terminal, Icon} from '../common-adapters'
-// import {Button, Input, Text, Terminal, FormWithCheckbox} from '../common-adapters'
-// import DropdownDemo from './components/dropdown.desktop'
-//
+import {Checkbox, Button, Box, Text, Terminal, Icon} from '../common-adapters'
 
 const Space = () => <Box style={{height: 20, width: 20}}/>
 
@@ -178,10 +176,40 @@ const Inputs = () => (
   <Text type='Header'>TODO</Text>
 )
 
+const Checkboxes = ({check, flip}) => {
+  return (
+    <Box>
+      {false && <Row><Switch onTintColor={globalColors.blue} value={check[0]} onValueChange={() => flip(0)}/></Row>}
+      {false && <Row><Switch onTintColor={globalColors.blue} value={check[1]} onValueChange={() => flip(1)}/></Row>}
+      <Row><Checkbox label='Switch unswitched' onCheck={() => flip(2)} checked={check[2]} disabled={false}/></Row>
+      <Row><Checkbox label='Switch switched' onCheck={() => flip(3)} checked={check[3]} disabled={false}/></Row>
+      <Row><Checkbox label='Switch unswitched disabled' onCheck={() => flip(4)} checked={check[4]} disabled/></Row>
+      <Row><Checkbox label='Switch switched disabled' onCheck={() => flip(5)} checked={check[5]} disabled/></Row>
+    </Box>
+  )
+}
+
 export default class Render extends Component {
+  state: {
+    check: any
+  };
+
+  constructor (props: any) {
+    super(props)
+
+    this.state = {check: [false, true, false, true, false, true]}
+  }
+
+  flip (idx: number) {
+    const next = {...this.state.check}
+    next[idx] = !next[idx]
+    this.setState({check: next})
+  }
+
   render () {
     return (
       <ScrollView>
+        <Container title='Checkboxes'><Checkboxes flip={idx => this.flip(idx)} check={this.state.check}/></Container>
         <Container title='Icons'><Icons/></Container>
         <Container title='Buttons'><Buttons/></Container>
         <Container title='Dropdown'><Dropdowns/></Container>
