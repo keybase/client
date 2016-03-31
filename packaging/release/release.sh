@@ -89,7 +89,7 @@ echo "Creating Linux packages for version $version"
 echo "-------------------------------------------------------------------------"
 
 # Make sure you have the Keybase code signing key.
-code_signing_fingerprint="$(cat $serveropsdir/deploy/lib/code_signing_fingerprint)"
+code_signing_fingerprint="$(cat $clientdir/packaging/linux/code_signing_fingerprint)"
 if ! gpg -K "$code_signing_fingerprint" ; then
 	echo "You're missing the GPG code signing secret key ($code_signing_fingerprint)."
 	exit 1
