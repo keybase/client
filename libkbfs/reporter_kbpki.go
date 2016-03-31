@@ -257,11 +257,12 @@ func errorNotification(err error, errType keybase1.FSErrorType,
 		panic(fmt.Sprintf("Unknown mode: %v", mode))
 	}
 	return &keybase1.FSNotification{
-		Filename:         params[errorParamTlf],
-		StatusCode:       keybase1.FSStatusCode_ERROR,
-		Status:           err.Error(),
-		ErrorType:        errType,
-		Params:           params,
-		NotificationType: nType,
+		Filename:             params[errorParamTlf],
+		StatusCode:           keybase1.FSStatusCode_ERROR,
+		Status:               err.Error(),
+		ErrorType:            errType,
+		Params:               params,
+		NotificationType:     nType,
+		PublicTopLevelFolder: public,
 	}
 }
