@@ -6,7 +6,7 @@
     "start": "node_modules/react-native/packager/packager.sh",
     "pod-install": "cd ios; pod install",
     "gobuild-ios": "GO15VENDOREXPERIMENT=1 $GOPATH/bin/gomobile bind -target=ios -tags='ios' -o ios/keybase.framework github.com/keybase/client/go/loopback",
-    "gobuild-android": "GO15VENDOREXPERIMENT=1 $GOPATH/bin/gomobile bind -target=android -o android/keybaselib/keybaselib.aar github.com/keybase/client/go/loopback",
+    "gobuild-android": "GO15VENDOREXPERIMENT=1 $GOPATH/bin/gomobile bind -target=android -tags='android' -o android/keybaselib/keybaselib.aar github.com/keybase/client/go/loopback",
     "packager-wipe-cache": "node ../shared/packager/wipe-cache.js",
     "build-ios": "npm run pod-install && npm run gobuild-ios",
     "watch": "npm run sync && cd ../shared && watchman-make -p '**' --make 'cd ../react-native && npm run sync && cd ../shared' -t all",

@@ -28,7 +28,7 @@ import javax.crypto.spec.SecretKeySpec;
 import go.keybase.Keybase;
 import io.keybase.android.keystore.KeyStoreHelper;
 
-public class KeyStore extends Keybase.ExternalKeyStore.Stub {
+public class KeyStore implements Keybase.ExternalKeyStore {
     private final Context context;
     private final SharedPreferences prefs;
     private final java.security.KeyStore ks;
