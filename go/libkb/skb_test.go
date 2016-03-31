@@ -283,7 +283,7 @@ func testErrUnlock(t *testing.T, skb *SKB, ui *TestCancelSecretUI) error {
 		t.Fatal("PromptAndUnlock returned nil error")
 	}
 	if key != nil {
-		t.Errorf("PromptAndUnlock eturned a key (%v)", key)
+		t.Errorf("PromptAndUnlock returned a key (%v)", key)
 	}
 	return err
 }

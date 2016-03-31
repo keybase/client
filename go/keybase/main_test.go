@@ -116,7 +116,7 @@ func (u user) newExpectCmd(t *testing.T, args ...string) *expectCmd {
 	cmd = append(cmd, args...)
 	es, err := gexpect.Spawn(strings.Join(cmd, " "))
 	if err != nil {
-		t.Fatalf("Error spwaning %v: %v", cmd, err)
+		t.Fatalf("Error spawning %v: %v", cmd, err)
 	}
 	return &expectCmd{es}
 }

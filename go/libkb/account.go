@@ -166,7 +166,7 @@ func (a *Account) Logout() error {
 
 func (a *Account) CreateStreamCache(tsec *triplesec.Cipher, pps *PassphraseStream) {
 	if a.streamCache != nil {
-		a.G().Log.Warning("Account.CreateStreamCache overwriting exisitng StreamCache")
+		a.G().Log.Warning("Account.CreateStreamCache overwriting existing StreamCache")
 	}
 	a.streamCache = NewPassphraseStreamCache(tsec, pps)
 	a.SetLKSec(NewLKSec(pps, a.GetUID(), a.G()))

@@ -59,14 +59,14 @@ func testIdentifyResolve2(t *testing.T, g *libkb.GlobalContext) {
 	}
 
 	if _, err := cli.Resolve(context.TODO(), "uid:eb72f49f2dde6429e5d78003dae0c919"); err != nil {
-		t.Fatalf("Resovle failed: %v\n", err)
+		t.Fatalf("Resolve failed: %v\n", err)
 	}
 
 	// We don't want to hit the cache, since the previous lookup never hit the
 	// server.  For Resolve2, we have to, since we need a username.  So test that
 	// here.
 	if res, err := cli.Resolve2(context.TODO(), "uid:eb72f49f2dde6429e5d78003dae0c919"); err != nil {
-		t.Fatalf("Resovle failed: %v\n", err)
+		t.Fatalf("Resolve failed: %v\n", err)
 	} else if res.Username != "t_tracy" {
 		t.Fatalf("Wrong username: %s != 't_tracy", res.Username)
 	}
