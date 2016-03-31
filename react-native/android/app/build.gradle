@@ -75,9 +75,12 @@ def enableProguardInReleaseBuilds = false
 
 // Returns minutes from January 1 2016
 def Integer timestamp() {
-    def date = new Date()
-    def minutesSinceEpoch = date.getTime()/(1000 * 60)
-    def minutesJan2016 = 1451606400/60
+    def minutesSinceEpoch = (new Date()).getTime()/(1000 * 60)
+    def cal = new GregorianCalendar()
+    cal.clear()
+    cal.set(2016,0,1)
+    def minutesJan2016 = cal.getTimeInMillis()/(1000 * 60)
+
     return minutesSinceEpoch - minutesJan2016
 }
 
