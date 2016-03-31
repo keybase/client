@@ -21,8 +21,13 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 )
 
+var _ GenericKey = (*PGPKeyBundle)(nil)
+
 type PGPKeyBundle struct {
 	*openpgp.Entity
+
+	// GPGFallbackKey to be used as a fallback if given dummy a PrivateKey.
+	GPGFallbackKey GenericKey
 
 	// We make the (fairly dangerous) assumption that the key will never be
 	// modified. This avoids the issue that encoding an openpgp.Entity is
@@ -123,6 +128,13 @@ func (p *PGPFingerprint) Match(q string, exact bool) bool {
 		return strings.ToLower(p.String()) == strings.ToLower(q)
 	}
 	return strings.HasSuffix(strings.ToLower(p.String()), strings.ToLower(q))
+}
+
+func (k *PGPKeyBundle) InitGPGKey() {
+	k.GPGFallbackKey = &GPGKey{
+		fp:  k.GetFingerprintP(),
+		kid: k.GetKID(),
+	}
 }
 
 func (k *PGPKeyBundle) FullHash() (string, error) {
@@ -475,12 +487,14 @@ func (k *PGPKeyBundle) CheckSecretKey() (err error) {
 		err = NoSecretKeyError{}
 	} else if k.PrivateKey.Encrypted {
 		err = BadKeyError{"PGP key material should be unencrypted"}
+	} else if k.PrivateKey.PrivateKey == nil && k.GPGFallbackKey == nil {
+		err = BadKeyError{"no private key material or GPGKey"}
 	}
 	return
 }
 
 func (k *PGPKeyBundle) CanSign() bool {
-	return k.PrivateKey != nil && !k.PrivateKey.Encrypted
+	return (k.PrivateKey != nil && !k.PrivateKey.Encrypted) || k.GPGFallbackKey != nil
 }
 
 func (k *PGPKeyBundle) GetKID() keybase1.KID {
@@ -607,7 +621,10 @@ func (k *PGPKeyBundle) CheckFingerprint(fp *PGPFingerprint) error {
 }
 
 func (k *PGPKeyBundle) SignToString(msg []byte) (sig string, id keybase1.SigID, err error) {
-	return SimpleSign(msg, *k)
+	if sig, id, err = SimpleSign(msg, *k); err != nil && k.GPGFallbackKey != nil {
+		return k.GPGFallbackKey.SignToString(msg)
+	}
+	return
 }
 
 func (k PGPKeyBundle) VerifyStringAndExtract(sig string) (msg []byte, id keybase1.SigID, err error) {
