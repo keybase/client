@@ -15,11 +15,13 @@ import (
 // TlfHandle uniquely identifies top-level folders by readers and
 // writers.  It is go-routine-safe.
 type TlfHandle struct {
-	Readers     []keybase1.UID `codec:"r,omitempty"`
-	Writers     []keybase1.UID `codec:"w,omitempty"`
-	cachedName  string
-	cachedBytes []byte
-	cacheMutex  sync.Mutex // control access to the "cached" values
+	Readers           []keybase1.UID          `codec:"r,omitempty"`
+	Writers           []keybase1.UID          `codec:"w,omitempty"`
+	UnresolvedReaders []libkb.SocialAssertion `codec:"ur,omitempty"`
+	UnresolvedWriters []libkb.SocialAssertion `codec:"uw,omitempty"`
+	cachedName        string
+	cachedBytes       []byte
+	cacheMutex        sync.Mutex // control access to the "cached" values
 }
 
 // CanonicalTlfName is a string containing the canonical name of a TLF.
