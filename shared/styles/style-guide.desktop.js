@@ -92,7 +92,7 @@ export const globalStyles = {
 
 export function transition (...properties: Array<string>) : Object {
   return {
-    transition: properties.map(p => `${p} 0.3s ease-in`).join(', ')
+    transition: properties.map(p => `${p} 0.2s ease-out`).join(', ')
   }
 }
 

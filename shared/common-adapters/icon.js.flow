@@ -55,7 +55,8 @@ export type Props = {
   onMouseEnter?: () => void,
   onMouseLeave?: () => void,
   style?: Object,
-  inheritColor?: boolean
+  inheritColor?: boolean,
+  className?: string
 }
 
 declare export default class Icon extends React.Component {
