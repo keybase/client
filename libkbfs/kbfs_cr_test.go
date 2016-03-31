@@ -230,6 +230,12 @@ func TestUnmergedAfterRestart(t *testing.T) {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
 
+	_, err = DisableUpdatesForTesting(config1, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
+	DisableCRForTesting(config1, rootNode1.GetFolderBranch())
+
 	// then user2 write to the file
 	kbfsOps2 := config2.KBFSOps()
 	rootNode2, _, err :=
@@ -252,8 +258,6 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't sync file: %v", err)
 	}
-
-	DisableCRForTesting(config1, rootNode1.GetFolderBranch())
 
 	// Now when user 1 tries to write to file 1 and sync, it will
 	// become unmerged.  Because this happens in the same goroutine as
@@ -286,11 +290,24 @@ func TestUnmergedAfterRestart(t *testing.T) {
 
 	DisableCRForTesting(config1B, rootNode1.GetFolderBranch())
 
+	// Keep the config1B node in memory, so it doesn't get garbage
+	// collected (preventing notifications)
+	kbfsOps1B := config1B.KBFSOps()
+	rootNode1B, _, err :=
+		kbfsOps1B.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+	if err != nil {
+		t.Fatalf("Couldn't create folder: %v", err)
+	}
+	fileNode1B, _, err := kbfsOps1B.Lookup(ctx, rootNode1B, "a")
+	if err != nil {
+		t.Fatalf("Couldn't lookup file: %v", err)
+	}
+
 	readAndCompareData(t, config1B, ctx, name, data1, userName1)
 	readAndCompareData(t, config2B, ctx, name, data2, userName2)
 
 	checkStatus(t, ctx, config1B.KBFSOps(), true, userName1, nil,
-		rootNode1.GetFolderBranch(), "Node 1")
+		fileNode1B.GetFolderBranch(), "Node 1")
 	checkStatus(t, ctx, config2B.KBFSOps(), false, userName2, nil,
 		rootNode2.GetFolderBranch(), "Node 2")
 
@@ -298,20 +315,29 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	c := make(chan struct{}, 2)
 	cro := &testCRObserver{c, nil}
 	config1B.Notifier().RegisterForChanges(
-		[]FolderBranch{rootNode1.GetFolderBranch()}, cro)
+		[]FolderBranch{rootNode1B.GetFolderBranch()}, cro)
 
 	// Unstage user 1's changes, and make sure everyone is back in
 	// sync.  TODO: remove this once we have automatic conflict
 	// resolution.
-	err = config1B.KBFSOps().UnstageForTesting(ctx, rootNode1.GetFolderBranch())
+	err = config1B.KBFSOps().UnstageForTesting(ctx,
+		rootNode1B.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't unstage: %v", err)
 	}
 
 	// we should have had two updates, one for the unstaging and one
 	// for the fast-forward
-	<-c
-	<-c
+	select {
+	case <-c:
+	default:
+		t.Fatalf("No update!")
+	}
+	select {
+	case <-c:
+	default:
+		t.Fatalf("No 2nd update!")
+	}
 	// make sure we see two sync op changes, on the same node
 	if len(cro.changes) != 2 {
 		t.Errorf("Unexpected number of changes: %d", len(cro.changes))
@@ -326,8 +352,8 @@ func TestUnmergedAfterRestart(t *testing.T) {
 		}
 	}
 
-	if err := config1B.KBFSOps().
-		SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch()); err != nil {
+	if err := config1B.KBFSOps().SyncFromServerForTesting(
+		ctx, fileNode1B.GetFolderBranch()); err != nil {
 		t.Fatal("Couldn't sync user 1 from server")
 	}
 	if err := config2B.KBFSOps().
