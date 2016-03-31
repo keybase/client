@@ -55,8 +55,9 @@ for debian_arch in amd64 i386 ; do
   # Update the latest pointer. (We use * to handle the version, because there's
   # package_binaries.sh has special handling of + chars, and we don't want to
   # duplicate it here.)
-  ln -sf "repo/pool/main/k/$name/${name}_"*"_${debian_arch}.deb" \
-    "$repo_root/$name-latest-$debian_arch.deb"
+  (cd "$repo_root" &&
+    ln -sf "repo/pool/main/k/$name/${name}_"*"_${debian_arch}.deb" \
+    "$repo_root/$name-latest-$debian_arch.deb")
 done
 
 # Because the reprepro hierarchy only contains one version of each architecture
