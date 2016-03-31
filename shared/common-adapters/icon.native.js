@@ -68,8 +68,8 @@ export default class Icon extends Component {
     // Color is for our fontIcon and not the container
     let containerProps = {...this.props.style}
     delete containerProps.color
-
-    console.log(color)
+    delete containerProps.width
+    delete containerProps.height
 
     return (
       <TouchableHighlight
@@ -78,7 +78,7 @@ export default class Icon extends Component {
         onPress={this.props.onClick}
         style={containerProps} >
         {fontIcons[iconType]
-          ? <Text style={{color, fontFamily: 'kb', ...width, ...height, ...fontSize}}>{fontIcons[iconType]}</Text>
+          ? <Text style={{color, fontFamily: 'kb', ...fontSize}}>{fontIcons[iconType]}</Text>
           : <Image source={images[this.props.type]} style={{resizeMode: 'contain', ...width, ...height}}/>
         }
       </TouchableHighlight>

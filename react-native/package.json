@@ -10,7 +10,8 @@
     "packager-wipe-cache": "node ../shared/packager/wipe-cache.js",
     "build-ios": "npm run pod-install && npm run gobuild-ios",
     "watch": "npm run sync && cd ../shared && watchman-make -p '**' --make 'cd ../react-native && npm run sync && cd ../shared' -t all",
-    "sync": "rsync -avhW --delete --exclude='*.desktop.js' ../shared/ ./shared/"
+    "sync": "rsync -avhW --delete --exclude='*.desktop.js' ../shared/ ./shared/",
+    "update-font-icon": "babel-node update-font-icon.js"
   },
   "dependencies": {
     "buffer": "4.5.1",
@@ -33,7 +34,6 @@
     "util": "0.10.3"
   },
   "devDependencies": {
-    "babel-eslint": "5.0.0",
     "redux-logger": "2.6.1"
   }
 }
