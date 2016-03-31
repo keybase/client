@@ -65,12 +65,21 @@ apply from: "react.gradle"
  * Upload all the APKs to the Play Store and people will download
  * the correct one based on the CPU architecture of their device.
  */
-def enableSeparateBuildPerCPUArchitecture = true
+// Disabling for now since it makes automating the builds a little trickier
+def enableSeparateBuildPerCPUArchitecture = false
 
 /**
  * Run Proguard to shrink the Java bytecode in release builds.
  */
 def enableProguardInReleaseBuilds = false
+
+// Returns minutes from January 1 2016
+def Integer timestamp() {
+    def date = new Date()
+    def minutesSinceEpoch = date.getTime()/(1000 * 60)
+    def minutesJan2016 = 1451606400/60
+    return minutesSinceEpoch - minutesJan2016
+}
 
 android {
     compileSdkVersion 23
@@ -80,7 +89,9 @@ android {
         applicationId "io.keybase.android"
         minSdkVersion 16
         targetSdkVersion 23
-        versionCode 4
+        // Marco messed up the version code originally, so now we have to set the 2nd and 3rd msb
+        // The top one would make the number negative
+        versionCode (timestamp() | (1 << 30) | (1 << 29))
         versionName "1.0.0-alpha-2"
         ndk {
             abiFilters "armeabi-v7a", "x86"
