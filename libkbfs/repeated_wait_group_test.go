@@ -7,7 +7,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-func testRepeatedWaitGroupSimpleWait(t *testing.T, rwg *repeatedWaitGroup) {
+func testRepeatedWaitGroupSimpleWait(t *testing.T, rwg *RepeatedWaitGroup) {
 	// Start 10 tasks, wait for them all to complete
 	rwg.Add(10)
 	errChan := make(chan error)
@@ -24,13 +24,13 @@ func testRepeatedWaitGroupSimpleWait(t *testing.T, rwg *repeatedWaitGroup) {
 }
 
 func TestRepeatedWaitGroupSimpleWait(t *testing.T) {
-	var rwg repeatedWaitGroup
+	var rwg RepeatedWaitGroup
 	testRepeatedWaitGroupSimpleWait(t, &rwg)
 }
 
 func TestRepeatedWaitGroupCanceledWait(t *testing.T) {
 	// Start 10 tasks, wait for them all to complete
-	var rwg repeatedWaitGroup
+	var rwg RepeatedWaitGroup
 	rwg.Add(10)
 	errChan := make(chan error)
 	ctx, cancel := context.WithCancel(context.Background())
@@ -49,7 +49,7 @@ func TestRepeatedWaitGroupCanceledWait(t *testing.T) {
 }
 
 func TestRepeatedWaitGroupMultiWait(t *testing.T) {
-	var rwg repeatedWaitGroup
+	var rwg RepeatedWaitGroup
 	// Three in serial
 	for i := 0; i < 3; i++ {
 		testRepeatedWaitGroupSimpleWait(t, &rwg)

@@ -43,7 +43,7 @@ type folderBlockManager struct {
 	archivePauseChan chan (<-chan struct{})
 
 	// archiveGroup tracks the outstanding archives.
-	archiveGroup repeatedWaitGroup
+	archiveGroup RepeatedWaitGroup
 
 	archiveCancelLock sync.Mutex
 	archiveCancel     context.CancelFunc
@@ -62,7 +62,7 @@ type folderBlockManager struct {
 	forceReclamationChan chan struct{}
 
 	// reclamationGroup tracks the outstanding quota reclamations.
-	reclamationGroup repeatedWaitGroup
+	reclamationGroup RepeatedWaitGroup
 
 	reclamationCancelLock sync.Mutex
 	reclamationCancel     context.CancelFunc

@@ -42,7 +42,7 @@ type ConflictResolver struct {
 	inputChan     chan conflictInput
 
 	// resolveGroup tracks the outstanding resolves.
-	resolveGroup repeatedWaitGroup
+	resolveGroup RepeatedWaitGroup
 
 	inputLock sync.Mutex
 	currInput conflictInput
