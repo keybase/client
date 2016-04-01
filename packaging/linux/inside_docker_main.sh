@@ -12,9 +12,9 @@ set -e -u -o pipefail
 mode="$1"
 commit="$2"
 
-client_copy="/root/client"
-kbfs_copy="/root/kbfs"
-serverops_copy="/root/server-ops"
+client_clone="/root/client"
+kbfs_clone="/root/kbfs"
+serverops_clone="/root/server-ops"
 build_dir="/root/build"
 
 # Copy the s3cmd config to root's home dir, then test the credentials.
@@ -42,97 +42,23 @@ eval "$(gpg-agent --daemon --max-cache-ttl 315360000 --default-cache-ttl 3153600
 gpg --sign --use-agent --default-key "$code_signing_fingerprint" \
   --output /dev/null /dev/null
 
-# Make fresh clones of the repos we want to build, so that we don't get
-# confused by any state in the host's working copy. Using the --reference flag
-# means that these clones can still use the git objects that the host already
-# has.
+# Clone all the repos we'll use in the build. The --reference flag makes this
+# pretty cheap. (The shared repos we're referencing were just updated by
+# docker_build.sh, so we shouldn't need any new objects.)
 echo "Cloning the client repo..."
-git clone git@github.com:keybase/client "$client_copy" --reference /CLIENT
+git clone git@github.com:keybase/client "$client_clone" --reference /CLIENT
 echo "Copying the kbfs repo..."
-git clone git@github.com:keybase/kbfs "$kbfs_copy" --reference /KBFS
-if [ "$mode" != prerelease ] && [ "$mode" != nightly ] ; then
+git clone git@github.com:keybase/kbfs "$kbfs_clone" --reference /KBFS
+# The server-ops repo is like a gigabyte, so don't clone it unnecessarily.
+if [ "$mode" != prerelease ] ; then
   echo "Copying the server-ops repo..."
-  git clone git@github.com:keybase/server-ops "$serverops_copy" --reference /SERVEROPS
-  git -C "$serverops_copy" config user.name "Keybase Linux Build"
-  git -C "$serverops_copy" config user.email "example@example.com"
+  git clone git@github.com:keybase/server-ops "$serverops_clone" --reference /SERVEROPS
+  git -C "$serverops_clone" config user.name "Keybase Linux Build"
+  git -C "$serverops_clone" config user.email "example@example.com"
 fi
 
 # Check out the given client commit.
-git -C "$client_copy" checkout -f "$commit"
+git -C "$client_clone" checkout -f "$commit"
 
-# In a non-nightly build mode, do the build once and then short-circuit.
-if [ "$mode" != nightly ] ; then
-  "$client_copy/packaging/linux/build_and_push_packages.sh" "$mode" "$build_dir"
-  exit "$?"
-fi
-
-# NIGHTLY MODE
-
-ny_date() {
-  TZ=America/New_York date "$@"
-}
-
-refresh_one_repo() {
-  git -C "$1" fetch
-  # Calls to check_status_and_pull.sh break if we're not on master.
-  git -C "$1" checkout -f master
-  git -C "$1" reset --hard origin/master
-  # `npm install` is unreliable if the repo isn't clean.
-  git -C "$1" clean -dffx
-}
-
-refresh_repos() {
-  refresh_one_repo "$client_copy"
-  refresh_one_repo "$kbfs_copy"
-}
-
-push_kbfs_beta() {
-  kbfs_beta_copy="/root/kbfs-beta"
-  kbfs_beta_gopath="/root/kbfs-beta-gopath"
-  if ! [ -e "$kbfs_beta_copy" ] ; then
-    git clone git@github.com:keybase/kbfs-beta "$kbfs_beta_copy"
-    git -C "$kbfs_beta_copy" config user.name "nightly build"
-    git -C "$kbfs_beta_copy" config user.email "nightly build"
-    # Make the fake GOPATH, because export_kbfs.sh wants it.
-    mkdir -p "$kbfs_beta_gopath/src/github.com/keybase/"
-    ln -snf "$client_copy" "$kbfs_beta_gopath/src/github.com/keybase/client"
-    ln -snf "$kbfs_copy" "$kbfs_beta_gopath/src/github.com/keybase/kbfs"
-    ln -snf "$kbfs_beta_copy" "$kbfs_beta_gopath/src/github.com/keybase/kbfs-beta"
-  fi
-  git -C "$kbfs_beta_copy" pull --ff-only
-  GOPATH="$kbfs_beta_gopath" "$client_copy/packaging/export/export_kbfs.sh"
-}
-
-# I don't want to have to think about what happens to sleep when a machine
-# suspends for a long time and wakes up. So instead of a big sleep, we do
-# little one minute sleeps, and do a build whenever we happen to wake up at
-# noon.
-
-# Do an early refresh, to catch errors.
-refresh_repos
-
-echo Entering nightly loop...
-last_build_day=""
-while true ; do
-  current_day="$(ny_date +%d)"
-  current_hour="$(ny_date +%H)"
-  day_of_the_week="$(ny_date +%A)"
-  # Build if it's noon on a weekday and we haven't already built today.
-  # NOTE: If you restart this script between 12pm and 1pm, it will forget
-  # whether it's already built today, and it will build again. Not ideal.
-  if [ "$current_day" != "$last_build_day" ] &&
-     [ "$current_hour" = 12 ] &&
-     [ "$day_of_the_week" != Saturday ] &&
-     [ "$day_of_the_week" != Sunday ] ; then
-    last_build_day="$current_day"
-    echo -e "\n\n\n=================== STARTING A BUILD ===================="
-    ny_date
-    refresh_repos
-    push_kbfs_beta
-    # Each nightly build happens in prerelease mode. Suppress errors in the
-    # build script with `|| true`, so that the nightly loop continues.
-    "$client_copy/packaging/linux/build_and_push_packages.sh" prerelease "$build_dir" || true
-    echo "=================== BUILD FINISHED ===================="
-  fi
-  sleep 60
-done
+# Do the build!
+"$client_clone/packaging/linux/build_and_push_packages.sh" "$mode" "$build_dir"

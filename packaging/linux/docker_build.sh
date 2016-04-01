@@ -65,6 +65,7 @@ if [ -z "$(docker images -q "$image")" ] ; then
   docker build -t "$image" "$clientdir/packaging/linux"
 fi
 
+echo '=== docker ==='
 docker run -ti \
   -v "$work_dir:/root" \
   -v "$clientdir:/CLIENT:ro" \
