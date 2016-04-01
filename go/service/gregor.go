@@ -5,6 +5,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	protocol "github.com/keybase/gregor/protocol/go"
 	"golang.org/x/net/context"
 )
 
@@ -20,8 +21,19 @@ func (g *gregorHandler) HandlerName() string {
 	return "keybase service"
 }
 
-func (g *gregorHandler) OnConnect(context.Context, *rpc.Connection, rpc.GenericClient, *rpc.Server) error {
+func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection, cli rpc.GenericClient, srv *rpc.Server) error {
 	g.G().Log.Debug("gregor handler: connected")
+
+	g.G().Log.Debug("gregor handler: registering protocols")
+	if err := srv.Register(protocol.OutgoingProtocol(g)); err != nil {
+		return err
+	}
+
+	g.G().Log.Debug("gregor handler: authenticating")
+	ac := protocol.AuthClient{Cli: cli}
+	if err := ac.Authenticate(ctx, "dummy auth token"); err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -43,4 +55,9 @@ func (g *gregorHandler) ShouldRetry(name string, err error) bool {
 
 func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
 	return false
+}
+
+func (g *gregorHandler) BroadcastMessage(ctx context.Context, m protocol.Message) error {
+	g.G().Log.Debug("gregor handler: broadcast: %+v", m)
+	return nil
 }
