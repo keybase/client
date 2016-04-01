@@ -1,0 +1,13 @@
+/* @flow */
+
+import React, {Component} from 'react'
+
+export type Props = {
+  visible: boolean,
+  children: any
+}
+
+declare export default class ActionSheet extends Component<void, Props, void> {
+}
+
+
