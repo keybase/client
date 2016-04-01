@@ -1,7 +1,7 @@
 #! /usr/bin/env bash
 
-# This script is the starting point for linux packaging builds. Here's what it
-# does:
+# This script is the starting point for linux packaging builds. Here's what the
+# build does:
 #   1) create the "keybase_packaging_v*" docker image, if it doesn't exist
 #   2) run the "inside_docker_main.sh" script in that image, sharing several
 #      directories from your host, which does all the following...
@@ -11,13 +11,13 @@
 #   4) commit and push the server-ops repo, or for prerelease builds, push to
 #      our S3 bucket
 #
-# You need to have docker installed, and all the directories shared with -v
-# below need to contain code or keys.
+# This script mostly concerns itself with updating git repos and organizing
+# GPG/SSH/S3 keys for the docker container.
 
 set -e -u -o pipefail
 
-if [ "$#" -lt 1 ] ; then
-  echo Usage: docker_build.sh MODE TAG
+if [ "$#" != 2 ] ; then
+  echo Usage: docker_build.sh MODE COMMIT
   exit 1
 fi
 

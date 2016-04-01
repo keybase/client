@@ -3,17 +3,14 @@
 # This script is the starting point for everything that happens inside our
 # packaging docker. It expects to be invoked like this:
 #
-#     ./inside_docker_main.sh MODE TAG
+#     ./inside_docker_main.sh MODE COMMIT
 #
 # For example: ./inside_docker_main.sh staging v1.0.0-27
-#
-# TAG is optional for modes other than production. MODE can be "nightly", which
-# puts this script into a loop.
 
 set -e -u -o pipefail
 
 mode="$1"
-tag="${2:-}"
+commit="$2"
 
 client_copy="/root/client"
 kbfs_copy="/root/kbfs"
@@ -58,12 +55,8 @@ if [ "$mode" != prerelease ] && [ "$mode" != nightly ] ; then
   git -C "$serverops_copy" config user.email "example@example.com"
 fi
 
-# If we're not entering a nightly build loop (where everything by definition
-# happens from master) then we'll build whatever working copy these repos have
-# checked out. However, if a tag was provided, switch to that.
-if [ -n "$tag" ] ; then
-  git -C "$client_copy" checkout -f "$tag"
-fi
+# Check out the given client commit.
+git -C "$client_copy" checkout -f "$commit"
 
 # In a non-nightly build mode, do the build once and then short-circuit.
 if [ "$mode" != nightly ] ; then
