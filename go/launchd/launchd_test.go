@@ -99,7 +99,7 @@ func todoTestCheckPlist(t *testing.T) {
 		t.Fatal(err)
 	}
 	if !plistNewIsValidAfterInstall {
-		t.Fatalf("New pist should be valid after install")
+		t.Fatalf("New plist should be valid after install")
 	}
 }
 

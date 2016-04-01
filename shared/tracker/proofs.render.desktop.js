@@ -14,7 +14,7 @@ const shell = electron.shell || electron.remote.shell
 
 import type {Proof, ProofsProps} from './proofs.render'
 
-export class ProofsRender extends Component {
+class ProofsRender extends Component {
   props: ProofsProps;
 
   openLink (url: string): void {
@@ -104,7 +104,7 @@ export class ProofsRender extends Component {
     }
   }
 
-  renderProofRow (styles: Object, proof: Proof) {
+  renderProofRow (proof: Proof) {
     const metaColor = this.metaColor(proof)
     const proofNameColor = this.proofColor(proof)
     const proofStatusIcon = this.proofStatusIcon(proof)
@@ -112,106 +112,117 @@ export class ProofsRender extends Component {
     // TODO: State is deprecated, will refactor after nuking v1
     let isChecking = (proof.state === proofChecking)
 
+    const proofStyle = {
+      ...globalStyles.selectable,
+      width: 208,
+      display: 'inline-block',
+      wordBreak: 'break-all',
+      ...styleProofName
+    }
+
+    const proofNameStyle = {
+      color: proofNameColor,
+      ...(proof.meta === metaDeleted ? {textDecoration: 'line-through'} : {})
+    }
+
+    const meta = proof.meta &&
+      proof.meta !== metaNone &&
+      <Text type='Header' style={{...styleMeta, backgroundColor: metaColor}}>{proof.meta}</Text>
+    const proofIcon = isChecking
+      ? <ProgressIndicator style={styleLoader} />
+      : proofStatusIcon && <Icon type={proofStatusIcon} style={styleStatusIcon} onClick={() => this.onClickProof(proof)} />
+
     return (
-      <div style={styles.row} key={proof.id}>
-        <Icon style={styles.service} type={this.iconNameForProof(proof)} title={proof.type} onClick={onClickProfile} />
-        <div style={styles.proofNameSection}>
-          <div style={styles.proofNameLabelContainer}>
-            <span style={styles.proofNameContainer}>
-              <span
-                className='hover-underline'
-                style={{...styles.proofName, ...(proof.meta === metaDeleted ? {textDecoration: 'line-through'} : {}), color: proofNameColor}}
-                onClick={onClickProfile}>
-                <Text inline style={{...globalStyles.selectable, color: proofNameColor}} type='Body'>{proof.name}</Text>
-              </span>
-              <wbr/>
-              <Text inline type='Body' style={styles.proofType}>@{proof.type}</Text>
-            </span>
-          {proof.meta && <Text type='Header' style={{...styles.meta, backgroundColor: metaColor}}>{proof.meta}</Text>}
-          </div>
-        </div>
-        {isChecking &&
-          <ProgressIndicator style={styles.loader} />
-        }
-        {!isChecking && proofStatusIcon &&
-          <Icon type={proofStatusIcon} style={styles.statusIcon} onClick={() => this.onClickProof(proof)} />
-        }
-      </div>
+      <p style={styleRow} key={proof.id}>
+        <Icon style={styleService} type={this.iconNameForProof(proof)} title={proof.type} onClick={onClickProfile} />
+        <span style={styleProofNameSection}>
+          <span style={styleProofNameLabelContainer}>
+            <Text inline className='hover-underline-container' type='Body' onClick={onClickProfile} style={proofStyle}>
+              <Text inline type='Body' className='underline' style={proofNameStyle}>{proof.name}</Text>
+              <Text className='no-underline' inline type='Body' style={styleProofType}><wbr>@{proof.type}</wbr></Text>
+            </Text>
+            {meta}
+          </span>
+        </span>
+        {proofIcon}
+      </p>
     )
   }
 
   render () {
     return (
-      <div style={styles.container}>
-        {this.props.proofs.map(p => this.renderProofRow(styles, p))}
+      <div style={styleContainer}>
+        {this.props.proofs.map(p => this.renderProofRow(p))}
       </div>
     )
   }
 }
 
-const styles = {
-  container: {
-    ...globalStyles.flexBoxColumn,
-    backgroundColor: globalColors.white
-  },
-  row: {
-    ...globalStyles.flexBoxRow,
-    paddingTop: 8,
-    paddingLeft: 30,
-    paddingRight: 30,
-    alignItems: 'flex-start',
-    justifyContent: 'flex-start'
-  },
-  service: {
-    ...globalStyles.clickable,
-    height: 14,
-    width: 14,
-    color: globalColors.black75,
-    hoverColor: globalColors.black75,
-    marginRight: 9,
-    marginTop: 4
-  },
-  statusIcon: {
-    ...globalStyles.clickable,
-    fontSize: 20,
-    marginLeft: 10
-  },
-  proofNameSection: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'flex-start',
-    flex: 1
-  },
-  proofNameLabelContainer: {
-    ...globalStyles.flexBoxColumn,
-    flex: 1
-  },
-  proofNameContainer: {
-    wordWrap: 'break-word',
-    flex: 1
-  },
-  proofName: {
-    ...commonStyles.clickable,
-    flex: 1
-  },
-  proofType: {
-    color: globalColors.black10
-  },
-  meta: {
-    color: globalColors.white,
-    borderRadius: 1,
-    fontSize: 10,
-    height: 11,
-    lineHeight: '11px',
-    paddingLeft: 2,
-    paddingRight: 2,
-    alignSelf: 'flex-start',
-    textTransform: 'uppercase'
-  },
-  serviceStatus: {
-    ...globalStyles.clickable,
-    marginTop: 1
-  },
-  loader: {
-    width: 20
-  }
+const styleContainer = {
+  ...globalStyles.flexBoxColumn,
+  backgroundColor: globalColors.white
 }
+
+const styleRow = {
+  ...globalStyles.flexBoxRow,
+  paddingTop: 8,
+  paddingLeft: 30,
+  paddingRight: 30,
+  alignItems: 'flex-start',
+  justifyContent: 'flex-start'
+}
+
+const styleService = {
+  ...globalStyles.clickable,
+  height: 14,
+  width: 14,
+  color: globalColors.black75,
+  hoverColor: globalColors.black75,
+  marginRight: 9,
+  marginTop: 4
+}
+
+const styleStatusIcon = {
+  ...globalStyles.clickable,
+  fontSize: 20,
+  marginLeft: 10
+}
+
+const styleProofNameSection = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'flex-start',
+  flex: 1
+}
+
+const styleProofNameLabelContainer = {
+  ...globalStyles.flexBoxColumn,
+  flex: 1
+}
+
+const styleProofName = {
+  ...commonStyles.clickable,
+  flex: 1
+}
+
+const styleProofType = {
+  color: globalColors.black10,
+  wordBreak: 'normal'
+}
+
+const styleMeta = {
+  color: globalColors.white,
+  borderRadius: 1,
+  fontSize: 10,
+  height: 11,
+  lineHeight: '11px',
+  paddingLeft: 2,
+  paddingRight: 2,
+  alignSelf: 'flex-start',
+  textTransform: 'uppercase'
+}
+
+const styleLoader = {
+  width: 20
+}
+
+export default ProofsRender

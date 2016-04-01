@@ -36,7 +36,7 @@ export default class Icon extends Component {
       return <FontIcon
         title={this.props.hint}
         style={{...styles.icon, ...this.props.style}}
-        className={`fa ${iconType}`}
+        className={`fa ${iconType} ${this.props.className}`}
         color={color}
         hoverColor={this.props.onClick ? hoverColor : null}
         onMouseEnter={this.props.onMouseEnter}
@@ -44,6 +44,7 @@ export default class Icon extends Component {
         onClick={this.props.onClick}/>
     } else {
       return <img
+        className={this.props.className}
         title={this.props.hint}
         style={{...this.props.style}}
         onClick={this.props.onClick}

@@ -44,34 +44,34 @@ func TestResolveSimple(t *testing.T) {
 	}
 	goodResolve("eb72f49f2dde6429e5d78003dae0c919@uid")
 	if !r.stats.eq(0, 0, 0, 0, 0) {
-		t.Fatalf("Got bad cach stats: %+v\n", r.stats)
+		t.Fatalf("Got bad cache stats: %+v\n", r.stats)
 	}
 	goodResolve("t_tracy@keybase")
 	if !r.stats.eq(1, 0, 0, 0, 0) {
-		t.Fatalf("Got bad cach stats: %+v\n", r.stats)
+		t.Fatalf("Got bad cache stats: %+v\n", r.stats)
 	}
 	goodResolve("t_tracy@keybase")
 	if !r.stats.eq(1, 0, 0, 0, 1) {
-		t.Fatalf("Got bad cach stats: %+v\n", r.stats)
+		t.Fatalf("Got bad cache stats: %+v\n", r.stats)
 	}
 	clock.tick(resolveCacheMaxAge * 10)
 	goodResolve("t_tracy@keybase")
 	if !r.stats.eq(1, 1, 0, 0, 1) {
-		t.Fatalf("Got bad cach stats: %+v\n", r.stats)
+		t.Fatalf("Got bad cache stats: %+v\n", r.stats)
 	}
 	goodResolve("t_tracy@rooter")
 	if !r.stats.eq(2, 1, 0, 0, 1) {
-		t.Fatalf("Got bad cach stats: %+v\n", r.stats)
+		t.Fatalf("Got bad cache stats: %+v\n", r.stats)
 	}
 	clock.tick(resolveCacheMaxAgeMutable / 2)
 	goodResolve("t_tracy@rooter")
 	if !r.stats.eq(2, 1, 0, 0, 2) {
-		t.Fatalf("Got bad cach stats: %+v\n", r.stats)
+		t.Fatalf("Got bad cache stats: %+v\n", r.stats)
 	}
 	clock.tick(resolveCacheMaxAgeMutable * 2)
 	goodResolve("t_tracy@rooter")
 	if !r.stats.eq(2, 1, 1, 0, 2) {
-		t.Fatalf("Got bad cach stats: %+v\n", r.stats)
+		t.Fatalf("Got bad cache stats: %+v\n", r.stats)
 	}
 	res := r.Resolve("tacovontaco@twitter")
 	if err := res.GetError(); err == nil {

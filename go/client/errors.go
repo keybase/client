@@ -68,5 +68,5 @@ func (e ProofNotYetAvailableError) Error() string {
 type UnexpectedArgsError string
 
 func (e UnexpectedArgsError) Error() string {
-	return fmt.Sprintf("Command `%s` doesn't talk any non-flag arugments", string(e))
+	return fmt.Sprintf("Command `%s` doesn't take any non-flag arguments", string(e))
 }

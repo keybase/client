@@ -1,9 +1,18 @@
-## 1.0.15
+## 1.0.15 (2016-03-31)
 - If a public key really consists of the same key listed twice, then
   merge the two keys and try again (PR: keybase/client#2130).
 - Support for sneak's public key (via vendored PR: keybase/go-crypto#17)
 - Support for Brainpool elliptic curves in PGP keys (via vendored PR: keybase/go-crypto#18)
 - Support for selecting keys from GPG smart cards/YubiKeys (PRs: keybase/go-crypto#22 keybase/client#2440)
+- Change login provisioning flow to start with username (PR: keybase/client#2176)
+- `keybase log send` works when service isn't running (PR: keybase/client#2336)
+- Add `keybase pgp list` command (PR: keybase/client#2338)
+- `keybase id` uses Identify2 (PR: keybase/client#2426)
+- Identify2 displays revoked proofs (PR: keybase/client#2445)
+- Add --skip-proof-cache option to id command (PR: keybase/client#2310)
+- Return non-zero status when showing an error (PR: keybase/client#2361)
+- Include device ID in non-Tor-mode requests to keybase.io, for logging (PR: keybase/client##2434)
+- Fix a bug where `keybase id` printed nothing (PR: keybase/client#2468)
 
 ## 1.0.14 (2016-02-24)
 - Fix crasher on passphrase recover on Linux (PR: keybase/client#2062)

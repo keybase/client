@@ -137,7 +137,7 @@ const FolderRow = props => {
 }
 
 const FolderEntryRow = props => {
-  const {key, entry} = props
+  const {entry} = props
   let inputRef = null
 
   const openFolder = () => {
@@ -154,8 +154,7 @@ const FolderEntryRow = props => {
       onClick={() => {}}
       text={entry.prefix}
       iconStyle={SVGFolderIcon(iconPath(entry.isPublic, false))}
-      textStyle={{color: globalColors.blue}}
-      key={key}>
+      textStyle={{color: globalColors.blue}} >
       <Input
         ref={input => (inputRef = input)}
         small

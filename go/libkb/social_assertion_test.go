@@ -12,21 +12,21 @@ type nsatest struct {
 }
 
 var nsatests = []nsatest{
-	{in: "keybase", out: "", ok: false},
-	{in: "alice@twitter", out: "alice@twitter", ok: true},
-	{in: "twitter:alice", out: "alice@twitter", ok: true},
-	{in: "Twitter:alice", out: "alice@twitter", ok: true},
-	{in: "twitter:Alice", out: "alice@twitter", ok: true},
-	{in: "AlicE@twitter", out: "alice@twitter", ok: true},
-	{in: "bob@foo@bar", out: "", ok: false},
-	{in: "foo:bar:bob", out: "", ok: false},
-	{in: "foo:bob@bar", out: "", ok: false},
-	{in: "BOB@coinbase", out: "bob@coinbase", ok: true},
-	{in: "BOB@github", out: "bob@github", ok: true},
-	{in: "BOB@hackernews", out: "BOB@hackernews", ok: true},
-	{in: "BOB@reddit", out: "bob@reddit", ok: true},
-	{in: "BOB@rooter", out: "bob@rooter", ok: true},
-	{in: "BOB@facebook", out: "", ok: false},
+	{in: "keybase", out: SocialAssertion{}, ok: false},
+	{in: "alice@twitter", out: SocialAssertion{username: "alice", service: "twitter"}, ok: true},
+	{in: "twitter:alice", out: SocialAssertion{username: "alice", service: "twitter"}, ok: true},
+	{in: "Twitter:alice", out: SocialAssertion{username: "alice", service: "twitter"}, ok: true},
+	{in: "twitter:Alice", out: SocialAssertion{username: "alice", service: "twitter"}, ok: true},
+	{in: "AlicE@twitter", out: SocialAssertion{username: "alice", service: "twitter"}, ok: true},
+	{in: "bob@foo@bar", out: SocialAssertion{}, ok: false},
+	{in: "foo:bar:bob", out: SocialAssertion{}, ok: false},
+	{in: "foo:bob@bar", out: SocialAssertion{}, ok: false},
+	{in: "BOB@coinbase", out: SocialAssertion{username: "bob", service: "coinbase"}, ok: true},
+	{in: "BOB@github", out: SocialAssertion{username: "bob", service: "github"}, ok: true},
+	{in: "BOB@hackernews", out: SocialAssertion{username: "BOB", service: "hackernews"}, ok: true},
+	{in: "BOB@reddit", out: SocialAssertion{username: "bob", service: "reddit"}, ok: true},
+	{in: "BOB@rooter", out: SocialAssertion{username: "bob", service: "rooter"}, ok: true},
+	{in: "BOB@facebook", out: SocialAssertion{}, ok: false},
 }
 
 func TestNormalizeSocialAssertion(t *testing.T) {

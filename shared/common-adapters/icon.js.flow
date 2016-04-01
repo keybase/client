@@ -26,6 +26,7 @@ export type Props = {
     | 'keybase-update'
     | 'logo-128'
     | 'logo-16'
+    | 'logo-160'
     | 'logo-24'
     | 'logo-256'
     | 'logo-32'
@@ -55,7 +56,8 @@ export type Props = {
   onMouseEnter?: () => void,
   onMouseLeave?: () => void,
   style?: Object,
-  inheritColor?: boolean
+  inheritColor?: boolean,
+  className?: string
 }
 
 declare export default class Icon extends React.Component {
