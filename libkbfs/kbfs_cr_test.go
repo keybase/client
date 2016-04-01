@@ -331,12 +331,12 @@ func TestUnmergedAfterRestart(t *testing.T) {
 	select {
 	case <-c:
 	default:
-		t.Fatalf("No update!")
+		t.Fatal("No update!")
 	}
 	select {
 	case <-c:
 	default:
-		t.Fatalf("No 2nd update!")
+		t.Fatal("No 2nd update!")
 	}
 	// make sure we see two sync op changes, on the same node
 	if len(cro.changes) != 2 {
