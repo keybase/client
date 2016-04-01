@@ -214,6 +214,9 @@ func (wmf writerMetadataFuture) toCurrentStruct() currentStruct {
 
 func makeFakeWriterMetadataFuture(t *testing.T) writerMetadataFuture {
 	wmd := writerMetadataCurrent{
+		// This needs to be list format so it fails to compile if new fields
+		// are added, effectively checking at compile time whether new fields
+		// have been added
 		[]byte{0xa, 0xb},
 		"uid1",
 		[]keybase1.UID{"uid1", "uid2"},
@@ -232,7 +235,11 @@ func makeFakeWriterMetadataFuture(t *testing.T) writerMetadataFuture {
 		tlfWriterKeyGenerationsFuture{&wkb},
 		&writerMetadataExtraFuture{
 			WriterMetadataExtra{
-				UnknownFieldSet: codec.UnknownFieldSet{},
+				// This needs to be list format so it fails to compile if new
+				// fields are added, effectively checking at compile time
+				// whether new fields have been added
+				nil,
+				codec.UnknownFieldSet{},
 			},
 			makeExtraOrBust("WriterMetadata", t),
 		},
@@ -300,23 +307,26 @@ func makeFakeRootMetadataFuture(t *testing.T) rootMetadataFuture {
 		wmf,
 		rootMetadataCurrentWrapper{
 			rootMetadataCurrent{
-				WriterMetadata: WriterMetadata{},
-				WriterMetadataSigInfo: SignatureInfo{
+				// This needs to be list format so it fails to compile if new
+				// fields are added, effectively checking at compile time
+				// whether new fields have been added
+				WriterMetadata{},
+				SignatureInfo{
 					100,
 					[]byte{0xc},
 					MakeFakeVerifyingKeyOrBust("fake kid"),
 				},
-				LastModifyingUser: "uid1",
-				Flags:             0xb,
-				Revision:          5,
-				PrevRoot:          MdID{h},
-				RKeys:             nil,
-				UnresolvedReaders: nil,
-				UnknownFieldSet:   codec.UnknownFieldSet{},
-				data:              PrivateMetadata{},
-				cachedTlfHandle:   nil,
-				mdID:              MdID{},
-				unverified:        false,
+				"uid1",
+				0xb,
+				5,
+				MdID{h},
+				nil,
+				nil,
+				codec.UnknownFieldSet{},
+				PrivateMetadata{},
+				nil,
+				MdID{},
+				false,
 			},
 		},
 		[]*tlfReaderKeyBundleFuture{&rkb},

@@ -149,7 +149,7 @@ func (wm WriterMetadata) deepCopyHelper(f copyFields) WriterMetadata {
 	// if wm.Extra != nil {
 	//   ...
 	// }
-	if wm.Extra != nil && f == allFields {
+	if wm.Extra != nil {
 		extraCopy := wm.Extra.deepCopyHelper(f)
 		wmCopy.Extra = &extraCopy
 	} else {
@@ -162,6 +162,10 @@ func (wm WriterMetadata) deepCopyHelper(f copyFields) WriterMetadata {
 // without unknown fields.
 func (wme WriterMetadataExtra) deepCopyHelper(f copyFields) WriterMetadataExtra {
 	wmeCopy := wme
+	if wme.UnresolvedWriters != nil {
+		wmeCopy.UnresolvedWriters = make([]libkb.SocialAssertion, len(wme.UnresolvedWriters))
+		copy(wmeCopy.UnresolvedWriters, wme.UnresolvedWriters)
+	}
 	if f == allFields {
 		wmeCopy.UnknownFieldSet = wme.UnknownFieldSet.DeepCopy()
 	} else {
@@ -278,6 +282,10 @@ func (md RootMetadata) deepCopyHelper(f copyFields) RootMetadata {
 	mdCopy.WriterMetadata = md.WriterMetadata.deepCopyHelper(f)
 	mdCopy.WriterMetadataSigInfo = md.WriterMetadataSigInfo.DeepCopy()
 	mdCopy.RKeys = md.RKeys.deepCopyHelper(f)
+	if md.UnresolvedReaders != nil {
+		mdCopy.UnresolvedReaders = make([]libkb.SocialAssertion, len(md.UnresolvedReaders))
+		copy(mdCopy.UnresolvedReaders, md.UnresolvedReaders)
+	}
 	if f == allFields {
 		mdCopy.UnknownFieldSet = md.UnknownFieldSet.DeepCopy()
 	} else {
