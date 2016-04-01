@@ -2,12 +2,12 @@
 
 set -e -u -o pipefail # Fail on error
 
-dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
-cd $dir
+here=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 
-src_dir="$GOPATH/src/github.com/keybase/kbfs"
-dest_dir="$GOPATH/src/github.com/keybase/kbfs-beta"
-clientdir="$GOPATH/src/github.com/keybase/client"
+clientdir="$(git -C "$here" rev-parse --show-toplevel)"
+src_dir="$clientdir/../kbfs"
+dest_dir="$clientdir/../kbfs-beta"
+
 name=kbfs
 kbfs_dirs=(kbfs kbfsfuse libfs libfuse libkbfs metricsutil vendor)
 
