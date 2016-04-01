@@ -105,7 +105,6 @@ export default function (dispatch: Dispatch, getState: () => Object, notify: any
         return false
       }
 
-       console.log(title, body)
       if (rateLimitAllowsNotify(action, state, tlf)) {
         notify(title, {body})
       }
