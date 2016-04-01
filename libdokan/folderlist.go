@@ -36,11 +36,30 @@ func (*FolderList) GetFileInformation(*dokan.FileInfo) (*dokan.Stat, error) {
 	return defaultDirectoryInformation()
 }
 
+func (fl *FolderList) reportErr(ctx context.Context,
+	mode libkbfs.ErrorModeType, tlfName libkbfs.CanonicalTlfName, err error) {
+	if err == nil {
+		fl.fs.log.CDebugf(ctx, "Request complete")
+		return
+	}
+
+	fl.fs.config.Reporter().ReportErr(ctx, tlfName, fl.public, mode, err)
+	// We just log the error as debug, rather than error, because it
+	// might just indicate an expected error such as an ENOENT.
+	//
+	// TODO: Classify errors and escalate the logging level of the
+	// important ones.
+	fl.fs.log.CDebugf(ctx, err.Error())
+}
+
 // open tries to open the correct thing. Following aliases and deferring to
 // Dir.open as necessary.
 func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) (f dokan.File, isDir bool, err error) {
 	fl.fs.log.CDebugf(ctx, "FL Lookup %#v", path)
-	defer func() { fl.fs.reportErr(ctx, libkbfs.ReadMode, err) }()
+	defer func() {
+		fl.reportErr(ctx, libkbfs.ReadMode,
+			libkbfs.CanonicalTlfName(path[0]), err)
+	}()
 
 	if len(path) == 0 {
 		return oc.returnDirNoCleanup(fl)
