@@ -36,6 +36,7 @@ dependencies:
     - mkdir -p $GOPATH/src/github.com/keybase
     - ln -s $HOME/client $GOPATH/src/github.com/keybase/client
     - npm run gobuild-android
+    - npm run sync
 test:
   override:
     # TODO(mm) uncomment these device tests (see todo above)
