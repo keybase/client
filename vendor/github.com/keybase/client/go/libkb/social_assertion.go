@@ -7,22 +7,7 @@ import "strings"
 
 // SocialAssertion is a type for individual user's on a social
 // network.  It should be created via NormalizeSocialAssertion.
-type SocialAssertion struct {
-	username string
-	service  string
-}
-
-func (s SocialAssertion) Username() string {
-	return s.username
-}
-
-func (s SocialAssertion) Service() string {
-	return s.service
-}
-
-func (s SocialAssertion) String() string {
-	return s.username + "@" + s.service
-}
+type SocialAssertion string
 
 // IsSocialAssertion returns true for strings that are valid
 // social assertions.  They do not need to be normalized, so
@@ -41,7 +26,7 @@ func IsSocialAssertion(s string) bool {
 // services are allowed.
 func NormalizeSocialAssertion(s string) (SocialAssertion, bool) {
 	if strings.Count(s, ":")+strings.Count(s, "@") != 1 {
-		return SocialAssertion{}, false
+		return "", false
 	}
 
 	var name, service string
@@ -58,7 +43,7 @@ func NormalizeSocialAssertion(s string) (SocialAssertion, bool) {
 
 	service = strings.ToLower(service)
 	if !ValidSocialNetwork(service) {
-		return SocialAssertion{}, false
+		return "", false
 	}
 
 	st := GetServiceType(service)
@@ -66,8 +51,5 @@ func NormalizeSocialAssertion(s string) (SocialAssertion, bool) {
 		name = strings.ToLower(name)
 	}
 
-	return SocialAssertion{
-		username: name,
-		service:  service,
-	}, true
+	return SocialAssertion(name + "@" + service), true
 }

@@ -5,7 +5,6 @@ package libkb
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -237,10 +236,6 @@ type RunGpg2Res struct {
 }
 
 func (g *GpgCLI) Run2(arg RunGpg2Arg) (res RunGpg2Res) {
-	if g.path == "" {
-		res.Err = errors.New("no gpg path set")
-		return
-	}
 
 	cmd := g.MakeCmd(arg.Arguments)
 
