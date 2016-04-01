@@ -3,7 +3,7 @@
 import enums from '../constants/types/keybase-v1'
 import type {incomingCallMapType} from '../constants/types/flow-types'
 import path from 'path'
-import {getTLF} from '../util/kbfs'
+import {getTLF, decodeKBFSError} from '../util/kbfs'
 
 import {bootstrap} from '../actions/config'
 import {logoutDone} from '../actions/login'
@@ -74,11 +74,13 @@ export default function (dispatch: Dispatch, getState: () => Object, notify: any
 
       let title = `KBFS: ${action}`
       let body = `Files in ${tlf} ${notification.status}`
-
+      let user = 'You'
+      if (getState().config && getState().config.status && getState().config.status.user && getState().config.status.user.username) {
+        user = getState().config.status.user.username
+      }
       // Don't show starting or finished, but do show error.
       if (notification.statusCode === enums.kbfs.FSStatusCode.error) {
-        title += ` ${state}`
-        body = notification.status
+        [title, body] = decodeKBFSError(user, notification)
       }
 
       function rateLimitAllowsNotify (action, state, tlf) {
@@ -103,6 +105,7 @@ export default function (dispatch: Dispatch, getState: () => Object, notify: any
         return false
       }
 
+       console.log(title, body)
       if (rateLimitAllowsNotify(action, state, tlf)) {
         notify(title, {body})
       }
