@@ -20,6 +20,7 @@ type SaltpackVerify struct {
 	key libkb.NaclSigningKeyPair
 }
 
+// SaltpackVerifyArg are engine args.
 type SaltpackVerifyArg struct {
 	Sink   io.WriteCloser
 	Source io.Reader
@@ -39,7 +40,7 @@ func (e *SaltpackVerify) Name() string {
 	return "SaltpackVerify"
 }
 
-// GetPrereqs returns the engine prereqs.
+// Prereqs returns the engine prereqs.
 func (e *SaltpackVerify) Prereqs() Prereqs {
 	return Prereqs{}
 }
