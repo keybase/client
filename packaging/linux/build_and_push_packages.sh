@@ -63,9 +63,6 @@ release_serverops() {
 }
 
 release_prerelease() {
-  echo Pushing kbfs-beta...
-  "$client_dir/packaging/export/export_kbfs.sh"
-
   echo Doing a prerelease push to S3...
 
   # Parse the shared .s3cfg file and export the keys as environment variables.
@@ -105,6 +102,25 @@ release_prerelease() {
 
   # Generate and push the index.html file.
   PLATFORM="linux" "$here/../prerelease/s3_index.sh"
+
+  echo Exporting to kbfs-beta...
+  "$client_dir/packaging/export/export_kbfs.sh"
+
+  bump_arch_linux_aur
+}
+
+bump_arch_linux_aur() {
+  # This relies on having the SSH key registered with the "keybase" account on
+  # https://aur.archlinux.org.
+  (
+    temp_repo=`mktemp -d`
+    git clone aur@aur.archlinux.org:keybase-git "$temp_repo"
+    cd "$temp_repo"
+    sed -i "s/pkgver=.*/pkgver=$version/" PKGBUILD
+    sed -i "s/pkgver = .*/pkgver = $version/" .SRCINFO
+    git commit -am "version bump"
+    git push
+  )
 }
 
 if [ "$mode" = "prerelease" ] ; then
