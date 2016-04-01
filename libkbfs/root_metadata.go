@@ -109,7 +109,9 @@ type WriterMetadata struct {
 	// The total number of bytes in unreferenced blocks
 	UnrefBytes uint64
 
-	// This has to be a pointer for omitempty to work.
+	// This has to be a pointer for omitempty to work. Also,
+	// maintain the invariant that Extra is either non-empty, or
+	// nil (i.e., not non-nil and the zero value).
 	//
 	// TODO: Figure out how to avoid the need for nil checks?
 	Extra *WriterMetadataExtra `codec:"x,omitempty"`
@@ -119,6 +121,51 @@ type WriterMetadata struct {
 // WriterMetadata comments as to why this type is needed.)
 type WriterMetadataExtra struct {
 	codec.UnknownFieldSet
+}
+
+// deepCopyHelper returns a deep copy of a WriterMetadata, with or
+// without unknown fields.
+func (wm WriterMetadata) deepCopyHelper(f copyFields) WriterMetadata {
+	wmCopy := wm
+	if wm.SerializedPrivateMetadata != nil {
+		wmCopy.SerializedPrivateMetadata =
+			make([]byte, len(wm.SerializedPrivateMetadata))
+		copy(wmCopy.SerializedPrivateMetadata,
+			wm.SerializedPrivateMetadata)
+	}
+	if wm.Writers != nil {
+		wmCopy.Writers = make([]keybase1.UID, len(wm.Writers))
+		copy(wmCopy.Writers, wm.Writers)
+	}
+	wmCopy.WKeys = wm.WKeys.deepCopyHelper(f)
+	// Maintain the invariant that Extra is either non-empty or
+	// nil.
+	//
+	// TODO: Once WriterMetadataExtra picks up a field, this needs
+	// to be changed to
+	//
+	// if wm.Extra != nil {
+	//   ...
+	// }
+	if wm.Extra != nil && f == allFields {
+		extraCopy := wm.Extra.deepCopyHelper(f)
+		wmCopy.Extra = &extraCopy
+	} else {
+		wmCopy.Extra = nil
+	}
+	return wmCopy
+}
+
+// deepCopyHelper returns a deep copy of a WriterMetadataExtra, with or
+// without unknown fields.
+func (wme WriterMetadataExtra) deepCopyHelper(f copyFields) WriterMetadataExtra {
+	wmeCopy := wme
+	if f == allFields {
+		wmeCopy.UnknownFieldSet = wme.UnknownFieldSet.DeepCopy()
+	} else {
+		wmeCopy.UnknownFieldSet = codec.UnknownFieldSet{}
+	}
+	return wmeCopy
 }
 
 // Equals compares two sets of WriterMetadata and returns true if they match.
@@ -205,6 +252,8 @@ type RootMetadata struct {
 	// is empty.
 	RKeys TLFReaderKeyGenerations `codec:",omitempty"`
 
+	codec.UnknownFieldSet
+
 	// The plaintext, deserialized PrivateMetadata
 	data PrivateMetadata
 	// A cached copy of the directory handle calculated for this MD.
@@ -216,6 +265,28 @@ type RootMetadata struct {
 	// skipped failing MD verification.  The user in question could be
 	// either the LastModifyingUser or the LastModifyingWriter.
 	unverified bool
+}
+
+// deepCopyHelper returns a deep copy of a RootMetadata, with or
+// without unknown fields.
+func (md RootMetadata) deepCopyHelper(f copyFields) RootMetadata {
+	mdCopy := md
+	mdCopy.WriterMetadata = md.WriterMetadata.deepCopyHelper(f)
+	mdCopy.WriterMetadataSigInfo = md.WriterMetadataSigInfo.DeepCopy()
+	mdCopy.RKeys = md.RKeys.deepCopyHelper(f)
+	if f == allFields {
+		mdCopy.UnknownFieldSet = md.UnknownFieldSet.DeepCopy()
+	} else {
+		mdCopy.UnknownFieldSet = codec.UnknownFieldSet{}
+	}
+	// TODO: Deep-copy PrivateMetadata, and also make it support
+	// unknown fields.
+	return mdCopy
+}
+
+// DeepCopy returns a deep copy of a RootMetadata.
+func (md RootMetadata) DeepCopy() RootMetadata {
+	return md.deepCopyHelper(allFields)
 }
 
 func (md RootMetadata) haveOnlyUserRKeysChanged(prevMD RootMetadata, user keybase1.UID) bool {
@@ -359,17 +430,9 @@ func (md *RootMetadata) clearLastRevision() {
 // with cleared block change lists and cleared serialized metadata),
 // with the revision incremented and a correct backpointer.
 func (md RootMetadata) MakeSuccessor(config Config, isWriter bool) (RootMetadata, error) {
-	newMd := md
-	// no need to copy the serialized metadata, if it exists
-	newMd.Writers = make([]keybase1.UID, len(md.Writers))
-	copy(newMd.Writers, md.Writers)
-	newMd.WKeys = md.WKeys.DeepCopy()
-	newMd.RKeys = md.RKeys.DeepCopy()
+	newMd := md.DeepCopy()
 	if md.IsReadable() && isWriter {
 		newMd.clearLastRevision()
-		// no need to deep copy the full data since we just cleared the
-		// block changes.
-		newMd.data.TLFPrivateKey = md.data.TLFPrivateKey
 		// clear the serialized data.
 		newMd.SerializedPrivateMetadata = nil
 	} else {

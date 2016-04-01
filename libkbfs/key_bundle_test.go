@@ -9,55 +9,46 @@ import (
 	"golang.org/x/net/context"
 )
 
-type tlfCryptKeyInfoUnknownFieldTest struct {
-	t *testing.T
-}
+type tlfCryptKeyInfoCurrent TLFCryptKeyInfo
 
-var _ structUnknownFieldsTest = tlfCryptKeyInfoUnknownFieldTest{}
-
-func (tlfCryptKeyInfoUnknownFieldTest) makeEmptyStruct() interface{} {
-	return TLFCryptKeyInfo{}
-}
-
-func (t tlfCryptKeyInfoUnknownFieldTest) makeFilledStruct() interface{} {
-	hmac, err := DefaultHMAC([]byte("fake key"), []byte("fake buf"))
-	require.Nil(t.t, err)
-	return TLFCryptKeyInfo{
-		ClientHalf: EncryptedTLFCryptKeyClientHalf{
-			Version:       EncryptionSecretbox,
-			EncryptedData: []byte("fake encrypted data"),
-			Nonce:         []byte("fake nonce"),
-		},
-		ServerHalfID: TLFCryptKeyServerHalfID{
-			ID: hmac,
-		},
-	}
-}
-
-func (tlfCryptKeyInfoUnknownFieldTest) filterKnownFields(i interface{}) interface{} {
-	s := i.(TLFCryptKeyInfo)
-	s.UnknownFieldSet = codec.UnknownFieldSet{}
-	return s
+func (cki tlfCryptKeyInfoCurrent) deepCopyStruct(f copyFields) currentStruct {
+	return tlfCryptKeyInfoCurrent(TLFCryptKeyInfo(cki).deepCopyHelper(f))
 }
 
 type tlfCryptKeyInfoFuture struct {
-	TLFCryptKeyInfo
+	tlfCryptKeyInfoCurrent
 	extra
 }
 
-func (tlfCryptKeyInfoUnknownFieldTest) makeEmptyFutureStruct() interface{} {
-	return tlfCryptKeyInfoFuture{}
+func (cki tlfCryptKeyInfoFuture) toCurrent() tlfCryptKeyInfoCurrent {
+	return cki.tlfCryptKeyInfoCurrent
 }
 
-func (t tlfCryptKeyInfoUnknownFieldTest) makeFilledFutureStruct() interface{} {
+func (cki tlfCryptKeyInfoFuture) toCurrentStruct() currentStruct {
+	return cki.toCurrent()
+}
+
+func makeFakeTLFCryptKeyInfoFuture(t *testing.T) tlfCryptKeyInfoFuture {
+	hmac, err := DefaultHMAC([]byte("fake key"), []byte("fake buf"))
+	require.Nil(t, err)
+	cki := tlfCryptKeyInfoCurrent{
+		EncryptedTLFCryptKeyClientHalf{
+			EncryptionSecretbox,
+			[]byte("fake encrypted data"),
+			[]byte("fake nonce"),
+		},
+		TLFCryptKeyServerHalfID{hmac},
+		5,
+		codec.UnknownFieldSet{},
+	}
 	return tlfCryptKeyInfoFuture{
-		TLFCryptKeyInfo: t.makeFilledStruct().(TLFCryptKeyInfo),
-		extra:           makeExtraOrBust(t.t),
+		cki,
+		makeExtraOrBust("TLFCryptKeyInfo", t),
 	}
 }
 
 func TestTLFCryptKeyInfoUnknownFields(t *testing.T) {
-	testStructUnknownFields(t, tlfCryptKeyInfoUnknownFieldTest{t})
+	testStructUnknownFields(t, makeFakeTLFCryptKeyInfoFuture(t))
 }
 
 func testKeyBundleGetKeysOrBust(t *testing.T, config Config, uid keybase1.UID,
@@ -195,4 +186,121 @@ func TestKeyBundleFillInDevices(t *testing.T) {
 		t.Fatalf("Generated more than one key after device add: %d",
 			len(serverMap2))
 	}
+}
+
+type tlfWriterKeyBundleCurrent TLFWriterKeyBundle
+
+func (wkb tlfWriterKeyBundleCurrent) deepCopyStruct(f copyFields) currentStruct {
+	t := (*TLFWriterKeyBundle)(&wkb)
+	return tlfWriterKeyBundleCurrent(*t.deepCopyHelper(f))
+}
+
+type deviceKeyInfoMapFuture map[keybase1.KID]tlfCryptKeyInfoFuture
+
+func (dkimf deviceKeyInfoMapFuture) toCurrent() DeviceKeyInfoMap {
+	dkim := make(DeviceKeyInfoMap, len(dkimf))
+	for k, kif := range dkimf {
+		ki := kif.toCurrent()
+		dkim[k] = TLFCryptKeyInfo(ki)
+	}
+	return dkim
+}
+
+type userDeviceKeyInfoMapFuture map[keybase1.UID]deviceKeyInfoMapFuture
+
+func (udkimf userDeviceKeyInfoMapFuture) toCurrent() UserDeviceKeyInfoMap {
+	udkim := make(UserDeviceKeyInfoMap)
+	for u, dkimf := range udkimf {
+		dkim := dkimf.toCurrent()
+		udkim[u] = dkim
+	}
+	return udkim
+}
+
+type tlfWriterKeyBundleFuture struct {
+	tlfWriterKeyBundleCurrent
+	// Override TLFWriterKeyBundle.WKeys.
+	WKeys userDeviceKeyInfoMapFuture
+	extra
+}
+
+func (wkbf tlfWriterKeyBundleFuture) toCurrent() tlfWriterKeyBundleCurrent {
+	wkb := wkbf.tlfWriterKeyBundleCurrent
+	wkb.WKeys = wkbf.WKeys.toCurrent()
+	return wkb
+}
+
+func (wkbf tlfWriterKeyBundleFuture) toCurrentStruct() currentStruct {
+	return wkbf.toCurrent()
+}
+
+func makeFakeDeviceKeyInfoMapFuture(t *testing.T) userDeviceKeyInfoMapFuture {
+	return userDeviceKeyInfoMapFuture{
+		"fake uid": deviceKeyInfoMapFuture{
+			"fake kid": makeFakeTLFCryptKeyInfoFuture(t),
+		},
+	}
+}
+
+func makeFakeTLFWriterKeyBundleFuture(t *testing.T) tlfWriterKeyBundleFuture {
+	wkb := tlfWriterKeyBundleCurrent{
+		nil,
+		MakeTLFPublicKey([32]byte{0xa}),
+		TLFEphemeralPublicKeys{
+			MakeTLFEphemeralPublicKey([32]byte{0xb}),
+		},
+		codec.UnknownFieldSet{},
+	}
+	return tlfWriterKeyBundleFuture{
+		wkb,
+		makeFakeDeviceKeyInfoMapFuture(t),
+		makeExtraOrBust("TLFWriterKeyBundle", t),
+	}
+}
+
+func TestTLFWriterKeyBundleUnknownFields(t *testing.T) {
+	testStructUnknownFields(t, makeFakeTLFWriterKeyBundleFuture(t))
+}
+
+type tlfReaderKeyBundleCurrent TLFReaderKeyBundle
+
+func (rkb tlfReaderKeyBundleCurrent) deepCopyStruct(f copyFields) currentStruct {
+	t := (*TLFReaderKeyBundle)(&rkb)
+	return tlfReaderKeyBundleCurrent(*t.deepCopyHelper(f))
+}
+
+type tlfReaderKeyBundleFuture struct {
+	tlfReaderKeyBundleCurrent
+	// Override TLFReaderKeyBundle.WKeys.
+	RKeys userDeviceKeyInfoMapFuture
+	extra
+}
+
+func (rkbf tlfReaderKeyBundleFuture) toCurrent() tlfReaderKeyBundleCurrent {
+	rkb := rkbf.tlfReaderKeyBundleCurrent
+	rkb.RKeys = rkbf.RKeys.toCurrent()
+	return rkb
+}
+
+func (rkbf tlfReaderKeyBundleFuture) toCurrentStruct() currentStruct {
+	return rkbf.toCurrent()
+}
+
+func makeFakeTLFReaderKeyBundleFuture(t *testing.T) tlfReaderKeyBundleFuture {
+	rkb := tlfReaderKeyBundleCurrent{
+		nil,
+		TLFEphemeralPublicKeys{
+			MakeTLFEphemeralPublicKey([32]byte{0xc}),
+		},
+		codec.UnknownFieldSet{},
+	}
+	return tlfReaderKeyBundleFuture{
+		rkb,
+		makeFakeDeviceKeyInfoMapFuture(t),
+		makeExtraOrBust("TLFReaderKeyBundle", t),
+	}
+}
+
+func TestTLFReaderKeyBundleUnknownFields(t *testing.T) {
+	testStructUnknownFields(t, makeFakeTLFReaderKeyBundleFuture(t))
 }
