@@ -399,7 +399,7 @@ func TestTrackProofRooterRemove(t *testing.T) {
 		NumTrackFailures: 1,
 		NumTrackChanges:  1,
 		NumProofFailures: 1,
-		TrackStatus:      keybase1.TrackStatus_UPDATE_BROKEN,
+		TrackStatus:      keybase1.TrackStatus_UPDATE_BROKEN_FAILED_PROOFS,
 	}
 	// use checkTrackForce to skip any proof cache results
 	err = checkTrackForce(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
@@ -469,7 +469,7 @@ func TestTrackProofRooterRevoke(t *testing.T) {
 	trackUser.LoginOrBust(tc)
 	outcome = keybase1.IdentifyOutcome{
 		NumRevoked:  1,
-		TrackStatus: keybase1.TrackStatus_UPDATE_BROKEN,
+		TrackStatus: keybase1.TrackStatus_UPDATE_BROKEN_REVOKED,
 	}
 	err = checkTrack(tc, trackUser, proofUser.Username, nil, &outcome)
 	if err != nil {
@@ -579,7 +579,7 @@ func TestTrackProofRooterChange(t *testing.T) {
 		NumTrackChanges:   1,
 		NumTrackFailures:  1,
 		NumProofSuccesses: 1,
-		TrackStatus:       keybase1.TrackStatus_UPDATE_BROKEN,
+		TrackStatus:       keybase1.TrackStatus_UPDATE_BROKEN_FAILED_PROOFS,
 	}
 	err = checkTrack(tc, trackUser, proofUser.Username, []sb{rbl}, &outcome)
 	if err != nil {

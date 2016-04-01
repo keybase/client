@@ -477,9 +477,10 @@
         "NEW_OK_1",
         "NEW_ZERO_PROOFS_2",
         "NEW_FAIL_PROOFS_3",
-        "UPDATE_BROKEN_4",
+        "UPDATE_BROKEN_FAILED_PROOFS_4",
         "UPDATE_NEW_PROOFS_5",
-        "UPDATE_OK_6"
+        "UPDATE_OK_6",
+        "UPDATE_BROKEN_REVOKED_7"
       ],
       "doc": "TrackStatus is a summary of this track before the track is approved by the\n    user.\n    NEW_*: New tracks\n    UPDATE_*: Update to an existing track\n    NEW_OK: Everything ok\n    NEW_ZERO_PROOFS: User being tracked has no proofs\n    NEW_FAIL_PROOFS: User being tracked has some failed proofs\n    UPDATE_BROKEN: Previous tracking statement broken, this one will fix it.\n    UPDATE_NEW_PROOFS: Previous tracking statement ok, but there are new proofs since previous tracking statement generated\n    UPDATE_OK: No changes to previous tracking statement"
     },

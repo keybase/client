@@ -1094,9 +1094,10 @@ export type TrackStatus =
     1 // NEW_OK_1
   | 2 // NEW_ZERO_PROOFS_2
   | 3 // NEW_FAIL_PROOFS_3
-  | 4 // UPDATE_BROKEN_4
+  | 4 // UPDATE_BROKEN_FAILED_PROOFS_4
   | 5 // UPDATE_NEW_PROOFS_5
   | 6 // UPDATE_OK_6
+  | 7 // UPDATE_BROKEN_REVOKED_7
 
 export type TrackSummary = {
   username: string;

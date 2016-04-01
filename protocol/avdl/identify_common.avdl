@@ -48,9 +48,10 @@ protocol identifyCommon {
     NEW_OK_1,
     NEW_ZERO_PROOFS_2,
     NEW_FAIL_PROOFS_3,
-    UPDATE_BROKEN_4,
+    UPDATE_BROKEN_FAILED_PROOFS_4,
     UPDATE_NEW_PROOFS_5,
-    UPDATE_OK_6
+    UPDATE_OK_6,
+    UPDATE_BROKEN_REVOKED_7
   }
 
   record TrackOptions {

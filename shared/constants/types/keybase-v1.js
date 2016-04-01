@@ -401,9 +401,10 @@ export const identify = {
     'newOk': 1,
     'newZeroProofs': 2,
     'newFailProofs': 3,
-    'updateBroken': 4,
+    'updateBrokenFailedProofs': 4,
     'updateNewProofs': 5,
-    'updateOk': 6
+    'updateOk': 6,
+    'updateBrokenRevoked': 7
   },
   'IdentifyReasonType': {
     'none': 0,
@@ -517,9 +518,10 @@ export const identifyUi = {
     'newOk': 1,
     'newZeroProofs': 2,
     'newFailProofs': 3,
-    'updateBroken': 4,
+    'updateBrokenFailedProofs': 4,
     'updateNewProofs': 5,
-    'updateOk': 6
+    'updateOk': 6,
+    'updateBrokenRevoked': 7
   },
   'IdentifyReasonType': {
     'none': 0,
@@ -973,9 +975,10 @@ export const pgp = {
     'newOk': 1,
     'newZeroProofs': 2,
     'newFailProofs': 3,
-    'updateBroken': 4,
+    'updateBrokenFailedProofs': 4,
     'updateNewProofs': 5,
-    'updateOk': 6
+    'updateOk': 6,
+    'updateBrokenRevoked': 7
   },
   'IdentifyReasonType': {
     'none': 0,
@@ -1118,9 +1121,10 @@ export const prove = {
     'newOk': 1,
     'newZeroProofs': 2,
     'newFailProofs': 3,
-    'updateBroken': 4,
+    'updateBrokenFailedProofs': 4,
     'updateNewProofs': 5,
-    'updateOk': 6
+    'updateOk': 6,
+    'updateBrokenRevoked': 7
   },
   'IdentifyReasonType': {
     'none': 0,
@@ -1354,9 +1358,10 @@ export const saltpack = {
     'newOk': 1,
     'newZeroProofs': 2,
     'newFailProofs': 3,
-    'updateBroken': 4,
+    'updateBrokenFailedProofs': 4,
     'updateNewProofs': 5,
-    'updateOk': 6
+    'updateOk': 6,
+    'updateBrokenRevoked': 7
   },
   'IdentifyReasonType': {
     'none': 0,
@@ -1633,9 +1638,10 @@ export const track = {
     'newOk': 1,
     'newZeroProofs': 2,
     'newFailProofs': 3,
-    'updateBroken': 4,
+    'updateBrokenFailedProofs': 4,
     'updateNewProofs': 5,
-    'updateOk': 6
+    'updateOk': 6,
+    'updateBrokenRevoked': 7
   },
   'IdentifyReasonType': {
     'none': 0,

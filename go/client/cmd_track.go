@@ -16,8 +16,9 @@ import (
 )
 
 type CmdTrack struct {
-	user    string
-	options keybase1.TrackOptions
+	user           string
+	skipProofCache bool
+	options        keybase1.TrackOptions
 	libkb.Contextified
 }
 
@@ -34,6 +35,10 @@ func NewCmdTrack(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command
 			cli.BoolFlag{
 				Name:  "y",
 				Usage: "Approve remote tracking without prompting.",
+			},
+			cli.BoolFlag{
+				Name:  "s, skip-proof-cache",
+				Usage: "Skip cached proofs, force re-check",
 			},
 		},
 		Action: func(c *cli.Context) {
@@ -60,6 +65,7 @@ func (v *CmdTrack) ParseArgv(ctx *cli.Context) error {
 	}
 	v.user = ctx.Args()[0]
 	v.options = keybase1.TrackOptions{LocalOnly: ctx.Bool("local"), BypassConfirm: ctx.Bool("y")}
+	v.skipProofCache = ctx.Bool("skip-proof-cache")
 	return nil
 }
 
@@ -78,8 +84,9 @@ func (v *CmdTrack) Run() error {
 	}
 
 	return cli.Track(context.TODO(), keybase1.TrackArg{
-		UserAssertion: v.user,
-		Options:       v.options,
+		UserAssertion:    v.user,
+		Options:          v.options,
+		ForceRemoteCheck: v.skipProofCache,
 	})
 }
 
