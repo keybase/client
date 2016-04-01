@@ -514,3 +514,7 @@ func (g *GlobalContext) GetUnforwardedLogger() *logger.UnforwardedLogger {
 	}
 	return (*logger.UnforwardedLogger)(log)
 }
+
+func (g *GlobalContext) GetLog() logger.Logger {
+	return g.Log
+}
