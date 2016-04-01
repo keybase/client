@@ -21,7 +21,7 @@ build_dir="/root/build"
 # Copy the s3cmd config to root's home dir, then test the credentials.
 cp /S3CMD/.s3cfg ~
 echo "Testing S3 credentials..."
-canary="s3://prerelease.keybase.io/build_canary_file"
+canary="s3://${BUCKET_NAME:-prerelease.keybase.io}/build_canary_file"
 echo build canary | s3cmd put - "$canary"
 s3cmd del "$canary"
 
