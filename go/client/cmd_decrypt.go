@@ -59,6 +59,7 @@ func NewCmdDecrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 func NewCmdDecryptRunner(g *libkb.GlobalContext) *CmdDecrypt {
 	return &CmdDecrypt{
 		Contextified: libkb.NewContextified(g),
+		opts:         keybase1.SaltpackDecryptOptions{ForceRemoteCheck: true},
 	}
 }
 
