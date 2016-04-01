@@ -91,11 +91,13 @@ func (a *AuthToken) Sign(ctx context.Context, challengeInfo keybase1.ChallengeIn
 
 // SignUserless signs the token without a username, UID, or challenge.
 // This is useful for server-to-server communication where identity is
-// established using only the KID.
+// established using only the KID.  Assume the client and server
+// clocks are roughly synchronized.
 func (a *AuthToken) SignUserless(ctx context.Context, key VerifyingKey) (
 	string, error) {
 	// Pass in a reserved, meaningless UID.
-	return a.signWithUserAndKeyInfo(ctx, keybase1.ChallengeInfo{},
+	return a.signWithUserAndKeyInfo(ctx,
+		keybase1.ChallengeInfo{Now: time.Now().Unix()},
 		keybase1.PublicUID, "", key)
 }
 
