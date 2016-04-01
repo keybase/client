@@ -56,6 +56,7 @@ type CommandLine interface {
 	GetLocalRPCDebug() string
 	GetTimers() string
 	GetRunMode() (RunMode, error)
+	GetGregorURI() string
 
 	GetScraperTimeout() (time.Duration, bool)
 	GetAPITimeout() (time.Duration, bool)
@@ -142,6 +143,7 @@ type ConfigReader interface {
 	GetScraperTimeout() (time.Duration, bool)
 	GetAPITimeout() (time.Duration, bool)
 	GetSecurityAccessGroupOverride() (bool, bool)
+	GetGregorURI() string
 
 	GetUpdatePreferenceAuto() (bool, bool)
 	GetUpdatePreferenceSkip() string

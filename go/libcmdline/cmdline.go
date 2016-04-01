@@ -133,6 +133,9 @@ func (p CommandLine) GetSecretKeyringTemplate() string {
 func (p CommandLine) GetSocketFile() string {
 	return p.GetGString("socket-file")
 }
+func (p CommandLine) GetGregorURI() string {
+	return p.GetGString("gregor-uri")
+}
 func (p CommandLine) GetPidFile() string {
 	return p.GetGString("pid-file")
 }
@@ -418,6 +421,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "tor-hidden-address",
 			Usage: fmt.Sprintf("set TOR address of keybase server; defaults to %s", libkb.TorServerURI),
+		},
+		cli.StringFlag{
+			Name:  "gregor-uri",
+			Usage: "specify gregor server URI",
 		},
 	}
 	if extraFlags != nil {
