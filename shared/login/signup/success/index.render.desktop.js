@@ -57,6 +57,7 @@ const styles = {
     paddingTop: 12,
     paddingLeft: 30,
     paddingRight: 45,
+    paddingBottom: 15,
     borderRadius: 1,
     backgroundColor: globalColors.white,
     border: `solid 4px ${globalColors.darkBlue}`
