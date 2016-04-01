@@ -121,8 +121,8 @@ type WriterMetadata struct {
 // WriterMetadataExtra stores more fields for WriterMetadata. (See
 // WriterMetadata comments as to why this type is needed.)
 type WriterMetadataExtra struct {
-	codec.UnknownFieldSet
 	UnresolvedWriters []libkb.SocialAssertion `codec:"uw,omitempty"`
+	codec.UnknownFieldSet
 }
 
 // deepCopyHelper returns a deep copy of a WriterMetadata, with or
