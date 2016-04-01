@@ -5,6 +5,7 @@ package service
 
 import (
 	"io"
+	"io/ioutil"
 	"net"
 	"os"
 	"path"
@@ -16,7 +17,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
-	"github.com/keybase/go-updater"
+	updater "github.com/keybase/go-updater"
 	"github.com/keybase/go-updater/sources"
 )
 
@@ -30,6 +31,7 @@ type Service struct {
 	stopCh        chan keybase1.ExitCode
 	updateChecker *updater.UpdateChecker
 	logForwarder  *logFwd
+	gregorConn    *rpc.Connection
 }
 
 func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
@@ -175,6 +177,10 @@ func (d *Service) Run() (err error) {
 
 	d.checkTrackingEveryHour()
 
+	if gcErr := d.gregordConnect(); gcErr != nil {
+		d.G().Log.Warning("error connecting to gregord: %s", gcErr)
+	}
+
 	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
 
 	return err
@@ -225,6 +231,18 @@ func (d *Service) checkTrackingEveryHour() {
 			libkb.CheckTracking(d.G())
 		}
 	}()
+}
+
+func (d *Service) gregordConnect() error {
+	h := newGregorHandler(d.G())
+	d.G().Log.Debug("gregor URI: %s", d.G().Env.GetGregorURI())
+	rootCert, err := ioutil.ReadFile(os.Getenv("GREGOR_ROOT_CERT"))
+	if err != nil {
+		return err
+	}
+	// 9 parameters???
+	d.gregorConn = rpc.NewTLSConnection(d.G().Env.GetGregorURI(), rootCert, nil, h, true, nil, nil, d.G().Log, nil)
+	return nil
 }
 
 // ReleaseLock releases the locking pidfile by closing, unlocking and

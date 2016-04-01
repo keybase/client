@@ -133,9 +133,6 @@ func (p CommandLine) GetSecretKeyringTemplate() string {
 func (p CommandLine) GetSocketFile() string {
 	return p.GetGString("socket-file")
 }
-func (p CommandLine) GetGregorURI() string {
-	return p.GetGString("gregor-uri")
-}
 func (p CommandLine) GetPidFile() string {
 	return p.GetGString("pid-file")
 }

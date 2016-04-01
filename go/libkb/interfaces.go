@@ -56,7 +56,6 @@ type CommandLine interface {
 	GetLocalRPCDebug() string
 	GetTimers() string
 	GetRunMode() (RunMode, error)
-	GetGregorURI() string
 
 	GetScraperTimeout() (time.Duration, bool)
 	GetAPITimeout() (time.Duration, bool)
