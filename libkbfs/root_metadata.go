@@ -140,20 +140,15 @@ func (wm WriterMetadata) deepCopyHelper(f copyFields) WriterMetadata {
 		copy(wmCopy.Writers, wm.Writers)
 	}
 	wmCopy.WKeys = wm.WKeys.deepCopyHelper(f)
+
 	// Maintain the invariant that Extra is either non-empty or
 	// nil.
-	//
-	// TODO: Once WriterMetadataExtra picks up a field, this needs
-	// to be changed to
-	//
-	// if wm.Extra != nil {
-	//   ...
-	// }
+	wmCopy.Extra = nil
 	if wm.Extra != nil {
 		extraCopy := wm.Extra.deepCopyHelper(f)
-		wmCopy.Extra = &extraCopy
-	} else {
-		wmCopy.Extra = nil
+		if !extraCopy.isEmpty() {
+			wmCopy.Extra = &extraCopy
+		}
 	}
 	return wmCopy
 }
@@ -228,6 +223,11 @@ func (wme WriterMetadataExtra) Equals(rhs WriterMetadataExtra) bool {
 	// reflect.DeepEqual works with UnknownFieldSet, so this is
 	// ok.
 	return reflect.DeepEqual(wme, rhs)
+}
+
+func (wme WriterMetadataExtra) isEmpty() bool {
+	return len(wme.UnresolvedWriters) == 0 &&
+		reflect.DeepEqual(wme.UnknownFieldSet, codec.UnknownFieldSet{})
 }
 
 // RootMetadata is the MD that is signed by the reader or writer.
