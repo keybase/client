@@ -1,16 +1,14 @@
 /* @flow */
 import React, {Component} from 'react'
+import {Switch} from 'react-native'
 import {ScrollView} from 'react-native'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import Container from './dev-container.native'
-import {Button, Box, Text, Terminal} from '../common-adapters'
-// import {Button, Input, Text, Terminal, FormWithCheckbox} from '../common-adapters'
-// import DropdownDemo from './components/dropdown.desktop'
-//
+import {Checkbox, Button, Box, Text, Terminal, Icon} from '../common-adapters'
 
 const Space = () => <Box style={{height: 20, width: 20}}/>
 
-const ButtonRow = ({children}) => (
+const Row = ({children}) => (
   <Box style={{...globalStyles.flexBoxRow, marginBottom: 20}}>
     {children.map && children.map(c => [c, <Space/>]) || children}
   </Box>
@@ -22,37 +20,37 @@ const onClick = () => {
 
 const Buttons = () => (
   <Box style={{...globalStyles.flexBoxColumn, padding: 10}}>
-    <ButtonRow>
+    <Row>
       <Button onClick={onClick} type='Primary' label='Primary'/>
       <Button onClick={onClick} type='Primary' label='Primary' disabled/>
-    </ButtonRow>
-    <ButtonRow>
+    </Row>
+    <Row>
       <Button onClick={onClick} type='Primary' label='Primary' waiting/>
-    </ButtonRow>
-    <ButtonRow>
+    </Row>
+    <Row>
       <Button onClick={onClick} type='Secondary' label='Secondary'/>
       <Button onClick={onClick} type='Secondary' label='Secondary' disabled/>
-    </ButtonRow>
-    <ButtonRow>
+    </Row>
+    <Row>
       <Button onClick={onClick} type='Secondary' label='Secondary' waiting/>
-    </ButtonRow>
-    <ButtonRow>
+    </Row>
+    <Row>
       <Button onClick={onClick} type='Danger' danger label='Danger'/>
       <Button onClick={onClick} type='Danger' danger label='Danger' disabled/>
-    </ButtonRow>
-    <ButtonRow>
+    </Row>
+    <Row>
       <Button onClick={onClick} type='Danger' danger label='Danger' waiting/>
-    </ButtonRow>
-    <ButtonRow>
+    </Row>
+    <Row>
       <Button onClick={onClick} type='Follow' label='Follow'/>
       <Button onClick={onClick} type='Follow' label='Follow' disabled/>
-    </ButtonRow>
-    <ButtonRow>
+    </Row>
+    <Row>
       <Button onClick={onClick} type='Following' label='Following'/>
-    </ButtonRow>
-    <ButtonRow>
+    </Row>
+    <Row>
       <Button onClick={onClick} type='Unfollow' label='Unfollow'/>
-    </ButtonRow>
+    </Row>
 
     <Button onClick={onClick} type='Primary' fullWidth label='Primary full-width'/><Space/>
     <Button onClick={onClick} type='Primary' fullWidth label='Primary full-width' waiting/><Space/>
@@ -134,13 +132,13 @@ const Fonts = () => (
 const Colors = () => (
   <Box style={{...globalStyles.flexBoxColumn}}>
     {Object.keys(globalColors).sort().map(c => (
-      <Box key={c} style={{...globalStyles.flexBoxRow, margin: 5}}>
+      <Row key={c} style={{...globalStyles.flexBoxRow, margin: 5}}>
         <Box style={{width: 60, height: 60, backgroundColor: globalColors[c]}}/>
         <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', marginLeft: 5}}>
           <Text type='Body'>{c}</Text>
           <Text type='Body' small>{globalColors[c]}</Text>
         </Box>
-      </Box>
+      </Row>
       ))}
   </Box>
 )
@@ -151,52 +149,75 @@ const Dropdowns = () => (
 // <DropdownDemo/>
 
 const Icons = () => (
-  <Text type='Header'>TODO</Text>
+  <Box style={{...globalStyles.flexBoxColumn}}>
+    {[
+      'computer-big',
+      'computer-bw-m',
+      'fa-custom-copy',
+      'fa-custom-eye',
+      'fa-custom-key',
+      'logo-128',
+      'fa-custom-icon-proof-broken',
+      'fa-custom-icon-proof-good-followed',
+      'fa-custom-icon-proof-good-new',
+      'fa-close',
+      'fa-mobile'
+    ].map(i => [
+      <Row key={i}><Icon onClick={() => console.log('clicked')} type={i} /></Row>,
+      <Row key={i + '100px'}><Icon style={{width: 100, height: 100}} onClick={() => console.log('clicked')} type={i} /></Row>
+    ])}
+    <Row key='a'><Icon type='fa-custom-copy' style={{color: globalColors.blue}}/></Row>
+    <Row key='a1'><Icon type='fa-custom-copy' style={{color: globalColors.green}}/></Row>
+    <Row key='a2'><Icon type='fa-custom-copy' style={{color: globalColors.orange}}/></Row>
+  </Box>
 )
 
 const Inputs = () => (
   <Text type='Header'>TODO</Text>
 )
 
+const Checkboxes = ({check, flip}) => {
+  return (
+    <Box>
+      {false && <Row><Switch onTintColor={globalColors.blue} value={check[0]} onValueChange={() => flip(0)}/></Row>}
+      {false && <Row><Switch onTintColor={globalColors.blue} value={check[1]} onValueChange={() => flip(1)}/></Row>}
+      <Row><Checkbox label='Switch unswitched' onCheck={() => flip(2)} checked={check[2]} disabled={false}/></Row>
+      <Row><Checkbox label='Switch switched' onCheck={() => flip(3)} checked={check[3]} disabled={false}/></Row>
+      <Row><Checkbox label='Switch unswitched disabled' onCheck={() => flip(4)} checked={check[4]} disabled/></Row>
+      <Row><Checkbox label='Switch switched disabled' onCheck={() => flip(5)} checked={check[5]} disabled/></Row>
+    </Box>
+  )
+}
+
 export default class Render extends Component {
+  state: {
+    check: any
+  };
+
+  constructor (props: any) {
+    super(props)
+
+    this.state = {check: [false, true, false, true, false, true]}
+  }
+
+  flip (idx: number) {
+    const next = {...this.state.check}
+    next[idx] = !next[idx]
+    this.setState({check: next})
+  }
+
   render () {
     return (
       <ScrollView>
+        <Container title='Checkboxes'><Checkboxes flip={idx => this.flip(idx)} check={this.state.check}/></Container>
+        <Container title='Icons'><Icons/></Container>
         <Container title='Buttons'><Buttons/></Container>
         <Container title='Dropdown'><Dropdowns/></Container>
         <Container title='Text'><Fonts/></Container>
         <Container title='Colors'><Colors/></Container>
-        <Container title='Icons'><Icons/></Container>
         <Container title='Inputs'><Inputs/></Container>
       </ScrollView>
     )
-
-        // <Container title='Icons'>
-          // <div style={{...globalStyles.flexBoxColumn}}>
-            // <p>TODO</p>
-          // </div>
-        // </Container>
-        // <Container title='Inputs'>
-          // <div style={{...globalStyles.flexBoxColumn, maxWidth: 250}}>
-            // <Input floatingLabelText='Label' />
-            // <Input floatingLabelText='Label' errorText='Error lorem ipsum dolor sit amet.'/>
-            // <Input multiLine floatingLabelText='Multiline'/>
-            // <Input multiLine floatingLabelText='Multiline' errorText='Error lorem ipsum dolor sit amet.'/>
-            // <Input floatingLabelText='Label'/>
-            // <Input floatingLabelText='foo' rows={1} rowsMax={3} multiLine />
-            // <Input hintText='foo' rows={1} rowsMax={3} multiLine />
-            // <Input multiLine hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas' style={{marginTop: 30}} />
-            // <Input small hintText='user1,user2,etc' style={{width: '100%', marginLeft: 2}} />
-            // <FormWithCheckbox
-              // inputProps={{floatingLabelText: 'Passphrase', style: {marginBottom: 0}, errorText: 'Error Message'}}
-              // checkboxesProps={[
-                // {label: 'Save in Keychain', checked: true, onCheck: () => {}},
-                // {label: 'Show Typing', checked: true, onCheck: () => {}}
-              // ]}
-            // />
-          // </div>
-        // </Container>
-      // </div>)
   }
 }
 
