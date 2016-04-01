@@ -1,22 +1,26 @@
 machine:
+  xcode:
+    version: 7.2
   node:
-    version: 4.2.1
+    version: 5.7.0
   environment:
     GOROOT: $HOME/go
     GOPATH: $HOME/go-path
     PATH: $GOROOT/bin:$PATH
+    # Limit memory usage of gradle
+    _JAVA_OPTIONS: "-Xms512m -Xmx1024m"
+    GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx1024m -XX:+HeapDumpOnOutOfMemoryError"'
     # Some node dependencies break without this
     CXX: g++-4.8
 general:
   build_dir: react-native
-  branches:
-    only:
-      - master
-      - /.*MOBILE.*/ # Only build on mobile branches
 dependencies:
+  pre:
+    - if ! $(grep -q "Revision=24.4.1" $ANDROID_HOME/tools/source.properties); then echo y | android update sdk -u -a -t "tools"; fi
+    - if [ ! -e $ANDROID_HOME/build-tools/23.0.2 ]; then echo y | android update sdk -u -a -t "build-tools-23.0.2"; fi
   cache_directories:
-    - "~/go"
-    - "~/.gradle"
+    - /usr/local/android-sdk-linux/tools
+    - /usr/local/android-sdk-linux/build-tools/23.0.2
   override:
     # TODO(mm): use the emulator when we figure out a consistent way of getting this working
     # - emulator -avd circleci-android22 -no-audio -no-window:
@@ -24,7 +28,7 @@ dependencies:
     #    parallel: true
     - npm install
     - npm install -g react-native-cli
-    - wget https://storage.googleapis.com/golang/go1.5.1.linux-amd64.tar.gz -O $HOME/go.tar.gz
+    - wget https://storage.googleapis.com/golang/go1.6.linux-amd64.tar.gz -O $HOME/go.tar.gz
     - (cd $HOME; tar -xzvf go.tar.gz)
     - mkdir $HOME/go-path
     - go get golang.org/x/mobile/cmd/gomobile
@@ -32,7 +36,7 @@ dependencies:
     - mkdir -p $GOPATH/src/github.com/keybase
     - ln -s $HOME/client $GOPATH/src/github.com/keybase/client
     - npm run gobuild-android
-    - echo y | android update sdk --all --no-ui --filter "build-tools-23.0.2,android-23,extra-android-support,extra-android-m2repository"
+    - npm run sync
 test:
   override:
     # TODO(mm) uncomment these device tests (see todo above)
