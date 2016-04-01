@@ -18,6 +18,7 @@ import (
 	"github.com/blang/semver"
 	"github.com/keybase/client/go/launchd"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/mounter"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
@@ -199,7 +200,7 @@ func installKeybaseService(g *libkb.GlobalContext, service launchd.Service, plis
 }
 
 // Uninstall keybase all services for this run mode.
-func uninstallKeybaseServices(g *libkb.GlobalContext, runMode libkb.RunMode) error {
+func uninstallKeybaseServices(runMode libkb.RunMode) error {
 	err1 := launchd.Uninstall(AppServiceLabel.labelForRunMode(runMode), true, nil)
 	err2 := launchd.Uninstall(BrewServiceLabel.labelForRunMode(runMode), true, nil)
 	return libkb.CombineErrors(err1, err2)
@@ -237,7 +238,7 @@ func installKBFSService(g *libkb.GlobalContext, service launchd.Service, plist l
 	return &st, err
 }
 
-func uninstallKBFSServices(g *libkb.GlobalContext, runMode libkb.RunMode) error {
+func uninstallKBFSServices(runMode libkb.RunMode) error {
 	err1 := launchd.Uninstall(AppKBFSLabel.labelForRunMode(runMode), true, nil)
 	err2 := launchd.Uninstall(BrewKBFSLabel.labelForRunMode(runMode), true, nil)
 	return libkb.CombineErrors(err1, err2)
@@ -390,7 +391,7 @@ func installService(g *libkb.GlobalContext, binPath string, force bool) error {
 	}
 
 	if needsInstall || force {
-		uninstallKeybaseServices(g, g.Env.GetRunMode())
+		uninstallKeybaseServices(g.Env.GetRunMode())
 		g.Log.Debug("Installing Keybase service")
 		_, err := installKeybaseService(g, service, plist)
 		if err != nil {
@@ -431,7 +432,7 @@ func installKBFS(g *libkb.GlobalContext, binPath string, force bool) error {
 		}
 	}
 	if needsInstall || force {
-		uninstallKBFSServices(g, g.Env.GetRunMode())
+		uninstallKBFSServices(g.Env.GetRunMode())
 		g.Log.Debug("Installing KBFS")
 		_, err := installKBFSService(g, kbfsService, plist)
 		if err != nil {
@@ -455,40 +456,36 @@ func Uninstall(g *libkb.GlobalContext, components []string) keybase1.UninstallRe
 	}
 
 	if libkb.IsIn(string(ComponentNameKBFS), components, false) {
-		err = uninstallKBFS(g)
+		err = UninstallKBFS(g.Env.GetRunMode(), g.Env.GetMountDir(), g.Log)
 		componentResults = append(componentResults, componentResult(string(ComponentNameKBFS), err))
 	}
 
 	if libkb.IsIn(string(ComponentNameService), components, false) {
-		err = uninstallService(g)
+		err = uninstallKeybaseServices(g.Env.GetRunMode())
 		componentResults = append(componentResults, componentResult(string(ComponentNameService), err))
 	}
 
 	return NewUninstallResult(componentResults)
 }
 
-func uninstallService(g *libkb.GlobalContext) error {
-	return uninstallKeybaseServices(g, g.Env.GetRunMode())
-}
-
-func uninstallKBFS(g *libkb.GlobalContext) error {
-	err := uninstallKBFSServices(g, g.Env.GetRunMode())
+// UninstallKBFS uninstalls all KBFS services and unmounts the directory
+func UninstallKBFS(runMode libkb.RunMode, mountDir string, log logger.Logger) error {
+	err := uninstallKBFSServices(runMode)
 	if err != nil {
 		return err
 	}
 
-	mountDir := g.Env.GetMountDir()
-	if _, err := os.Stat(mountDir); os.IsNotExist(err) {
+	if _, serr := os.Stat(mountDir); os.IsNotExist(serr) {
 		return nil
 	}
-	g.Log.Debug("Checking if mounted: %s", mountDir)
-	mounted, err := mounter.IsMounted(g, mountDir)
+	log.Debug("Checking if mounted: %s", mountDir)
+	mounted, err := mounter.IsMounted(mountDir, log)
 	if err != nil {
 		return err
 	}
-	g.Log.Debug("Mounted: %s", mounted)
+	log.Debug("Mounted: %s", mounted)
 	if mounted {
-		err = mounter.Unmount(g, mountDir, false)
+		err = mounter.Unmount(mountDir, false, log)
 		if err != nil {
 			return err
 		}
