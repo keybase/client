@@ -14,6 +14,7 @@ commit="$2"
 
 client_clone="/root/client"
 kbfs_clone="/root/kbfs"
+kbfs_beta_clone="/root/kbfs-beta"
 serverops_clone="/root/server-ops"
 build_dir="/root/build"
 
@@ -47,11 +48,15 @@ gpg --sign --use-agent --default-key "$code_signing_fingerprint" \
 # docker_build.sh, so we shouldn't need any new objects.)
 echo "Cloning the client repo..."
 git clone git@github.com:keybase/client "$client_clone" --reference /CLIENT
-echo "Copying the kbfs repo..."
+echo "Cloning the kbfs repo..."
 git clone git@github.com:keybase/kbfs "$kbfs_clone" --reference /KBFS
+echo "Cloning the kbfs-beta repo..."
+git clone git@github.com:keybase/kbfs-beta "$kbfs_beta_clone" --reference /KBFSBETA
+git -C "$kbfs_beta_clone" config user.name "Keybase Linux Build"
+git -C "$kbfs_beta_clone" config user.email "example@example.com"
 # The server-ops repo is like a gigabyte, so don't clone it unnecessarily.
 if [ "$mode" != prerelease ] ; then
-  echo "Copying the server-ops repo..."
+  echo "Cloning the server-ops repo..."
   git clone git@github.com:keybase/server-ops "$serverops_clone" --reference /SERVEROPS
   git -C "$serverops_clone" config user.name "Keybase Linux Build"
   git -C "$serverops_clone" config user.email "example@example.com"

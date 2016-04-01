@@ -63,6 +63,9 @@ release_serverops() {
 }
 
 release_prerelease() {
+  echo Pushing kbfs-beta...
+  "$client_dir/packaging/export/export_kbfs.sh"
+
   echo Doing a prerelease push to S3...
 
   # Parse the shared .s3cfg file and export the keys as environment variables.

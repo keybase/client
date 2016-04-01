@@ -27,11 +27,12 @@ here="$(dirname "$BASH_SOURCE")"
 
 clientdir="$(git -C "$here" rev-parse --show-toplevel)"
 kbfsdir="$clientdir/../kbfs"
+kbfsbetadir="$clientdir/../kbfs-beta"
 serveropsdir="$clientdir/../server-ops"
 
 # Run `git fetch` in all the repos we'll share with the container. This
 # prevents an unattended build machine from falling behind over time.
-for repo in "$clientdir" "$kbfsdir" "$serveropsdir" ; do
+for repo in "$clientdir" "$kbfsdir" "$kbfsbetadir" "$serveropsdir" ; do
   echo "Fetching $repo"
   git -C "$repo" fetch
 done
@@ -70,6 +71,7 @@ docker run -ti \
   -v "$work_dir:/root" \
   -v "$clientdir:/CLIENT:ro" \
   -v "$kbfsdir:/KBFS:ro" \
+  -v "$kbfsbetadir:/KBFSBETA:ro" \
   -v "$serveropsdir:/SERVEROPS:ro" \
   -v "$gpg_tempdir:/GPG" \
   -v "$HOME/.ssh:/SSH:ro" \
