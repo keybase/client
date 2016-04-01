@@ -213,7 +213,7 @@ export type FSNotification = {
   statusCode: FSStatusCode;
   notificationType: FSNotificationType;
   errorType: FSErrorType;
-  params: {string: string};
+  params: {[key: string]: string};
 }
 
 export type FSNotificationType =
@@ -2158,7 +2158,7 @@ export type metadata_deleteKey_rpc = {
     uid: UID,
     deviceKID: KID,
     keyHalfID: bytes,
-    logTags: {string: string}
+    logTags: {[key: string]: string}
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any) => void)
@@ -2204,7 +2204,7 @@ export type metadata_getKey_rpc = {
   param: {
     keyHalfID: bytes,
     deviceKID: string,
-    logTags: {string: string}
+    logTags: {[key: string]: string}
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any, response: metadata_getKey_result) => void)
@@ -2267,7 +2267,7 @@ export type metadata_getMetadata_rpc = {
     unmerged: boolean,
     startRevision: long,
     stopRevision: long,
-    logTags: {string: string}
+    logTags: {[key: string]: string}
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any, response: metadata_getMetadata_result) => void)
@@ -2289,7 +2289,7 @@ export type metadata_pruneBranch_rpc = {
   param: {
     folderID: string,
     branchID: string,
-    logTags: {string: string}
+    logTags: {[key: string]: string}
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any) => void)
@@ -2301,7 +2301,7 @@ export type metadata_putKeys_rpc = {
   method: 'metadata.putKeys',
   param: {
     keyHalves: Array<KeyHalf>,
-    logTags: {string: string}
+    logTags: {[key: string]: string}
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any) => void)
@@ -2313,7 +2313,7 @@ export type metadata_putMetadata_rpc = {
   method: 'metadata.putMetadata',
   param: {
     mdBlock: MDBlock,
-    logTags: {string: string}
+    logTags: {[key: string]: string}
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any) => void)
@@ -2326,7 +2326,7 @@ export type metadata_registerForUpdates_rpc = {
   param: {
     folderID: string,
     currRevision: long,
-    logTags: {string: string}
+    logTags: {[key: string]: string}
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any) => void)
@@ -4306,7 +4306,7 @@ export type incomingCallMapType = {
   'keybase.1.metadata.putMetadata'?: (
     params: {
       mdBlock: MDBlock,
-      logTags: {string: string}
+      logTags: {[key: string]: string}
     },
     response: {
       error: (err: RPCError) => void,
@@ -4321,7 +4321,7 @@ export type incomingCallMapType = {
       unmerged: boolean,
       startRevision: long,
       stopRevision: long,
-      logTags: {string: string}
+      logTags: {[key: string]: string}
     },
     response: {
       error: (err: RPCError) => void,
@@ -4332,7 +4332,7 @@ export type incomingCallMapType = {
     params: {
       folderID: string,
       currRevision: long,
-      logTags: {string: string}
+      logTags: {[key: string]: string}
     },
     response: {
       error: (err: RPCError) => void,
@@ -4343,7 +4343,7 @@ export type incomingCallMapType = {
     params: {
       folderID: string,
       branchID: string,
-      logTags: {string: string}
+      logTags: {[key: string]: string}
     },
     response: {
       error: (err: RPCError) => void,
@@ -4353,7 +4353,7 @@ export type incomingCallMapType = {
   'keybase.1.metadata.putKeys'?: (
     params: {
       keyHalves: Array<KeyHalf>,
-      logTags: {string: string}
+      logTags: {[key: string]: string}
     },
     response: {
       error: (err: RPCError) => void,
@@ -4364,7 +4364,7 @@ export type incomingCallMapType = {
     params: {
       keyHalfID: bytes,
       deviceKID: string,
-      logTags: {string: string}
+      logTags: {[key: string]: string}
     },
     response: {
       error: (err: RPCError) => void,
@@ -4376,7 +4376,7 @@ export type incomingCallMapType = {
       uid: UID,
       deviceKID: KID,
       keyHalfID: bytes,
-      logTags: {string: string}
+      logTags: {[key: string]: string}
     },
     response: {
       error: (err: RPCError) => void,
