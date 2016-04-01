@@ -130,6 +130,9 @@ body {
 .hover-underline:hover {
   text-decoration: underline;
 }
+.hover-underline-container:hover .underline{
+  text-decoration: underline;
+}
 
 .hide-scrollbar::-webkit-scrollbar {
 	display: none;

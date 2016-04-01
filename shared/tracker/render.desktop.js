@@ -5,7 +5,7 @@ import React, {Component} from 'react'
 import Header from './header.render.desktop'
 import Action, {calcFooterHeight} from './action.render.desktop'
 import Bio from './bio.render.desktop'
-import {ProofsRender} from './proofs.render.desktop'
+import ProofsRender from './proofs.render.desktop'
 import commonStyles from '../styles/common'
 
 import type {RenderProps} from './render'
