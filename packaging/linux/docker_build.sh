@@ -41,54 +41,32 @@ done
 s3cmd_temp="$(mktemp -d)"
 cp ~/.s3cfg "$s3cmd_temp"
 
-# Make sure the image is ready.
+# Prepare a folder that we'll share with the container, as the container's
+# /root directory, where all the build work gets done. Docker recommends that
+# write-heavy work happen in shared folders, for better performance.
+mkdir -p "$HOME/keybase_builds"
+work_dir="$HOME/keybase_builds/$(date +%Y_%m_%d_%H%M%S)_$mode"
+mkdir "$work_dir"  # no -p, it's intentionally an error if this exists
+
+# Export the GPG code signing key. We can't just share the ~/.gnupg directory,
+# because the host might have a different GnuPG version than the container, and
+# GnuPG 2.1 broke back-compat. Sigh. As with S3 above, we need to share the key
+# in a directory rather than just a file, for non-Linux support.
+code_signing_fingerprint="$(cat "$here/code_signing_fingerprint")"
+echo "Exporting the Keybase code signing key ($code_signing_fingerprint)..."
+gpg_tempdir="$(mktemp -d)"
+gpg_tempfile="$gpg_tempdir/code_signing_key"
+gpg --export-secret-key --armor "$code_signing_fingerprint" > "$gpg_tempfile"
+
+# Make sure the Docker image is built.
 image=keybase_packaging_v5
 if [ -z "$(docker images -q "$image")" ] ; then
   echo "Docker image '$image' not yet built. Building..."
   docker build -t "$image" "$clientdir/packaging/linux"
 fi
 
-# Prepare a folder that we'll share with the container, as the container's
-# /root directory, where all the build work gets done. Docker recommends that
-# write-heavy work happen in shared folders, for better performance.
-# (https://docs.docker.com/engine/userguide/storagedriver/device-mapper-driver:
-# "data volumes provide the best and most predictable performance. This is
-# because they bypass the storage driver and do not incur any of the potential
-# overheads introduced by thin provisioning and copy-on-write. For this reason,
-# you should to place heavy write workloads on data volumes.")
-#
-# Other reasons for preferring a shared folder:
-# 1) It avoids hiding a ton of disk usage in btrfs subvolumes that you won't
-# remember to clean up.
-# 2) It's a requirement os OSX (and probably Windows), where docker containers
-# run inside a hidden VirtualBox VM. That VM has very little disk space, and we
-# have to use shared folders to take advantage of the host's storage.
-#
-# Note that even though we're creating this folder in the current user's home
-# directory, it's going to end up full of files owned by root. Such is Docker.
-mkdir -p "$HOME/keybase_builds"
-shared_dir="$HOME/keybase_builds/$(date +%Y_%m_%d_%H%M%S)_$mode"
-# No -p here. It's an error if this directory already exists.
-mkdir "$shared_dir"
-
-# Export the GPG code signing key. Share a directory instead of a file, because
-# Docker on OSX doesn't support sharing individual files.
-code_signing_fingerprint="$(cat "$here/code_signing_fingerprint")"
-echo "Exporting the Keybase code signing key ($code_signing_fingerprint)..."
-gpg_tempdir="$(mktemp -d)"
-gpg_tempfile="$gpg_tempdir/code_signing_key"
-echo gpg_tempfile $gpg_tempfile
-gpg --export-secret-key --armor "$code_signing_fingerprint" > "$gpg_tempfile"
-
-# Run the docker with several directories shared read-only from the host:
-#   - the server-ops repo
-#   - the client repo
-#   - ~/.ssh
-# Also export several env vars for git configuration and to pass through the
-# GPG code signing key. For the crazy array notation we're using with
-# serverops_args and osx_args, see http://stackoverflow.com/a/7577209/823869.
 docker run -ti \
-  -v "$shared_dir:/root" \
+  -v "$work_dir:/root" \
   -v "$clientdir:/CLIENT:ro" \
   -v "$kbfsdir:/KBFS:ro" \
   -v "$serveropsdir:/SERVEROPS:ro" \
