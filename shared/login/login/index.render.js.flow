@@ -5,6 +5,7 @@ export type Props = {
   lastUser: ?string,
   serverURI: string,
   users: Array<string>,
+  onForgotPassphrase: () => void,
   onSignup: () => void,
   onBack: () => void,
   onLogin: (user: string, passphrase: string, store: boolean) => void,

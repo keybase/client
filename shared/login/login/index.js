@@ -1,5 +1,6 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
+import {openAccountResetPage} from '../../actions/login'
 import {relogin, login} from '../../actions/login'
 import {routeAppend} from '../../actions/router'
 import Render from './index.render'
@@ -34,6 +35,7 @@ export default connect(
   },
   dispatch => {
     return {
+      onForgotPassphrase: () => dispatch(openAccountResetPage()),
       onLogin: (user, passphrase, store) => dispatch(relogin(user, passphrase, store)),
       onSignup: () => dispatch(routeAppend(['signup'])),
       onSomeoneElse: () => { dispatch(login()) }
