@@ -35,7 +35,7 @@ elif [ "$platform" = "linux" ]; then
 elif [ "$platform" = "windows" ]; then
   "$release_bin" index-html --bucket-name="$bucket_name" --prefixes="windows/" --upload="windows/index.html"
 else
-  echo "Invalid platform: $paltform"
+  echo "Invalid platform: $platform"
   exit 1
 fi
 

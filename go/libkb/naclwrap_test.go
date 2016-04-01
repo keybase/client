@@ -92,7 +92,7 @@ func TestVerifyStringReject(t *testing.T) {
 
 	_, err = keyPair.VerifyString(sig2+sig, msg)
 	if err == nil {
-		t.Error("Signature with preprended invalid signature unexpectedly passes")
+		t.Error("Signature with prepended invalid signature unexpectedly passes")
 	}
 }
 

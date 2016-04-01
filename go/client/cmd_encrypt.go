@@ -53,7 +53,7 @@ func NewCmdEncrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 			},
 			cli.BoolFlag{
 				Name:  "hide-recipients",
-				Usage: "Don't include recepients in metadata",
+				Usage: "Don't include recipients in metadata",
 			},
 			cli.BoolFlag{
 				Name:  "no-self",

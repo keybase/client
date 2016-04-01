@@ -43,7 +43,7 @@ func (s *SaltpackUI) doInteractive(arg keybase1.SaltpackPromptForDecryptArg) err
 	case keybase1.SaltpackSenderType_UNKNOWN:
 		why = "The sender of this message is unknown to Keybase"
 	case keybase1.SaltpackSenderType_ANONYMOUS:
-		why = "The sender of this message has choosen to remain anonymous"
+		why = "The sender of this message has chosen to remain anonymous"
 	case keybase1.SaltpackSenderType_TRACKING_BROKE:
 		why = "You track the sender of this message, but their tracking statement is broken"
 		def = libkb.PromptDefaultNo
