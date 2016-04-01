@@ -48,12 +48,13 @@ type TrackSummary struct {
 type TrackStatus int
 
 const (
-	TrackStatus_NEW_OK            TrackStatus = 1
-	TrackStatus_NEW_ZERO_PROOFS   TrackStatus = 2
-	TrackStatus_NEW_FAIL_PROOFS   TrackStatus = 3
-	TrackStatus_UPDATE_BROKEN     TrackStatus = 4
-	TrackStatus_UPDATE_NEW_PROOFS TrackStatus = 5
-	TrackStatus_UPDATE_OK         TrackStatus = 6
+	TrackStatus_NEW_OK                      TrackStatus = 1
+	TrackStatus_NEW_ZERO_PROOFS             TrackStatus = 2
+	TrackStatus_NEW_FAIL_PROOFS             TrackStatus = 3
+	TrackStatus_UPDATE_BROKEN_FAILED_PROOFS TrackStatus = 4
+	TrackStatus_UPDATE_NEW_PROOFS           TrackStatus = 5
+	TrackStatus_UPDATE_OK                   TrackStatus = 6
+	TrackStatus_UPDATE_BROKEN_REVOKED       TrackStatus = 7
 )
 
 type TrackOptions struct {

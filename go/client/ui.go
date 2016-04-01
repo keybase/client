@@ -110,10 +110,19 @@ type IdentifyTrackUI struct {
 }
 
 func (ui IdentifyTrackUI) confirmFailedTrackProofs(o *keybase1.IdentifyOutcome) (result keybase1.ConfirmResult, err error) {
-	trackMaxAge := fmt.Sprintf("%v", ui.G().Env.GetLocalTrackMaxAge())
-	prompt := "Some previously tracked proofs are failing. [I]gnore for " + trackMaxAge + ", [A]ccept these changes or [C]ancel?"
 
-	inputChecker := libkb.CheckMember{Set: []string{"I", "A", "C"}}
+	ignorePrompt := ""
+	inputChecker := libkb.CheckMember{Set: []string{"A", "C"}}
+
+	// Status should be either keybase1.TrackStatus_UPDATE_BROKEN_REVOKED or keybase1.TrackStatus_UPDATE_BROKEN_FAILED_PROOFS here
+	if o.TrackStatus == keybase1.TrackStatus_UPDATE_BROKEN_FAILED_PROOFS {
+		trackMaxAge := fmt.Sprintf("%v", ui.G().Env.GetLocalTrackMaxAge())
+		ignorePrompt = "[I]gnore for " + trackMaxAge + ", "
+		inputChecker.Set = append(inputChecker.Set, "I")
+	}
+
+	prompt := "Some previously tracked proofs are failing. " + ignorePrompt + "[A]ccept these changes or [C]ancel?"
+
 	choice, err := PromptWithChecker(PromptDescriptorTrackPublic, ui.parent, prompt, false, inputChecker.Checker())
 	if libkb.Cicmp(choice, "C") {
 		err = ErrInputCanceled
@@ -164,7 +173,7 @@ func (ui IdentifyTrackUI) Confirm(o *keybase1.IdentifyOutcome) (result keybase1.
 	promptDefault := libkb.PromptDefaultYes
 	trackChanged := true
 	switch o.TrackStatus {
-	case keybase1.TrackStatus_UPDATE_BROKEN:
+	case keybase1.TrackStatus_UPDATE_BROKEN_REVOKED, keybase1.TrackStatus_UPDATE_BROKEN_FAILED_PROOFS:
 		return ui.confirmFailedTrackProofs(o)
 	case keybase1.TrackStatus_UPDATE_NEW_PROOFS:
 		prompt = "Your tracking statement of " + username +
