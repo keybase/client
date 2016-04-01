@@ -29,27 +29,17 @@ clientdir="$(git -C "$here" rev-parse --show-toplevel)"
 kbfsdir="$clientdir/../kbfs"
 serveropsdir="$clientdir/../server-ops"
 
-# Pushing will require either S3 credentials or the server-ops dir, depending
-# on the build mode. Make sure the appropriate one is available.
+# Run `git fetch` in all the repos we'll share with the container. This
+# prevents an unattended build machine from falling behind over time.
+for repo in "$clientdir" "$kbfsdir" "$serveropsdir" ; do
+  echo "Fetching $repo"
+  git -C "$repo" fetch
+done
+
+# Arrange to share the S3 credentials. We have to do this with a directory
+# instead of sharing the file directly, because the latter only works on Linux.
 s3cmd_temp="$(mktemp -d)"
-git_name=""
-git_email=""
-serverops_args=()
-if [ "$mode" = prerelease ] || [ "$mode" = nightly ] ; then
-  # These modes require S3 credentials. Test that the ~/.s3cfg creds are
-  # working, and copy them to a temp folder for sharing. (Docker on non-Linux
-  # platforms cannot share files directly.)
-  export BUCKET_NAME="${BUCKET_NAME:-prerelease.keybase.io}"
-  echo "Using S3 \$BUCKET_NAME: $BUCKET_NAME"
-  canary="s3://$BUCKET_NAME/build_canary_file"
-  echo build canary | s3cmd put - "$canary"
-  s3cmd del "$canary"
-  cp ~/.s3cfg "$s3cmd_temp"
-else
-  # These modes require server-ops to be available and pushable.
-  "$here/../check_status_and_pull.sh" "$serveropsdir"
-  serverops_args=(-v "$serveropsdir:/SERVEROPS:ro")
-fi
+cp ~/.s3cfg "$s3cmd_temp"
 
 # Make sure the image is ready.
 image=keybase_packaging_v5
@@ -101,10 +91,10 @@ docker run -ti \
   -v "$shared_dir:/root" \
   -v "$clientdir:/CLIENT:ro" \
   -v "$kbfsdir:/KBFS:ro" \
+  -v "$serveropsdir:/SERVEROPS:ro" \
   -v "$gpg_tempdir:/GPG" \
   -v "$HOME/.ssh:/SSH:ro" \
   -v "$s3cmd_temp:/S3CMD:ro" \
-  "${serverops_args[@]:+${serverops_args[@]}}" \
   -e BUCKET_NAME \
   "$image" \
   bash /CLIENT/packaging/linux/inside_docker_main.sh "$@"

@@ -17,14 +17,16 @@ kbfs_copy="/root/kbfs"
 serverops_copy="/root/server-ops"
 build_dir="/root/build"
 
-# Copy the s3cmd config to root's home dir, if it exists.
-if [ -e /S3CMD/.s3cfg ] ; then
-  cp /S3CMD/.s3cfg ~
-fi
+# Copy the s3cmd config to root's home dir, then test the credentials.
+cp /S3CMD/.s3cfg ~
+echo "Testing S3 credentials..."
+canary="s3://prerelease.keybase.io/build_canary_file"
+echo build canary | s3cmd put - "$canary"
+s3cmd del "$canary"
 
-# Copy the SSH configs to the home dir. We do this because SSH complains if
-# ~/.ssh/config is owned by anyone other than the current user, which is the
-# case if the directory is shared.
+# Copy the SSH configs to the home dir. We copy instead of sharing directly
+# from the host, because SSH complains if ~/.ssh/config is owned by anyone
+# other than the current user. Cloning repos below will test these credentials.
 cp -r /SSH ~/.ssh
 
 # Import the code signing key, kick off the gpg agent, and sign an empty
