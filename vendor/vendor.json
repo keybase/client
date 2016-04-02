@@ -204,6 +204,11 @@
 			"revisionTime": "2015-11-28T23:30:29-08:00"
 		},
 		{
+			"path": "github.com/jasonmoo/lambda_proc",
+			"revision": "49abf10b4b3c7cb01992397ec47880e05d65ad85",
+			"revisionTime": "2016-03-12T16:33:56-05:00"
+		},
+		{
 			"path": "github.com/jonboulle/clockwork",
 			"revision": "64f61c25cc3595b1aeecdaf86a61bfec00b04c5f",
 			"revisionTime": "2016-03-16T16:25:20-04:00"
