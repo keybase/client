@@ -8,20 +8,12 @@ import "strings"
 // SocialAssertion is a type for individual user's on a social
 // network.  It should be created via NormalizeSocialAssertion.
 type SocialAssertion struct {
-	username string
-	service  string
-}
-
-func (s SocialAssertion) Username() string {
-	return s.username
-}
-
-func (s SocialAssertion) Service() string {
-	return s.service
+	Username string
+	Service  string
 }
 
 func (s SocialAssertion) String() string {
-	return s.username + "@" + s.service
+	return s.Username + "@" + s.Service
 }
 
 // IsSocialAssertion returns true for strings that are valid
@@ -67,7 +59,7 @@ func NormalizeSocialAssertion(s string) (SocialAssertion, bool) {
 	}
 
 	return SocialAssertion{
-		username: name,
-		service:  service,
+		Username: name,
+		Service:  service,
 	}, true
 }
