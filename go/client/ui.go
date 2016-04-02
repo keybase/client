@@ -782,12 +782,8 @@ func (l LoginUI) DisplayPrimaryPaperKey(_ context.Context, arg keybase1.DisplayP
 	if err != nil {
 		return err
 	}
-	for !confirmed {
-		l.parent.Printf("\nPlease put it in your wallet.\n\n")
-		confirmed, err = l.parent.PromptYesNo(PromptDescriptorLoginWallet, "Now is it in your wallet?", libkb.PromptDefaultNo)
-		if err != nil {
-			return err
-		}
+	if !confirmed {
+		l.parent.Printf("\nAlright, that's fine. Make sure to keep it somewhere safe, though!\n\n")
 	}
 	return nil
 }
