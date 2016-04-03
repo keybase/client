@@ -8,9 +8,10 @@ package mounter
 import (
 	"fmt"
 
-	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 )
 
-func IsMounted(g *libkb.GlobalContext, dir string) (bool, error) {
+// IsMounted returns true if directory is mounted (by kbfuse)
+func IsMounted(dir string, log logger.Logger) (bool, error) {
 	return false, fmt.Errorf("IsMounted unsupported on this platform")
 }
