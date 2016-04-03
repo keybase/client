@@ -121,7 +121,7 @@ func (c *redisSubscriberConn) unsubscribe(channel string,
 		return 0, ErrNotSubscribed
 	}
 	currentCount, ok := 0, false
-	if currentCount, ok = c.counts[channel]; ok {
+	if currentCount, ok = c.counts[channel]; ok && currentCount > 0 {
 		currentCount -= count
 		if currentCount == 0 {
 			delete(c.counts, channel)
@@ -256,7 +256,8 @@ type redisSubscriber struct {
 	shutdown      bool
 }
 
-// NewRedisSubscriber instantiates a Subscriber implementation backed by Redis.
+// NewRedisSubscriber instantiates a Subscriber implementation backed
+// by Redis.  If poolSize is 0, DefaultSubscriberPoolSize is used.
 func NewRedisSubscriber(address string, handler SubscriptionHandler, poolSize int) Subscriber {
 	if poolSize == 0 {
 		poolSize = DefaultSubscriberPoolSize
@@ -269,6 +270,12 @@ func NewRedisSubscriber(address string, handler SubscriptionHandler, poolSize in
 		slots:       make([]*redisSubscriberConn, poolSize),
 	}
 	for slot := 0; slot < poolSize; slot++ {
+		// XXX comment from strib: do we have to block on these
+		// subscription calls?  I think the caller might find it
+		// unexpected.  Plus, something that blocks should probably
+		// take a context that can be cancelled by the caller if
+		// things take too long.  Either way, maybe we should document
+		// the blocking behavior in the method comment?
 		subscriber.reconnectSlot(slot, 0)
 	}
 	return subscriber
