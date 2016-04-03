@@ -138,12 +138,30 @@ func (p *redisPublisher) PublishBatch(channels []string, data [][]byte) error {
 	}
 	conn := p.pool.Get()
 	defer conn.Close()
-	for i, channel := range channels {
-		if err := conn.Send("PUBLISH", channel, data[i]); err != nil {
-			p.handler.OnPublishError(err, channel, data[i])
+	for i, d := range data {
+		if err := conn.Send("PUBLISH", channels[i], d); err != nil {
+			// This would be a fatal encoder error. redigo closes
+			// the connection in this case.
+			return err
 		}
 	}
-	return conn.Flush()
+	if err := conn.Flush(); err != nil {
+		// Fatal; redigo closes the conection.
+		return err
+	}
+	// Drain replies; errors may not always be fatal.
+	var err error
+	for i, d := range data {
+		if _, e := conn.Receive(); e != nil {
+			// Call the handler for each.
+			p.handler.OnPublishError(err, channels[i], d)
+			if err == nil {
+				// Return the first error.
+				err = e
+			}
+		}
+	}
+	return err
 }
 
 // Shutdown implements the Publisher interface.
