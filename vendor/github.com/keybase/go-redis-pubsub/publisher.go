@@ -153,8 +153,8 @@ func (p *redisPublisher) PublishBatch(channels []string, data [][]byte) error {
 	var err error
 	for i, d := range data {
 		if _, e := conn.Receive(); e != nil {
-			// Call the handler for each.
-			p.handler.OnPublishError(err, channels[i], d)
+			// Call the handler with the error.
+			p.handler.OnPublishError(e, channels[i], d)
 			if err == nil {
 				// Return the first error.
 				err = e
