@@ -99,6 +99,7 @@ func (e *SaltpackSenderIdentify) identifySender(ctx *Context) (err error) {
 		UseDelegateUI:         !e.arg.interactive,
 		AlwaysBlock:           e.arg.interactive,
 		ForceRemoteCheck:      e.arg.forceRemoteCheck,
+		NeedProofSet:          e.arg.forceRemoteCheck,
 		NoErrorOnTrackFailure: true,
 		Reason:                e.arg.reason,
 		UserAssertion:         e.arg.userAssertion,
