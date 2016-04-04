@@ -48,13 +48,15 @@ func (m *DefaultMounter) Mount(fs dokan.FileSystem) error {
 	for i := 1; true; i++ {
 		h, err = m.mountHelper(fs)
 		// break if success, no force or too many tries.
-		if err == nil || !m.force || i > 3 {
+		if err == nil || i > 3 {
 			break
 		}
 		// Sleep two times 100ms, 200ms, ...
 		time.Sleep(time.Duration(i) * 100 * time.Millisecond)
-		dokan.Unmount(m.dir)
-		time.Sleep(time.Duration(i) * 100 * time.Millisecond)
+		if m.force {
+			dokan.Unmount(m.dir)
+			time.Sleep(time.Duration(i) * 100 * time.Millisecond)
+		}
 	}
 
 	if err != nil {
