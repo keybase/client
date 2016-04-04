@@ -19,24 +19,24 @@ func spawnServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1
 	var files []uintptr
 	var cmd string
 	var args []string
-	var devnull, log *os.File
+	var devnull *os.File
 
 	defer func() {
 		if err != nil {
 			if devnull != nil {
 				devnull.Close()
 			}
-			if log != nil {
-				log.Close()
-			}
 		}
 	}()
 
-	if devnull, err = os.OpenFile("nul", os.O_RDONLY, 0); err != nil {
-		return
+	// Failing to open nul is non-fatal here.
+	devnull, err = os.OpenFile("nul", os.O_RDONLY, 0)
+	if err != nil {
+		G.Log.Warning("Cannot open nul: %v", err)
+	} else {
+		nullfd := devnull.Fd()
+		files = append(files, nullfd, nullfd, nullfd)
 	}
-	nullfd := devnull.Fd()
-	files = append(files, nullfd, nullfd, nullfd)
 
 	// On 'nix this would include Setsid: true, which means
 	// the new process inherits the session/terminal from the parent.
