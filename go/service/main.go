@@ -234,27 +234,31 @@ func (d *Service) checkTrackingEveryHour() {
 }
 
 func (d *Service) gregordConnect() error {
-	d.G().Log.Debug("gregor URI: %s", d.G().Env.GetGregorURI())
-	h := newGregorHandler(d.G())
-	if d.G().Env.GetGregorUseTLS() {
-		return d.gregordConnectTLS(h)
+	uri, err := parseFMPURI(d.G().Env.GetGregorURI())
+	if err != nil {
+		return err
 	}
-	return d.gregordConnectNoTLS(h)
+	d.G().Log.Debug("gregor URI: %s", uri)
+	h := newGregorHandler(d.G())
+	if uri.UseTLS() {
+		return d.gregordConnectTLS(h, uri)
+	}
+	return d.gregordConnectNoTLS(h, uri)
 }
 
-func (d *Service) gregordConnectTLS(h *gregorHandler) error {
+func (d *Service) gregordConnectTLS(h *gregorHandler, uri *fmpURI) error {
 	d.G().Log.Debug("connecting to gregor via TLS")
-	rawCA := d.G().Env.GetBundledCA(d.G().Env.GetGregorURI())
+	rawCA := d.G().Env.GetBundledCA(uri.Host)
 	if len(rawCA) == 0 {
-		return fmt.Errorf("No bundled CA for %s", d.G().Env.GetGregorURI())
+		return fmt.Errorf("No bundled CA for %s", uri.Host)
 	}
-	d.gregorConn = rpc.NewTLSConnection(d.G().Env.GetGregorURI(), []byte(rawCA), nil, h, true, nil, nil, d.G().Log, nil)
+	d.gregorConn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), nil, h, true, nil, nil, d.G().Log, nil)
 	return nil
 }
 
-func (d *Service) gregordConnectNoTLS(h *gregorHandler) error {
+func (d *Service) gregordConnectNoTLS(h *gregorHandler, uri *fmpURI) error {
 	d.G().Log.Debug("connecting to gregor without TLS")
-	t := newConnTransport(d.G())
+	t := newConnTransport(d.G(), uri.HostPort)
 	d.gregorConn = rpc.NewConnectionWithTransport(h, t, nil, true, nil, d.G().Log, nil)
 	return nil
 }

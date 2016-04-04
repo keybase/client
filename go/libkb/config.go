@@ -481,10 +481,6 @@ func (f JSONConfigFile) GetGregorURI() string {
 	return s
 }
 
-func (f JSONConfigFile) GetGregorUseTLS() (bool, bool) {
-	return f.GetBoolAtPath("gregor.tls")
-}
-
 func (f JSONConfigFile) getCacheSize(w string) (int, bool) {
 	return f.jw.AtPathGetInt(w)
 }
