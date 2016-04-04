@@ -16,6 +16,7 @@ client_dir="$(git -C "$here" rev-parse --show-toplevel)"
 serverops_dir="$client_dir/../server-ops"
 
 export BUCKET_NAME="${BUCKET_NAME:-prerelease.keybase.io}"
+echo "Using BUCKET_NAME $BUCKET_NAME"
 
 # Clean the build dir.
 rm -rf "$build_dir"
@@ -76,18 +77,24 @@ release_prerelease() {
 
   # Upload both repos to S3.
   echo Syncing the deb repo...
-  s3cmd sync --delete-removed "$build_dir/deb_repo/repo/" "s3://$BUCKET_NAME/deb/"
+  s3cmd sync --add-header="Cache-Control:max-age=60" --delete-removed "$build_dir/deb_repo/repo/" "s3://$BUCKET_NAME/deb/"
   echo Syncing the rpm repo...
-  s3cmd sync --delete-removed "$build_dir/rpm_repo/repo/" "s3://$BUCKET_NAME/rpm/"
+  s3cmd sync --add-header="Cache-Control:max-age=60" --delete-removed "$build_dir/rpm_repo/repo/" "s3://$BUCKET_NAME/rpm/"
 
-  # Upload another copy of the packages to our list of all packages.
-  for f in "$build_dir"/deb_repo/repo/pool/main/*/*/*.deb ; do
-    echo "Uploading individual binary '$f'..."
-    s3cmd put "$f" "s3://$BUCKET_NAME/linux_binaries/deb/"
+  # For each .deb and .rpm file we just uploaded, unset the Cache-Control
+  # header (because these files are large, and they have versioned names), and
+  # also make a copy in /linux_binaries/{deb,rpm}.
+  echo Unsetting .deb Cache-Control headers...
+  dot_deb_blobs="$(s3cmd ls -r "s3://$BUCKET_NAME/deb" | awk '{print $4}' | grep '\.deb$')"
+  for blob in $dot_deb_blobs ; do
+    s3cmd modify --remove-header "Cache-Control" "$blob"
+    s3cmd cp "$blob" "s3://$BUCKET_NAME/linux_binaries/deb/"
   done
-  for f in "$build_dir"/rpm_repo/repo/*/*.rpm ; do
-    echo "Uploading individual binary '$f'..."
-    s3cmd put "$f" "s3://$BUCKET_NAME/linux_binaries/rpm/"
+  echo Unsetting .rpm Cache-Control headers...
+  dot_rpm_blobs="$(s3cmd ls -r "s3://$BUCKET_NAME/rpm" | awk '{print $4}' | grep '\.rpm$')"
+  for blob in $dot_rpm_blobs ; do
+    s3cmd modify --remove-header "Cache-Control" "$blob"
+    s3cmd cp "$blob" "s3://$BUCKET_NAME/linux_binaries/rpm/"
   done
 
   json_tmp=`mktemp`
