@@ -67,7 +67,7 @@ if [ -z "$(docker images -q "$image")" ] ; then
 fi
 
 echo '=== docker ==='
-docker run -ti \
+docker run \
   -v "$work_dir:/root" \
   -v "$clientdir:/CLIENT:ro" \
   -v "$kbfsdir:/KBFS:ro" \
