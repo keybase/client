@@ -40,8 +40,8 @@ var ServerLookup = map[RunMode]string{
 
 const (
 	DevelGregorServerURI      = "fmprpc://localhost:9911"
-	StagingGregorServerURI    = "fmprpc+tls://gregor.stage0.keybase.io:9911"
-	ProductionGregorServerURI = "fmprpc+tls://gregor.api.keybase.io:9911"
+	StagingGregorServerURI    = "fmprpc+tls://gregor.stage0.keybase.io:443"
+	ProductionGregorServerURI = "fmprpc+tls://gregor.api.keybase.io:443"
 )
 
 var GregorServerLookup = map[RunMode]string{
