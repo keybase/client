@@ -156,16 +156,12 @@ func (b *BlockServerRemote) ShouldRetry(rpcName string, err error) bool {
 	case "keybase.1.block.archiveReference":
 		return false
 	}
-	_, ok := err.(BServerErrorThrottle)
-	if ok {
+	if _, ok := err.(BServerErrorThrottle); ok {
 		return true
 	}
-
-	quotaErr, ok := err.(BServerErrorOverQuota)
-	if ok && quotaErr.Throttled {
+	if quotaErr, ok := err.(BServerErrorOverQuota); ok && quotaErr.Throttled {
 		return true
 	}
-
 	return false
 }
 
