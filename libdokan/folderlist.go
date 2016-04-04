@@ -56,14 +56,14 @@ func (fl *FolderList) reportErr(ctx context.Context,
 // Dir.open as necessary.
 func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) (f dokan.File, isDir bool, err error) {
 	fl.fs.log.CDebugf(ctx, "FL Lookup %#v", path)
+	if len(path) == 0 {
+		return oc.returnDirNoCleanup(fl)
+	}
+
 	defer func() {
 		fl.reportErr(ctx, libkbfs.ReadMode,
 			libkbfs.CanonicalTlfName(path[0]), err)
 	}()
-
-	if len(path) == 0 {
-		return oc.returnDirNoCleanup(fl)
-	}
 
 	for oc.reduceRedirectionsLeft() {
 		name := path[0]
