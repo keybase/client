@@ -62,8 +62,12 @@ class Dropdown extends Component {
     // Didn't actually select anything
     if (this.state.value === pickItemValue) {
       this.props.onClick(null, -1)
-    } else if (!this.state.value && this.props.onOther) {
-      this.props.onOther()
+    } else if (this.state.value === otherItemValue) {
+      if (this.props.onOther) {
+        this.props.onOther()
+      } else {
+        console.error('otherValue selected, yet no onOther handler')
+      }
     } else if (this.props.onClick) {
       this.props.onClick(this.state.value, (this.props.options || []).indexOf(this.state.value))
     }
@@ -73,11 +77,15 @@ class Dropdown extends Component {
     this.setState({modalVisible: show})
 
     if (show) {
-      if (!this.state.value && this.props.options && this.props.options.length) {
-        this.setState({value: this.props.options[0]})
-      }
+      this._ensureSelected()
     } else {
       this._selected()
+    }
+  }
+
+  _ensureSelected () {
+    if (!this.state.value && this.props.options && this.props.options.length) {
+      this.setState({value: this.props.options[0]})
     }
   }
 
