@@ -460,6 +460,7 @@ func (e *Env) GetGregorURI() string {
 	return e.GetString(
 		func() string { return os.Getenv("GREGOR_URI") },
 		func() string { return e.config.GetGregorURI() },
+		func() string { return GregorServerLookup[e.GetRunMode()] },
 	)
 }
 
