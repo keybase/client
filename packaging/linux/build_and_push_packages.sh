@@ -15,6 +15,8 @@ here="$(dirname "$BASH_SOURCE")"
 client_dir="$(git -C "$here" rev-parse --show-toplevel)"
 serverops_dir="$client_dir/../server-ops"
 
+export BUCKET_NAME="${BUCKET_NAME:-prerelease.keybase.io}"
+
 # Clean the build dir.
 rm -rf "$build_dir"
 mkdir -p "$build_dir"
@@ -102,6 +104,26 @@ release_prerelease() {
 
   # Generate and push the index.html file.
   PLATFORM="linux" "$here/../prerelease/s3_index.sh"
+
+  echo Exporting to kbfs-beta...
+  "$client_dir/packaging/export/export_kbfs.sh"
+
+  bump_arch_linux_aur
+}
+
+bump_arch_linux_aur() {
+  # This relies on having the SSH key registered with the "keybase" account on
+  # https://aur.archlinux.org.
+  (
+    underscore_version="$(echo "$version" | sed 's/-/_/g')"
+    temp_repo=`mktemp -d`
+    git clone aur@aur.archlinux.org:keybase-git "$temp_repo"
+    cd "$temp_repo"
+    sed -i "s/pkgver=.*/pkgver=$underscore_version/" PKGBUILD
+    sed -i "s/pkgver = .*/pkgver = $underscore_version/" .SRCINFO
+    git commit -am "version bump"
+    git push
+  )
 }
 
 if [ "$mode" = "prerelease" ] ; then

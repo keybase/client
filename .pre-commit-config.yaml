@@ -1,0 +1,14 @@
+-   repo: git@github.com:keybase/pre-commit.git
+    sha: 'e56c58cc34b81fc814f10c5062c31c9db93376df'
+    hooks:
+    -   id: eslint
+-   repo: git@github.com:keybase/pre-commit.git
+    sha: 'e56c58cc34b81fc814f10c5062c31c9db93376df'
+    hooks:
+    -   id: flow
+-   repo: git@github.com:keybase/pre-commit-golang.git
+    sha: '04b422b4c7fabfcf586e563e54334c659e6fd189'
+    hooks:
+    -   id: go-fmt
+    -   id: go-vet
+    -   id: go-lint

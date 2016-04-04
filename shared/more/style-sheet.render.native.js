@@ -4,7 +4,7 @@ import {Switch} from 'react-native'
 import {ScrollView} from 'react-native'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import Container from './dev-container.native'
-import {Checkbox, Button, Box, Text, Terminal, Icon} from '../common-adapters'
+import {Dropdown, Checkbox, Button, Box, Text, Terminal, Icon} from '../common-adapters'
 
 const Space = () => <Box style={{height: 20, width: 20}}/>
 
@@ -143,10 +143,33 @@ const Colors = () => (
   </Box>
 )
 
-const Dropdowns = () => (
-  <Text type='Header'>TODO</Text>
+const Dropdowns = ({selectedUser, selectUser, selectedOption, selectOption, userIdx, optionIdx}) => (
+  <Box style={{...globalStyles.flexBoxColumn}}>
+    <Dropdown type='Username'
+      value={selectedUser}
+      options={['marcopolo', 'chris', 'cjb', 'bbbbbbbbbbbbbbbb']}
+      onOther={() => selectUser('Chose someone else')}
+      onClick={(selectedUser, idx) => selectUser(selectedUser, idx)}/>
+    <Text type='Header'>Selected: {selectedUser} {userIdx}</Text>
+    <Dropdown type={'General'}
+      options={['one', 'two', 'three']}
+      value={selectedOption}
+      onClick={(selectedOption, idx) => selectOption(selectedOption, idx)}/>
+    <Text type='Header'>Selected: {selectedOption} {optionIdx}</Text>
+    <Dropdown type={'General'}
+      options={['one', 'two', 'three']}
+      value={selectedOption}
+      onOther={() => console.log('Clicked on other')}
+      onClick={(selectedOption, idx) => selectOption(selectedOption, idx)}/>
+    <Text type='Header'>Selected: {selectedOption} {optionIdx}</Text>
+    <Dropdown type={'General'}
+      options={['one', 'two', 'three']}
+      value={'two'}
+      onOther={() => console.log('Clicked on other')}
+      onClick={(selectedOption, idx) => selectOption(selectedOption, idx)}/>
+    <Text type='Header'>Selected: Always two (testing selected w/o pick option)</Text>
+  </Box>
 )
-// <DropdownDemo/>
 
 const Icons = () => (
   <Box style={{...globalStyles.flexBoxColumn}}>
@@ -191,13 +214,19 @@ const Checkboxes = ({check, flip}) => {
 
 export default class Render extends Component {
   state: {
-    check: any
+    check: any, selectedUser: ?string, selectedOption: ?string, userIdx: number, optionIdx: number
   };
 
   constructor (props: any) {
     super(props)
 
-    this.state = {check: [false, true, false, true, false, true]}
+    this.state = {
+      check: [false, true, false, true, false, true],
+      selectedUser: 'marcopolo',
+      userIdx: -1,
+      optionIdx: -1,
+      selectedOption: null
+    }
   }
 
   flip (idx: number) {
@@ -209,10 +238,17 @@ export default class Render extends Component {
   render () {
     return (
       <ScrollView>
+        <Container title='Dropdown'><Dropdowns
+          selectedUser={this.state.selectedUser}
+          selectUser={(selectedUser, userIdx) => this.setState({selectedUser, userIdx})}
+          selectedOption={this.state.selectedOption}
+          selectOption={(selectedOption, optionIdx) => this.setState({selectedOption, optionIdx})}
+          userIdx={this.state.userIdx}
+          optionIdx={this.state.optionIdx}
+        /></Container>
         <Container title='Checkboxes'><Checkboxes flip={idx => this.flip(idx)} check={this.state.check}/></Container>
         <Container title='Icons'><Icons/></Container>
         <Container title='Buttons'><Buttons/></Container>
-        <Container title='Dropdown'><Dropdowns/></Container>
         <Container title='Text'><Fonts/></Container>
         <Container title='Colors'><Colors/></Container>
         <Container title='Inputs'><Inputs/></Container>
