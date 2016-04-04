@@ -1,11 +1,11 @@
 // @flow
 import React, {Component} from 'react'
 
-import Text from '../text'
-import {transition, globalColors, globalStyles} from '../../styles/style-guide'
+import Text from './text'
+import {transition, globalColors, globalStyles} from '../styles/style-guide'
 
-import type {Props, MenuItemProps} from './index'
-import type {Props as TextProps} from '../text'
+import type {Props, MenuItemProps} from './dropdown'
+import type {Props as TextProps} from './text'
 
 import Popover from 'material-ui/lib/popover/popover'
 import PopoverAnimationFromTop from 'material-ui/lib/popover/popover-animation-from-top'
