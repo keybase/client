@@ -57,8 +57,24 @@ type redisPublisher struct {
 
 // NewRedisPublisher instantiates a Publisher implementation backed by
 // Redis.  If poolSize is 0, DefaultPublisherPoolSize is used.  If
-// bufferSize if 0, DefaultPublishedBufferSize is used.
-func NewRedisPublisher(address string, handler PublicationHandler, poolSize, bufferSize int) Publisher {
+// bufferSize if 0, DefaultPublishedBufferSize is used. By default
+// connection attempts will be retried with exponential backoff
+// indefinitely.
+func NewRedisPublisher(address string, handler PublicationHandler,
+	poolSize, bufferSize int) Publisher {
+	expBackoff := backoff.NewExponentialBackOff()
+	expBackoff.MaxElapsedTime = 0
+	return NewRedisPublisherWithBackoff(address, handler,
+		poolSize, bufferSize, expBackoff)
+}
+
+// NewRedisPublisherWithBackoff instantiates a Publisher implementation
+// backed by Redis.  If poolSize is 0, DefaultPublisherPoolSize is used.
+// If bufferSize if 0, DefaultPublishedBufferSize is used.  The caller
+// can provide its own exponential backoff object for use on connection
+// failure.
+func NewRedisPublisherWithBackoff(address string, handler PublicationHandler,
+	poolSize, bufferSize int, expBackoff *backoff.ExponentialBackOff) Publisher {
 	if poolSize == 0 {
 		poolSize = DefaultPublisherPoolSize
 	}
@@ -70,9 +86,7 @@ func NewRedisPublisher(address string, handler PublicationHandler, poolSize, buf
 		pool: &redis.Pool{
 			MaxIdle: poolSize,
 			Dial: func() (conn redis.Conn, err error) {
-				expBackoff := backoff.NewExponentialBackOff()
-				// don't quit trying
-				expBackoff.MaxElapsedTime = 0
+				expBackoff.Reset()
 				err = backoff.RetryNotify(func() error {
 					select {
 					case <-closeChan:
