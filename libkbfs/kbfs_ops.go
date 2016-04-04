@@ -27,6 +27,8 @@ type KBFSOpsStandard struct {
 	reIdentifyControlChan chan struct{}
 
 	favs *Favorites
+
+	currentStatus kbfsCurrentStatus
 }
 
 var _ KBFSOps = (*KBFSOpsStandard)(nil)
@@ -42,6 +44,7 @@ func NewKBFSOpsStandard(config Config) *KBFSOpsStandard {
 		reIdentifyControlChan: make(chan struct{}),
 		favs: NewFavorites(config),
 	}
+	kops.currentStatus.Init()
 	go kops.markForReIdentifyIfNeededLoop()
 	return kops
 }
@@ -393,12 +396,14 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 		usageBytes = quotaInfo.Total.Bytes[UsageWrite]
 		limitBytes = quotaInfo.Limit
 	}
+	failures, ch := fs.currentStatus.CurrentStatus()
 	return KBFSStatus{
-		CurrentUser: username.String(),
-		IsConnected: fs.config.MDServer().IsConnected(),
-		UsageBytes:  usageBytes,
-		LimitBytes:  limitBytes,
-	}, nil, err
+		CurrentUser:     username.String(),
+		IsConnected:     fs.config.MDServer().IsConnected(),
+		UsageBytes:      usageBytes,
+		LimitBytes:      limitBytes,
+		FailingServices: failures,
+	}, ch, err
 }
 
 // UnstageForTesting implements the KBFSOps interface for KBFSOpsStandard

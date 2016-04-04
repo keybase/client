@@ -130,7 +130,7 @@ func AddFlags(flags *flag.FlagSet) *InitParams {
 	return &params
 }
 
-func makeMDServer(config Config, serverInMemory bool, serverRootDir, mdserverAddr string) (
+func makeMDServer(config Config, serverInMemory bool, serverRootDir, mdserverAddr string, currentStatus *kbfsCurrentStatus) (
 	MDServer, error) {
 	if serverInMemory {
 		// local in-memory MD server
@@ -152,7 +152,7 @@ func makeMDServer(config Config, serverInMemory bool, serverRootDir, mdserverAdd
 
 	// remote MD server. this can't fail. reconnection attempts
 	// will be automatic.
-	mdServer := NewMDServerRemote(config, mdserverAddr)
+	mdServer := NewMDServerRemote(config, mdserverAddr, currentStatus)
 	return mdServer, nil
 }
 
@@ -364,7 +364,8 @@ func Init(params InitParams, onInterruptFn func(), log logger.Logger) (Config, e
 	config.SetMDOps(NewMDOpsStandard(config))
 
 	mdServer, err := makeMDServer(
-		config, params.ServerInMemory, params.ServerRootDir, params.MDServerAddr)
+		config, params.ServerInMemory, params.ServerRootDir, params.MDServerAddr,
+		&kbfsOps.currentStatus)
 	if err != nil {
 		return nil, fmt.Errorf("problem creating MD server: %v", err)
 	}
@@ -400,7 +401,7 @@ func Init(params InitParams, onInterruptFn func(), log logger.Logger) (Config, e
 	config.SetReporter(NewReporterKBPKI(config, 10, 1000))
 
 	if localUser == "" {
-		c := NewCryptoClient(config, libkb.G, config.MakeLogger(""))
+		c := NewCryptoClient(config, libkb.G, config.MakeLogger(""), &kbfsOps.currentStatus)
 		config.SetCrypto(c)
 	} else {
 		signingKey := MakeLocalUserSigningKeyOrBust(localUser)

@@ -7,23 +7,10 @@ import (
 	"time"
 
 	keybase1 "github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
-
-// RemoteStatus is for maintaining status of various remote connections like keybase
-// service and md-server.
-type RemoteStatus struct {
-	sync.RWMutex
-	failingServices map[string]error
-	ExtraFileName   string
-}
-
-// Init a RemoteStatus and register it with libkbfs.
-func (r *RemoteStatus) Init() {
-	r.failingServices = map[string]error{}
-	libkbfs.RegisterForConnectionStatusChanges(r.onConnectionStatusChange)
-}
 
 // Special files in root directory.
 const (
@@ -31,24 +18,53 @@ const (
 	HumanNoLoginFileName = "kbfs.nologin.txt"
 )
 
-func (r *RemoteStatus) onConnectionStatusChange(cs *libkbfs.ConnectionStatus) {
+// RemoteStatus is for maintaining status of various remote connections like keybase
+// service and md-server.
+type RemoteStatus struct {
+	sync.Mutex
+	failingServices   map[string]error
+	ExtraFileName     string
+	ExtraFileContents []byte
+}
+
+// Init a RemoteStatus and register it with libkbfs.
+func (r *RemoteStatus) Init(ctx context.Context, log logger.Logger, kbfsops libkbfs.KBFSOps) {
+	r.failingServices = map[string]error{}
+	go r.loop(ctx, log, kbfsops)
+}
+
+func (r *RemoteStatus) loop(ctx context.Context, log logger.Logger, kbfsops libkbfs.KBFSOps) {
+	for {
+		ctx, cancel := context.WithTimeout(ctx, 100*time.Millisecond)
+		st, ch, err := kbfsops.Status(ctx)
+		// No deferring inside loops, and no panics either here.
+		cancel()
+		if err != nil {
+			log.Warning("KBFS Status failed: %v", err)
+		}
+		r.update(st)
+		// Block on the channel.
+		<-ch
+	}
+}
+
+func (r *RemoteStatus) update(st libkbfs.KBFSStatus) {
 	r.Lock()
 	defer r.Unlock()
 
-	if cs.Error != nil {
-		r.failingServices[cs.Service] = cs.Error
-	} else {
-		delete(r.failingServices, cs.Service)
-	}
+	r.failingServices = st.FailingServices
 
-	switch {
-	case len(r.failingServices) == 1 && isNotLoggedInError(cs.Error):
-		r.ExtraFileName = HumanNoLoginFileName
-	case len(r.failingServices) > 0:
-		r.ExtraFileName = HumanErrorFileName
-	default:
-		r.ExtraFileName = ""
+	fname := ""
+	for _, err := range r.failingServices {
+		if isNotLoggedInError(err) {
+			fname = HumanNoLoginFileName
+		} else {
+			fname = HumanErrorFileName
+			break
+		}
 	}
+	r.ExtraFileName = fname
+	r.ExtraFileContents = nil
 }
 
 func isNotLoggedInError(err error) bool {
@@ -63,12 +79,13 @@ var newline = func() string {
 	return "\n"
 }()
 
-// NewSpecialReadFunc implements a special read file that contains human readable
-// current status.
-func (r *RemoteStatus) NewSpecialReadFunc(ctx context.Context) ([]byte, time.Time, error) {
+// HumanReadableBytesNeedsLock should be called with lock already held.
+func (r *RemoteStatus) HumanReadableBytesNeedsLock() []byte {
 	var ss []string
-	r.RLock()
-	defer r.RUnlock()
+
+	if r.ExtraFileContents != nil {
+		return r.ExtraFileContents
+	}
 
 	needLogin := false
 	for service, err := range r.failingServices {
@@ -89,5 +106,16 @@ func (r *RemoteStatus) NewSpecialReadFunc(ctx context.Context) ([]byte, time.Tim
 	}
 	ss = append(ss, "")
 
-	return []byte(strings.Join(ss, newline)), time.Time{}, nil
+	res := []byte(strings.Join(ss, newline))
+	r.ExtraFileContents = res
+	return res
+}
+
+// NewSpecialReadFunc implements a special read file that contains human readable
+// current status.
+func (r *RemoteStatus) NewSpecialReadFunc(ctx context.Context) ([]byte, time.Time, error) {
+	r.Lock()
+	defer r.Unlock()
+
+	return r.HumanReadableBytesNeedsLock(), time.Time{}, nil
 }

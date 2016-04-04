@@ -65,7 +65,7 @@ func NewFS(ctx context.Context, config libkbfs.Config, log logger.Logger) (*FS, 
 	ctx = logger.NewContextWithLogTags(ctx, logTags)
 	f.context = ctx
 
-	f.remoteStatus.Init()
+	f.remoteStatus.Init(ctx, f.log, f.config.KBFSOps())
 
 	return f, nil
 }
@@ -450,11 +450,12 @@ func (r *Root) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedStat) err
 	if err != nil {
 		return err
 	}
-	r.private.fs.remoteStatus.RLock()
-	defer r.private.fs.remoteStatus.RUnlock()
+	r.private.fs.remoteStatus.Lock()
+	defer r.private.fs.remoteStatus.Unlock()
 	if name := r.private.fs.remoteStatus.ExtraFileName; name != "" {
 		ns.Name = name
 		ns.FileAttributes = fileAttributeNormal
+		ns.FileSize = int64(len(r.private.fs.remoteStatus.HumanReadableBytesNeedsLock()))
 		err = callback(&ns)
 	}
 	return err

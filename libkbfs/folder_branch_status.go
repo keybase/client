@@ -31,10 +31,11 @@ type FolderBranchStatus struct {
 // suitable for encoding directly as JSON.
 // TODO: implement magical status update like FolderBranchStatus
 type KBFSStatus struct {
-	CurrentUser string
-	IsConnected bool
-	UsageBytes  int64
-	LimitBytes  int64
+	CurrentUser     string
+	IsConnected     bool
+	UsageBytes      int64
+	LimitBytes      int64
+	FailingServices map[string]error
 }
 
 // StatusUpdate is a dummy type used to indicate status has been updated.
