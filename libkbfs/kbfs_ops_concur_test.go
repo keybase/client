@@ -1565,7 +1565,9 @@ type blockOpsOverQuota struct {
 
 func (booq *blockOpsOverQuota) Put(ctx context.Context, md *RootMetadata,
 	blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
-	return BServerErrorOverQuota{""}
+	return BServerErrorOverQuota{
+		Throttled: true,
+	}
 }
 
 // Test that a quota error causes deferred writes to error.
