@@ -143,25 +143,31 @@ const Colors = () => (
   </Box>
 )
 
-const Dropdowns = ({selectedUser, selectUser, selectedOption, selectOption}) => (
+const Dropdowns = ({selectedUser, selectUser, selectedOption, selectOption, userIdx, optionIdx}) => (
   <Box style={{...globalStyles.flexBoxColumn}}>
     <Dropdown type='Username'
       value={selectedUser}
       options={['marcopolo', 'chris', 'cjb', 'bbbbbbbbbbbbbbbb']}
       onOther={() => selectUser('Chose someone else')}
-      onClick={selectedUser => selectUser(selectedUser)}/>
-    <Text type='Header'>Selected: {selectedUser}</Text>
+      onClick={(selectedUser, idx) => selectUser(selectedUser, idx)}/>
+    <Text type='Header'>Selected: {selectedUser} {userIdx}</Text>
+    <Dropdown type={'General'}
+      options={['one', 'two', 'three']}
+      value={selectedOption}
+      onClick={(selectedOption, idx) => selectOption(selectedOption, idx)}/>
+    <Text type='Header'>Selected: {selectedOption} {optionIdx}</Text>
     <Dropdown type={'General'}
       options={['one', 'two', 'three']}
       value={selectedOption}
       onOther={() => console.log('Clicked on other')}
-      onClick={selectedOption => selectOption(selectedOption)}/>
-    <Text type='Header'>Selected: {selectedOption}</Text>
+      onClick={(selectedOption, idx) => selectOption(selectedOption, idx)}/>
+    <Text type='Header'>Selected: {selectedOption} {optionIdx}</Text>
     <Dropdown type={'General'}
       options={['one', 'two', 'three']}
-      value={selectedOption}
-      onClick={selectedOption => selectOption(selectedOption)}/>
-    <Text type='Header'>Selected: {selectedOption}</Text>
+      value={'two'}
+      onOther={() => console.log('Clicked on other')}
+      onClick={(selectedOption, idx) => selectOption(selectedOption, idx)}/>
+    <Text type='Header'>Selected: Always two (testing selected w/o pick option)</Text>
   </Box>
 )
 
@@ -208,7 +214,7 @@ const Checkboxes = ({check, flip}) => {
 
 export default class Render extends Component {
   state: {
-    check: any, selectedUser: ?string, selectedOption: ?string
+    check: any, selectedUser: ?string, selectedOption: ?string, userIdx: number, optionIdx: number
   };
 
   constructor (props: any) {
@@ -217,6 +223,8 @@ export default class Render extends Component {
     this.state = {
       check: [false, true, false, true, false, true],
       selectedUser: 'marcopolo',
+      userIdx: -1,
+      optionIdx: -1,
       selectedOption: null
     }
   }
@@ -232,9 +240,12 @@ export default class Render extends Component {
       <ScrollView>
         <Container title='Dropdown'><Dropdowns
           selectedUser={this.state.selectedUser}
-          selectUser={selectedUser => this.setState({selectedUser})}
+          selectUser={(selectedUser, userIdx) => this.setState({selectedUser, userIdx})}
           selectedOption={this.state.selectedOption}
-          selectOption={selectedOption => this.setState({selectedOption})}/></Container>
+          selectOption={(selectedOption, optionIdx) => this.setState({selectedOption, optionIdx})}
+          userIdx={this.state.userIdx}
+          optionIdx={this.state.optionIdx}
+        /></Container>
         <Container title='Checkboxes'><Checkboxes flip={idx => this.flip(idx)} check={this.state.check}/></Container>
         <Container title='Icons'><Icons/></Container>
         <Container title='Buttons'><Buttons/></Container>

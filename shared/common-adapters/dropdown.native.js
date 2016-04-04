@@ -14,26 +14,55 @@ import type {Props} from './dropdown'
  * The android version uses the built in picker but invisibly so it can show its modal correctly.
  */
 
+// sentry for the 'other' value
+const otherItemValue = 'otherItemValue'
+// sentry for the 'pick' value
+const pickItemValue = 'pickItemValue'
+
+type State = {
+  modalVisible: boolean,
+  value: ?string
+}
+
 class Dropdown extends Component {
-  state: {
-    modalVisible: boolean,
-    value: ?string
-  };
+  state: State;
+  showingPick: boolean;
 
   constructor (props: Props) {
     super(props)
+
+    this.showingPick = !this.props.value
+
     this.state = {
       modalVisible: false,
-      value: this.props.value
+      value: this._stateValue(this.props.value)
     }
   }
 
+  _stateValue (value: ?string): string {
+    return value || pickItemValue
+  }
+
   componentWillReceiveProps (nextProps: Props) {
-    this.setState({value: nextProps.value})
+    this.setState({value: this._stateValue(nextProps.value)})
+  }
+
+  shouldComponentUpdate (nextProps: Props, nextState: State): boolean {
+    if (
+      this.state.value !== nextState.value ||
+      this.state.modalVisible !== nextState.modalVisible ||
+      this.props.value !== nextProps.value) {
+      return true
+    }
+
+    return false
   }
 
   _selected () {
-    if (!this.state.value && this.props.onOther) {
+    // Didn't actually select anything
+    if (this.state.value === pickItemValue) {
+      this.props.onClick(null, -1)
+    } else if (!this.state.value && this.props.onOther) {
       this.props.onOther()
     } else if (this.props.onClick) {
       this.props.onClick(this.state.value, (this.props.options || []).indexOf(this.state.value))
@@ -56,32 +85,44 @@ class Dropdown extends Component {
     return this.props.type === 'Username' ? {color: globalColors.orange} : {}
   }
 
-  _otherLabel (): string {
-    return this.props.type === 'Username' ? 'Someone else...' : 'Or something else'
+  _label (value: ?string): string {
+    if (!value) {
+      return ''
+    }
+
+    return {
+      [otherItemValue]: this.props.type === 'Username' ? 'Someone else...' : 'Or something else',
+      [pickItemValue]: 'Pick an option'
+    }[value] || value
   }
 
   _renderLabelAndCaret (): Array<React$Element> {
     return [
-      <Text key='text' type='Header' style={{...styleText, ...this._itemStyle()}}>{this.state.value || 'Pick an option'}</Text>,
+      <Text key='text' type='Header' style={{...styleText, ...this._itemStyle()}}>{this._label(this.state.value)}</Text>,
       <Icon key='icon' type='fa-caret-down' style={styleIcon}/>
     ]
   }
 
   _renderPicker (style: Object, selectOnChange: boolean): React$Element {
+    const pickItem = this.showingPick ? [{key: pickItemValue, value: pickItemValue, label: this._label(pickItemValue)}] : []
+    const actualItems = (this.props.options || []).map(o => ({key: o, label: o, value: o}))
+    const otherItem = this.props.onOther ? {key: otherItemValue, label: this._label(otherItemValue), value: otherItemValue} : []
+    const items = pickItem.concat(actualItems).concat(otherItem)
+
+    const onValueChange = value => {
+      if (value === this.state.value) {
+        return
+      }
+
+      this.setState({value})
+      if (selectOnChange) {
+        this._selected()
+      }
+    }
+
     return (
-      <Picker style={style}
-        selectedValue={this.state.value}
-        onValueChange={value => {
-          this.setState({value})
-          if (selectOnChange) {
-            this._selected()
-          }
-        }} >
-        {(this.props.options || []).map(o => (
-          <Picker.Item key={o} label={o} value={o} />
-        )).concat(this.props.onOther ? (
-          <Picker.Item key='otherItemValue' label={this._otherLabel()} value='' />) : []
-        )}
+      <Picker style={style} selectedValue={this.state.value} onValueChange={onValueChange}>
+        {items.map(i => <Picker.Item {...i}/>)}
       </Picker>
     )
   }
