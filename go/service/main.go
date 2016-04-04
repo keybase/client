@@ -178,7 +178,7 @@ func (d *Service) Run() (err error) {
 	d.checkTrackingEveryHour()
 
 	if gcErr := d.gregordConnect(); gcErr != nil {
-		d.G().Log.Warning("error connecting to gregord: %s", gcErr)
+		d.G().Log.Debug("error connecting to gregord: %s", gcErr)
 	}
 
 	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
