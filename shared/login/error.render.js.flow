@@ -2,3 +2,7 @@
 
 export default class ErrorRender extends React$Component<void, {currentPath: any}, void> {
 }
+
+import type {DumbMap} from '../more/dumb'
+
+export const Mocks = null
