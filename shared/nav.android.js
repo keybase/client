@@ -5,24 +5,19 @@ import {connect} from 'react-redux'
 import MetaNavigator from './router/meta-navigator'
 import globalRoutes from './router/global-routes'
 
-import Folders from './folders'
-import Chat from './chat'
-import People from './people'
 import Devices from './devices'
 import NoTab from './no-tab'
 import More from './more'
 import Login from './login'
 
-import {folderTab, chatTab, peopleTab, devicesTab, moreTab, loginTab, prettify} from './constants/tabs'
+import {devicesTab, moreTab, loginTab, prettify} from './constants/tabs'
 
 import {switchTab} from './actions/tabbed-router'
 import {navigateBack} from './actions/router'
 import {bootstrap} from './actions/config'
 
 const tabs = {
-  [folderTab]: Folders,
-  [chatTab]: Chat,
-  [peopleTab]: People,
+  [loginTab]: Login,
   [devicesTab]: Devices,
   [moreTab]: More
 }

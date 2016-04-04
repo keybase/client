@@ -723,6 +723,7 @@ export const images = {
   'invite-code-none-m': require('../images/icons/invite-code-none-m.png'),
   'keybase-update-pause': require('../images/icons/keybase-update-pause.png'),
   'keybase-update': require('../images/icons/keybase-update.png'),
+  'logo-160': require('../images/icons/logo-160.png'),
   'logo-128': require('../images/icons/logo-128.png'),
   'logo-16': require('../images/icons/logo-16.png'),
   'logo-24': require('../images/icons/logo-24.png'),
