@@ -248,7 +248,6 @@ func (d *Service) gregordConnectTLS(h *gregorHandler) error {
 	if len(rawCA) == 0 {
 		return fmt.Errorf("No bundled CA for %s", d.G().Env.GetGregorURI())
 	}
-	// 9 parameters???
 	d.gregorConn = rpc.NewTLSConnection(d.G().Env.GetGregorURI(), []byte(rawCA), nil, h, true, nil, nil, d.G().Log, nil)
 	return nil
 }
