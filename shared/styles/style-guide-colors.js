@@ -40,6 +40,8 @@ export default {
   black20: 'rgba(0, 0, 0, 0.20)',
   black10: 'rgba(0, 0, 0, 0.10)',
 
-  brown60: 'rgba(71, 31, 17, 0.6)'
+  brown60: 'rgba(71, 31, 17, 0.6)',
+
+  transparent: 'rgba(0, 0, 0, 0)'
 }
 
