@@ -15,6 +15,8 @@ here="$(dirname "$BASH_SOURCE")"
 client_dir="$(git -C "$here" rev-parse --show-toplevel)"
 serverops_dir="$client_dir/../server-ops"
 
+export BUCKET_NAME="${BUCKET_NAME:-prerelease.keybase.io}"
+
 # Clean the build dir.
 rm -rf "$build_dir"
 mkdir -p "$build_dir"
