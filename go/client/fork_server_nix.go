@@ -19,16 +19,11 @@ func spawnServer(g *libkb.GlobalContext, cl libkb.CommandLine, forkType keybase1
 	var files []uintptr
 	var cmd string
 	var args []string
-	var devnull, log *os.File
+	var devnull *os.File
 
 	defer func() {
-		if err != nil {
-			if devnull != nil {
-				devnull.Close()
-			}
-			if log != nil {
-				log.Close()
-			}
+		if err != nil && devnull != nil {
+			devnull.Close()
 		}
 	}()
 
