@@ -475,9 +475,14 @@ func (f JSONConfigFile) GetLogFormat() string {
 func (f JSONConfigFile) GetStandalone() (bool, bool) {
 	return f.GetTopLevelBool("standalone")
 }
+
 func (f JSONConfigFile) GetGregorURI() string {
 	s, _ := f.GetStringAtPath("gregor.uri")
 	return s
+}
+
+func (f JSONConfigFile) GetGregorUseTLS() (bool, bool) {
+	return f.GetBoolAtPath("gregor.tls")
 }
 
 func (f JSONConfigFile) getCacheSize(w string) (int, bool) {

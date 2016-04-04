@@ -69,6 +69,7 @@ func (n NullConfiguration) GetVDebugSetting() string                      { retu
 func (n NullConfiguration) GetLocalTrackMaxAge() (time.Duration, bool)    { return 0, false }
 func (n NullConfiguration) GetAppStartMode() AppStartMode                 { return AppStartModeDisabled }
 func (n NullConfiguration) GetGregorURI() string                          { return "" }
+func (n NullConfiguration) GetGregorUseTLS() (bool, bool)                 { return false, false }
 func (n NullConfiguration) IsAdmin() (bool, bool)                         { return false, false }
 
 func (n NullConfiguration) GetUserConfig() (*UserConfig, error) { return nil, nil }
@@ -460,6 +461,13 @@ func (e *Env) GetGregorURI() string {
 	return e.GetString(
 		func() string { return os.Getenv("GREGOR_URI") },
 		func() string { return e.config.GetGregorURI() },
+	)
+}
+
+func (e *Env) GetGregorUseTLS() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.getEnvBool("GREGOR_USE_TLS") },
+		func() (bool, bool) { return e.config.GetGregorUseTLS() },
 	)
 }
 

@@ -4,8 +4,8 @@
 package service
 
 import (
+	"fmt"
 	"io"
-	"io/ioutil"
 	"net"
 	"os"
 	"path"
@@ -234,14 +234,29 @@ func (d *Service) checkTrackingEveryHour() {
 }
 
 func (d *Service) gregordConnect() error {
-	h := newGregorHandler(d.G())
 	d.G().Log.Debug("gregor URI: %s", d.G().Env.GetGregorURI())
-	rootCert, err := ioutil.ReadFile(os.Getenv("GREGOR_ROOT_CERT"))
-	if err != nil {
-		return err
+	h := newGregorHandler(d.G())
+	if d.G().Env.GetGregorUseTLS() {
+		return d.gregordConnectTLS(h)
+	}
+	return d.gregordConnectNoTLS(h)
+}
+
+func (d *Service) gregordConnectTLS(h *gregorHandler) error {
+	d.G().Log.Debug("connecting to gregor via TLS")
+	rawCA := d.G().Env.GetBundledCA(d.G().Env.GetGregorURI())
+	if len(rawCA) == 0 {
+		return fmt.Errorf("No bundled CA for %s", d.G().Env.GetGregorURI())
 	}
 	// 9 parameters???
-	d.gregorConn = rpc.NewTLSConnection(d.G().Env.GetGregorURI(), rootCert, nil, h, true, nil, nil, d.G().Log, nil)
+	d.gregorConn = rpc.NewTLSConnection(d.G().Env.GetGregorURI(), []byte(rawCA), nil, h, true, nil, nil, d.G().Log, nil)
+	return nil
+}
+
+func (d *Service) gregordConnectNoTLS(h *gregorHandler) error {
+	d.G().Log.Debug("connecting to gregor without TLS")
+	t := newConnTransport(d.G())
+	d.gregorConn = rpc.NewConnectionWithTransport(h, t, nil, true, nil, d.G().Log, nil)
 	return nil
 }
 
