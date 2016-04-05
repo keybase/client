@@ -36,11 +36,6 @@ func makeExtraOrBust(prefix string, t *testing.T) extra {
 //
 // type myTypeCurrent MyType
 //
-// // Assumes MyType.deepCopyHelper(copyFields) exists.
-// func (m myTypeCurrent) deepCopyStruct(f copyFields) currentStruct {
-//   return myTypeCurrent(MyType(m).deepCopyHelper(f))
-// }
-//
 // type myTypeFuture struct {
 //   myTypeCurrent
 //   // Override myTypeCurrent.St.
@@ -78,11 +73,7 @@ func makeExtraOrBust(prefix string, t *testing.T) extra {
 
 // currentStruct is an interface for the current version of a struct
 // type.
-type currentStruct interface {
-	// deepCopyStruct returns a deep copy of the current object
-	// with or without its unknown fields.
-	deepCopyStruct(copyFields) currentStruct
-}
+type currentStruct interface{}
 
 // futureStruct is an interface for a hypothetical future version of a
 // struct type.
@@ -113,7 +104,10 @@ func testStructUnknownFields(t *testing.T, sFuture futureStruct) {
 	err = c.Decode(buf, &s2)
 	require.Nil(t, err)
 
-	knownS2 := s2.(currentStruct).deepCopyStruct(knownFieldsOnly)
+	cKnownOnly := newCodecMsgpackHelper(false)
+	knownS2 := reflect.Zero(reflect.TypeOf(s)).Interface()
+	err = cKnownOnly.Decode(buf, &knownS2)
+	require.Nil(t, err)
 
 	// Make sure known fields are the same.
 	require.Equal(t, s, knownS2)

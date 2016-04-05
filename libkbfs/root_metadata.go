@@ -1,8 +1,6 @@
 package libkbfs
 
 import (
-	"bytes"
-	"reflect"
 	"sort"
 	"strconv"
 	"time"
@@ -110,124 +108,14 @@ type WriterMetadata struct {
 	// The total number of bytes in unreferenced blocks
 	UnrefBytes uint64
 
-	// This has to be a pointer for omitempty to work. Also,
-	// maintain the invariant that Extra is either non-empty, or
-	// nil (i.e., not non-nil and the zero value).
-	//
-	// TODO: Figure out how to avoid the need for nil checks?
-	Extra *WriterMetadataExtra `codec:"x,omitempty"`
+	Extra WriterMetadataExtra `codec:"x,omitempty,omitemptycheckstruct"`
 }
 
 // WriterMetadataExtra stores more fields for WriterMetadata. (See
 // WriterMetadata comments as to why this type is needed.)
 type WriterMetadataExtra struct {
 	UnresolvedWriters []libkb.SocialAssertion `codec:"uw,omitempty"`
-	codec.UnknownFieldSet
-}
-
-// deepCopyHelper returns a deep copy of a WriterMetadata, with or
-// without unknown fields.
-func (wm WriterMetadata) deepCopyHelper(f copyFields) WriterMetadata {
-	wmCopy := wm
-	if wm.SerializedPrivateMetadata != nil {
-		wmCopy.SerializedPrivateMetadata =
-			make([]byte, len(wm.SerializedPrivateMetadata))
-		copy(wmCopy.SerializedPrivateMetadata,
-			wm.SerializedPrivateMetadata)
-	}
-	if wm.Writers != nil {
-		wmCopy.Writers = make([]keybase1.UID, len(wm.Writers))
-		copy(wmCopy.Writers, wm.Writers)
-	}
-	wmCopy.WKeys = wm.WKeys.deepCopyHelper(f)
-
-	// Maintain the invariant that Extra is either non-empty or
-	// nil.
-	wmCopy.Extra = nil
-	if wm.Extra != nil {
-		extraCopy := wm.Extra.deepCopyHelper(f)
-		if !extraCopy.isEmpty() {
-			wmCopy.Extra = &extraCopy
-		}
-	}
-	return wmCopy
-}
-
-// deepCopyHelper returns a deep copy of a WriterMetadataExtra, with or
-// without unknown fields.
-func (wme WriterMetadataExtra) deepCopyHelper(f copyFields) WriterMetadataExtra {
-	wmeCopy := wme
-	if wme.UnresolvedWriters != nil {
-		wmeCopy.UnresolvedWriters = make([]libkb.SocialAssertion, len(wme.UnresolvedWriters))
-		copy(wmeCopy.UnresolvedWriters, wme.UnresolvedWriters)
-	}
-	if f == allFields {
-		wmeCopy.UnknownFieldSet = wme.UnknownFieldSet.DeepCopy()
-	} else {
-		wmeCopy.UnknownFieldSet = codec.UnknownFieldSet{}
-	}
-	return wmeCopy
-}
-
-// Equals compares two sets of WriterMetadata and returns true if they match.
-//
-// This function is needed because reflect.DeepEqual() doesn't
-// consider nil slices and non-nil empty slices to be equal.
-func (wm WriterMetadata) Equals(rhs WriterMetadata) bool {
-	if wm.ID != rhs.ID {
-		return false
-	}
-	if wm.BID != rhs.BID {
-		return false
-	}
-	if wm.LastModifyingWriter != rhs.LastModifyingWriter {
-		return false
-	}
-	if wm.WFlags != rhs.WFlags {
-		return false
-	}
-	if wm.DiskUsage != rhs.DiskUsage {
-		return false
-	}
-	if wm.RefBytes != rhs.RefBytes {
-		return false
-	}
-	if wm.UnrefBytes != rhs.UnrefBytes {
-		return false
-	}
-	if !bytes.Equal(wm.SerializedPrivateMetadata, rhs.SerializedPrivateMetadata) {
-		return false
-	}
-	if len(wm.Writers) != len(rhs.Writers) {
-		return false
-	}
-	for i, w := range wm.Writers {
-		if rhs.Writers[i] != w {
-			return false
-		}
-	}
-	if !wm.WKeys.DeepEqual(rhs.WKeys) {
-		return false
-	}
-
-	if wm.Extra == nil {
-		return rhs.Extra == nil
-	}
-
-	return wm.Extra.Equals(*rhs.Extra)
-}
-
-// Equals compares two sets of WriterMetadataExtra and returns true if
-// they match.
-func (wme WriterMetadataExtra) Equals(rhs WriterMetadataExtra) bool {
-	// reflect.DeepEqual works with UnknownFieldSet, so this is
-	// ok.
-	return reflect.DeepEqual(wme, rhs)
-}
-
-func (wme WriterMetadataExtra) isEmpty() bool {
-	return len(wme.UnresolvedWriters) == 0 &&
-		reflect.DeepEqual(wme.UnknownFieldSet, codec.UnknownFieldSet{})
+	codec.UnknownFieldSetHandler
 }
 
 // RootMetadata is the MD that is signed by the reader or writer.
@@ -260,7 +148,7 @@ type RootMetadata struct {
 	// For private TLFs. Any unresolved social assertions for readers.
 	UnresolvedReaders []libkb.SocialAssertion `codec:"ur,omitempty"`
 
-	codec.UnknownFieldSet
+	codec.UnknownFieldSetHandler
 
 	// The plaintext, deserialized PrivateMetadata
 	data PrivateMetadata
@@ -268,70 +156,49 @@ type RootMetadata struct {
 	cachedTlfHandle *TlfHandle
 	// The cached ID for this MD structure (hash)
 	mdID MdID
-	// unverified is set if the MD update was signed by a key that is
-	// not associated with the relevant user, and we intentionally
-	// skipped failing MD verification.  The user in question could be
-	// either the LastModifyingUser or the LastModifyingWriter.
-	unverified bool
 }
 
-// deepCopyHelper returns a deep copy of a RootMetadata, with or
-// without unknown fields.
-func (md RootMetadata) deepCopyHelper(f copyFields) RootMetadata {
-	mdCopy := md
-	mdCopy.WriterMetadata = md.WriterMetadata.deepCopyHelper(f)
-	mdCopy.WriterMetadataSigInfo = md.WriterMetadataSigInfo.DeepCopy()
-	mdCopy.RKeys = md.RKeys.deepCopyHelper(f)
-	if md.UnresolvedReaders != nil {
-		mdCopy.UnresolvedReaders = make([]libkb.SocialAssertion, len(md.UnresolvedReaders))
-		copy(mdCopy.UnresolvedReaders, md.UnresolvedReaders)
-	}
-	if f == allFields {
-		mdCopy.UnknownFieldSet = md.UnknownFieldSet.DeepCopy()
-	} else {
-		mdCopy.UnknownFieldSet = codec.UnknownFieldSet{}
-	}
-	// TODO: Deep-copy PrivateMetadata, and also make it support
-	// unknown fields.
-	return mdCopy
-}
-
-// DeepCopy returns a deep copy of a RootMetadata.
-func (md RootMetadata) DeepCopy() RootMetadata {
-	return md.deepCopyHelper(allFields)
-}
-
-func (md RootMetadata) haveOnlyUserRKeysChanged(prevMD RootMetadata, user keybase1.UID) bool {
+func (md RootMetadata) haveOnlyUserRKeysChanged(config Config, prevMD RootMetadata, user keybase1.UID) (bool, error) {
 	// Require the same number of generations
 	if len(md.RKeys) != len(prevMD.RKeys) {
-		return false
+		return false, nil
 	}
 	for i, gen := range md.RKeys {
 		prevMDGen := prevMD.RKeys[i]
 		if len(gen.RKeys) != len(prevMDGen.RKeys) {
-			return false
+			return false, nil
 		}
 		for u, keys := range gen.RKeys {
 			if u != user {
 				prevKeys := prevMDGen.RKeys[u]
-				if !reflect.DeepEqual(keys, prevKeys) {
-					return false
+				keysEqual, err := CodecEqual(config.Codec(), keys, prevKeys)
+				if err != nil {
+					return false, err
+				}
+				if !keysEqual {
+					return false, nil
 				}
 			}
 		}
 	}
-	return true
+	return true, nil
 }
 
 // IsValidRekeyRequest returns true if the current block is a simple rekey wrt
 // the passed block.
-func (md RootMetadata) IsValidRekeyRequest(config Config, prevMd RootMetadata, user keybase1.UID) bool {
-	if md.IsWriterMetadataCopiedSet() &&
-		md.WriterMetadata.Equals(prevMd.WriterMetadata) &&
-		md.haveOnlyUserRKeysChanged(prevMd, user) {
-		return true
+func (md RootMetadata) IsValidRekeyRequest(config Config, prevMd RootMetadata, user keybase1.UID) (bool, error) {
+	writerEqual, err := CodecEqual(config.Codec(), md.WriterMetadata, prevMd.WriterMetadata)
+	if err != nil {
+		return false, err
 	}
-	return false
+	rkeysChanged, err := md.haveOnlyUserRKeysChanged(config, prevMd, user)
+	if err != nil {
+		return false, err
+	}
+	if md.IsWriterMetadataCopiedSet() && writerEqual && rkeysChanged {
+		return true, nil
+	}
+	return false, nil
 }
 
 // MergedStatus returns the status of this update -- has it been
@@ -438,11 +305,34 @@ func (md *RootMetadata) clearLastRevision() {
 	md.Flags &= ^MetadataFlagWriterMetadataCopied
 }
 
+func (md RootMetadata) deepCopy(codec Codec) (RootMetadata, error) {
+	var newMd RootMetadata
+	err := CodecUpdate(codec, &newMd, md)
+	if err != nil {
+		return RootMetadata{}, err
+	}
+	err = CodecUpdate(codec, &newMd.data, md.data)
+	if err != nil {
+		return RootMetadata{}, err
+	}
+	return newMd, nil
+}
+
+// DeepCopyForTest returns a complete copy of this RootMetadata for
+// testing. Non-test code should use MakeSuccessor() instead.
+func (md RootMetadata) DeepCopyForTest(codec Codec) (RootMetadata, error) {
+	return md.deepCopy(codec)
+}
+
 // MakeSuccessor returns a complete copy of this RootMetadata (but
 // with cleared block change lists and cleared serialized metadata),
 // with the revision incremented and a correct backpointer.
 func (md RootMetadata) MakeSuccessor(config Config, isWriter bool) (RootMetadata, error) {
-	newMd := md.DeepCopy()
+	newMd, err := md.deepCopy(config.Codec())
+	if err != nil {
+		return RootMetadata{}, err
+	}
+
 	if md.IsReadable() && isWriter {
 		newMd.clearLastRevision()
 		// clear the serialized data.

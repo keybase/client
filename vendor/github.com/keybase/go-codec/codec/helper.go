@@ -141,10 +141,6 @@ const (
 	// for common maps and slices, by by-passing reflection altogether.
 	fastpathEnabled = true
 
-	// if checkStructForEmptyValue, check structs fields to see if an empty value.
-	// This could be an expensive call, so possibly disable it.
-	checkStructForEmptyValue = false
-
 	// if derefForIsEmptyValue, deref pointers and interfaces when checking isEmptyValue
 	derefForIsEmptyValue = false
 
@@ -314,30 +310,9 @@ type Selfer interface {
 // An UnknownFieldSet holds information about unknown fields
 // encountered during decoding. The zero value is an empty
 // set.
-//
-// UnknownFieldSet implements UnknownFieldHandler, so you can just
-// embed it in a struct type and it will automatically preserve
-// unknown fields.
 type UnknownFieldSet struct {
 	// Map from field name to encoded value.
 	fields map[string][]byte
-}
-
-var _ UnknownFieldHandler = (*UnknownFieldSet)(nil)
-
-func (ufs *UnknownFieldSet) CodecSetUnknownFields(other UnknownFieldSet) {
-	*ufs = other
-}
-
-func (ufs UnknownFieldSet) CodecGetUnknownFields() UnknownFieldSet {
-	return ufs
-}
-
-// DeepCopy returns a deep copy of the receiver.
-func (ufs UnknownFieldSet) DeepCopy() UnknownFieldSet {
-	// UnknownFieldSet is externally immutable, so it's okay to
-	// just return the receiver.
-	return ufs
 }
 
 func (ufs *UnknownFieldSet) add(name string, encodedVal []byte) {
@@ -349,7 +324,9 @@ func (ufs *UnknownFieldSet) add(name string, encodedVal []byte) {
 		}
 	}
 	// In general, encodedVal is a slice into a buffer, so we need
-	// to store a copy.
+	// to store a copy. Consistently allocate a new slice even
+	// when encodedVal has length 0 so that reflect.DeepEquals
+	// works. (Consistently storing nil would also work.)
 	encodedValCopy := make([]byte, len(encodedVal))
 	copy(encodedValCopy, encodedVal)
 	ufs.fields[name] = encodedValCopy
@@ -366,6 +343,23 @@ type UnknownFieldHandler interface {
 	// encoding. Encoding must be done with the same handle type
 	// as what was used when decoding.
 	CodecGetUnknownFields() UnknownFieldSet
+}
+
+// UnknownFieldSetHandler is an implementation of UnknownFieldHandler
+// that uses an underlying UnknownFieldSet, so you can just embed it
+// in a struct type and it will automatically preserve unknown fields.
+type UnknownFieldSetHandler struct {
+	ufs UnknownFieldSet
+}
+
+var _ UnknownFieldHandler = (*UnknownFieldSetHandler)(nil)
+
+func (ufsh *UnknownFieldSetHandler) CodecSetUnknownFields(other UnknownFieldSet) {
+	ufsh.ufs = other
+}
+
+func (ufsh UnknownFieldSetHandler) CodecGetUnknownFields() UnknownFieldSet {
+	return ufsh.ufs
 }
 
 // MapBySlice represents a slice which should be encoded as a map in the stream.
@@ -651,10 +645,15 @@ type structFieldInfo struct {
 
 	// only one of 'i' or 'is' can be set. If 'i' is -1, then 'is' has been set.
 
-	is        []int // (recursive/embedded) field index in struct
-	i         int16 // field index in struct
+	is []int // (recursive/embedded) field index in struct
+	i  int16 // field index in struct
+
 	omitEmpty bool
-	toArray   bool // if field is _struct, is the toArray set?
+	// Only has an effect when omitEmpty is true. Whether or not
+	// the empty check should recursively check structs.
+	omitEmptyCheckStruct bool
+
+	toArray bool // if field is _struct, is the toArray set?
 }
 
 // func (si *structFieldInfo) isZero() bool {
@@ -722,6 +721,8 @@ func parseStructFieldInfo(fname string, stag string) *structFieldInfo {
 			} else {
 				if s == "omitempty" {
 					si.omitEmpty = true
+				} else if s == "omitemptycheckstruct" {
+					si.omitEmptyCheckStruct = true
 				} else if s == "toarray" {
 					si.toArray = true
 				}
@@ -1046,6 +1047,9 @@ LOOP:
 		if siInfo != nil {
 			if siInfo.omitEmpty {
 				si.omitEmpty = true
+			}
+			if siInfo.omitEmptyCheckStruct {
+				si.omitEmptyCheckStruct = true
 			}
 		}
 		pv.sfis = append(pv.sfis, si)

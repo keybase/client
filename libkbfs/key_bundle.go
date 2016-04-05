@@ -1,8 +1,6 @@
 package libkbfs
 
 import (
-	"reflect"
-
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/go-codec/codec"
 )
@@ -18,11 +16,6 @@ type TLFCryptKeyServerHalfID struct {
 	ID HMAC // Exported for serialization.
 }
 
-// DeepCopy returns a complete copy of a TLFCryptKeyServerHalfID.
-func (id TLFCryptKeyServerHalfID) DeepCopy() TLFCryptKeyServerHalfID {
-	return id
-}
-
 // String implements the Stringer interface for TLFCryptKeyServerHalfID.
 func (id TLFCryptKeyServerHalfID) String() string {
 	return id.ID.String()
@@ -35,7 +28,7 @@ type TLFCryptKeyInfo struct {
 	ServerHalfID TLFCryptKeyServerHalfID
 	EPubKeyIndex int `codec:"i,omitempty"`
 
-	codec.UnknownFieldSet
+	codec.UnknownFieldSetHandler
 }
 
 type copyFields int
@@ -45,44 +38,10 @@ const (
 	knownFieldsOnly
 )
 
-// deepCopyHelper returns a deep copy of a TLFCryptKeyInfo, with or
-// without unknown fields.
-func (info TLFCryptKeyInfo) deepCopyHelper(f copyFields) TLFCryptKeyInfo {
-	infoCopy := TLFCryptKeyInfo{
-		ClientHalf:   info.ClientHalf.DeepCopy(),
-		ServerHalfID: info.ServerHalfID.DeepCopy(),
-		EPubKeyIndex: info.EPubKeyIndex,
-	}
-	if f == allFields {
-		infoCopy.UnknownFieldSet = info.UnknownFieldSet.DeepCopy()
-	}
-	return infoCopy
-}
-
-// DeepCopy returns a complete copy of a TLFCryptKeyInfo.
-func (info TLFCryptKeyInfo) DeepCopy() TLFCryptKeyInfo {
-	return info.deepCopyHelper(allFields)
-}
-
 // DeviceKeyInfoMap is a map from a user devices (identified by the
 // KID of the corresponding device CryptPublicKey) to the
 // TLF's symmetric secret key information.
 type DeviceKeyInfoMap map[keybase1.KID]TLFCryptKeyInfo
-
-// deepCopyHelper returns a deep copy of a DeviceKeyInfoMap, with or
-// without unknown fields.
-func (kim DeviceKeyInfoMap) deepCopyHelper(f copyFields) DeviceKeyInfoMap {
-	kimCopy := DeviceKeyInfoMap{}
-	for k, b := range kim {
-		kimCopy[k] = b.deepCopyHelper(f)
-	}
-	return kimCopy
-}
-
-// DeepCopy returns a complete copy of a DeviceKeyInfoMap
-func (kim DeviceKeyInfoMap) DeepCopy() DeviceKeyInfoMap {
-	return kim.deepCopyHelper(allFields)
-}
 
 func (kim DeviceKeyInfoMap) fillInDeviceInfo(crypto Crypto,
 	uid keybase1.UID, tlfCryptKey TLFCryptKey,
@@ -151,21 +110,6 @@ func (kim DeviceKeyInfoMap) GetKIDs() []keybase1.KID {
 // UserDeviceKeyInfoMap maps a user's keybase UID to their DeviceKeyInfoMap
 type UserDeviceKeyInfoMap map[keybase1.UID]DeviceKeyInfoMap
 
-// deepCopyHelper returns a deep copy of a UserDeviceKeyInfoMap, with
-// or without unknown fields.
-func (ukim UserDeviceKeyInfoMap) deepCopyHelper(f copyFields) UserDeviceKeyInfoMap {
-	ukimCopy := make(UserDeviceKeyInfoMap, len(ukim))
-	for u, m := range ukim {
-		ukimCopy[u] = m.deepCopyHelper(f)
-	}
-	return ukimCopy
-}
-
-// DeepCopy returns a complete copy of this UserDeviceKeyInfoMap
-func (ukim UserDeviceKeyInfoMap) DeepCopy() UserDeviceKeyInfoMap {
-	return ukim.deepCopyHelper(allFields)
-}
-
 // TLFWriterKeyBundle is a bundle of all the writer keys for a top-level
 // folder.
 type TLFWriterKeyBundle struct {
@@ -184,31 +128,7 @@ type TLFWriterKeyBundle struct {
 	// its TLFCryptoKeyInfo struct.
 	TLFEphemeralPublicKeys TLFEphemeralPublicKeys `codec:"ePubKey"`
 
-	codec.UnknownFieldSet
-}
-
-// DeepEqual returns true if two TLFWriterKeyBundles are equal.
-func (tkb TLFWriterKeyBundle) DeepEqual(rhs TLFWriterKeyBundle) bool {
-	return reflect.DeepEqual(tkb, rhs)
-}
-
-// deepCopyHelper returns a deep copy of a TLFWriterKeyBundle, with or
-// without unknown fields.
-func (tkb *TLFWriterKeyBundle) deepCopyHelper(f copyFields) *TLFWriterKeyBundle {
-	tkbCopy := &TLFWriterKeyBundle{
-		WKeys:                  tkb.WKeys.deepCopyHelper(f),
-		TLFPublicKey:           tkb.TLFPublicKey,
-		TLFEphemeralPublicKeys: tkb.TLFEphemeralPublicKeys.DeepCopy(),
-	}
-	if f == allFields {
-		tkbCopy.UnknownFieldSet = tkb.UnknownFieldSet.DeepCopy()
-	}
-	return tkbCopy
-}
-
-// DeepCopy returns a complete copy of this TLFWriterKeyBundle.
-func (tkb *TLFWriterKeyBundle) DeepCopy() *TLFWriterKeyBundle {
-	return tkb.deepCopyHelper(allFields)
+	codec.UnknownFieldSetHandler
 }
 
 // IsWriter returns true if the given user device is in the writer set.
@@ -220,34 +140,6 @@ func (tkb TLFWriterKeyBundle) IsWriter(user keybase1.UID, deviceKID keybase1.KID
 // TLFWriterKeyGenerations stores a slice of TLFWriterKeyBundle,
 // where the last element is the current generation.
 type TLFWriterKeyGenerations []*TLFWriterKeyBundle
-
-// DeepEqual returns true if two sets of key generations are equal.
-func (tkg TLFWriterKeyGenerations) DeepEqual(rhs TLFWriterKeyGenerations) bool {
-	if len(tkg) != len(rhs) {
-		return false
-	}
-	for i, k := range tkg {
-		if !rhs[i].DeepEqual(*k) {
-			return false
-		}
-	}
-	return true
-}
-
-// deepCopyHelper returns a deep copy of a TLFWriterKeyGenerations, with or
-// without unknown fields.
-func (tkg TLFWriterKeyGenerations) deepCopyHelper(f copyFields) TLFWriterKeyGenerations {
-	keys := make(TLFWriterKeyGenerations, len(tkg))
-	for i, k := range tkg {
-		keys[i] = k.deepCopyHelper(f)
-	}
-	return keys
-}
-
-// DeepCopy returns a complete copy of this TLFKeyGenerations.
-func (tkg TLFWriterKeyGenerations) DeepCopy() TLFWriterKeyGenerations {
-	return tkg.deepCopyHelper(allFields)
-}
 
 // LatestKeyGeneration returns the current key generation for this TLF.
 func (tkg TLFWriterKeyGenerations) LatestKeyGeneration() KeyGen {
@@ -280,30 +172,7 @@ type TLFReaderKeyBundle struct {
 	// metadata.
 	TLFReaderEphemeralPublicKeys TLFEphemeralPublicKeys `codec:"readerEPubKey,omitempty"`
 
-	codec.UnknownFieldSet
-}
-
-// DeepEqual returns true if two TLFReaderKeyBundles are equal.
-func (trb TLFReaderKeyBundle) DeepEqual(rhs TLFReaderKeyBundle) bool {
-	return reflect.DeepEqual(trb, rhs)
-}
-
-// deepCopyHelper returns a deep copy of a TLFReaderKeyBundle, with or
-// without unknown fields.
-func (trb *TLFReaderKeyBundle) deepCopyHelper(f copyFields) *TLFReaderKeyBundle {
-	trbCopy := &TLFReaderKeyBundle{
-		RKeys: trb.RKeys.deepCopyHelper(f),
-		TLFReaderEphemeralPublicKeys: trb.TLFReaderEphemeralPublicKeys.DeepCopy(),
-	}
-	if f == allFields {
-		trbCopy.UnknownFieldSet = trb.UnknownFieldSet.DeepCopy()
-	}
-	return trbCopy
-}
-
-// DeepCopy returns a complete copy of this TLFReaderKeyBundle.
-func (trb *TLFReaderKeyBundle) DeepCopy() *TLFReaderKeyBundle {
-	return trb.deepCopyHelper(allFields)
+	codec.UnknownFieldSetHandler
 }
 
 // IsReader returns true if the given user device is in the reader set.
@@ -316,37 +185,9 @@ func (trb TLFReaderKeyBundle) IsReader(user keybase1.UID, deviceKID keybase1.KID
 // where the last element is the current generation.
 type TLFReaderKeyGenerations []*TLFReaderKeyBundle
 
-// DeepEqual returns true if two sets of key generations are equal.
-func (tkg TLFReaderKeyGenerations) DeepEqual(rhs TLFReaderKeyGenerations) bool {
-	if len(tkg) != len(rhs) {
-		return false
-	}
-	for i, k := range tkg {
-		if !rhs[i].DeepEqual(*k) {
-			return false
-		}
-	}
-	return true
-}
-
 // LatestKeyGeneration returns the current key generation for this TLF.
 func (tkg TLFReaderKeyGenerations) LatestKeyGeneration() KeyGen {
 	return KeyGen(len(tkg))
-}
-
-// deepCopyHelper returns a deep copy of a TLFReaderKeyGenerations, with or
-// without unknown fields.
-func (tkg TLFReaderKeyGenerations) deepCopyHelper(f copyFields) TLFReaderKeyGenerations {
-	keys := make(TLFReaderKeyGenerations, len(tkg))
-	for i, k := range tkg {
-		keys[i] = k.deepCopyHelper(f)
-	}
-	return keys
-}
-
-// DeepCopy returns a complete copy of this TLFKeyGenerations.
-func (tkg TLFReaderKeyGenerations) DeepCopy() TLFReaderKeyGenerations {
-	return tkg.deepCopyHelper(allFields)
 }
 
 // IsReader returns whether or not the user+device is an authorized reader
@@ -375,14 +216,6 @@ func NewTLFKeyBundle() *TLFKeyBundle {
 		&TLFReaderKeyBundle{
 			RKeys: make(UserDeviceKeyInfoMap, 0),
 		},
-	}
-}
-
-// DeepCopy returns a complete copy of this TLFKeyBundle.
-func (tkb TLFKeyBundle) DeepCopy() TLFKeyBundle {
-	return TLFKeyBundle{
-		TLFWriterKeyBundle: tkb.TLFWriterKeyBundle.DeepCopy(),
-		TLFReaderKeyBundle: tkb.TLFReaderKeyBundle.DeepCopy(),
 	}
 }
 

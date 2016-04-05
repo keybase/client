@@ -42,6 +42,10 @@ func (id TlfID) String() string {
 
 // MarshalBinary implements the encoding.BinaryMarshaler interface for TlfID.
 func (id TlfID) MarshalBinary() (data []byte, err error) {
+	suffix := id.id[TlfIDByteLen-1]
+	if suffix != TlfIDSuffix && suffix != PubTlfIDSuffix {
+		return nil, errors.New("invalid TlfID")
+	}
 	return id.id[:], nil
 }
 

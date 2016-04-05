@@ -62,6 +62,7 @@ func kbfsOpsInit(t *testing.T, changeMd bool) (mockCtrl *gomock.Controller,
 	ctr := NewSafeTestReporter(t)
 	mockCtrl = gomock.NewController(ctr)
 	config = NewConfigMock(mockCtrl, ctr)
+	config.SetCodec(NewCodecMsgpack())
 	blockops := &CheckBlockOps{config.mockBops, ctr}
 	config.SetBlockOps(blockops)
 	kbfsops := NewKBFSOpsStandard(config)
@@ -976,11 +977,6 @@ func expectSyncBlockHelper(
 	// By convention for these tests, the old blocks along the path
 	// all have EncodedSize == 1.
 	unrefBytes += uint64(len(p.path) * 1)
-
-	// This is for the calls made to CheckForKnownPtr.
-	encodedBlock := []byte{0}
-	config.mockCodec.EXPECT().Encode(gomock.Any()).AnyTimes().
-		Return(encodedBlock, nil)
 
 	lastID := p.tailPointer().ID
 	for i := len(newPath.path) - 1; i >= skipSync; i-- {

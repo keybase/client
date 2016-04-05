@@ -114,8 +114,17 @@ type DecodeOptions struct {
 	// Instead, we provision up to MaxInitLen, fill that up, and start appending after that.
 	MaxInitLen int
 
-	// If ErrorIfNoField, return an error when decoding a map
-	// from a codec stream into a struct, and no matching struct field is found.
+	// If DecodeUnknownFields, then when decoding a map from a
+	// codec stream into a struct implementing
+	// UnknownFieldHandler, and no matching struct field is found,
+	// keep track of the unknown fields and pass them into
+	// CodecSetUnknownFields().
+	DecodeUnknownFields bool
+
+	// If ErrorIfNoField, return an error when decoding a map from
+	// a codec stream into a struct, no matching struct field is
+	// found, and either DecodeUnknownFields is not set or the
+	// struct doesn't implement UnknownFieldHandler.
 	ErrorIfNoField bool
 
 	// If ErrorIfNoArrayExpand, return an error when decoding a slice/array that cannot be expanded.
@@ -710,7 +719,7 @@ func (f *decFnInfo) kStruct(rv reflect.Value) {
 
 	var ufh UnknownFieldHandler
 	var ufs UnknownFieldSet
-	if fti.ufh {
+	if d.h.DecodeUnknownFields && fti.ufh {
 		ufh = f.getValueForUnmarshalInterface(rv, fti.ufhIndir).(UnknownFieldHandler)
 		if ctyp != valueTypeMap {
 			f.d.error(unknownFieldHandlerOnlyWithMapErr)

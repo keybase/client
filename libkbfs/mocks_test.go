@@ -8,7 +8,6 @@ import (
 	libkb "github.com/keybase/client/go/libkb"
 	logger "github.com/keybase/client/go/logger"
 	protocol "github.com/keybase/client/go/protocol"
-	go_framed_msgpack_rpc "github.com/keybase/go-framed-msgpack-rpc"
 	go_metrics "github.com/rcrowley/go-metrics"
 	context "golang.org/x/net/context"
 	reflect "reflect"
@@ -2920,64 +2919,6 @@ func (_m *MockNodeCache) PathFromNode(node Node) path {
 
 func (_mr *_MockNodeCacheRecorder) PathFromNode(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PathFromNode", arg0)
-}
-
-// Mock of ConnectionTransport interface
-type MockConnectionTransport struct {
-	ctrl     *gomock.Controller
-	recorder *_MockConnectionTransportRecorder
-}
-
-// Recorder for MockConnectionTransport (not exported)
-type _MockConnectionTransportRecorder struct {
-	mock *MockConnectionTransport
-}
-
-func NewMockConnectionTransport(ctrl *gomock.Controller) *MockConnectionTransport {
-	mock := &MockConnectionTransport{ctrl: ctrl}
-	mock.recorder = &_MockConnectionTransportRecorder{mock}
-	return mock
-}
-
-func (_m *MockConnectionTransport) EXPECT() *_MockConnectionTransportRecorder {
-	return _m.recorder
-}
-
-func (_m *MockConnectionTransport) Dial(ctx context.Context) (go_framed_msgpack_rpc.Transporter, error) {
-	ret := _m.ctrl.Call(_m, "Dial", ctx)
-	ret0, _ := ret[0].(go_framed_msgpack_rpc.Transporter)
-	ret1, _ := ret[1].(error)
-	return ret0, ret1
-}
-
-func (_mr *_MockConnectionTransportRecorder) Dial(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Dial", arg0)
-}
-
-func (_m *MockConnectionTransport) IsConnected() bool {
-	ret := _m.ctrl.Call(_m, "IsConnected")
-	ret0, _ := ret[0].(bool)
-	return ret0
-}
-
-func (_mr *_MockConnectionTransportRecorder) IsConnected() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsConnected")
-}
-
-func (_m *MockConnectionTransport) Finalize() {
-	_m.ctrl.Call(_m, "Finalize")
-}
-
-func (_mr *_MockConnectionTransportRecorder) Finalize() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Finalize")
-}
-
-func (_m *MockConnectionTransport) Close() {
-	_m.ctrl.Call(_m, "Close")
-}
-
-func (_mr *_MockConnectionTransportRecorder) Close() *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Close")
 }
 
 // Mock of crAction interface

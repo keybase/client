@@ -4,6 +4,7 @@ import (
 	"sort"
 	"testing"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol"
 	"github.com/keybase/go-codec/codec"
 	"github.com/stretchr/testify/require"
@@ -118,12 +119,20 @@ func TestWriterMetadataUnchangedEncoding(t *testing.T) {
 
 // Test that WriterMetadata has only a fixed (frozen) set of fields.
 func TestWriterMetadataEncodedFields(t *testing.T) {
+	sa1, _ := libkb.NormalizeSocialAssertion("uid1@twitter")
+	sa2, _ := libkb.NormalizeSocialAssertion("uid2@twitter")
 	// Usually exactly one of Writers/WKeys is filled in, but we
 	// fill in both here for testing.
 	wm := WriterMetadata{
+		ID:      FakeTlfID(0xa, false),
 		Writers: []keybase1.UID{"uid1", "uid2"},
 		WKeys:   TLFWriterKeyGenerations{nil},
-		Extra:   &WriterMetadataExtra{},
+		Extra: WriterMetadataExtra{
+			UnresolvedWriters: []libkb.SocialAssertion{
+				sa1,
+				sa2,
+			},
+		},
 	}
 
 	c := NewCodecMsgpack()
@@ -159,10 +168,6 @@ func TestWriterMetadataEncodedFields(t *testing.T) {
 
 type writerMetadataCurrent WriterMetadata
 
-func (wm writerMetadataCurrent) deepCopyStruct(f copyFields) currentStruct {
-	return writerMetadataCurrent(WriterMetadata(wm).deepCopyHelper(f))
-}
-
 type writerMetadataExtraFuture struct {
 	WriterMetadataExtra
 	extra
@@ -188,23 +193,13 @@ type writerMetadataFuture struct {
 	// Override WriterMetadata.WKeys.
 	WKeys tlfWriterKeyGenerationsFuture
 	// Override WriterMetadata.Extra.
-	Extra *writerMetadataExtraFuture `codec:"x,omitempty"`
+	Extra writerMetadataExtraFuture `codec:"x,omitempty,omitemptycheckstruct"`
 }
 
 func (wmf writerMetadataFuture) toCurrent() writerMetadataCurrent {
 	wm := wmf.writerMetadataCurrent
 	wm.WKeys = wmf.WKeys.toCurrent()
-	// Maintain the invariant that Extra is either non-empty or
-	// nil.
-	//
-	// TODO: Once we add fields to Extra, we'll have to change
-	// this to:
-	//
-	// if wmf.Extra != nil {
-	//   x := wmf.Extra.toCurrent()
-	//   wm.Extra = &x
-	// }
-	wm.Extra = nil
+	wm.Extra = wmf.Extra.toCurrent()
 	return wm
 }
 
@@ -227,19 +222,19 @@ func makeFakeWriterMetadataFuture(t *testing.T) writerMetadataFuture {
 		100,
 		99,
 		101,
-		nil,
+		WriterMetadataExtra{},
 	}
 	wkb := makeFakeTLFWriterKeyBundleFuture(t)
 	return writerMetadataFuture{
 		wmd,
 		tlfWriterKeyGenerationsFuture{&wkb},
-		&writerMetadataExtraFuture{
+		writerMetadataExtraFuture{
 			WriterMetadataExtra{
 				// This needs to be list format so it fails to compile if new
 				// fields are added, effectively checking at compile time
 				// whether new fields have been added
 				nil,
-				codec.UnknownFieldSet{},
+				codec.UnknownFieldSetHandler{},
 			},
 			makeExtraOrBust("WriterMetadata", t),
 		},
@@ -251,10 +246,6 @@ func TestWriterMetadataUnknownFields(t *testing.T) {
 }
 
 type rootMetadataCurrent RootMetadata
-
-func (rm rootMetadataCurrent) deepCopyStruct(f copyFields) currentStruct {
-	return rootMetadataCurrent(RootMetadata(rm).deepCopyHelper(f))
-}
 
 type tlfReaderKeyGenerationsFuture []*tlfReaderKeyBundleFuture
 
@@ -322,11 +313,10 @@ func makeFakeRootMetadataFuture(t *testing.T) rootMetadataFuture {
 				MdID{h},
 				nil,
 				nil,
-				codec.UnknownFieldSet{},
+				codec.UnknownFieldSetHandler{},
 				PrivateMetadata{},
 				nil,
 				MdID{},
-				false,
 			},
 		},
 		[]*tlfReaderKeyBundleFuture{&rkb},

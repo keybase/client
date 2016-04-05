@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"bytes"
 	"fmt"
 	"reflect"
 
@@ -125,17 +126,25 @@ type CodecMsgpack struct {
 
 // NewCodecMsgpack constructs a new CodecMsgpack.
 func NewCodecMsgpack() *CodecMsgpack {
-	handle := &codec.MsgpackHandle{}
+	return newCodecMsgpackHelper(true)
+}
+
+// newCodecMsgpackHelper constructs a new CodecMsgpack that may or may
+// not handle unknown fields.
+func newCodecMsgpackHelper(handleUnknownFields bool) *CodecMsgpack {
+	handle := codec.MsgpackHandle{}
 	handle.Canonical = true
 	handle.WriteExt = true
+	handle.DecodeUnknownFields = handleUnknownFields
+	handle.EncodeUnknownFields = handleUnknownFields
 
 	// save a codec that doesn't write extensions, so that we can just
 	// call Encode/Decode when we want to (de)serialize extension
 	// types.
-	handleNoExt := &codec.MsgpackHandle{}
-	handleNoExt.Canonical = true
-	extCodec := &CodecMsgpack{handleNoExt, nil}
-	return &CodecMsgpack{handle, extCodec}
+	handleNoExt := handle
+	handleNoExt.WriteExt = false
+	extCodec := &CodecMsgpack{&handleNoExt, nil}
+	return &CodecMsgpack{&handle, extCodec}
 }
 
 // Decode implements the Codec interface for CodecMsgpack
@@ -159,4 +168,32 @@ func (c *CodecMsgpack) RegisterType(rt reflect.Type, code extCode) {
 func (c *CodecMsgpack) RegisterIfaceSliceType(rt reflect.Type, code extCode,
 	typer func(interface{}) reflect.Value) {
 	c.h.(*codec.MsgpackHandle).SetExt(rt, uint64(code), extSlice{c, typer})
+}
+
+// CodecEqual returns whether or not the given objects serialize to
+// the same byte string.
+func CodecEqual(c Codec, x, y interface{}) (bool, error) {
+	xBuf, err := c.Encode(x)
+	if err != nil {
+		return false, err
+	}
+	yBuf, err := c.Encode(y)
+	if err != nil {
+		return false, err
+	}
+	return bytes.Equal(xBuf, yBuf), nil
+}
+
+// CodecUpdate encodes src into a byte string, and then decode it into
+// dst.
+func CodecUpdate(c Codec, dst interface{}, src interface{}) error {
+	buf, err := c.Encode(src)
+	if err != nil {
+		return err
+	}
+	err = c.Decode(buf, dst)
+	if err != nil {
+		return err
+	}
+	return nil
 }

@@ -11,10 +11,6 @@ import (
 
 type tlfCryptKeyInfoCurrent TLFCryptKeyInfo
 
-func (cki tlfCryptKeyInfoCurrent) deepCopyStruct(f copyFields) currentStruct {
-	return tlfCryptKeyInfoCurrent(TLFCryptKeyInfo(cki).deepCopyHelper(f))
-}
-
 type tlfCryptKeyInfoFuture struct {
 	tlfCryptKeyInfoCurrent
 	extra
@@ -39,7 +35,7 @@ func makeFakeTLFCryptKeyInfoFuture(t *testing.T) tlfCryptKeyInfoFuture {
 		},
 		TLFCryptKeyServerHalfID{hmac},
 		5,
-		codec.UnknownFieldSet{},
+		codec.UnknownFieldSetHandler{},
 	}
 	return tlfCryptKeyInfoFuture{
 		cki,
@@ -190,11 +186,6 @@ func TestKeyBundleFillInDevices(t *testing.T) {
 
 type tlfWriterKeyBundleCurrent TLFWriterKeyBundle
 
-func (wkb tlfWriterKeyBundleCurrent) deepCopyStruct(f copyFields) currentStruct {
-	t := (*TLFWriterKeyBundle)(&wkb)
-	return tlfWriterKeyBundleCurrent(*t.deepCopyHelper(f))
-}
-
 type deviceKeyInfoMapFuture map[keybase1.KID]tlfCryptKeyInfoFuture
 
 func (dkimf deviceKeyInfoMapFuture) toCurrent() DeviceKeyInfoMap {
@@ -249,7 +240,7 @@ func makeFakeTLFWriterKeyBundleFuture(t *testing.T) tlfWriterKeyBundleFuture {
 		TLFEphemeralPublicKeys{
 			MakeTLFEphemeralPublicKey([32]byte{0xb}),
 		},
-		codec.UnknownFieldSet{},
+		codec.UnknownFieldSetHandler{},
 	}
 	return tlfWriterKeyBundleFuture{
 		wkb,
@@ -263,11 +254,6 @@ func TestTLFWriterKeyBundleUnknownFields(t *testing.T) {
 }
 
 type tlfReaderKeyBundleCurrent TLFReaderKeyBundle
-
-func (rkb tlfReaderKeyBundleCurrent) deepCopyStruct(f copyFields) currentStruct {
-	t := (*TLFReaderKeyBundle)(&rkb)
-	return tlfReaderKeyBundleCurrent(*t.deepCopyHelper(f))
-}
 
 type tlfReaderKeyBundleFuture struct {
 	tlfReaderKeyBundleCurrent
@@ -292,7 +278,7 @@ func makeFakeTLFReaderKeyBundleFuture(t *testing.T) tlfReaderKeyBundleFuture {
 		TLFEphemeralPublicKeys{
 			MakeTLFEphemeralPublicKey([32]byte{0xc}),
 		},
-		codec.UnknownFieldSet{},
+		codec.UnknownFieldSetHandler{},
 	}
 	return tlfReaderKeyBundleFuture{
 		rkb,
