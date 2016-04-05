@@ -10,7 +10,7 @@ go install github.com/keybase/release
 set release_bin=%GOPATH%\bin\windows_386\release.exe
 
 echo "Creating index files"
-%release_bin% index-html --bucket-name=%BUCKET_NAME% --prefixes="darwin/,linux_binaries/deb/,linux_binaries/rpm/,windows/" --upload=index.html
+%release_bin% index-html --bucket-name=%BUCKET_NAME% --prefixes="windows/" --upload="windows/index.html"
 
 echo "Linking latest"
 %release_bin% latest --bucket-name=%BUCKET_NAME% --platform=windows
