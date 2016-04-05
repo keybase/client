@@ -4,7 +4,7 @@ import {Switch} from 'react-native'
 import {ScrollView} from 'react-native'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import Container from './dev-container.native'
-import {Dropdown, Checkbox, Button, Box, Text, Terminal, Icon} from '../common-adapters'
+import {Dropdown, Checkbox, Button, Box, Text, Terminal, Icon, Input, FormWithCheckbox} from '../common-adapters'
 
 const Space = () => <Box style={{height: 20, width: 20}}/>
 
@@ -17,6 +17,32 @@ const Row = ({children}) => (
 const onClick = () => {
   console.log('clicked')
 }
+
+const Inputs = () => (
+  <Box style={{...globalStyles.flexBoxColumn, padding: 10}}>
+    <Row>
+      <Input hintText='Username' floatingLabelText='Username'/>
+    </Row>
+    <Row>
+      <Input hintText='Username' floatingLabelText='Username' errorText='No such User, who dis?'/>
+    </Row>
+    <Row>
+      <Input value='TyrannosaurusRex' hintText='Username' floatingLabelText='Username'/>
+    </Row>
+
+    <Row>
+      <Input type='password' hintText='Secure Passphrase Input' floatingLabelText='Passphrase'/>
+    </Row>
+
+    <FormWithCheckbox
+      inputProps={{floatingLabelText: 'Passphrase', type: 'password', hintText: 'Passphrase', errorText: 'Error Message'}}
+      checkboxesProps={[
+        {label: 'Save in Keychain', checked: true, onCheck: () => {}},
+        {label: 'Show Typing', checked: true, onCheck: () => {}}
+      ]}
+    />
+  </Box>
+)
 
 const Buttons = () => (
   <Box style={{...globalStyles.flexBoxColumn, padding: 10}}>
@@ -195,10 +221,6 @@ const Icons = () => (
   </Box>
 )
 
-const Inputs = () => (
-  <Text type='Header'>TODO</Text>
-)
-
 const Checkboxes = ({check, flip}) => {
   return (
     <Box>
@@ -246,8 +268,10 @@ export default class Render extends Component {
           userIdx={this.state.userIdx}
           optionIdx={this.state.optionIdx}
         /></Container>
+        <Container title='Inputs'><Inputs/></Container>
         <Container title='Checkboxes'><Checkboxes flip={idx => this.flip(idx)} check={this.state.check}/></Container>
         <Container title='Icons'><Icons/></Container>
+        <Container title='Inputs'><Inputs/></Container>
         <Container title='Buttons'><Buttons/></Container>
         <Container title='Text'><Fonts/></Container>
         <Container title='Colors'><Colors/></Container>
