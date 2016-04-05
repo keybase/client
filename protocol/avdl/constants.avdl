@@ -56,12 +56,12 @@ protocol constants {
     SCBadKexPhrase_1704,
     SCNoUIDelegation_1705,
     SCNoUI_1706,
+    SCGPGUnavailable_1707,
     SCInvalidVersionError_1800,
     SCOldVersionError_1801,
     SCInvalidLocationError_1802,
     SCServiceStatusError_1803,
-    SCInstallError_1804,
-    SCGPGUnavailable_2001
+    SCInstallError_1804
   }
 
 }
