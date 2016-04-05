@@ -2,18 +2,10 @@
 environment:
   global:
     GOPATH: c:\work\
-    GO15VENDOREXPERIMENT: 1
     KEYBASE_SERVER_URI: https://ci1.keybase.io
-    GOVERSION: 1.5.3
 # clone directory
 clone_folder: c:\work\src\github.com\keybase\client
   
-install:
-  - appveyor DownloadFile https://storage.googleapis.com/golang/go%GOVERSION%.windows-amd64.zip
-  - ps: rmdir C:\go -Force -Recurse -Confirm:$false
-  - 7z x go%GOVERSION%.windows-amd64.zip -o"C:\" -y > nul
-  - set Path=c:\go\bin;%Path%  
-
 #---------------------------------#
 #       build configuration       #
 #---------------------------------#
@@ -29,6 +21,7 @@ after_build:
 
 # to run your custom scripts instead of automatic MSBuild
 build_script:
+  - go version
   - cd go\keybase
   - go build
 
