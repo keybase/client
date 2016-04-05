@@ -6,6 +6,7 @@ machine:
   environment:
     GOPATH: $HOME/go-path
     PATH: $GOROOT/bin:$PATH
+    GO15VENDOREXPERIMENT: 1
     # Limit memory usage of gradle
     _JAVA_OPTIONS: "-Xms512m -Xmx1024m"
     GRADLE_OPTS: '-Dorg.gradle.jvmargs="-Xmx1024m -XX:+HeapDumpOnOutOfMemoryError"'
