@@ -29,12 +29,16 @@ class Render extends Component {
             <Box style={styleBox}>
               <Text type='Header' style={{marginBottom: 5}}>{key}</Text>
               {Object.keys(map.mocks).map((mockKey, idx) => {
-                console.log(map.mocks[mockKey])
-                console.log(Component)
+                const mock = {...map.mocks[mockKey]}
+                const parentProps = mock.parentProps
+                mock.parentProps = undefined
+
                 return (
                   <Box style={styleBox}>
                     <Text type='Body' style={{marginBottom: 5}}>{mockKey}</Text>
-                    <Component key={mockKey} {...map.mocks[mockKey]} />
+                    <Box {...parentProps}>
+                      <Component key={mockKey} {...mock} />
+                    </Box>
                   </Box>
                   )
               })}
