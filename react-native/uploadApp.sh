@@ -43,6 +43,7 @@ fi
 
 aws s3 cp $PLATFORM_BUILD_PATH $S3_URL$BUILD_NAME
 
+echo "APK_URL: $BUILD_URL$BUILD_NAME"
 curl https://api.appetize.io/v1/app/update -H 'Content-Type: application/json' -d "$JSON_PAYLOAD"
 
 exit 0

@@ -55,4 +55,4 @@ test:
     - (cd android && ./gradlew assembleDebug)
     # Upload it to appetize
     # And grep so we only reveal the public url in the CI logs
-    - PLATFORM=android PLATFORM_BUILD_PATH="android/app/build/outputs/apk/app-debug.apk" S3_URL="s3://kb-appbuilds/" BUILD_URL="https://s3-us-west-2.amazonaws.com/kb-appbuilds/" ./uploadApp.sh | grep -Eo "\"publicURL\":\"[^\"]*\""
+    - PLATFORM=android PLATFORM_BUILD_PATH="android/app/build/outputs/apk/app-debug.apk" S3_URL="s3://kb-appbuilds/" BUILD_URL="https://s3-us-west-2.amazonaws.com/kb-appbuilds/" ./uploadApp.sh | grep -Eo "\"publicURL\":\"[^\"]*\"|APK_URL:.*$"
