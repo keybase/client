@@ -24,7 +24,7 @@ dependencies:
     - (cd $HOME; tar -xzvf go.tar.gz)
     - sudo mv $HOME/go /usr/local
     - mkdir -p "$GOPATH/src/keybase/client"
-    - rsync -azC --delete ./ "$GOPATH/src/keybase/client/"
+    - cp -r ./ "$GOPATH/src/keybase/client/"
     - ls $GOPATH/
     - ls $GOPATH/src
     - ls $GOPATH/src/keybase
