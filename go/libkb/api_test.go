@@ -80,6 +80,9 @@ func TestProductionBadCA(t *testing.T) {
 
 	// change the api CA to one that api.keybase.io doesn't know:
 	BundledCAs["api.keybase.io"] = unknownCA
+	defer func() {
+		BundledCAs["api.keybase.io"] = apiCA
+	}()
 
 	tc.G.ConfigureAPI()
 
