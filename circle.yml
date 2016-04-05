@@ -24,17 +24,7 @@ dependencies:
     - (cd $HOME; tar -xzvf go.tar.gz)
     - sudo mv $HOME/go /usr/local
     - mkdir -p "$GOPATH/src/keybase/client"
-    - ls
-    - ls $HOME
-    - ls $HOME/go-path
-    - ls _/home/ubuntu
-    - ls _/home/ubuntu/client
-    - cp -r ./ "$GOPATH/src/keybase/client/"
-    - ls $GOPATH/
-    - ls $GOPATH/src
-    - ls $GOPATH/src/keybase
-    - ls $GOPATH/src/keybase/client
-    - ls $GOPATH/src/keybase/client/shared
+    - cp -r ./client "$GOPATH/src/keybase/client/"
     - (cd $GOPATH/src/keybase/client/shared && npm i --global flow-bin@`tail -n1 .flowconfig` && flow)
     - (cd $GOPATH/src/keybase/client/protocol && ./diff_test.sh)
     - (cd $GOPATH/src/keybase/client/go && KEYBASE_SERVER_URI=http://ci1.keybase.io ./test/run_tests.sh)
