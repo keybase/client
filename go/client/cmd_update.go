@@ -5,9 +5,11 @@ package client
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/engine"
+	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -26,6 +28,8 @@ func NewCmdUpdate(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comman
 			NewCmdUpdateCheck(cl, g),
 			NewCmdUpdateRun(cl, g),
 			NewCmdUpdateRunLocal(cl, g),
+			NewCmdUpdateCheckInUse(cl, g),
+			NewCmdUpdateNotify(cl, g),
 		},
 	}
 }
@@ -260,5 +264,96 @@ func optionFlags(defaultOptions keybase1.UpdateOptions) []cli.Flag {
 			Name:  "v, signature",
 			Usage: "Signature",
 		},
+	}
+}
+
+func NewCmdUpdateCheckInUse(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	return cli.Command{
+		Name:         "check-in-use",
+		ArgumentHelp: "",
+		Usage:        "Check if we are in use (safe for restart)",
+		Action: func(c *cli.Context) {
+			cl.SetLogForward(libcmdline.LogForwardNone)
+			cl.SetForkCmd(libcmdline.NoFork)
+			cl.ChooseCommand(NewCmdUpdateCheckInUseRunner(g), "check-in-use", c)
+		},
+	}
+}
+
+type CmdUpdateCheckInUse struct {
+	libkb.Contextified
+}
+
+func NewCmdUpdateCheckInUseRunner(g *libkb.GlobalContext) *CmdUpdateCheckInUse {
+	return &CmdUpdateCheckInUse{
+		Contextified: libkb.NewContextified(g),
+	}
+}
+
+func (v *CmdUpdateCheckInUse) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		API:    true,
+		Config: true,
+	}
+}
+
+func (v *CmdUpdateCheckInUse) ParseArgv(ctx *cli.Context) error {
+	return nil
+}
+
+func (v *CmdUpdateCheckInUse) Run() error {
+	inUse := install.IsInUse(v.G().Env.GetMountDir(), G.Log)
+	if inUse {
+		os.Exit(100)
+	}
+	return nil
+}
+
+func NewCmdUpdateNotify(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+	return cli.Command{
+		Name:         "notify",
+		ArgumentHelp: "<event>",
+		Usage:        "Notify the service about an update event",
+		Action: func(c *cli.Context) {
+			cl.SetLogForward(libcmdline.LogForwardNone)
+			cl.SetForkCmd(libcmdline.NoFork)
+			cl.ChooseCommand(NewCmdUpdateNotifyRunner(g), "notify", c)
+		},
+	}
+}
+
+type CmdUpdateNotify struct {
+	libkb.Contextified
+	event string
+}
+
+func NewCmdUpdateNotifyRunner(g *libkb.GlobalContext) *CmdUpdateNotify {
+	return &CmdUpdateNotify{
+		Contextified: libkb.NewContextified(g),
+	}
+}
+
+func (v *CmdUpdateNotify) GetUsage() libkb.Usage {
+	return libkb.Usage{
+		API:    true,
+		Config: true,
+	}
+}
+
+func (v *CmdUpdateNotify) ParseArgv(ctx *cli.Context) error {
+	v.event = ctx.Args().First()
+	if v.event == "" {
+		return fmt.Errorf("No event specified")
+	}
+	return nil
+}
+
+func (v *CmdUpdateNotify) Run() error {
+	v.G().Log.Debug("Received event: %s", v.event)
+	switch v.event {
+	case "after-apply":
+		return engine.AfterUpdateApply(v.G(), true)
+	default:
+		return fmt.Errorf("Unrecognized event: %s", v.event)
 	}
 }

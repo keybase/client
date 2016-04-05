@@ -30,6 +30,7 @@ type logs struct {
 	desktop string
 	kbfs    string
 	service string
+	updater string
 	start   string
 }
 
@@ -92,10 +93,13 @@ func (c *CmdLogSend) Run() error {
 	c.G().Log.Debug("tailing desktop log %q", logs.desktop)
 	desktopLog := c.tail(logs.desktop, c.numLines)
 
+	c.G().Log.Debug("tailing updater log %q", logs.updater)
+	updaterLog := c.tail(logs.updater, c.numLines)
+
 	c.G().Log.Debug("tailing start log %q", logs.start)
 	startLog := c.tail(logs.start, c.numLines)
 
-	return c.post(statusJSON, kbfsLog, svcLog, desktopLog, startLog)
+	return c.post(statusJSON, kbfsLog, svcLog, desktopLog, updaterLog, startLog)
 }
 
 func (c *CmdLogSend) confirm() error {
@@ -108,7 +112,7 @@ func (c *CmdLogSend) confirm() error {
 	return ui.PromptForConfirmation("Continue sending logs to keybase.io?")
 }
 
-func (c *CmdLogSend) post(status, kbfsLog, svcLog, desktopLog, startLog string) error {
+func (c *CmdLogSend) post(status, kbfsLog, svcLog, desktopLog, updaterLog, startLog string) error {
 	c.G().Log.Debug("sending status + logs to keybase")
 
 	var body bytes.Buffer
@@ -121,6 +125,9 @@ func (c *CmdLogSend) post(status, kbfsLog, svcLog, desktopLog, startLog string) 
 		return err
 	}
 	if err := addFile(mpart, "keybase_log_gz", "keybase_log.gz", svcLog); err != nil {
+		return err
+	}
+	if err := addFile(mpart, "updater_log_gz", "updater_log.gz", updaterLog); err != nil {
 		return err
 	}
 	if err := addFile(mpart, "gui_log_gz", "gui_log.gz", desktopLog); err != nil {
@@ -239,6 +246,7 @@ func (c *CmdLogSend) logFiles(status *fstatus) logs {
 			desktop: status.Desktop.Log,
 			kbfs:    status.KBFS.Log,
 			service: status.Service.Log,
+			updater: status.Updater.Log,
 			start:   status.Start.Log,
 		}
 	}
@@ -247,6 +255,7 @@ func (c *CmdLogSend) logFiles(status *fstatus) logs {
 		desktop: filepath.Join(logDir, libkb.DesktopLogFileName),
 		kbfs:    filepath.Join(logDir, libkb.KBFSLogFileName),
 		service: filepath.Join(logDir, libkb.ServiceLogFileName),
+		updater: filepath.Join(logDir, libkb.UpdaterLogFileName),
 		start:   filepath.Join(logDir, libkb.StartLogFileName),
 	}
 }

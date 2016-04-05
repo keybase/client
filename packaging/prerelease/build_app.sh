@@ -49,14 +49,17 @@ fi
 
 build_dir_keybase="/tmp/build_keybase"
 build_dir_kbfs="/tmp/build_kbfs"
+build_dir_updater="/tmp/build_updater"
 client_dir="$gopath/src/github.com/keybase/client"
 kbfs_dir="$gopath/src/github.com/keybase/kbfs"
+updater_dir="$gopath/src/github.com/keybase/go-updater"
 
 "$client_dir/packaging/slack/send.sh" "Starting $platform $build_desc"
 
 if [ ! "$nopull" = "1" ]; then
   "$client_dir/packaging/check_status_and_pull.sh" "$client_dir"
   "$client_dir/packaging/check_status_and_pull.sh" "$kbfs_dir"
+  "$client_dir/packaging/check_status_and_pull.sh" "$updater_dir"
 fi
 
 if [ -n "$client_commit" ]; then
@@ -84,16 +87,20 @@ fi
 if [ ! "$nobuild" = "1" ]; then
   BUILD_DIR=$build_dir_keybase "$dir/build_keybase.sh"
   BUILD_DIR=$build_dir_kbfs "$dir/build_kbfs.sh"
+  BUILD_DIR=$build_dir_updater "$dir/build_updater.sh"
 fi
 
 version=`$build_dir_keybase/keybase version -S`
 kbfs_version=`$build_dir_kbfs/kbfs -version`
+updater_version=`$build_dir_updater/updater -version`
 
 save_dir="/tmp/build_desktop"
 rm -rf $save_dir
 
 if [ "$platform" = "darwin" ]; then
-  SAVE_DIR="$save_dir" KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" BUCKET_NAME="$bucket_name" S3HOST="$s3host" "$dir/../desktop/package_darwin.sh"
+  SAVE_DIR="$save_dir" KEYBASE_BINPATH="$build_dir_keybase/keybase" KBFS_BINPATH="$build_dir_kbfs/kbfs" \
+    UPDATER_BINPATH="$build_dir_updater/updater" BUCKET_NAME="$bucket_name" S3HOST="$s3host" \
+    "$dir/../desktop/package_darwin.sh"
 else
   # TODO: Support linux build here?
   echo "Unknown platform: $platform"
