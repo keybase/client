@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"testing"
@@ -1036,7 +1037,7 @@ func TestProvisionGPGNoMatch(t *testing.T) {
 }
 
 // User with pgp keys, but on a device without gpg.
-func TestProvisionGPGNoGPGInstalled(t *testing.T) {
+func TestProvisionGPGNoGPGExecutable(t *testing.T) {
 	tc := SetupEngineTest(t, "login")
 	u1 := createFakeUserWithPGPPubOnly(t, tc)
 	Logout(tc)
@@ -1047,7 +1048,40 @@ func TestProvisionGPGNoGPGInstalled(t *testing.T) {
 	defer tc2.Cleanup()
 
 	// this should make it unable to find gpg
-	tc2.G.Env.Test.GPG = "/dev/null"
+	tc2.G.Env.Test.GPG = filepath.Join(string(filepath.Separator), "dev", "null")
+
+	// run login on new device
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIGPGImport(),
+		LogUI:       tc2.G.UI.GetLogUI(),
+		SecretUI:    u1.NewSecretUI(),
+		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	err := RunEngine(eng, ctx)
+	if err == nil {
+		t.Fatal("provision worked without gpg")
+	}
+	if _, ok := err.(libkb.GPGUnavailableError); !ok {
+		t.Errorf("login run err type: %T, expected libkb.GPGUnavailableError", err)
+	}
+}
+
+// User with pgp keys, but on a device where gpg executable
+// specified is not found.
+func TestProvisionGPGNoGPGFound(t *testing.T) {
+	tc := SetupEngineTest(t, "login")
+	u1 := createFakeUserWithPGPPubOnly(t, tc)
+	Logout(tc)
+	tc.Cleanup()
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc2 := SetupEngineTest(t, "login")
+	defer tc2.Cleanup()
+
+	// this should make it unable to find gpg
+	tc2.G.Env.Test.GPG = filepath.Join(string(filepath.Separator), "not", "a", "directory", "that", "ever", "exists", "bin", "gpg")
 
 	// run login on new device
 	ctx := &Context{

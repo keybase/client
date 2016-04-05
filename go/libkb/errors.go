@@ -6,6 +6,7 @@ package libkb
 import (
 	"errors"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 
@@ -1402,15 +1403,15 @@ func IsExecError(err error) bool {
 		return false
 	}
 
-	switch err := err.(type) {
+	switch err.(type) {
 	case DirExecError:
 		return true
 	case FileExecError:
 		return true
 	case *exec.Error:
-		if err.Err == exec.ErrNotFound {
-			return true
-		}
+		return true
+	case *os.PathError:
+		return true
 	}
 	return false
 }
