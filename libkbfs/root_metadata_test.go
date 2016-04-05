@@ -128,10 +128,7 @@ func TestWriterMetadataEncodedFields(t *testing.T) {
 		Writers: []keybase1.UID{"uid1", "uid2"},
 		WKeys:   TLFWriterKeyGenerations{nil},
 		Extra: WriterMetadataExtra{
-			UnresolvedWriters: []libkb.SocialAssertion{
-				sa1,
-				sa2,
-			},
+			UnresolvedWriters: []libkb.SocialAssertion{sa1, sa2},
 		},
 	}
 
@@ -233,7 +230,7 @@ func makeFakeWriterMetadataFuture(t *testing.T) writerMetadataFuture {
 				// This needs to be list format so it fails to compile if new
 				// fields are added, effectively checking at compile time
 				// whether new fields have been added
-				nil,
+				[]libkb.SocialAssertion{{"foo", "twitter"}},
 				codec.UnknownFieldSetHandler{},
 			},
 			makeExtraOrBust("WriterMetadata", t),
@@ -312,7 +309,7 @@ func makeFakeRootMetadataFuture(t *testing.T) rootMetadataFuture {
 				5,
 				MdID{h},
 				nil,
-				nil,
+				[]libkb.SocialAssertion{{"bar", "github"}},
 				codec.UnknownFieldSetHandler{},
 				PrivateMetadata{},
 				nil,
