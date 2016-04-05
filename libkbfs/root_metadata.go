@@ -5,7 +5,6 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/go-codec/codec"
 	"golang.org/x/net/context"
@@ -114,7 +113,7 @@ type WriterMetadata struct {
 // WriterMetadataExtra stores more fields for WriterMetadata. (See
 // WriterMetadata comments as to why this type is needed.)
 type WriterMetadataExtra struct {
-	UnresolvedWriters []libkb.SocialAssertion `codec:"uw,omitempty"`
+	UnresolvedWriters []keybase1.SocialAssertion `codec:"uw,omitempty"`
 	codec.UnknownFieldSetHandler
 }
 
@@ -146,7 +145,7 @@ type RootMetadata struct {
 	// is empty.
 	RKeys TLFReaderKeyGenerations `codec:",omitempty"`
 	// For private TLFs. Any unresolved social assertions for readers.
-	UnresolvedReaders []libkb.SocialAssertion `codec:"ur,omitempty"`
+	UnresolvedReaders []keybase1.SocialAssertion `codec:"ur,omitempty"`
 
 	codec.UnknownFieldSetHandler
 
