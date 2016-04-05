@@ -96,5 +96,4 @@ IF %ERRORLEVEL% NEQ 0 (
 :: After sanity checking, do:
 ::"%ProgramFiles%\S3 Browser\s3browser-con.exe" upload keybase update-windows-prod.json prerelease.keybase.io
 :: popd
-::%GOPATH%\bin\windows_386\release index-html --bucket-name=prerelease.keybase.io --prefixes="darwin/,linux_binaries/deb/,linux_binaries/rpm/,windows/" --dest=index.html
-::"%ProgramFiles%\S3 Browser\s3browser-con.exe" upload keybase index.html prerelease.keybase.io
+::%GOPATH%\bin\windows_386\release index-html --bucket-name=prerelease.keybase.io --prefixes="windows/" --upload="windows/index.html"
