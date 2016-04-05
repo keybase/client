@@ -222,6 +222,7 @@ func makeFakeWriterMetadataFuture(t *testing.T) writerMetadataFuture {
 		WriterMetadataExtra{},
 	}
 	wkb := makeFakeTLFWriterKeyBundleFuture(t)
+	sa, _ := libkb.NormalizeSocialAssertion("foo@twitter")
 	return writerMetadataFuture{
 		wmd,
 		tlfWriterKeyGenerationsFuture{&wkb},
@@ -230,7 +231,7 @@ func makeFakeWriterMetadataFuture(t *testing.T) writerMetadataFuture {
 				// This needs to be list format so it fails to compile if new
 				// fields are added, effectively checking at compile time
 				// whether new fields have been added
-				[]libkb.SocialAssertion{{"foo", "twitter"}},
+				[]libkb.SocialAssertion{sa},
 				codec.UnknownFieldSetHandler{},
 			},
 			makeExtraOrBust("WriterMetadata", t),
@@ -291,6 +292,7 @@ func makeFakeRootMetadataFuture(t *testing.T) rootMetadataFuture {
 	rkb := makeFakeTLFReaderKeyBundleFuture(t)
 	h, err := DefaultHash([]byte("fake buf"))
 	require.Nil(t, err)
+	sa, _ := libkb.NormalizeSocialAssertion("bar@github")
 	rmf := rootMetadataFuture{
 		wmf,
 		rootMetadataCurrentWrapper{
@@ -309,7 +311,7 @@ func makeFakeRootMetadataFuture(t *testing.T) rootMetadataFuture {
 				5,
 				MdID{h},
 				nil,
-				[]libkb.SocialAssertion{{"bar", "github"}},
+				[]libkb.SocialAssertion{sa},
 				codec.UnknownFieldSetHandler{},
 				PrivateMetadata{},
 				nil,
