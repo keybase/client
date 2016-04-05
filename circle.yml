@@ -23,11 +23,11 @@ dependencies:
     - mkdir $HOME/go-path
     - (cd $HOME; tar -xzvf go.tar.gz)
     - sudo mv $HOME/go /usr/local
-    - mkdir -p "$GOPATH/src/keybase"
-    - cp -r $HOME/client "$GOPATH/src/keybase"
-    - (cd $GOPATH/src/keybase/client/shared && npm i --global flow-bin@`tail -n1 .flowconfig` && flow)
-    - (cd $GOPATH/src/keybase/client/protocol && ./diff_test.sh)
-    - (cd $GOPATH/src/keybase/client/go && KEYBASE_SERVER_URI=http://ci1.keybase.io ./test/run_tests.sh)
+    - mkdir -p "$GOPATH/src/github.com/keybase"
+    - cp -r $HOME/client "$GOPATH/src/github.com/keybase"
+    - (cd $GOPATH/src/github.com/keybase/client/shared && npm i --global flow-bin@`tail -n1 .flowconfig` && flow)
+    - (cd $GOPATH/src/github.com/keybase/client/protocol && ./diff_test.sh)
+    - (cd $GOPATH/src/github.com/keybase/client/go && KEYBASE_SERVER_URI=http://ci1.keybase.io ./test/run_tests.sh)
     - go get golang.org/x/mobile/cmd/gomobile
     - if ! $(grep -q "Revision=24.4.1" $ANDROID_HOME/tools/source.properties); then echo y | android update sdk -u -a -t "tools"; fi
     - if [ ! -e $ANDROID_HOME/build-tools/23.0.2 ]; then echo y | android update sdk -u -a -t "build-tools-23.0.2"; fi
