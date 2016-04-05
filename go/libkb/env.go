@@ -132,6 +132,9 @@ type TestParameters struct {
 	// suffix.
 	DevelName  string
 	RuntimeDir string
+
+	// set to true to use production run mode in tests
+	UseProductionRunMode bool
 }
 
 func (tp TestParameters) GetDebug() (bool, bool) {
@@ -636,6 +639,11 @@ func (e *Env) GetRunMode() RunMode {
 	pick(StringToRunMode(os.Getenv("KEYBASE_RUN_MODE")))
 	pick(e.config.GetRunMode())
 	pick(DefaultRunMode, nil)
+
+	// If testing production run mode, then use it:
+	if e.Test.UseProductionRunMode {
+		return ProductionRunMode
+	}
 
 	// If we aren't running in devel or staging and we're testing. Let's run in devel.
 	if e.Test.Devel && ret != DevelRunMode && ret != StagingRunMode {
