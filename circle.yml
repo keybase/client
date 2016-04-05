@@ -24,6 +24,11 @@ dependencies:
     - (cd $HOME; tar -xzvf go.tar.gz)
     - sudo mv $HOME/go /usr/local
     - mkdir -p "$GOPATH/src/keybase/client"
+    - ls
+    - ls $HOME
+    - ls $HOME/go-path
+    - ls _/home/ubuntu
+    - ls _/home/ubuntu/client
     - cp -r ./ "$GOPATH/src/keybase/client/"
     - ls $GOPATH/
     - ls $GOPATH/src
