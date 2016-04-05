@@ -167,6 +167,9 @@ func (f *File) Setattr(ctx context.Context, req *fuse.SetattrRequest,
 	// things we don't need to explicitly handle
 	valid &^= fuse.SetattrLockOwner | fuse.SetattrHandle
 
+	// KBFS has no concept of chflags(2); explicitly ignore those
+	valid &^= fuse.SetattrFlags
+
 	if valid != 0 {
 		// don't let an unhandled operation slip by without error
 		f.folder.fs.log.CInfof(ctx, "Setattr did not handle %v", valid)
