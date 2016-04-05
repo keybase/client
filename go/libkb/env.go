@@ -333,6 +333,13 @@ func (e *Env) GetDuration(def time.Duration, flist ...func() (time.Duration, boo
 }
 
 func (e *Env) GetServerURI() string {
+	// appveyor and os x travis CI set server URI, so need to
+	// check for test flag here in order for production api endpoint
+	// tests to pass.
+	if e.Test.UseProductionRunMode {
+		return ServerLookup[e.GetRunMode()]
+	}
+
 	return e.GetString(
 		func() string { return e.cmd.GetServerURI() },
 		func() string { return os.Getenv("KEYBASE_SERVER_URI") },
