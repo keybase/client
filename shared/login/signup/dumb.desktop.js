@@ -3,6 +3,9 @@ import RequestInviteSuccess from './request-invite-success.render'
 import RequesteInvite from './request-invite.render'
 import usernameEmail from './username-email-form.render'
 import Error from './error/index.render'
+import Passphrase from './passphrase/index.render'
+import Success from './success/index.render'
+
 import HiddenString from '../../util/hidden-string'
 
 const nullFunc = () => {}
@@ -45,6 +48,12 @@ const userEmailShared = {
   emailErrorText: null,
   submitUserEmail: nullFunc,
   waiting: false
+}
+
+const passphraseShared = {
+  ...signupShared,
+  passphraseError: null,
+  checkPassphrase: nullFunc
 }
 
 export default {
@@ -156,8 +165,33 @@ export default {
     component: Error,
     mocks: {
       'Start': {
+        ...signupShared,
         errorText: new HiddenString('This is an error'),
         resetSignup: nullFunc
+      }
+    }
+  },
+  'Passphrase': {
+    component: Passphrase,
+    mocks: {
+      'Start': {
+        ...passphraseShared
+      },
+      'Error': {
+        ...passphraseShared,
+        passphraseError: new HiddenString('This is an error')
+      }
+    }
+  },
+  'Success': {
+    component: Success,
+    mocks: {
+      'Start': {
+        ...signupShared,
+        paperkey: new HiddenString('This is a paper key phase blah blah blah'),
+        onFinish: nullFunc,
+        onBack: nullFunc,
+        title: 'Congratulations, you’ve just joined Keybase!'
       }
     }
   }

@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import {Box, Text} from '../common-adapters'
+import {Box, Text, Input} from '../common-adapters'
 import {globalStyles} from '../styles/style-guide'
 import type {DumbMap} from './dumb'
 
@@ -9,7 +9,22 @@ import SignupMap from '../login/signup/dumb'
 import TrackerMap from '../tracker/dumb'
 import PinentryMap from '../pinentry/dumb'
 
+import {dumbFilter} from '../local-debug'
+import debounce from 'lodash/debounce'
+
 class Render extends Component {
+  constructor (props) {
+    super(props)
+
+    this.state = {
+      filter: (dumbFilter && dumbFilter.toLowerCase()) || ''
+    }
+
+    this._onFilterChange = debounce(filter => {
+      this.setState({filter})
+    }, 300)
+  }
+
   render () {
     const componentMap: DumbMap = {
       ...CommonMap,
@@ -21,7 +36,18 @@ class Render extends Component {
 
     return (
       <Box style={{flex: 1, padding: 20}}>
+        <Box style={{...globalStyles.flexBoxRow}}>
+          <Text type='Header'>Filter:</Text>
+          <Input
+            value={this.state.filter}
+            onChange={event => this._onFilterChange(event.target.value.toLowerCase())}
+          />
+        </Box>
         {Object.keys(componentMap).map(key => {
+          if (this.state.filter && key.toLowerCase().indexOf(this.state.filter) === -1) {
+            return null
+          }
+
           const map = componentMap[key]
           // $FlowIssue TODO
           const Component = map.component
