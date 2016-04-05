@@ -358,10 +358,13 @@ func RestartLaunchdService(g *libkb.GlobalContext, label string) error {
 }
 
 func WaitForService(g *libkb.GlobalContext, launchService launchd.Service) error {
-	launchdStatus, err := launchService.LoadStatus()
+	launchdStatus, err := launchService.WaitForStatus(5 * time.Second)
 	if err != nil {
 		return err
 	}
-	_, err = libkb.WaitForServiceInfoFile(g, g.Env.GetServiceInfoPath(), launchdStatus.Label(), launchdStatus.Pid(), 25, 400*time.Millisecond, "restart")
+	if launchdStatus == nil {
+		return fmt.Errorf("%s was not found", launchService.Label())
+	}
+	_, err = libkb.WaitForServiceInfoFile(g, g.Env.GetServiceInfoPath(), launchService.Label(), launchdStatus.Pid(), 25, 400*time.Millisecond, "restart")
 	return err
 }
