@@ -1,19 +1,23 @@
+// @flow
 import React, {Component} from 'react'
 import {Box, Text, Input} from '../common-adapters'
 import {globalStyles} from '../styles/style-guide'
 import type {DumbMap} from './dumb'
 
-import CommonMap from '../common-adapters/dumb'
-import LoginMap from '../login/dumb'
-import SignupMap from '../login/signup/dumb'
-import TrackerMap from '../tracker/dumb'
-import PinentryMap from '../pinentry/dumb'
+import CommonMap from '../common-adapters/dumb.desktop'
+import LoginMap from '../login/dumb.desktop'
+import SignupMap from '../login/signup/dumb.desktop'
+import TrackerMap from '../tracker/dumb.desktop'
+import PinentryMap from '../pinentry/dumb.desktop'
 
 import {dumbFilter} from '../local-debug'
 import debounce from 'lodash/debounce'
 
-class Render extends Component {
-  constructor (props) {
+class Render extends Component<void, any, any> {
+  state: any;
+  _onFilterChange: (a: any) => void;
+
+  constructor (props: any) {
     super(props)
 
     this.state = {
@@ -49,7 +53,6 @@ class Render extends Component {
           }
 
           const map = componentMap[key]
-          // $FlowIssue TODO
           const Component = map.component
           return (
             <Box style={styleBox}>

@@ -1,3 +1,4 @@
+// @flow
 import InviteCode from './invite-code.render'
 import RequestInviteSuccess from './request-invite-success.render'
 import RequesteInvite from './request-invite.render'

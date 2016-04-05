@@ -3,7 +3,7 @@ import {Component} from 'react'
 
 export type DumbMap = {
   [key: string]: {
-    component: Component,
+    component: ReactClass,
     mocks: {
       [key: string]: Object
     }
