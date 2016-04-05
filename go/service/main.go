@@ -4,6 +4,7 @@
 package service
 
 import (
+	"fmt"
 	"io"
 	"net"
 	"os"
@@ -16,7 +17,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
-	"github.com/keybase/go-updater"
+	updater "github.com/keybase/go-updater"
 	"github.com/keybase/go-updater/sources"
 )
 
@@ -30,6 +31,7 @@ type Service struct {
 	stopCh        chan keybase1.ExitCode
 	updateChecker *updater.UpdateChecker
 	logForwarder  *logFwd
+	gregorConn    *rpc.Connection
 }
 
 func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
@@ -175,6 +177,10 @@ func (d *Service) Run() (err error) {
 
 	d.checkTrackingEveryHour()
 
+	if gcErr := d.gregordConnect(); gcErr != nil {
+		d.G().Log.Debug("error connecting to gregord: %s", gcErr)
+	}
+
 	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
 
 	return err
@@ -225,6 +231,36 @@ func (d *Service) checkTrackingEveryHour() {
 			libkb.CheckTracking(d.G())
 		}
 	}()
+}
+
+func (d *Service) gregordConnect() error {
+	uri, err := parseFMPURI(d.G().Env.GetGregorURI())
+	if err != nil {
+		return err
+	}
+	d.G().Log.Debug("gregor URI: %s", uri)
+	h := newGregorHandler(d.G())
+	if uri.UseTLS() {
+		return d.gregordConnectTLS(h, uri)
+	}
+	return d.gregordConnectNoTLS(h, uri)
+}
+
+func (d *Service) gregordConnectTLS(h *gregorHandler, uri *fmpURI) error {
+	d.G().Log.Debug("connecting to gregor via TLS")
+	rawCA := d.G().Env.GetBundledCA(uri.Host)
+	if len(rawCA) == 0 {
+		return fmt.Errorf("No bundled CA for %s", uri.Host)
+	}
+	d.gregorConn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), nil, h, true, nil, nil, d.G().Log, nil)
+	return nil
+}
+
+func (d *Service) gregordConnectNoTLS(h *gregorHandler, uri *fmpURI) error {
+	d.G().Log.Debug("connecting to gregor without TLS")
+	t := newConnTransport(d.G(), uri.HostPort)
+	d.gregorConn = rpc.NewConnectionWithTransport(h, t, nil, true, nil, d.G().Log, nil)
+	return nil
 }
 
 // ReleaseLock releases the locking pidfile by closing, unlocking and

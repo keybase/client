@@ -68,6 +68,7 @@ func (n NullConfiguration) GetUpdateURL() string                          { retu
 func (n NullConfiguration) GetVDebugSetting() string                      { return "" }
 func (n NullConfiguration) GetLocalTrackMaxAge() (time.Duration, bool)    { return 0, false }
 func (n NullConfiguration) GetAppStartMode() AppStartMode                 { return AppStartModeDisabled }
+func (n NullConfiguration) GetGregorURI() string                          { return "" }
 func (n NullConfiguration) IsAdmin() (bool, bool)                         { return false, false }
 
 func (n NullConfiguration) GetUserConfig() (*UserConfig, error) { return nil, nil }
@@ -453,6 +454,14 @@ func (e *Env) GetSocketFile() (ret string, err error) {
 		ret = filepath.Join(e.GetRuntimeDir(), SocketFile)
 	}
 	return
+}
+
+func (e *Env) GetGregorURI() string {
+	return e.GetString(
+		func() string { return os.Getenv("GREGOR_URI") },
+		func() string { return e.config.GetGregorURI() },
+		func() string { return GregorServerLookup[e.GetRunMode()] },
+	)
 }
 
 func (e *Env) GetPidFile() (ret string, err error) {
