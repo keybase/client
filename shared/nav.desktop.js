@@ -51,6 +51,7 @@ TabTemplate.propTypes = {
 class Nav extends Component {
   constructor (props) {
     super(props)
+    this._checkedBootstrap = false
     this.props.bootstrap()
 
     // Restartup when we connect online.
@@ -127,6 +128,16 @@ class Nav extends Component {
   }
 
   shouldComponentUpdate (nextProps, nextState) {
+    if (!this._checkedBootstrap) {
+      if (nextProps.bootstrapped > 0) {
+        this._checkedBootstrap = true
+
+        if (!nextProps.provisioned) {
+          ipcRenderer.send('showMain')
+        }
+      }
+    }
+
     return (nextProps.tabbedRouter.get('activeTab') !== this._activeTab())
   }
 
@@ -207,16 +218,12 @@ const styles = {
   }
 }
 
-Nav.propTypes = {
-  switchTab: React.PropTypes.func.isRequired,
-  tabbedRouter: React.PropTypes.object.isRequired,
-  config: React.PropTypes.shape({
-    error: React.PropTypes.object
-  }).isRequired
-}
-
 export default connect(
-  store => store,
+  ({tabbedRouter, config: {bootstrapped, extendedConfig}}) => ({
+    tabbedRouter,
+    bootstrapped,
+    provisioned: extendedConfig && !!extendedConfig.device
+  }),
   dispatch => {
     return {
       switchTab: tab => dispatch(switchTab(tab)),

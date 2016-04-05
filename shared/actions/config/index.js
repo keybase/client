@@ -69,6 +69,7 @@ export function bootstrap (): AsyncAction {
     } else {
       Promise.all(
         [dispatch(getCurrentStatus()), dispatch(getExtendedStatus()), dispatch(getConfig())]).then(() => {
+          dispatch({type: Constants.bootstrapped, payload: null})
           dispatch(navBasedOnLoginState())
         }).catch(error => {
           console.error('Error bootstrapping: ', error)

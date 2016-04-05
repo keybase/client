@@ -13,6 +13,7 @@ export type ConfigState = {
   kbfsPath: string;
   error: ?any;
   devConfig: ?any;
+  bootstrapped: number;
 }
 
 const initialState: ConfigState = {
@@ -21,7 +22,8 @@ const initialState: ConfigState = {
   extendedConfig: null,
   kbfsPath: Constants.defaultKBFSPath,
   error: null,
-  devConfig: null
+  devConfig: null,
+  bootstrapped: 0
 }
 
 export default function (state: ConfigState = initialState, action: Action): ConfigState {
@@ -99,6 +101,13 @@ export default function (state: ConfigState = initialState, action: Action): Con
           }
         }
       }
+
+    case Constants.bootstrapped: {
+      return {
+        ...state,
+        bootstrapped: state.bootstrapped + 1
+      }
+    }
     default:
       return state
   }
