@@ -126,6 +126,25 @@ const (
 	MerkleTreeID_KBFS_PRIVATE MerkleTreeID = 2
 )
 
+// SocialAssertionService is a service that can be used to assert proofs for a
+// user.
+type SocialAssertionService string
+
+// SocialAssertion contains a service and username for that service, that
+// together form an assertion about a user. Resolving an assertion requires
+// that the user posts a Keybase proof on the asserted service as the asserted
+// user.
+type SocialAssertion struct {
+	User    string                 `codec:"user" json:"user"`
+	Service SocialAssertionService `codec:"service" json:"service"`
+}
+
+// UserResolution maps how an unresolved user assertion has been resolved.
+type UserResolution struct {
+	Assertion SocialAssertion `codec:"assertion" json:"assertion"`
+	UserID    UID             `codec:"userID" json:"userID"`
+}
+
 type CommonInterface interface {
 }
 
