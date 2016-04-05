@@ -8,10 +8,16 @@ import (
 	"crypto/hmac"
 	"io"
 
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/saltpack"
 )
 
-func SaltpackVerify(g *GlobalContext, source io.Reader, sink io.WriteCloser, checkSender func(saltpack.SigningPublicKey) error) error {
+// SaltpackVerifyContext is context for engine calls
+type SaltpackVerifyContext interface {
+	GetLog() logger.Logger
+}
+
+func SaltpackVerify(g SaltpackVerifyContext, source io.Reader, sink io.WriteCloser, checkSender func(saltpack.SigningPublicKey) error) error {
 	sc, newSource, err := ClassifyStream(source)
 	if err != nil {
 		return err
@@ -25,7 +31,7 @@ func SaltpackVerify(g *GlobalContext, source io.Reader, sink io.WriteCloser, che
 	}
 	source = newSource
 
-	kr := echoKeyring{Contextified: NewContextified(g)}
+	kr := echoKeyring{}
 
 	var skey saltpack.SigningPublicKey
 	var vs io.Reader
@@ -36,7 +42,7 @@ func SaltpackVerify(g *GlobalContext, source io.Reader, sink io.WriteCloser, che
 		skey, vs, err = saltpack.NewVerifyStream(source, kr)
 	}
 	if err != nil {
-		g.Log.Debug("saltpack.NewDearmor62VerifyStream error: %s", err)
+		g.GetLog().Debug("saltpack.NewDearmor62VerifyStream error: %s", err)
 		return err
 	}
 
@@ -59,7 +65,7 @@ func SaltpackVerify(g *GlobalContext, source io.Reader, sink io.WriteCloser, che
 		}
 	}
 
-	g.Log.Debug("Verify: read %d bytes", n)
+	g.GetLog().Debug("Verify: read %d bytes", n)
 
 	if err := sink.Close(); err != nil {
 		return err
@@ -68,7 +74,7 @@ func SaltpackVerify(g *GlobalContext, source io.Reader, sink io.WriteCloser, che
 	return nil
 }
 
-func SaltpackVerifyDetached(g *GlobalContext, message io.Reader, signature []byte, checkSender func(saltpack.SigningPublicKey) error) error {
+func SaltpackVerifyDetached(g SaltpackVerifyContext, message io.Reader, signature []byte, checkSender func(saltpack.SigningPublicKey) error) error {
 	sc, _, err := ClassifyStream(bytes.NewReader(signature))
 	if err != nil {
 		return err
@@ -81,14 +87,14 @@ func SaltpackVerifyDetached(g *GlobalContext, message io.Reader, signature []byt
 		}
 	}
 
-	kr := echoKeyring{Contextified: NewContextified(g)}
+	kr := echoKeyring{}
 
 	var skey saltpack.SigningPublicKey
 	if sc.Armored {
 		var brand string
 		skey, brand, err = saltpack.Dearmor62VerifyDetachedReader(message, string(signature), kr)
 		if err != nil {
-			g.Log.Debug("saltpack.Dearmor62VerifyDetachedReader error: %s", err)
+			g.GetLog().Debug("saltpack.Dearmor62VerifyDetachedReader error: %s", err)
 			return err
 		}
 		if err = checkSaltpackBrand(brand); err != nil {
@@ -97,7 +103,7 @@ func SaltpackVerifyDetached(g *GlobalContext, message io.Reader, signature []byt
 	} else {
 		skey, err = saltpack.VerifyDetachedReader(message, signature, kr)
 		if err != nil {
-			g.Log.Debug("saltpack.VerifyDetachedReader error: %s", err)
+			g.GetLog().Debug("saltpack.VerifyDetachedReader error: %s", err)
 			return err
 		}
 	}

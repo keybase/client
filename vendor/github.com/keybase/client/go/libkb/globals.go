@@ -509,8 +509,12 @@ func (g *GlobalContext) GetUnforwardedLogger() *logger.UnforwardedLogger {
 	}
 	log, ok := g.Log.(*logger.Standard)
 	if !ok {
-		g.Log.Notice("Can't make Unforwaded logger from a non-standard logger")
+		g.Log.Notice("Can't make Unforwarded logger from a non-standard logger")
 		return nil
 	}
 	return (*logger.UnforwardedLogger)(log)
+}
+
+func (g *GlobalContext) GetLog() logger.Logger {
+	return g.Log
 }

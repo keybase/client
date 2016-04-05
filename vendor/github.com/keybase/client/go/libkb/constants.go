@@ -39,6 +39,18 @@ var ServerLookup = map[RunMode]string{
 }
 
 const (
+	DevelGregorServerURI      = "fmprpc://localhost:9911"
+	StagingGregorServerURI    = "fmprpc+tls://gregor.stage0.keybase.io:443"
+	ProductionGregorServerURI = "fmprpc+tls://gregor.api.keybase.io:443"
+)
+
+var GregorServerLookup = map[RunMode]string{
+	DevelRunMode:      DevelGregorServerURI,
+	StagingRunMode:    StagingGregorServerURI,
+	ProductionRunMode: ProductionGregorServerURI,
+}
+
+const (
 	ConfigFile  = "config.json"
 	SessionFile = "session.json"
 	DBFile      = "keybase.leveldb"

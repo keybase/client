@@ -144,8 +144,11 @@ func (i IdentifyOutcome) NumTrackChanges() int {
 }
 
 func (i IdentifyOutcome) TrackStatus() keybase1.TrackStatus {
-	if i.NumTrackFailures() > 0 || i.NumRevoked() > 0 {
-		return keybase1.TrackStatus_UPDATE_BROKEN
+	if i.NumRevoked() > 0 {
+		return keybase1.TrackStatus_UPDATE_BROKEN_REVOKED
+	}
+	if i.NumTrackFailures() > 0 {
+		return keybase1.TrackStatus_UPDATE_BROKEN_FAILED_PROOFS
 	}
 	if i.TrackUsed != nil {
 		if i.NumTrackChanges() > 0 {

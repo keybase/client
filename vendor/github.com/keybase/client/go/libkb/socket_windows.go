@@ -38,7 +38,21 @@ func (s SocketInfo) BindToSocket() (ret net.Listener, err error) {
 }
 
 func (s SocketInfo) DialSocket() (ret net.Conn, err error) {
-	return npipe.DialTimeout(s.file, 10)
+	pipe, err := npipe.DialTimeout(s.file, 10)
+	if err != nil {
+		// Be sure to return a nil interface, and not a nil npipe.PipeConn
+		// See https://keybase.atlassian.net/browse/CORE-2675 for when this
+		// bit us.
+		return nil, err
+	}
+	// This can't happen right now, but in the future it might, so protect against ourselves
+	// so we don't get vexing (*foo)(nil)/interface{}(nil) bugs.
+	if pipe == nil {
+		return nil, errors.New("bad npipe result; nil npipe.PipeConn but no error")
+	}
+
+	// Success case
+	return pipe, err
 }
 
 func IsSocketClosedError(e error) bool {

@@ -204,9 +204,11 @@
 			"revisionTime": "2016-03-31T15:41:33-04:00"
 		},
 		{
+			"checksumSHA1": "1Jt2tqvLSHPHpfSczFggBmVlgvo=",
+			"origin": "github.com/keybase/kbfs/vendor/github.com/keybase/client/go/libkb",
 			"path": "github.com/keybase/client/go/libkb",
-			"revision": "6ca7e7d3627970e89c65fe96a87571575e92f364",
-			"revisionTime": "2016-03-31T15:41:33-04:00"
+			"revision": "c3c738d5e58109a9e0288c62e3c02e8406aa041d",
+			"revisionTime": "2016-04-05T09:34:52-07:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/logger",
@@ -214,9 +216,11 @@
 			"revisionTime": "2016-03-31T15:41:33-04:00"
 		},
 		{
+			"checksumSHA1": "d+CPJmGeTu63pAUcUunTgkiZQRc=",
+			"origin": "github.com/keybase/kbfs/vendor/github.com/keybase/client/go/protocol",
 			"path": "github.com/keybase/client/go/protocol",
-			"revision": "6ca7e7d3627970e89c65fe96a87571575e92f364",
-			"revisionTime": "2016-03-31T15:41:33-04:00"
+			"revision": "c3c738d5e58109a9e0288c62e3c02e8406aa041d",
+			"revisionTime": "2016-04-05T09:34:52-07:00"
 		},
 		{
 			"path": "github.com/keybase/go-codec/codec",
