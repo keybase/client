@@ -967,6 +967,13 @@ export type SignupRes = {
   writeOk: boolean;
 }
 
+export type SocialAssertion = {
+  user: string;
+  service: SocialAssertionService;
+}
+
+export type SocialAssertionService = string
+
 export type StartProofResult = {
   sigID: SigID;
 }
@@ -1214,6 +1221,11 @@ export type UserPlusKeys = {
   revokedDeviceKeys: Array<RevokedKey>;
   pgpKeyCount: int;
   uvv: UserVersionVector;
+}
+
+export type UserResolution = {
+  assertion: SocialAssertion;
+  userID: UID;
 }
 
 export type UserSummary = {

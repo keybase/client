@@ -37,4 +37,5 @@ protocol kbfsCommon {
     FSErrorType errorType;
     map<string> params;
   }
+
 }
