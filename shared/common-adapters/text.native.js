@@ -20,7 +20,7 @@ export default class Text extends Component {
     }: {[key: string]: React$Element})[type]
   }
 
-  _inlineStyle (type: Props.type): Object {
+  static _inlineStyle (type: Props.type, context: Context): Object {
     switch (type) {
       case 'Terminal':
       case 'TerminalCommand':
@@ -29,13 +29,13 @@ export default class Text extends Component {
       case 'TerminalPublic':
       case 'TerminalPrivate':
       case 'TerminalSmall':
-        return this.context.inTerminal ? {} : styles.textTerminalInline
+        return context.inTerminal ? {} : styles.textTerminalInline
       default:
         return {}
     }
   }
 
-  _colorStyleBackgroundMode (backgroundMode: Background, type: Props.type): Object {
+  static _colorStyleBackgroundMode (backgroundMode: Background, type: Props.type): Object {
     if (backgroundMode === 'Information') {
       return {color: globalColors.brown60}
     }
@@ -65,7 +65,9 @@ export default class Text extends Component {
     }
   }
 
-  render () {
+  // We want to reuse these styles for other things that can be styled similarly
+  // e.g. RN's TextInput. So this function needs to be pure & static
+  static textStyle (props: Props, context: Context) {
     const typeStyle = {
       'HeaderJumbo': styles.textHeaderJumbo,
       'HeaderBig': styles.textHeaderBig,
@@ -79,8 +81,8 @@ export default class Text extends Component {
       'BodySmall': styles.textBodySmall,
       'BodySmallSemibold': styles.textBodySmallSemibold,
       'Error': styles.textError,
-      'Terminal': {...styles.textTerminal, color: (this.context.inTerminal ? globalColors.blue3 : globalColors.darkBlue)},
-      'TerminalSmall': {...styles.textTerminalSmall, color: (this.context.inTerminal ? globalColors.blue3 : globalColors.darkBlue)},
+      'Terminal': {...styles.textTerminal, color: (context.inTerminal ? globalColors.blue3 : globalColors.darkBlue)},
+      'TerminalSmall': {...styles.textTerminalSmall, color: (context.inTerminal ? globalColors.blue3 : globalColors.darkBlue)},
       'TerminalCommand': styles.textTerminalCommand,
       'TerminalComment': styles.textTerminalComment,
       'TerminalUsername': styles.textTerminalUsername,
@@ -88,30 +90,41 @@ export default class Text extends Component {
       'TerminalPrivate': styles.textTerminalPrivate,
       'TerminalEmpty': styles.textTerminalEmpty,
       'InputHeader': styles.textInputHeader
-    }[this.props.type]
+    }[props.type]
 
     let inline = true
-    if (this.props.hasOwnProperty('inline')) {
-      inline = this.props.inline
+    if (props.hasOwnProperty('inline')) {
+      inline = props.inline
     }
 
     let linkStyle = null
-    let linkClassname = null
-    switch (this.props.type) {
+    switch (props.type) {
       case 'BodyPrimaryLink':
       case 'BodySecondaryLink':
         linkStyle = {}
-        linkClassname = 'hover-underline'
     }
 
     const style = {
       ...typeStyle,
       ...linkStyle,
-      ...this._colorStyleBackgroundMode(this.props.backgroundMode || 'Normal', this.props.type),
-      ...(this.props.onClick ? globalStyles.clickable : {}),
-      ...(inline ? {...this._inlineStyle(this.props.type)} : {}),
-      ...this.props.style
+      ...Text._colorStyleBackgroundMode(props.backgroundMode || 'Normal', props.type),
+      ...(props.onClick ? globalStyles.clickable : {}),
+      ...(inline ? {...Text._inlineStyle(props.type, context)} : {}),
+      ...props.style
     }
+
+    return style
+  }
+
+  render () {
+    let linkClassname = null
+    switch (this.props.type) {
+      case 'BodyPrimaryLink':
+      case 'BodySecondaryLink':
+        linkClassname = 'hover-underline'
+    }
+
+    const style = Text.textStyle(this.props, this.context)
 
     const terminalPrefix = this._terminalPrefix(this.props.type)
     const className = (this.props.className || '') + ' ' + (linkClassname || '')
@@ -221,8 +234,8 @@ export const styles = {
   },
   textBodySmall: {
     ...textCommon,
-    fontSize: 14,
-    lineHeight: 19
+    fontSize: 15,
+    lineHeight: 20
   },
   textBodySmallSemibold: {
     ...textCommon,
