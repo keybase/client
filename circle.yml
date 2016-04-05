@@ -24,7 +24,7 @@ dependencies:
     - sudo mv $HOME/go /usr/local
     - (cd ../shared && npm i --global flow-bin@`tail -n1 .flowconfig` && flow)
     - (cd ../protocol && ./diff_test.sh)
-    - cd go
+    - cd ../go
     - export KEYBASE_SERVER_URI=http://ci1.keybase.io
     - ./test/run_tests.sh
     - cd ../react-native
