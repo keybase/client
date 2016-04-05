@@ -69,6 +69,7 @@ const (
 	StatusCode_SCInvalidLocationError   StatusCode = 1802
 	StatusCode_SCServiceStatusError     StatusCode = 1803
 	StatusCode_SCInstallError           StatusCode = 1804
+	StatusCode_SCGPGUnavailable         StatusCode = 2001
 )
 
 type ConstantsInterface interface {

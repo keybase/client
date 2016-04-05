@@ -60,7 +60,8 @@ protocol constants {
     SCOldVersionError_1801,
     SCInvalidLocationError_1802,
     SCServiceStatusError_1803,
-    SCInstallError_1804
+    SCInstallError_1804,
+    SCGPGUnavailable_2001
   }
 
 }

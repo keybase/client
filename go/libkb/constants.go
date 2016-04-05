@@ -173,6 +173,7 @@ const (
 	SCKeyNoPGPEncryption     = int(keybase1.StatusCode_SCKeyNoPGPEncryption)
 	SCKeyNoNaClEncryption    = int(keybase1.StatusCode_SCKeyNoNaClEncryption)
 	SCWrongCryptoFormat      = int(keybase1.StatusCode_SCWrongCryptoFormat)
+	SCGPGUnavailable         = int(keybase1.StatusCode_SCGPGUnavailable)
 )
 
 const (

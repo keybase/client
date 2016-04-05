@@ -6,6 +6,7 @@ package libkb
 import (
 	"errors"
 	"fmt"
+	"os/exec"
 	"strings"
 
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -429,6 +430,12 @@ func (e GpgIndexError) Error() string {
 
 func ErrorToGpgIndexError(l int, e error) GpgIndexError {
 	return GpgIndexError{l, e.Error()}
+}
+
+type GPGUnavailableError struct{}
+
+func (g GPGUnavailableError) Error() string {
+	return "GPG is unavailable on this device"
 }
 
 //=============================================================================
@@ -1372,4 +1379,38 @@ type DeviceAlreadyProvisionedError struct{}
 
 func (e DeviceAlreadyProvisionedError) Error() string {
 	return "Device already provisioned for current user"
+}
+
+type DirExecError struct {
+	Path string
+}
+
+func (e DirExecError) Error() string {
+	return fmt.Sprintf("file %q is a directory and not executable", e.Path)
+}
+
+type FileExecError struct {
+	Path string
+}
+
+func (e FileExecError) Error() string {
+	return fmt.Sprintf("file %q is not executable", e.Path)
+}
+
+func IsExecError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	switch err := err.(type) {
+	case DirExecError:
+		return true
+	case FileExecError:
+		return true
+	case *exec.Error:
+		if err.Err == exec.ErrNotFound {
+			return true
+		}
+	}
+	return false
 }

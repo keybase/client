@@ -145,7 +145,8 @@ export const constants = {
     'scoldversionerror': 1801,
     'scinvalidlocationerror': 1802,
     'scservicestatuserror': 1803,
-    'scinstallerror': 1804
+    'scinstallerror': 1804,
+    'scgpgunavailable': 2001
   }
 }
 

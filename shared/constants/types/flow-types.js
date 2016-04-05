@@ -1038,6 +1038,7 @@ export type StatusCode =
   | 1802 // SCInvalidLocationError_1802
   | 1803 // SCServiceStatusError_1803
   | 1804 // SCInstallError_1804
+  | 2001 // SCGPGUnavailable_2001
 
 export type Stream = {
   fd: int;

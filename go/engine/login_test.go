@@ -1058,10 +1058,13 @@ func TestProvisionGPGNoGPGInstalled(t *testing.T) {
 		GPGUI:       &gpgtestui{},
 	}
 	eng := NewLogin(tc2.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
-	if err := RunEngine(eng, ctx); err == nil {
+	err := RunEngine(eng, ctx)
+	if err == nil {
 		t.Fatal("provision worked without gpg")
 	}
-	// XXX test a specific error, currently it's just returning an error string
+	if _, ok := err.(libkb.GPGUnavailableError); !ok {
+		t.Errorf("login run err type: %T, expected libkb.GPGUnavailableError", err)
+	}
 }
 
 func TestProvisionDupDevice(t *testing.T) {
