@@ -6,15 +6,13 @@ import (
 	"github.com/keybase/go-codec/codec"
 )
 
-type dirEntryCurrent DirEntry
-
 type dirEntryFuture struct {
-	dirEntryCurrent
+	DirEntry
 	extra
 }
 
-func (cof dirEntryFuture) toCurrent() dirEntryCurrent {
-	return cof.dirEntryCurrent
+func (cof dirEntryFuture) toCurrent() DirEntry {
+	return cof.DirEntry
 }
 
 func (cof dirEntryFuture) toCurrentStruct() currentStruct {
@@ -23,11 +21,8 @@ func (cof dirEntryFuture) toCurrentStruct() currentStruct {
 
 func makeFakeDirEntryFuture(t *testing.T) dirEntryFuture {
 	cof := dirEntryFuture{
-		dirEntryCurrent{
-			BlockInfo{
-				makeFakeBlockPointer(t),
-				150,
-			},
+		DirEntry{
+			makeFakeBlockInfo(t),
 			EntryInfo{
 				Dir,
 				100,

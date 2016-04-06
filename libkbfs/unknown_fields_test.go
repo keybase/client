@@ -34,17 +34,15 @@ func makeExtraOrBust(prefix string, t *testing.T) extra {
 // MySubType being the type of one of its sub-fields St, which may
 // also have unknown fields:
 //
-// type myTypeCurrent MyType
-//
 // type myTypeFuture struct {
-//   myTypeCurrent
-//   // Override myTypeCurrent.St.
+//   MyType
+//   // Override MyType.St.
 //   St mySubTypeFuture
 //   extra
 // }
 //
-// func (mf myTypeFuture) toCurrent() myTypeCurrent {
-//   m := mf.myTypeCurrent
+// func (mf myTypeFuture) toCurrent() MyType {
+//   m := mf.MyType
 //   m.St = m.St.toCurrent()
 //   return m
 // }
@@ -87,32 +85,38 @@ type futureStruct interface {
 // Test that hypothetical future versions of a struct can be
 // deserialized by current clients and preserve unknown fields.
 func testStructUnknownFields(t *testing.T, sFuture futureStruct) {
+	cFuture := NewCodecMsgpack()
+	registerOpsFuture(cFuture)
+
+	cCurrent := NewCodecMsgpack()
+	RegisterOps(cCurrent)
+
+	cCurrentKnownOnly := newCodecMsgpackHelper(false)
+	RegisterOps(cCurrentKnownOnly)
+
 	s := sFuture.toCurrentStruct()
 
-	c := NewCodecMsgpack()
-
-	buf, err := c.Encode(sFuture)
+	buf, err := cFuture.Encode(sFuture)
 	require.Nil(t, err)
 
 	// Make sure sFuture round-trips correctly.
 	sFuture2 := reflect.Zero(reflect.TypeOf(sFuture)).Interface()
-	err = c.Decode(buf, &sFuture2)
+	err = cFuture.Decode(buf, &sFuture2)
 	require.Nil(t, err)
 	require.Equal(t, sFuture, sFuture2)
 
 	s2 := reflect.Zero(reflect.TypeOf(s)).Interface()
-	err = c.Decode(buf, &s2)
+	err = cCurrent.Decode(buf, &s2)
 	require.Nil(t, err)
 
-	cKnownOnly := newCodecMsgpackHelper(false)
 	knownS2 := reflect.Zero(reflect.TypeOf(s)).Interface()
-	err = cKnownOnly.Decode(buf, &knownS2)
+	err = cCurrentKnownOnly.Decode(buf, &knownS2)
 	require.Nil(t, err)
 
 	// Make sure known fields are the same.
 	require.Equal(t, s, knownS2)
 
-	buf2, err := c.Encode(s2)
+	buf2, err := cCurrent.Encode(s2)
 	require.Nil(t, err)
 
 	// Make sure serializing s preserves the extra fields.
@@ -120,7 +124,7 @@ func testStructUnknownFields(t *testing.T, sFuture futureStruct) {
 
 	// As a sanity test, make sure sFuture decodes back from buf2.
 	sFuture3 := reflect.Zero(reflect.TypeOf(sFuture)).Interface()
-	err = c.Decode(buf2, &sFuture3)
+	err = cFuture.Decode(buf2, &sFuture3)
 	require.Nil(t, err)
 	require.Equal(t, sFuture, sFuture3)
 }

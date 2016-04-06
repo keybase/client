@@ -9,15 +9,13 @@ import (
 	"golang.org/x/net/context"
 )
 
-type tlfCryptKeyInfoCurrent TLFCryptKeyInfo
-
 type tlfCryptKeyInfoFuture struct {
-	tlfCryptKeyInfoCurrent
+	TLFCryptKeyInfo
 	extra
 }
 
-func (cki tlfCryptKeyInfoFuture) toCurrent() tlfCryptKeyInfoCurrent {
-	return cki.tlfCryptKeyInfoCurrent
+func (cki tlfCryptKeyInfoFuture) toCurrent() TLFCryptKeyInfo {
+	return cki.TLFCryptKeyInfo
 }
 
 func (cki tlfCryptKeyInfoFuture) toCurrentStruct() currentStruct {
@@ -27,7 +25,7 @@ func (cki tlfCryptKeyInfoFuture) toCurrentStruct() currentStruct {
 func makeFakeTLFCryptKeyInfoFuture(t *testing.T) tlfCryptKeyInfoFuture {
 	hmac, err := DefaultHMAC([]byte("fake key"), []byte("fake buf"))
 	require.Nil(t, err)
-	cki := tlfCryptKeyInfoCurrent{
+	cki := TLFCryptKeyInfo{
 		EncryptedTLFCryptKeyClientHalf{
 			EncryptionSecretbox,
 			[]byte("fake encrypted data"),
@@ -184,8 +182,6 @@ func TestKeyBundleFillInDevices(t *testing.T) {
 	}
 }
 
-type tlfWriterKeyBundleCurrent TLFWriterKeyBundle
-
 type deviceKeyInfoMapFuture map[keybase1.KID]tlfCryptKeyInfoFuture
 
 func (dkimf deviceKeyInfoMapFuture) toCurrent() DeviceKeyInfoMap {
@@ -209,14 +205,14 @@ func (udkimf userDeviceKeyInfoMapFuture) toCurrent() UserDeviceKeyInfoMap {
 }
 
 type tlfWriterKeyBundleFuture struct {
-	tlfWriterKeyBundleCurrent
+	TLFWriterKeyBundle
 	// Override TLFWriterKeyBundle.WKeys.
 	WKeys userDeviceKeyInfoMapFuture
 	extra
 }
 
-func (wkbf tlfWriterKeyBundleFuture) toCurrent() tlfWriterKeyBundleCurrent {
-	wkb := wkbf.tlfWriterKeyBundleCurrent
+func (wkbf tlfWriterKeyBundleFuture) toCurrent() TLFWriterKeyBundle {
+	wkb := wkbf.TLFWriterKeyBundle
 	wkb.WKeys = wkbf.WKeys.toCurrent()
 	return wkb
 }
@@ -234,7 +230,7 @@ func makeFakeDeviceKeyInfoMapFuture(t *testing.T) userDeviceKeyInfoMapFuture {
 }
 
 func makeFakeTLFWriterKeyBundleFuture(t *testing.T) tlfWriterKeyBundleFuture {
-	wkb := tlfWriterKeyBundleCurrent{
+	wkb := TLFWriterKeyBundle{
 		nil,
 		MakeTLFPublicKey([32]byte{0xa}),
 		TLFEphemeralPublicKeys{
@@ -253,17 +249,15 @@ func TestTLFWriterKeyBundleUnknownFields(t *testing.T) {
 	testStructUnknownFields(t, makeFakeTLFWriterKeyBundleFuture(t))
 }
 
-type tlfReaderKeyBundleCurrent TLFReaderKeyBundle
-
 type tlfReaderKeyBundleFuture struct {
-	tlfReaderKeyBundleCurrent
+	TLFReaderKeyBundle
 	// Override TLFReaderKeyBundle.WKeys.
 	RKeys userDeviceKeyInfoMapFuture
 	extra
 }
 
-func (rkbf tlfReaderKeyBundleFuture) toCurrent() tlfReaderKeyBundleCurrent {
-	rkb := rkbf.tlfReaderKeyBundleCurrent
+func (rkbf tlfReaderKeyBundleFuture) toCurrent() TLFReaderKeyBundle {
+	rkb := rkbf.TLFReaderKeyBundle
 	rkb.RKeys = rkbf.RKeys.toCurrent()
 	return rkb
 }
@@ -273,7 +267,7 @@ func (rkbf tlfReaderKeyBundleFuture) toCurrentStruct() currentStruct {
 }
 
 func makeFakeTLFReaderKeyBundleFuture(t *testing.T) tlfReaderKeyBundleFuture {
-	rkb := tlfReaderKeyBundleCurrent{
+	rkb := TLFReaderKeyBundle{
 		nil,
 		TLFEphemeralPublicKeys{
 			MakeTLFEphemeralPublicKey([32]byte{0xc}),

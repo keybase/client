@@ -3,7 +3,351 @@ package libkbfs
 import (
 	"reflect"
 	"testing"
+
+	"github.com/keybase/go-codec/codec"
 )
+
+type writeRangeFuture struct {
+	WriteRange
+	extra
+}
+
+func (wrf writeRangeFuture) toCurrent() WriteRange {
+	return wrf.WriteRange
+}
+
+func (wrf writeRangeFuture) toCurrentStruct() currentStruct {
+	return wrf.toCurrent()
+}
+
+func makeFakeWriteRangeFuture(t *testing.T) writeRangeFuture {
+	wrf := writeRangeFuture{
+		WriteRange{
+			5,
+			10,
+			codec.UnknownFieldSetHandler{},
+		},
+		makeExtraOrBust("WriteRange", t),
+	}
+	return wrf
+}
+
+func TestWriteRangeUnknownFields(t *testing.T) {
+	testStructUnknownFields(t, makeFakeWriteRangeFuture(t))
+}
+
+// opPointerizerFuture and registerOpsFuture are the "future" versions
+// of opPointerizer and RegisterOps. registerOpsFuture is used by
+// testStructUnknownFields.
+
+func opPointerizerFuture(iface interface{}) reflect.Value {
+	switch op := iface.(type) {
+	default:
+		return reflect.ValueOf(iface)
+	case createOpFuture:
+		return reflect.ValueOf(&op)
+	case rmOpFuture:
+		return reflect.ValueOf(&op)
+	case renameOpFuture:
+		return reflect.ValueOf(&op)
+	case syncOpFuture:
+		return reflect.ValueOf(&op)
+	case setAttrOpFuture:
+		return reflect.ValueOf(&op)
+	case resolutionOpFuture:
+		return reflect.ValueOf(&op)
+	case rekeyOpFuture:
+		return reflect.ValueOf(&op)
+	case gcOpFuture:
+		return reflect.ValueOf(&op)
+	}
+}
+
+func registerOpsFuture(codec Codec) {
+	codec.RegisterType(reflect.TypeOf(createOpFuture{}), createOpCode)
+	codec.RegisterType(reflect.TypeOf(rmOpFuture{}), rmOpCode)
+	codec.RegisterType(reflect.TypeOf(renameOpFuture{}), renameOpCode)
+	codec.RegisterType(reflect.TypeOf(syncOpFuture{}), syncOpCode)
+	codec.RegisterType(reflect.TypeOf(setAttrOpFuture{}), setAttrOpCode)
+	codec.RegisterType(reflect.TypeOf(resolutionOpFuture{}), resolutionOpCode)
+	codec.RegisterType(reflect.TypeOf(rekeyOpFuture{}), rekeyOpCode)
+	codec.RegisterType(reflect.TypeOf(gcOpFuture{}), gcOpCode)
+	codec.RegisterIfaceSliceType(reflect.TypeOf(opsList{}), opsListCode,
+		opPointerizerFuture)
+}
+
+type createOpFuture struct {
+	createOp
+	extra
+}
+
+func (cof createOpFuture) toCurrent() createOp {
+	return cof.createOp
+}
+
+func (cof createOpFuture) toCurrentStruct() currentStruct {
+	return cof.toCurrent()
+}
+
+func makeFakeBlockUpdate(t *testing.T) blockUpdate {
+	return blockUpdate{
+		makeFakeBlockPointer(t),
+		makeFakeBlockPointer(t),
+	}
+}
+
+func makeFakeOpCommon(t *testing.T, withRefBlocks bool) OpCommon {
+	var refBlocks []BlockPointer
+	if withRefBlocks {
+		refBlocks = []BlockPointer{makeFakeBlockPointer(t)}
+	}
+	oc := OpCommon{
+		refBlocks,
+		[]BlockPointer{makeFakeBlockPointer(t)},
+		[]blockUpdate{makeFakeBlockUpdate(t)},
+		codec.UnknownFieldSetHandler{},
+		nil,
+		writerInfo{},
+		path{},
+	}
+	return oc
+}
+
+func makeFakeCreateOpFuture(t *testing.T) createOpFuture {
+	cof := createOpFuture{
+		createOp{
+			makeFakeOpCommon(t, true),
+			"new name",
+			makeFakeBlockUpdate(t),
+			Exec,
+			false,
+			false,
+			"",
+		},
+		makeExtraOrBust("createOp", t),
+	}
+	return cof
+}
+
+func TestCreateOpUnknownFields(t *testing.T) {
+	testStructUnknownFields(t, makeFakeCreateOpFuture(t))
+}
+
+type rmOpFuture struct {
+	rmOp
+	extra
+}
+
+func (rof rmOpFuture) toCurrent() rmOp {
+	return rof.rmOp
+}
+
+func (rof rmOpFuture) toCurrentStruct() currentStruct {
+	return rof.toCurrent()
+}
+
+func makeFakeRmOpFuture(t *testing.T) rmOpFuture {
+	rof := rmOpFuture{
+		rmOp{
+			makeFakeOpCommon(t, true),
+			"old name",
+			makeFakeBlockUpdate(t),
+			false,
+		},
+		makeExtraOrBust("rmOp", t),
+	}
+	return rof
+}
+
+func TestRmOpUnknownFields(t *testing.T) {
+	testStructUnknownFields(t, makeFakeRmOpFuture(t))
+}
+
+type renameOpFuture struct {
+	renameOp
+	extra
+}
+
+func (rof renameOpFuture) toCurrent() renameOp {
+	return rof.renameOp
+}
+
+func (rof renameOpFuture) toCurrentStruct() currentStruct {
+	return rof.toCurrent()
+}
+
+func makeFakeRenameOpFuture(t *testing.T) renameOpFuture {
+	rof := renameOpFuture{
+		renameOp{
+			makeFakeOpCommon(t, true),
+			"old name",
+			makeFakeBlockUpdate(t),
+			"new name",
+			makeFakeBlockUpdate(t),
+			makeFakeBlockPointer(t),
+			Exec,
+		},
+		makeExtraOrBust("renameOp", t),
+	}
+	return rof
+}
+
+func TestRenameOpUnknownFields(t *testing.T) {
+	testStructUnknownFields(t, makeFakeRenameOpFuture(t))
+}
+
+type syncOpFuture struct {
+	syncOp
+	// Overrides syncOp.Writes.
+	Writes []writeRangeFuture `codec:"w"`
+	extra
+}
+
+func (sof syncOpFuture) toCurrent() syncOp {
+	so := sof.syncOp
+	so.Writes = make([]WriteRange, len(sof.Writes))
+	for i, w := range sof.Writes {
+		so.Writes[i] = w.toCurrent()
+	}
+	return so
+}
+
+func (sof syncOpFuture) toCurrentStruct() currentStruct {
+	return sof.toCurrent()
+}
+
+func makeFakeSyncOpFuture(t *testing.T) syncOpFuture {
+	sof := syncOpFuture{
+		syncOp{
+			makeFakeOpCommon(t, true),
+			makeFakeBlockUpdate(t),
+			nil,
+		},
+		[]writeRangeFuture{
+			makeFakeWriteRangeFuture(t),
+			makeFakeWriteRangeFuture(t),
+		},
+		makeExtraOrBust("syncOp", t),
+	}
+	return sof
+}
+
+func TestSyncOpUnknownFields(t *testing.T) {
+	testStructUnknownFields(t, makeFakeSyncOpFuture(t))
+}
+
+type setAttrOpFuture struct {
+	setAttrOp
+	extra
+}
+
+func (sof setAttrOpFuture) toCurrent() setAttrOp {
+	return sof.setAttrOp
+}
+
+func (sof setAttrOpFuture) toCurrentStruct() currentStruct {
+	return sof.toCurrent()
+}
+
+func makeFakeSetAttrOpFuture(t *testing.T) setAttrOpFuture {
+	sof := setAttrOpFuture{
+		setAttrOp{
+			makeFakeOpCommon(t, true),
+			"name",
+			makeFakeBlockUpdate(t),
+			mtimeAttr,
+			makeFakeBlockPointer(t),
+		},
+		makeExtraOrBust("setAttrOp", t),
+	}
+	return sof
+}
+
+func TestSetAttrOpUnknownFields(t *testing.T) {
+	testStructUnknownFields(t, makeFakeSetAttrOpFuture(t))
+}
+
+type resolutionOpFuture struct {
+	resolutionOp
+	extra
+}
+
+func (rof resolutionOpFuture) toCurrent() resolutionOp {
+	return rof.resolutionOp
+}
+
+func (rof resolutionOpFuture) toCurrentStruct() currentStruct {
+	return rof.toCurrent()
+}
+
+func makeFakeResolutionOpFuture(t *testing.T) resolutionOpFuture {
+	rof := resolutionOpFuture{
+		resolutionOp{
+			makeFakeOpCommon(t, true),
+		},
+		makeExtraOrBust("resolutionOp", t),
+	}
+	return rof
+}
+
+func TestResolutionOpUnknownFields(t *testing.T) {
+	testStructUnknownFields(t, makeFakeResolutionOpFuture(t))
+}
+
+type rekeyOpFuture struct {
+	rekeyOp
+	extra
+}
+
+func (rof rekeyOpFuture) toCurrent() rekeyOp {
+	return rof.rekeyOp
+}
+
+func (rof rekeyOpFuture) toCurrentStruct() currentStruct {
+	return rof.toCurrent()
+}
+
+func makeFakeRekeyOpFuture(t *testing.T) rekeyOpFuture {
+	rof := rekeyOpFuture{
+		rekeyOp{
+			makeFakeOpCommon(t, true),
+		},
+		makeExtraOrBust("rekeyOp", t),
+	}
+	return rof
+}
+
+func TestRekeyOpUnknownFields(t *testing.T) {
+	testStructUnknownFields(t, makeFakeRekeyOpFuture(t))
+}
+
+type gcOpFuture struct {
+	gcOp
+	extra
+}
+
+func (gof gcOpFuture) toCurrent() gcOp {
+	return gof.gcOp
+}
+
+func (gof gcOpFuture) toCurrentStruct() currentStruct {
+	return gof.toCurrent()
+}
+
+func makeFakeGcOpFuture(t *testing.T) gcOpFuture {
+	gof := gcOpFuture{
+		gcOp{
+			makeFakeOpCommon(t, false),
+			100,
+		},
+		makeExtraOrBust("gcOp", t),
+	}
+	return gof
+}
+
+func TestGcOpUnknownFields(t *testing.T) {
+	testStructUnknownFields(t, makeFakeGcOpFuture(t))
+}
 
 type testOps struct {
 	Ops []interface{}

@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+
+	"github.com/keybase/go-codec/codec"
 )
 
 // op represents a single file-system remote-sync operation
@@ -59,12 +61,18 @@ const (
 
 type opsList []op
 
+// TODO: Use a wrapper around BlockPointer and blockUpdate that
+// supports UnknownFields.
+
 // OpCommon are data structures needed by all ops.  It is only
 // exported for serialization purposes.
 type OpCommon struct {
 	RefBlocks   []BlockPointer `codec:"r,omitempty"`
 	UnrefBlocks []BlockPointer `codec:"u,omitempty"`
 	Updates     []blockUpdate  `codec:"o,omitempty"`
+
+	codec.UnknownFieldSetHandler
+
 	// customUpdates allows an individual op to make sure that one of
 	// its custom fields is updated on AddUpdate, instead of the
 	// generic Updates field.
@@ -380,6 +388,8 @@ func (ro *renameOp) GetDefaultAction(mergedPath path) crAction {
 type WriteRange struct {
 	Off uint64 `codec:"o"`
 	Len uint64 `codec:"l,omitempty"` // 0 for truncates
+
+	codec.UnknownFieldSetHandler
 }
 
 // syncOp is an op that represents a series of writes to a file.
@@ -419,13 +429,13 @@ func (so *syncOp) resetUpdateState() {
 }
 
 func (so *syncOp) addWrite(off uint64, length uint64) WriteRange {
-	latestWrite := WriteRange{off, length}
+	latestWrite := WriteRange{Off: off, Len: length}
 	so.Writes = append(so.Writes, latestWrite)
 	return latestWrite
 }
 
 func (so *syncOp) addTruncate(off uint64) WriteRange {
-	latestWrite := WriteRange{off, 0}
+	latestWrite := WriteRange{Off: off, Len: 0}
 	so.Writes = append(so.Writes, latestWrite)
 	return latestWrite
 }
@@ -651,6 +661,9 @@ type gcOp struct {
 
 	// LatestRev is the most recent MD revision that was
 	// garbage-collected with this operation.
+	//
+	// The codec name overrides the one for RefBlocks in OpCommon,
+	// which gcOp doesn't use.
 	LatestRev MetadataRevision `codec:"r"`
 }
 
@@ -725,6 +738,10 @@ func invertOpForLocalNotifications(oldOp op) op {
 	}
 	return newOp
 }
+
+// NOTE: If you're updating opPointerizer and RegisterOps, make sure
+// to also update opPointerizerFuture and registerOpsFuture in
+// ops_test.go.
 
 // Our ugorji codec cannot decode our extension types as pointers, and
 // we need them to be pointers so they correctly satisfy the op

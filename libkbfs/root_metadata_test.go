@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"reflect"
 	"sort"
 	"testing"
 
@@ -9,6 +10,71 @@ import (
 	"github.com/keybase/go-codec/codec"
 	"github.com/stretchr/testify/require"
 )
+
+type privateMetadataFuture struct {
+	PrivateMetadata
+	Dir dirEntryFuture
+	extra
+}
+
+func (pmf privateMetadataFuture) toCurrent() PrivateMetadata {
+	pm := pmf.PrivateMetadata
+	pm.Dir = DirEntry(pmf.Dir.toCurrent())
+	pm.Changes.Ops = make(opsList, len(pmf.Changes.Ops))
+	for i, opFuture := range pmf.Changes.Ops {
+		currentOp := opFuture.(futureStruct).toCurrentStruct()
+		// A generic version of "v := currentOp; ...Ops[i] = &v".
+		v := reflect.New(reflect.TypeOf(currentOp))
+		v.Elem().Set(reflect.ValueOf(currentOp))
+		pm.Changes.Ops[i] = v.Interface().(op)
+	}
+	return pm
+}
+
+func (pmf privateMetadataFuture) toCurrentStruct() currentStruct {
+	return pmf.toCurrent()
+}
+
+func makeFakePrivateMetadataFuture(t *testing.T) privateMetadataFuture {
+	createOp := makeFakeCreateOpFuture(t)
+	rmOp := makeFakeRmOpFuture(t)
+	renameOp := makeFakeRenameOpFuture(t)
+	syncOp := makeFakeSyncOpFuture(t)
+	setAttrOp := makeFakeSetAttrOpFuture(t)
+	resolutionOp := makeFakeResolutionOpFuture(t)
+	rekeyOp := makeFakeRekeyOpFuture(t)
+	gcOp := makeFakeGcOpFuture(t)
+
+	pmf := privateMetadataFuture{
+		PrivateMetadata{
+			DirEntry{},
+			MakeTLFPrivateKey([32]byte{0xb}),
+			BlockChanges{
+				makeFakeBlockInfo(t),
+				opsList{
+					&createOp,
+					&rmOp,
+					&renameOp,
+					&syncOp,
+					&setAttrOp,
+					&resolutionOp,
+					&rekeyOp,
+					&gcOp,
+				},
+				0,
+			},
+			codec.UnknownFieldSetHandler{},
+			BlockChanges{},
+		},
+		makeFakeDirEntryFuture(t),
+		makeExtraOrBust("PrivateMetadata", t),
+	}
+	return pmf
+}
+
+func TestPrivateMetadataUnknownFields(t *testing.T) {
+	testStructUnknownFields(t, makeFakePrivateMetadataFuture(t))
+}
 
 // Test that GetTlfHandle() generates a TlfHandle properly for public
 // TLFs if there is no cached TlfHandle.
@@ -163,8 +229,6 @@ func TestWriterMetadataEncodedFields(t *testing.T) {
 	require.Equal(t, expectedFields, fields)
 }
 
-type writerMetadataCurrent WriterMetadata
-
 type writerMetadataExtraFuture struct {
 	WriterMetadataExtra
 	extra
@@ -186,15 +250,15 @@ func (wkgf tlfWriterKeyGenerationsFuture) toCurrent() TLFWriterKeyGenerations {
 }
 
 type writerMetadataFuture struct {
-	writerMetadataCurrent
+	WriterMetadata
 	// Override WriterMetadata.WKeys.
 	WKeys tlfWriterKeyGenerationsFuture
 	// Override WriterMetadata.Extra.
 	Extra writerMetadataExtraFuture `codec:"x,omitempty,omitemptycheckstruct"`
 }
 
-func (wmf writerMetadataFuture) toCurrent() writerMetadataCurrent {
-	wm := wmf.writerMetadataCurrent
+func (wmf writerMetadataFuture) toCurrent() WriterMetadata {
+	wm := wmf.WriterMetadata
 	wm.WKeys = wmf.WKeys.toCurrent()
 	wm.Extra = wmf.Extra.toCurrent()
 	return wm
@@ -205,7 +269,7 @@ func (wmf writerMetadataFuture) toCurrentStruct() currentStruct {
 }
 
 func makeFakeWriterMetadataFuture(t *testing.T) writerMetadataFuture {
-	wmd := writerMetadataCurrent{
+	wmd := WriterMetadata{
 		// This needs to be list format so it fails to compile if new fields
 		// are added, effectively checking at compile time whether new fields
 		// have been added
@@ -243,8 +307,6 @@ func TestWriterMetadataUnknownFields(t *testing.T) {
 	testStructUnknownFields(t, makeFakeWriterMetadataFuture(t))
 }
 
-type rootMetadataCurrent RootMetadata
-
 type tlfReaderKeyGenerationsFuture []*tlfReaderKeyBundleFuture
 
 func (rkgf tlfReaderKeyGenerationsFuture) toCurrent() TLFReaderKeyGenerations {
@@ -256,11 +318,11 @@ func (rkgf tlfReaderKeyGenerationsFuture) toCurrent() TLFReaderKeyGenerations {
 	return rkg
 }
 
-// rootMetadataCurrentWrapper exists only to add extra depth to fields
-// in rootMetadataCurrent, so that they may be overridden in
+// rootMetadataWrapper exists only to add extra depth to fields
+// in RootMetadata, so that they may be overridden in
 // rootMetadataFuture.
-type rootMetadataCurrentWrapper struct {
-	rootMetadataCurrent
+type rootMetadataWrapper struct {
+	RootMetadata
 }
 
 type rootMetadataFuture struct {
@@ -270,14 +332,14 @@ type rootMetadataFuture struct {
 	// TODO: Report and fix this bug upstream.
 	writerMetadataFuture
 
-	rootMetadataCurrentWrapper
+	rootMetadataWrapper
 	// Override RootMetadata.RKeys.
 	RKeys tlfReaderKeyGenerationsFuture `codec:",omitempty"`
 	extra
 }
 
-func (rmf rootMetadataFuture) toCurrent() rootMetadataCurrent {
-	rm := rmf.rootMetadataCurrentWrapper.rootMetadataCurrent
+func (rmf rootMetadataFuture) toCurrent() RootMetadata {
+	rm := rmf.rootMetadataWrapper.RootMetadata
 	rm.WriterMetadata = WriterMetadata(rmf.writerMetadataFuture.toCurrent())
 	rm.RKeys = rmf.RKeys.toCurrent()
 	return rm
@@ -295,8 +357,8 @@ func makeFakeRootMetadataFuture(t *testing.T) rootMetadataFuture {
 	sa, _ := libkb.NormalizeSocialAssertion("bar@github")
 	rmf := rootMetadataFuture{
 		wmf,
-		rootMetadataCurrentWrapper{
-			rootMetadataCurrent{
+		rootMetadataWrapper{
+			RootMetadata{
 				// This needs to be list format so it fails to compile if new
 				// fields are added, effectively checking at compile time
 				// whether new fields have been added
@@ -321,7 +383,6 @@ func makeFakeRootMetadataFuture(t *testing.T) rootMetadataFuture {
 		[]*tlfReaderKeyBundleFuture{&rkb},
 		makeExtraOrBust("RootMetadata", t),
 	}
-	_ = rmf.ID
 	return rmf
 }
 

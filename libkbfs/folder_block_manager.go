@@ -347,7 +347,9 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context) error 
 			continue
 		}
 		dirsEqual, err := CodecEqual(fbm.config.Codec(), rmds[0].data.Dir, md.data.Dir)
-		if err == nil && dirsEqual {
+		if err != nil {
+			fbm.log.CErrorf(ctx, "Error when comparing dirs: %v", err)
+		} else if dirsEqual {
 			// This md is part of the history of the folder,
 			// so we shouldn't delete the blocks.
 			fbm.log.CDebugf(ctx, "Not deleting blocks from revision %d",
