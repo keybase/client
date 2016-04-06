@@ -1,6 +1,7 @@
 package libkb
 
 import (
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -30,5 +31,8 @@ func discardAndClose(rc io.ReadCloser) error {
 //
 // instead.
 func DiscardAndCloseBody(resp *http.Response) error {
+	if resp == nil {
+		return fmt.Errorf("Nothing to discard (http.Response was nil)")
+	}
 	return discardAndClose(resp.Body)
 }
