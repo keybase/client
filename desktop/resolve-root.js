@@ -13,7 +13,7 @@ if (!__DEV__) { // eslint-disable-line no-undef
 }
 
 function fix (str) {
-  return encodeURIComponent(str)
+  return encodeURI(str)
 }
 
 export const resolveRoot = (...to) => path.resolve(root, ...to)

@@ -48,7 +48,7 @@ export default class Icon extends Component {
         title={this.props.hint}
         style={{...this.props.style}}
         onClick={this.props.onClick}
-        srcSet={`${[1, 2, 3].map(mult => `${resolveImage('icons', this.props.type)}${mult > 1 ? `@${mult}x` : ''}.${ext} ${mult}x`).join(', ')}`} />
+        srcSet={`${[1, 2, 3].map(mult => `encodeURI(${resolveImage('icons', this.props.type)}${mult > 1 ? `@${mult}x` : ''}.${ext} ${mult}x)`).join(', ')}`} />
     }
   }
 }
