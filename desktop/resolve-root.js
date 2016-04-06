@@ -16,9 +16,9 @@ function fix (str) {
   return encodeURIComponent(str)
 }
 
-export const resolveRoot = (...to) => fix(path.resolve(root, ...to))
+export const resolveRoot = (...to) => path.resolve(root, ...to)
 export const resolveRootAsURL = (...to) => `file://${fix(resolveRoot(resolveRoot(...to)))}`
-export const resolveImage = (...to) => fix(path.resolve(root, 'shared', 'images', ...to))
+export const resolveImage = (...to) => path.resolve(root, 'shared', 'images', ...to)
 export const resolveImageAsURL = (...to) => `file://${fix(resolveImage(...to))}`
 
 export default resolveRoot
