@@ -7,25 +7,27 @@ set -e -u -o pipefail # Fail on error
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd "$dir"
 
-build_dir="/tmp/build_kbfs"
-client_dir="$GOPATH/src/github.com/keybase/client"
+version=${VERSION:-}
+token=${GITHUB_TOKEN:-}
 
-echo "Loading release tool"
-"$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
-release_bin="$GOPATH/bin/release"
-
-version="${VERSION:-}"
 if [ "$version" = "" ]; then
   echo "Specify VERSION to build"
+  exit 1
 fi
-tag="v$version"
-tgz="kbfs-$version.tgz"
-token="${GITHUB_TOKEN:-}"
 
 if [ "$token" = "" ]; then
   echo "No GITHUB_TOKEN set. See https://help.github.com/articles/creating-an-access-token-for-command-line-use/"
   exit 2
 fi
+
+build_dir="/tmp/build_kbfs"
+client_dir="$GOPATH/src/github.com/keybase/client"
+tag="v$version"
+tgz="kbfs-$version.tgz"
+
+echo "Loading release tool"
+"$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
+release_bin="$GOPATH/bin/release"
 
 build() {
   rm -rf "$build_dir"
@@ -34,7 +36,7 @@ build() {
 
   echo "Downloading source archive"
   src_url="https://github.com/keybase/kbfs-beta/archive/v$version.tar.gz"
-  curl -O -J -L $src_url
+  curl -O -J -L "$src_url"
 
   src_tgz="kbfs-beta-$version.tar.gz"
   echo "Unpacking $src_tgz"
@@ -47,7 +49,7 @@ build() {
   mv "kbfs-beta-$version" "$go_dir/src/github.com/keybase"
 
   echo "Building kbfs"
-  GO15VENDOREXPERIMENT=1 GOPATH=$go_dir go build -a -tags "production" -o kbfs github.com/keybase/kbfs/kbfsfuse
+  GO15VENDOREXPERIMENT=1 GOPATH="$go_dir" go build -a -tags "production" -o kbfs github.com/keybase/kbfs/kbfsfuse
 
   echo "Packaging"
   rm -rf "$tgz"
@@ -63,7 +65,7 @@ create_release() {
     cd "$build_dir"
     platform=`$release_bin platform`
     echo "Creating release"
-    $release_bin create --version="$version" --repo="kbfs-beta"
+    "$release_bin" create --version="$version" --repo="kbfs-beta"
   fi
 }
 
@@ -71,7 +73,7 @@ upload_release() {
   cd "$build_dir"
   platform=`$release_bin platform`
   echo "Uploading release"
-  $release_bin upload --src="$tgz" --dest="kbfs-$version-$platform.tgz" --version="$version" --repo="kbfs-beta"
+  "$release_bin" upload --src="$tgz" --dest="kbfs-$version-$platform.tgz" --version="$version" --repo="kbfs-beta"
 }
 
 build
