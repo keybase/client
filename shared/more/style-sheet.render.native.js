@@ -18,6 +18,29 @@ const onClick = () => {
   console.log('clicked')
 }
 
+class ShowTypingDemo extends Component<void, any, any> {
+  state: any;
+
+  constructor (props: any) {
+    super(props)
+    this.state = {
+      showTyping: this.props.initialShowTyping || false
+    }
+  }
+
+  render () {
+    return (
+      <FormWithCheckbox
+        inputProps={{floatingLabelText: 'Passphrase', type: (this.state.showTyping ? 'passwordVisible' : 'password'), hintText: 'Passphrase', errorText: 'Error Message'}}
+        checkboxesProps={[
+          {label: 'Save in Keychain', checked: true, onCheck: () => {}},
+          {label: 'Show Typing', checked: this.state.showTyping, onCheck: showTyping => this.setState({showTyping})}
+        ]}/>
+    )
+  }
+
+}
+
 const Inputs = () => (
   <Box style={{...globalStyles.flexBoxColumn, padding: 10}}>
     <Row>
@@ -34,13 +57,10 @@ const Inputs = () => (
       <Input type='password' hintText='Secure Passphrase Input' floatingLabelText='Passphrase'/>
     </Row>
 
-    <FormWithCheckbox
-      inputProps={{floatingLabelText: 'Passphrase', type: 'password', hintText: 'Passphrase', errorText: 'Error Message'}}
-      checkboxesProps={[
-        {label: 'Save in Keychain', checked: true, onCheck: () => {}},
-        {label: 'Show Typing', checked: true, onCheck: () => {}}
-      ]}
-    />
+    <ShowTypingDemo/>
+
+    <ShowTypingDemo initialShowTyping/>
+
   </Box>
 )
 

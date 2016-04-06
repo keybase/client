@@ -6,8 +6,10 @@ import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.uimanager.ViewManager;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import io.keybase.android.components.VisiblePassReactEditTextManager;
 import io.keybase.android.modules.KeybaseEngine;
 
 public class ReactPackage implements com.facebook.react.ReactPackage {
@@ -28,8 +30,7 @@ public class ReactPackage implements com.facebook.react.ReactPackage {
 
     @Override
     public List<ViewManager> createViewManagers(ReactApplicationContext reactApplicationContext) {
-        List<ViewManager> modules = new ArrayList<>();
-        // modules.add(new TabBarManager());
+        List<ViewManager> modules = Arrays.<ViewManager>asList(new VisiblePassReactEditTextManager());
         return modules;
     }
 }

@@ -20,6 +20,7 @@ type State = {
 
 class Input extends Component<void, Props, State> {
   state: State;
+  _textInput: any;
 
   constructor (props: Props) {
     super(props)
@@ -29,17 +30,34 @@ class Input extends Component<void, Props, State> {
     }
   }
 
+  _setPasswordVisible (props: Props) {
+    const passwordVisible = props.type === 'passwordVisible'
+    if (this._textInput) {
+      this._textInput.setNativeProps({passwordVisible})
+    }
+  }
+
+  componentWillUpdate (nextProps: Props) {
+    if (nextProps.type !== this.props.type) {
+      this._setPasswordVisible(nextProps)
+    }
+  }
+
   render () {
     const IOS = Platform.OS_IOS === OS
     const inputStyle = Text.textStyle({type: 'BodySemibold'}, {})
+    const password = this.props.type === 'password'
+    const passwordVisible = this.props.type === 'passwordVisible'
 
     return (
       <Box style={{...containerStyle, ...this.props.style}}>
         {this.state.text.length > 0 && <Text type='BodySmall' style={{...floatingLabelStyle}}>{this.props.floatingLabelText}</Text>}
         <TextInput
           style={{...inputStyle, ...textInputStyle}}
+          ref={component => { this._textInput = component }}
+          autoCorrect={!(password || passwordVisible)}
           defaultValue={this.props.value}
-          secureTextEntry={this.props.type === 'password' || this.props.type === 'passwordVisible'}
+          secureTextEntry={password}
           autoFocus={this.props.autoFocus}
           placeholder={this.props.hintText}
           placeholderColor={globalColors.black10}
