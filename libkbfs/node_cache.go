@@ -168,6 +168,11 @@ func (ncs *nodeCacheStandard) UpdatePointer(
 		return
 	}
 
+	// Cannot update the pointer for an unlinked node
+	if len(entry.core.cachedPath.path) > 0 {
+		return
+	}
+
 	entry.core.pathNode.BlockPointer = newPtr
 	delete(ncs.nodes, oldRef)
 	ncs.nodes[newPtr.ref()] = entry
