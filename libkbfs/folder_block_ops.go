@@ -372,7 +372,10 @@ func (fbo *folderBlockOps) getFileBlockLocked(ctx context.Context,
 		// already dirty.
 		if !fbo.config.BlockCache().IsDirty(ptr, file.Branch) ||
 			fbo.fileBlockStates[ptr] == blockSyncingNotDirty {
-			fblock = fblock.DeepCopy()
+			fblock, err = fblock.DeepCopy(fbo.config.Codec())
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 	return fblock, nil
@@ -452,7 +455,10 @@ func (fbo *folderBlockOps) getDirLocked(ctx context.Context,
 		dir.tailPointer(), dir.Branch) {
 		// Copy the block if it's for writing and the block is
 		// not yet dirty.
-		dblock = dblock.DeepCopy()
+		dblock, err = dblock.DeepCopy(fbo.config.Codec())
+		if err != nil {
+			return nil, err
+		}
 	}
 	return dblock, nil
 }
@@ -528,7 +534,7 @@ func (fbo *folderBlockOps) getFileBlockAtOffsetLocked(ctx context.Context,
 // the ones in deCache and returns it. If not, it just returns the
 // given one.
 func (fbo *folderBlockOps) updateWithDirtyEntriesLocked(ctx context.Context,
-	lState *lockState, block *DirBlock) *DirBlock {
+	lState *lockState, block *DirBlock) (*DirBlock, error) {
 	fbo.blockLock.AssertAnyLocked(lState)
 	// see if this directory has any outstanding writes/truncates that
 	// require an updated DirEntry
@@ -536,7 +542,7 @@ func (fbo *folderBlockOps) updateWithDirtyEntriesLocked(ctx context.Context,
 	// Save some time for the common case of having no dirty
 	// files.
 	if len(fbo.deCache) == 0 {
-		return block
+		return block, nil
 	}
 
 	var dblockCopy *DirBlock
@@ -550,7 +556,11 @@ func (fbo *folderBlockOps) updateWithDirtyEntriesLocked(ctx context.Context,
 		}
 
 		if dblockCopy == nil {
-			dblockCopy = block.DeepCopy()
+			var err error
+			dblockCopy, err = block.DeepCopy(fbo.config.Codec())
+			if err != nil {
+				return nil, err
+			}
 			// If there's an error, just log it and keep
 			// going because having the correct writer is
 			// not important enough to fail the whole
@@ -570,10 +580,10 @@ func (fbo *folderBlockOps) updateWithDirtyEntriesLocked(ctx context.Context,
 	}
 
 	if dblockCopy == nil {
-		return block
+		return block, nil
 	}
 
-	return dblockCopy
+	return dblockCopy, nil
 }
 
 // getDirtyDirLocked composes getDirLocked and
@@ -590,8 +600,7 @@ func (fbo *folderBlockOps) getDirtyDirLocked(ctx context.Context,
 		return nil, err
 	}
 
-	dblock = fbo.updateWithDirtyEntriesLocked(ctx, lState, dblock)
-	return dblock, nil
+	return fbo.updateWithDirtyEntriesLocked(ctx, lState, dblock)
 }
 
 // GetDirtyDirChildren returns a map of EntryInfos for the (possibly
@@ -1575,8 +1584,12 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 
 	// Fill in syncState.
 	if fblock.IsInd {
+		fblockCopy, err := fblock.DeepCopy(fbo.config.Codec())
+		if err != nil {
+			return nil, nil, syncState, err
+		}
 		syncState.fblock = fblock
-		syncState.savedFblock = fblock.DeepCopy()
+		syncState.savedFblock = fblockCopy
 		syncState.redirtyOnRecoverableError = make(map[BlockPointer]BlockPointer)
 	}
 	syncState.si = si

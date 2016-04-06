@@ -286,7 +286,7 @@ func TestCryptoCommonVerifyFailures(t *testing.T) {
 
 	// Wrong version.
 
-	sigInfoWrongVersion := sigInfo.DeepCopy()
+	sigInfoWrongVersion := sigInfo.deepCopyForTest()
 	sigInfoWrongVersion.Version++
 	expectedErr = UnknownSigVer{sigInfoWrongVersion.Version}
 	err = c.Verify(msg, sigInfoWrongVersion)
@@ -296,7 +296,7 @@ func TestCryptoCommonVerifyFailures(t *testing.T) {
 
 	// Corrupt key.
 
-	sigInfoCorruptKey := sigInfo.DeepCopy()
+	sigInfoCorruptKey := sigInfo.deepCopyForTest()
 	sigInfoCorruptKey.VerifyingKey.kid = ""
 	expectedErr = libkb.KeyCannotVerifyError{}
 	err = c.Verify(msg, sigInfoCorruptKey)
@@ -306,7 +306,7 @@ func TestCryptoCommonVerifyFailures(t *testing.T) {
 
 	// Wrong sizes.
 
-	shortSigInfo := sigInfo.DeepCopy()
+	shortSigInfo := sigInfo.deepCopyForTest()
 	shortSigInfo.Signature = shortSigInfo.Signature[:len(shortSigInfo.Signature)-1]
 	expectedErr = libkb.VerificationError{}
 	err = c.Verify(msg, shortSigInfo)
@@ -314,7 +314,7 @@ func TestCryptoCommonVerifyFailures(t *testing.T) {
 		t.Errorf("Expected %v, got %v", expectedErr, err)
 	}
 
-	longSigInfo := sigInfo.DeepCopy()
+	longSigInfo := sigInfo.deepCopyForTest()
 	longSigInfo.Signature = append(longSigInfo.Signature, byte(0))
 	expectedErr = libkb.VerificationError{}
 	err = c.Verify(msg, longSigInfo)
@@ -324,7 +324,7 @@ func TestCryptoCommonVerifyFailures(t *testing.T) {
 
 	// Corrupt signature.
 
-	corruptSigInfo := sigInfo.DeepCopy()
+	corruptSigInfo := sigInfo.deepCopyForTest()
 	corruptSigInfo.Signature[0] = ^sigInfo.Signature[0]
 	expectedErr = libkb.VerificationError{}
 	err = c.Verify(msg, corruptSigInfo)
@@ -334,7 +334,7 @@ func TestCryptoCommonVerifyFailures(t *testing.T) {
 
 	// Wrong key.
 
-	sigInfoWrongKey := sigInfo.DeepCopy()
+	sigInfoWrongKey := sigInfo.deepCopyForTest()
 	sigInfoWrongKey.VerifyingKey = MakeFakeVerifyingKeyOrBust("wrong key")
 	expectedErr = libkb.VerificationError{}
 	err = c.Verify(msg, sigInfoWrongKey)
@@ -518,7 +518,12 @@ func TestDecryptPrivateMetadataSecretboxSeal(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !decryptedPrivateMetadata.Equals(privateMetadata) {
+	pmEquals, err := CodecEqual(
+		config.Codec(), decryptedPrivateMetadata, privateMetadata)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !pmEquals {
 		t.Errorf("Decrypted private metadata %v doesn't match %v", decryptedPrivateMetadata, privateMetadata)
 	}
 }
@@ -549,7 +554,12 @@ func TestDecryptEncryptedPrivateMetadata(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if !decryptedPrivateMetadata.Equals(privateMetadata) {
+	pmEquals, err := CodecEqual(
+		config.Codec(), decryptedPrivateMetadata, privateMetadata)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !pmEquals {
 		t.Errorf("Decrypted private metadata %v doesn't match %v", decryptedPrivateMetadata, privateMetadata)
 	}
 }

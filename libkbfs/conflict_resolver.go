@@ -1732,7 +1732,10 @@ func (cr *ConflictResolver) fetchDirBlockCopy(ctx context.Context,
 	if err != nil {
 		return nil, err
 	}
-	dblock = dblock.DeepCopy()
+	dblock, err = dblock.DeepCopy(cr.config.Codec())
+	if err != nil {
+		return nil, err
+	}
 	lbc[ptr] = dblock
 	return dblock, nil
 }
@@ -1751,7 +1754,10 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 	if err != nil {
 		return BlockPointer{}, err
 	}
-	fblock = fblock.DeepCopy()
+	fblock, err = fblock.DeepCopy(cr.config.Codec())
+	if err != nil {
+		return BlockPointer{}, err
+	}
 	newPtr := ptr
 	_, uid, err := cr.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {

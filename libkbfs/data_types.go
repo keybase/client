@@ -76,8 +76,8 @@ func (s SignatureInfo) IsNil() bool {
 	return s.Version.IsNil() && len(s.Signature) == 0 && s.VerifyingKey.IsNil()
 }
 
-// DeepCopy makes a comlete copy of this SignatureInfo.
-func (s SignatureInfo) DeepCopy() SignatureInfo {
+// deepCopyForTest makes a complete copy of this SignatureInfo.
+func (s SignatureInfo) deepCopyForTest() SignatureInfo {
 	signature := make([]byte, len(s.Signature))
 	copy(signature[:], s.Signature[:])
 	return SignatureInfo{s.Version, signature, s.VerifyingKey}
@@ -92,13 +92,6 @@ func (s SignatureInfo) String() string {
 
 // TLFEphemeralPublicKeys stores a list of TLFEphemeralPublicKey
 type TLFEphemeralPublicKeys []TLFEphemeralPublicKey
-
-// DeepCopy makes a complete copy of a TLFEphemeralPublicKeys
-func (tepk TLFEphemeralPublicKeys) DeepCopy() TLFEphemeralPublicKeys {
-	keys := make(TLFEphemeralPublicKeys, len(tepk))
-	copy(keys, tepk)
-	return keys
-}
 
 // EncryptionVer denotes a version for the encryption method.
 type EncryptionVer int
@@ -133,16 +126,6 @@ type EncryptedMerkleLeaf struct {
 	_struct       bool `codec:",toarray"`
 	Version       EncryptionVer
 	EncryptedData []byte
-}
-
-// DeepCopy returns a complete copy of this EncryptedTLFCryptKeyClientHalf.
-func (ech EncryptedTLFCryptKeyClientHalf) DeepCopy() (echCopy EncryptedTLFCryptKeyClientHalf) {
-	echCopy.Version = ech.Version
-	echCopy.EncryptedData = make([]byte, len(ech.EncryptedData))
-	copy(echCopy.EncryptedData, ech.EncryptedData)
-	echCopy.Nonce = make([]byte, len(ech.Nonce))
-	copy(echCopy.Nonce, ech.Nonce)
-	return
 }
 
 // EncryptedTLFCryptKeyClientAndEphemeral has what's needed to
@@ -628,120 +611,6 @@ type EntryInfo struct {
 	Mtime int64
 	// Ctime is in unix nanoseconds
 	Ctime int64
-}
-
-// DirEntry is all the data info a directory know about its child.
-type DirEntry struct {
-	BlockInfo
-	EntryInfo
-}
-
-// IsInitialized returns true if this DirEntry has been initialized.
-func (de *DirEntry) IsInitialized() bool {
-	return de.BlockPointer.IsInitialized()
-}
-
-// IndirectDirPtr pairs an indirect dir block with the start of that
-// block's range of directory entries (inclusive)
-type IndirectDirPtr struct {
-	// TODO: Make sure that the block is not dirty when the EncodedSize
-	// field is non-zero.
-	BlockInfo
-	Off string `codec:"o"`
-}
-
-// IndirectFilePtr pairs an indirect file block with the start of that
-// block's range of bytes (inclusive)
-type IndirectFilePtr struct {
-	// When the EncodedSize field is non-zero, the block must not
-	// be dirty.
-	BlockInfo
-	Off int64 `codec:"o"`
-}
-
-// CommonBlock holds block data that is common for both subdirectories
-// and files.
-type CommonBlock struct {
-	// IsInd indicates where this block is so big it requires indirect pointers
-	IsInd bool `codec:"s"`
-	// cachedEncodedSize is the locally-cached (non-serialized)
-	// encoded size for this block.
-	cachedEncodedSize uint32
-}
-
-// GetEncodedSize implements the Block interface for CommonBlock
-func (cb CommonBlock) GetEncodedSize() uint32 {
-	return cb.cachedEncodedSize
-}
-
-// SetEncodedSize implements the Block interface for CommonBlock
-func (cb *CommonBlock) SetEncodedSize(size uint32) {
-	cb.cachedEncodedSize = size
-}
-
-// NewCommonBlock returns a generic block, unsuitable for caching.
-func NewCommonBlock() Block {
-	return &CommonBlock{}
-}
-
-// DirBlock is the contents of a directory
-type DirBlock struct {
-	CommonBlock
-	// if not indirect, a map of path name to directory entry
-	Children map[string]DirEntry `codec:"c,omitempty"`
-	// if indirect, contains the indirect pointers to the next level of blocks
-	IPtrs []IndirectDirPtr `codec:"i,omitempty"`
-}
-
-// NewDirBlock creates a new, empty DirBlock.
-func NewDirBlock() Block {
-	return &DirBlock{
-		Children: make(map[string]DirEntry),
-	}
-}
-
-// DeepCopy makes a complete copy of a DirBlock
-func (db DirBlock) DeepCopy() *DirBlock {
-	// copy the block if it's for writing
-	dblockCopy := NewDirBlock().(*DirBlock)
-	*dblockCopy = db
-	// deep copy of children
-	dblockCopy.Children = make(map[string]DirEntry)
-	for k, v := range db.Children {
-		dblockCopy.Children[k] = v
-	}
-	// TODO: deep copy of IPtrs once we have indirect dir blocks
-	// TODO: copy padding once we support it.
-	return dblockCopy
-}
-
-// FileBlock is the contents of a file
-type FileBlock struct {
-	CommonBlock
-	// if not indirect, the full contents of this block
-	Contents []byte `codec:"c,omitempty"`
-	// if indirect, contains the indirect pointers to the next level of blocks
-	IPtrs []IndirectFilePtr `codec:"i,omitempty"`
-}
-
-// NewFileBlock creates a new, empty FileBlock.
-func NewFileBlock() Block {
-	return &FileBlock{
-		Contents: make([]byte, 0, 0),
-	}
-}
-
-// DeepCopy makes a complete copy of a FileBlock
-func (fb FileBlock) DeepCopy() *FileBlock {
-	fblockCopy := NewFileBlock().(*FileBlock)
-	*fblockCopy = fb
-	// deep copy of contents and iptrs
-	fblockCopy.Contents = make([]byte, len(fb.Contents))
-	copy(fblockCopy.Contents, fb.Contents)
-	fblockCopy.IPtrs = make([]IndirectFilePtr, len(fb.IPtrs))
-	copy(fblockCopy.IPtrs, fb.IPtrs)
-	// TODO: copy padding once we support it.
-	return fblockCopy
 }
 
 // extCode is used to register codec extensions
