@@ -156,8 +156,13 @@ func (b *BlockServerRemote) ShouldRetry(rpcName string, err error) bool {
 	case "keybase.1.block.archiveReference":
 		return false
 	}
-	_, shouldThrottle := err.(BServerErrorThrottle)
-	return shouldThrottle
+	if _, ok := err.(BServerErrorThrottle); ok {
+		return true
+	}
+	if quotaErr, ok := err.(BServerErrorOverQuota); ok && quotaErr.Throttled {
+		return true
+	}
+	return false
 }
 
 // ShouldRetryOnConnect implements the ConnectionHandler interface.
@@ -232,7 +237,13 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	}
 
 	err = b.client.PutBlock(ctx, arg)
-	return err
+	if err != nil {
+		if qe, ok := err.(BServerErrorOverQuota); ok && !qe.Throttled {
+			return nil
+		}
+		return err
+	}
+	return nil
 }
 
 // AddBlockReference implements the BlockServer interface for BlockServerRemote
@@ -262,7 +273,13 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 		Ref:    ref,
 		Folder: tlfID.String(),
 	})
-	return err
+	if err != nil {
+		if qe, ok := err.(BServerErrorOverQuota); ok && !qe.Throttled {
+			return nil
+		}
+		return err
+	}
+	return nil
 }
 
 // RemoveBlockReference implements the BlockServer interface for
