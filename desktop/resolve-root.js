@@ -13,7 +13,7 @@ if (!__DEV__) { // eslint-disable-line no-undef
 }
 
 function fix (str) {
-  return encodeURI(str)
+  return encodeURI(str && str.replace(new RegExp('\\' + path.sep, 'g'), '/'))
 }
 
 export const resolveRoot = (...to) => path.resolve(root, ...to)
