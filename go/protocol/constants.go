@@ -64,6 +64,7 @@ const (
 	StatusCode_SCBadKexPhrase           StatusCode = 1704
 	StatusCode_SCNoUIDelegation         StatusCode = 1705
 	StatusCode_SCNoUI                   StatusCode = 1706
+	StatusCode_SCGPGUnavailable         StatusCode = 1707
 	StatusCode_SCInvalidVersionError    StatusCode = 1800
 	StatusCode_SCOldVersionError        StatusCode = 1801
 	StatusCode_SCInvalidLocationError   StatusCode = 1802

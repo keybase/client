@@ -106,6 +106,8 @@ func (c *CmdLogin) Run() error {
 		err = c.errDeviceAlreadyProvisioned()
 	case libkb.ProvisionUnavailableError:
 		err = c.errProvisionUnavailable()
+	case libkb.GPGUnavailableError:
+		err = c.errGPGUnavailable()
 	}
 
 	return err
@@ -235,5 +237,17 @@ devices. You can try again later, or if you have lost access to all your
 existing devices you can reset your account and start fresh.
 
 If you'd like to reset your account:  https://keybase.io/#account-reset
+`)
+}
+
+func (c *CmdLogin) errGPGUnavailable() error {
+	return errors.New(`in Login
+
+Sorry, your account is already established with a PGP public key, but this
+utility cannot access the corresponding private key. You need to prove
+you're you. We suggest one of the following:
+
+   - install GPG and put your PGP private key on this machine and try again
+   - reset your account and start fresh: https://keybase.io/#account-reset
 `)
 }

@@ -1040,6 +1040,7 @@ export type StatusCode =
   | 1704 // SCBadKexPhrase_1704
   | 1705 // SCNoUIDelegation_1705
   | 1706 // SCNoUI_1706
+  | 1707 // SCGPGUnavailable_1707
   | 1800 // SCInvalidVersionError_1800
   | 1801 // SCOldVersionError_1801
   | 1802 // SCInvalidLocationError_1802

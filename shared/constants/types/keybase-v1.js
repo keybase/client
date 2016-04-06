@@ -141,6 +141,7 @@ export const constants = {
     'scbadkexphrase': 1704,
     'scnouidelegation': 1705,
     'scnoui': 1706,
+    'scgpgunavailable': 1707,
     'scinvalidversionerror': 1800,
     'scoldversionerror': 1801,
     'scinvalidlocationerror': 1802,

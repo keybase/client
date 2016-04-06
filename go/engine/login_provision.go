@@ -453,8 +453,12 @@ func (e *loginProvision) gpgClient() (gpgInterface, error) {
 	}
 
 	gpg := e.G().GetGpgClient()
-	if err := gpg.Configure(); err != nil {
+	ok, err := gpg.CanExec()
+	if err != nil {
 		return nil, err
+	}
+	if !ok {
+		return nil, libkb.GPGUnavailableError{}
 	}
 	e.gpgCli = gpg
 	return e.gpgCli, nil
