@@ -129,7 +129,7 @@ bump_arch_linux_aur() {
     sed -i "s/pkgver=.*/pkgver=$underscore_version/" PKGBUILD
     sed -i "s/pkgver = .*/pkgver = $underscore_version/" .SRCINFO
     git commit -am "version bump"
-    git push
+    git push origin master
   )
 }
 
