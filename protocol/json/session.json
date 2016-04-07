@@ -402,6 +402,28 @@
           "name": "deviceSibkeyKid"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "VerifySessionRes",
+      "fields": [
+        {
+          "type": "UID",
+          "name": "uid"
+        },
+        {
+          "type": "string",
+          "name": "sid"
+        },
+        {
+          "type": "int",
+          "name": "generated"
+        },
+        {
+          "type": "int",
+          "name": "lifetime"
+        }
+      ]
     }
   ],
   "messages": {
@@ -413,6 +435,15 @@
         }
       ],
       "response": "Session"
+    },
+    "verifySession": {
+      "request": [
+        {
+          "name": "session",
+          "type": "string"
+        }
+      ],
+      "response": "VerifySessionRes"
     }
   },
   "namespace": "keybase.1"

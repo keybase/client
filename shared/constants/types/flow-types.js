@@ -2911,6 +2911,17 @@ export type session_currentSession_rpc = {
   callback: (null | (err: ?any, response: session_currentSession_result) => void)
 }
 
+export type session_verifySession_result = VerifySessionRes
+
+export type session_verifySession_rpc = {
+  method: 'session.verifySession',
+  param: {
+    session: string
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any, response: session_verifySession_result) => void)
+}
+
 export type signup_checkInvitationCode_result = void
 
 export type signup_checkInvitationCode_rpc = {
@@ -3445,6 +3456,7 @@ export type rpc =
   | saltpack_saltpackVerify_rpc
   | secretUi_getPassphrase_rpc
   | session_currentSession_rpc
+  | session_verifySession_rpc
   | signup_checkInvitationCode_rpc
   | signup_checkUsernameAvailable_rpc
   | signup_inviteRequest_rpc
@@ -5051,6 +5063,15 @@ export type incomingCallMapType = {
     response: {
       error: (err: RPCError) => void,
       result: (result: session_currentSession_result) => void
+    }
+  ) => void,
+  'keybase.1.session.verifySession'?: (
+    params: {
+      session: string
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: session_verifySession_result) => void
     }
   ) => void,
   'keybase.1.signup.checkUsernameAvailable'?: (

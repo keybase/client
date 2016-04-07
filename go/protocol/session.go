@@ -16,12 +16,24 @@ type Session struct {
 	DeviceSibkeyKid KID    `codec:"deviceSibkeyKid" json:"deviceSibkeyKid"`
 }
 
+type VerifySessionRes struct {
+	Uid       UID    `codec:"uid" json:"uid"`
+	Sid       string `codec:"sid" json:"sid"`
+	Generated int    `codec:"generated" json:"generated"`
+	Lifetime  int    `codec:"lifetime" json:"lifetime"`
+}
+
 type CurrentSessionArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type VerifySessionArg struct {
+	Session string `codec:"session" json:"session"`
+}
+
 type SessionInterface interface {
 	CurrentSession(context.Context, int) (Session, error)
+	VerifySession(context.Context, string) (VerifySessionRes, error)
 }
 
 func SessionProtocol(i SessionInterface) rpc.Protocol {
@@ -44,6 +56,22 @@ func SessionProtocol(i SessionInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"verifySession": {
+				MakeArg: func() interface{} {
+					ret := make([]VerifySessionArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]VerifySessionArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]VerifySessionArg)(nil), args)
+						return
+					}
+					ret, err = i.VerifySession(ctx, (*typedArgs)[0].Session)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -55,5 +83,11 @@ type SessionClient struct {
 func (c SessionClient) CurrentSession(ctx context.Context, sessionID int) (res Session, err error) {
 	__arg := CurrentSessionArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.session.currentSession", []interface{}{__arg}, &res)
+	return
+}
+
+func (c SessionClient) VerifySession(ctx context.Context, session string) (res VerifySessionRes, err error) {
+	__arg := VerifySessionArg{Session: session}
+	err = c.Cli.Call(ctx, "keybase.1.session.verifySession", []interface{}{__arg}, &res)
 	return
 }
