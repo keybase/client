@@ -517,6 +517,9 @@ func (p path) hasPublic() bool {
 // ordered list of the changes for individual operations.  This lets
 // the notification and conflict resolution strategies figure out the
 // difference between a renamed file and a modified file, for example.
+//
+// NOTE: Don't add or modify anything in this struct without
+// considering how old clients will handle them.
 type BlockChanges struct {
 	// If this is set, the actual changes are stored in a block (where
 	// the block contains a serialized version of BlockChanges)
