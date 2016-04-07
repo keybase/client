@@ -52,7 +52,7 @@ export default class Icon extends Component {
   }
 }
 
-const imgName = (type, ext, mult) => encodeURI(`${resolveImage('icons', type)}${mult > 1 ? `@${mult}x` : ''}.${ext} ${mult}x`)
+const imgName = (type, ext, mult) => `${encodeURI(resolveImage('icons', type))}${mult > 1 ? `@${mult}x` : ''}.${ext} ${mult}x`
 const imgPath = (type, ext) => [1, 2, 3].map(mult => imgName(type, ext, mult)).join(', ')
 
 export const styles = {
