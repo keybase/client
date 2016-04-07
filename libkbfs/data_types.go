@@ -208,6 +208,9 @@ func (r blockRef) String() string {
 }
 
 // BlockPointer contains the identifying information for a block in KBFS.
+//
+// NOTE: Don't add or modify anything in this struct without
+// considering how old clients will handle them.
 type BlockPointer struct {
 	ID      BlockID `codec:"i"`
 	KeyGen  KeyGen  `codec:"k"` // if valid, which generation of the TLFKeyBundle to use.
@@ -266,8 +269,8 @@ func (p BlockPointer) ref() blockRef {
 // BlockInfo contains all information about a block in KBFS and its
 // contents.
 //
-// TODO: Move everything but ID and RefNonce from BlockPointer into
-// this type.
+// NOTE: Don't add or modify anything in this struct without
+// considering how old clients will handle them.
 type BlockInfo struct {
 	BlockPointer
 	// When non-zero, the size of the encoded (and possibly
@@ -603,6 +606,10 @@ func (et EntryType) String() string {
 
 // EntryInfo is the (non-block-related) info a directory knows about
 // its child.
+//
+// NOTE: Don't add or modify anything in this struct without
+// considering how old clients will handle them (since this is
+// embedded in DirEntry).
 type EntryInfo struct {
 	Type    EntryType
 	Size    uint64
