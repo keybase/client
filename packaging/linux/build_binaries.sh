@@ -4,6 +4,7 @@ set -e -u -o pipefail
 
 here="$(dirname "$BASH_SOURCE")"
 this_repo="$(git -C "$here" rev-parse --show-toplevel)"
+kbfs_repo="$(dirname "$this_repo")/kbfs"
 
 mode="$("$here/../build_mode.sh" "$@")"
 binary_name="$("$here/../binary_name.sh" "$@")"
@@ -36,13 +37,18 @@ fi
 echo "-tags '$go_tags'"
 
 # Determine the LD flags.
-ldflags=""
+ldflags_client=""
+ldflags_kbfs=""
 if [ "$mode" != "production" ] ; then
   # The non-production build number is everything in the version after the hyphen.
   build_number="$(echo -n "$version" | sed 's/.*-//')"
-  ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$build_number"
+  ldflags_client="-X github.com/keybase/client/go/libkb.PrereleaseBuild=$build_number"
+  commit_short_kbfs="$(git -C "$kbfs_repo" rev-parse --short HEAD)"
+  build_number_kbfs="$(echo -n "$build_number" | sed 's/+..*/+/')$commit_short_kbfs"
+  ldflags_kbfs="-X github.com/keybase/kbfs/libkbfs.PrereleaseBuild=$build_number_kbfs"
 fi
-echo "-ldflags '$ldflags'"
+echo "-ldflags_client '$ldflags_client'"
+echo "-ldflags_kbfs '$ldflags_kbfs'"
 
 should_build_kbfs() {
   [ "$mode" != "production" ]
@@ -75,7 +81,7 @@ build_one_architecture() {
 
   # Build the client binary. Note that `go build` reads $GOARCH.
   echo "Building client for $GOARCH..."
-  go build -tags "$go_tags" -ldflags "$ldflags" -o \
+  go build -tags "$go_tags" -ldflags "$ldflags_client" -o \
     "$layout_dir/usr/bin/$binary_name" github.com/keybase/client/go/keybase
 
   # Short-circuit if we're not building electron.
@@ -93,9 +99,8 @@ build_one_architecture() {
 
   # Build the kbfsfuse binary. Currently, this always builds from master.
   echo "Building kbfs for $GOARCH..."
-  kbfs_repo="$(dirname "$this_repo")/kbfs"
   ln -snf "$kbfs_repo" "$GOPATH/src/github.com/keybase/kbfs"
-  go build -tags "$go_tags" -ldflags "$ldflags" -o \
+  go build -tags "$go_tags" -ldflags "$ldflags_kbfs" -o \
     "$layout_dir/usr/bin/kbfsfuse" github.com/keybase/kbfs/kbfsfuse
 
   # Build Electron.
