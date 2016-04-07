@@ -6,6 +6,10 @@ import rootReducer from '../reducers'
 import Immutable from 'immutable'
 import {enableStoreLogging, enableActionLogging} from '../local-debug'
 import {actionLogger} from './action-logger'
+import createSagaMiddleware from 'redux-saga'
+
+import {call} from 'redux-saga/effects'
+import {signupSaga} from '../actions/signup'
 
 // Transform objects from Immutable on printing
 const objToJS = state => {
@@ -29,11 +33,18 @@ const loggerMiddleware = enableStoreLogging ? createLogger({
   collapsed: true
 }) : null
 
+function * mainSaga (getState) {
+  const signup = call(signupSaga)
+  yield [signup]
+}
+
+const sagaMiddleware = createSagaMiddleware(mainSaga)
+
 const createStoreWithMiddleware = enableStoreLogging
-  ? applyMiddleware(thunkMiddleware, loggerMiddleware)
+  ? applyMiddleware(sagaMiddleware, thunkMiddleware, loggerMiddleware)
   : (enableActionLogging
-    ? applyMiddleware(thunkMiddleware, actionLogger)
-    : applyMiddleware(thunkMiddleware))
+    ? applyMiddleware(sagaMiddleware, thunkMiddleware, actionLogger)
+    : applyMiddleware(sagaMiddleware, thunkMiddleware))
 
 export default function configureStore (initialState) {
   return configureStoreNative(createStoreWithMiddleware)(rootReducer, initialState)

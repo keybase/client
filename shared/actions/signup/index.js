@@ -7,103 +7,30 @@ import HiddenString from '../../util/hidden-string'
 import engine from '../../engine'
 import {loginTab} from '../../constants/tabs'
 
+import {take, call, put, cps, race, select, fork} from 'redux-saga/effects'
+import {isCancelError} from 'redux-saga'
+
 import {routeAppend, navigateUp} from '../../actions/router'
 
-import type {TypedAsyncAction, AsyncAction} from '../../constants/types/flux'
-import type {RouteAppend} from '../../constants/router'
-import type {CheckInviteCode, CheckUsernameEmail, CheckPassphrase, SubmitDeviceName, Signup, ShowPaperKey, ShowSuccess, ResetSignup, RequestInvite, StartRequestInvite, SignupWaiting} from '../../constants/signup'
+import type {CheckPassphrase, ResetSignup, RequestInvite, StartRequestInvite, SawPaperKey, RequestInviteCodeCheck, RequestSubmitDeviceName, RequestCheckUsernameEmail} from '../../constants/signup'
 import type {signup_signup_rpc, signup_checkInvitationCode_rpc, signup_checkUsernameAvailable_rpc, signup_inviteRequest_rpc, device_checkDeviceNameFormat_rpc} from '../../constants/types/flow-types'
 
-function nextPhase (): TypedAsyncAction<RouteAppend> {
-  return (dispatch, getState) => {
-    // TODO careful here since this will not be sync on a remote component!
-    const phase: string = getState().signup.phase
-    dispatch(routeAppend(phase))
+// TODO change waitingHandler to better fit saga model (put an action)
+
+// helpers
+
+const delay = ms => new Promise(resolve => setTimeout(resolve, ms))
+
+function checkRequestInvite (email, name): ?{emailError: ?string, nameError: ?string} {
+  const emailError = isValidEmail(email)
+  const nameError = isValidName(name)
+  if (emailError || nameError || !email || !name) {
+    return {emailError, nameError}
   }
 }
 
-export function startRequestInvite (): TypedAsyncAction<StartRequestInvite | RouteAppend> {
-  return dispatch => new Promise((resolve, reject) => {
-    dispatch({type: Constants.startRequestInvite, payload: {}})
-    dispatch(nextPhase())
-  })
-}
-
-export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInviteCode | RouteAppend | SignupWaiting> {
-  return dispatch => new Promise((resolve, reject) => {
-    dispatch({type: Constants.checkInviteCode, payload: {inviteCode}})
-
-    const params: signup_checkInvitationCode_rpc = {
-      method: 'signup.checkInvitationCode',
-      param: {
-        invitationCode: inviteCode
-      },
-      incomingCallMap: {},
-      waitingHandler: isWaiting => dispatch(waiting(isWaiting)),
-      callback: err => {
-        if (err) {
-          console.error('error in inviteCode:', err)
-          dispatch({type: Constants.checkInviteCode, error: true, payload: {errorText: "Sorry, that's not a valid invite code."}})
-          reject(err)
-        } else {
-          dispatch({type: Constants.checkInviteCode, payload: {inviteCode}})
-          dispatch(nextPhase())
-          resolve()
-        }
-      }
-    }
-
-    engine.rpc(params)
-  })
-}
-
-export function requestInvite (email: string, name: string): TypedAsyncAction<RequestInvite | RouteAppend | SignupWaiting> {
-  return dispatch => new Promise((resolve, reject) => {
-    // Returns an error string if not valid
-    const emailError = isValidEmail(email)
-    const nameError = isValidName(name)
-    if (emailError || nameError || !email || !name) {
-      dispatch({
-        type: Constants.requestInvite,
-        error: true,
-        payload: {emailError, nameError, email, name}
-      })
-      resolve()
-      return
-    }
-
-    const params: signup_inviteRequest_rpc = {
-      method: 'signup.inviteRequest',
-      param: {
-        email: email,
-        fullname: name,
-        notes: 'Requested through GUI app'
-      },
-      waitingHandler: isWaiting => dispatch(waiting(isWaiting)),
-      incomingCallMap: {},
-      callback: err => {
-        if (err) {
-          dispatch({
-            type: Constants.requestInvite,
-            payload: {error: true, emailError: err.message, nameError: null, email, name}
-          })
-          reject(err)
-        } else {
-          if (email && name) {
-            dispatch({
-              type: Constants.requestInvite,
-              payload: {error: null, email, name}
-            })
-            dispatch(nextPhase())
-            resolve()
-          } else {
-            reject(err)
-          }
-        }
-      }
-    }
-    engine.rpc(params)
-  })
+export function requestInvite (email: string, name: string): RequestInvite {
+  return {type: Constants.requestInvite, payload: {email, name}}
 }
 
 function isBlank (s: string): boolean {
@@ -156,219 +83,344 @@ function isValidName (name: ?string): ?string {
   if (isEmptyOrBlank(name)) return 'Please provide your name.'
 }
 
-export function checkUsernameEmail (username: ?string, email: ?string): TypedAsyncAction<CheckUsernameEmail | RouteAppend | SignupWaiting> {
-  return dispatch => new Promise((resolve, reject) => {
-    const emailError = isValidEmail(email)
-    const usernameError = isValidUsername(username)
+function usernameEmailErrors (username: ?string, email: ?string): ?{emailError: ?string, usernameError: ?string} {
+  const emailError = isValidEmail(email)
+  const usernameError = isValidUsername(username)
 
-    if (emailError || usernameError || !username || !email) {
-      dispatch({
-        type: Constants.checkUsernameEmail,
-        error: true,
-        payload: {emailError, usernameError, email, username}
-      })
-      resolve()
-      return
+  if (emailError || usernameError || !username || !email) {
+    return {emailError, usernameError}
+  }
+
+  return null
+}
+
+// Actions components use
+
+export function startRequestInvite (): StartRequestInvite {
+  return {type: Constants.startRequestInvite, payload: {}}
+}
+
+export function requestInviteCodeCheck (inviteCode: string): RequestInviteCodeCheck {
+  return {type: Constants.requestInviteCodeCheck, payload: inviteCode}
+}
+
+export function requestSubmitDeviceName (name: string): RequestSubmitDeviceName {
+  return {type: Constants.requestSubmitDeviceName, payload: name}
+}
+
+export function requestCheckUsernameEmail (username: string, email: string): RequestCheckUsernameEmail {
+  return {type: Constants.requestCheckUsernameEmail, payload: {username, email}}
+}
+
+export function checkPassphrase (passphrase1: string, passphrase2: string): CheckPassphrase {
+  let passphraseError = null
+  if (!passphrase1 || !passphrase2) {
+    passphraseError = new HiddenString('Fields cannot be blank')
+  } else if (passphrase1 !== passphrase2) {
+    passphraseError = new HiddenString('Passphrases must match')
+  } else if (passphrase1.length < 12) {
+    passphraseError = new HiddenString('Passphrase must be at least 12 Characters')
+  }
+
+  if (passphraseError) {
+    return {
+      type: Constants.checkPassphrase,
+      error: true,
+      payload: {passphraseError}
     }
+  } else {
+    return {
+      type: Constants.checkPassphrase,
+      payload: {passphrase: new HiddenString(passphrase1)}
+    }
+  }
+}
 
-    const params: signup_checkUsernameAvailable_rpc = {
-      method: 'signup.checkUsernameAvailable',
-      param: {username},
-      waitingHandler: isWaiting => dispatch(waiting(isWaiting)),
-      incomingCallMap: {},
-      callback: err => {
-        if (err) {
-          console.error("username isn't available:", err)
-          dispatch({
-            type: Constants.checkUsernameEmail,
-            error: true,
-            payload: {emailError, usernameError: `Username error: ${err.message}`, email, username}
-          })
-          resolve()
-        } else {
-          // We need this check to make flow happy. This should never be null
-          if (username && email) {
-            dispatch({
-              type: Constants.checkUsernameEmail,
-              payload: {username, email}
-            })
-            dispatch(nextPhase())
-            resolve()
-          } else {
-            reject()
-          }
+export function resetSignup (): ResetSignup {
+  return {type: Constants.resetSignup, payload: {}}
+}
+
+export function sawPaperKey (): SawPaperKey {
+  return {type: Constants.sawPaperKey, payload: undefined}
+}
+
+type NodeCB = (err: ?any, result: ?any) => void
+
+// Wrappers around service calls
+function checkInviteCodeWithService (invitationCode: string, callback: NodeCB) {
+  const params: signup_checkInvitationCode_rpc = {
+    method: 'signup.checkInvitationCode',
+    param: {invitationCode},
+    incomingCallMap: {},
+    // TODO figure out waiting handler
+    waitingHandler: () => {},
+    callback
+  }
+  engine.rpc(params)
+}
+
+function checkUsernameAvailable (username: string, callback: NodeCB) {
+  const params: signup_checkUsernameAvailable_rpc = {
+    method: 'signup.checkUsernameAvailable',
+    param: {username},
+    waitingHandler: () => {},
+    incomingCallMap: {},
+    callback
+  }
+
+  engine.rpc(params)
+}
+
+function checkDeviceNameFormat (name: string, callback: NodeCB) {
+  const params: device_checkDeviceNameFormat_rpc = {
+    method: 'device.checkDeviceNameFormat',
+    param: {name},
+    waitingHandler: () => {},
+    incomingCallMap: {},
+    callback
+  }
+  engine.rpc(params)
+}
+
+// This one is a bit different, since we don't want to change how everything in engine works just yet.
+// It's still a thunked actions
+function signupWithService (email: string, username: string, inviteCode: string, passphrase: HiddenString, deviceName: string, skipMail: boolean) {
+  return (dispatch, getState) => {
+    const params: signup_signup_rpc = {
+      method: 'signup.signup',
+      waitingHandler: () => {},
+      param: {
+        email,
+        inviteCode,
+        username,
+        deviceName,
+        passphrase: passphrase.stringValue(),
+        storeSecret: false,
+        skipMail
+      },
+      incomingCallMap: {
+        'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, response) => {
+          dispatch({type: 'keybase.1.loginUi.displayPrimaryPaperKey', payload: {phrase, response}})
+        },
+        'keybase.1.gpgUi.wantToAddGPGKey': (params, {error, result}) => {
+          // Do not add a gpg key for now
+          result(false)
         }
+      },
+      callback: (error, result) => {
+        dispatch({type: 'keybase.1.signup.signup', payload: {error, result}})
       }
     }
-
     engine.rpc(params)
-  })
+  }
 }
 
-export function checkPassphrase (passphrase1: string, passphrase2: string): TypedAsyncAction<CheckPassphrase | RouteAppend> {
-  return dispatch => new Promise((resolve, reject) => {
-    let passphraseError = null
-    if (!passphrase1 || !passphrase2) {
-      passphraseError = new HiddenString('Fields cannot be blank')
-    } else if (passphrase1 !== passphrase2) {
-      passphraseError = new HiddenString('Passphrases must match')
-    } else if (passphrase1.length < 12) {
-      passphraseError = new HiddenString('Passphrase must be at least 12 Characters')
+function requestInviteWithService (email: string, name: string, callback: NodeCB) {
+  const params: signup_inviteRequest_rpc = {
+    method: 'signup.inviteRequest',
+    param: {
+      email: email,
+      fullname: name,
+      notes: 'Requested through GUI app'
+    },
+    waitingHandler: () => {},
+    incomingCallMap: {},
+    callback
+  }
+  engine.rpc(params)
+}
+
+// Sagas
+
+function * requestInviteSaga () {
+  while (true) {
+    yield take(Constants.startRequestInvite)
+    yield put(routeAppend('requestInvite'))
+    // $FlowIssue
+    const {payload: {email, name}} = yield take(Constants.requestInvite)
+    const errors = checkRequestInvite(email, name)
+    if (errors) {
+      yield put({type: Constants.requestInvite, error: true, payload: {...errors, email, name}})
+      continue
     }
 
-    if (passphraseError) {
-      dispatch({
-        type: Constants.checkPassphrase,
+    try {
+      yield cps(requestInviteWithService, email, name)
+      yield put(routeAppend('requestInviteSuccess'))
+      return
+    } catch (err) {
+      yield put({
+        type: Constants.requestInvite,
+        payload: {error: true, emailError: err.message, nameError: null, email, name}
+      })
+    }
+  }
+}
+
+function * checkInviteCodeSaga (): any {
+  while (true) {
+    yield take(Constants.requestInviteCodeCheck)
+
+    // $FlowIssue sagas aren't typed
+    const {payload: inviteCode} = yield take(Constants.requestInviteCodeCheck)
+    try {
+      yield cps(checkInviteCodeWithService, inviteCode)
+      yield put({type: Constants.checkInviteCode, payload: {inviteCode}})
+      return
+    } catch (e) {
+      yield put({type: Constants.checkInviteCode, error: true, payload: {errorText: "Sorry, that's not a valid invite code."}})
+    }
+  }
+}
+
+function * checkUsernameEmailSaga (): any {
+  while (true) {
+    // $FlowIssue sagas aren't typed
+    const {payload: {username, email}} = yield take(Constants.requestCheckUsernameEmail)
+    try {
+      const errors = usernameEmailErrors(username, email)
+      if (errors) {
+        yield put({
+          type: Constants.checkUsernameEmail,
+          error: true,
+          payload: {email, username, ...errors}
+        })
+        continue
+      }
+      yield cps(checkUsernameAvailable, username)
+      // Looks good, lets save the username email in the store and move on
+      yield put({type: Constants.checkUsernameEmail, payload: {username, email}})
+      return
+    } catch (err) {
+      yield put({
+        type: Constants.checkUsernameEmail,
         error: true,
-        payload: {passphraseError}
+        payload: {emailError: undefined, usernameError: `Username error: ${err.message || 'Unknown'}`, email, username}
       })
-    } else {
-      dispatch({
-        type: Constants.checkPassphrase,
-        payload: {passphrase: new HiddenString(passphrase1)}
-      })
-      dispatch(nextPhase())
     }
-
-    resolve()
-  })
+  }
 }
 
-export function submitDeviceName (deviceName: string, skipMail?: boolean, onDisplayPaperKey?: () => void): TypedAsyncAction<SubmitDeviceName | RouteAppend | Signup | ShowPaperKey> {
-  return dispatch => new Promise((resolve, reject) => {
-    // TODO do some checking on the device name - ideally this is done on the service side
-    let deviceNameError = null
-    if (_.trim(deviceName).length === 0) {
-      deviceNameError = 'Device name must not be empty.'
+function * checkPassphraseSaga (): any {
+  while (true) {
+    const checkPassphraseAction = yield take(Constants.checkPassphrase)
+    if (checkPassphraseAction && !checkPassphraseAction.error) {
+      return
     }
+  }
+}
 
-    if (deviceNameError) {
-      dispatch({
+function * deviceNameSaga (): any {
+  while (true) {
+    // $FlowIssue
+    const {payload: deviceName} = yield take(Constants.requestSubmitDeviceName)
+
+    if (_.trim(deviceName).length === 0) {
+      const deviceNameError = 'Device name must not be empty.'
+      yield put({
         type: Constants.submitDeviceName,
         error: true,
         payload: {deviceNameError}
       })
-    } else {
-      const params: device_checkDeviceNameFormat_rpc = {
-        method: 'device.checkDeviceNameFormat',
-        param: {name: deviceName},
-        waitingHandler: isWaiting => dispatch(waiting(isWaiting)),
-        incomingCallMap: {},
-        callback: err => {
-          if (err) {
-            console.error('device name is invalid: ', err)
-            dispatch({
-              type: Constants.submitDeviceName,
-              error: true,
-              payload: {deviceNameError: `Device name is invalid: ${err.message}.`, deviceName}
-            })
-            reject(err)
-          } else {
-            if (deviceName) {
-              dispatch({
-                type: Constants.submitDeviceName,
-                payload: {deviceName}
-              })
-
-              const signupPromise = dispatch(signup(skipMail || false, onDisplayPaperKey))
-              if (signupPromise) {
-                resolve(signupPromise.then(() => dispatch(nextPhase()) || Promise.resolve()))
-              } else {
-                throw new Error('did not get promise from signup')
-              }
-            }
-          }
-        }
-      }
-      engine.rpc(params)
+      continue
     }
-  })
-}
 
-let paperKeyResponse = null
-export function sawPaperKey (): AsyncAction {
-  return () => {
-    if (paperKeyResponse) {
-      paperKeyResponse.result()
-      paperKeyResponse = null
+    try {
+      yield cps(checkDeviceNameFormat, deviceName)
+      yield put({
+        type: Constants.submitDeviceName,
+        payload: {deviceName}
+      })
+      return
+    } catch (err) {
+      yield put({
+        type: Constants.submitDeviceName,
+        error: true,
+        payload: {deviceNameError: `Device name is invalid: ${err.message}.`, deviceName}
+      })
     }
   }
 }
 
-function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncAction<Signup | ShowPaperKey | RouteAppend | SignupWaiting> {
-  return (dispatch, getState) => new Promise((resolve, reject) => {
-    const {email, username, inviteCode, passphrase, deviceName} = getState().signup
-    paperKeyResponse = null
-
-    if (email && username && inviteCode && passphrase && deviceName) {
-      const params: signup_signup_rpc = {
-        method: 'signup.signup',
-        waitingHandler: isWaiting => dispatch(waiting(isWaiting)),
-        param: {
-          email,
-          inviteCode,
-          username,
-          deviceName,
-          passphrase: passphrase.stringValue(),
-          storeSecret: false,
-          skipMail
-        },
-        incomingCallMap: {
-          'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, response) => {
-            paperKeyResponse = response
-            dispatch({
-              type: Constants.showPaperKey,
-              payload: {paperkey: new HiddenString(phrase)}
-            })
-            onDisplayPaperKey && onDisplayPaperKey()
-            dispatch(nextPhase())
-          },
-          'keybase.1.gpgUi.wantToAddGPGKey': (params, {error, result}) => {
-            // Do not add a gpg key for now
-            result(false)
-          }
-        },
-        callback: (err, {passphraseOk, postOk, writeOk}) => {
-          if (err) {
-            console.error('error in signup:', err)
-            dispatch({
-              type: Constants.signup,
-              error: true,
-              payload: {signupError: new HiddenString(err + '')}
-            })
-            dispatch(nextPhase())
-            reject()
-          } else {
-            console.log('Successful signup', passphraseOk, postOk, writeOk)
-            resolve()
-          }
-        }
-      }
-
-      engine.rpc(params)
-    } else {
-      console.error('Entered signup action with a null required field')
-      reject()
-    }
+function * paperKeySaga (): any {
+  // $FlowIssue
+  const {paperKey, timedout} = yield race({
+    paperKey: take('keybase.1.loginUi.displayPrimaryPaperKey'),
+    timedout: call(delay, 5e3)
   })
+
+  if (timedout) {
+    console.log('timed out waiting to show paper key')
+    yield put({type: Constants.resetSignup, payload: undefined})
+    return
+  }
+
+  yield put({
+    type: Constants.showPaperKey,
+    payload: {paperkey: new HiddenString(paperKey.payload.phrase)}
+  })
+  yield put(routeAppend('paperkey'))
+  yield take(Constants.sawPaperKey)
+  paperKey.payload.response.result()
 }
 
-function waiting (isWaiting: boolean): SignupWaiting {
-  return {
-    type: Constants.signupWaiting,
-    payload: isWaiting
+function * signupFinish (): any {
+  // $FlowIssue
+  const {payload: {error}} = yield take('keybase.1.signup.signup')
+  if (error) {
+    yield put({type: Constants.signup, error: true, payload: {signupError: new HiddenString(error + '')}})
+    yield put(routeAppend('signupError'))
+    return
+  }
+  console.log('Successful signup')
+}
+
+function signupArgsSelector (state) {
+  const {email, username, inviteCode, passphrase, deviceName} = state.signup
+  return {email, username, inviteCode, passphrase, deviceName}
+}
+
+// The real meat, this describes how the signup flow
+function * signupFlow (): any {
+  try {
+    // $FlowIssue
+    const {requestInvite} = yield race({
+      requestInvite: call(requestInviteSaga),
+      checkInviteCode: call(checkInviteCodeSaga)
+    })
+
+    // The user requested an invite we're done with the signup flow
+    if (requestInvite) {
+      return
+    }
+
+    yield put(routeAppend('usernameAndEmail'))
+    yield call(checkUsernameEmailSaga)
+    yield put(routeAppend('passphraseSignup'))
+    yield call(checkPassphraseSaga)
+    yield put(routeAppend('deviceName'))
+    yield call(deviceNameSaga)
+    // $FlowIssue
+    const {email, username, inviteCode, passphrase, deviceName} = yield select(signupArgsSelector)
+    yield put(signupWithService(email, username, inviteCode, passphrase, deviceName, false))
+    yield fork(paperKeySaga)
+    yield call(signupFinish)
+  } catch (e) {
+    if (isCancelError(e)) {}
   }
 }
 
-export function resetSignup (): TypedAsyncAction<ResetSignup | RouteAppend> {
-  return dispatch => new Promise((resolve, reject) => {
-    dispatch({type: Constants.resetSignup, payload: {}})
-    dispatch(navigateUp(loginTab, Map({path: 'signup'})))
-    dispatch(navigateUp())
-    resolve()
-  })
+function * resetSignupSaga (): any {
+  yield take(Constants.resetSignup)
+  yield put(navigateUp(loginTab, Map({path: 'signup'})))
+  yield put(navigateUp())
 }
 
-export function showSuccess (): ShowSuccess {
-  return {type: Constants.showSuccess, payload: {}}
+export function * signupSaga (): any {
+  while (true) {
+    yield race({
+      success: call(signupFlow),
+      reset: call(resetSignupSaga)
+    })
+  }
 }

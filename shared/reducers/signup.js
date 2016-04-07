@@ -21,8 +21,7 @@ export type SignupState = {
   deviceName: ?string,
   paperkey: ?HiddenString,
   signupError: ?HiddenString,
-  waiting: boolean,
-  phase: 'inviteCode' | 'usernameAndEmail' | 'passphraseSignup' | 'deviceName' | 'signupLoading' | 'paperkey' | 'success' | 'signupError' | 'requestInvite' | 'requestInviteSuccess'
+  waiting: boolean
 }
 
 const initialState: SignupState = {
@@ -39,8 +38,7 @@ const initialState: SignupState = {
   paperkey: null,
   signupError: null,
   deviceName: 'Home Computer',
-  waiting: false,
-  phase: 'inviteCode'
+  waiting: false
 }
 
 /* eslint-disable no-fallthrough */
@@ -65,8 +63,7 @@ export default function (state: SignupState = initialState, action: SignupAction
         return {
           ...state,
           inviteCode: action.payload.inviteCode,
-          inviteCodeError: null,
-          phase: 'usernameAndEmail'
+          inviteCodeError: null
         }
       }
 
@@ -84,18 +81,11 @@ export default function (state: SignupState = initialState, action: SignupAction
       } else {
         return {
           ...state,
-          phase: 'passphraseSignup',
           emailError: null,
           usernameError: null,
           username,
           email
         }
-      }
-
-    case Constants.startRequestInvite:
-      return {
-        ...state,
-        phase: 'requestInvite'
       }
 
     case Constants.requestInvite:
@@ -112,7 +102,6 @@ export default function (state: SignupState = initialState, action: SignupAction
         const {email, name} = action.payload
         return {
           ...state,
-          phase: 'requestInviteSuccess',
           email,
           name
         }
@@ -129,7 +118,6 @@ export default function (state: SignupState = initialState, action: SignupAction
         const {passphrase} = action.payload
         return {
           ...state,
-          phase: 'deviceName',
           passphrase,
           passphraseError: null
         }
@@ -146,7 +134,6 @@ export default function (state: SignupState = initialState, action: SignupAction
         const {deviceName} = action.payload
         return {
           ...state,
-          phase: 'signupLoading',
           deviceName,
           deviceNameError: null
         }
@@ -160,19 +147,7 @@ export default function (state: SignupState = initialState, action: SignupAction
         const {paperkey} = action.payload
         return {
           ...state,
-          paperkey,
-          phase: 'paperkey'
-        }
-      }
-
-    case Constants.showSuccess:
-      if (action.error) {
-        console.error('Should not get an error from showing success')
-        return state
-      } else {
-        return {
-          ...state,
-          phase: 'success'
+          paperkey
         }
       }
 
@@ -180,8 +155,7 @@ export default function (state: SignupState = initialState, action: SignupAction
       if (action.error) {
         return {
           ...state,
-          signupError: action.payload.signupError,
-          phase: 'signupError'
+          signupError: action.payload.signupError
         }
       } else {
         return state
@@ -189,8 +163,7 @@ export default function (state: SignupState = initialState, action: SignupAction
 
     case Constants.resetSignup:
       return {
-        ...state,
-        phase: 'inviteCode'
+        ...state
       }
 
     default:

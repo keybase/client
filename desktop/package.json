@@ -45,6 +45,7 @@
     "react-redux": "4.4.1",
     "react-tap-event-plugin": "0.2.2",
     "redux": "3.3.1",
+    "redux-saga": "^0.9.5",
     "redux-thunk": "2.0.1",
     "semver": "5.1.0"
   },
