@@ -37,6 +37,8 @@ export default class Input extends Component {
 
   onChange (event: {target: {value: ?string}}) {
     this.setState({value: event.target.value})
+    this.props.onChange && this.props.onChange(event)
+    this.props.onChangeText && this.props.onChangeText(event.target.value || '')
   }
 
   blur () {
@@ -49,7 +51,7 @@ export default class Input extends Component {
         <MultiLineInput
           autoFocus={this.props.autoFocus}
           errorText={this.props.errorText}
-          onChange={this.props.onChange}
+          onChange={event => this.onChange(event)}
           onEnterKeyDown={this.props.onEnterKeyDown}
           hintText={this.props.hintText}
           style={this.props.style}/>
@@ -91,10 +93,7 @@ export default class Input extends Component {
           hintText={this.props.hintText}
           hintStyle={{...styles.hintStyle, ...(this.props.multiLine ? {textAlign: 'center'} : {top: 3, bottom: 'auto'}), ...this.props.hintStyle}}
           multiLine={this.props.multiLine}
-          onChange={event => {
-            this.onChange(event)
-            this.props.onChange && this.props.onChange(event)
-          }}
+          onChange={event => this.onChange(event)}
           onEnterKeyDown={this.props.onEnterKeyDown}
           underlineFocusStyle={styles.underlineFocusStyle}
           rows={this.props.rows}
