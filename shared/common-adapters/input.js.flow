@@ -14,7 +14,7 @@ export type Props = $Shape<{
   rows?: number,
   rowsMax?: number,
   style?: Object,
-  type?: 'password' | 'text',
+  type?: 'password' | 'text' | 'passwordVisible',
   value?: ?string,
   small?: bool,
   errorStyle?: Object
