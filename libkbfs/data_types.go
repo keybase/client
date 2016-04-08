@@ -661,6 +661,8 @@ type UsageStat struct {
 	UsageBlocks    int64
 	ArchivedBytes  int64
 	ArchivedBlocks int64
+	// Mtime is in unix nanoseconds
+	Mtime int64
 }
 
 //AccumOne records the usage of one block, whose size is denoted by change
