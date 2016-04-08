@@ -47,8 +47,11 @@ const (
 	gcOpCode // for deleting old blocks during an MD history truncation
 )
 
-// BlockUpdate represents a block that was updated to have a new
+// blockUpdate represents a block that was updated to have a new
 // BlockPointer.
+//
+// NOTE: Don't add or modify anything in this struct without
+// considering how old clients will handle them.
 type blockUpdate struct {
 	Unref BlockPointer `codec:"u,omitempty"`
 	Ref   BlockPointer `codec:"r,omitempty"`
@@ -60,9 +63,6 @@ const (
 )
 
 type opsList []op
-
-// TODO: Use a wrapper around BlockPointer and blockUpdate that
-// supports UnknownFields.
 
 // OpCommon are data structures needed by all ops.  It is only
 // exported for serialization purposes.

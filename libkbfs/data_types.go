@@ -208,6 +208,9 @@ func (r blockRef) String() string {
 }
 
 // BlockPointer contains the identifying information for a block in KBFS.
+//
+// NOTE: Don't add or modify anything in this struct without
+// considering how old clients will handle them.
 type BlockPointer struct {
 	ID      BlockID `codec:"i"`
 	KeyGen  KeyGen  `codec:"k"` // if valid, which generation of the TLFKeyBundle to use.
@@ -266,8 +269,8 @@ func (p BlockPointer) ref() blockRef {
 // BlockInfo contains all information about a block in KBFS and its
 // contents.
 //
-// TODO: Move everything but ID and RefNonce from BlockPointer into
-// this type.
+// NOTE: Don't add or modify anything in this struct without
+// considering how old clients will handle them.
 type BlockInfo struct {
 	BlockPointer
 	// When non-zero, the size of the encoded (and possibly
@@ -514,6 +517,9 @@ func (p path) hasPublic() bool {
 // ordered list of the changes for individual operations.  This lets
 // the notification and conflict resolution strategies figure out the
 // difference between a renamed file and a modified file, for example.
+//
+// NOTE: Don't add or modify anything in this struct without
+// considering how old clients will handle them.
 type BlockChanges struct {
 	// If this is set, the actual changes are stored in a block (where
 	// the block contains a serialized version of BlockChanges)
@@ -603,6 +609,10 @@ func (et EntryType) String() string {
 
 // EntryInfo is the (non-block-related) info a directory knows about
 // its child.
+//
+// NOTE: Don't add or modify anything in this struct without
+// considering how old clients will handle them (since this is
+// embedded in DirEntry).
 type EntryInfo struct {
 	Type    EntryType
 	Size    uint64
