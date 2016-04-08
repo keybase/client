@@ -81,7 +81,7 @@ const styles = {
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
     flex: 1,
-    backgroundColor: globalColors.black10
+    backgroundColor: globalColors.lightGrey
   },
   card: {
     marginTop: 115
