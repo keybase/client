@@ -4,20 +4,19 @@ import React, {Component} from 'react'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props} from './user-card'
 import Avatar from './avatar'
-
+import {View} from 'react-native'
 const avatarSize = 110
 
 export default class UserCard extends Component<void, Props, void> {
   render () {
-    console.log('in user-card render')
+    console.log('in native user-card')
     const url = this.props.username ? `https://keybase.io/${this.props.username}` : null
     return (
-      <div style={{...styles.container, ...this.props.outerStyle}}>
-        <Avatar size={avatarSize} style={styles.avatar} onClick={this.props.onAvatarClicked} url={url}/>
-        <div style={{...styles.inside, ...this.props.style}}>
+      <View style={{...styles.container, ...this.props.outerStyle}}>
+        <View style={{...styles.inside, ...this.props.style}}>
           {this.props.children}
-        </div>
-      </div>
+        </View>
+      </View>
     )
   }
 }

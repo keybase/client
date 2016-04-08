@@ -6,6 +6,7 @@ import type {Props} from './index.render'
 
 class UsernameOrEmail extends Component<void, Props, void> {
   render () {
+    console.log('in UsernameOrEmail index')
     return <Render {...this.props} />
   }
 }
