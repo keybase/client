@@ -1,3 +1,6 @@
+## 1.0.16
+- Better default cipher list for PGP (via vendored PR: keybase/go-crypto#25)
+
 ## 1.0.15 (2016-03-31)
 - If a public key really consists of the same key listed twice, then
   merge the two keys and try again (PR: keybase/client#2130).
