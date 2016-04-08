@@ -68,6 +68,10 @@ export default class Input extends Component {
     }
     const inputStyle = this.props.multiLine ? multiLineStyleFix : {height: 'auto'}
     const alignStyle = this.props.style && this.props.style.textAlign ? {textAlign: this.props.style.textAlign} : {textAlign: 'center'}
+
+    const passwordVisible = this.props.type === 'passwordVisible'
+    const password = this.props.type === 'password'
+
     return (
       <div style={{...style, ...this.props.style}} onClick={() => { this._textField && this._textField.focus() }}>
         <TextField
@@ -95,7 +99,8 @@ export default class Input extends Component {
           underlineFocusStyle={styles.underlineFocusStyle}
           rows={this.props.rows}
           rowsMax={this.props.rowsMax}
-          type={this.props.type}
+          autocomplete={(passwordVisible || password) ? 'off' : undefined}
+          type={password ? 'password' : 'text'}
           value={this.state.value}
           />
       </div>

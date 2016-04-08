@@ -37,7 +37,7 @@ export default class LoginRender extends Component<void, Props, State> {
       style: {marginBottom: 0},
       onChange: event => this.setState({passphrase: event.target.value}),
       onEnterKeyDown: () => this.onSubmit(),
-      type: this.state.showTyping ? 'text' : 'password',
+      type: this.state.showTyping ? 'passwordVisible' : 'password',
       errorText: this.props.error,
       autoFocus: true
     }
