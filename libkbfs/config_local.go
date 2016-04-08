@@ -35,19 +35,21 @@ const (
 // ConfigLocal implements the Config interface using purely local
 // server objects (no KBFS operations used RPCs).
 type ConfigLocal struct {
-	kbfs    KBFSOps
-	keyman  KeyManager
-	rep     Reporter
-	mdcache MDCache
-	kcache  KeyCache
-	bcache  BlockCache
-	crypto  Crypto
-	codec   Codec
-	mdops   MDOps
-	kops    KeyOps
+	kbfs   KBFSOps
+	keyman KeyManager
+	rep    Reporter
+	kcache KeyCache
+	bcache BlockCache
+	crypto Crypto
+	codec  Codec
+	mdops  MDOps
+	kops   KeyOps
 
 	// TODO: We probably want to do the same thing for everything
 	// else.
+	mdcacheLock sync.RWMutex
+	mdcache     MDCache
+
 	bopsLock sync.RWMutex
 	bops     BlockOps
 
@@ -269,16 +271,6 @@ func (c *ConfigLocal) SetReporter(r Reporter) {
 	c.rep = r
 }
 
-// MDCache implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) MDCache() MDCache {
-	return c.mdcache
-}
-
-// SetMDCache implements the Config interface for ConfigLocal.
-func (c *ConfigLocal) SetMDCache(m MDCache) {
-	c.mdcache = m
-}
-
 // KeyCache implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) KeyCache() KeyCache {
 	return c.kcache
@@ -338,6 +330,20 @@ func (c *ConfigLocal) KeyOps() KeyOps {
 // SetKeyOps implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) SetKeyOps(k KeyOps) {
 	c.kops = k
+}
+
+// MDCache implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) MDCache() MDCache {
+	c.mdcacheLock.RLock()
+	defer c.mdcacheLock.RUnlock()
+	return c.mdcache
+}
+
+// SetMDCache implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetMDCache(m MDCache) {
+	c.mdcacheLock.Lock()
+	defer c.mdcacheLock.Unlock()
+	c.mdcache = m
 }
 
 // BlockOps implements the Config interface for ConfigLocal.
