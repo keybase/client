@@ -302,7 +302,8 @@ func TestNodeCacheUnlinkParent(t *testing.T) {
 }
 
 // Tests that a child can be unlinked completely from the parent, and
-// then re-added with a new pointer and still work.
+// then re-added with a new pointer and still work, but with a new
+// node core.
 func TestNodeCacheUnlinkThenRelink(t *testing.T) {
 	id := FakeTlfID(42, false)
 	branch := BranchName("testBranch")
@@ -314,15 +315,29 @@ func TestNodeCacheUnlinkThenRelink(t *testing.T) {
 	ncs.Unlink(childPtr2.ref(), ncs.PathFromNode(childNode2))
 	newChildName := "newChildName"
 	newChildPtr2 := BlockPointer{ID: fakeBlockID(22)}
-	ncs.UpdatePointer(childPtr2.ref(), newChildPtr2)
-	ncs.GetOrCreate(newChildPtr2, newChildName, childNode1)
+	ncs.UpdatePointer(childPtr2.ref(), newChildPtr2) // NO-OP
+	childNode2B, err := ncs.GetOrCreate(newChildPtr2, newChildName, childNode1)
+	if err != nil {
+		t.Fatalf("Couldn't relink node: %v", err)
+	}
+	if childNode2.GetID() == childNode2B.GetID() {
+		t.Errorf("Relink left the node the same")
+	}
 
+	// Old unlinked node didn't get updated
 	path := ncs.PathFromNode(childNode2)
+	checkNodeCachePath(t, id, branch, path, path2)
+
+	// New node
+	path = ncs.PathFromNode(childNode2B)
 	path2[2].BlockPointer = newChildPtr2
 	path2[2].Name = newChildName
 	checkNodeCachePath(t, id, branch, path, path2)
 
-	if g, e := childNode2.GetBasename(), newChildName; g != e {
+	if g, e := childNode2.GetBasename(), ""; g != e {
+		t.Errorf("Expected basename %s, got %s", e, g)
+	}
+	if g, e := childNode2B.GetBasename(), newChildName; g != e {
 		t.Errorf("Expected basename %s, got %s", e, g)
 	}
 }
