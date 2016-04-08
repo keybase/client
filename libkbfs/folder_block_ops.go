@@ -55,7 +55,7 @@ type syncInfo struct {
 	unrefBytes uint64
 }
 
-func (si *syncInfo) DeepCopy() *syncInfo {
+func (si *syncInfo) DeepCopy(codec Codec) (*syncInfo, error) {
 	newSi := &syncInfo{
 		oldInfo:    si.oldInfo,
 		refBytes:   si.refBytes,
@@ -67,9 +67,12 @@ func (si *syncInfo) DeepCopy() *syncInfo {
 		newSi.bps = si.bps.DeepCopy()
 	}
 	if si.op != nil {
-		newSi.op = si.op.DeepCopy()
+		err := CodecUpdate(codec, &newSi.op, si.op)
+		if err != nil {
+			return nil, err
+		}
 	}
-	return newSi
+	return newSi, nil
 }
 
 // folderBlockOps contains all the fields that must be synchronized by
@@ -1593,7 +1596,10 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 		syncState.redirtyOnRecoverableError = make(map[BlockPointer]BlockPointer)
 	}
 	syncState.si = si
-	syncState.savedSi = si.DeepCopy()
+	syncState.savedSi, err = si.DeepCopy(fbo.config.Codec())
+	if err != nil {
+		return nil, nil, syncState, err
+	}
 
 	if si.bps == nil {
 		si.bps = newBlockPutState(1)

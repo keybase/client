@@ -5,7 +5,111 @@ import (
 	"testing"
 
 	"github.com/keybase/go-codec/codec"
+	"github.com/stretchr/testify/require"
 )
+
+func TestCreateOpCustomUpdate(t *testing.T) {
+	oldDir := makeFakeBlockPointer(t)
+	co := newCreateOp("name", oldDir, Exec)
+	require.Equal(t, blockUpdate{Unref: oldDir}, co.Dir)
+
+	// Update to oldDir should update co.Dir.
+	newDir := oldDir
+	newDir.ID = fakeBlockID(42)
+	co.AddUpdate(oldDir, newDir)
+	require.Nil(t, co.Updates)
+	require.Equal(t, blockUpdate{Unref: oldDir, Ref: newDir}, co.Dir)
+}
+
+func TestRmOpCustomUpdate(t *testing.T) {
+	oldDir := makeFakeBlockPointer(t)
+	ro := newRmOp("name", oldDir)
+	require.Equal(t, blockUpdate{Unref: oldDir}, ro.Dir)
+
+	// Update to oldDir should update ro.Dir.
+	newDir := oldDir
+	newDir.ID = fakeBlockID(42)
+	ro.AddUpdate(oldDir, newDir)
+	require.Nil(t, ro.Updates)
+	require.Equal(t, blockUpdate{Unref: oldDir, Ref: newDir}, ro.Dir)
+}
+
+func TestRenameOpCustomUpdateWithinDir(t *testing.T) {
+	oldDir := makeFakeBlockPointer(t)
+	renamed := oldDir
+	renamed.ID = fakeBlockID(42)
+	ro := newRenameOp(
+		"old name", oldDir, "new name", oldDir,
+		renamed, Exec)
+	require.Equal(t, blockUpdate{Unref: oldDir}, ro.OldDir)
+	require.Equal(t, BlockPointer{}, ro.NewDir.Unref)
+	require.Equal(t, BlockPointer{}, ro.NewDir.Ref)
+
+	// Update to oldDir should update ro.OldDir.
+	newDir := oldDir
+	newDir.ID = fakeBlockID(43)
+	ro.AddUpdate(oldDir, newDir)
+	require.Nil(t, ro.Updates)
+	require.Equal(t, blockUpdate{Unref: oldDir, Ref: newDir}, ro.OldDir)
+	require.Equal(t, blockUpdate{}, ro.NewDir)
+}
+
+func TestRenameOpCustomUpdateAcrossDirs(t *testing.T) {
+	oldOldDir := makeFakeBlockPointer(t)
+	oldNewDir := oldOldDir
+	oldNewDir.ID = fakeBlockID(42)
+	renamed := oldOldDir
+	renamed.ID = fakeBlockID(43)
+	ro := newRenameOp(
+		"old name", oldOldDir, "new name", oldNewDir,
+		renamed, Exec)
+	require.Equal(t, blockUpdate{Unref: oldOldDir}, ro.OldDir)
+	require.Equal(t, blockUpdate{Unref: oldNewDir}, ro.NewDir)
+
+	// Update to oldOldDir should update ro.OldDir.
+	newOldDir := oldOldDir
+	newOldDir.ID = fakeBlockID(44)
+	ro.AddUpdate(oldOldDir, newOldDir)
+	require.Nil(t, ro.Updates)
+	require.Equal(t, blockUpdate{Unref: oldOldDir, Ref: newOldDir}, ro.OldDir)
+	require.Equal(t, blockUpdate{Unref: oldNewDir}, ro.NewDir)
+
+	// Update to oldNewDir should update ro.OldDir.
+	newNewDir := oldNewDir
+	newNewDir.ID = fakeBlockID(45)
+	ro.AddUpdate(oldNewDir, newNewDir)
+	require.Nil(t, ro.Updates)
+	require.Equal(t, blockUpdate{Unref: oldOldDir, Ref: newOldDir}, ro.OldDir)
+	require.Equal(t, blockUpdate{Unref: oldNewDir, Ref: newNewDir}, ro.NewDir)
+}
+
+func TestSyncOpCustomUpdate(t *testing.T) {
+	oldFile := makeFakeBlockPointer(t)
+	so := newSyncOp(oldFile)
+	require.Equal(t, blockUpdate{Unref: oldFile}, so.File)
+
+	// Update to oldFile should update so.File.
+	newFile := oldFile
+	newFile.ID = fakeBlockID(42)
+	so.AddUpdate(oldFile, newFile)
+	require.Nil(t, so.Updates)
+	require.Equal(t, blockUpdate{Unref: oldFile, Ref: newFile}, so.File)
+}
+
+func TestSetAttrOpCustomUpdate(t *testing.T) {
+	oldDir := makeFakeBlockPointer(t)
+	file := oldDir
+	file.ID = fakeBlockID(42)
+	sao := newSetAttrOp("name", oldDir, mtimeAttr, file)
+	require.Equal(t, blockUpdate{Unref: oldDir}, sao.Dir)
+
+	// Update to oldDir should update sao.Dir.
+	newDir := oldDir
+	newDir.ID = fakeBlockID(42)
+	sao.AddUpdate(oldDir, newDir)
+	require.Nil(t, sao.Updates)
+	require.Equal(t, blockUpdate{Unref: oldDir, Ref: newDir}, sao.Dir)
+}
 
 type writeRangeFuture struct {
 	WriteRange
@@ -106,7 +210,6 @@ func makeFakeOpCommon(t *testing.T, withRefBlocks bool) OpCommon {
 		[]BlockPointer{makeFakeBlockPointer(t)},
 		[]blockUpdate{makeFakeBlockUpdate(t)},
 		codec.UnknownFieldSetHandler{},
-		nil,
 		writerInfo{},
 		path{},
 	}

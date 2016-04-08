@@ -73,10 +73,6 @@ type OpCommon struct {
 
 	codec.UnknownFieldSetHandler
 
-	// customUpdates allows an individual op to make sure that one of
-	// its custom fields is updated on AddUpdate, instead of the
-	// generic Updates field.
-	customUpdates map[BlockPointer]*blockUpdate
 	// writerInfo is the keybase username and device that generated this
 	// operation.
 	// Not exported; only used during conflict resolution.
@@ -102,12 +98,7 @@ func (oc *OpCommon) AddUnrefBlock(ptr BlockPointer) {
 // AddUpdate adds a mapping from an old block to the new version of
 // that block, for this op.
 func (oc *OpCommon) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
-	if update, ok := oc.customUpdates[oldPtr]; ok {
-		update.Ref = newPtr
-		delete(oc.customUpdates, oldPtr)
-	} else {
-		oc.Updates = append(oc.Updates, blockUpdate{oldPtr, newPtr})
-	}
+	oc.Updates = append(oc.Updates, blockUpdate{oldPtr, newPtr})
 }
 
 // Refs returns a slice containing all the blocks that were initially
@@ -162,15 +153,19 @@ type createOp struct {
 
 func newCreateOp(name string, oldDir BlockPointer, t EntryType) *createOp {
 	co := &createOp{
-		OpCommon: OpCommon{
-			customUpdates: make(map[BlockPointer]*blockUpdate),
-		},
 		NewName: name,
 	}
 	co.Dir.Unref = oldDir
-	co.customUpdates[oldDir] = &co.Dir
 	co.Type = t
 	return co
+}
+
+func (co *createOp) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
+	if oldPtr == co.Dir.Unref {
+		co.Dir.Ref = newPtr
+		return
+	}
+	co.OpCommon.AddUpdate(oldPtr, newPtr)
 }
 
 func (co *createOp) SizeExceptUpdates() uint64 {
@@ -268,14 +263,18 @@ type rmOp struct {
 
 func newRmOp(name string, oldDir BlockPointer) *rmOp {
 	ro := &rmOp{
-		OpCommon: OpCommon{
-			customUpdates: make(map[BlockPointer]*blockUpdate),
-		},
 		OldName: name,
 	}
 	ro.Dir.Unref = oldDir
-	ro.customUpdates[oldDir] = &ro.Dir
 	return ro
+}
+
+func (ro *rmOp) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
+	if oldPtr == ro.Dir.Unref {
+		ro.Dir.Ref = newPtr
+		return
+	}
+	ro.OpCommon.AddUpdate(oldPtr, newPtr)
 }
 
 func (ro *rmOp) SizeExceptUpdates() uint64 {
@@ -339,22 +338,29 @@ func newRenameOp(oldName string, oldOldDir BlockPointer,
 	newName string, oldNewDir BlockPointer, renamed BlockPointer,
 	renamedType EntryType) *renameOp {
 	ro := &renameOp{
-		OpCommon: OpCommon{
-			customUpdates: make(map[BlockPointer]*blockUpdate),
-		},
 		OldName:     oldName,
 		NewName:     newName,
 		Renamed:     renamed,
 		RenamedType: renamedType,
 	}
 	ro.OldDir.Unref = oldOldDir
-	ro.customUpdates[oldOldDir] = &ro.OldDir
 	// If we are renaming within a directory, let the NewDir remain empty.
 	if oldOldDir != oldNewDir {
 		ro.NewDir.Unref = oldNewDir
-		ro.customUpdates[oldNewDir] = &ro.NewDir
 	}
 	return ro
+}
+
+func (ro *renameOp) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
+	if oldPtr == ro.OldDir.Unref {
+		ro.OldDir.Ref = newPtr
+		return
+	}
+	if ro.NewDir != (blockUpdate{}) && oldPtr == ro.NewDir.Unref {
+		ro.NewDir.Ref = newPtr
+		return
+	}
+	ro.OpCommon.AddUpdate(oldPtr, newPtr)
 }
 
 func (ro *renameOp) SizeExceptUpdates() uint64 {
@@ -406,26 +412,16 @@ func newSyncOp(oldFile BlockPointer) *syncOp {
 	return so
 }
 
-func (so *syncOp) DeepCopy() *syncOp {
-	newSo := &syncOp{
-		File: so.File,
-	}
-	newSo.resetUpdateState()
-	newSo.RefBlocks = make([]BlockPointer, len(so.RefBlocks))
-	copy(newSo.RefBlocks, so.RefBlocks)
-	newSo.UnrefBlocks = make([]BlockPointer, len(so.UnrefBlocks))
-	copy(newSo.UnrefBlocks, so.UnrefBlocks)
-	newSo.Updates = make([]blockUpdate, len(so.Updates))
-	copy(newSo.Updates, so.Updates)
-	newSo.Writes = make([]WriteRange, len(so.Writes))
-	copy(newSo.Writes, so.Writes)
-	return newSo
-}
-
 func (so *syncOp) resetUpdateState() {
 	so.Updates = nil
-	so.customUpdates = make(map[BlockPointer]*blockUpdate)
-	so.customUpdates[so.File.Unref] = &so.File
+}
+
+func (so *syncOp) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
+	if oldPtr == so.File.Unref {
+		so.File.Ref = newPtr
+		return
+	}
+	so.OpCommon.AddUpdate(oldPtr, newPtr)
 }
 
 func (so *syncOp) addWrite(off uint64, length uint64) WriteRange {
@@ -527,16 +523,20 @@ type setAttrOp struct {
 func newSetAttrOp(name string, oldDir BlockPointer,
 	attr attrChange, file BlockPointer) *setAttrOp {
 	sao := &setAttrOp{
-		OpCommon: OpCommon{
-			customUpdates: make(map[BlockPointer]*blockUpdate),
-		},
 		Name: name,
 	}
 	sao.Dir.Unref = oldDir
-	sao.customUpdates[oldDir] = &sao.Dir
 	sao.Attr = attr
 	sao.File = file
 	return sao
+}
+
+func (sao *setAttrOp) AddUpdate(oldPtr BlockPointer, newPtr BlockPointer) {
+	if oldPtr == sao.Dir.Unref {
+		sao.Dir.Ref = newPtr
+		return
+	}
+	sao.OpCommon.AddUpdate(oldPtr, newPtr)
 }
 
 func (sao *setAttrOp) SizeExceptUpdates() uint64 {
@@ -589,11 +589,7 @@ type resolutionOp struct {
 }
 
 func newResolutionOp() *resolutionOp {
-	ro := &resolutionOp{
-		OpCommon: OpCommon{
-			customUpdates: make(map[BlockPointer]*blockUpdate),
-		},
-	}
+	ro := &resolutionOp{}
 	return ro
 }
 
@@ -624,11 +620,7 @@ type rekeyOp struct {
 }
 
 func newRekeyOp() *rekeyOp {
-	ro := &rekeyOp{
-		OpCommon: OpCommon{
-			customUpdates: make(map[BlockPointer]*blockUpdate),
-		},
-	}
+	ro := &rekeyOp{}
 	return ro
 }
 
@@ -669,9 +661,6 @@ type gcOp struct {
 
 func newGCOp(latestRev MetadataRevision) *gcOp {
 	gco := &gcOp{
-		OpCommon: OpCommon{
-			customUpdates: make(map[BlockPointer]*blockUpdate),
-		},
 		LatestRev: latestRev,
 	}
 	return gco
