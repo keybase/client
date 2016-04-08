@@ -25,7 +25,10 @@ class Render extends Component<void, Props, State> {
   }
 
   onChange (usernameOrEmail: string) {
+    console.log('in onChange, ' + usernameOrEmail)
     this.setState({usernameOrEmail})
+    console.log('foob')
+    console.log(this.state.usernameOrEmail)
   }
 
   render () {
@@ -39,9 +42,9 @@ class Render extends Component<void, Props, State> {
           <Input
             autoFocus
             style={stylesInput}
+            hintText='Username or email'
             floatingLabelText='Username or email'
-            onEnterKeyDown={() => this.onSubmit()}
-            onChange={event => this.onChange(event.target.value)}
+            onChangeText={text => this.onChange(text)}
             value={this.state.usernameOrEmail}
           />
           <Button

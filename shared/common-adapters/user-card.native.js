@@ -27,8 +27,8 @@ const styles = {
   container: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
-    //width: 410,
-    //height: 375,
+    width: 380,
+    height: 475,
     backgroundColor: globalColors.white,
     position: 'relative'
   },
@@ -37,8 +37,6 @@ const styles = {
     alignItems: 'center',
     marginTop: avatarSize / 2,
     padding: 30
-    //width: '100%',
-    //height: '100%'
   },
   avatar: {
     position: 'absolute',

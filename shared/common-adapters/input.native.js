@@ -46,6 +46,7 @@ class Input extends Component<void, Props, State> {
 
   render () {
     console.log('in Input render')
+    console.log('value: ' + this.props.value)
     const IOS = Platform.OS_IOS === OS
     const inputStyle = Text.textStyle({type: 'BodySemibold'}, {})
     const password = this.props.type === 'password'
@@ -68,7 +69,8 @@ class Input extends Component<void, Props, State> {
           onBlur={() => this.setState({inputFocused: false})}
           onSubmitEditing={this.props.onEnterKeyDown}
           onChange={this.props.onChange}
-          onChangeText={text => this.setState({text})} />
+          onChangeText={this.props.onChangeText}
+          value={this.props.value} />
         {IOS && <HorizontalLine focused={this.state.inputFocused}/>}
         {this.props.errorText && <Text type='Error' style={{...errorText, ...this.props.errorStyle}}>{this.props.errorText}</Text>}
       </Box>
