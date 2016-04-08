@@ -1,5 +1,5 @@
 // @flow
-import React from 'react'
+import React from 'react-native'
 import {globalStyles} from '../../styles/style-guide'
 import {Box, BackButton} from '../../common-adapters'
 import type {Props} from './container'
@@ -30,12 +30,9 @@ const styles = {
   },
   innerContainer: {
     ...globalStyles.flexBoxColumn,
-    alignSelf: 'stretch',
-    width: '100%',
-    height: '100%'
+    alignSelf: 'stretch'
   },
   button: {
-    zIndex: 9999,
     position: 'absolute'
   }
 }

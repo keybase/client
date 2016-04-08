@@ -12,7 +12,7 @@ class Render extends Component<void, Props, State> {
   state: State;
 
   constructor (props: Props) {
-    console.log('in usernameoremail constructor')
+    console.log('in username or email native constructor')
     super(props)
 
     this.state = {usernameOrEmail: ''}
@@ -29,26 +29,31 @@ class Render extends Component<void, Props, State> {
   }
 
   render () {
-    console.log('in usernameoremail native render')
+    console.log('in username or email native constructor')
     return (
-      <View>
-        <Input
-          autoFocus
-          style={stylesInput}
-          floatingLabelText='Username or email'
-          onEnterKeyDown={() => this.onSubmit()}
-          onChange={event => this.onChange(event.target.value)}
-          value={this.state.usernameOrEmail}
-        />
-        <Button
-          fullWidth
-          label='Continue'
-          type='Primary'
-          onClick={() => this.onSubmit()}
-          enabled={this.state.usernameOrEmail}
-          waiting={this.props.waitingForResponse}
-        />
-      </View>
+      <Container
+        style={stylesContainer}
+        outerStyle={{backgroundColor: globalColors.lightGrey}}
+        onBack={() => this.props.onBack()}>
+        <UserCard style={stylesCard} outerStyle={stylesOuterCard}>
+          <Input
+            autoFocus
+            style={stylesInput}
+            floatingLabelText='Username or email'
+            onEnterKeyDown={() => this.onSubmit()}
+            onChange={event => this.onChange(event.target.value)}
+            value={this.state.usernameOrEmail}
+          />
+          <Button
+            fullWidth
+            label='Continue'
+            type='Primary'
+            onClick={() => this.onSubmit()}
+            enabled={this.state.usernameOrEmail}
+            waiting={this.props.waitingForResponse}
+          />
+        </UserCard>
+      </Container>
     )
   }
 }

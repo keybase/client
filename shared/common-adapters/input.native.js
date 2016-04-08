@@ -23,6 +23,7 @@ class Input extends Component<void, Props, State> {
   _textInput: any;
 
   constructor (props: Props) {
+    console.log('in Input constructor')
     super(props)
     this.state = {
       inputFocused: false,
@@ -44,6 +45,7 @@ class Input extends Component<void, Props, State> {
   }
 
   render () {
+    console.log('in Input render')
     const IOS = Platform.OS_IOS === OS
     const inputStyle = Text.textStyle({type: 'BodySemibold'}, {})
     const password = this.props.type === 'password'
