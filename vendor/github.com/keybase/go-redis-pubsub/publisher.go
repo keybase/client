@@ -86,7 +86,10 @@ func NewRedisPublisherWithBackoff(address string, handler PublicationHandler,
 		pool: &redis.Pool{
 			MaxIdle: poolSize,
 			Dial: func() (conn redis.Conn, err error) {
-				expBackoff.Reset()
+				ebo := backoff.NewExponentialBackOff()
+				// copy the passed settings
+				*ebo = *expBackoff
+				ebo.Reset()
 				err = backoff.RetryNotify(func() error {
 					select {
 					case <-closeChan:
@@ -97,8 +100,7 @@ func NewRedisPublisherWithBackoff(address string, handler PublicationHandler,
 					var err error
 					conn, err = redis.Dial("tcp", address)
 					return err
-				}, expBackoff,
-					handler.OnPublishConnectError)
+				}, ebo, handler.OnPublishConnectError)
 				select {
 				case <-closeChan:
 					err = ErrPublishPoolClosed
