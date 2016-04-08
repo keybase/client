@@ -19,16 +19,10 @@ export default class Avatar extends Component {
   }
 
   render () {
-    console.log('in avatar render')
-
     return (
-      <View onClick={this.props.onClick}>
-        <Icon style={{...avatarStyle(this.props.size - 2),
-            top: 1,
-            left: 1,
-          }}
-          type='placeholder-avatar'
-        ></Icon>
+      <View style={{height: this.props.size, ...this.props.style}} onClick={this.props.onClick}>
+        <Icon style={{...avatarStyle(this.props.size - 2)}}
+          type='placeholder-avatar' />
       </View>
     )
   }
@@ -39,6 +33,6 @@ function avatarStyle (size: number): Object {
     width: size,
     height: size,
     borderRadius: size / 2,
-    position: 'absolute'
+    alignSelf: 'center'
   }
 }

@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
-import {Input, Button, UserCard} from '../../../common-adapters'
-import {globalColors} from '../../../styles/style-guide'
+import {Input, Button, UserCard, Box} from '../../../common-adapters'
+import {globalColors, globalStyles} from '../../../styles/style-guide'
 import Container from '../../forms/container'
 import type {Props} from './index.render'
 import {View} from 'react-native'
@@ -36,7 +36,7 @@ class Render extends Component<void, Props, State> {
     return (
       <Container
         style={stylesContainer}
-        outerStyle={{backgroundColor: globalColors.lightGrey}}
+        outerStyle={{backgroundColor: globalColors.lightGrey, padding: 20}}
         onBack={() => this.props.onBack()}>
         <UserCard style={stylesCard} outerStyle={stylesOuterCard}>
           <Input
@@ -62,11 +62,12 @@ class Render extends Component<void, Props, State> {
 }
 
 const stylesContainer = {
-  flex: 1,
-  alignItems: 'center'
+  flex: 1
 }
 const stylesInput = {
-  marginBottom: 48
+  flex: 1,
+  marginBottom: 48,
+  backgroundColor: 'purple'
 }
 const stylesOuterCard = {
   marginTop: 40

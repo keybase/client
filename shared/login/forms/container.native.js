@@ -19,20 +19,20 @@ export default ({children, onBack, style, outerStyle}: Props) => {
 const styles = {
   container: {
     ...globalStyles.flexBoxColumn,
-    alignItems: 'flex-start',
     bottom: 0,
-    justifyContent: 'flex-start',
     left: 0,
     padding: 60,
     position: 'absolute',
+    flex: 1,
     right: 0,
     top: 0
   },
   innerContainer: {
     ...globalStyles.flexBoxColumn,
-    alignSelf: 'stretch'
+    flex: 1
   },
   button: {
-    position: 'absolute'
+    position: 'absolute',
+    zIndex: 10
   }
 }

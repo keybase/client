@@ -14,10 +14,10 @@ export default class UserCard extends Component<void, Props, void> {
     const url = this.props.username ? `https://keybase.io/${this.props.username}` : null
     return (
       <Box style={{...styles.container, ...this.props.outerStyle}}>
-        <Avatar size={avatarSize} style={styles.avatar} onClick={this.props.onAvatarClicked} url={url}/>
         <Box style={{...styles.inside, ...this.props.style}}>
           {this.props.children}
         </Box>
+        <Avatar size={avatarSize} style={styles.avatar} onClick={this.props.onAvatarClicked} url={url}/>
       </Box>
     )
   }
@@ -26,24 +26,22 @@ export default class UserCard extends Component<void, Props, void> {
 const styles = {
   container: {
     ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    width: 380,
     height: 475,
     backgroundColor: globalColors.white,
-    position: 'relative'
+    position: 'relative',
+    backgroundColor: 'pink'
   },
   inside: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
     marginTop: avatarSize / 2,
+    backgroundColor: 'green',
     padding: 30
   },
   avatar: {
     position: 'absolute',
-    top: -avatarSize / 2,
+    top: 0,
     left: 0,
-    right: 0,
-    marginLeft: 'auto',
-    marginRight: 'auto'
+    right: 0
   }
 }
