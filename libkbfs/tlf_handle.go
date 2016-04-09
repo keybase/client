@@ -458,12 +458,8 @@ func (h *TlfHandle) Equal(rhs *TlfHandle, config Config) bool {
 // Users returns a list of all reader and writer UIDs for the tlf.
 func (h *TlfHandle) Users() []keybase1.UID {
 	var users []keybase1.UID
-	for _, uid := range h.Writers {
-		users = append(users, uid)
-	}
-	for _, uid := range h.Readers {
-		users = append(users, uid)
-	}
+	users = append(users, h.Writers...)
+	users = append(users, h.Readers...)
 	return users
 }
 

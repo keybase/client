@@ -1408,10 +1408,8 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 
 	// Make chains for the new merged parents of all the double renames.
 	newPtrs := make(map[BlockPointer]bool)
-	ptrs := make([]BlockPointer, 0, len(doubleRenames))
-	for _, ptr := range doubleRenames {
-		ptrs = append(ptrs, ptr)
-	}
+	ptrs := make([]BlockPointer, len(doubleRenames))
+	copy(ptrs, doubleRenames)
 	// Fake out the rest of the chains to populate newPtrs
 	for ptr := range mergedChains.byMostRecent {
 		newPtrs[ptr] = true
