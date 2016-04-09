@@ -118,9 +118,9 @@ func (p *provisioner) pickFirstConnection() (err error) {
 		if err = srv.Register(prot); err != nil {
 			return err
 		}
-		if err = srv.Run(true); err != nil {
-			return err
-		}
+		serverDoneCh := srv.Run()
+		// TODO: Do something with serverDoneCh.
+		_ = serverDoneCh
 	}
 
 	select {
