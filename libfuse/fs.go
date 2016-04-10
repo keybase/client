@@ -175,7 +175,7 @@ func (f *FS) Serve(ctx context.Context) error {
 	f.fuse = srv
 
 	f.LaunchNotificationProcessor(ctx)
-	f.remoteStatus.Init(ctx, f.log, f.config.KBFSOps())
+	f.remoteStatus.Init(ctx, f.log, f.config)
 	// Blocks forever, unless an interrupt signal is received
 	// (handled by libkbfs.Init).
 	return srv.Serve(f)
@@ -302,9 +302,8 @@ func (r *Root) ReadDirAll(ctx context.Context) (res []fuse.Dirent, err error) {
 			Name: PublicName,
 		},
 	}
-	r.private.fs.remoteStatus.Lock()
-	defer r.private.fs.remoteStatus.Unlock()
-	if name := r.private.fs.remoteStatus.ExtraFileName; name != "" {
+
+	if name := r.private.fs.remoteStatus.ExtraFileName(); name != "" {
 		res = append(res, fuse.Dirent{Type: fuse.DT_File, Name: name})
 	}
 	return res, nil

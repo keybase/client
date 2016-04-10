@@ -23,28 +23,32 @@ const (
 type RemoteStatus struct {
 	sync.Mutex
 	failingServices   map[string]error
-	ExtraFileName     string
-	ExtraFileContents []byte
+	extraFileName     string
+	extraFileContents []byte
 }
 
 // Init a RemoteStatus and register it with libkbfs.
-func (r *RemoteStatus) Init(ctx context.Context, log logger.Logger, kbfsops libkbfs.KBFSOps) {
+func (r *RemoteStatus) Init(ctx context.Context, log logger.Logger, config libkbfs.Config) {
 	r.failingServices = map[string]error{}
-	go r.loop(ctx, log, kbfsops)
+	go r.loop(ctx, log, config)
 }
 
-func (r *RemoteStatus) loop(ctx context.Context, log logger.Logger, kbfsops libkbfs.KBFSOps) {
+func (r *RemoteStatus) loop(ctx context.Context, log logger.Logger, config libkbfs.Config) {
 	for {
-		ctx, cancel := context.WithTimeout(ctx, 100*time.Millisecond)
-		st, ch, err := kbfsops.Status(ctx)
+		tctx, cancel := context.WithTimeout(ctx, 1*time.Second)
+		st, ch, err := config.KBFSOps().Status(tctx)
 		// No deferring inside loops, and no panics either here.
 		cancel()
 		if err != nil {
 			log.Warning("KBFS Status failed: %v", err)
 		}
 		r.update(st)
-		// Block on the channel.
-		<-ch
+		// Block on the channel or shutdown.
+		select {
+		case <-ctx.Done():
+			return
+		case <-ch:
+		}
 	}
 }
 
@@ -54,6 +58,11 @@ func (r *RemoteStatus) update(st libkbfs.KBFSStatus) {
 
 	r.failingServices = st.FailingServices
 
+	// Select the file name:
+	// + Default to an empty name
+	// + If all errors are LoginRequiredError then display the nologin filename
+	// + If there are any other errors use the generic error file name,
+	//   implemented by breaking out of the loop if such an error is encountered.
 	fname := ""
 	for _, err := range r.failingServices {
 		if isNotLoggedInError(err) {
@@ -63,8 +72,8 @@ func (r *RemoteStatus) update(st libkbfs.KBFSStatus) {
 			break
 		}
 	}
-	r.ExtraFileName = fname
-	r.ExtraFileContents = nil
+	r.extraFileName = fname
+	r.extraFileContents = nil
 }
 
 func isNotLoggedInError(err error) bool {
@@ -79,12 +88,32 @@ var newline = func() string {
 	return "\n"
 }()
 
-// HumanReadableBytesNeedsLock should be called with lock already held.
-func (r *RemoteStatus) HumanReadableBytesNeedsLock() []byte {
+// ExtraFileName returns the extra file name or an empty string for none.
+func (r *RemoteStatus) ExtraFileName() string {
+	r.Lock()
+	defer r.Unlock()
+
+	return r.extraFileName
+}
+
+// ExtraFileNameAndSize returns the extra file name or an empty string for none and the size of the extra file.
+func (r *RemoteStatus) ExtraFileNameAndSize() (string, int64) {
+	r.Lock()
+	defer r.Unlock()
+
+	var size int64
+	if r.extraFileName != "" {
+		size = int64(len(r.humanReadableBytesLocked()))
+	}
+	return r.extraFileName, size
+}
+
+// humanReadableBytesNeedsLock should be called with lock already held.
+func (r *RemoteStatus) humanReadableBytesLocked() []byte {
 	var ss []string
 
-	if r.ExtraFileContents != nil {
-		return r.ExtraFileContents
+	if r.extraFileContents != nil {
+		return r.extraFileContents
 	}
 
 	needLogin := false
@@ -107,7 +136,7 @@ func (r *RemoteStatus) HumanReadableBytesNeedsLock() []byte {
 	ss = append(ss, "")
 
 	res := []byte(strings.Join(ss, newline))
-	r.ExtraFileContents = res
+	r.extraFileContents = res
 	return res
 }
 
@@ -117,5 +146,5 @@ func (r *RemoteStatus) NewSpecialReadFunc(ctx context.Context) ([]byte, time.Tim
 	r.Lock()
 	defer r.Unlock()
 
-	return r.HumanReadableBytesNeedsLock(), time.Time{}, nil
+	return r.humanReadableBytesLocked(), time.Time{}, nil
 }

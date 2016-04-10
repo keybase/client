@@ -46,8 +46,6 @@ type MDServerRemote struct {
 
 	rekeyCancel context.CancelFunc
 	rekeyTimer  *time.Timer
-
-	currentStatus *kbfsCurrentStatus
 }
 
 // Test that MDServerRemote fully implements the MDServer interface.
@@ -63,13 +61,12 @@ var _ AuthTokenRefreshHandler = (*MDServerRemote)(nil)
 var _ rpc.ConnectionHandler = (*MDServerRemote)(nil)
 
 // NewMDServerRemote returns a new instance of MDServerRemote.
-func NewMDServerRemote(config Config, srvAddr string, currentStatus *kbfsCurrentStatus) *MDServerRemote {
+func NewMDServerRemote(config Config, srvAddr string) *MDServerRemote {
 	mdServer := &MDServerRemote{
-		config:        config,
-		observers:     make(map[TlfID]chan<- error),
-		log:           config.MakeLogger(""),
-		rekeyTimer:    time.NewTimer(MdServerBackgroundRekeyPeriod),
-		currentStatus: currentStatus,
+		config:     config,
+		observers:  make(map[TlfID]chan<- error),
+		log:        config.MakeLogger(""),
+		rekeyTimer: time.NewTimer(MdServerBackgroundRekeyPeriod),
 	}
 	mdServer.authToken = NewAuthToken(config,
 		MdServerTokenServer, MdServerTokenExpireIn,
@@ -127,7 +124,7 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 		return err
 	}
 
-	md.currentStatus.PushConnectionStatusChange(MDServiceName, nil)
+	md.config.KBFSOps().PushConnectionStatusChange(MDServiceName, nil)
 
 	// start pinging
 	md.resetPingTicker(pingIntervalSeconds)
@@ -259,14 +256,14 @@ func (md *MDServerRemote) OnConnectError(err error, wait time.Duration) {
 		md.authToken.Shutdown()
 	}
 
-	md.currentStatus.PushConnectionStatusChange(MDServiceName, err)
+	md.config.KBFSOps().PushConnectionStatusChange(MDServiceName, err)
 }
 
 // OnDoCommandError implements the ConnectionHandler interface.
 func (md *MDServerRemote) OnDoCommandError(err error, wait time.Duration) {
 	md.log.Warning("MDServerRemote: DoCommand error: %q; retrying in %s",
 		err, wait)
-	md.currentStatus.PushConnectionStatusChange(MDServiceName, err)
+	md.config.KBFSOps().PushConnectionStatusChange(MDServiceName, err)
 }
 
 // OnDisconnected implements the ConnectionHandler interface.
@@ -285,7 +282,7 @@ func (md *MDServerRemote) OnDisconnected(ctx context.Context,
 	// the re-connect.
 	md.rekeyTimer.Reset(MdServerBackgroundRekeyPeriod)
 
-	md.currentStatus.PushConnectionStatusChange(MDServiceName, errDisconnected{})
+	md.config.KBFSOps().PushConnectionStatusChange(MDServiceName, errDisconnected{})
 }
 
 // ShouldRetry implements the ConnectionHandler interface.

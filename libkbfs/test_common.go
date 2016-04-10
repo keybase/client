@@ -114,7 +114,7 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 		libkb.G.ConfigureLogging()
 
 		// connect to server
-		mdServer = NewMDServerRemote(config, mdServerAddr, &kbfsOps.currentStatus)
+		mdServer = NewMDServerRemote(config, mdServerAddr)
 		// for now the MD server acts as the key server in production
 		keyServer = mdServer.(*MDServerRemote)
 	} else {
@@ -192,7 +192,7 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 	var keyServer KeyServer
 	if len(mdServerAddr) != 0 {
 		// connect to server
-		mdServer = NewMDServerRemote(c, mdServerAddr, &kbfsOps.currentStatus)
+		mdServer = NewMDServerRemote(c, mdServerAddr)
 		// for now the MD server also acts as the key server.
 		keyServer = mdServer.(*MDServerRemote)
 	} else {

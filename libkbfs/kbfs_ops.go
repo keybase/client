@@ -104,6 +104,11 @@ func (fs *KBFSOpsStandard) Shutdown() error {
 	return nil
 }
 
+// PushConnectionStatusChange pushes human readable connection status changes.
+func (fs *KBFSOpsStandard) PushConnectionStatusChange(service string, newStatus error) {
+	fs.currentStatus.PushConnectionStatusChange(service, newStatus)
+}
+
 // GetFavorites implements the KBFSOps interface for
 // KBFSOpsStandard.
 func (fs *KBFSOpsStandard) GetFavorites(ctx context.Context) (
