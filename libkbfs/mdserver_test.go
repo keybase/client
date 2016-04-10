@@ -46,7 +46,7 @@ func TestMDServerBasics(t *testing.T) {
 		md.MD.SerializedPrivateMetadata = make([]byte, 1)
 		md.MD.SerializedPrivateMetadata[0] = 0x1
 		AddNewKeysOrBust(t, &md.MD, keys)
-		md.MD.ClearMetadataID()
+		md.MD.clearCachedMetadataIDForTest()
 		if i > 1 {
 			md.MD.PrevRoot = prevRoot
 		}
@@ -90,7 +90,7 @@ func TestMDServerBasics(t *testing.T) {
 		md.MD.SerializedPrivateMetadata[0] = 0x1
 		md.MD.PrevRoot = prevRoot
 		AddNewKeysOrBust(t, &md.MD, keys)
-		md.MD.ClearMetadataID()
+		md.MD.clearCachedMetadataIDForTest()
 		md.MD.WFlags |= MetadataFlagUnmerged
 		md.MD.BID = bid
 		err = mdServer.Put(ctx, md)

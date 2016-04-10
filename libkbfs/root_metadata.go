@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"sort"
 	"strconv"
+	"sync"
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -146,13 +147,17 @@ type RootMetadata struct {
 
 	// The plaintext, deserialized PrivateMetadata
 	data PrivateMetadata
+
 	// A cached copy of the directory handle calculated for this MD.
-	cachedTlfHandle *TlfHandle
+	cachedTlfHandleLock sync.RWMutex
+	cachedTlfHandle     *TlfHandle
+
 	// The cached ID for this MD structure (hash)
-	mdID MdID
+	mdIDLock sync.RWMutex
+	mdID     MdID
 }
 
-func (md RootMetadata) haveOnlyUserRKeysChanged(config Config, prevMD RootMetadata, user keybase1.UID) (bool, error) {
+func (md *RootMetadata) haveOnlyUserRKeysChanged(config Config, prevMD *RootMetadata, user keybase1.UID) (bool, error) {
 	// Require the same number of generations
 	if len(md.RKeys) != len(prevMD.RKeys) {
 		return false, nil
@@ -180,7 +185,7 @@ func (md RootMetadata) haveOnlyUserRKeysChanged(config Config, prevMD RootMetada
 
 // IsValidRekeyRequest returns true if the current block is a simple rekey wrt
 // the passed block.
-func (md RootMetadata) IsValidRekeyRequest(config Config, prevMd RootMetadata, user keybase1.UID) (bool, error) {
+func (md *RootMetadata) IsValidRekeyRequest(config Config, prevMd *RootMetadata, user keybase1.UID) (bool, error) {
 	writerEqual, err := CodecEqual(config.Codec(), md.WriterMetadata, prevMd.WriterMetadata)
 	if err != nil {
 		return false, err
@@ -236,9 +241,7 @@ func (md *RootMetadata) IsReader(user keybase1.UID, deviceKID keybase1.KID) bool
 	return md.RKeys.IsReader(user, deviceKID)
 }
 
-// NewRootMetadata constructs a new RootMetadata object with the given
-// handle and ID.
-func NewRootMetadata(d *TlfHandle, id TlfID) *RootMetadata {
+func updateNewRootMetadata(rmd *RootMetadata, d *TlfHandle, id TlfID) {
 	var writers []keybase1.UID
 	var wKeys TLFWriterKeyGenerations
 	var rKeys TLFReaderKeyGenerations
@@ -248,31 +251,35 @@ func NewRootMetadata(d *TlfHandle, id TlfID) *RootMetadata {
 		wKeys = make(TLFWriterKeyGenerations, 0, 1)
 		rKeys = make(TLFReaderKeyGenerations, 0, 1)
 	}
-	md := RootMetadata{
-		WriterMetadata: WriterMetadata{
-			Writers: writers,
-			WKeys:   wKeys,
-			ID:      id,
-			BID:     BranchID{},
-		},
-		Revision: MetadataRevisionInitial,
-		RKeys:    rKeys,
-		data:     PrivateMetadata{},
-		// need to keep the dir handle around long
-		// enough to rekey the metadata for the first
-		// time
-		cachedTlfHandle: d,
+	rmd.WriterMetadata = WriterMetadata{
+		Writers: writers,
+		WKeys:   wKeys,
+		ID:      id,
+		BID:     BranchID{},
 	}
-	return &md
+	rmd.Revision = MetadataRevisionInitial
+	rmd.RKeys = rKeys
+	// need to keep the dir handle around long
+	// enough to rekey the metadata for the first
+	// time
+	rmd.cachedTlfHandle = d
+}
+
+// NewRootMetadata constructs a new RootMetadata object with the given
+// handle and ID.
+func NewRootMetadata(d *TlfHandle, id TlfID) *RootMetadata {
+	var rmd RootMetadata
+	updateNewRootMetadata(&rmd, d, id)
+	return &rmd
 }
 
 // Data returns the private metadata of this RootMetadata.
-func (md RootMetadata) Data() *PrivateMetadata {
+func (md *RootMetadata) Data() *PrivateMetadata {
 	return &md.data
 }
 
 // IsReadable returns true if the private metadata can be read.
-func (md RootMetadata) IsReadable() bool {
+func (md *RootMetadata) IsReadable() bool {
 	return md.ID.IsPublic() || md.data.Dir.IsInitialized()
 }
 
@@ -299,32 +306,32 @@ func (md *RootMetadata) clearLastRevision() {
 	md.Flags &= ^MetadataFlagWriterMetadataCopied
 }
 
-func (md RootMetadata) deepCopy(codec Codec) (RootMetadata, error) {
+func (md *RootMetadata) deepCopy(codec Codec) (*RootMetadata, error) {
 	var newMd RootMetadata
 	err := CodecUpdate(codec, &newMd, md)
 	if err != nil {
-		return RootMetadata{}, err
+		return nil, err
 	}
 	err = CodecUpdate(codec, &newMd.data, md.data)
 	if err != nil {
-		return RootMetadata{}, err
+		return nil, err
 	}
-	return newMd, nil
+	return &newMd, nil
 }
 
 // DeepCopyForTest returns a complete copy of this RootMetadata for
 // testing. Non-test code should use MakeSuccessor() instead.
-func (md RootMetadata) DeepCopyForTest(codec Codec) (RootMetadata, error) {
+func (md *RootMetadata) DeepCopyForTest(codec Codec) (*RootMetadata, error) {
 	return md.deepCopy(codec)
 }
 
 // MakeSuccessor returns a complete copy of this RootMetadata (but
 // with cleared block change lists and cleared serialized metadata),
 // with the revision incremented and a correct backpointer.
-func (md RootMetadata) MakeSuccessor(config Config, isWriter bool) (RootMetadata, error) {
+func (md *RootMetadata) MakeSuccessor(config Config, isWriter bool) (*RootMetadata, error) {
 	newMd, err := md.deepCopy(config.Codec())
 	if err != nil {
-		return RootMetadata{}, err
+		return nil, err
 	}
 
 	if md.IsReadable() && isWriter {
@@ -337,15 +344,14 @@ func (md RootMetadata) MakeSuccessor(config Config, isWriter bool) (RootMetadata
 		newMd.Flags |= MetadataFlagRekey
 		newMd.Flags |= MetadataFlagWriterMetadataCopied
 	}
-	newMd.ClearMetadataID()
-	if err := newMd.increment(config, &md); err != nil {
-		return RootMetadata{}, err
+	if err := newMd.increment(config, md); err != nil {
+		return nil, err
 	}
 	return newMd, nil
 }
 
 // TODO get rid of this once we're fully dependent on reader and writer metadata separately
-func (md RootMetadata) getTLFKeyBundle(keyGen KeyGen) (*TLFKeyBundle, error) {
+func (md *RootMetadata) getTLFKeyBundle(keyGen KeyGen) (*TLFKeyBundle, error) {
 	if md.ID.IsPublic() {
 		return nil, InvalidPublicTLFOperation{md.ID, "getTLFKeyBundle"}
 	}
@@ -365,7 +371,7 @@ func (md RootMetadata) getTLFKeyBundle(keyGen KeyGen) (*TLFKeyBundle, error) {
 
 // GetTLFCryptKeyInfo returns the TLFCryptKeyInfo entry for the given user
 // and device at the given key generation.
-func (md RootMetadata) GetTLFCryptKeyInfo(keyGen KeyGen, user keybase1.UID,
+func (md *RootMetadata) GetTLFCryptKeyInfo(keyGen KeyGen, user keybase1.UID,
 	currentCryptPublicKey CryptPublicKey) (
 	info TLFCryptKeyInfo, ok bool, err error) {
 	tkb, err := md.getTLFKeyBundle(keyGen)
@@ -378,7 +384,7 @@ func (md RootMetadata) GetTLFCryptKeyInfo(keyGen KeyGen, user keybase1.UID,
 
 // GetTLFCryptPublicKeys returns the public crypt keys for the given user
 // at the given key generation.
-func (md RootMetadata) GetTLFCryptPublicKeys(keyGen KeyGen, user keybase1.UID) (
+func (md *RootMetadata) GetTLFCryptPublicKeys(keyGen KeyGen, user keybase1.UID) (
 	[]keybase1.KID, bool) {
 	tkb, err := md.getTLFKeyBundle(keyGen)
 	if err != nil {
@@ -390,7 +396,7 @@ func (md RootMetadata) GetTLFCryptPublicKeys(keyGen KeyGen, user keybase1.UID) (
 
 // GetTLFEphemeralPublicKey returns the ephemeral public key used for
 // the TLFCryptKeyInfo for the given user and device.
-func (md RootMetadata) GetTLFEphemeralPublicKey(
+func (md *RootMetadata) GetTLFEphemeralPublicKey(
 	keyGen KeyGen, user keybase1.UID,
 	currentCryptPublicKey CryptPublicKey) (TLFEphemeralPublicKey, error) {
 	tkb, err := md.getTLFKeyBundle(keyGen)
@@ -402,7 +408,7 @@ func (md RootMetadata) GetTLFEphemeralPublicKey(
 }
 
 // LatestKeyGeneration returns the newest key generation for this RootMetadata.
-func (md RootMetadata) LatestKeyGeneration() KeyGen {
+func (md *RootMetadata) LatestKeyGeneration() KeyGen {
 	if md.ID.IsPublic() {
 		return PublicKeyGen
 	}
@@ -423,8 +429,13 @@ func (md *RootMetadata) AddNewKeys(keys TLFKeyBundle) error {
 // GetTlfHandle computes and returns the TlfHandle for this
 // RootMetadata, caching it in the process.
 func (md *RootMetadata) GetTlfHandle() *TlfHandle {
-	if md.cachedTlfHandle != nil {
+	cachedTlfHandle := func() *TlfHandle {
+		md.cachedTlfHandleLock.RLock()
+		defer md.cachedTlfHandleLock.RUnlock()
 		return md.cachedTlfHandle
+	}()
+	if cachedTlfHandle != nil {
+		return cachedTlfHandle
 	}
 
 	h := &TlfHandle{}
@@ -452,12 +463,15 @@ func (md *RootMetadata) GetTlfHandle() *TlfHandle {
 	}
 	sort.Sort(UIDList(h.Writers))
 	sort.Sort(UIDList(h.Readers))
+
+	md.cachedTlfHandleLock.Lock()
+	defer md.cachedTlfHandleLock.Unlock()
 	md.cachedTlfHandle = h
 	return h
 }
 
 // IsInitialized returns whether or not this RootMetadata has been initialized
-func (md RootMetadata) IsInitialized() bool {
+func (md *RootMetadata) IsInitialized() bool {
 	keyGen := md.LatestKeyGeneration()
 	if md.ID.IsPublic() {
 		return keyGen == PublicKeyGen
@@ -468,20 +482,30 @@ func (md RootMetadata) IsInitialized() bool {
 
 // MetadataID computes and caches the MdID for this RootMetadata
 func (md *RootMetadata) MetadataID(config Config) (MdID, error) {
-	if md.mdID != (MdID{}) {
-		return md.mdID, nil
+	mdID := func() MdID {
+		md.mdIDLock.RLock()
+		defer md.mdIDLock.RUnlock()
+		return md.mdID
+	}()
+	if mdID != (MdID{}) {
+		return mdID, nil
 	}
 
 	mdID, err := config.Crypto().MakeMdID(md)
 	if err != nil {
 		return MdID{}, err
 	}
+
+	md.mdIDLock.Lock()
+	defer md.mdIDLock.Unlock()
 	md.mdID = mdID
 	return mdID, nil
 }
 
-// ClearMetadataID forgets the cached version of the RootMetadata's MdID
-func (md *RootMetadata) ClearMetadataID() {
+// clearMetadataID forgets the cached version of the RootMetadata's MdID
+func (md *RootMetadata) clearCachedMetadataIDForTest() {
+	md.mdIDLock.Lock()
+	defer md.mdIDLock.Unlock()
 	md.mdID = MdID{}
 }
 
@@ -546,13 +570,13 @@ func (md *RootMetadata) isReadableOrError(ctx context.Context, config Config) er
 }
 
 // writerKID returns the KID of the writer.
-func (md RootMetadata) writerKID() keybase1.KID {
+func (md *RootMetadata) writerKID() keybase1.KID {
 	return md.WriterMetadataSigInfo.VerifyingKey.KID()
 }
 
 // VerifyWriterMetadata verifies md's WriterMetadata against md's
 // WriterMetadataSigInfo, assuming the verifying key there is valid.
-func (md RootMetadata) VerifyWriterMetadata(codec Codec, crypto Crypto) error {
+func (md *RootMetadata) VerifyWriterMetadata(codec Codec, crypto Crypto) error {
 	// We have to re-marshal the WriterMetadata, since it's
 	// embedded.
 	buf, err := codec.Encode(md.WriterMetadata)
@@ -588,7 +612,7 @@ func (rmds *RootMetadataSigned) IsInitialized() bool {
 
 // VerifyRootMetadata verifies rmd's MD against rmd's SigInfo,
 // assuming the verifying key there is valid.
-func (rmds RootMetadataSigned) VerifyRootMetadata(codec Codec, crypto Crypto) error {
+func (rmds *RootMetadataSigned) VerifyRootMetadata(codec Codec, crypto Crypto) error {
 	// Re-marshal the whole RootMetadata. This is not avoidable
 	// without support from ugorji/codec.
 	buf, err := codec.Encode(rmds.MD)

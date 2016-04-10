@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"reflect"
 	"sort"
+	"sync"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -338,18 +339,18 @@ type rootMetadataFuture struct {
 	extra
 }
 
-func (rmf rootMetadataFuture) toCurrent() RootMetadata {
+func (rmf *rootMetadataFuture) toCurrent() *RootMetadata {
 	rm := rmf.rootMetadataWrapper.RootMetadata
 	rm.WriterMetadata = WriterMetadata(rmf.writerMetadataFuture.toCurrent())
 	rm.RKeys = rmf.RKeys.toCurrent()
-	return rm
+	return &rm
 }
 
-func (rmf rootMetadataFuture) toCurrentStruct() currentStruct {
+func (rmf *rootMetadataFuture) toCurrentStruct() currentStruct {
 	return rmf.toCurrent()
 }
 
-func makeFakeRootMetadataFuture(t *testing.T) rootMetadataFuture {
+func makeFakeRootMetadataFuture(t *testing.T) *rootMetadataFuture {
 	wmf := makeFakeWriterMetadataFuture(t)
 	rkb := makeFakeTLFReaderKeyBundleFuture(t)
 	h, err := DefaultHash([]byte("fake buf"))
@@ -376,14 +377,16 @@ func makeFakeRootMetadataFuture(t *testing.T) rootMetadataFuture {
 				[]keybase1.SocialAssertion{sa},
 				codec.UnknownFieldSetHandler{},
 				PrivateMetadata{},
+				sync.RWMutex{},
 				nil,
+				sync.RWMutex{},
 				MdID{},
 			},
 		},
 		[]*tlfReaderKeyBundleFuture{&rkb},
 		makeExtraOrBust("RootMetadata", t),
 	}
-	return rmf
+	return &rmf
 }
 
 func TestRootMetadataUnknownFields(t *testing.T) {

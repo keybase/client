@@ -112,8 +112,8 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
 			return nil, nil
 		}
 		// create one if it doesn't exist
-		rmd := NewRootMetadata(handle, id)
-		rmds = &RootMetadataSigned{MD: *rmd}
+		rmds = &RootMetadataSigned{}
+		updateNewRootMetadata(&rmds.MD, handle, id)
 	}
 	if err := md.processMetadata(ctx, handle, rmds); err != nil {
 		return nil, err
@@ -336,7 +336,11 @@ func (md *MDOpsStandard) readyMD(ctx context.Context, rmd *RootMetadata) (
 	}
 
 	rmds := &RootMetadataSigned{}
-	rmds.MD = *rmd
+	err = codec.Decode(buf, &rmds.MD)
+	if err != nil {
+		return nil, err
+	}
+
 	// Sign normally using the local device private key
 	sigInfo, err := crypto.Sign(ctx, buf)
 	if err != nil {

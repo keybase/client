@@ -670,7 +670,7 @@ func (fbo *folderBranchOps) getMDForWriteLocked(
 		return nil, err
 	}
 
-	return &newMd, nil
+	return newMd, nil
 }
 
 func (fbo *folderBranchOps) getMDForRekeyWriteLocked(
@@ -706,7 +706,7 @@ func (fbo *folderBranchOps) getMDForRekeyWriteLocked(
 			NewRekeyPermissionError(ctx, fbo.config, handle, username)
 	}
 
-	return &newMd, md.IsRekeySet(), nil
+	return newMd, md.IsRekeySet(), nil
 }
 
 func (fbo *folderBranchOps) nowUnixNano() int64 {

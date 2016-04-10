@@ -121,7 +121,7 @@ func (md *MDServerLocal) checkPerms(ctx context.Context, id TlfID,
 	if checkWrite {
 		// if this is a reader, are they acting within their restrictions?
 		if !isWriter && isReader && newMd != nil {
-			return newMd.MD.IsValidRekeyRequest(md.config, rmds.MD, user)
+			return newMd.MD.IsValidRekeyRequest(md.config, &rmds.MD, user)
 		}
 		return isWriter, nil
 	}

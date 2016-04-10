@@ -42,9 +42,9 @@ func fakeMdID(b byte) MdID {
 	return MdID{h}
 }
 
-// NewRootMetadataForTest returns a new initialized RootMetadata object for testing.
-func NewRootMetadataForTest(d *TlfHandle, id TlfID) *RootMetadata {
-	rmd := NewRootMetadata(d, id)
+func updateNewRootMetadataForTest(
+	rmd *RootMetadata, d *TlfHandle, id TlfID) *RootMetadata {
+	updateNewRootMetadata(rmd, d, id)
 	var keyGen KeyGen
 	if id.IsPublic() {
 		keyGen = PublicKeyGen
@@ -63,6 +63,13 @@ func NewRootMetadataForTest(d *TlfHandle, id TlfID) *RootMetadata {
 	// make up the MD ID
 	rmd.mdID = fakeMdID(fakeTlfIDByte(id))
 	return rmd
+}
+
+// NewRootMetadataForTest returns a new initialized RootMetadata object for testing.
+func NewRootMetadataForTest(d *TlfHandle, id TlfID) *RootMetadata {
+	var rmd RootMetadata
+	updateNewRootMetadataForTest(&rmd, d, id)
+	return &rmd
 }
 
 func setTestLogger(config Config, t logger.TestLogBackend) {
@@ -278,21 +285,20 @@ func NewFolderWithIDAndWriter(t logger.TestLogBackend, id TlfID, revision Metada
 		h.Writers = append(h.Writers, keybase1.MakeTestUID(16))
 	}
 
-	rmd := NewRootMetadataForTest(h, id)
-	rmd.Revision = revision
-	rmd.LastModifyingWriter = h.Writers[0]
-	rmd.LastModifyingUser = h.Writers[0]
+	rmds := &RootMetadataSigned{}
+	updateNewRootMetadataForTest(&rmds.MD, h, id)
+	rmds.MD.Revision = revision
+	rmds.MD.LastModifyingWriter = h.Writers[0]
+	rmds.MD.LastModifyingUser = h.Writers[0]
 	if !public {
-		AddNewKeysOrBust(t, rmd, *NewTLFKeyBundle())
+		AddNewKeysOrBust(t, &rmds.MD, *NewTLFKeyBundle())
 	}
 
-	rmds := &RootMetadataSigned{}
 	rmds.SigInfo = SignatureInfo{
 		Version:      SigED25519,
 		Signature:    []byte{42},
 		VerifyingKey: MakeFakeVerifyingKeyOrBust("fake key"),
 	}
-	rmds.MD = *rmd
 	return h, rmds
 }
 

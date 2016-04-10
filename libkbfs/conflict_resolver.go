@@ -2176,7 +2176,7 @@ func (cr *ConflictResolver) createResolvedMD(ctx context.Context,
 	// Add a final dummy operation to collect all of the block updates.
 	newMD.AddOp(newResolutionOp())
 
-	return &newMD, nil
+	return newMD, nil
 }
 
 // crFixOpPointers takes in a slice of "reverted" ops (all referring
