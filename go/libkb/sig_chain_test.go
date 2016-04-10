@@ -190,7 +190,7 @@ func doChainTest(t *testing.T, testCase TestCase) {
 		}
 		foundType := reflect.TypeOf(sigchainErr)
 		expectedTypes := getErrorTypesMap()[testCase.ErrType]
-		if expectedTypes == nil || len(expectedTypes) == 0 {
+		if len(expectedTypes) == 0 {
 			msg := "No Go error types defined for expected failure %s.\n" +
 				"This could be because of new test cases in github.com/keybase/keybase-test-vectors.\n" +
 				"Go error returned: %s"

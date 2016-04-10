@@ -385,7 +385,7 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 		sc.G().Log.Debug("- verifySubchain -> %v, %s", cached, ErrToOk(err))
 	}()
 
-	if links == nil || len(links) == 0 {
+	if len(links) == 0 {
 		err = InternalError{"verifySubchain should never get an empty chain."}
 		return
 	}
@@ -510,7 +510,7 @@ func (sc *SigChain) VerifySigsAndComputeKeys(eldest keybase1.KID, ckf *ComputedK
 		return
 	}
 
-	if links == nil || len(links) == 0 {
+	if len(links) == 0 {
 		sc.G().Log.Debug("| Empty chain after we limited to eldest %s", eldest)
 		eldestKey, _ := ckf.FindKeyWithKIDUnsafe(eldest)
 		sc.localCki = NewComputedKeyInfos(sc.G())
