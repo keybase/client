@@ -434,10 +434,7 @@ func (fbo *folderBranchOps) deleteFromFavorites(ctx context.Context,
 	}
 
 	h := head.GetTlfHandle()
-	if err := favorites.Delete(ctx, h.ToFavorite(ctx, fbo.config)); err != nil {
-		return err
-	}
-	return nil
+	return favorites.Delete(ctx, h.ToFavorite(ctx, fbo.config))
 }
 
 // getStaged should not be called if mdWriterLock is already taken.
