@@ -602,6 +602,7 @@ func (k *PGPKeyBundle) Unlock(reason string, secretUI SecretUI) error {
 		KeyDesc:  k.VerboseDescription(),
 		Unlocker: unlocker,
 		UI:       secretUI,
+		Which:    "the PGP key",
 	}.Run()
 	return err
 }

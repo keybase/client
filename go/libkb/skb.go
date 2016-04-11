@@ -729,7 +729,7 @@ func (s *SKB) UnlockNoPrompt(lctx LoginContext, secretStore SecretStore) (Generi
 	return nil, errUnlockNotPossible
 }
 
-func (s *SKB) unlockPrompt(arg SecretKeyPromptArg, which string, secretStore SecretStore, me *User) (GenericKey, error) {
+func (s *SKB) unlockPrompt(arg SecretKeyPromptArg, secretStore SecretStore, me *User) (GenericKey, error) {
 	// check to see if user has recently canceled an unlock prompt:
 	// if lctx != nil, then don't bother as any prompts during login should be shown.
 	if arg.LoginContext == nil && arg.UseCancelCache {
@@ -759,7 +759,7 @@ func (s *SKB) unlockPrompt(arg SecretKeyPromptArg, which string, secretStore Sec
 		Tries:          4,
 		Reason:         arg.Reason,
 		KeyDesc:        desc,
-		Which:          which,
+		Which:          WhichPassphraseKeybase,
 		UseSecretStore: secretStore != nil,
 		Unlocker:       unlocker,
 		UI:             arg.SecretUI,
@@ -778,8 +778,8 @@ func (s *SKB) unlockPrompt(arg SecretKeyPromptArg, which string, secretStore Sec
 	return key, nil
 }
 
-func (s *SKB) PromptAndUnlock(arg SecretKeyPromptArg, which string, secretStore SecretStore, me *User) (ret GenericKey, err error) {
-	s.G().Log.Debug("+ PromptAndUnlock(%s,%s)", arg.Reason, which)
+func (s *SKB) PromptAndUnlock(arg SecretKeyPromptArg, secretStore SecretStore, me *User) (ret GenericKey, err error) {
+	s.G().Log.Debug("+ PromptAndUnlock(%s)", arg.Reason)
 	defer func() {
 		s.G().Log.Debug("- PromptAndUnlock -> %s", ErrToOk(err))
 	}()
@@ -794,7 +794,7 @@ func (s *SKB) PromptAndUnlock(arg SecretKeyPromptArg, which string, secretStore 
 	}
 
 	// Prompt necessary:
-	ret, err = s.unlockPrompt(arg, which, secretStore, me)
+	ret, err = s.unlockPrompt(arg, secretStore, me)
 	return
 }
 

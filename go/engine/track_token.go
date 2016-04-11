@@ -21,7 +21,6 @@ type TrackToken struct {
 	trackStatementBytes []byte
 	trackStatement      *jsonw.Wrapper
 	lockedKey           *libkb.SKB
-	lockedWhich         string
 }
 
 type TrackTokenArg struct {
@@ -101,7 +100,7 @@ func (e *TrackToken) Run(ctx *Context) (err error) {
 		Me:      e.arg.Me,
 		KeyType: libkb.DeviceSigningKeyType,
 	}
-	e.lockedKey, e.lockedWhich, err = e.G().Keyrings.GetSecretKeyLocked(ctx.LoginContext, ska)
+	e.lockedKey, err = e.G().Keyrings.GetSecretKeyLocked(ctx.LoginContext, ska)
 	if err != nil {
 		e.G().Log.Debug("secretkey err: %s", err)
 		return err
@@ -206,7 +205,7 @@ func (e *TrackToken) storeRemoteTrack(ctx *Context) (err error) {
 	}
 	// need to unlock private key
 	parg := ctx.SecretKeyPromptArg(libkb.SecretKeyArg{}, "tracking signature")
-	e.signingKeyPriv, err = e.lockedKey.PromptAndUnlock(parg, e.lockedWhich, secretStore, e.arg.Me)
+	e.signingKeyPriv, err = e.lockedKey.PromptAndUnlock(parg, secretStore, e.arg.Me)
 	if err != nil {
 		return err
 	}
