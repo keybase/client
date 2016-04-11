@@ -1,11 +1,7 @@
 /* @flow */
-
-import React, {Component} from 'react'
-import commonStyles from '../styles/common'
-import Tracker from '../tracker/index.js'
+import Tracker from './index'
 import {normal, checking, revoked, error} from '../constants/tracker'
 import {metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone} from '../constants/tracker'
-
 import type {TrackerProps} from '../tracker'
 import type {Proof} from '../tracker/proofs.render'
 import type {TrackSummary} from '../constants/types/flow-types'
@@ -176,91 +172,22 @@ const propsFiveProof: TrackerProps = {
   proofs: [0, 1, 2, 3, 4].map(proofGithubMaker)
 }
 
-export default class Render extends Component {
-  render () {
-    return (
-      <div style={{...commonStyles.flexBoxColumn, flex: 1}}>
-        <div style={{...commonStyles.flexBoxRow, flex: 1, padding: 20}}>
-          <div>
-            <div style={styles.pretendTrackerWindow}>
-              <Tracker {...propsLoggedOut} />
-            </div>
-            <p>Logged out</p>
-          </div>
-          <div>
-            <div style={styles.pretendTrackerWindow}>
-              <Tracker {...propsOneProof} />
-            </div>
-            <p>Only one proof</p>
-          </div>
-          <div>
-            <div style={styles.pretendTrackerWindow}>
-              <Tracker {...propsFiveProof} />
-            </div>
-            <p>5 proofs</p>
-          </div>
-          <div>
-            <div style={styles.pretendTrackerWindow}>
-              <Tracker {...propsNewUser} />
-            </div>
-            <p>New user</p>
-          </div>
-          <div>
-            <div style={styles.pretendTrackerWindow}>
-              <Tracker {...propsNewUserFollowsYou} />
-            </div>
-            <p>New user, follows me</p>
-          </div>
-          <div>
-            <div style={styles.pretendTrackerWindow}>
-              <Tracker {...propsFollowing} />
-            </div>
-            <p>Followed</p>
-          </div>
-          <div>
-            <div style={styles.pretendTrackerWindow}>
-              <Tracker {...{...propsChangedProofs, lastTrack: false}} />
-            </div>
-            <p>Changed/Broken proofs user you dont follow</p>
-          </div>
-          <div>
-            <div style={styles.pretendTrackerWindow}>
-              <Tracker {...propsChangedProofs} />\
-            </div>
-            <p>Changed/Broken proofs</p>
-          </div>
-          <div>
-            <div style={styles.pretendTrackerWindow}>
-              <Tracker {...{...propsFollowing, userInfo: {
-                ...propsNewUser.userInfo,
-                followsYou: false}}} />
-            </div>
-            <p>You track them</p>
-          </div>
-          <div>
-            <div style={styles.pretendTrackerWindow}>
-              <Tracker {...propsUnfollowed} />
-            </div>
-            <p>Unfollowed</p>
-          </div>
-          <div>
-            <div style={styles.pretendTrackerWindow}>
-              <Tracker {...propsLessData} />
-            </div>
-          </div>
-        </div>
-      </div>
-    )
+export default {
+  'Tracker': {
+    component: Tracker,
+    mocks: {
+      'Logged out': propsLoggedOut,
+      'Only one proof': propsOneProof,
+      '5 proofs': propsFiveProof,
+      'New user': propsNewUser,
+      'New user, follows me': propsNewUserFollowsYou,
+      'Followed': propsFollowing,
+      'Changed/Broken proofs user you dont follow': {...propsChangedProofs, lastTrack: false},
+      'Changed/Broken proofs': propsChangedProofs,
+      'You track them': {...propsFollowing, userInfo: {...propsNewUser.userInfo, followsYou: false}},
+      'Unfollowed': propsUnfollowed,
+      'Barely there': propsLessData
+    }
   }
 }
 
-const styles = {
-  pretendTrackerWindow: {
-    width: 320 + 1,
-    height: 470 + 1,
-    boxShadow: '0px 5px 6px rgba(0,0,0,0.4)',
-    border: '1px solid #efefef',
-    marginRight: 20,
-    marginBottom: 20
-  }
-}

@@ -27,6 +27,10 @@ declare module 'lodash/merge' {
   declare var exports: any;
 }
 
+declare module 'lodash/debounce' {
+  declare var exports: any;
+}
+
 declare module 'marked' {
   declare var exports: any;
 }

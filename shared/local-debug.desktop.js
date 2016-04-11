@@ -21,7 +21,8 @@ let config = {
   printOutstandingRPCs: false,
   reactPerf: false,
   overrideLoggedInTab: null,
-  focusOnShow: true
+  focusOnShow: true,
+  dumbFilter: ''
 }
 
 if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
@@ -40,6 +41,7 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.reactPerf = false
   config.overrideLoggedInTab = Tabs.moreTab
   config.focusOnShow = false
+  config.dumbFilter = 'tracker'
 }
 
 config = updateConfig(config)
@@ -57,7 +59,8 @@ export const {
   printOutstandingRPCs,
   reactPerf,
   overrideLoggedInTab,
-  focusOnShow
+  focusOnShow,
+  dumbFilter
 } = config
 
 export function initTabbedRouterState (state) {
@@ -70,7 +73,7 @@ export function initTabbedRouterState (state) {
     tabs: {
       ...state.tabs,
       [Tabs.loginTab]: createRouterState([], []),
-      [Tabs.moreTab]: createRouterState(['devMenu', 'styleSheet'], [])
+      [Tabs.moreTab]: createRouterState(['devMenu', 'dumbSheet'], [])
     }
   }
 }
