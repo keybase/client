@@ -49,7 +49,7 @@ class Input extends Component<void, Props, State> {
       <Box style={{...containerStyle, ...this.props.style}}>
         {this.state.text.length > 0 && <Text type='BodySmall' style={{...floatingLabelStyle}}>{this.props.floatingLabelText}</Text>}
         <TextInput
-          style={{...inputStyle, ...textInputStyle}}
+          style={{...inputStyle, ...textInputStyle, ...(IOS && this.props.multiLine && IOSMultilineTextInputStyle || {})}}
           ref={component => { this._textInput = component }}
           autoCorrect={!(password || passwordVisible)}
           defaultValue={this.props.value}
@@ -58,6 +58,8 @@ class Input extends Component<void, Props, State> {
           placeholder={this.props.hintText}
           placeholderColor={globalColors.black10}
           underlineColorAndroid={this.state.inputFocused ? globalColors.blue : globalColors.black10}
+          multiline={this.props.multiLine}
+          numberOfLines={this.props.rows}
           onFocus={() => this.setState({inputFocused: true})}
           onBlur={() => this.setState({inputFocused: false})}
           onSubmitEditing={this.props.onEnterKeyDown}
@@ -89,11 +91,16 @@ const containerStyle = {
 
 const textInputStyle = {
   textAlign: 'center',
+  textAlignVertical: 'bottom',
   position: 'absolute',
   top: 0,
   bottom: -8,
   left: -4,
   right: -4
+}
+
+const IOSMultilineTextInputStyle = {
+  bottom: 0
 }
 
 const floatingLabelStyle = {

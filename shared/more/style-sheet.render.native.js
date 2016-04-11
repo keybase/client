@@ -57,6 +57,8 @@ const Inputs = () => (
       <Input type='password' hintText='Secure Passphrase Input' floatingLabelText='Passphrase'/>
     </Row>
 
+    <Input multiLine type='passwordVisible' floatingLabelText='Multiline' style={{height: 80}} hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'/>
+
     <ShowTypingDemo/>
 
     <ShowTypingDemo initialShowTyping/>
@@ -291,11 +293,9 @@ export default class Render extends Component {
         <Container title='Inputs'><Inputs/></Container>
         <Container title='Checkboxes'><Checkboxes flip={idx => this.flip(idx)} check={this.state.check}/></Container>
         <Container title='Icons'><Icons/></Container>
-        <Container title='Inputs'><Inputs/></Container>
         <Container title='Buttons'><Buttons/></Container>
         <Container title='Text'><Fonts/></Container>
         <Container title='Colors'><Colors/></Container>
-        <Container title='Inputs'><Inputs/></Container>
       </ScrollView>
     )
   }
