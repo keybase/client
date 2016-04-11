@@ -133,7 +133,7 @@ func TestPGPEncryptQuick(t *testing.T) {
 			if err != nil {
 				return false
 			}
-			if bytes.Compare(data, msg) != 0 {
+			if !bytes.Equal(data, msg) {
 				return false
 			}
 		}

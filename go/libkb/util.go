@@ -452,7 +452,7 @@ func TimeLog(name string, start time.Time, out func(string, ...interface{})) {
 }
 
 func WhitespaceNormalize(s string) string {
-	v := regexp.MustCompile("\\s+").Split(s, -1)
+	v := regexp.MustCompile(`\s+`).Split(s, -1)
 	if len(v) > 0 && len(v[0]) == 0 {
 		v = v[1:]
 	}

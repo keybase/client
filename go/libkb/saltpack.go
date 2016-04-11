@@ -127,7 +127,7 @@ func (n naclKeyring) LookupBoxSecretKey(
 	sk := (naclBoxSecretKey)(n)
 	pkKid := sk.GetPublicKey().ToKID()
 	for i, kid := range kids {
-		if bytes.Compare(pkKid, kid) == 0 {
+		if bytes.Equal(pkKid, kid) {
 			return i, sk
 		}
 	}
