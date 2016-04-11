@@ -109,8 +109,11 @@ release_prerelease() {
 
   s3cmd put --mime-type application/json "$json_tmp" "s3://$BUCKET_NAME/update-linux-prod.json"
 
-  # Generate and push the index.html file.
-  PLATFORM="linux" "$here/../prerelease/s3_index.sh"
+  # Generate and push the index.html file. S3 pushes in this script can be
+  # flakey, and on the Linux side of things all this does is update our
+  # internal pages, so we suppress errors here.
+  PLATFORM="linux" "$here/../prerelease/s3_index.sh" || \
+    echo "ERROR in s3_index.sh. Internal pages might not be updated. Build continuing..."
 
   echo Exporting to kbfs-beta...
   "$client_dir/packaging/export/export_kbfs.sh"

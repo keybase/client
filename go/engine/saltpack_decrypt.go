@@ -89,7 +89,7 @@ func (e *SaltpackDecrypt) promptForDecrypt(ctx *Context, mki *saltpack.MessageKe
 }
 
 func (e *SaltpackDecrypt) makeMessageInfo(me *libkb.User, mki *saltpack.MessageKeyInfo) {
-	if mki == nil {
+	if mki == nil || me == nil {
 		return
 	}
 	ckf := me.GetComputedKeyFamily()
@@ -109,21 +109,35 @@ func (e *SaltpackDecrypt) makeMessageInfo(me *libkb.User, mki *saltpack.MessageK
 func (e *SaltpackDecrypt) Run(ctx *Context) (err error) {
 	defer e.G().Trace("SaltpackDecrypt::Run", func() error { return err })()
 
+	// We don't load this in the --paperkey case.
 	var me *libkb.User
-	me, err = libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
 
-	if err != nil {
-		return err
-	}
-
-	ska := libkb.SecretKeyArg{
-		Me:      me,
-		KeyType: libkb.DeviceEncryptionKeyType,
-	}
-	e.G().Log.Debug("| GetSecretKeyWithPrompt")
-	key, err := e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "decrypting a message/file"))
-	if err != nil {
-		return err
+	var key libkb.GenericKey
+	if e.arg.Opts.UsePaperKey {
+		// Prompt the user for a paper key. This doesn't require you to be
+		// logged in.
+		keypair, err := getPaperKey(e.G(), ctx)
+		if err != nil {
+			return err
+		}
+		key = keypair.encKey
+	} else {
+		// Load self so that we can get device keys. This does require you to
+		// be logged in.
+		me, err = libkb.LoadMe(libkb.NewLoadUserArg(e.G()))
+		if err != nil {
+			return err
+		}
+		// Get the device encryption key, maybe prompting the user.
+		ska := libkb.SecretKeyArg{
+			Me:      me,
+			KeyType: libkb.DeviceEncryptionKeyType,
+		}
+		e.G().Log.Debug("| GetSecretKeyWithPrompt")
+		key, err = e.G().Keyrings.GetSecretKeyWithPrompt(ctx.SecretKeyPromptArg(ska, "decrypting a message/file"))
+		if err != nil {
+			return err
+		}
 	}
 
 	kp, ok := key.(libkb.NaclDHKeyPair)
@@ -142,6 +156,7 @@ func (e *SaltpackDecrypt) Run(ctx *Context) (err error) {
 		err = libkb.NoDecryptionKeyError{Msg: "no suitable device key found"}
 	}
 
+	// It's ok if me is nil here.
 	e.makeMessageInfo(me, mki)
 
 	return err

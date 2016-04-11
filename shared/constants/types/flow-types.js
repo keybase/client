@@ -791,6 +791,7 @@ export type RevokedProof = {
 export type SaltpackDecryptOptions = {
   interactive: boolean;
   forceRemoteCheck: boolean;
+  usePaperKey: boolean;
 }
 
 export type SaltpackEncryptOptions = {

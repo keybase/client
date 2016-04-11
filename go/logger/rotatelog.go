@@ -18,6 +18,6 @@ func (log *Standard) RotateLogFile() error {
 		Path:         log.filename,
 		MaxAge:       30 * 24 * time.Hour, // 30 days
 		MaxSize:      128 * 1024 * 1024,   // 128mb
-		MaxKeepFiles: 0,
+		MaxKeepFiles: 3,
 	})
 }
