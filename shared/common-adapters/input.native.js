@@ -14,10 +14,6 @@ type State = {
   text: string
 }
 
-// TODO figure out how to make a passwordVisible type
-// We don't want to set this to clear text because that gives
-// permission to the OS to let the text be saved to use for predictive typing.
-
 class Input extends Component<void, Props, State> {
   state: State;
   _textInput: any;
@@ -66,7 +62,7 @@ class Input extends Component<void, Props, State> {
           onBlur={() => this.setState({inputFocused: false})}
           onSubmitEditing={this.props.onEnterKeyDown}
           onChange={this.props.onChange}
-          onChangeText={text => {this.setState({text}); this.props.onChangeText && this.props.onChangeText(text)}} />
+          onChangeText={text => { this.setState({text}); this.props.onChangeText && this.props.onChangeText(text) }} />
         {IOS && <HorizontalLine focused={this.state.inputFocused}/>}
         {this.props.errorText && <Text type='Error' style={{...errorText, ...this.props.errorStyle}}>{this.props.errorText}</Text>}
       </Box>
