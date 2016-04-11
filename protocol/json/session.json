@@ -342,6 +342,43 @@
     },
     {
       "type": "record",
+      "name": "SocialAssertionService",
+      "fields": [],
+      "doc": "SocialAssertionService is a service that can be used to assert proofs for a\n    user.",
+      "typedef": "string"
+    },
+    {
+      "type": "record",
+      "name": "SocialAssertion",
+      "fields": [
+        {
+          "type": "string",
+          "name": "user"
+        },
+        {
+          "type": "SocialAssertionService",
+          "name": "service"
+        }
+      ],
+      "doc": "SocialAssertion contains a service and username for that service, that\n    together form an assertion about a user. Resolving an assertion requires\n    that the user posts a Keybase proof on the asserted service as the asserted\n    user."
+    },
+    {
+      "type": "record",
+      "name": "UserResolution",
+      "fields": [
+        {
+          "type": "SocialAssertion",
+          "name": "assertion"
+        },
+        {
+          "type": "UID",
+          "name": "userID"
+        }
+      ],
+      "doc": "UserResolution maps how an unresolved user assertion has been resolved."
+    },
+    {
+      "type": "record",
       "name": "Session",
       "fields": [
         {

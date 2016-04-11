@@ -50,26 +50,26 @@ public class MainActivity extends ReactActivity {
     }
 
 
-@Override
-@TargetApi(Build.VERSION_CODES.KITKAT)
-protected void onCreate(Bundle savedInstanceState) {
+    @Override
+    @TargetApi(Build.VERSION_CODES.KITKAT)
+    protected void onCreate(Bundle savedInstanceState) {
 
-    if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
-        Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-          Uri.parse("package:" + getPackageName()));
-        startActivityForResult(intent, -1);
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M && !Settings.canDrawOverlays(this) && this.getUseDeveloperSupport()) {
+            Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+              Uri.parse("package:" + getPackageName()));
+            startActivityForResult(intent, -1);
+        }
+
+        Init(this.getFilesDir().getPath(), "staging", "", false);
+
+        try {
+            Keybase.SetGlobalExternalKeyStore(new KeyStore(this, getSharedPreferences("KeyStore", MODE_PRIVATE)));
+        } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+
+        super.onCreate(savedInstanceState);
     }
-
-    Init(this.getFilesDir().getPath(), "staging", "", false);
-
-    try {
-        Keybase.SetGlobalExternalKeyStore(new KeyStore(this, getSharedPreferences("KeyStore", MODE_PRIVATE)));
-    } catch (KeyStoreException | CertificateException | IOException | NoSuchAlgorithmException e) {
-        e.printStackTrace();
-    }
-
-    super.onCreate(savedInstanceState);
-}
 
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {

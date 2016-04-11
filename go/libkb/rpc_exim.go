@@ -322,6 +322,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return DeviceAlreadyProvisionedError{}
 	case SCDeviceNoProvision:
 		return ProvisionUnavailableError{}
+	case SCGPGUnavailable:
+		return GPGUnavailableError{}
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -1103,4 +1105,12 @@ func ExportTrackIDComponentToRevokedProof(tidc TrackIDComponent) keybase1.Revoke
 		},
 	}
 	return ret
+}
+
+func (e GPGUnavailableError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCGPGUnavailable,
+		Name: "SC_GPG_UNAVAILABLE",
+		Desc: e.Error(),
+	}
 }

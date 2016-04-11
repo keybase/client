@@ -3,26 +3,11 @@
 
 package libkb
 
-import "strings"
+import (
+	"strings"
 
-// SocialAssertion is a type for individual user's on a social
-// network.  It should be created via NormalizeSocialAssertion.
-type SocialAssertion struct {
-	username string
-	service  string
-}
-
-func (s SocialAssertion) Username() string {
-	return s.username
-}
-
-func (s SocialAssertion) Service() string {
-	return s.service
-}
-
-func (s SocialAssertion) String() string {
-	return s.username + "@" + s.service
-}
+	keybase1 "github.com/keybase/client/go/protocol"
+)
 
 // IsSocialAssertion returns true for strings that are valid
 // social assertions.  They do not need to be normalized, so
@@ -39,9 +24,9 @@ func IsSocialAssertion(s string) bool {
 // be lowercased.  Colon assertions (twitter:user) will be
 // transformed to the user@twitter format.  Only registered
 // services are allowed.
-func NormalizeSocialAssertion(s string) (SocialAssertion, bool) {
+func NormalizeSocialAssertion(s string) (keybase1.SocialAssertion, bool) {
 	if strings.Count(s, ":")+strings.Count(s, "@") != 1 {
-		return SocialAssertion{}, false
+		return keybase1.SocialAssertion{}, false
 	}
 
 	var name, service string
@@ -58,7 +43,7 @@ func NormalizeSocialAssertion(s string) (SocialAssertion, bool) {
 
 	service = strings.ToLower(service)
 	if !ValidSocialNetwork(service) {
-		return SocialAssertion{}, false
+		return keybase1.SocialAssertion{}, false
 	}
 
 	st := GetServiceType(service)
@@ -66,8 +51,8 @@ func NormalizeSocialAssertion(s string) (SocialAssertion, bool) {
 		name = strings.ToLower(name)
 	}
 
-	return SocialAssertion{
-		username: name,
-		service:  service,
+	return keybase1.SocialAssertion{
+		User:    name,
+		Service: keybase1.SocialAssertionService(service),
 	}, true
 }

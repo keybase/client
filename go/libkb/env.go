@@ -68,6 +68,7 @@ func (n NullConfiguration) GetUpdateURL() string                          { retu
 func (n NullConfiguration) GetVDebugSetting() string                      { return "" }
 func (n NullConfiguration) GetLocalTrackMaxAge() (time.Duration, bool)    { return 0, false }
 func (n NullConfiguration) GetAppStartMode() AppStartMode                 { return AppStartModeDisabled }
+func (n NullConfiguration) GetGregorURI() string                          { return "" }
 func (n NullConfiguration) IsAdmin() (bool, bool)                         { return false, false }
 
 func (n NullConfiguration) GetUserConfig() (*UserConfig, error) { return nil, nil }
@@ -131,6 +132,9 @@ type TestParameters struct {
 	// suffix.
 	DevelName  string
 	RuntimeDir string
+
+	// set to true to use production run mode in tests
+	UseProductionRunMode bool
 }
 
 func (tp TestParameters) GetDebug() (bool, bool) {
@@ -329,6 +333,13 @@ func (e *Env) GetDuration(def time.Duration, flist ...func() (time.Duration, boo
 }
 
 func (e *Env) GetServerURI() string {
+	// appveyor and os x travis CI set server URI, so need to
+	// check for test flag here in order for production api endpoint
+	// tests to pass.
+	if e.Test.UseProductionRunMode {
+		return ServerLookup[e.GetRunMode()]
+	}
+
 	return e.GetString(
 		func() string { return e.cmd.GetServerURI() },
 		func() string { return os.Getenv("KEYBASE_SERVER_URI") },
@@ -453,6 +464,14 @@ func (e *Env) GetSocketFile() (ret string, err error) {
 		ret = filepath.Join(e.GetRuntimeDir(), SocketFile)
 	}
 	return
+}
+
+func (e *Env) GetGregorURI() string {
+	return e.GetString(
+		func() string { return os.Getenv("GREGOR_URI") },
+		func() string { return e.config.GetGregorURI() },
+		func() string { return GregorServerLookup[e.GetRunMode()] },
+	)
 }
 
 func (e *Env) GetPidFile() (ret string, err error) {
@@ -615,6 +634,11 @@ func (e *Env) GetEmailOrUsername() string {
 }
 
 func (e *Env) GetRunMode() RunMode {
+	// If testing production run mode, then use it:
+	if e.Test.UseProductionRunMode {
+		return ProductionRunMode
+	}
+
 	var ret RunMode
 
 	pick := func(m RunMode, err error) {

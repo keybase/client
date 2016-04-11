@@ -70,12 +70,11 @@ func (g *GpgCLI) Configure() (err error) {
 
 // CanExec returns true if a gpg executable exists.
 func (g *GpgCLI) CanExec() (bool, error) {
-	if err := g.Configure(); err != nil {
-		if oerr, ok := err.(*exec.Error); ok {
-			if oerr.Err == exec.ErrNotFound {
-				return false, nil
-			}
-		}
+	err := g.Configure()
+	if IsExecError(err) {
+		return false, nil
+	}
+	if err != nil {
 		return false, err
 	}
 	return true, nil

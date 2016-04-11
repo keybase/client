@@ -44,7 +44,7 @@ export function decodeKBFSError (user: string, notification: FSNotification): De
     },
     [enums.kbfs.FSErrorType.badFolder]: {
       title: 'Keybase: Bad folder',
-      body: `${tlf} is not a Keybase folder. All folders begin with /keybase/private or /keybase/public.`
+      body: `${notification.params.tlf} is not a Keybase folder. All folders begin with /keybase/private or /keybase/public.`
     }
   }
 

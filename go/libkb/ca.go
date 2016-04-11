@@ -4,8 +4,11 @@
 package libkb
 
 var BundledCAs = map[string]string{
+	"api.keybase.io":        apiCA,
+	"gregor.api.keybase.io": apiCA,
+}
 
-	"api.keybase.io": `-----BEGIN CERTIFICATE-----
+const apiCA = `-----BEGIN CERTIFICATE-----
 MIIGmzCCBIOgAwIBAgIJAPzhpcIBaOeNMA0GCSqGSIb3DQEBBQUAMIGPMQswCQYD
 VQQGEwJVUzELMAkGA1UECBMCTlkxETAPBgNVBAcTCE5ldyBZb3JrMRQwEgYDVQQK
 EwtLZXliYXNlIExMQzEXMBUGA1UECxMOQ2VydCBBdXRob3JpdHkxEzARBgNVBAMT
@@ -42,5 +45,4 @@ inLjxRD+H9Xn1UVXWLM0gaBB7zZcXd2zjMpRsWgezf5IR5vyakJsc7fxzgor3Qeq
 Ri6LvdEkhhFVl5rHMQBwNOPngySrq8cs/ikTLTfQVTYXXA4Ba1YyiMOlfaR1LhKw
 If1AkUV0tfCTNRZ01EotKSK77+o+k214n+BAu+7mO+9B5Kb7lMFQcuWCHXKYB2Md
 cT7Yh09F0QpFUd0ymEfv
------END CERTIFICATE-----`,
-}
+-----END CERTIFICATE-----`

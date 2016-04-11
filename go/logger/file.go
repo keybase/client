@@ -78,6 +78,7 @@ func (lfw *logFileWriter) Open(at time.Time) error {
 		return err
 	}
 	lfw.currentSize = fi.Size()
+	tryRedirectStderrTo(lfw.file)
 	return nil
 }
 

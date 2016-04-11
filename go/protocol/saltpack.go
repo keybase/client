@@ -19,6 +19,7 @@ type SaltpackEncryptOptions struct {
 type SaltpackDecryptOptions struct {
 	Interactive      bool `codec:"interactive" json:"interactive"`
 	ForceRemoteCheck bool `codec:"forceRemoteCheck" json:"forceRemoteCheck"`
+	UsePaperKey      bool `codec:"usePaperKey" json:"usePaperKey"`
 }
 
 type SaltpackSignOptions struct {

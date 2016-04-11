@@ -437,3 +437,59 @@ func TestSaltpackNoEncryptionForDevice(t *testing.T) {
 		t.Fatal("only wanted 1 desktop key")
 	}
 }
+
+func TestSaltpackDecryptWithPaperKey(t *testing.T) {
+	tc := SetupEngineTest(t, "SaltpackDecrypt")
+	defer tc.Cleanup()
+
+	// We don't log in as a test user here. This flow should work even if
+	// you're totally logged out.
+
+	msg := `BEGIN KEYBASE SALTPACK ENCRYPTED MESSAGE. kiPgBwdlv6bV9N8
+	dSkCbjKrku4NADt gV8qC1k8zRA0Bi0 6KvGQoMyf99b2id uGZ3EDTqb5nZVPT
+	vhMiB49BOHavdzN mySkmzwlSWDsuQA z9RIPfrIX9IJCfi yqlaD1HOqK1lilP
+	tDrign5LrAB8zLz 4NwPFBwpQJWW8sO N9Jk6yzf6QvdPav GN9SqL6YX7XEbJc
+	PLrDD7LCj7fHObD O3pTQSLjuUKqAqa 3LDiQEVEDUZzYLy TvKyMJ2U8gCuhcU
+	SeqDClUNAPKqEEM MRgyTcw0LSwK4A5 YyZhDM065PA5SHb 6ZFPGYnv81HOibR
+	FHHv5lYEqPqPAZa ETIXLblnxI61F2q 6cH3w60bbxFuQB2 fwLZQSUS4ZzyVSw
+	UN3OKZMr79vqr6S ap3vMMqGiWm3blG ptjZEmFXI5dQqZG w9AO0Djmy2fWnCB
+	Z42e7BZteGaRhz8 zVmNLdOvtWiJkRF FUo2KvUgBsk9ecJ 3iZUOhYbdqja2Xx
+	osdOqu6OUS9V4XC H9vRylZJShvVg2X NLaeeHZ6AHdxkxO NgrG1NqHeIubq8p
+	0VaDq1iKk78Qj27 4q26yqnt5E9sgnN xJ850oP5DeKWrN3 yaif8ouprlETzY3
+	CLmDsAN5vVCgVga gx1q3YEjKUmJqD2 EsY5KBKogE1YjvQ eVaoqX5qiKtS6o0
+	oGE70tbveveK0kV SErmRsOSFBieaCq JzW75TXRCHpLvVB 1ZB8Wih6cyvw1yx
+	pK5RJNfPOF6lzKm i28FT9EoCw7uvsB kBG2EfA9YRkhXKh RoqAGrkdX3ziGy8
+	j5eOK91eyIcl7f7 SfUFLzETW5ULZfm 7Z9BIeOJogk7a1B 7IUJQiYpLyG3xAF
+	p3nmeSIalwfIzhV opNxUB7ltUOn3PX t9abJAZkUodMURG zXw0dKHQKtWXce6
+	y8jHbaU0zLwxvhO W3bxHNGoQ10t7Gq hSPu7SYLYyD926w 8nv5FqiUtTf7eJq
+	Ay1c2FAYMPkB4ay 6lB0wxtpNCGt8MO RtrC1Da3aj7rLTL fFNz2kxb78hT2Tu
+	QNiHyBL. END KEYBASE SALTPACK ENCRYPTED MESSAGE.`
+
+	paperkey := "fitness weasel session truly among connect explain found measure smile ask ball shoulder"
+
+	// decrypt it
+	decoded := libkb.NewBufferCloser()
+	decarg := &SaltpackDecryptArg{
+		Source: strings.NewReader(msg),
+		Sink:   decoded,
+		Opts: keybase1.SaltpackDecryptOptions{
+			UsePaperKey: true,
+		},
+	}
+	dec := NewSaltpackDecrypt(decarg, tc.G)
+	ctx := &Context{
+		IdentifyUI: &FakeIdentifyUI{},
+		// Here's where the paper key goes in!
+		SecretUI:   &libkb.TestSecretUI{Passphrase: paperkey},
+		LogUI:      tc.G.UI.GetLogUI(),
+		SaltpackUI: &fakeSaltpackUI{},
+	}
+	if err := RunEngine(dec, ctx); err != nil {
+		t.Fatal(err)
+	}
+	decmsg := decoded.String()
+	expected := "message for paper key"
+	if decmsg != expected {
+		t.Errorf("decoded: %s, expected: %s", decmsg, expected)
+	}
+}

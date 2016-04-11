@@ -26,10 +26,12 @@ mode="$(cat "$build_root/MODE")"
 
 name="$("$here/../../binary_name.sh" "$mode")"
 
+dependencies=""
 if [ "$mode" = "production" ] ; then
   repo_url="http://dist.keybase.io/linux/rpm/repo"
 elif [ "$mode" = "prerelease" ] ; then
   repo_url="http://prerelease.keybase.io/rpm"
+  dependencies="Requires: fuse"
 elif [ "$mode" = "staging" ] ; then
   # Note: This doesn't exist yet. But we need to be distinct from the
   # production URL, because we're moving to a model where we build a clean
@@ -82,6 +84,7 @@ build_one_architecture() {
     | sed "s/@@NAME@@/$name/g" \
     | sed "s/@@VERSION@@/$version/g" \
     | sed "s|@@COPIED_BINARIES@@|$copied_binaries|g" \
+    | sed "s|@@DEPENDENCIES@@|$dependencies|g" \
     > "$spec"
   # Append the files list to the spec.
   echo -e "\n%files\n$files" >> "$spec"

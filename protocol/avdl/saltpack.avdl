@@ -15,6 +15,7 @@ protocol saltpack {
   record SaltpackDecryptOptions {
     boolean interactive;
     boolean forceRemoteCheck;
+    boolean usePaperKey;
   }
 
   record SaltpackSignOptions {

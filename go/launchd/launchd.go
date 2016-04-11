@@ -128,6 +128,28 @@ func (s Service) Restart() error {
 	return Restart(s.Label(), s.log)
 }
 
+// WaitForStatus waits for service status to be available
+func (s Service) WaitForStatus(wait time.Duration) (*ServiceStatus, error) {
+	t := time.Now()
+	i := 1
+	for time.Now().Sub(t) < wait {
+		status, err := s.LoadStatus()
+		if err != nil {
+			return nil, err
+		}
+		if status != nil {
+			return status, nil
+		}
+		// Tell user we're waiting for status after 4 seconds, every 4 seconds
+		if i%4 == 0 {
+			s.info("Waiting for %s to be loaded...", s.label)
+		}
+		time.Sleep(time.Second)
+		i++
+	}
+	return nil, nil
+}
+
 // WaitForExit waits for service to exit
 func (s Service) WaitForExit(wait time.Duration) error {
 	running := true
@@ -270,7 +292,7 @@ func (s Service) StatusDescription() string {
 	return fmt.Sprintf("%s: %s", s.label, status.Description())
 }
 
-// Status returns service status
+// LoadStatus returns service status
 func (s Service) LoadStatus() (*ServiceStatus, error) {
 	out, err := exec.Command("/bin/launchctl", "list").Output()
 	if err != nil {

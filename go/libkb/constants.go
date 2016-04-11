@@ -14,7 +14,7 @@ import (
 const (
 	DevelServerURI      = "http://localhost:3000"
 	StagingServerURI    = "https://stage0.keybase.io"
-	ProductionServerURI = "https://keybase.io"
+	ProductionServerURI = "https://api.keybase.io"
 	TorServerURI        = "http://fncuwbiisyh6ak3i.onion"
 )
 
@@ -36,6 +36,18 @@ var ServerLookup = map[RunMode]string{
 	DevelRunMode:      DevelServerURI,
 	StagingRunMode:    StagingServerURI,
 	ProductionRunMode: ProductionServerURI,
+}
+
+const (
+	DevelGregorServerURI      = "fmprpc://localhost:9911"
+	StagingGregorServerURI    = "fmprpc+tls://gregor.stage0.keybase.io:443"
+	ProductionGregorServerURI = "fmprpc+tls://gregor.api.keybase.io:443"
+)
+
+var GregorServerLookup = map[RunMode]string{
+	DevelRunMode:      DevelGregorServerURI,
+	StagingRunMode:    StagingGregorServerURI,
+	ProductionRunMode: ProductionGregorServerURI,
 }
 
 const (
@@ -173,6 +185,7 @@ const (
 	SCKeyNoPGPEncryption     = int(keybase1.StatusCode_SCKeyNoPGPEncryption)
 	SCKeyNoNaClEncryption    = int(keybase1.StatusCode_SCKeyNoNaClEncryption)
 	SCWrongCryptoFormat      = int(keybase1.StatusCode_SCWrongCryptoFormat)
+	SCGPGUnavailable         = int(keybase1.StatusCode_SCGPGUnavailable)
 )
 
 const (

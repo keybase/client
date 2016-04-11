@@ -1,11 +1,18 @@
--   repo: git@github.com:keybase/pre-commit.git
-    sha: 'e56c58cc34b81fc814f10c5062c31c9db93376df'
+-   repo: local
     hooks:
     -   id: eslint
--   repo: git@github.com:keybase/pre-commit.git
-    sha: 'e56c58cc34b81fc814f10c5062c31c9db93376df'
-    hooks:
+        name: eslint
+        entry: eslint
+        language: system
+        files: \.js$
+        args: []
     -   id: flow
+        name: flow
+        entry: sh
+        language: system
+        files: ''
+        args: [-c, 'cd shared && flow']
+
 -   repo: git@github.com:keybase/pre-commit-golang.git
     sha: '04b422b4c7fabfcf586e563e54334c659e6fd189'
     hooks:

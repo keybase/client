@@ -52,6 +52,10 @@ func NewCmdDecrypt(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comma
 				Name:  "f, force",
 				Usage: "Force unprompted decryption, even on an identify failure",
 			},
+			cli.BoolFlag{
+				Name:  "paperkey",
+				Usage: "Use a paper key for decryption",
+			},
 		},
 	}
 }
@@ -82,7 +86,7 @@ func (c *CmdDecrypt) explainDecryptionFailure(info *keybase1.SaltpackEncryptedMe
 			prnt("Additionally, there were %d hidden receivers for this message\n", info.NumAnonReceivers)
 		}
 	} else if info.NumAnonReceivers > 0 {
-		prnt("Decryption failed; it was encrypted for %d hidden receivers, which may or may not you\n", info.NumAnonReceivers)
+		prnt("Decryption failed; it was encrypted for %d hidden receivers, which may or may not be you\n", info.NumAnonReceivers)
 	} else {
 		prnt("Decryption failed; message wasn't encrypted for any of your known keys\n")
 	}
@@ -147,6 +151,7 @@ func (c *CmdDecrypt) ParseArgv(ctx *cli.Context) error {
 		force:        ctx.Bool("force"),
 	}
 	c.opts.Interactive = interactive
+	c.opts.UsePaperKey = ctx.Bool("paperkey")
 	msg := ctx.String("message")
 	outfile := ctx.String("outfile")
 	infile := ctx.String("infile")

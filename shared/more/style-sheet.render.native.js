@@ -5,6 +5,9 @@ import {ScrollView} from 'react-native'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import Container from './dev-container.native'
 import {Dropdown, Checkbox, Button, Box, Text, Terminal, Icon, Input, FormWithCheckbox} from '../common-adapters'
+import HiddenString from '../util/hidden-string'
+
+import Success from '../login/signup/success/index.render'
 
 const Space = () => <Box style={{height: 20, width: 20}}/>
 
@@ -280,8 +283,14 @@ export default class Render extends Component {
   }
 
   render () {
+    // TODO: remove Success from here when dumb components sheet is in
     return (
       <ScrollView>
+        <Container title='Success signup paperkey'>
+          <Box style={{height: 660}}>
+            <Success onFinish={() => {}} paperkey={new HiddenString('elephant bag candy asteroid laptop mug second archive pizza ring fish bumpy down')}/>
+          </Box>
+        </Container>
         <Container title='Dropdown'><Dropdowns
           selectedUser={this.state.selectedUser}
           selectUser={(selectedUser, userIdx) => this.setState({selectedUser, userIdx})}
