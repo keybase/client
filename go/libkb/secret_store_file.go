@@ -36,12 +36,21 @@ func (s *SecretStoreFile) RetrieveSecret(username NormalizedUsername) ([]byte, e
 }
 
 func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret []byte) error {
-	final := s.userpath(username)
-	tmp := final + ".tmp"
-	if err := ioutil.WriteFile(tmp, secret, 0600); err != nil {
+	f, err := ioutil.TempFile(s.dir, username.String())
+	if err != nil {
 		return err
 	}
-	if err := os.Rename(tmp, final); err != nil {
+	if err := f.Chmod(0600); err != nil {
+		return err
+	}
+	if _, err := f.Write(secret); err != nil {
+		return err
+	}
+	if err := f.Close(); err != nil {
+		return err
+	}
+	final := s.userpath(username)
+	if err := os.Rename(f.Name(), final); err != nil {
 		return err
 	}
 	return os.Chmod(final, 0600)
