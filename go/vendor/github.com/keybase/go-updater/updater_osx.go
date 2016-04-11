@@ -6,6 +6,7 @@
 package updater
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"os/user"
@@ -68,9 +69,23 @@ func (u *Updater) checkPlatformSpecificUpdate(sourcePath string, destinationPath
 	return nil
 }
 
-func openApplication(applicationPath string) error {
-	_, err := exec.Command("/usr/bin/open", applicationPath).Output()
-	return err
+func (u *Updater) openApplication(applicationPath string) error {
+	tryOpen := func() error {
+		out, err := exec.Command("/usr/bin/open", applicationPath).CombinedOutput()
+		if err != nil {
+			return fmt.Errorf("Open error: %s; %s", err, string(out))
+		}
+		return nil
+	}
+	for i := 0; i < 10; i++ {
+		err := tryOpen()
+		if err == nil {
+			break
+		}
+		u.log.Errorf("Open error (trying again in a second): %s", err)
+		time.Sleep(1 * time.Second)
+	}
+	return nil
 }
 
 func (u *Updater) applyUpdate(localPath string) (err error) {
@@ -82,9 +97,9 @@ func (u *Updater) applyUpdate(localPath string) (err error) {
 
 	// Update spotlight, ignore (but log) errors
 	u.log.Debug("Updating spotlight: %s", destinationPath)
-	mdimportOut, mdierr := exec.Command("/usr/bin/mdimport", destinationPath).Output()
+	mdimportOut, mdierr := exec.Command("/usr/bin/mdimport", destinationPath).CombinedOutput()
 	if mdierr != nil {
-		u.log.Errorf("Error trying to update spotlight: %s; %s", mdierr, mdimportOut)
+		u.log.Errorf("Error trying to update spotlight: %s; %s", mdierr, string(mdimportOut))
 	}
 	return
 }
