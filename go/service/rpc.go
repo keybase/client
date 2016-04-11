@@ -61,7 +61,7 @@ func (f *fmpURI) UseTLS() bool {
 }
 
 func (f *fmpURI) String() string {
-	return fmt.Sprintf("%s://%s", f.Scheme, f.Host)
+	return fmt.Sprintf("%s://%s", f.Scheme, f.HostPort)
 }
 
 // connTransport implements rpc.ConnectionTransport
