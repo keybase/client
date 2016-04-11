@@ -137,6 +137,10 @@ package_electron() {(
   npm install
   npm run package -- --appVersion="$app_version" --comment="$comment" --icon="$icon_path"
   rsync -av release/darwin-x64/Keybase-darwin-x64 "$build_dir"
+
+  # Create symlink for Electron to overcome Gatekeeper bug https://github.com/keybase/go-updater/pull/4
+  cd "$out_dir/$app_name.app/Contents/MacOS"
+  ln -s "Keybase" "Electron"
 )}
 
 # Adds the keybase binaries and Installer.app bundle to Keybase.app
