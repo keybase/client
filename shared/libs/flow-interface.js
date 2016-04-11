@@ -7,6 +7,14 @@ declare module 'getenv' {
   declare var exports: any;
 }
 
+declare module 'redux-saga' {
+  declare var exports: any;
+}
+
+declare module 'redux-saga/effects' {
+  declare var exports: any;
+}
+
 declare module 'immutable' {
   declare var exports: any;
 }
