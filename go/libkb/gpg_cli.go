@@ -126,7 +126,9 @@ func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (*PGPKeyBundle, error
 		return nil, NoKeyError{fmt.Sprintf("No %skey found for fingerprint %s", which, fp)}
 	}
 
-	bundle, err := ReadOneKeyFromString(armored)
+	bundle, w, err := ReadOneKeyFromString(armored)
+	w.SetGlobalContext(g.G())
+	w.Warn()
 	if err != nil {
 		return nil, err
 	}

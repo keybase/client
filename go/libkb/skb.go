@@ -183,7 +183,10 @@ func (s *SKB) ToPacket() (ret *KeybasePacket, err error) {
 func (s *SKB) ReadKey() (g GenericKey, err error) {
 	switch {
 	case IsPGPAlgo(s.Type):
-		g, err = ReadOneKeyFromBytes(s.Pub)
+		var w *Warnings
+		g, w, err = ReadOneKeyFromBytes(s.Pub)
+		w.SetGlobalContext(s.G())
+		w.Warn()
 	case s.Type == KIDNaclEddsa:
 		g, err = ImportNaclSigningKeyPairFromBytes(s.Pub, nil)
 	case s.Type == KIDNaclDH:
@@ -363,7 +366,10 @@ func (s *SKB) parseUnlocked(unlocked []byte) (key GenericKey, err error) {
 
 	switch {
 	case IsPGPAlgo(s.Type):
-		key, err = ReadOneKeyFromBytes(unlocked)
+		var w *Warnings
+		key, w, err = ReadOneKeyFromBytes(unlocked)
+		w.SetGlobalContext(s.G())
+		w.Warn()
 	case s.Type == KIDNaclEddsa:
 		key, err = ImportNaclSigningKeyPairFromBytes(s.Pub, unlocked)
 	case s.Type == KIDNaclDH:

@@ -337,7 +337,7 @@ func ParseKeyFamily(g *GlobalContext, jw *jsonw.Wrapper) (ret *KeyFamily, err er
 	kf.PGPKeySets = make(map[keybase1.KID]*PGPKeySet)
 	kf.SingleKeys = make(map[keybase1.KID]GenericKey)
 	for i, bundle := range rkf.AllBundles {
-		newKey, err := ParseGenericKey(bundle)
+		newKey, w, err := ParseGenericKey(bundle)
 
 		// Some users have some historical bad keys, so no reason to crap
 		// out if we can't parse them, especially if there are others than
@@ -349,6 +349,8 @@ func ParseKeyFamily(g *GlobalContext, jw *jsonw.Wrapper) (ret *KeyFamily, err er
 			g.Log.Debug(bundle)
 			continue
 		}
+		w.SetGlobalContext(g)
+		w.Warn()
 
 		kid := newKey.GetKID()
 

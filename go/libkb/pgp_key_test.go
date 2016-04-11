@@ -12,6 +12,7 @@ import (
 
 // See Issue #40: https://github.com/keybase/client/issues/40
 func TestPGPGetPrimaryUID(t *testing.T) {
+
 	armored := `
 -----BEGIN PGP PUBLIC KEY BLOCK-----
 Comment: GPGTools - https://gpgtools.org
@@ -45,10 +46,11 @@ HKfiyXs8709e067vsE5FCTMvZCq4vt/lkEJ59xn58QBfEILMwQDNLqVGyA54MPwh
 `
 	expected := "Primary Primary <primary@uid.com>"
 	for i := 0; i < 100; i++ {
-		key, err := ReadOneKeyFromString(armored)
+		key, w, err := ReadOneKeyFromString(armored)
 		if err != nil {
 			t.Error(err)
 		}
+		w.Warn()
 		primary := key.GetPrimaryUID()
 		if primary != expected {
 			t.Errorf("Expected '%s' as a primary UID; got '%s'", expected, primary)
@@ -84,21 +86,24 @@ func TestOpenPGPMultipleArmored(t *testing.T) {
 }
 
 func TestMultipleArmored(t *testing.T) {
+
 	// ReadOneKeyFromString will return the public key for issue454Keys
-	b1, err := ReadOneKeyFromString(issue454Keys)
+	b1, w, err := ReadOneKeyFromString(issue454Keys)
 	if err != nil {
 		t.Fatal(err)
 	}
+	w.Warn()
 	if b1.HasSecretKey() {
 		t.Errorf("ReadOneKeyFromString returned a private key for issue454Keys.  Expected just the public key (the first one).")
 	}
 
 	// ReadPrivateKeyFromString should skip the first public key in issue454Keys
 	// and use the private key that follows it.
-	b2, err := ReadPrivateKeyFromString(issue454Keys)
+	b2, w2, err := ReadPrivateKeyFromString(issue454Keys)
 	if err != nil {
 		t.Fatal(err)
 	}
+	w2.Warn()
 	if !b2.HasSecretKey() {
 		t.Errorf("ReadPrivateKeyFromString returned only a public key for issue454Keys.  Expected a private key.")
 	}
@@ -265,22 +270,24 @@ LpRtxqDTDVA6H/R+dqEhg/ni2jAapEr4VzIbew==
 -----END PGP PRIVATE KEY BLOCK-----`
 
 func TestReadOneKeyFromBytes(t *testing.T) {
+
 	t.Log("If this test panics for you, then you need to update github.com/keybase/go-crypto/openpgp")
 	// found by go-fuzz:
 	// (errors are ok, panics are not...these all caused panics with an older version of
 	// openpgp)
-	_, err := ReadOneKeyFromBytes([]byte("\x9900\x03000000\x01\x00\x00\x00\x030"))
+	_, w, err := ReadOneKeyFromBytes([]byte("\x9900\x03000000\x01\x00\x00\x00\x030"))
 	if err != nil {
 		t.Log(err)
 	}
-
-	_, err = ReadOneKeyFromBytes([]byte("\xd1\x1b\x0000000000000000000" + "000000000"))
+	w.Warn()
+	_, w, err = ReadOneKeyFromBytes([]byte("\xd1\x1b\x0000000000000000000" + "000000000"))
 	if err != nil {
 		t.Log(err)
 	}
-
-	_, err = ReadOneKeyFromBytes([]byte("0\xd1\x03\x0000"))
+	w.Warn()
+	_, w, err = ReadOneKeyFromBytes([]byte("0\xd1\x03\x0000"))
 	if err != nil {
 		t.Log(err)
 	}
+	w.Warn()
 }
