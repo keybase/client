@@ -95,12 +95,12 @@ func (t DNSServiceType) NormalizeUsername(s string) (string, error) {
 }
 
 func (t DNSServiceType) NormalizeRemoteName(s string) (string, error) {
-	// Allow a leading 'dns://'.
+	// Allow a leading 'dns://' and preserve case.
 	s = strings.TrimPrefix(s, "dns://")
 	if !IsValidHostname(s) {
 		return "", InvalidHostnameError{s}
 	}
-	return strings.ToLower(s), nil
+	return s, nil
 }
 
 func (t DNSServiceType) ToChecker() Checker {
