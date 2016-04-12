@@ -161,14 +161,10 @@ type RooterServiceType struct{ BaseServiceType }
 
 func (t RooterServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
-func (t RooterServiceType) CheckUsername(s string) (err error) {
+func (t RooterServiceType) NormalizeRemoteName(s string) (string, error) {
 	if !regexp.MustCompile(`^@?(?i:[a-z0-9_]{1,20})$`).MatchString(s) {
-		err = BadUsernameError{s}
+		return "", BadUsernameError{s}
 	}
-	return
-}
-
-func (t RooterServiceType) NormalizeUsername(s string) (string, error) {
 	if len(s) > 0 && s[0] == '@' {
 		s = s[1:]
 	}

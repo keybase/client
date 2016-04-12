@@ -77,13 +77,6 @@ type CoinbaseServiceType struct{ BaseServiceType }
 
 func (t CoinbaseServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
-func (t CoinbaseServiceType) CheckUsername(s string) (err error) {
-	if !regexp.MustCompile(`^@?(?i:[a-z0-9_]{2,16})$`).MatchString(s) {
-		err = BadUsernameError{s}
-	}
-	return
-}
-
 func coinbaseUserURL(s string) string {
 	return "https://coinbase.com/" + s
 }
@@ -92,10 +85,9 @@ func coinbaseSettingsURL(s string) string {
 	return coinbaseUserURL(s) + "#settings"
 }
 
-func (t CoinbaseServiceType) NormalizeUsername(s string) (ret string, err error) {
-	err = t.CheckUsername(s)
-	if err != nil {
-		return "", err
+func (t CoinbaseServiceType) NormalizeRemoteName(s string) (ret string, err error) {
+	if !regexp.MustCompile(`^@?(?i:[a-z0-9_]{2,16})$`).MatchString(s) {
+		return "", BadUsernameError{s}
 	}
 	ret = strings.ToLower(s)
 	return ret, nil

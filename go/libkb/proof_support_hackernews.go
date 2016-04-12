@@ -100,15 +100,11 @@ type HackerNewsServiceType struct{ BaseServiceType }
 
 func (t HackerNewsServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
-func (t HackerNewsServiceType) CheckUsername(s string) (err error) {
-	if !regexp.MustCompile(`^@?(?i:[a-z0-9_-]{2,15})$`).MatchString(s) {
-		err = BadUsernameError{s}
-	}
-	return
-}
-
 // HackerNews names are case-sensitive
-func (t HackerNewsServiceType) NormalizeUsername(s string) (string, error) {
+func (t HackerNewsServiceType) NormalizeRemoteName(s string) (string, error) {
+	if !regexp.MustCompile(`^@?(?i:[a-z0-9_-]{2,15})$`).MatchString(s) {
+		return "", BadUsernameError{s}
+	}
 	return s, nil
 }
 

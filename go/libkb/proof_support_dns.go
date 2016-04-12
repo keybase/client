@@ -99,12 +99,7 @@ func ParseDNS(s string) (ret string, err error) {
 	return
 }
 
-func (t DNSServiceType) CheckUsername(s string) error {
-	_, e := ParseDNS(s)
-	return e
-}
-
-func (t DNSServiceType) NormalizeUsername(s string) (string, error) {
+func (t DNSServiceType) NormalizeRemoteName(s string) (string, error) {
 	return ParseDNS(s)
 }
 

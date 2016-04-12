@@ -23,8 +23,7 @@ type Prove struct {
 	postRes    *libkb.PostProofRes
 	signingKey libkb.GenericKey
 
-	username           string
-	usernameNormalized string
+	remoteNameNormalized string
 
 	libkb.Contextified
 }
@@ -87,30 +86,28 @@ func (p *Prove) checkExists1(ctx *Context) (err error) {
 }
 
 func (p *Prove) promptRemoteName(ctx *Context) (err error) {
-	p.username = p.arg.Username
-	if len(p.username) == 0 {
+	remoteName := p.arg.Username
+	if len(remoteName) == 0 {
 		var prevErr error
-		for len(p.username) == 0 && err == nil {
+		for len(remoteName) == 0 && err == nil {
 			var un string
 			un, err = ctx.ProveUI.PromptUsername(context.TODO(), keybase1.PromptUsernameArg{
 				Prompt:    p.st.GetPrompt(),
 				PrevError: libkb.ExportErrorAsStatus(prevErr),
 			})
 			if err == nil {
-				prevErr = p.st.CheckUsername(un)
+				remoteNameNormalized, prevErr := p.st.NormalizeRemoteName(un)
 				if prevErr == nil {
-					p.username = un
+					p.remoteNameNormalized = remoteNameNormalized
 				}
 			}
 		}
 	} else {
-		err = p.st.CheckUsername(p.username)
+		remoteNameNormalized, err := p.st.NormalizeRemoteName(remoteName)
+		if err == nil {
+			p.remoteNameNormalized = remoteNameNormalized
+		}
 	}
-	return
-}
-
-func (p *Prove) normalizeRemoteName() (err error) {
-	p.usernameNormalized, err = p.st.NormalizeUsername(p.username)
 	return
 }
 
@@ -121,7 +118,7 @@ func (p *Prove) checkExists2(ctx *Context) (err error) {
 		var found libkb.RemoteProofChainLink
 		for _, proof := range p.me.IDTable().GetActiveProofsFor(p.st) {
 			_, name := proof.ToKeyValuePair()
-			if libkb.Cicmp(name, p.usernameNormalized) {
+			if libkb.Cicmp(name, p.remoteNameNormalized) {
 				found = proof
 				break
 			}
@@ -147,7 +144,7 @@ func (p *Prove) checkExists2(ctx *Context) (err error) {
 
 func (p *Prove) doPrechecks(ctx *Context) (err error) {
 	var w *libkb.Markup
-	w, err = p.st.PreProofCheck(p.usernameNormalized)
+	w, err = p.st.PreProofCheck(p.remoteNameNormalized)
 	if w != nil {
 		if uierr := ctx.ProveUI.OutputPrechecks(context.TODO(), keybase1.OutputPrechecksArg{Text: w.Export()}); uierr != nil {
 			p.G().Log.Warning("prove ui OutputPrechecks call error: %s", uierr)
@@ -157,7 +154,7 @@ func (p *Prove) doPrechecks(ctx *Context) (err error) {
 }
 
 func (p *Prove) doWarnings(ctx *Context) (err error) {
-	if mu := p.st.PreProofWarning(p.usernameNormalized); mu != nil {
+	if mu := p.st.PreProofWarning(p.remoteNameNormalized); mu != nil {
 		var ok bool
 		arg := keybase1.PreProofWarningArg{Text: mu.Export()}
 		if ok, err = ctx.ProveUI.PreProofWarning(context.TODO(), arg); err == nil && !ok {
@@ -180,7 +177,7 @@ func (p *Prove) generateProof(ctx *Context) (err error) {
 	if p.signingKey, err = locked.GetPubKey(); err != nil {
 		return
 	}
-	if p.proof, err = p.me.ServiceProof(p.signingKey, p.st, p.usernameNormalized); err != nil {
+	if p.proof, err = p.me.ServiceProof(p.signingKey, p.st, p.remoteNameNormalized); err != nil {
 		return
 	}
 	if p.sig, p.sigID, _, err = libkb.SignJSON(p.proof, seckey); err != nil {
@@ -195,7 +192,7 @@ func (p *Prove) postProofToServer() (err error) {
 		ProofType:      p.st.GetProofType(),
 		ID:             p.sigID,
 		Supersede:      p.supersede,
-		RemoteUsername: p.usernameNormalized,
+		RemoteUsername: p.remoteNameNormalized,
 		RemoteKey:      p.st.GetAPIArgKey(),
 		SigningKey:     p.signingKey,
 	}
@@ -204,7 +201,7 @@ func (p *Prove) postProofToServer() (err error) {
 }
 
 func (p *Prove) instructAction(ctx *Context) (err error) {
-	mkp := p.st.PostInstructions(p.usernameNormalized)
+	mkp := p.st.PostInstructions(p.remoteNameNormalized)
 	var txt string
 	if txt, err = p.st.FormatProofText(p.postRes); err != nil {
 		return
@@ -223,7 +220,7 @@ func (p *Prove) promptPostedLoop(ctx *Context) (err error) {
 		var status keybase1.ProofStatus
 		var warn *libkb.Markup
 		retry, err = ctx.ProveUI.OkToCheck(context.TODO(), keybase1.OkToCheckArg{
-			Name:    p.st.DisplayName(p.usernameNormalized),
+			Name:    p.st.DisplayName(p.remoteNameNormalized),
 			Attempt: i,
 		})
 		if !retry || err != nil {
@@ -233,7 +230,7 @@ func (p *Prove) promptPostedLoop(ctx *Context) (err error) {
 		if found || err != nil {
 			break
 		}
-		warn, err = p.st.RecheckProofPosting(i, status, p.usernameNormalized)
+		warn, err = p.st.RecheckProofPosting(i, status, p.remoteNameNormalized)
 		if warn != nil {
 			uierr := ctx.ProveUI.DisplayRecheckWarning(context.TODO(), keybase1.DisplayRecheckWarningArg{
 				Text: warn.Export(),
@@ -297,10 +294,6 @@ func (p *Prove) Run(ctx *Context) (err error) {
 	}
 	stage("PromptRemoteName")
 	if err = p.promptRemoteName(ctx); err != nil {
-		return
-	}
-	stage("NormalizeRemoteName")
-	if err = p.normalizeRemoteName(); err != nil {
 		return
 	}
 	stage("CheckExists2")

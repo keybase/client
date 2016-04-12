@@ -13,18 +13,17 @@ import (
 
 type ServiceType interface {
 	AllStringKeys() []string
-	CheckUsername(string) error
-	NormalizeUsername(string) (string, error)
+	NormalizeRemoteName(string) (string, error)
 	CaseSensitiveUsername() bool
 	ToChecker() Checker
 	GetPrompt() string
 	LastWriterWins() bool
-	PreProofCheck(username string) (*Markup, error)
+	PreProofCheck(remotename string) (*Markup, error)
 	PreProofWarning(remotename string) *Markup
 	ToServiceJSON(remotename string) *jsonw.Wrapper
 	PostInstructions(remotename string) *Markup
-	DisplayName(username string) string
-	RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, username string) (warning *Markup, err error)
+	DisplayName(remotename string) string
+	RecheckProofPosting(tryNumber int, status keybase1.ProofStatus, remotename string) (warning *Markup, err error)
 	GetProofType() string
 	GetTypeName() string
 	CheckProofText(text string, id keybase1.SigID, sig string) error
@@ -87,7 +86,10 @@ func (t BaseServiceType) BaseGetProofType(st ServiceType) string {
 
 func (t BaseServiceType) BaseToChecker(st ServiceType, hint string) Checker {
 	return Checker{
-		F:             func(s string) bool { return (st.CheckUsername(s) == nil) },
+		F: func(s string) bool {
+			_, err := st.NormalizeRemoteName(s)
+			return (err == nil)
+		},
 		Hint:          hint,
 		PreserveSpace: false,
 	}
@@ -129,13 +131,13 @@ func (t BaseServiceType) BaseCheckProofTextFull(text string, id keybase1.SigID, 
 	return
 }
 
-func (t BaseServiceType) NormalizeUsername(s string) (string, error) {
+func (t BaseServiceType) NormalizeRemoteName(s string) (string, error) {
 	return strings.ToLower(s), nil
 }
 
-// Note: this is a bit of duplication of NormalizeUsername(), but
+// Note: this is a bit of duplication of NormalizeRemoteName(), but
 // there are some ServiceType implementations (coinbase) that do
-// more than username normalization in their NormalizeUsername()
+// more than username normalization in their NormalizeRemoteName()
 // function.
 func (t BaseServiceType) CaseSensitiveUsername() bool {
 	return false

@@ -105,12 +105,7 @@ func ParseWeb(s string) (hostname string, prot string, err error) {
 	return
 }
 
-func (t WebServiceType) CheckUsername(s string) error {
-	_, _, e := ParseWeb(s)
-	return e
-}
-
-func (t WebServiceType) NormalizeUsername(s string) (ret string, err error) {
+func (t WebServiceType) NormalizeRemoteName(s string) (ret string, err error) {
 	var prot, host string
 	if host, prot, err = ParseWeb(s); err != nil {
 		return
