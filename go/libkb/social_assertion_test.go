@@ -18,6 +18,8 @@ type nsatest struct {
 var nsatests = []nsatest{
 	{in: "keybase", out: keybase1.SocialAssertion{}, ok: false},
 	{in: "alice@twitter", out: keybase1.SocialAssertion{User: "alice", Service: "twitter"}, ok: true},
+	{in: "alice@twitter+bob@twitter", out: keybase1.SocialAssertion{}, ok: false},
+	{in: "alice+bob@twitter", out: keybase1.SocialAssertion{}, ok: false},
 	{in: "twitter:alice", out: keybase1.SocialAssertion{User: "alice", Service: "twitter"}, ok: true},
 	{in: "Twitter:alice", out: keybase1.SocialAssertion{User: "alice", Service: "twitter"}, ok: true},
 	{in: "twitter:Alice", out: keybase1.SocialAssertion{User: "alice", Service: "twitter"}, ok: true},
