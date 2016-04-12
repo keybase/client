@@ -15,7 +15,6 @@ type ServiceType interface {
 	AllStringKeys() []string
 	NormalizeUsername(string) (string, error)
 	NormalizeRemoteName(string) (string, error)
-	CaseSensitiveUsername() bool
 	ToChecker() Checker
 	GetPrompt() string
 	LastWriterWins() bool
@@ -130,14 +129,6 @@ func (t BaseServiceType) BaseCheckProofTextFull(text string, id keybase1.SigID, 
 		err = NotFoundError{"Couldn't find signature ID " + target + " in text"}
 	}
 	return
-}
-
-// Note: this is a bit of duplication of NormalizeRemoteName(), but
-// there are some ServiceType implementations (coinbase) that do
-// more than username normalization in their NormalizeRemoteName()
-// function.
-func (t BaseServiceType) CaseSensitiveUsername() bool {
-	return false
 }
 
 func (t BaseServiceType) BaseCheckProofForURL(text string, id keybase1.SigID) (err error) {

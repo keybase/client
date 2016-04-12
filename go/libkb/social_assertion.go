@@ -48,8 +48,9 @@ func NormalizeSocialAssertion(s string) (keybase1.SocialAssertion, bool) {
 	}
 
 	st := GetServiceType(service)
-	if !st.CaseSensitiveUsername() {
-		name = strings.ToLower(name)
+	name, err := st.NormalizeUsername(name)
+	if err != nil {
+		return keybase1.SocialAssertion{}, false
 	}
 
 	return keybase1.SocialAssertion{
