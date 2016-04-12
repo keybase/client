@@ -68,6 +68,7 @@ fi
 # comment="+$comment"
 
 out_dir="$build_dir/Keybase-darwin-x64"
+app_executable_path="$out_dir/Keybase.app/Contents/MacOS/Keybase"
 shared_support_dir="$out_dir/Keybase.app/Contents/SharedSupport"
 resources_dir="$out_dir/Keybase.app/Contents/Resources/"
 
@@ -141,6 +142,11 @@ package_electron() {(
   # Create symlink for Electron to overcome Gatekeeper bug https://github.com/keybase/go-updater/pull/4
   cd "$out_dir/$app_name.app/Contents/MacOS"
   ln -s "Keybase" "Electron"
+
+  if [ ! -f "$app_executable_path" ]; then
+    echo "The app bundle executable name should be $app_executable_path"
+    exit 1
+  fi
 )}
 
 # Adds the keybase binaries and Installer.app bundle to Keybase.app
