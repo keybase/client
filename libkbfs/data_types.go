@@ -683,6 +683,8 @@ const (
 type UsageStat struct {
 	Bytes  map[UsageType]int64
 	Blocks map[UsageType]int64
+	// Mtime is in unix nanoseconds
+	Mtime int64
 }
 
 // NewUsageStat creates a new UsageStat
