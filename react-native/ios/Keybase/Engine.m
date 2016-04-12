@@ -32,11 +32,16 @@ static NSString *const eventName = @"objc-engine-event";
 - (instancetype)initWithSettings:(NSDictionary *)settings {
   if ((self = [super init])) {
     [self setupKeybaseWithSettings:settings];
+//    [self setupKBFSWithSettings:settings];
     [self setupQueues];
     [self startReadLoop];
   }
   return self;
 }
+
+//-(void)setupKBFSWithSettings:(NSDictionary*) settings {
+//  NSLog(@"aaaa %@", GoKbfsHello(settings[@"homedir"], @"prod"));
+//}
 
 - (void)setupKeybaseWithSettings:(NSDictionary *) settings {
   GoKeybaseInit(settings[@"homedir"], settings[@"runmode"], settings[@"serverURI"], settings[@"SecurityAccessGroupOverride"]);

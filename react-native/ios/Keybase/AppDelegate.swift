@@ -99,8 +99,8 @@ extension AppDelegate: UIApplicationDelegate {
     #else
       #if DEBUG
         // Uncomment if you want your device to hit a local server while debugging
-//        AppDefault.ReactHost.setDefaultValue("192.168.1.50:8081")
-//        AppDefault.APIServer.setDefaultValue("http://192.168.1.50:3000")
+        AppDefault.ReactHost.setDefaultValue("192.168.1.50:8081")
+        AppDefault.APIServer.setDefaultValue("http://192.168.1.50:3000")
       #endif
     #endif
 
