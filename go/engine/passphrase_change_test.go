@@ -724,7 +724,7 @@ func TestPassphraseChangePGP3SecMultiple(t *testing.T) {
 }
 
 // Make sure passphrase generations are stored properly alongside encrypted keys.
-// We'll create a user, check the ppgens of the inital pair of keys, change the
+// We'll create a user, check the ppgens of the initial pair of keys, change the
 // passphrase, create a new key, and then they the ppgen of that new one (which
 // should be higher).
 func TestPassphraseGenerationStored(t *testing.T) {

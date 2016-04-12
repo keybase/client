@@ -120,7 +120,7 @@ func (key *PGPKeyBundle) ToLksSKB(lks *LKSec) (ret *SKB, err error) {
 	//
 	// Urg, there's still more.  For generated keys, it's the opposite.
 	// We have to sign the key components first (via SerializePrivate)
-	// so we can export them publically.
+	// so we can export them publicly.
 
 	if key.Generated {
 		err = serializePrivate()
