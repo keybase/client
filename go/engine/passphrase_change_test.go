@@ -713,7 +713,7 @@ func TestPassphraseChangePGP3SecMultiple(t *testing.T) {
 		parg := libkb.SecretKeyPromptArg{
 			SecretUI: u.NewSecretUI(),
 		}
-		unlocked, err := key.PromptAndUnlock(parg, "", nil, me)
+		unlocked, err := key.PromptAndUnlock(parg, nil, me)
 		if err != nil {
 			t.Fatal(err)
 		}

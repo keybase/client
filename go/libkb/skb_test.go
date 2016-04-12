@@ -120,7 +120,7 @@ func testPromptAndUnlock(t *testing.T, skb *SKB) {
 		Reason:   "test reason",
 		SecretUI: &TestSecretUI{Passphrase: "test passphrase", StoreSecret: true},
 	}
-	key, err := skb.PromptAndUnlock(parg, "test which", NewSecretStore(skb.G(), "testusername"), nil)
+	key, err := skb.PromptAndUnlock(parg, NewSecretStore(skb.G(), "testusername"), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -263,7 +263,7 @@ func TestPromptCancelCache(t *testing.T) {
 		Reason:   "test reason",
 		SecretUI: &TestSecretUI{Passphrase: "passphrase"},
 	}
-	key, err := skb.PromptAndUnlock(parg, "test which", NewSecretStore(tc.G, "testusername"), nil)
+	key, err := skb.PromptAndUnlock(parg, NewSecretStore(tc.G, "testusername"), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -278,7 +278,7 @@ func testErrUnlock(t *testing.T, skb *SKB, ui *TestCancelSecretUI) error {
 		SecretUI:       ui,
 		UseCancelCache: true,
 	}
-	key, err := skb.PromptAndUnlock(parg, "test which", NewSecretStore(skb.G(), "testusername"), nil)
+	key, err := skb.PromptAndUnlock(parg, NewSecretStore(skb.G(), "testusername"), nil)
 	if err == nil {
 		t.Fatal("PromptAndUnlock returned nil error")
 	}
