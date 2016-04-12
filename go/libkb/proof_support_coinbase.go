@@ -85,8 +85,10 @@ func coinbaseSettingsURL(s string) string {
 	return coinbaseUserURL(s) + "#settings"
 }
 
+var coinbaseUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9_]{2,16})$`)
+
 func (t CoinbaseServiceType) NormalizeUsername(s string) (string, error) {
-	if !regexp.MustCompile(`^(?i:[a-z0-9_]{2,16})$`).MatchString(s) {
+	if !coinbaseUsernameRegexp.MatchString(s) {
 		return "", BadUsernameError{s}
 	}
 	return strings.ToLower(s), nil
@@ -94,10 +96,8 @@ func (t CoinbaseServiceType) NormalizeUsername(s string) (string, error) {
 
 func (t CoinbaseServiceType) NormalizeRemoteName(s string) (ret string, err error) {
 	// Allow a leading '@'.
-	if !regexp.MustCompile(`^@?(?i:[a-z0-9_]{2,16})$`).MatchString(s) {
-		return "", BadUsernameError{s}
-	}
-	return strings.ToLower(strings.TrimPrefix(s, "@")), nil
+	s = strings.TrimPrefix(s, "@")
+	return t.NormalizeUsername(s)
 }
 
 func (t CoinbaseServiceType) ToChecker() Checker {
