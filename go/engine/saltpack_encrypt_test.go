@@ -144,7 +144,7 @@ func TestSaltpackEncryptLoggedOut(t *testing.T) {
 	trackUI := &FakeIdentifyUI{
 		Proofs: make(map[string]string),
 	}
-	ctx := &Context{IdentifyUI: trackUI}
+	ctx := &Context{IdentifyUI: trackUI, SecretUI: &libkb.TestSecretUI{}}
 
 	sink := libkb.NewBufferCloser()
 	arg := &SaltpackEncryptArg{

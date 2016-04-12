@@ -44,7 +44,9 @@ func (e *SaltpackEncrypt) Prereqs() Prereqs {
 
 // RequiredUIs returns the required UIs.
 func (e *SaltpackEncrypt) RequiredUIs() []libkb.UIKind {
-	return nil
+	return []libkb.UIKind{
+		libkb.SecretUIKind,
+	}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
