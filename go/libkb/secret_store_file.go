@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 )
 
 var ErrSecretForUserNotFound = NotFoundError{Msg: "No secret found for user"}
@@ -40,8 +41,11 @@ func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret []byte
 	if err != nil {
 		return err
 	}
-	if err := f.Chmod(0600); err != nil {
-		return err
+	if runtime.GOOS != "windows" {
+		// os.Fchmod not supported on windows
+		if err := f.Chmod(0600); err != nil {
+			return err
+		}
 	}
 	if _, err := f.Write(secret); err != nil {
 		return err
