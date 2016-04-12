@@ -11,21 +11,24 @@ func NewServer(xp Transporter, f WrapErrorFunc) *Server {
 
 func (s *Server) Register(p Protocol) error {
 	p.WrapError = s.wrapError
-	return s.xp.RegisterProtocol(p)
+	return s.xp.registerProtocol(p)
 }
 
-// AddCloseListener supplies a channel listener to which
-// the server will send an error when a connection closes
-func (s *Server) AddCloseListener(ch chan error) error {
-	s.xp.AddCloseListener(ch)
-	return nil
+// Run starts processing incoming RPC messages asynchronously, if it
+// hasn't been started already. Returns a channel that's closed when
+// incoming frames have finished processing, either due to an error or
+// the underlying connection being closed. Successive calls to Run()
+// return the same value.
+//
+// If you want to know when said processing is done, and any
+// associated error, use Transport.Done() and Transport.Err().
+func (s *Server) Run() <-chan struct{} {
+	return s.xp.receiveFrames()
 }
 
-// TODO: Split into Run and RunAsync, and update callers. See
-// https://github.com/keybase/go-framed-msgpack-rpc/issues/39 .
-func (s *Server) Run(bg bool) error {
-	if bg {
-		return s.xp.RunAsync()
-	}
-	return s.xp.Run()
+// Err returns a non-nil error value after the channel returned by Run
+// is closed.  After that channel is closed, successive calls to Err
+// return the same value.
+func (s *Server) Err() error {
+	return s.xp.err()
 }
