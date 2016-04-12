@@ -162,6 +162,14 @@ type RooterServiceType struct{ BaseServiceType }
 func (t RooterServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
 func (t RooterServiceType) NormalizeUsername(s string) (string, error) {
+	if !regexp.MustCompile(`^(?i:[a-z0-9_]{1,20})$`).MatchString(s) {
+		return "", BadUsernameError{s}
+	}
+	return strings.ToLower(s), nil
+}
+
+func (t RooterServiceType) NormalizeRemoteName(s string) (string, error) {
+	// Allow a leading '@'.
 	if !regexp.MustCompile(`^@?(?i:[a-z0-9_]{1,20})$`).MatchString(s) {
 		return "", BadUsernameError{s}
 	}
@@ -169,10 +177,6 @@ func (t RooterServiceType) NormalizeUsername(s string) (string, error) {
 		s = s[1:]
 	}
 	return strings.ToLower(s), nil
-}
-
-func (t RooterServiceType) NormalizeRemoteName(s string) (string, error) {
-	return t.NormalizeUsername(s)
 }
 
 func (t RooterServiceType) ToChecker() Checker {
