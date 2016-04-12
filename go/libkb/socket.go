@@ -67,16 +67,21 @@ func (g *GlobalContext) GetSocket(clearError bool) (net.Conn, rpc.Transporter, b
 	}
 
 	if needWrapper {
+		fmt.Println("aaaaa 1")
 		sw := SocketWrapper{}
 		if g.LoopbackListener != nil {
+			fmt.Println("aaaaa 2")
 			sw.conn, sw.err = g.LoopbackListener.Dial()
 		} else if g.SocketInfo == nil {
+			fmt.Println("aaaaa 3")
 			sw.err = fmt.Errorf("Cannot get socket in standalone mode")
 		} else {
+			fmt.Println("aaaaa 4")
 			sw.conn, sw.err = g.SocketInfo.DialSocket()
 			isNew = true
 		}
 		if sw.err == nil {
+			fmt.Println("aaaaa 5")
 			sw.xp = NewTransportFromSocket(g, sw.conn)
 		}
 		g.SocketWrapper = &sw

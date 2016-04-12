@@ -647,10 +647,15 @@ func (e *Env) GetRunMode() RunMode {
 		}
 	}
 
+	fmt.Println(ret)
 	pick(e.cmd.GetRunMode())
+	fmt.Println(ret)
 	pick(StringToRunMode(os.Getenv("KEYBASE_RUN_MODE")))
+	fmt.Println(ret)
 	pick(e.config.GetRunMode())
+	fmt.Println(ret)
 	pick(DefaultRunMode, nil)
+	fmt.Println(ret)
 
 	// If we aren't running in devel or staging and we're testing. Let's run in devel.
 	if e.Test.Devel && ret != DevelRunMode && ret != StagingRunMode {

@@ -5,12 +5,15 @@ package keybase
 
 import (
 	"encoding/base64"
+	// "flag"
 	"fmt"
 	"net"
 	"sync"
 
 	"github.com/keybase/client/go/libkb"
+	// "github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/service"
+	"github.com/keybase/kbfs/libkbfs"
 )
 
 var con net.Conn
@@ -36,6 +39,19 @@ func Init(homeDir string, runModeStr string, serverURI string, accessGroupOverri
 			panic(err)
 		}
 		(service.NewService(g, false)).StartLoopbackServer()
+
+		// kbfsParams := libkbfs.AddFlags(flag.NewFlagSet("flags", flag.ContinueOnError))
+		// flag.Parse()
+		// log := logger.NewWithCallDepth("", 1)
+		// _, err = libkbfs.InitMobile(*kbfsParams, nil, nil)
+		libkbfs.InitMobile(homeDir, "prod", g)
+		if err != nil {
+			fmt.Println("Error init kbfs", err)
+			return
+		}
+
+		defer libkbfs.Shutdown()
+
 		Reset()
 	})
 }
