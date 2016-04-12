@@ -109,7 +109,7 @@ func (t HackerNewsServiceType) NormalizeUsername(s string) (string, error) {
 }
 
 func (t HackerNewsServiceType) NormalizeRemoteName(s string) (string, error) {
-	return t.NormalizeRemoteName(s)
+	return t.NormalizeUsername(s)
 }
 
 func (t HackerNewsServiceType) ToChecker() Checker {

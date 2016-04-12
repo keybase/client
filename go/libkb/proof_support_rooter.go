@@ -172,7 +172,7 @@ func (t RooterServiceType) NormalizeUsername(s string) (string, error) {
 }
 
 func (t RooterServiceType) NormalizeRemoteName(s string) (string, error) {
-	return t.NormalizeRemoteName(s)
+	return t.NormalizeUsername(s)
 }
 
 func (t RooterServiceType) ToChecker() Checker {

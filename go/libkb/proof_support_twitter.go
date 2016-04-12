@@ -131,7 +131,7 @@ func (t TwitterServiceType) NormalizeUsername(s string) (string, error) {
 }
 
 func (t TwitterServiceType) NormalizeRemoteName(s string) (string, error) {
-	return t.NormalizeRemoteName(s)
+	return t.NormalizeUsername(s)
 }
 
 func (t TwitterServiceType) ToChecker() Checker {
