@@ -100,16 +100,21 @@ type HackerNewsServiceType struct{ BaseServiceType }
 
 func (t HackerNewsServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
-// HackerNews names are case-sensitive
 func (t HackerNewsServiceType) NormalizeUsername(s string) (string, error) {
-	if !regexp.MustCompile(`^@?(?i:[a-z0-9_-]{2,15})$`).MatchString(s) {
+	if !regexp.MustCompile(`^(?i:[a-z0-9_-]{2,15})$`).MatchString(s) {
 		return "", BadUsernameError{s}
 	}
+	// HackerNews names are case-sensitive
 	return s, nil
 }
 
 func (t HackerNewsServiceType) NormalizeRemoteName(s string) (string, error) {
-	return t.NormalizeUsername(s)
+	// Allow a leading '@'.
+	if !regexp.MustCompile(`^@?(?i:[a-z0-9_-]{2,15})$`).MatchString(s) {
+		return "", BadUsernameError{s}
+	}
+	// HackerNews names are case-sensitive
+	return strings.TrimPrefix(s, "@"), nil
 }
 
 func (t HackerNewsServiceType) ToChecker() Checker {

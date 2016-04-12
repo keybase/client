@@ -87,24 +87,20 @@ type DNSServiceType struct{ BaseServiceType }
 
 func (t DNSServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
-func ParseDNS(s string) (ret string, err error) {
-	if strings.HasPrefix(s, "dns://") {
-		s = s[6:]
-	}
-	if !IsValidHostname(s) {
-		err = InvalidHostnameError{s}
-	} else {
-		ret = s
-	}
-	return
-}
-
 func (t DNSServiceType) NormalizeUsername(s string) (string, error) {
-	return ParseDNS(s)
+	if !IsValidHostname(s) {
+		return "", InvalidHostnameError{s}
+	}
+	return strings.ToLower(s), nil
 }
 
 func (t DNSServiceType) NormalizeRemoteName(s string) (string, error) {
-	return ParseDNS(s)
+	// Allow a leading 'dns://'.
+	s = strings.TrimPrefix(s, "dns://")
+	if !IsValidHostname(s) {
+		return "", InvalidHostnameError{s}
+	}
+	return strings.ToLower(s), nil
 }
 
 func (t DNSServiceType) ToChecker() Checker {

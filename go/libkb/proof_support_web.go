@@ -93,6 +93,9 @@ func (t WebServiceType) PrimaryStringKeys() []string { return []string{"https", 
 
 func (t WebServiceType) NormalizeUsername(s string) (ret string, err error) {
 	// The username is just the hostname.
+	if !IsValidHostname(s) {
+		return "", InvalidHostnameError{s}
+	}
 	return strings.ToLower(s), nil
 }
 

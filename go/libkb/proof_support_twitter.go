@@ -132,10 +132,7 @@ func (t TwitterServiceType) NormalizeRemoteName(s string) (string, error) {
 	if !regexp.MustCompile(`^@?(?i:[a-z0-9_]{1,20})$`).MatchString(s) {
 		return "", BadUsernameError{s}
 	}
-	if len(s) > 0 && s[0] == '@' {
-		s = s[1:]
-	}
-	return strings.ToLower(s), nil
+	return strings.ToLower(strings.TrimPrefix(s, "@")), nil
 }
 
 func (t TwitterServiceType) ToChecker() Checker {
