@@ -13,8 +13,16 @@ import (
 
 type ServiceType interface {
 	AllStringKeys() []string
+
+	// NormalizeUsername normalizes the given username, assuming
+	// that it's free of any leading strings like '@' or 'dns://'.
 	NormalizeUsername(string) (string, error)
+
+	// NormalizeRemote normalizes the given remote username, which
+	// is usually but not always the same as the username. It also
+	// allows leaders like '@' and 'dns://'.
 	NormalizeRemoteName(string) (string, error)
+
 	ToChecker() Checker
 	GetPrompt() string
 	LastWriterWins() bool
