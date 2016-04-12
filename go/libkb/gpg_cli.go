@@ -127,8 +127,7 @@ func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (*PGPKeyBundle, error
 	}
 
 	bundle, w, err := ReadOneKeyFromString(armored)
-	w.SetGlobalContext(g.G())
-	w.Warn()
+	w.Warn(g.G())
 	if err != nil {
 		return nil, err
 	}

@@ -145,11 +145,10 @@ func doChainTest(t *testing.T, testCase TestCase) {
 	// which case the eldest key is specified by name.
 	var eldestKID keybase1.KID
 	if testCase.Eldest == "" {
-		eldestKey, w, err := ParseGenericKey(input.Keys[0])
+		eldestKey, _, err := ParseGenericKey(input.Keys[0])
 		if err != nil {
 			t.Fatal(err)
 		}
-		w.Warn()
 		eldestKID = eldestKey.GetKID()
 	} else {
 		eldestKIDStr, found := input.LabelKids[testCase.Eldest]

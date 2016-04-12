@@ -52,8 +52,7 @@ func NewPGPKeyImportEngineFromBytes(key []byte, pushPrivate bool, gc *libkb.Glob
 	if err != nil {
 		return
 	}
-	w.SetGlobalContext(gc)
-	w.Warn()
+	w.Warn(gc)
 	arg := PGPKeyImportEngineArg{
 		Pregen:     bundle,
 		PushSecret: pushPrivate,

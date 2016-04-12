@@ -349,8 +349,7 @@ func ParseKeyFamily(g *GlobalContext, jw *jsonw.Wrapper) (ret *KeyFamily, err er
 			g.Log.Debug(bundle)
 			continue
 		}
-		w.SetGlobalContext(g)
-		w.Warn()
+		w.Warn(g)
 
 		kid := newKey.GetKID()
 

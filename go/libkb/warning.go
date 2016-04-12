@@ -35,7 +35,6 @@ func ErrorToWarning(e error) Warning {
 
 type Warnings struct {
 	w []Warning
-	Contextified
 }
 
 func (w Warnings) Warnings() []Warning {
@@ -50,8 +49,8 @@ func (w *Warnings) Push(e Warning) {
 	w.w = append(w.w, e)
 }
 
-func (w Warnings) Warn() {
+func (w Warnings) Warn(g *GlobalContext) {
 	for _, e := range w.w {
-		e.Warn(w.G())
+		e.Warn(g)
 	}
 }

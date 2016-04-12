@@ -67,12 +67,10 @@ k8D1sZpooxcnL2NlRGWwYmOJWNq+qcmEJn+w6qAWgxTSggPEOEkIrkaUcA==
 var msg = []byte("test")
 
 func TestSignWithTestKey(t *testing.T) {
-	k, w, err := ReadOneKeyFromString(gpgDummyKey)
+	k, _, err := ReadOneKeyFromString(gpgDummyKey)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	w.Warn()
 
 	if _, _, err := k.SignToString(msg); err == nil {
 		t.Fatal("was able to sign with dummy skey")

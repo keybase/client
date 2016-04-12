@@ -46,11 +46,10 @@ HKfiyXs8709e067vsE5FCTMvZCq4vt/lkEJ59xn58QBfEILMwQDNLqVGyA54MPwh
 `
 	expected := "Primary Primary <primary@uid.com>"
 	for i := 0; i < 100; i++ {
-		key, w, err := ReadOneKeyFromString(armored)
+		key, _, err := ReadOneKeyFromString(armored)
 		if err != nil {
 			t.Error(err)
 		}
-		w.Warn()
 		primary := key.GetPrimaryUID()
 		if primary != expected {
 			t.Errorf("Expected '%s' as a primary UID; got '%s'", expected, primary)
@@ -88,22 +87,20 @@ func TestOpenPGPMultipleArmored(t *testing.T) {
 func TestMultipleArmored(t *testing.T) {
 
 	// ReadOneKeyFromString will return the public key for issue454Keys
-	b1, w, err := ReadOneKeyFromString(issue454Keys)
+	b1, _, err := ReadOneKeyFromString(issue454Keys)
 	if err != nil {
 		t.Fatal(err)
 	}
-	w.Warn()
 	if b1.HasSecretKey() {
 		t.Errorf("ReadOneKeyFromString returned a private key for issue454Keys.  Expected just the public key (the first one).")
 	}
 
 	// ReadPrivateKeyFromString should skip the first public key in issue454Keys
 	// and use the private key that follows it.
-	b2, w2, err := ReadPrivateKeyFromString(issue454Keys)
+	b2, _, err := ReadPrivateKeyFromString(issue454Keys)
 	if err != nil {
 		t.Fatal(err)
 	}
-	w2.Warn()
 	if !b2.HasSecretKey() {
 		t.Errorf("ReadPrivateKeyFromString returned only a public key for issue454Keys.  Expected a private key.")
 	}
@@ -275,19 +272,59 @@ func TestReadOneKeyFromBytes(t *testing.T) {
 	// found by go-fuzz:
 	// (errors are ok, panics are not...these all caused panics with an older version of
 	// openpgp)
-	_, w, err := ReadOneKeyFromBytes([]byte("\x9900\x03000000\x01\x00\x00\x00\x030"))
+	_, _, err := ReadOneKeyFromBytes([]byte("\x9900\x03000000\x01\x00\x00\x00\x030"))
 	if err != nil {
 		t.Log(err)
 	}
-	w.Warn()
-	_, w, err = ReadOneKeyFromBytes([]byte("\xd1\x1b\x0000000000000000000" + "000000000"))
+	_, _, err = ReadOneKeyFromBytes([]byte("\xd1\x1b\x0000000000000000000" + "000000000"))
 	if err != nil {
 		t.Log(err)
 	}
-	w.Warn()
-	_, w, err = ReadOneKeyFromBytes([]byte("0\xd1\x03\x0000"))
+	_, _, err = ReadOneKeyFromBytes([]byte("0\xd1\x03\x0000"))
 	if err != nil {
 		t.Log(err)
 	}
-	w.Warn()
+}
+
+func TestPGPSubkeyWarning(t *testing.T) {
+
+	const missingCrossSignatureKey = `-----BEGIN PGP PUBLIC KEY BLOCK-----
+Charset: UTF-8
+
+mQENBFMYynYBCACVOZ3/e8Bm2b9KH9QyIlHGo/i1bnkpqsgXj8tpJ2MIUOnXMMAY
+ztW7kKFLCmgVdLIC0vSoLA4yhaLcMojznh/2CcUglZeb6Ao8Gtelr//Rd5DRfPpG
+zqcfUo+m+eO1co2Orabw0tZDfGpg5p3AYl0hmxhUyYSc/xUq93xL1UJzBFgYXY54
+QsM8dgeQgFseSk/YvdP5SMx1ev+eraUyiiUtWzWrWC1TdyRa5p4UZg6Rkoppf+WJ
+QrW6BWrhAtqATHc8ozV7uJjeONjUEq24roRc/OFZdmQQGK6yrzKnnbA6MdHhqpdo
+9kWDcXYb7pSE63Lc+OBa5X2GUVvXJLS/3nrtABEBAAG0F2ludmFsaWQtc2lnbmlu
+Zy1zdWJrZXlziQEoBBMBAgASBQJTnKB5AhsBAgsHAhUIAh4BAAoJEO3UDQUIHpI/
+dN4H/idX4FQ1LIZCnpHS/oxoWQWfpRgdKAEM0qCqjMgiipJeEwSQbqjTCynuh5/R
+JlODDz85ABR06aoF4l5ebGLQWFCYifPnJZ/Yf5OYcMGtb7dIbqxWVFL9iLMO/oDL
+ioI3dotjPui5e+2hI9pVH1UHB/bZ/GvMGo6Zg0XxLPolKQODMVjpjLAQ0YJ3spew
+RAmOGre6tIvbDsMBnm8qREt7a07cBJ6XK7xjxYaZHQBiHVxyEWDa6gyANONx8duW
+/fhQ/zDTnyVM/ik6VO0Ty9BhPpcEYLFwh5c1ilFari1ta3e6qKo6ZGa9YMk/REhu
+yBHd9nTkI+0CiQUmbckUiVjDKKe5AQ0EUxjKdgEIAJcXQeP+NmuciE99YcJoffxv
+2gVLU4ZXBNHEaP0mgaJ1+tmMD089vUQAcyGRvw8jfsNsVZQIOAuRxY94aHQhIRHR
+bUzBN28ofo/AJJtfx62C15xt6fDKRV6HXYqAiygrHIpEoRLyiN69iScUsjIJeyFL
+C8wa72e8pSL6dkHoaV1N9ZH/xmrJ+k0vsgkQaAh9CzYufncDxcwkoP+aOlGtX1gP
+WwWoIbz0JwLEMPHBWvDDXQcQPQTYQyj+LGC9U6f9VZHN25E94subM1MjuT9OhN9Y
+MLfWaaIc5WyhLFyQKW2Upofn9wSFi8ubyBnv640Dfd0rVmaWv7LNTZpoZ/GbJAMA
+EQEAAYkBHwQYAQIACQUCU5ygeQIbAgAKCRDt1A0FCB6SP0zCB/sEzaVR38vpx+OQ
+MMynCBJrakiqDmUZv9xtplY7zsHSQjpd6xGflbU2n+iX99Q+nav0ETQZifNUEd4N
+1ljDGQejcTyKD6Pkg6wBL3x9/RJye7Zszazm4+toJXZ8xJ3800+BtaPoI39akYJm
++ijzbskvN0v/j5GOFJwQO0pPRAFtdHqRs9Kf4YanxhedB4dIUblzlIJuKsxFit6N
+lgGRblagG3Vv2eBszbxzPbJjHCgVLR3RmrVezKOsZjr/2i7X+xLWIR0uD3IN1qOW
+CXQxLBizEEmSNVNxsp7KPGTLnqO3bPtqFirxS9PJLIMPTPLNBY7ZYuPNTMqVIUWF
+4artDmrG
+=7FfJ
+-----END PGP PUBLIC KEY BLOCK-----`
+
+	_, w, err := ReadOneKeyFromString(missingCrossSignatureKey)
+	if err != nil {
+		t.Error(err)
+	}
+
+	if w.IsEmpty() {
+		t.Errorf("Expected a bad subkey warning")
+	}
 }

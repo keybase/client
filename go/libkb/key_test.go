@@ -123,11 +123,9 @@ var allKeys = []string{
 
 func TestParseKeys(t *testing.T) {
 	for _, k := range allKeys {
-		_, w, err := ReadOneKeyFromString(k)
+		_, _, err := ReadOneKeyFromString(k)
 		if err != nil {
 			t.Fatal(err)
 		}
-
-		w.Warn()
 	}
 }

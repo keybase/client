@@ -10,7 +10,6 @@ import (
 
 func TestKeithWinstein(t *testing.T) {
 
-	var w *Warnings
 	var err error
 	// Encode the key with spaces as a Base64-encoded string, since trailing
 	// spaces don't survive our various text editors
@@ -18,9 +17,7 @@ func TestKeithWinstein(t *testing.T) {
 	key, err := base64.StdEncoding.DecodeString(key64)
 	if err != nil {
 		t.Fatal(err)
-	} else if _, w, err = ReadOneKeyFromString(string(key)); err != nil {
+	} else if _, _, err = ReadOneKeyFromString(string(key)); err != nil {
 		t.Fatal(err)
 	}
-
-	w.Warn()
 }

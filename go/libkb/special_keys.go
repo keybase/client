@@ -56,8 +56,7 @@ func LoadPGPKeyFromLocalDB(k keybase1.KID, g *GlobalContext) (*PGPKeyBundle, err
 		return nil, nil
 	}
 	kb, w, err := GetOneKey(dbobj)
-	w.SetGlobalContext(g)
-	w.Warn()
+	w.Warn(g)
 	return kb, err
 }
 
@@ -97,8 +96,7 @@ func (sk *SpecialKeyRing) Load(kid keybase1.KID) (GenericKey, error) {
 			key, w, err = GetOneKey(res.Body.AtKey("bundle"))
 		}
 		if err == nil {
-			w.SetGlobalContext(sk.G())
-			w.Warn()
+			w.Warn(sk.G())
 
 			if e2 := key.StoreToLocalDb(sk.G()); e2 != nil {
 				sk.G().Log.Warning("Failed to store key: %s", e2)
