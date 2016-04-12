@@ -125,7 +125,7 @@ bump_arch_linux_aur() {
   # This relies on having the SSH key registered with the "keybase" account on
   # https://aur.archlinux.org.
   (
-    underscore_version="$(echo "$version" | sed 's/-/_/g')"
+    underscore_version="$(echo "$version" | sed 's/[-+]/_/g')"
     temp_repo=`mktemp -d`
     git clone aur@aur.archlinux.org:keybase-git "$temp_repo"
     cd "$temp_repo"
