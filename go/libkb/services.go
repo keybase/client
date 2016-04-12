@@ -131,10 +131,6 @@ func (t BaseServiceType) BaseCheckProofTextFull(text string, id keybase1.SigID, 
 	return
 }
 
-func (t BaseServiceType) NormalizeRemoteName(s string) (string, error) {
-	return strings.ToLower(s), nil
-}
-
 // Note: this is a bit of duplication of NormalizeRemoteName(), but
 // there are some ServiceType implementations (coinbase) that do
 // more than username normalization in their NormalizeRemoteName()
