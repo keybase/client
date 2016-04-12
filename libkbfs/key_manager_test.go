@@ -369,6 +369,12 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 		t.Fatalf("Got unexpected error after rekey: %v", err)
 	}
 
+	// user 2 creates another file
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "c", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
 	// add a third device for user 2
 	config2Dev3 := ConfigAsUser(config1.(*ConfigLocal), u2)
 	defer CheckConfigAndShutdown(t, config2Dev3)
@@ -384,6 +390,18 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	RevokeDeviceForLocalUserOrBust(t, config2Dev2, uid2, 0)
 	RevokeDeviceForLocalUserOrBust(t, config2Dev3, uid2, 0)
 
+	// First request a rekey from the new device, which will only be
+	// able to set the rekey bit (copying the root MD).
+	err = config2Dev3.KBFSOps().Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
+	if err != nil {
+		t.Fatalf("Couldn't rekey: %v", err)
+	}
+
+	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+
 	// rekey again
 	err = kbfsOps1.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
 	if err != nil {
@@ -396,7 +414,7 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	}
 
 	// force re-encryption of the root dir
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "c", false)
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "d", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -414,7 +432,7 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	}
 
 	children, err := kbfsOps2Dev2.GetDirChildren(ctx, rootNode2Dev2)
-	if _, ok := children["c"]; !ok {
+	if _, ok := children["d"]; !ok {
 		t.Fatalf("Device 2 couldn't see the new dir entry")
 	}
 
@@ -433,7 +451,7 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	// Should still be seeing the old children, since the updates from
 	// the latest revision were never applied.
 	children, err = kbfsOps2.GetDirChildren(ctx, rootNode2)
-	if _, ok := children["c"]; ok {
+	if _, ok := children["d"]; ok {
 		t.Fatalf("Found c unexpectedly: %v", children)
 	}
 

@@ -32,6 +32,72 @@ func (md *MDOpsStandard) convertVerifyingKeyError(ctx context.Context,
 	return UnverifiableTlfUpdateError{tlf, writer, err}
 }
 
+func (md *MDOpsStandard) verifyWriterKey(ctx context.Context,
+	handle *TlfHandle, rmds *RootMetadataSigned) error {
+	if !rmds.MD.IsWriterMetadataCopiedSet() {
+		err := md.config.KBPKI().HasVerifyingKey(ctx,
+			rmds.MD.LastModifyingWriter,
+			rmds.MD.WriterMetadataSigInfo.VerifyingKey,
+			rmds.untrustedServerTimestamp)
+		if err != nil {
+			return md.convertVerifyingKeyError(ctx, rmds, err)
+		}
+		return nil
+
+	}
+
+	// The server timestamp on rmds does not reflect when the
+	// writer MD was actually signed, since it was copied from a
+	// previous revision.  Search backwards for the most recent
+	// uncopied writer MD to get the right timestamp.
+	prevHead := rmds.MD.Revision - 1
+	for {
+		startRev := prevHead - maxMDsAtATime + 1
+		if startRev < MetadataRevisionInitial {
+			startRev = MetadataRevisionInitial
+		}
+
+		// Recursively call into MDOps.  Note that in the case where
+		// we were already fetching a range of MDs, this could do
+		// extra work by downloading the same MDs twice (for those
+		// that aren't yet in the cache).  That should be so rare that
+		// it's not worth optimizing.
+		prevMDs, err := getMDRange(ctx, md.config, rmds.MD.ID, rmds.MD.BID,
+			startRev, prevHead, rmds.MD.MergedStatus())
+		if err != nil {
+			return err
+		}
+
+		for i := len(prevMDs) - 1; i >= 0; i-- {
+			if !prevMDs[i].IsWriterMetadataCopiedSet() {
+				ok, err := CodecEqual(md.config.Codec(),
+					rmds.MD.WriterMetadataSigInfo,
+					prevMDs[i].WriterMetadataSigInfo)
+				if err != nil {
+					return err
+				}
+				if !ok {
+					return fmt.Errorf("Previous uncopied writer MD sig info "+
+						"for revision %d of folder %s doesn't match copied "+
+						"revision %d", prevMDs[i].Revision, rmds.MD.ID,
+						rmds.MD.Revision)
+				}
+				// The fact the fact that we were able to process this
+				// MD correctly means that we already verified its key
+				// at the correct timestamp, so we're good.
+				return nil
+			}
+		}
+
+		// No more MDs left to process.
+		if len(prevMDs) < maxMDsAtATime {
+			return fmt.Errorf("Couldn't find uncopied MD previous to "+
+				"revision %d of folder %s for checking the writer "+
+				"timestamp", rmds.MD.Revision, rmds.MD.ID)
+		}
+	}
+}
+
 func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	handle *TlfHandle, rmds *RootMetadataSigned) error {
 	// A blank sig means this is a brand new MD object, and
@@ -61,25 +127,20 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 		}
 	}
 
-	// TODO: what do we do if the signature is from a revoked key?
-	kbpki := md.config.KBPKI()
-	err := kbpki.HasVerifyingKey(ctx, writer,
-		rmds.MD.WriterMetadataSigInfo.VerifyingKey,
-		rmds.untrustedServerTimestamp)
-	if err != nil {
-		return md.convertVerifyingKeyError(ctx, rmds, err)
+	if err := md.verifyWriterKey(ctx, handle, rmds); err != nil {
+		return err
 	}
 
 	codec := md.config.Codec()
 	crypto := md.config.Crypto()
 
-	err = rmds.MD.VerifyWriterMetadata(codec, crypto)
+	err := rmds.MD.VerifyWriterMetadata(codec, crypto)
 	if err != nil {
 		return err
 	}
 
 	// TODO: what do we do if the signature is from a revoked key?
-	err = kbpki.HasVerifyingKey(ctx, user,
+	err = md.config.KBPKI().HasVerifyingKey(ctx, user,
 		rmds.SigInfo.VerifyingKey, rmds.untrustedServerTimestamp)
 	if err != nil {
 		return md.convertVerifyingKeyError(ctx, rmds, err)
