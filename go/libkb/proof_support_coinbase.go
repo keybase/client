@@ -93,20 +93,12 @@ func coinbaseSettingsURL(s string) string {
 }
 
 func (t CoinbaseServiceType) NormalizeUsername(s string) (ret string, err error) {
-	ret = strings.ToLower(s)
-
-	// XXX this function should not be making an API call.
-	_, err = G.XAPI.GetHTML(APIArg{
-		Endpoint:    coinbaseUserURL(ret),
-		NeedSession: false,
-	})
+	err = t.CheckUsername(s)
 	if err != nil {
-		if ae, ok := err.(*APIError); ok && ae.Code == 404 {
-			err = ProfileNotPublicError{fmt.Sprintf("%s isn't public! Change your settings at %s",
-				coinbaseUserURL(ret), coinbaseSettingsURL(ret))}
-		}
+		return "", err
 	}
-	return ret, err
+	ret = strings.ToLower(s)
+	return ret, nil
 }
 
 func (t CoinbaseServiceType) ToChecker() Checker {
@@ -115,6 +107,22 @@ func (t CoinbaseServiceType) ToChecker() Checker {
 
 func (t CoinbaseServiceType) GetPrompt() string {
 	return "Your username on Coinbase"
+}
+
+func (t CoinbaseServiceType) PreProofCheck(normalizedUsername string) (*Markup, error) {
+	_, err := G.XAPI.GetHTML(APIArg{
+		Endpoint:    coinbaseUserURL(normalizedUsername),
+		NeedSession: false,
+	})
+	if err != nil {
+		if ae, ok := err.(*APIError); ok && ae.Code == 404 {
+			err = ProfileNotPublicError{fmt.Sprintf("%s isn't public! Change your settings at %s",
+				coinbaseUserURL(normalizedUsername),
+				coinbaseSettingsURL(normalizedUsername))}
+		}
+		return nil, err
+	}
+	return nil, nil
 }
 
 func (t CoinbaseServiceType) ToServiceJSON(un string) *jsonw.Wrapper {
