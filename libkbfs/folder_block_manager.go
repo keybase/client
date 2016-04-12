@@ -243,6 +243,9 @@ func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
 	}
 	chunks := make(chan []BlockPointer, numChunks)
 
+	var wg sync.WaitGroup
+	defer wg.Wait()
+
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
@@ -253,9 +256,10 @@ func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
 
 	chunkResults := make(chan workerResult, numChunks)
 	worker := func() {
+		defer wg.Done()
 		for chunk := range chunks {
-			fbm.log.CDebugf(ctx, "Downgrading chunk of %d pointers", len(chunk))
 			var res workerResult
+			fbm.log.CDebugf(ctx, "Downgrading chunk of %d pointers", len(chunk))
 			if archive {
 				res.err = bops.Archive(ctx, md, chunk)
 			} else {
@@ -279,6 +283,7 @@ func (fbm *folderBlockManager) doChunkedDowngrades(ctx context.Context,
 		}
 	}
 	for i := 0; i < numWorkers; i++ {
+		wg.Add(1)
 		go worker()
 	}
 
