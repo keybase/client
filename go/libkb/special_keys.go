@@ -55,7 +55,9 @@ func LoadPGPKeyFromLocalDB(k keybase1.KID, g *GlobalContext) (*PGPKeyBundle, err
 	if dbobj == nil {
 		return nil, nil
 	}
-	return GetOneKey(dbobj)
+	kb, w, err := GetOneKey(dbobj)
+	w.Warn(g)
+	return kb, err
 }
 
 // Load takes a blessed KID and returns, if possible, the GenericKey
@@ -89,11 +91,13 @@ func (sk *SpecialKeyRing) Load(kid keybase1.KID) (GenericKey, error) {
 				"kid": S{kid.String()},
 			},
 		})
-
+		var w *Warnings
 		if err == nil {
-			key, err = GetOneKey(res.Body.AtKey("bundle"))
+			key, w, err = GetOneKey(res.Body.AtKey("bundle"))
 		}
 		if err == nil {
+			w.Warn(sk.G())
+
 			if e2 := key.StoreToLocalDb(sk.G()); e2 != nil {
 				sk.G().Log.Warning("Failed to store key: %s", e2)
 			}

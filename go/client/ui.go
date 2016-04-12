@@ -231,7 +231,7 @@ func (ui BaseIdentifyUI) ReportHook(s string) {
 }
 
 func (ui BaseIdentifyUI) ShowWarnings(w libkb.Warnings) {
-	w.Warn()
+	w.Warn(ui.G())
 }
 
 func (ui BaseIdentifyUI) PromptForConfirmation(s string) error {

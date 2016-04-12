@@ -1073,7 +1073,7 @@ func (idt *IdentityTable) populate() (err error) {
 		tcl, w := NewTypedChainLink(link)
 		tcl.insertIntoTable(idt)
 		if w != nil {
-			w.Warn()
+			w.Warn(idt.G())
 		}
 		if link.isOwnNewLinkFromServer {
 			link.isOwnNewLinkFromServer = false

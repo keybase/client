@@ -18,7 +18,6 @@ func parse(t *testing.T, kr string) *GpgKeyIndex {
 
 	if !w.IsEmpty() {
 		t.Errorf("Warnings in parsing:")
-		w.Warn()
 		return nil
 	}
 	return i

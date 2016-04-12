@@ -108,7 +108,7 @@ func (e *GPGImportKeyEngine) Run(ctx *Context) (err error) {
 	if err != nil {
 		return err
 	}
-	warns.Warn()
+	warns.Warn(e.G())
 
 	var gks []keybase1.GPGKey
 	for _, key := range index.Keys {

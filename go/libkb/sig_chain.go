@@ -412,7 +412,7 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 
 		tcl, w := NewTypedChainLink(link)
 		if w != nil {
-			w.Warn()
+			w.Warn(sc.G())
 		}
 
 		sc.G().VDL.Log(VLog1, "| Verify link: %s", link.id)

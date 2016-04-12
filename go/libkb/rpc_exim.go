@@ -457,7 +457,7 @@ func ImportWarnings(v []string) Warnings {
 	for i, s := range v {
 		w[i] = StringWarning(s)
 	}
-	return Warnings{w}
+	return Warnings{w: w}
 }
 
 //=============================================================================
