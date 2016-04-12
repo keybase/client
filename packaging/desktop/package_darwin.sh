@@ -135,6 +135,7 @@ package_electron() {(
   cd "$client_dir/desktop"
 
   rm -rf node_modules
+  npm cache clean
   npm install
   npm run package -- --appVersion="$app_version" --comment="$comment" --icon="$icon_path"
   rsync -av release/darwin-x64/Keybase-darwin-x64 "$build_dir"
