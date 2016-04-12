@@ -57,7 +57,14 @@ func (s *SecretStoreFile) StoreSecret(username NormalizedUsername, secret []byte
 }
 
 func (s *SecretStoreFile) ClearSecret(username NormalizedUsername) error {
-	return os.Remove(s.userpath(username))
+	if err := os.Remove(s.userpath(username)); err != nil {
+		if os.IsNotExist(err) {
+			return nil
+		}
+		return err
+	}
+
+	return nil
 }
 
 func (s *SecretStoreFile) GetUsersWithStoredSecrets() ([]string, error) {

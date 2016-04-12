@@ -30,7 +30,7 @@ func testSSDir(t *testing.T) (string, func()) {
 
 	cleanup := func() {
 		if err := os.RemoveAll(td); err != nil {
-			t.Fatal(err)
+			t.Log(err)
 		}
 	}
 
