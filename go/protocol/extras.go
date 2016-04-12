@@ -563,3 +563,7 @@ func (r BlockReference) String() string {
 func (r BlockReferenceCount) String() string {
 	return fmt.Sprintf("%s,%d", r.Ref.String(), r.LiveCount)
 }
+
+func (sa SocialAssertion) String() string {
+	return fmt.Sprintf("%s@%s", sa.User, sa.Service)
+}
