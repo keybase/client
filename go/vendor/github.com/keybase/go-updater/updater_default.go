@@ -11,7 +11,7 @@ func (u *Updater) checkPlatformSpecificUpdate(sourcePath string, destinationPath
 	return nil
 }
 
-func openApplication(applicationPath string) error {
+func (u *Updater) openApplication(applicationPath string) error {
 	return fmt.Errorf("Open application not supported on this platform")
 }
 
