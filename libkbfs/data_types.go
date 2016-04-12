@@ -669,20 +669,28 @@ func (m MergeStatus) String() string {
 type UsageType int
 
 const (
-	// UsageWrite indicates a block is written
+	// UsageWrite indicates a block is written (written blocks include archived blocks)
 	UsageWrite UsageType = iota
 	// UsageArchive indicates an existing block is archived
 	UsageArchive
 	// UsageRead indicates a block is read
 	UsageRead
-	// NumUsage is the total number of different usage
+	// NumUsage indicates the number of usage types
 	NumUsage
 )
 
-//UsageStat is a tuple containing quota usage and amount of archived bytes
+// UsageStat tracks the amount of bytes/blocks used, broken down by usage types
 type UsageStat struct {
-	Bytes  [NumUsage]int64
-	Blocks [NumUsage]int64
+	Bytes  map[UsageType]int64
+	Blocks map[UsageType]int64
+}
+
+// NewUsageStat creates a new UsageStat
+func NewUsageStat() *UsageStat {
+	return &UsageStat{
+		Bytes:  make(map[UsageType]int64),
+		Blocks: make(map[UsageType]int64),
+	}
 }
 
 //AccumOne records the usage of one block, whose size is denoted by change
@@ -708,13 +716,15 @@ func (u *UsageStat) Accum(another *UsageStat, accumF func(int64, int64) int64) {
 	if another == nil {
 		return
 	}
-	for i := 0; i < int(NumUsage); i++ {
-		u.Bytes[i] = accumF(u.Bytes[i], another.Bytes[i])
-		u.Blocks[i] = accumF(u.Blocks[i], another.Blocks[i])
+	for k, v := range another.Bytes {
+		u.Bytes[k] = accumF(u.Bytes[k], v)
+	}
+	for k, v := range another.Blocks {
+		u.Blocks[k] = accumF(u.Blocks[k], v)
 	}
 }
 
-//UserQuotaInfo contains a user's quota usage information
+// UserQuotaInfo contains a user's quota usage information
 type UserQuotaInfo struct {
 	Folders map[string]*UsageStat
 	Total   *UsageStat
@@ -724,7 +734,7 @@ type UserQuotaInfo struct {
 // AccumOne combines one quota charge to the existing UserQuotaInfo
 func (u *UserQuotaInfo) AccumOne(change int, folder string, usage UsageType) {
 	if _, ok := u.Folders[folder]; !ok {
-		u.Folders[folder] = &UsageStat{}
+		u.Folders[folder] = NewUsageStat()
 	}
 	u.Folders[folder].AccumOne(change, usage)
 	u.Total.AccumOne(change, usage)
@@ -735,10 +745,13 @@ func (u *UserQuotaInfo) Accum(another *UserQuotaInfo, accumF func(int64, int64) 
 	if another == nil {
 		return
 	}
+	if u.Total == nil {
+		u.Total = NewUsageStat()
+	}
 	u.Total.Accum(another.Total, accumF)
 	for f, change := range another.Folders {
 		if _, ok := u.Folders[f]; !ok {
-			u.Folders[f] = &UsageStat{}
+			u.Folders[f] = NewUsageStat()
 		}
 		u.Folders[f].Accum(change, accumF)
 	}
