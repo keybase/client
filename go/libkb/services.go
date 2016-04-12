@@ -13,6 +13,7 @@ import (
 
 type ServiceType interface {
 	AllStringKeys() []string
+	NormalizeUsername(key, username string) (string, error)
 	NormalizeRemoteName(string) (string, error)
 	CaseSensitiveUsername() bool
 	ToChecker() Checker

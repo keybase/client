@@ -70,6 +70,10 @@ type GithubServiceType struct{ BaseServiceType }
 
 func (t GithubServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
+func (t GithubServiceType) NormalizeUsername(key, username string) (string, error) {
+	return t.NormalizeRemoteName(username)
+}
+
 func (t GithubServiceType) NormalizeRemoteName(s string) (ret string, err error) {
 	if !regexp.MustCompile(`^@?(?i:[a-z0-9][a-z0-9-]{0,38})$`).MatchString(s) {
 		return "", BadUsernameError{s}

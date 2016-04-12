@@ -85,6 +85,10 @@ func coinbaseSettingsURL(s string) string {
 	return coinbaseUserURL(s) + "#settings"
 }
 
+func (t CoinbaseServiceType) NormalizeUsername(key, username string) (string, error) {
+	return t.NormalizeRemoteName(username)
+}
+
 func (t CoinbaseServiceType) NormalizeRemoteName(s string) (ret string, err error) {
 	if !regexp.MustCompile(`^@?(?i:[a-z0-9_]{2,16})$`).MatchString(s) {
 		return "", BadUsernameError{s}
