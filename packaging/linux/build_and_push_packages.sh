@@ -131,8 +131,12 @@ bump_arch_linux_aur() {
     cd "$temp_repo"
     sed -i "s/pkgver=.*/pkgver=$arch_version/" PKGBUILD
     sed -i "s/pkgver = .*/pkgver = $arch_version/" .SRCINFO
-    git commit -am "version bump"
-    git push origin master
+    # The commit will fail if there are no changes. Don't push in that case.
+    if git commit -am "version bump" ; then
+      git push origin master
+    else
+      echo "No changes to the PKGBUILD. Skipping AUR push."
+    fi
   )
 }
 
