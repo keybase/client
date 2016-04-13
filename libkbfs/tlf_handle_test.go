@@ -78,7 +78,7 @@ func TestParseTlfHandleNoUserFailure(t *testing.T) {
 
 	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
 	currentUID := localUsers[0].UID
-	daemon := NewKeybaseDaemonMemory(currentUID, localUsers)
+	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, NewCodecMsgpack())
 
 	kbpki := &daemonKBPKI{
 		daemon: daemon,
@@ -95,7 +95,7 @@ func TestParseTlfHandleNotReaderFailure(t *testing.T) {
 
 	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
 	currentUID := localUsers[0].UID
-	daemon := NewKeybaseDaemonMemory(currentUID, localUsers)
+	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, NewCodecMsgpack())
 
 	kbpki := &daemonKBPKI{
 		daemon: daemon,
@@ -113,7 +113,7 @@ func TestParseTlfHandleAssertionNotCanonicalFailure(t *testing.T) {
 	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
 	localUsers[2].Asserts = []string{"u3@twitter"}
 	currentUID := localUsers[0].UID
-	daemon := NewKeybaseDaemonMemory(currentUID, localUsers)
+	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, NewCodecMsgpack())
 
 	kbpki := &daemonKBPKI{
 		daemon: daemon,
@@ -133,7 +133,7 @@ func TestParseTlfHandleAssertionPrivateSuccess(t *testing.T) {
 
 	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
 	currentUID := localUsers[0].UID
-	daemon := NewKeybaseDaemonMemory(currentUID, localUsers)
+	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, NewCodecMsgpack())
 
 	kbpki := &daemonKBPKI{
 		daemon: daemon,
@@ -151,7 +151,7 @@ func TestParseTlfHandleAssertionPublicSuccess(t *testing.T) {
 
 	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
 	currentUID := localUsers[0].UID
-	daemon := NewKeybaseDaemonMemory(currentUID, localUsers)
+	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, NewCodecMsgpack())
 
 	kbpki := &daemonKBPKI{
 		daemon: daemon,

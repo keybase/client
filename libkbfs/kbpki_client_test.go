@@ -15,8 +15,9 @@ func makeTestKBPKIClient(t *testing.T) (
 	currentUID = keybase1.MakeTestUID(1)
 	names := []libkb.NormalizedUsername{"test_name1", "test_name2"}
 	users = MakeLocalUsers(names)
-	daemon := NewKeybaseDaemonMemory(currentUID, users)
-	config := &ConfigLocal{codec: NewCodecMsgpack(), daemon: daemon}
+	codec := NewCodecMsgpack()
+	daemon := NewKeybaseDaemonMemory(currentUID, users, codec)
+	config := &ConfigLocal{codec: codec, daemon: daemon}
 	setTestLogger(config, t)
 	return NewKBPKIClient(config), currentUID, users
 }
@@ -36,8 +37,9 @@ func makeTestKBPKIClientWithRevokedKey(t *testing.T, revokeTime time.Time) (
 		}
 		users[i] = user
 	}
-	daemon := NewKeybaseDaemonMemory(currentUID, users)
-	config := &ConfigLocal{codec: NewCodecMsgpack(), daemon: daemon}
+	codec := NewCodecMsgpack()
+	daemon := NewKeybaseDaemonMemory(currentUID, users, codec)
+	config := &ConfigLocal{codec: codec, daemon: daemon}
 	setTestLogger(config, t)
 	return NewKBPKIClient(config), currentUID, users
 }

@@ -223,7 +223,7 @@ func makeKeybaseDaemon(config Config, serverInMemory bool, serverRootDir string,
 	localUID := localUsers[userIndex].UID
 
 	if serverInMemory {
-		return NewKeybaseDaemonMemory(localUID, localUsers), nil
+		return NewKeybaseDaemonMemory(localUID, localUsers, codec), nil
 	}
 
 	if len(serverRootDir) > 0 {

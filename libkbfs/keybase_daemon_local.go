@@ -108,6 +108,8 @@ func (c memoryFavoriteClient) Shutdown() {}
 // KeybaseDaemonLocal implements KeybaseDaemon using an in-memory user
 // and session store, and a given favorite store.
 type KeybaseDaemonLocal struct {
+	codec Codec
+
 	// lock protects localUsers and asserts against races.
 	lock       sync.Mutex
 	localUsers localUserMap
@@ -148,7 +150,11 @@ func (k *KeybaseDaemonLocal) Identify(ctx context.Context, assertion, reason str
 		return UserInfo{}, err
 	}
 
-	return u.UserInfo, nil
+	var infoCopy UserInfo
+	if err := CodecUpdate(k.codec, &infoCopy, u.UserInfo); err != nil {
+		return UserInfo{}, err
+	}
+	return infoCopy, nil
 }
 
 // LoadUserPlusKeys implements KeybaseDaemon for KeybaseDaemonLocal.
@@ -160,7 +166,11 @@ func (k *KeybaseDaemonLocal) LoadUserPlusKeys(ctx context.Context, uid keybase1.
 		return UserInfo{}, err
 	}
 
-	return u.UserInfo, nil
+	var infoCopy UserInfo
+	if err := CodecUpdate(k.codec, &infoCopy, u.UserInfo); err != nil {
+		return UserInfo{}, err
+	}
+	return infoCopy, nil
 }
 
 // CurrentSession implements KeybaseDaemon for KeybaseDaemonLocal.
@@ -231,26 +241,28 @@ func (k *KeybaseDaemonLocal) Shutdown() {
 // NewKeybaseDaemonDisk constructs a KeybaseDaemonLocal object given a
 // set of possible users, and one user that should be "logged in".
 // Any storage (e.g. the favorites) persists to disk.
-func NewKeybaseDaemonDisk(currentUID keybase1.UID, users []LocalUser, favDBFile string, codec Codec) (*KeybaseDaemonLocal, error) {
+func NewKeybaseDaemonDisk(currentUID keybase1.UID, users []LocalUser,
+	favDBFile string, codec Codec) (*KeybaseDaemonLocal, error) {
 	favoriteDb, err := leveldb.OpenFile(favDBFile, leveldbOptions)
 	if err != nil {
 		return nil, err
 	}
 	favoriteStore := diskFavoriteClient{currentUID, favoriteDb, codec}
-	return newKeybaseDaemonLocal(currentUID, users, favoriteStore), nil
+	return newKeybaseDaemonLocal(codec, currentUID, users, favoriteStore), nil
 }
 
 // NewKeybaseDaemonMemory constructs a KeybaseDaemonLocal object given
 // a set of possible users, and one user that should be "logged in".
 // Any storage (e.g. the favorites) is kept in memory only.
-func NewKeybaseDaemonMemory(currentUID keybase1.UID, users []LocalUser) *KeybaseDaemonLocal {
+func NewKeybaseDaemonMemory(currentUID keybase1.UID,
+	users []LocalUser, codec Codec) *KeybaseDaemonLocal {
 	favoriteStore := memoryFavoriteClient{
 		favorites: make(map[string]keybase1.Folder),
 	}
-	return newKeybaseDaemonLocal(currentUID, users, favoriteStore)
+	return newKeybaseDaemonLocal(codec, currentUID, users, favoriteStore)
 }
 
-func newKeybaseDaemonLocal(
+func newKeybaseDaemonLocal(codec Codec,
 	currentUID keybase1.UID, users []LocalUser,
 	favoriteStore favoriteStore) *KeybaseDaemonLocal {
 	localUserMap := make(localUserMap)
@@ -264,6 +276,7 @@ func newKeybaseDaemonLocal(
 		asserts["uid:"+u.UID.String()] = u.UID
 	}
 	return &KeybaseDaemonLocal{
+		codec:         codec,
 		localUsers:    localUserMap,
 		asserts:       asserts,
 		currentUID:    currentUID,
