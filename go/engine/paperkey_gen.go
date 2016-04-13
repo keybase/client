@@ -94,6 +94,13 @@ func (e *PaperKeyGen) Run(ctx *Context) error {
 		return err
 	}
 
+	// no need to notify if key wasn't pushed to server
+	// (e.g. in the case of using this engine to verify a key)
+	if e.arg.SkipPush {
+		return nil
+	}
+	e.G().NotifyRouter.HandleUserChanged(e.arg.Me.GetUID())
+
 	return nil
 }
 
