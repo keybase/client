@@ -9,7 +9,6 @@ import * as signupActions from '../../actions/signup'
 
 class UsernameEmailForm extends Component {
   render () {
-    console.log('in main UsernameEmailForm render')
     return (
       <Render
         username={this.props.username}
