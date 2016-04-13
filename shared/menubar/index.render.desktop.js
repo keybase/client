@@ -406,7 +406,7 @@ const SVGFolderIcon = svgPath => ({
   height: 22,
   minWidth: 22,
   maxWidth: 22,
-  backgroundImage: `url(${svgPath})`,
+  backgroundImage: `url('${svgPath}')`,
   backgroundRepeat: 'no-repeat',
   backgroundPosition: 'center center'
 })
