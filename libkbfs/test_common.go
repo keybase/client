@@ -356,44 +356,10 @@ func RevokeDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config,
 		t.Fatalf("Bad keybase daemon")
 	}
 
-	user, err := kbd.getLocalUser(uid)
-	if err != nil {
-		t.Fatalf("No such user %s: %v", uid, err)
+	if err := kbd.revokeDeviceForTesting(
+		config.Clock(), uid, index); err != nil {
+		t.Fatalf(err.Error())
 	}
-
-	if index >= len(user.VerifyingKeys) ||
-		(kbd.currentUID == uid && index == user.CurrentCryptPublicKeyIndex) {
-		t.Fatalf("Can't revoke index %d", index)
-	}
-
-	if user.RevokedVerifyingKeys == nil {
-		user.RevokedVerifyingKeys = make(map[VerifyingKey]keybase1.KeybaseTime)
-	}
-	if user.RevokedCryptPublicKeys == nil {
-		user.RevokedCryptPublicKeys =
-			make(map[CryptPublicKey]keybase1.KeybaseTime)
-	}
-
-	kbtime := keybase1.KeybaseTime{
-		Unix:  keybase1.ToTime(config.Clock().Now()),
-		Chain: 100,
-	}
-	user.RevokedVerifyingKeys[user.VerifyingKeys[index]] = kbtime
-	user.RevokedCryptPublicKeys[user.CryptPublicKeys[index]] = kbtime
-
-	user.VerifyingKeys = append(user.VerifyingKeys[:index],
-		user.VerifyingKeys[index+1:]...)
-	user.CryptPublicKeys = append(user.CryptPublicKeys[:index],
-		user.CryptPublicKeys[index+1:]...)
-
-	if kbd.currentUID == uid && index < user.CurrentCryptPublicKeyIndex {
-		user.CurrentCryptPublicKeyIndex--
-	}
-	if kbd.currentUID == uid && index < user.CurrentVerifyingKeyIndex {
-		user.CurrentVerifyingKeyIndex--
-	}
-
-	kbd.setLocalUser(uid, user)
 }
 
 // SwitchDeviceForLocalUserOrBust switches the current user's current device

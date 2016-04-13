@@ -203,6 +203,52 @@ func (k *KeybaseDaemonLocal) setLocalUser(uid keybase1.UID, user LocalUser) {
 	k.localUsers[uid] = user
 }
 
+func (k *KeybaseDaemonLocal) revokeDeviceForTesting(clock Clock,
+	uid keybase1.UID, index int) error {
+	k.lock.Lock()
+	defer k.lock.Unlock()
+
+	user, err := k.localUsers.getLocalUser(uid)
+	if err != nil {
+		return fmt.Errorf("No such user %s: %v", uid, err)
+	}
+
+	if index >= len(user.VerifyingKeys) ||
+		(k.currentUID == uid && index == user.CurrentCryptPublicKeyIndex) {
+		return fmt.Errorf("Can't revoke index %d", index)
+	}
+
+	if user.RevokedVerifyingKeys == nil {
+		user.RevokedVerifyingKeys = make(map[VerifyingKey]keybase1.KeybaseTime)
+	}
+	if user.RevokedCryptPublicKeys == nil {
+		user.RevokedCryptPublicKeys =
+			make(map[CryptPublicKey]keybase1.KeybaseTime)
+	}
+
+	kbtime := keybase1.KeybaseTime{
+		Unix:  keybase1.ToTime(clock.Now()),
+		Chain: 100,
+	}
+	user.RevokedVerifyingKeys[user.VerifyingKeys[index]] = kbtime
+	user.RevokedCryptPublicKeys[user.CryptPublicKeys[index]] = kbtime
+
+	user.VerifyingKeys = append(user.VerifyingKeys[:index],
+		user.VerifyingKeys[index+1:]...)
+	user.CryptPublicKeys = append(user.CryptPublicKeys[:index],
+		user.CryptPublicKeys[index+1:]...)
+
+	if k.currentUID == uid && index < user.CurrentCryptPublicKeyIndex {
+		user.CurrentCryptPublicKeyIndex--
+	}
+	if k.currentUID == uid && index < user.CurrentVerifyingKeyIndex {
+		user.CurrentVerifyingKeyIndex--
+	}
+
+	k.localUsers[uid] = user
+	return nil
+}
+
 // FavoriteAdd implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) FavoriteAdd(
 	ctx context.Context, folder keybase1.Folder) error {
