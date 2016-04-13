@@ -132,6 +132,9 @@ type TestParameters struct {
 	// suffix.
 	DevelName  string
 	RuntimeDir string
+
+	// set to true to use production run mode in tests
+	UseProductionRunMode bool
 }
 
 func (tp TestParameters) GetDebug() (bool, bool) {
@@ -330,6 +333,13 @@ func (e *Env) GetDuration(def time.Duration, flist ...func() (time.Duration, boo
 }
 
 func (e *Env) GetServerURI() string {
+	// appveyor and os x travis CI set server URI, so need to
+	// check for test flag here in order for production api endpoint
+	// tests to pass.
+	if e.Test.UseProductionRunMode {
+		return ServerLookup[e.GetRunMode()]
+	}
+
 	return e.GetString(
 		func() string { return e.cmd.GetServerURI() },
 		func() string { return os.Getenv("KEYBASE_SERVER_URI") },
@@ -624,6 +634,11 @@ func (e *Env) GetEmailOrUsername() string {
 }
 
 func (e *Env) GetRunMode() RunMode {
+	// If testing production run mode, then use it:
+	if e.Test.UseProductionRunMode {
+		return ProductionRunMode
+	}
+
 	var ret RunMode
 
 	pick := func(m RunMode, err error) {

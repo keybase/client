@@ -215,32 +215,32 @@
 		},
 		{
 			"path": "github.com/keybase/client/go/auth",
-			"revision": "6ca7e7d3627970e89c65fe96a87571575e92f364",
-			"revisionTime": "2016-03-31T15:41:33-04:00"
+			"revision": "662935e78eed1cea3a49a4a0263235fdc61c760c",
+			"revisionTime": "2016-04-09T10:18:52-07:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/kex2",
-			"revision": "6ca7e7d3627970e89c65fe96a87571575e92f364",
-			"revisionTime": "2016-03-31T15:41:33-04:00"
+			"revision": "662935e78eed1cea3a49a4a0263235fdc61c760c",
+			"revisionTime": "2016-04-09T10:18:52-07:00"
 		},
 		{
 			"checksumSHA1": "1Jt2tqvLSHPHpfSczFggBmVlgvo=",
 			"origin": "github.com/keybase/kbfs/vendor/github.com/keybase/client/go/libkb",
 			"path": "github.com/keybase/client/go/libkb",
-			"revision": "c3c738d5e58109a9e0288c62e3c02e8406aa041d",
-			"revisionTime": "2016-04-05T09:34:52-07:00"
+			"revision": "662935e78eed1cea3a49a4a0263235fdc61c760c",
+			"revisionTime": "2016-04-09T10:18:52-07:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/logger",
-			"revision": "6ca7e7d3627970e89c65fe96a87571575e92f364",
-			"revisionTime": "2016-03-31T15:41:33-04:00"
+			"revision": "662935e78eed1cea3a49a4a0263235fdc61c760c",
+			"revisionTime": "2016-04-09T10:18:52-07:00"
 		},
 		{
 			"checksumSHA1": "d+CPJmGeTu63pAUcUunTgkiZQRc=",
 			"origin": "github.com/keybase/kbfs/vendor/github.com/keybase/client/go/protocol",
 			"path": "github.com/keybase/client/go/protocol",
-			"revision": "c3c738d5e58109a9e0288c62e3c02e8406aa041d",
-			"revisionTime": "2016-04-05T09:34:52-07:00"
+			"revision": "662935e78eed1cea3a49a4a0263235fdc61c760c",
+			"revisionTime": "2016-04-09T10:18:52-07:00"
 		},
 		{
 			"path": "github.com/keybase/go-codec/codec",
@@ -298,8 +298,8 @@
 		{
 			"origin": "github.com/keybase/kbfs/vendor/github.com/keybase/go-framed-msgpack-rpc",
 			"path": "github.com/keybase/go-framed-msgpack-rpc",
-			"revision": "f6fef575469bdad86d21f5c8e2c1aafde1cf0a2e",
-			"revisionTime": "2016-03-23T19:13:04-05:00"
+			"revision": "e7a2b13c5f85e774aa13c4fd428007bd46cb11bc",
+			"revisionTime": "2016-04-12T22:29:01-07:00"
 		},
 		{
 			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-jsonw",

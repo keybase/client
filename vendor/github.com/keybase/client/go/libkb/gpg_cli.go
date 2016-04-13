@@ -70,12 +70,11 @@ func (g *GpgCLI) Configure() (err error) {
 
 // CanExec returns true if a gpg executable exists.
 func (g *GpgCLI) CanExec() (bool, error) {
-	if err := g.Configure(); err != nil {
-		if oerr, ok := err.(*exec.Error); ok {
-			if oerr.Err == exec.ErrNotFound {
-				return false, nil
-			}
-		}
+	err := g.Configure()
+	if IsExecError(err) {
+		return false, nil
+	}
+	if err != nil {
 		return false, err
 	}
 	return true, nil
@@ -127,7 +126,8 @@ func (g *GpgCLI) ImportKey(secret bool, fp PGPFingerprint) (*PGPKeyBundle, error
 		return nil, NoKeyError{fmt.Sprintf("No %skey found for fingerprint %s", which, fp)}
 	}
 
-	bundle, err := ReadOneKeyFromString(armored)
+	bundle, w, err := ReadOneKeyFromString(armored)
+	w.Warn(g.G())
 	if err != nil {
 		return nil, err
 	}

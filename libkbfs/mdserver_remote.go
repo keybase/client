@@ -506,10 +506,9 @@ func (md *MDServerRemote) RegisterForUpdate(ctx context.Context, id TlfID,
 				return err
 			}
 		}
-		err = server.Run(true)
-		if err != nil {
-			return err
-		}
+		// TODO: Do something with server.Err() when server is
+		// done?
+		server.Run()
 
 		// keep re-adding the observer on retries, since
 		// disconnects or connection errors clear observers.

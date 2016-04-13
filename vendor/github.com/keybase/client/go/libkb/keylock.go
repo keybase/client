@@ -5,6 +5,8 @@ package libkb
 
 import "fmt"
 
+const WhichPassphraseKeybase = "your Keybase"
+
 type KeyUnlocker struct {
 	Tries          int
 	Reason         string
