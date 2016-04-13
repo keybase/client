@@ -4,7 +4,7 @@ import * as Constants from '../constants/tracker'
 import * as CommonConstants from '../constants/common'
 
 import {normal, warning, error, checking} from '../constants/tracker'
-import {metaNew, metaUpgraded, metaUnreachable, metaDeleted, metaWhatevz} from '../constants/tracker'
+import {metaNew, metaUpgraded, metaUnreachable, metaDeleted, metaTrackedBroken} from '../constants/tracker'
 
 import {identify} from '../constants/types/keybase-v1'
 
@@ -460,7 +460,7 @@ function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
   // whatevz, tracked a broken thing
   if (lcr && lcr.proofResult && lcr.proofResult.status !== identify.ProofStatus.ok &&
       lcr.diff && lcr.diff.type === identify.TrackDiffType.none) {
-    diffMeta = metaWhatevz
+    diffMeta = metaTrackedBroken
     statusMeta = null
   }
 

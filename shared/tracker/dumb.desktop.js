@@ -1,7 +1,7 @@
 /* @flow */
 import Tracker from './index'
 import {normal, checking, revoked, error} from '../constants/tracker'
-import {metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone, metaWhatevz} from '../constants/tracker'
+import {metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone, metaTrackedBroken} from '../constants/tracker'
 import type {TrackerProps} from '../tracker'
 import type {Proof} from '../tracker/proofs.render'
 import type {TrackSummary} from '../constants/types/flow-types'
@@ -122,7 +122,7 @@ const propsWhatevz: TrackerProps = {
   reason: 'You have tracked gabrielh',
   proofs: [
     proofGithub,
-    {...proofTwitter, meta: metaWhatevz}
+    {...proofTwitter, meta: metaTrackedBroken}
   ]
 }
 
