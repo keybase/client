@@ -223,17 +223,17 @@
 			"revisionTime": "2016-01-05T18:46:37-05:00"
 		},
 		{
-			"checksumSHA1": "I13eHztw5qFReA/em0yFfD19i48=",
+			"checksumSHA1": "Xanvzhz0mK0COvu27XKoQxIU7gk=",
+			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/gregor",
 			"path": "github.com/keybase/gregor",
-			"revision": "4222e358248b9ecc65c5baa43b438ed0f6aadcc2",
-			"revisionTime": "2016-04-04T09:40:36-05:00"
+			"revision": "dfde4449a8e3c5fbfeddd5e620d588fcaff3a387",
+			"revisionTime": "2016-04-13T10:15:26-04:00"
 		},
 		{
-			"checksumSHA1": "Q6WC6vjJHm1Yf8JwSxQ+RYIY8Ow=",
-			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/gregor/protocol/go",
-			"path": "github.com/keybase/gregor/protocol/go",
-			"revision": "4222e358248b9ecc65c5baa43b438ed0f6aadcc2",
-			"revisionTime": "2016-04-04T09:40:36-05:00"
+			"checksumSHA1": "1v6Z0foUSlEgXwFGLLOwihn8YZ4=",
+			"path": "github.com/keybase/gregor/protocol/gregor1",
+			"revision": "dfde4449a8e3c5fbfeddd5e620d588fcaff3a387",
+			"revisionTime": "2016-04-13T10:15:26-04:00"
 		},
 		{
 			"path": "github.com/keybase/keybase-test-vectors/go",
