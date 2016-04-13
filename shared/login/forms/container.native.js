@@ -5,7 +5,6 @@ import {Box, BackButton} from '../../common-adapters'
 import type {Props} from './container'
 
 export default ({children, onBack, style, outerStyle}: Props) => {
-  console.log('in container.native.js')
   return (
     <Box style={{...styles.container, ...outerStyle}}>
       {onBack && <BackButton style={styles.button} onClick={onBack}/>}

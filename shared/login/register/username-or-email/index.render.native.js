@@ -27,7 +27,6 @@ class Render extends Component<void, Props, State> {
   }
 
   render () {
-    console.log('in username or email native constructor')
     return (
       <Container
         style={stylesContainer}

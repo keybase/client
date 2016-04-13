@@ -9,7 +9,6 @@ const avatarSize = 110
 
 export default class UserCard extends Component<void, Props, void> {
   render () {
-    console.log('in user-card render')
     const url = this.props.username ? `https://keybase.io/${this.props.username}` : null
     return (
       <div style={{...styles.container, ...this.props.outerStyle}}>
