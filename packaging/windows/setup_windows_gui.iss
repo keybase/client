@@ -97,7 +97,7 @@ WelcomeLabel2=This will install [name/ver] on your computer.
 [Run]
 Filename: "{tmp}\vc_redist.x86.exe"; Parameters: "/quiet /Q:a /c:""msiexec /qb /i vcredist.msi"""; StatusMsg: "Installing VisualStudio 2015 RunTime..."
 Filename: "{app}\{#MyExeName}"; Parameters: "ctl watchdog"; Flags: runasoriginaluser runhidden nowait
-Filename: "{pf32}\Dokan\DokanLibrary\dokanctl.exe"; Parameters: "/i d"; WorkingDir: "{pf32}\Dokan\DokanLibrary"; Flags: runhidden; Description: "Install Dokan Service"
+Filename: "{pf32}\Dokan\DokanLibrary\dokanctl.exe"; Parameters: "/i d"; WorkingDir: "{pf32}\Dokan\DokanLibrary"; Flags: runhidden; Description: "Install Dokan Service"; Check: IsDokanBeingUpdated
 Filename: "{app}\gui\Keybase.exe"; WorkingDir: "{app}\gui"; Flags: nowait runasoriginaluser
 Filename: "{app}\kbfsdokan.exe"; Parameters: "-log-to-file -debug k:"; Flags: runasoriginaluser runhidden nowait
 
@@ -241,6 +241,7 @@ var
 begin
   Result := true;
   fileName := ExpandConstant('{userstartup}\{#MyAppName}.vbs');
+  Log('Created ' + fileName);
   SetArrayLength(lines, 5);
 
   lines[0] := 'Dim WinScriptHost';
@@ -289,6 +290,7 @@ var
   CommandName: string;
 
 begin
+  Log('StopKeybaseService()');
   // kill any electron UI instances
   Exec('taskkill.exe', '/f /im Keybase.exe', '', SW_HIDE,
     ewWaitUntilTerminated, ResultCode);
@@ -296,9 +298,6 @@ begin
   CommandName := ExpandConstant('{app}\{#MyExeName}');
   Exec(CommandName, 'ctl stop', '', SW_HIDE,
     ewWaitUntilTerminated, ResultCode);
-  Exec(ExpandConstant('{pf32}\Dokan\DokanLibrary\dokanctl.exe'), '/u K', '', SW_HIDE,
-    ewWaitUntilTerminated, ResultCode);
-  Sleep(500);
   Exec('taskkill.exe', '/f /im kbfsdokan.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
   Sleep(100);
   if IsDokanBeingUpdated() then
