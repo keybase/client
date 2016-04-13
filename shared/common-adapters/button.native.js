@@ -18,7 +18,6 @@ class Button extends Component {
   props: Props;
 
   render () {
-    console.log('in Button render')
     let style = {
       Primary,
       Secondary,
@@ -47,10 +46,6 @@ class Button extends Component {
 
     const onPress = (!this.props.disabled && !this.props.waiting && this.props.onClick) || null
 
-    console.log('BUTTON STYLE')
-    console.log(style)
-    console.log(this.props.type)
-    console.log(this.props.style)
     // Need this nested view to get around this RN issue: https://github.com/facebook/react-native/issues/1040
     return (
       <TouchableHighlight
