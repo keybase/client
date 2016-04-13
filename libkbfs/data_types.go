@@ -697,6 +697,16 @@ func NewUsageStat() *UsageStat {
 	}
 }
 
+// NonZero checks whether UsageStat has accumulated any usage info
+func (u *UsageStat) NonZero() bool {
+	for i := UsageType(0); i < NumUsage; i++ {
+		if u.Bytes[i] != 0 {
+			return true
+		}
+	}
+	return false
+}
+
 //AccumOne records the usage of one block, whose size is denoted by change
 //A positive change means the block is newly added, negative means the block
 //is deleted. If archive is true, it means the block is archived.
