@@ -80,6 +80,12 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		break
 
 	case libkbfs.TlfNameNotCanonical:
+
+		// Only permit Aliases to targets that contain no errors.
+		if !fl.isValidAliasTarget(ctx, err.NameToTry) {
+			fl.fs.log.CDebugf(ctx, "FL Refusing alias to non-valid target %q", err.NameToTry)
+			return nil, fuse.ENOENT
+		}
 		// Non-canonical name.
 		n := &Alias{
 			canon: err.NameToTry,
@@ -98,6 +104,11 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 	child := newTLF(fl, h)
 	fl.folders[req.Name] = child
 	return child, nil
+}
+
+func (fl *FolderList) isValidAliasTarget(ctx context.Context, nameToTry string) bool {
+	_, err := libkbfs.ParseTlfHandle(ctx, fl.fs.config.KBPKI(), nameToTry, fl.public)
+	return err == nil
 }
 
 func (fl *FolderList) forgetFolder(folderName string) {
