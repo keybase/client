@@ -120,8 +120,10 @@ type TwitterServiceType struct{ BaseServiceType }
 
 func (t TwitterServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
+var twitterUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9_]{1,20})$`)
+
 func (t TwitterServiceType) NormalizeUsername(s string) (string, error) {
-	if !regexp.MustCompile(`^(?i:[a-z0-9_]{1,20})$`).MatchString(s) {
+	if !twitterUsernameRegexp.MatchString(s) {
 		return "", BadUsernameError{s}
 	}
 	return strings.ToLower(s), nil
@@ -129,10 +131,8 @@ func (t TwitterServiceType) NormalizeUsername(s string) (string, error) {
 
 func (t TwitterServiceType) NormalizeRemoteName(s string) (string, error) {
 	// Allow a leading '@'.
-	if !regexp.MustCompile(`^@?(?i:[a-z0-9_]{1,20})$`).MatchString(s) {
-		return "", BadUsernameError{s}
-	}
-	return strings.ToLower(strings.TrimPrefix(s, "@")), nil
+	s = strings.TrimPrefix(s, "@")
+	return t.NormalizeUsername(s)
 }
 
 func (t TwitterServiceType) ToChecker() Checker {

@@ -151,8 +151,10 @@ type RedditServiceType struct{ BaseServiceType }
 
 func (t RedditServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
+var redditUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9_-]{3,20})$`)
+
 func (t RedditServiceType) NormalizeUsername(s string) (string, error) {
-	if !regexp.MustCompile(`^(?i:[a-z0-9_-]{3,20})$`).MatchString(s) {
+	if !redditUsernameRegexp.MatchString(s) {
 		return "", BadUsernameError{s}
 	}
 	return strings.ToLower(s), nil
