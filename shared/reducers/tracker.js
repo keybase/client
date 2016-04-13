@@ -457,9 +457,10 @@ function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
     statusMeta = proofStatusToSimpleProofMeta(lcr.proofResult.status)
   }
 
+  const isTracked = lcr && lcr.diff && lcr.diff.type === identify.TrackDiffType.none && !lcr.breaksTracking
+
   // whatevz, tracked a broken thing
-  if (lcr && lcr.proofResult && lcr.proofResult.status !== identify.ProofStatus.ok &&
-      lcr.diff && lcr.diff.type === identify.TrackDiffType.none) {
+  if (lcr && lcr.proofResult && lcr.proofResult.status !== identify.ProofStatus.ok && isTracked) {
     diffMeta = metaTrackedBroken
     statusMeta = null
   }
@@ -474,7 +475,8 @@ function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
     color: stateToColor(proofState),
     name: rp.displayMarkup,
     humanUrl: humanUrl,
-    profileUrl: rp.displayMarkup && proofUrlToProfileUrl(rp.proofType, rp.displayMarkup, rp.key, humanUrl)
+    profileUrl: rp.displayMarkup && proofUrlToProfileUrl(rp.proofType, rp.displayMarkup, rp.key, humanUrl),
+    isTracked
   }
 }
 

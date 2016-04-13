@@ -61,15 +61,11 @@ class ProofsRender extends Component {
     return color
   }
 
-  _isTracked (proof: Proof): boolean {
-    return this.props.currentlyFollowing && (!proof.meta || proof.meta === metaNone || proof.meta === metaTrackedBroken)
-  }
-
   _proofColor (proof: Proof): string {
     let color = globalColors.blue
     switch (proof.state) {
       case proofNormal: {
-        color = this._isTracked(proof) ? globalColors.green2 : globalColors.blue
+        color = proof.isTracked ? globalColors.green2 : globalColors.blue
         break
       }
       case proofChecking:
@@ -90,7 +86,7 @@ class ProofsRender extends Component {
   _proofStatusIcon (proof: Proof): ?IconProps.type {
     switch (proof.state) {
       case proofNormal:
-        return this._isTracked(proof) ? 'fa-custom-icon-proof-good-followed' : 'fa-custom-icon-proof-good-new'
+        return proof.isTracked ? 'fa-custom-icon-proof-good-followed' : 'fa-custom-icon-proof-good-new'
 
       case proofWarning:
       case proofError:
