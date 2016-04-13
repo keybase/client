@@ -47,17 +47,15 @@ const propsBase = {
   closed: false,
   lastTrack: null,
   currentlyFollowing: false,
-  onFollowChecked: () => {},
-  onFollowHelp: () => {},
   onFollow: () => {},
   onRefollow: () => {},
   onUnfollow: () => {},
   onClose: () => {},
   startTimer: () => {},
   stopTimer: () => {},
+  onIgnore: () => {},
   waiting: false,
   loggedIn: true,
-  onMaybeTrack: () => {},
   trackerMessage: null,
   lastAction: null
 }

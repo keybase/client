@@ -35,17 +35,12 @@ export const updateProofState = 'tracker:updateProofState'
 
 export const reportLastTrack = 'tracker:reportLastTrack'
 
-export const onUserTrackingLoading = 'tracker:userTrackingLoading'
-
-export const onMaybeTrack = 'tracker:onMaybeTrack'
 export const onClose = 'tracker:onClose'
 
 export const onFollow = 'tracker:onFollow'
 export const onRefollow = 'tracker:onRefollow'
 export const onUnfollow = 'tracker:onUnfollow'
 export const onError = 'tracker:onError'
-export const onFollowHelp = 'tracker:onFollowHelp'
-export const onFollowChecked = 'tracker:onFollowChecked'
 export const onWaiting = 'tracker:onWaiting'
 
 export const showTracker = 'tracker:showTracker'

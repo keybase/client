@@ -75,18 +75,7 @@ function initialTrackerState (username: string): TrackerState {
 }
 
 function updateUserState (state: TrackerState, action: Action): TrackerState {
-  let shouldFollow: boolean
   switch (action.type) {
-    case Constants.onFollowChecked:
-      if (action.payload == null) {
-        return state
-      }
-      shouldFollow = action.payload.shouldFollow
-
-      return {
-        ...state,
-        shouldFollow
-      }
     case Constants.updateReason:
       // In case the reason is null, let's use our existing reason
       return {
@@ -107,12 +96,6 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
           closed: true,
           hidden: false
         }
-      }
-    case Constants.onMaybeTrack:
-      return {
-        ...state,
-        closed: true,
-        hidden: false
       }
     case Constants.onClose:
       return {
@@ -225,12 +208,6 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       return {
         ...state,
         lastTrack: action.payload && action.payload.track
-      }
-
-    case Constants.onUserTrackingLoading:
-      return {
-        ...state,
-        hidden: true
       }
 
     case Constants.showTracker:
