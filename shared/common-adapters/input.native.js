@@ -45,8 +45,6 @@ class Input extends Component<void, Props, State> {
   }
 
   render () {
-    console.log('in Input render')
-    console.log('value: ' + this.props.value)
     const IOS = Platform.OS_IOS === OS
     const inputStyle = Text.textStyle({type: 'BodySemibold'}, {})
     const password = this.props.type === 'password'
