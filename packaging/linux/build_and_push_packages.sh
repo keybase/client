@@ -125,12 +125,12 @@ bump_arch_linux_aur() {
   # This relies on having the SSH key registered with the "keybase" account on
   # https://aur.archlinux.org.
   (
-    underscore_version="$(echo "$version" | sed 's/[-+]/_/g')"
+    arch_version="$("$here/arch/version.sh")"
     temp_repo=`mktemp -d`
     git clone aur@aur.archlinux.org:keybase-git "$temp_repo"
     cd "$temp_repo"
-    sed -i "s/pkgver=.*/pkgver=$underscore_version/" PKGBUILD
-    sed -i "s/pkgver = .*/pkgver = $underscore_version/" .SRCINFO
+    sed -i "s/pkgver=.*/pkgver=$arch_version/" PKGBUILD
+    sed -i "s/pkgver = .*/pkgver = $arch_version/" .SRCINFO
     git commit -am "version bump"
     git push origin master
   )
