@@ -282,7 +282,7 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2)
 	defer CheckConfigAndShutdown(t, config1)
-	clock := &TestClock{time.Now()}
+	clock := newTestClockNow()
 	config1.SetClock(clock)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)
@@ -385,7 +385,7 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	SwitchDeviceForLocalUserOrBust(t, config2Dev3, devIndex)
 
 	// Now revoke the original user 2 device (the last writer)
-	clock.T = clock.T.Add(1 * time.Minute)
+	clock.Add(1 * time.Minute)
 	RevokeDeviceForLocalUserOrBust(t, config1, uid2, 0)
 	RevokeDeviceForLocalUserOrBust(t, config2Dev2, uid2, 0)
 	RevokeDeviceForLocalUserOrBust(t, config2Dev3, uid2, 0)

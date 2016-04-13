@@ -60,7 +60,8 @@ func (o *opt) runInitOnce() {
 	if o.initDone {
 		return
 	}
-	o.clock = &libkbfs.TestClock{T: time.Unix(0, 0)}
+	o.clock = &libkbfs.TestClock{}
+	o.clock.Set(time.Unix(0, 0))
 	o.users = o.engine.InitTest(o.t, o.blockSize, o.blockChangeSize, o.writerNames, o.readerNames, o.clock)
 
 	for _, uname := range o.readerNames {
@@ -187,7 +188,7 @@ func (o *opt) expectSuccess(reason string, err error) {
 
 func addTime(d time.Duration) fileOp {
 	return fileOp{func(c *ctx) error {
-		c.clock.T = c.clock.T.Add(d)
+		c.clock.Add(d)
 		return nil
 	}, Defaults}
 }

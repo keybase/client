@@ -4,7 +4,6 @@ import (
 	"errors"
 	"reflect"
 	"testing"
-	"time"
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
@@ -932,8 +931,8 @@ func TestCRMergedChainsConflictSimple(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	now := time.Now()
-	config2.SetClock(&TestClock{now})
+	clock, now := newTestClockAndTimeNow()
+	config2.SetClock(clock)
 
 	name := userName1.String() + "," + userName2.String()
 
@@ -1000,8 +999,8 @@ func TestCRMergedChainsConflictFileCollapse(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	now := time.Now()
-	config2.SetClock(&TestClock{now})
+	clock, now := newTestClockAndTimeNow()
+	config2.SetClock(clock)
 
 	name := userName1.String() + "," + userName2.String()
 
@@ -1192,8 +1191,8 @@ func TestCRDoActionsWriteConflict(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	now := time.Now()
-	config2.SetClock(&TestClock{now})
+	clock, now := newTestClockAndTimeNow()
+	config2.SetClock(clock)
 
 	name := userName1.String() + "," + userName2.String()
 

@@ -2852,8 +2852,9 @@ func TestSimpleCRConflictOnOpenFiles(t *testing.T) {
 	}
 
 	now := time.Now()
-	clock := libkbfs.TestClock{T: now}
-	config2.SetClock(clock)
+	var clock libkbfs.TestClock
+	clock.Set(now)
+	config2.SetClock(&clock)
 
 	// both users read the root dir first
 	root1 := path.Join(mnt1.Dir, PrivateName, "user1,user2")
@@ -3037,8 +3038,9 @@ func TestSimpleCRConflictOnOpenMergedFile(t *testing.T) {
 	}
 
 	now := time.Now()
-	clock := libkbfs.TestClock{T: now}
-	config2.SetClock(clock)
+	var clock libkbfs.TestClock
+	clock.Set(now)
+	config2.SetClock(&clock)
 
 	// both users read the root dir first
 	root1 := path.Join(mnt1.Dir, PrivateName, "user1,user2")

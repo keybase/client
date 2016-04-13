@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"errors"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -544,12 +545,38 @@ func ForceQuotaReclamationForTesting(config Config,
 
 // TestClock returns a set time as the current time.
 type TestClock struct {
-	T time.Time
+	l sync.Mutex
+	t time.Time
+}
+
+func newTestClockNow() *TestClock {
+	return &TestClock{t: time.Now()}
+}
+
+func newTestClockAndTimeNow() (*TestClock, time.Time) {
+	t0 := time.Now()
+	return &TestClock{t: t0}, t0
 }
 
 // Now implements the Clock interface for TestClock.
-func (tc TestClock) Now() time.Time {
-	return tc.T
+func (tc *TestClock) Now() time.Time {
+	tc.l.Lock()
+	defer tc.l.Unlock()
+	return tc.t
+}
+
+// Set sets the test clock time.
+func (tc *TestClock) Set(t time.Time) {
+	tc.l.Lock()
+	defer tc.l.Unlock()
+	tc.t = t
+}
+
+// Set sets the test clock time.
+func (tc *TestClock) Add(d time.Duration) {
+	tc.l.Lock()
+	defer tc.l.Unlock()
+	tc.t = tc.t.Add(d)
 }
 
 // CheckConfigAndShutdown shuts down the given config, but fails the

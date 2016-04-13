@@ -3,7 +3,6 @@ package libkbfs
 import (
 	"reflect"
 	"testing"
-	"time"
 
 	"github.com/keybase/client/go/libkb"
 	"golang.org/x/net/context"
@@ -559,8 +558,8 @@ func TestBasicCRFileConflict(t *testing.T) {
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	defer CheckConfigAndShutdown(t, config2)
 
-	now := time.Now()
-	config2.SetClock(&TestClock{now})
+	clock, now := newTestClockAndTimeNow()
+	config2.SetClock(clock)
 
 	name := userName1.String() + "," + userName2.String()
 
@@ -688,8 +687,7 @@ func TestBasicCRFileCreateUnmergedWriteConflict(t *testing.T) {
 	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
 	defer CheckConfigAndShutdown(t, config2)
 
-	now := time.Now()
-	config2.SetClock(&TestClock{now})
+	config2.SetClock(newTestClockNow())
 
 	name := userName1.String() + "," + userName2.String()
 
@@ -822,8 +820,8 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	}
 	config2.MDServer().DisableRekeyUpdatesForTesting()
 
-	now := time.Now()
-	config2.SetClock(&TestClock{now})
+	clock, now := newTestClockAndTimeNow()
+	config2.SetClock(clock)
 	name := userName1.String() + "," + userName2.String()
 
 	// user1 creates a file in a shared dir
@@ -1026,8 +1024,7 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 	}
 	config2.MDServer().DisableRekeyUpdatesForTesting()
 
-	now := time.Now()
-	config2.SetClock(&TestClock{now})
+	config2.SetClock(newTestClockNow())
 	name := userName1.String() + "," + userName2.String()
 
 	// user1 creates a file in a shared dir

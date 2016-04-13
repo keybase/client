@@ -26,8 +26,7 @@ func TestQuotaReclamationSimple(t *testing.T) {
 	config, _, ctx := kbfsOpsInitNoMocks(t, userName)
 	defer CheckConfigAndShutdown(t, config)
 
-	now := time.Now()
-	clock := &TestClock{now}
+	clock, now := newTestClockAndTimeNow()
 	config.SetClock(clock)
 
 	kbfsOps := config.KBFSOps()
@@ -80,7 +79,7 @@ func TestQuotaReclamationSimple(t *testing.T) {
 
 	// Increase the time and make a new revision, but don't run quota
 	// reclamation yet.
-	clock.T = now.Add(2 * config.QuotaReclamationMinUnrefAge())
+	clock.Set(now.Add(2 * config.QuotaReclamationMinUnrefAge()))
 	_, _, err = kbfsOps.CreateDir(ctx, rootNode, "b")
 	if err != nil {
 		t.Fatalf("Couldn't create dir: %v", err)
@@ -117,8 +116,9 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 	defer CheckConfigAndShutdown(t, config)
 
 	now := time.Now()
-	clock := &TestClock{now}
-	config.SetClock(clock)
+	var clock TestClock
+	clock.Set(now)
+	config.SetClock(&clock)
 
 	kbfsOps := config.KBFSOps()
 	rootNode, _, err :=
@@ -140,7 +140,7 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 
 	// Increase the time, and make sure that there is still more than
 	// one block in the history
-	clock.T = now.Add(2 * config.QuotaReclamationMinUnrefAge())
+	clock.Set(now.Add(2 * config.QuotaReclamationMinUnrefAge()))
 
 	// Run it.
 	ops := kbfsOps.(*KBFSOpsStandard).getOpsByNode(ctx, rootNode)
@@ -191,8 +191,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	config1, _, ctx := kbfsOpsInitNoMocks(t, u1, u2)
 	defer CheckConfigAndShutdown(t, config1)
 
-	now := time.Now()
-	clock := &TestClock{now}
+	clock, now := newTestClockAndTimeNow()
 	config1.SetClock(clock)
 
 	// Initialize the MD using a different config
@@ -297,7 +296,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 		t.Fatalf("Couldn't get blocks: %v", err)
 	}
 
-	clock.T = now.Add(2 * config1.QuotaReclamationMinUnrefAge())
+	clock.Set(now.Add(2 * config1.QuotaReclamationMinUnrefAge()))
 	ops1 := kbfsOps1.(*KBFSOpsStandard).getOpsByNode(ctx, rootNode1)
 	ops1.fbm.forceQuotaReclamation()
 	err = ops1.fbm.waitForQuotaReclamations(ctx)
@@ -397,7 +396,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 
 	// Delete any blocks that happened to be put during a failed (due
 	// to recoverable block errors) update.
-	clock.T = now.Add(2 * config1.QuotaReclamationMinUnrefAge())
+	clock.Set(now.Add(2 * config1.QuotaReclamationMinUnrefAge()))
 	ops1.fbm.forceQuotaReclamation()
 	err = ops1.fbm.waitForQuotaReclamations(ctx)
 	if err != nil {
