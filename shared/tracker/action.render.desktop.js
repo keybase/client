@@ -65,7 +65,10 @@ export default class ActionRender extends Component {
   renderNormal (styles: Object, username: string) {
     return (
       <div style={{...styles.container}}>
-        <Button waiting={this.props.waiting} style={styles.actionButton} type='Follow' label='Track' onClick={() => this.props.onFollow(username)} />
+        {!this.props.currentlyFollowing &&
+          <Button waiting={this.props.waiting} style={styles.actionButton} type='Follow' label='Track' onClick={() => this.props.onFollow(username)} />}
+        {this.props.currentlyFollowing &&
+          <Button style={styles.actionButton} type='Secondary' label='Close' onClick={() => this.props.onClose(username)} />}
       </div>
     )
   }

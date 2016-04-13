@@ -5,7 +5,7 @@ import commonStyles from '../styles/common'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {Icon, Text, ProgressIndicator} from '../common-adapters/index'
 import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked, error as proofError, warning as proofWarning} from '../constants/tracker'
-import {metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone} from '../constants/tracker'
+import {metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone, metaWhatevz} from '../constants/tracker'
 import electron from 'electron'
 
 import type {Props as IconProps} from '../common-adapters/icon'
@@ -65,7 +65,7 @@ class ProofsRender extends Component {
   }
 
   _isTracked (proof: Proof): boolean {
-    return this.props.currentlyFollowing && (!proof.meta || proof.meta === metaNone)
+    return this.props.currentlyFollowing && (!proof.meta || proof.meta === metaNone || proof.meta === metaWhatevz)
   }
 
   proofColor (proof: Proof): string {

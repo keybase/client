@@ -1,7 +1,7 @@
 /* @flow */
 import Tracker from './index'
 import {normal, checking, revoked, error} from '../constants/tracker'
-import {metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone} from '../constants/tracker'
+import {metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone, metaWhatevz} from '../constants/tracker'
 import type {TrackerProps} from '../tracker'
 import type {Proof} from '../tracker/proofs.render'
 import type {TrackSummary} from '../constants/types/flow-types'
@@ -117,6 +117,15 @@ const propsFollowing: TrackerProps = {
   lastAction: 'followed'
 }
 
+const propsWhatevz: TrackerProps = {
+  ...propsFollowing,
+  reason: 'You have tracked gabrielh',
+  proofs: [
+    proofGithub,
+    {...proofTwitter, meta: metaWhatevz}
+  ]
+}
+
 const propsChangedProofs: TrackerProps = {
   ...propsDefault,
   reason: 'Some of gabrielh\'s proofs have changed since you last tracked them.',
@@ -186,7 +195,8 @@ export default {
       'Changed/Broken proofs': propsChangedProofs,
       'You track them': {...propsFollowing, userInfo: {...propsNewUser.userInfo, followsYou: false}},
       'Unfollowed': propsUnfollowed,
-      'Barely there': propsLessData
+      'Barely there': propsLessData,
+      'Whatevz': propsWhatevz
     }
   }
 }
