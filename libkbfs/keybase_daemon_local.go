@@ -203,6 +203,28 @@ func (k *KeybaseDaemonLocal) setLocalUser(uid keybase1.UID, user LocalUser) {
 	k.localUsers[uid] = user
 }
 
+type makeKeysFunc func(libkb.NormalizedUsername, int) (
+	CryptPublicKey, VerifyingKey)
+
+func (k *KeybaseDaemonLocal) addDeviceForTesting(uid keybase1.UID,
+	makeKeys makeKeysFunc) (int, error) {
+	k.lock.Lock()
+	defer k.lock.Unlock()
+
+	user, err := k.localUsers.getLocalUser(uid)
+	if err != nil {
+		return 0, fmt.Errorf("No such user %s: %v", uid, err)
+	}
+
+	index := len(user.VerifyingKeys)
+	newCryptPublicKey, newVerifyingKey := makeKeys(user.Name, index)
+	user.VerifyingKeys = append(user.VerifyingKeys, newVerifyingKey)
+	user.CryptPublicKeys = append(user.CryptPublicKeys, newCryptPublicKey)
+
+	k.localUsers[uid] = user
+	return index, nil
+}
+
 func (k *KeybaseDaemonLocal) revokeDeviceForTesting(clock Clock,
 	uid keybase1.UID, index int) error {
 	k.lock.Lock()
@@ -245,6 +267,29 @@ func (k *KeybaseDaemonLocal) revokeDeviceForTesting(clock Clock,
 		user.CurrentVerifyingKeyIndex--
 	}
 
+	k.localUsers[uid] = user
+	return nil
+}
+
+func (k *KeybaseDaemonLocal) switchDeviceForTesting(uid keybase1.UID,
+	index int) error {
+	k.lock.Lock()
+	defer k.lock.Unlock()
+
+	user, err := k.localUsers.getLocalUser(uid)
+	if err != nil {
+		return fmt.Errorf("No such user %s: %v", uid, err)
+	}
+
+	if index >= len(user.CryptPublicKeys) {
+		return fmt.Errorf("Wrong crypt public key index: %d", index)
+	}
+	user.CurrentCryptPublicKeyIndex = index
+
+	if index >= len(user.VerifyingKeys) {
+		return fmt.Errorf("Wrong verifying key index: %d", index)
+	}
+	user.CurrentVerifyingKeyIndex = index
 	k.localUsers[uid] = user
 	return nil
 }
