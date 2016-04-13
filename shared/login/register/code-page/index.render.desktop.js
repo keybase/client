@@ -72,7 +72,7 @@ export default class CodePageRender extends Component {
         <Text style={{marginTop: 38, marginBottom: 11}} type='Header'>Type in text code</Text>
         {subTitle()}
 
-         style={{marginTop: 30, marginBottom: 40}} type='phone-text-code' />
+        <Icon style={{marginTop: 30, marginBottom: 40}} type='phone-text-code' />
         <Input
           style={{alignSelf: 'stretch'}}
           hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
