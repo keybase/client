@@ -1,10 +1,9 @@
 // @flow
 import React, {Component} from 'react'
-import {Input, Button, UserCard, Box} from '../../../common-adapters'
-import {globalColors, globalStyles} from '../../../styles/style-guide'
+import {Input, Button, UserCard} from '../../../common-adapters'
+import {globalColors} from '../../../styles/style-guide'
 import Container from '../../forms/container'
 import type {Props} from './index.render'
-import {View} from 'react-native'
 
 type State = {usernameOrEmail: string}
 

@@ -10,7 +10,6 @@ export default class Render extends Component {
   props: Props;
 
   render () {
-    console.log('in native UsernameEmailForm render')
     return <View><Text>foo</Text></View>
   }
 }

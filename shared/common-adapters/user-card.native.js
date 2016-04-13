@@ -4,7 +4,6 @@ import React, {Component} from 'react-native'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props} from './user-card'
 import Avatar from './avatar'
-import {View} from 'react-native'
 import {Box} from '../common-adapters'
 const avatarSize = 110
 

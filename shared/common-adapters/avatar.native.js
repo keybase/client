@@ -1,7 +1,6 @@
 // @flow
 
 import React, {Component} from 'react'
-import {globalColors} from '../styles/style-guide'
 import type {Props} from './avatar'
 import {View} from 'react-native'
 import {Icon} from '../common-adapters'
