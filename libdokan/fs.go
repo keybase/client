@@ -112,7 +112,7 @@ func (f *FS) GetDiskFreeSpace() (dokan.FreeSpace, error) {
 	}
 	free := uint64(uqi.Limit)
 	if uqi.Total != nil {
-		free -= uint64(uqi.Total.UsageBytes)
+		free -= uint64(uqi.Total.Bytes[libkbfs.UsageWrite])
 	}
 	return dokan.FreeSpace{
 		TotalNumberOfBytes:     uint64(uqi.Limit),
