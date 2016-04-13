@@ -302,7 +302,6 @@ export default class Render extends Component {
         <Container title='Inputs'><Inputs/></Container>
         <Container title='Checkboxes'><Checkboxes flip={idx => this.flip(idx)} check={this.state.check}/></Container>
         <Container title='Icons'><Icons/></Container>
-        <Container title='Inputs'><Inputs/></Container>
         <Container title='Buttons'><Buttons/></Container>
         <Container title='Text'><Fonts/></Container>
         <Container title='Colors'><Colors/></Container>
