@@ -4,7 +4,6 @@
 package libkb
 
 import (
-	"fmt"
 	"strings"
 
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -48,17 +47,13 @@ func NormalizeSocialAssertion(s string) (keybase1.SocialAssertion, bool) {
 	}
 
 	st := GetServiceType(service)
-	if !st.CaseSensitiveUsername() {
-		name = strings.ToLower(name)
+	name, err := st.NormalizeUsername(name)
+	if err != nil {
+		return keybase1.SocialAssertion{}, false
 	}
 
 	return keybase1.SocialAssertion{
 		User:    name,
 		Service: keybase1.SocialAssertionService(service),
 	}, true
-}
-
-// SocialAssertionToString returns a string that represents a social assertion.
-func SocialAssertionToString(assertion keybase1.SocialAssertion) string {
-	return fmt.Sprintf("%s@%s", assertion.User, assertion.Service)
 }

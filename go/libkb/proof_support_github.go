@@ -70,11 +70,19 @@ type GithubServiceType struct{ BaseServiceType }
 
 func (t GithubServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
-func (t GithubServiceType) CheckUsername(s string) (err error) {
-	if !regexp.MustCompile(`^@?(?i:[a-z0-9][a-z0-9-]{0,38})$`).MatchString(s) {
-		err = BadUsernameError{s}
+var githubUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9][a-z0-9-]{0,38})$`)
+
+func (t GithubServiceType) NormalizeUsername(s string) (string, error) {
+	if !githubUsernameRegexp.MatchString(s) {
+		return "", BadUsernameError{s}
 	}
-	return
+	return strings.ToLower(s), nil
+}
+
+func (t GithubServiceType) NormalizeRemoteName(s string) (ret string, err error) {
+	// Allow a leading '@'.
+	s = strings.TrimPrefix(s, "@")
+	return t.NormalizeUsername(s)
 }
 
 func (t GithubServiceType) ToChecker() Checker {

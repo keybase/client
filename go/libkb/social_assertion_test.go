@@ -18,10 +18,13 @@ type nsatest struct {
 var nsatests = []nsatest{
 	{in: "keybase", out: keybase1.SocialAssertion{}, ok: false},
 	{in: "alice@twitter", out: keybase1.SocialAssertion{User: "alice", Service: "twitter"}, ok: true},
+	{in: "alice@twitter+bob@twitter", out: keybase1.SocialAssertion{}, ok: false},
+	{in: "alice+bob@twitter", out: keybase1.SocialAssertion{}, ok: false},
 	{in: "twitter:alice", out: keybase1.SocialAssertion{User: "alice", Service: "twitter"}, ok: true},
 	{in: "Twitter:alice", out: keybase1.SocialAssertion{User: "alice", Service: "twitter"}, ok: true},
 	{in: "twitter:Alice", out: keybase1.SocialAssertion{User: "alice", Service: "twitter"}, ok: true},
 	{in: "AlicE@twitter", out: keybase1.SocialAssertion{User: "alice", Service: "twitter"}, ok: true},
+	{in: "012345678901234567891@twitter", out: keybase1.SocialAssertion{}, ok: false},
 	{in: "bob@foo@bar", out: keybase1.SocialAssertion{}, ok: false},
 	{in: "foo:bar:bob", out: keybase1.SocialAssertion{}, ok: false},
 	{in: "foo:bob@bar", out: keybase1.SocialAssertion{}, ok: false},
@@ -31,6 +34,7 @@ var nsatests = []nsatest{
 	{in: "BOB@reddit", out: keybase1.SocialAssertion{User: "bob", Service: "reddit"}, ok: true},
 	{in: "BOB@rooter", out: keybase1.SocialAssertion{User: "bob", Service: "rooter"}, ok: true},
 	{in: "BOB@facebook", out: keybase1.SocialAssertion{}, ok: false},
+	{in: "Akalin.Com@web", out: keybase1.SocialAssertion{User: "akalin.com", Service: "web"}, ok: true},
 }
 
 func TestNormalizeSocialAssertion(t *testing.T) {
