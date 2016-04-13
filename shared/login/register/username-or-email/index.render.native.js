@@ -12,7 +12,6 @@ class Render extends Component<void, Props, State> {
   state: State;
 
   constructor (props: Props) {
-    console.log('in username or email native constructor')
     super(props)
 
     this.state = {usernameOrEmail: ''}
@@ -25,10 +24,7 @@ class Render extends Component<void, Props, State> {
   }
 
   onChange (usernameOrEmail: string) {
-    console.log('in onChange, ' + usernameOrEmail)
     this.setState({usernameOrEmail})
-    console.log('foob')
-    console.log(this.state.usernameOrEmail)
   }
 
   render () {
@@ -66,8 +62,8 @@ const stylesContainer = {
 }
 const stylesInput = {
   flex: 1,
-  marginBottom: 48,
-  backgroundColor: 'purple'
+  marginTop: 55,
+  marginBottom: 55
 }
 const stylesOuterCard = {
   marginTop: 40

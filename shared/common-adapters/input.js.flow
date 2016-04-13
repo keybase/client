@@ -10,6 +10,7 @@ export type Props = $Shape<{
   hintStyle?: Object,
   multiLine?: bool,
   onChange?: (event: Object) => void,
+  onChangeText?: (text: string) => void,
   onEnterKeyDown?: (event: Object) => void,
   rows?: number,
   rowsMax?: number,

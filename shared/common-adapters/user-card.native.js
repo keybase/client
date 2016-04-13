@@ -28,17 +28,16 @@ const styles = {
     ...globalStyles.flexBoxColumn,
     height: 475,
     backgroundColor: globalColors.white,
-    position: 'relative',
-    backgroundColor: 'pink'
+    position: 'relative'
   },
   inside: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'center',
     marginTop: avatarSize / 2,
-    backgroundColor: 'green',
     padding: 30
   },
   avatar: {
+    marginTop: 10,
     position: 'absolute',
     top: 0,
     left: 0,

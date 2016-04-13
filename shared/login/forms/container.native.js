@@ -32,7 +32,6 @@ const styles = {
     flex: 1
   },
   button: {
-    position: 'absolute',
-    zIndex: 10
+    position: 'absolute'
   }
 }
