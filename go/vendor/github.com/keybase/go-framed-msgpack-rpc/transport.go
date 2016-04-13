@@ -11,17 +11,30 @@ import (
 type WrapErrorFunc func(error) interface{}
 
 type Transporter interface {
+	// IsConnected returns false when incoming packets have
+	// finished processing.
+	//
+	// TODO: Use a better name.
+	IsConnected() bool
+
+	registerProtocol(p Protocol) error
+
 	getDispatcher() (dispatcher, error)
 	getReceiver() (receiver, error)
-	Run() error
-	RunAsync() error
-	IsConnected() bool
-	AddCloseListener(ch chan<- error)
-	RegisterProtocol(p Protocol) error
-}
 
-type transporter interface {
-	Transporter
+	// receiveFrames starts processing incoming frames in a
+	// background goroutine, if it's not already happening.
+	//
+	// Returns a channel that's closed when incoming frames have
+	// finished processing, either due to an error or the
+	// underlying connection being closed. Successive calls to
+	// receiveFrames return the same value.
+	receiveFrames() <-chan struct{}
+
+	// err returns a non-nil error value after done is closed.
+	// After done is closed, successive calls to err return the
+	// same value.
+	err() error
 }
 
 type connDecoder struct {
@@ -41,7 +54,7 @@ func newConnDecoder(c net.Conn) *connDecoder {
 	}
 }
 
-var _ transporter = (*transport)(nil)
+var _ Transporter = (*transport)(nil)
 
 type transport struct {
 	cdec       *connDecoder
@@ -54,6 +67,9 @@ type transport struct {
 	log        LogInterface
 	startCh    chan struct{}
 	stopCh     chan struct{}
+
+	// Filled in right before stopCh is closed.
+	stopErr error
 }
 
 func NewTransport(c net.Conn, l LogFactory, wef WrapErrorFunc) Transporter {
@@ -91,39 +107,31 @@ func (t *transport) IsConnected() bool {
 	}
 }
 
-func (t *transport) Run() error {
-	if !t.IsConnected() {
-		return io.EOF
-	}
-
+func (t *transport) receiveFrames() <-chan struct{} {
 	select {
 	case <-t.startCh:
-		return t.run()
+		// First time -- start receiving frames.
+		go func() {
+			t.receiveFramesLoop()
+		}()
+
+	default:
+		// Subsequent times -- do nothing.
+	}
+
+	return t.stopCh
+}
+
+func (t *transport) err() error {
+	select {
+	case <-t.stopCh:
+		return t.stopErr
 	default:
 		return nil
 	}
 }
 
-func (t *transport) RunAsync() error {
-	if !t.IsConnected() {
-		return io.EOF
-	}
-
-	select {
-	case <-t.startCh:
-		go func() {
-			err := t.run()
-			if err != nil && err != io.EOF {
-				t.log.Warning("asynchronous t.run() failed with %v", err)
-			}
-		}()
-	default:
-	}
-
-	return nil
-}
-
-func (t *transport) run() error {
+func (t *transport) receiveFramesLoop() {
 	// Packetize: do work
 	var err error
 	for shouldContinue(err) {
@@ -136,11 +144,15 @@ func (t *transport) run() error {
 	// Log packetizer completion
 	t.log.TransportError(err)
 
+	// This must happen before stopCh is closed to have a correct
+	// ordering.
+	t.stopErr = err
+
 	// Since the receiver might require the transport, we have to
 	// close it before terminating our loops
 	close(t.stopCh)
 	t.dispatcher.Close()
-	<-t.receiver.Close(err)
+	<-t.receiver.Close()
 
 	// First inform the encoder that it should close
 	encoderClosed := t.enc.Close()
@@ -148,8 +160,6 @@ func (t *transport) run() error {
 	t.cdec.Close()
 	// Wait for the encoder to finish handling the now unblocked writes
 	<-encoderClosed
-
-	return err
 }
 
 func (t *transport) getDispatcher() (dispatcher, error) {
@@ -166,12 +176,8 @@ func (t *transport) getReceiver() (receiver, error) {
 	return t.receiver, nil
 }
 
-func (t *transport) RegisterProtocol(p Protocol) error {
+func (t *transport) registerProtocol(p Protocol) error {
 	return t.protocols.registerProtocol(p)
-}
-
-func (t *transport) AddCloseListener(ch chan<- error) {
-	t.receiver.AddCloseListener(ch)
 }
 
 func shouldContinue(err error) bool {
