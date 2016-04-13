@@ -291,8 +291,6 @@ export function onClose (username: string): Action {
 }
 
 function updateUserInfo (userCard: UserCard, username: string, getState: () => {tracker: RootTrackerState, config: ConfigState}): Action {
-  const config = getState().config.config
-  const serverURI = config && config.serverURI
   return {
     type: Constants.updateUserInfo,
     payload: {
@@ -302,7 +300,7 @@ function updateUserInfo (userCard: UserCard, username: string, getState: () => {
         followingCount: userCard.following,
         followsYou: userCard.theyFollowYou,
         bio: userCard.bio,
-        avatar: `${serverURI}/${username}/picture`,
+        avatar: `https://keybase.io/${username}/picture`,
         location: userCard.location
       },
       username
