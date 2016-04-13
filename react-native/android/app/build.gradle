@@ -89,12 +89,10 @@ android {
     buildToolsVersion "23.0.2"
 
     defaultConfig {
-        applicationId "io.keybase.android"
+        applicationId "io.keybase.ossifrage"
         minSdkVersion 16
         targetSdkVersion 23
-        // Marco messed up the version code originally, so now we have to set the 2nd and 3rd msb
-        // The top one would make the number negative
-        versionCode (timestamp() | (1 << 30) | (1 << 29))
+        versionCode timestamp()
         versionName "1.0.0-alpha-2"
         ndk {
             abiFilters "armeabi-v7a", "x86"
