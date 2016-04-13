@@ -12,6 +12,7 @@ set -e -u -o pipefail
 here="$(dirname "$BASH_SOURCE")"
 
 base_version="$("$here/../../version.sh" production)"
-commit="$(git -C "$here" rev-parse --short HEAD)"
+commit_count="$(git -C "$here" rev-list --count HEAD)"
+commit_hash="$(git -C "$here" rev-parse --short HEAD)"
 
-echo "$base_version+$commit"
+echo "$base_version+$commit_count.$commit_hash"
