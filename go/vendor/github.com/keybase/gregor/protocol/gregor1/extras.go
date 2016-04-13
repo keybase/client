@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	gregor "github.com/keybase/gregor"
+	"github.com/keybase/go-codec/codec"
+	"github.com/keybase/gregor"
 )
 
 func (u UID) Bytes() []byte            { return []byte(u) }
@@ -23,7 +24,6 @@ func (t TimeOrOffset) Time() *time.Time {
 	ret := FromTime(t.Time_)
 	return &ret
 }
-
 func (t TimeOrOffset) Offset() *time.Duration {
 	if t.Offset_ == 0 {
 		return nil
@@ -39,7 +39,6 @@ func (s StateSyncMessage) Metadata() gregor.Metadata {
 func (m MsgRange) EndTime() gregor.TimeOrOffset {
 	return m.EndTime_
 }
-
 func (m MsgRange) Category() gregor.Category {
 	return m.Category_
 }
@@ -60,19 +59,56 @@ func (d Dismissal) MsgIDsToDismiss() []gregor.MsgID {
 	return ret
 }
 
-type ItemAndMetadata struct {
-	md *Metadata
-	i  *Item
+func (m Metadata) CTime() time.Time     { return FromTime(m.Ctime_) }
+func (m Metadata) SetCTime(t time.Time) { m.Ctime_ = ToTime(t) }
+func (m Metadata) UID() gregor.UID {
+	if m.Uid_ == nil {
+		return nil
+	}
+	return m.Uid_
 }
+func (m Metadata) MsgID() gregor.MsgID {
+	if m.MsgID_ == nil {
+		return nil
+	}
+	return m.MsgID_
+}
+func (m Metadata) DeviceID() gregor.DeviceID {
+	if m.DeviceID_ == nil {
+		return nil
+	}
+	return m.DeviceID_
+}
+func (m Metadata) InBandMsgType() gregor.InBandMsgType { return gregor.InBandMsgType(m.InBandMsgType_) }
 
-func (m Metadata) UID() gregor.UID                   { return m.Uid_ }
-func (i ItemAndMetadata) Metadata() gregor.Metadata  { return *i.md }
-func (i ItemAndMetadata) Body() gregor.Body          { return i.i.Body_ }
-func (i ItemAndMetadata) Category() gregor.Category  { return i.i.Category_ }
-func (i ItemAndMetadata) DTime() gregor.TimeOrOffset { return i.i.Dtime_ }
+func (i ItemAndMetadata) Metadata() gregor.Metadata {
+	if i.Md_ == nil {
+		return nil
+	}
+	return i.Md_
+}
+func (i ItemAndMetadata) Body() gregor.Body {
+	if i.Item_.Body_ == nil {
+		return nil
+	}
+	return i.Item_.Body_
+}
+func (i ItemAndMetadata) Category() gregor.Category {
+	if i.Item_.Category_ == "" {
+		return nil
+	}
+	return i.Item_.Category_
+}
+func (i ItemAndMetadata) DTime() gregor.TimeOrOffset {
+	var unset TimeOrOffset
+	if i.Item_.Dtime_ == unset {
+		return nil
+	}
+	return i.Item_.Dtime_
+}
 func (i ItemAndMetadata) NotifyTimes() []gregor.TimeOrOffset {
 	var ret []gregor.TimeOrOffset
-	for _, t := range i.i.NotifyTimes_ {
+	for _, t := range i.Item_.NotifyTimes_ {
 		ret = append(ret, t)
 	}
 	return ret
@@ -80,13 +116,13 @@ func (i ItemAndMetadata) NotifyTimes() []gregor.TimeOrOffset {
 
 func (s StateUpdateMessage) Metadata() gregor.Metadata { return s.Md_ }
 func (s StateUpdateMessage) Creation() gregor.Item {
-	if s.Creation_ != nil {
+	if s.Creation_ == nil {
 		return nil
 	}
-	return ItemAndMetadata{md: &s.Md_, i: s.Creation_}
+	return ItemAndMetadata{Md_: &s.Md_, Item_: s.Creation_}
 }
 func (s StateUpdateMessage) Dismissal() gregor.Dismissal {
-	if s.Dismissal_ != nil {
+	if s.Dismissal_ == nil {
 		return nil
 	}
 	return s.Dismissal_
@@ -143,15 +179,24 @@ func (i InBandMessage) ToStateUpdateMessage() gregor.StateUpdateMessage {
 	return i.StateUpdate_
 }
 
-func (m Metadata) MsgID() gregor.MsgID                 { return m.MsgID_ }
-func (m Metadata) CTime() time.Time                    { return FromTime(m.Ctime_) }
-func (m Metadata) SetCTime(t time.Time)                { m.Ctime_ = ToTime(t) }
-func (m Metadata) DeviceID() gregor.DeviceID           { return m.DeviceID_ }
-func (m Metadata) InBandMsgType() gregor.InBandMsgType { return gregor.InBandMsgType(m.InBandMsgType_) }
-
-func (o OutOfBandMessage) Body() gregor.Body     { return o.Body_ }
-func (o OutOfBandMessage) System() gregor.System { return o.System_ }
-func (o OutOfBandMessage) UID() gregor.UID       { return o.Uid_ }
+func (o OutOfBandMessage) Body() gregor.Body {
+	if o.Body_ == nil {
+		return nil
+	}
+	return o.Body_
+}
+func (o OutOfBandMessage) System() gregor.System {
+	if o.System_ == "" {
+		return nil
+	}
+	return o.System_
+}
+func (o OutOfBandMessage) UID() gregor.UID {
+	if o.Uid_ == nil {
+		return nil
+	}
+	return o.Uid_
+}
 
 func (m Message) ToInBandMessage() gregor.InBandMessage {
 	if m.Ibm_ == nil {
@@ -179,8 +224,15 @@ func (s State) Items() ([]gregor.Item, error) {
 	return ret, nil
 }
 
+func (s State) Marshal() ([]byte, error) {
+	var b []byte
+	err := codec.NewEncoderBytes(&b, &codec.MsgpackHandle{WriteExt: true}).
+		Encode(s.items)
+	return b, err
+}
+
 func (i ItemAndMetadata) InCategory(c Category) bool {
-	return i.i.Category_.Eq(c)
+	return i.Item_.Category_.Eq(c)
 }
 
 func (s State) ItemsInCategory(gc gregor.Category) ([]gregor.Item, error) {

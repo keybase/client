@@ -1,56 +1,64 @@
 package gregor1
 
 import (
-	"encoding/hex"
-	"fmt"
+	"errors"
 	"time"
 
+	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/gregor"
 )
 
 type ObjFactory struct{}
 
-func (o ObjFactory) MakeUID(b []byte) (gregor.UID, error)     { return UID(hex.EncodeToString(b)), nil }
-func (o ObjFactory) MakeMsgID(b []byte) (gregor.MsgID, error) { return MsgID(b), nil }
-func (o ObjFactory) MakeDeviceID(b []byte) (gregor.DeviceID, error) {
-	return DeviceID(hex.EncodeToString(b)), nil
-}
+func (o ObjFactory) MakeUID(b []byte) (gregor.UID, error)           { return UID(b), nil }
+func (o ObjFactory) MakeMsgID(b []byte) (gregor.MsgID, error)       { return MsgID(b), nil }
+func (o ObjFactory) MakeDeviceID(b []byte) (gregor.DeviceID, error) { return DeviceID(b), nil }
 func (o ObjFactory) MakeBody(b []byte) (gregor.Body, error)         { return Body(b), nil }
 func (o ObjFactory) MakeCategory(s string) (gregor.Category, error) { return Category(s), nil }
 
-func castUID(uid gregor.UID) (UID, error) {
+func castUID(uid gregor.UID) (ret UID, err error) {
+	if uid == nil {
+		return
+	}
 	ret, ok := uid.(UID)
 	if !ok {
-		return UID(""), fmt.Errorf("Bad UID; wrong type")
+		err = errors.New("bad UID; wrong type")
 	}
-	return ret, nil
+	return
 }
 
-func castDeviceID(d gregor.DeviceID) (DeviceID, error) {
+func castDeviceID(d gregor.DeviceID) (ret DeviceID, err error) {
+	if d == nil {
+		return
+	}
 	ret, ok := d.(DeviceID)
 	if !ok {
-		return DeviceID(""), fmt.Errorf("Bad Device ID; wrong type")
+		err = errors.New("bad Device ID; wrong type")
 	}
-	return ret, nil
+	return
 }
 
-func castItem(i gregor.Item) (ItemAndMetadata, error) {
+func castItem(i gregor.Item) (ret ItemAndMetadata, err error) {
 	ret, ok := i.(ItemAndMetadata)
 	if !ok {
-		return ItemAndMetadata{}, fmt.Errorf("Bad Item; wrong type")
+		err = errors.New("bad Item; wrong type")
 	}
-	return ret, nil
+	return
 }
 
-func timeToTimeOrOffset(timeIn *time.Time) TimeOrOffset {
-	var timeOut Time
-	if timeIn != nil && !timeIn.IsZero() {
-		timeOut = ToTime(*timeIn)
+func castInBandMessage(i gregor.InBandMessage) (ret InBandMessage, err error) {
+	ret, ok := i.(InBandMessage)
+	if !ok {
+		err = errors.New("bad InBandMessage; wrong type")
 	}
-	return TimeOrOffset{
-		Offset_: 0,
-		Time_:   timeOut,
+	return
+}
+
+func timeToTimeOrOffset(timeIn *time.Time) (too TimeOrOffset) {
+	if timeIn != nil {
+		too.Time_ = ToTime(*timeIn)
 	}
+	return
 }
 
 func (o ObjFactory) makeMetadata(uid gregor.UID, msgid gregor.MsgID, devid gregor.DeviceID, ctime time.Time, i gregor.InBandMsgType) (Metadata, error) {
@@ -72,12 +80,12 @@ func (o ObjFactory) makeMetadata(uid gregor.UID, msgid gregor.MsgID, devid grego
 	}, nil
 }
 
-func (o ObjFactory) makeItem(c gregor.Category, d *time.Time, b gregor.Body) (Item, error) {
-	return Item{
+func (o ObjFactory) makeItem(c gregor.Category, d *time.Time, b gregor.Body) *Item {
+	return &Item{
 		Dtime_:    timeToTimeOrOffset(d),
 		Category_: Category(c.String()),
 		Body_:     Body(b.Bytes()),
-	}, nil
+	}
 }
 
 func (o ObjFactory) MakeItem(u gregor.UID, msgid gregor.MsgID, deviceid gregor.DeviceID, ctime time.Time, c gregor.Category, dtime *time.Time, body gregor.Body) (gregor.Item, error) {
@@ -85,13 +93,9 @@ func (o ObjFactory) MakeItem(u gregor.UID, msgid gregor.MsgID, deviceid gregor.D
 	if err != nil {
 		return nil, err
 	}
-	item, err := o.makeItem(c, dtime, body)
-	if err != nil {
-		return nil, err
-	}
 	return ItemAndMetadata{
-		md: &md,
-		i:  &item,
+		Md_:   &md,
+		Item_: o.makeItem(c, dtime, body),
 	}, nil
 }
 
@@ -113,16 +117,20 @@ func (o ObjFactory) MakeDismissalByRange(uid gregor.UID, msgid gregor.MsgID, dev
 	}, nil
 }
 
-func (o ObjFactory) MakeDismissalByID(uid gregor.UID, msgid gregor.MsgID, devid gregor.DeviceID, ctime time.Time, d gregor.MsgID) (gregor.InBandMessage, error) {
+func (o ObjFactory) MakeDismissalByIDs(uid gregor.UID, msgid gregor.MsgID, devid gregor.DeviceID, ctime time.Time, ids []gregor.MsgID) (gregor.InBandMessage, error) {
 	md, err := o.makeMetadata(uid, msgid, devid, ctime, gregor.InBandMsgTypeUpdate)
 	if err != nil {
 		return nil, err
+	}
+	ourIds := make([]MsgID, len(ids), len(ids))
+	for i, id := range ids {
+		ourIds[i] = MsgID(id.Bytes())
 	}
 	return InBandMessage{
 		StateUpdate_: &StateUpdateMessage{
 			Md_: md,
 			Dismissal_: &Dismissal{
-				MsgIDs_: []MsgID{MsgID(d.Bytes())},
+				MsgIDs_: ourIds,
 			},
 		},
 	}, nil
@@ -163,10 +171,35 @@ func (o ObjFactory) MakeInBandMessageFromItem(i gregor.Item) (gregor.InBandMessa
 	}
 	return InBandMessage{
 		StateUpdate_: &StateUpdateMessage{
-			Md_:       *ourItem.md,
-			Creation_: ourItem.i,
+			Md_:       *ourItem.Md_,
+			Creation_: ourItem.Item_,
 		},
 	}, nil
+}
+
+func (o ObjFactory) MakeMessageFromInBandMessage(i gregor.InBandMessage) (gregor.Message, error) {
+	ourInBandMessage, err := castInBandMessage(i)
+	if err != nil {
+		return nil, err
+	}
+	return Message{
+		Ibm_: &ourInBandMessage,
+	}, nil
+}
+
+func (o ObjFactory) UnmarshalState(b []byte) (gregor.State, error) {
+	var items []ItemAndMetadata
+	err := codec.NewDecoderBytes(b, &codec.MsgpackHandle{WriteExt: true}).
+		Decode(&items)
+	if err != nil {
+		return nil, err
+	}
+
+	return State{items}, nil
+}
+
+func (o ObjFactory) MakeTimeOrOffsetFromTime(t time.Time) (gregor.TimeOrOffset, error) {
+	return timeToTimeOrOffset(&t), nil
 }
 
 var _ gregor.ObjFactory = ObjFactory{}
