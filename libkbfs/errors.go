@@ -995,3 +995,13 @@ func (e NoSuchFolderListError) Error() string {
 		"All folders begin with /keybase/%s or /keybase/%s.",
 		e.Name, e.PrivName, e.PubName)
 }
+
+// UnexpectedUnmergedPutError indicates that we tried to do an
+// unmerged put when that was disallowed.
+type UnexpectedUnmergedPutError struct {
+}
+
+// Error implements the error interface for UnexpectedUnmergedPutError
+func (e UnexpectedUnmergedPutError) Error() string {
+	return "Unmerged puts are not allowed"
+}

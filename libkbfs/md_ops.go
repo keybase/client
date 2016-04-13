@@ -412,8 +412,7 @@ func (md *MDOpsStandard) readyMD(ctx context.Context, rmd *RootMetadata) (
 	return rmds, nil
 }
 
-// Put implements the MDOps interface for MDOpsStandard.
-func (md *MDOpsStandard) Put(ctx context.Context, rmd *RootMetadata) error {
+func (md *MDOpsStandard) put(ctx context.Context, rmd *RootMetadata) error {
 	rmds, err := md.readyMD(ctx, rmd)
 	if err != nil {
 		return err
@@ -425,9 +424,17 @@ func (md *MDOpsStandard) Put(ctx context.Context, rmd *RootMetadata) error {
 	return nil
 }
 
+// Put implements the MDOps interface for MDOpsStandard.
+func (md *MDOpsStandard) Put(ctx context.Context, rmd *RootMetadata) error {
+	if rmd.MergedStatus() == Unmerged {
+		return UnexpectedUnmergedPutError{}
+	}
+	return md.put(ctx, rmd)
+}
+
 // PutUnmerged implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) PutUnmerged(ctx context.Context, rmd *RootMetadata, bid BranchID) error {
 	rmd.WFlags |= MetadataFlagUnmerged
 	rmd.BID = bid
-	return md.Put(ctx, rmd)
+	return md.put(ctx, rmd)
 }

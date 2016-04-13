@@ -1694,6 +1694,10 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *gcOp) (
 		return err
 	}
 
+	if md.MergedStatus() == Unmerged {
+		return UnexpectedUnmergedPutError{}
+	}
+
 	md.AddOp(gco)
 
 	if !fbo.config.BlockSplitter().ShouldEmbedBlockChanges(&md.data.Changes) {
