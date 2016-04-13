@@ -8,8 +8,9 @@ import (
 )
 
 type BatchGetItem struct {
-	Server *Server
-	Keys   map[*Table][]Key
+	Server         *Server
+	Keys           map[*Table][]Key
+	ConsistentRead bool
 }
 
 type BatchWriteItem struct {
@@ -17,8 +18,8 @@ type BatchWriteItem struct {
 	ItemActions map[*Table]map[string][][]Attribute
 }
 
-func (t *Table) BatchGetItems(keys []Key) *BatchGetItem {
-	batchGetItem := &BatchGetItem{t.Server, make(map[*Table][]Key)}
+func (t *Table) BatchGetItems(keys []Key, consistentRead bool) *BatchGetItem {
+	batchGetItem := &BatchGetItem{t.Server, make(map[*Table][]Key), consistentRead}
 
 	batchGetItem.Keys[t] = keys
 	return batchGetItem
@@ -43,7 +44,7 @@ func (batchWriteItem *BatchWriteItem) AddTable(t *Table, itemActions *map[string
 
 func (batchGetItem *BatchGetItem) Execute() (map[string][]map[string]*Attribute, error) {
 	q := NewEmptyQuery()
-	q.AddGetRequestItems(batchGetItem.Keys)
+	q.AddGetRequestItems(batchGetItem.Keys, batchGetItem.ConsistentRead)
 
 	jsonResponse, err := batchGetItem.Server.queryServer("DynamoDB_20120810.BatchGetItem", q)
 	if err != nil {

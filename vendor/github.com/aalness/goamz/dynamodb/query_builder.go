@@ -60,14 +60,14 @@ func (q *Query) ConsistentRead(c bool) {
 	}
 }
 
-func (q *Query) AddGetRequestItems(tableKeys map[*Table][]Key) {
+func (q *Query) AddGetRequestItems(tableKeys map[*Table][]Key, consistentRead bool) {
 	requestitems := msi{}
 	for table, keys := range tableKeys {
 		keyslist := []msi{}
 		for _, key := range keys {
 			keyslist = append(keyslist, keyAttributes(table, &key))
 		}
-		requestitems[table.Name] = msi{"Keys": keyslist}
+		requestitems[table.Name] = msi{"Keys": keyslist, "ConsistentRead": consistentRead}
 	}
 	q.buffer["RequestItems"] = requestitems
 }

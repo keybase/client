@@ -39,9 +39,11 @@
 			"revisionTime": "2015-12-04T09:14:43-05:00"
 		},
 		{
+			"checksumSHA1": "S11rroKdF24lPp3PM9Ern9+PNwg=",
+			"origin": "github.com/keybase/kbfs/vendor/github.com/aalness/goamz/dynamodb",
 			"path": "github.com/aalness/goamz/dynamodb",
-			"revision": "f7b5c669c11553a81344cc40b5f91de77b1c7315",
-			"revisionTime": "2016-03-21T13:51:32-04:00"
+			"revision": "bf3fffd7aa093577f5ca22361b1b603c27c02129",
+			"revisionTime": "2016-04-12T14:53:53-07:00"
 		},
 		{
 			"path": "github.com/aalness/goamz/s3",
