@@ -572,7 +572,7 @@ func (tc *TestClock) Set(t time.Time) {
 	tc.t = t
 }
 
-// Set sets the test clock time.
+// Add adds to the test clock time.
 func (tc *TestClock) Add(d time.Duration) {
 	tc.l.Lock()
 	defer tc.l.Unlock()
