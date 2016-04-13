@@ -1,10 +1,10 @@
 /* @flow */
 
 import React, {Component} from 'react'
+import {Box} from '../common-adapters'
 import {Text, Icon} from './index'
 import {globalStyles} from '../styles/style-guide'
 import type {Props} from './back-button'
-import {View} from 'react-native'
 
 export default class BackButton extends Component {
   props: Props;
@@ -19,10 +19,10 @@ export default class BackButton extends Component {
 
   render () {
     return (
-      <View style={{...styles.container, ...this.props.style}} onClick={e => this.onClick(e)}>
+      <Box style={{...styles.container, ...this.props.style}} onClick={e => this.onClick(e)}>
         <Icon type='fa-arrow-left' style={styles.icon}/>
         <Text type='BodyPrimaryLink' onClick={e => this.onClick(e)}>Back</Text>
-      </View>
+      </Box>
     )
   }
 }

@@ -2,8 +2,7 @@
 
 import React, {Component} from 'react'
 import type {Props} from './avatar'
-import {View} from 'react-native'
-import {Icon} from '../common-adapters'
+import {Box, Icon} from '../common-adapters'
 
 export default class Avatar extends Component {
   props: Props;
@@ -19,10 +18,10 @@ export default class Avatar extends Component {
 
   render () {
     return (
-      <View style={{height: this.props.size, ...this.props.style}} onClick={this.props.onClick}>
+      <Box style={{height: this.props.size, ...this.props.style}} onClick={this.props.onClick}>
         <Icon style={{...avatarStyle(this.props.size - 2)}}
           type='placeholder-avatar' />
-      </View>
+      </Box>
     )
   }
 }

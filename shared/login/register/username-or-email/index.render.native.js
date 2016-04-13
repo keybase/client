@@ -31,7 +31,7 @@ class Render extends Component<void, Props, State> {
       <Container
         style={stylesContainer}
         outerStyle={{backgroundColor: globalColors.lightGrey, padding: 20}}
-        onBack={() => this.props.onBack()}>
+        onBack={this.props.onBack}>
         <UserCard style={stylesCard} outerStyle={stylesOuterCard}>
           <Input
             autoFocus
