@@ -1,0 +1,11 @@
+// @flow
+import {Component} from 'react'
+
+export type DumbMap = {
+  [key: string]: {
+    component: ReactClass,
+    mocks: {
+      [key: string]: Object
+    }
+  }
+}

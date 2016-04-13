@@ -14,6 +14,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/go-crypto/openpgp"
 	pgpErrors "github.com/keybase/go-crypto/openpgp/errors"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 func (sh SigHint) Export() *keybase1.SigHint {
@@ -179,6 +180,8 @@ func WrapError(e error) interface{} {
 	return ExportErrorAsStatus(e)
 }
 
+var _ rpc.WrapErrorFunc = WrapError
+
 type ErrorUnwrapper struct{}
 
 func (eu ErrorUnwrapper) MakeArg() interface{} {
@@ -194,6 +197,8 @@ func (eu ErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dispatchE
 	appError = ImportStatusAsError(targ)
 	return
 }
+
+var _ rpc.ErrorUnwrapper = ErrorUnwrapper{}
 
 //=============================================================================
 
@@ -457,7 +462,7 @@ func ImportWarnings(v []string) Warnings {
 	for i, s := range v {
 		w[i] = StringWarning(s)
 	}
-	return Warnings{w}
+	return Warnings{w: w}
 }
 
 //=============================================================================

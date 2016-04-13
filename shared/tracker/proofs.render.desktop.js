@@ -139,7 +139,7 @@ class ProofsRender extends Component {
           <span style={styleProofNameLabelContainer}>
             <Text inline className='hover-underline-container' type='Body' onClick={onClickProfile} style={proofStyle}>
               <Text inline type='Body' className='underline' style={proofNameStyle}>{proof.name}</Text>
-              <Text className='no-underline' inline type='Body' style={styleProofType}><wbr>@{proof.type}</wbr></Text>
+              <Text className='no-underline' inline type='Body' style={styleProofType}><wbr/>@{proof.type}<wbr/></Text>
             </Text>
             {meta}
           </span>

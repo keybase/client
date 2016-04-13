@@ -145,7 +145,7 @@ func doChainTest(t *testing.T, testCase TestCase) {
 	// which case the eldest key is specified by name.
 	var eldestKID keybase1.KID
 	if testCase.Eldest == "" {
-		eldestKey, err := ParseGenericKey(input.Keys[0])
+		eldestKey, _, err := ParseGenericKey(input.Keys[0])
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -190,7 +190,7 @@ func doChainTest(t *testing.T, testCase TestCase) {
 		}
 		foundType := reflect.TypeOf(sigchainErr)
 		expectedTypes := getErrorTypesMap()[testCase.ErrType]
-		if expectedTypes == nil || len(expectedTypes) == 0 {
+		if len(expectedTypes) == 0 {
 			msg := "No Go error types defined for expected failure %s.\n" +
 				"This could be because of new test cases in github.com/keybase/keybase-test-vectors.\n" +
 				"Go error returned: %s"

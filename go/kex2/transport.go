@@ -80,7 +80,7 @@ type Conn struct {
 	readTimeout  time.Duration
 	bufferedMsgs [][]byte
 
-	// Protects the write path. There should only be one writer oustanding at once.
+	// Protects the write path. There should only be one writer outstanding at once.
 	writeMutex sync.Mutex
 	writeSeqno Seqno
 

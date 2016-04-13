@@ -7,11 +7,13 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/hex"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
 	"time"
 
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	jsonw "github.com/keybase/go-jsonw"
 )
 
@@ -563,3 +565,88 @@ func (r BlockReference) String() string {
 func (r BlockReferenceCount) String() string {
 	return fmt.Sprintf("%s,%d", r.Ref.String(), r.LiveCount)
 }
+
+func (sa SocialAssertion) String() string {
+	return fmt.Sprintf("%s@%s", sa.User, sa.Service)
+}
+
+// ToStatusAble is something that can be coerced into a status. Some error types
+// in your application might want this.
+type ToStatusAble interface {
+	ToStatus() Status
+}
+
+// WrapError is a generic method that converts a Go Error into a RPC error status object.
+// If the error is itself a Status object to being with, then it will just return that
+// status object. If it is something that can be made into a Status object via the
+// ToStatusAble interface, then we'll try that. Otherwise, we'll just make a generic
+// Error type.
+func WrapError(e error) interface{} {
+
+	if e == nil {
+		return nil
+	}
+
+	if ee, ok := e.(ToStatusAble); ok {
+		tmp := ee.ToStatus()
+		return &tmp
+	}
+
+	if status, ok := e.(*Status); ok {
+		return status
+	}
+
+	return Status{
+		Name: "GENERIC",
+		Code: int(StatusCode_SCGeneric),
+		Desc: e.Error(),
+	}
+}
+
+// WrapError should function as a valid WrapErrorFunc as used by the RPC library.
+var _ rpc.WrapErrorFunc = WrapError
+
+// ErrorUnwrapper is converter that take a Status object off the wire and convert it
+// into an Error that Go can understand, and you can descriminate on in your code.
+// Though status object can act as Go errors, you can further convert them into
+// typed errors via the Upcaster function if specified. An Upcaster takes a Status
+// and returns something that obeys the Error interface, but can be anything your
+// program needs.
+type ErrorUnwrapper struct {
+	Upcaster func(status Status) error
+}
+
+// MakeArg just makes a dummy object that we can unmarshal into, as needed by the
+// underlying RPC library.
+func (eu ErrorUnwrapper) MakeArg() interface{} {
+	return &Status{}
+}
+
+// UnwrapError takes an incoming RPC object, attempts to coerce it into a Status
+// object, and then Upcasts via the Upcaster or just returns if not was provided.
+func (eu ErrorUnwrapper) UnwrapError(arg interface{}) (appError, dispatchError error) {
+	targ, ok := arg.(*Status)
+	if !ok {
+		dispatchError = errors.New("Error converting status to keybase1.Status object")
+		return nil, dispatchError
+	}
+	if targ == nil {
+		return nil, nil
+	}
+	if targ.Code == int(StatusCode_SCOk) {
+		return nil, nil
+	}
+
+	if eu.Upcaster != nil {
+		appError = eu.Upcaster(*targ)
+	} else {
+		appError = *targ
+	}
+	return appError, nil
+}
+
+// Assert that Status can function as an error object.
+var _ error = Status{}
+
+// Assert that our ErrorUnwrapper fits the RPC error unwrapper spec.
+var _ rpc.ErrorUnwrapper = ErrorUnwrapper{}

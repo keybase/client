@@ -67,7 +67,7 @@ k8D1sZpooxcnL2NlRGWwYmOJWNq+qcmEJn+w6qAWgxTSggPEOEkIrkaUcA==
 var msg = []byte("test")
 
 func TestSignWithTestKey(t *testing.T) {
-	k, err := ReadOneKeyFromString(gpgDummyKey)
+	k, _, err := ReadOneKeyFromString(gpgDummyKey)
 	if err != nil {
 		t.Fatal(err)
 	}

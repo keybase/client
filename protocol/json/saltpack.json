@@ -746,6 +746,10 @@
         {
           "type": "boolean",
           "name": "forceRemoteCheck"
+        },
+        {
+          "type": "boolean",
+          "name": "usePaperKey"
         }
       ]
     },

@@ -109,8 +109,11 @@ release_prerelease() {
 
   s3cmd put --mime-type application/json "$json_tmp" "s3://$BUCKET_NAME/update-linux-prod.json"
 
-  # Generate and push the index.html file.
-  PLATFORM="linux" "$here/../prerelease/s3_index.sh"
+  # Generate and push the index.html file. S3 pushes in this script can be
+  # flakey, and on the Linux side of things all this does is update our
+  # internal pages, so we suppress errors here.
+  PLATFORM="linux" "$here/../prerelease/s3_index.sh" || \
+    echo "ERROR in s3_index.sh. Internal pages might not be updated. Build continuing..."
 
   echo Exporting to kbfs-beta...
   "$client_dir/packaging/export/export_kbfs.sh"
@@ -122,14 +125,18 @@ bump_arch_linux_aur() {
   # This relies on having the SSH key registered with the "keybase" account on
   # https://aur.archlinux.org.
   (
-    underscore_version="$(echo "$version" | sed 's/-/_/g')"
+    arch_version="$("$here/arch/version.sh")"
     temp_repo=`mktemp -d`
     git clone aur@aur.archlinux.org:keybase-git "$temp_repo"
     cd "$temp_repo"
-    sed -i "s/pkgver=.*/pkgver=$underscore_version/" PKGBUILD
-    sed -i "s/pkgver = .*/pkgver = $underscore_version/" .SRCINFO
-    git commit -am "version bump"
-    git push origin master
+    sed -i "s/pkgver=.*/pkgver=$arch_version/" PKGBUILD
+    sed -i "s/pkgver = .*/pkgver = $arch_version/" .SRCINFO
+    # The commit will fail if there are no changes. Don't push in that case.
+    if git commit -am "version bump" ; then
+      git push origin master
+    else
+      echo "No changes to the PKGBUILD. Skipping AUR push."
+    fi
   )
 }
 

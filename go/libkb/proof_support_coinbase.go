@@ -77,13 +77,6 @@ type CoinbaseServiceType struct{ BaseServiceType }
 
 func (t CoinbaseServiceType) AllStringKeys() []string { return t.BaseAllStringKeys(t) }
 
-func (t CoinbaseServiceType) CheckUsername(s string) (err error) {
-	if !regexp.MustCompile(`^@?(?i:[a-z0-9_]{2,16})$`).MatchString(s) {
-		err = BadUsernameError{s}
-	}
-	return
-}
-
 func coinbaseUserURL(s string) string {
 	return "https://coinbase.com/" + s
 }
@@ -92,21 +85,19 @@ func coinbaseSettingsURL(s string) string {
 	return coinbaseUserURL(s) + "#settings"
 }
 
-func (t CoinbaseServiceType) NormalizeUsername(s string) (ret string, err error) {
-	ret = strings.ToLower(s)
+var coinbaseUsernameRegexp = regexp.MustCompile(`^(?i:[a-z0-9_]{2,16})$`)
 
-	// XXX this function should not be making an API call.
-	_, err = G.XAPI.GetHTML(APIArg{
-		Endpoint:    coinbaseUserURL(ret),
-		NeedSession: false,
-	})
-	if err != nil {
-		if ae, ok := err.(*APIError); ok && ae.Code == 404 {
-			err = ProfileNotPublicError{fmt.Sprintf("%s isn't public! Change your settings at %s",
-				coinbaseUserURL(ret), coinbaseSettingsURL(ret))}
-		}
+func (t CoinbaseServiceType) NormalizeUsername(s string) (string, error) {
+	if !coinbaseUsernameRegexp.MatchString(s) {
+		return "", BadUsernameError{s}
 	}
-	return ret, err
+	return strings.ToLower(s), nil
+}
+
+func (t CoinbaseServiceType) NormalizeRemoteName(s string) (ret string, err error) {
+	// Allow a leading '@'.
+	s = strings.TrimPrefix(s, "@")
+	return t.NormalizeUsername(s)
 }
 
 func (t CoinbaseServiceType) ToChecker() Checker {
@@ -115,6 +106,22 @@ func (t CoinbaseServiceType) ToChecker() Checker {
 
 func (t CoinbaseServiceType) GetPrompt() string {
 	return "Your username on Coinbase"
+}
+
+func (t CoinbaseServiceType) PreProofCheck(normalizedUsername string) (*Markup, error) {
+	_, err := G.XAPI.GetHTML(APIArg{
+		Endpoint:    coinbaseUserURL(normalizedUsername),
+		NeedSession: false,
+	})
+	if err != nil {
+		if ae, ok := err.(*APIError); ok && ae.Code == 404 {
+			err = ProfileNotPublicError{fmt.Sprintf("%s isn't public! Change your settings at %s",
+				coinbaseUserURL(normalizedUsername),
+				coinbaseSettingsURL(normalizedUsername))}
+		}
+		return nil, err
+	}
+	return nil, nil
 }
 
 func (t CoinbaseServiceType) ToServiceJSON(un string) *jsonw.Wrapper {

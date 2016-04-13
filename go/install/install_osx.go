@@ -498,7 +498,7 @@ func UninstallKBFS(runMode libkb.RunMode, mountDir string, log logger.Logger) er
 		return fmt.Errorf("Mount has files after unmounting: %s", mountDir)
 	}
 	// TODO: We should remove the mountPath via trashDir(g, mountPath) but given
-	// permissions of /keybase we'll need the priviledged tool to do it instead.
+	// permissions of /keybase we'll need the privileged tool to do it instead.
 	return nil
 }
 

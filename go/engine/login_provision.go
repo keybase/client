@@ -231,7 +231,7 @@ func (e *loginProvision) getValidPaperKey(ctx *Context) (*keypair, error) {
 	var lastErr error
 	for i := 0; i < 10; i++ {
 		// get the paper key from the user
-		kp, err := e.getPaperKey(ctx)
+		kp, err := getPaperKey(e.G(), ctx)
 		if err != nil {
 			e.G().Log.Debug("getValidPaperKey attempt %d: %s", i, err)
 			if _, ok := err.(libkb.InputCanceledError); ok {
@@ -421,7 +421,7 @@ func (e *loginProvision) syncedPGPKey(ctx *Context) (libkb.GenericKey, error) {
 	// unlock it
 	// XXX improve this prompt
 	parg := ctx.SecretKeyPromptArg(libkb.SecretKeyArg{}, "sign new device")
-	unlocked, err := key.PromptAndUnlock(parg, "keybase", nil, e.arg.User)
+	unlocked, err := key.PromptAndUnlock(parg, nil, e.arg.User)
 	if err != nil {
 		return nil, err
 	}
@@ -825,13 +825,14 @@ func (e *loginProvision) ensurePaperKey(ctx *Context) error {
 	return RunEngine(eng, ctx)
 }
 
-func (e *loginProvision) getPaperKey(ctx *Context) (*keypair, error) {
+// This is used by SaltpackDecrypt as well.
+func getPaperKey(g *libkb.GlobalContext, ctx *Context) (*keypair, error) {
 	passphrase, err := libkb.GetPaperKeyPassphrase(ctx.SecretUI, "")
 	if err != nil {
 		return nil, err
 	}
 
-	paperPhrase, err := libkb.NewPaperKeyPhraseCheckVersion(e.G(), passphrase)
+	paperPhrase, err := libkb.NewPaperKeyPhraseCheckVersion(g, passphrase)
 	if err != nil {
 		return nil, err
 	}
@@ -840,13 +841,13 @@ func (e *loginProvision) getPaperKey(ctx *Context) (*keypair, error) {
 		Passphrase: paperPhrase,
 		SkipPush:   true,
 	}
-	bkeng := NewPaperKeyGen(bkarg, e.G())
+	bkeng := NewPaperKeyGen(bkarg, g)
 	if err := RunEngine(bkeng, ctx); err != nil {
 		return nil, err
 	}
 
 	kp := &keypair{sigKey: bkeng.SigKey(), encKey: bkeng.EncKey()}
-	if err := e.G().LoginState().Account(func(a *libkb.Account) {
+	if err := g.LoginState().Account(func(a *libkb.Account) {
 		a.SetUnlockedPaperKey(kp.sigKey, kp.encKey)
 	}, "UnlockedPaperKey"); err != nil {
 		return nil, err

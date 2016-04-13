@@ -624,7 +624,7 @@ func (u *User) SigningKeyPub() (GenericKey, error) {
 		Me:      u,
 		KeyType: DeviceSigningKeyType,
 	}
-	lockedKey, _, err := u.G().Keyrings.GetSecretKeyLocked(nil, arg)
+	lockedKey, err := u.G().Keyrings.GetSecretKeyLocked(nil, arg)
 	if err != nil {
 		return nil, err
 	}

@@ -15,6 +15,9 @@ type provisionee struct {
 	baseDevice
 	arg  ProvisioneeArg
 	done chan error
+
+	server       *rpc.Server
+	serverDoneCh <-chan struct{}
 }
 
 // Provisionee is an interface that abstracts out the crypto and session
@@ -84,9 +87,12 @@ func (p *provisionee) run() (err error) {
 		return err
 	}
 
-	err = <-p.done
-
-	return err
+	select {
+	case err := <-p.done:
+		return err
+	case <-p.serverDoneCh:
+		return p.server.Err()
+	}
 }
 
 func (p *provisionee) startServer(s Secret) (err error) {
@@ -100,10 +106,9 @@ func (p *provisionee) startServer(s Secret) (err error) {
 		return err
 	}
 
-	if err = srv.AddCloseListener(p.done); err != nil {
-		return err
-	}
-	return srv.Run(true)
+	p.server = srv
+	p.serverDoneCh = srv.Run()
+	return nil
 }
 
 func (p *provisionee) pickFirstConnection() (err error) {

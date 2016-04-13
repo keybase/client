@@ -46,7 +46,7 @@ export default class PinentryRender extends Component {
       style: {marginBottom: 0},
       onChange: event => this.setState({passphrase: event.target.value}),
       onEnterKeyDown: () => submitPassphrase(),
-      type: this.state.showTyping ? 'text' : 'password',
+      type: this.state.showTyping ? 'passwordVisible' : 'password',
       errorText: this.props.retryLabel,
       autoFocus: true
     }

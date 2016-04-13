@@ -58,7 +58,7 @@ func (c *Identify2Cache) Get(uid keybase1.UID, gctf GetCheckTimeFunc, timeout ti
 		}
 
 		thenTime := keybase1.FromTime(then)
-		if time.Now().Sub(thenTime) > timeout {
+		if time.Since(thenTime) > timeout {
 			return nil, TimeoutError{}
 		}
 	}

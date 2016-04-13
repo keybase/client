@@ -174,8 +174,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-framed-msgpack-rpc",
-			"revision": "f6fef575469bdad86d21f5c8e2c1aafde1cf0a2e",
-			"revisionTime": "2016-03-23T19:13:04-05:00"
+			"revision": "e7a2b13c5f85e774aa13c4fd428007bd46cb11bc",
+			"revisionTime": "2016-04-12T22:29:01-07:00"
 		},
 		{
 			"path": "github.com/keybase/go-jsonw",
@@ -209,8 +209,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-updater",
-			"revision": "d18ba27c71bd73ed367a6677a21df3693f3bbb60",
-			"revisionTime": "2016-03-25T12:34:14-07:00"
+			"revision": "6bcce925168dc76aac92953bf0a5dcefd3406fb8",
+			"revisionTime": "2016-04-12T10:39:09-07:00"
 		},
 		{
 			"path": "github.com/keybase/go-updater/sources",
@@ -223,17 +223,17 @@
 			"revisionTime": "2016-01-05T18:46:37-05:00"
 		},
 		{
-			"checksumSHA1": "I13eHztw5qFReA/em0yFfD19i48=",
+			"checksumSHA1": "Xanvzhz0mK0COvu27XKoQxIU7gk=",
+			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/gregor",
 			"path": "github.com/keybase/gregor",
-			"revision": "4222e358248b9ecc65c5baa43b438ed0f6aadcc2",
-			"revisionTime": "2016-04-04T09:40:36-05:00"
+			"revision": "dfde4449a8e3c5fbfeddd5e620d588fcaff3a387",
+			"revisionTime": "2016-04-13T10:15:26-04:00"
 		},
 		{
-			"checksumSHA1": "Q6WC6vjJHm1Yf8JwSxQ+RYIY8Ow=",
-			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/gregor/protocol/go",
-			"path": "github.com/keybase/gregor/protocol/go",
-			"revision": "4222e358248b9ecc65c5baa43b438ed0f6aadcc2",
-			"revisionTime": "2016-04-04T09:40:36-05:00"
+			"checksumSHA1": "1v6Z0foUSlEgXwFGLLOwihn8YZ4=",
+			"path": "github.com/keybase/gregor/protocol/gregor1",
+			"revision": "dfde4449a8e3c5fbfeddd5e620d588fcaff3a387",
+			"revisionTime": "2016-04-13T10:15:26-04:00"
 		},
 		{
 			"path": "github.com/keybase/keybase-test-vectors/go",

@@ -308,7 +308,7 @@ func cleanPGPInput(s string) string {
 
 // note:  openpgp.ReadArmoredKeyRing only returns the first block.
 // It will never return multiple entities.
-func ReadOneKeyFromString(originalArmor string) (*PGPKeyBundle, error) {
+func ReadOneKeyFromString(originalArmor string) (*PGPKeyBundle, *Warnings, error) {
 	cleanArmor := cleanPGPInput(originalArmor)
 	reader := strings.NewReader(cleanArmor)
 	el, err := openpgp.ReadArmoredKeyRing(reader)
@@ -354,10 +354,10 @@ func firstPrivateKey(s string) (string, error) {
 // and decodes it into a PGPKeyBundle.  It is useful in the case
 // where s contains multiple key blocks and you want the private
 // key block.  For example, the result of gpg export.
-func ReadPrivateKeyFromString(s string) (*PGPKeyBundle, error) {
+func ReadPrivateKeyFromString(s string) (*PGPKeyBundle, *Warnings, error) {
 	priv, err := firstPrivateKey(s)
 	if err != nil {
-		return nil, err
+		return nil, &Warnings{}, err
 	}
 	return ReadOneKeyFromString(priv)
 }
@@ -374,12 +374,13 @@ func mergeKeysIfPossible(out *PGPKeyBundle, lst []*openpgp.Entity) error {
 	return nil
 }
 
-func finishReadOne(lst []*openpgp.Entity, armored string, err error) (*PGPKeyBundle, error) {
+func finishReadOne(lst []*openpgp.Entity, armored string, err error) (*PGPKeyBundle, *Warnings, error) {
+	w := &Warnings{}
 	if err != nil {
-		return nil, err
+		return nil, w, err
 	}
 	if len(lst) == 0 {
-		return nil, NoKeyError{"No keys found in primary bundle"}
+		return nil, w, NoKeyError{"No keys found in primary bundle"}
 	}
 	first := &PGPKeyBundle{Entity: lst[0]}
 
@@ -390,26 +391,30 @@ func finishReadOne(lst []*openpgp.Entity, armored string, err error) (*PGPKeyBun
 		// perform a merge if possible, since the server-side accepts and merges such key exports.
 		err = mergeKeysIfPossible(first, lst[1:])
 		if err != nil {
-			return nil, err
+			return nil, w, err
 		}
+	}
+
+	for _, bs := range first.Entity.BadSubkeys {
+		w.Push(Warningf("Bad subkey: %s", bs.Err))
 	}
 
 	if first.Entity.PrivateKey == nil {
 		first.ArmoredPublicKey = armored
 	}
-	return first, nil
+	return first, w, nil
 }
 
-func ReadOneKeyFromBytes(b []byte) (*PGPKeyBundle, error) {
+func ReadOneKeyFromBytes(b []byte) (*PGPKeyBundle, *Warnings, error) {
 	reader := bytes.NewBuffer(b)
 	el, err := openpgp.ReadKeyRing(reader)
 	return finishReadOne(el, "", err)
 }
 
-func GetOneKey(jw *jsonw.Wrapper) (*PGPKeyBundle, error) {
+func GetOneKey(jw *jsonw.Wrapper) (*PGPKeyBundle, *Warnings, error) {
 	s, err := jw.GetString()
 	if err != nil {
-		return nil, err
+		return nil, &Warnings{}, err
 	}
 	return ReadOneKeyFromString(s)
 }
@@ -602,6 +607,7 @@ func (k *PGPKeyBundle) Unlock(reason string, secretUI SecretUI) error {
 		KeyDesc:  k.VerboseDescription(),
 		Unlocker: unlocker,
 		UI:       secretUI,
+		Which:    "the PGP key",
 	}.Run()
 	return err
 }

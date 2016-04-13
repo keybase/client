@@ -14,16 +14,11 @@ type State = {
   text: string
 }
 
-// TODO figure out how to make a passwordVisible type
-// We don't want to set this to clear text because that gives
-// permission to the OS to let the text be saved to use for predictive typing.
-
 class Input extends Component<void, Props, State> {
   state: State;
   _textInput: any;
 
   constructor (props: Props) {
-    console.log('in Input constructor')
     super(props)
     this.state = {
       inputFocused: false,
@@ -54,7 +49,7 @@ class Input extends Component<void, Props, State> {
       <Box style={{...containerStyle, ...this.props.style}}>
         {this.state.text.length > 0 && <Text type='BodySmall' style={{...floatingLabelStyle}}>{this.props.floatingLabelText}</Text>}
         <TextInput
-          style={{...inputStyle, ...textInputStyle}}
+          style={{...inputStyle, ...textInputStyle, ...(IOS && this.props.multiLine && IOSMultilineTextInputStyle || {})}}
           ref={component => { this._textInput = component }}
           autoCorrect={!(password || passwordVisible)}
           defaultValue={this.props.value}
@@ -63,12 +58,13 @@ class Input extends Component<void, Props, State> {
           placeholder={this.props.hintText}
           placeholderColor={globalColors.black10}
           underlineColorAndroid={this.state.inputFocused ? globalColors.blue : globalColors.black10}
+          multiline={this.props.multiLine}
+          numberOfLines={this.props.rows}
           onFocus={() => this.setState({inputFocused: true})}
           onBlur={() => this.setState({inputFocused: false})}
           onSubmitEditing={this.props.onEnterKeyDown}
           onChange={this.props.onChange}
-          onChangeText={this.props.onChangeText}
-          value={this.props.value} />
+          onChangeText={text => { this.setState({text}); this.props.onChangeText && this.props.onChangeText(text) }} />
         {IOS && <HorizontalLine focused={this.state.inputFocused}/>}
         {this.props.errorText && <Text type='Error' style={{...errorText, ...this.props.errorStyle}}>{this.props.errorText}</Text>}
       </Box>
@@ -95,11 +91,16 @@ const containerStyle = {
 
 const textInputStyle = {
   textAlign: 'center',
+  textAlignVertical: 'bottom',
   position: 'absolute',
   top: 0,
   bottom: -8,
   left: -4,
   right: -4
+}
+
+const IOSMultilineTextInputStyle = {
+  bottom: 0
 }
 
 const floatingLabelStyle = {

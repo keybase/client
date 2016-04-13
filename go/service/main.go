@@ -90,8 +90,7 @@ func (d *Service) Handle(c net.Conn) {
 
 	server := rpc.NewServer(xp, libkb.WrapError)
 
-	cl := make(chan error)
-	server.AddCloseListener(cl)
+	cl := make(chan error, 1)
 	connID := d.G().NotifyRouter.AddConnection(xp, cl)
 
 	var logReg *logRegister
@@ -108,10 +107,13 @@ func (d *Service) Handle(c net.Conn) {
 		return
 	}
 
-	if err := server.Run(false /* bg */); err != nil {
-		if err != io.EOF {
-			d.G().Log.Warning("Run error: %s", err)
-		}
+	// Run the server and wait for it to finish.
+	<-server.Run()
+	// err is always non-nil.
+	err := server.Err()
+	cl <- err
+	if err != io.EOF {
+		d.G().Log.Warning("Run error: %s", err)
 	}
 
 	d.G().Log.Debug("Handle() complete for connection %d", connID)

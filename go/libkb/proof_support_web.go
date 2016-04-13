@@ -91,6 +91,14 @@ type WebServiceType struct{ BaseServiceType }
 func (t WebServiceType) AllStringKeys() []string     { return []string{"web", "http", "https"} }
 func (t WebServiceType) PrimaryStringKeys() []string { return []string{"https", "http"} }
 
+func (t WebServiceType) NormalizeUsername(s string) (ret string, err error) {
+	// The username is just the (lowercased) hostname.
+	if !IsValidHostname(s) {
+		return "", InvalidHostnameError{s}
+	}
+	return strings.ToLower(s), nil
+}
+
 func ParseWeb(s string) (hostname string, prot string, err error) {
 	rxx := regexp.MustCompile("^(http(s?))://(.*)$")
 	if v := rxx.FindStringSubmatch(s); v != nil {
@@ -105,12 +113,8 @@ func ParseWeb(s string) (hostname string, prot string, err error) {
 	return
 }
 
-func (t WebServiceType) CheckUsername(s string) error {
-	_, _, e := ParseWeb(s)
-	return e
-}
-
-func (t WebServiceType) NormalizeUsername(s string) (ret string, err error) {
+func (t WebServiceType) NormalizeRemoteName(s string) (ret string, err error) {
+	// The remote name is a full (case-preserved) URL.
 	var prot, host string
 	if host, prot, err = ParseWeb(s); err != nil {
 		return

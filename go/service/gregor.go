@@ -5,7 +5,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
-	protocol "github.com/keybase/gregor/protocol/go"
+	"github.com/keybase/gregor/protocol/gregor1"
 	"golang.org/x/net/context"
 )
 
@@ -25,15 +25,20 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection, cli
 	g.G().Log.Debug("gregor handler: connected")
 
 	g.G().Log.Debug("gregor handler: registering protocols")
-	if err := srv.Register(protocol.OutgoingProtocol(g)); err != nil {
+	if err := srv.Register(gregor1.OutgoingProtocol(g)); err != nil {
 		return err
 	}
 
 	g.G().Log.Debug("gregor handler: authenticating")
-	ac := protocol.AuthClient{Cli: cli}
-	if err := ac.Authenticate(ctx, "dummy auth token"); err != nil {
+	ac := gregor1.AuthClient{Cli: cli}
+	auth, err := ac.AuthenticateSessionToken(ctx, "dummy auth token")
+	if err != nil {
+		g.G().Log.Debug("gregor handler: auth error: %s", err)
 		return err
 	}
+
+	g.G().Log.Debug("gregor handler: auth result: %+v", auth)
+
 	return nil
 }
 
@@ -57,7 +62,7 @@ func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
 	return false
 }
 
-func (g *gregorHandler) BroadcastMessage(ctx context.Context, m protocol.Message) error {
+func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message) error {
 	g.G().Log.Debug("gregor handler: broadcast: %+v", m)
 	return nil
 }

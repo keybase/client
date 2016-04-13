@@ -28,10 +28,6 @@ func GetTerminalPrompt() string {
 	return "Store your key in the local secret store?"
 }
 
-func NewSecretStoreAll(g *GlobalContext) SecretStoreAll {
-	return nil
-}
-
 func NewTestSecretStoreAll(c SecretStoreContext, g *GlobalContext) SecretStoreAll {
 	ret := TestSecretStoreAll{context: c, secretStoreNoneMap: map[NormalizedUsername][]byte{}}
 	ret.SetGlobalContext(g)

@@ -29,7 +29,6 @@ export default class Icon extends Component {
     }
 
     const ext = shared.typeExtension(iconType)
-
     const isFontIcon = iconType.startsWith('fa-')
 
     if (isFontIcon) {
@@ -48,10 +47,13 @@ export default class Icon extends Component {
         title={this.props.hint}
         style={{...this.props.style}}
         onClick={this.props.onClick}
-        srcSet={`${[1, 2, 3].map(mult => `${resolveImage('icons', this.props.type)}${mult > 1 ? `@${mult}x` : ''}.${ext} ${mult}x`).join(', ')}`} />
+        srcSet={imgPath(this.props.type, ext)} />
     }
   }
 }
+
+const imgName = (type, ext, mult) => `${encodeURI(resolveImage('icons', type))}${mult > 1 ? `@${mult}x` : ''}.${ext} ${mult}x`
+const imgPath = (type, ext) => [1, 2, 3].map(mult => imgName(type, ext, mult)).join(', ')
 
 export const styles = {
   icon: {

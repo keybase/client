@@ -161,7 +161,7 @@ func (v *CmdDumpKeyfamily) printKey(key keybase1.PublicKey, subkeys []keybase1.P
 	dui.Printf("%sCreated: %s\n", indentSpace(indent+1), keybase1.FromTime(key.CTime))
 	dui.Printf("%sExpires: %s\n", indentSpace(indent+1), keybase1.FromTime(key.ETime))
 
-	if subkeys != nil && len(subkeys) > 0 {
+	if len(subkeys) > 0 {
 		dui.Printf("%sSubkeys:\n", indentSpace(indent+1))
 		for _, subkey := range subkeys {
 			v.printKey(subkey, nil, indent+2)

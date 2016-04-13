@@ -120,7 +120,7 @@ func (key *PGPKeyBundle) ToLksSKB(lks *LKSec) (ret *SKB, err error) {
 	//
 	// Urg, there's still more.  For generated keys, it's the opposite.
 	// We have to sign the key components first (via SerializePrivate)
-	// so we can export them publically.
+	// so we can export them publicly.
 
 	if key.Generated {
 		err = serializePrivate()
@@ -183,7 +183,9 @@ func (s *SKB) ToPacket() (ret *KeybasePacket, err error) {
 func (s *SKB) ReadKey() (g GenericKey, err error) {
 	switch {
 	case IsPGPAlgo(s.Type):
-		g, err = ReadOneKeyFromBytes(s.Pub)
+		var w *Warnings
+		g, w, err = ReadOneKeyFromBytes(s.Pub)
+		w.Warn(s.G())
 	case s.Type == KIDNaclEddsa:
 		g, err = ImportNaclSigningKeyPairFromBytes(s.Pub, nil)
 	case s.Type == KIDNaclDH:
@@ -363,7 +365,9 @@ func (s *SKB) parseUnlocked(unlocked []byte) (key GenericKey, err error) {
 
 	switch {
 	case IsPGPAlgo(s.Type):
-		key, err = ReadOneKeyFromBytes(unlocked)
+		var w *Warnings
+		key, w, err = ReadOneKeyFromBytes(unlocked)
+		w.Warn(s.G())
 	case s.Type == KIDNaclEddsa:
 		key, err = ImportNaclSigningKeyPairFromBytes(s.Pub, unlocked)
 	case s.Type == KIDNaclDH:
@@ -729,7 +733,7 @@ func (s *SKB) UnlockNoPrompt(lctx LoginContext, secretStore SecretStore) (Generi
 	return nil, errUnlockNotPossible
 }
 
-func (s *SKB) unlockPrompt(arg SecretKeyPromptArg, which string, secretStore SecretStore, me *User) (GenericKey, error) {
+func (s *SKB) unlockPrompt(arg SecretKeyPromptArg, secretStore SecretStore, me *User) (GenericKey, error) {
 	// check to see if user has recently canceled an unlock prompt:
 	// if lctx != nil, then don't bother as any prompts during login should be shown.
 	if arg.LoginContext == nil && arg.UseCancelCache {
@@ -759,7 +763,7 @@ func (s *SKB) unlockPrompt(arg SecretKeyPromptArg, which string, secretStore Sec
 		Tries:          4,
 		Reason:         arg.Reason,
 		KeyDesc:        desc,
-		Which:          which,
+		Which:          WhichPassphraseKeybase,
 		UseSecretStore: secretStore != nil,
 		Unlocker:       unlocker,
 		UI:             arg.SecretUI,
@@ -778,8 +782,8 @@ func (s *SKB) unlockPrompt(arg SecretKeyPromptArg, which string, secretStore Sec
 	return key, nil
 }
 
-func (s *SKB) PromptAndUnlock(arg SecretKeyPromptArg, which string, secretStore SecretStore, me *User) (ret GenericKey, err error) {
-	s.G().Log.Debug("+ PromptAndUnlock(%s,%s)", arg.Reason, which)
+func (s *SKB) PromptAndUnlock(arg SecretKeyPromptArg, secretStore SecretStore, me *User) (ret GenericKey, err error) {
+	s.G().Log.Debug("+ PromptAndUnlock(%s)", arg.Reason)
 	defer func() {
 		s.G().Log.Debug("- PromptAndUnlock -> %s", ErrToOk(err))
 	}()
@@ -794,7 +798,7 @@ func (s *SKB) PromptAndUnlock(arg SecretKeyPromptArg, which string, secretStore 
 	}
 
 	// Prompt necessary:
-	ret, err = s.unlockPrompt(arg, which, secretStore, me)
+	ret, err = s.unlockPrompt(arg, secretStore, me)
 	return
 }
 
