@@ -382,8 +382,9 @@ func SwitchDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config, inde
 	}
 
 	keySalt := keySaltForUserDevice(name, index)
-	crypto.signingKey = MakeLocalUserSigningKeyOrBust(keySalt)
-	crypto.cryptPrivateKey = MakeLocalUserCryptPrivateKeyOrBust(keySalt)
+	signingKey := MakeLocalUserSigningKeyOrBust(keySalt)
+	cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(keySalt)
+	crypto.updateKeysForTesting(signingKey, cryptPrivateKey)
 }
 
 func testWithCanceledContext(t logger.TestLogBackend, ctx context.Context,
