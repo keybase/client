@@ -35,7 +35,7 @@ export function decodeKBFSError (user: string, notification: FSNotification): De
       title: `Keybase: ${_.capitalize(notification.params.mode)} timeout in ${tlf}`,
       body: `The ${notification.params.mode} operation took too long and failed. Please run 'keybase log send' so our admins can review.`
     },
-    [enums.kbfs.FSErrorType.rekeyNeeded]: notification.rekeyself ? {
+    [enums.kbfs.FSErrorType.rekeyNeeded]: notification.params.rekeyself ? {
       title: 'Keybase: Files need to be rekeyed',
       body: `Please open one of your other computers to unlock ${tlf}`
     } : {
