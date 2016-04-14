@@ -170,7 +170,6 @@ func (fl *FolderList) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedSt
 	var favs []libkbfs.Favorite
 	if isLoggedIn {
 		favs, err = fl.fs.config.KBFSOps().GetFavorites(ctx)
-		fl.fs.log.CDebugf(ctx, "FL ReadDirAll -> %v,%v", favs, err)
 		if err != nil {
 			return err
 		}

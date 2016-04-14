@@ -366,7 +366,6 @@ func (d *Dir) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedStat) erro
 	defer func() { d.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
 
 	children, err := d.folder.fs.config.KBFSOps().GetDirChildren(ctx, d.node)
-	d.folder.fs.log.CDebugf(ctx, "Dir ReadDirAll => %v, %v", children, err)
 	if err != nil {
 		return err
 	}
