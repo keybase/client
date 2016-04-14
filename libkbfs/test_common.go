@@ -335,12 +335,12 @@ func AddDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config,
 	uid keybase1.UID) int {
 	kbd, ok := config.KeybaseDaemon().(*KeybaseDaemonLocal)
 	if !ok {
-		t.Fatalf("Bad keybase daemon")
+		t.Fatal("Bad keybase daemon")
 	}
 
 	index, err := kbd.addDeviceForTesting(uid, makeFakeKeys)
 	if err != nil {
-		t.Fatalf(err.Error())
+		t.Fatal(err.Error())
 	}
 	return index
 }
@@ -351,12 +351,12 @@ func RevokeDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config,
 	uid keybase1.UID, index int) {
 	kbd, ok := config.KeybaseDaemon().(*KeybaseDaemonLocal)
 	if !ok {
-		t.Fatalf("Bad keybase daemon")
+		t.Fatal("Bad keybase daemon")
 	}
 
 	if err := kbd.revokeDeviceForTesting(
 		config.Clock(), uid, index); err != nil {
-		t.Fatalf(err.Error())
+		t.Fatal(err.Error())
 	}
 }
 
@@ -369,16 +369,16 @@ func SwitchDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config, inde
 
 	kbd, ok := config.KeybaseDaemon().(*KeybaseDaemonLocal)
 	if !ok {
-		t.Fatalf("Bad keybase daemon")
+		t.Fatal("Bad keybase daemon")
 	}
 
 	if err := kbd.switchDeviceForTesting(uid, index); err != nil {
-		t.Fatalf(err.Error())
+		t.Fatal(err.Error())
 	}
 
 	crypto, ok := config.Crypto().(*CryptoLocal)
 	if !ok {
-		t.Fatalf("Bad crypto")
+		t.Fatal("Bad crypto")
 	}
 
 	keySalt := keySaltForUserDevice(name, index)
