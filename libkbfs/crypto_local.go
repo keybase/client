@@ -1,8 +1,6 @@
 package libkbfs
 
 import (
-	"sync"
-
 	"github.com/keybase/client/go/libkb"
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/net/context"
@@ -76,8 +74,6 @@ func (k CryptPrivateKey) getPublicKey() CryptPublicKey {
 // signing key and a local crypt private key.
 type CryptoLocal struct {
 	CryptoCommon
-
-	lock            sync.RWMutex
 	signingKey      SigningKey
 	cryptPrivateKey CryptPrivateKey
 }
@@ -87,18 +83,13 @@ var _ Crypto = (*CryptoLocal)(nil)
 // NewCryptoLocal constructs a new CryptoLocal instance with the given
 // signing key.
 func NewCryptoLocal(config Config, signingKey SigningKey, cryptPrivateKey CryptPrivateKey) *CryptoLocal {
-	return &CryptoLocal{
-		CryptoCommon:    CryptoCommon{config.Codec(), config.MakeLogger("")},
-		signingKey:      signingKey,
-		cryptPrivateKey: cryptPrivateKey,
-	}
+	return &CryptoLocal{CryptoCommon{config.Codec(), config.MakeLogger("")},
+		signingKey, cryptPrivateKey}
 }
 
 // Sign implements the Crypto interface for CryptoLocal.
 func (c *CryptoLocal) Sign(ctx context.Context, msg []byte) (
 	sigInfo SignatureInfo, err error) {
-	c.lock.RLock()
-	defer c.lock.RUnlock()
 	sigInfo = SignatureInfo{
 		Version:      SigED25519,
 		Signature:    c.signingKey.kp.Private.Sign(msg)[:],
@@ -110,8 +101,6 @@ func (c *CryptoLocal) Sign(ctx context.Context, msg []byte) (
 // SignToString implements the Crypto interface for CryptoLocal.
 func (c *CryptoLocal) SignToString(ctx context.Context, msg []byte) (
 	signature string, err error) {
-	c.lock.RLock()
-	defer c.lock.RUnlock()
 	signature, _, err = c.signingKey.kp.SignToString(msg)
 	return
 }
@@ -145,9 +134,6 @@ func (c *CryptoLocal) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 	publicKey TLFEphemeralPublicKey,
 	encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
 	clientHalf TLFCryptKeyClientHalf, err error) {
-	c.lock.RLock()
-	defer c.lock.RUnlock()
-
 	nonce, err := c.prepareTLFCryptKeyClientHalf(encryptedClientHalf, clientHalf)
 	if err != nil {
 		return
@@ -173,9 +159,6 @@ func (c *CryptoLocal) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 func (c *CryptoLocal) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 	keys []EncryptedTLFCryptKeyClientAndEphemeral, _ bool) (
 	clientHalf TLFCryptKeyClientHalf, index int, err error) {
-	c.lock.RLock()
-	defer c.lock.RUnlock()
-
 	if len(keys) == 0 {
 		return clientHalf, index, NoKeysError{}
 	}
@@ -192,14 +175,6 @@ func (c *CryptoLocal) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 	}
 	err = libkb.DecryptionError{}
 	return
-}
-
-func (c *CryptoLocal) updateKeysForTesting(signingKey SigningKey,
-	cryptPrivateKey CryptPrivateKey) {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-	c.signingKey = signingKey
-	c.cryptPrivateKey = cryptPrivateKey
 }
 
 // Shutdown implements the Crypto interface for CryptoLocal.

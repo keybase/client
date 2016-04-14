@@ -40,13 +40,15 @@ type ConfigLocal struct {
 	rep    Reporter
 	kcache KeyCache
 	bcache BlockCache
-	crypto Crypto
 	codec  Codec
 	mdops  MDOps
 	kops   KeyOps
 
 	// TODO: We probably want to do the same thing for everything
 	// else.
+	cryptoLock sync.RWMutex
+	crypto     Crypto
+
 	mdcacheLock sync.RWMutex
 	mdcache     MDCache
 
@@ -293,11 +295,15 @@ func (c *ConfigLocal) SetBlockCache(b BlockCache) {
 
 // Crypto implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) Crypto() Crypto {
+	c.cryptoLock.RLock()
+	defer c.cryptoLock.RUnlock()
 	return c.crypto
 }
 
 // SetCrypto implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) SetCrypto(cr Crypto) {
+	c.cryptoLock.Lock()
+	defer c.cryptoLock.Unlock()
 	c.crypto = cr
 }
 

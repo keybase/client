@@ -376,15 +376,14 @@ func SwitchDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config, inde
 		t.Fatal(err.Error())
 	}
 
-	crypto, ok := config.Crypto().(*CryptoLocal)
-	if !ok {
+	if _, ok := config.Crypto().(*CryptoLocal); !ok {
 		t.Fatal("Bad crypto")
 	}
 
 	keySalt := keySaltForUserDevice(name, index)
 	signingKey := MakeLocalUserSigningKeyOrBust(keySalt)
 	cryptPrivateKey := MakeLocalUserCryptPrivateKeyOrBust(keySalt)
-	crypto.updateKeysForTesting(signingKey, cryptPrivateKey)
+	config.SetCrypto(NewCryptoLocal(config, signingKey, cryptPrivateKey))
 }
 
 func testWithCanceledContext(t logger.TestLogBackend, ctx context.Context,
