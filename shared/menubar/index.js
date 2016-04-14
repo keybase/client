@@ -28,11 +28,16 @@ export type MenubarProps = {
   switchTab: (tab: string) => void
 }
 
+const REQUEST_DELAY = 5000
+
 class Menubar extends Component {
   props: MenubarProps;
+  _lastRequest: number;
 
   constructor (props) {
     super(props)
+
+    this._lastRequest = 0
 
     const onMenubarShow = () => {
       setImmediate(() => {
@@ -66,6 +71,14 @@ class Menubar extends Component {
   }
 
   checkForFolders (force) {
+    const now = Date.now()
+
+    if ((now - this._lastRequest) < REQUEST_DELAY) {
+      return
+    }
+
+    this._lastRequest = now
+
     setImmediate(() => {
       if (!force && this.props.folders) {
         return
@@ -79,6 +92,21 @@ class Menubar extends Component {
 
   componentDidMount () {
     this.checkForFolders()
+  }
+
+  shouldComponentUpdate (nextProps, nextState) {
+    if (this.props.username !== nextProps.username ||
+        this.props.loggedIn !== nextProps.loggedIn) {
+      this._lastRequest = 0 // reset delay since user/loggedin changed
+      this.checkForFolders()
+      return true
+    }
+
+    if (this.props.folders !== nextProps.folders) {
+      return true
+    }
+
+    return false
   }
 
   closeMenubar () {
@@ -138,6 +166,8 @@ class Menubar extends Component {
       }
     })
 
+    const loading = !!username && !this.props.folders
+
     return <Render
       username={username}
       openKBFS={() => this.openKBFS()}
@@ -149,7 +179,7 @@ class Menubar extends Component {
       logIn={() => this.logIn()}
       quit={() => remote.app.quit()}
       folders={folders}
-      loading={!!username && !this.props.folders}
+      loading={loading}
       loggedIn={this.props.loggedIn || false}
     />
   }

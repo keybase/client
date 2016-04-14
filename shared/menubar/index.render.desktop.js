@@ -5,7 +5,7 @@ import React, {Component} from 'react'
 import {shell} from 'electron'
 import {resolveImageAsURL} from '../../desktop/resolve-root'
 
-import {intersperse} from '../util/arrays'
+import {intersperseFn} from '../util/arrays'
 import {parseFolderNameToUsers, canonicalizeUsernames, stripPublicTag} from '../util/kbfs'
 
 import {globalStyles, globalColors} from '../styles/style-guide'
@@ -116,16 +116,16 @@ const Row = props => {
   return (
     <div style={containerStyle} onClick={props.onClick}>
       <div style={{...globalStyles.clickable, marginRight: 2, ...props.iconStyle}}/>
-      <Text type='Body' link small key={props.key} style={{marginTop: 4, overflowWrap: 'break-word', flex: 1, ...props.textStyle}}>{props.text}</Text>
+      <Text type='Body' link small style={{marginTop: 4, overflowWrap: 'break-word', flex: 1, ...props.textStyle}}>{props.text}</Text>
       {props.children}
     </div>
   )
 }
 
 const FolderRow = props => {
-  const divider = <span>,<wbr/></span> // word break on the commas
+  const divider = idx => <span key={'div' + idx}>,<wbr/></span> // word break on the commas
   const {username, folder: {isPublic, isEmpty, openFolder, folderName}} = props
-  let text = intersperse(divider, canonicalizeUsernames(username, parseFolderNameToUsers(folderName)))
+  let text = intersperseFn(divider, canonicalizeUsernames(username, parseFolderNameToUsers(folderName)))
 
   return <Row
     onClick={openFolder}
