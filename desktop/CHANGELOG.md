@@ -5,4 +5,4 @@ Coming soon:
 Newish Features:
 
 Notable Bug Fixes:
-- Windows show pretty icons now
+- Pretty icons show up on Windows correctly
