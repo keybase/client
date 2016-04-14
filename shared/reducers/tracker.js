@@ -403,7 +403,7 @@ function proofUrlToProfileUrl (proofType: number, name: string, key: ?string, hu
 function remoteProofToProofType (rp: RemoteProof): string {
   let proofType: string = ''
   if (rp.proofType === identify.ProofType.genericWebSite) {
-    proofType = 'web'
+    proofType = rp.key
   } else {
     proofType = mapTagToName(identify.ProofType, rp.proofType) || ''
   }
