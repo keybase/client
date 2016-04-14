@@ -128,6 +128,7 @@ func NewRedisPublisherWithBackoff(address string, handler PublicationHandler,
 func (p *redisPublisher) publishLoop() {
 	defer p.wg.Done()
 	for m := range p.messages {
+		m := m
 		func() {
 			conn := p.pool.Get()
 			defer conn.Close()

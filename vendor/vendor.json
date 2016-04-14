@@ -326,8 +326,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-redis-pubsub",
-			"revision": "9cc123dfbe2cf6e6ec0c933325a5463cc566d5fb",
-			"revisionTime": "2016-04-08T15:07:45-07:00"
+			"revision": "9a017dcc87c939152b4c6bce4d1a10d7c9e05d1c",
+			"revisionTime": "2016-04-14T09:23:14-07:00"
 		},
 		{
 			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-triplesec",

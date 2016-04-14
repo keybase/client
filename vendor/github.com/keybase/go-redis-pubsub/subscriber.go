@@ -16,6 +16,9 @@ import (
 // ErrNotSubscribed is returned when an unsubscribe request is received for an unsubscribed channel.
 var ErrNotSubscribed = errors.New("Not subscribed")
 
+// ErrNotConnected is returned when a subscribe/unsubscribe request is received when not connected.
+var ErrNotConnected = errors.New("Not connected")
+
 // DefaultSubscriberPoolSize is the default subscription worker pool size.
 const DefaultSubscriberPoolSize = 16
 
@@ -270,13 +273,7 @@ func NewRedisSubscriber(address string, handler SubscriptionHandler, poolSize in
 		slots:       make([]*redisSubscriberConn, poolSize),
 	}
 	for slot := 0; slot < poolSize; slot++ {
-		// XXX comment from strib: do we have to block on these
-		// subscription calls?  I think the caller might find it
-		// unexpected.  Plus, something that blocks should probably
-		// take a context that can be cancelled by the caller if
-		// things take too long.  Either way, maybe we should document
-		// the blocking behavior in the method comment?
-		subscriber.reconnectSlot(slot, 0)
+		go subscriber.reconnectSlot(slot, 0)
 	}
 	return subscriber
 }
@@ -361,6 +358,11 @@ func (s *redisSubscriber) Subscribe(channel string) (
 	slot := s.GetSlot(channel)
 	s.slotMutexes[slot].RLock()
 	defer s.slotMutexes[slot].RUnlock()
+	if s.slots[slot] == nil {
+		errChan := make(chan error, 1)
+		errChan <- ErrNotConnected
+		return 0, errChan
+	}
 	t, retChan := s.slots[slot].subscribe(channel)
 	return ConnectionToken(t), retChan
 }
@@ -371,6 +373,9 @@ func (s *redisSubscriber) Unsubscribe(channel string,
 	slot := s.GetSlot(channel)
 	s.slotMutexes[slot].RLock()
 	defer s.slotMutexes[slot].RUnlock()
+	if s.slots[slot] == nil {
+		return 0, ErrNotConnected
+	}
 	return s.slots[slot].unsubscribe(channel, int(token), count)
 }
 
@@ -380,6 +385,8 @@ func (s *redisSubscriber) Shutdown() {
 	defer s.shutdownMutex.Unlock()
 	s.shutdown = true
 	for _, conn := range s.slots {
-		conn.close()
+		if conn != nil {
+			conn.close()
+		}
 	}
 }
