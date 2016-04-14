@@ -1,6 +1,7 @@
 package gregor1
 
 import (
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"time"
@@ -229,6 +230,16 @@ func (s State) Marshal() ([]byte, error) {
 	err := codec.NewEncoderBytes(&b, &codec.MsgpackHandle{WriteExt: true}).
 		Encode(s.items)
 	return b, err
+}
+
+func (s State) Hash() ([]byte, error) {
+	b, err := s.Marshal()
+	if err != nil {
+		return nil, err
+	}
+
+	sum := sha256.Sum256(b)
+	return sum[:], nil
 }
 
 func (i ItemAndMetadata) InCategory(c Category) bool {

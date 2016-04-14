@@ -232,8 +232,8 @@
 		{
 			"checksumSHA1": "1v6Z0foUSlEgXwFGLLOwihn8YZ4=",
 			"path": "github.com/keybase/gregor/protocol/gregor1",
-			"revision": "dfde4449a8e3c5fbfeddd5e620d588fcaff3a387",
-			"revisionTime": "2016-04-13T10:15:26-04:00"
+			"revision": "f7b78d6d8bec787033b1b4f13aadc682efc5e72b",
+			"revisionTime": "2016-04-14T16:17:30-04:00"
 		},
 		{
 			"path": "github.com/keybase/keybase-test-vectors/go",

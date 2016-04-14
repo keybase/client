@@ -12,8 +12,12 @@ type ConsumeMessageArg struct {
 	M Message `codec:"m" json:"m"`
 }
 
+type PingArg struct {
+}
+
 type IncomingInterface interface {
 	ConsumeMessage(context.Context, Message) error
+	Ping(context.Context) (string, error)
 }
 
 func IncomingProtocol(i IncomingInterface) rpc.Protocol {
@@ -36,6 +40,17 @@ func IncomingProtocol(i IncomingInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"ping": {
+				MakeArg: func() interface{} {
+					ret := make([]PingArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					ret, err = i.Ping(ctx)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -47,5 +62,10 @@ type IncomingClient struct {
 func (c IncomingClient) ConsumeMessage(ctx context.Context, m Message) (err error) {
 	__arg := ConsumeMessageArg{M: m}
 	err = c.Cli.Call(ctx, "gregor.1.incoming.consumeMessage", []interface{}{__arg}, nil)
+	return
+}
+
+func (c IncomingClient) Ping(ctx context.Context) (res string, err error) {
+	err = c.Cli.Call(ctx, "gregor.1.incoming.ping", []interface{}{PingArg{}}, &res)
 	return
 }
