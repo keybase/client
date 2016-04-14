@@ -44,7 +44,8 @@ class ProofsRender extends Component {
       'coinbase': 'fa-btc',
       'hackernews': 'fa-hacker-news',
       'rooter': 'fa-shopping-basket',
-      'web': 'fa-globe',
+      'http': 'fa-globe',
+      'https': 'fa-globe',
       'dns': 'fa-globe'
     }[proof.type]
   }
