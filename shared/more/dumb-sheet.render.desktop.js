@@ -55,7 +55,7 @@ class Render extends Component<void, any, any> {
           const map = componentMap[key]
           const Component = map.component
           return (
-            <Box style={styleBox}>
+            <Box key={key} style={styleBox}>
               <Text type='Header' style={{marginBottom: 5}}>{key}</Text>
               {Object.keys(map.mocks).map((mockKey, idx) => {
                 const mock = {...map.mocks[mockKey]}
@@ -63,7 +63,7 @@ class Render extends Component<void, any, any> {
                 mock.parentProps = undefined
 
                 return (
-                  <Box style={styleBox}>
+                  <Box key={mockKey} style={styleBox}>
                     <Text type='Body' style={{marginBottom: 5}}>{mockKey}</Text>
                     <Box {...parentProps}>
                       <Component key={mockKey} {...mock} />
