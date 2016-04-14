@@ -6,6 +6,7 @@ import usernameEmail from './username-email-form.render'
 import Error from './error/index.render'
 import Passphrase from './passphrase/index.render'
 import Success from './success/index.render'
+import DeviceName from '../register/set-public-name/index.render'
 
 import HiddenString from '../../util/hidden-string'
 
@@ -55,6 +56,16 @@ const passphraseShared = {
   ...signupShared,
   passphraseError: null,
   checkPassphrase: nullFunc
+}
+
+const deviceNameShared = {
+  ...signupShared,
+  onBack: nullFunc,
+  onSubmit: nullFunc,
+  onChange: nullFunc,
+  deviceNameError: null,
+  deviceName: '',
+  waiting: false
 }
 
 export default {
@@ -193,6 +204,26 @@ export default {
         onFinish: nullFunc,
         onBack: nullFunc,
         title: 'Congratulations, you’ve just joined Keybase!'
+      }
+    }
+  },
+  'Device Name': {
+    component: DeviceName,
+    mocks: {
+      'Start': {
+        ...deviceNameShared
+      },
+      'Waiting': {
+        ...deviceNameShared,
+        waiting: true
+      },
+      'Name': {
+        ...deviceNameShared,
+        deviceName: 'A name'
+      },
+      'Error': {
+        ...deviceNameShared,
+        deviceNameError: 'Some naming errors'
       }
     }
   }
