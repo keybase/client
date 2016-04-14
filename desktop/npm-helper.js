@@ -4,17 +4,17 @@ import child_process, {execSync} from 'child_process'
 import fs from 'fs'
 
 const postinstallGlobals = {
-  'babel-eslint': '@6.0.0',
-  'eslint': '@2.5.3',
+  'babel-eslint': '@6.0.2',
+  'eslint': '@2.7.0',
   'eslint-config-standard': '@5.1.0',
   'eslint-config-standard-jsx': '@1.1.1',
   'eslint-config-standard-react': '@2.3.0',
-  'eslint-plugin-babel': '@3.1.0',
+  'eslint-plugin-babel': '@3.2.0',
   'eslint-plugin-filenames': '@0.2.0',
-  'eslint-plugin-flow-vars': '@0.2.1',
-  'eslint-plugin-mocha': '@2.0.0',
+  'eslint-plugin-flow-vars': '@0.3.0',
+  'eslint-plugin-mocha': '@2.2.0',
   'eslint-plugin-promise': '@1.1.0',
-  'eslint-plugin-react': '@4.2.3',
+  'eslint-plugin-react': '@4.3.0',
   'eslint-plugin-standard': '@1.3.2',
   'estraverse': '@4.2.0',
   'estraverse-fb': '@1.3.1'
