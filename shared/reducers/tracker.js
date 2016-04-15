@@ -4,7 +4,7 @@ import * as Constants from '../constants/tracker'
 import * as CommonConstants from '../constants/common'
 
 import {normal, warning, error, checking} from '../constants/tracker'
-import {metaNew, metaUpgraded, metaUnreachable, metaDeleted, metaTrackedBroken} from '../constants/tracker'
+import {metaNew, metaUpgraded, metaUnreachable, metaDeleted, metaIgnored} from '../constants/tracker'
 
 import {identify} from '../constants/types/keybase-v1'
 
@@ -419,7 +419,8 @@ function revokedProofToProof (rv: RevokedProof): Proof {
     color: stateToColor(error),
     name: rv.proof.displayMarkup,
     humanUrl: '',
-    profileUrl: ''
+    profileUrl: '',
+    isTracked: false
   }
 }
 
@@ -434,11 +435,11 @@ function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
     statusMeta = proofStatusToSimpleProofMeta(lcr.proofResult.status)
   }
 
-  const isTracked = lcr && lcr.diff && lcr.diff.type === identify.TrackDiffType.none && !lcr.breaksTracking
+  const isTracked = !!(lcr && lcr.diff && lcr.diff.type === identify.TrackDiffType.none && !lcr.breaksTracking)
 
   // whatevz, tracked a broken thing
   if (lcr && lcr.proofResult && lcr.proofResult.status !== identify.ProofStatus.ok && isTracked) {
-    diffMeta = metaTrackedBroken
+    diffMeta = metaIgnored
     statusMeta = null
   }
 

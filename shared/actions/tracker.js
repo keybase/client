@@ -256,7 +256,10 @@ function onWaiting (username: string, waiting: bool): (dispatch: Dispatch) => vo
 }
 
 export function onIgnore (username: string): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
-  return onFollow(username, true)
+  return dispatch => {
+    dispatch(onFollow(username, true))
+    dispatch(onClose(username))
+  }
 }
 
 export function onFollow (username: string, localIgnore: bool): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
@@ -410,6 +413,7 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
       dispatch({type: Constants.updateProofState, payload: {username}})
 
       if (showAllTrackers) {
+        console.log('showAllTrackers is on, so showing tracker')
         dispatch({type: Constants.showTracker, payload: {username}})
       }
 
