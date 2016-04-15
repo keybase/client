@@ -21,7 +21,6 @@ before_install:
       chmod +x docker-compose;
       sudo mv docker-compose /usr/local/bin;
       docker login -e $CI_EMAIL -u $CI_USER -p $CI_PASS $CI_HOST;
-      $GOPATH/src/github.com/keybase/kbfs/kbfsdocker/build_dockers.sh & export build_dockers_pid=$!;
     else
       cd $GOPATH/src/github.com/keybase &&
       echo "Cloning client" &&
@@ -43,7 +42,8 @@ script:
     echo 2>&1 "$lint"
     [ -z "$lint" -o "$lint" = "Lint-free!" ]
   - go vet $(go list ./... 2>/dev/null | grep -v /vendor/)
-  - go install ./...
+  - go build -i github.com/keybase/kbfs/...
+  - $GOPATH/src/github.com/keybase/kbfs/kbfsdocker/build_dockers.sh & export build_dockers_pid=$!;
   - cd libkbfs && go test -i && go test -race -c && ./libkbfs.test -test.timeout 4m
   - cd ../serverutil && go test -i && go test -c && ./serverutil.test -test.timeout 10s
   - cd ../bserver && go test -i && go test -c && ./bserver.test -test.timeout 4m

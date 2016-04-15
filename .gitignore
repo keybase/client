@@ -8,9 +8,8 @@ kbfsfuse/kbfs_md/
 # Generated when running `serverutil/rundynamo.sh`
 serverutil/dynamodb/
 serverutil/dynamodb_local.tgz
-kbfsdocker/keybase
-kbfsdocker/kbfsfuse
-kbfsdocker/bserver
-kbfsdocker/mdserver
-kbfsdocker/mdmerkle
-kbfsdocker/mdtool
+kbfsdocker/kbfsfuse/kbfsfuse
+kbfsdocker/bserver/bserver
+kbfsdocker/mdserver/mdserver
+kbfsdocker/mdserver/mdmerkle
+kbfsdocker/mdserver/mdtool
