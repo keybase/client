@@ -5,7 +5,7 @@
   "scripts": {
     "start": "node_modules/react-native/packager/packager.sh",
     "pod-install": "cd ios; pod install",
-    "gobuild-ios": "$GOPATH/bin/gomobile bind -target=ios -tags='ios' -o ios/keybase.framework github.com/keybase/client/go/loopback github.com/keybase/kbfs/mobile",
+    "gobuild-ios": "$GOPATH/bin/gomobile bind -target=ios -tags='ios' -o ios/keybase.framework github.com/keybase/client/go/loopback",
     "gobuild-android": "$GOPATH/bin/gomobile bind -target=android -tags='android' -o android/keybaselib/keybaselib.aar github.com/keybase/client/go/loopback",
     "packager-wipe-cache": "node ../shared/packager/wipe-cache.js",
     "build-ios": "npm run pod-install && npm run gobuild-ios",
