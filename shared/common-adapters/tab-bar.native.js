@@ -21,7 +21,9 @@ class TabBar extends Component {
 
   _labels (): Array<React$Element> {
     const tabWidth = this.props.tabWidth || 93
-
+    console.log('a')
+    console.log(this.props.children)
+    console.log('b')
     return (this.props.children || []).map(item => (
       <TouchableWithoutFeedback key={item.props.label} onPress={item.props.onPress}>
         <Box style={{...stylesTab, width: tabWidth}}>

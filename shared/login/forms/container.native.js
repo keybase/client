@@ -20,7 +20,7 @@ const styles = {
     ...globalStyles.flexBoxColumn,
     bottom: 0,
     left: 0,
-    padding: 60,
+    padding: 30,
     position: 'absolute',
     flex: 1,
     right: 0,
