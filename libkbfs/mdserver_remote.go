@@ -559,6 +559,26 @@ func (md *MDServerRemote) TruncateUnlock(ctx context.Context, id TlfID) (
 	return md.client.TruncateUnlock(ctx, id.String())
 }
 
+// CheckForRekeys implements the MDServer interface.
+func (md *MDServerRemote) CheckForRekeys(ctx context.Context) <-chan error {
+	// Wait 5 seconds before asking for rekeys, because the server
+	// could have an out-of-date cache if we ask too soon.
+	c := make(chan error, 1)
+	time.AfterFunc(5*time.Second, func() {
+		select {
+		case <-ctx.Done():
+			c <- ctx.Err()
+		default:
+		}
+		if err := md.getFoldersForRekey(ctx, md.client); err != nil {
+			c <- err
+		}
+		md.rekeyTimer.Reset(MdServerBackgroundRekeyPeriod)
+		c <- nil
+	})
+	return c
+}
+
 // getFoldersForRekey registers to receive updates about folders needing rekey actions.
 func (md *MDServerRemote) getFoldersForRekey(ctx context.Context,
 	client keybase1.MetadataClient) error {

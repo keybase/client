@@ -848,6 +848,12 @@ type MDServer interface {
 	RegisterForUpdate(ctx context.Context, id TlfID,
 		currHead MetadataRevision) (<-chan error, error)
 
+	// CheckForRekeys initiates the rekey checking process on the
+	// server.  The server is allowed to delay this request, and so it
+	// returns a channel for returning the error. Actual rekey
+	// requests are expected to come in asynchronously.
+	CheckForRekeys(ctx context.Context) <-chan error
+
 	// TruncateLock attempts to take the history truncation lock for
 	// this folder, for a TTL defined by the server.  Returns true if
 	// the lock was successfully taken.

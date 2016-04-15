@@ -788,3 +788,11 @@ func (md *MDServerLocal) isShutdown() bool {
 func (md *MDServerLocal) DisableRekeyUpdatesForTesting() {
 	// Nothing to do.
 }
+
+// CheckForRekeys implements the MDServer interface.
+func (md *MDServerLocal) CheckForRekeys(ctx context.Context) <-chan error {
+	// Nothing to do
+	c := make(chan error, 1)
+	c <- nil
+	return c
+}

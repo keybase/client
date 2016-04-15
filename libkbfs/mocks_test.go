@@ -1870,6 +1870,16 @@ func (_mr *_MockMDServerRecorder) RegisterForUpdate(arg0, arg1, arg2 interface{}
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RegisterForUpdate", arg0, arg1, arg2)
 }
 
+func (_m *MockMDServer) CheckForRekeys(ctx context.Context) <-chan error {
+	ret := _m.ctrl.Call(_m, "CheckForRekeys", ctx)
+	ret0, _ := ret[0].(<-chan error)
+	return ret0
+}
+
+func (_mr *_MockMDServerRecorder) CheckForRekeys(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "CheckForRekeys", arg0)
+}
+
 func (_m *MockMDServer) TruncateLock(ctx context.Context, id TlfID) (bool, error) {
 	ret := _m.ctrl.Call(_m, "TruncateLock", ctx, id)
 	ret0, _ := ret[0].(bool)
