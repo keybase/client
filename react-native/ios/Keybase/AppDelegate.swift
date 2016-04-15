@@ -7,13 +7,13 @@ func appDelegate() -> AppDelegate {
 @UIApplicationMain
 @objc(AppDelegate)
 class AppDelegate: UIResponder {
-  
+
   var window: UIWindow?
   var engine: Engine!
-  
+
   private func setupReactWithOptions(launchOptions: [NSObject: AnyObject]?) -> RCTRootView {
     return RCTRootView(bundleURL: {
-      
+
       #if DEBUG
         if let reactHost = AppDefault.ReactHost.stringValue {
           return NSURL(string: "http://\(reactHost)/shared/index.bundle?platform=ios&dev=true")
@@ -25,7 +25,7 @@ class AppDelegate: UIResponder {
       #endif
     }(), moduleName: "Keybase", initialProperties: nil, launchOptions: launchOptions)
   }
-  
+
   private func setupEngine() {
     #if SIMULATOR
       let SecurityAccessGroupOverride = true
@@ -48,7 +48,7 @@ class AppDelegate: UIResponder {
       "SecurityAccessGroupOverride": SecurityAccessGroupOverride
     ])
   }
-  
+
 }
 
 class KeyListener: UIViewController {
@@ -93,7 +93,7 @@ extension AppDelegate: UIApplicationDelegate {
     #else
       AppDefault.RunMode.setDefaultValue("prod")
     #endif
-    
+
     #if SIMULATOR
       AppDefault.ReactHost.setDefaultValue("localhost:8081")
     #else
@@ -105,17 +105,17 @@ extension AppDelegate: UIApplicationDelegate {
     #endif
 
     setupEngine()
-    
+
     let rootViewController = KeyListener()
     let rctView = setupReactWithOptions(launchOptions)
     rootViewController.view = rctView
     rootViewController.bridge = rctView.bridge
-    
+
     let window = UIWindow(frame: UIScreen.mainScreen().bounds)
     self.window = window
     window.rootViewController = rootViewController
     window.makeKeyAndVisible()
     return true
   }
-  
+
 }

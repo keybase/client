@@ -46,7 +46,7 @@ func Init(homeDir string, runModeStr string, serverURI string, accessGroupOverri
 		// flag.Parse()
 		// log := logger.NewWithCallDepth("", 1)
 		// _, err = libkbfs.InitMobile(*kbfsParams, nil, nil)
-		libkbfs.InitMobile(homeDir, "prod", g)
+		libkbfs.InitMobile( /*homeDir, "prod", */ g)
 		if err != nil {
 			fmt.Println("Error init kbfs", err)
 			return
