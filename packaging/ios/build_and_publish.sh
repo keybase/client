@@ -30,6 +30,18 @@ fi
 # Build and publish the apk
 cd $ios_dir
 
+cleanup() {
+  cd $client_dir
+  git co .
+}
+
+err_cleanup() {
+  cleanup
+}
+
+trap 'err_cleanup' ERR
+
 fastlane ios beta
+cleanup
 
 "$client_dir/packaging/slack/send.sh" "Finished releasing ios"
