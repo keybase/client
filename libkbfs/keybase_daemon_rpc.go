@@ -234,7 +234,7 @@ func (k *KeybaseDaemonRPC) UserChanged(ctx context.Context, uid keybase1.UID) er
 	if k.getCachedCurrentSession().UID == uid {
 		// Ignore any errors for now, we don't want to block this
 		// notification and it's not worth spawning a goroutine for.
-		k.config.MDServer().CheckForRekeys(ctx)
+		k.config.MDServer().CheckForRekeys(context.Background())
 	}
 
 	return nil

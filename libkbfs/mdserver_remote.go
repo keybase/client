@@ -562,7 +562,12 @@ func (md *MDServerRemote) TruncateUnlock(ctx context.Context, id TlfID) (
 // CheckForRekeys implements the MDServer interface.
 func (md *MDServerRemote) CheckForRekeys(ctx context.Context) <-chan error {
 	// Wait 5 seconds before asking for rekeys, because the server
-	// could have an out-of-date cache if we ask too soon.
+	// could have an out-of-date cache if we ask too soon.  Why 5
+	// seconds you ask?  See `pollWait` in
+	// github.com/keybase/client/go/auth/user_keys_api.go.  We don't
+	// use that value directly since there's no guarantee the server
+	// is using the same value.  TODO: the server should tell us what
+	// value it is using.
 	c := make(chan error, 1)
 	time.AfterFunc(5*time.Second, func() {
 		select {
@@ -571,6 +576,8 @@ func (md *MDServerRemote) CheckForRekeys(ctx context.Context) <-chan error {
 		default:
 		}
 		if err := md.getFoldersForRekey(ctx, md.client); err != nil {
+			md.log.CDebugf(ctx, "getFoldersForRekey failed during "+
+				"CheckForRekeys: %v", err)
 			c <- err
 		}
 		md.rekeyTimer.Reset(MdServerBackgroundRekeyPeriod)
