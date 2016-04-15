@@ -17,7 +17,7 @@ class TabBarItem extends Component {
 
 class TabBar extends Component {
   props: Props;
-  static Item: TabBarItem;
+  static Item: Class<TabBarItem>;
 
   _labels (): Array<React$Element> {
     const tabWidth = this.props.tabWidth || 93
@@ -34,21 +34,8 @@ class TabBar extends Component {
     ))
   }
 
-  _content (): ?React$Element {
-    let found = null
-    const children = this.props.children || []
-
-    children.forEach(item => {
-      if (found) {
-        return
-      }
-
-      if (item.props.selected) {
-        found = item
-      }
-    })
-
-    return found
+  _content (): any {
+    return (this.props.children || []).find(i => i.props.selected)
   }
 
   render () {
@@ -63,7 +50,6 @@ class TabBar extends Component {
   }
 }
 
-// $FlowIssue dunno why flow doens't like this
 TabBar.Item = TabBarItem
 
 const stylesContainer = {
