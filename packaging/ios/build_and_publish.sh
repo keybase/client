@@ -13,9 +13,8 @@ cd $rn_dir
 
 if [ ! "$cache_npm" = "1" ]; then
   echo "Clearing old node_modules in react-native"
-  npm cache clean
+  rm -r $TMPDIR/npm*
   rm -r node_modules || true
-  npm cache clean
   # Install npm
   npm install
   npm install -g react-native-cli
