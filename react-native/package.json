@@ -11,7 +11,8 @@
     "build-ios": "npm run pod-install && npm run gobuild-ios",
     "watch": "npm run sync && cd ../shared && watchman-make -p '**' --make 'cd ../react-native && npm run sync && cd ../shared' -t all",
     "sync": "rsync -avhW --delete --exclude='*.desktop.js' ../shared/ ./shared/",
-    "update-font-icon": "babel-node update-font-icon.js"
+    "update-font-icon": "babel-node update-font-icon.js",
+    "postinstall": "npm run sync; mkdir -p node_modules/net; echo 'exports = {}' > node_modules/net/index.js; echo '{\"main\": \"index.js\"}' > node_modules/net/package.json"
   },
   "dependencies": {
     "buffer": "4.5.1",
