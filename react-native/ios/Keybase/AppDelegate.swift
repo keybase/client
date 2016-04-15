@@ -89,7 +89,8 @@ extension AppDelegate: UIApplicationDelegate {
 
   func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject : AnyObject]?) -> Bool {
     #if DEBUG
-      AppDefault.RunMode.setDefaultValue("devel")
+        AppDefault.RunMode.setDefaultValue("staging")
+//      AppDefault.RunMode.setDefaultValue("devel")
     #else
       AppDefault.RunMode.setDefaultValue("prod")
     #endif
@@ -99,8 +100,8 @@ extension AppDelegate: UIApplicationDelegate {
     #else
       #if DEBUG
         // Uncomment if you want your device to hit a local server while debugging
-//        AppDefault.ReactHost.setDefaultValue("192.168.1.50:8081")
-//        AppDefault.APIServer.setDefaultValue("http://192.168.1.50:3000")
+        AppDefault.ReactHost.setDefaultValue("192.168.1.50:8081")
+        AppDefault.APIServer.setDefaultValue("http://192.168.1.50:3000")
       #endif
     #endif
 
