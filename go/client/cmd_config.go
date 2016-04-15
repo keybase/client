@@ -103,8 +103,8 @@ func (v *CmdConfigSet) ParseArgv(ctx *cli.Context) error {
 			return fmt.Errorf("Missing string value argument")
 		}
 		s := args[1]
-		if v.looksLikeBool(s) {
-			return fmt.Errorf("The value %q looks like a boolean value, not a string.  Use the -b flag to set a bool.", s)
+		if !ctx.IsSet("string") && v.looksLikeBool(s) {
+			return fmt.Errorf("The value %q looks like a boolean value, not a string.  Use the -b flag to set a bool, or -s to confirm this is a string value.", s)
 		}
 		v.Value.S = &s
 	}
