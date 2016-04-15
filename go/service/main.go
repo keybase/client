@@ -76,6 +76,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.TrackProtocol(NewTrackHandler(xp, g)),
 		keybase1.UpdateProtocol(NewUpdateHandler(xp, g, d.updateChecker)),
 		keybase1.UserProtocol(NewUserHandler(xp, g)),
+		keybase1.PaperprovisionProtocol(NewPaperProvisionHandler(xp, g)),
 	}
 	for _, proto := range protocols {
 		if err := srv.Register(proto); err != nil {
