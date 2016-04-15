@@ -1,0 +1,25 @@
+/* @flow */
+
+import React, {Component} from 'react'
+
+export type ItemProps = {
+  label: string,
+  style?: Object,
+  selected?: bool,
+  onPress?: () => void,
+  children?: React$Element
+}
+
+declare class TabBarItem extends React.Component<void, ItemProps, void> {
+}
+
+export type Props = {
+  style?: Object,
+  children?: Array<TabBarItem>,
+  tabWidth?: number,
+  underlined?: bool
+}
+
+declare export default class TabBar extends React.Component<void, Props, void> {
+  static Item: TabBarItem;
+}

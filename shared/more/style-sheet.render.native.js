@@ -4,7 +4,7 @@ import {Switch} from 'react-native'
 import {ScrollView} from 'react-native'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import Container from './dev-container.native'
-import {Dropdown, Checkbox, Button, Box, Text, Terminal, Icon, Input, FormWithCheckbox} from '../common-adapters'
+import {Dropdown, Checkbox, Button, Box, Text, Terminal, Icon, Input, FormWithCheckbox, TabBar} from '../common-adapters'
 import HiddenString from '../util/hidden-string'
 
 import Success from '../login/signup/success/index.render'
@@ -259,9 +259,42 @@ const Checkboxes = ({check, flip}) => {
   )
 }
 
+const TabBars = ({selected, onPress}) => {
+  return (
+    <Box>
+      <Box>
+        <TabBar>
+          <TabBar.Item label='One' selected={selected[0]} onPress={() => onPress(0)}>
+            <Text type='Header' style={{backgroundColor: 'orange'}}>One</Text>
+          </TabBar.Item>
+          <TabBar.Item label='Two' selected={selected[1]} onPress={() => onPress(1)}>
+            <Text type='Header'>Two</Text>
+          </TabBar.Item>
+          <TabBar.Item label='Three' selected={selected[2]} onPress={() => onPress(2)}>
+            <Text type='Header'>Three</Text>
+          </TabBar.Item>
+        </TabBar>
+      </Box>
+      <Box>
+        <TabBar underlined>
+          <TabBar.Item label='One' selected={selected[0]} onPress={() => onPress(0)}>
+            <Text type='Header' style={{backgroundColor: 'orange'}}>One</Text>
+          </TabBar.Item>
+          <TabBar.Item label='Two' selected={selected[1]} onPress={() => onPress(1)}>
+            <Text type='Header'>Two</Text>
+          </TabBar.Item>
+          <TabBar.Item label='Three' selected={selected[2]} onPress={() => onPress(2)}>
+            <Text type='Header'>Three</Text>
+          </TabBar.Item>
+        </TabBar>
+      </Box>
+    </Box>
+  )
+}
+
 export default class Render extends Component {
   state: {
-    check: any, selectedUser: ?string, selectedOption: ?string, userIdx: number, optionIdx: number
+    check: any, selectedUser: ?string, selectedOption: ?string, userIdx: number, optionIdx: number, tabSelected: Array<bool>
   };
 
   constructor (props: any) {
@@ -272,7 +305,8 @@ export default class Render extends Component {
       selectedUser: 'marcopolo',
       userIdx: -1,
       optionIdx: -1,
-      selectedOption: null
+      selectedOption: null,
+      tabSelected: [true, false, false]
     }
   }
 
@@ -282,10 +316,19 @@ export default class Render extends Component {
     this.setState({check: next})
   }
 
+  _selectTab (idx: number) {
+    this.setState({tabSelected: [idx === 0, idx === 1, idx === 2]})
+  }
+
   render () {
     // TODO: remove Success from here when dumb components sheet is in
     return (
       <ScrollView>
+        <Container title='TabBar'>
+          <TabBars selected={this.state.tabSelected} onPress={
+            (idx: number) => this._selectTab(idx) // eslint-disable-line arrow-parens
+          }/>
+        </Container>
         <Container title='Success signup paperkey'>
           <Box style={{height: 660}}>
             <Success onFinish={() => {}} paperkey={new HiddenString('elephant bag candy asteroid laptop mug second archive pizza ring fish bumpy down')}/>
