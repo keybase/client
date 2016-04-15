@@ -33,6 +33,7 @@ fi
 # Build and publish the apk
 cd $android_dir
 
+./gradlew clean
 ./gradlew publishApkRelease
 
 "$client_dir/packaging/slack/send.sh" "Finished releasing android"
