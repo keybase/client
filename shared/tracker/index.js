@@ -128,9 +128,10 @@ export default connect(
     ...state.tracker.trackers[ownProps.username],
     ...ownProps
   }),
-  dispatch => {
-    return bindActionCreators(trackerActions, dispatch)
-  })(Tracker)
+  (dispatch, ownProps) => ({
+    ...bindActionCreators(trackerActions, dispatch),
+    ...ownProps
+  }))(Tracker)
 
 export function selector (username: string): (store: Object) => ?Object {
   return store => {
