@@ -5,8 +5,7 @@ import commonStyles from '../styles/common'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {Icon, Text, ProgressIndicator} from '../common-adapters/index'
 import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked, error as proofError, warning as proofWarning} from '../constants/tracker'
-import {metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone, metaTrackedBroken} from '../constants/tracker'
-import type {SimpleProofMeta} from '../constants/tracker'
+import {metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone, metaIgnored} from '../constants/tracker'
 import electron from 'electron'
 
 import type {Props as IconProps} from '../common-adapters/icon'
@@ -44,7 +43,8 @@ class ProofsRender extends Component {
       'coinbase': 'fa-btc',
       'hackernews': 'fa-hacker-news',
       'rooter': 'fa-shopping-basket',
-      'web': 'fa-globe',
+      'http': 'fa-globe',
+      'https': 'fa-globe',
       'dns': 'fa-globe'
     }[proof.type]
   }
@@ -57,6 +57,7 @@ class ProofsRender extends Component {
       case metaUnreachable: color = globalColors.red; break
       case metaPending: color = globalColors.black40; break
       case metaDeleted: color = globalColors.red; break
+      case metaIgnored: color = globalColors.green; break
     }
     return color
   }
@@ -97,14 +98,6 @@ class ProofsRender extends Component {
     }
   }
 
-  _metaToString (meta: SimpleProofMeta): string {
-    if (meta === metaTrackedBroken) {
-      return 'whatevz'
-    }
-
-    return meta
-  }
-
   _renderProofRow (proof: Proof) {
     const metaColor = this._metaColor(proof)
     const proofNameColor = this._proofColor(proof)
@@ -128,7 +121,7 @@ class ProofsRender extends Component {
 
     const meta = proof.meta &&
       proof.meta !== metaNone &&
-      <Text type='Header' style={{...styleMeta, backgroundColor: metaColor}}>{this._metaToString(proof.meta)}</Text>
+      <Text type='Header' style={{...styleMeta, backgroundColor: metaColor}}>{proof.meta}</Text>
     const proofIcon = isChecking
       ? <ProgressIndicator style={styleLoader} />
       : proofStatusIcon && <Icon type={proofStatusIcon} style={styleStatusIcon} onClick={() => this._onClickProof(proof)} />

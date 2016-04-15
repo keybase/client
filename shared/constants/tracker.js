@@ -2,7 +2,7 @@
 
 // Simple state of the overall proof result
 export type SimpleProofState = 'normal' | 'warning' | 'error' | 'checking' | 'revoked'
-export type SimpleProofMeta = 'upgraded' | 'new' | 'unreachable' | 'pending' | 'deleted' | 'none' | 'trackedBroken'
+export type SimpleProofMeta = 'upgraded' | 'new' | 'unreachable' | 'pending' | 'deleted' | 'none' | 'ignored'
 
 // Constants
 export const normal: SimpleProofState = 'normal'
@@ -17,7 +17,7 @@ export const metaNew: SimpleProofMeta = 'new'
 export const metaUnreachable: SimpleProofMeta = 'unreachable'
 export const metaPending: SimpleProofMeta = 'pending'
 export const metaDeleted: SimpleProofMeta = 'deleted'
-export const metaTrackedBroken: SimpleProofMeta = 'trackedBroken'
+export const metaIgnored: SimpleProofMeta = 'ignored'
 
 // Actions
 export const registerIdentifyUi = 'tracker:registerIdentifyUi'
@@ -35,17 +35,12 @@ export const updateProofState = 'tracker:updateProofState'
 
 export const reportLastTrack = 'tracker:reportLastTrack'
 
-export const onUserTrackingLoading = 'tracker:userTrackingLoading'
-
-export const onMaybeTrack = 'tracker:onMaybeTrack'
 export const onClose = 'tracker:onClose'
 
 export const onFollow = 'tracker:onFollow'
 export const onRefollow = 'tracker:onRefollow'
 export const onUnfollow = 'tracker:onUnfollow'
 export const onError = 'tracker:onError'
-export const onFollowHelp = 'tracker:onFollowHelp'
-export const onFollowChecked = 'tracker:onFollowChecked'
 export const onWaiting = 'tracker:onWaiting'
 
 export const showTracker = 'tracker:showTracker'

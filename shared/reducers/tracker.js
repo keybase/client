@@ -4,7 +4,7 @@ import * as Constants from '../constants/tracker'
 import * as CommonConstants from '../constants/common'
 
 import {normal, warning, error, checking} from '../constants/tracker'
-import {metaNew, metaUpgraded, metaUnreachable, metaDeleted, metaTrackedBroken} from '../constants/tracker'
+import {metaNew, metaUpgraded, metaUnreachable, metaDeleted, metaIgnored} from '../constants/tracker'
 
 import {identify} from '../constants/types/keybase-v1'
 
@@ -75,18 +75,7 @@ function initialTrackerState (username: string): TrackerState {
 }
 
 function updateUserState (state: TrackerState, action: Action): TrackerState {
-  let shouldFollow: boolean
   switch (action.type) {
-    case Constants.onFollowChecked:
-      if (action.payload == null) {
-        return state
-      }
-      shouldFollow = action.payload.shouldFollow
-
-      return {
-        ...state,
-        shouldFollow
-      }
     case Constants.updateReason:
       // In case the reason is null, let's use our existing reason
       return {
@@ -107,12 +96,6 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
           closed: true,
           hidden: false
         }
-      }
-    case Constants.onMaybeTrack:
-      return {
-        ...state,
-        closed: true,
-        hidden: false
       }
     case Constants.onClose:
       return {
@@ -225,12 +208,6 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       return {
         ...state,
         lastTrack: action.payload && action.payload.track
-      }
-
-    case Constants.onUserTrackingLoading:
-      return {
-        ...state,
-        hidden: true
       }
 
     case Constants.showTracker:
@@ -426,7 +403,7 @@ function proofUrlToProfileUrl (proofType: number, name: string, key: ?string, hu
 function remoteProofToProofType (rp: RemoteProof): string {
   let proofType: string = ''
   if (rp.proofType === identify.ProofType.genericWebSite) {
-    proofType = 'web'
+    proofType = rp.key
   } else {
     proofType = mapTagToName(identify.ProofType, rp.proofType) || ''
   }
@@ -442,7 +419,8 @@ function revokedProofToProof (rv: RevokedProof): Proof {
     color: stateToColor(error),
     name: rv.proof.displayMarkup,
     humanUrl: '',
-    profileUrl: ''
+    profileUrl: '',
+    isTracked: false
   }
 }
 
@@ -457,11 +435,11 @@ function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
     statusMeta = proofStatusToSimpleProofMeta(lcr.proofResult.status)
   }
 
-  const isTracked = lcr && lcr.diff && lcr.diff.type === identify.TrackDiffType.none && !lcr.breaksTracking
+  const isTracked = !!(lcr && lcr.diff && lcr.diff.type === identify.TrackDiffType.none && !lcr.breaksTracking)
 
   // whatevz, tracked a broken thing
   if (lcr && lcr.proofResult && lcr.proofResult.status !== identify.ProofStatus.ok && isTracked) {
-    diffMeta = metaTrackedBroken
+    diffMeta = metaIgnored
     statusMeta = null
   }
 
