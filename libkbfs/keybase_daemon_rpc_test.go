@@ -5,6 +5,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -280,4 +281,29 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 	// Should fill cache again.
 	testLoadUserPlusKeys(t, client, c, uid1, name1, expectCall)
 	testLoadUserPlusKeys(t, client, c, uid2, name2, expectCall)
+
+	// Test that CheckForRekey gets called only if the logged-in user
+	// changes.
+	session := SessionInfo{
+		UID: uid1,
+	}
+	c.setCachedCurrentSession(session)
+	ctr := NewSafeTestReporter(t)
+	mockCtrl := gomock.NewController(ctr)
+	config := NewConfigMock(mockCtrl, ctr)
+	c.config = config
+	defer func() {
+		config.ctr.CheckForFailures()
+		mockCtrl.Finish()
+	}()
+	errChan := make(chan error, 1)
+	config.mockMdserv.EXPECT().CheckForRekeys(gomock.Any()).Do(
+		func(ctx context.Context) {
+			errChan <- nil
+		}).Return(errChan)
+	err = c.UserChanged(context.Background(), uid1)
+	<-errChan
+	// This one shouldn't trigger CheckForRekeys; if it does, the mock
+	// controller will catch it during Finish.
+	err = c.UserChanged(context.Background(), uid2)
 }

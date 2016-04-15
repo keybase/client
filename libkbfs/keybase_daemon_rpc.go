@@ -230,6 +230,13 @@ func (k *KeybaseDaemonRPC) LoggedOut(ctx context.Context) error {
 func (k *KeybaseDaemonRPC) UserChanged(ctx context.Context, uid keybase1.UID) error {
 	k.log.CDebugf(ctx, "User %s changed", uid)
 	k.setCachedUserInfo(uid, UserInfo{})
+
+	if k.getCachedCurrentSession().UID == uid {
+		// Ignore any errors for now, we don't want to block this
+		// notification and it's not worth spawning a goroutine for.
+		k.config.MDServer().CheckForRekeys(ctx)
+	}
+
 	return nil
 }
 
