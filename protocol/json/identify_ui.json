@@ -765,7 +765,7 @@
           "name": "trackDiff"
         },
         {
-          "type": "bool",
+          "type": "boolean",
           "name": "breaksTracking"
         }
       ]
@@ -846,7 +846,7 @@
           "name": "revokedDetails"
         },
         {
-          "type": "bool",
+          "type": "boolean",
           "name": "breaksTracking"
         }
       ]
@@ -953,7 +953,7 @@
           "name": "hint"
         },
         {
-          "type": "bool",
+          "type": "boolean",
           "name": "breaksTracking"
         }
       ]
