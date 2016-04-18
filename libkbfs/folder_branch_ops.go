@@ -3441,7 +3441,13 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		stillNeedsRekey = true
 
 	default:
-		return err
+		if err == context.DeadlineExceeded {
+			fbo.log.CDebugf(ctx, "Paper key prompt timed out")
+			// Reschedule the prompt in the timeout case.
+			stillNeedsRekey = true
+		} else {
+			return err
+		}
 	}
 
 	if stillNeedsRekey {
@@ -3506,6 +3512,12 @@ func (fbo *folderBranchOps) rekeyWithPrompt() {
 			ctx = context.WithValue(ctx, CtxRekeyIDKey, ctxID)
 		}
 	}
+
+	// Only give the user limited time to enter their paper key, so we
+	// don't wait around forever.
+	d := fbo.config.RekeyWithPromptWaitTime()
+	ctx, cancel := context.WithTimeout(ctx, d)
+	defer cancel()
 
 	fbo.log.CDebugf(ctx, "rekeyWithPrompt")
 	defer func() { fbo.log.CDebugf(ctx, "Done: %v", err) }()
