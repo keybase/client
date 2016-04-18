@@ -337,7 +337,7 @@ export type IdentifyKey = {
   pgpFingerprint: bytes;
   KID: KID;
   trackDiff?: ?TrackDiff;
-  breaksTracking: bool;
+  breaksTracking: boolean;
 }
 
 export type IdentifyOutcome = {
@@ -392,7 +392,7 @@ export type Identity = {
   cryptocurrency: Array<Cryptocurrency>;
   revoked: Array<TrackDiff>;
   revokedDetails: Array<RevokedProof>;
-  breaksTracking: bool;
+  breaksTracking: boolean;
 }
 
 export type InstallAction =
@@ -478,7 +478,7 @@ export type LinkCheckResult = {
   diff?: ?TrackDiff;
   remoteDiff?: ?TrackDiff;
   hint?: ?SigHint;
-  breaksTracking: bool;
+  breaksTracking: boolean;
 }
 
 export type LogLevel =
