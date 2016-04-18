@@ -8,7 +8,11 @@ export type Props = {
   onForgotPassphrase: () => void,
   waitingForResponse: boolean,
   error?: ?string,
-  username: ?string
+  username: ?string,
+  showTyping: boolean,
+  saveInKeychain: boolean,
+  toggleShowTyping: () => void,
+  toggleSaveInKeychain: () => void
 }
 
 export default class PaperKey extends React$Component<void, Props, void> { }
