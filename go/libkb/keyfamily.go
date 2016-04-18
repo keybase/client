@@ -401,6 +401,9 @@ func (ckf ComputedKeyFamily) getCkiIfActiveAtTime(kid keybase1.KID, t time.Time)
 	} else if ki.Status != KeyUncancelled {
 		err = KeyRevokedError{fmt.Sprintf("The key '%s' is no longer active", kid)}
 	} else if ki.ETime > 0 && unixTime > ki.ETime {
+		formatStr := "Mon Jan 2 15:04:05 -0700 MST 2006"
+		ckf.G().Log.Warning("Checking status of key %s\n    with respect to time [%s],\n    found it had expired at [%s].",
+			kid, t.Format(formatStr), time.Unix(ki.ETime, 0).Format(formatStr))
 		err = KeyExpiredError{fmt.Sprintf("The key '%s' expired at %s", kid, time.Unix(ki.ETime, 0))}
 	} else {
 		ret = ki
