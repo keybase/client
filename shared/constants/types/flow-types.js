@@ -2380,6 +2380,19 @@ export type notifyCtl_setNotifications_rpc = {
   callback: (null | (err: ?any) => void)
 }
 
+export type paperprovision_paperProvision_result = void
+
+export type paperprovision_paperProvision_rpc = {
+  method: 'paperprovision.paperProvision',
+  param: {
+    username: string,
+    deviceName: string,
+    paperKey: string
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
 export type pgpUi_outputSignatureSuccess_result = void
 
 export type pgpUi_outputSignatureSuccess_rpc = {
@@ -3401,6 +3414,7 @@ export type rpc =
   | metadata_truncateLock_rpc
   | metadata_truncateUnlock_rpc
   | notifyCtl_setNotifications_rpc
+  | paperprovision_paperProvision_rpc
   | pgpUi_outputSignatureSuccess_rpc
   | pgp_pgpDecrypt_rpc
   | pgp_pgpDeletePrimary_rpc
@@ -4555,6 +4569,18 @@ export type incomingCallMapType = {
     } /* ,
     response: {} // Notify call
     */
+  ) => void,
+  'keybase.1.paperprovision.paperProvision'?: (
+    params: {
+      sessionID: int,
+      username: string,
+      deviceName: string,
+      paperKey: string
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
   ) => void,
   'keybase.1.pgp.pgpSign'?: (
     params: {
