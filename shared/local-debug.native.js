@@ -19,7 +19,7 @@ let config = {
   overrideLoggedInTab: null
 }
 
-if (__DEV__ && false) {
+if (__DEV__ && true) {
   config.allowStartupFailure = true
   config.printRPC = true
   config.showAllTrackers = false
@@ -57,9 +57,9 @@ export function initTabbedRouterState (state) {
     ...state,
     tabs: {
       ...state.tabs,
-      [Tabs.loginTab]: createRouterState([], []),
+      [Tabs.loginTab]: createRouterState(['signup'], []),
       [Tabs.moreTab]: createRouterState(['devMenu', 'styleSheet'], [])
     },
-    activeTab: Tabs.moreTab
+    activeTab: Tabs.loginTab
   }
 }

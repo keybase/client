@@ -53,7 +53,7 @@ export default class Text extends Component {
       case 'BodyPrimaryLink':
         return {color: globalColors.blue}
       case 'BodySecondaryLink':
-        return {color: globalColors.black40}
+        return {color: globalColors.black60}
       default:
         return {}
     }
