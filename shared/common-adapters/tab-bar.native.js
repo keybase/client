@@ -24,6 +24,7 @@ class TabBar extends Component {
     console.log('a')
     console.log(this.props.children)
     console.log('b')
+
     return (this.props.children || []).map(item => (
       <TouchableWithoutFeedback key={item.props.label} onPress={item.props.onPress}>
         <Box style={{...stylesTab, width: tabWidth}}>

@@ -5,11 +5,11 @@ export default class QR extends Component {
   render () {
     if (this.props.scanning) {
       return (
-        <Text>TODO</Text>
+        <Text>TODO scanning</Text>
       )
     } else {
       return (
-        <Text>TODO</Text>
+        <Text>TODO not scanning</Text>
       )
     }
   }

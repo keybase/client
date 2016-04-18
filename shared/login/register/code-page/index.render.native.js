@@ -10,12 +10,13 @@ import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
 import {codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText} from '../../../constants/login'
 import QR from './qr'
 import {Box, Button, TabBar, TabBarItem, Text} from '../../../common-adapters'
-import {specialStyles as textStyles} from '../../../common-adapters/text'
+import {specialStyles} from '../../../common-adapters/text'
 import Container from '../../forms/container'
 import commonStyles from '../../../styles/common'
+import {globalStyles} from '../../../styles/style-guide'
 
 export default class CodePageRender extends Component {
-  renderContent () {
+  renderControl (mode) {
     const label = {
       codePageModeShowText: 'Display Code',
       codePageModeEnterText: 'Enter Code',
@@ -23,6 +24,18 @@ export default class CodePageRender extends Component {
       codePageModeScanCode: 'Scan Code'
     }
 
+    return (
+      <TabBar.Item key={mode} selected={mode === this.props.mode} label={label[mode]} onPress={() => this.props.setCodePageMode(mode)}>
+        <Box style={{...stylesHeader, width: 300, height: 200}}>
+          {mode === codePageModeScanCode && this.renderScanner()}
+          {mode === codePageModeShowCode && this.renderCode()}
+          {mode === codePageModeShowText && this.renderText()}
+        </Box>
+      </TabBar.Item>
+    )
+  }
+
+  renderContent () {
     let controls = null
 
     switch (this.props.myDeviceRole + this.props.otherDeviceRole) {
@@ -48,56 +61,31 @@ export default class CodePageRender extends Component {
       return <Box/>
     }
 
-    const mode = this.props.mode
-
-    const controla = controls[0]
-    const controlb = controls[1]
-    const tabbar1 = mode => {
-      return (
-        <TabBar.Item selected={mode === this.props.mode} label={label[mode]} onPress={() => this.props.setCodePageMode(mode)}>
-          <Box>
-            <Text>foo</Text>
-            {this.renderCode()}
-          </Box>
-        </TabBar.Item>
-      )
-    }
-
-    const tabbar2 = mode => {
-      return (
-        <TabBar.Item selected={mode === this.props.mode} label={label[mode]} onPress={() => this.props.setCodePageMode(mode)}>
-          <Box>
-            <Text>bar</Text>
-            {this.renderText()}
-          </Box>
-        </TabBar.Item>
-      )
-    }
-
     return (
       <Box style={stylesHeader}>
         <TabBar underlined tabWidth={150}>
-          {tabbar1(controla)}
-          {tabbar2(controlb)}
+          {controls.map(c => this.renderControl(c))}
         </TabBar>
       </Box>
     )
   }
 
   renderChangeMode () {
-    switch (this.props.mode) {
-      case codePageModeScanCode:
-        return (
-          <Box style={stylesFooter}>
-            <Text>Type text code instead</Text>
-          </Box>
-        )
-      default:
-        return (
-          <Box style={stylesFooter}>
-            <Text>Scan QR code instead</Text>
-          </Box>
-        )
+    switch (this.props.myDeviceRole + this.props.otherDeviceRole) {
+      case codePageDeviceRoleNewPhone + codePageDeviceRoleExistingPhone:
+        if (this.props.mode === codePageModeScanCode) {
+          return (
+            <Box style={stylesFooter}>
+              <Text>Type text code instead</Text>
+            </Box>
+          )
+        } else {
+          return (
+            <Box style={stylesFooter}>
+              <Text>Scan QR code instead</Text>
+            </Box>
+          )
+        }
     }
   }
 
@@ -114,10 +102,9 @@ export default class CodePageRender extends Component {
 
   renderText () {
     return (
-      <View style={{flex: 1, backgroundColor: 'green', alignItems: 'center', justifyContent: 'center', padding: 20}}>
-        <Text>Type this verification code into your other device</Text>
-        <Text style={{backgroundColor: 'grey', padding: 20, marginTop: 20}}>{this.props.textCode}</Text>
-      </View>
+      <Box style={stylesHeader}>
+        <Text style={specialStyles.paperKey}>{this.props.textCode}</Text>
+      </Box>
     )
   }
 
@@ -181,6 +168,7 @@ CodePageRender.propTypes = {
 }
 
 const stylesContainer = {
+  ...globalStyles.flexBoxColumn,
   flex: 1,
   alignItems: 'stretch',
   justifyContent: 'flex-start'
@@ -197,8 +185,7 @@ const stylesIntro = {
 }
 
 const stylesFooter = {
-  position: 'absolute',
-  marginBottom: 30,
+  marginBottom: 80,
   alignItems: 'center'
 }
 
