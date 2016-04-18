@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import {Text, Button, Input, Icon} from '../../../common-adapters'
-import Container from '../../forms/container.desktop'
+import Container from '../../forms/container'
 import type {Props} from './index.render'
 
 const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName, waiting}: Props) => (
