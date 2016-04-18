@@ -13,9 +13,8 @@ cd $rn_dir
 
 if [ ! "$cache_npm" = "1" ]; then
   echo "Clearing old node_modules in react-native"
-  npm cache clean
+  rm -r $TMPDIR/npm*
   rm -r node_modules || true
-  npm cache clean
   # Install npm
   npm install
   npm install -g react-native-cli
@@ -30,6 +29,18 @@ fi
 # Build and publish the apk
 cd $ios_dir
 
+cleanup() {
+  cd $client_dir
+  git co .
+}
+
+err_cleanup() {
+  cleanup
+}
+
+trap 'err_cleanup' ERR
+
 fastlane ios beta
+cleanup
 
 "$client_dir/packaging/slack/send.sh" "Finished releasing ios"
