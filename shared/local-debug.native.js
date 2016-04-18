@@ -66,6 +66,6 @@ export function initTabbedRouterState (state) {
       [Tabs.loginTab]: createRouterState([], []),
       [Tabs.moreTab]: createRouterState(['devMenu', 'dumbSheet'], [])
     },
-    activeTab: Tabs.moreTab
+    activeTab: Tabs.loginTab
   }
 }

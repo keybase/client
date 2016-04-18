@@ -53,7 +53,7 @@ export default class Text extends Component {
       case 'BodyPrimaryLink':
         return {color: globalColors.blue}
       case 'BodySecondaryLink':
-        return {color: globalColors.black40}
+        return {color: globalColors.black60}
       default:
         return {}
     }
@@ -138,14 +138,14 @@ export default class Text extends Component {
           contentEditable
           onKeyUp={this.props.onKeyUp}
           onKeyDown={this.props.onKeyDown}
-          onClick={this.props.onClick}/>)
+          onPress={this.props.onClick}/>)
     }
 
     return (
       <RNText
         className={className}
         style={style}
-        onClick={this.props.onClick}>{terminalPrefix}{this.props.children}</RNText>)
+        onPress={this.props.onClick}>{terminalPrefix}{this.props.children}</RNText>)
   }
 }
 

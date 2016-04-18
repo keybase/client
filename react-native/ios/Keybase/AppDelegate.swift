@@ -89,7 +89,7 @@ extension AppDelegate: UIApplicationDelegate {
 
   func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject : AnyObject]?) -> Bool {
     #if DEBUG
-      AppDefault.RunMode.setDefaultValue("devel")
+      AppDefault.RunMode.setDefaultValue("staging")
     #else
       AppDefault.RunMode.setDefaultValue("prod")
     #endif
