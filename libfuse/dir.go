@@ -20,7 +20,7 @@ import (
 type Folder struct {
 	fs   *FS
 	list *FolderList
-	name libkbfs.CanonicalTlfName
+	h    *libkbfs.TlfHandle
 
 	folderBranchMu sync.Mutex
 	folderBranch   libkbfs.FolderBranch
@@ -45,14 +45,18 @@ type Folder struct {
 	updateChan chan<- struct{}
 }
 
-func newFolder(fl *FolderList, name libkbfs.CanonicalTlfName) *Folder {
+func newFolder(fl *FolderList, h *libkbfs.TlfHandle) *Folder {
 	f := &Folder{
 		fs:    fl.fs,
 		list:  fl,
-		name:  name,
+		h:     h,
 		nodes: map[libkbfs.NodeID]fs.Node{},
 	}
 	return f
+}
+
+func (f *Folder) name(ctx context.Context) libkbfs.CanonicalTlfName {
+	return f.h.GetCanonicalName(ctx, f.fs.config)
 }
 
 func (f *Folder) reportErr(ctx context.Context,
@@ -62,7 +66,7 @@ func (f *Folder) reportErr(ctx context.Context,
 		return
 	}
 
-	f.fs.config.Reporter().ReportErr(ctx, f.name, f.list.public, mode, err)
+	f.fs.config.Reporter().ReportErr(ctx, f.name(ctx), f.list.public, mode, err)
 	// We just log the error as debug, rather than error, because it
 	// might just indicate an expected error such as an ENOENT.
 	//
@@ -85,7 +89,7 @@ func (f *Folder) setFolderBranch(folderBranch libkbfs.FolderBranch) error {
 	return nil
 }
 
-func (f *Folder) unsetFolderBranch() {
+func (f *Folder) unsetFolderBranch(ctx context.Context) {
 	f.folderBranchMu.Lock()
 	defer f.folderBranchMu.Unlock()
 	if f.folderBranch == (libkbfs.FolderBranch{}) {
@@ -96,7 +100,7 @@ func (f *Folder) unsetFolderBranch() {
 	err := f.list.fs.config.Notifier().UnregisterFromChanges([]libkbfs.FolderBranch{f.folderBranch}, f)
 	if err != nil {
 		f.fs.log.Info("cannot unregister change notifier for folder %q: %v",
-			f.name, err)
+			f.name(ctx), err)
 	}
 	f.folderBranch = libkbfs.FolderBranch{}
 }
@@ -108,8 +112,9 @@ func (f *Folder) forgetNode(node libkbfs.Node) {
 
 	delete(f.nodes, node.GetID())
 	if len(f.nodes) == 0 {
-		f.unsetFolderBranch()
-		f.list.forgetFolder(string(f.name))
+		ctx := context.Background()
+		f.unsetFolderBranch(ctx)
+		f.list.forgetFolder(string(f.name(ctx)))
 	}
 }
 
@@ -620,8 +625,8 @@ type TLF struct {
 	dir     *Dir
 }
 
-func newTLF(fl *FolderList, name libkbfs.CanonicalTlfName) *TLF {
-	folder := newFolder(fl, name)
+func newTLF(fl *FolderList, h *libkbfs.TlfHandle) *TLF {
+	folder := newFolder(fl, h)
 	tlf := &TLF{
 		folder: folder,
 	}
@@ -699,8 +704,7 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, filterErr bool) (
 
 	rootNode, _, err :=
 		tlf.folder.fs.config.KBFSOps().GetOrCreateRootNode(
-			ctx, string(tlf.folder.name), tlf.isPublic(),
-			libkbfs.MasterBranch)
+			ctx, tlf.folder.h, libkbfs.MasterBranch)
 	if err != nil {
 		return nil, true, err
 	}
@@ -720,9 +724,10 @@ func (tlf *TLF) loadDir(ctx context.Context) (*Dir, error) {
 	return dir, err
 }
 
-// loadDirAllowEmpty loads a TLF if it's not already loaded.  If the
-// TLF doesn't yet exist, it still returns a nil error and indicates
-// that the calling function should pretend it's an empty folder.
+// loadDirAllowNonexistent loads a TLF if it's not already loaded.  If
+// the TLF doesn't yet exist, it still returns a nil error and
+// indicates that the calling function should pretend it's an empty
+// folder.
 func (tlf *TLF) loadDirAllowNonexistent(ctx context.Context) (
 	*Dir, bool, error) {
 	return tlf.loadDirHelper(ctx, true)

@@ -49,11 +49,7 @@ func TestRekeyQueueBasic(t *testing.T) {
 		name := strings.Join(writers, ",")
 		names = append(names, name)
 		// user 1 creates the directory
-		rootNode1, _, err :=
-			kbfsOps1.GetOrCreateRootNode(ctx, name, false, MasterBranch)
-		if err != nil {
-			t.Fatalf("Couldn't create folder: %v", err)
-		}
+		rootNode1 := GetRootNodeOrBust(t, config1, name, false)
 		// user 1 creates a file
 		_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false)
 		if err != nil {
@@ -68,13 +64,11 @@ func TestRekeyQueueBasic(t *testing.T) {
 	AddDeviceForLocalUserOrBust(t, config2, uid2)
 	devIndex := AddDeviceForLocalUserOrBust(t, config2Dev2, uid2)
 	SwitchDeviceForLocalUserOrBust(t, config2Dev2, devIndex)
-	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 
 	// user 2 should be unable to read the data now since its device
 	// wasn't registered when the folder was originally created.
 	for _, name := range names {
-		_, _, err =
-			kbfsOps2Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
+		_, err := GetRootNodeForTest(t, config2Dev2, name, false)
 		if _, ok := err.(NeedSelfRekeyError); !ok {
 			t.Fatalf("Got unexpected error when reading with new key: %v", err)
 		}
@@ -84,12 +78,7 @@ func TestRekeyQueueBasic(t *testing.T) {
 
 	// now user 1 should rekey via its rekey worker
 	for _, name := range names {
-		kbfsOps1 := config1.KBFSOps()
-		rootNode1, _, err :=
-			kbfsOps1.GetOrCreateRootNode(ctx, name, false, MasterBranch)
-		if err != nil {
-			t.Fatalf("Couldn't create folder: %v", err)
-		}
+		rootNode1 := GetRootNodeOrBust(t, config1, name, false)
 		// queue it for rekey
 		c := config1.RekeyQueue().Enqueue(rootNode1.GetFolderBranch().Tlf)
 		rekeyChannels = append(rekeyChannels, c)
@@ -104,10 +93,6 @@ func TestRekeyQueueBasic(t *testing.T) {
 
 	// user 2's new device should be able to read now
 	for _, name := range names {
-		_, _, err =
-			kbfsOps2Dev2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
-		if err != nil {
-			t.Fatalf("Got unexpected error after rekey: %v", err)
-		}
+		_ = GetRootNodeOrBust(t, config2Dev2, name, false)
 	}
 }

@@ -83,7 +83,7 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 		}
 
 		fl.fs.log.CDebugf(ctx, "FL Lookup continuing")
-		_, err = libkbfs.ParseTlfHandle(ctx, fl.fs.config.KBPKI(), name, fl.public)
+		h, err := libkbfs.ParseTlfHandle(ctx, fl.fs.config.KBPKI(), name, fl.public)
 		switch err := err.(type) {
 		case nil:
 			// No error.
@@ -138,24 +138,17 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 		}
 
 		fl.fs.log.CDebugf(ctx, "FL Lookup adding new child")
-		child = newTLF(fl, libkbfs.CanonicalTlfName(name))
+		child = newTLF(fl, h)
 		fl.lockedAddChild(name, child)
 		return child.open(ctx, oc, path[1:])
 	}
 	return nil, false, dokan.ErrObjectNameNotFound
 }
 
-func (fl *FolderList) forgetFolder(f *Folder) {
+func (fl *FolderList) forgetFolder(folderName string) {
 	fl.mu.Lock()
 	defer fl.mu.Unlock()
-
-	fl.fs.log.Info("forgetFolder %q", f.name)
-
-	if err := fl.fs.config.Notifier().UnregisterFromChanges([]libkbfs.FolderBranch{f.folderBranch}, f); err != nil {
-		fl.fs.log.Info("cannot unregister change notifier for folder %q: %v",
-			f.name, err)
-	}
-	delete(fl.folders, string(f.name))
+	delete(fl.folders, folderName)
 }
 
 // FindFiles for dokan.

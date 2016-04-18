@@ -70,11 +70,7 @@ func TestKBFSOpsConcurDoubleMDGet(t *testing.T) {
 	// Initialize the MD using a different config
 	c2 := ConfigAsUser(config.(*ConfigLocal), "test_user")
 	defer CheckConfigAndShutdown(t, c2)
-	rootNode, _, err :=
-		c2.KBFSOps().GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
-	if err != nil {
-		t.Fatalf("Couldn't create dir: %v", err)
-	}
+	rootNode := GetRootNodeOrBust(t, c2, "test_user", false)
 
 	n := 10
 	c := make(chan error, n)
@@ -141,12 +137,9 @@ func TestKBFSOpsConcurReadDuringSync(t *testing.T) {
 	onPutStalledCh, putUnstallCh, putCtx := setStallingMDOpsForPut(ctx, config)
 
 	// create and write to a file
+	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+
 	kbfsOps := config.KBFSOps()
-	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
-	if err != nil {
-		t.Fatalf("Couldn't create folder: %v", err)
-	}
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
@@ -200,12 +193,9 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 	config.SetBlockSplitter(bsplitter)
 
 	// create and write to a file
+	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+
 	kbfsOps := config.KBFSOps()
-	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
-	if err != nil {
-		t.Fatalf("Couldn't create folder: %v", err)
-	}
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
@@ -336,12 +326,9 @@ func TestKBFSOpsConcurDeferredDoubleWritesDuringSync(t *testing.T) {
 	config.SetBlockSplitter(bsplitter)
 
 	// create and write to a file
+	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+
 	kbfsOps := config.KBFSOps()
-	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
-	if err != nil {
-		t.Fatalf("Couldn't create folder: %v", err)
-	}
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
@@ -452,12 +439,9 @@ func TestKBFSOpsConcurBlockReadWrite(t *testing.T) {
 	config.SetBlockCache(NewBlockCacheStandard(config, 0, 1<<30))
 
 	// Create a file.
+	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+
 	kbfsOps := config.KBFSOps()
-	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
-	if err != nil {
-		t.Fatalf("Couldn't create folder: %v", err)
-	}
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
@@ -599,12 +583,9 @@ func TestKBFSOpsConcurBlockSyncWrite(t *testing.T) {
 	config.SetBlockCache(NewBlockCacheStandard(config, 0, 1<<30))
 
 	// Create a file.
+	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+
 	kbfsOps := config.KBFSOps()
-	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
-	if err != nil {
-		t.Fatalf("Couldn't create folder: %v", err)
-	}
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
@@ -706,12 +687,9 @@ func TestKBFSOpsConcurBlockSyncTruncate(t *testing.T) {
 	config.SetBlockCache(NewBlockCacheStandard(config, 0, 1<<30))
 
 	// Create a file.
+	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+
 	kbfsOps := config.KBFSOps()
-	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
-	if err != nil {
-		t.Fatalf("Couldn't create folder: %v", err)
-	}
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
@@ -819,12 +797,9 @@ func TestKBFSOpsConcurBlockSyncReadIndirect(t *testing.T) {
 	config.SetBlockSplitter(bsplitter)
 
 	// Create a file.
+	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+
 	kbfsOps := config.KBFSOps()
-	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
-	if err != nil {
-		t.Fatalf("Couldn't create folder: %v", err)
-	}
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
@@ -875,12 +850,9 @@ func TestKBFSOpsConcurWriteDuringFolderUpdate(t *testing.T) {
 	defer config.Shutdown()
 
 	// create and write to a file
+	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+
 	kbfsOps := config.KBFSOps()
-	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
-	if err != nil {
-		t.Fatalf("Couldn't create folder: %v", err)
-	}
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
@@ -923,12 +895,9 @@ func TestKBFSOpsConcurWriteDuringSyncMultiBlocks(t *testing.T) {
 	config.BlockSplitter().(*BlockSplitterSimple).maxSize = 5
 
 	// create and write to a file
+	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+
 	kbfsOps := config.KBFSOps()
-	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
-	if err != nil {
-		t.Fatalf("Couldn't create folder: %v", err)
-	}
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
@@ -1033,12 +1002,9 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	config.BlockSplitter().(*BlockSplitterSimple).maxSize = blockSize
 
 	// create and write to a file
+	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+
 	kbfsOps := config.KBFSOps()
-	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
-	if err != nil {
-		t.Fatalf("Couldn't create folder: %v", err)
-	}
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
@@ -1164,12 +1130,9 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	config.BlockSplitter().(*BlockSplitterSimple).maxSize = blockSize
 
 	// create and write to a file
+	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+
 	kbfsOps := config.KBFSOps()
-	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
-	if err != nil {
-		t.Fatalf("Couldn't create folder: %v", err)
-	}
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
@@ -1265,12 +1228,9 @@ func TestKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T) {
 	})
 
 	// create and write to a file
+	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+
 	kbfsOps := config.KBFSOps()
-	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
-	if err != nil {
-		t.Fatalf("Couldn't create folder: %v", err)
-	}
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
@@ -1375,12 +1335,9 @@ func TestKBFSOpsConcurCanceledSyncSucceeds(t *testing.T) {
 	config.SetBlockSplitter(bsplitter)
 
 	// create and write to a file
+	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+
 	kbfsOps := config.KBFSOps()
-	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
-	if err != nil {
-		t.Fatalf("Couldn't create folder: %v", err)
-	}
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
@@ -1486,13 +1443,10 @@ func TestKBFSOpsTruncateWithDupBlockCanceled(t *testing.T) {
 	})
 
 	// create and write to a file
+	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+
 	kbfsOps := config.KBFSOps()
-	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
-	if err != nil {
-		t.Fatalf("Couldn't create folder: %v", err)
-	}
-	_, _, err = kbfsOps.CreateFile(ctx, rootNode, "a", false)
+	_, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -1599,12 +1553,9 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 	config.SetBlockOps(staller)
 
 	// create and write to a file
+	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+
 	kbfsOps := config.KBFSOps()
-	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
-	if err != nil {
-		t.Fatalf("Couldn't create folder: %v", err)
-	}
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)

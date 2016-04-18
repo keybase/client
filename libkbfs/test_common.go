@@ -538,3 +538,35 @@ func CheckConfigAndShutdown(t logger.TestLogBackend, config Config) {
 		t.Errorf(err.Error())
 	}
 }
+
+// GetRootNodeForTest gets the root node for the given TLF name, which
+// must be canonical, creating it if necessary.
+func GetRootNodeForTest(
+	t logger.TestLogBackend, config Config, name string, public bool) (
+	Node, error) {
+	ctx := context.Background()
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), name, public)
+	if err != nil {
+		return nil, err
+	}
+
+	n, _, err := config.KBFSOps().GetOrCreateRootNode(ctx, h, MasterBranch)
+	if err != nil {
+		return nil, err
+	}
+
+	return n, nil
+}
+
+// GetRootNodeOrBust gets the root node for the given TLF name, which
+// must be canonical, creating it if necessary, and failing if there's
+// an error.
+func GetRootNodeOrBust(
+	t logger.TestLogBackend, config Config, name string, public bool) Node {
+	n, err := GetRootNodeForTest(t, config, name, public)
+	if err != nil {
+		t.Fatalf("Couldn't get root node for %s (public=%t): %v",
+			name, public, err)
+	}
+	return n
+}

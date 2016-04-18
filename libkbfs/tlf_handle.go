@@ -465,6 +465,16 @@ func (h *TlfHandle) Users() []keybase1.UID {
 
 // ParseTlfHandle parses a TlfHandle from an encoded string. See
 // ToString for the opposite direction.
+//
+// Some errors that may be returned and can be specially handled:
+//
+// TlfNameNotCanonical: Returned when the given name is not canonical
+// -- another name to try (which itself may not be canonical) is in
+// the error. Usually, you want to treat this as a symlink to the name
+// to try.
+//
+// NoSuchNameError: Returned when public is set and the given folder
+// has no public folder.
 func ParseTlfHandle(
 	ctx context.Context, kbpki KBPKI, name string, public bool) (
 	*TlfHandle, error) {

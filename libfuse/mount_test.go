@@ -312,14 +312,8 @@ func TestReaddirPrivate(t *testing.T) {
 		// Force FakeMDServer to have some TlfIDs it can present to us
 		// as favorites. Don't go through VFS to avoid caching causing
 		// false positives.
-		if _, _, err := config.KBFSOps().GetOrCreateRootNode(
-			context.Background(), "janedoe,jdoe", false, libkbfs.MasterBranch); err != nil {
-			t.Fatalf("cannot set up a favorite: %v", err)
-		}
-		if _, _, err := config.KBFSOps().GetOrCreateRootNode(
-			context.Background(), "janedoe,jdoe", true, libkbfs.MasterBranch); err != nil {
-			t.Fatalf("cannot set up a favorite: %v", err)
-		}
+		libkbfs.GetRootNodeOrBust(t, config, "janedoe,jdoe", false)
+		libkbfs.GetRootNodeOrBust(t, config, "janedoe,jdoe", true)
 	}
 
 	checkDir(t, path.Join(mnt.Dir, PrivateName), map[string]fileInfoCheck{
@@ -339,14 +333,8 @@ func TestReaddirPrivateDeleteAndReaddFavorite(t *testing.T) {
 		// Force FakeMDServer to have some TlfIDs it can present to us
 		// as favorites. Don't go through VFS to avoid caching causing
 		// false positives.
-		if _, _, err := config.KBFSOps().GetOrCreateRootNode(
-			context.Background(), "janedoe,jdoe", false, libkbfs.MasterBranch); err != nil {
-			t.Fatalf("cannot set up a favorite: %v", err)
-		}
-		if _, _, err := config.KBFSOps().GetOrCreateRootNode(
-			context.Background(), "janedoe,jdoe", true, libkbfs.MasterBranch); err != nil {
-			t.Fatalf("cannot set up a favorite: %v", err)
-		}
+		libkbfs.GetRootNodeOrBust(t, config, "janedoe,jdoe", false)
+		libkbfs.GetRootNodeOrBust(t, config, "janedoe,jdoe", true)
 	}
 
 	err := os.Remove(path.Join(mnt.Dir, PrivateName, "janedoe,jdoe"))
@@ -379,14 +367,8 @@ func TestReaddirPublic(t *testing.T) {
 		// Force FakeMDServer to have some TlfIDs it can present to us
 		// as favorites. Don't go through VFS to avoid caching causing
 		// false positives.
-		if _, _, err := config.KBFSOps().GetOrCreateRootNode(
-			context.Background(), "janedoe,jdoe", false, libkbfs.MasterBranch); err != nil {
-			t.Fatalf("cannot set up a favorite: %v", err)
-		}
-		if _, _, err := config.KBFSOps().GetOrCreateRootNode(
-			context.Background(), "janedoe,jdoe", true, libkbfs.MasterBranch); err != nil {
-			t.Fatalf("cannot set up a favorite: %v", err)
-		}
+		libkbfs.GetRootNodeOrBust(t, config, "janedoe,jdoe", false)
+		libkbfs.GetRootNodeOrBust(t, config, "janedoe,jdoe", true)
 	}
 
 	checkDir(t, path.Join(mnt.Dir, PublicName), map[string]fileInfoCheck{
@@ -1520,13 +1502,10 @@ func TestSetattrFileMtimeAfterWrite(t *testing.T) {
 
 	const input2 = "second round of content"
 	{
+		jdoe := libkbfs.GetRootNodeOrBust(t, config, "jdoe", false)
+
 		ctx := context.Background()
 		ops := config.KBFSOps()
-		jdoe, _, err := ops.GetOrCreateRootNode(
-			ctx, "jdoe", false, libkbfs.MasterBranch)
-		if err != nil {
-			t.Fatal(err)
-		}
 		myfile, _, err := ops.Lookup(ctx, jdoe, "myfile")
 		if err != nil {
 			t.Fatal(err)
@@ -1942,13 +1921,8 @@ func TestReaddirOtherFolderAsAnyone(t *testing.T) {
 
 func syncFolderToServerHelper(t *testing.T, tlf string, public bool, fs *FS) {
 	ctx := context.Background()
-	root, _, err := fs.config.KBFSOps().GetOrCreateRootNode(
-		ctx, tlf, public, libkbfs.MasterBranch)
-	if err != nil {
-		t.Fatalf("cannot get root for %s: %v", tlf, err)
-	}
-
-	err = fs.config.KBFSOps().SyncFromServerForTesting(ctx, root.GetFolderBranch())
+	root := libkbfs.GetRootNodeOrBust(t, fs.config, tlf, public)
+	err := fs.config.KBFSOps().SyncFromServerForTesting(ctx, root.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
@@ -2163,13 +2137,10 @@ func TestInvalidateDataOnLocalWrite(t *testing.T) {
 
 	const input2 = "second round of content"
 	{
+		jdoe := libkbfs.GetRootNodeOrBust(t, config, "jdoe", false)
+
 		ctx := context.Background()
 		ops := config.KBFSOps()
-		jdoe, _, err := ops.GetOrCreateRootNode(
-			ctx, "jdoe", false, libkbfs.MasterBranch)
-		if err != nil {
-			t.Fatal(err)
-		}
 		myfile, _, err := ops.Lookup(ctx, jdoe, "myfile")
 		if err != nil {
 			t.Fatal(err)
@@ -2425,13 +2396,10 @@ func TestInvalidateAppendAcrossMounts(t *testing.T) {
 	// the whole page.
 	const input2 = "input round two"
 	{
+		jdoe := libkbfs.GetRootNodeOrBust(t, config1, "user1,user2", false)
+
 		ctx := context.Background()
 		ops := config1.KBFSOps()
-		jdoe, _, err := ops.GetOrCreateRootNode(
-			ctx, "user1,user2", false, libkbfs.MasterBranch)
-		if err != nil {
-			t.Fatal(err)
-		}
 		myfile, _, err := ops.Lookup(ctx, jdoe, "myfile")
 		if err != nil {
 			t.Fatal(err)
@@ -2539,10 +2507,10 @@ func TestStatusFile(t *testing.T) {
 	defer mnt.Close()
 	defer cancelFn()
 
+	jdoe := libkbfs.GetRootNodeOrBust(t, config, "jdoe", false)
+
 	ctx := context.Background()
 	ops := config.KBFSOps()
-	jdoe, _, err := ops.GetOrCreateRootNode(
-		ctx, "jdoe", false, libkbfs.MasterBranch)
 	status, _, err := ops.FolderStatus(ctx, jdoe.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't get KBFS status: %v", err)
@@ -2585,8 +2553,6 @@ func TestUnstageFile(t *testing.T) {
 		t.Skip("Old FUSE protocol")
 	}
 
-	ctx := context.Background()
-
 	// both users read the root dir first
 	myroot1 := path.Join(mnt1.Dir, PrivateName, "user1,user2")
 	myroot2 := path.Join(mnt2.Dir, PrivateName, "user1,user2")
@@ -2594,9 +2560,8 @@ func TestUnstageFile(t *testing.T) {
 	checkDir(t, myroot2, map[string]fileInfoCheck{})
 
 	// turn updates off for user 2
-	rootNode2, _, err := config2.KBFSOps().GetOrCreateRootNode(
-		ctx, "user1,user2", false, libkbfs.MasterBranch)
-	_, err = libkbfs.DisableUpdatesForTesting(config2,
+	rootNode2 := libkbfs.GetRootNodeOrBust(t, config2, "user1,user2", false)
+	_, err := libkbfs.DisableUpdatesForTesting(config2,
 		rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't pause user 2 updates")

@@ -807,7 +807,7 @@ func (fbo *folderBranchOps) initMDLocked(
 }
 
 func (fbo *folderBranchOps) GetOrCreateRootNode(
-	ctx context.Context, name string, public bool, branch BranchName) (
+	ctx context.Context, h *TlfHandle, branch BranchName) (
 	node Node, ei EntryInfo, err error) {
 	err = errors.New("GetOrCreateRootNode is not supported by " +
 		"folderBranchOps")

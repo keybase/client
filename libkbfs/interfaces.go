@@ -115,31 +115,15 @@ type KBFSOps interface {
 	DeleteFavorite(ctx context.Context, name string, public bool) error
 
 	// GetOrCreateRootNode returns the root node and root entry
-	// info associated with the given name, public flag, and
-	// branch, if the name is the canonical name, and the
-	// logged-in user has read permissions to the top-level
+	// info associated with the given TLF handle and branch, if
+	// the logged-in user has read permissions to the top-level
 	// folder. It creates the folder if one doesn't exist yet (and
 	// branch == MasterBranch), and the logged-in user has write
 	// permissions to the top-level folder.  This is a
 	// remote-access operation.
-	//
-	// Some errors that may be returned and can be specially
-	// handled:
-	//
-	// TlfNameNotCanonical: Returned when the given name is not
-	// canonical -- another name to try (which itself may not be
-	// canonical) is in the error. Usually, you want to treat this
-	// as a symlink to the name to try.
-	//
-	// NoSuchNameError: Returned when public is set and the given
-	// folder has no public folder.
-	//
-	// WriteAccessError: Returned when the folder doesn't exist
-	// yet but the logged-in user doesn't have write permissions
-	// to create it.
 	GetOrCreateRootNode(
-		ctx context.Context, name string, public bool,
-		branch BranchName) (node Node, ei EntryInfo, err error)
+		ctx context.Context, h *TlfHandle, branch BranchName) (
+		node Node, ei EntryInfo, err error)
 	// GetDirChildren returns a map of children in the directory,
 	// mapped to their EntryInfo, if the logged-in user has read
 	// permission for the top-level folder.  This is a remote-access

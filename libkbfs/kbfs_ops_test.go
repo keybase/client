@@ -538,9 +538,8 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 	assert.False(t, fboIdentityDone(ops))
 
 	ops.head = rmd
-	name := h.ToString(ctx, config)
 	n, ei, err :=
-		config.KBFSOps().GetOrCreateRootNode(ctx, name, false, MasterBranch)
+		config.KBFSOps().GetOrCreateRootNode(ctx, h, MasterBranch)
 	require.Nil(t, err)
 	assert.True(t, fboIdentityDone(ops))
 
@@ -4823,12 +4822,9 @@ func TestKBFSOpsWriteRenameStat(t *testing.T) {
 	defer config.Shutdown()
 
 	// create a file.
+	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+
 	kbfsOps := config.KBFSOps()
-	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
-	if err != nil {
-		t.Fatalf("Couldn't create folder: %v", err)
-	}
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
@@ -4871,12 +4867,9 @@ func TestKBFSOpsWriteRenameGetDirChildren(t *testing.T) {
 	defer config.Shutdown()
 
 	// create a file.
+	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+
 	kbfsOps := config.KBFSOps()
-	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
-	if err != nil {
-		t.Fatalf("Couldn't create folder: %v", err)
-	}
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
@@ -4920,13 +4913,10 @@ func TestKBFSOpsCreateFileWithArchivedBlock(t *testing.T) {
 	defer CheckConfigAndShutdown(t, config)
 
 	// create a file.
+	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+
 	kbfsOps := config.KBFSOps()
-	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
-	if err != nil {
-		t.Fatalf("Couldn't create folder: %v", err)
-	}
-	_, _, err = kbfsOps.CreateFile(ctx, rootNode, "a", false)
+	_, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -4961,12 +4951,9 @@ func TestKBFSOpsMultiBlockSyncWithArchivedBlock(t *testing.T) {
 	config.BlockSplitter().(*BlockSplitterSimple).maxSize = blockSize
 
 	// create a file.
+	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+
 	kbfsOps := config.KBFSOps()
-	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
-	if err != nil {
-		t.Fatalf("Couldn't create folder: %v", err)
-	}
 	fileNode, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
@@ -5034,13 +5021,10 @@ func TestKBFSOpsFailToReadUnverifiableBlock(t *testing.T) {
 	})
 
 	// create a file.
+	rootNode := GetRootNodeOrBust(t, config, "test_user", false)
+
 	kbfsOps := config.KBFSOps()
-	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
-	if err != nil {
-		t.Fatalf("Couldn't create folder: %v", err)
-	}
-	_, _, err = kbfsOps.CreateFile(ctx, rootNode, "a", false)
+	_, _, err := kbfsOps.CreateFile(ctx, rootNode, "a", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
@@ -5051,13 +5035,9 @@ func TestKBFSOpsFailToReadUnverifiableBlock(t *testing.T) {
 	// Shutdown the mdserver explicitly before the state checker tries to run
 	defer config2.MDServer().Shutdown()
 
-	kbfsOps2 := config2.KBFSOps()
-	rootNode2, _, err :=
-		kbfsOps2.GetOrCreateRootNode(ctx, "test_user", false, MasterBranch)
-	if err != nil {
-		t.Fatalf("Couldn't create folder: %v", err)
-	}
+	rootNode2 := GetRootNodeOrBust(t, config2, "test_user", false)
 	// Lookup the file, which should fail on block ID verification
+	kbfsOps2 := config2.KBFSOps()
 	_, _, err = kbfsOps2.Lookup(ctx, rootNode2, "a")
 	if _, ok := err.(HashMismatchError); !ok {
 		t.Fatalf("Could unexpectedly lookup the file: %v", err)

@@ -29,13 +29,9 @@ func TestQuotaReclamationSimple(t *testing.T) {
 	clock, now := newTestClockAndTimeNow()
 	config.SetClock(clock)
 
+	rootNode := GetRootNodeOrBust(t, config, userName.String(), false)
 	kbfsOps := config.KBFSOps()
-	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNode(ctx, userName.String(), false, MasterBranch)
-	if err != nil {
-		t.Fatalf("Couldn't create folder: %v", err)
-	}
-	_, _, err = kbfsOps.CreateDir(ctx, rootNode, "a")
+	_, _, err := kbfsOps.CreateDir(ctx, rootNode, "a")
 	if err != nil {
 		t.Fatalf("Couldn't create dir: %v", err)
 	}
@@ -120,15 +116,11 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 	clock.Set(now)
 	config.SetClock(&clock)
 
-	kbfsOps := config.KBFSOps()
-	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNode(ctx, userName.String(), false, MasterBranch)
-	if err != nil {
-		t.Fatalf("Couldn't create folder: %v", err)
-	}
+	rootNode := GetRootNodeOrBust(t, config, userName.String(), false)
 	// Do a bunch of operations.
+	kbfsOps := config.KBFSOps()
 	for i := 0; i < numPointersPerGCThreshold; i++ {
-		_, _, err = kbfsOps.CreateDir(ctx, rootNode, "a")
+		_, _, err := kbfsOps.CreateDir(ctx, rootNode, "a")
 		if err != nil {
 			t.Fatalf("Couldn't create dir: %v", err)
 		}
@@ -145,7 +137,7 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 	// Run it.
 	ops := kbfsOps.(*KBFSOpsStandard).getOpsByNode(ctx, rootNode)
 	ops.fbm.forceQuotaReclamation()
-	err = ops.fbm.waitForQuotaReclamations(ctx)
+	err := ops.fbm.waitForQuotaReclamations(ctx)
 	if err != nil {
 		t.Fatalf("Couldn't wait for QR: %v", err)
 	}
@@ -200,13 +192,9 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	config2.SetClock(clock)
 
 	name := u1.String() + "," + u2.String()
-	kbfsOps1 := config1.KBFSOps()
-	rootNode1, _, err :=
-		kbfsOps1.GetOrCreateRootNode(ctx, name, false, MasterBranch)
-	if err != nil {
-		t.Fatalf("Couldn't create folder: %v", err)
-	}
+	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
 	data := []byte{1, 2, 3, 4, 5}
+	kbfsOps1 := config1.KBFSOps()
 	aNode1, _, err := kbfsOps1.CreateFile(ctx, rootNode1, "a", false)
 	if err != nil {
 		t.Fatalf("Couldn't create dir: %v", err)
@@ -239,12 +227,8 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	}
 
 	// u2 reads the file
+	rootNode2 := GetRootNodeOrBust(t, config2, name, false)
 	kbfsOps2 := config2.KBFSOps()
-	rootNode2, _, err :=
-		kbfsOps2.GetOrCreateRootNode(ctx, name, false, MasterBranch)
-	if err != nil {
-		t.Fatalf("Couldn't create folder: %v", err)
-	}
 	aNode2, _, err := kbfsOps2.Lookup(ctx, rootNode2, "a")
 	if err != nil {
 		t.Fatalf("Couldn't create dir: %v", err)

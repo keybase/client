@@ -265,16 +265,16 @@ func (_mr *_MockKBFSOpsRecorder) DeleteFavorite(arg0, arg1, arg2 interface{}) *g
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "DeleteFavorite", arg0, arg1, arg2)
 }
 
-func (_m *MockKBFSOps) GetOrCreateRootNode(ctx context.Context, name string, public bool, branch BranchName) (Node, EntryInfo, error) {
-	ret := _m.ctrl.Call(_m, "GetOrCreateRootNode", ctx, name, public, branch)
+func (_m *MockKBFSOps) GetOrCreateRootNode(ctx context.Context, h *TlfHandle, branch BranchName) (Node, EntryInfo, error) {
+	ret := _m.ctrl.Call(_m, "GetOrCreateRootNode", ctx, h, branch)
 	ret0, _ := ret[0].(Node)
 	ret1, _ := ret[1].(EntryInfo)
 	ret2, _ := ret[2].(error)
 	return ret0, ret1, ret2
 }
 
-func (_mr *_MockKBFSOpsRecorder) GetOrCreateRootNode(arg0, arg1, arg2, arg3 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetOrCreateRootNode", arg0, arg1, arg2, arg3)
+func (_mr *_MockKBFSOpsRecorder) GetOrCreateRootNode(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetOrCreateRootNode", arg0, arg1, arg2)
 }
 
 func (_m *MockKBFSOps) GetDirChildren(ctx context.Context, dir Node) (map[string]EntryInfo, error) {

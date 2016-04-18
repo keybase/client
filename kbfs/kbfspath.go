@@ -215,12 +215,12 @@ func (p kbfsPath) getNode(ctx context.Context, config libkbfs.Config) (n libkbfs
 		return nil, ei, nil
 	}
 
+	var h *libkbfs.TlfHandle
 	name := p.tlfName
 outer:
 	for {
-		n, ei, err =
-			config.KBFSOps().GetOrCreateRootNode(
-				ctx, name, p.public, libkbfs.MasterBranch)
+		h, err = libkbfs.ParseTlfHandle(
+			ctx, config.KBPKI(), name, p.public)
 		switch err := err.(type) {
 		case nil:
 			// No error.
@@ -235,6 +235,10 @@ outer:
 			return nil, libkbfs.EntryInfo{}, err
 		}
 	}
+
+	n, ei, err =
+		config.KBFSOps().GetOrCreateRootNode(
+			ctx, h, libkbfs.MasterBranch)
 
 	for _, component := range p.tlfComponents {
 		cn, cei, err := config.KBFSOps().Lookup(ctx, n, component)

@@ -141,11 +141,8 @@ func (k *LibKBFS) GetRootDir(u User, isPublic bool, writers []string, readers []
 
 	ctx := context.Background()
 
-	name := h.ToString(ctx, config)
-
-	dir, _, err =
-		config.KBFSOps().GetOrCreateRootNode(
-			ctx, name, isPublic, libkbfs.MasterBranch)
+	dir, _, err = config.KBFSOps().GetOrCreateRootNode(
+		ctx, h, libkbfs.MasterBranch)
 	if err != nil {
 		return nil, err
 	}

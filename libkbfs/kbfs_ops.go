@@ -198,16 +198,11 @@ func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context,
 // GetOrCreateRootNode implements the KBFSOps interface for
 // KBFSOpsStandard
 func (fs *KBFSOpsStandard) GetOrCreateRootNode(
-	ctx context.Context, name string, public bool, branch BranchName) (
+	ctx context.Context, h *TlfHandle, branch BranchName) (
 	node Node, ei EntryInfo, err error) {
-	fs.log.CDebugf(ctx, "GetOrCreateRootNode(%s, %t, %v)",
-		name, public, branch)
+	fs.log.CDebugf(ctx, "GetOrCreateRootNode(%s, %v)",
+		h.ToString(ctx, fs.config), branch)
 	defer func() { fs.log.CDebugf(ctx, "Done: %#v", err) }()
-
-	h, err := ParseTlfHandle(ctx, fs.config.KBPKI(), name, public)
-	if err != nil {
-		return nil, EntryInfo{}, err
-	}
 
 	// Do GetForHandle() unlocked -- no cache lookups, should be fine
 	mdops := fs.config.MDOps()

@@ -181,8 +181,13 @@ func (*fsEngine) ReenableUpdates(u User, dir Node) {
 func (e *fsEngine) SyncFromServerForTesting(user User, dir Node) (err error) {
 	u := user.(*fsUser)
 	ctx := context.Background()
+	h, err := libkbfs.ParseTlfHandle(ctx, u.config.KBPKI(), u.tlf, false)
+	if err != nil {
+		return fmt.Errorf("cannot parse %s: %v", u.tlf, err)
+	}
+
 	root, _, err := u.config.KBFSOps().GetOrCreateRootNode(
-		ctx, u.tlf, false, libkbfs.MasterBranch)
+		ctx, h, libkbfs.MasterBranch)
 	if err != nil {
 		return fmt.Errorf("cannot get root for %s: %v", u.tlf, err)
 	}
@@ -199,8 +204,13 @@ func (e *fsEngine) SyncFromServerForTesting(user User, dir Node) (err error) {
 func (*fsEngine) ForceQuotaReclamation(user User, dir Node) (err error) {
 	u := user.(*fsUser)
 	ctx := context.Background()
+	h, err := libkbfs.ParseTlfHandle(ctx, u.config.KBPKI(), u.tlf, false)
+	if err != nil {
+		return fmt.Errorf("cannot parse %s: %v", u.tlf, err)
+	}
+
 	root, _, err := u.config.KBFSOps().GetOrCreateRootNode(
-		ctx, u.tlf, false, libkbfs.MasterBranch)
+		ctx, h, libkbfs.MasterBranch)
 	if err != nil {
 		return fmt.Errorf("cannot get root for %s: %v", u.tlf, err)
 	}

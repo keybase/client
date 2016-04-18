@@ -208,12 +208,8 @@ func testCRSharedFolderForUsers(t *testing.T, name string, createAs keybase1.UID
 
 	// create by the first user
 	kbfsOps := configs[createAs].KBFSOps()
+	rootNode := GetRootNodeOrBust(t, configs[createAs], name, false)
 	ctx := context.Background()
-	rootNode, _, err :=
-		kbfsOps.GetOrCreateRootNode(ctx, name, false, MasterBranch)
-	if err != nil {
-		t.Errorf("Couldn't get folder: %v", err)
-	}
 	dir := rootNode
 	for _, d := range dirs {
 		dirNext, _, err := kbfsOps.CreateDir(ctx, dir, d)
@@ -236,14 +232,10 @@ func testCRSharedFolderForUsers(t *testing.T, name string, createAs keybase1.UID
 
 		kbfsOps := config.KBFSOps()
 		kbfsOps.SyncFromServerForTesting(ctx, rootNode.GetFolderBranch())
-		rootNode, _, err :=
-			kbfsOps.GetOrCreateRootNode(
-				ctx, name, false, MasterBranch)
-		if err != nil {
-			t.Errorf("Couldn't get folder: %v", err)
-		}
+		rootNode := GetRootNodeOrBust(t, config, name, false)
 		dir := rootNode
 		for _, d := range dirs {
+			var err error
 			dir, _, err = kbfsOps.Lookup(ctx, dir, d)
 			if err != nil {
 				t.Fatalf("Couldn't lookup dir: %v", err)

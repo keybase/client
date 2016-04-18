@@ -95,7 +95,7 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		return nil, err
 	}
 
-	child := newTLF(fl, h.GetCanonicalName(ctx, fl.fs.config))
+	child := newTLF(fl, h)
 	fl.folders[req.Name] = child
 	return child, nil
 }

@@ -27,8 +27,8 @@ type TLF struct {
 	emptyFile
 }
 
-func newTLF(fl *FolderList, name libkbfs.CanonicalTlfName) *TLF {
-	folder := newFolder(fl, name)
+func newTLF(fl *FolderList, h *libkbfs.TlfHandle) *TLF {
+	folder := newFolder(fl, h)
 	tlf := &TLF{
 		folder: folder,
 	}
@@ -60,14 +60,15 @@ func (tlf *TLF) loadDir(ctx context.Context, info string) (dir *Dir, err error) 
 		return tlf.dir, nil
 	}
 
+	name := tlf.folder.name(ctx)
+
 	tlf.folder.fs.log.CDebugf(ctx, "Loading root directory for folder %s "+
-		"(public: %t) for %s", tlf.folder.name, tlf.isPublic(), info)
+		"(public: %t) for %s", name, tlf.isPublic(), info)
 	defer func() { tlf.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
 
 	rootNode, _, err :=
 		tlf.folder.fs.config.KBFSOps().GetOrCreateRootNode(
-			ctx, string(tlf.folder.name), tlf.isPublic(),
-			libkbfs.MasterBranch)
+			ctx, tlf.folder.h, libkbfs.MasterBranch)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +79,7 @@ func (tlf *TLF) loadDir(ctx context.Context, info string) (dir *Dir, err error) 
 	}
 
 	tlf.folder.nodes[rootNode.GetID()] = tlf
-	tlf.dir = newDir(tlf.folder, rootNode, string(tlf.folder.name), nil)
+	tlf.dir = newDir(tlf.folder, rootNode, string(name), nil)
 	// TLFs should be cached.
 	tlf.dir.refcount.Increase()
 	tlf.folder.lockedAddNode(rootNode, tlf.dir)
@@ -133,7 +134,7 @@ func (tlf *TLF) Cleanup(fi *dokan.FileInfo) {
 	if fi != nil && fi.DeleteOnClose() {
 		ctx := NewContextWithOpID(tlf.folder.fs)
 		err := tlf.folder.fs.config.KBFSOps().DeleteFavorite(ctx,
-			string(tlf.folder.name), tlf.isPublic())
+			string(tlf.folder.name(ctx)), tlf.isPublic())
 		tlf.folder.reportErr(ctx, libkbfs.WriteMode, err)
 	}
 
