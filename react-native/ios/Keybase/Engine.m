@@ -54,7 +54,7 @@ static NSString *const eventName = @"objc-engine-event";
     for(;;) {
       NSString * data = GoKeybaseReadB64();
       if(data) {
-        [self.bridge.eventDispatcher sendDeviceEventWithName:eventName body:data];
+        [self.bridge.eventDispatcher sendAppEventWithName:eventName body:data];
       }
     }
   });
