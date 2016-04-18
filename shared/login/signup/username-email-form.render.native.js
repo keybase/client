@@ -12,8 +12,8 @@ class Render extends Component {
 
   render () {
     return (
-      <Container onBack={this.props.onBack} style={stylesContainer} outerStyle={stylesOuter}>
-        <UserCard style={stylesCard}>
+      <Container onBack={this.props.onBack} outerStyle={stylesOuter}>
+        <UserCard>
           <Input autoFocus hintText='Create a username' value={this.props.username} errorText={this.props.usernameErrorText} onChangeText={username => this.props.usernameChange(username)}/>
           <Input style={stylesInput2} hintText='Email address' value={this.props.email} errorText={this.props.emailErrorText} onEnterKeyDown={this.props.onSubmit} onChangeText={email => this.props.emailChange(email)}/>
           <Button waiting={this.props.waiting} style={{marginTop: 40}} fullWidth type='Primary' label='Continue' onClick={this.props.onSubmit}/>
@@ -25,10 +25,6 @@ class Render extends Component {
 
 const stylesOuter = {
   backgroundColor: globalColors.black10
-}
-const stylesContainer = {
-}
-const stylesCard = {
 }
 
 const stylesInput2 = {
