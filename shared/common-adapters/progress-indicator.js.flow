@@ -4,7 +4,8 @@ import React, {Component} from 'react'
 
 export type Props = {
   style?: Object,
-  white?: boolean
+  white?: boolean,
+  styleAttr?: String // Android only
 }
 
 declare export default class ProgressIndicator extends React.Component<void, Props, void> {

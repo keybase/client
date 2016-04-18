@@ -4,15 +4,14 @@
  */
 
 import React, {Component} from 'react'
-import {StyleSheet, View, TextInput} from 'react-native'
+import {StyleSheet, View} from 'react-native'
 import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
         codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer} from '../../../constants/login'
 import {codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText} from '../../../constants/login'
 import QR from './qr'
-import {Box, Button, TabBar, TabBarItem, Text} from '../../../common-adapters'
+import {Box, ProgressIndicator, TabBar, Text} from '../../../common-adapters'
 import {specialStyles} from '../../../common-adapters/text'
 import Container from '../../forms/container'
-import commonStyles from '../../../styles/common'
 import {globalStyles} from '../../../styles/style-guide'
 
 export default class CodePageRender extends Component {
@@ -102,8 +101,9 @@ export default class CodePageRender extends Component {
 
   renderText () {
     return (
-      <Box style={stylesHeader}>
+      <Box style={stylesControl}>
         <Text style={specialStyles.paperKey}>{this.props.textCode}</Text>
+        <ProgressIndicator styleAttr='Normal' style={stylesSpinner}/>
       </Box>
     )
   }
@@ -187,6 +187,16 @@ const stylesIntro = {
 const stylesFooter = {
   marginBottom: 80,
   alignItems: 'center'
+}
+
+const stylesControl = {
+  marginTop: 46,
+  height: 100
+}
+
+const stylesSpinner = {
+  marginTop: 30,
+  alignSelf: 'center'
 }
 
 const styles = StyleSheet.create({

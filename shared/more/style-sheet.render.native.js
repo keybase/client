@@ -352,4 +352,3 @@ export default class Render extends Component {
     )
   }
 }
-
