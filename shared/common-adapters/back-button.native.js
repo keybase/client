@@ -1,6 +1,7 @@
 /* @flow */
 
 import React, {Component} from 'react'
+import {TouchableWithoutFeedback} from 'react-native'
 import {Box} from '../common-adapters'
 import {Text, Icon} from './index'
 import {globalStyles} from '../styles/style-guide'
@@ -19,10 +20,12 @@ export default class BackButton extends Component {
 
   render () {
     return (
-      <Box style={{...styles.container, ...this.props.style}} onClick={e => this.onClick(e)}>
-        <Icon type='fa-arrow-left' style={styles.icon}/>
-        <Text type='BodyPrimaryLink' onClick={e => this.onClick(e)}>Back</Text>
-      </Box>
+      <TouchableWithoutFeedback onPress={e => this.onClick(e)}>
+        <Box style={{...styles.container, ...this.props.style}} >
+          <Icon type='fa-arrow-left' style={styles.icon}/>
+          <Text type='BodyPrimaryLink'>Back</Text>
+        </Box>
+      </TouchableWithoutFeedback>
     )
   }
 }
@@ -35,7 +38,6 @@ BackButton.propTypes = {
 export const styles = {
   container: {
     ...globalStyles.flexBoxRow,
-    ...globalStyles.clickable,
     alignItems: 'center'
   },
   icon: {

@@ -59,7 +59,8 @@ export default function signupRouter (currentPath: Map<string, string>, uri: URI
   return {
     componentAtTop: {
       element,
-      hideBack: true
+      hideBack: true,
+      hideNavBar: true
     },
     parseNextRoute: signupRouter
   }

@@ -77,9 +77,7 @@ const commonLabel = {
   textAlign: 'center'
 }
 const fullWidth = {
-  flex: 1,
   height: fullWidthHeight,
-  paddingTop: 10,
   width: null
 }
 

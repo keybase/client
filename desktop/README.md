@@ -73,5 +73,6 @@ Some of these steps are theoretically not needed but in practice npm is buggy as
 1. Remove old shrinkwrap: Run ```rm npm-shrinkwrap.json```
 2. Find outdated packages: Run ```npm outdated```
 3. Install updated packages: Run ```npm install -E -S packageName@specificVersion``` or ```npm install -E -D devPackageName@specificVersion```
-4. Build shrinkwrap: Run ```npm shrinkwrap --dev```
+4. If in react-native, delete our dummy net package. ```rm -rf node_modules/net```
+5. Build shrinkwrap: Run ```npm shrinkwrap --dev```
 

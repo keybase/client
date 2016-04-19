@@ -12,18 +12,12 @@ class Render extends Component {
   props: Props;
 
   render () {
-    let usernameRef = null
-    let emailRef = null
-    const submitUserEmail = () => {
-      this.props.submitUserEmail(usernameRef && usernameRef.getValue(), emailRef && emailRef.getValue())
-    }
-
     return (
       <Container onBack={this.props.onBack} style={stylesContainer} outerStyle={stylesOuter}>
         <UserCard style={stylesCard}>
-          <Input autoFocus floatingLabelText='Create a username' value={this.props.username} ref={r => (usernameRef = r)} errorText={this.props.usernameErrorText}/>
-          <Input floatingLabelText='Email address' value={this.props.email} ref={r => (emailRef = r)} errorText={this.props.emailErrorText} onEnterKeyDown={submitUserEmail}/>
-          <Button waiting={this.props.waiting} style={{marginTop: 40}} fullWidth type='Primary' label='Continue' onClick={submitUserEmail}/>
+          <Input autoFocus floatingLabelText='Create a username' value={this.props.username} errorText={this.props.usernameErrorText} onChangeText={username => this.props.usernameChange(username)}/>
+          <Input floatingLabelText='Email address' value={this.props.email} errorText={this.props.emailErrorText} onEnterKeyDown={this.props.onSubmit} onChangeText={email => this.props.emailChange(email)}/>
+          <Button waiting={this.props.waiting} style={{marginTop: 40}} fullWidth type='Primary' label='Continue' onClick={this.props.onSubmit}/>
         </UserCard>
       </Container>
     )

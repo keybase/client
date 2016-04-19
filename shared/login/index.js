@@ -37,7 +37,8 @@ function loginRouter (currentPath: Map<string, string>, uri: URI): any {
   return {
     componentAtTop: {
       element,
-      hideBack: true
+      hideBack: true,
+      hideNavBar: true
     },
     parseNextRoute: loginRouter
   }
