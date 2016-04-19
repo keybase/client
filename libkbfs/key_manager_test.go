@@ -1145,7 +1145,7 @@ func TestKeyManagerRekeyAddDeviceWithPrompt(t *testing.T) {
 
 func TestKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
-	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2)
+	config1, uid1, ctx := kbfsOpsConcurInit(t, u1, u2)
 	defer CheckConfigAndShutdown(t, config1)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)
@@ -1177,6 +1177,8 @@ func TestKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T) {
 	AddDeviceForLocalUserOrBust(t, config2, uid2)
 	devIndex := AddDeviceForLocalUserOrBust(t, config2Dev2, uid2)
 	SwitchDeviceForLocalUserOrBust(t, config2Dev2, devIndex)
+	// Revoke some previous device
+	RevokeDeviceForLocalUserOrBust(t, config2Dev2, uid1, 0)
 
 	// The new device should be unable to rekey on its own, and will
 	// just set the rekey bit.
@@ -1247,15 +1249,5 @@ func TestKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T) {
 	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2Dev2, "b", false)
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
-	}
-
-	// device 1 should be able to read the new file
-	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %v", err)
-	}
-	children, err = kbfsOps1.GetDirChildren(ctx, rootNode1)
-	if _, ok := children["b"]; !ok {
-		t.Fatalf("Device 2 couldn't see the dir entry after rekey")
 	}
 }

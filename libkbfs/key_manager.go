@@ -500,6 +500,16 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 		}
 	}
 
+	// Make sure the private MD is decrypted if it wasn't already.  We
+	// have to do this here, before adding a new key generation, since
+	// decryptMDPrivateData assumes that the MD is always encrypted
+	// using the latest key gen.
+	if !md.IsReadable() && len(md.SerializedPrivateMetadata) > 0 {
+		if err := decryptMDPrivateData(ctx, km.config, md); err != nil {
+			return false, nil, err
+		}
+	}
+
 	if !handle.IsWriter(uid) {
 		if len(newReaderUsers) > 0 || addNewWriterDevice || incKeyGen {
 			// If we're a reader but we haven't completed all the work, return
