@@ -1,38 +1,64 @@
-import React, {Component} from 'react'
-import {View, Text, TextInput} from 'react-native'
-import commonStyles from '../../../styles/common'
-import Button from '../../../common-adapters/button'
+// @flow
+import React from 'react'
+import {Box, Button, Icon, Input, Text} from '../../../common-adapters'
+import Container from '../../forms/container'
+import type {Props} from './index.render'
+import {globalStyles} from '../../../styles/style-guide'
 
-export default class SetPublicNameRender extends Component {
-  render () {
-    return (
-      <View style={{flex: 1, padding: 20}}>
-        <Text style={commonStyles.h1}>Set a public name for this device</Text>
-        <Text style={[commonStyles.h2, {marginTop: 10}]}>We need this because lorem iplorem iplorem iplorem iplorem ipssssslorem ips</Text>
-        <TextInput
-          style={[commonStyles.textInput, {marginTop: 10}]}
-          placeholder='Device nickname'
-          value={this.props.deviceName}
-          enablesReturnKeyAutomatically
-          returnKeyType='next'
-          autoCorrect={false}
-          onChangeText={deviceName => this.props.onChangeDeviceName(deviceName)}
-          onSubmitEditing={() => { this.props.onSubmit() }}
-          />
+const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName, waiting}: Props) => (
+  <Box style={stylesBox}>
+    <Container
+      style={stylesContainer}
+      onBack={onBack}>
+      <Text type='Header' style={stylesHeader}>Set a public name for this device:</Text>
+      <Icon type='phone-color-m' style={stylesIcon}/>
+      <Input
+        autoFocus
+        style={stylesInput}
+        floatingLabelText='Device name'
+        hintText='Device name'
+        onEnterKeyDown={() => onSubmit()}
+        onChangeText={deviceName => onChange(deviceName)}
+        value={deviceName}/>
+      <Button
+        style={stylesButton}
+        type='Primary'
+        fullWidth
+        enabled={deviceName}
+        waiting={waiting}
+        label='Continue'
+        onClick={() => onSubmit()}/>
+    </Container>
+  </Box>
+)
 
-        {this.props.deviceNameError &&
-          <Text>{this.props.deviceNameError}</Text>
-        }
-        <Button type='Secondary' style={{alignSelf: 'flex-end'}} isAction title='Submit' onPress={() => this.props.onSubmit()} enabled={this.props.submitEnabled}/>
-      </View>
-    )
-  }
+const stylesBox = {
+  ...globalStyles.flexBoxColumn,
+  padding: 10
 }
 
-SetPublicNameRender.propTypes = {
-  deviceName: React.PropTypes.string,
-  onSubmit: React.PropTypes.func.isRequired,
-  onChangeDeviceName: React.PropTypes.func.isRequired,
-  deviceNameError: React.PropTypes.string,
-  submitEnabled: React.PropTypes.func.isRequired
+const stylesContainer = {
+  alignItems: 'center'
 }
+
+const stylesButton = {
+  marginTop: 20,
+  marginBottom: 20
+}
+
+const stylesInput = {
+  marginTop: 20,
+  marginBottom: 20,
+  alignSelf: 'stretch'
+}
+
+const stylesIcon = {
+  marginTop: 30,
+  marginBottom: 30
+}
+
+const stylesHeader = {
+  marginTop: 45
+}
+
+export default SetPublicName

@@ -1,9 +1,17 @@
 import React, {Component} from 'react'
-import {Text, View} from 'react-native'
+import {Image, Text, View} from 'react-native'
 
 export default class QR extends Component {
   render () {
-    return (<View><Text>TODO: Implement</Text></View>)
+    if (this.props.scanning) {
+      return (
+        <Text>TODO scanning</Text>
+      )
+    } else {
+      return (
+        <Text>TODO not scanning</Text>
+      )
+    }
   }
 
   static parseRoute () {

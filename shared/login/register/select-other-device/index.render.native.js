@@ -24,7 +24,7 @@ const Row = ({deviceID, name, type, onSelect}) => {
     <TouchableHighlight style={stylesRow} onPress={onPress}>
       <View style={stylesIconName}>
         <View style={stylesIconContainer}>
-          <Icon style={stylesIcon} type={iconType}/>
+          <Icon style={stylesIcon} type={iconType} onPress={onPress}/>
         </View>
         <Text type='BodySemiboldItalic' onPress={onPress}>{name}</Text>
       </View>

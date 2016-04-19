@@ -206,7 +206,7 @@ export const specialStyles = {
   paperKey: {
     ...textCommon,
     ...globalStyles.fontTerminalSemibold,
-    color: globalColors.black75,
+    color: globalColors.darkBlue,
     fontSize: 18,
     lineHeight: 24
   },
