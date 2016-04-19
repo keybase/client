@@ -4,15 +4,16 @@
 import React, {Component} from 'react'
 
 export type Props = {
-  name: ?string,
-  email: ?string,
+  name: string,
+  nameChange: (name: string) => void,
+  email: string,
+  emailChange: (email: string) => void,
   nameErrorText: ?string,
   emailErrorText: ?string,
-  onRequestInvite: () => void,
+  onSubmit: () => void,
   onBack: () => void,
   waiting: boolean
 }
 
-export default class Render extends Component {
-  props: Props;
+export default class Render extends Component<void, Props, void> {
 }

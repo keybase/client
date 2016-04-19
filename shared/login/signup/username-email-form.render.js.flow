@@ -4,11 +4,13 @@
 import React, {Component} from 'react'
 
 export type Props = {
+  usernameChange: (username: string) => void,
   username: ?string,
+  emailChange: (email: string) => void,
   email: ?string,
   usernameErrorText: ?string,
   emailErrorText: ?string,
-  submitUserEmail: () => void,
+  onSubmit: () => void,
   onBack: () => void,
   waiting: boolean
 }

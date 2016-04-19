@@ -92,8 +92,13 @@ class Nav extends Component {
   }
 
   _renderContent (tab, module) {
+    const tabStyle = {
+      flex: 1,
+      marginBottom: tab === loginTab ? 0 : styleConstants.tabBarHeight
+    }
+
     return (
-      <View style={styles.tabContent}>
+      <View style={tabStyle}>
         <MetaNavigator
           tab={tab}
           globalRoutes={globalRoutes}
@@ -172,10 +177,6 @@ class Nav extends Component {
 }
 
 const styles = StyleSheet.create({
-  tabContent: {
-    flex: 1,
-    marginBottom: styleConstants.tabBarHeight // don't sit under the tab...
-  },
   navBar: {
     backgroundColor: 'white'
   },

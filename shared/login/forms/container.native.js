@@ -18,21 +18,17 @@ export default ({children, onBack, style, outerStyle}: Props) => {
 const styles = {
   container: {
     ...globalStyles.flexBoxColumn,
-    bottom: 0,
-    left: 0,
     padding: 16,
-    position: 'absolute',
-    flex: 1,
-    right: 0,
-    top: 6
+    flex: 1
   },
   innerContainer: {
     ...globalStyles.flexBoxColumn,
+    marginTop: 30,
     flex: 1
   },
   button: {
     position: 'absolute',
-    top: 13,
-    left: 16
+    top: 22,
+    left: 22
   }
 }
