@@ -323,7 +323,7 @@ function proofStateToSimpleProofState (proofState: ProofState, diff: ?TrackDiff,
   }
 }
 
-function diffAndStatusMeta (diff: ?TrackDiffType, status: ?ProofStatus, isTracked: bool) : {diffMeta: ?SimpleProofMeta, statusMeta:?SimpleProofMeta} {
+function diffAndStatusMeta (diff: ?TrackDiffType, status: ?ProofStatus, isTracked: bool) : {diffMeta: ?SimpleProofMeta, statusMeta: ?SimpleProofMeta} {
   if (status && status !== identify.ProofStatus.ok && isTracked) {
     return {
       diffMeta: metaIgnored,
