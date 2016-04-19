@@ -16,16 +16,16 @@ export default class HeaderRender extends Component {
   }
 
   render () {
-    let headerStyle = (this.props.currentlyFollowing && !this.props.changed) ? styles.headerSuccess : styles.headerNormal
-    let headerTextStyle = styles.headerTextNormal
+    let headerStyle = this.props.currentlyFollowing ? styleHeaderFollowing : styleHeaderNotFollowing
+    let headerTextStyle = styleHeaderTextNormal
 
     if (this.props.currentlyFollowing) {
       switch (this.props.trackerState) {
         case 'warning':
-          headerStyle = styles.headerWarning
-          headerTextStyle = styles.headerTextWarning
+          headerStyle = styleHeaderWarning
+          headerTextStyle = styleHeaderTextWarning
           break
-        case 'error': headerStyle = styles.headerError; break
+        case 'error': headerStyle = styleHeaderError; break
       }
     }
 
@@ -33,8 +33,8 @@ export default class HeaderRender extends Component {
     let isWarning = false
     if (this.props.loggedIn && !this.props.currentlyFollowing && this.state.showCloseWarning) {
       isWarning = true
-      headerStyle = styles.headerWarning
-      headerTextStyle = styles.headerTextWarning
+      headerStyle = styleHeaderWarning
+      headerTextStyle = styleHeaderTextWarning
       headerText = 'You will see this window every time you access this folder.'
     }
 
@@ -42,22 +42,26 @@ export default class HeaderRender extends Component {
     switch (this.props.lastAction) {
       case 'followed':
       case 'refollowed':
+        headerStyle = styleHeaderFollowing
+        headerTextStyle = styleHeaderTextNormal
+        headerText = this.props.reason
+        break
       case 'unfollowed':
-        headerStyle = styles.headerSuccess
-        headerTextStyle = styles.headerTextNormal
+        headerStyle = styleHeaderNotFollowing
+        headerTextStyle = styleHeaderTextNormal
         headerText = this.props.reason
         break
       case 'error':
-        headerStyle = styles.headerWarning
-        headerTextStyle = styles.headerTextWarning
+        headerStyle = styleHeaderWarning
+        headerTextStyle = styleHeaderTextWarning
     }
 
     return (
-      <div style={styles.outer}>
-        <div style={{...styles.header, ...headerStyle}}>
-          <div style={{...styles.header, ...headerStyle, height: 48, zIndex: 2, opacity: isWarning ? 1 : 0, backgroundColor: globalColors.yellow}}/>
-          <Text type='BodySemibold' lineClamp={2} style={{...styles.text, ...headerTextStyle, flex: 1, zIndex: isWarning ? 2 : 'inherit'}}>{headerText}</Text>
-          <Icon type='fa-close' style={styles.close}
+      <div style={styleOuter}>
+        <div style={{...styleHeader, ...headerStyle}}>
+          <div style={{...styleHeader, ...headerStyle, height: 48, zIndex: 2, opacity: isWarning ? 1 : 0, backgroundColor: globalColors.yellow}}/>
+          <Text type='BodySemibold' lineClamp={2} style={{...styleText, ...headerTextStyle, flex: 1, zIndex: isWarning ? 2 : 'inherit'}}>{headerText}</Text>
+          <Icon type='fa-close' style={styleClose}
             onClick={() => this.props.onClose()}
             onMouseEnter={() => this.closeMouseEnter()}
             onMouseLeave={() => this.closeMouseLeave()} />
@@ -75,60 +79,67 @@ export default class HeaderRender extends Component {
   }
 }
 
-const styles = {
-  outer: {
-    position: 'relative'
-  },
-  header: {
-    ...globalStyles.windowDragging,
-    cursor: 'default',
-    position: 'absolute',
-    top: 0,
-    ...globalStyles.flexBoxRow,
-    height: 90,
-    width: 320
-  },
-  headerNormal: {
-    backgroundColor: globalColors.blue
-  },
-  headerSuccess: {
-    backgroundColor: globalColors.green
-  },
-  headerWarning: {
-    backgroundColor: globalColors.yellow
-  },
-  headerTextNormal: {
-    color: globalColors.white,
-    fontSize: 14,
-    lineHeight: 'normal',
-    opacity: 1
-  },
-  headerTextWarning: {
-    color: globalColors.brown60,
-    fontSize: 14,
-    lineHeight: 'normal',
-    opacity: 1
-  },
-  headerError: {
-    backgroundColor: globalColors.red
-  },
-  close: {
-    ...globalStyles.clickable,
-    ...globalStyles.windowDraggingClickable,
-    zIndex: 2,
-    position: 'absolute',
-    top: 7,
-    right: 9
-  },
-  text: {
-    ...globalStyles.flexBoxRow,
-    alignItems: 'center',
-    justifyContent: 'center',
-    color: globalColors.white,
-    marginLeft: 30,
-    marginRight: 30,
-    marginBottom: 32,
-    fontSize: 14,
-    textAlign: 'center'
-  }
+const styleOuter = {
+  position: 'relative'
+}
+
+const styleHeader = {
+  ...globalStyles.windowDragging,
+  cursor: 'default',
+  position: 'absolute',
+  top: 0,
+  ...globalStyles.flexBoxRow,
+  height: 90,
+  width: 320
+}
+
+const styleHeaderNotFollowing = {
+  backgroundColor: globalColors.blue
+}
+
+const styleHeaderFollowing = {
+  backgroundColor: globalColors.green
+}
+
+const styleHeaderWarning = {
+  backgroundColor: globalColors.yellow
+}
+
+const styleHeaderTextNormal = {
+  color: globalColors.white,
+  fontSize: 14,
+  lineHeight: 'normal',
+  opacity: 1
+}
+
+const styleHeaderTextWarning = {
+  color: globalColors.brown60,
+  fontSize: 14,
+  lineHeight: 'normal',
+  opacity: 1
+}
+
+const styleHeaderError = {
+  backgroundColor: globalColors.red
+}
+
+const styleClose = {
+  ...globalStyles.clickable,
+  ...globalStyles.windowDraggingClickable,
+  zIndex: 2,
+  position: 'absolute',
+  top: 7,
+  right: 9
+}
+
+const styleText = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: globalColors.white,
+  marginLeft: 30,
+  marginRight: 30,
+  marginBottom: 32,
+  fontSize: 14,
+  textAlign: 'center'
 }

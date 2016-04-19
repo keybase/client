@@ -165,17 +165,6 @@ export function pushDebugTracker (username: string): (dispatch: Dispatch) => voi
   }
 }
 
-export function onFollowChecked (newFollowCheckedValue: boolean, username: string): Action {
-  console.log('follow checked:', newFollowCheckedValue)
-  return {
-    type: Constants.onFollowChecked,
-    payload: {
-      shouldFollow: newFollowCheckedValue,
-      username
-    }
-  }
-}
-
 export function onRefollow (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
     const {trackToken} = (getState().tracker.trackers[username] || {})
@@ -192,7 +181,7 @@ export function onRefollow (username: string): TrackerActionCreator {
       })
     }
 
-    trackUser(trackToken)
+    trackUser(trackToken, false)
       .then(dispatchRefollowAction)
       .catch(err => {
         console.error("Couldn't track user:", err)
@@ -228,27 +217,12 @@ export function onUnfollow (username: string): TrackerActionCreator {
   }
 }
 
-function onUserTrackingLoading (username: string): Action {
-  return {
-    type: Constants.onUserTrackingLoading,
-    payload: {username}
-  }
-}
-
-export function onFollowHelp (username: string): Action {
-  window.open('https://keybase.io/docs/tracking') // TODO
-  return {
-    type: Constants.onFollowHelp,
-    payload: {username}
-  }
-}
-
-function trackUser (trackToken: ?string): Promise<boolean> {
+function trackUser (trackToken: ?string, localIgnore: bool): Promise<boolean> {
   const options: TrackOptions = {
-    localOnly: false,
+    localOnly: localIgnore,
+    expiringLocal: localIgnore,
     bypassConfirm: false,
-    forceRetrack: false,
-    expiringLocal: false
+    forceRetrack: false
   }
 
   return new Promise((resolve, reject) => {
@@ -281,7 +255,14 @@ function onWaiting (username: string, waiting: bool): (dispatch: Dispatch) => vo
   }
 }
 
-export function onFollow (username: string): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
+export function onIgnore (username: string): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
+  return dispatch => {
+    dispatch(onFollow(username, true))
+    dispatch(onClose(username))
+  }
+}
+
+export function onFollow (username: string, localIgnore: bool): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
   return (dispatch, getState) => {
     const trackerState = getState().tracker.trackers[username]
     const {trackToken} = (trackerState || {})
@@ -296,34 +277,12 @@ export function onFollow (username: string): (dispatch: Dispatch, getState: () =
     }
 
     dispatch(onWaiting(username, true))
-    trackUser(trackToken)
+    trackUser(trackToken, localIgnore)
       .then(dispatchFollowedAction)
       .catch(err => {
         console.error("Couldn't track user: ", err)
         dispatchErrorAction()
       })
-  }
-}
-
-export function onMaybeTrack (username: string): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
-  return (dispatch, getState) => {
-    const trackerState = getState().tracker.trackers[username]
-    const {shouldFollow} = trackerState
-    const {trackToken} = (trackerState || {})
-
-    const dispatchCloseAction = () => dispatch({type: Constants.onMaybeTrack, payload: {username}})
-
-    if (shouldFollow) {
-      dispatch(onUserTrackingLoading(username))
-      trackUser(trackToken)
-        .then(dispatchCloseAction)
-        .catch(err => {
-          console.error("Couldn't track user: ", err)
-          dispatchCloseAction()
-        })
-    } else {
-      dispatchCloseAction()
-    }
   }
 }
 
@@ -335,8 +294,6 @@ export function onClose (username: string): Action {
 }
 
 function updateUserInfo (userCard: UserCard, username: string, getState: () => {tracker: RootTrackerState, config: ConfigState}): Action {
-  const config = getState().config.config
-  const serverURI = config && config.serverURI
   return {
     type: Constants.updateUserInfo,
     payload: {
@@ -346,7 +303,7 @@ function updateUserInfo (userCard: UserCard, username: string, getState: () => {
         followingCount: userCard.following,
         followsYou: userCard.theyFollowYou,
         bio: userCard.bio,
-        avatar: `${serverURI}/${username}/picture`,
+        avatar: `https://keybase.io/${username}/picture`,
         location: userCard.location
       },
       username
@@ -456,6 +413,7 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
       dispatch({type: Constants.updateProofState, payload: {username}})
 
       if (showAllTrackers) {
+        console.log('showAllTrackers is on, so showing tracker')
         dispatch({type: Constants.showTracker, payload: {username}})
       }
 

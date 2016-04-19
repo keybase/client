@@ -1,26 +1,26 @@
 /* @flow */
 import Tracker from './index'
 import {normal, checking, revoked, error} from '../constants/tracker'
-import {metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone} from '../constants/tracker'
+import {metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone, metaIgnored} from '../constants/tracker'
 import type {TrackerProps} from '../tracker'
 import type {Proof} from '../tracker/proofs.render'
 import type {TrackSummary} from '../constants/types/flow-types'
 
 function proofGithubMaker (name): Proof {
-  return {name: 'githubuser' + name, type: 'github', id: 'githubId' + name, state: normal, meta: metaNone, humanUrl: 'github.com', profileUrl: 'http://github.com'}
+  return {name: 'githubuser' + name, type: 'github', id: 'githubId' + name, state: normal, meta: metaNone, humanUrl: 'github.com', profileUrl: 'http://github.com', isTracked: false}
 }
 
 const proofGithub = proofGithubMaker('')
 
-const proofTwitter: Proof = {name: 'twitteruser', type: 'twitter', id: 'twitterId', state: normal, meta: metaNone, humanUrl: 'twitter.com', profileUrl: 'http://twitter.com'}
-const proofWeb: Proof = {name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', type: 'web', id: 'webId', state: normal, meta: metaNone, humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', profileUrl: ''}
-const proofWeb1: Proof = {name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmor.com', type: 'web', id: 'webId1', state: normal, meta: metaNone, humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', profileUrl: ''}
-const proofWeb2: Proof = {name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmo.com', type: 'web', id: 'webId2', state: normal, meta: metaNone, humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', profileUrl: ''}
-const proofWeb3: Proof = {name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandm.com', type: 'web', id: 'webId3', state: normal, meta: metaNone, humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', profileUrl: ''}
-const proofWeb4: Proof = {name: 'thelongestdomainnameintheworldandthensomeandthensomemoreand.com', type: 'web', id: 'webId4', state: normal, meta: metaNone, humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', profileUrl: ''}
-const proofWeb5: Proof = {name: 'thelongestdomainnameintheworldandthensomeandthensomemorean.com', type: 'web', id: 'webId5', state: normal, meta: metaNone, humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', profileUrl: ''}
-const proofHN: Proof = {name: 'pg', type: 'hackernews', id: 'hnId', state: normal, meta: metaNone, humanUrl: 'news.ycombinator.com', profileUrl: 'http://news.ycombinator.com'}
-const proofRooter: Proof = {name: 'roooooooter', type: 'rooter', state: normal, meta: metaNone, id: 'rooterId', humanUrl: '', profileUrl: ''}
+const proofTwitter: Proof = {name: 'twitteruser', type: 'twitter', id: 'twitterId', state: normal, meta: metaNone, humanUrl: 'twitter.com', profileUrl: 'http://twitter.com', isTracked: false}
+const proofWeb: Proof = {name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', type: 'http', id: 'webId', state: normal, meta: metaNone, humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', profileUrl: '', isTracked: false}
+const proofWeb1: Proof = {name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmor.com', type: 'http', id: 'webId1', state: normal, meta: metaNone, humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', profileUrl: '', isTracked: false}
+const proofWeb2: Proof = {name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmo.com', type: 'http', id: 'webId2', state: normal, meta: metaNone, humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', profileUrl: '', isTracked: false}
+const proofWeb3: Proof = {name: 'thelongestdomainnameintheworldandthensomeandthensomemoreandm.com', type: 'http', id: 'webId3', state: normal, meta: metaNone, humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', profileUrl: '', isTracked: false}
+const proofWeb4: Proof = {name: 'thelongestdomainnameintheworldandthensomeandthensomemoreand.com', type: 'http', id: 'webId4', state: normal, meta: metaNone, humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', profileUrl: '', isTracked: false}
+const proofWeb5: Proof = {name: 'thelongestdomainnameintheworldandthensomeandthensomemorean.com', type: 'http', id: 'webId5', state: normal, meta: metaNone, humanUrl: 'thelongestdomainnameintheworldandthensomeandthensomemoreandmore.com', profileUrl: '', isTracked: false}
+const proofHN: Proof = {name: 'pg', type: 'hackernews', id: 'hnId', state: normal, meta: metaNone, humanUrl: 'news.ycombinator.com', profileUrl: 'http://news.ycombinator.com', isTracked: false}
+const proofRooter: Proof = {name: 'roooooooter', type: 'rooter', state: normal, meta: metaNone, id: 'rooterId', humanUrl: '', profileUrl: '', isTracked: false}
 
 const proofsDefault: Array<Proof> = [
   proofGithub,
@@ -36,28 +36,26 @@ const proofsDefault: Array<Proof> = [
 ]
 
 const proofsChanged: Array<Proof> = [
-  {name: 'deleted', type: 'github', id: 'warningId', state: revoked, meta: metaDeleted, humanUrl: '', profileUrl: ''},
-  {name: 'unreachable', type: 'twitter', id: 'unreachableId', state: error, meta: metaUnreachable, humanUrl: '', profileUrl: ''},
-  {name: 'checking', type: 'twitter', id: 'checkingId', state: checking, meta: metaNone, humanUrl: '', profileUrl: ''},
-  {name: 'pending', type: 'web', id: 'pendingId', state: normal, meta: metaPending, humanUrl: '', profileUrl: ''},
-  {name: 'upgraded', type: 'rooter', id: 'upgradedId', state: normal, meta: metaUpgraded, humanUrl: '', profileUrl: ''}
+  {name: 'deleted', type: 'github', id: 'warningId', state: revoked, meta: metaDeleted, humanUrl: '', profileUrl: '', isTracked: false},
+  {name: 'unreachable', type: 'twitter', id: 'unreachableId', state: error, meta: metaUnreachable, humanUrl: '', profileUrl: '', isTracked: false},
+  {name: 'checking', type: 'twitter', id: 'checkingId', state: checking, meta: metaNone, humanUrl: '', profileUrl: '', isTracked: false},
+  {name: 'pending', type: 'https', id: 'pendingId', state: normal, meta: metaPending, humanUrl: '', profileUrl: '', isTracked: false},
+  {name: 'upgraded', type: 'rooter', id: 'upgradedId', state: normal, meta: metaUpgraded, humanUrl: '', profileUrl: '', isTracked: false}
 ]
 
 const propsBase = {
   closed: false,
   lastTrack: null,
   currentlyFollowing: false,
-  onFollowChecked: () => {},
-  onFollowHelp: () => {},
   onFollow: () => {},
   onRefollow: () => {},
   onUnfollow: () => {},
   onClose: () => {},
   startTimer: () => {},
   stopTimer: () => {},
+  onIgnore: () => {},
   waiting: false,
   loggedIn: true,
-  onMaybeTrack: () => {},
   trackerMessage: null,
   lastAction: null
 }
@@ -105,7 +103,16 @@ const propsNewUserFollowsYou: TrackerProps = {
   }
 }
 
-const propsFollowing: TrackerProps = {
+type setFollowFilter = (p: Proof) => bool;
+function setFollow (source: TrackerProps, filter: setFollowFilter): TrackerProps {
+  source.proofs = source.proofs.map(p => filter(p) ? {
+    ...p,
+    isTracked: true
+  } : p)
+  return source
+}
+
+const propsFollowing: TrackerProps = setFollow({
   ...propsNewUser,
   reason: 'You have tracked gabrielh.',
   userInfo: {
@@ -115,7 +122,16 @@ const propsFollowing: TrackerProps = {
   lastTrack: lastTrackMax,
   proofs: proofsDefault,
   lastAction: 'followed'
-}
+}, () => true)
+
+const propsWhatevz: TrackerProps = setFollow({
+  ...propsFollowing,
+  reason: 'You have tracked gabrielh',
+  proofs: [
+    proofGithub,
+    {...proofTwitter, meta: metaIgnored}
+  ]
+}, () => true)
 
 const propsChangedProofs: TrackerProps = {
   ...propsDefault,
@@ -186,7 +202,8 @@ export default {
       'Changed/Broken proofs': propsChangedProofs,
       'You track them': {...propsFollowing, userInfo: {...propsNewUser.userInfo, followsYou: false}},
       'Unfollowed': propsUnfollowed,
-      'Barely there': propsLessData
+      'Barely there': propsLessData,
+      'Whatevz': propsWhatevz
     }
   }
 }

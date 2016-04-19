@@ -5,7 +5,7 @@ import commonStyles from '../styles/common'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {Icon, Text, ProgressIndicator} from '../common-adapters/index'
 import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked, error as proofError, warning as proofWarning} from '../constants/tracker'
-import {metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone} from '../constants/tracker'
+import {metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone, metaIgnored} from '../constants/tracker'
 import electron from 'electron'
 
 import type {Props as IconProps} from '../common-adapters/icon'
@@ -17,28 +17,24 @@ import type {Proof, ProofsProps} from './proofs.render'
 class ProofsRender extends Component {
   props: ProofsProps;
 
-  openLink (url: string): void {
+  _openLink (url: string): void {
     shell.openExternal(url)
   }
 
-  onClickProof (proof: Proof): void {
+  _onClickProof (proof: Proof): void {
     if (proof.state !== proofChecking) {
-      proof.humanUrl && this.openLink(proof.humanUrl)
+      proof.humanUrl && this._openLink(proof.humanUrl)
     }
   }
 
-  onClickProfile (proof: Proof): void {
+  _onClickProfile (proof: Proof): void {
     console.log('Opening profile link:', proof)
     if (proof.state !== proofChecking) {
-      proof.profileUrl && this.openLink(proof.profileUrl)
+      proof.profileUrl && this._openLink(proof.profileUrl)
     }
   }
 
-  onClickUsername () {
-    shell.openExternal(`https://keybase.io/${this.props.username}`)
-  }
-
-  iconNameForProof (proof: Proof): IconProps.type {
+  _iconNameForProof (proof: Proof): IconProps.type {
     return {
       'twitter': 'fa-twitter',
       'github': 'fa-github',
@@ -47,12 +43,13 @@ class ProofsRender extends Component {
       'coinbase': 'fa-btc',
       'hackernews': 'fa-hacker-news',
       'rooter': 'fa-shopping-basket',
-      'web': 'fa-globe',
+      'http': 'fa-globe',
+      'https': 'fa-globe',
       'dns': 'fa-globe'
     }[proof.type]
   }
 
-  metaColor (proof: Proof): string {
+  _metaColor (proof: Proof): string {
     let color = globalColors.blue
     switch (proof.meta) {
       case metaNew: color = globalColors.blue; break
@@ -60,19 +57,16 @@ class ProofsRender extends Component {
       case metaUnreachable: color = globalColors.red; break
       case metaPending: color = globalColors.black40; break
       case metaDeleted: color = globalColors.red; break
+      case metaIgnored: color = globalColors.green; break
     }
     return color
   }
 
-  _isTracked (proof: Proof): boolean {
-    return this.props.currentlyFollowing && (!proof.meta || proof.meta === metaNone)
-  }
-
-  proofColor (proof: Proof): string {
+  _proofColor (proof: Proof): string {
     let color = globalColors.blue
     switch (proof.state) {
       case proofNormal: {
-        color = this._isTracked(proof) ? globalColors.green2 : globalColors.blue
+        color = proof.isTracked ? globalColors.green2 : globalColors.blue
         break
       }
       case proofChecking:
@@ -90,10 +84,10 @@ class ProofsRender extends Component {
     return color
   }
 
-  proofStatusIcon (proof: Proof): ?IconProps.type {
+  _proofStatusIcon (proof: Proof): ?IconProps.type {
     switch (proof.state) {
       case proofNormal:
-        return this._isTracked(proof) ? 'fa-custom-icon-proof-good-followed' : 'fa-custom-icon-proof-good-new'
+        return proof.isTracked ? 'fa-custom-icon-proof-good-followed' : 'fa-custom-icon-proof-good-new'
 
       case proofWarning:
       case proofError:
@@ -104,11 +98,11 @@ class ProofsRender extends Component {
     }
   }
 
-  renderProofRow (proof: Proof) {
-    const metaColor = this.metaColor(proof)
-    const proofNameColor = this.proofColor(proof)
-    const proofStatusIcon = this.proofStatusIcon(proof)
-    const onClickProfile = () => { this.onClickProfile(proof) }
+  _renderProofRow (proof: Proof) {
+    const metaColor = this._metaColor(proof)
+    const proofNameColor = this._proofColor(proof)
+    const proofStatusIcon = this._proofStatusIcon(proof)
+    const onClickProfile = () => { this._onClickProfile(proof) }
     // TODO: State is deprecated, will refactor after nuking v1
     let isChecking = (proof.state === proofChecking)
 
@@ -130,11 +124,11 @@ class ProofsRender extends Component {
       <Text type='Header' style={{...styleMeta, backgroundColor: metaColor}}>{proof.meta}</Text>
     const proofIcon = isChecking
       ? <ProgressIndicator style={styleLoader} />
-      : proofStatusIcon && <Icon type={proofStatusIcon} style={styleStatusIcon} onClick={() => this.onClickProof(proof)} />
+      : proofStatusIcon && <Icon type={proofStatusIcon} style={styleStatusIcon} onClick={() => this._onClickProof(proof)} />
 
     return (
       <p style={styleRow} key={proof.id}>
-        <Icon style={styleService} type={this.iconNameForProof(proof)} title={proof.type} onClick={onClickProfile} />
+        <Icon style={styleService} type={this._iconNameForProof(proof)} title={proof.type} onClick={onClickProfile} />
         <span style={styleProofNameSection}>
           <span style={styleProofNameLabelContainer}>
             <Text inline className='hover-underline-container' type='Body' onClick={onClickProfile} style={proofStyle}>
@@ -152,7 +146,7 @@ class ProofsRender extends Component {
   render () {
     return (
       <div style={styleContainer}>
-        {this.props.proofs.map(p => this.renderProofRow(p))}
+        {this.props.proofs.map(p => this._renderProofRow(p))}
       </div>
     )
   }

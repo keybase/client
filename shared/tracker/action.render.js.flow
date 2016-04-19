@@ -13,10 +13,8 @@ export type ActionProps = {
   failedProofsNotFollowingText: string,
   lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error'),
   onClose: () => void,
+  onIgnore: () => void,
   onFollow: () => void,
-  onMaybeTrack: () => void,
   onRefollow: () => void,
-  onUnfollow: () => void,
-  onFollowHelp: () => void,
-  onFollowChecked: () => void
+  onUnfollow: () => void
 }

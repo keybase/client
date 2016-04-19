@@ -9,7 +9,8 @@ export type Proof = {
   humanUrl: ?string,
   profileUrl: ?string,
   name: string,
-  state: SimpleProofState
+  state: SimpleProofState,
+  isTracked: bool
 }
 
 export type ProofsProps = {

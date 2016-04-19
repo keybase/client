@@ -4,7 +4,7 @@ import * as Constants from '../constants/tracker'
 import * as CommonConstants from '../constants/common'
 
 import {normal, warning, error, checking} from '../constants/tracker'
-import {metaNew, metaUpgraded, metaUnreachable, metaDeleted} from '../constants/tracker'
+import {metaNew, metaUpgraded, metaUnreachable, metaDeleted, metaIgnored} from '../constants/tracker'
 
 import {identify} from '../constants/types/keybase-v1'
 
@@ -75,18 +75,7 @@ function initialTrackerState (username: string): TrackerState {
 }
 
 function updateUserState (state: TrackerState, action: Action): TrackerState {
-  let shouldFollow: boolean
   switch (action.type) {
-    case Constants.onFollowChecked:
-      if (action.payload == null) {
-        return state
-      }
-      shouldFollow = action.payload.shouldFollow
-
-      return {
-        ...state,
-        shouldFollow
-      }
     case Constants.updateReason:
       // In case the reason is null, let's use our existing reason
       return {
@@ -107,12 +96,6 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
           closed: true,
           hidden: false
         }
-      }
-    case Constants.onMaybeTrack:
-      return {
-        ...state,
-        closed: true,
-        hidden: false
       }
     case Constants.onClose:
       return {
@@ -225,12 +208,6 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
       return {
         ...state,
         lastTrack: action.payload && action.payload.track
-      }
-
-    case Constants.onUserTrackingLoading:
-      return {
-        ...state,
-        hidden: true
       }
 
     case Constants.showTracker:
@@ -346,64 +323,83 @@ function proofStateToSimpleProofState (proofState: ProofState, diff: ?TrackDiff,
   }
 }
 
-function trackDiffToSimpleProofMeta (diff: TrackDiffType): ?SimpleProofMeta {
-  /* eslint-disable key-spacing*/
-  return {
-    [identify.TrackDiffType.none]         : null,
-    [identify.TrackDiffType.error]        : null,
-    [identify.TrackDiffType.clash]        : null,
-    [identify.TrackDiffType.revoked]      : metaDeleted,
-    [identify.TrackDiffType.upgraded]     : metaUpgraded,
-    [identify.TrackDiffType.new]          : metaNew,
-    [identify.TrackDiffType.remotefail]   : null,
-    [identify.TrackDiffType.remoteworking]: null,
-    [identify.TrackDiffType.remotechanged]: null,
-    [identify.TrackDiffType.neweldest]    : null
-  }[diff]
-  /* eslint-enable key-spacing*/
-}
+function diffAndStatusMeta (diff: ?TrackDiffType, status: ?ProofStatus, isTracked: bool) : {diffMeta: ?SimpleProofMeta, statusMeta: ?SimpleProofMeta} {
+  if (status && status !== identify.ProofStatus.ok && isTracked) {
+    return {
+      diffMeta: metaIgnored,
+      statusMeta: null
+    }
+  }
 
-function proofStatusToSimpleProofMeta (status: ProofStatus): ?SimpleProofMeta {
-  // The full mapping between the proof status we get back from the server
-  // and a simplified representation that we show the users.
   return {
-    [identify.ProofStatus.none]: null,
-    [identify.ProofStatus.ok]: null,
-    [identify.ProofStatus.local]: null,
-    [identify.ProofStatus.found]: null,
-    [identify.ProofStatus.baseError]: null,
-    [identify.ProofStatus.hostUnreachable]: metaUnreachable,
-    [identify.ProofStatus.permissionDenied]: metaUnreachable,
-    [identify.ProofStatus.failedParse]: metaUnreachable,
-    [identify.ProofStatus.dnsError]: metaUnreachable,
-    [identify.ProofStatus.authFailed]: metaUnreachable,
-    [identify.ProofStatus.http500]: metaUnreachable,
-    [identify.ProofStatus.timeout]: metaUnreachable,
-    [identify.ProofStatus.internalError]: metaUnreachable,
-    [identify.ProofStatus.baseHardError]: metaUnreachable,
-    [identify.ProofStatus.notFound]: metaUnreachable,
-    [identify.ProofStatus.contentFailure]: metaUnreachable,
-    [identify.ProofStatus.badUsername]: metaUnreachable,
-    [identify.ProofStatus.badRemoteId]: metaUnreachable,
-    [identify.ProofStatus.textNotFound]: metaUnreachable,
-    [identify.ProofStatus.badArgs]: metaUnreachable,
-    [identify.ProofStatus.contentMissing]: metaUnreachable,
-    [identify.ProofStatus.titleNotFound]: metaUnreachable,
-    [identify.ProofStatus.serviceError]: metaUnreachable,
-    [identify.ProofStatus.torSkipped]: null,
-    [identify.ProofStatus.torIncompatible]: null,
-    [identify.ProofStatus.http300]: metaUnreachable,
-    [identify.ProofStatus.http400]: metaUnreachable,
-    [identify.ProofStatus.httpOther]: metaUnreachable,
-    [identify.ProofStatus.emptyJson]: metaUnreachable,
-    [identify.ProofStatus.deleted]: metaDeleted,
-    [identify.ProofStatus.serviceDead]: metaUnreachable,
-    [identify.ProofStatus.badSignature]: metaUnreachable,
-    [identify.ProofStatus.badApiUrl]: metaUnreachable,
-    [identify.ProofStatus.unknownType]: metaUnreachable,
-    [identify.ProofStatus.noHint]: metaUnreachable,
-    [identify.ProofStatus.badHintText]: metaUnreachable
-  }[status]
+    diffMeta: trackDiffToSimpleProofMeta(diff),
+    statusMeta: proofStatusToSimpleProofMeta(status)
+  }
+
+  function trackDiffToSimpleProofMeta (diff: TrackDiffType): ?SimpleProofMeta {
+    if (!diff) {
+      return null
+    }
+
+    return {
+      [identify.TrackDiffType.none]: null,
+      [identify.TrackDiffType.error]: null,
+      [identify.TrackDiffType.clash]: null,
+      [identify.TrackDiffType.revoked]: metaDeleted,
+      [identify.TrackDiffType.upgraded]: metaUpgraded,
+      [identify.TrackDiffType.new]: metaNew,
+      [identify.TrackDiffType.remotefail]: null,
+      [identify.TrackDiffType.remoteworking]: null,
+      [identify.TrackDiffType.remotechanged]: null,
+      [identify.TrackDiffType.neweldest]: null
+    }[diff]
+  }
+
+  function proofStatusToSimpleProofMeta (status: ProofStatus): ?SimpleProofMeta {
+    if (!status) {
+      return null
+    }
+    // The full mapping between the proof status we get back from the server
+    // and a simplified representation that we show the users.
+    return {
+      [identify.ProofStatus.none]: null,
+      [identify.ProofStatus.ok]: null,
+      [identify.ProofStatus.local]: null,
+      [identify.ProofStatus.found]: null,
+      [identify.ProofStatus.baseError]: null,
+      [identify.ProofStatus.hostUnreachable]: metaUnreachable,
+      [identify.ProofStatus.permissionDenied]: metaUnreachable,
+      [identify.ProofStatus.failedParse]: metaUnreachable,
+      [identify.ProofStatus.dnsError]: metaUnreachable,
+      [identify.ProofStatus.authFailed]: metaUnreachable,
+      [identify.ProofStatus.http500]: metaUnreachable,
+      [identify.ProofStatus.timeout]: metaUnreachable,
+      [identify.ProofStatus.internalError]: metaUnreachable,
+      [identify.ProofStatus.baseHardError]: metaUnreachable,
+      [identify.ProofStatus.notFound]: metaUnreachable,
+      [identify.ProofStatus.contentFailure]: metaUnreachable,
+      [identify.ProofStatus.badUsername]: metaUnreachable,
+      [identify.ProofStatus.badRemoteId]: metaUnreachable,
+      [identify.ProofStatus.textNotFound]: metaUnreachable,
+      [identify.ProofStatus.badArgs]: metaUnreachable,
+      [identify.ProofStatus.contentMissing]: metaUnreachable,
+      [identify.ProofStatus.titleNotFound]: metaUnreachable,
+      [identify.ProofStatus.serviceError]: metaUnreachable,
+      [identify.ProofStatus.torSkipped]: null,
+      [identify.ProofStatus.torIncompatible]: null,
+      [identify.ProofStatus.http300]: metaUnreachable,
+      [identify.ProofStatus.http400]: metaUnreachable,
+      [identify.ProofStatus.httpOther]: metaUnreachable,
+      [identify.ProofStatus.emptyJson]: metaUnreachable,
+      [identify.ProofStatus.deleted]: metaDeleted,
+      [identify.ProofStatus.serviceDead]: metaUnreachable,
+      [identify.ProofStatus.badSignature]: metaUnreachable,
+      [identify.ProofStatus.badApiUrl]: metaUnreachable,
+      [identify.ProofStatus.unknownType]: metaUnreachable,
+      [identify.ProofStatus.noHint]: metaUnreachable,
+      [identify.ProofStatus.badHintText]: metaUnreachable
+    }[status]
+  }
 }
 
 // TODO Have the service give this information.
@@ -426,7 +422,7 @@ function proofUrlToProfileUrl (proofType: number, name: string, key: ?string, hu
 function remoteProofToProofType (rp: RemoteProof): string {
   let proofType: string = ''
   if (rp.proofType === identify.ProofType.genericWebSite) {
-    proofType = 'web'
+    proofType = rp.key
   } else {
     proofType = mapTagToName(identify.ProofType, rp.proofType) || ''
   }
@@ -442,21 +438,15 @@ function revokedProofToProof (rv: RevokedProof): Proof {
     color: stateToColor(error),
     name: rv.proof.displayMarkup,
     humanUrl: '',
-    profileUrl: ''
+    profileUrl: '',
+    isTracked: false
   }
 }
 
 function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
   const proofState: SimpleProofState = lcr && proofStateToSimpleProofState(lcr.proofResult.state, lcr.diff, lcr.remoteDiff) || checking
-  let diffMeta: ?SimpleProofMeta
-  let statusMeta: ?SimpleProofMeta
-  if (lcr && lcr.diff && lcr.diff.type != null) {
-    diffMeta = trackDiffToSimpleProofMeta(lcr.diff.type)
-  }
-  if (lcr && lcr.proofResult && lcr.proofResult.status != null) {
-    statusMeta = proofStatusToSimpleProofMeta(lcr.proofResult.status)
-  }
-
+  const isTracked = !!(lcr && lcr.diff && lcr.diff.type === identify.TrackDiffType.none && !lcr.breaksTracking)
+  const {diffMeta, statusMeta} = diffAndStatusMeta(lcr && lcr.diff && lcr.diff.type, lcr && lcr.proofResult && lcr.proofResult.status, isTracked)
   const humanUrl = (lcr && lcr.hint && lcr.hint.humanUrl)
 
   return {
@@ -467,7 +457,8 @@ function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
     color: stateToColor(proofState),
     name: rp.displayMarkup,
     humanUrl: humanUrl,
-    profileUrl: rp.displayMarkup && proofUrlToProfileUrl(rp.proofType, rp.displayMarkup, rp.key, humanUrl)
+    profileUrl: rp.displayMarkup && proofUrlToProfileUrl(rp.proofType, rp.displayMarkup, rp.key, humanUrl),
+    isTracked
   }
 }
 
