@@ -16,14 +16,12 @@ export default class Render extends Component {
         <Text style={stylesHeader} type='Header'>Request an invite code</Text>
         <Icon style={stylesIcon} type='invite-code-m'/>
         <Input
-          style={stylesInput}
           hintText='Your email address'
           value={this.props.email}
           errorText={this.props.emailErrorText}
           onChangeText={email => this.props.emailChange(email)}
           autoFocus />
         <Input
-          style={stylesInput}
           hintText='Your name'
           value={this.props.name}
           errorText={this.props.nameErrorText}
@@ -57,6 +55,4 @@ const stylesHeader = {
 const stylesIcon = {
   marginTop: 40,
   alignSelf: 'center'
-}
-const stylesInput = {
 }
