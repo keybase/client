@@ -5,6 +5,7 @@ package libkb
 
 import (
 	"bytes"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -319,22 +320,33 @@ func (a *InternalAPIEngine) isExternal() bool { return false }
 var lastUpgradeWarningMu sync.Mutex
 var lastUpgradeWarning *time.Time
 
-func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) error {
+func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) (err error) {
 	u := resp.Header.Get("X-Keybase-Client-Upgrade-To")
 	p := resp.Header.Get("X-Keybase-Upgrade-URI")
-	if len(u) > 0 {
-		a.G().NotifyRouter.HandleClientOutOfDate(u, p)
+	m := resp.Header.Get("X-Keybase-Upgrade-Message")
+	if len(u) > 0 || len(m) > 0 {
 		now := time.Now()
 		lastUpgradeWarningMu.Lock()
 		if lastUpgradeWarning == nil || now.Sub(*lastUpgradeWarning) > 3*time.Minute {
-			a.G().Log.Warning("Upgrade recommended to client version %s or above (you have v%s)",
-				u, VersionString())
-			platformSpecificUpgradeInstructions(a.G(), p)
+			// Send the notification after we unlock
+			defer a.G().NotifyRouter.HandleClientOutOfDate(u, p, m)
+			if m != "" {
+				var decodedMsg []byte
+				decodedMsg, err = base64.StdEncoding.DecodeString(m)
+				a.G().Log.Warning("%s", decodedMsg)
+			}
+			if u != "" {
+				a.G().Log.Warning("Upgrade recommended to client version %s or above (you have v%s)",
+					u, VersionString())
+			}
+			if p != "" {
+				platformSpecificUpgradeInstructions(a.G(), p)
+			}
 			lastUpgradeWarning = &now
 		}
 		lastUpgradeWarningMu.Unlock()
 	}
-	return nil
+	return
 }
 
 func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {

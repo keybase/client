@@ -25,6 +25,10 @@
         {
           "name": "upgradeURI",
           "type": "string"
+        },
+        {
+          "name": "upgradeMsg",
+          "type": "string"
         }
       ],
       "response": "null"

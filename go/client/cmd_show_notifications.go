@@ -4,6 +4,7 @@
 package client
 
 import (
+	"encoding/base64"
 	"time"
 
 	"golang.org/x/net/context"
@@ -99,8 +100,20 @@ func (d *notificationDisplay) LoggedOut(_ context.Context) error {
 func (d *notificationDisplay) LoggedIn(_ context.Context, un string) error {
 	return d.printf("Logged in as %q\n", un)
 }
-func (d *notificationDisplay) ClientOutOfDate(_ context.Context, arg keybase1.ClientOutOfDateArg) error {
-	return d.printf("Client out of date, upgrade to \"%s\", uri \"%s\"\n", arg.UpgradeTo, arg.UpgradeURI)
+func (d *notificationDisplay) ClientOutOfDate(_ context.Context, arg keybase1.ClientOutOfDateArg) (err error) {
+	if arg.UpgradeMsg != "" {
+		var decodedMsg []byte
+		decodedMsg, err = base64.StdEncoding.DecodeString(arg.UpgradeMsg)
+		if err == nil {
+			err = d.printf("%v\n", string(decodedMsg))
+		}
+	}
+	if arg.UpgradeTo != "" || arg.UpgradeURI != "" {
+		if err2 := d.printf("Client out of date, upgrade to %v, uri %v\n", arg.UpgradeTo, arg.UpgradeURI); err == nil && err2 != nil {
+			err = err2
+		}
+	}
+	return
 }
 
 func (d *notificationDisplay) UserChanged(_ context.Context, uid keybase1.UID) error {

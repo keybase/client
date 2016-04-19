@@ -141,7 +141,7 @@ func (n *NotifyRouter) HandleLogin(u string) {
 // ClientOutOfDate is called whenever the API server tells us our client is out
 // of date. (This is done by adding special headers to every API response that
 // an out-of-date client makes.)
-func (n *NotifyRouter) HandleClientOutOfDate(upgradeTo string, upgradeURI string) {
+func (n *NotifyRouter) HandleClientOutOfDate(upgradeTo string, upgradeURI string, upgradeMsg string) {
 	if n == nil {
 		return
 	}
@@ -158,12 +158,13 @@ func (n *NotifyRouter) HandleClientOutOfDate(upgradeTo string, upgradeURI string
 				}).ClientOutOfDate(context.TODO(), keybase1.ClientOutOfDateArg{
 					UpgradeTo:  upgradeTo,
 					UpgradeURI: upgradeURI,
+					UpgradeMsg: upgradeMsg,
 				})
 			}()
 		}
 		return true
 	})
-	n.G().Log.Debug("- Login notification sent")
+	n.G().Log.Debug("- client-out-of-date notification sent")
 }
 
 // HandleUserChanged is called whenever we know that a given user has
