@@ -3380,9 +3380,7 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		return err
 	}
 
-	timerWasSet := false
 	if fbo.rekeyWithPromptTimer != nil {
-		timerWasSet = true
 		fbo.rekeyWithPromptTimer.Stop()
 		fbo.rekeyWithPromptTimer = nil
 		if !promptPaper {
@@ -3452,18 +3450,16 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 
 	if stillNeedsRekey {
 		fbo.log.CDebugf(ctx, "Device doesn't have access to rekey")
-		if !rekeyWasSet || timerWasSet {
-			// If we didn't have read access, then we don't have any
-			// unlocked paper keys.  Wait for some time, and then if
-			// we still aren't rekeyed, try again but this time prompt
-			// the user for any known paper keys.  We do this even if
-			// the rekey bit is set if the timer was previously set,
-			// since that probably indicates that we've just seen our
-			// own previous rekey request.
-			d := fbo.config.RekeyWithPromptWaitTime()
-			fbo.log.CDebugf(ctx, "Scheduling a rekeyWithPrompt in %s", d)
-			fbo.rekeyWithPromptTimer = time.AfterFunc(d, fbo.rekeyWithPrompt)
-		}
+		// If we didn't have read access, then we don't have any
+		// unlocked paper keys.  Wait for some time, and then if we
+		// still aren't rekeyed, try again but this time prompt the
+		// user for any known paper keys.  We do this even if the
+		// rekey bit is already set, since we may have restarted since
+		// the previous rekey attempt, before prompting for the paper
+		// key.
+		d := fbo.config.RekeyWithPromptWaitTime()
+		fbo.log.CDebugf(ctx, "Scheduling a rekeyWithPrompt in %s", d)
+		fbo.rekeyWithPromptTimer = time.AfterFunc(d, fbo.rekeyWithPrompt)
 
 		if rekeyWasSet {
 			// Devices not yet keyed shouldn't set the rekey bit again

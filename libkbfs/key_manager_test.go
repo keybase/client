@@ -1142,3 +1142,120 @@ func TestKeyManagerRekeyAddDeviceWithPrompt(t *testing.T) {
 		t.Fatalf("Device 2 couldn't see the dir entry after rekey")
 	}
 }
+
+func TestKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T) {
+	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2)
+	defer CheckConfigAndShutdown(t, config1)
+
+	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)
+	defer CheckConfigAndShutdown(t, config2)
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a shared folder
+	name := u1.String() + "," + u2.String()
+
+	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
+
+	kbfsOps1 := config1.KBFSOps()
+
+	// user 1 creates a file
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	config2Dev2 := ConfigAsUser(config1.(*ConfigLocal), u2)
+	defer CheckConfigAndShutdown(t, config2Dev2)
+
+	// Now give u2 a new device.  The configs don't share a Keybase
+	// Daemon so we have to do it in all places.
+	AddDeviceForLocalUserOrBust(t, config1, uid2)
+	AddDeviceForLocalUserOrBust(t, config2, uid2)
+	devIndex := AddDeviceForLocalUserOrBust(t, config2Dev2, uid2)
+	SwitchDeviceForLocalUserOrBust(t, config2Dev2, devIndex)
+
+	// The new device should be unable to rekey on its own, and will
+	// just set the rekey bit.
+	kbfsOps2Dev2 := config2Dev2.KBFSOps()
+	err = kbfsOps2Dev2.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
+	if err != nil {
+		t.Fatalf("First rekey failed %v", err)
+	}
+
+	ops := getOps(config2Dev2, rootNode1.GetFolderBranch().Tlf)
+	rev1 := ops.head.Revision
+
+	// Do it again, to simulate the mdserver sending back this node's
+	// own rekey request.  This shouldn't increase the MD version.
+	err = kbfsOps2Dev2.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
+	if err != nil {
+		t.Fatalf("Second rekey failed %v", err)
+	}
+	rev2 := ops.head.Revision
+
+	if rev1 != rev2 {
+		t.Errorf("Revision changed after second rekey: %v vs %v", rev1, rev2)
+	}
+
+	// Make sure just the rekey bit is set
+	if !ops.head.IsRekeySet() {
+		t.Fatalf("Couldn't set rekey bit")
+	}
+
+	// Simulate a restart by clearing the timer after the rekey bit was set
+	ops.rekeyWithPromptTimer.Stop()
+	ops.rekeyWithPromptTimer = nil
+
+	// Try again, which should reset the timer (and so the Reser below
+	// will be on a non-nil timer).
+	err = kbfsOps2Dev2.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
+	if err != nil {
+		t.Fatalf("Third rekey failed %v", err)
+	}
+
+	c := make(chan bool)
+	// Use our other device as a standin for the paper key.
+	clta := &cryptoLocalTrapAny{config2Dev2.Crypto(), c, config2.Crypto()}
+	config2Dev2.SetCrypto(clta)
+
+	ops.rekeyWithPromptTimer.Reset(1 * time.Millisecond)
+	promptPaper := <-c
+	if !promptPaper {
+		t.Fatalf("Didn't prompt paper")
+	}
+	<-c // called a second time for decrypting the private data
+
+	// Take the mdWriterLock to ensure that the rekeyWithPrompt finishes.
+	lState := makeFBOLockState()
+	ops.mdWriterLock.Lock(lState)
+	ops.mdWriterLock.Unlock(lState)
+
+	config2Dev2.SetCrypto(clta.Crypto)
+
+	rootNode2Dev2 := GetRootNodeOrBust(t, config2Dev2, name, false)
+
+	kbfsOps2 := config2Dev2.KBFSOps()
+	children, err := kbfsOps2.GetDirChildren(ctx, rootNode2Dev2)
+	if _, ok := children["a"]; !ok {
+		t.Fatalf("Device 2 couldn't see the dir entry after rekey")
+	}
+	// user 2 creates another file to make a new revision
+	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2Dev2, "b", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// device 1 should be able to read the new file
+	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+	children, err = kbfsOps1.GetDirChildren(ctx, rootNode1)
+	if _, ok := children["b"]; !ok {
+		t.Fatalf("Device 2 couldn't see the dir entry after rekey")
+	}
+}
