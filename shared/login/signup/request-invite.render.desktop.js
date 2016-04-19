@@ -11,24 +11,7 @@ import type {Props} from './request-invite.render'
 export default class Render extends Component {
   props: Props;
 
-  state: {
-    email: ?string,
-    name: ?string
-  };
-
-  constructor (props: Props) {
-    super(props)
-    this.state = {
-      email: this.props.email || '',
-      name: this.props.name || ''
-    }
-  }
-
   render () {
-    const submitRequestInvite = () => {
-      this.props.onRequestInvite(this.state.email, this.state.name)
-    }
-
     return (
       <Container onBack={this.props.onBack} style={styles.container}>
         <Text style={styles.header} type='Header'>Request an invite code</Text>
@@ -36,26 +19,23 @@ export default class Render extends Component {
         <Input
           style={styles.input}
           floatingLabelText='Your email address'
-          value={this.state.email}
+          value={this.props.email}
           errorText={this.props.emailErrorText}
-          onChange={event => this.setState({email: event.target.value})}
-          autoFocus
-        />
+          onChangeText={email => this.props.emailChange(email)}
+          autoFocus />
         <Input
           style={styles.input}
           floatingLabelText='Your name'
-          value={this.state.name}
+          value={this.props.name}
           errorText={this.props.nameErrorText}
-          onChange={event => this.setState({name: event.target.value})}
-        />
+          onChangeText={name => this.props.nameChange(name)} />
         <Button
           style={styles.button}
           waiting={this.props.waiting}
           type='Primary'
           label='Request'
-          onClick={submitRequestInvite}
-          disabled={!this.state.email}
-        />
+          onClick={this.props.onSubmit}
+          disabled={!this.props.email} />
       </Container>
     )
   }
