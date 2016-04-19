@@ -71,7 +71,7 @@ func sortedUIDsAndNames(m map[keybase1.UID]libkb.NormalizedUsername) (
 	return uids, names
 }
 
-func splitTLFNameIntoWritersAndReaders(name string) (
+func splitAndCheckTLFNameIntoWritersAndReaders(name string, public bool) (
 	writerNames, readerNames []string, err error) {
 	splitNames := strings.SplitN(name, ReaderSep, 3)
 	if len(splitNames) > 2 {
@@ -81,6 +81,19 @@ func splitTLFNameIntoWritersAndReaders(name string) (
 	if len(splitNames) > 1 {
 		readerNames = strings.Split(splitNames[1], ",")
 	}
+
+	hasPublic := len(readerNames) == 0
+
+	if public && !hasPublic {
+		// No public folder exists for this folder.
+		return nil, nil, NoSuchNameError{Name: name}
+	}
+
+	normalizedName := normalizeUserNamesInTLF(writerNames, readerNames)
+	if normalizedName != name {
+		return nil, nil, TlfNameNotCanonical{name, normalizedName}
+	}
+
 	return writerNames, readerNames, nil
 }
 
@@ -486,21 +499,9 @@ func ParseTlfHandle(
 	// real user lookup for "head" (KBFS-531).  Note that the name
 	// might still contain assertions, which will result in
 	// another alias in a subsequent lookup.
-	writerNames, readerNames, err := splitTLFNameIntoWritersAndReaders(name)
+	writerNames, readerNames, err := splitAndCheckTLFNameIntoWritersAndReaders(name, public)
 	if err != nil {
 		return nil, err
-	}
-
-	hasPublic := len(readerNames) == 0
-
-	if public && !hasPublic {
-		// No public folder exists for this folder.
-		return nil, NoSuchNameError{Name: name}
-	}
-
-	normalizedName := normalizeUserNamesInTLF(writerNames, readerNames)
-	if normalizedName != name {
-		return nil, TlfNameNotCanonical{name, normalizedName}
 	}
 
 	h, canonicalName, err := resolveTlfHandle(
@@ -544,4 +545,12 @@ func ParseTlfHandle(
 	}
 
 	return nil, TlfNameNotCanonical{name, string(canonicalName)}
+}
+
+// CheckTlfHandleOffline does light checks whether a TLF handle looks ok,
+// it avoids all network calls.
+func CheckTlfHandleOffline(
+	ctx context.Context, name string, public bool) error {
+	_, _, err := splitAndCheckTLFNameIntoWritersAndReaders(name, public)
+	return err
 }

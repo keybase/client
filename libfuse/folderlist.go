@@ -107,8 +107,7 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 }
 
 func (fl *FolderList) isValidAliasTarget(ctx context.Context, nameToTry string) bool {
-	_, err := libkbfs.ParseTlfHandle(ctx, fl.fs.config.KBPKI(), nameToTry, fl.public)
-	return err == nil
+	return libkbfs.CheckTlfHandleOffline(ctx, nameToTry, fl.public) == nil
 }
 
 func (fl *FolderList) forgetFolder(folderName string) {
