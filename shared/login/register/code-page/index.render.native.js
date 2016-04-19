@@ -108,7 +108,7 @@ export default class CodePageRender extends Component {
         style={{alignItems: 'center', justifyContent: 'center', flexDirection: 'column'}}
         scanning={false}
         qrCode={this.props.qrCode}>
-        <Text style={styles.text}>Scan this QR code with your other device</Text>
+        <Text>Scan this QR code with your other device</Text>
       </QR>
     )
   }
@@ -120,7 +120,7 @@ export default class CodePageRender extends Component {
         onBarCodeRead={code => this.props.qrScanned(code)}
         qrCode={this.props.qrCode}>
 
-        <Text style={styles.text}>Use this phone to scan the QR code displayed on your other device</Text>
+        <Text>Use this phone to scan the QR code displayed on your other device</Text>
         <Box style={{alignSelf: 'center', width: 200, height: 200}}>
           <Box style={[styles.box, styles.boxEdge, {left: 0}]}/>
           <Box style={[styles.box, styles.boxEdge, {right: 0}]}/>
@@ -206,13 +206,5 @@ const styles = StyleSheet.create({
     top: 0,
     bottom: 0,
     width: 1
-  },
-  text: {
-    margin: 50,
-    color: 'white',
-    textAlign: 'center',
-    shadowColor: 'black',
-    shadowOpacity: 1,
-    shadowOffset: {width: 1, height: 1}
   }
 })
