@@ -16,10 +16,12 @@ let config = {
   devStoreChangingFunctions: false,
   printOutstandingRPCs: false,
   reactPerf: false,
-  overrideLoggedInTab: null
+  overrideLoggedInTab: null,
+  dumbFilter: '',
+  dumbIndex: 0
 }
 
-if (__DEV__ && false) {
+if (__DEV__ && true) {
   config.allowStartupFailure = true
   config.printRPC = true
   config.showAllTrackers = false
@@ -31,6 +33,8 @@ if (__DEV__ && false) {
   config.printOutstandingRPCs = true
   config.reactPerf = false
   config.overrideLoggedInTab = Tabs.moreTab
+  config.dumbFilter = ''
+  config.dumbIndex = 0
 }
 
 export const {
@@ -45,7 +49,9 @@ export const {
   devStoreChangingFunctions,
   printOutstandingRPCs,
   reactPerf,
-  overrideLoggedInTab
+  overrideLoggedInTab,
+  dumbFilter,
+  dumbIndex
 } = config
 
 export function initTabbedRouterState (state) {
@@ -58,7 +64,7 @@ export function initTabbedRouterState (state) {
     tabs: {
       ...state.tabs,
       [Tabs.loginTab]: createRouterState([], []),
-      [Tabs.moreTab]: createRouterState(['devMenu', 'styleSheet'], [])
+      [Tabs.moreTab]: createRouterState(['devMenu', 'dumbSheet'], [])
     },
     activeTab: Tabs.moreTab
   }

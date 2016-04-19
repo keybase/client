@@ -15,6 +15,7 @@ import developer from './developer'
 import login from '../login'
 import components from './component-sheet'
 import styleSheet from './style-sheet'
+import dumbSheet from './dumb-sheet'
 
 class DevMenu extends Component {
   render () {
@@ -42,10 +43,13 @@ class DevMenu extends Component {
         this.props.pushNewProfile('test12')
       }},
       {name: 'Components', hasChildren: true, onClick: () => {
-        this.props.routeAppend(['components'])
+        this.props.routeAppend('components')
       }},
       {name: 'Stylesheet', hasChildren: true, onClick: () => {
-        this.props.routeAppend(['styleSheet'])
+        this.props.routeAppend('styleSheet')
+      }},
+      {name: 'Dumb components', hasChildren: true, onClick: () => {
+        this.props.routeAppend('dumbSheet')
       }}
     ]
     return (
@@ -56,7 +60,7 @@ class DevMenu extends Component {
   static parseRoute () {
     return {
       componentAtTop: {title: 'Dev Menu'},
-      subRoutes: {developer, login, components, styleSheet}
+      subRoutes: {developer, login, components, styleSheet, dumbSheet}
     }
   }
 }
