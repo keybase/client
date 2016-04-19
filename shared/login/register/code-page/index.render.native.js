@@ -4,7 +4,7 @@
  */
 
 import React, {Component} from 'react'
-import {StyleSheet, View} from 'react-native'
+import {StyleSheet} from 'react-native'
 import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone,
         codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer} from '../../../constants/login'
 import {codePageModeScanCode, codePageModeShowCode, codePageModeEnterText, codePageModeShowText} from '../../../constants/login'
@@ -127,14 +127,14 @@ export default class CodePageRender extends Component {
         qrCode={this.props.qrCode}>
 
         <Text style={styles.text}>Use this phone to scan the QR code displayed on your other device</Text>
-        <View style={{alignSelf: 'center', width: 200, height: 200}}>
-          <View style={[styles.box, styles.boxEdge, {left: 0}]}/>
-          <View style={[styles.box, styles.boxEdge, {right: 0}]}/>
-          <View style={[styles.box, styles.boxCorner, {right: 0, top: 0}]}/>
-          <View style={[styles.box, styles.boxCorner, {left: 0, top: 0}]}/>
-          <View style={[styles.box, styles.boxCorner, {right: 0, bottom: 0}]}/>
-          <View style={[styles.box, styles.boxCorner, {left: 0, bottom: 0}]}/>
-        </View>
+        <Box style={{alignSelf: 'center', width: 200, height: 200}}>
+          <Box style={[styles.box, styles.boxEdge, {left: 0}]}/>
+          <Box style={[styles.box, styles.boxEdge, {right: 0}]}/>
+          <Box style={[styles.box, styles.boxCorner, {right: 0, top: 0}]}/>
+          <Box style={[styles.box, styles.boxCorner, {left: 0, top: 0}]}/>
+          <Box style={[styles.box, styles.boxCorner, {right: 0, bottom: 0}]}/>
+          <Box style={[styles.box, styles.boxCorner, {left: 0, bottom: 0}]}/>
+        </Box>
       </QR>
     )
   }
