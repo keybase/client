@@ -12,4 +12,5 @@ export type State = {
 
 export default class PaperKey extends Component {
   props: Props;
+  state: State;
 }

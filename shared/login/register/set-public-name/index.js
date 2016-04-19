@@ -2,13 +2,10 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import Render from './index.render'
-import type {Props} from './index.render'
-
-type State = {
-  deviceName: ?string
-}
+import type {Props, State} from './index.render'
 
 export class SetPublicName extends Component<void, Props, State> {
+  props: Props;
   state: State;
 
   constructor (props: Props) {
@@ -48,6 +45,5 @@ export class SetPublicName extends Component<void, Props, State> {
 }
 
 export default connect(
-  state => ({})
+  state => ({waitingForResponse: state.login.waitingForResponse})
 )(SetPublicName)
-
