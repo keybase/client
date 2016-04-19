@@ -24,6 +24,7 @@ class PaperKeyRender extends Component<void, Props, void> {
             multiLine
             onEnterKeyDown={() => this.props.onSubmit()}
             onChangeText={paperKey => this.props.onChangePaperKey(paperKey)}
+            type='passwordVisible'
             value={this.props.paperKey}/>
           <Button
             style={stylesButton}
@@ -56,7 +57,8 @@ const stylesButton = {
 const stylesInput = {
   marginTop: 20,
   marginBottom: 20,
-  alignSelf: 'stretch'
+  alignSelf: 'stretch',
+  height: 80
 }
 
 const stylesIcon = {
