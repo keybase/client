@@ -21,7 +21,7 @@ class Render extends Component<void, Props, void> {
             style={stylesInput}
             inputProps={{
               autoFocus: true,
-              type: 'password',
+              type: showTyping ? 'passwordVisible' : 'password',
               floatingLabelText: 'Passphrase',
               onEnterKeyDown: this.props.onSubmit,
               onChangeText: t => this.props.onChange(t),
