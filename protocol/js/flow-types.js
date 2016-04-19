@@ -544,7 +544,8 @@ export type NotifySession_clientOutOfDate_rpc = {
   method: 'NotifySession.clientOutOfDate',
   param: {
     upgradeTo: string,
-    upgradeURI: string
+    upgradeURI: string,
+    upgradeMsg: string
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any) => void)
@@ -4548,7 +4549,8 @@ export type incomingCallMapType = {
   'keybase.1.NotifySession.clientOutOfDate'?: (
     params: {
       upgradeTo: string,
-      upgradeURI: string
+      upgradeURI: string,
+      upgradeMsg: string
     },
     response: {
       error: (err: RPCError) => void,
