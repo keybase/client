@@ -1,5 +1,5 @@
 import React, {Component} from 'react'
-import {Image, Text, View} from 'react-native'
+import {Text} from 'react-native'
 
 export default class QR extends Component {
   render () {

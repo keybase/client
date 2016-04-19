@@ -19,7 +19,7 @@ class PaperKeyRender extends Component<void, Props, void> {
           <Input
             autoFocus
             style={stylesInput}
-            floatingLabelText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
+            floatingLabelText='Paper key'
             hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
             multiLine
             onEnterKeyDown={() => this.props.onSubmit()}
