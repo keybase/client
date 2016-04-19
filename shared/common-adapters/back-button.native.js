@@ -10,8 +10,8 @@ export default class BackButton extends Component {
   props: Props;
 
   onClick (event: SyntheticEvent) {
-    event.preventDefault()
-    event.stopPropagation()
+    event && event.preventDefault && event.preventDefault()
+    event && event.stopPropagation && event.stopPropagation()
     if (this.props.onClick) {
       this.props.onClick()
     }
