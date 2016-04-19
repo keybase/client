@@ -57,7 +57,7 @@ export default class CodePageRender extends Component {
     }
 
     if (!controls) {
-      return <Box/>
+      return null
     }
 
     return (
@@ -72,19 +72,13 @@ export default class CodePageRender extends Component {
   renderChangeMode () {
     switch (this.props.myDeviceRole + this.props.otherDeviceRole) {
       case codePageDeviceRoleNewPhone + codePageDeviceRoleExistingPhone:
-        if (this.props.mode === codePageModeScanCode) {
-          return (
-            <Box style={stylesFooter}>
-              <Text>Type text code instead</Text>
-            </Box>
-          )
-        } else {
-          return (
-            <Box style={stylesFooter}>
-              <Text>Scan QR code instead</Text>
-            </Box>
-          )
-        }
+        const instructions = this.props.mode === codePageModeScanCode ? 'Type text code instead' : 'Scan QR code instead'
+
+        return (
+          <Box style={stylesFooter}>
+            <Text>{instructions}</Text>
+          </Box>
+        )
     }
   }
 
@@ -92,9 +86,9 @@ export default class CodePageRender extends Component {
     return (
       <Box style={stylesIntro}>
         <Text type='Header' style={{marginBottom: 10}} inline>Type in text code</Text>
-        <Text type='BodySmall' inline>Please run&nbsp;</Text>
+        <Text type='BodySmall' inline>Please run </Text>
         <Text type='TerminalSmall' inline>keybase device add</Text>
-        <Text type='BodySmall' inline>&nbsp;in the terminal on your computer.</Text>
+        <Text type='BodySmall' inline> in the terminal on your computer.</Text>
       </Box>
     )
   }
