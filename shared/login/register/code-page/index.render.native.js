@@ -103,7 +103,7 @@ export default class CodePageRender extends Component {
     return (
       <Box style={stylesControl}>
         <Text style={specialStyles.paperKey}>{this.props.textCode}</Text>
-        <ProgressIndicator styleAttr='Normal' style={stylesSpinner}/>
+        <ProgressIndicator type='Large' style={stylesSpinner}/>
       </Box>
     )
   }
