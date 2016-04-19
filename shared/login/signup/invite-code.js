@@ -14,7 +14,7 @@ class InviteCode extends Component {
       <Render
         inviteCode={this.props.inviteCode}
         onRequestInvite={this.props.startRequestInvite}
-        onInviteCodeSubmit={this.props.checkInviteCode}
+        onInviteCodeSubmit={this.props.requestInviteCodeCheck}
         inviteCodeErrorText={this.props.errorText}
         onBack={this.props.navigateUp}
         waiting={this.props.waiting}/>

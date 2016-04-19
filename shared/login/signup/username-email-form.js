@@ -13,7 +13,7 @@ class UsernameEmailForm extends Component {
       <Render
         username={this.props.username}
         email={this.props.email}
-        submitUserEmail={this.props.checkUsernameEmail}
+        submitUserEmail={this.props.requestCheckUsernameEmail}
         usernameErrorText={this.props.usernameErrorText}
         emailErrorText={this.props.emailErrorText}
         onBack={this.props.resetSignup}

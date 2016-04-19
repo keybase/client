@@ -3,6 +3,9 @@
 import HiddenString from '../util/hidden-string'
 import type {TypedAction} from '../constants/types/flux'
 
+export const requestInviteCodeCheck = 'signup:requestInviteCodeCheck'
+export type RequestInviteCodeCheck = TypedAction<'signup:requestInviteCodeCheck', string, void>
+
 export const checkInviteCode = 'signup:checkInviteCode'
 export type CheckInviteCode = TypedAction<'signup:checkInviteCode', {inviteCode: string}, {errorText: string}>
 
@@ -12,11 +15,16 @@ export type StartRequestInvite = TypedAction<'signup:startRequestInvite', {}, {}
 export const requestInvite = 'signup:requestInvite'
 export type RequestInvite = TypedAction<'signup:requestInvite', {email: string, name: string}, {emailError: ?string, nameError: ?string, email: ?string, name: ?string}>
 
+export const requestCheckUsernameEmail = 'signup:requestCheckUsernameEmail'
+export type RequestCheckUsernameEmail = TypedAction<'signup:requestCheckUsernameEmail', {username: string, email: string}, void>
 export const checkUsernameEmail = 'signup:checkUsernameEmail'
 export type CheckUsernameEmail = TypedAction<'signup:checkUsernameEmail', {username: string, email: string}, {emailError: ?string, usernameError: ?string, email: ?string, username: ?string}>
 
 export const checkPassphrase = 'signup:checkPassphrase'
 export type CheckPassphrase = TypedAction<'signup:checkPassphrase', {passphrase: HiddenString}, {passphraseError: HiddenString}>
+
+export const requestSubmitDeviceName = 'signup:requestSubmitDeviceName'
+export type RequestSubmitDeviceName = TypedAction<'signup:requestSubmitDeviceName', string, void>
 
 export const submitDeviceName = 'signup:submitDeviceName'
 export type SubmitDeviceName = TypedAction<'signup:submitDeviceName', {deviceName: string}, {deviceNameError: string}>
@@ -27,8 +35,8 @@ export type Signup = TypedAction<'signup:signup', {}, {signupError: HiddenString
 export const showPaperKey = 'signup:showPaperKey'
 export type ShowPaperKey = TypedAction<'signup:showPaperKey', {paperkey: HiddenString}, {}>
 
-export const showSuccess = 'signup:showSuccess'
-export type ShowSuccess = TypedAction<'signup:showSuccess', {}, {}>
+export const sawPaperKey = 'signup:sawPaperKey'
+export type SawPaperKey = TypedAction<'signup:sawPaperKey', void, void>
 
 export const resetSignup = 'signup:resetSignup'
 export type ResetSignup = TypedAction<'signup:resetSignup', {}, {}>
@@ -36,4 +44,4 @@ export type ResetSignup = TypedAction<'signup:resetSignup', {}, {}>
 export const signupWaiting = 'signup:waiting'
 export type SignupWaiting = TypedAction<'signup:waiting', boolean, void>
 
-export type SignupActions = CheckInviteCode | CheckUsernameEmail | CheckPassphrase | SubmitDeviceName | Signup | ShowPaperKey | ShowSuccess | ResetSignup | SignupWaiting
+export type SignupActions = CheckInviteCode | CheckUsernameEmail | CheckPassphrase | SubmitDeviceName | Signup | ShowPaperKey | ResetSignup | SignupWaiting
