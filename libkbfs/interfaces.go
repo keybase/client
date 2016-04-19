@@ -1074,6 +1074,10 @@ type Config interface {
 	// setting the rekey bit, before prompting for a paper key.
 	RekeyWithPromptWaitTime() time.Duration
 
+	// SharingBeforeSignupEnabled returns whether or not this
+	// client will handle sharing before signup.
+	SharingBeforeSignupEnabled() bool
+
 	// QuotaReclamationPeriod indicates how often should each TLF
 	// should check for quota to reclaim.  If the Duration.Seconds()
 	// == 0, quota reclamation should not run automatically.

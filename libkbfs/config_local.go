@@ -71,11 +71,15 @@ type ConfigLocal struct {
 	kbpkiLock sync.RWMutex
 	kbpki     KBPKI
 
-	renamer      ConflictRenamer
-	registry     metrics.Registry
-	loggerFn     func(prefix string) logger.Logger
-	noBGFlush    bool // logic opposite so the default value is the common setting
-	rwpWaitTime  time.Duration
+	renamer     ConflictRenamer
+	registry    metrics.Registry
+	loggerFn    func(prefix string) logger.Logger
+	noBGFlush   bool // logic opposite so the default value is the common setting
+	rwpWaitTime time.Duration
+
+	sharingBeforeSignupEnabledLock sync.Mutex
+	sharingBeforeSignupEnabled     bool
+
 	maxFileBytes uint64
 	maxNameBytes uint32
 	maxDirBytes  uint64
@@ -473,6 +477,22 @@ func (c *ConfigLocal) DoBackgroundFlushes() bool {
 // ConfigLocal.
 func (c *ConfigLocal) RekeyWithPromptWaitTime() time.Duration {
 	return c.rwpWaitTime
+}
+
+// SharingBeforeSignupEnabled returns whether or not this client will
+// handle sharing before signup.
+func (c *ConfigLocal) SharingBeforeSignupEnabled() bool {
+	c.sharingBeforeSignupEnabledLock.Lock()
+	defer c.sharingBeforeSignupEnabledLock.Unlock()
+	return c.sharingBeforeSignupEnabled
+}
+
+// SetSharingBeforeSignupEnabled sets whether or not this client will
+// handle sharing before signup.
+func (c *ConfigLocal) SetSharingBeforeSignupEnabled(sharingBeforeSignupEnabled bool) {
+	c.sharingBeforeSignupEnabledLock.Lock()
+	defer c.sharingBeforeSignupEnabledLock.Unlock()
+	c.sharingBeforeSignupEnabled = sharingBeforeSignupEnabled
 }
 
 // QuotaReclamationPeriod implements the Config interface for ConfigLocal.

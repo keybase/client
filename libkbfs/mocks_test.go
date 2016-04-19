@@ -2759,6 +2759,16 @@ func (_mr *_MockConfigRecorder) RekeyWithPromptWaitTime() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RekeyWithPromptWaitTime")
 }
 
+func (_m *MockConfig) SharingBeforeSignupEnabled() bool {
+	ret := _m.ctrl.Call(_m, "SharingBeforeSignupEnabled")
+	ret0, _ := ret[0].(bool)
+	return ret0
+}
+
+func (_mr *_MockConfigRecorder) SharingBeforeSignupEnabled() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "SharingBeforeSignupEnabled")
+}
+
 func (_m *MockConfig) QuotaReclamationPeriod() time.Duration {
 	ret := _m.ctrl.Call(_m, "QuotaReclamationPeriod")
 	ret0, _ := ret[0].(time.Duration)
