@@ -6,28 +6,7 @@ import {globalColors} from '../../../styles/style-guide'
 import Container from '../../forms/container'
 import type {Props} from './index.render'
 
-type State = {passphrase: string}
-
-class Render extends Component<void, Props, State> {
-  state: State;
-
-  constructor (props: Props) {
-    super(props)
-
-    this.state = {passphrase: ''}
-  }
-
-  onSubmit () {
-    if (this.state.usernameOrEmail) {
-      this.props.onSubmit(this.state.passphrase)
-    }
-  }
-
-  onChange (passphrase: string) {
-    console.log('p:', passphrase)
-    this.setState({passphrase})
-  }
-
+class Render extends Component<void, Props, void> {
   render () {
     const {saveInKeychain, showTyping, toggleSaveInKeychain, toggleShowTyping} = this.props
 
@@ -44,9 +23,9 @@ class Render extends Component<void, Props, State> {
               autoFocus: true,
               type: 'password',
               floatingLabelText: 'Passphrase',
-              onEnterKeyDown: this.onSubmit,
-              onChangeText: t => this.onChange(t),
-              value: this.state.passphrase,
+              onEnterKeyDown: this.props.onSubmit,
+              onChangeText: t => this.props.onChange(t),
+              value: this.props.passphrase,
               errorText: this.props.error
             }}
             checkboxesProps={[
@@ -59,8 +38,8 @@ class Render extends Component<void, Props, State> {
             waiting={this.props.waitingForResponse}
             label='Continue'
             type='Primary'
-            onClick={() => this.onSubmit(this.state.passphrase)}
-            enabled={this.state.passphrase.length}/>
+            onClick={this.props.onSubmit}
+            enabled={this.props.passphrase && this.props.passphrase.length}/>
           <Text style={stylesForgot} type='BodySecondaryLink' onClick={this.props.onForgotPassphrase}>Forgot passphrase?</Text>
         </UserCard>
       </Container>

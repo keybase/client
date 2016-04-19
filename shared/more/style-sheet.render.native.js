@@ -335,6 +335,8 @@ export default class Render extends Component {
             <PassphraseRegister
               prompt='Password here'
               onSubmit={() => {}}
+              onChange={p => {}}
+              passphrase={null}
               onForgotPassphrase={() => {}}
               waitingForResponse={false}
               error={null}

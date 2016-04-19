@@ -3,7 +3,9 @@ import React, {Component} from 'react'
 
 export type Props = {
   prompt: string,
-  onSubmit: (passphrase: string) => void,
+  onSubmit: () => void,
+  onChange: (passphrase: string) => void,
+  passphrase: ?string,
   onBack: () => void,
   onForgotPassphrase: () => void,
   waitingForResponse: boolean,
