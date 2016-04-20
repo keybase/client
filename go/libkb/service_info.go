@@ -9,6 +9,8 @@ import (
 	"io/ioutil"
 	"os"
 	"time"
+
+	"github.com/keybase/client/go/logger"
 )
 
 // ServiceInfo describes runtime info for a service.
@@ -51,7 +53,7 @@ func (s ServiceInfo) WriteFile(path string) error {
 
 // WaitForServiceInfoFile tries to wait for a service info file, which should be
 // written on successful service startup.
-func WaitForServiceInfoFile(g *GlobalContext, path string, label string, pid string, maxAttempts int, wait time.Duration, reason string) (*ServiceInfo, error) {
+func WaitForServiceInfoFile(path string, label string, pid string, maxAttempts int, wait time.Duration, reason string, log logger.Logger) (*ServiceInfo, error) {
 	if pid == "" {
 		return nil, fmt.Errorf("No pid to wait for")
 	}
@@ -84,7 +86,7 @@ func WaitForServiceInfoFile(g *GlobalContext, path string, label string, pid str
 	serviceInfo, lookErr := lookForServiceInfo()
 	for attempt < maxAttempts && serviceInfo == nil {
 		attempt++
-		g.Log.Debug("Waiting for service info file...")
+		log.Debug("Waiting for service info file...")
 		time.Sleep(wait)
 		serviceInfo, lookErr = lookForServiceInfo()
 	}
@@ -98,6 +100,6 @@ func WaitForServiceInfoFile(g *GlobalContext, path string, label string, pid str
 	}
 
 	// We succeeded in finding service info
-	g.Log.Debug("Found service info: %#v", *serviceInfo)
+	log.Debug("Found service info: %#v", *serviceInfo)
 	return serviceInfo, nil
 }

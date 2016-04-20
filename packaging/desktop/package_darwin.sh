@@ -30,6 +30,9 @@ comment=""
 
 keybase_binpath=${KEYBASE_BINPATH:-}
 kbfs_binpath=${KBFS_BINPATH:-}
+updater_binpath=${UPDATER_BINPATH:-}
+
+updater_version=`$updater_binpath -version`
 
 icon_path="$client_dir/media/icons/Keybase.icns"
 
@@ -76,6 +79,7 @@ installer_url="https://github.com/keybase/client/releases/download/v1.0.14-0/Key
 
 keybase_bin="$tmp_dir/keybase"
 kbfs_bin="$tmp_dir/kbfs"
+updater_bin="$tmp_dir/updater"
 installer_app="$tmp_dir/KeybaseInstaller.app"
 
 app_version="$keybase_version"
@@ -126,6 +130,10 @@ get_deps() {(
     ensure_url $kbfs_url "You need to build the binary for this Github release/version. See packaging/github to create/build a release."
     curl -J -L -Ss "$kbfs_url" | tar zx
   fi
+
+  echo "Using local updater binpath: $updater_binpath"
+  cp "$updater_binpath" .
+
   echo "Using installer from $installer_url"
   curl -J -L -Ss "$installer_url" | tar zx
 )}
@@ -156,6 +164,7 @@ package_app() {(
   mkdir -p "$shared_support_dir/bin"
   cp "$keybase_bin" "$shared_support_dir/bin"
   cp "$kbfs_bin" "$shared_support_dir/bin"
+  cp "$updater_bin" "$shared_support_dir/bin"
   echo "Copying installer"
   mkdir -p "$resources_dir"
   cp -R "$installer_app" "$resources_dir/KeybaseInstaller.app"
