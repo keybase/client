@@ -17,4 +17,4 @@ export type Props = {
   toggleSaveInKeychain: () => void
 }
 
-export default class PaperKey extends React$Component<void, Props, void> { }
+export default class Passphrase extends React$Component<void, Props, void> { }

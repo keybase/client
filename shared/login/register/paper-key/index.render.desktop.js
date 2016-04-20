@@ -4,7 +4,7 @@ import {Text, Icon, Input, Button} from '../../../common-adapters'
 import Container from '../../forms/container.desktop'
 import type {Props} from './index.render'
 
-const Render = ({onBack, onSubmit, onChangePaperKey, paperKey}: Props) => {
+const Render = ({onBack, onSubmit, onChangePaperKey, paperKey, waitingForResponse}: Props) => {
   return (
     <Container
       style={styles.container}
@@ -26,6 +26,7 @@ const Render = ({onBack, onSubmit, onChangePaperKey, paperKey}: Props) => {
         style={{alignSelf: 'flex-end'}}
         onClick={() => onSubmit()}
         enabled={paperKey}
+        waiting={waitingForResponse}
       />
     </Container>
   )
