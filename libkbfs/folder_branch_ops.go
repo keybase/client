@@ -416,7 +416,7 @@ func (fbo *folderBranchOps) addToFavorites(ctx context.Context,
 	}
 
 	h := head.GetTlfHandle()
-	favorites.AddAsync(ctx, h.ToFavorite(ctx, fbo.config))
+	favorites.AddAsync(ctx, h.ToFavorite())
 	return nil
 }
 
@@ -434,7 +434,7 @@ func (fbo *folderBranchOps) deleteFromFavorites(ctx context.Context,
 	}
 
 	h := head.GetTlfHandle()
-	return favorites.Delete(ctx, h.ToFavorite(ctx, fbo.config))
+	return favorites.Delete(ctx, h.ToFavorite())
 }
 
 // getStaged should not be called if mdWriterLock is already taken.
@@ -533,7 +533,7 @@ func (fbo *folderBranchOps) identifyOnce(
 	}
 
 	h := md.GetTlfHandle()
-	fbo.log.CDebugf(ctx, "Running identifies on %s", h.ToString(ctx, fbo.config))
+	fbo.log.CDebugf(ctx, "Running identifies on %s", h.GetCanonicalPath())
 	err := identifyHandle(ctx, fbo.config, h)
 	if err != nil {
 		fbo.log.CDebugf(ctx, "Identify finished with error: %v", err)
@@ -618,7 +618,7 @@ func (fbo *folderBranchOps) getMDForReadHelper(
 			return nil, err
 		}
 		if !md.GetTlfHandle().IsReader(uid) {
-			return nil, NewReadAccessError(ctx, fbo.config, md.GetTlfHandle(), username)
+			return nil, NewReadAccessError(md.GetTlfHandle(), username)
 		}
 	}
 	return md, nil
@@ -656,7 +656,7 @@ func (fbo *folderBranchOps) getMDForWriteLocked(
 	}
 	if !md.GetTlfHandle().IsWriter(uid) {
 		return nil,
-			NewWriteAccessError(ctx, fbo.config, md.GetTlfHandle(), username)
+			NewWriteAccessError(md.GetTlfHandle(), username)
 	}
 
 	// Make a new successor of the current MD to hold the coming
@@ -689,7 +689,7 @@ func (fbo *folderBranchOps) getMDForRekeyWriteLocked(
 	// must be a reader or writer (it checks both.)
 	if !handle.IsReader(uid) {
 		return nil, false,
-			NewRekeyPermissionError(ctx, fbo.config, md.GetTlfHandle(), username)
+			NewRekeyPermissionError(md.GetTlfHandle(), username)
 	}
 
 	newMd, err := md.MakeSuccessor(fbo.config, handle.IsWriter(uid))
@@ -700,7 +700,7 @@ func (fbo *folderBranchOps) getMDForRekeyWriteLocked(
 	// readers shouldn't modify writer metadata
 	if !handle.IsWriter(uid) && !newMd.IsWriterMetadataCopiedSet() {
 		return nil, false,
-			NewRekeyPermissionError(ctx, fbo.config, handle, username)
+			NewRekeyPermissionError(handle, username)
 	}
 
 	return newMd, md.IsRekeySet(), nil
@@ -724,7 +724,7 @@ func (fbo *folderBranchOps) initMDLocked(
 
 	// make sure we're a writer before rekeying or putting any blocks.
 	if !handle.IsWriter(uid) {
-		return NewWriteAccessError(ctx, fbo.config, handle, username)
+		return NewWriteAccessError(handle, username)
 	}
 
 	newDblock := &DirBlock{
@@ -931,7 +931,7 @@ func (fbo *folderBranchOps) getRootNode(ctx context.Context) (
 
 	handle = md.GetTlfHandle()
 	node, err = fbo.nodeCache.GetOrCreate(md.data.Dir.BlockPointer,
-		string(handle.GetCanonicalName(ctx, fbo.config)), nil)
+		string(handle.GetCanonicalName()), nil)
 	if err != nil {
 		return nil, EntryInfo{}, nil, err
 	}
@@ -3898,7 +3898,7 @@ func (fbo *folderBranchOps) GetUpdateHistory(ctx context.Context,
 	if len(rmds) > 0 {
 		rmd := rmds[len(rmds)-1]
 		history.ID = rmd.ID.String()
-		history.Name = rmd.GetTlfHandle().ToString(ctx, fbo.config)
+		history.Name = rmd.GetTlfHandle().GetCanonicalPath()
 	}
 	history.Updates = make([]UpdateSummary, 0, len(rmds))
 	writerNames := make(map[keybase1.UID]string)

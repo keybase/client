@@ -57,8 +57,8 @@ func TestCRInput(t *testing.T) {
 			ID:     FakeTlfID(0x1, false),
 			WFlags: MetadataFlagUnmerged,
 		},
-		Revision:        unmergedHead,
-		cachedTlfHandle: &TlfHandle{cachedName: "fake"},
+		Revision:  unmergedHead,
+		tlfHandle: &TlfHandle{name: "fake"},
 	}
 	// serve all the MDs from the cache
 	config.mockMdcache.EXPECT().Put(gomock.Any()).AnyTimes().Return(nil)
@@ -69,7 +69,8 @@ func TestCRInput(t *testing.T) {
 					ID:     FakeTlfID(0x1, false),
 					WFlags: MetadataFlagUnmerged,
 				},
-				Revision: i,
+				Revision:  i,
+				tlfHandle: &TlfHandle{name: "fake"},
 			}, nil)
 	}
 	for i := MetadataRevisionInitial; i <= branchPoint; i++ {
@@ -85,7 +86,8 @@ func TestCRInput(t *testing.T) {
 				WriterMetadata: WriterMetadata{
 					ID: FakeTlfID(0x1, false),
 				},
-				Revision: i,
+				Revision:  i,
+				tlfHandle: &TlfHandle{name: "fake"},
 			}, nil)
 	}
 	for i := mergedHead + 1; i <= branchPoint+2*maxMDsAtATime; i++ {
@@ -132,8 +134,8 @@ func TestCRInputFracturedRange(t *testing.T) {
 			ID:     FakeTlfID(0x1, false),
 			WFlags: MetadataFlagUnmerged,
 		},
-		Revision:        unmergedHead,
-		cachedTlfHandle: &TlfHandle{cachedName: "fake"},
+		Revision:  unmergedHead,
+		tlfHandle: &TlfHandle{name: "fake"},
 	}
 	// serve all the MDs from the cache
 	config.mockMdcache.EXPECT().Put(gomock.Any()).AnyTimes().Return(nil)
@@ -145,6 +147,7 @@ func TestCRInputFracturedRange(t *testing.T) {
 					ID:     FakeTlfID(0x1, false),
 					WFlags: MetadataFlagUnmerged,
 				},
+				tlfHandle: &TlfHandle{name: "fake"},
 			}, nil)
 	}
 	for i := MetadataRevisionInitial; i <= branchPoint; i++ {
@@ -164,7 +167,8 @@ func TestCRInputFracturedRange(t *testing.T) {
 					WriterMetadata: WriterMetadata{
 						ID: FakeTlfID(0x1, false),
 					},
-					Revision: i,
+					Revision:  i,
+					tlfHandle: &TlfHandle{name: "fake"},
 				}, nil)
 		} else {
 			config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, Merged).Return(
@@ -177,7 +181,8 @@ func TestCRInputFracturedRange(t *testing.T) {
 			WriterMetadata: WriterMetadata{
 				ID: FakeTlfID(0x1, false),
 			},
-			Revision: skipCacheRevision,
+			Revision:  skipCacheRevision,
+			tlfHandle: &TlfHandle{name: "fake"},
 		}}, nil)
 	for i := mergedHead + 1; i <= branchPoint+2*maxMDsAtATime; i++ {
 		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, Merged).Return(

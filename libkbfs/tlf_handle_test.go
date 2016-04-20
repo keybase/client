@@ -7,9 +7,33 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"golang.org/x/net/context"
 )
+
+func TestMakeBareTlfHandle(t *testing.T) {
+	w := []keybase1.UID{
+		keybase1.MakeTestUID(4),
+		keybase1.MakeTestUID(3),
+	}
+
+	r := []keybase1.UID{
+		keybase1.MakeTestUID(5),
+		keybase1.MakeTestUID(1),
+	}
+
+	h, err := MakeBareTlfHandle(w, r)
+	require.Nil(t, err)
+	require.Equal(t, []keybase1.UID{
+		keybase1.MakeTestUID(3),
+		keybase1.MakeTestUID(4),
+	}, h.Writers)
+	require.Equal(t, []keybase1.UID{
+		keybase1.MakeTestUID(1),
+		keybase1.MakeTestUID(5),
+	}, h.Readers)
+}
 
 func TestParseTlfHandleEarlyFailure(t *testing.T) {
 	ctx := context.Background()
@@ -143,7 +167,7 @@ func TestParseTlfHandleAssertionPrivateSuccess(t *testing.T) {
 	h, err := ParseTlfHandle(ctx, kbpki, name, false)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
 	assert.Nil(t, err)
-	assert.Equal(t, name, h.cachedName)
+	assert.Equal(t, CanonicalTlfName(name), h.name)
 }
 
 func TestParseTlfHandleAssertionPublicSuccess(t *testing.T) {
@@ -161,5 +185,5 @@ func TestParseTlfHandleAssertionPublicSuccess(t *testing.T) {
 	h, err := ParseTlfHandle(ctx, kbpki, name, true)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
 	assert.Nil(t, err)
-	assert.Equal(t, name+ReaderSep+PublicUIDName, h.cachedName)
+	assert.Equal(t, CanonicalTlfName(name), h.name)
 }

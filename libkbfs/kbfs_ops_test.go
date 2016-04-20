@@ -180,7 +180,7 @@ func TestKBFSOpsGetFavoritesSuccess(t *testing.T) {
 	handles := []*TlfHandle{handle1, handle2, handle3}
 	var folders []keybase1.Folder
 	for _, h := range handles {
-		folders = append(folders, h.ToFavorite(ctx, config).toKBFolder())
+		folders = append(folders, h.ToFavorite().toKBFolder())
 	}
 
 	// Replace the old one (added in init function) and add a new one
@@ -221,12 +221,8 @@ func TestKBFSOpsGetFavoritesFail(t *testing.T) {
 }
 
 func makeID(t *testing.T, config *ConfigMock, public bool) (keybase1.UID, TlfID, *TlfHandle) {
-	uid := keybase1.MakeTestUID(15)
-	id, h, _ := newDir(t, config, 1, true, public)
-	if public {
-		h.Readers = []keybase1.UID{keybase1.PublicUID}
-	}
-	h.Writers = []keybase1.UID{uid}
+	id, h, _ := newDir(t, config, 1, false, public)
+	uid := h.Writers[0]
 	name := libkb.NewNormalizedUsername(fmt.Sprintf("user_%s", uid))
 	expectUsernameCalls(h, config)
 	config.mockKbpki.EXPECT().GetCurrentUserInfo(gomock.Any()).AnyTimes().
@@ -499,7 +495,7 @@ func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
 	config.mockKbpki.EXPECT().GetCurrentUserInfo(ctx).AnyTimes().
 		Return(name, uid, nil)
 	expectedErr := WriteAccessError{
-		name, h.GetCanonicalName(ctx, config), false}
+		name, h.GetCanonicalName(), false}
 
 	ops := getOps(config, id)
 	if _, _, _, err := ops.getRootNode(ctx); err == nil {
@@ -696,8 +692,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 	config.mockKbpki.EXPECT().GetCurrentUserInfo(ctx).AnyTimes().
 		Return(name, uid, nil)
 	expectUsernameCall(uid, config)
-	expectedErr := ReadAccessError{name, h.GetCanonicalName(ctx, config), false}
-
+	expectedErr := ReadAccessError{name, h.GetCanonicalName(), false}
 	if _, err := config.KBFSOps().GetDirChildren(ctx, n); err == nil {
 		t.Errorf("Got no expected error on getdir")
 	} else if err != expectedErr {

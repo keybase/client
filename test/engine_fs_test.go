@@ -4,7 +4,7 @@
 
 // Without any build tags the tests are run on libkbfs directly.
 // With the tag dokan all tests are run through a dokan filesystem.
-// With the tag fuse all tests are run thrhough a fuse filesystem.
+// With the tag fuse all tests are run through a fuse filesystem.
 // Note that fuse cannot be compiled on Windows and Dokan can only
 // be compiled on Windows.
 
@@ -14,7 +14,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"sort"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -26,7 +25,7 @@ import (
 type fsEngine struct {
 	name       string
 	t          *testing.T
-	createUser func(t *testing.T, ith int, config *libkbfs.ConfigLocal, tlf string) User
+	createUser func(t *testing.T, ith int, config *libkbfs.ConfigLocal, h *libkbfs.TlfHandle) User
 }
 type fsNode struct {
 	path string
@@ -37,7 +36,7 @@ type fsUser struct {
 	cancel                func()
 	close                 func()
 	notificationGroupWait func()
-	tlf                   string
+	tlf                   *libkbfs.TlfHandle
 }
 
 // Perform Init for the engine
@@ -64,9 +63,9 @@ func (*fsEngine) GetRootDir(user User, isPublic bool, writers []string, readers 
 	u := user.(*fsUser)
 	path := u.mntDir
 	if isPublic {
-		path += "/public/" + u.tlf
+		path += "/public/" + string(u.tlf.GetCanonicalName())
 	} else {
-		path += "/private/" + u.tlf
+		path += "/private/" + string(u.tlf.GetCanonicalName())
 	}
 	return &fsNode{path}, nil
 }
@@ -181,15 +180,10 @@ func (*fsEngine) ReenableUpdates(u User, dir Node) {
 func (e *fsEngine) SyncFromServerForTesting(user User, dir Node) (err error) {
 	u := user.(*fsUser)
 	ctx := context.Background()
-	h, err := libkbfs.ParseTlfHandle(ctx, u.config.KBPKI(), u.tlf, false)
-	if err != nil {
-		return fmt.Errorf("cannot parse %s: %v", u.tlf, err)
-	}
-
 	root, _, err := u.config.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, u.tlf, libkbfs.MasterBranch)
 	if err != nil {
-		return fmt.Errorf("cannot get root for %s: %v", u.tlf, err)
+		return fmt.Errorf("cannot get root for %s: %v", u.tlf.GetCanonicalPath(), err)
 	}
 
 	err = u.config.KBFSOps().SyncFromServerForTesting(ctx, root.GetFolderBranch())
@@ -204,15 +198,10 @@ func (e *fsEngine) SyncFromServerForTesting(user User, dir Node) (err error) {
 func (*fsEngine) ForceQuotaReclamation(user User, dir Node) (err error) {
 	u := user.(*fsUser)
 	ctx := context.Background()
-	h, err := libkbfs.ParseTlfHandle(ctx, u.config.KBPKI(), u.tlf, false)
-	if err != nil {
-		return fmt.Errorf("cannot parse %s: %v", u.tlf, err)
-	}
-
 	root, _, err := u.config.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
+		ctx, u.tlf, libkbfs.MasterBranch)
 	if err != nil {
-		return fmt.Errorf("cannot get root for %s: %v", u.tlf, err)
+		return fmt.Errorf("cannot get root for %s: %v", u.tlf.GetCanonicalPath(), err)
 	}
 
 	// TODO: expose this as a special write-only file?
@@ -286,24 +275,18 @@ func fiTypeString(fi os.FileInfo) string {
 	return "OTHER"
 }
 
-func usersTlf(uids []keybase1.UID, nwriters int, config *libkbfs.ConfigLocal) string {
-	h := libkbfs.NewTlfHandle()
-
-	for i, uid := range uids {
-		if i < nwriters {
-			h.Writers = append(h.Writers, uid)
-		} else {
-			h.Readers = append(h.Readers, uid)
-		}
+func usersTlf(uids []keybase1.UID, nwriters int, config *libkbfs.ConfigLocal) (*libkbfs.TlfHandle, error) {
+	bareH, err := libkbfs.MakeBareTlfHandle(uids[:nwriters], uids[nwriters:])
+	if err != nil {
+		return nil, err
+	}
+	h, err := libkbfs.MakeTlfHandle(
+		context.Background(), bareH, config.KBPKI())
+	if err != nil {
+		return nil, err
 	}
 
-	sort.Stable(libkbfs.UIDList(h.Writers))
-	sort.Stable(libkbfs.UIDList(h.Readers))
-
-	ctx := context.Background()
-
-	name := h.ToString(ctx, config)
-	return name
+	return h, nil
 }
 
 func (e *fsEngine) InitTest(t *testing.T, blockSize int64, blockChangeSize int64, writers []username, readers []username, clock libkbfs.Clock) map[string]User {
@@ -333,7 +316,10 @@ func (e *fsEngine) InitTest(t *testing.T, blockSize int64, blockChangeSize int64
 	}
 
 	for i, name := range users {
-		tlf := usersTlf(uids, len(writers), cfgs[i])
+		tlf, err := usersTlf(uids, len(writers), cfgs[i])
+		if err != nil {
+			t.Fatal(err)
+		}
 		res[name] = e.createUser(t, i, cfgs[i], tlf)
 	}
 

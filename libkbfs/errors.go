@@ -5,7 +5,6 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"golang.org/x/net/context"
 )
 
 // ErrorFile is the name of the virtual file in KBFS that should
@@ -169,17 +168,15 @@ func (e WriteAccessError) Error() string {
 
 // NewReadAccessError constructs a ReadAccessError for the given
 // directory and user.
-func NewReadAccessError(ctx context.Context, config Config, h *TlfHandle,
-	username libkb.NormalizedUsername) error {
-	tlfname := h.GetCanonicalName(ctx, config)
+func NewReadAccessError(h *TlfHandle, username libkb.NormalizedUsername) error {
+	tlfname := h.GetCanonicalName()
 	return ReadAccessError{username, tlfname, h.IsPublic()}
 }
 
 // NewWriteAccessError constructs a WriteAccessError for the given
 // directory and user.
-func NewWriteAccessError(ctx context.Context, config Config, h *TlfHandle,
-	username libkb.NormalizedUsername) error {
-	tlfname := h.GetCanonicalName(ctx, config)
+func NewWriteAccessError(h *TlfHandle, username libkb.NormalizedUsername) error {
+	tlfname := h.GetCanonicalName()
 	return WriteAccessError{username, tlfname, h.IsPublic()}
 }
 
@@ -214,18 +211,17 @@ func (e NeedOtherRekeyError) Error() string {
 		buildCanonicalPath(e.Public, e.Tlf))
 }
 
-func makeRekeyReadError(ctx context.Context, config Config, md *RootMetadata,
-	keyGen KeyGen, uid keybase1.UID,
+func makeRekeyReadError(md *RootMetadata, keyGen KeyGen, uid keybase1.UID,
 	username libkb.NormalizedUsername) error {
 	// If the user is not a legitimate reader of the folder, this is a
 	// normal read access error.
 	handle := md.GetTlfHandle()
 	if !handle.IsReader(uid) {
-		return NewReadAccessError(ctx, config, handle, username)
+		return NewReadAccessError(handle, username)
 	}
 
 	// Otherwise, this folder needs to be rekeyed for this device.
-	tlfName := handle.GetCanonicalName(ctx, config)
+	tlfName := handle.GetCanonicalName()
 	if keys, _ := md.GetTLFCryptPublicKeys(keyGen, uid); len(keys) > 0 {
 		return NeedSelfRekeyError{tlfName, handle.IsPublic()}
 	}
@@ -917,9 +913,9 @@ func (e RekeyPermissionError) Error() string {
 
 // NewRekeyPermissionError constructs a RekeyPermissionError for the given
 // directory and user.
-func NewRekeyPermissionError(ctx context.Context, config Config, dir *TlfHandle,
-	username libkb.NormalizedUsername) error {
-	dirname := dir.ToString(ctx, config)
+func NewRekeyPermissionError(
+	dir *TlfHandle, username libkb.NormalizedUsername) error {
+	dirname := dir.GetCanonicalPath()
 	return RekeyPermissionError{username, dirname}
 }
 

@@ -765,8 +765,7 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 		return err
 	}
 	if !head.GetTlfHandle().IsWriter(uid) {
-		return NewWriteAccessError(ctx, fbm.config, head.GetTlfHandle(),
-			username)
+		return NewWriteAccessError(head.GetTlfHandle(), username)
 	}
 
 	if !fbm.isQRNecessary(head) {

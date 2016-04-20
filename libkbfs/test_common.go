@@ -277,14 +277,23 @@ func NewFolderWithID(t logger.TestLogBackend, id TlfID, revision MetadataRevisio
 // NewFolderWithIDAndWriter returns a new RootMetadataSigned for testing.
 func NewFolderWithIDAndWriter(t logger.TestLogBackend, id TlfID, revision MetadataRevision,
 	share bool, public bool, writer keybase1.UID) (*TlfHandle, *RootMetadataSigned) {
-
-	h := NewTlfHandle()
+	var writers, readers []keybase1.UID
 	if public {
-		h.Readers = []keybase1.UID{keybase1.PublicUID}
+		readers = []keybase1.UID{keybase1.PublicUID}
 	}
-	h.Writers = append(h.Writers, writer)
+	writers = append(writers, writer)
 	if share {
-		h.Writers = append(h.Writers, keybase1.MakeTestUID(16))
+		writer2 := keybase1.MakeTestUID(16)
+		writers = append(writers, writer2)
+	}
+	bareH, err := MakeBareTlfHandle(writers, readers)
+	if err != nil {
+		t.Fatal(err)
+	}
+	h, err := MakeTlfHandle(context.Background(), bareH,
+		testNormalizedUsernameGetter{})
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	rmds := &RootMetadataSigned{}

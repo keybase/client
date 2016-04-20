@@ -335,7 +335,7 @@ func (md *MDServerRemote) get(ctx context.Context, id TlfID, handle *TlfHandle,
 
 	var err error
 	if id == NullTlfID {
-		arg.FolderHandle, err = handle.ToBytes(md.config)
+		arg.FolderHandle, err = md.config.Codec().Encode(handle)
 		if err != nil {
 			return id, nil, err
 		}

@@ -200,8 +200,15 @@ func TestMDServerRegisterForUpdate(t *testing.T) {
 	}
 
 	// Create first TLF.
-	h1 := NewTlfHandle()
-	h1.Writers = []keybase1.UID{uid}
+	bareH1, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	h1, err := MakeTlfHandle(ctx, bareH1, testNormalizedUsernameGetter{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	id1, _, err := mdServer.GetForHandle(ctx, h1, Merged)
 	if err != nil {
 		t.Fatal(err)
@@ -209,9 +216,16 @@ func TestMDServerRegisterForUpdate(t *testing.T) {
 
 	// Create second TLF, which should end up being different from
 	// the first one.
-	h2 := NewTlfHandle()
-	h2.Readers = []keybase1.UID{keybase1.PublicUID}
-	h2.Writers = []keybase1.UID{uid}
+	bareH2, err := MakeBareTlfHandle(
+		[]keybase1.UID{uid}, []keybase1.UID{keybase1.PublicUID})
+	if err != nil {
+		t.Fatal(err)
+	}
+	h2, err := MakeTlfHandle(ctx, bareH2, testNormalizedUsernameGetter{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	id2, _, err := mdServer.GetForHandle(ctx, h2, Merged)
 	if err != nil {
 		t.Fatal(err)

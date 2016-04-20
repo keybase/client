@@ -1417,7 +1417,7 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 
 	mergedNodeCache := newNodeCacheStandard(cr.fbo.folderBranch)
 	mergedNodeCache.GetOrCreate(mergedChains.mostRecentMD.data.Dir.BlockPointer,
-		mergedChains.mostRecentMD.GetTlfHandle().ToString(ctx, cr.config), nil)
+		string(mergedChains.mostRecentMD.GetTlfHandle().GetCanonicalName()), nil)
 	nodeMap, err := cr.fbo.blocks.SearchForNodes(
 		ctx, mergedNodeCache, ptrs, newPtrs, mergedChains.mostRecentMD)
 	if err != nil {
@@ -2953,7 +2953,7 @@ func (cr *ConflictResolver) getOpsForLocalNotification(ctx context.Context,
 	mergedNodeCache := newNodeCacheStandard(cr.fbo.folderBranch)
 	// Initialize the root node.
 	mergedNodeCache.GetOrCreate(md.data.Dir.BlockPointer,
-		md.GetTlfHandle().ToString(ctx, cr.config), nil)
+		string(md.GetTlfHandle().GetCanonicalName()), nil)
 	nodeMap, err := cr.fbo.blocks.SearchForNodes(
 		ctx, mergedNodeCache, ptrs, newPtrs, md)
 	if err != nil {
@@ -3080,7 +3080,7 @@ outer:
 
 	handle := cr.fbo.getHead(lState).GetTlfHandle()
 	cr.config.Reporter().ReportErr(ctx,
-		handle.GetCanonicalName(ctx, cr.config), handle.IsPublic(),
+		handle.GetCanonicalName(), handle.IsPublic(),
 		WriteMode, reportedError)
 	return nil
 }
@@ -3107,7 +3107,7 @@ func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput,
 		if err != nil {
 			handle := cr.fbo.getHead(lState).GetTlfHandle()
 			cr.config.Reporter().ReportErr(ctx,
-				handle.GetCanonicalName(ctx, cr.config), handle.IsPublic(),
+				handle.GetCanonicalName(), handle.IsPublic(),
 				WriteMode, CRWrapError{err})
 		}
 	}()

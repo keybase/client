@@ -55,8 +55,8 @@ func newFolder(fl *FolderList, h *libkbfs.TlfHandle) *Folder {
 	return f
 }
 
-func (f *Folder) name(ctx context.Context) libkbfs.CanonicalTlfName {
-	return f.h.GetCanonicalName(ctx, f.fs.config)
+func (f *Folder) name() libkbfs.CanonicalTlfName {
+	return f.h.GetCanonicalName()
 }
 
 func (f *Folder) reportErr(ctx context.Context,
@@ -66,7 +66,7 @@ func (f *Folder) reportErr(ctx context.Context,
 		return
 	}
 
-	f.fs.config.Reporter().ReportErr(ctx, f.name(ctx), f.list.public, mode, err)
+	f.fs.config.Reporter().ReportErr(ctx, f.name(), f.list.public, mode, err)
 	// We just log the error as debug, rather than error, because it
 	// might just indicate an expected error such as an ENOENT.
 	//
@@ -100,7 +100,7 @@ func (f *Folder) unsetFolderBranch(ctx context.Context) {
 	err := f.list.fs.config.Notifier().UnregisterFromChanges([]libkbfs.FolderBranch{f.folderBranch}, f)
 	if err != nil {
 		f.fs.log.Info("cannot unregister change notifier for folder %q: %v",
-			f.name(ctx), err)
+			f.name(), err)
 	}
 	f.folderBranch = libkbfs.FolderBranch{}
 }
@@ -114,7 +114,7 @@ func (f *Folder) forgetNode(node libkbfs.Node) {
 	if len(f.nodes) == 0 {
 		ctx := context.Background()
 		f.unsetFolderBranch(ctx)
-		f.list.forgetFolder(string(f.name(ctx)))
+		f.list.forgetFolder(string(f.name()))
 	}
 }
 

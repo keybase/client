@@ -2,7 +2,6 @@ package test
 
 import (
 	"fmt"
-	"sort"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -123,23 +122,30 @@ func (k *LibKBFS) GetUID(u User) (uid keybase1.UID) {
 func (k *LibKBFS) GetRootDir(u User, isPublic bool, writers []string, readers []string) (
 	dir Node, err error) {
 	config := u.(*libkbfs.ConfigLocal)
-	h := libkbfs.NewTlfHandle()
 
+	writerUIDs := make([]keybase1.UID, 0, len(writers))
 	for _, writer := range writers {
-		h.Writers = append(h.Writers, keybase1.UID(writer))
+		writerUIDs = append(writerUIDs, keybase1.UID(writer))
 	}
+	var readerUIDs []keybase1.UID
 	if isPublic {
-		h.Readers = append(h.Readers, keybase1.PUBLIC_UID)
+		readerUIDs = []keybase1.UID{keybase1.PUBLIC_UID}
 	} else {
+		readerUIDs = make([]keybase1.UID, 0, len(readers))
 		for _, reader := range readers {
-			h.Readers = append(h.Readers, keybase1.UID(reader))
+			readerUIDs = append(readerUIDs, keybase1.UID(reader))
 		}
 	}
 
-	sort.Sort(libkbfs.UIDList(h.Writers))
-	sort.Sort(libkbfs.UIDList(h.Readers))
-
 	ctx := context.Background()
+	bareH, err := libkbfs.MakeBareTlfHandle(writerUIDs, readerUIDs)
+	if err != nil {
+		return nil, err
+	}
+	h, err := libkbfs.MakeTlfHandle(ctx, bareH, config.KBPKI())
+	if err != nil {
+		return nil, err
+	}
 
 	dir, _, err = config.KBFSOps().GetOrCreateRootNode(
 		ctx, h, libkbfs.MasterBranch)

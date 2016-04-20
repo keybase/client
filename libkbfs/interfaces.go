@@ -319,6 +319,12 @@ type KeybaseDaemon interface {
 	Shutdown()
 }
 
+type normalizedUsernameGetter interface {
+	// GetNormalizedUsername returns the normalized username
+	// corresponding to the given UID.
+	GetNormalizedUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error)
+}
+
 // KBPKI interacts with the Keybase daemon to fetch user info.
 type KBPKI interface {
 	// GetCurrentToken gets the current keybase session token.
@@ -351,9 +357,8 @@ type KBPKI interface {
 	// necessary.  The reason string is displayed on any tracker
 	// popups spawned.
 	Identify(ctx context.Context, assertion, reason string) (UserInfo, error)
-	// GetNormalizedUsername returns the normalized username
-	// corresponding to the given UID.
-	GetNormalizedUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error)
+
+	normalizedUsernameGetter
 
 	// HasVerifyingKey returns nil if the given user has the given
 	// VerifyingKey, and an error otherwise.

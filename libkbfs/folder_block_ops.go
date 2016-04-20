@@ -1071,7 +1071,7 @@ func (fbo *folderBlockOps) writeDataLocked(
 		return WriteRange{}, nil, err
 	}
 	if !md.GetTlfHandle().IsWriter(uid) {
-		return WriteRange{}, nil, NewWriteAccessError(ctx, fbo.config, md.GetTlfHandle(), username)
+		return WriteRange{}, nil, NewWriteAccessError(md.GetTlfHandle(), username)
 	}
 
 	fblock, err := fbo.getFileLocked(ctx, lState, md, file, blockWrite)
@@ -1281,7 +1281,7 @@ func (fbo *folderBlockOps) truncateLocked(
 		return nil, nil, err
 	}
 	if !md.GetTlfHandle().IsWriter(uid) {
-		return nil, nil, NewWriteAccessError(ctx, fbo.config, md.GetTlfHandle(), username)
+		return nil, nil, NewWriteAccessError(md.GetTlfHandle(), username)
 	}
 
 	fblock, err := fbo.getFileLocked(ctx, lState, md, file, blockWrite)

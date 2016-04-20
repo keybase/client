@@ -116,8 +116,12 @@ func (md *MDServerLocal) checkPerms(ctx context.Context, id TlfID,
 	if err != nil {
 		return false, err
 	}
-	isWriter := rmds.MD.GetTlfHandle().IsWriter(user)
-	isReader := rmds.MD.GetTlfHandle().IsReader(user)
+	h, err := rmds.MD.MakeBareTlfHandle()
+	if err != nil {
+		return false, err
+	}
+	isWriter := h.IsWriter(user)
+	isReader := h.IsReader(user)
 	if checkWrite {
 		// if this is a reader, are they acting within their restrictions?
 		if !isWriter && isReader && newMd != nil {
@@ -154,7 +158,7 @@ func (md *MDServerLocal) GetForHandle(ctx context.Context, handle *TlfHandle,
 		return id, nil, errors.New("MD server already shut down")
 	}
 
-	handleBytes, err := handle.ToBytes(md.config)
+	handleBytes, err := md.config.Codec().Encode(handle)
 	if err != nil {
 		return id, nil, err
 	}

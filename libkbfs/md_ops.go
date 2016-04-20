@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
@@ -22,7 +23,7 @@ func (md *MDOpsStandard) convertVerifyingKeyError(ctx context.Context,
 		return err
 	}
 
-	tlf := rmds.MD.GetTlfHandle().GetCanonicalPath(ctx, md.config)
+	tlf := rmds.MD.GetTlfHandle().GetCanonicalPath()
 	writer, nameErr := md.config.KBPKI().GetNormalizedUsername(ctx,
 		rmds.MD.LastModifyingWriter)
 	if nameErr != nil {
@@ -32,8 +33,8 @@ func (md *MDOpsStandard) convertVerifyingKeyError(ctx context.Context,
 	return UnverifiableTlfUpdateError{tlf, writer, err}
 }
 
-func (md *MDOpsStandard) verifyWriterKey(ctx context.Context,
-	handle *TlfHandle, rmds *RootMetadataSigned) error {
+func (md *MDOpsStandard) verifyWriterKey(
+	ctx context.Context, rmds *RootMetadataSigned) error {
 	if !rmds.MD.IsWriterMetadataCopiedSet() {
 		err := md.config.KBPKI().HasVerifyingKey(ctx,
 			rmds.MD.LastModifyingWriter,
@@ -103,16 +104,18 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	// A blank sig means this is a brand new MD object, and
 	// there's nothing to do.
 	if !rmds.IsInitialized() {
-		return nil
+		return errors.New("Missing RootMetadata signature")
 	}
 
 	// Otherwise, verify signatures and deserialize private data.
+
+	rmds.MD.tlfHandle = handle
 
 	// Make sure the last writer is really a valid writer
 	writer := rmds.MD.LastModifyingWriter
 	if !handle.IsWriter(writer) {
 		return MDMismatchError{
-			handle.ToString(ctx, md.config),
+			handle.GetCanonicalPath(),
 			fmt.Sprintf("Writer MD (id=%s) was written by a non-writer %s",
 				rmds.MD.ID, writer)}
 	}
@@ -121,13 +124,13 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 	user := rmds.MD.LastModifyingUser
 	if !handle.IsReader(user) {
 		return MDMismatchError{
-			handle.ToString(ctx, md.config),
+			handle.GetCanonicalPath(),
 			fmt.Sprintf("MD (id=%s) was changed by a non-reader %s",
 				rmds.MD.ID, user),
 		}
 	}
 
-	if err := md.verifyWriterKey(ctx, handle, rmds); err != nil {
+	if err := md.verifyWriterKey(ctx, rmds); err != nil {
 		return err
 	}
 
@@ -167,30 +170,42 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
 	if err != nil {
 		return nil, err
 	}
+
 	if rmds == nil {
 		if mStatus == Unmerged {
 			// don't automatically create unmerged MDs
 			return nil, nil
 		}
 		// create one if it doesn't exist
-		rmds = &RootMetadataSigned{}
-		updateNewRootMetadata(&rmds.MD, handle, id)
+		return NewRootMetadata(handle, id), nil
 	}
-	if err := md.processMetadata(ctx, handle, rmds); err != nil {
+
+	bareHandle, err := rmds.MD.MakeBareTlfHandle()
+	if err != nil {
 		return nil, err
 	}
-	if rmds.IsInitialized() {
-		// Make the the signed-over UIDs in the latest Keys match the handle
-		handleString := handle.ToString(ctx, md.config)
-		fetchedHandleString := rmds.MD.GetTlfHandle().ToString(ctx, md.config)
-		if fetchedHandleString != handleString {
-			return nil, MDMismatchError{
-				handleString,
-				fmt.Sprintf("MD (id=%s) contained unexpected handle %s",
-					rmds.MD.ID, fetchedHandleString),
-			}
+
+	mdHandle, err := MakeTlfHandle(ctx, bareHandle, md.config.KBPKI())
+	if err != nil {
+		return nil, err
+	}
+
+	// Make sure that the path for the given handle matches the
+	// one generated from the MD.
+	handlePath := handle.GetCanonicalPath()
+	fetchedHandlePath := mdHandle.GetCanonicalPath()
+	if fetchedHandlePath != handlePath {
+		return nil, MDMismatchError{
+			handlePath,
+			fmt.Sprintf("MD (id=%s) contained unexpected handle path %s",
+				rmds.MD.ID, fetchedHandlePath),
 		}
 	}
+
+	if err := md.processMetadata(ctx, mdHandle, rmds); err != nil {
+		return nil, err
+	}
+
 	return &rmds.MD, nil
 }
 
@@ -207,7 +222,7 @@ func (md *MDOpsStandard) GetUnmergedForHandle(ctx context.Context, handle *TlfHa
 }
 
 func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
-	id TlfID, bid BranchID, rmds *RootMetadataSigned) error {
+	id TlfID, bid BranchID, handle *TlfHandle, rmds *RootMetadataSigned) error {
 	// Make sure the signed-over ID matches
 	if id != rmds.MD.ID {
 		return MDMismatchError{
@@ -224,7 +239,8 @@ func (md *MDOpsStandard) processMetadataWithID(ctx context.Context,
 				"folder id %s", rmds.MD.BID.String(), bid.String(), id.String()),
 		}
 	}
-	return md.processMetadata(ctx, rmds.MD.GetTlfHandle(), rmds)
+
+	return md.processMetadata(ctx, handle, rmds)
 }
 
 func (md *MDOpsStandard) getForTLF(ctx context.Context, id TlfID,
@@ -237,7 +253,15 @@ func (md *MDOpsStandard) getForTLF(ctx context.Context, id TlfID,
 		// Possible if mStatus is Unmerged
 		return nil, nil
 	}
-	err = md.processMetadataWithID(ctx, id, bid, rmds)
+	bareHandle, err := rmds.MD.MakeBareTlfHandle()
+	if err != nil {
+		return nil, err
+	}
+	handle, err := MakeTlfHandle(ctx, bareHandle, md.config.KBPKI())
+	if err != nil {
+		return nil, err
+	}
+	err = md.processMetadataWithID(ctx, id, bid, handle, rmds)
 	if err != nil {
 		return nil, err
 	}
@@ -271,13 +295,23 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 		if err != nil {
 			return nil, err
 		}
+
+		bareHandle, err := r.MD.MakeBareTlfHandle()
+		if err != nil {
+			return nil, err
+		}
+		handle, err := MakeTlfHandle(ctx, bareHandle, md.config.KBPKI())
+		if err != nil {
+			return nil, err
+		}
+
 		//
 		// make sure the chain is correct
 		//
 		// (1) check revision
 		if r.MD.Revision != lastRevision+1 && lastRevision != 0 {
 			return nil, MDMismatchError{
-				r.MD.GetTlfHandle().ToString(ctx, md.config),
+				handle.GetCanonicalPath(),
 				fmt.Sprintf("MD (id=%v) is at an unexpected revision (%d) "+
 					"instead of %d", currRoot, r.MD.Revision.Number(),
 					lastRevision.Number()+1),
@@ -286,13 +320,13 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 		// (2) check PrevRoot pointer
 		if r.MD.PrevRoot != lastRoot && lastRoot != (MdID{}) {
 			return nil, MDMismatchError{
-				r.MD.GetTlfHandle().ToString(ctx, md.config),
+				handle.GetCanonicalPath(),
 				fmt.Sprintf("MD (id=%v) points to an unexpected root (%v) "+
 					"instead of %v", currRoot, r.MD.PrevRoot, lastRoot),
 			}
 		}
 
-		err = md.processMetadataWithID(ctx, id, bid, r)
+		err = md.processMetadataWithID(ctx, id, bid, handle, r)
 		if err != nil {
 			return nil, err
 		}

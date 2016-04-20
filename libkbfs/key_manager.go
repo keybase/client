@@ -130,7 +130,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 			}
 		}
 		if len(keys) == 0 {
-			err = makeRekeyReadError(ctx, km.config, md, keyGen, uid, username)
+			err = makeRekeyReadError(md, keyGen, uid, username)
 			return tlfCryptKey, err
 		}
 		var index int
@@ -140,7 +140,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 			// The likely error here is DecryptionError, which we will replace
 			// with a ReadAccessError to communicate to the caller that we were
 			// unable to decrypt because we didn't have a key with access.
-			return tlfCryptKey, makeRekeyReadError(ctx, km.config, md, keyGen,
+			return tlfCryptKey, makeRekeyReadError(md, keyGen,
 				uid, username)
 		}
 		info = keysInfo[index]
@@ -157,7 +157,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 			return tlfCryptKey, err
 		}
 		if !ok {
-			err = makeRekeyReadError(ctx, km.config, md, keyGen, uid, username)
+			err = makeRekeyReadError(md, keyGen, uid, username)
 			return tlfCryptKey, err
 		}
 
@@ -342,7 +342,7 @@ func (km *KeyManagerStandard) identifyUIDSets(ctx context.Context,
 	handle := md.GetTlfHandle()
 	for u := range writersToIdentify {
 		err := identifyUID(ctx, km.config.KBPKI(),
-			handle.GetCanonicalName(ctx, km.config), u, true,
+			handle.GetCanonicalName(), u, true,
 			md.ID.IsPublic())
 		if err != nil {
 			return err
@@ -350,7 +350,7 @@ func (km *KeyManagerStandard) identifyUIDSets(ctx context.Context,
 	}
 	for u := range readersToIdentify {
 		err := identifyUID(ctx, km.config.KBPKI(),
-			handle.GetCanonicalName(ctx, km.config), u, false,
+			handle.GetCanonicalName(), u, false,
 			md.ID.IsPublic())
 		if err != nil {
 			return err
@@ -403,7 +403,7 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 
 	if !handle.IsWriter(uid) && incKeyGen {
 		// Readers cannot create the first key generation
-		return false, nil, NewReadAccessError(ctx, km.config, handle, username)
+		return false, nil, NewReadAccessError(handle, username)
 	}
 
 	wKeys, err := km.generateKeyMapForUsers(ctx, handle.Writers)
@@ -466,7 +466,7 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 		} else {
 			// No new reader device for our user, so the reader can't do
 			// anything
-			return false, nil, NewReadAccessError(ctx, km.config, handle, username)
+			return false, nil, NewReadAccessError(handle, username)
 		}
 	}
 

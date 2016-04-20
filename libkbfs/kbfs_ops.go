@@ -191,7 +191,7 @@ func (fs *KBFSOpsStandard) getOpsByHandle(ctx context.Context,
 	// Track under its name, so we can later tell it to remove itself
 	// from the favorites list.  TODO: fix this when unresolved
 	// assertions are allowed and become resolved.
-	fs.opsByFav[handle.ToFavorite(ctx, fs.config)] = ops
+	fs.opsByFav[handle.ToFavorite()] = ops
 	return ops
 }
 
@@ -201,7 +201,7 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNode(
 	ctx context.Context, h *TlfHandle, branch BranchName) (
 	node Node, ei EntryInfo, err error) {
 	fs.log.CDebugf(ctx, "GetOrCreateRootNode(%s, %v)",
-		h.ToString(ctx, fs.config), branch)
+		h.GetCanonicalPath(), branch)
 	defer func() { fs.log.CDebugf(ctx, "Done: %#v", err) }()
 
 	// Do GetForHandle() unlocked -- no cache lookups, should be fine

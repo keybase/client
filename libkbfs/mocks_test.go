@@ -635,6 +635,38 @@ func (_mr *_MockKeybaseDaemonRecorder) Shutdown() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
 }
 
+// Mock of normalizedUsernameGetter interface
+type MocknormalizedUsernameGetter struct {
+	ctrl     *gomock.Controller
+	recorder *_MocknormalizedUsernameGetterRecorder
+}
+
+// Recorder for MocknormalizedUsernameGetter (not exported)
+type _MocknormalizedUsernameGetterRecorder struct {
+	mock *MocknormalizedUsernameGetter
+}
+
+func NewMocknormalizedUsernameGetter(ctrl *gomock.Controller) *MocknormalizedUsernameGetter {
+	mock := &MocknormalizedUsernameGetter{ctrl: ctrl}
+	mock.recorder = &_MocknormalizedUsernameGetterRecorder{mock}
+	return mock
+}
+
+func (_m *MocknormalizedUsernameGetter) EXPECT() *_MocknormalizedUsernameGetterRecorder {
+	return _m.recorder
+}
+
+func (_m *MocknormalizedUsernameGetter) GetNormalizedUsername(ctx context.Context, uid protocol.UID) (libkb.NormalizedUsername, error) {
+	ret := _m.ctrl.Call(_m, "GetNormalizedUsername", ctx, uid)
+	ret0, _ := ret[0].(libkb.NormalizedUsername)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MocknormalizedUsernameGetterRecorder) GetNormalizedUsername(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetNormalizedUsername", arg0, arg1)
+}
+
 // Mock of KBPKI interface
 type MockKBPKI struct {
 	ctrl     *gomock.Controller
