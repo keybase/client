@@ -267,8 +267,7 @@ func TestStatInvalidAliasFails(t *testing.T) {
 	defer cancelFn()
 
 	p := path.Join(mnt.Dir, PublicName, "HEAD.JPG")
-	// Even though "head" is not a real user in our config, this stat
-	// should succeed because no identify calls should be triggered.
+	// This should fail as HEAD.JPG has the wrong format.
 	_, err := os.Lstat(p)
 	if err == nil {
 		t.Fatal("Lstat of HEAD.JPG didn't return an error!")
