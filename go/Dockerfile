@@ -1,7 +1,7 @@
 FROM alpine:3.3
 MAINTAINER Keybase <admin@keybase.io>
 
-RUN apk add --update fuse openssl jq bash && \
+RUN apk add --update fuse jq bash && \
     rm -rf /var/cache/apk/* && \
     mkdir -p /home/keybase && \
     mkdir /keybase && \
@@ -10,9 +10,10 @@ RUN apk add --update fuse openssl jq bash && \
 
 USER keybase
 WORKDIR /home/keybase
-ADD keybase/keybase /home/keybase/keybase
 
-ENV KEYBASE_DEBUG=0
-ENV KEYBASE_RUN_MODE=devel
-ENV KEYBASE_SERVER_URI="http://kbweb.local:3000"
-ENV PATH=/home/keybase:$PATH
+ENV KEYBASE_DEBUG=0 \
+    KEYBASE_RUN_MODE=devel \
+    KEYBASE_SERVER_URI="http://kbweb.local:3000" \
+    PATH=/home/keybase:$PATH
+
+ADD keybase/keybase /home/keybase/keybase
