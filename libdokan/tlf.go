@@ -64,7 +64,7 @@ func (tlf *TLF) loadDir(ctx context.Context, info string) (dir *Dir, err error) 
 
 	tlf.folder.fs.log.CDebugf(ctx, "Loading root directory for folder %s "+
 		"(public: %t) for %s", name, tlf.isPublic(), info)
-	defer func() { tlf.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
+	defer func() { tlf.folder.reportErr(ctx, libkbfs.ReadMode, err, nil) }()
 
 	rootNode, _, err :=
 		tlf.folder.fs.config.KBFSOps().GetOrCreateRootNode(
@@ -115,7 +115,8 @@ func (tlf *TLF) open(ctx context.Context, oc *openContext, path []string) (dokan
 
 // FindFiles does readdir for dokan.
 func (tlf *TLF) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) (err error) {
-	ctx := NewContextWithOpID(tlf.folder.fs)
+	ctx, cancel := NewContextWithOpID(tlf.folder.fs, "TLF FindFiles")
+	defer cancel()
 	dir, err := tlf.loadDir(ctx, "FindFiles")
 	if err != nil {
 		return errToDokan(err)
@@ -131,11 +132,12 @@ func (tlf *TLF) CanDeleteDirectory(*dokan.FileInfo) (err error) {
 
 // Cleanup - forget references, perform deletions etc.
 func (tlf *TLF) Cleanup(fi *dokan.FileInfo) {
+	var err error
 	if fi != nil && fi.DeleteOnClose() {
-		ctx := NewContextWithOpID(tlf.folder.fs)
-		err := tlf.folder.fs.config.KBFSOps().DeleteFavorite(ctx,
+		ctx, cancel := NewContextWithOpID(tlf.folder.fs, "TLF Cleanup")
+		defer tlf.folder.reportErr(ctx, libkbfs.WriteMode, err, cancel)
+		err = tlf.folder.fs.config.KBFSOps().DeleteFavorite(ctx,
 			string(tlf.folder.name(ctx)), tlf.isPublic())
-		tlf.folder.reportErr(ctx, libkbfs.WriteMode, err)
 	}
 
 	if tlf.refcount.Decrease() {

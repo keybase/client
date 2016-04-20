@@ -26,9 +26,8 @@ type UnstageFile struct {
 
 // WriteFile implements writes for dokan.
 func (f *UnstageFile) WriteFile(fi *dokan.FileInfo, bs []byte, offset int64) (n int, err error) {
-	ctx := NewContextWithOpID(f.folder.fs)
-	f.folder.fs.log.CDebugf(ctx, "UnstageFile Write")
-	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
+	ctx, cancel := NewContextWithOpID(f.folder.fs, "UnstageFile WriteFile")
+	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err, cancel) }()
 	if len(bs) == 0 {
 		return 0, nil
 	}

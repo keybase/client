@@ -23,7 +23,8 @@ type SpecialReadFile struct {
 
 // GetFileInformation does stats for dokan.
 func (f *SpecialReadFile) GetFileInformation(*dokan.FileInfo) (*dokan.Stat, error) {
-	ctx := NewContextWithOpID(f.fs)
+	ctx, cancel := NewContextWithOpID(f.fs, "SpecialReadFile GetFileInformation")
+	defer cancel()
 	data, t, err := f.read(ctx)
 	if err != nil {
 		return nil, err
@@ -43,7 +44,8 @@ func (f *SpecialReadFile) GetFileInformation(*dokan.FileInfo) (*dokan.Stat, erro
 
 // ReadFile does reads for dokan.
 func (f *SpecialReadFile) ReadFile(fi *dokan.FileInfo, bs []byte, offset int64) (int, error) {
-	ctx := NewContextWithOpID(f.fs)
+	ctx, cancel := NewContextWithOpID(f.fs, "SpecialReadFile ReadFile")
+	defer cancel()
 	data, _, err := f.read(ctx)
 	if err != nil {
 		return 0, err
