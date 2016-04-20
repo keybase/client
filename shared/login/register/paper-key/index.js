@@ -23,6 +23,7 @@ class PaperKey extends Component<void, Props, State> {
         onChangePaperKey={paperKey => this.setState({paperKey})}
         onBack={this.props.onBack}
         paperKey={this.state.paperKey}
+        waitingForResponse={this.props.waitingForResponse}
       />
     )
   }

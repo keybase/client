@@ -29,6 +29,7 @@ export class SetPublicName extends Component<void, Props, State> {
         onBack={this.props.onBack}
         deviceNameError={nameTakenError || this.props.deviceNameError}
         submitEnabled={submitEnabled}
+        waitingForResponse={this.props.waitingForResponse}
       />
     )
   }
