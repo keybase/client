@@ -114,7 +114,6 @@ type UserDeviceKeyInfoMap map[keybase1.UID]DeviceKeyInfoMap
 // folder.
 type TLFWriterKeyBundle struct {
 	// Maps from each writer to their crypt key bundle.
-	// TODO rename once we're rid of TLFKeyBundle
 	WKeys UserDeviceKeyInfoMap
 
 	// M_f as described in 4.1.1 of https://keybase.io/blog/kbfs-crypto.
@@ -139,7 +138,7 @@ func (tkb TLFWriterKeyBundle) IsWriter(user keybase1.UID, deviceKID keybase1.KID
 
 // TLFWriterKeyGenerations stores a slice of TLFWriterKeyBundle,
 // where the last element is the current generation.
-type TLFWriterKeyGenerations []*TLFWriterKeyBundle
+type TLFWriterKeyGenerations []TLFWriterKeyBundle
 
 // LatestKeyGeneration returns the current key generation for this TLF.
 func (tkg TLFWriterKeyGenerations) LatestKeyGeneration() KeyGen {
@@ -159,7 +158,6 @@ func (tkg TLFWriterKeyGenerations) IsWriter(user keybase1.UID, deviceKID keybase
 // TLFReaderKeyBundle stores all the user keys with reader
 // permissions on a TLF
 type TLFReaderKeyBundle struct {
-	// TODO rename once we're rid of TLFKeyBundle
 	RKeys UserDeviceKeyInfoMap
 
 	// M_e as described in 4.1.1 of https://keybase.io/blog/kbfs-crypto.
@@ -183,7 +181,7 @@ func (trb TLFReaderKeyBundle) IsReader(user keybase1.UID, deviceKID keybase1.KID
 
 // TLFReaderKeyGenerations stores a slice of TLFReaderKeyBundle,
 // where the last element is the current generation.
-type TLFReaderKeyGenerations []*TLFReaderKeyBundle
+type TLFReaderKeyGenerations []TLFReaderKeyBundle
 
 // LatestKeyGeneration returns the current key generation for this TLF.
 func (tkg TLFReaderKeyGenerations) LatestKeyGeneration() KeyGen {
@@ -198,25 +196,6 @@ func (tkg TLFReaderKeyGenerations) IsReader(user keybase1.UID, deviceKID keybase
 		return false
 	}
 	return tkg[keyGen-1].IsReader(user, deviceKID)
-}
-
-// TLFKeyBundle is a bundle of all the keys for a top-level folder.
-// TODO get rid of this once we're fully dependent on reader and writer bundles separately
-type TLFKeyBundle struct {
-	*TLFWriterKeyBundle
-	*TLFReaderKeyBundle
-}
-
-// NewTLFKeyBundle creates a new empty TLFKeyBundle
-func NewTLFKeyBundle() *TLFKeyBundle {
-	return &TLFKeyBundle{
-		&TLFWriterKeyBundle{
-			WKeys: make(UserDeviceKeyInfoMap, 0),
-		},
-		&TLFReaderKeyBundle{
-			RKeys: make(UserDeviceKeyInfoMap, 0),
-		},
-	}
 }
 
 type serverKeyMap map[keybase1.UID]map[keybase1.KID]TLFCryptKeyServerHalf
@@ -247,7 +226,8 @@ func fillInDevicesAndServerMap(crypto Crypto, newIndex int,
 // in the provided lists has complete TLF crypt key info, and uses the
 // new ephemeral key pair to generate the info if it doesn't yet
 // exist.
-func (tkb *TLFKeyBundle) fillInDevices(crypto Crypto,
+func fillInDevices(crypto Crypto,
+	wkb *TLFWriterKeyBundle, rkb *TLFReaderKeyBundle,
 	wKeys map[keybase1.UID][]CryptPublicKey,
 	rKeys map[keybase1.UID][]CryptPublicKey, ePubKey TLFEphemeralPublicKey,
 	ePrivKey TLFEphemeralPrivateKey, tlfCryptKey TLFCryptKey) (
@@ -257,72 +237,26 @@ func (tkb *TLFKeyBundle) fillInDevices(crypto Crypto,
 		// This is VERY ugly, but we need it in order to avoid having to
 		// version the metadata. The index will be strictly negative for reader
 		// ephemeral public keys
-		tkb.TLFReaderEphemeralPublicKeys =
-			append(tkb.TLFReaderEphemeralPublicKeys, ePubKey)
-		newIndex = -len(tkb.TLFReaderEphemeralPublicKeys)
+		rkb.TLFReaderEphemeralPublicKeys =
+			append(rkb.TLFReaderEphemeralPublicKeys, ePubKey)
+		newIndex = -len(rkb.TLFReaderEphemeralPublicKeys)
 	} else {
-		tkb.TLFEphemeralPublicKeys =
-			append(tkb.TLFEphemeralPublicKeys, ePubKey)
-		newIndex = len(tkb.TLFEphemeralPublicKeys) - 1
+		wkb.TLFEphemeralPublicKeys =
+			append(wkb.TLFEphemeralPublicKeys, ePubKey)
+		newIndex = len(wkb.TLFEphemeralPublicKeys) - 1
 	}
 
 	// now fill in the secret keys as needed
 	newServerKeys := serverKeyMap{}
-	err := fillInDevicesAndServerMap(crypto, newIndex, wKeys, tkb.WKeys,
+	err := fillInDevicesAndServerMap(crypto, newIndex, wKeys, wkb.WKeys,
 		ePubKey, ePrivKey, tlfCryptKey, newServerKeys)
 	if err != nil {
 		return nil, err
 	}
-	err = fillInDevicesAndServerMap(crypto, newIndex, rKeys, tkb.RKeys,
+	err = fillInDevicesAndServerMap(crypto, newIndex, rKeys, rkb.RKeys,
 		ePubKey, ePrivKey, tlfCryptKey, newServerKeys)
 	if err != nil {
 		return nil, err
 	}
 	return newServerKeys, nil
-}
-
-// GetTLFCryptKeyInfo returns the TLFCryptKeyInfo entry for the given user
-// and device.
-func (tkb TLFKeyBundle) GetTLFCryptKeyInfo(user keybase1.UID,
-	currentCryptPublicKey CryptPublicKey) (TLFCryptKeyInfo, bool, error) {
-	key := currentCryptPublicKey.kid
-	if u, ok1 := tkb.WKeys[user]; ok1 {
-		info, ok := u[key]
-		return info, ok, nil
-	} else if u, ok1 = tkb.RKeys[user]; ok1 {
-		info, ok := u[key]
-		return info, ok, nil
-	}
-	return TLFCryptKeyInfo{}, false, nil
-}
-
-// GetTLFEphemeralPublicKey returns the ephemeral public key used for
-// the TLFCryptKeyInfo for the given user and device.
-func (tkb TLFKeyBundle) GetTLFEphemeralPublicKey(user keybase1.UID,
-	currentCryptPublicKey CryptPublicKey) (TLFEphemeralPublicKey, error) {
-	key := currentCryptPublicKey.kid
-
-	info, ok, err := tkb.GetTLFCryptKeyInfo(user, currentCryptPublicKey)
-	if err != nil {
-		return TLFEphemeralPublicKey{}, err
-	}
-	if !ok {
-		return TLFEphemeralPublicKey{},
-			TLFEphemeralPublicKeyNotFoundError{user, key}
-	}
-
-	if info.EPubKeyIndex < 0 {
-		return tkb.TLFReaderEphemeralPublicKeys[-1-info.EPubKeyIndex], nil
-	}
-	return tkb.TLFEphemeralPublicKeys[info.EPubKeyIndex], nil
-}
-
-// GetTLFCryptPublicKeys returns the public crypt keys for the given user.
-func (tkb TLFKeyBundle) GetTLFCryptPublicKeys(user keybase1.UID) ([]keybase1.KID, bool) {
-	if u, ok1 := tkb.WKeys[user]; ok1 {
-		return u.GetKIDs(), true
-	} else if u, ok1 = tkb.RKeys[user]; ok1 {
-		return u.GetKIDs(), true
-	}
-	return nil, false
 }

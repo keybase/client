@@ -293,7 +293,7 @@ func NewFolderWithIDAndWriter(t logger.TestLogBackend, id TlfID, revision Metada
 	rmds.MD.LastModifyingWriter = h.Writers[0]
 	rmds.MD.LastModifyingUser = h.Writers[0]
 	if !public {
-		AddNewKeysOrBust(t, &rmds.MD, *NewTLFKeyBundle())
+		AddNewEmptyKeysOrBust(t, &rmds.MD)
 	}
 
 	rmds.SigInfo = SignatureInfo{
@@ -304,11 +304,31 @@ func NewFolderWithIDAndWriter(t logger.TestLogBackend, id TlfID, revision Metada
 	return h, rmds
 }
 
+// NewEmptyTLFWriterKeyBundle creates a new empty TLFWriterKeyBundle
+func NewEmptyTLFWriterKeyBundle() TLFWriterKeyBundle {
+	return TLFWriterKeyBundle{
+		WKeys: make(UserDeviceKeyInfoMap, 0),
+	}
+}
+
+// NewEmptyTLFReaderKeyBundle creates a new empty TLFReaderKeyBundle
+func NewEmptyTLFReaderKeyBundle() TLFReaderKeyBundle {
+	return TLFReaderKeyBundle{
+		RKeys: make(UserDeviceKeyInfoMap, 0),
+	}
+}
+
 // AddNewKeysOrBust adds new keys to root metadata and blows up on error.
-func AddNewKeysOrBust(t logger.TestLogBackend, rmd *RootMetadata, tkb TLFKeyBundle) {
-	if err := rmd.AddNewKeys(tkb); err != nil {
+func AddNewKeysOrBust(t logger.TestLogBackend, rmd *RootMetadata, wkb TLFWriterKeyBundle, rkb TLFReaderKeyBundle) {
+	if err := rmd.AddNewKeys(wkb, rkb); err != nil {
 		t.Fatal(err)
 	}
+}
+
+// AddNewEmptyKeysOrBust adds new empty keys to root metadata and
+// blows up on error.
+func AddNewEmptyKeysOrBust(t logger.TestLogBackend, rmd *RootMetadata) {
+	AddNewKeysOrBust(t, rmd, NewEmptyTLFWriterKeyBundle(), NewEmptyTLFReaderKeyBundle())
 }
 
 func keySaltForUserDevice(name libkb.NormalizedUsername,
@@ -402,35 +422,28 @@ func testWithCanceledContext(t logger.TestLogBackend, ctx context.Context,
 }
 
 // MakeDirRKeyBundle creates a new bundle with a reader key.
-func MakeDirRKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) TLFKeyBundle {
-	return TLFKeyBundle{
-		TLFReaderKeyBundle: &TLFReaderKeyBundle{
-			RKeys: UserDeviceKeyInfoMap{
-				uid: {
-					cryptPublicKey.kid: TLFCryptKeyInfo{},
+func MakeDirRKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) TLFReaderKeyBundle {
+	return TLFReaderKeyBundle{
+		RKeys: UserDeviceKeyInfoMap{
+			uid: {
+				cryptPublicKey.kid: TLFCryptKeyInfo{
+					EPubKeyIndex: -1,
 				},
 			},
 		},
-		TLFWriterKeyBundle: &TLFWriterKeyBundle{
-			TLFEphemeralPublicKeys: make([]TLFEphemeralPublicKey, 1),
-		},
+		TLFReaderEphemeralPublicKeys: make([]TLFEphemeralPublicKey, 1),
 	}
 }
 
 // MakeDirWKeyBundle creates a new bundle with a writer key.
-func MakeDirWKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) TLFKeyBundle {
-	return TLFKeyBundle{
-		TLFWriterKeyBundle: &TLFWriterKeyBundle{
-			WKeys: UserDeviceKeyInfoMap{
-				uid: {
-					cryptPublicKey.kid: TLFCryptKeyInfo{},
-				},
+func MakeDirWKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) TLFWriterKeyBundle {
+	return TLFWriterKeyBundle{
+		WKeys: UserDeviceKeyInfoMap{
+			uid: {
+				cryptPublicKey.kid: TLFCryptKeyInfo{},
 			},
-			TLFEphemeralPublicKeys: make([]TLFEphemeralPublicKey, 1),
 		},
-		TLFReaderKeyBundle: &TLFReaderKeyBundle{
-			RKeys: make(UserDeviceKeyInfoMap, 0),
-		},
+		TLFEphemeralPublicKeys: make([]TLFEphemeralPublicKey, 1),
 	}
 }
 

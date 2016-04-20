@@ -54,8 +54,7 @@ func testMdcachePut(t *testing.T, tlf TlfID, rev MetadataRevision,
 		Revision: rev,
 		RKeys:    make(TLFReaderKeyGenerations, 1, 1),
 	}
-	k := NewTLFKeyBundle()
-	rmd.WKeys[0] = k.TLFWriterKeyBundle
+	rmd.WKeys[0] = NewEmptyTLFWriterKeyBundle()
 	if mStatus == Unmerged {
 		rmd.WFlags |= MetadataFlagUnmerged
 	}

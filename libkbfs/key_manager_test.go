@@ -141,7 +141,7 @@ func TestKeyManagerCachedSecretKeyForEncryptionSuccess(t *testing.T) {
 
 	_, id, h := makeID(t, config, false)
 	rmd := NewRootMetadataForTest(h, id)
-	AddNewKeysOrBust(t, rmd, *NewTLFKeyBundle())
+	AddNewEmptyKeysOrBust(t, rmd)
 
 	expectCachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration())
 
@@ -157,7 +157,7 @@ func TestKeyManagerCachedSecretKeyForMDDecryptionSuccess(t *testing.T) {
 
 	_, id, h := makeID(t, config, false)
 	rmd := NewRootMetadataForTest(h, id)
-	AddNewKeysOrBust(t, rmd, *NewTLFKeyBundle())
+	AddNewEmptyKeysOrBust(t, rmd)
 
 	expectCachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration())
 
@@ -173,8 +173,8 @@ func TestKeyManagerCachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
 
 	_, id, h := makeID(t, config, false)
 	rmd := NewRootMetadataForTest(h, id)
-	AddNewKeysOrBust(t, rmd, *NewTLFKeyBundle())
-	AddNewKeysOrBust(t, rmd, *NewTLFKeyBundle())
+	AddNewEmptyKeysOrBust(t, rmd)
+	AddNewEmptyKeysOrBust(t, rmd)
 
 	keyGen := rmd.LatestKeyGeneration() - 1
 	expectCachedGetTLFCryptKey(config, rmd, keyGen)
@@ -193,7 +193,7 @@ func TestKeyManagerUncachedSecretKeyForEncryptionSuccess(t *testing.T) {
 	rmd := NewRootMetadataForTest(h, id)
 
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
-	AddNewKeysOrBust(t, rmd, MakeDirRKeyBundle(uid, subkey))
+	AddNewKeysOrBust(t, rmd, NewEmptyTLFWriterKeyBundle(), MakeDirRKeyBundle(uid, subkey))
 
 	expectUncachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration(), uid, subkey, true)
 
@@ -211,7 +211,7 @@ func TestKeyManagerUncachedSecretKeyForMDDecryptionSuccess(t *testing.T) {
 	rmd := NewRootMetadataForTest(h, id)
 
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
-	AddNewKeysOrBust(t, rmd, MakeDirRKeyBundle(uid, subkey))
+	AddNewKeysOrBust(t, rmd, NewEmptyTLFWriterKeyBundle(), MakeDirRKeyBundle(uid, subkey))
 
 	expectUncachedGetTLFCryptKeyAnyDevice(config, rmd, rmd.LatestKeyGeneration(), uid, subkey, false)
 
@@ -229,8 +229,8 @@ func TestKeyManagerUncachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
 	rmd := NewRootMetadataForTest(h, id)
 
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
-	AddNewKeysOrBust(t, rmd, MakeDirRKeyBundle(uid, subkey))
-	AddNewKeysOrBust(t, rmd, MakeDirRKeyBundle(uid, subkey))
+	AddNewKeysOrBust(t, rmd, NewEmptyTLFWriterKeyBundle(), MakeDirRKeyBundle(uid, subkey))
+	AddNewKeysOrBust(t, rmd, NewEmptyTLFWriterKeyBundle(), MakeDirRKeyBundle(uid, subkey))
 
 	keyGen := rmd.LatestKeyGeneration() - 1
 	expectUncachedGetTLFCryptKey(config, rmd, keyGen, uid, subkey, false)

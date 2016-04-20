@@ -202,12 +202,13 @@ func (km *KeyManagerStandard) updateKeyBundle(ctx context.Context,
 	md *RootMetadata, keyGen KeyGen, wKeys map[keybase1.UID][]CryptPublicKey,
 	rKeys map[keybase1.UID][]CryptPublicKey, ePubKey TLFEphemeralPublicKey,
 	ePrivKey TLFEphemeralPrivateKey, tlfCryptKey TLFCryptKey) error {
-	tkb, err := md.getTLFKeyBundle(keyGen)
+	wkb, rkb, err := md.getTLFKeyBundles(keyGen)
 	if err != nil {
 		return err
 	}
 
-	newServerKeys, err := tkb.fillInDevices(km.config.Crypto(), wKeys, rKeys,
+	newServerKeys, err := fillInDevices(km.config.Crypto(),
+		wkb, rkb, wKeys, rKeys,
 		ePubKey, ePrivKey, tlfCryptKey)
 	if err != nil {
 		return err
@@ -422,18 +423,18 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 	if !incKeyGen {
 		// See if there is at least one new device in relation to the
 		// current key bundle
-		tkb, err := md.getTLFKeyBundle(currKeyGen)
+		wkb, rkb, err := md.getTLFKeyBundles(currKeyGen)
 		if err != nil {
 			return false, nil, err
 		}
 
-		newWriterUsers = km.usersWithNewDevices(ctx, md, tkb.WKeys, wKeys)
-		newReaderUsers = km.usersWithNewDevices(ctx, md, tkb.RKeys, rKeys)
+		newWriterUsers = km.usersWithNewDevices(ctx, md, wkb.WKeys, wKeys)
+		newReaderUsers = km.usersWithNewDevices(ctx, md, rkb.RKeys, rKeys)
 		addNewWriterDevice = len(newWriterUsers) > 0
 		addNewReaderDevice = len(newReaderUsers) > 0
 
-		wRemoved := km.usersWithRemovedDevices(ctx, md, tkb.WKeys, wKeys)
-		rRemoved := km.usersWithRemovedDevices(ctx, md, tkb.RKeys, rKeys)
+		wRemoved := km.usersWithRemovedDevices(ctx, md, wkb.WKeys, wKeys)
+		rRemoved := km.usersWithRemovedDevices(ctx, md, rkb.RKeys, rKeys)
 		incKeyGen = len(wRemoved) > 0 || len(rRemoved) > 0
 
 		for u := range wRemoved {
@@ -528,18 +529,16 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 	km.config.Reporter().Notify(ctx, rekeyNotification(ctx, km.config, handle,
 		false))
 
-	newClientKeys := TLFKeyBundle{
-		TLFWriterKeyBundle: &TLFWriterKeyBundle{
-			WKeys:        make(UserDeviceKeyInfoMap),
-			TLFPublicKey: pubKey,
-			// TLFEphemeralPublicKeys will be filled in by updateKeyBundle
-		},
-		TLFReaderKeyBundle: &TLFReaderKeyBundle{
-			RKeys: make(UserDeviceKeyInfoMap),
-			// TLFReaderEphemeralPublicKeys will be filled in by updateKeyBundle
-		},
+	newWriterKeys := TLFWriterKeyBundle{
+		WKeys:        make(UserDeviceKeyInfoMap),
+		TLFPublicKey: pubKey,
+		// TLFEphemeralPublicKeys will be filled in by updateKeyBundle
 	}
-	err = md.AddNewKeys(newClientKeys)
+	newReaderKeys := TLFReaderKeyBundle{
+		RKeys: make(UserDeviceKeyInfoMap),
+		// TLFReaderEphemeralPublicKeys will be filled in by updateKeyBundle
+	}
+	err = md.AddNewKeys(newWriterKeys, newReaderKeys)
 	if err != nil {
 		return false, nil, err
 	}
@@ -553,16 +552,16 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 
 	// Delete server-side key halves for any revoked devices.
 	for keygen := KeyGen(FirstValidKeyGen); keygen <= currKeyGen; keygen++ {
-		tkb, err := md.getTLFKeyBundle(keygen)
+		wkb, rkb, err := md.getTLFKeyBundles(keygen)
 		if err != nil {
 			return false, nil, err
 		}
 
-		err = km.deleteKeysForRemovedDevices(ctx, md, tkb.WKeys, wKeys)
+		err = km.deleteKeysForRemovedDevices(ctx, md, wkb.WKeys, wKeys)
 		if err != nil {
 			return false, nil, err
 		}
-		err = km.deleteKeysForRemovedDevices(ctx, md, tkb.RKeys, rKeys)
+		err = km.deleteKeysForRemovedDevices(ctx, md, rkb.RKeys, rKeys)
 		if err != nil {
 			return false, nil, err
 		}

@@ -350,23 +350,19 @@ func (md *RootMetadata) MakeSuccessor(config Config, isWriter bool) (*RootMetada
 	return newMd, nil
 }
 
-// TODO get rid of this once we're fully dependent on reader and writer metadata separately
-func (md *RootMetadata) getTLFKeyBundle(keyGen KeyGen) (*TLFKeyBundle, error) {
+func (md *RootMetadata) getTLFKeyBundles(keyGen KeyGen) (*TLFWriterKeyBundle, *TLFReaderKeyBundle, error) {
 	if md.ID.IsPublic() {
-		return nil, InvalidPublicTLFOperation{md.ID, "getTLFKeyBundle"}
+		return nil, nil, InvalidPublicTLFOperation{md.ID, "getTLFKeyBundle"}
 	}
 
 	if keyGen < FirstValidKeyGen {
-		return nil, InvalidKeyGenerationError{md.GetTlfHandle(), keyGen}
+		return nil, nil, InvalidKeyGenerationError{md.GetTlfHandle(), keyGen}
 	}
 	i := int(keyGen - FirstValidKeyGen)
 	if i >= len(md.WKeys) || i >= len(md.RKeys) {
-		return nil, NewKeyGenerationError{md.GetTlfHandle(), keyGen}
+		return nil, nil, NewKeyGenerationError{md.GetTlfHandle(), keyGen}
 	}
-	return &TLFKeyBundle{
-		md.WKeys[i],
-		md.RKeys[i],
-	}, nil
+	return &md.WKeys[i], &md.RKeys[i], nil
 }
 
 // GetTLFCryptKeyInfo returns the TLFCryptKeyInfo entry for the given user
@@ -374,24 +370,37 @@ func (md *RootMetadata) getTLFKeyBundle(keyGen KeyGen) (*TLFKeyBundle, error) {
 func (md *RootMetadata) GetTLFCryptKeyInfo(keyGen KeyGen, user keybase1.UID,
 	currentCryptPublicKey CryptPublicKey) (
 	info TLFCryptKeyInfo, ok bool, err error) {
-	tkb, err := md.getTLFKeyBundle(keyGen)
+	wkb, rkb, err := md.getTLFKeyBundles(keyGen)
 	if err != nil {
-		return
+		return TLFCryptKeyInfo{}, false, err
 	}
 
-	return tkb.GetTLFCryptKeyInfo(user, currentCryptPublicKey)
+	key := currentCryptPublicKey.kid
+	if u, ok1 := wkb.WKeys[user]; ok1 {
+		info, ok := u[key]
+		return info, ok, nil
+	} else if u, ok1 = rkb.RKeys[user]; ok1 {
+		info, ok := u[key]
+		return info, ok, nil
+	}
+	return TLFCryptKeyInfo{}, false, nil
 }
 
 // GetTLFCryptPublicKeys returns the public crypt keys for the given user
 // at the given key generation.
 func (md *RootMetadata) GetTLFCryptPublicKeys(keyGen KeyGen, user keybase1.UID) (
 	[]keybase1.KID, bool) {
-	tkb, err := md.getTLFKeyBundle(keyGen)
+	wkb, rkb, err := md.getTLFKeyBundles(keyGen)
 	if err != nil {
 		return nil, false
 	}
 
-	return tkb.GetTLFCryptPublicKeys(user)
+	if u, ok1 := wkb.WKeys[user]; ok1 {
+		return u.GetKIDs(), true
+	} else if u, ok1 = rkb.RKeys[user]; ok1 {
+		return u.GetKIDs(), true
+	}
+	return nil, false
 }
 
 // GetTLFEphemeralPublicKey returns the ephemeral public key used for
@@ -399,12 +408,26 @@ func (md *RootMetadata) GetTLFCryptPublicKeys(keyGen KeyGen, user keybase1.UID) 
 func (md *RootMetadata) GetTLFEphemeralPublicKey(
 	keyGen KeyGen, user keybase1.UID,
 	currentCryptPublicKey CryptPublicKey) (TLFEphemeralPublicKey, error) {
-	tkb, err := md.getTLFKeyBundle(keyGen)
+	wkb, rkb, err := md.getTLFKeyBundles(keyGen)
 	if err != nil {
 		return TLFEphemeralPublicKey{}, err
 	}
 
-	return tkb.GetTLFEphemeralPublicKey(user, currentCryptPublicKey)
+	info, ok, err := md.GetTLFCryptKeyInfo(
+		keyGen, user, currentCryptPublicKey)
+	if err != nil {
+		return TLFEphemeralPublicKey{}, err
+	}
+	if !ok {
+		return TLFEphemeralPublicKey{},
+			TLFEphemeralPublicKeyNotFoundError{
+				user, currentCryptPublicKey.kid}
+	}
+
+	if info.EPubKeyIndex < 0 {
+		return rkb.TLFReaderEphemeralPublicKeys[-1-info.EPubKeyIndex], nil
+	}
+	return wkb.TLFEphemeralPublicKeys[info.EPubKeyIndex], nil
 }
 
 // LatestKeyGeneration returns the newest key generation for this RootMetadata.
@@ -417,12 +440,13 @@ func (md *RootMetadata) LatestKeyGeneration() KeyGen {
 
 // AddNewKeys makes a new key generation for this RootMetadata using the
 // given TLFKeyBundle.
-func (md *RootMetadata) AddNewKeys(keys TLFKeyBundle) error {
+func (md *RootMetadata) AddNewKeys(
+	wkb TLFWriterKeyBundle, rkb TLFReaderKeyBundle) error {
 	if md.ID.IsPublic() {
 		return InvalidPublicTLFOperation{md.ID, "AddNewKeys"}
 	}
-	md.WKeys = append(md.WKeys, keys.TLFWriterKeyBundle)
-	md.RKeys = append(md.RKeys, keys.TLFReaderKeyBundle)
+	md.WKeys = append(md.WKeys, wkb)
+	md.RKeys = append(md.RKeys, rkb)
 	return nil
 }
 
@@ -444,18 +468,18 @@ func (md *RootMetadata) GetTlfHandle() *TlfHandle {
 		h.Writers = make([]keybase1.UID, len(md.Writers))
 		copy(h.Writers, md.Writers)
 	} else {
-		wtkb := md.WKeys[len(md.WKeys)-1]
-		rtkb := md.RKeys[len(md.RKeys)-1]
-		h.Writers = make([]keybase1.UID, 0, len(wtkb.WKeys))
-		h.Readers = make([]keybase1.UID, 0, len(rtkb.RKeys))
-		for w := range wtkb.WKeys {
+		wkb := md.WKeys[len(md.WKeys)-1]
+		rkb := md.RKeys[len(md.RKeys)-1]
+		h.Writers = make([]keybase1.UID, 0, len(wkb.WKeys))
+		h.Readers = make([]keybase1.UID, 0, len(rkb.RKeys))
+		for w := range wkb.WKeys {
 			h.Writers = append(h.Writers, w)
 		}
-		for r := range rtkb.RKeys {
+		for r := range rkb.RKeys {
 			// TODO: Return an error instead if r is
 			// PublicUID. Maybe return an error if r is in
 			// WKeys also.
-			if _, ok := wtkb.WKeys[r]; !ok &&
+			if _, ok := wkb.WKeys[r]; !ok &&
 				r != keybase1.PublicUID {
 				h.Readers = append(h.Readers, r)
 			}

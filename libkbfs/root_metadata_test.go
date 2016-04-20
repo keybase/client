@@ -99,7 +99,7 @@ func TestRootMetadataGetTlfHandlePublic(t *testing.T) {
 func TestRootMetadataGetTlfHandlePrivate(t *testing.T) {
 	tlfID := FakeTlfID(0, false)
 	rmd := NewRootMetadata(nil, tlfID)
-	AddNewKeysOrBust(t, rmd, *NewTLFKeyBundle())
+	AddNewEmptyKeysOrBust(t, rmd)
 	dirHandle := rmd.GetTlfHandle()
 	if dirHandle == nil {
 		t.Fatal("nil TlfHandle")
@@ -119,7 +119,7 @@ func TestRootMetadataLatestKeyGenerationPrivate(t *testing.T) {
 	if rmd.LatestKeyGeneration() != 0 {
 		t.Errorf("Expected key generation to be invalid (0)")
 	}
-	AddNewKeysOrBust(t, rmd, *NewTLFKeyBundle())
+	AddNewEmptyKeysOrBust(t, rmd)
 	if rmd.LatestKeyGeneration() != FirstValidKeyGen {
 		t.Errorf("Expected key generation to be valid(%d)", FirstValidKeyGen)
 	}
@@ -193,7 +193,7 @@ func TestWriterMetadataEncodedFields(t *testing.T) {
 	wm := WriterMetadata{
 		ID:      FakeTlfID(0xa, false),
 		Writers: []keybase1.UID{"uid1", "uid2"},
-		WKeys:   TLFWriterKeyGenerations{nil},
+		WKeys:   TLFWriterKeyGenerations{{}},
 		Extra: WriterMetadataExtra{
 			UnresolvedWriters: []keybase1.SocialAssertion{sa1, sa2},
 		},
@@ -245,7 +245,7 @@ func (wkgf tlfWriterKeyGenerationsFuture) toCurrent() TLFWriterKeyGenerations {
 	wkg := make(TLFWriterKeyGenerations, len(wkgf))
 	for i, wkbf := range wkgf {
 		wkb := wkbf.toCurrent()
-		wkg[i] = (*TLFWriterKeyBundle)(&wkb)
+		wkg[i] = wkb
 	}
 	return wkg
 }
@@ -314,7 +314,7 @@ func (rkgf tlfReaderKeyGenerationsFuture) toCurrent() TLFReaderKeyGenerations {
 	rkg := make(TLFReaderKeyGenerations, len(rkgf))
 	for i, rkbf := range rkgf {
 		rkb := rkbf.toCurrent()
-		rkg[i] = (*TLFReaderKeyBundle)(&rkb)
+		rkg[i] = rkb
 	}
 	return rkg
 }

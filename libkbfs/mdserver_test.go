@@ -26,7 +26,7 @@ func TestMDServerBasics(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	keys := MakeDirWKeyBundle(uid, key)
+	wkb := MakeDirWKeyBundle(uid, key)
 
 	// (1) get metadata -- allocates an ID
 	handle, _ := NewFolderWithIDAndWriter(t, NullTlfID, 1, true, false, uid)
@@ -45,7 +45,7 @@ func TestMDServerBasics(t *testing.T) {
 		_, md := NewFolderWithIDAndWriter(t, id, i, true, false, uid)
 		md.MD.SerializedPrivateMetadata = make([]byte, 1)
 		md.MD.SerializedPrivateMetadata[0] = 0x1
-		AddNewKeysOrBust(t, &md.MD, keys)
+		AddNewKeysOrBust(t, &md.MD, wkb, NewEmptyTLFReaderKeyBundle())
 		md.MD.clearCachedMetadataIDForTest()
 		if i > 1 {
 			md.MD.PrevRoot = prevRoot
@@ -70,7 +70,7 @@ func TestMDServerBasics(t *testing.T) {
 	_, md = NewFolderWithIDAndWriter(t, id, 10, true, false, uid)
 	md.MD.SerializedPrivateMetadata = make([]byte, 1)
 	md.MD.SerializedPrivateMetadata[0] = 0x1
-	AddNewKeysOrBust(t, &md.MD, keys)
+	AddNewKeysOrBust(t, &md.MD, wkb, NewEmptyTLFReaderKeyBundle())
 	md.MD.PrevRoot = prevRoot
 	err = mdServer.Put(ctx, md)
 	if _, ok := err.(MDServerErrorConflictRevision); !ok {
@@ -89,7 +89,7 @@ func TestMDServerBasics(t *testing.T) {
 		md.MD.SerializedPrivateMetadata = make([]byte, 1)
 		md.MD.SerializedPrivateMetadata[0] = 0x1
 		md.MD.PrevRoot = prevRoot
-		AddNewKeysOrBust(t, &md.MD, keys)
+		AddNewKeysOrBust(t, &md.MD, wkb, NewEmptyTLFReaderKeyBundle())
 		md.MD.clearCachedMetadataIDForTest()
 		md.MD.WFlags |= MetadataFlagUnmerged
 		md.MD.BID = bid
