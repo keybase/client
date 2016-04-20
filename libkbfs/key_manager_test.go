@@ -354,8 +354,11 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 		t.Errorf("Expected %d identify calls, but got %d", e, g)
 	}
 
-	// this device should be able to read now
-	root2Dev2 := GetRootNodeOrBust(t, config2Dev2, name, false)
+	// u2 syncs after the rekey
+	if err := kbfsOps2.SyncFromServerForTesting(ctx,
+		rootNode2.GetFolderBranch()); err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
 
 	// user 2 creates another file
 	_, _, err = kbfsOps2.CreateFile(ctx, rootNode2, "c", false)
@@ -406,6 +409,9 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't create file: %v", err)
 	}
+
+	// this device should be able to read now
+	root2Dev2 := GetRootNodeOrBust(t, config2Dev2, name, false)
 
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
 	err = kbfsOps2Dev2.SyncFromServerForTesting(ctx, root2Dev2.GetFolderBranch())
