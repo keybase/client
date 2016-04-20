@@ -28,9 +28,8 @@ type Symlink struct {
 
 // GetFileInformation does stat for dokan.
 func (s *Symlink) GetFileInformation(*dokan.FileInfo) (a *dokan.Stat, err error) {
-	ctx := NewContextWithOpID(s.parent.folder.fs)
-	s.parent.folder.fs.log.CDebugf(ctx, "Symlink Attr")
-	defer func() { s.parent.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
+	ctx, cancel := NewContextWithOpID(s.parent.folder.fs, "Symlink GetFileInformation")
+	defer func() { s.parent.folder.reportErr(ctx, libkbfs.ReadMode, err, cancel) }()
 
 	_, _, err = s.parent.folder.fs.config.KBFSOps().Lookup(ctx, s.parent.node, s.name)
 	if err != nil {

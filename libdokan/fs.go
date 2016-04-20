@@ -103,8 +103,8 @@ func (f *FS) GetVolumeInformation() (dokan.VolumeInformation, error) {
 // GetDiskFreeSpace returns information about free space on the volume for dokan.
 func (f *FS) GetDiskFreeSpace() (dokan.FreeSpace, error) {
 	// TODO should this be refused to other users?
-	ctx := NewContextWithOpID(f)
-	f.log.CDebugf(ctx, "FS GetDiskFreeSpace")
+	ctx, cancel := NewContextWithOpID(f, "FS GetDiskFreeSpace")
+	defer cancel()
 	uqi, err := f.config.BlockServer().GetUserQuotaInfo(ctx)
 	f.log.CDebugf(ctx, "FS GetDiskFreeSpace -> %v, %v", uqi, err)
 	if err != nil {
@@ -199,7 +199,8 @@ func (f *FS) CreateFile(fi *dokan.FileInfo, cd *dokan.CreateData) (dokan.File, b
 	if !fi.IsRequestorUserSidEqualTo(f.currentUserSID) {
 		return nil, false, dokan.ErrAccessDenied
 	}
-	ctx := NewContextWithOpID(f)
+	ctx, cancel := NewContextWithOpID(f, "FS CreateFile")
+	defer cancel()
 	return f.openRaw(ctx, fi, cd)
 }
 
@@ -265,9 +266,8 @@ func windowsPathSplit(raw string) ([]string, error) {
 func (f *FS) MoveFile(source *dokan.FileInfo, targetPath string, replaceExisting bool) (err error) {
 	// User checking is handled by the opening of the source file
 
-	ctx := NewContextWithOpID(f)
-	f.log.CDebugf(ctx, "FS Rename start replaceExisting=%v", replaceExisting)
-	defer func() { f.reportErr(ctx, libkbfs.WriteMode, err) }()
+	ctx, cancel := NewContextWithOpID(f, "FS MoveFile")
+	defer func() { f.reportErr(ctx, libkbfs.WriteMode, err, cancel) }()
 
 	oc := newSyntheticOpenContext()
 	src, _, err := f.openRaw(ctx, source, oc.CreateData)
@@ -473,7 +473,10 @@ func (f *FS) launchNotificationProcessor(ctx context.Context) {
 }
 
 func (f *FS) reportErr(ctx context.Context, mode libkbfs.ErrorModeType,
-	err error) {
+	err error, cancelFn func()) {
+	if cancelFn != nil {
+		defer cancelFn()
+	}
 	if err == nil {
 		f.log.CDebugf(ctx, "Request complete")
 		return

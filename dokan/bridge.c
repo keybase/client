@@ -273,6 +273,8 @@ struct kbfsLibdokanCtx* kbfsLibdokanAllocCtx(ULONG64 slot) {
     return ctx;
   memset(ctx, 0, sizeof(struct kbfsLibdokanCtx));
   ctx->dokan_options.Version = DOKAN_VERSION;
+  // Dokan timeout 10 minutes...
+  ctx->dokan_options.Timeout = 600 * 1000;
   ctx->dokan_options.GlobalContext = slot;
 
   ctx->dokan_options.Options = DOKAN_OPTION_REMOVABLE |

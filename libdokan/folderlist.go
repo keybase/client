@@ -37,7 +37,10 @@ func (*FolderList) GetFileInformation(*dokan.FileInfo) (*dokan.Stat, error) {
 }
 
 func (fl *FolderList) reportErr(ctx context.Context,
-	mode libkbfs.ErrorModeType, tlfName libkbfs.CanonicalTlfName, err error) {
+	mode libkbfs.ErrorModeType, tlfName libkbfs.CanonicalTlfName, err error, cancelFn func()) {
+	if cancelFn != nil {
+		defer cancelFn()
+	}
 	if err == nil {
 		fl.fs.log.CDebugf(ctx, "Request complete")
 		return
@@ -50,6 +53,7 @@ func (fl *FolderList) reportErr(ctx context.Context,
 	// TODO: Classify errors and escalate the logging level of the
 	// important ones.
 	fl.fs.log.CDebugf(ctx, err.Error())
+
 }
 
 // open tries to open the correct thing. Following aliases and deferring to
@@ -61,8 +65,7 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 	}
 
 	defer func() {
-		fl.reportErr(ctx, libkbfs.ReadMode,
-			libkbfs.CanonicalTlfName(path[0]), err)
+		fl.reportErr(ctx, libkbfs.ReadMode, libkbfs.CanonicalTlfName(path[0]), err, nil)
 	}()
 
 	for oc.reduceRedirectionsLeft() {
@@ -153,9 +156,8 @@ func (fl *FolderList) forgetFolder(folderName string) {
 
 // FindFiles for dokan.
 func (fl *FolderList) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedStat) error) (err error) {
-	ctx := NewContextWithOpID(fl.fs)
-	fl.fs.log.CDebugf(ctx, "FL ReadDirAll")
-	defer func() { fl.fs.reportErr(ctx, libkbfs.ReadMode, err) }()
+	ctx, cancel := NewContextWithOpID(fl.fs, "FL FindFiles")
+	defer func() { fl.fs.reportErr(ctx, libkbfs.ReadMode, err, cancel) }()
 
 	_, _, err = fl.fs.config.KBPKI().GetCurrentUserInfo(ctx)
 	isLoggedIn := err == nil

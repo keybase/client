@@ -39,13 +39,15 @@ const (
 
 // NewContextWithOpID adds a unique ID to this context, identifying
 // a particular request.
-func NewContextWithOpID(fs *FS) context.Context {
+func NewContextWithOpID(fs *FS, debugMessage string) (context.Context, func()) {
+	fs.log.Debug(debugMessage)
 	id, err := libkbfs.MakeRandomRequestID()
 	if err != nil {
 		fs.log.Errorf("Couldn't make request ID: %v", err)
-		return fs.context
+		return fs.context, func() {}
 	}
-	return context.WithValue(fs.context, CtxIDKey, id)
+	ctx := context.WithValue(fs.context, CtxIDKey, id)
+	return context.WithTimeout(ctx, 300*time.Second)
 }
 
 // eiToStat converts from a libkbfs.EntryInfo and error to a *dokan.Stat and error.

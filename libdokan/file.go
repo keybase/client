@@ -29,9 +29,8 @@ func newFile(folder *Folder, node libkbfs.Node, name string, parent libkbfs.Node
 
 // GetFileInformation for dokan.
 func (f *File) GetFileInformation(*dokan.FileInfo) (a *dokan.Stat, err error) {
-	ctx := NewContextWithOpID(f.folder.fs)
-	f.folder.fs.log.CDebugf(ctx, "File GetFileInformation node=%v start", f.node)
-	defer func() { f.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
+	ctx, cancel := NewContextWithOpID(f.folder.fs, "File GetFileInformation")
+	defer func() { f.folder.reportErr(ctx, libkbfs.ReadMode, err, cancel) }()
 
 	a, err = eiToStat(f.folder.fs.config.KBFSOps().Stat(ctx, f.node))
 	if a != nil {
@@ -51,12 +50,12 @@ func (*File) CanDeleteFile(*dokan.FileInfo) error {
 // Cleanup - for dokan, remember to handle deletions.
 func (f *File) Cleanup(fi *dokan.FileInfo) {
 	var err error
-	ctx := NewContextWithOpID(f.folder.fs)
+	ctx, cancel := NewContextWithOpID(f.folder.fs, "File Cleanup")
+	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err, cancel) }()
 
 	f.folder.fs.log.CDebugf(ctx, "Cleanup %v", *f)
 	if fi != nil && fi.DeleteOnClose() {
 		f.folder.fs.log.CDebugf(ctx, "Removing file in cleanup %s", f.name)
-		defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
 
 		err = f.folder.fs.config.KBFSOps().RemoveEntry(ctx, f.parent, f.name)
 	}
@@ -71,9 +70,8 @@ func (f *File) Cleanup(fi *dokan.FileInfo) {
 
 // FlushFileBuffers performs a (f)sync.
 func (f *File) FlushFileBuffers(*dokan.FileInfo) (err error) {
-	ctx := NewContextWithOpID(f.folder.fs)
-	f.folder.fs.log.CDebugf(ctx, "File FlushFileBuffers")
-	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
+	ctx, cancel := NewContextWithOpID(f.folder.fs, "File FlushFileBuffers")
+	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err, cancel) }()
 
 	err = f.folder.fs.config.KBFSOps().Sync(ctx, f.node)
 	return err
@@ -81,9 +79,8 @@ func (f *File) FlushFileBuffers(*dokan.FileInfo) (err error) {
 
 // ReadFile for dokan reads.
 func (f *File) ReadFile(fi *dokan.FileInfo, bs []byte, offset int64) (n int, err error) {
-	ctx := NewContextWithOpID(f.folder.fs)
-	f.folder.fs.log.CDebugf(ctx, "File Read")
-	defer func() { f.folder.reportErr(ctx, libkbfs.ReadMode, err) }()
+	ctx, cancel := NewContextWithOpID(f.folder.fs, "ReadFile")
+	defer func() { f.folder.reportErr(ctx, libkbfs.ReadMode, err, cancel) }()
 
 	var nlarge int64
 	nlarge, err = f.folder.fs.config.KBFSOps().Read(ctx, f.node, bs, offset)
@@ -94,9 +91,8 @@ func (f *File) ReadFile(fi *dokan.FileInfo, bs []byte, offset int64) (n int, err
 
 // WriteFile for dokan writes.
 func (f *File) WriteFile(fi *dokan.FileInfo, bs []byte, offset int64) (n int, err error) {
-	ctx := NewContextWithOpID(f.folder.fs)
-	f.folder.fs.log.CDebugf(ctx, "File Write sz=%d ", len(bs))
-	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
+	ctx, cancel := NewContextWithOpID(f.folder.fs, "WriteFile")
+	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err, cancel) }()
 
 	if offset == -1 {
 		ei, err := f.folder.fs.config.KBFSOps().Stat(ctx, f.node)
@@ -113,9 +109,8 @@ func (f *File) WriteFile(fi *dokan.FileInfo, bs []byte, offset int64) (n int, er
 
 // SetEndOfFile for dokan (f)truncates.
 func (f *File) SetEndOfFile(fi *dokan.FileInfo, length int64) (err error) {
-	ctx := NewContextWithOpID(f.folder.fs)
-	f.folder.fs.log.CDebugf(ctx, "File SetFileTime")
-	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
+	ctx, cancel := NewContextWithOpID(f.folder.fs, "File SetEndOfFile")
+	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err, cancel) }()
 
 	return f.folder.fs.config.KBFSOps().Truncate(ctx, f.node, uint64(length))
 }
@@ -124,9 +119,8 @@ func (f *File) SetEndOfFile(fi *dokan.FileInfo, length int64) (err error) {
 // file size (it may fallocate, but that is not done at the
 // moment).
 func (f *File) SetAllocationSize(fi *dokan.FileInfo, newSize int64) (err error) {
-	ctx := NewContextWithOpID(f.folder.fs)
-	f.folder.fs.log.CDebugf(ctx, "File SetFileTime")
-	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err) }()
+	ctx, cancel := NewContextWithOpID(f.folder.fs, "File SetAllocationSize")
+	defer func() { f.folder.reportErr(ctx, libkbfs.WriteMode, err, cancel) }()
 
 	ei, err := f.folder.fs.config.KBFSOps().Stat(ctx, f.node)
 	if err != nil {
@@ -144,8 +138,8 @@ func (f *File) SetAllocationSize(fi *dokan.FileInfo, newSize int64) (err error) 
 
 // SetFileAttributes for Dokan.
 func (f *File) SetFileAttributes(fi *dokan.FileInfo, fileAttributes uint32) error {
-	ctx := NewContextWithOpID(f.folder.fs)
-	f.folder.fs.log.CDebugf(ctx, "File SetFileAttributes %X", fileAttributes)
+	_, cancel := NewContextWithOpID(f.folder.fs, "File SetFileAttributes")
+	cancel()
 	// TODO handle attributes for real.
 	return nil
 }
