@@ -1,5 +1,6 @@
 // @flow
 
+import {Component} from 'react' // eslint-disable-line
 import type {Device as _Device} from './flow-types'
 
 export type DeviceType = 'mobile' | 'desktop' | 'backup'
@@ -15,5 +16,14 @@ export function toDeviceType (s: string): DeviceType {
     default:
       console.error('Unknown Device Type %s. Defaulting to `desktop`', s)
       return 'desktop'
+  }
+}
+
+export type PropsOf<Props, C: Component<*, Props, *>> = Props // eslint-disable-line
+
+export type DumbComponentMap<C: Component<*, *, *>> = {
+  component: Class<C>,
+  mocks: {
+    [key: string]: PropsOf<*, C>
   }
 }
