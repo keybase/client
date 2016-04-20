@@ -56,7 +56,7 @@ func Start(mounter Mounter, options StartOptions) *libfs.Error {
 	if err != nil {
 		return libfs.InitError(err.Error())
 	}
-	err = mounter.Mount(fs)
+	err = mounter.Mount(fs, log)
 	if err != nil {
 		return libfs.MountError(err.Error())
 	}

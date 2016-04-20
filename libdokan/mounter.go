@@ -12,13 +12,14 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/dokan"
 )
 
 // Mounter defines interface for different mounting strategies
 type Mounter interface {
 	Dir() string
-	Mount(dokan.FileSystem) error
+	Mount(dokan.FileSystem, logger.Logger) error
 	Unmount() error
 }
 
@@ -41,7 +42,7 @@ func NewForceMounter(dir string) *DefaultMounter {
 }
 
 // Mount uses default mount and blocks.
-func (m *DefaultMounter) Mount(fs dokan.FileSystem) error {
+func (m *DefaultMounter) Mount(fs dokan.FileSystem, log logger.Logger) error {
 	var err error
 	var h *dokan.MountHandle
 	// Retry loop
@@ -51,6 +52,7 @@ func (m *DefaultMounter) Mount(fs dokan.FileSystem) error {
 		if err == nil || i > 20 {
 			break
 		}
+		log.Errorf("Failed to mount dokan filesystem (i=%d): %v", i, err)
 		// Sleep two times 100ms, 200ms, 400, 800...
 		time.Sleep(time.Duration(i) * 100 * time.Millisecond)
 		if m.force {
