@@ -258,6 +258,22 @@ func TestStatAliasCausesNoIdentifies(t *testing.T) {
 	}
 }
 
+func TestStatInvalidAliasFails(t *testing.T) {
+	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
+	defer config.Shutdown()
+
+	mnt, _, cancelFn := makeFS(t, config)
+	defer mnt.Close()
+	defer cancelFn()
+
+	p := path.Join(mnt.Dir, PublicName, "HEAD.JPG")
+	// This should fail as HEAD.JPG has the wrong format.
+	_, err := os.Lstat(p)
+	if err == nil {
+		t.Fatal("Lstat of HEAD.JPG didn't return an error!")
+	}
+}
+
 func TestRemoveAlias(t *testing.T) {
 	config := libkbfs.MakeTestConfigOrBust(t, "jdoe")
 	defer libkbfs.CheckConfigAndShutdown(t, config)
