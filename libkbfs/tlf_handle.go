@@ -71,7 +71,7 @@ func sortedUIDsAndNames(m map[keybase1.UID]libkb.NormalizedUsername) (
 	return uids, names
 }
 
-func splitAndCheckTLFNameIntoWritersAndReaders(name string, public bool) (
+func splitNormalizedTLFNameIntoWritersAndReaders(name string, public bool) (
 	writerNames, readerNames []string, err error) {
 	splitNames := strings.SplitN(name, ReaderSep, 3)
 	if len(splitNames) > 2 {
@@ -87,6 +87,13 @@ func splitAndCheckTLFNameIntoWritersAndReaders(name string, public bool) (
 	if public && !hasPublic {
 		// No public folder exists for this folder.
 		return nil, nil, NoSuchNameError{Name: name}
+	}
+
+	isValidUser := libkb.CheckUsername.F
+	for _, name := range append(writerNames, readerNames...) {
+		if !(isValidUser(name) || libkb.IsSocialAssertion(name)) {
+			return nil, nil, BadTLFNameError{name}
+		}
 	}
 
 	normalizedName := normalizeUserNamesInTLF(writerNames, readerNames)
@@ -499,7 +506,7 @@ func ParseTlfHandle(
 	// real user lookup for "head" (KBFS-531).  Note that the name
 	// might still contain assertions, which will result in
 	// another alias in a subsequent lookup.
-	writerNames, readerNames, err := splitAndCheckTLFNameIntoWritersAndReaders(name, public)
+	writerNames, readerNames, err := splitNormalizedTLFNameIntoWritersAndReaders(name, public)
 	if err != nil {
 		return nil, err
 	}
@@ -551,6 +558,6 @@ func ParseTlfHandle(
 // it avoids all network calls.
 func CheckTlfHandleOffline(
 	ctx context.Context, name string, public bool) error {
-	_, _, err := splitAndCheckTLFNameIntoWritersAndReaders(name, public)
+	_, _, err := splitNormalizedTLFNameIntoWritersAndReaders(name, public)
 	return err
 }

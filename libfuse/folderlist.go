@@ -92,7 +92,7 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 		}
 		return n, nil
 
-	case libkbfs.NoSuchNameError:
+	case libkbfs.NoSuchNameError, libkbfs.BadTLFNameError:
 		// Invalid public TLF.
 		return nil, fuse.ENOENT
 
