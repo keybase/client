@@ -12,7 +12,7 @@ package dokan
 import "C"
 
 import (
-	"errors"
+	"fmt"
 	"syscall"
 	"time"
 )
@@ -75,7 +75,7 @@ func (ctx *dokanCtx) Run(path string) error {
 	C.kbfsLibdokanSet_path(ctx.ptr, stringToUtf16Ptr(path))
 	ec := C.kbfsLibdokanRun(ctx.ptr)
 	if ec != 0 {
-		return errors.New("Dokan failed")
+		return fmt.Errorf("Dokan failed: %d", ec)
 	}
 	return nil
 }
