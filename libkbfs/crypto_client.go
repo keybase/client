@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"sync"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -17,6 +18,9 @@ type CryptoClient struct {
 	CryptoCommon
 	client     keybase1.CryptoClient
 	shutdownFn func()
+
+	sessionLock sync.Mutex
+	sessionID   int
 }
 
 var _ Crypto = (*CryptoClient)(nil)
@@ -50,8 +54,16 @@ func newCryptoClientWithClient(codec Codec, client rpc.GenericClient,
 }
 
 // HandlerName implements the ConnectionHandler interface.
-func (CryptoClient) HandlerName() string {
+func (c *CryptoClient) HandlerName() string {
 	return "CryptoClient"
+}
+
+func (c *CryptoClient) newSessionID() int {
+	c.sessionLock.Lock()
+	defer c.sessionLock.Unlock()
+	newID := c.sessionID
+	c.sessionID++ // overflow is ok
+	return newID
 }
 
 // OnConnect implements the ConnectionHandler interface.
@@ -104,8 +116,9 @@ func (c *CryptoClient) Sign(ctx context.Context, msg []byte) (
 	}()
 
 	ed25519SigInfo, err := c.client.SignED25519(ctx, keybase1.SignED25519Arg{
-		Msg:    msg,
-		Reason: "to use kbfs",
+		SessionID: c.newSessionID(),
+		Msg:       msg,
+		Reason:    "to use kbfs",
 	})
 	if err != nil {
 		return
@@ -126,8 +139,9 @@ func (c *CryptoClient) SignToString(ctx context.Context, msg []byte) (
 		c.log.CDebugf(ctx, "Signed %d-byte message: err=%v", len(msg), err)
 	}()
 	signature, err = c.client.SignToString(ctx, keybase1.SignToStringArg{
-		Msg:    msg,
-		Reason: "KBFS Authentication",
+		SessionID: c.newSessionID(),
+		Msg:       msg,
+		Reason:    "KBFS Authentication",
 	})
 	return
 }
@@ -165,6 +179,7 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 	}
 
 	decryptedClientHalf, err := c.client.UnboxBytes32(ctx, keybase1.UnboxBytes32Arg{
+		SessionID:        c.newSessionID(),
 		EncryptedBytes32: encryptedData,
 		Nonce:            nonce,
 		PeersPublicKey:   keybase1.BoxPublicKey(publicKey.data),
@@ -208,6 +223,7 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 		return
 	}
 	res, err := c.client.UnboxBytes32Any(ctx, keybase1.UnboxBytes32AnyArg{
+		SessionID:   c.newSessionID(),
 		Bundles:     bundles,
 		Reason:      "to rekey for kbfs",
 		PromptPaper: promptPaper,
