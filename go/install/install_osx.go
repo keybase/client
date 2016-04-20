@@ -193,6 +193,7 @@ func keybasePlist(g *libkb.GlobalContext, binPath string, label string) launchd.
 	logFile := filepath.Join(launchd.LogDir(), libkb.ServiceLogFileName)
 	plistArgs := []string{"-d", fmt.Sprintf("--log-file=%s", logFile), "service"}
 	envVars := DefaultLaunchdEnvVars(label)
+	envVars = append(envVars, launchd.NewEnvVar("KEYBASE_RUN_MODE", g.Env.GetRunModeAsString()))
 	comment := "It's not advisable to edit this plist, it may be overwritten"
 	return launchd.NewPlist(label, binPath, plistArgs, envVars, libkb.StartLogFileName, comment)
 }
@@ -225,6 +226,7 @@ func kbfsPlist(g *libkb.GlobalContext, kbfsBinPath string, label string) (plist 
 		mountDir,
 	}
 	envVars := DefaultLaunchdEnvVars(label)
+	envVars = append(envVars, launchd.NewEnvVar("KEYBASE_RUN_MODE", g.Env.GetRunModeAsString()))
 	comment := "It's not advisable to edit this plist, it may be overwritten"
 	plist = launchd.NewPlist(label, kbfsBinPath, plistArgs, envVars, libkb.StartLogFileName, comment)
 
