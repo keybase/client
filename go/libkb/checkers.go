@@ -79,6 +79,27 @@ var CheckKex2SecretPhrase = Checker{
 	Hint: "It looks like there was a typo in the secret phrase. Please try again.",
 }
 
+var CheckPaperKeyPhrase = Checker{
+	F: func(s string) bool {
+		p := NewPaperKeyPhrase(s)
+		version, err := p.Version()
+		if err != nil {
+			G.Log.Debug("error getting paper key version: %s", err)
+			return false
+		}
+		if version != PaperKeyVersion {
+			G.Log.Debug("paper version mismatch: generated paper key version = %d, libkb version = %d", version, PaperKeyVersion)
+			return false
+		}
+		if !p.ValidWords() {
+			G.Log.Debug("paper phrase has invalid word(s) in it")
+			return false
+		}
+		return true
+	},
+	Hint: "It looks like there was a typo in the paper key.  Please try again.",
+}
+
 func IsYes(s string) bool {
 	s = strings.ToLower(strings.TrimSpace(s))
 	return s == "y" || s == "yes"

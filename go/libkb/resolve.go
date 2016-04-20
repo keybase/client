@@ -145,6 +145,7 @@ func (r *Resolver) resolveURLViaServerLookup(au AssertionURL, input string, with
 		NeedSession:    false,
 		Args:           ha,
 		AppStatusCodes: []int{SCOk, SCNotFound},
+		Contextified:   NewContextified(r.G()),
 	})
 
 	if res.err != nil {

@@ -34,7 +34,8 @@ func MakePaperKeyPhrase(version uint8) (PaperKeyPhrase, error) {
 
 // NewPaperKeyPhrase converts a string into a PaperKeyPhrase.
 func NewPaperKeyPhrase(phrase string) PaperKeyPhrase {
-	return PaperKeyPhrase(strings.ToLower(phrase))
+	s := strings.Join(strings.Fields(phrase), " ")
+	return PaperKeyPhrase(strings.TrimSpace(strings.ToLower(s)))
 }
 
 // String returns a string representation of the phrase.
@@ -55,6 +56,16 @@ func (p PaperKeyPhrase) Version() (uint8, error) {
 		return 0, errors.New("empty paper key phrase")
 	}
 	return wordVersion(words[len(words)-1]), nil
+}
+
+func (p PaperKeyPhrase) ValidWords() bool {
+	for _, w := range p.words() {
+		// in secwords.go:
+		if !validWord(w) {
+			return false
+		}
+	}
+	return true
 }
 
 // Prefix returns the first two words in the phrase.

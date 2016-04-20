@@ -44,7 +44,7 @@ func GetPaperKeyPassphrase(ui SecretUI, username string) (string, error) {
 	arg.Features.StoreSecret.Readonly = true
 	arg.Features.ShowTyping.Allow = true
 	arg.Features.ShowTyping.DefaultValue = true
-	res, err := GetPassphraseUntilCheck(arg, newUIPrompter(ui), &CheckPassphraseSimple)
+	res, err := GetPassphraseUntilCheck(arg, newUIPrompter(ui), &CheckPaperKeyPhrase)
 	if err != nil {
 		return "", err
 	}
@@ -71,7 +71,7 @@ func GetPaperKeyForCryptoPassphrase(ui SecretUI, reason string, devices []*Devic
 		arg.Prompt = fmt.Sprintf("%s: please enter one of the following paper keys %s", reason, paperOpts)
 	}
 
-	res, err := GetPassphraseUntilCheck(arg, newUIPrompter(ui), &CheckPassphraseSimple)
+	res, err := GetPassphraseUntilCheck(arg, newUIPrompter(ui), &CheckPaperKeyPhrase)
 	if err != nil {
 		return "", err
 	}

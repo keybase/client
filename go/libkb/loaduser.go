@@ -107,7 +107,7 @@ func (arg *LoadUserArg) checkSelf() {
 		return
 	}
 
-	myuid := myUID(G, arg.LoginContext)
+	myuid := myUID(arg.G(), arg.LoginContext)
 	if myuid.Exists() && arg.UID.Exists() && myuid.Equal(arg.UID) {
 		arg.Self = true
 	}

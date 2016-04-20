@@ -53,6 +53,9 @@ func findPaperKeys(ctx *Context, g *libkb.GlobalContext, me *libkb.User) (*keypa
 		return nil, err
 	}
 	paperPhrase := libkb.NewPaperKeyPhrase(passphrase)
+
+	// the checker in GetPaperKeyPassphrase should check both of these, but
+	// just to make sure:
 	version, err := paperPhrase.Version()
 	if err != nil {
 		return nil, err
@@ -61,9 +64,15 @@ func findPaperKeys(ctx *Context, g *libkb.GlobalContext, me *libkb.User) (*keypa
 		g.Log.Debug("paper version mismatch: generated paper key version = %d, libkb version = %d", version, libkb.PaperKeyVersion)
 		return nil, libkb.KeyVersionError{}
 	}
+	if !paperPhrase.ValidWords() {
+		g.Log.Debug("paper phrase has invalid word(s) in it")
+		return nil, libkb.PassphraseError{Msg: "invalid word(s) in paper key phrase"}
+	}
+
+	// paperPhrase has the correct version and contains valid words
 
 	bkarg := &PaperKeyGenArg{
-		Passphrase: libkb.NewPaperKeyPhrase(passphrase),
+		Passphrase: paperPhrase,
 		SkipPush:   true,
 		Me:         me,
 	}
@@ -75,25 +84,36 @@ func findPaperKeys(ctx *Context, g *libkb.GlobalContext, me *libkb.User) (*keypa
 	sigKey := bkeng.SigKey()
 	encKey := bkeng.EncKey()
 
+	g.Log.Debug("generated paper key signing kid: %s", sigKey.GetKID())
+	g.Log.Debug("generated paper key encryption kid: %s", encKey.GetKID())
+
 	var match bool
 	ckf := me.GetComputedKeyFamily()
 	for _, bdev := range bdevs {
 		sk, err := ckf.GetSibkeyForDevice(bdev.ID)
 		if err != nil {
+			g.Log.Debug("ckf.GetSibkeyForDevice(%s) error: %s", bdev.ID, err)
 			continue
 		}
+		g.Log.Debug("paper key device %s signing kid: %s", bdev.ID, sk.GetKID())
 		ek, err := ckf.GetEncryptionSubkeyForDevice(bdev.ID)
 		if err != nil {
+			g.Log.Debug("ckf.GetEncryptionSubkeyForDevice(%s) error: %s", bdev.ID, err)
 			continue
 		}
+		g.Log.Debug("paper key device %s encryption kid: %s", bdev.ID, ek.GetKID())
 
 		if sk.GetKID().Equal(sigKey.GetKID()) && ek.GetKID().Equal(encKey.GetKID()) {
+			g.Log.Debug("paper key device %s matches generated paper key", bdev.ID)
 			match = true
 			break
 		}
+
+		g.Log.Debug("paper key device %s does not match generated paper key", bdev.ID)
 	}
 
 	if !match {
+		g.Log.Debug("no matching paper keys found")
 		return nil, libkb.PassphraseError{Msg: "no matching paper backup keys found"}
 	}
 
