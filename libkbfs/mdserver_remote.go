@@ -105,6 +105,15 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 
 	md.log.Debug("MDServerRemote: OnConnect called with a new connection")
 
+	// we'll get replies asynchronously as to not block the connection
+	// for doing other active work for the user. they will be sent to
+	// the FolderNeedsRekey handler.
+	if err := server.Register(keybase1.MetadataUpdateProtocol(md)); err != nil {
+		if _, ok := err.(rpc.AlreadyRegisteredError); !ok {
+			return err
+		}
+	}
+
 	// reset auth -- using md.client here would cause problematic recursion.
 	c := keybase1.MetadataClient{Cli: cancelableClient{client}}
 	pingIntervalSeconds, err := md.resetAuth(ctx, c)
@@ -113,15 +122,6 @@ func (md *MDServerRemote) OnConnect(ctx context.Context,
 	case NoCurrentSessionError:
 	default:
 		return err
-	}
-
-	// we'll get replies asynchronously as to not block the connection
-	// for doing other active work for the user. they will be sent to
-	// the FolderNeedsRekey handler.
-	if err := server.Register(keybase1.MetadataUpdateProtocol(md)); err != nil {
-		if _, ok := err.(rpc.AlreadyRegisteredError); !ok {
-			return err
-		}
 	}
 
 	pushConnectionStatusChange(MDServiceName, nil)
