@@ -22,7 +22,9 @@ type SecretStoreAll interface {
 	RetrieveSecret(username NormalizedUsername) ([]byte, error)
 	StoreSecret(username NormalizedUsername, secret []byte) error
 	ClearSecret(username NormalizedUsername) error
-	GetUsersWithStoredSecrets() (ret []string, err error)
+	GetUsersWithStoredSecrets() ([]string, error)
+	GetApprovalPrompt() string
+	GetTerminalPrompt() string
 }
 
 type SecretStoreContext interface {
