@@ -303,6 +303,8 @@ func NewFolderWithIDAndWriter(t logger.TestLogBackend, id TlfID, revision Metada
 	rmds.MD.LastModifyingUser = h.Writers[0]
 	if !public {
 		AddNewEmptyKeysOrBust(t, &rmds.MD)
+	} else {
+		rmds.MD.Writers = writers
 	}
 
 	rmds.SigInfo = SignatureInfo{
