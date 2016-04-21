@@ -220,7 +220,8 @@ func (p kbfsPath) getNode(ctx context.Context, config libkbfs.Config) (n libkbfs
 outer:
 	for {
 		h, err = libkbfs.ParseTlfHandle(
-			ctx, config.KBPKI(), name, p.public)
+			ctx, config.KBPKI(), name, p.public,
+			config.SharingBeforeSignupEnabled())
 		switch err := err.(type) {
 		case nil:
 			// No error.

@@ -513,7 +513,9 @@ func (md *RootMetadata) MakeBareTlfHandle() (BareTlfHandle, error) {
 			}
 		}
 	}
-	return MakeBareTlfHandle(writers, readers)
+
+	// TODO: Pass through unresolved assertions.
+	return MakeBareTlfHandle(writers, readers, nil, nil)
 }
 
 // IsInitialized returns whether or not this RootMetadata has been initialized

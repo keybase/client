@@ -86,7 +86,9 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 		}
 
 		fl.fs.log.CDebugf(ctx, "FL Lookup continuing")
-		h, err := libkbfs.ParseTlfHandle(ctx, fl.fs.config.KBPKI(), name, fl.public)
+		h, err := libkbfs.ParseTlfHandle(
+			ctx, fl.fs.config.KBPKI(), name, fl.public,
+			fl.fs.config.SharingBeforeSignupEnabled())
 		switch err := err.(type) {
 		case nil:
 			// No error.

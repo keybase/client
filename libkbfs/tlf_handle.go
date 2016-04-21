@@ -38,9 +38,29 @@ func (u UIDList) Swap(i, j int) {
 	u[i], u[j] = u[j], u[i]
 }
 
+// SocialAssertionList can be used to lexicographically sort SocialAssertions.
+type SocialAssertionList []keybase1.SocialAssertion
+
+func (u SocialAssertionList) Len() int {
+	return len(u)
+}
+
+func (u SocialAssertionList) Less(i, j int) bool {
+	si := u[i].String()
+	sj := u[j].String()
+	return si < sj
+}
+
+func (u SocialAssertionList) Swap(i, j int) {
+	u[i], u[j] = u[j], u[i]
+}
+
 // MakeBareTlfHandle creates a BareTlfHandle from the given list of
 // readers and writers.
-func MakeBareTlfHandle(writers, readers []keybase1.UID) (BareTlfHandle, error) {
+func MakeBareTlfHandle(
+	writers, readers []keybase1.UID,
+	unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion) (
+	BareTlfHandle, error) {
 	// TODO: Check for overlap between readers and writers, and
 	// for duplicates.
 
@@ -59,9 +79,25 @@ func MakeBareTlfHandle(writers, readers []keybase1.UID) (BareTlfHandle, error) {
 		sort.Sort(UIDList(readersCopy))
 	}
 
+	var unresolvedWritersCopy []keybase1.SocialAssertion
+	if len(unresolvedWriters) > 0 {
+		unresolvedWritersCopy = make([]keybase1.SocialAssertion, len(unresolvedWriters))
+		copy(unresolvedWritersCopy, unresolvedWriters)
+		sort.Sort(SocialAssertionList(unresolvedWritersCopy))
+	}
+
+	var unresolvedReadersCopy []keybase1.SocialAssertion
+	if len(unresolvedReaders) > 0 {
+		unresolvedReadersCopy = make([]keybase1.SocialAssertion, len(unresolvedReaders))
+		copy(unresolvedReadersCopy, unresolvedReaders)
+		sort.Sort(SocialAssertionList(unresolvedReadersCopy))
+	}
+
 	return BareTlfHandle{
-		Writers: writersCopy,
-		Readers: readersCopy,
+		Writers:           writersCopy,
+		Readers:           readersCopy,
+		UnresolvedWriters: unresolvedWritersCopy,
+		UnresolvedReaders: unresolvedReadersCopy,
 	}, nil
 }
 
@@ -112,14 +148,25 @@ type TlfHandle struct {
 	name CanonicalTlfName
 }
 
+type nameUIDPair struct {
+	name libkb.NormalizedUsername
+	uid  keybase1.UID
+}
+
 type resolvableUser interface {
-	resolve(context.Context) (UserInfo, error)
+	// resolve must do exactly one of the following:
+	//
+	//   - return a non-zero nameUIDPair;
+	//   - return a non-zero keybase1.SocialAssertion;
+	//   - return a non-nil error.
+	resolve(context.Context) (nameUIDPair, keybase1.SocialAssertion, error)
 }
 
 func resolveOneUser(
 	ctx context.Context, user resolvableUser,
-	errCh chan<- error, results chan<- UserInfo) {
-	userInfo, err := user.resolve(ctx)
+	errCh chan<- error, userInfoResults chan<- nameUIDPair,
+	socialAssertionResults chan<- keybase1.SocialAssertion) {
+	userInfo, socialAssertion, err := user.resolve(ctx)
 	if err != nil {
 		select {
 		case errCh <- err:
@@ -129,7 +176,17 @@ func resolveOneUser(
 		}
 		return
 	}
-	results <- userInfo
+	if userInfo != (nameUIDPair{}) {
+		userInfoResults <- userInfo
+		return
+	}
+
+	if socialAssertion != (keybase1.SocialAssertion{}) {
+		socialAssertionResults <- socialAssertion
+		return
+	}
+
+	errCh <- fmt.Errorf("Resolving %v resulted in empty userInfo and empty socialAssertion", user)
 }
 
 func makeTlfHandleHelper(
@@ -139,29 +196,39 @@ func makeTlfHandleHelper(
 	}
 
 	// parallelize the resolutions for each user
-	errCh := make(chan error, 1)
-	wc := make(chan UserInfo, len(writers))
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
+
+	errCh := make(chan error, 1)
+
+	wc := make(chan nameUIDPair, len(writers))
+	uwc := make(chan keybase1.SocialAssertion, len(writers))
 	for _, writer := range writers {
-		go resolveOneUser(ctx, writer, errCh, wc)
+		go resolveOneUser(ctx, writer, errCh, wc, uwc)
 	}
 
-	rc := make(chan UserInfo, len(readers))
+	rc := make(chan nameUIDPair, len(readers))
+	urc := make(chan keybase1.SocialAssertion, len(readers))
 	for _, reader := range readers {
-		go resolveOneUser(ctx, reader, errCh, rc)
+		go resolveOneUser(ctx, reader, errCh, rc, urc)
 	}
 
 	usedWNames := make(map[keybase1.UID]libkb.NormalizedUsername, len(writers))
 	usedRNames := make(map[keybase1.UID]libkb.NormalizedUsername, len(readers))
+	usedUnresolvedWriters := make(map[keybase1.SocialAssertion]bool)
+	usedUnresolvedReaders := make(map[keybase1.SocialAssertion]bool)
 	for i := 0; i < len(writers)+len(readers); i++ {
 		select {
 		case err := <-errCh:
 			return nil, err
 		case userInfo := <-wc:
-			usedWNames[userInfo.UID] = userInfo.Name
+			usedWNames[userInfo.uid] = userInfo.name
 		case userInfo := <-rc:
-			usedRNames[userInfo.UID] = userInfo.Name
+			usedRNames[userInfo.uid] = userInfo.name
+		case socialAssertion := <-uwc:
+			usedUnresolvedWriters[socialAssertion] = true
+		case socialAssertion := <-urc:
+			usedUnresolvedReaders[socialAssertion] = true
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		}
@@ -171,22 +238,30 @@ func makeTlfHandleHelper(
 		delete(usedRNames, uid)
 	}
 
-	writerUIDs, writerNames := sortedUIDsAndNames(usedWNames)
+	for sa := range usedUnresolvedWriters {
+		delete(usedUnresolvedReaders, sa)
+	}
+
+	writerUIDs, unresolvedWriters, writerNames :=
+		getSortedHandleLists(usedWNames, usedUnresolvedWriters)
 
 	canonicalName := strings.Join(writerNames, ",")
 
 	var readerUIDs []keybase1.UID
+	var unresolvedReaders []keybase1.SocialAssertion
 	if public {
 		readerUIDs = []keybase1.UID{keybase1.PublicUID}
 	} else {
 		var readerNames []string
-		readerUIDs, readerNames = sortedUIDsAndNames(usedRNames)
+		readerUIDs, unresolvedReaders, readerNames =
+			getSortedHandleLists(usedRNames, usedUnresolvedReaders)
 		if len(readerNames) > 0 {
 			canonicalName += ReaderSep + strings.Join(readerNames, ",")
 		}
 	}
 
-	bareHandle, err := MakeBareTlfHandle(writerUIDs, readerUIDs)
+	bareHandle, err := MakeBareTlfHandle(
+		writerUIDs, readerUIDs, unresolvedWriters, unresolvedReaders)
 	if err != nil {
 		return nil, err
 	}
@@ -204,15 +279,21 @@ type resolvableUID struct {
 	uid keybase1.UID
 }
 
-func (ruid resolvableUID) resolve(ctx context.Context) (UserInfo, error) {
+func (ruid resolvableUID) resolve(ctx context.Context) (nameUIDPair, keybase1.SocialAssertion, error) {
 	name, err := ruid.nug.GetNormalizedUsername(ctx, ruid.uid)
 	if err != nil {
-		return UserInfo{}, err
+		return nameUIDPair{}, keybase1.SocialAssertion{}, err
 	}
-	return UserInfo{
-		Name: name,
-		UID:  ruid.uid,
-	}, nil
+	return nameUIDPair{
+		name: name,
+		uid:  ruid.uid,
+	}, keybase1.SocialAssertion{}, nil
+}
+
+type resolvableSocialAssertion keybase1.SocialAssertion
+
+func (rsa resolvableSocialAssertion) resolve(ctx context.Context) (nameUIDPair, keybase1.SocialAssertion, error) {
+	return nameUIDPair{}, keybase1.SocialAssertion(rsa), nil
 }
 
 // MakeTlfHandle creates a TlfHandle from the given BareTlfHandle and
@@ -220,16 +301,22 @@ func (ruid resolvableUID) resolve(ctx context.Context) (UserInfo, error) {
 func MakeTlfHandle(
 	ctx context.Context, bareHandle BareTlfHandle,
 	nug normalizedUsernameGetter) (*TlfHandle, error) {
-	writers := make([]resolvableUser, len(bareHandle.Writers))
-	for i, w := range bareHandle.Writers {
-		writers[i] = resolvableUID{nug, w}
+	writers := make([]resolvableUser, 0, len(bareHandle.Writers)+len(bareHandle.UnresolvedWriters))
+	for _, w := range bareHandle.Writers {
+		writers = append(writers, resolvableUID{nug, w})
+	}
+	for _, uw := range bareHandle.UnresolvedWriters {
+		writers = append(writers, resolvableSocialAssertion(uw))
 	}
 
 	var readers []resolvableUser
 	if !bareHandle.IsPublic() {
-		readers = make([]resolvableUser, len(bareHandle.Readers))
-		for i, r := range bareHandle.Readers {
-			readers[i] = resolvableUID{nug, r}
+		readers = make([]resolvableUser, 0, len(bareHandle.Readers)+len(bareHandle.UnresolvedReaders))
+		for _, r := range bareHandle.Readers {
+			readers = append(readers, resolvableUID{nug, r})
+		}
+		for _, ur := range bareHandle.UnresolvedReaders {
+			readers = append(readers, resolvableSocialAssertion(ur))
 		}
 	}
 
@@ -291,17 +378,25 @@ func (h *TlfHandle) ToFavorite() Favorite {
 	}
 }
 
-func sortedUIDsAndNames(m map[keybase1.UID]libkb.NormalizedUsername) (
-	[]keybase1.UID, []string) {
+func getSortedHandleLists(
+	uidToName map[keybase1.UID]libkb.NormalizedUsername,
+	unresolved map[keybase1.SocialAssertion]bool) (
+	[]keybase1.UID, []keybase1.SocialAssertion, []string) {
 	var uids []keybase1.UID
+	var assertions []keybase1.SocialAssertion
 	var names []string
-	for uid, name := range m {
+	for uid, name := range uidToName {
 		uids = append(uids, uid)
 		names = append(names, name.String())
 	}
+	for sa := range unresolved {
+		assertions = append(assertions, sa)
+		names = append(names, sa.String())
+	}
 	sort.Sort(UIDList(uids))
+	sort.Sort(SocialAssertionList(assertions))
 	sort.Sort(sort.StringSlice(names))
-	return uids, names
+	return uids, assertions, names
 }
 
 func splitNormalizedTLFNameIntoWritersAndReaders(name string, public bool) (
@@ -329,7 +424,7 @@ func splitNormalizedTLFNameIntoWritersAndReaders(name string, public bool) (
 		}
 	}
 
-	normalizedName := normalizeUserNamesInTLF(writerNames, readerNames)
+	normalizedName := normalizeNamesInTLF(writerNames, readerNames)
 	if normalizedName != name {
 		return nil, nil, TlfNameNotCanonical{name, normalizedName}
 	}
@@ -337,25 +432,31 @@ func splitNormalizedTLFNameIntoWritersAndReaders(name string, public bool) (
 	return writerNames, readerNames, nil
 }
 
-// normalizeUserNamesInTLF takes a split TLF name and, without doing
-// any resolutions or identify calls, normalizes all elements of the
-// name that are bare user names. It then returns the normalized name.
-//
-// Note that this normalizes (i.e., lower-cases) any assertions in the
-// name as well, but doesn't resolve them.  This is safe since the
-// libkb assertion parser does that same thing.
-func normalizeUserNamesInTLF(writerNames, readerNames []string) string {
+func normalizeAssertionOrName(s string) string {
+	// TODO: Ideally, this would do error-checking, e.g. if
+	// isSocialAssertion is false because it's an invalid
+	// username, or if a bare username is invalid.
+	socialAssertion, isSocialAssertion := libkb.NormalizeSocialAssertion(s)
+	if isSocialAssertion {
+		return socialAssertion.String()
+	}
+	return libkb.NewNormalizedUsername(s).String()
+}
+
+// normalizeNamesInTLF takes a split TLF name and, without doing any
+// resolutions or identify calls, normalizes all elements of the
+// name. It then returns the normalized name.
+func normalizeNamesInTLF(writerNames, readerNames []string) string {
 	sortedWriterNames := make([]string, len(writerNames))
 	for i, w := range writerNames {
-		sortedWriterNames[i] = libkb.NewNormalizedUsername(w).String()
+		sortedWriterNames[i] = normalizeAssertionOrName(w)
 	}
 	sort.Strings(sortedWriterNames)
 	normalizedName := strings.Join(sortedWriterNames, ",")
 	if len(readerNames) > 0 {
 		sortedReaderNames := make([]string, len(readerNames))
 		for i, r := range readerNames {
-			sortedReaderNames[i] =
-				libkb.NewNormalizedUsername(r).String()
+			sortedReaderNames[i] = normalizeAssertionOrName(r)
 		}
 		sort.Strings(sortedReaderNames)
 		normalizedName += ReaderSep + strings.Join(sortedReaderNames, ",")
@@ -364,22 +465,35 @@ func normalizeUserNamesInTLF(writerNames, readerNames []string) string {
 }
 
 type resolvableAssertion struct {
-	kbpki     KBPKI
-	assertion string
+	sharingBeforeSignupEnabled bool
+	kbpki                      KBPKI
+	assertion                  string
 }
 
-func (ra resolvableAssertion) resolve(ctx context.Context) (UserInfo, error) {
+func (ra resolvableAssertion) resolve(ctx context.Context) (
+	nameUIDPair, keybase1.SocialAssertion, error) {
 	if ra.assertion == PublicUIDName {
-		return UserInfo{}, fmt.Errorf("Invalid name %s", ra.assertion)
+		return nameUIDPair{}, keybase1.SocialAssertion{}, fmt.Errorf("Invalid name %s", ra.assertion)
 	}
 	name, uid, err := ra.kbpki.Resolve(ctx, ra.assertion)
-	if err != nil {
-		return UserInfo{}, err
+	switch err := err.(type) {
+	default:
+		return nameUIDPair{}, keybase1.SocialAssertion{}, err
+	case nil:
+		return nameUIDPair{
+			name: name,
+			uid:  uid,
+		}, keybase1.SocialAssertion{}, nil
+	case NoSuchUserError:
+		if !ra.sharingBeforeSignupEnabled {
+			return nameUIDPair{}, keybase1.SocialAssertion{}, err
+		}
+		socialAssertion, ok := libkb.NormalizeSocialAssertion(ra.assertion)
+		if !ok {
+			return nameUIDPair{}, keybase1.SocialAssertion{}, err
+		}
+		return nameUIDPair{}, socialAssertion, nil
 	}
-	return UserInfo{
-		Name: name,
-		UID:  uid,
-	}, nil
 }
 
 // ParseTlfHandle parses a TlfHandle from an encoded string. See
@@ -395,8 +509,8 @@ func (ra resolvableAssertion) resolve(ctx context.Context) (UserInfo, error) {
 // NoSuchNameError: Returned when public is set and the given folder
 // has no public folder.
 func ParseTlfHandle(
-	ctx context.Context, kbpki KBPKI, name string, public bool) (
-	*TlfHandle, error) {
+	ctx context.Context, kbpki KBPKI, name string, public bool,
+	sharingBeforeSignupEnabled bool) (*TlfHandle, error) {
 	// Before parsing the tlf handle (which results in identify
 	// calls that cause tracker popups), first see if there's any
 	// quick normalization of usernames we can do.  For example,
@@ -417,18 +531,18 @@ func ParseTlfHandle(
 		return nil, NoSuchNameError{Name: name}
 	}
 
-	normalizedName := normalizeUserNamesInTLF(writerNames, readerNames)
+	normalizedName := normalizeNamesInTLF(writerNames, readerNames)
 	if normalizedName != name {
 		return nil, TlfNameNotCanonical{name, normalizedName}
 	}
 
 	writers := make([]resolvableUser, len(writerNames))
 	for i, w := range writerNames {
-		writers[i] = resolvableAssertion{kbpki, w}
+		writers[i] = resolvableAssertion{sharingBeforeSignupEnabled, kbpki, w}
 	}
 	readers := make([]resolvableUser, len(readerNames))
 	for i, r := range readerNames {
-		readers[i] = resolvableAssertion{kbpki, r}
+		readers[i] = resolvableAssertion{sharingBeforeSignupEnabled, kbpki, r}
 	}
 	h, err := makeTlfHandleHelper(ctx, public, writers, readers)
 	if err != nil {

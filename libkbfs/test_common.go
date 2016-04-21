@@ -286,7 +286,7 @@ func NewFolderWithIDAndWriter(t logger.TestLogBackend, id TlfID, revision Metada
 		writer2 := keybase1.MakeTestUID(16)
 		writers = append(writers, writer2)
 	}
-	bareH, err := MakeBareTlfHandle(writers, readers)
+	bareH, err := MakeBareTlfHandle(writers, readers, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -567,7 +567,8 @@ func GetRootNodeForTest(
 	t logger.TestLogBackend, config Config, name string, public bool) (
 	Node, error) {
 	ctx := context.Background()
-	h, err := ParseTlfHandle(ctx, config.KBPKI(), name, public)
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), name, public,
+		config.SharingBeforeSignupEnabled())
 	if err != nil {
 		return nil, err
 	}

@@ -23,7 +23,7 @@ func makeTestTlfHandle(t logger.TestLogBackend, x uint32, public bool) *TlfHandl
 	if public {
 		readers = []keybase1.UID{keybase1.PUBLIC_UID}
 	}
-	bareH, err := MakeBareTlfHandle([]keybase1.UID{uid}, readers)
+	bareH, err := MakeBareTlfHandle([]keybase1.UID{uid}, readers, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

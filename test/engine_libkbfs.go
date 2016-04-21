@@ -138,7 +138,7 @@ func (k *LibKBFS) GetRootDir(u User, isPublic bool, writers []string, readers []
 	}
 
 	ctx := context.Background()
-	bareH, err := libkbfs.MakeBareTlfHandle(writerUIDs, readerUIDs)
+	bareH, err := libkbfs.MakeBareTlfHandle(writerUIDs, readerUIDs, nil, nil)
 	if err != nil {
 		return nil, err
 	}

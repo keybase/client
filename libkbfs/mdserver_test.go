@@ -200,7 +200,7 @@ func TestMDServerRegisterForUpdate(t *testing.T) {
 	}
 
 	// Create first TLF.
-	bareH1, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil)
+	bareH1, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -217,7 +217,7 @@ func TestMDServerRegisterForUpdate(t *testing.T) {
 	// Create second TLF, which should end up being different from
 	// the first one.
 	bareH2, err := MakeBareTlfHandle(
-		[]keybase1.UID{uid}, []keybase1.UID{keybase1.PublicUID})
+		[]keybase1.UID{uid}, []keybase1.UID{keybase1.PublicUID}, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

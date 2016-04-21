@@ -276,7 +276,7 @@ func fiTypeString(fi os.FileInfo) string {
 }
 
 func usersTlf(uids []keybase1.UID, nwriters int, config *libkbfs.ConfigLocal) (*libkbfs.TlfHandle, error) {
-	bareH, err := libkbfs.MakeBareTlfHandle(uids[:nwriters], uids[nwriters:])
+	bareH, err := libkbfs.MakeBareTlfHandle(uids[:nwriters], uids[nwriters:], nil, nil)
 	if err != nil {
 		return nil, err
 	}
