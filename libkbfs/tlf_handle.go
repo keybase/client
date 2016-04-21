@@ -3,17 +3,19 @@ package libkbfs
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"sort"
 	"strings"
-	"sync"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/protocol"
+	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
 )
 
 // BareTlfHandle uniquely identifies top-level folders by readers and
 // writers.
+//
+// TODO: Have separate types for writers vs. readers.
 type BareTlfHandle struct {
 	Writers           []keybase1.UID             `codec:"w,omitempty"`
 	Readers           []keybase1.UID             `codec:"r,omitempty"`
@@ -110,22 +112,107 @@ type TlfHandle struct {
 	name CanonicalTlfName
 }
 
-func makeCanonicalTlfName(ctx context.Context, h BareTlfHandle, nug normalizedUsernameGetter) (CanonicalTlfName, error) {
-	writerNames, err := resolveUIDs(ctx, nug, h.Writers)
+type resolvableUser interface {
+	resolve(context.Context) (UserInfo, error)
+}
+
+func resolveOneUser(
+	ctx context.Context, user resolvableUser,
+	errCh chan<- error, results chan<- UserInfo) {
+	userInfo, err := user.resolve(ctx)
 	if err != nil {
-		return "", err
-	}
-
-	// assume only additional readers are listed
-	if !h.IsPublic() && len(h.Readers) > 0 {
-		readerNames, err := resolveUIDs(ctx, nug, h.Readers)
-		if err != nil {
-			return "", err
+		select {
+		case errCh <- err:
+		default:
+			// another worker reported an error before us;
+			// first one wins
 		}
-		return CanonicalTlfName(writerNames + ReaderSep + readerNames), nil
+		return
+	}
+	results <- userInfo
+}
+
+func makeTlfHandleHelper(
+	ctx context.Context, public bool, writers, readers []resolvableUser) (*TlfHandle, error) {
+	if public && len(readers) > 0 {
+		return nil, errors.New("public folder cannot have readers")
 	}
 
-	return CanonicalTlfName(writerNames), nil
+	// parallelize the resolutions for each user
+	errCh := make(chan error, 1)
+	wc := make(chan UserInfo, len(writers))
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+	for _, writer := range writers {
+		go resolveOneUser(ctx, writer, errCh, wc)
+	}
+
+	rc := make(chan UserInfo, len(readers))
+	for _, reader := range readers {
+		go resolveOneUser(ctx, reader, errCh, rc)
+	}
+
+	usedWNames := make(map[keybase1.UID]libkb.NormalizedUsername, len(writers))
+	usedRNames := make(map[keybase1.UID]libkb.NormalizedUsername, len(readers))
+	for i := 0; i < len(writers)+len(readers); i++ {
+		select {
+		case err := <-errCh:
+			return nil, err
+		case userInfo := <-wc:
+			usedWNames[userInfo.UID] = userInfo.Name
+		case userInfo := <-rc:
+			usedRNames[userInfo.UID] = userInfo.Name
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		}
+	}
+
+	for uid := range usedWNames {
+		delete(usedRNames, uid)
+	}
+
+	writerUIDs, writerNames := sortedUIDsAndNames(usedWNames)
+
+	canonicalName := strings.Join(writerNames, ",")
+
+	var readerUIDs []keybase1.UID
+	if public {
+		readerUIDs = []keybase1.UID{keybase1.PublicUID}
+	} else {
+		var readerNames []string
+		readerUIDs, readerNames = sortedUIDsAndNames(usedRNames)
+		if len(readerNames) > 0 {
+			canonicalName += ReaderSep + strings.Join(readerNames, ",")
+		}
+	}
+
+	bareHandle, err := MakeBareTlfHandle(writerUIDs, readerUIDs)
+	if err != nil {
+		return nil, err
+	}
+
+	h := &TlfHandle{
+		BareTlfHandle: bareHandle,
+		name:          CanonicalTlfName(canonicalName),
+	}
+
+	return h, nil
+}
+
+type resolvableUID struct {
+	nug normalizedUsernameGetter
+	uid keybase1.UID
+}
+
+func (ruid resolvableUID) resolve(ctx context.Context) (UserInfo, error) {
+	name, err := ruid.nug.GetNormalizedUsername(ctx, ruid.uid)
+	if err != nil {
+		return UserInfo{}, err
+	}
+	return UserInfo{
+		Name: name,
+		UID:  ruid.uid,
+	}, nil
 }
 
 // MakeTlfHandle creates a TlfHandle from the given BareTlfHandle and
@@ -133,15 +220,29 @@ func makeCanonicalTlfName(ctx context.Context, h BareTlfHandle, nug normalizedUs
 func MakeTlfHandle(
 	ctx context.Context, bareHandle BareTlfHandle,
 	nug normalizedUsernameGetter) (*TlfHandle, error) {
-	name, err := makeCanonicalTlfName(ctx, bareHandle, nug)
+	writers := make([]resolvableUser, len(bareHandle.Writers))
+	for i, w := range bareHandle.Writers {
+		writers[i] = resolvableUID{nug, w}
+	}
+
+	var readers []resolvableUser
+	if !bareHandle.IsPublic() {
+		readers = make([]resolvableUser, len(bareHandle.Readers))
+		for i, r := range bareHandle.Readers {
+			readers[i] = resolvableUID{nug, r}
+		}
+	}
+
+	h, err := makeTlfHandleHelper(ctx, bareHandle.IsPublic(), writers, readers)
 	if err != nil {
 		return nil, err
 	}
 
-	return &TlfHandle{
-		BareTlfHandle: bareHandle,
-		name:          name,
-	}, nil
+	if !reflect.DeepEqual(h.BareTlfHandle, bareHandle) {
+		panic(fmt.Errorf("h.BareTlfHandle=%+v unexpectedly not equal to bareHandle=%+v", h.BareTlfHandle, bareHandle))
+	}
+
+	return h, nil
 }
 
 func (h *TlfHandle) deepCopy(codec Codec) (*TlfHandle, error) {
@@ -262,230 +363,23 @@ func normalizeUserNamesInTLF(writerNames, readerNames []string) string {
 	return normalizedName
 }
 
-type userResolver func(ctx context.Context, assertion string, isWriter bool) (
-	UserInfo, error)
+type resolvableAssertion struct {
+	kbpki     KBPKI
+	assertion string
+}
 
-func resolveOneUser(
-	ctx context.Context, userResolver userResolver, assertion string,
-	isWriter bool, errCh chan<- error, results chan<- UserInfo) {
-	// short-circuit if this is the special public user:
-	if assertion == PublicUIDName {
-		results <- UserInfo{
-			Name: PublicUIDName,
-			UID:  keybase1.PublicUID,
-		}
-		return
+func (ra resolvableAssertion) resolve(ctx context.Context) (UserInfo, error) {
+	if ra.assertion == PublicUIDName {
+		return UserInfo{}, fmt.Errorf("Invalid name %s", ra.assertion)
 	}
-
-	userInfo, err := userResolver(ctx, assertion, isWriter)
+	name, uid, err := ra.kbpki.Resolve(ctx, ra.assertion)
 	if err != nil {
-		select {
-		case errCh <- err:
-		default:
-			// another worker reported an error before us;
-			// first one wins
-		}
-		return
+		return UserInfo{}, err
 	}
-	results <- userInfo
-}
-
-func parseTlfHandleHelper(ctx context.Context, userResolver userResolver,
-	public bool, writerNames, readerNames []string) (
-	*TlfHandle, CanonicalTlfName, error) {
-	if public && len(readerNames) > 0 {
-		return nil, "", errors.New("public folder cannot have reader names")
-	}
-
-	// parallelize the resolutions for each user
-	errCh := make(chan error, 1)
-	wc := make(chan UserInfo, len(writerNames))
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-	for _, writer := range writerNames {
-		go resolveOneUser(ctx, userResolver, writer, true, errCh, wc)
-	}
-
-	rc := make(chan UserInfo, len(readerNames))
-	for _, reader := range readerNames {
-		go resolveOneUser(ctx, userResolver, reader, false, errCh, rc)
-	}
-
-	usedWNames := make(map[keybase1.UID]libkb.NormalizedUsername, len(writerNames))
-	usedRNames := make(map[keybase1.UID]libkb.NormalizedUsername, len(readerNames))
-	for i := 0; i < len(writerNames)+len(readerNames); i++ {
-		select {
-		case err := <-errCh:
-			return nil, "", err
-		case userInfo := <-wc:
-			usedWNames[userInfo.UID] = userInfo.Name
-		case userInfo := <-rc:
-			usedRNames[userInfo.UID] = userInfo.Name
-		case <-ctx.Done():
-			return nil, "", ctx.Err()
-		}
-	}
-
-	for uid := range usedWNames {
-		delete(usedRNames, uid)
-	}
-
-	writerUIDs, writerNames := sortedUIDsAndNames(usedWNames)
-
-	canonicalName := strings.Join(writerNames, ",")
-
-	var readerUIDs []keybase1.UID
-	if public {
-		readerUIDs = []keybase1.UID{keybase1.PublicUID}
-	} else {
-		var readerNames []string
-		readerUIDs, readerNames = sortedUIDsAndNames(usedRNames)
-		if len(readerNames) > 0 {
-			canonicalName += ReaderSep + strings.Join(readerNames, ",")
-		}
-	}
-
-	bareHandle, err := MakeBareTlfHandle(writerUIDs, readerUIDs)
-	if err != nil {
-		return nil, "", err
-	}
-
-	h := &TlfHandle{
-		BareTlfHandle: bareHandle,
-		name:          CanonicalTlfName(canonicalName),
-	}
-
-	return h, CanonicalTlfName(canonicalName), nil
-}
-
-// resolveTlfHandle parses a TlfHandle from a split TLF name using
-// kbpki.Resolve().
-func resolveTlfHandle(ctx context.Context, kbpki KBPKI,
-	public bool, writerNames, readerNames []string) (
-	*TlfHandle, CanonicalTlfName, error) {
-	resolveUser := func(ctx context.Context, assertion string, isWriter bool) (UserInfo, error) {
-		name, uid, err := kbpki.Resolve(ctx, assertion)
-		if err != nil {
-			return UserInfo{}, err
-		}
-		return UserInfo{
-			Name: name,
-			UID:  uid,
-		}, nil
-	}
-	return parseTlfHandleHelper(ctx, resolveUser, public, writerNames, readerNames)
-}
-
-func identifyHelper(ctx context.Context, kbpki KBPKI, _ CanonicalTlfName, assertion string, _ bool, public bool) (UserInfo, error) {
-	var pubOrPri string
-	if public {
-		pubOrPri = "public"
-	} else {
-		pubOrPri = "private"
-	}
-	reason := fmt.Sprintf("You accessed a %s folder with %s.", pubOrPri, assertion)
-	return kbpki.Identify(ctx, assertion, reason)
-}
-
-// identifyTlfHandle parses a TlfHandle from a split TLF name using
-// kbpki.Identify().
-func identifyTlfHandle(ctx context.Context, kbpki KBPKI,
-	canonicalName CanonicalTlfName, public bool, writerNames, readerNames []string) (
-	*TlfHandle, CanonicalTlfName, error) {
-	identifyUser := func(ctx context.Context, assertion string, isWriter bool) (UserInfo, error) {
-		return identifyHelper(ctx, kbpki, canonicalName, assertion, isWriter, public)
-	}
-	return parseTlfHandleHelper(ctx, identifyUser, public, writerNames, readerNames)
-}
-
-func identifyUID(ctx context.Context, kbpki KBPKI, canonicalName CanonicalTlfName,
-	uid keybase1.UID, isWriter, isPublic bool) error {
-	username, err := kbpki.GetNormalizedUsername(ctx, uid)
-	if err != nil {
-		return err
-	}
-	userInfo, err := identifyHelper(ctx, kbpki, canonicalName, username.String(), isWriter, isPublic)
-	if err != nil {
-		return err
-	}
-	if userInfo.Name != username {
-		return fmt.Errorf("Identify returned name=%s, expected %s", userInfo.Name, username)
-	}
-	if userInfo.UID != uid {
-		return fmt.Errorf("Identify returned uid=%s, expected %s", userInfo.UID, uid)
-	}
-	return nil
-}
-
-func identifyOneUID(ctx context.Context, kbpki KBPKI,
-	canonicalName CanonicalTlfName, uid keybase1.UID, isWriter,
-	isPublic bool, errChan chan<- error) {
-	err := identifyUID(ctx, kbpki, canonicalName, uid, isWriter, isPublic)
-	if err != nil {
-		select {
-		case errChan <- err:
-		default:
-		}
-	}
-}
-
-// identifyHandle identifies the canonical names in the given handle.
-func identifyHandle(ctx context.Context, config Config, h *TlfHandle) error {
-	canonicalName := h.GetCanonicalName()
-
-	ctx, cancel := context.WithCancel(ctx)
-	defer cancel()
-
-	var wg sync.WaitGroup
-	errChan := make(chan error, 1)
-	// TODO: limit the number of concurrent identifies?
-	for _, writerUID := range h.Writers {
-		wg.Add(1)
-		localWriter := writerUID
-		go func() {
-			defer wg.Done()
-			identifyOneUID(ctx, config.KBPKI(), canonicalName, localWriter,
-				true, h.IsPublic(), errChan)
-		}()
-	}
-
-	if !h.IsPublic() && len(h.Readers) > 0 {
-		for _, readerUID := range h.Readers {
-			wg.Add(1)
-			localReader := readerUID
-			go func() {
-				defer wg.Done()
-				identifyOneUID(ctx, config.KBPKI(), canonicalName, localReader,
-					false, h.IsPublic(), errChan)
-			}()
-		}
-	}
-
-	go func() {
-		wg.Wait()
-		close(errChan)
-	}()
-
-	return <-errChan
-}
-
-func resolveUIDs(ctx context.Context, nug normalizedUsernameGetter,
-	uids []keybase1.UID) (string, error) {
-	names := make([]string, 0, len(uids))
-	// TODO: parallelize?
-	for _, uid := range uids {
-		if uid.Equal(keybase1.PublicUID) {
-			// PublicUIDName is already normalized.
-			names = append(names, PublicUIDName)
-		} else if name, err := nug.GetNormalizedUsername(ctx, uid); err == nil {
-			names = append(names, string(name))
-		} else {
-			return "", err
-		}
-	}
-
-	sort.Strings(names)
-	return strings.Join(names, ","), nil
+	return UserInfo{
+		Name: name,
+		UID:  uid,
+	}, nil
 }
 
 // ParseTlfHandle parses a TlfHandle from an encoded string. See
@@ -516,8 +410,27 @@ func ParseTlfHandle(
 		return nil, err
 	}
 
-	h, canonicalName, err := resolveTlfHandle(
-		ctx, kbpki, public, writerNames, readerNames)
+	hasPublic := len(readerNames) == 0
+
+	if public && !hasPublic {
+		// No public folder exists for this folder.
+		return nil, NoSuchNameError{Name: name}
+	}
+
+	normalizedName := normalizeUserNamesInTLF(writerNames, readerNames)
+	if normalizedName != name {
+		return nil, TlfNameNotCanonical{name, normalizedName}
+	}
+
+	writers := make([]resolvableUser, len(writerNames))
+	for i, w := range writerNames {
+		writers[i] = resolvableAssertion{kbpki, w}
+	}
+	readers := make([]resolvableUser, len(readerNames))
+	for i, r := range readerNames {
+		readers[i] = resolvableAssertion{kbpki, r}
+	}
+	h, err := makeTlfHandleHelper(ctx, public, writers, readers)
 	if err != nil {
 		return nil, err
 	}
@@ -538,11 +451,11 @@ func ParseTlfHandle(
 		}
 
 		if !canRead {
-			return nil, ReadAccessError{currentUsername, canonicalName, public}
+			return nil, ReadAccessError{currentUsername, h.GetCanonicalName(), public}
 		}
 	}
 
-	if string(canonicalName) == name {
+	if string(h.GetCanonicalName()) == name {
 		// Name is already canonical (i.e., all usernames and
 		// no assertions) so we can delay the identify until
 		// the node is actually used.
@@ -550,13 +463,12 @@ func ParseTlfHandle(
 	}
 
 	// Otherwise, identify before returning the canonical name.
-	_, _, err = identifyTlfHandle(
-		ctx, kbpki, canonicalName, public, writerNames, readerNames)
+	err = identifyHandle(ctx, kbpki, kbpki, h)
 	if err != nil {
 		return nil, err
 	}
 
-	return nil, TlfNameNotCanonical{name, string(canonicalName)}
+	return nil, TlfNameNotCanonical{name, string(h.GetCanonicalName())}
 }
 
 // CheckTlfHandleOffline does light checks whether a TLF handle looks ok,

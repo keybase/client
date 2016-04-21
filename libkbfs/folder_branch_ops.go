@@ -534,7 +534,8 @@ func (fbo *folderBranchOps) identifyOnce(
 
 	h := md.GetTlfHandle()
 	fbo.log.CDebugf(ctx, "Running identifies on %s", h.GetCanonicalPath())
-	err := identifyHandle(ctx, fbo.config, h)
+	kbpki := fbo.config.KBPKI()
+	err := identifyHandle(ctx, kbpki, kbpki, h)
 	if err != nil {
 		fbo.log.CDebugf(ctx, "Identify finished with error: %v", err)
 		// For now, if the identify fails, let the

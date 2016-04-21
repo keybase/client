@@ -337,26 +337,15 @@ func (km *KeyManagerStandard) deleteKeysForRemovedDevices(ctx context.Context,
 func (km *KeyManagerStandard) identifyUIDSets(ctx context.Context,
 	md *RootMetadata, writersToIdentify map[keybase1.UID]bool,
 	readersToIdentify map[keybase1.UID]bool) error {
-	// Fire off identifies to make sure the users are legit. TODO:
-	// parallelize?
-	handle := md.GetTlfHandle()
+	uids := make([]keybase1.UID, 0, len(writersToIdentify)+len(readersToIdentify))
 	for u := range writersToIdentify {
-		err := identifyUID(ctx, km.config.KBPKI(),
-			handle.GetCanonicalName(), u, true,
-			md.ID.IsPublic())
-		if err != nil {
-			return err
-		}
+		uids = append(uids, u)
 	}
 	for u := range readersToIdentify {
-		err := identifyUID(ctx, km.config.KBPKI(),
-			handle.GetCanonicalName(), u, false,
-			md.ID.IsPublic())
-		if err != nil {
-			return err
-		}
+		uids = append(uids, u)
 	}
-	return nil
+	kbpki := km.config.KBPKI()
+	return identifyUserList(ctx, kbpki, kbpki, uids, md.ID.IsPublic())
 }
 
 func (km *KeyManagerStandard) generateKeyMapForUsers(ctx context.Context, users []keybase1.UID) (map[keybase1.UID][]CryptPublicKey, error) {

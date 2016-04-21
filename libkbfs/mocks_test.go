@@ -635,6 +635,38 @@ func (_mr *_MockKeybaseDaemonRecorder) Shutdown() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
 }
 
+// Mock of identifier interface
+type Mockidentifier struct {
+	ctrl     *gomock.Controller
+	recorder *_MockidentifierRecorder
+}
+
+// Recorder for Mockidentifier (not exported)
+type _MockidentifierRecorder struct {
+	mock *Mockidentifier
+}
+
+func NewMockidentifier(ctrl *gomock.Controller) *Mockidentifier {
+	mock := &Mockidentifier{ctrl: ctrl}
+	mock.recorder = &_MockidentifierRecorder{mock}
+	return mock
+}
+
+func (_m *Mockidentifier) EXPECT() *_MockidentifierRecorder {
+	return _m.recorder
+}
+
+func (_m *Mockidentifier) Identify(ctx context.Context, assertion string, reason string) (UserInfo, error) {
+	ret := _m.ctrl.Call(_m, "Identify", ctx, assertion, reason)
+	ret0, _ := ret[0].(UserInfo)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockidentifierRecorder) Identify(arg0, arg1, arg2 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Identify", arg0, arg1, arg2)
+}
+
 // Mock of normalizedUsernameGetter interface
 type MocknormalizedUsernameGetter struct {
 	ctrl     *gomock.Controller
