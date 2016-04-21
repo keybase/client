@@ -5,12 +5,17 @@ set -e -u -o pipefail # Fail on error
 dir=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 cd $dir
 
-istest=${TEST:-}
+package="$1"
 nopull=${NOPULL:-}
+src_dir="$GOPATH/src/$package"
 
-if [ ! "$istest" = "1" ] && [ ! "$nopull" = "1" ]; then
-  go get -u -f $1
-else
-  go get $1
+if [ ! -d "$GOPATH/src/$package" ]; then
+  git clone "https://$package" "$src_dir"
+elif [ ! -n "$nopull" ]; then
+  "$dir/check_status_and_pull.sh" "$src_dir"
 fi
-go install $1
+
+# We don't go get -u for dependencies since we assume this is used on vendored
+# packages, or dependencies are updated manually.
+
+go install "$package"
