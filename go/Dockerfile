@@ -3,10 +3,9 @@ MAINTAINER Keybase <admin@keybase.io>
 
 RUN apk add --update fuse jq bash && \
     rm -rf /var/cache/apk/* && \
-    mkdir -p /home/keybase && \
-    mkdir /keybase && \
     adduser -D keybase && \
-    chown keybase:keybase /keybase
+    mkdir /keybase && \
+    chmod 777 /keybase
 
 USER keybase
 WORKDIR /home/keybase
