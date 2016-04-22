@@ -24,14 +24,10 @@ mkdir -p "$build_dir"
 
 echo "Checking CI for this commit"
 (
-  export TMPDIR="$here"
   temp="$(mktemp -d)"
-  cd "$temp"
-  mkdir node_modules  # avoid having npm scan parent dirs
-  npm i github-ci-status
-  ./node_modules/.bin/ci --required-tests 3
-  cd ..
-  rm -rf "$temp"
+  (cd "$temp" && npm i github-ci-status)
+  (cd "$client_dir" && "$temp/node_modules/.bin/ci" --required-tests 3)
+  rm -r "$temp"
 )
 
 # Build all the packages!
