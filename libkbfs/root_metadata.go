@@ -262,8 +262,17 @@ func updateNewRootMetadata(rmd *RootMetadata, d *TlfHandle, id TlfID) {
 		ID:      id,
 		BID:     BranchID{},
 	}
+	if len(d.UnresolvedWriters) > 0 {
+		rmd.Extra.UnresolvedWriters = make([]keybase1.SocialAssertion, len(d.UnresolvedWriters))
+		copy(rmd.Extra.UnresolvedWriters, d.UnresolvedWriters)
+	}
+
 	rmd.Revision = MetadataRevisionInitial
 	rmd.RKeys = rKeys
+	if len(d.UnresolvedReaders) > 0 {
+		rmd.UnresolvedReaders = make([]keybase1.SocialAssertion, len(d.UnresolvedReaders))
+		copy(rmd.UnresolvedReaders, d.UnresolvedReaders)
+	}
 	// need to keep the dir handle around long enough to rekey the
 	// metadata for the first time
 	rmd.tlfHandle = d
@@ -514,8 +523,8 @@ func (md *RootMetadata) MakeBareTlfHandle() (BareTlfHandle, error) {
 		}
 	}
 
-	// TODO: Pass through unresolved assertions.
-	return MakeBareTlfHandle(writers, readers, nil, nil)
+	return MakeBareTlfHandle(
+		writers, readers, md.Extra.UnresolvedWriters, md.UnresolvedReaders)
 }
 
 // IsInitialized returns whether or not this RootMetadata has been initialized

@@ -55,18 +55,46 @@ func (u SocialAssertionList) Swap(i, j int) {
 	u[i], u[j] = u[j], u[i]
 }
 
+// ErrNoWriters is the error returned by MakeBareTlfHandle if it is
+// passed an empty list of writers.
+var ErrNoWriters = errors.New("Cannot make TLF handle with no writers; need rekey?")
+
+// ErrInvalidWriter is the error returned by MakeBareTlfHandle if it
+// is passed an invalid writer.
+var ErrInvalidWriter = errors.New("Cannot make TLF handle with invalid writer")
+
+// ErrInvalidReader is the error returned by MakeBareTlfHandle if it
+// is passed an invalid reader.
+var ErrInvalidReader = errors.New("Cannot make TLF handle with invalid reader")
+
 // MakeBareTlfHandle creates a BareTlfHandle from the given list of
 // readers and writers.
 func MakeBareTlfHandle(
 	writers, readers []keybase1.UID,
 	unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion) (
 	BareTlfHandle, error) {
+	if len(writers) == 0 {
+		return BareTlfHandle{}, ErrNoWriters
+	}
+
+	for _, w := range writers {
+		if w == keybase1.PUBLIC_UID {
+			return BareTlfHandle{}, ErrInvalidWriter
+		}
+	}
+
+	if (len(readers) + len(unresolvedReaders)) > 1 {
+		// If we have more than one reader, none of them
+		// should be the public UID.
+		for _, r := range readers {
+			if r == keybase1.PUBLIC_UID {
+				return BareTlfHandle{}, ErrInvalidReader
+			}
+		}
+	}
+
 	// TODO: Check for overlap between readers and writers, and
 	// for duplicates.
-
-	if len(writers) == 0 {
-		return BareTlfHandle{}, errors.New("Cannot make BareTlfHandle with no writers; need rekey?")
-	}
 
 	writersCopy := make([]keybase1.UID, len(writers))
 	copy(writersCopy, writers)

@@ -77,28 +77,103 @@ func TestPrivateMetadataUnknownFields(t *testing.T) {
 	testStructUnknownFields(t, makeFakePrivateMetadataFuture(t))
 }
 
-// Test that GetTlfHandle() works properly for public TLFs.
-func TestRootMetadataGetTlfHandlePublic(t *testing.T) {
-	h := makeTestTlfHandle(t, 14, true)
-	tlfID := FakeTlfID(0, true)
-	rmd := NewRootMetadata(h, tlfID)
-	dirHandle := rmd.GetTlfHandle()
-	require.Equal(t, h, dirHandle)
+// fakeInitialRekey fakes a rekey for the given RootMetadata. This is
+// necessary since newly-created RootMetadata objects don't have
+// enough data to build a TlfHandle from until the first rekey.
+func fakeInitialRekey(h *TlfHandle, rmd *RootMetadata) {
+	if rmd.ID.IsPublic() {
+		writers := make([]keybase1.UID, len(h.Writers))
+		for i, w := range h.Writers {
+			writers[i] = w
+		}
+		rmd.Writers = writers
+	} else {
+		wkb := TLFWriterKeyBundle{
+			WKeys: make(UserDeviceKeyInfoMap),
+		}
+		for _, w := range h.Writers {
+			wkb.WKeys[w] = make(DeviceKeyInfoMap)
+		}
+		rmd.WKeys = TLFWriterKeyGenerations{wkb}
+
+		rkb := TLFReaderKeyBundle{
+			RKeys: make(UserDeviceKeyInfoMap),
+		}
+		for _, r := range h.Readers {
+			rkb.RKeys[r] = make(DeviceKeyInfoMap)
+		}
+		rmd.RKeys = TLFReaderKeyGenerations{rkb}
+	}
 }
 
-// Test that GetTlfHandle() works properly for non-public TLFs.
-func TestRootMetadataGetTlfHandlePrivate(t *testing.T) {
-	h := makeTestTlfHandle(t, 14, false)
-	tlfID := FakeTlfID(0, false)
+// Test that GetTlfHandle() and MakeBareTlfHandle() work properly for
+// public TLFs.
+func TestRootMetadataGetTlfHandlePublic(t *testing.T) {
+	uw := []keybase1.SocialAssertion{
+		{
+			User:    "user2",
+			Service: "service3",
+		},
+		{
+			User:    "user1",
+			Service: "service1",
+		},
+	}
+	h := makeTestTlfHandle(t, 14, true, uw, nil)
+	tlfID := FakeTlfID(0, true)
 	rmd := NewRootMetadata(h, tlfID)
+	fakeInitialRekey(h, rmd)
+
 	dirHandle := rmd.GetTlfHandle()
 	require.Equal(t, h, dirHandle)
+
+	rmd.tlfHandle = nil
+	bh, err := rmd.MakeBareTlfHandle()
+	require.Nil(t, err)
+	require.Equal(t, h.BareTlfHandle, bh)
+}
+
+// Test that GetTlfHandle() and MakeBareTlfHandle() work properly for
+// non-public TLFs.
+func TestRootMetadataGetTlfHandlePrivate(t *testing.T) {
+	uw := []keybase1.SocialAssertion{
+		{
+			User:    "user2",
+			Service: "service3",
+		},
+		{
+			User:    "user1",
+			Service: "service1",
+		},
+	}
+	ur := []keybase1.SocialAssertion{
+		{
+			User:    "user5",
+			Service: "service3",
+		},
+		{
+			User:    "user1",
+			Service: "service2",
+		},
+	}
+	h := makeTestTlfHandle(t, 14, false, uw, ur)
+	tlfID := FakeTlfID(0, false)
+	rmd := NewRootMetadata(h, tlfID)
+	fakeInitialRekey(h, rmd)
+
+	dirHandle := rmd.GetTlfHandle()
+	require.Equal(t, h, dirHandle)
+
+	rmd.tlfHandle = nil
+	bh, err := rmd.MakeBareTlfHandle()
+	require.Nil(t, err)
+	require.Equal(t, h.BareTlfHandle, bh)
 }
 
 // Test that key generations work as expected for private TLFs.
 func TestRootMetadataLatestKeyGenerationPrivate(t *testing.T) {
 	tlfID := FakeTlfID(0, false)
-	h := makeTestTlfHandle(t, 14, false)
+	h := makeTestTlfHandle(t, 14, false, nil, nil)
 	rmd := NewRootMetadata(h, tlfID)
 	if rmd.LatestKeyGeneration() != 0 {
 		t.Errorf("Expected key generation to be invalid (0)")
@@ -112,7 +187,7 @@ func TestRootMetadataLatestKeyGenerationPrivate(t *testing.T) {
 // Test that key generations work as expected for public TLFs.
 func TestRootMetadataLatestKeyGenerationPublic(t *testing.T) {
 	tlfID := FakeTlfID(0, true)
-	h := makeTestTlfHandle(t, 14, true)
+	h := makeTestTlfHandle(t, 14, true, nil, nil)
 	rmd := NewRootMetadata(h, tlfID)
 	if rmd.LatestKeyGeneration() != PublicKeyGen {
 		t.Errorf("Expected key generation to be public (%d)", PublicKeyGen)

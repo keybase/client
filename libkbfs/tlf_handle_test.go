@@ -77,6 +77,37 @@ func TestMakeBareTlfHandle(t *testing.T) {
 	}, h.UnresolvedReaders)
 }
 
+func TestMakeBareTlfHandleFailures(t *testing.T) {
+	_, err := MakeBareTlfHandle(nil, nil, nil, nil)
+	assert.Equal(t, ErrNoWriters, err)
+
+	w := []keybase1.UID{
+		keybase1.MakeTestUID(4),
+		keybase1.MakeTestUID(3),
+	}
+
+	r := []keybase1.UID{
+		keybase1.PUBLIC_UID,
+		keybase1.MakeTestUID(2),
+	}
+
+	_, err = MakeBareTlfHandle(r, nil, nil, nil)
+	assert.Equal(t, ErrInvalidWriter, err)
+
+	_, err = MakeBareTlfHandle(w, r, nil, nil)
+	assert.Equal(t, ErrInvalidReader, err)
+
+	ur := []keybase1.SocialAssertion{
+		{
+			User:    "user5",
+			Service: "service3",
+		},
+	}
+
+	_, err = MakeBareTlfHandle(w, r[:1], nil, ur)
+	assert.Equal(t, ErrInvalidReader, err)
+}
+
 func TestNormalizeNamesInTLF(t *testing.T) {
 	writerNames := []string{"B", "C@Twitter", "d@twitter", "a"}
 	readerNames := []string{"E", "f", "AA@HackerNews", "a", "B", "b", "ZZ@hackernews"}

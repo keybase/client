@@ -7,7 +7,6 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
-	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
 )
 
@@ -108,35 +107,6 @@ func putMDForPrivate(config *ConfigMock, rmds *RootMetadataSigned,
 	config.mockCodec.EXPECT().Decode([]byte{}, gomock.Any()).Return(nil)
 
 	config.mockMdserv.EXPECT().Put(gomock.Any(), gomock.Any()).Return(nil)
-}
-
-// fakeInitialRekey fakes a rekey for the given RootMetadata. This is
-// necessary since newly-created RootMetadata objects don't have
-// enough data to build a TlfHandle from until the first rekey.
-func fakeInitialRekey(h *TlfHandle, rmd *RootMetadata) {
-	if rmd.ID.IsPublic() {
-		writers := make([]keybase1.UID, len(h.Writers))
-		for i, w := range h.Writers {
-			writers[i] = w
-		}
-		rmd.Writers = writers
-	} else {
-		wkb := TLFWriterKeyBundle{
-			WKeys: make(UserDeviceKeyInfoMap),
-		}
-		for _, w := range h.Writers {
-			wkb.WKeys[w] = make(DeviceKeyInfoMap)
-		}
-		rmd.WKeys = TLFWriterKeyGenerations{wkb}
-
-		rkb := TLFReaderKeyBundle{
-			RKeys: make(UserDeviceKeyInfoMap),
-		}
-		for _, r := range h.Readers {
-			rkb.RKeys[r] = make(DeviceKeyInfoMap)
-		}
-		rmd.RKeys = TLFReaderKeyGenerations{rkb}
-	}
 }
 
 func TestMDOpsGetForHandlePublicSuccess(t *testing.T) {
@@ -266,7 +236,7 @@ func TestMDOpsGetForHandleFailHandleCheck(t *testing.T) {
 	rmds.MD.tlfHandle = nil
 
 	// Make a different handle.
-	otherH := makeTestTlfHandle(t, 32, false)
+	otherH := makeTestTlfHandle(t, 32, false, nil, nil)
 	config.mockMdserv.EXPECT().GetForHandle(ctx, otherH, Merged).Return(NullTlfID, rmds, nil)
 
 	if _, err := config.MDOps().GetForHandle(ctx, otherH); err == nil {
