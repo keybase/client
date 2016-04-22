@@ -19,6 +19,9 @@ import {bootstrap} from './actions/config'
 import {constants as styleConstants} from './styles/common'
 
 import {devicesTab, moreTab, startupTab, loginTab} from './constants/tabs'
+import ListenLogUi from './native/listen-log-ui'
+import {listenForNotifications} from './actions/notifications'
+import hello from './util/hello'
 
 const tabs = {
   [loginTab]: {module: Login, name: 'Login'},
@@ -81,6 +84,15 @@ class Nav extends Component {
     super(props)
 
     this.props.bootstrap()
+    this.props.listenForNotifications()
+
+    // Handle logUi.log
+    ListenLogUi()
+
+    // Introduce ourselves to the service
+    hello(0, 'iOS app', [], '0.0.0') // TODO real version
+
+    // TODO android also!
   }
 
   navBar () {
@@ -207,7 +219,8 @@ export default connect(
       switchTab: tab => dispatch(switchTab(tab)),
       navigateUp: () => dispatch(navigateUp()),
       navigateTo: uri => dispatch(navigateTo(uri)),
-      bootstrap: () => dispatch(bootstrap())
+      bootstrap: () => dispatch(bootstrap()),
+      listenForNotifications: () => dispatch(listenForNotifications())
     }
   }
 )(Nav)

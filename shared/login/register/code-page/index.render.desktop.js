@@ -99,7 +99,7 @@ export default class CodePageRender extends Component {
       case codePageModeShowText:
         return this.renderText()
     }
-    console.error(`No mode prop passed! Mode: ${this.props.mode}`)
+    console.warn(`No mode prop passed! Mode: ${this.props.mode}`)
     return (<div/>)
   }
 }

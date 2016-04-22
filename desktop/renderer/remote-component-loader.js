@@ -65,7 +65,7 @@ class RemoteComponentLoader extends Component {
       document.title = title
     }
 
-    hello(process.pid, 'Remote Component: ' + (title || ''), process.argv)
+    hello(process.pid, 'Remote Component: ' + (title || ''), process.argv, __VERSION__) // eslint-disable-line no-undef
 
     const component = {tracker, pinentry, update}
 

@@ -72,7 +72,7 @@ export function bootstrap (): AsyncAction {
           dispatch({type: Constants.bootstrapped, payload: null})
           dispatch(navBasedOnLoginState())
         }).catch(error => {
-          console.error('Error bootstrapping: ', error)
+          console.warn('Error bootstrapping: ', error)
         })
     }
   }

@@ -42,7 +42,7 @@ export function checkInviteCode (inviteCode: string): TypedAsyncAction<CheckInvi
       waitingHandler: isWaiting => dispatch(waiting(isWaiting)),
       callback: err => {
         if (err) {
-          console.error('error in inviteCode:', err)
+          console.warn('error in inviteCode:', err)
           dispatch({type: Constants.checkInviteCode, error: true, payload: {errorText: "Sorry, that's not a valid invite code."}})
           reject(err)
         } else {
@@ -178,7 +178,7 @@ export function checkUsernameEmail (username: ?string, email: ?string): TypedAsy
       incomingCallMap: {},
       callback: err => {
         if (err) {
-          console.error("username isn't available:", err)
+          console.warn("username isn't available:", err)
           dispatch({
             type: Constants.checkUsernameEmail,
             error: true,
@@ -256,7 +256,7 @@ export function submitDeviceName (deviceName: string, skipMail?: boolean, onDisp
         incomingCallMap: {},
         callback: err => {
           if (err) {
-            console.error('device name is invalid: ', err)
+            console.warn('device name is invalid: ', err)
             dispatch({
               type: Constants.submitDeviceName,
               error: true,
@@ -330,7 +330,7 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
         },
         callback: (err, {passphraseOk, postOk, writeOk}) => {
           if (err) {
-            console.error('error in signup:', err)
+            console.warn('error in signup:', err)
             dispatch({
               type: Constants.signup,
               error: true,
@@ -347,7 +347,7 @@ function signup (skipMail: boolean, onDisplayPaperKey?: () => void): TypedAsyncA
 
       engine.rpc(params)
     } else {
-      console.error('Entered signup action with a null required field')
+      console.warn('Entered signup action with a null required field')
       reject()
     }
   })

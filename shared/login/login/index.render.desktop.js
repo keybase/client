@@ -4,56 +4,30 @@ import {UserCard, Text, Button, FormWithCheckbox, Dropdown} from '../../common-a
 import {globalStyles, globalColors} from '../../styles/style-guide'
 import type {Props} from './index.render'
 
-type State = {
-  selectedUser: ?string,
-  saveInKeychain: boolean,
-  showTyping: boolean,
-  passphrase: string
-}
-
-export default class LoginRender extends Component<void, Props, State> {
-  state: State;
-
-  constructor (props: Props) {
-    super(props)
-
-    this.state = {
-      selectedUser: props.lastUser,
-      saveInKeychain: true,
-      showTyping: false,
-      passphrase: ''
-    }
-  }
-
-  onSubmit () {
-    if (this.state.selectedUser) {
-      this.props.onLogin(this.state.selectedUser, this.state.passphrase, this.state.saveInKeychain)
-    }
-  }
-
+export default class LoginRender extends Component<void, Props, void> {
   render () {
     const inputProps = {
       floatingLabelText: 'Passphrase',
       style: {marginBottom: 0},
-      onChange: event => this.setState({passphrase: event.target.value}),
-      onEnterKeyDown: () => this.onSubmit(),
-      type: this.state.showTyping ? 'passwordVisible' : 'password',
+      onChangeText: passphrase => this.props.passphraseChange(passphrase),
+      type: this.props.showTyping ? 'passwordVisible' : 'password',
+      onEnterKeyDown: () => this.props.onSubmit(),
       errorText: this.props.error,
       autoFocus: true
     }
 
     const checkboxProps = [
-      {label: 'Save in Keychain', checked: this.state.saveInKeychain, onCheck: check => { this.setState({saveInKeychain: check}) }, style: {marginRight: 13}},
-      {label: 'Show Typing', checked: this.state.showTyping, onCheck: check => { this.setState({showTyping: check}) }}
+      {label: 'Save in Keychain', checked: this.props.saveInKeychain, onCheck: check => { this.props.saveInKeychainChange(check) }, style: {marginRight: 13}},
+      {label: 'Show Typing', checked: this.props.showTyping, onCheck: check => { this.props.showTypingChange(check) }}
     ]
 
     return (
       <div style={styles.container}>
-        <UserCard username={this.state.selectedUser} outerStyle={styles.card}>
+        <UserCard username={this.props.selectedUser} outerStyle={styles.card}>
           <Dropdown
             type='Username'
-            value={this.state.selectedUser}
-            onClick={selectedUser => this.setState({selectedUser})}
+            value={this.props.selectedUser}
+            onClick={selectedUser => this.props.selectedUserChange(selectedUser)}
             onOther={() => this.props.onSomeoneElse()}
             options={this.props.users} />
           <FormWithCheckbox
@@ -67,7 +41,7 @@ export default class LoginRender extends Component<void, Props, State> {
             fullWidth
             type='Primary'
             label='Log in'
-            onClick={() => this.onSubmit()} />
+            onClick={() => this.props.onSubmit()} />
           <Text link type='BodySecondaryLink' onClick={this.props.onForgotPassphrase} style={{marginTop: 24}}>Forgot passphrase?</Text>
         </UserCard>
         <Text style={{marginTop: 30}} type='BodyPrimaryLink' onClick={this.props.onSignup}>Create an account</Text>

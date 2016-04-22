@@ -66,7 +66,7 @@ class Dropdown extends Component {
       if (this.props.onOther) {
         this.props.onOther()
       } else {
-        console.error('otherValue selected, yet no onOther handler')
+        console.warn('otherValue selected, yet no onOther handler')
       }
     } else if (this.props.onClick) {
       this.props.onClick(this.state.value, (this.props.options || []).indexOf(this.state.value))
