@@ -27,12 +27,6 @@ if [ "$platform" = "" ]; then
 fi
 echo "Platform: $platform"
 
-s3host=""
-if [ "$bucket_name" = "prerelease.keybase.io" ]; then
-  # We have a CNAME for the prerelease bucket
-  s3host="https://prerelease.keybase.io"
-fi
-
 # If testing, use test bucket
 if [ "$istest" = "1" ]; then
   bucket_name="prerelease-test.keybase.io"
@@ -45,6 +39,14 @@ fi
 
 if [ ! "$bucket_name" = "" ]; then
   echo "Bucket name: $bucket_name"
+fi
+
+s3host=""
+if [ "$bucket_name" = "prerelease.keybase.io" ]; then
+  # We have a CNAME for the prerelease bucket
+  s3host="https://prerelease.keybase.io"
+else
+  s3host="https://s3.amazonaws.com/$bucket_name/"
 fi
 
 build_dir_keybase="/tmp/build_keybase"
@@ -111,4 +113,6 @@ BUCKET_NAME="$bucket_name" PLATFORM="$platform" "$dir/s3_index.sh"
 
 "$client_dir/packaging/slack/send.sh" "Finished $platform $build_desc (keybase: $version, kbfs: $kbfs_version). See $s3host"
 
-BUCKET_NAME="$bucket_name" "$dir/report.sh"
+if [ "$istest" = "" ]; then
+  BUCKET_NAME="$bucket_name" "$dir/report.sh"
+fi
