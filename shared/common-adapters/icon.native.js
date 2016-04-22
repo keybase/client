@@ -4,6 +4,7 @@ import React, {Component} from 'react'
 import {TouchableHighlight, Text, Image} from 'react-native'
 import {globalColors} from '../styles/style-guide'
 import {fontIcons, images} from './icon.paths.native'
+import Box from './box'
 import type {Props} from './icon'
 import * as shared from './icon.shared'
 
@@ -31,17 +32,26 @@ export default class Icon extends Component {
     delete containerProps.width
     delete containerProps.height
 
-    return (
-      <TouchableHighlight
-        activeOpacity={0.8}
-        underlayColor={globalColors.white}
-        onPress={this.props.onClick}
-        style={containerProps} >
-        {fontIcons[iconType]
-          ? <Text style={{color, fontFamily: 'kb', ...fontSize}}>{fontIcons[iconType]}</Text>
-          : <Image source={images[this.props.type]} style={{resizeMode: 'contain', ...width, ...height}}/>
-        }
-      </TouchableHighlight>
-    )
+    const icon = fontIcons[iconType]
+      ? <Text style={{color, fontFamily: 'kb', ...fontSize}}>{fontIcons[iconType]}</Text>
+      : <Image source={images[this.props.type]} style={{resizeMode: 'contain', ...width, ...height}}/>
+
+    if (this.props.onClick) {
+      return (
+        <TouchableHighlight
+          activeOpacity={0.8}
+          underlayColor={globalColors.white}
+          onPress={this.props.onClick}
+          style={containerProps}>
+          {icon}
+        </TouchableHighlight>
+      )
+    } else {
+      return (
+        <Box style={containerProps}>
+          {icon}
+        </Box>
+      )
+    }
   }
 }
