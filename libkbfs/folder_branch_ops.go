@@ -3079,7 +3079,9 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 		return errors.New("Ignoring MD updates while writes are dirty")
 	}
 
-	fbo.reembedBlockChanges(ctx, lState, rmds)
+	if err := fbo.reembedBlockChanges(ctx, lState, rmds); err != nil {
+		return err
+	}
 
 	for _, rmd := range rmds {
 		// check that we're applying the expected MD revision
@@ -3121,7 +3123,9 @@ func (fbo *folderBranchOps) undoMDUpdatesLocked(ctx context.Context,
 		return NotPermittedWhileDirtyError{}
 	}
 
-	fbo.reembedBlockChanges(ctx, lState, rmds)
+	if err := fbo.reembedBlockChanges(ctx, lState, rmds); err != nil {
+		return err
+	}
 
 	// go backwards through the updates
 	for i := len(rmds) - 1; i >= 0; i-- {
