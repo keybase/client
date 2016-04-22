@@ -137,12 +137,28 @@ func (cr *ConflictResolver) processInput(inputChan <-chan conflictInput) {
 			continue
 		}
 
+		var waitChan chan struct{}
 		if cancel != nil {
-			<-prevCRDone // wait for the last one to finish
+			waitChan = prevCRDone
 		}
 		ctx, cancel = context.WithCancel(ctx)
 		prevCRDone = make(chan struct{}) // closed when doResolve finishes
-		go cr.doResolve(ctx, ci, prevCRDone)
+		go func(ci conflictInput) {
+			defer cr.resolveGroup.Done()
+			defer close(prevCRDone)
+			if waitChan != nil {
+				// Wait for the previous CR without blocking any
+				// Resolve callers, as that could result in deadlock
+				// (KBFS-1001).
+				select {
+				case <-waitChan:
+				case <-ctx.Done():
+					cr.log.CDebugf(ctx, "Resolution canceled before starting")
+					return
+				}
+			}
+			cr.doResolve(ctx, ci)
+		}(ci)
 	}
 }
 
@@ -3095,12 +3111,9 @@ func (e CRWrapError) Error() string {
 	return "Conflict resolution error: " + e.err.Error()
 }
 
-func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput,
-	done chan<- struct{}) {
+func (cr *ConflictResolver) doResolve(ctx context.Context, ci conflictInput) {
 	cr.log.CDebugf(ctx, "Starting conflict resolution with input %v", ci)
 	var err error
-	defer cr.resolveGroup.Done()
-	defer close(done)
 	lState := makeFBOLockState()
 	defer func() {
 		cr.log.CDebugf(ctx, "Finished conflict resolution: %v", err)
