@@ -163,6 +163,14 @@ func unboxBytes32(encryptionKey libkb.GenericKey, ciphertext keybase1.EncryptedB
 }
 
 func getMatchingSecretKey(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg keybase1.UnboxBytes32AnyArg) (key libkb.GenericKey, index int, err error) {
+	// first check cached keys
+	key, index, err = matchingCachedKey(g, arg)
+	if err != nil {
+		return nil, 0, err
+	}
+	if key != nil {
+		return key, index, nil
+	}
 
 	g.Log.Debug("getMatchingSecretKey: acquiring lock")
 	getMatchMu.Lock()
@@ -172,7 +180,7 @@ func getMatchingSecretKey(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg k
 	}()
 	g.Log.Debug("getMatchingSecretKey: lock acquired")
 
-	// first check cached keys
+	// check cache after acquiring lock
 	key, index, err = matchingCachedKey(g, arg)
 	if err != nil {
 		return nil, 0, err
