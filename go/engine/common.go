@@ -48,7 +48,7 @@ func findPaperKeys(ctx *Context, g *libkb.GlobalContext, me *libkb.User) (*keypa
 		return nil, libkb.NoPaperKeysError{}
 	}
 
-	passphrase, err := libkb.GetPaperKeyPassphrase(ctx.SecretUI, me.GetName())
+	passphrase, err := libkb.GetPaperKeyPassphrase(g, ctx.SecretUI, me.GetName())
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func findPaperKeys(ctx *Context, g *libkb.GlobalContext, me *libkb.User) (*keypa
 		g.Log.Debug("paper version mismatch: generated paper key version = %d, libkb version = %d", version, libkb.PaperKeyVersion)
 		return nil, libkb.KeyVersionError{}
 	}
-	if !paperPhrase.ValidWords() {
+	if len(paperPhrase.InvalidWords()) > 0 {
 		g.Log.Debug("paper phrase has invalid word(s) in it")
 		return nil, libkb.PassphraseError{Msg: "invalid word(s) in paper key phrase"}
 	}

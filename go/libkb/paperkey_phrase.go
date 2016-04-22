@@ -58,14 +58,14 @@ func (p PaperKeyPhrase) Version() (uint8, error) {
 	return wordVersion(words[len(words)-1]), nil
 }
 
-func (p PaperKeyPhrase) ValidWords() bool {
+func (p PaperKeyPhrase) InvalidWords() (words []string) {
 	for _, w := range p.words() {
 		// in secwords.go:
 		if !validWord(w) {
-			return false
+			words = append(words, w)
 		}
 	}
-	return true
+	return words
 }
 
 // Prefix returns the first two words in the phrase.

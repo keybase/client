@@ -278,7 +278,7 @@ func matchingPaperKey(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg keyba
 		return nil, 0, nil
 	}
 
-	phrase, err := libkb.GetPaperKeyForCryptoPassphrase(secretUI, arg.Reason, matchingPaper)
+	phrase, err := libkb.GetPaperKeyForCryptoPassphrase(g, secretUI, arg.Reason, matchingPaper)
 	if err != nil {
 		return nil, 0, err
 	}

@@ -827,7 +827,7 @@ func (e *loginProvision) ensurePaperKey(ctx *Context) error {
 
 // This is used by SaltpackDecrypt as well.
 func getPaperKey(g *libkb.GlobalContext, ctx *Context) (*keypair, error) {
-	passphrase, err := libkb.GetPaperKeyPassphrase(ctx.SecretUI, "")
+	passphrase, err := libkb.GetPaperKeyPassphrase(g, ctx.SecretUI, "")
 	if err != nil {
 		return nil, err
 	}

@@ -42,7 +42,7 @@ func promptPassphraseWithArg(g *libkb.GlobalContext, arg keybase1.GUIEntryArg, p
 
 	for i := 0; i < 10; i++ {
 		// get the first passphrase
-		res, err := libkb.GetPassphraseUntilCheck(arg, prompter, &libkb.CheckPassphraseNew)
+		res, err := libkb.GetPassphraseUntilCheckWithChecker(g, arg, prompter, &libkb.CheckPassphraseNew)
 		if err != nil {
 			return keybase1.GetPassphraseRes{}, err
 		}
@@ -50,7 +50,7 @@ func promptPassphraseWithArg(g *libkb.GlobalContext, arg keybase1.GUIEntryArg, p
 		// get confirmation passphrase
 		arg.RetryLabel = ""
 		arg.Prompt = promptConfirm
-		confirm, err := libkb.GetPassphraseUntilCheck(arg, prompter, &libkb.CheckPassphraseNew)
+		confirm, err := libkb.GetPassphraseUntilCheckWithChecker(g, arg, prompter, &libkb.CheckPassphraseNew)
 		if err != nil {
 			return keybase1.GetPassphraseRes{}, err
 		}

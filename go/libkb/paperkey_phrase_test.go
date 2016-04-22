@@ -53,8 +53,8 @@ func TestPaperKeyPhraseTypos(t *testing.T) {
 		if q.String() != p.String() {
 			t.Errorf("input: %q => phrase %q, expected %q", s, q.String(), p.String())
 		}
-		if !q.ValidWords() {
-			t.Errorf("input: %q => phrase %q, contains invalid word", s, q.String())
+		if len(q.InvalidWords()) > 0 {
+			t.Errorf("input: %q => phrase %q, contains invalid words %v", s, q.String(), q.InvalidWords())
 		}
 	}
 
@@ -73,8 +73,12 @@ func TestPaperKeyPhraseTypos(t *testing.T) {
 		t.Errorf("input: %q => version: %d, expected 0", x, version)
 	}
 
-	// but ValidWords should fail
-	if q.ValidWords() {
-		t.Errorf("input: %q => all words valid, expected first one to be invalid", x)
+	// but InvalidWords should return the first word as invalid
+	if len(q.InvalidWords()) == 0 {
+		t.Fatalf("input: %q => all words valid, expected %s to be invalid", x, w[0])
+	}
+
+	if q.InvalidWords()[0] != w[0] {
+		t.Errorf("input: %q => invalid words %v, expected %s", x, q.InvalidWords(), w[0])
 	}
 }
