@@ -42,7 +42,7 @@ script:
     echo 2>&1 "$lint"
     [ -z "$lint" -o "$lint" = "Lint-free!" ]
   - go vet $(go list ./... 2>/dev/null | grep -v /vendor/)
-  - go build -i github.com/keybase/kbfs/...
+  - go install github.com/keybase/kbfs/...
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then
       $GOPATH/src/github.com/keybase/kbfs/kbfsdocker/build_dockers.sh 2>&1 >$GOPATH/src/github.com/keybase/kbfs/kbfsdocker/build_docker_output.txt & export build_dockers_pid=$!;
     fi
