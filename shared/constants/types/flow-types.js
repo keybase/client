@@ -231,6 +231,7 @@ export type FSNotificationType =
   | 3 // VERIFYING_3
   | 4 // REKEYING_4
   | 5 // CONNECTION_5
+  | 6 // MD_READ_SUCCESS_6
 
 export type FSStatusCode =
     0 // START_0
