@@ -266,3 +266,17 @@ func errorNotification(err error, errType keybase1.FSErrorType,
 		PublicTopLevelFolder: public,
 	}
 }
+
+func mdReadSuccessNotification(tlfName CanonicalTlfName,
+	public bool) *keybase1.FSNotification {
+	params := make(map[string]string)
+	if tlfName != "" {
+		params[errorParamTlf] = string(tlfName)
+	}
+	return &keybase1.FSNotification{
+		Filename:             params[errorParamTlf],
+		StatusCode:           keybase1.FSStatusCode_START,
+		NotificationType:     keybase1.FSNotificationType_MD_READ_SUCCESS,
+		PublicTopLevelFolder: public,
+	}
+}

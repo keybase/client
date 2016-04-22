@@ -480,7 +480,10 @@ func (fbo *folderBranchOps) setHeadLocked(ctx context.Context,
 
 	isFirstHead := fbo.head == nil
 	var oldHandle *TlfHandle
+	wasReadable := false
 	if !isFirstHead {
+		wasReadable = fbo.head.IsReadable()
+
 		mdID, err := md.MetadataID(fbo.config)
 		if err != nil {
 			return err
@@ -537,6 +540,12 @@ func (fbo *folderBranchOps) setHeadLocked(ctx context.Context,
 			defer fbo.identifyLock.Unlock()
 			fbo.identifyDone = false
 		}()
+	}
+	if !wasReadable && md.IsReadable() {
+		// Let any listeners know that this folder is now readable,
+		// which may indicate that a rekey successfully took place.
+		fbo.config.Reporter().Notify(ctx, mdReadSuccessNotification(
+			md.GetTlfHandle().GetCanonicalName(), md.ID.IsPublic()))
 	}
 	return nil
 }
