@@ -78,12 +78,12 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 	//  * The user wants the list of favorites.  TODO: use the cached list
 	//    once we have proper invalidation from the server.
 	if req.refresh || f.cache == nil || req.favs != nil {
-		f.cache = make(map[Favorite]bool)
 		folders, err := kbpki.FavoriteList(req.ctx)
 		if err != nil {
 			return err
 		}
 
+		f.cache = make(map[Favorite]bool)
 		for _, folder := range folders {
 			f.cache[*NewFavoriteFromFolder(folder)] = true
 		}
