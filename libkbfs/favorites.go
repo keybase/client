@@ -221,7 +221,9 @@ func (f *Favorites) Add(ctx context.Context, fav Favorite) error {
 // result.  (It could block while kicking off the request, if lots of
 // different favorite operations are in flight.)
 func (f *Favorites) AddAsync(ctx context.Context, fav Favorite) {
-	req, doSend := f.startOrJoinAddReq(ctx, fav)
+	// Use a fresh context, since we want the request to succeed even
+	// if the original context is canceled.
+	req, doSend := f.startOrJoinAddReq(context.Background(), fav)
 	if doSend {
 		select {
 		case f.reqChan <- req:
