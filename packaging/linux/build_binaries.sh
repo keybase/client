@@ -54,14 +54,6 @@ should_build_kbfs() {
   [ "$mode" != "production" ]
 }
 
-echo "Checking CI for this commit"
-(
-  cd "$this_repo"
-  npm i github-ci-status
-  ci --required-tests 3
-  rm -rf node_modules
-)
-
 # Install the electron dependencies.
 if should_build_kbfs ; then
   echo "Installing Node modules for Electron"

@@ -22,6 +22,18 @@ echo "Using BUCKET_NAME $BUCKET_NAME"
 rm -rf "$build_dir"
 mkdir -p "$build_dir"
 
+echo "Checking CI for this commit"
+(
+  export TMPDIR="$here"
+  temp="$(mktemp -d)"
+  cd "$temp"
+  mkdir node_modules  # avoid having npm scan parent dirs
+  npm i github-ci-status
+  ./node_modules/.bin/ci --required-tests 3
+  cd ..
+  rm -rf "$temp"
+)
+
 # Build all the packages!
 "$here/build_binaries.sh" "$mode" "$build_dir"
 version="$(cat "$build_dir/VERSION")"

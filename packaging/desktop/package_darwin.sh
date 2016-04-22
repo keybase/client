@@ -139,11 +139,14 @@ get_deps() {(
 )}
 
 check_ci() {(
-  cd "$client_dir"
-
-  npm install github-ci-status
-  ci --required-tests 3
-  rm -rf node_modules
+  export TMPDIR="$dir"
+  temp="$(mktemp -d)"
+  cd "$temp"
+  mkdir node_modules  # avoid having npm scan parent dirs
+  npm i github-ci-status
+  ./node_modules/.bin/ci --required-tests 3
+  cd ..
+  rm -rf "$temp"
 )}
 
 # Build Keybase.app
