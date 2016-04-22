@@ -4,6 +4,7 @@
 import React, {Component} from 'react'
 import {Text as RNText} from 'react-native'
 import {globalStyles, globalColors} from '../styles/style-guide'
+import Platform, {OS} from '../constants/platform'
 
 import type {Props, Background} from './text'
 import type {Context} from './terminal'
@@ -70,6 +71,8 @@ export default class Text extends Component {
   // We want to reuse these styles for other things that can be styled similarly
   // e.g. RN's TextInput. So this function needs to be pure & static
   static textStyle (props: Props, context: Context) {
+    const isAndroid = Platform.OS_ANDROID === OS
+
     const typeStyle = {
       'HeaderJumbo': styles.textHeaderJumbo,
       'HeaderBig': styles.textHeaderBig,
@@ -91,7 +94,7 @@ export default class Text extends Component {
       'TerminalPublic': styles.textTerminalPublic,
       'TerminalPrivate': styles.textTerminalPrivate,
       'TerminalEmpty': styles.textTerminalEmpty,
-      'BadgeNumber': styles.textBadge,
+      'BadgeNumber': {...styles.textBadge, ...(isAndroid ? styles.textBadgeAndroid : {})},
       'InputHeader': styles.textInputHeader
     }[props.type]
 
@@ -240,6 +243,13 @@ export const styles = {
     ...globalStyles.fontBold,
     lineHeight: 11,
     fontSize: 11
+  },
+  textBadgeAndroid: {
+    position: 'relative',
+    bottom: 3,
+    marginBottom: -3,
+    paddingBottom: 0,
+    lineHeight: 13
   },
   textBodySmall: {
     ...textCommon,
