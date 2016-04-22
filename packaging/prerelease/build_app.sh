@@ -41,7 +41,6 @@ if [ ! "$bucket_name" = "" ]; then
   echo "Bucket name: $bucket_name"
 fi
 
-s3host=""
 if [ "$bucket_name" = "prerelease.keybase.io" ]; then
   # We have a CNAME for the prerelease bucket
   s3host="https://prerelease.keybase.io"
