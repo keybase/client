@@ -33,7 +33,8 @@ export default class Render extends Component<void, Props, void> {
           )
 
           return (
-            <TabBar.Item key={t} tabBarButton={button} selected={this.props.selectedTab === t} onPress={onPress}>
+            <TabBar.Item
+              key={t} tabBarButton={button} selected={this.props.selectedTab === t} onPress={onPress} containerStyle={{flex: 1}}>
               {this.props.tabContent[t]}
             </TabBar.Item>
           )

@@ -10,6 +10,7 @@ export type ItemProps = {
   style?: Object,
   selected?: bool,
   onPress?: () => void,
+  containerStyle?: Object,
   children?: React$Element
 }
 

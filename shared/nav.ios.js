@@ -163,9 +163,12 @@ class Nav extends Component {
 
     const tabContent = mapValues(tabs, ({module}, tab) => (activeTab === tab && this._renderContent(tab, module)))
 
+    const config = this.props.config
+    const username = config && config.status && config.status.user && config.status.user.username
+
     return (
       <View style={{flex: 1}}>
-        <TabBar onTabClick={t => console.log('clicked tab:', t)} selectedTab={activeTab} username='max' badgeNumbers={{}} tabContent={tabContent}/>
+        <TabBar onTabClick={this.props.switchTab} selectedTab={activeTab} username={username} badgeNumbers={{}} tabContent={tabContent}/>
       </View>
     )
   }
@@ -196,6 +199,7 @@ const styles = StyleSheet.create({
 })
 
 export default connect(
+  // TODO: Don't use the whole store here.
   store => store,
   dispatch => {
     return {
