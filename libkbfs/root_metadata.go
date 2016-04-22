@@ -187,18 +187,37 @@ func (md *RootMetadata) haveOnlyUserRKeysChanged(config Config, prevMD *RootMeta
 // IsValidRekeyRequest returns true if the current block is a simple rekey wrt
 // the passed block.
 func (md *RootMetadata) IsValidRekeyRequest(config Config, prevMd *RootMetadata, user keybase1.UID) (bool, error) {
-	writerEqual, err := CodecEqual(config.Codec(), md.WriterMetadata, prevMd.WriterMetadata)
+	if !md.IsWriterMetadataCopiedSet() {
+		// Not a copy.
+		return false, nil
+	}
+	writerEqual, err := CodecEqual(config.Codec(),
+		md.WriterMetadata, prevMd.WriterMetadata)
 	if err != nil {
 		return false, err
 	}
-	rkeysChanged, err := md.haveOnlyUserRKeysChanged(config, prevMd, user)
+	if !writerEqual {
+		// Copy mismatch.
+		return false, nil
+	}
+	writerSigInfoEqual, err := CodecEqual(config.Codec(),
+		md.WriterMetadataSigInfo, prevMd.WriterMetadataSigInfo)
 	if err != nil {
 		return false, err
 	}
-	if md.IsWriterMetadataCopiedSet() && writerEqual && rkeysChanged {
-		return true, nil
+	if !writerSigInfoEqual {
+		// Signature/public key mismatch.
+		return false, nil
 	}
-	return false, nil
+	onlyUserRKeysChanged, err := md.haveOnlyUserRKeysChanged(config, prevMd, user)
+	if err != nil {
+		return false, err
+	}
+	if !onlyUserRKeysChanged {
+		// Keys outside of this user's reader key set have changed.
+		return false, nil
+	}
+	return true, nil
 }
 
 // MergedStatus returns the status of this update -- has it been

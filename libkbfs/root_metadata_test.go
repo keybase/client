@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/protocol"
 	"github.com/keybase/go-codec/codec"
 	"github.com/stretchr/testify/require"
+	"golang.org/x/net/context"
 )
 
 type privateMetadataFuture struct {
@@ -450,4 +451,62 @@ func makeFakeRootMetadataFuture(t *testing.T) *rootMetadataFuture {
 
 func TestRootMetadataUnknownFields(t *testing.T) {
 	testStructUnknownFields(t, makeFakeRootMetadataFuture(t))
+}
+
+func TestIsValidRekeyRequestBasic(t *testing.T) {
+	_, _, rmds := NewFolder(t, 0x1, 1, true, false)
+
+	// Sign the writer metadata
+	config := MakeTestConfigOrBust(t, "alice")
+	buf, err := config.Codec().Encode(rmds.MD.WriterMetadata)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sigInfo, err := config.Crypto().Sign(context.Background(), buf)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rmds.MD.WriterMetadataSigInfo = sigInfo
+
+	// Copy bit unset.
+	_, _, newRmds := NewFolder(t, 0x1, 1, true, false)
+	ok, err := newRmds.MD.IsValidRekeyRequest(config, &rmds.MD, newRmds.MD.LastModifyingWriter)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ok {
+		t.Fatal("Expected invalid rekey request due to unset copy bit")
+	}
+
+	// Set the copy bit; note the writer metadata is the same.
+	newRmds.MD.Flags |= MetadataFlagWriterMetadataCopied
+
+	// Writer metadata siginfo mismatch.
+	config2 := MakeTestConfigOrBust(t, "bob")
+	buf, err = config2.Codec().Encode(newRmds.MD.WriterMetadata)
+	if err != nil {
+		t.Fatal(err)
+	}
+	sigInfo2, err := config2.Crypto().Sign(context.Background(), buf)
+	if err != nil {
+		t.Fatal(err)
+	}
+	newRmds.MD.WriterMetadataSigInfo = sigInfo2
+	ok, err = newRmds.MD.IsValidRekeyRequest(config, &rmds.MD, newRmds.MD.LastModifyingWriter)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if ok {
+		t.Fatal("Expected invalid rekey request due to mismatched writer metadata siginfo")
+	}
+
+	// Replace with copied signature.
+	newRmds.MD.WriterMetadataSigInfo = sigInfo
+	ok, err = newRmds.MD.IsValidRekeyRequest(config, &rmds.MD, newRmds.MD.LastModifyingWriter)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !ok {
+		t.Fatal("Expected valid rekey request")
+	}
 }
