@@ -90,6 +90,11 @@ export function kbfsNotification (notification: FSNotification, notify: any, get
     [enums.kbfs.FSNotificationType.rekeying]: 'Rekeying'
   }[notification.notificationType]
 
+  if (action === undefined) {
+    // Ignore notification types we don't care about.
+    return
+  }
+
   const state = {
     [enums.kbfs.FSStatusCode.start]: 'starting',
     [enums.kbfs.FSStatusCode.finish]: 'finished',
