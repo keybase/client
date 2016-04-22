@@ -103,3 +103,35 @@ func TestFavoritesAddAsync(t *testing.T) {
 	f.AddAsync(ctx, fav1)
 	c <- struct{}{}
 }
+
+func TestFavoritesListFailsDuringAddAsync(t *testing.T) {
+	mockCtrl, config, ctx := favTestInit(t)
+	defer favTestShutdown(mockCtrl, config)
+
+	// Only one task at a time
+	f := newFavoritesWithChan(config, make(chan *favReq, 1))
+	// Call Add twice in a row, but only get one Add KBPKI call
+	fav1 := Favorite{"test", true}
+
+	// Cancel the first list request
+	c := make(chan struct{})
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).
+		Do(func(_ context.Context) {
+			c <- struct{}{}
+		}).Return(nil, context.Canceled)
+
+	f.AddAsync(ctx, fav1) // this will fail
+	// Block so the next one doesn't get batched together with this one
+	<-c
+
+	// Now make sure the second time around, the favorites get listed
+	// and one gets added, even if its context gets added
+	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil, nil)
+	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), fav1.toKBFolder()).
+		Do(func(_ context.Context, _ keybase1.Folder) {
+			c <- struct{}{}
+		}).Return(nil)
+
+	f.AddAsync(ctx, fav1) // should work
+	<-c
+}
