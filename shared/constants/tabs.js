@@ -1,7 +1,5 @@
 // @flow
 
-import type {Props as IconProps} from '../common-adapters/icon'
-
 export const startupTab = 'tabs:startupTab'
 export const chatTab = 'tabs:chatTab'
 export const loginTab = 'tabs:loginTab'
@@ -34,13 +32,3 @@ export function prettify (tabName: string) {
   return prettyNames[tabName] || 'You have found a bug'
 }
 
-const icons: {[key: VisibleTab]: IconProps.type} = {
-  [peopleTab]: 'fa-users',
-  [folderTab]: 'fa-folder',
-  [devicesTab]: 'phone-bw-m',
-  [moreTab]: 'fa-cog'
-}
-
-export function tabToIcon (t: VisibleTab): IconProps.type {
-  return icons[t]
-}

@@ -4,9 +4,22 @@ import React, {Component} from 'react'
 import {TabBar, Avatar} from '../common-adapters'
 import {TabBarButton} from '../common-adapters/tab-bar'
 
-import {profileTab, peopleTab, folderTab, devicesTab, moreTab, tabToIcon} from '../constants/tabs'
-9
+import {profileTab, peopleTab, folderTab, devicesTab, moreTab} from '../constants/tabs'
+
+import type {VisibleTab} from '../constants/tabs'
+import type {Props as IconProps} from '../common-adapters/icon'
 import type {Props} from './index.render'
+
+const icons: {[key: VisibleTab]: IconProps.type} = {
+  [peopleTab]: 'fa-users',
+  [folderTab]: 'fa-folder',
+  [devicesTab]: 'phone-bw-m',
+  [moreTab]: 'fa-cog'
+}
+
+export function tabToIcon (t: VisibleTab): IconProps.type {
+  return icons[t]
+}
 
 export default class Render extends Component<void, Props, void> {
   render () {
