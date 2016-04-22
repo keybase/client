@@ -47,7 +47,7 @@ const tabBarCustomButtons = selectedIndex => ({
       : <IconButton icon={buttonInfo.icon} badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i}/>
 
     return (
-      <TabBar.Item tabBarButton={button} selected={selectedIndex === i} onPress={() => console.log('TabBar.item:onPress')}>
+      <TabBar.Item tabBarButton={button} containerStyle={{flex: 1}} selected={selectedIndex === i} onPress={() => console.log('TabBar.item:onPress')}>
         <Text type='Header' style={{flex: 2}}>Content here at: {i}</Text>
       </TabBar.Item>
     )
