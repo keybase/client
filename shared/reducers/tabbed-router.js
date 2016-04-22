@@ -13,7 +13,7 @@ import * as RouterConstants from '../constants/router'
 import {initTabbedRouterState} from '../local-debug'
 import type {RouterState} from './router'
 
-type TabName = startupTab | folderTab | chatTab | peopleTab | devicesTab | moreTab | loginTab
+type TabName = string
 type TabbedRouterState = MapADT2<'tabs', Immutable.Map<TabName, RouterState>, 'activeTab', TabName> // eslint-disable-line no-undef
 
 const emptyRouterState: RouterState = createRouterState([], [])

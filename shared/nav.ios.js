@@ -1,5 +1,9 @@
 import React, {Component} from 'react'
-import {TabBarIOS, View, Navigator, Text, TouchableOpacity, StyleSheet} from 'react-native'
+import {View, Navigator, Text, TouchableOpacity, StyleSheet} from 'react-native'
+
+import {mapValues} from 'lodash'
+
+import TabBar from './tab-bar/index.render.native'
 
 import {connect} from 'react-redux'
 
@@ -18,11 +22,14 @@ import {bootstrap} from './actions/config'
 
 import {constants as styleConstants} from './styles/common'
 
-import {devicesTab, moreTab, startupTab, loginTab} from './constants/tabs'
+import type {VisibleTab} from './constants/tabs'
+import {devicesTab, moreTab, startupTab, folderTab, peopleTab, loginTab, profileTab} from './constants/tabs'
 
-const tabs = {
-  [loginTab]: {module: Login, name: 'Login'},
+const tabs: {[key: VisibleTab]: {module: any}} = {
+  [profileTab]: {module: Login, name: 'Login'},
   [devicesTab]: {module: Devices, name: 'Devices'},
+  [folderTab]: {module: More, name: 'More'},
+  [peopleTab]: {module: More, name: 'More'},
   [moreTab]: {module: More, name: 'More'},
   [startupTab]: {module: Startup}
 }
@@ -154,23 +161,11 @@ class Nav extends Component {
       return this._renderContent(activeTab, module)
     }
 
+    const tabContent = mapValues(tabs, ({module}, tab) => (activeTab === tab && this._renderContent(tab, module)))
+
     return (
       <View style={{flex: 1}}>
-        <TabBarIOS tintColor='black' translucent={false}>
-        {Object.keys(tabs).map(tab => {
-          const {name} = tabs[tab]
-
-          return (name &&
-            <TabBarIOS.Item
-              key={tab}
-              title={name}
-              selected={activeTab === tab}
-              onPress={() => this.props.switchTab(tab)}>
-              {activeTab === tab && this._renderContent(tab, module)}
-            </TabBarIOS.Item>
-          ) })
-        }
-        </TabBarIOS>
+        <TabBar onTabClick={t => console.log('clicked tab:', t)} selectedTab={activeTab} username='max' badgeNumbers={{}} tabContent={tabContent}/>
       </View>
     )
   }
