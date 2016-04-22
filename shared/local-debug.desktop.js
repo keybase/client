@@ -22,7 +22,8 @@ let config = {
   reactPerf: false,
   overrideLoggedInTab: null,
   focusOnShow: true,
-  dumbFilter: ''
+  dumbFilter: '',
+  printRoutes: false
 }
 
 if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
@@ -42,6 +43,7 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.overrideLoggedInTab = Tabs.moreTab
   config.focusOnShow = false
   config.dumbFilter = 'tracker'
+  config.printRoutes = true
 }
 
 config = updateConfig(config)
@@ -60,7 +62,8 @@ export const {
   reactPerf,
   overrideLoggedInTab,
   focusOnShow,
-  dumbFilter
+  dumbFilter,
+  printRoutes
 } = config
 
 export function initTabbedRouterState (state) {
