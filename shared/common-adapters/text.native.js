@@ -50,6 +50,8 @@ export default class Text extends Component {
         return {color: backgroundMode === 'Normal' ? globalColors.black75 : globalColors.white}
       case 'BodySmall':
         return {color: backgroundMode === 'Normal' ? globalColors.black40 : globalColors.white40}
+      case 'BadgeNumber':
+        return {color: globalColors.white}
       case 'BodyPrimaryLink':
         return {color: globalColors.blue}
       case 'BodySecondaryLink':
@@ -89,6 +91,7 @@ export default class Text extends Component {
       'TerminalPublic': styles.textTerminalPublic,
       'TerminalPrivate': styles.textTerminalPrivate,
       'TerminalEmpty': styles.textTerminalEmpty,
+      'BadgeNumber': styles.textBadge,
       'InputHeader': styles.textInputHeader
     }[props.type]
 
@@ -231,6 +234,12 @@ export const styles = {
     ...globalStyles.fontSemibold,
     fontSize: 18,
     lineHeight: 24
+  },
+  textBadge: {
+    ...textCommon,
+    ...globalStyles.fontBold,
+    lineHeight: 11,
+    fontSize: 11
   },
   textBodySmall: {
     ...textCommon,

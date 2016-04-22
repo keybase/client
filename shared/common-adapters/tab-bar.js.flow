@@ -1,25 +1,54 @@
 /* @flow */
 
 import React, {Component} from 'react'
+import Avatar from './avatar'
+import type {Props as IconProps} from './icon'
 
 export type ItemProps = {
-  label: string,
+  tabBarButton?: React$Component,
+  label?: string,
   style?: Object,
   selected?: bool,
   onPress?: () => void,
   children?: React$Element
 }
 
-declare class TabBarItem extends React.Component<void, ItemProps, void> {
+declare class TabBarItem extends Component<void, ItemProps, void> {
 }
 
 export type Props = {
   style?: Object,
+  tabBarStyle?: Object,
   children?: Array<TabBarItem>,
+  tabBarOnBottom?: boolean,
   tabWidth?: number,
   underlined?: bool
 }
 
-declare export default class TabBar extends React.Component<void, Props, void> {
+export type TabBarButtonProps = {
+  selected?: boolean,
+  source: {type: 'icon', icon: IconProps.type} | {type: 'avatar', avatar: Avatar},
+  badgeNumber?: ?number,
+  style?: Object
+}
+
+export type IconButtonProps = {
+  selected?: boolean,
+  icon: IconProps.type,
+  badgeNumber?: number
+}
+
+export type AvatarButtonProps = {
+  selected?: boolean,
+  avatar: Avatar,
+  badgeNumber?: number
+}
+
+declare export class TabBarButton extends Component<void, TabBarButtonProps, void> { }
+
+declare export class IconButton extends Component<void, IconButtonProps, void> { }
+declare export class AvatarButton extends Component<void, AvatarButtonProps, void> { }
+
+declare export default class TabBar extends Component<void, Props, void> {
   static Item: TabBarItem;
 }
