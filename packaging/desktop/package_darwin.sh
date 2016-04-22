@@ -138,6 +138,14 @@ get_deps() {(
   curl -J -L -Ss "$installer_url" | tar zx
 )}
 
+check_ci() {(
+  cd "$client_dir"
+
+  npm install github-ci-status
+  ci --required-tests 3
+  rm -rf node_modules
+)}
+
 # Build Keybase.app
 package_electron() {(
   cd "$client_dir/desktop"
@@ -262,6 +270,7 @@ s3sync() {
 
 clean
 get_deps
+check_ci
 package_electron
 package_app
 update_plist
