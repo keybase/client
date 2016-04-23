@@ -3094,6 +3094,10 @@ func (fbo *folderBranchOps) applyMDUpdatesLocked(ctx context.Context,
 				fbo.getCurrMDRevisionLocked(lState)}
 		}
 
+		if err := rmd.isReadableOrError(ctx, fbo.config); err != nil {
+			return err
+		}
+
 		err := fbo.setHeadLocked(ctx, lState, rmd)
 		if err != nil {
 			return err

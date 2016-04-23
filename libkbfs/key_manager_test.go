@@ -670,11 +670,10 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	// production the device's session would likely be revoked,
 	// probably leading to NoCurrentSession errors anyway.)
 	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
-	if err != nil {
-		// This is expected to succeed; the node will be unable to
-		// deserialize the private MD, but it will still set the HEAD
-		// (which lists the new set of keys) and return a nil error.
-		t.Fatalf("Couldn't sync from server: %v", err)
+	if err == nil {
+		// This is not expected to succeed; the node will be unable to
+		// deserialize the private MD.
+		t.Fatalf("Unexpectedly could sync from server")
 	}
 	// Should still be seeing the old children, since the updates from
 	// the latest revision were never applied.

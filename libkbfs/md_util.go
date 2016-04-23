@@ -121,10 +121,24 @@ func getMergedMDUpdates(ctx context.Context, config Config, id TlfID,
 		// TODO: limit the number of MDs we're allowed to hold in
 		// memory at any one time?
 		if len(rmds) < maxMDsAtATime {
-			return mergedRmds, nil
+			break
 		}
 		start = end + 1
 	}
+
+	// Check the readability of each MD.  Because rekeys can append a
+	// MD revision with the new key, older revisions might not be
+	// readable until the newer revision, containing the key for this
+	// device, is processed.
+	for _, rmd := range mergedRmds {
+		if err := rmd.isReadableOrError(ctx, config); err != nil {
+			config.MakeLogger("").CDebugf(ctx, "Trying to decrypt MD %d again", rmd.Revision)
+			if err := decryptMDPrivateData(ctx, config, rmd); err != nil {
+				return nil, err
+			}
+		}
+	}
+	return mergedRmds, nil
 }
 
 func getUnmergedMDUpdates(ctx context.Context, config Config, id TlfID,

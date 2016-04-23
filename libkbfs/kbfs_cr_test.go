@@ -880,9 +880,6 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
-	if err != nil {
-		t.Fatalf("Couldn't sync from server: %v", err)
-	}
 	// wait for the rekey to happen
 	waitForRekey(t, config2, rootNode2.GetFolderBranch().Tlf)
 
@@ -891,12 +888,12 @@ func TestBasicCRFileConflictWithRekey(t *testing.T) {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
 
-	err = kbfsOps2Dev2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
+	// Look it up on user 2 dev 2 after syncing.
+	err = kbfsOps2Dev2.SyncFromServerForTesting(ctx,
+		rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
-
-	// look it up on user 2 dev 2
 	rootNode2Dev2 := GetRootNodeOrBust(t, config2Dev2, name, false)
 	dirA2Dev2, _, err := kbfsOps2Dev2.Lookup(ctx, rootNode2Dev2, "a")
 	if err != nil {
@@ -1067,12 +1064,12 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
 
-	err = kbfsOps2Dev2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
+	// Look it up on user 2 dev 2 after syncing.
+	err = kbfsOps2Dev2.SyncFromServerForTesting(ctx,
+		rootNode2.GetFolderBranch())
 	if err != nil {
 		t.Fatalf("Couldn't sync from server: %v", err)
 	}
-
-	// look it up on user 2 dev 2
 	rootNode2Dev2 := GetRootNodeOrBust(t, config2Dev2, name, false)
 	dirA2Dev2, _, err := kbfsOps2Dev2.Lookup(ctx, rootNode2Dev2, "a")
 	if err != nil {
