@@ -219,7 +219,9 @@ func (f *Favorites) Add(ctx context.Context, fav Favorite) error {
 // AddAsync initiates a request to add this favorite to your favorites
 // list, if one is not already in flight, but it doesn't wait for the
 // result.  (It could block while kicking off the request, if lots of
-// different favorite operations are in flight.)
+// different favorite operations are in flight.)  The given context is
+// used only for enqueuing the request on an internal queue, not for
+// any resulting I/O.
 func (f *Favorites) AddAsync(ctx context.Context, fav Favorite) {
 	// Use a fresh context, since we want the request to succeed even
 	// if the original context is canceled.
