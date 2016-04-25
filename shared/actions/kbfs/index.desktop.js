@@ -33,7 +33,7 @@ export function openInKBFS (path: string = ''): AsyncAction {
         dispatch({type: Constants.changeKBFSPath, payload: {path: kbfsPath}})
         shell.openItem(`${kbfsPath}${path}`)
       }).catch(e => {
-        console.error('Error in parsing kbfsPath: ', e)
+        console.warn('Error in parsing kbfsPath: ', e)
       })
     } else {
       shell.openItem(`${kbfsPath}${path}`)

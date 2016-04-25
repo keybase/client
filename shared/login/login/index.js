@@ -4,10 +4,47 @@ import {openAccountResetPage} from '../../actions/login'
 import {relogin, login} from '../../actions/login'
 import {routeAppend} from '../../actions/router'
 import Render from './index.render'
+import type {Props} from './index.render'
+
+type State = {
+  selectedUser: ?string,
+  saveInKeychain: boolean,
+  showTyping: boolean,
+  passphrase: string
+}
 
 class Login extends Component {
+  state: State;
+
+  constructor (props: Props) {
+    super(props)
+
+    this.state = {
+      selectedUser: props.lastUser,
+      saveInKeychain: true,
+      showTyping: false,
+      passphrase: ''
+    }
+  }
+
+  _onSubmit () {
+    if (this.state.selectedUser) {
+      this.props.onLogin(this.state.selectedUser, this.state.passphrase, this.state.saveInKeychain)
+    }
+  }
+
   render () {
-    return <Render {...this.props} />
+    return <Render { ...this.props }
+      onSubmit={() => this._onSubmit()}
+      passphrase={this.state.passphrase}
+      showTyping={this.state.showTyping}
+      saveInKeychain={this.state.saveInKeychain}
+      selectedUser={this.state.selectedUser}
+      passphraseChange={passphrase => this.setState({passphrase})}
+      showTypingChange={showTyping => this.setState({showTyping})}
+      saveInKeychainChange={saveInKeychain => this.setState({saveInKeychain})}
+      selectedUserChange={selectedUser => this.setState({selectedUser})}
+    />
   }
 
   static parseRoute (store, currentPath, nextPath) {
@@ -27,7 +64,7 @@ export default connect(
     }
 
     return {
-      serverURI: /* store.config && store.config.config && store.config.config.serverURI */'https://keybase.io',
+      serverURI: 'https://keybase.io',
       users, lastUser,
       error: store.login.loginError,
       waitingForResponse: store.login.waitingForResponse

@@ -60,7 +60,7 @@ export default class DevicesRender extends Component {
     } else if (device.type === 'paper key') {
       return this.renderPaperKey(device)
     } else {
-      console.error('Unknown device type: ' + device.type)
+      console.warn('Unknown device type: ' + device.type)
     }
   }
 

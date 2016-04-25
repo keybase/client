@@ -16,7 +16,7 @@ import (
 var con net.Conn
 var startOnce sync.Once
 
-// ServerURI should match run mode environment.
+// Init ServerURI should match run mode environment.
 func Init(homeDir string, runModeStr string, serverURI string, accessGroupOverride bool) {
 	startOnce.Do(func() {
 		g := libkb.G
@@ -35,12 +35,14 @@ func Init(homeDir string, runModeStr string, serverURI string, accessGroupOverri
 		if err != nil {
 			panic(err)
 		}
-		(service.NewService(g, false)).StartLoopbackServer()
+		service := (service.NewService(g, false))
+		service.StartLoopbackServer()
+		service.G().SetService()
 		Reset()
 	})
 }
 
-// Takes base64 encoded msgpack rpc payload
+// WriteB64 Takes base64 encoded msgpack rpc payload
 func WriteB64(str string) bool {
 	data, err := base64.StdEncoding.DecodeString(str)
 	if err != nil {
@@ -65,6 +67,7 @@ func WriteB64(str string) bool {
 const targetBufferSize = 50 * 1024
 const bufferSize = targetBufferSize - (targetBufferSize % 3)
 
+// ReadB64 Read b64 msgpack off the wire
 func ReadB64() string {
 	data := make([]byte, bufferSize)
 
@@ -83,6 +86,7 @@ func ReadB64() string {
 	return ""
 }
 
+// Reset Resets the connection
 func Reset() {
 	if con != nil {
 		con.Close()
