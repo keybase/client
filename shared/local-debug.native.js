@@ -18,7 +18,8 @@ let config = {
   reactPerf: false,
   overrideLoggedInTab: null,
   dumbFilter: '',
-  dumbIndex: 0
+  dumbIndex: 0,
+  printRoutes: false
 }
 
 if (__DEV__ && true) {
@@ -35,6 +36,7 @@ if (__DEV__ && true) {
   config.overrideLoggedInTab = Tabs.moreTab
   config.dumbFilter = ''
   config.dumbIndex = 0
+  config.printRoutes = true
 }
 
 export const {
@@ -51,7 +53,8 @@ export const {
   reactPerf,
   overrideLoggedInTab,
   dumbFilter,
-  dumbIndex
+  dumbIndex,
+  printRoutes
 } = config
 
 export function initTabbedRouterState (state) {

@@ -13,6 +13,7 @@ export default class UserCard extends Component<void, Props, void> {
     return (
       <Box style={{...styles.container, ...this.props.outerStyle}}>
         <Box style={styles.avatar}>
+          <Box style={styles.avatarBackground}/>
           <Avatar size={avatarSize} onClick={this.props.onAvatarClicked} url={url}/>
         </Box>
         <Box style={{...styles.inside, ...this.props.style}}>
@@ -27,19 +28,27 @@ const styles = {
   container: {
     ...globalStyles.flexBoxColumn,
     alignItems: 'stretch',
-    backgroundColor: globalColors.white,
     marginTop: 37
   },
   inside: {
     ...globalStyles.flexBoxColumn,
     justifyContent: 'flex-start',
     alignItems: 'stretch',
+    backgroundColor: globalColors.white,
     padding: 16
   },
   avatar: {
-    ...globalStyles.flexBoxRow,
-    marginTop: -avatarSize / 2,
-    justifyContent: 'center',
+    ...globalStyles.flexBoxColumn,
+    marginTop: 0,
+    alignItems: 'stretch',
     alignSelf: 'stretch'
+  },
+  avatarBackground: {
+    backgroundColor: globalColors.white,
+    position: 'absolute',
+    height: avatarSize / 2,
+    top: avatarSize / 2,
+    left: 0,
+    right: 0
   }
 }
