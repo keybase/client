@@ -605,6 +605,11 @@
 			"revisionTime": "2015-12-10T17:34:15-08:00"
 		},
 		{
+			"path": "golang.org/x/sys/windows",
+			"revision": "f64b50fbea64174967a8882830d621a18ee1548e",
+			"revisionTime": "2016-04-14T16:31:22+03:00"
+		},
+		{
 			"path": "google.golang.org/api/gensupport",
 			"revision": "030d584ade5f79aa2ed0ce067e8f7da50c9a10d5",
 			"revisionTime": "2015-11-15T22:49:48-08:00"
