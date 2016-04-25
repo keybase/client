@@ -50,6 +50,7 @@ class Input extends Component<void, Props, State> {
         {this.state.text.length > 0 && <Text type='BodySmall' style={{...floatingLabelStyle}}>{this.props.floatingLabelText}</Text>}
         <TextInput
           style={{...inputStyle, ...textInputStyle, ...(IOS && this.props.multiLine && IOSMultilineTextInputStyle || {})}}
+          keyboardType={this.props.keyboardType}
           ref={component => { this._textInput = component }}
           autoCorrect={!(password || passwordVisible)}
           defaultValue={this.props.value}
