@@ -10,6 +10,4 @@ export type Props = {
   disabled?: boolean
 }
 
-declare export default class Checkbox extends React.Component {
-  props: Props;
-}
+declare export default class Checkbox extends Component<void, Props, void> { }

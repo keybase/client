@@ -3,7 +3,8 @@ import React, {Component} from 'react'
 
 export type Props = {
   onSubmit: (paperKey: string) => void,
-  onBack: () => void
+  onBack: () => void,
+  waitingForResponse?: boolean
 }
 
 export type State = {
@@ -12,4 +13,5 @@ export type State = {
 
 export default class PaperKey extends Component {
   props: Props;
+  state: State;
 }

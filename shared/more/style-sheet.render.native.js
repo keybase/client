@@ -5,10 +5,6 @@ import {ScrollView} from 'react-native'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import Container from './dev-container.native'
 import {Dropdown, Checkbox, Button, Box, Text, Terminal, Icon, Input, FormWithCheckbox, TabBar} from '../common-adapters'
-import HiddenString from '../util/hidden-string'
-
-import Success from '../login/signup/success/index.render'
-import PassphraseRegister from '../login/register/passphrase/index.render'
 
 const Space = () => <Box style={{height: 20, width: 20}}/>
 
@@ -329,29 +325,6 @@ export default class Render extends Component {
           <TabBars selected={this.state.tabSelected} onPress={
             (idx: number) => this._selectTab(idx) // eslint-disable-line arrow-parens
           }/>
-        </Container>
-        <Container title='Password input' style={{margin: 0}}>
-          <Box style={{height: 660}}>
-            <PassphraseRegister
-              prompt='Password here'
-              onSubmit={() => {}}
-              onChange={p => {}}
-              passphrase={null}
-              onForgotPassphrase={() => {}}
-              waitingForResponse={false}
-              error={null}
-              saveInKeychain={false}
-              showTyping={false}
-              toggleShowTyping={() => {}}
-              toggleSaveInKeychain={() => {}}
-              onBack={() => {}}
-              username='ciphersaurus_rex'/>
-          </Box>
-        </Container>
-        <Container title='Success signup paperkey'>
-          <Box style={{height: 660}}>
-            <Success onFinish={() => {}} paperkey={new HiddenString('elephant bag candy asteroid laptop mug second archive pizza ring fish bumpy down')}/>
-          </Box>
         </Container>
         <Container title='Dropdown'><Dropdowns
           selectedUser={this.state.selectedUser}

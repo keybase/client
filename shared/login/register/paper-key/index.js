@@ -4,7 +4,7 @@ import {connect} from 'react-redux'
 import Render from './index.render'
 import type {Props, State} from './index'
 
-class PaperKey extends Component {
+class PaperKey extends Component<void, Props, State> {
   props: Props;
   state: State;
 
@@ -23,6 +23,7 @@ class PaperKey extends Component {
         onChangePaperKey={paperKey => this.setState({paperKey})}
         onBack={this.props.onBack}
         paperKey={this.state.paperKey}
+        waitingForResponse={this.props.waitingForResponse}
       />
     )
   }
@@ -34,5 +35,5 @@ PaperKey.propTypes = {
 }
 
 export default connect(
-  (state, ownProps) => ownProps.mapStateToProps(state)
+  state => ({waitingForResponse: state.login.waitingForResponse})
 )(PaperKey)

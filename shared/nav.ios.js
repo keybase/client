@@ -123,39 +123,16 @@ class Nav extends Component {
     )
   }
 
+  _activeTab () {
+    return this.props.tabbedRouter.get('activeTab')
+  }
+
   shouldComponentUpdate (nextProps, nextState) {
-    const activeTab = this.props.tabbedRouter.get('activeTab')
-    const nextActiveTab = nextProps.tabbedRouter.get('activeTab')
-    if (activeTab !== nextActiveTab) {
-      return true
-    }
-
-    if (this.props.config.navState !== nextProps.config.navState) {
-      return true
-    }
-
-    return false
+    return (nextProps.tabbedRouter.get('activeTab') !== this._activeTab())
   }
 
   render () {
-    const activeTab = this.props.tabbedRouter.get('activeTab')
-
-    // if (this.props.config.navState === Constants.navStartingUp) {
-      // return (
-        // <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-          // <Text>Loading...</Text>
-        // </View>
-      // )
-    // }
-
-    // if (this.props.config.navState === Constants.navErrorStartingUp) {
-      // return (
-        // <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-          // <Text>Error Loading: {this.props.config.error.toString()}</Text>
-          // <Button type='Secondary' title='Retry' onPress={() => this.props.startup()} isAction />
-        // </View>
-      // )
-    // }
+    const activeTab = this._activeTab()
 
     if (activeTab === loginTab) {
       return this._renderContent(loginTab, Login)
@@ -213,7 +190,11 @@ const styles = StyleSheet.create({
 })
 
 export default connect(
-  store => store,
+  ({tabbedRouter, config: {bootstrapped, extendedConfig}}) => ({
+    tabbedRouter,
+    bootstrapped,
+    provisioned: extendedConfig && !!extendedConfig.device
+  }),
   dispatch => {
     return {
       switchTab: tab => dispatch(switchTab(tab)),

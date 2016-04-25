@@ -1,12 +1,13 @@
 // @flow
 import React, {Component} from 'react'
+import {ScrollView} from 'react-native'
 import {Box, Text, Input, Button} from '../common-adapters'
 import {globalStyles} from '../styles/style-guide'
 import type {DumbMap} from './dumb'
 
 import CommonMap from '../common-adapters/dumb.native'
-// import LoginMap from '../login/dumb.desktop'
-// import SignupMap from '../login/signup/dumb.desktop'
+import RegisterMap from '../login/register/dumb'
+import SignupMap from '../login/signup/dumb.native'
 // import TrackerMap from '../tracker/dumb.desktop'
 // import PinentryMap from '../pinentry/dumb.desktop'
 
@@ -33,9 +34,10 @@ class Render extends Component<void, any, any> {
 
   render () {
     const componentMap: DumbMap = {
-      ...CommonMap
+      ...CommonMap,
+      ...RegisterMap,
+      ...SignupMap
       // ...LoginMap,
-      // ...SignupMap,
       // ...TrackerMap,
       // ...PinentryMap
     }
@@ -49,7 +51,7 @@ class Render extends Component<void, any, any> {
 
       const map = componentMap[key]
       const Component = map.component
-      Object.keys(map.mocks).map((mockKey, idx) => {
+      Object.keys(map.mocks).forEach((mockKey, idx) => {
         const mock = {...map.mocks[mockKey]}
         const parentProps = mock.parentProps
         mock.parentProps = undefined
@@ -57,7 +59,7 @@ class Render extends Component<void, any, any> {
         components.push(
           <Box key={mockKey} style={styleBox}>
             <Text type='Body' style={{marginBottom: 5}}>{mockKey}</Text>
-            <Box {...parentProps}>
+            <Box style={{flex: 1}} {...parentProps}>
               <Component key={mockKey} {...mock} />
             </Box>
           </Box>
@@ -68,11 +70,13 @@ class Render extends Component<void, any, any> {
     const ToShow = components[this.state.index % components.length]
 
     return (
-      <Box>
-        {ToShow}
+      <Box style={{flex: 1}}>
+        <ScrollView style={{flex: 1}}>
+          {ToShow}
+        </ScrollView>
         <Box style={stylesControls}>
           <Text type='BodySmall'>{this.state.index}</Text>
-          {this.state.filterShow && <Box style={{...globalStyles.flexBoxColumn, backgroundColor: 'red', height: 40, width: 200}}><Input value={this.state.filter} onChangeText={filter => this._onFilterChange(filter.toLowerCase())}/></Box>}
+          {this.state.filterShow && <Box style={{...globalStyles.flexBoxColumn, backgroundColor: 'red', width: 200}}><Input style={inputStyle} value={this.state.filter} onChangeText={filter => this._onFilterChange(filter.toLowerCase())}/></Box>}
           <Button type='Primary' style={stylesButton} label='...' onClick={() => { this.setState({filterShow: !this.state.filterShow}) }}/>
           <Button type='Primary' style={stylesButton} label='<' onClick={() => { this._incremement(false) }}/>
           <Button type='Primary' style={stylesButton} label='>' onClick={() => { this._incremement(true) }}/>
@@ -89,8 +93,15 @@ class Render extends Component<void, any, any> {
 
 const styleBox = {
   ...globalStyles.flexBoxColumn,
-  padding: 20,
+  flex: 1,
+  height: 800,
+  paddingTop: 20,
   marginTop: 10
+}
+
+const inputStyle = {
+  height: 40,
+  marginTop: 0
 }
 
 const stylesControls = {
