@@ -53,11 +53,11 @@ export default class DevicesRender extends Component {
   }
 
   renderDevice (device) {
-    if (device.type === 'computer') {
+    if (device.type === 'desktop') {
       return this.renderDesktop(device)
     } else if (device.type === 'mobile') {
       return this.renderPhone(device)
-    } else if (device.type === 'paper key') {
+    } else if (device.type === 'backup') {
       return this.renderPaperKey(device)
     } else {
       console.warn('Unknown device type: ' + device.type)
