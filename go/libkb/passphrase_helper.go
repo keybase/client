@@ -60,6 +60,8 @@ func GetPaperKeyForCryptoPassphrase(g *GlobalContext, ui SecretUI, reason string
 	arg.Type = keybase1.PassphraseType_PAPER_KEY
 	arg.Features.StoreSecret.Allow = false
 	arg.Features.StoreSecret.Readonly = true
+	arg.Features.ShowTyping.Allow = true
+	arg.Features.ShowTyping.DefaultValue = true
 	if len(devices) == 1 {
 		arg.Prompt = fmt.Sprintf("%s: please enter the paper key '%s...'", reason, *devices[0].Description)
 	} else {
