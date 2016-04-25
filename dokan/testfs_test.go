@@ -16,6 +16,8 @@ import (
 	"testing"
 	"time"
 	"unsafe"
+
+	"golang.org/x/sys/windows"
 )
 
 func TestEmptyFS(t *testing.T) {
@@ -125,7 +127,7 @@ func isNearTime(t0, t1 time.Time) bool {
 }
 
 var (
-	modkernel32 = syscall.NewLazyDLL("kernel32.dll")
+	modkernel32 = windows.NewLazySystemDLL("kernel32.dll")
 
 	procLockFile            = modkernel32.NewProc("LockFile")
 	procUnlockFile          = modkernel32.NewProc("UnlockFile")

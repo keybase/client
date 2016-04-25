@@ -15,6 +15,8 @@ import (
 	"errors"
 	"syscall"
 	"unsafe"
+
+	"golang.org/x/sys/windows"
 )
 
 // GetRequestorToken returns the syscall.Token associated with
@@ -74,6 +76,6 @@ func CurrentProcessUserSid() (*syscall.SID, error) {
 }
 
 var (
-	modadvapi32  = syscall.NewLazyDLL("advapi32.dll")
+	modadvapi32  = windows.NewLazySystemDLL("advapi32.dll")
 	procEqualSid = modadvapi32.NewProc("EqualSid")
 )
