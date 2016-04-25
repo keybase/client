@@ -690,7 +690,7 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, filterErr bool) (
 	// Need to check for nilness again to avoid racing with other
 	// calls to loadDir().
 	if tlf.dir != nil {
-		return tlf.dir, true, nil
+		return tlf.dir, false, nil
 	}
 
 	tlf.folder.fs.log.CDebugf(ctx, "Loading root directory for folder %s "+
@@ -706,12 +706,12 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, filterErr bool) (
 		tlf.folder.fs.config.KBFSOps().GetOrCreateRootNode(
 			ctx, tlf.folder.h, libkbfs.MasterBranch)
 	if err != nil {
-		return nil, true, err
+		return nil, false, err
 	}
 
 	err = tlf.folder.setFolderBranch(rootNode.GetFolderBranch())
 	if err != nil {
-		return nil, true, err
+		return nil, false, err
 	}
 
 	tlf.folder.nodes[rootNode.GetID()] = tlf
