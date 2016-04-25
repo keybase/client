@@ -36,13 +36,13 @@ export default {
         timeline: [
           {type: 'Revoked',
             desc: 'Revoked yesterday',
-            subDesc: 'by Home Computer'},
+            subDesc: 'Home Computer'},
           {type: 'LastUsed',
             desc: 'Last used Nov 12, 2015',
             subDesc: '83 days ago'},
           {type: 'Added',
             desc: 'Added Mar 03, 2014',
-            subDesc: 'by Home Computer'}
+            subDesc: 'Home Computer'}
         ]
       },
       'Unlock': {
@@ -55,7 +55,7 @@ export default {
             subDesc: '16 days ago'},
           {type: 'Added',
             desc: 'Added Mar 03, 2015',
-            subDesc: 'by Home Computer'}
+            subDesc: 'Home Computer'}
         ],
         banner: {
           type: 'WillUnlock',
@@ -69,7 +69,7 @@ export default {
         timeline: [
           {type: 'Added',
             desc: 'Created Mar 03, 2014',
-            subDesc: 'by Home Computer'}
+            subDesc: 'Home Computer'}
         ]
       }
     }
