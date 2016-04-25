@@ -1,0 +1,24 @@
+/* @flow */
+
+export type TimelineItem = {
+  type: 'LastUsed' | 'Added' | 'Revoked',
+  desc: string
+}
+
+export type BannerItem = {
+  type: 'OutOfDate' | 'WillUnlock',
+  desc: string
+}
+
+export type Props = {
+  type: 'mobile' | 'desktop' | 'paperKey',
+  name: string,
+  isCurrent: boolean,
+  isRevoked: boolean,
+  timeline: Array<TimelineItem>,
+  banner?: BannerItem,
+  onRevoke: () => void
+}
+
+export default class Render extends React$Component<void, Props, void> {
+}
