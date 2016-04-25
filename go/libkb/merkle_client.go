@@ -281,9 +281,10 @@ func (mc *MerkleClient) LookupPath(q HTTPArgs) (vp *VerificationPath, err error)
 	q.Add("poll", I{10})
 
 	res, err := mc.G().API.Get(APIArg{
-		Endpoint:    "merkle/path",
-		NeedSession: false,
-		Args:        q,
+		Endpoint:     "merkle/path",
+		NeedSession:  false,
+		Args:         q,
+		Contextified: NewContextified(mc.G()),
 	})
 
 	if err != nil {

@@ -144,6 +144,7 @@ func (sh *SigHints) Refresh() error {
 			"uid": UIDArg(sh.uid),
 			"low": I{sh.version},
 		},
+		Contextified: NewContextified(sh.G()),
 	})
 	if err != nil {
 		return err

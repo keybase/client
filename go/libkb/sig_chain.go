@@ -5,9 +5,10 @@ package libkb
 
 import (
 	"fmt"
-	keybase1 "github.com/keybase/client/go/protocol"
 	"io"
 	"time"
+
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 type SigChain struct {
@@ -134,13 +135,14 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple, selfUID keybase1.UID) (dirty
 	sc.G().Log.Debug("+ Load SigChain from server (uid=%s, low=%d)", sc.uid, low)
 	defer func() { sc.G().Log.Debug("- Loaded SigChain -> %s", ErrToOk(err)) }()
 
-	res, err := G.API.Get(APIArg{
+	res, err := sc.G().API.Get(APIArg{
 		Endpoint:    "sig/get",
 		NeedSession: false,
 		Args: HTTPArgs{
 			"uid": UIDArg(sc.uid),
 			"low": I{int(low)},
 		},
+		Contextified: NewContextified(sc.G()),
 	})
 
 	if err != nil {
