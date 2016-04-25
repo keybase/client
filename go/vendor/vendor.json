@@ -406,6 +406,11 @@
 			"revisionTime": "2015-06-09T11:52:15-07:00"
 		},
 		{
+			"path": "golang.org/x/sys/windows",
+			"revision": "f64b50fbea64174967a8882830d621a18ee1548e",
+			"revisionTime": "2016-04-14T16:31:22+03:00"
+		},
+		{
 			"path": "golang.org/x/sys/windows/registry",
 			"revision": "354f231ae1a9ca2d3a6a1a7c5d40b1213d761675",
 			"revisionTime": "2015-10-08T13:13:40-07:00"
