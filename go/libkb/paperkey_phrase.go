@@ -34,8 +34,8 @@ func MakePaperKeyPhrase(version uint8) (PaperKeyPhrase, error) {
 
 // NewPaperKeyPhrase converts a string into a PaperKeyPhrase.
 func NewPaperKeyPhrase(phrase string) PaperKeyPhrase {
-	s := strings.Join(strings.Fields(phrase), " ")
-	return PaperKeyPhrase(strings.TrimSpace(strings.ToLower(s)))
+	phrase = strings.TrimSpace(strings.ToLower(phrase))
+	return PaperKeyPhrase(strings.Join(strings.Fields(phrase), " "))
 }
 
 // String returns a string representation of the phrase.
