@@ -44,6 +44,33 @@ export default {
             desc: 'Added Mar 03, 2014',
             subDesc: 'by Home Computer'}
         ]
+      },
+      'Unlock': {
+        ...common,
+        name: 'Chris\'s iPhone',
+        type: 'mobile',
+        timeline: [
+          {type: 'LastUsed',
+            desc: 'Last used Mar 25, 2016',
+            subDesc: '16 days ago'},
+          {type: 'Added',
+            desc: 'Added Mar 03, 2015',
+            subDesc: 'by Home Computer'}
+        ],
+        banner: {
+          type: 'WillUnlock',
+          desc: 'Turning on this device will unlock 6 of your private folders.'
+        }
+      },
+      'Paper': {
+        ...common,
+        name: 'project green...',
+        type: 'paperKey',
+        timeline: [
+          {type: 'Added',
+            desc: 'Created Mar 03, 2014',
+            subDesc: 'by Home Computer'}
+        ]
       }
     }
   }

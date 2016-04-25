@@ -64,6 +64,12 @@ const Render = ({banner, name, type, isCurrent, timeline, isRevoked, onRevoke}: 
     'paperKey': 'paper-key-l'
   }[type]
 
+  const revokeName = {
+    'mobile': 'device',
+    'desktop': 'device',
+    'paperKey': 'paper key'
+  }[type]
+
   return (
     <Box style={{...globalStyles.flexBoxColumn}}>
       {(banner != null) && <Banner type={banner.type} desc={banner.desc}/>}
@@ -74,7 +80,7 @@ const Render = ({banner, name, type, isCurrent, timeline, isRevoked, onRevoke}: 
         <Box style={{...globalStyles.flexBoxColumn}}>
           <Header name={name} isCurrent={isCurrent} isRevoked={isRevoked}/>
           <Timeline timeline={timeline}/>
-          {!isRevoked && <Button type='Danger' label='Revoke this device' onClick={onRevoke}/>}
+          {!isRevoked && <Button type='Danger' style={{marginTop: 15}} label={`Revoke this ${revokeName}`} onClick={onRevoke}/>}
         </Box>
       </Box>
     </Box>)
