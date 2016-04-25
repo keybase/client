@@ -15,6 +15,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/aalness/goamz/dynamodb"
+	"github.com/goamz/goamz/aws"
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 )
@@ -180,11 +182,18 @@ func (tdr *TestDynamoDBRunner) Run(t logger.TestLogBackend) {
 	// wait for it to come up
 	ok := false
 	for i := 0; i < 200; i++ {
-		if _, err := http.Get(LocalDynamoDBUri); err == nil {
+		region := aws.Region{
+			DynamoDBEndpoint:        LocalDynamoDBUri,
+			DynamoDBStreamsEndpoint: LocalDynamoDBUri,
+		}
+		auth := aws.Auth{AccessKey: "DUMMY_KEY", SecretKey: "DUMMY_SECRET"}
+		server := &dynamodb.Server{Auth: auth, Region: region}
+		if _, err := server.ListTables(); err != nil {
+			time.Sleep(time.Millisecond * 250)
+		} else {
 			ok = true
 			break
 		}
-		time.Sleep(time.Millisecond * 250)
 	}
 	if !ok {
 		t.Fatal("dynamodb did not start up cleanly")
