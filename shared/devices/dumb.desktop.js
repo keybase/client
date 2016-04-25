@@ -18,7 +18,7 @@ const dev2: Device = {
   deviceID: '7289c92083fc6a2b6d46e26212e00000',
   encryptKey: '',
   mTime: 1444423194000,
-  name: 'caius',
+  name: 'My Desktop',
   status: 0,
   type: 'desktop',
   verifyKey: ''
@@ -29,7 +29,7 @@ const dev3: Device = {
   deviceID: '729cb1b72ebadafee219759c33399999',
   encryptKey: '',
   mTime: 1450305567000,
-  name: 'tenet',
+  name: 'My Laptop',
   status: 0,
   type: 'mobile',
   verifyKey: ''
