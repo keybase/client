@@ -174,6 +174,12 @@ type PaperChecker struct{}
 func (p *PaperChecker) Check(g *GlobalContext, s string) error {
 	phrase := NewPaperKeyPhrase(s)
 
+	// check for empty
+	if len(phrase.String()) == 0 {
+		g.Log.Debug("paper phrase is empty")
+		return errors.New("Empty paper key. Please try again.")
+	}
+
 	// check for invalid words
 	invalids := phrase.InvalidWords()
 	if len(invalids) > 0 {
