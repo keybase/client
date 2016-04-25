@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strconv"
+	"syscall"
 	"time"
 
 	"github.com/keybase/client/go/libkb"
@@ -133,19 +134,28 @@ func (tdr *TestDynamoDBRunner) downloadIfNecessary() error {
 	return untar.Run()
 }
 
+func findAndKill(t logger.TestLogBackend, pid int, created bool) {
+	if p, err := os.FindProcess(pid); err == nil {
+		if err := p.Signal(syscall.SIGTERM); err != nil {
+			if err.Error() != "os: process already finished" {
+				t.Fatal(err)
+			}
+		} else if created {
+			p.Wait()
+		}
+	}
+}
+
+// Shutdown terminates any running instance.
+func (tdr *TestDynamoDBRunner) Shutdown(t logger.TestLogBackend) {
+	findAndKill(t, tdr.cmd.Process.Pid, true)
+}
+
 // Run starts the local DynamoDB server.
 func (tdr *TestDynamoDBRunner) Run(t logger.TestLogBackend) {
 	// kill any old process
 	if pid, err := tdr.getPid(); err == nil {
-		if p, err := os.FindProcess(pid); err == nil {
-			if err := p.Kill(); err != nil {
-				// you might think this would satisfy !os.IsNotExist
-				// but alas, no, you'd be really wrong about this.
-				if err.Error() != "os: process already finished" {
-					t.Fatal(err)
-				}
-			}
-		}
+		findAndKill(t, pid, false)
 	}
 
 	// setup the command
