@@ -32,16 +32,15 @@ script:
     elif [ $TRAVIS_OS_NAME == 'osx' ]; then
       cd go && export KEYBASE_SERVER_URI=http://ci1.keybase.io && travis_wait 40 ./test/run_tests.sh;
     fi
-  - if [ $TRAVIS_OS_NAME == 'linux' ] && [ $TRAVIS_BRANCH == 'master' ] && [ $TRAVIS_PULL_REQUEST == 'false' ]; then
-      cp $GOPATH/bin/keybase $GOPATH/src/github.com/keybase/client/go/keybase/keybase && docker build -t kbclient .;
-    fi
 after_failure:
   - if [ $TRAVIS_OS_NAME == 'linux' ]; then
       docker logs kbweb3000;
     fi
 after_success:
   - if [ $TRAVIS_OS_NAME == 'linux' ] && [ $TRAVIS_BRANCH == 'master' ] && [ $TRAVIS_PULL_REQUEST == 'false' ]; then
-      docker tag kbclient $CI_HOST/kbclient;
+      cp $GOPATH/bin/keybase $GOPATH/src/github.com/keybase/client/go/keybase/keybase &&
+      docker build -t kbclient . &&
+      docker tag kbclient $CI_HOST/kbclient &&
       docker push $CI_HOST/kbclient;
     else
       echo "Not pushing to Docker, because this isn't a push to master.";
