@@ -23,8 +23,11 @@ func (t TestSecretStoreAll) GetUsersWithStoredSecrets() (ret []string, err error
 	return
 }
 
-func GetTerminalPrompt() string {
-	// TODO: Come up with specific prompts for other platforms.
+func (t TestSecretStoreAll) GetTerminalPrompt() string {
+	return "Store your key in the local secret store?"
+}
+
+func (t TestSecretStoreAll) GetApprovalPrompt() string {
 	return "Store your key in the local secret store?"
 }
 

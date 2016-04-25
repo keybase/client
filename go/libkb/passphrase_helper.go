@@ -9,7 +9,7 @@ import (
 )
 
 func GetKeybasePassphrase(g *GlobalContext, ui SecretUI, username, retryMsg string, allowSecretStore bool) (keybase1.GetPassphraseRes, error) {
-	arg := DefaultPassphraseArg(allowSecretStore)
+	arg := DefaultPassphraseArg(g, allowSecretStore)
 	arg.WindowTitle = "Keybase passphrase"
 	arg.Type = keybase1.PassphraseType_PASS_PHRASE
 	arg.Username = username
@@ -19,7 +19,7 @@ func GetKeybasePassphrase(g *GlobalContext, ui SecretUI, username, retryMsg stri
 }
 
 func GetSecret(g *GlobalContext, ui SecretUI, title, prompt, retryMsg string, allowSecretStore bool) (keybase1.GetPassphraseRes, error) {
-	arg := DefaultPassphraseArg(allowSecretStore)
+	arg := DefaultPassphraseArg(g, allowSecretStore)
 	arg.WindowTitle = title
 	arg.Type = keybase1.PassphraseType_PASS_PHRASE
 	arg.Prompt = prompt
@@ -32,7 +32,7 @@ func GetSecret(g *GlobalContext, ui SecretUI, title, prompt, retryMsg string, al
 }
 
 func GetPaperKeyPassphrase(g *GlobalContext, ui SecretUI, username string) (string, error) {
-	arg := DefaultPassphraseArg(false)
+	arg := DefaultPassphraseArg(g, false)
 	arg.WindowTitle = "Paper backup key passphrase"
 	arg.Type = keybase1.PassphraseType_PAPER_KEY
 	if len(username) == 0 {
@@ -55,11 +55,13 @@ func GetPaperKeyForCryptoPassphrase(g *GlobalContext, ui SecretUI, reason string
 	if len(devices) == 0 {
 		return "", errors.New("empty device list")
 	}
-	arg := DefaultPassphraseArg(false)
+	arg := DefaultPassphraseArg(g, false)
 	arg.WindowTitle = "Paper backup key passphrase"
 	arg.Type = keybase1.PassphraseType_PAPER_KEY
 	arg.Features.StoreSecret.Allow = false
 	arg.Features.StoreSecret.Readonly = true
+	arg.Features.ShowTyping.Allow = true
+	arg.Features.ShowTyping.DefaultValue = true
 	if len(devices) == 1 {
 		arg.Prompt = fmt.Sprintf("%s: please enter the paper key '%s...'", reason, *devices[0].Description)
 	} else {
@@ -123,8 +125,8 @@ func GetPassphraseUntilCheck(g *GlobalContext, arg keybase1.GUIEntryArg, prompte
 	return keybase1.GetPassphraseRes{}, RetryExhaustedError{}
 }
 
-func DefaultPassphraseArg(allowSecretStore bool) keybase1.GUIEntryArg {
-	return keybase1.GUIEntryArg{
+func DefaultPassphraseArg(g *GlobalContext, allowSecretStore bool) keybase1.GUIEntryArg {
+	arg := keybase1.GUIEntryArg{
 		SubmitLabel: "Submit",
 		CancelLabel: "Cancel",
 		Features: keybase1.GUIEntryFeatures{
@@ -142,6 +144,12 @@ func DefaultPassphraseArg(allowSecretStore bool) keybase1.GUIEntryArg {
 			},
 		},
 	}
+
+	if g.SecretStoreAll != nil {
+		arg.Features.StoreSecret.Label = g.SecretStoreAll.GetApprovalPrompt()
+	}
+
+	return arg
 }
 
 // PassphraseChecker is an interface for checking the format of a
