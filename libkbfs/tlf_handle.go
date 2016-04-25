@@ -452,7 +452,11 @@ func splitNormalizedTLFNameIntoWritersAndReaders(name string, public bool) (
 	isValidUser := libkb.CheckUsername.F
 	for _, name := range append(writerNames, readerNames...) {
 		if !(isValidUser(name) || libkb.IsSocialAssertion(name)) {
-			return nil, nil, BadTLFNameError{name}
+			// It could also be a uid/http/https/keybase assertion
+			// (which are not "social" assertions).
+			if _, err := libkb.ParseAssertionURL(name, true); err != nil {
+				return nil, nil, BadTLFNameError{name}
+			}
 		}
 	}
 

@@ -311,3 +311,20 @@ func TestParseTlfHandleSocialAssertion(t *testing.T) {
 	require.Nil(t, err)
 	assert.Equal(t, CanonicalTlfName(name), h2.GetCanonicalName())
 }
+
+func TestParseTlfHandleUIDAssertion(t *testing.T) {
+	ctx := context.Background()
+
+	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2"})
+	currentUID := localUsers[0].UID
+	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, NewCodecMsgpack())
+
+	kbpki := &daemonKBPKI{
+		daemon: daemon,
+	}
+
+	a := currentUID.String() + "@uid"
+	_, err := ParseTlfHandle(ctx, kbpki, a, false, false)
+	assert.Equal(t, 1, kbpki.getIdentifyCalls())
+	assert.Equal(t, TlfNameNotCanonical{a, "u1"}, err)
+}

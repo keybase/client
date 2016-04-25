@@ -126,10 +126,17 @@ func (k *KeybaseDaemonLocal) Resolve(ctx context.Context, assertion string) (
 	libkb.NormalizedUsername, keybase1.UID, error) {
 	k.lock.Lock()
 	defer k.lock.Unlock()
-	uid, ok := k.asserts[assertion]
-	if !ok {
-		return libkb.NormalizedUsername(""), keybase1.UID(""),
-			NoSuchUserError{assertion}
+	var uid keybase1.UID
+	if url, err :=
+		libkb.ParseAssertionURL(assertion, true); err == nil && url.IsUID() {
+		uid = url.ToUID()
+	} else {
+		var ok bool
+		uid, ok = k.asserts[assertion]
+		if !ok {
+			return libkb.NormalizedUsername(""), keybase1.UID(""),
+				NoSuchUserError{assertion}
+		}
 	}
 
 	return k.localUsers[uid].Name, uid, nil
