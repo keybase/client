@@ -4,7 +4,7 @@ import React from 'react'
 
 import Checkbox from './checkbox'
 import {TabBar, Text, Box} from './index'
-import {TabBarButton, IconButton, AvatarButton} from './tab-bar'
+import {TabBarButton} from './tab-bar'
 
 import {Avatar} from './index'
 
@@ -32,6 +32,9 @@ const tabBarBaseMock = {
     </TabBar.Item>)
   ]
 }
+
+const IconButton = ({selected, icon, badgeNumber}: any) => <TabBarButton source={{type: 'icon', icon}} selected={selected} badgeNumber={badgeNumber}/>
+const AvatarButton = ({selected, avatar, badgeNumber}: any) => <TabBarButton source={{type: 'avatar', avatar}} selected={selected} badgeNumber={badgeNumber}/>
 
 const tabBarCustomButtons = selectedIndex => ({
   style: {flex: 1},

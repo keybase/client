@@ -33,22 +33,7 @@ export type TabBarButtonProps = {
   style?: Object
 }
 
-export type IconButtonProps = {
-  selected?: boolean,
-  icon: IconProps.type,
-  badgeNumber?: number
-}
-
-export type AvatarButtonProps = {
-  selected?: boolean,
-  avatar: Avatar,
-  badgeNumber?: number
-}
-
 declare export class TabBarButton extends Component<void, TabBarButtonProps, void> { }
-
-declare export class IconButton extends Component<void, IconButtonProps, void> { }
-declare export class AvatarButton extends Component<void, AvatarButtonProps, void> { }
 
 declare export default class TabBar extends Component<void, Props, void> {
   static Item: TabBarItem;

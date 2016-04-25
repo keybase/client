@@ -6,7 +6,7 @@ import Box from './box'
 import Text from './text'
 import Icon from './icon'
 
-import type {Props, ItemProps, TabBarButtonProps, AvatarButtonProps, IconButtonProps} from './tab-bar'
+import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
 
 class TabBarItem extends Component {
   props: ItemProps;
@@ -78,9 +78,6 @@ const styleBadge = {
   borderRadius: 10,
   flex: 0
 }
-
-export const IconButton = ({selected, icon, badgeNumber}: IconButtonProps) => <TabBarButton source={{type: 'icon', icon}} selected={selected} badgeNumber={badgeNumber}/>
-export const AvatarButton = ({selected, avatar, badgeNumber}: AvatarButtonProps) => <TabBarButton source={{type: 'avatar', avatar}} selected={selected} badgeNumber={badgeNumber}/>
 
 class TabBar extends Component {
   props: Props;
