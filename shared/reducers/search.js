@@ -20,7 +20,7 @@ const initialState: SearchState = Immutable.Map()
 
 export default function (state: SearchState = initialState, action: any): SearchState {
   if (action.type === CommonConstants.resetStore) {
-    return Immutable.fromJS({...initialState.toJS()})
+    return initialState.asMutable().asImmutable()
   }
 
   if (!action.payload || !action.payload.base) {
