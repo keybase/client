@@ -161,10 +161,16 @@ func ListServices(g *libkb.GlobalContext) (*keybase1.ServicesStatus, error) {
 	if err != nil {
 		return nil, err
 	}
+	updater, err := launchd.ListServices([]string{"keybase.updater."})
+	if err != nil {
+		return nil, err
+	}
 
 	return &keybase1.ServicesStatus{
 		Service: serviceStatusesFromLaunchd(g, services),
-		Kbfs:    serviceStatusesFromLaunchd(g, kbfs)}, nil
+		Kbfs:    serviceStatusesFromLaunchd(g, kbfs),
+		Updater: serviceStatusesFromLaunchd(g, updater),
+	}, nil
 }
 
 func DefaultLaunchdEnvVars(label string) []launchd.EnvVar {
