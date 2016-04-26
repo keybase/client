@@ -460,15 +460,13 @@ func splitAndNormalizeTLFName(name string, public bool) (
 	return writerNames, readerNames, nil
 }
 
+// TODO: this function can likely be replaced with a call to
+// AssertionParseAndOnly when CORE-2967 and CORE-2968 are fixed.
 func normalizeAssertionOrName(s string) (string, error) {
 	if libkb.CheckUsername.F(s) {
 		return libkb.NewNormalizedUsername(s).String(), nil
 	}
 
-	// TODO: Ideally, this would do error-checking, e.g. if
-	// isSocialAssertion is false because it's an invalid
-	// username, or if a bare username is invalid.
-	//
 	// TODO: this fails for http and https right now (see CORE-2968).
 	socialAssertion, isSocialAssertion := libkb.NormalizeSocialAssertion(s)
 	if isSocialAssertion {
