@@ -7,6 +7,7 @@ import Action, {calcFooterHeight} from './action.render.desktop'
 import Bio from './bio.render.desktop'
 import ProofsRender from './proofs.render.desktop'
 import commonStyles from '../styles/common'
+import NonUser from './non-user.desktop'
 
 import type {RenderProps} from './render'
 
@@ -14,6 +15,14 @@ export default class Render extends Component {
   props: RenderProps;
 
   render () {
+    if (this.props.nonUser) {
+      return <NonUser
+        onClose={this.props.headerProps.onClose}
+        name={this.props.name}
+        reason={this.props.reason}
+        inviteLink={this.props.inviteLink} />
+    }
+
     // We have to calculate the height of the footer.
     // It's positioned absolute, so flex won't work here.
     // It's positioned absolute because we want the background transparency.

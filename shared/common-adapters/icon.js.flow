@@ -20,6 +20,7 @@ export type Props = {
     | 'folder-public-m'
     | 'folder-public-xs'
     | 'folders-unlocked-m'
+    | 'invite-link-m'
     | 'invite-code-m'
     | 'invite-code-none-m'
     | 'keybase-update-pause'
