@@ -12,4 +12,13 @@ protocol session {
   }
 
   Session currentSession(int sessionID);
+
+  record VerifySessionRes {
+    UID uid;
+    string sid;
+    int generated;
+    int lifetime;
+  }
+
+  VerifySessionRes verifySession(string session);
 }
