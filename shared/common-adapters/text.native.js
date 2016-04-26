@@ -126,9 +126,6 @@ export default class Text extends Component {
 
     const style = Text.textStyle(this.props, this.context)
 
-    console.log(style)
-    console.log(this.props.style)
-
     const terminalPrefix = this._terminalPrefix(this.props.type)
     const className = (this.props.className || '') + ' ' + (linkClassname || '')
 
