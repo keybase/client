@@ -54,12 +54,10 @@ public class KeybaseEngine extends ReactContextBaseJavaModule {
         reactContext.addLifecycleEventListener(new LifecycleEventListener() {
             @Override
             public void onHostResume() {
-                Reset();
             }
 
             @Override
             public void onHostPause() {
-                Reset();
             }
 
             @Override
