@@ -386,19 +386,28 @@
           "name": "device"
         },
         {
-          "type": "Device",
+          "type": "boolean",
+          "name": "eldest"
+        },
+        {
+          "type": [
+            "null",
+            "Device"
+          ],
           "name": "provisioner"
         },
         {
-          "type": "Time",
+          "type": [
+            "null",
+            "Time"
+          ],
           "name": "provisionedAt"
         },
         {
-          "type": "Device",
-          "name": "revoker"
-        },
-        {
-          "type": "Time",
+          "type": [
+            "null",
+            "Time"
+          ],
           "name": "revokedAt"
         }
       ]
@@ -418,7 +427,7 @@
       },
       "doc": "List devices for the user."
     },
-    "deviceDetailList": {
+    "deviceHistoryList": {
       "request": [
         {
           "name": "sessionID",

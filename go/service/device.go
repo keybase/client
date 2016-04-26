@@ -40,21 +40,19 @@ func (h *DeviceHandler) DeviceList(_ context.Context, sessionID int) ([]keybase1
 	return eng.List(), nil
 }
 
-// DeviceDetailList returns a list of all the devices for a user,
-// with detailed provisioner, revoker information.
-func (h *DeviceHandler) DeviceDetailList(_ context.Context, sessionID int) ([]keybase1.DeviceDetail, error) {
-	/*
-		ctx := &engine.Context{
-			LogUI:     h.getLogUI(sessionID),
-			SessionID: sessionID,
-		}
-		eng := engine.NewDevList(h.G())
-		if err := engine.RunEngine(eng, ctx); err != nil {
-			return nil, err
-		}
-		return eng.List(), nil
-	*/
-	return nil, errors.New("not yet implemented")
+// DeviceHistoryList returns a list of all the devices for a user,
+// with detailed history and provisioner, revoker information.
+func (h *DeviceHandler) DeviceHistoryList(nctx context.Context, sessionID int) ([]keybase1.DeviceDetail, error) {
+	ctx := &engine.Context{
+		LogUI:      h.getLogUI(sessionID),
+		NetContext: nctx,
+		SessionID:  sessionID,
+	}
+	eng := engine.NewDeviceHistorySelf(h.G())
+	if err := engine.RunEngine(eng, ctx); err != nil {
+		return nil, err
+	}
+	return eng.Devices(), nil
 }
 
 // DeviceAdd starts the kex2 device provisioning on the

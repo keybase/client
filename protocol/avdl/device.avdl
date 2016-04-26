@@ -10,16 +10,18 @@ protocol device {
  
   record DeviceDetail {
     Device device;
-    Device provisioner;
-    Time provisionedAt;
-    Device revoker;
-    Time revokedAt;
+    boolean eldest;
+    union {null, Device} provisioner;
+    union {null, Time} provisionedAt;
+    // not possible to determine revoker without major code change
+    // union {null, Device} revoker;
+    union {null, Time} revokedAt;
   }
  
   /**
     List all devices with detailed history and status information.
     */
-  array<DeviceDetail> deviceDetailList(int sessionID);
+  array<DeviceDetail> deviceHistoryList(int sessionID);
 
   /**
     Starts the process of adding a new device using an existing

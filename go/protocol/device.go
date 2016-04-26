@@ -9,18 +9,18 @@ import (
 )
 
 type DeviceDetail struct {
-	Device        Device `codec:"device" json:"device"`
-	Provisioner   Device `codec:"provisioner" json:"provisioner"`
-	ProvisionedAt Time   `codec:"provisionedAt" json:"provisionedAt"`
-	Revoker       Device `codec:"revoker" json:"revoker"`
-	RevokedAt     Time   `codec:"revokedAt" json:"revokedAt"`
+	Device        Device  `codec:"device" json:"device"`
+	Eldest        bool    `codec:"eldest" json:"eldest"`
+	Provisioner   *Device `codec:"provisioner,omitempty" json:"provisioner,omitempty"`
+	ProvisionedAt *Time   `codec:"provisionedAt,omitempty" json:"provisionedAt,omitempty"`
+	RevokedAt     *Time   `codec:"revokedAt,omitempty" json:"revokedAt,omitempty"`
 }
 
 type DeviceListArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
-type DeviceDetailListArg struct {
+type DeviceHistoryListArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
@@ -37,7 +37,7 @@ type DeviceInterface interface {
 	// List devices for the user.
 	DeviceList(context.Context, int) ([]Device, error)
 	// List all devices with detailed history and status information.
-	DeviceDetailList(context.Context, int) ([]DeviceDetail, error)
+	DeviceHistoryList(context.Context, int) ([]DeviceDetail, error)
 	// Starts the process of adding a new device using an existing
 	// device.  It is called on the existing device.
 	// This is for kex2.
@@ -66,18 +66,18 @@ func DeviceProtocol(i DeviceInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"deviceDetailList": {
+			"deviceHistoryList": {
 				MakeArg: func() interface{} {
-					ret := make([]DeviceDetailListArg, 1)
+					ret := make([]DeviceHistoryListArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]DeviceDetailListArg)
+					typedArgs, ok := args.(*[]DeviceHistoryListArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]DeviceDetailListArg)(nil), args)
+						err = rpc.NewTypeError((*[]DeviceHistoryListArg)(nil), args)
 						return
 					}
-					ret, err = i.DeviceDetailList(ctx, (*typedArgs)[0].SessionID)
+					ret, err = i.DeviceHistoryList(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -130,9 +130,9 @@ func (c DeviceClient) DeviceList(ctx context.Context, sessionID int) (res []Devi
 }
 
 // List all devices with detailed history and status information.
-func (c DeviceClient) DeviceDetailList(ctx context.Context, sessionID int) (res []DeviceDetail, err error) {
-	__arg := DeviceDetailListArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.device.deviceDetailList", []interface{}{__arg}, &res)
+func (c DeviceClient) DeviceHistoryList(ctx context.Context, sessionID int) (res []DeviceDetail, err error) {
+	__arg := DeviceHistoryListArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.device.deviceHistoryList", []interface{}{__arg}, &res)
 	return
 }
 

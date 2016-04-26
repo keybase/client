@@ -157,10 +157,10 @@ export type Device = {
 
 export type DeviceDetail = {
   device: Device;
-  provisioner: Device;
-  provisionedAt: Time;
-  revoker: Device;
-  revokedAt: Time;
+  eldest: boolean;
+  provisioner?: ?Device;
+  provisionedAt?: ?Time;
+  revokedAt?: ?Time;
 }
 
 export type DeviceID = string
@@ -1675,13 +1675,13 @@ export type device_deviceAdd_rpc = {
   callback: (null | (err: ?any) => void)
 }
 
-export type device_deviceDetailList_result = Array<DeviceDetail>
+export type device_deviceHistoryList_result = Array<DeviceDetail>
 
-export type device_deviceDetailList_rpc = {
-  method: 'device.deviceDetailList',
+export type device_deviceHistoryList_rpc = {
+  method: 'device.deviceHistoryList',
   param: {},
   incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: device_deviceDetailList_result) => void)
+  callback: (null | (err: ?any, response: device_deviceHistoryList_result) => void)
 }
 
 export type device_deviceList_result = Array<Device>
@@ -3369,7 +3369,7 @@ export type rpc =
   | delegateUiCtl_registerUpdateUI_rpc
   | device_checkDeviceNameFormat_rpc
   | device_deviceAdd_rpc
-  | device_deviceDetailList_rpc
+  | device_deviceHistoryList_rpc
   | device_deviceList_rpc
   | favorite_favoriteAdd_rpc
   | favorite_favoriteDelete_rpc
@@ -3872,13 +3872,13 @@ export type incomingCallMapType = {
       result: (result: device_deviceList_result) => void
     }
   ) => void,
-  'keybase.1.device.deviceDetailList'?: (
+  'keybase.1.device.deviceHistoryList'?: (
     params: {
       sessionID: int
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: device_deviceDetailList_result) => void
+      result: (result: device_deviceHistoryList_result) => void
     }
   ) => void,
   'keybase.1.device.deviceAdd'?: (
