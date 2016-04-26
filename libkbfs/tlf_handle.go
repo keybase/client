@@ -431,7 +431,7 @@ func getSortedHandleLists(
 	return uids, assertions, names
 }
 
-func splitNormalizedTLFNameIntoWritersAndReaders(name string, public bool) (
+func splitAndNormalizeTLFName(name string, public bool) (
 	writerNames, readerNames []string, err error) {
 	splitNames := strings.SplitN(name, ReaderSep, 3)
 	if len(splitNames) > 2 {
@@ -449,18 +449,10 @@ func splitNormalizedTLFNameIntoWritersAndReaders(name string, public bool) (
 		return nil, nil, NoSuchNameError{Name: name}
 	}
 
-	isValidUser := libkb.CheckUsername.F
-	for _, name := range append(writerNames, readerNames...) {
-		if !(isValidUser(name) || libkb.IsSocialAssertion(name)) {
-			// It could also be a uid/http/https/keybase assertion
-			// (which are not "social" assertions).
-			if _, err := libkb.ParseAssertionURL(name, true); err != nil {
-				return nil, nil, BadTLFNameError{name}
-			}
-		}
+	normalizedName, err := normalizeNamesInTLF(writerNames, readerNames)
+	if err != nil {
+		return nil, nil, err
 	}
-
-	normalizedName := normalizeNamesInTLF(writerNames, readerNames)
 	if normalizedName != name {
 		return nil, nil, TlfNameNotCanonical{name, normalizedName}
 	}
@@ -468,36 +460,68 @@ func splitNormalizedTLFNameIntoWritersAndReaders(name string, public bool) (
 	return writerNames, readerNames, nil
 }
 
-func normalizeAssertionOrName(s string) string {
+func normalizeAssertionOrName(s string) (string, error) {
+	if libkb.CheckUsername.F(s) {
+		return libkb.NewNormalizedUsername(s).String(), nil
+	}
+
 	// TODO: Ideally, this would do error-checking, e.g. if
 	// isSocialAssertion is false because it's an invalid
 	// username, or if a bare username is invalid.
+	//
+	// TODO: this fails for http and https right now (see CORE-2968).
 	socialAssertion, isSocialAssertion := libkb.NormalizeSocialAssertion(s)
 	if isSocialAssertion {
-		return socialAssertion.String()
+		return socialAssertion.String(), nil
 	}
-	return libkb.NewNormalizedUsername(s).String()
+
+	if expr, err := libkb.AssertionParseAndOnly(s); err == nil {
+		// If the expression only contains a single url, make sure
+		// it's not a just considered a single keybase username.  If
+		// it is, then some non-username slipped into the default
+		// "keybase" case and should be considered an error.
+		urls := expr.CollectUrls(nil)
+		if len(urls) == 1 && urls[0].IsKeybase() {
+			return "", NoSuchUserError{s}
+		}
+
+		// Normalize and return.  Ideally `AssertionParseAndOnly`
+		// would normalize for us, but that doesn't work yet, so for
+		// now we'll just lower-case.  This will incorrectly lower
+		// case http/https/web assertions, as well as case-sensitive
+		// social assertions in AND expressions.  TODO: see CORE-2967.
+		return strings.ToLower(s), nil
+	}
+
+	return "", BadTLFNameError{s}
 }
 
 // normalizeNamesInTLF takes a split TLF name and, without doing any
 // resolutions or identify calls, normalizes all elements of the
 // name. It then returns the normalized name.
-func normalizeNamesInTLF(writerNames, readerNames []string) string {
+func normalizeNamesInTLF(writerNames, readerNames []string) (string, error) {
 	sortedWriterNames := make([]string, len(writerNames))
+	var err error
 	for i, w := range writerNames {
-		sortedWriterNames[i] = normalizeAssertionOrName(w)
+		sortedWriterNames[i], err = normalizeAssertionOrName(w)
+		if err != nil {
+			return "", err
+		}
 	}
 	sort.Strings(sortedWriterNames)
 	normalizedName := strings.Join(sortedWriterNames, ",")
 	if len(readerNames) > 0 {
 		sortedReaderNames := make([]string, len(readerNames))
 		for i, r := range readerNames {
-			sortedReaderNames[i] = normalizeAssertionOrName(r)
+			sortedReaderNames[i], err = normalizeAssertionOrName(r)
+			if err != nil {
+				return "", err
+			}
 		}
 		sort.Strings(sortedReaderNames)
 		normalizedName += ReaderSep + strings.Join(sortedReaderNames, ",")
 	}
-	return normalizedName
+	return normalizedName, nil
 }
 
 type resolvableAssertion struct {
@@ -555,7 +579,7 @@ func ParseTlfHandle(
 	// real user lookup for "head" (KBFS-531).  Note that the name
 	// might still contain assertions, which will result in
 	// another alias in a subsequent lookup.
-	writerNames, readerNames, err := splitNormalizedTLFNameIntoWritersAndReaders(name, public)
+	writerNames, readerNames, err := splitAndNormalizeTLFName(name, public)
 	if err != nil {
 		return nil, err
 	}
@@ -567,7 +591,10 @@ func ParseTlfHandle(
 		return nil, NoSuchNameError{Name: name}
 	}
 
-	normalizedName := normalizeNamesInTLF(writerNames, readerNames)
+	normalizedName, err := normalizeNamesInTLF(writerNames, readerNames)
+	if err != nil {
+		return nil, err
+	}
 	if normalizedName != name {
 		return nil, TlfNameNotCanonical{name, normalizedName}
 	}
@@ -625,6 +652,6 @@ func ParseTlfHandle(
 // it avoids all network calls.
 func CheckTlfHandleOffline(
 	ctx context.Context, name string, public bool) error {
-	_, _, err := splitNormalizedTLFNameIntoWritersAndReaders(name, public)
+	_, _, err := splitAndNormalizeTLFName(name, public)
 	return err
 }

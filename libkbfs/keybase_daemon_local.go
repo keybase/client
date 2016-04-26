@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 
@@ -121,22 +122,51 @@ type KeybaseDaemonLocal struct {
 
 var _ KeybaseDaemon = &KeybaseDaemonLocal{}
 
+func (k *KeybaseDaemonLocal) asssertionToUIDLocked(ctx context.Context,
+	assertion string) (uid keybase1.UID, err error) {
+	expr, err := libkb.AssertionParseAndOnly(assertion)
+	if err != nil {
+		return keybase1.UID(""), err
+	}
+	urls := expr.CollectUrls(nil)
+	if len(urls) == 0 {
+		return keybase1.UID(""), errors.New("No assertion URLs")
+	}
+
+	for _, url := range urls {
+		var currUID keybase1.UID
+		if url.IsUID() {
+			currUID = url.ToUID()
+		} else {
+			var ok bool
+			key, val := url.ToKeyValuePair()
+			a := fmt.Sprintf("%s@%s", val, key)
+			if url.IsKeybase() {
+				a = val
+			}
+			currUID, ok = k.asserts[a]
+			if !ok {
+				return keybase1.UID(""), NoSuchUserError{a}
+			}
+		}
+		if uid != keybase1.UID("") && currUID != uid {
+			return keybase1.UID(""),
+				errors.New("AND assertions resolve to different UIDs")
+		}
+		uid = currUID
+	}
+	return uid, nil
+}
+
 // Resolve implements KeybaseDaemon for KeybaseDaemonLocal.
 func (k *KeybaseDaemonLocal) Resolve(ctx context.Context, assertion string) (
 	libkb.NormalizedUsername, keybase1.UID, error) {
 	k.lock.Lock()
 	defer k.lock.Unlock()
-	var uid keybase1.UID
-	if url, err :=
-		libkb.ParseAssertionURL(assertion, true); err == nil && url.IsUID() {
-		uid = url.ToUID()
-	} else {
-		var ok bool
-		uid, ok = k.asserts[assertion]
-		if !ok {
-			return libkb.NormalizedUsername(""), keybase1.UID(""),
-				NoSuchUserError{assertion}
-		}
+
+	uid, err := k.asssertionToUIDLocked(ctx, assertion)
+	if err != nil {
+		return libkb.NormalizedUsername(""), keybase1.UID(""), err
 	}
 
 	return k.localUsers[uid].Name, uid, nil
@@ -147,9 +177,9 @@ func (k *KeybaseDaemonLocal) Identify(ctx context.Context, assertion, reason str
 	UserInfo, error) {
 	k.lock.Lock()
 	defer k.lock.Unlock()
-	uid, ok := k.asserts[assertion]
-	if !ok {
-		return UserInfo{}, NoSuchUserError{assertion}
+	uid, err := k.asssertionToUIDLocked(ctx, assertion)
+	if err != nil {
+		return UserInfo{}, err
 	}
 
 	u, err := k.localUsers.getLocalUser(uid)
@@ -371,7 +401,6 @@ func newKeybaseDaemonLocal(codec Codec,
 			asserts[a] = u.UID
 		}
 		asserts[string(u.Name)] = u.UID
-		asserts["uid:"+u.UID.String()] = u.UID
 	}
 	return &KeybaseDaemonLocal{
 		codec:         codec,
