@@ -76,11 +76,13 @@ shared_support_dir="$out_dir/Keybase.app/Contents/SharedSupport"
 resources_dir="$out_dir/Keybase.app/Contents/Resources/"
 
 installer_url="https://github.com/keybase/client/releases/download/v1.0.14-0/KeybaseInstaller-1.1.27-darwin.tgz"
+updater_url="https://github.com/keybase/client/releases/download/v1.0.15/KeybaseUpdater-1.0.0-darwin.tgz"
 
 keybase_bin="$tmp_dir/keybase"
 kbfs_bin="$tmp_dir/kbfs"
 updater_bin="$tmp_dir/updater"
 installer_app="$tmp_dir/KeybaseInstaller.app"
+updater_app="$tmp_dir/KeybaseUpdater.app"
 
 app_version="$keybase_version"
 dmg_name="${app_name}-${app_version}${comment}.dmg"
@@ -136,6 +138,9 @@ get_deps() {(
 
   echo "Using installer from $installer_url"
   curl -J -L -Ss "$installer_url" | tar zx
+
+  echo "Using updater from $updater_url"
+  curl -J -L -Ss "$updater_url" | tar zx
 )}
 
 # Build Keybase.app
@@ -165,9 +170,11 @@ package_app() {(
   cp "$keybase_bin" "$shared_support_dir/bin"
   cp "$kbfs_bin" "$shared_support_dir/bin"
   cp "$updater_bin" "$shared_support_dir/bin"
-  echo "Copying installer"
   mkdir -p "$resources_dir"
+  echo "Copying installer"
   cp -R "$installer_app" "$resources_dir/KeybaseInstaller.app"
+  echo "Copying updater (app)"
+  cp -R "$updater_app" "$resources_dir/KeybaseUpdater.app"
 )}
 
 update_plist() {(
