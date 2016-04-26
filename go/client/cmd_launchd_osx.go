@@ -213,6 +213,10 @@ func (v *CmdLaunchdList) ShowServices() error {
 	if err != nil {
 		return err
 	}
+	err = v.showServices([]string{"keybase.updater."}, "Updater")
+	if err != nil {
+		return err
+	}
 	return nil
 }
 

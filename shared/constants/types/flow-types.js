@@ -900,6 +900,7 @@ export type ServiceStatus = {
 export type ServicesStatus = {
   service: Array<ServiceStatus>;
   kbfs: Array<ServiceStatus>;
+  updater: Array<ServiceStatus>;
 }
 
 export type Session = {
