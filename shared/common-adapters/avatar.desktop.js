@@ -23,7 +23,7 @@ export default class Avatar extends Component {
     if (this.props.url) {
       return this.props.url
     } else if (this.props.username) {
-      return `https://keybase.io/${this.props.username}`
+      return `https://keybase.io/${this.props.username}/picture`
     }
 
     return null
