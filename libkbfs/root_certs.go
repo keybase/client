@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"net"
 	"os"
 	"strings"
 )
@@ -301,12 +302,13 @@ func GetRootCerts(serverAddr string) []byte {
 		return []byte(envTestRootCert)
 	}
 
-	if strings.HasSuffix(serverAddr, "dev.keybase.io:443") {
-		return []byte(DevRootCerts)
-	}
-
-	if strings.HasSuffix(serverAddr, "kbfs.keybase.io:443") {
-		return []byte(ProductionRootCerts)
+	if host, _, err := net.SplitHostPort(serverAddr); err != nil {
+		if strings.HasSuffix(host, "dev.keybase.io") {
+			return []byte(DevRootCerts)
+		}
+		if strings.HasSuffix(host, "kbfs.keybase.io") {
+			return []byte(ProductionRootCerts)
+		}
 	}
 
 	// Fall back to the test cert.
