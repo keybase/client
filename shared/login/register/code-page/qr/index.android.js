@@ -1,22 +1,29 @@
+// @flow
 import React, {Component} from 'react'
-import {Text} from 'react-native'
+import {Image, View} from 'react-native'
+import {globalStyles} from '../../../../styles/style-guide'
 
-export default class QR extends Component {
+import BarcodeScanner from 'react-native-barcodescanner'
+
+import type {Props} from './index'
+
+export default class QR extends Component<void, Props, void> {
   render () {
     if (this.props.scanning) {
       return (
-        <Text>TODO scanning</Text>
+        <BarcodeScanner
+          onBarCodeRead={this.props.onBarCodeRead}
+          style={{flex: 1}}
+          torchMode={'off'}
+          cameraType='back'/>
       )
     } else {
       return (
-        <Text>TODO not scanning</Text>
+        <View style={{flex: 1, ...globalStyles.flexBoxColumn, ...this.props.style}}>
+          {this.props.children}
+          <Image style={[{width: 300, height: 300}, this.props.imageStyle]} source={{uri: this.props.qrCode}} />
+        </View>
       )
     }
   }
-
-  static parseRoute () {
-    return {componentAtTop: {title: 'QR'}}
-  }
 }
-
-QR.propTypes = {}

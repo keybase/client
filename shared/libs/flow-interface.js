@@ -11,6 +11,14 @@ declare module 'immutable' {
   declare var exports: any;
 }
 
+declare module 'react-native-barcodescanner' {
+  declare var exports: any;
+}
+
+declare module 'react-native-camera' {
+  declare var exports: any;
+}
+
 declare module 'Interpolation' {
   declare var exports: any;
 }
