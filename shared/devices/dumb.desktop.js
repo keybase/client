@@ -38,17 +38,35 @@ const dev3: Device = {
   isCurrent: false
 }
 
-const devicesDefault: Array<Device> = [
-  dev1,
-  dev2,
-  dev3
+const rev1: Device = {
+  ...dev1,
+  name: 'Paper Key (revo ked...)'
+}
+
+const rev2: Device = {
+  ...dev2,
+  name: 'My Revoked Desktop',
+  isCurrent: false
+}
+
+const rev3: Device = {
+  ...dev3,
+  name: 'My Revoked Laptop'
+}
+
+const devices: Array<Device> = [
+  dev1, dev2, dev3
+]
+
+const revokedDevices: Array<Device> = [
+  rev1, rev2, rev3
 ]
 
 export default {
   'Devices List': {
     component: Devices,
     mocks: {
-      'Devices': {devices: devicesDefault, revokedDevices: devicesDefault}
+      'Devices': {devices, revokedDevices}
     }
   }
 }

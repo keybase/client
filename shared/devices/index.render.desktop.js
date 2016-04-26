@@ -47,21 +47,29 @@ const DeviceRow = ({device, revoked}) => {
     'backup': 'paper-key-m'
   }[device.type]
 
+  let textStyle = {fontStyle: 'italic'}
+  if (revoked) {
+    textStyle = {
+      ...textStyle,
+      color: globalColors.black40,
+      textDecoration: 'line-through'
+    }
+  }
   return (
     <Box style={{...stylesCommonRow, backgroundColor: revoked ? '#f0f0f0' : globalColors.white}}>
-      <Box style={{...stylesCommonColumn, width: 85}}>
+      <Box style={revoked ? stylesRevokedIconColumn : stylesIconColumn}>
         <Icon type={icon}/>
       </Box>
       <Box style={stylesCommonColumn}>
         <Box style={{...globalStyles.flexBoxRow}}>
-          <Text style={{fontStyle: 'italic'}} type='Header'>{device.name}</Text>
+          <Text style={textStyle} type='Header'>{device.name}</Text>
         </Box>
         <Box style={{...globalStyles.flexBoxRow}}>
           {device.isCurrent && <Text type='BodySmall'>Current device</Text>}
         </Box>
       </Box>
       <Box style={{...stylesCommonColumn, alignSelf: 'center', flex: 1, textAlign: 'right', paddingRight: 20}}>
-        <Text style={{color: globalColors.red}} type='BodyPrimaryLink'>Revoke</Text>
+        {!revoked && <Text style={{color: globalColors.red}} type='BodyPrimaryLink'>Revoke</Text>}
       </Box>
     </Box>
   )
@@ -72,8 +80,8 @@ const Render = ({devices, revokedDevices, waitingForServer, showRemoveDevicePage
     <Box style={stylesContainer}>
       <DeviceHeader/>
       {devices && devices.map(device => DeviceRow({device, revoked: false}))}
-      <RevokedHeader/>
-      <RevokedDescription/>
+      {revokedDevices && <RevokedHeader/>}
+      {revokedDevices && <RevokedDescription/>}
       {revokedDevices && revokedDevices.map(device => DeviceRow({device, revoked: true}))}
     </Box>
   )
@@ -107,4 +115,15 @@ const stylesRevokedDescription = {
 const stylesCommonColumn = {
   padding: 20
 }
+
+const stylesIconColumn = {
+  ...stylesCommonColumn,
+  width: 85
+}
+
+const stylesRevokedIconColumn = {
+  ...stylesIconColumn,
+  opacity: 0.2
+}
+
 export default Render
