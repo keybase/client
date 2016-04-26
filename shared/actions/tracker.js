@@ -407,6 +407,9 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
       const username = sessionIDToUsername[sessionID]
       dispatch({type: Constants.updateTrackToken, payload: {username, trackToken}})
     },
+    confirm: () => {
+      // our UI doesn't use this at all, keep this to not get an unhandled incoming msg warning
+    },
     finish: ({sessionID}) => {
       const username = sessionIDToUsername[sessionID]
       // Check if there were any errors in the proofs
