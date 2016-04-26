@@ -190,9 +190,17 @@ sign() {(
   codesign --verbose --force --deep --sign "$code_sign_identity" "$app_name.app"
 
   echo "Verify codesigning..."
-  codesign -v "$app_name.app"
-  codesign -v "$app_name.app/Contents/SharedSupport/bin/keybase"
-  codesign -v "$app_name.app/Contents/SharedSupport/bin/kbfs"
+  codesign --verify --verbose=4 "$app_name.app"
+  spctl --assess --verbose=4 "$app_name.app"
+  codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/keybase"
+  codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/kbfs"
+  codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/updater"
+  bundle_installer_app="$app_name.app/Contents/Resources/KeybaseInstaller.app"
+  codesign --verify --verbose=4 "$bundle_installer_app"
+  spctl --assess --verbose=4  "$bundle_installer_app"
+  bundle_updater_app="$app_name.app/Contents/Resources/KeybaseUpdater.app"
+  codesign --verify --verbose=4 "$bundle_updater_app"
+  spctl --assess --verbose=4 "$bundle_updater_app"
 )}
 
 # Create dmg from Keybase.app
