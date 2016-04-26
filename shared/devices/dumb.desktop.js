@@ -31,7 +31,7 @@ const dev3: Device = {
   deviceID: '729cb1b72ebadafee219759c33399999',
   encryptKey: '',
   mTime: 1450305567000,
-  name: 'My Laptop',
+  name: 'My Phone',
   status: 0,
   type: 'mobile',
   verifyKey: '',
@@ -51,7 +51,7 @@ const rev2: Device = {
 
 const rev3: Device = {
   ...dev3,
-  name: 'My Revoked Laptop'
+  name: 'My Revoked Phone'
 }
 
 const devices: Array<Device> = [

@@ -14,8 +14,7 @@ const DeviceHeader = () => {
   return (
     <Box style={stylesCommonRow}>
       <Box style={stylesCommonColumn}>
-        <Icon type='computer-bw-xs'/>
-        <Icon type='paper-key-m'/>
+        <Icon type='devices-add-s'/>
       </Box>
       <Box style={stylesCommonColumn}>
         <Text type='BodyPrimaryLink'>Add new...</Text>
@@ -43,7 +42,7 @@ const RevokedDescription = () => {
 const DeviceRow = ({device, revoked}) => {
   const icon: IconProps.type = {
     'mobile': 'phone-bw-m',
-    'desktop': 'computer-bw-m',
+    'desktop': 'computer-bw-s-2',
     'backup': 'paper-key-m'
   }[device.type]
 
@@ -56,7 +55,7 @@ const DeviceRow = ({device, revoked}) => {
     }
   }
   return (
-    <Box style={{...stylesCommonRow, backgroundColor: revoked ? '#f0f0f0' : globalColors.white}}>
+    <Box id={device.name} style={{...stylesCommonRow, backgroundColor: revoked ? '#f0f0f0' : globalColors.white}}>
       <Box style={revoked ? stylesRevokedIconColumn : stylesIconColumn}>
         <Icon type={icon}/>
       </Box>
