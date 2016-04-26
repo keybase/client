@@ -14,7 +14,7 @@ export function toDeviceType (s: string): DeviceType {
     case 'backup':
       return s
     default:
-      console.error('Unknown Device Type %s. Defaulting to `desktop`', s)
+      console.warn('Unknown Device Type %s. Defaulting to `desktop`', s)
       return 'desktop'
   }
 }

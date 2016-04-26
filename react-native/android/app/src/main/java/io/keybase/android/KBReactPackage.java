@@ -7,17 +7,30 @@ import com.facebook.react.uimanager.ViewManager;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 
 import io.keybase.android.components.VisiblePassReactEditTextManager;
 import io.keybase.android.modules.KeybaseEngine;
+import io.keybase.android.modules.KillableModule;
 
-public class ReactPackage implements com.facebook.react.ReactPackage {
+public class KBReactPackage implements com.facebook.react.ReactPackage {
+    private List<KillableModule> killableModules = new ArrayList<>();
+
     @Override
     public List<NativeModule> createNativeModules(ReactApplicationContext reactApplicationContext) {
-        List<NativeModule> modules = new ArrayList<>();
+        final Iterator<KillableModule> i = killableModules.iterator();
+        while (i.hasNext()) {
+            final KillableModule killableModule = i.next();
+            killableModule.destroy();
+            i.remove();
+        }
 
-        modules.add(new KeybaseEngine(reactApplicationContext));
+        final KeybaseEngine kbEngine = new KeybaseEngine(reactApplicationContext);
+        killableModules.add(kbEngine);
+
+        List<NativeModule> modules = new ArrayList<>();
+        modules.add(kbEngine);
 
         return modules;
     }

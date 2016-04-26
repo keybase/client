@@ -24,6 +24,9 @@ import {constants as styleConstants} from './styles/common'
 
 import type {VisibleTab} from './constants/tabs'
 import {devicesTab, moreTab, startupTab, folderTab, peopleTab, loginTab, profileTab} from './constants/tabs'
+import ListenLogUi from './native/listen-log-ui'
+import {listenForNotifications} from './actions/notifications'
+import hello from './util/hello'
 
 const tabs: {[key: VisibleTab]: {module: any}} = {
   [profileTab]: {module: Login, name: 'Login'},
@@ -88,6 +91,15 @@ class Nav extends Component {
     super(props)
 
     this.props.bootstrap()
+    this.props.listenForNotifications()
+
+    // Handle logUi.log
+    ListenLogUi()
+
+    // Introduce ourselves to the service
+    hello(0, 'iOS app', [], '0.0.0') // TODO real version
+
+    // TODO android also!
   }
 
   navBar () {
@@ -118,39 +130,16 @@ class Nav extends Component {
     )
   }
 
+  _activeTab () {
+    return this.props.tabbedRouter.get('activeTab')
+  }
+
   shouldComponentUpdate (nextProps, nextState) {
-    const activeTab = this.props.tabbedRouter.get('activeTab')
-    const nextActiveTab = nextProps.tabbedRouter.get('activeTab')
-    if (activeTab !== nextActiveTab) {
-      return true
-    }
-
-    if (this.props.config.navState !== nextProps.config.navState) {
-      return true
-    }
-
-    return false
+    return (nextProps.tabbedRouter.get('activeTab') !== this._activeTab())
   }
 
   render () {
-    const activeTab = this.props.tabbedRouter.get('activeTab')
-
-    // if (this.props.config.navState === Constants.navStartingUp) {
-      // return (
-        // <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-          // <Text>Loading...</Text>
-        // </View>
-      // )
-    // }
-
-    // if (this.props.config.navState === Constants.navErrorStartingUp) {
-      // return (
-        // <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-          // <Text>Error Loading: {this.props.config.error.toString()}</Text>
-          // <Button type='Secondary' title='Retry' onPress={() => this.props.startup()} isAction />
-        // </View>
-      // )
-    // }
+    const activeTab = this._activeTab()
 
     if (activeTab === loginTab) {
       return this._renderContent(loginTab, Login)
@@ -163,12 +152,9 @@ class Nav extends Component {
 
     const tabContent = mapValues(tabs, ({module}, tab) => (activeTab === tab && this._renderContent(tab, module)))
 
-    const config = this.props.config
-    const username = config && config.status && config.status.user && config.status.user.username
-
     return (
       <View style={{flex: 1}}>
-        <TabBar onTabClick={this.props.switchTab} selectedTab={activeTab} username={username} badgeNumbers={{}} tabContent={tabContent}/>
+        <TabBar onTabClick={this.props.switchTab} selectedTab={activeTab} username={this.props.username} badgeNumbers={{}} tabContent={tabContent}/>
       </View>
     )
   }
@@ -199,14 +185,19 @@ const styles = StyleSheet.create({
 })
 
 export default connect(
-  // TODO: Don't use the whole store here.
-  store => store,
+  ({tabbedRouter, config: {bootstrapped, extendedConfig, status}}) => ({
+    tabbedRouter,
+    bootstrapped,
+    provisioned: extendedConfig && !!extendedConfig.device,
+    username: status && status.user && status.user.username
+  }),
   dispatch => {
     return {
       switchTab: tab => dispatch(switchTab(tab)),
       navigateUp: () => dispatch(navigateUp()),
       navigateTo: uri => dispatch(navigateTo(uri)),
-      bootstrap: () => dispatch(bootstrap())
+      bootstrap: () => dispatch(bootstrap()),
+      listenForNotifications: () => dispatch(listenForNotifications())
     }
   }
 )(Nav)

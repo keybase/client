@@ -1,5 +1,7 @@
 package io.keybase.android.modules;
 
+import android.util.Log;
+
 import com.facebook.react.bridge.LifecycleEventListener;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -16,7 +18,7 @@ import static go.keybase.Keybase.ReadB64;
 import static go.keybase.Keybase.Reset;
 import static go.keybase.Keybase.WriteB64;
 
-public class KeybaseEngine extends ReactContextBaseJavaModule {
+public class KeybaseEngine extends ReactContextBaseJavaModule implements KillableModule {
 
     private static final String NAME = "KeybaseEngine";
     private static final String RPC_EVENT_NAME = "RPC";
@@ -31,17 +33,17 @@ public class KeybaseEngine extends ReactContextBaseJavaModule {
 
         @Override
         public void run() {
-            // TODO: There may be a race condition here...
-            // It will fail if you try to run .getJSModule
-            // before react has loaded.
-
-            while (!Thread.currentThread().isInterrupted()) {
+            do {
                 final String data = ReadB64();
+
+                if (!reactContext.hasActiveCatalystInstance()) {
+                    Log.e(NAME, "JS Bridge is dead, dropping engine message: " + data);
+                }
 
                 reactContext
                   .getJSModule(DeviceEventManagerModule.RCTDeviceEventEmitter.class)
                   .emit(KeybaseEngine.RPC_EVENT_NAME, data);
-            }
+            } while (!Thread.currentThread().isInterrupted() && reactContext.hasActiveCatalystInstance());
         }
     }
 
@@ -54,12 +56,10 @@ public class KeybaseEngine extends ReactContextBaseJavaModule {
         reactContext.addLifecycleEventListener(new LifecycleEventListener() {
             @Override
             public void onHostResume() {
-                Reset();
             }
 
             @Override
             public void onHostPause() {
-                Reset();
             }
 
             @Override

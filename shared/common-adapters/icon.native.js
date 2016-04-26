@@ -15,7 +15,7 @@ export default class Icon extends Component {
     let iconType = shared.typeToIconMapper(this.props.type)
 
     if (!iconType) {
-      console.error('Null iconType passed')
+      console.warn('Null iconType passed')
       return null
     }
 

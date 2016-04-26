@@ -15,6 +15,7 @@ type KeyUnlocker struct {
 	UseSecretStore bool
 	UI             SecretUI
 	Unlocker       func(pw string, storeSecret bool) (ret GenericKey, err error)
+	Contextified
 }
 
 func (arg KeyUnlocker) Run() (ret GenericKey, err error) {
@@ -38,7 +39,7 @@ func (arg KeyUnlocker) Run() (ret GenericKey, err error) {
 	prompt := "Your key passphrase"
 
 	for i := 0; arg.Tries <= 0 || i < arg.Tries; i++ {
-		res, err := GetSecret(arg.UI, prompt, desc, emsg, arg.UseSecretStore)
+		res, err := GetSecret(arg.G(), arg.UI, prompt, desc, emsg, arg.UseSecretStore)
 		if err != nil {
 			// probably canceled
 			return nil, err

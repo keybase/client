@@ -50,11 +50,7 @@ func validPhrase(p string, entropy int) error {
 }
 
 func validWord(w string) bool {
-	x, ok := secwordSet[w]
-	if !ok {
-		return false
-	}
-	return x
+	return secwordSet[w]
 }
 
 // Wordlist from BIP0039:

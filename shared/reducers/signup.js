@@ -154,7 +154,7 @@ export default function (state: SignupState = initialState, action: SignupAction
 
     case Constants.showPaperKey:
       if (action.error) {
-        console.error('Should not get an error from showing paper key')
+        console.next('Should not get an error from showing paper key')
         return state
       } else {
         const {paperkey} = action.payload
@@ -167,7 +167,7 @@ export default function (state: SignupState = initialState, action: SignupAction
 
     case Constants.showSuccess:
       if (action.error) {
-        console.error('Should not get an error from showing success')
+        console.next('Should not get an error from showing success')
         return state
       } else {
         return {

@@ -33,7 +33,7 @@ if (__DEV__) { // eslint-disable-line no-undef
   app.commandLine.appendSwitch('v', 3)
 }
 
-hello(process.pid, 'Main Thread', process.argv)
+hello(process.pid, 'Main Thread', process.argv, __VERSION__) // eslint-disable-line no-undef
 
 consoleHelper()
 ipcLogs()

@@ -20,7 +20,7 @@ export function registerPinentryListener (): AsyncAction {
         incomingCallMap: {},
         callback: (error, response) => {
           if (error != null) {
-            console.error('error in registering secret ui: ', error)
+            console.warn('error in registering secret ui: ', error)
           } else {
             console.log('Registered secret ui')
           }

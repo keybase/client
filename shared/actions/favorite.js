@@ -16,7 +16,7 @@ export function favoriteList (): (dispatch: Dispatch) => void {
       incomingCallMap: {},
       callback: (error, folders: Array<Folder>) => {
         if (error) {
-          console.error('Err in favorite.favoriteList', error)
+          console.warn('Err in favorite.favoriteList', error)
           return
         }
 

@@ -4,10 +4,15 @@
 package engine
 
 import (
+	"sync"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/crypto/nacl/box"
 )
+
+// getMatchMu erializes calls to getMatchingSecretKey.
+var getMatchMu sync.Mutex
 
 func getMySecretKey(
 	g *libkb.GlobalContext, secretUI libkb.SecretUI,
@@ -167,6 +172,23 @@ func getMatchingSecretKey(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg k
 		return key, index, nil
 	}
 
+	g.Log.Debug("getMatchingSecretKey: acquiring lock")
+	getMatchMu.Lock()
+	defer func() {
+		getMatchMu.Unlock()
+		g.Log.Debug("getMatchingSecretKey: lock released")
+	}()
+	g.Log.Debug("getMatchingSecretKey: lock acquired")
+
+	// check cache after acquiring lock
+	key, index, err = matchingCachedKey(g, arg)
+	if err != nil {
+		return nil, 0, err
+	}
+	if key != nil {
+		return key, index, nil
+	}
+
 	// load the user
 	me, err := libkb.LoadMe(libkb.NewLoadUserArg(g))
 	if err != nil {
@@ -278,7 +300,7 @@ func matchingPaperKey(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg keyba
 		return nil, 0, nil
 	}
 
-	phrase, err := libkb.GetPaperKeyForCryptoPassphrase(secretUI, arg.Reason, matchingPaper)
+	phrase, err := libkb.GetPaperKeyForCryptoPassphrase(g, secretUI, arg.Reason, matchingPaper)
 	if err != nil {
 		return nil, 0, err
 	}

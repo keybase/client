@@ -64,7 +64,7 @@ export function subReducer (state: RouterState = initialState, action: any): Rou
           if (current.count()) {
             return state.set('uri', current)
           } else {
-            console.error(`Navigate till unfound: ${action.payload.till}`)
+            console.warn(`Navigate till unfound: ${action.payload.till}`)
             return state
           }
         } else {

@@ -110,7 +110,7 @@ func (h *PGPHandler) PGPDecrypt(_ context.Context, arg keybase1.PGPDecryptArg) (
 		return keybase1.PGPSigVerification{}, err
 	}
 
-	return sigVer(eng.SignatureStatus(), eng.Owner()), nil
+	return sigVer(h.G(), eng.SignatureStatus(), eng.Owner()), nil
 }
 
 func (h *PGPHandler) PGPVerify(_ context.Context, arg keybase1.PGPVerifyArg) (keybase1.PGPSigVerification, error) {
@@ -134,10 +134,10 @@ func (h *PGPHandler) PGPVerify(_ context.Context, arg keybase1.PGPVerifyArg) (ke
 		return keybase1.PGPSigVerification{}, err
 	}
 
-	return sigVer(eng.SignatureStatus(), eng.Owner()), nil
+	return sigVer(h.G(), eng.SignatureStatus(), eng.Owner()), nil
 }
 
-func sigVer(ss *libkb.SignatureStatus, owner *libkb.User) keybase1.PGPSigVerification {
+func sigVer(g *libkb.GlobalContext, ss *libkb.SignatureStatus, owner *libkb.User) keybase1.PGPSigVerification {
 	var res keybase1.PGPSigVerification
 	if ss.IsSigned {
 		res.IsSigned = ss.IsSigned
@@ -149,7 +149,7 @@ func sigVer(ss *libkb.SignatureStatus, owner *libkb.User) keybase1.PGPSigVerific
 			}
 		}
 		if ss.Entity != nil {
-			bundle := libkb.NewPGPKeyBundle(ss.Entity)
+			bundle := libkb.NewPGPKeyBundle(g, ss.Entity)
 			res.SignKey = bundle.Export()
 		}
 	}

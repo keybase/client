@@ -18,10 +18,12 @@ import (
 	"os"
 	"sync"
 	"syscall"
+
+	"golang.org/x/sys/windows"
 )
 
 var (
-	kernel32DLL                 = syscall.NewLazyDLL("kernel32.dll")
+	kernel32DLL                 = windows.NewLazySystemDLL("kernel32.dll")
 	setConsoleTextAttributeProc = kernel32DLL.NewProc("SetConsoleTextAttribute")
 	stdOutMutex                 sync.Mutex
 	stdErrMutex                 sync.Mutex

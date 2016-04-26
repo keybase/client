@@ -7,6 +7,7 @@ import React, {Component} from 'react'
 import Render from './meta-navigator.render'
 import Immutable from 'immutable'
 import {connect} from 'react-redux'
+import {printRoutes} from '../local-debug'
 
 class MetaNavigator extends Component {
   constructor (props) {
@@ -48,9 +49,7 @@ class MetaNavigator extends Component {
     // TODO: also check to see if this route exists in the navigator's route
     } else if (this.isParentOfRoute(nextRoute, route)) {
       const navRoutes = this.state.navigator.getCurrentRoutes()
-      const targetRoute = navRoutes.reverse().find(navRoute =>
-          navRoute.component === componentAtTop.component && navRoute.title === componentAtTop.title
-      )
+      const targetRoute = navRoutes[nextRouteStack.count() - 1]
       this.state.navigator.popToRoute(targetRoute)
       return true
     } else {
@@ -110,6 +109,14 @@ class MetaNavigator extends Component {
       currentPath = nextPath
       nextPath = restPath.first()
       restPath = restPath.rest()
+    }
+
+    if (printRoutes) {
+      console.log('%cRoute', 'font-size: x-large')
+      console.log('rootComp', rootComponent)
+      console.log('uri', uri.toJS())
+      console.log('componentAtTop', componentAtTop)
+      console.log('routeStack', routeStack.toJS())
     }
 
     return {componentAtTop, routeStack}

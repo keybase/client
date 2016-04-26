@@ -128,7 +128,7 @@ export function registerIdentifyUi (): TrackerActionCreator {
         incomingCallMap: {},
         callback: (error, response) => {
           if (error != null) {
-            console.error('error in registering identify ui: ', error)
+            console.warn('error in registering identify ui: ', error)
           } else {
             console.log('Registered identify ui')
           }
@@ -184,7 +184,7 @@ export function onRefollow (username: string): TrackerActionCreator {
     trackUser(trackToken, false)
       .then(dispatchRefollowAction)
       .catch(err => {
-        console.error("Couldn't track user:", err)
+        console.warn("Couldn't track user:", err)
         dispatchErrorAction()
       })
   }
@@ -280,7 +280,7 @@ export function onFollow (username: string, localIgnore: bool): (dispatch: Dispa
     trackUser(trackToken, localIgnore)
       .then(dispatchFollowedAction)
       .catch(err => {
-        console.error("Couldn't track user: ", err)
+        console.warn("Couldn't track user: ", err)
         dispatchErrorAction()
       })
   }
@@ -406,6 +406,9 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
     reportTrackToken: ({sessionID, trackToken}) => {
       const username = sessionIDToUsername[sessionID]
       dispatch({type: Constants.updateTrackToken, payload: {username, trackToken}})
+    },
+    confirm: () => {
+      // our UI doesn't use this at all, keep this to not get an unhandled incoming msg warning
     },
     finish: ({sessionID}) => {
       const username = sessionIDToUsername[sessionID]

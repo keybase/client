@@ -454,6 +454,13 @@
             "items": "ServiceStatus"
           },
           "name": "kbfs"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ServiceStatus"
+          },
+          "name": "updater"
         }
       ]
     },

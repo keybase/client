@@ -11,6 +11,8 @@ import (
 	"os/exec"
 	"strings"
 	"syscall"
+
+	"golang.org/x/sys/windows"
 )
 
 type GUID struct {
@@ -25,8 +27,8 @@ var (
 )
 
 var (
-	modShell32               = syscall.NewLazyDLL("Shell32.dll")
-	modOle32                 = syscall.NewLazyDLL("Ole32.dll")
+	modShell32               = windows.NewLazySystemDLL("Shell32.dll")
+	modOle32                 = windows.NewLazySystemDLL("Ole32.dll")
 	procSHGetKnownFolderPath = modShell32.NewProc("SHGetKnownFolderPath")
 	procCoTaskMemFree        = modOle32.NewProc("CoTaskMemFree")
 )

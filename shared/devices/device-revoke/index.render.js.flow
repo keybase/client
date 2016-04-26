@@ -1,0 +1,14 @@
+/* @flow */
+
+import type {DeviceType} from '../../constants/types/more'
+
+export type Props = {
+  type: DeviceType,
+  name: string,
+  isCurrent: boolean,
+  onSubmit: () => void,
+  onCancel: () => void
+}
+
+export default class Render extends React$Component<void, Props, void> {
+}

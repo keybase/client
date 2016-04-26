@@ -83,7 +83,7 @@ public class MainActivity extends ReactActivity {
     protected List<com.facebook.react.ReactPackage> getPackages() {
         return Arrays.asList(
           new MainReactPackage(),
-          new ReactPackage());
+          new KBReactPackage());
     }
 
 

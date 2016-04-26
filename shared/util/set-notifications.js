@@ -30,7 +30,7 @@ export default function (channels: NotificationChannels): Promise<void> {
         incomingCallMap: {},
         callback: (error, response) => {
           if (error != null) {
-            console.error('error in toggling notifications: ', error)
+            console.warn('error in toggling notifications: ', error)
             reject(error)
           } else {
             resolve()

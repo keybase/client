@@ -89,6 +89,10 @@ func (s secretStoreAccountName) GetUsersWithStoredSecrets() ([]string, error) {
 	return users, err
 }
 
-func GetTerminalPrompt() string {
+func (s secretStoreAccountName) GetTerminalPrompt() string {
+	return "Store secret in Android's KeyStore?"
+}
+
+func (s secretStoreAccountName) GetApprovalPrompt() string {
 	return "Store secret in Android's KeyStore?"
 }

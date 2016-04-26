@@ -801,7 +801,7 @@ func (ui SecretUI) getSecret(pinentry keybase1.SecretEntryArg, term *keybase1.Se
 }
 
 func (ui *UI) Configure() error {
-	t, err := NewTerminal()
+	t, err := NewTerminal(ui.G())
 	if err != nil {
 		// XXX this is only temporary so that SecretEntry will still work
 		// when this is run without a terminal.

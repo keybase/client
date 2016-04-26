@@ -62,7 +62,7 @@ func (e *DeviceAdd) Run(ctx *Context) (err error) {
 	if err != nil {
 		return err
 	}
-	e.G().Log.Debug("secret phrase: %s", secret.Phrase())
+	e.G().Log.Debug("secret phrase received")
 
 	// provisioner needs ppstream, and UI is confusing when it asks for
 	// it at the same time as asking for the secret, so get it first

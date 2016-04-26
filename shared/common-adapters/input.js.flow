@@ -18,7 +18,8 @@ export type Props = $Shape<{
   type?: 'password' | 'text' | 'passwordVisible',
   value?: ?string,
   small?: bool,
-  errorStyle?: Object
+  errorStyle?: Object,
+  keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad' | 'ascii-capable' | 'numbers-and-punctuation' | 'url' | 'number-pad' | 'name-phone-pad' | 'decimal-pad' | 'twitter' | 'web-search'
 }>
 
 declare export default class Input extends React.Component {
