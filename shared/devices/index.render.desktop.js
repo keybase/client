@@ -1,11 +1,8 @@
 /* @flow */
 import React from 'react'
 import {Box, Text, Icon, Button} from '../common-adapters'
-
-import HardwarePhoneIphone from 'material-ui/lib/svg-icons/hardware/phone-iphone'
-import HardwareComputer from 'material-ui/lib/svg-icons/hardware/computer'
-import CommunicationVpnKey from 'material-ui/lib/svg-icons/communication/vpn-key'
-import ActionNoteAdd from 'material-ui/lib/svg-icons/action/note-add'
+import {globalStyles, globalColors} from '../styles/style-guide'
+import type {Props as IconProps} from '../common-adapters/icon'
 
 import moment from 'moment'
 import commonStyles from '../styles/common'
@@ -13,86 +10,35 @@ import commonStyles from '../styles/common'
 import type {Props} from './index'
 import type {Device} from '../constants/types/flow-types'
 
-const renderPhone = (device: Device) => {
-  return (
-    <Box key={device.deviceID} style={{...styles.deviceOuter, ...styles.deviceShow}}>
-      <Box style={styles.device}>
-        <HardwarePhoneIphone style={styles.deviceIcon}/>
-        <h3 style={styles.line2}>{device.name}</h3>
-        <Box>Last used {moment(device.cTime).format('MM/DD/YY')}</Box>
-        <Box style={styles.line2}>TODO: Get Added info</Box>
-        <p style={{...commonStyles.clickable, textDecoration: 'underline'}} onClick={() => {}}>Remove</p>
-      </Box>
-    </Box>
-  )
-}
-
-const renderDesktop = (device: Device) => {
-  return (
-    <Box key={device.deviceID} style={{...styles.deviceOuter, ...styles.deviceShow}}>
-      <Box style={styles.device}>
-        <HardwareComputer style={styles.deviceIcon} />
-        <h3 style={styles.line2}>{device.name}</h3>
-        <Box>Last used {moment(device.cTime).format('MM/DD/YY')}</Box>
-        <Box style={styles.line2}>TODO: Get Added info</Box>
-        <p style={{...commonStyles.clickable, textDecoration: 'underline'}} onClick={() => {}}>Remove</p>
-      </Box>
-    </Box>
-  )
-}
-
-const renderPaperKey = (device: Device) => {
-  return (
-    <Box key={device.deviceID} style={{...styles.deviceOuter, ...styles.deviceShow}}>
-      <Box style={styles.device}>
-        <CommunicationVpnKey style={styles.deviceIcon} />
-        <h3 style={styles.line2}>{device.name}</h3>
-        <Box>Last used {moment(device.cTime).format('MM/DD/YY')}</Box>
-        <Box>Paper key</Box>
-        <p style={{...commonStyles.clickable, textDecoration: 'underline'}} onClick={() => {}}>Remove</p>
-      </Box>
-    </Box>
-  )
-}
-
 const renderDevice = device => {
-  console.log('in RenderDevice for ')
-  console.log(device)
-  if (device.type === 'desktop') {
-    return renderDesktop(device)
-  } else if (device.type === 'mobile') {
-    return renderPhone(device)
-  } else if (device.type === 'backup') {
-    return renderPaperKey(device)
-  } else {
-    console.warn('Unknown device type: ' + device.type)
-  }
+  const icon: IconProps.type = {
+    'mobile': 'phone-bw-m',
+    'desktop': 'computer-bw-m',
+    'backup': 'paper-key-m'
+  }[device.type]
+  const textStyle = {fontStyle: 'italic'}
+
+  return (
+    <Box style={{...globalStyles.flexBoxRow, height: 60, borderTop: 'solid 1px rgba(0, 0, 0, .1)', width: 650, alignItems: 'flex-start'}}>
+      <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center', alignSelf: 'center', width: 85}}>
+        <Icon type={icon}/>
+      </Box>
+      <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'flex-start', alignSelf: 'center', width: 300}}>
+        <Text style={textStyle} type='Header'>{device.name}</Text>
+      </Box>
+    </Box>
+  )
 }
 
 const Render = ({devices, waitingForServer, showRemoveDevicePage, showExistingDevicePage, showGenPaperKeyPage}: Props) => {
   return (
-    <Box>
-      <Box style={styles.deviceContainer}>
-        <Box style={{...styles.deviceOuter, ...styles.deviceAction}} onClick={() => showExistingDevicePage()}>
-          <Box style={styles.device}>
-            <ActionNoteAdd style={styles.deviceIcon} />
-            <h3>Connect a new device</h3>
-            <p style={{...styles.line4, ...styles.actionDesc}}>On another device, download Keybase then click here to enter your unique passphrase.</p>
-          </Box>
-        </Box>
-
-        <Box style={{...styles.deviceOuter, ...styles.deviceAction}} onClick={() => showGenPaperKeyPage()}>
-          <Box style={styles.device}>
-            <CommunicationVpnKey style={styles.deviceIcon} />
-            <h3>Generate a new paper key</h3>
-            <p style={{...styles.line4, ...styles.actionDesc}}>Portland Bushwick mumblecore.</p>
-          </Box>
-        </Box>
+    <Box style={{...globalStyles.flexBoxColumn}}>
+      <Box style={{...globalStyles.flexBoxRow, marginBottom: 16, height: 60, padding: 20, borderTop: 'solid 1px rgba(0, 0, 0, .1)', width: 650, justifyContent: 'center', alignItems: 'center'}}>
+        <Icon type='computer-color-m'/>
+        <Icon type='paper-key-m'/>
+        <Text type='BodyPrimaryLink'>Add new...</Text>
       </Box>
-
-      <Box style={styles.deviceContainer}>
-        {devices && devices.map(device => renderDevice(device))}
-      </Box>
+      {devices && devices.map(device => renderDevice(device))}
     </Box>
   )
 }
