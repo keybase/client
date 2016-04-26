@@ -194,6 +194,7 @@ sign() {(
   spctl --assess --verbose=4 "$app_name.app"
   codesign -v "$app_name.app/Contents/SharedSupport/bin/keybase"
   codesign -v "$app_name.app/Contents/SharedSupport/bin/kbfs"
+  codesign -v "$app_name.app/Contents/SharedSupport/bin/updater"
   bundle_installer_app="$app_name.app/Contents/Resources/KeybaseInstaller.app"
   codesign -v "$bundle_installer_app"
   spctl --assess --verbose=4  "$bundle_installer_app"
