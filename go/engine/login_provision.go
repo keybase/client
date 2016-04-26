@@ -114,7 +114,7 @@ func (e *loginProvision) deviceWithType(ctx *Context, provisionerType keybase1.D
 	if err != nil {
 		return err
 	}
-	e.G().Log.Debug("secret phrase: %s", secret.Phrase())
+	e.G().Log.Debug("secret phrase received")
 
 	// make a new device:
 	deviceID, err := libkb.NewDeviceID()
