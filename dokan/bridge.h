@@ -26,7 +26,7 @@ typedef struct kbfs_WIN32_FIND_STREAM_DATA_ {
 
 #include "dokan_header/dokan.h"
 
-typedef uint32_t error_t;
+typedef int32_t error_t;
 typedef uint32_t go_fs_id;
 
 struct kbfsLibdokanCtx {
