@@ -132,7 +132,7 @@ const FolderRow = props => {
     text={text}
     allowWrap
     iconStyle={SVGFolderIcon(iconPath(isPublic, isEmpty))}
-    textStyle={{color: globalColors.blue}}
+    textStyle={{color: globalColors.blue, cursor: 'pointer'}}
     key={isPublic + text.join('')}/>
 }
 
