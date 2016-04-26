@@ -11,7 +11,7 @@ export type BannerItem = {
 }
 
 export type Props = {
-  type: 'mobile' | 'desktop' | 'paperKey',
+  type: 'mobile' | 'desktop' | 'backup',
   name: string,
   isCurrent: boolean,
   isRevoked: boolean,

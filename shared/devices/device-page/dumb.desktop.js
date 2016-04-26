@@ -65,7 +65,7 @@ export default {
       'Paper': {
         ...common,
         name: 'project green...',
-        type: 'paperKey',
+        type: 'backup',
         timeline: [
           {type: 'Added',
             desc: 'Created Mar 03, 2014',

@@ -64,13 +64,13 @@ const Render = ({banner, name, type, isCurrent, timeline, isRevoked, onRevoke}: 
   const icon: IconProps.type = {
     'mobile': 'phone-big',
     'desktop': 'computer-big',
-    'paperKey': 'paper-key-l'
+    'backup': 'paper-key-l'
   }[type]
 
   const revokeName = {
     'mobile': 'device',
     'desktop': 'device',
-    'paperKey': 'paper key'
+    'backup': 'paper key'
   }[type]
 
   return (
