@@ -11,13 +11,23 @@ import java.util.List;
 
 import io.keybase.android.components.VisiblePassReactEditTextManager;
 import io.keybase.android.modules.KeybaseEngine;
+import io.keybase.android.modules.KillableModule;
 
-public class ReactPackage implements com.facebook.react.ReactPackage {
+public class KBReactPackage implements com.facebook.react.ReactPackage {
+    private List<KillableModule> killableModules = new ArrayList<>();
+
     @Override
     public List<NativeModule> createNativeModules(ReactApplicationContext reactApplicationContext) {
-        List<NativeModule> modules = new ArrayList<>();
+        for (final KillableModule killableModule : killableModules) {
+            killableModule.destroy();
+            killableModules.remove(killableModule);
+        }
 
-        modules.add(new KeybaseEngine(reactApplicationContext));
+        final KeybaseEngine kbEngine = new KeybaseEngine(reactApplicationContext);
+        killableModules.add(kbEngine);
+
+        List<NativeModule> modules = new ArrayList<>();
+        modules.add(kbEngine);
 
         return modules;
     }
