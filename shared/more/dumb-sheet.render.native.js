@@ -10,6 +10,7 @@ import RegisterMap from '../login/register/dumb'
 import SignupMap from '../login/signup/dumb.native'
 // import TrackerMap from '../tracker/dumb.desktop'
 // import PinentryMap from '../pinentry/dumb.desktop'
+import DeviceRevokeMap from '../devices/device-revoke/dumb.native'
 
 import {dumbFilter, dumbIndex} from '../local-debug'
 import debounce from 'lodash/debounce'
@@ -36,7 +37,8 @@ class Render extends Component<void, any, any> {
     const componentMap: DumbMap = {
       ...CommonMap,
       ...RegisterMap,
-      ...SignupMap
+      ...SignupMap,
+      ...DeviceRevokeMap
       // ...LoginMap,
       // ...TrackerMap,
       // ...PinentryMap
