@@ -191,8 +191,15 @@ sign() {(
 
   echo "Verify codesigning..."
   codesign -v "$app_name.app"
+  spctl --assess --verbose=4 "$app_name.app"
   codesign -v "$app_name.app/Contents/SharedSupport/bin/keybase"
   codesign -v "$app_name.app/Contents/SharedSupport/bin/kbfs"
+  bundle_installer_app="$app_name.app/Contents/Resources/KeybaseInstaller.app"
+  codesign -v "$bundle_installer_app"
+  spctl --assess --verbose=4  "$bundle_installer_app"
+  bundle_updater_app="$app_name.app/Contents/Resources/KeybaseUpdater.app"
+  codesign -v "$bundle_updater_app"
+  spctl --assess --verbose=4 "$bundle_updater_app"
 )}
 
 # Create dmg from Keybase.app
