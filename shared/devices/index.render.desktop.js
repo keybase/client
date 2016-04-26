@@ -8,97 +8,103 @@ import moment from 'moment'
 import commonStyles from '../styles/common'
 
 import type {Props} from './index'
-import type {Device} from '../constants/types/flow-types'
+import type {Device as DeviceType} from '../constants/types/flow-types'
 
-const renderDevice = device => {
+const DeviceHeader = () => {
+  return (
+    <Box style={stylesCommonRow}>
+      <Box style={stylesCommonColumn}>
+        <Icon type='computer-bw-xs'/>
+        <Icon type='paper-key-m'/>
+      </Box>
+      <Box style={stylesCommonColumn}>
+        <Text type='BodyPrimaryLink'>Add new...</Text>
+      </Box>
+    </Box>
+  )
+}
+
+const RevokedHeader = () => {
+  return (
+    <Box style={stylesRevokedRow}>
+      <Text type='BodySemibold'>Revoked devices</Text>
+    </Box>
+  )
+}
+
+const RevokedDescription = () => {
+  return (
+    <Box style={stylesRevokedDescription}>
+      <Text type='BodySemibold' style={{color: globalColors.black40}}>Revoked devices will no longer be able to access your Keybase account.</Text>
+    </Box>
+  )
+}
+
+const DeviceRow = ({device, revoked}) => {
   const icon: IconProps.type = {
     'mobile': 'phone-bw-m',
     'desktop': 'computer-bw-m',
     'backup': 'paper-key-m'
   }[device.type]
-  const textStyle = {fontStyle: 'italic'}
 
   return (
-    <Box style={{...globalStyles.flexBoxRow, height: 60, borderTop: 'solid 1px rgba(0, 0, 0, .1)', width: 650, alignItems: 'flex-start'}}>
-      <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'center', alignSelf: 'center', width: 85}}>
+    <Box style={{...stylesCommonRow, backgroundColor: revoked ? '#f0f0f0' : globalColors.white}}>
+      <Box style={{...stylesCommonColumn, width: 85}}>
         <Icon type={icon}/>
       </Box>
-      <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', alignItems: 'flex-start', alignSelf: 'center', width: 300}}>
-        <Text style={textStyle} type='Header'>{device.name}</Text>
+      <Box style={stylesCommonColumn}>
+        <Box style={{...globalStyles.flexBoxRow}}>
+          <Text style={{fontStyle: 'italic'}} type='Header'>{device.name}</Text>
+        </Box>
+        <Box style={{...globalStyles.flexBoxRow}}>
+          {device.isCurrent && <Text type='BodySmall'>Current device</Text>}
+        </Box>
+      </Box>
+      <Box style={{...stylesCommonColumn, alignSelf: 'center', flex: 1, textAlign: 'right', paddingRight: 20}}>
+        <Text style={{color: globalColors.red}} type='BodyPrimaryLink'>Revoke</Text>
       </Box>
     </Box>
   )
 }
 
-const Render = ({devices, waitingForServer, showRemoveDevicePage, showExistingDevicePage, showGenPaperKeyPage}: Props) => {
+const Render = ({devices, revokedDevices, waitingForServer, showRemoveDevicePage, showExistingDevicePage, showGenPaperKeyPage}: Props) => {
   return (
-    <Box style={{...globalStyles.flexBoxColumn}}>
-      <Box style={{...globalStyles.flexBoxRow, marginBottom: 16, height: 60, padding: 20, borderTop: 'solid 1px rgba(0, 0, 0, .1)', width: 650, justifyContent: 'center', alignItems: 'center'}}>
-        <Icon type='computer-color-m'/>
-        <Icon type='paper-key-m'/>
-        <Text type='BodyPrimaryLink'>Add new...</Text>
-      </Box>
-      {devices && devices.map(device => renderDevice(device))}
+    <Box style={stylesContainer}>
+      <DeviceHeader/>
+      {devices && devices.map(device => DeviceRow({device, revoked: false}))}
+      <RevokedHeader/>
+      <RevokedDescription/>
+      {revokedDevices && revokedDevices.map(device => DeviceRow({device, revoked: true}))}
     </Box>
   )
 }
 
-const styles = {
-  deviceContainer: {
-    flexWrap: 'wrap',
-    justifyContent: 'flex-start'
-  },
-  deviceOuter: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 200,
-    height: 200,
-    margin: 10,
-    padding: 10
-  },
-  device: {
-    width: 200,
-    textAlign: 'center'
-  },
-  deviceAction: {
-    backgroundColor: '#efefef',
-    border: 'dashed 2px #999',
-    cursor: 'pointer'
-  },
-  deviceShow: {
-    border: 'solid 1px #999'
-  },
-  deviceIcon: {
-    width: 48,
-    height: 48,
-    textAlign: 'center'
-  },
-  actionDesc: {
-  },
-
-  // These might be good globals
-  line1: {
-    overflow: 'hidden',
-    display: '-webkit-box',
-    textOverflow: 'ellipsis',
-    WebkitLineClamp: 1,
-    WebkitBoxOrient: 'vertical'
-  },
-  line2: {
-    overflow: 'hidden',
-    display: '-webkit-box',
-    textOverflow: 'ellipsis',
-    WebkitLineClamp: 2,
-    WebkitBoxOrient: 'vertical'
-  },
-  line4: {
-    overflow: 'hidden',
-    display: '-webkit-box',
-    textOverflow: 'ellipsis',
-    WebkitLineClamp: 4,
-    WebkitBoxOrient: 'vertical'
-  }
+const stylesContainer = {
+  ...globalStyles.flexBoxColumn
 }
 
+const stylesCommonRow = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  borderTop: 'solid 1px rgba(0, 0, 0, .1)',
+  height: 60,
+  justifyContent: 'center',
+  padding: 8
+}
+
+const stylesRevokedRow = {
+  ...stylesCommonRow,
+  height: 30,
+  justifyContent: 'flex-start',
+  backgroundColor: '#f0f0f0'
+}
+
+const stylesRevokedDescription = {
+  ...stylesCommonRow,
+  backgroundColor: '#f0f0f0'
+}
+
+const stylesCommonColumn = {
+  padding: 20
+}
 export default Render

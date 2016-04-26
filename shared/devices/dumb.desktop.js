@@ -10,7 +10,8 @@ const dev1: Device = {
   name: 'Paper Key (lorem ipsum...)',
   status: 0,
   type: 'backup',
-  verifyKey: ''
+  verifyKey: '',
+  isCurrent: false
 }
 
 const dev2: Device = {
@@ -21,7 +22,8 @@ const dev2: Device = {
   name: 'My Desktop',
   status: 0,
   type: 'desktop',
-  verifyKey: ''
+  verifyKey: '',
+  isCurrent: true
 }
 
 const dev3: Device = {
@@ -32,7 +34,8 @@ const dev3: Device = {
   name: 'My Laptop',
   status: 0,
   type: 'mobile',
-  verifyKey: ''
+  verifyKey: '',
+  isCurrent: false
 }
 
 const devicesDefault: Array<Device> = [
@@ -45,7 +48,7 @@ export default {
   'Devices List': {
     component: Devices,
     mocks: {
-      'Devices': {devices: devicesDefault}
+      'Devices': {devices: devicesDefault, revokedDevices: devicesDefault}
     }
   }
 }
