@@ -100,6 +100,7 @@ const propsNewUser: TrackerProps = {
 const propsNonUser: TrackerProps = {
   ...propsDefault,
   userInfo: null,
+  isPrivate: false,
   proofs: [],
   nonUser: true,
   name: '@aliceb',
@@ -212,8 +213,9 @@ export default {
   'Tracker': {
     component: Tracker,
     mocks: {
+      'NonuserNoLinkPrivate': {...propsNonUser, inviteLink: null, isPrivate: true},
       'NonuserLink': propsNonUser,
-      'NonuserNoLink': {...propsNonUser, inviteLink: null},
+      'NonuserNoLinkPublic': {...propsNonUser, inviteLink: null},
       'Logged out': propsLoggedOut,
       'Only one proof': propsOneProof,
       '5 proofs': propsFiveProof,

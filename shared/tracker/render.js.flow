@@ -14,7 +14,8 @@ export type RenderProps = {
   proofsProps: ProofsProps,
   name?: string,
   reason?: string,
-  inviteLink?: string
+  inviteLink?: string,
+  isPrivate?: boolean
 }
 
 export default class Render extends Component {

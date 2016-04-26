@@ -38,7 +38,8 @@ export type TrackerProps = {
   currentlyFollowing: boolean,
   lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error'),
   name?: string,
-  inviteLink?: string
+  inviteLink?: string,
+  isPrivate?: boolean
 }
 
 class Tracker extends Component {
@@ -53,6 +54,8 @@ class Tracker extends Component {
   }
 
   render () {
+    console.log(this.props)
+
     if (this.props.closed) {
       return <div />
     }
@@ -106,7 +109,8 @@ class Tracker extends Component {
       nonUser: this.props.nonUser,
       name: this.props.name,
       reason: this.props.reason,
-      inviteLink: this.props.inviteLink
+      inviteLink: this.props.inviteLink,
+      isPrivate: this.props.isPrivate
     }
 
     return <Render {...renderProps}/>

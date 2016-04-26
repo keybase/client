@@ -20,7 +20,8 @@ export default class Render extends Component {
         onClose={this.props.headerProps.onClose}
         name={this.props.name}
         reason={this.props.reason}
-        inviteLink={this.props.inviteLink} />
+        inviteLink={this.props.inviteLink}
+        isPrivate={this.props.isPrivate} />
     }
 
     // We have to calculate the height of the footer.
