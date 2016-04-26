@@ -34,7 +34,7 @@ if (__DEV__ && true) {
   config.printOutstandingRPCs = true
   config.reactPerf = false
   config.overrideLoggedInTab = Tabs.moreTab
-  config.dumbFilter = 'device revoke'
+  config.dumbFilter = ''
   config.dumbIndex = 0
   config.printRoutes = true
 }

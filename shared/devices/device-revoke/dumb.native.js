@@ -1,5 +1,6 @@
 // @flow
-import Render from './index.render.native'
+import Render from './index.render'
+import type {DumbComponentMap} from '../../constants/types/more'
 
 const common = {
   type: 'desktop',
@@ -14,18 +15,20 @@ const common = {
   }
 }
 
-export default {
-  'Device Revoke': {
-    component: Render,
-    mocks: {
-      'Normal': {
-        ...common,
-        type: 'mobile'
-      },
-      'Current': {
-        ...common,
-        isCurrent: true
-      }
+const map: DumbComponentMap<Render> = {
+  component: Render,
+  mocks: {
+    'Normal': {
+      ...common,
+      type: 'mobile'
+    },
+    'Current': {
+      ...common,
+      isCurrent: true
     }
   }
+}
+
+export default {
+  'Device Revoke': map
 }
