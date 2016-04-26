@@ -376,6 +376,32 @@
         }
       ],
       "doc": "UserResolution maps how an unresolved user assertion has been resolved."
+    },
+    {
+      "type": "record",
+      "name": "DeviceDetail",
+      "fields": [
+        {
+          "type": "Device",
+          "name": "device"
+        },
+        {
+          "type": "Device",
+          "name": "provisioner"
+        },
+        {
+          "type": "Time",
+          "name": "provisionedAt"
+        },
+        {
+          "type": "Device",
+          "name": "revoker"
+        },
+        {
+          "type": "Time",
+          "name": "revokedAt"
+        }
+      ]
     }
   ],
   "messages": {
@@ -391,6 +417,19 @@
         "items": "Device"
       },
       "doc": "List devices for the user."
+    },
+    "deviceDetailList": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "DeviceDetail"
+      },
+      "doc": "List all devices with detailed history and status information."
     },
     "deviceAdd": {
       "request": [

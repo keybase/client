@@ -8,7 +8,19 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type DeviceDetail struct {
+	Device        Device `codec:"device" json:"device"`
+	Provisioner   Device `codec:"provisioner" json:"provisioner"`
+	ProvisionedAt Time   `codec:"provisionedAt" json:"provisionedAt"`
+	Revoker       Device `codec:"revoker" json:"revoker"`
+	RevokedAt     Time   `codec:"revokedAt" json:"revokedAt"`
+}
+
 type DeviceListArg struct {
+	SessionID int `codec:"sessionID" json:"sessionID"`
+}
+
+type DeviceDetailListArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
@@ -24,6 +36,8 @@ type CheckDeviceNameFormatArg struct {
 type DeviceInterface interface {
 	// List devices for the user.
 	DeviceList(context.Context, int) ([]Device, error)
+	// List all devices with detailed history and status information.
+	DeviceDetailList(context.Context, int) ([]DeviceDetail, error)
 	// Starts the process of adding a new device using an existing
 	// device.  It is called on the existing device.
 	// This is for kex2.
@@ -48,6 +62,22 @@ func DeviceProtocol(i DeviceInterface) rpc.Protocol {
 						return
 					}
 					ret, err = i.DeviceList(ctx, (*typedArgs)[0].SessionID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"deviceDetailList": {
+				MakeArg: func() interface{} {
+					ret := make([]DeviceDetailListArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DeviceDetailListArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DeviceDetailListArg)(nil), args)
+						return
+					}
+					ret, err = i.DeviceDetailList(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -96,6 +126,13 @@ type DeviceClient struct {
 func (c DeviceClient) DeviceList(ctx context.Context, sessionID int) (res []Device, err error) {
 	__arg := DeviceListArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.device.deviceList", []interface{}{__arg}, &res)
+	return
+}
+
+// List all devices with detailed history and status information.
+func (c DeviceClient) DeviceDetailList(ctx context.Context, sessionID int) (res []DeviceDetail, err error) {
+	__arg := DeviceDetailListArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.device.deviceDetailList", []interface{}{__arg}, &res)
 	return
 }
 

@@ -7,6 +7,19 @@ protocol device {
     List devices for the user.
     */
   array<Device> deviceList(int sessionID);
+ 
+  record DeviceDetail {
+    Device device;
+    Device provisioner;
+    Time provisionedAt;
+    Device revoker;
+    Time revokedAt;
+  }
+ 
+  /**
+    List all devices with detailed history and status information.
+    */
+  array<DeviceDetail> deviceDetailList(int sessionID);
 
   /**
     Starts the process of adding a new device using an existing
