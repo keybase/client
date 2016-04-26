@@ -24,7 +24,7 @@ const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
       <Icon style={iconStyle} type={icon}/>
       <Text type='BodySmallSemibold' style={stylesMessage}>{message}</Text>
       {inviteLink ? <Box style={stylesLinkBox}>
-        <Icon type='fa-link'/>
+        <Icon type='link-xs'/>
         <Text style={stylesLink} type='BodySemibold'>{inviteLink}</Text>
       </Box> : <Box style={{height: 16}}/>}
     </Box>
