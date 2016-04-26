@@ -232,18 +232,27 @@ func (el EntityList) KeysByIdUsage(id uint64, requiredUsage byte) (keys []Key) {
 			continue
 		}
 
-		if key.SelfSignature.FlagsValid && requiredUsage != 0 {
+		if requiredUsage != 0 {
 			var usage byte
-			if key.SelfSignature.FlagCertify {
-				usage |= packet.KeyFlagCertify
-			}
-			if key.SelfSignature.FlagSign {
-				usage |= packet.KeyFlagSign
-			}
-			if key.SelfSignature.FlagEncryptCommunications {
+			if key.SelfSignature.FlagsValid {
+				if key.SelfSignature.FlagCertify {
+					usage |= packet.KeyFlagCertify
+				}
+				if key.SelfSignature.FlagSign {
+					usage |= packet.KeyFlagSign
+				}
+				if key.SelfSignature.FlagEncryptCommunications {
+					usage |= packet.KeyFlagEncryptCommunications
+				}
+				if key.SelfSignature.FlagEncryptStorage {
+					usage |= packet.KeyFlagEncryptStorage
+				}
+			} else if key.PublicKey.PubKeyAlgo == packet.PubKeyAlgoElGamal {
+				// We also need to handle the case where, although the sig's
+				// flags aren't valid, the key can is implicitly usable for
+				// encryption by virtue of being ElGamal. See also the comment
+				// in encryptionKey() above.
 				usage |= packet.KeyFlagEncryptCommunications
-			}
-			if key.SelfSignature.FlagEncryptStorage {
 				usage |= packet.KeyFlagEncryptStorage
 			}
 			if usage&requiredUsage != requiredUsage {
@@ -441,7 +450,17 @@ EachPacket:
 				// directly on keys (eg. to bind additional
 				// revocation keys).
 			} else if current == nil {
-				return nil, errors.StructuralError("signature packet found before user id packet")
+				// NOTE(maxtaco)
+				//
+				// See https://github.com/keybase/client/issues/2666
+				//
+				// There might have been a user attribute picture before this signature,
+				// in which case this is still a valid PGP key. In the future we might
+				// not ignore user attributes (like picture). But either way, it doesn't
+				// make sense to bail out here. Keep looking for other valid signatures.
+				//
+				// Used to be:
+				//    return nil, errors.StructuralError("signature packet found before user id packet")
 			} else {
 				current.Signatures = append(current.Signatures, pkt)
 			}
