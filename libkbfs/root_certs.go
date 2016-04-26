@@ -302,7 +302,7 @@ func GetRootCerts(serverAddr string) []byte {
 		return []byte(envTestRootCert)
 	}
 
-	if host, _, err := net.SplitHostPort(serverAddr); err != nil {
+	if host, _, err := net.SplitHostPort(serverAddr); err == nil {
 		if strings.HasSuffix(host, "dev.keybase.io") {
 			return []byte(DevRootCerts)
 		}
