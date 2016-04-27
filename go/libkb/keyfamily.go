@@ -54,6 +54,11 @@ type ComputedKeyInfo struct {
 	// to know who revoked a device, but changing this changes
 	// the sigchain stored on disk.  Putting off this change
 	// for now, so this is just a placeholder.  (PC)
+	//
+	// More details: adding this would work fine but would
+	// require handling the case where unmarshaling existing
+	// cki could have non-nil RevokedAt and empty RevokedBy.
+	//
 	// RevokedBy keybase1.KID
 
 	// For PGP keys, the active version of the key. If unspecified, use the
