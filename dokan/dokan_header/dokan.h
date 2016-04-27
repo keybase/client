@@ -1,10 +1,9 @@
 /*
   Dokan : user-mode file system library for Windows
 
-  Copyright (C) 2015 - 2016 Adrien J. <liryna.stark@gmail.com> and Maxime C. <maxime@islog.com>
-  Copyright (C) 2007 - 2011 Hiroki Asakawa <info@dokan-dev.net>
+  Copyright (C) 2008 Hiroki Asakawa info@dokan-dev.net
 
-  http://dokan-dev.github.io
+  http://dokan-dev.net/en
 
 This program is free software; you can redistribute it and/or modify it under
 the terms of the GNU Lesser General Public License as published by the Free
@@ -27,7 +26,7 @@ with this program. If not, see <http://www.gnu.org/licenses/>.
 #include "fileinfo.h"
 #include "public.h"
 
-#define DOKAN_DRIVER_NAME L"dokan" DOKAN_MAJOR_API_VERSION L".sys"
+#define DOKAN_DRIVER_NAME L"dokan.sys"
 
 #ifdef _EXPORTING
 #define DOKANAPI /*__declspec(dllexport)*/                                     \
@@ -42,40 +41,36 @@ with this program. If not, see <http://www.gnu.org/licenses/>.
 extern "C" {
 #endif
 
-// The current Dokan version (ver 1.0.0). Please set this constant on
+// The current Dokan version (ver 0.8.0). Please set this constant on
 // DokanOptions->Version.
-#define DOKAN_VERSION 100
-#define DOKAN_MINIMUM_COMPATIBLE_VERSION 100
+#define DOKAN_VERSION 800
 
-#define DOKAN_OPTION_DEBUG 1          // ouput debug message
-#define DOKAN_OPTION_STDERR 2         // ouput debug message to stderr
-#define DOKAN_OPTION_ALT_STREAM 4     // use alternate stream
-#define DOKAN_OPTION_WRITE_PROTECT 8  // mount drive as write-protected.
-#define DOKAN_OPTION_NETWORK 16       // use network drive, you need to
-                                      // install Dokan network provider.
-#define DOKAN_OPTION_REMOVABLE 32     // use removable drive
-#define DOKAN_OPTION_MOUNT_MANAGER 64 // use mount manager
-#define DOKAN_OPTION_CURRENT_SESSION 128 // mount the drive on current session only
+#define DOKAN_OPTION_DEBUG 1         // ouput debug message
+#define DOKAN_OPTION_STDERR 2        // ouput debug message to stderr
+#define DOKAN_OPTION_ALT_STREAM 4    // use alternate stream
+#define DOKAN_OPTION_WRITE_PROTECT 8 // mount drive as write-protected.
+#define DOKAN_OPTION_NETWORK 16		 // use network drive, you need to
+                                     // install Dokan network provider.
+#define DOKAN_OPTION_REMOVABLE 32 // use removable drive
 
 typedef struct _DOKAN_OPTIONS {
-  USHORT Version;        // Supported Dokan Version, ex. "530" (Dokan ver 0.5.3)
-  USHORT ThreadCount;    // number of threads to be
-                         // used internally by Dokan library
-  ULONG Options;         // combination of DOKAN_OPTIONS_*
+  USHORT Version; // Supported Dokan Version, ex. "530" (Dokan ver 0.5.3)
+  USHORT ThreadCount; // number of threads to be
+					  // used internally by Dokan library
+  ULONG Options;   // combination of DOKAN_OPTIONS_*
   ULONG64 GlobalContext; // FileSystem can store anything here
   LPCWSTR MountPoint; //  mount point "M:\" (drive letter) or "C:\mount\dokan"
                       //  (path in NTFS)
-  LPCWSTR UNCName;    // UNC provider name
   ULONG Timeout;      // IrpTimeout in milliseconds
 } DOKAN_OPTIONS, *PDOKAN_OPTIONS;
 
 typedef struct _DOKAN_FILE_INFO {
-  ULONG64 Context;             // FileSystem can store anything here
-  ULONG64 DokanContext;        // Used internally, never modify
+  ULONG64 Context;      // FileSystem can store anything here
+  ULONG64 DokanContext; // Used internally, never modify
   PDOKAN_OPTIONS DokanOptions; // A pointer to DOKAN_OPTIONS
-                               // which was passed to DokanMain.
-  ULONG ProcessId;     // process id for the thread that originally requested a
-                       // given I/O operation
+							   // which was passed to DokanMain.
+  ULONG ProcessId;  // process id for the thread that originally requested a
+                    // given I/O operation
   UCHAR IsDirectory;   // requesting a directory file
   UCHAR DeleteOnClose; // Delete on when "cleanup" is called
   UCHAR PagingIo;      // Read or write is paging IO.
@@ -136,9 +131,6 @@ typedef struct _DOKAN_OPERATIONS {
   void(DOKAN_CALLBACK *CloseFile)(LPCWSTR, // FileName
                                   PDOKAN_FILE_INFO);
 
-  // ReadFile and WriteFile can be called from multiple threads in
-  // the same time with the same DOKAN_FILE_INFO.Context if a OVERLAPPED is
-  // requested.
   NTSTATUS(DOKAN_CALLBACK *ReadFile)
   (LPCWSTR,  // FileName
    LPVOID,   // Buffer
@@ -164,8 +156,8 @@ typedef struct _DOKAN_OPERATIONS {
    LPBY_HANDLE_FILE_INFORMATION, // Buffer
    PDOKAN_FILE_INFO);
 
-  // FindFilesWithPattern is checking first. If it is not implemented or
-  // returns STATUS_NOT_IMPLEMENTED, then FindFiles is called, if implemented.
+  // You should implement either FindFiles or FindFilesWithPattern
+
   NTSTATUS(DOKAN_CALLBACK *FindFiles)
   (LPCWSTR,           // PathName
    PFillFindData,     // call this function with PWIN32_FIND_DATAW
@@ -177,8 +169,6 @@ typedef struct _DOKAN_OPERATIONS {
    PFillFindData, // call this function with PWIN32_FIND_DATAW
    PDOKAN_FILE_INFO);
 
-  // SetFileAttributes and SetFileTime are called only if both of them
-  // are implemented.
   NTSTATUS(DOKAN_CALLBACK *SetFileAttributes)
   (LPCWSTR, // FileName
    DWORD,   // FileAttributes
@@ -304,7 +294,6 @@ typedef struct _DOKAN_OPERATIONS {
 #define DOKAN_START_ERROR -4          /* Driver something wrong */
 #define DOKAN_MOUNT_ERROR -5 /* Can't assign a drive letter or mount point */
 #define DOKAN_MOUNT_POINT_ERROR -6 /* Mount point is invalid */
-#define DOKAN_VERSION_ERROR -7     /* Requested an incompatible version */
 
 int DOKANAPI DokanMain(PDOKAN_OPTIONS DokanOptions,
                        PDOKAN_OPERATIONS DokanOperations);
