@@ -98,8 +98,6 @@ class Nav extends Component {
 
     // Introduce ourselves to the service
     hello(0, 'iOS app', [], '0.0.0') // TODO real version
-
-    // TODO android also!
   }
 
   navBar () {

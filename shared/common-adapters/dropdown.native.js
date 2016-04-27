@@ -47,17 +47,6 @@ class Dropdown extends Component {
     this.setState({value: this._stateValue(nextProps.value)})
   }
 
-  shouldComponentUpdate (nextProps: Props, nextState: State): boolean {
-    if (
-      this.state.value !== nextState.value ||
-      this.state.modalVisible !== nextState.modalVisible ||
-      this.props.value !== nextProps.value) {
-      return true
-    }
-
-    return false
-  }
-
   _selected () {
     // Didn't actually select anything
     if (this.state.value === pickItemValue) {
