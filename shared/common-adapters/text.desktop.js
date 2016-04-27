@@ -7,6 +7,15 @@ import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props, Background} from './text'
 import type {Context} from './terminal'
 
+const LinkTypes = {
+  'HeaderLink': true,
+  'BodyPrimaryLink': true,
+  'BodySmallLink': true,
+  'BodySmallPrimaryLink': true,
+  'BodySmallSecondaryLink': true,
+  'BodyXSmallLink': true
+}
+
 export default class Text extends Component {
   props: Props;
   context: Context;
@@ -48,11 +57,11 @@ export default class Text extends Component {
       case 'Body':
         return {color: backgroundMode === 'Normal' ? globalColors.black75 : globalColors.white}
       case 'BodySmall':
+      case 'BodyXSmall':
         return {color: backgroundMode === 'Normal' ? globalColors.black40 : globalColors.white40}
-      case 'BodyPrimaryLink':
-        return {color: globalColors.blue}
-      case 'BodySecondaryLink':
-        return {color: globalColors.black40}
+      case 'BodySmallLink':
+      case 'BodyXSmallLink':
+        return {color: backgroundMode === 'Normal' ? globalColors.black60 : globalColors.white75}
       default:
         return {}
     }
@@ -64,54 +73,54 @@ export default class Text extends Component {
     }
   }
 
-  render () {
-    const typeStyle = {
-      'HeaderJumbo': styles.textHeaderJumbo,
-      'HeaderBig': styles.textHeaderBig,
-      'Header': styles.textHeader,
-      'HeaderError': {...styles.textHeader, color: globalColors.red},
+  _typeStyle () {
+    return {
+      'BadgeNumber': styles.textBodySmall,
+      'Body': styles.textBody,
+      'BodyPrimaryLink': styles.textBodyPrimaryLink,
       'BodySemibold': styles.textBodySemibold,
       'BodySemiboldItalic': {...styles.textBodySemibold, ...globalStyles.italic, cursor: 'default'},
-      'Body': styles.textBody,
-      'BodyPrimaryLink': styles.textBody,
-      'BodySecondaryLink': styles.textBodySmall,
       'BodySmall': styles.textBodySmall,
-      'BadgeNumber': styles.textBodySmall,
+      'BodySmallError': styles.textBodySmallError,
+      'BodySmallLink': styles.textBodySmallLink,
+      'BodySmallPrimaryLink': styles.textBodySmallPrimaryLink,
+      'BodySmallSecondaryLink': styles.textBodySmallSecondaryLink,
       'BodySmallSemibold': styles.textBodySmallSemibold,
+      'BodyXSmall': styles.textBodyXSmall,
+      'BodyXSmallLink': styles.textBodyXSmallLink,
       'Error': styles.textError,
+      'Header': styles.textHeader,
+      'HeaderBig': styles.textHeaderBig,
+      'HeaderError': styles.textHeaderError,
+      'HeaderJumbo': styles.textHeaderJumbo,
+      'HeaderLink': styles.textHeaderLink,
+      'InputHeader': styles.textInputHeader,
       'Terminal': {...styles.textTerminal, color: (this.context.inTerminal ? globalColors.blue3 : globalColors.darkBlue)},
-      'TerminalSmall': {...styles.textTerminalSmall, color: (this.context.inTerminal ? globalColors.blue3 : globalColors.darkBlue)},
       'TerminalCommand': styles.textTerminalCommand,
       'TerminalComment': styles.textTerminalComment,
-      'TerminalUsername': styles.textTerminalUsername,
-      'TerminalPublic': styles.textTerminalPublic,
-      'TerminalPrivate': styles.textTerminalPrivate,
       'TerminalEmpty': styles.textTerminalEmpty,
-      'InputHeader': styles.textInputHeader
+      'TerminalPrivate': styles.textTerminalPrivate,
+      'TerminalPublic': styles.textTerminalPublic,
+      'TerminalSmall': {...styles.textTerminalSmall, color: (this.context.inTerminal ? globalColors.blue3 : globalColors.darkBlue)},
+      'TerminalUsername': styles.textTerminalUsername
     }[this.props.type]
+  }
 
+  render () {
+    const typeStyle = this._typeStyle()
     let inline = true
     if (this.props.hasOwnProperty('inline')) {
       inline = this.props.inline
     }
 
-    let linkStyle = null
-    let linkClassname = null
-    switch (this.props.type) {
-      case 'BodyPrimaryLink':
-      case 'BodySecondaryLink':
-        linkStyle = {
-          cursor: 'pointer'
-        }
-        linkClassname = 'hover-underline'
-    }
+    // $FlowIssue not types in the dict
+    const linkClassname = LinkTypes[this.props.type] ? 'hover-underline' : null
 
     const style = {
       ...typeStyle,
-      ...linkStyle,
+      ...(LinkTypes[this.props.type] ? {cursor: 'pointer'} : {}),
       ...this._colorStyleBackgroundMode(this.props.backgroundMode || 'Normal', this.props.type),
       ...(this.props.lineClamp ? lineClamp(this.props.lineClamp) : {}),
-      ...(this.props.small ? styles.textSmallMixin : {}),
       ...(this.props.onClick ? globalStyles.clickable : {}),
       ...(inline ? {...this._inlineStyle(this.props.type)} : {display: 'block'}),
       ...this.props.style
@@ -144,42 +153,77 @@ Text.contextTypes = {
   inTerminal: React.PropTypes.bool
 }
 
+const sizeGroups = {
+  '32': {
+    fontSize: 32,
+    lineHeight: '38px'
+  },
+  '24': {
+    fontSize: 24,
+    lineHeight: '31px'
+  },
+  '18': {
+    fontSize: 18,
+    lineHeight: '25px'
+  },
+  '16': {
+    fontSize: 16,
+    lineHeight: '22px'
+  },
+  '14': {
+    fontSize: 14,
+    lineHeight: '19px'
+  },
+  '12': {
+    fontSize: 12,
+    lineHeight: '15px'
+  }
+}
+
 const textCommon = {
   ...globalStyles.fontRegular,
   ...globalStyles.noSelect,
-  cursor: 'inherit'
+  cursor: 'inherit',
+  letterSpacing: '0.3px'
 }
 
 const textTerminal = {
   ...globalStyles.fontTerminalSemibold,
   fontSize: 14,
-  lineHeight: '21px',
-  letterSpacing: '0.3px'
+  lineHeight: '21px'
 }
 
 const headerStyles = {
   textHeaderJumbo: {
     ...textCommon,
     ...globalStyles.fontBold,
-    fontSize: 32,
-    lineHeight: '38px',
-    letterSpacing: '0.3px'
+    ...sizeGroups[32]
   },
 
   textHeaderBig: {
     ...textCommon,
     ...globalStyles.fontBold,
-    fontSize: 24,
-    lineHeight: '31px',
-    letterSpacing: '0.3px'
+    ...sizeGroups[24]
   },
 
   textHeader: {
     ...textCommon,
     ...globalStyles.fontSemibold,
-    fontSize: 18,
-    lineHeight: '25px',
-    letterSpacing: '0.3px'
+    ...sizeGroups[18]
+  },
+
+  textHeaderLink: {
+    ...textCommon,
+    ...globalStyles.fontSemibold,
+    ...sizeGroups[18],
+    color: globalColors.blue
+  },
+
+  textHeaderError: {
+    ...textCommon,
+    ...globalStyles.fontSemibold,
+    ...sizeGroups[18],
+    color: globalColors.red
   },
 
   textInputHeader: {
@@ -187,7 +231,6 @@ const headerStyles = {
     ...globalStyles.fontSemibold,
     fontSize: 14,
     lineHeight: '18px',
-    letterSpacing: '0.3px',
     color: globalColors.blue
   }
 }
@@ -197,23 +240,20 @@ export const specialStyles = {
     ...textCommon,
     ...globalStyles.fontSemibold,
     fontSize: 24,
-    lineHeight: '29px',
-    letterSpacing: '0.3px'
+    lineHeight: '29px'
   },
   paperKey: {
     ...textCommon,
     ...globalStyles.fontTerminalSemibold,
     color: globalColors.black75,
     fontSize: 18,
-    lineHeight: '24px',
-    letterSpacing: '0.3px'
+    lineHeight: '24px'
   },
   username: {
     ...textCommon,
     ...globalStyles.fontBold,
     fontSize: 24,
     lineHeight: '31px',
-    letterSpacing: '0.3px',
     color: globalColors.orange
   }
 }
@@ -222,29 +262,53 @@ export const styles = {
   ...headerStyles,
   textBody: {
     ...textCommon,
-    fontSize: 16,
-    lineHeight: '22px',
-    letterSpacing: '0.3px'
+    ...sizeGroups[16]
+  },
+  textBodyPrimaryLink: {
+    ...textCommon,
+    ...sizeGroups[16],
+    color: globalColors.blue
   },
   textBodySemibold: {
     ...textCommon,
     ...globalStyles.fontSemibold,
-    fontSize: 16,
-    lineHeight: '22px',
-    letterSpacing: '0.3px'
+    ...sizeGroups[16]
   },
   textBodySmall: {
     ...textCommon,
-    fontSize: 14,
-    lineHeight: '19px',
-    letterSpacing: '0.3px'
+    ...sizeGroups[14]
+  },
+  textBodySmallLink: {
+    ...textCommon,
+    ...sizeGroups[14]
+  },
+  textBodySmallError: {
+    ...textCommon,
+    ...sizeGroups[14],
+    color: globalColors.red
+  },
+  textBodySmallPrimaryLink: {
+    ...textCommon,
+    ...sizeGroups[14],
+    color: globalColors.blue
+  },
+  textBodyXSmall: {
+    ...textCommon,
+    ...sizeGroups[12]
+  },
+  textBodyXSmallLink: {
+    ...textCommon,
+    ...sizeGroups[12]
+  },
+  textBodySmallSecondaryLink: {
+    ...textCommon,
+    ...sizeGroups[14],
+    color: globalColors.black60
   },
   textBodySmallSemibold: {
     ...textCommon,
     ...globalStyles.fontSemibold,
-    fontSize: 14,
-    lineHeight: '19px',
-    letterSpacing: '0.3px'
+    ...sizeGroups[14]
   },
   textError: {
     ...textCommon,
@@ -279,19 +343,13 @@ export const styles = {
   },
   textTerminalSmall: {
     ...textTerminal,
-    fontSize: 14,
-    lineHeight: '19px'
+    ...sizeGroups[14]
   },
   textTerminalInline: {
     backgroundColor: globalColors.blue4,
     wordWrap: 'break-word',
     padding: 2,
     display: 'inline'
-  },
-  textSmallMixin: {
-    color: globalColors.black40,
-    fontSize: 14,
-    lineHeight: '19px'
   }
 }
 

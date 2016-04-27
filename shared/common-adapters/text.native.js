@@ -50,6 +50,7 @@ export default class Text extends Component {
       case 'Body':
         return {color: backgroundMode === 'Normal' ? globalColors.black75 : globalColors.white}
       case 'BodySmall':
+      case 'BodyXSmall':
         return {color: backgroundMode === 'Normal' ? globalColors.black40 : globalColors.white40}
       case 'BadgeNumber':
         return {color: globalColors.white}
