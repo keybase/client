@@ -17,10 +17,9 @@ class RevokedHeader extends Component {
     this.state = {
       expanded: false
     }
-    this.toggleHeader = this.toggleHeader.bind(this)
   }
 
-  toggleHeader () {
+  _toggleHeader (e) {
     this.setState({expanded: !this.state.expanded})
   }
 
@@ -28,7 +27,7 @@ class RevokedHeader extends Component {
     const iconType = this.state.expanded ? 'fa-caret-down' : 'fa-caret-up'
     return (
       <Box>
-        <Box style={stylesRevokedRow} onClick={this.toggleHeader}>
+        <Box style={stylesRevokedRow} onClick={e => this._toggleHeader(e)}>
           <Text type='BodySemibold'>Revoked devices</Text>
           <Icon type={iconType} style={{padding: 5}}/>
         </Box>
@@ -54,16 +53,10 @@ class DeviceRow extends Component {
     this.state = {
       highlighted: false
     }
-    this.highlightOn = this.highlightOn.bind(this)
-    this.highlightOff = this.highlightOff.bind(this)
   }
 
-  highlightOn (e) {
-    this.setState({highlighted: true})
-  }
-
-  highlightOff (e) {
-    this.setState({highlighted: false})
+  _highlighted (h) {
+    this.setState({highlighted: h})
   }
 
   render () {
@@ -83,7 +76,7 @@ class DeviceRow extends Component {
     }
 
     return (
-      <Box key={this.props.device.name} onMouseOver={this.highlightOn} onMouseOut={this.highlightOff} style={{...stylesCommonRow, backgroundColor: this.props.revoked ? globalColors.lightGrey : globalColors.white}}>
+      <Box key={this.props.device.name} onMouseOver={e => this._highlighted(true)} onMouseOut={e => this._highlighted(false)} style={{...stylesCommonRow, backgroundColor: this.props.revoked ? globalColors.lightGrey : globalColors.white}}>
         <Box style={this.props.revoked ? stylesRevokedIconColumn : stylesIconColumn}>
           <Icon type={icon}/>
         </Box>
@@ -111,16 +104,16 @@ const RevokedDescription = () => {
   )
 }
 
-const RevokedDevices = revokedDevices => {
+const RevokedDevices = ({revokedDevices}) => {
   return (
     <RevokedHeader>
       <RevokedDescription/>
-      {revokedDevices.map(device => <DeviceRow device={device} revoked/>)}
+      {revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked/>)}
     </RevokedHeader>
   )
 }
 
-const DeviceHeader = addNewDevice => {
+const DeviceHeader = ({addNewDevice}) => {
   return (
     <Box style={stylesCommonRow}>
       <Box style={stylesCommonColumn}>
@@ -136,9 +129,9 @@ const DeviceHeader = addNewDevice => {
 const Render = ({devices, revokedDevices, waitingForServer, addNewDevice, showRemoveDevicePage, showExistingDevicePage}: Props) => {
   return (
     <Box style={stylesContainer}>
-      {DeviceHeader(addNewDevice)}
-      {devices && devices.map(device => <DeviceRow device={device} showRemoveDevicePage={showRemoveDevicePage} showExistingDevicePage={showExistingDevicePage}/>)}
-      {revokedDevices && RevokedDevices(revokedDevices)}
+      {<DeviceHeader addNewDevice={addNewDevice} />}
+      {devices && devices.map(device => <DeviceRow key={device.name} device={device} showRemoveDevicePage={showRemoveDevicePage} showExistingDevicePage={showExistingDevicePage}/>)}
+      {revokedDevices && <RevokedDevices revokedDevices={revokedDevices} />}
     </Box>
   )
 }
