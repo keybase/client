@@ -78,33 +78,30 @@ func TestPrivateMetadataUnknownFields(t *testing.T) {
 	testStructUnknownFields(t, makeFakePrivateMetadataFuture(t))
 }
 
-// fakeInitialRekey fakes a rekey for the given RootMetadata. This is
-// necessary since newly-created RootMetadata objects don't have
-// enough data to build a TlfHandle from until the first rekey.
-func fakeInitialRekey(h *TlfHandle, rmd *RootMetadata) {
-	if rmd.ID.IsPublic() {
-		writers := make([]keybase1.UID, len(h.Writers))
-		for i, w := range h.Writers {
-			writers[i] = w
-		}
-		rmd.Writers = writers
-	} else {
-		wkb := TLFWriterKeyBundle{
-			WKeys: make(UserDeviceKeyInfoMap),
-		}
-		for _, w := range h.Writers {
-			wkb.WKeys[w] = make(DeviceKeyInfoMap)
-		}
-		rmd.WKeys = TLFWriterKeyGenerations{wkb}
-
-		rkb := TLFReaderKeyBundle{
-			RKeys: make(UserDeviceKeyInfoMap),
-		}
-		for _, r := range h.Readers {
-			rkb.RKeys[r] = make(DeviceKeyInfoMap)
-		}
-		rmd.RKeys = TLFReaderKeyGenerations{rkb}
+// makeFakeTlfHandle should only be used in this file.
+func makeFakeTlfHandle(
+	t *testing.T, x uint32, public bool,
+	unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion) *TlfHandle {
+	uid := keybase1.MakeTestUID(x)
+	var readers []keybase1.UID
+	if public {
+		readers = []keybase1.UID{keybase1.PUBLIC_UID}
 	}
+	bareH, err := MakeBareTlfHandle(
+		[]keybase1.UID{uid}, readers,
+		unresolvedWriters, unresolvedReaders)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return &TlfHandle{BareTlfHandle: bareH}
+}
+
+func newRootMetadataOrBust(
+	t *testing.T, tlfID TlfID, h *TlfHandle) *RootMetadata {
+	rmd, err := newRootMetadata(tlfID, h)
+	require.Nil(t, err)
+	return rmd
 }
 
 // Test that GetTlfHandle() and MakeBareTlfHandle() work properly for
@@ -120,10 +117,9 @@ func TestRootMetadataGetTlfHandlePublic(t *testing.T) {
 			Service: "service1",
 		},
 	}
-	h := makeTestTlfHandle(t, 14, true, uw, nil)
+	h := makeFakeTlfHandle(t, 14, true, uw, nil)
 	tlfID := FakeTlfID(0, true)
-	rmd := NewRootMetadata(h, tlfID)
-	fakeInitialRekey(h, rmd)
+	rmd := newRootMetadataOrBust(t, tlfID, h)
 
 	dirHandle := rmd.GetTlfHandle()
 	require.Equal(t, h, dirHandle)
@@ -157,10 +153,10 @@ func TestRootMetadataGetTlfHandlePrivate(t *testing.T) {
 			Service: "service2",
 		},
 	}
-	h := makeTestTlfHandle(t, 14, false, uw, ur)
+	h := makeFakeTlfHandle(t, 14, false, uw, ur)
 	tlfID := FakeTlfID(0, false)
-	rmd := NewRootMetadata(h, tlfID)
-	fakeInitialRekey(h, rmd)
+	rmd := newRootMetadataOrBust(t, tlfID, h)
+	FakeInitialRekey(rmd, h.BareTlfHandle)
 
 	dirHandle := rmd.GetTlfHandle()
 	require.Equal(t, h, dirHandle)
@@ -174,8 +170,8 @@ func TestRootMetadataGetTlfHandlePrivate(t *testing.T) {
 // Test that key generations work as expected for private TLFs.
 func TestRootMetadataLatestKeyGenerationPrivate(t *testing.T) {
 	tlfID := FakeTlfID(0, false)
-	h := makeTestTlfHandle(t, 14, false, nil, nil)
-	rmd := NewRootMetadata(h, tlfID)
+	h := makeFakeTlfHandle(t, 14, false, nil, nil)
+	rmd := newRootMetadataOrBust(t, tlfID, h)
 	if rmd.LatestKeyGeneration() != 0 {
 		t.Errorf("Expected key generation to be invalid (0)")
 	}
@@ -188,8 +184,8 @@ func TestRootMetadataLatestKeyGenerationPrivate(t *testing.T) {
 // Test that key generations work as expected for public TLFs.
 func TestRootMetadataLatestKeyGenerationPublic(t *testing.T) {
 	tlfID := FakeTlfID(0, true)
-	h := makeTestTlfHandle(t, 14, true, nil, nil)
-	rmd := NewRootMetadata(h, tlfID)
+	h := makeFakeTlfHandle(t, 14, true, nil, nil)
+	rmd := newRootMetadataOrBust(t, tlfID, h)
 	if rmd.LatestKeyGeneration() != PublicKeyGen {
 		t.Errorf("Expected key generation to be public (%d)", PublicKeyGen)
 	}
@@ -454,11 +450,16 @@ func TestRootMetadataUnknownFields(t *testing.T) {
 }
 
 func TestIsValidRekeyRequestBasic(t *testing.T) {
-	_, _, rmds := NewFolder(t, 0x1, 1, true, false)
+	config := MakeTestConfigOrBust(t, "alice")
+	defer config.Shutdown()
 
 	// Sign the writer metadata
-	config := MakeTestConfigOrBust(t, "alice")
-	buf, err := config.Codec().Encode(rmds.MD.WriterMetadata)
+	id := FakeTlfID(1, false)
+
+	h := parseTlfHandleOrBust(t, config, "alice", false)
+	rmd := newRootMetadataOrBust(t, id, h)
+
+	buf, err := config.Codec().Encode(rmd.WriterMetadata)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -466,11 +467,11 @@ func TestIsValidRekeyRequestBasic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	rmds.MD.WriterMetadataSigInfo = sigInfo
+	rmd.WriterMetadataSigInfo = sigInfo
 
 	// Copy bit unset.
-	_, _, newRmds := NewFolder(t, 0x1, 1, true, false)
-	ok, err := newRmds.MD.IsValidRekeyRequest(config, &rmds.MD, newRmds.MD.LastModifyingWriter)
+	newRmd := newRootMetadataOrBust(t, id, h)
+	ok, err := newRmd.IsValidRekeyRequest(config, rmd, newRmd.LastModifyingWriter)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -479,11 +480,11 @@ func TestIsValidRekeyRequestBasic(t *testing.T) {
 	}
 
 	// Set the copy bit; note the writer metadata is the same.
-	newRmds.MD.Flags |= MetadataFlagWriterMetadataCopied
+	newRmd.Flags |= MetadataFlagWriterMetadataCopied
 
 	// Writer metadata siginfo mismatch.
 	config2 := MakeTestConfigOrBust(t, "bob")
-	buf, err = config2.Codec().Encode(newRmds.MD.WriterMetadata)
+	buf, err = config2.Codec().Encode(newRmd.WriterMetadata)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -491,8 +492,8 @@ func TestIsValidRekeyRequestBasic(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	newRmds.MD.WriterMetadataSigInfo = sigInfo2
-	ok, err = newRmds.MD.IsValidRekeyRequest(config, &rmds.MD, newRmds.MD.LastModifyingWriter)
+	newRmd.WriterMetadataSigInfo = sigInfo2
+	ok, err = newRmd.IsValidRekeyRequest(config, rmd, newRmd.LastModifyingWriter)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -501,8 +502,8 @@ func TestIsValidRekeyRequestBasic(t *testing.T) {
 	}
 
 	// Replace with copied signature.
-	newRmds.MD.WriterMetadataSigInfo = sigInfo
-	ok, err = newRmds.MD.IsValidRekeyRequest(config, &rmds.MD, newRmds.MD.LastModifyingWriter)
+	newRmd.WriterMetadataSigInfo = sigInfo
+	ok, err = newRmd.IsValidRekeyRequest(config, rmd, newRmd.LastModifyingWriter)
 	if err != nil {
 		t.Fatal(err)
 	}

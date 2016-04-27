@@ -166,7 +166,7 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
 	mStatus MergeStatus) (
 	*RootMetadata, error) {
 	mdserv := md.config.MDServer()
-	id, rmds, err := mdserv.GetForHandle(ctx, handle, mStatus)
+	id, rmds, err := mdserv.GetForHandle(ctx, handle.BareTlfHandle, mStatus)
 	if err != nil {
 		return nil, err
 	}
@@ -177,7 +177,7 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
 			return nil, nil
 		}
 		// create one if it doesn't exist
-		return NewRootMetadata(handle, id), nil
+		return newRootMetadata(id, handle)
 	}
 
 	bareHandle, err := rmds.MD.MakeBareTlfHandle()

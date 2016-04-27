@@ -735,8 +735,6 @@ func (fbo *folderBranchOps) initMDLocked(
 	var expectedKeyGen KeyGen
 	var tlfCryptKey *TLFCryptKey
 	if md.ID.IsPublic() {
-		md.Writers = make([]keybase1.UID, len(handle.Writers))
-		copy(md.Writers, handle.Writers)
 		expectedKeyGen = PublicKeyGen
 	} else {
 		// create a new set of keys for this metadata

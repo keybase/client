@@ -315,15 +315,12 @@ func (md *MDServerRemote) signalObserverLocked(observerChan chan<- error, id Tlf
 }
 
 // Helper used to retrieve metadata blocks from the MD server.
-func (md *MDServerRemote) get(ctx context.Context, id TlfID, handle *TlfHandle,
-	bid BranchID, mStatus MergeStatus, start, stop MetadataRevision) (
-	TlfID, []*RootMetadataSigned, error) {
+func (md *MDServerRemote) get(ctx context.Context, id TlfID,
+	handle *BareTlfHandle, bid BranchID, mStatus MergeStatus,
+	start, stop MetadataRevision) (TlfID, []*RootMetadataSigned, error) {
 	// figure out which args to send
 	if id == NullTlfID && handle == nil {
-		return id, nil, MDInvalidGetArguments{
-			id:     id,
-			handle: handle,
-		}
+		panic("nil TlfID and handle passed into MDServerRemote.get")
 	}
 	arg := keybase1.GetMetadataArg{
 		StartRevision: start.Number(),
@@ -377,9 +374,11 @@ func (md *MDServerRemote) get(ctx context.Context, id TlfID, handle *TlfHandle,
 }
 
 // GetForHandle implements the MDServer interface for MDServerRemote.
-func (md *MDServerRemote) GetForHandle(ctx context.Context, handle *TlfHandle,
-	mStatus MergeStatus) (TlfID, *RootMetadataSigned, error) {
-	id, rmdses, err := md.get(ctx, NullTlfID, handle, NullBranchID, mStatus,
+func (md *MDServerRemote) GetForHandle(ctx context.Context,
+	handle BareTlfHandle, mStatus MergeStatus) (
+	TlfID, *RootMetadataSigned, error) {
+	id, rmdses, err := md.get(ctx, NullTlfID, &handle, NullBranchID,
+		mStatus,
 		MetadataRevisionUninitialized, MetadataRevisionUninitialized)
 	if err != nil {
 		return id, nil, err

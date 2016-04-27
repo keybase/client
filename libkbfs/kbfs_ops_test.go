@@ -108,6 +108,8 @@ func kbfsOpsInit(t *testing.T, changeMd bool) (mockCtrl *gomock.Controller,
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), gomock.Any()).
 		AnyTimes().Return(nil)
 
+	interposeDaemonKBPKI(config, "alice", "bob", "charlie")
+
 	// make the context identifiable, to verify that it is passed
 	// correctly to the observer
 	ctx = context.WithValue(context.Background(), tCtxID, rand.Int())
@@ -170,28 +172,24 @@ func checkBlockCache(t *testing.T, config *ConfigMock,
 }
 
 func TestKBFSOpsGetFavoritesSuccess(t *testing.T) {
-	mockCtrl, config, ctx := kbfsOpsInit(t, false)
-	defer kbfsTestShutdown(mockCtrl, config)
+	config, _, ctx := kbfsOpsInitNoMocks(t, "alice", "bob")
+	defer config.Shutdown()
 
-	// expect one call to fetch favorites
-	_, handle1, _ := newDir(t, config, 1, false, false)
-	_, handle2, _ := newDir(t, config, 2, true, true)
-	_, handle3, _ := newDir(t, config, 3, true, true) // dup for testing
-	handles := []*TlfHandle{handle1, handle2, handle3}
-	var folders []keybase1.Folder
+	handle1 := parseTlfHandleOrBust(t, config, "alice", false)
+	handle2 := parseTlfHandleOrBust(t, config, "alice,bob", false)
+
+	// dup for testing
+	handles := []*TlfHandle{handle1, handle2, handle2}
 	for _, h := range handles {
-		folders = append(folders, h.ToFavorite().toKBFolder())
+		config.KeybaseDaemon().FavoriteAdd(
+			context.Background(), h.ToFavorite().toKBFolder())
 	}
-
-	// Replace the old one (added in init function) and add a new one
-	config.mockKbpki = NewMockKBPKI(mockCtrl)
-	config.SetKBPKI(config.mockKbpki)
-	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(folders, nil)
 
 	// The favorites list contains our own public dir by default, even
 	// if KBPKI doesn't return it.
-	_, handle4, _ := newDir(t, config, 4, false, true)
-	handles = append(handles, handle4)
+
+	handle3 := parseTlfHandleOrBust(t, config, "alice", true)
+	handles = append(handles, handle3)
 
 	handles2, err := config.KBFSOps().GetFavorites(ctx)
 	if err != nil {
@@ -220,25 +218,44 @@ func TestKBFSOpsGetFavoritesFail(t *testing.T) {
 	}
 }
 
-func makeID(t *testing.T, config *ConfigMock, public bool) (keybase1.UID, TlfID, *TlfHandle) {
-	id, h, _ := newDir(t, config, 1, false, public)
-	uid := h.Writers[0]
-	name := libkb.NewNormalizedUsername(fmt.Sprintf("user_%s", uid))
-	expectUsernameCalls(h, config)
-	config.mockKbpki.EXPECT().GetCurrentUserInfo(gomock.Any()).AnyTimes().
-		Return(name, uid, nil)
-	return uid, id, h
-}
-
 func getOps(config Config, id TlfID) *folderBranchOps {
 	return config.KBFSOps().(*KBFSOpsStandard).
 		getOpsNoAdd(FolderBranch{id, MasterBranch})
 }
 
-func makeIDAndRMD(t *testing.T, config *ConfigMock) (
+// createNewRMD creates a new RMD for the given name. Returns its ID
+// and handle also.
+func createNewRMD(t *testing.T, config Config, name string, public bool) (
+	TlfID, *TlfHandle, *RootMetadata) {
+	id := FakeTlfID(1, public)
+	h := parseTlfHandleOrBust(t, config, name, public)
+	rmd := newRootMetadataOrBust(t, id, h)
+	return id, h, rmd
+}
+
+// injectNewRMD creates a new RMD and makes sure the existing ops for
+// its ID has as its head that RMD.
+func injectNewRMD(t *testing.T, config *ConfigMock) (
 	keybase1.UID, TlfID, *RootMetadata) {
-	uid, id, h := makeID(t, config, false)
-	rmd := NewRootMetadataForTest(h, id)
+	id, h, rmd := createNewRMD(t, config, "alice", false)
+	var keyGen KeyGen
+	if id.IsPublic() {
+		keyGen = PublicKeyGen
+	} else {
+		keyGen = 1
+	}
+	rmd.data.Dir = DirEntry{
+		BlockInfo: BlockInfo{
+			BlockPointer: BlockPointer{
+				KeyGen:  keyGen,
+				DataVer: 1,
+			},
+			EncodedSize: 1,
+		},
+	}
+	// Need to do this to avoid multiple calls to the mocked-out
+	// MakeMdID above, leading to confusion.
+	rmd.mdID = fakeMdID(fakeTlfIDByte(id))
 	AddNewEmptyKeysOrBust(t, rmd)
 
 	ops := getOps(config, id)
@@ -246,6 +263,7 @@ func makeIDAndRMD(t *testing.T, config *ConfigMock) (
 	rmd.SerializedPrivateMetadata = make([]byte, 1)
 	config.Notifier().RegisterForChanges(
 		[]FolderBranch{{id, MasterBranch}}, config.observer)
+	uid := h.Writers[0]
 	rmd.data.Dir.Creator = uid
 	return uid, id, rmd
 }
@@ -254,7 +272,7 @@ func TestKBFSOpsGetRootNodeCacheSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	_, id, rmd := makeIDAndRMD(t, config)
+	_, id, rmd := injectNewRMD(t, config)
 	rmd.data.Dir.BlockPointer.ID = fakeBlockID(1)
 	rmd.data.Dir.Type = Dir
 
@@ -283,7 +301,7 @@ func TestKBFSOpsGetRootNodeReIdentify(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	_, id, rmd := makeIDAndRMD(t, config)
+	_, id, rmd := injectNewRMD(t, config)
 	rmd.data.Dir.BlockPointer.ID = fakeBlockID(1)
 	rmd.data.Dir.Type = Dir
 
@@ -328,28 +346,28 @@ func fboIdentityDone(fbo *folderBranchOps) bool {
 	return fbo.identifyDone
 }
 
+type failIdentifyKBPKI struct {
+	KBPKI
+	identifyErr error
+}
+
+func (kbpki failIdentifyKBPKI) Identify(ctx context.Context, assertion, reason string) (UserInfo, error) {
+	return UserInfo{}, kbpki.identifyErr
+}
+
 func TestKBFSOpsGetRootNodeCacheIdentifyFail(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	expectedErr := errors.New("Identify failure")
-
-	_, id, rmd := makeIDAndRMD(t, config)
-
-	h := rmd.GetTlfHandle()
-	uid2 := keybase1.MakeTestUID(17)
-	h.Writers = append(h.Writers, uid2)
-	name2 := libkb.NewNormalizedUsername(fmt.Sprintf("user_%s", uid2))
-	config.mockKbpki.EXPECT().GetNormalizedUsername(gomock.Any(), uid2).AnyTimes().
-		Return(name2, nil)
-	config.mockKbpki.EXPECT().Resolve(gomock.Any(), string(name2)).AnyTimes().
-		Return(name2, uid2, nil)
-	config.mockKbpki.EXPECT().Identify(gomock.Any(), name2.String(), gomock.Any()).Return(UserInfo{}, expectedErr)
+	_, id, rmd := injectNewRMD(t, config)
 
 	rmd.data.Dir.BlockPointer.ID = fakeBlockID(1)
 	rmd.data.Dir.Type = Dir
 
 	ops := getOps(config, id)
+
+	expectedErr := errors.New("Identify failure")
+	config.SetKBPKI(failIdentifyKBPKI{config.KBPKI(), expectedErr})
 
 	// Trigger identify.
 	lState := makeFBOLockState()
@@ -421,8 +439,7 @@ func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, public bool) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	_, id, h := makeID(t, config, public)
-	rmd := NewRootMetadataForTest(h, id)
+	id, h, rmd := createNewRMD(t, config, "alice", public)
 
 	// create a new MD
 	config.mockMdops.EXPECT().
@@ -474,16 +491,10 @@ func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid := keybase1.MakeTestUID(15)
-	ownerID := keybase1.MakeTestUID(20)
-	id, h, _ := newDir(t, config, 1, true, false)
-	h.Readers = []keybase1.UID{uid}
-	h.Writers = []keybase1.UID{ownerID}
-
-	rmd := NewRootMetadataForTest(h, id)
+	id, h, rmd := createNewRMD(t, config, "bob", true)
 
 	// create a new MD
-	expectUsernameCalls(h, config)
+
 	// in reality, createNewMD should fail early because the MD server
 	// will refuse to create the new MD for this user.  But for this test,
 	// we won't bother
@@ -491,17 +502,14 @@ func TestKBFSOpsGetRootMDCreateNewFailNonWriter(t *testing.T) {
 		GetUnmergedForTLF(gomock.Any(), id, gomock.Any()).Return(nil, nil)
 	config.mockMdops.EXPECT().GetForTLF(gomock.Any(), id).Return(rmd, nil)
 	// try to get the MD for writing, but fail (no puts should happen)
-	name := libkb.NewNormalizedUsername(fmt.Sprintf("user_%s", uid))
-	config.mockKbpki.EXPECT().GetCurrentUserInfo(ctx).AnyTimes().
-		Return(name, uid, nil)
 	expectedErr := WriteAccessError{
-		name, h.GetCanonicalName(), false}
+		"alice", h.GetCanonicalName(), true}
 
 	ops := getOps(config, id)
 	if _, _, _, err := ops.getRootNode(ctx); err == nil {
 		t.Errorf("Got no expected error on root MD")
 	} else if err.Error() != expectedErr.Error() {
-		t.Errorf("Got unexpected error on root MD: %v", err)
+		t.Errorf("Got unexpected error on root MD: %v vs %v", err, expectedErr)
 	}
 	assert.False(t, fboIdentityDone(ops))
 }
@@ -510,8 +518,7 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	_, id, h := makeID(t, config, false)
-	rmd := NewRootMetadataForTest(h, id)
+	id, h, rmd := createNewRMD(t, config, "alice", false)
 	rmd.data.Dir = DirEntry{
 		BlockInfo: BlockInfo{
 			BlockPointer: BlockPointer{
@@ -619,7 +626,7 @@ func TestKBFSOpsGetBaseDirChildrenCacheSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIDAndRMD(t, config)
+	u, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	dirBlock := NewDirBlock().(*DirBlock)
@@ -650,7 +657,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIDAndRMD(t, config)
+	u, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	dirBlock := NewDirBlock().(*DirBlock)
@@ -672,13 +679,18 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid := keybase1.MakeTestUID(15)
-	ownerID := keybase1.MakeTestUID(20)
-	id, h, _ := newDir(t, config, 1, true, false)
-	h.Writers = []keybase1.UID{ownerID}
-	expectUsernameCalls(h, config)
+	id := FakeTlfID(1, false)
 
-	rmd := NewRootMetadataForTest(h, id)
+	h := parseTlfHandleOrBust(t, config, "bob#alice", false)
+	// Hack around access check in ParseTlfHandle.
+	h.Readers = nil
+
+	rmd := newRootMetadataOrBust(t, id, h)
+
+	_, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	rootID := fakeBlockID(42)
 	node := pathNode{makeBP(rootID, rmd, config, uid), "p"}
@@ -688,11 +700,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 
 	// won't even try getting the block if the user isn't a reader
 	ops.head = rmd
-	name := libkb.NewNormalizedUsername(fmt.Sprintf("user_%s", uid))
-	config.mockKbpki.EXPECT().GetCurrentUserInfo(ctx).AnyTimes().
-		Return(name, uid, nil)
-	expectUsernameCall(uid, config)
-	expectedErr := ReadAccessError{name, h.GetCanonicalName(), false}
+	expectedErr := ReadAccessError{"alice", h.GetCanonicalName(), false}
 	if _, err := config.KBFSOps().GetDirChildren(ctx, n); err == nil {
 		t.Errorf("Got no expected error on getdir")
 	} else if err != expectedErr {
@@ -704,7 +712,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailMissingBlock(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIDAndRMD(t, config)
+	u, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	dirBlock := NewDirBlock().(*DirBlock)
@@ -730,10 +738,11 @@ func TestKBFSOpsGetNestedDirChildrenCacheSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, h := makeID(t, config, false)
-	rmd := NewRootMetadataForTest(h, id)
+	id, h, rmd := createNewRMD(t, config, "alice", false)
 	ops := getOps(config, id)
 	ops.head = rmd
+
+	u := h.Writers[0]
 
 	rootID := fakeBlockID(42)
 	aID := fakeBlockID(43)
@@ -769,10 +778,11 @@ func TestKBFSOpsLookupSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, h := makeID(t, config, false)
-	rmd := NewRootMetadataForTest(h, id)
+	id, h, rmd := createNewRMD(t, config, "alice", false)
 	ops := getOps(config, id)
 	ops.head = rmd
+
+	u := h.Writers[0]
 
 	rootID := fakeBlockID(42)
 	aID := fakeBlockID(43)
@@ -811,11 +821,11 @@ func TestKBFSOpsLookupSymlinkSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, h := makeID(t, config, false)
-	rmd := NewRootMetadataForTest(h, id)
+	id, h, rmd := createNewRMD(t, config, "alice", false)
 	ops := getOps(config, id)
 	ops.head = rmd
 
+	u := h.Writers[0]
 	rootID := fakeBlockID(42)
 	aID := fakeBlockID(43)
 	bID := fakeBlockID(44)
@@ -849,11 +859,11 @@ func TestKBFSOpsLookupNoSuchNameFail(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, h := makeID(t, config, false)
-	rmd := NewRootMetadataForTest(h, id)
+	id, h, rmd := createNewRMD(t, config, "alice", false)
 	ops := getOps(config, id)
 	ops.head = rmd
 
+	u := h.Writers[0]
 	rootID := fakeBlockID(42)
 	aID := fakeBlockID(43)
 	bID := fakeBlockID(44)
@@ -884,11 +894,11 @@ func TestKBFSOpsLookupNewDataVersionFail(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, h := makeID(t, config, false)
-	rmd := NewRootMetadataForTest(h, id)
+	id, h, rmd := createNewRMD(t, config, "alice", false)
 	ops := getOps(config, id)
 	ops.head = rmd
 
+	u := h.Writers[0]
 	rootID := fakeBlockID(42)
 	aID := fakeBlockID(43)
 	bID := fakeBlockID(44)
@@ -925,11 +935,11 @@ func TestKBFSOpsStatSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, h := makeID(t, config, false)
-	rmd := NewRootMetadataForTest(h, id)
+	id, h, rmd := createNewRMD(t, config, "alice", false)
 	ops := getOps(config, id)
 	ops.head = rmd
 
+	u := h.Writers[0]
 	rootID := fakeBlockID(42)
 	aID := fakeBlockID(43)
 	bID := fakeBlockID(44)
@@ -1229,7 +1239,7 @@ func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
@@ -1277,6 +1287,7 @@ func testCreateEntrySuccess(t *testing.T, entryType EntryType) {
 	if err != nil {
 		t.Errorf("Got error on create: %v", err)
 	}
+	require.NotNil(t, newRmd)
 	checkNewPath(t, ctx, config, newP, expectedPath, newRmd, blocks,
 		entryType, "b", false)
 	b1 :=
@@ -1342,7 +1353,7 @@ func testCreateEntryFailDupName(t *testing.T, isDir bool) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIDAndRMD(t, config)
+	u, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	aID := fakeBlockID(43)
@@ -1388,7 +1399,7 @@ func testCreateEntryFailNameTooLong(t *testing.T, isDir bool) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIDAndRMD(t, config)
+	u, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	rootBlock := NewDirBlock().(*DirBlock)
@@ -1429,7 +1440,7 @@ func testCreateEntryFailDirTooBig(t *testing.T, isDir bool) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIDAndRMD(t, config)
+	u, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	rootBlock := NewDirBlock().(*DirBlock)
@@ -1470,7 +1481,7 @@ func testCreateEntryFailKBFSPrefix(t *testing.T, et EntryType) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIDAndRMD(t, config)
+	u, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	aID := fakeBlockID(43)
@@ -1528,7 +1539,7 @@ func testRemoveEntrySuccess(t *testing.T, entryType EntryType) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(41)
 	rmd.data.Dir.ID = rootID
@@ -1630,7 +1641,7 @@ func TestKBFSOpRemoveMultiBlockFileSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
@@ -1730,7 +1741,7 @@ func TestRemoveDirFailNonEmpty(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIDAndRMD(t, config)
+	u, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(41)
 	aID := fakeBlockID(42)
@@ -1779,7 +1790,7 @@ func TestRemoveDirFailNoSuchName(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIDAndRMD(t, config)
+	u, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(41)
 	aID := fakeBlockID(42)
@@ -1815,7 +1826,7 @@ func TestRenameInDirSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(41)
 	rmd.data.Dir.ID = rootID
@@ -1898,7 +1909,7 @@ func TestRenameInDirOverEntrySuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(41)
 	rmd.data.Dir.ID = rootID
@@ -1992,7 +2003,7 @@ func TestRenameInRootSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(41)
 	rmd.data.Dir.ID = rootID
@@ -2063,7 +2074,7 @@ func TestRenameAcrossDirsSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(41)
 	rmd.data.Dir.ID = rootID
@@ -2177,7 +2188,7 @@ func TestRenameAcrossPrefixSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(41)
 	rmd.data.Dir.ID = rootID
@@ -2276,7 +2287,7 @@ func TestRenameAcrossOtherPrefixSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(41)
 	rmd.data.Dir.ID = rootID
@@ -2385,28 +2396,29 @@ func TestRenameFailAcrossTopLevelFolders(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid1 := keybase1.MakeTestUID(15)
-	id1, h1, rmd1 := newDir(t, config, 1, true, false)
-	h1.Writers = append(h1.Writers, uid1)
-	expectUsernameCalls(h1, config)
+	id1 := FakeTlfID(1, false)
+	h1 := parseTlfHandleOrBust(t, config, "alice,bob", false)
+	rmd1 := newRootMetadataOrBust(t, id1, h1)
 
-	uid2 := keybase1.MakeTestUID(20)
-	id2, h2, rmd2 := newDir(t, config, 2, true, false)
-	h2.Writers = append(h2.Writers, uid2)
-	expectUsernameCalls(h2, config)
+	id2 := FakeTlfID(2, false)
+	h2 := parseTlfHandleOrBust(t, config, "alice,bob,charlie", false)
+	rmd2 := newRootMetadataOrBust(t, id1, h2)
+
+	uid1 := h2.Writers[0]
+	uid2 := h2.Writers[2]
 
 	rootID1 := fakeBlockID(41)
 	aID1 := fakeBlockID(42)
-	node1 := pathNode{makeBP(rootID1, &rmd1.MD, config, uid1), "p"}
-	aNode1 := pathNode{makeBP(aID1, &rmd1.MD, config, uid1), "a"}
+	node1 := pathNode{makeBP(rootID1, rmd1, config, uid1), "p"}
+	aNode1 := pathNode{makeBP(aID1, rmd1, config, uid1), "a"}
 	p1 := path{FolderBranch{Tlf: id1}, []pathNode{node1, aNode1}}
 	ops1 := getOps(config, id1)
 	n1 := nodeFromPath(t, ops1, p1)
 
 	rootID2 := fakeBlockID(38)
 	aID2 := fakeBlockID(39)
-	node2 := pathNode{makeBP(rootID2, &rmd2.MD, config, uid2), "p"}
-	aNode2 := pathNode{makeBP(aID2, &rmd2.MD, config, uid2), "a"}
+	node2 := pathNode{makeBP(rootID2, rmd2, config, uid2), "p"}
+	aNode2 := pathNode{makeBP(aID2, rmd2, config, uid2), "a"}
 	p2 := path{FolderBranch{Tlf: id2}, []pathNode{node2, aNode2}}
 	ops2 := getOps(config, id2)
 	n2 := nodeFromPath(t, ops2, p2)
@@ -2424,15 +2436,15 @@ func TestRenameFailAcrossBranches(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid1 := keybase1.MakeTestUID(15)
-	id1, h1, rmd1 := newDir(t, config, 1, true, false)
-	h1.Writers = append(h1.Writers, uid1)
-	expectUsernameCalls(h1, config)
+	id1 := FakeTlfID(1, false)
+	h1 := parseTlfHandleOrBust(t, config, "alice,bob", false)
+	rmd1 := newRootMetadataOrBust(t, id1, h1)
 
+	uid1 := h1.Writers[0]
 	rootID1 := fakeBlockID(41)
 	aID1 := fakeBlockID(42)
-	node1 := pathNode{makeBP(rootID1, &rmd1.MD, config, uid1), "p"}
-	aNode1 := pathNode{makeBP(aID1, &rmd1.MD, config, uid1), "a"}
+	node1 := pathNode{makeBP(rootID1, rmd1, config, uid1), "p"}
+	aNode1 := pathNode{makeBP(aID1, rmd1, config, uid1), "a"}
 	p1 := path{FolderBranch{Tlf: id1}, []pathNode{node1, aNode1}}
 	p2 := path{FolderBranch{id1, "test"}, []pathNode{node1, aNode1}}
 	ops1 := getOps(config, id1)
@@ -2453,7 +2465,7 @@ func TestKBFSOpsCacheReadFullSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIDAndRMD(t, config)
+	u, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
@@ -2482,7 +2494,7 @@ func TestKBFSOpsCacheReadPartialSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIDAndRMD(t, config)
+	u, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
@@ -2510,7 +2522,7 @@ func TestKBFSOpsCacheReadFullMultiBlockSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIDAndRMD(t, config)
+	u, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
@@ -2564,7 +2576,7 @@ func TestKBFSOpsCacheReadPartialMultiBlockSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIDAndRMD(t, config)
+	u, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
@@ -2616,7 +2628,7 @@ func TestKBFSOpsCacheReadFailPastEnd(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIDAndRMD(t, config)
+	u, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
@@ -2642,7 +2654,7 @@ func TestKBFSOpsServerReadFullSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIDAndRMD(t, config)
+	u, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
@@ -2673,7 +2685,7 @@ func TestKBFSOpsServerReadFailNoSuchBlock(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIDAndRMD(t, config)
+	u, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
@@ -2744,7 +2756,7 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
@@ -2813,7 +2825,7 @@ func TestKBFSOpsWriteExtendSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
@@ -2874,7 +2886,7 @@ func TestKBFSOpsWritePastEndSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
@@ -2935,7 +2947,7 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
@@ -3053,7 +3065,7 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
 	id1 := fakeBlockID(44)
@@ -3146,7 +3158,7 @@ func TestKBFSOpsWriteFailTooBig(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
@@ -3187,7 +3199,7 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
@@ -3252,7 +3264,7 @@ func TestKBFSOpsTruncateSameSize(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIDAndRMD(t, config)
+	u, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
@@ -3290,7 +3302,7 @@ func TestKBFSOpsTruncateSmallerSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
@@ -3345,7 +3357,7 @@ func TestKBFSOpsTruncateShortensLastBlock(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
@@ -3429,7 +3441,7 @@ func TestKBFSOpsTruncateRemovesABlock(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
@@ -3508,7 +3520,7 @@ func TestKBFSOpsTruncateBiggerSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	fileID := fakeBlockID(43)
@@ -3570,7 +3582,7 @@ func testSetExSuccess(t *testing.T, entryType EntryType, ex bool) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, entryType != Sym)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
@@ -3704,7 +3716,7 @@ func TestSetExFailNoSuchName(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIDAndRMD(t, config)
+	u, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	aID := fakeBlockID(43)
@@ -3732,7 +3744,7 @@ func TestSetMtimeSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
@@ -3797,7 +3809,7 @@ func TestSetMtimeNull(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIDAndRMD(t, config)
+	u, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	aID := fakeBlockID(43)
@@ -3832,7 +3844,7 @@ func TestMtimeFailNoSuchName(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIDAndRMD(t, config)
+	u, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	aID := fakeBlockID(43)
@@ -3867,7 +3879,7 @@ func testSyncDirtySuccess(t *testing.T, isUnmerged bool) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
@@ -3954,7 +3966,7 @@ func TestSyncCleanSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, rmd := makeIDAndRMD(t, config)
+	u, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
@@ -4026,7 +4038,7 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
@@ -4146,7 +4158,7 @@ func TestSyncDirtyDupBlockSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
@@ -4273,7 +4285,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	config.mockBcache = NewMockBlockCache(mockCtrl)
 	config.SetBlockCache(config.mockBcache)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
@@ -4459,7 +4471,7 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	config.mockBcache = NewMockBlockCache(mockCtrl)
 	config.SetBlockCache(config.mockBcache)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
@@ -4622,7 +4634,7 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID
@@ -4693,11 +4705,11 @@ func TestKBFSOpsStatRootSuccess(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, h := makeID(t, config, false)
-	rmd := NewRootMetadataForTest(h, id)
+	id, h, rmd := createNewRMD(t, config, "alice", false)
 	ops := getOps(config, id)
 	ops.head = rmd
 
+	u := h.Writers[0]
 	rootID := fakeBlockID(42)
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
@@ -4713,11 +4725,11 @@ func TestKBFSOpsFailingRootOps(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, false)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	u, id, h := makeID(t, config, false)
-	rmd := NewRootMetadataForTest(h, id)
+	id, h, rmd := createNewRMD(t, config, "alice", false)
 	ops := getOps(config, id)
 	ops.head = rmd
 
+	u := h.Writers[0]
 	rootID := fakeBlockID(42)
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
@@ -4759,7 +4771,7 @@ func TestKBFSOpsBackgroundFlush(t *testing.T) {
 	mockCtrl, config, ctx := kbfsOpsInit(t, true)
 	defer kbfsTestShutdown(mockCtrl, config)
 
-	uid, id, rmd := makeIDAndRMD(t, config)
+	uid, id, rmd := injectNewRMD(t, config)
 
 	rootID := fakeBlockID(42)
 	rmd.data.Dir.ID = rootID

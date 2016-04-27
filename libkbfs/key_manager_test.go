@@ -18,6 +18,7 @@ func keyManagerInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config = NewConfigMock(mockCtrl, ctr)
 	keyman := NewKeyManagerStandard(config)
 	config.SetKeyManager(keyman)
+	interposeDaemonKBPKI(config, "alice", "bob")
 	ctx = context.Background()
 	return
 }
@@ -101,8 +102,9 @@ func TestKeyManagerPublicTLFCryptKey(t *testing.T) {
 	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
 
-	id, h, _ := newDir(t, config, 1, false, true)
-	rmd := NewRootMetadataForTest(h, id)
+	id := FakeTlfID(1, true)
+	h := parseTlfHandleOrBust(t, config, "alice", true)
+	rmd := newRootMetadataOrBust(t, id, h)
 
 	tlfCryptKey, err := config.KeyManager().
 		GetTLFCryptKeyForEncryption(ctx, rmd)
@@ -139,8 +141,9 @@ func TestKeyManagerCachedSecretKeyForEncryptionSuccess(t *testing.T) {
 	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
 
-	_, id, h := makeID(t, config, false)
-	rmd := NewRootMetadataForTest(h, id)
+	id := FakeTlfID(1, false)
+	h := parseTlfHandleOrBust(t, config, "alice", false)
+	rmd := newRootMetadataOrBust(t, id, h)
 	AddNewEmptyKeysOrBust(t, rmd)
 
 	expectCachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration())
@@ -155,8 +158,9 @@ func TestKeyManagerCachedSecretKeyForMDDecryptionSuccess(t *testing.T) {
 	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
 
-	_, id, h := makeID(t, config, false)
-	rmd := NewRootMetadataForTest(h, id)
+	id := FakeTlfID(1, false)
+	h := parseTlfHandleOrBust(t, config, "alice", false)
+	rmd := newRootMetadataOrBust(t, id, h)
 	AddNewEmptyKeysOrBust(t, rmd)
 
 	expectCachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration())
@@ -171,8 +175,9 @@ func TestKeyManagerCachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
 	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
 
-	_, id, h := makeID(t, config, false)
-	rmd := NewRootMetadataForTest(h, id)
+	id := FakeTlfID(1, false)
+	h := parseTlfHandleOrBust(t, config, "alice", false)
+	rmd := newRootMetadataOrBust(t, id, h)
 	AddNewEmptyKeysOrBust(t, rmd)
 	AddNewEmptyKeysOrBust(t, rmd)
 
@@ -185,15 +190,31 @@ func TestKeyManagerCachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
 	}
 }
 
+// makeDirRKeyBundle creates a new bundle with a reader key.
+func makeDirRKeyBundle(uid keybase1.UID, cryptPublicKey CryptPublicKey) TLFReaderKeyBundle {
+	return TLFReaderKeyBundle{
+		RKeys: UserDeviceKeyInfoMap{
+			uid: {
+				cryptPublicKey.kid: TLFCryptKeyInfo{
+					EPubKeyIndex: -1,
+				},
+			},
+		},
+		TLFReaderEphemeralPublicKeys: make([]TLFEphemeralPublicKey, 1),
+	}
+}
+
 func TestKeyManagerUncachedSecretKeyForEncryptionSuccess(t *testing.T) {
 	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
 
-	uid, id, h := makeID(t, config, false)
-	rmd := NewRootMetadataForTest(h, id)
+	id := FakeTlfID(1, false)
+	h := parseTlfHandleOrBust(t, config, "alice", false)
+	uid := h.Writers[0]
+	rmd := newRootMetadataOrBust(t, id, h)
 
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
-	AddNewKeysOrBust(t, rmd, NewEmptyTLFWriterKeyBundle(), MakeDirRKeyBundle(uid, subkey))
+	AddNewKeysOrBust(t, rmd, NewEmptyTLFWriterKeyBundle(), makeDirRKeyBundle(uid, subkey))
 
 	expectUncachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration(), uid, subkey, true)
 
@@ -207,11 +228,13 @@ func TestKeyManagerUncachedSecretKeyForMDDecryptionSuccess(t *testing.T) {
 	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
 
-	uid, id, h := makeID(t, config, false)
-	rmd := NewRootMetadataForTest(h, id)
+	id := FakeTlfID(1, false)
+	h := parseTlfHandleOrBust(t, config, "alice", false)
+	uid := h.Writers[0]
+	rmd := newRootMetadataOrBust(t, id, h)
 
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
-	AddNewKeysOrBust(t, rmd, NewEmptyTLFWriterKeyBundle(), MakeDirRKeyBundle(uid, subkey))
+	AddNewKeysOrBust(t, rmd, NewEmptyTLFWriterKeyBundle(), makeDirRKeyBundle(uid, subkey))
 
 	expectUncachedGetTLFCryptKeyAnyDevice(config, rmd, rmd.LatestKeyGeneration(), uid, subkey, false)
 
@@ -225,12 +248,14 @@ func TestKeyManagerUncachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
 	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
 
-	uid, id, h := makeID(t, config, false)
-	rmd := NewRootMetadataForTest(h, id)
+	id := FakeTlfID(1, false)
+	h := parseTlfHandleOrBust(t, config, "alice", false)
+	uid := h.Writers[0]
+	rmd := newRootMetadataOrBust(t, id, h)
 
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
-	AddNewKeysOrBust(t, rmd, NewEmptyTLFWriterKeyBundle(), MakeDirRKeyBundle(uid, subkey))
-	AddNewKeysOrBust(t, rmd, NewEmptyTLFWriterKeyBundle(), MakeDirRKeyBundle(uid, subkey))
+	AddNewKeysOrBust(t, rmd, NewEmptyTLFWriterKeyBundle(), makeDirRKeyBundle(uid, subkey))
+	AddNewKeysOrBust(t, rmd, NewEmptyTLFWriterKeyBundle(), makeDirRKeyBundle(uid, subkey))
 
 	keyGen := rmd.LatestKeyGeneration() - 1
 	expectUncachedGetTLFCryptKey(config, rmd, keyGen, uid, subkey, false)
@@ -245,8 +270,9 @@ func TestKeyManagerRekeyFailurePublic(t *testing.T) {
 	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
 
-	_, id, h := makeID(t, config, true)
-	rmd := NewRootMetadataForTest(h, id)
+	id := FakeTlfID(1, true)
+	h := parseTlfHandleOrBust(t, config, "alice", true)
+	rmd := newRootMetadataOrBust(t, id, h)
 	if rmd.LatestKeyGeneration() != PublicKeyGen {
 		t.Errorf("Expected %d, got %d", rmd.LatestKeyGeneration(), PublicKeyGen)
 	}
@@ -265,8 +291,9 @@ func TestKeyManagerRekeySuccessPrivate(t *testing.T) {
 	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
 
-	_, id, h := makeID(t, config, false)
-	rmd := NewRootMetadataForTest(h, id)
+	id := FakeTlfID(1, false)
+	h := parseTlfHandleOrBust(t, config, "alice", false)
+	rmd := newRootMetadataOrBust(t, id, h)
 	oldKeyGen := rmd.LatestKeyGeneration()
 
 	expectRekey(config, rmd)
@@ -327,15 +354,14 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 
 	// user 2 should be unable to read the data now since its device
 	// wasn't registered when the folder was originally created.
-	_, err = GetRootNodeForTest(t, config2Dev2, name, false)
+	_, err = GetRootNodeForTest(config2Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
 
 	// Set the KBPKI so we can count the identify calls
-	countKBPKI := &daemonKBPKI{
-		KBPKI:  config1.KBPKI(),
-		daemon: config1.KeybaseDaemon(),
+	countKBPKI := &identifyCountingKBPKI{
+		KBPKI: config1.KBPKI(),
 	}
 	config1.SetKBPKI(countKBPKI)
 	// Force the FBO to forget about its previous identify, so that we
@@ -546,19 +572,18 @@ func TestKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T) {
 	// Users 2 and 3 should be unable to read the data now since its
 	// device wasn't registered when the folder was originally
 	// created.
-	_, err = GetRootNodeForTest(t, config2Dev2, name, false)
+	_, err = GetRootNodeForTest(config2Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
-	_, err = GetRootNodeForTest(t, config3, name, false)
+	_, err = GetRootNodeForTest(config3, name, false)
 	if _, ok := err.(NeedOtherRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
 
 	// Set the KBPKI so we can count the identify calls
-	countKBPKI := &daemonKBPKI{
-		KBPKI:  config1.KBPKI(),
-		daemon: config1.KeybaseDaemon(),
+	countKBPKI := &identifyCountingKBPKI{
+		KBPKI: config1.KBPKI(),
 	}
 	config1.SetKBPKI(countKBPKI)
 	// Force the FBO to forget about its previous identify, so that we
@@ -578,7 +603,7 @@ func TestKeyManagerRekeyAddWriterAndReaderDevice(t *testing.T) {
 	}
 
 	// The new devices should be able to read now.
-	_, err = GetRootNodeForTest(t, config2Dev2, name, false)
+	_, err = GetRootNodeForTest(config2Dev2, name, false)
 	if err != nil {
 		t.Fatalf("Got unexpected error after rekey: %v", err)
 	}
@@ -624,7 +649,7 @@ func TestKeyManagerSelfRekeyAcrossDevices(t *testing.T) {
 	t.Log("Check that user 2 device 2 is unable to read the file")
 	// user 2 device 2 should be unable to read the data now since its device
 	// wasn't registered when the folder was originally created.
-	_, err = GetRootNodeForTest(t, config2Dev2, name, false)
+	_, err = GetRootNodeForTest(config2Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
@@ -718,7 +743,7 @@ func TestKeyManagerReaderRekey(t *testing.T) {
 	// user 2 device 2 should be unable to read the data now since its device
 	// wasn't registered when the folder was originally created.
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
-	_, err = GetRootNodeForTest(t, config2Dev2, name, false)
+	_, err = GetRootNodeForTest(config2Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
@@ -736,7 +761,7 @@ func TestKeyManagerReaderRekey(t *testing.T) {
 	root2dev2 := GetRootNodeOrBust(t, config2Dev2, name, false)
 
 	t.Log("User 1 device 2 should still be unable to read")
-	_, err = GetRootNodeForTest(t, config1Dev2, name, false)
+	_, err = GetRootNodeForTest(config1Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
@@ -806,7 +831,7 @@ func TestKeyManagerRekeyBit(t *testing.T) {
 
 	// user 2 should be unable to read the data now since its device
 	// wasn't registered when the folder was originally created.
-	_, err = GetRootNodeForTest(t, config2Dev2, name, false)
+	_, err = GetRootNodeForTest(config2Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
@@ -867,7 +892,7 @@ func TestKeyManagerRekeyBit(t *testing.T) {
 
 	// user 3 dev 2 should be unable to read the data now since its device
 	// wasn't registered when the folder was originally created.
-	_, err = GetRootNodeForTest(t, config3Dev2, name, false)
+	_, err = GetRootNodeForTest(config3Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}
@@ -958,7 +983,7 @@ func TestKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T) {
 	// user 2 should be unable to read the data now since its device
 	// wasn't registered when the folder was originally created.
 	kbfsOps2Dev2 := config2Dev2.KBFSOps()
-	_, err = GetRootNodeForTest(t, config2Dev2, name, false)
+	_, err = GetRootNodeForTest(config2Dev2, name, false)
 	if _, ok := err.(NeedSelfRekeyError); !ok {
 		t.Fatalf("Got unexpected error when reading with new key: %v", err)
 	}

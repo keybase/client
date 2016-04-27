@@ -261,16 +261,21 @@ func (md *RootMetadata) IsReader(user keybase1.UID, deviceKID keybase1.KID) bool
 	return md.RKeys.IsReader(user, deviceKID)
 }
 
-func updateNewRootMetadata(rmd *RootMetadata, d *TlfHandle, id TlfID) {
-	if d == nil {
-		panic("nil TlfHandle")
+// updateNewRootMetadata initializes the given freshly-created
+// RootMetadata object with the given TlfID and TlfHandle. Note that
+// if the given ID/handle are private, rekeying must be done
+// separately.
+func updateNewRootMetadata(rmd *RootMetadata, id TlfID, h BareTlfHandle) error {
+	if id.IsPublic() != h.IsPublic() {
+		return errors.New("TlfID and TlfHandle disagree on public status")
 	}
 
 	var writers []keybase1.UID
 	var wKeys TLFWriterKeyGenerations
 	var rKeys TLFReaderKeyGenerations
 	if id.IsPublic() {
-		writers = make([]keybase1.UID, 0, 1)
+		writers = make([]keybase1.UID, len(h.Writers))
+		copy(writers, h.Writers)
 	} else {
 		wKeys = make(TLFWriterKeyGenerations, 0, 1)
 		rKeys = make(TLFReaderKeyGenerations, 0, 1)
@@ -279,30 +284,34 @@ func updateNewRootMetadata(rmd *RootMetadata, d *TlfHandle, id TlfID) {
 		Writers: writers,
 		WKeys:   wKeys,
 		ID:      id,
-		BID:     BranchID{},
 	}
-	if len(d.UnresolvedWriters) > 0 {
-		rmd.Extra.UnresolvedWriters = make([]keybase1.SocialAssertion, len(d.UnresolvedWriters))
-		copy(rmd.Extra.UnresolvedWriters, d.UnresolvedWriters)
+	if len(h.UnresolvedWriters) > 0 {
+		rmd.Extra.UnresolvedWriters = make([]keybase1.SocialAssertion, len(h.UnresolvedWriters))
+		copy(rmd.Extra.UnresolvedWriters, h.UnresolvedWriters)
 	}
 
 	rmd.Revision = MetadataRevisionInitial
 	rmd.RKeys = rKeys
-	if len(d.UnresolvedReaders) > 0 {
-		rmd.UnresolvedReaders = make([]keybase1.SocialAssertion, len(d.UnresolvedReaders))
-		copy(rmd.UnresolvedReaders, d.UnresolvedReaders)
+	if len(h.UnresolvedReaders) > 0 {
+		rmd.UnresolvedReaders = make([]keybase1.SocialAssertion, len(h.UnresolvedReaders))
+		copy(rmd.UnresolvedReaders, h.UnresolvedReaders)
 	}
-	// need to keep the dir handle around long enough to rekey the
-	// metadata for the first time
-	rmd.tlfHandle = d
+	return nil
 }
 
-// NewRootMetadata constructs a new RootMetadata object with the given
-// handle and ID.
-func NewRootMetadata(d *TlfHandle, id TlfID) *RootMetadata {
+// newRootMetadata constructs a new RootMetadata object with the given
+// TlfID and TlfHandle. Note that if the given ID/handle are private,
+// rekeying must be done separately.
+func newRootMetadata(id TlfID, h *TlfHandle) (*RootMetadata, error) {
 	var rmd RootMetadata
-	updateNewRootMetadata(&rmd, d, id)
-	return &rmd
+	err := updateNewRootMetadata(&rmd, id, h.BareTlfHandle)
+	if err != nil {
+		return nil, err
+	}
+	// Need to keep the TLF handle around long enough to rekey the
+	// metadata for the first time.
+	rmd.tlfHandle = h
+	return &rmd, nil
 }
 
 // Data returns the private metadata of this RootMetadata.

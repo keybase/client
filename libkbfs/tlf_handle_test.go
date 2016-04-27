@@ -1,10 +1,10 @@
 package libkbfs
 
 import (
-	"sync"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -128,56 +128,6 @@ func TestParseTlfHandleEarlyFailure(t *testing.T) {
 	assert.Equal(t, TlfNameNotCanonical{nonCanonicalName, name}, err)
 }
 
-// daemonKBPKI is a hacky way to make a KBPKI instance that uses some
-// methods from KeybaseDaemon.
-type daemonKBPKI struct {
-	KBPKI
-	daemon KeybaseDaemon
-
-	identifyLock  sync.RWMutex
-	identifyCalls int
-}
-
-func (d *daemonKBPKI) GetCurrentUserInfo(ctx context.Context) (
-	libkb.NormalizedUsername, keybase1.UID, error) {
-	const sessionID = 0
-	session, err := d.daemon.CurrentSession(ctx, sessionID)
-	if err != nil {
-		return libkb.NormalizedUsername(""), keybase1.UID(""), err
-	}
-	return session.Name, session.UID, nil
-}
-
-func (d *daemonKBPKI) Resolve(ctx context.Context, assertion string) (
-	libkb.NormalizedUsername, keybase1.UID, error) {
-	return d.daemon.Resolve(ctx, assertion)
-}
-
-func (d *daemonKBPKI) addIdentifyCall() {
-	d.identifyLock.Lock()
-	defer d.identifyLock.Unlock()
-	d.identifyCalls++
-}
-
-func (d *daemonKBPKI) getIdentifyCalls() int {
-	d.identifyLock.RLock()
-	defer d.identifyLock.RUnlock()
-	return d.identifyCalls
-}
-
-func (d *daemonKBPKI) Identify(ctx context.Context, assertion, reason string) (UserInfo, error) {
-	d.addIdentifyCall()
-	return d.daemon.Identify(ctx, assertion, reason)
-}
-
-func (d *daemonKBPKI) GetNormalizedUsername(ctx context.Context, uid keybase1.UID) (libkb.NormalizedUsername, error) {
-	userInfo, err := d.daemon.LoadUserPlusKeys(ctx, uid)
-	if err != nil {
-		return libkb.NormalizedUsername(""), err
-	}
-	return userInfo.Name, nil
-}
-
 func TestParseTlfHandleNoUserFailure(t *testing.T) {
 	ctx := context.Background()
 
@@ -185,8 +135,10 @@ func TestParseTlfHandleNoUserFailure(t *testing.T) {
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, NewCodecMsgpack())
 
-	kbpki := &daemonKBPKI{
-		daemon: daemon,
+	kbpki := &identifyCountingKBPKI{
+		KBPKI: &daemonKBPKI{
+			daemon: daemon,
+		},
 	}
 
 	name := "u2,u3#u4"
@@ -202,8 +154,10 @@ func TestParseTlfHandleNotReaderFailure(t *testing.T) {
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, NewCodecMsgpack())
 
-	kbpki := &daemonKBPKI{
-		daemon: daemon,
+	kbpki := &identifyCountingKBPKI{
+		KBPKI: &daemonKBPKI{
+			daemon: daemon,
+		},
 	}
 
 	name := "u2,u3"
@@ -220,8 +174,10 @@ func TestParseTlfHandleAssertionNotCanonicalFailure(t *testing.T) {
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, NewCodecMsgpack())
 
-	kbpki := &daemonKBPKI{
-		daemon: daemon,
+	kbpki := &identifyCountingKBPKI{
+		KBPKI: &daemonKBPKI{
+			daemon: daemon,
+		},
 	}
 
 	name := "u1,u3#u2"
@@ -240,8 +196,10 @@ func TestParseTlfHandleAssertionPrivateSuccess(t *testing.T) {
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, NewCodecMsgpack())
 
-	kbpki := &daemonKBPKI{
-		daemon: daemon,
+	kbpki := &identifyCountingKBPKI{
+		KBPKI: &daemonKBPKI{
+			daemon: daemon,
+		},
 	}
 
 	name := "u1,u3"
@@ -264,8 +222,10 @@ func TestParseTlfHandleAssertionPublicSuccess(t *testing.T) {
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, NewCodecMsgpack())
 
-	kbpki := &daemonKBPKI{
-		daemon: daemon,
+	kbpki := &identifyCountingKBPKI{
+		KBPKI: &daemonKBPKI{
+			daemon: daemon,
+		},
 	}
 
 	name := "u1,u2,u3"
@@ -288,8 +248,10 @@ func TestParseTlfHandleSocialAssertion(t *testing.T) {
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, NewCodecMsgpack())
 
-	kbpki := &daemonKBPKI{
-		daemon: daemon,
+	kbpki := &identifyCountingKBPKI{
+		KBPKI: &daemonKBPKI{
+			daemon: daemon,
+		},
 	}
 
 	name := "u1,u2#u3@twitter"
@@ -316,8 +278,10 @@ func TestParseTlfHandleUIDAssertion(t *testing.T) {
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, NewCodecMsgpack())
 
-	kbpki := &daemonKBPKI{
-		daemon: daemon,
+	kbpki := &identifyCountingKBPKI{
+		KBPKI: &daemonKBPKI{
+			daemon: daemon,
+		},
 	}
 
 	a := currentUID.String() + "@uid"
@@ -334,8 +298,10 @@ func TestParseTlfHandleAndAssertion(t *testing.T) {
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, NewCodecMsgpack())
 
-	kbpki := &daemonKBPKI{
-		daemon: daemon,
+	kbpki := &identifyCountingKBPKI{
+		KBPKI: &daemonKBPKI{
+			daemon: daemon,
+		},
 	}
 
 	a := currentUID.String() + "@uid+u1@twitter"
@@ -352,11 +318,28 @@ func TestParseTlfHandleFailConflictingAssertion(t *testing.T) {
 	currentUID := localUsers[0].UID
 	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, NewCodecMsgpack())
 
-	kbpki := &daemonKBPKI{
-		daemon: daemon,
+	kbpki := &identifyCountingKBPKI{
+		KBPKI: &daemonKBPKI{
+			daemon: daemon,
+		},
 	}
 
 	a := currentUID.String() + "@uid+u2@twitter"
 	_, err := ParseTlfHandle(ctx, kbpki, a, false, false)
+	assert.Equal(t, 0, kbpki.getIdentifyCalls())
 	require.NotNil(t, err)
+}
+
+// parseTlfHandleOrBust parses the given TLF name, which must be
+// canonical, into a TLF handle, and failing if there's an error.
+func parseTlfHandleOrBust(t logger.TestLogBackend, config Config,
+	name string, public bool) *TlfHandle {
+	ctx := context.Background()
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), name, public,
+		config.SharingBeforeSignupEnabled())
+	if err != nil {
+		t.Fatalf("Couldn't parse %s (public=%t) into a TLF handle: %v",
+			name, public, err)
+	}
+	return h
 }

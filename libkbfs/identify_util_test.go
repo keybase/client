@@ -1,7 +1,7 @@
 package libkbfs
 
 import (
-	"strings"
+	"fmt"
 	"sync"
 	"testing"
 
@@ -12,48 +12,76 @@ import (
 	"golang.org/x/net/context"
 )
 
+type testNormalizedUsernameGetter map[keybase1.UID]libkb.NormalizedUsername
+
+func (g testNormalizedUsernameGetter) GetNormalizedUsername(
+	ctx context.Context, uid keybase1.UID) (
+	libkb.NormalizedUsername, error) {
+	name, ok := g[uid]
+	if !ok {
+		return libkb.NormalizedUsername(""),
+			NoSuchUserError{fmt.Sprintf("uid:%s", uid)}
+	}
+	return name, nil
+}
+
 type testIdentifier struct {
-	uidsLock sync.Mutex
-	uids     map[keybase1.UID]bool
+	assertions         map[string]UserInfo
+	identifiedUidsLock sync.Mutex
+	identifiedUids     map[keybase1.UID]bool
 }
 
 func (ti *testIdentifier) Identify(
 	ctx context.Context, assertion, reason string) (UserInfo, error) {
-	uid, err := keybase1.UIDFromString(strings.TrimPrefix(assertion, "user_"))
-	if err != nil {
-		return UserInfo{}, err
+	userInfo, ok := ti.assertions[assertion]
+	if !ok {
+		return UserInfo{}, NoSuchUserError{assertion}
 	}
 
 	func() {
-		ti.uidsLock.Lock()
-		defer ti.uidsLock.Unlock()
-		if ti.uids == nil {
-			ti.uids = make(map[keybase1.UID]bool)
+		ti.identifiedUidsLock.Lock()
+		defer ti.identifiedUidsLock.Unlock()
+		if ti.identifiedUids == nil {
+			ti.identifiedUids = make(map[keybase1.UID]bool)
 		}
-		ti.uids[uid] = true
+		ti.identifiedUids[userInfo.UID] = true
 	}()
 
-	return UserInfo{
-		Name: libkb.NewNormalizedUsername(assertion),
-		UID:  uid,
-	}, nil
+	return userInfo, nil
 }
 
 func TestIdentify(t *testing.T) {
-	uids := map[keybase1.UID]bool{
-		keybase1.MakeTestUID(1): true,
-		keybase1.MakeTestUID(5): true,
-		keybase1.MakeTestUID(7): true,
+	nug := testNormalizedUsernameGetter{
+		keybase1.MakeTestUID(1): "alice",
+		keybase1.MakeTestUID(2): "bob",
+		keybase1.MakeTestUID(3): "charlie",
 	}
 
-	var nug testNormalizedUsernameGetter
-	var ti testIdentifier
-	uidList := make([]keybase1.UID, 0, len(uids))
-	for uid := range uids {
-		uidList = append(uidList, uid)
+	ti := &testIdentifier{
+		assertions: map[string]UserInfo{
+			"alice": {
+				Name: "alice",
+				UID:  keybase1.MakeTestUID(1),
+			},
+			"bob": {
+				Name: "bob",
+				UID:  keybase1.MakeTestUID(2),
+			},
+			"charlie": {
+				Name: "charlie",
+				UID:  keybase1.MakeTestUID(3),
+			},
+		},
 	}
-	err := identifyUserList(context.Background(), nug, &ti, uidList, false)
+
+	uids := make(map[keybase1.UID]bool, len(nug))
+	uidList := make([]keybase1.UID, 0, len(nug))
+	for u := range nug {
+		uids[u] = true
+		uidList = append(uidList, u)
+	}
+
+	err := identifyUserList(context.Background(), nug, ti, uidList, false)
 	require.Nil(t, err)
-
-	require.Equal(t, uids, ti.uids)
+	require.Equal(t, uids, ti.identifiedUids)
 }

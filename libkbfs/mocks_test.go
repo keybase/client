@@ -635,6 +635,39 @@ func (_mr *_MockKeybaseDaemonRecorder) Shutdown() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
 }
 
+// Mock of resolver interface
+type Mockresolver struct {
+	ctrl     *gomock.Controller
+	recorder *_MockresolverRecorder
+}
+
+// Recorder for Mockresolver (not exported)
+type _MockresolverRecorder struct {
+	mock *Mockresolver
+}
+
+func NewMockresolver(ctrl *gomock.Controller) *Mockresolver {
+	mock := &Mockresolver{ctrl: ctrl}
+	mock.recorder = &_MockresolverRecorder{mock}
+	return mock
+}
+
+func (_m *Mockresolver) EXPECT() *_MockresolverRecorder {
+	return _m.recorder
+}
+
+func (_m *Mockresolver) Resolve(ctx context.Context, assertion string) (libkb.NormalizedUsername, protocol.UID, error) {
+	ret := _m.ctrl.Call(_m, "Resolve", ctx, assertion)
+	ret0, _ := ret[0].(libkb.NormalizedUsername)
+	ret1, _ := ret[1].(protocol.UID)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+func (_mr *_MockresolverRecorder) Resolve(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Resolve", arg0, arg1)
+}
+
 // Mock of identifier interface
 type Mockidentifier struct {
 	ctrl     *gomock.Controller
@@ -1869,7 +1902,7 @@ func (_mr *_MockMDServerRecorder) RefreshAuthToken(arg0 interface{}) *gomock.Cal
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "RefreshAuthToken", arg0)
 }
 
-func (_m *MockMDServer) GetForHandle(ctx context.Context, handle *TlfHandle, mStatus MergeStatus) (TlfID, *RootMetadataSigned, error) {
+func (_m *MockMDServer) GetForHandle(ctx context.Context, handle BareTlfHandle, mStatus MergeStatus) (TlfID, *RootMetadataSigned, error) {
 	ret := _m.ctrl.Call(_m, "GetForHandle", ctx, handle, mStatus)
 	ret0, _ := ret[0].(TlfID)
 	ret1, _ := ret[1].(*RootMetadataSigned)

@@ -17,6 +17,7 @@ func fbStatusTestInit(t *testing.T) (*gomock.Controller, *ConfigMock,
 	config := NewConfigMock(mockCtrl, ctr)
 	nodeCache := NewMockNodeCache(mockCtrl)
 	fbsk := newFolderBranchStatusKeeper(config, nodeCache)
+	interposeDaemonKBPKI(config, "alice", "bob")
 	return mockCtrl, config, fbsk, nodeCache
 }
 
@@ -95,8 +96,10 @@ func TestFBStatusAllFields(t *testing.T) {
 	ctx := context.Background()
 
 	// make a new root metadata
-	u, id, h := makeID(t, config, false)
-	md := NewRootMetadataForTest(h, id)
+	id := FakeTlfID(1, false)
+	h := parseTlfHandleOrBust(t, config, "alice", false)
+	u := h.Writers[0]
+	md := newRootMetadataOrBust(t, id, h)
 	md.WFlags = MetadataFlagUnmerged
 	md.LastModifyingWriter = u
 
@@ -123,7 +126,7 @@ func TestFBStatusAllFields(t *testing.T) {
 	if !status.Staged {
 		t.Errorf("Status does not show staged changes")
 	}
-	if string(status.HeadWriter) != fmt.Sprintf("user_%s", h.Writers[0]) {
+	if string(status.HeadWriter) != "alice" {
 		t.Errorf("Unexpected head writer in status: %s", status.HeadWriter)
 	}
 	expectedDirtyPaths := []string{p1.String(), p2.String()}

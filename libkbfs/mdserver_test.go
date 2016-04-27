@@ -17,24 +17,23 @@ func TestMDServerBasics(t *testing.T) {
 	defer config.Shutdown()
 	mdServer := config.MDServer()
 	ctx := context.Background()
+
 	_, uid, err := config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		t.Fatal(err)
 	}
-	var key CryptPublicKey
-	key, err = config.KBPKI().GetCurrentCryptPublicKey(ctx)
-	if err != nil {
-		t.Fatal(err)
-	}
-	wkb := MakeDirWKeyBundle(uid, key)
 
 	// (1) get metadata -- allocates an ID
-	handle, _ := NewFolderWithIDAndWriter(t, NullTlfID, 1, true, false, uid)
-	id, md, err := mdServer.GetForHandle(ctx, handle, Merged)
+	h, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if md != nil {
+
+	id, rmds, err := mdServer.GetForHandle(ctx, h, Merged)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rmds != nil {
 		t.Fatal(errors.New("unexpected metadata found"))
 	}
 
@@ -42,22 +41,26 @@ func TestMDServerBasics(t *testing.T) {
 	prevRoot := MdID{}
 	middleRoot := MdID{}
 	for i := MetadataRevision(1); i <= 10; i++ {
-		_, md := NewFolderWithIDAndWriter(t, id, i, true, false, uid)
-		md.MD.SerializedPrivateMetadata = make([]byte, 1)
-		md.MD.SerializedPrivateMetadata[0] = 0x1
-		AddNewKeysOrBust(t, &md.MD, wkb, NewEmptyTLFReaderKeyBundle())
-		md.MD.clearCachedMetadataIDForTest()
+		rmds, err := NewRootMetadataSignedForTest(id, h)
+		if err != nil {
+			t.Fatal(err)
+		}
+		rmds.MD.SerializedPrivateMetadata = make([]byte, 1)
+		rmds.MD.SerializedPrivateMetadata[0] = 0x1
+		rmds.MD.Revision = MetadataRevision(i)
+		FakeInitialRekey(&rmds.MD, h)
+		rmds.MD.clearCachedMetadataIDForTest()
 		if i > 1 {
-			md.MD.PrevRoot = prevRoot
+			rmds.MD.PrevRoot = prevRoot
 		}
 		if err != nil {
 			t.Fatal(err)
 		}
-		err = mdServer.Put(ctx, md)
+		err = mdServer.Put(ctx, rmds)
 		if err != nil {
 			t.Fatal(err)
 		}
-		prevRoot, err = md.MD.MetadataID(config)
+		prevRoot, err = rmds.MD.MetadataID(config)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -67,12 +70,16 @@ func TestMDServerBasics(t *testing.T) {
 	}
 
 	// (3) trigger a conflict
-	_, md = NewFolderWithIDAndWriter(t, id, 10, true, false, uid)
-	md.MD.SerializedPrivateMetadata = make([]byte, 1)
-	md.MD.SerializedPrivateMetadata[0] = 0x1
-	AddNewKeysOrBust(t, &md.MD, wkb, NewEmptyTLFReaderKeyBundle())
-	md.MD.PrevRoot = prevRoot
-	err = mdServer.Put(ctx, md)
+	rmds, err = NewRootMetadataSignedForTest(id, h)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rmds.MD.Revision = MetadataRevision(10)
+	rmds.MD.SerializedPrivateMetadata = make([]byte, 1)
+	rmds.MD.SerializedPrivateMetadata[0] = 0x1
+	FakeInitialRekey(&rmds.MD, h)
+	rmds.MD.PrevRoot = prevRoot
+	err = mdServer.Put(ctx, rmds)
 	if _, ok := err.(MDServerErrorConflictRevision); !ok {
 		t.Fatal(fmt.Errorf("Expected MDServerErrorConflictRevision got: %v", err))
 	}
@@ -85,19 +92,23 @@ func TestMDServerBasics(t *testing.T) {
 		t.Fatal(err)
 	}
 	for i := MetadataRevision(6); i < 41; i++ {
-		_, md := NewFolderWithIDAndWriter(t, id, i, true, false, uid)
-		md.MD.SerializedPrivateMetadata = make([]byte, 1)
-		md.MD.SerializedPrivateMetadata[0] = 0x1
-		md.MD.PrevRoot = prevRoot
-		AddNewKeysOrBust(t, &md.MD, wkb, NewEmptyTLFReaderKeyBundle())
-		md.MD.clearCachedMetadataIDForTest()
-		md.MD.WFlags |= MetadataFlagUnmerged
-		md.MD.BID = bid
-		err = mdServer.Put(ctx, md)
+		rmds, err := NewRootMetadataSignedForTest(id, h)
 		if err != nil {
 			t.Fatal(err)
 		}
-		prevRoot, err = md.MD.MetadataID(config)
+		rmds.MD.Revision = MetadataRevision(i)
+		rmds.MD.SerializedPrivateMetadata = make([]byte, 1)
+		rmds.MD.SerializedPrivateMetadata[0] = 0x1
+		rmds.MD.PrevRoot = prevRoot
+		FakeInitialRekey(&rmds.MD, h)
+		rmds.MD.clearCachedMetadataIDForTest()
+		rmds.MD.WFlags |= MetadataFlagUnmerged
+		rmds.MD.BID = bid
+		err = mdServer.Put(ctx, rmds)
+		if err != nil {
+			t.Fatal(err)
+		}
+		prevRoot, err = rmds.MD.MetadataID(config)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -200,11 +211,7 @@ func TestMDServerRegisterForUpdate(t *testing.T) {
 	}
 
 	// Create first TLF.
-	bareH1, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	h1, err := MakeTlfHandle(ctx, bareH1, testNormalizedUsernameGetter{})
+	h1, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -216,12 +223,7 @@ func TestMDServerRegisterForUpdate(t *testing.T) {
 
 	// Create second TLF, which should end up being different from
 	// the first one.
-	bareH2, err := MakeBareTlfHandle(
-		[]keybase1.UID{uid}, []keybase1.UID{keybase1.PublicUID}, nil, nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	h2, err := MakeTlfHandle(ctx, bareH2, testNormalizedUsernameGetter{})
+	h2, err := MakeBareTlfHandle([]keybase1.UID{uid}, []keybase1.UID{keybase1.PUBLIC_UID}, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

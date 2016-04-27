@@ -693,19 +693,6 @@ func (e NotDirectFileBlockError) Error() string {
 	return fmt.Sprintf("Unexpected block type; expected a direct file block")
 }
 
-// MDInvalidGetArguments indicates either the handle or top-level folder ID
-// specified in a get request was invalid.
-type MDInvalidGetArguments struct {
-	id     TlfID
-	handle *TlfHandle
-}
-
-// Error implements the error interface for MDInvalidGetArguments.
-func (e MDInvalidGetArguments) Error() string {
-	return fmt.Sprintf("Invalid arguments for MD get, id: %v, handle: %v",
-		e.id, e.handle)
-}
-
 // MDInvalidTlfID indicates whether the folder ID returned from the
 // MD server was not parsable/invalid.
 type MDInvalidTlfID struct {

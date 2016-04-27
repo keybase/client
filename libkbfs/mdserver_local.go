@@ -149,7 +149,7 @@ func (md *MDServerLocal) isWriterOrValidRekey(ctx context.Context, id TlfID, new
 }
 
 // GetForHandle implements the MDServer interface for MDServerLocal.
-func (md *MDServerLocal) GetForHandle(ctx context.Context, handle *TlfHandle,
+func (md *MDServerLocal) GetForHandle(ctx context.Context, handle BareTlfHandle,
 	mStatus MergeStatus) (TlfID, *RootMetadataSigned, error) {
 	id := NullTlfID
 	md.shutdownLock.RLock()
