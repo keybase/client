@@ -39,7 +39,7 @@ export default class ActionRender extends Component {
     return (
       <div style={{...styleLoggedOutContainer}}>
         <div style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'space-between', alignItems: 'center'}}>
-          <Icon type='terminal' style={{width: 29}}/>
+          <Icon type='terminal' style={{width: 29}} />
           <div style={{textAlign: 'center'}}>
             <Text type='Terminal' inline>keybase login</Text>
             <Text type='BodySmall' inline> or </Text>

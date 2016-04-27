@@ -5,7 +5,6 @@ import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props as IconProps} from '../common-adapters/icon'
 
 import type {Props} from './index'
-import type {Device as DeviceType} from '../constants/types/flow-types'
 
 type RevokedHeaderState = {expanded: boolean}
 

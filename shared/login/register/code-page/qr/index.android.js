@@ -35,7 +35,7 @@ export default class QR extends Component<void, Props, State> {
           onBarCodeRead={this.props.onBarCodeRead}
           style={{flex: 1}}
           torchMode={'off'}
-          cameraType='back'/>
+          cameraType='back' />
       )
     } else {
       return (

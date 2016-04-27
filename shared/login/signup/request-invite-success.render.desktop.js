@@ -13,7 +13,7 @@ export default class Render extends Component {
   render () {
     return (
       <Container onBack={this.props.onBack} style={styles.container}>
-        <Icon style={styles.icon} type='invite-code-m'/>
+        <Icon style={styles.icon} type='invite-code-m' />
         <Text style={styles.header} type='Header'>Invite request sent</Text>
         <Text style={styles.body} type='Body'>
           Thanks for requesting an invite to Keybase. When one becomes available,  we will send it to you via email.

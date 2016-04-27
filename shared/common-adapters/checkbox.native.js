@@ -68,7 +68,7 @@ class Checkbox extends Component {
       <TouchableWithoutFeedback onPressIn={onClick} delayPressIn={0}>
         <View style={{...styleContainer, ...containerStyle, ...this.props.style}}>
           <Animated.View style={{...styleOuter, ...outerOverride}}>
-            <Animated.View style={{...styleInner, ...innerOverride, left: this.state.left}}/>
+            <Animated.View style={{...styleInner, ...innerOverride, left: this.state.left}} />
           </Animated.View>
           <Text type='BodySmall' small style={styleText}>{this.props.label}</Text>
         </View>

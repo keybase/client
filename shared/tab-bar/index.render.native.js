@@ -35,14 +35,14 @@ export default class Render extends Component<void, Props, void> {
           const onPress = () => this.props.onTabClick(t)
 
           // $FlowIssue Need to figure this out...
-          const avatar: Avatar = <Avatar size={32} onClick={onPress} username={this.props.username}/>
+          const avatar: Avatar = <Avatar size={32} onClick={onPress} username={this.props.username} />
           const source = t === profileTab ? {type: 'avatar', avatar}
             : {type: 'icon', icon: tabToIcon(t)}
           const button = (
             <TabBarButton
               selected={this.props.selectedTab === t}
               badgeNumber={badgeNumbers[t]}
-              source={source}/>
+              source={source} />
           )
 
           return (

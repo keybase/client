@@ -111,7 +111,7 @@ class Tracker extends Component {
       isPrivate: this.props.isPrivate
     }
 
-    return <Render {...renderProps}/>
+    return <Render {...renderProps} />
   }
 
   static parseRoute (currentPath) {

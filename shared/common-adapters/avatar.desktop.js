@@ -42,14 +42,14 @@ export default class Avatar extends Component {
             left: 1,
             backgroundImage: `url('${noAvatar}')`,
             backgroundSize: 'cover'
-          }}/>
+          }} />
         <img
           src={url}
           style={{...avatarStyle(this.props.size),
             display: this.state.avatarLoaded ? 'block' : 'none',
             backgroundColor: globalColors.white
           }}
-          onLoad={() => this.setState({avatarLoaded: true})}/>
+          onLoad={() => this.setState({avatarLoaded: true})} />
       </div>
     )
   }

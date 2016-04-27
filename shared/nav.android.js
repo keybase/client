@@ -79,7 +79,7 @@ class Nav extends Component {
           globalRoutes={globalRoutes}
           navBarHeight={0}
           Navigator={AndroidNavigator}
-          NavBar={<View/>}
+          NavBar={<View />}
         />
       </View>
     )
@@ -132,7 +132,7 @@ class Nav extends Component {
                   delayPressIn={0}
                   background={TouchableNativeFeedback.SelectableBackground()} >
                   <View>
-                    <Image style={[styles.toolbarImage, {marginTop: 4}]} resizeMode={'contain'} source={require('./images/nav/ic_menu_black_24dp.png')}/>
+                    <Image style={[styles.toolbarImage, {marginTop: 4}]} resizeMode={'contain'} source={require('./images/nav/ic_menu_black_24dp.png')} />
                   </View>
                 </TouchableNativeFeedback>
               </View>
@@ -147,14 +147,14 @@ class Nav extends Component {
                   delayPressIn={0}
                   background={TouchableNativeFeedback.SelectableBackground()}>
                   <View>
-                    <Image style={styles.toolbarImage} resizeMode={'contain'} source={require('./images/nav/ic_search_black_24dp.png')}/>
+                    <Image style={styles.toolbarImage} resizeMode={'contain'} source={require('./images/nav/ic_search_black_24dp.png')} />
                   </View>
                 </TouchableNativeFeedback>
               </View>
             </View>
           </View>
           <View collapsable={false} style={{flex: 2}}>
-            <TabBar onTabClick={this.props.switchTab} selectedTab={activeTab} username={username} badgeNumbers={{}} tabContent={tabContent}/>
+            <TabBar onTabClick={this.props.switchTab} selectedTab={activeTab} username={username} badgeNumbers={{}} tabContent={tabContent} />
 
           </View>
         </View>

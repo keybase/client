@@ -55,11 +55,11 @@ export default class Dropdown extends Component {
 
     switch (this.props.type) {
       case 'Username':
-        list = <UsernameList options={this.props.options} onClick={i => this._clickItemFromList(i)} onOther={onOther}/>
+        list = <UsernameList options={this.props.options} onClick={i => this._clickItemFromList(i)} onOther={onOther} />
         selectedValue = <MenuItem onClick={() => {}} type='Username' style={{height: 'initial'}} textStyle={{...styles.labelStyle}}>{this.props.value || this.props.options[0]}</MenuItem>
         break
       case 'General':
-        list = <GeneralList options={this.props.options} onClick={i => this._clickItemFromList(i)} onOther={onOther}/>
+        list = <GeneralList options={this.props.options} onClick={i => this._clickItemFromList(i)} onOther={onOther} />
         selectedValue = <MenuItem type='Pick' onClick={() => {}} style={{height: 'initial'}} textStyle={{...styles.labelStyle}}>{this.props.value || 'Pick an option'}</MenuItem>
         break
     }
@@ -84,7 +84,7 @@ export default class Dropdown extends Component {
             {list}
           </Popover>
           {selectedValue}
-          <DropDownArrow style={styles.iconStyle}/>
+          <DropDownArrow style={styles.iconStyle} />
         </div>
       </div>
     )

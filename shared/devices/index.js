@@ -40,7 +40,7 @@ class Devices extends Component {
         addNewDevice={this.props.addNewDevice}
         showRemoveDevicePage={this.props.showRemoveDevicePage}
         showExistingDevicePage={this.props.showExistingDevicePage}
-        showGenPaperKeyPage={this.props.showGenPaperKeyPage}/>
+        showGenPaperKeyPage={this.props.showGenPaperKeyPage} />
     )
   }
 }

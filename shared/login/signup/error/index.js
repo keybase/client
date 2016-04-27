@@ -12,7 +12,7 @@ class SignupError extends Component {
     return (
       <Render
         errorText={this.props.errorText}
-        resetSignup={this.props.resetSignup}/>
+        resetSignup={this.props.resetSignup} />
     )
   }
 }

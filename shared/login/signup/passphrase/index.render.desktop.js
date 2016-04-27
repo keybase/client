@@ -21,7 +21,7 @@ class Render extends Component {
             hintText='Create a passphrase' errorText={passphraseError} />
           <Input type='password' hintText='Confirm passphrase' onEnterKeyDown={this.props.onSubmit}
             onChangeText={pass2 => this.props.pass2Update(pass2)} />
-          <Button fullWidth type='Primary' label='Continue' onClick={this.props.onSubmit}/>
+          <Button fullWidth type='Primary' label='Continue' onClick={this.props.onSubmit} />
         </UserCard>
       </Container>
     )

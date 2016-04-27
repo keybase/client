@@ -39,7 +39,7 @@ export default class Header extends Component<DefaultProps, Props, void> {
     } else if (this.props.type === 'Strong') {
       return this.renderStrong()
     } else {
-      return <div/>
+      return <div />
     }
   }
 }

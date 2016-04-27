@@ -6,11 +6,11 @@ import {globalStyles, globalColors} from '../styles/style-guide'
 import Container from './dev-container.native'
 import {Dropdown, Checkbox, Button, Box, Text, Terminal, Icon, Input, FormWithCheckbox, TabBar} from '../common-adapters'
 
-const Space = () => <Box style={{height: 20, width: 20}}/>
+const Space = () => <Box style={{height: 20, width: 20}} />
 
 const Row = ({children}) => (
   <Box style={{...globalStyles.flexBoxRow, marginBottom: 20}}>
-    {children.map && children.map(c => [c, <Space/>]) || children}
+    {children.map && children.map(c => [c, <Space />]) || children}
   </Box>
 )
 
@@ -35,7 +35,7 @@ class ShowTypingDemo extends Component<void, any, any> {
         checkboxesProps={[
           {label: 'Save in Keychain', checked: true, onCheck: () => {}},
           {label: 'Show Typing', checked: this.state.showTyping, onCheck: showTyping => this.setState({showTyping})}
-        ]}/>
+        ]} />
     )
   }
 
@@ -44,24 +44,24 @@ class ShowTypingDemo extends Component<void, any, any> {
 const Inputs = () => (
   <Box style={{...globalStyles.flexBoxColumn, padding: 10}}>
     <Row>
-      <Input hintText='Username' floatingLabelText='Username'/>
+      <Input hintText='Username' floatingLabelText='Username' />
     </Row>
     <Row>
-      <Input hintText='Username' floatingLabelText='Username' errorText='No such User, who dis?'/>
+      <Input hintText='Username' floatingLabelText='Username' errorText='No such User, who dis?' />
     </Row>
     <Row>
-      <Input value='TyrannosaurusRex' hintText='Username' floatingLabelText='Username'/>
+      <Input value='TyrannosaurusRex' hintText='Username' floatingLabelText='Username' />
     </Row>
 
     <Row>
-      <Input type='password' hintText='Secure Passphrase Input' floatingLabelText='Passphrase'/>
+      <Input type='password' hintText='Secure Passphrase Input' floatingLabelText='Passphrase' />
     </Row>
 
-    <Input multiLine type='passwordVisible' floatingLabelText='Multiline' style={{height: 80}} hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'/>
+    <Input multiLine type='passwordVisible' floatingLabelText='Multiline' style={{height: 80}} hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas' />
 
-    <ShowTypingDemo/>
+    <ShowTypingDemo />
 
-    <ShowTypingDemo initialShowTyping/>
+    <ShowTypingDemo initialShowTyping />
 
   </Box>
 )
@@ -69,45 +69,45 @@ const Inputs = () => (
 const Buttons = () => (
   <Box style={{...globalStyles.flexBoxColumn, padding: 10}}>
     <Row>
-      <Button onClick={onClick} type='Primary' label='Primary'/>
-      <Button onClick={onClick} type='Primary' label='Primary' disabled/>
+      <Button onClick={onClick} type='Primary' label='Primary' />
+      <Button onClick={onClick} type='Primary' label='Primary' disabled />
     </Row>
     <Row>
-      <Button onClick={onClick} type='Primary' label='Primary' waiting/>
+      <Button onClick={onClick} type='Primary' label='Primary' waiting />
     </Row>
     <Row>
-      <Button onClick={onClick} type='Secondary' label='Secondary'/>
-      <Button onClick={onClick} type='Secondary' label='Secondary' disabled/>
+      <Button onClick={onClick} type='Secondary' label='Secondary' />
+      <Button onClick={onClick} type='Secondary' label='Secondary' disabled />
     </Row>
     <Row>
-      <Button onClick={onClick} type='Secondary' label='Secondary' waiting/>
+      <Button onClick={onClick} type='Secondary' label='Secondary' waiting />
     </Row>
     <Row>
-      <Button onClick={onClick} type='Danger' danger label='Danger'/>
-      <Button onClick={onClick} type='Danger' danger label='Danger' disabled/>
+      <Button onClick={onClick} type='Danger' danger label='Danger' />
+      <Button onClick={onClick} type='Danger' danger label='Danger' disabled />
     </Row>
     <Row>
-      <Button onClick={onClick} type='Danger' danger label='Danger' waiting/>
+      <Button onClick={onClick} type='Danger' danger label='Danger' waiting />
     </Row>
     <Row>
-      <Button onClick={onClick} type='Follow' label='Follow'/>
-      <Button onClick={onClick} type='Follow' label='Follow' disabled/>
+      <Button onClick={onClick} type='Follow' label='Follow' />
+      <Button onClick={onClick} type='Follow' label='Follow' disabled />
     </Row>
     <Row>
-      <Button onClick={onClick} type='Following' label='Following'/>
+      <Button onClick={onClick} type='Following' label='Following' />
     </Row>
     <Row>
-      <Button onClick={onClick} type='Unfollow' label='Unfollow'/>
+      <Button onClick={onClick} type='Unfollow' label='Unfollow' />
     </Row>
 
-    <Button onClick={onClick} type='Primary' fullWidth label='Primary full-width'/><Space/>
-    <Button onClick={onClick} type='Primary' fullWidth label='Primary full-width' waiting/><Space/>
-    <Button onClick={onClick} type='Secondary' fullWidth label='Secondary full-width'/><Space/>
-    <Button onClick={onClick} type='Secondary' fullWidth label='Secondary full-width' waiting/><Space/>
-    <Button onClick={onClick} type='Danger' fullWidth label='Danger full-width'/><Space/>
-    <Button onClick={onClick} type='Danger' fullWidth label='Danger full-width' waiting/><Space/>
-    <Button onClick={onClick} type='Follow' fullWidth label='Follow full-width'/><Space/>
-    <Button onClick={onClick} type='Follow' fullWidth label='Follow full-width' waiting/>
+    <Button onClick={onClick} type='Primary' fullWidth label='Primary full-width' /><Space />
+    <Button onClick={onClick} type='Primary' fullWidth label='Primary full-width' waiting /><Space />
+    <Button onClick={onClick} type='Secondary' fullWidth label='Secondary full-width' /><Space />
+    <Button onClick={onClick} type='Secondary' fullWidth label='Secondary full-width' waiting /><Space />
+    <Button onClick={onClick} type='Danger' fullWidth label='Danger full-width' /><Space />
+    <Button onClick={onClick} type='Danger' fullWidth label='Danger full-width' waiting /><Space />
+    <Button onClick={onClick} type='Follow' fullWidth label='Follow full-width' /><Space />
+    <Button onClick={onClick} type='Follow' fullWidth label='Follow full-width' waiting />
   </Box>
 )
 
@@ -209,7 +209,7 @@ const Colors = () => (
   <Box style={{...globalStyles.flexBoxColumn}}>
     {Object.keys(globalColors).sort().map(c => (
       <Row key={c} style={{...globalStyles.flexBoxRow, margin: 5}}>
-        <Box style={{width: 60, height: 60, backgroundColor: globalColors[c]}}/>
+        <Box style={{width: 60, height: 60, backgroundColor: globalColors[c]}} />
         <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'center', marginLeft: 5}}>
           <Text type='Body'>{c}</Text>
           <Text type='Body' small>{globalColors[c]}</Text>
@@ -225,24 +225,24 @@ const Dropdowns = ({selectedUser, selectUser, selectedOption, selectOption, user
       value={selectedUser}
       options={['marcopolo', 'chris', 'cjb', 'bbbbbbbbbbbbbbbb']}
       onOther={() => selectUser('Chose someone else')}
-      onClick={(selectedUser, idx) => selectUser(selectedUser, idx)}/>
+      onClick={(selectedUser, idx) => selectUser(selectedUser, idx)} />
     <Text type='Header'>Selected: {selectedUser} {userIdx}</Text>
     <Dropdown type={'General'}
       options={['one', 'two', 'three']}
       value={selectedOption}
-      onClick={(selectedOption, idx) => selectOption(selectedOption, idx)}/>
+      onClick={(selectedOption, idx) => selectOption(selectedOption, idx)} />
     <Text type='Header'>Selected: {selectedOption} {optionIdx}</Text>
     <Dropdown type={'General'}
       options={['one', 'two', 'three']}
       value={selectedOption}
       onOther={() => console.log('Clicked on other')}
-      onClick={(selectedOption, idx) => selectOption(selectedOption, idx)}/>
+      onClick={(selectedOption, idx) => selectOption(selectedOption, idx)} />
     <Text type='Header'>Selected: {selectedOption} {optionIdx}</Text>
     <Dropdown type={'General'}
       options={['one', 'two', 'three']}
       value={'two'}
       onOther={() => console.log('Clicked on other')}
-      onClick={(selectedOption, idx) => selectOption(selectedOption, idx)}/>
+      onClick={(selectedOption, idx) => selectOption(selectedOption, idx)} />
     <Text type='Header'>Selected: Always two (testing selected w/o pick option)</Text>
   </Box>
 )
@@ -265,21 +265,21 @@ const Icons = () => (
       <Row key={i}><Icon onClick={() => console.log('clicked')} type={i} /></Row>,
       <Row key={i + '100px'}><Icon style={{width: 100, height: 100}} onClick={() => console.log('clicked')} type={i} /></Row>
     ])}
-    <Row key='a'><Icon type='fa-custom-copy' style={{color: globalColors.blue}}/></Row>
-    <Row key='a1'><Icon type='fa-custom-copy' style={{color: globalColors.green}}/></Row>
-    <Row key='a2'><Icon type='fa-custom-copy' style={{color: globalColors.orange}}/></Row>
+    <Row key='a'><Icon type='fa-custom-copy' style={{color: globalColors.blue}} /></Row>
+    <Row key='a1'><Icon type='fa-custom-copy' style={{color: globalColors.green}} /></Row>
+    <Row key='a2'><Icon type='fa-custom-copy' style={{color: globalColors.orange}} /></Row>
   </Box>
 )
 
 const Checkboxes = ({check, flip}) => {
   return (
     <Box>
-      {false && <Row><Switch onTintColor={globalColors.blue} value={check[0]} onValueChange={() => flip(0)}/></Row>}
-      {false && <Row><Switch onTintColor={globalColors.blue} value={check[1]} onValueChange={() => flip(1)}/></Row>}
-      <Row><Checkbox label='Switch unswitched' onCheck={() => flip(2)} checked={check[2]} disabled={false}/></Row>
-      <Row><Checkbox label='Switch switched' onCheck={() => flip(3)} checked={check[3]} disabled={false}/></Row>
-      <Row><Checkbox label='Switch unswitched disabled' onCheck={() => flip(4)} checked={check[4]} disabled/></Row>
-      <Row><Checkbox label='Switch switched disabled' onCheck={() => flip(5)} checked={check[5]} disabled/></Row>
+      {false && <Row><Switch onTintColor={globalColors.blue} value={check[0]} onValueChange={() => flip(0)} /></Row>}
+      {false && <Row><Switch onTintColor={globalColors.blue} value={check[1]} onValueChange={() => flip(1)} /></Row>}
+      <Row><Checkbox label='Switch unswitched' onCheck={() => flip(2)} checked={check[2]} disabled={false} /></Row>
+      <Row><Checkbox label='Switch switched' onCheck={() => flip(3)} checked={check[3]} disabled={false} /></Row>
+      <Row><Checkbox label='Switch unswitched disabled' onCheck={() => flip(4)} checked={check[4]} disabled /></Row>
+      <Row><Checkbox label='Switch switched disabled' onCheck={() => flip(5)} checked={check[5]} disabled /></Row>
     </Box>
   )
 }
@@ -353,7 +353,7 @@ export default class Render extends Component {
         <Container title='TabBar'>
           <TabBars selected={this.state.tabSelected} onPress={
             (idx: number) => this._selectTab(idx) // eslint-disable-line arrow-parens
-          }/>
+          } />
         </Container>
         <Container title='Dropdown'><Dropdowns
           selectedUser={this.state.selectedUser}
@@ -363,11 +363,20 @@ export default class Render extends Component {
           userIdx={this.state.userIdx}
           optionIdx={this.state.optionIdx}
         /></Container>
+<<<<<<< e61499639e5ec9d950bb56c76bd5c16df428405c
         <Container title='Inputs'><Inputs/></Container>
         <Container title='Checkboxes'><Checkboxes flip={idx => this.flip(idx)} check={this.state.check}/></Container>
         <Container title='Icons'><Icons/></Container>
         <Container title='Buttons'><Buttons/></Container>
         <Container title='Colors'><Colors/></Container>
+=======
+        <Container title='Inputs'><Inputs /></Container>
+        <Container title='Checkboxes'><Checkboxes flip={idx => this.flip(idx)} check={this.state.check} /></Container>
+        <Container title='Icons'><Icons /></Container>
+        <Container title='Buttons'><Buttons /></Container>
+        <Container title='Text'><Fonts /></Container>
+        <Container title='Colors'><Colors /></Container>
+>>>>>>> updating eslint
       </ScrollView>
     )
   }

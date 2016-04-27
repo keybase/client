@@ -24,7 +24,7 @@ class Render extends Component<void, Props, void> {
             onEnterKeyDown={() => this.props.onSubmit()}
             onChange={event => this.props.onChange(event.target.value)}
             value={this.props.passphrase}
-            errorText={this.props.error}/>
+            errorText={this.props.error} />
           <Button
             fullWidth
             waiting={this.props.waitingForResponse}

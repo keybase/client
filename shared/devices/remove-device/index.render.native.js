@@ -9,7 +9,7 @@ export default class RemoveDeviceRender extends Component {
         <Text style={commonStyles.h1}>Remove "{this.props.deviceName}"?</Text>
         <Text style={[commonStyles.h2, {marginTop: 20}]}>Removing this account will, lorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsumlorem ipsum lorem ipsum lorem ipsum </Text>
         <View style={{flexDirection: 'row', alignItems: 'flex-end', justifyContent: 'flex-end', marginTop: 20}}>
-          <Button type='Secondary' style={{marginRight: 20}} title='Cancel' onPress={() => this.props.onCancel()}/>
+          <Button type='Secondary' style={{marginRight: 20}} title='Cancel' onPress={() => this.props.onCancel()} />
           <Button type='Secondary' style={{}} title='Delete' onPress={() => this.props.onSubmit()} />
         </View>
       </View>

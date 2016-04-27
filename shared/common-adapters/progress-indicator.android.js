@@ -13,7 +13,7 @@ export default class ProgressIndicator extends Component {
     return <ProgressBarAndroid
       color={this.props.white ? globalColors.white : globalColors.black}
       styleAttr={styleAttr}
-      style={{...style, ...this.props.style}}/>
+      style={{...style, ...this.props.style}} />
   }
 }
 

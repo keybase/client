@@ -31,8 +31,8 @@ class SimpleTabBarButton extends Component<void, SimpleTabBarButtonProps, void> 
         <Text type='BodySemibold' style={{...stylesLabel, color: this.props.selected ? globalColors.black75 : globalColors.black60}}>
           {this.props.label.toUpperCase()}
         </Text>
-        {this.props.selected && <Box style={stylesSelectedUnderline}/>}
-        {!this.props.selected && this.props.underlined && <Box style={stylesUnselectedUnderline}/>}
+        {this.props.selected && <Box style={stylesSelectedUnderline} />}
+        {!this.props.selected && this.props.underlined && <Box style={stylesUnselectedUnderline} />}
       </Box>
     )
   }
@@ -46,7 +46,7 @@ export class TabBarButton extends Component<void, TabBarButtonProps, void> {
     return (
       <Box style={{...globalStyles.flexBoxColumn, backgroundColor, ...stylesTabBarButtonIcon, ...this.props.style}}>
         {this.props.source.type === 'icon'
-          ? <Icon type={this.props.source.icon} style={{height: 27, width: 27, color: this.props.selected ? globalColors.blue3 : globalColors.blue3_40}}/>
+          ? <Icon type={this.props.source.icon} style={{height: 27, width: 27, color: this.props.selected ? globalColors.blue3 : globalColors.blue3_40}} />
           : this.props.source.avatar}
         {badgeNumber > 0 &&
           <Box style={{...styleBadgeOuter, borderColor: backgroundColor, backgroundColor}}>
@@ -88,7 +88,7 @@ class TabBar extends Component {
     return (this.props.children || []).map((item, i) => (
       <TouchableWithoutFeedback key={item.props.label || i} onPress={item.props.onPress || (() => {})}>
         <Box style={item.props.containerStyle}>
-          {item.props.tabBarButton || <SimpleTabBarButton label={item.props.label} selected={item.props.selected} underlined={this.props.underlined}/>}
+          {item.props.tabBarButton || <SimpleTabBarButton label={item.props.label} selected={item.props.selected} underlined={this.props.underlined} />}
         </Box>
       </TouchableWithoutFeedback>
     ))

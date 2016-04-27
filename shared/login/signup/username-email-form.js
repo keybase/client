@@ -36,7 +36,7 @@ class UsernameEmailForm extends Component {
         usernameErrorText={this.props.usernameErrorText}
         emailErrorText={this.props.emailErrorText}
         onBack={this.props.resetSignup}
-        waiting={this.props.waiting}/>
+        waiting={this.props.waiting} />
     )
   }
 }

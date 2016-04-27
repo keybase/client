@@ -10,7 +10,7 @@ const Render = ({onBack, onSubmit, onChangePaperKey, paperKey, waitingForRespons
       style={styles.container}
       onBack={() => onBack()}>
       <Text type='Header' style={styles.header}>Type in your paper key:</Text>
-      <Icon type='paper-key-m' style={styles.icon}/>
+      <Icon type='paper-key-m' style={styles.icon} />
       <Input
         autoFocus
         multiLine

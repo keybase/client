@@ -34,6 +34,6 @@ export function qrGenerate (code: string): string {
   qr.make()
   let tag = qr.createImgTag(10)
   const src = tag.split(' ')[1]
-  const qrCode = src.split('\"')[1]
+  const qrCode = src.split('"')[1]
   return qrCode
 }

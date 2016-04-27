@@ -53,7 +53,7 @@ export default class Render extends Component<void, void, ComponentState> {
             checked={this.state.disabledUnchecked} />
         </div>
         <div style={{...styles.container, ...styles.containerPopup, width: 320}}>
-          <Menubar/>
+          <Menubar />
         </div>
         <div style={{...styles.container}}>
           {Object.keys(mocks).map(m => (
@@ -61,7 +61,7 @@ export default class Render extends Component<void, void, ComponentState> {
               <div> Mock State: {m} </div>
               <div style={{...styles.container, ...styles.containerPopup}}>
                 <Mock state={{unlockFolders: mocks[m]}}>
-                  <UnlockFolders/>
+                  <UnlockFolders />
                 </Mock>
               </div>
             </div>

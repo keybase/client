@@ -37,14 +37,14 @@ export default class Render extends Component<void, Props, State> {
 
         <Box style={paperKeyContainerStyle}>
           <Text type='Body' style={paperkeyStyle}>{this.props.paperkey.stringValue()}</Text>
-          <Icon type='paper-key-corner' style={paperCornerStyle}/>
+          <Icon type='paper-key-corner' style={paperCornerStyle} />
         </Box>
 
         <Box style={confirmCheckboxStyle}>
           <Checkbox
             label='Yes, I wrote this down.'
             checked={this.state.checked}
-            onCheck={checked => this.setState({checked})}/>
+            onCheck={checked => this.setState({checked})} />
         </Box>
 
         <Box style={{flex: 2, justifyContent: 'flex-end'}}>
@@ -52,7 +52,7 @@ export default class Render extends Component<void, Props, State> {
             disabled={!this.state.checked}
             onClick={this.props.onFinish}
             label='Done'
-            type='Primary'/>
+            type='Primary' />
         </Box>
       </Box>
     )

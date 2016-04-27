@@ -48,7 +48,7 @@ class Search extends Component {
         <TouchableHighlight underlayColor='#ccc' onPress={() => { this.onPress(rowData) }}>
           <View style={{flexDirection: 'row'}}>
             <View style={styles.photoWrapper}>
-              {thumbnail ? <Image style={styles.photo} source={{uri: thumbnail}}/> : null}
+              {thumbnail ? <Image style={styles.photo} source={{uri: thumbnail}} /> : null}
             </View>
             {rowData.get('tracking') ? <View style={styles.trackingIndicator} /> : null}
             <View style={{flex: 1}}>
@@ -62,7 +62,7 @@ class Search extends Component {
               ) : null}
               <View style={styles.services}>
                 {socialProofs.map(proof => <View key={proof.get('proofType')} style={styles.service}>
-                  <Image style={styles.serviceIcon} source={serviceIcons[proof.get('proofType')]}/>
+                  <Image style={styles.serviceIcon} source={serviceIcons[proof.get('proofType')]} />
                   {proof === matchingProof && (
                     <Text style={styles.serviceName}>
                       {renderTextWithHighlight(proof.get('proofName'), this.props.term, styles.highlight)}
@@ -101,7 +101,7 @@ class Search extends Component {
           clearButtonMode='always'
           onChangeText={search => this.onInput(search)}
         />
-        <View style={styles.divider}/>
+        <View style={styles.divider} />
         <ListView style={{flex: 1}}
           dataSource={this.dataSource.cloneWithRows((this.props.results || Immutable.List()).toArray())}
           renderHeader={() => <View>
@@ -109,7 +109,7 @@ class Search extends Component {
               selectedService={this.props.service}
               onSelectService={service => this.props.selectService(this.props.base, service)}
             />
-            <View style={styles.divider}/>
+            <View style={styles.divider} />
           </View>}
           renderRow={(...args) => { return this.renderRow(...args) }}
           keyboardDismissMode='on-drag'

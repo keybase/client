@@ -7,7 +7,7 @@ const Item = ({onClick, icon, title}) => {
   return (
     <div className='existing-device-container' style={styles.item} onClick={onClick}>
       <div className='existing-device-item' style={styles.iconContainer}>
-        <Icon type={icon} style={styles.icon} inheritColor/>
+        <Icon type={icon} style={styles.icon} inheritColor />
       </div>
       <Text link type='Header'>{title}</Text>
     </div>
@@ -33,8 +33,8 @@ const Render = ({onBack, onSubmitComputer, onSubmitPhone}) => {
       <style>{realCSS}</style>
       <Text type='Header' style={styles.header}>What’s your other device?</Text>
       <div style={styles.itemContainer}>
-        <Item title='Phone' icon='fa-mobile' onClick={() => onSubmitPhone()}/>
-        <Item title='Computer' icon='fa-laptop' onClick={() => onSubmitComputer()}/>
+        <Item title='Phone' icon='fa-mobile' onClick={() => onSubmitPhone()} />
+        <Item title='Computer' icon='fa-laptop' onClick={() => onSubmitComputer()} />
       </div>
     </Container>
   )

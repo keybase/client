@@ -124,4 +124,4 @@ class Keybase extends Component {
   }
 }
 
-ReactDOM.render(<Keybase/>, document.getElementById('app'))
+ReactDOM.render(<Keybase />, document.getElementById('app'))

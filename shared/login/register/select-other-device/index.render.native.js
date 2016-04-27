@@ -24,7 +24,7 @@ const Row = ({deviceID, name, type, onSelect}) => {
     <TouchableHighlight style={stylesRow} onPress={onPress || (() => {})}>
       <View style={stylesIconName}>
         <View style={stylesIconContainer}>
-          <Icon style={stylesIcon} type={iconType} onPress={onPress}/>
+          <Icon style={stylesIcon} type={iconType} onPress={onPress} />
         </View>
         <Text type='BodySemiboldItalic' onPress={onPress}>{name}</Text>
       </View>
@@ -37,7 +37,7 @@ const Render = ({onBack, devices, onWont, onSelect}: Props) => (
     onBack={onBack}>
     <Text type='Header' style={stylesHeader}>Which device would you like to connect with?</Text>
     <Box style={stylesDevicesContainer}>
-      {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID}/>)}
+      {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID} />)}
     </Box>
     <Text style={stylesWont} type='BodySmallSecondaryLink' onClick={onWont}>Log in with your passphrase</Text>
   </Container>

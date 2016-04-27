@@ -22,7 +22,7 @@ export default class BackButton extends Component {
     return (
       <TouchableWithoutFeedback onPress={e => this.onClick(e)}>
         <Box style={{...styles.container, ...this.props.style}} >
-          <Icon type='fa-arrow-left' style={styles.icon}/>
+          <Icon type='fa-arrow-left' style={styles.icon} />
           <Text type='BodyPrimaryLink'>Back</Text>
         </Box>
       </TouchableWithoutFeedback>

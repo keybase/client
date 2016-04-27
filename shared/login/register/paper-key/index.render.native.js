@@ -15,7 +15,7 @@ class PaperKeyRender extends Component<void, Props, void> {
           style={stylesContainer}
           onBack={this.props.onBack}>
           <Text type='Header' style={stylesHeader}>Type in your paper key:</Text>
-          <Icon type='paper-key-m' style={stylesIcon}/>
+          <Icon type='paper-key-m' style={stylesIcon} />
           <Input
             autoFocus
             style={stylesInput}
@@ -25,7 +25,7 @@ class PaperKeyRender extends Component<void, Props, void> {
             onEnterKeyDown={() => this.props.onSubmit()}
             onChangeText={paperKey => this.props.onChangePaperKey(paperKey)}
             type='passwordVisible'
-            value={this.props.paperKey}/>
+            value={this.props.paperKey} />
           <Button
             style={stylesButton}
             type='Primary'
@@ -33,7 +33,7 @@ class PaperKeyRender extends Component<void, Props, void> {
             enabled={this.props.paperKey}
             label='Continue'
             waiting={this.props.waitingForResponse}
-            onClick={() => this.props.onSubmit()}/>
+            onClick={() => this.props.onSubmit()} />
         </Container>
       </Box>
     )

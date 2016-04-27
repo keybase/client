@@ -31,7 +31,7 @@ class Render extends Component<void, Props, void> {
             checkboxesProps={[
               {label: 'Save in keychain', checked: !!(saveInKeychain), onCheck: toggleSaveInKeychain},
               {label: 'Show typing', checked: !!(showTyping), onCheck: toggleShowTyping}
-            ]}/>
+            ]} />
 
           <Button
             fullWidth

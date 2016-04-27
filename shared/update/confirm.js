@@ -95,7 +95,7 @@ class UpdateConfirm extends Component {
             <Checkbox
               checked={this.props.alwaysUpdate}
               label='Update automatically'
-              onCheck={checked => this.props.setAlwaysUpdate(checked)}/>
+              onCheck={checked => this.props.setAlwaysUpdate(checked)} />
           </div>}
         <Snackbar
           message='Copied to clipboard!'

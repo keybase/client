@@ -15,15 +15,15 @@ const Render = ({name, type, isCurrent, onSubmit, onCancel}: Props) => {
 
   return (
     <Box style={stylesContainer}>
-      <Icon style={stylesClose} type='fa-close' onClick={onCancel}/>
+      <Icon style={stylesClose} type='fa-close' onClick={onCancel} />
       <Box style={{...globalStyles.flexBoxColumn, minHeight: 80, marginBottom: 16, alignItems: 'center'}}>
         <Icon type={icon} />
         <Text type='Body' style={stylesName}>{name}</Text>
       </Box>
       <Text type='Header'>Are you sure you want to revoke {isCurrent ? 'your current device' : name}?</Text>
       <Box style={{...globalStyles.flexBoxRow, marginTop: 32}}>
-        <Button type='Secondary' onClick={onCancel} label='Cancel'/>
-        <Button type='Danger' onClick={onSubmit} label='Yes, delete it'/>
+        <Button type='Secondary' onClick={onCancel} label='Cancel' />
+        <Button type='Danger' onClick={onSubmit} label='Yes, delete it' />
       </Box>
     </Box>)
 }

@@ -7,7 +7,7 @@ import type {Props} from './index.render'
 const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName, waiting, submitEnabled = true}: Props) => (
   <Container style={styles.container} onBack={onBack}>
     <Text type='Header' style={styles.header}>Set a public name for this device:</Text>
-    <Icon type='computer-color-m' style={styles.icon}/>
+    <Icon type='computer-color-m' style={styles.icon} />
     <Input
       autoFocus
       errorText={deviceNameError}
@@ -15,7 +15,7 @@ const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName,
       floatingLabelText='Device name'
       onEnterKeyDown={() => onSubmit()}
       onChange={event => onChange(event.target.value)}
-      value={deviceName}/>
+      value={deviceName} />
     <Button
       type='Primary'
       fullWidth

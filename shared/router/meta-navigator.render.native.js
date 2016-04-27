@@ -18,7 +18,7 @@ export default class MetaNavigatorRender extends Component {
           return (
             <View style={{flex: 1, marginTop: route.hideNavBar ? 0 : this.props.navBarHeight}}>
               {element}
-              {!element && Module && <Module {...route.props}/>}
+              {!element && Module && <Module {...route.props} />}
             </View>
           )
         }}
