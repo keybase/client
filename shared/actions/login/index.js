@@ -163,6 +163,10 @@ export function login (): AsyncAction {
   }
 }
 
+export function setRevokedSelf (revoked: string) {
+  return {type: Constants.setRevokedSelf, payload: revoked}
+}
+
 export function doneRegistering (): TypedAction<'login:doneRegistering', void, void> {
   // this has to be undefined for flow to match it to void
   return {type: Constants.doneRegistering, payload: undefined}
