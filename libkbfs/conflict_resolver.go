@@ -143,9 +143,9 @@ func (cr *ConflictResolver) processInput(inputChan <-chan conflictInput) {
 		}
 		ctx, cancel = context.WithCancel(ctx)
 		prevCRDone = make(chan struct{}) // closed when doResolve finishes
-		go func(ci conflictInput) {
+		go func(ci conflictInput, done chan<- struct{}) {
 			defer cr.resolveGroup.Done()
-			defer close(prevCRDone)
+			defer close(done)
 			if waitChan != nil {
 				// Wait for the previous CR without blocking any
 				// Resolve callers, as that could result in deadlock
@@ -158,7 +158,7 @@ func (cr *ConflictResolver) processInput(inputChan <-chan conflictInput) {
 				}
 			}
 			cr.doResolve(ctx, ci)
-		}(ci)
+		}(ci, prevCRDone)
 	}
 }
 
