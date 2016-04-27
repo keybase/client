@@ -4,10 +4,30 @@ import {Image, View} from 'react-native'
 import {globalStyles} from '../../../../styles/style-guide'
 
 import BarcodeScanner from 'react-native-barcodescanner'
+import {requestPermission} from 'react-native-android-permissions'
 
 import type {Props} from './index'
 
-export default class QR extends Component<void, Props, void> {
+type State = {
+  permissionGranted: boolean
+}
+
+export default class QR extends Component<void, Props, State> {
+  state: State;
+
+  constructor (props: Props) {
+    super(props)
+    this.state = {
+      permissionGranted: false
+    }
+
+    requestPermission('android.permission.CAMERA').then(() => {
+      this.setState({permissionGranted: true})
+    }, () => {
+      this.setState({permissionGranted: false})
+    })
+  }
+
   render () {
     if (this.props.scanning) {
       return (
