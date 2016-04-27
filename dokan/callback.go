@@ -7,7 +7,7 @@
 package dokan
 
 /*
-#cgo LDFLAGS: -L${SRCDIR} -ldokan1
+#cgo LDFLAGS: -L${SRCDIR} -ldokan
 #include "bridge.h"
 */
 import "C"
