@@ -38,6 +38,71 @@ class RevokedHeader extends Component {
   }
 }
 
+class DeviceRow extends Component {
+  state: {
+    highlighted: boolean
+  };
+  props: {
+    device: DeviceType,
+    revoked?: boolean,
+    showRemoveDevicePage?: () => void,
+    showExistingDevicePage?: () => void
+  };
+
+  constructor (props) {
+    super(props)
+    this.state = {
+      highlighted: false
+    }
+    this.highlightOn = this.highlightOn.bind(this)
+    this.highlightOff = this.highlightOff.bind(this)
+  }
+
+  highlightOn (e) {
+    this.setState({highlighted: true})
+  }
+
+  highlightOff (e) {
+    this.setState({highlighted: false})
+  }
+
+  render () {
+    const icon: IconProps.type = {
+      'mobile': 'phone-bw-m',
+      'desktop': 'computer-bw-s-2',
+      'backup': 'paper-key-m'
+    }[this.props.device.type]
+
+    let textStyle = {fontStyle: 'italic'}
+    if (this.props.revoked) {
+      textStyle = {
+        ...textStyle,
+        color: globalColors.black40,
+        textDecoration: 'line-through'
+      }
+    }
+
+    return (
+      <Box key={this.props.device.name} onMouseOver={this.highlightOn} onMouseOut={this.highlightOff} style={{...stylesCommonRow, backgroundColor: this.props.revoked ? globalColors.lightGrey : globalColors.white}}>
+        <Box style={this.props.revoked ? stylesRevokedIconColumn : stylesIconColumn}>
+          <Icon type={icon}/>
+        </Box>
+        <Box style={stylesCommonColumn}>
+          <Box style={{...globalStyles.flexBoxRow}}>
+            <Text style={textStyle} type='Header'>{this.props.device.name}</Text>
+          </Box>
+          <Box style={{...globalStyles.flexBoxRow}}>
+            {this.props.device.isCurrent && <Text type='BodySmall'>Current device</Text>}
+          </Box>
+        </Box>
+        <Box style={{...stylesRevokedColumn}}>
+          {!this.props.revoked && this.state.highlighted && <Text style={{color: globalColors.red}} type='BodyPrimaryLink'>Revoke</Text>}
+        </Box>
+      </Box>
+    )
+  }
+}
+
 const RevokedDescription = () => {
   return (
     <Box style={stylesRevokedDescription}>
@@ -50,7 +115,7 @@ const RevokedDevices = revokedDevices => {
   return (
     <RevokedHeader>
       <RevokedDescription/>
-      {revokedDevices.map(device => DeviceRow({device, revoked: true, showRemoveDevicePage: () => {}, showExistingDevicePage: () => {}}))}
+      {revokedDevices.map(device => <DeviceRow device={device} revoked/>)}
     </RevokedHeader>
   )
 }
@@ -68,47 +133,11 @@ const DeviceHeader = addNewDevice => {
   )
 }
 
-const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePage}) => {
-  const icon: IconProps.type = {
-    'mobile': 'phone-bw-m',
-    'desktop': 'computer-bw-s-2',
-    'backup': 'paper-key-m'
-  }[device.type]
-
-  let textStyle = {fontStyle: 'italic'}
-  if (revoked) {
-    textStyle = {
-      ...textStyle,
-      color: globalColors.black40,
-      textDecoration: 'line-through'
-    }
-  }
-
-  return (
-    <Box key={device.name} style={{...stylesCommonRow, backgroundColor: revoked ? globalColors.lightGrey : globalColors.white}} onClick={showExistingDevicePage}>
-      <Box style={revoked ? stylesRevokedIconColumn : stylesIconColumn}>
-        <Icon type={icon}/>
-      </Box>
-      <Box style={stylesCommonColumn}>
-        <Box style={{...globalStyles.flexBoxRow}}>
-          <Text style={textStyle} type='Header'>{device.name}</Text>
-        </Box>
-        <Box style={{...globalStyles.flexBoxRow}}>
-          {device.isCurrent && <Text type='BodySmall'>Current device</Text>}
-        </Box>
-      </Box>
-      <Box style={{...stylesRevokedColumn}}>
-        {!revoked && <Text style={{color: globalColors.red}} type='BodyPrimaryLink'>Revoke</Text>}
-      </Box>
-    </Box>
-  )
-}
-
 const Render = ({devices, revokedDevices, waitingForServer, addNewDevice, showRemoveDevicePage, showExistingDevicePage}: Props) => {
   return (
     <Box style={stylesContainer}>
       {DeviceHeader(addNewDevice)}
-      {devices && devices.map(device => DeviceRow({device, revoked: false, showRemoveDevicePage, showExistingDevicePage}))}
+      {devices && devices.map(device => <DeviceRow device={device} showRemoveDevicePage={showRemoveDevicePage} showExistingDevicePage={showExistingDevicePage}/>)}
       {revokedDevices && RevokedDevices(revokedDevices)}
     </Box>
   )
