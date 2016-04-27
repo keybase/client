@@ -20,50 +20,57 @@ import (
 
 // CmdProve is the wrapper structure for the the `keybase prove` operation.
 type CmdProve struct {
+	libkb.Contextified
 	arg    keybase1.StartProofArg
 	output string
+	auto   bool
 }
 
 // ParseArgv parses arguments for the prove command.
 func (p *CmdProve) ParseArgv(ctx *cli.Context) error {
 	nargs := len(ctx.Args())
-	var err error
 	p.arg.Force = ctx.Bool("force")
 	p.output = ctx.String("output")
 
 	if nargs > 2 || nargs == 0 {
-		err = fmt.Errorf("prove takes 1 or 2 args: <service> [<username>]")
-	} else {
-		p.arg.Service = ctx.Args()[0]
-		if nargs == 2 {
-			p.arg.Username = ctx.Args()[1]
-		}
+		return fmt.Errorf("prove takes 1 or 2 args: <service> [<username>]")
 	}
-	return err
+	p.arg.Service = ctx.Args()[0]
+	if nargs == 2 {
+		p.arg.Username = ctx.Args()[1]
+	}
+
+	if libkb.RemoteServiceTypes[p.arg.Service] == keybase1.ProofType_ROOTER {
+		p.auto = ctx.Bool("auto")
+	}
+	return nil
 }
 
 func (p *CmdProve) fileOutputHook(txt string) (err error) {
-	G.Log.Info("Writing proof to file '" + p.output + "'...")
+	p.G().Log.Info("Writing proof to file '" + p.output + "'...")
 	err = ioutil.WriteFile(p.output, []byte(txt), os.FileMode(0644))
-	G.Log.Info("Written.")
+	p.G().Log.Info("Written.")
 	return
-}
-
-func newProveUIProtocol(ui ProveUI) rpc.Protocol {
-	return keybase1.ProveUiProtocol(ui)
 }
 
 // RunClient runs the `keybase prove` subcommand in client/server mode.
 func (p *CmdProve) Run() error {
 	var cli keybase1.ProveClient
 
-	proveUI := ProveUI{parent: GlobUI}
-	p.installOutputHook(&proveUI)
+	var proveUIProtocol rpc.Protocol
+
+	if p.auto {
+		proveUIProtocol = keybase1.ProveUiProtocol(&ProveRooterUI{Contextified: libkb.NewContextified(p.G())})
+	} else {
+		proveUI := ProveUI{parent: GlobUI}
+		p.installOutputHook(&proveUI)
+		proveUIProtocol = keybase1.ProveUiProtocol(proveUI)
+	}
 
 	protocols := []rpc.Protocol{
-		newProveUIProtocol(proveUI),
-		NewLoginUIProtocol(G),
-		NewSecretUIProtocol(G),
+		proveUIProtocol,
+		NewLoginUIProtocol(p.G()),
+		NewSecretUIProtocol(p.G()),
 	}
 
 	cli, err := GetProveClient()
@@ -90,10 +97,10 @@ func (p *CmdProve) installOutputHook(ui *ProveUI) {
 }
 
 // NewCmdProve makes a new prove command from the given CLI parameters.
-func NewCmdProve(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdProve(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	serviceList := strings.Join(libkb.ListProofCheckers(), ", ")
 	description := fmt.Sprintf("Supported services are: %s.", serviceList)
-	return cli.Command{
+	cmd := cli.Command{
 		Name:         "prove",
 		ArgumentHelp: "<service> [service username]",
 		Usage:        "Generate a new proof",
@@ -109,9 +116,11 @@ func NewCmdProve(cl *libcmdline.CommandLine) cli.Command {
 			},
 		},
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdProve{}, "prove", c)
+			cl.ChooseCommand(&CmdProve{Contextified: libkb.NewContextified(g)}, "prove", c)
 		},
 	}
+	cmd.Flags = append(cmd.Flags, restrictedProveFlags...)
+	return cmd
 }
 
 // GetUsage specifics the library features that the prove command needs.
