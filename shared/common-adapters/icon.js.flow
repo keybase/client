@@ -10,7 +10,7 @@ export type Props = {
     | 'computer-bw-xs'
     | 'computer-color-l'
     | 'computer-color-m'
-    | 'devices-add-s
+    | 'devices-add-s'
     | 'documentation'
     | 'email-sent-m'
     | 'folder-all-m'
