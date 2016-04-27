@@ -7,6 +7,21 @@ protocol device {
     List devices for the user.
     */
   array<Device> deviceList(int sessionID);
+ 
+  record DeviceDetail {
+    Device device;
+    boolean eldest;
+    union {null, Device} provisioner;
+    union {null, Time} provisionedAt;
+    // not possible to determine revoker without major code change
+    // union {null, Device} revoker;
+    union {null, Time} revokedAt;
+  }
+ 
+  /**
+    List all devices with detailed history and status information.
+    */
+  array<DeviceDetail> deviceHistoryList(int sessionID);
 
   /**
     Starts the process of adding a new device using an existing

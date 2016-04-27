@@ -40,6 +40,21 @@ func (h *DeviceHandler) DeviceList(_ context.Context, sessionID int) ([]keybase1
 	return eng.List(), nil
 }
 
+// DeviceHistoryList returns a list of all the devices for a user,
+// with detailed history and provisioner, revoker information.
+func (h *DeviceHandler) DeviceHistoryList(nctx context.Context, sessionID int) ([]keybase1.DeviceDetail, error) {
+	ctx := &engine.Context{
+		LogUI:      h.getLogUI(sessionID),
+		NetContext: nctx,
+		SessionID:  sessionID,
+	}
+	eng := engine.NewDeviceHistorySelf(h.G())
+	if err := engine.RunEngine(eng, ctx); err != nil {
+		return nil, err
+	}
+	return eng.Devices(), nil
+}
+
 // DeviceAdd starts the kex2 device provisioning on the
 // provisioner (device X/C1)
 func (h *DeviceHandler) DeviceAdd(_ context.Context, sessionID int) error {
