@@ -132,7 +132,15 @@ func getMergedMDUpdates(ctx context.Context, config Config, id TlfID,
 	// device, is processed.
 	for _, rmd := range mergedRmds {
 		if err := rmd.isReadableOrError(ctx, config); err != nil {
-			config.MakeLogger("").CDebugf(ctx, "Trying to decrypt MD %d again", rmd.Revision)
+			// Prime the key cache with the right secret key for the
+			// given rmd's key generation, which may only be present
+			// in the most recent rmd.
+			latestRmd := mergedRmds[len(mergedRmds)-1]
+			if _, err := config.KeyManager().
+				GetTLFCryptKeyForMDDecryptionByKeyGen(ctx, latestRmd,
+					rmd.LatestKeyGeneration()); err != nil {
+				return nil, err
+			}
 			if err := decryptMDPrivateData(ctx, config, rmd); err != nil {
 				return nil, err
 			}

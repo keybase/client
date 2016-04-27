@@ -38,6 +38,15 @@ func (km *KeyManagerStandard) GetTLFCryptKeyForMDDecryption(
 		getTLFCryptKeyAnyDevice|getTLFCryptKeyDoCache)
 }
 
+// GetTLFCryptKeyForMDDecryptionByKeyGen implements the KeyManager
+// interface for KeyManagerStandard.
+func (km *KeyManagerStandard) GetTLFCryptKeyForMDDecryptionByKeyGen(
+	ctx context.Context, md *RootMetadata, keyGen KeyGen) (
+	tlfCryptKey TLFCryptKey, err error) {
+	return km.getTLFCryptKey(ctx, md, keyGen,
+		getTLFCryptKeyAnyDevice|getTLFCryptKeyDoCache)
+}
+
 // GetTLFCryptKeyForBlockDecryption implements the KeyManager interface for
 // KeyManagerStandard.
 func (km *KeyManagerStandard) GetTLFCryptKeyForBlockDecryption(

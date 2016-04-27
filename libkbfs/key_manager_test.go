@@ -606,6 +606,7 @@ func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	// add a third device for user 2
 	config2Dev3 := ConfigAsUser(config1.(*ConfigLocal), u2)
 	defer CheckConfigAndShutdown(t, config2Dev3)
+	defer config2Dev3.SetKeyCache(NewKeyCacheStandard(5000))
 	AddDeviceForLocalUserOrBust(t, config1, uid2)
 	AddDeviceForLocalUserOrBust(t, config2, uid2)
 	AddDeviceForLocalUserOrBust(t, config2Dev2, uid2)

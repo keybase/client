@@ -409,6 +409,12 @@ type KeyManager interface {
 	GetTLFCryptKeyForMDDecryption(ctx context.Context, md *RootMetadata) (
 		TLFCryptKey, error)
 
+	// GetTLFCryptKeyForMDDecryptionByKeyGen gets the crypt key to use
+	// for the TLF with the given metadata to decrypt the private
+	// portion of the metadata at the specified key generation.
+	GetTLFCryptKeyForMDDecryptionByKeyGen(ctx context.Context, md *RootMetadata,
+		keyGen KeyGen) (TLFCryptKey, error)
+
 	// GetTLFCryptKeyForBlockDecryption gets the crypt key to use
 	// for the TLF with the given metadata to decrypt the block
 	// pointed to by the given pointer.
