@@ -72,15 +72,15 @@ const Fonts = () => (
   <Box style={globalStyles.flexBoxColumn}>
     <Box style={{...globalStyles.flexBoxRow, flexWrap: 'wrap'}}>
 
-      {['Normal', 'Announcements', 'Success', 'Information', 'HighRisk', 'Documentation', 'Terminal'].map(backgroundMode => {
+      {['Normal', 'Terminal', 'Announcements', 'Success', 'Information', 'HighRisk', 'Documentation'].map(backgroundMode => {
         const background = {
           'Normal': globalColors.white,
+          'Terminal': globalColors.darkBlue3,
           'Announcements': globalColors.blue,
           'Success': globalColors.green,
           'Information': globalColors.yellow,
           'HighRisk': globalColors.red,
-          'Documentation': globalColors.darkBlue,
-          'Terminal': globalColors.darkBlue3
+          'Documentation': globalColors.darkBlue
         }[backgroundMode]
 
         return (
@@ -89,23 +89,68 @@ const Fonts = () => (
             <Text backgroundMode={backgroundMode} type='HeaderJumbo'>Header Jumbo</Text>
             <Text backgroundMode={backgroundMode} type='HeaderJumbo'>Header Jumbo</Text>
             <Space/>
-            <Text backgroundMode={backgroundMode} type='HeaderBig'>Header Big Header Big</Text>
-            <Text backgroundMode={backgroundMode} type='HeaderBig'>Header Big Header Big</Text>
+            <Space/>
+            <Space/>
+            <Text backgroundMode={backgroundMode} type='HeaderBig'>Header big Header big</Text>
+            <Text backgroundMode={backgroundMode} type='HeaderBig'>Header big Header big</Text>
+            <Space/>
+            <Space/>
             <Space/>
             <Text backgroundMode={backgroundMode} type='Header'>Header Header Header</Text>
             <Text backgroundMode={backgroundMode} type='Header'>Header Header Header</Text>
             <Space/>
-            <Text backgroundMode={backgroundMode} type='Body'>Body Body</Text>
-            <Text backgroundMode={backgroundMode} type='Body'>Body Body</Text>
+            <Text backgroundMode={backgroundMode} type='HeaderLink'>Header link Header Link</Text>
+            <Text backgroundMode={backgroundMode} type='HeaderLink'>Header link Header Link</Text>
             <Space/>
-            <Text backgroundMode={backgroundMode} type='BodySemibold'>Body Semibold Body Semibold</Text>
-            <Text backgroundMode={backgroundMode} type='BodySemibold'>Body Semibold Body Semibold</Text>
+            <Text backgroundMode={backgroundMode} type='HeaderError'>Header error Header error</Text>
+            <Text backgroundMode={backgroundMode} type='HeaderError'>Header error Header error</Text>
             <Space/>
+            <Space/>
+            <Space/>
+            <Text backgroundMode={backgroundMode} type='Body'>Body text Body text Body text</Text>
+            <Text backgroundMode={backgroundMode} type='Body'>Body text Body text Body text</Text>
+            <Space/>
+            <Text backgroundMode={backgroundMode} type='BodySemibold'>Body semibold Body semibold</Text>
+            <Text backgroundMode={backgroundMode} type='BodySemibold'>Body semibold Body semibold</Text>
+            <Space/>
+            <Text backgroundMode={backgroundMode} type='BodyPrimaryLink'>Body primary link</Text>
+            <Text backgroundMode={backgroundMode} type='BodyPrimaryLink'>Body primary link hover</Text>
+            <Space/>
+            <Space/>
+            <Space/>
+            <Box>
+              <Text backgroundMode={backgroundMode} type='BodySmall'>Body small Body Small&nbsp;</Text>
+              <Text backgroundMode={backgroundMode} type='BodySmallLink'>inline link</Text>
+            </Box>
+            <Box>
+              <Text backgroundMode={backgroundMode} type='BodySmall'>Body small Body Small&nbsp;</Text>
+              <Text backgroundMode={backgroundMode} type='BodySmallLink'>inline link hover</Text>
+            </Box>
+            <Space/>
+            <Text backgroundMode={backgroundMode} type='BodySmallError'>Body small error Body small error</Text>
+            <Text backgroundMode={backgroundMode} type='BodySmallError'>Body small error Body small error</Text>
+            <Space/>
+            <Text backgroundMode={backgroundMode} type='BodySmallPrimaryLink'>Body small primary link</Text>
+            <Text backgroundMode={backgroundMode} type='BodySmallPrimaryLink'>Body small primary link hover</Text>
+            <Space/>
+            <Text backgroundMode={backgroundMode} type='BodySmallSecondaryLink'>Body small secondary link</Text>
+            <Text backgroundMode={backgroundMode} type='BodySmallSecondaryLink'>Body small secondary link hover</Text>
+            <Space/>
+            <Space/>
+            <Space/>
+            <Box>
+              <Text backgroundMode={backgroundMode} type='BodyXSmall'>Body x-small Body x-small&nbsp;</Text>
+              <Text backgroundMode={backgroundMode} type='BodyXSmallLink'>inline link</Text>
+            </Box>
+            <Box>
+              <Text backgroundMode={backgroundMode} type='BodyXSmall'>Body x-small Body x-small&nbsp;</Text>
+              <Text backgroundMode={backgroundMode} type='BodyXSmallLink'>inline link hover</Text>
+            </Box>
+            <Space/>
+
             <Text backgroundMode={backgroundMode} type='BodySmallSemibold'>Body small Semibold Body Small Semibold</Text>
             <Text backgroundMode={backgroundMode} type='BodySmallSemibold'>Body small Semibold Body Small Semibold</Text>
             <Space/>
-            <Text backgroundMode={backgroundMode} type='BodySmall'>Body small Body Small</Text>
-            <Text backgroundMode={backgroundMode} type='BodySmall'>Body small Body Small</Text>
           </Box>) })}
     </Box>
 
@@ -212,10 +257,10 @@ export default class Render extends Component {
   render () {
     return (
       <Box style={{...globalStyles.flexBoxColumn, margin: 20}}>
+        <Container title='Text'><Fonts/></Container>
         <Container title='Icons'><Icons/></Container>
         <Container title='Buttons'><Buttons/></Container>
         <Container title='Dropdown'><Dropdowns/></Container>
-        <Container title='Text'><Fonts/></Container>
         <Container title='Colors'><Colors/></Container>
         <Container title='Inputs'><Inputs/></Container>
       </Box>
