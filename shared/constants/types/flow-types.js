@@ -2683,7 +2683,8 @@ export type prove_startProof_rpc = {
     service: string,
     username: string,
     force: boolean,
-    promptPosted: boolean
+    promptPosted: boolean,
+    auto: boolean
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any, response: prove_startProof_result) => void)
@@ -4776,7 +4777,8 @@ export type incomingCallMapType = {
       service: string,
       username: string,
       force: boolean,
-      promptPosted: boolean
+      promptPosted: boolean,
+      auto: boolean
     },
     response: {
       error: (err: RPCError) => void,

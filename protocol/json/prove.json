@@ -757,6 +757,10 @@
         {
           "name": "promptPosted",
           "type": "boolean"
+        },
+        {
+          "name": "auto",
+          "type": "boolean"
         }
       ],
       "response": "StartProofResult"

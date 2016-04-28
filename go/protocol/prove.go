@@ -24,6 +24,7 @@ type StartProofArg struct {
 	Username     string `codec:"username" json:"username"`
 	Force        bool   `codec:"force" json:"force"`
 	PromptPosted bool   `codec:"promptPosted" json:"promptPosted"`
+	Auto         bool   `codec:"auto" json:"auto"`
 }
 
 type CheckProofArg struct {

@@ -46,4 +46,11 @@ var restrictedSignupFlags = []cli.Flag{
 	},
 }
 
+var restrictedProveFlags = []cli.Flag{
+	cli.BoolFlag{
+		Name:  "auto",
+		Usage: "[rooter only] Automatically make the rooter toot proof",
+	},
+}
+
 const develUsage = true

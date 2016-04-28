@@ -19,6 +19,6 @@ protocol prove {
     Create a proof. Set promptPosted to true to enable the okToCheck,
     displayRecheckWarning ui loop.
   */
-  StartProofResult startProof(int sessionID, string service, string username, boolean force, boolean promptPosted);
+  StartProofResult startProof(int sessionID, string service, string username, boolean force, boolean promptPosted, boolean auto);
   CheckProofStatus checkProof(int sessionID, SigID sigID);
 }
