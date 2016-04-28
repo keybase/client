@@ -20,7 +20,9 @@ import (
 type Folder struct {
 	fs   *FS
 	list *FolderList
-	h    *libkbfs.TlfHandle
+
+	handleMu sync.RWMutex
+	h        *libkbfs.TlfHandle
 
 	folderBranchMu sync.Mutex
 	folderBranch   libkbfs.FolderBranch
@@ -56,6 +58,8 @@ func newFolder(fl *FolderList, h *libkbfs.TlfHandle) *Folder {
 }
 
 func (f *Folder) name() libkbfs.CanonicalTlfName {
+	f.handleMu.RLock()
+	defer f.handleMu.RUnlock()
 	return f.h.GetCanonicalName()
 }
 
@@ -244,7 +248,24 @@ func (f *Folder) batchChangesInvalidate(ctx context.Context,
 // TlfHandleChange is called when the name of a folder changes.
 func (f *Folder) TlfHandleChange(ctx context.Context,
 	newHandle *libkbfs.TlfHandle) {
-	return
+	// spawn a goroutine because we shouldn't lock during the notification
+	f.fs.queueNotification(func() {
+		f.tlfHandleChangeInvalidate(ctx, newHandle)
+	})
+}
+
+func (f *Folder) tlfHandleChangeInvalidate(ctx context.Context,
+	newHandle *libkbfs.TlfHandle) {
+	oldName := func() libkbfs.CanonicalTlfName {
+		f.handleMu.Lock()
+		defer f.handleMu.Unlock()
+		oldName := f.h.GetCanonicalName()
+		f.h = newHandle
+		return oldName
+	}()
+
+	f.list.updateTlfName(ctx, string(oldName),
+		string(newHandle.GetCanonicalName()))
 }
 
 // TODO: Expire TLF nodes periodically. See
