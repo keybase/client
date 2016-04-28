@@ -16,6 +16,7 @@ export type Props = $Shape<{
   rowsMax?: number,
   style?: Object,
   type?: 'password' | 'text' | 'passwordVisible',
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters',
   value?: ?string,
   small?: bool,
   errorStyle?: Object,
