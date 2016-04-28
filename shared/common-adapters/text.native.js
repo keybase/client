@@ -157,7 +157,7 @@ Text.contextTypes = {
   inTerminal: React.PropTypes.bool
 }
 
-const sizeGroups = {
+const sizeGroups: { [key: '40' | '30' | '22' | '18' | '15' | '14']: Object } = {
   '40': {
     fontSize: 40,
     lineHeight: 46
@@ -206,7 +206,7 @@ export const specialStyles = {
   paperKey: {
     ...textCommon,
     ...globalStyles.fontTerminalSemibold,
-    ...sizeGroups[15],
+    ...sizeGroups['15'],
     color: globalColors.darkBlue
   },
   username: {
@@ -222,38 +222,38 @@ export const styles = {
   textHeaderJumbo: {
     ...textCommon,
     ...globalStyles.fontBold,
-    ...sizeGroups[40]
+    ...sizeGroups['40']
   },
   textHeaderBig: {
     ...textCommon,
     ...globalStyles.fontBold,
-    ...sizeGroups[30]
+    ...sizeGroups['30']
   },
   textHeader: {
     ...textCommon,
     ...globalStyles.fontSemibold,
-    ...sizeGroups[22]
+    ...sizeGroups['22']
   },
   textHeaderLink: {
     ...textCommon,
     ...globalStyles.fontSemibold,
-    ...sizeGroups[22],
+    ...sizeGroups['22'],
     color: globalColors.blue
   },
   textInputHeader: {
     ...textCommon,
     ...globalStyles.fontSemibold,
-    ...sizeGroups[15],
+    ...sizeGroups['15'],
     color: globalColors.blue
   },
   textBody: {
     ...textCommon,
-    ...sizeGroups[18]
+    ...sizeGroups['18']
   },
   textBodySemibold: {
     ...textCommon,
     ...globalStyles.fontSemibold,
-    ...sizeGroups[18]
+    ...sizeGroups['18']
   },
   textBadge: {
     ...textCommon,
@@ -271,44 +271,44 @@ export const styles = {
   },
   textBodySmall: {
     ...textCommon,
-    ...sizeGroups[15]
+    ...sizeGroups['15']
   },
   textBodySmallError: {
     ...textCommon,
-    ...sizeGroups[15],
+    ...sizeGroups['15'],
     color: globalColors.red
   },
   textBodySmallLink: {
     ...textCommon,
-    ...sizeGroups[15]
+    ...sizeGroups['15']
   },
   textBodySmallPrimaryLink: {
     ...textCommon,
-    ...sizeGroups[15],
+    ...sizeGroups['15'],
     color: globalColors.blue
   },
   textBodySmallSecondaryLink: {
     ...textCommon,
-    ...sizeGroups[15],
+    ...sizeGroups['15'],
     color: globalColors.black60
   },
   textBodySmallSemibold: {
     ...textCommon,
     ...globalStyles.fontSemibold,
-    ...sizeGroups[15]
+    ...sizeGroups['15']
   },
   textBodyXSmall: {
     ...textCommon,
-    ...sizeGroups[14]
+    ...sizeGroups['14']
   },
   textBodyXSmallLink: {
     ...textCommon,
-    ...sizeGroups[14]
+    ...sizeGroups['14']
   },
   textError: {
     ...textCommon,
     color: globalColors.red,
-    ...sizeGroups[15]
+    ...sizeGroups['15']
   },
   textTerminal,
   textTerminalCommand: {
