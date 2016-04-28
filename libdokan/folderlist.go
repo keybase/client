@@ -85,8 +85,8 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 			return child.open(ctx, oc, path[1:])
 		}
 
-		if len(path) == 1 && oc.isCreateDirectory() && (name == newFolderName || name == newFolderAltName) {
-			fl.fs.log.CDebugf(ctx, "FL Lookup returning EmptyFolder instead of Alias for Explorer")
+		if len(path) == 1 && oc.isCreateDirectory() && isNewFolderName(name) {
+			fl.fs.log.CDebugf(ctx, "FL Lookup creating EmptyFolder for Explorer")
 			e := &EmptyFolder{}
 			fl.lockedAddChild(name, e)
 			return e, true, nil

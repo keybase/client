@@ -17,14 +17,25 @@ import (
 	"golang.org/x/sys/windows"
 )
 
+func isNewFolderName(name string) bool {
+	return name == newFolderName || name == newFolderAltName
+}
+
 var newFolderName, newFolderNameErr = getNewFolderName()
 var newFolderAltName = altCase(newFolderName)
+
+// The resourse IDs are not considered stable by Microsoft.
+// Luckily for us this happens to be the same for our
+// targeted Windows versions where kbfsdokan works.
+// Tested for Windows 7, 8, 8.1 and 10.
+// TODO test this for new Windows versions!
+const newFolderWindws7to10ResourceID = 16888
 
 func getNewFolderName() (string, error) {
 	var u16ptr *uint16
 	// The following id is valid for at least Windows 7, 8.1 and 10.
-	id := uintptr(16888)
-	res, _, err := syscall.Syscall6(procLoadStringW.Addr(), 4, shell32DLL.Handle(), id, uintptr(unsafe.Pointer(&u16ptr)), 0, 0, 0)
+	res, _, err := syscall.Syscall6(procLoadStringW.Addr(), 4, shell32DLL.Handle(),
+		newFolderWindws7to10ResourceID, uintptr(unsafe.Pointer(&u16ptr)), 0, 0, 0)
 	if res == 0 {
 		return "New Folder", err
 	}
