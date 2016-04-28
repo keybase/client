@@ -7,12 +7,12 @@ import type {Props as IconProps} from '../common-adapters/icon'
 import type {Props} from './index'
 import type {Device as DeviceType} from '../constants/types/flow-types'
 
-class RevokedHeader extends Component {
-  state: {
-    expanded: boolean
-  };
+type RevokedHeaderState = {expanded: boolean}
 
-  constructor (props) {
+class RevokedHeader extends Component<void, Props, RevokedHeaderState> {
+  state: RevokedHeaderState;
+
+  constructor (props: Props) {
     super(props)
     this.state = {
       expanded: false
@@ -37,10 +37,10 @@ class RevokedHeader extends Component {
   }
 }
 
-class DeviceRow extends Component {
-  state: {
-    highlighted: boolean
-  };
+type DeviceRowState = {highlighted: boolean}
+
+class DeviceRow extends Component<void, Props, DeviceRowState> {
+  state: DeviceRowState;
   props: {
     device: DeviceType,
     revoked?: boolean,
@@ -96,45 +96,37 @@ class DeviceRow extends Component {
   }
 }
 
-const RevokedDescription = () => {
-  return (
-    <Box style={stylesRevokedDescription}>
-      <Text type='BodySemibold' style={{color: globalColors.black40}}>Revoked devices will no longer be able to access your Keybase account.</Text>
-    </Box>
-  )
-}
+const RevokedDescription = () => (
+  <Box style={stylesRevokedDescription}>
+    <Text type='BodySemibold' style={{color: globalColors.black40}}>Revoked devices will no longer be able to access your Keybase account.</Text>
+  </Box>
+)
 
-const RevokedDevices = ({revokedDevices}) => {
-  return (
-    <RevokedHeader>
-      <RevokedDescription/>
-      {revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked/>)}
-    </RevokedHeader>
-  )
-}
+const RevokedDevices = ({revokedDevices}) => (
+  <RevokedHeader>
+    <RevokedDescription/>
+    {revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked/>)}
+  </RevokedHeader>
+)
 
-const DeviceHeader = ({addNewDevice}) => {
-  return (
-    <Box style={stylesCommonRow}>
-      <Box style={stylesCommonColumn}>
-        <Icon type='devices-add-s'/>
-      </Box>
-      <Box style={stylesCommonColumn}>
-        <Text type='BodyPrimaryLink' onClick={addNewDevice}>Add new...</Text>
-      </Box>
+const DeviceHeader = ({addNewDevice}) => (
+  <Box style={stylesCommonRow}>
+    <Box style={stylesCommonColumn}>
+      <Icon type='devices-add-s'/>
     </Box>
-  )
-}
+    <Box style={stylesCommonColumn}>
+      <Text type='BodyPrimaryLink' onClick={addNewDevice}>Add new...</Text>
+    </Box>
+  </Box>
+)
 
-const Render = ({devices, revokedDevices, waitingForServer, addNewDevice, showRemoveDevicePage, showExistingDevicePage}: Props) => {
-  return (
-    <Box style={stylesContainer}>
-      {<DeviceHeader addNewDevice={addNewDevice} />}
-      {devices && devices.map(device => <DeviceRow key={device.name} device={device} showRemoveDevicePage={showRemoveDevicePage} showExistingDevicePage={showExistingDevicePage}/>)}
-      {revokedDevices && <RevokedDevices revokedDevices={revokedDevices} />}
-    </Box>
-  )
-}
+const Render = ({devices, revokedDevices, waitingForServer, addNewDevice, showRemoveDevicePage, showExistingDevicePage}: Props) => (
+  <Box style={stylesContainer}>
+    {<DeviceHeader addNewDevice={addNewDevice} />}
+    {devices && devices.map(device => <DeviceRow key={device.name} device={device} showRemoveDevicePage={showRemoveDevicePage} showExistingDevicePage={showExistingDevicePage}/>)}
+    {revokedDevices && <RevokedDevices revokedDevices={revokedDevices} />}
+  </Box>
+)
 
 const stylesContainer = {
   ...globalStyles.flexBoxColumn
