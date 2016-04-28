@@ -10,6 +10,7 @@ import (
 	"sync"
 
 	"github.com/keybase/kbfs/dokan"
+	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -46,39 +47,6 @@ func (tlf *TLF) getStoredDir() *Dir {
 	return tlf.dir
 }
 
-func (tlf *TLF) filterEarlyExitError(ctx context.Context, err error) (
-	exitEarly bool, retErr error) {
-	switch err := err.(type) {
-	case nil:
-		// No error.
-		return false, nil
-
-	case libkbfs.WriteAccessError:
-		// No permission to create TLF, so pretend it's still
-		// empty.
-		//
-		// In theory, we need to invalidate this once the TLF
-		// is created, but in practice, the Linux kernel
-		// doesn't cache readdir results, and probably not
-		// OSXFUSE either.
-		tlf.folder.fs.log.CDebugf(ctx,
-			"No permission to write to %s, so pretending it's empty",
-			tlf.folder.name)
-		return true, nil
-
-	case libkbfs.MDServerErrorWriteAccess:
-		// Same as above; cannot fallthrough in type switch
-		tlf.folder.fs.log.CDebugf(ctx,
-			"No permission to write to %s, so pretending it's empty",
-			tlf.folder.name)
-		return true, nil
-
-	default:
-		// Some other error.
-		return true, err
-	}
-}
-
 func (tlf *TLF) loadDirHelper(ctx context.Context, info string, filterErr bool) (dir *Dir, exitEarly bool, err error) {
 	dir = tlf.getStoredDir()
 	if dir != nil {
@@ -99,7 +67,7 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, info string, filterErr bool) 
 		"(public: %t) for %s", name, tlf.isPublic(), info)
 	defer func() {
 		if filterErr {
-			exitEarly, err = tlf.filterEarlyExitError(ctx, err)
+			exitEarly, err = libfs.FilterTLFEarlyExitError(ctx, err, tlf.folder.fs.log, name)
 		}
 
 		tlf.folder.reportErr(ctx, libkbfs.ReadMode, err, nil)
