@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"strings"
 	"sync"
 	"time"
@@ -478,6 +479,7 @@ func (fbo *folderBranchOps) setHeadLocked(ctx context.Context,
 	fbo.headLock.AssertLocked(lState)
 
 	isFirstHead := fbo.head == nil
+	var oldHandle *TlfHandle
 	if !isFirstHead {
 		mdID, err := md.MetadataID(fbo.config)
 		if err != nil {
@@ -493,6 +495,8 @@ func (fbo *folderBranchOps) setHeadLocked(ctx context.Context,
 			// only save this new MD if the MDID has changed
 			return nil
 		}
+
+		oldHandle = fbo.head.GetTlfHandle()
 	}
 
 	fbo.log.CDebugf(ctx, "Setting head revision to %d", md.Revision)
@@ -521,6 +525,9 @@ func (fbo *folderBranchOps) setHeadLocked(ctx context.Context,
 			fbo.updateDoneChan = make(chan struct{})
 			go fbo.registerAndWaitForUpdates()
 		}
+	} else if h := fbo.head.GetTlfHandle(); !reflect.DeepEqual(oldHandle, h) {
+		// If the handle has changed, send out a notification.
+		fbo.observers.tlfHandleChange(ctx, h)
 	}
 	return nil
 }
