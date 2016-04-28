@@ -17,6 +17,9 @@ import {devicesTab, moreTab, folderTab, peopleTab, loginTab, profileTab, prettif
 import {switchTab} from './actions/tabbed-router'
 import {navigateBack} from './actions/router'
 import {bootstrap} from './actions/config'
+import ListenLogUi from './native/listen-log-ui'
+import {listenForNotifications} from './actions/notifications'
+import hello from './util/hello'
 
 const tabs: {[key: VisibleTab]: {module: any}} = {
   [profileTab]: {module: Login, name: 'Login'},
@@ -58,6 +61,13 @@ class Nav extends Component {
   constructor (props) {
     super(props)
     this.props.bootstrap()
+    this.props.listenForNotifications()
+
+    // Handle logUi.log
+    ListenLogUi()
+
+    // Introduce ourselves to the service
+    hello(0, 'Android app', [], '0.0.0') // TODO real version
   }
 
   _renderContent (activeTab, module) {
@@ -94,7 +104,7 @@ class Nav extends Component {
       return this._renderContent(loginTab, Login)
     }
 
-    const drawerContnet = (
+    const drawerContent = (
       <View style={{flex: 1, backgroundColor: '#fff'}}>
         <Text style={{margin: 10, fontSize: 15, textAlign: 'left'}}>I'm in the Drawer!</Text>
       </View>
@@ -110,7 +120,7 @@ class Nav extends Component {
         drawerWidth={300}
         ref='drawer'
         drawerPosition={DrawerLayoutAndroid.positions.Left}
-        renderNavigationView={() => drawerContnet}>
+        renderNavigationView={() => drawerContent}>
         <View collapsable={false} style={{flex: 1}}>
           <View
             title={''}
@@ -204,7 +214,8 @@ export default connect(
     return {
       switchTab: tab => dispatch(switchTab(tab)),
       navigateBack: () => dispatch(navigateBack()),
-      bootstrap: () => dispatch(bootstrap())
+      bootstrap: () => dispatch(bootstrap()),
+      listenForNotifications: () => dispatch(listenForNotifications())
     }
   }
 )(Nav)
