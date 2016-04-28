@@ -54,8 +54,6 @@ class Tracker extends Component {
   }
 
   render () {
-    console.log(this.props)
-
     if (this.props.closed) {
       return <div />
     }
