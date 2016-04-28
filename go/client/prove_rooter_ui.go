@@ -12,31 +12,15 @@ import (
 
 type ProveRooterUI struct {
 	libkb.Contextified
-	rooterUsername string
+	Username string
 }
 
 func (p *ProveRooterUI) PromptUsername(_ context.Context, _ keybase1.PromptUsernameArg) (string, error) {
-	return p.rooterUsername, nil
+	return p.Username, nil
 }
 
 func (p *ProveRooterUI) OutputInstructions(_ context.Context, arg keybase1.OutputInstructionsArg) error {
 	p.G().Log.Debug("rooter proof: %s", arg.Proof)
-	p.G().Log.Debug("posting it to rooter...")
-	apiArg := libkb.APIArg{
-		Endpoint:    "rooter",
-		NeedSession: true,
-		Args: libkb.HTTPArgs{
-			"post":     libkb.S{Val: arg.Proof},
-			"username": libkb.S{Val: p.rooterUsername},
-		},
-		Contextified: libkb.NewContextified(p.G()),
-	}
-	_, err := p.G().API.Post(apiArg)
-	if err != nil {
-		p.G().Log.Debug("error posting to rooter: %s", err)
-		return err
-	}
-	p.G().Log.Debug("rooter post success")
 	return nil
 }
 

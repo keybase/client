@@ -23,7 +23,6 @@ type CmdProve struct {
 	libkb.Contextified
 	arg    keybase1.StartProofArg
 	output string
-	auto   bool
 }
 
 // ParseArgv parses arguments for the prove command.
@@ -41,7 +40,10 @@ func (p *CmdProve) ParseArgv(ctx *cli.Context) error {
 	}
 
 	if libkb.RemoteServiceTypes[p.arg.Service] == keybase1.ProofType_ROOTER {
-		p.auto = ctx.Bool("auto")
+		p.arg.Auto = ctx.Bool("auto")
+		if p.arg.Auto && len(p.arg.Username) == 0 {
+			return fmt.Errorf("must specify the username when using auto flag")
+		}
 	}
 	return nil
 }
@@ -59,8 +61,12 @@ func (p *CmdProve) Run() error {
 
 	var proveUIProtocol rpc.Protocol
 
-	if p.auto {
-		proveUIProtocol = keybase1.ProveUiProtocol(&ProveRooterUI{Contextified: libkb.NewContextified(p.G())})
+	if p.arg.Auto {
+		ui := &ProveRooterUI{
+			Contextified: libkb.NewContextified(p.G()),
+			Username:     p.arg.Username,
+		}
+		proveUIProtocol = keybase1.ProveUiProtocol(ui)
 	} else {
 		proveUI := ProveUI{parent: GlobUI}
 		p.installOutputHook(&proveUI)

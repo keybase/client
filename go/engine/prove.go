@@ -210,7 +210,36 @@ func (p *Prove) instructAction(ctx *Context) (err error) {
 		Instructions: mkp.Export(),
 		Proof:        txt,
 	})
-	return
+	if err != nil {
+		return err
+	}
+
+	return p.checkAutoPost(ctx, txt)
+}
+
+func (p *Prove) checkAutoPost(ctx *Context, txt string) error {
+	if !p.arg.Auto {
+		return nil
+	}
+	if libkb.RemoteServiceTypes[p.arg.Service] != keybase1.ProofType_ROOTER {
+		return nil
+	}
+	p.G().Log.Debug("making automatic post of proof to rooter")
+	apiArg := libkb.APIArg{
+		Endpoint:    "rooter",
+		NeedSession: true,
+		Args: libkb.HTTPArgs{
+			"post":     libkb.S{Val: txt},
+			"username": libkb.S{Val: p.arg.Username},
+		},
+		Contextified: libkb.NewContextified(p.G()),
+	}
+	_, err := p.G().API.Post(apiArg)
+	if err != nil {
+		p.G().Log.Debug("error posting to rooter: %s", err)
+		return err
+	}
+	return nil
 }
 
 func (p *Prove) promptPostedLoop(ctx *Context) (err error) {
