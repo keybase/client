@@ -5,14 +5,13 @@ import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props as IconProps} from '../common-adapters/icon'
 
 import type {Props} from './index'
-import type {Device as DeviceType} from '../constants/types/flow-types'
 
-class RevokedHeader extends Component {
-  state: {
-    expanded: boolean
-  };
+type RevokedHeaderState = {expanded: boolean}
 
-  constructor (props) {
+class RevokedHeader extends Component<void, Props, RevokedHeaderState> {
+  state: RevokedHeaderState;
+
+  constructor (props: Props) {
     super(props)
     this.state = {
       expanded: false
@@ -37,99 +36,82 @@ class RevokedHeader extends Component {
   }
 }
 
-class DeviceRow extends Component {
-  state: {
-    highlighted: boolean
-  };
-  props: {
-    device: DeviceType,
-    revoked?: boolean,
-    showRemoveDevicePage?: () => void,
-    showExistingDevicePage?: () => void
-  };
+const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePage}) => {
+  const icon: IconProps.type = {
+    'mobile': 'phone-bw-m',
+    'desktop': 'computer-bw-s-2',
+    'backup': 'paper-key-m'
+  }[device.type]
 
-  constructor (props) {
-    super(props)
-    this.state = {
-      highlighted: false
+  let textStyle = {fontStyle: 'italic'}
+  if (revoked) {
+    textStyle = {
+      ...textStyle,
+      color: globalColors.black40,
+      textDecoration: 'line-through'
     }
   }
 
-  _highlighted (h) {
-    this.setState({highlighted: h})
-  }
-
-  render () {
-    const icon: IconProps.type = {
-      'mobile': 'phone-bw-m',
-      'desktop': 'computer-bw-s-2',
-      'backup': 'paper-key-m'
-    }[this.props.device.type]
-
-    let textStyle = {fontStyle: 'italic'}
-    if (this.props.revoked) {
-      textStyle = {
-        ...textStyle,
-        color: globalColors.black40,
-        textDecoration: 'line-through'
-      }
-    }
-
-    return (
-      <Box key={this.props.device.name} onMouseOver={e => this._highlighted(true)} onMouseOut={e => this._highlighted(false)} style={{...stylesCommonRow, backgroundColor: this.props.revoked ? globalColors.lightGrey : globalColors.white}}>
-        <Box style={this.props.revoked ? stylesRevokedIconColumn : stylesIconColumn}>
-          <Icon type={icon} />
+  return (
+    <Box
+      className='existing-device-container'
+      key={device.name}
+      style={{...stylesCommonRow, backgroundColor: revoked ? globalColors.lightGrey : globalColors.white}}>
+      <Box style={revoked ? stylesRevokedIconColumn : stylesIconColumn}>
+        <Icon type={icon}/>
+      </Box>
+      <Box style={stylesCommonColumn}>
+        <Box style={{...globalStyles.flexBoxRow}}>
+          <Text style={textStyle} type='Header'>{device.name}</Text>
         </Box>
-        <Box style={stylesCommonColumn}>
-          <Box style={{...globalStyles.flexBoxRow}}>
-            <Text style={textStyle} type='Header'>{this.props.device.name}</Text>
-          </Box>
-          <Box style={{...globalStyles.flexBoxRow}}>
-            {this.props.device.isCurrent && <Text type='BodySmall'>Current device</Text>}
-          </Box>
-        </Box>
-        <Box style={{...stylesRevokedColumn}}>
-          {!this.props.revoked && this.state.highlighted && <Text style={{color: globalColors.red}} type='BodyPrimaryLink'>Revoke</Text>}
+        <Box style={{...globalStyles.flexBoxRow}}>
+          {device.isCurrent && <Text type='BodySmall'>Current device</Text>}
         </Box>
       </Box>
-    )
-  }
-}
-
-const RevokedDescription = () => {
-  return (
-    <Box style={stylesRevokedDescription}>
-      <Text type='BodySemibold' style={{color: globalColors.black40}}>Revoked devices will no longer be able to access your Keybase account.</Text>
+      <Box style={{...stylesRevokedColumn}}>
+        {!revoked && <Text className='existing-device-item' style={{color: globalColors.red}} type='BodyPrimaryLink'>Revoke</Text>}
+      </Box>
     </Box>
   )
 }
 
-const RevokedDevices = ({revokedDevices}) => {
-  return (
-    <RevokedHeader>
-      <RevokedDescription/>
-      {revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked/>)}
-    </RevokedHeader>
-  )
-}
+const RevokedDescription = () => (
+  <Box style={stylesRevokedDescription}>
+    <Text type='BodySemibold' style={{color: globalColors.black40}}>Revoked devices will no longer be able to access your Keybase account.</Text>
+  </Box>
+)
 
-const DeviceHeader = ({addNewDevice}) => {
-  return (
-    <Box style={stylesCommonRow}>
-      <Box style={stylesCommonColumn}>
-        <Icon type='devices-add-s'/>
-      </Box>
-      <Box style={stylesCommonColumn}>
-        <Text type='BodyPrimaryLink' onClick={addNewDevice}>Add new...</Text>
-      </Box>
+const RevokedDevices = ({revokedDevices}) => (
+  <RevokedHeader>
+    <RevokedDescription/>
+    {revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked/>)}
+  </RevokedHeader>
+)
+
+const DeviceHeader = ({addNewDevice}) => (
+  <Box style={stylesCommonRow}>
+    <Box style={stylesCommonColumn}>
+      <Icon type='devices-add-s'/>
     </Box>
-  )
-}
+    <Box style={stylesCommonColumn}>
+      <Text type='BodyPrimaryLink' onClick={addNewDevice}>Add new...</Text>
+    </Box>
+  </Box>
+)
 
 const Render = ({devices, revokedDevices, waitingForServer, addNewDevice, showRemoveDevicePage, showExistingDevicePage}: Props) => {
+  const realCSS = `
+  .existing-device-container .existing-device-item {
+    display: none;
+  }
+  .existing-device-container:hover .existing-device-item {
+    display: block;
+  }
+  `
   return (
     <Box style={stylesContainer}>
       {<DeviceHeader addNewDevice={addNewDevice} />}
+      <style>{realCSS}</style>
       {devices && devices.map(device => <DeviceRow key={device.name} device={device} showRemoveDevicePage={showRemoveDevicePage} showExistingDevicePage={showExistingDevicePage}/>)}
       {revokedDevices && <RevokedDevices revokedDevices={revokedDevices} />}
     </Box>

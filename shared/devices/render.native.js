@@ -2,7 +2,7 @@
 import React, {Component} from 'react'
 import {TouchableHighlight} from 'react-native'
 
-import {Box, Button, Text, Icon} from '../common-adapters'
+import {Box, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props as IconProps} from '../common-adapters/icon'
 
@@ -91,8 +91,7 @@ class DeviceRow extends Component {
 const RevokedDescription = () => {
   return (
     <Box style={stylesRevokedDescription}>
-        <Text type='BodySmallSemibold' style={{color: globalColors.black40, textAlign: 'center'}}>Revoked devices will no longer be able to access your Keybase account.
-        </Text>
+      <Text type='BodySmallSemibold' style={{color: globalColors.black40, textAlign: 'center'}}>Revoked devices will no longer be able to access your Keybase account.</Text>
     </Box>
   )
 }
