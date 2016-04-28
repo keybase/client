@@ -170,7 +170,7 @@ func (fs *KBFSOpsStandard) getOpsNoAdd(fb FolderBranch) *folderBranchOps {
 func (fs *KBFSOpsStandard) getOps(
 	ctx context.Context, fb FolderBranch) *folderBranchOps {
 	ops := fs.getOpsNoAdd(fb)
-	if err := ops.addToFavorites(ctx, fs.favs); err != nil {
+	if err := ops.addToFavorites(ctx, fs.favs, false); err != nil {
 		// Failure to favorite shouldn't cause a failure.  Just log
 		// and move on.
 		fs.log.CDebugf(ctx, "Couldn't add favorite: %v", err)
@@ -224,10 +224,11 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNode(
 
 	fb := FolderBranch{Tlf: md.ID, Branch: branch}
 	ops := fs.getOpsByHandle(ctx, h, fb)
+	var created bool
 	if branch == MasterBranch {
 		// For now, only the master branch can be initialized with a
 		// branch new MD object.
-		err = ops.CheckForNewMDAndInit(ctx, md)
+		created, err = ops.CheckForNewMDAndInit(ctx, md)
 		if err != nil {
 			return nil, EntryInfo{}, err
 		}
@@ -238,7 +239,7 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNode(
 		return nil, EntryInfo{}, err
 	}
 
-	if err := ops.addToFavorites(ctx, fs.favs); err != nil {
+	if err := ops.addToFavorites(ctx, fs.favs, created); err != nil {
 		// Failure to favorite shouldn't cause a failure.  Just log
 		// and move on.
 		fs.log.CDebugf(ctx, "Couldn't add favorite: %v", err)

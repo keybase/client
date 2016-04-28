@@ -403,7 +403,7 @@ func (fbo *folderBranchOps) DeleteFavorite(ctx context.Context,
 }
 
 func (fbo *folderBranchOps) addToFavorites(ctx context.Context,
-	favorites *Favorites) (err error) {
+	favorites *Favorites, created bool) (err error) {
 	if _, _, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx); err != nil {
 		// Can't favorite while not logged in
 		return nil
@@ -416,7 +416,7 @@ func (fbo *folderBranchOps) addToFavorites(ctx context.Context,
 	}
 
 	h := head.GetTlfHandle()
-	favorites.AddAsync(ctx, h.ToFavorite())
+	favorites.AddAsync(ctx, h.ToFavorite(), created)
 	return nil
 }
 
@@ -824,12 +824,14 @@ func (fbo *folderBranchOps) checkNode(node Node) error {
 // CheckForNewMDAndInit sees whether the given MD object has been
 // initialized yet; if not, it does so.
 func (fbo *folderBranchOps) CheckForNewMDAndInit(
-	ctx context.Context, md *RootMetadata) (err error) {
+	ctx context.Context, md *RootMetadata) (created bool, err error) {
 	fbo.log.CDebugf(ctx, "CheckForNewMDAndInit, revision=%d (%s)",
 		md.Revision, md.MergedStatus())
-	defer func() { fbo.log.CDebugf(ctx, "Done: %v", err) }()
+	defer func() {
+		fbo.log.CDebugf(ctx, "Done: %v, created: %t", err, created)
+	}()
 
-	return runUnlessCanceled(ctx, func() error {
+	err = runUnlessCanceled(ctx, func() error {
 		fb := FolderBranch{md.ID, MasterBranch}
 		if fb != fbo.folderBranch {
 			return WrongOpsError{fbo.folderBranch, fb}
@@ -865,12 +867,16 @@ func (fbo *folderBranchOps) CheckForNewMDAndInit(
 					return err
 				}
 			}
-		} else {
-			// Initialize if needed
-			return fbo.initMDLocked(ctx, lState, md)
+			return nil
 		}
-		return nil
+		// Initialize if needed
+		created = true
+		return fbo.initMDLocked(ctx, lState, md)
 	})
+	if err != nil {
+		return false, err
+	}
+	return created, nil
 }
 
 // execMDReadNoIdentifyThenMDWrite first tries to execute the

@@ -36,12 +36,12 @@ func TestFavoritesAddTwice(t *testing.T) {
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil, nil)
 	config.mockKbpki.EXPECT().FavoriteAdd(gomock.Any(), fav1.toKBFolder()).
 		Return(nil)
-	if err := f.Add(ctx, fav1); err != nil {
+	if err := f.Add(ctx, fav1, false); err != nil {
 		t.Fatalf("Couldn't add favorite: %v", err)
 	}
 
 	// A second add shouldn't result in a KBPKI call
-	if err := f.Add(ctx, fav1); err != nil {
+	if err := f.Add(ctx, fav1, false); err != nil {
 		t.Fatalf("Couldn't re-add same favorite: %v", err)
 	}
 }
@@ -63,7 +63,7 @@ func TestFavoritesAddRemoveAdd(t *testing.T) {
 	folder1WithSuffix.Name += "#public"
 	config.mockKbpki.EXPECT().FavoriteDelete(gomock.Any(), folder1WithSuffix).
 		Return(nil)
-	if err := f.Add(ctx, fav1); err != nil {
+	if err := f.Add(ctx, fav1, false); err != nil {
 		t.Fatalf("Couldn't add favorite: %v", err)
 	}
 
@@ -72,7 +72,7 @@ func TestFavoritesAddRemoveAdd(t *testing.T) {
 	}
 
 	// A second add shouldn't result in a KBPKI call
-	if err := f.Add(ctx, fav1); err != nil {
+	if err := f.Add(ctx, fav1, false); err != nil {
 		t.Fatalf("Couldn't re-add same favorite: %v", err)
 	}
 }
@@ -96,11 +96,11 @@ func TestFavoritesAddAsync(t *testing.T) {
 
 	// There should only be one FavoriteAdd call for all of these, and
 	// none of them should block.
-	f.AddAsync(ctx, fav1)
-	f.AddAsync(ctx, fav1)
-	f.AddAsync(ctx, fav1)
-	f.AddAsync(ctx, fav1)
-	f.AddAsync(ctx, fav1)
+	f.AddAsync(ctx, fav1, false)
+	f.AddAsync(ctx, fav1, false)
+	f.AddAsync(ctx, fav1, false)
+	f.AddAsync(ctx, fav1, false)
+	f.AddAsync(ctx, fav1, false)
 	c <- struct{}{}
 }
 
@@ -120,7 +120,7 @@ func TestFavoritesListFailsDuringAddAsync(t *testing.T) {
 			c <- struct{}{}
 		}).Return(nil, context.Canceled)
 
-	f.AddAsync(ctx, fav1) // this will fail
+	f.AddAsync(ctx, fav1, false) // this will fail
 	// Block so the next one doesn't get batched together with this one
 	<-c
 
@@ -132,6 +132,6 @@ func TestFavoritesListFailsDuringAddAsync(t *testing.T) {
 			c <- struct{}{}
 		}).Return(nil)
 
-	f.AddAsync(ctx, fav1) // should work
+	f.AddAsync(ctx, fav1, false) // should work
 	<-c
 }

@@ -201,7 +201,7 @@ func (f *Favorites) startOrJoinAddReq(
 }
 
 // Add adds a favorite to your favorites list.
-func (f *Favorites) Add(ctx context.Context, fav Favorite) error {
+func (f *Favorites) Add(ctx context.Context, fav Favorite, created bool) error {
 	doAdd := true
 	var err error
 	// Retry until we get an error that wasn't related to someone
@@ -222,7 +222,7 @@ func (f *Favorites) Add(ctx context.Context, fav Favorite) error {
 // different favorite operations are in flight.)  The given context is
 // used only for enqueuing the request on an internal queue, not for
 // any resulting I/O.
-func (f *Favorites) AddAsync(ctx context.Context, fav Favorite) {
+func (f *Favorites) AddAsync(ctx context.Context, fav Favorite, created bool) {
 	// Use a fresh context, since we want the request to succeed even
 	// if the original context is canceled.
 	req, doSend := f.startOrJoinAddReq(context.Background(), fav)
