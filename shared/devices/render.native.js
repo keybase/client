@@ -7,14 +7,13 @@ import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props as IconProps} from '../common-adapters/icon'
 
 import type {Props} from './index'
-import type {Device as DeviceType} from '../constants/types/flow-types'
 
-class RevokedHeader extends Component {
-  state: {
-    expanded: boolean
-  };
+type RevokedHeaderState = {expanded: boolean}
 
-  constructor (props) {
+class RevokedHeader extends Component<void, Props, RevokedHeaderState> {
+  state: RevokedHeaderState;
+
+  constructor (props: Props) {
     super(props)
     this.state = {
       expanded: false
@@ -22,7 +21,6 @@ class RevokedHeader extends Component {
   }
 
   _toggleHeader (e) {
-    console.log('in toggleHeader')
     this.setState({expanded: !this.state.expanded})
   }
 
@@ -42,91 +40,74 @@ class RevokedHeader extends Component {
   }
 }
 
-class DeviceRow extends Component {
-  props: {
-    device: DeviceType,
-    revoked?: boolean,
-    showRemoveDevicePage?: () => void,
-    showExistingDevicePage?: () => void
-  };
+const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePage}) => {
+  const icon: IconProps.type = {
+    'mobile': 'phone-bw-m',
+    'desktop': 'computer-bw-s-2',
+    'backup': 'paper-key-m'
+  }[device.type]
 
-  render () {
-    const icon: IconProps.type = {
-      'mobile': 'phone-bw-m',
-      'desktop': 'computer-bw-s-2',
-      'backup': 'paper-key-m'
-    }[this.props.device.type]
-
-    let textStyle = {fontStyle: 'italic'}
-    if (this.props.revoked) {
-      textStyle = {
-        ...textStyle,
-        color: globalColors.black40,
-        textDecorationLine: 'line-through',
-        textDecorationStyle: 'solid'
-      }
+  let textStyle = {fontStyle: 'italic'}
+  if (revoked) {
+    textStyle = {
+      ...textStyle,
+      color: globalColors.black40,
+      textDecorationLine: 'line-through',
+      textDecorationStyle: 'solid'
     }
-
-    return (
-      <Box key={this.props.device.name} style={{...stylesCommonRow, backgroundColor: this.props.revoked ? globalColors.lightGrey : globalColors.white}}>
-        <Box style={this.props.revoked ? stylesRevokedIconColumn : stylesIconColumn}>
-          <Icon type={icon}/>
-        </Box>
-        <Box style={stylesCommonColumn}>
-          <Box style={{...globalStyles.flexBoxRow}}>
-            <Text style={textStyle} type='BodySemibold'>{this.props.device.name}</Text>
-          </Box>
-          <Box style={{...globalStyles.flexBoxRow}}>
-            {this.props.device.isCurrent && <Text type='BodySmall'>Current device</Text>}
-          </Box>
-        </Box>
-        <Box style={stylesRevokedColumn}>
-          {!this.props.revoked && <Text style={{color: globalColors.red}} type='BodyPrimaryLink'>Revoke</Text>}
-        </Box>
-      </Box>
-    )
   }
-}
 
-const RevokedDescription = () => {
   return (
-    <Box style={stylesRevokedDescription}>
-      <Text type='BodySmallSemibold' style={{color: globalColors.black40, textAlign: 'center'}}>Revoked devices will no longer be able to access your Keybase account.</Text>
-    </Box>
-  )
-}
-
-const RevokedDevices = ({revokedDevices}) => {
-  return (
-    <RevokedHeader>
-      <RevokedDescription/>
-      {revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked/>)}
-    </RevokedHeader>
-  )
-}
-
-const DeviceHeader = ({addNewDevice}) => {
-  return (
-    <Box style={stylesCommonRow}>
-      <Box style={stylesCommonColumn}>
-        <Icon type='devices-add-s' />
+    <Box key={device.name} style={{...stylesCommonRow, backgroundColor: revoked ? globalColors.lightGrey : globalColors.white}}>
+      <Box style={revoked ? stylesRevokedIconColumn : stylesIconColumn}>
+        <Icon type={icon}/>
       </Box>
       <Box style={stylesCommonColumn}>
-        <Text type='BodyPrimaryLink' onClick={addNewDevice}>Add new...</Text>
+        <Box style={{...globalStyles.flexBoxRow}}>
+          <Text style={textStyle} type='BodySemibold'>{device.name}</Text>
+        </Box>
+        <Box style={{...globalStyles.flexBoxRow}}>
+          {device.isCurrent && <Text type='BodySmall'>Current device</Text>}
+        </Box>
+      </Box>
+      <Box style={stylesRevokedColumn}>
+        {!revoked && <Text style={{color: globalColors.red}} type='BodyPrimaryLink'>Revoke</Text>}
       </Box>
     </Box>
   )
 }
 
-const Render = ({devices, revokedDevices, waitingForServer, addNewDevice, showRemoveDevicePage, showExistingDevicePage}: Props) => {
-  return (
-    <Box style={stylesContainer}>
-      {<DeviceHeader addNewDevice={addNewDevice} />}
-      {devices && devices.map(device => <DeviceRow key={device.name} device={device} showRemoveDevicePage={showRemoveDevicePage} showExistingDevicePage={showExistingDevicePage}/>)}
-      {revokedDevices && <RevokedDevices revokedDevices={revokedDevices} />}
+const RevokedDescription = () => (
+  <Box style={stylesRevokedDescription}>
+    <Text type='BodySmallSemibold' style={{color: globalColors.black40, textAlign: 'center'}}>Revoked devices will no longer be able to access your Keybase account.</Text>
+  </Box>
+)
+
+const RevokedDevices = ({revokedDevices}) => (
+  <RevokedHeader>
+    <RevokedDescription/>
+    {revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked/>)}
+  </RevokedHeader>
+)
+
+const DeviceHeader = ({addNewDevice}) => (
+  <Box style={stylesCommonRow}>
+    <Box style={stylesCommonColumn}>
+      <Icon type='devices-add-s' />
     </Box>
-  )
-}
+    <Box style={stylesCommonColumn}>
+      <Text type='BodyPrimaryLink' onClick={addNewDevice}>Add new...</Text>
+    </Box>
+  </Box>
+)
+
+const Render = ({devices, revokedDevices, waitingForServer, addNewDevice, showRemoveDevicePage, showExistingDevicePage}: Props) => (
+  <Box style={stylesContainer}>
+    {<DeviceHeader addNewDevice={addNewDevice} />}
+    {devices && devices.map(device => <DeviceRow key={device.name} device={device} showRemoveDevicePage={showRemoveDevicePage} showExistingDevicePage={showExistingDevicePage}/>)}
+    {revokedDevices && <RevokedDevices revokedDevices={revokedDevices} />}
+  </Box>
+)
 
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
