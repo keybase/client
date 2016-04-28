@@ -228,16 +228,26 @@ func (k *KeybaseDaemonLocal) CurrentSession(ctx context.Context, sessionID int) 
 	}, nil
 }
 
-func (k *KeybaseDaemonLocal) getLocalUser(uid keybase1.UID) (LocalUser, error) {
+// addNewAssertionForTest makes newAssertion, which should be a single
+// assertion that doesn't already resolve to anything, resolve to the
+// same UID as oldAssertion, which should be an arbitrary assertion
+// that doesn't already resolve to something.
+func (k *KeybaseDaemonLocal) addNewAssertionForTest(
+	oldAssertion, newAssertion string) {
 	k.lock.Lock()
 	defer k.lock.Unlock()
-	return k.localUsers.getLocalUser(uid)
-}
+	uid, err := k.assertionToUIDLocked(context.Background(), oldAssertion)
+	if err != nil {
+		panic(err)
+	}
 
-func (k *KeybaseDaemonLocal) setLocalUser(uid keybase1.UID, user LocalUser) {
-	k.lock.Lock()
-	defer k.lock.Unlock()
-	k.localUsers[uid] = user
+	lu, err := k.localUsers.getLocalUser(uid)
+	if err != nil {
+		panic(err)
+	}
+	lu.Asserts = append(lu.Asserts, newAssertion)
+	k.asserts[newAssertion] = uid
+	k.localUsers[uid] = lu
 }
 
 type makeKeysFunc func(libkb.NormalizedUsername, int) (

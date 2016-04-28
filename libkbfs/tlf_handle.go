@@ -176,7 +176,13 @@ type CanonicalTlfName string
 // TlfHandle is like BareTlfHandle but it also contains a canonical
 // TLF name.  It is go-routine-safe.
 type TlfHandle struct {
+	// TODO: don't store a BareTlfHandle but generate it as
+	// necessary.
 	BareTlfHandle
+	resolvedWriters map[keybase1.UID]libkb.NormalizedUsername
+	resolvedReaders map[keybase1.UID]libkb.NormalizedUsername
+	// name can be computed from the other fields, but cached for
+	// speed.
 	name CanonicalTlfName
 }
 
@@ -274,22 +280,16 @@ func makeTlfHandleHelper(
 		delete(usedUnresolvedReaders, sa)
 	}
 
-	writerUIDs, unresolvedWriters, writerNames :=
+	writerUIDs, unresolvedWriters :=
 		getSortedHandleLists(usedWNames, usedUnresolvedWriters)
-
-	canonicalName := strings.Join(writerNames, ",")
 
 	var readerUIDs []keybase1.UID
 	var unresolvedReaders []keybase1.SocialAssertion
 	if public {
 		readerUIDs = []keybase1.UID{keybase1.PublicUID}
 	} else {
-		var readerNames []string
-		readerUIDs, unresolvedReaders, readerNames =
+		readerUIDs, unresolvedReaders =
 			getSortedHandleLists(usedRNames, usedUnresolvedReaders)
-		if len(readerNames) > 0 {
-			canonicalName += ReaderSep + strings.Join(readerNames, ",")
-		}
 	}
 
 	bareHandle, err := MakeBareTlfHandle(
@@ -298,9 +298,18 @@ func makeTlfHandleHelper(
 		return nil, err
 	}
 
+	writerNames := getSortedNames(usedWNames, unresolvedWriters)
+	canonicalName := strings.Join(writerNames, ",")
+	if !public && len(usedRNames)+len(unresolvedReaders) > 0 {
+		readerNames := getSortedNames(usedRNames, unresolvedReaders)
+		canonicalName += ReaderSep + strings.Join(readerNames, ",")
+	}
+
 	h := &TlfHandle{
-		BareTlfHandle: bareHandle,
-		name:          CanonicalTlfName(canonicalName),
+		BareTlfHandle:   bareHandle,
+		resolvedWriters: usedWNames,
+		resolvedReaders: usedRNames,
+		name:            CanonicalTlfName(canonicalName),
 	}
 
 	return h, nil
@@ -365,15 +374,40 @@ func MakeTlfHandle(
 }
 
 func (h *TlfHandle) deepCopy(codec Codec) (*TlfHandle, error) {
-	var copy TlfHandle
+	var hCopy TlfHandle
 
-	err := CodecUpdate(codec, &copy, h)
+	err := CodecUpdate(codec, &hCopy, h)
 	if err != nil {
 		return nil, err
 	}
 
-	copy.name = h.name
-	return &copy, nil
+	err = CodecUpdate(codec, &hCopy.resolvedWriters, h.resolvedWriters)
+	if err != nil {
+		return nil, err
+	}
+
+	err = CodecUpdate(codec, &hCopy.resolvedReaders, h.resolvedReaders)
+	if err != nil {
+		return nil, err
+	}
+
+	hCopy.name = h.name
+
+	return &hCopy, nil
+}
+
+func getSortedNames(
+	uidToName map[keybase1.UID]libkb.NormalizedUsername,
+	unresolved []keybase1.SocialAssertion) []string {
+	var names []string
+	for _, name := range uidToName {
+		names = append(names, name.String())
+	}
+	for _, sa := range unresolved {
+		names = append(names, sa.String())
+	}
+	sort.Sort(sort.StringSlice(names))
+	return names
 }
 
 // GetCanonicalName returns the canonical name of this TLF.
@@ -410,25 +444,63 @@ func (h *TlfHandle) ToFavorite() Favorite {
 	}
 }
 
+type resolvableNameUIDPair nameUIDPair
+
+func (rp resolvableNameUIDPair) resolve(ctx context.Context) (nameUIDPair, keybase1.SocialAssertion, error) {
+	return nameUIDPair(rp), keybase1.SocialAssertion{}, nil
+}
+
+// ResolveAgain tries to resolve any unresolved assertions in the
+// given handle and returns a new handle with the results. As an
+// optimization, if h contains no unresolved assertions, it just
+// returns itself.
+func (h *TlfHandle) ResolveAgain(ctx context.Context, resolver resolver) (*TlfHandle, error) {
+	if len(h.UnresolvedWriters)+len(h.UnresolvedReaders) == 0 {
+		return h, nil
+	}
+
+	writers := make([]resolvableUser, 0, len(h.Writers)+len(h.UnresolvedWriters))
+	for uid, w := range h.resolvedWriters {
+		writers = append(writers, resolvableNameUIDPair{w, uid})
+	}
+	for _, uw := range h.UnresolvedWriters {
+		writers = append(writers, resolvableAssertion{true, resolver, uw.String()})
+	}
+
+	var readers []resolvableUser
+	if !h.IsPublic() {
+		readers = make([]resolvableUser, 0, len(h.Readers)+len(h.UnresolvedReaders))
+		for uid, r := range h.resolvedReaders {
+			readers = append(readers, resolvableNameUIDPair{r, uid})
+		}
+		for _, ur := range h.UnresolvedReaders {
+			readers = append(readers, resolvableAssertion{true, resolver, ur.String()})
+		}
+	}
+
+	newH, err := makeTlfHandleHelper(ctx, h.IsPublic(), writers, readers)
+	if err != nil {
+		return nil, err
+	}
+
+	return newH, nil
+}
+
 func getSortedHandleLists(
 	uidToName map[keybase1.UID]libkb.NormalizedUsername,
 	unresolved map[keybase1.SocialAssertion]bool) (
-	[]keybase1.UID, []keybase1.SocialAssertion, []string) {
+	[]keybase1.UID, []keybase1.SocialAssertion) {
 	var uids []keybase1.UID
 	var assertions []keybase1.SocialAssertion
-	var names []string
-	for uid, name := range uidToName {
+	for uid := range uidToName {
 		uids = append(uids, uid)
-		names = append(names, name.String())
 	}
 	for sa := range unresolved {
 		assertions = append(assertions, sa)
-		names = append(names, sa.String())
 	}
 	sort.Sort(UIDList(uids))
 	sort.Sort(SocialAssertionList(assertions))
-	sort.Sort(sort.StringSlice(names))
-	return uids, assertions, names
+	return uids, assertions
 }
 
 func splitAndNormalizeTLFName(name string, public bool) (
@@ -524,7 +596,7 @@ func normalizeNamesInTLF(writerNames, readerNames []string) (string, error) {
 
 type resolvableAssertion struct {
 	sharingBeforeSignupEnabled bool
-	kbpki                      KBPKI
+	resolver                   resolver
 	assertion                  string
 }
 
@@ -533,7 +605,7 @@ func (ra resolvableAssertion) resolve(ctx context.Context) (
 	if ra.assertion == PublicUIDName {
 		return nameUIDPair{}, keybase1.SocialAssertion{}, fmt.Errorf("Invalid name %s", ra.assertion)
 	}
-	name, uid, err := ra.kbpki.Resolve(ctx, ra.assertion)
+	name, uid, err := ra.resolver.Resolve(ctx, ra.assertion)
 	switch err := err.(type) {
 	default:
 		return nameUIDPair{}, keybase1.SocialAssertion{}, err

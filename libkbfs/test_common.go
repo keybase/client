@@ -62,6 +62,7 @@ func MakeTestConfigOrBust(t logger.TestLogBackend,
 
 	config.SetBlockSplitter(&BlockSplitterSimple{64 * 1024, 8 * 1024})
 	config.SetKeyManager(NewKeyManagerStandard(config))
+	config.SetMDOps(NewMDOpsStandard(config))
 
 	localUsers := MakeLocalUsers(users)
 	loggedInUser := localUsers[0]
@@ -155,6 +156,7 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 
 	c.SetBlockSplitter(config.BlockSplitter())
 	c.SetKeyManager(NewKeyManagerStandard(c))
+	c.SetMDOps(NewMDOpsStandard(c))
 	c.SetClock(config.Clock())
 
 	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)

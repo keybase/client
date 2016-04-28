@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"golang.org/x/net/context"
 )
 
@@ -13,6 +14,12 @@ import (
 // signed) suitable for passing to/from the MDServer backend.
 type MDOpsStandard struct {
 	config Config
+	log    logger.Logger
+}
+
+// NewMDOpsStandard returns a new MDOpsStandard
+func NewMDOpsStandard(config Config) *MDOpsStandard {
+	return &MDOpsStandard{config, config.MakeLogger("")}
 }
 
 // convertVerifyingKeyError gives a better error when the TLF was
@@ -180,28 +187,64 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
 		return newRootMetadata(id, handle)
 	}
 
-	bareHandle, err := rmds.MD.MakeBareTlfHandle()
+	resolvedHandle, err := handle.ResolveAgain(ctx, md.config.KBPKI())
 	if err != nil {
 		return nil, err
 	}
 
-	mdHandle, err := MakeTlfHandle(ctx, bareHandle, md.config.KBPKI())
+	handlePath := handle.GetCanonicalPath()
+	resolvedHandlePath := resolvedHandle.GetCanonicalPath()
+
+	if resolvedHandlePath != handlePath {
+		md.log.CDebugf(ctx, "handle for %s resolved to %s",
+			handlePath, resolvedHandlePath)
+	}
+
+	bareMdHandle, err := rmds.MD.MakeBareTlfHandle()
 	if err != nil {
 		return nil, err
+	}
+
+	mdHandle, err := MakeTlfHandle(ctx, bareMdHandle, md.config.KBPKI())
+	if err != nil {
+		return nil, err
+	}
+
+	// It's theoretically possible that this ResolveAgain may get
+	// different results for the same assertions present in
+	// handle, which will cause false negatives. This is okay for
+	// now, as it should rarely happen, and the user can just
+	// retry.
+	//
+	// TODO: Resolve handle and mdHandle again "at the same time".
+
+	resolvedMdHandle, err := mdHandle.ResolveAgain(ctx, md.config.KBPKI())
+	if err != nil {
+		return nil, err
+	}
+
+	mdHandlePath := mdHandle.GetCanonicalPath()
+	resolvedMdHandlePath := resolvedMdHandle.GetCanonicalPath()
+
+	if resolvedMdHandlePath != mdHandlePath {
+		md.log.CDebugf(ctx, "handle in metadata for %s resolved to %s",
+			mdHandlePath, resolvedMdHandlePath)
 	}
 
 	// Make sure that the path for the given handle matches the
 	// one generated from the MD.
-	handlePath := handle.GetCanonicalPath()
-	fetchedHandlePath := mdHandle.GetCanonicalPath()
-	if fetchedHandlePath != handlePath {
+	if resolvedMdHandlePath != resolvedHandlePath {
 		return nil, MDMismatchError{
-			handlePath,
+			resolvedHandlePath,
 			fmt.Sprintf("MD (id=%s) contained unexpected handle path %s",
-				rmds.MD.ID, fetchedHandlePath),
+				rmds.MD.ID, resolvedMdHandlePath),
 		}
 	}
 
+	// TODO: For now, use the mdHandle that came with rmds for
+	// consistency. In the future, we'd want to eventually notify
+	// the upper layers of the new name, either directly, or
+	// through a rekey.
 	if err := md.processMetadata(ctx, mdHandle, rmds); err != nil {
 		return nil, err
 	}

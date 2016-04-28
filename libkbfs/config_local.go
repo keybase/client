@@ -209,7 +209,6 @@ func NewConfigLocal() *ConfigLocal {
 	// Limit the block cache to 10K entries or 512 MB of bytes
 	config.SetBlockCache(NewBlockCacheStandard(config, 10000, 512*1024*1024))
 	config.SetCodec(NewCodecMsgpack())
-	config.SetMDOps(&MDOpsStandard{config})
 	config.SetBlockOps(&BlockOpsStandard{config})
 	config.SetKeyOps(&KeyOpsStandard{config})
 	config.SetRekeyQueue(NewRekeyQueueStandard(config))

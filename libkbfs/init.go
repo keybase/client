@@ -361,6 +361,7 @@ func Init(params InitParams, onInterruptFn func(), log logger.Logger) (Config, e
 	config.SetKBFSOps(kbfsOps)
 	config.SetNotifier(kbfsOps)
 	config.SetKeyManager(NewKeyManagerStandard(config))
+	config.SetMDOps(NewMDOpsStandard(config))
 
 	mdServer, err := makeMDServer(
 		config, params.ServerInMemory, params.ServerRootDir, params.MDServerAddr)

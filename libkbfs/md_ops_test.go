@@ -14,7 +14,7 @@ func mdOpsInit(t *testing.T) (mockCtrl *gomock.Controller,
 	ctr := NewSafeTestReporter(t)
 	mockCtrl = gomock.NewController(ctr)
 	config = NewConfigMock(mockCtrl, ctr)
-	mdops := &MDOpsStandard{config}
+	mdops := NewMDOpsStandard(config)
 	config.SetMDOps(mdops)
 	interposeDaemonKBPKI(config, "alice", "bob")
 	ctx = context.Background()
@@ -26,19 +26,11 @@ func mdOpsShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 	mockCtrl.Finish()
 }
 
-func newRMDS(t *testing.T, config Config, public bool) *RootMetadataSigned {
-	id := FakeTlfID(1, public)
-
-	h := parseTlfHandleOrBust(t, config, "alice,bob", public)
-	rmds := &RootMetadataSigned{}
-	err := updateNewRootMetadata(&rmds.MD, id, h.BareTlfHandle)
-	if err != nil {
-		t.Fatal(err)
-	}
+func addFakeRMDSData(rmds *RootMetadataSigned, h *TlfHandle) {
 	rmds.MD.tlfHandle = h
 
 	// Need to do this to avoid calls to the mocked-out MakeMdID.
-	rmds.MD.mdID = fakeMdID(fakeTlfIDByte(id))
+	rmds.MD.mdID = fakeMdID(fakeTlfIDByte(rmds.MD.ID))
 
 	rmds.MD.Revision = MetadataRevision(1)
 	rmds.MD.LastModifyingWriter = h.Writers[0]
@@ -49,9 +41,22 @@ func newRMDS(t *testing.T, config Config, public bool) *RootMetadataSigned {
 		VerifyingKey: MakeFakeVerifyingKeyOrBust("fake key"),
 	}
 
-	if !public {
+	if !h.IsPublic() {
 		FakeInitialRekey(&rmds.MD, h.BareTlfHandle)
 	}
+}
+
+func newRMDS(t *testing.T, config Config, public bool) *RootMetadataSigned {
+	id := FakeTlfID(1, public)
+
+	h := parseTlfHandleOrBust(t, config, "alice,bob", public)
+	rmds := &RootMetadataSigned{}
+	err := updateNewRootMetadata(&rmds.MD, id, h.BareTlfHandle)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	addFakeRMDSData(rmds, h)
 
 	return rmds
 }
@@ -130,7 +135,6 @@ func TestMDOpsGetForHandlePublicSuccess(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	// expect one call to fetch MD, and one to verify it
 	rmds := newRMDS(t, config, true)
 
 	// Do this before setting tlfHandle to nil.
@@ -157,7 +161,6 @@ func TestMDOpsGetForHandlePrivateSuccess(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	// expect one call to fetch MD, and one to verify it
 	rmds := newRMDS(t, config, false)
 
 	// Do this before setting tlfHandle to nil.
@@ -180,11 +183,124 @@ func TestMDOpsGetForHandlePrivateSuccess(t *testing.T) {
 	}
 }
 
+func TestMDOpsGetForUnresolvedHandlePublicSuccess(t *testing.T) {
+	mockCtrl, config, ctx := mdOpsInit(t)
+	defer mdOpsShutdown(mockCtrl, config)
+
+	rmds := newRMDS(t, config, true)
+
+	// Do this before setting tlfHandle to nil.
+	verifyMDForPublic(config, rmds, nil, nil)
+
+	// Set tlfHandle to nil so that the md server returns a
+	// 'deserialized' RMDS.
+	rmds.MD.tlfHandle = nil
+
+	hUnresolved, err := ParseTlfHandle(ctx, config.KBPKI(),
+		"alice,bob@twitter", true, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	config.mockMdserv.EXPECT().GetForHandle(ctx, hUnresolved.BareTlfHandle, Merged).Return(NullTlfID, rmds, nil).Times(2)
+
+	// First time should fail.
+	_, err = config.MDOps().GetForHandle(ctx, hUnresolved)
+	if _, ok := err.(MDMismatchError); !ok {
+		t.Errorf("Got unexpected error on bad handle check test: %v", err)
+	}
+
+	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
+	daemon.addNewAssertionForTest("bob", "bob@twitter")
+
+	// Second time should succeed.
+	if _, err := config.MDOps().GetForHandle(ctx, hUnresolved); err != nil {
+		t.Errorf("Got error on get: %v", err)
+	}
+}
+
+func TestMDOpsGetForUnresolvedMdHandlePublicSuccess(t *testing.T) {
+	mockCtrl, config, ctx := mdOpsInit(t)
+	defer mdOpsShutdown(mockCtrl, config)
+
+	id := FakeTlfID(1, true)
+
+	h, err := ParseTlfHandle(ctx, config.KBPKI(),
+		"alice,bob@twitter", true, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rmds := &RootMetadataSigned{}
+	err = updateNewRootMetadata(&rmds.MD, id, h.BareTlfHandle)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	addFakeRMDSData(rmds, h)
+
+	// Do this before setting tlfHandle to nil.
+	verifyMDForPublic(config, rmds, nil, nil)
+
+	// Set tlfHandle to nil so that the md server returns a
+	// 'deserialized' RMDS.
+	rmds.MD.tlfHandle = nil
+
+	hResolved, err := ParseTlfHandle(ctx, config.KBPKI(),
+		"alice,bob", true, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	config.mockMdserv.EXPECT().GetForHandle(ctx, hResolved.BareTlfHandle, Merged).Return(NullTlfID, rmds, nil).Times(2)
+
+	// First time should fail.
+	_, err = config.MDOps().GetForHandle(ctx, hResolved)
+	if _, ok := err.(MDMismatchError); !ok {
+		t.Errorf("Got unexpected error on bad handle check test: %v", err)
+	}
+
+	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
+	daemon.addNewAssertionForTest("bob", "bob@twitter")
+
+	// Second time should succeed.
+	if _, err := config.MDOps().GetForHandle(ctx, hResolved); err != nil {
+		t.Errorf("Got error on get: %v", err)
+	}
+}
+
+func TestMDOpsGetForUnresolvedHandlePublicFailure(t *testing.T) {
+	mockCtrl, config, ctx := mdOpsInit(t)
+	defer mdOpsShutdown(mockCtrl, config)
+
+	rmds := newRMDS(t, config, true)
+
+	// Set tlfHandle to nil so that the md server returns a
+	// 'deserialized' RMDS.
+	rmds.MD.tlfHandle = nil
+
+	hUnresolved, err := ParseTlfHandle(ctx, config.KBPKI(),
+		"alice,bob@github,bob@twitter", true, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
+	daemon.addNewAssertionForTest("bob", "bob@twitter")
+
+	config.mockMdserv.EXPECT().GetForHandle(ctx, hUnresolved.BareTlfHandle, Merged).Return(NullTlfID, rmds, nil)
+
+	// Should still fail.
+	_, err = config.MDOps().GetForHandle(ctx, hUnresolved)
+	if _, ok := err.(MDMismatchError); !ok {
+		t.Errorf("Got unexpected error on bad handle check test: %v", err)
+	}
+}
+
 func TestMDOpsGetForHandlePublicFailFindKey(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	// expect one call to fetch MD, and one to verify it
 	rmds := newRMDS(t, config, true)
 
 	// Do this before setting tlfHandle to nil.
@@ -208,7 +324,6 @@ func TestMDOpsGetForHandlePublicFailVerify(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	// expect one call to fetch MD, and one to verify it
 	rmds := newRMDS(t, config, true)
 
 	// Do this before setting tlfHandle to nil.
@@ -234,7 +349,6 @@ func TestMDOpsGetForHandleFailGet(t *testing.T) {
 
 	h := parseTlfHandleOrBust(t, config, "alice,bob", false)
 
-	// expect one call to fetch MD, and fail it
 	err := errors.New("Fake fail")
 
 	// only the get happens, no verify needed with a blank sig
@@ -249,7 +363,6 @@ func TestMDOpsGetForHandleFailHandleCheck(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	// expect one call to fetch MD, and one to verify it, and fail that one
 	rmds := newRMDS(t, config, false)
 
 	// Set tlfHandle to nil so that the md server returns a
@@ -260,9 +373,8 @@ func TestMDOpsGetForHandleFailHandleCheck(t *testing.T) {
 	otherH := parseTlfHandleOrBust(t, config, "alice", false)
 	config.mockMdserv.EXPECT().GetForHandle(ctx, otherH.BareTlfHandle, Merged).Return(NullTlfID, rmds, nil)
 
-	if _, err := config.MDOps().GetForHandle(ctx, otherH); err == nil {
-		t.Errorf("Got no error on bad handle check test")
-	} else if _, ok := err.(MDMismatchError); !ok {
+	_, err := config.MDOps().GetForHandle(ctx, otherH)
+	if _, ok := err.(MDMismatchError); !ok {
 		t.Errorf("Got unexpected error on bad handle check test: %v", err)
 	}
 }
@@ -271,7 +383,6 @@ func TestMDOpsGetSuccess(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	// expect one call to fetch MD, and one to verify it
 	rmds := newRMDS(t, config, false)
 
 	// Do this before setting tlfHandle to nil.
@@ -294,8 +405,6 @@ func TestMDOpsGetBlankSigFailure(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	// expect one call to fetch MD, give back a blank sig that
-	// should fail verification
 	rmds := newRMDS(t, config, false)
 	rmds.SigInfo = SignatureInfo{}
 
@@ -315,7 +424,6 @@ func TestMDOpsGetFailGet(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	// expect one call to fetch MD, and fail it
 	id := FakeTlfID(1, true)
 	err := errors.New("Fake fail")
 
@@ -331,7 +439,6 @@ func TestMDOpsGetFailIdCheck(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	// expect one call to fetch MD, and one to verify it, and fail that one
 	rmds := newRMDS(t, config, false)
 
 	id2 := FakeTlfID(2, true)
@@ -353,7 +460,6 @@ func testMDOpsGetRangeSuccess(t *testing.T, fromStart bool) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	// expect one call to fetch MD, and one to verify it
 	rmds1 := newRMDS(t, config, false)
 
 	rmds2 := newRMDS(t, config, false)
@@ -412,7 +518,6 @@ func TestMDOpsGetRangeFailBadPrevRoot(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	// expect one call to fetch MD, and one to verify it
 	rmds1 := newRMDS(t, config, false)
 
 	rmds2 := newRMDS(t, config, false)
@@ -459,7 +564,6 @@ func TestMDOpsPutPublicSuccess(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	// expect one call to sign MD, and one to put it
 	rmds := newRMDS(t, config, true)
 	putMDForPublic(config, rmds, rmds.MD.ID)
 
@@ -472,7 +576,6 @@ func TestMDOpsPutPrivateSuccess(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	// expect one call to sign MD, and one to put it
 	rmds := newRMDS(t, config, false)
 	putMDForPrivate(config, rmds)
 
@@ -485,7 +588,6 @@ func TestMDOpsPutFailEncode(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)
 
-	// expect one call to sign MD, and fail it
 	id := FakeTlfID(1, false)
 	h := parseTlfHandleOrBust(t, config, "alice,bob", false)
 	rmd := newRootMetadataOrBust(t, id, h)

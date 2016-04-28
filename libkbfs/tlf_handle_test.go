@@ -343,3 +343,74 @@ func parseTlfHandleOrBust(t logger.TestLogBackend, config Config,
 	}
 	return h
 }
+
+func TestResolveAgainBasic(t *testing.T) {
+	ctx := context.Background()
+
+	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	currentUID := localUsers[0].UID
+	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, NewCodecMsgpack())
+
+	kbpki := &daemonKBPKI{
+		daemon: daemon,
+	}
+
+	name := "u1,u2#u3@twitter"
+	h, err := ParseTlfHandle(ctx, kbpki, name, false, true)
+	require.Nil(t, err)
+	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
+
+	// ResolveAgain shouldn't rely on resolving the original names again.
+	daemon.addNewAssertionForTest("u3", "u3@twitter")
+	newH, err := h.ResolveAgain(ctx, daemon)
+	require.Nil(t, err)
+	assert.Equal(t, CanonicalTlfName("u1,u2#u3"), newH.GetCanonicalName())
+}
+
+func TestResolveAgainDoubleAsserts(t *testing.T) {
+	ctx := context.Background()
+
+	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2"})
+	currentUID := localUsers[0].UID
+	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, NewCodecMsgpack())
+
+	kbpki := &daemonKBPKI{
+		daemon: daemon,
+	}
+
+	name := "u1,u1@github,u1@twitter#u2,u2@github,u2@twitter"
+	h, err := ParseTlfHandle(ctx, kbpki, name, false, true)
+	require.Nil(t, err)
+	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
+
+	daemon.addNewAssertionForTest("u1", "u1@twitter")
+	daemon.addNewAssertionForTest("u1", "u1@github")
+	daemon.addNewAssertionForTest("u2", "u2@twitter")
+	daemon.addNewAssertionForTest("u2", "u2@github")
+	newH, err := h.ResolveAgain(ctx, daemon)
+	require.Nil(t, err)
+	assert.Equal(t, CanonicalTlfName("u1#u2"), newH.GetCanonicalName())
+}
+
+func TestResolveAgainWriterReader(t *testing.T) {
+	ctx := context.Background()
+
+	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2"})
+	currentUID := localUsers[0].UID
+	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, NewCodecMsgpack())
+
+	kbpki := &daemonKBPKI{
+		daemon: daemon,
+	}
+
+	name := "u1,u2@github#u2@twitter"
+	h, err := ParseTlfHandle(ctx, kbpki, name, false, true)
+	require.Nil(t, err)
+	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
+
+	daemon.addNewAssertionForTest("u2", "u2@twitter")
+	daemon.addNewAssertionForTest("u2", "u2@github")
+	newH, err := h.ResolveAgain(ctx, daemon)
+	require.Nil(t, err)
+	assert.Equal(t, CanonicalTlfName("u1,u2"), newH.GetCanonicalName())
+}
