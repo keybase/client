@@ -231,7 +231,7 @@ func (k *KeybaseDaemonLocal) CurrentSession(ctx context.Context, sessionID int) 
 // addNewAssertionForTest makes newAssertion, which should be a single
 // assertion that doesn't already resolve to anything, resolve to the
 // same UID as oldAssertion, which should be an arbitrary assertion
-// that doesn't already resolve to something.
+// that does already resolve to something.
 func (k *KeybaseDaemonLocal) addNewAssertionForTest(
 	oldAssertion, newAssertion string) keybase1.UID {
 	k.lock.Lock()

@@ -213,6 +213,8 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 	c.allKnownConfigsForTesting = config.allKnownConfigsForTesting
 	*c.allKnownConfigsForTesting = append(*c.allKnownConfigsForTesting, c)
 
+	c.SetSharingBeforeSignupEnabled(config.SharingBeforeSignupEnabled())
+
 	return c
 }
 

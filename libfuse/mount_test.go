@@ -1,6 +1,7 @@
 package libfuse
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -9,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"path/filepath"
 	"reflect"
 	"runtime"
 	"strings"
@@ -3189,6 +3191,77 @@ func TestSimpleCRConflictOnOpenMergedFile(t *testing.T) {
 		t.Fatal(err)
 	}
 	if g, e := string(buf), input1+input3; g != e {
+		t.Errorf("wrong content: %q != %q", g, e)
+	}
+}
+
+func TestTlfNameChange(t *testing.T) {
+	config1 := libkbfs.MakeTestConfigOrBust(t, "user1",
+		"user2")
+	mnt1, fs1, cancelFn1 := makeFS(t, config1)
+	defer mnt1.Close()
+	defer cancelFn1()
+	defer libkbfs.CheckConfigAndShutdown(t, config1)
+	config1.SetSharingBeforeSignupEnabled(true)
+
+	config2 := libkbfs.ConfigAsUser(config1, "user2")
+	mnt2, _, cancelFn2 := makeFS(t, config2)
+	defer mnt2.Close()
+	defer cancelFn2()
+	defer libkbfs.CheckConfigAndShutdown(t, config2)
+
+	root1 := filepath.Join(mnt1.Dir, PrivateName, "user1,user2@twitter")
+	fi, err := os.Lstat(root1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := fi.Mode().String(), `drwx------`; g != e {
+		t.Errorf("wrong mode for folder: %q != %q", g, e)
+	}
+	input := []byte("hello")
+	file1 := filepath.Join(root1, "f")
+	if err := ioutil.WriteFile(file1, input, 0644); err != nil {
+		t.Fatal(err)
+	}
+	syncFolderToServer(t, "user1,user2@twitter", fs1)
+
+	// User2 shouldn't be able to see this yet.
+	root2 := filepath.Join(mnt2.Dir, PrivateName, "user1,user2@twitter")
+	if _, err := os.Lstat(root2); err == nil {
+		t.Fatalf("Did not get expected error")
+	}
+
+	rootNode := libkbfs.GetRootNodeOrBust(t, config1,
+		"user1,user2@twitter", false)
+
+	// Now add the new assertion
+	libkbfs.AddNewAssertionForTestOrBust(t, config1, "user2", "user2@twitter")
+	libkbfs.AddNewAssertionForTestOrBust(t, config2, "user2", "user2@twitter")
+
+	// Trigger a rekey from user1
+	err = config1.KBFSOps().Rekey(context.Background(),
+		rootNode.GetFolderBranch().Tlf)
+	if err != nil {
+		t.Fatalf("Couldn't rekey: %v", err)
+	}
+	// Wait for the name to change.
+	fs1.NotificationGroupWait()
+
+	// Now the old name should be a symlink
+	fi, err = os.Lstat(root1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := fi.Mode().String(), `Lrwxrwxrwx`; g != e {
+		t.Errorf("wrong mode for folder: %q != %q", g, e)
+	}
+
+	// user2 can read it now
+	buf, err := ioutil.ReadFile(filepath.Join(root2, "f"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g, e := buf, input; !bytes.Equal(g, e) {
 		t.Errorf("wrong content: %q != %q", g, e)
 	}
 }

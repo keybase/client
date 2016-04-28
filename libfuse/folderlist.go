@@ -181,6 +181,7 @@ func (fl *FolderList) updateTlfName(ctx context.Context, oldName string,
 		return
 	}
 
+	fl.fs.log.CDebugf(ctx, "Folder name updated: %s -> %s", oldName, newName)
 	delete(fl.folders, oldName)
 	fl.folders[newName] = tlf
 	if err := fl.fs.fuse.InvalidateEntry(fl, oldName); err != nil {

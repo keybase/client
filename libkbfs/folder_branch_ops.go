@@ -526,6 +526,8 @@ func (fbo *folderBranchOps) setHeadLocked(ctx context.Context,
 			go fbo.registerAndWaitForUpdates()
 		}
 	} else if h := fbo.head.GetTlfHandle(); !reflect.DeepEqual(oldHandle, h) {
+		fbo.log.CDebugf(ctx, "Handle changed (%s -> %s)",
+			oldHandle.GetCanonicalName(), h.GetCanonicalName())
 		// If the handle has changed, send out a notification.
 		fbo.observers.tlfHandleChange(ctx, h)
 	}
