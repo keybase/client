@@ -5,6 +5,7 @@ import {metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone, metaI
 import type {TrackerProps} from '../tracker'
 import type {Proof} from '../tracker/proofs.render'
 import type {TrackSummary} from '../constants/types/flow-types'
+import {globalStyles} from '../styles/style-guide'
 
 function proofGithubMaker (name): Proof {
   return {name: 'githubuser' + name, type: 'github', id: 'githubId' + name, state: normal, meta: metaNone, humanUrl: 'github.com', profileUrl: 'http://github.com', isTracked: false}
@@ -62,6 +63,7 @@ const propsBase = {
 
 const propsDefault: TrackerProps = {
   ...propsBase,
+  nonUser: false,
   username: 'darksim905',
   reason: 'You accessed a private folder with gabrielh.',
   userInfo: {
@@ -93,6 +95,24 @@ const lastTrackMax: TrackSummary = {
 
 const propsNewUser: TrackerProps = {
   ...propsDefault
+}
+
+const propsNonUser: TrackerProps = {
+  ...propsDefault,
+  userInfo: null,
+  isPrivate: false,
+  proofs: [],
+  nonUser: true,
+  name: '@aliceb',
+  reason: 'Success! You opened a private folder with aliceb@twitter.',
+  inviteLink: 'keybase.io/inv/9999999999',
+  parentProps: {
+    style: {
+      ...globalStyles.flexBoxColumn,
+      width: 320,
+      height: 470
+    }
+  }
 }
 
 const propsNewUserFollowsYou: TrackerProps = {
@@ -157,6 +177,7 @@ const propsUnfollowed: TrackerProps = {
 
 const propsLessData: TrackerProps = {
   ...propsBase,
+  nonUser: false,
   username: '00',
   reason: 'I\'m a user with not much data.',
   userInfo: {
@@ -192,6 +213,9 @@ export default {
   'Tracker': {
     component: Tracker,
     mocks: {
+      'NonuserNoLinkPrivate': {...propsNonUser, inviteLink: null, isPrivate: true},
+      'NonuserLink': propsNonUser,
+      'NonuserNoLinkPublic': {...propsNonUser, inviteLink: null},
       'Logged out': propsLoggedOut,
       'Only one proof': propsOneProof,
       '5 proofs': propsFiveProof,

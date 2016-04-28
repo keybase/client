@@ -23,7 +23,8 @@ export type TrackerProps = {
   shouldFollow: ?boolean,
   reason: string,
   waiting: boolean,
-  userInfo: UserInfo,
+  userInfo: ?UserInfo,
+  nonUser: ?boolean,
   proofs: Array<Proof>,
   onClose: () => void,
   onRefollow: () => void,
@@ -35,7 +36,10 @@ export type TrackerProps = {
   startTimer: () => void,
   stopTimer: () => void,
   currentlyFollowing: boolean,
-  lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error')
+  lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error'),
+  name?: string,
+  inviteLink?: string,
+  isPrivate?: boolean
 }
 
 class Tracker extends Component {
@@ -99,7 +103,12 @@ class Tracker extends Component {
         username: this.props.username,
         proofs: this.props.proofs,
         currentlyFollowing
-      }
+      },
+      nonUser: this.props.nonUser,
+      name: this.props.name,
+      reason: this.props.reason,
+      inviteLink: this.props.inviteLink,
+      isPrivate: this.props.isPrivate
     }
 
     return <Render {...renderProps}/>

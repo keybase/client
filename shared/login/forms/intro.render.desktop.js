@@ -3,46 +3,57 @@
 
 import React, {Component} from 'react'
 import {globalColors, globalStyles} from '../../styles/style-guide'
-import {Text, Icon, Button} from '../../common-adapters'
+import {Text, Icon, Button, Box} from '../../common-adapters'
 
 import type {IntroProps} from './intro.render'
 
-export default class Intro extends Component {
-  props: IntroProps;
-
+export default class Intro extends Component<void, IntroProps, void> {
   render () {
     return (
-      <div style={styles.loginForm}>
+      <Box style={{...stylesLoginForm, marginTop: this.props.justRevokedSelf ? 0 : 45}}>
+        {this.props.justRevokedSelf && <Box style={stylesRevoked}>
+          <Text type='BodySemiboldItalic' style={{color: globalColors.white}}>{this.props.justRevokedSelf}</Text>
+          <Text type='BodySemiboldItalic' style={{color: globalColors.white}}>&nbsp;was revoked successfully</Text>
+        </Box>}
         <Icon type='logo-160'/>
-        <Text style={styles.header} type='HeaderJumbo'>Join Keybase</Text>
-        <Text style={styles.headerSub} type='Body'>Folders for anyone in the world.</Text>
-        <Button style={styles.button} type='Primary' onClick={this.props.onSignup} label='Create an account' />
-        <Text style={styles.loginHeader} type='Body' onClick={this.props.onLogin}>Already on Keybase?</Text>
+        <Text style={stylesHeader} type='HeaderJumbo'>Join Keybase</Text>
+        <Text style={stylesHeaderSub} type='Body'>Folders for anyone in the world.</Text>
+        <Button style={stylesButton} type='Primary' onClick={this.props.onSignup} label='Create an account' />
+        <Text style={stylesLoginHeader} type='Body' onClick={this.props.onLogin}>Already on Keybase?</Text>
         <Text type='BodyPrimaryLink' onClick={this.props.onLogin}>Log in</Text>
-      </div>
+      </Box>
     )
   }
 }
 
-const styles = {
-  loginForm: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    marginTop: 95,
-    flex: 1
-  },
-  header: {
-    marginTop: 27,
-    color: globalColors.orange
-  },
-  headerSub: {
-    marginTop: 3
-  },
-  loginHeader: {
-    marginTop: 91,
-    textAlign: 'center'
-  },
-  button: {
-    marginTop: 15
-  }
+const stylesLoginForm = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  marginTop: 95,
+  flex: 1
+}
+const stylesHeader = {
+  marginTop: 27,
+  color: globalColors.orange
+}
+const stylesHeaderSub = {
+  marginTop: 3
+}
+const stylesLoginHeader = {
+  marginTop: 91,
+  textAlign: 'center'
+}
+const stylesButton = {
+  marginTop: 15
+}
+
+const stylesRevoked = {
+  ...globalStyles.flexBoxRow,
+  height: 45,
+  marginBottom: 40,
+  color: globalColors.white,
+  justifyContent: 'center',
+  alignItems: 'center',
+  alignSelf: 'stretch',
+  backgroundColor: globalColors.green
 }

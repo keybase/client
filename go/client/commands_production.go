@@ -20,3 +20,4 @@ func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext
 const develUsage = false
 
 var restrictedSignupFlags = []cli.Flag{}
+var restrictedProveFlags = []cli.Flag{}

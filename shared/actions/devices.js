@@ -4,6 +4,7 @@ import engine from '../engine'
 import {navigateUpOnUnchanged} from './router'
 import type {AsyncAction} from '../constants/types/flux'
 import type {incomingCallMapType, revoke_revokeDevice_rpc, device_deviceList_rpc, login_paperKey_rpc} from '../constants/types/flow-types'
+// import {loginTab} from '../constants/tabs'
 
 export function loadDevices () : AsyncAction {
   return function (dispatch) {
@@ -93,6 +94,13 @@ export function removeDevice (deviceID: string) : AsyncAction {
           payload: error,
           error: !!error
         })
+
+        // TODO when device page is integrated
+        // if (wasCurrentDevice) {
+          // dispatch(setRevokedSelf(oldCurrentDeviceName))
+          // dispatch(navigateTo('', loginTab))
+          // dispatch(switchTab(loginTab))
+        // } else
 
         if (!error) {
           dispatch(loadDevices())

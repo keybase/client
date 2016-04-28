@@ -15,6 +15,7 @@ type Folder struct {
 	Name            string `codec:"name" json:"name"`
 	Private         bool   `codec:"private" json:"private"`
 	NotificationsOn bool   `codec:"notificationsOn" json:"notificationsOn"`
+	Created         bool   `codec:"created" json:"created"`
 }
 
 type FavoriteAddArg struct {
