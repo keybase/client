@@ -7,6 +7,8 @@ import HiddenString from '../util/hidden-string'
 
 import type {SignupActions} from '../constants/signup'
 
+import {isMobile} from '../constants/platform'
+
 export type SignupState = {
   inviteCode: ?string,
   username: ?string,
@@ -38,7 +40,7 @@ const initialState: SignupState = {
   deviceNameError: null,
   paperkey: null,
   signupError: null,
-  deviceName: 'Home Computer',
+  deviceName: isMobile ? 'Mobile Device' : 'Home Computer',
   waiting: false,
   phase: 'inviteCode'
 }
