@@ -97,7 +97,7 @@ export function removeDevice (deviceID: string) : AsyncAction {
 
         // TODO when device page is integrated
         // if (wasCurrentDevice) {
-          // dispatch(setRevokedSelf(true))
+          // dispatch(setRevokedSelf(oldCurrentDeviceName))
           // dispatch(navigateTo('', loginTab))
           // dispatch(switchTab(loginTab))
         // } else
