@@ -864,14 +864,9 @@ func (fbo *folderBranchOps) CheckForNewMDAndInit(
 				if err != nil {
 					return err
 				}
-				// Drop through to do the identify.
-			} else {
-				return nil
 			}
-		}
-
-		// Initialize if needed
-		if md.data.Dir.Type != Dir {
+		} else {
+			// Initialize if needed
 			return fbo.initMDLocked(ctx, lState, md)
 		}
 		return nil
