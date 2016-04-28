@@ -380,10 +380,16 @@ func (f *FS) MoveFile(source *dokan.FileInfo, targetPath string, replaceExisting
 func (f *FS) folderListRename(ctx context.Context, fl *FolderList, oc *openContext, src dokan.File, srcName string, dstPath []string, replaceExisting bool) error {
 	ef, ok := src.(*EmptyFolder)
 	f.log.CDebugf(ctx, "FS Rename folderlist %v", ef)
-	if !ok {
+	if !ok || !isNewFolderName(srcName) {
 		return dokan.ErrAccessDenied
 	}
 	dstName := dstPath[len(dstPath)-1]
+	// Yes, this is slow, but that is ok here.
+	if _, err := libkbfs.ParseTlfHandle(
+		ctx, f.config.KBPKI(), dstName, fl.public,
+		f.config.SharingBeforeSignupEnabled()); err != nil {
+		return dokan.ErrObjectNameNotFound
+	}
 	fl.mu.Lock()
 	_, ok = fl.folders[dstName]
 	fl.mu.Unlock()

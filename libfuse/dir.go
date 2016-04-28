@@ -645,39 +645,6 @@ func (tlf *TLF) getStoredDir() *Dir {
 	return tlf.dir
 }
 
-func (tlf *TLF) filterEarlyExitError(ctx context.Context, err error) (
-	exitEarly bool, retErr error) {
-	switch err := err.(type) {
-	case nil:
-		// No error.
-		return false, nil
-
-	case libkbfs.WriteAccessError:
-		// No permission to create TLF, so pretend it's still
-		// empty.
-		//
-		// In theory, we need to invalidate this once the TLF
-		// is created, but in practice, the Linux kernel
-		// doesn't cache readdir results, and probably not
-		// OSXFUSE either.
-		tlf.folder.fs.log.CDebugf(ctx,
-			"No permission to write to %s, so pretending it's empty",
-			tlf.folder.name)
-		return true, nil
-
-	case libkbfs.MDServerErrorWriteAccess:
-		// Same as above; cannot fallthrough in type switch
-		tlf.folder.fs.log.CDebugf(ctx,
-			"No permission to write to %s, so pretending it's empty",
-			tlf.folder.name)
-		return true, nil
-
-	default:
-		// Some other error.
-		return true, err
-	}
-}
-
 func (tlf *TLF) loadDirHelper(ctx context.Context, filterErr bool) (
 	dir *Dir, exitEarly bool, err error) {
 	dir = tlf.getStoredDir()
@@ -690,14 +657,14 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, filterErr bool) (
 	// Need to check for nilness again to avoid racing with other
 	// calls to loadDir().
 	if tlf.dir != nil {
-		return tlf.dir, true, nil
+		return tlf.dir, false, nil
 	}
 
 	tlf.folder.fs.log.CDebugf(ctx, "Loading root directory for folder %s "+
 		"(public: %t)", tlf.folder.name, tlf.isPublic())
 	defer func() {
 		if filterErr {
-			exitEarly, err = tlf.filterEarlyExitError(ctx, err)
+			exitEarly, err = libfs.FilterTLFEarlyExitError(ctx, err, tlf.folder.fs.log, tlf.folder.name())
 		}
 		tlf.folder.reportErr(ctx, libkbfs.ReadMode, err)
 	}()
@@ -706,12 +673,12 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, filterErr bool) (
 		tlf.folder.fs.config.KBFSOps().GetOrCreateRootNode(
 			ctx, tlf.folder.h, libkbfs.MasterBranch)
 	if err != nil {
-		return nil, true, err
+		return nil, false, err
 	}
 
 	err = tlf.folder.setFolderBranch(rootNode.GetFolderBranch())
 	if err != nil {
-		return nil, true, err
+		return nil, false, err
 	}
 
 	tlf.folder.nodes[rootNode.GetID()] = tlf

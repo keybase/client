@@ -85,58 +85,42 @@ func (fl *FolderList) open(ctx context.Context, oc *openContext, path []string) 
 			return child.open(ctx, oc, path[1:])
 		}
 
-		fl.fs.log.CDebugf(ctx, "FL Lookup continuing")
+		if len(path) == 1 && oc.isCreateDirectory() && isNewFolderName(name) {
+			fl.fs.log.CDebugf(ctx, "FL Lookup creating EmptyFolder for Explorer")
+			e := &EmptyFolder{}
+			fl.lockedAddChild(name, e)
+			return e, true, nil
+		}
+
 		h, err := libkbfs.ParseTlfHandle(
 			ctx, fl.fs.config.KBPKI(), name, fl.public,
 			fl.fs.config.SharingBeforeSignupEnabled())
+		fl.fs.log.CDebugf(ctx, "FL Lookup continuing -> %v,%v", h, err)
 		switch err := err.(type) {
 		case nil:
 			// No error.
 			break
 
 		case libkbfs.TlfNameNotCanonical:
-			// Non-canonical name.
-			if len(path) == 1 {
-				fl.fs.log.CDebugf(ctx, "FL Lookup Alias")
-				target := err.NameToTry
-				d, bf, err := fl.open(ctx, oc, []string{target})
-				switch {
-				case err == nil && oc.isOpenReparsePoint():
-					d.Cleanup(nil)
-					return &Alias{canon: target}, false, nil
-				case err == nil:
-					return d, bf, err
-				case oc.isCreateDirectory():
-					fl.fs.log.CDebugf(ctx, "FL Lookup returning EmptyFolder instead of Alias")
-					e := &EmptyFolder{}
-					fl.lockedAddChild(name, e)
-					return e, true, nil
+			// Only permit Aliases to targets that contain no errors.
+			if !fl.isValidAliasTarget(ctx, err.NameToTry) {
+				fl.fs.log.CDebugf(ctx, "FL Refusing alias to non-valid target %q", err.NameToTry)
+				return nil, false, dokan.ErrObjectNameNotFound
+			}
+
+			if len(path) == 1 && oc.isOpenReparsePoint() {
+				// Non-canonical name.
+				n := &Alias{
+					canon: err.NameToTry,
 				}
-				return nil, false, err
+				return n, true, nil
 			}
 			path[0] = err.NameToTry
 			continue
 
-		case libkbfs.NoSuchNameError, libkbfs.NoSuchUserError:
-			// Invalid public TLF.
-			if len(path) == 1 && oc.isCreateDirectory() {
-				fl.fs.log.CDebugf(ctx, "FL Lookup returning EmptyFolder instead of Alias")
-				e := &EmptyFolder{}
-				fl.lockedAddChild(name, e)
-				return e, true, nil
-			}
+		case libkbfs.NoSuchNameError, libkbfs.BadTLFNameError:
 			return nil, false, dokan.ErrObjectNameNotFound
 
-		case libkbfs.MDServerErrorWriteAccess:
-			if len(path) == 1 {
-				return oc.returnDirNoCleanup(&EmptyFolder{})
-			}
-			return nil, false, dokan.ErrObjectNameNotFound
-		case libkbfs.WriteAccessError:
-			if len(path) == 1 {
-				return oc.returnDirNoCleanup(&EmptyFolder{})
-			}
-			return nil, false, dokan.ErrObjectNameNotFound
 		default:
 			// Some other error.
 			return nil, false, err
@@ -190,6 +174,10 @@ func (fl *FolderList) FindFiles(fi *dokan.FileInfo, callback func(*dokan.NamedSt
 		return dokan.ErrObjectNameNotFound
 	}
 	return nil
+}
+
+func (fl *FolderList) isValidAliasTarget(ctx context.Context, nameToTry string) bool {
+	return libkbfs.CheckTlfHandleOffline(ctx, nameToTry, fl.public) == nil
 }
 
 func (fl *FolderList) lockedAddChild(name string, val fileOpener) {

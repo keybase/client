@@ -52,10 +52,17 @@ func Start(mounter Mounter, options StartOptions) *libfs.Error {
 		// style to be specified.
 		log.Configure("", true, "")
 	}
+
 	fs, err := NewFS(context.Background(), config, log)
 	if err != nil {
 		return libfs.InitError(err.Error())
 	}
+
+	if newFolderNameErr != nil {
+		log.CWarningf(fs.context, "Error guessing new folder name: %v", newFolderNameErr)
+	}
+	log.CDebugf(fs.context, "New folder name guess: %q %q", newFolderName, newFolderAltName)
+
 	err = mounter.Mount(fs, log)
 	if err != nil {
 		return libfs.MountError(err.Error())
