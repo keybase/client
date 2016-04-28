@@ -10,7 +10,6 @@ import setupLocalLogs, {logLocal} from '../util/local-log'
 
 import {Buffer} from 'buffer'
 import NativeEventEmitter from '../common-adapters/native-event-emitter'
-import windowsHack from './windows-hack'
 import {log} from '../native/log/logui'
 
 import {constants} from '../constants/types/keybase-v1'
@@ -18,7 +17,6 @@ import {printOutstandingRPCs} from '../local-debug'
 
 class Engine {
   constructor () {
-    windowsHack()
     setupLocalLogs()
 
     // Keep some meta data from session ID to response meta
