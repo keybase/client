@@ -382,9 +382,31 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 
 	handle := md.GetTlfHandle()
 
+	username, uid, err := km.config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		return false, nil, err
+	}
+
 	resolvedHandle, err := handle.ResolveAgain(ctx, km.config.KBPKI())
 	if err != nil {
 		return false, nil, err
+	}
+
+	isWriter := resolvedHandle.IsWriter(uid)
+	if !isWriter {
+		// If I was already a reader, there's nothing more to do
+		if handle.IsReader(uid) {
+			resolvedHandle = handle
+			km.log.CDebugf(ctx, "Local user is not a writer, and was "+
+				"already a reader; reverting back to the original handle")
+		} else {
+			// Only allow yourself to change
+			resolvedHandle, err =
+				handle.ResolveAgainForUser(ctx, km.config.KBPKI(), uid)
+			if err != nil {
+				return false, nil, err
+			}
+		}
 	}
 
 	if !reflect.DeepEqual(handle, resolvedHandle) {
@@ -393,17 +415,12 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 			resolvedHandle.GetCanonicalPath())
 	}
 
-	username, uid, err := km.config.KBPKI().GetCurrentUserInfo(ctx)
-	if err != nil {
-		return false, nil, err
-	}
-
 	// Decide whether we have a new device and/or a revoked device, or neither.
 	// Look up all the device public keys for all writers and readers first.
 
 	incKeyGen := currKeyGen < FirstValidKeyGen
 
-	if !resolvedHandle.IsWriter(uid) && incKeyGen {
+	if !isWriter && incKeyGen {
 		// Readers cannot create the first key generation
 		return false, nil, NewReadAccessError(resolvedHandle, username)
 	}
@@ -457,7 +474,7 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 		return false, nil, nil
 	}
 
-	if !resolvedHandle.IsWriter(uid) {
+	if !isWriter {
 		if _, userHasNewKeys := newReaderUsers[uid]; userHasNewKeys {
 			// Only rekey the logged-in reader
 			rKeys = map[keybase1.UID][]CryptPublicKey{
@@ -513,7 +530,8 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 		}
 	}
 
-	if !resolvedHandle.IsWriter(uid) {
+	if !isWriter {
+		md.updateTlfHandle(resolvedHandle)
 		if len(newReaderUsers) > 0 || addNewWriterDevice || incKeyGen {
 			// If we're a reader but we haven't completed all the work, return
 			// RekeyIncompleteError
@@ -523,6 +541,7 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 		return true, nil, nil
 	} else if !incKeyGen {
 		// we're done!
+		md.updateTlfHandle(resolvedHandle)
 		return true, nil, nil
 	}
 
@@ -569,16 +588,7 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 		}
 	}
 
-	// Update RMD fields from resolvedHandle.
-	md.Extra.UnresolvedWriters = make([]keybase1.SocialAssertion, len(resolvedHandle.UnresolvedWriters))
-	copy(md.Extra.UnresolvedWriters, resolvedHandle.UnresolvedWriters)
-
-	md.UnresolvedReaders = make([]keybase1.SocialAssertion, len(resolvedHandle.UnresolvedReaders))
-	copy(md.UnresolvedReaders, resolvedHandle.UnresolvedReaders)
-
-	// TODO: Notify the upper layers of any change in tlfHandle.
-	md.tlfHandle = resolvedHandle
-
+	md.updateTlfHandle(resolvedHandle)
 	return true, &tlfCryptKey, nil
 }
 

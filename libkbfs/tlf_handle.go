@@ -459,11 +459,13 @@ func (rp resolvableNameUIDPair) resolve(ctx context.Context) (nameUIDPair, keyba
 	return nameUIDPair(rp), keybase1.SocialAssertion{}, nil
 }
 
-// ResolveAgain tries to resolve any unresolved assertions in the
-// given handle and returns a new handle with the results. As an
+// ResolveAgainForUser tries to resolve any unresolved assertions in
+// the given handle and returns a new handle with the results. As an
 // optimization, if h contains no unresolved assertions, it just
-// returns itself.
-func (h *TlfHandle) ResolveAgain(ctx context.Context, resolver resolver) (*TlfHandle, error) {
+// returns itself.  If uid != keybase1.UID(""), it only allows
+// assertions that resolve to uid.
+func (h *TlfHandle) ResolveAgainForUser(ctx context.Context, resolver resolver,
+	uid keybase1.UID) (*TlfHandle, error) {
 	if len(h.UnresolvedWriters)+len(h.UnresolvedReaders) == 0 {
 		return h, nil
 	}
@@ -473,7 +475,8 @@ func (h *TlfHandle) ResolveAgain(ctx context.Context, resolver resolver) (*TlfHa
 		writers = append(writers, resolvableNameUIDPair{w, uid})
 	}
 	for _, uw := range h.UnresolvedWriters {
-		writers = append(writers, resolvableAssertion{true, resolver, uw.String()})
+		writers = append(writers, resolvableAssertion{true, resolver,
+			uw.String(), uid})
 	}
 
 	var readers []resolvableUser
@@ -483,7 +486,8 @@ func (h *TlfHandle) ResolveAgain(ctx context.Context, resolver resolver) (*TlfHa
 			readers = append(readers, resolvableNameUIDPair{r, uid})
 		}
 		for _, ur := range h.UnresolvedReaders {
-			readers = append(readers, resolvableAssertion{true, resolver, ur.String()})
+			readers = append(readers, resolvableAssertion{true, resolver,
+				ur.String(), uid})
 		}
 	}
 
@@ -493,6 +497,15 @@ func (h *TlfHandle) ResolveAgain(ctx context.Context, resolver resolver) (*TlfHa
 	}
 
 	return newH, nil
+}
+
+// ResolveAgain tries to resolve any unresolved assertions in the
+// given handle and returns a new handle with the results. As an
+// optimization, if h contains no unresolved assertions, it just
+// returns itself.
+func (h *TlfHandle) ResolveAgain(ctx context.Context, resolver resolver) (
+	*TlfHandle, error) {
+	return h.ResolveAgainForUser(ctx, resolver, keybase1.UID(""))
 }
 
 func getSortedHandleLists(
@@ -607,6 +620,7 @@ type resolvableAssertion struct {
 	sharingBeforeSignupEnabled bool
 	resolver                   resolver
 	assertion                  string
+	mustBeUser                 keybase1.UID
 }
 
 func (ra resolvableAssertion) resolve(ctx context.Context) (
@@ -615,6 +629,10 @@ func (ra resolvableAssertion) resolve(ctx context.Context) (
 		return nameUIDPair{}, keybase1.SocialAssertion{}, fmt.Errorf("Invalid name %s", ra.assertion)
 	}
 	name, uid, err := ra.resolver.Resolve(ctx, ra.assertion)
+	if err == nil && ra.mustBeUser != keybase1.UID("") && ra.mustBeUser != uid {
+		// Force an unresolved assertion sinced the forced user doesn't match
+		err = NoSuchUserError{ra.assertion}
+	}
 	switch err := err.(type) {
 	default:
 		return nameUIDPair{}, keybase1.SocialAssertion{}, err
@@ -680,11 +698,13 @@ func ParseTlfHandle(
 
 	writers := make([]resolvableUser, len(writerNames))
 	for i, w := range writerNames {
-		writers[i] = resolvableAssertion{sharingBeforeSignupEnabled, kbpki, w}
+		writers[i] = resolvableAssertion{sharingBeforeSignupEnabled, kbpki, w,
+			keybase1.UID("")}
 	}
 	readers := make([]resolvableUser, len(readerNames))
 	for i, r := range readerNames {
-		readers[i] = resolvableAssertion{sharingBeforeSignupEnabled, kbpki, r}
+		readers[i] = resolvableAssertion{sharingBeforeSignupEnabled, kbpki, r,
+			keybase1.UID("")}
 	}
 	h, err := makeTlfHandleHelper(ctx, public, writers, readers)
 	if err != nil {

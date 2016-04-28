@@ -677,6 +677,19 @@ func (md *RootMetadata) VerifyWriterMetadata(codec Codec, crypto Crypto) error {
 	return nil
 }
 
+func (md *RootMetadata) updateTlfHandle(newHandle *TlfHandle) {
+	// Update RMD fields from newHandle.
+	md.Extra.UnresolvedWriters =
+		make([]keybase1.SocialAssertion, len(newHandle.UnresolvedWriters))
+	copy(md.Extra.UnresolvedWriters, newHandle.UnresolvedWriters)
+
+	md.UnresolvedReaders =
+		make([]keybase1.SocialAssertion, len(newHandle.UnresolvedReaders))
+	copy(md.UnresolvedReaders, newHandle.UnresolvedReaders)
+
+	md.tlfHandle = newHandle
+}
+
 // RootMetadataSigned is the top-level MD object stored in MD server
 type RootMetadataSigned struct {
 	// signature over the root metadata by the private signing key
