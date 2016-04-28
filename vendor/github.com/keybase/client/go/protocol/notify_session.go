@@ -18,6 +18,7 @@ type LoggedInArg struct {
 type ClientOutOfDateArg struct {
 	UpgradeTo  string `codec:"upgradeTo" json:"upgradeTo"`
 	UpgradeURI string `codec:"upgradeURI" json:"upgradeURI"`
+	UpgradeMsg string `codec:"upgradeMsg" json:"upgradeMsg"`
 }
 
 type NotifySessionInterface interface {

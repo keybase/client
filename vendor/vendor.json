@@ -241,8 +241,8 @@
 			"checksumSHA1": "I7IjX8GPD/BDvIsuEvYA/1Qo1Ko=",
 			"origin": "github.com/keybase/kbfs/vendor/github.com/keybase/client/go/protocol",
 			"path": "github.com/keybase/client/go/protocol",
-			"revision": "9f1142e955d4963f0a913c624b64f75015c6d51e",
-			"revisionTime": "2016-04-14T17:11:47-04:00"
+			"revision": "ae68c58a8534a84307c087c48d889f478041f405",
+			"revisionTime": "2016-04-28T10:46:01-07:00"
 		},
 		{
 			"path": "github.com/keybase/go-codec/codec",

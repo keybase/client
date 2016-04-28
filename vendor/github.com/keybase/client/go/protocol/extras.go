@@ -596,6 +596,10 @@ func WrapError(e error) interface{} {
 		return status
 	}
 
+	if status, ok := e.(Status); ok {
+		return status
+	}
+
 	return Status{
 		Name: "GENERIC",
 		Code: int(StatusCode_SCGeneric),
