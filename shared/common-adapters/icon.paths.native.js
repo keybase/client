@@ -710,6 +710,7 @@ export const images = {
   'computer-bw-xs': require('../images/icons/computer-bw-xs.png'),
   'computer-color-l': require('../images/icons/computer-color-l.png'),
   'computer-color-m': require('../images/icons/computer-color-m.png'),
+  'devices-add-s': require('../images/icons/devices-add-s.png'),
   'documentation': require('../images/icons/documentation.png'),
   'email-sent-m': require('../images/icons/email-sent-m.png'),
   'folder-all-m': require('../images/icons/folder-all-m.png'),

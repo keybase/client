@@ -5,7 +5,7 @@ import {globalStyles} from '../styles/style-guide'
 import type {DumbMap} from './dumb'
 
 import CommonMap from '../common-adapters/dumb.desktop'
-import DevicesMap from '../devices/dumb.desktop'
+import DevicesMap from '../devices/dumb'
 import LoginMap from '../login/dumb.desktop'
 import SignupMap from '../login/signup/dumb.desktop'
 import TrackerMap from '../tracker/dumb.desktop'

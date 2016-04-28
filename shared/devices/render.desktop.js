@@ -29,7 +29,7 @@ class RevokedHeader extends Component {
       <Box>
         <Box style={stylesRevokedRow} onClick={e => this._toggleHeader(e)}>
           <Text type='BodySemibold'>Revoked devices</Text>
-          <Icon type={iconType} style={{padding: 5}}/>
+          <Icon type={iconType} style={{padding: 5}} />
         </Box>
         {this.state.expanded && this.props.children}
       </Box>
@@ -78,7 +78,7 @@ class DeviceRow extends Component {
     return (
       <Box key={this.props.device.name} onMouseOver={e => this._highlighted(true)} onMouseOut={e => this._highlighted(false)} style={{...stylesCommonRow, backgroundColor: this.props.revoked ? globalColors.lightGrey : globalColors.white}}>
         <Box style={this.props.revoked ? stylesRevokedIconColumn : stylesIconColumn}>
-          <Icon type={icon}/>
+          <Icon type={icon} />
         </Box>
         <Box style={stylesCommonColumn}>
           <Box style={{...globalStyles.flexBoxRow}}>

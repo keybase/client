@@ -8,6 +8,7 @@ import type {DumbMap} from './dumb'
 import CommonMap from '../common-adapters/dumb.native'
 import RegisterMap from '../login/register/dumb'
 import SignupMap from '../login/signup/dumb.native'
+import DevicesMap from '../devices/dumb'
 // import TrackerMap from '../tracker/dumb.desktop'
 // import PinentryMap from '../pinentry/dumb.desktop'
 
@@ -36,7 +37,8 @@ class Render extends Component<void, any, any> {
     const componentMap: DumbMap = {
       ...CommonMap,
       ...RegisterMap,
-      ...SignupMap
+      ...SignupMap,
+      ...DevicesMap
       // ...LoginMap,
       // ...TrackerMap,
       // ...PinentryMap
