@@ -40,7 +40,7 @@ class Render extends Component<void, Props, void> {
             type='Primary'
             onClick={this.props.onSubmit}
             enabled={this.props.passphrase && this.props.passphrase.length}/>
-          <Text style={stylesForgot} type='BodySecondaryLink' onClick={this.props.onForgotPassphrase}>Forgot passphrase?</Text>
+          <Text style={stylesForgot} type='BodySmallSecondaryLink' onClick={this.props.onForgotPassphrase}>Forgot passphrase?</Text>
         </UserCard>
       </Container>
     )

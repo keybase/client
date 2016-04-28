@@ -4,8 +4,11 @@ import React, {Component} from 'react'
 
 export type Background = 'Normal' | 'Announcements' | 'Success' | 'Information' | 'HighRisk' | 'Documentation' | 'Terminal'
 export type Props = {
-  type: 'HeaderJumbo' | 'HeaderBig' | 'Header' | 'HeaderError'
-          | 'Body' | 'BodySemibold' | 'BodySmall' | 'BodySmallSemibold' | 'BodyPrimaryLink' | 'BodySecondaryLink'
+  type: 'HeaderJumbo' | 'HeaderBig' | 'Header' | 'HeaderError' | 'HeaderLink'
+          | 'Body' | 'BodySemibold' | 'BodyPrimaryLink'
+          | 'BodySmall' | 'BodySmallLink' | 'BodySmallError' | 'BodySmallPrimaryLink' | 'BodySmallSecondaryLink'
+          | 'BodyXSmall' | 'BodyXSmallLink'
+          | 'BodySmallSemibold'
           | 'BodySemiboldItalic'
           | 'BadgeNumber'
           | 'Error'
@@ -15,7 +18,6 @@ export type Props = {
   backgroundMode?: Background,
   inline?: boolean,
   link?: boolean,
-  small?: boolean,
   reversed?: boolean,
   onClick?: (e: SyntheticEvent) => void,
   lineClamp?: number,

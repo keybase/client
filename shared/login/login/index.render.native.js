@@ -42,7 +42,7 @@ export default class LoginRender extends Component<void, Props, void> {
             type='Primary'
             label='Log in'
             onClick={() => this.props.onSubmit()} />
-          <Text link type='BodySecondaryLink' onClick={this.props.onForgotPassphrase} style={{marginTop: 24}}>Forgot passphrase?</Text>
+          <Text link type='BodySmallSecondaryLink' onClick={this.props.onForgotPassphrase} style={{marginTop: 24}}>Forgot passphrase?</Text>
         </UserCard>
         <Text style={{marginTop: 30}} type='BodyPrimaryLink' onClick={this.props.onSignup}>Create an account</Text>
       </Box>
