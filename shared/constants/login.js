@@ -26,6 +26,7 @@ export const cameraBrokenMode = 'login:cameraBrokenMode'
 export const doneRegistering = 'login:doneRegistering'
 export const configuredAccounts = 'login:configuredAccounts'
 export const waitingForResponse = 'login:waitingForResponse'
+export const setRevokedSelf = 'login:setRevokedSelf'
 
 export const actionUpdateForgotPasswordEmailAddress = 'login:actionUpdateForgotPasswordEmailAddress'
 export const actionSetForgotPasswordSubmitting = 'login:actionSetForgotPasswordSubmitting'

@@ -4,12 +4,13 @@ import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import Render from './intro.render'
 import {routeAppend} from '../../actions/router'
+import {setRevokedSelf} from '../../actions/login'
 import {login} from '../../actions/login'
 
 class Intro extends Component {
   render () {
     return (
-      <Render onSignup={this.props.onSignup} onLogin={this.props.onLogin}/>
+      <Render onSignup={this.props.onSignup} onLogin={this.props.onLogin} justRevokedSelf={this.props.justRevokedSelf}/>
     )
   }
 }
@@ -20,9 +21,15 @@ Intro.propTypes = {
 }
 
 export default connect(
-  state => ({}),
+  state => ({justRevokedSelf: state.login.justRevokedSelf}),
   dispatch => ({
-    onSignup: () => { dispatch(routeAppend('signup')) },
-    onLogin: () => { dispatch(login()) }
+    onSignup: () => {
+      dispatch(setRevokedSelf(''))
+      dispatch(routeAppend('signup'))
+    },
+    onLogin: () => {
+      dispatch(setRevokedSelf(''))
+      dispatch(login())
+    }
   })
 )(Intro)
