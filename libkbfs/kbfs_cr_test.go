@@ -43,6 +43,11 @@ func (t *testCRObserver) BatchChanges(ctx context.Context,
 	t.c <- struct{}{}
 }
 
+func (t *testCRObserver) TlfHandleChange(ctx context.Context,
+	newHandle *TlfHandle) {
+	return
+}
+
 func checkStatus(t *testing.T, ctx context.Context, kbfsOps KBFSOps,
 	staged bool, headWriter libkb.NormalizedUsername, dirtyPaths []string, fb FolderBranch,
 	prefix string) {

@@ -143,6 +143,12 @@ func (f *Folder) BatchChanges(ctx context.Context, changes []libkbfs.NodeChange)
 	return
 }
 
+// TlfHandleChange is called when the name of a folder changes.
+func (f *Folder) TlfHandleChange(ctx context.Context,
+	newHandle *libkbfs.TlfHandle) {
+	return
+}
+
 // Dir represents KBFS subdirectories.
 type Dir struct {
 	FSO

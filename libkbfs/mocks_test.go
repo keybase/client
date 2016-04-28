@@ -2274,6 +2274,14 @@ func (_mr *_MockObserverRecorder) BatchChanges(arg0, arg1 interface{}) *gomock.C
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "BatchChanges", arg0, arg1)
 }
 
+func (_m *MockObserver) TlfHandleChange(ctx context.Context, newHandle *TlfHandle) {
+	_m.ctrl.Call(_m, "TlfHandleChange", ctx, newHandle)
+}
+
+func (_mr *_MockObserverRecorder) TlfHandleChange(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "TlfHandleChange", arg0, arg1)
+}
+
 // Mock of Notifier interface
 type MockNotifier struct {
 	ctrl     *gomock.Controller

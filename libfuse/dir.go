@@ -241,6 +241,12 @@ func (f *Folder) batchChangesInvalidate(ctx context.Context,
 	}
 }
 
+// TlfHandleChange is called when the name of a folder changes.
+func (f *Folder) TlfHandleChange(ctx context.Context,
+	newHandle *libkbfs.TlfHandle) {
+	return
+}
+
 // TODO: Expire TLF nodes periodically. See
 // https://keybase.atlassian.net/browse/KBFS-59 .
 

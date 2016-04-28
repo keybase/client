@@ -26,6 +26,11 @@ func (fn *FakeObserver) BatchChanges(
 	fn.ctx = ctx
 }
 
+func (fn *FakeObserver) TlfHandleChange(ctx context.Context,
+	newHandle *TlfHandle) {
+	return
+}
+
 type ConfigMock struct {
 	ConfigLocal
 

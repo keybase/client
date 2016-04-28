@@ -1930,6 +1930,11 @@ func (t *testMountObserver) BatchChanges(ctx context.Context,
 	t.c <- struct{}{}
 }
 
+func (t *testMountObserver) TlfHandleChange(ctx context.Context,
+	newHandle *libkbfs.TlfHandle) {
+	return
+}
+
 func TestInvalidateAcrossMounts(t *testing.T) {
 	config1 := libkbfs.MakeTestConfigOrBust(t, "user1",
 		"user2")

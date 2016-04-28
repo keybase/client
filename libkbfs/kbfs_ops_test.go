@@ -4765,6 +4765,11 @@ func (t *testBGObserver) BatchChanges(ctx context.Context,
 	t.c <- struct{}{}
 }
 
+func (t *testBGObserver) TlfHandleChange(ctx context.Context,
+	newHandle *TlfHandle) {
+	return
+}
+
 // Tests that the background flusher will sync a dirty file if the
 // application does not.
 func TestKBFSOpsBackgroundFlush(t *testing.T) {
