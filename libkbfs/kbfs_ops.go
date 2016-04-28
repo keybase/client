@@ -123,7 +123,7 @@ func (fs *KBFSOpsStandard) DeleteFavorite(ctx context.Context,
 	isLoggedIn := err == nil
 
 	// Let this ops remove itself, if we have one available.
-	fav := Favorite{name, public}
+	fav := Favorite{name, public, false}
 	ops := func() *folderBranchOps {
 		fs.opsLock.Lock()
 		defer fs.opsLock.Unlock()

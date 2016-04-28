@@ -90,8 +90,8 @@ func (f *Favorites) handleReq(req *favReq) (err error) {
 		username, _, err := f.config.KBPKI().GetCurrentUserInfo(req.ctx)
 		if err == nil {
 			// Add favorites for the current user, that cannot be deleted.
-			f.cache[Favorite{string(username), true}] = true
-			f.cache[Favorite{string(username), false}] = true
+			f.cache[Favorite{string(username), true, false}] = true
+			f.cache[Favorite{string(username), false, false}] = true
 		}
 	}
 
@@ -201,7 +201,7 @@ func (f *Favorites) startOrJoinAddReq(
 }
 
 // Add adds a favorite to your favorites list.
-func (f *Favorites) Add(ctx context.Context, fav Favorite, created bool) error {
+func (f *Favorites) Add(ctx context.Context, fav Favorite) error {
 	doAdd := true
 	var err error
 	// Retry until we get an error that wasn't related to someone
@@ -222,7 +222,7 @@ func (f *Favorites) Add(ctx context.Context, fav Favorite, created bool) error {
 // different favorite operations are in flight.)  The given context is
 // used only for enqueuing the request on an internal queue, not for
 // any resulting I/O.
-func (f *Favorites) AddAsync(ctx context.Context, fav Favorite, created bool) {
+func (f *Favorites) AddAsync(ctx context.Context, fav Favorite) {
 	// Use a fresh context, since we want the request to succeed even
 	// if the original context is canceled.
 	req, doSend := f.startOrJoinAddReq(context.Background(), fav)

@@ -416,7 +416,9 @@ func (fbo *folderBranchOps) addToFavorites(ctx context.Context,
 	}
 
 	h := head.GetTlfHandle()
-	favorites.AddAsync(ctx, h.ToFavorite(), created)
+	fav := h.ToFavorite()
+	fav.created = created
+	favorites.AddAsync(ctx, fav)
 	return nil
 }
 
