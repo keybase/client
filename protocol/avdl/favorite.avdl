@@ -12,6 +12,7 @@ protocol favorite {
     string name;              // patrick,max or chris,maxtaco@twitter#strib
     boolean private;          // in /keybase/private or /keybase/public?
     boolean notificationsOn;  // user wants to be notified when this folder changes
+    boolean created;          // this folder was just created by this user
   }
 
   /**

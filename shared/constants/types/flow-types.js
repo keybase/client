@@ -262,6 +262,7 @@ export type Folder = {
   name: string;
   private: boolean;
   notificationsOn: boolean;
+  created: boolean;
 }
 
 export type ForkType =
