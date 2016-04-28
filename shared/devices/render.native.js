@@ -1,6 +1,8 @@
 /* @flow */
 import React, {Component} from 'react'
-import {Box, Text, Icon} from '../common-adapters'
+import {TouchableHighlight} from 'react-native'
+
+import {Box, Button, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props as IconProps} from '../common-adapters/icon'
 
@@ -20,6 +22,7 @@ class RevokedHeader extends Component {
   }
 
   _toggleHeader (e) {
+    console.log('in toggleHeader')
     this.setState({expanded: !this.state.expanded})
   }
 
@@ -27,10 +30,12 @@ class RevokedHeader extends Component {
     const iconType = this.state.expanded ? 'fa-caret-down' : 'fa-caret-up'
     return (
       <Box>
-        <Box style={stylesRevokedRow} onClick={e => this._toggleHeader(e)}>
-          <Text type='BodySemibold'>Revoked devices</Text>
-          <Icon type={iconType} style={{padding: 5}}/>
-        </Box>
+        <TouchableHighlight onPress={e => this._toggleHeader(e)}>
+          <Box style={stylesRevokedRow}>
+            <Text type='BodySemibold'>Revoked devices</Text>
+            <Icon type={iconType} style={{padding: 5}}/>
+          </Box>
+        </TouchableHighlight>
         {this.state.expanded && this.props.children}
       </Box>
     )
@@ -38,26 +43,12 @@ class RevokedHeader extends Component {
 }
 
 class DeviceRow extends Component {
-  state: {
-    highlighted: boolean
-  };
   props: {
     device: DeviceType,
     revoked?: boolean,
     showRemoveDevicePage?: () => void,
     showExistingDevicePage?: () => void
   };
-
-  constructor (props) {
-    super(props)
-    this.state = {
-      highlighted: false
-    }
-  }
-
-  _highlighted (h) {
-    this.setState({highlighted: h})
-  }
 
   render () {
     const icon: IconProps.type = {
@@ -71,25 +62,26 @@ class DeviceRow extends Component {
       textStyle = {
         ...textStyle,
         color: globalColors.black40,
-        textDecoration: 'line-through'
+        textDecorationLine: 'line-through',
+        textDecorationStyle: 'solid'
       }
     }
 
     return (
-      <Box key={this.props.device.name} onMouseOver={e => this._highlighted(true)} onMouseOut={e => this._highlighted(false)} style={{...stylesCommonRow, backgroundColor: this.props.revoked ? globalColors.lightGrey : globalColors.white}}>
+      <Box key={this.props.device.name} style={{...stylesCommonRow, backgroundColor: this.props.revoked ? globalColors.lightGrey : globalColors.white}}>
         <Box style={this.props.revoked ? stylesRevokedIconColumn : stylesIconColumn}>
           <Icon type={icon}/>
         </Box>
         <Box style={stylesCommonColumn}>
           <Box style={{...globalStyles.flexBoxRow}}>
-            <Text style={textStyle} type='Header'>{this.props.device.name}</Text>
+            <Text style={textStyle} type='BodySemibold'>{this.props.device.name}</Text>
           </Box>
           <Box style={{...globalStyles.flexBoxRow}}>
             {this.props.device.isCurrent && <Text type='BodySmall'>Current device</Text>}
           </Box>
         </Box>
-        <Box style={{...stylesRevokedColumn}}>
-          {!this.props.revoked && this.state.highlighted && <Text style={{color: globalColors.red}} type='BodyPrimaryLink'>Revoke</Text>}
+        <Box style={stylesRevokedColumn}>
+          {!this.props.revoked && <Text style={{color: globalColors.red}} type='BodyPrimaryLink'>Revoke</Text>}
         </Box>
       </Box>
     )
@@ -99,7 +91,8 @@ class DeviceRow extends Component {
 const RevokedDescription = () => {
   return (
     <Box style={stylesRevokedDescription}>
-      <Text type='BodySemibold' style={{color: globalColors.black40}}>Revoked devices will no longer be able to access your Keybase account.</Text>
+        <Text type='BodySmallSemibold' style={{color: globalColors.black40, textAlign: 'center'}}>Revoked devices will no longer be able to access your Keybase account.
+        </Text>
     </Box>
   )
 }
@@ -141,14 +134,18 @@ const stylesContainer = {
   backgroundColor: globalColors.white
 }
 
-const stylesCommonRow = {
-  ...globalStyles.flexBoxRow,
+const stylesCommonCore = {
   alignItems: 'center',
   borderBottomColor: globalColors.black10,
   borderBottomWidth: 1,
   height: 60,
   justifyContent: 'center',
   padding: 8
+}
+
+const stylesCommonRow = {
+  ...globalStyles.flexBoxRow,
+  ...stylesCommonCore
 }
 
 const stylesRevokedRow = {
@@ -159,24 +156,24 @@ const stylesRevokedRow = {
 }
 
 const stylesRevokedDescription = {
-  ...stylesCommonRow,
+  ...globalStyles.flexBoxColumn,
+  ...stylesCommonCore,
   backgroundColor: globalColors.lightGrey
 }
 
 const stylesCommonColumn = {
-  padding: 20
+  padding: 5
 }
 
 const stylesRevokedColumn = {
   ...stylesCommonColumn,
-  alignSelf: 'center',
   flex: 1,
-  paddingRight: 20
+  alignItems: 'flex-end'
 }
 
 const stylesIconColumn = {
   ...stylesCommonColumn,
-  width: 90
+  width: 85
 }
 
 const stylesRevokedIconColumn = {

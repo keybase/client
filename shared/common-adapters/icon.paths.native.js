@@ -708,6 +708,7 @@ export const images = {
   'computer-big': require('../images/icons/computer-big.png'),
   'computer-bw-m': require('../images/icons/computer-bw-m.png'),
   'computer-bw-revoke-m': require('../images/icons/computer-bw-revoke-m.png'),
+  'computer-bw-s-2': require('../images/icons/computer-bw-s-2.png'),
   'computer-bw-xs': require('../images/icons/computer-bw-xs.png'),
   'computer-color-l': require('../images/icons/computer-color-l.png'),
   'computer-color-m': require('../images/icons/computer-color-m.png'),
