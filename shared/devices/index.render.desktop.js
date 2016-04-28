@@ -1,160 +1,186 @@
-// TODO flow type this file
+/* @flow */
 import React, {Component} from 'react'
+import {Box, Text, Icon} from '../common-adapters'
+import {globalStyles, globalColors} from '../styles/style-guide'
+import type {Props as IconProps} from '../common-adapters/icon'
 
-import HardwarePhoneIphone from 'material-ui/lib/svg-icons/hardware/phone-iphone'
-import HardwareComputer from 'material-ui/lib/svg-icons/hardware/computer'
-import CommunicationVpnKey from 'material-ui/lib/svg-icons/communication/vpn-key'
-import ActionNoteAdd from 'material-ui/lib/svg-icons/action/note-add'
+import type {Props} from './index'
+import type {Device as DeviceType} from '../constants/types/flow-types'
 
-import moment from 'moment'
-import commonStyles from '../styles/common'
+class RevokedHeader extends Component {
+  state: {
+    expanded: boolean
+  };
 
-export default class DevicesRender extends Component {
-  renderPhone (device) {
-    return (
-      <div key={device.deviceID} style={{...styles.deviceOuter, ...styles.deviceShow}}>
-        <div style={styles.device}>
-          <HardwarePhoneIphone style={styles.deviceIcon}/>
-          <h3 style={styles.line2}>{device.name}</h3>
-          <div>Last used {moment(device.cTime).format('MM/DD/YY')}</div>
-          <div style={styles.line2}>TODO: Get Added info</div>
-          <p style={{...commonStyles.clickable, textDecoration: 'underline'}} onClick={() => this.props.showRemoveDevicePage(device)}>Remove</p>
-        </div>
-      </div>
-    )
-  }
-
-  renderDesktop (device) {
-    return (
-      <div key={device.deviceID} style={{...styles.deviceOuter, ...styles.deviceShow}}>
-        <div style={styles.device}>
-          <HardwareComputer style={styles.deviceIcon} />
-          <h3 style={styles.line2}>{device.name}</h3>
-          <div>Last used {moment(device.cTime).format('MM/DD/YY')}</div>
-          <div style={styles.line2}>TODO: Get Added info</div>
-          <p style={{...commonStyles.clickable, textDecoration: 'underline'}} onClick={() => this.props.showRemoveDevicePage(device)}>Remove</p>
-        </div>
-      </div>
-    )
-  }
-
-  renderPaperKey (device) {
-    return (
-      <div key={device.deviceID} style={{...styles.deviceOuter, ...styles.deviceShow}}>
-        <div style={styles.device}>
-          <CommunicationVpnKey style={styles.deviceIcon} />
-          <h3 style={styles.line2}>{device.name}</h3>
-          <div>Last used {moment(device.cTime).format('MM/DD/YY')}</div>
-          <div>Paper key</div>
-          <p style={{...commonStyles.clickable, textDecoration: 'underline'}} onClick={() => this.props.showRemoveDevicePage(device)}>Remove</p>
-        </div>
-      </div>
-    )
-  }
-
-  renderDevice (device) {
-    if (device.type === 'computer') {
-      return this.renderDesktop(device)
-    } else if (device.type === 'mobile') {
-      return this.renderPhone(device)
-    } else if (device.type === 'paper key') {
-      return this.renderPaperKey(device)
-    } else {
-      console.warn('Unknown device type: ' + device.type)
+  constructor (props) {
+    super(props)
+    this.state = {
+      expanded: false
     }
   }
 
+  _toggleHeader (e) {
+    this.setState({expanded: !this.state.expanded})
+  }
+
   render () {
+    const iconType = this.state.expanded ? 'fa-caret-down' : 'fa-caret-up'
     return (
-      <div>
-        <div style={styles.deviceContainer}>
-          <div style={{...styles.deviceOuter, ...styles.deviceAction}} onClick={() => this.props.showExistingDevicePage()}>
-            <div style={styles.device}>
-              <ActionNoteAdd style={styles.deviceIcon} />
-              <h3>Connect a new device</h3>
-              <p style={{...styles.line4, ...styles.actionDesc}}>On another device, download Keybase then click here to enter your unique passphrase.</p>
-            </div>
-          </div>
-
-          <div style={{...styles.deviceOuter, ...styles.deviceAction}} onClick={() => this.props.showGenPaperKeyPage()}>
-            <div style={styles.device}>
-              <CommunicationVpnKey style={styles.deviceIcon} />
-              <h3>Generate a new paper key</h3>
-              <p style={{...styles.line4, ...styles.actionDesc}}>Portland Bushwick mumblecore.</p>
-            </div>
-          </div>
-        </div>
-
-        <div style={styles.deviceContainer}>
-          {this.props.devices && this.props.devices.map(device => this.renderDevice(device))}
-        </div>
-      </div>
+      <Box>
+        <Box style={stylesRevokedRow} onClick={e => this._toggleHeader(e)}>
+          <Text type='BodySemibold'>Revoked devices</Text>
+          <Icon type={iconType} style={{padding: 5}}/>
+        </Box>
+        {this.state.expanded && this.props.children}
+      </Box>
     )
   }
 }
 
-DevicesRender.propTypes = {
-  devices: React.PropTypes.array,
-  waitingForServer: React.PropTypes.bool.isRequired,
-  showRemoveDevicePage: React.PropTypes.func.isRequired,
-  showExistingDevicePage: React.PropTypes.func.isRequired,
-  showGenPaperKeyPage: React.PropTypes.func.isRequired
-}
+class DeviceRow extends Component {
+  state: {
+    highlighted: boolean
+  };
+  props: {
+    device: DeviceType,
+    revoked?: boolean,
+    showRemoveDevicePage?: () => void,
+    showExistingDevicePage?: () => void
+  };
 
-const styles = {
-  deviceContainer: {
-    flexWrap: 'wrap',
-    justifyContent: 'flex-start'
-  },
-  deviceOuter: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 200,
-    height: 200,
-    margin: 10,
-    padding: 10
-  },
-  device: {
-    width: 200,
-    textAlign: 'center'
-  },
-  deviceAction: {
-    backgroundColor: '#efefef',
-    border: 'dashed 2px #999',
-    cursor: 'pointer'
-  },
-  deviceShow: {
-    border: 'solid 1px #999'
-  },
-  deviceIcon: {
-    width: 48,
-    height: 48,
-    textAlign: 'center'
-  },
-  actionDesc: {
-  },
+  constructor (props) {
+    super(props)
+    this.state = {
+      highlighted: false
+    }
+  }
 
-  // These might be good globals
-  line1: {
-    overflow: 'hidden',
-    display: '-webkit-box',
-    textOverflow: 'ellipsis',
-    WebkitLineClamp: 1,
-    WebkitBoxOrient: 'vertical'
-  },
-  line2: {
-    overflow: 'hidden',
-    display: '-webkit-box',
-    textOverflow: 'ellipsis',
-    WebkitLineClamp: 2,
-    WebkitBoxOrient: 'vertical'
-  },
-  line4: {
-    overflow: 'hidden',
-    display: '-webkit-box',
-    textOverflow: 'ellipsis',
-    WebkitLineClamp: 4,
-    WebkitBoxOrient: 'vertical'
+  _highlighted (h) {
+    this.setState({highlighted: h})
+  }
+
+  render () {
+    const icon: IconProps.type = {
+      'mobile': 'phone-bw-m',
+      'desktop': 'computer-bw-s-2',
+      'backup': 'paper-key-m'
+    }[this.props.device.type]
+
+    let textStyle = {fontStyle: 'italic'}
+    if (this.props.revoked) {
+      textStyle = {
+        ...textStyle,
+        color: globalColors.black40,
+        textDecoration: 'line-through'
+      }
+    }
+
+    return (
+      <Box key={this.props.device.name} onMouseOver={e => this._highlighted(true)} onMouseOut={e => this._highlighted(false)} style={{...stylesCommonRow, backgroundColor: this.props.revoked ? globalColors.lightGrey : globalColors.white}}>
+        <Box style={this.props.revoked ? stylesRevokedIconColumn : stylesIconColumn}>
+          <Icon type={icon}/>
+        </Box>
+        <Box style={stylesCommonColumn}>
+          <Box style={{...globalStyles.flexBoxRow}}>
+            <Text style={textStyle} type='Header'>{this.props.device.name}</Text>
+          </Box>
+          <Box style={{...globalStyles.flexBoxRow}}>
+            {this.props.device.isCurrent && <Text type='BodySmall'>Current device</Text>}
+          </Box>
+        </Box>
+        <Box style={{...stylesRevokedColumn}}>
+          {!this.props.revoked && this.state.highlighted && <Text style={{color: globalColors.red}} type='BodyPrimaryLink'>Revoke</Text>}
+        </Box>
+      </Box>
+    )
   }
 }
+
+const RevokedDescription = () => {
+  return (
+    <Box style={stylesRevokedDescription}>
+      <Text type='BodySemibold' style={{color: globalColors.black40}}>Revoked devices will no longer be able to access your Keybase account.</Text>
+    </Box>
+  )
+}
+
+const RevokedDevices = ({revokedDevices}) => {
+  return (
+    <RevokedHeader>
+      <RevokedDescription/>
+      {revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked/>)}
+    </RevokedHeader>
+  )
+}
+
+const DeviceHeader = ({addNewDevice}) => {
+  return (
+    <Box style={stylesCommonRow}>
+      <Box style={stylesCommonColumn}>
+        <Icon type='devices-add-s'/>
+      </Box>
+      <Box style={stylesCommonColumn}>
+        <Text type='BodyPrimaryLink' onClick={addNewDevice}>Add new...</Text>
+      </Box>
+    </Box>
+  )
+}
+
+const Render = ({devices, revokedDevices, waitingForServer, addNewDevice, showRemoveDevicePage, showExistingDevicePage}: Props) => {
+  return (
+    <Box style={stylesContainer}>
+      {<DeviceHeader addNewDevice={addNewDevice} />}
+      {devices && devices.map(device => <DeviceRow key={device.name} device={device} showRemoveDevicePage={showRemoveDevicePage} showExistingDevicePage={showExistingDevicePage}/>)}
+      {revokedDevices && <RevokedDevices revokedDevices={revokedDevices} />}
+    </Box>
+  )
+}
+
+const stylesContainer = {
+  ...globalStyles.flexBoxColumn
+}
+
+const stylesCommonRow = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center',
+  borderTop: 'solid 1px rgba(0, 0, 0, .1)',
+  height: 60,
+  justifyContent: 'center',
+  padding: 8
+}
+
+const stylesRevokedRow = {
+  ...stylesCommonRow,
+  height: 30,
+  justifyContent: 'flex-start',
+  backgroundColor: globalColors.lightGrey
+}
+
+const stylesRevokedDescription = {
+  ...stylesCommonRow,
+  backgroundColor: globalColors.lightGrey
+}
+
+const stylesCommonColumn = {
+  padding: 20
+}
+
+const stylesRevokedColumn = {
+  ...stylesCommonColumn,
+  alignSelf: 'center',
+  flex: 1,
+  textAlign: 'right',
+  paddingRight: 20
+}
+
+const stylesIconColumn = {
+  ...stylesCommonColumn,
+  width: 65
+}
+
+const stylesRevokedIconColumn = {
+  ...stylesIconColumn,
+  opacity: 0.2
+}
+
+export default Render

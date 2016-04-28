@@ -37,6 +37,7 @@ class Devices extends Component {
       <Render
         devices={this.props.devices}
         waitingForServer={this.props.waitingForServer}
+        addNewDevice={this.props.addNewDevice}
         showRemoveDevicePage={this.props.showRemoveDevicePage}
         showExistingDevicePage={this.props.showExistingDevicePage}
         showGenPaperKeyPage={this.props.showGenPaperKeyPage}/>
@@ -62,8 +63,9 @@ export default connect(
   dispatch => {
     return {
       loadDevices: () => dispatch(loadDevices()),
+      showExistingDevicePage: device => dispatch(routeAppend({path: 'showDevice', device})),
       showRemoveDevicePage: device => dispatch(routeAppend({path: 'removeDevice', device})),
-      showExistingDevicePage: () => dispatch(addANewDevice()),
+      addNewDevice: () => dispatch(addANewDevice()),
       showGenPaperKeyPage: () => dispatch(routeAppend('genPaperKey'))
     }
   })(Devices)
