@@ -11,7 +11,11 @@ export type RenderProps = {
   bioProps: BioProps,
   actionProps: ActionProps,
   headerProps: HeaderProps,
-  proofsProps: ProofsProps
+  proofsProps: ProofsProps,
+  name?: string,
+  reason?: string,
+  inviteLink?: string,
+  isPrivate?: boolean
 }
 
 export default class Render extends Component {
