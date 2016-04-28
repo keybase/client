@@ -76,6 +76,7 @@ export default class Text extends Component {
       'BodyPrimaryLink': styles.textBody,
       'BodySecondaryLink': styles.textBodySmall,
       'BodySmall': styles.textBodySmall,
+      'BadgeNumber': styles.textBodySmall,
       'BodySmallSemibold': styles.textBodySmallSemibold,
       'Error': styles.textError,
       'Terminal': {...styles.textTerminal, color: (this.context.inTerminal ? globalColors.blue3 : globalColors.darkBlue)},

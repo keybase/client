@@ -41,6 +41,7 @@ type ServiceStatus struct {
 type ServicesStatus struct {
 	Service []ServiceStatus `codec:"service" json:"service"`
 	Kbfs    []ServiceStatus `codec:"kbfs" json:"kbfs"`
+	Updater []ServiceStatus `codec:"updater" json:"updater"`
 }
 
 type FuseMountInfo struct {

@@ -8,6 +8,8 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.view.KeyEvent;
 
+import com.burnweb.rnpermissions.RNPermissionsPackage;
+import com.eguma.barcodescanner.BarcodeScanner;
 import com.facebook.react.ReactActivity;
 import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactRootView;
@@ -83,7 +85,16 @@ public class MainActivity extends ReactActivity {
     protected List<com.facebook.react.ReactPackage> getPackages() {
         return Arrays.asList(
           new MainReactPackage(),
-          new ReactPackage());
+          new BarcodeScanner(),
+          new RNPermissionsPackage(),
+          new KBReactPackage());
+    }
+
+    // For dealing with permissions using RNPermissionsPackage
+    @Override
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        RNPermissionsPackage.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
     }
 
 

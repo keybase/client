@@ -17,7 +17,7 @@ export type Props = {
   name: string,
   isCurrent: boolean,
   isRevoked: boolean,
-  timeline: Array<TimelineItem>,
+  timeline?: Array<TimelineItem>,
   banner?: BannerItem,
   onRevoke: () => void
 }

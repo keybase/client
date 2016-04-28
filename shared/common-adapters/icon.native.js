@@ -31,16 +31,18 @@ export default class Icon extends Component {
     delete containerProps.width
     delete containerProps.height
 
+    const icon = fontIcons[iconType]
+      ? <Text style={{color, fontFamily: 'kb', ...fontSize}}>{fontIcons[iconType]}</Text>
+      : <Image source={images[this.props.type]} style={{resizeMode: 'contain', ...width, ...height}}/>
+
     return (
       <TouchableHighlight
         activeOpacity={0.8}
         underlayColor={globalColors.white}
         onPress={this.props.onClick}
-        style={containerProps} >
-        {fontIcons[iconType]
-          ? <Text style={{color, fontFamily: 'kb', ...fontSize}}>{fontIcons[iconType]}</Text>
-          : <Image source={images[this.props.type]} style={{resizeMode: 'contain', ...width, ...height}}/>
-        }
+        disabled={!(this.props.onClick)}
+        style={containerProps}>
+        {icon}
       </TouchableHighlight>
     )
   }

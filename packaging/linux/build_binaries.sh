@@ -13,8 +13,8 @@ binary_name="$("$here/../binary_name.sh" "$@")"
 # second argument. Absolutify the build root, because we cd around in this
 # script, and also because GOPATH is not allowed to be relative.
 build_root="${2:-/tmp/keybase_build_$(date +%Y_%m_%d_%H%M%S)}"
-build_root="$(realpath "$build_root")"
 mkdir -p "$build_root"
+build_root="$(realpath "$build_root")"
 
 # Record the version now, and write it to the build root. Because it uses a
 # timestamp in prerelease mode, it's important that other scripts use this file

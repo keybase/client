@@ -48,7 +48,18 @@ type ComputedKeyInfo struct {
 	// Map of SigID -> KID
 	Delegations map[keybase1.SigID]keybase1.KID
 	DelegatedAt *KeybaseTime
-	RevokedAt   *KeybaseTime
+
+	RevokedAt *KeybaseTime
+	// TODO:  would like to add this to support desktop's request
+	// to know who revoked a device, but changing this changes
+	// the sigchain stored on disk.  Putting off this change
+	// for now, so this is just a placeholder.  (PC)
+	//
+	// More details: adding this would work fine but would
+	// require handling the case where unmarshaling existing
+	// cki could have non-nil RevokedAt and empty RevokedBy.
+	//
+	// RevokedBy keybase1.KID
 
 	// For PGP keys, the active version of the key. If unspecified, use the
 	// legacy behavior of combining every instance of this key that we got from
@@ -588,6 +599,8 @@ func (ckf *ComputedKeyFamily) RevokeSig(sig keybase1.SigID, tcl TypedChainLink) 
 	} else {
 		info.Status = KeyRevoked
 		info.RevokedAt = TclToKeybaseTime(tcl)
+		// see comment in ComputedKeyInfo about this field
+		// info.RevokedBy = tcl.GetKID()
 	}
 	return
 }
@@ -596,6 +609,8 @@ func (ckf *ComputedKeyFamily) RevokeKid(kid keybase1.KID, tcl TypedChainLink) (e
 	if info, found := ckf.cki.Infos[kid]; found {
 		info.Status = KeyRevoked
 		info.RevokedAt = TclToKeybaseTime(tcl)
+		// see comment in ComputedKeyInfo about this field
+		// info.RevokedBy = tcl.GetKID()
 	}
 	return
 }

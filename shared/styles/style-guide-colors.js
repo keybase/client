@@ -7,6 +7,8 @@ export default {
   blue3: '#a8d7ff',
   blue4: '#e6f3ff',
 
+  blue3_40: 'rgba(168, 215, 255, 0.4)',
+
   orange: '#ff6f21',
 
   yellow: '#fff75a',
@@ -15,6 +17,8 @@ export default {
   darkBlue2: '#2470b3',
   darkBlue3: '#001b33',
   darkBlue4: '#0a3052',
+
+  midnightBlue: '#082640',
 
   green: '#3dcc8e',
   green2: '#36b37c',
