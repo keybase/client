@@ -153,7 +153,7 @@ Text.contextTypes = {
   inTerminal: React.PropTypes.bool
 }
 
-const sizeGroups = {
+const sizeGroups: { [key: '32' | '24' | '18' | '16' | '14' | '12']: Object } = {
   '32': {
     fontSize: 32,
     lineHeight: '38px'
@@ -197,32 +197,32 @@ const headerStyles = {
   textHeaderJumbo: {
     ...textCommon,
     ...globalStyles.fontBold,
-    ...sizeGroups[32]
+    ...sizeGroups['32']
   },
 
   textHeaderBig: {
     ...textCommon,
     ...globalStyles.fontBold,
-    ...sizeGroups[24]
+    ...sizeGroups['24']
   },
 
   textHeader: {
     ...textCommon,
     ...globalStyles.fontSemibold,
-    ...sizeGroups[18]
+    ...sizeGroups['18']
   },
 
   textHeaderLink: {
     ...textCommon,
     ...globalStyles.fontSemibold,
-    ...sizeGroups[18],
+    ...sizeGroups['18'],
     color: globalColors.blue
   },
 
   textHeaderError: {
     ...textCommon,
     ...globalStyles.fontSemibold,
-    ...sizeGroups[18],
+    ...sizeGroups['18'],
     color: globalColors.red
   },
 
@@ -262,53 +262,53 @@ export const styles = {
   ...headerStyles,
   textBody: {
     ...textCommon,
-    ...sizeGroups[16]
+    ...sizeGroups['16']
   },
   textBodyPrimaryLink: {
     ...textCommon,
-    ...sizeGroups[16],
+    ...sizeGroups['16'],
     color: globalColors.blue
   },
   textBodySemibold: {
     ...textCommon,
     ...globalStyles.fontSemibold,
-    ...sizeGroups[16]
+    ...sizeGroups['16']
   },
   textBodySmall: {
     ...textCommon,
-    ...sizeGroups[14]
+    ...sizeGroups['14']
   },
   textBodySmallLink: {
     ...textCommon,
-    ...sizeGroups[14]
+    ...sizeGroups['14']
   },
   textBodySmallError: {
     ...textCommon,
-    ...sizeGroups[14],
+    ...sizeGroups['14'],
     color: globalColors.red
   },
   textBodySmallPrimaryLink: {
     ...textCommon,
-    ...sizeGroups[14],
+    ...sizeGroups['14'],
     color: globalColors.blue
   },
   textBodyXSmall: {
     ...textCommon,
-    ...sizeGroups[12]
+    ...sizeGroups['12']
   },
   textBodyXSmallLink: {
     ...textCommon,
-    ...sizeGroups[12]
+    ...sizeGroups['12']
   },
   textBodySmallSecondaryLink: {
     ...textCommon,
-    ...sizeGroups[14],
+    ...sizeGroups['14'],
     color: globalColors.black60
   },
   textBodySmallSemibold: {
     ...textCommon,
     ...globalStyles.fontSemibold,
-    ...sizeGroups[14]
+    ...sizeGroups['14']
   },
   textError: {
     ...textCommon,
@@ -343,7 +343,7 @@ export const styles = {
   },
   textTerminalSmall: {
     ...textTerminal,
-    ...sizeGroups[14]
+    ...sizeGroups['14']
   },
   textTerminalInline: {
     backgroundColor: globalColors.blue4,
