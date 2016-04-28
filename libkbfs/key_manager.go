@@ -1,6 +1,8 @@
 package libkbfs
 
 import (
+	"reflect"
+
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
@@ -380,6 +382,17 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 
 	handle := md.GetTlfHandle()
 
+	resolvedHandle, err := handle.ResolveAgain(ctx, km.config.KBPKI())
+	if err != nil {
+		return false, nil, err
+	}
+
+	if !reflect.DeepEqual(handle, resolvedHandle) {
+		km.log.CDebugf(ctx, "handle for %s resolved to %s",
+			handle.GetCanonicalPath(),
+			resolvedHandle.GetCanonicalPath())
+	}
+
 	username, uid, err := km.config.KBPKI().GetCurrentUserInfo(ctx)
 	if err != nil {
 		return false, nil, err
@@ -390,16 +403,16 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 
 	incKeyGen := currKeyGen < FirstValidKeyGen
 
-	if !handle.IsWriter(uid) && incKeyGen {
+	if !resolvedHandle.IsWriter(uid) && incKeyGen {
 		// Readers cannot create the first key generation
-		return false, nil, NewReadAccessError(handle, username)
+		return false, nil, NewReadAccessError(resolvedHandle, username)
 	}
 
-	wKeys, err := km.generateKeyMapForUsers(ctx, handle.Writers)
+	wKeys, err := km.generateKeyMapForUsers(ctx, resolvedHandle.Writers)
 	if err != nil {
 		return false, nil, err
 	}
-	rKeys, err := km.generateKeyMapForUsers(ctx, handle.Readers)
+	rKeys, err := km.generateKeyMapForUsers(ctx, resolvedHandle.Readers)
 	if err != nil {
 		return false, nil, err
 	}
@@ -444,7 +457,7 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 		return false, nil, nil
 	}
 
-	if !handle.IsWriter(uid) {
+	if !resolvedHandle.IsWriter(uid) {
 		if _, userHasNewKeys := newReaderUsers[uid]; userHasNewKeys {
 			// Only rekey the logged-in reader
 			rKeys = map[keybase1.UID][]CryptPublicKey{
@@ -455,7 +468,7 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 		} else {
 			// No new reader device for our user, so the reader can't do
 			// anything
-			return false, nil, NewReadAccessError(handle, username)
+			return false, nil, NewReadAccessError(resolvedHandle, username)
 		}
 	}
 
@@ -500,7 +513,7 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 		}
 	}
 
-	if !handle.IsWriter(uid) {
+	if !resolvedHandle.IsWriter(uid) {
 		if len(newReaderUsers) > 0 || addNewWriterDevice || incKeyGen {
 			// If we're a reader but we haven't completed all the work, return
 			// RekeyIncompleteError
@@ -515,7 +528,7 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 
 	// Send rekey start notification once we're sure that this device
 	// can perform the rekey.
-	km.config.Reporter().Notify(ctx, rekeyNotification(ctx, km.config, handle,
+	km.config.Reporter().Notify(ctx, rekeyNotification(ctx, km.config, resolvedHandle,
 		false))
 
 	newWriterKeys := TLFWriterKeyBundle{
@@ -555,6 +568,16 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 			return false, nil, err
 		}
 	}
+
+	// Update RMD fields from resolvedHandle.
+	md.Extra.UnresolvedWriters = make([]keybase1.SocialAssertion, len(resolvedHandle.UnresolvedWriters))
+	copy(md.Extra.UnresolvedWriters, resolvedHandle.UnresolvedWriters)
+
+	md.UnresolvedReaders = make([]keybase1.SocialAssertion, len(resolvedHandle.UnresolvedReaders))
+	copy(md.UnresolvedReaders, resolvedHandle.UnresolvedReaders)
+
+	// TODO: Notify the upper layers of any change in tlfHandle.
+	md.tlfHandle = resolvedHandle
 
 	return true, &tlfCryptKey, nil
 }

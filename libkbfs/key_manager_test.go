@@ -8,6 +8,7 @@ import (
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
@@ -18,7 +19,7 @@ func keyManagerInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config = NewConfigMock(mockCtrl, ctr)
 	keyman := NewKeyManagerStandard(config)
 	config.SetKeyManager(keyman)
-	interposeDaemonKBPKI(config, "alice", "bob")
+	interposeDaemonKBPKI(config, "alice", "bob", "charlie")
 	ctx = context.Background()
 	return
 }
@@ -77,20 +78,20 @@ func expectUncachedGetTLFCryptKeyAnyDevice(config *ConfigMock, rmd *RootMetadata
 	}
 }
 
-func expectRekey(config *ConfigMock, rmd *RootMetadata) {
+func expectRekey(config *ConfigMock, rmd *RootMetadata, numDevices int) {
 	// generate new keys
 	config.mockCrypto.EXPECT().MakeRandomTLFKeys().Return(TLFPublicKey{}, TLFPrivateKey{}, TLFEphemeralPublicKey{}, TLFEphemeralPrivateKey{}, TLFCryptKey{}, nil)
-	config.mockCrypto.EXPECT().MakeRandomTLFCryptKeyServerHalf().Return(TLFCryptKeyServerHalf{}, nil)
+	config.mockCrypto.EXPECT().MakeRandomTLFCryptKeyServerHalf().Return(TLFCryptKeyServerHalf{}, nil).Times(numDevices)
 
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
 	config.mockKbpki.EXPECT().GetCryptPublicKeys(gomock.Any(), gomock.Any()).
-		Return([]CryptPublicKey{subkey}, nil)
+		Return([]CryptPublicKey{subkey}, nil).Times(numDevices)
 
 	// make keys for the one device
-	config.mockCrypto.EXPECT().MaskTLFCryptKey(TLFCryptKeyServerHalf{}, TLFCryptKey{}).Return(TLFCryptKeyClientHalf{}, nil)
-	config.mockCrypto.EXPECT().EncryptTLFCryptKeyClientHalf(TLFEphemeralPrivateKey{}, subkey, TLFCryptKeyClientHalf{}).Return(EncryptedTLFCryptKeyClientHalf{}, nil)
+	config.mockCrypto.EXPECT().MaskTLFCryptKey(TLFCryptKeyServerHalf{}, TLFCryptKey{}).Return(TLFCryptKeyClientHalf{}, nil).Times(numDevices)
+	config.mockCrypto.EXPECT().EncryptTLFCryptKeyClientHalf(TLFEphemeralPrivateKey{}, subkey, TLFCryptKeyClientHalf{}).Return(EncryptedTLFCryptKeyClientHalf{}, nil).Times(numDevices)
 	config.mockKops.EXPECT().PutTLFCryptKeyServerHalves(gomock.Any(), gomock.Any()).Return(nil)
-	config.mockCrypto.EXPECT().GetTLFCryptKeyServerHalfID(gomock.Any(), gomock.Any(), gomock.Any()).Return(TLFCryptKeyServerHalfID{}, nil)
+	config.mockCrypto.EXPECT().GetTLFCryptKeyServerHalfID(gomock.Any(), gomock.Any(), gomock.Any()).Return(TLFCryptKeyServerHalfID{}, nil).Times(numDevices)
 
 	// Ignore Notify and Flush calls for now
 	config.mockRep.EXPECT().Notify(gomock.Any(), gomock.Any()).AnyTimes()
@@ -296,13 +297,53 @@ func TestKeyManagerRekeySuccessPrivate(t *testing.T) {
 	rmd := newRootMetadataOrBust(t, id, h)
 	oldKeyGen := rmd.LatestKeyGeneration()
 
-	expectRekey(config, rmd)
+	expectRekey(config, rmd, 1)
 
 	if done, _, err := config.KeyManager().Rekey(ctx, rmd); !done || err != nil {
 		t.Errorf("Got error on rekey: %t, %v", done, err)
 	} else if rmd.LatestKeyGeneration() != oldKeyGen+1 {
 		t.Errorf("Bad key generation after rekey: %d", rmd.LatestKeyGeneration())
 	}
+}
+
+func TestKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T) {
+	mockCtrl, config, ctx := keyManagerInit(t)
+	defer keyManagerShutdown(mockCtrl, config)
+
+	id := FakeTlfID(1, false)
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), "alice,bob@twitter#charlie@twitter",
+		false, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rmd := newRootMetadataOrBust(t, id, h)
+	oldKeyGen := rmd.LatestKeyGeneration()
+
+	expectRekey(config, rmd, 3)
+
+	// Pretend that {bob,charlie}@twitter now resolve to {bob,charlie}.
+	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
+
+	daemon.addNewAssertionForTest("bob", "bob@twitter")
+	daemon.addNewAssertionForTest("charlie", "charlie@twitter")
+
+	if done, _, err := config.KeyManager().Rekey(ctx, rmd); !done || err != nil {
+		t.Fatalf("Got error on rekey: %t, %v", done, err)
+	}
+
+	if rmd.LatestKeyGeneration() != oldKeyGen+1 {
+		t.Fatalf("Bad key generation after rekey: %d", rmd.LatestKeyGeneration())
+	}
+
+	newH := rmd.GetTlfHandle()
+	require.Equal(t, CanonicalTlfName("alice,bob#charlie"), newH.GetCanonicalName())
+
+	// Also check MakeBareTlfHandle.
+	rmd.tlfHandle = nil
+	newBareH, err := rmd.MakeBareTlfHandle()
+	require.Nil(t, err)
+	require.Equal(t, newH.BareTlfHandle, newBareH)
 }
 
 func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
