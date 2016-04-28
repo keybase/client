@@ -104,6 +104,10 @@ func (d *Device) Export(lt LinkType) (*jsonw.Wrapper, error) {
 		}
 	}
 
+	// These were being set to 0, so don't include them
+	dw.DeleteKey("mtime")
+	dw.DeleteKey("ctime")
+
 	return dw, nil
 }
 
