@@ -241,6 +241,11 @@
 			"revisionTime": "2015-10-20T11:39:53-04:00"
 		},
 		{
+			"path": "github.com/keybase/npipe",
+			"revision": "5cd75f41d020ac2963df3588416573ff575341c2",
+			"revisionTime": "2016-04-28T10:21:56-07:00"
+		},
+		{
 			"path": "github.com/keybase/saltpack",
 			"revision": "4804ac34f11533bfd1b08c2e5385ef66c6dba9aa",
 			"revisionTime": "2016-03-23T19:53:58-05:00"
@@ -264,11 +269,6 @@
 			"path": "github.com/mattn/go-isatty",
 			"revision": "56b76bdf51f7708750eac80fa38b952bb9f32639",
 			"revisionTime": "2015-12-11T09:06:21+09:00"
-		},
-		{
-			"path": "github.com/natefinch/npipe",
-			"revision": "0938d701e50e580f5925c773055eb6d6b32a0cbc",
-			"revisionTime": "2014-10-08T16:43:58+02:00"
 		},
 		{
 			"path": "github.com/rogpeppe/rog-go/reverse",
