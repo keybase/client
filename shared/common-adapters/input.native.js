@@ -61,6 +61,7 @@ class Input extends Component<void, Props, State> {
           underlineColorAndroid={this.state.inputFocused ? globalColors.blue : globalColors.black10}
           multiline={this.props.multiLine}
           numberOfLines={this.props.rows}
+          autoCapitalize={this.props.autoCapitalize || 'none'}
           onFocus={() => this.setState({inputFocused: true})}
           onBlur={() => this.setState({inputFocused: false})}
           onSubmitEditing={this.props.onEnterKeyDown}
@@ -84,7 +85,6 @@ const HorizontalLine = ({focused}) => <Box style={{
 
 const containerStyle = {
   ...globalStyles.flexBoxColumn,
-  flex: 1,
   height: 36,
   position: 'relative',
   marginTop: 21
