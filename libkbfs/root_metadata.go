@@ -678,6 +678,11 @@ func (md *RootMetadata) VerifyWriterMetadata(codec Codec, crypto Crypto) error {
 }
 
 func (md *RootMetadata) updateTlfHandle(newHandle *TlfHandle) {
+	if v1, v2 := md.ID.IsPublic(), newHandle == nil; v1 || v2 {
+		panic(fmt.Sprintf("Cannot update TLF handle for a public MD (%t) "+
+			"or using a nil handle (%t)", v1, v2))
+	}
+
 	// Update RMD fields from newHandle.
 	md.Extra.UnresolvedWriters =
 		make([]keybase1.SocialAssertion, len(newHandle.UnresolvedWriters))

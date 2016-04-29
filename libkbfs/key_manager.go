@@ -532,8 +532,16 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 		}
 	}
 
+	defer func() {
+		// On our way back out, update the md with the resolved handle
+		// if at least part of a rekey was performed.
+		_, isRekeyIncomplete := err.(RekeyIncompleteError)
+		if err == nil || isRekeyIncomplete {
+			md.updateTlfHandle(resolvedHandle)
+		}
+	}()
+
 	if !isWriter {
-		md.updateTlfHandle(resolvedHandle)
 		if len(newReaderUsers) > 0 || addNewWriterDevice || incKeyGen {
 			// If we're a reader but we haven't completed all the work, return
 			// RekeyIncompleteError
@@ -543,7 +551,6 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 		return true, nil, nil
 	} else if !incKeyGen {
 		// we're done!
-		md.updateTlfHandle(resolvedHandle)
 		return true, nil, nil
 	}
 
@@ -590,7 +597,6 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 		}
 	}
 
-	md.updateTlfHandle(resolvedHandle)
 	return true, &tlfCryptKey, nil
 }
 
