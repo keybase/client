@@ -1,6 +1,6 @@
 // @flow
 
-import React, {Component} from 'react-native'
+import React, {Component} from 'react'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props} from './user-card'
 import Avatar from './avatar'

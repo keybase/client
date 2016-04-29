@@ -39,7 +39,7 @@ export default class Icon extends Component {
       <TouchableHighlight
         activeOpacity={0.8}
         underlayColor={globalColors.white}
-        onPress={this.props.onClick}
+        onPress={this.props.onClick || (() => {})}
         disabled={!(this.props.onClick)}
         style={containerProps}>
         {icon}
