@@ -12,11 +12,7 @@ cache_go_lib=${CACHE_GO_LIB:-}
 cd $rn_dir
 
 if [ ! "$cache_npm" = "1" ]; then
-  echo "Clearing old node_modules in react-native"
-  rm -r $TMPDIR/npm*
-  rm -r node_modules || true
-  npm cache clean
-  npm install
+  ../packaging/npm_mess.sh
   npm install -g react-native-cli
 fi
 
