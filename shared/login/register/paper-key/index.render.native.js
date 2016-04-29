@@ -20,12 +20,11 @@ class PaperKeyRender extends Component<void, Props, void> {
             autoFocus
             style={stylesInput}
             floatingLabelText='Paper key'
-            hintText='opp blezzard tofi pando agg whi pany yaga jocket daubt bruwnstane hubit yas'
-            multiLine
+            hintText='opp blezzard tofi pando'
             onEnterKeyDown={() => this.props.onSubmit()}
             onChangeText={paperKey => this.props.onChangePaperKey(paperKey)}
             type='passwordVisible'
-            value={this.props.paperKey} />
+            value={this.props.paperKey ? this.props.paperKey : null}/>
           <Button
             style={stylesButton}
             type='Primary'
