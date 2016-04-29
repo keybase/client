@@ -5,6 +5,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"sort"
 	"sync"
 	"time"
 
@@ -799,4 +800,59 @@ func (md *MDServerLocal) CheckForRekeys(ctx context.Context) <-chan error {
 	c := make(chan error, 1)
 	c <- nil
 	return c
+}
+
+func (md *MDServerLocal) addNewAssertionForTest(uid keybase1.UID,
+	newAssertion string) error {
+	md.shutdownLock.RLock()
+	defer md.shutdownLock.RUnlock()
+	if *md.shutdown {
+		return errors.New("MD server already shut down")
+	}
+
+	// Iterate through all the handles, and add handles for ones
+	// containing newAssertion to now include the uid.
+	iter := md.handleDb.NewIterator(nil, nil)
+	defer iter.Release()
+	for iter.Next() {
+		handleBytes := iter.Key()
+		var handle BareTlfHandle
+		err := md.config.Codec().Decode(handleBytes, &handle)
+		if err != nil {
+			return err
+		}
+
+		var found bool
+		for i, a := range handle.UnresolvedWriters {
+			if a.String() == newAssertion {
+				handle.Writers = append(handle.Writers, uid)
+				handle.UnresolvedWriters = append(handle.UnresolvedWriters[:i],
+					handle.UnresolvedWriters[i+1:]...)
+				found = true
+			}
+		}
+		for i, a := range handle.UnresolvedReaders {
+			if a.String() == newAssertion {
+				handle.Readers = append(handle.Readers, uid)
+				handle.UnresolvedReaders = append(handle.UnresolvedReaders[:i],
+					handle.UnresolvedReaders[i+1:]...)
+				found = true
+			}
+		}
+		if !found {
+			continue
+		}
+
+		sort.Sort(UIDList(handle.Writers))
+		sort.Sort(UIDList(handle.Readers))
+		newHandleBytes, err := md.config.Codec().Encode(handle)
+		if err != nil {
+			return err
+		}
+		id := iter.Value()
+		if err := md.handleDb.Put(newHandleBytes, id, nil); err != nil {
+			return err
+		}
+	}
+	return iter.Error()
 }

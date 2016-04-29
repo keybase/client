@@ -334,6 +334,33 @@ func SwitchDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config, inde
 	config.SetCrypto(NewCryptoLocal(config, signingKey, cryptPrivateKey))
 }
 
+// AddNewAssertionForTestOrBust makes newAssertion, which should be a
+// single assertion that doesn't already resolve to anything, resolve
+// to the same UID as oldAssertion, which should be an arbitrary
+// assertion that does already resolve to something.  It only applies
+// to the given config.
+func AddNewAssertionForTestOrBust(t logger.TestLogBackend, config Config,
+	oldAssertion, newAssertion string) {
+	kbd, ok := config.KeybaseDaemon().(*KeybaseDaemonLocal)
+	if !ok {
+		t.Fatal("Bad keybase daemon")
+	}
+
+	uid := kbd.addNewAssertionForTest(oldAssertion, newAssertion)
+	// Let the mdserver know about the name change
+	md, ok := config.MDServer().(*MDServerLocal)
+	if !ok {
+		t.Fatal("Bad md server")
+	}
+	// If this function is called multiple times for different
+	// configs, it may end up invoking the following call more than
+	// once on the shared md databases.  That's ok though, it's an
+	// idempotent call.
+	if err := md.addNewAssertionForTest(uid, newAssertion); err != nil {
+		t.Fatalf("Couldn't update md server: %v", err)
+	}
+}
+
 func testWithCanceledContext(t logger.TestLogBackend, ctx context.Context,
 	readyChan <-chan struct{}, fn func(context.Context) error) {
 	ctx, cancel := context.WithCancel(context.Background())
