@@ -12,18 +12,18 @@ for i in `seq 1 10`;
 do
   echo "Trying to get deps, (try number: $i)"
   npm install
-  if [[ $? -eq 0 ]]; then break; fi
+  npm_rc=$?
+  if [[ $npm_rc -eq 0 ]]; then break; fi
   echo "Clearing old node_modules in react-native"
   rm -r $TMPDIR/npm*
-  rm -r node_modules
   npm cache clean
 done
 
-set -e -u -o pipefail # Fail on error
-
-if [ ! -d "node_modules" ]; then
+if [[ $npm_rc -ne 0 ]]; then
   echo "Failed to setup node_modules"
   exit 1
 fi
+
+set -e -u -o pipefail # Fail on error
 
 echo "Sucessfully setup node_modules! (after only $i tries)"
