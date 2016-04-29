@@ -100,4 +100,3 @@ check_path_Join()
 check_go_fmt
 check_go_vet
 check_make_lint
-check_path_Join

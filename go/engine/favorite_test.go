@@ -4,6 +4,7 @@
 package engine
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
@@ -15,21 +16,86 @@ func TestFavoriteAdd(t *testing.T) {
 	defer tc.Cleanup()
 	CreateAndSignupFakeUser(tc, "fav")
 
-	addfav("t_alice,t_bob", true, tc)
+	idUI := &FakeIdentifyUI{}
+	addfav("t_alice,t_bob", true, true, idUI, tc)
 	if len(listfav(tc)) != 1 {
 		t.Errorf("favorites len: %d, expected 1", len(listfav(tc)))
 	}
 
 	// Add the same share again. The number shouldn't change.
-	addfav("t_alice,t_bob", true, tc)
+	addfav("t_alice,t_bob", true, true, idUI, tc)
 	if len(listfav(tc)) != 1 {
 		t.Errorf("favorites len: %d, expected 1", len(listfav(tc)))
 	}
 
 	// Add a public share of the same name, make sure both are represented.
-	addfav("t_alice,t_bob", false, tc)
+	addfav("t_alice,t_bob", false, true, idUI, tc)
 	if len(listfav(tc)) != 2 {
 		t.Errorf("favorites len: %d, expected 2", len(listfav(tc)))
+	}
+}
+
+// Test adding a favorite with a social assertion.
+// Sharing before signup, social assertion user doesn't
+// exist yet.
+func TestFavoriteAddSocial(t *testing.T) {
+	tc := SetupEngineTest(t, "template")
+	defer tc.Cleanup()
+	u := CreateAndSignupFakeUser(tc, "fav")
+
+	idUI := &FakeIdentifyUI{}
+	addfav(fmt.Sprintf("%s,bob@twitter", u.Username), true, true, idUI, tc)
+	if len(listfav(tc)) != 1 {
+		t.Errorf("favorites len: %d, expected 1", len(listfav(tc)))
+	}
+
+	if idUI.DisplayTLFCount != 1 {
+		t.Errorf("DisplayTLFCount: %d, expected 1", idUI.DisplayTLFCount)
+	}
+	// There's no way to give invites to a user via API, so the
+	// only case we can test automatically is the user being
+	// out of invites.
+	if !idUI.DisplayTLFArg.Throttled {
+		t.Errorf("DisplayTLFArg.Throttled not set, expected it to be since user has no invites.")
+	}
+	if !idUI.DisplayTLFArg.IsPrivate {
+		t.Errorf("DisplayTLFArg.IsPrivate not set on a private folder")
+	}
+
+	idUI = &FakeIdentifyUI{}
+	// Test adding a favorite when not the creator.  Should not call ui for
+	// displaying tlf + invite.
+	// created flag == false
+	addfav(fmt.Sprintf("%s,bobdog@twitter", u.Username), true, false, idUI, tc)
+	if len(listfav(tc)) != 2 {
+		t.Errorf("favorites len: %d, expected 2", len(listfav(tc)))
+	}
+	if idUI.DisplayTLFCount != 0 {
+		t.Errorf("DisplayTLFCount: %d, expected 0", idUI.DisplayTLFCount)
+	}
+
+	idUI = &FakeIdentifyUI{}
+	// Make sure ui for displaying tlf + invite not called for non-social
+	// assertion TLF.
+	addfav(fmt.Sprintf("%s,t_alice", u.Username), true, true, idUI, tc)
+	if len(listfav(tc)) != 3 {
+		t.Errorf("favorites len: %d, expected 3", len(listfav(tc)))
+	}
+	if idUI.DisplayTLFCount != 0 {
+		t.Errorf("DisplayTLFCount: %d, expected 0", idUI.DisplayTLFCount)
+	}
+
+	idUI = &FakeIdentifyUI{}
+	// Test adding a public favorite with SBS social assertion
+	addfav(fmt.Sprintf("%s,bobdog@twitter", u.Username), false, true, idUI, tc)
+	if len(listfav(tc)) != 4 {
+		t.Errorf("favorites len: %d, expected 4", len(listfav(tc)))
+	}
+	if idUI.DisplayTLFCount != 1 {
+		t.Errorf("DisplayTLFCount: %d, expected 1", idUI.DisplayTLFCount)
+	}
+	if idUI.DisplayTLFArg.IsPrivate {
+		t.Errorf("DisplayTLFArg.IsPrivate set on a public folder")
 	}
 }
 
@@ -38,8 +104,9 @@ func TestFavoriteDelete(t *testing.T) {
 	defer tc.Cleanup()
 	CreateAndSignupFakeUser(tc, "fav")
 
-	addfav("t_alice,t_bob", true, tc)
-	addfav("t_alice,t_charlie", true, tc)
+	idUI := &FakeIdentifyUI{}
+	addfav("t_alice,t_bob", true, true, idUI, tc)
+	addfav("t_alice,t_charlie", true, true, idUI, tc)
 	if len(listfav(tc)) != 2 {
 		t.Errorf("favorites len: %d, expected 2", len(listfav(tc)))
 	}
@@ -57,8 +124,9 @@ func TestFavoriteList(t *testing.T) {
 	defer tc.Cleanup()
 	CreateAndSignupFakeUser(tc, "fav")
 
-	addfav("t_alice,t_charlie", true, tc)
-	addfav("t_alice,t_bob", true, tc)
+	idUI := &FakeIdentifyUI{}
+	addfav("t_alice,t_charlie", true, true, idUI, tc)
+	addfav("t_alice,t_bob", true, true, idUI, tc)
 
 	ctx := &Context{}
 	eng := NewFavoriteList(tc.G)
@@ -77,10 +145,12 @@ func TestFavoriteList(t *testing.T) {
 	}
 }
 
-func addfav(name string, private bool, tc libkb.TestContext) {
-	ctx := &Context{}
+func addfav(name string, private, created bool, idUI libkb.IdentifyUI, tc libkb.TestContext) {
+	ctx := &Context{
+		IdentifyUI: idUI,
+	}
 	arg := keybase1.FavoriteAddArg{
-		Folder: keybase1.Folder{Name: name, Private: private},
+		Folder: keybase1.Folder{Name: name, Private: private, Created: created},
 	}
 	eng := NewFavoriteAdd(&arg, tc.G)
 	err := RunEngine(eng, ctx)

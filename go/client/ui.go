@@ -105,6 +105,23 @@ func (ui BaseIdentifyUI) ReportRevoked(del []keybase1.TrackDiff) {
 	}
 }
 
+func (ui BaseIdentifyUI) DisplayTLFCreateWithInvite(arg keybase1.DisplayTLFCreateWithInviteArg) error {
+	// this will only happen via `keybase favorite add` w/ no gui running:
+	if arg.IsPrivate {
+		ui.parent.Printf("Success! You created a private folder with %s\n", arg.Assertion)
+	} else {
+		ui.parent.Printf("Success! You created a public folder with %s\n", arg.Assertion)
+	}
+	if arg.Throttled {
+		ui.parent.Printf("Since you are out of invites, %s will need to request an invitation on keybase.io\n", arg.Assertion)
+	} else {
+		ui.parent.Printf("Here's an invitation link you can send to %s:\n", arg.Assertion)
+		ui.parent.Printf("\n   %s\n\nWith this link, they will be able to sign up immediately.\n", arg.InviteLink)
+	}
+
+	return nil
+}
+
 type IdentifyTrackUI struct {
 	BaseIdentifyUI
 }

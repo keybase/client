@@ -3,7 +3,11 @@
 
 package libkb
 
-import keybase1 "github.com/keybase/client/go/protocol"
+import (
+	"path"
+
+	keybase1 "github.com/keybase/client/go/protocol"
+)
 
 // InviteArg contains optional invitation arguments.
 type InviteArg struct {
@@ -14,6 +18,14 @@ type InviteArg struct {
 type Invitation struct {
 	ID        string
 	ShortCode string
+	Throttled bool
+}
+
+func (i Invitation) Link() string {
+	if i.Throttled {
+		return ""
+	}
+	return path.Join(CanonicalHost, "inv", i.ShortCode[0:10])
 }
 
 func (i InviteArg) ToHTTPArgs() HTTPArgs {
@@ -41,10 +53,11 @@ func GenerateInvitationCodeForAssertion(g *GlobalContext, assertion keybase1.Soc
 
 func callSendInvitation(g *GlobalContext, params HTTPArgs) (*Invitation, error) {
 	arg := APIArg{
-		Endpoint:     "send_invitation",
-		NeedSession:  true,
-		Contextified: NewContextified(g),
-		Args:         params,
+		Endpoint:       "send_invitation",
+		NeedSession:    true,
+		Contextified:   NewContextified(g),
+		Args:           params,
+		AppStatusCodes: []int{SCOk, SCThrottleControl},
 	}
 	res, err := g.API.Post(arg)
 	if err != nil {
@@ -52,6 +65,13 @@ func callSendInvitation(g *GlobalContext, params HTTPArgs) (*Invitation, error) 
 	}
 
 	var inv Invitation
+
+	if res.AppStatus.Code == SCThrottleControl {
+		g.Log.Debug("send_invitation returned SCThrottleControl: user is out of invites")
+		inv.Throttled = true
+		return &inv, nil
+	}
+
 	inv.ID, err = res.Body.AtKey("invitation_id").GetString()
 	if err != nil {
 		return nil, err
