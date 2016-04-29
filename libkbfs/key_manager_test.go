@@ -19,7 +19,7 @@ func keyManagerInit(t *testing.T) (mockCtrl *gomock.Controller,
 	config = NewConfigMock(mockCtrl, ctr)
 	keyman := NewKeyManagerStandard(config)
 	config.SetKeyManager(keyman)
-	interposeDaemonKBPKI(config, "alice", "bob", "charlie")
+	interposeDaemonKBPKI(config, "alice", "bob", "charlie", "dave")
 	ctx = context.Background()
 	return
 }
@@ -309,10 +309,11 @@ func TestKeyManagerRekeySuccessPrivate(t *testing.T) {
 func TestKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
+	config.SetSharingBeforeSignupEnabled(true)
 
 	id := FakeTlfID(1, false)
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), "alice,bob@twitter#charlie@twitter",
+		ctx, config.KBPKI(), "alice,bob@twitter,dave@twitter#charlie@twitter",
 		false, true)
 	if err != nil {
 		t.Fatal(err)
@@ -324,7 +325,6 @@ func TestKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T) {
 
 	// Pretend that {bob,charlie}@twitter now resolve to {bob,charlie}.
 	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
-
 	daemon.addNewAssertionForTest("bob", "bob@twitter")
 	daemon.addNewAssertionForTest("charlie", "charlie@twitter")
 
@@ -337,11 +337,43 @@ func TestKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	}
 
 	newH := rmd.GetTlfHandle()
-	require.Equal(t, CanonicalTlfName("alice,bob#charlie"), newH.GetCanonicalName())
+	require.Equal(t, CanonicalTlfName("alice,bob,dave@twitter#charlie"),
+		newH.GetCanonicalName())
+
+	// Also check MakeBareTlfHandle.
+	oldHandle := rmd.tlfHandle
+	rmd.tlfHandle = nil
+	newBareH, err := rmd.MakeBareTlfHandle()
+	require.Nil(t, err)
+	require.Equal(t, newH.BareTlfHandle, newBareH)
+	rmd.tlfHandle = oldHandle
+
+	// Now resolve using only a device addition, which won't bump the
+	// generation number.
+	daemon.addNewAssertionForTest("dave", "dave@twitter")
+	oldKeyGen = rmd.LatestKeyGeneration()
+	expectCachedGetTLFCryptKey(config, rmd, oldKeyGen)
+	expectRekey(config, rmd, 1)
+	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
+	config.mockKbpki.EXPECT().GetCryptPublicKeys(gomock.Any(), gomock.Any()).
+		Return([]CryptPublicKey{subkey}, nil).Times(3)
+	if done, _, err :=
+		config.KeyManager().Rekey(ctx, rmd); !done || err != nil {
+		t.Fatalf("Got error on rekey: %t, %v", done, err)
+	}
+
+	if rmd.LatestKeyGeneration() != oldKeyGen {
+		t.Fatalf("Bad key generation after rekey: %d",
+			rmd.LatestKeyGeneration())
+	}
+
+	newH = rmd.GetTlfHandle()
+	require.Equal(t, CanonicalTlfName("alice,bob,dave#charlie"),
+		newH.GetCanonicalName())
 
 	// Also check MakeBareTlfHandle.
 	rmd.tlfHandle = nil
-	newBareH, err := rmd.MakeBareTlfHandle()
+	newBareH, err = rmd.MakeBareTlfHandle()
 	require.Nil(t, err)
 	require.Equal(t, newH.BareTlfHandle, newBareH)
 }
