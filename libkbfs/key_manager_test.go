@@ -1161,6 +1161,8 @@ func TestKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2)
 	defer CheckConfigAndShutdown(t, config1)
+	clock := newTestClockNow()
+	config1.SetClock(clock)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)
 	defer CheckConfigAndShutdown(t, config2)
@@ -1209,6 +1211,7 @@ func TestKeyManagerRekeyAddAndRevokeDeviceWithConflict(t *testing.T) {
 	root2Dev2 := GetRootNodeOrBust(t, config2Dev2, name, false)
 
 	// Now revoke the original user 2 device
+	clock.Add(1 * time.Minute)
 	RevokeDeviceForLocalUserOrBust(t, config1, uid2, 0)
 	RevokeDeviceForLocalUserOrBust(t, config2Dev2, uid2, 0)
 
@@ -1389,6 +1392,8 @@ func TestKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
 	config1, uid1, ctx := kbfsOpsConcurInit(t, u1, u2)
 	defer CheckConfigAndShutdown(t, config1)
+	clock := newTestClockNow()
+	config1.SetClock(clock)
 
 	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)
 	defer CheckConfigAndShutdown(t, config2)
@@ -1420,6 +1425,7 @@ func TestKeyManagerRekeyAddDeviceWithPromptAfterRestart(t *testing.T) {
 	devIndex := AddDeviceForLocalUserOrBust(t, config2Dev2, uid2)
 	SwitchDeviceForLocalUserOrBust(t, config2Dev2, devIndex)
 	// Revoke some previous device
+	clock.Add(1 * time.Minute)
 	RevokeDeviceForLocalUserOrBust(t, config2Dev2, uid1, 0)
 
 	// The new device should be unable to rekey on its own, and will
