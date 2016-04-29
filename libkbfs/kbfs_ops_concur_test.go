@@ -545,15 +545,9 @@ func (km *mdRecordingKeyManager) GetTLFCryptKeyForEncryption(
 }
 
 func (km *mdRecordingKeyManager) GetTLFCryptKeyForMDDecryption(
-	ctx context.Context, md *RootMetadata) (TLFCryptKey, error) {
-	km.setLastMD(md)
-	return km.delegate.GetTLFCryptKeyForMDDecryption(ctx, md)
-}
-
-func (km *mdRecordingKeyManager) GetTLFCryptKeyForMDDecryptionByKeyGen(
-	ctx context.Context, md *RootMetadata, keyGen KeyGen) (TLFCryptKey, error) {
-	km.setLastMD(md)
-	return km.delegate.GetTLFCryptKeyForMDDecryptionByKeyGen(ctx, md, keyGen)
+	ctx context.Context, md1, md2 *RootMetadata) (TLFCryptKey, error) {
+	km.setLastMD(md1)
+	return km.delegate.GetTLFCryptKeyForMDDecryption(ctx, md1, md2)
 }
 
 func (km *mdRecordingKeyManager) GetTLFCryptKeyForBlockDecryption(

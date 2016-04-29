@@ -38,7 +38,7 @@ func expectGetTLFCryptKeyForEncryption(config *ConfigMock, rmd *RootMetadata) {
 
 func expectGetTLFCryptKeyForMDDecryption(config *ConfigMock, rmd *RootMetadata) {
 	config.mockKeyman.EXPECT().GetTLFCryptKeyForMDDecryption(gomock.Any(),
-		rmdMatcher{rmd}).Return(TLFCryptKey{}, nil)
+		rmdMatcher{rmd}, rmdMatcher{rmd}).Return(TLFCryptKey{}, nil)
 }
 
 // TODO: Add test coverage for decryption of blocks with an old key

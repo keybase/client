@@ -118,7 +118,7 @@ func TestKeyManagerPublicTLFCryptKey(t *testing.T) {
 	}
 
 	tlfCryptKey, err = config.KeyManager().
-		GetTLFCryptKeyForMDDecryption(ctx, rmd)
+		GetTLFCryptKeyForMDDecryption(ctx, rmd, rmd)
 	if err != nil {
 		t.Error(err)
 	}
@@ -167,7 +167,7 @@ func TestKeyManagerCachedSecretKeyForMDDecryptionSuccess(t *testing.T) {
 	expectCachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration())
 
 	if _, err := config.KeyManager().
-		GetTLFCryptKeyForMDDecryption(ctx, rmd); err != nil {
+		GetTLFCryptKeyForMDDecryption(ctx, rmd, rmd); err != nil {
 		t.Errorf("Got error on GetTLFCryptKeyForMDDecryption: %v", err)
 	}
 }
@@ -240,7 +240,7 @@ func TestKeyManagerUncachedSecretKeyForMDDecryptionSuccess(t *testing.T) {
 	expectUncachedGetTLFCryptKeyAnyDevice(config, rmd, rmd.LatestKeyGeneration(), uid, subkey, false)
 
 	if _, err := config.KeyManager().
-		GetTLFCryptKeyForMDDecryption(ctx, rmd); err != nil {
+		GetTLFCryptKeyForMDDecryption(ctx, rmd, rmd); err != nil {
 		t.Errorf("Got error on GetTLFCryptKeyForMDDecryption: %v", err)
 	}
 }

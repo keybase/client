@@ -403,17 +403,12 @@ type KeyManager interface {
 	GetTLFCryptKeyForEncryption(ctx context.Context, md *RootMetadata) (
 		TLFCryptKey, error)
 
-	// GetTLFCryptKeyForMDDecryption gets the crypt key to use for
-	// the TLF with the given metadata to decrypt the private
-	// portion of the metadata.
-	GetTLFCryptKeyForMDDecryption(ctx context.Context, md *RootMetadata) (
-		TLFCryptKey, error)
-
-	// GetTLFCryptKeyForMDDecryptionByKeyGen gets the crypt key to use
-	// for the TLF with the given metadata to decrypt the private
-	// portion of the metadata at the specified key generation.
-	GetTLFCryptKeyForMDDecryptionByKeyGen(ctx context.Context, md *RootMetadata,
-		keyGen KeyGen) (TLFCryptKey, error)
+	// GetTLFCryptKeyForMDDecryption gets the crypt key to use for the
+	// TLF with the given metadata to decrypt the private portion of
+	// the metadata.  It finds the appropriate key from mdWithKeys if
+	// it's not already cached.
+	GetTLFCryptKeyForMDDecryption(ctx context.Context,
+		mdToDecrypt, mdWithKeys *RootMetadata) (TLFCryptKey, error)
 
 	// GetTLFCryptKeyForBlockDecryption gets the crypt key to use
 	// for the TLF with the given metadata to decrypt the block

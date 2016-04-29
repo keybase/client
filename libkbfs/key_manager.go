@@ -32,18 +32,9 @@ func (km *KeyManagerStandard) GetTLFCryptKeyForEncryption(ctx context.Context,
 // GetTLFCryptKeyForMDDecryption implements the KeyManager interface
 // for KeyManagerStandard.
 func (km *KeyManagerStandard) GetTLFCryptKeyForMDDecryption(
-	ctx context.Context, md *RootMetadata) (
+	ctx context.Context, mdToDecrypt, mdWithKeys *RootMetadata) (
 	tlfCryptKey TLFCryptKey, err error) {
-	return km.getTLFCryptKey(ctx, md, md.LatestKeyGeneration(),
-		getTLFCryptKeyAnyDevice|getTLFCryptKeyDoCache)
-}
-
-// GetTLFCryptKeyForMDDecryptionByKeyGen implements the KeyManager
-// interface for KeyManagerStandard.
-func (km *KeyManagerStandard) GetTLFCryptKeyForMDDecryptionByKeyGen(
-	ctx context.Context, md *RootMetadata, keyGen KeyGen) (
-	tlfCryptKey TLFCryptKey, err error) {
-	return km.getTLFCryptKey(ctx, md, keyGen,
+	return km.getTLFCryptKey(ctx, mdWithKeys, mdToDecrypt.LatestKeyGeneration(),
 		getTLFCryptKeyAnyDevice|getTLFCryptKeyDoCache)
 }
 
@@ -536,7 +527,7 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 	// decryptMDPrivateData assumes that the MD is always encrypted
 	// using the latest key gen.
 	if !md.IsReadable() && len(md.SerializedPrivateMetadata) > 0 {
-		if err := decryptMDPrivateData(ctx, km.config, md); err != nil {
+		if err := decryptMDPrivateData(ctx, km.config, md, md); err != nil {
 			return false, nil, err
 		}
 	}

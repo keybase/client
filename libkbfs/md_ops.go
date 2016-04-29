@@ -161,7 +161,10 @@ func (md *MDOpsStandard) processMetadata(ctx context.Context,
 		return err
 	}
 
-	err = decryptMDPrivateData(ctx, md.config, &rmds.MD)
+	// Try to decrypt using the keys available in this md.  If that
+	// doesn't work, a future MD may contain more keys and will be
+	// tried later.
+	err = decryptMDPrivateData(ctx, md.config, &rmds.MD, &rmds.MD)
 	if err != nil {
 		return err
 	}

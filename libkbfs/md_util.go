@@ -132,16 +132,11 @@ func getMergedMDUpdates(ctx context.Context, config Config, id TlfID,
 	// device, is processed.
 	for _, rmd := range mergedRmds {
 		if err := rmd.isReadableOrError(ctx, config); err != nil {
-			// Prime the key cache with the right secret key for the
-			// given rmd's key generation, which may only be present
-			// in the most recent rmd.
+			// The right secret key for the given rmd's key generation
+			// may only be present in the most recent rmd.
 			latestRmd := mergedRmds[len(mergedRmds)-1]
-			if _, err := config.KeyManager().
-				GetTLFCryptKeyForMDDecryptionByKeyGen(ctx, latestRmd,
-					rmd.LatestKeyGeneration()); err != nil {
-				return nil, err
-			}
-			if err := decryptMDPrivateData(ctx, config, rmd); err != nil {
+			if err := decryptMDPrivateData(ctx, config,
+				rmd, latestRmd); err != nil {
 				return nil, err
 			}
 		}
@@ -195,25 +190,26 @@ func getUnmergedMDUpdates(ctx context.Context, config Config, id TlfID,
 }
 
 func decryptMDPrivateData(ctx context.Context, config Config,
-	rmd *RootMetadata) error {
-	handle := rmd.GetTlfHandle()
+	rmdToDecrypt, rmdWithKeys *RootMetadata) error {
+	handle := rmdToDecrypt.GetTlfHandle()
 	crypto := config.Crypto()
 	codec := config.Codec()
 
 	if handle.IsPublic() {
-		if err := codec.Decode(rmd.SerializedPrivateMetadata,
-			&rmd.data); err != nil {
+		if err := codec.Decode(rmdToDecrypt.SerializedPrivateMetadata,
+			&rmdToDecrypt.data); err != nil {
 			return err
 		}
 	} else {
 		// decrypt the root data for non-public directories
 		var encryptedPrivateMetadata EncryptedPrivateMetadata
-		if err := codec.Decode(rmd.SerializedPrivateMetadata,
+		if err := codec.Decode(rmdToDecrypt.SerializedPrivateMetadata,
 			&encryptedPrivateMetadata); err != nil {
 			return err
 		}
 
-		k, err := config.KeyManager().GetTLFCryptKeyForMDDecryption(ctx, rmd)
+		k, err := config.KeyManager().GetTLFCryptKeyForMDDecryption(ctx,
+			rmdToDecrypt, rmdWithKeys)
 
 		privateMetadata := &PrivateMetadata{}
 		if err != nil {
@@ -239,7 +235,7 @@ func decryptMDPrivateData(ctx context.Context, config Config,
 				return err
 			}
 		}
-		rmd.data = *privateMetadata
+		rmdToDecrypt.data = *privateMetadata
 	}
 	return nil
 }
