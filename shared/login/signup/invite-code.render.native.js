@@ -16,7 +16,7 @@ export default class Render extends Component {
   constructor (props: Props) {
     super(props)
     this.state = {
-      inviteCode: this.props.inviteCode || ''
+      inviteCode: this.props.inviteCode
     }
   }
 
@@ -56,7 +56,8 @@ const styles = {
   },
   input: {
     alignSelf: 'stretch',
-    marginTop: 0
+    marginTop: 0,
+    flex: 0
   },
   text: {
     marginTop: 32
