@@ -409,7 +409,8 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 		}
 	}
 
-	if !reflect.DeepEqual(handle, resolvedHandle) {
+	handleChanged := !reflect.DeepEqual(handle, resolvedHandle)
+	if handleChanged {
 		km.log.CDebugf(ctx, "handle for %s resolved to %s",
 			handle.GetCanonicalPath(),
 			resolvedHandle.GetCanonicalPath())
@@ -468,7 +469,8 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 		}
 	}
 
-	if !addNewReaderDevice && !addNewWriterDevice && !incKeyGen {
+	if !addNewReaderDevice && !addNewWriterDevice && !incKeyGen &&
+		!handleChanged {
 		km.log.CDebugf(ctx, "Skipping rekeying %s: no new or removed devices",
 			md.ID)
 		return false, nil, nil

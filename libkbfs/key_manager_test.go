@@ -450,6 +450,72 @@ func TestKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	require.Equal(t, newH.BareTlfHandle, newBareH)
 }
 
+func TestKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T) {
+	mockCtrl, config, ctx := keyManagerInit(t)
+	defer keyManagerShutdown(mockCtrl, config)
+	config.SetSharingBeforeSignupEnabled(true)
+
+	id := FakeTlfID(1, false)
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), "alice,bob,bob@twitter",
+		false, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rmd := newRootMetadataOrBust(t, id, h)
+	oldKeyGen := rmd.LatestKeyGeneration()
+
+	expectRekey(config, rmd, 2)
+
+	// Make the first key generation
+	if done, _, err := config.KeyManager().Rekey(ctx, rmd); !done || err != nil {
+		t.Fatalf("Got error on rekey: %t, %v", done, err)
+	}
+
+	if rmd.LatestKeyGeneration() != oldKeyGen+1 {
+		t.Fatalf("Bad key generation after rekey: %d", rmd.LatestKeyGeneration())
+	}
+
+	newH := rmd.GetTlfHandle()
+	require.Equal(t,
+		CanonicalTlfName("alice,bob,bob@twitter"),
+		newH.GetCanonicalName())
+
+	// Now resolve everyone, but have reader bob to do the rekey
+	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
+	daemon.addNewAssertionForTest("bob", "bob@twitter")
+
+	// Now resolve which gets rid of the unresolved writers, but
+	// doesn't otherwise change the handle since bob is already in it.
+	oldKeyGen = rmd.LatestKeyGeneration()
+	config.mockCrypto.EXPECT().MakeRandomTLFKeys().Return(TLFPublicKey{},
+		TLFPrivateKey{}, TLFEphemeralPublicKey{}, TLFEphemeralPrivateKey{},
+		TLFCryptKey{}, nil)
+
+	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
+	config.mockKbpki.EXPECT().GetCryptPublicKeys(gomock.Any(), gomock.Any()).
+		Return([]CryptPublicKey{subkey}, nil).Times(2)
+	if done, _, err :=
+		config.KeyManager().Rekey(ctx, rmd); !done || err != nil {
+		t.Fatalf("Got error on rekey: %t, %v", done, err)
+	}
+
+	if rmd.LatestKeyGeneration() != oldKeyGen {
+		t.Fatalf("Bad key generation after rekey: %d",
+			rmd.LatestKeyGeneration())
+	}
+
+	// bob shouldn't have been able to resolve other users since he's
+	// just a reader.
+	newH = rmd.GetTlfHandle()
+	require.Equal(t, CanonicalTlfName("alice,bob"), newH.GetCanonicalName())
+
+	// Also check MakeBareTlfHandle.
+	rmd.tlfHandle = nil
+	newBareH, err := rmd.MakeBareTlfHandle()
+	require.Nil(t, err)
+	require.Equal(t, newH.BareTlfHandle, newBareH)
+}
+
 func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2)
