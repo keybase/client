@@ -1,5 +1,5 @@
 /* @flow */
-import Devices from './index.render.desktop'
+import Devices from './render'
 import type {Device} from '../constants/types/flow-types'
 
 const dev1: Device = {

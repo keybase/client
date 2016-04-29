@@ -5,7 +5,6 @@ import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props as IconProps} from '../common-adapters/icon'
 
 import type {Props} from './index'
-import type {Device as DeviceType} from '../constants/types/flow-types'
 
 type RevokedHeaderState = {expanded: boolean}
 
@@ -29,7 +28,7 @@ class RevokedHeader extends Component<void, Props, RevokedHeaderState> {
       <Box>
         <Box style={stylesRevokedRow} onClick={e => this._toggleHeader(e)}>
           <Text type='BodySemibold'>Revoked devices</Text>
-          <Icon type={iconType} style={{padding: 5}}/>
+          <Icon type={iconType} style={{padding: 5}} />
         </Box>
         {this.state.expanded && this.props.children}
       </Box>

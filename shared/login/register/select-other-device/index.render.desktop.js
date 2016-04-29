@@ -38,7 +38,7 @@ const Render = ({onBack, devices, onWont, onSelect}: Props) => (
     <div style={stylesDevicesContainer}>
       {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID}/>)}
     </div>
-    <Text style={stylesWont} type='BodySecondaryLink' onClick={onWont}>Log in with your passphrase</Text>
+    <Text style={stylesWont} type='BodySmallSecondaryLink' onClick={onWont}>Log in with your passphrase</Text>
   </Container>
 )
 

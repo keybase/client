@@ -8,6 +8,7 @@ import type {DumbMap} from './dumb'
 import CommonMap from '../common-adapters/dumb.native'
 import RegisterMap from '../login/register/dumb'
 import SignupMap from '../login/signup/dumb.native'
+import DevicesMap from '../devices/dumb'
 // import TrackerMap from '../tracker/dumb.desktop'
 // import PinentryMap from '../pinentry/dumb.desktop'
 import DeviceRevokeMap from '../devices/device-revoke/dumb.native'
@@ -41,6 +42,7 @@ class Render extends Component<void, any, any> {
       ...QRMap,
       ...RegisterMap,
       ...SignupMap,
+      ...DevicesMap,
       ...DeviceRevokeMap,
       ...DevicePageMap
       // ...LoginMap,

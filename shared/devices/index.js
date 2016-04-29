@@ -9,7 +9,7 @@ import RemoveDevice from './remove-device'
 import {loadDevices} from '../actions/devices'
 import {routeAppend} from '../actions/router'
 import {addANewDevice} from '../actions/login'
-import Render from './index.render'
+import Render from './render'
 
 class Devices extends Component {
   componentWillMount () {
