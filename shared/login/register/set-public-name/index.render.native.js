@@ -5,7 +5,7 @@ import Container from '../../forms/container'
 import type {Props} from './index.render'
 import {globalStyles} from '../../../styles/style-guide'
 
-const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName, waitingForResponse}: Props) => (
+const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName, waiting, submitEnabled = true}: Props) => (
   <Box style={stylesBox}>
     <Container
       style={stylesContainer}
@@ -25,7 +25,8 @@ const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName,
         type='Primary'
         fullWidth
         enabled={deviceName}
-        waiting={waitingForResponse}
+        disabled={!submitEnabled}
+        waiting={waiting}
         label='Continue'
         onClick={() => onSubmit()}/>
     </Container>
