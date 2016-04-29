@@ -44,6 +44,10 @@ func (*identifyUI) ReportTrackToken(keybase1.TrackToken) error                  
 func (*identifyUI) SetStrict(b bool)                                                      {}
 func (*identifyUI) Finish()                                                               {}
 
+func (*identifyUI) DisplayTLFCreateWithInvite(keybase1.DisplayTLFCreateWithInviteArg) error {
+	return nil
+}
+
 type trackingNotifyHandler struct {
 	trackingCh chan keybase1.TrackingChangedArg
 	errCh      chan error
