@@ -101,6 +101,15 @@ type ConfirmResult struct {
 	ExpiringLocal     bool `codec:"expiringLocal" json:"expiringLocal"`
 }
 
+type DisplayTLFCreateWithInviteArg struct {
+	SessionID  int    `codec:"sessionID" json:"sessionID"`
+	FolderName string `codec:"folderName" json:"folderName"`
+	IsPrivate  bool   `codec:"isPrivate" json:"isPrivate"`
+	Assertion  string `codec:"assertion" json:"assertion"`
+	InviteLink string `codec:"inviteLink" json:"inviteLink"`
+	Throttled  bool   `codec:"throttled" json:"throttled"`
+}
+
 type DelegateIdentifyUIArg struct {
 }
 
@@ -168,6 +177,7 @@ type FinishArg struct {
 }
 
 type IdentifyUiInterface interface {
+	DisplayTLFCreateWithInvite(context.Context, DisplayTLFCreateWithInviteArg) error
 	DelegateIdentifyUI(context.Context) (int, error)
 	Start(context.Context, StartArg) error
 	DisplayKey(context.Context, DisplayKeyArg) error
@@ -187,6 +197,22 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "keybase.1.identifyUi",
 		Methods: map[string]rpc.ServeHandlerDescription{
+			"displayTLFCreateWithInvite": {
+				MakeArg: func() interface{} {
+					ret := make([]DisplayTLFCreateWithInviteArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DisplayTLFCreateWithInviteArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DisplayTLFCreateWithInviteArg)(nil), args)
+						return
+					}
+					err = i.DisplayTLFCreateWithInvite(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"delegateIdentifyUI": {
 				MakeArg: func() interface{} {
 					ret := make([]DelegateIdentifyUIArg, 1)
@@ -396,6 +422,11 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 
 type IdentifyUiClient struct {
 	Cli rpc.GenericClient
+}
+
+func (c IdentifyUiClient) DisplayTLFCreateWithInvite(ctx context.Context, __arg DisplayTLFCreateWithInviteArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.displayTLFCreateWithInvite", []interface{}{__arg}, nil)
+	return
 }
 
 func (c IdentifyUiClient) DelegateIdentifyUI(ctx context.Context) (res int, err error) {

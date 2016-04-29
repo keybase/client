@@ -9,16 +9,17 @@ import (
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
-func NewCmdFavorite(cl *libcmdline.CommandLine) cli.Command {
+func NewCmdFavorite(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
 		Name:         "favorite",
 		ArgumentHelp: "[arguments...]",
 		Usage:        "Manage favorites",
 		Subcommands: []cli.Command{
-			NewCmdFavoriteAdd(cl),
+			NewCmdFavoriteAdd(cl, g),
 			NewCmdFavoriteRemove(cl),
 			NewCmdFavoriteList(cl),
 		},

@@ -277,6 +277,7 @@ type IdentifyUI interface {
 	DisplayUserCard(keybase1.UserCard)
 	ReportTrackToken(keybase1.TrackToken) error
 	Finish()
+	DisplayTLFCreateWithInvite(keybase1.DisplayTLFCreateWithInviteArg) error
 }
 
 type Checker struct {

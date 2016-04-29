@@ -153,6 +153,10 @@ func (d *delegateUI) Finish(context.Context, int) error {
 	return nil
 }
 
+func (d *delegateUI) DisplayTLFCreateWithInvite(context.Context, keybase1.DisplayTLFCreateWithInviteArg) error {
+	return nil
+}
+
 func (d *delegateUI) checkSuccess() error {
 	if !d.launchedGithub || !d.foundGithub || !d.launchedTwitter || !d.foundTwitter || !d.finished {
 		return fmt.Errorf("Bad final state for delegate UI: %+v", d)

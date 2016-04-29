@@ -105,6 +105,10 @@ func (i *Identify2WithUIDTester) ReportTrackToken(keybase1.TrackToken) (err erro
 func (i *Identify2WithUIDTester) SetStrict(b bool)                                       { return }
 func (i *Identify2WithUIDTester) DisplayUserCard(keybase1.UserCard)                      { return }
 
+func (i *Identify2WithUIDTester) DisplayTLFCreateWithInvite(keybase1.DisplayTLFCreateWithInviteArg) error {
+	return nil
+}
+
 func (i *Identify2WithUIDTester) Finish() {
 	i.finishCh <- struct{}{}
 }

@@ -95,6 +95,8 @@ protocol identifyUi {
     boolean expiringLocal;   // true if the user answers yes to "Expire local tracking statement after X?"
   }
 
+  void displayTLFCreateWithInvite(int sessionID, string folderName, boolean isPrivate, string assertion, string inviteLink, boolean throttled);
+
   // The IdentifyUI can be delegated to another process.  Call this function
   // to initialize the delegated UI; it returns the sessionID to use in the
   // following exchange. Return 0 on failure.

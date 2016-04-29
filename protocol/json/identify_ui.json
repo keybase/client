@@ -1024,6 +1024,35 @@
     }
   ],
   "messages": {
+    "displayTLFCreateWithInvite": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "folderName",
+          "type": "string"
+        },
+        {
+          "name": "isPrivate",
+          "type": "boolean"
+        },
+        {
+          "name": "assertion",
+          "type": "string"
+        },
+        {
+          "name": "inviteLink",
+          "type": "string"
+        },
+        {
+          "name": "throttled",
+          "type": "boolean"
+        }
+      ],
+      "response": "null"
+    },
     "delegateIdentifyUI": {
       "request": [],
       "response": "int"

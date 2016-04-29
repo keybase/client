@@ -251,3 +251,8 @@ func (u *RemoteIdentifyUI) Finish() {
 func (u *RemoteIdentifyUI) SetStrict(b bool) {
 	u.strict = b
 }
+
+func (u *RemoteIdentifyUI) DisplayTLFCreateWithInvite(arg keybase1.DisplayTLFCreateWithInviteArg) error {
+	arg.SessionID = u.sessionID
+	return u.uicli.DisplayTLFCreateWithInvite(context.TODO(), arg)
+}

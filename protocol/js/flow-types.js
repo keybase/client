@@ -1004,6 +1004,7 @@ export type StatusCode =
   | 203 // SCBadLoginUserNotFound_203
   | 204 // SCBadLoginPassword_204
   | 205 // SCNotFound_205
+  | 210 // SCThrottleControl_210
   | 218 // SCGeneric_218
   | 235 // SCAlreadyLoggedIn_235
   | 237 // SCCanceled_237
@@ -1815,6 +1816,21 @@ export type identifyUi_displayKey_rpc = {
   method: 'identifyUi.displayKey',
   param: {
     key: IdentifyKey
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type identifyUi_displayTLFCreateWithInvite_result = void
+
+export type identifyUi_displayTLFCreateWithInvite_rpc = {
+  method: 'identifyUi.displayTLFCreateWithInvite',
+  param: {
+    folderName: string,
+    isPrivate: boolean,
+    assertion: string,
+    inviteLink: string,
+    throttled: boolean
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any) => void)
@@ -3386,6 +3402,7 @@ export type rpc =
   | identifyUi_delegateIdentifyUI_rpc
   | identifyUi_displayCryptocurrency_rpc
   | identifyUi_displayKey_rpc
+  | identifyUi_displayTLFCreateWithInvite_rpc
   | identifyUi_displayTrackStatement_rpc
   | identifyUi_displayUserCard_rpc
   | identifyUi_finishSocialProofCheck_rpc
@@ -4029,6 +4046,20 @@ export type incomingCallMapType = {
     response: {
       error: (err: RPCError) => void,
       result: (result: identify_identify2_result) => void
+    }
+  ) => void,
+  'keybase.1.identifyUi.displayTLFCreateWithInvite'?: (
+    params: {
+      sessionID: int,
+      folderName: string,
+      isPrivate: boolean,
+      assertion: string,
+      inviteLink: string,
+      throttled: boolean
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
     }
   ) => void,
   'keybase.1.identifyUi.delegateIdentifyUI'?: (
