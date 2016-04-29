@@ -51,7 +51,7 @@ func TestFavoritesAddCreated(t *testing.T) {
 	defer favTestShutdown(mockCtrl, config)
 
 	f := NewFavorites(config)
-	// Call Add  with created = true
+	// Call Add with created = true
 	fav1 := Favorite{"test", true, true}
 	config.mockKbpki.EXPECT().FavoriteList(gomock.Any()).Return(nil, nil)
 	expected := keybase1.Folder{
