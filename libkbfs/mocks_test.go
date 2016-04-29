@@ -3159,3 +3159,13 @@ func (_m *MockRekeyQueue) Clear() {
 func (_mr *_MockRekeyQueueRecorder) Clear() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Clear")
 }
+
+func (_m *MockRekeyQueue) Wait(ctx context.Context) error {
+	ret := _m.ctrl.Call(_m, "Wait", ctx)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+func (_mr *_MockRekeyQueueRecorder) Wait(arg0 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "Wait", arg0)
+}

@@ -1210,4 +1210,6 @@ type RekeyQueue interface {
 	GetRekeyChannel(id TlfID) <-chan error
 	// Clear cancels all pending rekey actions and clears the queue.
 	Clear()
+	// Waits for all queued rekeys to finish
+	Wait(ctx context.Context) error
 }

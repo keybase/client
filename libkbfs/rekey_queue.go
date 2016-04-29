@@ -14,6 +14,7 @@ type RekeyQueueStandard struct {
 	queue     map[TlfID]chan error // if we end up caring about order we should add a slice
 	hasWorkCh chan struct{}
 	cancel    context.CancelFunc
+	wg        RepeatedWaitGroup
 }
 
 // Test that RekeyQueueStandard fully implements the RekeyQueue interface.
@@ -53,6 +54,7 @@ func (rkq *RekeyQueueStandard) Enqueue(id TlfID) <-chan error {
 		close(c)
 		return c
 	}
+	rkq.wg.Add(1)
 	// poke the channel
 	select {
 	case rkq.hasWorkCh <- struct{}{}:
@@ -98,6 +100,11 @@ func (rkq *RekeyQueueStandard) Clear() {
 		c <- context.Canceled
 		close(c)
 	}
+}
+
+// Wait implements the RekeyQueue interface for RekeyQueueStandard.
+func (rkq *RekeyQueueStandard) Wait(ctx context.Context) error {
+	return rkq.wg.Wait(ctx)
 }
 
 // dequeue is a helper to remove a folder from the rekey queue.
@@ -149,10 +156,14 @@ func (rkq *RekeyQueueStandard) processRekeys(ctx context.Context, hasWorkCh chan
 					break
 				}
 
-				// Assign an ID to this rekey operation so we can track it.
-				newCtx := ctxWithRandomID(ctx, CtxRekeyIDKey, CtxRekeyOpID, nil)
-				err := rkq.config.KBFSOps().Rekey(newCtx, id)
-				rkq.dequeue(id, err)
+				func() {
+					defer rkq.wg.Done()
+					// Assign an ID to this rekey operation so we can track it.
+					newCtx := ctxWithRandomID(ctx, CtxRekeyIDKey,
+						CtxRekeyOpID, nil)
+					err := rkq.config.KBFSOps().Rekey(newCtx, id)
+					rkq.dequeue(id, err)
+				}()
 				if ctx.Err() != nil {
 					close(hasWorkCh)
 					return
