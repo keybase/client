@@ -185,3 +185,18 @@ func (fl *FolderList) lockedAddChild(name string, val fileOpener) {
 	fl.folders[name] = val
 	fl.mu.Unlock()
 }
+
+func (fl *FolderList) updateTlfName(ctx context.Context, oldName string,
+	newName string) {
+	fl.mu.Lock()
+	defer fl.mu.Unlock()
+	tlf, ok := fl.folders[oldName]
+	if !ok {
+		return
+	}
+
+	fl.fs.log.CDebugf(ctx, "Folder name updated: %s -> %s", oldName, newName)
+	delete(fl.folders, oldName)
+	fl.folders[newName] = tlf
+	// TODO: invalidate kernel cache for this name?
+}

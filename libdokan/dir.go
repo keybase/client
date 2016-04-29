@@ -21,7 +21,9 @@ import (
 type Folder struct {
 	fs   *FS
 	list *FolderList
-	h    *libkbfs.TlfHandle
+
+	handleMu sync.RWMutex
+	h        *libkbfs.TlfHandle
 
 	folderBranchMu sync.Mutex
 	folderBranch   libkbfs.FolderBranch
@@ -61,6 +63,8 @@ func newFolder(fl *FolderList, h *libkbfs.TlfHandle) *Folder {
 }
 
 func (f *Folder) name() libkbfs.CanonicalTlfName {
+	f.handleMu.RLock()
+	defer f.handleMu.RUnlock()
 	return f.h.GetCanonicalName()
 }
 
@@ -146,6 +150,19 @@ func (f *Folder) BatchChanges(ctx context.Context, changes []libkbfs.NodeChange)
 // TlfHandleChange is called when the name of a folder changes.
 func (f *Folder) TlfHandleChange(ctx context.Context,
 	newHandle *libkbfs.TlfHandle) {
+	// Spawn a goroutine so we don't block
+	go func() {
+		oldName := func() libkbfs.CanonicalTlfName {
+			f.handleMu.Lock()
+			defer f.handleMu.Unlock()
+			oldName := f.h.GetCanonicalName()
+			f.h = newHandle
+			return oldName
+		}()
+
+		f.list.updateTlfName(ctx, string(oldName),
+			string(newHandle.GetCanonicalName()))
+	}()
 	return
 }
 
