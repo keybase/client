@@ -157,6 +157,7 @@ func addfav(name string, private, created bool, idUI libkb.IdentifyUI, tc libkb.
 	if err != nil {
 		tc.T.Fatal(err)
 	}
+	eng.Wait()
 }
 
 func rmfav(name string, private bool, tc libkb.TestContext) {

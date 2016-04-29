@@ -13,15 +13,17 @@ import (
 
 // FavoriteAdd is an engine.
 type FavoriteAdd struct {
-	arg *keybase1.FavoriteAddArg
+	arg             *keybase1.FavoriteAddArg
+	checkInviteDone chan struct{}
 	libkb.Contextified
 }
 
 // NewFavoriteAdd creates a FavoriteAdd engine.
 func NewFavoriteAdd(arg *keybase1.FavoriteAddArg, g *libkb.GlobalContext) *FavoriteAdd {
 	return &FavoriteAdd{
-		arg:          arg,
-		Contextified: libkb.NewContextified(g),
+		arg:             arg,
+		checkInviteDone: make(chan struct{}),
+		Contextified:    libkb.NewContextified(g),
 	}
 }
 
@@ -75,16 +77,28 @@ func (e *FavoriteAdd) Run(ctx *Context) error {
 		return err
 	}
 
-	if e.arg.Folder.Created {
-		if err := e.checkInviteNeeded(ctx); err != nil {
-			return err
-		}
-	}
+	// this should be in its own goroutine so that potential
+	// UI calls don't block FavoriteAdd calls
+	go e.checkInviteNeeded(ctx)
 
 	return nil
 }
 
+// Wait until the checkInviteNeeded goroutine is done.
+func (e *FavoriteAdd) Wait() {
+	<-e.checkInviteDone
+}
+
 func (e *FavoriteAdd) checkInviteNeeded(ctx *Context) error {
+	defer func() {
+		close(e.checkInviteDone)
+	}()
+
+	// If not folder creator, do nothing.
+	if !e.arg.Folder.Created {
+		return nil
+	}
+
 	for _, user := range strings.Split(e.arg.Folder.Name, ",") {
 		assertion, ok := libkb.NormalizeSocialAssertion(user)
 		if !ok {
