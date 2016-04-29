@@ -401,7 +401,7 @@ func (fs *KBFSOpsStandard) UnstageForTesting(
 // Rekey implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) Rekey(ctx context.Context, id TlfID) error {
 	// We currently only support rekeys of master branches.
-	ops := fs.getOps(ctx, FolderBranch{Tlf: id, Branch: MasterBranch})
+	ops := fs.getOpsNoAdd(FolderBranch{Tlf: id, Branch: MasterBranch})
 	return ops.Rekey(ctx, id)
 }
 
