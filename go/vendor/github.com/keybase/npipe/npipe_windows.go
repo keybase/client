@@ -64,6 +64,7 @@ const (
 	error_invalid_name syscall.Errno = 0x7B
 
 	error_io_incomplete syscall.Errno = 0x3e4
+	error_invalid_handle = 0x6
 )
 
 var _ net.Conn = (*PipeConn)(nil)
@@ -205,6 +206,14 @@ func dial(address string, timeout uint32) (*PipeConn, error) {
 		if err == error_bad_pathname {
 			// badly formatted pipe name
 			return nil, badAddr(address)
+		}
+		// invalid handle gets returned sometimes, but the caller should still retry,
+		// so treat it the same as not found.
+		// Note that MSDN shows CreateFile
+		// called before WaitNamedPipe:
+		// https://msdn.microsoft.com/en-us/library/windows/desktop/aa365592%28v=vs.85%29.aspx?f=255&MSPPError=-2147217396
+		if err == syscall.Errno(error_invalid_handle) {
+			 err = syscall.ERROR_FILE_NOT_FOUND
 		}
 		return nil, err
 	}

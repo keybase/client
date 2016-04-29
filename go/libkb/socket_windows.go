@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/natefinch/npipe"
+	"github.com/keybase/npipe"
 )
 
 func NewSocket(g *GlobalContext) (ret Socket, err error) {
