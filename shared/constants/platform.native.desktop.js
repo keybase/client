@@ -23,6 +23,12 @@ const envedPathOSX = {
   prod: 'Keybase'
 }
 
+const envedPathWin32 = {
+  staging: 'KeybaseStaging',
+  devel: 'KeybaseDevel',
+  prod: 'Keybase'
+}
+
 function buildWin32SocketRoot () {
   let appdata = getenv('APPDATA', '')
   // Remove leading drive letter e.g. C:
@@ -63,7 +69,7 @@ export function logFileName () {
   const paths = {
     'darwin': `${getenv('HOME', '')}/Library/Logs/${envedPathOSX[runMode]}.app.log`,
     'linux': null, // linux is null because we can redirect stdout
-    'win32': `${getenv('APPDATA', '')}\\Keybase\\keybase.${runMode}.app.log`
+    'win32': `${getenv('APPDATA', '')}\\${envedPathWin32[runMode]}\\keybase.app.log`
   }
 
   return paths[process.platform]
