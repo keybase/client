@@ -187,6 +187,7 @@ const sizeGroups: { [key: '40' | '30' | '22' | '18' | '15' | '14']: Object } = {
 
 const textCommon = {
   ...globalStyles.fontRegular,
+  textAlignVertical: 'center',
   letterSpacing: 0.3
 }
 

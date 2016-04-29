@@ -130,9 +130,16 @@ const Fonts = () => (
           <Text backgroundMode={backgroundMode} type='HeaderJumbo'>Header Jumbo</Text>
           <Text backgroundMode={backgroundMode} type='HeaderJumbo'>Header Jumbo</Text>
           <Space />
+          <Box style={{width: 100, height: 100, backgroundColor: 'blue'}} />
           <Space />
           <Text backgroundMode={backgroundMode} type='HeaderBig'>Header big Header big</Text>
-          <Text backgroundMode={backgroundMode} type='HeaderBig'>Header big Header big</Text>
+          <Text style={{letterSpacing: undefined, backgroundColor: 'red', textAlignVertical: 'auto'}} backgroundMode={backgroundMode} type='HeaderBig'>Header big Header big</Text>
+          <Space />
+          <Text style={{letterSpacing: undefined, backgroundColor: 'red', textAlignVertical: 'top'}} backgroundMode={backgroundMode} type='HeaderBig'>Header big Header big</Text>
+          <Space />
+          <Text style={{letterSpacing: undefined, backgroundColor: 'red', textAlignVertical: 'center'}} backgroundMode={backgroundMode} type='HeaderBig'>Header big Header big</Text>
+          <Space />
+          <Text style={{letterSpacing: undefined, backgroundColor: 'red', textAlignVertical: 'bottom'}} backgroundMode={backgroundMode} type='HeaderBig'>Header big Header big</Text>
           <Space />
           <Space />
           <Text backgroundMode={backgroundMode} type='Header'>Header Header Header</Text>
@@ -349,6 +356,7 @@ export default class Render extends Component {
     // TODO: remove Success from here when dumb components sheet is in
     return (
       <ScrollView>
+        <Container title='Buttons'><Buttons /></Container>
         <Container title='Text'><Fonts /></Container>
         <Container title='TabBar'>
           <TabBars selected={this.state.tabSelected} onPress={
@@ -366,7 +374,6 @@ export default class Render extends Component {
         <Container title='Inputs'><Inputs /></Container>
         <Container title='Checkboxes'><Checkboxes flip={idx => this.flip(idx)} check={this.state.check} /></Container>
         <Container title='Icons'><Icons /></Container>
-        <Container title='Buttons'><Buttons /></Container>
         <Container title='Colors'><Colors /></Container>
       </ScrollView>
     )

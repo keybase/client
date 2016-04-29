@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import {TouchableHighlight, View} from 'react-native'
-import {globalColors} from '../styles/style-guide'
+import {globalColors, globalStyles} from '../styles/style-guide'
 import Text from './text'
 import ProgressIndicator from './progress-indicator'
 
@@ -67,9 +67,11 @@ const regularHeight = 40
 const fullWidthHeight = 48
 
 const common = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  justifyContent: 'center',
   height: regularHeight,
   borderRadius: 50,
-  paddingTop: 7,
   paddingLeft: 32,
   paddingRight: 32
 }

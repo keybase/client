@@ -31,14 +31,14 @@
 	<string></string>
 	<key>UIAppFonts</key>
 	<array>
+		<string>Lato_bold.ttf</string>
+		<string>Lato_italic.ttf</string>
+		<string>Lato-Semi_bold.ttf</string>
+		<string>Lato-Semibold_Italic.ttf</string>
+		<string>Lato.ttf</string>
+		<string>SourceCodePro.ttf</string>
+		<string>SourceCodePro-Semi_bold.ttf</string>
 		<string>kb.ttf</string>
-		<string>Lato-Bold.ttf</string>
-		<string>Lato-Italic.ttf</string>
-		<string>Lato-Regular.ttf</string>
-		<string>Lato-Semibold.ttf</string>
-		<string>Lato-SemiboldItalic.ttf</string>
-		<string>SourceCodePro-Regular.ttf</string>
-		<string>SourceCodePro-Semibold.ttf</string>
 	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
