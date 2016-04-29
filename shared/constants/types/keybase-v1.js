@@ -606,6 +606,30 @@ export const kbfs = {
   }
 }
 
+export const KbfsRekey = {
+  'LogLevel': {
+    'none': 0,
+    'debug': 1,
+    'info': 2,
+    'notice': 3,
+    'warn': 4,
+    'error': 5,
+    'critical': 6,
+    'fatal': 7
+  },
+  'ClientType': {
+    'none': 0,
+    'cli': 1,
+    'gui': 2,
+    'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
+  }
+}
+
 export const Kex2Provisionee = {
   'LogLevel': {
     'none': 0,
@@ -1827,6 +1851,7 @@ export default {
   identifyUi,
   install,
   kbfs,
+  KbfsRekey,
   Kex2Provisionee,
   Kex2Provisioner,
   log,

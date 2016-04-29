@@ -426,6 +426,17 @@ export type InstallStatus =
 
 export type KID = string
 
+export type KbfsRekey_NeedsRekeyForCurrentDevice_result = bool
+
+export type KbfsRekey_NeedsRekeyForCurrentDevice_rpc = {
+  method: 'KbfsRekey.NeedsRekeyForCurrentDevice',
+  param: {
+    folder: Folder
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any, response: KbfsRekey_NeedsRekeyForCurrentDevice_result) => void)
+}
+
 export type Kex2Provisionee_didCounterSign_result = void
 
 export type Kex2Provisionee_didCounterSign_rpc = {
@@ -3342,6 +3353,7 @@ export type user_search_rpc = {
 
 export type rpc =
     BTC_registerBTC_rpc
+  | KbfsRekey_NeedsRekeyForCurrentDevice_rpc
   | Kex2Provisionee_didCounterSign_rpc
   | Kex2Provisionee_hello_rpc
   | Kex2Provisioner_kexStart_rpc
@@ -4200,6 +4212,15 @@ export type incomingCallMapType = {
     response: {
       error: (err: RPCError) => void,
       result: () => void
+    }
+  ) => void,
+  'keybase.1.KbfsRekey.NeedsRekeyForCurrentDevice'?: (
+    params: {
+      folder: Folder
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: KbfsRekey_NeedsRekeyForCurrentDevice_result) => void
     }
   ) => void,
   'keybase.1.Kex2Provisionee.hello'?: (

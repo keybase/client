@@ -1,0 +1,17 @@
+/**
+  KbfsRekeyInterface is a protocol that lets the service ask KBFS about the
+  rekey status of a folder.
+  */
+@namespace("keybase.1")
+protocol KbfsRekey {
+  import idl "favorite.avdl";
+
+  /**
+    NeedsRekeyForCurrentDevice returns true if the current device should be
+    able to read a folder, but cannot because it cannot decrypt the secret key.
+    For public folders, the return value is always false.  Returns an error if
+    there is no current session.  Note that this call may block on other calls
+    back to the service, and so no locks should be held while calling it.
+    */
+  bool NeedsRekeyForCurrentDevice(Folder folder);
+}
