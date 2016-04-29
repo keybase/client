@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"os"
+	"reflect"
 	"sync"
 	"syscall"
 	"time"
@@ -696,9 +697,22 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, filterErr bool) (
 		tlf.folder.reportErr(ctx, libkbfs.ReadMode, err)
 	}()
 
+	// In case there were any unresolved assertions, try them again on
+	// the first load.  Otherwise, since we haven't subscribed to
+	// updates yet for this folder, we might have missed a name
+	// change.
+	handle, err := tlf.folder.h.ResolveAgain(ctx, tlf.folder.fs.config.KBPKI())
+	if err != nil {
+		return nil, false, err
+	}
+	if !reflect.DeepEqual(tlf.folder.h, handle) {
+		// Make sure the name changes in the folder and the folder list
+		tlf.folder.TlfHandleChange(ctx, handle)
+	}
+
 	rootNode, _, err :=
 		tlf.folder.fs.config.KBFSOps().GetOrCreateRootNode(
-			ctx, tlf.folder.h, libkbfs.MasterBranch)
+			ctx, handle, libkbfs.MasterBranch)
 	if err != nil {
 		return nil, false, err
 	}
@@ -710,6 +724,7 @@ func (tlf *TLF) loadDirHelper(ctx context.Context, filterErr bool) (
 
 	tlf.folder.nodes[rootNode.GetID()] = tlf
 	tlf.dir = newDir(tlf.folder, rootNode)
+
 	return tlf.dir, false, nil
 }
 
