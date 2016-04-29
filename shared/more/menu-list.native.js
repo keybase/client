@@ -13,7 +13,7 @@ export default class MenuList extends Component {
 
   renderRow (rowData, sectionID, rowID) {
     return (
-      <TouchableWithoutFeedback onPress={rowData.onClick}>
+      <TouchableWithoutFeedback onPress={rowData.onClick || (() => {})}>
         <Box style={{margin: 10, ...globalStyles.flexBoxRow, flex: 1}}>
           <Text type='BodySmall'>{rowData.name}</Text>
           <Text type='BodySmall' style={{flex: 1}}>{rowData.hasChildren ? '>' : ''}</Text>

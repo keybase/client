@@ -49,7 +49,8 @@ class Button extends Component {
     // Need this nested view to get around this RN issue: https://github.com/facebook/react-native/issues/1040
     return (
       <TouchableHighlight
-        onPress={onPress}
+        disabled={!onPress}
+        onPress={onPress || (() => {})}
         activeOpacity={0.2}
         underlayColor={style.backgroundColor}
         style={{...style, ...this.props.style}}>

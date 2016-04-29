@@ -19,7 +19,7 @@ export default class DevicesRender extends Component {
 
   renderAction (headerText, subText, onPress) {
     return (
-      <TouchableHighlight onPress={onPress} style={{flex: 1}}>
+      <TouchableHighlight onPress={onPress || (() => {})} style={{flex: 1}}>
         <View style={[styles.outlineBox, styles.innerAction, {marginRight: 10}]}>
           <View style={{flex: 1}}>
             <Text style={[commonStyles.greyText, commonStyles.centerText]}>ICON</Text>
