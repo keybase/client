@@ -29,7 +29,7 @@ export class SetPublicName extends Component<void, Props, State> {
         onBack={this.props.onBack}
         deviceNameError={nameTakenError || this.props.deviceNameError}
         submitEnabled={submitEnabled}
-        waitingForResponse={this.props.waitingForResponse}
+        waiting={this.props.waiting}
       />
     )
   }
@@ -46,5 +46,5 @@ export class SetPublicName extends Component<void, Props, State> {
 }
 
 export default connect(
-  state => ({waitingForResponse: state.login.waitingForResponse})
+  state => ({waiting: state.login.waitingForResponse})
 )(SetPublicName)

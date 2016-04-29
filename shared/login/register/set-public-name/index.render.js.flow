@@ -1,14 +1,15 @@
 // @flow
 import {Component} from 'react'
 
-export type Props = {
+export type Props = $Shape<{
   onBack?: () => void,
   onChange: (deviceName: string) => void,
   onSubmit: () => void,
   deviceName: ?string,
   deviceNameError?: ?string,
-  waitingForResponse?: ?boolean
-}
+  submitEnabled?: ?boolean,
+  waiting?: ?boolean
+}>
 
 export type State = {
   deviceName: ?string

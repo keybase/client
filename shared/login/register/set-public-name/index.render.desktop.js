@@ -4,7 +4,7 @@ import {Text, Button, Input, Icon} from '../../../common-adapters'
 import Container from '../../forms/container'
 import type {Props} from './index.render'
 
-const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName, waitingForResponse}: Props) => (
+const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName, waiting, submitEnabled = true}: Props) => (
   <Container style={styles.container} onBack={onBack}>
     <Text type='Header' style={styles.header}>Set a public name for this device:</Text>
     <Icon type='computer-color-m' style={styles.icon}/>
@@ -20,7 +20,8 @@ const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName,
       type='Primary'
       fullWidth
       style={styles.button}
-      waiting={waitingForResponse}
+      disabled={!submitEnabled}
+      waiting={waiting}
       label='Continue'
       onClick={() => onSubmit()} />
   </Container>
