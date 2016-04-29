@@ -10,7 +10,7 @@ Kbfsdokan is the filesystem executable for KBFS on Dokan that works like kbfsfus
 
 ## Installation by hand
 
-### Install Dokan from https://github.com/dokan-dev/dokany/releases/tag/v1.0.0-RC2
+### Install Dokan from https://github.com/dokan-dev/dokany/releases/tag/v0.8.0
 
 ### Install a C toolchain
 
@@ -33,6 +33,13 @@ Kbfsdokan is the filesystem executable for KBFS on Dokan that works like kbfsfus
 
 + 32-bit builds want 32 bit dokan.dll and dokan.lib.
 + 64-bit builds want 64 bit dokan.dll and don't need a lib-file.
+
+The correct files with 0.8.0 for 32 bit are:
+
+```
+dokan.lib           size:  5500 bytes         sha1: 1c9316a567b805c4a6adaf0abe1424fffb36a3bd
+dokan.dll           size: 53488 bytes         sha1: 5c4fc6b6e3083e575eed06de3115a6d05b30db02
+```
 
 ### Troubleshooting
 
