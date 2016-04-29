@@ -55,14 +55,14 @@ table {
 @font-face {
     font-family: 'Source Code Pro';
     font-weight: 400;
-    src: url(fonts/SourceCodePro/SourceCodePro-Regular.ttf);
+    src: url(fonts/SourceCodePro.ttf);
     src: local('Source Code Pro'), local('SourceCodePro-Regular'), format('truetype');
 }
 
 @font-face {
     font-family: 'Source Code Pro';
     font-weight: 600;
-    src: url(fonts/SourceCodePro/SourceCodePro-Semibold.ttf);
+    src: url(fonts/SourceCodePro-Semi_bold.ttf);
     src: local('Source Code Pro'), local('SourceCodePro-Semibold'), format('truetype');
 }
 
@@ -70,7 +70,7 @@ table {
 @font-face {
     font-family: 'Lato';
     font-weight: 400;
-    src: url(fonts/lato/Lato-Regular.ttf);
+    src: url(fonts/Lato.ttf);
     src: local('Lato'), local('Lato-Regular'), format('truetype');
 }
 
@@ -78,14 +78,14 @@ table {
     font-family: 'Lato';
     font-weight: 400;
     font-style: italic;
-    src: url(fonts/lato/Lato-Italic.ttf);
+    src: url(fonts/Lato_italic.ttf);
     src: local('Lato'), local('Lato-Italic'), format('truetype');
 }
 
 @font-face {
     font-family: 'Lato';
     font-weight: 600;
-    src: url(fonts/lato/Lato-Semibold.ttf);
+    src: url(fonts/Lato-Semi_bold.ttf);
     src: local('Lato'), local('Lato-Semibold'), format('truetype');
 }
 
@@ -93,14 +93,14 @@ table {
     font-family: 'Lato';
     font-weight: 600;
     font-style: italic;
-    src: url(fonts/lato/Lato-SemiboldItalic.ttf);
+    src: url(fonts/Lato-Semibold_italic.ttf);
     src: local('Lato'), local('Lato-SemiboldItalic'), format('truetype');
 }
 
 @font-face {
     font-family: 'Lato';
     font-weight: 700;
-    src: url(fonts/lato/Lato-Bold.ttf);
+    src: url(fonts/Lato_bold.ttf);
     src: local('Lato'), local('Lato-Bold'), format('truetype');
 }
 
