@@ -378,6 +378,78 @@ func TestKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	require.Equal(t, newH.BareTlfHandle, newBareH)
 }
 
+func TestKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T) {
+	mockCtrl, config, ctx := keyManagerInit(t)
+	defer keyManagerShutdown(mockCtrl, config)
+	config.SetSharingBeforeSignupEnabled(true)
+
+	id := FakeTlfID(1, false)
+	h, err := ParseTlfHandle(ctx, config.KBPKI(),
+		"alice,dave@twitter#bob@twitter,charlie@twitter", false, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rmd := newRootMetadataOrBust(t, id, h)
+	oldKeyGen := rmd.LatestKeyGeneration()
+
+	expectRekey(config, rmd, 1)
+
+	// Make the first key generation
+	if done, _, err := config.KeyManager().Rekey(ctx, rmd); !done || err != nil {
+		t.Fatalf("Got error on rekey: %t, %v", done, err)
+	}
+
+	if rmd.LatestKeyGeneration() != oldKeyGen+1 {
+		t.Fatalf("Bad key generation after rekey: %d", rmd.LatestKeyGeneration())
+	}
+
+	newH := rmd.GetTlfHandle()
+	require.Equal(t,
+		CanonicalTlfName("alice,dave@twitter#bob@twitter,charlie@twitter"),
+		newH.GetCanonicalName())
+
+	// Now resolve everyone, but have reader bob to do the rekey
+	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
+	daemon.addNewAssertionForTest("bob", "bob@twitter")
+	daemon.addNewAssertionForTest("charlie", "charlie@twitter")
+	daemon.addNewAssertionForTest("dave", "dave@twitter")
+
+	_, bobUID, err := daemon.Resolve(ctx, "bob")
+	daemon.currentUID = bobUID
+
+	// Now resolve using only a device addition, which won't bump the
+	// generation number.
+	oldKeyGen = rmd.LatestKeyGeneration()
+	// Pretend bob has the key in the cache (in reality it would be
+	// decrypted via bob's paper key)
+	expectCachedGetTLFCryptKey(config, rmd, oldKeyGen)
+	expectRekey(config, rmd, 1)
+	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
+	config.mockKbpki.EXPECT().GetCryptPublicKeys(gomock.Any(), gomock.Any()).
+		Return([]CryptPublicKey{subkey}, nil)
+	if done, _, err :=
+		config.KeyManager().Rekey(ctx, rmd); !done || err != nil {
+		t.Fatalf("Got error on rekey: %t, %v", done, err)
+	}
+
+	if rmd.LatestKeyGeneration() != oldKeyGen {
+		t.Fatalf("Bad key generation after rekey: %d",
+			rmd.LatestKeyGeneration())
+	}
+
+	// bob shouldn't have been able to resolve other users since he's
+	// just a reader.
+	newH = rmd.GetTlfHandle()
+	require.Equal(t, CanonicalTlfName("alice,dave@twitter#bob,charlie@twitter"),
+		newH.GetCanonicalName())
+
+	// Also check MakeBareTlfHandle.
+	rmd.tlfHandle = nil
+	newBareH, err := rmd.MakeBareTlfHandle()
+	require.Nil(t, err)
+	require.Equal(t, newH.BareTlfHandle, newBareH)
+}
+
 func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
 	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
 	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2)
