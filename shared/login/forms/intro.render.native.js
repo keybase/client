@@ -6,7 +6,7 @@ export default class Render extends Component {
   render () {
     return (
       <Box style={{...stylesLoginForm, marginTop: this.props.justRevokedSelf ? 0 : 55}}>
-        {this.props.justRevokedSelf &&
+        {!!this.props.justRevokedSelf &&
           <Text type='BodySemiboldItalic' style={{...stylesRevoked}}>{this.props.justRevokedSelf}<Text type='BodySemiboldItalic' style={{color: globalColors.white}}>&nbsp;was revoked successfully</Text></Text>
         }
         <Icon type='logo-160'/>

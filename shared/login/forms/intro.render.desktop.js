@@ -11,7 +11,7 @@ export default class Intro extends Component<void, IntroProps, void> {
   render () {
     return (
       <Box style={{...stylesLoginForm, marginTop: this.props.justRevokedSelf ? 0 : 45}}>
-        {this.props.justRevokedSelf && <Box style={stylesRevoked}>
+        {!!this.props.justRevokedSelf && <Box style={stylesRevoked}>
           <Text type='BodySemiboldItalic' style={{color: globalColors.white}}>{this.props.justRevokedSelf}</Text>
           <Text type='BodySemiboldItalic' style={{color: globalColors.white}}>&nbsp;was revoked successfully</Text>
         </Box>}
