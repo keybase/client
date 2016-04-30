@@ -186,10 +186,12 @@ func (fl *FolderList) updateTlfName(ctx context.Context, oldName string,
 	fl.folders[newName] = tlf
 	if err := fl.fs.fuse.InvalidateEntry(fl, oldName); err != nil {
 		// TODO we have no mechanism to do anything about this
-		fl.fs.log.CErrorf(ctx, "FUSE invalidate error: %v", err)
+		fl.fs.log.CErrorf(ctx, "FUSE invalidate error for oldName=%s: %v",
+			oldName, err)
 	}
 	if err := fl.fs.fuse.InvalidateEntry(fl, newName); err != nil {
 		// TODO we have no mechanism to do anything about this
-		fl.fs.log.CErrorf(ctx, "FUSE invalidate error: %v", err)
+		fl.fs.log.CErrorf(ctx, "FUSE invalidate error for newName=%s: %v",
+			newName, err)
 	}
 }

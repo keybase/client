@@ -163,7 +163,6 @@ func (f *Folder) TlfHandleChange(ctx context.Context,
 		f.list.updateTlfName(ctx, string(oldName),
 			string(newHandle.GetCanonicalName()))
 	}()
-	return
 }
 
 // Dir represents KBFS subdirectories.

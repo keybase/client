@@ -166,7 +166,8 @@ func (f *Folder) LocalChange(ctx context.Context, node libkbfs.Node, write libkb
 		return
 	}
 
-	// spawn a goroutine because we shouldn't lock during the notification
+	// Handle in the background because we shouldn't lock during the
+	// notification.
 	f.fs.queueNotification(func() { f.localChangeInvalidate(ctx, node, write) })
 }
 
@@ -199,7 +200,8 @@ func (f *Folder) BatchChanges(ctx context.Context, changes []libkbfs.NodeChange)
 		return
 	}
 
-	// spawn a goroutine because we shouldn't lock during the notification
+	// Handle in the background because we shouldn't lock during the
+	// notification.
 	f.fs.queueNotification(func() { f.batchChangesInvalidate(ctx, changes) })
 }
 
@@ -249,7 +251,8 @@ func (f *Folder) batchChangesInvalidate(ctx context.Context,
 // TlfHandleChange is called when the name of a folder changes.
 func (f *Folder) TlfHandleChange(ctx context.Context,
 	newHandle *libkbfs.TlfHandle) {
-	// spawn a goroutine because we shouldn't lock during the notification
+	// Handle in the background because we shouldn't lock during the
+	// notification
 	f.fs.queueNotification(func() {
 		f.tlfHandleChangeInvalidate(ctx, newHandle)
 	})
