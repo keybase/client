@@ -5,7 +5,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"sort"
+	"reflect"
 	"sync"
 	"time"
 
@@ -803,7 +803,7 @@ func (md *MDServerLocal) CheckForRekeys(ctx context.Context) <-chan error {
 }
 
 func (md *MDServerLocal) addNewAssertionForTest(uid keybase1.UID,
-	newAssertion string) error {
+	newAssertion keybase1.SocialAssertion) error {
 	md.shutdownLock.RLock()
 	defer md.shutdownLock.RUnlock()
 	if *md.shutdown {
@@ -821,31 +821,14 @@ func (md *MDServerLocal) addNewAssertionForTest(uid keybase1.UID,
 		if err != nil {
 			return err
 		}
-
-		var found bool
-		for i, a := range handle.UnresolvedWriters {
-			if a.String() == newAssertion {
-				handle.Writers = append(handle.Writers, uid)
-				handle.UnresolvedWriters = append(handle.UnresolvedWriters[:i],
-					handle.UnresolvedWriters[i+1:]...)
-				found = true
-			}
+		assertions := map[keybase1.SocialAssertion]keybase1.UID{
+			newAssertion: uid,
 		}
-		for i, a := range handle.UnresolvedReaders {
-			if a.String() == newAssertion {
-				handle.Readers = append(handle.Readers, uid)
-				handle.UnresolvedReaders = append(handle.UnresolvedReaders[:i],
-					handle.UnresolvedReaders[i+1:]...)
-				found = true
-			}
-		}
-		if !found {
+		newHandle := handle.ResolveAssertions(assertions)
+		if reflect.DeepEqual(handle, newHandle) {
 			continue
 		}
-
-		sort.Sort(UIDList(handle.Writers))
-		sort.Sort(UIDList(handle.Readers))
-		newHandleBytes, err := md.config.Codec().Encode(handle)
+		newHandleBytes, err := md.config.Codec().Encode(newHandle)
 		if err != nil {
 			return err
 		}

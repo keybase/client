@@ -342,13 +342,13 @@ func SwitchDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config, inde
 // assertion that does already resolve to something.  It only applies
 // to the given config.
 func AddNewAssertionForTestOrBust(t logger.TestLogBackend, config Config,
-	oldAssertion, newAssertion string) {
+	oldAssertion, newAssertion keybase1.SocialAssertion) {
 	kbd, ok := config.KeybaseDaemon().(*KeybaseDaemonLocal)
 	if !ok {
 		t.Fatal("Bad keybase daemon")
 	}
 
-	uid := kbd.addNewAssertionForTest(oldAssertion, newAssertion)
+	uid := kbd.addNewAssertionForTest(oldAssertion.String(), newAssertion.String())
 	// Let the mdserver know about the name change
 	md, ok := config.MDServer().(*MDServerLocal)
 	if !ok {
