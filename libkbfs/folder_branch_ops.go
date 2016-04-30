@@ -530,6 +530,13 @@ func (fbo *folderBranchOps) setHeadLocked(ctx context.Context,
 			oldHandle.GetCanonicalName(), h.GetCanonicalName())
 		// If the handle has changed, send out a notification.
 		fbo.observers.tlfHandleChange(ctx, h)
+		// Also the folder should be re-identified given the
+		// newly-resolved assertions.
+		func() {
+			fbo.identifyLock.Lock()
+			defer fbo.identifyLock.Unlock()
+			fbo.identifyDone = false
+		}()
 	}
 	return nil
 }
