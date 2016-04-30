@@ -16,6 +16,7 @@ const (
 	StatusCode_SCBadLoginUserNotFound   StatusCode = 203
 	StatusCode_SCBadLoginPassword       StatusCode = 204
 	StatusCode_SCNotFound               StatusCode = 205
+	StatusCode_SCThrottleControl        StatusCode = 210
 	StatusCode_SCGeneric                StatusCode = 218
 	StatusCode_SCAlreadyLoggedIn        StatusCode = 235
 	StatusCode_SCCanceled               StatusCode = 237

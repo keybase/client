@@ -345,6 +345,11 @@ func (d daemonIdentifyUI) Confirm(ctx context.Context, arg keybase1.ConfirmArg) 
 	}, nil
 }
 
+func (d daemonIdentifyUI) DisplayTLFCreateWithInvite(ctx context.Context,
+	arg keybase1.DisplayTLFCreateWithInviteArg) (err error) {
+	return nil
+}
+
 func (d daemonIdentifyUI) Finish(ctx context.Context, sessionID int) error {
 	d.log.CDebugf(ctx, "Finish(%d)", sessionID)
 	return nil
