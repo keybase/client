@@ -405,8 +405,9 @@ type KeyManager interface {
 
 	// GetTLFCryptKeyForMDDecryption gets the crypt key to use for the
 	// TLF with the given metadata to decrypt the private portion of
-	// the metadata.  It finds the appropriate key from mdWithKeys if
-	// it's not already cached.
+	// the metadata.  It finds the appropriate key from mdWithKeys
+	// (which in most cases is the same as mdToDecrypt) if it's not
+	// already cached.
 	GetTLFCryptKeyForMDDecryption(ctx context.Context,
 		mdToDecrypt, mdWithKeys *RootMetadata) (TLFCryptKey, error)
 
