@@ -4,6 +4,7 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 
@@ -301,11 +302,18 @@ func (v *CmdUpdateCheckInUse) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
+type checkInUseResult struct {
+	InUse bool `json:"in_use"`
+}
+
 func (v *CmdUpdateCheckInUse) Run() error {
 	inUse := install.IsInUse(v.G().Env.GetMountDir(), G.Log)
-	if inUse {
-		os.Exit(100)
+	result := checkInUseResult{InUse: inUse}
+	out, err := json.MarshalIndent(result, "", "  ")
+	if err != nil {
+		return err
 	}
+	fmt.Fprintf(os.Stdout, "%s\n", out)
 	return nil
 }
 
