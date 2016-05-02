@@ -13,7 +13,8 @@ protocol kbfsCommon {
     SIGNING_2,
     VERIFYING_3,
     REKEYING_4,
-    CONNECTION_5
+    CONNECTION_5,
+    MD_READ_SUCCESS_6
   }
 
   enum FSErrorType {
