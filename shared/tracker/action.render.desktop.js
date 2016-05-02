@@ -90,7 +90,7 @@ export function calcFooterHeight (loggedIn: boolean): number {
 const styleContainer = {
   ...commonStyles.flexBoxRow,
   ...commonStyles.noSelect,
-  backgroundColor: globalColors.white90,
+  backgroundColor: globalColors.white_90,
   width: '100%',
   height: calcFooterHeight(true),
   boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.15)',
@@ -106,7 +106,7 @@ const styleContainer = {
 const styleCloseContainer = {
   ...commonStyles.flexBoxRow,
   ...commonStyles.noSelect,
-  backgroundColor: globalColors.white90,
+  backgroundColor: globalColors.white_90,
   width: '100%',
   alignItems: 'center',
   marginTop: 15,

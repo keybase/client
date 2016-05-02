@@ -61,7 +61,7 @@ const stylesRow = {
   justifyContent: 'center',
   minHeight: 80,
   padding: 10,
-  borderBottom: `solid ${globalColors.black10} 1px`
+  borderBottom: `solid ${globalColors.black_10} 1px`
 }
 const stylesIconName = {
   ...globalStyles.flexBoxRow,

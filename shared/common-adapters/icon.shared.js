@@ -11,7 +11,7 @@ export function defaultColor (type: Props.type): ?string {
     case 'fa-custom-icon-proof-good-new':
       return globalColors.blue2
     case 'fa-close':
-      return globalColors.black20
+      return globalColors.black_20
     default:
       return null
   }
@@ -24,7 +24,7 @@ export function defaultHoverColor (type: Props.type): ?string {
     case 'fa-custom-icon-proof-good-new':
       return defaultColor(type)
     case 'fa-close':
-      return globalColors.black60
+      return globalColors.black_60
     default:
       return null
   }

@@ -68,7 +68,7 @@ const containerStyle = {
 const hintTextStyle = {
   ...transition('opacity'),
   cursor: 'text',
-  color: globalColors.black10,
+  color: globalColors.black_10,
   textAlign: 'center'
 }
 

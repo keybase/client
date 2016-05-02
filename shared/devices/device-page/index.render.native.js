@@ -13,7 +13,7 @@ const Banner = ({type, desc}: BannerItem) => { // eslint-disabled-line arrow-par
   }[type]
 
   const color = {
-    'OutOfDate': globalColors.brown60,
+    'OutOfDate': globalColors.brown_60,
     'WillUnlock': globalColors.white
   }[type]
 
@@ -21,7 +21,7 @@ const Banner = ({type, desc}: BannerItem) => { // eslint-disabled-line arrow-par
 }
 
 const Header = ({name, isCurrent, isRevoked}) => {
-  const textStyle = isRevoked ? {textDecorationLine: 'line-through', color: globalColors.black40, fontStyle: 'italic'} : {fontStyle: 'italic'}
+  const textStyle = isRevoked ? {textDecorationLine: 'line-through', color: globalColors.black_40, fontStyle: 'italic'} : {fontStyle: 'italic'}
 
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center', marginTop: 10, marginBottom: 20}}>
@@ -50,7 +50,7 @@ const Timeline = ({timeline}) => (
         <Box style={{...globalStyles.flexBoxColumn}}>
           <Text type='Body'>{desc}</Text>
           {(subDesc && (type === 'Added' || type === 'Revoked'))
-            ? <Text type='BodySmall'>by <Text type='BodySmall' style={{fontStyle: 'italic', color: globalColors.black75}}>{subDesc}</Text></Text>
+            ? <Text type='BodySmall'>by <Text type='BodySmall' style={{fontStyle: 'italic', color: globalColors.black_75}}>{subDesc}</Text></Text>
             : <Text type='BodySmall'>{subDesc}</Text>
           }
           <Box style={{height: 15}} />

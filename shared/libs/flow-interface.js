@@ -59,6 +59,14 @@ declare module 'material-ui/lib/popover/popover-animation-from-top' {
   declare var exports: any;
 }
 
+declare module 'material-ui/lib/styles/spacing' {
+  declare var exports: any;
+}
+
+declare module 'material-ui/lib/styles/theme-manager' {
+  declare var exports: any;
+}
+
 declare module 'material-ui/lib/svg-icons/navigation/arrow-drop-down' {
   declare var exports: any;
 }

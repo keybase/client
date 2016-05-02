@@ -165,7 +165,7 @@ const styleContainer = {
   paddingLeft: 17,
   paddingRight: 17,
   borderWidth: 1,
-  borderColor: globalColors.black10
+  borderColor: globalColors.black_10
 }
 
 const styleText = {
@@ -180,7 +180,7 @@ const styleIcon = {
 const stylePickerContainer = {
   flex: 1,
   justifyContent: 'flex-end',
-  backgroundColor: globalColors.black40
+  backgroundColor: globalColors.black_40
 }
 
 const stylePickerIOS = {

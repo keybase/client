@@ -24,7 +24,7 @@ class Render extends Component {
 }
 
 const stylesOuter = {
-  backgroundColor: globalColors.black10
+  backgroundColor: globalColors.black_10
 }
 
 const stylesInput2 = {

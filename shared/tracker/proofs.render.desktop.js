@@ -55,7 +55,7 @@ class ProofsRender extends Component {
       case metaNew: color = globalColors.blue; break
       case metaUpgraded: color = globalColors.blue; break
       case metaUnreachable: color = globalColors.red; break
-      case metaPending: color = globalColors.black40; break
+      case metaPending: color = globalColors.black_40; break
       case metaDeleted: color = globalColors.red; break
       case metaIgnored: color = globalColors.green; break
     }
@@ -70,7 +70,7 @@ class ProofsRender extends Component {
         break
       }
       case proofChecking:
-        color = globalColors.black20
+        color = globalColors.black_20
         break
       case proofRevoked:
       case proofWarning:
@@ -79,7 +79,7 @@ class ProofsRender extends Component {
         break
     }
 
-    if (proof.state === proofChecking) color = globalColors.black20
+    if (proof.state === proofChecking) color = globalColors.black_20
 
     return color
   }
@@ -170,8 +170,8 @@ const styleService = {
   ...globalStyles.clickable,
   height: 14,
   width: 14,
-  color: globalColors.black75,
-  hoverColor: globalColors.black75,
+  color: globalColors.black_75,
+  hoverColor: globalColors.black_75,
   marginRight: 9,
   marginTop: 4
 }
@@ -199,7 +199,7 @@ const styleProofName = {
 }
 
 const styleProofType = {
-  color: globalColors.black10,
+  color: globalColors.black_10,
   wordBreak: 'normal'
 }
 

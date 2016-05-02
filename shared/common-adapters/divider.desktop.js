@@ -26,7 +26,7 @@ Divider.propTypes = {
 
 const styles = {
   divider: {
-    backgroundColor: globalColors.black10,
+    backgroundColor: globalColors.black_10,
     flex: 1
   }
 }

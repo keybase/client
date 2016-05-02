@@ -102,7 +102,7 @@ const styles = {
   },
   checkbox: {
     ...globalStyles.topMost,
-    color: globalColors.black100,
+    color: globalColors.black,
     marginLeft: 10
   }
 }

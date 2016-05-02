@@ -13,7 +13,7 @@ export default class Checkbox extends Component {
     let borderColor = globalColors.blue
 
     if (this.props.disabled && !this.props.checked) {
-      borderColor = globalColors.black10
+      borderColor = globalColors.black_10
     }
 
     const boxStyle = {
@@ -34,7 +34,7 @@ export default class Checkbox extends Component {
         <div style={boxStyle}>
           <Icon type='fa-check' style={{...styles.icon, ...(this.props.checked ? {} : {opacity: 0})}} />
         </div>
-        <Text type='Body' small style={{color: this.props.checked ? globalColors.black75 : globalColors.black75}}>{this.props.label}</Text>
+        <Text type='Body' small style={{color: globalColors.black_75}}>{this.props.label}</Text>
       </div>
     )
   }
