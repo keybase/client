@@ -41,6 +41,7 @@ const showStubbornly = (currentWindow, delay) => {
       clearInterval(id)
     } else {
       currentWindow.show()
+      currentWindow.isVisible() && clearInterval(id)
     }
   }, delay)
   return () => { clearInterval(id) }
