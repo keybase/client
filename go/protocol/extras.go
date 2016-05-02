@@ -223,7 +223,7 @@ func (d DeviceID) Exists() bool {
 }
 
 func (d DeviceID) Eq(d2 DeviceID) bool {
-	return d.Eq(d2)
+	return d == d2
 }
 
 func UIDFromString(s string) (UID, error) {
