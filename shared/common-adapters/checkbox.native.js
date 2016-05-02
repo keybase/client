@@ -56,12 +56,12 @@ class Checkbox extends Component {
     })
 
     const outerOverride = {
-      ...(!this.props.checked && this.props.disabled) ? {borderColor: globalColors.black10} : {},
+      ...(!this.props.checked && this.props.disabled) ? {borderColor: globalColors.black_10} : {},
       backgroundColor: animatedColor
     }
 
     const innerOverride = {
-      ...(!this.props.checked && this.props.disabled) ? {borderColor: globalColors.black10} : {}
+      ...(!this.props.checked && this.props.disabled) ? {borderColor: globalColors.black_10} : {}
     }
 
     return (
@@ -103,7 +103,7 @@ const styleInner = {
 const styleText = {
   marginLeft: 8,
   marginBottom: 3,
-  color: globalColors.black75
+  color: globalColors.black_75
 }
 
 export default Checkbox

@@ -45,7 +45,7 @@ export default class Text extends Component {
 
   _colorStyleBackgroundMode (backgroundMode: Background, type: Props.type): Object {
     if (backgroundMode === 'Information') {
-      return {color: globalColors.brown60}
+      return {color: globalColors.brown_60}
     }
     switch (type) {
       case 'HeaderJumbo':
@@ -55,13 +55,13 @@ export default class Text extends Component {
       case 'BodySemiboldItalic':
       case 'BodySmallSemibold':
       case 'Body':
-        return {color: backgroundMode === 'Normal' ? globalColors.black75 : globalColors.white}
+        return {color: backgroundMode === 'Normal' ? globalColors.black_75 : globalColors.white}
       case 'BodySmall':
       case 'BodyXSmall':
-        return {color: backgroundMode === 'Normal' ? globalColors.black40 : globalColors.white40}
+        return {color: backgroundMode === 'Normal' ? globalColors.black_40 : globalColors.white_40}
       case 'BodySmallLink':
       case 'BodyXSmallLink':
-        return {color: backgroundMode === 'Normal' ? globalColors.black60 : globalColors.white75}
+        return {color: backgroundMode === 'Normal' ? globalColors.black_60 : globalColors.white_75}
       default:
         return {}
     }
@@ -245,7 +245,7 @@ export const specialStyles = {
   paperKey: {
     ...textCommon,
     ...globalStyles.fontTerminalSemibold,
-    color: globalColors.black75,
+    color: globalColors.black_75,
     fontSize: 18,
     lineHeight: '24px'
   },
@@ -303,7 +303,7 @@ export const styles = {
   textBodySmallSecondaryLink: {
     ...textCommon,
     ...sizeGroups['14'],
-    color: globalColors.black60
+    color: globalColors.black_60
   },
   textBodySmallSemibold: {
     ...textCommon,
@@ -323,7 +323,7 @@ export const styles = {
   },
   textTerminalComment: {
     ...textTerminal,
-    color: globalColors.white40
+    color: globalColors.white_40
   },
   textTerminalUsername: {
     ...textTerminal,

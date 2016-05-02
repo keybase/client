@@ -105,7 +105,7 @@ const Secondary = {
 }
 const SecondaryLabel = {
   ...commonLabel,
-  color: globalColors.black75
+  color: globalColors.black_75
 }
 
 const Danger = {

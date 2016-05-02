@@ -19,7 +19,7 @@ export default class Icon extends Component {
       return null
     }
 
-    color = this.props.style && this.props.style.color || color || (this.props.opacity ? globalColors.lightGrey : globalColors.black40)
+    color = this.props.style && this.props.style.color || color || (this.props.opacity ? globalColors.lightGrey : globalColors.black_40)
 
     const width = this.props.style && this.props.style.width && {width: this.props.style.width}
     const height = this.props.style && this.props.style.height && {height: this.props.style.height}

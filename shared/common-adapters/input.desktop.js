@@ -81,7 +81,7 @@ export default class Input extends Component {
           fullWidth
           textAlign='center'
           inputStyle={{...inputStyle, ...alignStyle}}
-          underlineStyle={{borderColor: globalColors.black10, bottom: 'auto'}}
+          underlineStyle={{borderColor: globalColors.black_10, bottom: 'auto'}}
           errorStyle={{...styles.errorStyle, ...this.props.errorStyle}}
           style={{...textStyle, ...globalStyles.flexBoxColumn}}
           autoFocus={this.props.autoFocus}
@@ -146,14 +146,14 @@ export const styles = {
   },
   hintStyle: {
     ...globalStyles.fontSemibold,
-    color: globalColors.black10,
+    color: globalColors.black_10,
     width: '100%',
     textAlign: 'center',
     marginTop: -3
   },
   floatingLabelStyle: {
     ...globalStyles.fontSemibold,
-    color: globalColors.black10,
+    color: globalColors.black_10,
     alignSelf: 'center',
     position: 'inherit',
     top: 34,

@@ -113,7 +113,7 @@ const styleHeaderTextNormal = {
 }
 
 const styleHeaderTextWarning = {
-  color: globalColors.brown60,
+  color: globalColors.brown_60,
   fontSize: 14,
   lineHeight: 'normal',
   opacity: 1

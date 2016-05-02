@@ -57,8 +57,8 @@ class Input extends Component<void, Props, State> {
           secureTextEntry={password}
           autoFocus={this.props.autoFocus}
           placeholder={this.props.hintText}
-          placeholderColor={globalColors.black10}
-          underlineColorAndroid={this.state.inputFocused ? globalColors.blue : globalColors.black10}
+          placeholderColor={globalColors.black_10}
+          underlineColorAndroid={this.state.inputFocused ? globalColors.blue : globalColors.black_10}
           multiline={this.props.multiLine}
           numberOfLines={this.props.rows}
           autoCapitalize={this.props.autoCapitalize || 'none'}
@@ -80,7 +80,7 @@ const HorizontalLine = ({focused}) => <Box style={{
   right: 0,
   bottom: 0,
   height: 1,
-  backgroundColor: focused ? globalColors.blue : globalColors.black10
+  backgroundColor: focused ? globalColors.blue : globalColors.black_10
 }} />
 
 const containerStyle = {

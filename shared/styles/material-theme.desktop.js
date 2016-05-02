@@ -24,17 +24,17 @@ const base = {
   spacing: Spacing,
   fontFamily: globalStyles.fontRegular.fontFamily,
   palette: {
-    primary1Color: globalColors.black75,
-    primary2Color: globalColors.black75,
-    primary3Color: globalColors.black75,
-    accent1Color: globalColors.black75,
-    accent2Color: globalColors.black75,
-    accent3Color: globalColors.black75,
-    textColor: globalColors.black75,
-    alternateTextColor: globalColors.black75,
+    primary1Color: globalColors.black_75,
+    primary2Color: globalColors.black_75,
+    primary3Color: globalColors.black_75,
+    accent1Color: globalColors.black_75,
+    accent2Color: globalColors.black_75,
+    accent3Color: globalColors.black_75,
+    textColor: globalColors.black_75,
+    alternateTextColor: globalColors.black_75,
     canvasColor: globalColors.white,
-    borderColor: globalColors.black75,
-    disabledColor: globalColors.black75
+    borderColor: globalColors.black_75,
+    disabledColor: globalColors.black_75
   }
 }
 

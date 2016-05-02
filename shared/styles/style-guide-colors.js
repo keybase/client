@@ -33,18 +33,18 @@ export default {
   grey: '#cccccc',
 
   white: '#ffffff',
-  white90: 'rgba(255, 255, 255, 0.90)',
-  white75: 'rgba(255, 255, 255, 0.75)',
-  white40: 'rgba(255, 255, 255, 0.40)',
+  white_90: 'rgba(255, 255, 255, 0.90)',
+  white_75: 'rgba(255, 255, 255, 0.75)',
+  white_40: 'rgba(255, 255, 255, 0.40)',
 
   black: '#000000',
-  black75: 'rgba(0, 0, 0, 0.75)',
-  black60: 'rgba(0, 0, 0, 0.60)',
-  black40: 'rgba(0, 0, 0, 0.40)',
-  black20: 'rgba(0, 0, 0, 0.20)',
-  black10: 'rgba(0, 0, 0, 0.10)',
+  black_75: 'rgba(0, 0, 0, 0.75)',
+  black_60: 'rgba(0, 0, 0, 0.60)',
+  black_40: 'rgba(0, 0, 0, 0.40)',
+  black_20: 'rgba(0, 0, 0, 0.20)',
+  black_10: 'rgba(0, 0, 0, 0.10)',
 
-  brown60: 'rgba(71, 31, 17, 0.6)',
+  brown_60: 'rgba(71, 31, 17, 0.6)',
 
   transparent: 'rgba(0, 0, 0, 0)'
 }

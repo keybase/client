@@ -37,7 +37,7 @@ class Button extends Component {
         labelStyle = {
           color: globalColors.green
         }
-        progressColor = globalColors.black75
+        progressColor = globalColors.black_75
         break
       case 'Unfollow':
         backgroundStyle = {
@@ -58,9 +58,9 @@ class Button extends Component {
           opacity: disabled ? stylesButtonSecondary.disabledOpacity : 1
         }
         labelStyle = {
-          color: globalColors.black75
+          color: globalColors.black_75
         }
-        progressColor = globalColors.black75
+        progressColor = globalColors.black_75
     }
     return {backgroundStyle, labelStyle, progressColor}
   }

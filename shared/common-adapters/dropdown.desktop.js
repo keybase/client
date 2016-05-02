@@ -38,14 +38,14 @@ export default class Dropdown extends Component {
 
   render () {
     const realCSS = `
-      .kbdropdown { color: ${globalColors.black10}; }
+      .kbdropdown { color: ${globalColors.black_10}; }
       .kbdropdown:hover { color: ${globalColors.blue}; }
 
-      .kbdropdown svg { fill: ${globalColors.black10} !important; }
+      .kbdropdown svg { fill: ${globalColors.black_10} !important; }
       .kbdropdown:hover svg { fill: ${globalColors.blue} !important; }
 
       .popover .kbmenuitem:hover { background-color: ${globalColors.blue4}; }
-      .popover .kbmenuitem+.kbmenuitem { border-top: 1px solid ${globalColors.black10}; }
+      .popover .kbmenuitem+.kbmenuitem { border-top: 1px solid ${globalColors.black_10}; }
     `
 
     let list

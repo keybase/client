@@ -40,7 +40,7 @@ export default class Text extends Component {
 
   static _colorStyleBackgroundMode (backgroundMode: Background, type: Props.type, inTerminal: boolean): Object {
     if (backgroundMode === 'Information') {
-      return {color: globalColors.brown60}
+      return {color: globalColors.brown_60}
     }
     switch (type) {
       case 'HeaderJumbo':
@@ -50,18 +50,18 @@ export default class Text extends Component {
       case 'BodySemiboldItalic':
       case 'BodySmallSemibold':
       case 'Body':
-        return {color: backgroundMode === 'Normal' ? globalColors.black75 : globalColors.white}
+        return {color: backgroundMode === 'Normal' ? globalColors.black_75 : globalColors.white}
       case 'BodySmall':
       case 'BodyXSmall':
-        return {color: backgroundMode === 'Normal' ? globalColors.black40 : globalColors.white40}
+        return {color: backgroundMode === 'Normal' ? globalColors.black_40 : globalColors.white_40}
       case 'BodySmallLink':
       case 'BodyXSmallLink':
-        return {color: backgroundMode === 'Normal' ? globalColors.black60 : globalColors.white75}
+        return {color: backgroundMode === 'Normal' ? globalColors.black_60 : globalColors.white_75}
       case 'BadgeNumber':
       case 'BodyPrimaryLink':
         return {color: globalColors.blue}
       case 'BodySecondaryLink':
-        return {color: globalColors.black60}
+        return {color: globalColors.black_60}
       case 'Terminal':
         return {color: inTerminal ? globalColors.blue3 : globalColors.darkBlue}
       case 'TerminalSmall':
@@ -290,7 +290,7 @@ export const styles = {
   textBodySmallSecondaryLink: {
     ...textCommon,
     ...sizeGroups['15'],
-    color: globalColors.black60
+    color: globalColors.black_60
   },
   textBodySmallSemibold: {
     ...textCommon,
@@ -316,7 +316,7 @@ export const styles = {
   },
   textTerminalComment: {
     ...textTerminal,
-    color: globalColors.white40
+    color: globalColors.white_40
   },
   textTerminalUsername: {
     ...textTerminal,

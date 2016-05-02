@@ -395,7 +395,7 @@ const stylesEntryArrow = {
 }
 
 const stylesDz1InputHint = {
-  color: globalColors.black20,
+  color: globalColors.black_20,
   // This is because normal <Input/> does center-aligned hints by using
   // width: 100% on position: absolute
   width: 'auto',

@@ -64,7 +64,7 @@ const stylesIcon = {
   textAlign: 'center',
   height: 'inherit',
   width: 'inherit',
-  color: globalColors.black75,
+  color: globalColors.black_75,
   zIndex: 1
 }
 const stylesIconBackground = {
