@@ -257,21 +257,12 @@ export default class Render extends Component {
   render () {
     return (
       <Box style={{...globalStyles.flexBoxColumn, margin: 20}}>
-<<<<<<< e61499639e5ec9d950bb56c76bd5c16df428405c
         <Container title='Text'><Fonts/></Container>
         <Container title='Icons'><Icons/></Container>
         <Container title='Buttons'><Buttons/></Container>
         <Container title='Dropdown'><Dropdowns/></Container>
         <Container title='Colors'><Colors/></Container>
         <Container title='Inputs'><Inputs/></Container>
-=======
-        <Container title='Icons'><Icons /></Container>
-        <Container title='Buttons'><Buttons /></Container>
-        <Container title='Dropdown'><Dropdowns /></Container>
-        <Container title='Text'><Fonts /></Container>
-        <Container title='Colors'><Colors /></Container>
-        <Container title='Inputs'><Inputs /></Container>
->>>>>>> updating eslint
       </Box>
     )
   }

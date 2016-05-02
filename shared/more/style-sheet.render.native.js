@@ -363,20 +363,11 @@ export default class Render extends Component {
           userIdx={this.state.userIdx}
           optionIdx={this.state.optionIdx}
         /></Container>
-<<<<<<< e61499639e5ec9d950bb56c76bd5c16df428405c
         <Container title='Inputs'><Inputs/></Container>
         <Container title='Checkboxes'><Checkboxes flip={idx => this.flip(idx)} check={this.state.check}/></Container>
         <Container title='Icons'><Icons/></Container>
         <Container title='Buttons'><Buttons/></Container>
         <Container title='Colors'><Colors/></Container>
-=======
-        <Container title='Inputs'><Inputs /></Container>
-        <Container title='Checkboxes'><Checkboxes flip={idx => this.flip(idx)} check={this.state.check} /></Container>
-        <Container title='Icons'><Icons /></Container>
-        <Container title='Buttons'><Buttons /></Container>
-        <Container title='Text'><Fonts /></Container>
-        <Container title='Colors'><Colors /></Container>
->>>>>>> updating eslint
       </ScrollView>
     )
   }
