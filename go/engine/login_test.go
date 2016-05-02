@@ -1978,6 +1978,118 @@ func TestResetAccountLikeNistur(t *testing.T) {
 	}
 }
 
+// If there is a bad device id in the config file, provisioning
+// appears to succeed and provision the new device, but the config
+// file retains the bad device id and further attempts to
+// do anything fail (they say login required, and running login
+// results in provisioning again...)
+// Seems to only happen w/ kex2.
+func TestProvisionWithBadConfig(t *testing.T) {
+	// device X (provisioner) context:
+	tcX := SetupEngineTest(t, "kex2provision")
+	defer tcX.Cleanup()
+
+	// device Y (provisionee) context:
+	tcY := SetupEngineTest(t, "template")
+	defer tcY.Cleanup()
+
+	// provisioner needs to be logged in
+	userX := CreateAndSignupFakeUser(tcX, "login")
+	var secretX kex2.Secret
+	if _, err := rand.Read(secretX[:]); err != nil {
+		t.Fatal(err)
+	}
+
+	// copy the config info from device X to device Y
+	uc, err := tcX.G.Env.GetConfig().GetUserConfig()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := tcY.G.Env.GetConfigWriter().SetUserConfig(uc, true); err != nil {
+		t.Fatal(err)
+	}
+	// but give device Y a new random device ID that doesn't exist:
+	newID, err := libkb.NewDeviceID()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := tcY.G.Env.GetConfigWriter().SetDeviceID(newID); err != nil {
+		t.Fatal(err)
+	}
+
+	secretCh := make(chan kex2.Secret)
+
+	// provisionee calls login:
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUISecretCh(secretCh),
+		LoginUI:     &libkb.TestLoginUI{Username: userX.Username},
+		LogUI:       tcY.G.UI.GetLogUI(),
+		SecretUI:    &libkb.TestSecretUI{},
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tcY.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+
+	var wg sync.WaitGroup
+
+	// start provisionee
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := RunEngine(eng, ctx); err != nil {
+			t.Errorf("login error: %s", err)
+			return
+		}
+	}()
+
+	// start provisioner
+	provisioner := NewKex2Provisioner(tcX.G, secretX, nil)
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
+		ctx := &Context{
+			SecretUI:    userX.NewSecretUI(),
+			ProvisionUI: newTestProvisionUI(),
+		}
+		if err := RunEngine(provisioner, ctx); err != nil {
+			t.Errorf("provisioner error: %s", err)
+			return
+		}
+	}()
+	secretFromY := <-secretCh
+	provisioner.AddSecret(secretFromY)
+
+	wg.Wait()
+
+	if tcY.G.Env.GetDeviceID() == newID {
+		t.Errorf("y device id: %s, same as %s.  expected it to change.", tcY.G.Env.GetDeviceID(), newID)
+	}
+	if tcY.G.Env.GetDeviceID() == tcX.G.Env.GetDeviceID() {
+		t.Error("y device id matches x device id, they should be different")
+	}
+
+	if err := AssertProvisioned(tcY); err != nil {
+		t.Fatal(err)
+	}
+
+	// make sure that the provisioned device can use
+	// the passphrase stream cache (use an empty secret ui)
+	arg := &TrackEngineArg{
+		UserAssertion: "t_alice",
+		Options:       keybase1.TrackOptions{BypassConfirm: true},
+	}
+	ctx = &Context{
+		LogUI:      tcY.G.UI.GetLogUI(),
+		IdentifyUI: &FakeIdentifyUI{},
+		SecretUI:   &libkb.TestSecretUI{},
+	}
+
+	teng := NewTrackEngine(arg, tcY.G)
+	if err := RunEngine(teng, ctx); err != nil {
+		t.Fatal(err)
+	}
+}
+
 type testProvisionUI struct {
 	secretCh               chan kex2.Secret
 	method                 keybase1.ProvisionMethod
