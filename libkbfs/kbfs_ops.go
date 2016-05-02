@@ -217,12 +217,23 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNode(
 			return nil, EntryInfo{}, err
 		}
 	}
-	// we might not be able to read the metadata if we aren't in the key group yet.
+	fb := FolderBranch{Tlf: md.ID, Branch: branch}
+
+	// we might not be able to read the metadata if we aren't in the
+	// key group yet.
 	if err := md.isReadableOrError(ctx, fs.config); err != nil {
+		fs.opsLock.Lock()
+		defer fs.opsLock.Unlock()
+		// If we already have an FBO for this ID, trigger a rekey
+		// prompt in the background, if possible.
+		if ops, ok := fs.ops[fb]; ok {
+			fs.log.CDebugf(ctx, "Triggering a paper prompt rekey on folder "+
+				"access due to unreadable MD for %s", h.GetCanonicalPath())
+			go ops.rekeyWithPrompt()
+		}
 		return nil, EntryInfo{}, err
 	}
 
-	fb := FolderBranch{Tlf: md.ID, Branch: branch}
 	ops := fs.getOpsByHandle(ctx, h, fb)
 	var created bool
 	if branch == MasterBranch {
