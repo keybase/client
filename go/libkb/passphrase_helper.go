@@ -33,12 +33,12 @@ func GetSecret(g *GlobalContext, ui SecretUI, title, prompt, retryMsg string, al
 
 func GetPaperKeyPassphrase(g *GlobalContext, ui SecretUI, username string) (string, error) {
 	arg := DefaultPassphraseArg(g, false)
-	arg.WindowTitle = "Paper backup key passphrase"
+	arg.WindowTitle = "Paper Key"
 	arg.Type = keybase1.PassphraseType_PAPER_KEY
 	if len(username) == 0 {
 		username = "your account"
 	}
-	arg.Prompt = fmt.Sprintf("Please enter a paper backup key passphrase for %s", username)
+	arg.Prompt = fmt.Sprintf("Please enter a paper key for %s", username)
 	arg.Username = username
 	arg.Features.StoreSecret.Allow = false
 	arg.Features.StoreSecret.Readonly = true
@@ -56,7 +56,7 @@ func GetPaperKeyForCryptoPassphrase(g *GlobalContext, ui SecretUI, reason string
 		return "", errors.New("empty device list")
 	}
 	arg := DefaultPassphraseArg(g, false)
-	arg.WindowTitle = "Paper backup key passphrase"
+	arg.WindowTitle = "Paper Key"
 	arg.Type = keybase1.PassphraseType_PAPER_KEY
 	arg.Features.StoreSecret.Allow = false
 	arg.Features.StoreSecret.Readonly = true
