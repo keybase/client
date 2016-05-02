@@ -1,57 +1,57 @@
 /* @flow */
 import Devices from './render'
-import type {Device} from '../constants/types/flow-types'
+import type {Device} from '../constants/types/more'
 
 const dev1: Device = {
-  cTime: 1444423192000,
-  deviceID: '3d2e716574f68fb4eb5b56a5ec8eeeee',
-  encryptKey: '',
-  mTime: 1444423192000,
   name: 'Paper Key (lorem ipsum...)',
-  status: 0,
+  deviceID: '3d2e716574f68fb4eb5b56a5ec8eeeee',
   type: 'backup',
-  verifyKey: '',
-  isCurrent: false
+  created: 1444423192000,
+  currentDevice: false,
+  provisioner: null,
+  provisionedAt: 1444423192000,
+  revokedAt: null
 }
 
 const dev2: Device = {
-  cTime: 1444423193000,
-  deviceID: '7289c92083fc6a2b6d46e26212e00000',
-  encryptKey: '',
-  mTime: 1444423194000,
   name: 'My Desktop',
-  status: 0,
+  deviceID: '7289c92083fc6a2b6d46e26212e00000',
   type: 'desktop',
-  verifyKey: '',
-  isCurrent: true
+  created: 1444423193000,
+  currentDevice: true,
+  provisioner: null,
+  provisionedAt: 1444423193000,
+  revokedAt: null
 }
 
 const dev3: Device = {
-  cTime: 1450305567000,
-  deviceID: '729cb1b72ebadafee219759c33399999',
-  encryptKey: '',
-  mTime: 1450305567000,
   name: 'My Phone',
-  status: 0,
+  deviceID: '729cb1b72ebadafee219759c33399999',
   type: 'mobile',
-  verifyKey: '',
-  isCurrent: false
+  created: 1450305567000,
+  currentDevice: false,
+  provisioner: null,
+  provisionedAt: 1450305567000,
+  revokedAt: null
 }
 
 const rev1: Device = {
   ...dev1,
-  name: 'Paper Key (revo ked...)'
+  name: 'Paper Key (revo ked...)',
+  revokedAt: 1444423192000
 }
 
 const rev2: Device = {
   ...dev2,
   name: 'My Revoked Desktop',
-  isCurrent: false
+  currentDevice: false,
+  revokedAt: 1444423193000
 }
 
 const rev3: Device = {
   ...dev3,
-  name: 'My Revoked Phone'
+  name: 'My Revoked Phone',
+  revokedAt: 1444423193000
 }
 
 const devices: Array<Device> = [

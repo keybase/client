@@ -5,6 +5,7 @@ import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props as IconProps} from '../common-adapters/icon'
 
 import type {Props} from './index'
+import type {Device as DeviceType} from '../constants/types/flow-types'
 
 type RevokedHeaderState = {expanded: boolean}
 
@@ -65,7 +66,7 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
           <Text style={textStyle} type='Header'>{device.name}</Text>
         </Box>
         <Box style={{...globalStyles.flexBoxRow}}>
-          {device.isCurrent && <Text type='BodySmall'>Current device</Text>}
+          {device.currentDevice && <Text type='BodySmall'>Current device</Text>}
         </Box>
       </Box>
       <Box style={{...stylesRevokedColumn}}>
@@ -83,8 +84,8 @@ const RevokedDescription = () => (
 
 const RevokedDevices = ({revokedDevices}) => (
   <RevokedHeader>
-    <RevokedDescription />
-    {revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked />)}
+    <RevokedDescription/>
+    {revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked/>)}
   </RevokedHeader>
 )
 

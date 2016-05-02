@@ -35,7 +35,8 @@ class Devices extends Component {
   render () {
     return (
       <Render
-        devices={this.props.devices}
+        devices={this.props.devices && this.props.devices.filter(dev => !dev.revokedAt)}
+        revokedDevices={this.props.devices && this.props.devices.filter(dev => dev.revokedAt)}
         waitingForServer={this.props.waitingForServer}
         addNewDevice={this.props.addNewDevice}
         showRemoveDevicePage={this.props.showRemoveDevicePage}

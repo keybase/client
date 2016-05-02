@@ -3,7 +3,7 @@ import * as Constants from '../constants/devices'
 import engine from '../engine'
 import {navigateUpOnUnchanged} from './router'
 import type {AsyncAction} from '../constants/types/flux'
-import type {incomingCallMapType, revoke_revokeDevice_rpc, device_deviceList_rpc, login_paperKey_rpc} from '../constants/types/flow-types'
+import type {incomingCallMapType, revoke_revokeDevice_rpc, device_deviceHistoryList_rpc, login_paperKey_rpc} from '../constants/types/flow-types'
 // import {loginTab} from '../constants/tabs'
 
 export function loadDevices () : AsyncAction {
@@ -13,8 +13,8 @@ export function loadDevices () : AsyncAction {
       payload: null
     })
 
-    const params : device_deviceList_rpc = {
-      method: 'device.deviceList',
+    const params : device_deviceHistoryList_rpc = {
+      method: 'device.deviceHistoryList',
       param: {},
       incomingCallMap: {},
       callback: (error, devices) => {
