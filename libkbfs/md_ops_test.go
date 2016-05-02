@@ -2,10 +2,12 @@ package libkbfs
 
 import (
 	"errors"
+	"sync"
 	"testing"
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
+	"github.com/stretchr/testify/require"
 	"golang.org/x/net/context"
 )
 
@@ -93,22 +95,6 @@ func verifyMDForPrivate(config *ConfigMock, rmds *RootMetadataSigned) {
 		gomock.Any(), gomock.Any()).AnyTimes().Return(nil)
 	config.mockCrypto.EXPECT().Verify(packedData, rmds.SigInfo).Return(nil)
 	config.mockCrypto.EXPECT().Verify(packedData, rmds.MD.WriterMetadataSigInfo).Return(nil)
-}
-
-func putMDForPublic(config *ConfigMock, rmds *RootMetadataSigned,
-	id TlfID) {
-	// TODO make this more explicit. Currently can't because the `Put`
-	// call mutates `rmds.MD`, which makes the EXPECT() not match.
-	// Encodes:
-	// 1) rmds.MD.data
-	// 2) rmds.MD.WriterMetadata
-	// 3) rmds.MD
-	config.mockCodec.EXPECT().Encode(gomock.Any()).Times(3).Return([]byte{}, nil)
-	config.mockCrypto.EXPECT().Sign(gomock.Any(), gomock.Any()).Times(2).Return(SignatureInfo{}, nil)
-
-	config.mockCodec.EXPECT().Decode([]byte{}, gomock.Any()).Return(nil)
-
-	config.mockMdserv.EXPECT().Put(gomock.Any(), gomock.Any()).Return(nil)
 }
 
 func putMDForPrivate(config *ConfigMock, rmds *RootMetadataSigned) {
@@ -560,16 +546,124 @@ func TestMDOpsGetRangeFailBadPrevRoot(t *testing.T) {
 	}
 }
 
+type fakeMDServerPut struct {
+	MDServer
+
+	lastRmdsLock sync.Mutex
+	lastRmds     *RootMetadataSigned
+}
+
+func (s *fakeMDServerPut) Put(ctx context.Context, rmds *RootMetadataSigned) error {
+	s.lastRmdsLock.Lock()
+	defer s.lastRmdsLock.Unlock()
+	s.lastRmds = rmds
+	return nil
+}
+
+func (s *fakeMDServerPut) getLastRmds() *RootMetadataSigned {
+	s.lastRmdsLock.Lock()
+	defer s.lastRmdsLock.Unlock()
+	return s.lastRmds
+}
+
+func (s *fakeMDServerPut) Shutdown() {}
+
+func validatePutPublicRMDS(
+	ctx context.Context, t *testing.T, config Config,
+	expectedRmd *RootMetadata, rmds *RootMetadataSigned) {
+	// TODO: Handle private RMDS, too.
+
+	// Verify LastModifying* fields.
+	_, me, err := config.KBPKI().GetCurrentUserInfo(ctx)
+	require.Nil(t, err)
+	require.Equal(t, me, rmds.MD.LastModifyingWriter)
+	require.Equal(t, me, rmds.MD.LastModifyingUser)
+
+	// Verify signature of WriterMetadata.
+	buf, err := config.Codec().Encode(rmds.MD.WriterMetadata)
+	require.Nil(t, err)
+	err = config.Crypto().Verify(buf, rmds.MD.WriterMetadataSigInfo)
+	require.Nil(t, err)
+
+	// Verify encoded PrivateMetadata.
+	var data PrivateMetadata
+	err = config.Codec().Decode(rmds.MD.SerializedPrivateMetadata, &data)
+	require.Nil(t, err)
+
+	// Verify signature of RootMetadata.
+	buf, err = config.Codec().Encode(rmds.MD)
+	require.Nil(t, err)
+	err = config.Crypto().Verify(buf, rmds.SigInfo)
+	require.Nil(t, err)
+
+	// Copy expectedRmd to get rid of unexported fields.
+	var expectedRmdCopy RootMetadata
+	err = CodecUpdate(config.Codec(), &expectedRmdCopy, expectedRmd)
+	require.Nil(t, err)
+
+	// Overwrite written fields.
+	expectedRmdCopy.LastModifyingWriter = rmds.MD.LastModifyingWriter
+	expectedRmdCopy.LastModifyingUser = rmds.MD.LastModifyingUser
+	expectedRmdCopy.WriterMetadataSigInfo = rmds.MD.WriterMetadataSigInfo
+	expectedRmdCopy.SerializedPrivateMetadata = rmds.MD.SerializedPrivateMetadata
+
+	require.Equal(t, expectedRmdCopy, rmds.MD)
+}
+
 func TestMDOpsPutPublicSuccess(t *testing.T) {
-	mockCtrl, config, ctx := mdOpsInit(t)
-	defer mdOpsShutdown(mockCtrl, config)
+	config := MakeTestConfigOrBust(t, "alice", "bob")
+	defer CheckConfigAndShutdown(t, config)
 
-	rmds := newRMDS(t, config, true)
-	putMDForPublic(config, rmds, rmds.MD.ID)
+	var mdServer fakeMDServerPut
+	config.SetMDServer(&mdServer)
 
-	if err := config.MDOps().Put(ctx, &rmds.MD); err != nil {
-		t.Errorf("Got error on put: %v", err)
-	}
+	id := FakeTlfID(1, true)
+	h := parseTlfHandleOrBust(t, config, "alice,bob", true)
+
+	var rmd RootMetadata
+	err := updateNewRootMetadata(&rmd, id, h.BareTlfHandle)
+	require.Nil(t, err)
+	rmd.data = makeFakePrivateMetadataFuture(t).toCurrent()
+	rmd.tlfHandle = h
+
+	ctx := context.Background()
+	err = config.MDOps().Put(ctx, &rmd)
+
+	rmds := mdServer.getLastRmds()
+	validatePutPublicRMDS(ctx, t, config, &rmd, rmds)
+}
+
+func TestMDOpsPutPublicResolveAgainSuccess(t *testing.T) {
+	config := MakeTestConfigOrBust(t, "alice", "bob")
+	defer CheckConfigAndShutdown(t, config)
+
+	var mdServer fakeMDServerPut
+	config.SetMDServer(&mdServer)
+
+	id := FakeTlfID(1, true)
+	ctx := context.Background()
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), "alice,bob@twitter", true, true)
+	require.Nil(t, err)
+
+	var rmd RootMetadata
+	err = updateNewRootMetadata(&rmd, id, h.BareTlfHandle)
+	require.Nil(t, err)
+	rmd.data = makeFakePrivateMetadataFuture(t).toCurrent()
+	rmd.tlfHandle = h
+
+	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
+	daemon.addNewAssertionForTest("bob", "bob@twitter")
+
+	err = config.MDOps().Put(ctx, &rmd)
+
+	expectedH := parseTlfHandleOrBust(t, config, "alice,bob", true)
+	var expectedRmd RootMetadata
+	err = updateNewRootMetadata(&expectedRmd, id, expectedH.BareTlfHandle)
+	require.Nil(t, err)
+
+	rmds := mdServer.getLastRmds()
+	validatePutPublicRMDS(ctx, t, config, &expectedRmd, rmds)
 }
 
 func TestMDOpsPutPrivateSuccess(t *testing.T) {

@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"errors"
 	"fmt"
+	"reflect"
 	"strconv"
 	"sync"
 	"time"
@@ -299,21 +300,6 @@ func updateNewRootMetadata(rmd *RootMetadata, id TlfID, h BareTlfHandle) error {
 	return nil
 }
 
-// newRootMetadata constructs a new RootMetadata object with the given
-// TlfID and TlfHandle. Note that if the given ID/handle are private,
-// rekeying must be done separately.
-func newRootMetadata(id TlfID, h *TlfHandle) (*RootMetadata, error) {
-	var rmd RootMetadata
-	err := updateNewRootMetadata(&rmd, id, h.BareTlfHandle)
-	if err != nil {
-		return nil, err
-	}
-	// Need to keep the TLF handle around long enough to rekey the
-	// metadata for the first time.
-	rmd.tlfHandle = h
-	return &rmd, nil
-}
-
 // Data returns the private metadata of this RootMetadata.
 func (md *RootMetadata) Data() *PrivateMetadata {
 	return &md.data
@@ -512,13 +498,7 @@ func (md *RootMetadata) GetTlfHandle() *TlfHandle {
 	return md.tlfHandle
 }
 
-// MakeBareTlfHandle makes a BareTlfHandle for this
-// RootMetadata. Should be used only by servers and MDOps.
-func (md *RootMetadata) MakeBareTlfHandle() (BareTlfHandle, error) {
-	if md.tlfHandle != nil {
-		panic(errors.New("MakeBareTlfHandle called when md.tlfHandle exists"))
-	}
-
+func (md *RootMetadata) makeBareTlfHandle() (BareTlfHandle, error) {
 	var writers, readers []keybase1.UID
 	if md.ID.IsPublic() {
 		writers = md.Writers
@@ -553,6 +533,16 @@ func (md *RootMetadata) MakeBareTlfHandle() (BareTlfHandle, error) {
 
 	return MakeBareTlfHandle(
 		writers, readers, md.Extra.UnresolvedWriters, md.UnresolvedReaders)
+}
+
+// MakeBareTlfHandle makes a BareTlfHandle for this
+// RootMetadata. Should be used only by servers and MDOps.
+func (md *RootMetadata) MakeBareTlfHandle() (BareTlfHandle, error) {
+	if md.tlfHandle != nil {
+		panic(errors.New("MakeBareTlfHandle called when md.tlfHandle exists"))
+	}
+
+	return md.makeBareTlfHandle()
 }
 
 // IsInitialized returns whether or not this RootMetadata has been initialized
@@ -677,22 +667,45 @@ func (md *RootMetadata) VerifyWriterMetadata(codec Codec, crypto Crypto) error {
 	return nil
 }
 
-func (md *RootMetadata) updateTlfHandle(newHandle *TlfHandle) {
-	if v1, v2 := md.ID.IsPublic(), newHandle == nil; v1 || v2 {
-		panic(fmt.Sprintf("Cannot update TLF handle for a public MD (%t) "+
-			"or using a nil handle (%t)", v1, v2))
+// updateTlfHandle updates the current RootMetadata's fields to
+// reflect the given handle, which must be the result of running the
+// current handle with ResolveAgain().
+func (md *RootMetadata) updateTlfHandle(newHandle *TlfHandle) error {
+	// TODO: Strengthen check, e.g. make sure every writer/reader
+	// in the old handle is also a writer/reader of the new
+	// handle.
+	if md.ID.IsPublic() != newHandle.IsPublic() {
+		return fmt.Errorf(
+			"Trying to update public=%t rmd with public=%t handle",
+			md.ID.IsPublic(), newHandle.IsPublic())
 	}
 
-	// Update RMD fields from newHandle.
+	if newHandle.IsPublic() {
+		md.Writers = make([]keybase1.UID, len(newHandle.Writers))
+		copy(md.Writers, newHandle.Writers)
+	} else {
+		md.UnresolvedReaders =
+			make([]keybase1.SocialAssertion, len(newHandle.UnresolvedReaders))
+		copy(md.UnresolvedReaders, newHandle.UnresolvedReaders)
+	}
+
 	md.Extra.UnresolvedWriters =
 		make([]keybase1.SocialAssertion, len(newHandle.UnresolvedWriters))
 	copy(md.Extra.UnresolvedWriters, newHandle.UnresolvedWriters)
 
-	md.UnresolvedReaders =
-		make([]keybase1.SocialAssertion, len(newHandle.UnresolvedReaders))
-	copy(md.UnresolvedReaders, newHandle.UnresolvedReaders)
+	bareHandle, err := md.makeBareTlfHandle()
+	if err != nil {
+		return err
+	}
+
+	if !reflect.DeepEqual(bareHandle, newHandle.BareTlfHandle) {
+		return fmt.Errorf(
+			"bareHandle=%+v != newHandle.BareTlfHandle=%+v",
+			bareHandle, newHandle.BareTlfHandle)
+	}
 
 	md.tlfHandle = newHandle
+	return nil
 }
 
 // RootMetadataSigned is the top-level MD object stored in MD server

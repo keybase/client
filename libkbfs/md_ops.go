@@ -186,8 +186,15 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
 			// don't automatically create unmerged MDs
 			return nil, nil
 		}
-		// create one if it doesn't exist
-		return newRootMetadata(id, handle)
+		var rmd RootMetadata
+		err := updateNewRootMetadata(&rmd, id, handle.BareTlfHandle)
+		if err != nil {
+			return nil, err
+		}
+		// Need to keep the TLF handle around long enough to
+		// rekey the metadata for the first time.
+		rmd.tlfHandle = handle
+		return &rmd, nil
 	}
 
 	resolvedHandle, err := handle.ResolveAgain(ctx, md.config.KBPKI())
@@ -431,6 +438,15 @@ func (md *MDOpsStandard) readyMD(ctx context.Context, rmd *RootMetadata) (
 		rmd.LastModifyingWriter = me
 
 		if rmd.ID.IsPublic() {
+			resolvedHandle, err := rmd.GetTlfHandle().ResolveAgain(ctx, md.config.KBPKI())
+			if err != nil {
+				return nil, err
+			}
+			err = rmd.updateTlfHandle(resolvedHandle)
+			if err != nil {
+				return nil, err
+			}
+
 			// Encode the private metadata
 			encodedPrivateMetadata, err := codec.Encode(rmd.data)
 			if err != nil {

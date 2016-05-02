@@ -537,7 +537,10 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 		// if at least part of a rekey was performed.
 		_, isRekeyIncomplete := err.(RekeyIncompleteError)
 		if err == nil || isRekeyIncomplete {
-			md.updateTlfHandle(resolvedHandle)
+			updateErr := md.updateTlfHandle(resolvedHandle)
+			if updateErr != nil {
+				err = updateErr
+			}
 		}
 	}()
 

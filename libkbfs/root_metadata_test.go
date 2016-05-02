@@ -99,9 +99,11 @@ func makeFakeTlfHandle(
 
 func newRootMetadataOrBust(
 	t *testing.T, tlfID TlfID, h *TlfHandle) *RootMetadata {
-	rmd, err := newRootMetadata(tlfID, h)
+	var rmd RootMetadata
+	err := updateNewRootMetadata(&rmd, tlfID, h.BareTlfHandle)
 	require.Nil(t, err)
-	return rmd
+	rmd.tlfHandle = h
+	return &rmd
 }
 
 // Test that GetTlfHandle() and MakeBareTlfHandle() work properly for
