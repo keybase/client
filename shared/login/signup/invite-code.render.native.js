@@ -33,7 +33,7 @@ export default class Render extends Component {
         <Button style={styles.button} waiting={this.props.waiting} type='Primary' label='Continue' onClick={submitInviteCode} disabled={!this.state.inviteCode} />
         <Text style={styles.text} type='BodySmall'>Not invited?</Text>
         <Text type='BodySmallSecondaryLink' onClick={this.props.onRequestInvite}>Request an invite</Text>
-        <Box style={{flex: 1}}/>
+        <Box style={{flex: 1}} />
       </Container>
     )
   }

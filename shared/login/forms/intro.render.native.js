@@ -9,7 +9,7 @@ export default class Render extends Component {
         {!!this.props.justRevokedSelf &&
           <Text type='BodySemiboldItalic' style={{...stylesRevoked}}>{this.props.justRevokedSelf}<Text type='BodySemiboldItalic' style={{color: globalColors.white}}>&nbsp;was revoked successfully</Text></Text>
         }
-        <Icon type='logo-160'/>
+        <Icon type='logo-160' />
         <Text style={stylesHeader} type='HeaderJumbo'>Join Keybase</Text>
         <Text style={stylesHeaderSub} type='Body'>Folders for anyone in the world.</Text>
         <Button style={stylesButton} type='Primary' onClick={this.props.onSignup} label='Create an account' />

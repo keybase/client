@@ -28,7 +28,7 @@ class RevokedHeader extends Component<void, Props, RevokedHeaderState> {
       <Box>
         <Box style={stylesRevokedRow} onClick={e => this._toggleHeader(e)}>
           <Text type='BodySemibold'>Revoked devices</Text>
-          <Icon type={iconType} style={{padding: 5}}/>
+          <Icon type={iconType} style={{padding: 5}} />
         </Box>
         {this.state.expanded && this.props.children}
       </Box>
@@ -58,7 +58,7 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
       key={device.name}
       style={{...stylesCommonRow, backgroundColor: revoked ? globalColors.lightGrey : globalColors.white}}>
       <Box style={revoked ? stylesRevokedIconColumn : stylesIconColumn}>
-        <Icon type={icon}/>
+        <Icon type={icon} />
       </Box>
       <Box style={stylesCommonColumn}>
         <Box style={{...globalStyles.flexBoxRow}}>
@@ -83,15 +83,15 @@ const RevokedDescription = () => (
 
 const RevokedDevices = ({revokedDevices}) => (
   <RevokedHeader>
-    <RevokedDescription/>
-    {revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked/>)}
+    <RevokedDescription />
+    {revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked />)}
   </RevokedHeader>
 )
 
 const DeviceHeader = ({addNewDevice}) => (
   <Box style={stylesCommonRow}>
     <Box style={stylesCommonColumn}>
-      <Icon type='devices-add-s'/>
+      <Icon type='devices-add-s' />
     </Box>
     <Box style={stylesCommonColumn}>
       <Text type='BodyPrimaryLink' onClick={addNewDevice}>Add new...</Text>
@@ -112,7 +112,7 @@ const Render = ({devices, revokedDevices, waitingForServer, addNewDevice, showRe
     <Box style={stylesContainer}>
       {<DeviceHeader addNewDevice={addNewDevice} />}
       <style>{realCSS}</style>
-      {devices && devices.map(device => <DeviceRow key={device.name} device={device} showRemoveDevicePage={showRemoveDevicePage} showExistingDevicePage={showExistingDevicePage}/>)}
+      {devices && devices.map(device => <DeviceRow key={device.name} device={device} showRemoveDevicePage={showRemoveDevicePage} showExistingDevicePage={showExistingDevicePage} />)}
       {revokedDevices && <RevokedDevices revokedDevices={revokedDevices} />}
     </Box>
   )
