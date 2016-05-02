@@ -1,3 +1,5 @@
+// @flow
+
 // Used to inject values into material classes w/o all the style overrides
 //
 // Example:
