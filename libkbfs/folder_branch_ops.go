@@ -3523,18 +3523,9 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 }
 
 func (fbo *folderBranchOps) rekeyWithPrompt() {
-	var ctx context.Context
 	var err error
-	{
-		// TODO: replace this with a helper method once KBFS-745 is done.
-		logTags := make(logger.CtxLogTags)
-		logTags[CtxRekeyIDKey] = CtxRekeyOpID
-		ctx = logger.NewContextWithLogTags(context.Background(), logTags)
-		ctxID, err := MakeRandomRequestID()
-		if err == nil {
-			ctx = context.WithValue(ctx, CtxRekeyIDKey, ctxID)
-		}
-	}
+	ctx := ctxWithRandomID(context.Background(), CtxRekeyIDKey, CtxRekeyOpID,
+		fbo.log)
 
 	// Only give the user limited time to enter their paper key, so we
 	// don't wait around forever.
