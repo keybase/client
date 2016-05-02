@@ -92,7 +92,11 @@ func (u UpdaterContext) GetUpdateUI() (updater.UpdateUI, error) {
 }
 
 func (u UpdaterContext) AfterUpdateApply(willRestart bool) error {
-	return AfterUpdateApply(u.g, willRestart)
+	if err := AfterUpdateApply(u.g, willRestart); err != nil {
+		// Errors on after update apply shouldn't be fatal
+		u.g.Log.Warning("Error in after update apply: %s", err)
+	}
+	return nil
 }
 
 func (u UpdaterContext) Verify(r io.Reader, signature string) error {
