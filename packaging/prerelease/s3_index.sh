@@ -44,6 +44,3 @@ echo "Checking if we need to promote a release for testing ($platform)"
 
 echo "Checking if we need to promote a release ($platform)"
 "$release_bin" promote-releases --bucket-name="$bucket_name" --platform="$platform"
-
-echo "Linking latest ($platform)"
-"$release_bin" latest --bucket-name="$bucket_name" --platform="$platform"
