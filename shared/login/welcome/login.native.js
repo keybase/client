@@ -55,7 +55,7 @@ class Login extends Component {
           enabled={this.state.username.length && this.state.passphrase.length}
           isAction
           type='Secondary'
-          title='Submit'/>
+          title='Submit' />
       </View>
     )
   }

@@ -27,7 +27,7 @@ export default class Render extends Component {
         <Text type='Body' style={styles.body}>Here is your unique paper key, it will allow you to perform important Keybase tasks in the future. This is the only time you’ll see this so be sure to write it down.</Text>
         <div style={styles.paperKeyContainer}>
           <Text type='Body' style={styles.paperkey}>{this.props.paperkey.stringValue()}</Text>
-          <Icon type='paper-key-corner' style={styles.paperCorner}/>
+          <Icon type='paper-key-corner' style={styles.paperCorner} />
         </div>
         <Checkbox style={styles.check} label='Yes, I wrote this down.' checked={this.state.inWallet} onCheck={inWallet => this.setState({inWallet})} />
         <Button style={styles.button} type='Primary' label='Done' onClick={() => this.props.onFinish()} disabled={!this.state.inWallet} />

@@ -16,7 +16,7 @@ stream.once('open', () => {
   let glyph = null
   css.split('\n').forEach(line => {
     if (glyph) {
-      const val = line.match(/content:\ \"\\(.*)\";/)[1]
+      const val = line.match(/content: "\\(.*)";/)[1]
       glyphs.push(`  '${glyph}': String.fromCharCode(0x${val})`)
       glyph = null
     } else {

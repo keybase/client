@@ -46,14 +46,14 @@ const Timeline = ({timeline}) => (
   <Box style={{marginTop: 30}}>
     {timeline.map(({type, desc, subDesc}, idx) => (
       <Box key={desc} style={{...globalStyles.flexBoxRow}}>
-        <TimelineMarker idx={idx} max={timeline.length - 1}/>
+        <TimelineMarker idx={idx} max={timeline.length - 1} />
         <Box style={{...globalStyles.flexBoxColumn}}>
           <Text type='Body'>{desc}</Text>
           {(subDesc && (type === 'Added' || type === 'Revoked'))
             ? <Text type='BodySmall'>by <Text type='BodySmall' style={{fontStyle: 'italic', color: globalColors.black75}}>{subDesc}</Text></Text>
             : <Text type='BodySmall'>{subDesc}</Text>
           }
-          <Box style={{height: 15}}/>
+          <Box style={{height: 15}} />
         </Box>
       </Box>
     ))}
@@ -75,15 +75,15 @@ const Render = ({banner, name, type, isCurrent, timeline, isRevoked, onRevoke}: 
 
   return (
     <Box style={{...globalStyles.flexBoxColumn}}>
-      {(banner != null) && <Banner type={banner.type} desc={banner.desc}/>}
+      {(banner != null) && <Banner type={banner.type} desc={banner.desc} />}
       <Box style={{...globalStyles.flexBoxRow, padding: 30}}>
         <Box style={{...globalStyles.flexBoxRow, width: 180, justifyContent: 'center', alignItems: 'flex-start'}}>
-          <Icon type={icon} style={{opacity: isRevoked ? 0.4 : 1}}/>
+          <Icon type={icon} style={{opacity: isRevoked ? 0.4 : 1}} />
         </Box>
         <Box style={{...globalStyles.flexBoxColumn}}>
-          <Header name={name} isCurrent={isCurrent} isRevoked={isRevoked}/>
-          <Timeline timeline={timeline}/>
-          {!isRevoked && <Button type='Danger' style={{marginTop: 15}} label={`Revoke this ${revokeName}`} onClick={onRevoke}/>}
+          <Header name={name} isCurrent={isCurrent} isRevoked={isRevoked} />
+          <Timeline timeline={timeline} />
+          {!isRevoked && <Button type='Danger' style={{marginTop: 15}} label={`Revoke this ${revokeName}`} onClick={onRevoke} />}
         </Box>
       </Box>
     </Box>)

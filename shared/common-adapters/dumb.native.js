@@ -12,7 +12,7 @@ import type {DumbComponentMap} from '../constants/types/more'
 
 const tabBarButtonMap: DumbComponentMap<TabBarButton> = {
   // $FlowIssue
-  component: props => <Box style={{height: 56}}><TabBarButton {...props}/></Box>,
+  component: props => <Box style={{height: 56}}><TabBarButton {...props} /></Box>,
   mocks: {
     'Cog icon': {selected: false, style: {height: 56, width: 72}, source: {type: 'icon', icon: 'fa-cog'}, badgeNumber: 7}
   }
@@ -33,21 +33,21 @@ const tabBarBaseMock = {
   ]
 }
 
-const IconButton = ({selected, icon, badgeNumber}: any) => <TabBarButton source={{type: 'icon', icon}} selected={selected} badgeNumber={badgeNumber}/>
-const AvatarButton = ({selected, avatar, badgeNumber}: any) => <TabBarButton source={{type: 'avatar', avatar}} selected={selected} badgeNumber={badgeNumber}/>
+const IconButton = ({selected, icon, badgeNumber}: any) => <TabBarButton source={{type: 'icon', icon}} selected={selected} badgeNumber={badgeNumber} />
+const AvatarButton = ({selected, avatar, badgeNumber}: any) => <TabBarButton source={{type: 'avatar', avatar}} selected={selected} badgeNumber={badgeNumber} />
 
 const tabBarCustomButtons = selectedIndex => ({
   style: {flex: 1},
   tabBarStyle: {justifyContent: 'space-between', height: 56},
   children: [
-    {avatar: <Avatar size={32} onClick={null} username='max'/>},
+    {avatar: <Avatar size={32} onClick={null} username='max' />},
     {icon: 'fa-users', badgeNumber: 3},
     {icon: 'fa-folder'},
     {icon: 'phone-bw-m', badgeNumber: 12},
     {icon: 'fa-cog'}
   ].map((buttonInfo: any, i) => {
-    const button = buttonInfo.avatar ? <AvatarButton badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} avatar={buttonInfo.avatar}/>
-      : <IconButton icon={buttonInfo.icon} badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i}/>
+    const button = buttonInfo.avatar ? <AvatarButton badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} avatar={buttonInfo.avatar} />
+      : <IconButton icon={buttonInfo.icon} badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} />
 
     return (
       <TabBar.Item tabBarButton={button} containerStyle={{flex: 1}} selected={selectedIndex === i} onPress={() => console.log('TabBar.item:onPress')}>

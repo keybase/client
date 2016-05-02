@@ -40,7 +40,7 @@ class More extends Component {
   }
 
   render () {
-    return <MenuList items={this.state.menuItems}/>
+    return <MenuList items={this.state.menuItems} />
   }
 
   static parseRoute () {

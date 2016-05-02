@@ -33,7 +33,7 @@ export default class Icon extends Component {
 
     const icon = fontIcons[iconType]
       ? <Text style={{color, fontFamily: 'kb', ...fontSize}}>{fontIcons[iconType]}</Text>
-      : <Image source={images[this.props.type]} style={{resizeMode: 'contain', ...width, ...height}}/>
+      : <Image source={images[this.props.type]} style={{resizeMode: 'contain', ...width, ...height}} />
 
     return (
       <TouchableHighlight

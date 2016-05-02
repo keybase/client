@@ -32,12 +32,12 @@ const Header = props => {
 
   return (
     <div style={stylesHeader}>
-      <Icon hint='Open KBFS folder' type='fa-folder' style={{marginRight: 10}} onClick={openKBFS}/>
-      <Icon hint='Open keybase.io web' type='fa-globe' onClick={showUser}/>
-      <div style={{flex: 1}}/>
+      <Icon hint='Open KBFS folder' type='fa-folder' style={{marginRight: 10}} onClick={openKBFS} />
+      <Icon hint='Open keybase.io web' type='fa-globe' onClick={showUser} />
+      <div style={{flex: 1}} />
       <Icon hint={`Report a bug for version: ${version}`} type='fa-bug' onClick={() => {
         shell.openExternal(`https://github.com/keybase/client/issues/new?body=Keybase%20GUI%20Version:%20${encodeURIComponent(version)}`)
-      }}/>
+      }} />
     </div>
   )
 }
@@ -62,7 +62,7 @@ const LogInTerminalMessage = props => {
       <Text type='Body' small style={{marginTop: 10, marginBottom: 5, marginLeft: 10}}>From the terminal:</Text>
       <Terminal>
         <Text type='TerminalCommand'>keybase login</Text>
-        <Text type='TerminalEmpty'/>
+        <Text type='TerminalEmpty' />
         <Text type='TerminalComment'>or if you're new to Keybase:</Text>
         <Text type='TerminalCommand'>keybase signup</Text>
       </Terminal>
@@ -76,7 +76,7 @@ const LogInPrompt = props => {
     <div style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.white}}>
       <Icon type='fa-exclamation-triangle' style={{alignSelf: 'center', color: globalColors.yellow, marginTop: 12}} />
       <Text type='Body' small style={{alignSelf: 'center', marginTop: 6}}>You're logged out!</Text>
-      <Button type='Primary' label='Log In' onClick={logIn} style={{alignSelf: 'center', minWidth: 160, marginTop: 12, marginRight: 0}}/>
+      <Button type='Primary' label='Log In' onClick={logIn} style={{alignSelf: 'center', minWidth: 160, marginTop: 12, marginRight: 0}} />
     </div>
   )
 }
@@ -91,10 +91,10 @@ export default class Render extends Component {
     return (
       <div style={stylesContainer}>
         <div style={stylesBody}>
-          <Header openKBFS={openKBFS} showUser={() => showUser(username)}/>
+          <Header openKBFS={openKBFS} showUser={() => showUser(username)} />
           {!loggedIn && (flags.login ? <LogInPrompt logIn={logIn} /> : <LogInTerminalMessage />)}
-          <FolderList loading={this.props.loading} username={this.props.username} openKBFSPublic={openKBFSPublic} openKBFSPrivate={openKBFSPrivate} folders={this.props.folders} loggedIn={loggedIn}/>
-          <Footer showHelp={showHelp} quit={quit} showMain={showMain}/>
+          <FolderList loading={this.props.loading} username={this.props.username} openKBFSPublic={openKBFSPublic} openKBFSPrivate={openKBFSPrivate} folders={this.props.folders} loggedIn={loggedIn} />
+          <Footer showHelp={showHelp} quit={quit} showMain={showMain} />
         </div>
       </div>
     )
@@ -115,7 +115,7 @@ const Row = props => {
 
   return (
     <div style={containerStyle} onClick={props.onClick}>
-      <div style={{...globalStyles.clickable, marginRight: 2, ...props.iconStyle}}/>
+      <div style={{...globalStyles.clickable, marginRight: 2, ...props.iconStyle}} />
       <Text type='Body' link small style={{marginTop: 4, overflowWrap: 'break-word', flex: 1, ...props.textStyle}}>{props.text}</Text>
       {props.children}
     </div>
@@ -123,7 +123,7 @@ const Row = props => {
 }
 
 const FolderRow = props => {
-  const divider = idx => <span key={'div' + idx}>,<wbr/></span> // word break on the commas
+  const divider = idx => <span key={'div' + idx}>,<wbr /></span> // word break on the commas
   const {username, folder: {isPublic, isEmpty, openFolder, folderName}} = props
   let text = intersperseFn(divider, canonicalizeUsernames(username, parseFolderNameToUsers(folderName)))
 
@@ -133,7 +133,7 @@ const FolderRow = props => {
     allowWrap
     iconStyle={SVGFolderIcon(iconPath(isPublic, isEmpty))}
     textStyle={{color: globalColors.blue, cursor: 'pointer'}}
-    key={isPublic + text.join('')}/>
+    key={isPublic + text.join('')} />
 }
 
 const FolderEntryRow = props => {
@@ -172,7 +172,7 @@ const ShowAll = props => {
     text='Show All'
     iconStyle={{...SVGFolderIcon(resolveImageAsURL('see-more.svg')), marginTop: 2}}
     textStyle={{}}
-    key={props.isPublic + 'showAll'}/>
+    key={props.isPublic + 'showAll'} />
 }
 
 type CollapsableFolderListProps = {
@@ -206,7 +206,7 @@ class CollapsableFolderList extends Component<void, CollapsableFolderListProps, 
           if (f.type === 'entry') {
             return <FolderEntryRow key={key} entry={f} />
           } else {
-            return <FolderRow key={key} username={username} folder={f}/>
+            return <FolderRow key={key} username={username} folder={f} />
           }
         })}
         {truncated && <ShowAll onClick={onExpand} isPublic={this.props.isPublic} />}

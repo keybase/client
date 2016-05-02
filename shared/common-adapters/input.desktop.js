@@ -54,7 +54,7 @@ export default class Input extends Component {
           onChange={event => this.onChange(event)}
           onEnterKeyDown={this.props.onEnterKeyDown}
           hintText={this.props.hintText}
-          style={this.props.style}/>
+          style={this.props.style} />
       )
     }
 

@@ -97,7 +97,7 @@ export default class CodePageRender extends Component {
     return (
       <Box style={stylesControl}>
         <Text style={specialStyles.paperKey}>{this.props.textCode}</Text>
-        <ProgressIndicator type='Large' style={stylesSpinner}/>
+        <ProgressIndicator type='Large' style={stylesSpinner} />
       </Box>
     )
   }
@@ -122,12 +122,12 @@ export default class CodePageRender extends Component {
 
         <Text>Use this phone to scan the QR code displayed on your other device</Text>
         <Box style={{alignSelf: 'center', width: 200, height: 200}}>
-          <Box style={[styles.box, styles.boxEdge, {left: 0}]}/>
-          <Box style={[styles.box, styles.boxEdge, {right: 0}]}/>
-          <Box style={[styles.box, styles.boxCorner, {right: 0, top: 0}]}/>
-          <Box style={[styles.box, styles.boxCorner, {left: 0, top: 0}]}/>
-          <Box style={[styles.box, styles.boxCorner, {right: 0, bottom: 0}]}/>
-          <Box style={[styles.box, styles.boxCorner, {left: 0, bottom: 0}]}/>
+          <Box style={[styles.box, styles.boxEdge, {left: 0}]} />
+          <Box style={[styles.box, styles.boxEdge, {right: 0}]} />
+          <Box style={[styles.box, styles.boxCorner, {right: 0, top: 0}]} />
+          <Box style={[styles.box, styles.boxCorner, {left: 0, top: 0}]} />
+          <Box style={[styles.box, styles.boxCorner, {right: 0, bottom: 0}]} />
+          <Box style={[styles.box, styles.boxCorner, {left: 0, bottom: 0}]} />
         </Box>
       </QR>
     )

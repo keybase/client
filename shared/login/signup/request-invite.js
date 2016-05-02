@@ -34,7 +34,7 @@ class RequestInvite extends Component {
         nameErrorText={this.props.nameErrorText}
         onBack={this.props.resetSignup}
         onSubmit={() => this.props.requestInvite(this.state.email, this.state.name)}
-        waiting={this.props.waiting}/>
+        waiting={this.props.waiting} />
     )
   }
 }

@@ -15,11 +15,11 @@ export default class FormWithCheckbox extends Component<void, Props, void> {
 
     return (
       <Box style={{...globalStyles.flexBoxColumn, marginBottom: 30, ...this.props.style}}>
-        <Input errorStyle={{marginTop: 32}} {...inputProps}/>
+        <Input errorStyle={{marginTop: 32}} {...inputProps} />
         <Box style={{...styles.checkboxContainer, ...this.props.checkboxContainerStyle}}>
           {checkboxesProps.map(p => {
             const checkProps: CheckboxProps = {key: p.label, ...p}
-            return <Checkbox {...checkProps}/>
+            return <Checkbox {...checkProps} />
           })}
         </Box>
       </Box>

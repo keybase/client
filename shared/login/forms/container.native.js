@@ -10,7 +10,7 @@ export default ({children, onBack, style, outerStyle}: Props) => {
       <Box style={{...styles.innerContainer, ...style}}>
         {children}
       </Box>
-      {onBack && <BackButton style={styles.button} onClick={onBack}/>}
+      {onBack && <BackButton style={styles.button} onClick={onBack} />}
     </Box>
   )
 }

@@ -439,7 +439,7 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
             response.result(deviceID)
           }}
           onWont={() => response.result('')}
-          onBack={() => dispatch(cancelLogin(response))}/>))
+          onBack={() => dispatch(cancelLogin(response))} />))
     },
     'keybase.1.secretUi.getPassphrase': ({pinentry: {type, prompt, username, retryLabel}}, response) => {
       switch (type) {
@@ -449,7 +449,7 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
               mapStateToProps={state => ({})}
               onSubmit={(passphrase: string) => { response.result({passphrase, storeSecret: false}) }} // eslint-disable-line arrow-parens
               onBack={() => { dispatch(cancelLogin(response)) }}
-              error={retryLabel}/>))
+              error={retryLabel} />))
           break
         case enums.secretUi.PassphraseType.passPhrase:
           appendRouteElement((

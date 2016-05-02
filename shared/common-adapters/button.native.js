@@ -10,7 +10,7 @@ import type {Props} from './button'
 
 const Progress = () => (
   <View style={{...progress}}>
-    <ProgressIndicator/>
+    <ProgressIndicator />
   </View>
 )
 
@@ -56,7 +56,7 @@ class Button extends Component {
         style={{...style, ...this.props.style}}>
         <View style={{alignItems: 'center', justifyContent: 'center'}}>
           <Text type='BodySemibold' style={labelStyle}>{this.props.label}</Text>
-          {this.props.waiting && <Progress/>}
+          {this.props.waiting && <Progress />}
         </View>
       </TouchableHighlight>
     )

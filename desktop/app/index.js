@@ -1,7 +1,6 @@
-import {BrowserWindow} from 'electron'
+import {BrowserWindow, app, dialog} from 'electron'
 import splash from './splash'
 import installer from './installer'
-import {app, dialog} from 'electron'
 import ListenLogUi from '../shared/native/listen-log-ui'
 import menuHelper from './menu-helper'
 import consoleHelper, {ipcLogs} from './console-helper'

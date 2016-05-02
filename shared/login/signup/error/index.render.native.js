@@ -10,7 +10,7 @@ export default class Render extends Component {
   props: Props;
 
   render () {
-    return <View/>
+    return <View />
   }
 }
 

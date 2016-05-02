@@ -22,8 +22,8 @@ import {bootstrap} from './actions/config'
 
 import {constants as styleConstants} from './styles/common'
 
-import type {VisibleTab} from './constants/tabs'
 import {devicesTab, moreTab, startupTab, folderTab, peopleTab, loginTab, profileTab} from './constants/tabs'
+import type {VisibleTab} from './constants/tabs' // eslint-disable-line
 import ListenLogUi from './native/listen-log-ui'
 import {listenForNotifications} from './actions/notifications'
 import hello from './util/hello'
@@ -104,7 +104,7 @@ class Nav extends Component {
     return (
       <Navigator.NavigationBar
         style={styles.navBar}
-        routeMapper={NavigationBarRouteMapper(this.props.navigateTo, this.props.navigateUp)}/>
+        routeMapper={NavigationBarRouteMapper(this.props.navigateTo, this.props.navigateUp)} />
     )
   }
 
@@ -152,7 +152,7 @@ class Nav extends Component {
 
     return (
       <View style={{flex: 1}}>
-        <TabBar onTabClick={this.props.switchTab} selectedTab={activeTab} username={this.props.username} badgeNumbers={{}} tabContent={tabContent}/>
+        <TabBar onTabClick={this.props.switchTab} selectedTab={activeTab} username={this.props.username} badgeNumbers={{}} tabContent={tabContent} />
       </View>
     )
   }

@@ -12,7 +12,7 @@ import type {URI} from '../reducers/router'
 
 function loginRouter (currentPath: Map<string, string>, uri: URI): any {
   // Fallback (for debugging)
-  let element = <ErrorText currentPath={currentPath}/>
+  let element = <ErrorText currentPath={currentPath} />
 
   const path = currentPath.get('path')
   let {componentAtTop: {component: Component, props, element: dynamicElement}} = currentPath.get('parseRoute') || {componentAtTop: {}}

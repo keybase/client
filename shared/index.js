@@ -38,7 +38,7 @@ class Keybase extends Component {
   render () {
     return (
       <Provider store={store}>
-        <Nav/>
+        <Nav />
       </Provider>
     )
   }

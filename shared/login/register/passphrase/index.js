@@ -35,7 +35,7 @@ class Passphrase extends Component<void, Props, State> {
       saveInKeychain={this.state.saveInKeychain}
       showTyping={this.state.showTyping}
       toggleShowTyping={showTyping => this.setState({showTyping})}
-      toggleSaveInKeychain={saveInKeychain => this.setState({saveInKeychain})}/>
+      toggleSaveInKeychain={saveInKeychain => this.setState({saveInKeychain})} />
   }
 }
 

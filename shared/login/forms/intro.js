@@ -10,7 +10,7 @@ import {login} from '../../actions/login'
 class Intro extends Component {
   render () {
     return (
-      <Render onSignup={this.props.onSignup} onLogin={this.props.onLogin} justRevokedSelf={this.props.justRevokedSelf}/>
+      <Render onSignup={this.props.onSignup} onLogin={this.props.onLogin} justRevokedSelf={this.props.justRevokedSelf} />
     )
   }
 }

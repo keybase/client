@@ -96,7 +96,7 @@ class Dropdown extends Component {
   _renderLabelAndCaret (): Array<React$Element> {
     return [
       <Text key='text' type='Header' style={{...styleText, ...this._itemStyle()}}>{this._label(this.state.value)}</Text>,
-      <Icon key='icon' type='fa-caret-down' style={styleIcon}/>
+      <Icon key='icon' type='fa-caret-down' style={styleIcon} />
     ]
   }
 
@@ -119,7 +119,7 @@ class Dropdown extends Component {
 
     return (
       <Picker style={style} selectedValue={this.state.value} onValueChange={onValueChange}>
-        {items.map(i => <Picker.Item {...i}/>)}
+        {items.map(i => <Picker.Item {...i} />)}
       </Picker>
     )
   }
@@ -140,7 +140,7 @@ class Dropdown extends Component {
           <Modal animated transparent visible={this.state.modalVisible} onRequestClose={() => this._showModal(false)}>
             <Box style={stylePickerContainer}>
               <TouchableWithoutFeedback onPress={() => this._showModal(false)}>
-                <Box style={{flex: 1}}/>
+                <Box style={{flex: 1}} />
               </TouchableWithoutFeedback>
               {this._renderPicker(stylePickerIOS, false)}
             </Box>

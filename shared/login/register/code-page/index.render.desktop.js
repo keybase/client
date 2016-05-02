@@ -35,7 +35,7 @@ export default class CodePageRender extends Component {
         <p style={{marginTop: 10}}>
           <Text type='BodySmall' inline>Run&nbsp;</Text><Text type='TerminalSmall' inline>keybase device add</Text><Text type='BodySmall' inline>&nbsp;on your other device and type this code there: </Text>
         </p>
-        <Icon type='computer-bw-m' style={{marginTop: 28}}/>
+        <Icon type='computer-bw-m' style={{marginTop: 28}} />
 
         <Text type='Body' style={styles.paperkey}>{this.props.textCode}</Text>
       </Container>
@@ -100,7 +100,7 @@ export default class CodePageRender extends Component {
         return this.renderText()
     }
     console.warn(`No mode prop passed! Mode: ${this.props.mode}`)
-    return (<div/>)
+    return (<div />)
   }
 }
 

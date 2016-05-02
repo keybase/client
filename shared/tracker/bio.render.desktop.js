@@ -55,7 +55,7 @@ export default class BioRender extends Component {
             <Avatar onClick={() => this._onClickAvatar()} style={globalStyles.clickable} url={userInfo.avatar} size={75} />
             {(followsYou || currentlyFollowing) &&
               <div>
-                {followsYou && <div style={followBadgeStyles.followsYou}> <div style={{...followBadgeCommon, height: 6, width: 6, top: 2, right: 2}}/></div>}
+                {followsYou && <div style={followBadgeStyles.followsYou}> <div style={{...followBadgeCommon, height: 6, width: 6, top: 2, right: 2}} /></div>}
                 <div style={currentlyFollowing ? followBadgeStyles.following : followBadgeStyles.notFollowing} />
               </div>
             }

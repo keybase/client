@@ -6,7 +6,7 @@ export default class Container extends Component {
   render () {
     return (
       <Paper zDepth={5} style={{...this.props.style, margin: 20}}>
-        <AppBar title={this.props.title}/>
+        <AppBar title={this.props.title} />
         <div style={{margin: 10}}>
           {this.props.children}
         </div>

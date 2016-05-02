@@ -1,9 +1,8 @@
 import {remote, ipcRenderer} from 'electron'
 
-import {Component} from 'react'
+import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import MetaNavigator from './router/meta-navigator'
-import React from 'react'
 import Folders from './folders'
 import Chat from './chat'
 import People from './people'

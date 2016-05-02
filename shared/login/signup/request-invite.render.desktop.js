@@ -15,7 +15,7 @@ export default class Render extends Component {
     return (
       <Container onBack={this.props.onBack} style={styles.container}>
         <Text style={styles.header} type='Header'>Request an invite code</Text>
-        <Icon style={styles.icon} type='invite-code-m'/>
+        <Icon style={styles.icon} type='invite-code-m' />
         <Input
           style={styles.input}
           floatingLabelText='Your email address'

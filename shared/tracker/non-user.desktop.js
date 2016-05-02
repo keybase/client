@@ -19,14 +19,14 @@ const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
 
   return (
     <Box style={stylesContainer}>
-      <Icon style={stylesClose} type='fa-close' onClick={onClose}/>
+      <Icon style={stylesClose} type='fa-close' onClick={onClose} />
       <Text type='BodySmallSemibold' style={stylesMessage}>{reason}</Text>
-      <Icon style={iconStyle} type={icon}/>
+      <Icon style={iconStyle} type={icon} />
       <Text type='BodySmallSemibold' style={stylesMessage}>{message}</Text>
       {inviteLink ? <Box style={stylesLinkBox}>
-        <Icon type='link-xs'/>
+        <Icon type='link-xs' />
         <Text style={stylesLink} type='BodySemibold'>{inviteLink}</Text>
-      </Box> : <Box style={{height: 16}}/>}
+      </Box> : <Box style={{height: 16}} />}
     </Box>
   )
 }
@@ -42,15 +42,15 @@ const Bottom = ({onClose, name}) => (
       <Text type='BodySmall' style={{marginRight: 8}}>•</Text>
       <Text type='BodySmall'>In the meantime, you can continue to work in the folder.</Text>
     </Box>
-    <Box style={{flex: 1}}/>
-    <Button style={{alignSelf: 'flex-end', width: 122}} type='Secondary' label='Close' onClick={onClose}/>
+    <Box style={{flex: 1}} />
+    <Button style={{alignSelf: 'flex-end', width: 122}} type='Secondary' label='Close' onClick={onClose} />
   </Box>
 )
 
 const Render = ({name, reason, inviteLink, onClose, isPrivate}: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
-    <Top reason={reason} isPrivate={isPrivate} inviteLink={inviteLink} name={name}/>
-    <Bottom onClose={onClose} name={name}/>
+    <Top reason={reason} isPrivate={isPrivate} inviteLink={inviteLink} name={name} />
+    <Bottom onClose={onClose} name={name} />
   </Box>
 )
 

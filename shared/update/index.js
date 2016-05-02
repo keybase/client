@@ -9,7 +9,7 @@ export default class Update extends Component {
     } else if (this.props.type === 'paused') {
       return <UpdatePaused {...this.props.options} />
     } else {
-      return <div/>
+      return <div />
     }
   }
 

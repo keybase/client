@@ -31,7 +31,7 @@ class Render extends Component<void, Props, void> {
             checkboxesProps={[
               {label: 'Save in keychain', checked: !!(saveInKeychain), onCheck: toggleSaveInKeychain},
               {label: 'Show typing', checked: !!(showTyping), onCheck: toggleShowTyping}
-            ]}/>
+            ]} />
 
           <Button
             fullWidth
@@ -39,7 +39,7 @@ class Render extends Component<void, Props, void> {
             label='Continue'
             type='Primary'
             onClick={this.props.onSubmit}
-            enabled={this.props.passphrase && this.props.passphrase.length}/>
+            enabled={this.props.passphrase && this.props.passphrase.length} />
           <Text style={stylesForgot} type='BodySmallSecondaryLink' onClick={this.props.onForgotPassphrase}>Forgot passphrase?</Text>
         </UserCard>
       </Container>

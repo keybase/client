@@ -21,8 +21,8 @@ const Render = ({name, type, isCurrent, onSubmit, onCancel}: Props) => {
         <Text type='Body' style={stylesName}>{name}</Text>
       </Box>
       <Text type='Header' style={{flex: 1, textAlign: 'center'}}>Are you sure you want to revoke {isCurrent ? 'your current device' : name}?</Text>
-      <Button type='Danger' onClick={onSubmit} label='Yes, delete it' style={stylesButton}/>
-      <Button type='Secondary' onClick={onCancel} label='Cancel' style={stylesButton}/>
+      <Button type='Danger' onClick={onSubmit} label='Yes, delete it' style={stylesButton} />
+      <Button type='Secondary' onClick={onCancel} label='Cancel' style={stylesButton} />
     </Box>)
 }
 

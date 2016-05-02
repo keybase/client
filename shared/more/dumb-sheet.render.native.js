@@ -82,10 +82,10 @@ class Render extends Component<void, any, any> {
         </ScrollView>
         <Box style={stylesControls}>
           <Text type='BodySmall'>{this.state.index}</Text>
-          {this.state.filterShow && <Box style={{...globalStyles.flexBoxColumn, backgroundColor: 'red', width: 200}}><Input style={inputStyle} value={this.state.filter} onChangeText={filter => this._onFilterChange(filter.toLowerCase())}/></Box>}
-          <Button type='Primary' style={stylesButton} label='...' onClick={() => { this.setState({filterShow: !this.state.filterShow}) }}/>
-          <Button type='Primary' style={stylesButton} label='<' onClick={() => { this._incremement(false) }}/>
-          <Button type='Primary' style={stylesButton} label='>' onClick={() => { this._incremement(true) }}/>
+          {this.state.filterShow && <Box style={{...globalStyles.flexBoxColumn, backgroundColor: 'red', width: 200}}><Input style={inputStyle} value={this.state.filter} onChangeText={filter => this._onFilterChange(filter.toLowerCase())} /></Box>}
+          <Button type='Primary' style={stylesButton} label='...' onClick={() => { this.setState({filterShow: !this.state.filterShow}) }} />
+          <Button type='Primary' style={stylesButton} label='<' onClick={() => { this._incremement(false) }} />
+          <Button type='Primary' style={stylesButton} label='>' onClick={() => { this._incremement(true) }} />
         </Box>
       </Box>
     )

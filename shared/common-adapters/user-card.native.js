@@ -13,8 +13,8 @@ export default class UserCard extends Component<void, Props, void> {
     return (
       <Box style={{...styles.container, ...this.props.outerStyle}}>
         <Box style={styles.avatar}>
-          <Box style={styles.avatarBackground}/>
-          <Avatar size={avatarSize} onClick={this.props.onAvatarClicked} url={url}/>
+          <Box style={styles.avatarBackground} />
+          <Avatar size={avatarSize} onClick={this.props.onAvatarClicked} url={url} />
         </Box>
         <Box style={{...styles.inside, ...this.props.style}}>
           {this.props.children}

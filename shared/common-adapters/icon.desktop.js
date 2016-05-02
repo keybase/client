@@ -40,7 +40,7 @@ export default class Icon extends Component {
         hoverColor={this.props.onClick ? hoverColor : null}
         onMouseEnter={this.props.onMouseEnter}
         onMouseLeave={this.props.onMouseLeave}
-        onClick={this.props.onClick}/>
+        onClick={this.props.onClick} />
     } else {
       return <img
         className={this.props.className}

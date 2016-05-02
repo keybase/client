@@ -24,7 +24,7 @@ export default function signupRouter (currentPath: Map<string, string>, uri: URI
 
   const {component: Component, props} = currentPath.get('parseRoute') || {}
   if (Component) {
-    element = <Component {...props}/>
+    element = <Component {...props} />
   } else {
     switch (path) {
       case 'signup':

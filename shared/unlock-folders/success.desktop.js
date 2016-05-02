@@ -13,10 +13,10 @@ export default class PaperKeyInput extends Component<void, Props, void> {
   render () {
     return (
       <div style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-        <Icon style={foldersUnlockedStyle} type='folders-unlocked-m'/>
+        <Icon style={foldersUnlockedStyle} type='folders-unlocked-m' />
         <Text style={successStyle} type='Body'>Success</Text>
         <Text style={{textAlign: 'center'}} type='Body'>You have unlocked your folders on this computer.</Text>
-        <Button type='Primary' label='Access my folders' style={finishStyle} onClick={this.props.onAccessFolders}/>
+        <Button type='Primary' label='Access my folders' style={finishStyle} onClick={this.props.onAccessFolders} />
       </div>
     )
   }

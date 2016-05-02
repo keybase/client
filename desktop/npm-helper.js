@@ -1,20 +1,20 @@
 // Helper for cross platform npm run script commands
 import path from 'path'
-import child_process, {execSync} from 'child_process'
+import childProcess, {execSync} from 'child_process'
 import fs from 'fs'
 
 const postinstallGlobals = {
-  'babel-eslint': '@6.0.2',
-  'eslint': '@2.7.0',
-  'eslint-config-standard': '@5.1.0',
-  'eslint-config-standard-jsx': '@1.1.1',
-  'eslint-config-standard-react': '@2.3.0',
+  'babel-eslint': '@6.0.4',
+  'eslint': '@2.9.0',
+  'eslint-config-standard': '@5.3.0',
+  'eslint-config-standard-jsx': '@1.2.0',
+  'eslint-config-standard-react': '@2.4.0',
   'eslint-plugin-babel': '@3.2.0',
   'eslint-plugin-filenames': '@0.2.0',
-  'eslint-plugin-flow-vars': '@0.3.0',
+  'eslint-plugin-flow-vars': '@0.4.0',
   'eslint-plugin-mocha': '@2.2.0',
   'eslint-plugin-promise': '@1.1.0',
-  'eslint-plugin-react': '@4.3.0',
+  'eslint-plugin-react': '@5.0.1',
   'eslint-plugin-standard': '@1.3.2',
   'estraverse': '@4.2.0',
   'estraverse-fb': '@1.3.1'
@@ -167,7 +167,7 @@ function postInstall () {
 function setupDebugMain () {
   let electronVer = null
   try {
-    electronVer = child_process.execSync('npm list --dev electron-prebuilt', {encoding: 'utf8'}).match(/electron-prebuilt@([0-9.]+)/)[1]
+    electronVer = childProcess.execSync('npm list --dev electron-prebuilt', {encoding: 'utf8'}).match(/electron-prebuilt@([0-9.]+)/)[1]
     console.log(`Found electron-prebuilt version: ${electronVer}`)
   } catch (err) {
     console.log("Couldn't figure out electron")

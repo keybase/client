@@ -16,7 +16,7 @@ export default class Render extends Component<void, Props, void> {
     switch (this.props.phase) {
       case 'dead':
       case 'promptOtherDevice':
-        innerComponent = <DeviceList devices={this.props.devices} toPaperKeyInput={this.props.toPaperKeyInput}/>
+        innerComponent = <DeviceList devices={this.props.devices} toPaperKeyInput={this.props.toPaperKeyInput} />
         break
       case 'paperKeyInput':
         innerComponent = (
@@ -25,19 +25,19 @@ export default class Render extends Component<void, Props, void> {
             onBack={this.props.onBackFromPaperKey}
             onContinue={this.props.onContinueFromPaperKey}
             paperkeyError={this.props.paperkeyError}
-            waiting={this.props.waiting}/>
+            waiting={this.props.waiting} />
         )
         break
       case 'success':
         innerComponent = (
-          <Success onAccessFolders={this.props.onFinish}/>
+          <Success onAccessFolders={this.props.onFinish} />
         )
         break
     }
 
     return (
       <div style={styles.container}>
-        <div style={styles.header}><Header icon type='Default' title='' onClose={this.props.onClose}/></div>
+        <div style={styles.header}><Header icon type='Default' title='' onClose={this.props.onClose} /></div>
         {innerComponent}
       </div>
     )

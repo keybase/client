@@ -13,7 +13,7 @@ export default class ProgressIndicator extends Component {
     return <ActivityIndicatorIOS
       color={this.props.white ? globalColors.white : globalColors.black}
       size={size}
-      style={{...style, ...this.props.style}}/>
+      style={{...style, ...this.props.style}} />
   }
 }
 

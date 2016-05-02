@@ -33,7 +33,7 @@ class Foo extends Component {
     return (
       <RemoteComponent
         component='pinentry'
-        {...payload}/>)
+        {...payload} />)
   }
 }
 

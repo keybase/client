@@ -142,7 +142,7 @@ export default class Text extends Component {
           contentEditable
           onKeyUp={this.props.onKeyUp}
           onKeyDown={this.props.onKeyDown}
-          onPress={this.props.onClick}/>)
+          onPress={this.props.onClick} />)
     }
 
     return (

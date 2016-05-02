@@ -11,7 +11,7 @@ const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName,
       style={stylesContainer}
       onBack={onBack}>
       <Text type='Header' style={stylesHeader}>Set a public name for this device:</Text>
-      <Icon type='phone-color-m' style={stylesIcon}/>
+      <Icon type='phone-color-m' style={stylesIcon} />
       <Input
         autoFocus
         style={stylesInput}
@@ -19,7 +19,7 @@ const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName,
         hintText='Device name'
         onEnterKeyDown={() => onSubmit()}
         onChangeText={deviceName => onChange(deviceName)}
-        value={deviceName}/>
+        value={deviceName} />
       <Button
         style={stylesButton}
         type='Primary'
@@ -28,7 +28,7 @@ const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName,
         disabled={!submitEnabled}
         waiting={waiting}
         label='Continue'
-        onClick={() => onSubmit()}/>
+        onClick={() => onSubmit()} />
     </Container>
   </Box>
 )

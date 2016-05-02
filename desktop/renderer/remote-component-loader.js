@@ -145,12 +145,12 @@ class RemoteComponentLoader extends Component {
       return <div style={styles.loading}></div>
     }
     if (this.state.unmounted) {
-      return <div/>
+      return <div />
     }
     return (
       <div style={styles.container}>
         <Provider store={this.store}>
-          <Component {...this.state.props}/>
+          <Component {...this.state.props} />
         </Provider>
       </div>
     )
@@ -167,4 +167,4 @@ const styles = {
   }
 }
 
-ReactDOM.render(<RemoteComponentLoader/>, document.getElementById('remoteComponent'))
+ReactDOM.render(<RemoteComponentLoader />, document.getElementById('remoteComponent'))

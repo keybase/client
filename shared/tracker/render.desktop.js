@@ -38,7 +38,7 @@ export default class Render extends Component {
           <ProofsRender {...this.props.proofsProps} />
         </div>
         <div style={styles.footer}>
-          <Action {...this.props.actionProps}/>
+          <Action {...this.props.actionProps} />
         </div>
       </div>
     )

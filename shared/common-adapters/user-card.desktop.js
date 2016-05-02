@@ -12,7 +12,7 @@ export default class UserCard extends Component<void, Props, void> {
     const url = this.props.username ? `https://keybase.io/${this.props.username}/picture` : null
     return (
       <div style={{...styles.container, ...this.props.outerStyle}}>
-        <Avatar size={avatarSize} style={styles.avatar} onClick={this.props.onAvatarClicked} url={url}/>
+        <Avatar size={avatarSize} style={styles.avatar} onClick={this.props.onAvatarClicked} url={url} />
         <div style={{...styles.inside, ...this.props.style}}>
           {this.props.children}
         </div>

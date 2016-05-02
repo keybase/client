@@ -17,16 +17,16 @@ export default class DropdownDemo extends Component {
           value={this.state.selectedUser}
           options={['marcopolo', 'chris', 'cjb', 'bbbbbbbbbbbbbbbb']}
           onOther={() => console.log('Clicked on other')}
-          onClick={selectedUser => this.setState({selectedUser})}/>
+          onClick={selectedUser => this.setState({selectedUser})} />
         <Dropdown type={'General'}
           options={['one', 'two', 'three']}
           value={this.state.selectedOption}
           onOther={() => console.log('Clicked on other')}
-          onClick={selectedOption => this.setState({selectedOption})}/>
+          onClick={selectedOption => this.setState({selectedOption})} />
         <Dropdown type={'General'}
           options={['one', 'two', 'three']}
           value={this.state.selectedOption}
-          onClick={selectedOption => this.setState({selectedOption})}/>
+          onClick={selectedOption => this.setState({selectedOption})} />
       </div>
     )
   }
