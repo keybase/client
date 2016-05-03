@@ -2,6 +2,7 @@ package service
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"time"
 
@@ -10,6 +11,8 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	jsonw "github.com/keybase/go-jsonw"
+	"github.com/keybase/gregor"
 	"github.com/keybase/gregor/protocol/gregor1"
 )
 
@@ -86,6 +89,47 @@ func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
 
 func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message) error {
 	g.G().Log.Debug("gregor handler: broadcast: %+v", m)
+
+	obm := m.ToOutOfBandMessage()
+	if obm == nil {
+		return fmt.Errorf("gregor handler: out-of-bad message nil")
+	}
+
+	if obm.System() == nil {
+		return errors.New("nil system in out of band message")
+	}
+
+	switch obm.System().String() {
+	case "kbfs.favorites":
+		return g.kbfsFavorites(ctx, obm)
+	default:
+		return fmt.Errorf("unhandled system: %s", obm.System())
+	}
+}
+
+func (g *gregorHandler) kbfsFavorites(ctx context.Context, m gregor.OutOfBandMessage) error {
+	if m.Body() == nil {
+		return errors.New("gregor handler for kbfs.favorites: nil message body")
+	}
+	body, err := jsonw.Unmarshal(m.Body().Bytes())
+	if err != nil {
+		return err
+	}
+
+	action, err := body.AtPath("action").GetString()
+	if err != nil {
+		return err
+	}
+
+	switch action {
+	case "create", "delete":
+		return g.notifyFavoritesChanged(ctx, m.UID())
+	default:
+		return fmt.Errorf("unhandled kbfs.favorites action %q", action)
+	}
+}
+
+func (g *gregorHandler) notifyFavoritesChanged(ctx context.Context, uid gregor.UID) error {
 	return nil
 }
 
