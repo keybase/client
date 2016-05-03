@@ -103,22 +103,14 @@ func (k *LibKBFS) GetUID(u User) (uid keybase1.UID) {
 }
 
 // GetRootDir implements the Engine interface.
-func (k *LibKBFS) GetRootDir(u User, isPublic bool, writers []keybase1.UID, readers []keybase1.UID) (
+func (k *LibKBFS) GetRootDir(u User, tlfName string, isPublic bool) (
 	dir Node, err error) {
 	config := u.(*libkbfs.ConfigLocal)
 
-	if isPublic {
-		if len(readers) != 1 || readers[0] != keybase1.PUBLIC_UID {
-			panic(fmt.Sprintf("invalid readers %v", readers))
-		}
-	}
-
 	ctx := context.Background()
-	bareH, err := libkbfs.MakeBareTlfHandle(writers, readers, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-	h, err := libkbfs.MakeTlfHandle(ctx, bareH, config.KBPKI())
+	h, err := libkbfs.ParseTlfHandle(
+		ctx, config.KBPKI(), tlfName, isPublic,
+		config.SharingBeforeSignupEnabled())
 	if err != nil {
 		return nil, err
 	}

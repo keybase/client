@@ -35,9 +35,9 @@ type Engine interface {
 		clock libkbfs.Clock) map[libkb.NormalizedUsername]User
 	// GetUID is called by the test harness to retrieve a user instance's UID.
 	GetUID(u User) keybase1.UID
-	// GetRootDir is called by the test harness to get a handle to the TLF from the given user's
-	// perspective which is a shared folder of the given writers and readers
-	GetRootDir(u User, isPublic bool, writers []keybase1.UID, readers []keybase1.UID) (dir Node, err error)
+	// GetRootDir is called by the test harness to get a handle to a TLF from the given user's
+	// perspective
+	GetRootDir(u User, tlfName string, isPublic bool) (dir Node, err error)
 	// CreateDir is called by the test harness to create a directory relative to the passed
 	// parent directory for the given user.
 	CreateDir(u User, parentDir Node, name string) (dir Node, err error)

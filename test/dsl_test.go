@@ -215,7 +215,26 @@ func as(user username, fops ...fileOp) optionOp {
 			opt:  o,
 			user: o.users[libkb.NewNormalizedUsername(string(user))],
 		}
-		root, err := o.engine.GetRootDir(ctx.user, false, o.writers, o.readers)
+
+		var tlfName string
+		for _, w := range o.writerNames {
+			if tlfName != "" {
+				tlfName += ","
+			}
+			tlfName += string(w)
+		}
+		if len(o.readerNames) > 0 {
+			var s string
+			for _, r := range o.readerNames {
+				if s != "" {
+					s += ","
+				}
+				s += string(r)
+			}
+			tlfName += "#" + s
+		}
+
+		root, err := o.engine.GetRootDir(ctx.user, tlfName, false)
 		ctx.expectSuccess("GetRootDir", err)
 		ctx.rootNode = root
 

@@ -57,18 +57,14 @@ func (e *fsEngine) GetUID(user User) keybase1.UID {
 	return uid
 }
 
-// GetRootDir is called by the test harness to get a handle to the TLF from the given user's
-// perspective which is a shared folder of the given writers and readers
-func (*fsEngine) GetRootDir(user User, isPublic bool, writers []keybase1.UID, readers []keybase1.UID) (dir Node, err error) {
+// GetRootDir implements the Engine interface.
+func (*fsEngine) GetRootDir(user User, tlfName string, isPublic bool) (dir Node, err error) {
 	u := user.(*fsUser)
 
 	ctx := context.Background()
-	bareH, err := libkbfs.MakeBareTlfHandle(writers, readers, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	h, err := libkbfs.MakeTlfHandle(ctx, bareH, u.config.KBPKI())
+	h, err := libkbfs.ParseTlfHandle(
+		ctx, u.config.KBPKI(), tlfName, isPublic,
+		u.config.SharingBeforeSignupEnabled())
 	if err != nil {
 		return nil, err
 	}
