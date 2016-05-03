@@ -58,6 +58,7 @@ export default class Text extends Component {
       case 'BodyXSmallLink':
         return {color: backgroundMode === 'Normal' ? globalColors.black_60 : globalColors.white_75}
       case 'BadgeNumber':
+        return {}
       case 'BodyPrimaryLink':
         return {color: globalColors.blue}
       case 'BodySecondaryLink':
