@@ -59,7 +59,7 @@ func (e *fsEngine) GetUID(user User) keybase1.UID {
 
 // GetRootDir is called by the test harness to get a handle to the TLF from the given user's
 // perspective which is a shared folder of the given writers and readers
-func (*fsEngine) GetRootDir(user User, isPublic bool, writers []string, readers []string) (dir Node, err error) {
+func (*fsEngine) GetRootDir(user User, isPublic bool, writers []keybase1.UID, readers []keybase1.UID) (dir Node, err error) {
 	u := user.(*fsUser)
 	path := u.mntDir
 	if isPublic {

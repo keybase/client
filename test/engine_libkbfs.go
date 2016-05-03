@@ -119,26 +119,18 @@ func (k *LibKBFS) GetUID(u User) (uid keybase1.UID) {
 }
 
 // GetRootDir implements the Engine interface.
-func (k *LibKBFS) GetRootDir(u User, isPublic bool, writers []string, readers []string) (
+func (k *LibKBFS) GetRootDir(u User, isPublic bool, writers []keybase1.UID, readers []keybase1.UID) (
 	dir Node, err error) {
 	config := u.(*libkbfs.ConfigLocal)
 
-	writerUIDs := make([]keybase1.UID, 0, len(writers))
-	for _, writer := range writers {
-		writerUIDs = append(writerUIDs, keybase1.UID(writer))
-	}
-	var readerUIDs []keybase1.UID
 	if isPublic {
-		readerUIDs = []keybase1.UID{keybase1.PUBLIC_UID}
-	} else {
-		readerUIDs = make([]keybase1.UID, 0, len(readers))
-		for _, reader := range readers {
-			readerUIDs = append(readerUIDs, keybase1.UID(reader))
+		if len(readers) != 1 || readers[0] != keybase1.PUBLIC_UID {
+			panic(fmt.Sprintf("invalid readers %v", readers))
 		}
 	}
 
 	ctx := context.Background()
-	bareH, err := libkbfs.MakeBareTlfHandle(writerUIDs, readerUIDs, nil, nil)
+	bareH, err := libkbfs.MakeBareTlfHandle(writers, readers, nil, nil)
 	if err != nil {
 		return nil, err
 	}

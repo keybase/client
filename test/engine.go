@@ -36,7 +36,7 @@ type Engine interface {
 	GetUID(u User) keybase1.UID
 	// GetRootDir is called by the test harness to get a handle to the TLF from the given user's
 	// perspective which is a shared folder of the given writers and readers
-	GetRootDir(u User, isPublic bool, writers []string, readers []string) (dir Node, err error)
+	GetRootDir(u User, isPublic bool, writers []keybase1.UID, readers []keybase1.UID) (dir Node, err error)
 	// CreateDir is called by the test harness to create a directory relative to the passed
 	// parent directory for the given user.
 	CreateDir(u User, parentDir Node, name string) (dir Node, err error)

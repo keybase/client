@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/protocol"
 	"github.com/keybase/kbfs/libkbfs"
 )
 
@@ -32,8 +33,8 @@ type opt struct {
 	t               *testing.T
 	initDone        bool
 	engine          Engine
-	readers         []string
-	writers         []string
+	writers         []keybase1.UID
+	readers         []keybase1.UID
 	blockSize       int64
 	blockChangeSize int64
 	clock           *libkbfs.TestClock
@@ -64,13 +65,13 @@ func (o *opt) runInitOnce() {
 	o.clock.Set(time.Unix(0, 0))
 	o.users = o.engine.InitTest(o.t, o.blockSize, o.blockChangeSize, o.writerNames, o.readerNames, o.clock)
 
-	for _, uname := range o.readerNames {
-		uid := string(o.engine.GetUID(o.users[string(uname)]))
-		o.readers = append(o.readers, uid)
-	}
 	for _, uname := range o.writerNames {
-		uid := string(o.engine.GetUID(o.users[string(uname)]))
+		uid := o.engine.GetUID(o.users[string(uname)])
 		o.writers = append(o.writers, uid)
+	}
+	for _, uname := range o.readerNames {
+		uid := o.engine.GetUID(o.users[string(uname)])
+		o.readers = append(o.readers, uid)
 	}
 
 	o.initDone = true
