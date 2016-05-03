@@ -14,7 +14,7 @@ import "testing"
 //
 func TestWriteReadWriteFail(t *testing.T) {
 	test(t,
-		users("alice", "bob"), inPrivateTlf("alice,bob#eve"),
+		users("alice", "bob", "eve"), inPrivateTlf("alice,bob#eve"),
 		as(alice,
 			mkfile("foo.txt", "hello world"),
 		),
