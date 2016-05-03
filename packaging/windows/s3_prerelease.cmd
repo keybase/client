@@ -12,9 +12,6 @@ set release_bin=%GOPATH%\bin\windows_386\release.exe
 echo "Creating index files"
 %release_bin% index-html --bucket-name=%BUCKET_NAME% --prefixes="windows/" --upload="windows/index.html"
 
-echo "Linking latest"
-%release_bin% latest --bucket-name=%BUCKET_NAME% --platform=windows
-
 echo "Checking if we need to promote a release for testing"
 %release_bin% promote-test-releases --bucket-name=%BUCKET_NAME% --platform=windows
 
