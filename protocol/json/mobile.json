@@ -1,0 +1,20 @@
+{
+  "protocol": "mobile",
+  "types": [],
+  "messages": {
+    "hellokbfs": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "echo",
+          "type": "string"
+        }
+      ],
+      "response": "string"
+    }
+  },
+  "namespace": "keybase.1"
+}

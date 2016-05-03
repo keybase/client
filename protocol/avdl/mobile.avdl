@@ -1,0 +1,7 @@
+
+@namespace("keybase.1")
+protocol mobile {
+
+  string hellokbfs(int sessionID, string echo);
+
+}

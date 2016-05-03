@@ -4,7 +4,6 @@
 package service
 
 import (
-	// "fmt"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
@@ -29,11 +28,6 @@ func NewNotifyCtlHandler(xp rpc.Transporter, id libkb.ConnectionID, g *libkb.Glo
 }
 
 func (h *NotifyCtlHandler) SetNotifications(UNDER context.Context, n keybase1.NotificationChannels) error {
-	/*
-		TEMP mcuase this crashes
-		fmt.Println("BBBB SetNofications", n, h, h.G, h.id, UNDER)
-		fmt.Println("BBBB SetNofications", h.G(), h.G().NotifyRouter, h.G().NotifyRouter.SetChannels)
-		h.G().NotifyRouter.SetChannels(h.id, n)
-	*/
+	h.G().NotifyRouter.SetChannels(h.id, n)
 	return nil
 }

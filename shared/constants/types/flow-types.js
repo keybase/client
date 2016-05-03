@@ -2405,6 +2405,17 @@ export type metadata_truncateUnlock_rpc = {
   callback: (null | (err: ?any, response: metadata_truncateUnlock_result) => void)
 }
 
+export type mobile_hellokbfs_result = string
+
+export type mobile_hellokbfs_rpc = {
+  method: 'mobile.hellokbfs',
+  param: {
+    echo: string
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any, response: mobile_hellokbfs_result) => void)
+}
+
 export type notifyCtl_setNotifications_result = void
 
 export type notifyCtl_setNotifications_rpc = {
@@ -3452,6 +3463,7 @@ export type rpc =
   | metadata_registerForUpdates_rpc
   | metadata_truncateLock_rpc
   | metadata_truncateUnlock_rpc
+  | mobile_hellokbfs_rpc
   | notifyCtl_setNotifications_rpc
   | paperprovision_paperProvision_rpc
   | pgpUi_outputSignatureSuccess_rpc
@@ -4575,6 +4587,16 @@ export type incomingCallMapType = {
     response: {
       error: (err: RPCError) => void,
       result: () => void
+    }
+  ) => void,
+  'keybase.1.mobile.hellokbfs'?: (
+    params: {
+      sessionID: int,
+      echo: string
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: mobile_hellokbfs_result) => void
     }
   ) => void,
   'keybase.1.notifyCtl.setNotifications'?: (

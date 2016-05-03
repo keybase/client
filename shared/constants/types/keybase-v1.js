@@ -775,6 +775,8 @@ export const metadataUpdate = {
   }
 }
 
+export const mobile = {}
+
 export const notifyCtl = {
   'LogLevel': {
     'none': 0,
@@ -1833,6 +1835,7 @@ export default {
   loginUi,
   metadata,
   metadataUpdate,
+  mobile,
   notifyCtl,
   NotifyFS,
   NotifySession,

@@ -26,6 +26,7 @@ import {devicesTab, moreTab, startupTab, folderTab, peopleTab, loginTab, profile
 import type {VisibleTab} from './constants/tabs' // eslint-disable-line
 import ListenLogUi from './native/listen-log-ui'
 import {listenForNotifications} from './actions/notifications'
+import {registerPinentryListener} from './actions/pinentry'
 import hello from './util/hello'
 
 const tabs: {[key: VisibleTab]: {module: any}} = {
@@ -92,6 +93,7 @@ class Nav extends Component {
 
     this.props.bootstrap()
     this.props.listenForNotifications()
+    this.props.registerPinentryListener()
 
     // Handle logUi.log
     ListenLogUi()
@@ -195,7 +197,8 @@ export default connect(
       navigateUp: () => dispatch(navigateUp()),
       navigateTo: uri => dispatch(navigateTo(uri)),
       bootstrap: () => dispatch(bootstrap()),
-      listenForNotifications: () => dispatch(listenForNotifications())
+      listenForNotifications: () => dispatch(listenForNotifications()),
+      registerPinentryListener: () => dispatch(registerPinentryListener())
     }
   }
 )(Nav)

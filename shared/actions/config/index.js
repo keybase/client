@@ -8,7 +8,7 @@ import {navBasedOnLoginState} from '../../actions/login'
 import * as native from './index.native'
 
 import type {AsyncAction} from '../../constants/types/flux'
-import type {config_getConfig_rpc, config_getExtendedStatus_rpc, config_getCurrentStatus_rpc} from '../../constants/types/flow-types' // eslint-disable-line
+import type {config_getConfig_rpc, config_getExtendedStatus_rpc, config_getCurrentStatus_rpc, mobile_hellokbfs_rpc} from '../../constants/types/flow-types' // eslint-disable-line
 
 function getConfig (): AsyncAction {
   return (dispatch, getState) => {
@@ -56,8 +56,35 @@ function getExtendedStatus (): AsyncAction {
   }
 }
 
+function testKBFS (): void {
+  console.log('bbbbbb calling test from JS')
+  const params : mobile_hellokbfs_rpc = {
+    method: 'mobile.hellokbfs',
+    param: {
+      echo: 'echo'
+    },
+    incomingCallMap: {},
+    callback: (error: any, res: string) => {
+      if (error) {
+        console.log('bbbbbb error: ', error)
+      } else {
+        console.log('bbbbbb: ', res)
+      }
+    }
+  }
+
+  engine.rpc(params)
+}
+
 let bootstrapSetup = false
 export function bootstrap (): AsyncAction {
+  // TEMP
+  testKBFS()
+  setInterval(() => {
+    testKBFS()
+  }, 5000)
+  // TEMP
+
   return dispatch => {
     if (!bootstrapSetup) {
       bootstrapSetup = true

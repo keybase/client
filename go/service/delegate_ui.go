@@ -4,6 +4,7 @@
 package service
 
 import (
+	"fmt"
 	"github.com/keybase/client/go/libkb"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	context "golang.org/x/net/context"
@@ -27,6 +28,8 @@ func NewDelegateUICtlHandler(xp rpc.Transporter, id libkb.ConnectionID, g *libkb
 }
 
 func (d *DelegateUICtlHandler) RegisterIdentifyUI(_ context.Context) error {
+	fmt.Println("bbbbbbbcccc", d.G())
+	fmt.Println("bbbbbbbcccc", d.G().UIRouter)
 	d.G().UIRouter.SetUI(d.id, libkb.IdentifyUIKind)
 	return nil
 }

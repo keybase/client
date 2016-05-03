@@ -9,10 +9,11 @@ import (
 	"fmt"
 	"net"
 	"sync"
+	// "time"
 
 	"github.com/keybase/client/go/libkb"
 	// "github.com/keybase/client/go/logger"
-	"github.com/keybase/client/go/service"
+	kbservice "github.com/keybase/client/go/service"
 	"github.com/keybase/kbfs/libkbfs"
 )
 
@@ -38,14 +39,12 @@ func Init(homeDir string, runModeStr string, serverURI string, accessGroupOverri
 		if err != nil {
 			panic(err)
 		}
-		service := (service.NewService(g, false))
-		service.StartLoopbackServer()
+		service := (kbservice.NewService(g, false))
+		service.StartLoopbackServer(true)
 		service.G().SetService()
+		service.G().SetUIRouter(kbservice.NewUIRouter(service.G()))
 
-		// kbfsParams := libkbfs.AddFlags(flag.NewFlagSet("flags", flag.ContinueOnError))
-		// flag.Parse()
-		// log := logger.NewWithCallDepth("", 1)
-		// _, err = libkbfs.InitMobile(*kbfsParams, nil, nil)
+		// time.AfterFunc(3*time.Second, func() {
 		libkbfs.InitMobile( /*homeDir, "prod", */ g)
 		if err != nil {
 			fmt.Println("Error init kbfs", err)
@@ -53,6 +52,7 @@ func Init(homeDir string, runModeStr string, serverURI string, accessGroupOverri
 		}
 
 		defer libkbfs.Shutdown()
+		// })
 
 		Reset()
 	})

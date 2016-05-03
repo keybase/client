@@ -32,6 +32,7 @@ type Service struct {
 	updateChecker *updater.UpdateChecker
 	logForwarder  *logFwd
 	gregorConn    *rpc.Connection
+	isMobile      bool
 }
 
 func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
@@ -41,6 +42,7 @@ func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
 		startCh:      make(chan struct{}),
 		stopCh:       make(chan keybase1.ExitCode),
 		logForwarder: newLogFwd(),
+		isMobile:     false,
 	}
 }
 
@@ -83,6 +85,13 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 			return err
 		}
 	}
+
+	if d.isMobile {
+		if err := srv.Register(keybase1.MobileProtocol(NewMobileHandler(xp, g))); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -189,10 +198,11 @@ func (d *Service) Run() (err error) {
 	return err
 }
 
-func (d *Service) StartLoopbackServer() error {
-
+func (d *Service) StartLoopbackServer(isMobile bool) error {
 	var l net.Listener
 	var err error
+
+	d.isMobile = isMobile
 
 	if err = d.GetExclusiveLock(); err != nil {
 		return err

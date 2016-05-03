@@ -159,7 +159,7 @@ func configureProcesses(g *libkb.GlobalContext, cl *libcmdline.CommandLine, cmd 
 			err = fmt.Errorf("Can't run command in standalone mode")
 			return err
 		}
-		err := service.NewService(g, false /* isDaemon */).StartLoopbackServer()
+		err := service.NewService(g, false /* isDaemon */).StartLoopbackServer(false)
 		if err != nil {
 			if pflerr, ok := err.(libkb.PIDFileLockError); ok {
 				err = fmt.Errorf("Can't run in standalone mode with a service running (see %q)",
