@@ -3,6 +3,7 @@ package test
 import (
 	"testing"
 
+	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/kbfs/libkbfs"
 )
@@ -30,8 +31,8 @@ type Engine interface {
 	// dedicated data block instead. If blockSize or blockChangeSize
 	// are zero, the engine defaults are used.
 	InitTest(t *testing.T, blockSize int64, blockChangeSize int64,
-		writers []username, readers []username,
-		clock libkbfs.Clock) map[string]User
+		users []libkb.NormalizedUsername,
+		clock libkbfs.Clock) map[libkb.NormalizedUsername]User
 	// GetUID is called by the test harness to retrieve a user instance's UID.
 	GetUID(u User) keybase1.UID
 	// GetRootDir is called by the test harness to get a handle to the TLF from the given user's

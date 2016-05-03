@@ -14,6 +14,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/protocol"
 	"github.com/keybase/kbfs/libkbfs"
 )
@@ -27,9 +28,9 @@ const (
 )
 
 type opt struct {
-	readerNames     []username
-	writerNames     []username
-	users           map[string]User
+	writerNames     []libkb.NormalizedUsername
+	readerNames     []libkb.NormalizedUsername
+	users           map[libkb.NormalizedUsername]User
 	t               *testing.T
 	initDone        bool
 	engine          Engine
@@ -63,14 +64,15 @@ func (o *opt) runInitOnce() {
 	}
 	o.clock = &libkbfs.TestClock{}
 	o.clock.Set(time.Unix(0, 0))
-	o.users = o.engine.InitTest(o.t, o.blockSize, o.blockChangeSize, o.writerNames, o.readerNames, o.clock)
+	o.users = o.engine.InitTest(o.t, o.blockSize, o.blockChangeSize,
+		append(o.writerNames, o.readerNames...), o.clock)
 
 	for _, uname := range o.writerNames {
-		uid := o.engine.GetUID(o.users[string(uname)])
+		uid := o.engine.GetUID(o.users[uname])
 		o.writers = append(o.writers, uid)
 	}
 	for _, uname := range o.readerNames {
-		uid := o.engine.GetUID(o.users[string(uname)])
+		uid := o.engine.GetUID(o.users[uname])
 		o.readers = append(o.readers, uid)
 	}
 
@@ -131,13 +133,17 @@ func skip(implementation, reason string) optionOp {
 
 func writers(ns ...username) optionOp {
 	return func(o *opt) {
-		o.writerNames = append(o.writerNames, ns...)
+		for _, n := range ns {
+			o.writerNames = append(o.writerNames, libkb.NewNormalizedUsername(string(n)))
+		}
 	}
 }
 
 func readers(ns ...username) optionOp {
 	return func(o *opt) {
-		o.readerNames = append(o.readerNames, ns...)
+		for _, n := range ns {
+			o.readerNames = append(o.readerNames, libkb.NewNormalizedUsername(string(n)))
+		}
 	}
 }
 
@@ -207,7 +213,7 @@ func as(user username, fops ...fileOp) optionOp {
 		o.runInitOnce()
 		ctx := &ctx{
 			opt:  o,
-			user: o.users[string(user)],
+			user: o.users[libkb.NewNormalizedUsername(string(user))],
 		}
 		root, err := o.engine.GetRootDir(ctx.user, false, o.writers, o.readers)
 		ctx.expectSuccess("GetRootDir", err)
