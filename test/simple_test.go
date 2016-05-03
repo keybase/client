@@ -13,7 +13,7 @@ import (
 // Check that renaming over a file correctly cleans up state
 func TestRenameFileOverFile(t *testing.T) {
 	test(t,
-		users("alice", "bob"),
+		writers("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 			mkfile("a/c", "world"),
@@ -28,7 +28,7 @@ func TestRenameFileOverFile(t *testing.T) {
 func TestRenameDirOverFile(t *testing.T) {
 	test(t,
 		skip("fuse", "Renaming directories over files not supported on linux fuse (ENOTDIR)"),
-		users("alice", "bob"),
+		writers("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 			mkfile("a/c/d", "world"),

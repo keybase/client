@@ -14,7 +14,7 @@ import "testing"
 //
 func TestWriteReadWriteFail(t *testing.T) {
 	test(t,
-		users("alice", "bob", "eve"), inPrivateTlf("alice,bob#eve"),
+		writers("alice", "bob"), readers("eve"),
 		as(alice,
 			mkfile("foo.txt", "hello world"),
 		),
@@ -38,7 +38,7 @@ func TestWriteReadWriteFail(t *testing.T) {
 //
 func TestConflict(t *testing.T) {
 	test(t,
-		users("alice", "bob"),
+		writers("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 		),
@@ -65,7 +65,7 @@ func TestConflict(t *testing.T) {
 // and create an executable file.
 func TestLinkLsRenameRmRmdirSetex(t *testing.T) {
 	test(t,
-		users("alice", "bob"),
+		writers("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello world"),
 			mkdir("a/e"),

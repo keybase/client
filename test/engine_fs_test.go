@@ -25,11 +25,10 @@ import (
 type fsEngine struct {
 	name       string
 	t          *testing.T
-	createUser func(t *testing.T, ith int, config *libkbfs.ConfigLocal) User
+	createUser func(t *testing.T, ith int, config *libkbfs.ConfigLocal, h *libkbfs.TlfHandle) User
 }
 type fsNode struct {
-	branch libkbfs.FolderBranch
-	path   string
+	path string
 }
 type fsUser struct {
 	mntDir                string
@@ -37,6 +36,7 @@ type fsUser struct {
 	cancel                func()
 	close                 func()
 	notificationGroupWait func()
+	tlf                   *libkbfs.TlfHandle
 }
 
 // Perform Init for the engine
@@ -57,32 +57,17 @@ func (e *fsEngine) GetUID(user User) keybase1.UID {
 	return uid
 }
 
-// GetRootDir implements the Engine interface.
-func (*fsEngine) GetRootDir(user User, tlfName string, isPublic bool) (dir Node, err error) {
+// GetRootDir is called by the test harness to get a handle to the TLF from the given user's
+// perspective which is a shared folder of the given writers and readers
+func (*fsEngine) GetRootDir(user User, isPublic bool, writers []string, readers []string) (dir Node, err error) {
 	u := user.(*fsUser)
-
-	ctx := context.Background()
-	h, err := libkbfs.ParseTlfHandle(
-		ctx, u.config.KBPKI(), tlfName, isPublic,
-		u.config.SharingBeforeSignupEnabled())
-	if err != nil {
-		return nil, err
-	}
-
 	path := u.mntDir
-	if h.IsPublic() {
-		path += "/public/" + string(h.GetCanonicalName())
+	if isPublic {
+		path += "/public/" + string(u.tlf.GetCanonicalName())
 	} else {
-		path += "/private/" + string(h.GetCanonicalName())
+		path += "/private/" + string(u.tlf.GetCanonicalName())
 	}
-
-	root, _, err := u.config.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
-	if err != nil {
-		return nil, fmt.Errorf("cannot get root for %s: %v", path, err)
-	}
-
-	return &fsNode{root.GetFolderBranch(), path}, nil
+	return &fsNode{path}, nil
 }
 
 // CreateDir is called by the test harness to create a directory relative to the passed
@@ -94,7 +79,7 @@ func (*fsEngine) CreateDir(u User, parentDir Node, name string) (dir Node, err e
 	if err != nil {
 		return nil, err
 	}
-	return &fsNode{p.branch, path}, nil
+	return &fsNode{path}, nil
 }
 
 // CreateFile is called by the test harness to create a file in the given directory as
@@ -107,7 +92,7 @@ func (*fsEngine) CreateFile(u User, parentDir Node, name string) (file Node, err
 		return nil, err
 	}
 	f.Close()
-	return &fsNode{p.branch, path}, nil
+	return &fsNode{path}, nil
 }
 
 // WriteFile is called by the test harness to write to the given file as the given user.
@@ -195,7 +180,13 @@ func (*fsEngine) ReenableUpdates(u User, dir Node) {
 func (e *fsEngine) SyncFromServerForTesting(user User, dir Node) (err error) {
 	u := user.(*fsUser)
 	ctx := context.Background()
-	err = u.config.KBFSOps().SyncFromServerForTesting(ctx, dir.(*fsNode).branch)
+	root, _, err := u.config.KBFSOps().GetOrCreateRootNode(
+		ctx, u.tlf, libkbfs.MasterBranch)
+	if err != nil {
+		return fmt.Errorf("cannot get root for %s: %v", u.tlf.GetCanonicalPath(), err)
+	}
+
+	err = u.config.KBFSOps().SyncFromServerForTesting(ctx, root.GetFolderBranch())
 	if err != nil {
 		return fmt.Errorf("Couldn't sync from server: %v", err)
 	}
@@ -206,9 +197,16 @@ func (e *fsEngine) SyncFromServerForTesting(user User, dir Node) (err error) {
 // ForceQuotaReclamation implements the Engine interface.
 func (*fsEngine) ForceQuotaReclamation(user User, dir Node) (err error) {
 	u := user.(*fsUser)
+	ctx := context.Background()
+	root, _, err := u.config.KBFSOps().GetOrCreateRootNode(
+		ctx, u.tlf, libkbfs.MasterBranch)
+	if err != nil {
+		return fmt.Errorf("cannot get root for %s: %v", u.tlf.GetCanonicalPath(), err)
+	}
+
 	// TODO: expose this as a special write-only file?
-	return libkbfs.ForceQuotaReclamationForTesting(
-		u.config, dir.(*fsNode).branch)
+	return libkbfs.ForceQuotaReclamationForTesting(u.config,
+		root.GetFolderBranch())
 }
 
 // Shutdown is called by the test harness when it is done with the
@@ -242,13 +240,13 @@ func (e *fsEngine) Lookup(u User, parentDir Node, name string) (file Node, symPa
 	// here and end up deferencing them. This works but is not
 	// ideal.
 	if fi.Mode()&os.ModeSymlink == 0 || e.name == "dokan" {
-		return &fsNode{n.branch, path}, "", nil
+		return &fsNode{path}, "", nil
 	}
 	symPath, err = os.Readlink(path)
 	if err != nil {
 		return nil, "", err
 	}
-	return &fsNode{n.branch, path}, symPath, err
+	return &fsNode{path}, symPath, err
 }
 
 // SetEx is called by the test harness as the given user to set/unset the executable bit on the
@@ -291,14 +289,18 @@ func usersTlf(uids []keybase1.UID, nwriters int, config *libkbfs.ConfigLocal) (*
 	return h, nil
 }
 
-func (e *fsEngine) InitTest(t *testing.T, blockSize int64,
-	blockChangeSize int64, users []libkb.NormalizedUsername,
-	clock libkbfs.Clock) map[string]User {
+func (e *fsEngine) InitTest(t *testing.T, blockSize int64, blockChangeSize int64, writers []username, readers []username, clock libkbfs.Clock) map[string]User {
 	e.t = t
 	res := map[string]User{}
 
+	users := concatUserNamesToStrings2(writers, readers)
+	normalized := make([]libkb.NormalizedUsername, len(users))
+	for i, name := range users {
+		normalized[i] = libkb.NormalizedUsername(name)
+	}
+
 	// create the first user specially
-	config0 := libkbfs.MakeTestConfigOrBust(t, users...)
+	config0 := libkbfs.MakeTestConfigOrBust(t, normalized...)
 	config0.SetClock(clock)
 
 	setBlockSizes(t, config0, blockSize, blockChangeSize)
@@ -306,7 +308,7 @@ func (e *fsEngine) InitTest(t *testing.T, blockSize int64,
 	cfgs := make([]*libkbfs.ConfigLocal, len(users))
 	cfgs[0] = config0
 	uids[0] = nameToUID(t, config0)
-	for i, name := range users[1:] {
+	for i, name := range normalized[1:] {
 		c := libkbfs.ConfigAsUser(config0, name)
 		c.SetClock(clock)
 		cfgs[i+1] = c
@@ -314,7 +316,11 @@ func (e *fsEngine) InitTest(t *testing.T, blockSize int64,
 	}
 
 	for i, name := range users {
-		res[string(name)] = e.createUser(t, i, cfgs[i])
+		tlf, err := usersTlf(uids, len(writers), cfgs[i])
+		if err != nil {
+			t.Fatal(err)
+		}
+		res[name] = e.createUser(t, i, cfgs[i], tlf)
 	}
 
 	return res

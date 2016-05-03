@@ -11,7 +11,7 @@ import "testing"
 // bob writes a multi-block file while unmerged, no conflicts
 func TestCrUnmergedWriteMultiblockFile(t *testing.T) {
 	test(t,
-		blockSize(20), users("alice", "bob"),
+		blockSize(20), writers("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 		),
@@ -39,7 +39,7 @@ func TestCrUnmergedWriteMultiblockFile(t *testing.T) {
 // bob writes a multi-block file that conflicts with a file created by alice
 func TestCrConflictUnmergedWriteMultiblockFile(t *testing.T) {
 	test(t,
-		blockSize(20), users("alice", "bob"),
+		blockSize(20), writers("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 		),
@@ -68,7 +68,7 @@ func TestCrConflictUnmergedWriteMultiblockFile(t *testing.T) {
 // created by alice
 func TestCrConflictMergedWriteMultiblockFile(t *testing.T) {
 	test(t,
-		blockSize(20), users("alice", "bob"),
+		blockSize(20), writers("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 		),
@@ -96,7 +96,7 @@ func TestCrConflictMergedWriteMultiblockFile(t *testing.T) {
 // bob resurrects a file that was removed by alice
 func TestCrConflictWriteToRemovedMultiblockFile(t *testing.T) {
 	test(t,
-		blockSize(20), users("alice", "bob"),
+		blockSize(20), writers("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 			write("a/b", ntimesString(15, "0123456789")),
@@ -123,7 +123,7 @@ func TestCrConflictWriteToRemovedMultiblockFile(t *testing.T) {
 // bob makes a file that was removed by alice executable
 func TestCrConflictSetexToRemovedMultiblockFile(t *testing.T) {
 	test(t,
-		blockSize(20), users("alice", "bob"),
+		blockSize(20), writers("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 			write("a/b", ntimesString(15, "0123456789")),
@@ -150,7 +150,7 @@ func TestCrConflictSetexToRemovedMultiblockFile(t *testing.T) {
 // bob moves a file that was removed by alice
 func TestCrConflictMoveRemovedMultiblockFile(t *testing.T) {
 	test(t,
-		blockSize(20), users("alice", "bob"),
+		blockSize(20), writers("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 			write("a/b", ntimesString(15, "0123456789")),

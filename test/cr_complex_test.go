@@ -11,7 +11,7 @@ import "testing"
 // bob renames a non-conflicting file into a new directory while unstaged
 func TestCrUnmergedRenameIntoNewDir(t *testing.T) {
 	test(t,
-		users("alice", "bob"),
+		writers("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 		),
@@ -42,7 +42,7 @@ func TestCrUnmergedRenameIntoNewDir(t *testing.T) {
 // bob is unstaged.
 func TestCrMergedRenameIntoNewDir(t *testing.T) {
 	test(t,
-		users("alice", "bob"),
+		writers("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 		),
@@ -72,7 +72,7 @@ func TestCrMergedRenameIntoNewDir(t *testing.T) {
 // bob causes a simple rename(cycle while unstaged),
 func TestCrRenameCycle(t *testing.T) {
 	test(t,
-		users("alice", "bob"),
+		writers("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 			mkdir("b"),
@@ -105,7 +105,7 @@ func TestCrRenameCycle(t *testing.T) {
 // bob causes a complicated rename(cycle while unstaged),
 func TestCrComplexRenameCycle(t *testing.T) {
 	test(t,
-		users("alice", "bob"),
+		writers("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 			mkdir("b"),
@@ -141,7 +141,7 @@ func TestCrComplexRenameCycle(t *testing.T) {
 // bob causes a complicated and large rename(cycle while unstaged),
 func TestCrComplexLargeRenameCycle(t *testing.T) {
 	test(t,
-		users("alice", "bob"),
+		writers("alice", "bob"),
 		as(alice,
 			mkdir("a/b/c"),
 			mkdir("d/e/f"),
@@ -173,7 +173,7 @@ func TestCrComplexLargeRenameCycle(t *testing.T) {
 // bob and alice do a lot of complex renames cycle while unstaged
 func TestCrComplexRenameNoCycle(t *testing.T) {
 	test(t,
-		users("alice", "bob"),
+		writers("alice", "bob"),
 		as(alice,
 			mkdir("a/b/c/d/e/f/g"),
 		),
@@ -212,7 +212,7 @@ func TestCrComplexRenameNoCycle(t *testing.T) {
 // bob renames a file while unmerged, at the same time alice writes to it
 func TestCrUnmergedRenameWithParallelWrite(t *testing.T) {
 	test(t,
-		users("alice", "bob"),
+		writers("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 			mkdir("b"),
@@ -242,7 +242,7 @@ func TestCrUnmergedRenameWithParallelWrite(t *testing.T) {
 // bob makes a non-conflicting file executable while alice writes to it
 func TestCrUnmergedSetexParallelWrite(t *testing.T) {
 	test(t,
-		users("alice", "bob"),
+		writers("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 		),
@@ -268,7 +268,7 @@ func TestCrUnmergedSetexParallelWrite(t *testing.T) {
 // alice makes a non-conflicting file executable while bob writes to it
 func TestCrMergedSetexParallelWrite(t *testing.T) {
 	test(t,
-		users("alice", "bob"),
+		writers("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 		),
@@ -294,7 +294,7 @@ func TestCrMergedSetexParallelWrite(t *testing.T) {
 // bob writes to a file while alice removes it
 func TestCrUnmergedWriteToRemovedFile(t *testing.T) {
 	test(t,
-		users("alice", "bob"),
+		writers("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 		),
@@ -320,7 +320,7 @@ func TestCrUnmergedWriteToRemovedFile(t *testing.T) {
 // bob removes a file while alice writes to it
 func TestCrMergedWriteToRemovedFile(t *testing.T) {
 	test(t,
-		users("alice", "bob"),
+		writers("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 		),
@@ -346,7 +346,7 @@ func TestCrMergedWriteToRemovedFile(t *testing.T) {
 // bob writes to a file to a directory that alice removes
 func TestCrUnmergedCreateInRemovedDir(t *testing.T) {
 	test(t,
-		users("alice", "bob"),
+		writers("alice", "bob"),
 		as(alice,
 			mkfile("a/b/c/d/e", "hello"),
 		),
@@ -375,7 +375,7 @@ func TestCrUnmergedCreateInRemovedDir(t *testing.T) {
 // alice writes to a file to a directory that bob removes
 func TestCrMergedCreateInRemovedDir(t *testing.T) {
 	test(t,
-		users("alice", "bob"),
+		writers("alice", "bob"),
 		as(alice,
 			mkfile("a/b/c/d/e", "hello"),
 		),
@@ -404,7 +404,7 @@ func TestCrMergedCreateInRemovedDir(t *testing.T) {
 // bob writes a file while unmerged, at the same time alice renames it
 func TestCrMergedRenameWithParallelWrite(t *testing.T) {
 	test(t,
-		users("alice", "bob"),
+		writers("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 			mkdir("b"),
@@ -434,7 +434,7 @@ func TestCrMergedRenameWithParallelWrite(t *testing.T) {
 // bob has two back-to-back resolutions
 func TestCrDoubleResolution(t *testing.T) {
 	test(t,
-		users("alice", "bob"),
+		writers("alice", "bob"),
 		as(alice,
 			mkdir("a/b"),
 		),
@@ -489,7 +489,7 @@ func TestCrDoubleResolution(t *testing.T) {
 // bob makes files in a directory renamed by alice
 func TestCrUnmergedMakeFilesInRenamedDir(t *testing.T) {
 	test(t,
-		users("alice", "bob"),
+		writers("alice", "bob"),
 		as(alice,
 			mkdir("a/b"),
 		),
@@ -520,7 +520,7 @@ func TestCrUnmergedMakeFilesInRenamedDir(t *testing.T) {
 // bob makes files in a directory renamed by alice
 func TestCrMergedMakeFilesInRenamedDir(t *testing.T) {
 	test(t,
-		users("alice", "bob"),
+		writers("alice", "bob"),
 		as(alice,
 			mkdir("a/b"),
 		),
@@ -551,7 +551,7 @@ func TestCrMergedMakeFilesInRenamedDir(t *testing.T) {
 // bob moves and setexes a file that was written by alice
 func TestCrConflictMoveAndSetexWrittenFile(t *testing.T) {
 	test(t,
-		users("alice", "bob"),
+		writers("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 			write("a/b", "hello"),
@@ -579,7 +579,7 @@ func TestCrConflictMoveAndSetexWrittenFile(t *testing.T) {
 // bob moves and setexes a file that was removed by alice
 func TestCrConflictMoveAndSetexRemovedFile(t *testing.T) {
 	test(t,
-		users("alice", "bob"),
+		writers("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 			write("a/b", "hello"),
@@ -608,7 +608,7 @@ func TestCrConflictMoveAndSetexRemovedFile(t *testing.T) {
 // file that used to exist at that location, but bob first moved it
 func TestCrMergedRecreatedAndUnmergedMovedFile(t *testing.T) {
 	test(t,
-		users("alice", "bob"),
+		writers("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 			write("a/b", "hello"),
@@ -640,7 +640,7 @@ func TestCrMergedRecreatedAndUnmergedMovedFile(t *testing.T) {
 
 func TestCrUnmergedCreateFileInRenamedDir(t *testing.T) {
 	test(t,
-		users("alice", "bob"),
+		writers("alice", "bob"),
 		as(alice,
 			mkdir("a/b"),
 		),
@@ -672,7 +672,7 @@ func TestCrUnmergedCreateFileInRenamedDir(t *testing.T) {
 // bob moves a file that was removed by alice
 func TestCrUnmergedMoveOfRemovedFile(t *testing.T) {
 	test(t,
-		users("alice", "bob"),
+		writers("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 			write("a/b", "hello"),

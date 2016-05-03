@@ -36,16 +36,32 @@ func (k *LibKBFS) Init() {
 		make(map[libkbfs.Config]map[libkbfs.NodeID]chan<- struct{})
 }
 
+func concatUserNamesToStrings2(a, b []username) []string {
+	userSlice := make([]string, 0, len(a)+len(b))
+	for _, u := range a {
+		userSlice = append(userSlice, string(u))
+	}
+	for _, u := range b {
+		userSlice = append(userSlice, string(u))
+	}
+	return userSlice
+}
+
 // InitTest implements the Engine interface.
 func (k *LibKBFS) InitTest(t *testing.T, blockSize int64, blockChangeSize int64,
-	users []libkb.NormalizedUsername,
-	clock libkbfs.Clock) map[libkb.NormalizedUsername]User {
+	writers []username, readers []username,
+	clock libkbfs.Clock) map[string]User {
+	users := concatUserNamesToStrings2(writers, readers)
 	// Start a new log for this test.
 	k.t = t
 	k.t.Log("\n------------------------------------------")
-	userMap := make(map[libkb.NormalizedUsername]User)
+	userMap := make(map[string]User)
+	normalized := make([]libkb.NormalizedUsername, len(users))
+	for i, name := range users {
+		normalized[i] = libkb.NormalizedUsername(name)
+	}
 	// create the first user specially
-	config := libkbfs.MakeTestConfigOrBust(t, users...)
+	config := libkbfs.MakeTestConfigOrBust(t, normalized...)
 
 	// Set the block sizes, if any
 	if blockSize > 0 || blockChangeSize > 0 {
@@ -73,15 +89,15 @@ func (k *LibKBFS) InitTest(t *testing.T, blockSize int64, blockChangeSize int64,
 	k.refs[config] = make(map[libkbfs.Node]bool)
 	k.updateChannels[config] = make(map[libkbfs.NodeID]chan<- struct{})
 
-	if len(users) == 1 {
+	if len(normalized) == 1 {
 		return userMap
 	}
 
 	// create the rest of the users as copies of the original config
-	for _, name := range users[1:] {
+	for i, name := range normalized[1:] {
 		c := libkbfs.ConfigAsUser(config, name)
 		c.SetClock(clock)
-		userMap[name] = c
+		userMap[users[i+1]] = c
 		k.refs[c] = make(map[libkbfs.Node]bool)
 		k.updateChannels[c] = make(map[libkbfs.NodeID]chan<- struct{})
 	}
@@ -103,14 +119,30 @@ func (k *LibKBFS) GetUID(u User) (uid keybase1.UID) {
 }
 
 // GetRootDir implements the Engine interface.
-func (k *LibKBFS) GetRootDir(u User, tlfName string, isPublic bool) (
+func (k *LibKBFS) GetRootDir(u User, isPublic bool, writers []string, readers []string) (
 	dir Node, err error) {
 	config := u.(*libkbfs.ConfigLocal)
 
+	writerUIDs := make([]keybase1.UID, 0, len(writers))
+	for _, writer := range writers {
+		writerUIDs = append(writerUIDs, keybase1.UID(writer))
+	}
+	var readerUIDs []keybase1.UID
+	if isPublic {
+		readerUIDs = []keybase1.UID{keybase1.PUBLIC_UID}
+	} else {
+		readerUIDs = make([]keybase1.UID, 0, len(readers))
+		for _, reader := range readers {
+			readerUIDs = append(readerUIDs, keybase1.UID(reader))
+		}
+	}
+
 	ctx := context.Background()
-	h, err := libkbfs.ParseTlfHandle(
-		ctx, config.KBPKI(), tlfName, isPublic,
-		config.SharingBeforeSignupEnabled())
+	bareH, err := libkbfs.MakeBareTlfHandle(writerUIDs, readerUIDs, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	h, err := libkbfs.MakeTlfHandle(ctx, bareH, config.KBPKI())
 	if err != nil {
 		return nil, err
 	}
