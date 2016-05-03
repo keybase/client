@@ -127,7 +127,7 @@ func users(ns ...username) optionOp {
 			o.usernames = append(o.usernames, username)
 			a = append(a, string(username))
 		}
-		// Default to the TLF shared by all the users.
+		// Default to the private TLF shared by all the users.
 		o.tlfName = strings.Join(a, ",")
 		o.tlfIsPublic = false
 	}
