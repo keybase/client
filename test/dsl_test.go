@@ -134,27 +134,10 @@ func writers(ns ...username) optionOp {
 	}
 }
 
-func readers(ns ...username) optionOp {
+func inPrivateTlf(name string) optionOp {
 	return func(o *opt) {
-		var writers string
-		for _, w := range o.usernames {
-			if writers != "" {
-				writers += ","
-			}
-			writers += string(w)
-		}
-
-		var readers string
-		for _, r := range ns {
-			username := libkb.NewNormalizedUsername(string(r))
-			o.usernames = append(o.usernames, username)
-			if readers != "" {
-				readers += ","
-			}
-			readers += string(username)
-		}
-
-		o.tlfName = writers + "#" + readers
+		o.tlfName = name
+		o.tlfIsPublic = false
 	}
 }
 
