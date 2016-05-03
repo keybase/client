@@ -106,6 +106,7 @@ const Row = props => {
   const containerStyle = {
     ...globalStyles.flexBoxRow,
     alignItems: 'flex-start',
+    flexShrink: 0,
     marginTop: 1,
     marginBottom: 1,
     minHeight: 25,
