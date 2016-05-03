@@ -138,12 +138,9 @@ get_deps() {(
   curl -J -L -Ss "$installer_url" | tar zx
 )}
 
-check_ci() {(
-  temp="$(mktemp -d)"
-  (cd "$temp" && npm i github-ci-status)
-  (cd "$client_dir" && "$temp/node_modules/.bin/ci" --required-tests 3)
-  rm -r "$temp"
-)}
+check_ci() {
+  $node_bin/ci --required-tests 3
+}
 
 # Build Keybase.app
 package_electron() {(
