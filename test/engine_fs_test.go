@@ -37,7 +37,6 @@ type fsUser struct {
 	cancel                func()
 	close                 func()
 	notificationGroupWait func()
-	tlf                   *libkbfs.TlfHandle
 }
 
 // Perform Init for the engine
@@ -62,18 +61,29 @@ func (e *fsEngine) GetUID(user User) keybase1.UID {
 // perspective which is a shared folder of the given writers and readers
 func (*fsEngine) GetRootDir(user User, isPublic bool, writers []keybase1.UID, readers []keybase1.UID) (dir Node, err error) {
 	u := user.(*fsUser)
-	path := u.mntDir
-	if isPublic {
-		path += "/public/" + string(u.tlf.GetCanonicalName())
-	} else {
-		path += "/private/" + string(u.tlf.GetCanonicalName())
-	}
 
 	ctx := context.Background()
-	root, _, err := u.config.KBFSOps().GetOrCreateRootNode(
-		ctx, u.tlf, libkbfs.MasterBranch)
+	bareH, err := libkbfs.MakeBareTlfHandle(writers, readers, nil, nil)
 	if err != nil {
-		return nil, fmt.Errorf("cannot get root for %s: %v", u.tlf.GetCanonicalPath(), err)
+		return nil, err
+	}
+
+	h, err := libkbfs.MakeTlfHandle(ctx, bareH, u.config.KBPKI())
+	if err != nil {
+		return nil, err
+	}
+
+	path := u.mntDir
+	if h.IsPublic() {
+		path += "/public/" + string(h.GetCanonicalName())
+	} else {
+		path += "/private/" + string(h.GetCanonicalName())
+	}
+
+	root, _, err := u.config.KBFSOps().GetOrCreateRootNode(
+		ctx, h, libkbfs.MasterBranch)
+	if err != nil {
+		return nil, fmt.Errorf("cannot get root for %s: %v", path, err)
 	}
 
 	return &fsNode{root.GetFolderBranch(), path}, nil
