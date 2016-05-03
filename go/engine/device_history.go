@@ -125,6 +125,10 @@ func (e *DeviceHistory) loadDevices() error {
 			exp.RevokedAt = &rt
 		}
 
+		if e.user.G().Env.GetDeviceID().Eq(d.ID) {
+			exp.CurrentDevice = true
+		}
+
 		e.devices = append(e.devices, exp)
 	}
 
@@ -139,7 +143,7 @@ func (e *DeviceHistory) provisioner(d *libkb.Device, ckis *libkb.ComputedKeyInfo
 		}
 		prov, ok := ckis.Devices[did]
 		if !ok {
-			return nil, fmt.Errorf("device %s provisioned by device %s, but couldn't find matchind device in ComputedKeyInfos", d.ID, did)
+			return nil, fmt.Errorf("device %s provisioned by device %s, but couldn't find matching device in ComputedKeyInfos", d.ID, did)
 		}
 		return prov, nil
 	}

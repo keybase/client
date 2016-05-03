@@ -161,6 +161,7 @@ export type DeviceDetail = {
   provisioner?: ?Device;
   provisionedAt?: ?Time;
   revokedAt?: ?Time;
+  currentDevice: boolean;
 }
 
 export type DeviceID = string
