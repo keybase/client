@@ -3414,7 +3414,9 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		return err
 	}
 
+	timerWasSet := false
 	if fbo.rekeyWithPromptTimer != nil {
+		timerWasSet = true
 		fbo.rekeyWithPromptTimer.Stop()
 		fbo.rekeyWithPromptTimer = nil
 		if !promptPaper {
@@ -3483,10 +3485,19 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		// user for any known paper keys.  We do this even if the
 		// rekey bit is already set, since we may have restarted since
 		// the previous rekey attempt, before prompting for the paper
-		// key.
-		d := fbo.config.RekeyWithPromptWaitTime()
-		fbo.log.CDebugf(ctx, "Scheduling a rekeyWithPrompt in %s", d)
-		fbo.rekeyWithPromptTimer = time.AfterFunc(d, fbo.rekeyWithPrompt)
+		// key.  Only schedule this as a one-time event, since direct
+		// folder accesses from the user will also cause a
+		// rekeyWithPrompt.
+		//
+		// Only re-schedule the timer if it was interrupted by
+		// something that wasn't a paper-prompt.
+		if !timerWasSet || !promptPaper {
+			d := fbo.config.RekeyWithPromptWaitTime()
+			fbo.log.CDebugf(ctx, "Scheduling a rekeyWithPrompt in %s", d)
+			fbo.rekeyWithPromptTimer = time.AfterFunc(d, fbo.rekeyWithPrompt)
+		} else if timerWasSet {
+			fbo.log.CDebugf(ctx, "Paper prompt failed; not re-scheduling")
+		}
 
 		if rekeyWasSet {
 			// Devices not yet keyed shouldn't set the rekey bit again
