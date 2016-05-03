@@ -28,7 +28,8 @@ type fsEngine struct {
 	createUser func(t *testing.T, ith int, config *libkbfs.ConfigLocal, h *libkbfs.TlfHandle) User
 }
 type fsNode struct {
-	path string
+	branch libkbfs.FolderBranch
+	path   string
 }
 type fsUser struct {
 	mntDir                string
@@ -67,7 +68,15 @@ func (*fsEngine) GetRootDir(user User, isPublic bool, writers []keybase1.UID, re
 	} else {
 		path += "/private/" + string(u.tlf.GetCanonicalName())
 	}
-	return &fsNode{path}, nil
+
+	ctx := context.Background()
+	root, _, err := u.config.KBFSOps().GetOrCreateRootNode(
+		ctx, u.tlf, libkbfs.MasterBranch)
+	if err != nil {
+		return nil, fmt.Errorf("cannot get root for %s: %v", u.tlf.GetCanonicalPath(), err)
+	}
+
+	return &fsNode{root.GetFolderBranch(), path}, nil
 }
 
 // CreateDir is called by the test harness to create a directory relative to the passed
@@ -79,7 +88,7 @@ func (*fsEngine) CreateDir(u User, parentDir Node, name string) (dir Node, err e
 	if err != nil {
 		return nil, err
 	}
-	return &fsNode{path}, nil
+	return &fsNode{p.branch, path}, nil
 }
 
 // CreateFile is called by the test harness to create a file in the given directory as
@@ -92,7 +101,7 @@ func (*fsEngine) CreateFile(u User, parentDir Node, name string) (file Node, err
 		return nil, err
 	}
 	f.Close()
-	return &fsNode{path}, nil
+	return &fsNode{p.branch, path}, nil
 }
 
 // WriteFile is called by the test harness to write to the given file as the given user.
@@ -180,13 +189,7 @@ func (*fsEngine) ReenableUpdates(u User, dir Node) {
 func (e *fsEngine) SyncFromServerForTesting(user User, dir Node) (err error) {
 	u := user.(*fsUser)
 	ctx := context.Background()
-	root, _, err := u.config.KBFSOps().GetOrCreateRootNode(
-		ctx, u.tlf, libkbfs.MasterBranch)
-	if err != nil {
-		return fmt.Errorf("cannot get root for %s: %v", u.tlf.GetCanonicalPath(), err)
-	}
-
-	err = u.config.KBFSOps().SyncFromServerForTesting(ctx, root.GetFolderBranch())
+	err = u.config.KBFSOps().SyncFromServerForTesting(ctx, dir.(*fsNode).branch)
 	if err != nil {
 		return fmt.Errorf("Couldn't sync from server: %v", err)
 	}
@@ -197,16 +200,9 @@ func (e *fsEngine) SyncFromServerForTesting(user User, dir Node) (err error) {
 // ForceQuotaReclamation implements the Engine interface.
 func (*fsEngine) ForceQuotaReclamation(user User, dir Node) (err error) {
 	u := user.(*fsUser)
-	ctx := context.Background()
-	root, _, err := u.config.KBFSOps().GetOrCreateRootNode(
-		ctx, u.tlf, libkbfs.MasterBranch)
-	if err != nil {
-		return fmt.Errorf("cannot get root for %s: %v", u.tlf.GetCanonicalPath(), err)
-	}
-
 	// TODO: expose this as a special write-only file?
-	return libkbfs.ForceQuotaReclamationForTesting(u.config,
-		root.GetFolderBranch())
+	return libkbfs.ForceQuotaReclamationForTesting(
+		u.config, dir.(*fsNode).branch)
 }
 
 // Shutdown is called by the test harness when it is done with the
@@ -240,13 +236,13 @@ func (e *fsEngine) Lookup(u User, parentDir Node, name string) (file Node, symPa
 	// here and end up deferencing them. This works but is not
 	// ideal.
 	if fi.Mode()&os.ModeSymlink == 0 || e.name == "dokan" {
-		return &fsNode{path}, "", nil
+		return &fsNode{n.branch, path}, "", nil
 	}
 	symPath, err = os.Readlink(path)
 	if err != nil {
 		return nil, "", err
 	}
-	return &fsNode{path}, symPath, err
+	return &fsNode{n.branch, path}, symPath, err
 }
 
 // SetEx is called by the test harness as the given user to set/unset the executable bit on the
