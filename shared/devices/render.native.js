@@ -51,7 +51,7 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
   if (revoked) {
     textStyle = {
       ...textStyle,
-      color: globalColors.black40,
+      color: globalColors.black_40,
       textDecorationLine: 'line-through',
       textDecorationStyle: 'solid'
     }
@@ -79,7 +79,7 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
 
 const RevokedDescription = () => (
   <Box style={stylesRevokedDescription}>
-    <Text type='BodySmallSemibold' style={{color: globalColors.black40, textAlign: 'center'}}>Revoked devices will no longer be able to access your Keybase account.</Text>
+    <Text type='BodySmallSemibold' style={{color: globalColors.black_40, textAlign: 'center'}}>Revoked devices will no longer be able to access your Keybase account.</Text>
   </Box>
 )
 
@@ -116,7 +116,7 @@ const stylesContainer = {
 
 const stylesCommonCore = {
   alignItems: 'center',
-  borderBottomColor: globalColors.black10,
+  borderBottomColor: globalColors.black_10,
   borderBottomWidth: 1,
   height: 60,
   justifyContent: 'center',
