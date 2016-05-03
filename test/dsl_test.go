@@ -119,18 +119,15 @@ func skip(implementation, reason string) optionOp {
 	}
 }
 
-func writers(ns ...username) optionOp {
+func users(ns ...username) optionOp {
 	return func(o *opt) {
-		var writers string
-		for _, w := range ns {
-			username := libkb.NewNormalizedUsername(string(w))
+		var a []string
+		for _, u := range ns {
+			username := libkb.NewNormalizedUsername(string(u))
 			o.usernames = append(o.usernames, username)
-			if writers != "" {
-				writers += ","
-			}
-			writers += string(username)
+			a = append(a, string(username))
 		}
-		o.tlfName = writers
+		o.tlfName = strings.Join(a, ",")
 	}
 }
 

@@ -11,7 +11,7 @@ import "testing"
 // alice writes a multi-block file, and bob reads it
 func TestWriteMultiblockFile(t *testing.T) {
 	test(t,
-		blockSize(20), writers("alice", "bob"),
+		blockSize(20), users("alice", "bob"),
 		as(alice,
 			write("a/b", ntimesString(15, "0123456789")),
 		),
@@ -24,7 +24,7 @@ func TestWriteMultiblockFile(t *testing.T) {
 // alice writes a file, and bob overwrites it with a multi-block file
 func TestOverwriteMultiblockFile(t *testing.T) {
 	test(t,
-		blockSize(20), writers("alice", "bob"),
+		blockSize(20), users("alice", "bob"),
 		as(alice,
 			write("a/b", "hello"),
 		),
@@ -44,7 +44,7 @@ func TestOverwriteMultiblockFile(t *testing.T) {
 // is cleaned up)
 func TestRmMultiblockFile(t *testing.T) {
 	test(t,
-		blockSize(20), writers("alice", "bob"),
+		blockSize(20), users("alice", "bob"),
 		as(alice,
 			write("a/b", ntimesString(15, "0123456789")),
 		),
@@ -62,7 +62,7 @@ func TestRmMultiblockFile(t *testing.T) {
 // (checks that state is cleaned up)
 func TestRenameOverMultiblockFile(t *testing.T) {
 	test(t,
-		blockSize(20), writers("alice", "bob"),
+		blockSize(20), users("alice", "bob"),
 		as(alice,
 			write("a/b", ntimesString(15, "0123456789")),
 			write("a/c", "hello"),
@@ -83,7 +83,7 @@ func TestRenameOverMultiblockFile(t *testing.T) {
 // (tests dedupping, but hard to verify that precisely here).
 func TestCopyMultiblockFile(t *testing.T) {
 	test(t,
-		blockSize(20), writers("alice", "bob"),
+		blockSize(20), users("alice", "bob"),
 		as(alice,
 			write("a/b", ntimesString(15, "0123456789")),
 		),
@@ -106,7 +106,7 @@ func TestCopyMultiblockFile(t *testing.T) {
 // again. Regression for KBFS-700.
 func TestMakeDeleteAndMakeMultiBlockFile(t *testing.T) {
 	test(t,
-		blockSize(20), writers("alice", "bob"),
+		blockSize(20), users("alice", "bob"),
 		as(alice,
 			write("a/b", ntimesString(15, "0123456789")),
 		),
@@ -125,7 +125,7 @@ func TestMakeDeleteAndMakeMultiBlockFile(t *testing.T) {
 // and apply them.
 func TestReadUnembeddedBlockChanges(t *testing.T) {
 	test(t,
-		blockChangeSize(5), writers("alice", "bob"),
+		blockChangeSize(5), users("alice", "bob"),
 		as(alice,
 			write("a/b", "hello"),
 		),

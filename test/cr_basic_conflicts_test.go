@@ -14,7 +14,7 @@ import (
 // bob and alice both write(to the same file),
 func TestCrConflictWriteFile(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 		),
@@ -42,7 +42,7 @@ func TestCrConflictWriteFile(t *testing.T) {
 // bob and alice both create the same entry with different types
 func TestCrConflictCreateWithDifferentTypes(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 			mkfile("a/b", "hello"),
@@ -75,7 +75,7 @@ func TestCrConflictCreateWithDifferentTypes(t *testing.T) {
 // bob and alice both create the same file with different types
 func TestCrConflictCreateFileWithDifferentTypes(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 			mkfile("a/b", "hello"),
@@ -108,7 +108,7 @@ func TestCrConflictCreateFileWithDifferentTypes(t *testing.T) {
 // bob and alice both create the same symlink with different contents
 func TestCrConflictCreateSymlinkWithDifferentContents(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 			mkfile("a/b", "hello"),
@@ -145,7 +145,7 @@ func TestCrConflictCreateSymlinkWithDifferentContents(t *testing.T) {
 func TestCrConflictWriteFileWithAddTime(t *testing.T) {
 	timeInc := 25 * time.Hour
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 		),
@@ -176,7 +176,7 @@ func TestCrConflictWriteFileWithAddTime(t *testing.T) {
 // bob and alice both write(to the same file),
 func TestCrConflictWriteFileWithExtension(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("a/foo.tar.gz", "hello"),
 		),
@@ -204,7 +204,7 @@ func TestCrConflictWriteFileWithExtension(t *testing.T) {
 // bob and alice both create the same file
 func TestCrConflictCreateFile(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 		),
@@ -233,7 +233,7 @@ func TestCrConflictCreateFile(t *testing.T) {
 // a file of the same name. Regression test for KBFS-668.
 func TestCrConflictSetattrVsRecreatedFileInRoot(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("a", "hello"),
 		),
@@ -263,7 +263,7 @@ func TestCrConflictSetattrVsRecreatedFileInRoot(t *testing.T) {
 // bob creates a directory with the same name that alice used for a file
 func TestCrConflictCauseRenameOfMergedFile(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 		),
@@ -292,7 +292,7 @@ func TestCrConflictCauseRenameOfMergedFile(t *testing.T) {
 // file that used to exist at that location
 func TestCrConflictCauseRenameOfMergedRecreatedFile(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 			write("a/b", "hello"),
@@ -322,7 +322,7 @@ func TestCrConflictCauseRenameOfMergedRecreatedFile(t *testing.T) {
 // bob renames a file over one modified by alice.
 func TestCrConflictUnmergedRenameFileOverModifiedFile(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			write("a/b", "hello"),
 			write("a/c", "world"),
@@ -351,7 +351,7 @@ func TestCrConflictUnmergedRenameFileOverModifiedFile(t *testing.T) {
 // bob renames a file from a new directory over one modified by alice.
 func TestCrConflictUnmergedRenameFileInNewDirOverModifiedFile(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			write("a/b", "hello"),
 			write("a/c", "world"),
@@ -384,7 +384,7 @@ func TestCrConflictUnmergedRenameFileInNewDirOverModifiedFile(t *testing.T) {
 func TestCrConflictUnmergedRenameDirOverModifiedFile(t *testing.T) {
 	test(t,
 		skip("fuse", "Renaming directories over files not supported on linux fuse (ENOTDIR)"),
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			write("a/b", "hello"),
 			write("a/c/d", "world"),
@@ -414,7 +414,7 @@ func TestCrConflictUnmergedRenameDirOverModifiedFile(t *testing.T) {
 // TODO: it would be better if this weren't a conflict.
 func TestCrConflictUnmergedRenamedDir(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			write("a/b/c", "hello"),
 		),
@@ -450,7 +450,7 @@ func TestCrConflictUnmergedRenamedDir(t *testing.T) {
 // it would be better if this weren't a conflict.
 func TestCrConflictMergedRenamedDir(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			write("a/b/c", "hello"),
 		),
@@ -483,7 +483,7 @@ func TestCrConflictMergedRenamedDir(t *testing.T) {
 // alice renames a file over one modified by bob.
 func TestCrConflictMergedRenameFileOverModifiedFile(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			write("a/b", "hello"),
 			write("a/c", "world"),
@@ -513,7 +513,7 @@ func TestCrConflictMergedRenameFileOverModifiedFile(t *testing.T) {
 func TestCrConflictMergedRenameDirOverModifiedFile(t *testing.T) {
 	test(t,
 		skip("fuse", "Renaming directories over files not supported on linux fuse (ENOTDIR)"),
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			write("a/b", "hello"),
 			write("a/c/d", "world"),
@@ -542,7 +542,7 @@ func TestCrConflictMergedRenameDirOverModifiedFile(t *testing.T) {
 // alice and both both rename(the same file, causing a copy.),
 func TestCrConflictRenameSameFile(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			write("a/b", "hello"),
 		),
@@ -575,7 +575,7 @@ func TestCrConflictRenameSameFile(t *testing.T) {
 // alice and both both rename(the same executable file, causing a copy.),
 func TestCrConflictRenameSameEx(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			write("a/b", "hello"),
 			setex("a/b", true),
@@ -609,7 +609,7 @@ func TestCrConflictRenameSameEx(t *testing.T) {
 // alice and both both rename(the same symlink.),
 func TestCrConflictRenameSameSymlink(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			write("a/foo", "hello"),
 			link("a/b", "foo"),
@@ -644,7 +644,7 @@ func TestCrConflictRenameSameSymlink(t *testing.T) {
 // be created.
 func TestCrConflictRenameSameDir(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			write("a/b/c", "hello"),
 		),
@@ -678,7 +678,7 @@ func TestCrConflictRenameSameDir(t *testing.T) {
 // be created.
 func TestCrConflictRenameSameDirUpward(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			write("a/b/c/d/e/foo", "hello"),
 		),
@@ -717,7 +717,7 @@ func TestCrConflictRenameSameDirUpward(t *testing.T) {
 // be created.
 func TestCrConflictRenameSameDirMergedUpward(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			write("a/b/c/d/e/foo", "hello"),
 		),
@@ -754,7 +754,7 @@ func TestCrConflictRenameSameDirMergedUpward(t *testing.T) {
 
 func TestCrConflictRenameSameDirDownward(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			write("a/b/foo", "hello"),
 		),
@@ -789,7 +789,7 @@ func TestCrConflictRenameSameDirDownward(t *testing.T) {
 
 func TestCrConflictRenameSameDirSideways(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			write("a/b/c/d/foo", "hello"),
 		),
@@ -828,7 +828,7 @@ func TestCrConflictRenameSameDirSideways(t *testing.T) {
 // TODO: it would be better if this weren't a conflict.
 func TestCrConflictUnmergedRenamedDirDouble(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			write("a/b/c", "hello"),
 		),
@@ -887,7 +887,7 @@ func TestCrConflictUnmergedRenamedDirDouble(t *testing.T) {
 // bob and alice both write(to the same file),
 func TestCrConflictWriteFileDouble(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 		),
@@ -935,7 +935,7 @@ func TestCrConflictWriteFileDouble(t *testing.T) {
 // bob and alice both write(to the same file),
 func TestCrConflictWriteFileDoubleWithExtensions(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("a/file.tar.gz", "hello"),
 		),
@@ -983,7 +983,7 @@ func TestCrConflictWriteFileDoubleWithExtensions(t *testing.T) {
 // bob causes a rename(cycle with a conflict while unstaged),
 func TestCrRenameCycleWithConflict(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 			mkdir("a/b"),
@@ -1022,7 +1022,7 @@ func TestCrRenameCycleWithConflict(t *testing.T) {
 // bob causes a rename(cycle with two conflicts while unstaged),
 func TestCrRenameCycleWithTwoConflicts(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 			mkdir("a/b"),
@@ -1062,7 +1062,7 @@ func TestCrRenameCycleWithTwoConflicts(t *testing.T) {
 // bob causes a rename(cycle with two conflicts while unstaged),
 func TestCrRenameCycleWithConflictAndMergedDir(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 			mkdir("a/b"),

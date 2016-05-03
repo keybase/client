@@ -14,7 +14,7 @@ import (
 // Check that simple quota reclamation works
 func TestQRSimple(t *testing.T) {
 	test(t,
-		writers("alice"),
+		users("alice"),
 		as(alice,
 			addTime(1*time.Minute),
 			mkfile("a", "hello"),
@@ -46,7 +46,7 @@ func TestQRLargePointerSet(t *testing.T) {
 			forceQuotaReclamation(),
 		))
 	}
-	totalOps := []optionOp{writers("alice"), as(alice, busyWork...)}
+	totalOps := []optionOp{users("alice"), as(alice, busyWork...)}
 	totalOps = append(totalOps, qrOps...)
 	test(t, totalOps...)
 }
@@ -54,7 +54,7 @@ func TestQRLargePointerSet(t *testing.T) {
 // Test that quota reclamation handles conflict resolution correctly.
 func TestQRAfterCR(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 		),
@@ -78,7 +78,7 @@ func TestQRAfterCR(t *testing.T) {
 // Check that quota reclamation works on multi-block files
 func TestQRWithMultiBlockFiles(t *testing.T) {
 	test(t,
-		blockSize(20), writers("alice"),
+		blockSize(20), users("alice"),
 		as(alice,
 			addTime(1*time.Minute),
 			mkfile("a", ntimesString(15, "0123456789")),
@@ -93,7 +93,7 @@ func TestQRWithMultiBlockFiles(t *testing.T) {
 // reclamation deletes some necessary blocks.
 func TestCRAfterQR(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 		),

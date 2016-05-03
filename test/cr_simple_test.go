@@ -11,7 +11,7 @@ import "testing"
 // bob writes a non-conflicting file while unstaged
 func TestCrUnmergedFile(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 		),
@@ -41,7 +41,7 @@ func TestCrUnmergedFile(t *testing.T) {
 // bob writes a non-conflicting dir (containing a file) while unstaged
 func TestCrUnmergedDir(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 		),
@@ -73,7 +73,7 @@ func TestCrUnmergedDir(t *testing.T) {
 // bob creates a non-conflicting symlink(while unstaged),
 func TestCrUnmergedSymlink(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 		),
@@ -103,7 +103,7 @@ func TestCrUnmergedSymlink(t *testing.T) {
 // bob makes a non-conflicting file executable while unstaged
 func TestCrUnmergedSetex(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 		),
@@ -129,7 +129,7 @@ func TestCrUnmergedSetex(t *testing.T) {
 // bob deletes a non-conflicting file while unstaged
 func TestCrUnmergedRmfile(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 		),
@@ -155,7 +155,7 @@ func TestCrUnmergedRmfile(t *testing.T) {
 // bob deletes a non-conflicting dir while unstaged
 func TestCrUnmergedRmdir(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkdir("a/b"),
 		),
@@ -181,7 +181,7 @@ func TestCrUnmergedRmdir(t *testing.T) {
 // bob renames a non-conflicting file while unstaged
 func TestCrUnmergedRenameInDir(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 		),
@@ -209,7 +209,7 @@ func TestCrUnmergedRenameInDir(t *testing.T) {
 // bob renames a non-conflicting symlink(while unstaged),
 func TestCrUnmergedRenameSymlinkInDir(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 			link("a/c", "b"),
@@ -238,7 +238,7 @@ func TestCrUnmergedRenameSymlinkInDir(t *testing.T) {
 // bob renames a non-conflicting file in the root dir while unstaged
 func TestCrUnmergedRenameInRoot(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("b", "hello"),
 		),
@@ -268,7 +268,7 @@ func TestCrUnmergedRenameInRoot(t *testing.T) {
 // bob renames a non-conflicting file across directories while unstaged
 func TestCrUnmergedRenameAcrossDirs(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 			mkdir("d"),
@@ -299,7 +299,7 @@ func TestCrUnmergedRenameAcrossDirs(t *testing.T) {
 // bob renames a file over an existing file
 func TestCrUnmergedRenameFileOverFile(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 			mkfile("a/c", "world"),
@@ -329,7 +329,7 @@ func TestCrUnmergedRenameFileOverFile(t *testing.T) {
 func TestCrUnmergedRenameDirOverFile(t *testing.T) {
 	test(t,
 		skip("fuse", "Renaming directories over files not supported on linux fuse (ENOTDIR)"),
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 			mkfile("a/c/d", "world"),
@@ -359,7 +359,7 @@ func TestCrUnmergedRenameDirOverFile(t *testing.T) {
 // unstaged
 func TestCrMergedDir(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 		),
@@ -391,7 +391,7 @@ func TestCrMergedDir(t *testing.T) {
 // alice creates a non-conflicting symlink(while bob is unstaged),
 func TestCrMergedSymlink(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 		),
@@ -421,7 +421,7 @@ func TestCrMergedSymlink(t *testing.T) {
 // alice makes a non-conflicting file executable while bob is unstaged
 func TestCrMergedSetex(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 		),
@@ -447,7 +447,7 @@ func TestCrMergedSetex(t *testing.T) {
 // alice deletes a non-conflicting file while bob is unstaged
 func TestCrMergedRmfile(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 		),
@@ -473,7 +473,7 @@ func TestCrMergedRmfile(t *testing.T) {
 // alice deletes a non-conflicting dir while bob is unstaged
 func TestCrMergedRmdir(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkdir("a/b"),
 		),
@@ -499,7 +499,7 @@ func TestCrMergedRmdir(t *testing.T) {
 // alice renames a non-conflicting file while bob is unstaged
 func TestCrMergedRenameInDir(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 		),
@@ -527,7 +527,7 @@ func TestCrMergedRenameInDir(t *testing.T) {
 // alice renames a non-conflicting file in the root dir while bob is unstaged
 func TestCrMergedRenameInRoot(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("b", "hello"),
 		),
@@ -558,7 +558,7 @@ func TestCrMergedRenameInRoot(t *testing.T) {
 // is unstaged
 func TestCrMergedRenameAcrossDirs(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 			mkdir("d"),
@@ -589,7 +589,7 @@ func TestCrMergedRenameAcrossDirs(t *testing.T) {
 // alice and bob write(the same dir (containing a file) while bob's unstaged),
 func TestCrMergeDir(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 		),
@@ -619,7 +619,7 @@ func TestCrMergeDir(t *testing.T) {
 // alice and bob both delete the same file
 func TestCrUnmergedBothRmfile(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 		),
@@ -644,7 +644,7 @@ func TestCrUnmergedBothRmfile(t *testing.T) {
 // alice and bob both create the same file, but neither write to it
 func TestCrBothCreateFile(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 		),
@@ -670,7 +670,7 @@ func TestCrBothCreateFile(t *testing.T) {
 // alice and bob both create the same file, and alice wrote to it
 func TestCrBothCreateFileMergedWrite(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 		),
@@ -696,7 +696,7 @@ func TestCrBothCreateFileMergedWrite(t *testing.T) {
 // alice and bob both create the same file, and bob wrote to it
 func TestCrBothCreateFileUnmergedWrite(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkdir("a"),
 		),
