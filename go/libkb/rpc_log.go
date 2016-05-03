@@ -13,6 +13,7 @@ import (
 // RPC log options, can turn on debugging, &c.
 
 type RPCLogOptions struct {
+	Contextified
 	clientTrace    bool
 	serverTrace    bool
 	profile        bool
@@ -22,7 +23,7 @@ type RPCLogOptions struct {
 }
 
 func (r *RPCLogOptions) Reload() {
-	s := G.Env.GetLocalRPCDebug()
+	s := r.G().Env.GetLocalRPCDebug()
 	r.clientTrace = false
 	r.serverTrace = false
 	r.profile = false
@@ -44,7 +45,7 @@ func (r *RPCLogOptions) Reload() {
 		case 'p':
 			r.profile = true
 		default:
-			G.Log.Warning("Unknown local RPC logging flag: %c", c)
+			r.G().Log.Warning("Unknown local RPC logging flag: %c", c)
 		}
 	}
 }
@@ -55,14 +56,14 @@ func (r *RPCLogOptions) ShowResult() bool     { return r.verboseTrace }
 func (r *RPCLogOptions) Profile() bool        { return r.profile }
 func (r *RPCLogOptions) ClientTrace() bool    { return r.clientTrace }
 func (r *RPCLogOptions) ServerTrace() bool    { return r.serverTrace }
-func (r *RPCLogOptions) TransportStart() bool { return r.connectionInfo || G.Service }
+func (r *RPCLogOptions) TransportStart() bool { return r.connectionInfo || r.G().Service }
 
 var rpcLogOptions *RPCLogOptions
 var rpcLogOptionsOnce sync.Once
 
-func getRPCLogOptions() *RPCLogOptions {
+func getRPCLogOptions(g *GlobalContext) *RPCLogOptions {
 	rpcLogOptionsOnce.Do(func() {
-		rpcLogOptions = &RPCLogOptions{}
+		rpcLogOptions = &RPCLogOptions{Contextified: NewContextified(g)}
 		rpcLogOptions.Reload()
 	})
 	return rpcLogOptions
@@ -77,7 +78,7 @@ func NewRPCLogFactory(g *GlobalContext) *RPCLogFactory {
 }
 
 func (r *RPCLogFactory) NewLog(a net.Addr) rpc.LogInterface {
-	ret := rpc.SimpleLog{Addr: a, Out: r.G().GetUnforwardedLogger(), Opts: getRPCLogOptions()}
+	ret := rpc.SimpleLog{Addr: a, Out: r.G().GetUnforwardedLogger(), Opts: getRPCLogOptions(r.G())}
 	ret.TransportStart()
 	return ret
 }
