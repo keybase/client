@@ -56,7 +56,7 @@ func (r *RPCLogOptions) ShowResult() bool     { return r.verboseTrace }
 func (r *RPCLogOptions) Profile() bool        { return r.profile }
 func (r *RPCLogOptions) ClientTrace() bool    { return r.clientTrace }
 func (r *RPCLogOptions) ServerTrace() bool    { return r.serverTrace }
-func (r *RPCLogOptions) TransportStart() bool { return r.connectionInfo || G.Service }
+func (r *RPCLogOptions) TransportStart() bool { return r.connectionInfo || r.G().Service }
 
 var rpcLogOptions *RPCLogOptions
 var rpcLogOptionsOnce sync.Once
