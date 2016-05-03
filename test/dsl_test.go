@@ -27,8 +27,9 @@ const (
 )
 
 type opt struct {
-	writerNames     []libkb.NormalizedUsername
-	readerNames     []libkb.NormalizedUsername
+	usernames       []libkb.NormalizedUsername
+	tlfName         string
+	tlfIsPublic     bool
 	users           map[libkb.NormalizedUsername]User
 	t               *testing.T
 	initDone        bool
@@ -62,7 +63,7 @@ func (o *opt) runInitOnce() {
 	o.clock = &libkbfs.TestClock{}
 	o.clock.Set(time.Unix(0, 0))
 	o.users = o.engine.InitTest(o.t, o.blockSize, o.blockChangeSize,
-		append(o.writerNames, o.readerNames...), o.clock)
+		o.usernames, o.clock)
 	o.initDone = true
 }
 
@@ -120,17 +121,40 @@ func skip(implementation, reason string) optionOp {
 
 func writers(ns ...username) optionOp {
 	return func(o *opt) {
-		for _, n := range ns {
-			o.writerNames = append(o.writerNames, libkb.NewNormalizedUsername(string(n)))
+		var writers string
+		for _, w := range ns {
+			username := libkb.NewNormalizedUsername(string(w))
+			o.usernames = append(o.usernames, username)
+			if writers != "" {
+				writers += ","
+			}
+			writers += string(username)
 		}
+		o.tlfName = writers
 	}
 }
 
 func readers(ns ...username) optionOp {
 	return func(o *opt) {
-		for _, n := range ns {
-			o.readerNames = append(o.readerNames, libkb.NewNormalizedUsername(string(n)))
+		var writers string
+		for _, w := range o.usernames {
+			if writers != "" {
+				writers += ","
+			}
+			writers += string(w)
 		}
+
+		var readers string
+		for _, r := range ns {
+			username := libkb.NewNormalizedUsername(string(r))
+			o.usernames = append(o.usernames, username)
+			if readers != "" {
+				readers += ","
+			}
+			readers += string(username)
+		}
+
+		o.tlfName = writers + "#" + readers
 	}
 }
 
@@ -203,25 +227,7 @@ func as(user username, fops ...fileOp) optionOp {
 			user: o.users[libkb.NewNormalizedUsername(string(user))],
 		}
 
-		var tlfName string
-		for _, w := range o.writerNames {
-			if tlfName != "" {
-				tlfName += ","
-			}
-			tlfName += string(w)
-		}
-		if len(o.readerNames) > 0 {
-			var s string
-			for _, r := range o.readerNames {
-				if s != "" {
-					s += ","
-				}
-				s += string(r)
-			}
-			tlfName += "#" + s
-		}
-
-		root, err := o.engine.GetRootDir(ctx.user, tlfName, false)
+		root, err := o.engine.GetRootDir(ctx.user, o.tlfName, o.tlfIsPublic)
 		ctx.expectSuccess("GetRootDir", err)
 		ctx.rootNode = root
 
