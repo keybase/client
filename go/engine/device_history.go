@@ -125,7 +125,7 @@ func (e *DeviceHistory) loadDevices() error {
 			exp.RevokedAt = &rt
 		}
 
-		if e.user.G().Env.GetDeviceID().Eq(d.ID) {
+		if e.G().Env.GetDeviceID().Eq(d.ID) {
 			exp.CurrentDevice = true
 		}
 
