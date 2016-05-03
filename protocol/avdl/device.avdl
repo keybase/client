@@ -16,8 +16,9 @@ protocol device {
     // not possible to determine revoker without major code change
     // union {null, Device} revoker;
     union {null, Time} revokedAt;
+    boolean currentDevice;
   }
- 
+
   /**
     List all devices with detailed history and status information.
     */
@@ -25,7 +26,7 @@ protocol device {
 
   /**
     Starts the process of adding a new device using an existing
-    device.  It is called on the existing device. 
+    device.  It is called on the existing device.
     This is for kex2.
     */
   void deviceAdd(int sessionID);

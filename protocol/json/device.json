@@ -409,6 +409,10 @@
             "Time"
           ],
           "name": "revokedAt"
+        },
+        {
+          "type": "boolean",
+          "name": "currentDevice"
         }
       ]
     }
@@ -448,7 +452,7 @@
         }
       ],
       "response": "null",
-      "doc": "Starts the process of adding a new device using an existing\n    device.  It is called on the existing device. \n    This is for kex2."
+      "doc": "Starts the process of adding a new device using an existing\n    device.  It is called on the existing device.\n    This is for kex2."
     },
     "checkDeviceNameFormat": {
       "request": [
