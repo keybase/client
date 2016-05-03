@@ -8,6 +8,7 @@ import CommonMap from '../common-adapters/dumb.desktop'
 import DevicesMap from '../devices/dumb'
 import LoginMap from '../login/dumb.desktop'
 import SignupMap from '../login/signup/dumb.desktop'
+import MenubarMap from '../menubar/dumb.desktop'
 import TrackerMap from '../tracker/dumb.desktop'
 import PinentryMap from '../pinentry/dumb.desktop'
 import DevicePageMap from '../devices/device-page/dumb.desktop'
@@ -38,6 +39,7 @@ class Render extends Component<void, any, any> {
       ...DevicesMap,
       ...LoginMap,
       ...SignupMap,
+      ...MenubarMap,
       ...TrackerMap,
       ...PinentryMap,
       ...DevicePageMap,
