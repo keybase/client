@@ -84,7 +84,7 @@ export default class Dropdown extends Component {
             {list}
           </Popover>
           {selectedValue}
-          <DropDownArrow style={styles.iconStyle} />
+          <DropDownArrow style={{...styles.iconStyle, ...globalStyles.clickable}} />
         </div>
       </div>
     )
