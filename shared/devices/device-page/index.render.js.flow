@@ -1,6 +1,7 @@
 /* @flow */
 
 import type {DeviceType} from '../../constants/types/more'
+import type {Time} from '../../constants/types/flow-types'
 
 export type TimelineItem = {
   type: 'LastUsed' | 'Added' | 'Revoked',
@@ -15,8 +16,8 @@ export type BannerItem = {
 export type Props = {
   type: DeviceType,
   name: string,
-  isCurrent: boolean,
-  isRevoked: boolean,
+  currentDevice: boolean,
+  revokedAt: Time,
   timeline?: Array<TimelineItem>,
   banner?: BannerItem,
   onRevoke: () => void

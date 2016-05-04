@@ -5,8 +5,8 @@ import type {DumbComponentMap} from '../../constants/types/more'
 const common = {
   type: 'desktop',
   name: 'Home Computer',
-  isCurrent: false,
-  isRevoked: false,
+  currentDevice: false,
+  revokedAt: null,
   onRevoke: () => {}
 }
 
@@ -29,8 +29,8 @@ const map: DumbComponentMap<Render> = {
     },
     'Revoked': {
       ...common,
-      isCurrent: false,
-      isRevoked: true,
+      currentDevice: false,
+      revokedAt: 1444423192000,
       timeline: [
         {type: 'Revoked',
           desc: 'Revoked yesterday',

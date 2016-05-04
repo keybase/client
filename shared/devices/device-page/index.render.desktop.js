@@ -20,15 +20,15 @@ const Banner = ({type, desc}: BannerItem) => { // eslint-disabled-line arrow-par
   return <Box style={{...stylesBanner, backgroundColor}}><Text type='BodySmall' style={{color}}>{desc}</Text></Box>
 }
 
-const Header = ({name, isCurrent, isRevoked}) => {
-  const textStyle = isRevoked ? {textDecoration: 'line-through', color: globalColors.black_40, fontStyle: 'italic'} : {fontStyle: 'italic'}
+const Header = ({name, currentDevice, revokedAt}) => {
+  const textStyle = revokedAt ? {textDecoration: 'line-through', color: globalColors.black_40, fontStyle: 'italic'} : {fontStyle: 'italic'}
 
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'flex-start'}}>
       <Text type='Header' style={textStyle}>{name}</Text>
-      {isRevoked && <Text type='Header' style={stylesMeta}>REVOKED</Text>}
+      {revokedAt && <Text type='Header' style={stylesMeta}>REVOKED</Text>}
       <Box style={{...globalStyles.flexBoxRow}}>
-        {isCurrent && <Text type='BodySmall'>Current device</Text>}
+        {currentDevice && <Text type='BodySmall'>Current device</Text>}
       </Box>
     </Box>
   )
@@ -60,7 +60,7 @@ const Timeline = ({timeline}) => (
   </Box>
 )
 
-const Render = ({banner, name, type, isCurrent, timeline, isRevoked, onRevoke}: Props) => {
+const Render = ({banner, name, type, currentDevice, timeline, revokedAt, onRevoke}: Props) => {
   const icon: IconProps.type = {
     'mobile': 'phone-big',
     'desktop': 'computer-big',
@@ -78,12 +78,12 @@ const Render = ({banner, name, type, isCurrent, timeline, isRevoked, onRevoke}: 
       {(banner != null) && <Banner type={banner.type} desc={banner.desc} />}
       <Box style={{...globalStyles.flexBoxRow, padding: 30}}>
         <Box style={{...globalStyles.flexBoxRow, width: 180, justifyContent: 'center', alignItems: 'flex-start'}}>
-          <Icon type={icon} style={{opacity: isRevoked ? 0.4 : 1}} />
+          <Icon type={icon} style={{opacity: revokedAt ? 0.4 : 1}} />
         </Box>
         <Box style={{...globalStyles.flexBoxColumn}}>
-          <Header name={name} isCurrent={isCurrent} isRevoked={isRevoked} />
+          <Header name={name} currentDevice={currentDevice} revokedAt={revokedAt} />
           <Timeline timeline={timeline} />
-          {!isRevoked && <Button type='Danger' style={{marginTop: 15}} label={`Revoke this ${revokeName}`} onClick={onRevoke} />}
+          {!revokedAt && <Button type='Danger' style={{marginTop: 15}} label={`Revoke this ${revokeName}`} onClick={onRevoke} />}
         </Box>
       </Box>
     </Box>)
