@@ -34,17 +34,11 @@ const getCurrentWindow = (function () {
   }
 })()
 
-// Will keep trying to show a window until it is visible
-const showStubbornly = (currentWindow, delay) => {
-  const id = setInterval(() => {
-    if (currentWindow.isVisible()) {
-      clearInterval(id)
-    } else {
-      currentWindow.show()
-      currentWindow.isVisible() && clearInterval(id)
-    }
-  }, delay)
-  return () => { clearInterval(id) }
+const showOnLoad = currentWindow => {
+  currentWindow.show()
+  currentWindow.webContents.once('did-finish-load', () => {
+    currentWindow.show()
+  })
 }
 
 function getQueryVariable (variable) {
@@ -104,14 +98,14 @@ class RemoteComponentLoader extends Component {
           Object.keys(this.store.getState()).length === 0) {
         const unsub = this.store.subscribe(() => {
           unsub()
-          showStubbornly(getCurrentWindow(), 1e3)
+          showOnLoad(getCurrentWindow())
           this.setState({props: props, loaded: true})
         })
       } else {
         // If we've received props, and the loaded state was false, that
         // means we should show the window
         if (this.state.loaded === false) {
-          showStubbornly(getCurrentWindow(), 1e3)
+          showOnLoad(getCurrentWindow())
         }
         setImmediate(() => this.setState({props: props, loaded: true}))
       }
