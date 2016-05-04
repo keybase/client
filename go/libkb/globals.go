@@ -30,6 +30,14 @@ import (
 
 type ShutdownHook func() error
 
+type LoginHook interface {
+	OnLogin()
+}
+
+type LogoutHook interface {
+	OnLogout()
+}
+
 type GlobalContext struct {
 	Log               logger.Logger  // Handles all logging
 	VDL               *VDebugLog     // verbose debug log
@@ -68,6 +76,8 @@ type GlobalContext struct {
 	RateLimits          *RateLimits         // tracks the last time certain actions were taken
 	Clock               clockwork.Clock     // RealClock unless we're testing
 	SecretStoreAll      SecretStoreAll      // nil except for tests and supported platforms
+	loginHooks          []LoginHook         // call these on login
+	logoutHooks         []LogoutHook        // call thes on logout
 }
 
 func NewGlobalContext() *GlobalContext {
@@ -147,6 +157,8 @@ func (g *GlobalContext) Logout() error {
 	if err := g.loginState.Logout(); err != nil {
 		return err
 	}
+
+	g.CallLogoutHooks()
 
 	if g.TrackCache != nil {
 		g.TrackCache.Shutdown()
@@ -517,4 +529,24 @@ func (g *GlobalContext) GetUnforwardedLogger() *logger.UnforwardedLogger {
 
 func (g *GlobalContext) GetLog() logger.Logger {
 	return g.Log
+}
+
+func (g *GlobalContext) AddLoginHook(hook LoginHook) {
+	g.loginHooks = append(g.loginHooks, hook)
+}
+
+func (g *GlobalContext) CallLoginHooks() {
+	for _, h := range g.loginHooks {
+		h.OnLogin()
+	}
+}
+
+func (g *GlobalContext) AddLogoutHook(hook LogoutHook) {
+	g.logoutHooks = append(g.logoutHooks, hook)
+}
+
+func (g *GlobalContext) CallLogoutHooks() {
+	for _, h := range g.logoutHooks {
+		h.OnLogout()
+	}
 }

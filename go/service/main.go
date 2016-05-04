@@ -180,8 +180,13 @@ func (d *Service) Run() (err error) {
 
 	d.checkTrackingEveryHour()
 
-	if gcErr := d.gregordConnect(); gcErr != nil {
-		d.G().Log.Debug("error connecting to gregord: %s", gcErr)
+	if d.G().Env.GetRunMode() != libkb.ProductionRunMode {
+		d.G().Log.Debug("connecting to gregord in non-production run mode")
+		if gcErr := d.gregordConnect(); gcErr != nil {
+			d.G().Log.Debug("error connecting to gregord: %s", gcErr)
+		}
+	} else {
+		d.G().Log.Debug("not connecting to gregord in production")
 	}
 
 	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
@@ -242,11 +247,14 @@ func (d *Service) gregordConnect() error {
 		return err
 	}
 	d.G().Log.Debug("gregor URI: %s", uri)
+
 	h := newGregorHandler(d.G())
 	if uri.UseTLS() {
-		return d.gregordConnectTLS(h, uri)
+		err = d.gregordConnectTLS(h, uri)
+	} else {
+		err = d.gregordConnectNoTLS(h, uri)
 	}
-	return d.gregordConnectNoTLS(h, uri)
+	return err
 }
 
 func (d *Service) gregordConnectTLS(h *gregorHandler, uri *fmpURI) error {
