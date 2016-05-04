@@ -17,9 +17,7 @@ export type RenderProps = {
   loggedIn: boolean
 }
 
-export default class Render extends Component {
-  props: RenderProps;
-}
+export default class Render extends Component<void, RenderProps, void> {}
 
 export type FolderInfo = {
     type: 'folder',
