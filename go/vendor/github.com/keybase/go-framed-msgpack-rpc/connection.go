@@ -178,6 +178,7 @@ type Connection struct {
 	wef              WrapErrorFunc
 	tagsFunc         LogTagsFromContext
 	log              connectionLog
+	protocols        []Protocol
 
 	// protects everything below.
 	mutex             sync.Mutex
@@ -205,12 +206,36 @@ func NewTLSConnection(srvAddr string, rootCerts []byte,
 		connectNow, wef, log, tagsFunc)
 }
 
+// NewTLSConnectionWithProtocols returns a connection that tries to connect to
+// the given server address with TLS and registers custom protocols.
+func NewTLSConnectionWithProtocols(srvAddr string, rootCerts []byte,
+	errorUnwrapper ErrorUnwrapper, handler ConnectionHandler,
+	connectNow bool, l LogFactory, wef WrapErrorFunc, log LogOutput,
+	tagsFunc LogTagsFromContext, protocols []Protocol) *Connection {
+	transport := &ConnectionTransportTLS{
+		rootCerts:  rootCerts,
+		srvAddr:    srvAddr,
+		logFactory: l,
+		wef:        wef,
+	}
+	return newConnectionWithTransportAndProtocols(handler, transport, errorUnwrapper,
+		connectNow, wef, log, tagsFunc, protocols)
+}
+
 // NewConnectionWithTransport allows for connections with a custom
 // transport.
 func NewConnectionWithTransport(handler ConnectionHandler,
 	transport ConnectionTransport, errorUnwrapper ErrorUnwrapper,
 	connectNow bool, wef WrapErrorFunc, log LogOutput,
 	tagsFunc LogTagsFromContext) *Connection {
+	return newConnectionWithTransportAndProtocols(handler, transport,
+		errorUnwrapper, connectNow, wef, log, tagsFunc, nil)
+}
+
+func newConnectionWithTransportAndProtocols(handler ConnectionHandler,
+	transport ConnectionTransport, errorUnwrapper ErrorUnwrapper,
+	connectNow bool, wef WrapErrorFunc, log LogOutput,
+	tagsFunc LogTagsFromContext, protocols []Protocol) *Connection {
 	// retry w/exponential backoff
 	reconnectBackoff := backoff.NewExponentialBackOff()
 	// never give up reconnecting
@@ -230,6 +255,7 @@ func NewConnectionWithTransport(handler ConnectionHandler,
 			LogOutput: log,
 			logPrefix: connectionPrefix,
 		},
+		protocols: protocols,
 	}
 	if connectNow {
 		// start connecting now
@@ -251,6 +277,10 @@ func (c *Connection) connect(ctx context.Context) error {
 
 	client := NewClient(transport, c.errorUnwrapper)
 	server := NewServer(transport, c.wef)
+
+	for _, p := range c.protocols {
+		server.Register(p)
+	}
 
 	// call the connect handler
 	err = c.handler.OnConnect(ctx, c, client, server)
