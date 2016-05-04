@@ -110,22 +110,44 @@ export default class CodePageRender extends Component<void, Props, void> {
     )
   }
 
-  renderIntro () {
-    const headerTextMap: {[key: Mode]: string} = {
-      codePageModeScanCode: 'Scan QR code',
-      codePageModeShowCode: 'Scan this QR code',
-      codePageModeShowText: 'Type in text code'
-    }
-
-    const headerText: string = headerTextMap[this.props.mode] || 'Good luck'
+  renderIntroTextCode () {
     return (
       <Box style={stylesIntro}>
-        <Text type='Header' style={{marginBottom: 10}} inline>{headerText}</Text>
+        <Text type='Header' style={{marginBottom: 10}} inline>Type in text code</Text>
         <Text type='BodySmall' inline>Please run </Text>
         <Text type='TerminalSmall' inline>keybase device add</Text>
         <Text type='BodySmall' inline> in the terminal on your computer.</Text>
       </Box>
     )
+  }
+
+  renderIntroScanQR () {
+    return (
+      <Box style={stylesIntro}>
+        <Text type='Header' style={{marginBottom: 10}} inline>Scan QR code</Text>
+        <Text type='BodySmall' inline>In the Keybase App</Text>
+        <Text type='BodySmall' inline>{'go to Devices > Add a new device'}</Text>
+      </Box>
+    )
+  }
+
+  renderIntroShowQR () {
+    return (
+      <Box style={stylesIntro}>
+        <Text type='Header' style={{marginBottom: 10}} inline>Scan this QR code</Text>
+        <Text type='BodySmall' inline>{'When adding a new mobile device'}</Text>
+      </Box>
+    )
+  }
+
+  renderIntro () {
+    const headerTextMap: {[key: Mode]: React$Element} = {
+      codePageModeScanCode: this.renderIntroScanQR(),
+      codePageModeShowCode: this.renderIntroShowQR(),
+      codePageModeShowText: this.renderIntroTextCode()
+    }
+
+    return headerTextMap[this.props.mode] || <Text type='BodySmall'>Good luck</Text>
   }
 
   renderText () {
