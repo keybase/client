@@ -255,7 +255,7 @@ func (d *Service) gregordConnectTLS(h *gregorHandler, uri *fmpURI) error {
 	if len(rawCA) == 0 {
 		return fmt.Errorf("No bundled CA for %s", uri.Host)
 	}
-	d.gregorConn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), nil, h, true, nil, nil, d.G().Log, nil)
+	d.gregorConn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), nil, h, true, libkb.NewRPCLogFactory(d.G()), nil, d.G().Log, nil)
 	return nil
 }
 
