@@ -255,14 +255,14 @@ func (d *Service) gregordConnectTLS(h *gregorHandler, uri *fmpURI) error {
 	if len(rawCA) == 0 {
 		return fmt.Errorf("No bundled CA for %s", uri.Host)
 	}
-	d.gregorConn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), nil, h, true, libkb.NewRPCLogFactory(d.G()), nil, d.G().Log, nil)
+	d.gregorConn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), keybase1.ErrorUnwrapper{}, h, true, libkb.NewRPCLogFactory(d.G()), keybase1.WrapError, d.G().Log, nil)
 	return nil
 }
 
 func (d *Service) gregordConnectNoTLS(h *gregorHandler, uri *fmpURI) error {
 	d.G().Log.Debug("connecting to gregor without TLS")
 	t := newConnTransport(d.G(), uri.HostPort)
-	d.gregorConn = rpc.NewConnectionWithTransport(h, t, nil, true, nil, d.G().Log, nil)
+	d.gregorConn = rpc.NewConnectionWithTransport(h, t, keybase1.ErrorUnwrapper{}, true, keybase1.WrapError, d.G().Log, nil)
 	return nil
 }
 

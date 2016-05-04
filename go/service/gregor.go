@@ -29,9 +29,27 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection, cli
 		return err
 	}
 
+	loggedIn, err := g.G().LoginState().LoggedInLoad()
+	if err != nil {
+		return err
+	}
+	if !loggedIn {
+		g.G().Log.Debug("gregor handler: not logged in, so not authenticating")
+		return nil
+	}
+
+	var token string
+	aerr := g.G().LoginState().LocalSession(func(s *libkb.Session) {
+		token = s.GetToken()
+	}, "gregor handler - login session")
+	if aerr != nil {
+		return aerr
+	}
+	g.G().Log.Debug("gregor handler: have session token")
+
 	g.G().Log.Debug("gregor handler: authenticating")
 	ac := gregor1.AuthClient{Cli: cli}
-	auth, err := ac.AuthenticateSessionToken(ctx, "dummy auth token")
+	auth, err := ac.AuthenticateSessionToken(ctx, gregor1.SessionToken(token))
 	if err != nil {
 		g.G().Log.Debug("gregor handler: auth error: %s", err)
 		return err
