@@ -76,8 +76,9 @@ type GlobalContext struct {
 	RateLimits          *RateLimits         // tracks the last time certain actions were taken
 	Clock               clockwork.Clock     // RealClock unless we're testing
 	SecretStoreAll      SecretStoreAll      // nil except for tests and supported platforms
+	hookMu              sync.RWMutex        // protects loginHooks, logoutHooks
 	loginHooks          []LoginHook         // call these on login
-	logoutHooks         []LogoutHook        // call thes on logout
+	logoutHooks         []LogoutHook        // call these on logout
 }
 
 func NewGlobalContext() *GlobalContext {
@@ -532,20 +533,28 @@ func (g *GlobalContext) GetLog() logger.Logger {
 }
 
 func (g *GlobalContext) AddLoginHook(hook LoginHook) {
+	g.hookMu.Lock()
+	defer g.hookMu.Unlock()
 	g.loginHooks = append(g.loginHooks, hook)
 }
 
 func (g *GlobalContext) CallLoginHooks() {
+	g.hookMu.RLock()
+	defer g.hookMu.RUnlock()
 	for _, h := range g.loginHooks {
 		h.OnLogin()
 	}
 }
 
 func (g *GlobalContext) AddLogoutHook(hook LogoutHook) {
+	g.hookMu.Lock()
+	defer g.hookMu.Unlock()
 	g.logoutHooks = append(g.logoutHooks, hook)
 }
 
 func (g *GlobalContext) CallLogoutHooks() {
+	g.hookMu.RLock()
+	defer g.hookMu.RUnlock()
 	for _, h := range g.logoutHooks {
 		h.OnLogout()
 	}
