@@ -5,9 +5,9 @@ package keybase
 
 import (
 	"encoding/base64"
-	// "flag"
 	"fmt"
 	"net"
+	"runtime"
 	"sync"
 
 	"github.com/keybase/client/go/libkb"
@@ -112,4 +112,10 @@ func Reset() {
 	if err != nil {
 		fmt.Println("loopback socker error:", err)
 	}
+}
+
+func Debug() {
+	buf := make([]byte, 1<<16)
+	runtime.Stack(buf, true)
+	fmt.Printf("%s", string(buf))
 }

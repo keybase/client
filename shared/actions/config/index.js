@@ -78,11 +78,14 @@ function testKBFS (): void {
 
 let bootstrapSetup = false
 export function bootstrap (): AsyncAction {
-  // TEMP
-  testKBFS()
-  setInterval(() => {
+  setTimeout(() => {
     testKBFS()
   }, 5000)
+  // TEMP
+  // testKBFS()
+  // setInterval(() => {
+    // testKBFS()
+  // }, 5000)
   // TEMP
 
   return dispatch => {

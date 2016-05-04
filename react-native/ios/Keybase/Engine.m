@@ -17,6 +17,7 @@
 @property dispatch_queue_t readQueue;
 @property dispatch_queue_t writeQueue;
 @property (strong) RCTBridge *bridge;
+@property (strong) NSTimer * timer;
 
 - (void)startReadLoop;
 - (void)setupQueues;
@@ -32,6 +33,7 @@ static NSString *const eventName = @"objc-engine-event";
 - (instancetype)initWithSettings:(NSDictionary *)settings {
   if ((self = [super init])) {
     [self setupKeybaseWithSettings:settings];
+    [self startDebugLoop];
 //    [self setupKBFSWithSettings:settings];
     [self setupQueues];
     [self startReadLoop];
@@ -42,6 +44,15 @@ static NSString *const eventName = @"objc-engine-event";
 //-(void)setupKBFSWithSettings:(NSDictionary*) settings {
 //  NSLog(@"aaaa %@", GoKbfsHello(settings[@"homedir"], @"prod"));
 //}
+
+- (void) startDebugLoop {
+  _timer = [NSTimer scheduledTimerWithTimeInterval:2.5
+                                            target:[NSBlockOperation blockOperationWithBlock:^{ GoKeybaseDebug(); }]
+                                          selector:@selector(main)
+                                          userInfo:nil
+                                           repeats:YES
+            ];
+}
 
 - (void)setupKeybaseWithSettings:(NSDictionary *) settings {
   GoKeybaseInit(settings[@"homedir"], settings[@"runmode"], settings[@"serverURI"], settings[@"SecurityAccessGroupOverride"], settings[@"logFile"]);
