@@ -652,6 +652,10 @@ func (f JSONConfigFile) GetUpdateURL() string {
 	return s
 }
 
+func (f JSONConfigFile) GetUpdateDisabled() (bool, bool) {
+	return f.GetBoolAtPath("updates.disabled")
+}
+
 func (f JSONConfigFile) IsAdmin() (bool, bool) {
 	return f.GetBoolAtPath("is_admin")
 }
