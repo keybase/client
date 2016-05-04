@@ -1,0 +1,17 @@
+// @flow
+
+import React, {Component} from 'react'
+
+import React from 'react'
+import {Box, Text, Button, Icon} from '../common-adapters'
+import {globalColors, globalStyles} from '../styles/style-guide'
+
+export type Props = {
+  name: string,
+  reason: string,
+  isPrivate: boolean,
+  inviteLink: ?string,
+  onClose: () => void
+}
+
+export default class Render extends Component<void, Props, void> { }

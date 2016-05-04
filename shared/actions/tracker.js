@@ -83,6 +83,27 @@ export function registerUserChangeListener (): TrackerActionCreator {
   }
 }
 
+export function registerDisplayTLFCreateWithInvite (): TrackerActionCreator {
+  return dispatch => {
+    const params: incomingCallMapType = {
+      'keybase.1.identifyUi.displayTLFCreateWithInvite': args => {
+        console.log('got a display tlf command')
+      }
+    }
+
+    engine.listenGeneralIncomingRpc(params)
+    setNotifications({tracking: true})
+  }
+}
+
+export function registerTrackerIncomingRpcs (): TrackerActionCreator {
+  return dispatch => {
+    dispatch(registerTrackerChangeListener())
+    dispatch(registerUserChangeListener())
+    dispatch(registerDisplayTLFCreateWithInvite())
+  }
+}
+
 export function triggerIdentify (uid: string): TrackerActionCreator {
   return (dispatch, getState) => new Promise((resolve, reject) => {
     const params: identify_identify2_rpc = {
