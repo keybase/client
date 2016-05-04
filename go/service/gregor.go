@@ -37,9 +37,8 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection, cli
 
 	g.cli = cli
 
-	// handler needs to know when login, logout happens
+	// handler needs to know when login happens
 	g.G().AddLoginHook(g)
-	g.G().AddLogoutHook(g)
 
 	return g.tryAuth(ctx)
 }
@@ -82,13 +81,6 @@ func (g *gregorHandler) OnLogin() {
 	}
 }
 
-func (g *gregorHandler) OnLogout() {
-	g.G().Log.Debug("gregor handler: OnLogout")
-	if err := g.revokeAuth(context.Background()); err != nil {
-		g.G().Log.Debug("gregor handler: OnLogin revokeAuth error: %s", err)
-	}
-}
-
 func (g *gregorHandler) tryAuth(ctx context.Context) error {
 	loggedIn, err := g.G().LoginState().LoggedInLoad()
 	if err != nil {
@@ -124,18 +116,5 @@ func (g *gregorHandler) tryAuth(ctx context.Context) error {
 	}
 	g.sessionID = auth.Sid
 
-	return nil
-}
-
-func (g *gregorHandler) revokeAuth(ctx context.Context) error {
-	if len(g.sessionID) == 0 {
-		return nil
-	}
-
-	ac := gregor1.AuthClient{Cli: g.cli}
-	if err := ac.RevokeSessionIDs(ctx, []gregor1.SessionID{g.sessionID}); err != nil {
-		g.G().Log.Debug("gregor handler: revoke session id error: %s", err)
-		return err
-	}
 	return nil
 }
