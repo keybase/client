@@ -1,5 +1,6 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
+import _ from 'lodash'
 
 import CodePage from '../login/register/code-page'
 import GenPaperKey from './gen-paper-key'
@@ -33,10 +34,13 @@ class Devices extends Component {
   }
 
   render () {
+    // Divide the devices array into not-revoked and revoked.
+    const [devices, revokedDevices] = _.partition(this.props.devices, dev => !dev.revokedAt)
+
     return (
       <Render
-        devices={this.props.devices && this.props.devices.filter(dev => !dev.revokedAt)}
-        revokedDevices={this.props.devices && this.props.devices.filter(dev => dev.revokedAt)}
+        devices={devices}
+        revokedDevices={revokedDevices}
         waitingForServer={this.props.waitingForServer}
         addNewDevice={this.props.addNewDevice}
         showRemoveDevicePage={this.props.showRemoveDevicePage}
