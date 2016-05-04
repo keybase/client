@@ -31,11 +31,11 @@ import (
 type ShutdownHook func() error
 
 type LoginHook interface {
-	OnLogin()
+	OnLogin() error
 }
 
 type LogoutHook interface {
-	OnLogout()
+	OnLogout() error
 }
 
 type GlobalContext struct {
@@ -542,7 +542,9 @@ func (g *GlobalContext) CallLoginHooks() {
 	g.hookMu.RLock()
 	defer g.hookMu.RUnlock()
 	for _, h := range g.loginHooks {
-		h.OnLogin()
+		if err := h.OnLogin(); err != nil {
+			g.Log.Warning("OnLogin hook error: %s", err)
+		}
 	}
 }
 
@@ -556,6 +558,8 @@ func (g *GlobalContext) CallLogoutHooks() {
 	g.hookMu.RLock()
 	defer g.hookMu.RUnlock()
 	for _, h := range g.logoutHooks {
-		h.OnLogout()
+		if err := h.OnLogout(); err != nil {
+			g.Log.Warning("OnLogout hook error: %s", err)
+		}
 	}
 }

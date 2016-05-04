@@ -15,12 +15,24 @@ import (
 
 type gregorHandler struct {
 	libkb.Contextified
-	cli       rpc.GenericClient
-	sessionID gregor1.SessionID
+	conn             *rpc.Connection
+	cli              rpc.GenericClient
+	sessionID        gregor1.SessionID
+	skipRetryConnect bool
 }
 
 func newGregorHandler(g *libkb.GlobalContext) *gregorHandler {
 	return &gregorHandler{Contextified: libkb.NewContextified(g)}
+}
+
+func (g *gregorHandler) Connect(uri *fmpURI) error {
+	var err error
+	if uri.UseTLS() {
+		err = g.connectTLS(uri)
+	} else {
+		err = g.connectNoTLS(uri)
+	}
+	return err
 }
 
 func (g *gregorHandler) HandlerName() string {
@@ -37,10 +49,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection, cli
 
 	g.cli = cli
 
-	// handler needs to know when login happens
-	g.G().AddLoginHook(g)
-
-	return g.tryAuth(ctx)
+	return g.auth(ctx)
 }
 
 func (g *gregorHandler) OnConnectError(err error, reconnectThrottleDuration time.Duration) {
@@ -65,7 +74,13 @@ func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
 		return false
 	}
 
-	g.G().Log.Debug("gregor handler: should retry on connect, err %v (returning true)", err)
+	g.G().Log.Debug("gregor handler: should retry on connect, err %v", err)
+	if g.skipRetryConnect {
+		g.G().Log.Debug("gregor handler: should retry on connect, skip retry flag set, returning false")
+		g.skipRetryConnect = false
+		return false
+	}
+
 	return true
 }
 
@@ -74,23 +89,12 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 	return nil
 }
 
-func (g *gregorHandler) OnLogin() {
-	g.G().Log.Debug("gregor handler: OnLogin")
-	if err := g.tryAuth(context.Background()); err != nil {
-		g.G().Log.Debug("gregor handler: OnLogin tryAuth error: %s", err)
-	}
+func (g *gregorHandler) Shutdown() {
+	g.conn.Shutdown()
+	g.conn = nil
 }
 
-func (g *gregorHandler) tryAuth(ctx context.Context) error {
-	loggedIn, err := g.G().LoginState().LoggedInLoad()
-	if err != nil {
-		return err
-	}
-	if !loggedIn {
-		g.G().Log.Debug("gregor handler: not logged in, so not authenticating")
-		return nil
-	}
-
+func (g *gregorHandler) auth(ctx context.Context) error {
 	var token string
 	var uid keybase1.UID
 	aerr := g.G().LoginState().LocalSession(func(s *libkb.Session) {
@@ -98,6 +102,7 @@ func (g *gregorHandler) tryAuth(ctx context.Context) error {
 		uid = s.GetUID()
 	}, "gregor handler - login session")
 	if aerr != nil {
+		g.skipRetryConnect = true
 		return aerr
 	}
 	g.G().Log.Debug("gregor handler: have session token")
@@ -112,9 +117,27 @@ func (g *gregorHandler) tryAuth(ctx context.Context) error {
 
 	g.G().Log.Debug("gregor handler: auth result: %+v", auth)
 	if !bytes.Equal(auth.Uid, uid.ToBytes()) {
+		g.skipRetryConnect = true
 		return fmt.Errorf("gregor handler: auth result uid %x doesn't match session uid %q", auth.Uid, uid)
 	}
 	g.sessionID = auth.Sid
 
+	return nil
+}
+
+func (g *gregorHandler) connectTLS(uri *fmpURI) error {
+	g.G().Log.Debug("connecting to gregord via TLS")
+	rawCA := g.G().Env.GetBundledCA(uri.Host)
+	if len(rawCA) == 0 {
+		return fmt.Errorf("No bundled CA for %s", uri.Host)
+	}
+	g.conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), keybase1.ErrorUnwrapper{}, g, true, libkb.NewRPCLogFactory(g.G()), keybase1.WrapError, g.G().Log, nil)
+	return nil
+}
+
+func (g *gregorHandler) connectNoTLS(uri *fmpURI) error {
+	g.G().Log.Debug("connecting to gregord without TLS")
+	t := newConnTransport(g.G(), uri.HostPort)
+	g.conn = rpc.NewConnectionWithTransport(g, t, keybase1.ErrorUnwrapper{}, true, keybase1.WrapError, g.G().Log, nil)
 	return nil
 }
