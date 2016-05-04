@@ -41,11 +41,15 @@ class AppDelegate: UIResponder {
       home = (root as NSString).stringByAppendingPathComponent(home)
     }
 
+    var logFile = (home as NSString).stringByAppendingPathComponent("tmp")
+    logFile = (logFile as NSString).stringByAppendingPathComponent("log.txt")
+
     engine = Engine(settings: [
       "runmode": AppDefault.RunMode.stringValue!,
       "homedir": home,
       "serverURI": AppDefault.APIServer.stringValue ?? "",
-      "SecurityAccessGroupOverride": SecurityAccessGroupOverride
+      "SecurityAccessGroupOverride": SecurityAccessGroupOverride,
+      "logFile": logFile
     ])
   }
 

@@ -9,10 +9,8 @@ import (
 	"fmt"
 	"net"
 	"sync"
-	// "time"
 
 	"github.com/keybase/client/go/libkb"
-	// "github.com/keybase/client/go/logger"
 	kbservice "github.com/keybase/client/go/service"
 	"github.com/keybase/kbfs/libkbfs"
 )
@@ -21,7 +19,7 @@ var con net.Conn
 var startOnce sync.Once
 
 // Init ServerURI should match run mode environment.
-func Init(homeDir string, runModeStr string, serverURI string, accessGroupOverride bool) {
+func Init(homeDir string, runModeStr string, serverURI string, accessGroupOverride bool, logFile string) {
 	startOnce.Do(func() {
 		g := libkb.G
 		g.Init()
@@ -34,25 +32,24 @@ func Init(homeDir string, runModeStr string, serverURI string, accessGroupOverri
 		if err != nil {
 			fmt.Println("Error decoding run mode", err, runModeStr)
 		}
-		config := libkb.AppConfig{HomeDir: homeDir, RunMode: runMode, Debug: true, LocalRPCDebug: "Acsvip", ServerURI: serverURI, SecurityAccessGroupOverride: accessGroupOverride}
+		config := libkb.AppConfig{HomeDir: homeDir, RunMode: runMode, Debug: true, LocalRPCDebug: "Acsvip", ServerURI: serverURI, SecurityAccessGroupOverride: accessGroupOverride, LogFile: logFile}
 		err = libkb.G.Configure(config, usage)
 		if err != nil {
 			panic(err)
 		}
 		service := (kbservice.NewService(g, false))
 		service.StartLoopbackServer(true)
+
 		service.G().SetService()
 		service.G().SetUIRouter(kbservice.NewUIRouter(service.G()))
 
-		// time.AfterFunc(3*time.Second, func() {
-		libkbfs.InitMobile( /*homeDir, "prod", */ g)
+		libkbfs.InitMobile(g)
 		if err != nil {
 			fmt.Println("Error init kbfs", err)
 			return
 		}
 
 		defer libkbfs.Shutdown()
-		// })
 
 		Reset()
 	})

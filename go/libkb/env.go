@@ -862,11 +862,16 @@ func (e *Env) GetStoredSecretServiceName() string {
 type AppConfig struct {
 	NullConfiguration
 	HomeDir                     string
+	LogFile                     string
 	RunMode                     RunMode
 	Debug                       bool
 	LocalRPCDebug               string
 	ServerURI                   string
 	SecurityAccessGroupOverride bool
+}
+
+func (c AppConfig) GetLogFile() string {
+	return c.LogFile
 }
 
 func (c AppConfig) GetDebug() (bool, bool) {

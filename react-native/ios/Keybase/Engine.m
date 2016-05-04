@@ -44,7 +44,7 @@ static NSString *const eventName = @"objc-engine-event";
 //}
 
 - (void)setupKeybaseWithSettings:(NSDictionary *) settings {
-  GoKeybaseInit(settings[@"homedir"], settings[@"runmode"], settings[@"serverURI"], settings[@"SecurityAccessGroupOverride"]);
+  GoKeybaseInit(settings[@"homedir"], settings[@"runmode"], settings[@"serverURI"], settings[@"SecurityAccessGroupOverride"], settings[@"logFile"]);
 }
 
 - (void)setupQueues {

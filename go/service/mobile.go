@@ -39,7 +39,7 @@ func (h *MobileHandler) Hellokbfs(ctx context.Context, arg keybase1.HellokbfsArg
 	handle, err := libkbfs.ParseTlfHandle(
 		ctx, libkbfs.MobileConfig.KBPKI(), name, true, /*p.public*/
 		false /*config.SharingBeforeSignupEnabled()*/)
-	fmt.Println("bbbbbb", handle, err)
+	fmt.Println("bbbbbb after parse", handle, err)
 
 	n, ei, err :=
 		libkbfs.MobileConfig.KBFSOps().GetOrCreateRootNode(
