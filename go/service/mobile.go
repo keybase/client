@@ -35,21 +35,21 @@ func (h *MobileHandler) Hellokbfs(ctx context.Context, arg keybase1.HellokbfsArg
 	// log := logger.NewWithCallDepth("", 1)
 	// config, err := libkbfs.Init(*kbfsParams, nil, log)
 
-	fmt.Println("bbbbbb calling parse")
+	fmt.Println("bbbbbb 1 calling parse")
 	handle, err := libkbfs.ParseTlfHandle(
 		ctx, libkbfs.MobileConfig.KBPKI(), name, true, /*p.public*/
 		false /*config.SharingBeforeSignupEnabled()*/)
-	fmt.Println("bbbbbb after parse", handle, err)
+	fmt.Println("bbbbbb 2 after parse", handle, err)
 
 	n, ei, err :=
 		libkbfs.MobileConfig.KBFSOps().GetOrCreateRootNode(
 			ctx, handle, libkbfs.MasterBranch)
 
-	fmt.Println("bbbbbb n ei err", n, ei, err)
+	fmt.Println("bbbbbb 3 n ei err", n, ei, err)
 
-	components := []string{""}
+	components := []string{"index.html"}
 	for _, component := range /*p.tlfComponents*/ components {
-		fmt.Println("bbbbbb component", component)
+		fmt.Println("bbbbbb 4 component", component)
 		cn, cei, err := libkbfs.MobileConfig.KBFSOps().Lookup(ctx, n, component)
 		if err != nil {
 			fmt.Println("bbbbbb err", err)
@@ -58,9 +58,8 @@ func (h *MobileHandler) Hellokbfs(ctx context.Context, arg keybase1.HellokbfsArg
 		}
 		n = cn
 		ei = cei
+		fmt.Println("bbbbbb after", n, ei, ei.Type.String(), ei.Size, ei.SymPath, ei.Mtime, ei.Ctime)
 	}
-
-	fmt.Println("bbbbbb after", n, ei)
 
 	return arg.Echo + " world", nil
 }

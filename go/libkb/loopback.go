@@ -5,7 +5,7 @@ package libkb
 
 import (
 	"bytes"
-	"fmt"
+	// "fmt"
 	"io"
 	"net"
 	"sync"
@@ -116,7 +116,7 @@ func (ll *LoopbackListener) Addr() (addr net.Addr) {
 
 // Read reads data from the connection.
 func (lc *LoopbackConn) Read(b []byte) (n int, err error) {
-	fmt.Println("AAAAA loopback READ", lc.isClosed)
+	// fmt.Println("AAAAA loopback READ", lc.isClosed)
 
 	lc.rMutex.Lock()
 	defer lc.rMutex.Unlock()
@@ -134,7 +134,7 @@ func (lc *LoopbackConn) Read(b []byte) (n int, err error) {
 
 // Write writes data to the connection.
 func (lc *LoopbackConn) Write(b []byte) (n int, err error) {
-	fmt.Println("AAAAA loopback WRITE", b, lc.isClosed)
+	// fmt.Println("AAAAA loopback WRITE", b, lc.isClosed)
 
 	lc.wMutex.Lock()
 	defer lc.wMutex.Unlock()

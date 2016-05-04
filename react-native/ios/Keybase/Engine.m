@@ -46,12 +46,12 @@ static NSString *const eventName = @"objc-engine-event";
 //}
 
 - (void) startDebugLoop {
-  _timer = [NSTimer scheduledTimerWithTimeInterval:2.5
-                                            target:[NSBlockOperation blockOperationWithBlock:^{ GoKeybaseDebug(); }]
-                                          selector:@selector(main)
-                                          userInfo:nil
-                                           repeats:YES
-            ];
+//  _timer = [NSTimer scheduledTimerWithTimeInterval:2.5
+//                                            target:[NSBlockOperation blockOperationWithBlock:^{ GoKeybaseDebug(); }]
+//                                          selector:@selector(main)
+//                                          userInfo:nil
+//                                           repeats:YES
+//            ];
 }
 
 - (void)setupKeybaseWithSettings:(NSDictionary *) settings {
