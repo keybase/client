@@ -75,6 +75,7 @@ func TestCrConflictCreateWithDifferentTypes(t *testing.T) {
 // bob and alice both create the same file with different types
 func TestCrConflictCreateFileWithDifferentTypes(t *testing.T) {
 	test(t,
+		skip("dokan", "Does not work with Dokan."),
 		writers("alice", "bob"),
 		as(alice,
 			mkdir("a"),
@@ -108,6 +109,7 @@ func TestCrConflictCreateFileWithDifferentTypes(t *testing.T) {
 // bob and alice both create the same symlink with different contents
 func TestCrConflictCreateSymlinkWithDifferentContents(t *testing.T) {
 	test(t,
+		skip("dokan", "Does not work with Dokan."),
 		writers("alice", "bob"),
 		as(alice,
 			mkdir("a"),
@@ -609,6 +611,7 @@ func TestCrConflictRenameSameEx(t *testing.T) {
 // alice and both both rename(the same symlink.),
 func TestCrConflictRenameSameSymlink(t *testing.T) {
 	test(t,
+		skip("dokan", "Does not work with Dokan."),
 		writers("alice", "bob"),
 		as(alice,
 			write("a/foo", "hello"),
