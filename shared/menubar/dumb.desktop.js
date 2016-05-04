@@ -4,7 +4,7 @@ import Menubar from './index.render'
 import type {RenderProps, FolderInfo} from './index.render'
 import type {DumbComponentMap} from '../constants/types/more'
 
-const folder1: FolderInfo = {
+const folder1 = {
   type: 'folder',
   folderName: 'max,chris',
   isPublic: true,
@@ -12,7 +12,7 @@ const folder1: FolderInfo = {
   openFolder: () => {}
 }
 
-const folderLong: FolderInfo = {
+const folderLong = {
   type: 'folder',
   folderName: 'max,chris,marcopolo,patrick,strib,mgood,zanderz,gabrielh,chrisnojima,cbostrander,alness,akalin',
   isPublic: true,
@@ -20,7 +20,7 @@ const folderLong: FolderInfo = {
   openFolder: () => {}
 }
 
-const folder2: FolderInfo = {
+const folder2 = {
   type: 'folder',
   folderName: 'mgood,strib,marcopolo',
   isPublic: true,
@@ -28,7 +28,7 @@ const folder2: FolderInfo = {
   openFolder: () => {}
 }
 
-const propsNormal: RenderProps = {
+const propsNormal = {
   username: 'max',
   openKBFS: () => {},
   openKBFSPublic: username => {},
