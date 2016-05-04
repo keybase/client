@@ -37,3 +37,4 @@ export const actionRegisteredWithPaperKey = 'login:actionRegisteredWithPaperKey'
 export const actionRegisteredWithExistingDevice = 'login:actionRegisteredWithExistingDevice'
 
 export type DeviceRole = 'codePageDeviceRoleExistingPhone' | 'codePageDeviceRoleNewPhone' | 'codePageDeviceRoleExistingComputer' | 'codePageDeviceRoleNewComputer'
+export type Mode = 'codePageModeScanCode' | 'codePageModeShowCode' | 'codePageModeEnterText' | 'codePageModeShowText'

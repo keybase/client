@@ -1,7 +1,7 @@
 /* @flow */
 
 import {Component} from 'react'
-import type {Mode, DeviceRole} from '../../../reducers/login'
+import type {Mode, DeviceRole} from '../../../constants/login'
 
 export type Props = {
   mode: Mode,
@@ -10,7 +10,7 @@ export type Props = {
   myDeviceRole: DeviceRole,
   otherDeviceRole: DeviceRole,
   cameraBrokenMode: boolean,
-  setCodePageMode: Function,
+  setCodePageMode: (requestedMode: Mode) => void,
   qrScanned: Function,
   setCameraBrokenMode: Function,
   textEntered: Function,
@@ -19,6 +19,4 @@ export type Props = {
   enterText: string
 }
 
-export default class CodePageRender extends Component {
-  props: Props;
-}
+export default class CodePageRender extends Component<void, Props, void> {}
