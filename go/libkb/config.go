@@ -571,7 +571,7 @@ func (f JSONConfigFile) GetGpgHome() (ret string) {
 
 func (f JSONConfigFile) GetBundledCA(host string) (ret string) {
 	var err error
-	f.jw.AtKey("bundled_CAs").AtKey(host).GetStringVoid(&ret, &err)
+	f.jw.AtKey("bundled_ca").AtKey(host).GetStringVoid(&ret, &err)
 	if err == nil {
 		f.G().Log.Debug("Read bundled CA for %s", host)
 	}
@@ -586,7 +586,7 @@ func (f JSONConfigFile) GetPidFile() string {
 }
 
 func (f JSONConfigFile) GetProxyCACerts() (ret []string, err error) {
-	jw := f.jw.AtKey("proxyCAs")
+	jw := f.jw.AtKey("proxy_ca_certs")
 	if l, e := jw.Len(); e == nil {
 		for i := 0; i < l; i++ {
 			s, e2 := jw.AtIndex(i).GetString()
