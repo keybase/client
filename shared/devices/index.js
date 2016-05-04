@@ -10,6 +10,8 @@ import RemoveDevice from './remove-device'
 import {loadDevices} from '../actions/devices'
 import {routeAppend} from '../actions/router'
 import {addANewDevice} from '../actions/login'
+
+import ShowDevice from './device-page'
 import Render from './render'
 
 class Devices extends Component {
@@ -28,6 +30,7 @@ class Devices extends Component {
         codePage: CodePage,
         genPaperKey: GenPaperKey,
         regExistingDevice: ExistingDevice,
+        showDevice: ShowDevice,
         removeDevice: RemoveDevice
       }
     }
@@ -48,16 +51,6 @@ class Devices extends Component {
         showGenPaperKeyPage={this.props.showGenPaperKeyPage} />
     )
   }
-}
-
-Devices.propTypes = {
-  devices: React.PropTypes.array,
-  error: React.PropTypes.any,
-  waitingForServer: React.PropTypes.bool,
-  loadDevices: React.PropTypes.func.isRequired,
-  showRemoveDevicePage: React.PropTypes.func.isRequired,
-  showExistingDevicePage: React.PropTypes.func.isRequired,
-  showGenPaperKeyPage: React.PropTypes.func.isRequired
 }
 
 export default connect(

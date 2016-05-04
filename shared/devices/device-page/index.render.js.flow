@@ -17,7 +17,7 @@ export type Props = {
   type: DeviceType,
   name: string,
   currentDevice: boolean,
-  revokedAt: Time,
+  revokedAt?: ?Time,
   timeline?: Array<TimelineItem>,
   banner?: BannerItem,
   onRevoke: () => void
