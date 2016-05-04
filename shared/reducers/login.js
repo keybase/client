@@ -5,8 +5,7 @@ import * as ConfigConstants from '../constants/config'
 import * as CommonConstants from '../constants/common'
 import Immutable from 'immutable'
 
-export type DeviceRole = 'codePageDeviceRoleExistingPhone' | 'codePageDeviceRoleNewPhone' | 'codePageDeviceRoleExistingComputer' | 'codePageDeviceRoleNewComputer'
-export type Mode = 'codePageModeScanCode' | 'codePageModeShowCode' | 'codePageModeEnterText' | 'codePageModeShowText'
+import type {DeviceRole, Mode} from '../constants/login'
 
 // It's the b64 encoded value used to render the image
 type QRCode = string

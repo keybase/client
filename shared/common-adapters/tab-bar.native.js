@@ -88,7 +88,7 @@ class TabBar extends Component {
     return (this.props.children || []).map((item, i) => (
       <TouchableWithoutFeedback key={item.props.label || i} onPress={item.props.onPress || (() => {})}>
         <Box style={item.props.containerStyle}>
-          {item.props.tabBarButton || <SimpleTabBarButton label={item.props.label} selected={item.props.selected} underlined={this.props.underlined} />}
+          {item.props.tabBarButton || <SimpleTabBarButton tabWidth={this.props.tabWidth} label={item.props.label} selected={item.props.selected} underlined={this.props.underlined} />}
         </Box>
       </TouchableWithoutFeedback>
     ))
