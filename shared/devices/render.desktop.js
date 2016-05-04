@@ -65,7 +65,7 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
           <Text style={textStyle} type='Header'>{device.name}</Text>
         </Box>
         <Box style={{...globalStyles.flexBoxRow}}>
-          {device.isCurrent && <Text type='BodySmall'>Current device</Text>}
+          {device.currentDevice && <Text type='BodySmall'>Current device</Text>}
         </Box>
       </Box>
       <Box style={{...stylesRevokedColumn}}>

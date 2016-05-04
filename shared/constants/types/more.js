@@ -1,10 +1,20 @@
 // @flow
 
 import {Component} from 'react' // eslint-disable-line
-import type {Device as _Device} from './flow-types'
 
 export type DeviceType = 'mobile' | 'desktop' | 'backup'
-export type Device = {type: DeviceType} & _Device
+import type {Device as _Device, DeviceID, Time} from './flow-types'
+
+export type Device = {
+  name: string;
+  deviceID: DeviceID;
+  type: DeviceType;
+  created: Time;
+  currentDevice: boolean;
+  provisioner: ?_Device;
+  provisionedAt: ?Time;
+  revokedAt: ?Time;
+}
 
 // Converts a string to the DeviceType enum, logging an error if it doesn't match
 export function toDeviceType (s: string): DeviceType {
