@@ -8,6 +8,17 @@ import (
 	context "golang.org/x/net/context"
 )
 
+type SyncResult struct {
+	Msgs []InBandMessage `codec:"msgs" json:"msgs"`
+	Hash []byte          `codec:"hash" json:"hash"`
+}
+
+type SyncArg struct {
+	Uid      UID      `codec:"uid" json:"uid"`
+	Deviceid DeviceID `codec:"deviceid" json:"deviceid"`
+	Ctime    Time     `codec:"ctime" json:"ctime"`
+}
+
 type ConsumeMessageArg struct {
 	M Message `codec:"m" json:"m"`
 }
@@ -16,6 +27,7 @@ type PingArg struct {
 }
 
 type IncomingInterface interface {
+	Sync(context.Context, SyncArg) (SyncResult, error)
 	ConsumeMessage(context.Context, Message) error
 	Ping(context.Context) (string, error)
 }
@@ -24,6 +36,22 @@ func IncomingProtocol(i IncomingInterface) rpc.Protocol {
 	return rpc.Protocol{
 		Name: "gregor.1.incoming",
 		Methods: map[string]rpc.ServeHandlerDescription{
+			"sync": {
+				MakeArg: func() interface{} {
+					ret := make([]SyncArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]SyncArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]SyncArg)(nil), args)
+						return
+					}
+					ret, err = i.Sync(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"consumeMessage": {
 				MakeArg: func() interface{} {
 					ret := make([]ConsumeMessageArg, 1)
@@ -57,6 +85,11 @@ func IncomingProtocol(i IncomingInterface) rpc.Protocol {
 
 type IncomingClient struct {
 	Cli rpc.GenericClient
+}
+
+func (c IncomingClient) Sync(ctx context.Context, __arg SyncArg) (res SyncResult, err error) {
+	err = c.Cli.Call(ctx, "gregor.1.incoming.sync", []interface{}{__arg}, &res)
+	return
 }
 
 func (c IncomingClient) ConsumeMessage(ctx context.Context, m Message) (err error) {

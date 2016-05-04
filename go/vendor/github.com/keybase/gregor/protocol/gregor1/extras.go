@@ -8,6 +8,7 @@ import (
 
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/gregor"
+	"golang.org/x/net/context"
 )
 
 func (u UID) Bytes() []byte            { return []byte(u) }
@@ -107,9 +108,9 @@ func (i ItemAndMetadata) DTime() gregor.TimeOrOffset {
 	}
 	return i.Item_.Dtime_
 }
-func (i ItemAndMetadata) NotifyTimes() []gregor.TimeOrOffset {
+func (i ItemAndMetadata) RemindTimes() []gregor.TimeOrOffset {
 	var ret []gregor.TimeOrOffset
-	for _, t := range i.Item_.NotifyTimes_ {
+	for _, t := range i.Item_.RemindTimes_ {
 		ret = append(ret, t)
 	}
 	return ret
@@ -203,15 +204,18 @@ func (m Message) ToInBandMessage() gregor.InBandMessage {
 	if m.Ibm_ == nil {
 		return nil
 	}
-	return m.Ibm_
+	return *m.Ibm_
 }
 
 func (m Message) ToOutOfBandMessage() gregor.OutOfBandMessage {
 	if m.Oobm_ == nil {
 		return nil
 	}
-	return m.Oobm_
+	return *m.Oobm_
 }
+
+func (r Reminder) Item() gregor.Item     { return r.Item_ }
+func (r Reminder) RemindTime() time.Time { return FromTime(r.RemindTime_) }
 
 type State struct {
 	items []ItemAndMetadata
@@ -288,6 +292,65 @@ func FormatTime(t Time) string {
 	return FromTime(t).Format(layout)
 }
 
+type localIncoming struct {
+	sm gregor.StateMachine
+}
+
+func NewLocalIncoming(sm gregor.StateMachine) IncomingInterface {
+	return &localIncoming{sm}
+}
+
+func (i *localIncoming) ConsumeMessage(_ context.Context, msg Message) error {
+	return i.sm.ConsumeMessage(msg)
+}
+
+// DeviceID returns the deviceID in a SyncArc, or interface nil
+// (and not gregor1.DeviceID(nil)) if not was specified.
+func (s SyncArg) DeviceID() gregor.DeviceID {
+	if s.Deviceid == nil {
+		return nil
+	}
+	return s.Deviceid
+}
+
+// UID returns the UID in a SyncArc, or interface nil
+// (and not gregor1.UID(nil)) if not was specified.
+func (s SyncArg) UID() gregor.UID {
+	if s.Uid == nil {
+		return nil
+	}
+	return s.Uid
+}
+
+func (i *localIncoming) Sync(_ context.Context, arg SyncArg) (res SyncResult, err error) {
+
+	msgs, err := i.sm.InBandMessagesSince(arg.UID(), arg.DeviceID(), FromTime(arg.Ctime))
+	if err != nil {
+		return
+	}
+
+	for _, msg := range msgs {
+		if msg, ok := msg.(InBandMessage); ok {
+			res.Msgs = append(res.Msgs, msg)
+		} else {
+			// TODO: Avoid making this cast entirely.
+			panic("This cast should never fail.")
+		}
+	}
+
+	state, err := i.sm.State(arg.UID(), arg.DeviceID(), nil)
+	if err != nil {
+		return
+	}
+
+	res.Hash, err = state.Hash()
+	return
+}
+
+func (i *localIncoming) Ping(_ context.Context) (string, error) {
+	return "pong", nil
+}
+
 var _ gregor.UID = UID{}
 var _ gregor.MsgID = MsgID{}
 var _ gregor.DeviceID = DeviceID{}
@@ -300,6 +363,7 @@ var _ gregor.StateSyncMessage = StateSyncMessage{}
 var _ gregor.MsgRange = MsgRange{}
 var _ gregor.Dismissal = Dismissal{}
 var _ gregor.Item = ItemAndMetadata{}
+var _ gregor.Reminder = Reminder{}
 var _ gregor.StateUpdateMessage = StateUpdateMessage{}
 var _ gregor.InBandMessage = InBandMessage{}
 var _ gregor.OutOfBandMessage = OutOfBandMessage{}

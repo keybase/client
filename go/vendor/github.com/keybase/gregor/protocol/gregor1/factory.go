@@ -101,6 +101,17 @@ func (o ObjFactory) MakeItem(u gregor.UID, msgid gregor.MsgID, deviceid gregor.D
 	}, nil
 }
 
+func (o ObjFactory) MakeReminder(i gregor.Item, t time.Time) (gregor.Reminder, error) {
+	it, ok := i.(ItemAndMetadata)
+	if !ok {
+		return nil, errors.New("item is not gregor1.ItemAndMetadata")
+	}
+	return Reminder{
+		Item_:       it,
+		RemindTime_: ToTime(t),
+	}, nil
+}
+
 func (o ObjFactory) MakeDismissalByRange(uid gregor.UID, msgid gregor.MsgID, devid gregor.DeviceID, ctime time.Time, c gregor.Category, d time.Time) (gregor.InBandMessage, error) {
 	md, err := o.makeMetadata(uid, msgid, devid, ctime, gregor.InBandMsgTypeUpdate)
 	if err != nil {
