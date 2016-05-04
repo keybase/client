@@ -14,6 +14,7 @@ import "testing"
 //
 func TestWriteReadWriteFail(t *testing.T) {
 	test(t,
+		skip("dokan", "Does not work with Dokan."),
 		writers("alice", "bob"), readers("eve"),
 		as(alice,
 			mkfile("foo.txt", "hello world"),
@@ -65,6 +66,7 @@ func TestConflict(t *testing.T) {
 // and create an executable file.
 func TestLinkLsRenameRmRmdirSetex(t *testing.T) {
 	test(t,
+		skip("dokan", "Does not work with Dokan."),
 		writers("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello world"),

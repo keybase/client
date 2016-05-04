@@ -73,6 +73,7 @@ func TestCrUnmergedDir(t *testing.T) {
 // bob creates a non-conflicting symlink(while unstaged),
 func TestCrUnmergedSymlink(t *testing.T) {
 	test(t,
+		skip("dokan", "Does not work with Dokan."),
 		writers("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
@@ -209,6 +210,7 @@ func TestCrUnmergedRenameInDir(t *testing.T) {
 // bob renames a non-conflicting symlink(while unstaged),
 func TestCrUnmergedRenameSymlinkInDir(t *testing.T) {
 	test(t,
+		skip("dokan", "Does not work with Dokan."),
 		writers("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
@@ -391,6 +393,7 @@ func TestCrMergedDir(t *testing.T) {
 // alice creates a non-conflicting symlink(while bob is unstaged),
 func TestCrMergedSymlink(t *testing.T) {
 	test(t,
+		skip("dokan", "Does not work with Dokan."),
 		writers("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
