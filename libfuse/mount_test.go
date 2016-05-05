@@ -22,6 +22,7 @@ import (
 	"bazil.org/fuse/fs"
 	"bazil.org/fuse/fs/fstestutil"
 	"github.com/keybase/client/go/logger"
+	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
@@ -3235,8 +3236,22 @@ func TestTlfNameChange(t *testing.T) {
 		"user1,user2@twitter", false)
 
 	// Now add the new assertion
-	libkbfs.AddNewAssertionForTestOrBust(t, config1, "user2", "user2@twitter")
-	libkbfs.AddNewAssertionForTestOrBust(t, config2, "user2", "user2@twitter")
+	libkbfs.AddNewAssertionForTestOrBust(t, config1,
+		keybase1.SocialAssertion{
+			User: "user2",
+		},
+		keybase1.SocialAssertion{
+			User:    "user2",
+			Service: "twitter",
+		})
+	libkbfs.AddNewAssertionForTestOrBust(t, config2,
+		keybase1.SocialAssertion{
+			User: "user2",
+		},
+		keybase1.SocialAssertion{
+			User:    "user2",
+			Service: "twitter",
+		})
 
 	// Trigger a rekey from user1
 	err = config1.KBFSOps().Rekey(context.Background(),
@@ -3299,8 +3314,22 @@ func TestTlfNameChangeWithoutObservation(t *testing.T) {
 	}
 
 	// Now add the new assertion
-	libkbfs.AddNewAssertionForTestOrBust(t, config1, "user2", "user2@twitter")
-	libkbfs.AddNewAssertionForTestOrBust(t, config2, "user2", "user2@twitter")
+	libkbfs.AddNewAssertionForTestOrBust(t, config1,
+		keybase1.SocialAssertion{
+			User: "user2",
+		},
+		keybase1.SocialAssertion{
+			User:    "user2",
+			Service: "twitter",
+		})
+	libkbfs.AddNewAssertionForTestOrBust(t, config2,
+		keybase1.SocialAssertion{
+			User: "user2",
+		},
+		keybase1.SocialAssertion{
+			User:    "user2",
+			Service: "twitter",
+		})
 
 	// Now write the first file, which should load the directory, and
 	// rename the folder in the folder list.
