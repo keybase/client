@@ -3414,14 +3414,11 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		return err
 	}
 
-	timerWasSet := false
 	if fbo.rekeyWithPromptTimer != nil {
-		timerWasSet = true
-		fbo.rekeyWithPromptTimer.Stop()
-		fbo.rekeyWithPromptTimer = nil
 		if !promptPaper {
-			fbo.log.CDebugf(ctx, "rekeyWithPrompt interrupted before it fires.")
+			fbo.log.CDebugf(ctx, "rekeyWithPrompt superseded before it fires.")
 		} else if !md.IsRekeySet() {
+			fbo.rekeyWithPromptTimer.Stop()
 			// If the rekey bit isn't set, than some other device
 			// already took care of our request, and we can stop
 			// early.  Note that if this FBO never registered for
@@ -3489,14 +3486,11 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		// folder accesses from the user will also cause a
 		// rekeyWithPrompt.
 		//
-		// Only re-schedule the timer if it was interrupted by
-		// something that wasn't a paper-prompt.
-		if !timerWasSet || !promptPaper {
+		// Only ever set the timer once.
+		if fbo.rekeyWithPromptTimer == nil {
 			d := fbo.config.RekeyWithPromptWaitTime()
 			fbo.log.CDebugf(ctx, "Scheduling a rekeyWithPrompt in %s", d)
 			fbo.rekeyWithPromptTimer = time.AfterFunc(d, fbo.rekeyWithPrompt)
-		} else if timerWasSet {
-			fbo.log.CDebugf(ctx, "Paper prompt failed; not re-scheduling")
 		}
 
 		if rekeyWasSet {
@@ -3505,6 +3499,14 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 			return nil
 		}
 		// This device hasn't been keyed yet, fall through to set the rekey bit
+	} else if fbo.rekeyWithPromptTimer != nil {
+		defer func() {
+			if err == nil {
+				fbo.log.CDebugf(ctx, "Scheduled rekey timer no longer needed")
+				fbo.rekeyWithPromptTimer.Stop()
+				fbo.rekeyWithPromptTimer = nil
+			}
+		}()
 	}
 
 	// add an empty operation to satisfy assumptions elsewhere
