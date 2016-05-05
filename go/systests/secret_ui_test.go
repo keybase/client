@@ -75,10 +75,7 @@ func TestSecretUI(t *testing.T) {
 	}
 
 	// check that delegate ui session id was correct:
-	// TODO: re-enable this check.
-	// temporary fix in that sets session id to 0.
-	// if sui.getPassphraseSessionID != cmd.SessionID {
-	if sui.getPassphraseSessionID != 0 {
+	if sui.getPassphraseSessionID != cmd.SessionID {
 		t.Errorf("delegate secret UI session ID: %d, expected %d", sui.getPassphraseSessionID, cmd.SessionID)
 	}
 

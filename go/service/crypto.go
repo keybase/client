@@ -23,7 +23,10 @@ func NewCryptoHandler(g *libkb.GlobalContext) *CryptoHandler {
 func (c *CryptoHandler) getDelegatedSecretUI(sessionID int) libkb.SecretUI {
 	// We should only ever be called in service mode, so UIRouter
 	// should be non-nil.
-	ui, err := c.G().UIRouter.GetSecretUI(sessionID)
+
+	// sessionID 0 is special for desktop UI and should be used in this
+	// situation for one-off passphrase requests.
+	ui, err := c.G().UIRouter.GetSecretUI(0)
 	if err != nil {
 		c.G().Log.Debug("UIRouter.GetSecretUI() returned an error %v", err)
 		return nil
