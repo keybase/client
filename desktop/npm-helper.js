@@ -158,7 +158,7 @@ function postInstall () {
     fixupSymlinks()
   }
 
-  if (!process.env.KEYBASE_SKIP_DEV_TOOLS) {
+  if (process.env.KEYBASE_INSTALL_DEV_TOOLS) {
     const modules = Object.keys(postinstallGlobals).map(k => `${k}${postinstallGlobals[k]}`).join(' ')
     exec(`npm install -g -E ${modules}`)
   }
