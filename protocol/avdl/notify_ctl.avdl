@@ -9,6 +9,7 @@ protocol notifyCtl {
     boolean users;
     boolean kbfs;
     boolean tracking;
+    boolean favorites;
   }
 
   void setNotifications(NotificationChannels channels);

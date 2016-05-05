@@ -800,6 +800,30 @@ export const notifyCtl = {
   }
 }
 
+export const NotifyFavorites = {
+  'LogLevel': {
+    'none': 0,
+    'debug': 1,
+    'info': 2,
+    'notice': 3,
+    'warn': 4,
+    'error': 5,
+    'critical': 6,
+    'fatal': 7
+  },
+  'ClientType': {
+    'none': 0,
+    'cli': 1,
+    'gui': 2,
+    'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
+  }
+}
+
 export const NotifyFS = {
   'FSStatusCode': {
     'start': 0,
@@ -1836,6 +1860,7 @@ export default {
   metadata,
   metadataUpdate,
   notifyCtl,
+  NotifyFavorites,
   NotifyFS,
   NotifySession,
   NotifyTracking,

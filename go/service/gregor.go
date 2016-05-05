@@ -2,6 +2,7 @@ package service
 
 import (
 	"bytes"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"time"
@@ -107,6 +108,11 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 	}
 }
 
+func (g *gregorHandler) Shutdown() {
+	g.conn.Shutdown()
+	g.conn = nil
+}
+
 func (g *gregorHandler) kbfsFavorites(ctx context.Context, m gregor.OutOfBandMessage) error {
 	if m.Body() == nil {
 		return errors.New("gregor handler for kbfs.favorites: nil message body")
@@ -130,12 +136,12 @@ func (g *gregorHandler) kbfsFavorites(ctx context.Context, m gregor.OutOfBandMes
 }
 
 func (g *gregorHandler) notifyFavoritesChanged(ctx context.Context, uid gregor.UID) error {
+	kbUID, err := keybase1.UIDFromString(hex.EncodeToString(uid.Bytes()))
+	if err != nil {
+		return err
+	}
+	g.G().NotifyRouter.HandleFavoritesChanged(kbUID)
 	return nil
-}
-
-func (g *gregorHandler) Shutdown() {
-	g.conn.Shutdown()
-	g.conn = nil
 }
 
 func (g *gregorHandler) auth(ctx context.Context) error {

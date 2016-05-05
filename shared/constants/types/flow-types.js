@@ -536,6 +536,7 @@ export type NotificationChannels = {
   users: boolean;
   kbfs: boolean;
   tracking: boolean;
+  favorites: boolean;
 }
 
 export type NotifyFS_FSActivity_result = void
@@ -544,6 +545,17 @@ export type NotifyFS_FSActivity_rpc = {
   method: 'NotifyFS.FSActivity',
   param: {
     notification: FSNotification
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type NotifyFavorites_favoritesChanged_result = void
+
+export type NotifyFavorites_favoritesChanged_rpc = {
+  method: 'NotifyFavorites.favoritesChanged',
+  param: {
+    uid: UID
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any) => void)
@@ -3347,6 +3359,7 @@ export type rpc =
   | Kex2Provisionee_hello_rpc
   | Kex2Provisioner_kexStart_rpc
   | NotifyFS_FSActivity_rpc
+  | NotifyFavorites_favoritesChanged_rpc
   | NotifySession_clientOutOfDate_rpc
   | NotifySession_loggedIn_rpc
   | NotifySession_loggedOut_rpc
@@ -4587,6 +4600,13 @@ export type incomingCallMapType = {
       error: (err: RPCError) => void,
       result: () => void
     }
+  ) => void,
+  'keybase.1.NotifyFavorites.favoritesChanged'?: (
+    params: {
+      uid: UID
+    } /* ,
+    response: {} // Notify call
+    */
   ) => void,
   'keybase.1.NotifyFS.FSActivity'?: (
     params: {
