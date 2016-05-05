@@ -42,7 +42,7 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.reactPerf = false
   config.overrideLoggedInTab = Tabs.moreTab
   config.focusOnShow = false
-  config.dumbFilter = ''
+  config.dumbFilter = 'tlf'
   config.printRoutes = true
 }
 
