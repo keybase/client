@@ -167,7 +167,7 @@ function postInstall () {
       childProcess.exec(`npm -g ls ${k}${postinstallGlobals[k]}`, {},
         err => {
           if (err) {
-            console.log('>>>>> Missing dev tooling ', k, postinstallGlobals[k], 'please run "npm run setup-dev-tools"')
+            console.log('>>>>> Missing dev tooling', k, postinstallGlobals[k], 'please run "npm run setup-dev-tools"')
           }
         })
     })
