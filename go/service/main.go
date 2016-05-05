@@ -4,7 +4,6 @@
 package service
 
 import (
-	"fmt"
 	"io"
 	"net"
 	"os"
@@ -31,7 +30,7 @@ type Service struct {
 	stopCh        chan keybase1.ExitCode
 	updateChecker *updater.UpdateChecker
 	logForwarder  *logFwd
-	gregorConn    *rpc.Connection
+	gregor        *gregorHandler
 }
 
 func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
@@ -180,8 +179,15 @@ func (d *Service) Run() (err error) {
 
 	d.checkTrackingEveryHour()
 
-	if gcErr := d.gregordConnect(); gcErr != nil {
-		d.G().Log.Debug("error connecting to gregord: %s", gcErr)
+	if d.G().Env.GetRunMode() != libkb.ProductionRunMode {
+		d.G().Log.Debug("connecting to gregord in non-production run mode")
+		if gcErr := d.tryGregordConnect(); gcErr != nil {
+			d.G().Log.Debug("error connecting to gregord: %s", gcErr)
+		}
+		d.G().AddLoginHook(d)
+		d.G().AddLogoutHook(d)
+	} else {
+		d.G().Log.Debug("not connecting to gregord in production")
 	}
 
 	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
@@ -236,34 +242,47 @@ func (d *Service) checkTrackingEveryHour() {
 	}()
 }
 
+func (d *Service) tryGregordConnect() error {
+	loggedIn, err := d.G().LoginState().LoggedInLoad()
+	if err != nil {
+		return err
+	}
+	if !loggedIn {
+		d.G().Log.Debug("not logged in, so not connecting to gregord")
+		return nil
+	}
+
+	return d.gregordConnect()
+}
+
+func (d *Service) OnLogin() error {
+	return d.gregordConnect()
+}
+
+func (d *Service) OnLogout() error {
+	if d.gregor == nil {
+		return nil
+	}
+
+	d.gregor.Shutdown()
+	d.gregor = nil
+
+	return nil
+}
+
 func (d *Service) gregordConnect() error {
 	uri, err := parseFMPURI(d.G().Env.GetGregorURI())
 	if err != nil {
 		return err
 	}
 	d.G().Log.Debug("gregor URI: %s", uri)
-	h := newGregorHandler(d.G())
-	if uri.UseTLS() {
-		return d.gregordConnectTLS(h, uri)
-	}
-	return d.gregordConnectNoTLS(h, uri)
-}
 
-func (d *Service) gregordConnectTLS(h *gregorHandler, uri *fmpURI) error {
-	d.G().Log.Debug("connecting to gregor via TLS")
-	rawCA := d.G().Env.GetBundledCA(uri.Host)
-	if len(rawCA) == 0 {
-		return fmt.Errorf("No bundled CA for %s", uri.Host)
+	if d.gregor != nil {
+		d.gregor.Shutdown()
 	}
-	d.gregorConn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), nil, h, true, libkb.NewRPCLogFactory(d.G()), nil, d.G().Log, nil)
-	return nil
-}
 
-func (d *Service) gregordConnectNoTLS(h *gregorHandler, uri *fmpURI) error {
-	d.G().Log.Debug("connecting to gregor without TLS")
-	t := newConnTransport(d.G(), uri.HostPort)
-	d.gregorConn = rpc.NewConnectionWithTransport(h, t, nil, true, nil, d.G().Log, nil)
-	return nil
+	d.gregor = newGregorHandler(d.G())
+	return d.gregor.Connect(uri)
 }
 
 // ReleaseLock releases the locking pidfile by closing, unlocking and

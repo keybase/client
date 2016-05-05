@@ -58,10 +58,14 @@ func (f *FMPURI) String() string {
 	return fmt.Sprintf("%s://%s", f.Scheme, f.HostPort)
 }
 
-func (f *FMPURI) Dial() (net.Conn, error) {
+func (f *FMPURI) DialWithConfig(config *tls.Config) (net.Conn, error) {
 	network, addr := "tcp", f.HostPort
 	if f.UseTLS() {
-		return tls.Dial(network, addr, nil)
+		return tls.Dial(network, addr, config)
 	}
 	return net.Dial(network, addr)
+}
+
+func (f *FMPURI) Dial() (net.Conn, error) {
+	return f.DialWithConfig(nil)
 }
