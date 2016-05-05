@@ -5,6 +5,8 @@ ICED=node_modules/.bin/iced
 AVDL2JSON=node_modules/.bin/avdl2json
 AVDLC=node_modules/.bin/avdlc
 
+$(AVDL2JSON): config
+
 json/%.json: avdl/%.avdl
 	$(AVDL2JSON) -i $< -o $@~ && mv $@~ $@
 
