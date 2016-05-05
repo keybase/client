@@ -1,0 +1,13 @@
+/* @flow */
+
+export type Folder = {
+  name: string
+}
+
+export type Props = {
+  tlfs?: Array<Folder>,
+  ignored?: Array<Folder>
+}
+
+export default class Render extends React$Component<void, Props, void> {
+}
