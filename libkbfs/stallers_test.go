@@ -126,6 +126,12 @@ func (m *stallingMDOps) GetForTLF(ctx context.Context, id TlfID) (
 	return m.delegate.GetForTLF(ctx, id)
 }
 
+func (m *stallingMDOps) GetLatestHandleForTLF(ctx context.Context, id TlfID) (
+	*BareTlfHandle, error) {
+	m.maybeStall(ctx, "GetLatestHandleForTLF")
+	return m.delegate.GetLatestHandleForTLF(ctx, id)
+}
+
 func (m *stallingMDOps) GetUnmergedForTLF(ctx context.Context, id TlfID,
 	bid BranchID) (*RootMetadata, error) {
 	m.maybeStall(ctx, "GetUnmergedForTLF")

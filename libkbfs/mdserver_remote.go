@@ -558,6 +558,20 @@ func (md *MDServerRemote) TruncateUnlock(ctx context.Context, id TlfID) (
 	return md.client.TruncateUnlock(ctx, id.String())
 }
 
+// GetLatestHandleForTLF implements the MDServer interface for MDServerRemote.
+func (md *MDServerRemote) GetLatestHandleForTLF(ctx context.Context, id TlfID) (
+	*BareTlfHandle, error) {
+	buf, err := md.client.GetLatestFolderHandle(ctx, id.String())
+	if err != nil {
+		return nil, err
+	}
+	var handle BareTlfHandle
+	if err := md.config.Codec().Decode(buf, &handle); err != nil {
+		return nil, err
+	}
+	return &handle, nil
+}
+
 // CheckForRekeys implements the MDServer interface.
 func (md *MDServerRemote) CheckForRekeys(ctx context.Context) <-chan error {
 	// Wait 5 seconds before asking for rekeys, because the server

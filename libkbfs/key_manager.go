@@ -436,6 +436,31 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		km.log.CDebugf(ctx, "handle for %s resolved to %s",
 			handle.GetCanonicalPath(),
 			resolvedHandle.GetCanonicalPath())
+
+		// Check with the server to see if the handle became a conflict.
+		latestHandle, err := km.config.MDOps().GetLatestHandleForTLF(ctx, md.ID)
+		if err != nil {
+			return false, nil, err
+		}
+		if latestHandle == nil {
+			return false, nil, NoSuchTlfHandleError{md.ID}
+		}
+		if latestHandle.ConflictInfo != resolvedHandle.ConflictInfo {
+			km.log.CDebugf(ctx, "handle for %s is conflicted",
+				handle.GetCanonicalPath())
+			if resolvedHandle.ConflictInfo != nil {
+				// ConflictInfo is inconsistent.
+				err := TlfHandleConflictInfoMismatchError{
+					Expected: resolvedHandle.ConflictInfo,
+					Actual:   latestHandle.ConflictInfo,
+				}
+				return false, nil, err
+			}
+			// Set the conflict info in the resolved handle.
+			// This will get stored in the metadata block.
+			// TODO: We should do some verification of this.
+			resolvedHandle.ConflictInfo = latestHandle.ConflictInfo
+		}
 	}
 
 	// For a public TLF there's no rekeying to be done, but we

@@ -32,6 +32,9 @@ const (
 	// StatusCodeMDServerErrorWriteAccess is the error code to indicate the client isn't authorized to
 	// write to a TLF.
 	StatusCodeMDServerErrorWriteAccess = 2809
+	// StatusCodeMDServerErrorConflictFolderMapping is the error code for a folder handle to folder ID
+	// mapping conflict error.
+	StatusCodeMDServerErrorConflictFolderMapping = 2810
 )
 
 // MDServerError is a generic server-side error.
@@ -235,6 +238,31 @@ func (e MDServerErrorConditionFailed) ToStatus() (s keybase1.Status) {
 	return
 }
 
+// MDServerErrorConflictFolderMapping is returned when there is a folder handle to folder
+// ID mapping mismatch.
+type MDServerErrorConflictFolderMapping struct {
+	Desc     string
+	Expected TlfID
+	Actual   TlfID
+}
+
+// Error implements the Error interface for MDServerErrorConflictFolderMapping.
+func (e MDServerErrorConflictFolderMapping) Error() string {
+	if e.Desc == "" {
+		return fmt.Sprintf("Conflict: expected folder ID %s, actual %s",
+			e.Expected, e.Actual)
+	}
+	return e.Desc
+}
+
+// ToStatus implements the ExportableError interface for MDServerErrorConflictFolderMapping
+func (e MDServerErrorConflictFolderMapping) ToStatus() (s keybase1.Status) {
+	s.Code = StatusCodeMDServerErrorConflictFolderMapping
+	s.Name = "CONFLICT_FOLDER_MAPPING"
+	s.Desc = e.Error()
+	return
+}
+
 // MDServerErrorUnwrapper is an implementation of rpc.ErrorUnwrapper
 // for errors coming from the MDServer.
 type MDServerErrorUnwrapper struct{}
@@ -287,6 +315,9 @@ func (eu MDServerErrorUnwrapper) UnwrapError(arg interface{}) (appError error, d
 		break
 	case StatusCodeMDServerErrorWriteAccess:
 		appError = MDServerErrorWriteAccess{}
+		break
+	case StatusCodeMDServerErrorConflictFolderMapping:
+		appError = MDServerErrorConflictFolderMapping{Desc: s.Desc}
 		break
 	default:
 		ase := libkb.AppStatusError{

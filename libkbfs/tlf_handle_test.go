@@ -45,7 +45,7 @@ func TestMakeBareTlfHandle(t *testing.T) {
 		},
 	}
 
-	h, err := MakeBareTlfHandle(w, r, uw, ur)
+	h, err := MakeBareTlfHandle(w, r, uw, ur, nil)
 	require.NoError(t, err)
 	require.Equal(t, []keybase1.UID{
 		keybase1.MakeTestUID(3),
@@ -78,7 +78,7 @@ func TestMakeBareTlfHandle(t *testing.T) {
 }
 
 func TestMakeBareTlfHandleFailures(t *testing.T) {
-	_, err := MakeBareTlfHandle(nil, nil, nil, nil)
+	_, err := MakeBareTlfHandle(nil, nil, nil, nil, nil)
 	assert.Equal(t, ErrNoWriters, err)
 
 	w := []keybase1.UID{
@@ -91,10 +91,10 @@ func TestMakeBareTlfHandleFailures(t *testing.T) {
 		keybase1.MakeTestUID(2),
 	}
 
-	_, err = MakeBareTlfHandle(r, nil, nil, nil)
+	_, err = MakeBareTlfHandle(r, nil, nil, nil, nil)
 	assert.Equal(t, ErrInvalidWriter, err)
 
-	_, err = MakeBareTlfHandle(w, r, nil, nil)
+	_, err = MakeBareTlfHandle(w, r, nil, nil, nil)
 	assert.Equal(t, ErrInvalidReader, err)
 
 	ur := []keybase1.SocialAssertion{
@@ -104,16 +104,25 @@ func TestMakeBareTlfHandleFailures(t *testing.T) {
 		},
 	}
 
-	_, err = MakeBareTlfHandle(w, r[:1], nil, ur)
+	_, err = MakeBareTlfHandle(w, r[:1], nil, ur, nil)
 	assert.Equal(t, ErrInvalidReader, err)
 }
 
 func TestNormalizeNamesInTLF(t *testing.T) {
 	writerNames := []string{"BB", "C@Twitter", "d@twitter", "aa"}
 	readerNames := []string{"EE", "ff", "AA@HackerNews", "aa", "BB", "bb", "ZZ@hackernews"}
-	s, err := normalizeNamesInTLF(writerNames, readerNames)
+	s, err := normalizeNamesInTLF(writerNames, readerNames, "")
 	require.NoError(t, err)
 	assert.Equal(t, "aa,bb,c@twitter,d@twitter#AA@hackernews,ZZ@hackernews,aa,bb,bb,ee,ff", s)
+}
+
+func TestNormalizeNamesInTLFWithConflict(t *testing.T) {
+	writerNames := []string{"BB", "C@Twitter", "d@twitter", "aa"}
+	readerNames := []string{"EE", "ff", "AA@HackerNews", "aa", "BB", "bb", "ZZ@hackernews"}
+	conflictSuffix := "(cOnflictED coPy 2015-05-11 #4)"
+	s, err := normalizeNamesInTLF(writerNames, readerNames, conflictSuffix)
+	require.Nil(t, err)
+	assert.Equal(t, "aa,bb,c@twitter,d@twitter#AA@hackernews,ZZ@hackernews,aa,bb,bb,ee,ff (conflicted copy 2015-05-11 #4)", s)
 }
 
 func TestParseTlfHandleEarlyFailure(t *testing.T) {
@@ -468,7 +477,7 @@ func TestBareTlfHandleResolveAssertions(t *testing.T) {
 		},
 	}
 
-	h, err := MakeBareTlfHandle(w, r, uw, ur)
+	h, err := MakeBareTlfHandle(w, r, uw, ur, nil)
 	require.NoError(t, err)
 
 	assertions := make(map[keybase1.SocialAssertion]keybase1.UID)
@@ -505,4 +514,32 @@ func TestBareTlfHandleResolveAssertions(t *testing.T) {
 			Service: "service1",
 		},
 	}, h.UnresolvedReaders)
+}
+
+func TestResolveAgainConflict(t *testing.T) {
+	ctx := context.Background()
+
+	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	currentUID := localUsers[0].UID
+	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, NewCodecMsgpack())
+
+	kbpki := &daemonKBPKI{
+		daemon: daemon,
+	}
+
+	name := "u1,u2#u3@twitter"
+	h, err := ParseTlfHandle(ctx, kbpki, name, false, true)
+	require.Nil(t, err)
+	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
+
+	daemon.addNewAssertionForTest("u3", "u3@twitter")
+	ci, err := NewConflictInfo(1)
+	if err != nil {
+		t.Fatal(err)
+	}
+	h.ConflictInfo = ci
+	newH, err := h.ResolveAgain(ctx, daemon)
+	require.Nil(t, err)
+	assert.Equal(t, CanonicalTlfName("u1,u2#u3"+
+		ConflictSuffixSep+ci.String()), newH.GetCanonicalName())
 }

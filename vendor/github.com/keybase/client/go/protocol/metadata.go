@@ -103,6 +103,10 @@ type GetFoldersForRekeyArg struct {
 type PingArg struct {
 }
 
+type GetLatestFolderHandleArg struct {
+	FolderID string `codec:"folderID" json:"folderID"`
+}
+
 type GetMerkleRootArg struct {
 	TreeID MerkleTreeID `codec:"treeID" json:"treeID"`
 	SeqNo  int64        `codec:"seqNo" json:"seqNo"`
@@ -136,6 +140,7 @@ type MetadataInterface interface {
 	GetFolderHandle(context.Context, GetFolderHandleArg) ([]byte, error)
 	GetFoldersForRekey(context.Context, KID) error
 	Ping(context.Context) error
+	GetLatestFolderHandle(context.Context, string) ([]byte, error)
 	GetMerkleRoot(context.Context, GetMerkleRootArg) (MerkleRoot, error)
 	GetMerkleRootLatest(context.Context, MerkleTreeID) (MerkleRoot, error)
 	GetMerkleRootSince(context.Context, GetMerkleRootSinceArg) (MerkleRoot, error)
@@ -360,6 +365,22 @@ func MetadataProtocol(i MetadataInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"getLatestFolderHandle": {
+				MakeArg: func() interface{} {
+					ret := make([]GetLatestFolderHandleArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]GetLatestFolderHandleArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]GetLatestFolderHandleArg)(nil), args)
+						return
+					}
+					ret, err = i.GetLatestFolderHandle(ctx, (*typedArgs)[0].FolderID)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"getMerkleRoot": {
 				MakeArg: func() interface{} {
 					ret := make([]GetMerkleRootArg, 1)
@@ -503,6 +524,12 @@ func (c MetadataClient) GetFoldersForRekey(ctx context.Context, deviceKID KID) (
 
 func (c MetadataClient) Ping(ctx context.Context) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.metadata.ping", []interface{}{PingArg{}}, nil)
+	return
+}
+
+func (c MetadataClient) GetLatestFolderHandle(ctx context.Context, folderID string) (res []byte, err error) {
+	__arg := GetLatestFolderHandleArg{FolderID: folderID}
+	err = c.Cli.Call(ctx, "keybase.1.metadata.getLatestFolderHandle", []interface{}{__arg}, &res)
 	return
 }
 

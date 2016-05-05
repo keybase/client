@@ -146,6 +146,10 @@ type RootMetadata struct {
 	// For private TLFs. Any unresolved social assertions for readers.
 	UnresolvedReaders []keybase1.SocialAssertion `codec:"ur,omitempty"`
 
+	// ConflictInfo is set if there's a conflict for the given folder's
+	// handle after a social assertion resolution.
+	ConflictInfo *ConflictInfo `codec:"ci,omitempty"`
+
 	codec.UnknownFieldSetHandler
 
 	// The plaintext, deserialized PrivateMetadata
@@ -533,7 +537,7 @@ func (md *RootMetadata) makeBareTlfHandle() (BareTlfHandle, error) {
 	}
 
 	return MakeBareTlfHandle(
-		writers, readers, md.Extra.UnresolvedWriters, md.UnresolvedReaders)
+		writers, readers, md.Extra.UnresolvedWriters, md.UnresolvedReaders, md.ConflictInfo)
 }
 
 // MakeBareTlfHandle makes a BareTlfHandle for this
@@ -699,6 +703,8 @@ func (md *RootMetadata) updateFromTlfHandle(newHandle *TlfHandle) error {
 		make([]keybase1.SocialAssertion, len(newHandle.UnresolvedWriters))
 	copy(md.Extra.UnresolvedWriters, newHandle.UnresolvedWriters)
 
+	md.ConflictInfo = newHandle.ConflictInfo
+
 	bareHandle, err := md.makeBareTlfHandle()
 	if err != nil {
 		return err
@@ -759,9 +765,11 @@ func (rmds *RootMetadataSigned) MerkleHash(config Config) (MerkleHash, error) {
 // Version returns the metadata version of this MD block, depending on
 // which features it uses.
 func (rmds *RootMetadataSigned) Version() MetadataVer {
-	// Only folders with unresolved assertions get the new version.
+	// Only folders with unresolved assertions orconflict info get the
+	// new version.
 	if len(rmds.MD.Extra.UnresolvedWriters) > 0 ||
-		len(rmds.MD.UnresolvedReaders) > 0 {
+		len(rmds.MD.UnresolvedReaders) > 0 ||
+		rmds.MD.ConflictInfo != nil {
 		return InitialExtraMetadataVer
 	}
 	// Let other types of MD objects use the older version since they

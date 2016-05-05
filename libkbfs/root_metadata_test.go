@@ -89,7 +89,8 @@ func makeFakeTlfHandle(
 	}
 	bareH, err := MakeBareTlfHandle(
 		[]keybase1.UID{uid}, readers,
-		unresolvedWriters, unresolvedReaders)
+		unresolvedWriters, unresolvedReaders,
+		nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -434,6 +435,7 @@ func makeFakeRootMetadataFuture(t *testing.T) *rootMetadataFuture {
 				MdID{h},
 				nil,
 				[]keybase1.SocialAssertion{sa},
+				nil,
 				codec.UnknownFieldSetHandler{},
 				PrivateMetadata{},
 				nil,

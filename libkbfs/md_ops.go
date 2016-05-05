@@ -525,3 +525,10 @@ func (md *MDOpsStandard) PutUnmerged(ctx context.Context, rmd *RootMetadata, bid
 	rmd.BID = bid
 	return md.put(ctx, rmd)
 }
+
+// GetLatestHandleForTLF implements the MDOps interface for MDOpsStandard.
+func (md *MDOpsStandard) GetLatestHandleForTLF(ctx context.Context, id TlfID) (
+	*BareTlfHandle, error) {
+	// TODO: Verify this mapping using a Merkle tree.
+	return md.config.MDServer().GetLatestHandleForTLF(ctx, id)
+}
