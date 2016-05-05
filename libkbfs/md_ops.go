@@ -454,19 +454,24 @@ func (md *MDOpsStandard) readyMD(ctx context.Context, rmd *RootMetadata) (
 			}
 			rmd.SerializedPrivateMetadata = encodedPrivateMetadata
 		} else if !rmd.IsWriterMetadataCopiedSet() {
+			md.log.CDebugf(ctx, "READYING!")
 			// Encrypt and encode the private metadata
 			k, err := md.config.KeyManager().GetTLFCryptKeyForEncryption(ctx, rmd)
 			if err != nil {
+				md.log.CDebugf(ctx, "READYING 1: %v", err)
 				return nil, err
 			}
 			encryptedPrivateMetadata, err := crypto.EncryptPrivateMetadata(&rmd.data, k)
 			if err != nil {
+				md.log.CDebugf(ctx, "READYING 2: %v", err)
 				return nil, err
 			}
 			encodedEncryptedPrivateMetadata, err := codec.Encode(encryptedPrivateMetadata)
 			if err != nil {
+				md.log.CDebugf(ctx, "READYING 3: %v", err)
 				return nil, err
 			}
+			md.log.CDebugf(ctx, "Serialized priv MD: %v", encodedEncryptedPrivateMetadata)
 			rmd.SerializedPrivateMetadata = encodedEncryptedPrivateMetadata
 		}
 

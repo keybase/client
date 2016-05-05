@@ -525,17 +525,17 @@ func TestRootMetadataVersion(t *testing.T) {
 	rmd := newRootMetadataOrBust(t, id, h)
 	rmds := RootMetadataSigned{MD: *rmd}
 	if g, e := rmds.Version(), config.MetadataVersion(); g != e {
-		t.Errorf("MD with unresolved users got wrond version %d, expected %d",
+		t.Errorf("MD with unresolved users got wrong version %d, expected %d",
 			g, e)
 	}
 
 	// All other folders should use the pre-extra MD version.
-	id2 := FakeTlfID(1, false)
+	id2 := FakeTlfID(2, false)
 	h2 := parseTlfHandleOrBust(t, config, "alice,charlie", false)
 	rmd2 := newRootMetadataOrBust(t, id2, h2)
 	rmds2 := RootMetadataSigned{MD: *rmd2}
 	if g, e := rmds2.Version(), MetadataVer(PreExtraMetadataVer); g != e {
-		t.Errorf("MD without unresolved users got wrond version %d, "+
+		t.Errorf("MD without unresolved users got wrong version %d, "+
 			"expected %d", g, e)
 	}
 
@@ -546,6 +546,11 @@ func TestRootMetadataVersion(t *testing.T) {
 			User:    "bob",
 			Service: "twitter",
 		})
+	rmd.SerializedPrivateMetadata = []byte{1} // MakeSuccessor requires this
+	FakeInitialRekey(rmd, h.BareTlfHandle)
+	if rmd.SerializedPrivateMetadata == nil {
+		t.Fatalf("Nil private MD")
+	}
 	h3, err := h.ResolveAgain(context.Background(), config.KBPKI())
 	if err != nil {
 		t.Fatalf("Couldn't resolve again: %v", err)
@@ -554,13 +559,14 @@ func TestRootMetadataVersion(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't make MD successor: %v", err)
 	}
+	FakeInitialRekey(rmd3, h3.BareTlfHandle)
 	err = rmd3.updateTlfHandle(h3)
 	if err != nil {
 		t.Fatalf("Couldn't update TLF handle: %v", err)
 	}
 	rmds3 := RootMetadataSigned{MD: *rmd3}
 	if g, e := rmds3.Version(), MetadataVer(PreExtraMetadataVer); g != e {
-		t.Errorf("MD without unresolved users got wrond version %d, "+
+		t.Errorf("MD without unresolved users got wrong version %d, "+
 			"expected %d", g, e)
 	}
 }

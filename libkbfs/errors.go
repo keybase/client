@@ -382,7 +382,7 @@ type NewMetadataVersionError struct {
 // Error implements the error interface for NewMetadataVersionError.
 func (e NewMetadataVersionError) Error() string {
 	return fmt.Sprintf(
-		"The metadata for folder %s is of a version (%d) that we can't read ",
+		"The metadata for folder %s is of a version (%d) that we can't read",
 		e.Tlf, e.MetadataVer)
 }
 
