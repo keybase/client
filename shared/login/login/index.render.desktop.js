@@ -58,6 +58,6 @@ const styles = {
     backgroundColor: globalColors.lightGrey
   },
   card: {
-    marginTop: 115
+    marginTop: 100
   }
 }
