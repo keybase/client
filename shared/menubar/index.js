@@ -1,12 +1,10 @@
 /* @flow */
-/*eslint-disable react/prop-types */ // Since we're using flow types for props
-
 import React, {Component} from 'react'
 import Render from './index.render'
 import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
-import {getTLF} from '../util/kbfs'
 import engine from '../engine'
+import {shell} from 'electron'
 
 import * as favoriteAction from '../actions/favorite'
 import {openInKBFS} from '../actions/kbfs'
@@ -16,22 +14,20 @@ import {remote} from 'electron'
 import {ipcRenderer} from 'electron'
 import {loginTab} from '../constants/tabs'
 
-import type {Folder} from '../constants/types/flow-types'
-import type {FolderInfo} from './index.render'
+import type {Props as RenderProps} from './index.render'
 
-export type MenubarProps = {
+export type Props = {
   username: ?string,
-  folders: ?Array<Folder>,
+  folders: ?RenderProps,
   favoriteList: () => void,
-  openInKBFS: () => void,
+  openInKBFS: (target?: any) => void,
   loggedIn: ?boolean,
   switchTab: (tab: string) => void
-}
+} & RenderProps
 
 const REQUEST_DELAY = 5000
 
-class Menubar extends Component {
-  props: MenubarProps;
+class Menubar extends Component<void, Props, void> {
   _lastRequest: number;
 
   constructor (props) {
@@ -42,7 +38,7 @@ class Menubar extends Component {
     const onMenubarShow = () => {
       setImmediate(() => {
         engine.listenOnConnect('menubar', () => {
-          this.checkForFolders(true)
+          this._checkForFolders(true)
         })
       })
     }
@@ -70,7 +66,7 @@ class Menubar extends Component {
     } catch (_) { }
   }
 
-  checkForFolders (force) {
+  _checkForFolders (force) {
     const now = Date.now()
 
     if ((now - this._lastRequest) < REQUEST_DELAY) {
@@ -91,14 +87,14 @@ class Menubar extends Component {
   }
 
   componentDidMount () {
-    this.checkForFolders()
+    this._checkForFolders()
   }
 
   shouldComponentUpdate (nextProps, nextState) {
     if (this.props.username !== nextProps.username ||
         this.props.loggedIn !== nextProps.loggedIn) {
       this._lastRequest = 0 // reset delay since user/loggedin changed
-      this.checkForFolders()
+      this._checkForFolders()
       return true
     }
 
@@ -109,78 +105,51 @@ class Menubar extends Component {
     return false
   }
 
-  closeMenubar () {
+  _closeMenubar () {
     ipcRenderer.send('closeMenubar')
   }
 
-  openKBFS () {
-    this.props.openInKBFS()
-    this.closeMenubar()
+  _openFolder (path: ?string) {
+    this.props.openInKBFS(path)
+    this._closeMenubar()
   }
 
-  openKBFSPublic (sub) {
-    this.props.openInKBFS(`/public/${sub}`)
-    this.closeMenubar()
-  }
-
-  openKBFSPrivate (sub) {
-    this.props.openInKBFS(`/private/${sub}`)
-    this.closeMenubar()
-  }
-
-  showMain () {
+  _logIn () {
     ipcRenderer.send('showMain')
     this.props.switchTab(loginTab)
-    this.closeMenubar()
+    this._closeMenubar()
   }
 
-  logIn () {
-    ipcRenderer.send('showMain')
-    this.props.switchTab(loginTab)
-    this.closeMenubar()
-  }
-
-  showHelp () {
+  _showHelp () {
     ipcRenderer.send('openURL', 'help')
-    this.closeMenubar()
+    this._closeMenubar()
   }
 
-  showUser (username: ?string) {
-    ipcRenderer.send('openURL', 'user', {username})
-    this.closeMenubar()
+  _showUser () {
+    ipcRenderer.send('openURL', 'user', {username: this.props.username})
+    this._closeMenubar()
+  }
+
+  _quit () {
+    remote.app.quit()
+  }
+
+  _showBug () {
+    const version = __VERSION__ // eslint-disable-line no-undef
+    shell.openExternal(`https://github.com/keybase/client/issues/new?body=Keybase%20GUI%20Version:%20${encodeURIComponent(version)}`)
   }
 
   render () {
-    const {username} = this.props
-    const folders = (this.props.folders || []).map((f: Folder) : FolderInfo => { // eslint-disable-line arrow-parens
-      return {
-        type: 'folder',
-        folderName: f.name,
-        isPublic: !f.private,
-        // TODO we don't get this information right now,
-        isEmpty: false,
-        openFolder: () => {
-          setImmediate(() => this.props.openInKBFS(`${getTLF(!f.private, f.name)}`))
-          this.closeMenubar()
-        }
-      }
-    })
-
-    const loading = !!username && !this.props.folders
-
     return <Render
-      username={username}
-      openKBFS={() => this.openKBFS()}
-      openKBFSPublic={username => this.openKBFSPublic(username)}
-      openKBFSPrivate={username => this.openKBFSPrivate(username)}
-      showMain={() => this.showMain()}
-      showHelp={() => this.showHelp()}
-      showUser={user => this.showUser(user)}
-      logIn={() => this.logIn()}
-      quit={() => remote.app.quit()}
-      folders={folders}
-      loading={loading}
-      loggedIn={this.props.loggedIn || false}
+      {...this.props.folders}
+      loggedIn={!!this.props.loggedIn}
+      logIn={() => this._logIn()}
+      showHelp={() => this._showHelp()}
+      showUser={() => this._showUser()}
+      showKBFS={() => this._openFolder()}
+      showBug={() => this._showBug()}
+      quit={() => this._quit()}
+      onClick={(path: string) => this._openFolder(path)} // eslint-disable-line arrow-parens
     />
   }
 }

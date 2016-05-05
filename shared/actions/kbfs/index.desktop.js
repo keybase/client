@@ -5,7 +5,17 @@ import * as Constants from '../../constants/config'
 import {config} from '../../constants/types/keybase-v1'
 import type {AsyncAction} from '../../constants/types/flux'
 
-export function openInKBFS (path: string = ''): AsyncAction {
+const open = (kbfsPath: string, path: ?string) => {
+  shell.openItem(`${kbfsPath}${path}`)
+}
+
+// Paths MUST start with /keybase/
+export function openInKBFS (path: string = Constants.defaultKBFSPath): AsyncAction {
+  if (!path.startsWith(Constants.defaultKBFSPath)) {
+    console.warn(`ERROR: openInKBFS requires ${Constants.defaultKBFSPath} prefix`)
+  }
+  path = path.slice(Constants.defaultKBFSPath.length)
+
   return (dispatch, getState) => new Promise((resolve, reject) => {
     const state = getState()
     const kbfsPath = state.config.kbfsPath
@@ -31,12 +41,14 @@ export function openInKBFS (path: string = ''): AsyncAction {
         return Promise.resolve(kbfsPath + '\\')
       }).then(kbfsPath => {
         dispatch({type: Constants.changeKBFSPath, payload: {path: kbfsPath}})
+        open(kbfsPath, path)
         shell.openItem(`${kbfsPath}${path}`)
       }).catch(e => {
         console.warn('Error in parsing kbfsPath: ', e)
       })
     } else {
-      shell.openItem(`${kbfsPath}${path}`)
+      open(Constants.defaultKBFSPath, path)
     }
   })
 }
+

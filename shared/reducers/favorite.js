@@ -2,16 +2,42 @@
 
 import * as Constants from '../constants/favorite'
 import * as CommonConstants from '../constants/common'
-
+import _ from 'lodash'
 import type {FavoriteAction} from '../constants/favorite'
-import type {Folder} from '../constants/types/flow-types'
+import type {Props} from '../folders/render'
 
 type State = {
-  folders: ?Array<Folder>
+  folders: ?Props
 }
 
 const initialState = {
   folders: null
+}
+
+const folderToProps = (folders, username) => {
+  const converted = folders.map(f => ({
+    users: f.name.split(',').map(u => ({
+      username: u,
+      you: u === username,
+      broken: false
+    })),
+    isPublic: !f.private
+  }))
+
+  const [priv, pub] = _.partition(converted, {isPublic: false})
+
+  return {
+    privateBadge: 0,
+    publicBadge: 0,
+    private: {
+      tlfs: priv,
+      isPublic: false
+    },
+    public: {
+      tlfs: pub,
+      isPublic: true
+    }
+  }
 }
 
 export default function (state: State = initialState, action: FavoriteAction): State {
@@ -22,7 +48,7 @@ export default function (state: State = initialState, action: FavoriteAction): S
     case Constants.favoriteList:
       return {
         ...state,
-        folders: action.payload && action.payload.folders
+        folders: action.payload && folderToProps(action.payload.folders, action.payload.currentUser)
       }
     default:
       return state

@@ -1,10 +1,10 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import FoldersRender from './index.render'
+import Render from './render'
 
 class Folders extends Component {
   render () {
-    return <FoldersRender />
+    return <Render />
   }
 
   static parseRoute () {

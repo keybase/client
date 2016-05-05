@@ -30,7 +30,11 @@ export type TabBarButtonProps = {
   selected?: boolean,
   source: {type: 'icon', icon: IconProps.type, label?: string} | {type: 'avatar', avatar: Avatar},
   badgeNumber?: ?number,
-  style?: Object
+  style?: Object,
+  styleBadge?: Object,
+  styleIcon?: Object,
+  styleLabel?: Object,
+  styleBadgeNumber?: Object
 }
 
 export class TabBarButton extends Component<void, TabBarButtonProps, void> { }

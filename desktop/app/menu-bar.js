@@ -11,7 +11,7 @@ export default function () {
   const mb = menubar({
     index: `${resolveRootAsURL('renderer', 'launcher.html')}?src=${hotPath('launcher.bundle.js')}&selectorParams=menubar`,
     width: 320,
-    height: 364,
+    height: 350,
     frame: false,
     resizable: false,
     preloadWindow: true,
