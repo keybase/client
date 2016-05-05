@@ -1,5 +1,5 @@
 {
-  "protocol": "notifyCtl",
+  "protocol": "NotifyFavorites",
   "types": [
     {
       "type": "record",
@@ -376,43 +376,18 @@
         }
       ],
       "doc": "UserResolution maps how an unresolved user assertion has been resolved."
-    },
-    {
-      "type": "record",
-      "name": "NotificationChannels",
-      "fields": [
-        {
-          "type": "boolean",
-          "name": "session"
-        },
-        {
-          "type": "boolean",
-          "name": "users"
-        },
-        {
-          "type": "boolean",
-          "name": "kbfs"
-        },
-        {
-          "type": "boolean",
-          "name": "tracking"
-        },
-        {
-          "type": "boolean",
-          "name": "favorites"
-        }
-      ]
     }
   ],
   "messages": {
-    "setNotifications": {
+    "favoritesChanged": {
       "request": [
         {
-          "name": "channels",
-          "type": "NotificationChannels"
+          "name": "uid",
+          "type": "UID"
         }
       ],
-      "response": "null"
+      "response": "null",
+      "notify": ""
     }
   },
   "namespace": "keybase.1"

@@ -7,7 +7,8 @@ type NotificationChannels = {
   session?: true,
   users?: true,
   kbfs?: true,
-  tracking?: true
+  tracking?: true,
+  favorites?: true
 }
 
 let channelsSet = {}
@@ -20,7 +21,8 @@ export default function (channels: NotificationChannels): Promise<void> {
       session: !!channelsSet.session,
       users: !!channelsSet.users,
       kbfs: !!channelsSet.kbfs,
-      tracking: !!channelsSet.tracking
+      tracking: !!channelsSet.tracking,
+      favorites: !!channelsSet.favorites
     }
 
     engine.listenOnConnect('setNotifications', () => {
