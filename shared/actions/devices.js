@@ -1,12 +1,11 @@
 /* @flow */
 import * as Constants from '../constants/devices'
-import {devicesTab} from '../constants/tabs'
+import {devicesTab, loginTab} from '../constants/tabs'
 import engine from '../engine'
-import {navigateBack} from './router'
+import {navigateBack, navigateTo, switchTab} from './router'
 import type {AsyncAction} from '../constants/types/flux'
 import type {incomingCallMapType, revoke_revokeDevice_rpc, device_deviceHistoryList_rpc, login_paperKey_rpc} from '../constants/types/flow-types'
 import {setRevokedSelf} from './login'
-// import {loginTab} from '../constants/tabs'
 
 export function loadDevices () : AsyncAction {
   return function (dispatch) {
@@ -84,7 +83,7 @@ export function generatePaperKey () : AsyncAction {
   }
 }
 
-export function removeDevice (deviceID: string) : AsyncAction {
+export function removeDevice (deviceID: string, name: string, currentDevice: boolean): AsyncAction {
   return (dispatch, getState) => {
     const params : revoke_revokeDevice_rpc = {
       method: 'revoke.revokeDevice',
@@ -97,19 +96,15 @@ export function removeDevice (deviceID: string) : AsyncAction {
           error: !!error
         })
 
-        if (wasCurrentDevice) {
-          dispatch(setRevokedSelf(oldCurrentDeviceName))
-          dispatch(navigateTo('', loginTab))
-          dispatch(switchTab(loginTab))
-        }
         if (!error) {
           dispatch(loadDevices())
-          if (wasCurrentDevice) {
-            dispatch(setRevokedSelf(oldCurrentDeviceName))
+          if (currentDevice) {
+            // The device we just revoked was the current device.
+            dispatch(setRevokedSelf(name))
             dispatch(navigateTo('', loginTab))
             dispatch(switchTab(loginTab))
           } else {
-          dispatch(navigateBack(devicesTab))
+            dispatch(navigateBack(devicesTab))
           }
         }
       }

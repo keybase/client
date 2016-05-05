@@ -33,7 +33,7 @@ export default class DevicePage extends Component {
     timeline.push({
       type: 'Added',
       desc: 'Added ' + added.format('MMM D, YYYY'),
-      subDesc: device.provisioner.name
+      subDesc: device.provisioner ? device.provisioner.name : ''
     })
     return timeline
   }
