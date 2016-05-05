@@ -459,7 +459,7 @@ func (c *ConfigLocal) SetConflictRenamer(cr ConflictRenamer) {
 
 // MetadataVersion implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) MetadataVersion() MetadataVer {
-	return 1
+	return InitialExtraMetadataVer
 }
 
 // DataVersion implements the Config interface for ConfigLocal.

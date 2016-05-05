@@ -422,7 +422,7 @@ func (md *MDServerRemote) Put(ctx context.Context, rmds *RootMetadataSigned) err
 	// put request
 	arg := keybase1.PutMetadataArg{
 		MdBlock: keybase1.MDBlock{
-			Version: int(md.config.MetadataVersion()),
+			Version: int(rmds.Version()),
 			Block:   rmdsBytes,
 		},
 		LogTags: LogTagsFromContextToMap(ctx),

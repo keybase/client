@@ -749,3 +749,16 @@ func (rmds *RootMetadataSigned) VerifyRootMetadata(codec Codec, crypto Crypto) e
 func (rmds *RootMetadataSigned) MerkleHash(config Config) (MerkleHash, error) {
 	return config.Crypto().MakeMerkleHash(rmds)
 }
+
+// Version returns the metadata version of this MD block, depending on
+// which features it uses.
+func (rmds *RootMetadataSigned) Version() MetadataVer {
+	// Only folders with unresolved assertions get the new version.
+	if len(rmds.MD.Extra.UnresolvedWriters) > 0 ||
+		len(rmds.MD.UnresolvedReaders) > 0 {
+		return InitialExtraMetadataVer
+	}
+	// Let other types of MD objects use the older version since they
+	// are still compatible with older clients.
+	return PreExtraMetadataVer
+}

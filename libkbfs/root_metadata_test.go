@@ -513,3 +513,54 @@ func TestIsValidRekeyRequestBasic(t *testing.T) {
 		t.Fatal("Expected valid rekey request")
 	}
 }
+
+func TestRootMetadataVersion(t *testing.T) {
+	config := MakeTestConfigOrBust(t, "alice", "bob", "charlie")
+	config.SetSharingBeforeSignupEnabled(true)
+	defer config.Shutdown()
+
+	// Sign the writer metadata
+	id := FakeTlfID(1, false)
+	h := parseTlfHandleOrBust(t, config, "alice,bob@twitter", false)
+	rmd := newRootMetadataOrBust(t, id, h)
+	rmds := RootMetadataSigned{MD: *rmd}
+	if g, e := rmds.Version(), config.MetadataVersion(); g != e {
+		t.Errorf("MD with unresolved users got wrond version %d, expected %d",
+			g, e)
+	}
+
+	// All other folders should use the pre-extra MD version.
+	id2 := FakeTlfID(1, false)
+	h2 := parseTlfHandleOrBust(t, config, "alice,charlie", false)
+	rmd2 := newRootMetadataOrBust(t, id2, h2)
+	rmds2 := RootMetadataSigned{MD: *rmd2}
+	if g, e := rmds2.Version(), MetadataVer(PreExtraMetadataVer); g != e {
+		t.Errorf("MD without unresolved users got wrond version %d, "+
+			"expected %d", g, e)
+	}
+
+	// ... including if the assertions get resolved.
+	AddNewAssertionForTestOrBust(t, config,
+		keybase1.SocialAssertion{User: "bob"},
+		keybase1.SocialAssertion{
+			User:    "bob",
+			Service: "twitter",
+		})
+	h3, err := h.ResolveAgain(context.Background(), config.KBPKI())
+	if err != nil {
+		t.Fatalf("Couldn't resolve again: %v", err)
+	}
+	rmd3, err := rmd.MakeSuccessor(config, true)
+	if err != nil {
+		t.Fatalf("Couldn't make MD successor: %v", err)
+	}
+	err = rmd3.updateTlfHandle(h3)
+	if err != nil {
+		t.Fatalf("Couldn't update TLF handle: %v", err)
+	}
+	rmds3 := RootMetadataSigned{MD: *rmd3}
+	if g, e := rmds3.Version(), MetadataVer(PreExtraMetadataVer); g != e {
+		t.Errorf("MD without unresolved users got wrond version %d, "+
+			"expected %d", g, e)
+	}
+}
