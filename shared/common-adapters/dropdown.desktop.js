@@ -84,7 +84,7 @@ export default class Dropdown extends Component {
             {list}
           </Popover>
           {selectedValue}
-          <DropDownArrow style={{...styles.iconStyle, ...globalStyles.clickable}} />
+          <DropDownArrow style={styles.iconStyle} />
         </div>
       </div>
     )
@@ -171,6 +171,7 @@ const styles = {
   },
 
   iconStyle: {
+    ...globalStyles.clickable,
     position: 'absolute',
     top: 5,
     right: 8
