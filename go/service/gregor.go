@@ -93,7 +93,7 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 
 	obm := m.ToOutOfBandMessage()
 	if obm == nil {
-		return fmt.Errorf("gregor handler: out-of-bad message nil")
+		return fmt.Errorf("gregor handler: out-of-band message nil")
 	}
 
 	if obm.System() == nil {
