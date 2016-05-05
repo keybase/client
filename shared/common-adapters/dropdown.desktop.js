@@ -171,6 +171,7 @@ const styles = {
   },
 
   iconStyle: {
+    ...globalStyles.clickable,
     position: 'absolute',
     top: 5,
     right: 8
