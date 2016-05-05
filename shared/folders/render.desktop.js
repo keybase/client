@@ -1,6 +1,6 @@
 import React, {Component} from 'react'
 import type {Props} from './render'
-import {Box, Text, Icon} from '../common-adapters'
+import {Box, Text, Icon, Avatar} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {resolveImageAsURL} from '../../desktop/resolve-root'
 
@@ -12,7 +12,9 @@ const Row = ({users, icon, isPublic, ignored, isFirst}) => (
   <Box style={{...rowContainer,
     ...(isPublic ? rowContainerPublic : rowContainerPrivate),
     ...(isFirst ? {borderBottom: undefined} : {})}}>
-    <Box style={{...stylesAvatarContainer, ...(isPublic ? stylesAvatarContainerPublic : stylesAvatarContainerPrivate)}} />
+    <Box style={{...stylesAvatarContainer, ...(isPublic ? stylesAvatarContainerPublic : stylesAvatarContainerPrivate)}}>
+      {users.length === 1 ? <Avatar size={32} username={users[0]} /> : <Icon type='folder-private-group-32' />}
+    </Box>
     <Box style={stylesBodyContainer} />
     <Box style={stylesActionContainer} />
   </Box>
@@ -22,10 +24,10 @@ const Ignored = ({showIgnored, ignored, isPublic, onToggle}) => (
   <Box style={stylesIgnoreContainer}>
     <Box style={stylesIgnoreDivider} onClick={onToggle}>
       <Text type='BodySmallSemibold' style={stylesDividerText}>Ignored folders</Text>
-      <Icon type='fa-mobile' />
+      <Icon type={showIgnored ? 'fa-caret-down' : 'fa-caret-right'} style={stylesIgnoreCaret} />
     </Box>
     {showIgnored && <Box style={stylesIgnoreDesc}>
-      <Text type='BodySmallSemibold'>Ignored folders won't show up on your computer and you won't receive alerts about them.</Text>
+      <Text type='BodySmallSemibold' style={stylesDividerBodyText}>Ignored folders won't show up on your computer and you won't receive alerts about them.</Text>
     </Box>}
     {showIgnored && ignored.map((i, idx) => <Row key={i.users.map(u => u.username).join('-')} users={i.users} icon='' isPublic={isPublic} ignored isFirst={!idx} />)}
   </Box>
@@ -64,22 +66,38 @@ const stylesIgnoreContainer = {
 
 const stylesIgnoreDesc = {
   ...globalStyles.flexBoxColumn,
+  borderTop: 'solid 1px rgba(255, 255, 255, 0.05)',
+  backgroundColor: globalColors.darkBlue3,
   alignItems: 'center'
 }
 
 const stylesIgnoreDivider = {
   backgroundColor: globalColors.darkBlue3,
+  padding: 7,
   height: 32
 }
 
 const stylesDividerText = {
+  ...globalStyles.clickable,
+  color: globalColors.white_75,
+  marginRight: 7
+}
+
+const stylesDividerBodyText = {
+  width: 360,
+  color: globalColors.white_75,
+  padding: 7,
+  textAlign: 'center'
+}
+
+const stylesIgnoreCaret = {
   color: globalColors.white_75
 }
 
 const rowContainer = {
   ...globalStyles.flexBoxRow,
   minHeight: 48,
-  borderBottom: `solid 1px ${globalColors.black_10}`
+  borderTop: `solid 1px ${globalColors.black_10}`
 }
 
 const rowContainerPublic = {
