@@ -5,7 +5,6 @@ package libkb
 
 import (
 	"net"
-	"sync"
 
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
