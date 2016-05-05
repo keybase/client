@@ -15,12 +15,15 @@ const Row = ({users, icon, isPublic, ignored, isFirst}) => (
   </Box>
 )
 
-const Render = ({tlfs, ignored, isPublic}: Props) => (
+const Render = ({tlfs, ignored, isPublic}: Props) => {
+  console.log('aaa', tlfs)
+  return (
   <div>
     {tlfs.map((t, idx) => <Row users={[t.name]} icon='' isPublic={isPublic} ignored={false} isFirst={console.log(idx), !idx} />)}
     {ignored.map((i, idx) => <Row users={[i.name]} icon='' isPublic={isPublic} ignored isFirst={!idx} />)}
   </div>
-)
+  )
+}
 
 const rowContainer = {
   ...globalStyles.flexBoxRow,

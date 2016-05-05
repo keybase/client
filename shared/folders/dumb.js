@@ -1,29 +1,85 @@
 /* @flow */
 import Folders from './render'
-import type {Folder} from './render'
+import type {Folder, Props} from './render'
+import type {DumbComponentMap} from '../constants/types/more'
 
 const f1: Folder = {
-  name: 'Paper Key (lorem ipsum...)'
+  users: [
+    {username: 'cecileb'},
+    {username: 'jeresig', broken: true},
+    {username: 'throughnothing'},
+    {username: 'cdixon'},
+    {username: 'bob'},
+    {username: 'aliceb'},
+    {username: 'lmorchard'},
+    {username: 'chris'}
+  ],
+  meta: 'new'
 }
 
-const ig1: Folder = {
-  name: 'blah'
+const f2: Folder = {
+  users: [
+    {username: 'cecileb'},
+    {username: 'jeresig', broken: true},
+    {username: 'throughnothing'}
+  ],
+  modified: {
+    when: '2 hours ago',
+    username: 'jeresig'
+  }
 }
 
-const tlfs: Array<Folder> = [
-  f1
-]
+const f3: Folder = {
+  users: [
+    {username: 'cecileb'},
+    {username: 'bob'}
+  ],
+  modified: {
+    when: '3 hours ago',
+    username: 'bob'
+  }
+}
 
-const ignored: Array<Folder> = [
-  ig1
-]
+const f4: Folder = {
+  users: [
+    {username: 'cecileb'},
+    {username: 'jenbee'}
+  ]
+}
+
+const f5: Folder = {
+  users: [
+    {username: 'cecileb'}
+  ]
+}
+
+const tlfs: Array<Folder> = [f1, f2, f3, f4, f5]
+
+const i1: Folder = {
+  users: [
+    {username: 'cecileb'},
+    {username: 'jeresig', broken: true},
+    {username: 'cdixon'}
+  ]
+}
+
+const i2: Folder = {
+  users: [
+    {username: 'cecileb'},
+    {username: 'jeresig', broken: true}
+  ]
+}
+
+const ignored: Array<Folder> = [i1, i2]
+
+const map: DumbComponentMap<Folders> = {
+  component: Folders,
+  mocks: {
+    'Private': {tlfs, ignored, isPublic: false, privateBadge: 1, publicBadge: 2},
+    'Public': {tlfs, ignored, isPublic: true, privateBadge: 1, publicBadge: 2}
+  }
+}
 
 export default {
-  'Folders TLF': {
-    component: Folders,
-    mocks: {
-      'Private': {tlfs, ignored, isPublic: false},
-      'Public': {tlfs, ignored, isPublic: true}
-    }
-  }
+  'Folders TLF': map
 }

@@ -1,12 +1,23 @@
 /* @flow */
 
 export type Folder = {
-  name: string
+  users: Array<{
+    username: string,
+    broken?: boolean
+  }>,
+  meta?: 'new' | null,
+  modified?: {
+    when: string,
+    username: string
+  }
 }
 
 export type Props = {
   tlfs?: Array<Folder>,
-  ignored?: Array<Folder>
+  ignored?: Array<Folder>,
+  isPublic: boolean,
+  privateBadge: number,
+  publicBadge: number
 }
 
 export default class Render extends React$Component<void, Props, void> {
