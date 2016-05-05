@@ -4,11 +4,11 @@ import {Box/* , Text, Icon */} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {resolveImageAsURL} from '../../desktop/resolve-root'
 
-const Row = ({users, icon, isPublic, ignored, isLast}) => (
-  console.log(users, icon, isPublic, ignored, isLast),
+const Row = ({users, icon, isPublic, ignored, isFirst}) => (
+  console.log(users, icon, isPublic, ignored, isFirst),
   <Box style={{...rowContainer,
     ...(isPublic ? rowContainerPublic : rowContainerPrivate),
-    ...(isLast ? {borderBottom: undefined} : {})}}>
+    ...(isFirst ? {borderBottom: undefined} : {})}}>
     <Box style={{...stylesAvatarContainer, ...(isPublic ? stylesAvatarContainerPublic : stylesAvatarContainerPrivate)}} />
     <Box style={stylesBodyContainer} />
     <Box style={stylesActionContainer} />
@@ -17,8 +17,8 @@ const Row = ({users, icon, isPublic, ignored, isLast}) => (
 
 const Render = ({tlfs, ignored, isPublic}: Props) => (
   <div>
-    {tlfs.map((t, idx) => <Row users={[t.name]} icon='' isPublic={isPublic} ignored={false} isLast={idx === (tlfs.length - 1)} />)}
-    {ignored.map((i, idx) => <Row users={[i.name]} icon='' isPublic={isPublic} ignored isLast={idx === (ignored.length - 1)} />)}
+    {tlfs.map((t, idx) => <Row users={[t.name]} icon='' isPublic={isPublic} ignored={false} isFirst={console.log(idx), !idx} />)}
+    {ignored.map((i, idx) => <Row users={[i.name]} icon='' isPublic={isPublic} ignored isFirst={!idx} />)}
   </div>
 )
 
