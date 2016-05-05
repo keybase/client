@@ -115,9 +115,6 @@ func (u *UIRouter) GetSecretUI(sessionID int) (ui libkb.SecretUI, err error) {
 	cli := rpc.NewClient(x, libkb.ErrorUnwrapper{})
 	scli := keybase1.SecretUiClient{Cli: cli}
 
-	// bug in electron that it can't handle non-zero session ids, so
-	// use zero:
-	sessionID = 0
 	u.G().Log.Debug("| returning delegated SecretUI with sessionID = %d", sessionID)
 	ret := &SecretUI{
 		cli:          &scli,
