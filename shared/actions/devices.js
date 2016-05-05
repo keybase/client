@@ -1,7 +1,8 @@
 /* @flow */
 import * as Constants from '../constants/devices'
+import {devicesTab} from '../constants/tabs'
 import engine from '../engine'
-import {navigateUpOnUnchanged} from './router'
+import {navigateBack} from './router'
 import type {AsyncAction} from '../constants/types/flux'
 import type {incomingCallMapType, revoke_revokeDevice_rpc, device_deviceHistoryList_rpc, login_paperKey_rpc} from '../constants/types/flow-types'
 // import {loginTab} from '../constants/tabs'
@@ -83,7 +84,7 @@ export function generatePaperKey () : AsyncAction {
 }
 
 export function removeDevice (deviceID: string) : AsyncAction {
-  return navigateUpOnUnchanged((dispatch, getState, maybeNavigateUp) => {
+  return (dispatch, getState) => {
     const params : revoke_revokeDevice_rpc = {
       method: 'revoke.revokeDevice',
       param: {deviceID, force: false},
@@ -104,11 +105,11 @@ export function removeDevice (deviceID: string) : AsyncAction {
 
         if (!error) {
           dispatch(loadDevices())
-          maybeNavigateUp()
+          dispatch(navigateBack(devicesTab))
         }
       }
     }
 
     engine.rpc(params)
-  })
+  }
 }

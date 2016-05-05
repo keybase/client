@@ -15,6 +15,7 @@ const map: DumbComponentMap<Render> = {
   mocks: {
     'Normal': {
       ...common,
+      deviceID: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
       isCurrent: true,
       timeline: [
         {type: 'LastUsed',
@@ -29,6 +30,7 @@ const map: DumbComponentMap<Render> = {
     },
     'Revoked': {
       ...common,
+      deviceID: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',
       currentDevice: false,
       revokedAt: 1444423192000,
       timeline: [
@@ -45,6 +47,7 @@ const map: DumbComponentMap<Render> = {
     },
     'Unlock': {
       ...common,
+      deviceID: 'cccccccccccccccccccccccccccccccc',
       name: 'Chris\'s iPhone',
       type: 'mobile',
       timeline: [
@@ -62,6 +65,7 @@ const map: DumbComponentMap<Render> = {
     },
     'Paper': {
       ...common,
+      deviceID: 'dddddddddddddddddddddddddddddddd',
       name: 'project green...',
       type: 'backup',
       timeline: [

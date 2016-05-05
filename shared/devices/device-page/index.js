@@ -41,11 +41,11 @@ export default class DevicePage extends Component {
   render () {
     const {device} = this.props
     const timeline = this.build_timeline(device)
-    console.log('TIMELINE')
-    console.log(timeline)
+
     return <Render
       name={device.name}
       type={device.type}
+      deviceID={device.deviceID}
       timeline={timeline}
       revokedAt={device.revokedAt}
       currentDevice={device.currentDevice}

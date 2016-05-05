@@ -16,6 +16,7 @@ export type BannerItem = {
 export type Props = {
   type: DeviceType,
   name: string,
+  deviceID: string,
   currentDevice: boolean,
   revokedAt?: ?Time,
   timeline?: Array<TimelineItem>,
