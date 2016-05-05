@@ -10,7 +10,5 @@ type CommonProps = {
 
 export type Props = ({url: ?string} & CommonProps) | ({username: ?string} & CommonProps)
 
-declare export default class Avatar extends Component {
-  props: Props;
-}
+export default class Avatar extends Component<void, Props, void> { }
 

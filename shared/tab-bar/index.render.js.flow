@@ -4,6 +4,8 @@ import type {VisibleTab} from '../constants/tabs'
 
 export type Props = {
   onTabClick: (tab: VisibleTab) => void,
+  onSearchClick?: () => void,
+  searchActive?: ?boolean,
   selectedTab: VisibleTab,
   username: string,
   badgeNumbers: {[key: VisibleTab]: number},

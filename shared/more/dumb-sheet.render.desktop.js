@@ -13,6 +13,7 @@ import TrackerMap from '../tracker/dumb.desktop'
 import PinentryMap from '../pinentry/dumb.desktop'
 import DevicePageMap from '../devices/device-page/dumb.desktop'
 import DeviceRevokeMap from '../devices/device-revoke/dumb.desktop'
+import TabBarMap from '../tab-bar/dumb.desktop'
 
 import {dumbFilter} from '../local-debug'
 import debounce from 'lodash/debounce'
@@ -43,7 +44,8 @@ class Render extends Component<void, any, any> {
       ...TrackerMap,
       ...PinentryMap,
       ...DevicePageMap,
-      ...DeviceRevokeMap
+      ...DeviceRevokeMap,
+      ...TabBarMap
     }
 
     return (

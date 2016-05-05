@@ -17,7 +17,7 @@ const icons: {[key: VisibleTab]: IconProps.type} = {
   [moreTab]: 'fa-cog'
 }
 
-export function tabToIcon (t: VisibleTab): IconProps.type {
+function tabToIcon (t: VisibleTab): IconProps.type {
   return icons[t]
 }
 

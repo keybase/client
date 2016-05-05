@@ -28,7 +28,7 @@ export type Props = {
 
 export type TabBarButtonProps = {
   selected?: boolean,
-  source: {type: 'icon', icon: IconProps.type} | {type: 'avatar', avatar: Avatar},
+  source: {type: 'icon', icon: IconProps.type, label?: string} | {type: 'avatar', avatar: Avatar},
   badgeNumber?: ?number,
   style?: Object
 }

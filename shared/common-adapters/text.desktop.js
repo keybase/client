@@ -75,7 +75,7 @@ export default class Text extends Component {
 
   _typeStyle () {
     return {
-      'BadgeNumber': styles.textBodySmall,
+      'BadgeNumber': styles.textBadge,
       'Body': styles.textBody,
       'BodyPrimaryLink': styles.textBodyPrimaryLink,
       'BodySemibold': styles.textBodySemibold,
@@ -277,6 +277,13 @@ export const styles = {
   textBodySmall: {
     ...textCommon,
     ...sizeGroups['14']
+  },
+  textBadge: {
+    ...textCommon,
+    ...globalStyles.fontBold,
+    ...sizeGroups['14'],
+    lineHeight: '18px',
+    color: globalColors.white
   },
   textBodySmallLink: {
     ...textCommon,
