@@ -3419,7 +3419,8 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 			fbo.log.CDebugf(ctx, "rekeyWithPrompt superseded before it fires.")
 		} else if !md.IsRekeySet() {
 			fbo.rekeyWithPromptTimer.Stop()
-			// If the rekey bit isn't set, than some other device
+			fbo.rekeyWithPromptTimer = nil
+			// If the rekey bit isn't set, then some other device
 			// already took care of our request, and we can stop
 			// early.  Note that if this FBO never registered for
 			// updates, then we might not yet have seen the update, in
@@ -3499,14 +3500,6 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 			return nil
 		}
 		// This device hasn't been keyed yet, fall through to set the rekey bit
-	} else if fbo.rekeyWithPromptTimer != nil {
-		defer func() {
-			if err == nil {
-				fbo.log.CDebugf(ctx, "Scheduled rekey timer no longer needed")
-				fbo.rekeyWithPromptTimer.Stop()
-				fbo.rekeyWithPromptTimer = nil
-			}
-		}()
 	}
 
 	// add an empty operation to satisfy assumptions elsewhere
@@ -3532,6 +3525,11 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 	handle := md.GetTlfHandle()
 	fbo.config.Reporter().Notify(ctx,
 		rekeyNotification(ctx, fbo.config, handle, true))
+	if !stillNeedsRekey && fbo.rekeyWithPromptTimer != nil {
+		fbo.log.CDebugf(ctx, "Scheduled rekey timer no longer needed")
+		fbo.rekeyWithPromptTimer.Stop()
+		fbo.rekeyWithPromptTimer = nil
+	}
 	return nil
 }
 

@@ -1516,15 +1516,6 @@ func TestKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T) {
 	name := u1.String() + "," + u2.String()
 
 	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
-
-	kbfsOps1 := config1.KBFSOps()
-
-	// user 1 creates a file
-	_, _, err = kbfsOps1.CreateFile(ctx, rootNode1, "a", false)
-	if err != nil {
-		t.Fatalf("Couldn't create file: %v", err)
-	}
-
 	config2Dev2 := ConfigAsUser(config1.(*ConfigLocal), u2)
 	defer CheckConfigAndShutdown(t, config2Dev2)
 
@@ -1572,8 +1563,7 @@ func TestKeyManagerRekeyAddDeviceWithPromptViaFolderAccess(t *testing.T) {
 		_, err := GetRootNodeForTest(config2Dev2, name, false)
 		errCh <- err
 	}()
-	// Two failed decryption attempts (MD and writer MD)
-	<-c
+	// One failed decryption attempt
 	<-c
 	err = <-errCh
 	if _, ok := err.(NeedSelfRekeyError); !ok {
