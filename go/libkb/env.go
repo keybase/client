@@ -65,6 +65,7 @@ func (n NullConfiguration) GetUpdatePreferenceSnoozeUntil() keybase1.Time { retu
 func (n NullConfiguration) GetUpdateLastChecked() keybase1.Time           { return keybase1.Time(0) }
 func (n NullConfiguration) GetUpdatePreferenceSkip() string               { return "" }
 func (n NullConfiguration) GetUpdateURL() string                          { return "" }
+func (n NullConfiguration) GetUpdateDisabled() (bool, bool)               { return false, false }
 func (n NullConfiguration) GetVDebugSetting() string                      { return "" }
 func (n NullConfiguration) GetLocalTrackMaxAge() (time.Duration, bool)    { return 0, false }
 func (n NullConfiguration) GetAppStartMode() AppStartMode                 { return AppStartModeDisabled }
@@ -922,6 +923,10 @@ func (e *Env) SetUpdateLastChecked(t keybase1.Time) error {
 
 func (e *Env) GetUpdateURL() string {
 	return e.config.GetUpdateURL()
+}
+
+func (e *Env) GetUpdateDisabled() (bool, bool) {
+	return e.config.GetUpdateDisabled()
 }
 
 func (e *Env) IsAdmin() bool {

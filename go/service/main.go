@@ -168,13 +168,17 @@ func (d *Service) Run() (err error) {
 		return
 	}
 
-	if sources.IsPrerelease {
+	updateDisabled, _ := d.G().Env.GetUpdateDisabled()
+	if sources.IsPrerelease && !updateDisabled {
 		updr := engine.NewDefaultUpdater(d.G())
 		if updr != nil {
+			d.G().Log.Debug("Starting updater")
 			updateChecker := updater.NewUpdateChecker(updr, engine.NewUpdaterContext(d.G()), d.G().Log)
 			d.updateChecker = &updateChecker
 			d.updateChecker.Start()
 		}
+	} else {
+		d.G().Log.Warning("Updater disabled")
 	}
 
 	d.checkTrackingEveryHour()

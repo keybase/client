@@ -149,6 +149,7 @@ type ConfigReader interface {
 	GetUpdatePreferenceSnoozeUntil() keybase1.Time
 	GetUpdateLastChecked() keybase1.Time
 	GetUpdateURL() string
+	GetUpdateDisabled() (bool, bool)
 	GetLocalTrackMaxAge() (time.Duration, bool)
 	GetAppStartMode() AppStartMode
 	IsAdmin() (bool, bool)
