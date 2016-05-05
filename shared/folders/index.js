@@ -1,10 +1,17 @@
+// @flow
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import FoldersRender from './index.render'
+import Render from './render'
 
 class Folders extends Component {
   render () {
-    return <FoldersRender />
+    return <Render
+      privateBadge={0}
+      private={{isPublic: false}}
+      publicBadge={0}
+      public={{isPublic: true}}
+      onSwitchTab={showingPublic => {}}
+      />
   }
 
   static parseRoute () {

@@ -117,7 +117,7 @@ class Button extends Component {
         <FlatButton
           onClick={this.props.onClick}
           style={{...backgroundStyle, ...smallStyle, ...this.props.style}}
-          labelStyle={{...stylesButtonLabel, ...labelStyle}}
+          labelStyle={{...stylesButtonLabel, ...labelStyle, ...this.props.labelStyle}}
           label={label}
           primary={this.props.type === 'Primary'}
           secondary={this.props.type === 'Secondary'}

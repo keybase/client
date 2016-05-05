@@ -4,7 +4,6 @@ import {ScrollView} from 'react-native'
 import {Box, Text, Input, Button} from '../common-adapters'
 import {globalStyles} from '../styles/style-guide'
 import dumbComponentMap from './dumb-component-map.native'
-
 import {dumbFilter, dumbIndex} from '../local-debug'
 import debounce from 'lodash/debounce'
 

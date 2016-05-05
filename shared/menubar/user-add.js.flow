@@ -1,0 +1,9 @@
+/* @flow */
+import React, {Component} from 'react'
+
+export type Props = {
+  isPublic: boolean,
+  onAdded: (path: string) => void
+}
+
+export default class UserAdd extends Component<void, Props, void> {}

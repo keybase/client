@@ -2,55 +2,53 @@
 
 import Menubar from './index.render'
 import type {DumbComponentMap} from '../constants/types/more'
-
-const folder1 = {
-  type: 'folder',
-  folderName: 'max,chris',
-  isPublic: true,
-  isEmpty: false,
-  openFolder: () => {}
-}
-
-const folderLong = {
-  type: 'folder',
-  folderName: 'max,chris,marcopolo,patrick,strib,mgood,zanderz,gabrielh,chrisnojima,cbostrander,alness,akalin',
-  isPublic: true,
-  isEmpty: false,
-  openFolder: () => {}
-}
-
-const folder2 = {
-  type: 'folder',
-  folderName: 'mgood,strib,marcopolo',
-  isPublic: true,
-  isEmpty: false,
-  openFolder: () => {}
-}
+import {map} from '../folders/dumb'
+import {globalStyles} from '../styles/style-guide'
 
 const propsNormal = {
+  folderProps: map.mocks.Normal,
   username: 'max',
-  openKBFS: () => {},
-  openKBFSPublic: username => {},
+  openKBFS: path => { console.log('Opening finder: ', path) },
+  showKBFS: () => {},
   logIn: () => {},
-  openKBFSPrivate: username => {},
-  showMain: () => {},
   showHelp: () => {},
-  showUser: username => {},
+  showUser: () => {},
   quit: () => {},
-  folders: [
-    folder1,
-    folderLong,
-    folder2
-  ],
-  debug: false,
+  refresh: () => {},
+  showBug: () => {},
   loading: false,
-  loggedIn: true
+  loggedIn: true,
+  parentProps: {
+    style: {
+      ...globalStyles.flexBoxColumn,
+      width: 325,
+      height: 350,
+      padding: 2,
+      backgroundColor: 'red'
+    }
+  }
 }
 
 const dumbComponentMap: DumbComponentMap<Menubar> = {
   component: Menubar,
   mocks: {
-    'Normal': propsNormal
+    'Truncated': {
+      ...propsNormal,
+      parentProps: {
+        style: {
+          ...globalStyles.flexBoxColumn,
+          width: 325,
+          height: 200,
+          padding: 2,
+          backgroundColor: 'red'
+        }
+      }
+    },
+    'Normal': propsNormal,
+    'LoggedOut': {
+      ...propsNormal,
+      loggedIn: false
+    }
   }
 }
 

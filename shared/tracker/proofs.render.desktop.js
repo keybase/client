@@ -3,7 +3,7 @@
 import React, {Component} from 'react'
 import commonStyles from '../styles/common'
 import {globalStyles, globalColors} from '../styles/style-guide'
-import {Icon, Text, ProgressIndicator} from '../common-adapters/index'
+import {Icon, Text, ProgressIndicator, Meta} from '../common-adapters/index'
 import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked, error as proofError, warning as proofWarning} from '../constants/tracker'
 import {metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone, metaIgnored} from '../constants/tracker'
 import electron from 'electron'
@@ -121,7 +121,7 @@ class ProofsRender extends Component {
 
     const meta = proof.meta &&
       proof.meta !== metaNone &&
-      <Text type='Header' style={{...styleMeta, backgroundColor: metaColor}}>{proof.meta}</Text>
+      <Meta title={proof.meta} style={{backgroundColor: metaColor}}/>
     const proofIcon = isChecking
       ? <ProgressIndicator style={styleLoader} />
       : proofStatusIcon && <Icon type={proofStatusIcon} style={styleStatusIcon} onClick={() => this._onClickProof(proof)} />
@@ -201,18 +201,6 @@ const styleProofName = {
 const styleProofType = {
   color: globalColors.black_10,
   wordBreak: 'normal'
-}
-
-const styleMeta = {
-  color: globalColors.white,
-  borderRadius: 1,
-  fontSize: 10,
-  height: 11,
-  lineHeight: '11px',
-  paddingLeft: 2,
-  paddingRight: 2,
-  alignSelf: 'flex-start',
-  textTransform: 'uppercase'
 }
 
 const styleLoader = {
