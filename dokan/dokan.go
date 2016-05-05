@@ -9,7 +9,6 @@ package dokan
 
 // MountHandle holds a reference to a mounted filesystem.
 type MountHandle struct {
-	ctx     *dokanCtx
 	errChan chan error
 	// Dir is the path of this mount.
 	Dir string
@@ -20,8 +19,9 @@ type MountHandle struct {
 func Mount(fs FileSystem, path string) (*MountHandle, error) {
 	var ec = make(chan error, 2)
 	var slot = fsTableStore(fs, ec)
-	ctx := allocCtx(slot)
 	go func() {
+		ctx := allocCtx(slot)
+		defer ctx.Free()
 		ec <- ctx.Run(path)
 		close(ec)
 	}()
@@ -33,17 +33,14 @@ func Mount(fs FileSystem, path string) (*MountHandle, error) {
 	// mount, but if such errors occured they can be catched by BlockTillDone.
 	err := <-ec
 	if err != nil {
-		ctx.Free()
 		return nil, err
 	}
-	return &MountHandle{ctx, ec, path}, nil
+	return &MountHandle{ec, path}, nil
 }
 
 // Close unmounts the filesystem.
 func (m *MountHandle) Close() error {
 	err := Unmount(m.Dir)
-	m.ctx.Free()
-	m.ctx = nil
 	return err
 }
 
