@@ -150,6 +150,10 @@ const commands = {
   'postinstall': {
     help: 'Window: fixup symlinks, all: install global eslint',
     code: postInstall
+  },
+  'setup-dev-tools': {
+    help: 'Install dev tooling (linters, etc)',
+    code: installDevTools
   }
 }
 
@@ -159,9 +163,20 @@ function postInstall () {
   }
 
   if (!process.env.KEYBASE_SKIP_DEV_TOOLS) {
-    const modules = Object.keys(postinstallGlobals).map(k => `${k}${postinstallGlobals[k]}`).join(' ')
-    exec(`npm install -g -E ${modules}`)
+    Object.keys(postinstallGlobals).forEach(k => {
+      childProcess.exec(`npm -g ls ${k}${postinstallGlobals[k]}`, {},
+        err => {
+          if (err) {
+            console.log('>>>>> Missing dev tooling ', k, postinstallGlobals[k], 'please run "npm run setup-dev-tools"')
+          }
+        })
+    })
   }
+}
+
+function installDevTools () {
+  const modules = Object.keys(postinstallGlobals).map(k => `${k}${postinstallGlobals[k]}`).join(' ')
+  exec(`npm install -g -E ${modules}`)
 }
 
 function setupDebugMain () {
