@@ -28,7 +28,7 @@ func createEngine() Engine {
 	return e
 }
 
-func createUserDokan(t *testing.T, ith int, config *libkbfs.ConfigLocal, tlf *libkbfs.TlfHandle) User {
+func createUserDokan(t *testing.T, ith int, config *libkbfs.ConfigLocal) User {
 	driveLetter := 'T' + byte(ith)
 	if driveLetter > 'Z' {
 		t.Error("Too many users - out of drive letters")
@@ -54,7 +54,6 @@ func createUserDokan(t *testing.T, ith int, config *libkbfs.ConfigLocal, tlf *li
 			dokan.Unmount(mnt.Dir)
 			getDriveLetterLock(driveLetter).Unlock()
 		},
-		tlf: tlf,
 		notificationGroupWait: fs.NotificationGroupWait,
 	}
 }

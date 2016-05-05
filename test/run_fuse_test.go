@@ -29,7 +29,7 @@ func createEngine() Engine {
 	return e
 }
 
-func createUserFuse(t *testing.T, ith int, config *libkbfs.ConfigLocal, tlf *libkbfs.TlfHandle) User {
+func createUserFuse(t *testing.T, ith int, config *libkbfs.ConfigLocal) User {
 	log := logger.NewTestLogger(t)
 	fuse.Debug = func(msg interface{}) {
 		log.Debug("%s", msg)
@@ -60,7 +60,6 @@ func createUserFuse(t *testing.T, ith int, config *libkbfs.ConfigLocal, tlf *lib
 		config: config,
 		cancel: cancelFn,
 		close:  mnt.Close,
-		tlf:    tlf,
 		notificationGroupWait: filesys.NotificationGroupWait,
 	}
 }

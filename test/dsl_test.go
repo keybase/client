@@ -10,10 +10,12 @@ import (
 	"fmt"
 	"path"
 	"regexp"
+	"sort"
 	"strings"
 	"testing"
 	"time"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/kbfs/libkbfs"
 )
 
@@ -26,14 +28,13 @@ const (
 )
 
 type opt struct {
-	readerNames     []username
-	writerNames     []username
-	users           map[string]User
+	usernames       []libkb.NormalizedUsername
+	tlfName         string
+	tlfIsPublic     bool
+	users           map[libkb.NormalizedUsername]User
 	t               *testing.T
 	initDone        bool
 	engine          Engine
-	readers         []string
-	writers         []string
 	blockSize       int64
 	blockChangeSize int64
 	clock           *libkbfs.TestClock
@@ -62,17 +63,8 @@ func (o *opt) runInitOnce() {
 	}
 	o.clock = &libkbfs.TestClock{}
 	o.clock.Set(time.Unix(0, 0))
-	o.users = o.engine.InitTest(o.t, o.blockSize, o.blockChangeSize, o.writerNames, o.readerNames, o.clock)
-
-	for _, uname := range o.readerNames {
-		uid := string(o.engine.GetUID(o.users[string(uname)]))
-		o.readers = append(o.readers, uid)
-	}
-	for _, uname := range o.writerNames {
-		uid := string(o.engine.GetUID(o.users[string(uname)]))
-		o.writers = append(o.writers, uid)
-	}
-
+	o.users = o.engine.InitTest(o.t, o.blockSize, o.blockChangeSize,
+		o.usernames, o.clock)
 	o.initDone = true
 }
 
@@ -128,15 +120,25 @@ func skip(implementation, reason string) optionOp {
 	}
 }
 
-func writers(ns ...username) optionOp {
+func users(ns ...username) optionOp {
 	return func(o *opt) {
-		o.writerNames = append(o.writerNames, ns...)
+		var a []string
+		for _, u := range ns {
+			username := libkb.NewNormalizedUsername(string(u))
+			o.usernames = append(o.usernames, username)
+			a = append(a, string(username))
+		}
+		// Default to the private TLF shared by all the users.
+		sort.Strings(a)
+		tlfName := strings.Join(a, ",")
+		inPrivateTlf(tlfName)(o)
 	}
 }
 
-func readers(ns ...username) optionOp {
+func inPrivateTlf(name string) optionOp {
 	return func(o *opt) {
-		o.readerNames = append(o.readerNames, ns...)
+		o.tlfName = name
+		o.tlfIsPublic = false
 	}
 }
 
@@ -206,9 +208,10 @@ func as(user username, fops ...fileOp) optionOp {
 		o.runInitOnce()
 		ctx := &ctx{
 			opt:  o,
-			user: o.users[string(user)],
+			user: o.users[libkb.NewNormalizedUsername(string(user))],
 		}
-		root, err := o.engine.GetRootDir(ctx.user, false, o.writers, o.readers)
+
+		root, err := o.engine.GetRootDir(ctx.user, o.tlfName, o.tlfIsPublic)
 		ctx.expectSuccess("GetRootDir", err)
 		ctx.rootNode = root
 

@@ -15,7 +15,7 @@ import "testing"
 func TestWriteReadWriteFail(t *testing.T) {
 	test(t,
 		skip("dokan", "Does not work with Dokan."),
-		writers("alice", "bob"), readers("eve"),
+		users("alice", "bob", "eve"), inPrivateTlf("alice,bob#eve"),
 		as(alice,
 			mkfile("foo.txt", "hello world"),
 		),
@@ -39,7 +39,7 @@ func TestWriteReadWriteFail(t *testing.T) {
 //
 func TestConflict(t *testing.T) {
 	test(t,
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello"),
 		),
@@ -67,7 +67,7 @@ func TestConflict(t *testing.T) {
 func TestLinkLsRenameRmRmdirSetex(t *testing.T) {
 	test(t,
 		skip("dokan", "Does not work with Dokan."),
-		writers("alice", "bob"),
+		users("alice", "bob"),
 		as(alice,
 			mkfile("a/b", "hello world"),
 			mkdir("a/e"),
