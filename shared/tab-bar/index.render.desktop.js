@@ -52,7 +52,7 @@ export default class Render extends Component<void, Props, void> {
         key='search' tabBarButton={button}
         selected={searchActive}
         onClick={onClick} containerStyle={{...stylesTabBarItem}}>
-        {this.props.searchContent || <Box/>}
+        {this.props.searchContent || <Box />}
       </TabBarItem>
     )
   }

@@ -19,11 +19,11 @@ const badgeNumbers = {
 const DummyContent = ({text}) => <Text type='Body'>Filler: {text}</Text>
 
 const tabContent = {
-  [profileTab]: <DummyContent text='profile'/>,
-  [peopleTab]: <DummyContent text='people'/>,
-  [folderTab]: <DummyContent text='folder'/>,
-  [devicesTab]: <DummyContent text='devicees'/>,
-  [moreTab]: <DummyContent text='more'/>
+  [profileTab]: <DummyContent text='profile' />,
+  [peopleTab]: <DummyContent text='people' />,
+  [folderTab]: <DummyContent text='folder' />,
+  [devicesTab]: <DummyContent text='devicees' />,
+  [moreTab]: <DummyContent text='more' />
 }
 
 const map: DumbComponentMap<TabBar> = {

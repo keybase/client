@@ -148,7 +148,7 @@ class Nav extends Component {
       <MetaNavigator
         tab={tab}
         globalRoutes={globalRoutes}
-        rootComponent={module || NoTab}/>
+        rootComponent={module || NoTab} />
     )
   }
 
@@ -182,7 +182,7 @@ class Nav extends Component {
           username={this.props.username}
           searchContent={<Text type='Body'>Todo: add search here</Text>}
           badgeNumbers={{}}
-          tabContent={tabContent}/>
+          tabContent={tabContent} />
       </div>
     )
   }
