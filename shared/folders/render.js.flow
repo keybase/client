@@ -12,7 +12,8 @@ export type Folder = {
   },
   isPublic: boolean,
   ignored: boolean,
-  isFirst: boolean
+  isFirst: boolean,
+  hasData: boolean
 }
 
 export type Props = {

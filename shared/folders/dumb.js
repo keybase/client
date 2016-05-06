@@ -30,7 +30,8 @@ const f1: Folder = {
   meta: 'new',
   ignored: false,
   isPublic: false,
-  isFirst: true
+  isFirst: true,
+  hasData: true
 }
 
 const f2: Folder = {
@@ -45,7 +46,8 @@ const f2: Folder = {
   },
   ignored: false,
   isPublic: false,
-  isFirst: false
+  isFirst: false,
+  hasData: true
 }
 
 const f3: Folder = {
@@ -59,7 +61,8 @@ const f3: Folder = {
   },
   ignored: false,
   isPublic: false,
-  isFirst: false
+  isFirst: false,
+  hasData: true
 }
 
 const f4: Folder = {
@@ -69,7 +72,8 @@ const f4: Folder = {
   ],
   ignored: false,
   isPublic: false,
-  isFirst: false
+  isFirst: false,
+  hasData: false
 }
 
 const f5: Folder = {
@@ -78,8 +82,8 @@ const f5: Folder = {
   ],
   ignored: false,
   isPublic: false,
-  isFirst: false
-
+  isFirst: false,
+  hasData: true
 }
 
 const tlfs: Array<Folder> = [f1, f2, f3, f4, f5]
@@ -92,7 +96,8 @@ const i1: Folder = {
   ],
   ignored: true,
   isPublic: false,
-  isFirst: true
+  isFirst: true,
+  hasData: true
 }
 
 const i2: Folder = {
@@ -102,7 +107,8 @@ const i2: Folder = {
   ],
   ignored: true,
   isPublic: false,
-  isFirst: true
+  isFirst: true,
+  hasData: false
 }
 
 const ignored: Array<Folder> = [i1, i2]

@@ -2,6 +2,7 @@
 import React from 'react'
 import type {Folder} from './render'
 import {Box, Text, Icon, Avatar, Meta} from '../common-adapters'
+import type {Props as IconProps} from '../common-adapters/icon'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {resolveImageAsURL} from '../../desktop/resolve-root'
 
@@ -46,19 +47,36 @@ const Modified = ({modified}) => (
   </Box>
 )
 
-const Row = ({users, icon, isPublic, ignored, isFirst, meta, modified}: Folder) => {
+const RowMeta = ({ignored, meta, isPublic}) => {
+  const metaColors = {
+    'new': globalColors.white,
+    'rekey': globalColors.white
+  }
+
+  const metaBGColors = {
+    'new': globalColors.blue2,
+    'rekey': globalColors.red
+  }
+
+  const metaProps = {
+    title: ignored ? 'ignored' : meta || '',
+    style: {
+      color: meta ? metaColors[meta] : isPublic ? globalColors.white_75 : globalColors.white_40,
+      backgroundColor: meta ? metaBGColors[meta] : isPublic ? globalColors.yellowGreen : 'rgba(0, 26, 51, 0.4)'
+    }
+  }
+  return (
+    <Meta {...metaProps} />
+  )
+}
+
+const Row = ({users, isPublic, ignored, isFirst, meta, modified, hasData}: Folder) => {
   const containerStyle = {
     ...rowContainer,
     ...(isPublic ? rowContainerPublic : rowContainerPrivate),
     ...(isFirst ? {borderBottom: undefined} : {})}
 
-  const metaProps = {
-    title: ignored ? 'ignored' : meta || '',
-    style: {
-      color: ignored ? globalColors.white_40 : globalColors.white,
-      backgroundColor: ignored ? 'rgba(0, 26, 51, 0.4)' : globalColors.blue2
-    }
-  }
+  const icon: IconProps.type = `folder-${isPublic ? 'public' : 'private'}-has-stuff-32`
 
   return (
     <Box style={containerStyle} className='folder-row'>
@@ -67,11 +85,12 @@ const Row = ({users, icon, isPublic, ignored, isFirst, meta, modified}: Folder) 
         <Avatars users={users} isPublic={isPublic} />
         <Box style={stylesBodyContainer}>
           <Names users={users} isPublic={isPublic} meta={meta} modified={modified} />
-          {metaProps.title && <Meta {...metaProps} />}
-          {!metaProps.title && modified && <Modified modified={modified} />}
+          {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} isPublic={isPublic} />}
+          {!(meta || ignored) && modified && <Modified modified={modified} />}
         </Box>
-        <Box style={stylesActionContainer} className='folder-row-hover-action'>
-          <Text type='BodySmall' style={{...globalStyles.clickable, color: globalColors.white}}>Open</Text>
+        <Box style={stylesActionContainer}>
+          <Text type='BodySmall' className='folder-row-hover-action' style={stylesAction}>Open</Text>
+          <Icon type={icon} style={{visibility: hasData ? 'visible' : 'hidden', width: 32}} />
         </Box>
       </Box>
     </Box>
@@ -114,7 +133,8 @@ const stylesBodyContainer = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
   justifyContent: 'center',
-  padding: 8
+  padding: 8,
+  marginRight: 16
 }
 
 const stylesBodyNameContainer = {
@@ -124,12 +144,15 @@ const stylesBodyNameContainer = {
 
 const stylesActionContainer = {
   ...globalStyles.flexBoxRow,
-  padding: 8,
   alignItems: 'flex-start',
-  justifyContent: 'center',
-  width: 96,
-  marginLeft: 16,
-  marginRight: 16
+  justifyContent: 'flex-end',
+  width: 112
+}
+
+const stylesAction = {
+  ...globalStyles.clickable,
+  color: globalColors.white,
+  alignSelf: 'center'
 }
 
 const stylesModified = {
