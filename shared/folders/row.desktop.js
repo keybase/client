@@ -6,48 +6,40 @@ import type {Props as IconProps} from '../common-adapters/icon'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {resolveImageAsURL} from '../../desktop/resolve-root'
 
-const Avatars = ({isPublic, users}) => (
-  <Box style={{...stylesAvatarContainer, ...(isPublic ? stylesAvatarContainerPublic : stylesAvatarContainerPrivate)}}>
-    {
-      users.length === 1 || users.length === 2
+const Avatars = ({styles, users}) => (
+  <Box style={styles.avatarContainer}>
+    {users.length === 1 || users.length === 2
       ? <Avatar size={32} username={users[users.length - 1].username} />
-      : <Icon type={isPublic ? 'folder-public-group-32' : 'folder-private-group-32'} />}
+      : <Icon type={styles.groupIcon} />}
   </Box>
 )
 
-const Divider = ({normalColor}) => (
-  <Text type='BodySemibold' style={{color: normalColor, marginRight: 2}}>,</Text>
-)
-
-const Names = ({isPublic, users}) => {
-  const normalColor = isPublic ? globalColors.yellowGreen : globalColors.white
+const Names = ({styles, users}) => {
   return (
     <Box style={stylesBodyNameContainer}>
       {users.map((u, i) => (
         <Text
           key={u.username}
           type='BodySemibold'
-          style={{color: u.broken ? globalColors.red : normalColor}}>{u.username}
+          style={{color: u.broken ? globalColors.red : styles.nameColor}}>{u.username}
           {
-            (i === users.length - 1)  // Injecting the commas here so we never wrap and have newlines starting with a ,
-            ? null
-            : <Divider normalColor={normalColor} />
-          }
+            (i !== users.length - 1) && // Injecting the commas here so we never wrap and have newlines starting with a ,
+              <Text type='BodySemibold' style={{color: styles.nameColor, marginRight: 2}}>,</Text>}
         </Text>
       ))}
     </Box>
   )
 }
 
-const Modified = ({modified}) => (
+const Modified = ({styles, modified}) => (
   <Box style={stylesModified}>
     <Icon type='thunderbolt' style={{marginRight: 5}} />
-    <Text type='BodySmall' backgroundMode='Terminal'>Modified {modified.when} by&nbsp;</Text>
-    <Text type='BodySmall' backgroundMode='Terminal' style={{color: globalColors.white}}>{modified.username}</Text>
+    <Text type='BodySmall' backgroundMode={styles.modifiedMode}>Modified {modified.when} by&nbsp;</Text>
+    <Text type='BodySmallLink' backgroundMode={styles.modifiedMode}>{modified.username}</Text>
   </Box>
 )
 
-const RowMeta = ({ignored, meta, isPublic}) => {
+const RowMeta = ({ignored, meta, styles}) => {
   const metaColors = {
     'new': globalColors.white,
     'rekey': globalColors.white
@@ -58,35 +50,31 @@ const RowMeta = ({ignored, meta, isPublic}) => {
     'rekey': globalColors.red
   }
 
-  const metaProps = {
-    title: ignored ? 'ignored' : meta || '',
-    style: {
-      color: meta ? metaColors[meta] : isPublic ? globalColors.white_75 : globalColors.white_40,
-      backgroundColor: meta ? metaBGColors[meta] : isPublic ? globalColors.yellowGreen : 'rgba(0, 26, 51, 0.4)'
-    }
-  }
-  return (
-    <Meta {...metaProps} />
-  )
+  const metaProps = ignored
+    ? {title: 'ignored', style: styles.ignored}
+    : {title: meta || '', style: {color: metaColors[meta], backgroundColor: metaBGColors[meta]}}
+
+  return <Meta {...metaProps} />
 }
 
 const Row = ({users, isPublic, ignored, isFirst, meta, modified, hasData}: Folder) => {
-  const containerStyle = {
-    ...rowContainer,
-    ...(isPublic ? rowContainerPublic : rowContainerPrivate),
-    ...(isFirst ? {borderBottom: undefined} : {})}
+  const styles = isPublic ? stylesPublic : stylesPrivate
 
-  const icon: IconProps.type = `folder-${isPublic ? 'public' : 'private'}-has-stuff-32`
+  const containerStyle = {
+    ...styles.rowContainer,
+    ...(isFirst && {borderBottom: undefined})}
+
+  const icon: IconProps.type = styles.hasStuffIcon
 
   return (
     <Box style={containerStyle} className='folder-row'>
-      {!isFirst && <Box style={{backgroundColor: globalColors.black_10, height: 1, position: 'absolute', top: 0, left: 0, right: 0}} />}
+      {!isFirst && <Box style={stylesLine} />}
       <Box style={{...globalStyles.flexBoxRow}}>
-        <Avatars users={users} isPublic={isPublic} />
+        <Avatars users={users} styles={styles} />
         <Box style={stylesBodyContainer}>
-          <Names users={users} isPublic={isPublic} meta={meta} modified={modified} />
-          {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} isPublic={isPublic} />}
-          {!(meta || ignored) && modified && <Modified modified={modified} />}
+          <Names users={users} styles={styles} meta={meta} modified={modified} />
+          {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
+          {!(meta || ignored) && modified && <Modified modified={modified} styles={styles} />}
         </Box>
         <Box style={stylesActionContainer}>
           <Text type='BodySmall' className='folder-row-hover-action' style={stylesAction}>Open</Text>
@@ -97,20 +85,19 @@ const Row = ({users, isPublic, ignored, isFirst, meta, modified, hasData}: Folde
   )
 }
 
+const stylesLine = {
+  backgroundColor: globalColors.black_10,
+  height: 1,
+  position: 'absolute',
+  top: 0,
+  left: 0,
+  right: 0
+}
+
 const rowContainer = {
   ...globalStyles.flexBoxColumn,
   minHeight: 48,
   position: 'relative'
-}
-
-const rowContainerPublic = {
-  backgroundColor: globalColors.white,
-  color: globalColors.yellowGreen2
-}
-
-const rowContainerPrivate = {
-  backgroundColor: globalColors.darkBlue,
-  color: globalColors.white
 }
 
 const stylesAvatarContainer = {
@@ -119,14 +106,46 @@ const stylesAvatarContainer = {
   padding: 8
 }
 
-const stylesAvatarContainerPublic = {
-  backgroundColor: globalColors.yellowGreen
+const stylesPrivate = {
+  rowContainer: {
+    ...rowContainer,
+    backgroundColor: globalColors.darkBlue,
+    color: globalColors.white
+  },
+  hasStuffIcon: 'folder-private-has-stuff-32',
+  ignored: {
+    color: globalColors.white_40,
+    backgroundColor: 'rgba(0, 26, 51, 0.4)'
+  },
+  groupIcon: 'folder-private-group-32',
+  avatarContainer: {
+    ...stylesAvatarContainer,
+    backgroundColor: globalColors.darkBlue3,
+    backgroundImage: `url(${resolveImageAsURL('icons', 'damier-pattern-good-open.png')})`,
+    backgroundRepeat: 'repeat'
+  },
+  nameColor: globalColors.white,
+  modifiedMode: 'Terminal'
 }
 
-const stylesAvatarContainerPrivate = {
-  backgroundColor: globalColors.darkBlue3,
-  backgroundImage: `url(${resolveImageAsURL('icons', 'damier-pattern-good-open.png')})`,
-  backgroundRepeat: 'repeat'
+const stylesPublic = {
+  rowContainer: {
+    ...rowContainer,
+    backgroundColor: globalColors.white,
+    color: globalColors.yellowGreen2
+  },
+  hasStuffIcon: 'folder-public-has-stuff-32',
+  ignored: {
+    color: globalColors.white_75,
+    backgroundColor: globalColors.yellowGreen
+  },
+  groupIcon: 'folder-public-group-32',
+  avatarContainer: {
+    ...stylesAvatarContainer,
+    backgroundColor: globalColors.yellowGreen
+  },
+  nameColor: globalColors.yellowGreen,
+  modifiedMode: 'Normal'
 }
 
 const stylesBodyContainer = {
