@@ -1,0 +1,11 @@
+/* @flow */
+
+import React, {Component} from 'react'
+
+export type Props = {
+  title: string,
+  style?: Object
+}
+
+declare export default class Meta extends React.Component<void, Props, void> {
+}

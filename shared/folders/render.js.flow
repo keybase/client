@@ -1,0 +1,13 @@
+/* @flow */
+
+import type {Props as ListProps} from './list'
+
+export type Props = {
+  privateBadge: number,
+  private: ListProps,
+  publicBadge: number,
+  public: ListProps
+}
+
+export default class Render extends React$Component<void, Props, void> {
+}

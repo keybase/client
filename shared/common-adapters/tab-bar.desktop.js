@@ -1,6 +1,5 @@
 // @flow
 import React, {Component} from 'react'
-import {TouchableWithoutFeedback} from 'react-native'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import Box from './box'
 import Text from './text'
@@ -84,13 +83,10 @@ class TabBar extends Component {
   static Item: Class<TabBarItem>;
 
   _labels (): Array<React$Element> {
-    // TODO: Not sure why I have to wrap the child in a box, but otherwise touches won't work
     return (this.props.children || []).map((item, i) => (
-      <TouchableWithoutFeedback key={item.props.label || i} onPress={item.props.onClick || (() => {})}>
-        <Box style={item.props.containerStyle}>
-          {item.props.tabBarButton || <SimpleTabBarButton tabWidth={this.props.tabWidth} label={item.props.label} selected={item.props.selected} underlined={this.props.underlined} />}
-        </Box>
-      </TouchableWithoutFeedback>
+      <Box style={item.props.containerStyle} key={item.props.label || i} onClick={item.props.onClick}>
+        {item.props.tabBarButton || <SimpleTabBarButton tabWidth={this.props.tabWidth} label={item.props.label} selected={item.props.selected} underlined={this.props.underlined} />}
+      </Box>
     ))
   }
 
@@ -137,7 +133,7 @@ const stylesTabBarButtonIcon = {
 
 const stylesLabel = {
   fontSize: 14,
-  lineHeight: 20,
+  lineHeight: '20px',
   marginTop: 5,
   marginBottom: 5
 }
