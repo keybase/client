@@ -1,6 +1,6 @@
 // @flow
 import React from 'react'
-import type {Folder} from './render'
+import type {Folder} from './list'
 import {Box, Text, Icon, Avatar, Meta} from '../common-adapters'
 import type {Props as IconProps} from '../common-adapters/icon'
 import {globalStyles, globalColors} from '../styles/style-guide'

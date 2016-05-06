@@ -21,13 +21,13 @@ const tabBarButtonMap: DumbComponentMap<TabBarButton> = {
 const tabBarBaseMock = {
   style: {flex: 1},
   children: [
-    (<TabBar.Item label='One' selected onPress={() => {}}>
+    (<TabBar.Item label='One' selected onClick={() => {}}>
       <Text type='Header' style={{flex: 2}}>One</Text>
     </TabBar.Item>),
-    (<TabBar.Item label='Two' selected={false} onPress={() => {}}>
+    (<TabBar.Item label='Two' selected={false} onClick={() => {}}>
       <Text type='Header'>Two</Text>
     </TabBar.Item>),
-    (<TabBar.Item label='Three' selected={false} onPress={() => {}}>
+    (<TabBar.Item label='Three' selected={false} onClick={() => {}}>
       <Text type='Header'>Three</Text>
     </TabBar.Item>)
   ]
@@ -50,7 +50,7 @@ const tabBarCustomButtons = selectedIndex => ({
       : <IconButton icon={buttonInfo.icon} badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} />
 
     return (
-      <TabBar.Item tabBarButton={button} containerStyle={{flex: 1}} selected={selectedIndex === i} onPress={() => console.log('TabBar.item:onPress')}>
+      <TabBar.Item tabBarButton={button} containerStyle={{flex: 1}} selected={selectedIndex === i} onClick={() => console.log('TabBar.item:onPress')}>
         <Text type='Header' style={{flex: 2}}>Content here at: {i}</Text>
       </TabBar.Item>
     )

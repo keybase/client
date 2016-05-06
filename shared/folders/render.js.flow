@@ -1,28 +1,12 @@
 /* @flow */
 
-export type Folder = {
-  users: Array<{
-    username: string,
-    broken?: boolean,
-    you?: boolean
-  }>,
-  meta?: 'new' | null,
-  modified?: {
-    when: string,
-    username: string
-  },
-  isPublic: boolean,
-  ignored: boolean,
-  isFirst: boolean,
-  hasData: boolean
-}
+import type {Props as ListProps} from './list'
 
 export type Props = {
-  tlfs?: Array<Folder>,
-  ignored?: Array<Folder>,
-  isPublic: boolean,
   privateBadge: number,
-  publicBadge: number
+  private: ListProps,
+  publicBadge: number,
+  public: ListProps
 }
 
 export default class Render extends React$Component<void, Props, void> {

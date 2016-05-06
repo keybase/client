@@ -9,7 +9,7 @@ export type ItemProps = {
   label?: string,
   style?: Object,
   selected?: bool,
-  onPress?: () => void,
+  onClick?: () => void,
   containerStyle?: Object,
   children?: React$Element
 }

@@ -296,26 +296,26 @@ const TabBars = ({selected, onPress}) => {
     <Box>
       <Box>
         <TabBar>
-          <TabBar.Item label='One' selected={selected[0]} onPress={() => onPress(0)}>
+          <TabBar.Item label='One' selected={selected[0]} onClick={() => onPress(0)}>
             <Text type='Header' style={{backgroundColor: 'orange'}}>One</Text>
           </TabBar.Item>
-          <TabBar.Item label='Two' selected={selected[1]} onPress={() => onPress(1)}>
+          <TabBar.Item label='Two' selected={selected[1]} onClick={() => onPress(1)}>
             <Text type='Header'>Two</Text>
           </TabBar.Item>
-          <TabBar.Item label='Three' selected={selected[2]} onPress={() => onPress(2)}>
+          <TabBar.Item label='Three' selected={selected[2]} onClick={() => onPress(2)}>
             <Text type='Header'>Three</Text>
           </TabBar.Item>
         </TabBar>
       </Box>
       <Box>
         <TabBar underlined>
-          <TabBar.Item label='One' selected={selected[0]} onPress={() => onPress(0)}>
+          <TabBar.Item label='One' selected={selected[0]} onClick={() => onPress(0)}>
             <Text type='Header' style={{backgroundColor: 'orange'}}>One</Text>
           </TabBar.Item>
-          <TabBar.Item label='Two' selected={selected[1]} onPress={() => onPress(1)}>
+          <TabBar.Item label='Two' selected={selected[1]} onClick={() => onPress(1)}>
             <Text type='Header'>Two</Text>
           </TabBar.Item>
-          <TabBar.Item label='Three' selected={selected[2]} onPress={() => onPress(2)}>
+          <TabBar.Item label='Three' selected={selected[2]} onClick={() => onPress(2)}>
             <Text type='Header'>Three</Text>
           </TabBar.Item>
         </TabBar>

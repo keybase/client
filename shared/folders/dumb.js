@@ -1,6 +1,6 @@
 /* @flow */
 import Folders from './render'
-import type {Folder} from './render'
+import type {Folder} from './list'
 import type {DumbComponentMap} from '../constants/types/more'
 
 const f1: Folder = {
@@ -116,8 +116,10 @@ const ignored: Array<Folder> = [i1, i2]
 const map: DumbComponentMap<Folders> = {
   component: Folders,
   mocks: {
-    'Private': {tlfs, ignored, isPublic: false, privateBadge: 1, publicBadge: 2, parentProps: {height: 580}},
-    'Public': {tlfs, ignored, isPublic: true, privateBadge: 1, publicBadge: 2}
+    'Normal': {
+      private: {tlfs, ignored, isPublic: false},
+      public: {tlfs, ignored, isPublic: true},
+      privateBadge: 1, publicBadge: 2, parentProps: {height: 580}}
   }
 }
 
