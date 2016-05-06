@@ -12,7 +12,20 @@ const f1: Folder = {
     {username: 'bob'},
     {username: 'aliceb'},
     {username: 'lmorchard'},
-    {username: 'chris'}
+    {username: 'chris'},
+    {username: 'chris1'},
+    {username: 'chris2'},
+    {username: 'chris3'},
+    {username: 'chris4'},
+    {username: 'chris5'},
+    {username: 'chris6'},
+    {username: 'chris7'},
+    {username: 'chris8'},
+    {username: 'chris9'},
+    {username: 'chris10'},
+    {username: 'chris11'},
+    {username: 'chris12'},
+    {username: 'chris13'}
   ],
   meta: 'new'
 }

@@ -1,24 +1,12 @@
 import React, {Component} from 'react'
 import type {Props} from './render'
-import {Box, Text, Icon, Avatar} from '../common-adapters'
+import {Box, Text, Icon} from '../common-adapters'
+import Row from './row'
 import {globalStyles, globalColors} from '../styles/style-guide'
-import {resolveImageAsURL} from '../../desktop/resolve-root'
 
 type State = {
   showIgnored: boolean
 }
-
-const Row = ({users, icon, isPublic, ignored, isFirst}) => (
-  <Box style={{...rowContainer,
-    ...(isPublic ? rowContainerPublic : rowContainerPrivate),
-    ...(isFirst ? {borderBottom: undefined} : {})}}>
-    <Box style={{...stylesAvatarContainer, ...(isPublic ? stylesAvatarContainerPublic : stylesAvatarContainerPrivate)}}>
-      {users.length === 1 ? <Avatar size={32} username={users[0]} /> : <Icon type='folder-private-group-32' />}
-    </Box>
-    <Box style={stylesBodyContainer} />
-    <Box style={stylesActionContainer} />
-  </Box>
-)
 
 const Ignored = ({showIgnored, ignored, isPublic, onToggle}) => (
   <Box style={stylesIgnoreContainer}>
@@ -94,46 +82,4 @@ const stylesIgnoreCaret = {
   color: globalColors.white_75
 }
 
-const rowContainer = {
-  ...globalStyles.flexBoxRow,
-  minHeight: 48,
-  borderTop: `solid 1px ${globalColors.black_10}`
-}
-
-const rowContainerPublic = {
-  backgroundColor: globalColors.white,
-  color: globalColors.yellowGreen2
-}
-
-const rowContainerPrivate = {
-  backgroundColor: globalColors.darkBlue,
-  color: globalColors.white
-}
-
-const stylesAvatarContainer = {
-  width: 48,
-  minHeight: 48,
-  padding: 8
-}
-
-const stylesAvatarContainerPublic = {}
-
-const stylesAvatarContainerPrivate = {
-  backgroundColor: globalColors.darkBlue3,
-  backgroundImage: `url(${resolveImageAsURL('icons', 'damier-pattern-good-open.png')})`,
-  backgroundRepeat: 'repeat'
-}
-
-const stylesBodyContainer = {
-  flex: 1
-}
-
-const stylesActionContainer = {
-  width: 96,
-  height: 48,
-  marginLeft: 16,
-  marginRight: 16
-}
-
 export default Render
-
