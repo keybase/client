@@ -3,17 +3,7 @@ import React, {Component} from 'react'
 import {ScrollView} from 'react-native'
 import {Box, Text, Input, Button} from '../common-adapters'
 import {globalStyles} from '../styles/style-guide'
-import type {DumbComponentMap} from './dumb'
-
-import CommonMap from '../common-adapters/dumb.native'
-import RegisterMap from '../login/register/dumb'
-import SignupMap from '../login/signup/dumb.native'
-import DevicesMap from '../devices/dumb'
-// import TrackerMap from '../tracker/dumb.desktop'
-// import PinentryMap from '../pinentry/dumb.desktop'
-import DeviceRevokeMap from '../devices/device-revoke/dumb.native'
-import QRMap from '../login/register/code-page/qr/dumb.native'
-import DevicePageMap from '../devices/device-page/dumb.native'
+import dumbComponentMap from './dumb-component-map.native'
 
 import {dumbFilter, dumbIndex} from '../local-debug'
 import debounce from 'lodash/debounce'
@@ -37,27 +27,14 @@ class Render extends Component<void, any, any> {
   }
 
   render () {
-    const componentMap: DumbComponentMap = {
-      ...CommonMap,
-      ...QRMap,
-      ...RegisterMap,
-      ...SignupMap,
-      ...DevicesMap,
-      ...DeviceRevokeMap,
-      ...DevicePageMap
-      // ...LoginMap,
-      // ...TrackerMap,
-      // ...PinentryMap
-    }
-
     const components = []
 
-    Object.keys(componentMap).forEach(key => {
+    Object.keys(dumbComponentMap).forEach(key => {
       if (this.state.filter && key.toLowerCase().indexOf(this.state.filter) === -1) {
         return
       }
 
-      const map = componentMap[key]
+      const map = dumbComponentMap[key]
       const Component = map.component
       Object.keys(map.mocks).forEach((mockKey, idx) => {
         const mock = {...map.mocks[mockKey]}
