@@ -570,3 +570,55 @@ func TestRootMetadataVersion(t *testing.T) {
 			"expected %d", g, e)
 	}
 }
+
+func TestMakeRekeyReadError(t *testing.T) {
+	config := MakeTestConfigOrBust(t, "alice", "bob")
+	defer config.Shutdown()
+
+	id := FakeTlfID(1, false)
+	h := parseTlfHandleOrBust(t, config, "alice", false)
+	rmd := newRootMetadataOrBust(t, id, h)
+	FakeInitialRekey(rmd, h.BareTlfHandle)
+
+	u, uid, err := config.KBPKI().Resolve(context.Background(), "bob")
+	require.Nil(t, err)
+
+	err = makeRekeyReadError(rmd, h, FirstValidKeyGen, uid, u)
+	require.Equal(t, NewReadAccessError(h, u), err)
+
+	err = makeRekeyReadError(
+		rmd, h, FirstValidKeyGen, h.Writers[0], "alice")
+	require.Equal(t, NeedSelfRekeyError{"alice"}, err)
+
+	err = makeRekeyReadError(
+		rmd, h, FirstValidKeyGen+1, h.Writers[0], "alice")
+	require.Equal(t, NeedOtherRekeyError{"alice"}, err)
+}
+
+func TestMakeRekeyReadErrorResolvedHandle(t *testing.T) {
+	config := MakeTestConfigOrBust(t, "alice", "bob")
+	defer config.Shutdown()
+
+	id := FakeTlfID(1, false)
+	ctx := context.Background()
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), "alice,bob@twitter",
+		false, true)
+	require.Nil(t, err)
+	rmd := newRootMetadataOrBust(t, id, h)
+	FakeInitialRekey(rmd, h.BareTlfHandle)
+
+	u, uid, err := config.KBPKI().Resolve(ctx, "bob")
+	require.Nil(t, err)
+
+	err = makeRekeyReadError(rmd, h, FirstValidKeyGen, uid, u)
+	require.Equal(t, NewReadAccessError(h, u), err)
+
+	config.KeybaseDaemon().(*KeybaseDaemonLocal).addNewAssertionForTest(
+		"bob", "bob@twitter")
+
+	resolvedHandle, err := h.ResolveAgain(ctx, config.KBPKI())
+	require.Nil(t, err)
+
+	err = makeRekeyReadError(rmd, resolvedHandle, FirstValidKeyGen, uid, u)
+	require.Equal(t, NeedOtherRekeyError{"alice,bob"}, err)
+}

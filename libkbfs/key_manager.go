@@ -66,36 +66,53 @@ const (
 
 func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 	md *RootMetadata, keyGen KeyGen, flags getTLFCryptKeyFlags) (
-	tlfCryptKey TLFCryptKey, err error) {
+	TLFCryptKey, error) {
 
 	if md.ID.IsPublic() {
-		tlfCryptKey = PublicTLFCryptKey
-		return
+		return PublicTLFCryptKey, nil
 	}
 
 	if keyGen < FirstValidKeyGen {
-		err = InvalidKeyGenerationError{md.GetTlfHandle(), keyGen}
-		return
+		return TLFCryptKey{}, InvalidKeyGenerationError{md.GetTlfHandle(), keyGen}
 	}
 	// Is this some key we don't know yet?  Shouldn't really ever happen,
 	// since we must have seen the MD that led us to this block, which
 	// should include all the latest keys.  Consider this a failsafe.
 	if keyGen > md.LatestKeyGeneration() {
-		err = NewKeyGenerationError{md.GetTlfHandle(), keyGen}
-		return
+		return TLFCryptKey{}, NewKeyGenerationError{md.GetTlfHandle(), keyGen}
 	}
 
 	// look in the cache first
 	kcache := km.config.KeyCache()
-	if tlfCryptKey, err = kcache.GetTLFCryptKey(md.ID, keyGen); err == nil {
-		return
+	tlfCryptKey, err := kcache.GetTLFCryptKey(md.ID, keyGen)
+	switch err := err.(type) {
+	case nil:
+		return tlfCryptKey, nil
+	case KeyCacheMissError:
+		break
+	default:
+		return TLFCryptKey{}, err
 	}
 
 	// Get the encrypted version of this secret key for this device
 	kbpki := km.config.KBPKI()
 	username, uid, err := kbpki.GetCurrentUserInfo(ctx)
 	if err != nil {
-		return
+		return TLFCryptKey{}, err
+	}
+
+	localMakeRekeyReadError := func() error {
+		h := md.GetTlfHandle()
+		resolvedHandle, err := h.ResolveAgain(ctx, km.config.KBPKI())
+		if err != nil {
+			// Ignore error and pretend h is already fully
+			// resolved.
+			km.log.CWarningf(ctx, "ResolveAgain for %v error: %v",
+				h.GetCanonicalPath(), err)
+			resolvedHandle = h
+		}
+		return makeRekeyReadError(
+			md, resolvedHandle, keyGen, uid, username)
 	}
 
 	var clientHalf TLFCryptKeyClientHalf
@@ -106,7 +123,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 	if flags&getTLFCryptKeyAnyDevice != 0 {
 		publicKeys, err := kbpki.GetCryptPublicKeys(ctx, uid)
 		if err != nil {
-			return tlfCryptKey, err
+			return TLFCryptKey{}, err
 		}
 
 		keys := make([]EncryptedTLFCryptKeyClientAndEphemeral, 0,
@@ -132,8 +149,7 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 			}
 		}
 		if len(keys) == 0 {
-			err = makeRekeyReadError(md, keyGen, uid, username)
-			return tlfCryptKey, err
+			return TLFCryptKey{}, localMakeRekeyReadError()
 		}
 		var index int
 		clientHalf, index, err = crypto.DecryptTLFCryptKeyClientHalfAny(ctx,
@@ -142,37 +158,35 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 			// The likely error here is DecryptionError, which we will replace
 			// with a ReadAccessError to communicate to the caller that we were
 			// unable to decrypt because we didn't have a key with access.
-			return tlfCryptKey, makeRekeyReadError(md, keyGen,
-				uid, username)
+			return TLFCryptKey{}, localMakeRekeyReadError()
 		}
 		info = keysInfo[index]
 		cryptPublicKey = publicKeys[publicKeyLookup[index]]
 	} else {
 		cryptPublicKey, err = kbpki.GetCurrentCryptPublicKey(ctx)
 		if err != nil {
-			return tlfCryptKey, err
+			return TLFCryptKey{}, err
 		}
 
 		var ok bool
 		info, ok, err = md.GetTLFCryptKeyInfo(keyGen, uid, cryptPublicKey)
 		if err != nil {
-			return tlfCryptKey, err
+			return TLFCryptKey{}, err
 		}
 		if !ok {
-			err = makeRekeyReadError(md, keyGen, uid, username)
-			return tlfCryptKey, err
+			return TLFCryptKey{}, localMakeRekeyReadError()
 		}
 
 		ePublicKey, err := md.GetTLFEphemeralPublicKey(keyGen, uid,
 			cryptPublicKey)
 		if err != nil {
-			return tlfCryptKey, err
+			return TLFCryptKey{}, err
 		}
 
 		clientHalf, err = crypto.DecryptTLFCryptKeyClientHalf(ctx, ePublicKey,
 			info.ClientHalf)
 		if err != nil {
-			return tlfCryptKey, err
+			return TLFCryptKey{}, err
 		}
 	}
 
@@ -182,22 +196,21 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 	serverHalf, err := kops.GetTLFCryptKeyServerHalf(ctx, info.ServerHalfID,
 		cryptPublicKey)
 	if err != nil {
-		return tlfCryptKey, err
+		return TLFCryptKey{}, err
 	}
 
-	if tlfCryptKey, err =
-		crypto.UnmaskTLFCryptKey(serverHalf, clientHalf); err != nil {
-		return
+	tlfCryptKey, err = crypto.UnmaskTLFCryptKey(serverHalf, clientHalf)
+	if err != nil {
+		return TLFCryptKey{}, err
 	}
 
 	if flags&getTLFCryptKeyDoCache != 0 {
 		if err = kcache.PutTLFCryptKey(md.ID, keyGen, tlfCryptKey); err != nil {
-			tlfCryptKey = TLFCryptKey{}
-			return
+			return TLFCryptKey{}, err
 		}
 	}
 
-	return
+	return tlfCryptKey, nil
 }
 
 func (km *KeyManagerStandard) updateKeyBundle(ctx context.Context,

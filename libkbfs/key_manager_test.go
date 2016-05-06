@@ -1,7 +1,6 @@
 package libkbfs
 
 import (
-	"errors"
 	"testing"
 	"time"
 
@@ -35,7 +34,7 @@ func expectCachedGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata, keyGen Ke
 
 func expectUncachedGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata, keyGen KeyGen, uid keybase1.UID, subkey CryptPublicKey, encrypt bool) {
 	config.mockKcache.EXPECT().GetTLFCryptKey(rmd.ID, keyGen).
-		Return(TLFCryptKey{}, errors.New("NONE"))
+		Return(TLFCryptKey{}, KeyCacheMissError{})
 
 	// get the xor'd key out of the metadata
 	config.mockKbpki.EXPECT().GetCurrentCryptPublicKey(gomock.Any()).
@@ -58,7 +57,7 @@ func expectUncachedGetTLFCryptKey(config *ConfigMock, rmd *RootMetadata, keyGen 
 
 func expectUncachedGetTLFCryptKeyAnyDevice(config *ConfigMock, rmd *RootMetadata, keyGen KeyGen, uid keybase1.UID, subkey CryptPublicKey, encrypt bool) {
 	config.mockKcache.EXPECT().GetTLFCryptKey(rmd.ID, keyGen).
-		Return(TLFCryptKey{}, errors.New("NONE"))
+		Return(TLFCryptKey{}, KeyCacheMissError{})
 
 	// get the xor'd key out of the metadata
 	config.mockKbpki.EXPECT().GetCryptPublicKeys(gomock.Any(), uid).
