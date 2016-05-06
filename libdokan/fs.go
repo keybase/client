@@ -217,6 +217,8 @@ func (f *FS) open(ctx context.Context, oc *openContext, ps []string) (dokan.File
 		return NewMetricsFile(f), false, nil
 	case libfs.StatusFileName == ps[0]:
 		return NewStatusFile(f.root.private.fs, nil), false, nil
+	case libfs.ResetCachesFileName == ps[0]:
+		return &ResetCachesFile{fs: f.root.private.fs}, false, nil
 	// TODO
 	// Unfortunately sometimes we end up in this case while using
 	// reparse points.

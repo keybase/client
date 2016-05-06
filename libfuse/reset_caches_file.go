@@ -7,13 +7,10 @@ import (
 	"golang.org/x/net/context"
 )
 
-// ResetCachesFileName is the name of the KBFS cache-resetting file --
-// it can be reached anywhere within the mount.
-const ResetCachesFileName = ".kbfs_reset_caches"
-
 // ResetCachesFile represents a write-only file where any write of at
-// least one byte triggers the resetting of all data caches.  Note
-// that it does not clear the *node* cache, which means that the
+// least one byte triggers the resetting of all data caches.  It can
+// be reached from any directory under the FUSE mountpoint.  Note that
+// it does not clear the *node* cache, which means that the
 // BlockPointers for existing nodes are still cached, such that
 // directory listings can still be implicitly cached for nodes still
 // being held by the kernel.

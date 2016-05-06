@@ -35,3 +35,6 @@ const DisableUpdatesFileName = ".kbfs_disable_updates"
 // EnableUpdatesFileName is the name of the KBFS update-enabling
 // file -- it can be reached anywhere within a top-level folder.
 const EnableUpdatesFileName = ".kbfs_enable_updates"
+
+// ResetCachesFileName is the name of the KBFS unstaging file.
+const ResetCachesFileName = ".kbfs_reset_caches"
