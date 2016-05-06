@@ -60,7 +60,7 @@ const Timeline = ({timeline}) => (
   </Box>
 )
 
-const Render = ({banner, name, type, deviceID, currentDevice, timeline, revokedAt, onRevoke}: Props) => {
+const Render = ({banner, name, type, deviceID, currentDevice, timeline, revokedAt, showRemoveDevicePage, device}: Props) => {
   const icon: IconProps.type = {
     'mobile': 'phone-big',
     'desktop': 'computer-big',
@@ -83,7 +83,7 @@ const Render = ({banner, name, type, deviceID, currentDevice, timeline, revokedA
         <Box style={{...globalStyles.flexBoxColumn}}>
           <Header name={name} currentDevice={currentDevice} revokedAt={revokedAt} />
           <Timeline timeline={timeline} />
-          {!revokedAt && <Button type='Danger' style={{marginTop: 15}} label={`Revoke this ${revokeName}`} onClick={() => onRevoke(deviceID, name, currentDevice)} />}
+          {!revokedAt && <Button type='Danger' style={{marginTop: 15}} label={`Revoke this ${revokeName}`} onClick={() => showRemoveDevicePage({device})} />}
         </Box>
       </Box>
     </Box>)

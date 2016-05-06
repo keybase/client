@@ -63,7 +63,7 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
         <Icon type={icon}/>
       </Box>
       <Box style={stylesCommonColumn}>
-        <Box style={{...globalStyles.flexBoxRow}}>
+        <Box style={{...globalStyles.flexBoxRow}} onPress={() => showExistingDevicePage(device)}>
           <Text style={textStyle} type='BodySemibold'>{device.name}</Text>
         </Box>
         <Box style={{...globalStyles.flexBoxRow}}>
@@ -71,7 +71,7 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
         </Box>
       </Box>
       <Box style={stylesRevokedColumn}>
-        {!revoked && <Text style={{color: globalColors.red}} type='BodyPrimaryLink'>Revoke</Text>}
+        {!revoked && <Text style={{color: globalColors.red}} onPress={() => showRemoveDevicePage(device)}type='BodyPrimaryLink'>Revoke</Text>}
       </Box>
     </Box>
   )
@@ -96,7 +96,7 @@ const DeviceHeader = ({addNewDevice}) => (
       <Icon type='devices-add-s' />
     </Box>
     <Box style={stylesCommonColumn}>
-      <Text type='BodyPrimaryLink' onClick={addNewDevice}>Add new...</Text>
+      <Text type='BodyPrimaryLink' onPress={addNewDevice}>Add new...</Text>
     </Box>
   </Box>
 )

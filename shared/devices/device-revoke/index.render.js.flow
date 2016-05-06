@@ -5,7 +5,8 @@ import type {DeviceType} from '../../constants/types/more'
 export type Props = {
   type: DeviceType,
   name: string,
-  isCurrent: boolean,
+  deviceID: string,
+  currentDevice: boolean,
   onSubmit: () => void,
   onCancel: () => void
 }

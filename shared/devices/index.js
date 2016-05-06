@@ -5,13 +5,14 @@ import _ from 'lodash'
 import CodePage from '../login/register/code-page'
 import GenPaperKey from './gen-paper-key'
 import ExistingDevice from './existing-device'
-import RemoveDevice from './remove-device'
 
 import {loadDevices} from '../actions/devices'
 import {routeAppend} from '../actions/router'
 import {addANewDevice} from '../actions/login'
 
 import ShowDevice from './device-page'
+import RemoveDevice from './device-revoke'
+
 import Render from './render'
 
 class Devices extends Component {

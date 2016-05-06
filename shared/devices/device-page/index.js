@@ -4,8 +4,10 @@ import {connect} from 'react-redux'
 import moment from 'moment'
 
 import Render from './index.render'
+import RemoveDevice from '../device-revoke'
 
 import * as devicesActions from '../../actions/devices'
+import {routeAppend} from '../../actions/router'
 
 export default class DevicePage extends Component {
   static parseRoute (currentPath) {
@@ -15,6 +17,9 @@ export default class DevicePage extends Component {
         props: {
           device: currentPath.get('device')
         }
+      },
+      subRoutes: {
+        removeDevice: RemoveDevice
       }
     }
   }
@@ -49,7 +54,8 @@ export default class DevicePage extends Component {
       timeline={timeline}
       revokedAt={device.revokedAt}
       currentDevice={device.currentDevice}
-      onRevoke={this.props.removeDevice}
+      showRemoveDevicePage={this.props.showRemoveDevicePage}
+      device={device}
     />
   }
 }
@@ -63,6 +69,9 @@ export default connect(
     })
   },
   dispatch => {
-    return bindActionCreators(devicesActions, dispatch)
+    return {
+      ...bindActionCreators(devicesActions, dispatch),
+      showRemoveDevicePage: device => dispatch(routeAppend({path: 'removeDevice', device})),
+    }
   }
 )(DevicePage)

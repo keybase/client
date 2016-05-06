@@ -1,6 +1,6 @@
 /* @flow */
 
-import type {DeviceType} from '../../constants/types/more'
+import type {Device, DeviceType} from '../../constants/types/more'
 import type {Time} from '../../constants/types/flow-types'
 
 export type TimelineItem = {
@@ -21,7 +21,8 @@ export type Props = {
   revokedAt?: ?Time,
   timeline?: Array<TimelineItem>,
   banner?: BannerItem,
-  onRevoke: () => void
+  showRemoveDevicePage: () => void,
+  device: Device
 }
 
 export default class Render extends React$Component<void, Props, void> {
