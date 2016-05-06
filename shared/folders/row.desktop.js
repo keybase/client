@@ -20,7 +20,7 @@ const Names = ({styles, users}) => {
       {users.map((u, i) => (
         <Text
           key={u.username}
-          type='BodySemibold'
+          type={u.you ? 'BodySemiboldItalic' : 'BodySemibold'}
           style={{color: u.broken ? globalColors.red : styles.nameColor}}>{u.username}
           {
             (i !== users.length - 1) && // Injecting the commas here so we never wrap and have newlines starting with a ,

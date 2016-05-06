@@ -5,7 +5,7 @@ import type {DumbComponentMap} from '../constants/types/more'
 
 const f1: Folder = {
   users: [
-    {username: 'cecileb'},
+    {username: 'cecileb', you: true},
     {username: 'jeresig', broken: true},
     {username: 'throughnothing'},
     {username: 'cdixon'},
@@ -36,7 +36,7 @@ const f1: Folder = {
 
 const f2: Folder = {
   users: [
-    {username: 'cecileb'},
+    {username: 'cecileb', you: true},
     {username: 'jeresig', broken: true},
     {username: 'throughnothing'}
   ],
@@ -52,7 +52,7 @@ const f2: Folder = {
 
 const f3: Folder = {
   users: [
-    {username: 'cecileb'},
+    {username: 'cecileb', you: true},
     {username: 'bob'}
   ],
   modified: {
@@ -67,7 +67,7 @@ const f3: Folder = {
 
 const f4: Folder = {
   users: [
-    {username: 'cecileb'},
+    {username: 'cecileb', you: true},
     {username: 'jenbee'}
   ],
   ignored: false,
@@ -78,7 +78,7 @@ const f4: Folder = {
 
 const f5: Folder = {
   users: [
-    {username: 'cecileb'}
+    {username: 'cecileb', you: true}
   ],
   ignored: false,
   isPublic: false,
@@ -90,7 +90,7 @@ const tlfs: Array<Folder> = [f1, f2, f3, f4, f5]
 
 const i1: Folder = {
   users: [
-    {username: 'cecileb'},
+    {username: 'cecileb', you: true},
     {username: 'jeresig', broken: true},
     {username: 'cdixon'}
   ],
@@ -102,7 +102,7 @@ const i1: Folder = {
 
 const i2: Folder = {
   users: [
-    {username: 'cecileb'},
+    {username: 'cecileb', you: true},
     {username: 'jeresig', broken: true}
   ],
   ignored: true,

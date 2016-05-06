@@ -3,7 +3,8 @@
 export type Folder = {
   users: Array<{
     username: string,
-    broken?: boolean
+    broken?: boolean,
+    you?: boolean
   }>,
   meta?: 'new' | null,
   modified?: {

@@ -15,8 +15,8 @@ export default {
 
   darkBlue: '#195080',
   darkBlue2: '#2470b3',
-  darkBlue3: '#001b33',
-  darkBlue4: '#0a3052',
+  darkBlue3: '#0a3052',
+  darkBlue4: '#103c64',
 
   midnightBlue: '#082640',
 
