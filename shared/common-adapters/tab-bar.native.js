@@ -8,7 +8,7 @@ import Icon from './icon'
 
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
 
-class TabBarItem extends Component {
+export class TabBarItem extends Component {
   props: ItemProps;
 
   render () {
@@ -46,7 +46,7 @@ export class TabBarButton extends Component<void, TabBarButtonProps, void> {
     return (
       <Box style={{...globalStyles.flexBoxColumn, backgroundColor, ...stylesTabBarButtonIcon, ...this.props.style}}>
         {this.props.source.type === 'icon'
-          ? <Icon type={this.props.source.icon} style={{height: 27, width: 27, color: this.props.selected ? globalColors.blue3 : globalColors.blue3_40}} />
+          ? <Icon type={this.props.source.icon} style={{height: 27, width: 27, fontWidth: 80, textAlign: 'center', color: this.props.selected ? globalColors.blue3 : globalColors.blue3_40}} />
           : this.props.source.avatar}
         {badgeNumber > 0 &&
           <Box style={{...styleBadgeOuter, borderColor: backgroundColor, backgroundColor}}>
@@ -81,12 +81,11 @@ const styleBadge = {
 
 class TabBar extends Component {
   props: Props;
-  static Item: Class<TabBarItem>;
 
   _labels (): Array<React$Element> {
     // TODO: Not sure why I have to wrap the child in a box, but otherwise touches won't work
     return (this.props.children || []).map((item, i) => (
-      <TouchableWithoutFeedback key={item.props.label || i} onPress={item.props.onPress || (() => {})}>
+      <TouchableWithoutFeedback key={item.props.label || i} onPress={item.props.onClick || (() => {})}>
         <Box style={item.props.containerStyle}>
           {item.props.tabBarButton || <SimpleTabBarButton tabWidth={this.props.tabWidth} label={item.props.label} selected={item.props.selected} underlined={this.props.underlined} />}
         </Box>
@@ -114,8 +113,6 @@ class TabBar extends Component {
     )
   }
 }
-
-TabBar.Item = TabBarItem
 
 const stylesContainer = {
   ...globalStyles.flexBoxColumn

@@ -1,7 +1,6 @@
 // @flow
 
 import Menubar from './index.render'
-import type {RenderProps, FolderInfo} from './index.render'
 import type {DumbComponentMap} from '../constants/types/more'
 
 const folder1 = {
@@ -51,7 +50,7 @@ const propsNormal = {
 const dumbComponentMap: DumbComponentMap<Menubar> = {
   component: Menubar,
   mocks: {
-    'Normal': propsNormal,
+    'Normal': propsNormal
   }
 }
 

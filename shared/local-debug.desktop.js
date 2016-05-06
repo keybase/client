@@ -36,7 +36,7 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.reduxDevToolsSelect = state => state.tracker
   config.enableStoreLogging = true
   config.enableActionLogging = false
-  config.forwardLogs = true
+  config.forwardLogs = false
   config.devStoreChangingFunctions = true
   config.printOutstandingRPCs = true
   config.reactPerf = false

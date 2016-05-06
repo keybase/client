@@ -91,7 +91,7 @@ export default class CodePageRender extends Component<void, Props, void> {
             underlayColor={globalColors.white}
             onPress={() => this.props.setCodePageMode(mode)}>
             <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', marginLeft: 10, marginRight: 10}}>
-              <Icon type={iconTypeFn(mode)}/>
+              <Icon type={iconTypeFn(mode)} />
               <Text type='Body' style={{marginLeft: 15, textAlign: 'center'}}>{modeTextFn(mode)}</Text>
             </Box>
           </TouchableHighlight>
