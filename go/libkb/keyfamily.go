@@ -811,9 +811,9 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 		ckf.cki.Devices[did] = dobj
 	}
 
-	// Clear out the old Key that this device used to refer to.
-	// We might wind up just clobbering it with the same thing, but
-	// that's fine for now.
+	// If a KID is specified, we should clear out any previous KID from the
+	// KID->Device map. But if not, leave the map as it is. Later "device"
+	// blobs in the sigchain aren't required to repeat the KID every time.
 	if kid.IsValid() {
 		if prevKid.IsValid() {
 			ckf.G().Log.Debug("| Clear out old key")
