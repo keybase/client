@@ -63,26 +63,33 @@ if [ ! "$nopull" = "1" ]; then
   "$client_dir/packaging/check_status_and_pull.sh" "$updater_dir"
 fi
 
+echo "Loading release tool"
+"$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
+release_bin="$GOPATH/bin/release"
+
+client_commit=`$release_bin latest-commit --repo=client`
+kbfs_commit=`$release_bin latest-commit --repo=kbfs`
+
 if [ -n "$client_commit" ]; then
-  cd "$client_dir"
+  (cd "$client_dir"
   client_branch=`git rev-parse --abbrev-ref HEAD`
   function reset_client {
     (cd "$client_dir" && git checkout $client_branch)
   }
   trap reset_client EXIT
   echo "Checking out $client_commit on client"
-  git checkout "$client_commit"
+  git checkout "$client_commit")
 fi
 
 if [ -n "$kbfs_commit" ]; then
-  cd "$kbfs_dir"
+  (cd "$kbfs_dir"
   kbfs_branch=`git rev-parse --abbrev-ref HEAD`
   function reset_kbfs {
     (cd "$kbfs_dir" && git checkout $kbfs_branch)
   }
   trap reset_kbfs EXIT
   echo "Checking out $kbfs_commit on kbfs"
-  git checkout "$kbfs_commit"
+  git checkout "$kbfs_commit")
 fi
 
 if [ ! "$nobuild" = "1" ]; then
