@@ -1,3 +1,4 @@
+// @flow
 import React from 'react'
 import type {Folder} from './render'
 import {Box, Text, Icon, Avatar, Meta} from '../common-adapters'
@@ -40,8 +41,8 @@ const Names = ({isPublic, users}) => {
 const Modified = ({modified}) => (
   <Box style={stylesModified}>
     <Icon type='thunderbolt' style={{marginRight: 5}} />
-    <Text type='BodySmall' backgroundMode='terminal'>Modified {modified.when} by&nbsp;</Text>
-    <Text type='BodySmall' backgroundMode='terminal' style={{color: globalColors.white}}>{modified.username}</Text>
+    <Text type='BodySmall' backgroundMode='Terminal'>Modified {modified.when} by&nbsp;</Text>
+    <Text type='BodySmall' backgroundMode='Terminal' style={{color: globalColors.white}}>{modified.username}</Text>
   </Box>
 )
 
@@ -52,7 +53,7 @@ const Row = ({users, icon, isPublic, ignored, isFirst, meta, modified}: Folder) 
     ...(isFirst ? {borderBottom: undefined} : {})}
 
   const metaProps = {
-    title: ignored ? 'ignored' : meta,
+    title: ignored ? 'ignored' : meta || '',
     style: {
       color: ignored ? globalColors.white_40 : globalColors.white,
       backgroundColor: ignored ? 'rgba(0, 26, 51, 0.4)' : globalColors.blue2
@@ -61,23 +62,26 @@ const Row = ({users, icon, isPublic, ignored, isFirst, meta, modified}: Folder) 
 
   return (
     <Box style={containerStyle} className='folder-row'>
-      <Avatars users={users} isPublic={isPublic} />
-      <Box style={stylesBodyContainer}>
-        <Names users={users} isPublic={isPublic} meta={meta} modified={modified} />
-        {metaProps.title && <Meta {...metaProps} />}
-        {!metaProps.title && modified && <Modified modified={modified} />}
-      </Box>
-      <Box style={stylesActionContainer} className='folder-row-hover-action'>
-        <Text type='BodySmall' style={{...globalStyles.clickable, color: globalColors.white}}>Open</Text>
+      {!isFirst && <Box style={{backgroundColor: globalColors.black_10, height: 1, position: 'absolute', top: 0, left: 0, right: 0}} />}
+      <Box style={{...globalStyles.flexBoxRow}}>
+        <Avatars users={users} isPublic={isPublic} />
+        <Box style={stylesBodyContainer}>
+          <Names users={users} isPublic={isPublic} meta={meta} modified={modified} />
+          {metaProps.title && <Meta {...metaProps} />}
+          {!metaProps.title && modified && <Modified modified={modified} />}
+        </Box>
+        <Box style={stylesActionContainer} className='folder-row-hover-action'>
+          <Text type='BodySmall' style={{...globalStyles.clickable, color: globalColors.white}}>Open</Text>
+        </Box>
       </Box>
     </Box>
   )
 }
 
 const rowContainer = {
-  ...globalStyles.flexBoxRow,
+  ...globalStyles.flexBoxColumn,
   minHeight: 48,
-  borderTop: `solid 1px ${globalColors.black_10}`
+  position: 'relative'
 }
 
 const rowContainerPublic = {
@@ -96,7 +100,9 @@ const stylesAvatarContainer = {
   padding: 8
 }
 
-const stylesAvatarContainerPublic = {}
+const stylesAvatarContainerPublic = {
+  backgroundColor: globalColors.yellowGreen
+}
 
 const stylesAvatarContainerPrivate = {
   backgroundColor: globalColors.darkBlue3,

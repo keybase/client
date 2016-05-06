@@ -27,7 +27,10 @@ const f1: Folder = {
     {username: 'chris12'},
     {username: 'chris13'}
   ],
-  meta: 'new'
+  meta: 'new',
+  ignored: false,
+  isPublic: false,
+  isFirst: true
 }
 
 const f2: Folder = {
@@ -39,7 +42,10 @@ const f2: Folder = {
   modified: {
     when: '2 hours ago',
     username: 'jeresig'
-  }
+  },
+  ignored: false,
+  isPublic: false,
+  isFirst: false
 }
 
 const f3: Folder = {
@@ -50,20 +56,30 @@ const f3: Folder = {
   modified: {
     when: '3 hours ago',
     username: 'bob'
-  }
+  },
+  ignored: false,
+  isPublic: false,
+  isFirst: false
 }
 
 const f4: Folder = {
   users: [
     {username: 'cecileb'},
     {username: 'jenbee'}
-  ]
+  ],
+  ignored: false,
+  isPublic: false,
+  isFirst: false
 }
 
 const f5: Folder = {
   users: [
     {username: 'cecileb'}
-  ]
+  ],
+  ignored: false,
+  isPublic: false,
+  isFirst: false
+
 }
 
 const tlfs: Array<Folder> = [f1, f2, f3, f4, f5]
@@ -73,14 +89,20 @@ const i1: Folder = {
     {username: 'cecileb'},
     {username: 'jeresig', broken: true},
     {username: 'cdixon'}
-  ]
+  ],
+  ignored: true,
+  isPublic: false,
+  isFirst: true
 }
 
 const i2: Folder = {
   users: [
     {username: 'cecileb'},
     {username: 'jeresig', broken: true}
-  ]
+  ],
+  ignored: true,
+  isPublic: false,
+  isFirst: true
 }
 
 const ignored: Array<Folder> = [i1, i2]

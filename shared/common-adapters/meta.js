@@ -1,3 +1,4 @@
+// @flow
 import React from 'react'
 import Text from './text'
 import type {Props} from './meta'
