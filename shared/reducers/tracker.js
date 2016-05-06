@@ -223,7 +223,7 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
 }
 
 export default function (state: State = initialState, action: Action): State {
-  const username: string = (action.payload && action.payload.username) ? action.payload.username : ''
+  const username: ?string = action.payload && action.payload.username
   const trackerState = username ? state.trackers[username] : null
   switch (action.type) {
     case CommonConstants.resetStore:
@@ -249,6 +249,10 @@ export default function (state: State = initialState, action: Action): State {
       return state
     }
 
+    if (!username) {
+      return state
+    }
+
     return {
       ...state,
       trackers: {
@@ -265,18 +269,19 @@ export default function (state: State = initialState, action: Action): State {
           serverStarted
         }
       case Constants.updateUsername:
-        if (!action.payload) {
+        if (!action.payload || !username) {
           return state
         }
-        const username2 = action.payload.username
 
         return {
           ...state,
           trackers: {
             ...state.trackers,
-            [username]: initialTrackerState(username2)
+            [username]: initialTrackerState(username)
           }
         }
+      case Constants.showNonUser:
+        return state
       default:
         return state
     }

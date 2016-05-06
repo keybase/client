@@ -15,6 +15,8 @@ import type {State as RootTrackerState} from '../reducers/tracker'
 import type {ConfigState} from '../reducers/config'
 import type {Action, Dispatch} from '../constants/types/flux'
 
+import type {ShowNonUser} from '../constants/tracker'
+
 import type {RemoteProof, LinkCheckResult, TrackOptions, UserCard, delegateUiCtl_registerIdentifyUI_rpc,
   track_checkTracking_rpc, track_untrack_rpc, track_trackWithToken_rpc, incomingCallMapType, identify_identify2_rpc} from '../constants/types/flow-types'
 
@@ -87,7 +89,7 @@ export function registerDisplayTLFCreateWithInvite (): TrackerActionCreator {
   return dispatch => {
     const params: incomingCallMapType = {
       'keybase.1.identifyUi.displayTLFCreateWithInvite': args => {
-        console.log('got a display tlf command')
+        dispatch(({payload: args, type: Constants.showNonUser}: ShowNonUser))
       }
     }
 
