@@ -6,8 +6,9 @@ import {resolveImageAsURL} from '../../desktop/resolve-root'
 
 const Avatars = ({isPublic, users}) => (
   <Box style={{...stylesAvatarContainer, ...(isPublic ? stylesAvatarContainerPublic : stylesAvatarContainerPrivate)}}>
-    {users.length === 1
-      ? <Avatar size={32} username={users[0]} />
+    {
+      users.length === 1 || users.length === 2
+      ? <Avatar size={32} username={users[users.length - 1].username} />
       : <Icon type={isPublic ? 'folder-public-group-32' : 'folder-private-group-32'} />}
   </Box>
 )
@@ -19,27 +20,30 @@ const Divider = ({normalColor}) => (
 const Names = ({isPublic, users}) => {
   const normalColor = isPublic ? globalColors.yellowGreen : globalColors.white
   return (
-    <Box style={stylesBodyContainer}>
-      <Box style={stylesBodyNameContainer}>
-        {
-          users.map((u, i) => (
-            <Text
-              key={u.username}
-              type='BodySemibold'
-              style={{color: u.broken ? globalColors.red : normalColor}}>{u.username}
-              {
-                (i === users.length - 1)  // Injecting the commas here so we never wrap and have newlines starting with a ,
-                ? null
-                : <Divider normalColor={normalColor} />
-              }
-            </Text>
-          ))
-        }
-      </Box>
-      <Meta title='NEW' style={{backgroundColor: globalColors.blue2}} />
+    <Box style={stylesBodyNameContainer}>
+      {users.map((u, i) => (
+        <Text
+          key={u.username}
+          type='BodySemibold'
+          style={{color: u.broken ? globalColors.red : normalColor}}>{u.username}
+          {
+            (i === users.length - 1)  // Injecting the commas here so we never wrap and have newlines starting with a ,
+            ? null
+            : <Divider normalColor={normalColor} />
+          }
+        </Text>
+      ))}
     </Box>
   )
 }
+
+const Modified = ({modified}) => (
+  <Box style={stylesModified}>
+    <Icon type='thunderbolt' style={{marginRight: 5}} />
+    <Text type='BodySmall' backgroundMode='terminal'>Modified {modified.when} by&nbsp;</Text>
+    <Text type='BodySmall' backgroundMode='terminal' style={{color: globalColors.white}}>{modified.username}</Text>
+  </Box>
+)
 
 const Row = ({users, icon, isPublic, ignored, isFirst, meta, modified}: Folder) => {
   const containerStyle = {
@@ -47,11 +51,25 @@ const Row = ({users, icon, isPublic, ignored, isFirst, meta, modified}: Folder) 
     ...(isPublic ? rowContainerPublic : rowContainerPrivate),
     ...(isFirst ? {borderBottom: undefined} : {})}
 
+  const metaProps = {
+    title: ignored ? 'ignored' : meta,
+    style: {
+      color: ignored ? globalColors.white_40 : globalColors.white,
+      backgroundColor: ignored ? 'rgba(0, 26, 51, 0.4)' : globalColors.blue2
+    }
+  }
+
   return (
-    <Box style={containerStyle}>
+    <Box style={containerStyle} className='folder-row'>
       <Avatars users={users} isPublic={isPublic} />
-      <Names users={users} isPublic={isPublic} meta={meta} modified={modified} />
-      <Box style={stylesActionContainer} />
+      <Box style={stylesBodyContainer}>
+        <Names users={users} isPublic={isPublic} meta={meta} modified={modified} />
+        {metaProps.title && <Meta {...metaProps} />}
+        {!metaProps.title && modified && <Modified modified={modified} />}
+      </Box>
+      <Box style={stylesActionContainer} className='folder-row-hover-action'>
+        <Text type='BodySmall' style={{...globalStyles.clickable, color: globalColors.white}}>Open</Text>
+      </Box>
     </Box>
   )
 }
@@ -89,7 +107,7 @@ const stylesAvatarContainerPrivate = {
 const stylesBodyContainer = {
   ...globalStyles.flexBoxColumn,
   flex: 1,
-  justifyContents: 'center',
+  justifyContent: 'center',
   padding: 8
 }
 
@@ -99,10 +117,18 @@ const stylesBodyNameContainer = {
 }
 
 const stylesActionContainer = {
+  ...globalStyles.flexBoxRow,
+  padding: 8,
+  alignItems: 'flex-start',
+  justifyContent: 'center',
   width: 96,
-  height: 48,
   marginLeft: 16,
   marginRight: 16
+}
+
+const stylesModified = {
+  ...globalStyles.flexBoxRow,
+  alignItems: 'center'
 }
 
 export default Row

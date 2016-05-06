@@ -33,9 +33,15 @@ class Render extends Component<void, Props, State> {
   }
 
   render () {
+    const realCSS = `
+      .folder-row .folder-row-hover-action { visibility: hidden }
+      .folder-row:hover .folder-row-hover-action { visibility: visible }
+    `
+
     return (
       <Box style={stylesContainer}>
-        {this.props.tlfs.map((t, idx) => <Row key={t.users.map(u => u.username).join('-')} users={t.users} icon='' isPublic={this.props.isPublic} ignored={false} isFirst={!idx} />)}
+        <style>{realCSS}</style>
+        {this.props.tlfs.map((t, idx) => <Row key={t.users.map(u => u.username).join('-')} {...t} icon='' isPublic={this.props.isPublic} ignored={false} isFirst={!idx} />)}
         <Ignored ignored={this.props.ignored} showIgnored={this.state.showIgnored} isPublic={this.props.isPublic}
           onToggle={() => this.setState({showIgnored: !this.state.showIgnored})} />
       </Box>
