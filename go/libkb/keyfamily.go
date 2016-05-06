@@ -814,12 +814,11 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 	// Clear out the old Key that this device used to refer to.
 	// We might wind up just clobbering it with the same thing, but
 	// that's fine for now.
-	if prevKid.IsValid() {
-		ckf.G().Log.Debug("| Clear out old key")
-		delete(ckf.cki.KIDToDeviceID, prevKid)
-	}
-
 	if kid.IsValid() {
+		if prevKid.IsValid() {
+			ckf.G().Log.Debug("| Clear out old key")
+			delete(ckf.cki.KIDToDeviceID, prevKid)
+		}
 		ckf.cki.KIDToDeviceID[kid] = did
 	}
 
