@@ -15,6 +15,8 @@ func handleSpecialFile(name string, fs *FS, resp *fuse.LookupResponse) fs.Node {
 		return NewMetricsFile(fs, resp)
 	case libfs.ProfileListDirName:
 		return ProfileList{}
+	case ResetCachesFileName:
+		return &ResetCachesFile{fs}
 	}
 
 	return nil
