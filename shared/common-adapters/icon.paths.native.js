@@ -2,6 +2,7 @@
 // @flow
 
 export const fontIcons = {
+  'fa-custom-icon-search-button': String.fromCharCode(0xe90a),
   'fa-custom-main-nav-devices': String.fromCharCode(0xe906),
   'fa-custom-main-nav-folders': String.fromCharCode(0xe907),
   'fa-custom-main-nav-people': String.fromCharCode(0xe908),

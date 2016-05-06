@@ -1,9 +1,9 @@
 @font-face {
     font-family: 'kb';
     src:
-        url('fonts/kb.ttf?pqez9r') format('truetype'),
-        url('fonts/kb.woff?pqez9r') format('woff'),
-        url('fonts/kb.svg?pqez9r#kb') format('svg');
+        url('fonts/kb.ttf?937x5') format('truetype'),
+        url('fonts/kb.woff?937x5') format('woff'),
+        url('fonts/kb.svg?937x5#kb') format('svg');
     font-weight: normal;
     font-style: normal;
 }
@@ -23,6 +23,9 @@
     -moz-osx-font-smoothing: grayscale;
 }
 
+.fa-custom-icon-search-button:before {
+    content: "\e90a";
+}
 .fa-custom-main-nav-devices:before {
     content: "\e906";
 }
