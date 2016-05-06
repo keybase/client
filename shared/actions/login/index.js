@@ -8,6 +8,7 @@ import {navigateTo, routeAppend} from '../router'
 import engine from '../../engine'
 import type {responseError} from '../../engine'
 import enums from '../../constants/types/keybase-v1'
+import ExistingDevice from '../../devices/existing-device'
 import SelectOtherDevice from '../../login/register/select-other-device'
 import UsernameOrEmail from '../../login/register/username-or-email'
 // import GPGMissingPinentry from '../../login/register/gpg-missing-pinentry'
@@ -147,17 +148,11 @@ export function login (): AsyncAction {
     // We can either be a newDevice or an existingDevice.  Here in the login
     // flow, let's set ourselves to be a newDevice.  If we were in the Devices
     // tab flow, we'd want the opposite.
-    if (isMobile) {
-      dispatch({
-        type: Constants.setMyDeviceCodeState,
-        payload: Constants.codePageDeviceRoleNewPhone
-      })
-    } else {
-      dispatch({
-        type: Constants.setMyDeviceCodeState,
-        payload: Constants.codePageDeviceRoleNewComputer
-      })
-    }
+    dispatch({
+      type: Constants.setMyDeviceCodeState,
+      payload:
+        isMobile ? Constants.codePageDeviceRoleNewPhone : Constants.codePageDeviceRoleNewComputer
+    })
     // We ask for user since the login will auto login with the last user which we don't always want
     dispatch(routeAppend({parseRoute: {componentAtTop: {component: UsernameOrEmail, props}}}))
   }
@@ -390,6 +385,15 @@ function cancelLogin (response: ?responseError) : AsyncAction {
 
 export function addANewDevice () : AsyncAction {
   return (dispatch, getState) => {
+    // We can either be a newDevice or an existingDevice.  Here in the add a
+    // device flow, let's set ourselves to be a existingDevice.  If login()
+    // starts in the future, it'll set us back to being a newDevice then.
+    dispatch({
+      type: Constants.setMyDeviceCodeState,
+      payload:
+        isMobile ? Constants.codePageDeviceRoleExistingPhone : Constants.codePageDeviceRoleExistingComputer
+    })
+
     const incomingMap = makeKex2IncomingMap(dispatch, getState)
     const params : device_deviceAdd_rpc = {
       ...makeWaitingHandler(dispatch),
@@ -474,6 +478,29 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
       dispatch({type: Constants.setTextCode, payload: phrase})
       generateQRCode(dispatch, getState)
       dispatch(askForCodePage(phrase => { response.result({phrase, secret: null}) }, response))
+    },
+    'keybase.1.provisionUi.chooseDeviceType': ({sessionID, kind}, response) => {
+      const store = getState().login.codePage
+      appendRouteElement((
+        <ExistingDevice
+          myDeviceRole={store.myDeviceRole}
+          onSubmit={kind => {
+            let deviceType: DeviceType
+            switch (kind) {
+              case Constants.codePageDeviceRoleNewComputer:
+                deviceType = enums.provisionUi.DeviceType.desktop
+                break
+              case Constants.codePageDeviceRoleNewPhone:
+                deviceType = enums.provisionUi.DeviceType.mobile
+                break
+              default:
+                console.warn(`DeviceType not recognized: ${deviceType}`)
+                return
+            }
+            dispatch(setCodePageOtherDeviceRole(kind))
+            response.result(deviceType)
+          }}
+          onBack={() => dispatch(cancelLogin(response))}/>))
     },
     'keybase.1.provisionUi.PromptNewDeviceName': ({existingDevices, errorMessage}, response) => {
       appendRouteElement((
