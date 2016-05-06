@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import {TabBar, Avatar} from '../common-adapters'
-import {TabBarButton} from '../common-adapters/tab-bar'
+import {TabBarButton, TabBarItem} from '../common-adapters/tab-bar'
 
 import {profileTab, peopleTab, folderTab, devicesTab, moreTab} from '../constants/tabs'
 
@@ -46,10 +46,10 @@ export default class Render extends Component<void, Props, void> {
           )
 
           return (
-            <TabBar.Item
-              key={t} tabBarButton={button} selected={this.props.selectedTab === t} onPress={onPress} containerStyle={{flex: 1}}>
+            <TabBarItem
+              key={t} tabBarButton={button} selected={this.props.selectedTab === t} onClick={onPress} containerStyle={{flex: 1}}>
               {this.props.tabContent[t]}
-            </TabBar.Item>
+            </TabBarItem>
           )
         })}
       </TabBar>

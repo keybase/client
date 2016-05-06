@@ -27,7 +27,7 @@ Go [here](https://www.fontsquirrel.com/tools/webfont-generator)
 1. choose expert
 1. upload the font
 1. only select trueType in the formats
-1. remove teh ‘-webfont’ as the suffix
+1. remove the ‘-webfont’ as the suffix
 1. check the agree then download
 1. rename the file and replace
 

@@ -108,7 +108,7 @@ class TabBar extends Component {
   _labels (): Array<React$Element> {
     // TODO: Not sure why I have to wrap the child in a box, but otherwise touches won't work
     return (this.props.children || []).map((item, i) => (
-      <Box key={item.props.label || i} style={item.props.containerStyle} onClick={item.props.onPress}>
+      <Box key={item.props.label || i} style={item.props.containerStyle} onClick={item.props.onClick}>
         {item.props.tabBarButton || <SimpleTabBarButton label={item.props.label} selected={item.props.selected} underlined={this.props.underlined} />}
       </Box>
     ))

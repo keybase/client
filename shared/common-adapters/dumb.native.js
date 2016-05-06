@@ -4,7 +4,7 @@ import React from 'react'
 
 import Checkbox from './checkbox'
 import {TabBar, Text, Box} from './index'
-import {TabBarButton} from './tab-bar'
+import {TabBarButton, TabBarItem} from './tab-bar'
 
 import {Avatar} from './index'
 
@@ -21,15 +21,15 @@ const tabBarButtonMap: DumbComponentMap<TabBarButton> = {
 const tabBarBaseMock = {
   style: {flex: 1},
   children: [
-    (<TabBar.Item label='One' selected onPress={() => {}}>
+    (<TabBarItem label='One' selected onClick={() => {}}>
       <Text type='Header' style={{flex: 2}}>One</Text>
-    </TabBar.Item>),
-    (<TabBar.Item label='Two' selected={false} onPress={() => {}}>
+    </TabBarItem>),
+    (<TabBarItem label='Two' selected={false} onClick={() => {}}>
       <Text type='Header'>Two</Text>
-    </TabBar.Item>),
-    (<TabBar.Item label='Three' selected={false} onPress={() => {}}>
+    </TabBarItem>),
+    (<TabBarItem label='Three' selected={false} onClick={() => {}}>
       <Text type='Header'>Three</Text>
-    </TabBar.Item>)
+    </TabBarItem>)
   ]
 }
 
@@ -50,9 +50,9 @@ const tabBarCustomButtons = selectedIndex => ({
       : <IconButton icon={buttonInfo.icon} badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} />
 
     return (
-      <TabBar.Item tabBarButton={button} containerStyle={{flex: 1}} selected={selectedIndex === i} onPress={() => console.log('TabBar.item:onPress')}>
+      <TabBarItem tabBarButton={button} containerStyle={{flex: 1}} selected={selectedIndex === i} onClick={() => console.log('TabBaritem:onClick')}>
         <Text type='Header' style={{flex: 2}}>Content here at: {i}</Text>
-      </TabBar.Item>
+      </TabBarItem>
     )
   })
 })

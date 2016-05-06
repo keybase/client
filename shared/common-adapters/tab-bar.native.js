@@ -8,7 +8,7 @@ import Icon from './icon'
 
 import type {Props, ItemProps, TabBarButtonProps} from './tab-bar'
 
-class TabBarItem extends Component {
+export class TabBarItem extends Component {
   props: ItemProps;
 
   render () {
@@ -86,7 +86,7 @@ class TabBar extends Component {
   _labels (): Array<React$Element> {
     // TODO: Not sure why I have to wrap the child in a box, but otherwise touches won't work
     return (this.props.children || []).map((item, i) => (
-      <TouchableWithoutFeedback key={item.props.label || i} onPress={item.props.onPress || (() => {})}>
+      <TouchableWithoutFeedback key={item.props.label || i} onPress={item.props.onClick || (() => {})}>
         <Box style={item.props.containerStyle}>
           {item.props.tabBarButton || <SimpleTabBarButton tabWidth={this.props.tabWidth} label={item.props.label} selected={item.props.selected} underlined={this.props.underlined} />}
         </Box>

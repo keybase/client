@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import {Box, TabBar, Avatar, Icon} from '../common-adapters'
-import {TabBarButton} from '../common-adapters/tab-bar'
+import {TabBarButton, TabBarItem} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
 import {profileTab, peopleTab, folderTab, devicesTab, moreTab} from '../constants/tabs'
@@ -37,7 +37,7 @@ function tabToLabel (t: VisibleTab): string {
 }
 
 export default class Render extends Component<void, Props, void> {
-  _renderSearch (onPress: () => void, searchActive: boolean) {
+  _renderSearch (onClick: () => void, searchActive: boolean) {
     const backgroundColor = searchActive ? globalColors.orange : globalColors.darkBlue
     const button = (
       <Box style={{...globalStyles.flexBoxColumn, padding: 24}}>
@@ -48,18 +48,18 @@ export default class Render extends Component<void, Props, void> {
     )
 
     return (
-      <TabBar.Item
+      <TabBarItem
         key='search' tabBarButton={button}
         selected={searchActive}
-        onPress={onPress} containerStyle={{...stylesTabBarItem}}>
+        onClick={onClick} containerStyle={{...stylesTabBarItem}}>
         {this.props.searchContent || <Box/>}
-      </TabBar.Item>
+      </TabBarItem>
     )
   }
 
-  _renderProfileButton (tab: VisibleTab, onPress: () => void) {
+  _renderProfileButton (tab: VisibleTab, onClick: () => void) {
     // $FlowIssue
-    const avatar: Avatar = <Avatar size={32} onClick={onPress} username={this.props.username} />
+    const avatar: Avatar = <Avatar size={32} onClick={onClick} username={this.props.username} />
     const source = {type: 'avatar', avatar}
     const label = this.props.username
     return (
@@ -72,7 +72,7 @@ export default class Render extends Component<void, Props, void> {
     )
   }
 
-  _renderNormalButton (tab: VisibleTab, onPress: () => void) {
+  _renderNormalButton (tab: VisibleTab, onClick: () => void) {
     const source = {type: 'icon', icon: tabToIcon(tab)}
     const label = tabToLabel(tab)
     return (
@@ -89,17 +89,17 @@ export default class Render extends Component<void, Props, void> {
     const tabs = [peopleTab, folderTab, devicesTab, moreTab, profileTab]
 
     return tabs.map(t => {
-      const onPress = () => this.props.onTabClick(t)
+      const onClick = () => this.props.onTabClick(t)
       const isProfile = t === profileTab
 
-      const button = isProfile ? this._renderProfileButton(t, onPress) : this._renderNormalButton(t, onPress)
+      const button = isProfile ? this._renderProfileButton(t, onClick) : this._renderNormalButton(t, onClick)
 
       return (
-        <TabBar.Item
+        <TabBarItem
           key={t} tabBarButton={button}
-          selected={this.props.selectedTab === t} onPress={onPress} containerStyle={{...stylesTabBarItem, ...(isProfile && {flex: 2, justifyContent: 'flex-end'})}}>
+          selected={this.props.selectedTab === t} onClick={onClick} containerStyle={{...stylesTabBarItem, ...(isProfile && {flex: 2, justifyContent: 'flex-end'})}}>
           <Box style={{overflow: 'scroll', flex: 1}}>{this.props.tabContent[t]}</Box>
-        </TabBar.Item>
+        </TabBarItem>
       )
     })
   }

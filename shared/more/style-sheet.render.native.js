@@ -1,10 +1,12 @@
 /* @flow */
+
 import React, {Component} from 'react'
 import {Switch} from 'react-native'
 import {ScrollView} from 'react-native'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import Container from './dev-container.native'
 import {Dropdown, Checkbox, Button, Box, Text, Terminal, Icon, Input, FormWithCheckbox, TabBar} from '../common-adapters'
+import {TabBarItem} from '../common-adapters/tab-bar'
 
 const Space = () => <Box style={{height: 20, width: 20}} />
 
@@ -296,28 +298,28 @@ const TabBars = ({selected, onPress}) => {
     <Box>
       <Box>
         <TabBar>
-          <TabBar.Item label='One' selected={selected[0]} onPress={() => onPress(0)}>
+          <TabBarItem label='One' selected={selected[0]} onClick={() => onPress(0)}>
             <Text type='Header' style={{backgroundColor: 'orange'}}>One</Text>
-          </TabBar.Item>
-          <TabBar.Item label='Two' selected={selected[1]} onPress={() => onPress(1)}>
+          </TabBarItem>
+          <TabBarItem label='Two' selected={selected[1]} onClick={() => onPress(1)}>
             <Text type='Header'>Two</Text>
-          </TabBar.Item>
-          <TabBar.Item label='Three' selected={selected[2]} onPress={() => onPress(2)}>
+          </TabBarItem>
+          <TabBarItem label='Three' selected={selected[2]} onClick={() => onPress(2)}>
             <Text type='Header'>Three</Text>
-          </TabBar.Item>
+          </TabBarItem>
         </TabBar>
       </Box>
       <Box>
         <TabBar underlined>
-          <TabBar.Item label='One' selected={selected[0]} onPress={() => onPress(0)}>
+          <TabBarItem label='One' selected={selected[0]} onClick={() => onPress(0)}>
             <Text type='Header' style={{backgroundColor: 'orange'}}>One</Text>
-          </TabBar.Item>
-          <TabBar.Item label='Two' selected={selected[1]} onPress={() => onPress(1)}>
+          </TabBarItem>
+          <TabBarItem label='Two' selected={selected[1]} onClick={() => onPress(1)}>
             <Text type='Header'>Two</Text>
-          </TabBar.Item>
-          <TabBar.Item label='Three' selected={selected[2]} onPress={() => onPress(2)}>
+          </TabBarItem>
+          <TabBarItem label='Three' selected={selected[2]} onClick={() => onPress(2)}>
             <Text type='Header'>Three</Text>
-          </TabBar.Item>
+          </TabBarItem>
         </TabBar>
       </Box>
     </Box>

@@ -4,7 +4,7 @@ import React from 'react'
 
 import Checkbox from './checkbox'
 import {TabBar, Text, Avatar} from './index'
-import {TabBarButton} from './tab-bar'
+import {TabBarButton, TabBarItem} from './tab-bar'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
 import type {DumbComponentMap} from '../constants/types/more'
@@ -56,9 +56,9 @@ const tabBarCustomButtons = selectedIndex => ({
       : <IconButton icon={buttonInfo.icon} badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} />
 
     return (
-      <TabBar.Item tabBarButton={button} containerStyle={{flex: 0, display: 'flex'}} selected={selectedIndex === i} onPress={() => console.log('TabBar.item:onPress')}>
+      <TabBarItem tabBarButton={button} containerStyle={{flex: 0, display: 'flex'}} selected={selectedIndex === i} onClick={() => console.log('TabBaritem:onClick')}>
         <Text type='Header' style={{flex: 2}}>Content here at: {i}</Text>
-      </TabBar.Item>
+      </TabBarItem>
     )
   })
 })
