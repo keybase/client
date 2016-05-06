@@ -18,7 +18,7 @@ import {mapValues} from 'lodash'
 // import globalRoutes from './router/global-routes'
 const globalRoutes = {}
 
-import {folderTab, chatTab, peopleTab, devicesTab, moreTab, loginTab} from './constants/tabs'
+import {profileTab, folderTab, chatTab, peopleTab, devicesTab, moreTab, loginTab} from './constants/tabs'
 import {switchTab} from './actions/tabbed-router'
 import TabBar from './tab-bar/index.render'
 
@@ -27,6 +27,7 @@ import {globalResizing} from './styles/style-guide'
 
 const tabs = {
   [moreTab]: {module: More, name: 'More'},
+  [profileTab]: {module: More, name: 'More'},
   [folderTab]: {module: Folders, name: 'Folders'},
   [chatTab]: {module: Chat, name: 'Chat'},
   [peopleTab]: {module: People, name: 'People'},

@@ -30,12 +30,11 @@ class SimpleTabBarButton extends Component<void, SimpleTabBarButtonProps, void> 
 
 export class TabBarButton extends Component<void, TabBarButtonProps, void> {
   _renderAvatar (backgroundColor: string, color: string, badgeNumber: number) {
+    if (this.props.source.type !== 'avatar') return // needed to make flow happy
     return (
-      <Box style={{...globalStyles.flexBoxColumn, paddingBottom: 21}}>
-        <Box style={{...stylesTabBarButtonIcon, paddingLeft: 0, height: undefined, justifyContent: 'center', backgroundColor, ...this.props.style}}>
-          {this.props.source.type === 'icon'
-            ? <Icon type={this.props.source.icon} style={{height: 14, width: 23, color}} />
-            : this.props.source.avatar}
+      <Box style={{...globalStyles.flexBoxColumn, backgroundColor, paddingBottom: 21, paddingTop: 21}}>
+        <Box style={{...stylesTabBarButtonIcon, paddingLeft: 0, height: undefined, justifyContent: 'center', ...this.props.style}}>
+          {this.props.source.avatar}
           {badgeNumber > 0 &&
             <Box style={{width: 0, display: 'flex'}}>
               <Box style={{...styleBadgeOutline, borderColor: backgroundColor, backgroundColor}}>
@@ -51,11 +50,10 @@ export class TabBarButton extends Component<void, TabBarButtonProps, void> {
   }
 
   _renderIcon (backgroundColor: string, color: string, badgeNumber: number) {
+    if (this.props.source.type !== 'icon') return // needed to make flow happy
     return (
       <Box style={{...stylesTabBarButtonIcon, backgroundColor, ...this.props.style}}>
-        {this.props.source.type === 'icon'
-          ? <Icon type={this.props.source.icon} style={{height: 14, width: 23, color}} />
-          : this.props.source.avatar}
+        <Icon type={this.props.source.icon} style={{...stylesIcon, color}} />
         {!!this.props.label && <Text type='Body' style={{color}}>{this.props.label}</Text>}
         {badgeNumber > 0 &&
           <Box style={styleBadge}>
@@ -145,10 +143,21 @@ const stylesContainer = {
 
 const stylesTabBarButtonIcon = {
   ...globalStyles.flexBoxRow,
+  ...globalStyles.clickable,
   flex: 1,
   alignItems: 'center',
   paddingLeft: 20,
   position: 'relative'
+}
+
+const stylesIcon = {
+  fontSize: 12,
+  height: 14,
+  width: 23,
+  paddingRight: 9,
+  lineHeight: '16px',
+  marginBottom: 2,
+  textAlign: 'center'
 }
 
 export default TabBar
