@@ -3,7 +3,7 @@ import React, {Component} from 'react'
 import {ScrollView} from 'react-native'
 import {Box, Text, Input, Button} from '../common-adapters'
 import {globalStyles} from '../styles/style-guide'
-import type {DumbMap} from './dumb'
+import type {DumbComponentMap} from './dumb'
 
 import CommonMap from '../common-adapters/dumb.native'
 import RegisterMap from '../login/register/dumb'
@@ -37,7 +37,7 @@ class Render extends Component<void, any, any> {
   }
 
   render () {
-    const componentMap: DumbMap = {
+    const componentMap: DumbComponentMap = {
       ...CommonMap,
       ...QRMap,
       ...RegisterMap,
