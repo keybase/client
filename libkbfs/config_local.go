@@ -187,10 +187,7 @@ func NewConfigLocal() *ConfigLocal {
 	config.SetClock(wallClock{})
 	config.SetReporter(NewReporterSimple(config.Clock(), 10))
 	config.SetConflictRenamer(WriterDeviceDateConflictRenamer{config})
-	config.SetMDCache(NewMDCacheStandard(5000))
-	config.SetKeyCache(NewKeyCacheStandard(5000))
-	// Limit the block cache to 10K entries or 512 MB of bytes
-	config.SetBlockCache(NewBlockCacheStandard(config, 10000, 512*1024*1024))
+	config.ResetCaches()
 	config.SetCodec(NewCodecMsgpack())
 	config.SetBlockOps(&BlockOpsStandard{config})
 	config.SetKeyOps(&KeyOpsStandard{config})
@@ -561,6 +558,16 @@ func (c *ConfigLocal) MaxNameBytes() uint32 {
 // MaxDirBytes implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) MaxDirBytes() uint64 {
 	return c.maxDirBytes
+}
+
+// ResetCaches implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) ResetCaches() {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.mdcache = NewMDCacheStandard(5000)
+	c.kcache = NewKeyCacheStandard(5000)
+	// Limit the block cache to 10K entries or 512 MB of bytes
+	c.bcache = NewBlockCacheStandard(c, 10000, 512*1024*1024)
 }
 
 // MakeLogger implements the Config interface for ConfigLocal.

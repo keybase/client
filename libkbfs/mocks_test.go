@@ -2890,6 +2890,14 @@ func (_mr *_MockConfigRecorder) QuotaReclamationMinUnrefAge() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "QuotaReclamationMinUnrefAge")
 }
 
+func (_m *MockConfig) ResetCaches() {
+	_m.ctrl.Call(_m, "ResetCaches")
+}
+
+func (_mr *_MockConfigRecorder) ResetCaches() *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "ResetCaches")
+}
+
 func (_m *MockConfig) MakeLogger(module string) logger.Logger {
 	ret := _m.ctrl.Call(_m, "MakeLogger", module)
 	ret0, _ := ret[0].(logger.Logger)

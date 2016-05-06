@@ -1109,6 +1109,9 @@ type Config interface {
 	// must have been unreferenced before it can be reclaimed.
 	QuotaReclamationMinUnrefAge() time.Duration
 
+	// ResetCaches clears and re-initializes all data and key caches.
+	ResetCaches()
+
 	MakeLogger(module string) logger.Logger
 	SetLoggerMaker(func(module string) logger.Logger)
 	// MetricsRegistry may be nil, which should be interpreted as
