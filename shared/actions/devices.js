@@ -4,7 +4,7 @@ import {devicesTab, loginTab} from '../constants/tabs'
 import engine from '../engine'
 import {navigateBack, navigateTo, switchTab} from './router'
 import type {AsyncAction} from '../constants/types/flux'
-import type {incomingCallMapType, revoke_revokeDevice_rpc, device_deviceHistoryList_rpc, login_paperKey_rpc} from '../constants/types/flow-types'
+import type {incomingCallMapType, login_deprovision_rpc, revoke_revokeDevice_rpc, device_deviceHistoryList_rpc, login_paperKey_rpc} from '../constants/types/flow-types'
 import {setRevokedSelf} from './login'
 
 export function loadDevices () : AsyncAction {
@@ -85,31 +85,56 @@ export function generatePaperKey () : AsyncAction {
 
 export function removeDevice (deviceID: string, name: string, currentDevice: boolean): AsyncAction {
   return (dispatch, getState) => {
-    const params : revoke_revokeDevice_rpc = {
-      method: 'revoke.revokeDevice',
-      param: {deviceID, force: false},
-      incomingCallMap: {},
-      callback: error => {
-        dispatch({
-          type: Constants.deviceRemoved,
-          payload: error,
-          error: !!error
-        })
-
-        if (!error) {
-          dispatch(loadDevices())
-          if (currentDevice) {
-            // The device we just revoked was the current device.
+    console.log('in removeDevice')
+    console.log(deviceID)
+    console.log(name)
+    console.log(currentDevice)
+    if (currentDevice) {
+      // Revoking the current device uses the "deprovision" RPC instead.
+      let username
+      try {
+        username = getState().config.status.user.username
+      } catch (e) {
+        console.warn(`Couldn't get username: ${e}`)
+        return
+      }
+      const params: login_deprovision_rpc = {
+        method: 'login.deprovision',
+        param: {username: username, doRevoke: true},
+        incomingCallMap: {},
+        callback: error => {
+          dispatch({
+            type: Constants.deviceRemoved,
+            payload: error,
+            error: !!error
+          })
+          if (!error) {
+            dispatch(loadDevices())
             dispatch(setRevokedSelf(name))
             dispatch(navigateTo('', loginTab))
             dispatch(switchTab(loginTab))
-          } else {
+          }
+        }
+      }
+      engine.rpc(params)
+    } else {
+      const params: revoke_revokeDevice_rpc = {
+        method: 'revoke.revokeDevice',
+        param: {deviceID, force: false},
+        incomingCallMap: {},
+        callback: error => {
+          dispatch({
+            type: Constants.deviceRemoved,
+            payload: error,
+            error: !!error
+          })
+          if (!error) {
+            dispatch(loadDevices())
             dispatch(navigateBack(devicesTab))
           }
         }
       }
+      engine.rpc(params)
     }
-
-    engine.rpc(params)
   }
 }
