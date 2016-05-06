@@ -65,7 +65,7 @@ class Render extends Component<void, any, any> {
   }
 }
 
-const styleBox = {
+export const styleBox = {
   ...globalStyles.flexBoxColumn,
   padding: 20,
   marginTop: 10,
