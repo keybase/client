@@ -11,10 +11,10 @@ import type {Props as IconProps} from '../common-adapters/icon'
 import type {Props} from './index.render'
 
 const icons: {[key: VisibleTab]: IconProps.type} = {
-  [peopleTab]: 'fa-users',
-  [folderTab]: 'fa-folder',
-  [devicesTab]: 'phone-bw-m',
-  [moreTab]: 'fa-cog'
+  [peopleTab]: 'fa-custom-main-nav-people',
+  [folderTab]: 'fa-custom-main-nav-folders',
+  [devicesTab]: 'fa-custom-main-nav-devices',
+  [moreTab]: 'fa-custom-main-nav-settings'
 }
 
 function tabToIcon (t: VisibleTab): IconProps.type {
