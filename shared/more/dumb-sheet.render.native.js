@@ -14,6 +14,7 @@ import DevicesMap from '../devices/dumb'
 import DeviceRevokeMap from '../devices/device-revoke/dumb.native'
 import QRMap from '../login/register/code-page/qr/dumb.native'
 import DevicePageMap from '../devices/device-page/dumb.native'
+import FoldersMap from '../folders/dumb'
 
 import {dumbFilter, dumbIndex} from '../local-debug'
 import debounce from 'lodash/debounce'
@@ -44,7 +45,8 @@ class Render extends Component<void, any, any> {
       ...SignupMap,
       ...DevicesMap,
       ...DeviceRevokeMap,
-      ...DevicePageMap
+      ...DevicePageMap,
+      ...FoldersMap
       // ...LoginMap,
       // ...TrackerMap,
       // ...PinentryMap
