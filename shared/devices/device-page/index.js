@@ -19,7 +19,7 @@ export default class DevicePage extends Component {
     }
   }
 
-  build_timeline (device) {
+  buildTimeline (device) {
     const added = moment(device.created)
     const timeline = []
     if (device.revokedAt) {
@@ -40,7 +40,7 @@ export default class DevicePage extends Component {
 
   render () {
     const {device} = this.props
-    const timeline = this.build_timeline(device)
+    const timeline = this.buildTimeline(device)
 
     return <Render
       name={device.name}
