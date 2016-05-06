@@ -12,6 +12,7 @@ import More from './more'
 import Login from './login'
 import commonStyles from './styles/common'
 import flags from './util/feature-flags'
+import {mapValues} from 'lodash'
 
 // TODO global routes
 // import globalRoutes from './router/global-routes'
@@ -19,7 +20,7 @@ const globalRoutes = {}
 
 import {folderTab, chatTab, peopleTab, devicesTab, moreTab, loginTab} from './constants/tabs'
 import {switchTab} from './actions/tabbed-router'
-import {Tab, Tabs} from 'material-ui'
+import TabBar from './tab-bar/index.render'
 
 import {bootstrap} from './actions/config'
 import {globalResizing} from './styles/style-guide'
@@ -52,6 +53,8 @@ class Nav extends Component {
     super(props)
     this._checkedBootstrap = false
     this.props.bootstrap()
+
+    this.state = {searchActive: false}
 
     // Restartup when we connect online.
     // If you startup while offline, you'll stay in an errored state
@@ -127,6 +130,10 @@ class Nav extends Component {
   }
 
   shouldComponentUpdate (nextProps, nextState) {
+    if (this.state.searchActive !== nextState.searchActive) {
+      return true
+    }
+
     if (!this._checkedBootstrap) {
       if (nextProps.bootstrapped > 0) {
         this._checkedBootstrap = true
@@ -148,6 +155,15 @@ class Nav extends Component {
     this._checkTabChanged()
   }
 
+  _renderContent (tab, module) {
+    return (
+      <MetaNavigator
+        tab={tab}
+        globalRoutes={globalRoutes}
+        rootComponent={module || NoTab}/>
+    )
+  }
+
   render () {
     const activeTab = this._activeTab()
 
@@ -166,27 +182,20 @@ class Nav extends Component {
       return <div>Coming soon!</div>
     }
 
+    const tabContent = mapValues(tabs, ({module}, tab) => (activeTab === tab && this._renderContent(tab, module)))
+
+    console.log('tabc', tabContent)
+
     return (
       <div style={styles.tabsContainer}>
-        <Tabs
-          style={styles.tabs}
-          valueLink={{value: activeTab, requestChange: this._handleTabsChange.bind(this)}}
-          contentContainerStyle={styles.tab}
-          tabTemplate={TabTemplate}>
-          {Object.keys(tabs).map(tab => {
-            const {module, name} = tabs[tab]
-            return (
-              <Tab label={name} value={tab} key={tab} >
-                {activeTab === tab &&
-                  <MetaNavigator
-                    tab={tab}
-                    globalRoutes={globalRoutes}
-                    rootComponent={module || NoTab}
-                  />}
-              </Tab>
-            )
-          })}
-        </Tabs>
+        <TabBar
+          onTabClick={t => this._handleTabsChange(t)}
+          selectedTab={activeTab}
+          onSearchClick={() => this.setState({searchActive: !this.state.searchActive})}
+          searchActive={this.state.searchActive}
+          username={this.props.username}
+          badgeNumbers={{}}
+          tabContent={tabContent}/>
       </div>
     )
   }
@@ -218,10 +227,11 @@ const styles = {
 }
 
 export default connect(
-  ({tabbedRouter, config: {bootstrapped, extendedConfig}}) => ({
+  ({tabbedRouter, config: {bootstrapped, extendedConfig, status}}) => ({
     tabbedRouter,
     bootstrapped,
-    provisioned: extendedConfig && !!extendedConfig.device
+    provisioned: extendedConfig && !!extendedConfig.device,
+    username: status && status.user && status.user.username
   }),
   dispatch => {
     return {
