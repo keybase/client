@@ -59,6 +59,7 @@ export type Props = {
     | 'terminal'
     | 'user-card'
     | 'user-card-m'
+    | 'fa-custom-icon-search-button'
     | 'fa-custom-main-nav-devices' | 'fa-custom-main-nav-folders' | 'fa-custom-main-nav-people' | 'fa-custom-main-nav-settings'
     | 'fa-custom-copy' | 'fa-custom-eye' | 'fa-custom-key'
     | 'fa-custom-icon-proof-good-followed' | 'fa-custom-icon-proof-good-new' | 'fa-custom-icon-proof-broken' | 'fa-custom-icon-proof-good'

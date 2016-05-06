@@ -81,7 +81,6 @@ const styleBadge = {
 
 class TabBar extends Component {
   props: Props;
-  static Item: Class<TabBarItem>;
 
   _labels (): Array<React$Element> {
     // TODO: Not sure why I have to wrap the child in a box, but otherwise touches won't work
@@ -114,8 +113,6 @@ class TabBar extends Component {
     )
   }
 }
-
-TabBar.Item = TabBarItem
 
 const stylesContainer = {
   ...globalStyles.flexBoxColumn

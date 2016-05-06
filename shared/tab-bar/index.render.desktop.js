@@ -42,7 +42,7 @@ export default class Render extends Component<void, Props, void> {
     const button = (
       <Box style={{...globalStyles.flexBoxColumn, padding: 24}}>
         <Box style={{...stylesSearchButton, backgroundColor}}>
-          <Icon type='fa-custom-main-nav-people' style={{color: globalColors.white, fontSize: 24}} />
+          <Icon type='fa-custom-icon-search-button' style={{color: globalColors.white, fontSize: 32}} />
         </Box>
       </Box>
     )
