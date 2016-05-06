@@ -172,8 +172,6 @@ class Nav extends Component {
 
     const tabContent = mapValues(tabs, ({module}, tab) => (activeTab === tab && this._renderContent(tab, module)))
 
-    console.log('tabc', tabContent)
-
     return (
       <div style={stylesTabsContainer}>
         <TabBar
