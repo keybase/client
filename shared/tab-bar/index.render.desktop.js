@@ -1,7 +1,7 @@
 // @flow
 
 import React, {Component} from 'react'
-import {Box, TabBar, Avatar, Icon, Text} from '../common-adapters'
+import {Box, TabBar, Avatar, Icon} from '../common-adapters'
 import {TabBarButton} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
@@ -52,7 +52,7 @@ export default class Render extends Component<void, Props, void> {
         key='search' tabBarButton={button}
         selected={searchActive}
         onPress={onPress} containerStyle={{...stylesTabBarItem}}>
-        <Text type='Body'>Todo: add search here</Text>
+        {this.props.searchContent || <Box/>}
       </TabBar.Item>
     )
   }
@@ -98,7 +98,7 @@ export default class Render extends Component<void, Props, void> {
         <TabBar.Item
           key={t} tabBarButton={button}
           selected={this.props.selectedTab === t} onPress={onPress} containerStyle={{...stylesTabBarItem, ...(isProfile && {flex: 2, justifyContent: 'flex-end'})}}>
-          {this.props.tabContent[t]}
+          <Box style={{overflow: 'scroll', flex: 1}}>{this.props.tabContent[t]}</Box>
         </TabBar.Item>
       )
     })

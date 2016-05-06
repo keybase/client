@@ -14,6 +14,8 @@ import commonStyles from './styles/common'
 import flags from './util/feature-flags'
 import {mapValues} from 'lodash'
 
+import {Text} from './common-adapters'
+
 // TODO global routes
 // import globalRoutes from './router/global-routes'
 const globalRoutes = {}
@@ -32,21 +34,6 @@ const tabs = {
   [chatTab]: {module: Chat, name: 'Chat'},
   [peopleTab]: {module: People, name: 'People'},
   [devicesTab]: {module: Devices, name: 'Devices'}
-}
-
-class TabTemplate extends Component {
-  render () {
-    return (
-      <div style={styles.tabTemplate}>
-        {this.props.children}
-      </div>
-    )
-  }
-}
-
-TabTemplate.propTypes = {
-  children: React.PropTypes.node,
-  selected: React.PropTypes.bool
 }
 
 class Nav extends Component {
@@ -170,7 +157,7 @@ class Nav extends Component {
 
     if (activeTab === loginTab) {
       return (
-        <div style={styles.tabsContainer}>
+        <div style={stylesTabsContainer}>
           <MetaNavigator
             tab={loginTab}
             globalRoutes={globalRoutes}
@@ -188,13 +175,14 @@ class Nav extends Component {
     console.log('tabc', tabContent)
 
     return (
-      <div style={styles.tabsContainer}>
+      <div style={stylesTabsContainer}>
         <TabBar
           onTabClick={t => this._handleTabsChange(t)}
           selectedTab={activeTab}
           onSearchClick={() => this.setState({searchActive: !this.state.searchActive})}
           searchActive={this.state.searchActive}
           username={this.props.username}
+          searchContent={<Text type='Body'>Todo: add search here</Text>}
           badgeNumbers={{}}
           tabContent={tabContent}/>
       </div>
@@ -202,29 +190,9 @@ class Nav extends Component {
   }
 }
 
-const styles = {
-  tab: {
-    ...commonStyles.flexBoxColumn,
-    flex: 1,
-    position: 'relative'
-  },
-  tabs: {
-    ...commonStyles.flexBoxColumn,
-    flex: 1
-  },
-  tabsContainer: {
-    ...commonStyles.flexBoxColumn,
-    flex: 1
-  },
-  tabTemplate: {
-    ...commonStyles.flexBoxColumn,
-    overflow: 'auto',
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0
-  }
+const stylesTabsContainer = {
+  ...commonStyles.flexBoxColumn,
+  flex: 1
 }
 
 export default connect(

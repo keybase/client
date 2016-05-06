@@ -9,6 +9,7 @@ export type Props = {
   selectedTab: VisibleTab,
   username: string,
   badgeNumbers: {[key: VisibleTab]: number},
+  searchContent?: React$Element,
   tabContent: {[key: VisibleTab]: React$Element}
 }
 
