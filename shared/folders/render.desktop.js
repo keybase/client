@@ -2,7 +2,6 @@
 import React, {Component} from 'react'
 import type {Props} from './render'
 import {Box, Text, Icon} from '../common-adapters'
-import type {Props as IconProps} from '../common-adapters/icon'
 import Row from './row'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
@@ -10,32 +9,22 @@ type State = {
   showIgnored: boolean
 }
 
-const Ignored = ({showIgnored, ignored, isPublic, onToggle}) => {
-  const topBoxStyles = {
-    backgroundColor: isPublic ? globalColors.lightGrey : globalColors.darkBlue3,
-    color: isPublic ? globalColors.black_40 : globalColors.white_75,
-    borderTop: isPublic ? 'solid 1px rgba(0, 0, 0, 0.05)' : 'solid 1px rgba(255, 255, 255, 0.05)'
-  }
+const rowKey = users => users && users.map(u => u.username).join('-')
 
-  const bottomBoxStyles = {
-    backgroundColor: isPublic ? globalColors.lightGrey : globalColors.darkBlue3,
-    color: isPublic ? globalColors.black_40 : globalColors.white_40
-  }
-
-  const icon: IconProps.type = `caret-${showIgnored ? 'down' : 'right'}-${isPublic ? 'black' : 'white'}`
-
+const Ignored = ({showIgnored, ignored, styles, onToggle, isPublic}) => {
   return (
     <Box style={stylesIgnoreContainer}>
-      <Box style={{...topBoxStyles, ...stylesIgnoreDivider}} onClick={onToggle}>
+      <Box style={styles.topBox} onClick={onToggle}>
         <Text type='BodySmallSemibold' style={stylesDividerText}>Ignored folders</Text>
-        <Icon type={icon} style={stylesIgnoreCaret} />
+        <Icon type={showIgnored ? styles.iconCaretDown : styles.iconCaretRight} style={stylesIgnoreCaret} />
       </Box>
-      {showIgnored && <Box style={{...bottomBoxStyles, ...stylesIgnoreDesc}}>
+      {showIgnored && <Box style={styles.bottomBox}>
         <Text type='BodySmallSemibold' style={stylesDividerBodyText}>Ignored folders won't show up on your computer and you won't receive alerts about them.</Text>
       </Box>}
       {showIgnored && ignored.map((i, idx) => (
         <Row
-          key={i.users.map(u => u.username).join('-')}
+          key={rowKey(i.users)}
+          {...i}
           users={i.users}
           isPublic={isPublic}
           ignored
@@ -62,18 +51,21 @@ class Render extends Component<void, Props, State> {
       .folder-row:hover .folder-row-hover-action { visibility: visible }
     `
 
+    const styles = this.props.isPublic ? stylesPublic : stylesPrivate
+
     return (
       <Box style={stylesContainer}>
         <style>{realCSS}</style>
         {this.props.tlfs && this.props.tlfs.map((t, idx) => (
           <Row
-            key={t.users.map(u => u.username).join('-')} {...t}
+            key={rowKey(t.users)}
+            {...t}
             isPublic={this.props.isPublic}
             ignored={false}
             isFirst={!idx} />
           ))}
-        <Ignored ignored={this.props.ignored} showIgnored={this.state.showIgnored} isPublic={this.props.isPublic}
-          onToggle={() => this.setState({showIgnored: !this.state.showIgnored})} />
+        <Ignored ignored={this.props.ignored} showIgnored={this.state.showIgnored} styles={styles}
+          isPublic={this.props.isPublic} onToggle={() => this.setState({showIgnored: !this.state.showIgnored})} />
       </Box>
     )
   }
@@ -117,4 +109,35 @@ const stylesIgnoreCaret = {
   color: globalColors.white_75
 }
 
+const stylesPrivate = {
+  topBox: {
+    ...stylesIgnoreDivider,
+    backgroundColor: globalColors.darkBlue3,
+    color: globalColors.white_75,
+    borderTop: 'solid 1px rgba(255, 255, 255, 0.05)'
+  },
+  bottomBox: {
+    ...stylesIgnoreDesc,
+    backgroundColor: globalColors.darkBlue3,
+    color: globalColors.white_40
+  },
+  iconCaretRight: 'caret-right-white',
+  iconCaretDown: 'caret-down-white'
+}
+
+const stylesPublic = {
+  topBox: {
+    ...stylesIgnoreDivider,
+    backgroundColor: globalColors.lightGrey,
+    color: globalColors.black_40,
+    borderTop: 'solid 1px rgba(0, 0, 0, 0.05)'
+  },
+  bottomBox: {
+    ...stylesIgnoreDesc,
+    backgroundColor: globalColors.lightGrey,
+    color: globalColors.black_40
+  },
+  iconCaretRight: 'caret-right-black',
+  iconCaretDown: 'caret-down-black'
+}
 export default Render
