@@ -1,0 +1,6 @@
+/* @flow */
+
+import type {Folder} from './render'
+
+export default class Row extends React$Component<void, Folder, void> {
+}
