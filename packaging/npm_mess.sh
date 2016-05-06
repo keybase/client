@@ -26,4 +26,4 @@ fi
 
 set -e -u -o pipefail # Fail on error
 
-echo "Sucessfully setup node_modules! (after only $i tries)"
+echo "Successfully setup node_modules! (after only $i tries)"
