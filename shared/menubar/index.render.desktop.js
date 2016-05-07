@@ -16,8 +16,6 @@ import {cleanup} from '../util/kbfs'
 // This is the only data that the renderer cares about for a folder
 import type {FolderInfo, FolderEntry, RenderProps} from './index.render'
 
-import flags from '../util/feature-flags'
-
 function iconPath (isPublic, isEmpty) {
   const pubPart = isPublic ? 'public' : 'private'
   const emptyPart = isEmpty ? 'empty' : 'full'
@@ -92,7 +90,7 @@ export default class Render extends Component {
       <div style={stylesContainer}>
         <div style={stylesBody}>
           <Header openKBFS={openKBFS} showUser={() => showUser(username)} />
-          {!loggedIn && (flags.login ? <LogInPrompt logIn={logIn} /> : <LogInTerminalMessage />)}
+          {!loggedIn && <LogInPrompt logIn={logIn} />}
           <FolderList loading={this.props.loading} username={this.props.username} openKBFSPublic={openKBFSPublic} openKBFSPrivate={openKBFSPrivate} folders={this.props.folders} loggedIn={loggedIn} />
           <Footer showHelp={showHelp} quit={quit} showMain={showMain} />
         </div>
