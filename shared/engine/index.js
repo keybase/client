@@ -283,7 +283,7 @@ class Engine {
     } else if (method === 'keybase.1.logUi.log' && this._hasNoHandler(method, callMap || {}, this._generalIncomingRpc)) {
       log(param)
       wrappedResponse.result()
-    } else if (!sessionID && this.generalListeners[method]) {
+    } else if (this.generalListeners[method]) {
       this._generalIncomingRpc(method, param, wrappedResponse)
     } else if (!sessionID && this.serverListeners[method]) {
       this._serverInitIncomingRPC(method, param, wrappedResponse)

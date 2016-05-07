@@ -88,13 +88,13 @@ export function registerUserChangeListener (): TrackerActionCreator {
 export function registerDisplayTLFCreateWithInvite (): TrackerActionCreator {
   return dispatch => {
     const params: incomingCallMapType = {
-      'keybase.1.identifyUi.displayTLFCreateWithInvite': args => {
+      'keybase.1.identifyUi.displayTLFCreateWithInvite': (args, response) => {
         dispatch(({payload: args, type: Constants.showNonUser}: ShowNonUser))
+        response.result()
       }
     }
 
     engine.listenGeneralIncomingRpc(params)
-    setNotifications({tracking: true})
   }
 }
 
@@ -190,7 +190,8 @@ export function pushDebugTracker (username: string): (dispatch: Dispatch) => voi
 
 export function onRefollow (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
-    const {trackToken} = (getState().tracker.trackers[username] || {})
+    const state = getState().tracker.trackers[username]
+    const trackToken = state && state.type === 'tracker' ? state.trackToken : null
     const dispatchRefollowAction = () => {
       dispatch({
         type: Constants.onRefollow,
@@ -288,7 +289,7 @@ export function onIgnore (username: string): (dispatch: Dispatch, getState: () =
 export function onFollow (username: string, localIgnore: bool): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
   return (dispatch, getState) => {
     const trackerState = getState().tracker.trackers[username]
-    const {trackToken} = (trackerState || {})
+    const trackToken = trackerState && trackerState.type === 'tracker' ? trackerState.trackToken : null
 
     const dispatchFollowedAction = () => {
       dispatch({type: Constants.onFollow, payload: {username}})

@@ -39,6 +39,7 @@ export const updateProofState = 'tracker:updateProofState'
 export const reportLastTrack = 'tracker:reportLastTrack'
 
 export const onClose = 'tracker:onClose'
+export type OnClose = TypedAction<'tracker:onClose', void, void>
 
 export const onFollow = 'tracker:onFollow'
 export const onRefollow = 'tracker:onRefollow'
@@ -58,3 +59,5 @@ export const rpcUpdateTimerSeconds = 60 * 1000
 
 export const showNonUser = 'tracker:showNonUser'
 export type ShowNonUser = TypedAction<'tracker:showNonUser', identifyUi_displayTLFCreateWithInvite_rpc.param, void>
+
+export type NonUserActions = ShowNonUser | OnClose
