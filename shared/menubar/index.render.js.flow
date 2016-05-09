@@ -1,9 +1,11 @@
 /* @flow */
 import React, {Component} from 'react'
 
-export type RenderProps = {
+import type {Props as FolderProps} from '../folders/render'
+
+export type Props = {
   username: ?string,
-  openKBFS: () => void,
+  openKBFS: (target?: any) => void,
   openKBFSPublic: (username: ?string) => void,
   logIn: () => void,
   openKBFSPrivate: (username: ?string) => void,
@@ -11,25 +13,25 @@ export type RenderProps = {
   showHelp: () => void,
   showUser: (username: ?string) => void,
   quit: () => void,
-  folders: Array<FolderInfo>,
+  // folders: Array<FolderInfo>,
   debug?: boolean,
   loading: boolean,
   loggedIn: boolean
-}
+} & FolderProps
 
-export default class Render extends Component<void, RenderProps, void> {}
+export default class Render extends Component<void, Props, void> {}
 
-export type FolderInfo = {
-    type: 'folder',
-    folderName: string,
-    isPublic: boolean,
-    isEmpty: boolean,
-    openFolder: () => void
-}
+// export type FolderInfo = {
+    // type: 'folder',
+    // folderName: string,
+    // isPublic: boolean,
+    // isEmpty: boolean,
+    // openFolder: () => void
+// }
 
-export type FolderEntry = {
-    type: 'entry',
-    prefix: string,
-    isPublic: boolean,
-    openFolder: (val: string) => void
-}
+// export type FolderEntry = {
+    // type: 'entry',
+    // prefix: string,
+    // isPublic: boolean,
+    // openFolder: (val: string) => void
+// }

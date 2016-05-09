@@ -3,7 +3,7 @@
 import React, {Component} from 'react'
 
 type CommonProps = {
-  size: 180 | 110 | 75 | 60 | 45 | 32,
+  size: 176 | 112 | 80 | 64 | 48 | 32 | 24,
   style?: ?Object,
   onClick?: ?(() => void)
 }

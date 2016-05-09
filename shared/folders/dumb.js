@@ -113,7 +113,7 @@ const i2: Folder = {
 
 const ignored: Array<Folder> = [i1, i2]
 
-const map: DumbComponentMap<Folders> = {
+export const map: DumbComponentMap<Folders> = {
   component: Folders,
   mocks: {
     'Normal': {

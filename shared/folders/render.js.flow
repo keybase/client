@@ -6,7 +6,11 @@ export type Props = {
   privateBadge: number,
   private: ListProps,
   publicBadge: number,
-  public: ListProps
+  public: ListProps,
+  onSwitchTab?: (showingPublic: boolean) => void,
+  listStyle?: any,
+  smallMode?: boolean,
+  onClick?: (path: string) => void
 }
 
 export default class Render extends React$Component<void, Props, void> {
