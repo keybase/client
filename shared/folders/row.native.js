@@ -16,9 +16,9 @@ const Avatars = ({styles, users, isPublic}) => {
   }
 
   // $FlowIssue doesn't like images
-  const source = require('../images/icons/damier-pattern-good-open.png')
+  const source = require('../images/icons/damier-pattern-48.png')
   return (
-    <Box style={{width: 48}}>
+    <Box style={{width: 48, height: 1}}>
       <Image
         style={stylesAvatarContainerPrivate}
         source={source}
@@ -109,7 +109,8 @@ const stylesLine = {
 
 const rowContainer = {
   ...globalStyles.flexBoxColumn,
-  position: 'relative'
+  position: 'relative',
+  overflow: 'hidden'
 }
 
 const stylesAvatarContainer = {
@@ -119,7 +120,7 @@ const stylesAvatarContainer = {
 
 const stylesAvatarContainerPrivate = {
   width: 48,
-  flex: 1,
+  overflow: 'hidden',
   paddingLeft: 8,
   paddingRight: 8,
   paddingTop: 16,
