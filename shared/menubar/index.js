@@ -5,24 +5,22 @@ import React, {Component} from 'react'
 import Render from './index.render'
 import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
-import {getTLF} from '../util/kbfs'
+// import {getTLF} from '../util/kbfs'
 import engine from '../engine'
 
 import * as favoriteAction from '../actions/favorite'
 import {openInKBFS} from '../actions/kbfs'
 import {switchTab} from '../actions/tabbed-router'
 
-import {remote} from 'electron'
+// import {remote} from 'electron'
 import {ipcRenderer} from 'electron'
 import {loginTab} from '../constants/tabs'
 
 import type {Props as RenderProps} from './index.render'
-// import type {Folder} from '../constants/types/flow-types'
-// import type {FolderInfo} from './index.render'
 
 export type Props = {
   username: ?string,
-  // folders: ?Array<Folder>,
+  folders: ?RenderProps,
   favoriteList: () => void,
   openInKBFS: (target?: any) => void,
   loggedIn: ?boolean,
@@ -102,10 +100,7 @@ class Menubar extends Component<void, Props, void> {
       return true
     }
 
-    if (this.props.public !== nextProps.public) {
-      return true
-    }
-    if (this.props.private !== nextProps.private) {
+    if (this.props.folders !== nextProps.folders) {
       return true
     }
 
@@ -172,7 +167,7 @@ class Menubar extends Component<void, Props, void> {
     // const loading = !!username && !this.props.folders
     // const loading = false
 
-    return <Render {...this.props} />
+    return <Render {...this.props.folders} />
       // username={username}
       // openKBFS={() => this.openKBFS()}
       // openKBFSPublic={username => this.openKBFSPublic(username)}
@@ -192,7 +187,7 @@ export default connect(
   state => ({
     username: state.config && state.config.status && state.config.status.user && state.config.status.user.username,
     loggedIn: state.config && state.config.status && state.config.status.loggedIn,
-    folders: [] // state.favorite && state.favorite.folders
+    folders: state.favorite && state.favorite.folders
   }),
   dispatch => bindActionCreators({...favoriteAction, openInKBFS, switchTab}, dispatch)
 )(Menubar)

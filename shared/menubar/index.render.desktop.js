@@ -1,14 +1,16 @@
+// @flow
 import React, {Component} from 'react'
 
 import {Box} from '../common-adapters/index'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import Folders from '../folders/render'
+import type {Props} from './index.render'
 
 type State = {
   showingPublic: boolean
 }
 
-export default class Render extends Component<void, Props, State> {
+class Render extends Component<void, Props, State> {
   state: State;
 
   constructor (props: Props) {
@@ -32,33 +34,31 @@ export default class Render extends Component<void, Props, State> {
 
     const styles = this.state.showingPublic ? stylesPublic : stylesPrivate
 
+    const mergedProps = {
+      ...this.props,
+      smallMode: true,
+      private: noIgnorePrivate,
+      public: noIgnorePublic,
+      onSwitchTab: showingPublic => this.setState({showingPublic}),
+      listStyle: {height: 350},
+      onClick: this.props.openKBFS
+    }
+
     return (
       <Box style={styles.container}>
-        <Box style={stylesTopRow}>
-        </Box>
-        <Folders
-          {...this.props}
-          private={noIgnorePrivate}
-          public={noIgnorePublic}
-          onSwitchTab={showingPublic => this.setState({showingPublic})}
-          listStyle={{height: 350}}
-          smallMode
-          onClick={this.props.openKBFS}
-        />
+        <Box style={stylesTopRow} />
+        <Folders {...mergedProps} />
       </Box>
     )
   }
 }
 
 const stylesContainer = {
-  ...globalStyles.flexBoxColumn
+  ...globalStyles.flexBoxColumn,
+  flex: 1
 }
 
 const stylesTopRow = {
-  ...globalStyles.flexBoxRow
-}
-
-const stylesRow = {
   ...globalStyles.flexBoxRow
 }
 

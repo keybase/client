@@ -3,9 +3,9 @@
 import type {Props as ListProps} from './list'
 
 export type Props = {
-  privateBadge: number,
+  privateBadge?: number,
   private: ListProps,
-  publicBadge: number,
+  publicBadge?: number,
   public: ListProps,
   onSwitchTab?: (showingPublic: boolean) => void,
   listStyle?: any,
