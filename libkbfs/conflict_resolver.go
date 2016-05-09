@@ -3051,11 +3051,6 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 	if err != nil {
 		return err
 	}
-
-	mdcache := cr.config.MDCache()
-	for _, umd := range unmergedMDs {
-		mdcache.Delete(umd)
-	}
 	return nil
 }
 

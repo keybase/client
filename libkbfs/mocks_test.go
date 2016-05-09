@@ -1065,14 +1065,6 @@ func (_mr *_MockMDCacheRecorder) Put(arg0 interface{}) *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Put", arg0)
 }
 
-func (_m *MockMDCache) Delete(md *RootMetadata) {
-	_m.ctrl.Call(_m, "Delete", md)
-}
-
-func (_mr *_MockMDCacheRecorder) Delete(arg0 interface{}) *gomock.Call {
-	return _mr.mock.ctrl.RecordCall(_mr.mock, "Delete", arg0)
-}
-
 // Mock of KeyCache interface
 type MockKeyCache struct {
 	ctrl     *gomock.Controller

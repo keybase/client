@@ -3274,13 +3274,6 @@ func (fbo *folderBranchOps) undoUnmergedMDUpdatesLocked(
 		return nil, err
 	}
 
-	// Now that we're back on the merged branch, forget about all the
-	// unmerged updates
-	mdcache := fbo.config.MDCache()
-	for _, rmd := range unmergedRmds {
-		mdcache.Delete(rmd)
-	}
-
 	// Return all new refs
 	var unmergedPtrs []BlockPointer
 	for _, rmd := range unmergedRmds {
