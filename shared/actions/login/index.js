@@ -26,8 +26,14 @@ import {bootstrap} from '../config'
 
 import type {DeviceType} from '../../constants/types/more'
 import type {Dispatch, GetState, AsyncAction, TypedAction} from '../../constants/types/flux'
-import type {incomingCallMapType, login_recoverAccountFromEmailAddress_rpc,
-  login_login_rpc, login_logout_rpc, device_deviceAdd_rpc, login_getConfiguredAccounts_rpc} from '../../constants/types/flow-types'
+import type {
+  incomingCallMapType,
+  login_recoverAccountFromEmailAddress_rpc,
+  login_login_rpc,
+  login_logout_rpc,
+  device_deviceAdd_rpc,
+  login_getConfiguredAccounts_rpc
+} from '../../constants/types/flow-types'
 import {overrideLoggedInTab} from '../../local-debug'
 import type {DeviceRole} from '../../constants/login'
 import HiddenString from '../../util/hidden-string'
