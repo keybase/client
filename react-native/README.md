@@ -21,6 +21,8 @@ We are iterating quickly and a lot of the code is changing every day.
 
 #### General (both android and ios)
 
+Follow the [React Native Getting Started guide](https://facebook.github.io/react-native/docs/getting-started.html) for the platforms you intend to develop on.
+
 ```sh
 # Setup golang mobile
 go get golang.org/x/mobile/cmd/gomobile
@@ -28,6 +30,7 @@ gomobile init
 
 # Setup npm
 npm install
+npm-install -g react-native-cli
 ```
 
 Due to the react-native packager not handling symlinks (https://github.com/facebook/react-native/issues/637) we're watching our shared folder and copying the files over as they change. We use watchman to watch the folder and rsync to copy over the changes
@@ -41,6 +44,12 @@ npm run watch
 ```
 
 #### iOS
+
+Install cocoapods:
+
+```sh
+sudo gem install cocoapods --pre -v 1.0.0.beta.6
+```
 
 Build and install dependencies:
 
