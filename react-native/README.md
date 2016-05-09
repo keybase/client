@@ -57,7 +57,18 @@ open ios/Keybase.xcworkspace
 Then select the target `Keybase` and run.
 
 #### Android Specific
-This will only work on an actual device or arm emulator. see: (https://github.com/golang/go/issues/10743)
+
+##### One time setup
+```sh
+# setup the android sdk
+# On mac, you can either install android studio or just the android sdk with brew
+# brew install android 
+
+# Install android sdk dependencies
+android update sdk --all --no-ui --filter "build-tools-23.0.2,android-23,extra-android-support,extra-android-m2repository"
+```
+
+##### Building the app
 
 ```sh
 # inside react-native/
