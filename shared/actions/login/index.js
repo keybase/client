@@ -32,7 +32,8 @@ import type {
   login_login_rpc,
   login_logout_rpc,
   device_deviceAdd_rpc,
-  login_getConfiguredAccounts_rpc
+  login_getConfiguredAccounts_rpc,
+  login_clearStoredSecret_rpc
 } from '../../constants/types/flow-types'
 import {overrideLoggedInTab} from '../../local-debug'
 import type {DeviceRole} from '../../constants/login'
@@ -346,6 +347,24 @@ export function logoutDone () : AsyncAction {
     dispatch(switchTab(loginTab))
     dispatch(navBasedOnLoginState())
     dispatch(bootstrap())
+  }
+}
+
+export function saveInKeychainChanged (username: string, saveInKeychain: bool) : AsyncAction {
+  return (dispatch, getState) => {
+    if (saveInKeychain) {
+      return
+    }
+
+    const params: login_clearStoredSecret_rpc = {
+      method: 'login.clearStoredSecret',
+      param: {
+        username
+      },
+      incomingCallMap: {},
+      callback: error => { error && console.log(error) }
+    }
+    engine.rpc(params)
   }
 }
 
