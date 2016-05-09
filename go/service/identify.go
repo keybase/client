@@ -46,6 +46,7 @@ func NewIdentifyHandler(xp rpc.Transporter, g *libkb.GlobalContext) *IdentifyHan
 }
 
 func (h *IdentifyHandler) Identify2(_ context.Context, arg keybase1.Identify2Arg) (res keybase1.Identify2Res, err error) {
+	defer h.G().Trace("IdentifyHandler.Identify2", func() error { return err })()
 	iui := h.NewRemoteIdentifyUI(arg.SessionID, h.G())
 	logui := h.getLogUI(arg.SessionID)
 	ctx := engine.Context{
@@ -62,12 +63,14 @@ func (h *IdentifyHandler) Identify2(_ context.Context, arg keybase1.Identify2Arg
 	return res, err
 }
 
-func (h *IdentifyHandler) Resolve(_ context.Context, arg string) (keybase1.UID, error) {
+func (h *IdentifyHandler) Resolve(_ context.Context, arg string) (uid keybase1.UID, err error) {
+	defer h.G().Trace(fmt.Sprintf("IdentifyHandler.Resolve(%s)", arg), func() error { return err })()
 	rres := h.G().Resolver.ResolveFullExpression(arg)
 	return rres.GetUID(), rres.GetError()
 }
 
 func (h *IdentifyHandler) Resolve2(_ context.Context, arg string) (u keybase1.User, err error) {
+	defer h.G().Trace(fmt.Sprintf("IdentifyHandler.Resolve2(%s)", arg), func() error { return err })()
 	rres := h.G().Resolver.ResolveFullExpressionNeedUsername(arg)
 	err = rres.GetError()
 	if err == nil {
@@ -76,7 +79,8 @@ func (h *IdentifyHandler) Resolve2(_ context.Context, arg string) (u keybase1.Us
 	return u, err
 }
 
-func (h *IdentifyHandler) Identify(_ context.Context, arg keybase1.IdentifyArg) (keybase1.IdentifyRes, error) {
+func (h *IdentifyHandler) Identify(_ context.Context, arg keybase1.IdentifyArg) (res keybase1.IdentifyRes, err error) {
+	defer h.G().Trace("IdentifyHandler.Identify", func() error { return err })()
 	var do = func() (interface{}, error) {
 		if arg.Source == keybase1.ClientType_KBFS {
 			h.G().Log.Debug("KBFS Identify: checking result cache for %q", arg.UserAssertion)

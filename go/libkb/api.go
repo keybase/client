@@ -544,11 +544,12 @@ func (a *InternalAPIEngine) DoRequest(arg APIArg, req *http.Request) (*APIRes, e
 	// http.AppStatus
 	appStatus, err := a.checkAppStatusFromJSONWrapper(arg, status)
 	if err != nil {
+		a.G().Log.Debug("- API call %s error: %s", arg.Endpoint, err)
 		return nil, err
 	}
 
 	body := jw
-	a.G().Log.Debug("- successful API call")
+	a.G().Log.Debug("- API call %s success", arg.Endpoint)
 	return &APIRes{status, body, resp.StatusCode, appStatus}, err
 }
 
