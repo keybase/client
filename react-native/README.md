@@ -21,6 +21,8 @@ We are iterating quickly and a lot of the code is changing every day.
 
 #### General (both android and ios)
 
+Follow the [React Native Getting Started guide](https://facebook.github.io/react-native/docs/getting-started.html) for the platforms you intend to develop on.
+
 ```sh
 # Setup golang mobile
 go get golang.org/x/mobile/cmd/gomobile
@@ -41,6 +43,12 @@ npm run watch
 ```
 
 #### iOS
+
+Install cocoapods:
+
+```sh
+sudo gem install cocoapods --pre -v 1.0.0.beta.6
+```
 
 Build and install dependencies:
 
