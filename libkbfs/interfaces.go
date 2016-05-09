@@ -457,9 +457,8 @@ type Reporter interface {
 // MDCache gets and puts plaintext top-level metadata into the cache.
 type MDCache interface {
 	// Get gets the metadata object associated with the given TlfID,
-	// revision number and merged status
-	Get(tlf TlfID, rev MetadataRevision, mStatus MergeStatus) (
-		*RootMetadata, error)
+	// revision number, and branch ID (NullBranchID for merged MD).
+	Get(tlf TlfID, rev MetadataRevision, bid BranchID) (*RootMetadata, error)
 	// Put stores the metadata object.
 	Put(md *RootMetadata) error
 	// Delete this metadata object from the cache if it exists.

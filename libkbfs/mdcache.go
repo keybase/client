@@ -11,9 +11,9 @@ type MDCacheStandard struct {
 }
 
 type mdCacheKey struct {
-	tlf     TlfID
-	rev     MetadataRevision
-	mStatus MergeStatus
+	tlf TlfID
+	rev MetadataRevision
+	bid BranchID
 }
 
 // NewMDCacheStandard constructs a new MDCacheStandard using the given
@@ -27,28 +27,27 @@ func NewMDCacheStandard(capacity int) *MDCacheStandard {
 }
 
 // Get implements the MDCache interface for MDCacheStandard.
-func (md *MDCacheStandard) Get(tlf TlfID, rev MetadataRevision,
-	mStatus MergeStatus) (
+func (md *MDCacheStandard) Get(tlf TlfID, rev MetadataRevision, bid BranchID) (
 	*RootMetadata, error) {
-	key := mdCacheKey{tlf, rev, mStatus}
+	key := mdCacheKey{tlf, rev, bid}
 	if tmp, ok := md.lru.Get(key); ok {
 		if rmd, ok := tmp.(*RootMetadata); ok {
 			return rmd, nil
 		}
 		return nil, BadMDError{tlf}
 	}
-	return nil, NoSuchMDError{tlf, rev, mStatus}
+	return nil, NoSuchMDError{tlf, rev, bid}
 }
 
 // Put implements the MDCache interface for MDCacheStandard.
 func (md *MDCacheStandard) Put(rmd *RootMetadata) error {
-	key := mdCacheKey{rmd.ID, rmd.Revision, rmd.MergedStatus()}
+	key := mdCacheKey{rmd.ID, rmd.Revision, rmd.BID}
 	md.lru.Add(key, rmd)
 	return nil
 }
 
 // Delete implements the MDCache interface for MDCacheStandard.
 func (md *MDCacheStandard) Delete(rmd *RootMetadata) {
-	key := mdCacheKey{rmd.ID, rmd.Revision, rmd.MergedStatus()}
+	key := mdCacheKey{rmd.ID, rmd.Revision, rmd.BID}
 	md.lru.Remove(key)
 }

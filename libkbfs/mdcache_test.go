@@ -24,11 +24,12 @@ func mdCacheShutdown(mockCtrl *gomock.Controller, config *ConfigMock) {
 }
 
 func testMdcachePut(t *testing.T, tlf TlfID, rev MetadataRevision,
-	mStatus MergeStatus, h *TlfHandle, config *ConfigMock) {
+	mStatus MergeStatus, bid BranchID, h *TlfHandle, config *ConfigMock) {
 	rmd := &RootMetadata{
 		WriterMetadata: WriterMetadata{
 			ID:    tlf,
 			WKeys: make(TLFWriterKeyGenerations, 1, 1),
+			BID:   bid,
 		},
 		Revision: rev,
 		RKeys:    make(TLFReaderKeyGenerations, 1, 1),
@@ -44,7 +45,7 @@ func testMdcachePut(t *testing.T, tlf TlfID, rev MetadataRevision,
 	}
 
 	// make sure we can get it successfully
-	if rmd2, err := config.MDCache().Get(tlf, rev, mStatus); err != nil {
+	if rmd2, err := config.MDCache().Get(tlf, rev, bid); err != nil {
 		t.Errorf("Got error on get for md %v: %v", tlf, err)
 	} else if rmd2 != rmd {
 		t.Errorf("Got back unexpected metadata: %v", rmd2)
@@ -59,7 +60,7 @@ func TestMdcachePut(t *testing.T) {
 	h := parseTlfHandleOrBust(t, config, "alice", false)
 	h.Writers = append(h.Writers, keybase1.MakeTestUID(0))
 
-	testMdcachePut(t, id, 1, Merged, h, config)
+	testMdcachePut(t, id, 1, Merged, NullBranchID, h, config)
 }
 
 func TestMdcachePutPastCapacity(t *testing.T) {
@@ -75,14 +76,15 @@ func TestMdcachePutPastCapacity(t *testing.T) {
 	id2 := FakeTlfID(3, false)
 	h2 := parseTlfHandleOrBust(t, config, "alice,charlie", false)
 
-	testMdcachePut(t, id0, 0, Merged, h0, config)
-	testMdcachePut(t, id1, 0, Unmerged, h1, config)
-	testMdcachePut(t, id2, 1, Merged, h2, config)
+	testMdcachePut(t, id0, 0, Merged, NullBranchID, h0, config)
+	bid := FakeBranchID(1)
+	testMdcachePut(t, id1, 0, Unmerged, bid, h1, config)
+	testMdcachePut(t, id2, 1, Merged, NullBranchID, h2, config)
 
 	// id 0 should no longer be in the cache
 	// make sure we can get it successfully
-	expectedErr := NoSuchMDError{id0, 0, Merged}
-	if _, err := config.MDCache().Get(id0, 0, Merged); err == nil {
+	expectedErr := NoSuchMDError{id0, 0, NullBranchID}
+	if _, err := config.MDCache().Get(id0, 0, NullBranchID); err == nil {
 		t.Errorf("No expected error on get")
 	} else if err != expectedErr {
 		t.Errorf("Got unexpected error on get: %v", err)

@@ -234,6 +234,13 @@ func fakeTlfIDByte(id TlfID) byte {
 	return id.id[0]
 }
 
+// FakeBranchID creates a fake branch ID from the given
+// byte.
+func FakeBranchID(b byte) BranchID {
+	bytes := [BranchIDByteLen]byte{b}
+	return BranchID{bytes}
+}
+
 // NewEmptyTLFWriterKeyBundle creates a new empty TLFWriterKeyBundle
 func NewEmptyTLFWriterKeyBundle() TLFWriterKeyBundle {
 	return TLFWriterKeyBundle{

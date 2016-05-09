@@ -29,7 +29,7 @@ func getMDRange(ctx context.Context, config Config, id TlfID, bid BranchID,
 	minSlot := int(end-start) + 1
 	maxSlot := -1
 	for i := start; i <= end; i++ {
-		rmd, err := mdcache.Get(id, i, mStatus)
+		rmd, err := mdcache.Get(id, i, bid)
 		if err != nil {
 			if len(toDownload) == 0 ||
 				toDownload[len(toDownload)-1].end != i-1 {

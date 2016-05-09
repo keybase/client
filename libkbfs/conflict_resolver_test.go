@@ -63,25 +63,26 @@ func TestCRInput(t *testing.T) {
 	// serve all the MDs from the cache
 	config.mockMdcache.EXPECT().Put(gomock.Any()).AnyTimes().Return(nil)
 	for i := unmergedHead; i >= branchPoint+1; i-- {
-		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, Unmerged).Return(
+		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, cr.fbo.bid).Return(
 			&RootMetadata{
 				WriterMetadata: WriterMetadata{
 					ID:     FakeTlfID(0x1, false),
 					WFlags: MetadataFlagUnmerged,
+					BID:    cr.fbo.bid,
 				},
 				Revision:  i,
 				tlfHandle: &TlfHandle{name: "fake"},
 			}, nil)
 	}
 	for i := MetadataRevisionInitial; i <= branchPoint; i++ {
-		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, Unmerged).Return(
-			nil, NoSuchMDError{cr.fbo.id(), branchPoint, Unmerged})
+		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, cr.fbo.bid).Return(
+			nil, NoSuchMDError{cr.fbo.id(), branchPoint, cr.fbo.bid})
 	}
 	config.mockMdops.EXPECT().GetUnmergedRange(gomock.Any(), cr.fbo.id(),
 		cr.fbo.bid, MetadataRevisionInitial, branchPoint).Return(nil, nil)
 
 	for i := branchPoint + 1; i <= mergedHead; i++ {
-		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, Merged).Return(
+		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, NullBranchID).Return(
 			&RootMetadata{
 				WriterMetadata: WriterMetadata{
 					ID: FakeTlfID(0x1, false),
@@ -91,8 +92,8 @@ func TestCRInput(t *testing.T) {
 			}, nil)
 	}
 	for i := mergedHead + 1; i <= branchPoint+2*maxMDsAtATime; i++ {
-		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, Merged).Return(
-			nil, NoSuchMDError{cr.fbo.id(), i, Merged})
+		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, NullBranchID).Return(
+			nil, NoSuchMDError{cr.fbo.id(), i, NullBranchID})
 	}
 	config.mockMdops.EXPECT().GetRange(gomock.Any(), cr.fbo.id(), mergedHead+1,
 		gomock.Any()).Return(nil, nil)
@@ -140,19 +141,20 @@ func TestCRInputFracturedRange(t *testing.T) {
 	// serve all the MDs from the cache
 	config.mockMdcache.EXPECT().Put(gomock.Any()).AnyTimes().Return(nil)
 	for i := unmergedHead; i >= branchPoint+1; i-- {
-		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, Unmerged).Return(
+		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, cr.fbo.bid).Return(
 			&RootMetadata{
 				Revision: i,
 				WriterMetadata: WriterMetadata{
 					ID:     FakeTlfID(0x1, false),
 					WFlags: MetadataFlagUnmerged,
+					BID:    cr.fbo.bid,
 				},
 				tlfHandle: &TlfHandle{name: "fake"},
 			}, nil)
 	}
 	for i := MetadataRevisionInitial; i <= branchPoint; i++ {
-		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, Unmerged).Return(
-			nil, NoSuchMDError{cr.fbo.id(), branchPoint, Unmerged})
+		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, cr.fbo.bid).Return(
+			nil, NoSuchMDError{cr.fbo.id(), branchPoint, cr.fbo.bid})
 	}
 	config.mockMdops.EXPECT().GetUnmergedRange(gomock.Any(), cr.fbo.id(),
 		cr.fbo.bid, MetadataRevisionInitial, branchPoint).Return(nil, nil)
@@ -162,17 +164,18 @@ func TestCRInputFracturedRange(t *testing.T) {
 		// Pretend that revision 10 isn't in the cache, and needs to
 		// be fetched from the server.
 		if i != skipCacheRevision {
-			config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, Merged).Return(
-				&RootMetadata{
-					WriterMetadata: WriterMetadata{
-						ID: FakeTlfID(0x1, false),
-					},
-					Revision:  i,
-					tlfHandle: &TlfHandle{name: "fake"},
-				}, nil)
+			config.mockMdcache.EXPECT().Get(cr.fbo.id(), i,
+				NullBranchID).Return(&RootMetadata{
+				WriterMetadata: WriterMetadata{
+					ID: FakeTlfID(0x1, false),
+				},
+				Revision:  i,
+				tlfHandle: &TlfHandle{name: "fake"},
+			}, nil)
 		} else {
-			config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, Merged).Return(
-				nil, NoSuchMDError{cr.fbo.id(), i, Merged})
+			config.mockMdcache.EXPECT().Get(cr.fbo.id(), i,
+				NullBranchID).Return(
+				nil, NoSuchMDError{cr.fbo.id(), i, NullBranchID})
 		}
 	}
 	config.mockMdops.EXPECT().GetRange(gomock.Any(), cr.fbo.id(),
@@ -185,8 +188,8 @@ func TestCRInputFracturedRange(t *testing.T) {
 			tlfHandle: &TlfHandle{name: "fake"},
 		}}, nil)
 	for i := mergedHead + 1; i <= branchPoint+2*maxMDsAtATime; i++ {
-		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, Merged).Return(
-			nil, NoSuchMDError{cr.fbo.id(), i, Merged})
+		config.mockMdcache.EXPECT().Get(cr.fbo.id(), i, NullBranchID).Return(
+			nil, NoSuchMDError{cr.fbo.id(), i, NullBranchID})
 	}
 	config.mockMdops.EXPECT().GetRange(gomock.Any(), cr.fbo.id(), mergedHead+1,
 		gomock.Any()).Return(nil, nil)
