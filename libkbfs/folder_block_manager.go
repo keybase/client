@@ -341,17 +341,22 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context) error 
 		// outstanding.)
 		var rmds []*RootMetadata
 		var err error
+		index := 0
 		if md.MergedStatus() == Merged {
 			rmds, err = getMergedMDUpdates(ctx, fbm.config, fbm.id, md.Revision)
 		} else {
 			_, rmds, err = getUnmergedMDUpdates(ctx, fbm.config, fbm.id,
 				md.BID, md.Revision)
+			// For unmerged updates, the "start" revision is at the
+			// end of the slice.
+			index = len(rmds) - 1
 		}
 		if err != nil || len(rmds) == 0 {
 			toDeleteAgain[md] = ptrs
 			continue
 		}
-		dirsEqual, err := CodecEqual(fbm.config.Codec(), rmds[0].data.Dir, md.data.Dir)
+		dirsEqual, err := CodecEqual(fbm.config.Codec(),
+			rmds[index].data.Dir, md.data.Dir)
 		if err != nil {
 			fbm.log.CErrorf(ctx, "Error when comparing dirs: %v", err)
 		} else if dirsEqual {
@@ -362,10 +367,10 @@ func (fbm *folderBlockManager) processBlocksToDelete(ctx context.Context) error 
 			// But, since this MD put seems to have succeeded, we
 			// should archive it.
 			fbm.log.CDebugf(ctx, "Archiving successful MD revision %d",
-				rmds[0].Revision)
+				rmds[index].Revision)
 			// Don't block on archiving the MD, because that could
 			// lead to deadlock.
-			fbm.archiveUnrefBlocksNoWait(rmds[0])
+			fbm.archiveUnrefBlocksNoWait(rmds[index])
 			continue
 		}
 
