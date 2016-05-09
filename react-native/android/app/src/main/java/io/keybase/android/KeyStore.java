@@ -1,4 +1,4 @@
-package io.keybase.android;
+package io.keybase.ossifrage;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
@@ -26,7 +26,7 @@ import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
 import go.keybase.Keybase;
-import io.keybase.android.keystore.KeyStoreHelper;
+import io.keybase.ossifrage.keystore.KeyStoreHelper;
 
 public class KeyStore implements Keybase.ExternalKeyStore {
     private final Context context;

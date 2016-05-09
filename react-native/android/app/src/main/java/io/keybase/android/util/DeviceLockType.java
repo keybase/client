@@ -1,4 +1,4 @@
-package io.keybase.android.util;
+package io.keybase.ossifrage.util;
 
 import android.app.admin.DevicePolicyManager;
 import android.content.ContentResolver;
