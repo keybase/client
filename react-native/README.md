@@ -66,8 +66,6 @@ open ios/Keybase.xcworkspace
 Then select the target `Keybase` and run.
 
 #### Android Specific
-This will only work on an actual device or arm emulator. see: (https://github.com/golang/go/issues/10743)
-
 ```sh
 # inside react-native/
 
