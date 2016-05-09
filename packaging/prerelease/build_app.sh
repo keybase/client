@@ -67,9 +67,9 @@ echo "Loading release tool"
 "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
 release_bin="$GOPATH/bin/release"
 
-# Wait for CI
-"$release_bin" wait-ci --repo=client
-"$release_bin" wait-ci --repo=kbfs
+echo "Wait for CI"
+"$release_bin" wait-ci --repo=client --commit=`git -C $client_dir log -1 --pretty=format:%h`
+"$release_bin" wait-ci --repo=kbfs --commit=`git -C $kbfs_dir log -1 --pretty=format:%h`
 
 if [ -n "$client_commit" ]; then
   (cd "$client_dir"
