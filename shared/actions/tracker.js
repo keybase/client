@@ -85,24 +85,10 @@ export function registerUserChangeListener (): TrackerActionCreator {
   }
 }
 
-export function registerDisplayTLFCreateWithInvite (): TrackerActionCreator {
-  return dispatch => {
-    const params: incomingCallMapType = {
-      'keybase.1.identifyUi.displayTLFCreateWithInvite': (args, response) => {
-        dispatch(({payload: args, type: Constants.showNonUser}: ShowNonUser))
-        response.result()
-      }
-    }
-
-    engine.listenGeneralIncomingRpc(params)
-  }
-}
-
 export function registerTrackerIncomingRpcs (): TrackerActionCreator {
   return dispatch => {
     dispatch(registerTrackerChangeListener())
     dispatch(registerUserChangeListener())
-    dispatch(registerDisplayTLFCreateWithInvite())
   }
 }
 
@@ -363,6 +349,9 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
         payload: {username}
       })
     },
+
+    displayTLFCreateWithInvite: (args, response) => dispatch(({payload: args, type: Constants.showNonUser}: ShowNonUser)),
+
     displayKey: ({sessionID, key}) => {
       const username = sessionIDToUsername[sessionID]
 
