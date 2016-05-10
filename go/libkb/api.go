@@ -370,6 +370,9 @@ func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
 		if a.G().Env.GetDeviceID().Exists() {
 			req.Header.Set("X-Keybase-Device-ID", a.G().Env.GetDeviceID().String())
 		}
+		if i := a.G().Env.GetInstallID(); i.Exists() {
+			req.Header.Set("X-Keybase-Install-ID", i.String())
+		}
 	}
 }
 
