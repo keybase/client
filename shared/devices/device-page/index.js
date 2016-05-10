@@ -71,7 +71,7 @@ export default connect(
   dispatch => {
     return {
       ...bindActionCreators(devicesActions, dispatch),
-      showRemoveDevicePage: device => dispatch(routeAppend({path: 'removeDevice', device})),
+      showRemoveDevicePage: device => dispatch(routeAppend({path: 'removeDevice', device}))
     }
   }
 )(DevicePage)

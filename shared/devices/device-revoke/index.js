@@ -1,14 +1,11 @@
 import React, {Component} from 'react'
 import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
-import moment from 'moment'
 
-import {devicesTab} from '../../constants/tabs'
 import Render from './index.render'
-import RemoveDevice from '../device-revoke'
 
 import * as devicesActions from '../../actions/devices'
-import {dispatch, navigateUp, routeAppend} from '../../actions/router'
+import {navigateUp} from '../../actions/router'
 
 export default class DeviceRevoke extends Component {
   static parseRoute (currentPath) {
