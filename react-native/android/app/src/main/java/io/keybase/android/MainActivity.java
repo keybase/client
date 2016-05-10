@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.KeyEvent;
 
 import com.burnweb.rnpermissions.RNPermissionsPackage;
@@ -25,6 +26,7 @@ import java.util.List;
 import go.keybase.Keybase;
 
 import static go.keybase.Keybase.Init;
+import static go.keybase.Keybase.LogSend;
 
 public class MainActivity extends ReactActivity {
 
@@ -76,6 +78,13 @@ public class MainActivity extends ReactActivity {
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         if (BuildConfig.DEBUG && keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+            try {
+                final String id = LogSend();
+                Log.d(TAG, "LOG id is: " + id);
+
+            } catch (Exception e) {
+                Log.d(TAG, "Error in log sending:", e);
+            }
             return super.onKeyUp(KeyEvent.KEYCODE_MENU, null);
         }
         return super.onKeyUp(keyCode, event);
