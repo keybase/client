@@ -23,7 +23,7 @@ export default class DeviceRevoke extends Component {
   }
 
   render () {
-    const {device} = this.props.device
+    const device = this.props.device
     return <Render
       name={device.name}
       type={device.type}

@@ -13,8 +13,6 @@ const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel}: Props
     'backup': 'paper-key-remove-m'
   }[type]
 
-  console.log('TYPE')
-  console.log(type)
   return (
     <Box style={stylesContainer}>
       <Icon style={stylesClose} type='fa-close' onClick={onCancel} />
@@ -24,7 +22,7 @@ const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel}: Props
       </Box>
       <Text type='Header'>Are you sure you want to revoke {currentDevice ? 'your current device' : name}?</Text>
       <Box style={{...globalStyles.flexBoxRow, marginTop: 32}}>
-        <Button type='Secondary' onClick={() => onCancel()} label='Cancel' />
+        <Button type='Secondary' onClick={onCancel} label='Cancel' />
         <Button type='Danger' onClick={() => onSubmit({deviceID, name, currentDevice})} label='Yes, delete it' />
       </Box>
     </Box>)

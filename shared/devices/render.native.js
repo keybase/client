@@ -1,5 +1,6 @@
 /* @flow */
 import React, {Component} from 'react'
+import {View} from 'react-native'
 import {TouchableHighlight} from 'react-native'
 
 import {Box, Text, Icon} from '../common-adapters'
@@ -62,17 +63,21 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
       <Box style={revoked ? stylesRevokedIconColumn : stylesIconColumn}>
         <Icon type={icon}/>
       </Box>
-      <Box style={stylesCommonColumn}>
-        <Box style={{...globalStyles.flexBoxRow}} onPress={() => showExistingDevicePage(device)}>
-          <Text style={textStyle} type='BodySemibold'>{device.name}</Text>
-        </Box>
-        <Box style={{...globalStyles.flexBoxRow}}>
-          {device.currentDevice && <Text type='BodySmall'>Current device</Text>}
-        </Box>
-      </Box>
-      <Box style={stylesRevokedColumn}>
-        {!revoked && <Text style={{color: globalColors.red}} onPress={() => showRemoveDevicePage(device)}type='BodyPrimaryLink'>Revoke</Text>}
-      </Box>
+      <TouchableHighlight onPress={() => showExistingDevicePage(device)} style={stylesCommonColumn}>
+        <View>
+          <View style={{...globalStyles.flexBoxRow}}>
+            <Text style={textStyle} type='BodySemibold'>{device.name}</Text>
+          </View>
+          <View style={{...globalStyles.flexBoxRow}}>
+            {device.currentDevice && <Text type='BodySmall'>Current device</Text>}
+          </View>
+        </View>
+      </TouchableHighlight>
+      <TouchableHighlight onPress={() => showRemoveDevicePage(device)} style={stylesRevokedColumn}>
+        <View>
+          {!revoked && <Text style={{color: globalColors.red}} type='BodyPrimaryLink'>Revoke</Text>}
+        </View>
+      </TouchableHighlight>
     </Box>
   )
 }

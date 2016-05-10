@@ -69,7 +69,7 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
         </Box>
       </Box>
       <Box style={{...stylesRevokedColumn}}>
-        {!revoked && <Text className='existing-device-item' style={{color: globalColors.red}} type='BodyPrimaryLink'>Revoke</Text>}
+        {!revoked && <Text className='existing-device-item' style={{color: globalColors.red}} onClick={() => showRemoveDevicePage(device)} type='BodyPrimaryLink'>Revoke</Text>}
       </Box>
     </Box>
   )
