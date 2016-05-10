@@ -85,10 +85,6 @@ export function generatePaperKey () : AsyncAction {
 
 export function removeDevice (deviceID: string, name: string, currentDevice: boolean): AsyncAction {
   return (dispatch, getState) => {
-    console.log('in removeDevice')
-    console.log(deviceID)
-    console.log(name)
-    console.log(currentDevice)
     if (currentDevice) {
       // Revoking the current device uses the "deprovision" RPC instead.
       let username
