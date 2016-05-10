@@ -64,8 +64,8 @@ script:
       cat $GOPATH/src/github.com/keybase/kbfs/kbfsdocker/build_docker_output.txt &&
       cd ../kbfsdocker &&
       go test -i -tags docker &&
-      go test -c -tags docker &&
-      ./kbfsdocker.test -test.timeout 6m;
+      go test -c -tags docker -no-build &&
+      ./kbfsdocker.test -test.timeout 6m -no-build;
     fi
 notifications:
   slack: keybase:WKlhs55Mb4am4obv1rNRg8P0
