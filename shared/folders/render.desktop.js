@@ -24,7 +24,7 @@ class Render extends Component<void, Props, State> {
     return (
       <Box style={stylesContainer}>
         <TabBar tabWidth={130}>
-          <TabBar.Item label={'private/' + (this.props.privateBadge ? this.props.privateBadge : '')} selected={this.state.showPrivate}
+          <TabBar.Item label={'private/' + (this.props.privateBadge || '')} selected={this.state.showPrivate}
             onClick={() => {
               this.setState({showPrivate: true})
               this.props.onSwitchTab && this.props.onSwitchTab(false)
@@ -35,7 +35,7 @@ class Render extends Component<void, Props, State> {
               smallMode={this.props.smallMode}
               onClick={this.props.onClick} />
           </TabBar.Item>
-          <TabBar.Item label={'public/' + (this.props.publicBadge ? this.props.publicBadge : '')} selected={!this.state.showPrivate}
+          <TabBar.Item label={'public/' + (this.props.publicBadge || '')} selected={!this.state.showPrivate}
             onClick={() => {
               this.setState({showPrivate: false})
               this.props.onSwitchTab && this.props.onSwitchTab(true)
