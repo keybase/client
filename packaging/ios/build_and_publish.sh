@@ -9,6 +9,8 @@ client_dir="$gopath/src/github.com/keybase/client"
 cache_npm=${CACHE_NPM:-}
 cache_go_lib=${CACHE_GO_LIB:-}
 
+"$client_dir/packaging/check_status_and_pull.sh" "$client_dir"
+
 cd $rn_dir
 
 if [ ! "$cache_npm" = "1" ]; then
