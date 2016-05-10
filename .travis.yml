@@ -59,8 +59,7 @@ script:
   - go test -i -tags fuse && go test -race -c && ./test.test -test.timeout 4m
   - go test -c -tags fuse && ./test.test -test.timeout 4m
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then
-      wait $build_dockers_pid ||
-      echo "Dockers already finished building" &&
+      wait $build_dockers_pid &&
       cat $GOPATH/src/github.com/keybase/kbfs/kbfsdocker/build_docker_output.txt &&
       cd ../kbfsdocker &&
       go test -i -tags docker &&
