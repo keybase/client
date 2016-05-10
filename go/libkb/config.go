@@ -365,7 +365,7 @@ func (f JSONConfigFile) GetConfigFilename() string {
 	return f.GetTopLevelString("config_file")
 }
 func (f JSONConfigFile) GetUpdaterConfigFilename() string {
-	return f.GetTopLevelString("updater_file")
+	return f.GetTopLevelString("updater_config_file")
 }
 func (f JSONConfigFile) GetSecretKeyringTemplate() string {
 	return f.GetTopLevelString("secret_keyring")
