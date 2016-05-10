@@ -9,7 +9,7 @@ import type {Dispatch} from '../constants/types/flux'
 import type {FavoriteList} from '../constants/favorite'
 
 export function favoriteList (): (dispatch: Dispatch) => void {
-  return dispatch => {
+  return (dispatch, getState) => {
     const params : favorite_favoriteList_rpc = {
       method: 'favorite.favoriteList',
       param: {},
@@ -24,7 +24,10 @@ export function favoriteList (): (dispatch: Dispatch) => void {
           folders = []
         }
 
-        const action: FavoriteList = {type: Constants.favoriteList, payload: {folders}}
+        const config = getState && getState().config
+        const currentUser = config && config.status && config.status.user && config.status.user.username
+
+        const action: FavoriteList = {type: Constants.favoriteList, payload: {folders, currentUser}}
         dispatch(action)
       }
     }

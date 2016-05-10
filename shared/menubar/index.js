@@ -5,33 +5,31 @@ import React, {Component} from 'react'
 import Render from './index.render'
 import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
-import {getTLF} from '../util/kbfs'
+// import {getTLF} from '../util/kbfs'
 import engine from '../engine'
 
 import * as favoriteAction from '../actions/favorite'
 import {openInKBFS} from '../actions/kbfs'
 import {switchTab} from '../actions/tabbed-router'
 
-import {remote} from 'electron'
+// import {remote} from 'electron'
 import {ipcRenderer} from 'electron'
 import {loginTab} from '../constants/tabs'
 
-import type {Folder} from '../constants/types/flow-types'
-import type {FolderInfo} from './index.render'
+import type {Props as RenderProps} from './index.render'
 
-export type MenubarProps = {
+export type Props = {
   username: ?string,
-  folders: ?Array<Folder>,
+  folders: ?RenderProps,
   favoriteList: () => void,
-  openInKBFS: () => void,
+  openInKBFS: (target?: any) => void,
   loggedIn: ?boolean,
   switchTab: (tab: string) => void
-}
+} & RenderProps
 
 const REQUEST_DELAY = 5000
 
-class Menubar extends Component {
-  props: MenubarProps;
+class Menubar extends Component<void, Props, void> {
   _lastRequest: number;
 
   constructor (props) {
@@ -151,37 +149,37 @@ class Menubar extends Component {
   }
 
   render () {
-    const {username} = this.props
-    const folders = (this.props.folders || []).map((f: Folder) : FolderInfo => { // eslint-disable-line arrow-parens
-      return {
-        type: 'folder',
-        folderName: f.name,
-        isPublic: !f.private,
-        // TODO we don't get this information right now,
-        isEmpty: false,
-        openFolder: () => {
-          setImmediate(() => this.props.openInKBFS(`${getTLF(!f.private, f.name)}`))
-          this.closeMenubar()
-        }
-      }
-    })
+    // const {username} = this.props
+    // const folders = (this.props.folders || []).map((f: Folder) : FolderInfo => { // eslint-disable-line arrow-parens
+      // return {
+        // type: 'folder',
+        // folderName: f.name,
+        // isPublic: !f.private,
+        // // TODO we don't get this information right now,
+        // isEmpty: false,
+        // openFolder: () => {
+          // setImmediate(() => this.props.openInKBFS(`${getTLF(!f.private, f.name)}`))
+          // this.closeMenubar()
+        // }
+      // }
+    // })
 
-    const loading = !!username && !this.props.folders
+    // const loading = !!username && !this.props.folders
+    // const loading = false
 
-    return <Render
-      username={username}
-      openKBFS={() => this.openKBFS()}
-      openKBFSPublic={username => this.openKBFSPublic(username)}
-      openKBFSPrivate={username => this.openKBFSPrivate(username)}
-      showMain={() => this.showMain()}
-      showHelp={() => this.showHelp()}
-      showUser={user => this.showUser(user)}
-      logIn={() => this.logIn()}
-      quit={() => remote.app.quit()}
-      folders={folders}
-      loading={loading}
-      loggedIn={this.props.loggedIn || false}
-    />
+    return <Render {...this.props.folders} />
+      // username={username}
+      // openKBFS={() => this.openKBFS()}
+      // openKBFSPublic={username => this.openKBFSPublic(username)}
+      // openKBFSPrivate={username => this.openKBFSPrivate(username)}
+      // showMain={() => this.showMain()}
+      // showHelp={() => this.showHelp()}
+      // showUser={user => this.showUser(user)}
+      // logIn={() => this.logIn()}
+      // quit={() => remote.app.quit()}
+      // folders={folders}
+      // loading={loading}
+      // loggedIn={this.props.loggedIn || false}
   }
 }
 

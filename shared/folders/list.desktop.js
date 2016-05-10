@@ -11,7 +11,7 @@ type State = {
 
 const rowKey = users => users && users.map(u => u.username).join('-')
 
-const Ignored = ({showIgnored, ignored, styles, onToggle, isPublic}) => {
+const Ignored = ({showIgnored, ignored, styles, onToggle, isPublic, onClick}) => {
   return (
     <Box style={stylesIgnoreContainer}>
       <Box style={styles.topBox} onClick={onToggle}>
@@ -28,6 +28,7 @@ const Ignored = ({showIgnored, ignored, styles, onToggle, isPublic}) => {
           users={i.users}
           isPublic={isPublic}
           ignored
+          onClick={onClick}
           isFirst={!idx} />
         ))}
     </Box>
@@ -54,26 +55,33 @@ class Render extends Component<void, Props, State> {
     const styles = this.props.isPublic ? stylesPublic : stylesPrivate
 
     return (
-      <Box style={stylesContainer}>
-        <style>{realCSS}</style>
-        {this.props.tlfs && this.props.tlfs.map((t, idx) => (
-          <Row
-            key={rowKey(t.users)}
-            {...t}
-            isPublic={this.props.isPublic}
-            ignored={false}
-            isFirst={!idx} />
-          ))}
-        <Ignored ignored={this.props.ignored} showIgnored={this.state.showIgnored} styles={styles}
-          isPublic={this.props.isPublic} onToggle={() => this.setState({showIgnored: !this.state.showIgnored})} />
+      <Box style={{...stylesScrollContainer, ...this.props.style}}>
+        <Box style={stylesContainer}>
+          <style>{realCSS}</style>
+          {this.props.tlfs && this.props.tlfs.map((t, idx) => (
+            <Row
+              key={rowKey(t.users)}
+              {...t}
+              isPublic={this.props.isPublic}
+              ignored={false}
+              onClick={this.props.onClick}
+              smallMode={this.props.smallMode}
+              isFirst={!idx} />
+            ))}
+            {this.props.ignored && this.props.ignored.length > 0 && <Ignored ignored={this.props.ignored} showIgnored={this.state.showIgnored} styles={styles}
+              isPublic={this.props.isPublic} onToggle={() => this.setState({showIgnored: !this.state.showIgnored})} />}
+        </Box>
       </Box>
     )
   }
 }
 
+const stylesScrollContainer = {
+  overflow: 'auto'
+}
+
 const stylesContainer = {
-  ...globalStyles.flexBoxColumn,
-  flex: 1
+  ...globalStyles.flexBoxColumn
 }
 
 const stylesIgnoreContainer = {

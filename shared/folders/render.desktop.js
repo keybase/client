@@ -24,13 +24,27 @@ class Render extends Component<void, Props, State> {
     return (
       <Box style={stylesContainer}>
         <TabBar tabWidth={130}>
-          <TabBar.Item label={'private/' + this.props.privateBadge} selected={this.state.showPrivate}
-            onClick={() => this.setState({showPrivate: true})}>
-            <List {...this.props.private} />
+          <TabBar.Item label={'private/' + (this.props.privateBadge || '')} selected={this.state.showPrivate}
+            onClick={() => {
+              this.setState({showPrivate: true})
+              this.props.onSwitchTab && this.props.onSwitchTab(false)
+            }}>
+            <List
+              {...this.props.private}
+              style={this.props.listStyle}
+              smallMode={this.props.smallMode}
+              onClick={this.props.onClick} />
           </TabBar.Item>
-          <TabBar.Item label={'public/' + this.props.publicBadge} selected={!this.state.showPrivate}
-            onClick={() => this.setState({showPrivate: false})}>
-            <List {...this.props.public} />
+          <TabBar.Item label={'public/' + (this.props.publicBadge || '')} selected={!this.state.showPrivate}
+            onClick={() => {
+              this.setState({showPrivate: false})
+              this.props.onSwitchTab && this.props.onSwitchTab(true)
+            }}>
+            <List
+              {...this.props.public}
+              style={this.props.listStyle}
+              smallMode={this.props.smallMode}
+              onClick={this.props.onClick} />
           </TabBar.Item>
         </TabBar>
       </Box>

@@ -2,7 +2,6 @@
 import React, {Component} from 'react'
 import {globalStyles} from '../styles/style-guide'
 import {Checkbox} from '../common-adapters'
-import Menubar from '../menubar'
 import UnlockFolders from '../unlock-folders'
 
 import Mock from '../util/mock-provider'
@@ -51,9 +50,6 @@ export default class Render extends Component<void, void, ComponentState> {
             disabled
             onCheck={checked => this.setState({disabledUnchecked: checked})}
             checked={this.state.disabledUnchecked} />
-        </div>
-        <div style={{...styles.container, ...styles.containerPopup, width: 320}}>
-          <Menubar />
         </div>
         <div style={{...styles.container}}>
           {Object.keys(mocks).map(m => (
