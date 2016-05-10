@@ -67,35 +67,32 @@ echo "Loading release tool"
 "$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
 release_bin="$GOPATH/bin/release"
 
-echo "Wait for CI"
-"$release_bin" wait-ci --repo=client --commit=`git -C $client_dir log -1 --pretty=format:%h`
-"$release_bin" wait-ci --repo=kbfs --commit=`git -C $kbfs_dir log -1 --pretty=format:%h`
-
 if [ -n "$client_commit" ]; then
-  (
-    cd "$client_dir"
-    client_branch=`git rev-parse --abbrev-ref HEAD`
-    function reset_client {
-      (cd "$client_dir" && git checkout $client_branch)
-    }
-    trap reset_client EXIT
-    echo "Checking out $client_commit on client"
-    git checkout "$client_commit"
-  )
+  cd "$client_dir"
+  client_branch=`git rev-parse --abbrev-ref HEAD`
+  function reset_client {
+    (cd "$client_dir" && git checkout $client_branch)
+  }
+  trap reset_client EXIT
+  echo "Checking out $client_commit on client"
+  git checkout "$client_commit"
 fi
 
 if [ -n "$kbfs_commit" ]; then
-  (
-    cd "$kbfs_dir"
-    kbfs_branch=`git rev-parse --abbrev-ref HEAD`
-    function reset_kbfs {
-      (cd "$kbfs_dir" && git checkout $kbfs_branch)
-    }
-    trap reset_kbfs EXIT
-    echo "Checking out $kbfs_commit on kbfs"
-    git checkout "$kbfs_commit"
-  )
+  cd "$kbfs_dir"
+  kbfs_branch=`git rev-parse --abbrev-ref HEAD`
+  function reset_kbfs {
+    (cd "$kbfs_dir" && git checkout $kbfs_branch)
+  }
+  trap reset_kbfs EXIT
+  echo "Checking out $kbfs_commit on kbfs"
+  git checkout "$kbfs_commit"
 fi
+
+echo "Checking client CI"
+"$release_bin" wait-ci --repo=client --commit=`git -C $client_dir log -1 --pretty=format:%h`
+echo "Checking kbfs CI"
+"$release_bin" wait-ci --repo=client --commit=`git -C $kbfs_dir log -1 --pretty=format:%h`
 
 if [ ! "$nobuild" = "1" ]; then
   BUILD_DIR=$build_dir_keybase "$dir/build_keybase.sh"
