@@ -143,10 +143,6 @@ get_deps() {(
   curl -J -L -Ss "$updater_url" | tar zx
 )}
 
-check_ci() {
-  $node_bin/ci --required-tests 3
-}
-
 # Build Keybase.app
 package_electron() {(
   cd "$client_dir/desktop"
@@ -280,7 +276,6 @@ s3sync() {
 
 clean
 get_deps
-check_ci
 package_electron
 package_app
 update_plist
