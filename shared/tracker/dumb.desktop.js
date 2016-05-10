@@ -211,7 +211,7 @@ const propsFiveProof: TrackerProps = {
   proofs: [0, 1, 2, 3, 4].map(proofGithubMaker)
 }
 
-const dumpMap: DumbComponentMap<Tracker> = {
+const dumbMap: DumbComponentMap<Tracker> = {
   component: Tracker,
   mocks: {
     'NonuserNoLinkPrivate': {...propsNonUser, inviteLink: null, isPrivate: true},
@@ -233,6 +233,6 @@ const dumpMap: DumbComponentMap<Tracker> = {
 }
 
 export default {
-  'Tracker': dumpMap
+  'Tracker': dumbMap
 }
 
