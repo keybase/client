@@ -6,8 +6,8 @@ const common = {
   type: 'desktop',
   name: 'Home Computer',
   currentDevice: false,
-  revokedAt: false,
-  onRevoke: () => {}
+  revokedAt: null,
+  showRemoveDevicePage: () => {},
 }
 
 const map: DumbComponentMap<Render> = {
