@@ -20,7 +20,10 @@ export type Folder = {
 export type Props = {
   tlfs?: Array<Folder>,
   ignored?: Array<Folder>,
-  isPublic: boolean
+  isPublic: boolean,
+  style?: any,
+  smallMode?: boolean,
+  onClick?: (path: string) => void
 }
 
 export default class Render extends React$Component<void, Props, void> {

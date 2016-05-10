@@ -1,22 +1,32 @@
 // @flow
 import React from 'react'
+import {Image} from 'react-native'
 import type {Folder} from './list'
 import {Box, Text, Icon, Avatar, Meta} from '../common-adapters'
 import type {Props as IconProps} from '../common-adapters/icon'
 import {globalStyles, globalColors} from '../styles/style-guide'
-import {resolveImageAsURL} from '../../desktop/resolve-root'
 
-const Avatars = ({styles, users, smallMode}) => (
-  <Box style={{
-    ...styles.avatarContainer,
-    width: smallMode ? 32 : 48,
-    minHeight: 48, paddingTop: 12, paddingBottom: 12,
-    paddingLeft: smallMode ? 4 : 8, paddingRight: smallMode ? 4 : 8}}>
-    {users.length === 1 || users.length === 2
-      ? <Avatar size={smallMode ? 24 : 32} username={users[users.length - 1].username} />
-      : <Icon type={smallMode ? styles.groupIcon.small : styles.groupIcon.normal} />}
-  </Box>
-)
+const Avatars = ({styles, users, isPublic}) => {
+  const contents = users.length === 1 || users.length === 2
+      ? <Avatar size={32} username={users[users.length - 1].username} />
+      : <Icon type={styles.groupIcon} />
+
+  if (isPublic) {
+    return <Box style={styles.avatarContainer}>{contents}</Box>
+  }
+
+  // $FlowIssue doesn't like images
+  const source = require('../images/icons/damier-pattern-48.png')
+  return (
+    <Box style={{width: 48, height: 1}}>
+      <Image
+        style={stylesAvatarContainerPrivate}
+        source={source}
+        resizeMode='contain'>{contents}
+      </Image>
+    </Box>
+  )
+}
 
 const Names = ({styles, users}) => {
   return (
@@ -61,34 +71,29 @@ const RowMeta = ({ignored, meta, styles}) => {
   return <Meta {...metaProps} />
 }
 
-const Row = ({users, isPublic, ignored, isFirst, meta, modified, hasData, smallMode, onClick}: {smallMode?: boolean, onClick: (path: string) => void} & Folder) => {
+const Row = ({users, isPublic, ignored, isFirst, meta, modified, hasData}: Folder) => {
   const styles = isPublic ? stylesPublic : stylesPrivate
 
   const containerStyle = {
-    ...styles.rowContainer,
-    ...(isFirst && {borderBottom: undefined})}
+    ...styles.rowContainer
+  }
 
-  const icon: IconProps.type = smallMode ? styles.hasStuffIcon.small : styles.hasStuffIcon.normal
+  const icon: IconProps.type = styles.hasStuffIcon
 
   return (
-    <Box style={containerStyle} className='folder-row' onClick={() => {
-      if (onClick) {
-        const path = `/keybase/${isPublic ? 'public' : 'private'}/${users.map(u => u.username).join(',')}`
-        onClick(path)
-      } }}>
-      {!isFirst && <Box style={stylesLine} />}
+    <Box style={containerStyle}>
       <Box style={{...globalStyles.flexBoxRow}}>
-        <Avatars users={users} styles={styles} smallMode={smallMode} />
+        <Avatars users={users} styles={styles} isPublic={isPublic} />
         <Box style={stylesBodyContainer}>
           <Names users={users} styles={styles} meta={meta} modified={modified} />
           {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
           {!(meta || ignored) && modified && <Modified modified={modified} styles={styles} />}
         </Box>
-        <Box style={{...stylesActionContainer, width: smallMode ? undefined : 112}}>
-          {!smallMode && <Text type='BodySmall' className='folder-row-hover-action' style={stylesAction}>Open</Text>}
-          <Icon type={icon} style={{visibility: hasData ? 'visible' : 'hidden'}} />
+        <Box style={stylesActionContainer}>
+          {hasData && <Icon type={icon} style={{width: 32}} />}
         </Box>
       </Box>
+      {!isFirst && <Box style={stylesLine} />}
     </Box>
   )
 }
@@ -104,33 +109,38 @@ const stylesLine = {
 
 const rowContainer = {
   ...globalStyles.flexBoxColumn,
-  ...globalStyles.clickable,
-  minHeight: 48,
-  position: 'relative'
+  position: 'relative',
+  overflow: 'hidden'
+}
+
+const stylesAvatarContainer = {
+  width: 48,
+  padding: 8
+}
+
+const stylesAvatarContainerPrivate = {
+  width: 48,
+  overflow: 'hidden',
+  paddingLeft: 8,
+  paddingRight: 8,
+  paddingTop: 16,
+  paddingBottom: 16
 }
 
 const stylesPrivate = {
   rowContainer: {
     ...rowContainer,
-    backgroundColor: globalColors.darkBlue,
-    color: globalColors.white
+    backgroundColor: globalColors.darkBlue
   },
-  hasStuffIcon: {
-    small: 'folder-private-has-stuff-24',
-    normal: 'folder-private-has-stuff-32'
-  },
+  hasStuffIcon: 'folder-private-has-stuff-32',
   ignored: {
     color: globalColors.white_40,
     backgroundColor: 'rgba(0, 26, 51, 0.4)'
   },
-  groupIcon: {
-    small: 'folder-private-group-24',
-    normal: 'folder-private-group-32'
-  },
+  groupIcon: 'folder-private-group-32',
   avatarContainer: {
-    backgroundColor: globalColors.darkBlue3,
-    backgroundImage: `url(${resolveImageAsURL('icons', 'damier-pattern-good-open.png')})`,
-    backgroundRepeat: 'repeat'
+    ...stylesAvatarContainer,
+    backgroundColor: globalColors.darkBlue3
   },
   nameColor: globalColors.white,
   modifiedMode: 'Terminal'
@@ -139,22 +149,16 @@ const stylesPrivate = {
 const stylesPublic = {
   rowContainer: {
     ...rowContainer,
-    backgroundColor: globalColors.white,
-    color: globalColors.yellowGreen2
+    backgroundColor: globalColors.white
   },
-  hasStuffIcon: {
-    small: 'folder-public-has-stuff-24',
-    normal: 'folder-public-has-stuff-32'
-  },
+  hasStuffIcon: 'folder-public-has-stuff-32',
   ignored: {
     color: globalColors.white_75,
     backgroundColor: globalColors.yellowGreen
   },
-  groupIcon: {
-    small: 'folder-public-group-24',
-    normal: 'folder-public-group-32'
-  },
+  groupIcon: 'folder-public-group-32',
   avatarContainer: {
+    ...stylesAvatarContainer,
     backgroundColor: globalColors.yellowGreen
   },
   nameColor: globalColors.yellowGreen,
@@ -176,14 +180,9 @@ const stylesBodyNameContainer = {
 
 const stylesActionContainer = {
   ...globalStyles.flexBoxRow,
+  height: 64,
   alignItems: 'flex-start',
   justifyContent: 'flex-end'
-}
-
-const stylesAction = {
-  ...globalStyles.clickable,
-  color: globalColors.white,
-  alignSelf: 'center'
 }
 
 const stylesModified = {
