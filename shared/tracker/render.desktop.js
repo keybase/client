@@ -7,7 +7,7 @@ import Action, {calcFooterHeight} from './action.render.desktop'
 import Bio from './bio.render.desktop'
 import ProofsRender from './proofs.render.desktop'
 import commonStyles from '../styles/common'
-import NonUser from './non-user.desktop'
+import NonUser from './non-user'
 
 import type {RenderProps} from './render'
 

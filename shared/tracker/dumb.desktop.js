@@ -7,6 +7,8 @@ import type {Proof} from '../tracker/proofs.render'
 import type {TrackSummary} from '../constants/types/flow-types'
 import {globalStyles} from '../styles/style-guide'
 
+import type {DumbComponentMap} from '../constants/types/more'
+
 function proofGithubMaker (name): Proof {
   return {name: 'githubuser' + name, type: 'github', id: 'githubId' + name, state: normal, meta: metaNone, humanUrl: 'github.com', profileUrl: 'http://github.com', isTracked: false}
 }
@@ -209,26 +211,28 @@ const propsFiveProof: TrackerProps = {
   proofs: [0, 1, 2, 3, 4].map(proofGithubMaker)
 }
 
-export default {
-  'Tracker': {
-    component: Tracker,
-    mocks: {
-      'NonuserNoLinkPrivate': {...propsNonUser, inviteLink: null, isPrivate: true},
-      'NonuserLink': propsNonUser,
-      'NonuserNoLinkPublic': {...propsNonUser, inviteLink: null},
-      'Logged out': propsLoggedOut,
-      'Only one proof': propsOneProof,
-      '5 proofs': propsFiveProof,
-      'New user': propsNewUser,
-      'New user, follows me': propsNewUserFollowsYou,
-      'Followed': propsFollowing,
-      'Changed/Broken proofs user you dont follow': {...propsChangedProofs, lastTrack: false},
-      'Changed/Broken proofs': propsChangedProofs,
-      'You track them': {...propsFollowing, userInfo: {...propsNewUser.userInfo, followsYou: false}},
-      'Unfollowed': propsUnfollowed,
-      'Barely there': propsLessData,
-      'Whatevz': propsWhatevz
-    }
+const dumbMap: DumbComponentMap<Tracker> = {
+  component: Tracker,
+  mocks: {
+    'NonuserNoLinkPrivate': {...propsNonUser, inviteLink: null, isPrivate: true},
+    'NonuserLink': propsNonUser,
+    'NonuserNoLinkPublic': {...propsNonUser, inviteLink: null},
+    'Logged out': propsLoggedOut,
+    'Only one proof': propsOneProof,
+    '5 proofs': propsFiveProof,
+    'New user': propsNewUser,
+    'New user, follows me': propsNewUserFollowsYou,
+    'Followed': propsFollowing,
+    'Changed/Broken proofs user you dont follow': {...propsChangedProofs, lastTrack: false},
+    'Changed/Broken proofs': propsChangedProofs,
+    'You track them': {...propsFollowing, userInfo: {...propsNewUser.userInfo, followsYou: false}},
+    'Unfollowed': propsUnfollowed,
+    'Barely there': propsLessData,
+    'Whatevz': propsWhatevz
   }
+}
+
+export default {
+  'Tracker': dumbMap
 }
 

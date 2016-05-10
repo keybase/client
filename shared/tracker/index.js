@@ -62,7 +62,7 @@ class Tracker extends Component {
     const failedProofsNotFollowingText = `Some of ${this.props.username}'s proofs couldn't be verified. Track the working proofs?`
     const currentlyFollowing = !!this.props.lastTrack
 
-    const changed = !this.props.proofs.every(function (proof, index, ar) {
+    const changed = !(this.props.proofs || []).every(function (proof, index, ar) {
       return (!proof.meta || proof.meta === metaNone)
     })
 
@@ -129,6 +129,7 @@ class Tracker extends Component {
 export default connect(
   (state, ownProps) => ({
     ...state.tracker,
+    nonUser: state.tracker.trackers[ownProps.username] && state.tracker.trackers[ownProps.username].type === 'nonUser',
     loggedIn: state.config && state.config.status && state.config.status.loggedIn,
     ...state.tracker.trackers[ownProps.username],
     ...ownProps

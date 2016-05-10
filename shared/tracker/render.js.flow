@@ -7,17 +7,16 @@ import type {ActionProps} from './action.render'
 import type {HeaderProps} from './header.render'
 import type {ProofsProps} from './proofs.render'
 
-export type RenderProps = {
+export type RenderProps = $Shape<{
   bioProps: BioProps,
   actionProps: ActionProps,
   headerProps: HeaderProps,
   proofsProps: ProofsProps,
   name?: string,
+  nonUser?: ?boolean,
   reason?: string,
   inviteLink?: string,
   isPrivate?: boolean
-}
+}>
 
-export default class Render extends Component {
-  props: RenderProps;
-}
+export default class Render extends Component<void, RenderProps, void> { }

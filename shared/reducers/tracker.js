@@ -10,12 +10,13 @@ import {identify} from '../constants/types/keybase-v1'
 
 import type {UserInfo} from '../tracker/bio.render'
 import type {Proof} from '../tracker/proofs.render'
-import type {SimpleProofState, SimpleProofMeta} from '../constants/tracker'
+import type {SimpleProofState, SimpleProofMeta, NonUserActions} from '../constants/tracker'
 
 import type {Identity, RemoteProof, RevokedProof, LinkCheckResult, ProofState, TrackDiff, TrackDiffType, ProofStatus, TrackSummary} from '../constants/types/flow-types'
 import type {Action} from '../constants/types/flux'
 
 export type TrackerState = {
+  type: 'tracker',
   eldestKidChanged: boolean,
   serverActive: boolean,
   trackerState: SimpleProofState,
@@ -32,9 +33,21 @@ export type TrackerState = {
   lastTrack: ?TrackSummary
 }
 
+export type NonUserState = {
+  type: 'nonUser',
+  closed: boolean,
+  hidden: boolean,
+  name: string,
+  reason: string,
+  isPrivate: boolean,
+  inviteLink: ?string
+}
+
+type TrackerOrNonUserState = TrackerState | NonUserState
+
 export type State = {
   serverStarted: boolean,
-  trackers: {[key: string]: TrackerState},
+  trackers: {[key: string]: TrackerOrNonUserState},
   timerActive: number
 }
 
@@ -48,6 +61,7 @@ const initialState: State = {
 
 function initialTrackerState (username: string): TrackerState {
   return {
+    type: 'tracker',
     eldestKidChanged: false,
     serverActive: false,
     username,
@@ -71,6 +85,45 @@ function initialTrackerState (username: string): TrackerState {
       avatar: null,
       location: '' // TODO: get this information
     }
+  }
+}
+
+function initialNonUserState (assertion: string): NonUserState {
+  return {
+    type: 'nonUser',
+    closed: true,
+    hidden: true,
+    name: assertion,
+    reason: '',
+    isPrivate: false,
+    inviteLink: null
+  }
+}
+
+function updateNonUserState (state: NonUserState, action: NonUserActions): NonUserState {
+  switch (action.type) {
+    case Constants.showNonUser:
+      if (action.error) {
+        return state
+      }
+
+      return {
+        ...state,
+        closed: false,
+        hidden: false,
+        name: action.payload.assertion,
+        reason: `You tried to access ${action.payload.folderName}`,
+        isPrivate: action.payload.isPrivate,
+        inviteLink: action.payload.throttled ? null : action.payload.inviteLink
+      }
+    case Constants.onClose:
+      return {
+        ...state,
+        closed: true,
+        hidden: true
+      }
+    default:
+      return state
   }
 }
 
@@ -223,8 +276,12 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
 }
 
 export default function (state: State = initialState, action: Action): State {
-  const username: string = (action.payload && action.payload.username) ? action.payload.username : ''
-  const trackerState = username ? state.trackers[username] : null
+  const username: ?string = action.payload && action.payload.username
+  const assertion: ?string = action.payload && action.payload.assertion
+  const userKey = username || assertion
+
+  const trackerOrNonUserState = userKey ? state.trackers[userKey] : null
+
   switch (action.type) {
     case CommonConstants.resetStore:
       return {
@@ -243,9 +300,9 @@ export default function (state: State = initialState, action: Action): State {
       }
   }
 
-  if (trackerState) {
-    const newTrackerState = updateUserState(trackerState, action)
-    if (newTrackerState === trackerState) {
+  if (userKey && trackerOrNonUserState && trackerOrNonUserState.type === 'tracker') {
+    const newTrackerState = updateUserState(trackerOrNonUserState, action)
+    if (newTrackerState === trackerOrNonUserState) {
       return state
     }
 
@@ -253,7 +310,20 @@ export default function (state: State = initialState, action: Action): State {
       ...state,
       trackers: {
         ...state.trackers,
-        [username]: newTrackerState
+        [userKey]: newTrackerState
+      }
+    }
+  } else if (userKey && trackerOrNonUserState && trackerOrNonUserState.type === 'nonUser') {
+    const newNonUserState = updateNonUserState(trackerOrNonUserState, action)
+    if (newNonUserState === trackerOrNonUserState) {
+      return state
+    }
+
+    return {
+      ...state,
+      trackers: {
+        ...state.trackers,
+        [userKey]: newNonUserState
       }
     }
   } else {
@@ -265,16 +335,25 @@ export default function (state: State = initialState, action: Action): State {
           serverStarted
         }
       case Constants.updateUsername:
-        if (!action.payload) {
+        if (!action.payload || !userKey) {
           return state
         }
-        const username2 = action.payload.username
 
         return {
           ...state,
           trackers: {
             ...state.trackers,
-            [username]: initialTrackerState(username2)
+            [userKey]: initialTrackerState(userKey)
+          }
+        }
+      case Constants.showNonUser:
+        if (!userKey) return state
+
+        return {
+          ...state,
+          trackers: {
+            ...state.trackers,
+            [userKey]: updateNonUserState(initialNonUserState(userKey), action)
           }
         }
       default:

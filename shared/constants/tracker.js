@@ -1,5 +1,8 @@
 /* @flow */
 
+import type {identifyUi_displayTLFCreateWithInvite_rpc} from './types/flow-types'
+import type {TypedAction} from './types/flux'
+
 // Simple state of the overall proof result
 export type SimpleProofState = 'normal' | 'warning' | 'error' | 'checking' | 'revoked'
 export type SimpleProofMeta = 'upgraded' | 'new' | 'unreachable' | 'pending' | 'deleted' | 'none' | 'ignored'
@@ -36,6 +39,7 @@ export const updateProofState = 'tracker:updateProofState'
 export const reportLastTrack = 'tracker:reportLastTrack'
 
 export const onClose = 'tracker:onClose'
+export type OnClose = TypedAction<'tracker:onClose', void, void>
 
 export const onFollow = 'tracker:onFollow'
 export const onRefollow = 'tracker:onRefollow'
@@ -52,3 +56,8 @@ export const startTimer = 'tracker:startTimer'
 export const stopTimer = 'tracker:stopTimer'
 
 export const rpcUpdateTimerSeconds = 60 * 1000
+
+export const showNonUser = 'tracker:showNonUser'
+export type ShowNonUser = TypedAction<'tracker:showNonUser', identifyUi_displayTLFCreateWithInvite_rpc.param, void>
+
+export type NonUserActions = ShowNonUser | OnClose

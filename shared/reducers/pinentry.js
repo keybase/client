@@ -77,7 +77,7 @@ export default function (state: RootPinentryState = initialState, action: Pinent
       }
       return state
     default:
-      if (state.started && sessionID != null) {
+      if (state.started && sessionID != null && isPinentryAction(action)) {
         return {
           ...state,
           pinentryStates: {
@@ -87,6 +87,16 @@ export default function (state: RootPinentryState = initialState, action: Pinent
         }
       }
       return state
+  }
+}
+
+function isPinentryAction (action: Object | PinentryActions): boolean {
+  switch (action.type) {
+    case Constants.onCancel:
+    case Constants.onSubmit:
+      return true
+    default:
+      return false
   }
 }
 

@@ -15,6 +15,8 @@ import type {State as RootTrackerState} from '../reducers/tracker'
 import type {ConfigState} from '../reducers/config'
 import type {Action, Dispatch} from '../constants/types/flux'
 
+import type {ShowNonUser} from '../constants/tracker'
+
 import type {RemoteProof, LinkCheckResult, TrackOptions, UserCard, delegateUiCtl_registerIdentifyUI_rpc,
   track_checkTracking_rpc, track_untrack_rpc, track_trackWithToken_rpc, incomingCallMapType, identify_identify2_rpc} from '../constants/types/flow-types'
 
@@ -80,6 +82,13 @@ export function registerUserChangeListener (): TrackerActionCreator {
 
     engine.listenGeneralIncomingRpc(params)
     setNotifications({users: true})
+  }
+}
+
+export function registerTrackerIncomingRpcs (): TrackerActionCreator {
+  return dispatch => {
+    dispatch(registerTrackerChangeListener())
+    dispatch(registerUserChangeListener())
   }
 }
 
@@ -167,7 +176,8 @@ export function pushDebugTracker (username: string): (dispatch: Dispatch) => voi
 
 export function onRefollow (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
-    const {trackToken} = (getState().tracker.trackers[username] || {})
+    const state = getState().tracker.trackers[username]
+    const trackToken = state && state.type === 'tracker' ? state.trackToken : null
     const dispatchRefollowAction = () => {
       dispatch({
         type: Constants.onRefollow,
@@ -265,7 +275,7 @@ export function onIgnore (username: string): (dispatch: Dispatch, getState: () =
 export function onFollow (username: string, localIgnore: bool): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
   return (dispatch, getState) => {
     const trackerState = getState().tracker.trackers[username]
-    const {trackToken} = (trackerState || {})
+    const trackToken = trackerState && trackerState.type === 'tracker' ? trackerState.trackToken : null
 
     const dispatchFollowedAction = () => {
       dispatch({type: Constants.onFollow, payload: {username}})
@@ -339,6 +349,9 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
         payload: {username}
       })
     },
+
+    displayTLFCreateWithInvite: (args, response) => dispatch(({payload: args, type: Constants.showNonUser}: ShowNonUser)),
+
     displayKey: ({sessionID, key}) => {
       const username = sessionIDToUsername[sessionID]
 

@@ -3,14 +3,7 @@
 import React from 'react'
 import {Box, Text, Button, Icon} from '../common-adapters'
 import {globalColors, globalStyles} from '../styles/style-guide'
-
-type Props = {
-  name: string,
-  reason: string,
-  isPrivate: boolean,
-  inviteLink: ?string,
-  onClose: () => void
-}
+import type {Props} from './non-user'
 
 const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
   const message = inviteLink ? `You can message ${name} this link to skip the invitation queue:` : `Since you're out of invites, ${name} will need to request a signup on Keybase.io. Encourage them to join.`
