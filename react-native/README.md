@@ -30,7 +30,6 @@ gomobile init
 
 # Setup npm
 npm install
-npm-install -g react-native-cli
 ```
 
 Due to the react-native packager not handling symlinks (https://github.com/facebook/react-native/issues/637) we're watching our shared folder and copying the files over as they change. We use watchman to watch the folder and rsync to copy over the changes
