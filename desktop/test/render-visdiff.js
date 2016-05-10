@@ -5,7 +5,7 @@ import fs from 'fs'
 import _ from 'lodash'
 import {app, BrowserWindow, ipcMain} from 'electron'
 import {resolveRoot, resolveRootAsURL} from '../resolve-root'
-import dumbComponentMap from '../shared/more/dumb-component-map'
+import dumbComponentMap from '../shared/more/dumb-component-map.desktop'
 
 const outputDir = resolveRoot('screenshots')
 if (!fs.existsSync(outputDir)) {

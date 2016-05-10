@@ -8,9 +8,9 @@ import PinentryMap from '../pinentry/dumb.desktop'
 import DevicePageMap from '../devices/device-page/dumb.desktop'
 import DeviceRevokeMap from '../devices/device-revoke/dumb.desktop'
 import TabBarMap from '../tab-bar/dumb.desktop'
-import type {DumbMap} from './dumb'
+import type {DumbComponentMap} from './dumb'
 
-const map : DumbMap = {
+const map : DumbComponentMap = {
   ...CommonMap,
   ...DevicesMap,
   ...LoginMap,
