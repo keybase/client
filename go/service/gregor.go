@@ -109,6 +109,9 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 }
 
 func (g *gregorHandler) Shutdown() {
+	if g.conn == nil {
+		return
+	}
 	g.conn.Shutdown()
 	g.conn = nil
 }
