@@ -690,6 +690,15 @@
       "request": [],
       "response": "null"
     },
+    "getLatestFolderHandle": {
+      "request": [
+        {
+          "name": "folderID",
+          "type": "string"
+        }
+      ],
+      "response": "bytes"
+    },
     "getMerkleRoot": {
       "request": [
         {

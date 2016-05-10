@@ -39,6 +39,7 @@ protocol metadata {
   bytes getFolderHandle(string folderID, string signature, string challenge);
   void getFoldersForRekey(KID deviceKID);
   void ping();
+  bytes getLatestFolderHandle(string folderID);
 
   // Merkle tree specific commands
   // todo: we probably also want a method which will return a minmum set of interior nodes
