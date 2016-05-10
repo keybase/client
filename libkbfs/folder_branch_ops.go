@@ -3592,7 +3592,7 @@ func (fbo *folderBranchOps) SyncFromServerForTesting(
 
 	dirtyRefs := fbo.blocks.GetDirtyRefs(lState)
 	if len(dirtyRefs) > 0 {
-		for ref := range dirtyRefs {
+		for _, ref := range dirtyRefs {
 			fbo.log.CDebugf(ctx, "DeCache entry left: %v", ref)
 		}
 		return errors.New("Can't sync from server while dirty.")
