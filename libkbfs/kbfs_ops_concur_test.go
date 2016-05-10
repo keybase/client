@@ -1189,6 +1189,9 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	if _, err := config.BlockCache().Get(errPtr, MasterBranch); err == nil {
 		t.Errorf("Failed block put for %v left block in cache", errPtr)
 	}
+
+	// State checking won't happen on the mock block server since we
+	// leave ourselves in a dirty state.
 }
 
 // Test that writes that happen on a multi-block file concurrently

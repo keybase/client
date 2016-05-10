@@ -1289,3 +1289,158 @@ func TestBasicCRFileConflictWithMergedRekey(t *testing.T) {
 			children2, children2Dev2)
 	}
 }
+
+// Test that, when writing multiple blocks in parallel under conflict
+// resolution, one error will cancel the remaining puts and the block
+// server will be consistent.
+func TestCRSyncParallelBlocksErrorCleanup(t *testing.T) {
+	// simulate two users
+	var userName1, userName2 libkb.NormalizedUsername = "u1", "u2"
+	config1, _, ctx := kbfsOpsConcurInit(t, userName1, userName2)
+	defer CheckConfigAndShutdown(t, config1)
+	config1.MDServer().DisableRekeyUpdatesForTesting()
+
+	config2 := ConfigAsUser(config1.(*ConfigLocal), userName2)
+	defer CheckConfigAndShutdown(t, config2)
+	_, _, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	config2.MDServer().DisableRekeyUpdatesForTesting()
+
+	config2.SetClock(newTestClockNow())
+	name := userName1.String() + "," + userName2.String()
+
+	// make blocks small
+	blockSize := int64(5)
+	config1.BlockSplitter().(*BlockSplitterSimple).maxSize = blockSize
+
+	// create and write to a file
+	rootNode := GetRootNodeOrBust(t, config1, name, false)
+	kbfsOps1 := config1.KBFSOps()
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode, "a", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// look it up on user2
+	rootNode2 := GetRootNodeOrBust(t, config2, name, false)
+
+	kbfsOps2 := config2.KBFSOps()
+	_, _, err = kbfsOps2.Lookup(ctx, rootNode2, "a")
+	if err != nil {
+		t.Fatalf("Couldn't lookup dir: %v", err)
+	}
+	// disable updates and CR on user 2
+	c, err := DisableUpdatesForTesting(config2, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
+	err = DisableCRForTesting(config2, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
+
+	// User 1 creates a new file to start a conflict.
+	_, _, err = kbfsOps1.CreateFile(ctx, rootNode, "b", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// User 2 does one successful operation to create the first unmerged MD.
+	fileNodeB, _, err := kbfsOps2.CreateFile(ctx, rootNode2, "b", false)
+	if err != nil {
+		t.Fatalf("Couldn't create file: %v", err)
+	}
+
+	// Now user 2 makes a big write where most of the blocks get canceled.
+	// We only need to know the first time we stall.
+	onSyncStalledCh := make(chan struct{}, maxParallelBlockPuts)
+	syncUnstallCh := make(chan struct{})
+	stallKey := "requestName"
+	syncValue := "sync"
+
+	config2.SetBlockOps(&stallingBlockOps{
+		stallOpName: "Put",
+		stallKey:    stallKey,
+		stallMap: map[interface{}]staller{
+			syncValue: staller{
+				stalled: onSyncStalledCh,
+				unstall: syncUnstallCh,
+			},
+		},
+		delegate: config2.BlockOps(),
+	})
+
+	// User 2 writes some data
+	fileBlocks := int64(15)
+	var data []byte
+	for i := int64(0); i < blockSize*fileBlocks; i++ {
+		data = append(data, byte(i))
+	}
+	err = kbfsOps2.Write(ctx, fileNodeB, data, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write: %v", err)
+	}
+
+	// Start the sync and wait for it to stall.
+	var wg sync.WaitGroup
+	wg.Add(1)
+	syncCtx, cancel := context.WithCancel(context.Background())
+	var syncErr error
+	go func() {
+		defer wg.Done()
+
+		syncCtx = context.WithValue(syncCtx, stallKey, syncValue)
+		syncErr = kbfsOps2.Sync(syncCtx, fileNodeB)
+	}()
+	// Wait for 2 of the blocks and let them go
+	<-onSyncStalledCh
+	<-onSyncStalledCh
+	syncUnstallCh <- struct{}{}
+	syncUnstallCh <- struct{}{}
+
+	// Wait for the rest of the puts (this indicates that the first
+	// two succeeded correctly and two more were sent to replace them)
+	for i := 0; i < maxParallelBlockPuts; i++ {
+		<-onSyncStalledCh
+	}
+	// Cancel so all other block puts fail
+	cancel()
+	close(syncUnstallCh)
+	wg.Wait()
+
+	// Get the mdWriterLock to be sure the sync has exited (since the
+	// cleanup logic happens in a background goroutine)
+	ops := getOps(config2, rootNode2.GetFolderBranch().Tlf)
+	lState := makeFBOLockState()
+	ops.mdWriterLock.Lock(lState)
+	ops.mdWriterLock.Unlock(lState)
+
+	// The state checker will make sure those blocks from
+	// the failed sync get cleaned up.
+
+	// Now succeed with different data so CR can happen.
+	config2.SetBlockOps(config2.BlockOps().(*stallingBlockOps).delegate)
+	for i := int64(0); i < blockSize*fileBlocks; i++ {
+		data[i] = byte(i + 10)
+	}
+	err = kbfsOps2.Write(ctx, fileNodeB, data, 0)
+	if err != nil {
+		t.Fatalf("Couldn't write: %v", err)
+	}
+	err = kbfsOps2.Sync(ctx, fileNodeB)
+	if err != nil {
+		t.Fatalf("Couldn't sync: %v", err)
+	}
+
+	c <- struct{}{}
+	err = RestartCRForTesting(config2, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't disable updates: %v", err)
+	}
+	err = kbfsOps2.SyncFromServerForTesting(ctx, rootNode2.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+}

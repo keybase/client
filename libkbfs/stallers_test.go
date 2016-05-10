@@ -64,6 +64,11 @@ func (f *stallingBlockOps) Put(
 	ctx context.Context, md *RootMetadata, blockPtr BlockPointer,
 	readyBlockData ReadyBlockData) error {
 	f.maybeStall(ctx, "Put")
+	select {
+	case <-ctx.Done():
+		return ctx.Err()
+	default:
+	}
 	err := f.delegate.Put(ctx, md, blockPtr, readyBlockData)
 	select {
 	case <-ctx.Done():
