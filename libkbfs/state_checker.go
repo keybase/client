@@ -189,16 +189,24 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 			_, isGCOp := op.(*gcOp)
 			hasGCOp = hasGCOp || isGCOp
 
+			opRefs := make(map[BlockPointer]bool)
 			for _, ptr := range op.Refs() {
 				if ptr != zeroPtr {
 					expectedLiveBlocks[ptr] = true
+					opRefs[ptr] = true
 				}
 			}
 			if _, ok := op.(*gcOp); !ok {
 				for _, ptr := range op.Unrefs() {
 					delete(expectedLiveBlocks, ptr)
 					if ptr != zeroPtr {
-						if rmd.Revision <= gcRevision {
+						// If the revision has been garbage-collected,
+						// or if the pointer has been referenced and
+						// unreferenced within the same op (which
+						// indicates a failed and retried sync), the
+						// corresponding block should already be
+						// cleaned up.
+						if rmd.Revision <= gcRevision || opRefs[ptr] {
 							delete(archivedBlocks, ptr)
 						} else {
 							archivedBlocks[ptr] = true
