@@ -1,4 +1,4 @@
-package io.keybase.android.keystore;
+package io.keybase.ossifrage.keystore;
 
 import android.annotation.TargetApi;
 import android.content.Context;

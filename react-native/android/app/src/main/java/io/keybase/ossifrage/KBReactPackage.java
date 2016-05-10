@@ -1,4 +1,4 @@
-package io.keybase.android;
+package io.keybase.ossifrage;
 
 import com.facebook.react.bridge.JavaScriptModule;
 import com.facebook.react.bridge.NativeModule;
@@ -10,9 +10,9 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import io.keybase.android.components.VisiblePassReactEditTextManager;
-import io.keybase.android.modules.KeybaseEngine;
-import io.keybase.android.modules.KillableModule;
+import io.keybase.ossifrage.components.VisiblePassReactEditTextManager;
+import io.keybase.ossifrage.modules.KeybaseEngine;
+import io.keybase.ossifrage.modules.KillableModule;
 
 public class KBReactPackage implements com.facebook.react.ReactPackage {
     private List<KillableModule> killableModules = new ArrayList<>();

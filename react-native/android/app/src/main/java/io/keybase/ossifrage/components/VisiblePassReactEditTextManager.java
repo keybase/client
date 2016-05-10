@@ -1,4 +1,4 @@
-package io.keybase.android.components;
+package io.keybase.ossifrage.components;
 
 import android.text.InputType;
 
