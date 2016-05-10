@@ -1872,6 +1872,12 @@ func (fbo *folderBlockOps) CleanupSyncState(
 		}
 	}
 
+	// The sync is over, due to an error, so reset the map so that we
+	// don't defer any subsequent writes.
+	fbo.blockLock.Lock(lState)
+	defer fbo.blockLock.Unlock(lState)
+	fbo.fileBlockStates = make(map[BlockPointer]syncBlockState)
+
 	// TODO: Clear deferredWrites and deferredDirtyDeletes?
 }
 
