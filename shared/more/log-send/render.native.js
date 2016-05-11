@@ -9,11 +9,16 @@ import {Linking, Clipboard} from 'react-native'
 import type {Props} from './render'
 
 type State = {
-  copiedToClipboard?: ?boolean
+  copiedToClipboard: boolean
 }
 
 export default class Render extends Component<void, Props, State> {
   state: State;
+
+  constructor (props: Props) {
+    super(props)
+    this.state = {copiedToClipboard: false}
+  }
 
   _copyToClipboard () {
     Clipboard.setString(this.props.logSendId || '')
@@ -41,7 +46,7 @@ export default class Render extends Component<void, Props, State> {
             onClick={() => this._copyToClipboard()}>
             {this.props.logSendId} (tap to copy)
           </Text>
-          {!!this.state.copiedToClipboard && <Text type='Body'>Copied to clipboard!</Text>}
+          {this.state.copiedToClipboard && <Text type='Body'>Copied to clipboard!</Text>}
 
           <Text type='Body'>Send us the log id along with your problem in this github issue:</Text>
           <Button type='Primary' label='File a github issue:' onClick={onSubmitIssue} />
