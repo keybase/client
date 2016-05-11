@@ -187,7 +187,7 @@ class Menubar extends Component {
 
 export default connect(
   state => ({
-    username: state.config && state.config.status && state.config.status.user && state.config.status.user.username,
+    username: state.config && state.config.username,
     loggedIn: state.config && state.config.status && state.config.status.loggedIn,
     folders: state.favorite && state.favorite.folders
   }),

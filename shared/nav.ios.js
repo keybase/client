@@ -183,11 +183,11 @@ const styles = StyleSheet.create({
 })
 
 export default connect(
-  ({tabbedRouter, config: {bootstrapped, extendedConfig, status}}) => ({
+  ({tabbedRouter, config: {bootstrapped, extendedConfig, username}}) => ({
     tabbedRouter,
     bootstrapped,
     provisioned: extendedConfig && !!extendedConfig.device,
-    username: status && status.user && status.user.username
+    username
   }),
   dispatch => {
     return {

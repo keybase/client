@@ -122,7 +122,7 @@ export function kbfsNotification (notification: FSNotification, notify: any, get
   let body = `Files in ${tlf} ${notification.status}`
   let user = 'You'
   try {
-    user = getState().config.status.user.username
+    user = getState().config.username
   } catch (e) {}
   // Don't show starting or finished, but do show error.
   if (notification.statusCode === enums.kbfs.FSStatusCode.error) {

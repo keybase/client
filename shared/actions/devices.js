@@ -89,7 +89,7 @@ export function removeDevice (deviceID: string, name: string, currentDevice: boo
       // Revoking the current device uses the "deprovision" RPC instead.
       let username
       try {
-        username = getState().config.status.user.username
+        username = getState().config.username
       } catch (e) {
         console.warn(`Couldn't get username: ${e}`)
         return

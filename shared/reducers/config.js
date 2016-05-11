@@ -10,6 +10,7 @@ export type ConfigState = {
   status: ?GetCurrentStatusRes;
   config: ?Config;
   extendedConfig: ?ExtendedStatus;
+  username: ?string;
   kbfsPath: string;
   error: ?any;
   devConfig: ?any;
@@ -20,6 +21,7 @@ const initialState: ConfigState = {
   status: null,
   config: null,
   extendedConfig: null,
+  username: null,
   kbfsPath: Constants.defaultKBFSPath,
   error: null,
   devConfig: null,
@@ -68,9 +70,11 @@ export default function (state: ConfigState = initialState, action: Action): Con
 
     case Constants.statusLoaded:
       if (action.payload && action.payload.status) {
+        const status = action.payload.status
         return {
           ...state,
-          status: action.payload.status
+          status,
+          username: status.user && status.user.username
         }
       }
       return state
