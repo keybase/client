@@ -4,9 +4,17 @@
 package client
 
 import (
+	"bufio"
+	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"fmt"
+	"mime/multipart"
+	"os"
 	"path/filepath"
+	"strings"
+
+	"github.com/rogpeppe/rog-go/reverse"
 
 	"github.com/keybase/cli"
 	"github.com/keybase/client/go/libcmdline"
@@ -76,13 +84,22 @@ func (c *CmdLogSend) Run() error {
 
 	logs := c.logFiles(status)
 
-	id, err := c.LogSend(statusJSON, logs, c.numLines)
-	if err != nil {
-		return err
-	}
+	c.G().Log.Debug("tailing kbfs log %q", logs.kbfs)
+	kbfsLog := c.tail(logs.kbfs, c.numLines)
 
-	c.outputInstructions(id)
-	return nil
+	c.G().Log.Debug("tailing service log %q", logs.service)
+	svcLog := c.tail(logs.service, c.numLines)
+
+	c.G().Log.Debug("tailing desktop log %q", logs.desktop)
+	desktopLog := c.tail(logs.desktop, c.numLines)
+
+	c.G().Log.Debug("tailing updater log %q", logs.updater)
+	updaterLog := c.tail(logs.updater, c.numLines)
+
+	c.G().Log.Debug("tailing start log %q", logs.start)
+	startLog := c.tail(logs.start, c.numLines)
+
+	return c.post(statusJSON, kbfsLog, svcLog, desktopLog, updaterLog, startLog)
 }
 
 func (c *CmdLogSend) confirm() error {
@@ -95,6 +112,57 @@ func (c *CmdLogSend) confirm() error {
 	return ui.PromptForConfirmation("Continue sending logs to keybase.io?")
 }
 
+func (c *CmdLogSend) post(status, kbfsLog, svcLog, desktopLog, updaterLog, startLog string) error {
+	c.G().Log.Debug("sending status + logs to keybase")
+
+	var body bytes.Buffer
+	mpart := multipart.NewWriter(&body)
+
+	if err := addFile(mpart, "status_gz", "status.gz", status); err != nil {
+		return err
+	}
+	if err := addFile(mpart, "kbfs_log_gz", "kbfs_log.gz", kbfsLog); err != nil {
+		return err
+	}
+	if err := addFile(mpart, "keybase_log_gz", "keybase_log.gz", svcLog); err != nil {
+		return err
+	}
+	if err := addFile(mpart, "updater_log_gz", "updater_log.gz", updaterLog); err != nil {
+		return err
+	}
+	if err := addFile(mpart, "gui_log_gz", "gui_log.gz", desktopLog); err != nil {
+		return err
+	}
+	if err := addFile(mpart, "start_log_gz", "start_log.gz", startLog); err != nil {
+		return err
+	}
+
+	if err := mpart.Close(); err != nil {
+		return err
+	}
+
+	c.G().Log.Debug("body size: %d\n", body.Len())
+
+	arg := libkb.APIArg{
+		Contextified: libkb.NewContextified(c.G()),
+		Endpoint:     "logdump/send",
+	}
+
+	resp, err := c.G().API.PostRaw(arg, mpart.FormDataContentType(), &body)
+	if err != nil {
+		c.G().Log.Debug("post error: %s", err)
+		return err
+	}
+
+	id, err := resp.Body.AtKey("logdump_id").GetString()
+	if err != nil {
+		return err
+	}
+
+	c.outputInstructions(id)
+	return nil
+}
+
 func (c *CmdLogSend) outputInstructions(id string) {
 	ui := c.G().UI.GetTerminalUI()
 
@@ -105,6 +173,50 @@ func (c *CmdLogSend) outputInstructions(id string) {
 	ui.Output("  https://github.com/keybase/client/issues/new?body=[write%20something%20useful%20and%20descriptive%20here]%0A%0Amy%20log%20id:%20" + id)
 	ui.Printf("\n\nThanks!\n")
 	ui.Printf("------------\n\n")
+}
+
+func addFile(mpart *multipart.Writer, param, filename, data string) error {
+	if len(data) == 0 {
+		return nil
+	}
+
+	part, err := mpart.CreateFormFile(param, filename)
+	if err != nil {
+		return err
+	}
+	gz := gzip.NewWriter(part)
+	if _, err := gz.Write([]byte(data)); err != nil {
+		return err
+	}
+	if err := gz.Close(); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *CmdLogSend) tail(filename string, numLines int) string {
+	f, err := os.Open(filename)
+	if err != nil {
+		c.G().Log.Warning("error opening log %q: %s", filename, err)
+		return ""
+	}
+	b := reverse.NewScanner(f)
+	b.Split(bufio.ScanLines)
+
+	var lines []string
+	for b.Scan() {
+		lines = append(lines, b.Text())
+		if len(lines) == numLines {
+			break
+		}
+	}
+
+	for left, right := 0, len(lines)-1; left < right; left, right = left+1, right-1 {
+		lines[left], lines[right] = lines[right], lines[left]
+	}
+
+	return strings.Join(lines, "\n")
 }
 
 func (c *CmdLogSend) ParseArgv(ctx *cli.Context) error {
@@ -127,24 +239,24 @@ func (c *CmdLogSend) GetUsage() libkb.Usage {
 	}
 }
 
-func (c *CmdLogSend) logFiles(status *fstatus) libkb.Logs {
+func (c *CmdLogSend) logFiles(status *fstatus) logs {
 	logDir := c.G().Env.GetLogDir()
 	if status != nil {
-		return libkb.Logs{
-			Desktop: status.Desktop.Log,
-			Kbfs:    status.KBFS.Log,
-			Service: status.Service.Log,
-			Updater: status.Updater.Log,
-			Start:   status.Start.Log,
+		return logs{
+			desktop: status.Desktop.Log,
+			kbfs:    status.KBFS.Log,
+			service: status.Service.Log,
+			updater: status.Updater.Log,
+			start:   status.Start.Log,
 		}
 	}
 
-	return libkb.Logs{
-		Desktop: filepath.Join(logDir, libkb.DesktopLogFileName),
-		Kbfs:    filepath.Join(logDir, libkb.KBFSLogFileName),
-		Service: filepath.Join(logDir, libkb.ServiceLogFileName),
-		Updater: filepath.Join(logDir, libkb.UpdaterLogFileName),
-		Start:   filepath.Join(logDir, libkb.StartLogFileName),
+	return logs{
+		desktop: filepath.Join(logDir, libkb.DesktopLogFileName),
+		kbfs:    filepath.Join(logDir, libkb.KBFSLogFileName),
+		service: filepath.Join(logDir, libkb.ServiceLogFileName),
+		updater: filepath.Join(logDir, libkb.UpdaterLogFileName),
+		start:   filepath.Join(logDir, libkb.StartLogFileName),
 	}
 }
 
