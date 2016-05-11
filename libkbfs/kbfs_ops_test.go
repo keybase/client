@@ -256,7 +256,7 @@ func injectNewRMD(t *testing.T, config *ConfigMock) (
 	// Need to do this to avoid multiple calls to the mocked-out
 	// MakeMdID above, leading to confusion.
 	rmd.mdID = fakeMdID(fakeTlfIDByte(id))
-	AddNewEmptyKeysOrBust(t, rmd)
+	FakeInitialRekey(rmd, h.BareTlfHandle)
 
 	ops := getOps(config, id)
 	ops.head = rmd
@@ -415,9 +415,9 @@ func (p ptrMatcher) String() string {
 func fillInNewMD(t *testing.T, config *ConfigMock, rmd *RootMetadata) (
 	rootPtr BlockPointer, plainSize int, readyBlockData ReadyBlockData) {
 	if !rmd.ID.IsPublic() {
-		config.mockKeyman.EXPECT().Rekey(gomock.Any(), rmd).
-			Do(func(ctx context.Context, rmd *RootMetadata) {
-				AddNewEmptyKeysOrBust(t, rmd)
+		config.mockKeyman.EXPECT().Rekey(gomock.Any(), rmd, gomock.Any()).
+			Do(func(ctx context.Context, rmd *RootMetadata, promptPaper bool) {
+				FakeInitialRekey(rmd, rmd.GetTlfHandle().BareTlfHandle)
 			}).Return(true, nil, nil)
 	}
 	rootPtr = BlockPointer{

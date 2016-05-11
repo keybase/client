@@ -177,7 +177,7 @@ func TestRootMetadataLatestKeyGenerationPrivate(t *testing.T) {
 	if rmd.LatestKeyGeneration() != 0 {
 		t.Errorf("Expected key generation to be invalid (0)")
 	}
-	AddNewEmptyKeysOrBust(t, rmd)
+	FakeInitialRekey(rmd, h.BareTlfHandle)
 	if rmd.LatestKeyGeneration() != FirstValidKeyGen {
 		t.Errorf("Expected key generation to be valid(%d)", FirstValidKeyGen)
 	}
@@ -560,7 +560,7 @@ func TestRootMetadataVersion(t *testing.T) {
 		t.Fatalf("Couldn't make MD successor: %v", err)
 	}
 	FakeInitialRekey(rmd3, h3.BareTlfHandle)
-	err = rmd3.updateTlfHandle(h3)
+	err = rmd3.updateFromTlfHandle(h3)
 	if err != nil {
 		t.Fatalf("Couldn't update TLF handle: %v", err)
 	}

@@ -673,10 +673,10 @@ func (md *RootMetadata) VerifyWriterMetadata(codec Codec, crypto Crypto) error {
 	return nil
 }
 
-// updateTlfHandle updates the current RootMetadata's fields to
+// updateFromTlfHandle updates the current RootMetadata's fields to
 // reflect the given handle, which must be the result of running the
 // current handle with ResolveAgain().
-func (md *RootMetadata) updateTlfHandle(newHandle *TlfHandle) error {
+func (md *RootMetadata) updateFromTlfHandle(newHandle *TlfHandle) error {
 	// TODO: Strengthen check, e.g. make sure every writer/reader
 	// in the old handle is also a writer/reader of the new
 	// handle.

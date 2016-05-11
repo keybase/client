@@ -633,39 +633,6 @@ func TestMDOpsPutPublicSuccess(t *testing.T) {
 	validatePutPublicRMDS(ctx, t, config, &rmd, rmds)
 }
 
-func TestMDOpsPutPublicResolveAgainSuccess(t *testing.T) {
-	config := MakeTestConfigOrBust(t, "alice", "bob")
-	defer CheckConfigAndShutdown(t, config)
-
-	var mdServer fakeMDServerPut
-	config.SetMDServer(&mdServer)
-
-	id := FakeTlfID(1, true)
-	ctx := context.Background()
-	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), "alice,bob@twitter", true, true)
-	require.Nil(t, err)
-
-	var rmd RootMetadata
-	err = updateNewRootMetadata(&rmd, id, h.BareTlfHandle)
-	require.Nil(t, err)
-	rmd.data = makeFakePrivateMetadataFuture(t).toCurrent()
-	rmd.tlfHandle = h
-
-	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
-	daemon.addNewAssertionForTest("bob", "bob@twitter")
-
-	err = config.MDOps().Put(ctx, &rmd)
-
-	expectedH := parseTlfHandleOrBust(t, config, "alice,bob", true)
-	var expectedRmd RootMetadata
-	err = updateNewRootMetadata(&expectedRmd, id, expectedH.BareTlfHandle)
-	require.Nil(t, err)
-
-	rmds := mdServer.getLastRmds()
-	validatePutPublicRMDS(ctx, t, config, &expectedRmd, rmds)
-}
-
 func TestMDOpsPutPrivateSuccess(t *testing.T) {
 	mockCtrl, config, ctx := mdOpsInit(t)
 	defer mdOpsShutdown(mockCtrl, config)

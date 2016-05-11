@@ -417,26 +417,25 @@ type KeyManager interface {
 	GetTLFCryptKeyForBlockDecryption(ctx context.Context, md *RootMetadata,
 		blockPtr BlockPointer) (TLFCryptKey, error)
 
-	// Rekey checks the given MD object (which must not represent a
-	// public TLF) against the current set of device keys for all
-	// valid readers and writers.  If there are any new devices, it
+	// Rekey checks the given MD object, if it is a private TLF,
+	// against the current set of device keys for all valid
+	// readers and writers.  If there are any new devices, it
 	// updates all existing key generations to include the new
 	// devices.  If there are devices that have been removed, it
-	// creates a new epoch of keys for the TLF.  If no devices have
-	// changed, or if there was an error, it returns false.
-	// Otherwise, it returns true. If a new key generation is added
-	// the second return value points to this new key. This is to
-	// allow for caching of the TLF crypt key only after a successful
-	// merged write of the metadata. Otherwise we could prematurely
-	// pollute the key cache.
+	// creates a new epoch of keys for the TLF.  If no devices
+	// have changed, or if there was an error, it returns false.
+	// Otherwise, it returns true. If a new key generation is
+	// added the second return value points to this new key. This
+	// is to allow for caching of the TLF crypt key only after a
+	// successful merged write of the metadata. Otherwise we could
+	// prematurely pollute the key cache.
 	//
-	// Does not prompt the user for any unlocked paper keys.
-	Rekey(ctx context.Context, md *RootMetadata) (bool, *TLFCryptKey, error)
-
-	// Just like Rekey(), but also prompts for any unlocked paper
-	// keys.
-	RekeyWithPrompt(ctx context.Context, md *RootMetadata) (
-		bool, *TLFCryptKey, error)
+	// If the given MD object is a public TLF, it simply updates
+	// the TLF's handle with any newly-resolved writers.
+	//
+	// If promptPaper is set, prompts for any unlocked paper keys.
+	// promptPaper shouldn't be set if md is for a public TLF.
+	Rekey(ctx context.Context, md *RootMetadata, promptPaper bool) (bool, *TLFCryptKey, error)
 }
 
 // Reporter exports events (asynchronously) to any number of sinks

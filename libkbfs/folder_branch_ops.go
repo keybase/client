@@ -763,9 +763,14 @@ func (fbo *folderBranchOps) initMDLocked(
 	if md.ID.IsPublic() {
 		expectedKeyGen = PublicKeyGen
 	} else {
+		var rekeyDone bool
 		// create a new set of keys for this metadata
-		if _, tlfCryptKey, err = fbo.config.KeyManager().Rekey(ctx, md); err != nil {
+		rekeyDone, tlfCryptKey, err = fbo.config.KeyManager().Rekey(ctx, md, false)
+		if err != nil {
 			return err
+		}
+		if !rekeyDone {
+			return fmt.Errorf("Initial rekey unexpectedly not done for private TLF %v", md.ID)
 		}
 		expectedKeyGen = FirstValidKeyGen
 	}
@@ -3432,14 +3437,8 @@ func (fbo *folderBranchOps) rekeyLocked(ctx context.Context,
 		}
 	}
 
-	var tlfCryptKey *TLFCryptKey
-	var rekeyDone bool
-	if promptPaper {
-		rekeyDone, tlfCryptKey, err = fbo.config.KeyManager().
-			RekeyWithPrompt(ctx, md)
-	} else {
-		rekeyDone, tlfCryptKey, err = fbo.config.KeyManager().Rekey(ctx, md)
-	}
+	rekeyDone, tlfCryptKey, err := fbo.config.KeyManager().
+		Rekey(ctx, md, promptPaper)
 
 	stillNeedsRekey := false
 	switch err.(type) {

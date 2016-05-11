@@ -255,12 +255,6 @@ func AddNewKeysOrBust(t logger.TestLogBackend, rmd *RootMetadata, wkb TLFWriterK
 	}
 }
 
-// AddNewEmptyKeysOrBust adds new empty keys to root metadata and
-// blows up on error.
-func AddNewEmptyKeysOrBust(t logger.TestLogBackend, rmd *RootMetadata) {
-	AddNewKeysOrBust(t, rmd, NewEmptyTLFWriterKeyBundle(), NewEmptyTLFReaderKeyBundle())
-}
-
 func keySaltForUserDevice(name libkb.NormalizedUsername,
 	index int) libkb.NormalizedUsername {
 	if index > 0 {

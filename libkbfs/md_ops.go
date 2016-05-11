@@ -438,15 +438,6 @@ func (md *MDOpsStandard) readyMD(ctx context.Context, rmd *RootMetadata) (
 		rmd.LastModifyingWriter = me
 
 		if rmd.ID.IsPublic() {
-			resolvedHandle, err := rmd.GetTlfHandle().ResolveAgain(ctx, md.config.KBPKI())
-			if err != nil {
-				return nil, err
-			}
-			err = rmd.updateTlfHandle(resolvedHandle)
-			if err != nil {
-				return nil, err
-			}
-
 			// Encode the private metadata
 			encodedPrivateMetadata, err := codec.Encode(rmd.data)
 			if err != nil {

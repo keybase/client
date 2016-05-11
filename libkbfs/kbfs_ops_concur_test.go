@@ -560,15 +560,10 @@ func (km *mdRecordingKeyManager) GetTLFCryptKeyForBlockDecryption(
 }
 
 func (km *mdRecordingKeyManager) Rekey(
-	ctx context.Context, md *RootMetadata) (bool, *TLFCryptKey, error) {
+	ctx context.Context, md *RootMetadata, promptPaper bool) (
+	bool, *TLFCryptKey, error) {
 	km.setLastMD(md)
-	return km.delegate.Rekey(ctx, md)
-}
-
-func (km *mdRecordingKeyManager) RekeyWithPrompt(
-	ctx context.Context, md *RootMetadata) (bool, *TLFCryptKey, error) {
-	km.setLastMD(md)
-	return km.delegate.RekeyWithPrompt(ctx, md)
+	return km.delegate.Rekey(ctx, md, promptPaper)
 }
 
 // Test that a sync can happen concurrently with a write. This is a

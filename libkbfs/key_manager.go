@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"fmt"
 	"reflect"
 
 	"github.com/keybase/client/go/logger"
@@ -381,16 +382,21 @@ func (km *KeyManagerStandard) generateKeyMapForUsers(ctx context.Context, users 
 }
 
 // Rekey implements the KeyManager interface for KeyManagerStandard.
-func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
-	promptPaper bool) (
+func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promptPaper bool) (
 	rekeyDone bool, cryptKey *TLFCryptKey, err error) {
 	km.log.CDebugf(ctx, "Rekey %s (prompt for paper key: %t)",
 		md.ID, promptPaper)
 	defer func() { km.log.CDebugf(ctx, "Rekey %s done: %#v", md.ID, err) }()
 
 	currKeyGen := md.LatestKeyGeneration()
-	if md.ID.IsPublic() || currKeyGen == PublicKeyGen {
-		return false, nil, InvalidPublicTLFOperation{md.ID, "rekey"}
+	if md.ID.IsPublic() != (currKeyGen == PublicKeyGen) {
+		return false, nil, fmt.Errorf(
+			"ID %v has isPublic=%t but currKeyGen is %d (isPublic=%t)",
+			md.ID, md.ID.IsPublic(), currKeyGen, currKeyGen == PublicKeyGen)
+	}
+
+	if promptPaper && md.ID.IsPublic() {
+		return false, nil, fmt.Errorf("promptPaper set for public TLF %v", md.ID)
 	}
 
 	handle := md.GetTlfHandle()
@@ -406,7 +412,7 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 	}
 
 	isWriter := resolvedHandle.IsWriter(uid)
-	if !isWriter {
+	if !md.ID.IsPublic() && !isWriter {
 		// If I was already a reader, there's nothing more to do
 		if handle.IsReader(uid) {
 			resolvedHandle = handle
@@ -427,6 +433,18 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 		km.log.CDebugf(ctx, "handle for %s resolved to %s",
 			handle.GetCanonicalPath(),
 			resolvedHandle.GetCanonicalPath())
+	}
+
+	// For a public TLF there's no rekeying to be done, but we
+	// should still update the writer list.
+	if md.ID.IsPublic() {
+		if !handleChanged {
+			km.log.CDebugf(ctx,
+				"Skipping rekeying %s (public): handle hasn't changed",
+				md.ID)
+			return false, nil, nil
+		}
+		return true, nil, md.updateFromTlfHandle(resolvedHandle)
 	}
 
 	// Decide whether we have a new device and/or a revoked device, or neither.
@@ -484,7 +502,8 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 
 	if !addNewReaderDevice && !addNewWriterDevice && !incKeyGen &&
 		!handleChanged {
-		km.log.CDebugf(ctx, "Skipping rekeying %s: no new or removed devices",
+		km.log.CDebugf(ctx,
+			"Skipping rekeying %s (private): no new or removed devices, no new keygen, and handle hasn't changed",
 			md.ID)
 		return false, nil, nil
 	}
@@ -550,7 +569,7 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 		// if at least part of a rekey was performed.
 		_, isRekeyIncomplete := err.(RekeyIncompleteError)
 		if err == nil || isRekeyIncomplete {
-			updateErr := md.updateTlfHandle(resolvedHandle)
+			updateErr := md.updateFromTlfHandle(resolvedHandle)
 			if updateErr != nil {
 				err = updateErr
 			}
@@ -614,17 +633,4 @@ func (km *KeyManagerStandard) doRekey(ctx context.Context, md *RootMetadata,
 	}
 
 	return true, &tlfCryptKey, nil
-}
-
-// Rekey implements the KeyManager interface for KeyManagerStandard.
-func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata) (
-	rekeyDone bool, cryptKey *TLFCryptKey, err error) {
-	return km.doRekey(ctx, md, false)
-}
-
-// RekeyWithPrompt implements the KeyManager interface for
-// KeyManagerStandard.
-func (km *KeyManagerStandard) RekeyWithPrompt(ctx context.Context,
-	md *RootMetadata) (rekeyDone bool, cryptKey *TLFCryptKey, err error) {
-	return km.doRekey(ctx, md, true)
 }

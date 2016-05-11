@@ -144,7 +144,7 @@ func TestKeyManagerCachedSecretKeyForEncryptionSuccess(t *testing.T) {
 	id := FakeTlfID(1, false)
 	h := parseTlfHandleOrBust(t, config, "alice", false)
 	rmd := newRootMetadataOrBust(t, id, h)
-	AddNewEmptyKeysOrBust(t, rmd)
+	FakeInitialRekey(rmd, h.BareTlfHandle)
 
 	expectCachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration())
 
@@ -161,7 +161,7 @@ func TestKeyManagerCachedSecretKeyForMDDecryptionSuccess(t *testing.T) {
 	id := FakeTlfID(1, false)
 	h := parseTlfHandleOrBust(t, config, "alice", false)
 	rmd := newRootMetadataOrBust(t, id, h)
-	AddNewEmptyKeysOrBust(t, rmd)
+	FakeInitialRekey(rmd, h.BareTlfHandle)
 
 	expectCachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration())
 
@@ -178,8 +178,9 @@ func TestKeyManagerCachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
 	id := FakeTlfID(1, false)
 	h := parseTlfHandleOrBust(t, config, "alice", false)
 	rmd := newRootMetadataOrBust(t, id, h)
-	AddNewEmptyKeysOrBust(t, rmd)
-	AddNewEmptyKeysOrBust(t, rmd)
+	FakeInitialRekey(rmd, h.BareTlfHandle)
+	// Add a second key generation.
+	AddNewKeysOrBust(t, rmd, NewEmptyTLFWriterKeyBundle(), NewEmptyTLFReaderKeyBundle())
 
 	keyGen := rmd.LatestKeyGeneration() - 1
 	expectCachedGetTLFCryptKey(config, rmd, keyGen)
@@ -266,27 +267,6 @@ func TestKeyManagerUncachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
 	}
 }
 
-func TestKeyManagerRekeyFailurePublic(t *testing.T) {
-	mockCtrl, config, ctx := keyManagerInit(t)
-	defer keyManagerShutdown(mockCtrl, config)
-
-	id := FakeTlfID(1, true)
-	h := parseTlfHandleOrBust(t, config, "alice", true)
-	rmd := newRootMetadataOrBust(t, id, h)
-	if rmd.LatestKeyGeneration() != PublicKeyGen {
-		t.Errorf("Expected %d, got %d", rmd.LatestKeyGeneration(), PublicKeyGen)
-	}
-
-	if _, _, err := config.KeyManager().
-		Rekey(ctx, rmd); err != (InvalidPublicTLFOperation{id, "rekey"}) {
-		t.Errorf("Got unexpected error on rekey: %v", err)
-	}
-
-	if rmd.LatestKeyGeneration() != PublicKeyGen {
-		t.Errorf("Expected %d, got %d", rmd.LatestKeyGeneration(), PublicKeyGen)
-	}
-}
-
 func TestKeyManagerRekeySuccessPrivate(t *testing.T) {
 	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
@@ -298,11 +278,82 @@ func TestKeyManagerRekeySuccessPrivate(t *testing.T) {
 
 	expectRekey(config, rmd, 1)
 
-	if done, _, err := config.KeyManager().Rekey(ctx, rmd); !done || err != nil {
+	if done, _, err := config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
 		t.Errorf("Got error on rekey: %t, %v", done, err)
 	} else if rmd.LatestKeyGeneration() != oldKeyGen+1 {
 		t.Errorf("Bad key generation after rekey: %d", rmd.LatestKeyGeneration())
 	}
+}
+
+func TestKeyManagerRekeyResolveAgainSuccessPublic(t *testing.T) {
+	mockCtrl, config, ctx := keyManagerInit(t)
+	defer keyManagerShutdown(mockCtrl, config)
+	config.SetSharingBeforeSignupEnabled(true)
+
+	id := FakeTlfID(1, true)
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), "alice,bob@twitter",
+		true, true)
+	require.Nil(t, err)
+	rmd := newRootMetadataOrBust(t, id, h)
+
+	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
+	daemon.addNewAssertionForTest("bob", "bob@twitter")
+
+	done, cryptKey, err := config.KeyManager().Rekey(ctx, rmd, false)
+	require.True(t, done)
+	require.Nil(t, cryptKey)
+	require.Nil(t, err)
+
+	newH := rmd.GetTlfHandle()
+	require.Equal(t, CanonicalTlfName("alice,bob"), newH.GetCanonicalName())
+
+	// Also check MakeBareTlfHandle.
+	oldHandle := rmd.tlfHandle
+	rmd.tlfHandle = nil
+	newBareH, err := rmd.MakeBareTlfHandle()
+	require.Nil(t, err)
+	require.Equal(t, newH.BareTlfHandle, newBareH)
+	rmd.tlfHandle = oldHandle
+
+	// Rekey again, which shouldn't do anything.
+	done, cryptKey, err = config.KeyManager().Rekey(ctx, rmd, false)
+	require.False(t, done)
+	require.Nil(t, cryptKey)
+	require.Nil(t, err)
+}
+
+func TestKeyManagerRekeyResolveAgainSuccessPublicSelf(t *testing.T) {
+	mockCtrl, config, ctx := keyManagerInit(t)
+	defer keyManagerShutdown(mockCtrl, config)
+	config.SetSharingBeforeSignupEnabled(true)
+
+	id := FakeTlfID(1, true)
+	h, err := ParseTlfHandle(
+		ctx, config.KBPKI(), "alice@twitter,bob,charlie@twitter",
+		true, true)
+	require.Nil(t, err)
+	rmd := newRootMetadataOrBust(t, id, h)
+
+	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
+	daemon.addNewAssertionForTest("alice", "alice@twitter")
+	daemon.addNewAssertionForTest("charlie", "charlie@twitter")
+
+	done, cryptKey, err := config.KeyManager().Rekey(ctx, rmd, false)
+	require.True(t, done)
+	require.Nil(t, cryptKey)
+	require.Nil(t, err)
+
+	newH := rmd.GetTlfHandle()
+	require.Equal(t, CanonicalTlfName("alice,bob,charlie"), newH.GetCanonicalName())
+
+	// Also check MakeBareTlfHandle.
+	oldHandle := rmd.tlfHandle
+	rmd.tlfHandle = nil
+	newBareH, err := rmd.MakeBareTlfHandle()
+	require.Nil(t, err)
+	require.Equal(t, newH.BareTlfHandle, newBareH)
+	rmd.tlfHandle = oldHandle
 }
 
 func TestKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T) {
@@ -327,7 +378,7 @@ func TestKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	daemon.addNewAssertionForTest("bob", "bob@twitter")
 	daemon.addNewAssertionForTest("charlie", "charlie@twitter")
 
-	if done, _, err := config.KeyManager().Rekey(ctx, rmd); !done || err != nil {
+	if done, _, err := config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
 		t.Fatalf("Got error on rekey: %t, %v", done, err)
 	}
 
@@ -357,7 +408,7 @@ func TestKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	config.mockKbpki.EXPECT().GetCryptPublicKeys(gomock.Any(), gomock.Any()).
 		Return([]CryptPublicKey{subkey}, nil).Times(3)
 	if done, _, err :=
-		config.KeyManager().Rekey(ctx, rmd); !done || err != nil {
+		config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
 		t.Fatalf("Got error on rekey: %t, %v", done, err)
 	}
 
@@ -394,7 +445,7 @@ func TestKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	expectRekey(config, rmd, 1)
 
 	// Make the first key generation
-	if done, _, err := config.KeyManager().Rekey(ctx, rmd); !done || err != nil {
+	if done, _, err := config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
 		t.Fatalf("Got error on rekey: %t, %v", done, err)
 	}
 
@@ -427,7 +478,7 @@ func TestKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	config.mockKbpki.EXPECT().GetCryptPublicKeys(gomock.Any(), gomock.Any()).
 		Return([]CryptPublicKey{subkey}, nil)
 	if done, _, err :=
-		config.KeyManager().Rekey(ctx, rmd); !done || err != nil {
+		config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
 		t.Fatalf("Got error on rekey: %t, %v", done, err)
 	}
 
@@ -466,7 +517,7 @@ func TestKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T) {
 	expectRekey(config, rmd, 2)
 
 	// Make the first key generation
-	if done, _, err := config.KeyManager().Rekey(ctx, rmd); !done || err != nil {
+	if done, _, err := config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
 		t.Fatalf("Got error on rekey: %t, %v", done, err)
 	}
 
@@ -494,7 +545,7 @@ func TestKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T) {
 	config.mockKbpki.EXPECT().GetCryptPublicKeys(gomock.Any(), gomock.Any()).
 		Return([]CryptPublicKey{subkey}, nil).Times(2)
 	if done, _, err :=
-		config.KeyManager().Rekey(ctx, rmd); !done || err != nil {
+		config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
 		t.Fatalf("Got error on rekey: %t, %v", done, err)
 	}
 
