@@ -96,7 +96,7 @@ export function removeDevice (deviceID: string, name: string, currentDevice: boo
       }
       const params: login_deprovision_rpc = {
         method: 'login.deprovision',
-        param: {username: username, doRevoke: true},
+        param: {username, doRevoke: true},
         incomingCallMap: {},
         callback: error => {
           dispatch({

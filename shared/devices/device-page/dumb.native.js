@@ -5,9 +5,13 @@ import type {DumbComponentMap} from '../../constants/types/more'
 const common = {
   type: 'desktop',
   name: 'Home Computer',
+  deviceID: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+  created: 1444423192000,
   currentDevice: false,
   revokedAt: null,
-  showRemoveDevicePage: () => {},
+  provisioner: null,
+  provisionedAt: null,
+  showRemoveDevicePage: () => {}
 }
 
 const map: DumbComponentMap<Render> = {
@@ -26,7 +30,8 @@ const map: DumbComponentMap<Render> = {
       banner: {
         type: 'OutOfDate',
         desc: 'Home Computer is running an outdated version of Keybase. Remember to update!'
-      }
+      },
+      device: common
     },
     'Revoked': {
       ...common,
@@ -43,7 +48,8 @@ const map: DumbComponentMap<Render> = {
         {type: 'Added',
           desc: 'Added Mar 03, 2014',
           subDesc: 'Home Computer'}
-      ]
+      ],
+      device: common
     },
     'Unlock': {
       ...common,
@@ -61,7 +67,8 @@ const map: DumbComponentMap<Render> = {
       banner: {
         type: 'WillUnlock',
         desc: 'Turning on this device will unlock 6 of your private folders.'
-      }
+      },
+      device: common
     },
     'Paper': {
       ...common,
@@ -72,7 +79,8 @@ const map: DumbComponentMap<Render> = {
         {type: 'Added',
           desc: 'Created Mar 03, 2014',
           subDesc: 'Home Computer'}
-      ]
+      ],
+      device: common
     }
   }
 }

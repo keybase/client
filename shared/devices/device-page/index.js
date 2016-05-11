@@ -1,3 +1,4 @@
+// @flow
 import React, {Component} from 'react'
 import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
@@ -9,7 +10,7 @@ import RemoveDevice from '../device-revoke'
 import * as devicesActions from '../../actions/devices'
 import {routeAppend} from '../../actions/router'
 
-export default class DevicePage extends Component {
+class DevicePage extends Component {
   static parseRoute (currentPath) {
     return {
       componentAtTop: {
@@ -62,7 +63,7 @@ export default class DevicePage extends Component {
 
 export default connect(
   (state, ownProps) => {
-    const devices = state.devices.devices.filter(device => { return device.name === ownProps.device.name })
+    const devices = state.devices.devices.find(d => d.name === ownProps.device.name)
     return ({
       ...devices,
       ...ownProps

@@ -6,6 +6,10 @@ const common = {
   type: 'desktop',
   name: 'Home Computer',
   deviceID: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+  created: 1444423192000,
+  provisioner: null,
+  provisionedAt: null,
+  revokedAt: null,
   currentDevice: false,
   onSubmit: () => { console.log('device revoke on submit') },
   onCancel: () => { console.log('device revoke on cancel') }
@@ -16,11 +20,13 @@ const map: DumbComponentMap<Render> = {
   mocks: {
     'Normal': {
       ...common,
-      type: 'mobile'
+      type: 'mobile',
+      device: common
     },
     'Current': {
       ...common,
       currentDevice: true,
+      device: common
     }
   }
 }

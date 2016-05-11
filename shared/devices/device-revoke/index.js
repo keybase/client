@@ -1,3 +1,4 @@
+// @flow
 import React, {Component} from 'react'
 import {bindActionCreators} from 'redux'
 import {connect} from 'react-redux'
@@ -7,7 +8,9 @@ import Render from './index.render'
 import * as devicesActions from '../../actions/devices'
 import {navigateUp} from '../../actions/router'
 
-export default class DeviceRevoke extends Component {
+import type {Props} from './index.render'
+
+class DeviceRevoke extends Component<void, Props, void> {
   static parseRoute (currentPath) {
     return {
       componentAtTop: {

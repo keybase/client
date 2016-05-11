@@ -1,5 +1,4 @@
 // @flow
-
 import React from 'react'
 import type {Props} from './index.render'
 import {Box, Text, Icon, Button} from '../../common-adapters'

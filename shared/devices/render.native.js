@@ -7,11 +7,11 @@ import {Box, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props as IconProps} from '../common-adapters/icon'
 
-import type {Props} from './index'
+import type {Props} from './render'
 
+type RevokedHeaderProps = {children?: Array<any>}
 type RevokedHeaderState = {expanded: boolean}
-
-class RevokedHeader extends Component<void, Props, RevokedHeaderState> {
+class RevokedHeader extends Component<void, RevokedHeaderProps, RevokedHeaderState> {
   state: RevokedHeaderState;
 
   constructor (props: Props) {

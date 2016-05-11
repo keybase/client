@@ -494,7 +494,7 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
                 deviceType = enums.provisionUi.DeviceType.mobile
                 break
               default:
-                console.warn(`DeviceType not recognized: ${deviceType}`)
+                console.warn(`DeviceType not recognized: ${kind}`)
                 return
             }
             dispatch(setCodePageOtherDeviceRole(kind))

@@ -1,5 +1,4 @@
 // @flow
-
 import React from 'react'
 import type {Props, BannerItem} from './index.render'
 import {Box, Text, Icon, Button} from '../../common-adapters'
@@ -49,10 +48,10 @@ const Timeline = ({timeline}) => (
         <TimelineMarker idx={idx} max={timeline.length - 1} />
         <Box style={{...globalStyles.flexBoxColumn}}>
           <Text type='Body'>{desc}</Text>
-          {(subDesc && (type === 'Added'))
+          {subDesc && (type === 'Added'
             ? <Text type='BodySmall'>by <Text type='BodySmall' style={{fontStyle: 'italic', color: globalColors.black_75}}>{subDesc}</Text></Text>
             : <Text type='BodySmall'>{subDesc}</Text>
-          }
+          )}
           <Box style={{height: 15}} />
         </Box>
       </Box>
