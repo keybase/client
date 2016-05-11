@@ -1,4 +1,4 @@
-// Copyright 2015 Keybase Inc. All rights reserved.
+// Copyright 2015-2016 Keybase Inc. All rights reserved.
 // Use of this source code is governed by a BSD
 // license that can be found in the LICENSE file.
 
@@ -14,9 +14,15 @@ import "C"
 
 import (
 	"errors"
+	"fmt"
 	"io"
+	"reflect"
+	"syscall"
 	"time"
+	"unicode/utf16"
 	"unsafe"
+
+	"golang.org/x/sys/windows"
 )
 
 const ntstatusOk = C.NTSTATUS(0)
@@ -390,3 +396,234 @@ func kbfsLibdokanFindStreams (
 
 }
 */
+
+// FileInfo contains information about a file including the path.
+type FileInfo struct {
+	ptr     C.PDOKAN_FILE_INFO
+	rawPath C.LPCWSTR
+}
+
+// Path converts the path to UTF-8 running in O(n).
+func (fi *FileInfo) Path() string {
+	return lpcwstrToString(fi.rawPath)
+}
+
+// DeleteOnClose should be checked from Cleanup.
+func (fi *FileInfo) DeleteOnClose() bool {
+	return fi.ptr.DeleteOnClose != 0
+}
+
+func makeFI(fname C.LPCWSTR, pfi C.PDOKAN_FILE_INFO) *FileInfo {
+	return &FileInfo{pfi, fname}
+}
+
+// File replacement flags for CreateFile
+const (
+	FileSupersede   = C.FILE_SUPERSEDE
+	FileCreate      = C.FILE_CREATE
+	FileOpen        = C.FILE_OPEN
+	FileOpenIf      = C.FILE_OPEN_IF
+	FileOverwrite   = C.FILE_OVERWRITE
+	FileOverwriteIf = C.FILE_OVERWRITE_IF
+)
+
+// CreateOptions stuff
+const (
+	FileDirectoryFile    = C.FILE_DIRECTORY_FILE
+	FileNonDirectoryFile = C.FILE_NON_DIRECTORY_FILE
+)
+
+func packTime(t time.Time) C.FILETIME {
+	ft := syscall.NsecToFiletime(t.UnixNano())
+	return C.FILETIME{dwLowDateTime: C.DWORD(ft.LowDateTime), dwHighDateTime: C.DWORD(ft.HighDateTime)}
+}
+func unpackTime(c C.FILETIME) time.Time {
+	ft := syscall.Filetime{LowDateTime: uint32(c.dwLowDateTime), HighDateTime: uint32(c.dwHighDateTime)}
+	// This is valid, see docs and code for package time.
+	return time.Unix(0, ft.Nanoseconds())
+}
+
+func getfs(fi C.PDOKAN_FILE_INFO) FileSystem {
+	return fsTableGet(uint32(fi.DokanOptions.GlobalContext))
+}
+
+func getfi(fi C.PDOKAN_FILE_INFO) File {
+	return fiTableGetFile(uint32(fi.Context))
+}
+
+func fiStore(pfi C.PDOKAN_FILE_INFO, fi File, err error) C.NTSTATUS {
+	debug("->", fi, err)
+	if fi != nil {
+		pfi.Context = C.ULONG64(fiTableStoreFile(uint32(pfi.DokanOptions.GlobalContext), fi))
+	}
+	return errToNT(err)
+}
+
+func errToNT(err error) C.NTSTATUS {
+	// NTSTATUS constants are defined as unsigned but the type is signed
+	// and the values overflow on purpose. This is horrible.
+	var code uint32
+	if err != nil {
+		debug("ERROR:", err)
+		n, ok := err.(NtError)
+		if ok {
+			code = uint32(n)
+		} else {
+			code = uint32(ErrAccessDenied)
+		}
+	}
+	return C.NTSTATUS(code)
+}
+
+type dokanCtx struct {
+	ptr  *C.struct_kbfsLibdokanCtx
+	slot uint32
+}
+
+func allocCtx(slot uint32) *dokanCtx {
+	return &dokanCtx{C.kbfsLibdokanAllocCtx(C.ULONG64(slot)), slot}
+}
+
+func (ctx *dokanCtx) Run(path string) error {
+	if isDebug {
+		ctx.ptr.dokan_options.Options |= C.kbfsLibdokanDebug
+	}
+	C.kbfsLibdokanSet_path(ctx.ptr, stringToUtf16Ptr(path))
+	ec := C.kbfsLibdokanRun(ctx.ptr)
+	if ec != 0 {
+		return fmt.Errorf("Dokan failed: %d", ec)
+	}
+	return nil
+}
+
+func (ctx *dokanCtx) Free() {
+	debug("dokanCtx.Free")
+	C.kbfsLibdokanFree(ctx.ptr)
+	fsTableFree(ctx.slot)
+}
+
+// GetRequestorToken returns the syscall.Token associated with
+// the requestor of this file system operation. Remember to
+// call Close on the Token.
+func (fi *FileInfo) GetRequestorToken() (syscall.Token, error) {
+	hdl := syscall.Handle(C.DokanOpenRequestorToken(fi.ptr))
+	var err error
+	if hdl == syscall.InvalidHandle {
+		// Tokens are value types, so returning nil is impossible,
+		// returning an InvalidHandle is the best way.
+		err = errors.New("Invalid handle from DokanOpenRequestorHandle")
+	}
+	return syscall.Token(hdl), err
+}
+
+// IsRequestorUserSidEqualTo returns true if the sid passed as
+// the argument is equal to the sid of the user associated with
+// the filesystem request.
+func (fi *FileInfo) IsRequestorUserSidEqualTo(sid *syscall.SID) bool {
+	tok, err := fi.GetRequestorToken()
+	if err != nil {
+		debug("IsRequestorUserSidEqualTo:", err)
+		return false
+	}
+	defer tok.Close()
+	tokUser, err := tok.GetTokenUser()
+	if err != nil {
+		debug("IsRequestorUserSidEqualTo: GetTokenUser:", err)
+		return false
+	}
+	res, _, _ := syscall.Syscall(procEqualSid.Addr(), 2,
+		uintptr(unsafe.Pointer(sid)),
+		uintptr(unsafe.Pointer(tokUser.User.Sid)),
+		0)
+	if isDebug {
+		u1, _ := sid.String()
+		u2, _ := tokUser.User.Sid.String()
+		debugf("IsRequestorUserSidEqualTo: EqualSID(%q,%q) => %v (expecting non-zero)\n", u1, u2, res)
+	}
+	return res != 0
+}
+
+// CurrentProcessUserSid is a utility to get the
+// SID of the current user running the process.
+func CurrentProcessUserSid() (*syscall.SID, error) {
+	tok, err := syscall.OpenCurrentProcessToken()
+	if err != nil {
+		return nil, err
+	}
+	defer tok.Close()
+	tokUser, err := tok.GetTokenUser()
+	if err != nil {
+		return nil, err
+	}
+	return tokUser.User.Sid, nil
+}
+
+var (
+	modadvapi32  = windows.NewLazySystemDLL("advapi32.dll")
+	procEqualSid = modadvapi32.NewProc("EqualSid")
+)
+
+// Unmount a drive mounted by dokan.
+func Unmount(path string) error {
+	debug("Unmount: Calling Dokan.Unmount")
+	res := C.DokanRemoveMountPoint((*C.WCHAR)(stringToUtf16Ptr(path)))
+	if res == C.FALSE {
+		debug("Unmount: Failed!")
+		return errors.New("DokanRemoveMountPoint failed!")
+	}
+	debug("Unmount: Success!")
+	return nil
+}
+
+// lpcwstrToString converts a nul-terminated Windows wide string to a Go string,
+func lpcwstrToString(ptr C.LPCWSTR) string {
+	if ptr == nil {
+		return ""
+	}
+	var len = 0
+	for tmp := ptr; *tmp != 0; tmp = (C.LPCWSTR)(unsafe.Pointer((uintptr(unsafe.Pointer(tmp)) + 2))) {
+		len++
+	}
+	raw := ptrUcs2Slice(ptr, len)
+	return string(utf16.Decode(raw))
+}
+
+// stringToUtf16Buffer pokes a string into a Windows wide string buffer.
+// On overflow does not poke anything and returns false.
+func stringToUtf16Buffer(s string, ptr C.LPWSTR, blenUcs2 C.DWORD) bool {
+	if ptr == nil || blenUcs2 == 0 {
+		return false
+	}
+	src := utf16.Encode([]rune(s))
+	tgt := ptrUcs2Slice(C.LPCWSTR(unsafe.Pointer(ptr)), int(blenUcs2))
+	if len(src)+1 >= len(tgt) {
+		return false
+	}
+	copy(tgt, src)
+	tgt[len(src)] = 0
+	return true
+}
+
+// stringToUtf16Ptr return a pointer to the string as utf16 with zero
+// termination.
+func stringToUtf16Ptr(s string) unsafe.Pointer {
+	tmp := utf16.Encode([]rune(s + "\000"))
+	return unsafe.Pointer(&tmp[0])
+}
+
+// ptrUcs2Slice takes a C Windows wide string and length in UCS2
+// and returns it aliased as a uint16 slice.
+func ptrUcs2Slice(ptr C.LPCWSTR, lenUcs2 int) []uint16 {
+	return *(*[]uint16)(unsafe.Pointer(&reflect.SliceHeader{
+		Data: uintptr(unsafe.Pointer(ptr)),
+		Len:  lenUcs2,
+		Cap:  lenUcs2}))
+}
+
+// d16 wraps C wide string pointers to a struct with nice printing
+// with zero cost when not debugging and pretty prints when debugging.
+type d16 struct{ ptr C.LPCWSTR }
+
+func (s d16) String() string {
+	return lpcwstrToString(s.ptr)
+}
