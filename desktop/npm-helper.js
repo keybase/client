@@ -3,13 +3,6 @@ import path from 'path'
 import childProcess, {execSync} from 'child_process'
 import fs from 'fs'
 
-const babelGlobals = [
-  'babel', 'babel-cli', 'babel-core', 'babel-loader',
-  'babel-plugin-react-transform', 'babel-plugin-transform-runtime',
-  'babel-preset-es2015', 'babel-preset-react', 'babel-preset-stage-1',
-  'babel-runtime'
-}
-
 const postinstallGlobals = {
   'babel-eslint': '@6.0.4',
   'eslint': '@2.9.0',
@@ -162,10 +155,6 @@ const commands = {
     help: 'Install dev tooling (linters, etc)',
     code: installDevTools
   },
-  'setup-ci-tools': {
-    help: 'Install ci tooling (babel)',
-    code: installCiTools
-  },
   'render-screenshots': {
     nodePathDesktop: true,
     shell: 'webpack --config webpack.config.visdiff.js && ./node_modules/.bin/electron ./dist/render-visdiff.bundle.js',
@@ -192,12 +181,6 @@ function postInstall () {
 
 function installDevTools () {
   const modules = Object.keys(postinstallGlobals).map(k => `${k}${postinstallGlobals[k]}`).join(' ')
-  exec(`npm install -g -E ${modules}`)
-}
-
-function installCiTools () {
-  const modules = babelGlobals.map(k => k.join(' ')
-  console.log(`installing: ${modules}`)
   exec(`npm install -g -E ${modules}`)
 }
 
