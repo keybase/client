@@ -334,6 +334,8 @@ func (md *MDServerLocal) getCurrentDeviceKID(ctx context.Context) (keybase1.KID,
 func (md *MDServerLocal) GetRange(ctx context.Context, id TlfID,
 	bid BranchID, mStatus MergeStatus, start, stop MetadataRevision) (
 	[]*RootMetadataSigned, error) {
+	md.config.MakeLogger("").CDebugf(ctx, "GetRange %d %d %s", start, stop,
+		mStatus)
 	md.shutdownLock.RLock()
 	defer md.shutdownLock.RUnlock()
 	if *md.shutdown {

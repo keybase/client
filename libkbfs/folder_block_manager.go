@@ -165,6 +165,7 @@ func (fbm *folderBlockManager) cleanUpBlockState(
 	md *RootMetadata, bps *blockPutState) {
 	fbm.blocksToDeleteLock.Lock()
 	defer fbm.blocksToDeleteLock.Unlock()
+	fbm.log.CDebugf(nil, "Clean up md %d %s", md.Revision, md.MergedStatus())
 	for _, bs := range bps.blockStates {
 		fbm.blocksToDeleteAfterError[md] =
 			append(fbm.blocksToDeleteAfterError[md], bs.blockPtr)
