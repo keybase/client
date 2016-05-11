@@ -24,10 +24,14 @@ type gregorHandler struct {
 	cli              rpc.GenericClient
 	sessionID        gregor1.SessionID
 	skipRetryConnect bool
+	itemsByID        map[string]gregor.Item
 }
 
 func newGregorHandler(g *libkb.GlobalContext) *gregorHandler {
-	return &gregorHandler{Contextified: libkb.NewContextified(g)}
+	return &gregorHandler{
+		Contextified: libkb.NewContextified(g),
+		itemsByID:    make(map[string]gregor.Item),
+	}
 }
 
 func (g *gregorHandler) Connect(uri *fmpURI) error {
@@ -120,11 +124,17 @@ func (g *gregorHandler) handleInBandMessage(ctx context.Context, ibm gregor.InBa
 
 		item := update.Creation()
 		if item != nil {
-			g.G().Log.Debug("gregor handler: item created")
+			id := item.Metadata().MsgID().String()
+			g.G().Log.Debug("gregor handler: item %s created", id)
+
+			// Store the item in a map according to its ID. We use this when
+			// items are dismissed, to remember what the item was.
+			g.itemsByID[item.Metadata().MsgID().String()] = item
 
 			category := ""
 			if item.Category() != nil {
 				category = item.Category().String()
+				g.G().Log.Debug("gregor handler: item %s has category %s", id, category)
 			}
 			if category == "show_tracker_popup" {
 				return g.handleShowTrackerPopup(ctx, item)
@@ -134,7 +144,30 @@ func (g *gregorHandler) handleInBandMessage(ctx context.Context, ibm gregor.InBa
 
 		dismissal := update.Dismissal()
 		if dismissal != nil {
-			g.G().Log.Debug("gregor handler: dismissal!!!")
+			g.G().Log.Debug("gregor handler: received dismissal")
+			for _, id := range dismissal.MsgIDsToDismiss() {
+				item, present := g.itemsByID[id.String()]
+				if !present {
+					g.G().Log.Warning("gregor handler: tried to dismiss item %s, not present", id.String())
+					continue
+				}
+				g.G().Log.Debug("gregor handler: dismissing item %s", id.String())
+
+				category := ""
+				if item.Category() != nil {
+					category = item.Category().String()
+					g.G().Log.Debug("gregor handler: dismissal %s has category %s", id, category)
+				}
+				if category == "show_tracker_popup" {
+					return g.handleDismissTrackerPopup(ctx, item)
+				}
+
+				// Clear the item out of items map.
+				delete(g.itemsByID, id.String())
+			}
+			if len(dismissal.RangesToDismiss()) > 0 {
+				g.G().Log.Error("gregor handler: message range dismissing not implemented")
+			}
 			return nil
 		}
 	}
@@ -153,16 +186,14 @@ func (g *gregorHandler) handleShowTrackerPopup(ctx context.Context, item gregor.
 		g.G().Log.Error("body failed to unmarshal", err)
 		return err
 	}
-	uid, err := body.AtPath("uid").GetString()
+	uidString, err := body.AtPath("uid").GetString()
 	if err != nil {
 		g.G().Log.Error("failed to extract uid", err)
 		return err
 	}
-
-	// Load the user with that UID, to get a username.
-	user, err := libkb.LoadUser(libkb.NewLoadUserByUIDArg(g.G(), keybase1.UID(uid)))
+	uid, err := keybase1.UIDFromString(uidString)
 	if err != nil {
-		g.G().Log.Errorf("failed to load user %s", uid)
+		g.G().Log.Error("failed to convert UID from string", err)
 		return err
 	}
 
@@ -189,9 +220,52 @@ func (g *gregorHandler) handleShowTrackerPopup(ctx context.Context, item gregor.
 		SecretUI:   secretUI,
 	}
 
-	trackArg := engine.TrackEngineArg{UserAssertion: user.GetName()}
-	trackEng := engine.NewTrackEngine(&trackArg, g.G())
-	return trackEng.Run(&engineContext)
+	identifyReason := keybase1.IdentifyReason{
+		Type: keybase1.IdentifyReasonType_TRACK,
+		// TODO: text here?
+	}
+	identifyArg := keybase1.Identify2Arg{Uid: uid, Reason: identifyReason}
+	identifyEng := engine.NewIdentify2WithUID(g.G(), &identifyArg)
+	return identifyEng.Run(&engineContext)
+}
+
+func (g *gregorHandler) handleDismissTrackerPopup(ctx context.Context, item gregor.Item) error {
+	g.G().Log.Debug("gregor handler: handleDismissShowTrackerPopup: %+v", item)
+	if item.Body() == nil {
+		return errors.New("gregor dismissal for show_tracker_popup: nil message body")
+	}
+	body, err := jsonw.Unmarshal(item.Body().Bytes())
+	if err != nil {
+		g.G().Log.Error("body failed to unmarshal", err)
+		return err
+	}
+	uidString, err := body.AtPath("uid").GetString()
+	if err != nil {
+		g.G().Log.Error("failed to extract uid", err)
+		return err
+	}
+	uid, err := keybase1.UIDFromString(uidString)
+	if err != nil {
+		g.G().Log.Error("failed to convert UID from string", err)
+		return err
+	}
+
+	identifyUI, err := g.G().UIRouter.GetIdentifyUI()
+	if err != nil {
+		g.G().Log.Error("failed to get IdentifyUI", err)
+		return err
+	}
+	if identifyUI == nil {
+		g.G().Log.Error("got nil IdentifyUI")
+		return errors.New("got nil IdentifyUI")
+	}
+
+	reason := keybase1.DismissReason{
+		Type: keybase1.DismissReasonType_HANDLED_ELSEWHERE,
+	}
+	identifyUI.Dismiss(uid, reason)
+
+	return nil
 }
 
 func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.OutOfBandMessage) error {

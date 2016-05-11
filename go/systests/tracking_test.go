@@ -43,6 +43,7 @@ func (*identifyUI) DisplayUserCard(keybase1.UserCard)                           
 func (*identifyUI) ReportTrackToken(keybase1.TrackToken) error                            { return nil }
 func (*identifyUI) SetStrict(b bool)                                                      {}
 func (*identifyUI) Finish()                                                               {}
+func (*identifyUI) Dismiss(keybase1.UID, keybase1.DismissReason)                          {}
 
 func (*identifyUI) DisplayTLFCreateWithInvite(keybase1.DisplayTLFCreateWithInviteArg) error {
 	return nil

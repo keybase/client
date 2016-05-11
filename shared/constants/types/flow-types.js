@@ -170,6 +170,16 @@ export type DeviceType =
     0 // DESKTOP_0
   | 1 // MOBILE_1
 
+export type DismissReason = {
+  type: DismissReasonType;
+  reason: string;
+  resource: string;
+}
+
+export type DismissReasonType =
+    0 // NONE_0
+  | 1 // HANDLED_ELSEWHERE_1
+
 export type DowngradeReferenceRes = {
   completed: Array<BlockReferenceCount>;
   failed: BlockReference;
@@ -1813,6 +1823,18 @@ export type identifyUi_delegateIdentifyUI_rpc = {
   callback: (null | (err: ?any, response: identifyUi_delegateIdentifyUI_result) => void)
 }
 
+export type identifyUi_dismiss_result = void
+
+export type identifyUi_dismiss_rpc = {
+  method: 'identifyUi.dismiss',
+  param: {
+    uid: UID,
+    reason: DismissReason
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
 export type identifyUi_displayCryptocurrency_result = void
 
 export type identifyUi_displayCryptocurrency_rpc = {
@@ -3426,6 +3448,7 @@ export type rpc =
   | gpgUi_wantToAddGPGKey_rpc
   | identifyUi_confirm_rpc
   | identifyUi_delegateIdentifyUI_rpc
+  | identifyUi_dismiss_rpc
   | identifyUi_displayCryptocurrency_rpc
   | identifyUi_displayKey_rpc
   | identifyUi_displayTLFCreateWithInvite_rpc
@@ -4213,6 +4236,17 @@ export type incomingCallMapType = {
   'keybase.1.identifyUi.finish'?: (
     params: {
       sessionID: int
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.identifyUi.dismiss'?: (
+    params: {
+      sessionID: int,
+      uid: UID,
+      reason: DismissReason
     },
     response: {
       error: (err: RPCError) => void,

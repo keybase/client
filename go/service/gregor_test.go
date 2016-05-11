@@ -62,22 +62,27 @@ func (n *nlistener) FavoritesChanged(uid keybase1.UID) {
 	n.favoritesChanged = append(n.favoritesChanged, uid)
 }
 
-type showTrackerIdentifyUI struct {
+type showTrackerPopupIdentifyUI struct {
 	kbtest.FakeIdentifyUI
-	confirmedUsername string
+	startedUsername string
+	dismissedUIDs   map[keybase1.UID]struct{}
 }
 
-// Overriding the Confirm method does two things: 1) it lets is unconditionally
-// approve the track, so that we don't get a "track not confirmed" error, and
-// 2) it lets us check that the track went through by setting the confirmed
-// flag on the UI.
-func (ui *showTrackerIdentifyUI) Confirm(outcome *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
-	ui.confirmedUsername = outcome.Username
-	result := keybase1.ConfirmResult{
-		IdentityConfirmed: true,
-		RemoteConfirmed:   true,
+var _ libkb.IdentifyUI = (*showTrackerPopupIdentifyUI)(nil)
+
+func newShowTrackerPopupIdentifyUI() *showTrackerPopupIdentifyUI {
+	return &showTrackerPopupIdentifyUI{
+		dismissedUIDs: make(map[keybase1.UID]struct{}),
 	}
-	return result, nil
+}
+
+func (ui *showTrackerPopupIdentifyUI) Start(name string, reason keybase1.IdentifyReason) {
+	ui.startedUsername = name
+}
+
+// Overriding the Dismiss method lets us test that it gets called.
+func (ui *showTrackerPopupIdentifyUI) Dismiss(uid keybase1.UID, _ keybase1.DismissReason) {
+	ui.dismissedUIDs[uid] = struct{}{}
 }
 
 // Test that when we inject a gregor "show_tracker_popup" message containing a
@@ -89,7 +94,7 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 
 	tc.G.SetService()
 
-	identifyUI := &showTrackerIdentifyUI{}
+	identifyUI := newShowTrackerPopupIdentifyUI()
 	router := fakeUIRouter{
 		secretUI:   &libkb.TestSecretUI{},
 		identifyUI: identifyUI,
@@ -109,9 +114,13 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 
 	h := newGregorHandler(tc.G)
 
+	msgID := gregor1.MsgID("my_random_id")
 	m := gregor1.Message{
 		Ibm_: &gregor1.InBandMessage{
 			StateUpdate_: &gregor1.StateUpdateMessage{
+				Md_: gregor1.Metadata{
+					MsgID_: msgID,
+				},
 				Creation_: &gregor1.Item{
 					Category_: gregor1.Category("show_tracker_popup"),
 					Body_:     gregor1.Body(fmt.Sprintf(`{"uid": "%s"}`, trackee.User.GetUID())),
@@ -125,7 +134,32 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if identifyUI.confirmedUsername != trackee.Username {
-		t.Fatalf("Expected test user %#v to be tracked. Saw %#v. Did the track not happen?", trackee.Username, identifyUI.confirmedUsername)
+	if identifyUI.startedUsername != trackee.Username {
+		t.Fatalf("Expected test user %#v to be tracked. Saw %#v. Did the track not happen?", trackee.Username, identifyUI.startedUsername)
+	}
+
+	// Assert that the tracker window hasn't been dismissed yet.
+	if len(identifyUI.dismissedUIDs) != 0 {
+		t.Fatal("Expected no dismissed UIDs yet.")
+	}
+
+	dismissal := gregor1.Message{
+		Ibm_: &gregor1.InBandMessage{
+			StateUpdate_: &gregor1.StateUpdateMessage{
+				Dismissal_: &gregor1.Dismissal{
+					MsgIDs_: []gregor1.MsgID{msgID},
+				},
+			},
+		},
+	}
+	err = h.BroadcastMessage(context.Background(), dismissal)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Now assert that the tracker window has been dismissed.
+	_, present := identifyUI.dismissedUIDs[trackee.User.GetUID()]
+	if !present {
+		t.Fatalf("Expected the tracker window for UID %s to be dismissed.", trackee.User.GetUID().String())
 	}
 }

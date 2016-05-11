@@ -101,6 +101,19 @@ type ConfirmResult struct {
 	ExpiringLocal     bool `codec:"expiringLocal" json:"expiringLocal"`
 }
 
+type DismissReasonType int
+
+const (
+	DismissReasonType_NONE              DismissReasonType = 0
+	DismissReasonType_HANDLED_ELSEWHERE DismissReasonType = 1
+)
+
+type DismissReason struct {
+	Type     DismissReasonType `codec:"type" json:"type"`
+	Reason   string            `codec:"reason" json:"reason"`
+	Resource string            `codec:"resource" json:"resource"`
+}
+
 type DisplayTLFCreateWithInviteArg struct {
 	SessionID  int    `codec:"sessionID" json:"sessionID"`
 	FolderName string `codec:"folderName" json:"folderName"`
@@ -176,6 +189,12 @@ type FinishArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
+type DismissArg struct {
+	SessionID int           `codec:"sessionID" json:"sessionID"`
+	Uid       UID           `codec:"uid" json:"uid"`
+	Reason    DismissReason `codec:"reason" json:"reason"`
+}
+
 type IdentifyUiInterface interface {
 	DisplayTLFCreateWithInvite(context.Context, DisplayTLFCreateWithInviteArg) error
 	DelegateIdentifyUI(context.Context) (int, error)
@@ -191,6 +210,7 @@ type IdentifyUiInterface interface {
 	DisplayUserCard(context.Context, DisplayUserCardArg) error
 	Confirm(context.Context, ConfirmArg) (ConfirmResult, error)
 	Finish(context.Context, int) error
+	Dismiss(context.Context, DismissArg) error
 }
 
 func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
@@ -416,6 +436,22 @@ func IdentifyUiProtocol(i IdentifyUiInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"dismiss": {
+				MakeArg: func() interface{} {
+					ret := make([]DismissArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DismissArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DismissArg)(nil), args)
+						return
+					}
+					err = i.Dismiss(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -492,5 +528,10 @@ func (c IdentifyUiClient) Confirm(ctx context.Context, __arg ConfirmArg) (res Co
 func (c IdentifyUiClient) Finish(ctx context.Context, sessionID int) (err error) {
 	__arg := FinishArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.identifyUi.finish", []interface{}{__arg}, nil)
+	return
+}
+
+func (c IdentifyUiClient) Dismiss(ctx context.Context, __arg DismissArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.identifyUi.dismiss", []interface{}{__arg}, nil)
 	return
 }

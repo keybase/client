@@ -2,18 +2,21 @@ package gregor1
 
 import (
 	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"time"
 
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/gregor"
-	"golang.org/x/net/context"
 )
 
 func (u UID) Bytes() []byte            { return []byte(u) }
+func (u UID) String() string           { return hex.EncodeToString(u) }
 func (d DeviceID) Bytes() []byte       { return []byte(d) }
+func (d DeviceID) String() string      { return hex.EncodeToString(d) }
 func (m MsgID) Bytes() []byte          { return []byte(m) }
+func (m MsgID) String() string         { return hex.EncodeToString(m) }
 func (s System) String() string        { return string(s) }
 func (c Category) String() string      { return string(c) }
 func (b Body) Bytes() []byte           { return []byte(b) }
@@ -61,8 +64,7 @@ func (d Dismissal) MsgIDsToDismiss() []gregor.MsgID {
 	return ret
 }
 
-func (m Metadata) CTime() time.Time     { return FromTime(m.Ctime_) }
-func (m Metadata) SetCTime(t time.Time) { m.Ctime_ = ToTime(t) }
+func (m Metadata) CTime() time.Time { return FromTime(m.Ctime_) }
 func (m Metadata) UID() gregor.UID {
 	if m.Uid_ == nil {
 		return nil
@@ -292,18 +294,6 @@ func FormatTime(t Time) string {
 	return FromTime(t).Format(layout)
 }
 
-type localIncoming struct {
-	sm gregor.StateMachine
-}
-
-func NewLocalIncoming(sm gregor.StateMachine) IncomingInterface {
-	return &localIncoming{sm}
-}
-
-func (i *localIncoming) ConsumeMessage(_ context.Context, msg Message) error {
-	return i.sm.ConsumeMessage(msg)
-}
-
 // DeviceID returns the deviceID in a SyncArc, or interface nil
 // (and not gregor1.DeviceID(nil)) if not was specified.
 func (s SyncArg) DeviceID() gregor.DeviceID {
@@ -322,33 +312,8 @@ func (s SyncArg) UID() gregor.UID {
 	return s.Uid
 }
 
-func (i *localIncoming) Sync(_ context.Context, arg SyncArg) (res SyncResult, err error) {
-
-	msgs, err := i.sm.InBandMessagesSince(arg.UID(), arg.DeviceID(), FromTime(arg.Ctime))
-	if err != nil {
-		return
-	}
-
-	for _, msg := range msgs {
-		if msg, ok := msg.(InBandMessage); ok {
-			res.Msgs = append(res.Msgs, msg)
-		} else {
-			// TODO: Avoid making this cast entirely.
-			panic("This cast should never fail.")
-		}
-	}
-
-	state, err := i.sm.State(arg.UID(), arg.DeviceID(), nil)
-	if err != nil {
-		return
-	}
-
-	res.Hash, err = state.Hash()
-	return
-}
-
-func (i *localIncoming) Ping(_ context.Context) (string, error) {
-	return "pong", nil
+func (s SyncArg) CTime() time.Time {
+	return FromTime(s.Ctime)
 }
 
 var _ gregor.UID = UID{}

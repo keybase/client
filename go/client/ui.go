@@ -73,6 +73,9 @@ func (ui BaseIdentifyUI) ReportTrackToken(_ keybase1.TrackToken) error {
 func (ui BaseIdentifyUI) Finish() {
 }
 
+func (ui BaseIdentifyUI) Dismiss(_ keybase1.UID, _ keybase1.DismissReason) {
+}
+
 func (ui BaseIdentifyUI) Confirm(o *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
 	warnings := libkb.ImportWarnings(o.Warnings)
 	if !warnings.IsEmpty() {

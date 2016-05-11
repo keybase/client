@@ -252,6 +252,14 @@ func (u *RemoteIdentifyUI) Finish() {
 	u.uicli.Finish(context.TODO(), u.sessionID)
 }
 
+func (u *RemoteIdentifyUI) Dismiss(uid keybase1.UID, reason keybase1.DismissReason) {
+	u.uicli.Dismiss(context.TODO(), keybase1.DismissArg{
+		SessionID: u.sessionID,
+		Uid:       uid,
+		Reason:    reason,
+	})
+}
+
 func (u *RemoteIdentifyUI) SetStrict(b bool) {
 	u.strict = b
 }

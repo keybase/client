@@ -538,6 +538,10 @@ export const identifyUi = {
     'fresh': 0,
     'aged': 1,
     'rancid': 2
+  },
+  'DismissReasonType': {
+    'none': 0,
+    'handledElsewhere': 1
   }
 }
 

@@ -17,14 +17,17 @@ const (
 
 type UID interface {
 	Bytes() []byte
+	String() string
 }
 
 type MsgID interface {
 	Bytes() []byte
+	String() string
 }
 
 type DeviceID interface {
 	Bytes() []byte
+	String() string
 }
 
 type System interface {
@@ -43,7 +46,6 @@ type Metadata interface {
 	UID() UID
 	MsgID() MsgID
 	CTime() time.Time
-	SetCTime(time.Time)
 	DeviceID() DeviceID
 	InBandMsgType() InBandMsgType
 }

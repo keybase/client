@@ -1021,6 +1021,32 @@
           "name": "expiringLocal"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "DismissReasonType",
+      "symbols": [
+        "NONE_0",
+        "HANDLED_ELSEWHERE_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "DismissReason",
+      "fields": [
+        {
+          "type": "DismissReasonType",
+          "name": "type"
+        },
+        {
+          "type": "string",
+          "name": "reason"
+        },
+        {
+          "type": "string",
+          "name": "resource"
+        }
+      ]
     }
   ],
   "messages": {
@@ -1224,6 +1250,23 @@
         {
           "name": "sessionID",
           "type": "int"
+        }
+      ],
+      "response": "null"
+    },
+    "dismiss": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "uid",
+          "type": "UID"
+        },
+        {
+          "name": "reason",
+          "type": "DismissReason"
         }
       ],
       "response": "null"

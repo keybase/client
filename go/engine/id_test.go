@@ -238,7 +238,8 @@ func (ui *FakeIdentifyUI) Start(username string, _ keybase1.IdentifyReason) {
 	defer ui.Unlock()
 	ui.StartCount++
 }
-func (ui *FakeIdentifyUI) Finish() {}
+func (ui *FakeIdentifyUI) Finish()                                          {}
+func (ui *FakeIdentifyUI) Dismiss(_ keybase1.UID, _ keybase1.DismissReason) {}
 func (ui *FakeIdentifyUI) LaunchNetworkChecks(id *keybase1.Identity, user *keybase1.User) {
 	ui.Lock()
 	defer ui.Unlock()

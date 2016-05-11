@@ -152,6 +152,12 @@ func (d *delegateUI) Finish(context.Context, int) error {
 	close(d.ch)
 	return nil
 }
+func (d *delegateUI) Dismiss(context.Context, keybase1.DismissArg) error {
+	if err := d.checkStarted(); err != nil {
+		return err
+	}
+	return nil
+}
 
 func (d *delegateUI) DisplayTLFCreateWithInvite(context.Context, keybase1.DisplayTLFCreateWithInviteArg) error {
 	return nil
