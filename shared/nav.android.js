@@ -21,6 +21,8 @@ import ListenLogUi from './native/listen-log-ui'
 import {listenForNotifications} from './actions/notifications'
 import hello from './util/hello'
 
+import forwardLogs from './native/forward-logs'
+
 const tabs: {[key: VisibleTab]: {module: any}} = {
   [profileTab]: {module: Login, name: 'Login'},
   [devicesTab]: {module: Devices, name: 'Devices'},
@@ -28,6 +30,8 @@ const tabs: {[key: VisibleTab]: {module: any}} = {
   [peopleTab]: {module: More, name: 'More'},
   [moreTab]: {module: More, name: 'More'}
 }
+
+forwardLogs()
 
 class AndroidNavigator extends Component {
   push (componentAtTop) {

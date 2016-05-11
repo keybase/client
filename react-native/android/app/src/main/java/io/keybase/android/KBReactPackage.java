@@ -11,11 +11,17 @@ import java.util.Iterator;
 import java.util.List;
 
 import io.keybase.android.components.VisiblePassReactEditTextManager;
+import io.keybase.android.modules.FileLogger;
 import io.keybase.android.modules.KeybaseEngine;
 import io.keybase.android.modules.KillableModule;
 
 public class KBReactPackage implements com.facebook.react.ReactPackage {
+    private final String logFilePath;
     private List<KillableModule> killableModules = new ArrayList<>();
+
+    public KBReactPackage(String logFilePath) {
+        this.logFilePath = logFilePath;
+    }
 
     @Override
     public List<NativeModule> createNativeModules(ReactApplicationContext reactApplicationContext) {
@@ -27,10 +33,13 @@ public class KBReactPackage implements com.facebook.react.ReactPackage {
         }
 
         final KeybaseEngine kbEngine = new KeybaseEngine(reactApplicationContext);
+        final FileLogger kbLogger = new FileLogger(reactApplicationContext, logFilePath);
+
         killableModules.add(kbEngine);
 
         List<NativeModule> modules = new ArrayList<>();
         modules.add(kbEngine);
+        modules.add(kbLogger);
 
         return modules;
     }

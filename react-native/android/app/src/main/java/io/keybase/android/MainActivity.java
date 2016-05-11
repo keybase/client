@@ -16,6 +16,7 @@ import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactRootView;
 import com.facebook.react.shell.MainReactPackage;
 
+import java.io.File;
 import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -34,6 +35,7 @@ public class MainActivity extends ReactActivity {
 
     private ReactInstanceManager mReactInstanceManager;
     private ReactRootView mReactRootView;
+    private File logFile;
 
     /**
      * Returns the name of the main component registered from JavaScript.
@@ -57,7 +59,7 @@ public class MainActivity extends ReactActivity {
     @Override
     @TargetApi(Build.VERSION_CODES.KITKAT)
     protected void onCreate(Bundle savedInstanceState) {
-
+        logFile = this.getFileStreamPath("android.log");
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M && !Settings.canDrawOverlays(this) && this.getUseDeveloperSupport()) {
             Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
               Uri.parse("package:" + getPackageName()));
@@ -81,7 +83,6 @@ public class MainActivity extends ReactActivity {
             try {
                 final String id = LogSend();
                 Log.d(TAG, "LOG id is: " + id);
-
             } catch (Exception e) {
                 Log.d(TAG, "Error in log sending:", e);
             }
@@ -96,7 +97,7 @@ public class MainActivity extends ReactActivity {
           new MainReactPackage(),
           new BarcodeScanner(),
           new RNPermissionsPackage(),
-          new KBReactPackage());
+          new KBReactPackage(logFile.getAbsolutePath()));
     }
 
     // For dealing with permissions using RNPermissionsPackage
