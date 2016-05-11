@@ -81,7 +81,7 @@ public class MainActivity extends ReactActivity {
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         if (BuildConfig.DEBUG && keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
             try {
-                final String id = LogSend();
+                final String id = LogSend(logFile.getAbsolutePath());
                 Log.d(TAG, "LOG id is: " + id);
             } catch (Exception e) {
                 Log.d(TAG, "Error in log sending:", e);

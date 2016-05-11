@@ -14,6 +14,7 @@ import io.keybase.android.components.VisiblePassReactEditTextManager;
 import io.keybase.android.modules.FileLogger;
 import io.keybase.android.modules.KeybaseEngine;
 import io.keybase.android.modules.KillableModule;
+import io.keybase.android.modules.LogSend;
 
 public class KBReactPackage implements com.facebook.react.ReactPackage {
     private final String logFilePath;
@@ -34,12 +35,14 @@ public class KBReactPackage implements com.facebook.react.ReactPackage {
 
         final KeybaseEngine kbEngine = new KeybaseEngine(reactApplicationContext);
         final FileLogger kbLogger = new FileLogger(reactApplicationContext, logFilePath);
+        final LogSend logSend = new LogSend(reactApplicationContext, logFilePath);
 
         killableModules.add(kbEngine);
 
         List<NativeModule> modules = new ArrayList<>();
         modules.add(kbEngine);
         modules.add(kbLogger);
+        modules.add(logSend);
 
         return modules;
     }
