@@ -197,6 +197,7 @@ function installDevTools () {
 
 function installCiTools () {
   const modules = babelGlobals.map(k => k.join(' ')
+  console.log(`installing: ${modules}`)
   exec(`npm install -g -E ${modules}`)
 }
 
