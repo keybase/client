@@ -54,7 +54,6 @@ func createUserDokan(t *testing.T, ith int, config *libkbfs.ConfigLocal) User {
 			dokan.Unmount(mnt.Dir)
 			getDriveLetterLock(driveLetter).Unlock()
 		},
-		notificationGroupWait: fs.NotificationGroupWait,
 	}
 }
 

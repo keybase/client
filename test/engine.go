@@ -72,7 +72,7 @@ type Engine interface {
 	DisableUpdatesForTesting(u User, dir Node) (err error)
 	// DisableUpdatesForTesting is called by the test harness as the given user to resume updates
 	// if previously disabled for testing.
-	ReenableUpdates(u User, dir Node)
+	ReenableUpdates(u User, dir Node) (err error)
 	// SyncFromServerForTesting is called by the test harness as the given user to actively retrieve new
 	// metadata for a folder.
 	SyncFromServerForTesting(u User, dir Node) (err error)

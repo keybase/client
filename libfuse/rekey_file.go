@@ -7,10 +7,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-// RekeyFileName is the name of the KBFS unstaging file -- it can be
-// reached anywhere within a top-level folder.
-const RekeyFileName = ".kbfs_rekey"
-
 // RekeyFile represents a write-only file when any write of at least
 // one byte triggers a rekey of the folder.
 type RekeyFile struct {
@@ -38,7 +34,7 @@ func (f *RekeyFile) Write(ctx context.Context, req *fuse.WriteRequest,
 	if len(req.Data) == 0 {
 		return nil
 	}
-	err = f.folder.fs.config.KBFSOps().Rekey(ctx, f.folder.folderBranch.Tlf)
+	err = f.folder.fs.config.KBFSOps().Rekey(ctx, f.folder.getFolderBranch().Tlf)
 	if err != nil {
 		return err
 	}

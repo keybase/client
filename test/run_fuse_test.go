@@ -60,6 +60,5 @@ func createUserFuse(t *testing.T, ith int, config *libkbfs.ConfigLocal) User {
 		config: config,
 		cancel: cancelFn,
 		close:  mnt.Close,
-		notificationGroupWait: filesys.NotificationGroupWait,
 	}
 }

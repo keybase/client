@@ -11,10 +11,6 @@ import (
 	"github.com/keybase/kbfs/libkbfs"
 )
 
-// UnstageFileName is the name of the KBFS unstaging file -- it can be
-// reached anywhere within a top-level folder.
-const UnstageFileName = ".kbfs_unstage"
-
 // UnstageFile represents a write-only file when any write of at least
 // one byte triggers unstaging all unmerged commits and
 // fast-forwarding to the current master.  TODO: remove this file once
@@ -32,6 +28,6 @@ func (f *UnstageFile) WriteFile(fi *dokan.FileInfo, bs []byte, offset int64) (n 
 		return 0, nil
 	}
 	err = f.folder.fs.config.KBFSOps().
-		UnstageForTesting(ctx, f.folder.folderBranch)
+		UnstageForTesting(ctx, f.folder.getFolderBranch())
 	return len(bs), err
 }

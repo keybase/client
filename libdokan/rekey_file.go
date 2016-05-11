@@ -11,10 +11,6 @@ import (
 	"github.com/keybase/kbfs/libkbfs"
 )
 
-// RekeyFileName is the name of the KBFS unstaging file -- it can be
-// reached anywhere within a top-level folder.
-const RekeyFileName = ".kbfs_rekey"
-
 // RekeyFile represents a write-only file when any write of at least
 // one byte triggers a rekey of the folder.
 type RekeyFile struct {
@@ -29,6 +25,6 @@ func (f *RekeyFile) WriteFile(fi *dokan.FileInfo, bs []byte, offset int64) (n in
 	if len(bs) == 0 {
 		return 0, nil
 	}
-	err = f.folder.fs.config.KBFSOps().Rekey(ctx, f.folder.folderBranch.Tlf)
+	err = f.folder.fs.config.KBFSOps().Rekey(ctx, f.folder.getFolderBranch().Tlf)
 	return len(bs), err
 }

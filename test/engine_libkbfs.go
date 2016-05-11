@@ -269,18 +269,19 @@ func (k *LibKBFS) DisableUpdatesForTesting(u User, dir Node) (err error) {
 }
 
 // ReenableUpdates implements the Engine interface.
-func (k *LibKBFS) ReenableUpdates(u User, dir Node) {
+func (k *LibKBFS) ReenableUpdates(u User, dir Node) error {
 	config := u.(*libkbfs.ConfigLocal)
 	d := dir.(libkbfs.Node)
 	err := libkbfs.RestartCRForTesting(config, d.GetFolderBranch())
 	if err != nil {
-		panic(err)
+		return err
 	}
 	if c, ok := k.updateChannels[config][d.GetID()]; ok {
 		c <- struct{}{}
 		close(c)
 		delete(k.updateChannels[config], d.GetID())
 	}
+	return nil
 }
 
 // SyncFromServerForTesting implements the Engine interface.

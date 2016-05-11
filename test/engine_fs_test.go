@@ -14,10 +14,12 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/kbfs/libfs"
 	"github.com/keybase/kbfs/libkbfs"
 	"golang.org/x/net/context"
 )
@@ -28,16 +30,14 @@ type fsEngine struct {
 	createUser func(t *testing.T, ith int, config *libkbfs.ConfigLocal) User
 }
 type fsNode struct {
-	fb   libkbfs.FolderBranch
 	path string
 }
 
 type fsUser struct {
-	mntDir                string
-	config                *libkbfs.ConfigLocal
-	cancel                func()
-	close                 func()
-	notificationGroupWait func()
+	mntDir string
+	config *libkbfs.ConfigLocal
+	cancel func()
+	close  func()
 }
 
 // Perform Init for the engine
@@ -61,54 +61,47 @@ func (e *fsEngine) GetUID(user User) keybase1.UID {
 // GetRootDir implements the Engine interface.
 func (*fsEngine) GetRootDir(user User, tlfName string, isPublic bool) (dir Node, err error) {
 	u := user.(*fsUser)
-
-	ctx := context.Background()
-	h, err := libkbfs.ParseTlfHandle(
-		ctx, u.config.KBPKI(), tlfName, isPublic,
-		u.config.SharingBeforeSignupEnabled())
+	var path string
+	if isPublic {
+		path = filepath.Join(u.mntDir, "public", tlfName)
+	} else {
+		path = filepath.Join(u.mntDir, "private", tlfName)
+	}
+	fi, err := os.Lstat(path)
 	if err != nil {
 		return nil, err
 	}
-
-	path := u.mntDir
-	if h.IsPublic() {
-		path += "/public/" + string(h.GetCanonicalName())
-	} else {
-		path += "/private/" + string(h.GetCanonicalName())
+	// TODO: Allow symlinks, but check that they resolve as
+	// expected.
+	if !fi.IsDir() {
+		return nil, fmt.Errorf("%s is not a directory", path)
 	}
-
-	root, _, err := u.config.KBFSOps().GetOrCreateRootNode(
-		ctx, h, libkbfs.MasterBranch)
-	if err != nil {
-		return nil, fmt.Errorf("cannot get root for %s: %v", path, err)
-	}
-
-	return fsNode{root.GetFolderBranch(), path}, nil
+	return fsNode{path}, nil
 }
 
 // CreateDir is called by the test harness to create a directory relative to the passed
 // parent directory for the given user.
 func (*fsEngine) CreateDir(u User, parentDir Node, name string) (dir Node, err error) {
 	p := parentDir.(fsNode)
-	path := p.path + "/" + name
+	path := filepath.Join(p.path, name)
 	err = os.Mkdir(path, 0755)
 	if err != nil {
 		return nil, err
 	}
-	return fsNode{p.fb, path}, nil
+	return fsNode{path}, nil
 }
 
 // CreateFile is called by the test harness to create a file in the given directory as
 // the given user.
 func (*fsEngine) CreateFile(u User, parentDir Node, name string) (file Node, err error) {
 	p := parentDir.(fsNode)
-	path := p.path + "/" + name
+	path := filepath.Join(p.path, name)
 	f, err := os.Create(path)
 	if err != nil {
 		return nil, err
 	}
 	f.Close()
-	return fsNode{p.fb, path}, nil
+	return fsNode{path}, nil
 }
 
 // WriteFile is called by the test harness to write to the given file as the given user.
@@ -132,20 +125,22 @@ func (*fsEngine) WriteFile(u User, file Node, data string, off int64, sync bool)
 // RemoveDir is called by the test harness as the given user to remove a subdirectory.
 func (*fsEngine) RemoveDir(u User, dir Node, name string) (err error) {
 	n := dir.(fsNode)
-	return os.Remove(n.path + "/" + name)
+	return os.Remove(filepath.Join(n.path, name))
 }
 
 // RemoveEntry is called by the test harness as the given user to remove a directory entry.
 func (*fsEngine) RemoveEntry(u User, dir Node, name string) (err error) {
 	n := dir.(fsNode)
-	return os.Remove(n.path + "/" + name)
+	return os.Remove(filepath.Join(n.path, name))
 }
 
 // Rename is called by the test harness as the given user to rename a node.
 func (*fsEngine) Rename(u User, srcDir Node, srcName string, dstDir Node, dstName string) (err error) {
 	snode := srcDir.(fsNode)
 	dnode := dstDir.(fsNode)
-	return os.Rename(snode.path+"/"+srcName, dnode.path+"/"+dstName)
+	return os.Rename(
+		filepath.Join(snode.path, srcName),
+		filepath.Join(dnode.path, dstName))
 }
 
 // ReadFile is called by the test harness to read from the given file as the given user.
@@ -180,36 +175,35 @@ func (*fsEngine) GetDirChildrenTypes(u User, parentDir Node) (children map[strin
 
 func (*fsEngine) DisableUpdatesForTesting(u User, dir Node) (err error) {
 	n := dir.(fsNode)
-	return ioutil.WriteFile(n.path+"/.kbfs_disable_updates", []byte("off"), 0644)
+	return ioutil.WriteFile(
+		filepath.Join(n.path, libfs.DisableUpdatesFileName),
+		[]byte("off"), 0644)
 }
 
 // ReenableUpdatesForTesting is called by the test harness as the given user to resume updates
 // if previously disabled for testing.
-func (*fsEngine) ReenableUpdates(u User, dir Node) {
+func (*fsEngine) ReenableUpdates(u User, dir Node) (err error) {
 	n := dir.(fsNode)
-	// TODO
-	ioutil.WriteFile(n.path+"/.kbfs_enable_updates", []byte("on"), 0644)
+	return ioutil.WriteFile(
+		filepath.Join(n.path, libfs.EnableUpdatesFileName),
+		[]byte("on"), 0644)
 }
 
 // SyncFromServerForTesting is called by the test harness as the given
 // user to actively retrieve new metadata for a folder.
 func (e *fsEngine) SyncFromServerForTesting(user User, dir Node) (err error) {
-	u := user.(*fsUser)
-	ctx := context.Background()
-	err = u.config.KBFSOps().SyncFromServerForTesting(ctx, dir.(fsNode).fb)
-	if err != nil {
-		return fmt.Errorf("Couldn't sync from server: %v", err)
-	}
-	u.notificationGroupWait()
-	return nil
+	n := dir.(fsNode)
+	return ioutil.WriteFile(
+		filepath.Join(n.path, libfs.SyncFromServerFileName),
+		[]byte("x"), 0644)
 }
 
 // ForceQuotaReclamation implements the Engine interface.
 func (*fsEngine) ForceQuotaReclamation(user User, dir Node) (err error) {
-	u := user.(*fsUser)
-	// TODO: expose this as a special write-only file?
-	return libkbfs.ForceQuotaReclamationForTesting(
-		u.config, dir.(fsNode).fb)
+	n := dir.(fsNode)
+	return ioutil.WriteFile(
+		filepath.Join(n.path, libfs.ReclaimQuotaFileName),
+		[]byte("x"), 0644)
 }
 
 // Shutdown is called by the test harness when it is done with the
@@ -225,7 +219,7 @@ func (*fsEngine) Shutdown(user User) error {
 // the given user.
 func (*fsEngine) CreateLink(u User, parentDir Node, fromName string, toPath string) (err error) {
 	n := parentDir.(fsNode)
-	return os.Symlink(toPath, n.path+"/"+fromName)
+	return os.Symlink(toPath, filepath.Join(n.path, fromName))
 }
 
 // Lookup is called by the test harness to return a node in the given directory by
@@ -233,7 +227,7 @@ func (*fsEngine) CreateLink(u User, parentDir Node, fromName string, toPath stri
 // the node will be nil.
 func (e *fsEngine) Lookup(u User, parentDir Node, name string) (file Node, symPath string, err error) {
 	n := parentDir.(fsNode)
-	path := n.path + "/" + name
+	path := filepath.Join(n.path, name)
 	fi, err := os.Lstat(path)
 	if err != nil {
 		return nil, "", err
@@ -243,13 +237,13 @@ func (e *fsEngine) Lookup(u User, parentDir Node, name string) (file Node, symPa
 	// here and end up deferencing them. This works but is not
 	// ideal.
 	if fi.Mode()&os.ModeSymlink == 0 || e.name == "dokan" {
-		return fsNode{n.fb, path}, "", nil
+		return fsNode{path}, "", nil
 	}
 	symPath, err = os.Readlink(path)
 	if err != nil {
 		return nil, "", err
 	}
-	return fsNode{n.fb, path}, symPath, err
+	return fsNode{path}, symPath, err
 }
 
 // SetEx is called by the test harness as the given user to set/unset the executable bit on the
@@ -276,20 +270,6 @@ func fiTypeString(fi os.FileInfo) string {
 		return "DIR"
 	}
 	return "OTHER"
-}
-
-func usersTlf(uids []keybase1.UID, nwriters int, config *libkbfs.ConfigLocal) (*libkbfs.TlfHandle, error) {
-	bareH, err := libkbfs.MakeBareTlfHandle(uids[:nwriters], uids[nwriters:], nil, nil)
-	if err != nil {
-		return nil, err
-	}
-	h, err := libkbfs.MakeTlfHandle(
-		context.Background(), bareH, config.KBPKI())
-	if err != nil {
-		return nil, err
-	}
-
-	return h, nil
 }
 
 func (e *fsEngine) InitTest(t *testing.T, blockSize int64,

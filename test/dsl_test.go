@@ -6,7 +6,6 @@ package test
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"path"
 	"regexp"
@@ -259,7 +258,7 @@ func read(name string, contents string) fileOp {
 			return err
 		}
 		if res != contents {
-			return errors.New("Read contents differ from expected")
+			return fmt.Errorf("Read (name=%s) contents=%s differ from expected=%s", name, res, contents)
 		}
 		return nil
 	}, Defaults}
@@ -366,7 +365,10 @@ func disableUpdates() fileOp {
 
 func reenableUpdates() fileOp {
 	return fileOp{func(c *ctx) error {
-		c.engine.ReenableUpdates(c.user, c.rootNode)
+		err := c.engine.ReenableUpdates(c.user, c.rootNode)
+		if err != nil {
+			return err
+		}
 		return c.engine.SyncFromServerForTesting(c.user, c.rootNode)
 	}, Defaults}
 }

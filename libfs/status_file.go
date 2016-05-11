@@ -12,10 +12,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-// StatusFileName is the name of the KBFS status file -- it can be reached
-// anywhere within a top-level folder or inside the Keybase root
-const StatusFileName = ".kbfs_status"
-
 // GetEncodedFolderStatus returns serialized JSON containing status information
 // for a folder
 func GetEncodedFolderStatus(ctx context.Context, config libkbfs.Config,

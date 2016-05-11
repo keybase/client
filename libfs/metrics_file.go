@@ -13,10 +13,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-// MetricsFileName is the name of the KBFS metrics file -- it can be
-// reached from any KBFS directory.
-const MetricsFileName = ".kbfs_metrics"
-
 // GetEncodedMetrics returns metrics encoded as bytes for metrics file.
 func GetEncodedMetrics(config libkbfs.Config) func(context.Context) ([]byte, time.Time, error) {
 	return func(context.Context) ([]byte, time.Time, error) {

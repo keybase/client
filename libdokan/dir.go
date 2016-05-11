@@ -98,6 +98,12 @@ func (f *Folder) unsetFolderBranch(ctx context.Context) {
 	f.folderBranch = libkbfs.FolderBranch{}
 }
 
+func (f *Folder) getFolderBranch() libkbfs.FolderBranch {
+	f.folderBranchMu.Lock()
+	defer f.folderBranchMu.Unlock()
+	return f.folderBranch
+}
+
 // forgetNode forgets a formerly active child with basename name.
 func (f *Folder) forgetNode(node libkbfs.Node) {
 	f.mu.Lock()
@@ -209,29 +215,42 @@ func (d *Dir) open(ctx context.Context, oc *openContext, path []string) (dokan.F
 	switch lastStr(path) {
 
 	case libfs.StatusFileName:
-		return NewStatusFile(d.folder.fs, &d.folder.folderBranch), false, nil
+		folderBranch := d.folder.getFolderBranch()
+		return NewStatusFile(d.folder.fs, &folderBranch), false, nil
 
-	case UnstageFileName:
+	case libfs.UnstageFileName:
 		child := &UnstageFile{
 			folder: d.folder,
 		}
 		return child, false, nil
 
-	case DisableUpdatesFileName:
+	case libfs.DisableUpdatesFileName:
 		child := &UpdatesFile{
 			folder: d.folder,
 		}
 		return child, false, nil
 
-	case EnableUpdatesFileName:
+	case libfs.EnableUpdatesFileName:
 		child := &UpdatesFile{
 			folder: d.folder,
 			enable: true,
 		}
 		return child, false, nil
 
-	case RekeyFileName:
+	case libfs.RekeyFileName:
 		child := &RekeyFile{
+			folder: d.folder,
+		}
+		return child, false, nil
+
+	case libfs.ReclaimQuotaFileName:
+		child := &ReclaimQuotaFile{
+			folder: d.folder,
+		}
+		return child, false, nil
+
+	case libfs.SyncFromServerFileName:
+		child := &SyncFromServerFile{
 			folder: d.folder,
 		}
 		return child, false, nil

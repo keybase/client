@@ -9,14 +9,6 @@ import (
 	"golang.org/x/net/context"
 )
 
-// DisableUpdatesFileName is the name of the KBFS update-disabling
-// file -- it can be reached anywhere within a top-level folder.
-const DisableUpdatesFileName = ".kbfs_disable_updates"
-
-// EnableUpdatesFileName is the name of the KBFS update-enabling
-// file -- it can be reached anywhere within a top-level folder.
-const EnableUpdatesFileName = ".kbfs_enable_updates"
-
 // UpdatesFile represents a write-only file where any write of at
 // least one byte triggers either disabling remote folder updates and
 // conflict resolution, or re-enabling both.  It is mainly useful for
@@ -55,7 +47,7 @@ func (f *UpdatesFile) Write(ctx context.Context, req *fuse.WriteRequest,
 			return errors.New("Updates are already enabled")
 		}
 		err = libkbfs.RestartCRForTesting(f.folder.fs.config,
-			f.folder.folderBranch)
+			f.folder.getFolderBranch())
 		if err != nil {
 			return err
 		}
@@ -68,12 +60,12 @@ func (f *UpdatesFile) Write(ctx context.Context, req *fuse.WriteRequest,
 		}
 		f.folder.updateChan, err =
 			libkbfs.DisableUpdatesForTesting(f.folder.fs.config,
-				f.folder.folderBranch)
+				f.folder.getFolderBranch())
 		if err != nil {
 			return err
 		}
 		err = libkbfs.DisableCRForTesting(f.folder.fs.config,
-			f.folder.folderBranch)
+			f.folder.getFolderBranch())
 		if err != nil {
 			return err
 		}

@@ -15,7 +15,7 @@ const UpdateHistoryFileName = ".kbfs_update_history"
 func getEncodedUpdateHistory(ctx context.Context, folder *Folder) (
 	data []byte, t time.Time, err error) {
 	history, err := folder.fs.config.KBFSOps().GetUpdateHistory(
-		ctx, folder.folderBranch)
+		ctx, folder.getFolderBranch())
 	if err != nil {
 		return nil, time.Time{}, err
 	}

@@ -110,6 +110,12 @@ func (f *Folder) unsetFolderBranch(ctx context.Context) {
 	f.folderBranch = libkbfs.FolderBranch{}
 }
 
+func (f *Folder) getFolderBranch() libkbfs.FolderBranch {
+	f.folderBranchMu.Lock()
+	defer f.folderBranchMu.Unlock()
+	return f.folderBranch
+}
+
 // forgetNode forgets a formerly active child with basename name.
 func (f *Folder) forgetNode(node libkbfs.Node) {
 	f.nodesMu.Lock()
@@ -345,26 +351,27 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 
 	switch req.Name {
 	case libfs.StatusFileName:
-		return NewStatusFile(d.folder.fs, &d.folder.folderBranch, resp), nil
+		folderBranch := d.folder.getFolderBranch()
+		return NewStatusFile(d.folder.fs, &folderBranch, resp), nil
 
 	case UpdateHistoryFileName:
 		return NewUpdateHistoryFile(d.folder, resp), nil
 
-	case UnstageFileName:
+	case libfs.UnstageFileName:
 		resp.EntryValid = 0
 		child := &UnstageFile{
 			folder: d.folder,
 		}
 		return child, nil
 
-	case DisableUpdatesFileName:
+	case libfs.DisableUpdatesFileName:
 		resp.EntryValid = 0
 		child := &UpdatesFile{
 			folder: d.folder,
 		}
 		return child, nil
 
-	case EnableUpdatesFileName:
+	case libfs.EnableUpdatesFileName:
 		resp.EntryValid = 0
 		child := &UpdatesFile{
 			folder: d.folder,
@@ -372,9 +379,23 @@ func (d *Dir) Lookup(ctx context.Context, req *fuse.LookupRequest, resp *fuse.Lo
 		}
 		return child, nil
 
-	case RekeyFileName:
+	case libfs.RekeyFileName:
 		resp.EntryValid = 0
 		child := &RekeyFile{
+			folder: d.folder,
+		}
+		return child, nil
+
+	case libfs.ReclaimQuotaFileName:
+		resp.EntryValid = 0
+		child := &ReclaimQuotaFile{
+			folder: d.folder,
+		}
+		return child, nil
+
+	case libfs.SyncFromServerFileName:
+		resp.EntryValid = 0
+		child := &SyncFromServerFile{
 			folder: d.folder,
 		}
 		return child, nil

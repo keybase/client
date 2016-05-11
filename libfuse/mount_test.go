@@ -2637,7 +2637,7 @@ func TestUnstageFile(t *testing.T) {
 
 	// now unstage user 2 and they should see the same stuff
 	unstageFile2 := path.Join(mnt2.Dir, PrivateName, "user1,user2",
-		UnstageFileName)
+		libfs.UnstageFileName)
 	if err := ioutil.WriteFile(unstageFile2, []byte{1}, 0222); err != nil {
 		t.Fatal(err)
 	}
@@ -2694,7 +2694,7 @@ func TestSimpleCRNoConflict(t *testing.T) {
 
 	// disable updates for user 2
 	disableUpdatesFile := path.Join(mnt2.Dir, PrivateName, "user1,user2",
-		DisableUpdatesFileName)
+		libfs.DisableUpdatesFileName)
 	if err := ioutil.WriteFile(disableUpdatesFile,
 		[]byte("off"), 0644); err != nil {
 		t.Fatal(err)
@@ -2752,7 +2752,7 @@ func TestSimpleCRNoConflict(t *testing.T) {
 
 	// now re-enable user 2 updates and CR, and the merge should happen
 	enableUpdatesFile := path.Join(mnt2.Dir, PrivateName, "user1,user2",
-		EnableUpdatesFileName)
+		libfs.EnableUpdatesFileName)
 	if err := ioutil.WriteFile(enableUpdatesFile,
 		[]byte("on"), 0644); err != nil {
 		t.Fatal(err)
@@ -2853,7 +2853,7 @@ func TestSimpleCRConflictOnOpenFiles(t *testing.T) {
 
 	// disable updates for user 2
 	disableUpdatesFile := path.Join(mnt2.Dir, PrivateName, "user1,user2",
-		DisableUpdatesFileName)
+		libfs.DisableUpdatesFileName)
 	if err := ioutil.WriteFile(disableUpdatesFile,
 		[]byte("off"), 0644); err != nil {
 		t.Fatal(err)
@@ -2899,7 +2899,7 @@ func TestSimpleCRConflictOnOpenFiles(t *testing.T) {
 
 	// now re-enable user 2 updates and CR, and the merge should happen
 	enableUpdatesFile := path.Join(mnt2.Dir, PrivateName, "user1,user2",
-		EnableUpdatesFileName)
+		libfs.EnableUpdatesFileName)
 	if err := ioutil.WriteFile(enableUpdatesFile,
 		[]byte("on"), 0644); err != nil {
 		t.Fatal(err)
@@ -3039,7 +3039,7 @@ func TestSimpleCRConflictOnOpenMergedFile(t *testing.T) {
 
 	// disable updates for user 2
 	disableUpdatesFile := path.Join(mnt2.Dir, PrivateName, "user1,user2",
-		DisableUpdatesFileName)
+		libfs.DisableUpdatesFileName)
 	if err := ioutil.WriteFile(disableUpdatesFile,
 		[]byte("off"), 0644); err != nil {
 		t.Fatal(err)
@@ -3089,7 +3089,7 @@ func TestSimpleCRConflictOnOpenMergedFile(t *testing.T) {
 
 	// now re-enable user 2 updates and CR, and the merge should happen
 	enableUpdatesFile := path.Join(mnt2.Dir, PrivateName, "user1,user2",
-		EnableUpdatesFileName)
+		libfs.EnableUpdatesFileName)
 	if err := ioutil.WriteFile(enableUpdatesFile,
 		[]byte("on"), 0644); err != nil {
 		t.Fatal(err)
