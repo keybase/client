@@ -31,14 +31,6 @@ export default function (state: ConfigState = initialState, action: Action): Con
     case CommonConstants.resetStore:
       return {...initialState}
 
-    case Constants.startupLoading:
-      return {
-        ...state,
-        config: null,
-        status: null,
-        error: null
-      }
-
     case Constants.configLoaded:
       if (action.payload && action.payload.config) {
         return {
