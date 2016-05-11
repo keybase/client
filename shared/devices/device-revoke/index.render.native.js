@@ -1,12 +1,11 @@
 // @flow
-
 import React from 'react'
 import type {Props} from './index.render'
 import {Box, Text, Icon, Button} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 import type {Props as IconProps} from '../../common-adapters/icon'
 
-const Render = ({name, type, isCurrent, onSubmit, onCancel}: Props) => {
+const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel}: Props) => {
   const icon: IconProps.type = {
     'mobile': 'phone-color-revoke-m',
     'desktop': 'computer-bw-revoke-m',
@@ -20,8 +19,8 @@ const Render = ({name, type, isCurrent, onSubmit, onCancel}: Props) => {
         <Icon type={icon} />
         <Text type='Body' style={stylesName}>{name}</Text>
       </Box>
-      <Text type='Header' style={{flex: 1, textAlign: 'center'}}>Are you sure you want to revoke {isCurrent ? 'your current device' : name}?</Text>
-      <Button type='Danger' onClick={onSubmit} label='Yes, delete it' style={stylesButton} />
+      <Text type='Header' style={{flex: 1, textAlign: 'center'}}>Are you sure you want to revoke {currentDevice ? 'your current device' : name}?</Text>
+      <Button type='Danger' onClick={() => onSubmit({deviceID, name, currentDevice})} label='Yes, delete it' style={stylesButton} />
       <Button type='Secondary' onClick={onCancel} label='Cancel' style={stylesButton} />
     </Box>)
 }

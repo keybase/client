@@ -6,7 +6,7 @@ import {Box, Text, Icon, Button} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 import type {Props as IconProps} from '../../common-adapters/icon'
 
-const Render = ({name, type, isCurrent, onSubmit, onCancel}: Props) => {
+const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel}: Props) => {
   const icon: IconProps.type = {
     'mobile': 'phone-color-revoke-m',
     'desktop': 'computer-bw-revoke-m',
@@ -20,10 +20,10 @@ const Render = ({name, type, isCurrent, onSubmit, onCancel}: Props) => {
         <Icon type={icon} />
         <Text type='Body' style={stylesName}>{name}</Text>
       </Box>
-      <Text type='Header'>Are you sure you want to revoke {isCurrent ? 'your current device' : name}?</Text>
+      <Text type='Header'>Are you sure you want to revoke {currentDevice ? 'your current device' : name}?</Text>
       <Box style={{...globalStyles.flexBoxRow, marginTop: 32}}>
         <Button type='Secondary' onClick={onCancel} label='Cancel' />
-        <Button type='Danger' onClick={onSubmit} label='Yes, delete it' />
+        <Button type='Danger' onClick={() => onSubmit({deviceID, name, currentDevice})} label='Yes, delete it' />
       </Box>
     </Box>)
 }

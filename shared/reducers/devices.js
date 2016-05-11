@@ -28,7 +28,7 @@ export default function (state = initialState, action) {
           name: dev.device.name,
           deviceID: dev.device.deviceID,
           type: dev.device.type,
-          created: dev.device.created,
+          created: dev.device.cTime,
           currentDevice: dev.currentDevice,
           provisioner: dev.provisioner,
           provisionedAt: dev.provisionedAt,

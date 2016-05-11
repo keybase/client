@@ -1,14 +1,15 @@
 /* @flow */
 
-import type {Device} from '../constants/types/flow-types'
+import type {Device as _Device} from '../constants/types/flow-types'
+import type {Device} from '../constants/types/more'
 
 export type Props = {
-  devices: Array<Device>,
-  revokedDevices?: Array<Device>,
+  devices: Array<_Device>,
+  revokedDevices?: Array<_Device>,
   waitingForServer: boolean,
   addNewDevice: () => void,
-  showRemoveDevicePage: () => void,
-  showExistingDevicePage: () => void,
+  showRemoveDevicePage: (device: Device) => void,
+  showExistingDevicePage: (device: Device) => void,
   showGenPaperKeyPage: () => void
 }
 
