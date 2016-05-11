@@ -500,7 +500,7 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
             dispatch(setCodePageOtherDeviceRole(kind))
             response.result(deviceType)
           }}
-          onBack={() => dispatch(cancelLogin(response))}/>))
+          onBack={() => dispatch(cancelLogin(response))} />))
     },
     'keybase.1.provisionUi.PromptNewDeviceName': ({existingDevices, errorMessage}, response) => {
       appendRouteElement((

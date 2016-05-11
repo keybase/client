@@ -32,7 +32,7 @@ class RevokedHeader extends Component<void, RevokedHeaderProps, RevokedHeaderSta
         <TouchableHighlight onPress={e => this._toggleHeader(e)}>
           <Box style={stylesRevokedRow}>
             <Text type='BodySemibold'>Revoked devices</Text>
-            <Icon type={iconType} style={{padding: 5}}/>
+            <Icon type={iconType} style={{padding: 5}} />
           </Box>
         </TouchableHighlight>
         {this.state.expanded && this.props.children}
@@ -61,7 +61,7 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
   return (
     <Box key={device.name} style={{...stylesCommonRow, backgroundColor: revoked ? globalColors.lightGrey : globalColors.white}}>
       <Box style={revoked ? stylesRevokedIconColumn : stylesIconColumn}>
-        <Icon type={icon}/>
+        <Icon type={icon} />
       </Box>
       <TouchableHighlight onPress={() => showExistingDevicePage(device)} style={stylesCommonColumn}>
         <View>
@@ -90,8 +90,8 @@ const RevokedDescription = () => (
 
 const RevokedDevices = ({revokedDevices}) => (
   <RevokedHeader>
-    <RevokedDescription/>
-    {revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked/>)}
+    <RevokedDescription />
+    {revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked />)}
   </RevokedHeader>
 )
 
@@ -109,7 +109,7 @@ const DeviceHeader = ({addNewDevice}) => (
 const Render = ({devices, revokedDevices, waitingForServer, addNewDevice, showRemoveDevicePage, showExistingDevicePage}: Props) => (
   <Box style={stylesContainer}>
     {<DeviceHeader addNewDevice={addNewDevice} />}
-    {devices && devices.map(device => <DeviceRow key={device.name} device={device} showRemoveDevicePage={showRemoveDevicePage} showExistingDevicePage={showExistingDevicePage}/>)}
+    {devices && devices.map(device => <DeviceRow key={device.name} device={device} showRemoveDevicePage={showRemoveDevicePage} showExistingDevicePage={showExistingDevicePage} />)}
     {revokedDevices && <RevokedDevices revokedDevices={revokedDevices} />}
   </Box>
 )

@@ -113,7 +113,7 @@ const Render = ({devices, revokedDevices, waitingForServer, addNewDevice, showRe
       {<DeviceHeader addNewDevice={addNewDevice} />}
       <style>{realCSS}</style>
       {devices && devices.map(device => <DeviceRow key={device.name} device={device} showRemoveDevicePage={showRemoveDevicePage} showExistingDevicePage={showExistingDevicePage} />)}
-      {revokedDevices && <RevokedDevices revokedDevices={revokedDevices} showExistingDevicePage={showExistingDevicePage}/>}
+      {revokedDevices && <RevokedDevices revokedDevices={revokedDevices} showExistingDevicePage={showExistingDevicePage} />}
     </Box>
   )
 }

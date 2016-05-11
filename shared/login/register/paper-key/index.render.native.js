@@ -24,7 +24,7 @@ class PaperKeyRender extends Component<void, Props, void> {
             onEnterKeyDown={() => this.props.onSubmit()}
             onChangeText={paperKey => this.props.onChangePaperKey(paperKey)}
             type='passwordVisible'
-            value={this.props.paperKey ? this.props.paperKey : null}/>
+            value={this.props.paperKey ? this.props.paperKey : null} />
           <Button
             style={stylesButton}
             type='Primary'
