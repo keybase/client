@@ -865,10 +865,6 @@ type AppConfig struct {
 	SecurityAccessGroupOverride bool
 }
 
-func (c AppConfig) GetLogFile() string {
-	return filepath.Join(c.GetHome(), "log")
-}
-
 func (c AppConfig) GetDebug() (bool, bool) {
 	return c.Debug, c.Debug
 }
