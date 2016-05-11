@@ -110,12 +110,11 @@ func (r *RemoteStatus) ExtraFileNameAndSize() (string, int64) {
 
 // humanReadableBytesNeedsLock should be called with lock already held.
 func (r *RemoteStatus) humanReadableBytesLocked() []byte {
-	var ss []string
-
 	if r.extraFileContents != nil {
 		return r.extraFileContents
 	}
 
+	var ss []string
 	needLogin := false
 	for service, err := range r.failingServices {
 		switch err.(type) {
