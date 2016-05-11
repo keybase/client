@@ -23,8 +23,8 @@ install: true
 script:
   - export GO15VENDOREXPERIMENT=1
   - if [ $TRAVIS_OS_NAME == 'linux' ]; then
-      cd shared && npm i --global flow-bin@`tail -n1 .flowconfig` && flow &&
-      cd ../desktop && npm run setup-dev-tools && eslint . &&
+      cd shared && npm i -g flow-bin@`tail -n1 .flowconfig` && flow &&
+      cd ../desktop && npm i -g babel-cli@6.7.7 && npm run setup-dev-tools && eslint . &&
       cd ../protocol && ./diff_test.sh &&
       docker login -e "$CI_EMAIL" -u "$CI_USER" -p "$CI_PASS" "$CI_HOST" &&
       docker pull $CI_HOST/kbweb &&
