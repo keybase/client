@@ -27,6 +27,8 @@ type KBFSOpsStandard struct {
 	reIdentifyControlChan chan struct{}
 
 	favs *Favorites
+
+	currentStatus kbfsCurrentStatus
 }
 
 var _ KBFSOps = (*KBFSOpsStandard)(nil)
@@ -42,6 +44,7 @@ func NewKBFSOpsStandard(config Config) *KBFSOpsStandard {
 		reIdentifyControlChan: make(chan struct{}),
 		favs: NewFavorites(config),
 	}
+	kops.currentStatus.Init()
 	go kops.markForReIdentifyIfNeededLoop()
 	return kops
 }
@@ -99,6 +102,11 @@ func (fs *KBFSOpsStandard) Shutdown() error {
 		return fmt.Errorf("Multiple errors on shutdown: %v", errors)
 	}
 	return nil
+}
+
+// PushConnectionStatusChange pushes human readable connection status changes.
+func (fs *KBFSOpsStandard) PushConnectionStatusChange(service string, newStatus error) {
+	fs.currentStatus.PushConnectionStatusChange(service, newStatus)
 }
 
 // GetFavorites implements the KBFSOps interface for
@@ -390,15 +398,21 @@ func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 	var limitBytes int64 = -1
 	quotaInfo, err := fs.config.BlockServer().GetUserQuotaInfo(ctx)
 	if err == nil {
-		usageBytes = quotaInfo.Total.Bytes[UsageWrite]
 		limitBytes = quotaInfo.Limit
+		if quotaInfo.Total != nil {
+			usageBytes = quotaInfo.Total.Bytes[UsageWrite]
+		} else {
+			usageBytes = 0
+		}
 	}
+	failures, ch := fs.currentStatus.CurrentStatus()
 	return KBFSStatus{
-		CurrentUser: username.String(),
-		IsConnected: fs.config.MDServer().IsConnected(),
-		UsageBytes:  usageBytes,
-		LimitBytes:  limitBytes,
-	}, nil, err
+		CurrentUser:     username.String(),
+		IsConnected:     fs.config.MDServer().IsConnected(),
+		UsageBytes:      usageBytes,
+		LimitBytes:      limitBytes,
+		FailingServices: failures,
+	}, ch, err
 }
 
 // UnstageForTesting implements the KBFSOps interface for KBFSOpsStandard

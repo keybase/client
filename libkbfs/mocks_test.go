@@ -512,6 +512,14 @@ func (_mr *_MockKBFSOpsRecorder) Shutdown() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "Shutdown")
 }
 
+func (_m *MockKBFSOps) PushConnectionStatusChange(service string, newStatus error) {
+	_m.ctrl.Call(_m, "PushConnectionStatusChange", service, newStatus)
+}
+
+func (_mr *_MockKBFSOpsRecorder) PushConnectionStatusChange(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "PushConnectionStatusChange", arg0, arg1)
+}
+
 // Mock of KeybaseDaemon interface
 type MockKeybaseDaemon struct {
 	ctrl     *gomock.Controller

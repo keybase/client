@@ -257,6 +257,9 @@ type KBFSOps interface {
 	// Shutdown is called to clean up any resources associated with
 	// this KBFSOps instance.
 	Shutdown() error
+	// PushConnectionStatusChange updates the status of a service for
+	// human readable connection status tracking.
+	PushConnectionStatusChange(service string, newStatus error)
 }
 
 // KeybaseDaemon is an interface for communicating with the local

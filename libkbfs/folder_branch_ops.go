@@ -3977,3 +3977,8 @@ func (fbo *folderBranchOps) GetUpdateHistory(ctx context.Context,
 	}
 	return history, nil
 }
+
+// PushConnectionStatusChange pushes human readable connection status changes.
+func (fbo *folderBranchOps) PushConnectionStatusChange(service string, newStatus error) {
+	fbo.config.KBFSOps().PushConnectionStatusChange(service, newStatus)
+}
