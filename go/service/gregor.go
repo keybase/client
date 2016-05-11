@@ -51,7 +51,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection, cli
 		return err
 	}
 
-	g.cli = cli
+	g.cli = conn.GetClient()
 
 	return g.auth(ctx)
 }
