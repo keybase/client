@@ -4,6 +4,7 @@ import {navigateTo} from '../actions/router'
 import MenuList from './menu-list'
 
 import about from './about'
+import logSend from './log-send'
 import account from './account'
 import billing from './about'
 import appPrefs from './about'
@@ -26,6 +27,7 @@ class More extends Component {
         {name: `Invitations (${dummyInvitationCount})`, hasChildren: true, onClick: () => { this.props.navigateTo(['invites']) }},
         {name: 'Notifications', hasChildren: true, onClick: () => { this.props.navigateTo(['notifs']) }},
         {name: 'Delete me', hasChildren: true, onClick: () => { this.props.navigateTo(['delete-me']) }},
+        {name: 'Log Send', hasChildren: false, onClick: () => { this.props.navigateTo(['logSend']) }},
         {name: 'About', hasChildren: true, onClick: () => { this.props.navigateTo(['about']) }}
       ]
     }
@@ -46,7 +48,7 @@ class More extends Component {
   static parseRoute () {
     return {
       componentAtTop: {title: 'More'},
-      subRoutes: {about, account, billing, appPrefs, invites, notifs, deleteMe, devMenu}
+      subRoutes: {about, account, billing, appPrefs, invites, notifs, deleteMe, devMenu, logSend}
     }
   }
 }
