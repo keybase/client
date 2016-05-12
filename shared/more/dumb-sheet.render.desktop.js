@@ -2,18 +2,7 @@
 import React, {Component} from 'react'
 import {Box, Text, Input} from '../common-adapters'
 import {globalStyles} from '../styles/style-guide'
-import type {DumbMap} from './dumb'
-
-import CommonMap from '../common-adapters/dumb.desktop'
-import DevicesMap from '../devices/dumb'
-import LoginMap from '../login/dumb.desktop'
-import SignupMap from '../login/signup/dumb.desktop'
-import MenubarMap from '../menubar/dumb.desktop'
-import TrackerMap from '../tracker/dumb.desktop'
-import PinentryMap from '../pinentry/dumb.desktop'
-import DevicePageMap from '../devices/device-page/dumb.desktop'
-import DeviceRevokeMap from '../devices/device-revoke/dumb.desktop'
-import TabBarMap from '../tab-bar/dumb.desktop'
+import dumbComponentMap from './dumb-component-map.desktop'
 
 import {dumbFilter} from '../local-debug'
 import debounce from 'lodash/debounce'
@@ -35,19 +24,6 @@ class Render extends Component<void, any, any> {
   }
 
   render () {
-    const componentMap: DumbMap = {
-      ...CommonMap,
-      ...DevicesMap,
-      ...LoginMap,
-      ...SignupMap,
-      ...MenubarMap,
-      ...TrackerMap,
-      ...PinentryMap,
-      ...DevicePageMap,
-      ...DeviceRevokeMap,
-      ...TabBarMap
-    }
-
     return (
       <Box style={{flex: 1, padding: 20}}>
         <Box style={{...globalStyles.flexBoxRow}}>
@@ -57,12 +33,12 @@ class Render extends Component<void, any, any> {
             onChange={event => this._onFilterChange(event.target.value.toLowerCase())}
           />
         </Box>
-        {Object.keys(componentMap).map(key => {
+        {Object.keys(dumbComponentMap).map(key => {
           if (this.state.filter && key.toLowerCase().indexOf(this.state.filter) === -1) {
             return null
           }
 
-          const map = componentMap[key]
+          const map = dumbComponentMap[key]
           const Component = map.component
           return (
             <Box key={key} style={styleBox}>
@@ -89,7 +65,7 @@ class Render extends Component<void, any, any> {
   }
 }
 
-const styleBox = {
+export const styleBox = {
   ...globalStyles.flexBoxColumn,
   padding: 20,
   marginTop: 10,

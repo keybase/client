@@ -29,6 +29,7 @@ type CommandLine interface {
 	GetHome() string
 	GetServerURI() string
 	GetConfigFilename() string
+	GetUpdaterConfigFilename() string
 	GetSessionFilename() string
 	GetDbFilename() string
 	GetDebug() (bool, bool)
@@ -96,6 +97,7 @@ type ConfigReader interface {
 	GetHome() string
 	GetServerURI() string
 	GetConfigFilename() string
+	GetUpdaterConfigFilename() string
 	GetSessionFilename() string
 	GetDbFilename() string
 	GetDebug() (bool, bool)
@@ -157,6 +159,10 @@ type ConfigReader interface {
 	GetTorMode() (TorMode, error)
 	GetTorHiddenAddress() string
 	GetTorProxy() string
+}
+
+type UpdaterConfigReader interface {
+	GetInstallID() InstallID
 }
 
 type ConfigWriterTransacter interface {

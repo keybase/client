@@ -1,7 +1,7 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import {openAccountResetPage} from '../../actions/login'
-import {relogin, login} from '../../actions/login'
+import {relogin, login, saveInKeychainChanged} from '../../actions/login'
 import {routeAppend} from '../../actions/router'
 import Render from './index.render'
 import type {Props} from './index.render'
@@ -33,6 +33,11 @@ class Login extends Component {
     }
   }
 
+  _onSaveInKeychainChange (saveInKeychain) {
+    this.props.onSaveInKeychainChange(this.state.selectedUser, saveInKeychain)
+    this.setState({saveInKeychain})
+  }
+
   render () {
     return <Render { ...this.props }
       onSubmit={() => this._onSubmit()}
@@ -42,7 +47,7 @@ class Login extends Component {
       selectedUser={this.state.selectedUser}
       passphraseChange={passphrase => this.setState({passphrase})}
       showTypingChange={showTyping => this.setState({showTyping})}
-      saveInKeychainChange={saveInKeychain => this.setState({saveInKeychain})}
+      saveInKeychainChange={saveInKeychain => this._onSaveInKeychainChange(saveInKeychain)}
       selectedUserChange={selectedUser => this.setState({selectedUser})}
     />
   }
@@ -75,7 +80,8 @@ export default connect(
       onForgotPassphrase: () => dispatch(openAccountResetPage()),
       onLogin: (user, passphrase, store) => dispatch(relogin(user, passphrase, store)),
       onSignup: () => dispatch(routeAppend(['signup'])),
-      onSomeoneElse: () => { dispatch(login()) }
+      onSomeoneElse: () => { dispatch(login()) },
+      onSaveInKeychainChange: (user, saveInKeychain) => { dispatch(saveInKeychainChanged(user, saveInKeychain)) }
     }
   }
 )(Login)

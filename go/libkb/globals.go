@@ -209,7 +209,20 @@ func (g *GlobalContext) ConfigureConfig() error {
 }
 
 func (g *GlobalContext) ConfigReload() error {
-	return g.ConfigureConfig()
+	err := g.ConfigureConfig()
+	g.ConfigureUpdaterConfig()
+	return err
+}
+
+func (g *GlobalContext) ConfigureUpdaterConfig() error {
+	c := NewJSONUpdaterConfigFile(g)
+	err := c.Load(false)
+	if err == nil {
+		g.Env.SetUpdaterConfig(*c)
+	} else {
+		g.Log.Debug("Failed to open update config: %s\n", err)
+	}
+	return err
 }
 
 func (g *GlobalContext) ConfigureTimers() error {
@@ -360,7 +373,7 @@ func (g *GlobalContext) ConfigureUsage(usage Usage) error {
 	var err error
 
 	if usage.Config {
-		if err = g.ConfigureConfig(); err != nil {
+		if err = g.ConfigReload(); err != nil {
 			return err
 		}
 	}

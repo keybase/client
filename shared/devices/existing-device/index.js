@@ -30,16 +30,6 @@ class ExistingDevice extends Component {
   }
 }
 
-ExistingDevice.propTypes = {
-  myDeviceRole: React.PropTypes.oneOf([
-    codePageDeviceRoleExistingPhone,
-    codePageDeviceRoleNewPhone,
-    codePageDeviceRoleExistingComputer,
-    codePageDeviceRoleNewComputer
-  ]),
-  onSubmit: React.PropTypes.func.isRequired
-}
-
 export default connect(
-  (state, ownProps) => ownProps.mapStateToProps(state)
+  state => ({})
 )(ExistingDevice)

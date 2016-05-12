@@ -9,6 +9,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
@@ -51,7 +52,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection, cli
 		return err
 	}
 
-	g.cli = cli
+	g.cli = conn.GetClient()
 
 	return g.auth(ctx)
 }
@@ -91,11 +92,110 @@ func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
 func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message) error {
 	g.G().Log.Debug("gregor handler: broadcast: %+v", m)
 
-	obm := m.ToOutOfBandMessage()
-	if obm == nil {
-		return fmt.Errorf("gregor handler: out-of-band message nil")
+	ibm := m.ToInBandMessage()
+	if ibm != nil {
+		return g.handleInBandMessage(ctx, ibm)
 	}
 
+	obm := m.ToOutOfBandMessage()
+	if obm != nil {
+		return g.handleOutOfBandMessage(ctx, obm)
+	}
+
+	return fmt.Errorf("gregor handler: both in-band and out-of-band message nil")
+}
+
+func (g *gregorHandler) handleInBandMessage(ctx context.Context, ibm gregor.InBandMessage) error {
+	g.G().Log.Debug("gregor handler: handleInBand: %+v", ibm)
+
+	sync := ibm.ToStateSyncMessage()
+	if sync != nil {
+		g.G().Log.Debug("gregor handler: state sync message")
+		return nil
+	}
+
+	update := ibm.ToStateUpdateMessage()
+	if update != nil {
+		g.G().Log.Debug("gregor handler: state update message")
+
+		item := update.Creation()
+		if item != nil {
+			g.G().Log.Debug("gregor handler: item created")
+
+			category := ""
+			if item.Category() != nil {
+				category = item.Category().String()
+			}
+			if category == "show_tracker_popup" {
+				return g.handleShowTrackerPopup(ctx, item)
+			}
+			g.G().Log.Errorf("Unrecognized item category: %s", item.Category())
+		}
+
+		dismissal := update.Dismissal()
+		if dismissal != nil {
+			g.G().Log.Debug("gregor handler: dismissal!!!")
+			return nil
+		}
+	}
+
+	g.G().Log.Errorf("InBandMessage unexpectedly not handled")
+	return nil
+}
+
+func (g *gregorHandler) handleShowTrackerPopup(ctx context.Context, item gregor.Item) error {
+	g.G().Log.Debug("gregor handler: handleShowTrackerPopup: %+v", item)
+	if item.Body() == nil {
+		return errors.New("gregor handler for show_tracker_popup: nil message body")
+	}
+	body, err := jsonw.Unmarshal(item.Body().Bytes())
+	if err != nil {
+		g.G().Log.Error("body failed to unmarshal", err)
+		return err
+	}
+	uid, err := body.AtPath("uid").GetString()
+	if err != nil {
+		g.G().Log.Error("failed to extract uid", err)
+		return err
+	}
+
+	// Load the user with that UID, to get a username.
+	user, err := libkb.LoadUser(libkb.NewLoadUserByUIDArg(g.G(), keybase1.UID(uid)))
+	if err != nil {
+		g.G().Log.Errorf("failed to load user %s", uid)
+		return err
+	}
+
+	identifyUI, err := g.G().UIRouter.GetIdentifyUI()
+	if err != nil {
+		g.G().Log.Error("failed to get IdentifyUI", err)
+		return err
+	}
+	if identifyUI == nil {
+		g.G().Log.Error("got nil IdentifyUI")
+		return errors.New("got nil IdentifyUI")
+	}
+	secretUI, err := g.G().UIRouter.GetSecretUI(0)
+	if err != nil {
+		g.G().Log.Error("failed to get SecretUI", err)
+		return err
+	}
+	if secretUI == nil {
+		g.G().Log.Error("got nil SecretUI")
+		return errors.New("got nil SecretUI")
+	}
+	engineContext := engine.Context{
+		IdentifyUI: identifyUI,
+		SecretUI:   secretUI,
+	}
+
+	trackArg := engine.TrackEngineArg{UserAssertion: user.GetName()}
+	trackEng := engine.NewTrackEngine(&trackArg, g.G())
+	return trackEng.Run(&engineContext)
+}
+
+func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.OutOfBandMessage) error {
+	g.G().Log.Debug("gregor handler: handleOutOfBand: %+v", obm)
 	if obm.System() == nil {
 		return errors.New("nil system in out of band message")
 	}
@@ -109,6 +209,9 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 }
 
 func (g *gregorHandler) Shutdown() {
+	if g.conn == nil {
+		return
+	}
 	g.conn.Shutdown()
 	g.conn = nil
 }

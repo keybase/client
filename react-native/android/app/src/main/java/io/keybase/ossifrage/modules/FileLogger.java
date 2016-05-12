@@ -1,4 +1,4 @@
-package io.keybase.android.modules;
+package io.keybase.ossifrage.modules;
 
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -6,15 +6,13 @@ import com.facebook.react.bridge.ReactMethod;
 
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-
 import ch.qos.logback.classic.Logger;
 import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.android.LogcatAppender;
 import ch.qos.logback.classic.encoder.PatternLayoutEncoder;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.FileAppender;
-import io.keybase.android.MainActivity;
+import io.keybase.ossifrage.MainActivity;
 
 public class FileLogger extends ReactContextBaseJavaModule {
     public static boolean configured = false;

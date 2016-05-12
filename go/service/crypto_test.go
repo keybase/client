@@ -10,6 +10,7 @@ import (
 
 type fakeUIRouter struct {
 	secretUI    libkb.SecretUI
+	identifyUI  libkb.IdentifyUI
 	secretUIErr error
 }
 
@@ -18,7 +19,7 @@ var _ libkb.UIRouter = fakeUIRouter{}
 func (f fakeUIRouter) SetUI(libkb.ConnectionID, libkb.UIKind) {}
 
 func (f fakeUIRouter) GetIdentifyUI() (libkb.IdentifyUI, error) {
-	return nil, errors.New("Unexpected GetIdentifyUI call")
+	return f.identifyUI, nil
 }
 
 func (f fakeUIRouter) GetSecretUI(int) (libkb.SecretUI, error) {

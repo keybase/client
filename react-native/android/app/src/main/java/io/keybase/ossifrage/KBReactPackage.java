@@ -1,4 +1,4 @@
-package io.keybase.android;
+package io.keybase.ossifrage;
 
 import com.facebook.react.bridge.JavaScriptModule;
 import com.facebook.react.bridge.NativeModule;
@@ -10,11 +10,11 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
-import io.keybase.android.components.VisiblePassReactEditTextManager;
-import io.keybase.android.modules.FileLogger;
-import io.keybase.android.modules.KeybaseEngine;
-import io.keybase.android.modules.KillableModule;
-import io.keybase.android.modules.LogSend;
+import io.keybase.ossifrage.components.VisiblePassReactEditTextManager;
+import io.keybase.ossifrage.modules.FileLogger;
+import io.keybase.ossifrage.modules.KeybaseEngine;
+import io.keybase.ossifrage.modules.KillableModule;
+import io.keybase.ossifrage.modules.LogSend;
 
 public class KBReactPackage implements com.facebook.react.ReactPackage {
     private final String logFilePath;

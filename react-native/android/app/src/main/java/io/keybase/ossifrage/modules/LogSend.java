@@ -1,4 +1,4 @@
-package io.keybase.android.modules;
+package io.keybase.ossifrage.modules;
 
 import com.facebook.react.bridge.Promise;
 import com.facebook.react.bridge.ReactApplicationContext;

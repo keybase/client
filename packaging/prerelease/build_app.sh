@@ -63,6 +63,10 @@ if [ ! "$nopull" = "1" ]; then
   "$client_dir/packaging/check_status_and_pull.sh" "$updater_dir"
 fi
 
+echo "Loading release tool"
+"$client_dir/packaging/goinstall.sh" "github.com/keybase/release"
+release_bin="$GOPATH/bin/release"
+
 if [ -n "$client_commit" ]; then
   cd "$client_dir"
   client_branch=`git rev-parse --abbrev-ref HEAD`
@@ -84,6 +88,14 @@ if [ -n "$kbfs_commit" ]; then
   echo "Checking out $kbfs_commit on kbfs"
   git checkout "$kbfs_commit"
 fi
+
+echo "Checking client CI"
+"$release_bin" wait-ci --repo="client" --commit=`git -C $client_dir log -1 --pretty=format:%h` --context="continuous-integration/travis-ci/push" --context="continuous-integration/appveyor/branch" --context="ci/circleci"
+echo "Checking kbfs CI"
+"$release_bin" wait-ci --repo="kbfs" --commit=`git -C $kbfs_dir log -1 --pretty=format:%h` --context="continuous-integration/travis-ci/push" --context="continuous-integration/appveyor/branch"
+echo "Checking updater CI"
+"$release_bin" wait-ci --repo="go-updater" --commit=`git -C $updater_dir log -1 --pretty=format:%h`
+--context="continuous-integration/travis-ci/push" --context="continuous-integration/appveyor/branch"
 
 if [ ! "$nobuild" = "1" ]; then
   BUILD_DIR=$build_dir_keybase "$dir/build_keybase.sh"

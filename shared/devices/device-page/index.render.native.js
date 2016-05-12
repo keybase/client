@@ -60,7 +60,7 @@ const Timeline = ({timeline}) => (
   </Box>
 )
 
-const Render = ({banner, name, type, isCurrent, timeline, isRevoked, onRevoke}: Props) => {
+const Render = ({banner, name, type, deviceID, currentDevice, timeline, revokedAt, showRemoveDevicePage, device}: Props) => {
   const icon: IconProps.type = {
     'mobile': 'phone-big',
     'desktop': 'computer-big',
@@ -76,10 +76,10 @@ const Render = ({banner, name, type, isCurrent, timeline, isRevoked, onRevoke}: 
   return (
     <Box style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
       {(banner != null) && <Banner type={banner.type} desc={banner.desc} />}
-      <Icon type={icon} style={{opacity: isRevoked ? 0.4 : 1, marginTop: 32}} />
-      <Header name={name} isCurrent={isCurrent} isRevoked={isRevoked} />
+      <Icon type={icon} style={{opacity: revokedAt ? 0.4 : 1, marginTop: 32}} />
+      <Header name={name} isCurrent={currentDevice} isRevoked={revokedAt} />
       <Timeline timeline={timeline} />
-      {!isRevoked && <Button type='Danger' style={{marginTop: 15}} label={`Revoke this ${revokeName}`} onClick={onRevoke} />}
+      {!revokedAt && <Button type='Danger' style={{marginTop: 15}} label={`Revoke this ${revokeName}`} onClick={() => showRemoveDevicePage(device)} />}
     </Box>)
 }
 

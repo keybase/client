@@ -51,11 +51,12 @@ var GregorServerLookup = map[RunMode]string{
 }
 
 const (
-	ConfigFile  = "config.json"
-	SessionFile = "session.json"
-	DBFile      = "keybase.leveldb"
-	SocketFile  = "keybased.sock"
-	PIDFile     = "keybased.pid"
+	ConfigFile        = "config.json"
+	SessionFile       = "session.json"
+	UpdaterConfigFile = "updater.json"
+	DBFile            = "keybase.leveldb"
+	SocketFile        = "keybased.sock"
+	PIDFile           = "keybased.pid"
 
 	SecretKeyringTemplate = "secretkeys.%u.mpack"
 

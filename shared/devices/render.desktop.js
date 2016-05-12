@@ -4,11 +4,11 @@ import {Box, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props as IconProps} from '../common-adapters/icon'
 
-import type {Props} from './index'
+import type {Props} from './render'
 
+type RevokedHeaderProps = {children?: Array<any>}
 type RevokedHeaderState = {expanded: boolean}
-
-class RevokedHeader extends Component<void, Props, RevokedHeaderState> {
+class RevokedHeader extends Component<void, RevokedHeaderProps, RevokedHeaderState> {
   state: RevokedHeaderState;
 
   constructor (props: Props) {
@@ -60,7 +60,7 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
       <Box style={revoked ? stylesRevokedIconColumn : stylesIconColumn}>
         <Icon type={icon} />
       </Box>
-      <Box style={stylesCommonColumn}>
+      <Box style={stylesCommonColumn} onClick={() => showExistingDevicePage(device)}>
         <Box style={{...globalStyles.flexBoxRow}}>
           <Text style={textStyle} type='Header'>{device.name}</Text>
         </Box>
@@ -69,7 +69,7 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
         </Box>
       </Box>
       <Box style={{...stylesRevokedColumn}}>
-        {!revoked && <Text className='existing-device-item' style={{color: globalColors.red}} type='BodyPrimaryLink'>Revoke</Text>}
+        {!revoked && <Text className='existing-device-item' style={{color: globalColors.red}} onClick={() => showRemoveDevicePage(device)} type='BodyPrimaryLink'>Revoke</Text>}
       </Box>
     </Box>
   )
@@ -81,10 +81,10 @@ const RevokedDescription = () => (
   </Box>
 )
 
-const RevokedDevices = ({revokedDevices}) => (
+const RevokedDevices = ({revokedDevices, showExistingDevicePage}) => (
   <RevokedHeader>
     <RevokedDescription />
-    {revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked />)}
+    {revokedDevices.map(device => <DeviceRow key={device.name} device={device} revoked showExistingDevicePage={showExistingDevicePage} />)}
   </RevokedHeader>
 )
 
@@ -113,7 +113,7 @@ const Render = ({devices, revokedDevices, waitingForServer, addNewDevice, showRe
       {<DeviceHeader addNewDevice={addNewDevice} />}
       <style>{realCSS}</style>
       {devices && devices.map(device => <DeviceRow key={device.name} device={device} showRemoveDevicePage={showRemoveDevicePage} showExistingDevicePage={showExistingDevicePage} />)}
-      {revokedDevices && <RevokedDevices revokedDevices={revokedDevices} />}
+      {revokedDevices && <RevokedDevices revokedDevices={revokedDevices} showExistingDevicePage={showExistingDevicePage} />}
     </Box>
   )
 }

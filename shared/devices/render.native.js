@@ -1,16 +1,17 @@
 /* @flow */
 import React, {Component} from 'react'
+import {View} from 'react-native'
 import {TouchableHighlight} from 'react-native'
 
 import {Box, Text, Icon} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props as IconProps} from '../common-adapters/icon'
 
-import type {Props} from './index'
+import type {Props} from './render'
 
+type RevokedHeaderProps = {children?: Array<any>}
 type RevokedHeaderState = {expanded: boolean}
-
-class RevokedHeader extends Component<void, Props, RevokedHeaderState> {
+class RevokedHeader extends Component<void, RevokedHeaderProps, RevokedHeaderState> {
   state: RevokedHeaderState;
 
   constructor (props: Props) {
@@ -62,17 +63,21 @@ const DeviceRow = ({device, revoked, showRemoveDevicePage, showExistingDevicePag
       <Box style={revoked ? stylesRevokedIconColumn : stylesIconColumn}>
         <Icon type={icon} />
       </Box>
-      <Box style={stylesCommonColumn}>
-        <Box style={{...globalStyles.flexBoxRow}}>
-          <Text style={textStyle} type='BodySemibold'>{device.name}</Text>
-        </Box>
-        <Box style={{...globalStyles.flexBoxRow}}>
-          {device.currentDevice && <Text type='BodySmall'>Current device</Text>}
-        </Box>
-      </Box>
-      <Box style={stylesRevokedColumn}>
-        {!revoked && <Text style={{color: globalColors.red}} type='BodyPrimaryLink'>Revoke</Text>}
-      </Box>
+      <TouchableHighlight onPress={() => showExistingDevicePage(device)} style={stylesCommonColumn}>
+        <View>
+          <View style={{...globalStyles.flexBoxRow}}>
+            <Text style={textStyle} type='BodySemibold'>{device.name}</Text>
+          </View>
+          <View style={{...globalStyles.flexBoxRow}}>
+            {device.currentDevice && <Text type='BodySmall'>Current device</Text>}
+          </View>
+        </View>
+      </TouchableHighlight>
+      <TouchableHighlight onPress={() => showRemoveDevicePage(device)} style={stylesRevokedColumn}>
+        <View>
+          {!revoked && <Text style={{color: globalColors.red}} type='BodyPrimaryLink'>Revoke</Text>}
+        </View>
+      </TouchableHighlight>
     </Box>
   )
 }
@@ -96,7 +101,7 @@ const DeviceHeader = ({addNewDevice}) => (
       <Icon type='devices-add-s' />
     </Box>
     <Box style={stylesCommonColumn}>
-      <Text type='BodyPrimaryLink' onClick={addNewDevice}>Add new...</Text>
+      <Text type='BodyPrimaryLink' onPress={addNewDevice}>Add new...</Text>
     </Box>
   </Box>
 )

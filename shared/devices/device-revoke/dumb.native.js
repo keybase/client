@@ -5,7 +5,12 @@ import type {DumbComponentMap} from '../../constants/types/more'
 const common = {
   type: 'desktop',
   name: 'Home Computer',
-  isCurrent: false,
+  deviceID: 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+  created: 1444423192000,
+  provisioner: null,
+  provisionedAt: null,
+  revokedAt: null,
+  currentDevice: false,
   onSubmit: () => { console.log('device revoke on submit') },
   onCancel: () => { console.log('device revoke on cancel') },
   parentProps: {
@@ -20,11 +25,13 @@ const map: DumbComponentMap<Render> = {
   mocks: {
     'Normal': {
       ...common,
-      type: 'mobile'
+      type: 'mobile',
+      device: common
     },
     'Current': {
       ...common,
-      isCurrent: true
+      currentDevice: true,
+      device: common
     }
   }
 }

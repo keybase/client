@@ -1,4 +1,4 @@
-package io.keybase.android;
+package io.keybase.ossifrage;
 
 import android.annotation.TargetApi;
 import android.content.Intent;

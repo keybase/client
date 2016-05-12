@@ -154,6 +154,11 @@ const commands = {
   'setup-dev-tools': {
     help: 'Install dev tooling (linters, etc)',
     code: installDevTools
+  },
+  'render-screenshots': {
+    nodePathDesktop: true,
+    shell: 'webpack --config webpack.config.visdiff.js && ./node_modules/.bin/electron ./dist/render-visdiff.bundle.js',
+    help: 'Render images of dumb components'
   }
 }
 
