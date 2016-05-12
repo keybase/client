@@ -117,13 +117,11 @@ const styleBadgeNumber = {
 }
 
 const itemContainerStyle = {
-  ...globalStyles.flexBoxColumn // ,
-  // minWidth: 127
+  ...globalStyles.flexBoxColumn
 }
 
 const tabBarStyle = {
-  ...globalStyles.flexBoxRow// ,
-  // minHeight: 32
+  ...globalStyles.flexBoxRow
 }
 
 export default Render
