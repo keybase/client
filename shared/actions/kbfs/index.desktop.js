@@ -6,9 +6,7 @@ import {config} from '../../constants/types/keybase-v1'
 import type {AsyncAction} from '../../constants/types/flux'
 import {cleanup} from '../../util/kbfs'
 
-const open = (kbfsPath: string, path: ?string) => {
-  path = path || ''
-
+const open = (kbfsPath: string, path: string = '') => { // eslint-disable-line space-infix-ops
   if (path.startsWith(Constants.defaultPrivatePrefix)) {
     path = Constants.defaultPrivatePrefix + cleanup(path.slice(Constants.defaultPrivatePrefix.length))
   } else if (path.startsWith(Constants.defaultPublicPrefix)) {
