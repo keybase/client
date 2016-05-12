@@ -24,6 +24,7 @@ const open = (kbfsPath: string, path: ?string) => {
 export function openInKBFS (path: string = Constants.defaultKBFSPath): AsyncAction {
   if (!path.startsWith(Constants.defaultKBFSPath)) {
     console.warn(`ERROR: openInKBFS requires ${Constants.defaultKBFSPath} prefix`)
+    return () => {}
   }
   path = path.slice(Constants.defaultKBFSPath.length)
 
