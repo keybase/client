@@ -11,7 +11,8 @@ before_install:
   - if [ $TRAVIS_OS_NAME == 'linux' ]; then
       export DEBIAN_FRONTEND=noninteractive;
       sudo apt-get update;
-      sudo apt-get install -q -y --force-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" docker-engine;
+      sudo apt-get install -q -y --force-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" docker-engine graphicsmagick s3cmd;
+      echo -e '[default]\naccess_key = $AWS_ACCESS_KEY_ID\nsecret_key = $AWS_SECRET_ACCESS_KEY' > ~/.s3cfg;
     elif [ $TRAVIS_OS_NAME == 'osx' ]; then
       brew install gnupg2;
       security create-keychain -p travis test.keychain;
@@ -20,13 +21,16 @@ before_install:
       security set-keychain-settings -t 3600 -u test.keychain;
     fi
 install: true
+before_script:
+  - sh -e /etc/init.d/xvfb start && export DISPLAY=:99.0
 script:
   - export GO15VENDOREXPERIMENT=1
   - if [ $TRAVIS_OS_NAME == 'linux' ]; then
       cd shared && npm i -g flow-bin@`tail -n1 .flowconfig` && flow &&
       cd ../desktop && npm run setup-ci-tools && npm run setup-dev-tools &&
       cd .. && eslint . &&
-      cd protocol && ./diff_test.sh &&
+      cd desktop && npm install nan octonode && npm install && npm run visdiff -- "$TRAVIS_COMMIT_RANGE" &&
+      cd ../protocol && ./diff_test.sh &&
       docker login -e "$CI_EMAIL" -u "$CI_USER" -p "$CI_PASS" "$CI_HOST" &&
       docker pull $CI_HOST/kbweb &&
       travis_retry docker run --name kbweb3000 -d -p 3000:3000 --entrypoint run/startup_for_container.sh $CI_HOST/kbweb &&
