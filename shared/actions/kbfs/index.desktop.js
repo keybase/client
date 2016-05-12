@@ -4,8 +4,19 @@ import {shell} from 'electron'
 import * as Constants from '../../constants/config'
 import {config} from '../../constants/types/keybase-v1'
 import type {AsyncAction} from '../../constants/types/flux'
+import {cleanup} from '../../util/kbfs'
 
 const open = (kbfsPath: string, path: ?string) => {
+  path = path || ''
+
+  if (path.startsWith(Constants.defaultPrivatePrefix)) {
+    path = Constants.defaultPrivatePrefix + cleanup(path.slice(Constants.defaultPrivatePrefix.length))
+  } else if (path.startsWith(Constants.defaultPublicPrefix)) {
+    path = Constants.defaultPublicPrefix + cleanup(path.slice(Constants.defaultPublicPrefix.length))
+  } else {
+    path = cleanup(path)
+  }
+
   shell.openItem(`${kbfsPath}${path}`)
 }
 

@@ -129,7 +129,7 @@ export const map: DumbComponentMap<Folders> = {
   mocks: {
     'Normal': {
       private: {tlfs, ignored, isPublic: false, parentProps},
-      public: {tlfs, ignored, isPublic: true, privateBadge: 1, publicBadge: 222, parentProps}
+      public: {tlfs: [f2, f3, f4, f5], ignored, isPublic: true, privateBadge: 1, publicBadge: 222, parentProps}
     }
   }
 }

@@ -11,7 +11,9 @@ export type Props = {
   showUser: (username: ?string) => void,
   showKBFS: () => void,
   showBug: () => void,
+  refresh: () => void,
   quit: () => void,
+  username: ?string,
   debug?: boolean,
   loading: boolean,
   loggedIn: boolean

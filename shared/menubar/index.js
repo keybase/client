@@ -148,7 +148,9 @@ class Menubar extends Component<void, Props, void> {
       showUser={() => this._showUser()}
       showKBFS={() => this._openFolder()}
       showBug={() => this._showBug()}
+      username={this.props.username}
       quit={() => this._quit()}
+      refresh={() => this._checkForFolders(true)}
       onClick={(path: string) => this._openFolder(path)} // eslint-disable-line arrow-parens
     />
   }

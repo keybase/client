@@ -5,6 +5,7 @@ import * as CommonConstants from '../constants/common'
 import _ from 'lodash'
 import type {FavoriteAction} from '../constants/favorite'
 import type {Props} from '../folders/render'
+import {canonicalizeUsernames, parseFolderNameToUsers} from '../util/kbfs'
 
 type State = {
   folders: ?Props
@@ -16,7 +17,7 @@ const initialState = {
 
 const folderToProps = (folders, username) => {
   const converted = folders.map(f => ({
-    users: f.name.split(',').map(u => ({
+    users: canonicalizeUsernames(username || '', parseFolderNameToUsers(f.name)).map(u => ({
       username: u,
       you: u === username,
       broken: false

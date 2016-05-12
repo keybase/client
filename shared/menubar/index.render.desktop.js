@@ -5,6 +5,7 @@ import {Box, Icon, Text, Button, PopupMenu} from '../common-adapters/index'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import Folders from '../folders/render'
 import type {Props} from './index.render'
+import UserAdd from './user-add'
 
 type State = {
   showingPublic: boolean,
@@ -49,17 +50,30 @@ class Render extends Component<void, Props, State> {
     ]
   }
 
+  _onAdd (path: string) {
+    this.props.onClick && this.props.onClick(path)
+    this.props.refresh()
+  }
+
   _renderFolders () {
     const newPrivate = {
       ...this.props.private,
       ignored: [],
-      extraRows: [<PrivateUserAdd key='useradd' />]
+      extraRows: [<UserAdd
+        key='useraddPriv'
+        isPublic={false}
+        onAdded={path => this._onAdd(path)}
+        username={this.props.username} />]
     }
 
     const newPublic = {
       ...this.props.public,
       ignored: [],
-      extraRows: [<PublicUserAdd key='useradd' />]
+      extraRows: [<UserAdd
+        key='useraddPub'
+        isPublic
+        onAdded={path => this._onAdd(path)}
+        username={this.props.username} />]
     }
 
     const styles = this.state.showingPublic ? stylesPublic : stylesPrivate
@@ -126,12 +140,5 @@ const stylesLogo = {
   color: globalColors.yellow,
   marginBottom: 12
 }
-
-const PrivateUserAdd = () => (
-  <p>hi</p>
-)
-const PublicUserAdd = () => (
-  <p>hi2</p>
-)
 
 export default Render
