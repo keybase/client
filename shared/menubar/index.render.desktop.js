@@ -57,7 +57,7 @@ class Render extends Component<void, Props, State> {
 
   _renderFolders () {
     const newPrivate = {
-      ...this.props.private,
+      ...(this.props.folderProps && this.props.folderProps.private),
       ignored: [],
       extraRows: [<UserAdd
         key='useraddPriv'
@@ -67,7 +67,7 @@ class Render extends Component<void, Props, State> {
     }
 
     const newPublic = {
-      ...this.props.public,
+      ...(this.props.folderProps && this.props.folderProps.public),
       ignored: [],
       extraRows: [<UserAdd
         key='useraddPub'
@@ -84,7 +84,7 @@ class Render extends Component<void, Props, State> {
       private: newPrivate,
       public: newPublic,
       onSwitchTab: showingPublic => this.setState({showingPublic}),
-      onClick: this.props.onClick
+      onClick: this.props.folderProps ? this.props.folderProps.onClick : () => {}
     }
 
     const menuColor = this.state.showingPublic

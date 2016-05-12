@@ -18,12 +18,12 @@ import type {Props as RenderProps} from './index.render'
 
 export type Props = {
   username: ?string,
-  folders: ?RenderProps,
   favoriteList: () => void,
   openInKBFS: (target?: any) => void,
   loggedIn: ?boolean,
-  switchTab: (tab: string) => void
-} & RenderProps
+  switchTab: (tab: string) => void,
+  folderProps: ?RenderProps
+}
 
 const REQUEST_DELAY = 5000
 
@@ -98,7 +98,7 @@ class Menubar extends Component<void, Props, void> {
       return true
     }
 
-    if (this.props.folders !== nextProps.folders) {
+    if (this.props.folderProps !== nextProps.folderProps) {
       return true
     }
 
@@ -141,7 +141,7 @@ class Menubar extends Component<void, Props, void> {
 
   render () {
     return <Render
-      {...this.props.folders}
+      folderProps={this.props.folderProps}
       loggedIn={!!this.props.loggedIn}
       logIn={() => this._logIn()}
       showHelp={() => this._showHelp()}
@@ -160,7 +160,7 @@ export default connect(
   state => ({
     username: state.config && state.config.status && state.config.status.user && state.config.status.user.username,
     loggedIn: state.config && state.config.status && state.config.status.loggedIn,
-    folders: state.favorite && state.favorite.folders
+    folderProps: state.favorite && state.favorite.folders
   }),
   dispatch => bindActionCreators({...favoriteAction, openInKBFS, switchTab}, dispatch)
 )(Menubar)
