@@ -14,6 +14,7 @@ kbfs_commit=${KBFS_COMMIT:-} # Commit hash on kbfs to build from
 bucket_name=${BUCKET_NAME:-"prerelease.keybase.io"}
 platform=${PLATFORM:-} # darwin,linux,windows (Only darwin is supported in this script)
 nos3=${NOS3:-} # Don't sync to S3
+nowait=${NOWAIT:-} # Don't wait for CI
 build_desc="build"
 
 if [ "$gopath" = "" ]; then
@@ -89,13 +90,14 @@ if [ -n "$kbfs_commit" ]; then
   git checkout "$kbfs_commit"
 fi
 
-echo "Checking client CI"
-"$release_bin" wait-ci --repo="client" --commit=`git -C $client_dir log -1 --pretty=format:%h` --context="continuous-integration/travis-ci/push" --context="continuous-integration/appveyor/branch" --context="ci/circleci"
-echo "Checking kbfs CI"
-"$release_bin" wait-ci --repo="kbfs" --commit=`git -C $kbfs_dir log -1 --pretty=format:%h` --context="continuous-integration/travis-ci/push" --context="continuous-integration/appveyor/branch"
-echo "Checking updater CI"
-"$release_bin" wait-ci --repo="go-updater" --commit=`git -C $updater_dir log -1 --pretty=format:%h`
---context="continuous-integration/travis-ci/push" --context="continuous-integration/appveyor/branch"
+if [ ! "$nowait" = "1" ]; then
+  echo "Checking client CI"
+  "$release_bin" wait-ci --repo="client" --commit=`git -C $client_dir log -1 --pretty=format:%h` --context="continuous-integration/travis-ci/push" --context="continuous-integration/appveyor/branch" --context="ci/circleci"
+  echo "Checking kbfs CI"
+  "$release_bin" wait-ci --repo="kbfs" --commit=`git -C $kbfs_dir log -1 --pretty=format:%h` --context="continuous-integration/travis-ci/push" --context="continuous-integration/appveyor/branch"
+  echo "Checking updater CI"
+  "$release_bin" wait-ci --repo="go-updater" --commit=`git -C $updater_dir log -1 --pretty=format:%h` --context="continuous-integration/travis-ci/push" --context="continuous-integration/appveyor/branch"
+fi
 
 if [ ! "$nobuild" = "1" ]; then
   BUILD_DIR=$build_dir_keybase "$dir/build_keybase.sh"
