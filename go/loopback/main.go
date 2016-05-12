@@ -56,7 +56,12 @@ func LogSend(uiLogPath string) (string, error) {
 		Desktop: uiLogPath,
 	}
 
-	return c.LogSend("", logs, 10000)
+	logSendContext := libkb.LogSendContext{
+		Context: &c,
+		Logs:    logs,
+	}
+
+	return logSendContext.LogSend("", logs, 10000)
 }
 
 // WriteB64 Takes base64 encoded msgpack rpc payload

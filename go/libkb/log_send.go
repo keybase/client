@@ -11,6 +11,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/keybase/client/go/logger"
 	rogReverse "github.com/rogpeppe/rog-go/reverse"
 )
 
@@ -21,6 +22,12 @@ type Logs struct {
 	Service string
 	Updater string
 	Start   string
+}
+
+// LogSendContext for LogSend
+type LogSendContext struct {
+	Context *Contextified
+	Logs    Logs
 }
 
 func addFile(mpart *multipart.Writer, param, filename, data string) error {
@@ -43,8 +50,8 @@ func addFile(mpart *multipart.Writer, param, filename, data string) error {
 	return nil
 }
 
-func (c *Contextified) post(status, kbfsLog, svcLog, desktopLog, updaterLog, startLog string) (string, error) {
-	c.G().Log.Debug("sending status + logs to keybase")
+func (l *LogSendContext) post(status, kbfsLog, svcLog, desktopLog, updaterLog, startLog string) (string, error) {
+	l.Context.G().Log.Debug("sending status + logs to keybase")
 
 	var body bytes.Buffer
 	mpart := multipart.NewWriter(&body)
@@ -72,16 +79,16 @@ func (c *Contextified) post(status, kbfsLog, svcLog, desktopLog, updaterLog, sta
 		return "", err
 	}
 
-	c.G().Log.Debug("body size: %d\n", body.Len())
+	l.Context.G().Log.Debug("body size: %d\n", body.Len())
 
 	arg := APIArg{
-		Contextified: NewContextified(c.G()),
+		Contextified: NewContextified(l.Context.G()),
 		Endpoint:     "logdump/send",
 	}
 
-	resp, err := c.G().API.PostRaw(arg, mpart.FormDataContentType(), &body)
+	resp, err := l.Context.G().API.PostRaw(arg, mpart.FormDataContentType(), &body)
 	if err != nil {
-		c.G().Log.Debug("post error: %s", err)
+		l.Context.G().Log.Debug("post error: %s", err)
 		return "", err
 	}
 
@@ -93,14 +100,14 @@ func (c *Contextified) post(status, kbfsLog, svcLog, desktopLog, updaterLog, sta
 	return id, nil
 }
 
-func (c *Contextified) tail(filename string, numLines int) string {
+func tail(Log logger.Logger, filename string, numLines int) string {
 	if filename == "" {
 		return ""
 	}
 
 	f, err := os.Open(filename)
 	if err != nil {
-		c.G().Log.Warning("error opening log %q: %s", filename, err)
+		Log.Warning("error opening log %q: %s", filename, err)
 		return ""
 	}
 	b := rogReverse.NewScanner(f)
@@ -122,22 +129,22 @@ func (c *Contextified) tail(filename string, numLines int) string {
 }
 
 // LogSend sends the the tails of log files to kb
-func (c *Contextified) LogSend(statusJSON string, logs Logs, numLines int) (string, error) {
+func (l *LogSendContext) LogSend(statusJSON string, logs Logs, numLines int) (string, error) {
 
-	c.G().Log.Debug("tailing kbfs log %q", logs.Kbfs)
-	kbfsLog := c.tail(logs.Kbfs, numLines)
+	l.Context.G().Log.Debug("tailing kbfs log %q", logs.Kbfs)
+	kbfsLog := tail(l.Context.G().Log, logs.Kbfs, numLines)
 
-	c.G().Log.Debug("tailing service log %q", logs.Service)
-	svcLog := c.tail(logs.Service, numLines)
+	l.Context.G().Log.Debug("tailing service log %q", logs.Service)
+	svcLog := tail(l.Context.G().Log, logs.Service, numLines)
 
-	c.G().Log.Debug("tailing desktop log %q", logs.Desktop)
-	desktopLog := c.tail(logs.Desktop, numLines)
+	l.Context.G().Log.Debug("tailing desktop log %q", logs.Desktop)
+	desktopLog := tail(l.Context.G().Log, logs.Desktop, numLines)
 
-	c.G().Log.Debug("tailing updater log %q", logs.Updater)
-	updaterLog := c.tail(logs.Updater, numLines)
+	l.Context.G().Log.Debug("tailing updater log %q", logs.Updater)
+	updaterLog := tail(l.Context.G().Log, logs.Updater, numLines)
 
-	c.G().Log.Debug("tailing start log %q", logs.Start)
-	startLog := c.tail(logs.Start, numLines)
+	l.Context.G().Log.Debug("tailing start log %q", logs.Start)
+	startLog := tail(l.Context.G().Log, logs.Start, numLines)
 
-	return c.post(statusJSON, kbfsLog, svcLog, desktopLog, updaterLog, startLog)
+	return l.post(statusJSON, kbfsLog, svcLog, desktopLog, updaterLog, startLog)
 }

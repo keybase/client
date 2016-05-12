@@ -76,7 +76,12 @@ func (c *CmdLogSend) Run() error {
 
 	logs := c.logFiles(status)
 
-	id, err := c.LogSend(statusJSON, logs, c.numLines)
+	logSendContext := libkb.LogSendContext{
+		Context: &c,
+		Logs:    logs,
+	}
+
+	id, err := logSendContext.LogSend(statusJSON, logs, c.numLines)
 	if err != nil {
 		return err
 	}
