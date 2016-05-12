@@ -329,6 +329,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return ProvisionUnavailableError{}
 	case SCGPGUnavailable:
 		return GPGUnavailableError{}
+	case SCNotFound:
+		return NotFoundError{Msg: s.Desc}
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -1116,6 +1118,14 @@ func (e GPGUnavailableError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCGPGUnavailable,
 		Name: "SC_GPG_UNAVAILABLE",
+		Desc: e.Error(),
+	}
+}
+
+func (e NotFoundError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCNotFound,
+		Name: "SC_NOT_FOUND",
 		Desc: e.Error(),
 	}
 }
