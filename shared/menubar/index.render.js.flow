@@ -9,6 +9,8 @@ export type Props = {
   showMain: () => void,
   showHelp: () => void,
   showUser: (username: ?string) => void,
+  showKBFS: () => void,
+  showBug: () => void,
   quit: () => void,
   debug?: boolean,
   loading: boolean,

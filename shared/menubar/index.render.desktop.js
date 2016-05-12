@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 
-import {Box, Icon, Text, Button} from '../common-adapters/index'
+import {Box, Icon, Text, Button, PopupMenu} from '../common-adapters/index'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import Folders from '../folders/render'
 import type {Props} from './index.render'
@@ -9,27 +9,6 @@ import type {Props} from './index.render'
 type State = {
   showingPublic: boolean,
   showingMenu: boolean
-}
-
-const Menu = ({showHelp, showUser, showKBFS, showBug, quit, hideMenu}) => {
-  const realCSS = `
-  .menu-hover:hover {
-    background-color: ${globalColors.blue4}
-  }
-  `
-
-  return (
-    <Box style={stylesMenuCatcher} onClick={() => hideMenu()}>
-      <style>{realCSS}</style>
-      <Box style={stylesMenu}>
-        <Text className='menu-hover' type='Body' style={stylesMenuText} onClick={showKBFS}>Open folders in Finder</Text>
-        <Text className='menu-hover' type='Body' style={stylesMenuText} onClick={showUser}>Keybase.io</Text>
-        <Text className='menu-hover' type='Body' style={stylesMenuText} onClick={showBug}>Report a bug</Text>
-        <Text className='menu-hover' type='Body' style={stylesMenuText} onClick={showHelp}>Help/Doc</Text>
-        <Text className='menu-hover' type='Body' style={stylesMenuText} onClick={quit}>Quit</Text>
-      </Box>
-    </Box>
-  )
 }
 
 class Render extends Component<void, Props, State> {
@@ -60,15 +39,27 @@ class Render extends Component<void, Props, State> {
     )
   }
 
+  _menuItems () {
+    return [
+      {title: 'Open folders in Finder', onClick: this.props.showKBFS},
+      {title: 'Keybase.io', onClick: this.props.showUser},
+      {title: 'Report a bug', onClick: this.props.showBug},
+      {title: 'Help/Doc', onClick: this.props.showHelp},
+      {title: 'Quit', onClick: this.props.quit}
+    ]
+  }
+
   _renderFolders () {
-    const noIgnorePrivate = {
+    const newPrivate = {
       ...this.props.private,
-      ignored: []
+      ignored: [],
+      extraRows: [<PrivateUserAdd key='useradd' />]
     }
 
-    const noIgnorePublic = {
+    const newPublic = {
       ...this.props.public,
-      ignored: []
+      ignored: [],
+      extraRows: [<PublicUserAdd key='useradd' />]
     }
 
     const styles = this.state.showingPublic ? stylesPublic : stylesPrivate
@@ -76,8 +67,8 @@ class Render extends Component<void, Props, State> {
     const mergedProps = {
       ...this.props,
       smallMode: true,
-      private: noIgnorePrivate,
-      public: noIgnorePublic,
+      private: newPrivate,
+      public: newPublic,
       onSwitchTab: showingPublic => this.setState({showingPublic}),
       onClick: this.props.onClick
     }
@@ -86,7 +77,7 @@ class Render extends Component<void, Props, State> {
       ? (this.state.showingMenu ? globalColors.black : globalColors.black_40)
       : (this.state.showingMenu ? globalColors.white : globalColors.blue3_40)
 
-    const menuStyle = {color: menuColor, hoverColor: menuColor, fontSize: 12}
+    const menuStyle = {...globalStyles.clickable, color: menuColor, hoverColor: menuColor, fontSize: 12}
 
     return (
       <Box style={styles.container}>
@@ -97,8 +88,7 @@ class Render extends Component<void, Props, State> {
             onClick={() => this.setState({showingMenu: !this.state.showingMenu})} />
         </Box>
         <Folders {...mergedProps} />
-        {this.state.showingMenu &&
-          <Menu {...this.props} hideMenu={() => this.setState({showingMenu: false})} />}
+        <PopupMenu visible={this.state.showingMenu} items={this._menuItems()} onHidden={() => this.setState({showingMenu: false})} />
       </Box>
     )
   }
@@ -137,33 +127,11 @@ const stylesLogo = {
   marginBottom: 12
 }
 
-const stylesMenuCatcher = {
-  ...globalStyles.flexBoxColumn,
-  justifyContent: 'flex-start',
-  alignItems: 'flex-start',
-  position: 'absolute',
-  top: 0,
-  bottom: 0,
-  left: 0,
-  right: 0
-}
-
-const stylesMenu = {
-  ...globalStyles.flexBoxColumn,
-  justifyContent: 'flex-start',
-  alignItems: 'stretch',
-  backgroundColor: globalColors.white,
-  borderRadius: 3,
-  paddingTop: 7,
-  paddingBottom: 7,
-  marginTop: 29,
-  marginLeft: 4
-}
-
-const stylesMenuText = {
-  lineHeight: '30px',
-  paddingLeft: 15,
-  paddingRight: 15
-}
+const PrivateUserAdd = () => (
+  <p>hi</p>
+)
+const PublicUserAdd = () => (
+  <p>hi2</p>
+)
 
 export default Render

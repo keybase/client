@@ -23,7 +23,8 @@ export type Props = {
   isPublic: boolean,
   style?: any,
   smallMode?: boolean,
-  onClick?: (path: string) => void
+  onClick?: (path: string) => void,
+  extraRows?: Array<React$Element>
 }
 
 export default class Render extends React$Component<void, Props, void> {

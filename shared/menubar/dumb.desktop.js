@@ -6,6 +6,7 @@ import {map} from '../folders/dumb'
 import {globalStyles} from '../styles/style-guide'
 
 const propsNormal = {
+  ...map.mocks.Normal,
   username: 'max',
   openKBFS: path => { console.log('Opening finder: ', path) },
   showKBFS: () => {},
@@ -16,7 +17,6 @@ const propsNormal = {
   showBug: () => {},
   loading: false,
   loggedIn: true,
-  ...map.mocks.Normal,
   parentProps: {
     style: {
       ...globalStyles.flexBoxColumn,

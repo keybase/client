@@ -58,6 +58,7 @@ class Render extends Component<void, Props, State> {
       <Box style={{...stylesScrollContainer, ...this.props.style}}>
         <Box style={stylesContainer}>
           <style>{realCSS}</style>
+          {this.props.extraRows}
           {this.props.tlfs && this.props.tlfs.map((t, idx) => (
             <Row
               key={rowKey(t.users)}
