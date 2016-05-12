@@ -24,7 +24,7 @@ script:
   - export GO15VENDOREXPERIMENT=1
   - if [ $TRAVIS_OS_NAME == 'linux' ]; then
       cd shared && npm i -g flow-bin@`tail -n1 .flowconfig` && flow &&
-      cd ../desktop && npm i -g babel-cli && npm run setup-ci-tools && npm run setup-dev-tools &&
+      cd ../desktop && npm run setup-ci-tools && npm run setup-dev-tools &&
       cd ../shared && eslint . && 
       cd ../protocol && ./diff_test.sh &&
       docker login -e "$CI_EMAIL" -u "$CI_USER" -p "$CI_PASS" "$CI_HOST" &&
