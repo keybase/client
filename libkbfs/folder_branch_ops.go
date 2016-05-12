@@ -2691,9 +2691,7 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 	bps.mergeOtherBps(newBps)
 
 	defer func() {
-		fbo.log.CDebugf(ctx, "CHECK CLEAN UP BLOCK STATE: %v", err)
 		if err != nil {
-			fbo.log.CDebugf(ctx, "CLEAN UP BLOCK STATE: %v", err)
 			fbo.fbm.cleanUpBlockState(md, bps)
 		}
 	}()
@@ -2703,13 +2701,10 @@ func (fbo *folderBranchOps) syncLocked(ctx context.Context,
 		return true, err
 	}
 
-	fbo.log.CDebugf(ctx, "WRITING REVISION %d", md.Revision)
 	err = fbo.finalizeMDWriteLocked(ctx, lState, md, bps)
 	if err != nil {
-		fbo.log.CDebugf(ctx, "MD WRITE FAILED: %v", err)
 		return true, err
 	}
-	fbo.log.CDebugf(ctx, "REVISION %d SUCCESSFUL", md.Revision)
 
 	// At this point, all reads through the old path (i.e., file)
 	// see writes that happened since StartSync, whereas all reads
