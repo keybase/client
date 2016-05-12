@@ -9,6 +9,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/syndtr/goleveldb/leveldb"
 	"github.com/syndtr/goleveldb/leveldb/storage"
@@ -27,6 +28,7 @@ type MDServerLocal struct {
 	handleDb *leveldb.DB // folder handle                  -> folderId
 	mdDb     *leveldb.DB // folderId+[branchId]+[revision] -> mdBlockLocal
 	branchDb *leveldb.DB // folderId+deviceKID             -> branchId
+	log      logger.Logger
 
 	locksMutex *sync.Mutex
 	locksDb    *leveldb.DB // folderId -> deviceKID
@@ -62,8 +64,10 @@ func newMDServerLocalWithStorage(config Config, handleStorage, mdStorage,
 	if err != nil {
 		return nil, err
 	}
-	mdserv := &MDServerLocal{config, handleDb, mdDb, branchDb, &sync.Mutex{},
-		locksDb, &sync.Mutex{}, make(map[TlfID]map[*MDServerLocal]chan<- error),
+	log := config.MakeLogger("")
+	mdserv := &MDServerLocal{config, handleDb, mdDb, branchDb, log,
+		&sync.Mutex{}, locksDb, &sync.Mutex{},
+		make(map[TlfID]map[*MDServerLocal]chan<- error),
 		make(map[TlfID]*MDServerLocal), new(bool), &sync.RWMutex{}}
 	return mdserv, nil
 }
@@ -334,8 +338,7 @@ func (md *MDServerLocal) getCurrentDeviceKID(ctx context.Context) (keybase1.KID,
 func (md *MDServerLocal) GetRange(ctx context.Context, id TlfID,
 	bid BranchID, mStatus MergeStatus, start, stop MetadataRevision) (
 	[]*RootMetadataSigned, error) {
-	md.config.MakeLogger("").CDebugf(ctx, "GetRange %d %d %s", start, stop,
-		mStatus)
+	md.log.CDebugf(ctx, "GetRange %d %d (%s)", start, stop, mStatus)
 	md.shutdownLock.RLock()
 	defer md.shutdownLock.RUnlock()
 	if *md.shutdown {
@@ -778,7 +781,8 @@ func (md *MDServerLocal) copy(config Config) *MDServerLocal {
 	// NOTE: observers and sessionHeads are copied shallowly on
 	// purpose, so that the MD server that gets a Put will notify all
 	// observers correctly no matter where they got on the list.
-	return &MDServerLocal{config, md.handleDb, md.mdDb, md.branchDb,
+	log := config.MakeLogger("")
+	return &MDServerLocal{config, md.handleDb, md.mdDb, md.branchDb, log,
 		md.locksMutex, md.locksDb, md.mutex, md.observers, md.sessionHeads,
 		md.shutdown, md.shutdownLock}
 }
