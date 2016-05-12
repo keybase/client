@@ -9,7 +9,7 @@ import {intersperseFn} from '../util/arrays'
 import {parseFolderNameToUsers, canonicalizeUsernames, stripPublicTag} from '../util/kbfs'
 
 import {globalStyles, globalColors} from '../styles/style-guide'
-import {Button, Text, Input, Terminal, Icon, ProgressIndicator} from '../common-adapters/index'
+import {Button, Text, Input, Icon, ProgressIndicator} from '../common-adapters/index'
 
 import {cleanup} from '../util/kbfs'
 
@@ -48,22 +48,6 @@ const Footer = props => {
     <div style={stylesFooter}>
       <Text type='Body' small onClick={showHelp}>Help</Text>
       <Text type='Body' small onClick={quit}>Quit</Text>
-    </div>
-  )
-}
-
-const LogInTerminalMessage = props => {
-  return (
-    <div style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.white}}>
-      <Icon type='fa-exclamation-triangle' style={{alignSelf: 'center', color: globalColors.red, marginTop: 12}} />
-      <Text type='Body' small style={{alignSelf: 'center', marginTop: 6}}>You're logged out!</Text>
-      <Text type='Body' small style={{marginTop: 10, marginBottom: 5, marginLeft: 10}}>From the terminal:</Text>
-      <Terminal>
-        <Text type='TerminalCommand'>keybase login</Text>
-        <Text type='TerminalEmpty' />
-        <Text type='TerminalComment'>or if you're new to Keybase:</Text>
-        <Text type='TerminalCommand'>keybase signup</Text>
-      </Terminal>
     </div>
   )
 }
