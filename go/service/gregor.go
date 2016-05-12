@@ -9,6 +9,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -16,6 +17,8 @@ import (
 	jsonw "github.com/keybase/go-jsonw"
 	"github.com/keybase/gregor"
 	"github.com/keybase/gregor/protocol/gregor1"
+	grclient "github.com/keybase/gregor/rpc/client"
+	grstorage "github.com/keybase/gregor/storage"
 )
 
 type gregorHandler struct {
@@ -28,6 +31,61 @@ type gregorHandler struct {
 }
 
 var _ libkb.GregorDismisser = (*gregorHandler)(nil)
+
+type gregorLocalDb struct {
+	db *libkb.JSONLocalDb
+}
+
+func newLocalDB(g *libkb.GlobalContext) *gregorLocalDb {
+	return &gregorLocalDb{db: g.LocalDb}
+}
+
+func dbKey(u gregor.UID) libkb.DbKey {
+	return libkb.DbKey{Typ: libkb.DBGregor, Key: hex.EncodeToString(u.Bytes())}
+}
+
+func (db *gregorLocalDb) Store(u gregor.UID, b []byte) error {
+	return db.db.PutRaw(dbKey(u), b)
+}
+
+func (db *gregorLocalDb) Load(u gregor.UID) (res []byte, e error) {
+	res, _, err := db.db.GetRaw(dbKey(u))
+	return res, err
+}
+
+func newGregorClient(g *libkb.GlobalContext, i gregor1.IncomingInterface) (*grclient.Client, error) {
+	objFactory := gregor1.ObjFactory{}
+	sm := grstorage.NewMemEngine(objFactory, clockwork.NewRealClock())
+
+	var guid gregor.UID
+	var gdid gregor.DeviceID
+	var b []byte
+	var err error
+
+	uid := g.Env.GetUID()
+	if !uid.Exists() {
+		return nil, errors.New("no UID; probably not logged in")
+	}
+	if b = uid.ToBytes(); b == nil {
+		return nil, errors.New("Can't convert UID to byte array")
+	}
+	if guid, err = objFactory.MakeUID(b); err != nil {
+		return nil, err
+	}
+
+	did := g.Env.GetDeviceID()
+	if !did.Exists() {
+		return nil, errors.New("no UID; probably not logged in")
+	}
+	if b, err = hex.DecodeString(did.String()); err != nil {
+		return nil, err
+	}
+	if gdid, err = objFactory.MakeDeviceID(b); err != nil {
+		return nil, err
+	}
+
+	return grclient.NewClient(guid, gdid, sm, newLocalDB(g), i, g.Log), nil
+}
 
 func newGregorHandler(g *libkb.GlobalContext) *gregorHandler {
 	return &gregorHandler{

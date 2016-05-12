@@ -231,6 +231,16 @@
 			"revisionTime": "2016-05-19T11:31:43-04:00"
 		},
 		{
+			"path": "github.com/keybase/gregor/rpc/client",
+			"revision": "6a79b77a033f81fbbfb55a3b94acb512d74cb12b",
+			"revisionTime": "2016-05-12T13:19:34-04:00"
+		},
+		{
+			"path": "github.com/keybase/gregor/storage",
+			"revision": "6a79b77a033f81fbbfb55a3b94acb512d74cb12b",
+			"revisionTime": "2016-05-12T13:19:34-04:00"
+		},
+		{
 			"path": "github.com/keybase/keybase-test-vectors/go",
 			"revision": "a5147a659b4a69f77e027e301e726e05492474d6",
 			"revisionTime": "2015-10-20T11:39:53-04:00"
