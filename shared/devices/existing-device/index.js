@@ -1,9 +1,18 @@
+// @flow
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
-import Render from './index.render'
-import {codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer, codePageDeviceRoleNewComputer} from '../../constants/login'
+import Render from './render'
+import {DeviceRole, codePageDeviceRoleExistingPhone,
+  codePageDeviceRoleNewPhone, codePageDeviceRoleExistingComputer,
+  codePageDeviceRoleNewComputer} from '../../constants/login'
 
-class ExistingDevice extends Component {
+type Props = {
+  myDeviceRole: DeviceRole,
+  onSubmit: (type: DeviceRole) => void,
+  onBack: () => void
+}
+
+class ExistingDevice extends Component<void, Props, void> {
   render () {
     let otherDeviceComputer = null
     let otherDevicePhone = null
@@ -16,6 +25,7 @@ class ExistingDevice extends Component {
         break
       case codePageDeviceRoleNewPhone: // fallthrough
       case codePageDeviceRoleNewComputer:
+      default:
         otherDeviceComputer = codePageDeviceRoleExistingComputer
         otherDevicePhone = codePageDeviceRoleExistingPhone
         break
@@ -25,6 +35,7 @@ class ExistingDevice extends Component {
       <Render
         onSubmitComputer={() => this.props.onSubmit(otherDeviceComputer)}
         onSubmitPhone={() => this.props.onSubmit(otherDevicePhone)}
+        onBack={this.props.onBack}
       />
     )
   }
