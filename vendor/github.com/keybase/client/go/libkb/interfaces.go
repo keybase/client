@@ -29,6 +29,7 @@ type CommandLine interface {
 	GetHome() string
 	GetServerURI() string
 	GetConfigFilename() string
+	GetUpdaterConfigFilename() string
 	GetSessionFilename() string
 	GetDbFilename() string
 	GetDebug() (bool, bool)
@@ -96,6 +97,7 @@ type ConfigReader interface {
 	GetHome() string
 	GetServerURI() string
 	GetConfigFilename() string
+	GetUpdaterConfigFilename() string
 	GetSessionFilename() string
 	GetDbFilename() string
 	GetDebug() (bool, bool)
@@ -149,6 +151,7 @@ type ConfigReader interface {
 	GetUpdatePreferenceSnoozeUntil() keybase1.Time
 	GetUpdateLastChecked() keybase1.Time
 	GetUpdateURL() string
+	GetUpdateDisabled() (bool, bool)
 	GetLocalTrackMaxAge() (time.Duration, bool)
 	GetAppStartMode() AppStartMode
 	IsAdmin() (bool, bool)
@@ -156,6 +159,10 @@ type ConfigReader interface {
 	GetTorMode() (TorMode, error)
 	GetTorHiddenAddress() string
 	GetTorProxy() string
+}
+
+type UpdaterConfigReader interface {
+	GetInstallID() InstallID
 }
 
 type ConfigWriterTransacter interface {
@@ -277,6 +284,7 @@ type IdentifyUI interface {
 	DisplayUserCard(keybase1.UserCard)
 	ReportTrackToken(keybase1.TrackToken) error
 	Finish()
+	DisplayTLFCreateWithInvite(keybase1.DisplayTLFCreateWithInviteArg) error
 }
 
 type Checker struct {

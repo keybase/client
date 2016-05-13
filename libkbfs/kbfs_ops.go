@@ -16,6 +16,7 @@ import (
 type KBFSOpsStandard struct {
 	config   Config
 	log      logger.Logger
+	deferLog logger.Logger
 	ops      map[FolderBranch]*folderBranchOps
 	opsByFav map[Favorite]*folderBranchOps
 	opsLock  sync.RWMutex
@@ -39,6 +40,7 @@ func NewKBFSOpsStandard(config Config) *KBFSOpsStandard {
 	kops := &KBFSOpsStandard{
 		config:                config,
 		log:                   log,
+		deferLog:              log.CloneWithAddedDepth(1),
 		ops:                   make(map[FolderBranch]*folderBranchOps),
 		opsByFav:              make(map[Favorite]*folderBranchOps),
 		reIdentifyControlChan: make(chan struct{}),
@@ -210,7 +212,7 @@ func (fs *KBFSOpsStandard) GetOrCreateRootNode(
 	node Node, ei EntryInfo, err error) {
 	fs.log.CDebugf(ctx, "GetOrCreateRootNode(%s, %v)",
 		h.GetCanonicalPath(), branch)
-	defer func() { fs.log.CDebugf(ctx, "Done: %#v", err) }()
+	defer func() { fs.deferLog.CDebugf(ctx, "Done: %#v", err) }()
 
 	// Do GetForHandle() unlocked -- no cache lookups, should be fine
 	mdops := fs.config.MDOps()

@@ -19,6 +19,19 @@ type setObj struct {
 	val keybase1.NotificationChannels
 }
 
+// NotifyListener provides hooks for listening for when
+// notifications are called.  It is intended to simplify
+// testing notifications.
+type NotifyListener interface {
+	Logout()
+	Login(username string)
+	ClientOutOfDate(to, uri, msg string)
+	UserChanged(uid keybase1.UID)
+	TrackingChanged(uid keybase1.UID, username string)
+	FSActivity(activity keybase1.FSNotification)
+	FavoritesChanged(uid keybase1.UID)
+}
+
 // NotifyRouter routes notifications to the various active RPC
 // connections. It's careful only to route to those who are interested
 type NotifyRouter struct {
@@ -28,6 +41,7 @@ type NotifyRouter struct {
 	setCh      chan setObj
 	getCh      chan getObj
 	shutdownCh chan struct{}
+	listener   NotifyListener
 }
 
 // NewNotifyRouter makes a new notification router; we should only
@@ -43,6 +57,10 @@ func NewNotifyRouter(g *GlobalContext) *NotifyRouter {
 	}
 	go ret.run()
 	return ret
+}
+
+func (n *NotifyRouter) SetListener(listener NotifyListener) {
+	n.listener = listener
 }
 
 func (n *NotifyRouter) Shutdown() {
@@ -111,6 +129,9 @@ func (n *NotifyRouter) HandleLogout() {
 		}
 		return true
 	})
+	if n.listener != nil {
+		n.listener.Logout()
+	}
 	n.G().Log.Debug("- Logout notification sent")
 }
 
@@ -135,13 +156,16 @@ func (n *NotifyRouter) HandleLogin(u string) {
 		}
 		return true
 	})
+	if n.listener != nil {
+		n.listener.Login(u)
+	}
 	n.G().Log.Debug("- Login notification sent")
 }
 
 // ClientOutOfDate is called whenever the API server tells us our client is out
 // of date. (This is done by adding special headers to every API response that
 // an out-of-date client makes.)
-func (n *NotifyRouter) HandleClientOutOfDate(upgradeTo string, upgradeURI string) {
+func (n *NotifyRouter) HandleClientOutOfDate(upgradeTo, upgradeURI, upgradeMsg string) {
 	if n == nil {
 		return
 	}
@@ -158,12 +182,16 @@ func (n *NotifyRouter) HandleClientOutOfDate(upgradeTo string, upgradeURI string
 				}).ClientOutOfDate(context.TODO(), keybase1.ClientOutOfDateArg{
 					UpgradeTo:  upgradeTo,
 					UpgradeURI: upgradeURI,
+					UpgradeMsg: upgradeMsg,
 				})
 			}()
 		}
 		return true
 	})
-	n.G().Log.Debug("- Login notification sent")
+	if n.listener != nil {
+		n.listener.ClientOutOfDate(upgradeTo, upgradeURI, upgradeMsg)
+	}
+	n.G().Log.Debug("- client-out-of-date notification sent")
 }
 
 // HandleUserChanged is called whenever we know that a given user has
@@ -187,6 +215,9 @@ func (n *NotifyRouter) HandleUserChanged(uid keybase1.UID) {
 		}
 		return true
 	})
+	if n.listener != nil {
+		n.listener.UserChanged(uid)
+	}
 }
 
 // HandleTrackingChanged is called whenever we have a new tracking or
@@ -214,6 +245,9 @@ func (n *NotifyRouter) HandleTrackingChanged(uid keybase1.UID, username string) 
 		}
 		return true
 	})
+	if n.listener != nil {
+		n.listener.TrackingChanged(uid, username)
+	}
 }
 
 // HandleFSActivity is called for any KBFS notification. It will broadcast the messages
@@ -236,4 +270,36 @@ func (n *NotifyRouter) HandleFSActivity(activity keybase1.FSNotification) {
 		}
 		return true
 	})
+	if n.listener != nil {
+		n.listener.FSActivity(activity)
+	}
+}
+
+// HandleFavoritesChanged is called whenever the kbfs favorites change
+// for a user (and caches should be invalidated). It will broadcast the
+// messages to all curious listeners.
+func (n *NotifyRouter) HandleFavoritesChanged(uid keybase1.UID) {
+	if n == nil {
+		return
+	}
+
+	n.G().Log.Debug("+ Sending favorites changed notfication")
+	// For all connections we currently have open...
+	n.cm.ApplyAll(func(id ConnectionID, xp rpc.Transporter) bool {
+		// If the connection wants the `Favorites` notification type
+		if n.getNotificationChannels(id).Favorites {
+			// In the background do...
+			go func() {
+				// A send of a `FavoritesChanged` RPC with the user's UID
+				(keybase1.NotifyFavoritesClient{
+					Cli: rpc.NewClient(xp, ErrorUnwrapper{}),
+				}).FavoritesChanged(context.TODO(), uid)
+			}()
+		}
+		return true
+	})
+	if n.listener != nil {
+		n.listener.FavoritesChanged(uid)
+	}
+	n.G().Log.Debug("- Sent favorites changed notfication")
 }

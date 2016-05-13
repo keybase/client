@@ -76,6 +76,10 @@ func (k KeychainSecretStore) GetUsersWithStoredSecrets() ([]string, error) {
 	return keychain.GetAccountsForService(k.context.GetStoredSecretServiceName())
 }
 
-func GetTerminalPrompt() string {
+func (k KeychainSecretStore) GetApprovalPrompt() string {
+	return "Save in Keychain"
+}
+
+func (k KeychainSecretStore) GetTerminalPrompt() string {
 	return "Store your key in Apple's local keychain?"
 }

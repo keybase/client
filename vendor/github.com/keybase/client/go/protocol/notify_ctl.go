@@ -9,10 +9,11 @@ import (
 )
 
 type NotificationChannels struct {
-	Session  bool `codec:"session" json:"session"`
-	Users    bool `codec:"users" json:"users"`
-	Kbfs     bool `codec:"kbfs" json:"kbfs"`
-	Tracking bool `codec:"tracking" json:"tracking"`
+	Session   bool `codec:"session" json:"session"`
+	Users     bool `codec:"users" json:"users"`
+	Kbfs      bool `codec:"kbfs" json:"kbfs"`
+	Tracking  bool `codec:"tracking" json:"tracking"`
+	Favorites bool `codec:"favorites" json:"favorites"`
 }
 
 type SetNotificationsArg struct {

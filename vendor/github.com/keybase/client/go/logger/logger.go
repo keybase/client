@@ -58,6 +58,10 @@ type Logger interface {
 	// writing to a file.
 	RotateLogFile() error
 
+	// Returns a logger that is like the current one, except with
+	// more logging depth added on.
+	CloneWithAddedDepth(depth int) Logger
+
 	// SetExternalHandler sets a handler that will be called with every log message.
 	SetExternalHandler(handler ExternalHandler)
 }

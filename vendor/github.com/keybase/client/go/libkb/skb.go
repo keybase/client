@@ -767,6 +767,7 @@ func (s *SKB) unlockPrompt(arg SecretKeyPromptArg, secretStore SecretStore, me *
 		UseSecretStore: secretStore != nil,
 		Unlocker:       unlocker,
 		UI:             arg.SecretUI,
+		Contextified:   NewContextified(s.G()),
 	}
 
 	key, err := keyUnlocker.Run()

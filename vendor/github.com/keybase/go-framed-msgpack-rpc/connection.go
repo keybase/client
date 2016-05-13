@@ -20,15 +20,17 @@ import (
 type DisconnectStatus int
 
 const (
+	// skip 0
+	_ = iota
 	// UsingExistingConnection means that an existing
 	// connection will be used.
-	UsingExistingConnection = 1
+	UsingExistingConnection DisconnectStatus = iota
 	// StartingFirstConnection means that a connection will be
 	// started, and this is the first one.
-	StartingFirstConnection = iota
+	StartingFirstConnection
 	// StartingNonFirstConnection means that a connection will be
 	// started, and this is not the first one.
-	StartingNonFirstConnection DisconnectStatus = iota
+	StartingNonFirstConnection
 )
 
 // ConnectionTransport is a container for an underlying transport to be
@@ -490,15 +492,17 @@ var _ GenericClient = connectionClient{}
 
 func (c connectionClient) Call(ctx context.Context, s string, args interface{}, res interface{}) error {
 	return c.conn.DoCommand(ctx, s, func(rawClient GenericClient) error {
-		tags, ok := c.conn.tagsFunc(ctx)
-		if ok {
-			rpcTags := make(CtxRpcTags)
-			for key, tagName := range tags {
-				if v := ctx.Value(key); v != nil {
-					rpcTags[tagName] = v
+		if c.conn.tagsFunc != nil {
+			tags, ok := c.conn.tagsFunc(ctx)
+			if ok {
+				rpcTags := make(CtxRpcTags)
+				for key, tagName := range tags {
+					if v := ctx.Value(key); v != nil {
+						rpcTags[tagName] = v
+					}
 				}
+				ctx = AddRpcTagsToContext(ctx, rpcTags)
 			}
-			ctx = AddRpcTagsToContext(ctx, rpcTags)
 		}
 		return rawClient.Call(ctx, s, args, res)
 	})

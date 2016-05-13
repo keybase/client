@@ -32,8 +32,9 @@ import (
 func makeFS(t testing.TB, config *libkbfs.ConfigLocal) (
 	*fstestutil.Mount, *FS, func()) {
 	log := logger.NewTestLogger(t)
+	debugLog := log.CloneWithAddedDepth(1)
 	fuse.Debug = func(msg interface{}) {
-		log.Debug("%s", msg)
+		debugLog.Debug("%s", msg)
 	}
 
 	// TODO duplicates main() in kbfsfuse/main.go too much

@@ -217,32 +217,32 @@
 		},
 		{
 			"path": "github.com/keybase/client/go/auth",
-			"revision": "662935e78eed1cea3a49a4a0263235fdc61c760c",
-			"revisionTime": "2016-04-09T10:18:52-07:00"
+			"revision": "3675a7ea1df667467a5d7a54b15e3ef7bf42bad8",
+			"revisionTime": "2016-05-12T14:59:50-07:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/kex2",
-			"revision": "662935e78eed1cea3a49a4a0263235fdc61c760c",
-			"revisionTime": "2016-04-09T10:18:52-07:00"
+			"revision": "3675a7ea1df667467a5d7a54b15e3ef7bf42bad8",
+			"revisionTime": "2016-05-12T14:59:50-07:00"
 		},
 		{
 			"checksumSHA1": "Mg7EyhOO6jviJD47XQdiMk4QiXg=",
 			"origin": "github.com/keybase/kbfs/vendor/github.com/keybase/client/go/libkb",
 			"path": "github.com/keybase/client/go/libkb",
-			"revision": "9f1142e955d4963f0a913c624b64f75015c6d51e",
-			"revisionTime": "2016-04-14T17:11:47-04:00"
+			"revision": "3675a7ea1df667467a5d7a54b15e3ef7bf42bad8",
+			"revisionTime": "2016-05-12T14:59:50-07:00"
 		},
 		{
 			"path": "github.com/keybase/client/go/logger",
-			"revision": "662935e78eed1cea3a49a4a0263235fdc61c760c",
-			"revisionTime": "2016-04-09T10:18:52-07:00"
+			"revision": "3675a7ea1df667467a5d7a54b15e3ef7bf42bad8",
+			"revisionTime": "2016-05-12T14:59:50-07:00"
 		},
 		{
 			"checksumSHA1": "I7IjX8GPD/BDvIsuEvYA/1Qo1Ko=",
 			"origin": "github.com/keybase/kbfs/vendor/github.com/keybase/client/go/protocol",
 			"path": "github.com/keybase/client/go/protocol",
-			"revision": "133157419fd5aa8d87d2154f1cbd50aa8eb08fdd",
-			"revisionTime": "2016-05-02T13:08:58-07:00"
+			"revision": "3675a7ea1df667467a5d7a54b15e3ef7bf42bad8",
+			"revisionTime": "2016-05-12T14:59:50-07:00"
 		},
 		{
 			"path": "github.com/keybase/go-codec/codec",
@@ -301,8 +301,8 @@
 			"checksumSHA1": "Q0aldIuLG3nZftUoq9C0icbaaW4=",
 			"origin": "github.com/keybase/kbfs/vendor/github.com/keybase/go-framed-msgpack-rpc",
 			"path": "github.com/keybase/go-framed-msgpack-rpc",
-			"revision": "5346e612fd0f1c62d719ca03011c65902230adcb",
-			"revisionTime": "2016-05-03T10:32:50-07:00"
+			"revision": "46f76e560e2cfd5883cfd397df9007220d2aec29",
+			"revisionTime": "2016-05-12T13:08:44-05:00"
 		},
 		{
 			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-jsonw",
@@ -343,6 +343,11 @@
 			"path": "github.com/keybase/go-triplesec/sha3",
 			"revision": "64f61c25cc3595b1aeecdaf86a61bfec00b04c5f",
 			"revisionTime": "2016-03-16T16:25:20-04:00"
+		},
+		{
+			"path": "github.com/keybase/npipe",
+			"revision": "0938d701e50e580f5925c773055eb6d6b32a0cbc",
+			"revisionTime": "2014-10-08T16:43:58+02:00"
 		},
 		{
 			"path": "github.com/keybase/saltpack",

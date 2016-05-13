@@ -155,7 +155,7 @@ func (tc *TestContext) MakePGPKey(id string) (*PGPKeyBundle, error) {
 	}
 	arg.Init()
 	arg.CreatePGPIDs()
-	return GeneratePGPKeyBundle(arg, tc.G.UI.GetLogUI())
+	return GeneratePGPKeyBundle(tc.G, arg, tc.G.UI.GetLogUI())
 }
 
 // ResetLoginStateForTest simulates a shutdown and restart (for client

@@ -30,6 +30,14 @@ import (
 
 type ShutdownHook func() error
 
+type LoginHook interface {
+	OnLogin() error
+}
+
+type LogoutHook interface {
+	OnLogout() error
+}
+
 type GlobalContext struct {
 	Log               logger.Logger  // Handles all logging
 	VDL               *VDebugLog     // verbose debug log
@@ -68,6 +76,9 @@ type GlobalContext struct {
 	RateLimits          *RateLimits         // tracks the last time certain actions were taken
 	Clock               clockwork.Clock     // RealClock unless we're testing
 	SecretStoreAll      SecretStoreAll      // nil except for tests and supported platforms
+	hookMu              sync.RWMutex        // protects loginHooks, logoutHooks
+	loginHooks          []LoginHook         // call these on login
+	logoutHooks         []LogoutHook        // call these on logout
 }
 
 func NewGlobalContext() *GlobalContext {
@@ -148,6 +159,8 @@ func (g *GlobalContext) Logout() error {
 		return err
 	}
 
+	g.CallLogoutHooks()
+
 	if g.TrackCache != nil {
 		g.TrackCache.Shutdown()
 	}
@@ -196,7 +209,20 @@ func (g *GlobalContext) ConfigureConfig() error {
 }
 
 func (g *GlobalContext) ConfigReload() error {
-	return g.ConfigureConfig()
+	err := g.ConfigureConfig()
+	g.ConfigureUpdaterConfig()
+	return err
+}
+
+func (g *GlobalContext) ConfigureUpdaterConfig() error {
+	c := NewJSONUpdaterConfigFile(g)
+	err := c.Load(false)
+	if err == nil {
+		g.Env.SetUpdaterConfig(*c)
+	} else {
+		g.Log.Debug("Failed to open update config: %s\n", err)
+	}
+	return err
 }
 
 func (g *GlobalContext) ConfigureTimers() error {
@@ -347,7 +373,7 @@ func (g *GlobalContext) ConfigureUsage(usage Usage) error {
 	var err error
 
 	if usage.Config {
-		if err = g.ConfigureConfig(); err != nil {
+		if err = g.ConfigReload(); err != nil {
 			return err
 		}
 	}
@@ -517,4 +543,36 @@ func (g *GlobalContext) GetUnforwardedLogger() *logger.UnforwardedLogger {
 
 func (g *GlobalContext) GetLog() logger.Logger {
 	return g.Log
+}
+
+func (g *GlobalContext) AddLoginHook(hook LoginHook) {
+	g.hookMu.Lock()
+	defer g.hookMu.Unlock()
+	g.loginHooks = append(g.loginHooks, hook)
+}
+
+func (g *GlobalContext) CallLoginHooks() {
+	g.hookMu.RLock()
+	defer g.hookMu.RUnlock()
+	for _, h := range g.loginHooks {
+		if err := h.OnLogin(); err != nil {
+			g.Log.Warning("OnLogin hook error: %s", err)
+		}
+	}
+}
+
+func (g *GlobalContext) AddLogoutHook(hook LogoutHook) {
+	g.hookMu.Lock()
+	defer g.hookMu.Unlock()
+	g.logoutHooks = append(g.logoutHooks, hook)
+}
+
+func (g *GlobalContext) CallLogoutHooks() {
+	g.hookMu.RLock()
+	defer g.hookMu.RUnlock()
+	for _, h := range g.logoutHooks {
+		if err := h.OnLogout(); err != nil {
+			g.Log.Warning("OnLogout hook error: %s", err)
+		}
+	}
 }

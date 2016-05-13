@@ -155,6 +155,7 @@ type GpgFingerprinter interface {
 }
 
 type GpgPrimaryKey struct {
+	Contextified
 	GpgBaseKey
 	subkeys    []*GpgSubKey
 	identities []*Identity
@@ -170,7 +171,11 @@ func (k *GpgPrimaryKey) IsValid() bool {
 	} else if k.Expires == 0 {
 		return true
 	} else {
-		return time.Now().Before(time.Unix(int64(k.Expires), 0))
+		expired := time.Now().After(time.Unix(int64(k.Expires), 0))
+		if expired {
+			k.G().Log.Warning("Skipping expired primary key %s", k.fingerprint.ToQuads())
+		}
+		return !expired
 	}
 }
 
@@ -201,14 +206,14 @@ func (k *GpgPrimaryKey) Parse(l *GpgIndexLine) error {
 	return nil
 }
 
-func NewGpgPrimaryKey() *GpgPrimaryKey {
-	ret := &GpgPrimaryKey{}
+func NewGpgPrimaryKey(g *GlobalContext) *GpgPrimaryKey {
+	ret := &GpgPrimaryKey{Contextified: NewContextified(g)}
 	ret.top = ret
 	return ret
 }
 
-func ParseGpgPrimaryKey(l *GpgIndexLine) (key *GpgPrimaryKey, err error) {
-	key = NewGpgPrimaryKey()
+func ParseGpgPrimaryKey(g *GlobalContext, l *GpgIndexLine) (key *GpgPrimaryKey, err error) {
+	key = NewGpgPrimaryKey(g)
 	err = key.Parse(l)
 	return
 }
@@ -435,6 +440,7 @@ func (g GpgIndexLine) IsNewKey() bool {
 //=============================================================================
 
 type GpgIndexParser struct {
+	Contextified
 	warnings Warnings
 	putback  *GpgIndexLine
 	src      *bufio.Reader
@@ -442,11 +448,12 @@ type GpgIndexParser struct {
 	lineno   int
 }
 
-func NewGpgIndexParser() *GpgIndexParser {
+func NewGpgIndexParser(g *GlobalContext) *GpgIndexParser {
 	return &GpgIndexParser{
-		eof:     false,
-		lineno:  0,
-		putback: nil,
+		Contextified: NewContextified(g),
+		eof:          false,
+		lineno:       0,
+		putback:      nil,
 	}
 }
 
@@ -466,7 +473,7 @@ func (p *GpgIndexParser) ParseElement() (ret GpgIndexElement, err error) {
 
 func (p *GpgIndexParser) ParseKey(l *GpgIndexLine) (ret *GpgPrimaryKey, err error) {
 	var line *GpgIndexLine
-	ret, err = ParseGpgPrimaryKey(l)
+	ret, err = ParseGpgPrimaryKey(p.G(), l)
 	done := false
 	for !done && err == nil && !p.isEOF() {
 		if line, err = p.GetLine(); line == nil || err != nil {
@@ -526,8 +533,8 @@ func (p *GpgIndexParser) Parse(stream io.Reader) (ki *GpgKeyIndex, err error) {
 
 //=============================================================================
 
-func ParseGpgIndexStream(stream io.Reader) (ki *GpgKeyIndex, w Warnings, err error) {
-	eng := NewGpgIndexParser()
+func ParseGpgIndexStream(g *GlobalContext, stream io.Reader) (ki *GpgKeyIndex, w Warnings, err error) {
+	eng := NewGpgIndexParser(g)
 	ki, err = eng.Parse(stream)
 	w = eng.warnings
 	return
@@ -555,7 +562,7 @@ func (g *GpgCLI) Index(secret bool, query string) (ki *GpgKeyIndex, w Warnings, 
 		err = res.Err
 		return
 	}
-	if ki, w, err = ParseGpgIndexStream(res.Stdout); err != nil {
+	if ki, w, err = ParseGpgIndexStream(g.G(), res.Stdout); err != nil {
 		return
 	}
 	err = res.Wait()

@@ -13,13 +13,15 @@ import (
 // keys from KeyOps and KBPKI, and computing the complete keys
 // necessary to run KBFS.
 type KeyManagerStandard struct {
-	config Config
-	log    logger.Logger
+	config   Config
+	log      logger.Logger
+	deferLog logger.Logger
 }
 
 // NewKeyManagerStandard returns a new KeyManagerStandard
 func NewKeyManagerStandard(config Config) *KeyManagerStandard {
-	return &KeyManagerStandard{config, config.MakeLogger("")}
+	log := config.MakeLogger("")
+	return &KeyManagerStandard{config, log, log.CloneWithAddedDepth(1)}
 }
 
 // GetTLFCryptKeyForEncryption implements the KeyManager interface for
@@ -386,7 +388,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 	rekeyDone bool, cryptKey *TLFCryptKey, err error) {
 	km.log.CDebugf(ctx, "Rekey %s (prompt for paper key: %t)",
 		md.ID, promptPaper)
-	defer func() { km.log.CDebugf(ctx, "Rekey %s done: %#v", md.ID, err) }()
+	defer func() { km.deferLog.CDebugf(ctx, "Rekey %s done: %#v", md.ID, err) }()
 
 	currKeyGen := md.LatestKeyGeneration()
 	if md.ID.IsPublic() != (currKeyGen == PublicKeyGen) {

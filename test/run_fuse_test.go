@@ -31,8 +31,9 @@ func createEngine() Engine {
 
 func createUserFuse(t *testing.T, ith int, config *libkbfs.ConfigLocal) User {
 	log := logger.NewTestLogger(t)
+	debugLog := log.CloneWithAddedDepth(1)
 	fuse.Debug = func(msg interface{}) {
-		log.Debug("%s", msg)
+		debugLog.Debug("%s", msg)
 	}
 
 	filesys := libfuse.NewFS(config, nil, false)

@@ -364,6 +364,9 @@ func (f JSONConfigFile) GetServerURI() string {
 func (f JSONConfigFile) GetConfigFilename() string {
 	return f.GetTopLevelString("config_file")
 }
+func (f JSONConfigFile) GetUpdaterConfigFilename() string {
+	return f.GetTopLevelString("updater_config_file")
+}
 func (f JSONConfigFile) GetSecretKeyringTemplate() string {
 	return f.GetTopLevelString("secret_keyring")
 }
@@ -571,7 +574,7 @@ func (f JSONConfigFile) GetGpgHome() (ret string) {
 
 func (f JSONConfigFile) GetBundledCA(host string) (ret string) {
 	var err error
-	f.jw.AtKey("bundled_CAs").AtKey(host).GetStringVoid(&ret, &err)
+	f.jw.AtKey("bundled_ca").AtKey(host).GetStringVoid(&ret, &err)
 	if err == nil {
 		f.G().Log.Debug("Read bundled CA for %s", host)
 	}
@@ -586,7 +589,7 @@ func (f JSONConfigFile) GetPidFile() string {
 }
 
 func (f JSONConfigFile) GetProxyCACerts() (ret []string, err error) {
-	jw := f.jw.AtKey("proxyCAs")
+	jw := f.jw.AtKey("proxy_ca_certs")
 	if l, e := jw.Len(); e == nil {
 		for i := 0; i < l; i++ {
 			s, e2 := jw.AtIndex(i).GetString()
@@ -650,6 +653,10 @@ func (f *JSONConfigFile) SetUpdateLastChecked(t keybase1.Time) error {
 func (f JSONConfigFile) GetUpdateURL() string {
 	s, _ := f.GetStringAtPath("updates.url")
 	return s
+}
+
+func (f JSONConfigFile) GetUpdateDisabled() (bool, bool) {
+	return f.GetBoolAtPath("updates.disabled")
 }
 
 func (f JSONConfigFile) IsAdmin() (bool, bool) {

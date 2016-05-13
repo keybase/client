@@ -21,6 +21,7 @@ type NullConfiguration struct{}
 func (n NullConfiguration) GetHome() string                               { return "" }
 func (n NullConfiguration) GetServerURI() string                          { return "" }
 func (n NullConfiguration) GetConfigFilename() string                     { return "" }
+func (n NullConfiguration) GetUpdaterConfigFilename() string              { return "" }
 func (n NullConfiguration) GetSessionFilename() string                    { return "" }
 func (n NullConfiguration) GetDbFilename() string                         { return "" }
 func (n NullConfiguration) GetUsername() NormalizedUsername               { return NormalizedUsername("") }
@@ -65,6 +66,7 @@ func (n NullConfiguration) GetUpdatePreferenceSnoozeUntil() keybase1.Time { retu
 func (n NullConfiguration) GetUpdateLastChecked() keybase1.Time           { return keybase1.Time(0) }
 func (n NullConfiguration) GetUpdatePreferenceSkip() string               { return "" }
 func (n NullConfiguration) GetUpdateURL() string                          { return "" }
+func (n NullConfiguration) GetUpdateDisabled() (bool, bool)               { return false, false }
 func (n NullConfiguration) GetVDebugSetting() string                      { return "" }
 func (n NullConfiguration) GetLocalTrackMaxAge() (time.Duration, bool)    { return 0, false }
 func (n NullConfiguration) GetAppStartMode() AppStartMode                 { return AppStartModeDisabled }
@@ -146,11 +148,12 @@ func (tp TestParameters) GetDebug() (bool, bool) {
 
 type Env struct {
 	sync.RWMutex
-	cmd        CommandLine
-	config     ConfigReader
-	homeFinder HomeFinder
-	writer     ConfigWriter
-	Test       TestParameters
+	cmd           CommandLine
+	config        ConfigReader
+	homeFinder    HomeFinder
+	writer        ConfigWriter
+	Test          TestParameters
+	updaterConfig UpdaterConfigReader
 }
 
 func (e *Env) GetConfig() ConfigReader {
@@ -182,6 +185,18 @@ func (e *Env) SetConfig(r ConfigReader, w ConfigWriter) {
 	defer e.Unlock()
 	e.config = r
 	e.writer = w
+}
+
+func (e *Env) SetUpdaterConfig(r UpdaterConfigReader) {
+	e.Lock()
+	defer e.Unlock()
+	e.updaterConfig = r
+}
+
+func (e *Env) GetUpdaterConfig() UpdaterConfigReader {
+	e.RLock()
+	defer e.RUnlock()
+	return e.updaterConfig
 }
 
 func NewEnv(cmd CommandLine, config ConfigReader) *Env {
@@ -355,6 +370,15 @@ func (e *Env) GetConfigFilename() string {
 		func() string { return os.Getenv("KEYBASE_CONFIG_FILE") },
 		func() string { return e.config.GetConfigFilename() },
 		func() string { return filepath.Join(e.GetConfigDir(), ConfigFile) },
+	)
+}
+
+func (e *Env) GetUpdaterConfigFilename() string {
+	return e.GetString(
+		func() string { return e.cmd.GetUpdaterConfigFilename() },
+		func() string { return os.Getenv("KEYBASE_UPDATER_CONFIG_FILE") },
+		func() string { return e.config.GetUpdaterConfigFilename() },
+		func() string { return filepath.Join(e.GetConfigDir(), UpdaterConfigFile) },
 	)
 }
 
@@ -777,6 +801,13 @@ func (e *Env) GetDeviceID() keybase1.DeviceID {
 	return e.config.GetDeviceID()
 }
 
+func (e *Env) GetInstallID() (ret InstallID) {
+	if rdr := e.GetUpdaterConfig(); rdr != nil {
+		ret = rdr.GetInstallID()
+	}
+	return ret
+}
+
 func (e *Env) GetLogFile() string {
 	return e.GetString(
 		func() string { return e.cmd.GetLogFile() },
@@ -922,6 +953,10 @@ func (e *Env) SetUpdateLastChecked(t keybase1.Time) error {
 
 func (e *Env) GetUpdateURL() string {
 	return e.config.GetUpdateURL()
+}
+
+func (e *Env) GetUpdateDisabled() (bool, bool) {
+	return e.config.GetUpdateDisabled()
 }
 
 func (e *Env) IsAdmin() bool {

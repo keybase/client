@@ -88,6 +88,52 @@ func (so SimpleLogOptions) ClientTrace() bool    { return true }
 func (so SimpleLogOptions) ServerTrace() bool    { return true }
 func (so SimpleLogOptions) TransportStart() bool { return true }
 
+type StandardLogOptions struct {
+	clientTrace    bool
+	serverTrace    bool
+	profile        bool
+	verboseTrace   bool
+	connectionInfo bool
+	noAddress      bool
+}
+
+func (s *StandardLogOptions) ShowAddress() bool    { return !s.noAddress }
+func (s *StandardLogOptions) ShowArg() bool        { return s.verboseTrace }
+func (s *StandardLogOptions) ShowResult() bool     { return s.verboseTrace }
+func (s *StandardLogOptions) Profile() bool        { return s.profile }
+func (s *StandardLogOptions) ClientTrace() bool    { return s.clientTrace }
+func (s *StandardLogOptions) ServerTrace() bool    { return s.serverTrace }
+func (s *StandardLogOptions) TransportStart() bool { return s.connectionInfo }
+
+func NewStandardLogOptions(opts string, log LogOutput) LogOptions {
+	var s StandardLogOptions
+	s.clientTrace = false
+	s.serverTrace = false
+	s.profile = false
+	s.verboseTrace = false
+	s.connectionInfo = false
+	s.noAddress = false
+	for _, c := range opts {
+		switch c {
+		case 'A':
+			s.noAddress = true
+		case 'c':
+			s.clientTrace = true
+		case 's':
+			s.serverTrace = true
+		case 'v':
+			s.verboseTrace = true
+		case 'i':
+			s.connectionInfo = true
+		case 'p':
+			s.profile = true
+		default:
+			log.Warning("Unknown logging flag: %c", c)
+		}
+	}
+	return &s
+}
+
 func NewSimpleLogFactory(out LogOutput, opts LogOptions) SimpleLogFactory {
 	if out == nil {
 		out = SimpleLogOutput{}

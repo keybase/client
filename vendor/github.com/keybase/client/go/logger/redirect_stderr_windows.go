@@ -21,6 +21,5 @@ func tryRedirectStderrTo(f *os.File) (err error) {
 }
 
 var (
-	kernel32         = syscall.NewLazyDLL("kernel32.dll")
-	procSetStdHandle = kernel32.NewProc("SetStdHandle")
+	procSetStdHandle = kernel32DLL.NewProc("SetStdHandle")
 )
