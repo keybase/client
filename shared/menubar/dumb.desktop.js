@@ -8,7 +8,6 @@ import {globalStyles} from '../styles/style-guide'
 const propsNormal = {
   folderProps: map.mocks.Normal,
   username: 'max',
-  openKBFS: path => { console.log('Opening finder: ', path) },
   showKBFS: () => {},
   logIn: () => {},
   showHelp: () => {},
@@ -16,7 +15,6 @@ const propsNormal = {
   quit: () => {},
   refresh: () => {},
   showBug: () => {},
-  loading: false,
   loggedIn: true,
   parentProps: {
     style: {

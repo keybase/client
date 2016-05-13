@@ -16,14 +16,14 @@ import {loginTab} from '../constants/tabs'
 
 import type {Props as FolderProps} from '../folders/render'
 
-export type Props = {
+export type Props = $Shape<{
   username: ?string,
   favoriteList: () => void,
   openInKBFS: (target?: any) => void,
   loggedIn: ?boolean,
   switchTab: (tab: string) => void,
   folderProps: ?FolderProps
-}
+}>
 
 const REQUEST_DELAY = 5000
 
