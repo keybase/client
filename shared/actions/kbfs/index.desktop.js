@@ -4,8 +4,28 @@ import {shell} from 'electron'
 import * as Constants from '../../constants/config'
 import {config} from '../../constants/types/keybase-v1'
 import type {AsyncAction} from '../../constants/types/flux'
+import {cleanup} from '../../util/kbfs'
 
-export function openInKBFS (path: string = ''): AsyncAction {
+const open = (kbfsPath: string, path: string = '') => { // eslint-disable-line space-infix-ops
+  if (path.startsWith(Constants.defaultPrivatePrefix)) {
+    path = Constants.defaultPrivatePrefix + cleanup(path.slice(Constants.defaultPrivatePrefix.length))
+  } else if (path.startsWith(Constants.defaultPublicPrefix)) {
+    path = Constants.defaultPublicPrefix + cleanup(path.slice(Constants.defaultPublicPrefix.length))
+  } else {
+    path = cleanup(path)
+  }
+
+  shell.openItem(`${kbfsPath}${path}`)
+}
+
+// Paths MUST start with /keybase/
+export function openInKBFS (path: string = Constants.defaultKBFSPath): AsyncAction {
+  if (!path.startsWith(Constants.defaultKBFSPath)) {
+    console.warn(`ERROR: openInKBFS requires ${Constants.defaultKBFSPath} prefix`)
+    return () => {}
+  }
+  path = path.slice(Constants.defaultKBFSPath.length)
+
   return (dispatch, getState) => new Promise((resolve, reject) => {
     const state = getState()
     const kbfsPath = state.config.kbfsPath
@@ -31,12 +51,14 @@ export function openInKBFS (path: string = ''): AsyncAction {
         return Promise.resolve(kbfsPath + '\\')
       }).then(kbfsPath => {
         dispatch({type: Constants.changeKBFSPath, payload: {path: kbfsPath}})
+        open(kbfsPath, path)
         shell.openItem(`${kbfsPath}${path}`)
       }).catch(e => {
         console.warn('Error in parsing kbfsPath: ', e)
       })
     } else {
-      shell.openItem(`${kbfsPath}${path}`)
+      open(Constants.defaultKBFSPath, path)
     }
   })
 }
+

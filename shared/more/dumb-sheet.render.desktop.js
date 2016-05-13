@@ -3,7 +3,6 @@ import React, {Component} from 'react'
 import {Box, Text, Input} from '../common-adapters'
 import {globalStyles} from '../styles/style-guide'
 import dumbComponentMap from './dumb-component-map.desktop'
-
 import {dumbFilter} from '../local-debug'
 import debounce from 'lodash/debounce'
 

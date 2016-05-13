@@ -2,6 +2,8 @@
 
 // Constants
 export const defaultKBFSPath = '/keybase'
+export const defaultPrivatePrefix = '/private/'
+export const defaultPublicPrefix = '/public/'
 
 // Actions
 export const startupLoading = 'config:startupLoading'

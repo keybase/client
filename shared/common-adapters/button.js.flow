@@ -6,6 +6,7 @@ export type Props = {
   onClick: ?Function,
   label: ?string,
   style?: ?Object,
+  labelStyle?: ?Object,
   type: 'Primary' | 'Secondary' | 'Danger' | 'Follow' | 'Following' | 'Unfollow',
   disabled?: ?boolean,
   waiting?: ?boolean,

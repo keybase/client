@@ -78,10 +78,11 @@ export default class Input extends Component {
       <div style={{...style, ...this.props.style}} onClick={() => { this._textField && this._textField.focus() }}>
         <TextField
           ref={textField => (this._textField = textField)}
+          onKeyDown={this.props.onKeyDown}
           fullWidth
           textAlign='center'
-          inputStyle={{...inputStyle, ...alignStyle}}
-          underlineStyle={{borderColor: globalColors.black_10, bottom: 'auto'}}
+          inputStyle={{...inputStyle, ...alignStyle, ...this.props.inputStyle}}
+          underlineStyle={{borderColor: globalColors.black_10, bottom: 'auto', ...this.props.underlineStyle}}
           errorStyle={{...styles.errorStyle, ...this.props.errorStyle}}
           style={{...textStyle, ...globalStyles.flexBoxColumn}}
           autoFocus={this.props.autoFocus}
@@ -95,7 +96,7 @@ export default class Input extends Component {
           multiLine={this.props.multiLine}
           onChange={event => this.onChange(event)}
           onEnterKeyDown={this.props.onEnterKeyDown}
-          underlineFocusStyle={styles.underlineFocusStyle}
+          underlineFocusStyle={{...styles.underlineFocusStyle, ...this.props.underlineStyle}}
           rows={this.props.rows}
           rowsMax={this.props.rowsMax}
           autocomplete={(passwordVisible || password) ? 'off' : undefined}
