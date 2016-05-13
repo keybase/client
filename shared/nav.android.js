@@ -112,8 +112,7 @@ class Nav extends Component {
 
     const tabContent = mapValues(tabs, ({module}, tab) => (activeTab === tab && this._renderContent(tab, module)))
 
-    const config = this.props.config
-    const username = config && config.status && config.status.user && config.status.user.username
+    const username = this.props.config.username
 
     return (
       <DrawerLayoutAndroid

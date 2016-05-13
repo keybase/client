@@ -87,11 +87,9 @@ export function removeDevice (deviceID: string, name: string, currentDevice: boo
   return (dispatch, getState) => {
     if (currentDevice) {
       // Revoking the current device uses the "deprovision" RPC instead.
-      let username
-      try {
-        username = getState().config.status.user.username
-      } catch (e) {
-        console.warn(`Couldn't get username: ${e}`)
+      const username = getState().config.username
+      if (!username) {
+        console.warn('No username in removeDevice')
         return
       }
       const params: login_deprovision_rpc = {

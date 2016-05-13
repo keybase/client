@@ -61,8 +61,8 @@ Login.propTypes = Render.propTypes
 
 export default connect(
   store => {
-    const users = store.login && store.login.configuredAccounts && store.login.configuredAccounts.map(c => c.username) || []
-    let lastUser = store.config && store.config.status && store.config.status.user && store.config.status.user.username
+    const users = store.login.configuredAccounts && store.login.configuredAccounts.map(c => c.username) || []
+    let lastUser = store.config.username
 
     if (users.indexOf(lastUser) === -1 && users.length) {
       lastUser = users[0]
