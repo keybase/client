@@ -23,10 +23,10 @@ const (
 	PrivateName = "private"
 
 	// CtxAppIDKey is the context app id
-	CtxAppIDKey = "kbfsfuse-app-id"
+	CtxAppIDKey = "kbfsdokan-app-id"
 
-	// CtxOpID is the display name for the unique operation FUSE ID tag.
-	CtxOpID = "FID"
+	// CtxOpID is the display name for the unique operation Dokan ID tag.
+	CtxOpID = "DID"
 )
 
 // CtxTagKey is the type used for unique context tags
@@ -39,14 +39,15 @@ const (
 
 // NewContextWithOpID adds a unique ID to this context, identifying
 // a particular request.
-func NewContextWithOpID(fs *FS, debugMessage string) (context.Context, func()) {
-	fs.log.Debug(debugMessage)
+func NewContextWithOpID(fs *FS, debugMessage string) (
+	ctx context.Context, cancelFn func()) {
+	defer func() { fs.log.CDebugf(ctx, debugMessage) }()
 	id, err := libkbfs.MakeRandomRequestID()
 	if err != nil {
 		fs.log.Errorf("Couldn't make request ID: %v", err)
 		return fs.context, func() {}
 	}
-	ctx := context.WithValue(fs.context, CtxIDKey, id)
+	ctx = context.WithValue(fs.context, CtxIDKey, id)
 	return context.WithTimeout(ctx, 19*time.Second)
 }
 
