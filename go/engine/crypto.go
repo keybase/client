@@ -12,13 +12,22 @@ import (
 )
 
 // getMatchMu erializes calls to getMatchingSecretKey.
-var getMatchMu sync.Mutex
+var getKeyMu sync.Mutex
 
 func getMySecretKey(
 	g *libkb.GlobalContext, secretUI libkb.SecretUI,
 	secretKeyType libkb.SecretKeyType, reason string) (
 	libkb.GenericKey, error) {
 
+	g.Log.Debug("getMySecretKey: acquiring lock")
+	getKeyMu.Lock()
+	defer func() {
+		getKeyMu.Unlock()
+		g.Log.Debug("getMySecretKey: lock released")
+	}()
+	g.Log.Debug("getMySecretKey: lock acquired")
+
+	// check cache after acquiring lock
 	var key libkb.GenericKey
 	var err error
 	aerr := g.LoginState().Account(func(a *libkb.Account) {
@@ -173,9 +182,9 @@ func getMatchingSecretKey(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg k
 	}
 
 	g.Log.Debug("getMatchingSecretKey: acquiring lock")
-	getMatchMu.Lock()
+	getKeyMu.Lock()
 	defer func() {
-		getMatchMu.Unlock()
+		getKeyhMu.Unlock()
 		g.Log.Debug("getMatchingSecretKey: lock released")
 	}()
 	g.Log.Debug("getMatchingSecretKey: lock acquired")
