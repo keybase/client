@@ -1,5 +1,6 @@
 /* @flow */
-import Tracker from './index'
+import Tracker from './render'
+import {trackerPropsToRenderProps} from './index'
 import {normal, checking, revoked, error} from '../constants/tracker'
 import {metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone, metaIgnored} from '../constants/tracker'
 import type {TrackerProps} from '../tracker'
@@ -214,21 +215,21 @@ const propsFiveProof: TrackerProps = {
 const dumbMap: DumbComponentMap<Tracker> = {
   component: Tracker,
   mocks: {
-    'NonuserNoLinkPrivate': {...propsNonUser, inviteLink: null, isPrivate: true},
-    'NonuserLink': propsNonUser,
-    'NonuserNoLinkPublic': {...propsNonUser, inviteLink: null},
-    'Logged out': propsLoggedOut,
-    'Only one proof': propsOneProof,
-    '5 proofs': propsFiveProof,
-    'New user': propsNewUser,
-    'New user, follows me': propsNewUserFollowsYou,
-    'Followed': propsFollowing,
-    'Changed/Broken proofs user you dont follow': {...propsChangedProofs, lastTrack: false},
-    'Changed/Broken proofs': propsChangedProofs,
-    'You track them': {...propsFollowing, userInfo: {...propsNewUser.userInfo, followsYou: false}},
-    'Unfollowed': propsUnfollowed,
-    'Barely there': propsLessData,
-    'Whatevz': propsWhatevz
+    'NonuserNoLinkPrivate': trackerPropsToRenderProps({...propsNonUser, inviteLink: null, isPrivate: true}),
+    'NonuserLink': trackerPropsToRenderProps(propsNonUser),
+    'NonuserNoLinkPublic': trackerPropsToRenderProps({...propsNonUser, inviteLink: null}),
+    'Logged out': trackerPropsToRenderProps(propsLoggedOut),
+    'Only one proof': trackerPropsToRenderProps(propsOneProof),
+    '5 proofs': trackerPropsToRenderProps(propsFiveProof),
+    'New user': trackerPropsToRenderProps(propsNewUser),
+    'New user, follows me': trackerPropsToRenderProps(propsNewUserFollowsYou),
+    'Followed': trackerPropsToRenderProps(propsFollowing),
+    'Changed/Broken proofs user you dont follow': trackerPropsToRenderProps({...propsChangedProofs, lastTrack: null}),
+    'Changed/Broken proofs': trackerPropsToRenderProps(propsChangedProofs),
+    'You track them': trackerPropsToRenderProps({...propsFollowing, userInfo: {...propsNewUser.userInfo, followsYou: false}}),
+    'Unfollowed': trackerPropsToRenderProps(propsUnfollowed),
+    'Barely there': trackerPropsToRenderProps(propsLessData),
+    'Whatevz': trackerPropsToRenderProps(propsWhatevz)
   }
 }
 
