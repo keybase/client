@@ -11,7 +11,8 @@ import (
 	"golang.org/x/crypto/nacl/box"
 )
 
-// getMatchMu erializes calls to getMatchingSecretKey.
+// getKeyMu synchronizes all accesses to the need to pull in pinentries/secret keys
+// for this user.
 var getKeyMu sync.Mutex
 
 func getMySecretKey(
@@ -184,7 +185,7 @@ func getMatchingSecretKey(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg k
 	g.Log.Debug("getMatchingSecretKey: acquiring lock")
 	getKeyMu.Lock()
 	defer func() {
-		getKeyhMu.Unlock()
+		getKeyMu.Unlock()
 		g.Log.Debug("getMatchingSecretKey: lock released")
 	}()
 	g.Log.Debug("getMatchingSecretKey: lock acquired")
