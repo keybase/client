@@ -21,13 +21,13 @@ class Render extends Component<void, Props, State> {
     }
   }
 
-  _makeItem (isPublic: boolean) {
+  _makeItem (isPublic: boolean, isSelected: boolean) {
     return <TabBarButton
       source={{type: 'icon', icon: `subnav-folders-${isPublic ? 'public' : 'private'}`}}
       style={{
         ...styleItem,
         borderBottomWidth: 2,
-        borderBottomColor: isPublic !== this.state.showPrivate
+        borderBottomColor: isSelected
           ? (isPublic ? globalColors.yellowGreen : globalColors.darkBlue2)
           : globalColors.transparent
       }}
@@ -35,11 +35,11 @@ class Render extends Component<void, Props, State> {
       styleIcon={styleIcon}
       styleLabel={{
         color: isPublic
-          ? (this.state.showPrivate ? globalColors.white_75 : globalColors.black_75)
-          : (this.state.showPrivate ? globalColors.white : globalColors.black)
+          ? (isSelected ? globalColors.black : globalColors.white_75)
+          : (isSelected ? globalColors.white : globalColors.black_75)
       }}
       styleBadgeNumber={styleBadgeNumber}
-      selected={isPublic !== this.state.showPrivate}
+      selected={isSelected}
       label={isPublic ? 'public/' : 'private/'}
       badgeNumber={isPublic ? this.props.publicBadge : this.props.privateBadge}
     />
@@ -52,7 +52,7 @@ class Render extends Component<void, Props, State> {
           <TabBarItem
             selected={this.state.showPrivate}
             containerStyle={itemContainerStyle}
-            tabBarButton={this._makeItem(false)}
+            tabBarButton={this._makeItem(false, this.state.showPrivate === true)}
             onClick={() => {
               this.setState({showPrivate: true})
               this.props.onSwitchTab && this.props.onSwitchTab(false)
@@ -66,7 +66,7 @@ class Render extends Component<void, Props, State> {
           <TabBarItem
             selected={!this.state.showPrivate}
             containerStyle={itemContainerStyle}
-            tabBarButton={this._makeItem(true)}
+            tabBarButton={this._makeItem(true, this.state.showPrivate === false)}
             onClick={() => {
               this.setState({showPrivate: false})
               this.props.onSwitchTab && this.props.onSwitchTab(true)
