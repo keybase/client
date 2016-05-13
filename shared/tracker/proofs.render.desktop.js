@@ -121,7 +121,7 @@ class ProofsRender extends Component {
 
     const meta = proof.meta &&
       proof.meta !== metaNone &&
-      <Meta title={proof.meta} style={{backgroundColor: metaColor}}/>
+      <Meta title={proof.meta} style={{backgroundColor: metaColor}} />
     const proofIcon = isChecking
       ? <ProgressIndicator style={styleLoader} />
       : proofStatusIcon && <Icon type={proofStatusIcon} style={styleStatusIcon} onClick={() => this._onClickProof(proof)} />
