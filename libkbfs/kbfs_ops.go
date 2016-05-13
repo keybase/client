@@ -395,16 +395,22 @@ func (fs *KBFSOpsStandard) FolderStatus(
 // Status implements the KBFSOps interface for KBFSOpsStandard
 func (fs *KBFSOpsStandard) Status(ctx context.Context) (
 	KBFSStatus, <-chan StatusUpdate, error) {
-	username, _, _ := fs.config.KBPKI().GetCurrentUserInfo(ctx)
+	username, _, err := fs.config.KBPKI().GetCurrentUserInfo(ctx)
 	var usageBytes int64 = -1
 	var limitBytes int64 = -1
-	quotaInfo, err := fs.config.BlockServer().GetUserQuotaInfo(ctx)
-	if err == nil {
-		limitBytes = quotaInfo.Limit
-		if quotaInfo.Total != nil {
-			usageBytes = quotaInfo.Total.Bytes[UsageWrite]
-		} else {
-			usageBytes = 0
+	// Don't request the quota info until we're sure we've
+	// authenticated with our password.  TODO: fix this in the
+	// service/GUI by handling multiple simultaneous passphrase
+	// requests at once.
+	if err == nil && fs.config.MDServer().IsConnected() {
+		quotaInfo, err := fs.config.BlockServer().GetUserQuotaInfo(ctx)
+		if err == nil {
+			limitBytes = quotaInfo.Limit
+			if quotaInfo.Total != nil {
+				usageBytes = quotaInfo.Total.Bytes[UsageWrite]
+			} else {
+				usageBytes = 0
+			}
 		}
 	}
 	failures, ch := fs.currentStatus.CurrentStatus()
