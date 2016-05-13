@@ -26,8 +26,8 @@ type Logs struct {
 
 // LogSendContext for LogSend
 type LogSendContext struct {
-	Context *Contextified
-	Logs    Logs
+	Contextified
+	Logs Logs
 }
 
 func addFile(mpart *multipart.Writer, param, filename, data string) error {
@@ -51,7 +51,7 @@ func addFile(mpart *multipart.Writer, param, filename, data string) error {
 }
 
 func (l *LogSendContext) post(status, kbfsLog, svcLog, desktopLog, updaterLog, startLog string) (string, error) {
-	l.Context.G().Log.Debug("sending status + logs to keybase")
+	l.G().Log.Debug("sending status + logs to keybase")
 
 	var body bytes.Buffer
 	mpart := multipart.NewWriter(&body)
@@ -79,16 +79,16 @@ func (l *LogSendContext) post(status, kbfsLog, svcLog, desktopLog, updaterLog, s
 		return "", err
 	}
 
-	l.Context.G().Log.Debug("body size: %d\n", body.Len())
+	l.G().Log.Debug("body size: %d\n", body.Len())
 
 	arg := APIArg{
-		Contextified: NewContextified(l.Context.G()),
+		Contextified: NewContextified(l.G()),
 		Endpoint:     "logdump/send",
 	}
 
-	resp, err := l.Context.G().API.PostRaw(arg, mpart.FormDataContentType(), &body)
+	resp, err := l.G().API.PostRaw(arg, mpart.FormDataContentType(), &body)
 	if err != nil {
-		l.Context.G().Log.Debug("post error: %s", err)
+		l.G().Log.Debug("post error: %s", err)
 		return "", err
 	}
 
@@ -129,22 +129,23 @@ func tail(Log logger.Logger, filename string, numLines int) string {
 }
 
 // LogSend sends the the tails of log files to kb
-func (l *LogSendContext) LogSend(statusJSON string, logs Logs, numLines int) (string, error) {
+func (l *LogSendContext) LogSend(statusJSON string, numLines int) (string, error) {
+	logs := l.Logs
 
-	l.Context.G().Log.Debug("tailing kbfs log %q", logs.Kbfs)
-	kbfsLog := tail(l.Context.G().Log, logs.Kbfs, numLines)
+	l.G().Log.Debug("tailing kbfs log %q", logs.Kbfs)
+	kbfsLog := tail(l.G().Log, logs.Kbfs, numLines)
 
-	l.Context.G().Log.Debug("tailing service log %q", logs.Service)
-	svcLog := tail(l.Context.G().Log, logs.Service, numLines)
+	l.G().Log.Debug("tailing service log %q", logs.Service)
+	svcLog := tail(l.G().Log, logs.Service, numLines)
 
-	l.Context.G().Log.Debug("tailing desktop log %q", logs.Desktop)
-	desktopLog := tail(l.Context.G().Log, logs.Desktop, numLines)
+	l.G().Log.Debug("tailing desktop log %q", logs.Desktop)
+	desktopLog := tail(l.G().Log, logs.Desktop, numLines)
 
-	l.Context.G().Log.Debug("tailing updater log %q", logs.Updater)
-	updaterLog := tail(l.Context.G().Log, logs.Updater, numLines)
+	l.G().Log.Debug("tailing updater log %q", logs.Updater)
+	updaterLog := tail(l.G().Log, logs.Updater, numLines)
 
-	l.Context.G().Log.Debug("tailing start log %q", logs.Start)
-	startLog := tail(l.Context.G().Log, logs.Start, numLines)
+	l.G().Log.Debug("tailing start log %q", logs.Start)
+	startLog := tail(l.G().Log, logs.Start, numLines)
 
 	return l.post(statusJSON, kbfsLog, svcLog, desktopLog, updaterLog, startLog)
 }
