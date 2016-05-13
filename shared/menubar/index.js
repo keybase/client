@@ -14,7 +14,7 @@ import {remote} from 'electron'
 import {ipcRenderer} from 'electron'
 import {loginTab} from '../constants/tabs'
 
-import type {Props as RenderProps} from './index.render'
+import type {Props as FolderProps} from '../folders/render'
 
 export type Props = {
   username: ?string,
@@ -22,7 +22,7 @@ export type Props = {
   openInKBFS: (target?: any) => void,
   loggedIn: ?boolean,
   switchTab: (tab: string) => void,
-  folderProps: ?RenderProps
+  folderProps: ?FolderProps
 }
 
 const REQUEST_DELAY = 5000
