@@ -1,2 +1,0 @@
-import Folders from './render'
-export const map: DumbComponentMap<Folders> = {}
