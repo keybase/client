@@ -2275,6 +2275,17 @@ export type metadata_getKey_rpc = {
   callback: (null | (err: ?any, response: metadata_getKey_result) => void)
 }
 
+export type metadata_getLatestFolderHandle_result = bytes
+
+export type metadata_getLatestFolderHandle_rpc = {
+  method: 'metadata.getLatestFolderHandle',
+  param: {
+    folderID: string
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any, response: metadata_getLatestFolderHandle_result) => void)
+}
+
 export type metadata_getMerkleNode_result = bytes
 
 export type metadata_getMerkleNode_rpc = {
@@ -3455,6 +3466,7 @@ export type rpc =
   | metadata_getFolderHandle_rpc
   | metadata_getFoldersForRekey_rpc
   | metadata_getKey_rpc
+  | metadata_getLatestFolderHandle_rpc
   | metadata_getMerkleNode_rpc
   | metadata_getMerkleRootLatest_rpc
   | metadata_getMerkleRootSince_rpc
@@ -4532,6 +4544,15 @@ export type incomingCallMapType = {
     response: {
       error: (err: RPCError) => void,
       result: () => void
+    }
+  ) => void,
+  'keybase.1.metadata.getLatestFolderHandle'?: (
+    params: {
+      folderID: string
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: metadata_getLatestFolderHandle_result) => void
     }
   ) => void,
   'keybase.1.metadata.getMerkleRoot'?: (
