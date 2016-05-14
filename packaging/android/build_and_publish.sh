@@ -30,7 +30,18 @@ fi
 # Build and publish the apk
 cd $android_dir
 
+RN_DIR="$rn_dir" $client_dir/packaging/manage_react_native_packager.sh &
+rn_packager_pid=$!
+
+cleanup() {
+  pkill -P $rn_packager_pid
+}
+
+trap 'cleanup' ERR
+
 ./gradlew clean
 ./gradlew publishApkRelease
+
+cleanup
 
 "$client_dir/packaging/slack/send.sh" "Finished releasing android"
