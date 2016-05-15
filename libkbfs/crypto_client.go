@@ -20,6 +20,10 @@ type CryptoClient struct {
 	config     Config
 }
 
+// cryptoRPCWarningTime says how long we should wait before logging a
+// message about an RPC taking too long.
+const cryptoRPCWarningTime = 2 * time.Minute
+
 var _ Crypto = (*CryptoClient)(nil)
 
 var _ rpc.ConnectionHandler = (*CryptoClient)(nil)
@@ -97,14 +101,25 @@ func (c *CryptoClient) ShouldRetryOnConnect(err error) bool {
 	return !inputCanceled
 }
 
+func (c *CryptoClient) logAboutLongRPCUnlessCancelled(ctx context.Context,
+	method string) *time.Timer {
+	return time.AfterFunc(cryptoRPCWarningTime, func() {
+		c.log.CInfof(ctx, "%s RPC call took more than %s", method,
+			cryptoRPCWarningTime)
+	})
+}
+
 // Sign implements the Crypto interface for CryptoClient.
 func (c *CryptoClient) Sign(ctx context.Context, msg []byte) (
 	sigInfo SignatureInfo, err error) {
+	c.log.CDebugf(ctx, "Signing %d-byte message", len(msg))
 	defer func() {
 		c.log.CDebugf(ctx, "Signed %d-byte message with %s: err=%v", len(msg),
 			sigInfo, err)
 	}()
 
+	timer := c.logAboutLongRPCUnlessCancelled(ctx, "SignED25519")
+	defer timer.Stop()
 	ed25519SigInfo, err := c.client.SignED25519(ctx, keybase1.SignED25519Arg{
 		Msg:    msg,
 		Reason: "to use kbfs",
@@ -124,9 +139,13 @@ func (c *CryptoClient) Sign(ctx context.Context, msg []byte) (
 // SignToString implements the Crypto interface for CryptoClient.
 func (c *CryptoClient) SignToString(ctx context.Context, msg []byte) (
 	signature string, err error) {
+	c.log.CDebugf(ctx, "Signing %d-byte message to string", len(msg))
 	defer func() {
 		c.log.CDebugf(ctx, "Signed %d-byte message: err=%v", len(msg), err)
 	}()
+
+	timer := c.logAboutLongRPCUnlessCancelled(ctx, "SignToString")
+	defer timer.Stop()
 	signature, err = c.client.SignToString(ctx, keybase1.SignToStringArg{
 		Msg:    msg,
 		Reason: "KBFS Authentication",
@@ -161,11 +180,17 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 	publicKey TLFEphemeralPublicKey,
 	encryptedClientHalf EncryptedTLFCryptKeyClientHalf) (
 	clientHalf TLFCryptKeyClientHalf, err error) {
+	c.log.CDebugf(ctx, "Decrypting TLF client key half")
+	defer func() {
+		c.log.CDebugf(ctx, "Decrypted TLF client key half: %v", err)
+	}()
 	encryptedData, nonce, err := c.prepareTLFCryptKeyClientHalf(encryptedClientHalf)
 	if err != nil {
 		return
 	}
 
+	timer := c.logAboutLongRPCUnlessCancelled(ctx, "UnboxBytes32")
+	defer timer.Stop()
 	decryptedClientHalf, err := c.client.UnboxBytes32(ctx, keybase1.UnboxBytes32Arg{
 		EncryptedBytes32: encryptedData,
 		Nonce:            nonce,
@@ -185,6 +210,11 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 func (c *CryptoClient) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 	keys []EncryptedTLFCryptKeyClientAndEphemeral, promptPaper bool) (
 	clientHalf TLFCryptKeyClientHalf, index int, err error) {
+	c.log.CDebugf(ctx, "Decrypting TLF client key half with any key")
+	defer func() {
+		c.log.CDebugf(ctx, "Decrypted TLF client key half with any key: %v",
+			err)
+	}()
 	if len(keys) == 0 {
 		return clientHalf, index, NoKeysError{}
 	}
@@ -209,6 +239,8 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 		err = errors[0]
 		return
 	}
+	timer := c.logAboutLongRPCUnlessCancelled(ctx, "UnboxBytes32Any")
+	defer timer.Stop()
 	res, err := c.client.UnboxBytes32Any(ctx, keybase1.UnboxBytes32AnyArg{
 		Bundles:     bundles,
 		Reason:      "to rekey for kbfs",
