@@ -549,9 +549,6 @@ func (fbo *folderBlockOps) updateWithDirtyEntriesLocked(ctx context.Context,
 	}
 
 	var dblockCopy *DirBlock
-	var uid keybase1.UID
-	var uidErr error
-
 	for k, v := range block.Children {
 		de, ok := fbo.deCache[v.ref()]
 		if !ok {
@@ -564,19 +561,6 @@ func (fbo *folderBlockOps) updateWithDirtyEntriesLocked(ctx context.Context,
 			if err != nil {
 				return nil, err
 			}
-			// If there's an error, just log it and keep
-			// going because having the correct writer is
-			// not important enough to fail the whole
-			// lookup.
-			_, uid, uidErr = fbo.config.KBPKI().GetCurrentUserInfo(ctx)
-			if uidErr != nil {
-				fbo.log.CDebugf(ctx, "Ignoring error while getting "+
-					"logged-in user during directory entry lookup: %v", uidErr)
-			}
-		}
-
-		if uidErr == nil {
-			de.SetWriter(uid)
 		}
 
 		dblockCopy.Children[k] = de
@@ -1161,7 +1145,7 @@ func (fbo *folderBlockOps) writeDataLocked(
 			}
 		}
 
-		if oldLen != len(block.Contents) || de.Writer != uid {
+		if oldLen != len(block.Contents) {
 			de.EncodedSize = 0
 			// update the file info
 			de.Size += uint64(len(block.Contents) - oldLen)

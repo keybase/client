@@ -383,27 +383,19 @@ func TestMultiUserWrite(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Couldn't write file: %v", err)
 	}
-
-	// The writer should be user 2, even before the Sync
-	ops := kbfsOps2.(*KBFSOpsStandard).getOpsByNode(ctx, fileNode2)
-	de, err := ops.statEntry(ctx, fileNode2)
+	// Write twice to make sure that multiple write operations within
+	// a sync work when the writer is changing.
+	err = kbfsOps2.Write(ctx, fileNode2, data2, 0)
 	if err != nil {
-		t.Fatalf("Couldn't lookup file: %v", err)
+		t.Fatalf("Couldn't write file: %v", err)
 	}
-
-	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
-	if err != nil {
-		t.Fatal(err)
-	}
-	if de.GetWriter() != uid2 {
-		t.Errorf("After user 2's first write, Writer is wrong: %v",
-			de.GetWriter())
-	}
-
 	err = kbfsOps2.Sync(ctx, fileNode2)
 	if err != nil {
 		t.Fatalf("Couldn't sync file: %v", err)
 	}
+	readAndCompareData(t, config2, ctx, name, data2, userName2)
+
+	// A second write by the same user
 	data3 := []byte{3}
 	err = kbfsOps2.Write(ctx, fileNode2, data3, 0)
 	if err != nil {
@@ -415,6 +407,12 @@ func TestMultiUserWrite(t *testing.T) {
 	}
 
 	readAndCompareData(t, config2, ctx, name, data3, userName2)
+
+	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+	readAndCompareData(t, config1, ctx, name, data3, userName2)
 }
 
 // Tests that two users can make independent writes while forked, and
