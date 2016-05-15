@@ -22,7 +22,7 @@ func testKidContainerTypeEncodeDecode(t *testing.T, kt kidContainerType) {
 	k := kt.makeFromKID(keybase1.KIDFromSlice(kidBytes))
 
 	encodedK, err := codec.Encode(k)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// See
 	// https://github.com/msgpack/msgpack/blob/master/spec.md#formats-bin
@@ -31,7 +31,7 @@ func testKidContainerTypeEncodeDecode(t *testing.T, kt kidContainerType) {
 	assert.Equal(t, len(kidBytes)+overhead, len(encodedK))
 
 	k2, err := kt.decode(codec, encodedK)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, k, k2)
 }
@@ -42,13 +42,13 @@ func testKidContainerTypeEncodeDecodeZero(t *testing.T, kt kidContainerType) {
 	codec := NewCodecMsgpack()
 	zeroValue := kt.makeZero()
 	encodedK, err := codec.Encode(zeroValue)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	expectedEncodedK := []byte{0xc0}
 	assert.Equal(t, expectedEncodedK, encodedK)
 
 	k, err := kt.decode(codec, encodedK)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, zeroValue, k)
 }
@@ -89,7 +89,7 @@ func testByte32ContainerEncodeDecode(t *testing.T, bt byte32ContainerType) {
 	k := bt.makeFromData([32]byte{1, 2, 3, 4})
 
 	encodedK, err := codec.Encode(k)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// See
 	// https://github.com/msgpack/msgpack/blob/master/spec.md#formats-bin
@@ -99,7 +99,7 @@ func testByte32ContainerEncodeDecode(t *testing.T, bt byte32ContainerType) {
 
 	k2 := bt.makeZero()
 	err = codec.Decode(encodedK, &k2)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, k, k2)
 }

@@ -82,6 +82,6 @@ func TestIdentify(t *testing.T) {
 	}
 
 	err := identifyUserList(context.Background(), nug, ti, uidList, false)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, uids, ti.identifiedUids)
 }

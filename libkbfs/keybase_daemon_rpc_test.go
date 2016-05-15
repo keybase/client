@@ -149,7 +149,7 @@ func testCurrentSession(
 	ctx := context.Background()
 	sessionID := 0
 	session, err := c.CurrentSession(ctx, sessionID)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, expectedSession, session)
 	assert.Equal(t, expectedCalled, client.currentSessionCalled)
@@ -180,7 +180,7 @@ func TestKeybaseDaemonSessionCache(t *testing.T) {
 
 	// Should invalidate cache.
 	err := c.LoggedOut(context.Background())
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// Should fill cache again.
 	testCurrentSession(t, client, c, session, expectCall)
@@ -203,7 +203,7 @@ func testLoadUserPlusKeys(
 
 	ctx := context.Background()
 	info, err := c.LoadUserPlusKeys(ctx, uid)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, expectedName, info.Name)
 	assert.Equal(t, expectedCalled, client.loadUserPlusKeysCalled)
@@ -217,7 +217,7 @@ func testIdentify(
 
 	ctx := context.Background()
 	info, err := c.Identify(ctx, "uid:"+string(uid), "")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, expectedName, info.Name)
 	assert.Equal(t, expectedCalled, client.identifyCalled)
@@ -254,7 +254,7 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 
 	// Should invalidate cache for uid1.
 	err := c.UserChanged(context.Background(), uid1)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// Should fill cache again.
 	testLoadUserPlusKeys(t, client, c, uid1, name1, expectCall)
@@ -267,7 +267,7 @@ func TestKeybaseDaemonUserCache(t *testing.T) {
 
 	// Should invalidate cache for uid2.
 	err = c.UserChanged(context.Background(), uid2)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// Should fill cache again.
 	testLoadUserPlusKeys(t, client, c, uid2, name2, expectCall)

@@ -11,10 +11,10 @@ import (
 func TestHashEncodeDecode(t *testing.T) {
 	codec := NewCodecMsgpack()
 	h, err := DefaultHash([]byte{1})
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	encodedH, err := codec.Encode(h)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// See
 	// https://github.com/msgpack/msgpack/blob/master/spec.md#formats-bin
@@ -24,7 +24,7 @@ func TestHashEncodeDecode(t *testing.T) {
 
 	var h2 Hash
 	err = codec.Decode(encodedH, &h2)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, h, h2)
 }
@@ -33,14 +33,14 @@ func TestHashEncodeDecode(t *testing.T) {
 func TestHashEncodeDecodeZero(t *testing.T) {
 	codec := NewCodecMsgpack()
 	encodedH, err := codec.Encode(Hash{})
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	expectedEncodedH := []byte{0xc0}
 	assert.Equal(t, expectedEncodedH, encodedH)
 
 	var h Hash
 	err = codec.Decode(encodedH, &h)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, Hash{}, h)
 }
@@ -49,12 +49,12 @@ func TestHashEncodeDecodeZero(t *testing.T) {
 func TestDefaultHash(t *testing.T) {
 	data := []byte{1, 2, 3, 4, 5}
 	h, err := DefaultHash(data)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	assert.True(t, h.IsValid())
 
 	err = h.Verify(data)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 }
 
 // hashFromRawNoCheck() is like HashFromRaw() except it doesn't check
@@ -67,7 +67,7 @@ func hashFromRawNoCheck(hashType HashType, rawHash []byte) Hash {
 func TestHashIsValid(t *testing.T) {
 	data := []byte{1, 2, 3, 4, 5}
 	validH, err := DefaultHash(data)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// Zero hash.
 	assert.False(t, (Hash{}).IsValid())
@@ -98,7 +98,7 @@ func TestHashVerify(t *testing.T) {
 	assert.Equal(t, InvalidHashError{Hash{}}, err)
 
 	validH, err := DefaultHash(data)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	corruptData := make([]byte, len(data))
 	copy(corruptData, data)
@@ -126,10 +126,10 @@ func TestHashVerify(t *testing.T) {
 func TestHMACEncodeDecode(t *testing.T) {
 	codec := NewCodecMsgpack()
 	hmac, err := DefaultHMAC([]byte{1}, []byte{2})
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	encodedHMAC, err := codec.Encode(hmac)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// See
 	// https://github.com/msgpack/msgpack/blob/master/spec.md#formats-bin
@@ -139,7 +139,7 @@ func TestHMACEncodeDecode(t *testing.T) {
 
 	var hmac2 HMAC
 	err = codec.Decode(encodedHMAC, &hmac2)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, hmac, hmac2)
 }
@@ -148,14 +148,14 @@ func TestHMACEncodeDecode(t *testing.T) {
 func TestHMACEncodeDecodeZero(t *testing.T) {
 	codec := NewCodecMsgpack()
 	encodedHMAC, err := codec.Encode(HMAC{})
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	expectedEncodedHMAC := []byte{0xc0}
 	assert.Equal(t, expectedEncodedHMAC, encodedHMAC)
 
 	var hmac HMAC
 	err = codec.Decode(encodedHMAC, &hmac)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	assert.Equal(t, HMAC{}, hmac)
 }
@@ -165,12 +165,12 @@ func TestDefaultHMAC(t *testing.T) {
 	key := []byte{1, 2}
 	data := []byte{1, 2, 3, 4, 5}
 	hmac, err := DefaultHMAC(key, data)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	assert.True(t, hmac.IsValid())
 
 	err = hmac.Verify(key, data)
-	assert.Nil(t, err)
+	assert.NoError(t, err)
 }
 
 // No need to test HMAC.IsValid().
@@ -192,7 +192,7 @@ func TestVerify(t *testing.T) {
 	assert.Equal(t, InvalidHashError{Hash{}}, err)
 
 	validHMAC, err := DefaultHMAC(key, data)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	corruptKey := make([]byte, len(key))
 	copy(corruptKey, key)

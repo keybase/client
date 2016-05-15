@@ -101,7 +101,7 @@ func newRootMetadataOrBust(
 	t *testing.T, tlfID TlfID, h *TlfHandle) *RootMetadata {
 	var rmd RootMetadata
 	err := updateNewRootMetadata(&rmd, tlfID, h.BareTlfHandle)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	rmd.tlfHandle = h
 	return &rmd
 }
@@ -128,7 +128,7 @@ func TestRootMetadataGetTlfHandlePublic(t *testing.T) {
 
 	rmd.tlfHandle = nil
 	bh, err := rmd.MakeBareTlfHandle()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, h.BareTlfHandle, bh)
 }
 
@@ -165,7 +165,7 @@ func TestRootMetadataGetTlfHandlePrivate(t *testing.T) {
 
 	rmd.tlfHandle = nil
 	bh, err := rmd.MakeBareTlfHandle()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, h.BareTlfHandle, bh)
 }
 
@@ -234,12 +234,12 @@ func TestWriterMetadataUnchangedEncoding(t *testing.T) {
 
 	var wm WriterMetadata
 	err := c.Decode(encodedWm, &wm)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	require.Equal(t, expectedWm, wm)
 
 	buf, err := c.Encode(wm)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, encodedWm, buf)
 }
 
@@ -261,11 +261,11 @@ func TestWriterMetadataEncodedFields(t *testing.T) {
 	c := NewCodecMsgpack()
 
 	buf, err := c.Encode(wm)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	var m map[string]interface{}
 	err = c.Decode(buf, &m)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	expectedFields := []string{
 		"BID",
@@ -413,7 +413,7 @@ func makeFakeRootMetadataFuture(t *testing.T) *rootMetadataFuture {
 	wmf := makeFakeWriterMetadataFuture(t)
 	rkb := makeFakeTLFReaderKeyBundleFuture(t)
 	h, err := DefaultHash([]byte("fake buf"))
-	require.Nil(t, err)
+	require.NoError(t, err)
 	sa, _ := libkb.NormalizeSocialAssertion("bar@github")
 	rmf := rootMetadataFuture{
 		wmf,
@@ -581,7 +581,7 @@ func TestMakeRekeyReadError(t *testing.T) {
 	FakeInitialRekey(rmd, h.BareTlfHandle)
 
 	u, uid, err := config.KBPKI().Resolve(context.Background(), "bob")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	err = makeRekeyReadError(rmd, h, FirstValidKeyGen, uid, u)
 	require.Equal(t, NewReadAccessError(h, u), err)
@@ -603,12 +603,12 @@ func TestMakeRekeyReadErrorResolvedHandle(t *testing.T) {
 	ctx := context.Background()
 	h, err := ParseTlfHandle(ctx, config.KBPKI(), "alice,bob@twitter",
 		false, true)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	rmd := newRootMetadataOrBust(t, id, h)
 	FakeInitialRekey(rmd, h.BareTlfHandle)
 
 	u, uid, err := config.KBPKI().Resolve(ctx, "bob")
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	err = makeRekeyReadError(rmd, h, FirstValidKeyGen, uid, u)
 	require.Equal(t, NewReadAccessError(h, u), err)
@@ -617,7 +617,7 @@ func TestMakeRekeyReadErrorResolvedHandle(t *testing.T) {
 		"bob", "bob@twitter")
 
 	resolvedHandle, err := h.ResolveAgain(ctx, config.KBPKI())
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	err = makeRekeyReadError(rmd, resolvedHandle, FirstValidKeyGen, uid, u)
 	require.Equal(t, NeedOtherRekeyError{"alice,bob"}, err)

@@ -575,31 +575,31 @@ func validatePutPublicRMDS(
 
 	// Verify LastModifying* fields.
 	_, me, err := config.KBPKI().GetCurrentUserInfo(ctx)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, me, rmds.MD.LastModifyingWriter)
 	require.Equal(t, me, rmds.MD.LastModifyingUser)
 
 	// Verify signature of WriterMetadata.
 	buf, err := config.Codec().Encode(rmds.MD.WriterMetadata)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = config.Crypto().Verify(buf, rmds.MD.WriterMetadataSigInfo)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// Verify encoded PrivateMetadata.
 	var data PrivateMetadata
 	err = config.Codec().Decode(rmds.MD.SerializedPrivateMetadata, &data)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// Verify signature of RootMetadata.
 	buf, err = config.Codec().Encode(rmds.MD)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	err = config.Crypto().Verify(buf, rmds.SigInfo)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// Copy expectedRmd to get rid of unexported fields.
 	var expectedRmdCopy RootMetadata
 	err = CodecUpdate(config.Codec(), &expectedRmdCopy, expectedRmd)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// Overwrite written fields.
 	expectedRmdCopy.LastModifyingWriter = rmds.MD.LastModifyingWriter
@@ -622,7 +622,7 @@ func TestMDOpsPutPublicSuccess(t *testing.T) {
 
 	var rmd RootMetadata
 	err := updateNewRootMetadata(&rmd, id, h.BareTlfHandle)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	rmd.data = makeFakePrivateMetadataFuture(t).toCurrent()
 	rmd.tlfHandle = h
 

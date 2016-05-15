@@ -24,7 +24,7 @@ func (cki tlfCryptKeyInfoFuture) toCurrentStruct() currentStruct {
 
 func makeFakeTLFCryptKeyInfoFuture(t *testing.T) tlfCryptKeyInfoFuture {
 	hmac, err := DefaultHMAC([]byte("fake key"), []byte("fake buf"))
-	require.Nil(t, err)
+	require.NoError(t, err)
 	cki := TLFCryptKeyInfo{
 		EncryptedTLFCryptKeyClientHalf{
 			EncryptionSecretbox,

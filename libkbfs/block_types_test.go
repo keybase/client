@@ -9,7 +9,7 @@ import (
 
 func makeFakeBlockPointer(t *testing.T) BlockPointer {
 	h, err := DefaultHash([]byte("fake buf"))
-	require.Nil(t, err)
+	require.NoError(t, err)
 	return BlockPointer{
 		BlockID{h},
 		5,

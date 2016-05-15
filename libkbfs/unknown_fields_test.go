@@ -17,7 +17,7 @@ type extra struct {
 
 func makeExtraOrBust(prefix string, t *testing.T) extra {
 	extraHMAC, err := DefaultHMAC([]byte("fake extra key"), []byte("fake extra buf"))
-	require.Nil(t, err)
+	require.NoError(t, err)
 	return extra{
 		Extra1: encryptedData{
 			Version:       EncryptionSecretbox + 1,
@@ -97,27 +97,27 @@ func testStructUnknownFields(t *testing.T, sFuture futureStruct) {
 	s := sFuture.toCurrentStruct()
 
 	buf, err := cFuture.Encode(sFuture)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// Make sure sFuture round-trips correctly.
 	sFuture2 := reflect.Zero(reflect.TypeOf(sFuture)).Interface()
 	err = cFuture.Decode(buf, &sFuture2)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, sFuture, sFuture2)
 
 	s2 := reflect.Zero(reflect.TypeOf(s)).Interface()
 	err = cCurrent.Decode(buf, &s2)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	knownS2 := reflect.Zero(reflect.TypeOf(s)).Interface()
 	err = cCurrentKnownOnly.Decode(buf, &knownS2)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// Make sure known fields are the same.
 	require.Equal(t, s, knownS2)
 
 	buf2, err := cCurrent.Encode(s2)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	// Make sure serializing s preserves the extra fields.
 	require.Equal(t, buf, buf2)
@@ -125,6 +125,6 @@ func testStructUnknownFields(t *testing.T, sFuture futureStruct) {
 	// As a sanity test, make sure sFuture decodes back from buf2.
 	sFuture3 := reflect.Zero(reflect.TypeOf(sFuture)).Interface()
 	err = cFuture.Decode(buf2, &sFuture3)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, sFuture, sFuture3)
 }

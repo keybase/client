@@ -46,7 +46,7 @@ func TestMakeBareTlfHandle(t *testing.T) {
 	}
 
 	h, err := MakeBareTlfHandle(w, r, uw, ur)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, []keybase1.UID{
 		keybase1.MakeTestUID(3),
 		keybase1.MakeTestUID(4),
@@ -112,7 +112,7 @@ func TestNormalizeNamesInTLF(t *testing.T) {
 	writerNames := []string{"BB", "C@Twitter", "d@twitter", "aa"}
 	readerNames := []string{"EE", "ff", "AA@HackerNews", "aa", "BB", "bb", "ZZ@hackernews"}
 	s, err := normalizeNamesInTLF(writerNames, readerNames)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "aa,bb,c@twitter,d@twitter#AA@hackernews,ZZ@hackernews,aa,bb,bb,ee,ff", s)
 }
 
@@ -204,14 +204,14 @@ func TestParseTlfHandleAssertionPrivateSuccess(t *testing.T) {
 
 	name := "u1,u3"
 	h, err := ParseTlfHandle(ctx, kbpki, name, false, false)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
 	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
 
 	// Make sure that generating another handle doesn't change the
 	// name.
 	h2, err := MakeTlfHandle(context.Background(), h.BareTlfHandle, kbpki)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName(name), h2.GetCanonicalName())
 }
 
@@ -230,14 +230,14 @@ func TestParseTlfHandleAssertionPublicSuccess(t *testing.T) {
 
 	name := "u1,u2,u3"
 	h, err := ParseTlfHandle(ctx, kbpki, name, true, false)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
 	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
 
 	// Make sure that generating another handle doesn't change the
 	// name.
 	h2, err := MakeTlfHandle(context.Background(), h.BareTlfHandle, kbpki)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName(name), h2.GetCanonicalName())
 }
 
@@ -261,13 +261,13 @@ func TestParseTlfHandleSocialAssertion(t *testing.T) {
 
 	h, err := ParseTlfHandle(ctx, kbpki, name, false, true)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
 
 	// Make sure that generating another handle doesn't change the
 	// name.
 	h2, err := MakeTlfHandle(context.Background(), h.BareTlfHandle, kbpki)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName(name), h2.GetCanonicalName())
 }
 
@@ -327,7 +327,7 @@ func TestParseTlfHandleFailConflictingAssertion(t *testing.T) {
 	a := currentUID.String() + "@uid+u2@twitter"
 	_, err := ParseTlfHandle(ctx, kbpki, a, false, false)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
-	require.NotNil(t, err)
+	require.Error(t, err)
 }
 
 // parseTlfHandleOrBust parses the given TLF name, which must be
@@ -357,13 +357,13 @@ func TestResolveAgainBasic(t *testing.T) {
 
 	name := "u1,u2#u3@twitter"
 	h, err := ParseTlfHandle(ctx, kbpki, name, false, true)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
 
 	// ResolveAgain shouldn't rely on resolving the original names again.
 	daemon.addNewAssertionForTest("u3", "u3@twitter")
 	newH, err := h.ResolveAgain(ctx, daemon)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName("u1,u2#u3"), newH.GetCanonicalName())
 }
 
@@ -380,7 +380,7 @@ func TestResolveAgainDoubleAsserts(t *testing.T) {
 
 	name := "u1,u1@github,u1@twitter#u2,u2@github,u2@twitter"
 	h, err := ParseTlfHandle(ctx, kbpki, name, false, true)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
 
 	daemon.addNewAssertionForTest("u1", "u1@twitter")
@@ -388,7 +388,7 @@ func TestResolveAgainDoubleAsserts(t *testing.T) {
 	daemon.addNewAssertionForTest("u2", "u2@twitter")
 	daemon.addNewAssertionForTest("u2", "u2@github")
 	newH, err := h.ResolveAgain(ctx, daemon)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName("u1#u2"), newH.GetCanonicalName())
 }
 
@@ -405,13 +405,13 @@ func TestResolveAgainWriterReader(t *testing.T) {
 
 	name := "u1,u2@github#u2@twitter"
 	h, err := ParseTlfHandle(ctx, kbpki, name, false, true)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
 
 	daemon.addNewAssertionForTest("u2", "u2@twitter")
 	daemon.addNewAssertionForTest("u2", "u2@github")
 	newH, err := h.ResolveAgain(ctx, daemon)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName("u1,u2"), newH.GetCanonicalName())
 }
 
@@ -469,7 +469,7 @@ func TestBareTlfHandleResolveAssertions(t *testing.T) {
 	}
 
 	h, err := MakeBareTlfHandle(w, r, uw, ur)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	assertions := make(map[keybase1.SocialAssertion]keybase1.UID)
 	assertions[uw[0]] = keybase1.MakeTestUID(2) // new writer

@@ -280,7 +280,7 @@ func TestKBFSOpsGetRootNodeCacheSuccess(t *testing.T) {
 	assert.False(t, fboIdentityDone(ops))
 
 	n, ei, h, err := ops.getRootNode(ctx)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.False(t, fboIdentityDone(ops))
 
 	p := ops.nodeCache.PathFromNode(n)
@@ -293,7 +293,7 @@ func TestKBFSOpsGetRootNodeCacheSuccess(t *testing.T) {
 	// Trigger identify.
 	lState := makeFBOLockState()
 	_, err = ops.getMDLocked(ctx, lState, mdReadNeedIdentify)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.True(t, fboIdentityDone(ops))
 }
 
@@ -309,7 +309,7 @@ func TestKBFSOpsGetRootNodeReIdentify(t *testing.T) {
 	assert.False(t, fboIdentityDone(ops))
 
 	n, ei, h, err := ops.getRootNode(ctx)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.False(t, fboIdentityDone(ops))
 
 	p := ops.nodeCache.PathFromNode(n)
@@ -322,7 +322,7 @@ func TestKBFSOpsGetRootNodeReIdentify(t *testing.T) {
 	// Trigger identify.
 	lState := makeFBOLockState()
 	_, err = ops.getMDLocked(ctx, lState, mdReadNeedIdentify)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.True(t, fboIdentityDone(ops))
 
 	// The channel is not buffered, when the second value is received
@@ -335,7 +335,7 @@ func TestKBFSOpsGetRootNodeReIdentify(t *testing.T) {
 	// Trigger identify.
 	lState = makeFBOLockState()
 	_, err = ops.getMDLocked(ctx, lState, mdReadNeedIdentify)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.True(t, fboIdentityDone(ops))
 }
 
@@ -456,7 +456,7 @@ func testKBFSOpsGetRootNodeCreateNewSuccess(t *testing.T, public bool) {
 	ops := getOps(config, id)
 	assert.False(t, fboIdentityDone(ops))
 	n, ei, h, err := ops.getRootNode(ctx)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.True(t, fboIdentityDone(ops))
 
 	p := ops.nodeCache.PathFromNode(n)
@@ -543,7 +543,7 @@ func TestKBFSOpsGetRootMDForHandleExisting(t *testing.T) {
 	ops.head = rmd
 	n, ei, err :=
 		config.KBFSOps().GetOrCreateRootNode(ctx, h, MasterBranch)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.True(t, fboIdentityDone(ops))
 
 	p := ops.nodeCache.PathFromNode(n)
@@ -2795,7 +2795,7 @@ func TestKBFSOpsWriteNewBlockSuccess(t *testing.T) {
 	newRootBlock := getDirBlockFromCache(t, config, node.BlockPointer, p.Branch)
 	lState := makeFBOLockState()
 	newRootBlock, err := updateWithDirtyEntries(ctx, ops, lState, newRootBlock)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).path) !=
 		len(p.path) {
@@ -3003,7 +3003,7 @@ func TestKBFSOpsWriteCauseSplit(t *testing.T) {
 	newRootBlock := b.(*DirBlock)
 	lState := makeFBOLockState()
 	newRootBlock, err := updateWithDirtyEntries(ctx, ops, lState, newRootBlock)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	b, _ = config.BlockCache().Get(fileNode.BlockPointer, p.Branch)
 	pblock := b.(*FileBlock)
@@ -3234,7 +3234,7 @@ func TestKBFSOpsTruncateToZeroSuccess(t *testing.T) {
 	newRootBlock := getDirBlockFromCache(t, config, node.BlockPointer, p.Branch)
 	lState := makeFBOLockState()
 	newRootBlock, err := updateWithDirtyEntries(ctx, ops, lState, newRootBlock)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	if len(ops.nodeCache.PathFromNode(config.observer.localChange).path) !=
 		len(p.path) {

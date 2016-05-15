@@ -294,7 +294,7 @@ func TestKeyManagerRekeyResolveAgainSuccessPublic(t *testing.T) {
 	h, err := ParseTlfHandle(
 		ctx, config.KBPKI(), "alice,bob@twitter",
 		true, true)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	rmd := newRootMetadataOrBust(t, id, h)
 
 	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
@@ -303,7 +303,7 @@ func TestKeyManagerRekeyResolveAgainSuccessPublic(t *testing.T) {
 	done, cryptKey, err := config.KeyManager().Rekey(ctx, rmd, false)
 	require.True(t, done)
 	require.Nil(t, cryptKey)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	newH := rmd.GetTlfHandle()
 	require.Equal(t, CanonicalTlfName("alice,bob"), newH.GetCanonicalName())
@@ -312,7 +312,7 @@ func TestKeyManagerRekeyResolveAgainSuccessPublic(t *testing.T) {
 	oldHandle := rmd.tlfHandle
 	rmd.tlfHandle = nil
 	newBareH, err := rmd.MakeBareTlfHandle()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, newH.BareTlfHandle, newBareH)
 	rmd.tlfHandle = oldHandle
 
@@ -320,7 +320,7 @@ func TestKeyManagerRekeyResolveAgainSuccessPublic(t *testing.T) {
 	done, cryptKey, err = config.KeyManager().Rekey(ctx, rmd, false)
 	require.False(t, done)
 	require.Nil(t, cryptKey)
-	require.Nil(t, err)
+	require.NoError(t, err)
 }
 
 func TestKeyManagerRekeyResolveAgainSuccessPublicSelf(t *testing.T) {
@@ -332,7 +332,7 @@ func TestKeyManagerRekeyResolveAgainSuccessPublicSelf(t *testing.T) {
 	h, err := ParseTlfHandle(
 		ctx, config.KBPKI(), "alice@twitter,bob,charlie@twitter",
 		true, true)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	rmd := newRootMetadataOrBust(t, id, h)
 
 	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
@@ -342,7 +342,7 @@ func TestKeyManagerRekeyResolveAgainSuccessPublicSelf(t *testing.T) {
 	done, cryptKey, err := config.KeyManager().Rekey(ctx, rmd, false)
 	require.True(t, done)
 	require.Nil(t, cryptKey)
-	require.Nil(t, err)
+	require.NoError(t, err)
 
 	newH := rmd.GetTlfHandle()
 	require.Equal(t, CanonicalTlfName("alice,bob,charlie"), newH.GetCanonicalName())
@@ -351,7 +351,7 @@ func TestKeyManagerRekeyResolveAgainSuccessPublicSelf(t *testing.T) {
 	oldHandle := rmd.tlfHandle
 	rmd.tlfHandle = nil
 	newBareH, err := rmd.MakeBareTlfHandle()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, newH.BareTlfHandle, newBareH)
 	rmd.tlfHandle = oldHandle
 }
@@ -394,7 +394,7 @@ func TestKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	oldHandle := rmd.tlfHandle
 	rmd.tlfHandle = nil
 	newBareH, err := rmd.MakeBareTlfHandle()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, newH.BareTlfHandle, newBareH)
 	rmd.tlfHandle = oldHandle
 
@@ -424,7 +424,7 @@ func TestKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	// Also check MakeBareTlfHandle.
 	rmd.tlfHandle = nil
 	newBareH, err = rmd.MakeBareTlfHandle()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, newH.BareTlfHandle, newBareH)
 }
 
@@ -496,7 +496,7 @@ func TestKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	// Also check MakeBareTlfHandle.
 	rmd.tlfHandle = nil
 	newBareH, err := rmd.MakeBareTlfHandle()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, newH.BareTlfHandle, newBareH)
 }
 
@@ -562,7 +562,7 @@ func TestKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T) {
 	// Also check MakeBareTlfHandle.
 	rmd.tlfHandle = nil
 	newBareH, err := rmd.MakeBareTlfHandle()
-	require.Nil(t, err)
+	require.NoError(t, err)
 	require.Equal(t, newH.BareTlfHandle, newBareH)
 }
 
