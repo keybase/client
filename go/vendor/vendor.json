@@ -219,11 +219,6 @@
 			"revisionTime": "2016-03-23T16:34:55-07:00"
 		},
 		{
-			"path": "github.com/keybase/gopass",
-			"revision": "8cb3611ab4d378cb4ff58ed723a4ea0557f81adb",
-			"revisionTime": "2016-01-05T18:46:37-05:00"
-		},
-		{
 			"checksumSHA1": "vYGpKgcvBhYyZkvNd6WDSSlUTVM=",
 			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/gregor",
 			"path": "github.com/keybase/gregor",
