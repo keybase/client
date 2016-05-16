@@ -39,7 +39,6 @@ const tabs = {
 class Nav extends Component {
   constructor (props) {
     super(props)
-    this._checkedBootstrap = false
     this.props.bootstrap()
 
     this.state = {searchActive: false}
@@ -120,16 +119,6 @@ class Nav extends Component {
   shouldComponentUpdate (nextProps, nextState) {
     if (this.state.searchActive !== nextState.searchActive) {
       return true
-    }
-
-    if (!this._checkedBootstrap) {
-      if (nextProps.bootstrapped > 0) {
-        this._checkedBootstrap = true
-
-        if (!nextProps.provisioned) {
-          ipcRenderer.send('showMain')
-        }
-      }
     }
 
     return (nextProps.tabbedRouter.get('activeTab') !== this._activeTab())
