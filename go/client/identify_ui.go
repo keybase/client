@@ -86,7 +86,7 @@ func (i *IdentifyUIServer) Finish(_ context.Context, sessionID int) error {
 }
 
 func (i *IdentifyUIServer) Dismiss(_ context.Context, arg keybase1.DismissArg) error {
-	i.ui.Dismiss(arg.Uid, arg.Reason)
+	i.ui.Dismiss(arg.Username, arg.Reason)
 	return nil
 }
 

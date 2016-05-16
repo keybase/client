@@ -64,25 +64,19 @@ func (n *nlistener) FavoritesChanged(uid keybase1.UID) {
 
 type showTrackerPopupIdentifyUI struct {
 	kbtest.FakeIdentifyUI
-	startedUsername string
-	dismissedUIDs   map[keybase1.UID]struct{}
+	startedUsername   string
+	dismissedUsername string
 }
 
 var _ libkb.IdentifyUI = (*showTrackerPopupIdentifyUI)(nil)
-
-func newShowTrackerPopupIdentifyUI() *showTrackerPopupIdentifyUI {
-	return &showTrackerPopupIdentifyUI{
-		dismissedUIDs: make(map[keybase1.UID]struct{}),
-	}
-}
 
 func (ui *showTrackerPopupIdentifyUI) Start(name string, reason keybase1.IdentifyReason) {
 	ui.startedUsername = name
 }
 
 // Overriding the Dismiss method lets us test that it gets called.
-func (ui *showTrackerPopupIdentifyUI) Dismiss(uid keybase1.UID, _ keybase1.DismissReason) {
-	ui.dismissedUIDs[uid] = struct{}{}
+func (ui *showTrackerPopupIdentifyUI) Dismiss(username string, _ keybase1.DismissReason) {
+	ui.dismissedUsername = username
 }
 
 // Test that when we inject a gregor "show_tracker_popup" message containing a
@@ -94,7 +88,7 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 
 	tc.G.SetService()
 
-	identifyUI := newShowTrackerPopupIdentifyUI()
+	identifyUI := &showTrackerPopupIdentifyUI{}
 	router := fakeUIRouter{
 		secretUI:   &libkb.TestSecretUI{},
 		identifyUI: identifyUI,
@@ -139,8 +133,8 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 	}
 
 	// Assert that the tracker window hasn't been dismissed yet.
-	if len(identifyUI.dismissedUIDs) != 0 {
-		t.Fatal("Expected no dismissed UIDs yet.")
+	if identifyUI.dismissedUsername != "" {
+		t.Fatal("Expected no dismissed username yet.")
 	}
 
 	dismissal := gregor1.Message{
@@ -158,8 +152,7 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 	}
 
 	// Now assert that the tracker window has been dismissed.
-	_, present := identifyUI.dismissedUIDs[trackee.User.GetUID()]
-	if !present {
+	if identifyUI.dismissedUsername != trackee.User.GetName() {
 		t.Fatalf("Expected the tracker window for UID %s to be dismissed.", trackee.User.GetUID().String())
 	}
 }

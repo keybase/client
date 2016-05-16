@@ -249,6 +249,11 @@ func (g *gregorHandler) handleDismissTrackerPopup(ctx context.Context, item greg
 		g.G().Log.Error("failed to convert UID from string", err)
 		return err
 	}
+	user, err := libkb.LoadUser(libkb.NewLoadUserByUIDArg(g.G(), uid))
+	if err != nil {
+		g.G().Log.Error("failed to load user from UID", err)
+		return err
+	}
 
 	identifyUI, err := g.G().UIRouter.GetIdentifyUI()
 	if err != nil {
@@ -263,7 +268,7 @@ func (g *gregorHandler) handleDismissTrackerPopup(ctx context.Context, item greg
 	reason := keybase1.DismissReason{
 		Type: keybase1.DismissReasonType_HANDLED_ELSEWHERE,
 	}
-	identifyUI.Dismiss(uid, reason)
+	identifyUI.Dismiss(user.GetName(), reason)
 
 	return nil
 }

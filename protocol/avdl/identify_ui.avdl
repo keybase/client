@@ -127,5 +127,5 @@ protocol identifyUi {
   ConfirmResult confirm(int sessionID, IdentifyOutcome outcome);
   void finish(int sessionID);
 
-  void dismiss(int sessionID, UID uid, DismissReason reason);
+  void dismiss(int sessionID, string username, DismissReason reason);
 }

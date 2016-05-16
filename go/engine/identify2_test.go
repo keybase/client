@@ -113,7 +113,7 @@ func (i *Identify2WithUIDTester) Finish() {
 	i.finishCh <- struct{}{}
 }
 
-func (i *Identify2WithUIDTester) Dismiss(_ keybase1.UID, _ keybase1.DismissReason) {
+func (i *Identify2WithUIDTester) Dismiss(_ string, _ keybase1.DismissReason) {
 }
 
 func (i *Identify2WithUIDTester) Start(string, keybase1.IdentifyReason) {

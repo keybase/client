@@ -191,7 +191,7 @@ type FinishArg struct {
 
 type DismissArg struct {
 	SessionID int           `codec:"sessionID" json:"sessionID"`
-	Uid       UID           `codec:"uid" json:"uid"`
+	Username  string        `codec:"username" json:"username"`
 	Reason    DismissReason `codec:"reason" json:"reason"`
 }
 

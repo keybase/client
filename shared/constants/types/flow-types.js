@@ -1828,7 +1828,7 @@ export type identifyUi_dismiss_result = void
 export type identifyUi_dismiss_rpc = {
   method: 'identifyUi.dismiss',
   param: {
-    uid: UID,
+    username: string,
     reason: DismissReason
   },
   incomingCallMap: ?incomingCallMapType,
@@ -4245,7 +4245,7 @@ export type incomingCallMapType = {
   'keybase.1.identifyUi.dismiss'?: (
     params: {
       sessionID: int,
-      uid: UID,
+      username: string,
       reason: DismissReason
     },
     response: {

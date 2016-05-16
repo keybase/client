@@ -1261,8 +1261,8 @@
           "type": "int"
         },
         {
-          "name": "uid",
-          "type": "UID"
+          "name": "username",
+          "type": "string"
         },
         {
           "name": "reason",
