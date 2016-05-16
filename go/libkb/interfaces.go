@@ -378,6 +378,10 @@ type DumbOutputUI interface {
 	PrintfStderr(fmt string, args ...interface{}) (int, error)
 }
 
+type UpgradeAlertUI interface {
+	ShowUpgradeAlert(title string, msg string) error
+}
+
 type UI interface {
 	GetIdentifyUI() IdentifyUI
 	GetIdentifyTrackUI() IdentifyUI

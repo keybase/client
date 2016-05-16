@@ -4,6 +4,7 @@
 package service
 
 import (
+	"errors"
 	"io"
 	"net"
 	"os"
@@ -16,6 +17,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
+	notifier "github.com/keybase/go-notifier"
 	updater "github.com/keybase/go-updater"
 	"github.com/keybase/go-updater/sources"
 )
@@ -31,6 +33,24 @@ type Service struct {
 	updateChecker *updater.UpdateChecker
 	logForwarder  *logFwd
 	gregor        *gregorHandler
+}
+
+type serviceNotifier struct {
+	nn  notifier.Notifier
+	err error
+}
+
+func (n *serviceNotifier) ShowUpgradeAlert(title string, msg string) error {
+	if n.err != nil {
+		return n.err
+	}
+	if n.nn == nil {
+		return errors.New("No upgrade alert mechanism available")
+	}
+	return n.nn.DeliverNotification(notifier.Notification{
+		Title:   title,
+		Message: msg,
+	})
 }
 
 func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
@@ -164,7 +184,7 @@ func (d *Service) Run() (err error) {
 	}
 
 	var l net.Listener
-	if l, err = d.ConfigRPCServer(); err != nil {
+	if l, err = d.configRPCServer(); err != nil {
 		return
 	}
 
@@ -182,6 +202,10 @@ func (d *Service) Run() (err error) {
 	}
 
 	d.checkTrackingEveryHour()
+
+	if err = d.configUpgradeAlert(); err != nil {
+		return
+	}
 
 	if d.G().Env.GetRunMode() != libkb.ProductionRunMode {
 		d.G().Log.Debug("connecting to gregord in non-production run mode")
@@ -352,7 +376,7 @@ func (d *Service) lockPIDFile() (err error) {
 	return nil
 }
 
-func (d *Service) ConfigRPCServer() (l net.Listener, err error) {
+func (d *Service) configRPCServer() (l net.Listener, err error) {
 	if l, err = d.G().BindToSocket(); err != nil {
 		return
 	}
@@ -361,6 +385,12 @@ func (d *Service) ConfigRPCServer() (l net.Listener, err error) {
 		d.startCh = nil
 	}
 	return
+}
+
+func (d *Service) configUpgradeAlert() error {
+	nn, err := notifier.NewNotifier()
+	d.G().UpgradeAlertUI = &serviceNotifier{nn, err}
+	return nil
 }
 
 func (d *Service) Stop(exitCode keybase1.ExitCode) {

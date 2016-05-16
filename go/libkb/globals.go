@@ -62,6 +62,7 @@ type GlobalContext struct {
 	Identify2Cache    Identify2Cacher    // cache of Identify2 results for fast-pathing identify2 RPCS
 	LinkCache         *LinkCache         // cache of ChainLinks
 	UI                UI                 // Interact with the UI
+	UpgradeAlertUI    UpgradeAlertUI     // A standalone UI for showing that an upgraed is needed
 	Service           bool               // whether we're in server mode
 	shutdownOnce      sync.Once          // whether we've shut down or not
 	loginStateMu      sync.RWMutex       // protects loginState pointer, which gets destroyed on logout
