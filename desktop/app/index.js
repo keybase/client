@@ -38,8 +38,6 @@ consoleHelper()
 ipcLogs()
 devTools()
 menuBar()
-const mw = mainWindow()
-storeHelper(mw)
 urlHelper()
 ListenLogUi()
 
@@ -55,9 +53,13 @@ installer(err => {
   splash()
 })
 
-if (app.dock && !mw.initiallyVisible) {
-  app.dock.hide()
-}
+app.once('ready', () => {
+  const mw = mainWindow()
+  storeHelper(mw)
+  if (app.dock && !mw.initiallyVisible) {
+    app.dock.hide()
+  }
+})
 
 // Don't quit the app, instead try to close all windows
 app.on('close-windows', event => {
