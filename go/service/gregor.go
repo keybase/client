@@ -162,7 +162,7 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 		return g.handleOutOfBandMessage(ctx, obm)
 	}
 
-	g.G().Log.Errorf("gregor handler: both in-band and out-of-band message nil")
+	g.G().Log.Error("gregor handler: both in-band and out-of-band message nil")
 	return errors.New("invalid message")
 }
 
