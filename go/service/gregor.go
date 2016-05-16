@@ -29,6 +29,7 @@ type gregorHandler struct {
 	skipRetryConnect bool
 	itemsByID        map[string]gregor.Item
 	gregorCli        *grclient.Client
+	lastMessage      time.Time
 }
 
 var _ libkb.GregorDismisser = (*gregorHandler)(nil)
@@ -79,13 +80,7 @@ func (g *gregorHandler) reSync(ctx context.Context, cli gregor1.IncomingInterfac
 
 	var err error
 
-	// Bring up local state
-	if err = g.gregorCli.Restore(); err != nil {
-		// If this fails, we'll keep trying since the server can bail us out
-		g.G().Log.Error("gregor handler: restore local state failed")
-	}
-
-	// Get current time
+	// Get time of the last message we synced
 	var t time.Time
 	pt := g.gregorCli.LatestCTime()
 	if pt != nil {
@@ -465,7 +460,16 @@ func newGregorClient(g *libkb.GlobalContext) (*grclient.Client, error) {
 		return nil, err
 	}
 
-	return grclient.NewClient(guid, gdid, sm, newLocalDB(g), g.Log), nil
+	// Create client object
+	gcli := grclient.NewClient(guid, gdid, sm, newLocalDB(g), g.Log)
+
+	// Bring up local state
+	if err = gcli.Restore(); err != nil {
+		// If this fails, we'll keep trying since the server can bail us out
+		g.Log.Error("gregor handler: restore local state failed")
+	}
+
+	return gcli, nil
 }
 
 func (g *gregorHandler) connectTLS(uri *rpc.FMPURI) error {
