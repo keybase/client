@@ -23,6 +23,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
+	gregor "github.com/keybase/gregor"
 )
 
 type CommandLine interface {
@@ -416,4 +417,8 @@ type UIConsumer interface {
 
 type Clock interface {
 	Now() time.Time
+}
+
+type GregorDismisser interface {
+	DismissItem(id gregor.MsgID) error
 }
