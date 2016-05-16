@@ -3,7 +3,6 @@ package storage
 import (
 	"bytes"
 	"errors"
-	"sync"
 	"time"
 
 	"github.com/keybase/gregor"
@@ -25,34 +24,23 @@ type Client struct {
 	storage LocalStorageEngine
 	log     rpc.LogOutput
 
-	// We'll be resetting the incoming RPC interface whenever we reconnect, so for that reason.
-	// This reset will be in a GoRoutine, so let's just protect it with a mutex for the sake
-	// of simplicity
-	incomingMu sync.RWMutex
-	incoming   gregor1.IncomingInterface
+	replayer gregor1.OutgoingInterface
+
+	saveTimer <-chan time.Time
 }
 
-func NewClient(user gregor.UID, device gregor.DeviceID, sm gregor.StateMachine, storage LocalStorageEngine, incoming gregor1.IncomingInterface, log rpc.LogOutput) *Client {
-	return &Client{
-		user:     user,
-		device:   device,
-		sm:       sm,
-		storage:  storage,
-		incoming: incoming,
-		log:      log,
+func NewClient(user gregor.UID, device gregor.DeviceID, sm gregor.StateMachine,
+	storage LocalStorageEngine, replayer gregor1.OutgoingInterface, log rpc.LogOutput) *Client {
+	c := &Client{
+		user:      user,
+		device:    device,
+		sm:        sm,
+		storage:   storage,
+		replayer:  replayer,
+		log:       log,
+		saveTimer: time.Tick(1 * time.Minute), // How often we save to local storage
 	}
-}
-
-func (c *Client) SetIncomingInterface(i gregor1.IncomingInterface) {
-	c.incomingMu.Lock()
-	defer c.incomingMu.Unlock()
-	c.incoming = i
-}
-
-func (c *Client) incomingInterface() gregor1.IncomingInterface {
-	c.incomingMu.RLock()
-	defer c.incomingMu.RUnlock()
-	return c.incoming
+	return c
 }
 
 func (c *Client) Save() error {
@@ -97,7 +85,7 @@ func (e errHashMismatch) Error() string {
 	return "local state hash != server state hash"
 }
 
-func (c *Client) syncFromTime(t *time.Time) error {
+func (c *Client) syncFromTime(cli gregor1.IncomingInterface, t *time.Time) error {
 	ctx, _ := context.WithTimeout(context.Background(), time.Second)
 	arg := gregor1.SyncArg{
 		Uid:      gregor1.UID(c.user.Bytes()),
@@ -106,39 +94,65 @@ func (c *Client) syncFromTime(t *time.Time) error {
 	if t != nil {
 		arg.Ctime = gregor1.ToTime(*t)
 	}
-	res, err := c.incomingInterface().Sync(ctx, arg)
+
+	// Grab the events from gregord
+	res, err := cli.Sync(ctx, arg)
 	if err != nil {
 		return err
 	}
 
+	// Replay all the messages on the outgoing interface
+	// Note: this will have the effect of getting these messages in our
+	// local state machine as well as triggering their effects
 	for _, ibm := range res.Msgs {
-		c.sm.ConsumeMessage(gregor1.Message{Ibm_: &ibm})
+		m := gregor1.Message{Ibm_: &ibm}
+
+		c.sm.ConsumeMessage(m)
+		if c.replayer != nil {
+			c.replayer.BroadcastMessage(context.Background(), m)
+		}
 	}
 
+	// Check to make sure the server state is legit
 	state, err := c.sm.State(c.user, c.device, nil)
 	if err != nil {
 		return err
 	}
-
 	hash, err := state.Hash()
 	if err != nil {
 		return err
 	}
-
 	if !bytes.Equal(res.Hash, hash) {
 		return errHashMismatch{}
 	}
 
 	return nil
 }
-func (c *Client) Sync() error {
-	if err := c.syncFromTime(c.sm.LatestCTime(c.user, c.device)); err != nil {
+
+func (c *Client) Sync(cli gregor1.IncomingInterface) error {
+	if err := c.syncFromTime(cli, c.sm.LatestCTime(c.user, c.device)); err != nil {
 		if _, ok := err.(errHashMismatch); ok {
 			c.log.Info("Sync failure: %v\nResetting StateMachine and retrying", err)
 			c.sm.Clear()
-			err = c.syncFromTime(nil)
+			err = c.syncFromTime(cli, nil)
 		}
 		return err
 	}
+	return nil
+}
+
+func (c *Client) ConsumeMessage(m gregor1.Message) error {
+	if err := c.sm.ConsumeMessage(m); err != nil {
+		return err
+	}
+
+	// Check to see if we should save
+	select {
+	case <-c.saveTimer:
+		return c.Save()
+	default:
+		// Plow through if the timer isn't up
+	}
+
 	return nil
 }

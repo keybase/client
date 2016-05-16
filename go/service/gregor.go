@@ -28,6 +28,7 @@ type gregorHandler struct {
 	sessionID        gregor1.SessionID
 	skipRetryConnect bool
 	itemsByID        map[string]gregor.Item
+	gregorCli        *grclient.Client
 }
 
 var _ libkb.GregorDismisser = (*gregorHandler)(nil)
@@ -53,40 +54,6 @@ func (db *gregorLocalDb) Load(u gregor.UID) (res []byte, e error) {
 	return res, err
 }
 
-func newGregorClient(g *libkb.GlobalContext, i gregor1.IncomingInterface) (*grclient.Client, error) {
-	objFactory := gregor1.ObjFactory{}
-	sm := grstorage.NewMemEngine(objFactory, clockwork.NewRealClock())
-
-	var guid gregor.UID
-	var gdid gregor.DeviceID
-	var b []byte
-	var err error
-
-	uid := g.Env.GetUID()
-	if !uid.Exists() {
-		return nil, errors.New("no UID; probably not logged in")
-	}
-	if b = uid.ToBytes(); b == nil {
-		return nil, errors.New("Can't convert UID to byte array")
-	}
-	if guid, err = objFactory.MakeUID(b); err != nil {
-		return nil, err
-	}
-
-	did := g.Env.GetDeviceID()
-	if !did.Exists() {
-		return nil, errors.New("no UID; probably not logged in")
-	}
-	if b, err = hex.DecodeString(did.String()); err != nil {
-		return nil, err
-	}
-	if gdid, err = objFactory.MakeDeviceID(b); err != nil {
-		return nil, err
-	}
-
-	return grclient.NewClient(guid, gdid, sm, newLocalDB(g), i, g.Log), nil
-}
-
 func newGregorHandler(g *libkb.GlobalContext) *gregorHandler {
 	return &gregorHandler{
 		Contextified: libkb.NewContextified(g),
@@ -108,6 +75,22 @@ func (g *gregorHandler) HandlerName() string {
 	return "keybase service"
 }
 
+func (g *gregorHandler) reSync(cli gregor1.IncomingInterface) error {
+	// Bring up local state
+	if err := g.gregorCli.Restore(); err != nil {
+		// If this fails, we'll keep trying since the server can bail us out
+		g.G().Log.Error("gregor handler: restore local state failed")
+	}
+
+	// Sync down everything from the server
+	if err := g.gregorCli.Sync(cli); err != nil {
+		g.G().Log.Error("gregor handler: error syncing from the server, bailing!")
+		return nil
+	}
+
+	return nil
+}
+
 func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection, cli rpc.GenericClient, srv *rpc.Server) error {
 	g.G().Log.Debug("gregor handler: connected")
 
@@ -116,9 +99,18 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection, cli
 		return err
 	}
 
-	g.cli = conn.GetClient()
+	if err := g.auth(ctx, cli); err != nil {
+		g.G().Log.Error("gregor handler: auth error!")
+		return err
+	}
 
-	return g.auth(ctx)
+	// Sync down events since we have been dead
+	if err := g.reSync(gregor1.IncomingClient{Cli: cli}); err != nil {
+		g.G().Log.Error("gregor handler: sync failure!")
+		return nil
+	}
+
+	return nil
 }
 
 func (g *gregorHandler) OnConnectError(err error, reconnectThrottleDuration time.Duration) {
@@ -156,6 +148,10 @@ func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
 func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message) error {
 	g.G().Log.Debug("gregor handler: broadcast: %+v", m)
 
+	// Send message to local state machine
+	g.gregorCli.ConsumeMessage(m)
+
+	// Handle the message
 	ibm := m.ToInBandMessage()
 	if ibm != nil {
 		return g.handleInBandMessage(ctx, ibm)
@@ -166,7 +162,8 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 		return g.handleOutOfBandMessage(ctx, obm)
 	}
 
-	return fmt.Errorf("gregor handler: both in-band and out-of-band message nil")
+	g.G().Log.Errorf("gregor handler: both in-band and out-of-band message nil")
+	return errors.New("invalid message")
 }
 
 func (g *gregorHandler) handleInBandMessage(ctx context.Context, ibm gregor.InBandMessage) error {
@@ -386,7 +383,7 @@ func (g *gregorHandler) notifyFavoritesChanged(ctx context.Context, uid gregor.U
 	return nil
 }
 
-func (g *gregorHandler) auth(ctx context.Context) error {
+func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient) error {
 	var token string
 	var uid keybase1.UID
 	aerr := g.G().LoginState().LocalSession(func(s *libkb.Session) {
@@ -400,7 +397,7 @@ func (g *gregorHandler) auth(ctx context.Context) error {
 	g.G().Log.Debug("gregor handler: have session token")
 
 	g.G().Log.Debug("gregor handler: authenticating")
-	ac := gregor1.AuthClient{Cli: g.cli}
+	ac := gregor1.AuthClient{Cli: cli}
 	auth, err := ac.AuthenticateSessionToken(ctx, gregor1.SessionToken(token))
 	if err != nil {
 		g.G().Log.Debug("gregor handler: auth error: %s", err)
@@ -417,20 +414,72 @@ func (g *gregorHandler) auth(ctx context.Context) error {
 	return nil
 }
 
+func newGregorClient(g *libkb.GlobalContext, o gregor1.OutgoingInterface) (*grclient.Client, error) {
+	objFactory := gregor1.ObjFactory{}
+	sm := grstorage.NewMemEngine(objFactory, clockwork.NewRealClock())
+
+	var guid gregor.UID
+	var gdid gregor.DeviceID
+	var b []byte
+	var err error
+
+	uid := g.Env.GetUID()
+	if !uid.Exists() {
+		return nil, errors.New("no UID; probably not logged in")
+	}
+	if b = uid.ToBytes(); b == nil {
+		return nil, errors.New("Can't convert UID to byte array")
+	}
+	if guid, err = objFactory.MakeUID(b); err != nil {
+		return nil, err
+	}
+
+	did := g.Env.GetDeviceID()
+	if !did.Exists() {
+		return nil, errors.New("no UID; probably not logged in")
+	}
+	if b, err = hex.DecodeString(did.String()); err != nil {
+		return nil, err
+	}
+	if gdid, err = objFactory.MakeDeviceID(b); err != nil {
+		return nil, err
+	}
+
+	return grclient.NewClient(guid, gdid, sm, newLocalDB(g), o, g.Log), nil
+}
+
 func (g *gregorHandler) connectTLS(uri *rpc.FMPURI) error {
+
+	// Create client interface to gregord
+	var err error
+	if g.gregorCli, err = newGregorClient(g.G(), g); err != nil {
+		return err
+	}
+
 	g.G().Log.Debug("connecting to gregord via TLS")
 	rawCA := g.G().Env.GetBundledCA(uri.Host)
 	if len(rawCA) == 0 {
 		return fmt.Errorf("No bundled CA for %s", uri.Host)
 	}
 	g.conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), keybase1.ErrorUnwrapper{}, g, true, libkb.NewRPCLogFactory(g.G()), keybase1.WrapError, g.G().Log, nil)
+	g.cli = g.conn.GetClient()
+
 	return nil
 }
 
 func (g *gregorHandler) connectNoTLS(uri *rpc.FMPURI) error {
+
+	// Create client interface to gregord
+	var err error
+	if g.gregorCli, err = newGregorClient(g.G(), g); err != nil {
+		return err
+	}
+
 	g.G().Log.Debug("connecting to gregord without TLS")
 	t := newConnTransport(g.G(), uri.HostPort)
 	g.conn = rpc.NewConnectionWithTransport(g, t, keybase1.ErrorUnwrapper{}, true, keybase1.WrapError, g.G().Log, nil)
+	g.cli = g.conn.GetClient()
+
 	return nil
 }
 
