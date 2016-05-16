@@ -19,6 +19,7 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 	jsonw "github.com/keybase/go-jsonw"
+	notifier "github.com/keybase/go-notifier"
 )
 
 // Shared code across Internal and External APIs
@@ -335,12 +336,23 @@ func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) (err error) {
 				decodedMsg, err = base64.StdEncoding.DecodeString(m)
 				a.G().Log.Warning("%s", decodedMsg)
 			}
+			var msg string
 			if u != "" {
-				a.G().Log.Warning("Upgrade recommended to client version %s or above (you have v%s)",
+				msg += fmt.Sprintf("Upgrade recommended to client version %s or above (you have v%s)",
 					u, VersionString())
 			}
 			if p != "" {
-				platformSpecificUpgradeInstructions(a.G(), p)
+				msg += platformSpecificUpgradeInstructionsOnRecommendedUpgrade(p)
+			}
+			a.G().Log.Warning(msg)
+			if nw, _ := notifier.NewNotifier(); nw != nil {
+				err := nw.DeliverNotification(notifier.Notification{
+					Title:   "Upgrade Recommended",
+					Message: msg,
+				})
+				if err != nil {
+					a.G().Log.Info("Failed to spawn notification window: %s", err)
+				}
 			}
 			lastUpgradeWarning = &now
 		}

@@ -17,22 +17,17 @@ func PlatformSpecificUpgradeInstructionsString() (string, error) {
 	return "", nil
 }
 
-func platformSpecificUpgradeInstructions(g *GlobalContext, upgradeURI string) {
+func platformSpecificUpgradeInstructionsOnRecommendedUpgrade(upgradeURI string) string {
+	var ret string
 	switch runtime.GOOS {
 	case "linux":
-		linuxUpgradeInstructions(g)
+		ret, _ = linuxUpgradeInstructionsString()
 	case "darwin":
-		darwinUpgradeInstructions(g, upgradeURI)
+		ret = darwinUpgradeInstructions(upgradeURI)
 	case "windows":
-		windowsUpgradeInstructions(g, upgradeURI)
+		ret = windowsUpgradeInstructions(upgradeURI)
 	}
-}
-
-func linuxUpgradeInstructions(g *GlobalContext) {
-	upgradeInstructions, err := linuxUpgradeInstructionsString()
-	if err == nil {
-		printUpgradeCommand(g, upgradeInstructions)
-	}
+	return ret
 }
 
 func linuxUpgradeInstructionsString() (string, error) {
@@ -67,7 +62,7 @@ func linuxUpgradeInstructionsString() (string, error) {
 	return complete, nil
 }
 
-func darwinUpgradeInstructions(g *GlobalContext, upgradeURI string) {
+func darwinUpgradeInstructions(upgradeURI string) string {
 	packageName := "keybase"
 	if DefaultRunMode == DevelRunMode {
 		packageName = "keybase/beta/kbdev"
@@ -76,18 +71,12 @@ func darwinUpgradeInstructions(g *GlobalContext, upgradeURI string) {
 	}
 
 	if IsBrewBuild {
-		printUpgradeCommand(g, "brew update && brew upgrade "+packageName)
-	} else {
-		g.Log.Warning("  Please download a new version from " + upgradeURI)
+		return ("To upgrade, run the following command:\n" +
+			"    brew update && brew upgrade " + packageName)
 	}
-	// TODO: non-brew update instructions
+	return ("  Please download a new version from " + upgradeURI)
 }
 
-func windowsUpgradeInstructions(g *GlobalContext, upgradeURI string) {
-
-	g.Log.Warning("To upgrade, download the latest Keybase installer from " + upgradeURI)
-}
-func printUpgradeCommand(g *GlobalContext, command string) {
-	g.Log.Warning("To upgrade, run the following command:")
-	g.Log.Warning("    " + command)
+func windowsUpgradeInstructions(upgradeURI string) string {
+	return ("To upgrade, download the latest Keybase installer from " + upgradeURI)
 }
