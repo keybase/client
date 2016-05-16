@@ -1,6 +1,5 @@
 // @flow
 import React, {Component} from 'react'
-import {connect} from 'react-redux'
 import Render from './render'
 import logSend from '../../native/log-send'
 
@@ -8,7 +7,7 @@ type State = {
   logSendId: ?string
 }
 
-class LogSend extends Component<void, {}, State> {
+export default class LogSend extends Component<void, {}, State> {
   state: State;
 
   constructor (props: {}) {
@@ -30,5 +29,3 @@ class LogSend extends Component<void, {}, State> {
     return {componentAtTop: {title: 'Log Send'}}
   }
 }
-
-export default connect()(LogSend)

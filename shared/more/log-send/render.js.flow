@@ -7,4 +7,4 @@ export type Props = {
   onLogSend: () => void
 }
 
-export default class Button extends Component<void, Props, void> { }
+export default class Render extends Component<void, Props, void> { }
