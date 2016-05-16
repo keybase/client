@@ -233,13 +233,14 @@
 		{
 			"checksumSHA1": "l5FjFscyOBh3T5Uqut7j3odYJII=",
 			"path": "github.com/keybase/gregor/rpc/client",
-			"revision": "607f177f32529c2ad94be1392ef0343ec494f1df",
-			"revisionTime": "2016-05-16T18:41:59Z"
+			"revision": "2a9a0f0823b2631f463c492dbd373879fb961e13",
+			"revisionTime": "2016-05-16T20:11:08Z"
 		},
 		{
+			"checksumSHA1": "BIPvHWKu83//yiOUGBpQLZJP2Tg=",
 			"path": "github.com/keybase/gregor/storage",
-			"revision": "6a79b77a033f81fbbfb55a3b94acb512d74cb12b",
-			"revisionTime": "2016-05-12T13:19:34-04:00"
+			"revision": "2a9a0f0823b2631f463c492dbd373879fb961e13",
+			"revisionTime": "2016-05-16T20:11:08Z"
 		},
 		{
 			"path": "github.com/keybase/keybase-test-vectors/go",
