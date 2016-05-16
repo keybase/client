@@ -47,7 +47,7 @@ func Init(homeDir string, runModeStr string, serverURI string, accessGroupOverri
 		}
 
 		logSendContext = libkb.LogSendContext{
-			Contextified: libkb.NewContextified(service.Contextified.G()),
+			Contextified: libkb.NewContextified(service.G()),
 			Logs:         logs,
 		}
 
