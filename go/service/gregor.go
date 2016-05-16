@@ -75,17 +75,37 @@ func (g *gregorHandler) HandlerName() string {
 	return "keybase service"
 }
 
-func (g *gregorHandler) reSync(cli gregor1.IncomingInterface) error {
+func (g *gregorHandler) reSync(ctx context.Context, cli gregor1.IncomingInterface) error {
+
+	var err error
+
 	// Bring up local state
-	if err := g.gregorCli.Restore(); err != nil {
+	if err = g.gregorCli.Restore(); err != nil {
 		// If this fails, we'll keep trying since the server can bail us out
 		g.G().Log.Error("gregor handler: restore local state failed")
 	}
 
+	// Get current time
+	var t time.Time
+	pt := g.gregorCli.LatestCTime()
+	if pt != nil {
+		t = *pt
+	}
+
 	// Sync down everything from the server
-	if err := g.gregorCli.Sync(cli); err != nil {
+	if err = g.gregorCli.Sync(cli); err != nil {
 		g.G().Log.Error("gregor handler: error syncing from the server, bailing!")
-		return nil
+		return err
+	}
+
+	// Replay in-band messages
+	var msgs []gregor.InBandMessage
+	if msgs, err = g.gregorCli.InBandMessagesSince(t); err != nil {
+		g.G().Log.Error("gregor handler: unable to fetch messages for reply!")
+		return err
+	}
+	for _, msg := range msgs {
+		g.handleInBandMessage(ctx, msg)
 	}
 
 	return nil
@@ -105,7 +125,7 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection, cli
 	}
 
 	// Sync down events since we have been dead
-	if err := g.reSync(gregor1.IncomingClient{Cli: cli}); err != nil {
+	if err := g.reSync(ctx, gregor1.IncomingClient{Cli: cli}); err != nil {
 		g.G().Log.Error("gregor handler: sync failure!")
 		return nil
 	}
@@ -414,7 +434,7 @@ func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient) error {
 	return nil
 }
 
-func newGregorClient(g *libkb.GlobalContext, o gregor1.OutgoingInterface) (*grclient.Client, error) {
+func newGregorClient(g *libkb.GlobalContext) (*grclient.Client, error) {
 	objFactory := gregor1.ObjFactory{}
 	sm := grstorage.NewMemEngine(objFactory, clockwork.NewRealClock())
 
@@ -445,14 +465,14 @@ func newGregorClient(g *libkb.GlobalContext, o gregor1.OutgoingInterface) (*grcl
 		return nil, err
 	}
 
-	return grclient.NewClient(guid, gdid, sm, newLocalDB(g), o, g.Log), nil
+	return grclient.NewClient(guid, gdid, sm, newLocalDB(g), g.Log), nil
 }
 
 func (g *gregorHandler) connectTLS(uri *rpc.FMPURI) error {
 
 	// Create client interface to gregord
 	var err error
-	if g.gregorCli, err = newGregorClient(g.G(), g); err != nil {
+	if g.gregorCli, err = newGregorClient(g.G()); err != nil {
 		return err
 	}
 
@@ -471,7 +491,7 @@ func (g *gregorHandler) connectNoTLS(uri *rpc.FMPURI) error {
 
 	// Create client interface to gregord
 	var err error
-	if g.gregorCli, err = newGregorClient(g.G(), g); err != nil {
+	if g.gregorCli, err = newGregorClient(g.G()); err != nil {
 		return err
 	}
 

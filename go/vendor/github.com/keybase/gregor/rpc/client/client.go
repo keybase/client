@@ -24,19 +24,16 @@ type Client struct {
 	storage LocalStorageEngine
 	log     rpc.LogOutput
 
-	replayer gregor1.OutgoingInterface
-
 	saveTimer <-chan time.Time
 }
 
 func NewClient(user gregor.UID, device gregor.DeviceID, sm gregor.StateMachine,
-	storage LocalStorageEngine, replayer gregor1.OutgoingInterface, log rpc.LogOutput) *Client {
+	storage LocalStorageEngine, log rpc.LogOutput) *Client {
 	c := &Client{
 		user:      user,
 		device:    device,
 		sm:        sm,
 		storage:   storage,
-		replayer:  replayer,
 		log:       log,
 		saveTimer: time.Tick(1 * time.Minute), // How often we save to local storage
 	}
@@ -106,11 +103,7 @@ func (c *Client) syncFromTime(cli gregor1.IncomingInterface, t *time.Time) error
 	// local state machine as well as triggering their effects
 	for _, ibm := range res.Msgs {
 		m := gregor1.Message{Ibm_: &ibm}
-
 		c.sm.ConsumeMessage(m)
-		if c.replayer != nil {
-			c.replayer.BroadcastMessage(context.Background(), m)
-		}
 	}
 
 	// Check to make sure the server state is legit
@@ -155,4 +148,12 @@ func (c *Client) ConsumeMessage(m gregor1.Message) error {
 	}
 
 	return nil
+}
+
+func (c *Client) LatestCTime() *time.Time {
+	return c.sm.LatestCTime(c.user, c.device)
+}
+
+func (c *Client) InBandMessagesSince(t time.Time) ([]gregor.InBandMessage, error) {
+	return c.sm.InBandMessagesSince(c.user, c.device, t)
 }
