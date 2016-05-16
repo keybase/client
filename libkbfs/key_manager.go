@@ -384,6 +384,7 @@ func (km *KeyManagerStandard) generateKeyMapForUsers(ctx context.Context, users 
 }
 
 // Rekey implements the KeyManager interface for KeyManagerStandard.
+// TODO make this less terrible.
 func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promptPaper bool) (
 	rekeyDone bool, cryptKey *TLFCryptKey, err error) {
 	km.log.CDebugf(ctx, "Rekey %s (prompt for paper key: %t)",
@@ -459,10 +460,12 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		return false, nil, NewReadAccessError(resolvedHandle, username)
 	}
 
+	// All writer keys in the desired keyset
 	wKeys, err := km.generateKeyMapForUsers(ctx, resolvedHandle.Writers)
 	if err != nil {
 		return false, nil, err
 	}
+	// All reader keys in the desired keyset
 	rKeys, err := km.generateKeyMapForUsers(ctx, resolvedHandle.Readers)
 	if err != nil {
 		return false, nil, err
@@ -472,7 +475,11 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 	addNewWriterDevice := false
 	var newReaderUsers map[keybase1.UID]bool
 	var newWriterUsers map[keybase1.UID]bool
+	var promotedReaders map[keybase1.UID]bool
 
+	// Figure out if we need to add or remove any keys.
+	// If we're already incrementing the key generation then we don't need to
+	// figure out the key delta.
 	if !incKeyGen {
 		// See if there is at least one new device in relation to the
 		// current key bundle
@@ -490,11 +497,23 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		rRemoved := km.usersWithRemovedDevices(ctx, md, rkb.RKeys, rKeys)
 		incKeyGen = len(wRemoved) > 0 || len(rRemoved) > 0
 
+		promotedReaders = make(map[keybase1.UID]bool, len(rRemoved))
+
+		for u := range rRemoved {
+			// FIXME (potential): this could cause a reader to attempt to rekey
+			// in the case of a revocation for the currently logged-in user. I
+			// _think_ incKeyGen above protects against this, but I'm not
+			// confident.
+			newReaderUsers[u] = true
+			// Track which readers have been promoted. This must happen before
+			// the following line adds all the removed writers to the writer
+			// set
+			if newWriterUsers[u] {
+				promotedReaders[u] = true
+			}
+		}
 		for u := range wRemoved {
 			newWriterUsers[u] = true
-		}
-		for u := range rRemoved {
-			newReaderUsers[u] = true
 		}
 
 		if err := km.identifyUIDSets(ctx, md, newWriterUsers, newReaderUsers); err != nil {
@@ -511,8 +530,8 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 	}
 
 	if !isWriter {
-		if _, userHasNewKeys := newReaderUsers[uid]; userHasNewKeys {
-			// Only rekey the logged-in reader
+		if _, userHasNewKeys := newReaderUsers[uid]; userHasNewKeys && !promotedReaders[uid] {
+			// Only rekey the logged-in reader, and only if that reader isn't being promoted
 			rKeys = map[keybase1.UID][]CryptPublicKey{
 				uid: rKeys[uid],
 			}
@@ -546,6 +565,17 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 			currTlfCryptKey, err := km.getTLFCryptKey(ctx, md, keyGen, flags)
 			if err != nil {
 				return false, nil, err
+			}
+
+			// If there are readers that need to be promoted to writers, do
+			// that here.
+			wkb, rkb, err := md.getTLFKeyBundles(keyGen)
+			if err != nil {
+				return false, nil, err
+			}
+			for u := range promotedReaders {
+				wkb.WKeys[u] = rkb.RKeys[u]
+				delete(rkb.RKeys, u)
 			}
 
 			err = km.updateKeyBundle(ctx, md, keyGen, wKeys, rKeys,

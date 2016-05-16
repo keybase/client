@@ -428,6 +428,41 @@ func TestKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	require.Equal(t, newH.BareTlfHandle, newBareH)
 }
 
+func TestKeyManagerPromoteReaderSuccessPrivate(t *testing.T) {
+	mockCtrl, config, ctx := keyManagerInit(t)
+	defer keyManagerShutdown(mockCtrl, config)
+	config.SetSharingBeforeSignupEnabled(true)
+
+	id := FakeTlfID(1, false)
+	h, err := ParseTlfHandle(ctx, config.KBPKI(),
+		"alice,bob@twitter#bob", false, true)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rmd := newRootMetadataOrBust(t, id, h)
+	oldKeyGen := rmd.LatestKeyGeneration()
+
+	expectRekey(config, rmd, 2)
+
+	// Pretend that bob@twitter now resolves to bob.
+	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
+	daemon.addNewAssertionForTest("bob", "bob@twitter")
+
+	// Make the first key generation
+	if done, _, err := config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
+		t.Fatalf("Got error on rekey: %t, %v", done, err)
+	}
+
+	if rmd.LatestKeyGeneration() != oldKeyGen+1 {
+		t.Fatalf("Bad key generation after rekey: %d", rmd.LatestKeyGeneration())
+	}
+
+	newH := rmd.GetTlfHandle()
+	require.Equal(t,
+		CanonicalTlfName("alice,bob"),
+		newH.GetCanonicalName())
+}
+
 func TestKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)

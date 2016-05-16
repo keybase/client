@@ -479,7 +479,7 @@ func (md *RootMetadata) LatestKeyGeneration() KeyGen {
 }
 
 // AddNewKeys makes a new key generation for this RootMetadata using the
-// given TLFKeyBundle.
+// given TLFKeyBundles.
 func (md *RootMetadata) AddNewKeys(
 	wkb TLFWriterKeyBundle, rkb TLFReaderKeyBundle) error {
 	if md.ID.IsPublic() {
