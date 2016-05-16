@@ -29,11 +29,12 @@ export function toDeviceType (s: string): DeviceType {
   }
 }
 
-export type PropsOf<Props, C: Component<*, Props, *>> = Props // eslint-disable-line
+export type _PropsOf<Props, C: Component<*, Props, *>> = Props // eslint-disable-line
+export type PropsOf<C> = _PropsOf<*, C>
 
 export type DumbComponentMap<C: Component<*, *, *>> = {
   component: Class<C>,
   mocks: {
-    [key: string]: PropsOf<*, C>
+    [key: string]: PropsOf<C>
   }
 }
