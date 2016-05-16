@@ -15,7 +15,7 @@ export type RenderProps = $Shape<{
   name?: string,
   nonUser?: ?boolean,
   reason?: string,
-  inviteLink?: string,
+  inviteLink?: ?string,
   isPrivate?: boolean
 }>
 
