@@ -845,3 +845,29 @@ func (md *MDServerLocal) addNewAssertionForTest(uid keybase1.UID,
 	}
 	return iter.Error()
 }
+
+// GetLatestHandleForTLF implements the MDServer interface for MDServerLocal.
+func (md *MDServerLocal) GetLatestHandleForTLF(_ context.Context, id TlfID) (
+	*BareTlfHandle, error) {
+	var handle *BareTlfHandle
+	iter := md.handleDb.NewIterator(nil, nil)
+	defer iter.Release()
+	for iter.Next() {
+		var dbID TlfID
+		idBytes := iter.Value()
+		err := dbID.UnmarshalBinary(idBytes)
+		if err != nil {
+			return nil, err
+		}
+		if id != dbID {
+			continue
+		}
+		handle = new(BareTlfHandle)
+		handleBytes := iter.Key()
+		err = md.config.Codec().Decode(handleBytes, handle)
+		if err != nil {
+			return nil, err
+		}
+	}
+	return handle, nil
+}

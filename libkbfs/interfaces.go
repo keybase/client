@@ -729,6 +729,12 @@ type MDOps interface {
 	// PutUnmerged is the same as the above but for unmerged
 	// metadata history.
 	PutUnmerged(ctx context.Context, rmd *RootMetadata, bid BranchID) error
+
+	// GetLatestHandleForTLF returns the server's idea of the latest handle for the TLF,
+	// which may not yet be reflected in the MD if the TLF hasn't been rekeyed since it
+	// entered into a conflicting state.
+	GetLatestHandleForTLF(ctx context.Context, id TlfID) (
+		*BareTlfHandle, error)
 }
 
 // KeyOps fetches server-side key halves from the key server.
@@ -868,6 +874,13 @@ type MDServer interface {
 
 	// IsConnected returns whether the MDServer is connected.
 	IsConnected() bool
+
+	// GetLatestHandleForTLF returns the server's idea of the latest handle for the TLF,
+	// which may not yet be reflected in the MD if the TLF hasn't been rekeyed since it
+	// entered into a conflicting state.  For the highest level of confidence, the caller
+	// should verify the mapping with a Merkle tree lookup.
+	GetLatestHandleForTLF(ctx context.Context, id TlfID) (
+		*BareTlfHandle, error)
 }
 
 // BlockServer gets and puts opaque data blocks.  The instantiation

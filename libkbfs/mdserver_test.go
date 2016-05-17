@@ -24,7 +24,7 @@ func TestMDServerBasics(t *testing.T) {
 	}
 
 	// (1) get metadata -- allocates an ID
-	h, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil)
+	h, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -211,7 +211,7 @@ func TestMDServerRegisterForUpdate(t *testing.T) {
 	}
 
 	// Create first TLF.
-	h1, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil)
+	h1, err := MakeBareTlfHandle([]keybase1.UID{uid}, nil, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -223,7 +223,7 @@ func TestMDServerRegisterForUpdate(t *testing.T) {
 
 	// Create second TLF, which should end up being different from
 	// the first one.
-	h2, err := MakeBareTlfHandle([]keybase1.UID{uid}, []keybase1.UID{keybase1.PUBLIC_UID}, nil, nil)
+	h2, err := MakeBareTlfHandle([]keybase1.UID{uid}, []keybase1.UID{keybase1.PUBLIC_UID}, nil, nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

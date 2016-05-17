@@ -21,6 +21,7 @@ type BareTlfHandle struct {
 	Readers           []keybase1.UID             `codec:"r,omitempty"`
 	UnresolvedWriters []keybase1.SocialAssertion `codec:"uw,omitempty"`
 	UnresolvedReaders []keybase1.SocialAssertion `codec:"ur,omitempty"`
+	ConflictInfo      *ConflictInfo              `codec:"ci,omitempty"`
 }
 
 // UIDList can be used to lexicographically sort UIDs.
@@ -71,8 +72,8 @@ var ErrInvalidReader = errors.New("Cannot make TLF handle with invalid reader")
 // readers and writers.
 func MakeBareTlfHandle(
 	writers, readers []keybase1.UID,
-	unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion) (
-	BareTlfHandle, error) {
+	unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion,
+	conflictInfo *ConflictInfo) (BareTlfHandle, error) {
 	if len(writers) == 0 {
 		return BareTlfHandle{}, ErrNoWriters
 	}
@@ -126,6 +127,7 @@ func MakeBareTlfHandle(
 		Readers:           readersCopy,
 		UnresolvedWriters: unresolvedWritersCopy,
 		UnresolvedReaders: unresolvedReadersCopy,
+		ConflictInfo:      conflictInfo,
 	}, nil
 }
 
@@ -294,7 +296,8 @@ func resolveOneUser(
 }
 
 func makeTlfHandleHelper(
-	ctx context.Context, public bool, writers, readers []resolvableUser) (*TlfHandle, error) {
+	ctx context.Context, public bool, writers, readers []resolvableUser,
+	conflictInfo *ConflictInfo) (*TlfHandle, error) {
 	if public && len(readers) > 0 {
 		return nil, errors.New("public folder cannot have readers")
 	}
@@ -359,7 +362,9 @@ func makeTlfHandleHelper(
 	}
 
 	bareHandle, err := MakeBareTlfHandle(
-		writerUIDs, readerUIDs, unresolvedWriters, unresolvedReaders)
+		writerUIDs, readerUIDs,
+		unresolvedWriters, unresolvedReaders,
+		conflictInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -369,6 +374,9 @@ func makeTlfHandleHelper(
 	if !public && len(usedRNames)+len(unresolvedReaders) > 0 {
 		readerNames := getSortedNames(usedRNames, unresolvedReaders)
 		canonicalName += ReaderSep + strings.Join(readerNames, ",")
+	}
+	if conflictInfo != nil {
+		canonicalName += ConflictSuffixSep + conflictInfo.String()
 	}
 
 	h := &TlfHandle{
@@ -427,7 +435,7 @@ func MakeTlfHandle(
 		}
 	}
 
-	h, err := makeTlfHandleHelper(ctx, bareHandle.IsPublic(), writers, readers)
+	h, err := makeTlfHandleHelper(ctx, bareHandle.IsPublic(), writers, readers, bareHandle.ConflictInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -557,7 +565,7 @@ func (h *TlfHandle) ResolveAgainForUser(ctx context.Context, resolver resolver,
 		}
 	}
 
-	newH, err := makeTlfHandleHelper(ctx, h.IsPublic(), writers, readers)
+	newH, err := makeTlfHandleHelper(ctx, h.IsPublic(), writers, readers, h.BareTlfHandle.ConflictInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -592,10 +600,20 @@ func getSortedHandleLists(
 }
 
 func splitAndNormalizeTLFName(name string, public bool) (
-	writerNames, readerNames []string, err error) {
-	splitNames := strings.SplitN(name, ReaderSep, 3)
+	writerNames, readerNames []string,
+	conflictSuffix string, err error) {
+
+	names := strings.SplitN(name, ConflictSuffixSep, 2)
+	if len(names) > 2 {
+		return nil, nil, "", BadTLFNameError{name}
+	}
+	if len(names) > 1 {
+		conflictSuffix = names[1]
+	}
+
+	splitNames := strings.SplitN(names[0], ReaderSep, 3)
 	if len(splitNames) > 2 {
-		return nil, nil, BadTLFNameError{name}
+		return nil, nil, "", BadTLFNameError{name}
 	}
 	writerNames = strings.Split(splitNames[0], ",")
 	if len(splitNames) > 1 {
@@ -606,18 +624,18 @@ func splitAndNormalizeTLFName(name string, public bool) (
 
 	if public && !hasPublic {
 		// No public folder exists for this folder.
-		return nil, nil, NoSuchNameError{Name: name}
+		return nil, nil, "", NoSuchNameError{Name: name}
 	}
 
-	normalizedName, err := normalizeNamesInTLF(writerNames, readerNames)
+	normalizedName, err := normalizeNamesInTLF(writerNames, readerNames, conflictSuffix)
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, "", err
 	}
 	if normalizedName != name {
-		return nil, nil, TlfNameNotCanonical{name, normalizedName}
+		return nil, nil, "", TlfNameNotCanonical{name, normalizedName}
 	}
 
-	return writerNames, readerNames, nil
+	return writerNames, readerNames, strings.ToLower(conflictSuffix), nil
 }
 
 // TODO: this function can likely be replaced with a call to
@@ -657,7 +675,8 @@ func normalizeAssertionOrName(s string) (string, error) {
 // normalizeNamesInTLF takes a split TLF name and, without doing any
 // resolutions or identify calls, normalizes all elements of the
 // name. It then returns the normalized name.
-func normalizeNamesInTLF(writerNames, readerNames []string) (string, error) {
+func normalizeNamesInTLF(writerNames, readerNames []string,
+	conflictSuffix string) (string, error) {
 	sortedWriterNames := make([]string, len(writerNames))
 	var err error
 	for i, w := range writerNames {
@@ -679,6 +698,12 @@ func normalizeNamesInTLF(writerNames, readerNames []string) (string, error) {
 		sort.Strings(sortedReaderNames)
 		normalizedName += ReaderSep + strings.Join(sortedReaderNames, ",")
 	}
+	if len(conflictSuffix) != 0 {
+		// This *should* be normalized already but make sure.  I can see not
+		// doing so might surprise a caller.
+		normalizedName += ConflictSuffixSep + strings.ToLower(conflictSuffix)
+	}
+
 	return normalizedName, nil
 }
 
@@ -742,7 +767,7 @@ func ParseTlfHandle(
 	// real user lookup for "head" (KBFS-531).  Note that the name
 	// might still contain assertions, which will result in
 	// another alias in a subsequent lookup.
-	writerNames, readerNames, err := splitAndNormalizeTLFName(name, public)
+	writerNames, readerNames, conflictSuffix, err := splitAndNormalizeTLFName(name, public)
 	if err != nil {
 		return nil, err
 	}
@@ -754,7 +779,7 @@ func ParseTlfHandle(
 		return nil, NoSuchNameError{Name: name}
 	}
 
-	normalizedName, err := normalizeNamesInTLF(writerNames, readerNames)
+	normalizedName, err := normalizeNamesInTLF(writerNames, readerNames, conflictSuffix)
 	if err != nil {
 		return nil, err
 	}
@@ -772,7 +797,16 @@ func ParseTlfHandle(
 		readers[i] = resolvableAssertion{sharingBeforeSignupEnabled, kbpki, r,
 			keybase1.UID("")}
 	}
-	h, err := makeTlfHandleHelper(ctx, public, writers, readers)
+
+	var conflictInfo *ConflictInfo
+	if len(conflictSuffix) != 0 {
+		conflictInfo, err = ParseConflictInfo(conflictSuffix)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	h, err := makeTlfHandleHelper(ctx, public, writers, readers, conflictInfo)
 	if err != nil {
 		return nil, err
 	}
@@ -817,6 +851,6 @@ func ParseTlfHandle(
 // it avoids all network calls.
 func CheckTlfHandleOffline(
 	ctx context.Context, name string, public bool) error {
-	_, _, err := splitAndNormalizeTLFName(name, public)
+	_, _, _, err := splitAndNormalizeTLFName(name, public)
 	return err
 }

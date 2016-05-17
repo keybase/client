@@ -77,7 +77,13 @@ func expectUncachedGetTLFCryptKeyAnyDevice(config *ConfigMock, rmd *RootMetadata
 	}
 }
 
-func expectRekey(config *ConfigMock, rmd *RootMetadata, numDevices int) {
+func expectRekey(config *ConfigMock, rmd *RootMetadata, numDevices int, handleChange bool) {
+	if handleChange {
+		// if the handle changes the key manager checks for a conflict
+		config.mockMdops.EXPECT().GetLatestHandleForTLF(gomock.Any(), gomock.Any()).
+			Return(&rmd.tlfHandle.BareTlfHandle, nil)
+	}
+
 	// generate new keys
 	config.mockCrypto.EXPECT().MakeRandomTLFKeys().Return(TLFPublicKey{}, TLFPrivateKey{}, TLFEphemeralPublicKey{}, TLFEphemeralPrivateKey{}, TLFCryptKey{}, nil)
 	config.mockCrypto.EXPECT().MakeRandomTLFCryptKeyServerHalf().Return(TLFCryptKeyServerHalf{}, nil).Times(numDevices)
@@ -276,7 +282,7 @@ func TestKeyManagerRekeySuccessPrivate(t *testing.T) {
 	rmd := newRootMetadataOrBust(t, id, h)
 	oldKeyGen := rmd.LatestKeyGeneration()
 
-	expectRekey(config, rmd, 1)
+	expectRekey(config, rmd, 1, false)
 
 	if done, _, err := config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
 		t.Errorf("Got error on rekey: %t, %v", done, err)
@@ -299,6 +305,9 @@ func TestKeyManagerRekeyResolveAgainSuccessPublic(t *testing.T) {
 
 	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
 	daemon.addNewAssertionForTest("bob", "bob@twitter")
+
+	config.mockMdops.EXPECT().GetLatestHandleForTLF(gomock.Any(), gomock.Any()).
+		Return(&rmd.tlfHandle.BareTlfHandle, nil)
 
 	done, cryptKey, err := config.KeyManager().Rekey(ctx, rmd, false)
 	require.True(t, done)
@@ -339,6 +348,9 @@ func TestKeyManagerRekeyResolveAgainSuccessPublicSelf(t *testing.T) {
 	daemon.addNewAssertionForTest("alice", "alice@twitter")
 	daemon.addNewAssertionForTest("charlie", "charlie@twitter")
 
+	config.mockMdops.EXPECT().GetLatestHandleForTLF(gomock.Any(), gomock.Any()).
+		Return(&rmd.tlfHandle.BareTlfHandle, nil)
+
 	done, cryptKey, err := config.KeyManager().Rekey(ctx, rmd, false)
 	require.True(t, done)
 	require.Nil(t, cryptKey)
@@ -371,7 +383,7 @@ func TestKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	rmd := newRootMetadataOrBust(t, id, h)
 	oldKeyGen := rmd.LatestKeyGeneration()
 
-	expectRekey(config, rmd, 3)
+	expectRekey(config, rmd, 3, true)
 
 	// Pretend that {bob,charlie}@twitter now resolve to {bob,charlie}.
 	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
@@ -403,7 +415,7 @@ func TestKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	daemon.addNewAssertionForTest("dave", "dave@twitter")
 	oldKeyGen = rmd.LatestKeyGeneration()
 	expectCachedGetTLFCryptKey(config, rmd, oldKeyGen)
-	expectRekey(config, rmd, 1)
+	expectRekey(config, rmd, 1, true)
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
 	config.mockKbpki.EXPECT().GetCryptPublicKeys(gomock.Any(), gomock.Any()).
 		Return([]CryptPublicKey{subkey}, nil).Times(3)
@@ -442,7 +454,7 @@ func TestKeyManagerPromoteReaderSuccessPrivate(t *testing.T) {
 	rmd := newRootMetadataOrBust(t, id, h)
 	oldKeyGen := rmd.LatestKeyGeneration()
 
-	expectRekey(config, rmd, 2)
+	expectRekey(config, rmd, 2, true)
 
 	// Pretend that bob@twitter now resolves to bob.
 	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
@@ -477,7 +489,7 @@ func TestKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	rmd := newRootMetadataOrBust(t, id, h)
 	oldKeyGen := rmd.LatestKeyGeneration()
 
-	expectRekey(config, rmd, 1)
+	expectRekey(config, rmd, 1, true)
 
 	// Make the first key generation
 	if done, _, err := config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
@@ -508,7 +520,7 @@ func TestKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	// Pretend bob has the key in the cache (in reality it would be
 	// decrypted via bob's paper key)
 	expectCachedGetTLFCryptKey(config, rmd, oldKeyGen)
-	expectRekey(config, rmd, 1)
+	expectRekey(config, rmd, 1, false)
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
 	config.mockKbpki.EXPECT().GetCryptPublicKeys(gomock.Any(), gomock.Any()).
 		Return([]CryptPublicKey{subkey}, nil)
@@ -549,7 +561,7 @@ func TestKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T) {
 	rmd := newRootMetadataOrBust(t, id, h)
 	oldKeyGen := rmd.LatestKeyGeneration()
 
-	expectRekey(config, rmd, 2)
+	expectRekey(config, rmd, 2, true)
 
 	// Make the first key generation
 	if done, _, err := config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {

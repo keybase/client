@@ -2150,7 +2150,7 @@ func TestStatusFile(t *testing.T) {
 	defer mnt.Close()
 	defer cancelFn()
 
-	jdoe := libkbfs.GetRootNodeOrBust(t, config, "jdoe", false)
+	jdoe := libkbfs.GetRootNodeOrBust(t, config, "jdoe", true)
 
 	ctx := context.Background()
 	ops := config.KBFSOps()

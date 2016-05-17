@@ -1734,6 +1734,17 @@ func (_mr *_MockMDOpsRecorder) PutUnmerged(arg0, arg1, arg2 interface{}) *gomock
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "PutUnmerged", arg0, arg1, arg2)
 }
 
+func (_m *MockMDOps) GetLatestHandleForTLF(ctx context.Context, id TlfID) (*BareTlfHandle, error) {
+	ret := _m.ctrl.Call(_m, "GetLatestHandleForTLF", ctx, id)
+	ret0, _ := ret[0].(*BareTlfHandle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockMDOpsRecorder) GetLatestHandleForTLF(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetLatestHandleForTLF", arg0, arg1)
+}
+
 // Mock of KeyOps interface
 type MockKeyOps struct {
 	ctrl     *gomock.Controller
@@ -2011,6 +2022,17 @@ func (_m *MockMDServer) IsConnected() bool {
 
 func (_mr *_MockMDServerRecorder) IsConnected() *gomock.Call {
 	return _mr.mock.ctrl.RecordCall(_mr.mock, "IsConnected")
+}
+
+func (_m *MockMDServer) GetLatestHandleForTLF(ctx context.Context, id TlfID) (*BareTlfHandle, error) {
+	ret := _m.ctrl.Call(_m, "GetLatestHandleForTLF", ctx, id)
+	ret0, _ := ret[0].(*BareTlfHandle)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+func (_mr *_MockMDServerRecorder) GetLatestHandleForTLF(arg0, arg1 interface{}) *gomock.Call {
+	return _mr.mock.ctrl.RecordCall(_mr.mock, "GetLatestHandleForTLF", arg0, arg1)
 }
 
 // Mock of BlockServer interface

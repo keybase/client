@@ -1575,7 +1575,7 @@ func (fbo *folderBranchOps) finalizeBlocks(bps *blockPutState) error {
 	return nil
 }
 
-// Returns true if the passed error indicates a reviion conflict.
+// Returns true if the passed error indicates a revision conflict.
 func (fbo *folderBranchOps) isRevisionConflict(err error) bool {
 	if err == nil {
 		return false
@@ -1584,8 +1584,10 @@ func (fbo *folderBranchOps) isRevisionConflict(err error) bool {
 	_, isConflictPrevRoot := err.(MDServerErrorConflictPrevRoot)
 	_, isConflictDiskUsage := err.(MDServerErrorConflictDiskUsage)
 	_, isConditionFailed := err.(MDServerErrorConditionFailed)
+	_, isConflictFolderMapping := err.(MDServerErrorConflictFolderMapping)
 	return isConflictRevision || isConflictPrevRoot ||
-		isConflictDiskUsage || isConditionFailed
+		isConflictDiskUsage || isConditionFailed ||
+		isConflictFolderMapping
 }
 
 func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
