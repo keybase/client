@@ -398,6 +398,10 @@ type WriteRange struct {
 	codec.UnknownFieldSetHandler
 }
 
+func (w WriteRange) isTruncate() bool {
+	return w.Len == 0
+}
+
 // syncOp is an op that represents a series of writes to a file.
 type syncOp struct {
 	OpCommon
@@ -488,6 +492,116 @@ func (so *syncOp) GetDefaultAction(mergedPath path) crAction {
 		toName:   mergedPath.tailName(),
 		symPath:  "",
 	}
+}
+
+func replaceNextWrites(i int, newWrites []WriteRange,
+	wNew WriteRange) []WriteRange {
+	// Find the index of the last old write that gets
+	// consumed by this write
+	var j int
+	for j = i + 1; j < len(newWrites); j++ {
+		if wNew.Off+wNew.Len < newWrites[j].Off {
+			break
+		}
+	}
+	j--
+	wOld := newWrites[j]
+	lastByte := wNew.Off + wNew.Len
+	if !wOld.isTruncate() && wOld.Off+wOld.Len > lastByte {
+		lastByte = wOld.Off + wOld.Len
+	}
+	if wNew.Off < newWrites[i].Off {
+		newWrites[i].Off = wNew.Off
+	}
+	// This write extends the next existing (j-i) writes
+	newWrites[i].Len = lastByte - newWrites[i].Off
+	if j > i {
+		newWrites = append(newWrites[:i+1], newWrites[j+1:]...)
+	}
+	if wOld.isTruncate() {
+		wOld.Off = lastByte
+		newWrites = append(newWrites, wOld)
+	}
+
+	return newWrites
+}
+
+// collapseWriteRange returns a set of writes that represent the final
+// dirty state of this file after this syncOp, given a previous write
+// range.  It coalesces overlapping dirty writes, and it erases any
+// writes that occurred before a truncation with an offset smaller
+// than its max dirty byte.
+func (so *syncOp) collapseWriteRange(writes []WriteRange) (
+	newWrites []WriteRange) {
+	newWrites = writes
+outer:
+	for _, wNew := range so.Writes {
+		if wNew.isTruncate() {
+			// Eliminate all writes that happen later
+			for i, wOld := range newWrites {
+				if wOld.isTruncate() && wNew.Off < wOld.Off {
+					// This is the new min truncation; kill all later
+					// writes.
+					newWrites = append(newWrites[:i], wNew)
+					continue outer
+				} else if wOld.isTruncate() {
+					// There's an earlier truncate, making this new
+					// one useless.
+					continue outer
+				} else if wNew.Off < wOld.Off+wOld.Len {
+					// This is a truncation that cuts off at least
+					// part of this write.
+					if wNew.Off > wOld.Off {
+						// Cuts off an existing write range
+						newWrites[i].Len = wNew.Off - wOld.Off
+						newWrites = append(newWrites[:i+1], wNew)
+					} else {
+						// Kill all later writes
+						newWrites = append(newWrites[:i], wNew)
+					}
+					continue outer
+				}
+			}
+			// This represents the min truncation
+			newWrites = append(newWrites, wNew)
+			continue
+		}
+
+		// For regular writes
+		for i, wOld := range newWrites {
+			if wOld.isTruncate() && wOld.Off < wNew.Off+wNew.Len {
+				// This write effectively extends the truncation range
+				// to its max dirty byte.  Insert it before the
+				// truncation, and extend the truncation.
+				wOld.Off = wNew.Off + wNew.Len
+				newWrites = append(newWrites[:i], wNew, wOld)
+				continue outer
+			} else if wOld.isTruncate() {
+				// We've reached the end, so just insert this write
+				newWrites = append(newWrites[:i], wNew, wOld)
+				continue outer
+			} else if wNew.Off+wNew.Len < wOld.Off {
+				// This whole write occurs before the old write
+				newWrites = append(newWrites[:i],
+					append([]WriteRange{wNew}, newWrites[i:]...)...)
+				continue outer
+			} else if wNew.Off >= wOld.Off && wNew.Off <= wOld.Off+wOld.Len {
+				if wNew.Off+wNew.Len > wOld.Off+wOld.Len {
+					newWrites = replaceNextWrites(i, newWrites, wNew)
+				}
+				// Otherwise it is in the middle of the existing
+				// write, and can be dropped.
+				continue outer
+			} else if wNew.Off < wOld.Off {
+				// Either extends or overwrites the next write
+				newWrites = replaceNextWrites(i, newWrites, wNew)
+				continue outer
+			}
+		}
+		// Otherwise this is the farthest known write
+		newWrites = append(newWrites, wNew)
+	}
+	return newWrites
 }
 
 type attrChange uint16

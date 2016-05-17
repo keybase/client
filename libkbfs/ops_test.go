@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"math/rand"
 	"reflect"
 	"testing"
 
@@ -559,5 +560,95 @@ func TestOpInversion(t *testing.T) {
 	if !ok || !reflect.DeepEqual(*iop5, *expectedIOp5) {
 		t.Errorf("setAttrOp didn't invert properly, expected %v, got %v",
 			expectedIOp5, iop5)
+	}
+}
+
+func TestOpsCollapseWriteRange(t *testing.T) {
+	const numAttempts = 1000
+	const fileSize = uint64(1000)
+	const numWrites = 25
+	const maxWriteSize = uint64(50)
+	for i := 0; i < numAttempts; i++ {
+		// Make a "file" where dirty bytes are represented by trues.
+		var file [fileSize]bool
+		var lastByte uint64
+		var lastByteIsTruncate bool
+		var syncOps []*syncOp
+		for j := 0; j < numWrites; j++ {
+			// Start a new syncOp?
+			if len(syncOps) == 0 || rand.Int()%5 == 0 {
+				syncOps = append(syncOps, &syncOp{})
+			}
+
+			op := syncOps[len(syncOps)-1]
+			// Generate either a random truncate or random write
+			off := uint64(rand.Int()) % fileSize
+			length := uint64(0)
+			if rand.Int()%5 > 0 {
+				// A write, not a truncate
+				maxLen := fileSize - off
+				if maxLen > maxWriteSize {
+					maxLen = maxWriteSize
+				}
+				maxLen--
+				if maxLen == 0 {
+					maxLen = 1
+				}
+				// Writes must have at least one byte
+				length = uint64(rand.Int())%maxLen + uint64(1)
+				op.addWrite(off, length)
+				// Fill in dirty bytes
+				for k := off; k < off+length; k++ {
+					file[k] = true
+				}
+				if lastByte < off+length {
+					lastByte = off + length
+				}
+			} else {
+				op.addTruncate(off)
+				for k := off; k < fileSize; k++ {
+					file[k] = false
+				}
+				lastByte = off
+				lastByteIsTruncate = true
+			}
+		}
+
+		var wrComputed []WriteRange
+		for _, op := range syncOps {
+			wrComputed = op.collapseWriteRange(wrComputed)
+		}
+
+		var wrExpected []WriteRange
+		inWrite := false
+		for j := 0; j < int(lastByte); j++ {
+			if !inWrite && file[j] {
+				inWrite = true
+				wrExpected = append(wrExpected, WriteRange{Off: uint64(j)})
+			} else if inWrite && !file[j] {
+				inWrite = false
+				wrExpected[len(wrExpected)-1].Len =
+					uint64(j) - wrExpected[len(wrExpected)-1].Off
+			}
+		}
+		if inWrite {
+			wrExpected[len(wrExpected)-1].Len =
+				lastByte - wrExpected[len(wrExpected)-1].Off
+		}
+		if lastByteIsTruncate {
+			wrExpected = append(wrExpected, WriteRange{Off: lastByte})
+		}
+
+		// Verify that the write range represents what's in the file.
+		if g, e := len(wrComputed), len(wrExpected); g != e {
+			t.Errorf("Range lengths differ (%d vs %d)", g, e)
+			continue
+		}
+		for j, wc := range wrComputed {
+			we := wrExpected[j]
+			if wc.Off != we.Off && wc.Len != we.Len {
+				t.Errorf("Writes differ at index %d (%v vs %v)", j, we, wc)
+			}
+		}
 	}
 }
