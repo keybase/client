@@ -252,8 +252,8 @@
 			"checksumSHA1": "Q0aldIuLG3nZftUoq9C0icbaaW4=",
 			"origin": "github.com/keybase/kbfs/vendor/github.com/keybase/go-framed-msgpack-rpc",
 			"path": "github.com/keybase/go-framed-msgpack-rpc",
-			"revision": "46f76e560e2cfd5883cfd397df9007220d2aec29",
-			"revisionTime": "2016-05-12T13:08:44-05:00"
+			"revision": "2a4cdfc4f2ce5894aef188818ec5f03ed3ea9614",
+			"revisionTime": "2016-05-16T17:05:43-05:00"
 		},
 		{
 			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/go-jsonw",
