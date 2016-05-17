@@ -20,15 +20,17 @@ import (
 type DisconnectStatus int
 
 const (
+	// skip 0
+	_ = iota
 	// UsingExistingConnection means that an existing
 	// connection will be used.
-	UsingExistingConnection = 1
+	UsingExistingConnection DisconnectStatus = iota
 	// StartingFirstConnection means that a connection will be
 	// started, and this is the first one.
-	StartingFirstConnection = iota
+	StartingFirstConnection
 	// StartingNonFirstConnection means that a connection will be
 	// started, and this is not the first one.
-	StartingNonFirstConnection DisconnectStatus = iota
+	StartingNonFirstConnection
 )
 
 // ConnectionTransport is a container for an underlying transport to be
@@ -45,6 +47,51 @@ type ConnectionTransport interface {
 
 	// Close is used to close any open connection.
 	Close()
+}
+
+type connTransport struct {
+	uri             *FMPURI
+	l               LogFactory
+	wef             WrapErrorFunc
+	conn            net.Conn
+	transport       Transporter
+	stagedTransport Transporter
+}
+
+var _ ConnectionTransport = (*connTransport)(nil)
+
+// NewConnectionTransport creates a ConnectionTransport for a given FMPURI.
+func NewConnectionTransport(uri *FMPURI, l LogFactory, wef WrapErrorFunc) ConnectionTransport {
+	return &connTransport{
+		uri: uri,
+		l:   l,
+		wef: wef,
+	}
+}
+
+func (t *connTransport) Dial(context.Context) (Transporter, error) {
+	var err error
+	t.conn, err = t.uri.Dial()
+	if err != nil {
+		return nil, err
+	}
+	t.stagedTransport = NewTransport(t.conn, t.l, t.wef)
+	return t.stagedTransport, nil
+}
+
+func (t *connTransport) IsConnected() bool {
+	return t.transport != nil && t.transport.IsConnected()
+}
+
+func (t *connTransport) Finalize() {
+	t.transport = t.stagedTransport
+	t.stagedTransport = nil
+}
+
+func (t *connTransport) Close() {
+	t.conn.Close()
+	t.transport = nil
+	t.stagedTransport = nil
 }
 
 // ConnectionHandler is the callback interface for interacting with the connection.
@@ -322,12 +369,10 @@ func (c *Connection) DoCommand(ctx context.Context, name string,
 				defer c.mutex.Unlock()
 				return c.client
 			}()
-			// try the rpc call. this can also be canceled
-			// by the caller, and will retry connectivity
-			// errors w/backoff.
-			throttleErr := runUnlessCanceled(ctx, func() error {
-				return rpcFunc(rawClient)
-			})
+			// try the rpc call, assuming that it exits
+			// immediately when ctx is canceled. will
+			// retry connectivity errors w/backoff.
+			throttleErr := rpcFunc(rawClient)
 			if throttleErr != nil && c.handler.ShouldRetry(name, throttleErr) {
 				return throttleErr
 			}
@@ -490,15 +535,17 @@ var _ GenericClient = connectionClient{}
 
 func (c connectionClient) Call(ctx context.Context, s string, args interface{}, res interface{}) error {
 	return c.conn.DoCommand(ctx, s, func(rawClient GenericClient) error {
-		tags, ok := c.conn.tagsFunc(ctx)
-		if ok {
-			rpcTags := make(CtxRpcTags)
-			for key, tagName := range tags {
-				if v := ctx.Value(key); v != nil {
-					rpcTags[tagName] = v
+		if c.conn.tagsFunc != nil {
+			tags, ok := c.conn.tagsFunc(ctx)
+			if ok {
+				rpcTags := make(CtxRpcTags)
+				for key, tagName := range tags {
+					if v := ctx.Value(key); v != nil {
+						rpcTags[tagName] = v
+					}
 				}
+				ctx = AddRpcTagsToContext(ctx, rpcTags)
 			}
-			ctx = AddRpcTagsToContext(ctx, rpcTags)
 		}
 		return rawClient.Call(ctx, s, args, res)
 	})
@@ -506,7 +553,6 @@ func (c connectionClient) Call(ctx context.Context, s string, args interface{}, 
 
 func (c connectionClient) Notify(ctx context.Context, s string, args interface{}) error {
 	return c.conn.DoCommand(ctx, s, func(rawClient GenericClient) error {
-		rawClient.Notify(ctx, s, args)
-		return nil
+		return rawClient.Notify(ctx, s, args)
 	})
 }
