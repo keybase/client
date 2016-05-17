@@ -59,14 +59,63 @@ func (cc *crChain) collapse() {
 	}
 }
 
+func (cc *crChain) getCollapsedWriteRange() []WriteRange {
+	if !cc.isFile() {
+		return nil
+	}
+	var wr []WriteRange
+	for _, op := range cc.ops {
+		syncOp, ok := op.(*syncOp)
+		if !ok {
+			continue
+		}
+		wr = syncOp.collapseWriteRange(wr)
+	}
+	return wr
+}
+
 func (cc *crChain) getActionsToMerge(renamer ConflictRenamer, mergedPath path,
 	mergedChain *crChain) (crActionList, error) {
+	var actions crActionList
+
+	// If this is a file, determine whether the unmerged chain
+	// could actually have changed the file in some way that it
+	// hasn't already been changed.  For example, if they both
+	// truncate the file to the same length, and there are no
+	// other writes, we can just drop the unmerged syncs.
+	toSkip := make(map[int]bool)
+	if cc.isFile() && mergedChain != nil {
+		myWriteRange := cc.getCollapsedWriteRange()
+		mergedWriteRange := mergedChain.getCollapsedWriteRange()
+
+		// If both branches contain no writes, and their truncation
+		// points are the same, then there are no unmerged actions to
+		// take.
+		//
+		// TODO: In the future we may be able to do smarter merging
+		// here if the write ranges don't overlap, though maybe only
+		// for certain file types?
+		if len(myWriteRange) == 1 && myWriteRange[0].isTruncate() &&
+			len(mergedWriteRange) == 1 && mergedWriteRange[0].isTruncate() &&
+			myWriteRange[0].Off == mergedWriteRange[0].Off {
+			// drop all sync ops
+			for i, op := range cc.ops {
+				if _, ok := op.(*syncOp); ok {
+					actions = append(actions, &dropUnmergedAction{op})
+					toSkip[i] = true
+				}
+			}
+		}
+	}
+
 	// Check each op against all ops in the corresponding merged
 	// chain, looking for conflicts.  If there is a conflict, return
 	// it as part of the action list.  If there are no conflicts for
 	// that op, return the op's default actions.
-	var actions crActionList
-	for _, unmergedOp := range cc.ops {
+	for i, unmergedOp := range cc.ops {
+		if toSkip[i] {
+			continue
+		}
 		conflict := false
 		if mergedChain != nil {
 			for _, mergedOp := range mergedChain.ops {
