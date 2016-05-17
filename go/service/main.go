@@ -50,6 +50,8 @@ func (n *serviceNotifier) ShowUpgradeAlert(title string, msg string) error {
 	return n.nn.DeliverNotification(notifier.Notification{
 		Title:   title,
 		Message: msg,
+		Timeout: float64(30),
+		Actions: []string{"Ignore", "Install"},
 	})
 }
 

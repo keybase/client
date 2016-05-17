@@ -324,6 +324,7 @@ func (a *InternalAPIEngine) consumeHeaders(resp *http.Response) (err error) {
 	u := resp.Header.Get("X-Keybase-Client-Upgrade-To")
 	p := resp.Header.Get("X-Keybase-Upgrade-URI")
 	m := resp.Header.Get("X-Keybase-Upgrade-Message")
+	fmt.Printf("fffffff -> %s %s %s\n", u, p, m)
 	if len(u) > 0 || len(m) > 0 {
 		now := time.Now()
 		lastUpgradeWarningMu.Lock()
@@ -375,6 +376,7 @@ func (a *InternalAPIEngine) fixHeaders(arg APIArg, req *http.Request) {
 		req.Header.Set("User-Agent", UserAgent)
 		identifyAs := GoClientID + " v" + VersionString() + " " + runtime.GOOS
 		req.Header.Set("X-Keybase-Client", identifyAs)
+		fmt.Printf("outgoing -> %s\n", identifyAs)
 		if a.G().Env.GetDeviceID().Exists() {
 			req.Header.Set("X-Keybase-Device-ID", a.G().Env.GetDeviceID().String())
 		}
