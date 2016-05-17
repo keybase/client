@@ -151,7 +151,7 @@ func TestBsplitterOverhead(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Encoding block failed: %v", err)
 	}
-	crypto := &CryptoCommon{codec: codec}
+	crypto := MakeCryptoCommonNoConfig()
 	paddedBlock, err := crypto.padBlock(encodedBlock)
 	if err != nil {
 		t.Fatalf("Padding block failed: %v", err)

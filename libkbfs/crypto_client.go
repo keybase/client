@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
@@ -29,13 +28,10 @@ var _ Crypto = (*CryptoClient)(nil)
 var _ rpc.ConnectionHandler = (*CryptoClient)(nil)
 
 // NewCryptoClient constructs a new CryptoClient.
-func NewCryptoClient(config Config, kbCtx *libkb.GlobalContext, log logger.Logger) *CryptoClient {
+func NewCryptoClient(config Config, kbCtx *libkb.GlobalContext) *CryptoClient {
 	c := &CryptoClient{
-		CryptoCommon: CryptoCommon{
-			codec: config.Codec(),
-			log:   log,
-		},
-		config: config,
+		CryptoCommon: MakeCryptoCommon(config),
+		config:       config,
 	}
 	conn := NewSharedKeybaseConnection(kbCtx, config, c)
 	c.client = keybase1.CryptoClient{Cli: conn.GetClient()}
@@ -44,14 +40,10 @@ func NewCryptoClient(config Config, kbCtx *libkb.GlobalContext, log logger.Logge
 }
 
 // newCryptoClientWithClient should only be used for testing.
-func newCryptoClientWithClient(codec Codec, client rpc.GenericClient,
-	log logger.Logger) *CryptoClient {
+func newCryptoClientWithClient(config Config, client rpc.GenericClient) *CryptoClient {
 	return &CryptoClient{
-		CryptoCommon: CryptoCommon{
-			codec: codec,
-			log:   log,
-		},
-		client: keybase1.CryptoClient{Cli: client},
+		CryptoCommon: MakeCryptoCommon(config),
+		client:       keybase1.CryptoClient{Cli: client},
 	}
 }
 
@@ -104,7 +96,8 @@ func (c *CryptoClient) ShouldRetryOnConnect(err error) bool {
 func (c *CryptoClient) logAboutLongRPCUnlessCancelled(ctx context.Context,
 	method string) *time.Timer {
 	return time.AfterFunc(cryptoRPCWarningTime, func() {
-		c.log.CInfof(ctx, "%s RPC call took more than %s", method,
+		log := c.log.CloneWithAddedDepth(2)
+		log.CInfof(ctx, "%s RPC call took more than %s", method,
 			cryptoRPCWarningTime)
 	})
 }
@@ -114,7 +107,7 @@ func (c *CryptoClient) Sign(ctx context.Context, msg []byte) (
 	sigInfo SignatureInfo, err error) {
 	c.log.CDebugf(ctx, "Signing %d-byte message", len(msg))
 	defer func() {
-		c.log.CDebugf(ctx, "Signed %d-byte message with %s: err=%v", len(msg),
+		c.deferLog.CDebugf(ctx, "Signed %d-byte message with %s: err=%v", len(msg),
 			sigInfo, err)
 	}()
 
@@ -141,7 +134,7 @@ func (c *CryptoClient) SignToString(ctx context.Context, msg []byte) (
 	signature string, err error) {
 	c.log.CDebugf(ctx, "Signing %d-byte message to string", len(msg))
 	defer func() {
-		c.log.CDebugf(ctx, "Signed %d-byte message: err=%v", len(msg), err)
+		c.deferLog.CDebugf(ctx, "Signed %d-byte message: err=%v", len(msg), err)
 	}()
 
 	timer := c.logAboutLongRPCUnlessCancelled(ctx, "SignToString")
@@ -182,7 +175,7 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalf(ctx context.Context,
 	clientHalf TLFCryptKeyClientHalf, err error) {
 	c.log.CDebugf(ctx, "Decrypting TLF client key half")
 	defer func() {
-		c.log.CDebugf(ctx, "Decrypted TLF client key half: %v", err)
+		c.deferLog.CDebugf(ctx, "Decrypted TLF client key half: %v", err)
 	}()
 	encryptedData, nonce, err := c.prepareTLFCryptKeyClientHalf(encryptedClientHalf)
 	if err != nil {
@@ -212,7 +205,7 @@ func (c *CryptoClient) DecryptTLFCryptKeyClientHalfAny(ctx context.Context,
 	clientHalf TLFCryptKeyClientHalf, index int, err error) {
 	c.log.CDebugf(ctx, "Decrypting TLF client key half with any key")
 	defer func() {
-		c.log.CDebugf(ctx, "Decrypted TLF client key half with any key: %v",
+		c.deferLog.CDebugf(ctx, "Decrypted TLF client key half with any key: %v",
 			err)
 	}()
 	if len(keys) == 0 {

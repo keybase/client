@@ -400,7 +400,7 @@ func Init(params InitParams, onInterruptFn func(), log logger.Logger) (Config, e
 	config.SetReporter(NewReporterKBPKI(config, 10, 1000))
 
 	if localUser == "" {
-		c := NewCryptoClient(config, libkb.G, config.MakeLogger(""))
+		c := NewCryptoClient(config, libkb.G)
 		config.SetCrypto(c)
 	} else {
 		signingKey := MakeLocalUserSigningKeyOrBust(localUser)

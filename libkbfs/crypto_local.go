@@ -83,7 +83,7 @@ var _ Crypto = (*CryptoLocal)(nil)
 // NewCryptoLocal constructs a new CryptoLocal instance with the given
 // signing key.
 func NewCryptoLocal(config Config, signingKey SigningKey, cryptPrivateKey CryptPrivateKey) *CryptoLocal {
-	return &CryptoLocal{CryptoCommon{config.Codec(), config.MakeLogger("")},
+	return &CryptoLocal{MakeCryptoCommon(config),
 		signingKey, cryptPrivateKey}
 }
 

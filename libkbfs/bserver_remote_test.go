@@ -140,7 +140,7 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 	tlfID := FakeTlfID(2, false)
 	bCtx := BlockPointer{bID, 1, 1, currentUID, "", zeroBlockRefNonce}
 	data := []byte{1, 2, 3, 4}
-	crypto := &CryptoCommon{codec, config.MakeLogger("")}
+	crypto := MakeCryptoCommon(config)
 	serverHalf, err := crypto.MakeRandomBlockCryptKeyServerHalf()
 	if err != nil {
 		t.Errorf("Couldn't make block server key half: %v", err)
@@ -186,7 +186,7 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 		tlfID := FakeTlfID(2, false)
 		bCtx := BlockPointer{bID, 1, 1, currentUID, "", zeroBlockRefNonce}
 		data := []byte{1, 2, 3, 4}
-		crypto := &CryptoCommon{codec, config.MakeLogger("")}
+		crypto := MakeCryptoCommon(config)
 		serverHalf, err := crypto.MakeRandomBlockCryptKeyServerHalf()
 		if err != nil {
 			t.Errorf("Couldn't make block server key half: %v", err)
