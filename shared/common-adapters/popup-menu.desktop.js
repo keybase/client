@@ -17,7 +17,7 @@ class Menu extends Component<void, Props, void> {
     `
 
     return (
-      <Box style={stylesMenuCatcher} onClick={() => this.props.onHidden()}>
+      <Box style={{...stylesMenuCatcher, ...this.props.style}} onClick={() => this.props.onHidden()}>
         <style>{realCSS}</style>
         <Box style={stylesMenu}>
           {this.props.items.map(i => (

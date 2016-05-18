@@ -7,7 +7,9 @@ export type Props = {
   devices: Array<_Device>,
   revokedDevices?: Array<_Device>,
   waitingForServer: boolean,
-  addNewDevice: () => void,
+  addNewPhone: () => void,
+  addNewComputer: () => void,
+  addNewPaperKey: () => void,
   showRemoveDevicePage: (device: Device) => void,
   showExistingDevicePage: (device: Device) => void,
   showGenPaperKeyPage: () => void

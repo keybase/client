@@ -16,7 +16,7 @@ const Item = ({onClick, icon, title}) => {
   )
 }
 
-const Render = ({onBack, onSubmitComputer, onSubmitPhone, onSubmitPaperkey}: Props) => {
+const Render = ({onBack, onSubmitComputer, onSubmitPhone}: Props) => {
   const realCSS = `
   .existing-device-container .existing-device-item {
     background-color: ${globalColors.lightGrey};
@@ -37,18 +37,21 @@ const Render = ({onBack, onSubmitComputer, onSubmitPhone, onSubmitPaperkey}: Pro
       <Box style={stylesItemContainer}>
         <Item title='Phone' icon='icon-phone-colors-64' onClick={onSubmitPhone} />
         <Item title='Computer' icon='icon-computer-colors-64' onClick={onSubmitComputer} />
-        <Item title='Paper key' icon='icon-paper-key-64' onClick={onSubmitPaperkey} />
       </Box>
     </Container>
   )
 }
 
 const stylesContainer = {
+  ...globalStyles.flexBoxColumn,
   flex: 1,
+  padding: 60,
   alignItems: 'center'
 }
+
 const stylesHeader = {
-  marginTop: 46
+  marginTop: 60,
+  marginBottom: 77
 }
 const stylesItemContainer = {
   ...globalStyles.flexBoxRow,
@@ -65,7 +68,7 @@ const stylesItem = {
 }
 const stylesIconContainer = {
   ...globalStyles.flexBoxColumn,
-  ...transition(['color', 'background-color']),
+  ...transition('color', 'background-color'),
   alignItems: 'center',
   borderRadius: 150 / 2,
   height: 150,
@@ -74,9 +77,6 @@ const stylesIconContainer = {
   width: 150
 }
 const stylesIcon = {
-  fontSize: 78,
-  width: 80,
-  height: 80,
   textAlign: 'center'
 }
 

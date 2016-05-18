@@ -408,7 +408,20 @@ function cancelLogin (response: ?responseError) : AsyncAction {
   }
 }
 
-export function addANewDevice () : AsyncAction {
+export function addNewPhone () : AsyncAction {
+  return addNewDevice(Constants.codePageDeviceRoleNewPhone)
+}
+
+export function addNewComputer () : AsyncAction {
+  return addNewDevice(Constants.codePageDeviceRoleNewComputer)
+}
+
+export function addNewPaperKey () : AsyncAction {
+  // TODO
+  return () => {}
+}
+
+function addNewDevice (kind: DeviceRole) : AsyncAction {
   return (dispatch, getState) => {
     // We can either be a newDevice or an existingDevice.  Here in the add a
     // device flow, let's set ourselves to be a existingDevice.  If login()
@@ -420,6 +433,16 @@ export function addANewDevice () : AsyncAction {
     })
 
     const incomingMap = makeKex2IncomingMap(dispatch, getState)
+    incomingMap['keybase.1.provisionUi.chooseDeviceType'] = ({sessionID}, response) => {
+      let deviceType = {
+        [Constants.codePageDeviceRoleNewComputer]: enums.provisionUi.DeviceType.desktop,
+        [Constants.codePageDeviceRoleNewPhone]: enums.provisionUi.DeviceType.mobile
+      }[kind]
+
+      dispatch(setCodePageOtherDeviceRole(kind))
+      response.result(deviceType)
+    }
+
     const params : device_deviceAdd_rpc = {
       ...makeWaitingHandler(dispatch),
       method: 'device.deviceAdd',
