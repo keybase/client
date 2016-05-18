@@ -1,17 +1,21 @@
 package libkbfs
 
 import (
-	"fmt"
 	"sync"
 
 	"golang.org/x/net/context"
 )
 
+type rekeyQueueEntry struct {
+	id TlfID
+	ch chan error
+}
+
 // RekeyQueueStandard implements the RekeyQueue interface.
 type RekeyQueueStandard struct {
 	config    Config
-	queueMu   sync.RWMutex         // protects all of the below
-	queue     map[TlfID]chan error // if we end up caring about order we should add a slice
+	queueMu   sync.RWMutex // protects all of the below
+	queue     []rekeyQueueEntry
 	hasWorkCh chan struct{}
 	cancel    context.CancelFunc
 	wg        RepeatedWaitGroup
@@ -24,7 +28,6 @@ var _ RekeyQueue = (*RekeyQueueStandard)(nil)
 func NewRekeyQueueStandard(config Config) *RekeyQueueStandard {
 	rkq := &RekeyQueueStandard{
 		config: config,
-		queue:  make(map[TlfID]chan error),
 	}
 	return rkq
 }
@@ -43,10 +46,7 @@ func (rkq *RekeyQueueStandard) Enqueue(id TlfID) <-chan error {
 			ctx, rkq.cancel = context.WithCancel(context.Background())
 			go rkq.processRekeys(ctx, rkq.hasWorkCh)
 		}
-		if _, exists := rkq.queue[id]; exists {
-			return fmt.Errorf("folder %s already queued for rekey", id)
-		}
-		rkq.queue[id] = c
+		rkq.queue = append(rkq.queue, rekeyQueueEntry{id, c})
 		return nil
 	}()
 	if err != nil {
@@ -72,8 +72,10 @@ func (rkq *RekeyQueueStandard) IsRekeyPending(id TlfID) bool {
 func (rkq *RekeyQueueStandard) GetRekeyChannel(id TlfID) <-chan error {
 	rkq.queueMu.RLock()
 	defer rkq.queueMu.RUnlock()
-	if c, exists := rkq.queue[id]; exists {
-		return c
+	for _, e := range rkq.queue {
+		if e.id == id {
+			return e.ch
+		}
 	}
 	return nil
 }
@@ -90,10 +92,10 @@ func (rkq *RekeyQueueStandard) Clear() {
 		}
 		// collect channels and clear queue
 		var channels []chan error
-		for _, c := range rkq.queue {
-			channels = append(channels, c)
+		for _, e := range rkq.queue {
+			channels = append(channels, e.ch)
 		}
-		rkq.queue = make(map[TlfID]chan error)
+		rkq.queue = make([]rekeyQueueEntry, 0)
 		return channels
 	}()
 	for _, c := range channels {
@@ -105,23 +107,6 @@ func (rkq *RekeyQueueStandard) Clear() {
 // Wait implements the RekeyQueue interface for RekeyQueueStandard.
 func (rkq *RekeyQueueStandard) Wait(ctx context.Context) error {
 	return rkq.wg.Wait(ctx)
-}
-
-// dequeue is a helper to remove a folder from the rekey queue.
-func (rkq *RekeyQueueStandard) dequeue(id TlfID, err error) {
-	c := func() chan error {
-		rkq.queueMu.Lock()
-		defer rkq.queueMu.Unlock()
-		if c, ok := rkq.queue[id]; ok {
-			delete(rkq.queue, id)
-			return c
-		}
-		return nil
-	}()
-	if c != nil {
-		c <- err
-		close(c)
-	}
 }
 
 // CtxRekeyTagKey is the type used for unique context tags within an
@@ -144,25 +129,19 @@ func (rkq *RekeyQueueStandard) processRekeys(ctx context.Context, hasWorkCh chan
 		select {
 		case <-hasWorkCh:
 			for {
-				id := func() TlfID {
-					rkq.queueMu.Lock()
-					defer rkq.queueMu.Unlock()
-					for first := range rkq.queue {
-						return first
-					}
-					return NullTlfID
-				}()
+				id := rkq.peek()
 				if id == NullTlfID {
 					break
 				}
-
 				func() {
 					defer rkq.wg.Done()
 					// Assign an ID to this rekey operation so we can track it.
 					newCtx := ctxWithRandomID(ctx, CtxRekeyIDKey,
 						CtxRekeyOpID, nil)
 					err := rkq.config.KBFSOps().Rekey(newCtx, id)
-					rkq.dequeue(id, err)
+					ch := rkq.dequeue()
+					ch <- err
+					close(ch)
 				}()
 				if ctx.Err() != nil {
 					close(hasWorkCh)
@@ -174,4 +153,21 @@ func (rkq *RekeyQueueStandard) processRekeys(ctx context.Context, hasWorkCh chan
 			return
 		}
 	}
+}
+
+func (rkq *RekeyQueueStandard) peek() TlfID {
+	rkq.queueMu.Lock()
+	defer rkq.queueMu.Unlock()
+	if len(rkq.queue) != 0 {
+		return rkq.queue[0].id
+	}
+	return NullTlfID
+}
+
+func (rkq *RekeyQueueStandard) dequeue() chan<- error {
+	rkq.queueMu.Lock()
+	defer rkq.queueMu.Unlock()
+	ch := rkq.queue[0].ch
+	rkq.queue = rkq.queue[1:]
+	return ch
 }
