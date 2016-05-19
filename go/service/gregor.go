@@ -29,7 +29,7 @@ type gregorHandler struct {
 	skipRetryConnect bool
 	itemsByID        map[string]gregor.Item
 	gregorCli        *grclient.Client
-	lastMessage      time.Time
+	freshSync        bool
 }
 
 var _ libkb.GregorDismisser = (*gregorHandler)(nil)
@@ -59,6 +59,7 @@ func newGregorHandler(g *libkb.GlobalContext) (gh *gregorHandler, err error) {
 	gh = &gregorHandler{
 		Contextified: libkb.NewContextified(g),
 		itemsByID:    make(map[string]gregor.Item),
+		freshSync:    true,
 	}
 
 	// Create client interface to gregord
@@ -130,11 +131,13 @@ func (g *gregorHandler) reSync(ctx context.Context, cli gregor1.IncomingInterfac
 
 	var err error
 
-	// Get time of the last message we synced
+	// Get time of the last message we synced (unless this is our first time syncing)
 	var t time.Time
-	pt := g.gregorCli.LatestCTime()
-	if pt != nil {
-		t = *pt
+	if !g.freshSync {
+		pt := g.gregorCli.LatestCTime()
+		if pt != nil {
+			t = *pt
+		}
 	}
 
 	// Sync down everything from the server
@@ -152,6 +155,8 @@ func (g *gregorHandler) reSync(ctx context.Context, cli gregor1.IncomingInterfac
 	for _, msg := range msgs {
 		g.handleInBandMessage(ctx, msg)
 	}
+
+	g.freshSync = false
 
 	return nil
 }
