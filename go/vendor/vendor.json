@@ -237,6 +237,12 @@
 			"revisionTime": "2016-05-16T20:11:08Z"
 		},
 		{
+			"checksumSHA1": "VWEcKH3xzrRYdR+oOkSvUByjrJM=",
+			"path": "github.com/keybase/gregor/schema",
+			"revision": "2c526d0b7cf258316fdc47c984c4bd17d3713dcf",
+			"revisionTime": "2016-05-19T16:00:52Z"
+		},
+		{
 			"checksumSHA1": "+onpbMtjyvRluktYkqMRC3joiTI=",
 			"path": "github.com/keybase/gregor/storage",
 			"revision": "2c526d0b7cf258316fdc47c984c4bd17d3713dcf",
