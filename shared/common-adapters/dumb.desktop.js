@@ -24,6 +24,11 @@ const checkboxMap: DumbComponentMap<Checkbox> = {
       onCheck,
       checked: false
     },
+    'Normal - new': {
+      label: 'Normal - new',
+      onCheck,
+      checked: true
+    },
     'Disabled - checked': {
       label: 'Disabled - checked',
       onCheck,
