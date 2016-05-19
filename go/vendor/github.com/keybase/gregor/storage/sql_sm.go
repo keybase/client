@@ -11,6 +11,7 @@ import (
 
 	"github.com/jonboulle/clockwork"
 	"github.com/keybase/gregor"
+	"github.com/keybase/gregor/schema"
 )
 
 func sqlWrapper(s string) string {
@@ -464,7 +465,7 @@ func (s *SQLEngine) Clear() error {
 		return err
 	}
 
-	for _, stmt := range Schema("") {
+	for _, stmt := range schema.Schema("") {
 		if _, err = tx.Exec(stmt); err != nil {
 			return err
 		}

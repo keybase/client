@@ -237,10 +237,10 @@
 			"revisionTime": "2016-05-16T20:11:08Z"
 		},
 		{
-			"checksumSHA1": "BIPvHWKu83//yiOUGBpQLZJP2Tg=",
+			"checksumSHA1": "+onpbMtjyvRluktYkqMRC3joiTI=",
 			"path": "github.com/keybase/gregor/storage",
-			"revision": "2a9a0f0823b2631f463c492dbd373879fb961e13",
-			"revisionTime": "2016-05-16T20:11:08Z"
+			"revision": "2c526d0b7cf258316fdc47c984c4bd17d3713dcf",
+			"revisionTime": "2016-05-19T16:00:52Z"
 		},
 		{
 			"path": "github.com/keybase/keybase-test-vectors/go",
