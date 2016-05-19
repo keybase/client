@@ -25,7 +25,17 @@ export function favoriteList (): (dispatch: Dispatch) => void {
         }
 
         const config = getState && getState().config
-        const currentUser = config && config.status && config.status.user && config.status.user.username
+        const currentUser = config && config.username
+        const loggedIn = config && config.loggedIn
+
+        // Ensure private/public folders exist for us
+        if (currentUser && loggedIn) {
+          [true, false].forEach(isPrivate => {
+            if (!folders.find(f => f.name === currentUser && f.private === isPrivate)) {
+              folders = [{name: currentUser, private: isPrivate, notificationsOn: false, created: false}, ...folders]
+            }
+          })
+        }
 
         const action: FavoriteList = {type: Constants.favoriteList, payload: {folders, currentUser}}
         dispatch(action)
