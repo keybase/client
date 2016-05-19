@@ -86,5 +86,8 @@
     "webpack-dev-server": "1.14.1",
     "webpack-hot-middleware": "2.10.0",
     "webpack-target-electron-renderer": "0.4.0"
+  },
+  "optionalDependencies": {
+    "fsevents": "1.0.11"
   }
 }
