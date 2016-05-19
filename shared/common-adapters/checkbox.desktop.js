@@ -59,7 +59,7 @@ const styles = {
     hoverColor: globalColors.white,
     position: 'absolute',
     top: 0,
-    left: 0,
-    fontSize: 11
+    left: -3,
+    fontSize: 15
   }
 }
