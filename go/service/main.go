@@ -288,8 +288,11 @@ func (d *Service) gregordConnect() (err error) {
 		d.gregor.Shutdown()
 	}
 
-	d.gregor = newGregorHandler(d.G())
+	if d.gregor, err = newGregorHandler(d.G()); err != nil {
+		return err
+	}
 	d.G().GregorDismisser = d.gregor
+
 	if err = d.gregor.Connect(uri); err != nil {
 		return err
 	}

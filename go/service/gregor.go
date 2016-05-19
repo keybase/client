@@ -55,11 +55,61 @@ func (db *gregorLocalDb) Load(u gregor.UID) (res []byte, e error) {
 	return res, err
 }
 
-func newGregorHandler(g *libkb.GlobalContext) *gregorHandler {
-	return &gregorHandler{
+func newGregorHandler(g *libkb.GlobalContext) (gh *gregorHandler, err error) {
+	gh = &gregorHandler{
 		Contextified: libkb.NewContextified(g),
 		itemsByID:    make(map[string]gregor.Item),
 	}
+
+	// Create client interface to gregord
+	if gh.gregorCli, err = newGregorClient(g); err != nil {
+		return nil, err
+	}
+
+	return gh, nil
+}
+
+func newGregorClient(g *libkb.GlobalContext) (*grclient.Client, error) {
+	objFactory := gregor1.ObjFactory{}
+	sm := grstorage.NewMemEngine(objFactory, clockwork.NewRealClock())
+
+	var guid gregor.UID
+	var gdid gregor.DeviceID
+	var b []byte
+	var err error
+
+	uid := g.Env.GetUID()
+	if !uid.Exists() {
+		return nil, errors.New("no UID; probably not logged in")
+	}
+	if b = uid.ToBytes(); b == nil {
+		return nil, errors.New("Can't convert UID to byte array")
+	}
+	if guid, err = objFactory.MakeUID(b); err != nil {
+		return nil, err
+	}
+
+	did := g.Env.GetDeviceID()
+	if !did.Exists() {
+		return nil, errors.New("no UID; probably not logged in")
+	}
+	if b, err = hex.DecodeString(did.String()); err != nil {
+		return nil, err
+	}
+	if gdid, err = objFactory.MakeDeviceID(b); err != nil {
+		return nil, err
+	}
+
+	// Create client object
+	gcli := grclient.NewClient(guid, gdid, sm, newLocalDB(g), g.Log)
+
+	// Bring up local state
+	if err = gcli.Restore(); err != nil {
+		// If this fails, we'll keep trying since the server can bail us out
+		g.Log.Error("gregor handler: restore local state failed")
+	}
+
+	return gcli, nil
 }
 
 func (g *gregorHandler) Connect(uri *rpc.FMPURI) error {
@@ -429,56 +479,7 @@ func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient) error {
 	return nil
 }
 
-func newGregorClient(g *libkb.GlobalContext) (*grclient.Client, error) {
-	objFactory := gregor1.ObjFactory{}
-	sm := grstorage.NewMemEngine(objFactory, clockwork.NewRealClock())
-
-	var guid gregor.UID
-	var gdid gregor.DeviceID
-	var b []byte
-	var err error
-
-	uid := g.Env.GetUID()
-	if !uid.Exists() {
-		return nil, errors.New("no UID; probably not logged in")
-	}
-	if b = uid.ToBytes(); b == nil {
-		return nil, errors.New("Can't convert UID to byte array")
-	}
-	if guid, err = objFactory.MakeUID(b); err != nil {
-		return nil, err
-	}
-
-	did := g.Env.GetDeviceID()
-	if !did.Exists() {
-		return nil, errors.New("no UID; probably not logged in")
-	}
-	if b, err = hex.DecodeString(did.String()); err != nil {
-		return nil, err
-	}
-	if gdid, err = objFactory.MakeDeviceID(b); err != nil {
-		return nil, err
-	}
-
-	// Create client object
-	gcli := grclient.NewClient(guid, gdid, sm, newLocalDB(g), g.Log)
-
-	// Bring up local state
-	if err = gcli.Restore(); err != nil {
-		// If this fails, we'll keep trying since the server can bail us out
-		g.Log.Error("gregor handler: restore local state failed")
-	}
-
-	return gcli, nil
-}
-
 func (g *gregorHandler) connectTLS(uri *rpc.FMPURI) error {
-
-	// Create client interface to gregord
-	var err error
-	if g.gregorCli, err = newGregorClient(g.G()); err != nil {
-		return err
-	}
 
 	g.G().Log.Debug("connecting to gregord via TLS")
 	rawCA := g.G().Env.GetBundledCA(uri.Host)
@@ -492,12 +493,6 @@ func (g *gregorHandler) connectTLS(uri *rpc.FMPURI) error {
 }
 
 func (g *gregorHandler) connectNoTLS(uri *rpc.FMPURI) error {
-
-	// Create client interface to gregord
-	var err error
-	if g.gregorCli, err = newGregorClient(g.G()); err != nil {
-		return err
-	}
 
 	g.G().Log.Debug("connecting to gregord without TLS")
 	t := newConnTransport(g.G(), uri.HostPort)
