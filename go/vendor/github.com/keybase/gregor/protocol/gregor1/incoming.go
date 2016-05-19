@@ -23,12 +23,17 @@ type ConsumeMessageArg struct {
 	M Message `codec:"m" json:"m"`
 }
 
+type ConsumePublishMessageArg struct {
+	M Message `codec:"m" json:"m"`
+}
+
 type PingArg struct {
 }
 
 type IncomingInterface interface {
 	Sync(context.Context, SyncArg) (SyncResult, error)
 	ConsumeMessage(context.Context, Message) error
+	ConsumePublishMessage(context.Context, Message) error
 	Ping(context.Context) (string, error)
 }
 
@@ -68,6 +73,22 @@ func IncomingProtocol(i IncomingInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"consumePublishMessage": {
+				MakeArg: func() interface{} {
+					ret := make([]ConsumePublishMessageArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]ConsumePublishMessageArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]ConsumePublishMessageArg)(nil), args)
+						return
+					}
+					err = i.ConsumePublishMessage(ctx, (*typedArgs)[0].M)
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 			"ping": {
 				MakeArg: func() interface{} {
 					ret := make([]PingArg, 1)
@@ -95,6 +116,12 @@ func (c IncomingClient) Sync(ctx context.Context, __arg SyncArg) (res SyncResult
 func (c IncomingClient) ConsumeMessage(ctx context.Context, m Message) (err error) {
 	__arg := ConsumeMessageArg{M: m}
 	err = c.Cli.Call(ctx, "gregor.1.incoming.consumeMessage", []interface{}{__arg}, nil)
+	return
+}
+
+func (c IncomingClient) ConsumePublishMessage(ctx context.Context, m Message) (err error) {
+	__arg := ConsumePublishMessageArg{M: m}
+	err = c.Cli.Call(ctx, "gregor.1.incoming.consumePublishMessage", []interface{}{__arg}, nil)
 	return
 }
 
