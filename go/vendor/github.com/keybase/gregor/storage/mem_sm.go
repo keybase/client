@@ -106,6 +106,11 @@ func (u *user) addItems(items []gregor.Item) {
 
 // logMessage logs a message for this user and potentially associates an item
 func (u *user) logMessage(t time.Time, m gregor.InBandMessage, i *item) {
+	for _, l := range u.log {
+		if bytes.Equal(l.m.Metadata().MsgID().Bytes(), m.Metadata().MsgID().Bytes()) {
+			return
+		}
+	}
 	u.log = append(u.log, loggedMsg{m, t, i})
 }
 
@@ -237,7 +242,7 @@ func (u *user) replayLog(now time.Time, d gregor.DeviceID, t time.Time) (msgs []
 	return
 }
 
-func (m *MemEngine) consumeInBandMessage(uid gregor.UID, msg gregor.InBandMessage) error {
+func (m *MemEngine) consumeInBandMessage(uid gregor.UID, msg gregor.InBandMessage) (time.Time, error) {
 	user := m.getUser(uid)
 	now := m.clock.Now()
 	var i *item
@@ -248,10 +253,15 @@ func (m *MemEngine) consumeInBandMessage(uid gregor.UID, msg gregor.InBandMessag
 	default:
 	}
 	user.logMessage(now, msg, i)
-	return err
+
+	retTime := now
+	if i != nil {
+		retTime = i.ctime
+	}
+	return retTime, err
 }
 
-func (m *MemEngine) ConsumeMessage(msg gregor.Message) error {
+func (m *MemEngine) ConsumeMessage(msg gregor.Message) (time.Time, error) {
 	m.Lock()
 	defer m.Unlock()
 
@@ -259,7 +269,7 @@ func (m *MemEngine) ConsumeMessage(msg gregor.Message) error {
 	case msg.ToInBandMessage() != nil:
 		return m.consumeInBandMessage(gregor.UIDFromMessage(msg), msg.ToInBandMessage())
 	default:
-		return nil
+		return m.clock.Now(), nil
 	}
 }
 
@@ -364,19 +374,22 @@ func (m *MemEngine) IsEphemeral() bool {
 func (m *MemEngine) InitState(s gregor.State) error {
 	m.Lock()
 	defer m.Unlock()
-	userItems := make(map[*user][]gregor.Item)
+
 	items, err := s.Items()
 	if err != nil {
 		return err
 	}
 
+	now := m.clock.Now()
 	for _, it := range items {
 		user := m.getUser(it.Metadata().UID())
-		userItems[user] = append(userItems[user], it)
-	}
+		ibm, err := m.objFactory.MakeInBandMessageFromItem(it)
+		if err != nil {
+			return err
+		}
 
-	for u, items := range userItems {
-		u.addItems(items)
+		item := user.addItem(now, it)
+		user.logMessage(nowIfZero(now, item.ctime), ibm, item)
 	}
 
 	return nil

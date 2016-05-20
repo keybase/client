@@ -147,7 +147,9 @@ func (b *bodyScanner) Scan(src interface{}) error {
 	}
 	if raw, ok := src.([]byte); ok {
 		var err error
-		b.b, err = b.o.MakeBody(raw)
+		body := make([]byte, len(raw))
+		copy(body, raw)
+		b.b, err = b.o.MakeBody(body)
 		return err
 	}
 	return ErrBadScan

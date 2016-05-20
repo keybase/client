@@ -219,22 +219,22 @@
 			"revisionTime": "2016-03-23T16:34:55-07:00"
 		},
 		{
-			"checksumSHA1": "vYGpKgcvBhYyZkvNd6WDSSlUTVM=",
+			"checksumSHA1": "OvF/14pOw+eU6VJSn3m0/obYTwI=",
 			"path": "github.com/keybase/gregor",
-			"revision": "65115d3ca6b6fa3772950eb50e3a935814258e7b",
-			"revisionTime": "2016-05-19T11:31:43-04:00"
+			"revision": "1ab24cca628ebcdb61bdc9ba8216db25bacf5ad0",
+			"revisionTime": "2016-05-20T18:20:22Z"
 		},
 		{
-			"checksumSHA1": "olxyKjwg4+HWaaaaEQaylm5jJLE=",
+			"checksumSHA1": "Q76IdHoSn3+fzN8cC0s/tjIZR3k=",
 			"path": "github.com/keybase/gregor/protocol/gregor1",
-			"revision": "65115d3ca6b6fa3772950eb50e3a935814258e7b",
-			"revisionTime": "2016-05-19T11:31:43-04:00"
+			"revision": "1ab24cca628ebcdb61bdc9ba8216db25bacf5ad0",
+			"revisionTime": "2016-05-20T18:20:22Z"
 		},
 		{
-			"checksumSHA1": "l5FjFscyOBh3T5Uqut7j3odYJII=",
+			"checksumSHA1": "4K7y6nrXhB9Uc4xeFW7tzNs1/aU=",
 			"path": "github.com/keybase/gregor/rpc/client",
-			"revision": "2a9a0f0823b2631f463c492dbd373879fb961e13",
-			"revisionTime": "2016-05-16T20:11:08Z"
+			"revision": "327415b0547bfed974c50a4d756a5bca8626e14b",
+			"revisionTime": "2016-05-20T21:39:33Z"
 		},
 		{
 			"checksumSHA1": "VWEcKH3xzrRYdR+oOkSvUByjrJM=",
@@ -243,10 +243,10 @@
 			"revisionTime": "2016-05-19T16:00:52Z"
 		},
 		{
-			"checksumSHA1": "+onpbMtjyvRluktYkqMRC3joiTI=",
+			"checksumSHA1": "xkSQdIdpQ8FLwf+P5m9Rqpz+zTU=",
 			"path": "github.com/keybase/gregor/storage",
-			"revision": "2c526d0b7cf258316fdc47c984c4bd17d3713dcf",
-			"revisionTime": "2016-05-19T16:00:52Z"
+			"revision": "327415b0547bfed974c50a4d756a5bca8626e14b",
+			"revisionTime": "2016-05-20T21:39:33Z"
 		},
 		{
 			"path": "github.com/keybase/keybase-test-vectors/go",

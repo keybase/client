@@ -28,14 +28,14 @@ type Client struct {
 }
 
 func NewClient(user gregor.UID, device gregor.DeviceID, sm gregor.StateMachine,
-	storage LocalStorageEngine, log rpc.LogOutput) *Client {
+	storage LocalStorageEngine, saveInterval time.Duration, log rpc.LogOutput) *Client {
 	c := &Client{
 		user:      user,
 		device:    device,
 		sm:        sm,
 		storage:   storage,
 		log:       log,
-		saveTimer: time.Tick(1 * time.Minute), // How often we save to local storage
+		saveTimer: time.Tick(saveInterval), // How often we save to local storage
 	}
 	return c
 }
@@ -93,14 +93,13 @@ func (c *Client) syncFromTime(cli gregor1.IncomingInterface, t *time.Time) error
 	}
 
 	// Grab the events from gregord
+	c.log.Debug("syncFromTime from: %s", gregor1.FromTime(arg.Ctime))
 	res, err := cli.Sync(ctx, arg)
 	if err != nil {
 		return err
 	}
 
-	// Replay all the messages on the outgoing interface
-	// Note: this will have the effect of getting these messages in our
-	// local state machine as well as triggering their effects
+	c.log.Debug("syncFromTime consuming %d messages", len(res.Msgs))
 	for _, ibm := range res.Msgs {
 		m := gregor1.Message{Ibm_: &ibm}
 		c.sm.ConsumeMessage(m)
@@ -135,7 +134,7 @@ func (c *Client) Sync(cli gregor1.IncomingInterface) error {
 }
 
 func (c *Client) ConsumeMessage(m gregor1.Message) error {
-	if err := c.sm.ConsumeMessage(m); err != nil {
+	if _, err := c.sm.ConsumeMessage(m); err != nil {
 		return err
 	}
 

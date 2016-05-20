@@ -102,12 +102,13 @@ func newGregorClient(g *libkb.GlobalContext) (*grclient.Client, error) {
 	}
 
 	// Create client object
-	gcli := grclient.NewClient(guid, gdid, sm, newLocalDB(g), g.Log)
+	gcli := grclient.NewClient(guid, gdid, sm, newLocalDB(g), time.Minute, g.Log)
 
 	// Bring up local state
+	g.Log.Debug("gregor handler: restoring state from leveldb")
 	if err = gcli.Restore(); err != nil {
 		// If this fails, we'll keep trying since the server can bail us out
-		g.Log.Error("gregor handler: restore local state failed")
+		g.Log.Info("gregor handler: restore local state failed: %s", err)
 	}
 
 	return gcli, nil
@@ -138,20 +139,24 @@ func (g *gregorHandler) reSync(ctx context.Context, cli gregor1.IncomingInterfac
 		if pt != nil {
 			t = *pt
 		}
+	} else {
+		g.G().Log.Debug("gregor handler: performing a fresh sync")
 	}
 
 	// Sync down everything from the server
 	if err = g.gregorCli.Sync(cli); err != nil {
-		g.G().Log.Error("gregor handler: error syncing from the server, bailing!")
+		g.G().Log.Errorf("gregor handler: error syncing from the server, bailing: %s", err)
 		return err
 	}
 
 	// Replay in-band messages
 	var msgs []gregor.InBandMessage
 	if msgs, err = g.gregorCli.InBandMessagesSince(t); err != nil {
-		g.G().Log.Error("gregor handler: unable to fetch messages for reply!")
+		g.G().Log.Errorf("gregor handler: unable to fetch messages for reply: %s", err)
 		return err
 	}
+
+	g.G().Log.Debug("gregor handler: replaying %d messages", len(msgs))
 	for _, msg := range msgs {
 		g.handleInBandMessage(ctx, msg)
 	}
@@ -252,7 +257,8 @@ func (g *gregorHandler) handleInBandMessage(ctx context.Context, ibm gregor.InBa
 		item := update.Creation()
 		if item != nil {
 			id := item.Metadata().MsgID().String()
-			g.G().Log.Debug("gregor handler: item %s created", id)
+			g.G().Log.Debug("gregor handler: msg ID %s created ctime: %s", id,
+				item.Metadata().CTime())
 
 			// Store the item in a map according to its ID. We use this when
 			// items are dismissed, to remember what the item was.

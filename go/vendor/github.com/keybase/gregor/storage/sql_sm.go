@@ -115,7 +115,7 @@ func (s *SQLEngine) newQueryBuilder() *queryBuilder {
 func (s *SQLEngine) consumeCreation(tx *sql.Tx, i gregor.Item) error {
 	md := i.Metadata()
 	qb := s.newQueryBuilder()
-	qb.Build("INSERT INTO items(uid, msgid, category, body, dtime) VALUES(?,?,?,?,",
+	qb.Build("INSERT INTO gregor_items(uid, msgid, category, body, dtime) VALUES(?,?,?,?,",
 		hexEnc(md.UID()),
 		hexEnc(md.MsgID()),
 		i.Category().String(),
@@ -133,7 +133,7 @@ func (s *SQLEngine) consumeCreation(tx *sql.Tx, i gregor.Item) error {
 			continue
 		}
 		nqb := s.newQueryBuilder()
-		nqb.Build("INSERT INTO reminders(uid, msgid, rtime) VALUES(?,?,", hexEnc(md.UID()), hexEnc(md.MsgID()))
+		nqb.Build("INSERT INTO gregor_reminders(uid, msgid, rtime) VALUES(?,?,", hexEnc(md.UID()), hexEnc(md.MsgID()))
 		nqb.TimeOrOffset(t)
 		nqb.Build(")")
 		err = nqb.Exec(tx)
@@ -145,12 +145,12 @@ func (s *SQLEngine) consumeCreation(tx *sql.Tx, i gregor.Item) error {
 }
 
 func (s *SQLEngine) consumeMsgIDsToDismiss(tx *sql.Tx, u gregor.UID, mid gregor.MsgID, dmids []gregor.MsgID, ctime time.Time) error {
-	ins, err := tx.Prepare("INSERT INTO dismissals_by_id(uid, msgid, dmsgid) VALUES(?, ?, ?)")
+	ins, err := tx.Prepare("INSERT INTO gregor_dismissals_by_id(uid, msgid, dmsgid) VALUES(?, ?, ?)")
 	if err != nil {
 		return err
 	}
 	defer ins.Close()
-	upd, err := tx.Prepare("UPDATE items SET dtime=? WHERE uid=? AND msgid=?")
+	upd, err := tx.Prepare("UPDATE gregor_items SET dtime=? WHERE uid=? AND msgid=?")
 	if err != nil {
 		return err
 	}
@@ -174,7 +174,7 @@ func (s *SQLEngine) consumeMsgIDsToDismiss(tx *sql.Tx, u gregor.UID, mid gregor.
 }
 
 func (s *SQLEngine) ctimeFromMessage(tx *sql.Tx, u gregor.UID, mid gregor.MsgID) (time.Time, error) {
-	row := tx.QueryRow("SELECT ctime FROM messages WHERE uid=? AND msgid=?", hexEnc(u), hexEnc(mid))
+	row := tx.QueryRow("SELECT ctime FROM gregor_messages WHERE uid=? AND msgid=?", hexEnc(u), hexEnc(mid))
 	var ctime timeScanner
 	if err := row.Scan(&ctime); err != nil {
 		return time.Time{}, err
@@ -185,7 +185,7 @@ func (s *SQLEngine) ctimeFromMessage(tx *sql.Tx, u gregor.UID, mid gregor.MsgID)
 func (s *SQLEngine) consumeRangesToDismiss(tx *sql.Tx, u gregor.UID, mid gregor.MsgID, mrs []gregor.MsgRange, ctime time.Time) error {
 	for _, mr := range mrs {
 		qb := s.newQueryBuilder()
-		qb.Build("INSERT INTO dismissals_by_time(uid, msgid, category, dtime) VALUES (?,?,?,", hexEnc(u), hexEnc(mid), mr.Category().String())
+		qb.Build("INSERT INTO gregor_dismissals_by_time(uid, msgid, category, dtime) VALUES (?,?,?,", hexEnc(u), hexEnc(mid), mr.Category().String())
 		qb.TimeOrOffset(mr.EndTime())
 		qb.Build(")")
 		if err := qb.Exec(tx); err != nil {
@@ -194,7 +194,7 @@ func (s *SQLEngine) consumeRangesToDismiss(tx *sql.Tx, u gregor.UID, mid gregor.
 
 		// set dtime in items to the ctime of the dismissal message:
 		qbu := s.newQueryBuilder()
-		qbu.Build("UPDATE items SET dtime=? WHERE uid=? AND category=? AND msgid IN (SELECT msgid FROM messages WHERE uid=? AND ctime<=",
+		qbu.Build("UPDATE gregor_items SET dtime=? WHERE uid=? AND category=? AND msgid IN (SELECT msgid FROM gregor_messages WHERE uid=? AND ctime<=",
 			qbu.TimeArg(ctime), hexEnc(u), mr.Category().String(), hexEnc(u))
 		qbu.TimeOrOffset(mr.EndTime())
 		qbu.Build(")")
@@ -223,7 +223,7 @@ func (s *SQLEngine) consumeInBandMessageMetadata(tx *sql.Tx, md gregor.Metadata,
 		return nil, fmt.Errorf("bad metadata: unrecognized msg type")
 	}
 	qb := s.newQueryBuilder()
-	qb.Build("INSERT INTO messages(uid, msgid, mtype, devid, ctime) VALUES(?, ?, ?, ?,",
+	qb.Build("INSERT INTO gregor_messages(uid, msgid, mtype, devid, ctime) VALUES(?, ?, ?, ?,",
 		hexEnc(md.UID()), hexEnc(md.MsgID()), int(t), hexEncOrNull(md.DeviceID()))
 	if md.CTime().IsZero() {
 		qb.Now()
@@ -247,28 +247,28 @@ func (s *SQLEngine) consumeInBandMessageMetadata(tx *sql.Tx, md gregor.Metadata,
 	return s.objFactory.MakeMetadata(md.UID(), md.MsgID(), md.DeviceID(), ctime, md.InBandMsgType())
 }
 
-func (s *SQLEngine) ConsumeMessage(m gregor.Message) error {
+func (s *SQLEngine) ConsumeMessage(m gregor.Message) (time.Time, error) {
 	switch {
 	case m.ToInBandMessage() != nil:
 		return s.consumeInBandMessage(m.ToInBandMessage())
 	default:
-		return nil
+		return s.clock.Now(), nil
 	}
 }
 
-func (s *SQLEngine) consumeInBandMessage(m gregor.InBandMessage) error {
+func (s *SQLEngine) consumeInBandMessage(m gregor.InBandMessage) (time.Time, error) {
 	switch {
 	case m.ToStateUpdateMessage() != nil:
 		return s.consumeStateUpdateMessage(m.ToStateUpdateMessage())
 	default:
-		return nil
+		return s.clock.Now(), nil
 	}
 }
 
-func (s *SQLEngine) consumeStateUpdateMessage(m gregor.StateUpdateMessage) (err error) {
+func (s *SQLEngine) consumeStateUpdateMessage(m gregor.StateUpdateMessage) (ctime time.Time, err error) {
 	tx, err := s.driver.Begin()
 	if err != nil {
-		return err
+		return s.clock.Now(), err
 	}
 	defer func() {
 		if err != nil {
@@ -280,23 +280,25 @@ func (s *SQLEngine) consumeStateUpdateMessage(m gregor.StateUpdateMessage) (err 
 
 	md := m.Metadata()
 	if md, err = s.consumeInBandMessageMetadata(tx, md, gregor.InBandMsgTypeUpdate); err != nil {
-		return err
+		return s.clock.Now(), err
 	}
+
+	ctime = md.CTime()
 	if m.Creation() != nil {
 		if err = s.consumeCreation(tx, m.Creation()); err != nil {
-			return err
+			return ctime, err
 		}
 	}
 	if m.Dismissal() != nil {
 		if err = s.consumeMsgIDsToDismiss(tx, md.UID(), md.MsgID(), m.Dismissal().MsgIDsToDismiss(), md.CTime()); err != nil {
-			return err
+			return ctime, err
 		}
 		if err = s.consumeRangesToDismiss(tx, md.UID(), md.MsgID(), m.Dismissal().RangesToDismiss(), md.CTime()); err != nil {
-			return err
+			return ctime, err
 		}
 	}
 
-	return nil
+	return ctime, nil
 }
 
 func (s *SQLEngine) rowToItem(u gregor.UID, rows *sql.Rows) (gregor.Item, error) {
@@ -341,8 +343,8 @@ func (s *SQLEngine) State(u gregor.UID, d gregor.DeviceID, t gregor.TimeOrOffset
 
 func (s *SQLEngine) items(u gregor.UID, d gregor.DeviceID, t gregor.TimeOrOffset, m gregor.MsgID) ([]gregor.Item, error) {
 	qry := `SELECT i.msgid, m.devid, i.category, i.dtime, i.body, m.ctime
-	        FROM items AS i
-	        INNER JOIN messages AS m ON (i.uid=m.uid AND i.msgid=m.msgid)
+	        FROM gregor_items AS i
+	        INNER JOIN gregor_messages AS m ON (i.uid=m.uid AND i.msgid=m.msgid)
 	        WHERE i.uid=? AND (i.dtime IS NULL OR i.dtime > `
 	qb := s.newQueryBuilder()
 	qb.Build(qry, hexEnc(u))
@@ -398,7 +400,7 @@ func (s *SQLEngine) rowToMetadata(rows *sql.Rows) (gregor.Metadata, error) {
 }
 
 func (s *SQLEngine) inBandMetadataSince(u gregor.UID, t gregor.TimeOrOffset) ([]gregor.Metadata, error) {
-	qry := `SELECT uid, msgid, ctime, devid, mtype FROM messages WHERE uid=?`
+	qry := `SELECT uid, msgid, ctime, devid, mtype FROM gregor_messages WHERE uid=?`
 	qb := s.newQueryBuilder()
 	qb.Build(qry, hexEnc(u))
 	if t != nil {
@@ -480,7 +482,7 @@ func (s *SQLEngine) Clear() error {
 
 func (s *SQLEngine) LatestCTime(u gregor.UID, d gregor.DeviceID) *time.Time {
 	qry := `SELECT MAX(ctime)
-			FROM messages
+			FROM gregor_messages
 			WHERE uid = ? AND (devid = ? OR devid IS NULL)`
 	var ctime timeScanner
 	err := s.driver.QueryRow(qry, hexEnc(u), hexEnc(d)).Scan(&ctime)
@@ -495,10 +497,10 @@ func (s *SQLEngine) InBandMessagesSince(u gregor.UID, d gregor.DeviceID, t time.
                i.category, i.body,
                dt.category, dt.dtime,
                di.dmsgid
-	        FROM messages AS m
-	        LEFT JOIN items AS i ON (m.uid=i.UID AND m.msgid=i.msgid)
-	        LEFT JOIN dismissals_by_time AS dt ON (m.uid=dt.uid AND m.msgid=dt.msgid)
-	        LEFT JOIN dismissals_by_id AS di ON (m.uid=di.uid AND m.msgid=di.msgid)
+	        FROM gregor_messages AS m
+	        LEFT JOIN gregor_items AS i ON (m.uid=i.UID AND m.msgid=i.msgid)
+	        LEFT JOIN gregor_dismissals_by_time AS dt ON (m.uid=dt.uid AND m.msgid=dt.msgid)
+	        LEFT JOIN gregor_dismissals_by_id AS di ON (m.uid=di.uid AND m.msgid=di.msgid)
 	        WHERE m.uid=? AND (i.dtime IS NULL OR i.dtime > `
 	qb := s.newQueryBuilder()
 	qb.Build(qry, hexEnc(u))
@@ -543,9 +545,9 @@ func (s *SQLEngine) InBandMessagesSince(u gregor.UID, d gregor.DeviceID, t time.
 
 func (s *SQLEngine) Reminders() ([]gregor.Reminder, error) {
 	qry := `SELECT i.uid, i.msgid, m.devid, i.category, i.dtime, i.body, m.ctime, r.rtime
-	        FROM items AS i
-	        INNER JOIN messages AS m ON (i.uid=m.uid AND i.msgid=m.msgid)
-	        INNER JOIN reminders AS r ON (i.uid=r.uid AND i.msgid=r.msgid)
+	        FROM gregor_items AS i
+	        INNER JOIN gregor_messages AS m ON (i.uid=m.uid AND i.msgid=m.msgid)
+	        INNER JOIN gregor_reminders AS r ON (i.uid=r.uid AND i.msgid=r.msgid)
 	        WHERE i.dtime IS NULL AND r.rtime <= ?`
 	rows, err := s.driver.Query(qry, s.clock.Now())
 	if err != nil {
@@ -564,7 +566,7 @@ func (s *SQLEngine) Reminders() ([]gregor.Reminder, error) {
 }
 
 func (s *SQLEngine) DeleteReminder(r gregor.Reminder) error {
-	qry := `DELETE FROM reminders WHERE
+	qry := `DELETE FROM gregor_reminders WHERE
 			uid = ? AND msgid = ? AND rtime = ?`
 	_, err := s.driver.Exec(qry, hexEnc(r.Item().Metadata().UID()), hexEnc(r.Item().Metadata().MsgID()), r.RemindTime())
 	return err
