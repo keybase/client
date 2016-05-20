@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import {globalStyles, globalColors} from '../../../styles/style-guide'
-import {Text, Button, Checkbox, Icon} from '../../../common-adapters'
+import {Box, Text, Button, Checkbox, Icon} from '../../../common-adapters'
 import {specialStyles as textStyles} from '../../../common-adapters/text'
 import Container from '../../forms/container'
 
@@ -25,12 +25,12 @@ export default class Render extends Component {
       <Container onBack={this.props.onBack} style={styles.container}>
         <Text type='Header' style={styles.header}>{this.props.title || 'Congratulations, you’ve just joined Keybase!'}</Text>
         <Text type='Body' style={styles.body}>Here is your unique paper key, it will allow you to perform important Keybase tasks in the future. This is the only time you’ll see this so be sure to write it down.</Text>
-        <div style={styles.paperKeyContainer}>
+        <Box style={styles.paperKeyContainer}>
           <Text type='Body' style={styles.paperkey}>{this.props.paperkey.stringValue()}</Text>
           <Icon type='paper-key-corner' style={styles.paperCorner} />
-        </div>
-        <Checkbox style={styles.check} label='Yes, I wrote this down.' checked={this.state.inWallet} onCheck={inWallet => this.setState({inWallet})} />
-        <Button style={styles.button} type='Primary' label='Done' onClick={() => this.props.onFinish()} disabled={!this.state.inWallet} />
+        </Box>
+        {this.props.onFinish && <Checkbox style={styles.check} label='Yes, I wrote this down.' checked={this.state.inWallet} onCheck={inWallet => this.setState({inWallet})} />}
+        {this.props.onFinish && <Button style={styles.button} type='Primary' label='Done' onClick={this.props.onFinish} disabled={!this.state.inWallet} />}
       </Container>
     )
   }

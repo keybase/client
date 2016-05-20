@@ -51,8 +51,7 @@ class Devices extends Component {
         addNewPaperKey={this.props.addNewPaperKey}
         waitingForServer={this.props.waitingForServer}
         showRemoveDevicePage={this.props.showRemoveDevicePage}
-        showExistingDevicePage={this.props.showExistingDevicePage}
-        showGenPaperKeyPage={this.props.showGenPaperKeyPage} />
+        showExistingDevicePage={this.props.showExistingDevicePage} />
     )
   }
 }
@@ -69,7 +68,6 @@ export default connect(
       showRemoveDevicePage: device => dispatch(routeAppend({path: 'removeDevice', device})),
       addNewPhone: () => dispatch(addNewPhone()),
       addNewComputer: () => dispatch(addNewComputer()),
-      addNewPaperKey: () => dispatch(addNewPaperKey()),
-      showGenPaperKeyPage: () => dispatch(routeAppend('genPaperKey'))
+      addNewPaperKey: () => dispatch(addNewPaperKey())
     }
   })(Devices)

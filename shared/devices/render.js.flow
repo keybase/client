@@ -11,8 +11,7 @@ export type Props = {
   addNewComputer: () => void,
   addNewPaperKey: () => void,
   showRemoveDevicePage: (device: Device) => void,
-  showExistingDevicePage: (device: Device) => void,
-  showGenPaperKeyPage: () => void
+  showExistingDevicePage: (device: Device) => void
 }
 
 export default class Render extends React$Component<void, Props, void> {

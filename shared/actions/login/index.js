@@ -417,8 +417,7 @@ export function addNewComputer () : AsyncAction {
 }
 
 export function addNewPaperKey () : AsyncAction {
-  // TODO
-  return () => {}
+  return routeAppend('genPaperKey')
 }
 
 function addNewDevice (kind: DeviceRole) : AsyncAction {
