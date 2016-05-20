@@ -1103,3 +1103,31 @@ func TestCrRenameCycleWithConflictAndMergedDir(t *testing.T) {
 		),
 	)
 }
+
+// alice and bob both truncate the same file to different sizes
+func TestCrBothTruncateFileDifferentSizes(t *testing.T) {
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkfile("a/b", "hello"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			truncate("a/b", 4),
+		),
+		as(bob, noSync(),
+			truncate("a/b", 3),
+			reenableUpdates(),
+			lsdir("a/", m{"b$": "FILE", crnameEsc("b", bob): "FILE"}),
+			read("a/b", "hell"),
+			read(crname("a/b", bob), "hel"),
+		),
+		as(alice,
+			lsdir("a/", m{"b$": "FILE", crnameEsc("b", bob): "FILE"}),
+			read("a/b", "hell"),
+			read(crname("a/b", bob), "hel"),
+		),
+	)
+}

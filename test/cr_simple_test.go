@@ -721,3 +721,109 @@ func TestCrBothCreateFileUnmergedWrite(t *testing.T) {
 		),
 	)
 }
+
+// alice and bob both truncate the same file
+func TestCrBothTruncateFile(t *testing.T) {
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkfile("a/b", "hello"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			truncate("a/b", 0),
+		),
+		as(bob, noSync(),
+			truncate("a/b", 0),
+			reenableUpdates(),
+			lsdir("a/", m{"b$": "FILE"}),
+			read("a/b", ""),
+		),
+		as(alice,
+			lsdir("a/", m{"b$": "FILE"}),
+			read("a/b", ""),
+		),
+	)
+}
+
+// alice and bob both truncate the same file to a non-zero size
+func TestCrBothTruncateFileNonZero(t *testing.T) {
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkfile("a/b", "hello"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			truncate("a/b", 4),
+		),
+		as(bob, noSync(),
+			truncate("a/b", 4),
+			reenableUpdates(),
+			lsdir("a/", m{"b$": "FILE"}),
+			read("a/b", "hell"),
+		),
+		as(alice,
+			lsdir("a/", m{"b$": "FILE"}),
+			read("a/b", "hell"),
+		),
+	)
+}
+
+// alice and bob both truncate the same file, and alice wrote to it first
+func TestCrBothTruncateFileMergedWrite(t *testing.T) {
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkfile("a/b", "hello"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			write("a/b", "world"),
+			truncate("a/b", 0),
+		),
+		as(bob, noSync(),
+			truncate("a/b", 0),
+			reenableUpdates(),
+			lsdir("a/", m{"b$": "FILE"}),
+			read("a/b", ""),
+		),
+		as(alice,
+			lsdir("a/", m{"b$": "FILE"}),
+			read("a/b", ""),
+		),
+	)
+}
+
+// alice and bob both truncate the same file, and bob wrote to first
+func TestCrBothTruncateFileUnmergedWrite(t *testing.T) {
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkfile("a/b", "hello"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			truncate("a/b", 0),
+		),
+		as(bob, noSync(),
+			write("a/b", "world"),
+			truncate("a/b", 0),
+			reenableUpdates(),
+			lsdir("a/", m{"b$": "FILE"}),
+			read("a/b", ""),
+		),
+		as(alice,
+			lsdir("a/", m{"b$": "FILE"}),
+			read("a/b", ""),
+		),
+	)
+}
