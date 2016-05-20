@@ -350,6 +350,11 @@ func (d daemonIdentifyUI) DisplayTLFCreateWithInvite(ctx context.Context,
 	return nil
 }
 
+func (d daemonIdentifyUI) Dismiss(ctx context.Context,
+	_ keybase1.DismissArg) error {
+	return nil
+}
+
 func (d daemonIdentifyUI) Finish(ctx context.Context, sessionID int) error {
 	d.log.CDebugf(ctx, "Finish(%d)", sessionID)
 	return nil
@@ -441,7 +446,7 @@ func (k *KeybaseDaemonRPC) ShouldRetryOnConnect(err error) bool {
 
 func convertIdentifyError(assertion string, err error) error {
 	switch err.(type) {
-	case libkb.AppStatusError:
+	case libkb.NotFoundError:
 		return NoSuchUserError{assertion}
 	case libkb.ResolutionError:
 		return NoSuchUserError{assertion}
