@@ -608,6 +608,25 @@ func TestProvisionPaper(t *testing.T) {
 	if key != nil {
 		t.Errorf("Got a non-null paper encryption key after timeout")
 	}
+
+	// should be able to sign something with new device keys without
+	// entering a passphrase
+	var sink bytes.Buffer
+
+	sarg := &SaltpackSignArg{
+		Sink:   libkb.NopWriteCloser{W: &sink},
+		Source: ioutil.NopCloser(bytes.NewBufferString("hello")),
+	}
+
+	signEng := NewSaltpackSign(sarg, tc2.G)
+	ctx = &Context{
+		IdentifyUI: &FakeIdentifyUI{},
+		SecretUI:   &libkb.TestSecretUI{}, // empty
+	}
+
+	if err := RunEngine(signEng, ctx); err != nil {
+		t.Fatal(err)
+	}
 }
 
 func TestProvisionPaperCommandLine(t *testing.T) {
