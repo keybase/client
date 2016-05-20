@@ -15,7 +15,7 @@ export default function () {
     }
   )
 
-  isFirstTime().then(firstTime => {
+  isFirstTime.then(firstTime => {
     if (firstTime) {
       mainWindow.show(true)
       mainWindow.window.webContents.once('did-finish-load', () => {
