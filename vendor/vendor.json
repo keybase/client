@@ -124,6 +124,11 @@
 			"revisionTime": "2015-10-22T11:50:32+02:00"
 		},
 		{
+			"path": "github.com/goamz/goamz/sqs",
+			"revision": "02d5144a587b982e33b95f484a34164ce6923c99",
+			"revisionTime": "2016-04-07T11:34:11+02:00"
+		},
+		{
 			"path": "github.com/golang/mock/gomock",
 			"revision": "58a501f87109a45c68afc54e6b1368398678d386",
 			"revisionTime": "2015-12-12T20:20:50-08:00"
