@@ -167,6 +167,12 @@
 			"revisionTime": "2016-03-16T16:25:20-04:00"
 		},
 		{
+			"checksumSHA1": "tBFISVudi8RzOoFhK2+p0PRicfw=",
+			"path": "github.com/keybase/backoff",
+			"revision": "726b63b835ec48ae1fac42bcba4e8c7b742fa97d",
+			"revisionTime": "2016-05-17T06:10:00Z"
+		},
+		{
 			"path": "github.com/keybase/client/go/auth",
 			"revision": "3675a7ea1df667467a5d7a54b15e3ef7bf42bad8",
 			"revisionTime": "2016-05-12T14:59:50-07:00"

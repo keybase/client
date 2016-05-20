@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/cenkalti/backoff"
+	"github.com/keybase/backoff"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
@@ -3669,12 +3669,7 @@ func (fbo *folderBranchOps) registerAndWaitForUpdates() {
 		expBackoff.MaxElapsedTime = 0
 		// Register and wait in a loop unless we hit an unrecoverable error
 		for {
-			select {
-			case <-ctx.Done():
-				return ctx.Err()
-			default:
-			}
-			err := backoff.RetryNotify(func() error {
+			err := backoff.RetryNotifyWithContext(ctx, func() error {
 				// Replace the FBOID one with a fresh id for every attempt
 				newCtx := fbo.ctxWithFBOID(ctx)
 				updateChan, err := fbo.registerForUpdates(newCtx)
