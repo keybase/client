@@ -26,5 +26,9 @@ func (f *RekeyFile) WriteFile(fi *dokan.FileInfo, bs []byte, offset int64) (n in
 		return 0, nil
 	}
 	err = f.folder.fs.config.KBFSOps().Rekey(ctx, f.folder.getFolderBranch().Tlf)
-	return len(bs), err
+	if err != nil {
+		return 0, err
+	}
+	f.folder.fs.NotificationGroupWait()
+	return len(bs), nil
 }

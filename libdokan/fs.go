@@ -9,8 +9,10 @@ package libdokan
 import (
 	"errors"
 	"strings"
+	"sync"
 	"syscall"
 
+	"github.com/eapache/channels"
 	"github.com/keybase/client/go/logger"
 	"github.com/keybase/kbfs/dokan"
 	"github.com/keybase/kbfs/libfs"
@@ -22,6 +24,18 @@ import (
 type FS struct {
 	config libkbfs.Config
 	log    logger.Logger
+
+	// notifications is a channel for notification functions (which
+	// take no value and have no return value).
+	notifications channels.Channel
+
+	// notificationGroup can be used by tests to know when libfuse is
+	// done processing asynchronous notifications.
+	notificationGroup sync.WaitGroup
+
+	// protects access to the notifications channel member (though not
+	// sending/receiving)
+	notificationMutex sync.RWMutex
 
 	root *Root
 
@@ -66,6 +80,7 @@ func NewFS(ctx context.Context, config libkbfs.Config, log logger.Logger) (*FS, 
 	f.context = ctx
 
 	f.remoteStatus.Init(ctx, f.log, f.config)
+	f.launchNotificationProcessor(ctx)
 
 	return f, nil
 }
@@ -406,6 +421,65 @@ func (f *FS) Mounted() error {
 	return nil
 }
 
+func (f *FS) processNotifications(ctx context.Context) {
+	for {
+		select {
+		case <-ctx.Done():
+			f.notificationMutex.Lock()
+			c := f.notifications
+			f.notifications = nil
+			f.notificationMutex.Unlock()
+			c.Close()
+			for range c.Out() {
+				// Drain the output queue to allow the Channel close
+				// Out() and shutdown any goroutines.
+				f.log.CWarningf(ctx,
+					"Throwing away notification after shutdown")
+			}
+			return
+		case i := <-f.notifications.Out():
+			notifyFn, ok := i.(func())
+			if !ok {
+				f.log.CWarningf(ctx, "Got a bad notification function: %v", i)
+				continue
+			}
+			notifyFn()
+			f.notificationGroup.Done()
+		}
+	}
+}
+
+func (f *FS) queueNotification(fn func()) {
+	f.notificationGroup.Add(1)
+	f.notificationMutex.RLock()
+	if f.notifications == nil {
+		f.log.Warning("Ignoring notification, no available channel")
+		return
+	}
+	f.notificationMutex.RUnlock()
+	f.notifications.In() <- fn
+}
+
+func (f *FS) launchNotificationProcessor(ctx context.Context) {
+	f.notificationMutex.Lock()
+	defer f.notificationMutex.Unlock()
+
+	// The notifications channel needs to have "infinite" capacity,
+	// because otherwise we risk a deadlock between libkbfs and
+	// libfuse.  The notification processor sends invalidates to the
+	// kernel.  In osxfuse 3.X, the kernel can call back into userland
+	// during an invalidate (a GetAttr()) call, which in turn takes
+	// locks within libkbfs.  So if libkbfs ever gets blocked while
+	// trying to enqueue a notification (while it is holding locks),
+	// we could have a deadlock.  Yes, if there are too many
+	// outstanding notifications we'll run out of memory and crash,
+	// but otherwise we risk deadlock.  Which is worse?
+	f.notifications = channels.NewInfiniteChannel()
+
+	// start the notification processor
+	go f.processNotifications(ctx)
+}
+
 func (f *FS) reportErr(ctx context.Context, mode libkbfs.ErrorModeType,
 	err error, cancelFn func()) {
 	if cancelFn != nil {
@@ -423,6 +497,11 @@ func (f *FS) reportErr(ctx context.Context, mode libkbfs.ErrorModeType,
 	// TODO: Classify errors and escalate the logging level of the
 	// important ones.
 	f.log.CDebugf(ctx, err.Error())
+}
+
+// NotificationGroupWait waits till the local notification group is done.
+func (f *FS) NotificationGroupWait() {
+	f.notificationGroup.Wait()
 }
 
 // Root represents the root of the KBFS file system.

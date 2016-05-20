@@ -197,7 +197,7 @@ func TestMDOpsGetForUnresolvedHandlePublicSuccess(t *testing.T) {
 	}
 
 	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
-	daemon.addNewAssertionForTest("bob", "bob@twitter")
+	daemon.addNewAssertionForTestOrBust("bob", "bob@twitter")
 
 	// Second time should succeed.
 	if _, err := config.MDOps().GetForHandle(ctx, hUnresolved); err != nil {
@@ -247,7 +247,7 @@ func TestMDOpsGetForUnresolvedMdHandlePublicSuccess(t *testing.T) {
 	}
 
 	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
-	daemon.addNewAssertionForTest("bob", "bob@twitter")
+	daemon.addNewAssertionForTestOrBust("bob", "bob@twitter")
 
 	// Second time should succeed.
 	if _, err := config.MDOps().GetForHandle(ctx, hResolved); err != nil {
@@ -272,7 +272,7 @@ func TestMDOpsGetForUnresolvedHandlePublicFailure(t *testing.T) {
 	}
 
 	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
-	daemon.addNewAssertionForTest("bob", "bob@twitter")
+	daemon.addNewAssertionForTestOrBust("bob", "bob@twitter")
 
 	config.mockMdserv.EXPECT().GetForHandle(ctx, hUnresolved.BareTlfHandle, Merged).Return(NullTlfID, rmds, nil)
 

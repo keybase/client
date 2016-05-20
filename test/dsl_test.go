@@ -27,16 +27,17 @@ const (
 )
 
 type opt struct {
-	usernames       []libkb.NormalizedUsername
-	tlfName         string
-	tlfIsPublic     bool
-	users           map[libkb.NormalizedUsername]User
-	t               *testing.T
-	initDone        bool
-	engine          Engine
-	blockSize       int64
-	blockChangeSize int64
-	clock           *libkbfs.TestClock
+	usernames                []libkb.NormalizedUsername
+	tlfName                  string
+	expectedCanonicalTlfName string
+	tlfIsPublic              bool
+	users                    map[libkb.NormalizedUsername]User
+	t                        *testing.T
+	initDone                 bool
+	engine                   Engine
+	blockSize                int64
+	blockChangeSize          int64
+	clock                    *libkbfs.TestClock
 }
 
 func test(t *testing.T, actions ...optionOp) {
@@ -137,7 +138,25 @@ func users(ns ...username) optionOp {
 func inPrivateTlf(name string) optionOp {
 	return func(o *opt) {
 		o.tlfName = name
+		o.expectedCanonicalTlfName = name
 		o.tlfIsPublic = false
+	}
+}
+
+func inPrivateTlfNonCanonical(name, expectedCanonicalName string) optionOp {
+	return func(o *opt) {
+		o.tlfName = name
+		o.expectedCanonicalTlfName = expectedCanonicalName
+		o.tlfIsPublic = false
+	}
+}
+
+func addNewAssertion(oldAssertion, newAssertion string) optionOp {
+	return func(o *opt) {
+		for _, u := range o.users {
+			err := o.engine.AddNewAssertion(u, oldAssertion, newAssertion)
+			o.expectSuccess("addNewAssertion", err)
+		}
 	}
 }
 
@@ -163,13 +182,19 @@ func expectError(op fileOp, reason string) fileOp {
 			return fmt.Errorf("Got the wrong error: expected %q, got %q", reason, err.Error())
 		}
 		return nil
-	}, Defaults}
+	}, IsInit /* So that we can use expectError with e.g. initRoot(). */}
 }
 
 func noSync() fileOp {
 	return fileOp{func(c *ctx) error {
 		c.noSyncInit = true
 		return nil
+	}, IsInit}
+}
+
+func enableSharingBeforeSignup() fileOp {
+	return fileOp{func(c *ctx) error {
+		return c.engine.EnableSharingBeforeSignup(c.user)
 	}, IsInit}
 }
 
@@ -210,24 +235,36 @@ func as(user username, fops ...fileOp) optionOp {
 			user: o.users[libkb.NewNormalizedUsername(string(user))],
 		}
 
-		root, err := o.engine.GetRootDir(ctx.user, o.tlfName, o.tlfIsPublic)
-		ctx.expectSuccess("GetRootDir", err)
-		ctx.rootNode = root
-
-		initDone := false
 		for _, fop := range fops {
-			if !initDone && fop.flags&IsInit == 0 {
-				if !ctx.noSyncInit {
-					err = o.engine.SyncFromServerForTesting(ctx.user, ctx.rootNode)
-					ctx.expectSuccess("SyncFromServerForTesting", err)
-				}
-				initDone = true
+			if ctx.rootNode == nil && fop.flags&IsInit == 0 {
+				initOp := initRoot()
+				err := initOp.operation(ctx)
+				ctx.expectSuccess("initRoot", err)
 			}
 			o.t.Log("fop", fop)
-			err = fop.operation(ctx)
+			err := fop.operation(ctx)
 			ctx.expectSuccess("File operation", err)
 		}
 	}
+}
+
+// initRoot initializes the root for an invocation of as(). Usually
+// not called directly.
+func initRoot() fileOp {
+	return fileOp{func(c *ctx) error {
+		root, err := c.engine.GetRootDir(c.user, c.tlfName, c.tlfIsPublic, c.expectedCanonicalTlfName)
+		if err != nil {
+			return err
+		}
+		c.rootNode = root
+		if !c.noSyncInit {
+			err := c.engine.SyncFromServerForTesting(c.user, c.rootNode)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}, IsInit}
 }
 
 func mkdir(name string) fileOp {
@@ -381,6 +418,12 @@ func forceQuotaReclamation() fileOp {
 		}
 		return c.engine.SyncFromServerForTesting(c.user, c.rootNode)
 	}, Defaults}
+}
+
+func rekey() fileOp {
+	return fileOp{func(c *ctx) error {
+		return c.engine.Rekey(c.user, c.tlfName, c.tlfIsPublic)
+	}, IsInit}
 }
 
 func lsdir(name string, contents m) fileOp {

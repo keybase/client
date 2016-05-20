@@ -304,7 +304,7 @@ func TestKeyManagerRekeyResolveAgainSuccessPublic(t *testing.T) {
 	rmd := newRootMetadataOrBust(t, id, h)
 
 	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
-	daemon.addNewAssertionForTest("bob", "bob@twitter")
+	daemon.addNewAssertionForTestOrBust("bob", "bob@twitter")
 
 	config.mockMdops.EXPECT().GetLatestHandleForTLF(gomock.Any(), gomock.Any()).
 		Return(&rmd.tlfHandle.BareTlfHandle, nil)
@@ -345,8 +345,8 @@ func TestKeyManagerRekeyResolveAgainSuccessPublicSelf(t *testing.T) {
 	rmd := newRootMetadataOrBust(t, id, h)
 
 	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
-	daemon.addNewAssertionForTest("alice", "alice@twitter")
-	daemon.addNewAssertionForTest("charlie", "charlie@twitter")
+	daemon.addNewAssertionForTestOrBust("alice", "alice@twitter")
+	daemon.addNewAssertionForTestOrBust("charlie", "charlie@twitter")
 
 	config.mockMdops.EXPECT().GetLatestHandleForTLF(gomock.Any(), gomock.Any()).
 		Return(&rmd.tlfHandle.BareTlfHandle, nil)
@@ -387,8 +387,8 @@ func TestKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T) {
 
 	// Pretend that {bob,charlie}@twitter now resolve to {bob,charlie}.
 	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
-	daemon.addNewAssertionForTest("bob", "bob@twitter")
-	daemon.addNewAssertionForTest("charlie", "charlie@twitter")
+	daemon.addNewAssertionForTestOrBust("bob", "bob@twitter")
+	daemon.addNewAssertionForTestOrBust("charlie", "charlie@twitter")
 
 	if done, _, err := config.KeyManager().Rekey(ctx, rmd, false); !done || err != nil {
 		t.Fatalf("Got error on rekey: %t, %v", done, err)
@@ -412,7 +412,7 @@ func TestKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T) {
 
 	// Now resolve using only a device addition, which won't bump the
 	// generation number.
-	daemon.addNewAssertionForTest("dave", "dave@twitter")
+	daemon.addNewAssertionForTestOrBust("dave", "dave@twitter")
 	oldKeyGen = rmd.LatestKeyGeneration()
 	expectCachedGetTLFCryptKey(config, rmd, oldKeyGen)
 	expectRekey(config, rmd, 1, true)
@@ -507,9 +507,9 @@ func TestKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T) {
 
 	// Now resolve everyone, but have reader bob to do the rekey
 	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
-	daemon.addNewAssertionForTest("bob", "bob@twitter")
-	daemon.addNewAssertionForTest("charlie", "charlie@twitter")
-	daemon.addNewAssertionForTest("dave", "dave@twitter")
+	daemon.addNewAssertionForTestOrBust("bob", "bob@twitter")
+	daemon.addNewAssertionForTestOrBust("charlie", "charlie@twitter")
+	daemon.addNewAssertionForTestOrBust("dave", "dave@twitter")
 
 	_, bobUID, err := daemon.Resolve(ctx, "bob")
 	daemon.currentUID = bobUID
@@ -579,7 +579,7 @@ func TestKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T) {
 
 	// Now resolve everyone, but have reader bob to do the rekey
 	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
-	daemon.addNewAssertionForTest("bob", "bob@twitter")
+	daemon.addNewAssertionForTestOrBust("bob", "bob@twitter")
 
 	// Now resolve which gets rid of the unresolved writers, but
 	// doesn't otherwise change the handle since bob is already in it.

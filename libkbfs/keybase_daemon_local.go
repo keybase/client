@@ -234,21 +234,32 @@ func (k *KeybaseDaemonLocal) CurrentSession(ctx context.Context, sessionID int) 
 // that does already resolve to something.  It returns the UID of the
 // user associated with the given assertions.
 func (k *KeybaseDaemonLocal) addNewAssertionForTest(
-	oldAssertion, newAssertion string) keybase1.UID {
+	oldAssertion, newAssertion string) (keybase1.UID, error) {
 	k.lock.Lock()
 	defer k.lock.Unlock()
 	uid, err := k.assertionToUIDLocked(context.Background(), oldAssertion)
 	if err != nil {
-		panic(err)
+		return keybase1.UID(""), err
 	}
 
 	lu, err := k.localUsers.getLocalUser(uid)
 	if err != nil {
-		panic(err)
+		return keybase1.UID(""), err
 	}
 	lu.Asserts = append(lu.Asserts, newAssertion)
 	k.asserts[newAssertion] = uid
 	k.localUsers[uid] = lu
+	return uid, nil
+}
+
+// addNewAssertionForTestOrBust is like addNewAssertionForTest, but
+// panics if there's an error.
+func (k *KeybaseDaemonLocal) addNewAssertionForTestOrBust(
+	oldAssertion, newAssertion string) keybase1.UID {
+	uid, err := k.addNewAssertionForTest(oldAssertion, newAssertion)
+	if err != nil {
+		panic(err)
+	}
 	return uid
 }
 

@@ -2,6 +2,7 @@ package libkbfs
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"sync"
 	"time"
@@ -337,30 +338,49 @@ func SwitchDeviceForLocalUserOrBust(t logger.TestLogBackend, config Config, inde
 	config.SetCrypto(NewCryptoLocal(config, signingKey, cryptPrivateKey))
 }
 
-// AddNewAssertionForTestOrBust makes newAssertion, which should be a
-// single assertion that doesn't already resolve to anything, resolve
-// to the same UID as oldAssertion, which should be an arbitrary
-// assertion that does already resolve to something.  It only applies
-// to the given config.
-func AddNewAssertionForTestOrBust(t logger.TestLogBackend, config Config,
-	oldAssertion, newAssertion keybase1.SocialAssertion) {
+// AddNewAssertionForTest makes newAssertion, which should be a single
+// assertion that doesn't already resolve to anything, resolve to the
+// same UID as oldAssertion, which should be an arbitrary assertion
+// that does already resolve to something.  It only applies to the
+// given config.
+func AddNewAssertionForTest(
+	config Config, oldAssertion, newAssertion string) error {
 	kbd, ok := config.KeybaseDaemon().(*KeybaseDaemonLocal)
 	if !ok {
-		t.Fatal("Bad keybase daemon")
+		return errors.New("Bad keybase daemon")
 	}
 
-	uid := kbd.addNewAssertionForTest(oldAssertion.String(), newAssertion.String())
+	uid, err := kbd.addNewAssertionForTest(oldAssertion, newAssertion)
+	if err != nil {
+		return err
+	}
+
 	// Let the mdserver know about the name change
 	md, ok := config.MDServer().(*MDServerLocal)
 	if !ok {
-		t.Fatal("Bad md server")
+		return errors.New("Bad md server")
 	}
 	// If this function is called multiple times for different
 	// configs, it may end up invoking the following call more than
 	// once on the shared md databases.  That's ok though, it's an
 	// idempotent call.
-	if err := md.addNewAssertionForTest(uid, newAssertion); err != nil {
-		t.Fatalf("Couldn't update md server: %v", err)
+	newSocialAssertion, ok := libkb.NormalizeSocialAssertion(newAssertion)
+	if !ok {
+		return fmt.Errorf("%s couldn't be parsed as a social assertion", newAssertion)
+	}
+	if err := md.addNewAssertionForTest(uid, newSocialAssertion); err != nil {
+		return fmt.Errorf("Couldn't update md server: %v", err)
+	}
+	return nil
+}
+
+// AddNewAssertionForTestOrBust is like AddNewAssertionForTest, but
+// dies if there's an error.
+func AddNewAssertionForTestOrBust(t logger.TestLogBackend, config Config,
+	oldAssertion, newAssertion string) {
+	err := AddNewAssertionForTest(config, oldAssertion, newAssertion)
+	if err != nil {
+		t.Fatal(err)
 	}
 }
 

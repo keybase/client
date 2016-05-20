@@ -144,20 +144,21 @@ func (f *Folder) lockedAddNode(node libkbfs.Node, val dokan.File) {
 
 // LocalChange is called for changes originating within in this process.
 func (f *Folder) LocalChange(ctx context.Context, node libkbfs.Node, write libkbfs.WriteRange) {
-	return
+	f.fs.queueNotification(func() {})
 }
 
 // BatchChanges is called for changes originating anywhere, including
 // other hosts.
 func (f *Folder) BatchChanges(ctx context.Context, changes []libkbfs.NodeChange) {
-	return
+	f.fs.queueNotification(func() {})
 }
 
 // TlfHandleChange is called when the name of a folder changes.
 func (f *Folder) TlfHandleChange(ctx context.Context,
 	newHandle *libkbfs.TlfHandle) {
-	// Spawn a goroutine so we don't block
-	go func() {
+	// Handle in the background because we shouldn't lock during
+	// the notification
+	f.fs.queueNotification(func() {
 		oldName := func() libkbfs.CanonicalTlfName {
 			f.handleMu.Lock()
 			defer f.handleMu.Unlock()
@@ -168,7 +169,7 @@ func (f *Folder) TlfHandleChange(ctx context.Context,
 
 		f.list.updateTlfName(ctx, string(oldName),
 			string(newHandle.GetCanonicalName()))
-	}()
+	})
 }
 
 // Dir represents KBFS subdirectories.

@@ -58,25 +58,39 @@ func (e *fsEngine) GetUID(user User) keybase1.UID {
 	return uid
 }
 
-// GetRootDir implements the Engine interface.
-func (*fsEngine) GetRootDir(user User, tlfName string, isPublic bool) (dir Node, err error) {
-	u := user.(*fsUser)
+func buildRootPath(u *fsUser, tlfName string, isPublic bool) string {
 	var path string
 	if isPublic {
 		path = filepath.Join(u.mntDir, "public", tlfName)
 	} else {
 		path = filepath.Join(u.mntDir, "private", tlfName)
 	}
-	fi, err := os.Lstat(path)
-	if err != nil {
-		return nil, err
+	return path
+}
+
+// GetRootDir implements the Engine interface.
+func (e *fsEngine) GetRootDir(user User, tlfName string, isPublic bool, expectedCanonicalTlfName string) (dir Node, err error) {
+	u := user.(*fsUser)
+	path := buildRootPath(u, tlfName, isPublic)
+	var realPath string
+	// TODO currently we pretend that Dokan has no symbolic links
+	// here and end up deferencing them. This works but is not
+	// ideal. (See Lookup.)
+	if tlfName == expectedCanonicalTlfName || e.name == "dokan" {
+		realPath = path
+	} else {
+		realPath, err = filepath.EvalSymlinks(path)
+		if err != nil {
+			return nil, err
+		}
+		canonicalTlfName := filepath.Base(realPath)
+		if canonicalTlfName != expectedCanonicalTlfName {
+			return nil, fmt.Errorf(
+				"Expected canonical TLF name %s, got %s",
+				expectedCanonicalTlfName, canonicalTlfName)
+		}
 	}
-	// TODO: Allow symlinks, but check that they resolve as
-	// expected.
-	if !fi.IsDir() {
-		return nil, fmt.Errorf("%s is not a directory", path)
-	}
-	return fsNode{path}, nil
+	return fsNode{realPath}, nil
 }
 
 // CreateDir is called by the test harness to create a directory relative to the passed
@@ -206,6 +220,28 @@ func (*fsEngine) ForceQuotaReclamation(user User, dir Node) (err error) {
 		[]byte("x"), 0644)
 }
 
+// EnableSharingBeforeSignup implements the Engine interface.
+func (*fsEngine) EnableSharingBeforeSignup(user User) error {
+	u := user.(*fsUser)
+	u.config.SetSharingBeforeSignupEnabled(true)
+	return nil
+}
+
+// AddNewAssertion implements the Engine interface.
+func (e *fsEngine) AddNewAssertion(user User, oldAssertion, newAssertion string) error {
+	u := user.(*fsUser)
+	return libkbfs.AddNewAssertionForTest(u.config, oldAssertion, newAssertion)
+}
+
+// Rekey implements the Engine interface.
+func (*fsEngine) Rekey(user User, tlfName string, isPublic bool) error {
+	u := user.(*fsUser)
+	path := buildRootPath(u, tlfName, isPublic)
+	return ioutil.WriteFile(
+		filepath.Join(path, libfs.RekeyFileName),
+		[]byte("x"), 0644)
+}
+
 // Shutdown is called by the test harness when it is done with the
 // given user.
 func (*fsEngine) Shutdown(user User) error {
@@ -235,7 +271,7 @@ func (e *fsEngine) Lookup(u User, parentDir Node, name string) (file Node, symPa
 	// Return if not a symlink
 	// TODO currently we pretend that Dokan has no symbolic links
 	// here and end up deferencing them. This works but is not
-	// ideal.
+	// ideal. (See GetRootDir.)
 	if fi.Mode()&os.ModeSymlink == 0 || e.name == "dokan" {
 		return fsNode{path}, "", nil
 	}

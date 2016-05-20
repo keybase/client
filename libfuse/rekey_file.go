@@ -38,6 +38,7 @@ func (f *RekeyFile) Write(ctx context.Context, req *fuse.WriteRequest,
 	if err != nil {
 		return err
 	}
+	f.folder.fs.NotificationGroupWait()
 	resp.Size = len(req.Data)
 	return nil
 }

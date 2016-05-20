@@ -102,17 +102,44 @@ func (k *LibKBFS) GetUID(u User) (uid keybase1.UID) {
 	return uid
 }
 
+func parseTlfHandle(
+	ctx context.Context, kbpki libkbfs.KBPKI, tlfName string, isPublic bool) (
+	canonicalTlfName string, h *libkbfs.TlfHandle, err error) {
+	// Limit to one non-canonical name for now.
+outer:
+	for i := 0; i < 2; i++ {
+		h, err = libkbfs.ParseTlfHandle(
+			ctx, kbpki, tlfName, isPublic, true)
+		switch err := err.(type) {
+		case nil:
+			break outer
+		case libkbfs.TlfNameNotCanonical:
+			tlfName = err.NameToTry
+		default:
+			return "", nil, err
+		}
+	}
+	if err != nil {
+		return "", nil, err
+	}
+	return tlfName, h, nil
+}
+
 // GetRootDir implements the Engine interface.
-func (k *LibKBFS) GetRootDir(u User, tlfName string, isPublic bool) (
+func (k *LibKBFS) GetRootDir(u User, tlfName string, isPublic bool, expectedCanonicalTlfName string) (
 	dir Node, err error) {
 	config := u.(*libkbfs.ConfigLocal)
 
 	ctx := context.Background()
-	h, err := libkbfs.ParseTlfHandle(
-		ctx, config.KBPKI(), tlfName, isPublic,
-		config.SharingBeforeSignupEnabled())
+	canonicalTlfName, h, err := parseTlfHandle(
+		ctx, config.KBPKI(), tlfName, isPublic)
 	if err != nil {
 		return nil, err
+	}
+
+	if canonicalTlfName != expectedCanonicalTlfName {
+		return nil, fmt.Errorf("Expected canonical TLF name %s, got %s",
+			expectedCanonicalTlfName, canonicalTlfName)
 	}
 
 	dir, _, err = config.KBFSOps().GetOrCreateRootNode(
@@ -296,6 +323,38 @@ func (k *LibKBFS) ForceQuotaReclamation(u User, dir Node) (err error) {
 	config := u.(*libkbfs.ConfigLocal)
 	d := dir.(libkbfs.Node)
 	return libkbfs.ForceQuotaReclamationForTesting(config, d.GetFolderBranch())
+}
+
+// EnableSharingBeforeSignup implements the Engine interface.
+func (k *LibKBFS) EnableSharingBeforeSignup(u User) error {
+	config := u.(*libkbfs.ConfigLocal)
+	config.SetSharingBeforeSignupEnabled(true)
+	return nil
+}
+
+// AddNewAssertion implements the Engine interface.
+func (k *LibKBFS) AddNewAssertion(u User, oldAssertion, newAssertion string) error {
+	config := u.(*libkbfs.ConfigLocal)
+	return libkbfs.AddNewAssertionForTest(config, oldAssertion, newAssertion)
+}
+
+// Rekey implements the Engine interface.
+func (k *LibKBFS) Rekey(u User, tlfName string, isPublic bool) error {
+	config := u.(*libkbfs.ConfigLocal)
+
+	ctx := context.Background()
+	_, h, err := parseTlfHandle(ctx, config.KBPKI(), tlfName, isPublic)
+	if err != nil {
+		return err
+	}
+
+	kbfsOps := config.KBFSOps()
+	dir, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, libkbfs.MasterBranch)
+	if err != nil {
+		return err
+	}
+
+	return kbfsOps.Rekey(context.Background(), dir.GetFolderBranch().Tlf)
 }
 
 // Shutdown implements the Engine interface.

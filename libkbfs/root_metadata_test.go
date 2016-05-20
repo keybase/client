@@ -542,12 +542,7 @@ func TestRootMetadataVersion(t *testing.T) {
 	}
 
 	// ... including if the assertions get resolved.
-	AddNewAssertionForTestOrBust(t, config,
-		keybase1.SocialAssertion{User: "bob"},
-		keybase1.SocialAssertion{
-			User:    "bob",
-			Service: "twitter",
-		})
+	AddNewAssertionForTestOrBust(t, config, "bob", "bob@twitter")
 	rmd.SerializedPrivateMetadata = []byte{1} // MakeSuccessor requires this
 	FakeInitialRekey(rmd, h.BareTlfHandle)
 	if rmd.SerializedPrivateMetadata == nil {
@@ -615,7 +610,7 @@ func TestMakeRekeyReadErrorResolvedHandle(t *testing.T) {
 	err = makeRekeyReadError(rmd, h, FirstValidKeyGen, uid, u)
 	require.Equal(t, NewReadAccessError(h, u), err)
 
-	config.KeybaseDaemon().(*KeybaseDaemonLocal).addNewAssertionForTest(
+	config.KeybaseDaemon().(*KeybaseDaemonLocal).addNewAssertionForTestOrBust(
 		"bob", "bob@twitter")
 
 	resolvedHandle, err := h.ResolveAgain(ctx, config.KBPKI())

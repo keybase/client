@@ -37,7 +37,7 @@ type Engine interface {
 	GetUID(u User) keybase1.UID
 	// GetRootDir is called by the test harness to get a handle to a TLF from the given user's
 	// perspective
-	GetRootDir(u User, tlfName string, isPublic bool) (dir Node, err error)
+	GetRootDir(u User, tlfName string, isPublic bool, expectedCanonicalTlfName string) (dir Node, err error)
 	// CreateDir is called by the test harness to create a directory relative to the passed
 	// parent directory for the given user.
 	CreateDir(u User, parentDir Node, name string) (dir Node, err error)
@@ -79,6 +79,19 @@ type Engine interface {
 	// ForceQuotaReclamation starts quota reclamation by the given
 	// user in the TLF corresponding to the given node.
 	ForceQuotaReclamation(u User, dir Node) (err error)
+	// EnableSharingBeforeSignup enables sharing before signup for
+	// the current user.
+	EnableSharingBeforeSignup(u User) (err error)
+	// AddNewAssertion makes newAssertion, which should be a
+	// single assertion that doesn't already resolve to anything,
+	// resolve to the same UID as oldAssertion, which should be an
+	// arbitrary assertion that does already resolve to something.
+	// It only applies to the given user.
+	AddNewAssertion(u User, oldAssertion, newAssertion string) (err error)
+	// Rekey rekeys the given TLF under the given user. (It
+	// doesn't take a node so that it can be run before any real
+	// FS operations.)
+	Rekey(u User, tlfName string, isPublic bool) (err error)
 	// Shutdown is called by the test harness when it is done with the
 	// given user.
 	Shutdown(u User) error

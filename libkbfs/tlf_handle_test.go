@@ -370,7 +370,7 @@ func TestResolveAgainBasic(t *testing.T) {
 	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
 
 	// ResolveAgain shouldn't rely on resolving the original names again.
-	daemon.addNewAssertionForTest("u3", "u3@twitter")
+	daemon.addNewAssertionForTestOrBust("u3", "u3@twitter")
 	newH, err := h.ResolveAgain(ctx, daemon)
 	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName("u1,u2#u3"), newH.GetCanonicalName())
@@ -392,10 +392,10 @@ func TestResolveAgainDoubleAsserts(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
 
-	daemon.addNewAssertionForTest("u1", "u1@twitter")
-	daemon.addNewAssertionForTest("u1", "u1@github")
-	daemon.addNewAssertionForTest("u2", "u2@twitter")
-	daemon.addNewAssertionForTest("u2", "u2@github")
+	daemon.addNewAssertionForTestOrBust("u1", "u1@twitter")
+	daemon.addNewAssertionForTestOrBust("u1", "u1@github")
+	daemon.addNewAssertionForTestOrBust("u2", "u2@twitter")
+	daemon.addNewAssertionForTestOrBust("u2", "u2@github")
 	newH, err := h.ResolveAgain(ctx, daemon)
 	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName("u1#u2"), newH.GetCanonicalName())
@@ -417,8 +417,8 @@ func TestResolveAgainWriterReader(t *testing.T) {
 	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
 
-	daemon.addNewAssertionForTest("u2", "u2@twitter")
-	daemon.addNewAssertionForTest("u2", "u2@github")
+	daemon.addNewAssertionForTestOrBust("u2", "u2@twitter")
+	daemon.addNewAssertionForTestOrBust("u2", "u2@github")
 	newH, err := h.ResolveAgain(ctx, daemon)
 	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName("u1,u2"), newH.GetCanonicalName())
