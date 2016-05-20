@@ -142,10 +142,12 @@ func (t testLogOutput) Profile(fmt string, args ...interface{}) { t.log("P", fmt
 // object representing the other end of that connection.
 func MakeConnectionForTest(t TestLogger) (net.Conn, *Connection) {
 	clientConn, serverConn := net.Pipe()
-	transporter := NewTransport(clientConn, nil, testWrapError)
+	logOutput := testLogOutput{t}
+	logFactory := NewSimpleLogFactory(logOutput, nil)
+	transporter := NewTransport(clientConn, logFactory, testWrapError)
 	st := singleTransport{transporter}
 	conn := NewConnectionWithTransport(testConnectionHandler{}, st,
 		testErrorUnwrapper{}, true, testWrapError,
-		testLogOutput{t}, testLogTags)
+		logOutput, testLogTags)
 	return serverConn, conn
 }
