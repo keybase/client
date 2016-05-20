@@ -1,10 +1,10 @@
 // @flow
 import React, {Component} from 'react'
-import {UserCard, Text, Button, FormWithCheckbox, Dropdown} from '../../common-adapters'
+import {Box, UserCard, Text, Button, FormWithCheckbox, Dropdown} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 import type {Props} from './index.render'
 
-export default class LoginRender extends Component<void, Props, void> {
+class LoginRender extends Component<void, Props, void> {
   render () {
     const inputProps = {
       floatingLabelText: 'Passphrase',
@@ -22,8 +22,8 @@ export default class LoginRender extends Component<void, Props, void> {
     ]
 
     return (
-      <div style={styles.container}>
-        <UserCard username={this.props.selectedUser} outerStyle={styles.card}>
+      <Box style={stylesContainer}>
+        <UserCard username={this.props.selectedUser}>
           <Dropdown
             type='Username'
             value={this.props.selectedUser}
@@ -45,19 +45,17 @@ export default class LoginRender extends Component<void, Props, void> {
           <Text link type='BodySmallSecondaryLink' onClick={this.props.onForgotPassphrase} style={{marginTop: 24}}>Forgot passphrase?</Text>
         </UserCard>
         <Text style={{marginTop: 30}} type='BodyPrimaryLink' onClick={this.props.onSignup}>Create an account</Text>
-      </div>
+      </Box>
     )
   }
 }
 
-const styles = {
-  container: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    flex: 1,
-    backgroundColor: globalColors.lightGrey
-  },
-  card: {
-    marginTop: 100
-  }
+const stylesContainer = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  justifyContent: 'center',
+  flex: 1,
+  backgroundColor: globalColors.lightGrey
 }
+
+export default LoginRender

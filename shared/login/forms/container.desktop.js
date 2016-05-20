@@ -18,13 +18,9 @@ export default ({children, onBack, style, outerStyle}: Props) => {
 const stylesContainer = {
   ...globalStyles.flexBoxColumn,
   alignItems: 'flex-start',
-  bottom: 0,
   justifyContent: 'flex-start',
-  left: 0,
   padding: 60,
-  position: 'absolute',
-  right: 0,
-  top: 0
+  flex: 1
 }
 
 const stylesInnerContainer = {
