@@ -129,3 +129,61 @@ func TestDeviceHistoryRevoked(t *testing.T) {
 		t.Fatal("paper device RevokedAt is nil")
 	}
 }
+
+func TestDeviceHistoryPGP(t *testing.T) {
+	tc := SetupEngineTest(t, "devhist")
+	u1 := createFakeUserWithPGPOnly(t, tc)
+	t.Log("Created fake synced pgp user")
+	Logout(tc)
+	tc.Cleanup()
+
+	// redo SetupEngineTest to get a new home directory...should look like a new device.
+	tc = SetupEngineTest(t, "devhist")
+	defer tc.Cleanup()
+
+	ctx := &Context{
+		ProvisionUI: newTestProvisionUIPassphrase(),
+		LoginUI:     &libkb.TestLoginUI{Username: u1.Username},
+		LogUI:       tc.G.UI.GetLogUI(),
+		SecretUI:    u1.NewSecretUI(),
+		GPGUI:       &gpgtestui{},
+	}
+	eng := NewLogin(tc.G, libkb.DeviceTypeDesktop, "", keybase1.ClientType_CLI)
+	if err := RunEngine(eng, ctx); err != nil {
+		t.Fatal(err)
+	}
+
+	ctx = &Context{}
+	heng := NewDeviceHistorySelf(tc.G)
+	if err := RunEngine(heng, ctx); err != nil {
+		t.Fatal(err)
+	}
+	devs := heng.Devices()
+	if len(devs) != 2 {
+		t.Errorf("num devices: %d, expected 2", len(devs))
+	}
+
+	var desktop keybase1.DeviceDetail
+	var paper keybase1.DeviceDetail
+
+	for _, d := range devs {
+		switch d.Device.Type {
+		case libkb.DeviceTypePaper:
+			paper = d
+		case libkb.DeviceTypeDesktop:
+			desktop = d
+		default:
+			t.Fatalf("unexpected device type %s", d.Device.Type)
+		}
+	}
+
+	// paper's provisioner should be desktop
+	if paper.Provisioner == nil {
+		t.Fatal("paper device has no provisioner")
+	}
+	if paper.Provisioner.DeviceID != desktop.Device.DeviceID {
+		t.Errorf("paper provisioned id: %s, expected %s", paper.Provisioner.DeviceID, desktop.Device.DeviceID)
+		t.Logf("desktop: %+v", desktop)
+		t.Logf("paper:   %+v", paper)
+	}
+}
