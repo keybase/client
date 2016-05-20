@@ -284,6 +284,16 @@ func write(name string, contents string) fileOp {
 	}, Defaults}
 }
 
+func truncate(name string, size uint64) fileOp {
+	return fileOp{func(c *ctx) error {
+		f, _, err := c.getNode(name, true, true)
+		if err != nil {
+			return err
+		}
+		return c.engine.TruncateFile(c.user, f, size, true)
+	}, Defaults}
+}
+
 func read(name string, contents string) fileOp {
 	return fileOp{func(c *ctx) error {
 		file, _, err := c.getNode(name, false, true)

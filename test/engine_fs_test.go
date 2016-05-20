@@ -136,6 +136,24 @@ func (*fsEngine) WriteFile(u User, file Node, data string, off int64, sync bool)
 	return f.Sync()
 }
 
+// TruncateFile is called by the test harness to truncate the given file as the given user to the given size.
+func (*fsEngine) TruncateFile(u User, file Node, size uint64, sync bool) (err error) {
+	n := file.(fsNode)
+	f, err := os.OpenFile(n.path, os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	err = f.Truncate(int64(size))
+	if err != nil {
+		return err
+	}
+	if !sync {
+		return nil
+	}
+	return f.Sync()
+}
+
 // RemoveDir is called by the test harness as the given user to remove a subdirectory.
 func (*fsEngine) RemoveDir(u User, dir Node, name string) (err error) {
 	n := dir.(fsNode)

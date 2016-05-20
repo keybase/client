@@ -215,6 +215,19 @@ func (k *LibKBFS) WriteFile(u User, file Node, data string, off int64, sync bool
 	return err
 }
 
+// TruncateFile implements the Engine interface.
+func (k *LibKBFS) TruncateFile(u User, file Node, size uint64, sync bool) (err error) {
+	kbfsOps := u.(*libkbfs.ConfigLocal).KBFSOps()
+	err = kbfsOps.Truncate(context.Background(), file.(libkbfs.Node), size)
+	if err != nil {
+		return err
+	}
+	if sync {
+		err = kbfsOps.Sync(context.Background(), file.(libkbfs.Node))
+	}
+	return err
+}
+
 // Sync implements the Engine interface.
 func (k *LibKBFS) Sync(u User, file Node) (err error) {
 	kbfsOps := u.(*libkbfs.ConfigLocal).KBFSOps()
