@@ -5,9 +5,11 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"os/signal"
 	"runtime"
+	"runtime/pprof"
 	"syscall"
 	"time"
 
@@ -37,6 +39,35 @@ type Stopper interface {
 }
 
 func main() {
+	memprofile := os.Getenv("KB_MEM_PROFILE")
+	if len(memprofile) > 0 {
+		runtime.MemProfileRate = 1
+	}
+
+	defer func() {
+		runtime.GC()
+		runtime.GC()
+		runtime.GC()
+		if len(memprofile) > 0 {
+			f, err := os.Create(memprofile)
+			if err != nil {
+				log.Fatal(err)
+			}
+			pprof.WriteHeapProfile(f)
+			f.Close()
+		}
+	}()
+
+	cpuprofile := os.Getenv("KB_CPU_PROFILE")
+	if len(cpuprofile) > 0 {
+		f, err := os.Create(cpuprofile)
+		if err != nil {
+			log.Fatal(err)
+		}
+		pprof.StartCPUProfile(f)
+		defer pprof.StopCPUProfile()
+		defer f.Close()
+	}
 
 	g := G
 	g.Init()
