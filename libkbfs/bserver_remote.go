@@ -57,7 +57,7 @@ func NewBlockServerRemote(config Config, blkSrvAddr string) *BlockServerRemote {
 }
 
 // For testing.
-func newBlockServerRemoteWithClient(ctx context.Context, config Config,
+func newBlockServerRemoteWithClient(config Config,
 	client keybase1.BlockInterface) *BlockServerRemote {
 	bs := &BlockServerRemote{
 		config: config,
@@ -81,7 +81,7 @@ func (*BlockServerRemote) HandlerName() string {
 func (b *BlockServerRemote) OnConnect(ctx context.Context,
 	_ *rpc.Connection, client rpc.GenericClient, _ *rpc.Server) error {
 	// reset auth -- using b.client here would cause problematic recursion.
-	c := keybase1.BlockClient{Cli: cancelableClient{client}}
+	c := keybase1.BlockClient{Cli: client}
 	return b.resetAuth(ctx, c)
 }
 

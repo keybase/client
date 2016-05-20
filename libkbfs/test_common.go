@@ -3,6 +3,7 @@ package libkbfs
 import (
 	"errors"
 	"fmt"
+	"net"
 	"os"
 	"sync"
 	"time"
@@ -10,6 +11,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 )
 
@@ -384,12 +386,14 @@ func AddNewAssertionForTestOrBust(t logger.TestLogBackend, config Config,
 	}
 }
 
-func testWithCanceledContext(t logger.TestLogBackend, ctx context.Context,
-	readyChan <-chan struct{}, fn func(context.Context) error) {
+func testRPCWithCanceledContext(t logger.TestLogBackend,
+	serverConn net.Conn, fn func(context.Context) error) {
 	ctx, cancel := context.WithCancel(context.Background())
 	go func() {
-		// wait for the RPC, then cancel the context
-		<-readyChan
+		// Wait for RPC in fn to make progress.
+		n, err := serverConn.Read([]byte{1})
+		assert.Equal(t, n, 1)
+		assert.NoError(t, err)
 		cancel()
 	}()
 

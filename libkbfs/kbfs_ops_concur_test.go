@@ -9,7 +9,9 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/keybase/client/go/libkb"
+	"github.com/keybase/client/go/logger"
 	"github.com/keybase/client/go/protocol"
+	"github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
 )
 
@@ -991,7 +993,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 
 	// give it a remote block server with a fake client
 	fc := NewFakeBServerClient(nil, nil, nil)
-	b := newBlockServerRemoteWithClient(ctx, config, fc)
+	b := newBlockServerRemoteWithClient(config, fc)
 	config.SetBlockServer(b)
 
 	// make blocks small
@@ -1616,21 +1618,19 @@ func TestKBFSOpsErrorOnBlockedWriteDuringSync(t *testing.T) {
 }
 
 func TestKBFSOpsCancelGetFavorites(t *testing.T) {
-	config, _, ctx := kbfsOpsConcurInit(t, "test_user")
+	config, _, _ := kbfsOpsConcurInit(t, "test_user")
 	defer CheckConfigAndShutdown(t, config)
 
-	daemon, c := newKeybaseDaemonRPCWithFakeClient(t)
+	serverConn, conn := rpc.MakeConnectionForTest(t)
+	daemon := newKeybaseDaemonRPCWithClient(
+		nil,
+		conn.GetClient(),
+		logger.NewTestLogger(t))
 	config.SetKeybaseDaemon(daemon)
-	ctx, cancel := context.WithCancel(ctx)
-	errChan := make(chan error)
-	go func() {
+
+	f := func(ctx context.Context) error {
 		_, err := config.KBFSOps().GetFavorites(ctx)
-		errChan <- err
-	}()
-	<-c
-	cancel()
-	err := <-errChan
-	if err != context.Canceled {
-		t.Fatalf("Unexpected error after cancel: %v", err)
+		return err
 	}
+	testRPCWithCanceledContext(t, serverConn, f)
 }

@@ -9,6 +9,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
 )
 
@@ -133,8 +134,7 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 	config := &ConfigLocal{codec: codec}
 	setTestLogger(config, t)
 	fc := NewFakeBServerClient(nil, nil, nil)
-	ctx := context.Background()
-	b := newBlockServerRemoteWithClient(ctx, config, fc)
+	b := newBlockServerRemoteWithClient(config, fc)
 
 	bID := fakeBlockID(1)
 	tlfID := FakeTlfID(2, false)
@@ -145,6 +145,7 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 	if err != nil {
 		t.Errorf("Couldn't make block server key half: %v", err)
 	}
+	ctx := context.Background()
 	err = b.Put(ctx, bID, tlfID, bCtx, data, serverHalf)
 	if err != nil {
 		t.Fatalf("Put got error: %v", err)
@@ -176,12 +177,12 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 	currentUID := localUsers[0].UID
 	config := &ConfigLocal{codec: codec}
 	setTestLogger(config, t)
-	readyChan := make(chan struct{})
-	fc := NewFakeBServerClient(readyChan, nil, nil)
+
+	serverConn, conn := rpc.MakeConnectionForTest(t)
+	b := newBlockServerRemoteWithClient(
+		config, keybase1.BlockClient{Cli: conn.GetClient()})
 
 	f := func(ctx context.Context) error {
-		b := newBlockServerRemoteWithClient(ctx, config, fc)
-
 		bID := fakeBlockID(1)
 		tlfID := FakeTlfID(2, false)
 		bCtx := BlockPointer{bID, 1, 1, currentUID, "", zeroBlockRefNonce}
@@ -194,5 +195,5 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 		err = b.Put(ctx, bID, tlfID, bCtx, data, serverHalf)
 		return err
 	}
-	testWithCanceledContext(t, context.Background(), readyChan, f)
+	testRPCWithCanceledContext(t, serverConn, f)
 }

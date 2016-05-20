@@ -15,52 +15,34 @@ import (
 	"golang.org/x/net/context"
 )
 
-type blockingClient struct {
-	ctlChan chan struct{}
-}
-
-var _ rpc.GenericClient = blockingClient{}
-
-func (b blockingClient) Call(ctx context.Context, s string, args interface{},
-	res interface{}) error {
-	// Say we're ready, and wait for cancellation.
-	b.ctlChan <- struct{}{}
-	<-ctx.Done()
-	return ctx.Err()
-}
-
-func (b blockingClient) Notify(ctx context.Context, s string, args interface{}) error {
-	return nil
-}
-
-func newKeybaseDaemonRPCWithFakeClient(t *testing.T) (
-	*KeybaseDaemonRPC, chan struct{}) {
-	ctlChan := make(chan struct{})
-	c := newKeybaseDaemonRPCWithClient(
-		nil,
-		blockingClient{ctlChan},
-		logger.NewTestLogger(t))
-	return c, ctlChan
-}
-
 // If we cancel the RPC before the RPC returns, the call should error quickly.
 func TestKeybaseDaemonRPCIdentifyCanceled(t *testing.T) {
-	c, ctlChan := newKeybaseDaemonRPCWithFakeClient(t)
+	serverConn, conn := rpc.MakeConnectionForTest(t)
+	daemon := newKeybaseDaemonRPCWithClient(
+		nil,
+		conn.GetClient(),
+		logger.NewTestLogger(t))
+
 	f := func(ctx context.Context) error {
-		_, err := c.Identify(ctx, "", "")
+		_, err := daemon.Identify(ctx, "", "")
 		return err
 	}
-	testWithCanceledContext(t, context.Background(), ctlChan, f)
+	testRPCWithCanceledContext(t, serverConn, f)
 }
 
 // If we cancel the RPC before the RPC returns, the call should error quickly.
 func TestKeybaseDaemonRPCGetCurrentSessionCanceled(t *testing.T) {
-	c, ctlChan := newKeybaseDaemonRPCWithFakeClient(t)
+	serverConn, conn := rpc.MakeConnectionForTest(t)
+	daemon := newKeybaseDaemonRPCWithClient(
+		nil,
+		conn.GetClient(),
+		logger.NewTestLogger(t))
+
 	f := func(ctx context.Context) error {
-		_, err := c.CurrentSession(ctx, 0)
+		_, err := daemon.CurrentSession(ctx, 0)
 		return err
 	}
-	testWithCanceledContext(t, context.Background(), ctlChan, f)
+	testRPCWithCanceledContext(t, serverConn, f)
 }
 
 // TODO: Add tests for Favorite* methods, too.

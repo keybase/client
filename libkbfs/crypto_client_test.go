@@ -6,6 +6,7 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/crypto/nacl/box"
 	"golang.org/x/net/context"
 )
@@ -157,19 +158,16 @@ func TestCryptoClientSignAndVerify(t *testing.T) {
 
 // Test that canceling a signing RPC returns the correct error
 func TestCryptoClientSignCanceled(t *testing.T) {
-	signingKey := MakeFakeSigningKeyOrBust("client sign")
-	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
 	config := testCryptoClientConfig(t)
-	ctlChan := make(chan struct{})
-	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, ctlChan, nil)
-	c := newCryptoClientWithClient(config, cancelableClient{fc})
+	serverConn, conn := rpc.MakeConnectionForTest(t)
+	c := newCryptoClientWithClient(config, conn.GetClient())
 
 	f := func(ctx context.Context) error {
 		msg := []byte("message")
 		_, err := c.Sign(ctx, msg)
 		return err
 	}
-	testWithCanceledContext(t, context.Background(), ctlChan, f)
+	testRPCWithCanceledContext(t, serverConn, f)
 }
 
 // Test that decrypting an TLF crypt key client half encrypted with
@@ -529,12 +527,10 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfFailures(t *testing.T) {
 
 // Test that canceling a signing RPC returns the correct error
 func TestCryptoClientDecryptTLFCryptKeyClientHalfCanceled(t *testing.T) {
-	signingKey := MakeFakeSigningKeyOrBust("client sign")
 	cryptPrivateKey := MakeFakeCryptPrivateKeyOrBust("client crypt private")
 	config := testCryptoClientConfig(t)
-	ctlChan := make(chan struct{})
-	fc := NewFakeCryptoClient(config, signingKey, cryptPrivateKey, ctlChan, nil)
-	c := newCryptoClientWithClient(config, cancelableClient{fc})
+	serverConn, conn := rpc.MakeConnectionForTest(t)
+	c := newCryptoClientWithClient(config, conn.GetClient())
 
 	_, _, ephPublicKey, ephPrivateKey, cryptKey, err := c.MakeRandomTLFKeys()
 	if err != nil {
@@ -561,5 +557,5 @@ func TestCryptoClientDecryptTLFCryptKeyClientHalfCanceled(t *testing.T) {
 			encryptedClientHalf)
 		return err
 	}
-	testWithCanceledContext(t, context.Background(), ctlChan, f)
+	testRPCWithCanceledContext(t, serverConn, f)
 }

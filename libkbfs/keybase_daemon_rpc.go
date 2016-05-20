@@ -381,7 +381,7 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 
 	// Using conn.GetClient() here would cause problematic
 	// recursion.
-	c := keybase1.NotifyCtlClient{Cli: cancelableClient{rawClient}}
+	c := keybase1.NotifyCtlClient{Cli: rawClient}
 	err := c.SetNotifications(ctx, keybase1.NotificationChannels{
 		Session: true,
 		Users:   true,
@@ -392,7 +392,7 @@ func (k *KeybaseDaemonRPC) OnConnect(ctx context.Context,
 
 	// Introduce ourselves. TODO: move this to SharedKeybaseConnection
 	// somehow?
-	configClient := keybase1.ConfigClient{Cli: cancelableClient{rawClient}}
+	configClient := keybase1.ConfigClient{Cli: rawClient}
 	err = configClient.HelloIAm(ctx, keybase1.ClientDetails{
 		Pid:        os.Getpid(),
 		ClientType: keybase1.ClientType_KBFS,
