@@ -5,7 +5,6 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"os/signal"
 	"runtime"
@@ -45,13 +44,11 @@ func main() {
 	}
 
 	defer func() {
-		runtime.GC()
-		runtime.GC()
-		runtime.GC()
 		if len(memprofile) > 0 {
 			f, err := os.Create(memprofile)
 			if err != nil {
-				log.Fatal(err)
+				fmt.Println(err)
+				os.Exit(1)
 			}
 			pprof.WriteHeapProfile(f)
 			f.Close()
@@ -62,7 +59,8 @@ func main() {
 	if len(cpuprofile) > 0 {
 		f, err := os.Create(cpuprofile)
 		if err != nil {
-			log.Fatal(err)
+			fmt.Println(err)
+			os.Exit(1)
 		}
 		pprof.StartCPUProfile(f)
 		defer pprof.StopCPUProfile()
