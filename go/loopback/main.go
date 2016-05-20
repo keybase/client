@@ -35,11 +35,18 @@ func Init(homeDir string, runModeStr string, serverURI string, accessGroupOverri
 		if err != nil {
 			panic(err)
 		}
+
 		service := (service.NewService(g, false))
 		service.StartLoopbackServer()
 		service.G().SetService()
+
 		Reset()
 	})
+}
+
+// LogSend sends a log to kb
+func LogSend(uiLogPath string) (string, error) {
+	return "TODO", nil
 }
 
 // WriteB64 Takes base64 encoded msgpack rpc payload

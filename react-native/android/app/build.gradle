@@ -156,6 +156,12 @@ dependencies {
     compile "com.facebook.react:react-native:+"  // From node_modules
     compile project(':ReactNativeBarcodescanner')
     compile project(':RNPermissionsModule')
+    compile 'org.slf4j:slf4j-api:1.7.21'
+    compile 'com.github.tony19:logback-android-core:1.1.1-5'
+    compile('com.github.tony19:logback-android-classic:1.1.1-5') {
+        // workaround issue https://github.com/tony19/logback-android/issues/73
+        exclude group: 'com.google.android', module: 'android'
+    }
     debugCompile 'com.hanhuy.android:viewserver:1.0.3'
     compile project(':keybaselib')
     testCompile 'junit:junit:4.12'

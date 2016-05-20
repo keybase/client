@@ -6,6 +6,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.util.Log;
 import android.view.KeyEvent;
 
 import com.burnweb.rnpermissions.RNPermissionsPackage;
@@ -15,6 +16,7 @@ import com.facebook.react.ReactInstanceManager;
 import com.facebook.react.ReactRootView;
 import com.facebook.react.shell.MainReactPackage;
 
+import java.io.File;
 import java.io.IOException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -25,6 +27,7 @@ import java.util.List;
 import go.keybase.Keybase;
 
 import static go.keybase.Keybase.Init;
+import static go.keybase.Keybase.LogSend;
 
 public class MainActivity extends ReactActivity {
 
@@ -32,6 +35,7 @@ public class MainActivity extends ReactActivity {
 
     private ReactInstanceManager mReactInstanceManager;
     private ReactRootView mReactRootView;
+    private File logFile;
 
     /**
      * Returns the name of the main component registered from JavaScript.
@@ -55,7 +59,7 @@ public class MainActivity extends ReactActivity {
     @Override
     @TargetApi(Build.VERSION_CODES.KITKAT)
     protected void onCreate(Bundle savedInstanceState) {
-
+        logFile = this.getFileStreamPath("android.log");
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M && !Settings.canDrawOverlays(this) && this.getUseDeveloperSupport()) {
             Intent intent = new Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
               Uri.parse("package:" + getPackageName()));
@@ -76,6 +80,12 @@ public class MainActivity extends ReactActivity {
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         if (BuildConfig.DEBUG && keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+            try {
+                final String id = LogSend(logFile.getAbsolutePath());
+                Log.d(TAG, "LOG id is: " + id);
+            } catch (Exception e) {
+                Log.d(TAG, "Error in log sending:", e);
+            }
             return super.onKeyUp(KeyEvent.KEYCODE_MENU, null);
         }
         return super.onKeyUp(keyCode, event);
@@ -87,7 +97,7 @@ public class MainActivity extends ReactActivity {
           new MainReactPackage(),
           new BarcodeScanner(),
           new RNPermissionsPackage(),
-          new KBReactPackage());
+          new KBReactPackage(logFile.getAbsolutePath()));
     }
 
     // For dealing with permissions using RNPermissionsPackage

@@ -2,7 +2,7 @@ import React, {Component} from 'react'
 import {Text, View, StyleSheet} from 'react-native'
 import commonStyles from '../styles/common'
 
-export default class ChatRender extends Component {
+export default class Render extends Component {
   render () {
     return (
       <View style={styles.container}>
