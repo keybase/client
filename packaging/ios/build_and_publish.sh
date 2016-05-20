@@ -30,13 +30,14 @@ cd $ios_dir
 cleanup() {
   cd $client_dir
   git co .
+  pkill -P $rn_packager_pid
 }
 
-err_cleanup() {
-  cleanup
-}
+trap 'cleanup' ERR
 
-trap 'err_cleanup' ERR
+RN_DIR="$rn_dir" "$client_dir/packaging/manage_react_native_packager.sh" &
+rn_packager_pid=$!
+
 
 fastlane ios beta
 cleanup
