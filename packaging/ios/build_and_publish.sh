@@ -33,13 +33,9 @@ cleanup() {
   pkill -P $rn_packager_pid
 }
 
-err_cleanup() {
-  cleanup
-}
-
 trap 'cleanup' ERR
 
-RN_DIR="$rn_dir" $client_dir/packaging/manage_react_native_packager.sh &
+RN_DIR="$rn_dir" "$client_dir/packaging/manage_react_native_packager.sh" &
 rn_packager_pid=$!
 
 
