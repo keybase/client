@@ -29,7 +29,7 @@ script:
       cd shared && npm i -g flow-bin@`tail -n1 .flowconfig` && flow &&
       cd ../desktop && npm run setup-ci-tools && npm run setup-dev-tools &&
       cd .. && eslint . &&
-      cd desktop && npm install octonode && npm install && npm run visdiff -- "$TRAVIS_COMMIT_RANGE" &&
+      cd desktop && ../packaging/npm_mess.sh && npm install octonode && npm run visdiff -- "$TRAVIS_COMMIT_RANGE" &&
       cd ../protocol && ./diff_test.sh &&
       docker login -e "$CI_EMAIL" -u "$CI_USER" -p "$CI_PASS" "$CI_HOST" &&
       docker pull $CI_HOST/kbweb &&
