@@ -97,6 +97,12 @@ func (e *DeviceWrap) Run(ctx *Context) error {
 	e.signingKey = kgEng.SigningKey()
 	e.encryptionKey = kgEng.EncryptionKey()
 
+	if ctx.LoginContext != nil {
+		// cache the secret keys
+		ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceSigningKeyType}, e.signingKey)
+		ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceEncryptionKeyType}, e.encryptionKey)
+	}
+
 	return nil
 }
 
