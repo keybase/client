@@ -78,7 +78,8 @@ class Render extends Component<void, Props, State> {
 }
 
 const stylesScrollContainer = {
-  overflow: 'auto'
+  overflowY: 'auto',
+  overflowX: 'hidden'
 }
 
 const stylesContainer = {
