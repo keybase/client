@@ -286,6 +286,7 @@ func (d *Service) gregordConnect() error {
 	}
 
 	d.gregor = newGregorHandler(d.G())
+	d.G().GregorDismisser = d.gregor
 	return d.gregor.Connect(uri)
 }
 

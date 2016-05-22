@@ -79,6 +79,7 @@ type GlobalContext struct {
 	hookMu              sync.RWMutex        // protects loginHooks, logoutHooks
 	loginHooks          []LoginHook         // call these on login
 	logoutHooks         []LogoutHook        // call these on logout
+	GregorDismisser     GregorDismisser     // for dismissing gregor items that we've handled
 }
 
 func NewGlobalContext() *GlobalContext {

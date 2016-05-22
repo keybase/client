@@ -27,6 +27,8 @@ type gregorHandler struct {
 	itemsByID        map[string]gregor.Item
 }
 
+var _ libkb.GregorDismisser = (*gregorHandler)(nil)
+
 func newGregorHandler(g *libkb.GlobalContext) *gregorHandler {
 	return &gregorHandler{
 		Contextified: libkb.NewContextified(g),
@@ -372,4 +374,19 @@ func (g *gregorHandler) connectNoTLS(uri *fmpURI) error {
 	t := newConnTransport(g.G(), uri.HostPort)
 	g.conn = rpc.NewConnectionWithTransport(g, t, keybase1.ErrorUnwrapper{}, true, keybase1.WrapError, g.G().Log, nil)
 	return nil
+}
+
+func (g *gregorHandler) DismissItem(id gregor.MsgID) error {
+	idStruct := gregor1.MsgID(id.Bytes())
+	dismissal := gregor1.Message{
+		Ibm_: &gregor1.InBandMessage{
+			StateUpdate_: &gregor1.StateUpdateMessage{
+				Dismissal_: &gregor1.Dismissal{
+					MsgIDs_: []gregor1.MsgID{idStruct},
+				},
+			},
+		},
+	}
+	// TODO: Should the interface take a context from the caller?
+	return g.BroadcastMessage(context.TODO(), dismissal)
 }
