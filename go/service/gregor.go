@@ -3,6 +3,7 @@ package service
 import (
 	"bytes"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"sync"
@@ -536,6 +537,39 @@ func (h IdentifyUIHandler) handleShowTrackerPopupDismiss(ctx context.Context, it
 	identifyUI.Dismiss(user.GetName(), reason)
 
 	return nil
+}
+
+func (g *gregorHandler) handleRekeyNeeded(ctx context.Context, item gregor.Item) error {
+	if item.Body() == nil {
+		return errors.New("gregor handler for kbfs_tlf_rekey_needed: nil message body")
+	}
+
+	type TLFRekeyScore struct {
+		tlf        string
+		name       string
+		score      int
+		saviorKeys []string
+	}
+	var scores []TLFRekeyScore
+
+	fmt.Printf("metadata: %+v\n", item.Metadata())
+	if g.G().Clock.Now().Sub(item.Metadata().CTime()) > 10*time.Second {
+		// if the message isn't fresh, get:
+		// scores = scoreProblemFolders(tlfs, u, v) via JSON API endpoint
+		return errors.New("getting score for stale message not implemented")
+	}
+
+	if err := json.Unmarshal(item.Body().Bytes(), &scores); err != nil {
+		return err
+	}
+
+	// if the scores list is empty, dismiss the gregor notification
+	if len(scores) == 0 {
+		g.G().Log.Debug("scores list empty, dismissing gregor notification")
+		return errors.New("dismiss not implemented")
+	}
+
+	return errors.New("rekey not implemented")
 }
 
 func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.OutOfBandMessage) error {
