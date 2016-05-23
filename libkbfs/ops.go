@@ -545,8 +545,12 @@ func replaceNextWrites(i int, newWrites []WriteRange,
 // dirty state of this file after this syncOp, given a previous write
 // range.  It coalesces overlapping dirty writes, and it erases any
 // writes that occurred before a truncation with an offset smaller
-// than its max dirty byte.  It assumes that `writes` has already been
-// collapsed (or is nil).
+// than its max dirty byte.  The resulting collapsed write range is a
+// sequence of non-overlapping writes with strictly increasing Off,
+// and maybe a trailing truncate (with strictly greater Off).
+//
+// This function assumes that `writes` has already been collapsed (or
+// is nil).
 func (so *syncOp) collapseWriteRange(writes []WriteRange) (
 	newWrites []WriteRange) {
 	newWrites = writes
@@ -556,8 +560,8 @@ outer:
 			// Eliminate all writes that happen later
 			for i, wOld := range newWrites {
 				if wOld.isTruncate() && wNew.Off < wOld.Off {
-					// This is the new min truncation; kill all later
-					// writes.
+					// This is the new min truncation; it replaces the
+					// existing truncate as the final operation.
 					newWrites = append(newWrites[:i], wNew)
 					continue outer
 				} else if wOld.isTruncate() {
