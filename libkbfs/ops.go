@@ -411,6 +411,30 @@ func (w WriteRange) End() uint64 {
 	return w.Off + w.Len
 }
 
+// Affects returns true if the regions affected by this write
+// operation and `other` overlap in some way.  Specifically, it
+// returns true if:
+//
+// - both operations are writes and their write ranges overlap;
+// - one operation is a write and one is a truncate, and the truncate is
+//   in the write's range; or
+// - both operations are truncates.
+func (w WriteRange) Affects(other WriteRange) bool {
+	if w.isTruncate() {
+		if other.isTruncate() {
+			return true
+		}
+		// A write affects a truncate if any part of it comes after
+		// the truncate.
+		return other.End() > w.Off
+	} else if other.isTruncate() {
+		return w.End() > other.Off
+	}
+	// Both are writes -- do their ranges overlap?
+	return (w.Off <= other.End() && other.End() <= w.End()) ||
+		(other.Off <= w.End() && w.End() <= other.End())
+}
+
 // syncOp is an op that represents a series of writes to a file.
 type syncOp struct {
 	OpCommon
@@ -503,42 +527,93 @@ func (so *syncOp) GetDefaultAction(mergedPath path) crAction {
 	}
 }
 
-// replaceNextWrites inserts the given `wNew` at position `i` in (a
-// copy of) `newWrites`, merging it together with the existing set of
-// writes that start at position `i`.  For example, if the new write
-// is {5, 100}, and newWrites[i]-newWrites[i+2] = [{7,5}, {18,10},
-// {98,10}], the returned write at position `i` will be {5,103}, and
-// writes i+1 and i+2 will be snipped from the returned slice.
-func replaceNextWrites(i int, newWrites []WriteRange,
+// coalesceWrites combines the given `wNew` with the head and tail of
+// the given `existingWrites` slice.  For example, if the new write is
+// {5, 100}, and `existingWrites` = [{7,5}, {18,10}, {98,10}], the
+// returned write will be {5,103}.  There may be a truncate at the end
+// of the returned slice as well.
+func coalesceWrites(existingWrites []WriteRange,
 	wNew WriteRange) []WriteRange {
-	// Find the index of the last old write that gets
-	// consumed by this write
-	var j int
-	for j = i + 1; j < len(newWrites); j++ {
-		if wNew.End() < newWrites[j].Off {
+	if wNew.isTruncate() {
+		panic("coalesceWrites cannot be called with a new truncate.")
+	}
+	if len(existingWrites) == 0 {
+		return []WriteRange{wNew}
+	}
+	w := existingWrites[0]
+	wOldTail := existingWrites[len(existingWrites)-1]
+	newEnd := wNew.End()
+	if !wOldTail.isTruncate() && wOldTail.End() > newEnd {
+		newEnd = wOldTail.End()
+	}
+	if wNew.Off < w.Off || w.isTruncate() {
+		w.Off = wNew.Off
+	}
+	w.Len = newEnd - w.Off
+	ret := []WriteRange{w}
+	if wOldTail.isTruncate() {
+		wOldTail.Off = newEnd
+		ret = append(ret, wOldTail)
+	}
+	return ret
+}
+
+// Assumes writes is already collapsed, i.e. a sequence of
+// non-overlapping writes with strictly increasing Off, and maybe a
+// trailing truncate (with strictly greater Off).
+func addToCollapsedWriteRange(writes []WriteRange,
+	wNew WriteRange) []WriteRange {
+	// Form three regions: head, mid, and tail: head is the maximal prefix
+	// of writes less than (with respect to Off) and unaffected by wNew,
+	// tail is the maximal suffix of writes greater than (with respect to
+	// Off) and unaffected by wNew, and mid is everything else, i.e. the
+	// range of writes affected by wNew.
+	var headEnd int
+	for ; headEnd < len(writes); headEnd++ {
+		wOld := writes[headEnd]
+		if wOld.Off >= wNew.Off || wNew.Affects(wOld) {
 			break
 		}
 	}
-	j--
-	wOld := newWrites[j]
-	newEnd := wNew.End()
-	if !wOld.isTruncate() && wOld.End() > newEnd {
-		newEnd = wOld.End()
-	}
-	if wNew.Off < newWrites[i].Off {
-		newWrites[i].Off = wNew.Off
-	}
-	// This write extends the next existing (j-i) writes
-	newWrites[i].Len = newEnd - newWrites[i].Off
-	if j > i {
-		newWrites = append(newWrites[:i+1], newWrites[j+1:]...)
-	}
-	if wOld.isTruncate() {
-		wOld.Off = newEnd
-		newWrites = append(newWrites, wOld)
+	head := writes[:headEnd]
+
+	if wNew.isTruncate() {
+		// end is empty, since a truncate affects a suffix of writes.
+		mid := writes[headEnd:]
+
+		if len(mid) == 0 {
+			// Truncate past the last write.
+			return append(head, wNew)
+		}
+		if mid[0].isTruncate() {
+			// Min truncate wins
+			if mid[0].Off < wNew.Off {
+				return append(head, mid[0])
+			}
+			return append(head, wNew)
+		} else if mid[0].Off < wNew.Off {
+			return append(head, WriteRange{
+				Off: mid[0].Off,
+				Len: wNew.Off - mid[0].Off,
+			}, wNew)
+		}
+		return append(head, wNew)
 	}
 
-	return newWrites
+	// wNew is a write.
+
+	midEnd := headEnd
+	for ; midEnd < len(writes); midEnd++ {
+		wOld := writes[midEnd]
+		if !wNew.Affects(wOld) {
+			break
+		}
+	}
+
+	mid := writes[headEnd:midEnd]
+	end := writes[midEnd:]
+	mid = coalesceWrites(mid, wNew)
+	return append(head, append(mid, end...)...)
 }
 
 // collapseWriteRange returns a set of writes that represent the final
@@ -554,72 +629,8 @@ func replaceNextWrites(i int, newWrites []WriteRange,
 func (so *syncOp) collapseWriteRange(writes []WriteRange) (
 	newWrites []WriteRange) {
 	newWrites = writes
-outer:
 	for _, wNew := range so.Writes {
-		if wNew.isTruncate() {
-			// Eliminate all writes that happen later
-			for i, wOld := range newWrites {
-				if wOld.isTruncate() && wNew.Off < wOld.Off {
-					// This is the new min truncation; it replaces the
-					// existing truncate as the final operation.
-					newWrites = append(newWrites[:i], wNew)
-					continue outer
-				} else if wOld.isTruncate() {
-					// There's an earlier truncate, making this new
-					// one useless.
-					continue outer
-				} else if wNew.Off < wOld.End() {
-					// This is a truncation that cuts off at least
-					// part of this write.
-					if wNew.Off > wOld.Off {
-						// Cuts off an existing write range
-						newWrites[i].Len = wNew.Off - wOld.Off
-						newWrites = append(newWrites[:i+1], wNew)
-					} else {
-						// Kill all later writes
-						newWrites = append(newWrites[:i], wNew)
-					}
-					continue outer
-				}
-			}
-			// This represents the min truncation
-			newWrites = append(newWrites, wNew)
-			continue
-		}
-
-		// For regular writes
-		for i, wOld := range newWrites {
-			if wOld.isTruncate() && wOld.Off < wNew.End() {
-				// This write effectively extends the truncation range
-				// to its max dirty byte.  Insert it before the
-				// truncation, and extend the truncation.
-				wOld.Off = wNew.End()
-				newWrites = append(newWrites[:i], wNew, wOld)
-				continue outer
-			} else if wOld.isTruncate() {
-				// We've reached the end, so just insert this write
-				newWrites = append(newWrites[:i], wNew, wOld)
-				continue outer
-			} else if wNew.End() < wOld.Off {
-				// This whole write occurs before the old write
-				newWrites = append(newWrites[:i],
-					append([]WriteRange{wNew}, newWrites[i:]...)...)
-				continue outer
-			} else if wNew.Off >= wOld.Off && wNew.Off <= wOld.End() {
-				if wNew.End() > wOld.End() {
-					newWrites = replaceNextWrites(i, newWrites, wNew)
-				}
-				// Otherwise it is in the middle of the existing
-				// write, and can be dropped.
-				continue outer
-			} else if wNew.Off < wOld.Off {
-				// Either extends or overwrites the next write
-				newWrites = replaceNextWrites(i, newWrites, wNew)
-				continue outer
-			}
-		}
-		// Otherwise this is the farthest known write
-		newWrites = append(newWrites, wNew)
+		newWrites = addToCollapsedWriteRange(newWrites, wNew)
 	}
 	return newWrites
 }
