@@ -1,68 +1,11 @@
 package service
 
 import (
-	"errors"
-	"fmt"
-	"net"
-	"net/url"
-
 	"github.com/keybase/client/go/libkb"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
 	"golang.org/x/net/context"
+	"net"
 )
-
-type fmpURIScheme string
-
-const (
-	fmpSchemeStandard fmpURIScheme = "fmprpc"
-	fmpSchemeTLS      fmpURIScheme = "fmprpc+tls"
-)
-
-type fmpURI struct {
-	Scheme   fmpURIScheme
-	HostPort string
-	Host     string
-}
-
-var errInvalidFMPScheme = errors.New("invalid framed msgpack rpc scheme")
-var errNoHost = errors.New("missing host in framed msgpack rpc URI")
-
-func parseFMPURI(s string) (*fmpURI, error) {
-	uri, err := url.Parse(s)
-	if err != nil {
-		return nil, err
-	}
-
-	f := &fmpURI{HostPort: uri.Host}
-
-	switch fmpURIScheme(uri.Scheme) {
-	case fmpSchemeStandard:
-		f.Scheme = fmpSchemeStandard
-	case fmpSchemeTLS:
-		f.Scheme = fmpSchemeTLS
-	default:
-		return nil, fmt.Errorf("invalid framed msgpack rpc scheme %s", uri.Scheme)
-	}
-
-	host, _, err := net.SplitHostPort(f.HostPort)
-	if err != nil {
-		return nil, err
-	}
-	if len(host) == 0 {
-		return nil, fmt.Errorf("missing host in address %s", f.HostPort)
-	}
-	f.Host = host
-
-	return f, nil
-}
-
-func (f *fmpURI) UseTLS() bool {
-	return f.Scheme == fmpSchemeTLS
-}
-
-func (f *fmpURI) String() string {
-	return fmt.Sprintf("%s://%s", f.Scheme, f.Host)
-}
 
 // connTransport implements rpc.ConnectionTransport
 type connTransport struct {

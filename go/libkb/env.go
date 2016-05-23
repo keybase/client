@@ -71,6 +71,7 @@ func (n NullConfiguration) GetVDebugSetting() string                      { retu
 func (n NullConfiguration) GetLocalTrackMaxAge() (time.Duration, bool)    { return 0, false }
 func (n NullConfiguration) GetAppStartMode() AppStartMode                 { return AppStartModeDisabled }
 func (n NullConfiguration) GetGregorURI() string                          { return "" }
+func (n NullConfiguration) GetGregorSaveInterval() (time.Duration, bool)  { return 0, false }
 func (n NullConfiguration) IsAdmin() (bool, bool)                         { return false, false }
 
 func (n NullConfiguration) GetUserConfig() (*UserConfig, error) { return nil, nil }
@@ -495,6 +496,13 @@ func (e *Env) GetGregorURI() string {
 		func() string { return os.Getenv("GREGOR_URI") },
 		func() string { return e.config.GetGregorURI() },
 		func() string { return GregorServerLookup[e.GetRunMode()] },
+	)
+}
+
+func (e *Env) GetGregorSaveInterval() time.Duration {
+	return e.GetDuration(time.Minute,
+		func() (time.Duration, bool) { return e.getEnvDuration("GREGOR_SAVE_INTERVAL") },
+		func() (time.Duration, bool) { return e.config.GetGregorSaveInterval() },
 	)
 }
 

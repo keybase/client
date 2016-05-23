@@ -85,6 +85,11 @@ func (m Metadata) DeviceID() gregor.DeviceID {
 }
 func (m Metadata) InBandMsgType() gregor.InBandMsgType { return gregor.InBandMsgType(m.InBandMsgType_) }
 
+func (m Metadata) String() string {
+	return fmt.Sprintf("[ CTime: %s Type: %s ID: %s UID: %s ]", m.CTime(),
+		m.InBandMsgType(), m.MsgID(), m.UID())
+}
+
 func (i ItemAndMetadata) Metadata() gregor.Metadata {
 	if i.Md_ == nil {
 		return nil
@@ -116,6 +121,16 @@ func (i ItemAndMetadata) RemindTimes() []gregor.TimeOrOffset {
 		ret = append(ret, t)
 	}
 	return ret
+}
+
+func (i ItemAndMetadata) String() string {
+	rts := "[ "
+	for _, rt := range i.RemindTimes() {
+		rts += fmt.Sprintf("[%s,%s]", rt.Time(), rt.Offset())
+	}
+	rts += "]"
+	return fmt.Sprintf("MD: %s Cat: %s DTime: %s RTs: %s Body: %s", i.Metadata(),
+		i.Category(), i.DTime(), rts, i.Body())
 }
 
 func (s StateUpdateMessage) Metadata() gregor.Metadata { return s.Md_ }
@@ -214,6 +229,12 @@ func (m Message) ToOutOfBandMessage() gregor.OutOfBandMessage {
 		return nil
 	}
 	return *m.Oobm_
+}
+
+func (m *Message) SetCTime(ctime time.Time) {
+	if m.Ibm_ != nil && m.Ibm_.StateUpdate_ != nil {
+		m.Ibm_.StateUpdate_.Md_.Ctime_ = ToTime(ctime)
+	}
 }
 
 func (r Reminder) Item() gregor.Item     { return r.Item_ }

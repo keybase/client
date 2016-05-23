@@ -146,6 +146,7 @@ type ConfigReader interface {
 	GetAPITimeout() (time.Duration, bool)
 	GetSecurityAccessGroupOverride() (bool, bool)
 	GetGregorURI() string
+	GetGregorSaveInterval() (time.Duration, bool)
 
 	GetUpdatePreferenceAuto() (bool, bool)
 	GetUpdatePreferenceSkip() string
