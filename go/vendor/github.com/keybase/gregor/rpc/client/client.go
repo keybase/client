@@ -133,7 +133,7 @@ func (c *Client) Sync(cli gregor1.IncomingInterface) error {
 	return nil
 }
 
-func (c *Client) ConsumeMessage(m gregor1.Message) error {
+func (c *Client) StateMachineConsumeMessage(m gregor1.Message) error {
 	if _, err := c.sm.ConsumeMessage(m); err != nil {
 		return err
 	}
@@ -149,10 +149,10 @@ func (c *Client) ConsumeMessage(m gregor1.Message) error {
 	return nil
 }
 
-func (c *Client) LatestCTime() *time.Time {
+func (c *Client) StateMachineLatestCTime() *time.Time {
 	return c.sm.LatestCTime(c.user, c.device)
 }
 
-func (c *Client) InBandMessagesSince(t time.Time) ([]gregor.InBandMessage, error) {
+func (c *Client) StateMachineInBandMessagesSince(t time.Time) ([]gregor.InBandMessage, error) {
 	return c.sm.InBandMessagesSince(c.user, c.device, t)
 }

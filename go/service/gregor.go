@@ -136,7 +136,7 @@ func (g *gregorHandler) reSync(ctx context.Context, cli gregor1.IncomingInterfac
 	// Get time of the last message we synced (unless this is our first time syncing)
 	var t time.Time
 	if !g.freshSync {
-		pt := g.gregorCli.LatestCTime()
+		pt := g.gregorCli.StateMachineLatestCTime()
 		if pt != nil {
 			t = *pt
 		}
@@ -152,7 +152,7 @@ func (g *gregorHandler) reSync(ctx context.Context, cli gregor1.IncomingInterfac
 
 	// Replay in-band messages
 	var msgs []gregor.InBandMessage
-	if msgs, err = g.gregorCli.InBandMessagesSince(t); err != nil {
+	if msgs, err = g.gregorCli.StateMachineInBandMessagesSince(t); err != nil {
 		g.G().Log.Errorf("gregor handler: unable to fetch messages for reply: %s", err)
 		return err
 	}
@@ -175,6 +175,8 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection, cli
 		return err
 	}
 
+	// Use the client parameter instead of conn.GetClient(), since we can get stuck
+	// in a recursive loop if we keep retrying on reconnect.
 	if err := g.auth(ctx, cli); err != nil {
 		g.G().Log.Error("gregor handler: auth error!")
 		return err
@@ -225,7 +227,7 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 	g.G().Log.Debug("gregor handler: broadcast: %+v", m)
 
 	// Send message to local state machine
-	g.gregorCli.ConsumeMessage(m)
+	g.gregorCli.StateMachineConsumeMessage(m)
 
 	// Handle the message
 	ibm := m.ToInBandMessage()
@@ -239,7 +241,7 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 	}
 
 	g.G().Log.Error("gregor handler: both in-band and out-of-band message nil")
-	return errors.New("invalid message")
+	return errors.New("invalid gregor message")
 }
 
 func (g *gregorHandler) handleInBandMessage(ctx context.Context, ibm gregor.InBandMessage) error {
@@ -499,6 +501,12 @@ func (g *gregorHandler) connectTLS(uri *rpc.FMPURI) error {
 		return fmt.Errorf("No bundled CA for %s", uri.Host)
 	}
 	g.conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), keybase1.ErrorUnwrapper{}, g, true, libkb.NewRPCLogFactory(g.G()), keybase1.WrapError, g.G().Log, nil)
+
+	// The client we get here will reconnect to gregord on disconnect if necessary.
+	// We should grab it here instead of in OnConnect, since the connection is not
+	// fully established in OnConnect. Anything that wants to make calls outside
+	// of OnConnect should use g.cli, everything else should the client that is
+	// a paramater to OnConnect
 	g.cli = g.conn.GetClient()
 
 	return nil
