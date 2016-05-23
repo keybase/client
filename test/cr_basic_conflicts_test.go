@@ -1131,3 +1131,33 @@ func TestCrBothTruncateFileDifferentSizes(t *testing.T) {
 		),
 	)
 }
+
+// alice and bob both truncate the same file to different sizes, after
+// truncating to the same size
+func TestCrBothTruncateFileDifferentSizesAfterSameSize(t *testing.T) {
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkfile("a/b", "hello"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			truncate("a/b", 0),
+		),
+		as(bob, noSync(),
+			truncate("a/b", 0),
+			truncate("a/b", 3),
+			reenableUpdates(),
+			lsdir("a/", m{"b$": "FILE", crnameEsc("b", bob): "FILE"}),
+			read("a/b", ""),
+			read(crname("a/b", bob), string(make([]byte, 3))),
+		),
+		as(alice,
+			lsdir("a/", m{"b$": "FILE", crnameEsc("b", bob): "FILE"}),
+			read("a/b", ""),
+			read(crname("a/b", bob), string(make([]byte, 3))),
+		),
+	)
+}
