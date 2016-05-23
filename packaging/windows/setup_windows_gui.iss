@@ -21,7 +21,7 @@
 #define MyGoArch GetEnv('GOARCH')
 
 #ifndef NewDokanVersion
-#define NewDokanVersion ""
+#define NewDokanVersion "0.8.0"
 #endif
 
 [Setup]
@@ -263,8 +263,6 @@ end;
 
  
 procedure CurStepChanged(CurStep: TSetupStep);
-var
-  ResultCode: Integer;
 
 begin
   if  CurStep=ssPostInstall then
@@ -273,6 +271,17 @@ begin
     end
 end;
 
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
+
+begin
+  if  CurUninstallStep=usDone then
+    begin
+      if FileExists(ExpandConstant('{sys}\drivers\dokan.sys')) then
+        RestartReplace(ExpandConstant('{sys}\drivers\dokan.sys'), '');
+      if FileExists(ExpandConstant('{sys}\drivers\dokan1.sys')) then
+        RestartReplace(ExpandConstant('{sys}\drivers\dokan1.sys'), '');
+    end;
+end;
 
 function IsDokanBeingInstalled(): Boolean;
 var
