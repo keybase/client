@@ -378,9 +378,21 @@ func (g *gregorHandler) connectNoTLS(uri *fmpURI) error {
 
 func (g *gregorHandler) DismissItem(id gregor.MsgID) error {
 	idStruct := gregor1.MsgID(id.Bytes())
+	uid := g.G().Env.GetUID()
+	if uid.IsNil() {
+		return fmt.Errorf("Can't dismiss gregor items without a current UID.")
+	}
+	msgID, randErr := libkb.RandBytes(16) // TODO: Create a shared function for this.
+	if randErr != nil {
+		return randErr
+	}
 	dismissal := gregor1.Message{
 		Ibm_: &gregor1.InBandMessage{
 			StateUpdate_: &gregor1.StateUpdateMessage{
+				Md_: gregor1.Metadata{
+					Uid_:   gregor1.UID(uid),
+					MsgID_: msgID,
+				},
 				Dismissal_: &gregor1.Dismissal{
 					MsgIDs_: []gregor1.MsgID{idStruct},
 				},
