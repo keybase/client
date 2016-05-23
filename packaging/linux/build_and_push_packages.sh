@@ -105,6 +105,13 @@ release_prerelease() {
     s3cmd cp "$blob" "s3://$BUCKET_NAME/linux_binaries/rpm/"
   done
 
+  # Make yet another copy of the .deb and .rpm packages we just made, in a
+  # constant location for the friend-of-keybase instructions.
+  s3cmd put --follow-symlinks "$build_dir/deb_repo/keybase-latest-amd64.deb" "s3://$BUCKET_NAME/keybase_amd64.deb"
+  s3cmd put --follow-symlinks "$build_dir/deb_repo/keybase-latest-i386.deb" "s3://$BUCKET_NAME/keybase_i386.deb"
+  s3cmd put --follow-symlinks "$build_dir/rpm_repo/keybase-latest-x86_64.rpm" "s3://$BUCKET_NAME/keybase_amd64.rpm"
+  s3cmd put --follow-symlinks "$build_dir/rpm_repo/keybase-latest-i386.rpm" "s3://$BUCKET_NAME/keybase_i386.rpm"
+
   json_tmp=`mktemp`
   echo "Writing version into JSON to $json_tmp"
 
