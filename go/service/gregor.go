@@ -566,7 +566,7 @@ func (g *gregorHandler) handleRekeyNeeded(ctx context.Context, item gregor.Item)
 	// if the scores list is empty, dismiss the gregor notification
 	if len(scores) == 0 {
 		g.G().Log.Debug("scores list empty, dismissing gregor notification")
-		return errors.New("dismiss not implemented")
+		return g.DismissItem(item.Metadata().MsgID())
 	}
 
 	return errors.New("rekey not implemented")

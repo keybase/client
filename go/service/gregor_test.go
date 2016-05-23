@@ -461,6 +461,10 @@ func TestRekeyNeededMessageNoScores(t *testing.T) {
 
 	tc.G.SetService()
 
+	kbUID := keybase1.MakeTestUID(1)
+	gUID := gregor1.UID(kbUID.ToBytes())
+	tc.G.Env.GetConfigWriter().SetUserConfig(libkb.NewUserConfig(kbUID, "", nil, ""), true)
+
 	h := newGregorHandler(tc.G)
 
 	msgID := gregor1.MsgID("my_random_id")
@@ -470,6 +474,7 @@ func TestRekeyNeededMessageNoScores(t *testing.T) {
 				Md_: gregor1.Metadata{
 					MsgID_: msgID,
 					Ctime_: gregor1.ToTime(tc.G.Clock.Now()),
+					Uid_:   gUID,
 				},
 				Creation_: &gregor1.Item{
 					Category_: gregor1.Category("kbfs_tlf_rekey_needed"),
