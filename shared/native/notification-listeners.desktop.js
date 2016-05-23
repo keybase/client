@@ -34,7 +34,8 @@ export default function (dispatch: Dispatch, getState: () => Object, notify: any
       response.result()
     },
     'keybase.1.NotifySession.clientOutOfDate': ({upgradeTo, upgradeURI, upgradeMsg}) => {
-      NotifyPopup('Client out of date!', {body: upgradeMsg})
+      const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
+      NotifyPopup('Client out of date!', {body})
     },
     'keybase.1.NotifyFS.FSActivity': ({notification}) => {
       kbfsNotification(notification, notify, getState)
