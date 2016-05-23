@@ -102,7 +102,8 @@ func newGregorClient(g *libkb.GlobalContext) (*grclient.Client, error) {
 	}
 
 	// Create client object
-	gcli := grclient.NewClient(guid, gdid, sm, newLocalDB(g), time.Minute, g.Log)
+	gcli := grclient.NewClient(guid, gdid, sm, newLocalDB(g),
+		g.Env.GetGregorSaveInterval(), g.Log)
 
 	// Bring up local state
 	g.Log.Debug("gregor handler: restoring state from leveldb")
