@@ -3,7 +3,7 @@
 import React from 'react'
 
 import Checkbox from './checkbox'
-import {TabBar, Text, Avatar} from './index'
+import {Button, Box, TabBar, Text, Avatar, ListItem} from './index'
 import {TabBarButton, TabBarItem} from './tab-bar'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
@@ -71,7 +71,44 @@ const tabBarMap: DumbComponentMap<TabBar> = {
   }
 }
 
+const listItemMap: DumbComponentMap<ListItem> = {
+  component: ListItem,
+  mocks: {
+    'Small list item with button action': {
+      parentProps: {style: {border: 'solid 1px black'}},
+      type: 'Small',
+      Icon: <Box style={{height: 32, width: 32, backgroundColor: globalColors.black_20}} />,
+      Body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
+      Action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />
+    },
+    'Small list item with text action': {
+      parentProps: {style: {border: 'solid 1px black'}},
+      type: 'Small',
+      Icon: <Box style={{height: 32, width: 32, backgroundColor: globalColors.black_20}} />,
+      Body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
+      Action: <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={() => {}}>Action Jack</Text>,
+      extraRightMarginAction: true
+    },
+    'Large list item with Button': {
+      parentProps: {style: {border: 'solid 1px black'}},
+      type: 'Large',
+      Icon: <Box style={{height: 48, width: 48, backgroundColor: globalColors.black_20}} />,
+      Body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
+      Action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />
+    },
+    'Large list item with text action': {
+      parentProps: {style: {border: 'solid 1px black'}},
+      type: 'Large',
+      Icon: <Box style={{height: 48, width: 48, backgroundColor: globalColors.black_20}} />,
+      Body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
+      Action: <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={() => {}}>Action Jack</Text>,
+      extraRightMarginAction: true
+    }
+  }
+}
+
 export default {
   'Checkbox': checkboxMap,
-  TabBar: tabBarMap
+  TabBar: tabBarMap,
+  ListItem: listItemMap
 }
