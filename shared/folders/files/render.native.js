@@ -1,5 +1,6 @@
 // @flow
 import React, {Component} from 'react'
+import {ScrollView} from 'react-native'
 import {Box, Text, BackButton, Avatar, Icon} from '../../common-adapters'
 import File from './file/render'
 import {globalStyles, globalColors} from '../../styles/style-guide'
@@ -22,22 +23,32 @@ export default class Render extends Component<void, Props, void> {
     )
   }
 
-  render () {
-    const isPrivate = this.props.theme === 'private'
+  // TODO render checkerboard pattern for private mode
+  _renderHeader () {
     const menuColor = styleMenuColorThemed(this.props.theme, this.props.visiblePopupMenu)
     const backButtonColor = backButtonColorThemed[this.props.theme]
+
+    const contents = (
+      <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between', ...styleHeaderThemed[this.props.theme], height: 48}}>
+        <BackButton iconOnly onClick={this.props.onBack} style={{marginLeft: 16}} iconStyle={{color: backButtonColor}} textStyle={{color: backButtonColor}} />
+        <Icon
+          underlayColor={'transparent'}
+          style={{...styleMenu, color: menuColor, marginRight: 16}}
+          type='fa-custom-icon-hamburger'
+          onClick={this.props.onTogglePopupMenu} />
+      </Box>
+    )
+
+    return contents
+  }
+
+  render () {
+    const isPrivate = this.props.theme === 'private'
     const tlfTextStyle = styleTLFTextThemed[this.props.theme]
 
     return (
       <Box style={{...globalStyles.flexBoxColumn, position: 'relative', backgroundColor: backgroundColorThemed[this.props.theme]}}>
-        <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between', ...styleHeaderThemed[this.props.theme], height: 48}}>
-          <BackButton iconOnly onClick={this.props.onBack} style={{marginLeft: 16}} iconStyle={{color: backButtonColor}} textStyle={{color: backButtonColor}} />
-          <Icon
-            underlayColor={'transparent'}
-            style={{...styleMenu, color: menuColor, marginRight: 16}}
-            type='fa-custom-icon-hamburger'
-            onClick={this.props.onTogglePopupMenu} />
-        </Box>
+        {this._renderHeader()}
         <Box style={{...globalStyles.flexBoxColumn, ...styleTLFHeader, ...styleTLFHeaderThemed[this.props.theme]}}>
           <Box style={{...globalStyles.flexBoxRow, height: 0, justifyContent: 'center', position: 'relative', bottom: 16}}>
             {this.props.users.map(u => <Box key={u} style={{height: 32, width: 28}}><Avatar username={u} size={32} /></Box>)}
@@ -49,9 +60,9 @@ export default class Render extends Component<void, Props, void> {
             )))}
           </Box>
         </Box>
-        <Box style={{...globalStyles.flexBoxColumn}}>
-          {this.props.recentFilesSection.map(s => this._renderSection(s))}
-        </Box>
+        <ScrollView>
+            {this.props.recentFilesSection.map(s => this._renderSection(s))}
+        </ScrollView>
 
       </Box>
 
@@ -61,8 +72,7 @@ export default class Render extends Component<void, Props, void> {
 
 const styleHeaderThemed = {
   'private': {
-    backgroundColor: globalColors.darkBlue3,
-    backgroundRepeat: 'repeat'
+    backgroundColor: globalColors.darkBlue3
   },
 
   'public': {

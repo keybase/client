@@ -15,7 +15,7 @@ export type Props = {
   popupMenuItems: Array<MenuItem>,
   selfUsername: string,
   users: Array<string>,
-  showGroupIcon?: boolean,
+  showGroupIcon?: boolean, // TODO (this is not implemented, but this will show the group icon instead of user avatars)
   onBack: () => void,
   onTogglePopupMenu: () => void,
   recentFilesSection: Array<FileSection>
