@@ -30,7 +30,8 @@ export type TrackerState = {
   closed: boolean,
   hidden: boolean,
   trackToken: ?string,
-  lastTrack: ?TrackSummary
+  lastTrack: ?TrackSummary,
+  needTrackTokenDismiss: boolean
 }
 
 export type NonUserState = {
@@ -76,6 +77,7 @@ function initialTrackerState (username: string): TrackerState {
     lastTrack: null,
     trackToken: null,
     lastAction: null,
+    needTrackTokenDismiss: false,
     userInfo: {
       fullname: '', // TODO get this info,
       followersCount: -1,
@@ -156,7 +158,13 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         closed: true,
         hidden: false,
         lastAction: null,
-        shouldFollow: false // don't follow if they close x out the window
+        shouldFollow: false, // don't follow if they close x out the window
+        needTrackTokenDismiss: !state.trackToken // did we have a track token at this time?
+      }
+    case Constants.setNeedTrackTokenDismiss:
+      return {
+        ...state,
+        needTrackTokenDismiss: action.payload.needTrackTokenDismiss
       }
     case Constants.onWaiting:
       return {

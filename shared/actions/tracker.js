@@ -316,24 +316,28 @@ export function onFollow (username: string, localIgnore: bool): (dispatch: Dispa
   }
 }
 
+function _dismissWithToken (trackToken) {
+  const params : track_dismissWithToken_rpc = {
+    method: 'track.dismissWithToken',
+    param: {trackToken},
+    incomingCallMap: {},
+    callback: err => {
+      if (err) {
+        console.log('err dismissWithToken', err)
+      }
+    }
+  }
+  engine.rpc(params)
+}
+
 export function onClose (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
     const trackToken = _getTrackToken(getState, username)
 
     if (trackToken) {
-      const params : track_dismissWithToken_rpc = {
-        method: 'track.dismissWithToken',
-        param: {trackToken},
-        incomingCallMap: {},
-        callback: err => {
-          if (err) {
-            console.log('err dismissWithToken', err)
-          }
-        }
-      }
-      engine.rpc(params)
+      _dismissWithToken(trackToken)
     } else {
-      console.log(`Missing trackToken for ${username}`)
+      console.log(`Missing trackToken for ${username}, waiting...`)
     }
 
     dispatch({
@@ -459,6 +463,19 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
     reportTrackToken: ({sessionID, trackToken}) => {
       const username = sessionIDToUsername[sessionID]
       dispatch({type: Constants.updateTrackToken, payload: {username, trackToken}})
+
+      const userState = getState().tracker.trackers[username]
+      if (userState && userState.needTrackTokenDismiss) {
+        _dismissWithToken(trackToken)
+
+        dispatch({
+          type: Constants.setNeedTrackTokenDismiss,
+          payload: {
+            username,
+            needTrackTokenDismiss: false
+          }
+        })
+      }
     },
     confirm: () => {
       // our UI doesn't use this at all, keep this to not get an unhandled incoming msg warning
