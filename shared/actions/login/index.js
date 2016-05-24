@@ -4,7 +4,7 @@ import * as Constants from '../../constants/login'
 import * as CommonConstants from '../../constants/common'
 import {bindActionCreators} from 'redux'
 import {isMobile} from '../../constants/platform'
-import {navigateTo, routeAppend} from '../router'
+import {navigateTo, routeAppend, navigateUp} from '../router'
 import engine from '../../engine'
 import type {responseError} from '../../engine'
 import enums from '../../constants/types/keybase-v1'
@@ -24,6 +24,7 @@ import {devicesTab, loginTab} from '../../constants/tabs'
 import {loadDevices} from '../devices'
 import {defaultModeForDeviceRoles, qrGenerate} from './provision-helpers'
 import {bootstrap} from '../config'
+import Immutable from 'immutable'
 
 import type {DeviceType} from '../../constants/types/more'
 import type {Dispatch, GetState, AsyncAction, TypedAction} from '../../constants/types/flux'
@@ -110,7 +111,9 @@ export function login (): AsyncAction {
       onBack: () => dispatch(cancelLogin()),
       onSubmit: usernameOrEmail => {
         const deviceType: DeviceType = isMobile ? 'mobile' : 'desktop'
-        const incomingMap = makeKex2IncomingMap(dispatch, getState)
+        const onBack = response => { dispatch(cancelLogin(response)) }
+        const onProvisionerSuccess = () => { dispatch(navBasedOnLoginState()) }
+        const incomingMap = makeKex2IncomingMap(dispatch, getState, onBack, onProvisionerSuccess)
         const params : login_login_rpc = {
           ...makeWaitingHandler(dispatch),
           method: 'login.login',
@@ -363,7 +366,7 @@ export function saveInKeychainChanged (username: string, saveInKeychain: bool) :
   }
 }
 
-function askForCodePage (cb, response) : AsyncAction {
+function askForCodePage (cb, onBack) : AsyncAction {
   return dispatch => {
     const mapStateToProps = state => {
       const {
@@ -383,7 +386,7 @@ function askForCodePage (cb, response) : AsyncAction {
 
     const props = {
       mapStateToProps,
-      onBack: () => dispatch(cancelLogin(response)),
+      onBack: onBack,
       setCodePageMode: mode => dispatch(setCodePageMode(mode)),
       qrScanned: code => cb(code.data),
       setCameraBrokenMode: broken => dispatch(setCameraBrokenMode(broken)),
@@ -408,7 +411,19 @@ function cancelLogin (response: ?responseError) : AsyncAction {
   }
 }
 
-export function addANewDevice () : AsyncAction {
+export function addNewPhone () : AsyncAction {
+  return addNewDevice(Constants.codePageDeviceRoleNewPhone)
+}
+
+export function addNewComputer () : AsyncAction {
+  return addNewDevice(Constants.codePageDeviceRoleNewComputer)
+}
+
+export function addNewPaperKey () : AsyncAction {
+  return routeAppend('genPaperKey')
+}
+
+function addNewDevice (kind: DeviceRole) : AsyncAction {
   return (dispatch, getState) => {
     // We can either be a newDevice or an existingDevice.  Here in the add a
     // device flow, let's set ourselves to be a existingDevice.  If login()
@@ -419,13 +434,33 @@ export function addANewDevice () : AsyncAction {
         isMobile ? Constants.codePageDeviceRoleExistingPhone : Constants.codePageDeviceRoleExistingComputer
     })
 
-    const incomingMap = makeKex2IncomingMap(dispatch, getState)
+    const onBack = response => {
+      dispatch(loadDevices())
+      dispatch(navigateUp(devicesTab, Immutable.Map({path: 'root'})))
+      if (response) {
+        engine.cancelRPC(response, InputCancelError)
+      }
+    }
+
+    const incomingMap = makeKex2IncomingMap(dispatch, getState, onBack, onBack)
+    incomingMap['keybase.1.provisionUi.chooseDeviceType'] = ({sessionID}, response) => {
+      let deviceType = {
+        [Constants.codePageDeviceRoleNewComputer]: enums.provisionUi.DeviceType.desktop,
+        [Constants.codePageDeviceRoleNewPhone]: enums.provisionUi.DeviceType.mobile
+      }[kind]
+
+      dispatch(setCodePageOtherDeviceRole(kind))
+      response.result(deviceType)
+    }
+
     const params : device_deviceAdd_rpc = {
       ...makeWaitingHandler(dispatch),
       method: 'device.deviceAdd',
       param: {},
       incomingCallMap: incomingMap,
-      callback: (error, response) => { console.log(error) }
+      callback: (ignoredError, response) => {
+        onBack()
+      }
     }
     engine.rpc(params)
   }
@@ -437,7 +472,8 @@ export function openAccountResetPage () : AsyncAction {
   }
 }
 
-function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
+type SimpleCB = () => void
+function makeKex2IncomingMap (dispatch, getState, onBack: SimpleCB, onProvisionerSuccess: SimpleCB) : incomingCallMapType {
   function appendRouteElement (element: React$Element) {
     dispatch(routeAppend({parseRoute: {componentAtTop: {element}}}))
   }
@@ -452,7 +488,7 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
             username = usernameOrEmail
             response.result(usernameOrEmail)
           }}
-          onBack={() => dispatch(cancelLogin(response))} />))
+          onBack={() => onBack(response)} />))
     },
     'keybase.1.provisionUi.chooseDevice': ({devices}, response) => {
       appendRouteElement((
@@ -468,7 +504,7 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
             response.result(deviceID)
           }}
           onWont={() => response.result('')}
-          onBack={() => dispatch(cancelLogin(response))} />))
+          onBack={() => onBack(response)} />))
     },
     'keybase.1.secretUi.getPassphrase': ({pinentry: {type, prompt, username, retryLabel}}, response) => {
       switch (type) {
@@ -477,7 +513,7 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
             <PaperKey
               mapStateToProps={state => ({})}
               onSubmit={(passphrase: string) => { response.result({passphrase, storeSecret: false}) }} // eslint-disable-line arrow-parens
-              onBack={() => { dispatch(cancelLogin(response)) }}
+              onBack={() => onBack(response)}
               error={retryLabel} />))
           break
         case enums.secretUi.PassphraseType.passPhrase:
@@ -488,7 +524,7 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
                 passphrase,
                 storeSecret: false
               })}
-              onBack={() => dispatch(cancelLogin(response))}
+              onBack={() => onBack(response)}
               error={retryLabel}
               username={username} />))
           break
@@ -502,7 +538,7 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
     'keybase.1.provisionUi.DisplayAndPromptSecret': ({phrase, secret}, response) => {
       dispatch({type: Constants.setTextCode, payload: phrase})
       generateQRCode(dispatch, getState)
-      dispatch(askForCodePage(phrase => { response.result({phrase, secret: null}) }, response))
+      dispatch(askForCodePage(phrase => { response.result({phrase, secret: null}) }, () => onBack(response)))
     },
     'keybase.1.provisionUi.chooseDeviceType': ({sessionID, kind}, response) => {
       const store = getState().login.codePage
@@ -525,7 +561,8 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
             dispatch(setCodePageOtherDeviceRole(kind))
             response.result(deviceType)
           }}
-          onBack={() => dispatch(cancelLogin(response))} />))
+
+          onBack={() => onBack(response)} />))
     },
     'keybase.1.provisionUi.PromptNewDeviceName': ({existingDevices, errorMessage}, response) => {
       appendRouteElement((
@@ -533,20 +570,20 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
           existingDevices={existingDevices}
           deviceNameError={errorMessage}
           onSubmit={deviceName => { response.result(deviceName) }}
-          onBack={() => dispatch(cancelLogin(response))} />))
+          onBack={() => onBack(response)} />))
     },
     'keybase.1.provisionUi.chooseGPGMethod': (param, response) => {
       appendRouteElement((
         <GPGSign
           onSubmit={exportKey => response.result(exportKey ? enums.provisionUi.GPGMethod.gpgImport : enums.provisionUi.GPGMethod.gpgSign)}
-          onBack={() => dispatch(cancelLogin(response))} />))
+          onBack={() => onBack(response)} />))
     },
     'keybase.1.loginUi.displayPrimaryPaperKey': ({sessionID, phrase}, response) => {
       appendRouteElement((
         <SuccessRender
           paperkey={new HiddenString(phrase)}
           onFinish={() => { response.result() }}
-          onBack={() => { dispatch(cancelLogin(response)) }}
+          onBack={() => onBack(response)}
           title={"Your new paper key!"} />))
     },
     'keybase.1.provisionUi.ProvisioneeSuccess': (param, response) => {
@@ -554,7 +591,7 @@ function makeKex2IncomingMap (dispatch, getState) : incomingCallMapType {
     },
     'keybase.1.provisionUi.ProvisionerSuccess': (param, response) => {
       response.result()
-      dispatch(navBasedOnLoginState())
+      onProvisionerSuccess()
     },
     'keybase.1.provisionUi.DisplaySecretExchanged': (param, response) => {
       response.result()

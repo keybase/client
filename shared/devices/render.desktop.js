@@ -1,6 +1,6 @@
 /* @flow */
 import React, {Component} from 'react'
-import {Box, Text, Icon} from '../common-adapters'
+import {Box, Text, Icon, PopupMenu} from '../common-adapters'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props as IconProps} from '../common-adapters/icon'
 
@@ -88,38 +88,68 @@ const RevokedDevices = ({revokedDevices, showExistingDevicePage}) => (
   </RevokedHeader>
 )
 
-const DeviceHeader = ({addNewDevice}) => (
-  <Box style={stylesCommonRow}>
+const DeviceHeader = ({addNewDevice, showingMenu, onHidden, menuItems}) => (
+  <Box style={{...stylesCommonRow, ...globalStyles.clickable, position: 'relative'}} onClick={addNewDevice}>
     <Box style={stylesCommonColumn}>
       <Icon type='devices-add-s' />
     </Box>
     <Box style={stylesCommonColumn}>
       <Text type='BodyPrimaryLink' onClick={addNewDevice}>Add new...</Text>
     </Box>
+    <PopupMenu style={stylesPopup} visible={showingMenu} items={menuItems} onHidden={onHidden} />
   </Box>
 )
 
-const Render = ({devices, revokedDevices, waitingForServer, addNewDevice, showRemoveDevicePage, showExistingDevicePage}: Props) => {
-  const realCSS = `
-  .existing-device-container .existing-device-item {
-    display: none;
+type State = {showingMenu: boolean}
+
+class Render extends Component<void, Props, State> {
+  state: State;
+
+  constructor (props: Props) {
+    super(props)
+
+    this.state = {
+      showingMenu: false
+    }
   }
-  .existing-device-container:hover .existing-device-item {
-    display: block;
+
+  _items () {
+    return [
+      {title: 'New Phone', onClick: () => this.props.addNewPhone()},
+      {title: 'New Computer', onClick: () => this.props.addNewComputer()},
+      {title: 'New Paper Key', onClick: () => this.props.addNewPaperKey()}
+    ]
   }
-  `
-  return (
-    <Box style={stylesContainer}>
-      {<DeviceHeader addNewDevice={addNewDevice} />}
-      <style>{realCSS}</style>
-      {devices && devices.map(device => <DeviceRow key={device.name} device={device} showRemoveDevicePage={showRemoveDevicePage} showExistingDevicePage={showExistingDevicePage} />)}
-      {revokedDevices && <RevokedDevices revokedDevices={revokedDevices} showExistingDevicePage={showExistingDevicePage} />}
-    </Box>
-  )
+
+  render () {
+    const {devices, revokedDevices, showRemoveDevicePage, showExistingDevicePage} = this.props
+
+    const realCSS = `
+    .existing-device-container .existing-device-item {
+      display: none;
+    }
+    .existing-device-container:hover .existing-device-item {
+      display: block;
+    }
+    `
+    return (
+      <Box style={stylesContainer}>
+        <DeviceHeader
+          menuItems={this._items()}
+          addNewDevice={() => this.setState({showingMenu: true})}
+          showingMenu={this.state.showingMenu}
+          onHidden={() => this.setState({showingMenu: false})} />
+        <style>{realCSS}</style>
+        {devices && devices.map(device => <DeviceRow key={device.name} device={device} showRemoveDevicePage={showRemoveDevicePage} showExistingDevicePage={showExistingDevicePage} />)}
+        {revokedDevices && <RevokedDevices revokedDevices={revokedDevices} showExistingDevicePage={showExistingDevicePage} />}
+      </Box>
+    )
+  }
 }
 
 const stylesContainer = {
-  ...globalStyles.flexBoxColumn
+  ...globalStyles.flexBoxColumn,
+  position: 'relative'
 }
 
 const stylesCommonRow = {
@@ -163,6 +193,14 @@ const stylesIconColumn = {
 const stylesRevokedIconColumn = {
   ...stylesIconColumn,
   opacity: 0.2
+}
+
+const stylesPopup = {
+  top: 20,
+  left: 'initial',
+  right: 'initial',
+  bottom: 'initial',
+  marginLeft: '-110'
 }
 
 export default Render

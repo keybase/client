@@ -7,9 +7,7 @@ import Container from '../../forms/container'
 
 import type {Props} from './index.render'
 
-export default class Render extends Component {
-  props: Props;
-
+class Render extends Component<void, Props, void> {
   render () {
     return (
       <Container onBack={this.props.resetSignup} style={container}>
@@ -28,3 +26,5 @@ const container = {
 }
 
 const topMargin = {marginTop: 30}
+
+export default Render

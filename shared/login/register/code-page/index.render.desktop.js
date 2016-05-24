@@ -14,21 +14,19 @@ import {codePageModeShowCode, codePageModeEnterText, codePageModeShowText} from 
 import Container from '../../forms/container.desktop'
 import type {Props} from './index.render'
 
-const subTitle = () => (
+const SubTitle = ({usePhone}) => (
   <p>
-    <Text type='BodySmall'>In the Keybase app on your phone, go to</Text>
-    <Icon type='fa-mobile' style={styles.phoneIcon} />
+    <Text type='BodySmall'>In the Keybase app on your {usePhone ? 'phone' : 'computer'}, go to</Text>
+    <Icon type='fa-mobile' style={stylesPhoneIcon} />
     <Text type='BodySmall'>Devices > Add a new device.</Text>
   </p>
 )
 
-export default class CodePageRender extends Component {
-  props: Props;
-
-  renderText () {
+export default class CodePageRender extends Component<void, Props, void> {
+  _renderText () {
     return (
       <Container
-        style={styles.container}
+        style={stylesContainer}
         onBack={this.props.onBack}>
 
         <Text type='Header' style={{marginTop: 60}}>Type in text code</Text>
@@ -37,24 +35,28 @@ export default class CodePageRender extends Component {
         </p>
         <Icon type='computer-bw-m' style={{marginTop: 28}} />
 
-        <Text type='Body' style={styles.paperkey}>{this.props.textCode}</Text>
+        <Text type='Body' style={stylesPaperkey}>{this.props.textCode}</Text>
       </Container>
     )
   }
 
-  renderCode () {
+  _otherIsPhone () {
+    return [codePageDeviceRoleExistingPhone, codePageDeviceRoleNewPhone].indexOf(this.props.otherDeviceRole) !== -1
+  }
+
+  _renderCode () {
     const qr = {
       background: `url("${this.props.qrCode}")`
     }
 
     return (
       <Container
-        style={styles.container}
+        style={stylesContainer}
         onBack={this.props.onBack}>
         <Text style={{marginTop: 38, marginBottom: 11}} type='Header'>Scan this QR code</Text>
-        {subTitle()}
-        <div style={styles.qrContainer}>
-          <div style={{...qr, ...styles.qr}} />
+        <SubTitle usePhone={this._otherIsPhone()} />
+        <div style={stylesQrContainer}>
+          <div style={{...qr, ...stylesQr}} />
         </div>
         <p style={{...globalStyles.flexBoxRow, alignItems: 'flex-end'}} onClick={() => this.props.setCodePageMode(codePageModeEnterText)}>
           <Icon style={{marginRight: 15}} type='phone-text-code-small' />
@@ -64,14 +66,13 @@ export default class CodePageRender extends Component {
     )
   }
 
-  renderEnterText () {
+  _renderEnterText () {
     return (
       <Container
-        style={styles.container}
+        style={stylesContainer}
         onBack={this.props.onBack}>
         <Text style={{marginTop: 38, marginBottom: 11}} type='Header'>Type in text code</Text>
-        {subTitle()}
-
+        <SubTitle usePhone={this._otherIsPhone()} />
         <Icon style={{marginTop: 30, marginBottom: 40}} type='phone-text-code' />
         <Input
           style={{alignSelf: 'stretch'}}
@@ -93,11 +94,11 @@ export default class CodePageRender extends Component {
   render () {
     switch (this.props.mode) {
       case codePageModeShowCode:
-        return this.renderCode()
+        return this._renderCode()
       case codePageModeEnterText:
-        return this.renderEnterText()
+        return this._renderEnterText()
       case codePageModeShowText:
-        return this.renderText()
+        return this._renderText()
     }
     console.warn(`No mode prop passed! Mode: ${this.props.mode}`)
     return (<div />)
@@ -122,40 +123,38 @@ CodePageRender.propTypes = {
   enterText: React.PropTypes.string
 }
 
-const styles = {
-  container: {
-    flex: 1,
-    alignItems: 'center'
-  },
-  paperkey: {
-    ...textStyles.paperKey,
-    ...globalStyles.selectable,
-    textAlign: 'center',
-    marginTop: 30,
-    display: 'inline-block'
-  },
-  qrContainer: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center',
-    marginTop: 35,
-    marginBottom: 47,
-    padding: 15,
-    alignSelf: 'stretch',
-    marginLeft: -65,
-    marginRight: -65,
-    backgroundColor: globalColors.blue2
-  },
-  qr: {
-    width: 190,
-    height: 190,
-    backgroundPosition: '-22px -22px',
-    backgroundRepeat: 'no-repeat',
-    backgroundSize: '234px 234px',
-    imageRendering: 'pixelated'
-  },
-  phoneIcon: {
-    fontSize: 30,
-    marginRight: 25,
-    transform: 'rotate(-325deg) translateX(18px)'
-  }
+const stylesContainer = {
+  flex: 1,
+  alignItems: 'center'
+}
+const stylesPaperkey = {
+  ...textStyles.paperKey,
+  ...globalStyles.selectable,
+  textAlign: 'center',
+  marginTop: 30,
+  display: 'inline-block'
+}
+const stylesQrContainer = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  marginTop: 35,
+  marginBottom: 47,
+  padding: 15,
+  alignSelf: 'stretch',
+  marginLeft: -65,
+  marginRight: -65,
+  backgroundColor: globalColors.blue2
+}
+const stylesQr = {
+  width: 190,
+  height: 190,
+  backgroundPosition: '-22px -22px',
+  backgroundRepeat: 'no-repeat',
+  backgroundSize: '234px 234px',
+  imageRendering: 'pixelated'
+}
+const stylesPhoneIcon = {
+  fontSize: 30,
+  marginRight: 25,
+  transform: 'rotate(-325deg) translateX(18px)'
 }

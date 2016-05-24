@@ -1,0 +1,10 @@
+/* @flow */
+
+export type Props = {
+  onBack: () => void,
+  onSubmitComputer: () => void,
+  onSubmitPhone: () => void
+}
+
+export default class Render extends React$Component<void, Props, void> {
+}

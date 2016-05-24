@@ -5,21 +5,20 @@ import Container from '../../forms/container'
 import type {Props} from './index.render'
 
 const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName, waiting, submitEnabled = true}: Props) => (
-  <Container style={styles.container} onBack={onBack}>
-    <Text type='Header' style={styles.header}>Set a public name for this device:</Text>
-    <Icon type='computer-color-m' style={styles.icon} />
+  <Container style={stylesContainer} onBack={onBack}>
+    <Text type='Header' style={stylesHeader}>Set a public name for this device:</Text>
+    <Icon type='computer-color-m' style={stylesIcon} />
     <Input
       autoFocus
       errorText={deviceNameError}
-      style={styles.input}
+      style={stylesInput}
       floatingLabelText='Device name'
       onEnterKeyDown={() => onSubmit()}
       onChange={event => onChange(event.target.value)}
       value={deviceName} />
     <Button
       type='Primary'
-      fullWidth
-      style={styles.button}
+      style={stylesButton}
       disabled={!submitEnabled}
       waiting={waiting}
       label='Continue'
@@ -27,24 +26,22 @@ const SetPublicName = ({onBack, onSubmit, onChange, deviceNameError, deviceName,
   </Container>
 )
 
-const styles = {
-  container: {
-    alignItems: 'center'
-  },
-  input: {
-    marginTop: 15,
-    alignSelf: 'stretch'
-  },
-  icon: {
-    marginTop: 60
-  },
-  button: {
-    alignSelf: 'flex-end',
-    marginTop: 40
-  },
-  header: {
-    marginTop: 35
-  }
+const stylesContainer = {
+  alignItems: 'center'
+}
+const stylesInput = {
+  marginTop: 15,
+  width: 450
+}
+const stylesIcon = {
+  marginTop: 60
+}
+const stylesButton = {
+  alignSelf: 'flex-end',
+  marginTop: 40
+}
+const stylesHeader = {
+  marginTop: 35
 }
 
 export default SetPublicName

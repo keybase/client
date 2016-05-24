@@ -1,5 +1,4 @@
 /* @flow */
-/* eslint-disable react/prop-types */
 
 import React, {Component} from 'react'
 import {globalStyles} from '../../styles/style-guide'
@@ -8,29 +7,27 @@ import Container from '../forms/container'
 
 import type {Props} from './request-invite.render'
 
-export default class Render extends Component {
-  props: Props;
-
+class Render extends Component<void, Props, void> {
   render () {
     return (
-      <Container onBack={this.props.onBack} style={styles.container}>
-        <Text style={styles.header} type='Header'>Request an invite code</Text>
-        <Icon style={styles.icon} type='invite-code-m' />
+      <Container onBack={this.props.onBack} style={stylesContainer}>
+        <Text style={stylesHeader} type='Header'>Request an invite code</Text>
+        <Icon style={stylesIcon} type='invite-code-m' />
         <Input
-          style={styles.input}
+          style={stylesInput}
           floatingLabelText='Your email address'
           value={this.props.email}
           errorText={this.props.emailErrorText}
           onChangeText={email => this.props.emailChange(email)}
           autoFocus />
         <Input
-          style={styles.input}
+          style={stylesInput}
           floatingLabelText='Your name'
           value={this.props.name}
           errorText={this.props.nameErrorText}
           onChangeText={name => this.props.nameChange(name)} />
         <Button
-          style={styles.button}
+          style={stylesButton}
           waiting={this.props.waiting}
           type='Primary'
           label='Request'
@@ -41,32 +38,26 @@ export default class Render extends Component {
   }
 }
 
-const styles = {
-  button: {
-    marginTop: 50,
-    marginBottom: 30,
-    marginRight: 0,
-    alignSelf: 'flex-end'
-  },
-  container: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center'
-  },
-  continue: {
-    justifyContent: 'flex-end'
-  },
-  header: {
-    marginTop: 30
-  },
-  icon: {
-    marginTop: 55
-  },
-  input: {
-    alignSelf: 'stretch',
-    height: 45,
-    marginTop: 25
-  },
-  text: {
-    marginTop: 40
-  }
+const stylesButton = {
+  marginTop: 50,
+  marginBottom: 30,
+  marginRight: 0,
+  alignSelf: 'flex-end'
 }
+const stylesContainer = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center'
+}
+const stylesHeader = {
+  marginTop: 30
+}
+const stylesIcon = {
+  marginTop: 55
+}
+const stylesInput = {
+  height: 45,
+  marginTop: 25,
+  width: 450
+}
+
+export default Render
