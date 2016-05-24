@@ -19,10 +19,6 @@ if (!fs.existsSync(outputDir)) {
 
 const toRender = []
 Object.keys(dumbComponentMap).forEach(key => {
-  if (key === 'Tracker') {
-    // FIXME: Tracker dumb components aren't fully stateless yet
-    return
-  }
   Object.keys(dumbComponentMap[key].mocks).forEach(mockKey => {
     toRender.push({key, mockKey})
   })

@@ -12,7 +12,8 @@
         }
     },
     "globals": {
-        "__DEV__": false
+        "__DEV__": false,
+        "__SCREENSHOT__": false
     },
     "plugins": [
         "flow-vars", "mocha", "filenames"

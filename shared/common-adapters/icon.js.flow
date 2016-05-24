@@ -64,6 +64,8 @@ export type Props = {
     | 'placeholder-avatar'
     | 'progress-grey'
     | 'progress-white'
+    | 'progress-grey-static'
+    | 'progress-white-static'
     | 'terminal'
     | 'thunderbolt'
     | 'user-card'
