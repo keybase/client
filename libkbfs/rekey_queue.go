@@ -139,9 +139,10 @@ func (rkq *RekeyQueueStandard) processRekeys(ctx context.Context, hasWorkCh chan
 					newCtx := ctxWithRandomID(ctx, CtxRekeyIDKey,
 						CtxRekeyOpID, nil)
 					err := rkq.config.KBFSOps().Rekey(newCtx, id)
-					ch := rkq.dequeue()
-					ch <- err
-					close(ch)
+					if ch := rkq.dequeue(); ch != nil {
+						ch <- err
+						close(ch)
+					}
 				}()
 				if ctx.Err() != nil {
 					close(hasWorkCh)
@@ -167,6 +168,9 @@ func (rkq *RekeyQueueStandard) peek() TlfID {
 func (rkq *RekeyQueueStandard) dequeue() chan<- error {
 	rkq.queueMu.Lock()
 	defer rkq.queueMu.Unlock()
+	if len(rkq.queue) == 0 {
+		return nil
+	}
 	ch := rkq.queue[0].ch
 	rkq.queue = rkq.queue[1:]
 	return ch
