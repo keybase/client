@@ -2,7 +2,7 @@
 import * as Constants from '../constants/devices'
 import {devicesTab, loginTab} from '../constants/tabs'
 import engine from '../engine'
-import {navigateBack, navigateTo, navigateUp, switchTab} from './router'
+import {navigateTo, navigateUp, switchTab} from './router'
 import Immutable from 'immutable'
 import type {AsyncAction} from '../constants/types/flux'
 import type {incomingCallMapType, login_deprovision_rpc, revoke_revokeDevice_rpc, device_deviceHistoryList_rpc, login_paperKey_rpc} from '../constants/types/flow-types'
