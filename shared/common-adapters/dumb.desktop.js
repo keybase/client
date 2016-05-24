@@ -77,31 +77,31 @@ const listItemMap: DumbComponentMap<ListItem> = {
     'Small list item with button action': {
       parentProps: {style: {border: 'solid 1px black'}},
       type: 'Small',
-      Icon: <Box style={{height: 32, width: 32, backgroundColor: globalColors.black_20}} />,
-      Body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
-      Action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />
+      icon: <Box style={{height: 32, width: 32, backgroundColor: globalColors.black_20}} />,
+      body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
+      action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />
     },
     'Small list item with text action': {
       parentProps: {style: {border: 'solid 1px black'}},
       type: 'Small',
-      Icon: <Box style={{height: 32, width: 32, backgroundColor: globalColors.black_20}} />,
-      Body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
-      Action: <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={() => {}}>Action Jack</Text>,
+      icon: <Box style={{height: 32, width: 32, backgroundColor: globalColors.black_20}} />,
+      body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
+      action: <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={() => {}}>Action Jack</Text>,
       extraRightMarginAction: true
     },
     'Large list item with Button': {
       parentProps: {style: {border: 'solid 1px black'}},
       type: 'Large',
-      Icon: <Box style={{height: 48, width: 48, backgroundColor: globalColors.black_20}} />,
-      Body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
-      Action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />
+      icon: <Box style={{height: 48, width: 48, backgroundColor: globalColors.black_20}} />,
+      body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
+      action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />
     },
     'Large list item with text action': {
       parentProps: {style: {border: 'solid 1px black'}},
       type: 'Large',
-      Icon: <Box style={{height: 48, width: 48, backgroundColor: globalColors.black_20}} />,
-      Body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
-      Action: <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={() => {}}>Action Jack</Text>,
+      icon: <Box style={{height: 48, width: 48, backgroundColor: globalColors.black_20}} />,
+      body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
+      action: <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={() => {}}>Action Jack</Text>,
       extraRightMarginAction: true
     }
   }

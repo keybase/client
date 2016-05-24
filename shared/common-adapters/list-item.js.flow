@@ -7,11 +7,11 @@ import React, {Component} from 'react'
 // Part 2 Text / Body
 // Part 3 Action (could be text or button)
 
-type Props = {
+export type Props = {
   type: 'Small' | 'Large',
-  Icon: React$Element,
-  Body: React$Element,
-  Action: React$Element,
+  icon: React$Element,
+  body: React$Element,
+  action: React$Element,
   extraRightMarginAction?: boolean, // Spacing is different if the action is just text (for example)
   clickable?: boolean, // defaults to true
   containerStyle?: Object,
