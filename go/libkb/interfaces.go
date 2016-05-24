@@ -423,3 +423,7 @@ type Clock interface {
 type GregorDismisser interface {
 	DismissItem(id gregor.MsgID) error
 }
+
+type GregorListener interface {
+	ConnectIdentifyUI() error
+}

@@ -21,6 +21,16 @@ import (
 	grstorage "github.com/keybase/gregor/storage"
 )
 
+type gregorInBandMessageHandler interface {
+	needsUI(libkb.UIKind) bool
+	create(ctx context.Context, ibm gregor.Item) error
+	dismiss(ctx context.Context, ibm gregor.Item) error
+}
+
+type showTrackerPopupHandler struct {
+	libkb.Contextified
+}
+
 type gregorHandler struct {
 	libkb.Contextified
 	conn             *rpc.Connection
@@ -30,9 +40,12 @@ type gregorHandler struct {
 	itemsByID        map[string]gregor.Item
 	gregorCli        *grclient.Client
 	freshSync        bool
+	ibmHandlers      map[string]gregorInBandMessageHandler
 }
 
 var _ libkb.GregorDismisser = (*gregorHandler)(nil)
+
+//var _ libkb.GregorListener = (*gregorHandler)(nil)
 
 type gregorLocalDb struct {
 	db *libkb.JSONLocalDb
@@ -59,6 +72,7 @@ func newGregorHandler(g *libkb.GlobalContext) (gh *gregorHandler, err error) {
 	gh = &gregorHandler{
 		Contextified: libkb.NewContextified(g),
 		itemsByID:    make(map[string]gregor.Item),
+		ibmHandlers:  make(map[string]gregorInBandMessageHandler),
 		freshSync:    true,
 	}
 
@@ -66,6 +80,10 @@ func newGregorHandler(g *libkb.GlobalContext) (gh *gregorHandler, err error) {
 	if gh.gregorCli, err = newGregorClient(g); err != nil {
 		return nil, err
 	}
+
+	// Add Ibm handlers
+	gh.ibmHandlers["show_tracker_popup"] =
+		showTrackerPopupHandler{Contextified: libkb.NewContextified(g)}
 
 	return gh, nil
 }
@@ -129,6 +147,22 @@ func (g *gregorHandler) HandlerName() string {
 	return "keybase service"
 }
 
+func (g *gregorHandler) replayInBandMessages(ctx context.Context, t time.Time) error {
+	var msgs []gregor.InBandMessage
+	var err error
+	if msgs, err = g.gregorCli.StateMachineInBandMessagesSince(t); err != nil {
+		g.G().Log.Errorf("gregor handler: unable to fetch messages for reply: %s", err)
+		return err
+	}
+
+	g.G().Log.Debug("gregor handler: replaying %d messages", len(msgs))
+	for _, msg := range msgs {
+		g.handleInBandMessage(ctx, msg)
+	}
+
+	return nil
+}
+
 func (g *gregorHandler) reSync(ctx context.Context, cli gregor1.IncomingInterface) error {
 
 	var err error
@@ -151,17 +185,12 @@ func (g *gregorHandler) reSync(ctx context.Context, cli gregor1.IncomingInterfac
 	}
 
 	// Replay in-band messages
-	var msgs []gregor.InBandMessage
-	if msgs, err = g.gregorCli.StateMachineInBandMessagesSince(t); err != nil {
-		g.G().Log.Errorf("gregor handler: unable to fetch messages for reply: %s", err)
+	if err = g.replayInBandMessages(ctx, t); err != nil {
+		g.G().Log.Errorf("gregor handler: replay messages failed")
 		return err
 	}
 
-	g.G().Log.Debug("gregor handler: replaying %d messages", len(msgs))
-	for _, msg := range msgs {
-		g.handleInBandMessage(ctx, msg)
-	}
-
+	// All done with fresh syncs
 	g.freshSync = false
 
 	return nil
@@ -272,9 +301,13 @@ func (g *gregorHandler) handleInBandMessage(ctx context.Context, ibm gregor.InBa
 				category = item.Category().String()
 				g.G().Log.Debug("gregor handler: item %s has category %s", id, category)
 			}
-			if category == "show_tracker_popup" {
-				return g.handleShowTrackerPopup(ctx, item)
+
+			// Run handler for the category
+			handler, present := g.ibmHandlers[category]
+			if present {
+				handler.create(ctx, item)
 			}
+
 			g.G().Log.Errorf("Unrecognized item category: %s", item.Category())
 		}
 
@@ -294,8 +327,11 @@ func (g *gregorHandler) handleInBandMessage(ctx context.Context, ibm gregor.InBa
 					category = item.Category().String()
 					g.G().Log.Debug("gregor handler: dismissal %s has category %s", id, category)
 				}
-				if category == "show_tracker_popup" {
-					return g.handleDismissTrackerPopup(ctx, item)
+
+				// Run the handler to dismiss for the category
+				handler, present := g.ibmHandlers[category]
+				if present {
+					handler.dismiss(ctx, item)
 				}
 
 				// Clear the item out of items map.
@@ -312,43 +348,47 @@ func (g *gregorHandler) handleInBandMessage(ctx context.Context, ibm gregor.InBa
 	return nil
 }
 
-func (g *gregorHandler) handleShowTrackerPopup(ctx context.Context, item gregor.Item) error {
-	g.G().Log.Debug("gregor handler: handleShowTrackerPopup: %+v", item)
+func (h showTrackerPopupHandler) needsUI(kind libkb.UIKind) bool {
+	return (kind == libkb.IdentifyUIKind)
+}
+
+func (h showTrackerPopupHandler) create(ctx context.Context, item gregor.Item) error {
+	h.G().Log.Debug("gregor handler: handleShowTrackerPopup: %+v", item)
 	if item.Body() == nil {
 		return errors.New("gregor handler for show_tracker_popup: nil message body")
 	}
 	body, err := jsonw.Unmarshal(item.Body().Bytes())
 	if err != nil {
-		g.G().Log.Error("body failed to unmarshal", err)
+		h.G().Log.Error("body failed to unmarshal", err)
 		return err
 	}
 	uidString, err := body.AtPath("uid").GetString()
 	if err != nil {
-		g.G().Log.Error("failed to extract uid", err)
+		h.G().Log.Error("failed to extract uid", err)
 		return err
 	}
 	uid, err := keybase1.UIDFromString(uidString)
 	if err != nil {
-		g.G().Log.Error("failed to convert UID from string", err)
+		h.G().Log.Error("failed to convert UID from string", err)
 		return err
 	}
 
-	identifyUI, err := g.G().UIRouter.GetIdentifyUI()
+	identifyUI, err := h.G().UIRouter.GetIdentifyUI()
 	if err != nil {
-		g.G().Log.Error("failed to get IdentifyUI", err)
+		h.G().Log.Error("failed to get IdentifyUI", err)
 		return err
 	}
 	if identifyUI == nil {
-		g.G().Log.Error("got nil IdentifyUI")
+		h.G().Log.Error("got nil IdentifyUI")
 		return errors.New("got nil IdentifyUI")
 	}
-	secretUI, err := g.G().UIRouter.GetSecretUI(0)
+	secretUI, err := h.G().UIRouter.GetSecretUI(0)
 	if err != nil {
-		g.G().Log.Error("failed to get SecretUI", err)
+		h.G().Log.Error("failed to get SecretUI", err)
 		return err
 	}
 	if secretUI == nil {
-		g.G().Log.Error("got nil SecretUI")
+		h.G().Log.Error("got nil SecretUI")
 		return errors.New("got nil SecretUI")
 	}
 	engineContext := engine.Context{
@@ -361,43 +401,43 @@ func (g *gregorHandler) handleShowTrackerPopup(ctx context.Context, item gregor.
 		// TODO: text here?
 	}
 	identifyArg := keybase1.Identify2Arg{Uid: uid, Reason: identifyReason}
-	identifyEng := engine.NewIdentify2WithUID(g.G(), &identifyArg)
+	identifyEng := engine.NewIdentify2WithUID(h.G(), &identifyArg)
 	return identifyEng.Run(&engineContext)
 }
 
-func (g *gregorHandler) handleDismissTrackerPopup(ctx context.Context, item gregor.Item) error {
+func (h showTrackerPopupHandler) dismiss(ctx context.Context, item gregor.Item) error {
 	g.G().Log.Debug("gregor handler: handleDismissTrackerPopup: %+v", item)
 	if item.Body() == nil {
 		return errors.New("gregor dismissal for show_tracker_popup: nil message body")
 	}
 	body, err := jsonw.Unmarshal(item.Body().Bytes())
 	if err != nil {
-		g.G().Log.Error("body failed to unmarshal", err)
+		h.G().Log.Error("body failed to unmarshal", err)
 		return err
 	}
 	uidString, err := body.AtPath("uid").GetString()
 	if err != nil {
-		g.G().Log.Error("failed to extract uid", err)
+		h.G().Log.Error("failed to extract uid", err)
 		return err
 	}
 	uid, err := keybase1.UIDFromString(uidString)
 	if err != nil {
-		g.G().Log.Error("failed to convert UID from string", err)
+		h.G().Log.Error("failed to convert UID from string", err)
 		return err
 	}
-	user, err := libkb.LoadUser(libkb.NewLoadUserByUIDArg(g.G(), uid))
+	user, err := libkb.LoadUser(libkb.NewLoadUserByUIDArg(h.G(), uid))
 	if err != nil {
-		g.G().Log.Error("failed to load user from UID", err)
+		h.G().Log.Error("failed to load user from UID", err)
 		return err
 	}
 
-	identifyUI, err := g.G().UIRouter.GetIdentifyUI()
+	identifyUI, err := h.G().UIRouter.GetIdentifyUI()
 	if err != nil {
-		g.G().Log.Error("failed to get IdentifyUI", err)
+		h.G().Log.Error("failed to get IdentifyUI", err)
 		return err
 	}
 	if identifyUI == nil {
-		g.G().Log.Error("got nil IdentifyUI")
+		h.G().Log.Error("got nil IdentifyUI")
 		return errors.New("got nil IdentifyUI")
 	}
 
