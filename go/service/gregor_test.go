@@ -208,7 +208,6 @@ func (m mockGregord) Sync(_ context.Context, arg gregor1.SyncArg) (gregor1.SyncR
 	return grpc.Sync(m.sm, rpc.SimpleLogOutput{}, arg)
 }
 func (m mockGregord) ConsumeMessage(_ context.Context, msg gregor1.Message) error {
-	m.log.Debug("CONSUME")
 	_, err := m.sm.ConsumeMessage(msg)
 	return err
 }
