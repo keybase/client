@@ -156,3 +156,7 @@ func (c *Client) StateMachineLatestCTime() *time.Time {
 func (c *Client) StateMachineInBandMessagesSince(t time.Time) ([]gregor.InBandMessage, error) {
 	return c.sm.InBandMessagesSince(c.user, c.device, t)
 }
+
+func (c *Client) StateMachineState(t gregor.TimeOrOffset) (gregor.State, error) {
+	return c.sm.State(c.user, c.device, t)
+}

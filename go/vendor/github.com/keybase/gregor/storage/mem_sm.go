@@ -252,12 +252,14 @@ func (m *MemEngine) consumeInBandMessage(uid gregor.UID, msg gregor.InBandMessag
 		i, err = m.consumeStateUpdateMessage(user, now, msg.ToStateUpdateMessage())
 	default:
 	}
-	user.logMessage(now, msg, i)
 
 	retTime := now
 	if i != nil {
 		retTime = i.ctime
 	}
+
+	user.logMessage(retTime, msg, i)
+
 	return retTime, err
 }
 
