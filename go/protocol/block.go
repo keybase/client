@@ -30,6 +30,11 @@ type DowngradeReferenceRes struct {
 	Failed    BlockReference        `codec:"failed" json:"failed"`
 }
 
+type GetUserQuotaInfoRes struct {
+	Info   []byte `codec:"info" json:"info"`
+	Qlimit int64  `codec:"qlimit" json:"qlimit"`
+}
+
 type GetSessionChallengeArg struct {
 }
 
@@ -87,7 +92,7 @@ type BlockInterface interface {
 	ArchiveReference(context.Context, ArchiveReferenceArg) ([]BlockReference, error)
 	DelReferenceWithCount(context.Context, DelReferenceWithCountArg) (DowngradeReferenceRes, error)
 	ArchiveReferenceWithCount(context.Context, ArchiveReferenceWithCountArg) (DowngradeReferenceRes, error)
-	GetUserQuotaInfo(context.Context) ([]byte, error)
+	GetUserQuotaInfo(context.Context) (GetUserQuotaInfoRes, error)
 }
 
 func BlockProtocol(i BlockInterface) rpc.Protocol {
@@ -298,7 +303,7 @@ func (c BlockClient) ArchiveReferenceWithCount(ctx context.Context, __arg Archiv
 	return
 }
 
-func (c BlockClient) GetUserQuotaInfo(ctx context.Context) (res []byte, err error) {
+func (c BlockClient) GetUserQuotaInfo(ctx context.Context) (res GetUserQuotaInfoRes, err error) {
 	err = c.Cli.Call(ctx, "keybase.1.block.getUserQuotaInfo", []interface{}{GetUserQuotaInfoArg{}}, &res)
 	return
 }

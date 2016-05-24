@@ -472,6 +472,20 @@
           "name": "failed"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "GetUserQuotaInfoRes",
+      "fields": [
+        {
+          "type": "bytes",
+          "name": "info"
+        },
+        {
+          "type": "long",
+          "name": "qlimit"
+        }
+      ]
     }
   ],
   "messages": {
@@ -601,7 +615,7 @@
     },
     "getUserQuotaInfo": {
       "request": [],
-      "response": "bytes"
+      "response": "GetUserQuotaInfoRes"
     }
   },
   "namespace": "keybase.1"

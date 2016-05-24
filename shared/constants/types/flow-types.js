@@ -348,6 +348,11 @@ export type GetPassphraseRes = {
   storeSecret: boolean;
 }
 
+export type GetUserQuotaInfoRes = {
+  info: bytes;
+  qlimit: long;
+}
+
 export type HelloRes = string
 
 export type Identify2Res = {
@@ -1414,7 +1419,7 @@ export type block_getSessionChallenge_rpc = {
   callback: (null | (err: ?any, response: block_getSessionChallenge_result) => void)
 }
 
-export type block_getUserQuotaInfo_result = bytes
+export type block_getUserQuotaInfo_result = GetUserQuotaInfoRes
 
 export type block_getUserQuotaInfo_rpc = {
   method: 'block.getUserQuotaInfo',

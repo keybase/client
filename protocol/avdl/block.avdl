@@ -27,6 +27,11 @@ protocol block {
     BlockReference failed;
   }
 
+  record GetUserQuotaInfoRes {
+    bytes info;
+    long qlimit;
+  }
+
   ChallengeInfo getSessionChallenge();
   void authenticateSession(string signature);
 
@@ -40,6 +45,5 @@ protocol block {
   DowngradeReferenceRes delReferenceWithCount(string folder, array<BlockReference> refs);
   DowngradeReferenceRes archiveReferenceWithCount(string folder, array<BlockReference> refs);
 
-  bytes getUserQuotaInfo();
- 
+  GetUserQuotaInfoRes getUserQuotaInfo();
 }
