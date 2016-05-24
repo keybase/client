@@ -31,7 +31,7 @@ script:
       travis_retry docker run --name kbweb3000 -d -p 3000:3000 --entrypoint run/startup_for_container.sh $CI_HOST/kbweb-with-gregor &&
       sleep 60 &&
       docker logs kbweb3000 &&
-      false
+      false;
     elif [ $TRAVIS_OS_NAME == 'osx' ]; then
       cd go && export KEYBASE_SERVER_URI=http://ci1.keybase.io && travis_wait 40 ./test/run_tests.sh;
     fi
