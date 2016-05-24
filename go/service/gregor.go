@@ -569,6 +569,8 @@ func (g *gregorHandler) handleRekeyNeeded(ctx context.Context, item gregor.Item)
 		return g.DismissItem(item.Metadata().MsgID())
 	}
 
+	// show a rekey status window
+
 	return errors.New("rekey not implemented")
 }
 
