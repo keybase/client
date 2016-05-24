@@ -1,0 +1,20 @@
+// @flow
+
+import type {Props as FileProps} from './file/render'
+
+export type FileSection = {
+  name: string,
+  modifiedMarker: boolean,
+  files: Array<FileProps>
+}
+
+export type Props = {
+  theme: 'public' | 'private',
+  selfUsername: string,
+  users: Array<string>,
+  onBack: () => void,
+  onOptions: () => void,
+  recentFilesSection: Array<FileSection>
+}
+
+export default class Render extends React$Component<void, Props, void> { }

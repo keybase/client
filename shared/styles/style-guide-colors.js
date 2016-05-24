@@ -28,6 +28,7 @@ export default {
   transparent: 'rgba(0, 0, 0, 0)',
   white: '#ffffff',
   white_40: 'rgba(255, 255, 255, 0.40)',
+  white_60: 'rgba(255, 255, 255, 0.60)',
   white_75: 'rgba(255, 255, 255, 0.75)',
   white_90: 'rgba(255, 255, 255, 0.90)',
   yellow: '#fff75a',

@@ -1,5 +1,8 @@
 /* @flow */
 import Folders from './render'
+import Files from './files/render'
+import File from './files/file/render'
+import type {PropsOf} from '../constants/types/more'
 import type {Folder} from './list'
 import type {DumbComponentMap} from '../constants/types/more'
 import {globalStyles} from '../styles/style-guide'
@@ -148,6 +151,93 @@ export const map: DumbComponentMap<Folders> = {
   }
 }
 
+export const file: DumbComponentMap<File> = {
+  component: File,
+  mocks: {
+    'Normal Private': {
+      theme: 'private',
+      name: 'How-PGP-works.doc',
+      path: '2016-tutorial/',
+      lastModifiedMeta: '2 hours ago',
+      lastModifiedBy: 'jenbee',
+      modifiedMarker: true,
+      fileIcon: 'logo-128',
+      onClick: () => console.log('onClick:file')
+    },
+    'Normal Private modified by self': {
+      theme: 'private',
+      name: 'How-PGP-works.doc',
+      path: '2016-tutorial/',
+      lastModifiedMeta: '2 hours ago',
+      lastModifiedBy: 'marcopolo',
+      lastModifiedBySelf: true,
+      modifiedMarker: true,
+      fileIcon: 'logo-128',
+      onClick: () => console.log('onClick:file')
+    },
+    'Normal Public': {
+      parentProps: {style: {borderColor: 'black', borderWidth: 1, borderStyle: 'solid'}},
+      theme: 'public',
+      name: 'Cute Sloth.jpg',
+      path: 'spirit-animals/',
+      lastModifiedMeta: '2 hours ago',
+      lastModifiedBy: 'jenbee',
+      modifiedMarker: true,
+      fileIcon: 'logo-128',
+      onClick: () => console.log('onClick:file')
+    },
+    'Normal Public No Modified meta': {
+      parentProps: {style: {borderColor: 'black', borderWidth: 1, borderStyle: 'solid'}},
+      theme: 'public',
+      name: 'Cute Sloth.jpg',
+      path: 'spirit-animals/',
+      modifiedMarker: false,
+      fileIcon: 'logo-128',
+      onClick: () => console.log('onClick:file')
+    }
+  }
+}
+
+function genFiles (offsetNumber: number, fileCount: number, isPrivate: boolean): Array<PropsOf<File>> {
+  const adjs = ['tiresome', 'longing', 'marvelous', 'bloody', 'cruel', 'descriptive', 'cooperative', 'parallel', 'discreet', 'wry', 'lovely', 'mysterious']
+  const nouns = ['maid', 'river', 'pan', 'house', 'transport', 'reason', 'dog', 'food', 'ice', 'wilderness', 'level', 'horse']
+
+  const wordGen = (i: number) => `${adjs[Math.floor(i/12)%(12*12)]}-${nouns[i%12]}.jpg` // eslint-disable-line
+
+  const results = []
+  for (let i = offsetNumber; i < fileCount + offsetNumber; i++) {
+    results.push({
+      parentProps: {style: {borderColor: 'black', borderWidth: 1, borderStyle: 'solid'}},
+      theme: isPrivate ? 'private' : 'public',
+      name: wordGen(i),
+      path: 'pics/',
+      modifiedMarker: false,
+      fileIcon: 'logo-128',
+      onClick: () => console.log('onClick:file')
+    })
+  }
+
+  return results
+}
+
+export const files: DumbComponentMap<Files> = {
+  component: Files,
+  mocks: {
+    'Normal - Private': {
+      theme: 'private',
+      selfUsername: 'cecileb',
+      users: ['cecileb', 'aliceb'],
+      onBack: () => console.log('onBack:files'),
+      onOptions: () => console.log('onOptions'),
+      recentFilesSection: [
+        {name: 'Today', modifiedMarker: true, files: genFiles(0, 4, true)},
+        {name: 'Yesterday', modifiedMarker: true, files: genFiles(4, 8, true)}
+      ]
+    }
+  }
+}
+
 export default {
-  'Folders TLF': map
+  'Folders TLF': map,
+  'File': file
 }

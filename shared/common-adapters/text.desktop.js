@@ -86,6 +86,7 @@ export default class Text extends Component {
       'BodySmallPrimaryLink': styles.textBodySmallPrimaryLink,
       'BodySmallSecondaryLink': styles.textBodySmallSecondaryLink,
       'BodySmallSemibold': styles.textBodySmallSemibold,
+      'BodySmallBold': styles.textBodySmallBold,
       'BodyXSmall': styles.textBodyXSmall,
       'BodyXSmallLink': styles.textBodyXSmallLink,
       'Error': styles.textError,
@@ -315,6 +316,11 @@ export const styles = {
   textBodySmallSemibold: {
     ...textCommon,
     ...globalStyles.fontSemibold,
+    ...sizeGroups['14']
+  },
+  textBodySmallBold: {
+    ...textCommon,
+    ...globalStyles.fontBold,
     ...sizeGroups['14']
   },
   textError: {

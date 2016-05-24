@@ -9,6 +9,7 @@ export type Props = {
           | 'BodySmall' | 'BodySmallLink' | 'BodySmallError' | 'BodySmallPrimaryLink' | 'BodySmallSecondaryLink'
           | 'BodyXSmall' | 'BodyXSmallLink'
           | 'BodySmallSemibold'
+          | 'BodySmallBold'
           | 'BodySemiboldItalic'
           | 'BadgeNumber'
           | 'Error'
