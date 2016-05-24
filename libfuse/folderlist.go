@@ -174,16 +174,23 @@ func isTlfNameNotCanonical(err error) bool {
 
 func (fl *FolderList) updateTlfName(ctx context.Context, oldName string,
 	newName string) {
-	fl.mu.Lock()
-	defer fl.mu.Unlock()
-	tlf, ok := fl.folders[oldName]
+	ok := func() bool {
+		fl.mu.Lock()
+		defer fl.mu.Unlock()
+		tlf, ok := fl.folders[oldName]
+		if !ok {
+			return false
+		}
+
+		fl.fs.log.CDebugf(ctx, "Folder name updated: %s -> %s", oldName, newName)
+		delete(fl.folders, oldName)
+		fl.folders[newName] = tlf
+		return true
+	}()
 	if !ok {
 		return
 	}
 
-	fl.fs.log.CDebugf(ctx, "Folder name updated: %s -> %s", oldName, newName)
-	delete(fl.folders, oldName)
-	fl.folders[newName] = tlf
 	if err := fl.fs.fuse.InvalidateEntry(fl, oldName); err != nil {
 		// TODO we have no mechanism to do anything about this
 		fl.fs.log.CErrorf(ctx, "FUSE invalidate error for oldName=%s: %v",

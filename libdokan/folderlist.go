@@ -198,5 +198,6 @@ func (fl *FolderList) updateTlfName(ctx context.Context, oldName string,
 	fl.fs.log.CDebugf(ctx, "Folder name updated: %s -> %s", oldName, newName)
 	delete(fl.folders, oldName)
 	fl.folders[newName] = tlf
-	// TODO: invalidate kernel cache for this name?
+	// TODO: invalidate kernel cache for this name? (Make sure to
+	// do so outside of the lock!)
 }
