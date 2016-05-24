@@ -29,7 +29,7 @@ script:
       cd shared && npm i -g flow-bin@`tail -n1 .flowconfig` && flow &&
       cd ../desktop && npm run setup-ci-tools && npm run setup-dev-tools &&
       cd .. && eslint . &&
-      && if [ $TRAVIS_PULL_REQUEST != 'false' ]; then
+      if [ $TRAVIS_PULL_REQUEST != 'false' ]; then
         cd desktop && ../packaging/npm_mess.sh && npm install octonode && npm run visdiff -- "$TRAVIS_COMMIT_RANGE" && cd ..;
       fi &&
       cd protocol && ./diff_test.sh &&
