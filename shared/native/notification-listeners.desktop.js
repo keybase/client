@@ -5,7 +5,6 @@ import {logoutDone} from '../actions/login'
 import {kbfsNotification} from '../util/kbfs-notifications'
 import type {Dispatch} from '../constants/types/flux'
 import type {incomingCallMapType} from '../constants/types/flow-types'
-import {NotifyPopup} from './notifications'
 
 // Keep track of the last time we notified and ignore if its the same
 let lastLoggedInNotifyUsername = null
@@ -35,7 +34,7 @@ export default function (dispatch: Dispatch, getState: () => Object, notify: any
     },
     'keybase.1.NotifySession.clientOutOfDate': ({upgradeTo, upgradeURI, upgradeMsg}) => {
       const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
-      NotifyPopup('Client out of date!', {body})
+      notify('Client out of date!', {body})
     },
     'keybase.1.NotifyFS.FSActivity': ({notification}) => {
       kbfsNotification(notification, notify, getState)
