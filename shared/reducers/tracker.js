@@ -270,6 +270,12 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         hidden: false
       }
 
+    case Constants.remoteDismiss:
+      return {
+        ...state,
+        closed: true
+      }
+
     default:
       return state
   }

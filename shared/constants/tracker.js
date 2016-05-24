@@ -38,6 +38,7 @@ export const updateProofState = 'tracker:updateProofState'
 
 export const reportLastTrack = 'tracker:reportLastTrack'
 
+export const remoteDismiss = 'tracker:remoteDismiss'
 export const onClose = 'tracker:onClose'
 export type OnClose = TypedAction<'tracker:onClose', void, void>
 
