@@ -247,12 +247,7 @@ func newGregordMock(logger logger.Logger) mockGregord {
 	return mockGregord{sm: sm, fc: fc, log: logger}
 }
 
-func TestSyncBasic(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor")
-	defer tc.Cleanup()
-
-	tc.G.SetService()
-
+func setupSyncTests(t *testing.T, tc libkb.TestContext) (*gregorHandler, mockGregord, gregor1.UID) {
 	var err error
 	user, err := kbtest.CreateAndSignupFakeUser("gregr", tc.G)
 	if err != nil {
@@ -266,6 +261,34 @@ func TestSyncBasic(t *testing.T) {
 	}
 
 	server := newGregordMock(tc.G.Log)
+
+	return h, server, uid
+}
+
+func checkStateSize(t *testing.T, message string, h *gregorHandler, size int) {
+	var state gregor.State
+	var err error
+	if state, err = h.gregorCli.StateMachineState(nil); err != nil {
+		t.Fatal(err)
+	}
+
+	items, err := state.Items()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(items) != size {
+		t.Fatalf(message, len(items), size)
+	}
+}
+
+func TestSyncBasic(t *testing.T) {
+	tc := libkb.SetupTest(t, "gregor")
+	defer tc.Cleanup()
+	tc.G.SetService()
+
+	// Set up client and server
+	h, server, uid := setupSyncTests(t, tc)
 
 	//Consume a bunch of messages to the server, and we'll sync them down
 	const numMsgs = 20
@@ -277,6 +300,7 @@ func TestSyncBasic(t *testing.T) {
 
 	// Sync messages down and see if we get 20
 	var syncedMsgs int
+	var err error
 	if syncedMsgs, err = h.reSync(context.TODO(), server); err != nil {
 		t.Fatal(err)
 	}
@@ -284,28 +308,17 @@ func TestSyncBasic(t *testing.T) {
 	if syncedMsgs != numMsgs {
 		t.Fatalf("synced messages does not equal consumed, %d != %d", syncedMsgs, numMsgs)
 	}
+
+	checkStateSize(t, "state items not equal to consumed, %d != %d", h, numMsgs)
 }
 
 func TestSyncBroadcast(t *testing.T) {
 	tc := libkb.SetupTest(t, "gregor")
 	defer tc.Cleanup()
-
 	tc.G.SetService()
 
-	var err error
-	user, err := kbtest.CreateAndSignupFakeUser("gregr", tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	uid := gregor1.UID(user.User.GetUID().ToBytes())
-
-	var h *gregorHandler
-	if h, err = newGregorHandler(tc.G); err != nil {
-		t.Fatal(err)
-	}
-
-	server := newGregordMock(tc.G.Log)
+	// Set up client and server
+	h, server, uid := setupSyncTests(t, tc)
 
 	//Consume a bunch of messages to the server, and we'll sync them down
 	const numMsgs = 6
@@ -321,8 +334,9 @@ func TestSyncBroadcast(t *testing.T) {
 	// Turn off fresh sync
 	h.freshSync = false
 
-	// Sync messages down and see if we get 20
+	// We should only get half of the messages on a non-fresh sync
 	var syncedMsgs int
+	var err error
 	if syncedMsgs, err = h.reSync(context.TODO(), server); err != nil {
 		t.Fatal(err)
 	}
@@ -330,28 +344,17 @@ func TestSyncBroadcast(t *testing.T) {
 	if syncedMsgs != numMsgs/2+1 {
 		t.Fatalf("syncMsgs should be half of numMsgs, %d, %d", syncedMsgs, numMsgs/2+1)
 	}
+
+	checkStateSize(t, "state items not equal to consumed, %d != %d", h, numMsgs)
 }
 
 func TestSyncSaveRestore(t *testing.T) {
 	tc := libkb.SetupTest(t, "gregor")
 	defer tc.Cleanup()
-
 	tc.G.SetService()
 
-	var err error
-	user, err := kbtest.CreateAndSignupFakeUser("gregr", tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	uid := gregor1.UID(user.User.GetUID().ToBytes())
-
-	var h *gregorHandler
-	if h, err = newGregorHandler(tc.G); err != nil {
-		t.Fatal(err)
-	}
-
-	server := newGregordMock(tc.G.Log)
+	// Set up client and server
+	h, server, uid := setupSyncTests(t, tc)
 
 	//Consume a bunch of messages to the server, and we'll sync them down
 	const numMsgs = 6
@@ -365,7 +368,8 @@ func TestSyncSaveRestore(t *testing.T) {
 	}
 
 	// Try saving
-	if err := h.gregorCli.Save(); err != nil {
+	var err error
+	if err = h.gregorCli.Save(); err != nil {
 		t.Fatal(err)
 	}
 
@@ -374,41 +378,16 @@ func TestSyncSaveRestore(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var state gregor.State
-	if state, err = h.gregorCli.StateMachineState(nil); err != nil {
-		t.Fatal(err)
-	}
-
-	items, err := state.Items()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(items) != numMsgs/2 {
-		t.Fatalf("restore brought back the wrong number of items: %d != %d",
-			len(items), numMsgs/2)
-	}
+	checkStateSize(t, "restore brought back the wrong number of items: %d != %d", h, numMsgs/2)
 
 	// Sync from the server
 	var syncedMsgs int
 	if syncedMsgs, err = h.reSync(context.TODO(), server); err != nil {
 		t.Fatal(err)
 	}
-
-	if state, err = h.gregorCli.StateMachineState(nil); err != nil {
-		t.Fatal(err)
-	}
-
-	items, err = state.Items()
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(items) != numMsgs {
-		t.Fatal("wrong number of items after sync, %d != %d", len(items), numMsgs)
-	}
-
 	if syncedMsgs != numMsgs {
 		t.Fatal("wrong number of items synced from server, %d != %d", syncedMsgs, numMsgs)
 	}
+
+	checkStateSize(t, "wrong number of items after sync, %d != %d", h, numMsgs)
 }
