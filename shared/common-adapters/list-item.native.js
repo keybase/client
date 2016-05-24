@@ -1,14 +1,15 @@
 // @flow
 import React, {Component} from 'react'
+import {TouchableHighlight} from 'react-native'
 import Box from './box'
-import {globalStyles} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props} from './list-item'
 
 // TODO Add swipe for action
 export default class ListItem extends Component<void, Props, void> {
   render () {
-    const clickable = this.props.clickable === undefined ? true : !!this.props.clickable
-    return (
+    const clickable = !!this.props.onClick
+    const listItem = (
       <Box style={{...globalStyles.flexBoxRow, ...containerStyle(this.props.type, clickable), ...this.props.containerStyle}}>
         <Box style={{...globalStyles.flexBoxColumn, ...iconContainerThemed[this.props.type], alignItems: 'center', justifyContent: 'center'}}>
           {this.props.icon}
@@ -20,6 +21,17 @@ export default class ListItem extends Component<void, Props, void> {
           {this.props.action}
         </Box>)}
       </Box>
+    )
+
+    return (
+      <TouchableHighlight
+        activeOpacity={0.8}
+        underlayColor={globalColors.white}
+        onPress={this.props.onClick || (() => {})}
+        disabled={!(this.props.onClick)}>
+        {listItem}
+      </TouchableHighlight>
+
     )
   }
 }

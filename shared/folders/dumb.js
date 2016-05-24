@@ -213,25 +213,71 @@ function genFiles (offsetNumber: number, fileCount: number, isPrivate: boolean):
       path: 'pics/',
       modifiedMarker: false,
       fileIcon: 'logo-128',
-      onClick: () => console.log('onClick:file')
+      onClick: () => console.log('onClick:file', wordGen(i))
     })
   }
 
   return results
 }
 
+const filesMenuItems = [
+  {title: 'Item 1', onClick: () => {}},
+  {title: 'Item 2', onClick: () => {}}
+]
+
 export const files: DumbComponentMap<Files> = {
   component: Files,
   mocks: {
+    'Normal - Public': {
+      theme: 'public',
+      visiblePopupMenu: false,
+      popupMenuItems: filesMenuItems,
+      selfUsername: 'cecileb',
+      users: ['cecileb', 'aliceb'],
+      onBack: () => console.log('onBack:files'),
+      onTogglePopupMenu: () => console.log('onTogglePopupMenu'),
+      recentFilesSection: [
+        {name: 'Today', modifiedMarker: true, files: genFiles(0, 4, false)},
+        {name: 'Yesterday', modifiedMarker: false, files: genFiles(4, 4, false)}
+      ]
+    },
+    'Popup - Public': {
+      theme: 'public',
+      visiblePopupMenu: true,
+      popupMenuItems: filesMenuItems,
+      selfUsername: 'cecileb',
+      users: ['cecileb', 'aliceb'],
+      onBack: () => console.log('onBack:files'),
+      onTogglePopupMenu: () => console.log('onTogglePopupMenu'),
+      recentFilesSection: [
+        {name: 'Today', modifiedMarker: true, files: genFiles(0, 4, false)},
+        {name: 'Yesterday', modifiedMarker: false, files: genFiles(4, 4, false)}
+      ]
+    },
     'Normal - Private': {
+      theme: 'private',
+      visiblePopupMenu: false,
+      popupMenuItems: filesMenuItems,
+      selfUsername: 'cecileb',
+      users: ['cecileb', 'aliceb'],
+      onBack: () => console.log('onBack:files'),
+      onTogglePopupMenu: () => console.log('onTogglePopupMenu'),
+      recentFilesSection: [
+        {name: 'Today', modifiedMarker: true, files: genFiles(0, 4, true)},
+        {name: 'Yesterday', modifiedMarker: false, files: genFiles(4, 4, true)}
+      ]
+    },
+    'Popup - Private': {
       theme: 'private',
       selfUsername: 'cecileb',
       users: ['cecileb', 'aliceb'],
       onBack: () => console.log('onBack:files'),
-      onOptions: () => console.log('onOptions'),
+      onTogglePopupMenu: () => console.log('onTogglePopupMenu'),
+      visiblePopupMenu: true,
+      popupMenuItems: filesMenuItems,
       recentFilesSection: [
         {name: 'Today', modifiedMarker: true, files: genFiles(0, 4, true)},
-        {name: 'Yesterday', modifiedMarker: true, files: genFiles(4, 8, true)}
+        {name: 'Yesterday', modifiedMarker: false, files: genFiles(4, 4, true)}
       ]
     }
   }
@@ -239,5 +285,6 @@ export const files: DumbComponentMap<Files> = {
 
 export default {
   'Folders TLF': map,
+  'Files': files,
   'File': file
 }

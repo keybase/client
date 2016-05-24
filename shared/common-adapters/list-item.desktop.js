@@ -6,9 +6,9 @@ import type {Props} from './list-item'
 
 export default class ListItem extends Component<void, Props, void> {
   render () {
-    const clickable = this.props.clickable === undefined ? true : !!this.props.clickable
+    const clickable = !!this.props.onClick
     return (
-      <Box style={{...globalStyles.flexBoxRow, ...containerStyle(this.props.type, clickable), ...this.props.containerStyle}}>
+      <Box style={{...globalStyles.flexBoxRow, ...containerStyle(this.props.type, clickable), ...this.props.containerStyle}} onClick={this.props.onClick}>
         <Box style={{...globalStyles.flexBoxColumn, ...iconContainerThemed[this.props.type], alignItems: 'center', justifyContent: 'center'}}>
           {this.props.icon}
         </Box>
