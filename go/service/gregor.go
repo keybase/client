@@ -366,7 +366,7 @@ func (g *gregorHandler) handleShowTrackerPopup(ctx context.Context, item gregor.
 }
 
 func (g *gregorHandler) handleDismissTrackerPopup(ctx context.Context, item gregor.Item) error {
-	g.G().Log.Debug("gregor handler: handleDismissShowTrackerPopup: %+v", item)
+	g.G().Log.Debug("gregor handler: handleDismissTrackerPopup: %+v", item)
 	if item.Body() == nil {
 		return errors.New("gregor dismissal for show_tracker_popup: nil message body")
 	}
