@@ -417,15 +417,15 @@ func (w WriteRange) End() uint64 {
 //
 // - both operations are writes and their write ranges overlap;
 // - one operation is a write and one is a truncate, and the truncate is
-//   in the write's range; or
+//   within the write's range or before it; or
 // - both operations are truncates.
 func (w WriteRange) Affects(other WriteRange) bool {
 	if w.isTruncate() {
 		if other.isTruncate() {
 			return true
 		}
-		// A write affects a truncate if any part of it comes after
-		// the truncate.
+		// A truncate affects a write if it lands inside or before the
+		// write.
 		return other.End() > w.Off
 	} else if other.isTruncate() {
 		return w.End() > other.Off
@@ -527,11 +527,15 @@ func (so *syncOp) GetDefaultAction(mergedPath path) crAction {
 	}
 }
 
+// In the functions below. a collapsed []WriteRange is a sequence of
+// non-overlapping writes with strictly increasing Off, and maybe a
+// trailing truncate (with strictly greater Off).
+
 // coalesceWrites combines the given `wNew` with the head and tail of
-// the given `existingWrites` slice.  For example, if the new write is
-// {5, 100}, and `existingWrites` = [{7,5}, {18,10}, {98,10}], the
-// returned write will be {5,103}.  There may be a truncate at the end
-// of the returned slice as well.
+// the given collapsed `existingWrites` slice.  For example, if the
+// new write is {5, 100}, and `existingWrites` = [{7,5}, {18,10},
+// {98,10}], the returned write will be {5,103}.  There may be a
+// truncate at the end of the returned slice as well.
 func coalesceWrites(existingWrites []WriteRange,
 	wNew WriteRange) []WriteRange {
 	if wNew.isTruncate() {
@@ -540,20 +544,19 @@ func coalesceWrites(existingWrites []WriteRange,
 	if len(existingWrites) == 0 {
 		return []WriteRange{wNew}
 	}
-	w := existingWrites[0]
-	wOldTail := existingWrites[len(existingWrites)-1]
+	newOff := wNew.Off
 	newEnd := wNew.End()
+	wOldHead := existingWrites[0]
+	wOldTail := existingWrites[len(existingWrites)-1]
 	if !wOldTail.isTruncate() && wOldTail.End() > newEnd {
 		newEnd = wOldTail.End()
 	}
-	if wNew.Off < w.Off || w.isTruncate() {
-		w.Off = wNew.Off
+	if !wOldHead.isTruncate() && wOldHead.Off < newOff {
+		newOff = wOldHead.Off
 	}
-	w.Len = newEnd - w.Off
-	ret := []WriteRange{w}
+	ret := []WriteRange{{Off: newOff, Len: newEnd - newOff}}
 	if wOldTail.isTruncate() {
-		wOldTail.Off = newEnd
-		ret = append(ret, wOldTail)
+		ret = append(ret, WriteRange{Off: newEnd})
 	}
 	return ret
 }
@@ -584,8 +587,7 @@ func addToCollapsedWriteRange(writes []WriteRange,
 		if len(mid) == 0 {
 			// Truncate past the last write.
 			return append(head, wNew)
-		}
-		if mid[0].isTruncate() {
+		} else if mid[0].isTruncate() {
 			// Min truncate wins
 			if mid[0].Off < wNew.Off {
 				return append(head, mid[0])
@@ -620,12 +622,14 @@ func addToCollapsedWriteRange(writes []WriteRange,
 // dirty state of this file after this syncOp, given a previous write
 // range.  It coalesces overlapping dirty writes, and it erases any
 // writes that occurred before a truncation with an offset smaller
-// than its max dirty byte.  The resulting collapsed write range is a
-// sequence of non-overlapping writes with strictly increasing Off,
-// and maybe a trailing truncate (with strictly greater Off).
+// than its max dirty byte.
 //
 // This function assumes that `writes` has already been collapsed (or
 // is nil).
+//
+// NOTE: Truncates past a file's end get turned into writes by
+// folderBranchOps, but in the future we may have bona fide truncate
+// WriteRanges past a file's end.
 func (so *syncOp) collapseWriteRange(writes []WriteRange) (
 	newWrites []WriteRange) {
 	newWrites = writes

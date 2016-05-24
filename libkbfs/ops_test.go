@@ -1,6 +1,7 @@
 package libkbfs
 
 import (
+	"fmt"
 	"math/rand"
 	"reflect"
 	"testing"
@@ -651,4 +652,18 @@ func TestOpsCollapseWriteRange(t *testing.T) {
 			}
 		}
 	}
+}
+
+func ExamplecoalesceWrites() {
+	fmt.Println(coalesceWrites(
+		[]WriteRange{{Off: 7, Len: 5}, {Off: 18, Len: 10},
+			{Off: 98, Len: 10}}, WriteRange{Off: 5, Len: 100}))
+	// Output: [{5 103 {{map[]}}}]
+}
+
+func ExamplecoalesceWrites_withOldTruncate() {
+	fmt.Println(coalesceWrites(
+		[]WriteRange{{Off: 7, Len: 5}, {Off: 18, Len: 10},
+			{Off: 98, Len: 0}}, WriteRange{Off: 5, Len: 100}))
+	// Output: [{5 100 {{map[]}}} {105 0 {{map[]}}}]
 }
