@@ -424,6 +424,14 @@ type GregorDismisser interface {
 	DismissItem(id gregor.MsgID) error
 }
 
+type GregorInBandMessageHandler interface {
+	IsAlive() bool
+	Name() string
+	HandlesCategory(category string) bool
+	Create(ctx context.Context, category string, ibm gregor.Item) error
+	Dismiss(ctx context.Context, category string, ibm gregor.Item) error
+}
+
 type GregorListener interface {
-	ConnectIdentifyUI() error
+	PushHandler(handler GregorInBandMessageHandler)
 }

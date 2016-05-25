@@ -103,6 +103,9 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 	}
 	tc.G.SetUIRouter(&router)
 
+	idhandler := NewIdentifyUIHandler(tc.G, 0)
+	idhandler.toggleAlwaysAlive(true)
+
 	trackee, err := kbtest.CreateAndSignupFakeUser("gregr", tc.G)
 	if err != nil {
 		t.Fatal(err)
@@ -118,6 +121,8 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 	if h, err = newGregorHandler(tc.G); err != nil {
 		t.Fatal(err)
 	}
+
+	h.PushHandler(idhandler)
 
 	msgID := gregor1.MsgID("my_random_id")
 	m := gregor1.Message{

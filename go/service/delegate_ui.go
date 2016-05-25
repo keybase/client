@@ -31,7 +31,9 @@ func (d *DelegateUICtlHandler) RegisterIdentifyUI(_ context.Context) error {
 
 	// Let Gregor related code know that a IdentifyUI client
 	// (probably Electron) has connected, and to sync out state to it
-	d.G().GregorListener.ConnectIdentifyUI()
+	if d.G().GregorListener != nil {
+		d.G().GregorListener.PushHandler(NewIdentifyUIHandler(d.G(), d.id))
+	}
 
 	return nil
 }
