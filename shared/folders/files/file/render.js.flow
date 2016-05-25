@@ -1,0 +1,18 @@
+// @flow
+
+import type {Props as IconProps} from '../../../common-adapters/icon'
+
+export type Props = {
+  theme: 'public' | 'private',
+  size?: 'Small' | 'Large', // defaults to Large
+  name: string,
+  path: string,
+  lastModifiedMeta?: string,
+  lastModifiedBySelf?: ?boolean,
+  lastModifiedBy?: ?string,
+  modifiedMarker: boolean,
+  fileIcon: IconProps.type,
+  onClick: () => void
+}
+
+export default class Render extends React$Component<void, Props, void> { }

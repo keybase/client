@@ -4,7 +4,10 @@ import React, {Component} from 'react'
 
 export type Props = {
   onClick: Function,
-  style?: ?Object
+  iconOnly?: boolean,
+  style?: ?Object,
+  iconStyle?: Object,
+  textStyle?: Object
 }
 
 declare export default class BackButton extends Component {

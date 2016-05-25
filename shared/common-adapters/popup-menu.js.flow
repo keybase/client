@@ -12,7 +12,8 @@ export type Props = {
   items: Array<MenuItem>,
   onHidden: () => void,
   visible: boolean,
-  style?: Object
+  style?: Object,
+  menuCatcherStyle?: Object
 }
 
 declare export default class PopupMenu extends React.Component<void, Props, void> {
