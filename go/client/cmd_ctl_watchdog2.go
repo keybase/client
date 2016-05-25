@@ -15,18 +15,18 @@ import (
 	"github.com/keybase/go-updater/watchdog"
 )
 
-// CmdWatchdog defines watchdog command
-type CmdWatchdog struct {
+// CmdWatchdog2 defines watchdog command
+type CmdWatchdog2 struct {
 	libkb.Contextified
 }
 
 // ParseArgv is args for the watchdog command
-func (c *CmdWatchdog) ParseArgv(ctx *cli.Context) error {
+func (c *CmdWatchdog2) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
 // Run watchdog
-func (c *CmdWatchdog) Run() error {
+func (c *CmdWatchdog2) Run() error {
 	env := c.G().Env
 	runMode := env.GetRunMode()
 	if runMode != libkb.ProductionRunMode {
@@ -44,7 +44,10 @@ func (c *CmdWatchdog) Run() error {
 		Args: []string{
 			"-d",
 			"--log-file=" + serviceLogPath,
-			"service"},
+			"service",
+			"--watchdog-forked",
+		},
+		ExitOn: watchdog.ExitOnSuccess,
 	}
 
 	// KBFS
@@ -92,13 +95,13 @@ func (c *CmdWatchdog) Run() error {
 	}
 }
 
-// NewCmdWatchdog constructs watchdog command
-func NewCmdWatchdog(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
+// NewCmdWatchdog2 constructs watchdog command
+func NewCmdWatchdog2(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Command {
 	return cli.Command{
-		Name:  "watchdog",
+		Name:  "watchdog2",
 		Usage: "Start and monitor background services",
 		Action: func(c *cli.Context) {
-			cl.ChooseCommand(&CmdWatchdog{Contextified: libkb.NewContextified(g)}, "watchdog", c)
+			cl.ChooseCommand(&CmdWatchdog2{Contextified: libkb.NewContextified(g)}, "watchdog2", c)
 			cl.SetForkCmd(libcmdline.NoFork)
 			cl.SetLogForward(libcmdline.LogForwardNone)
 		},
@@ -106,26 +109,26 @@ func NewCmdWatchdog(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cli.Comm
 }
 
 // GetUsage returns library usage for this command
-func (c *CmdWatchdog) GetUsage() libkb.Usage {
+func (c *CmdWatchdog2) GetUsage() libkb.Usage {
 	return libkb.Usage{}
 }
 
 // Debugf (for watchdog.Log interface)
-func (c *CmdWatchdog) Debugf(s string, args ...interface{}) {
+func (c *CmdWatchdog2) Debugf(s string, args ...interface{}) {
 	c.G().Log.Debug(s, args...)
 }
 
 // Infof (for watchdog.Log interface)
-func (c *CmdWatchdog) Infof(s string, args ...interface{}) {
+func (c *CmdWatchdog2) Infof(s string, args ...interface{}) {
 	c.G().Log.Info(s, args...)
 }
 
 // Warningf (for watchdog Log interface)
-func (c *CmdWatchdog) Warningf(s string, args ...interface{}) {
+func (c *CmdWatchdog2) Warningf(s string, args ...interface{}) {
 	c.G().Log.Warning(s, args...)
 }
 
 // Errorf (for watchdog Log interface)
-func (c *CmdWatchdog) Errorf(s string, args ...interface{}) {
+func (c *CmdWatchdog2) Errorf(s string, args ...interface{}) {
 	c.G().Log.Errorf(s, args...)
 }
