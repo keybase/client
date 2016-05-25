@@ -101,12 +101,11 @@ func (f *FS) GetVolumeInformation() (dokan.VolumeInformation, error) {
 }
 
 // GetDiskFreeSpace returns information about free space on the volume for dokan.
-func (f *FS) GetDiskFreeSpace() (dokan.FreeSpace, error) {
+func (f *FS) GetDiskFreeSpace() (freeSpace dokan.FreeSpace, err error) {
 	// TODO should this be refused to other users?
 	ctx, cancel := NewContextWithOpID(f, "FS GetDiskFreeSpace")
-	defer cancel()
+	defer func() { f.reportErr(ctx, libkbfs.ReadMode, err, cancel) }()
 	uqi, err := f.config.BlockServer().GetUserQuotaInfo(ctx)
-	f.log.CDebugf(ctx, "FS GetDiskFreeSpace -> %v, %v", uqi, err)
 	if err != nil {
 		return dokan.FreeSpace{}, errToDokan(err)
 	}
