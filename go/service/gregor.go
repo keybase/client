@@ -46,10 +46,6 @@ func (h identifyUIHandler) Name() string {
 	return "identifyUIHandler"
 }
 
-func (h identifyUIHandler) HandlesCategory(category string) bool {
-	return category == "show_tracker_popup"
-}
-
 func (h *identifyUIHandler) toggleAlwaysAlive(alive bool) {
 	h.alwaysAlive = alive
 }
@@ -366,10 +362,7 @@ func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context,
 				g.G().Log.Debug("gregor handler: item %s has category %s", id, category)
 			}
 
-			// Run handler for the category if it handles it
-			if handler.HandlesCategory(category) {
-				handler.Create(ctx, category, item)
-			}
+			handler.Create(ctx, category, item)
 		}
 
 		dismissal := update.Dismissal()
@@ -389,10 +382,7 @@ func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context,
 					g.G().Log.Debug("gregor handler: dismissal %s has category %s", id, category)
 				}
 
-				// Run handler for the category if it handles it
-				if handler.HandlesCategory(category) {
-					handler.Dismiss(ctx, category, item)
-				}
+				handler.Dismiss(ctx, category, item)
 
 				// Clear the item out of items map.
 				delete(g.itemsByID, id.String())
@@ -414,9 +404,7 @@ func (h identifyUIHandler) Create(ctx context.Context, category string, item gre
 		return h.handleShowTrackerPopupCreate(ctx, item)
 	}
 
-	errmsg := "identifyUIHandler: create() on unhandled category"
-	h.G().Log.Error(errmsg)
-	return errors.New(errmsg)
+	return nil
 }
 
 func (h identifyUIHandler) Dismiss(ctx context.Context, category string, item gregor.Item) error {
@@ -425,9 +413,7 @@ func (h identifyUIHandler) Dismiss(ctx context.Context, category string, item gr
 		return h.handleShowTrackerPopupDismiss(ctx, item)
 	}
 
-	errmsg := "identifyUIHandler: dismiss() on unhandled category"
-	h.G().Log.Error(errmsg)
-	return errors.New(errmsg)
+	return nil
 }
 
 func (h identifyUIHandler) handleShowTrackerPopupCreate(ctx context.Context, item gregor.Item) error {

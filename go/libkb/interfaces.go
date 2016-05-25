@@ -427,7 +427,6 @@ type GregorDismisser interface {
 type GregorInBandMessageHandler interface {
 	IsAlive() bool
 	Name() string
-	HandlesCategory(category string) bool
 	Create(ctx context.Context, category string, ibm gregor.Item) error
 	Dismiss(ctx context.Context, category string, ibm gregor.Item) error
 }
