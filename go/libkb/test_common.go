@@ -20,6 +20,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/gregor"
 )
 
 // TestConfig tracks libkb config during a test
@@ -250,6 +251,8 @@ func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestC
 		return
 	}
 
+	g.GregorDismisser = &FakeGregorDismisser{}
+
 	tc.PrevGlobal = G
 	G = g
 	tc.G = g
@@ -399,4 +402,15 @@ type TestLoginCancelUI struct {
 
 func (t *TestLoginCancelUI) GetEmailOrUsername(_ context.Context, _ int) (string, error) {
 	return "", InputCanceledError{}
+}
+
+type FakeGregorDismisser struct {
+	dismissedIDs []gregor.MsgID
+}
+
+var _ GregorDismisser = (*FakeGregorDismisser)(nil)
+
+func (f *FakeGregorDismisser) DismissItem(id gregor.MsgID) error {
+	f.dismissedIDs = append(f.dismissedIDs, id)
+	return nil
 }

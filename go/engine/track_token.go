@@ -136,6 +136,11 @@ func (e *TrackToken) Run(ctx *Context) (err error) {
 	if err == nil {
 		e.G().NotifyRouter.HandleUserChanged(e.arg.Me.GetUID())
 		e.G().NotifyRouter.HandleUserChanged(e.them.GetUID())
+
+		// Dismiss any associated gregor item.
+		if outcome.ResponsibleGregorItem != nil {
+			err = e.G().GregorDismisser.DismissItem(outcome.ResponsibleGregorItem.Metadata().MsgID())
+		}
 	}
 
 	return err

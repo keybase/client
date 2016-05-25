@@ -6,14 +6,18 @@ package engine
 import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
+	gregor "github.com/keybase/gregor"
 )
 
 type ResolveThenIdentify2 struct {
 	libkb.Contextified
-	arg      *keybase1.Identify2Arg
-	i2eng    *Identify2WithUID
-	testArgs *Identify2WithUIDTestArgs
+	arg                   *keybase1.Identify2Arg
+	i2eng                 *Identify2WithUID
+	testArgs              *Identify2WithUIDTestArgs
+	responsibleGregorItem gregor.Item
 }
+
+var _ (Engine) = (*ResolveThenIdentify2)(nil)
 
 // Name is the unique engine name.
 func (e *ResolveThenIdentify2) Name() string {
@@ -79,6 +83,9 @@ func (e *ResolveThenIdentify2) Run(ctx *Context) (err error) {
 	defer e.G().Trace("ResolveThenIdentify2::Run", func() error { return err })
 
 	e.i2eng = NewIdentify2WithUID(e.G(), e.arg)
+	if e.responsibleGregorItem != nil {
+		e.i2eng.setResponsibleGregorItem(e.responsibleGregorItem)
+	}
 
 	if err = e.resolveUID(ctx); err != nil {
 		return
@@ -97,4 +104,6 @@ func (e *ResolveThenIdentify2) Result() *keybase1.Identify2Res {
 	return e.i2eng.Result()
 }
 
-var _ (Engine) = (*ResolveThenIdentify2)(nil)
+func (e *ResolveThenIdentify2) setResponsibleGregorItem(item gregor.Item) {
+	e.responsibleGregorItem = item
+}

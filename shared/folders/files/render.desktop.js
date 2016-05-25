@@ -49,7 +49,7 @@ export default class Render extends Component<void, Props, void> {
             )))}
           </Box>
         </Box>
-        <PopupMenu menuCatcherStyle={{alignItems: 'flex-end', top: 12, right: 12}} items={this.props.popupMenuItems} visible={this.props.visiblePopupMenu} onHidden={this.props.onTogglePopupMenu} />
+        <PopupMenu style={{alignItems: 'flex-end', top: 12, right: 12}} items={this.props.popupMenuItems} visible={this.props.visiblePopupMenu} onHidden={this.props.onTogglePopupMenu} />
         <Box style={{...globalStyles.flexBoxColumn}}>
           {this.props.recentFilesSection.map(s => this._renderSection(s))}
         </Box>

@@ -9,7 +9,7 @@ import ExistingDevice from './existing-device'
 
 import {loadDevices} from '../actions/devices'
 import {routeAppend} from '../actions/router'
-import {addANewDevice} from '../actions/login'
+import {addNewPhone, addNewComputer, addNewPaperKey} from '../actions/login'
 
 import ShowDevice from './device-page'
 import RemoveDevice from './device-revoke'
@@ -46,11 +46,12 @@ class Devices extends Component {
       <Render
         devices={devices}
         revokedDevices={revokedDevices}
+        addNewPhone={this.props.addNewPhone}
+        addNewComputer={this.props.addNewComputer}
+        addNewPaperKey={this.props.addNewPaperKey}
         waitingForServer={this.props.waitingForServer}
-        addNewDevice={this.props.addNewDevice}
         showRemoveDevicePage={this.props.showRemoveDevicePage}
-        showExistingDevicePage={this.props.showExistingDevicePage}
-        showGenPaperKeyPage={this.props.showGenPaperKeyPage} />
+        showExistingDevicePage={this.props.showExistingDevicePage} />
     )
   }
 }
@@ -65,7 +66,8 @@ export default connect(
       loadDevices: () => dispatch(loadDevices()),
       showExistingDevicePage: device => dispatch(routeAppend({path: 'showDevice', device})),
       showRemoveDevicePage: device => dispatch(routeAppend({path: 'removeDevice', device})),
-      addNewDevice: () => dispatch(addANewDevice()),
-      showGenPaperKeyPage: () => dispatch(routeAppend('genPaperKey'))
+      addNewPhone: () => dispatch(addNewPhone()),
+      addNewComputer: () => dispatch(addNewComputer()),
+      addNewPaperKey: () => dispatch(addNewPaperKey())
     }
   })(Devices)

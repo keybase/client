@@ -20,7 +20,7 @@ export default class BackButton extends Component {
     return (
       <div style={{...styles.container, ...this.props.style}} onClick={e => this.onClick(e)}>
         <Icon type='fa-arrow-left' style={{...styles.icon, ...this.props.iconStyle}} />
-        {!this.props.iconOnly && <Text type='BodyPrimaryLink' style={this.props.textStyle} onClick={e => this.onClick(e)}>Back</Text>}
+        {this.props.title !== null && <Text type='BodyPrimaryLink' style={this.props.textStyle} onClick={e => this.onClick(e)}>{this.props.title || 'Back'}</Text>}
       </div>
     )
   }

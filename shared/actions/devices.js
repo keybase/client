@@ -6,6 +6,7 @@ import {navigateBack, navigateTo, switchTab} from './router'
 import type {AsyncAction} from '../constants/types/flux'
 import type {incomingCallMapType, login_deprovision_rpc, revoke_revokeDevice_rpc, device_deviceHistoryList_rpc, login_paperKey_rpc} from '../constants/types/flow-types'
 import {setRevokedSelf} from './login'
+import HiddenString from '../util/hidden-string'
 
 export function loadDevices () : AsyncAction {
   return function (dispatch) {
@@ -58,7 +59,7 @@ export function generatePaperKey () : AsyncAction {
       'keybase.1.loginUi.displayPaperKeyPhrase': ({phrase: paperKey}, response) => {
         dispatch({
           type: Constants.paperKeyLoaded,
-          payload: paperKey
+          payload: new HiddenString(paperKey)
         })
         response.result()
       }

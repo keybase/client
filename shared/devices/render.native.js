@@ -106,9 +106,10 @@ const DeviceHeader = ({addNewDevice}) => (
   </Box>
 )
 
-const Render = ({devices, revokedDevices, waitingForServer, addNewDevice, showRemoveDevicePage, showExistingDevicePage}: Props) => (
+// TODO native popup
+const Render = ({devices, revokedDevices, waitingForServer, showRemoveDevicePage, showExistingDevicePage}: Props) => (
   <Box style={stylesContainer}>
-    {<DeviceHeader addNewDevice={addNewDevice} />}
+    {<DeviceHeader addNewDevice={() => {}} />}
     {devices && devices.map(device => <DeviceRow key={device.name} device={device} showRemoveDevicePage={showRemoveDevicePage} showExistingDevicePage={showExistingDevicePage} />)}
     {revokedDevices && <RevokedDevices revokedDevices={revokedDevices} />}
   </Box>

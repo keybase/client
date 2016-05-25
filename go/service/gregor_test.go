@@ -21,12 +21,20 @@ func TestGregorHandler(t *testing.T) {
 	listener := &nlistener{}
 	tc.G.NotifyRouter.SetListener(listener)
 
-	h := newGregorHandler(tc.G)
+	user, err := kbtest.CreateAndSignupFakeUser("gregr", tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var h *gregorHandler
+	if h, err = newGregorHandler(tc.G); err != nil {
+		t.Fatal(err)
+	}
 	if h.HandlerName() != "keybase service" {
 		t.Errorf("handler name: %q, expected \"keybase service\"", h.HandlerName())
 	}
 
-	kbUID := keybase1.MakeTestUID(1)
+	kbUID := user.User.GetUID()
 	gUID := gregor1.UID(kbUID.ToBytes())
 
 	m := gregor1.Message{
@@ -101,12 +109,15 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 	}
 
 	// Create another test user to actually perform the track, because we can't track ourselves.
-	_, err = kbtest.CreateAndSignupFakeUser("gregr", tc.G)
+	tracker, err := kbtest.CreateAndSignupFakeUser("gregr", tc.G)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	h := newGregorHandler(tc.G)
+	var h *gregorHandler
+	if h, err = newGregorHandler(tc.G); err != nil {
+		t.Fatal(err)
+	}
 
 	msgID := gregor1.MsgID("my_random_id")
 	m := gregor1.Message{
@@ -114,6 +125,7 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 			StateUpdate_: &gregor1.StateUpdateMessage{
 				Md_: gregor1.Metadata{
 					MsgID_: msgID,
+					Uid_:   gregor1.UID(tracker.User.GetUID().ToBytes()),
 				},
 				Creation_: &gregor1.Item{
 					Category_: gregor1.Category("show_tracker_popup"),
@@ -137,9 +149,14 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 		t.Fatal("Expected no dismissed username yet.")
 	}
 
+	msgIDDis := gregor1.MsgID("my_random_id_dis")
 	dismissal := gregor1.Message{
 		Ibm_: &gregor1.InBandMessage{
 			StateUpdate_: &gregor1.StateUpdateMessage{
+				Md_: gregor1.Metadata{
+					MsgID_: msgIDDis,
+					Uid_:   gregor1.UID(tracker.User.GetUID().ToBytes()),
+				},
 				Dismissal_: &gregor1.Dismissal{
 					MsgIDs_: []gregor1.MsgID{msgID},
 				},
@@ -153,6 +170,6 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 
 	// Now assert that the tracker window has been dismissed.
 	if identifyUI.dismissedUsername != trackee.User.GetName() {
-		t.Fatalf("Expected the tracker window for UID %s to be dismissed.", trackee.User.GetUID().String())
+		t.Fatalf("Expected the tracker window for UID %s to be dismissed. current value: %s", trackee.User.GetUID().String(), identifyUI.dismissedUsername)
 	}
 }

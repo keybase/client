@@ -20,7 +20,9 @@ export default class Avatar extends Component {
   }
 
   _createUrl (): ?string {
-    if (this.props.url) {
+    if (__SCREENSHOT__) {
+      return noAvatar
+    } else if (this.props.url) {
       return this.props.url
     } else if (this.props.username) {
       return `https://keybase.io/${this.props.username}/picture`

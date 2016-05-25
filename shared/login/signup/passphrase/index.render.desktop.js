@@ -7,8 +7,7 @@ import Container from '../../forms/container'
 
 import type {Props} from './index.render'
 
-class Render extends Component {
-  props: Props;
+class Render extends Component<void, Props, void> {
 
   render () {
     const passphraseError = this.props.passphraseError && this.props.passphraseError.stringValue()

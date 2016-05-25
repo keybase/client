@@ -274,19 +274,30 @@ func (d *Service) OnLogout() error {
 	return nil
 }
 
-func (d *Service) gregordConnect() error {
-	uri, err := parseFMPURI(d.G().Env.GetGregorURI())
+func (d *Service) gregordConnect() (err error) {
+	var uri *rpc.FMPURI
+	defer d.G().Trace("gregordConnect", func() error { return err })()
+
+	uri, err = rpc.ParseFMPURI(d.G().Env.GetGregorURI())
 	if err != nil {
 		return err
 	}
-	d.G().Log.Debug("gregor URI: %s", uri)
+	d.G().Log.Debug("| gregor URI: %s", uri)
 
 	if d.gregor != nil {
 		d.gregor.Shutdown()
 	}
 
-	d.gregor = newGregorHandler(d.G())
-	return d.gregor.Connect(uri)
+	if d.gregor, err = newGregorHandler(d.G()); err != nil {
+		return err
+	}
+	d.G().GregorDismisser = d.gregor
+
+	if err = d.gregor.Connect(uri); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 // ReleaseLock releases the locking pidfile by closing, unlocking and

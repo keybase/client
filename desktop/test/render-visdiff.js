@@ -7,17 +7,18 @@ import {app, BrowserWindow, ipcMain} from 'electron'
 import {resolveRoot, resolveRootAsURL} from '../resolve-root'
 import dumbComponentMap from '../shared/more/dumb-component-map.desktop'
 
-const outputDir = resolveRoot('screenshots')
+if (process.argv.length !== 3) {
+  console.log(`Usage: electron ${path.basename(process.argv[1])} DESTINATION`)
+  process.exit(1)
+}
+const outputDir = process.argv[2]
 if (!fs.existsSync(outputDir)) {
-  fs.mkdirSync(outputDir)
+  console.log(`Error: output dir ${outputDir} does not exist`)
+  process.exit(1)
 }
 
 const toRender = []
 Object.keys(dumbComponentMap).forEach(key => {
-  if (key === 'Tracker') {
-    // FIXME: Tracker dumb components aren't fully stateless yet
-    return
-  }
   Object.keys(dumbComponentMap[key].mocks).forEach(mockKey => {
     toRender.push({key, mockKey})
   })

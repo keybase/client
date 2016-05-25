@@ -137,6 +137,11 @@ func (e *DeviceHistory) loadDevices() error {
 
 func (e *DeviceHistory) provisioner(d *libkb.Device, ckis *libkb.ComputedKeyInfos, info *libkb.ComputedKeyInfo) (*libkb.Device, error) {
 	for _, v := range info.Delegations {
+		if v.GetKeyType() != libkb.KIDNaclEddsa {
+			// only concerned with device history, not pgp provisioners
+			continue
+		}
+
 		did, ok := ckis.KIDToDeviceID[v]
 		if !ok {
 			return nil, fmt.Errorf("device %s provisioned by kid %s, but couldn't find matching device ID in ComputedKeyInfos", d.ID, v)

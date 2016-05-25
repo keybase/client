@@ -127,6 +127,7 @@ declare module 'resolveRoot' {
 
 declare var __VERSION__: string;
 declare var __DEV__: boolean;
+declare var __SCREENSHOT__: boolean;
 
 // Algebraic data types
 // This is a bit hacky, but it gives you strong guarantees.

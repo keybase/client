@@ -7,6 +7,8 @@ import (
 	"github.com/jonboulle/clockwork"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/gregor"
+	gregor1 "github.com/keybase/gregor/protocol/gregor1"
 	"testing"
 	"time"
 )
@@ -442,4 +444,62 @@ func TestTrackFailTempRecover(t *testing.T) {
 	}
 
 	assertTracking(tc, username)
+}
+
+type FakeGregorDismisser struct {
+	dismissedMsgID gregor.MsgID
+}
+
+var _ libkb.GregorDismisser = (*FakeGregorDismisser)(nil)
+
+func (d *FakeGregorDismisser) DismissItem(id gregor.MsgID) error {
+	d.dismissedMsgID = id
+	return nil
+}
+
+func TestTrackWithTokenDismissesGregor(t *testing.T) {
+	tc := SetupEngineTest(t, "track")
+	defer tc.Cleanup()
+	fu := CreateAndSignupFakeUser(tc, "track")
+
+	dismisser := &FakeGregorDismisser{}
+	tc.G.GregorDismisser = dismisser
+
+	msgID := gregor1.MsgID("my_random_id")
+	responsibleGregorItem := gregor1.ItemAndMetadata{
+		// All we need for this test is the msgID, to check for dismissal.
+		Md_: &gregor1.Metadata{
+			MsgID_: msgID,
+		},
+	}
+
+	idUI := &FakeIdentifyUI{}
+	username := "t_tracy"
+	arg := &keybase1.Identify2Arg{
+		UserAssertion: username,
+		NeedProofSet:  true,
+	}
+	ctx := &Context{
+		LogUI:      tc.G.UI.GetLogUI(),
+		IdentifyUI: idUI,
+		SecretUI:   fu.NewSecretUI(),
+	}
+	eng := NewResolveThenIdentify2(tc.G, arg)
+	eng.setResponsibleGregorItem(&responsibleGregorItem)
+	if err := RunEngine(eng, ctx); err != nil {
+		tc.T.Fatal(err)
+	}
+	targ := TrackTokenArg{
+		Token:   idUI.Token,
+		Options: keybase1.TrackOptions{BypassConfirm: true},
+	}
+	teng := NewTrackToken(&targ, tc.G)
+	if err := RunEngine(teng, ctx); err != nil {
+		tc.T.Fatal(err)
+	}
+
+	// Check that the dismissed ID matches what we defined above.
+	if msgID.String() != dismisser.dismissedMsgID.String() {
+		tc.T.Fatalf("Dismissed msgID (%s) != responsible msgID (%s)", msgID.String(), dismisser.dismissedMsgID.String())
+	}
 }

@@ -125,7 +125,7 @@ type MessageConsumer interface {
 	// perform state mutations, or might be "out-of-band" that just use the
 	// Gregor broadcast mechanism to make sure that all clients get the
 	// notification.
-	ConsumeMessage(m Message) error
+	ConsumeMessage(m Message) (time.Time, error)
 }
 
 // StateMachine is the central interface of the Gregor system. Various parts of the

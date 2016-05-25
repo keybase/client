@@ -30,7 +30,7 @@ export default class Render extends Component<void, Props, void> {
 
     const contents = (
       <Box style={{...globalStyles.flexBoxRow, justifyContent: 'space-between', ...styleHeaderThemed[this.props.theme], height: 48}}>
-        <BackButton iconOnly onClick={this.props.onBack} style={{marginLeft: 16}} iconStyle={{color: backButtonColor}} textStyle={{color: backButtonColor}} />
+        <BackButton title={null} onClick={this.props.onBack} style={{marginLeft: 16}} iconStyle={{color: backButtonColor}} textStyle={{color: backButtonColor}} />
         <Icon
           underlayColor={'transparent'}
           style={{...styleMenu, color: menuColor, marginRight: 16}}
