@@ -1,72 +1,118 @@
------------------------------
+# The Keybase File System [![Build Status](https://travis-ci.com/keybase/kbfs.svg?token=o83uSEjtx4xskKjG2ZyS&branch=master)](https://travis-ci.com/keybase/kbfs) [![Build status](https://ci.appveyor.com/api/projects/status/xpxqhgpl60m1h3sb/branch/master?svg=true)](https://ci.appveyor.com/project/keybase/kbfs/branch/master)
 
-# Running KBFS [![Build Status](https://travis-ci.com/keybase/kbfs.svg?token=o83uSEjtx4xskKjG2ZyS&branch=master)](https://travis-ci.com/keybase/kbfs) [![Build status](https://ci.appveyor.com/api/projects/status/xpxqhgpl60m1h3sb/branch/master?svg=true)](https://ci.appveyor.com/project/keybase/kbfs/branch/master)
+This repository contains the official [Keybase](https://keybase.io)
+implementation of the client-side code for the Keybase File System
+(KBFS). See [the KBFS documentation](keybase.io/docs/kbfs) for an
+introduction and overview.
 
-To run the KBFS FUSE client:
+All code is written in the [Go Language](https://golang.org), and
+relies on the [Keybase service](https://github.com/keybase/client/go).
 
-* Install FUSE.
-  - For OS X, https://osxfuse.github.io/.
-* Check out https://github.com/keybase/keybase, and follow its
-  README.md to install and run a local copy of the Keybase webserver
-  on port 3000.
-* Install Go 1.6.
+### Architecture
 
-* Check out https://github.com/keybase/client, and do:
+This client allows you to mount KBFS as a proper file system at some
+mountpoint on your local device (by default, `/keybase/`).  It
+communicates locally with the Keybase service, and remotely with three
+types of KBFS servers (block servers, metadata servers, and key
+servers).
 
-        ln -s $GOPATH/src/github.com/keybase/client/git-hooks/pre-commit $GOPATH/src/github.com/keybase/kbfs/.git/hooks/
-        go get -u github.com/golang/lint/golint
-        go get golang.org/x/tools/cmd/vet
+The code is organized as follows:
 
-If the last command fails please see [here](https://groups.google.com/forum/#!msg/golang-nuts/lz0nPiUwfUk/E92u9uZhMHYJ).
+* [dokan](dokan/): Helper code for running Dokan filesystems on Windows.
+* [kbfs](kbfs/): A thin command line utility for interacting with KBFS
+  without using a file system mountpoint.
+* [kbfsdokan](kbfsdokan/): The main executable for running KBFS on
+  Windows.
+* [kbfsfuse](kbfsfuse/): The main executable for running KBFS on Linux
+  and OS X.
+* [libdokan](libdokan/): Library code gluing together KBFS and the
+  Dokan protocol.
+* [libfs](libfs/): Common library code useful to any file system
+  presentation layer for KBFS.
+* [libfuse](libfuse/): Library code gluing together KBFS and the FUSE
+  protocol.
+* [libkbfs](libkbfs/): The core logic for KBFS.
+* [metricsutil](metricsutil/): Helper code for collecting metrics.
+* [test](test/): A test harness with a domain-specific test language
+  and tests in that language.
+* [vendor](vendor/): Vendored versions of the open-source libraries
+  used by KBFS.
 
-* Run the service
+### Status
 
-        rm -rf ~/kbtest
-        cd client/go/keybase
-        ./keybase -H ~/kbtest service start
+KBFS currently works on both Linux (at least Debian, Ubuntu and Arch),
+OS X, and Windows.  It is approaching release ready, though currently
+it is still in alpha.  There may still be bugs, so please keep backups
+of any important data you store in KBFS.  Currently our pre-built
+packages are available by invitation only.
 
-* Sign up one (or more) users in a different terminal
+KBFS depends in part on the following awesome technologies to present
+a mountpoint on your device:
 
-        cd client/go/keybase
-        ./keybase -H ~/kbtest signup -c 202020202020202020202020 # -c value is a reusable test invite code
+* [FUSE](https://github.com/libfuse/) (on Linux)
+* [FUSE for OS X](https://osxfuse.github.io/) (on OSX)
+* [Dokany](https://github.com/dokan-dev/dokany) (on Windows)
 
-Now, in kbfs/:
+See [our vendor directory](vendor/) for a complete list of open source
+packages KBFS uses.
 
-    go get -u ./...
-    ln -s $GOPATH/src/github.com/keybase/client/git-hooks/pre-commit .git/pre-commit
-    cd kbfsfuse
-    GO15VENDOREXPERIMENT=1 go build
-    mkdir /tmp/kbfs  # or whatever you prefer
-    HOME=~/kbtest ./kbfsfuse -debug -client /tmp/kbfs
+Currently, our server implementations are not open source.
 
-Now you can do cool stuff like (assuming keybase users "strib" and
-"max"; logged in as "strib"):
+### To run from source against production KBFS servers
 
-    ls /tmp/kbfs/strib
-    echo blahblah > /tmp/kbfs/strib/foo
-    ls /tmp/kbfs/strib,max
+#### On Linux or OS X:
 
-Assertions in file names should work too.  Note that public
-directories must be created by the user (by ls or something) before a
-different user can see it.  So /tmp/kbfs/max/public won't be visible
-to 'strib' until 'max' looks in his private folder while logged in.
+Prerequisites:
 
-# Resetting
+* [Go 1.6](https://golang.org/dl/) or higher.
+* A running Keybase client service (see [instructions](https://github.com/keybase/client/go)).
+* On OS X, you may have to [install FUSE yourself](https://osxfuse.github.io/).
+* Then, mount KBFS at `/keybase/` as follows:
 
-If you want to reset your file system state, and you're in kbfs/kbfsfuse, do:
+        cd kbfsfuse
+        go install
+        mkdir -p /keybase && sudo chown $USER /keybase
+        KEYBASE_RUN_MODE=prod kbfsfuse /keybase
 
-    <kill running kbfsfuse>
-    fusermount -u /tmp/kbfs # on OSX: 'diskutil unmount /tmp/kbfs'
-    rm -rf kbfs_*/
+Note that our pre-built packages for OS X include a branded version of
+FUSE for OS X, to ensure that it doesn't conflict with other local
+FUSE installations.  It is still open source -- see
+[here](https://github.com/keybase/client/blob/master/osx/Fuse/build.sh)
+to see how we build it.
+
+#### On Windows:
+
+(TODO: Fill this in.)
+
+### To run from source against local in-memory servers
+
+    kbfsfuse -server-in-memory -localuser strib /keybase
+
+(Use "`-server-root <dir>` if instead you want to save your data to
+local disk.)
+
+Now you can do cool stuff like:
+
+    ls /keybase/private/strib
+    echo blahblah > /keybase/private/strib/foo
+    ls /keybase/strib,max
+
+(Note that "localuser" mode has only four hard-coded users to play
+with: "strib", "max", "chris", and "fred".)
 
 # Code style
 
-The precommit hooks (you created the symlink earlier, right?) takes
-care of running gofmt and govet on all your code before every commit.
+We require all code to pass `gofmt` and `govet`.  You can install our
+precommit hooks to make sure your code passes `gofmt` and `govet`:
+
+    go get golang.org/x/tools/cmd/vet
+    ln -s $GOPATH/src/github.com/keybase/client/git-hooks/pre-commit $GOPAT
+
 Though it doesn't happen automatically, we also expect your code to be
 as "lint-free" as possible.  Running golint is easy from the top-level
 kbfs directory:
 
+    go get -u github.com/golang/lint/golint
     make lint
 
 # Vendoring
@@ -77,7 +123,7 @@ follows:
 
     go install github.com/kardianos/govendor
     govendor add github.com/foo/bar  # or `govendor update`
-    git add vendor
+    git add --all vendor
 
 # Testing
 
@@ -94,25 +140,3 @@ the mock interfaces used by the tests:
 
 (Right now the mocks are checked into the repo; this isn't ideal and
 we should probably change it.)
-
-# Domain-specific KBFS test language tests
-
-Please see [test/README.md](test/README.md) for more information.
-
-# Backend integration tests
-
-First, make sure you have these prereqs:
-    sudo apt-get install openjdk-7-jre
-
-From bserver/:
-	make test
-
-	Caveats: One needs to have a local KB webserver running (backend need to connect to localhost:44003 to verify user session)
-        One also need to have logged into a KB daemon (from whom I obtain the client session token and send to the backend server)
-
-# Testing with Docker
-
-For testing, it is often useful to bring up the Keybase daemon in a
-clean environment, potentially multiple copies of it at once for
-different users.  Please read the instructions at
-[kbfsdocker/README.md](kbfsdocker/README.md).

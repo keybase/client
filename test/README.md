@@ -1,6 +1,7 @@
 ## KBFS Test
 
-This directory houses the test harness required to execute the KBFS test language as well as the individual tests.
+This directory houses the test harness required to execute the KBFS
+test language as well as the individual tests.
 
 Libkbfs tests: ```go test```
 
