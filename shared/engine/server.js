@@ -48,12 +48,16 @@ export default class Server {
   startMethodName: string;
   engine: Engine;
   endpointsFn: (params: any, end: () => void) => CallMap;
+  _end: () => void;
+  _ended: boolean;
 
   constructor (engine: Engine, startMethodName: string, endMethodName: string, endpointMapFn: (params: any) => CallMap) {
+    this._ended = false
     this.engine = engine
     this.startMethodName = startMethodName
 
     this.endpointsFn = (params, end) => {
+      this._end = end
       const endpoints = endpointMapFn(params)
 
       // End the server when endMethodName is called
@@ -77,11 +81,21 @@ export default class Server {
   }
 
   init (params: any, {start, end}: {start: (endpoints: CallMap) => void, end: () => void}) {
-    start(this.endpointsFn(params, end))
+    if (this._ended) {
+      end()
+    } else {
+      start(this.endpointsFn(params, end))
+    }
+  }
+
+  unregister () {
+    this._ended = true
+    this._end && this._end()
   }
 }
 
-export function createServer (engine: Engine, startMethodName: string, endMethodName: string, endpointMapFn: (params: any) => CallMap): void {
+export function createServer (engine: Engine, startMethodName: string, endMethodName: string, endpointMapFn: (params: any) => CallMap): Server {
   const s = new Server(engine, startMethodName, endMethodName, endpointMapFn)
   s.listen()
+  return s
 }

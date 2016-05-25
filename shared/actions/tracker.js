@@ -130,7 +130,18 @@ export function triggerIdentify (uid: string): TrackerActionCreator {
 
 export function registerIdentifyUi (): TrackerActionCreator {
   return (dispatch, getState) => {
+    let s = null
+
     engine.listenOnConnect('registerIdentifyUi', () => {
+      s && s.unregister()
+
+      s = createServer(
+        engine,
+        'keybase.1.identifyUi.delegateIdentifyUI',
+        'keybase.1.identifyUi.finish',
+        () => serverCallMap(dispatch, getState)
+      )
+
       const params : delegateUiCtl_registerIdentifyUI_rpc = {
         method: 'delegateUiCtl.registerIdentifyUI',
         param: {},
@@ -145,14 +156,9 @@ export function registerIdentifyUi (): TrackerActionCreator {
       }
 
       engine.rpc(params)
+    }, () => {
+      s && s.unregister()
     })
-
-    createServer(
-      engine,
-      'keybase.1.identifyUi.delegateIdentifyUI',
-      'keybase.1.identifyUi.finish',
-      () => serverCallMap(dispatch, getState)
-    )
 
     dispatch({
       type: Constants.registerIdentifyUi,
