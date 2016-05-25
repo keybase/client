@@ -6,6 +6,7 @@ package logger
 import (
 	"fmt"
 	"runtime"
+	"sort"
 	"strings"
 
 	logging "github.com/keybase/go-logging"
@@ -46,9 +47,18 @@ func (log *TestLogger) log(lvl logging.Level, format string, args ...interface{}
 	elements := strings.Split(file, "/")
 	var fieldsStr string
 	if len(log.fields) > 0 {
-		fieldsStr = fmt.Sprintf(" %v", log.fields)
+		var keys []string
+		for k := range log.fields {
+			keys = append(keys, k)
+		}
+		sort.Strings(keys)
+		var fields []string
+		for _, k := range keys {
+			fields = append(fields, fmt.Sprintf("%s:%v", k, log.fields[k]))
+		}
+		fieldsStr = ", " + strings.Join(fields, " ")
 	}
-	log.backend.Logf("\r%s:%d: [%.1s]%s "+format,
+	log.backend.Logf("\r%s:%d: [%.1s%s] "+format,
 		append([]interface{}{elements[len(elements)-1], line, lvl, fieldsStr}, args...)...)
 }
 
