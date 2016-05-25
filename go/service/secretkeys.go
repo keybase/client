@@ -4,6 +4,8 @@
 package service
 
 import (
+	"errors"
+
 	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -24,6 +26,9 @@ func NewSecretKeysHandler(xp rpc.Transporter, g *libkb.GlobalContext) *SecretKey
 }
 
 func (h *SecretKeysHandler) GetSecretKeys(_ context.Context, sessionID int) (keybase1.SecretKeys, error) {
+	if h.G().Env.GetRunMode() == libkb.ProductionRunMode {
+		return keybase1.SecretKeys{}, errors.New("GetSecretKeys is a devel-only RPC")
+	}
 	ctx := engine.Context{
 		LogUI:     h.getLogUI(sessionID),
 		SecretUI:  h.getSecretUI(sessionID, h.G()),
