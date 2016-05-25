@@ -69,18 +69,24 @@ type Engine interface {
 	// SetEx is called by the test harness as the given user to set/unset the executable bit on the
 	// given file.
 	SetEx(u User, file Node, ex bool) (err error)
-	// DisableUpdatesForTesting is called by the test harness as the given user to disable updates to
-	// trigger conflict conditions.
-	DisableUpdatesForTesting(u User, dir Node) (err error)
-	// DisableUpdatesForTesting is called by the test harness as the given user to resume updates
-	// if previously disabled for testing.
-	ReenableUpdates(u User, dir Node) (err error)
-	// SyncFromServerForTesting is called by the test harness as the given user to actively retrieve new
-	// metadata for a folder.
-	SyncFromServerForTesting(u User, dir Node) (err error)
+
+	// All functions below don't take nodes so that they can be
+	// run before any real FS operations.
+
+	// DisableUpdatesForTesting is called by the test harness as
+	// the given user to disable updates to trigger conflict
+	// conditions.
+	DisableUpdatesForTesting(u User, tlfName string, isPublic bool) (err error)
+	// ReenableUpdates is called by the test harness as the given
+	// user to resume updates if previously disabled for testing.
+	ReenableUpdates(u User, tlfName string, isPublic bool) (err error)
+	// SyncFromServerForTesting is called by the test harness as
+	// the given user to actively retrieve new metadata for a
+	// folder.
+	SyncFromServerForTesting(u User, tlfName string, isPublic bool) (err error)
 	// ForceQuotaReclamation starts quota reclamation by the given
 	// user in the TLF corresponding to the given node.
-	ForceQuotaReclamation(u User, dir Node) (err error)
+	ForceQuotaReclamation(u User, tlfName string, isPublic bool) (err error)
 	// EnableSharingBeforeSignup enables sharing before signup for
 	// the current user.
 	EnableSharingBeforeSignup(u User) (err error)
@@ -90,9 +96,7 @@ type Engine interface {
 	// arbitrary assertion that does already resolve to something.
 	// It only applies to the given user.
 	AddNewAssertion(u User, oldAssertion, newAssertion string) (err error)
-	// Rekey rekeys the given TLF under the given user. (It
-	// doesn't take a node so that it can be run before any real
-	// FS operations.)
+	// Rekey rekeys the given TLF under the given user.
 	Rekey(u User, tlfName string, isPublic bool) (err error)
 	// Shutdown is called by the test harness when it is done with the
 	// given user.

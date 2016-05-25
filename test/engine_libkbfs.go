@@ -104,7 +104,7 @@ func (k *LibKBFS) GetUID(u User) (uid keybase1.UID) {
 
 func parseTlfHandle(
 	ctx context.Context, kbpki libkbfs.KBPKI, tlfName string, isPublic bool) (
-	canonicalTlfName string, h *libkbfs.TlfHandle, err error) {
+	h *libkbfs.TlfHandle, err error) {
 	// Limit to one non-canonical name for now.
 outer:
 	for i := 0; i < 2; i++ {
@@ -116,13 +116,13 @@ outer:
 		case libkbfs.TlfNameNotCanonical:
 			tlfName = err.NameToTry
 		default:
-			return "", nil, err
+			return nil, err
 		}
 	}
 	if err != nil {
-		return "", nil, err
+		return nil, err
 	}
-	return tlfName, h, nil
+	return h, nil
 }
 
 // GetRootDir implements the Engine interface.
@@ -131,15 +131,14 @@ func (k *LibKBFS) GetRootDir(u User, tlfName string, isPublic bool, expectedCano
 	config := u.(*libkbfs.ConfigLocal)
 
 	ctx := context.Background()
-	canonicalTlfName, h, err := parseTlfHandle(
-		ctx, config.KBPKI(), tlfName, isPublic)
+	h, err := parseTlfHandle(ctx, config.KBPKI(), tlfName, isPublic)
 	if err != nil {
 		return nil, err
 	}
 
-	if canonicalTlfName != expectedCanonicalTlfName {
+	if string(h.GetCanonicalName()) != expectedCanonicalTlfName {
 		return nil, fmt.Errorf("Expected canonical TLF name %s, got %s",
-			expectedCanonicalTlfName, canonicalTlfName)
+			expectedCanonicalTlfName, h.GetCanonicalName())
 	}
 
 	dir, _, err = config.KBFSOps().GetOrCreateRootNode(
@@ -286,22 +285,45 @@ func (k *LibKBFS) SetEx(u User, file Node, ex bool) (err error) {
 	return kbfsOps.SetEx(context.Background(), file.(libkbfs.Node), ex)
 }
 
-// DisableUpdatesForTesting implements the Engine interface.
-func (k *LibKBFS) DisableUpdatesForTesting(u User, dir Node) (err error) {
-	config := u.(*libkbfs.ConfigLocal)
-	d := dir.(libkbfs.Node)
-	if _, ok := k.updateChannels[config][d.GetID()]; ok {
-		// Updates are already disabled.
-		return nil
+// getRootNode is like GetRootDir, but doesn't check the canonical TLF
+// name.
+func getRootNode(config libkbfs.Config, tlfName string, isPublic bool) (libkbfs.Node, error) {
+	ctx := context.Background()
+	h, err := parseTlfHandle(ctx, config.KBPKI(), tlfName, isPublic)
+	if err != nil {
+		return nil, err
 	}
-	var c chan<- struct{}
-	c, err = libkbfs.DisableUpdatesForTesting(config, d.GetFolderBranch())
+
+	kbfsOps := config.KBFSOps()
+	dir, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, libkbfs.MasterBranch)
+	if err != nil {
+		return nil, err
+	}
+	return dir, nil
+}
+
+// DisableUpdatesForTesting implements the Engine interface.
+func (k *LibKBFS) DisableUpdatesForTesting(u User, tlfName string, isPublic bool) (err error) {
+	config := u.(*libkbfs.ConfigLocal)
+
+	dir, err := getRootNode(config, tlfName, isPublic)
 	if err != nil {
 		return err
 	}
-	k.updateChannels[config][d.GetID()] = c
+
+	if _, ok := k.updateChannels[config][dir.GetID()]; ok {
+		// Updates are already disabled.
+		return nil
+	}
+
+	var c chan<- struct{}
+	c, err = libkbfs.DisableUpdatesForTesting(config, dir.GetFolderBranch())
+	if err != nil {
+		return err
+	}
+	k.updateChannels[config][dir.GetID()] = c
 	// Also stop conflict resolution.
-	err = libkbfs.DisableCRForTesting(config, d.GetFolderBranch())
+	err = libkbfs.DisableCRForTesting(config, dir.GetFolderBranch())
 	if err != nil {
 		return err
 	}
@@ -309,33 +331,50 @@ func (k *LibKBFS) DisableUpdatesForTesting(u User, dir Node) (err error) {
 }
 
 // ReenableUpdates implements the Engine interface.
-func (k *LibKBFS) ReenableUpdates(u User, dir Node) error {
+func (k *LibKBFS) ReenableUpdates(u User, tlfName string, isPublic bool) error {
 	config := u.(*libkbfs.ConfigLocal)
-	d := dir.(libkbfs.Node)
-	err := libkbfs.RestartCRForTesting(config, d.GetFolderBranch())
+
+	dir, err := getRootNode(config, tlfName, isPublic)
 	if err != nil {
 		return err
 	}
-	if c, ok := k.updateChannels[config][d.GetID()]; ok {
+
+	err = libkbfs.RestartCRForTesting(config, dir.GetFolderBranch())
+	if err != nil {
+		return err
+	}
+	if c, ok := k.updateChannels[config][dir.GetID()]; ok {
 		c <- struct{}{}
 		close(c)
-		delete(k.updateChannels[config], d.GetID())
+		delete(k.updateChannels[config], dir.GetID())
 	}
 	return nil
 }
 
 // SyncFromServerForTesting implements the Engine interface.
-func (k *LibKBFS) SyncFromServerForTesting(u User, dir Node) (err error) {
-	kbfsOps := u.(*libkbfs.ConfigLocal).KBFSOps()
-	d := dir.(libkbfs.Node)
-	return kbfsOps.SyncFromServerForTesting(context.Background(), d.GetFolderBranch())
+func (k *LibKBFS) SyncFromServerForTesting(u User, tlfName string, isPublic bool) (err error) {
+	config := u.(*libkbfs.ConfigLocal)
+
+	dir, err := getRootNode(config, tlfName, isPublic)
+	if err != nil {
+		return err
+	}
+
+	return config.KBFSOps().SyncFromServerForTesting(
+		context.Background(), dir.GetFolderBranch())
 }
 
 // ForceQuotaReclamation implements the Engine interface.
-func (k *LibKBFS) ForceQuotaReclamation(u User, dir Node) (err error) {
+func (k *LibKBFS) ForceQuotaReclamation(u User, tlfName string, isPublic bool) (err error) {
 	config := u.(*libkbfs.ConfigLocal)
-	d := dir.(libkbfs.Node)
-	return libkbfs.ForceQuotaReclamationForTesting(config, d.GetFolderBranch())
+
+	dir, err := getRootNode(config, tlfName, isPublic)
+	if err != nil {
+		return err
+	}
+
+	return libkbfs.ForceQuotaReclamationForTesting(
+		config, dir.GetFolderBranch())
 }
 
 // EnableSharingBeforeSignup implements the Engine interface.
@@ -355,19 +394,13 @@ func (k *LibKBFS) AddNewAssertion(u User, oldAssertion, newAssertion string) err
 func (k *LibKBFS) Rekey(u User, tlfName string, isPublic bool) error {
 	config := u.(*libkbfs.ConfigLocal)
 
-	ctx := context.Background()
-	_, h, err := parseTlfHandle(ctx, config.KBPKI(), tlfName, isPublic)
+	dir, err := getRootNode(config, tlfName, isPublic)
 	if err != nil {
 		return err
 	}
 
-	kbfsOps := config.KBFSOps()
-	dir, _, err := kbfsOps.GetOrCreateRootNode(ctx, h, libkbfs.MasterBranch)
-	if err != nil {
-		return err
-	}
-
-	return kbfsOps.Rekey(context.Background(), dir.GetFolderBranch().Tlf)
+	return config.KBFSOps().Rekey(
+		context.Background(), dir.GetFolderBranch().Tlf)
 }
 
 // Shutdown implements the Engine interface.

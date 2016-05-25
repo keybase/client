@@ -21,9 +21,10 @@ import (
 type m map[string]string
 
 const (
-	alice = username("alice")
-	bob   = username("bob")
-	eve   = username("eve")
+	alice   = username("alice")
+	bob     = username("bob")
+	charlie = username("charlie")
+	eve     = username("eve")
 )
 
 type opt struct {
@@ -252,17 +253,19 @@ func as(user username, fops ...fileOp) optionOp {
 // not called directly.
 func initRoot() fileOp {
 	return fileOp{func(c *ctx) error {
+		if !c.noSyncInit {
+			// Do this before GetRootDir so that we pick
+			// up any TLF name changes.
+			err := c.engine.SyncFromServerForTesting(c.user, c.tlfName, c.tlfIsPublic)
+			if err != nil {
+				return err
+			}
+		}
 		root, err := c.engine.GetRootDir(c.user, c.tlfName, c.tlfIsPublic, c.expectedCanonicalTlfName)
 		if err != nil {
 			return err
 		}
 		c.rootNode = root
-		if !c.noSyncInit {
-			err := c.engine.SyncFromServerForTesting(c.user, c.rootNode)
-			if err != nil {
-				return err
-			}
-		}
 		return nil
 	}, IsInit}
 }
@@ -406,28 +409,32 @@ func rename(src, dst string) fileOp {
 
 func disableUpdates() fileOp {
 	return fileOp{func(c *ctx) error {
-		return c.engine.DisableUpdatesForTesting(c.user, c.rootNode)
-	}, Defaults}
+		err := c.engine.SyncFromServerForTesting(c.user, c.tlfName, c.tlfIsPublic)
+		if err != nil {
+			return err
+		}
+		return c.engine.DisableUpdatesForTesting(c.user, c.tlfName, c.tlfIsPublic)
+	}, IsInit}
 }
 
 func reenableUpdates() fileOp {
 	return fileOp{func(c *ctx) error {
-		err := c.engine.ReenableUpdates(c.user, c.rootNode)
+		err := c.engine.ReenableUpdates(c.user, c.tlfName, c.tlfIsPublic)
 		if err != nil {
 			return err
 		}
-		return c.engine.SyncFromServerForTesting(c.user, c.rootNode)
-	}, Defaults}
+		return c.engine.SyncFromServerForTesting(c.user, c.tlfName, c.tlfIsPublic)
+	}, IsInit}
 }
 
 func forceQuotaReclamation() fileOp {
 	return fileOp{func(c *ctx) error {
-		err := c.engine.ForceQuotaReclamation(c.user, c.rootNode)
+		err := c.engine.ForceQuotaReclamation(c.user, c.tlfName, c.tlfIsPublic)
 		if err != nil {
 			return err
 		}
-		return c.engine.SyncFromServerForTesting(c.user, c.rootNode)
-	}, Defaults}
+		return c.engine.SyncFromServerForTesting(c.user, c.tlfName, c.tlfIsPublic)
+	}, IsInit}
 }
 
 func rekey() fileOp {

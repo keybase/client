@@ -205,36 +205,40 @@ func (*fsEngine) GetDirChildrenTypes(u User, parentDir Node) (children map[strin
 	return children, nil
 }
 
-func (*fsEngine) DisableUpdatesForTesting(u User, dir Node) (err error) {
-	n := dir.(fsNode)
+func (*fsEngine) DisableUpdatesForTesting(user User, tlfName string, isPublic bool) (err error) {
+	u := user.(*fsUser)
+	path := buildRootPath(u, tlfName, isPublic)
 	return ioutil.WriteFile(
-		filepath.Join(n.path, libfs.DisableUpdatesFileName),
+		filepath.Join(path, libfs.DisableUpdatesFileName),
 		[]byte("off"), 0644)
 }
 
 // ReenableUpdatesForTesting is called by the test harness as the given user to resume updates
 // if previously disabled for testing.
-func (*fsEngine) ReenableUpdates(u User, dir Node) (err error) {
-	n := dir.(fsNode)
+func (*fsEngine) ReenableUpdates(user User, tlfName string, isPublic bool) (err error) {
+	u := user.(*fsUser)
+	path := buildRootPath(u, tlfName, isPublic)
 	return ioutil.WriteFile(
-		filepath.Join(n.path, libfs.EnableUpdatesFileName),
+		filepath.Join(path, libfs.EnableUpdatesFileName),
 		[]byte("on"), 0644)
 }
 
 // SyncFromServerForTesting is called by the test harness as the given
 // user to actively retrieve new metadata for a folder.
-func (e *fsEngine) SyncFromServerForTesting(user User, dir Node) (err error) {
-	n := dir.(fsNode)
+func (e *fsEngine) SyncFromServerForTesting(user User, tlfName string, isPublic bool) (err error) {
+	u := user.(*fsUser)
+	path := buildRootPath(u, tlfName, isPublic)
 	return ioutil.WriteFile(
-		filepath.Join(n.path, libfs.SyncFromServerFileName),
+		filepath.Join(path, libfs.SyncFromServerFileName),
 		[]byte("x"), 0644)
 }
 
 // ForceQuotaReclamation implements the Engine interface.
-func (*fsEngine) ForceQuotaReclamation(user User, dir Node) (err error) {
-	n := dir.(fsNode)
+func (*fsEngine) ForceQuotaReclamation(user User, tlfName string, isPublic bool) (err error) {
+	u := user.(*fsUser)
+	path := buildRootPath(u, tlfName, isPublic)
 	return ioutil.WriteFile(
-		filepath.Join(n.path, libfs.ReclaimQuotaFileName),
+		filepath.Join(path, libfs.ReclaimQuotaFileName),
 		[]byte("x"), 0644)
 }
 
