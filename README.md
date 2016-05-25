@@ -50,7 +50,7 @@ KBFS depends in part on the following awesome technologies to present
 a mountpoint on your device:
 
 * [FUSE](https://github.com/libfuse/) (on Linux)
-* [FUSE for OS X](https://osxfuse.github.io/) (on OSX)
+* [FUSE for OS X](https://osxfuse.github.io/) (on OS X)
 * [Dokany](https://github.com/dokan-dev/dokany) (on Windows)
 
 See [our vendor directory](vendor/) for a complete list of open source
@@ -67,6 +67,8 @@ Prerequisites:
 * [Go 1.6](https://golang.org/dl/) or higher.
 * A running Keybase client service (see [instructions](https://github.com/keybase/client/go)).
 * On OS X, you may have to [install FUSE yourself](https://osxfuse.github.io/).
+  * You may need to pass the `--use-system-fuse` flag to `kbfsfuse` if
+    you install FUSE yourself.
 * Then, mount KBFS at `/keybase/` as follows:
 
         cd kbfsfuse
