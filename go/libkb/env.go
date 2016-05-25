@@ -985,19 +985,27 @@ func (e *Env) GetRunModeAsString() string {
 	return string(e.GetRunMode())
 }
 
-func (e *Env) GetMountDir() string {
-	switch e.GetRunMode() {
+func (e *Env) GetMountDir() (string, error) {
+	runMode := e.GetRunMode()
+	if runtime.GOOS == "windows" {
+		if runMode != ProductionRunMode {
+			return "", fmt.Errorf("KBFS is currently only supported in production mode on Windows")
+		}
+		return "k:", nil
+	}
+
+	switch runMode {
 	case DevelRunMode:
-		return "/keybase.devel"
+		return "/keybase.devel", nil
 
 	case StagingRunMode:
-		return "/keybase.staging"
+		return "/keybase.staging", nil
 
 	case ProductionRunMode:
-		return "/keybase"
+		return "/keybase", nil
 
 	default:
-		panic("Invalid run mode")
+		return "", fmt.Errorf("Invalid run mode: %s", runMode)
 	}
 }
 

@@ -15,7 +15,11 @@ import (
 // AfterUpdateApply runs after an update has been applied
 func AfterUpdateApply(g *libkb.GlobalContext, willRestart bool) error {
 	if willRestart {
-		return UninstallForFuseUpgrade("/Applications/Keybase.app", g.Env.GetRunMode(), g.Env.GetMountDir(), g.Log)
+		mountDir, err := g.Env.GetMountDir()
+		if err != nil {
+			return err
+		}
+		return UninstallForFuseUpgrade("/Applications/Keybase.app", g.Env.GetRunMode(), mountDir, g.Log)
 	}
 	return nil
 }

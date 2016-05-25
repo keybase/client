@@ -58,7 +58,7 @@ type Config interface {
 	SetUpdatePreferenceSnoozeUntil(t keybase1.Time) error
 	SetUpdateLastChecked(t keybase1.Time) error
 	GetRunModeAsString() string
-	GetMountDir() string
+	GetMountDir() (string, error)
 	GetUpdateDefaultInstructions() (string, error)
 }
 
@@ -650,7 +650,11 @@ func toKeybaseProcess(processes []lsof.Process) []keybase1.Process {
 }
 
 func (u *Updater) checkInUse(ctx Context, update keybase1.Update) error {
-	mountDir := u.config.GetMountDir()
+	mountDir, err := u.config.GetMountDir()
+	if err != nil {
+		u.log.Errorf("Error getting mount dir: %s", err)
+		return nil
+	}
 	u.log.Debug("Mount dir: %s", mountDir)
 	if mountDir == "" {
 		return nil

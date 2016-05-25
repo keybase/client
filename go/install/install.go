@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/blang/semver"
@@ -114,7 +115,7 @@ func ResolveInstallStatus(version string, bundleVersion string, lastExitStatus s
 
 func KBFSBundleVersion(context Context, binPath string) (string, error) {
 	runMode := context.GetRunMode()
-	kbfsBinPath, err := kbfsBinPath(runMode, binPath)
+	kbfsBinPath, err := KBFSBinPath(runMode, binPath)
 	if err != nil {
 		return "", err
 	}
@@ -138,8 +139,20 @@ func createCommandLine(binPath string, linkPath string) error {
 	return os.Symlink(binPath, linkPath)
 }
 
+func defaultLinkPath() (string, error) {
+	if runtime.GOOS == "windows" {
+		return "", fmt.Errorf("Unsupported on Windows")
+	}
+	keybaseName, err := binName()
+	if err != nil {
+		return "", err
+	}
+	linkPath := filepath.Join("/usr/local/bin", keybaseName)
+	return linkPath, nil
+}
+
 func uninstallCommandLine() error {
-	linkPath := filepath.Join("/usr/local/bin", binName())
+	linkPath, err := defaultLinkPath()
 
 	fi, err := os.Lstat(linkPath)
 	if os.IsNotExist(err) {
@@ -156,55 +169,44 @@ func chooseBinPath(bp string) (string, error) {
 	if bp != "" {
 		return bp, nil
 	}
-	return binPath()
+	return BinPath()
 }
 
-func binPath() (string, error) {
+// BinPath returns path to the keybase executable
+func BinPath() (string, error) {
 	return osext.Executable()
 }
 
-func binName() string {
-	return filepath.Base(os.Args[0])
-}
-
-func kbfsBinName(runMode libkb.RunMode) string {
-	switch runMode {
-	case libkb.DevelRunMode:
-		return "kbfsdev"
-
-	case libkb.StagingRunMode:
-		return "kbfsstage"
-
-	case libkb.ProductionRunMode:
-		return "kbfs"
-
-	default:
-		panic("Invalid run mode")
+func binName() (string, error) {
+	path, err := BinPath()
+	if err != nil {
+		return "", err
 	}
+	return filepath.Base(path), nil
 }
 
-func kbfsMountPath(runMode libkb.RunMode) string {
-	switch runMode {
-	case libkb.DevelRunMode:
-		return "/keybase.devel"
-
-	case libkb.StagingRunMode:
-		return "/keybase.staging"
-
-	case libkb.ProductionRunMode:
-		return "/keybase"
-
-	default:
-		panic("Invalid run mode")
+// UpdaterBinPath returns the path to the updater executable, by default is in
+// the same directory as the keybase executable.
+func UpdaterBinPath() (string, error) {
+	path, err := BinPath()
+	if err != nil {
+		return "", err
 	}
+	return filepath.Join(filepath.Dir(path), "updater"), nil
 }
 
+// kbfsBinPathDefault returns the default path to the KBFS executable.
+// If binPath (directory) is specifed, it will override the default (which is in
+// the same directory where the keybase executable is).
 func kbfsBinPathDefault(runMode libkb.RunMode, binPath string) (string, error) {
 	path, err := chooseBinPath(binPath)
 	if err != nil {
 		return "", err
 	}
-	kbfsBinName := kbfsBinName(runMode)
+	kbfsBinName, err := kbfsBinName(runMode)
+	if err != nil {
+		return "", err
+	}
 	return filepath.Join(filepath.Dir(path), kbfsBinName), nil
 }
 
