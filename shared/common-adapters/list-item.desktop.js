@@ -47,5 +47,7 @@ const bodyContainerStyle = {
   flex: 2,
   marginLeft: 8,
   marginRight: 16,
+  marginBottom: 8,
+  marginTop: 8,
   justifyContent: 'center'
 }

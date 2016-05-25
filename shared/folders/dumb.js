@@ -151,6 +151,8 @@ export const map: DumbComponentMap<Folders> = {
   }
 }
 
+const longFile = 'To be or not to be-that is the question: Whether tis nobler in the mind to suffer The slings and arrows of outrageous fortune, Or to take arms against a sea of troubles, And, by opposing, end them.rtf'
+
 export const file: DumbComponentMap<File> = {
   component: File,
   mocks: {
@@ -164,9 +166,19 @@ export const file: DumbComponentMap<File> = {
       fileIcon: 'logo-128',
       onClick: () => console.log('onClick:file')
     },
-    'Normal Private modified by self': {
+    'Normal Private Long': {
       theme: 'private',
       name: 'How-PGP-works.doc',
+      path: '2016-tutorial/',
+      lastModifiedMeta: '2 hours ago',
+      lastModifiedBy: 'jenbee',
+      modifiedMarker: true,
+      fileIcon: 'logo-128',
+      onClick: () => console.log('onClick:file')
+    },
+    'Normal Private modified by self long file': {
+      theme: 'private',
+      name: longFile,
       path: '2016-tutorial/',
       lastModifiedMeta: '2 hours ago',
       lastModifiedBy: 'marcopolo',
@@ -200,7 +212,7 @@ export const file: DumbComponentMap<File> = {
 
 function genFiles (offsetNumber: number, fileCount: number, isPrivate: boolean): Array<PropsOf<File>> {
   const adjs = ['tiresome', 'longing', 'marvelous', 'bloody', 'cruel', 'descriptive', 'cooperative', 'parallel', 'discreet', 'wry', 'lovely', 'mysterious']
-  const nouns = ['maid', 'river', 'pan', 'house', 'transport', 'reason', 'dog', 'food', 'ice', 'wilderness', 'level', 'horse']
+  const nouns = ['maid', 'river', 'pan', longFile, 'transport', 'reason', 'dog', 'food', 'ice', 'wilderness', 'level', 'horse']
 
   const wordGen = (i: number) => `${adjs[Math.floor(i/12)%(12*12)]}-${nouns[i%12]}.jpg` // eslint-disable-line
 

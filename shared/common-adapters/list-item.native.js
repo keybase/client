@@ -9,7 +9,8 @@ export default class ListItem extends Component<void, Props, void> {
   render () {
     const clickable = this.props.clickable === undefined ? true : !!this.props.clickable
     return (
-      <Box style={{...globalStyles.flexBoxRow, ...containerStyle(this.props.type, clickable), ...this.props.containerStyle}}>
+      <Box style={{...globalStyles.flexBoxRow, ...containerStyle(clickable), ...this.props.containerStyle}}>
+        <Box style={{height: ({'Large': 64, 'Small': 48})[this.props.type], width: 0}} />
         <Box style={{...globalStyles.flexBoxColumn, ...iconContainerThemed[this.props.type], alignItems: 'center', justifyContent: 'center'}}>
           {this.props.icon}
         </Box>
@@ -24,9 +25,8 @@ export default class ListItem extends Component<void, Props, void> {
   }
 }
 
-function containerStyle (type, clickable) {
+function containerStyle (clickable) {
   return {
-    height: ({'Large': 64, 'Small': 48})[type],
     ...(clickable ? globalStyles.clickable : {})
   }
 }
@@ -48,6 +48,8 @@ function bodyContainerStyle (swipeToAction) {
   return {
     flex: 2,
     marginLeft: 8,
+    marginBottom: 8,
+    marginTop: 8,
     marginRight: swipeToAction ? 0 : 16,
     justifyContent: 'center'
   }
