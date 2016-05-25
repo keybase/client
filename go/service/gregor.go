@@ -51,7 +51,7 @@ func (h *identifyUIHandler) toggleAlwaysAlive(alive bool) {
 }
 
 type gregorHandler struct {
-	libkb.Contextifie
+	libkb.Contextified
 
 	// This lock is to protect ibmHandlers and gregorCli. Only public methods
 	// should grab it.
