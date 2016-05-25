@@ -5,6 +5,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"golang.org/x/net/context"
@@ -55,6 +56,7 @@ func (h *identifyUIHandler) toggleAlwaysAlive(alive bool) {
 
 type gregorHandler struct {
 	libkb.Contextified
+	sync.Mutex
 	conn             *rpc.Connection
 	cli              rpc.GenericClient
 	sessionID        gregor1.SessionID
@@ -168,6 +170,9 @@ func (g *gregorHandler) HandlerName() string {
 // when an external entity (like Electron) connects to the service, and we can
 // safely send Gregor information to it
 func (g *gregorHandler) PushHandler(handler libkb.GregorInBandMessageHandler) {
+	g.Lock()
+	defer g.Unlock()
+
 	g.ibmHandlers = append(g.ibmHandlers, handler)
 
 	if err := g.replayInBandMessages(context.TODO(), time.Time{}, handler); err != nil {
@@ -188,7 +193,7 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, t time.Time,
 	for _, msg := range msgs {
 		// If we have a handler, just run it on that, otherwise run it against
 		// all of the handlers we know about
-		if handler != nil {
+		if handler == nil {
 			g.handleInBandMessage(ctx, msg)
 		} else {
 			g.handleInBandMessageWithHandler(ctx, msg, handler)
@@ -199,6 +204,8 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, t time.Time,
 }
 
 func (g *gregorHandler) serverSync(ctx context.Context, cli gregor1.IncomingInterface) error {
+	g.Lock()
+	defer g.Unlock()
 
 	var err error
 
@@ -288,6 +295,9 @@ func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
 }
 
 func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message) error {
+	g.Lock()
+	defer g.Unlock()
+
 	g.G().Log.Debug("gregor handler: broadcast: %+v", m)
 
 	// Send message to local state machine
