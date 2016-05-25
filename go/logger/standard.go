@@ -113,6 +113,8 @@ func (log *Standard) setLogLevelInfo() {
 	}
 }
 
+// TODO: Also print out fields, if we start using them in production.
+
 func (log *Standard) prepareString(
 	ctx context.Context, fmts string) string {
 	if ctx == nil {
