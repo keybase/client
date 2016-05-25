@@ -28,6 +28,11 @@ func NewDelegateUICtlHandler(xp rpc.Transporter, id libkb.ConnectionID, g *libkb
 
 func (d *DelegateUICtlHandler) RegisterIdentifyUI(_ context.Context) error {
 	d.G().UIRouter.SetUI(d.id, libkb.IdentifyUIKind)
+
+	// Let Gregor related code know that a IdentifyUI client
+	// (probably Electron) has connected, and to sync out state to it
+	d.G().GregorListener.ConnectIdentifyUI()
+
 	return nil
 }
 

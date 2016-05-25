@@ -44,8 +44,7 @@ type gregorHandler struct {
 }
 
 var _ libkb.GregorDismisser = (*gregorHandler)(nil)
-
-//var _ libkb.GregorListener = (*gregorHandler)(nil)
+var _ libkb.GregorListener = (*gregorHandler)(nil)
 
 type gregorLocalDb struct {
 	db *libkb.JSONLocalDb
@@ -147,7 +146,20 @@ func (g *gregorHandler) HandlerName() string {
 	return "keybase service"
 }
 
-func (g *gregorHandler) replayInBandMessages(ctx context.Context, t time.Time) error {
+// ConnectIdenfityUI will be called when a client connects and registers
+// the IdentityUI protocol (likely Electron). In this case our job is to sync
+// our our current state to all handlers that use this interface.
+func (g *gregorHandler) ConnectIdentifyUI() error {
+	uik := libkb.IdentifyUIKind
+	if err := g.replayInBandMessages(context.TODO(), time.Time{}, &uik); err != nil {
+		g.G().Log.Errorf("gregor handler: ConnectIdenfityUI() failed")
+		return err
+	}
+	return nil
+}
+
+func (g *gregorHandler) replayInBandMessages(ctx context.Context, t time.Time,
+	uik *libkb.UIKind) error {
 	var msgs []gregor.InBandMessage
 	var err error
 	if msgs, err = g.gregorCli.StateMachineInBandMessagesSince(t); err != nil {
@@ -157,7 +169,7 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, t time.Time) e
 
 	g.G().Log.Debug("gregor handler: replaying %d messages", len(msgs))
 	for _, msg := range msgs {
-		g.handleInBandMessage(ctx, msg)
+		g.handleInBandMessage(ctx, msg, uik)
 	}
 
 	return nil
@@ -185,7 +197,7 @@ func (g *gregorHandler) reSync(ctx context.Context, cli gregor1.IncomingInterfac
 	}
 
 	// Replay in-band messages
-	if err = g.replayInBandMessages(ctx, t); err != nil {
+	if err = g.replayInBandMessages(ctx, t, nil); err != nil {
 		g.G().Log.Errorf("gregor handler: replay messages failed")
 		return err
 	}
@@ -261,7 +273,7 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 	// Handle the message
 	ibm := m.ToInBandMessage()
 	if ibm != nil {
-		return g.handleInBandMessage(ctx, ibm)
+		return g.handleInBandMessage(ctx, ibm, nil)
 	}
 
 	obm := m.ToOutOfBandMessage()
@@ -273,7 +285,7 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 	return errors.New("invalid gregor message")
 }
 
-func (g *gregorHandler) handleInBandMessage(ctx context.Context, ibm gregor.InBandMessage) error {
+func (g *gregorHandler) handleInBandMessage(ctx context.Context, ibm gregor.InBandMessage, uik *libkb.UIKind) error {
 	g.G().Log.Debug("gregor handler: handleInBand: %+v", ibm)
 
 	sync := ibm.ToStateSyncMessage()
@@ -302,9 +314,10 @@ func (g *gregorHandler) handleInBandMessage(ctx context.Context, ibm gregor.InBa
 				g.G().Log.Debug("gregor handler: item %s has category %s", id, category)
 			}
 
-			// Run handler for the category
+			// Run handler for the category, and if a UIKind is specified, check
+			// to see if the handler cares about it
 			handler, present := g.ibmHandlers[category]
-			if present {
+			if present && (uik == nil || handler.needsUI(*uik)) {
 				handler.create(ctx, item)
 			}
 
@@ -328,9 +341,10 @@ func (g *gregorHandler) handleInBandMessage(ctx context.Context, ibm gregor.InBa
 					g.G().Log.Debug("gregor handler: dismissal %s has category %s", id, category)
 				}
 
-				// Run the handler to dismiss for the category
+				// Run handler for the category, and if a UIKind is specified,
+				// check to see if the handler cares about it
 				handler, present := g.ibmHandlers[category]
-				if present {
+				if present && (uik == nil || handler.needsUI(*uik)) {
 					handler.dismiss(ctx, item)
 				}
 
