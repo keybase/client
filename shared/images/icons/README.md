@@ -2,7 +2,7 @@
 
 - Go to https://icomoon.io
 - Add all of font-awesome
-- Add all svgs under ./svgs
+- Add all svgs under ./svgs (protip you can export all assets in Zeplin under assets if you don't have anything selected)
 - Change settings:
 
 ```
@@ -16,6 +16,12 @@ CSS Selector: Use attribute selectors
 Leave the rest as the defaults
 
 ```
+
+- Edit grid size of the icon you've added by clicking the pencil in the top right under selection.
+<img width="1308" alt="screen shot 2016-05-24 at 5 07 12 pm" src="https://cloud.githubusercontent.com/assets/594035/15523983/583b52d8-21d3-11e6-8cb7-c146cb30bfb0.png">
+
+- When you get to the font download screen you should see each icon in the correct grid size category (visible in the upper left) like this picture:
+<img width="1323" alt="screen shot 2016-05-24 at 5 10 50 pm" src="https://cloud.githubusercontent.com/assets/594035/15523982/583acab6-21d3-11e6-93af-34b680d02f6c.png">
 
 - Copy style.css -> desktop/renderer/fonticon.css
 - Copy font/kb.ttf -> desktop/renderer/fonts/kb.ttf
