@@ -24,6 +24,8 @@ export function favoriteList (): (dispatch: Dispatch) => void {
           folders = []
         }
 
+        folders = folders.sort((a, b) => a.name.localeCompare(b.name))
+
         const config = getState && getState().config
         const currentUser = config && config.username
         const loggedIn = config && config.loggedIn
@@ -31,9 +33,15 @@ export function favoriteList (): (dispatch: Dispatch) => void {
         // Ensure private/public folders exist for us
         if (currentUser && loggedIn) {
           [true, false].forEach(isPrivate => {
-            if (!folders.find(f => f.name === currentUser && f.private === isPrivate)) {
-              folders = [{name: currentUser, private: isPrivate, notificationsOn: false, created: false}, ...folders]
+            const idx = folders.findIndex(f => f.name === currentUser && f.private === isPrivate)
+            let toAdd = {name: currentUser, private: isPrivate, notificationsOn: false, created: false}
+
+            if (idx !== -1) {
+              toAdd = folders[idx]
+              folders.splice(idx, 1)
             }
+
+            folders = [toAdd, ...folders]
           })
         }
 
