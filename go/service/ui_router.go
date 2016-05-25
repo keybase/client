@@ -133,3 +133,25 @@ func (u *UIRouter) GetUpdateUI() (libkb.UpdateUI, error) {
 	scli := keybase1.UpdateUiClient{Cli: cli}
 	return &UpdateUI{cli: &scli}, nil
 }
+
+func (u *UIRouter) GetRekeyUI() (keybase1.RekeyUIInterface, error) {
+	var err error
+	defer u.G().Trace("UIRouter.GetRekeyUI", func() error { return err })()
+
+	x := u.getUI(libkb.RekeyUIKind)
+	if x == nil {
+		return nil, nil
+	}
+	cli := rpc.NewClient(x, libkb.ErrorUnwrapper{})
+	uicli := keybase1.RekeyUIClient{Cli: cli}
+	sessionID, err := uicli.DelegateRekeyUI(context.TODO())
+	if err != nil {
+		return nil, err
+	}
+	ret := &RekeyUI{
+		sessionID:    sessionID,
+		cli:          &uicli,
+		Contextified: libkb.NewContextified(u.G()),
+	}
+	return ret, nil
+}

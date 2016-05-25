@@ -407,11 +407,12 @@ type UI interface {
 type UIRouter interface {
 	SetUI(ConnectionID, UIKind)
 
-	// Both of these are allowed to return nil for the UI even if
+	// These are allowed to return nil for the UI even if
 	// error is nil.
 	GetIdentifyUI() (IdentifyUI, error)
 	GetSecretUI(sessionID int) (SecretUI, error)
 	GetUpdateUI() (UpdateUI, error)
+	GetRekeyUI() (keybase1.RekeyUIInterface, error)
 
 	Shutdown()
 }

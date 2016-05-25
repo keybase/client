@@ -570,6 +570,15 @@ func (g *gregorHandler) handleRekeyNeeded(ctx context.Context, item gregor.Item)
 	}
 
 	// show a rekey status window
+	rekeyUI, err := g.G().UIRouter.GetRekeyUI()
+	if err != nil {
+		g.G().Log.Errorf("failed to get RekeyUI: %s", err)
+		return err
+	}
+	if rekeyUI == nil {
+		g.G().Log.Error("got nil RekeyUI")
+		return errors.New("got nil RekeyUI")
+	}
 
 	return errors.New("rekey not implemented")
 }
