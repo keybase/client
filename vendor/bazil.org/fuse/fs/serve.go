@@ -1192,6 +1192,12 @@ func (c *Server) handleRequest(ctx context.Context, node Node, snode *serveNode,
 		s := &fuse.ReadResponse{Data: make([]byte, 0, r.Size)}
 		if r.Dir {
 			if h, ok := handle.(HandleReadDirAller); ok {
+				// detect rewinddir(3) or similar seek and refresh
+				// contents
+				if r.Offset == 0 {
+					shandle.readData = nil
+				}
+
 				if shandle.readData == nil {
 					dirs, err := h.ReadDirAll(ctx)
 					if err != nil {
