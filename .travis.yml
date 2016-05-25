@@ -29,6 +29,9 @@ script:
       cd shared && npm i -g flow-bin@`tail -n1 .flowconfig` && flow &&
       cd ../desktop && npm run setup-ci-tools && npm run setup-dev-tools &&
       cd .. && eslint . &&
+      if [ $TRAVIS_PULL_REQUEST != 'false' ]; then
+        cd desktop && ../packaging/npm_mess.sh && npm install octonode && npm run visdiff -- "`git rev-parse $TRAVIS_COMMIT^1`...$TRAVIS_COMMIT" && cd ..;
+      fi &&
       cd protocol && ./diff_test.sh &&
       docker login -e "$CI_EMAIL" -u "$CI_USER" -p "$CI_PASS" "$CI_HOST" &&
       docker pull $CI_HOST/kbweb &&
