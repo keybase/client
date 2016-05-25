@@ -51,8 +51,12 @@ func (h *identifyUIHandler) toggleAlwaysAlive(alive bool) {
 }
 
 type gregorHandler struct {
-	libkb.Contextified
+	libkb.Contextifie
+
+	// This lock is to protect ibmHandlers and gregorCli. Only public methods
+	// should grab it.
 	sync.Mutex
+
 	conn             *rpc.Connection
 	cli              rpc.GenericClient
 	sessionID        gregor1.SessionID
@@ -176,6 +180,10 @@ func (g *gregorHandler) PushHandler(handler libkb.GregorInBandMessageHandler) {
 	}
 }
 
+// replayInBandMessages will replay all the messages in the current state from
+// the given time. If a handler is specified, it will only replay using it,
+// otherwise it will try all of them. gregorHandler needs to be locked when calling
+// this function.
 func (g *gregorHandler) replayInBandMessages(ctx context.Context, t time.Time,
 	handler libkb.GregorInBandMessageHandler) error {
 	var msgs []gregor.InBandMessage
@@ -199,10 +207,10 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, t time.Time,
 	return nil
 }
 
+// serverSync is called from OnConnect to sync down the current state from
+// gregord. This can happen either on initial startup, or after a reconnect. Needs
+// to be called with gregorHandler locked.
 func (g *gregorHandler) serverSync(ctx context.Context, cli gregor1.IncomingInterface) error {
-	g.Lock()
-	defer g.Unlock()
-
 	var err error
 
 	// Get time of the last message we synced (unless this is our first time syncing)
@@ -234,9 +242,12 @@ func (g *gregorHandler) serverSync(ctx context.Context, cli gregor1.IncomingInte
 	return nil
 }
 
-func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection, cli rpc.GenericClient, srv *rpc.Server) error {
-	g.G().Log.Debug("gregor handler: connected")
+func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
+	cli rpc.GenericClient, srv *rpc.Server) error {
+	g.Lock()
+	defer g.Unlock()
 
+	g.G().Log.Debug("gregor handler: connected")
 	g.G().Log.Debug("gregor handler: registering protocols")
 	if err := srv.Register(gregor1.OutgoingProtocol(g)); err != nil {
 		return err
@@ -314,6 +325,8 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 	return errors.New("invalid gregor message")
 }
 
+// handleInBandMessage runs a message on all the alive handlers. gregorHandler
+// must be locked when calling this function.
 func (g *gregorHandler) handleInBandMessage(ctx context.Context, ibm gregor.InBandMessage) error {
 	var freshHandlers []libkb.GregorInBandMessageHandler
 
