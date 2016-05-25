@@ -75,6 +75,7 @@ type Standard struct {
 	filename       string
 	configureMutex sync.Mutex
 	module         string
+	fields         Fields
 
 	externalHandler ExternalHandler
 }
@@ -337,18 +338,25 @@ func (log *Standard) clone() *Standard {
 	clone := *log
 	cloneInternal := *log.internal
 	clone.internal = &cloneInternal
+	clone.fields = make(Fields, len(log.fields))
+	for k, v := range log.fields {
+		clone.fields[k] = v
+	}
 	return &clone
 }
 
 func (log *Standard) CloneWithAddedDepth(depth int) Logger {
 	clone := log.clone()
-	clone.internal.ExtraCalldepth = log.internal.ExtraCalldepth + depth
+	clone.internal.ExtraCalldepth += depth
 	return clone
 }
 
 func (log *Standard) CloneWithAddedFields(fields Fields) Logger {
-	// TODO: Fix.
-	return log.clone()
+	clone := log.clone()
+	for k, v := range fields {
+		clone.fields[k] = v
+	}
+	return clone
 }
 
 func (log *Standard) SetExternalHandler(handler ExternalHandler) {

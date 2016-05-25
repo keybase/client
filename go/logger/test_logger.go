@@ -32,6 +32,7 @@ type TestLogBackend interface {
 type TestLogger struct {
 	log        TestLogBackend
 	extraDepth int
+	fields     Fields
 }
 
 func NewTestLogger(log TestLogBackend) *TestLogger {
@@ -132,18 +133,24 @@ func (log *TestLogger) RotateLogFile() error {
 
 func (log *TestLogger) clone() *TestLogger {
 	clone := *log
+	clone.fields = make(Fields, len(log.fields))
+	for k, v := range log.fields {
+		clone.fields[k] = v
+	}
 	return &clone
 }
 
 func (log *TestLogger) CloneWithAddedDepth(depth int) Logger {
-	// TODO: Fix.
 	clone := log.clone()
-	clone.extraDepth = log.extraDepth + depth
+	clone.extraDepth += depth
 	return clone
 }
 
 func (log *TestLogger) CloneWithAddedFields(fields Fields) Logger {
 	clone := log.clone()
+	for k, v := range fields {
+		clone.fields[k] = v
+	}
 	return clone
 }
 
