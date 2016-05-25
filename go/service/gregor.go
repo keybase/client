@@ -317,11 +317,13 @@ func (g *gregorHandler) handleInBandMessage(ctx context.Context, ibm gregor.InBa
 			// Run handler for the category, and if a UIKind is specified, check
 			// to see if the handler cares about it
 			handler, present := g.ibmHandlers[category]
-			if present && (uik == nil || handler.needsUI(*uik)) {
-				handler.create(ctx, item)
+			if present {
+				if uik == nil || handler.needsUI(*uik) {
+					handler.create(ctx, item)
+				}
+			} else {
+				g.G().Log.Errorf("Unrecognized item category: %s", item.Category())
 			}
-
-			g.G().Log.Errorf("Unrecognized item category: %s", item.Category())
 		}
 
 		dismissal := update.Dismissal()
@@ -344,8 +346,12 @@ func (g *gregorHandler) handleInBandMessage(ctx context.Context, ibm gregor.InBa
 				// Run handler for the category, and if a UIKind is specified,
 				// check to see if the handler cares about it
 				handler, present := g.ibmHandlers[category]
-				if present && (uik == nil || handler.needsUI(*uik)) {
-					handler.dismiss(ctx, item)
+				if present {
+					if uik == nil || handler.needsUI(*uik) {
+						handler.dismiss(ctx, item)
+					}
+				} else {
+					g.G().Log.Errorf("Unrecognized item category: %s", item.Category())
 				}
 
 				// Clear the item out of items map.
