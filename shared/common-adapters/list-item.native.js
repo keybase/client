@@ -8,11 +8,14 @@ import type {Props} from './list-item'
 export default class ListItem extends Component<void, Props, void> {
   render () {
     const clickable = this.props.clickable === undefined ? true : !!this.props.clickable
+    const height = ({'Large': 64, 'Small': 48})[this.props.type] // minimum height
     return (
       <Box style={{...globalStyles.flexBoxRow, ...containerStyle(clickable), ...this.props.containerStyle}}>
-        <Box style={{height: ({'Large': 64, 'Small': 48})[this.props.type], width: 0}} />
-        <Box style={{...globalStyles.flexBoxColumn, ...iconContainerThemed[this.props.type], alignItems: 'center', justifyContent: 'center'}}>
-          {this.props.icon}
+        <Box style={{height, width: 0}} />
+        <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'flex-start'}}>
+          <Box style={{...globalStyles.flexBoxColumn, ...iconContainerThemed[this.props.type], height, alignItems: 'center', justifyContent: 'center'}}>
+            {this.props.icon}
+          </Box>
         </Box>
         <Box style={{...globalStyles.flexBoxColumn, ...bodyContainerStyle(this.props.swipeToAction)}}>
           {this.props.body}
