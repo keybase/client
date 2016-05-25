@@ -47,9 +47,18 @@ script:
       $GOPATH/src/github.com/keybase/kbfs/kbfsdocker/build_dockers.sh 2>&1 >$GOPATH/src/github.com/keybase/kbfs/kbfsdocker/build_docker_output.txt & export build_dockers_pid=$!;
     fi
   - cd libkbfs && go test -i && go test -race -c && ./libkbfs.test -test.timeout 4m
+  - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then
+      wait $build_dockers_pid &&
+      cat $GOPATH/src/github.com/keybase/kbfs/kbfsdocker/build_docker_output.txt;
+    fi
   - cd ../serverutil && go test -i && go test -c && ./serverutil.test -test.timeout 10s
-  - cd ../bserver && go test -i && go test -c && ./bserver.test -test.timeout 4m
-  - go test -c -tags integration
+  - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then
+      export TEST_KBFS_QUOTA_SQL_DSN="root:secret@tcp(localhost:13306)/quotalog" &&
+      export TEST_KBFS_DYNAMO_URL="http://localhost:18000/" &&
+      docker-compose -f ../kbfsdocker/docker-compose.yml up -d mysql.local dynamo.local &&
+      cd ../bserver && go test -i && go test -tags=integration -c && ./bserver.test -test.timeout 4m &&
+      docker-compose -f ../kbfsdocker/docker-compose.yml down;
+    fi
   - cd ../mdserver && go test -i && go test -c -tags integration && ./mdserver.test -test.short -test.timeout 4m
   # run libkbfs test suite against the real mdserver
   # TODO: why does the below sometimes hang? uncomment when fixed
