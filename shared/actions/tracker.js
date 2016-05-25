@@ -177,7 +177,7 @@ export function pushDebugTracker (username: string): (dispatch: Dispatch) => voi
 
 export function onRefollow (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
-    const trackToken = _getTrackToken(getState, username)
+    const trackToken = _getTrackToken(getState(), username)
 
     const dispatchRefollowAction = () => {
       dispatch({
@@ -273,14 +273,14 @@ export function onIgnore (username: string): (dispatch: Dispatch, getState: () =
   }
 }
 
-function _getTrackToken (getState, username) {
-  const trackerState = getState().tracker.trackers[username]
+function _getTrackToken (state, username) {
+  const trackerState = state.tracker.trackers[username]
   return trackerState && trackerState.type === 'tracker' ? trackerState.trackToken : null
 }
 
 export function onFollow (username: string, localIgnore: bool): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
   return (dispatch, getState) => {
-    const trackToken = _getTrackToken(getState, username)
+    const trackToken = _getTrackToken(getState(), username)
 
     const dispatchFollowedAction = () => {
       dispatch({type: Constants.onFollow, payload: {username}})
@@ -317,7 +317,7 @@ function _dismissWithToken (trackToken) {
 
 export function onClose (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
-    const trackToken = _getTrackToken(getState, username)
+    const trackToken = _getTrackToken(getState(), username)
 
     if (trackToken) {
       _dismissWithToken(trackToken)
