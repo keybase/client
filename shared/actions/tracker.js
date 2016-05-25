@@ -86,21 +86,6 @@ export function registerUserChangeListener (): TrackerActionCreator {
   }
 }
 
-export function registerTrackerDismissListener (): TrackerActionCreator {
-  return dispatch => {
-    const params: incomingCallMapType = {
-      'keybase.1.identifyUi.dismiss': ({username, reason}) => {
-        dispatch({
-          type: Constants.remoteDismiss,
-          payload: {username, reason}
-        })
-      }
-    }
-
-    engine.listenGeneralIncomingRpc(params)
-  }
-}
-
 export function registerTrackerIncomingRpcs (): TrackerActionCreator {
   return dispatch => {
     dispatch(registerTrackerChangeListener())
@@ -434,6 +419,13 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
     },
 
     displayTrackStatement: params => {
+    },
+
+    dismiss: ({username, reason}) => {
+      dispatch({
+        type: Constants.remoteDismiss,
+        payload: {username, reason}
+      })
     },
 
     finishWebProofCheck: ({sessionID, rp, lcr}) => {
