@@ -15,7 +15,7 @@ type LibKBFS struct {
 	// hack: hold references on behalf of the test harness
 	refs map[libkbfs.Config]map[libkbfs.Node]bool
 	// channels used to re-enable updates if disabled
-	updateChannels map[libkbfs.Config]map[libkbfs.NodeID]chan<- struct{}
+	updateChannels map[libkbfs.Config]map[libkbfs.FolderBranch]chan<- struct{}
 	// test object, mostly for logging
 	t *testing.T
 }
@@ -33,7 +33,7 @@ func (k *LibKBFS) Init() {
 	// Initialize reference holder and channels maps
 	k.refs = make(map[libkbfs.Config]map[libkbfs.Node]bool)
 	k.updateChannels =
-		make(map[libkbfs.Config]map[libkbfs.NodeID]chan<- struct{})
+		make(map[libkbfs.Config]map[libkbfs.FolderBranch]chan<- struct{})
 }
 
 // InitTest implements the Engine interface.
@@ -71,7 +71,7 @@ func (k *LibKBFS) InitTest(t *testing.T, blockSize int64, blockChangeSize int64,
 	config.SetClock(clock)
 	userMap[users[0]] = config
 	k.refs[config] = make(map[libkbfs.Node]bool)
-	k.updateChannels[config] = make(map[libkbfs.NodeID]chan<- struct{})
+	k.updateChannels[config] = make(map[libkbfs.FolderBranch]chan<- struct{})
 
 	if len(users) == 1 {
 		return userMap
@@ -83,7 +83,7 @@ func (k *LibKBFS) InitTest(t *testing.T, blockSize int64, blockChangeSize int64,
 		c.SetClock(clock)
 		userMap[name] = c
 		k.refs[c] = make(map[libkbfs.Node]bool)
-		k.updateChannels[c] = make(map[libkbfs.NodeID]chan<- struct{})
+		k.updateChannels[c] = make(map[libkbfs.FolderBranch]chan<- struct{})
 	}
 	return userMap
 }
@@ -311,7 +311,7 @@ func (k *LibKBFS) DisableUpdatesForTesting(u User, tlfName string, isPublic bool
 		return err
 	}
 
-	if _, ok := k.updateChannels[config][dir.GetID()]; ok {
+	if _, ok := k.updateChannels[config][dir.GetFolderBranch()]; ok {
 		// Updates are already disabled.
 		return nil
 	}
@@ -321,7 +321,7 @@ func (k *LibKBFS) DisableUpdatesForTesting(u User, tlfName string, isPublic bool
 	if err != nil {
 		return err
 	}
-	k.updateChannels[config][dir.GetID()] = c
+	k.updateChannels[config][dir.GetFolderBranch()] = c
 	// Also stop conflict resolution.
 	err = libkbfs.DisableCRForTesting(config, dir.GetFolderBranch())
 	if err != nil {
@@ -339,15 +339,19 @@ func (k *LibKBFS) ReenableUpdates(u User, tlfName string, isPublic bool) error {
 		return err
 	}
 
+	c, ok := k.updateChannels[config][dir.GetFolderBranch()]
+	if !ok {
+		return fmt.Errorf("Couldn't re-enable updates for %s (public=%t)", tlfName, isPublic)
+	}
+
 	err = libkbfs.RestartCRForTesting(config, dir.GetFolderBranch())
 	if err != nil {
 		return err
 	}
-	if c, ok := k.updateChannels[config][dir.GetID()]; ok {
-		c <- struct{}{}
-		close(c)
-		delete(k.updateChannels[config], dir.GetID())
-	}
+
+	c <- struct{}{}
+	close(c)
+	delete(k.updateChannels[config], dir.GetFolderBranch())
 	return nil
 }
 
@@ -410,7 +414,7 @@ func (k *LibKBFS) Shutdown(u User) error {
 	k.refs[config] = make(map[libkbfs.Node]bool)
 	delete(k.refs, config)
 	// clear update channels
-	k.updateChannels[config] = make(map[libkbfs.NodeID]chan<- struct{})
+	k.updateChannels[config] = make(map[libkbfs.FolderBranch]chan<- struct{})
 	delete(k.updateChannels, config)
 	// shutdown
 	if err := config.Shutdown(); err != nil {
