@@ -4,6 +4,7 @@
 package logger
 
 import (
+	"fmt"
 	"runtime"
 	"strings"
 
@@ -43,8 +44,12 @@ func (log *TestLogger) log(lvl logging.Level, format string, args ...interface{}
 	// it out (at least on a terminal) and do our own formatting.
 	_, file, line, _ := runtime.Caller(2 + log.extraDepth)
 	elements := strings.Split(file, "/")
-	log.backend.Logf("\r%s:%d: [%.1s] "+format,
-		append([]interface{}{elements[len(elements)-1], line, lvl}, args...)...)
+	var fieldsStr string
+	if len(log.fields) > 0 {
+		fieldsStr = fmt.Sprintf(" %v", log.fields)
+	}
+	log.backend.Logf("\r%s:%d: [%.1s]%s "+format,
+		append([]interface{}{elements[len(elements)-1], line, lvl, fieldsStr}, args...)...)
 }
 
 func (log *TestLogger) Debug(fmts string, arg ...interface{}) {
