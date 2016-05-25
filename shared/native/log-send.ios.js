@@ -1,1 +1,2 @@
-export default function () { return Promise.resolve('none') }
+import {NativeModules} from 'react-native'
+export default NativeModules.LogSend.logSend
