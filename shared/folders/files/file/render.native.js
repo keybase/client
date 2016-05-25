@@ -40,7 +40,7 @@ export default class Render extends Component<void, Props, void> {
         body={this._renderBody()}
         action={this._renderAction()}
         containerStyle={fileContainerStyleThemed[this.props.theme]}
-        clickable />
+        onClick={this.props.onClick} />
     )
   }
 }
@@ -58,6 +58,7 @@ const filenameStyleThemed = {
 
 const fileContainerStyleThemed = {
   'public': {
+    backgroundColor: globalColors.white
   },
   'private': {
     backgroundColor: globalColors.darkBlue

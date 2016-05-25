@@ -6,7 +6,7 @@ import type {Props} from './list-item'
 
 export default class ListItem extends Component<void, Props, void> {
   render () {
-    const clickable = this.props.clickable === undefined ? true : !!this.props.clickable
+    const clickable = !!this.props.onClick
     const minHeight = ({'Large': 64, 'Small': 48})[this.props.type]
     return (
       <Box style={{...globalStyles.flexBoxRow, ...containerStyle(this.props.type, clickable), minHeight, ...this.props.containerStyle}}>

@@ -80,6 +80,7 @@ export type Props = {
   onMouseLeave?: () => void,
   style?: Object,
   inheritColor?: boolean,
+  underlayColor?: string,
   className?: string
 }
 
