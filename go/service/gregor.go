@@ -242,6 +242,8 @@ func (g *gregorHandler) serverSync(ctx context.Context, cli gregor1.IncomingInte
 	return nil
 }
 
+// OnConnect is called by the rpc library to indicate we have connected to
+// gregord
 func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	cli rpc.GenericClient, srv *rpc.Server) error {
 	g.Lock()
@@ -301,6 +303,8 @@ func (g *gregorHandler) ShouldRetryOnConnect(err error) bool {
 	return true
 }
 
+// BroadcastMessage is called when we receive a new messages from gregord. Grabs
+// the lock protect the state machine and handleInBandMessage
 func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message) error {
 	g.Lock()
 	defer g.Unlock()
@@ -345,6 +349,7 @@ func (g *gregorHandler) handleInBandMessage(ctx context.Context, ibm gregor.InBa
 	return nil
 }
 
+// handleInBandMessageWithHandler runs a message against the specified handler
 func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context,
 	ibm gregor.InBandMessage, handler libkb.GregorInBandMessageHandler) error {
 	g.G().Log.Debug("gregor handler: handleInBand: %+v", ibm)
