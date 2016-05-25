@@ -35,5 +35,7 @@ func (l *Null) RotateLogFile() error                                           {
 
 func (l *Null) CloneWithAddedDepth(depth int) Logger { return l }
 
+func (l *Null) CloneWithAddedFields(fields Fields) Logger { return l }
+
 func (l *Null) SetExternalHandler(handler ExternalHandler) {}
 func (l *Null) Shutdown()                                  {}

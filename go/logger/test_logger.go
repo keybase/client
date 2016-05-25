@@ -130,10 +130,21 @@ func (log *TestLogger) RotateLogFile() error {
 	return nil
 }
 
-func (log *TestLogger) CloneWithAddedDepth(depth int) Logger {
+func (log *TestLogger) clone() *TestLogger {
 	clone := *log
-	clone.extraDepth += depth
 	return &clone
+}
+
+func (log *TestLogger) CloneWithAddedDepth(depth int) Logger {
+	// TODO: Fix.
+	clone := log.clone()
+	clone.extraDepth = log.extraDepth + depth
+	return clone
+}
+
+func (log *TestLogger) CloneWithAddedFields(fields Fields) Logger {
+	clone := log.clone()
+	return clone
 }
 
 // no-op stubs to fulfill the Logger interface
