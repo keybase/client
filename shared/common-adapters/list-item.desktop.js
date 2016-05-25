@@ -7,10 +7,13 @@ import type {Props} from './list-item'
 export default class ListItem extends Component<void, Props, void> {
   render () {
     const clickable = !!this.props.onClick
+    const minHeight = ({'Large': 64, 'Small': 48})[this.props.type]
     return (
-      <Box style={{...globalStyles.flexBoxRow, ...containerStyle(this.props.type, clickable), ...this.props.containerStyle}} onClick={this.props.onClick}>
-        <Box style={{...globalStyles.flexBoxColumn, ...iconContainerThemed[this.props.type], alignItems: 'center', justifyContent: 'center'}}>
-          {this.props.icon}
+      <Box style={{...globalStyles.flexBoxRow, ...containerStyle(this.props.type, clickable), minHeight, ...this.props.containerStyle}}>
+        <Box style={{...globalStyles.flexBoxColumn, justifyContent: 'flex-start'}}>
+          <Box style={{...globalStyles.flexBoxColumn, ...iconContainerThemed[this.props.type], minHeight, alignItems: 'center', justifyContent: 'center'}}>
+            {this.props.icon}
+          </Box>
         </Box>
         <Box style={{...globalStyles.flexBoxColumn, ...bodyContainerStyle}}>
           {this.props.body}
@@ -23,11 +26,8 @@ export default class ListItem extends Component<void, Props, void> {
   }
 }
 
-function containerStyle (type, clickable) {
-  return {
-    minHeight: ({'Large': 64, 'Small': 48})[type],
-    ...(clickable ? globalStyles.clickable : {})
-  }
+function containerStyle (clickable) {
+  return clickable ? globalStyles.clickable : {}
 }
 
 const iconContainerThemed = {
@@ -47,5 +47,7 @@ const bodyContainerStyle = {
   flex: 2,
   marginLeft: 8,
   marginRight: 16,
+  marginBottom: 8,
+  marginTop: 8,
   justifyContent: 'center'
 }
