@@ -17,11 +17,11 @@ export default class Render extends Component<void, Props, void> {
         <Box style={{...globalStyles.flexBoxRow}}>
           <Text type='BodySmall' style={pathStyleThemed[this.props.theme]}>{this.props.path}</Text>
           {!!this.props.lastModifiedBy && (<Box style={{display: 'inline'}}>
-            <Text type='BodySmallBold' style={{...pathStyleThemed[this.props.theme], marginLeft: 4, marginRight: 4}} inline>·</Text>
+            <Text type='BodySmall' style={{...pathStyleThemed[this.props.theme], marginLeft: 4, marginRight: 4}} inline>·</Text>
             {this.props.modifiedMarker && <Icon type='thunderbolt' style={{height: 12, alignSelf: 'center', marginRight: 6, ...pathStyleThemed[this.props.theme]}} />}
             <Text type='BodySmall' style={modifiedByStyleThemed[this.props.theme]} inline>{this.props.lastModifiedMeta}</Text>
             <Text type='BodySmall' style={modifiedByStyleThemed[this.props.theme]} inline> by </Text>
-            <Text type='BodySmallBold' style={{...modifiedByStyleThemed[this.props.theme], ...(this.props.lastModifiedBySelf ? globalStyles.italic : {})}} inline>{this.props.lastModifiedBy}</Text>
+            <Text type='BodySmallLink' style={{...modifyingUserStyleThemed[this.props.theme], ...(this.props.lastModifiedBySelf ? globalStyles.italic : {})}} inline>{this.props.lastModifiedBy}</Text>
           </Box>)}
         </Box>
       </Box>
@@ -69,7 +69,7 @@ const pathStyleThemed = {
     color: globalColors.black_60
   },
   'private': {
-    color: globalColors.white_60
+    color: globalColors.white_75
   }
 }
 
@@ -79,5 +79,14 @@ const modifiedByStyleThemed = {
   },
   'private': {
     color: globalColors.white_40
+  }
+}
+
+const modifyingUserStyleThemed = {
+  'public': {
+    color: globalColors.black_40
+  },
+  'private': {
+    color: globalColors.white_75
   }
 }
