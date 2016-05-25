@@ -152,6 +152,22 @@ func inPrivateTlfNonCanonical(name, expectedCanonicalName string) optionOp {
 	}
 }
 
+func inPublicTlf(name string) optionOp {
+	return func(o *opt) {
+		o.tlfName = name
+		o.expectedCanonicalTlfName = name
+		o.tlfIsPublic = true
+	}
+}
+
+func inPublicTlfNonCanonical(name, expectedCanonicalName string) optionOp {
+	return func(o *opt) {
+		o.tlfName = name
+		o.expectedCanonicalTlfName = expectedCanonicalName
+		o.tlfIsPublic = true
+	}
+}
+
 func addNewAssertion(oldAssertion, newAssertion string) optionOp {
 	return func(o *opt) {
 		for _, u := range o.users {
@@ -172,9 +188,28 @@ const (
 	IsInit   = fileOpFlags(1)
 )
 
+type ctx struct {
+	*opt
+	user       User
+	rootNode   Node
+	noSyncInit bool
+}
+
+func runFileOp(c *ctx, fop fileOp) (string, error) {
+	if c.rootNode == nil && fop.flags&IsInit == 0 {
+		initOp := initRoot()
+		err := initOp.operation(c)
+		if err != nil {
+			return "initRoot", err
+		}
+	}
+	c.t.Log("fop", fop)
+	return "File operation", fop.operation(c)
+}
+
 func expectError(op fileOp, reason string) fileOp {
 	return fileOp{func(c *ctx) error {
-		err := op.operation(c)
+		_, err := runFileOp(c, op)
 		if err == nil {
 			return fmt.Errorf("Didn't get expected error (success while expecting failure): %q", reason)
 		}
@@ -220,13 +255,6 @@ func addTime(d time.Duration) fileOp {
 	}, Defaults}
 }
 
-type ctx struct {
-	*opt
-	user       User
-	rootNode   Node
-	noSyncInit bool
-}
-
 func as(user username, fops ...fileOp) optionOp {
 	return func(o *opt) {
 		o.t.Log("as", user)
@@ -237,14 +265,8 @@ func as(user username, fops ...fileOp) optionOp {
 		}
 
 		for _, fop := range fops {
-			if ctx.rootNode == nil && fop.flags&IsInit == 0 {
-				initOp := initRoot()
-				err := initOp.operation(ctx)
-				ctx.expectSuccess("initRoot", err)
-			}
-			o.t.Log("fop", fop)
-			err := fop.operation(ctx)
-			ctx.expectSuccess("File operation", err)
+			desc, err := runFileOp(ctx, fop)
+			ctx.expectSuccess(desc, err)
 		}
 	}
 }
