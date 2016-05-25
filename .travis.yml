@@ -31,8 +31,8 @@ script:
       cd .. && eslint . &&
       cd protocol && ./diff_test.sh &&
       docker login -e "$CI_EMAIL" -u "$CI_USER" -p "$CI_PASS" "$CI_HOST" &&
-      docker pull $CI_HOST/kbweb &&
-      travis_retry docker run --name kbweb3000 -d -p 3000:3000 --entrypoint run/startup_for_container.sh $CI_HOST/kbweb &&
+      docker pull $CI_HOST/kbweb-with-docker &&
+      travis_retry docker run --name kbweb3000 -d -p 3000:3000 --entrypoint run/startup_for_container.sh $CI_HOST/kbweb-with-docker &&
       cd ../go && ./test/check_or_start_kbweb.sh && ./test/run_tests.sh;
     elif [ $TRAVIS_OS_NAME == 'osx' ]; then
       cd go && export KEYBASE_SERVER_URI=http://ci1.keybase.io && travis_wait 40 ./test/run_tests.sh;
