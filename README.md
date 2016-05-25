@@ -142,3 +142,11 @@ the mock interfaces used by the tests:
 
 (Right now the mocks are checked into the repo; this isn't ideal and
 we should probably change it.)
+
+# Licensing
+
+Most code is released under the New BSD (3 Clause) License.  If
+subdirectories include a different license, that license applies
+instead.  (Specifically, [dokan/dokan_header](dokan/dokan_header) and
+most subdirectories in [vendor](vendor/) are released under their own
+licenses.)
