@@ -53,9 +53,7 @@ export default class Render extends Component<void, Props, void> {
         <Box style={{...globalStyles.flexBoxColumn}}>
           {this.props.recentFilesSection.map(s => this._renderSection(s))}
         </Box>
-
       </Box>
-
     )
   }
 }
