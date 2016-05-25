@@ -544,15 +544,8 @@ func (g *gregorHandler) handleRekeyNeeded(ctx context.Context, item gregor.Item)
 		return errors.New("gregor handler for kbfs_tlf_rekey_needed: nil message body")
 	}
 
-	type TLFRekeyScore struct {
-		tlf        string
-		name       string
-		score      int
-		saviorKeys []string
-	}
-	var scores []TLFRekeyScore
+	var scores []keybase1.RekeyTLF
 
-	fmt.Printf("metadata: %+v\n", item.Metadata())
 	if g.G().Clock.Now().Sub(item.Metadata().CTime()) > 10*time.Second {
 		// if the message isn't fresh, get:
 		// scores = scoreProblemFolders(tlfs, u, v) via JSON API endpoint
@@ -579,8 +572,14 @@ func (g *gregorHandler) handleRekeyNeeded(ctx context.Context, item gregor.Item)
 		g.G().Log.Error("got nil RekeyUI")
 		return errors.New("got nil RekeyUI")
 	}
+	arg := keybase1.RefreshArg{
+		Tlfs: scores,
+	}
+	if err := rekeyUI.Refresh(ctx, arg); err != nil {
+		return err
+	}
 
-	return errors.New("rekey not implemented")
+	return nil
 }
 
 func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.OutOfBandMessage) error {
