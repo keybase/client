@@ -19,8 +19,8 @@ export default class BackButton extends Component {
   render () {
     return (
       <div style={{...styles.container, ...this.props.style}} onClick={e => this.onClick(e)}>
-        <Icon type='fa-arrow-left' style={styles.icon} />
-        <Text type='BodyPrimaryLink' onClick={e => this.onClick(e)}>Back</Text>
+        <Icon type='fa-arrow-left' style={{...styles.icon, ...this.props.iconStyle}} />
+        {!this.props.iconOnly && <Text type='BodyPrimaryLink' style={this.props.textStyle} onClick={e => this.onClick(e)}>Back</Text>}
       </div>
     )
   }
