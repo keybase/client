@@ -754,8 +754,9 @@ func (fbm *folderBlockManager) doReclamation(timer *time.Timer) (err error) {
 	head, err := fbm.helper.getMDForFBM(ctx)
 	if err != nil {
 		return err
-	}
-	if head.MergedStatus() != Merged {
+	} else if err := head.isReadableOrError(ctx, fbm.config); err != nil {
+		return err
+	} else if head.MergedStatus() != Merged {
 		return errors.New("Skipping quota reclamation while unstaged")
 	}
 
