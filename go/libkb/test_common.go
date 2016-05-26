@@ -8,6 +8,7 @@ package libkb
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -266,16 +267,20 @@ func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestC
 	return
 }
 
+var namesFlag = flag.Bool("test.func-names", false, "print test function names")
+
 func SetupTest(tb testing.TB, name string) (tc TestContext) {
 	var err error
 	tc, err = setupTestContext(tb, name, nil)
 	if err != nil {
 		tb.Fatal(err)
 	}
-	pc, file, line, ok := runtime.Caller(1)
-	if ok {
-		fn := runtime.FuncForPC(pc)
-		fmt.Printf("SetupTest %s %v:%v\n", fn.Name(), file, line)
+	if *namesFlag {
+		pc, file, line, ok := runtime.Caller(1)
+		if ok {
+			fn := runtime.FuncForPC(pc)
+			fmt.Printf("SetupTest %s %v:%v\n", fn.Name(), file, line)
+		}
 	}
 	return tc
 }
