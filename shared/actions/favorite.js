@@ -41,7 +41,7 @@ export function favoriteList (): (dispatch: Dispatch) => void {
               folders.splice(idx, 1)
             }
 
-            folders = [toAdd, ...folders]
+            folders.unshift(toAdd)
           })
         }
 
