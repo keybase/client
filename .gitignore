@@ -1,0 +1,7 @@
+# Generated during `go build`
+kbfsfuse/kbfsfuse
+# Generated when running `kbfsfuse` without specifying `--server-root-dir`
+kbfsfuse/kbfs_branches/
+kbfsfuse/kbfs_handles/
+kbfsfuse/kbfs_key/
+kbfsfuse/kbfs_md/

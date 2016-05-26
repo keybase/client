@@ -1,0 +1,43 @@
+sudo: required
+dist: trusty
+os:
+  - linux
+  - osx
+osx_image: xcode7.3
+language: go
+go:
+  - 1.6
+install: true
+before_install:
+  - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then
+      export DEBIAN_FRONTEND=noninteractive;
+      sudo apt-get update;
+      sudo apt-get install -q -y --force-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" fuse;
+    else
+      cd $GOPATH/src/github.com/keybase &&
+      echo "Cloning client" &&
+      git clone git@github.com:keybase/client.git &&
+      cd client/osx/Fuse &&
+      echo "Installing OSXFuse" &&
+      ./install.sh &&
+      echo "OSXFuse installed";
+      cd $GOPATH/src/github.com/keybase/kbfs;
+    fi
+script:
+  - go get -u github.com/golang/lint/golint
+  - go install github.com/golang/lint/golint
+  - lint=$(make -s lint)
+    echo 2>&1 "$lint"
+    [ -z "$lint" -o "$lint" = "Lint-free!" ]
+  - go vet $(go list ./... 2>/dev/null | grep -v /vendor/)
+  - go install github.com/keybase/kbfs/...
+  - cd libkbfs && go test -i && go test -race -c && ./libkbfs.test -test.timeout 4m
+  - cd ../libfuse && go test -i && go test -c && ./libfuse.test -test.timeout 2m
+  - cd ../test
+  - go test -i -tags fuse && go test -race -c && ./test.test -test.timeout 4m
+  - go test -c -tags fuse && ./test.test -test.timeout 4m
+notifications:
+  slack: keybase:WKlhs55Mb4am4obv1rNRg8P0
+branches:
+  only:
+    - master

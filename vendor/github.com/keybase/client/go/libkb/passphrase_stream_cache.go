@@ -1,0 +1,82 @@
+// Copyright 2015 Keybase, Inc. All rights reserved. Use of
+// this source code is governed by the included BSD license.
+
+package libkb
+
+import (
+	"fmt"
+
+	triplesec "github.com/keybase/go-triplesec"
+)
+
+type PassphraseStreamCache struct {
+	tsec             *triplesec.Cipher
+	passphraseStream *PassphraseStream
+}
+
+type PassphraseStreamCacheReader interface {
+	Triplesec() *triplesec.Cipher
+	PassphraseStream() *PassphraseStream
+	Valid() bool
+}
+
+func NewPassphraseStreamCache(tsec *triplesec.Cipher, ps *PassphraseStream) *PassphraseStreamCache {
+	return &PassphraseStreamCache{
+		tsec:             tsec,
+		passphraseStream: ps,
+	}
+}
+
+func (s *PassphraseStreamCache) Triplesec() *triplesec.Cipher {
+	if s == nil {
+		return nil
+	}
+	return s.tsec
+}
+
+// PassphraseStream returns a copy of the currently cached passphrase stream,
+// or nil if none exists.
+func (s *PassphraseStreamCache) PassphraseStream() *PassphraseStream {
+	if s == nil {
+		return nil
+	}
+	return s.passphraseStream.Clone()
+}
+
+// PassphraseStream returns a reference to the currently cached passphrase stream,
+// or nil if none exists.
+func (s *PassphraseStreamCache) PassphraseStreamRef() *PassphraseStream {
+	if s == nil {
+		return nil
+	}
+	return s.passphraseStream
+}
+
+func (s *PassphraseStreamCache) Valid() bool {
+	if s == nil {
+		return false
+	}
+	return s.tsec != nil && s.passphraseStream != nil
+}
+
+func (s *PassphraseStreamCache) Clear() {
+	if s == nil {
+		return
+	}
+	if s.tsec != nil {
+		s.tsec.Scrub()
+		s.tsec = nil
+	}
+	s.passphraseStream = nil
+}
+
+func (s *PassphraseStreamCache) Dump() {
+	fmt.Printf("PassphraseStreamCache:\n")
+	if s == nil {
+		fmt.Printf("nil\n")
+		return
+	}
+	fmt.Printf("PassphraseStreamCache:\n")
+	fmt.Printf("Valid: %v\n", s.Valid())
+	fmt.Printf("\n")
+}
