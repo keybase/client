@@ -22,31 +22,31 @@ import (
 	grstorage "github.com/keybase/gregor/storage"
 )
 
-type identifyUIHandler struct {
+type IdentifyUIHandler struct {
 	libkb.Contextified
 	connID      libkb.ConnectionID
 	alwaysAlive bool
 }
 
-var _ libkb.GregorInBandMessageHandler = (*identifyUIHandler)(nil)
+var _ libkb.GregorInBandMessageHandler = (*IdentifyUIHandler)(nil)
 
-func NewIdentifyUIHandler(g *libkb.GlobalContext, connID libkb.ConnectionID) identifyUIHandler {
-	return identifyUIHandler{
+func NewIdentifyUIHandler(g *libkb.GlobalContext, connID libkb.ConnectionID) IdentifyUIHandler {
+	return IdentifyUIHandler{
 		Contextified: libkb.NewContextified(g),
 		connID:       connID,
 		alwaysAlive:  false,
 	}
 }
 
-func (h identifyUIHandler) IsAlive() bool {
+func (h IdentifyUIHandler) IsAlive() bool {
 	return (h.alwaysAlive || h.G().ConnectionManager.LookupConnection(h.connID) != nil)
 }
 
-func (h identifyUIHandler) Name() string {
-	return "identifyUIHandler"
+func (h IdentifyUIHandler) Name() string {
+	return "IdentifyUIHandler"
 }
 
-func (h *identifyUIHandler) toggleAlwaysAlive(alive bool) {
+func (h *IdentifyUIHandler) toggleAlwaysAlive(alive bool) {
 	h.alwaysAlive = alive
 }
 
@@ -416,7 +416,7 @@ func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context,
 	return nil
 }
 
-func (h identifyUIHandler) Create(ctx context.Context, category string, item gregor.Item) error {
+func (h IdentifyUIHandler) Create(ctx context.Context, category string, item gregor.Item) error {
 	switch category {
 	case "show_tracker_popup":
 		return h.handleShowTrackerPopupCreate(ctx, item)
@@ -425,7 +425,7 @@ func (h identifyUIHandler) Create(ctx context.Context, category string, item gre
 	return nil
 }
 
-func (h identifyUIHandler) Dismiss(ctx context.Context, category string, item gregor.Item) error {
+func (h IdentifyUIHandler) Dismiss(ctx context.Context, category string, item gregor.Item) error {
 	switch category {
 	case "show_tracker_popup":
 		return h.handleShowTrackerPopupDismiss(ctx, item)
@@ -434,7 +434,7 @@ func (h identifyUIHandler) Dismiss(ctx context.Context, category string, item gr
 	return nil
 }
 
-func (h identifyUIHandler) handleShowTrackerPopupCreate(ctx context.Context, item gregor.Item) error {
+func (h IdentifyUIHandler) handleShowTrackerPopupCreate(ctx context.Context, item gregor.Item) error {
 	h.G().Log.Debug("gregor handler: handleShowTrackerPopupCreate: %+v", item)
 	if item.Body() == nil {
 		return errors.New("gregor handler for show_tracker_popup: nil message body")
@@ -487,7 +487,7 @@ func (h identifyUIHandler) handleShowTrackerPopupCreate(ctx context.Context, ite
 	return identifyEng.Run(&engineContext)
 }
 
-func (h identifyUIHandler) handleShowTrackerPopupDismiss(ctx context.Context, item gregor.Item) error {
+func (h IdentifyUIHandler) handleShowTrackerPopupDismiss(ctx context.Context, item gregor.Item) error {
 	h.G().Log.Debug("gregor handler: handleShowTrackerPopupDismiss: %+v", item)
 	if item.Body() == nil {
 		return errors.New("gregor dismissal for show_tracker_popup: nil message body")
