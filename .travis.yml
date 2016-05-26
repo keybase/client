@@ -8,19 +8,11 @@ language: go
 go:
   - 1.6
 install: true
-services:
-  - docker
-  - redis-server
 before_install:
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then
       export DEBIAN_FRONTEND=noninteractive;
       sudo apt-get update;
-      sudo apt-get install -q -y --force-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" docker-engine fuse;
-      sudo rm /usr/local/bin/docker-compose;
-      curl -L https://github.com/docker/compose/releases/download/1.6.0/docker-compose-`uname -s`-`uname -m` > docker-compose;
-      chmod +x docker-compose;
-      sudo mv docker-compose /usr/local/bin;
-      docker login -e $CI_EMAIL -u $CI_USER -p $CI_PASS $CI_HOST;
+      sudo apt-get install -q -y --force-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" fuse;
     else
       cd $GOPATH/src/github.com/keybase &&
       echo "Cloning client" &&
@@ -31,10 +23,6 @@ before_install:
       echo "OSXFuse installed";
       cd $GOPATH/src/github.com/keybase/kbfs;
     fi
-  - if [ "$TRAVIS_OS_NAME" == "osx" ]; then
-      brew install redis;
-      (redis-server &);
-    fi
 script:
   - go get -u github.com/golang/lint/golint
   - go install github.com/golang/lint/golint
@@ -43,44 +31,11 @@ script:
     [ -z "$lint" -o "$lint" = "Lint-free!" ]
   - go vet $(go list ./... 2>/dev/null | grep -v /vendor/)
   - go install github.com/keybase/kbfs/...
-  - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then
-      $GOPATH/src/github.com/keybase/kbfs/kbfsdocker/build_dockers.sh 2>&1 >$GOPATH/src/github.com/keybase/kbfs/kbfsdocker/build_docker_output.txt & export build_dockers_pid=$!;
-    fi
   - cd libkbfs && go test -i && go test -race -c && ./libkbfs.test -test.timeout 4m
-  - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then
-      wait $build_dockers_pid &&
-      cat $GOPATH/src/github.com/keybase/kbfs/kbfsdocker/build_docker_output.txt;
-    fi
-  - cd ../serverutil && go test -i && go test -c && ./serverutil.test -test.timeout 10s
-  - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then
-      export TEST_KBFS_QUOTA_SQL_DSN="root:secret@tcp(localhost:13306)/quotalog" &&
-      export TEST_KBFS_DYNAMO_URL="http://localhost:18000/" &&
-      docker-compose -f ../kbfsdocker/docker-compose.yml up -d mysql.local dynamo.local &&
-      cd ../bserver && go test -i && go test -tags=integration -c && ./bserver.test -test.timeout 4m &&
-      docker-compose -f ../kbfsdocker/docker-compose.yml down;
-    fi
-  - cd ../mdserver && go test -i && go test -c -tags integration && ./mdserver.test -test.short -test.timeout 4m
-  # run libkbfs test suite against the real mdserver
-  # TODO: why does the below sometimes hang? uncomment when fixed
-  #- cd mdserver && go build && { KBFS_BIND_ADDR=127.0.0.1:8125 ./mdserver 2> /dev/null & } && cd ../../libkbfs/ && KEYBASE_TEST_MDSERVER_ADDR=127.0.0.1:8125 go test && killall -9 mdserver
   - cd ../libfuse && go test -i && go test -c && ./libfuse.test -test.timeout 2m
   - cd ../test
   - go test -i -tags fuse && go test -race -c && ./test.test -test.timeout 4m
   - go test -c -tags fuse && ./test.test -test.timeout 4m
-  - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then
-      wait $build_dockers_pid;
-      export build_dockers_result=$?;
-      cat $GOPATH/src/github.com/keybase/kbfs/kbfsdocker/build_docker_output.txt;
-    fi
-  - if [ "$TRAVIS_OS_NAME" == 'linux' ] && [ "$build_dockers_result" != "0" ]; then
-      return $build_dockers_result;
-    fi
-  - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then
-      cd ../kbfsdocker &&
-      go test -i -tags docker &&
-      go test -c -tags docker -no-build &&
-      ./kbfsdocker.test -test.timeout 6m -no-build;
-    fi
 notifications:
   slack: keybase:WKlhs55Mb4am4obv1rNRg8P0
 branches:
