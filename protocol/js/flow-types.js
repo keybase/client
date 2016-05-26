@@ -627,6 +627,11 @@ export type NotifyUsers_userChanged_rpc = {
   callback: (null | (err: ?any) => void)
 }
 
+export type Outcome =
+    0 // NONE_0
+  | 1 // FIXED_1
+  | 2 // IGNORED_2
+
 export type PGPCreateUids = {
   useDefault: boolean;
   ids: Array<PGPIdentity>;
@@ -691,6 +696,11 @@ export type PlatformInfo = {
   os: string;
   arch: string;
   goVersion: string;
+}
+
+export type ProblemUser = {
+  user: User;
+  problemDevices: Array<Device>;
 }
 
 export type Process = {
@@ -801,6 +811,13 @@ export type PublicKey = {
   deviceType: string;
   cTime: Time;
   eTime: Time;
+}
+
+export type RekeyTLF = {
+  tlf: TLF;
+  problemUsers: Array<ProblemUser>;
+  score: int;
+  solutions: Array<DeviceID>;
 }
 
 export type RemoteProof = {
@@ -1092,6 +1109,16 @@ export type StringKVPair = {
   key: string;
   value: string;
 }
+
+export type TLF = {
+  tlfid: TLFID;
+  name: string;
+  writers: Array<string>;
+  readers: Array<string>;
+  isPrivate: boolean;
+}
+
+export type TLFID = string
 
 export type Test = {
   reply: string;
@@ -2879,6 +2906,66 @@ export type quota_verifySession_rpc = {
   callback: (null | (err: ?any, response: quota_verifySession_result) => void)
 }
 
+export type rekeyUI_delegateRekeyUI_result = int
+
+export type rekeyUI_delegateRekeyUI_rpc = {
+  method: 'rekeyUI.delegateRekeyUI',
+  param: {},
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any, response: rekeyUI_delegateRekeyUI_result) => void)
+}
+
+export type rekeyUI_refresh_result = void
+
+export type rekeyUI_refresh_rpc = {
+  method: 'rekeyUI.refresh',
+  param: {
+    tlfs: Array<RekeyTLF>
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type rekey_getRekeyTLFs_result = Array<RekeyTLF>
+
+export type rekey_getRekeyTLFs_rpc = {
+  method: 'rekey.getRekeyTLFs',
+  param: {},
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any, response: rekey_getRekeyTLFs_result) => void)
+}
+
+export type rekey_rekeyStatusFinish_result = Outcome
+
+export type rekey_rekeyStatusFinish_rpc = {
+  method: 'rekey.rekeyStatusFinish',
+  param: {},
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any, response: rekey_rekeyStatusFinish_result) => void)
+}
+
+export type rekey_showPendingRekeyStatus_result = void
+
+export type rekey_showPendingRekeyStatus_rpc = {
+  method: 'rekey.showPendingRekeyStatus',
+  param: {},
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type rekey_showRekeyStatus_result = void
+
+export type rekey_showRekeyStatus_rpc = {
+  method: 'rekey.showRekeyStatus',
+  param: {
+    tlfs: Array<TLFID>,
+    user: (null | UID),
+    kid: (null | KID)
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
 export type revoke_revokeDevice_result = void
 
 export type revoke_revokeDevice_rpc = {
@@ -3549,6 +3636,12 @@ export type rpc =
   | provisionUi_chooseProvisioningMethod_rpc
   | provisionUi_switchToGPGSignOK_rpc
   | quota_verifySession_rpc
+  | rekeyUI_delegateRekeyUI_rpc
+  | rekeyUI_refresh_rpc
+  | rekey_getRekeyTLFs_rpc
+  | rekey_rekeyStatusFinish_rpc
+  | rekey_showPendingRekeyStatus_rpc
+  | rekey_showRekeyStatus_rpc
   | revoke_revokeDevice_rpc
   | revoke_revokeKey_rpc
   | revoke_revokeSigs_rpc
@@ -5102,6 +5195,62 @@ export type incomingCallMapType = {
     response: {
       error: (err: RPCError) => void,
       result: (result: quota_verifySession_result) => void
+    }
+  ) => void,
+  'keybase.1.rekey.showPendingRekeyStatus'?: (
+    params: {
+      sessionID: int
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.rekey.showRekeyStatus'?: (
+    params: {
+      sessionID: int,
+      tlfs: Array<TLFID>,
+      user: (null | UID),
+      kid: (null | KID)
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.rekey.getRekeyTLFs'?: (
+    params: {
+      sessionID: int
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: rekey_getRekeyTLFs_result) => void
+    }
+  ) => void,
+  'keybase.1.rekey.rekeyStatusFinish'?: (
+    params: {
+      sessionID: int
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: rekey_rekeyStatusFinish_result) => void
+    }
+  ) => void,
+  'keybase.1.rekeyUI.delegateRekeyUI'?: (
+    params: {},
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: rekeyUI_delegateRekeyUI_result) => void
+    }
+  ) => void,
+  'keybase.1.rekeyUI.refresh'?: (
+    params: {
+      sessionID: int,
+      tlfs: Array<RekeyTLF>
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
     }
   ) => void,
   'keybase.1.revoke.revokeKey'?: (
