@@ -11,6 +11,7 @@ type fakeUIRouter struct {
 	secretUI    libkb.SecretUI
 	identifyUI  libkb.IdentifyUI
 	secretUIErr error
+	rekeyUI     keybase1.RekeyUIInterface
 }
 
 var _ libkb.UIRouter = fakeUIRouter{}
@@ -30,7 +31,7 @@ func (f fakeUIRouter) GetUpdateUI() (libkb.UpdateUI, error) {
 }
 
 func (f fakeUIRouter) GetRekeyUI() (keybase1.RekeyUIInterface, error) {
-	return nil, errors.New("Unexpected GetRekeyUI call")
+	return f.rekeyUI, nil
 }
 
 func (f fakeUIRouter) Shutdown() {}

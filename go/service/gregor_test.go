@@ -488,3 +488,68 @@ func TestRekeyNeededMessageNoScores(t *testing.T) {
 		t.Fatal(err)
 	}
 }
+
+const rekeyTLFs = `[
+{ 
+	"tlf": {
+		"tlfid": "folder", 
+		"name": "folder name", 
+		"writers": ["t_alice"], 
+		"readers": ["t_alice"], 
+		"isPrivate": true
+	},
+	"problemUsers": [
+		{
+			"user": {
+				"uid": "295a7eea607af32040647123732bc819",
+				"username": "t_alice"
+			},
+			"problemDevices": [
+				{
+					"type": "mobile",
+					"name": "phone",
+					"deviceID": "1212121212"
+				}
+			]
+		}
+	],
+	"score": 300,
+	"solutions": ["13131313"]
+}
+]`
+
+func TestRekeyNeededMessageWithScores(t *testing.T) {
+	tc := libkb.SetupTest(t, "gregor")
+	defer tc.Cleanup()
+
+	tc.G.SetService()
+	router := fakeUIRouter{}
+	tc.G.SetUIRouter(&router)
+
+	kbUID := keybase1.MakeTestUID(1)
+	gUID := gregor1.UID(kbUID.ToBytes())
+	tc.G.Env.GetConfigWriter().SetUserConfig(libkb.NewUserConfig(kbUID, "", nil, ""), true)
+
+	h := newGregorHandler(tc.G)
+
+	msgID := gregor1.MsgID("my_random_id")
+	m := gregor1.Message{
+		Ibm_: &gregor1.InBandMessage{
+			StateUpdate_: &gregor1.StateUpdateMessage{
+				Md_: gregor1.Metadata{
+					MsgID_: msgID,
+					Ctime_: gregor1.ToTime(tc.G.Clock.Now()),
+					Uid_:   gUID,
+				},
+				Creation_: &gregor1.Item{
+					Category_: gregor1.Category("kbfs_tlf_rekey_needed"),
+					Body_:     gregor1.Body(rekeyTLFs),
+				},
+			},
+		},
+	}
+
+	if err := h.BroadcastMessage(context.Background(), m); err != nil {
+		t.Fatal(err)
+	}
+}

@@ -545,15 +545,17 @@ func (g *gregorHandler) handleRekeyNeeded(ctx context.Context, item gregor.Item)
 	}
 
 	var scores []keybase1.RekeyTLF
+	if err := json.Unmarshal(item.Body().Bytes(), &scores); err != nil {
+		return err
+	}
 
 	if g.G().Clock.Now().Sub(item.Metadata().CTime()) > 10*time.Second {
 		// if the message isn't fresh, get:
-		// scores = scoreProblemFolders(tlfs, u, v) via JSON API endpoint
-		return errors.New("getting score for stale message not implemented")
-	}
-
-	if err := json.Unmarshal(item.Body().Bytes(), &scores); err != nil {
-		return err
+		var err error
+		scores, err = g.scoreProblemFolders(scores)
+		if err != nil {
+			return err
+		}
 	}
 
 	// if the scores list is empty, dismiss the gregor notification
@@ -562,7 +564,7 @@ func (g *gregorHandler) handleRekeyNeeded(ctx context.Context, item gregor.Item)
 		return g.DismissItem(item.Metadata().MsgID())
 	}
 
-	// show a rekey status window
+	// get the rekeyUI
 	rekeyUI, err := g.G().UIRouter.GetRekeyUI()
 	if err != nil {
 		g.G().Log.Errorf("failed to get RekeyUI: %s", err)
@@ -572,14 +574,42 @@ func (g *gregorHandler) handleRekeyNeeded(ctx context.Context, item gregor.Item)
 		g.G().Log.Error("got nil RekeyUI")
 		return errors.New("got nil RekeyUI")
 	}
-	arg := keybase1.RefreshArg{
-		Tlfs: scores,
-	}
-	if err := rekeyUI.Refresh(ctx, arg); err != nil {
-		return err
-	}
 
-	return nil
+	// show the rekey scores in a loop
+	for {
+		arg := keybase1.RefreshArg{
+			Tlfs: scores,
+		}
+		if err := rekeyUI.Refresh(ctx, arg); err != nil {
+			return err
+		}
+
+		g.G().Clock.Sleep(1 * time.Second)
+
+		scores, err = g.scoreProblemFolders(scores)
+		if err != nil {
+			return err
+		}
+
+		// if the scores list is empty, dismiss the gregor notification
+		if len(scores) == 0 {
+			// send ui an empty refresh to signal completion?
+			g.G().Log.Debug("scores list empty, sending UI an empty refresh")
+			if err := rekeyUI.Refresh(ctx, keybase1.RefreshArg{}); err != nil {
+				return err
+			}
+
+			g.G().Log.Debug("scores list empty, dismissing gregor notification")
+			return g.DismissItem(item.Metadata().MsgID())
+		}
+	}
+}
+
+func (g *gregorHandler) scoreProblemFolders(existing []keybase1.RekeyTLF) ([]keybase1.RekeyTLF, error) {
+	// XXX this is waiting on an API endpoint
+	// XXX just return existing for now
+	g.G().Log.Debug("Fake scoreProblemFolders, returning existing folder list")
+	return existing, nil
 }
 
 func (g *gregorHandler) handleOutOfBandMessage(ctx context.Context, obm gregor.OutOfBandMessage) error {
