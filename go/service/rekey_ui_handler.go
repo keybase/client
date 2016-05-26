@@ -15,15 +15,18 @@ import (
 
 type RekeyUIHandler struct {
 	libkb.Contextified
-	parent *gregorHandler
+	connID      libkb.ConnectionID
+	alwaysAlive bool
+	// parent *gregorHandler
 }
 
 var _ libkb.GregorInBandMessageHandler = (*RekeyUIHandler)(nil)
 
-func NewRekeyUIHandler(g *libkb.GlobalContext, parent *gregorHandler) *RekeyUIHandler {
+func NewRekeyUIHandler(g *libkb.GlobalContext, connID libkb.ConnectionID) *RekeyUIHandler {
 	return &RekeyUIHandler{
 		Contextified: libkb.NewContextified(g),
-		parent:       parent,
+		connID:       connID,
+		// parent:       parent,
 	}
 }
 
