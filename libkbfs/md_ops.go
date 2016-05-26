@@ -108,6 +108,7 @@ func (md *MDOpsStandard) verifyWriterKey(
 				"revision %d of folder %s for checking the writer "+
 				"timestamp", rmds.MD.Revision, rmds.MD.ID)
 		}
+		prevHead = prevMDs[0].Revision - 1
 	}
 }
 
