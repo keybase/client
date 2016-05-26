@@ -13,6 +13,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"testing"
 
@@ -270,6 +271,11 @@ func SetupTest(tb testing.TB, name string) (tc TestContext) {
 	tc, err = setupTestContext(tb, name, nil)
 	if err != nil {
 		tb.Fatal(err)
+	}
+	pc, file, line, ok := runtime.Caller(1)
+	if ok {
+		fn := runtime.FuncForPC(pc)
+		fmt.Printf("SetupTest %s %v:%v\n", fn.Name(), file, line)
 	}
 	return tc
 }
