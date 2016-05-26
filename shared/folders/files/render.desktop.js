@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, Text, BackButton, Avatar, PopupMenu, Icon} from '../../common-adapters'
+import {Box, Text, BackButton, Avatar, PopupMenu, Icon, Usernames} from '../../common-adapters'
 import File from './file/render'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 import {resolveImageAsURL} from '../../../desktop/resolve-root'
@@ -40,13 +40,11 @@ export default class Render extends Component<void, Props, void> {
         </Box>
         <Box style={{...globalStyles.flexBoxColumn, ...styleTLFHeader, ...styleTLFHeaderThemed[this.props.theme]}}>
           <Box style={{...globalStyles.flexBoxRow, height: 0, justifyContent: 'center', position: 'relative', bottom: 16}}>
-            {this.props.users.map(u => <Box key={u} style={{height: 32, width: 28}}><Avatar username={u} size={32} /></Box>)}
+            {this.props.users.map(u => <Box key={u.username} style={{height: 32, width: 28}}><Avatar username={u.username} size={32} /></Box>)}
           </Box>
-          <Box style={{display: 'inline', marginBottom: 'auto', marginTop: 'auto'}}>
+          <Box style={{...globalStyles.flexBoxRow, alignItems: 'baseline', marginBottom: 'auto', marginTop: 'auto'}}>
             <Text type='BodySmallSemibold' style={tlfTextStyle}>{isPrivate ? 'private/' : 'public/'}</Text>
-            {intersperseFn(i => (<Text key={i} style={tlfTextStyle} type='BodySemibold'>,</Text>), this.props.users.map(u => (
-              <Text key={u} type='BodySemibold' style={{...tlfTextStyle, ...(this.props.selfUsername === u ? globalStyles.italic : {})}}>{u}</Text>
-            )))}
+            <Usernames users={this.props.users} type='BodySemibold' style={tlfTextStyle} />
           </Box>
         </Box>
         <PopupMenu style={{alignItems: 'flex-end', top: 12, right: 12}} items={this.props.popupMenuItems} visible={this.props.visiblePopupMenu} onHidden={this.props.onTogglePopupMenu} />

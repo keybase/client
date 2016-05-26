@@ -2,6 +2,7 @@
 
 import type {Props as FileProps} from './file/render'
 import type {MenuItem} from '../../common-adapters/popup-menu'
+import type {UserList} from '../../common-adapters/usernames'
 
 export type FileSection = {
   name: string,
@@ -13,8 +14,7 @@ export type Props = {
   theme: 'public' | 'private',
   visiblePopupMenu: boolean,
   popupMenuItems: Array<MenuItem>,
-  selfUsername: string,
-  users: Array<string>,
+  users: UserList,
   showGroupIcon?: boolean, // TODO (this is not implemented, but this will show the group icon instead of user avatars)
   onBack: () => void,
   onTogglePopupMenu: () => void,

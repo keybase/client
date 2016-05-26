@@ -1,11 +1,9 @@
 /* @flow */
 
+import type {UserList} from '../common-adapters/usernames'
+
 export type Folder = {
-  users: Array<{
-    username: string,
-    broken?: boolean,
-    you?: boolean
-  }>,
+  users: UserList,
   meta?: 'new' | null,
   modified?: {
     when: string,

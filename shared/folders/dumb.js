@@ -244,8 +244,10 @@ export const files: DumbComponentMap<Files> = {
       theme: 'public',
       visiblePopupMenu: false,
       popupMenuItems: filesMenuItems,
-      selfUsername: 'cecileb',
-      users: ['cecileb', 'aliceb'],
+      users: [
+        {username: 'cecileb', you: true},
+        {username: 'aliceb'}
+      ],
       onBack: () => console.log('onBack:files'),
       onTogglePopupMenu: () => console.log('onTogglePopupMenu'),
       recentFilesSection: [
@@ -257,8 +259,10 @@ export const files: DumbComponentMap<Files> = {
       theme: 'public',
       visiblePopupMenu: true,
       popupMenuItems: filesMenuItems,
-      selfUsername: 'cecileb',
-      users: ['cecileb', 'aliceb'],
+      users: [
+        {username: 'cecileb', you: true},
+        {username: 'aliceb'}
+      ],
       onBack: () => console.log('onBack:files'),
       onTogglePopupMenu: () => console.log('onTogglePopupMenu'),
       recentFilesSection: [
@@ -270,8 +274,10 @@ export const files: DumbComponentMap<Files> = {
       theme: 'private',
       visiblePopupMenu: false,
       popupMenuItems: filesMenuItems,
-      selfUsername: 'cecileb',
-      users: ['cecileb', 'aliceb'],
+      users: [
+        {username: 'cecileb', you: true},
+        {username: 'aliceb'}
+      ],
       onBack: () => console.log('onBack:files'),
       onTogglePopupMenu: () => console.log('onTogglePopupMenu'),
       recentFilesSection: [
@@ -281,8 +287,10 @@ export const files: DumbComponentMap<Files> = {
     },
     'Popup - Private': {
       theme: 'private',
-      selfUsername: 'cecileb',
-      users: ['cecileb', 'aliceb'],
+      users: [
+        {username: 'cecileb', you: true},
+        {username: 'aliceb'}
+      ],
       onBack: () => console.log('onBack:files'),
       onTogglePopupMenu: () => console.log('onTogglePopupMenu'),
       visiblePopupMenu: true,
