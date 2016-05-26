@@ -10,7 +10,7 @@ import (
 )
 
 func TestInvitationArgs(t *testing.T) {
-	tc := SetupTest(t, "invite")
+	tc := SetupTest(t, "invite", 1)
 	defer tc.Cleanup()
 
 	rec := newSendInvitationMock()

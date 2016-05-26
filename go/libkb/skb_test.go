@@ -130,7 +130,7 @@ func testPromptAndUnlock(t *testing.T, skb *SKB) {
 }
 
 func TestBasicSecretStore(t *testing.T) {
-	tc := SetupTest(t, "skb_basic_secret_store")
+	tc := SetupTest(t, "skb_basic_secret_store", 1)
 	defer tc.Cleanup()
 
 	lks := makeTestLKSec(t, tc.G)
@@ -159,7 +159,7 @@ func TestBasicSecretStore(t *testing.T) {
 }
 
 func TestCorruptSecretStore(t *testing.T) {
-	tc := SetupTest(t, "skb_corrupt_secret_store")
+	tc := SetupTest(t, "skb_corrupt_secret_store", 1)
 	defer tc.Cleanup()
 
 	lks := makeTestLKSec(t, tc.G)
@@ -181,7 +181,7 @@ func TestCorruptSecretStore(t *testing.T) {
 }
 
 func TestUnusedSecretStore(t *testing.T) {
-	tc := SetupTest(t, "skb_unused_secret_store")
+	tc := SetupTest(t, "skb_unused_secret_store", 1)
 	defer tc.Cleanup()
 
 	lks := makeTestLKSec(t, tc.G)
@@ -208,7 +208,7 @@ func TestUnusedSecretStore(t *testing.T) {
 }
 
 func TestPromptCancelCache(t *testing.T) {
-	tc := SetupTest(t, "prompt_cancel_cache")
+	tc := SetupTest(t, "prompt_cancel_cache", 1)
 	defer tc.Cleanup()
 
 	fakeClock := clockwork.NewFakeClock()

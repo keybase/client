@@ -11,7 +11,7 @@ import (
 
 func TestSecretStoreOps(t *testing.T) {
 
-	tc := SetupTest(t, "secret store ops")
+	tc := SetupTest(t, "secret store ops", 1)
 	defer tc.Cleanup()
 
 	nu := NewNormalizedUsername("username")
@@ -66,7 +66,7 @@ func TestSecretStoreOps(t *testing.T) {
 
 func TestGetUsersWithStoredSecrets(t *testing.T) {
 
-	tc := SetupTest(t, "get users with stored secrets")
+	tc := SetupTest(t, "get users with stored secrets", 1)
 	defer tc.Cleanup()
 
 	usernames, err := tc.G.SecretStoreAll.GetUsersWithStoredSecrets()

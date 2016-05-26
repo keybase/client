@@ -82,7 +82,7 @@ func (a *FakeAPI) PostDecode(APIArg, APIResponseWrapper) error {
 }
 
 func TestLoginSessionTimeout(t *testing.T) {
-	tc := SetupTest(t, "login_session_test")
+	tc := SetupTest(t, "login_session_test", 1)
 	tc.G.API = &FakeAPI{}
 	c := clockwork.NewFakeClock()
 	tc.G.Clock = c
