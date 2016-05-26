@@ -435,7 +435,7 @@ func (h identifyUIHandler) Dismiss(ctx context.Context, category string, item gr
 }
 
 func (h identifyUIHandler) handleShowTrackerPopupCreate(ctx context.Context, item gregor.Item) error {
-	h.G().Log.Debug("gregor handler: handleShowTrackerPopup: %+v", item)
+	h.G().Log.Debug("gregor handler: handleShowTrackerPopupCreate: %+v", item)
 	if item.Body() == nil {
 		return errors.New("gregor handler for show_tracker_popup: nil message body")
 	}
@@ -488,7 +488,7 @@ func (h identifyUIHandler) handleShowTrackerPopupCreate(ctx context.Context, ite
 }
 
 func (h identifyUIHandler) handleShowTrackerPopupDismiss(ctx context.Context, item gregor.Item) error {
-	g.G().Log.Debug("gregor handler: handleDismissTrackerPopup: %+v", item)
+	h.G().Log.Debug("gregor handler: handleShowTrackerPopupDismiss: %+v", item)
 	if item.Body() == nil {
 		return errors.New("gregor dismissal for show_tracker_popup: nil message body")
 	}
