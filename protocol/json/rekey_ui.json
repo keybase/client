@@ -1,0 +1,28 @@
+{
+  "protocol": "rekeyUI",
+  "types": [],
+  "messages": {
+    "delegateRekeyUI": {
+      "request": [],
+      "response": "int"
+    },
+    "refresh": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "tlfs",
+          "type": {
+            "type": "array",
+            "items": "RekeyTLF"
+          }
+        }
+      ],
+      "response": "null",
+      "doc": "refresh is called whenever Electron should refresh the UI, either\n   * because a change came in, or because there was a timeout poll."
+    }
+  },
+  "namespace": "keybase.1"
+}
