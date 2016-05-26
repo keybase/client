@@ -76,6 +76,8 @@ class Engine {
 
     // A list of functions to call when we connect
     this.onConnectFns = {}
+    // A list of functions to call when we reconnect to cleanup
+    this.onConnectFnsUnregister = {}
 
     // Throw an error and fail?
     this._failOnError = false
@@ -87,7 +89,7 @@ class Engine {
     this.inListenerCallback = false
   }
 
-  listenOnConnect (key, f) {
+  listenOnConnect (key, f, unregister) {
     if (!f) {
       throw new Error('Null callback sent to listenOnConnect')
     }
@@ -104,6 +106,11 @@ class Engine {
     // Regardless if we were connected or not, we'll add this to the callback fns
     // that should be called when we connect.
     this.onConnectFns[key] = f
+    if (this.onConnectFnsUnregister[key]) {
+      this.onConnectFnsUnregister[key]()
+    }
+
+    this.onConnectFnsUnregister[key] = unregister
   }
 
   getSessionID () {
