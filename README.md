@@ -102,7 +102,7 @@ Now you can do cool stuff like:
 (Note that "localuser" mode has only four hard-coded users to play
 with: "strib", "max", "chris", and "fred".)
 
-# Code style
+### Code style
 
 We require all code to pass `gofmt` and `govet`.  You can install our
 precommit hooks to make sure your code passes `gofmt` and `govet`:
@@ -117,7 +117,7 @@ kbfs directory:
     go get -u github.com/golang/lint/golint
     make lint
 
-# Vendoring
+### Vendoring
 
 KBFS vendors all of its dependencies into the local `vendor`
 directory.  To add or update dependencies, use the `govendor` tool, as
@@ -127,7 +127,7 @@ follows:
     govendor add github.com/foo/bar  # or `govendor update`
     git add --all vendor
 
-# Testing
+### Testing
 
 From kbfs/:
 
@@ -143,7 +143,7 @@ the mock interfaces used by the tests:
 (Right now the mocks are checked into the repo; this isn't ideal and
 we should probably change it.)
 
-# Licensing
+### Licensing
 
 Most code is released under the New BSD (3 Clause) License.  If
 subdirectories include a different license, that license applies
