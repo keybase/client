@@ -39,7 +39,7 @@ func (nullSecretUI) GetPassphrase(keybase1.GUIEntryArg, *keybase1.SecretEntryArg
 }
 
 func TestCryptoSecretUI(t *testing.T) {
-	tc := libkb.SetupTest(t, "crypto")
+	tc := libkb.SetupTest(t, "crypto", 2)
 	defer tc.Cleanup()
 
 	c := NewCryptoHandler(tc.G)

@@ -17,7 +17,7 @@ import (
 // give a private key and a public key, test the encryption of a
 // message
 func TestPGPEncrypt(t *testing.T) {
-	tc := SetupTest(t, "pgp_encrypt")
+	tc := SetupTest(t, "pgp_encrypt", 1)
 	defer tc.Cleanup()
 	bundleSrc, err := tc.MakePGPKey("src@keybase.io")
 	if err != nil {
@@ -58,7 +58,7 @@ func TestPGPEncrypt(t *testing.T) {
 }
 
 func TestPGPEncryptString(t *testing.T) {
-	tc := SetupTest(t, "pgp_encrypt")
+	tc := SetupTest(t, "pgp_encrypt", 1)
 	defer tc.Cleanup()
 	bundleSrc, err := tc.MakePGPKey("src@keybase.io")
 	if err != nil {
@@ -99,7 +99,7 @@ func TestPGPEncryptString(t *testing.T) {
 }
 
 func TestPGPEncryptQuick(t *testing.T) {
-	tc := SetupTest(t, "pgp_encrypt")
+	tc := SetupTest(t, "pgp_encrypt", 1)
 	defer tc.Cleanup()
 	bundleSrc, err := tc.MakePGPKey("src@keybase.io")
 	if err != nil {
@@ -146,7 +146,7 @@ func TestPGPEncryptQuick(t *testing.T) {
 }
 
 func TestPGPEncryptLong(t *testing.T) {
-	tc := SetupTest(t, "pgp_encrypt")
+	tc := SetupTest(t, "pgp_encrypt", 1)
 	defer tc.Cleanup()
 	bundleSrc, err := tc.MakePGPKey("src@keybase.io")
 	if err != nil {

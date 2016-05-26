@@ -13,7 +13,7 @@ import (
 )
 
 func TestGregorHandler(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor")
+	tc := libkb.SetupTest(t, "gregor", 2)
 	defer tc.Cleanup()
 
 	tc.G.SetService()
@@ -91,7 +91,7 @@ func (ui *showTrackerPopupIdentifyUI) Dismiss(username string, _ keybase1.Dismis
 // given UID into a gregorHandler, the result is that a TrackEngine gets run
 // for that user.
 func TestShowTrackerPopupMessage(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor")
+	tc := libkb.SetupTest(t, "gregor", 2)
 	defer tc.Cleanup()
 
 	tc.G.SetService()
