@@ -456,16 +456,26 @@ func TestSyncSaveRestoreNonFresh(t *testing.T) {
 }
 
 func TestRekeyNeededMessageNoScores(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor")
+	tc := libkb.SetupTest(t, "gregor", 1)
 	defer tc.Cleanup()
 
 	tc.G.SetService()
 
 	kbUID := keybase1.MakeTestUID(1)
 	gUID := gregor1.UID(kbUID.ToBytes())
-	tc.G.Env.GetConfigWriter().SetUserConfig(libkb.NewUserConfig(kbUID, "", nil, ""), true)
+	did, err := libkb.NewDeviceID()
+	if err != nil {
+		t.Fatal(err)
+	}
+	tc.G.Env.GetConfigWriter().SetUserConfig(libkb.NewUserConfig(kbUID, "", nil, did), true)
 
-	h := newGregorHandler(tc.G)
+	h, err := newGregorHandler(tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rekeyHandler := NewRekeyUIHandler(tc.G, h)
+	h.PushHandler(rekeyHandler)
 
 	msgID := gregor1.MsgID("my_random_id")
 	m := gregor1.Message{
@@ -519,7 +529,7 @@ const rekeyTLFs = `[
 ]`
 
 func TestRekeyNeededMessageWithScores(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor")
+	tc := libkb.SetupTest(t, "gregor", 1)
 	defer tc.Cleanup()
 
 	tc.G.SetService()
@@ -528,9 +538,19 @@ func TestRekeyNeededMessageWithScores(t *testing.T) {
 
 	kbUID := keybase1.MakeTestUID(1)
 	gUID := gregor1.UID(kbUID.ToBytes())
-	tc.G.Env.GetConfigWriter().SetUserConfig(libkb.NewUserConfig(kbUID, "", nil, ""), true)
+	did, err := libkb.NewDeviceID()
+	if err != nil {
+		t.Fatal(err)
+	}
+	tc.G.Env.GetConfigWriter().SetUserConfig(libkb.NewUserConfig(kbUID, "", nil, did), true)
 
-	h := newGregorHandler(tc.G)
+	h, err := newGregorHandler(tc.G)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	rekeyHandler := NewRekeyUIHandler(tc.G, h)
+	h.PushHandler(rekeyHandler)
 
 	msgID := gregor1.MsgID("my_random_id")
 	m := gregor1.Message{
