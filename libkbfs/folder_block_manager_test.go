@@ -417,3 +417,81 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 		t.Error("No dedup reference found")
 	}
 }
+
+// Test that quota reclamation doesn't happen while waiting for a
+// requested rekey.
+func TestQuotaReclamationFailAfterRekeyRequest(t *testing.T) {
+	var u1, u2 libkb.NormalizedUsername = "u1", "u2"
+	config1, _, ctx := kbfsOpsConcurInit(t, u1, u2)
+	defer CheckConfigAndShutdown(t, config1)
+	clock := newTestClockNow()
+	config1.SetClock(clock)
+
+	config2 := ConfigAsUser(config1.(*ConfigLocal), u2)
+	defer CheckConfigAndShutdown(t, config2)
+	_, uid2, err := config2.KBPKI().GetCurrentUserInfo(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a shared folder.
+	name := u1.String() + "," + u2.String()
+	rootNode1 := GetRootNodeOrBust(t, config1, name, false)
+
+	config2Dev2 := ConfigAsUser(config1.(*ConfigLocal), u2)
+	defer CheckConfigAndShutdown(t, config2Dev2)
+
+	// Now give u2 a new device.  The configs don't share a Keybase
+	// Daemon so we have to do it in all places.
+	AddDeviceForLocalUserOrBust(t, config1, uid2)
+	AddDeviceForLocalUserOrBust(t, config2, uid2)
+	devIndex := AddDeviceForLocalUserOrBust(t, config2Dev2, uid2)
+	SwitchDeviceForLocalUserOrBust(t, config2Dev2, devIndex)
+
+	// user 2 should be unable to read the data now since its device
+	// wasn't registered when the folder was originally created.
+	_, err = GetRootNodeForTest(config2Dev2, name, false)
+	if _, ok := err.(NeedSelfRekeyError); !ok {
+		t.Fatalf("Got unexpected error when reading with new key: %v", err)
+	}
+
+	// Request a rekey from the new device, which will only be
+	// able to set the rekey bit (copying the root MD).
+	kbfsOps2Dev2 := config2Dev2.KBFSOps()
+	err = kbfsOps2Dev2.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
+	if err != nil {
+		t.Fatalf("Couldn't rekey: %v", err)
+	}
+
+	// Make sure QR returns an error.
+	ops := config2Dev2.KBFSOps().(*KBFSOpsStandard).getOpsByNode(ctx, rootNode1)
+	timer := time.NewTimer(config2Dev2.QuotaReclamationPeriod())
+	ops.fbm.reclamationGroup.Add(1)
+	err = ops.fbm.doReclamation(timer)
+	if _, ok := err.(NeedSelfRekeyError); !ok {
+		t.Fatalf("Unexpected rekey error: %v", err)
+	}
+
+	// Rekey from another device.
+	kbfsOps1 := config1.KBFSOps()
+	err = kbfsOps1.SyncFromServerForTesting(ctx, rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+	err = kbfsOps1.Rekey(ctx, rootNode1.GetFolderBranch().Tlf)
+	if err != nil {
+		t.Fatalf("Couldn't rekey: %v", err)
+	}
+
+	// Retry the QR; should work now.
+	err = kbfsOps2Dev2.SyncFromServerForTesting(ctx,
+		rootNode1.GetFolderBranch())
+	if err != nil {
+		t.Fatalf("Couldn't sync from server: %v", err)
+	}
+	ops.fbm.reclamationGroup.Add(1)
+	err = ops.fbm.doReclamation(timer)
+	if err != nil {
+		t.Fatalf("Unexpected rekey error: %v", err)
+	}
+}
