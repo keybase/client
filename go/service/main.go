@@ -292,6 +292,7 @@ func (d *Service) gregordConnect() (err error) {
 		return err
 	}
 	d.G().GregorDismisser = d.gregor
+	d.G().GregorListener = d.gregor
 
 	if err = d.gregor.Connect(uri); err != nil {
 		return err
