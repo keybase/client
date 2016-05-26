@@ -325,7 +325,7 @@ func TestSyncNonFresh(t *testing.T) {
 		server.ConsumeMessage(context.TODO(), msg)
 		if i < msgLimit {
 			h.BroadcastMessage(context.TODO(), msg)
-			// We end up picking up the last one in the sync, since it's
+			// We end up picking up the last one in the sync, since its
 			// CTime is equal to when we start the sync, so just add it
 			if i == msgLimit-1 {
 				refMsgs = append(refMsgs, msg.ToInBandMessage())

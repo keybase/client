@@ -190,7 +190,7 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, t time.Time,
 	var err error
 	if msgs, err = g.gregorCli.StateMachineInBandMessagesSince(t); err != nil {
 		g.G().Log.Errorf("gregor handler: unable to fetch messages for reply: %s", err)
-		return []gregor.InBandMessage{}, err
+		return nil, err
 	}
 
 	g.G().Log.Debug("gregor handler: replaying %d messages", len(msgs))
@@ -229,14 +229,14 @@ func (g *gregorHandler) serverSync(ctx context.Context,
 	consumedMsgs, err := g.gregorCli.Sync(cli)
 	if err != nil {
 		g.G().Log.Errorf("gregor handler: error syncing from the server, bailing: %s", err)
-		return []gregor.InBandMessage{}, []gregor.InBandMessage{}, err
+		return nil, nil, err
 	}
 
 	// Replay in-band messages
 	replayedMsgs, err := g.replayInBandMessages(ctx, t, nil)
 	if err != nil {
 		g.G().Log.Errorf("gregor handler: replay messages failed")
-		return []gregor.InBandMessage{}, []gregor.InBandMessage{}, err
+		return nil, nil, err
 	}
 
 	// All done with fresh syncs

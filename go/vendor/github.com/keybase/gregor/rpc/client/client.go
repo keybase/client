@@ -97,7 +97,7 @@ func (c *Client) syncFromTime(cli gregor1.IncomingInterface, t *time.Time) (msgs
 	c.log.Debug("syncFromTime from: %s", gregor1.FromTime(arg.Ctime))
 	res, err := cli.Sync(ctx, arg)
 	if err != nil {
-		return []gregor.InBandMessage{}, err
+		return nil, err
 	}
 
 	c.log.Debug("syncFromTime consuming %d messages", len(res.Msgs))
@@ -110,14 +110,14 @@ func (c *Client) syncFromTime(cli gregor1.IncomingInterface, t *time.Time) (msgs
 	// Check to make sure the server state is legit
 	state, err := c.sm.State(c.user, c.device, nil)
 	if err != nil {
-		return []gregor.InBandMessage{}, err
+		return nil, err
 	}
 	hash, err := state.Hash()
 	if err != nil {
-		return []gregor.InBandMessage{}, err
+		return nil, err
 	}
 	if !bytes.Equal(res.Hash, hash) {
-		return []gregor.InBandMessage{}, errHashMismatch{}
+		return nil, errHashMismatch{}
 	}
 
 	return msgs, nil
