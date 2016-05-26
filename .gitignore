@@ -5,11 +5,3 @@ kbfsfuse/kbfs_branches/
 kbfsfuse/kbfs_handles/
 kbfsfuse/kbfs_key/
 kbfsfuse/kbfs_md/
-# Generated when running `serverutil/rundynamo.sh`
-serverutil/dynamodb/
-serverutil/dynamodb_local.tgz
-kbfsdocker/kbfsfuse/kbfsfuse
-kbfsdocker/bserver/bserver
-kbfsdocker/mdserver/mdserver
-kbfsdocker/mdserver/mdmerkle
-kbfsdocker/mdserver/mdtool
