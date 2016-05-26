@@ -1,5 +1,8 @@
 /* @flow */
 import Folders from './render'
+import Files from './files/render'
+import File from './files/file/render'
+import type {PropsOf} from '../constants/types/more'
 import type {Folder} from './list'
 import type {DumbComponentMap} from '../constants/types/more'
 import {globalStyles} from '../styles/style-guide'
@@ -148,6 +151,152 @@ export const map: DumbComponentMap<Folders> = {
   }
 }
 
+const longFile = 'To be or not to be-that is the question: Whether tis nobler in the mind to suffer The slings and arrows of outrageous fortune, Or to take arms against a sea of troubles, And, by opposing, end them.rtf'
+
+export const file: DumbComponentMap<File> = {
+  component: File,
+  mocks: {
+    'Normal Private': {
+      theme: 'private',
+      name: 'How-PGP-works.doc',
+      path: '2016-tutorial/',
+      lastModifiedMeta: '2 hours ago',
+      lastModifiedBy: 'jenbee',
+      modifiedMarker: true,
+      fileIcon: 'logo-128',
+      onClick: () => console.log('onClick:file')
+    },
+    'Normal Private Long': {
+      theme: 'private',
+      name: 'How-PGP-works.doc',
+      path: '2016-tutorial/',
+      lastModifiedMeta: '2 hours ago',
+      lastModifiedBy: 'jenbee',
+      modifiedMarker: true,
+      fileIcon: 'logo-128',
+      onClick: () => console.log('onClick:file')
+    },
+    'Normal Private modified by self long file': {
+      theme: 'private',
+      name: longFile,
+      path: '2016-tutorial/',
+      lastModifiedMeta: '2 hours ago',
+      lastModifiedBy: 'marcopolo',
+      lastModifiedBySelf: true,
+      modifiedMarker: true,
+      fileIcon: 'logo-128',
+      onClick: () => console.log('onClick:file')
+    },
+    'Normal Public': {
+      parentProps: {style: {borderColor: 'black', borderWidth: 1, borderStyle: 'solid'}},
+      theme: 'public',
+      name: 'Cute Sloth.jpg',
+      path: 'spirit-animals/',
+      lastModifiedMeta: '2 hours ago',
+      lastModifiedBy: 'jenbee',
+      modifiedMarker: true,
+      fileIcon: 'logo-128',
+      onClick: () => console.log('onClick:file')
+    },
+    'Normal Public No Modified meta': {
+      parentProps: {style: {borderColor: 'black', borderWidth: 1, borderStyle: 'solid'}},
+      theme: 'public',
+      name: 'Cute Sloth.jpg',
+      path: 'spirit-animals/',
+      modifiedMarker: false,
+      fileIcon: 'logo-128',
+      onClick: () => console.log('onClick:file')
+    }
+  }
+}
+
+function genFiles (offsetNumber: number, fileCount: number, isPrivate: boolean): Array<PropsOf<File>> {
+  const adjs = ['tiresome', 'longing', 'marvelous', 'bloody', 'cruel', 'descriptive', 'cooperative', 'parallel', 'discreet', 'wry', 'lovely', 'mysterious']
+  const nouns = ['maid', 'river', 'pan', longFile, 'transport', 'reason', 'dog', 'food', 'ice', 'wilderness', 'level', 'horse']
+
+  const wordGen = (i: number) => `${adjs[Math.floor(i/12)%(12*12)]}-${nouns[i%12]}.jpg` // eslint-disable-line
+
+  const results = []
+  for (let i = offsetNumber; i < fileCount + offsetNumber; i++) {
+    results.push({
+      parentProps: {style: {borderColor: 'black', borderWidth: 1, borderStyle: 'solid'}},
+      theme: isPrivate ? 'private' : 'public',
+      name: wordGen(i),
+      path: 'pics/',
+      modifiedMarker: false,
+      fileIcon: 'logo-128',
+      onClick: () => console.log('onClick:file', wordGen(i))
+    })
+  }
+
+  return results
+}
+
+const filesMenuItems = [
+  {title: 'Item 1', onClick: () => {}},
+  {title: 'Item 2', onClick: () => {}}
+]
+
+export const files: DumbComponentMap<Files> = {
+  component: Files,
+  mocks: {
+    'Normal - Public': {
+      theme: 'public',
+      visiblePopupMenu: false,
+      popupMenuItems: filesMenuItems,
+      selfUsername: 'cecileb',
+      users: ['cecileb', 'aliceb'],
+      onBack: () => console.log('onBack:files'),
+      onTogglePopupMenu: () => console.log('onTogglePopupMenu'),
+      recentFilesSection: [
+        {name: 'Today', modifiedMarker: true, files: genFiles(0, 4, false)},
+        {name: 'Yesterday', modifiedMarker: false, files: genFiles(4, 4, false)}
+      ]
+    },
+    'Popup - Public': {
+      theme: 'public',
+      visiblePopupMenu: true,
+      popupMenuItems: filesMenuItems,
+      selfUsername: 'cecileb',
+      users: ['cecileb', 'aliceb'],
+      onBack: () => console.log('onBack:files'),
+      onTogglePopupMenu: () => console.log('onTogglePopupMenu'),
+      recentFilesSection: [
+        {name: 'Today', modifiedMarker: true, files: genFiles(0, 4, false)},
+        {name: 'Yesterday', modifiedMarker: false, files: genFiles(4, 4, false)}
+      ]
+    },
+    'Normal - Private': {
+      theme: 'private',
+      visiblePopupMenu: false,
+      popupMenuItems: filesMenuItems,
+      selfUsername: 'cecileb',
+      users: ['cecileb', 'aliceb'],
+      onBack: () => console.log('onBack:files'),
+      onTogglePopupMenu: () => console.log('onTogglePopupMenu'),
+      recentFilesSection: [
+        {name: 'Today', modifiedMarker: true, files: genFiles(0, 4, true)},
+        {name: 'Yesterday', modifiedMarker: false, files: genFiles(4, 4, true)}
+      ]
+    },
+    'Popup - Private': {
+      theme: 'private',
+      selfUsername: 'cecileb',
+      users: ['cecileb', 'aliceb'],
+      onBack: () => console.log('onBack:files'),
+      onTogglePopupMenu: () => console.log('onTogglePopupMenu'),
+      visiblePopupMenu: true,
+      popupMenuItems: filesMenuItems,
+      recentFilesSection: [
+        {name: 'Today', modifiedMarker: true, files: genFiles(0, 4, true)},
+        {name: 'Yesterday', modifiedMarker: false, files: genFiles(4, 4, true)}
+      ]
+    }
+  }
+}
+
 export default {
-  'Folders TLF': map
+  'Folders TLF': map,
+  'Files': files,
+  'File': file
 }
