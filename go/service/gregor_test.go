@@ -2,9 +2,9 @@ package service
 
 import (
 	"bytes"
+	"crypto/rand"
 	"errors"
 	"fmt"
-	"math/rand"
 	"testing"
 	"time"
 
@@ -190,13 +190,9 @@ func TestShowTrackerPopupMessage(t *testing.T) {
 }
 
 func newMsgID() gregor1.MsgID {
-	const mlen = 20
-	var letters = []byte("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ")
-	var res = make([]byte, mlen)
-	for i := 0; i < mlen; i++ {
-		res[i] = letters[rand.Intn(len(letters))]
-	}
-	return res
+	ret := make([]byte, 16)
+	rand.Read(ret)
+	return ret
 }
 
 type mockGregord struct {
@@ -284,7 +280,7 @@ func checkMessages(t *testing.T, source string, msgs []gregor.InBandMessage,
 }
 
 func TestSyncFresh(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor")
+	tc := libkb.SetupTest(t, "gregor", 2)
 	defer tc.Cleanup()
 	tc.G.SetService()
 
@@ -312,7 +308,7 @@ func TestSyncFresh(t *testing.T) {
 }
 
 func TestSyncNonFresh(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor")
+	tc := libkb.SetupTest(t, "gregor", 2)
 	defer tc.Cleanup()
 	tc.G.SetService()
 
@@ -353,7 +349,7 @@ func TestSyncNonFresh(t *testing.T) {
 }
 
 func TestSyncSaveRestoreFresh(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor")
+	tc := libkb.SetupTest(t, "gregor", 2)
 	defer tc.Cleanup()
 	tc.G.SetService()
 
@@ -403,7 +399,7 @@ func TestSyncSaveRestoreFresh(t *testing.T) {
 }
 
 func TestSyncSaveRestoreNonFresh(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor")
+	tc := libkb.SetupTest(t, "gregor", 2)
 	defer tc.Cleanup()
 	tc.G.SetService()
 
