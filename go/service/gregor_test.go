@@ -1,6 +1,7 @@
 package service
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -264,24 +265,25 @@ func setupSyncTests(t *testing.T, tc libkb.TestContext) (*gregorHandler, mockGre
 	return h, server, uid
 }
 
-func checkStateSize(t *testing.T, message string, h *gregorHandler, size int) {
-	var state gregor.State
-	var err error
-	if state, err = h.gregorCli.StateMachineState(nil); err != nil {
-		t.Fatal(err)
+func checkMessages(t *testing.T, source string, msgs []gregor.InBandMessage,
+	refMsgs []gregor.InBandMessage) {
+
+	if len(msgs) != len(refMsgs) {
+		t.Fatalf("messages lists unequal size, %d != %d, source: %s", len(msgs), len(refMsgs), source)
 	}
 
-	items, err := state.Items()
-	if err != nil {
-		t.Fatal(err)
-	}
+	for index, refMsg := range refMsgs {
+		msg := msgs[index]
+		msgID := msg.Metadata().MsgID()
+		refMsgID := refMsg.Metadata().MsgID()
 
-	if len(items) != size {
-		t.Fatalf(message, len(items), size)
+		if !bytes.Equal(msgID.Bytes(), refMsgID.Bytes()) {
+			t.Fatalf("message IDs do not match, %s != %s, source: %s", msgID, refMsgID, source)
+		}
 	}
 }
 
-func TestSyncBasic(t *testing.T) {
+func TestSyncFresh(t *testing.T) {
 	tc := libkb.SetupTest(t, "gregor")
 	defer tc.Cleanup()
 	tc.G.SetService()
@@ -291,27 +293,25 @@ func TestSyncBasic(t *testing.T) {
 
 	//Consume a bunch of messages to the server, and we'll sync them down
 	const numMsgs = 20
+	var refMsgs []gregor.InBandMessage
 	for i := 0; i < numMsgs; i++ {
 		msgid := newMsgID()
 		msg := server.newIbm(uid, msgid)
+		refMsgs = append(refMsgs, msg.ToInBandMessage())
 		server.ConsumeMessage(context.TODO(), msg)
 	}
 
 	// Sync messages down and see if we get 20
-	var syncedMsgs int
-	var err error
-	if syncedMsgs, err = h.reSync(context.TODO(), server); err != nil {
+	replayedMessages, consumedMessages, err := h.serverSync(context.TODO(), server)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	if syncedMsgs != numMsgs {
-		t.Fatalf("synced messages does not equal consumed, %d != %d", syncedMsgs, numMsgs)
-	}
-
-	checkStateSize(t, "state items not equal to consumed, %d != %d", h, numMsgs)
+	checkMessages(t, "replayed messages", replayedMessages, refMsgs)
+	checkMessages(t, "consumed messages", consumedMessages, refMsgs)
 }
 
-func TestSyncBroadcast(t *testing.T) {
+func TestSyncNonFresh(t *testing.T) {
 	tc := libkb.SetupTest(t, "gregor")
 	defer tc.Cleanup()
 	tc.G.SetService()
@@ -321,12 +321,21 @@ func TestSyncBroadcast(t *testing.T) {
 
 	//Consume a bunch of messages to the server, and we'll sync them down
 	const numMsgs = 6
+	const msgLimit = numMsgs / 2
+	var refMsgs []gregor.InBandMessage
 	for i := 0; i < numMsgs; i++ {
 		msgid := newMsgID()
 		msg := server.newIbm(uid, msgid)
 		server.ConsumeMessage(context.TODO(), msg)
-		if i < numMsgs/2 {
+		if i < msgLimit {
 			h.BroadcastMessage(context.TODO(), msg)
+			// We end up picking up the last one in the sync, since it's
+			// CTime is equal to when we start the sync, so just add it
+			if i == msgLimit-1 {
+				refMsgs = append(refMsgs, msg.ToInBandMessage())
+			}
+		} else {
+			refMsgs = append(refMsgs, msg.ToInBandMessage())
 		}
 	}
 
@@ -334,20 +343,16 @@ func TestSyncBroadcast(t *testing.T) {
 	h.freshSync = false
 
 	// We should only get half of the messages on a non-fresh sync
-	var syncedMsgs int
-	var err error
-	if syncedMsgs, err = h.reSync(context.TODO(), server); err != nil {
+	replayedMessages, consumedMessages, err := h.serverSync(context.TODO(), server)
+	if err != nil {
 		t.Fatal(err)
 	}
 
-	if syncedMsgs != numMsgs/2+1 {
-		t.Fatalf("syncMsgs should be half of numMsgs, %d, %d", syncedMsgs, numMsgs/2+1)
-	}
-
-	checkStateSize(t, "state items not equal to consumed, %d != %d", h, numMsgs)
+	checkMessages(t, "replayed messages", replayedMessages, refMsgs)
+	checkMessages(t, "consumed messages", consumedMessages, refMsgs)
 }
 
-func TestSyncSaveRestore(t *testing.T) {
+func TestSyncSaveRestoreFresh(t *testing.T) {
 	tc := libkb.SetupTest(t, "gregor")
 	defer tc.Cleanup()
 	tc.G.SetService()
@@ -357,12 +362,73 @@ func TestSyncSaveRestore(t *testing.T) {
 
 	//Consume a bunch of messages to the server, and we'll sync them down
 	const numMsgs = 6
+	const msgLimit = numMsgs / 2
+	var refReplayMsgs, refConsumeMsgs []gregor.InBandMessage
 	for i := 0; i < numMsgs; i++ {
 		msgid := newMsgID()
 		msg := server.newIbm(uid, msgid)
 		server.ConsumeMessage(context.TODO(), msg)
-		if i < numMsgs/2 {
+		if i < msgLimit {
 			h.BroadcastMessage(context.TODO(), msg)
+			// We end up picking up the last one in the sync, since it's
+			// CTime is equal to when we start the sync, so just add it
+			if i == msgLimit-1 {
+				refConsumeMsgs = append(refConsumeMsgs, msg.ToInBandMessage())
+			}
+		} else {
+			refConsumeMsgs = append(refConsumeMsgs, msg.ToInBandMessage())
+		}
+		refReplayMsgs = append(refReplayMsgs, msg.ToInBandMessage())
+	}
+
+	// Try saving
+	var err error
+	if err = h.gregorCli.Save(); err != nil {
+		t.Fatal(err)
+	}
+
+	// Create a new gregor handler, this will restore our saved state
+	if h, err = newGregorHandler(tc.G); err != nil {
+		t.Fatal(err)
+	}
+
+	// Sync from the server
+	replayedMessages, consumedMessages, err := h.serverSync(context.TODO(), server)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	checkMessages(t, "replayed messages", replayedMessages, refReplayMsgs)
+	checkMessages(t, "consumed messages", consumedMessages, refConsumeMsgs)
+}
+
+func TestSyncSaveRestoreNonFresh(t *testing.T) {
+	tc := libkb.SetupTest(t, "gregor")
+	defer tc.Cleanup()
+	tc.G.SetService()
+
+	// Set up client and server
+	h, server, uid := setupSyncTests(t, tc)
+
+	//Consume a bunch of messages to the server, and we'll sync them down
+	const numMsgs = 6
+	const msgLimit = numMsgs / 2
+	var refReplayMsgs, refConsumeMsgs []gregor.InBandMessage
+	for i := 0; i < numMsgs; i++ {
+		msgid := newMsgID()
+		msg := server.newIbm(uid, msgid)
+		server.ConsumeMessage(context.TODO(), msg)
+		if i < msgLimit {
+			h.BroadcastMessage(context.TODO(), msg)
+			// We end up picking up the last one in the sync, since it's
+			// CTime is equal to when we start the sync, so just add it
+			if i == msgLimit-1 {
+				refConsumeMsgs = append(refConsumeMsgs, msg.ToInBandMessage())
+				refReplayMsgs = append(refReplayMsgs, msg.ToInBandMessage())
+			}
+		} else {
+			refConsumeMsgs = append(refConsumeMsgs, msg.ToInBandMessage())
+			refReplayMsgs = append(refReplayMsgs, msg.ToInBandMessage())
 		}
 	}
 
@@ -377,16 +443,15 @@ func TestSyncSaveRestore(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	checkStateSize(t, "restore brought back the wrong number of items: %d != %d", h, numMsgs/2)
+	// Turn off fresh sync
+	h.freshSync = false
 
 	// Sync from the server
-	var syncedMsgs int
-	if syncedMsgs, err = h.reSync(context.TODO(), server); err != nil {
+	replayedMessages, consumedMessages, err := h.serverSync(context.TODO(), server)
+	if err != nil {
 		t.Fatal(err)
 	}
-	if syncedMsgs != numMsgs {
-		t.Fatal("wrong number of items synced from server, %d != %d", syncedMsgs, numMsgs)
-	}
 
-	checkStateSize(t, "wrong number of items after sync, %d != %d", h, numMsgs)
+	checkMessages(t, "replayed messages", replayedMessages, refReplayMsgs)
+	checkMessages(t, "consumed messages", consumedMessages, refConsumeMsgs)
 }

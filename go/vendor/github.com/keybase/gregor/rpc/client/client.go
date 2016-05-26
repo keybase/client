@@ -82,7 +82,8 @@ func (e errHashMismatch) Error() string {
 	return "local state hash != server state hash"
 }
 
-func (c *Client) syncFromTime(cli gregor1.IncomingInterface, t *time.Time) error {
+func (c *Client) syncFromTime(cli gregor1.IncomingInterface, t *time.Time) (msgs []gregor.InBandMessage, err error) {
+
 	ctx, _ := context.WithTimeout(context.Background(), time.Second)
 	arg := gregor1.SyncArg{
 		Uid:      gregor1.UID(c.user.Bytes()),
@@ -96,41 +97,43 @@ func (c *Client) syncFromTime(cli gregor1.IncomingInterface, t *time.Time) error
 	c.log.Debug("syncFromTime from: %s", gregor1.FromTime(arg.Ctime))
 	res, err := cli.Sync(ctx, arg)
 	if err != nil {
-		return err
+		return []gregor.InBandMessage{}, err
 	}
 
 	c.log.Debug("syncFromTime consuming %d messages", len(res.Msgs))
 	for _, ibm := range res.Msgs {
 		m := gregor1.Message{Ibm_: &ibm}
+		msgs = append(msgs, ibm)
 		c.sm.ConsumeMessage(m)
 	}
 
 	// Check to make sure the server state is legit
 	state, err := c.sm.State(c.user, c.device, nil)
 	if err != nil {
-		return err
+		return []gregor.InBandMessage{}, err
 	}
 	hash, err := state.Hash()
 	if err != nil {
-		return err
+		return []gregor.InBandMessage{}, err
 	}
 	if !bytes.Equal(res.Hash, hash) {
-		return errHashMismatch{}
+		return []gregor.InBandMessage{}, errHashMismatch{}
 	}
 
-	return nil
+	return msgs, nil
 }
 
-func (c *Client) Sync(cli gregor1.IncomingInterface) error {
-	if err := c.syncFromTime(cli, c.sm.LatestCTime(c.user, c.device)); err != nil {
+func (c *Client) Sync(cli gregor1.IncomingInterface) ([]gregor.InBandMessage, error) {
+	msgs, err := c.syncFromTime(cli, c.sm.LatestCTime(c.user, c.device))
+	if err != nil {
 		if _, ok := err.(errHashMismatch); ok {
 			c.log.Info("Sync failure: %v\nResetting StateMachine and retrying", err)
 			c.sm.Clear()
-			err = c.syncFromTime(cli, nil)
+			msgs, err = c.syncFromTime(cli, nil)
 		}
-		return err
+		return msgs, err
 	}
-	return nil
+	return msgs, nil
 }
 
 func (c *Client) StateMachineConsumeMessage(m gregor1.Message) error {
