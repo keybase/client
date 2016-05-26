@@ -494,8 +494,6 @@ func TestRekeyNeededMessageNoScores(t *testing.T) {
 		},
 	}
 
-	tc.G.Log.Debug("broadcasting message: %+v", m)
-
 	if err := h.BroadcastMessage(context.Background(), m); err != nil {
 		t.Fatal(err)
 	}
@@ -535,7 +533,11 @@ func TestRekeyNeededMessageWithScores(t *testing.T) {
 	defer tc.Cleanup()
 
 	tc.G.SetService()
-	router := fakeUIRouter{}
+
+	rkeyui := &fakeRekeyUI{}
+	router := fakeUIRouter{
+		rekeyUI: rkeyui,
+	}
 	tc.G.SetUIRouter(&router)
 
 	kbUID := keybase1.MakeTestUID(1)
@@ -574,4 +576,30 @@ func TestRekeyNeededMessageWithScores(t *testing.T) {
 	if err := h.BroadcastMessage(context.Background(), m); err != nil {
 		t.Fatal(err)
 	}
+
+	if len(rkeyui.refreshArgs) != 2 {
+		t.Fatalf("rkeyui refresh calls: %d, expected 2", len(rkeyui.refreshArgs))
+	}
+
+	if len(rkeyui.refreshArgs[0].Tlfs) != 1 {
+		t.Errorf("first refresh call, tlf count = %d, expected 1", len(rkeyui.refreshArgs[0].Tlfs))
+	}
+	if len(rkeyui.refreshArgs[1].Tlfs) != 0 {
+		t.Errorf("second/final refresh call, tlf count = %d, expected 0", len(rkeyui.refreshArgs[1].Tlfs))
+	}
+}
+
+type fakeRekeyUI struct {
+	sessionID   int
+	refreshArgs []keybase1.RefreshArg
+}
+
+func (f *fakeRekeyUI) DelegateRekeyUI(ctx context.Context) (int, error) {
+	f.sessionID++
+	return f.sessionID, nil
+}
+
+func (f *fakeRekeyUI) Refresh(ctx context.Context, arg keybase1.RefreshArg) error {
+	f.refreshArgs = append(f.refreshArgs, arg)
+	return nil
 }

@@ -28,7 +28,6 @@ func NewRekeyUIHandler(g *libkb.GlobalContext, parent *gregorHandler) *RekeyUIHa
 }
 
 func (r *RekeyUIHandler) Create(ctx context.Context, category string, item gregor.Item) error {
-	r.G().Log.Debug("Create?")
 	switch category {
 	case "kbfs_tlf_rekey_needed":
 		return r.rekeyNeeded(ctx, item)
@@ -53,8 +52,6 @@ func (r *RekeyUIHandler) rekeyNeeded(ctx context.Context, item gregor.Item) erro
 	if item.Body() == nil {
 		return errors.New("gregor handler for kbfs_tlf_rekey_needed: nil message body")
 	}
-
-	r.G().Log.Debug("hello?")
 
 	var scores []keybase1.RekeyTLF
 	if err := json.Unmarshal(item.Body().Bytes(), &scores); err != nil {
@@ -114,14 +111,15 @@ func (r *RekeyUIHandler) rekeyNeeded(ctx context.Context, item gregor.Item) erro
 			}
 
 			r.G().Log.Debug("scores list empty, dismissing gregor notification")
-			return r.parent.DismissItem(item.Metadata().MsgID())
+			// XXX DismissItem currently broken, uncomment when fixed:
+			// return r.parent.DismissItem(item.Metadata().MsgID())
+			return nil
 		}
 	}
 }
 
 func (r *RekeyUIHandler) scoreProblemFolders(existing []keybase1.RekeyTLF) ([]keybase1.RekeyTLF, error) {
 	// XXX this is waiting on an API endpoint
-	// XXX just return existing for now
-	r.G().Log.Debug("Fake scoreProblemFolders, returning existing folder list")
-	return existing, nil
+	r.G().Log.Debug("Fake scoreProblemFolders, returning empty folder list")
+	return []keybase1.RekeyTLF{}, nil
 }
