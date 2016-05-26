@@ -28,6 +28,7 @@ func NewRekeyUIHandler(g *libkb.GlobalContext, parent *gregorHandler) *RekeyUIHa
 }
 
 func (r *RekeyUIHandler) Create(ctx context.Context, category string, item gregor.Item) error {
+	r.G().Log.Debug("Create?")
 	switch category {
 	case "kbfs_tlf_rekey_needed":
 		return r.rekeyNeeded(ctx, item)
@@ -72,7 +73,9 @@ func (r *RekeyUIHandler) rekeyNeeded(ctx context.Context, item gregor.Item) erro
 	// if the scores list is empty, dismiss the gregor notification
 	if len(scores) == 0 {
 		r.G().Log.Debug("scores list empty, dismissing gregor notification")
-		return r.parent.DismissItem(item.Metadata().MsgID())
+		// XXX DismissItem currently broken, uncomment when fixed:
+		// return r.parent.DismissItem(item.Metadata().MsgID())
+		return nil
 	}
 
 	// get the rekeyUI
