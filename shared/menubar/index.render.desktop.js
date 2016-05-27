@@ -42,7 +42,7 @@ class Render extends Component<void, Props, State> {
 
   _menuItems () {
     return [
-      {title: 'Open folders in Finder', onClick: this.props.showKBFS},
+      {title: 'Open folders', onClick: this.props.showKBFS},
       {title: 'Keybase.io', onClick: this.props.showUser},
       {title: 'Report a bug', onClick: this.props.showBug},
       {title: 'Help/Doc', onClick: this.props.showHelp},
