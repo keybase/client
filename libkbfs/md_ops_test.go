@@ -668,3 +668,49 @@ func TestMDOpsPutFailEncode(t *testing.T) {
 		t.Errorf("Got bad error on put: %v", err2)
 	}
 }
+
+func TestMDOpsGetRangeFailFinal(t *testing.T) {
+	mockCtrl, config, ctx := mdOpsInit(t)
+	defer mdOpsShutdown(mockCtrl, config)
+
+	rmds1 := newRMDS(t, config, false)
+	rmds2 := newRMDS(t, config, false)
+	rmds3 := newRMDS(t, config, false)
+
+	rmds3.MD.Revision = 200
+	rmds3.MD.mdID = fakeMdID(40)
+	rmds3.MD.PrevRoot = fakeMdID(39)
+
+	rmds2.MD.Revision = 201
+	rmds2.MD.mdID = fakeMdID(41)
+	rmds2.MD.PrevRoot = rmds3.MD.mdID
+	rmds2.MD.Flags |= MetadataFlagFinal
+
+	rmds1.MD.Revision = 202
+	rmds1.MD.mdID = fakeMdID(42)
+	rmds1.MD.PrevRoot = rmds2.MD.mdID
+
+	// Do this before setting tlfHandle to nil.
+	verifyMDForPrivate(config, rmds3)
+	verifyMDForPrivate(config, rmds2)
+
+	// Set tlfHandle to nil so that the md server returns
+	// 'deserialized' RMDSes.
+	rmds1.MD.tlfHandle = nil
+	rmds2.MD.tlfHandle = nil
+	rmds3.MD.tlfHandle = nil
+
+	allRMDSs := []*RootMetadataSigned{rmds3, rmds2, rmds1}
+
+	start, stop := MetadataRevision(200), MetadataRevision(202)
+	config.mockMdserv.EXPECT().GetRange(ctx, rmds1.MD.ID, NullBranchID, Merged, start,
+		stop).Return(allRMDSs, nil)
+
+	_, err := config.MDOps().GetRange(ctx, rmds1.MD.ID, start, stop)
+	if err == nil {
+		t.Errorf("Got no expected error on GetRange")
+	} else if _, ok := err.(MDMismatchError); !ok {
+		t.Errorf("Got unexpected error on GetRange with final non-head revision: %v",
+			err)
+	}
+}

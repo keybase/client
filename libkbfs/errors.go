@@ -997,3 +997,13 @@ func (e TlfHandleConflictInfoMismatchError) Error() string {
 	return fmt.Sprint("Folder handle conflict info mismatch, "+
 		"expected: %s, actual: %s", e.Expected, e.Actual)
 }
+
+// MetadataIsFinalError indicates that we tried to make a successor to a
+// finalized folder.
+type MetadataIsFinalError struct {
+}
+
+// Error implements the error interface for MetadataIsFinalError.
+func (e MetadataIsFinalError) Error() string {
+	return "Metadata is final"
+}
