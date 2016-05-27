@@ -88,7 +88,7 @@ function Result ({result, searchText}: {result: SearchResult, searchText: string
       extraInfo = <KeybaseExtraInfo {...result.extraInfo} searchText={searchText} />
       break
     case 'none':
-      extraInfo = <Text type='BodyXSmall' style={{color: globalColors.black_40}}>{result.extraInfo.fullName}</Text>
+      extraInfo = <Text type='BodyXSmall' style={{color: globalColors.black_40, alignSelf: 'center'}}>{result.extraInfo.fullName}</Text>
       break
   }
 
