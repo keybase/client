@@ -72,10 +72,12 @@ Prerequisites:
     you install FUSE yourself.
 * Then, mount KBFS at `/keybase/` as follows:
 
-        cd kbfsfuse
-        go install
-        mkdir -p /keybase && sudo chown $USER /keybase
-        KEYBASE_RUN_MODE=prod kbfsfuse /keybase
+```bash
+    cd kbfsfuse
+    go install
+    mkdir -p /keybase && sudo chown $USER /keybase
+    KEYBASE_RUN_MODE=prod kbfsfuse /keybase
+```
 
 Note that our pre-built packages for OS X include a branded version of
 FUSE for OS X, to ensure that it doesn't conflict with other local
@@ -89,16 +91,20 @@ to see how we build it.
 
 ### To run from source against local in-memory servers
 
-    kbfsfuse -server-in-memory -localuser strib /keybase
+```bash
+kbfsfuse -server-in-memory -localuser strib /keybase
+```
 
 (Use "`-server-root <dir>` if instead you want to save your data to
 local disk.)
 
 Now you can do cool stuff like:
 
-    ls /keybase/private/strib
-    echo blahblah > /keybase/private/strib/foo
-    ls /keybase/strib,max
+```bash
+ls /keybase/private/strib
+echo blahblah > /keybase/private/strib/foo
+ls /keybase/private/strib,max
+```
 
 (Note that "localuser" mode has only four hard-coded users to play
 with: "strib", "max", "chris", and "fred".)
@@ -108,15 +114,19 @@ with: "strib", "max", "chris", and "fred".)
 We require all code to pass `gofmt` and `govet`.  You can install our
 precommit hooks to make sure your code passes `gofmt` and `govet`:
 
-    go get golang.org/x/tools/cmd/vet
-    ln -s $GOPATH/src/github.com/keybase/client/git-hooks/pre-commit $GOPAT
+```bash
+go get golang.org/x/tools/cmd/vet
+ln -s $GOPATH/src/github.com/keybase/client/git-hooks/pre-commit $GOPAT
+```
 
 Though it doesn't happen automatically, we also expect your code to be
 as "lint-free" as possible.  Running golint is easy from the top-level
 kbfs directory:
 
-    go get -u github.com/golang/lint/golint
-    make lint
+```bash
+go get -u github.com/golang/lint/golint
+make lint
+```
 
 ### Vendoring
 
@@ -124,22 +134,28 @@ KBFS vendors all of its dependencies into the local `vendor`
 directory.  To add or update dependencies, use the `govendor` tool, as
 follows:
 
-    go install github.com/kardianos/govendor
-    govendor add github.com/foo/bar  # or `govendor update`
-    git add --all vendor
+```bash
+go install github.com/kardianos/govendor
+govendor add github.com/foo/bar  # or `govendor update`
+git add --all vendor
+```
 
 ### Testing
 
 From kbfs/:
 
-    go test -i ./...
-    go test ./...
+```bash
+go test -i ./...
+go test ./...
+```
 
 If you change anything in interfaces.go, you will have to regenerate
 the mock interfaces used by the tests:
 
-    cd libkbfs
-    ./gen_mocks.sh
+```bash
+cd libkbfs
+./gen_mocks.sh
+```
 
 (Right now the mocks are checked into the repo; this isn't ideal and
 we should probably change it.)
