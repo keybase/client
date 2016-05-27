@@ -698,12 +698,17 @@ export type PlatformInfo = {
   goVersion: string;
 }
 
+export type ProblemSet = {
+  problemTLFs: ProblemTLF;
+  devices: Array<Device>;
+}
+
 export type ProblemTLF = {
   tlf: TLF;
   problemUser: User;
-  problemDevice: Device;
+  problemDevice: DeviceID;
   score: int;
-  solutions: Array<Device>;
+  solutions: Array<DeviceID>;
 }
 
 export type Process = {
@@ -2922,13 +2927,13 @@ export type rekeyUI_refresh_rpc = {
   callback: (null | (err: ?any) => void)
 }
 
-export type rekey_getProblemTLFs_result = Array<ProblemTLF>
+export type rekey_getProblemSet_result = ProblemSet
 
-export type rekey_getProblemTLFs_rpc = {
-  method: 'rekey.getProblemTLFs',
+export type rekey_getProblemSet_rpc = {
+  method: 'rekey.getProblemSet',
   param: {},
   incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: rekey_getProblemTLFs_result) => void)
+  callback: (null | (err: ?any, response: rekey_getProblemSet_result) => void)
 }
 
 export type rekey_rekeyStatusFinish_result = Outcome
@@ -3634,7 +3639,7 @@ export type rpc =
   | quota_verifySession_rpc
   | rekeyUI_delegateRekeyUI_rpc
   | rekeyUI_refresh_rpc
-  | rekey_getProblemTLFs_rpc
+  | rekey_getProblemSet_rpc
   | rekey_rekeyStatusFinish_rpc
   | rekey_showPendingRekeyStatus_rpc
   | rekey_showRekeyStatus_rpc
@@ -5214,13 +5219,13 @@ export type incomingCallMapType = {
       result: () => void
     }
   ) => void,
-  'keybase.1.rekey.getProblemTLFs'?: (
+  'keybase.1.rekey.getProblemSet'?: (
     params: {
       sessionID: int
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: rekey_getProblemTLFs_result) => void
+      result: (result: rekey_getProblemSet_result) => void
     }
   ) => void,
   'keybase.1.rekey.rekeyStatusFinish'?: (
