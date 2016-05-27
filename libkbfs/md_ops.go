@@ -347,7 +347,8 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 
 	// verify each of the MD objects, and verify the PrevRoot pointers
 	// are correct
-	lastRoot, lastRevision := MdID{}, MetadataRevision(0)
+	var prevMD *RootMetadata
+	var prevRoot MdID
 	rmd := make([]*RootMetadata, 0, len(rmds))
 	for _, r := range rmds {
 		currRoot, err := r.MD.MetadataID(md.config)
@@ -364,24 +365,34 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 			return nil, err
 		}
 
-		//
-		// make sure the chain is correct
-		//
-		// (1) check revision
-		if r.MD.Revision != lastRevision+1 && lastRevision != 0 {
-			return nil, MDMismatchError{
-				handle.GetCanonicalPath(),
-				fmt.Sprintf("MD (id=%v) is at an unexpected revision (%d) "+
-					"instead of %d", currRoot, r.MD.Revision.Number(),
-					lastRevision.Number()+1),
+		if prevMD != nil {
+			//
+			// make sure the chain is correct
+			//
+			// (1) check revision
+			if r.MD.Revision != prevMD.Revision+1 {
+				return nil, MDMismatchError{
+					handle.GetCanonicalPath(),
+					fmt.Sprintf("MD (id=%v) is at an unexpected revision (%d) "+
+						"instead of %d", currRoot, r.MD.Revision.Number(),
+						prevMD.Revision.Number()+1),
+				}
 			}
-		}
-		// (2) check PrevRoot pointer
-		if r.MD.PrevRoot != lastRoot && lastRoot != (MdID{}) {
-			return nil, MDMismatchError{
-				handle.GetCanonicalPath(),
-				fmt.Sprintf("MD (id=%v) points to an unexpected root (%v) "+
-					"instead of %v", currRoot, r.MD.PrevRoot, lastRoot),
+			// (2) check PrevRoot pointer
+			if r.MD.PrevRoot != prevRoot {
+				return nil, MDMismatchError{
+					handle.GetCanonicalPath(),
+					fmt.Sprintf("MD (id=%v) points to an unexpected root (%v) "+
+						"instead of %v", currRoot, r.MD.PrevRoot, prevRoot),
+				}
+			}
+			// (3) verify previous metadata is non-final
+			if prevMD.IsFinal() {
+				return nil, MDMismatchError{
+					handle.GetCanonicalPath(),
+					fmt.Sprintf("MD (id=%v) points to final root (%v) ",
+						currRoot, r.MD.PrevRoot),
+				}
 			}
 		}
 
@@ -389,7 +400,7 @@ func (md *MDOpsStandard) processRange(ctx context.Context, id TlfID,
 		if err != nil {
 			return nil, err
 		}
-		lastRoot, lastRevision = currRoot, r.MD.Revision
+		prevRoot, prevMD = currRoot, &r.MD
 		rmd = append(rmd, &r.MD)
 	}
 

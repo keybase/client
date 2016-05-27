@@ -623,3 +623,14 @@ func TestMakeRekeyReadErrorResolvedHandle(t *testing.T) {
 	err = makeRekeyReadError(rmd, resolvedHandle, FirstValidKeyGen, uid, u)
 	require.Equal(t, NeedOtherRekeyError{"alice,bob"}, err)
 }
+
+// Test that MakeSuccessor fails when the final bit is set.
+func TestRootMetadataFinal(t *testing.T) {
+	tlfID := FakeTlfID(0, true)
+	h := makeFakeTlfHandle(t, 14, true, nil, nil)
+	rmd := newRootMetadataOrBust(t, tlfID, h)
+	rmd.Flags |= MetadataFlagFinal
+	_, err := rmd.MakeSuccessor(nil, true)
+	_, isFinalError := err.(MetadataIsFinalError)
+	require.Equal(t, isFinalError, true)
+}

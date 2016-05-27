@@ -44,12 +44,13 @@ type MetadataFlags byte
 const (
 	MetadataFlagRekey MetadataFlags = 1 << iota
 	MetadataFlagWriterMetadataCopied
+	MetadataFlagFinal
 )
 
 // WriterFlags bitfield.
 type WriterFlags byte
 
-// Possible flags set in the MetadataFlags bitfield.
+// Possible flags set in the WriterFlags bitfield.
 const (
 	MetadataFlagUnmerged WriterFlags = 1 << iota
 )
@@ -250,6 +251,12 @@ func (md *RootMetadata) IsWriterMetadataCopiedSet() bool {
 	return md.Flags&MetadataFlagWriterMetadataCopied != 0
 }
 
+// IsFinal returns true if this is the last metadata block for a given folder.  This is
+// only expected to be set for folder resets.
+func (md *RootMetadata) IsFinal() bool {
+	return md.Flags&MetadataFlagFinal != 0
+}
+
 // IsWriter returns whether or not the user+device is an authorized writer.
 func (md *RootMetadata) IsWriter(user keybase1.UID, deviceKID keybase1.KID) bool {
 	if md.ID.IsPublic() {
@@ -377,6 +384,9 @@ func (md *RootMetadata) DeepCopyForServerTest(
 // with cleared block change lists and cleared serialized metadata),
 // with the revision incremented and a correct backpointer.
 func (md *RootMetadata) MakeSuccessor(config Config, isWriter bool) (*RootMetadata, error) {
+	if md.IsFinal() {
+		return nil, MetadataIsFinalError{}
+	}
 	newMd, err := md.deepCopy(config.Codec(), true)
 	if err != nil {
 		return nil, err
