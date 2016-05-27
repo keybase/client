@@ -653,28 +653,35 @@ func (g *gregorHandler) connectNoTLS(uri *rpc.FMPURI) error {
 }
 
 func (g *gregorHandler) DismissItem(id gregor.MsgID) error {
-	idStruct := gregor1.MsgID(id.Bytes())
+	g.G().Log.Debug("gregorHandler.DismissItem called with MsgID %s", id.String())
+
+	gregorMsgIDToDismiss := gregor1.MsgID(id.Bytes())
+
 	uid := g.G().Env.GetUID()
 	if uid.IsNil() {
 		return fmt.Errorf("Can't dismiss gregor items without a current UID.")
 	}
-	msgID, randErr := libkb.RandBytes(16) // TODO: Create a shared function for this.
+	gregorUID := gregor1.UID(uid.ToBytes())
+
+	newMsgID, randErr := libkb.RandBytes(16) // TODO: Create a shared function for this.
 	if randErr != nil {
 		return randErr
 	}
+
 	dismissal := gregor1.Message{
 		Ibm_: &gregor1.InBandMessage{
 			StateUpdate_: &gregor1.StateUpdateMessage{
 				Md_: gregor1.Metadata{
-					Uid_:   gregor1.UID(uid),
-					MsgID_: msgID,
+					Uid_:   gregorUID,
+					MsgID_: newMsgID,
 				},
 				Dismissal_: &gregor1.Dismissal{
-					MsgIDs_: []gregor1.MsgID{idStruct},
+					MsgIDs_: []gregor1.MsgID{gregorMsgIDToDismiss},
 				},
 			},
 		},
 	}
+	incomingClient := gregor1.IncomingClient{Cli: g.cli}
 	// TODO: Should the interface take a context from the caller?
-	return g.BroadcastMessage(context.TODO(), dismissal)
+	return incomingClient.ConsumeMessage(context.TODO(), dismissal)
 }
