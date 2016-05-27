@@ -5,8 +5,9 @@ implementation of the client-side code for the Keybase File System
 (KBFS). See [the KBFS documentation](keybase.io/docs/kbfs) for an
 introduction and overview.
 
-All code is written in the [Go Language](https://golang.org), and
-relies on the [Keybase service](https://github.com/keybase/client/go).
+All code is written in the [Go Language](https://golang.org), and relies
+on the [Keybase
+service](https://github.com/keybase/client/tree/master/go).
 
 ### Architecture
 
