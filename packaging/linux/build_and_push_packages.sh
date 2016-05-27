@@ -130,9 +130,6 @@ release_prerelease() {
   PLATFORM="linux" "$here/../prerelease/s3_index.sh" || \
     echo "ERROR in s3_index.sh. Internal pages might not be updated. Build continuing..."
 
-  echo Exporting to kbfs-beta...
-  "$client_dir/packaging/export/export_kbfs.sh"
-
   bump_arch_linux_aur
 }
 

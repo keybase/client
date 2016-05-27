@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# This creates a KBFS (beta) release on github from the current source/tagged version.
+# This creates a KBFS release on github from the current source/tagged version.
 
 set -e -u -o pipefail # Fail on error
 
@@ -35,10 +35,10 @@ build() {
   cd "$build_dir"
 
   echo "Downloading source archive"
-  src_url="https://github.com/keybase/kbfs-beta/archive/v$version.tar.gz"
+  src_url="https://github.com/keybase/kbfs/archive/v$version.tar.gz"
   curl -O -J -L "$src_url"
 
-  src_tgz="kbfs-beta-$version.tar.gz"
+  src_tgz="kbfs-$version.tar.gz"
   echo "Unpacking $src_tgz"
   tar zxpf "$src_tgz"
   rm "$src_tgz"
@@ -46,7 +46,7 @@ build() {
   go_dir=/tmp/go
   rm -rf "$go_dir"
   mkdir -p "$go_dir/src/github.com"
-  mv "kbfs-beta-$version" "$go_dir/src/github.com/keybase"
+  mv "kbfs-$version" "$go_dir/src/github.com/keybase"
 
   echo "Building kbfs"
   GO15VENDOREXPERIMENT=1 GOPATH="$go_dir" go build -a -tags "production" -o kbfs github.com/keybase/kbfs/kbfsfuse
@@ -58,14 +58,14 @@ build() {
 
 create_release() {
   echo "Checking for existing release: $version"
-  api_url=`$release_bin url --user=keybase --repo=kbfs-beta --version=$version`
+  api_url=`$release_bin url --user=keybase --repo=kbfs --version=$version`
   if [ ! "$api_url" = "" ]; then
     echo "Release already exists, skipping"
   else
     cd "$build_dir"
     platform=`$release_bin platform`
     echo "Creating release"
-    "$release_bin" create --version="$version" --repo="kbfs-beta"
+    "$release_bin" create --version="$version" --repo="kbfs"
   fi
 }
 
@@ -73,7 +73,7 @@ upload_release() {
   cd "$build_dir"
   platform=`$release_bin platform`
   echo "Uploading release"
-  "$release_bin" upload --src="$tgz" --dest="kbfs-$version-$platform.tgz" --version="$version" --repo="kbfs-beta"
+  "$release_bin" upload --src="$tgz" --dest="kbfs-$version-$platform.tgz" --version="$version" --repo="kbfs"
 }
 
 build

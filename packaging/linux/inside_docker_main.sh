@@ -14,7 +14,6 @@ commit="$2"
 
 client_clone="/root/client"
 kbfs_clone="/root/kbfs"
-kbfs_beta_clone="/root/kbfs-beta"
 serverops_clone="/root/server-ops"
 build_dir="/root/build"
 
@@ -46,7 +45,7 @@ gpg --sign --use-agent --default-key "$code_signing_fingerprint" \
 # Clone all the repos we'll use in the build. The --reference flag makes this
 # pretty cheap. (The shared repos we're referencing were just updated by
 # docker_build.sh, so we shouldn't need any new objects.) Configure the
-# user.name and user.email so that we can make commits in kbfs-beta,
+# user.name and user.email so that we can make commits in kbfs,
 # server-ops, and the AUR package repo.
 git config --global user.name "Keybase Linux Build"
 git config --global user.email "example@example.com"
@@ -54,8 +53,6 @@ echo "Cloning the client repo..."
 git clone git@github.com:keybase/client "$client_clone" --reference /CLIENT
 echo "Cloning the kbfs repo..."
 git clone git@github.com:keybase/kbfs "$kbfs_clone" --reference /KBFS
-echo "Cloning the kbfs-beta repo..."
-git clone git@github.com:keybase/kbfs-beta "$kbfs_beta_clone" --reference /KBFSBETA
 # The server-ops repo is like a gigabyte, so don't clone it unnecessarily.
 if [ "$mode" != prerelease ] ; then
   echo "Cloning the server-ops repo..."
