@@ -419,8 +419,6 @@ func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context,
 			return nil
 		}
 	}
-
-	g.G().Log.Errorf("InBandMessage unexpectedly not handled")
 	return nil
 }
 
