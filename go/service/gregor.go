@@ -484,6 +484,7 @@ func (h IdentifyUIHandler) handleShowTrackerPopupCreate(ctx context.Context, ite
 	}
 	identifyArg := keybase1.Identify2Arg{Uid: uid, Reason: identifyReason}
 	identifyEng := engine.NewIdentify2WithUID(h.G(), &identifyArg)
+	identifyEng.SetResponsibleGregorItem(item)
 	return identifyEng.Run(&engineContext)
 }
 
