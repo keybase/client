@@ -1,9 +1,11 @@
-# Keybase File System [![Build Status](https://travis-ci.org/keybase/kbfs.svg?branch=master)](https://travis-ci.org/keybase/kbfs) [![Build status](https://ci.appveyor.com/api/projects/status/xpxqhgpl60m1h3sb/branch/master?svg=true)](https://ci.appveyor.com/project/keybase/kbfs/branch/master)
+# Keybase Filesystem (KBFS) [![Build Status](https://travis-ci.org/keybase/kbfs.svg?branch=master)](https://travis-ci.org/keybase/kbfs) [![Build status](https://ci.appveyor.com/api/projects/status/xpxqhgpl60m1h3sb/branch/master?svg=true)](https://ci.appveyor.com/project/keybase/kbfs/branch/master)
 
 This repository contains the official [Keybase](https://keybase.io)
-implementation of the client-side code for the Keybase File System
+implementation of the client-side code for the Keybase filesystem
 (KBFS). See [the KBFS documentation](https://keybase.io/docs/kbfs) for an
 introduction and overview.
+
+![Sharing](https://keybase.io/images/github/repo_share.png?)
 
 All code is written in the [Go Language](https://golang.org), and relies
 on the [Keybase
@@ -11,7 +13,7 @@ service](https://github.com/keybase/client/tree/master/go).
 
 ### Architecture
 
-This client allows you to mount KBFS as a proper file system at some
+This client allows you to mount KBFS as a proper filesystem at some
 mountpoint on your local device (by default, `/keybase/`).  It
 communicates locally with the Keybase service, and remotely with three
 types of KBFS servers (block servers, metadata servers, and key
@@ -21,14 +23,14 @@ The code is organized as follows:
 
 * [dokan](dokan/): Helper code for running Dokan filesystems on Windows.
 * [kbfs](kbfs/): A thin command line utility for interacting with KBFS
-  without using a file system mountpoint.
+  without using a filesystem mountpoint.
 * [kbfsdokan](kbfsdokan/): The main executable for running KBFS on
   Windows.
 * [kbfsfuse](kbfsfuse/): The main executable for running KBFS on Linux
   and OS X.
 * [libdokan](libdokan/): Library code gluing together KBFS and the
   Dokan protocol.
-* [libfs](libfs/): Common library code useful to any file system
+* [libfs](libfs/): Common library code useful to any filesystem
   presentation layer for KBFS.
 * [libfuse](libfuse/): Library code gluing together KBFS and the FUSE
   protocol.
