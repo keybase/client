@@ -8,6 +8,7 @@ protocol rekey {
 
   record TLF {
     TLFID tlfid;
+    string name;
     array<string> writers;
     array<string> readers;
     boolean isPrivate;

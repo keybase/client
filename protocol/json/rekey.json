@@ -392,6 +392,10 @@
           "name": "tlfid"
         },
         {
+          "type": "string",
+          "name": "name"
+        },
+        {
           "type": {
             "type": "array",
             "items": "string"

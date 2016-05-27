@@ -1108,6 +1108,7 @@ export type StringKVPair = {
 
 export type TLF = {
   tlfid: TLFID;
+  name: string;
   writers: Array<string>;
   readers: Array<string>;
   isPrivate: boolean;
