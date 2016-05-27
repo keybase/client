@@ -14,7 +14,7 @@ protocol rekey {
     boolean isPrivate;
   }
 
-  record RekeyTLF {
+  record ProblemTLF {
     TLF tlf;
     User problemUser;
     Device problemDevice;
@@ -40,11 +40,11 @@ protocol rekey {
   void showRekeyStatus(int sessionID, array<TLFID> tlfs, union { null, UID } user, union { null, KID } kid);
 
 
-  /** getRekeyTLFs is called by the UI to render which TLFs need to be fixed.
+  /** getProblemTLFs is called by the UI to render which TLFs need to be fixed.
    * The UI will repeatedly poll this RPC when it gets a `rekeyChanged` notice
    * below
    */
-  array<RekeyTLF> getRekeyTLFs(int sessionID);
+  array<ProblemTLF> getProblemTLFs(int sessionID);
 
   /** finish is called when work is completed on a given RekeyStatus window. The Outcome
    * can be Fixed or Ignored.
