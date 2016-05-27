@@ -699,7 +699,7 @@ export type PlatformInfo = {
 }
 
 export type ProblemSet = {
-  problemTLFs: ProblemTLF;
+  problemTLFs: Array<ProblemTLF>;
   devices: Array<Device>;
 }
 

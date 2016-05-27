@@ -449,7 +449,10 @@
       "name": "ProblemSet",
       "fields": [
         {
-          "type": "ProblemTLF",
+          "type": {
+            "type": "array",
+            "items": "ProblemTLF"
+          },
           "name": "problemTLFs"
         },
         {

@@ -23,8 +23,8 @@ protocol rekey {
   }
 
   record ProblemSet {
-    ProblemTLF problemTLFs;
-    array<Device> devices;
+    array<ProblemTLF> problemTLFs;
+    array<Device>     devices;
   }
 
   enum Outcome {

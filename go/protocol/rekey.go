@@ -26,8 +26,8 @@ type ProblemTLF struct {
 }
 
 type ProblemSet struct {
-	ProblemTLFs ProblemTLF `codec:"problemTLFs" json:"problemTLFs"`
-	Devices     []Device   `codec:"devices" json:"devices"`
+	ProblemTLFs []ProblemTLF `codec:"problemTLFs" json:"problemTLFs"`
+	Devices     []Device     `codec:"devices" json:"devices"`
 }
 
 type Outcome int
