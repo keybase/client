@@ -66,7 +66,7 @@ public class MainActivity extends ReactActivity {
             startActivityForResult(intent, -1);
         }
 
-        Init(this.getFilesDir().getPath(), "staging", "", false);
+        Init(this.getFilesDir().getPath(), logFile.getAbsolutePath(), "staging", "", false);
 
         try {
             Keybase.SetGlobalExternalKeyStore(new KeyStore(this, getSharedPreferences("KeyStore", MODE_PRIVATE)));
