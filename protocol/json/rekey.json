@@ -455,7 +455,8 @@
           },
           "name": "tlfs"
         }
-      ]
+      ],
+      "doc": "* ProblemSet is for a particular (user,kid) that initiated a rekey problem.\n   * This problem consists of one or more problem TLFs, which are individually scored\n   * and have attendant solutions --- devices that if they came online can rekey and\n   * solve the ProblemTLF."
     },
     {
       "type": "enum",

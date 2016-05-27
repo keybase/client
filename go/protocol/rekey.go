@@ -23,6 +23,10 @@ type ProblemTLF struct {
 	Solutions []KID `codec:"solutions" json:"solutions"`
 }
 
+// * ProblemSet is for a particular (user,kid) that initiated a rekey problem.
+// * This problem consists of one or more problem TLFs, which are individually scored
+// * and have attendant solutions --- devices that if they came online can rekey and
+// * solve the ProblemTLF.
 type ProblemSet struct {
 	User User         `codec:"user" json:"user"`
 	Kid  KID          `codec:"kid" json:"kid"`

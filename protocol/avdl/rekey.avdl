@@ -20,6 +20,12 @@ protocol rekey {
     array<KID> solutions;
   }
 
+  /**
+   * ProblemSet is for a particular (user,kid) that initiated a rekey problem.
+   * This problem consists of one or more problem TLFs, which are individually scored
+   * and have attendant solutions --- devices that if they came online can rekey and
+   * solve the ProblemTLF.
+   */
   record ProblemSet {
     User user;
     KID kid;
