@@ -4,7 +4,7 @@ import {ScrollView} from 'react-native'
 import {Box, Text, Input, Button} from '../common-adapters'
 import {globalStyles} from '../styles/style-guide'
 import dumbComponentMap from './dumb-component-map.native'
-import {dumbFilter, dumbIndex} from '../local-debug'
+import {dumbFilter, dumbIndex, dumbFullscreen} from '../local-debug'
 import debounce from 'lodash/debounce'
 
 class Render extends Component<void, any, any> {
@@ -27,6 +27,7 @@ class Render extends Component<void, any, any> {
 
   render () {
     const components = []
+    const componentsOnly = []
 
     Object.keys(dumbComponentMap).forEach(key => {
       if (this.state.filter && key.toLowerCase().indexOf(this.state.filter) === -1) {
@@ -48,10 +49,19 @@ class Render extends Component<void, any, any> {
             </Box>
           </Box>
         )
+        componentsOnly.push(<Component key={mockKey} {...mock} />)
       })
     })
 
     const ToShow = components[this.state.index % components.length]
+
+    if (dumbFullscreen) {
+      return (
+        <Box style={{flex: 1}}>
+          {componentsOnly[this.state.index % components.length]}
+        </Box>
+      )
+    }
 
     return (
       <Box style={{flex: 1}}>

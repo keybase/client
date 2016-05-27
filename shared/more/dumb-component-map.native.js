@@ -6,6 +6,8 @@ import DeviceRevokeMap from '../devices/device-revoke/dumb.native'
 import QRMap from '../login/register/code-page/qr/dumb.native'
 import DevicePageMap from '../devices/device-page/dumb.native'
 import FoldersMap from '../folders/dumb'
+import SearchMap from '../search/dumb'
+
 import type {DumbComponentMap} from './dumb'
 
 const map: DumbComponentMap = {
@@ -16,7 +18,8 @@ const map: DumbComponentMap = {
   ...DevicesMap,
   ...DeviceRevokeMap,
   ...DevicePageMap,
-  ...FoldersMap
+  ...FoldersMap,
+  ...SearchMap
 }
 
 export default map
