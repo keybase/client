@@ -89,7 +89,7 @@ to see how we build it.
 
 #### On Windows:
 
-(TODO: Fill this in.)
+See our [kbfsdokan](kbfsdokan/) documentation.
 
 ### To run from source against local in-memory servers
 
