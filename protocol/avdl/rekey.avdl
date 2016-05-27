@@ -21,10 +21,10 @@ protocol rekey {
   }
 
   /**
-   * ProblemSet is for a particular (user,kid) that initiated a rekey problem.
-   * This problem consists of one or more problem TLFs, which are individually scored
-   * and have attendant solutions --- devices that if they came online can rekey and
-   * solve the ProblemTLF.
+   ProblemSet is for a particular (user,kid) that initiated a rekey problem.
+   This problem consists of one or more problem TLFs, which are individually scored
+   and have attendant solutions --- devices that if they came online can rekey and
+   solve the ProblemTLF.
    */
   record ProblemSet {
     User user;
@@ -38,26 +38,30 @@ protocol rekey {
     IGNORED_2
   }
 
-  /** ShowPendingRekeyStatus shows either pending gregor-initiated rekey harassments
-   * or nothing if none were pending.
+  /**
+   ShowPendingRekeyStatus shows either pending gregor-initiated rekey harassments
+   or nothing if none were pending.
    */
   void showPendingRekeyStatus(int sessionID);
 
-  /** ShowRekeyStatus is used by the CLI to kick off a "ShowRekeyStatus" window for the given user based on
-   * the passed-in parameters. These are the parameters that are typically delivered via direct
-   * gregor injection. Will be used primarily in debugging or in advanced command-line usage.
+  /**
+   ShowRekeyStatus is used by the CLI to kick off a "ShowRekeyStatus" window for the given user based on
+   the passed-in parameters. These are the parameters that are typically delivered via direct
+   gregor injection. Will be used primarily in debugging or in advanced command-line usage.
    */
   void showRekeyStatus(int sessionID, array<TLFID> tlfs, union { null, UID } user, union { null, KID } kid);
 
 
-  /** getProblemSet is called by the UI to render which TLFs need to be fixed.
-   * The UI will repeatedly poll this RPC when it gets a `rekeyChanged` notice
-   * below
+  /**
+   getProblemSet is called by the UI to render which TLFs need to be fixed.
+   The UI will repeatedly poll this RPC when it gets a `rekeyChanged` notice
+   below
    */
   ProblemSet getProblemSet(int sessionID);
 
-  /** finish is called when work is completed on a given RekeyStatus window. The Outcome
-   * can be Fixed or Ignored.
+  /**
+   rekeyStatusFinish is called when work is completed on a given RekeyStatus window. The Outcome
+   can be Fixed or Ignored.
    */
   Outcome rekeyStatusFinish(int sessionID);
 }
