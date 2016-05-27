@@ -13,7 +13,7 @@ function EmboldenTextMatch ({text, match, style, textType, emboldenStyle}: {text
       <Box style={globalStyles.flexBoxRow}>
         <Text type={textType} style={style}>{text.substring(0, indexOfMatch)}</Text>
         <Text type={textType} style={{...globalStyles.fontBold, ...style, ...emboldenStyle}}>{match}</Text>
-        <Text type={textType} style={style}>{text.substring(indexOfMatch + match.length)}</Text>
+        <EmboldenTextMatch style={style} text={text.substring(indexOfMatch + match.length)} match={match} textType={textType} emboldenStyle={emboldenStyle} />
       </Box>
     )
   }

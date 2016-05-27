@@ -33,6 +33,15 @@ const userSearchMap: DumbComponentMap<UserSearch> = {
         },
         {
           service: 'keybase',
+          username: 'malgomalg',
+          isFollowing: false,
+          extraInfo: {
+            service: 'none',
+            fullName: 'Malgo Malg'
+          }
+        },
+        {
+          service: 'keybase',
           username: 'chris',
           isFollowing: true,
           extraInfo: {
