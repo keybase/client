@@ -183,6 +183,8 @@ export type Props = {
     | 'fa-kb-iconfont-people'
     | 'fa-kb-iconfont-proof-broken'
     | 'fa-kb-iconfont-proof-good'
+    | 'fa-kb-iconfont-proof-new'
+    | 'fa-kb-iconfont-proof-followed'
     | 'fa-kb-iconfont-proof-pending'
     | 'fa-kb-iconfont-search'
     | 'fa-kb-iconfont-settings'
