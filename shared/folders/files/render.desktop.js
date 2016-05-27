@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, Text, BackButton, Avatar, PopupMenu, Icon} from '../../common-adapters'
+import {Box, Text, BackButton, Avatar, PopupMenu, Icon, ListItem} from '../../common-adapters'
 import File from './file/render'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 import {resolveImageAsURL} from '../../../desktop/resolve-root'
@@ -20,16 +20,42 @@ const Section = ({section, theme}) => (
   </Box>
 )
 
+const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMode}) => {
+  return (
+    <Box style={{...globalStyles.flexBoxColumn}}>
+      <Box style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.red, padding: 13, alignItems: 'center'}}>
+        <Text type='BodySmallSemibold' style={{color: globalColors.white}} >This folder is waiting for either participant to turn on a device.</Text>
+      </Box>
+      <Box style={{...globalStyles.flexBoxColumn, marginTop: 38, paddingLeft: 64, paddingRight: 64}}>
+        {intersperseFn(i => <Box key={i} style={{height: 1, backgroundColor: isPrivate ? globalColors.white_40 : globalColors.black_10}} />,
+        waitingForParticipantUnlock.map(p => (
+          <ListItem
+            type='Large' action={<Box />} icon={<Avatar size={48} username={p.name} />}
+            body={<Box style={{...globalStyles.flexBoxColumn}}>
+              <Text type='Body' backgroundMode={backgroundMode} onClick={p.onClick}>{p.name}</Text>
+              <Text type='BodySmall' backgroundMode={backgroundMode}>{p.devices}</Text>
+            </Box>} />
+        )))}
+      </Box>
+    </Box>
+  )
+}
+
 export default class Render extends Component<void, Props, void> {
   _renderContents (isPrivate: boolean) {
-    if (this.props.recentFilesSection && this.props.recentFilesSection.length) {
+    const backgroundMode = isPrivate ? 'Terminal' : 'Normal'
+
+    if (this.props.waitingForParticipantUnlock.length) {
+      return <ParticipantUnlock waitingForParticipantUnlock={this.props.waitingForParticipantUnlock} isPrivate={isPrivate} backgroundMode={backgroundMode} />
+    }
+
+    if (this.props.recentFilesSection.length) {
       return (
         <Box style={{...globalStyles.flexBoxColumn}}>
           {this.props.recentFilesSection.map(s => <Section section={s} theme={this.props.theme} />)}
         </Box>
       )
     } else {
-      const backgroundMode = isPrivate ? 'Terminal' : 'Normal'
       return (
         <Box style={styleNoFiles}>
           <Text type='BodySmall' backgroundMode={backgroundMode}>This folder is empty.</Text>

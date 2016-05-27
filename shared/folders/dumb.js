@@ -232,6 +232,7 @@ const commonFiles = isPrivate => ({
   popupMenuItems: filesMenuItems,
   selfUsername: 'cecileb',
   users: ['cecileb', 'aliceb'],
+  waitingForParticipantUnlock: [],
   onBack: () => console.log('onBack:files'),
   openCurrentFolder: () => console.log('open current folder'),
   onTogglePopupMenu: () => console.log('onTogglePopupMenu'),
@@ -265,6 +266,14 @@ export const files: DumbComponentMap<Files> = {
     'No files - Private': {
       ...commonFiles(true),
       recentFilesSection: []
+    },
+    'Participant Unlock - Public': {
+      ...commonFiles(true),
+      recentFilesSection: [],
+      waitingForParticipantUnlock: [
+        {name: 'throughnothing', devices: 'Tell them to turn on: Home Computer, ben\'s iPhone or Work laptop.', onClick: () => console.log('clicked throughnothing')},
+        {name: 'bob', devices: 'Tell them to turn on bob\'s Android phone', onClick: () => console.log('clicked bob')}
+      ]
     }
   }
 }

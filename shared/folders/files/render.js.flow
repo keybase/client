@@ -9,6 +9,12 @@ export type FileSection = {
   files: Array<FileProps>
 }
 
+export type ParticipantUnlock = {
+  name: string,
+  devices: string,
+  onClick: () => void
+}
+
 export type Props = {
   theme: 'public' | 'private',
   visiblePopupMenu: boolean,
@@ -19,7 +25,8 @@ export type Props = {
   onBack: () => void,
   onTogglePopupMenu: () => void,
   recentFilesSection: Array<FileSection>,
-  openCurrentFolder: () => void
+  openCurrentFolder: () => void,
+  waitingForParticipantUnlock: Array<ParticipantUnlock>
 }
 
 export default class Render extends React$Component<void, Props, void> { }
