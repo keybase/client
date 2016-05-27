@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Product Id="*" Name="Keybase_CLI_$(env.SEMVER)" Language="1033" Version="$(env.BUILDVER)" Manufacturer="Keybase, Inc." UpgradeCode="c118f7ec-9a1d-4ff1-91f5-15d208499d7b">
+		<Package InstallerVersion="500" Compressed="yes" InstallPrivileges="limited" InstallScope="perUser" />
+    <MediaTemplate EmbedCab="yes"/>
+    <Icon Id="ProductIcon" SourceFile="$(env.GOPATH)\src\github.com\keybase\client\packaging\windows\keybase.ico"/>
+    <Property Id="ARPPRODUCTICON" Value="ProductIcon"/>
+    <Property Id="ARPHELPLINK" Value="http://www.keybase.io"/>
+    <Property Id="ARPURLINFOABOUT" Value="http://www.keybase.io"/>
+    <Property Id="INNOCLIUNINSTALL">
+      <RegistrySearch Id="InnoCLIUninstall"
+                      Root="HKLM"
+                      Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\{70E747DE-4E09-44B0-ACAD-784AA9D79C02}_is1"
+                      Name="UninstallString"
+                      Type="raw" />
+    </Property>
+		<MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />		
+
+		<Feature Id="ProductFeature" Title="Keybase_CLI" Level="1">
+			<ComponentGroupRef Id="ProductComponents" />
+      <ComponentRef Id="ApplicationShortcut" />
+      <ComponentRef Id="ApplicationShortCutStartUp" />
+    </Feature>
+
+    <InstallExecuteSequence>
+      <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
+      <Custom Action="StopMainApp" Before="InstallValidate">Installed</Custom>
+      <Custom Action="UninstallOldCLI" Before="InstallFinalize">(NOT Installed) AND INNOCLIUNINSTALL</Custom>
+      <Custom Action="RunMainApp" Before="InstallFinalize">NOT (REMOVE ~= "ALL")</Custom>
+    </InstallExecuteSequence>
+
+    <UI>
+      <Property Id="DefaultUIFont">DlgFont8</Property>
+      
+      <Dialog Id="CancelDlg" Width="260" Height="85" Title="[ProductName] [Setup]" NoMinimize="yes">
+        <Control Id="No" Type="PushButton" X="132" Y="57" Width="56" Height="17" Default="yes" Cancel="yes" Text="[ButtonText_No]">
+          <Publish Event="EndDialog" Value="Exit">1</Publish>
+        </Control>
+        <Control Id="Yes" Type="PushButton" X="72" Y="57" Width="56" Height="17" Text="[ButtonText_Yes]">
+          <Publish Event="EndDialog" Value="Return">1</Publish>
+        </Control>
+        <Control Id="Text" Type="Text" X="48" Y="15" Width="194" Height="30">
+          <Text>Previous [ProductName] components need to be uninstalled before proceeding. Continue?</Text>
+        </Control>
+        <Control Id="Icon" Type="Icon" X="15" Y="15" Width="24" Height="24" ToolTip="Information icon" FixedSize="yes" IconSize="32" Text="[InfoIcon]" />
+      </Dialog>
+
+      <TextStyle Id="DlgFont8" FaceName="Tahoma" Size="8" />
+      <TextStyle Id="DlgTitleFont" FaceName="Tahoma" Size="8" Bold="yes" />
+
+      <InstallUISequence>
+        <Show Dialog="CancelDlg" After="CostFinalize">(NOT Installed) AND INNOCLIUNINSTALL</Show>
+      </InstallUISequence>
+    </UI>
+
+    <Property Id="Setup">Setup</Property>
+    <Property Id="ButtonText_No">&amp;No</Property>
+    <Property Id="ButtonText_Yes">&amp;Yes</Property>
+    <Property Id="ButtonText_Install">&amp;Install</Property>
+    <Property Id="ButtonText_Cancel">Cancel</Property>
+    <Property Id="BannerBitmap">bannrbmp</Property>
+    <Property Id="Wizard">Setup Wizard</Property>
+    <Property Id="InfoIcon">info</Property>
+
+    <Binary Id="info" SourceFile="Binary\Info.ico" />
+    <Binary Id="bannrbmp" SourceFile="Binary\Banner.bmp" />
+  </Product>
+  <Fragment>
+		<Directory Id="TARGETDIR" Name="SourceDir">
+			<Directory Id="AppDataFolder">
+				<Directory Id="INSTALLFOLDER" Name="Keybase" />
+			</Directory>
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="Keybase"/>
+      </Directory>
+      <Directory Id="StartupFolder" Name="Startup" />
+      <Directory Id="SystemFolder" Name="System" />
+    </Directory>
+	</Fragment>
+
+	<Fragment>
+		<ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+			<Component Id="keybase.exe" Guid="88737432-0E15-413D-B23C-4B18D06EDC2C">				
+        <CreateFolder />
+        <RemoveFolder Id="RemoveMyApp" On="uninstall" />
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="KeybaseExe" Value="1" KeyPath="yes" Type="integer" />
+        </RegistryKey>
+        <File Id="keybase.exe" Source="$(env.GOPATH)\src\github.com\keybase\client\go\keybase\keybase.exe" Checksum="yes"/>
+			</Component>
+      <Component Id="kbrunquiet.exe" Guid="D607B52E-30C3-4099-BD30-3830FBE561E6">
+        <CreateFolder />
+        <RemoveFolder Id="RemoveMyAppRunner" On="uninstall" />
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="kbrunquietexe" Value="1" KeyPath="yes" Type="integer" />
+        </RegistryKey>
+        <File Id="kbrunquiet.exe" Source="$(env.GOPATH)\src\github.com\keybase\client\go\kbrunquiet\kbrunquiet.exe" Checksum="yes"/>
+      </Component>
+    </ComponentGroup>
+    <DirectoryRef Id="StartupFolder">
+      <Component Id="ApplicationShortCutStartUp" Guid="{2EE65854-7CA1-4010-B62B-780F1C39ED0A}">
+        <Shortcut Id="AppShortCutStartUp" Name="KeybaseStartup"
+                  Description="Start Keybase at boot"
+                  Target="[INSTALLFOLDER]kbrunquiet.exe"
+                  Arguments="keybase.exe ctl watchdog"
+                  WorkingDirectory="INSTALLFOLDER"/>
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="ShortCutStartUp" Type="integer" Value="1" KeyPath="yes"  />
+        </RegistryKey>
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+  
+    <Fragment>
+    <DirectoryRef Id="ApplicationProgramsFolder">
+      <Component Id="ApplicationShortcut" Guid="E05F8D29-F530-4791-AE6B-B89DAE1F6D5C">
+        <Shortcut Id="ApplicationStartMenuShortcut"
+             Name="Keybase CMD"
+           Description="Open command console with keybase in the local path"
+            Target="[SystemFolder]cmd.exe"
+            Arguments="/K &quot;set PATH=%PATH%;[INSTALLFOLDER]&quot;"
+            WorkingDirectory="INSTALLFOLDER"      
+            Icon="ProductIcon"/>
+        <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
+        <RegistryValue Root="HKCU" Key="Software\Keybase\Keybase" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="RunMainApp"
+              Directory="INSTALLFOLDER"
+              ExeCommand="[INSTALLFOLDER]kbrunquiet.exe [INSTALLFOLDER]keybase.exe ctl watchdog"
+              Execute="commit"
+              Return="ignore"/>    
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="StopMainApp"
+              Directory="INSTALLFOLDER"
+              ExeCommand="[INSTALLFOLDER]kbrunquiet.exe -wait [INSTALLFOLDER]keybase.exe ctl stop"
+              Execute="immediate"
+              Return="check"/>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="UninstallOldCLI"
+              Directory="SystemFolder"
+              ExeCommand="cmd.exe /c [INNOCLIUNINSTALL]"
+              Execute="immediate"
+              Return="check"/>
+  </Fragment>
+</Wix>

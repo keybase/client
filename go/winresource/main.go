@@ -19,6 +19,7 @@ import (
 
 	"github.com/josephspurrier/goversioninfo"
 	"github.com/keybase/client/go/libkb"
+	"strconv"
 )
 
 func GetBuildName() string {
@@ -51,6 +52,10 @@ func main() {
 	if int, err := fmt.Sscanf(libkb.Version, "%d.%d.%d", &fv.Major, &fv.Minor, &fv.Patch); int != 3 || err != nil {
 		log.Printf("Error parsing version %v", err)
 		os.Exit(3)
+	}
+
+	if libkb.PrereleaseBuild != "" {
+		fv.Build, _ = strconv.Atoi(libkb.PrereleaseBuild)
 	}
 
 	semVer := fmt.Sprintf("%d.%d.%d-%d", fv.Major, fv.Minor, fv.Patch, fv.Build)
