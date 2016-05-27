@@ -189,6 +189,8 @@ export const file: DumbComponentMap<File> = {
     'Normal Public No Modified meta': {
       ...commonFile,
       parentProps: {style: {borderColor: 'black', borderWidth: 1, borderStyle: 'solid'}},
+      lastModifiedMeta: undefined,
+      lastModifiedBy: undefined,
       theme: 'public',
       name: 'Cute Sloth.jpg',
       path: 'spirit-animals/',
