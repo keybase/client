@@ -2916,7 +2916,7 @@ export type rekeyUI_refresh_result = void
 export type rekeyUI_refresh_rpc = {
   method: 'rekeyUI.refresh',
   param: {
-    tlfs: Array<RekeyTLF>
+    tlfs: Array<ProblemTLF>
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any) => void)
@@ -5242,7 +5242,7 @@ export type incomingCallMapType = {
   'keybase.1.rekeyUI.refresh'?: (
     params: {
       sessionID: int,
-      tlfs: Array<RekeyTLF>
+      tlfs: Array<ProblemTLF>
     },
     response: {
       error: (err: RPCError) => void,
