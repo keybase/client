@@ -698,6 +698,14 @@ export type PlatformInfo = {
   goVersion: string;
 }
 
+export type ProblemTLF = {
+  tlf: TLF;
+  problemUser: User;
+  problemDevice: Device;
+  score: int;
+  solutions: Array<Device>;
+}
+
 export type Process = {
   pid: string;
   command: string;
@@ -806,14 +814,6 @@ export type PublicKey = {
   deviceType: string;
   cTime: Time;
   eTime: Time;
-}
-
-export type RekeyTLF = {
-  tlf: TLF;
-  problemUser: User;
-  problemDevice: Device;
-  score: int;
-  solutions: Array<Device>;
 }
 
 export type RemoteProof = {
@@ -2922,13 +2922,13 @@ export type rekeyUI_refresh_rpc = {
   callback: (null | (err: ?any) => void)
 }
 
-export type rekey_getRekeyTLFs_result = Array<RekeyTLF>
+export type rekey_getProblemTLFs_result = Array<ProblemTLF>
 
-export type rekey_getRekeyTLFs_rpc = {
-  method: 'rekey.getRekeyTLFs',
+export type rekey_getProblemTLFs_rpc = {
+  method: 'rekey.getProblemTLFs',
   param: {},
   incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: rekey_getRekeyTLFs_result) => void)
+  callback: (null | (err: ?any, response: rekey_getProblemTLFs_result) => void)
 }
 
 export type rekey_rekeyStatusFinish_result = Outcome
@@ -3634,7 +3634,7 @@ export type rpc =
   | quota_verifySession_rpc
   | rekeyUI_delegateRekeyUI_rpc
   | rekeyUI_refresh_rpc
-  | rekey_getRekeyTLFs_rpc
+  | rekey_getProblemTLFs_rpc
   | rekey_rekeyStatusFinish_rpc
   | rekey_showPendingRekeyStatus_rpc
   | rekey_showRekeyStatus_rpc
@@ -5214,13 +5214,13 @@ export type incomingCallMapType = {
       result: () => void
     }
   ) => void,
-  'keybase.1.rekey.getRekeyTLFs'?: (
+  'keybase.1.rekey.getProblemTLFs'?: (
     params: {
       sessionID: int
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: rekey_getRekeyTLFs_result) => void
+      result: (result: rekey_getProblemTLFs_result) => void
     }
   ) => void,
   'keybase.1.rekey.rekeyStatusFinish'?: (

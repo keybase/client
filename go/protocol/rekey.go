@@ -17,7 +17,7 @@ type TLF struct {
 	IsPrivate bool     `codec:"isPrivate" json:"isPrivate"`
 }
 
-type RekeyTLF struct {
+type ProblemTLF struct {
 	Tlf           TLF      `codec:"tlf" json:"tlf"`
 	ProblemUser   User     `codec:"problemUser" json:"problemUser"`
 	ProblemDevice Device   `codec:"problemDevice" json:"problemDevice"`
@@ -44,7 +44,7 @@ type ShowRekeyStatusArg struct {
 	Kid       *KID    `codec:"kid,omitempty" json:"kid,omitempty"`
 }
 
-type GetRekeyTLFsArg struct {
+type GetProblemTLFsArg struct {
 	SessionID int `codec:"sessionID" json:"sessionID"`
 }
 
@@ -60,10 +60,10 @@ type RekeyInterface interface {
 	// * the passed-in parameters. These are the parameters that are typically delivered via direct
 	// * gregor injection. Will be used primarily in debugging or in advanced command-line usage.
 	ShowRekeyStatus(context.Context, ShowRekeyStatusArg) error
-	// getRekeyTLFs is called by the UI to render which TLFs need to be fixed.
+	// getProblemTLFs is called by the UI to render which TLFs need to be fixed.
 	// * The UI will repeatedly poll this RPC when it gets a `rekeyChanged` notice
 	// * below
-	GetRekeyTLFs(context.Context, int) ([]RekeyTLF, error)
+	GetProblemTLFs(context.Context, int) ([]ProblemTLF, error)
 	// finish is called when work is completed on a given RekeyStatus window. The Outcome
 	// * can be Fixed or Ignored.
 	RekeyStatusFinish(context.Context, int) (Outcome, error)
@@ -105,18 +105,18 @@ func RekeyProtocol(i RekeyInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"getRekeyTLFs": {
+			"getProblemTLFs": {
 				MakeArg: func() interface{} {
-					ret := make([]GetRekeyTLFsArg, 1)
+					ret := make([]GetProblemTLFsArg, 1)
 					return &ret
 				},
 				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]GetRekeyTLFsArg)
+					typedArgs, ok := args.(*[]GetProblemTLFsArg)
 					if !ok {
-						err = rpc.NewTypeError((*[]GetRekeyTLFsArg)(nil), args)
+						err = rpc.NewTypeError((*[]GetProblemTLFsArg)(nil), args)
 						return
 					}
-					ret, err = i.GetRekeyTLFs(ctx, (*typedArgs)[0].SessionID)
+					ret, err = i.GetProblemTLFs(ctx, (*typedArgs)[0].SessionID)
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -161,12 +161,12 @@ func (c RekeyClient) ShowRekeyStatus(ctx context.Context, __arg ShowRekeyStatusA
 	return
 }
 
-// getRekeyTLFs is called by the UI to render which TLFs need to be fixed.
+// getProblemTLFs is called by the UI to render which TLFs need to be fixed.
 // * The UI will repeatedly poll this RPC when it gets a `rekeyChanged` notice
 // * below
-func (c RekeyClient) GetRekeyTLFs(ctx context.Context, sessionID int) (res []RekeyTLF, err error) {
-	__arg := GetRekeyTLFsArg{SessionID: sessionID}
-	err = c.Cli.Call(ctx, "keybase.1.rekey.getRekeyTLFs", []interface{}{__arg}, &res)
+func (c RekeyClient) GetProblemTLFs(ctx context.Context, sessionID int) (res []ProblemTLF, err error) {
+	__arg := GetProblemTLFsArg{SessionID: sessionID}
+	err = c.Cli.Call(ctx, "keybase.1.rekey.getProblemTLFs", []interface{}{__arg}, &res)
 	return
 }
 
