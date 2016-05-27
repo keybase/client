@@ -104,7 +104,7 @@ export default class Render extends Component<void, Props, void> {
             iconStyle={{color: backButtonColor}} textStyle={{color: backButtonColor}} />
           <Icon
             style={{...styleMenu, color: menuColor, hoverColor: menuColor, marginRight: 16, position: 'relative', top: 18}}
-            type='fa-custom-icon-hamburger'
+            type='fa-kb-iconfont-hamburger'
             onClick={this.props.onTogglePopupMenu} />
         </Box>
         <Box style={{...globalStyles.flexBoxColumn, ...styleTLFHeader, ...styleTLFHeaderThemed[this.props.theme]}}>

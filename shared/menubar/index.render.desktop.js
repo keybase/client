@@ -109,7 +109,7 @@ class Render extends Component<void, Props, State> {
         <Box style={stylesTopRow}>
           <Icon
             style={menuStyle}
-            type='fa-custom-icon-hamburger'
+            type='fa-kb-iconfont-hamburger'
             onClick={() => this.setState({showingMenu: !this.state.showingMenu})} />
         </Box>
         <Folders {...mergedProps} />

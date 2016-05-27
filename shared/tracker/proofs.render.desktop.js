@@ -87,12 +87,12 @@ class ProofsRender extends Component {
   _proofStatusIcon (proof: Proof): ?IconProps.type {
     switch (proof.state) {
       case proofNormal:
-        return proof.isTracked ? 'fa-custom-icon-proof-good-followed' : 'fa-custom-icon-proof-good-new'
+        return proof.isTracked ? 'fa-kb-iconfont-proof-followed' : 'fa-kb-iconfont-proof-new'
 
       case proofWarning:
       case proofError:
       case proofRevoked:
-        return 'fa-custom-icon-proof-broken'
+        return 'fa-kb-iconfont-proof-broken'
       default:
         return null
     }

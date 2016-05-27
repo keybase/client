@@ -261,22 +261,22 @@ const Icons = () => (
     {[
       'computer-big',
       'computer-bw-m',
-      'fa-custom-copy',
-      'fa-custom-eye',
-      'fa-custom-key',
+      'fa-copy',
+      'fa-eye',
+      'fa-key',
       'logo-128',
-      'fa-custom-icon-proof-broken',
-      'fa-custom-icon-proof-good-followed',
-      'fa-custom-icon-proof-good-new',
+      'fa-kb-iconfont-proof-broken',
+      'fa-kb-iconfont-proof-good',
+      'fa-kb-iconfont-proof-pending',
       'fa-close',
       'fa-mobile'
     ].map(i => [
       <Row key={i}><Icon onClick={() => console.log('clicked')} type={i} /></Row>,
       <Row key={i + '100px'}><Icon style={{width: 100, height: 100}} onClick={() => console.log('clicked')} type={i} /></Row>
     ])}
-    <Row key='a'><Icon type='fa-custom-copy' style={{color: globalColors.blue}} /></Row>
-    <Row key='a1'><Icon type='fa-custom-copy' style={{color: globalColors.green}} /></Row>
-    <Row key='a2'><Icon type='fa-custom-copy' style={{color: globalColors.orange}} /></Row>
+    <Row key='a'><Icon type='fa-copy' style={{color: globalColors.blue}} /></Row>
+    <Row key='a1'><Icon type='fa-copy' style={{color: globalColors.green}} /></Row>
+    <Row key='a2'><Icon type='fa-copy' style={{color: globalColors.orange}} /></Row>
   </Box>
 )
 
