@@ -18,7 +18,8 @@ export type Props = {
   showGroupIcon?: boolean, // TODO (this is not implemented, but this will show the group icon instead of user avatars)
   onBack: () => void,
   onTogglePopupMenu: () => void,
-  recentFilesSection: Array<FileSection>
+  recentFilesSection: Array<FileSection>,
+  openCurrentFolder: () => void
 }
 
 export default class Render extends React$Component<void, Props, void> { }
