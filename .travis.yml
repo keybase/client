@@ -16,7 +16,7 @@ before_install:
     else
       cd $GOPATH/src/github.com/keybase &&
       echo "Cloning client" &&
-      git clone git@github.com:keybase/client.git &&
+      git clone https://github.com/keybase/client.git &&
       cd client/osx/Fuse &&
       echo "Installing OSXFuse" &&
       ./install.sh &&
