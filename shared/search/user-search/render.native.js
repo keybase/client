@@ -71,7 +71,7 @@ function Result ({result, searchText}: {result: SearchResult, searchText: string
 
   // Align the body to the middle of the original 32 row so the extra info doesn't push the username down
   const alignedBody = (
-    <Box style={{flex: 2}}>
+    <Box style={{flex: 1}}>
       <Box style={{...globalStyles.flexBoxRow, alignItems: 'center'}}>
         <Box style={{height: 32, width: 0}} />
         {body}
