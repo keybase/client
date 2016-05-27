@@ -38,7 +38,3 @@ export type DumbComponentMap<C: Component<*, *, *>> = {
     [key: string]: PropsOf<C>
   }
 }
-
-export type Combo<A, B> = {
-  combo: [A, B]
-}

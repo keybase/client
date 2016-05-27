@@ -4,7 +4,6 @@ import {Avatar, Box, Icon, Input, Text, ListItem} from '../../common-adapters'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 
 import type {Props, SearchResult} from './render'
-import type {Combo} from '../../constants/types/more'
 import type {Props as TextProps} from '../../common-adapters/text'
 
 function EmboldenTextMatch ({text, match, style, textType, emboldenStyle}: {text: string, match: string, emboldenStyle: Object, style: Object, textType: TextProps.type}) {
@@ -54,7 +53,7 @@ function ExternalExtraInfo ({serviceUsername, fullNameOnService, icon, searchTex
   )
 }
 
-function Result ({combo: [result, {searchText}]}: Combo<SearchResult, {searchText: string}>) {
+function Result ({result, searchText}: {result: SearchResult, searchText: string}) {
   const iconStyle = {height: 32, width: 32}
 
   let icon
@@ -116,7 +115,7 @@ export default class Render extends Component<void, Props, void> {
             <Input type='text' autoCapitalize='none' value={this.props.searchText} hintText={this.props.searchHintText} iosOmitUnderline style={{marginTop: 0, height: 32}} />
           </Box>}
           action={<Box />} />
-        {this.props.results.map(r => <Result key={r.service + (r.icon || '') + r.username} combo={[r, {searchText: this.props.searchText}]} />)}
+        {this.props.results.map(r => <Result key={r.service + (r.icon || '') + r.username} result={r} searchText={this.props.searchText} />)}
       </Box>
     )
   }
