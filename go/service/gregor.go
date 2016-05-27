@@ -175,7 +175,7 @@ func (g *gregorHandler) PushHandler(handler libkb.GregorInBandMessageHandler) {
 
 	g.ibmHandlers = append(g.ibmHandlers, handler)
 
-	if err := g.replayInBandMessages(context.TODO(), time.Time{}, handler); err != nil {
+	if _, err := g.replayInBandMessages(context.TODO(), time.Time{}, handler); err != nil {
 		g.G().Log.Errorf("gregor handler: ConnectIdenfityUI() failed")
 	}
 }
@@ -185,12 +185,12 @@ func (g *gregorHandler) PushHandler(handler libkb.GregorInBandMessageHandler) {
 // otherwise it will try all of them. gregorHandler needs to be locked when calling
 // this function.
 func (g *gregorHandler) replayInBandMessages(ctx context.Context, t time.Time,
-	handler libkb.GregorInBandMessageHandler) error {
+	handler libkb.GregorInBandMessageHandler) ([]gregor.InBandMessage, error) {
 	var msgs []gregor.InBandMessage
 	var err error
 	if msgs, err = g.gregorCli.StateMachineInBandMessagesSince(t); err != nil {
 		g.G().Log.Errorf("gregor handler: unable to fetch messages for reply: %s", err)
-		return err
+		return nil, err
 	}
 
 	g.G().Log.Debug("gregor handler: replaying %d messages", len(msgs))
@@ -204,14 +204,14 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, t time.Time,
 		}
 	}
 
-	return nil
+	return msgs, nil
 }
 
 // serverSync is called from OnConnect to sync down the current state from
 // gregord. This can happen either on initial startup, or after a reconnect. Needs
 // to be called with gregorHandler locked.
-func (g *gregorHandler) serverSync(ctx context.Context, cli gregor1.IncomingInterface) error {
-	var err error
+func (g *gregorHandler) serverSync(ctx context.Context,
+	cli gregor1.IncomingInterface) ([]gregor.InBandMessage, []gregor.InBandMessage, error) {
 
 	// Get time of the last message we synced (unless this is our first time syncing)
 	var t time.Time
@@ -220,26 +220,29 @@ func (g *gregorHandler) serverSync(ctx context.Context, cli gregor1.IncomingInte
 		if pt != nil {
 			t = *pt
 		}
+		g.G().Log.Debug("gregor handler: starting sync from: %s", t)
 	} else {
 		g.G().Log.Debug("gregor handler: performing a fresh sync")
 	}
 
 	// Sync down everything from the server
-	if err = g.gregorCli.Sync(cli); err != nil {
+	consumedMsgs, err := g.gregorCli.Sync(cli)
+	if err != nil {
 		g.G().Log.Errorf("gregor handler: error syncing from the server, bailing: %s", err)
-		return err
+		return nil, nil, err
 	}
 
 	// Replay in-band messages
-	if err = g.replayInBandMessages(ctx, t, nil); err != nil {
+	replayedMsgs, err := g.replayInBandMessages(ctx, t, nil)
+	if err != nil {
 		g.G().Log.Errorf("gregor handler: replay messages failed")
-		return err
+		return nil, nil, err
 	}
 
 	// All done with fresh syncs
 	g.freshSync = false
 
-	return nil
+	return replayedMsgs, consumedMsgs, nil
 }
 
 // OnConnect is called by the rpc library to indicate we have connected to
@@ -263,9 +266,12 @@ func (g *gregorHandler) OnConnect(ctx context.Context, conn *rpc.Connection,
 	}
 
 	// Sync down events since we have been dead
-	if err := g.serverSync(ctx, gregor1.IncomingClient{Cli: cli}); err != nil {
+	replayedMsgs, consumedMsgs, err := g.serverSync(ctx, gregor1.IncomingClient{Cli: cli})
+	if err != nil {
 		g.G().Log.Error("gregor handler: sync failure!")
-		return nil
+	} else {
+		g.G().Log.Debug("gregor handler: sync success: replayed: %d consumed: %d",
+			len(replayedMsgs), len(consumedMsgs))
 	}
 
 	return nil
@@ -309,19 +315,21 @@ func (g *gregorHandler) BroadcastMessage(ctx context.Context, m gregor1.Message)
 	g.Lock()
 	defer g.Unlock()
 
-	g.G().Log.Debug("gregor handler: broadcast: %+v", m)
-
 	// Send message to local state machine
 	g.gregorCli.StateMachineConsumeMessage(m)
 
 	// Handle the message
 	ibm := m.ToInBandMessage()
 	if ibm != nil {
+		g.G().Log.Debug("gregor handler: broadcast: in-band message: msgID: %s Ctime: %s",
+			m.ToInBandMessage().Metadata().MsgID(), m.ToInBandMessage().Metadata().CTime())
 		return g.handleInBandMessage(ctx, ibm)
 	}
 
 	obm := m.ToOutOfBandMessage()
 	if obm != nil {
+		g.G().Log.Debug("gregor handler: broadcast: out-of-band message: uid: %s",
+			m.ToOutOfBandMessage().UID())
 		return g.handleOutOfBandMessage(ctx, obm)
 	}
 

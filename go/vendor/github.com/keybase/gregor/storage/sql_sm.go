@@ -252,7 +252,7 @@ func (s *SQLEngine) ConsumeMessage(m gregor.Message) (time.Time, error) {
 	case m.ToInBandMessage() != nil:
 		return s.consumeInBandMessage(m.ToInBandMessage())
 	default:
-		return s.clock.Now(), nil
+		return time.Time{}, nil
 	}
 }
 
@@ -261,14 +261,14 @@ func (s *SQLEngine) consumeInBandMessage(m gregor.InBandMessage) (time.Time, err
 	case m.ToStateUpdateMessage() != nil:
 		return s.consumeStateUpdateMessage(m.ToStateUpdateMessage())
 	default:
-		return s.clock.Now(), nil
+		return time.Time{}, nil
 	}
 }
 
 func (s *SQLEngine) consumeStateUpdateMessage(m gregor.StateUpdateMessage) (ctime time.Time, err error) {
 	tx, err := s.driver.Begin()
 	if err != nil {
-		return s.clock.Now(), err
+		return time.Time{}, err
 	}
 	defer func() {
 		if err != nil {
@@ -280,7 +280,7 @@ func (s *SQLEngine) consumeStateUpdateMessage(m gregor.StateUpdateMessage) (ctim
 
 	md := m.Metadata()
 	if md, err = s.consumeInBandMessageMetadata(tx, md, gregor.InBandMsgTypeUpdate); err != nil {
-		return s.clock.Now(), err
+		return time.Time{}, err
 	}
 
 	ctime = md.CTime()
