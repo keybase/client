@@ -485,7 +485,7 @@ func TestTrackWithTokenDismissesGregor(t *testing.T) {
 		SecretUI:   fu.NewSecretUI(),
 	}
 	eng := NewResolveThenIdentify2(tc.G, arg)
-	eng.setResponsibleGregorItem(&responsibleGregorItem)
+	eng.SetResponsibleGregorItem(&responsibleGregorItem)
 	if err := RunEngine(eng, ctx); err != nil {
 		tc.T.Fatal(err)
 	}

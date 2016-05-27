@@ -529,6 +529,6 @@ func (e *Identify2WithUID) getTrackType() identify2TrackType {
 	}
 }
 
-func (e *Identify2WithUID) setResponsibleGregorItem(item gregor.Item) {
+func (e *Identify2WithUID) SetResponsibleGregorItem(item gregor.Item) {
 	e.responsibleGregorItem = item
 }

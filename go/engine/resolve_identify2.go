@@ -84,7 +84,7 @@ func (e *ResolveThenIdentify2) Run(ctx *Context) (err error) {
 
 	e.i2eng = NewIdentify2WithUID(e.G(), e.arg)
 	if e.responsibleGregorItem != nil {
-		e.i2eng.setResponsibleGregorItem(e.responsibleGregorItem)
+		e.i2eng.SetResponsibleGregorItem(e.responsibleGregorItem)
 	}
 
 	if err = e.resolveUID(ctx); err != nil {
@@ -104,6 +104,6 @@ func (e *ResolveThenIdentify2) Result() *keybase1.Identify2Res {
 	return e.i2eng.Result()
 }
 
-func (e *ResolveThenIdentify2) setResponsibleGregorItem(item gregor.Item) {
+func (e *ResolveThenIdentify2) SetResponsibleGregorItem(item gregor.Item) {
 	e.responsibleGregorItem = item
 }
