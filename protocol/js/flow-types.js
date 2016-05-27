@@ -699,16 +699,15 @@ export type PlatformInfo = {
 }
 
 export type ProblemSet = {
-  problemTLFs: Array<ProblemTLF>;
-  devices: Array<Device>;
+  user: User;
+  kid: KID;
+  tlfs: Array<ProblemTLF>;
 }
 
 export type ProblemTLF = {
   tlf: TLF;
-  problemUser: User;
-  problemDevice: DeviceID;
   score: int;
-  solutions: Array<DeviceID>;
+  solutions: Array<KID>;
 }
 
 export type Process = {

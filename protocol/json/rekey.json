@@ -424,21 +424,13 @@
           "name": "tlf"
         },
         {
-          "type": "User",
-          "name": "problemUser"
-        },
-        {
-          "type": "DeviceID",
-          "name": "problemDevice"
-        },
-        {
           "type": "int",
           "name": "score"
         },
         {
           "type": {
             "type": "array",
-            "items": "DeviceID"
+            "items": "KID"
           },
           "name": "solutions"
         }
@@ -449,18 +441,19 @@
       "name": "ProblemSet",
       "fields": [
         {
-          "type": {
-            "type": "array",
-            "items": "ProblemTLF"
-          },
-          "name": "problemTLFs"
+          "type": "User",
+          "name": "user"
+        },
+        {
+          "type": "KID",
+          "name": "kid"
         },
         {
           "type": {
             "type": "array",
-            "items": "Device"
+            "items": "ProblemTLF"
           },
-          "name": "devices"
+          "name": "tlfs"
         }
       ]
     },

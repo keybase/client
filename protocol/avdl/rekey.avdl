@@ -16,15 +16,14 @@ protocol rekey {
 
   record ProblemTLF {
     TLF tlf;
-    User problemUser;
-    DeviceID problemDevice;
     int score;
-    array<DeviceID> solutions;
+    array<KID> solutions;
   }
 
   record ProblemSet {
-    array<ProblemTLF> problemTLFs;
-    array<Device>     devices;
+    User user;
+    KID kid;
+    array<ProblemTLF> tlfs;
   }
 
   enum Outcome {

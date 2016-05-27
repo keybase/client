@@ -18,16 +18,15 @@ type TLF struct {
 }
 
 type ProblemTLF struct {
-	Tlf           TLF        `codec:"tlf" json:"tlf"`
-	ProblemUser   User       `codec:"problemUser" json:"problemUser"`
-	ProblemDevice DeviceID   `codec:"problemDevice" json:"problemDevice"`
-	Score         int        `codec:"score" json:"score"`
-	Solutions     []DeviceID `codec:"solutions" json:"solutions"`
+	Tlf       TLF   `codec:"tlf" json:"tlf"`
+	Score     int   `codec:"score" json:"score"`
+	Solutions []KID `codec:"solutions" json:"solutions"`
 }
 
 type ProblemSet struct {
-	ProblemTLFs []ProblemTLF `codec:"problemTLFs" json:"problemTLFs"`
-	Devices     []Device     `codec:"devices" json:"devices"`
+	User User         `codec:"user" json:"user"`
+	Kid  KID          `codec:"kid" json:"kid"`
+	Tlfs []ProblemTLF `codec:"tlfs" json:"tlfs"`
 }
 
 type Outcome int
