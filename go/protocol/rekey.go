@@ -11,22 +11,17 @@ import (
 type TLFID string
 type TLF struct {
 	Tlfid     TLFID    `codec:"tlfid" json:"tlfid"`
-	Name      string   `codec:"name" json:"name"`
 	Writers   []string `codec:"writers" json:"writers"`
 	Readers   []string `codec:"readers" json:"readers"`
 	IsPrivate bool     `codec:"isPrivate" json:"isPrivate"`
 }
 
-type ProblemUser struct {
-	User           User     `codec:"user" json:"user"`
-	ProblemDevices []Device `codec:"problemDevices" json:"problemDevices"`
-}
-
 type RekeyTLF struct {
-	Tlf          TLF           `codec:"tlf" json:"tlf"`
-	ProblemUsers []ProblemUser `codec:"problemUsers" json:"problemUsers"`
-	Score        int           `codec:"score" json:"score"`
-	Solutions    []DeviceID    `codec:"solutions" json:"solutions"`
+	Tlf           TLF      `codec:"tlf" json:"tlf"`
+	ProblemUser   User     `codec:"problemUser" json:"problemUser"`
+	ProblemDevice Device   `codec:"problemDevice" json:"problemDevice"`
+	Score         int      `codec:"score" json:"score"`
+	Solutions     []Device `codec:"solutions" json:"solutions"`
 }
 
 type Outcome int

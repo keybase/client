@@ -8,22 +8,17 @@ protocol rekey {
 
   record TLF {
     TLFID tlfid;
-    string name;
     array<string> writers;
     array<string> readers;
     boolean isPrivate;
   }
 
-  record ProblemUser {
-    User user;
-    array<Device> problemDevices;
-  }
-
   record RekeyTLF {
     TLF tlf;
-    array<ProblemUser> problemUsers;
+    User problemUser;
+    Device problemDevice;
     int score;
-    array<DeviceID> solutions;
+    array<Device> solutions;
   }
 
   enum Outcome {

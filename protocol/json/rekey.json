@@ -392,10 +392,6 @@
           "name": "tlfid"
         },
         {
-          "type": "string",
-          "name": "name"
-        },
-        {
           "type": {
             "type": "array",
             "items": "string"
@@ -417,23 +413,6 @@
     },
     {
       "type": "record",
-      "name": "ProblemUser",
-      "fields": [
-        {
-          "type": "User",
-          "name": "user"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "Device"
-          },
-          "name": "problemDevices"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "RekeyTLF",
       "fields": [
         {
@@ -441,11 +420,12 @@
           "name": "tlf"
         },
         {
-          "type": {
-            "type": "array",
-            "items": "ProblemUser"
-          },
-          "name": "problemUsers"
+          "type": "User",
+          "name": "problemUser"
+        },
+        {
+          "type": "Device",
+          "name": "problemDevice"
         },
         {
           "type": "int",
@@ -454,7 +434,7 @@
         {
           "type": {
             "type": "array",
-            "items": "DeviceID"
+            "items": "Device"
           },
           "name": "solutions"
         }

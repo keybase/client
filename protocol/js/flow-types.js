@@ -698,11 +698,6 @@ export type PlatformInfo = {
   goVersion: string;
 }
 
-export type ProblemUser = {
-  user: User;
-  problemDevices: Array<Device>;
-}
-
 export type Process = {
   pid: string;
   command: string;
@@ -815,9 +810,10 @@ export type PublicKey = {
 
 export type RekeyTLF = {
   tlf: TLF;
-  problemUsers: Array<ProblemUser>;
+  problemUser: User;
+  problemDevice: Device;
   score: int;
-  solutions: Array<DeviceID>;
+  solutions: Array<Device>;
 }
 
 export type RemoteProof = {
@@ -1112,7 +1108,6 @@ export type StringKVPair = {
 
 export type TLF = {
   tlfid: TLFID;
-  name: string;
   writers: Array<string>;
   readers: Array<string>;
   isPrivate: boolean;
