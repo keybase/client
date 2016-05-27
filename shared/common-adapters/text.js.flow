@@ -3,18 +3,22 @@
 import React, {Component} from 'react'
 
 export type Background = 'Normal' | 'Announcements' | 'Success' | 'Information' | 'HighRisk' | 'Documentation' | 'Terminal'
+
+export type TextType =
+    'HeaderJumbo' | 'HeaderBig' | 'Header' | 'HeaderError' | 'HeaderLink'
+  | 'Body' | 'BodySemibold' | 'BodyPrimaryLink'
+  | 'BodySmall' | 'BodySmallLink' | 'BodySmallError' | 'BodySmallPrimaryLink' | 'BodySmallSecondaryLink'
+  | 'BodyXSmall' | 'BodyXSmallLink'
+  | 'BodySmallSemibold'
+  | 'BodySemiboldItalic'
+  | 'BadgeNumber'
+  | 'Error'
+  | 'Terminal'
+  | 'TerminalUsername' | 'TerminalPublic' | 'TerminalPrivate'
+  | 'TerminalCommand' | 'TerminalComment' | 'TerminalEmpty' | 'TerminalSmall'
+
 export type Props = {
-  type: 'HeaderJumbo' | 'HeaderBig' | 'Header' | 'HeaderError' | 'HeaderLink'
-          | 'Body' | 'BodySemibold' | 'BodyPrimaryLink'
-          | 'BodySmall' | 'BodySmallLink' | 'BodySmallError' | 'BodySmallPrimaryLink' | 'BodySmallSecondaryLink'
-          | 'BodyXSmall' | 'BodyXSmallLink'
-          | 'BodySmallSemibold'
-          | 'BodySemiboldItalic'
-          | 'BadgeNumber'
-          | 'Error'
-          | 'Terminal'
-          | 'TerminalUsername' | 'TerminalPublic' | 'TerminalPrivate'
-          | 'TerminalCommand' | 'TerminalComment' | 'TerminalEmpty' | 'TerminalSmall',
+  type: TextType,
   backgroundMode?: Background,
   inline?: boolean,
   link?: boolean,
