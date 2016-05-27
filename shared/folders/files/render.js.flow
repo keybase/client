@@ -2,6 +2,7 @@
 
 import type {Props as FileProps} from './file/render'
 import type {MenuItem} from '../../common-adapters/popup-menu'
+import type {Props as IconProps} from '../../common-adapters/icon'
 
 export type FileSection = {
   name: string,
@@ -15,6 +16,12 @@ export type ParticipantUnlock = {
   onClick: () => void
 }
 
+export type UnlockDevice = {
+  name: string,
+  icon: IconProps.type,
+  onClickPaperkey?: () => void
+}
+
 export type Props = {
   theme: 'public' | 'private',
   visiblePopupMenu: boolean,
@@ -26,7 +33,8 @@ export type Props = {
   onTogglePopupMenu: () => void,
   recentFilesSection: Array<FileSection>,
   openCurrentFolder: () => void,
-  waitingForParticipantUnlock: Array<ParticipantUnlock>
+  waitingForParticipantUnlock: Array<ParticipantUnlock>,
+  youCanUnlock: Array<UnlockDevice>
 }
 
 export default class Render extends React$Component<void, Props, void> { }

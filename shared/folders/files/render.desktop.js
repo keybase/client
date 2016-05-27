@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, Text, BackButton, Avatar, PopupMenu, Icon, ListItem} from '../../common-adapters'
+import {Box, Text, BackButton, Avatar, PopupMenu, Icon, ListItem, Button} from '../../common-adapters'
 import File from './file/render'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 import {resolveImageAsURL} from '../../../desktop/resolve-root'
@@ -23,9 +23,7 @@ const Section = ({section, theme}) => (
 const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMode}) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn}}>
-      <Box style={{...globalStyles.flexBoxColumn, backgroundColor: globalColors.red, padding: 13, alignItems: 'center'}}>
-        <Text type='BodySmallSemibold' style={{color: globalColors.white}} >This folder is waiting for either participant to turn on a device.</Text>
-      </Box>
+      <Text type='BodySmallSemibold' style={styleWarningBanner} >This folder is waiting for either participant to turn on a device.</Text>
       <Box style={{...globalStyles.flexBoxColumn, marginTop: 38, paddingLeft: 64, paddingRight: 64}}>
         {intersperseFn(i => <Box key={i} style={{height: 1, backgroundColor: isPrivate ? globalColors.white_40 : globalColors.black_10}} />,
         waitingForParticipantUnlock.map(p => (
@@ -41,9 +39,35 @@ const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMo
   )
 }
 
+const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode}) => {
+  return (
+    <Box style={{...globalStyles.flexBoxColumn}}>
+      <Text type='BodySmallSemibold' style={styleWarningBanner} >This computer and possibly others are unable to read this folder. To avoid losing data forever, please take one of the actions below.</Text>
+      <Box style={{...globalStyles.flexBoxColumn, marginTop: 38, paddingLeft: 64, paddingRight: 64}}>
+        {intersperseFn(i => <Box key={i} style={{height: 1, backgroundColor: isPrivate ? globalColors.white_40 : globalColors.black_10}} />,
+        youCanUnlock.map(y => (
+          <ListItem
+            type='Large' action={y.onClickPaperkey
+              ? <Button label='Enter paper key' onClick={y.onClickPaperkey} type='Secondary' backgroundMode={backgroundMode} />
+              : <Box />}
+            icon={<Icon type={y.icon} />}
+            body={<Box style={{...globalStyles.flexBoxColumn}}>
+              <Text type='Body' backgroundMode={backgroundMode}>{y.name}</Text>
+              {!y.onClickPaperkey && <Text type='BodySmall' backgroundMode={backgroundMode}>Open the Keybase app</Text>}
+            </Box>} />
+        )))}
+      </Box>
+    </Box>
+  )
+}
+
 export default class Render extends Component<void, Props, void> {
   _renderContents (isPrivate: boolean) {
     const backgroundMode = isPrivate ? 'Terminal' : 'Normal'
+
+    if (this.props.youCanUnlock.length) {
+      return <YouCanUnlock youCanUnlock={this.props.youCanUnlock} isPrivate={isPrivate} backgroundMode={backgroundMode} />
+    }
 
     if (this.props.waitingForParticipantUnlock.length) {
       return <ParticipantUnlock waitingForParticipantUnlock={this.props.waitingForParticipantUnlock} isPrivate={isPrivate} backgroundMode={backgroundMode} />
@@ -167,6 +191,16 @@ const styleNoFiles = {
   justifyContent: 'center',
   alignItems: 'center',
   padding: 64
+}
+
+const styleWarningBanner = {
+  backgroundColor: globalColors.red,
+  color: globalColors.white,
+  paddingTop: 13,
+  paddingBottom: 13,
+  paddingLeft: 64,
+  paddingRight: 64,
+  textAlign: 'center'
 }
 
 function styleMenuColorThemed (theme, showingMenu): string {
