@@ -4,12 +4,14 @@ import React, {Component} from 'react'
 
 export type MenuItem = {
   title: string,
+  subTitle?: string,
+  danger?: boolean,
   onClick: () => void,
   style?: Object
 }
 
 export type Props = {
-  items: Array<MenuItem>,
+  items: Array<MenuItem | null>, // null for dividers
   onHidden: () => void,
   visible: boolean,
   style?: Object

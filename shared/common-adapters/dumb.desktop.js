@@ -3,7 +3,7 @@
 import React from 'react'
 
 import Checkbox from './checkbox'
-import {Button, Box, TabBar, Text, Avatar, ListItem} from './index'
+import {Button, Box, TabBar, Text, Avatar, ListItem, PopupMenu} from './index'
 import {TabBarButton, TabBarItem} from './tab-bar'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
@@ -107,8 +107,44 @@ const listItemMap: DumbComponentMap<ListItem> = {
   }
 }
 
+const popupCommon = {
+  parentProps: {style: {border: 'solid 1px black', position: 'relative', height: 300}},
+  onHidden: () => console.log('popup hidden'),
+  style: {marginLeft: 100, maxWidth: 320},
+  visible: true
+}
+
+const popupItemCommon = {
+  onClick: () => console.log('item clicked')
+}
+
+const popupMenuMap: DumbComponentMap<PopupMenu> = {
+  component: PopupMenu,
+  mocks: {
+    'Popup Simple': {
+      ...popupCommon,
+      items: [
+        {...popupItemCommon, title: 'One'},
+        {...popupItemCommon, title: 'Two'},
+        {...popupItemCommon, title: 'Three'}
+      ]
+    },
+    'Popup Complex': {
+      ...popupCommon,
+      items: [
+        {...popupItemCommon, title: 'Open in Finder'},
+        {...popupItemCommon, title: 'Ignore'},
+        null,
+        {...popupItemCommon, title: 'Clear history (3.24 MB)', subTitle: 'Deletes old copies of files.', danger: true},
+        {...popupItemCommon, title: 'Delete files and clear history (5.17GB)', subTitle: 'Deletes everything in this folder, including its backup versions', danger: true}
+      ]
+    }
+  }
+}
+
 export default {
-  'Checkbox': checkboxMap,
+  Checkbox: checkboxMap,
   TabBar: tabBarMap,
-  ListItem: listItemMap
+  ListItem: listItemMap,
+  PopupMenu: popupMenuMap
 }

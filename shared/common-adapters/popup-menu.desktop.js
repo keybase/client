@@ -11,22 +11,45 @@ class Menu extends Component<void, Props, void> {
     }
 
     const realCSS = `
-    .menu-hover:hover {
-      background-color: ${(this.props.style && this.props.style.hoverColor) || globalColors.blue4}
+    .menu-hover:hover { background-color: ${(this.props.style && this.props.style.hoverColor) || globalColors.blue4}; }
+    .menu-hover-danger:hover { background-color: ${globalColors.red}; }
+
+    .menu-hover .title { color: ${globalColors.black_75}; }
+    .menu-hover-danger .title { color: ${globalColors.red}; }
+    .menu-hover-danger:hover .title { color: ${globalColors.white}; }
+    .menu-hover-danger .subtitle { color: ${globalColors.black_40}; }
+    .menu-hover-danger:hover .subtitle { color: ${globalColors.white}; }
     }
     `
 
     return (
-      <Box style={{...stylesMenuCatcher, ...this.props.style}} onClick={() => this.props.onHidden()}>
+      <Box style={{...stylesMenuCatcher}} onClick={e => {
+        this.props.onHidden()
+        e.stopPropagation()
+      }}>
         <style>{realCSS}</style>
-        <Box style={stylesMenu}>
-          {this.props.items.map(i => (
-            <Text key={i.title} className='menu-hover' type='Body' style={{...stylesMenuText, ...i.style}} onClick={i.onClick}>{i.title}</Text>
-          ))}
+        <Box style={{...stylesMenu, ...this.props.style}}>
+          <Box style={{...globalStyles.flexBoxColumn, flexShrink: 0, paddingTop: 7, paddingBottom: 7}} >
+            {this.props.items.map((i, idx) => (i ? (
+              <Box className={i.danger ? 'menu-hover-danger' : 'menu-hover'} style={stylesRow} onClick={i.onClick}>
+                <Text className='title' key={i.title} type='Body' style={{...stylesMenuText, ...i.style}}>{i.title}</Text>
+                {i.subTitle && <Text className='subtitle' key={i.subTitle} type='BodySmall' style={{...stylesMenuText, ...i.style}}>{i.subTitle}</Text>}
+              </Box>
+              ) : <Box key={idx} style={{height: 1, backgroundColor: globalColors.black_10, marginTop: 8, marginBottom: 8}} />
+            ))}
+          </Box>
         </Box>
       </Box>
     )
   }
+}
+
+const stylesRow = {
+  ...globalStyles.flexBoxColumn,
+  paddingTop: 8,
+  paddingBottom: 8,
+  paddingLeft: 15,
+  paddingRight: 15
 }
 
 const stylesMenuCatcher = {
@@ -42,21 +65,21 @@ const stylesMenuCatcher = {
 
 const stylesMenu = {
   ...globalStyles.flexBoxColumn,
+  ...globalStyles.clickable,
   justifyContent: 'flex-start',
   alignItems: 'stretch',
   backgroundColor: globalColors.white,
   borderRadius: 3,
-  paddingTop: 7,
-  paddingBottom: 7,
   marginTop: 29,
   marginLeft: 4,
-  boxShadow: '0 0 15px 0 rgba(0, 0, 0, 0.2)'
+  boxShadow: '0 0 15px 0 rgba(0, 0, 0, 0.2)',
+  overflowX: 'hidden',
+  overflowY: 'auto'
 }
 
 const stylesMenuText = {
-  lineHeight: '30px',
-  paddingLeft: 15,
-  paddingRight: 15
+  ...globalStyles.clickable,
+  color: undefined
 }
 
 export default Menu

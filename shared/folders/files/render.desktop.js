@@ -116,7 +116,7 @@ export default class Render extends Component<void, Props, void> {
             )))}
           </Box>
         </Box>
-        <PopupMenu style={{alignItems: 'flex-end', top: 12, right: 12}} items={this.props.popupMenuItems} visible={this.props.visiblePopupMenu} onHidden={this.props.onTogglePopupMenu} />
+        <PopupMenu style={{marginLeft: 'auto', marginRight: 8, marginTop: 36, width: 320}} items={this.props.popupMenuItems} visible={this.props.visiblePopupMenu} onHidden={this.props.onTogglePopupMenu} />
         {this._renderContents(isPrivate)}
       </Box>
     )

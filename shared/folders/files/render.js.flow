@@ -25,7 +25,7 @@ export type UnlockDevice = {
 export type Props = {
   theme: 'public' | 'private',
   visiblePopupMenu: boolean,
-  popupMenuItems: Array<MenuItem>,
+  popupMenuItems: Array<MenuItem | null>,
   selfUsername: string,
   users: Array<string>,
   showGroupIcon?: boolean, // TODO (this is not implemented, but this will show the group icon instead of user avatars)

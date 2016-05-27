@@ -221,9 +221,16 @@ function genFiles (offsetNumber: number, fileCount: number, isPrivate: boolean):
   return results
 }
 
+const popupItemCommon = {
+  onClick: () => console.log('item clicked')
+}
+
 const filesMenuItems = [
-  {title: 'Item 1', onClick: () => {}},
-  {title: 'Item 2', onClick: () => {}}
+  {...popupItemCommon, title: 'Open in Finder'},
+  {...popupItemCommon, title: 'Ignore'},
+  null,
+  {...popupItemCommon, title: 'Clear history (3.24 MB)', subTitle: 'Deletes old copies of files.', danger: true},
+  {...popupItemCommon, title: 'Delete files and clear history (5.17GB)', subTitle: 'Deletes everything in this folder, including its backup versions', danger: true}
 ]
 
 const commonFiles = isPrivate => ({
