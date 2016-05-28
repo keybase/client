@@ -7,15 +7,20 @@ import type {Props} from './usernames'
 
 export default class Usernames extends Component<void, Props, void> {
   render () {
-    const {type, users, style} = this.props
+    const {type, users, style, inline} = this.props
+    const containerStyle = inline ? {display: 'inline'} : {...globalStyles.flexBoxRow, flexWrap: 'wrap'}
 
     return (
-      <Box style={{...globalStyles.flexBoxRow, flexWrap: 'wrap'}}>
+      <Box style={containerStyle}>
         {users.map((u, i) => {
           const userStyle = {...style}
 
           if (u.broken) {
             userStyle.color = globalColors.red
+          }
+
+          if (inline) {
+            userStyle.display = 'inline-block'
           }
 
           if (u.you) {
