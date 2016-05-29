@@ -183,20 +183,27 @@ func (d *Service) Run() (err error) {
 
 	d.checkTrackingEveryHour()
 
-	if d.G().Env.GetRunMode() != libkb.ProductionRunMode {
-		d.G().Log.Debug("connecting to gregord in non-production run mode")
-		if gcErr := d.tryGregordConnect(); gcErr != nil {
-			d.G().Log.Debug("error connecting to gregord: %s", gcErr)
-		}
-		d.G().AddLoginHook(d)
-		d.G().AddLogoutHook(d)
-	} else {
-		d.G().Log.Debug("not connecting to gregord in production")
-	}
+	d.startupGregor()
 
 	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
 
 	return err
+}
+
+func (d *Service) startupGregor() {
+	g := d.G()
+	if g.Env.GetGregorDisabled() {
+		g.Log.Debug("Gregor explicitly disabled")
+	} else if !g.Env.GetTorMode().UseSession() {
+		g.Log.Debug("Gregor disabled in Tor mode")
+	} else {
+		g.Log.Debug("connecting to gregord in non-production run mode")
+		if gcErr := d.tryGregordConnect(); gcErr != nil {
+			g.Log.Debug("error connecting to gregord: %s", gcErr)
+		}
+		g.AddLoginHook(d)
+		g.AddLogoutHook(d)
+	}
 }
 
 func (d *Service) StartLoopbackServer() error {

@@ -483,6 +483,9 @@ func (f JSONConfigFile) GetGregorURI() string {
 	s, _ := f.GetStringAtPath("gregor.uri")
 	return s
 }
+func (f JSONConfigFile) GetGregorDisabled() (bool, bool) {
+	return f.GetBoolAtPath("gregor.disabled")
+}
 
 func (f JSONConfigFile) GetGregorSaveInterval() (time.Duration, bool) {
 	return f.GetDurationAtPath("gregor.save_interval")

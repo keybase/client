@@ -109,6 +109,19 @@ func (p CommandLine) GetGpgHome() string {
 func (p CommandLine) GetAPIDump() (bool, bool) {
 	return p.GetBool("api-dump-unsafe", true)
 }
+func (p CommandLine) GetGregorSaveInterval() (time.Duration, bool) {
+	ret, err := p.GetGDuration("gregor-save-interval")
+	if err != nil {
+		return 0, false
+	}
+	return ret, true
+}
+func (p CommandLine) GetGregorDisabled() (bool, bool) {
+	return p.GetBool("gregor-disabled", true)
+}
+func (p CommandLine) GetGregorURI() string {
+	return p.GetGString("gregor-uri")
+}
 func (p CommandLine) GetRunMode() (libkb.RunMode, error) {
 	return libkb.StringToRunMode(p.GetGString("run-mode"))
 }
@@ -317,6 +330,18 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "api-uri-path-prefix",
 			Usage: "Specify an alternate API URI path prefix.",
+		},
+		cli.StringFlag{
+			Name:  "gregor-uri",
+			Usage: "specify a URI for contacting the gregor server",
+		},
+		cli.BoolFlag{
+			Name:  "gregor-disabled",
+			Usage: "disable gregor connection (which is on by default)",
+		},
+		cli.IntFlag{
+			Name:  "gregor-save-interval",
+			Usage: "tune the interval gregor saves to disk",
 		},
 		cli.StringFlag{
 			Name:  "pinentry",
