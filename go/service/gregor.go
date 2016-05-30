@@ -624,11 +624,12 @@ func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient) error {
 
 func (g *gregorHandler) connectTLS(uri *rpc.FMPURI) error {
 
-	g.G().Log.Debug("connecting to gregord via TLS")
+	g.G().Log.Debug("connecting to gregord via TLS at %s", uri)
 	rawCA := g.G().Env.GetBundledCA(uri.Host)
 	if len(rawCA) == 0 {
 		return fmt.Errorf("No bundled CA for %s", uri.Host)
 	}
+	g.G().Log.Debug("Using CA for gregor: %s", libkb.ShortCA(rawCA))
 	g.conn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), keybase1.ErrorUnwrapper{}, g, true, libkb.NewRPCLogFactory(g.G()), keybase1.WrapError, g.G().Log, nil)
 
 	// The client we get here will reconnect to gregord on disconnect if necessary.
@@ -643,7 +644,7 @@ func (g *gregorHandler) connectTLS(uri *rpc.FMPURI) error {
 
 func (g *gregorHandler) connectNoTLS(uri *rpc.FMPURI) error {
 
-	g.G().Log.Debug("connecting to gregord without TLS")
+	g.G().Log.Debug("connecting to gregord without TLS at %s", uri)
 	t := newConnTransport(g.G(), uri.HostPort)
 	g.conn = rpc.NewConnectionWithTransport(g, t, keybase1.ErrorUnwrapper{}, true, keybase1.WrapError, g.G().Log, nil)
 	g.cli = g.conn.GetClient()
