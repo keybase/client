@@ -38,7 +38,7 @@ export const styles = {
     alignItems: 'center'
   },
   icon: {
-    fontSize: 12,
+    fontSize: 11,
     marginRight: 8
   }
 }
