@@ -3,7 +3,7 @@
 import React, {Component} from 'react'
 import commonStyles from '../styles/common'
 import {globalStyles, globalColors} from '../styles/style-guide'
-import {Icon, Text, ProgressIndicator, Meta} from '../common-adapters/index'
+import {Icon, Text, Meta} from '../common-adapters/index'
 import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked, error as proofError, warning as proofWarning} from '../constants/tracker'
 import {metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone, metaIgnored} from '../constants/tracker'
 import electron from 'electron'
@@ -86,6 +86,9 @@ class ProofsRender extends Component {
 
   _proofStatusIcon (proof: Proof): ?IconProps.type {
     switch (proof.state) {
+      case proofChecking:
+        return 'fa-kb-iconfont-proof-pending'
+
       case proofNormal:
         return proof.isTracked ? 'fa-kb-iconfont-proof-followed' : 'fa-kb-iconfont-proof-new'
 
@@ -103,8 +106,6 @@ class ProofsRender extends Component {
     const proofNameColor = this._proofColor(proof)
     const proofStatusIcon = this._proofStatusIcon(proof)
     const onClickProfile = () => { this._onClickProfile(proof) }
-    // TODO: State is deprecated, will refactor after nuking v1
-    let isChecking = (proof.state === proofChecking)
 
     const proofStyle = {
       ...globalStyles.selectable,
@@ -122,9 +123,7 @@ class ProofsRender extends Component {
     const meta = proof.meta &&
       proof.meta !== metaNone &&
       <Meta title={proof.meta} style={{backgroundColor: metaColor}} />
-    const proofIcon = isChecking
-      ? <ProgressIndicator style={styleLoader} />
-      : proofStatusIcon && <Icon type={proofStatusIcon} style={styleStatusIcon} onClick={() => this._onClickProof(proof)} />
+    const proofIcon = proofStatusIcon && <Icon type={proofStatusIcon} style={styleStatusIcon} onClick={() => this._onClickProof(proof)} />
 
     return (
       <p style={styleRow} key={`${proof.id}${proof.type}`}>
@@ -168,18 +167,18 @@ const styleRow = {
 
 const styleService = {
   ...globalStyles.clickable,
-  height: 14,
-  width: 14,
+  fontSize: 15,
   color: globalColors.black_75,
   hoverColor: globalColors.black_75,
   marginRight: 9,
-  marginTop: 4
+  marginTop: 5
 }
 
 const styleStatusIcon = {
   ...globalStyles.clickable,
   fontSize: 20,
-  marginLeft: 10
+  marginLeft: 10,
+  marginTop: 1
 }
 
 const styleProofNameSection = {
@@ -201,10 +200,6 @@ const styleProofName = {
 const styleProofType = {
   color: globalColors.black_10,
   wordBreak: 'normal'
-}
-
-const styleLoader = {
-  width: 20
 }
 
 export default ProofsRender
