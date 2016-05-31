@@ -3108,9 +3108,11 @@ func TestKBFSOpsWriteOverMultipleBlocks(t *testing.T) {
 	testPutBlockInCache(config, fileNode.BlockPointer, id, fileBlock)
 	testPutBlockInCache(config, fileBlock.IPtrs[0].BlockPointer, id, block1)
 	testPutBlockInCache(config, fileBlock.IPtrs[1].BlockPointer, id, block2)
+
 	// only copy the first half first
 	config.mockBsplit.EXPECT().CopyUntilSplit(
-		gomock.Any(), gomock.Any(), data, int64(2)).
+		//		gomock.Any(), gomock.Any(), data, int64(2)).
+		gomock.Any(), gomock.Any(), []byte{1, 2, 3}, int64(2)).
 		Do(func(block *FileBlock, lb bool, data []byte, off int64) {
 			block.Contents = append(block1.Contents[0:2], data[0:3]...)
 		}).Return(int64(3))
