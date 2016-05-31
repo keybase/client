@@ -334,6 +334,8 @@ func (p BlockPointer) IsFirstRef() bool {
 	return p.RefNonce == zeroBlockRefNonce
 }
 
+var bpSize = uint64(reflect.TypeOf(BlockPointer{}).Size())
+
 // ReadyBlockData is a block that has been encoded (and encrypted).
 type ReadyBlockData struct {
 	// These fields should not be used outside of BlockOps.Put().
@@ -561,7 +563,7 @@ func (bc BlockChanges) Equals(other BlockChanges) bool {
 func (bc *BlockChanges) addBPSize() {
 	// We want an estimate of the codec-encoded size, but the
 	// in-memory size is good enough.
-	bc.sizeEstimate += uint64(reflect.TypeOf(BlockPointer{}).Size())
+	bc.sizeEstimate += bpSize
 }
 
 // AddRefBlock adds the newly-referenced block to this BlockChanges

@@ -1666,15 +1666,7 @@ func (fbo *folderBranchOps) finalizeMDWriteLocked(ctx context.Context,
 		}
 	}
 
-	// Swap any cached block changes so that future local accesses to
-	// this MD (from the cache) can directly access the ops without
-	// needing to re-embed the block changes.
-	if md.data.Changes.Ops == nil {
-		md.data.Changes, md.data.cachedChanges =
-			md.data.cachedChanges, md.data.Changes
-		md.data.Changes.Ops[0].
-			AddRefBlock(md.data.cachedChanges.Info.BlockPointer)
-	}
+	md.swapCachedBlockChanges()
 
 	err = fbo.finalizeBlocks(bps)
 	if err != nil {
@@ -1773,6 +1765,7 @@ func (fbo *folderBranchOps) finalizeGCOp(ctx context.Context, gco *gcOp) (
 	}
 
 	fbo.setStagedLocked(lState, false, NullBranchID)
+	md.swapCachedBlockChanges()
 
 	fbo.headLock.Lock(lState)
 	defer fbo.headLock.Unlock(lState)
