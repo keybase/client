@@ -40,6 +40,9 @@ type CommandLine interface {
 	GetLogFormat() string
 	GetGpgHome() string
 	GetAPIDump() (bool, bool)
+	GetGregorURI() string
+	GetGregorSaveInterval() (time.Duration, bool)
+	GetGregorDisabled() (bool, bool)
 	GetUserCacheMaxAge() (time.Duration, bool)
 	GetProofCacheSize() (int, bool)
 	GetLinkCacheSize() (int, bool)
@@ -147,6 +150,7 @@ type ConfigReader interface {
 	GetSecurityAccessGroupOverride() (bool, bool)
 	GetGregorURI() string
 	GetGregorSaveInterval() (time.Duration, bool)
+	GetGregorDisabled() (bool, bool)
 
 	GetUpdatePreferenceAuto() (bool, bool)
 	GetUpdatePreferenceSkip() string
