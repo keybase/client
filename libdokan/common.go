@@ -48,7 +48,7 @@ func NewContextWithOpID(fs *FS, debugMessage string) (
 		return fs.context, func() {}
 	}
 	ctx = context.WithValue(fs.context, CtxIDKey, id)
-	return context.WithTimeout(ctx, 19*time.Second)
+	return context.WithTimeout(ctx, 29*time.Second)
 }
 
 // eiToStat converts from a libkbfs.EntryInfo and error to a *dokan.Stat and error.
