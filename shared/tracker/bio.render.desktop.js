@@ -6,6 +6,7 @@ import {globalStyles, globalColors} from '../styles/style-guide'
 import electron from 'electron'
 
 const shell = electron.shell || electron.remote.shell
+const avatarSize = 80
 
 import type {BioProps} from './bio.render'
 
@@ -52,7 +53,7 @@ export default class BioRender extends Component {
       <div style={stylesOuter}>
         <div style={stylesContainer}>
           <div style={stylesAvatarOuter}>
-            <Avatar onClick={() => this._onClickAvatar()} style={globalStyles.clickable} url={userInfo.avatar} size={75} />
+            <Avatar onClick={() => this._onClickAvatar()} style={globalStyles.clickable} url={userInfo.avatar} size={avatarSize} />
             {(followsYou || currentlyFollowing) &&
               <div>
                 {followsYou && <div style={followBadgeStyles.followsYou}> <div style={{...followBadgeCommon, height: 6, width: 6, top: 2, right: 2}} /></div>}
@@ -108,8 +109,8 @@ const stylesContainer = {
   marginTop: -40
 }
 const stylesAvatarOuter = {
-  width: 75,
-  height: 75,
+  width: avatarSize,
+  height: avatarSize,
   position: 'relative',
   zIndex: 2
 }

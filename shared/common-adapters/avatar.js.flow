@@ -3,8 +3,7 @@
 import React, {Component} from 'react'
 
 type CommonProps = {
-  size: 176 | 112 | 80 | 64 | 48 | 32 | 24
-| 180 | 110 | 75 | 60 | 45 | 32 | 16, // TODO old sizes: remove this line and clean up globally
+  size: 176 | 112 | 80 | 64 | 48 | 32 | 24 | 16,
   style?: ?Object,
   onClick?: ?(() => void)
 }
