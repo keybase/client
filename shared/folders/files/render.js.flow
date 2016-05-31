@@ -1,7 +1,7 @@
 // @flow
 
 import type {Props as FileProps} from './file/render'
-import type {MenuItem} from '../../common-adapters/popup-menu'
+import type {MenuItem, Props as MenuProps} from '../../common-adapters/popup-menu'
 import type {Props as IconProps} from '../../common-adapters/icon'
 
 export type FileSection = {
@@ -25,7 +25,7 @@ export type UnlockDevice = {
 export type Props = {
   theme: 'public' | 'private',
   visiblePopupMenu: boolean,
-  popupMenuItems: Array<MenuItem>,
+  popupMenuItems: MenuProps.items,
   selfUsername: string,
   users: Array<string>,
   showGroupIcon?: boolean, // TODO (this is not implemented, but this will show the group icon instead of user avatars)

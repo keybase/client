@@ -8,7 +8,7 @@ import {intersperseFn} from '../../util/arrays'
 import type {Props} from './render'
 
 const Section = ({section, theme}) => (
-  <Box key={section.name} style={{...globalStyles.flexBoxColumn, backgroundColor: backgroundColorThemed[theme]}}>
+  <Box style={{...globalStyles.flexBoxColumn, backgroundColor: backgroundColorThemed[theme]}}>
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 32}}>
       <Box key={section.name} style={{display: 'inline', marginLeft: 8}}>
         {section.modifiedMarker && <Icon type='thunderbolt' style={{height: 12, alignSelf: 'center', marginRight: 6, ...styleSectionTextThemed[theme]}} />}
@@ -23,11 +23,12 @@ const Section = ({section, theme}) => (
 const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMode}) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn}}>
-      <Text type='BodySmallSemibold' style={styleWarningBanner} >This folder is waiting for either participant to turn on a device.</Text>
+      <Text type='BodySmallSemibold' style={styleWarningBanner}>This folder is waiting for either participant to turn on a device.</Text>
       <Box style={{...globalStyles.flexBoxColumn, marginTop: 38, paddingLeft: 64, paddingRight: 64}}>
         {intersperseFn(i => <Box key={i} style={{height: 1, backgroundColor: isPrivate ? globalColors.white_40 : globalColors.black_10}} />,
         waitingForParticipantUnlock.map(p => (
           <ListItem
+            key={p.name}
             type='Large' action={<Box />} icon={<Avatar size={48} username={p.name} />}
             body={<Box style={{...globalStyles.flexBoxColumn}}>
               <Text type='Body' backgroundMode={backgroundMode} onClick={p.onClick}>{p.name}</Text>
@@ -45,15 +46,16 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode}) => {
       <Text type='BodySmallSemibold' style={styleWarningBanner} >This computer and possibly others are unable to read this folder. To avoid losing data forever, please take one of the actions below.</Text>
       <Box style={{...globalStyles.flexBoxColumn, marginTop: 38, paddingLeft: 64, paddingRight: 64}}>
         {intersperseFn(i => <Box key={i} style={{height: 1, backgroundColor: isPrivate ? globalColors.white_40 : globalColors.black_10}} />,
-        youCanUnlock.map(y => (
+        youCanUnlock.map(device => (
           <ListItem
-            type='Large' action={y.onClickPaperkey
-              ? <Button label='Enter paper key' onClick={y.onClickPaperkey} type='Secondary' backgroundMode={backgroundMode} />
+            key={device.name}
+            type='Large' action={device.onClickPaperkey
+              ? <Button label='Enter paper key' onClick={device.onClickPaperkey} type='Secondary' backgroundMode={backgroundMode} />
               : <Box />}
-            icon={<Icon type={y.icon} />}
+            icon={<Icon type={device.icon} />}
             body={<Box style={{...globalStyles.flexBoxColumn}}>
-              <Text type='Body' backgroundMode={backgroundMode}>{y.name}</Text>
-              {!y.onClickPaperkey && <Text type='BodySmall' backgroundMode={backgroundMode}>Open the Keybase app</Text>}
+              <Text type='Body' backgroundMode={backgroundMode}>{device.name}</Text>
+              {!device.onClickPaperkey && <Text type='BodySmall' backgroundMode={backgroundMode}>Open the Keybase app</Text>}
             </Box>} />
         )))}
       </Box>
@@ -76,7 +78,7 @@ export default class Render extends Component<void, Props, void> {
     if (this.props.recentFilesSection.length) {
       return (
         <Box style={{...globalStyles.flexBoxColumn}}>
-          {this.props.recentFilesSection.map(s => <Section section={s} theme={this.props.theme} />)}
+          {this.props.recentFilesSection.map(s => <Section key={s.name} section={s} theme={this.props.theme} />)}
         </Box>
       )
     } else {
@@ -116,7 +118,7 @@ export default class Render extends Component<void, Props, void> {
             )))}
           </Box>
         </Box>
-        <PopupMenu style={{alignItems: 'flex-end', top: 12, right: 12}} items={this.props.popupMenuItems} visible={this.props.visiblePopupMenu} onHidden={this.props.onTogglePopupMenu} />
+        <PopupMenu style={{marginLeft: 'auto', marginRight: 8, marginTop: 36, width: 320}} items={this.props.popupMenuItems} visible={this.props.visiblePopupMenu} onHidden={this.props.onTogglePopupMenu} />
         {this._renderContents(isPrivate)}
       </Box>
     )
