@@ -25,11 +25,8 @@ func totalBlockRefs(m map[BlockID]map[BlockRefNonce]blockRefLocalStatus) int {
 // Test that quota reclamation works for a simple case where the user
 // does a few updates, then lets quota reclamation run, and we make
 // sure that all historical blocks have been deleted.
-func TestQuotaReclamationSimple(t *testing.T) {
-	var userName libkb.NormalizedUsername = "test_user"
-	config, _, ctx := kbfsOpsInitNoMocks(t, userName)
-	defer CheckConfigAndShutdown(t, config)
-
+func testQuotaReclamation(t *testing.T, ctx context.Context, config Config,
+	userName libkb.NormalizedUsername) {
 	clock, now := newTestClockAndTimeNow()
 	config.SetClock(clock)
 
@@ -105,6 +102,37 @@ func TestQuotaReclamationSimple(t *testing.T) {
 		totalBlockRefs(postQR2Blocks); post >= pre {
 		t.Errorf("Blocks didn't shrink after reclamation: pre: %d, post %d",
 			pre, post)
+	}
+}
+
+func TestQuotaReclamationSimple(t *testing.T) {
+	var userName libkb.NormalizedUsername = "test_user"
+	config, _, ctx := kbfsOpsInitNoMocks(t, userName)
+	defer CheckConfigAndShutdown(t, config)
+
+	testQuotaReclamation(t, ctx, config, userName)
+}
+
+// Just like the simple case, except tests that it unembeds large sets
+// of pointers correctly.
+func TestQuotaReclamationUnembedded(t *testing.T) {
+	var userName libkb.NormalizedUsername = "test_user"
+	config, _, ctx := kbfsOpsInitNoMocks(t, userName)
+	defer CheckConfigAndShutdown(t, config)
+
+	config.(*ConfigLocal).bsplit.(*BlockSplitterSimple).
+		blockChangeEmbedMaxSize = 32
+
+	testQuotaReclamation(t, ctx, config, userName)
+
+	// Make sure the MD has an unembedded change block.
+	rootNode := GetRootNodeOrBust(t, config, userName.String(), false)
+	md, err := config.MDOps().GetForTLF(ctx, rootNode.GetFolderBranch().Tlf)
+	if err != nil {
+		t.Fatalf("Couldn't get MD: %v", err)
+	}
+	if md.data.Changes.Info.BlockPointer == zeroPtr {
+		t.Fatalf("No unembedded changes for ops %v", md.data.Changes.Ops)
 	}
 }
 
