@@ -221,9 +221,16 @@ function genFiles (offsetNumber: number, fileCount: number, isPrivate: boolean):
   return results
 }
 
+const popupItemCommon = {
+  onClick: () => console.log('item clicked')
+}
+
 const filesMenuItems = [
-  {title: 'Item 1', onClick: () => {}},
-  {title: 'Item 2', onClick: () => {}}
+  {...popupItemCommon, title: 'Open in Finder'},
+  {...popupItemCommon, title: 'Ignore'},
+  'Divider',
+  {...popupItemCommon, title: 'Clear history (3.24 MB)', subTitle: 'Deletes old copies of files.', danger: true},
+  {...popupItemCommon, title: 'Delete files and clear history (5.17GB)', subTitle: 'Deletes everything in this folder, including its backup versions', danger: true}
 ]
 
 const commonFiles = isPrivate => ({
@@ -232,6 +239,8 @@ const commonFiles = isPrivate => ({
   popupMenuItems: filesMenuItems,
   selfUsername: 'cecileb',
   users: ['cecileb', 'aliceb'],
+  waitingForParticipantUnlock: [],
+  youCanUnlock: [],
   onBack: () => console.log('onBack:files'),
   openCurrentFolder: () => console.log('open current folder'),
   onTogglePopupMenu: () => console.log('onTogglePopupMenu'),
@@ -240,6 +249,26 @@ const commonFiles = isPrivate => ({
     {name: 'Yesterday', modifiedMarker: false, files: genFiles(4, 4, isPrivate)}
   ]
 })
+
+const commonParticipant = {
+  recentFilesSection: [],
+  waitingForParticipantUnlock: [
+    {name: 'throughnothing', devices: 'Tell them to turn on: Home Computer, ben\'s iPhone or Work laptop.', onClick: () => console.log('clicked throughnothing')},
+    {name: 'bob', devices: 'Tell them to turn on bob\'s Android phone', onClick: () => console.log('clicked bob')}
+  ]
+}
+
+const commonUnlock = {
+  recentFilesSection: [],
+  waitingForParticipantUnlock: [],
+  youCanUnlock: [
+    {name: 'Work Computer', icon: 'icon-computer-bw-32'},
+    {name: 'Home Computer', icon: 'icon-computer-bw-32'},
+    {name: 'Cecil\'s iPhone', icon: 'icon-phone-bw-48'},
+    {name: 'project green...', icon: 'icon-paper-key-32', onClickPaperkey: () => console.log('clicked on project green')},
+    {name: 'gumball sparkles...', icon: 'icon-paper-key-32', onClickPaperkey: () => console.log('clicked on gumball sparkles')}
+  ]
+}
 
 export const files: DumbComponentMap<Files> = {
   component: Files,
@@ -265,6 +294,22 @@ export const files: DumbComponentMap<Files> = {
     'No files - Private': {
       ...commonFiles(true),
       recentFilesSection: []
+    },
+    'Participant Unlock - Public': {
+      ...commonFiles(false),
+      ...commonParticipant
+    },
+    'Participant Unlock - Private': {
+      ...commonFiles(true),
+      ...commonParticipant
+    },
+    'You can unlock - Public': {
+      ...commonFiles(false),
+      ...commonUnlock
+    },
+    'You can unlock - Private': {
+      ...commonFiles(true),
+      ...commonUnlock
     }
   }
 }
