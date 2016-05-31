@@ -7,10 +7,6 @@ declare module 'getenv' {
   declare var exports: any;
 }
 
-declare module 'immutable' {
-  declare var exports: any;
-}
-
 declare module 'react-native-android-permissions' {
   declare var exports: any;
 }

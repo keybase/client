@@ -1,7 +1,7 @@
 /* @flow */
 
 import * as RouterConstants from '../constants/router'
-import Immutable, {List, Map} from 'immutable'
+import {is, List, Map} from 'immutable'
 export type URI = List<Map<string, string>>
 type History = List<URI>
 
@@ -17,7 +17,7 @@ export function createRouterState (uri: Array<string>, history: Array<Array<stri
 }
 
 function pushIfTailIsDifferent (thing, stack) {
-  if (Immutable.is(stack.last(), thing)) {
+  if (is(stack.last(), thing)) {
     return stack
   }
   return stack.push(thing)
@@ -34,7 +34,7 @@ function parsePath (path) {
 }
 
 // A path can either be a string or an object with the key path and extra arguments
-function parseUri (uri) {
+function parseUri (uri: any): URI {
   if (List.isList(uri)) {
     return uri
   }
@@ -57,7 +57,7 @@ export function subReducer (state: RouterState = initialState, action: any): Rou
       if (uri.count() > 1) {
         if (action.payload.till) {
           let current = uri
-          while (current.count() > 0 && !Immutable.is(current.last(), action.payload.till)) {
+          while (current.count() > 0 && !is(current.last(), action.payload.till)) {
             current = current.pop()
           }
 
