@@ -520,8 +520,9 @@ func (e *Env) GetGregorDisabled() bool {
 
 func (e *Env) GetGregorPingInterval() time.Duration {
 	return e.GetDuration(10*time.Second,
-		func() (time.Duration, bool) { return e.getEnvDuration("GREGOR_PING_INTERVAL") },
+		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_PUSH_PING_INTERVAL") },
 		func() (time.Duration, bool) { return e.config.GetGregorPingInterval() },
+		func() (time.Duration, bool) { return e.cmd.GetGregorPingInterval() },
 	)
 }
 
