@@ -9,7 +9,7 @@ Our process:
 
 We'll have a tick-tock cadence aligned with our sprint planning.
 
-- On the 'tick' we'll add a 1 point ticket to investigate the state of our dependencies and any new ones we might want to explore. Create notes in the JIRA ticket to discuss in the 'tock' meeting. Include react-native/desktop/ and the npm -g we do in npm-helpers postinstall hook. Use the ```npm outdated``` command do generate this list.
+- On the 'tick' we'll add a 1 point ticket to investigate the state of our dependencies and any new ones we might want to explore. Create notes in the JIRA ticket to discuss in the 'tock' meeting. Include react-native/desktop/ and the npm -g we do in npm-helpers postinstall hook. Use the ```npm outdated``` command to generate this list.
 - On the 'tock' have a post-planning meeting to discuss the findings of the previous week's ticket. Make tickets to do the updating.
 
 Types of dependencies and how they're generally treated:
