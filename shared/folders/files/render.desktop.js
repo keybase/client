@@ -8,7 +8,7 @@ import {intersperseFn} from '../../util/arrays'
 import type {Props} from './render'
 
 const Section = ({section, theme}) => (
-  <Box key={section.name} style={{...globalStyles.flexBoxColumn, backgroundColor: backgroundColorThemed[theme]}}>
+  <Box style={{...globalStyles.flexBoxColumn, backgroundColor: backgroundColorThemed[theme]}}>
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 32}}>
       <Box key={section.name} style={{display: 'inline', marginLeft: 8}}>
         {section.modifiedMarker && <Icon type='thunderbolt' style={{height: 12, alignSelf: 'center', marginRight: 6, ...styleSectionTextThemed[theme]}} />}
