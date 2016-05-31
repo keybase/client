@@ -11,7 +11,7 @@ export default {
   blue3_40: 'rgba(168, 215, 255, 0.4)',
   blue4: '#e6f3ff',
   blue: '#33a0ff',
-  blue_30: 'rgba(50, 159, 254, 0.3)',
+  blue_30: 'rgba(51, 160, 255, 0.3)',
   brown_60: 'rgba(71, 31, 17, 0.6)',
   darkBlue2: '#2470b3',
   darkBlue3: '#0a3052',
