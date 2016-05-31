@@ -91,9 +91,8 @@ func (c *CmdWatchdog2) Run() error {
 		return err
 	}
 
-	for {
-		time.Sleep(time.Hour)
-	}
+	// Wait forever (watchdog watches programs in separate goroutines)
+	select {}
 }
 
 // NewCmdWatchdog2 constructs watchdog command
