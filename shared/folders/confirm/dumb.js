@@ -3,8 +3,9 @@ import ConfirmClearHistory from './clear-history.render'
 import ConfirmDelete from './delete.render'
 import ConfirmIgnore from './ignore.render'
 import type {DumbComponentMap} from '../../constants/types/more'
+import {isMobile} from '../../constants/platform'
 
-const parentPropsCommon = {style: {display: 'flex', width: 640, height: 580, outline: '1px solid lightgray'}}
+const parentPropsCommon = isMobile ? {} : {style: {display: 'flex', width: 640, height: 580, outline: '1px solid lightgray'}}
 
 export const clearHistoryMap: DumbComponentMap<ConfirmClearHistory> = {
   component: ConfirmClearHistory,

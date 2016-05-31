@@ -14,7 +14,7 @@ const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel}: Props
   }[type]
 
   return (
-    <Confirm theme='public' submitLabel='Yes, delete it' onSubmit={() => onSubmit({deviceID, name, currentDevice})} onCancel={onCancel}>
+    <Confirm theme='public' danger submitLabel='Yes, delete it' onSubmit={() => onSubmit({deviceID, name, currentDevice})} onCancel={onCancel}>
       <Box style={{...globalStyles.flexBoxColumn, minHeight: 80, marginBottom: 16, alignItems: 'center'}}>
         <Icon type={icon} />
         <Text type='Body' style={stylesName}>{name}</Text>

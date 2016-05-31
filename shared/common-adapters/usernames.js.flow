@@ -16,5 +16,7 @@ export type Props = {
   users: UserList
 }
 
+declare export function usernameText(props: Props): void
+
 declare export default class Usernames extends React.Component<void, Props, void> {
 }
