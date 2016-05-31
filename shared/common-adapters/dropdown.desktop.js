@@ -7,16 +7,15 @@ import {transition, globalColors, globalStyles} from '../styles/style-guide'
 import type {Props, MenuItemProps} from './dropdown'
 import type {Props as TextProps} from './text'
 
-import Popover from 'material-ui/lib/popover/popover'
-import PopoverAnimationFromTop from 'material-ui/lib/popover/popover-animation-from-top'
-import DropDownArrow from 'material-ui/lib/svg-icons/navigation/arrow-drop-down'
+import {Popover, PopoverAnimationVertical} from 'material-ui/Popover'
+import {NavigationArrowDropDown} from 'material-ui/svg-icons'
 
-export default class Dropdown extends Component {
-  props: Props;
+type State = {
+  popoverOpen: boolean
+}
 
-  state: {
-    popoverOpen: boolean
-  };
+class Dropdown extends Component<void, Props, State> {
+  state: State;
 
   _dropdownRef: any;
 
@@ -78,13 +77,13 @@ export default class Dropdown extends Component {
             targetOrigin={{horizontal: 'middle', vertical: 'top'}}
             anchorEl={this._dropdownRef}
             style={styles.menuStyle}
-            animation={PopoverAnimationFromTop}
+            animation={PopoverAnimationVertical}
             open={this.state.popoverOpen}
             onRequestClose={() => this.setState({popoverOpen: false})}>
             {list}
           </Popover>
           {selectedValue}
-          <DropDownArrow style={styles.iconStyle} />
+          <NavigationArrowDropDown style={styles.iconStyle} />
         </div>
       </div>
     )
@@ -199,3 +198,5 @@ const styles = {
     justifyContent: 'center'
   }
 }
+
+export default Dropdown

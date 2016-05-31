@@ -3,7 +3,7 @@ import * as Constants from '../constants/devices'
 import {devicesTab, loginTab} from '../constants/tabs'
 import engine from '../engine'
 import {navigateTo, navigateUp, switchTab} from './router'
-import Immutable from 'immutable'
+import {Map} from 'immutable'
 import type {AsyncAction} from '../constants/types/flux'
 import type {incomingCallMapType, loginDeprovisionRpc, revokeRevokeDeviceRpc, deviceDeviceHistoryListRpc, loginPaperKeyRpc} from '../constants/types/flow-types'
 import {setRevokedSelf} from './login'
@@ -126,7 +126,7 @@ export function removeDevice (deviceID: string, name: string, currentDevice: boo
           })
           if (!error) {
             dispatch(loadDevices())
-            dispatch(navigateUp(devicesTab, Immutable.Map({path: 'root'})))
+            dispatch(navigateUp(devicesTab, Map({path: 'root'})))
           }
         }
       }

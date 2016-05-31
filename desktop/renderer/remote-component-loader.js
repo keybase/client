@@ -14,6 +14,8 @@ import update from '../shared/update'
 
 import {setupContextMenu} from '../app/menu-helper'
 import loadPerf from '../shared/util/load-perf'
+import {MuiThemeProvider} from 'material-ui/styles'
+import materialTheme from '../shared/styles/material-theme.desktop'
 
 ipcLogsRenderer()
 
@@ -156,9 +158,11 @@ class RemoteComponentLoader extends Component {
     }
     return (
       <div style={styles.container}>
-        <Provider store={this.store}>
-          <Component {...this.state.props} />
-        </Provider>
+        <MuiThemeProvider muiTheme={materialTheme}>
+          <Provider store={this.store}>
+            <Component {...this.state.props} />
+          </Provider>
+        </MuiThemeProvider>
       </div>
     )
   }
