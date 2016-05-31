@@ -153,59 +153,48 @@ export const map: DumbComponentMap<Folders> = {
 
 const longFile = 'To be or not to be-that is the question: Whether tis nobler in the mind to suffer The slings and arrows of outrageous fortune, Or to take arms against a sea of troubles, And, by opposing, end them.rtf'
 
+const commonFile = {
+  theme: 'private',
+  name: 'How-PGP-works.doc',
+  path: '2016-tutorial/',
+  lastModifiedMeta: '2 hours ago',
+  lastModifiedBy: 'jenbee',
+  modifiedMarker: true,
+  fileIcon: 'logo-128',
+  onClick: () => console.log('onClick:file')
+}
+
 export const file: DumbComponentMap<File> = {
   component: File,
   mocks: {
     'Normal Private': {
-      theme: 'private',
-      name: 'How-PGP-works.doc',
-      path: '2016-tutorial/',
-      lastModifiedMeta: '2 hours ago',
-      lastModifiedBy: 'jenbee',
-      modifiedMarker: true,
-      fileIcon: 'logo-128',
-      onClick: () => console.log('onClick:file')
+      ...commonFile
     },
     'Normal Private Long': {
-      theme: 'private',
-      name: 'How-PGP-works.doc',
-      path: '2016-tutorial/',
-      lastModifiedMeta: '2 hours ago',
-      lastModifiedBy: 'jenbee',
-      modifiedMarker: true,
-      fileIcon: 'logo-128',
-      onClick: () => console.log('onClick:file')
+      ...commonFile
     },
     'Normal Private modified by self long file': {
-      theme: 'private',
+      ...commonFile,
       name: longFile,
-      path: '2016-tutorial/',
-      lastModifiedMeta: '2 hours ago',
       lastModifiedBy: 'marcopolo',
-      lastModifiedBySelf: true,
-      modifiedMarker: true,
-      fileIcon: 'logo-128',
-      onClick: () => console.log('onClick:file')
+      lastModifiedBySelf: true
     },
     'Normal Public': {
+      ...commonFile,
       parentProps: {style: {borderColor: 'black', borderWidth: 1, borderStyle: 'solid'}},
       theme: 'public',
       name: 'Cute Sloth.jpg',
-      path: 'spirit-animals/',
-      lastModifiedMeta: '2 hours ago',
-      lastModifiedBy: 'jenbee',
-      modifiedMarker: true,
-      fileIcon: 'logo-128',
-      onClick: () => console.log('onClick:file')
+      path: 'spirit-animals/'
     },
     'Normal Public No Modified meta': {
+      ...commonFile,
       parentProps: {style: {borderColor: 'black', borderWidth: 1, borderStyle: 'solid'}},
+      lastModifiedMeta: undefined,
+      lastModifiedBy: undefined,
       theme: 'public',
       name: 'Cute Sloth.jpg',
       path: 'spirit-animals/',
-      modifiedMarker: false,
-      fileIcon: 'logo-128',
-      onClick: () => console.log('onClick:file')
+      modifiedMarker: false
     }
   }
 }
@@ -232,73 +221,97 @@ function genFiles (offsetNumber: number, fileCount: number, isPrivate: boolean):
   return results
 }
 
+const popupItemCommon = {
+  onClick: () => console.log('item clicked')
+}
+
 const filesMenuItems = [
-  {title: 'Item 1', onClick: () => {}},
-  {title: 'Item 2', onClick: () => {}}
+  {...popupItemCommon, title: 'Open in Finder'},
+  {...popupItemCommon, title: 'Ignore'},
+  'Divider',
+  {...popupItemCommon, title: 'Clear history (3.24 MB)', subTitle: 'Deletes old copies of files.', danger: true},
+  {...popupItemCommon, title: 'Delete files and clear history (5.17GB)', subTitle: 'Deletes everything in this folder, including its backup versions', danger: true}
 ]
+
+const commonFiles = isPrivate => ({
+  theme: isPrivate ? 'private' : 'public',
+  visiblePopupMenu: false,
+  popupMenuItems: filesMenuItems,
+  selfUsername: 'cecileb',
+  users: [
+    {username: 'cecileb', you: true},
+    {username: 'aliceb'}],
+  waitingForParticipantUnlock: [],
+  youCanUnlock: [],
+  onBack: () => console.log('onBack:files'),
+  openCurrentFolder: () => console.log('open current folder'),
+  onTogglePopupMenu: () => console.log('onTogglePopupMenu'),
+  recentFilesSection: [
+    {name: 'Today', modifiedMarker: true, files: genFiles(0, 4, isPrivate)},
+    {name: 'Yesterday', modifiedMarker: false, files: genFiles(4, 4, isPrivate)}
+  ]
+})
+
+const commonParticipant = {
+  recentFilesSection: [],
+  waitingForParticipantUnlock: [
+    {name: 'throughnothing', devices: 'Tell them to turn on: Home Computer, ben\'s iPhone or Work laptop.', onClick: () => console.log('clicked throughnothing')},
+    {name: 'bob', devices: 'Tell them to turn on bob\'s Android phone', onClick: () => console.log('clicked bob')}
+  ]
+}
+
+const commonUnlock = {
+  recentFilesSection: [],
+  waitingForParticipantUnlock: [],
+  youCanUnlock: [
+    {name: 'Work Computer', icon: 'icon-computer-bw-32'},
+    {name: 'Home Computer', icon: 'icon-computer-bw-32'},
+    {name: 'Cecil\'s iPhone', icon: 'icon-phone-bw-48'},
+    {name: 'project green...', icon: 'icon-paper-key-32', onClickPaperkey: () => console.log('clicked on project green')},
+    {name: 'gumball sparkles...', icon: 'icon-paper-key-32', onClickPaperkey: () => console.log('clicked on gumball sparkles')}
+  ]
+}
 
 export const files: DumbComponentMap<Files> = {
   component: Files,
   mocks: {
     'Normal - Public': {
-      theme: 'public',
-      visiblePopupMenu: false,
-      popupMenuItems: filesMenuItems,
-      users: [
-        {username: 'cecileb', you: true},
-        {username: 'aliceb'}
-      ],
-      onBack: () => console.log('onBack:files'),
-      onTogglePopupMenu: () => console.log('onTogglePopupMenu'),
-      recentFilesSection: [
-        {name: 'Today', modifiedMarker: true, files: genFiles(0, 4, false)},
-        {name: 'Yesterday', modifiedMarker: false, files: genFiles(4, 4, false)}
-      ]
+      ...commonFiles(false)
     },
     'Popup - Public': {
-      theme: 'public',
-      visiblePopupMenu: true,
-      popupMenuItems: filesMenuItems,
-      users: [
-        {username: 'cecileb', you: true},
-        {username: 'aliceb'}
-      ],
-      onBack: () => console.log('onBack:files'),
-      onTogglePopupMenu: () => console.log('onTogglePopupMenu'),
-      recentFilesSection: [
-        {name: 'Today', modifiedMarker: true, files: genFiles(0, 4, false)},
-        {name: 'Yesterday', modifiedMarker: false, files: genFiles(4, 4, false)}
-      ]
+      ...commonFiles(false),
+      visiblePopupMenu: true
     },
     'Normal - Private': {
-      theme: 'private',
-      visiblePopupMenu: false,
-      popupMenuItems: filesMenuItems,
-      users: [
-        {username: 'cecileb', you: true},
-        {username: 'aliceb'}
-      ],
-      onBack: () => console.log('onBack:files'),
-      onTogglePopupMenu: () => console.log('onTogglePopupMenu'),
-      recentFilesSection: [
-        {name: 'Today', modifiedMarker: true, files: genFiles(0, 4, true)},
-        {name: 'Yesterday', modifiedMarker: false, files: genFiles(4, 4, true)}
-      ]
+      ...commonFiles(true)
     },
     'Popup - Private': {
-      theme: 'private',
-      users: [
-        {username: 'cecileb', you: true},
-        {username: 'aliceb'}
-      ],
-      onBack: () => console.log('onBack:files'),
-      onTogglePopupMenu: () => console.log('onTogglePopupMenu'),
-      visiblePopupMenu: true,
-      popupMenuItems: filesMenuItems,
-      recentFilesSection: [
-        {name: 'Today', modifiedMarker: true, files: genFiles(0, 4, true)},
-        {name: 'Yesterday', modifiedMarker: false, files: genFiles(4, 4, true)}
-      ]
+      ...commonFiles(true),
+      visiblePopupMenu: true
+    },
+    'No files - Public': {
+      ...commonFiles(false),
+      recentFilesSection: []
+    },
+    'No files - Private': {
+      ...commonFiles(true),
+      recentFilesSection: []
+    },
+    'Participant Unlock - Public': {
+      ...commonFiles(false),
+      ...commonParticipant
+    },
+    'Participant Unlock - Private': {
+      ...commonFiles(true),
+      ...commonParticipant
+    },
+    'You can unlock - Public': {
+      ...commonFiles(false),
+      ...commonUnlock
+    },
+    'You can unlock - Private': {
+      ...commonFiles(true),
+      ...commonUnlock
     }
   }
 }
