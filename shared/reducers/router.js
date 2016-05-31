@@ -1,7 +1,7 @@
 /* @flow */
 
 import * as RouterConstants from '../constants/router'
-import {is, List, Map} from 'immutable'
+import {is, List, Map, Record} from 'immutable'
 export type URI = List<Map<string, string>>
 type History = List<URI>
 
@@ -9,8 +9,9 @@ export type RouterState = MapADT2<'uri', URI, 'history', History> // eslint-disa
 
 const initialState: RouterState = createRouterState(['nav'], [])
 
+const RouterStateRecord = Record({})
 export function createRouterState (uri: Array<string>, history: Array<Array<string>>): RouterState {
-  return Map({
+  return RouterStateRecord({
     uri: parseUri(uri),
     history: List(history.map(parseUri))
   })
@@ -74,8 +75,7 @@ export function subReducer (state: RouterState = initialState, action: any): Rou
       return state
     case RouterConstants.navigateBack:
       const lastUri = state.get('history').last() || parseUri([])
-      return state.update('history', history => history.count() > 1 ? history.pop() : parseUri([]))
-        .set('uri', lastUri)
+      return state.update('history', history => history.pop()).set('uri', lastUri)
     case RouterConstants.navigate:
       return stateWithHistory.set('uri', parseUri(action.payload.uri))
     case RouterConstants.navigateAppend:
