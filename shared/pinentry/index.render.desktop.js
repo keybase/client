@@ -5,7 +5,7 @@ import {globalStyles, globalColors} from '../styles/style-guide'
 import {autoResize} from '../../desktop/renderer/remote-component-helper'
 import {Button, FormWithCheckbox, Header, Text} from '../common-adapters'
 
-import type {Props} from './index.render'
+import type {Props, DefaultProps} from './index.render'
 
 type State = {
   features: {[key: string]: boolean},
@@ -13,7 +13,8 @@ type State = {
   showTyping: boolean
 }
 
-export default class PinentryRender extends Component<void, Props, State> {
+export default class PinentryRender extends Component<DefaultProps, Props, State> {
+  static defaultProps: DefaultProps;
   state: State;
 
   constructor (props: Props) {
@@ -89,12 +90,14 @@ export default class PinentryRender extends Component<void, Props, State> {
           />
         </div>
         <div style={{...styles.container, alignItems: 'flex-end', paddingLeft: 30, paddingRight: 30, paddingBottom: 30}}>
-          <Button type='Primary' label='Continue' onClick={submitPassphrase} disabled={!this.state.passphrase} />
+          <Button type='Primary' label={this.props.submitLabel} onClick={submitPassphrase} disabled={!this.state.passphrase} />
         </div>
       </div>
     )
   }
 }
+
+PinentryRender.defaultProps = {submitLabel: 'Continue'}
 
 const styles = {
   container: {

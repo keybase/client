@@ -8,9 +8,13 @@ export type Props = {
   features: {[key: string]: Feature},
   prompt: string,
   retryLabel: string,
-  cancelLabel: ?string,
-  submitLabel: ?string,
-  windowTitle: string
+  submitLabel: ?string
 }
 
-export default class Pinentry extends Component<void, Props, void> {}
+export type DefaultProps = {
+  submitLabel: string
+}
+
+export default class Pinentry extends Component<DefaultProps, Props, void> {
+  static defaultProps: DefaultProps;
+}
