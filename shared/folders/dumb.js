@@ -238,7 +238,9 @@ const commonFiles = isPrivate => ({
   visiblePopupMenu: false,
   popupMenuItems: filesMenuItems,
   selfUsername: 'cecileb',
-  users: ['cecileb', 'aliceb'],
+  users: [
+    {username: 'cecileb', you: true},
+    {username: 'aliceb'}],
   waitingForParticipantUnlock: [],
   youCanUnlock: [],
   onBack: () => console.log('onBack:files'),
