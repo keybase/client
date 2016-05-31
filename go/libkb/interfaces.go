@@ -151,6 +151,7 @@ type ConfigReader interface {
 	GetGregorURI() string
 	GetGregorSaveInterval() (time.Duration, bool)
 	GetGregorDisabled() (bool, bool)
+	GetGregorPingInterval() (time.Duration, bool)
 
 	GetUpdatePreferenceAuto() (bool, bool)
 	GetUpdatePreferenceSkip() string

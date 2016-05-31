@@ -491,6 +491,10 @@ func (f JSONConfigFile) GetGregorSaveInterval() (time.Duration, bool) {
 	return f.GetDurationAtPath("push.save_interval")
 }
 
+func (f JSONConfigFile) GetGregorPingInterval() (time.Duration, bool) {
+	return f.GetDurationAtPath("gregor.ping_interval")
+}
+
 func (f JSONConfigFile) getCacheSize(w string) (int, bool) {
 	return f.jw.AtPathGetInt(w)
 }
