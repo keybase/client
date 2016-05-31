@@ -1,6 +1,6 @@
 // @flow
 import React, {Component} from 'react'
-import {Box, Text, BackButton, Avatar, PopupMenu, Icon, Usernames} from '../../common-adapters'
+import {Box, Text, BackButton, Avatar, PopupMenu, Icon, Usernames, ListItem, Button} from '../../common-adapters'
 import File from './file/render'
 import {globalStyles, globalColors} from '../../styles/style-guide'
 import {resolveImageAsURL} from '../../../desktop/resolve-root'
@@ -8,7 +8,7 @@ import {intersperseFn} from '../../util/arrays'
 import type {Props} from './render'
 
 const Section = ({section, theme}) => (
-  <Box key={section.name} style={{...globalStyles.flexBoxColumn, backgroundColor: backgroundColorThemed[theme]}}>
+  <Box style={{...globalStyles.flexBoxColumn, backgroundColor: backgroundColorThemed[theme]}}>
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 32}}>
       <Box key={section.name} style={{display: 'inline', marginLeft: 8}}>
         {section.modifiedMarker && <Icon type='thunderbolt' style={{height: 12, alignSelf: 'center', marginRight: 6, ...styleSectionTextThemed[theme]}} />}
@@ -20,16 +20,68 @@ const Section = ({section, theme}) => (
   </Box>
 )
 
+const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMode}) => {
+  return (
+    <Box style={{...globalStyles.flexBoxColumn}}>
+      <Text type='BodySmallSemibold' style={styleWarningBanner}>This folder is waiting for either participant to turn on a device.</Text>
+      <Box style={{...globalStyles.flexBoxColumn, marginTop: 38, paddingLeft: 64, paddingRight: 64}}>
+        {intersperseFn(i => <Box key={i} style={{height: 1, backgroundColor: isPrivate ? globalColors.white_40 : globalColors.black_10}} />,
+        waitingForParticipantUnlock.map(p => (
+          <ListItem
+            key={p.name}
+            type='Large' action={<Box />} icon={<Avatar size={48} username={p.name} />}
+            body={<Box style={{...globalStyles.flexBoxColumn}}>
+              <Text type='Body' backgroundMode={backgroundMode} onClick={p.onClick}>{p.name}</Text>
+              <Text type='BodySmall' backgroundMode={backgroundMode}>{p.devices}</Text>
+            </Box>} />
+        )))}
+      </Box>
+    </Box>
+  )
+}
+
+const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode}) => {
+  return (
+    <Box style={{...globalStyles.flexBoxColumn}}>
+      <Text type='BodySmallSemibold' style={styleWarningBanner} >This computer and possibly others are unable to read this folder. To avoid losing data forever, please take one of the actions below.</Text>
+      <Box style={{...globalStyles.flexBoxColumn, marginTop: 38, paddingLeft: 64, paddingRight: 64}}>
+        {intersperseFn(i => <Box key={i} style={{height: 1, backgroundColor: isPrivate ? globalColors.white_40 : globalColors.black_10}} />,
+        youCanUnlock.map(device => (
+          <ListItem
+            key={device.name}
+            type='Large' action={device.onClickPaperkey
+              ? <Button label='Enter paper key' onClick={device.onClickPaperkey} type='Secondary' backgroundMode={backgroundMode} />
+              : <Box />}
+            icon={<Icon type={device.icon} />}
+            body={<Box style={{...globalStyles.flexBoxColumn}}>
+              <Text type='Body' backgroundMode={backgroundMode}>{device.name}</Text>
+              {!device.onClickPaperkey && <Text type='BodySmall' backgroundMode={backgroundMode}>Open the Keybase app</Text>}
+            </Box>} />
+        )))}
+      </Box>
+    </Box>
+  )
+}
+
 export default class Render extends Component<void, Props, void> {
   _renderContents (isPrivate: boolean) {
-    if (this.props.recentFilesSection && this.props.recentFilesSection.length) {
+    const backgroundMode = isPrivate ? 'Terminal' : 'Normal'
+
+    if (this.props.youCanUnlock.length) {
+      return <YouCanUnlock youCanUnlock={this.props.youCanUnlock} isPrivate={isPrivate} backgroundMode={backgroundMode} />
+    }
+
+    if (this.props.waitingForParticipantUnlock.length) {
+      return <ParticipantUnlock waitingForParticipantUnlock={this.props.waitingForParticipantUnlock} isPrivate={isPrivate} backgroundMode={backgroundMode} />
+    }
+
+    if (this.props.recentFilesSection.length) {
       return (
         <Box style={{...globalStyles.flexBoxColumn}}>
-          {this.props.recentFilesSection.map(s => <Section section={s} theme={this.props.theme} />)}
+          {this.props.recentFilesSection.map(s => <Section key={s.name} section={s} theme={this.props.theme} />)}
         </Box>
       )
     } else {
-      const backgroundMode = isPrivate ? 'Terminal' : 'Normal'
       return (
         <Box style={styleNoFiles}>
           <Text type='BodySmall' backgroundMode={backgroundMode}>This folder is empty.</Text>
@@ -64,7 +116,7 @@ export default class Render extends Component<void, Props, void> {
             <Usernames users={this.props.users} type='BodySemibold' style={tlfTextStyle} />
           </Box>
         </Box>
-        <PopupMenu style={{alignItems: 'flex-end', top: 12, right: 12}} items={this.props.popupMenuItems} visible={this.props.visiblePopupMenu} onHidden={this.props.onTogglePopupMenu} />
+        <PopupMenu style={{marginLeft: 'auto', marginRight: 8, marginTop: 36, width: 320}} items={this.props.popupMenuItems} visible={this.props.visiblePopupMenu} onHidden={this.props.onTogglePopupMenu} />
         {this._renderContents(isPrivate)}
       </Box>
     )
@@ -139,6 +191,16 @@ const styleNoFiles = {
   justifyContent: 'center',
   alignItems: 'center',
   padding: 64
+}
+
+const styleWarningBanner = {
+  backgroundColor: globalColors.red,
+  color: globalColors.white,
+  paddingTop: 13,
+  paddingBottom: 13,
+  paddingLeft: 64,
+  paddingRight: 64,
+  textAlign: 'center'
 }
 
 function styleMenuColorThemed (theme, showingMenu): string {

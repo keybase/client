@@ -55,10 +55,11 @@ class Button extends Component {
       default:
         backgroundStyle = {
           ...stylesButtonSecondary,
+          backgroundColor: this.props.backgroundMode === 'Terminal' ? globalColors.blue_30 : stylesButtonSecondary.backgroundColor,
           opacity: disabled ? stylesButtonSecondary.disabledOpacity : 1
         }
         labelStyle = {
-          color: globalColors.black_75
+          color: this.props.backgroundMode === 'Terminal' ? globalColors.white : globalColors.black_75
         }
         progressColor = globalColors.black_75
     }
