@@ -197,7 +197,7 @@ func (d *Service) startupGregor() {
 	} else if !g.Env.GetTorMode().UseSession() {
 		g.Log.Debug("Gregor disabled in Tor mode")
 	} else {
-		g.Log.Debug("connecting to gregord in non-production run mode")
+		g.Log.Debug("connecting to gregord for push notifications")
 		if gcErr := d.tryGregordConnect(); gcErr != nil {
 			g.Log.Debug("error connecting to gregord: %s", gcErr)
 		}
