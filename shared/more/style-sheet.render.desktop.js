@@ -65,6 +65,12 @@ const Buttons = () => (
       <Button waiting onClick={onClick} type='Danger' small label='Danger small' />
       <Button waiting onClick={onClick} type='Follow' small label='Follow small' />
     </Row>
+    <Row style={{padding: 20, backgroundColor: globalColors.midnightBlue}}>
+      <Button onClick={onClick} type='Secondary' label='Secondary terminal mode' backgroundMode='Terminal' />
+    </Row>
+    <Row style={{padding: 20, backgroundColor: globalColors.midnightBlue}}>
+      <Button onClick={onClick} type='Secondary' fullWidth label='Secondary full-width terminal mode' backgroundMode='Terminal' /><Space />
+    </Row>
   </Box>
 )
 

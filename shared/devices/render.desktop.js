@@ -89,7 +89,7 @@ const RevokedDevices = ({revokedDevices, showExistingDevicePage}) => (
 )
 
 const DeviceHeader = ({addNewDevice, showingMenu, onHidden, menuItems}) => (
-  <Box style={{...stylesCommonRow, ...globalStyles.clickable, position: 'relative'}} onClick={addNewDevice}>
+  <Box style={{...stylesCommonRow, ...globalStyles.clickable}} onClick={addNewDevice}>
     <Box style={stylesCommonColumn}>
       <Icon type='devices-add-s' />
     </Box>
@@ -196,11 +196,9 @@ const stylesRevokedIconColumn = {
 }
 
 const stylesPopup = {
-  top: 20,
-  left: 'initial',
-  right: 'initial',
-  bottom: 'initial',
-  marginLeft: '-110'
+  marginLeft: 'auto',
+  marginRight: 'auto',
+  marginTop: 50
 }
 
 export default Render
