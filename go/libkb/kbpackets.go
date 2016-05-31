@@ -72,8 +72,13 @@ func (p *KeybasePacket) hashToBytes() (ret []byte, err error) {
 }
 
 func (p *KeybasePacket) HashMe() error {
-	var err error
-	p.Hash.Value, err = p.hashToBytes()
+	// Don't assign directly to p.Hash.Value. The evaluation order of that
+	// assignment is undefined, and we can't rely on hashToBytes initializing
+	// p.Hash before that pointer gets dereferenced. This caused a crash that
+	// only repro'd in gcc-go:
+	// https://github.com/keybase/keybase-issues/issues/2083.
+	value, err := p.hashToBytes()
+	p.Hash.Value = value
 	return err
 }
 
