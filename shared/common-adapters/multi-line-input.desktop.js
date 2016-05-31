@@ -47,7 +47,7 @@ export default class MultiLineInput extends Component<void, Props, State> {
           onClick={() => this._focusTextBox()} type='HeaderBig'>{this.props.hintText}</Text>
         <Text style={inputStyle}
           contentEditable
-          autocomplete='off'
+          autoComplete='off'
           ref='textBox'
           onKeyUp={e => this._handleKeyUp(e)}
           onKeyDown={e => this._handleKeyDown(e)}

@@ -11,7 +11,7 @@ export type MenuItem = {
 }
 
 export type Props = {
-  items: Array<MenuItem | null>, // null for dividers
+  items: Array<MenuItem | 'Divider'>,
   onHidden: () => void,
   visible: boolean,
   style?: Object

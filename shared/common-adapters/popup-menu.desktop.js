@@ -19,7 +19,6 @@ class Menu extends Component<void, Props, void> {
     .menu-hover-danger:hover .title { color: ${globalColors.white}; }
     .menu-hover-danger .subtitle { color: ${globalColors.black_40}; }
     .menu-hover-danger:hover .subtitle { color: ${globalColors.white}; }
-    }
     `
 
     return (
@@ -30,19 +29,28 @@ class Menu extends Component<void, Props, void> {
         <style>{realCSS}</style>
         <Box style={{...stylesMenu, ...this.props.style}}>
           <Box style={{...globalStyles.flexBoxColumn, flexShrink: 0, paddingTop: 7, paddingBottom: 7}} >
-            {this.props.items.map((i, idx) => (i ? (
-              <Box className={i.danger ? 'menu-hover-danger' : 'menu-hover'} style={stylesRow} onClick={i.onClick}>
-                <Text className='title' key={i.title} type='Body' style={{...stylesMenuText, ...i.style}}>{i.title}</Text>
-                {i.subTitle && <Text className='subtitle' key={i.subTitle} type='BodySmall' style={{...stylesMenuText, ...i.style}}>{i.subTitle}</Text>}
-              </Box>
-              ) : <Box key={idx} style={{height: 1, backgroundColor: globalColors.black_10, marginTop: 8, marginBottom: 8}} />
-            ))}
+            {
+              this.props.items.map((i, idx) => {
+                if (i === 'Divider') {
+                  return <Divider key={idx} />
+                }
+
+                return (
+                  <Box key={i.title} className={i.danger ? 'menu-hover-danger' : 'menu-hover'} style={stylesRow} onClick={i.onClick}>
+                    <Text className='title' type='Body' style={{...stylesMenuText, ...i.style}}>{i.title}</Text>
+                    {i.subTitle && <Text className='subtitle' key={i.subTitle} type='BodySmall' style={{...stylesMenuText, ...i.style}}>{i.subTitle}</Text>}
+                  </Box>
+                  )
+              })
+            }
           </Box>
         </Box>
       </Box>
     )
   }
 }
+
+const Divider = () => <Box style={{height: 1, backgroundColor: globalColors.black_10, marginTop: 8, marginBottom: 8}} />
 
 const stylesRow = {
   ...globalStyles.flexBoxColumn,

@@ -99,7 +99,7 @@ export default class Input extends Component {
           underlineFocusStyle={{...styles.underlineFocusStyle, ...this.props.underlineStyle}}
           rows={this.props.rows}
           rowsMax={this.props.rowsMax}
-          autocomplete={(passwordVisible || password) ? 'off' : undefined}
+          autoComplete={(passwordVisible || password) ? 'off' : undefined}
           type={password ? 'password' : 'text'}
           value={this.state.value}
           />

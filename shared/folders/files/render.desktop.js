@@ -28,6 +28,7 @@ const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMo
         {intersperseFn(i => <Box key={i} style={{height: 1, backgroundColor: isPrivate ? globalColors.white_40 : globalColors.black_10}} />,
         waitingForParticipantUnlock.map(p => (
           <ListItem
+            key={p.name}
             type='Large' action={<Box />} icon={<Avatar size={48} username={p.name} />}
             body={<Box style={{...globalStyles.flexBoxColumn}}>
               <Text type='Body' backgroundMode={backgroundMode} onClick={p.onClick}>{p.name}</Text>
@@ -47,6 +48,7 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode}) => {
         {intersperseFn(i => <Box key={i} style={{height: 1, backgroundColor: isPrivate ? globalColors.white_40 : globalColors.black_10}} />,
         youCanUnlock.map(y => (
           <ListItem
+            key={y.name}
             type='Large' action={y.onClickPaperkey
               ? <Button label='Enter paper key' onClick={y.onClickPaperkey} type='Secondary' backgroundMode={backgroundMode} />
               : <Box />}
@@ -76,7 +78,7 @@ export default class Render extends Component<void, Props, void> {
     if (this.props.recentFilesSection.length) {
       return (
         <Box style={{...globalStyles.flexBoxColumn}}>
-          {this.props.recentFilesSection.map(s => <Section section={s} theme={this.props.theme} />)}
+          {this.props.recentFilesSection.map(s => <Section key={s.name} section={s} theme={this.props.theme} />)}
         </Box>
       )
     } else {

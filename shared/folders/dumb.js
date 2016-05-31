@@ -228,7 +228,7 @@ const popupItemCommon = {
 const filesMenuItems = [
   {...popupItemCommon, title: 'Open in Finder'},
   {...popupItemCommon, title: 'Ignore'},
-  null,
+  'Divider',
   {...popupItemCommon, title: 'Clear history (3.24 MB)', subTitle: 'Deletes old copies of files.', danger: true},
   {...popupItemCommon, title: 'Delete files and clear history (5.17GB)', subTitle: 'Deletes everything in this folder, including its backup versions', danger: true}
 ]
