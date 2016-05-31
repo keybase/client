@@ -36,7 +36,7 @@ class Render extends Component<void, Props, State> {
 
     return (
       <Box style={{...styles.container}}>
-        <Box style={stylesTopRow}>
+        <Box style={{...stylesTopRow, position: 'absolute'}}>
           <Icon
             style={menuStyle}
             type='fa-custom-icon-hamburger'
