@@ -46,16 +46,16 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode}) => {
       <Text type='BodySmallSemibold' style={styleWarningBanner} >This computer and possibly others are unable to read this folder. To avoid losing data forever, please take one of the actions below.</Text>
       <Box style={{...globalStyles.flexBoxColumn, marginTop: 38, paddingLeft: 64, paddingRight: 64}}>
         {intersperseFn(i => <Box key={i} style={{height: 1, backgroundColor: isPrivate ? globalColors.white_40 : globalColors.black_10}} />,
-        youCanUnlock.map(y => (
+        youCanUnlock.map(device => (
           <ListItem
-            key={y.name}
-            type='Large' action={y.onClickPaperkey
-              ? <Button label='Enter paper key' onClick={y.onClickPaperkey} type='Secondary' backgroundMode={backgroundMode} />
+            key={device.name}
+            type='Large' action={device.onClickPaperkey
+              ? <Button label='Enter paper key' onClick={device.onClickPaperkey} type='Secondary' backgroundMode={backgroundMode} />
               : <Box />}
-            icon={<Icon type={y.icon} />}
+            icon={<Icon type={device.icon} />}
             body={<Box style={{...globalStyles.flexBoxColumn}}>
-              <Text type='Body' backgroundMode={backgroundMode}>{y.name}</Text>
-              {!y.onClickPaperkey && <Text type='BodySmall' backgroundMode={backgroundMode}>Open the Keybase app</Text>}
+              <Text type='Body' backgroundMode={backgroundMode}>{device.name}</Text>
+              {!device.onClickPaperkey && <Text type='BodySmall' backgroundMode={backgroundMode}>Open the Keybase app</Text>}
             </Box>} />
         )))}
       </Box>
