@@ -23,7 +23,7 @@ const Section = ({section, theme}) => (
 const ParticipantUnlock = ({waitingForParticipantUnlock, isPrivate, backgroundMode}) => {
   return (
     <Box style={{...globalStyles.flexBoxColumn}}>
-      <Text type='BodySmallSemibold' style={styleWarningBanner} >This folder is waiting for either participant to turn on a device.</Text>
+      <Text type='BodySmallSemibold' style={styleWarningBanner}>This folder is waiting for either participant to turn on a device.</Text>
       <Box style={{...globalStyles.flexBoxColumn, marginTop: 38, paddingLeft: 64, paddingRight: 64}}>
         {intersperseFn(i => <Box key={i} style={{height: 1, backgroundColor: isPrivate ? globalColors.white_40 : globalColors.black_10}} />,
         waitingForParticipantUnlock.map(p => (
