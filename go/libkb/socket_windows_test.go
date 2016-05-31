@@ -14,7 +14,7 @@ import (
 )
 
 func setupTest(t *testing.T, nm string) *TestContext {
-	tc := SetupTest(t, nm)
+	tc := SetupTest(t, nm, 1)
 	tc.SetRuntimeDir(filepath.Join(tc.Tp.Home, "socket_windows_test"))
 	if err := tc.G.ConfigureSocketInfo(); err != nil {
 		t.Fatal(err)

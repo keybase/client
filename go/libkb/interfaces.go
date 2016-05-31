@@ -40,6 +40,9 @@ type CommandLine interface {
 	GetLogFormat() string
 	GetGpgHome() string
 	GetAPIDump() (bool, bool)
+	GetGregorURI() string
+	GetGregorSaveInterval() (time.Duration, bool)
+	GetGregorDisabled() (bool, bool)
 	GetUserCacheMaxAge() (time.Duration, bool)
 	GetProofCacheSize() (int, bool)
 	GetLinkCacheSize() (int, bool)
@@ -147,6 +150,7 @@ type ConfigReader interface {
 	GetSecurityAccessGroupOverride() (bool, bool)
 	GetGregorURI() string
 	GetGregorSaveInterval() (time.Duration, bool)
+	GetGregorDisabled() (bool, bool)
 
 	GetUpdatePreferenceAuto() (bool, bool)
 	GetUpdatePreferenceSkip() string
@@ -422,4 +426,15 @@ type Clock interface {
 
 type GregorDismisser interface {
 	DismissItem(id gregor.MsgID) error
+}
+
+type GregorInBandMessageHandler interface {
+	IsAlive() bool
+	Name() string
+	Create(ctx context.Context, category string, ibm gregor.Item) error
+	Dismiss(ctx context.Context, category string, ibm gregor.Item) error
+}
+
+type GregorListener interface {
+	PushHandler(handler GregorInBandMessageHandler)
 }

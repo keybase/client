@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import type {Folder} from './list'
-import {Box, Text, Icon, Avatar, Meta} from '../common-adapters'
+import {Box, Text, Icon, Avatar, Meta, Usernames} from '../common-adapters'
 import type {Props as IconProps} from '../common-adapters/icon'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {resolveImageAsURL} from '../../desktop/resolve-root'
@@ -17,23 +17,6 @@ const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar}) => (
       : <Avatar size={smallMode ? 24 : 32} username={userAvatar} />}
   </Box>
 )
-
-const Names = ({styles, users}) => {
-  return (
-    <Box style={stylesBodyNameContainer}>
-      {users.map((u, i) => (
-        <Text
-          key={u.username}
-          type={u.you ? 'BodySemiboldItalic' : 'BodySemibold'}
-          style={{...globalStyles.clickable, color: u.broken ? globalColors.red : styles.nameColor}}>{u.username}
-          {
-            (i !== users.length - 1) && // Injecting the commas here so we never wrap and have newlines starting with a ,
-              <Text type='BodySemibold' style={{...globalStyles.clickable, color: styles.nameColor, marginRight: 2}}>,</Text>}
-        </Text>
-      ))}
-    </Box>
-  )
-}
 
 const Modified = ({styles, modified}) => (
   <Box style={stylesModified}>
@@ -81,7 +64,7 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode, onCl
       <Box style={{...globalStyles.flexBoxRow}}>
         <Avatars users={users} styles={styles} smallMode={smallMode} groupAvatar={groupAvatar} userAvatar={userAvatar} />
         <Box style={stylesBodyContainer}>
-          <Names users={users} styles={styles} meta={meta} modified={modified} />
+          <Usernames users={users} type='BodySemibold' style={{color: styles.nameColor}} />
           {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
           {!(meta || ignored) && modified && <Modified modified={modified} styles={styles} />}
         </Box>
@@ -168,11 +151,6 @@ const stylesBodyContainer = {
   justifyContent: 'center',
   padding: 8,
   marginRight: 16
-}
-
-const stylesBodyNameContainer = {
-  ...globalStyles.flexBoxRow,
-  flexWrap: 'wrap'
 }
 
 const stylesActionContainer = {

@@ -64,9 +64,11 @@ func (h *TrackHandler) TrackWithToken(_ context.Context, arg keybase1.TrackWithT
 func (h *TrackHandler) DismissWithToken(_ context.Context, arg keybase1.DismissWithTokenArg) error {
 	outcome, err := h.G().TrackCache.Get(arg.TrackToken)
 	if err != nil {
+		h.G().Log.Error("Failed to get track token", err)
 		return err
 	}
 	if outcome.ResponsibleGregorItem == nil {
+		h.G().Log.Info("No responsible gregor item found for track token %s", arg.TrackToken)
 		return nil
 	}
 

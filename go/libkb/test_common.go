@@ -13,6 +13,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"testing"
 
@@ -265,11 +266,18 @@ func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestC
 	return
 }
 
-func SetupTest(tb testing.TB, name string) (tc TestContext) {
+func SetupTest(tb testing.TB, name string, depth int) (tc TestContext) {
 	var err error
 	tc, err = setupTestContext(tb, name, nil)
 	if err != nil {
 		tb.Fatal(err)
+	}
+	if os.Getenv("KEYBASE_LOG_SETUPTEST_FUNCS") != "" {
+		pc, file, line, ok := runtime.Caller(depth)
+		if ok {
+			fn := runtime.FuncForPC(pc)
+			fmt.Printf("SetupTest %s %v:%v\n", fn.Name(), file, line)
+		}
 	}
 	return tc
 }

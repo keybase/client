@@ -80,6 +80,7 @@ type GlobalContext struct {
 	loginHooks          []LoginHook         // call these on login
 	logoutHooks         []LogoutHook        // call these on logout
 	GregorDismisser     GregorDismisser     // for dismissing gregor items that we've handled
+	GregorListener      GregorListener      // for alerting about clients connecting and registering UI protocols
 }
 
 func NewGlobalContext() *GlobalContext {

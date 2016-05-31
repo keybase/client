@@ -22,6 +22,8 @@ func (u *Updater) openApplication(applicationPath string) error {
 func (u *Updater) applyUpdate(localPath string) (err error) {
 	if strings.HasSuffix(localPath, ".exe") {
 		err = exec.Command(localPath, "/SILENT").Start()
+	} else if strings.HasSuffix(localPath, ".msi") {
+		err = exec.Command(localPath, "/quiet").Start()
 	} else if strings.HasSuffix(localPath, ".zip") {
 		// Allow this to make the tests easier. No point in executing a real .exe
 		// during a test.

@@ -3,7 +3,7 @@
 import React from 'react'
 
 import Checkbox from './checkbox'
-import {TabBar, Text, Avatar} from './index'
+import {Button, Box, TabBar, Text, Avatar, ListItem, PopupMenu} from './index'
 import {TabBarButton, TabBarItem} from './tab-bar'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
@@ -71,7 +71,80 @@ const tabBarMap: DumbComponentMap<TabBar> = {
   }
 }
 
+const listItemMap: DumbComponentMap<ListItem> = {
+  component: ListItem,
+  mocks: {
+    'Small list item with button action': {
+      parentProps: {style: {border: 'solid 1px black'}},
+      type: 'Small',
+      icon: <Box style={{height: 32, width: 32, backgroundColor: globalColors.black_20}} />,
+      body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
+      action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />
+    },
+    'Small list item with text action': {
+      parentProps: {style: {border: 'solid 1px black'}},
+      type: 'Small',
+      icon: <Box style={{height: 32, width: 32, backgroundColor: globalColors.black_20}} />,
+      body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
+      action: <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={() => {}}>Action Jack</Text>,
+      extraRightMarginAction: true
+    },
+    'Large list item with Button': {
+      parentProps: {style: {border: 'solid 1px black'}},
+      type: 'Large',
+      icon: <Box style={{height: 48, width: 48, backgroundColor: globalColors.black_20}} />,
+      body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
+      action: <Button label={'Action'} type={'Primary'} onClick={() => {}} />
+    },
+    'Large list item with text action': {
+      parentProps: {style: {border: 'solid 1px black'}},
+      type: 'Large',
+      icon: <Box style={{height: 48, width: 48, backgroundColor: globalColors.black_20}} />,
+      body: <Box style={{backgroundColor: globalColors.black_20, flex: 1}} />,
+      action: <Text style={{color: globalColors.red}} type={'BodySmall'} onClick={() => {}}>Action Jack</Text>,
+      extraRightMarginAction: true
+    }
+  }
+}
+
+const popupCommon = {
+  parentProps: {style: {border: 'solid 1px black', position: 'relative', height: 300}},
+  onHidden: () => console.log('popup hidden'),
+  style: {marginLeft: 100, maxWidth: 320},
+  visible: true
+}
+
+const popupItemCommon = {
+  onClick: () => console.log('item clicked')
+}
+
+const popupMenuMap: DumbComponentMap<PopupMenu> = {
+  component: PopupMenu,
+  mocks: {
+    'Popup Simple': {
+      ...popupCommon,
+      items: [
+        {...popupItemCommon, title: 'One'},
+        {...popupItemCommon, title: 'Two'},
+        {...popupItemCommon, title: 'Three'}
+      ]
+    },
+    'Popup Complex': {
+      ...popupCommon,
+      items: [
+        {...popupItemCommon, title: 'Open in Finder'},
+        {...popupItemCommon, title: 'Ignore'},
+        'Divider',
+        {...popupItemCommon, title: 'Clear history (3.24 MB)', subTitle: 'Deletes old copies of files.', danger: true},
+        {...popupItemCommon, title: 'Delete files and clear history (5.17GB)', subTitle: 'Deletes everything in this folder, including its backup versions', danger: true}
+      ]
+    }
+  }
+}
+
 export default {
-  'Checkbox': checkboxMap,
-  TabBar: tabBarMap
+  Checkbox: checkboxMap,
+  TabBar: tabBarMap,
+  ListItem: listItemMap,
+  PopupMenu: popupMenuMap
 }

@@ -1,10 +1,11 @@
 package libkb
 
 import (
-	keybase1 "github.com/keybase/client/go/protocol"
 	"strings"
 	"testing"
 	"time"
+
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 type resolveTestClock struct {
@@ -30,7 +31,7 @@ func (r *resolveTestClock) tick(d time.Duration) {
 var tracyUID = keybase1.UID("eb72f49f2dde6429e5d78003dae0c919")
 
 func TestResolveSimple(t *testing.T) {
-	tc := SetupTest(t, "resolveSimple")
+	tc := SetupTest(t, "resolveSimple", 1)
 	r, clock := newTestResolverCache(tc.G)
 
 	goodResolve := func(s string) {

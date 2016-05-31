@@ -127,7 +127,7 @@ class ProofsRender extends Component {
       : proofStatusIcon && <Icon type={proofStatusIcon} style={styleStatusIcon} onClick={() => this._onClickProof(proof)} />
 
     return (
-      <p style={styleRow} key={proof.id}>
+      <p style={styleRow} key={`${proof.id}${proof.type}`}>
         <Icon style={styleService} type={this._iconNameForProof(proof)} title={proof.type} onClick={onClickProfile} />
         <span style={styleProofNameSection}>
           <span style={styleProofNameLabelContainer}>

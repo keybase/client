@@ -63,7 +63,7 @@ var cidTests = []cidTest{
 }
 
 func TestCreateIds(t *testing.T) {
-	tc := SetupTest(t, "createIds")
+	tc := SetupTest(t, "createIds", 1)
 	defer tc.Cleanup()
 
 	// We need to fake the call to G.Env.GetUsername().  The best way to do this is to

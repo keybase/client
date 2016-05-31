@@ -49,32 +49,41 @@ type KeybasePacket struct {
 
 type KeybasePackets []*KeybasePacket
 
-func (p *KeybasePacket) hashToBytes() (ret []byte, err error) {
-	zb := [0]byte{}
-	if p.Hash == nil {
-		p.Hash = &KeybasePacketHash{}
-	}
-	tmp := p.Hash.Value
-	defer func() {
-		p.Hash.Value = tmp
-	}()
-	p.Hash.Value = zb[:]
-	p.Hash.Type = SHA256Code
-
-	var encoded []byte
-	if encoded, err = p.Encode(); err != nil {
-		return
+func NewKeybasePacket(body interface{}, tag int, version int) (*KeybasePacket, error) {
+	ret := KeybasePacket{
+		Body:    body,
+		Tag:     tag,
+		Version: version,
 	}
 
-	sum := sha256.Sum256(encoded)
-	ret = sum[:]
-	return
+	hashBytes, hashErr := ret.hashToBytes()
+	if hashErr != nil {
+		return nil, hashErr
+	}
+	ret.Hash = &KeybasePacketHash{
+		Type:  SHA256Code,
+		Value: hashBytes,
+	}
+	return &ret, nil
 }
 
-func (p *KeybasePacket) HashMe() error {
+func (p *KeybasePacket) hashToBytes() ([]byte, error) {
+	// We don't include the Hash field in the encoded bytes that we hash,
+	// because if we did then the result wouldn't be stable. To work around
+	// that, we make a copy of the packet and overwrite the Hash field with
+	// an empty slice.
+	packetCopy := *p
+	packetCopy.Hash = &KeybasePacketHash{
+		Type:  SHA256Code,
+		Value: []byte{},
+	}
+	var encoded []byte
 	var err error
-	p.Hash.Value, err = p.hashToBytes()
-	return err
+	if encoded, err = packetCopy.Encode(); err != nil {
+		return nil, err
+	}
+	ret := sha256.Sum256(encoded)
+	return ret[:], nil
 }
 
 func (p *KeybasePacket) checkHash() error {

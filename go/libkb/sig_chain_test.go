@@ -97,7 +97,7 @@ type TestInput struct {
 }
 
 func TestAllChains(t *testing.T) {
-	tc := SetupTest(t, "test_all_chains")
+	tc := SetupTest(t, "test_all_chains", 1)
 	defer tc.Cleanup()
 
 	var testList TestList

@@ -18,7 +18,8 @@ import type {Action, Dispatch} from '../constants/types/flux'
 import type {ShowNonUser} from '../constants/tracker'
 
 import type {RemoteProof, LinkCheckResult, TrackOptions, UserCard, delegateUiCtl_registerIdentifyUI_rpc,
-  track_checkTracking_rpc, track_untrack_rpc, track_trackWithToken_rpc, incomingCallMapType, identify_identify2_rpc} from '../constants/types/flow-types'
+  track_checkTracking_rpc, track_untrack_rpc, track_trackWithToken_rpc, incomingCallMapType,
+  identify_identify2_rpc, track_dismissWithToken_rpc} from '../constants/types/flow-types'
 
 type TrackerActionCreator = (dispatch: Dispatch, getState: () => {tracker: RootTrackerState, config: ConfigState}) => ?Promise
 
@@ -176,8 +177,8 @@ export function pushDebugTracker (username: string): (dispatch: Dispatch) => voi
 
 export function onRefollow (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
-    const state = getState().tracker.trackers[username]
-    const trackToken = state && state.type === 'tracker' ? state.trackToken : null
+    const trackToken = _getTrackToken(getState(), username)
+
     const dispatchRefollowAction = () => {
       dispatch({
         type: Constants.onRefollow,
@@ -272,10 +273,14 @@ export function onIgnore (username: string): (dispatch: Dispatch, getState: () =
   }
 }
 
+function _getTrackToken (state, username) {
+  const trackerState = state.tracker.trackers[username]
+  return trackerState && trackerState.type === 'tracker' ? trackerState.trackToken : null
+}
+
 export function onFollow (username: string, localIgnore: bool): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
   return (dispatch, getState) => {
-    const trackerState = getState().tracker.trackers[username]
-    const trackToken = trackerState && trackerState.type === 'tracker' ? trackerState.trackToken : null
+    const trackToken = _getTrackToken(getState(), username)
 
     const dispatchFollowedAction = () => {
       dispatch({type: Constants.onFollow, payload: {username}})
@@ -296,10 +301,34 @@ export function onFollow (username: string, localIgnore: bool): (dispatch: Dispa
   }
 }
 
-export function onClose (username: string): Action {
-  return {
-    type: Constants.onClose,
-    payload: {username}
+function _dismissWithToken (trackToken) {
+  const params : track_dismissWithToken_rpc = {
+    method: 'track.dismissWithToken',
+    param: {trackToken},
+    incomingCallMap: {},
+    callback: err => {
+      if (err) {
+        console.log('err dismissWithToken', err)
+      }
+    }
+  }
+  engine.rpc(params)
+}
+
+export function onClose (username: string): TrackerActionCreator {
+  return (dispatch, getState) => {
+    const trackToken = _getTrackToken(getState(), username)
+
+    if (trackToken) {
+      _dismissWithToken(trackToken)
+    } else {
+      console.log(`Missing trackToken for ${username}, waiting...`)
+    }
+
+    dispatch({
+      type: Constants.onClose,
+      payload: {username}
+    })
   }
 }
 
@@ -392,6 +421,13 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
     displayTrackStatement: params => {
     },
 
+    dismiss: ({username, reason}) => {
+      dispatch({
+        type: Constants.remoteDismiss,
+        payload: {username, reason}
+      })
+    },
+
     finishWebProofCheck: ({sessionID, rp, lcr}) => {
       const username = sessionIDToUsername[sessionID]
       dispatch(updateProof(rp, lcr, username))
@@ -419,6 +455,19 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
     reportTrackToken: ({sessionID, trackToken}) => {
       const username = sessionIDToUsername[sessionID]
       dispatch({type: Constants.updateTrackToken, payload: {username, trackToken}})
+
+      const userState = getState().tracker.trackers[username]
+      if (userState && userState.needTrackTokenDismiss) {
+        _dismissWithToken(trackToken)
+
+        dispatch({
+          type: Constants.setNeedTrackTokenDismiss,
+          payload: {
+            username,
+            needTrackTokenDismiss: false
+          }
+        })
+      }
     },
     confirm: () => {
       // our UI doesn't use this at all, keep this to not get an unhandled incoming msg warning

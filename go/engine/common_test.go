@@ -15,7 +15,7 @@ import (
 )
 
 func SetupEngineTest(tb testing.TB, name string) libkb.TestContext {
-	tc := libkb.SetupTest(tb, name)
+	tc := libkb.SetupTest(tb, name, 2)
 	return tc
 }
 

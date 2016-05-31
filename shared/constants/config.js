@@ -6,9 +6,6 @@ export const defaultPrivatePrefix = '/private/'
 export const defaultPublicPrefix = '/public/'
 
 // Actions
-export const startupLoading = 'config:startupLoading'
-export const startupLoaded = 'config:startupLoaded'
-
 export const statusLoaded = 'config:statusLoaded'
 export const configLoaded = 'config:configLoaded'
 export const extendedConfigLoaded = 'config:extendedConfigLoaded'

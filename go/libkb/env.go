@@ -73,6 +73,7 @@ func (n NullConfiguration) GetAppStartMode() AppStartMode                 { retu
 func (n NullConfiguration) GetGregorURI() string                          { return "" }
 func (n NullConfiguration) GetGregorSaveInterval() (time.Duration, bool)  { return 0, false }
 func (n NullConfiguration) IsAdmin() (bool, bool)                         { return false, false }
+func (n NullConfiguration) GetGregorDisabled() (bool, bool)               { return false, false }
 
 func (n NullConfiguration) GetUserConfig() (*UserConfig, error) { return nil, nil }
 func (n NullConfiguration) GetUserConfigForUsername(s NormalizedUsername) (*UserConfig, error) {
@@ -493,16 +494,26 @@ func (e *Env) GetSocketFile() (ret string, err error) {
 
 func (e *Env) GetGregorURI() string {
 	return e.GetString(
-		func() string { return os.Getenv("GREGOR_URI") },
+		func() string { return os.Getenv("KEYBASE_PUSH_SERVER_URI") },
 		func() string { return e.config.GetGregorURI() },
+		func() string { return e.cmd.GetGregorURI() },
 		func() string { return GregorServerLookup[e.GetRunMode()] },
 	)
 }
 
 func (e *Env) GetGregorSaveInterval() time.Duration {
 	return e.GetDuration(time.Minute,
-		func() (time.Duration, bool) { return e.getEnvDuration("GREGOR_SAVE_INTERVAL") },
+		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_PUSH_SAVE_INTERVAL") },
 		func() (time.Duration, bool) { return e.config.GetGregorSaveInterval() },
+		func() (time.Duration, bool) { return e.cmd.GetGregorSaveInterval() },
+	)
+}
+
+func (e *Env) GetGregorDisabled() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.cmd.GetGregorDisabled() },
+		func() (bool, bool) { return getEnvBool("KEYBASE_PUSH_DISABLED") },
+		func() (bool, bool) { return e.config.GetGregorDisabled() },
 	)
 }
 
@@ -896,11 +907,16 @@ func (e *Env) GetStoredSecretServiceName() string {
 type AppConfig struct {
 	NullConfiguration
 	HomeDir                     string
+	LogFile                     string
 	RunMode                     RunMode
 	Debug                       bool
 	LocalRPCDebug               string
 	ServerURI                   string
 	SecurityAccessGroupOverride bool
+}
+
+func (c AppConfig) GetLogFile() string {
+	return c.LogFile
 }
 
 func (c AppConfig) GetDebug() (bool, bool) {

@@ -9,7 +9,7 @@ import (
 )
 
 func TestGPGKeyring(t *testing.T) {
-	tc := SetupTest(t, "gpg_cli")
+	tc := SetupTest(t, "gpg_cli", 1)
 	defer tc.Cleanup()
 	err := tc.GenerateGPGKeyring("no@no.no")
 	if err != nil {
@@ -29,7 +29,7 @@ func TestGPGKeyring(t *testing.T) {
 }
 
 func TestGPGImportSecret(t *testing.T) {
-	tc := SetupTest(t, "gpg_cli")
+	tc := SetupTest(t, "gpg_cli", 1)
 	defer tc.Cleanup()
 	if err := tc.GenerateGPGKeyring("no@no.no"); err != nil {
 		t.Fatal(err)
