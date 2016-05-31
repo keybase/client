@@ -800,7 +800,8 @@ func (ro *rekeyOp) GetDefaultAction(mergedPath path) crAction {
 
 // gcOp is an op that represents garbage-collecting the history of a
 // folder (which may involve unreferencing blocks that previously held
-// operation lists.
+// operation lists.  It may contain unref blocks before it is added to
+// the metadata ops list.
 type gcOp struct {
 	OpCommon
 
@@ -820,7 +821,7 @@ func newGCOp(latestRev MetadataRevision) *gcOp {
 }
 
 func (gco *gcOp) SizeExceptUpdates() uint64 {
-	return 0
+	return bpSize * uint64(len(gco.UnrefBlocks))
 }
 
 func (gco *gcOp) AllUpdates() []blockUpdate {
