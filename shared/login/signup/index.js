@@ -21,8 +21,9 @@ export default function signupRouter (currentPath: Map<string, string>, uri: URI
   let element = <ErrorText currentPath={currentPath} />
 
   const path = currentPath.get('path')
+  const parseRoute: any = currentPath.get('parseRoute')
 
-  const {component: Component, props} = currentPath.get('parseRoute') || {}
+  const {component: Component, props} = parseRoute || {}
   if (Component) {
     element = <Component {...props} />
   } else {

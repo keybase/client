@@ -3,7 +3,7 @@
 import * as Constants from '../constants/login'
 import * as ConfigConstants from '../constants/config'
 import * as CommonConstants from '../constants/common'
-import Immutable from 'immutable'
+import {fromJS} from 'immutable'
 
 import type {DeviceRole, Mode} from '../constants/login'
 
@@ -152,6 +152,6 @@ export default function (state: LoginState = initialState, action: any): LoginSt
       return state
   }
 
-  const s = Immutable.fromJS(state)
+  const s = fromJS(state)
   return s.mergeDeep(toMerge).toJS()
 }
