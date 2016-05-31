@@ -158,7 +158,7 @@ Text.contextTypes = {
   inTerminal: React.PropTypes.bool
 }
 
-const sizeGroups: { [key: '40' | '30' | '22' | '18' | '15' | '14']: Object } = {
+const sizeGroups: { [key: '40' | '30' | '22' | '18' | '15' | '13']: Object } = {
   '40': {
     fontSize: 40,
     lineHeight: 46
@@ -179,8 +179,8 @@ const sizeGroups: { [key: '40' | '30' | '22' | '18' | '15' | '14']: Object } = {
     fontSize: 15,
     lineHeight: 20
   },
-  '14': {
-    fontSize: 14,
+  '13': {
+    fontSize: 13,
     lineHeight: 18
   }
 }
@@ -301,11 +301,11 @@ export const styles = {
   },
   textBodyXSmall: {
     ...textCommon,
-    ...sizeGroups['14']
+    ...sizeGroups['13']
   },
   textBodyXSmallLink: {
     ...textCommon,
-    ...sizeGroups['14']
+    ...sizeGroups['13']
   },
   textError: {
     ...textCommon,

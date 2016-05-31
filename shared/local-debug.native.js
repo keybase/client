@@ -19,6 +19,7 @@ let config = {
   overrideLoggedInTab: null,
   dumbFilter: '',
   dumbIndex: 0,
+  dumbFullscreen: false,
   printRoutes: false
 }
 
@@ -36,6 +37,7 @@ if (__DEV__ && true) {
   config.overrideLoggedInTab = Tabs.moreTab
   config.dumbFilter = ''
   config.dumbIndex = 0
+  config.dumbFullscreen = false
   config.printRoutes = true
 }
 
@@ -54,6 +56,7 @@ export const {
   overrideLoggedInTab,
   dumbFilter,
   dumbIndex,
+  dumbFullscreen,
   printRoutes
 } = config
 

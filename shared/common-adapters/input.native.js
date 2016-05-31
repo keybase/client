@@ -67,7 +67,7 @@ class Input extends Component<void, Props, State> {
           onSubmitEditing={this.props.onEnterKeyDown}
           onChange={this.props.onChange}
           onChangeText={text => { this.setState({text}); this.props.onChangeText && this.props.onChangeText(text) }} />
-        {IOS && <HorizontalLine focused={this.state.inputFocused} />}
+        {IOS && !this.props.iosOmitUnderline && <HorizontalLine focused={this.state.inputFocused} />}
         {!!(this.props.errorText) && <Text type='Error' style={{...errorText, ...this.props.errorStyle}}>{this.props.errorText}</Text>}
       </Box>
     )

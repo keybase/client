@@ -18,7 +18,7 @@ export default class ListItem extends Component<void, Props, void> {
             {this.props.icon}
           </Box>
         </Box>
-        <Box style={{...globalStyles.flexBoxColumn, ...bodyContainerStyle(this.props.swipeToAction)}}>
+        <Box style={{...globalStyles.flexBoxColumn, ...bodyContainerStyle(this.props.swipeToAction), ...this.props.bodyContainerStyle}}>
           {this.props.body}
         </Box>
         {!this.props.swipeToAction && (<Box style={{...globalStyles.flexBoxColumn, ...actionStyle(!!this.props.extraRightMarginAction), justifyContent: 'center'}}>
