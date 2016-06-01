@@ -85,30 +85,34 @@ func (p *Prove) checkExists1(ctx *Context) (err error) {
 	return
 }
 
-func (p *Prove) promptRemoteName(ctx *Context) (err error) {
-	remoteName := p.arg.Username
-	if len(remoteName) == 0 {
-		var prevErr error
-		for len(remoteName) == 0 && err == nil {
-			var un string
-			un, err = ctx.ProveUI.PromptUsername(context.TODO(), keybase1.PromptUsernameArg{
-				Prompt:    p.st.GetPrompt(),
-				PrevError: libkb.ExportErrorAsStatus(prevErr),
-			})
-			if err == nil {
-				remoteNameNormalized, prevErr := p.st.NormalizeRemoteName(un)
-				if prevErr == nil {
-					p.remoteNameNormalized = remoteNameNormalized
-				}
-			}
-		}
-	} else {
-		remoteNameNormalized, err := p.st.NormalizeRemoteName(remoteName)
+func (p *Prove) promptRemoteName(ctx *Context) error {
+	// If the name is already supplied, there's no need to prompt.
+	if len(p.arg.Username) > 0 {
+		remoteNameNormalized, err := p.st.NormalizeRemoteName(p.arg.Username)
 		if err == nil {
 			p.remoteNameNormalized = remoteNameNormalized
 		}
+		return err
 	}
-	return
+
+	// Prompt for the name, retrying if it's invalid.
+	var normalizationError error
+	for {
+		un, err := ctx.ProveUI.PromptUsername(context.TODO(), keybase1.PromptUsernameArg{
+			Prompt:    p.st.GetPrompt(),
+			PrevError: libkb.ExportErrorAsStatus(normalizationError),
+		})
+		if err != nil {
+			// Errors here are conditions like EOF. Return them rather than retrying.
+			return err
+		}
+		var remoteNameNormalized string
+		remoteNameNormalized, normalizationError = p.st.NormalizeRemoteName(un)
+		if normalizationError == nil {
+			p.remoteNameNormalized = remoteNameNormalized
+			return nil
+		}
+	}
 }
 
 func (p *Prove) checkExists2(ctx *Context) (err error) {
