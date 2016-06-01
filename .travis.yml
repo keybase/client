@@ -44,7 +44,7 @@ after_success:
   - if [ "$TRAVIS_OS_NAME" == 'linux' ] && [ "$TRAVIS_PULL_REQUEST" == 'false' ]; then
       cp $GOPATH/bin/kbfsfuse $GOPATH/src/github.com/keybase/kbfs/kbfsfuse/kbfsfuse &&
       docker build -t $CI_HOST/kbfsfuse --build-arg KEYBASE_TEST_ROOT_CERT_PEM="$KEYBASE_TEST_ROOT_CERT_PEM" $GOPATH/src/github.com/keybase/kbfs/kbfsfuse &&
-      docker push $CI_HOST/kbfsfuse
+      docker push $CI_HOST/kbfsfuse;
     fi
 notifications:
   slack: keybase:WKlhs55Mb4am4obv1rNRg8P0
