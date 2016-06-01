@@ -25,7 +25,7 @@ func (i Invitation) Link() string {
 	if i.Throttled {
 		return ""
 	}
-	return path.Join(CanonicalHost, "inv", i.ShortCode[0:10])
+	return path.Join(CanonicalHost, "inv", i.ID[0:10])
 }
 
 func (i InviteArg) ToHTTPArgs() HTTPArgs {
