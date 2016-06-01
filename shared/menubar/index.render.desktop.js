@@ -39,7 +39,7 @@ class Render extends Component<void, Props, State> {
         <Box style={{...stylesTopRow, position: 'absolute'}}>
           <Icon
             style={menuStyle}
-            type='fa-custom-icon-hamburger'
+            type='fa-kb-iconfont-hamburger'
             onClick={() => this.setState({showingMenu: !this.state.showingMenu})} />
         </Box>
         <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center'}}>
