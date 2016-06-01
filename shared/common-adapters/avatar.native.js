@@ -1,36 +1,29 @@
 // @flow
 
 import React, {Component} from 'react'
+import {Image} from 'react-native'
 import type {Props} from './avatar'
 import {Box, Icon} from '../common-adapters'
+import {images} from './icon.paths.native'
+import * as shared from './avatar.shared'
 
 export default class Avatar extends Component {
   props: Props;
 
-  state: {
-    avatarLoaded: boolean
-  };
-
   constructor (props: Props) {
     super(props)
-    this.state = {avatarLoaded: false}
   }
 
   render () {
-    return (
-      <Box style={{justifyContent: 'flex-end', ...this.props.style}} onClick={this.props.onClick}>
-        <Icon style={{...avatarStyle(this.props.size - 2)}}
-          type='placeholder-avatar' />
-      </Box>
-    )
-  }
-}
+    const width = this.props.size
+    const height = this.props.size
+    const url = shared.createUrl(this.props)
 
-function avatarStyle (size: number): Object {
-  return {
-    width: size,
-    height: size,
-    borderRadius: size / 2,
-    alignSelf: 'center',
+    return (
+      <Image
+        style={{resizeMode: 'contain', width, height, borderRadius: width / 2}}
+        defaultSource={images['placeholder-avatar']}
+        source={{uri: url}} />
+    )
   }
 }
