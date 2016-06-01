@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/net/context"
@@ -161,11 +162,11 @@ func (km *KeyManagerStandard) getTLFCryptKey(ctx context.Context,
 		var index int
 		clientHalf, index, err = crypto.DecryptTLFCryptKeyClientHalfAny(ctx,
 			keys, flags&getTLFCryptKeyPromptPaper != 0)
-		if err != nil {
-			// The likely error here is DecryptionError, which we will replace
-			// with a ReadAccessError to communicate to the caller that we were
-			// unable to decrypt because we didn't have a key with access.
+		if _, ok := err.(libkb.DecryptionError); ok {
+			km.log.CDebugf(ctx, "Got decryption error from service: %v", err)
 			return TLFCryptKey{}, localMakeRekeyReadError()
+		} else if err != nil {
+			return TLFCryptKey{}, err
 		}
 		info = keysInfo[index]
 		cryptPublicKey = publicKeys[publicKeyLookup[index]]
