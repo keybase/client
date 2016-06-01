@@ -17,7 +17,6 @@ type RekeyUIHandler struct {
 	libkb.Contextified
 	connID      libkb.ConnectionID
 	alwaysAlive bool
-	// parent *gregorHandler
 }
 
 var _ libkb.GregorInBandMessageHandler = (*RekeyUIHandler)(nil)
@@ -26,7 +25,6 @@ func NewRekeyUIHandler(g *libkb.GlobalContext, connID libkb.ConnectionID) *Rekey
 	return &RekeyUIHandler{
 		Contextified: libkb.NewContextified(g),
 		connID:       connID,
-		// parent:       parent,
 	}
 }
 
@@ -73,9 +71,7 @@ func (r *RekeyUIHandler) rekeyNeeded(ctx context.Context, item gregor.Item) erro
 	// if the scores list is empty, dismiss the gregor notification
 	if len(scores) == 0 {
 		r.G().Log.Debug("scores list empty, dismissing gregor notification")
-		// XXX DismissItem currently broken, uncomment when fixed:
-		// return r.parent.DismissItem(item.Metadata().MsgID())
-		return nil
+		return r.G().GregorDismisser.DismissItem(item.Metadata().MsgID())
 	}
 
 	// get the rekeyUI
@@ -114,9 +110,7 @@ func (r *RekeyUIHandler) rekeyNeeded(ctx context.Context, item gregor.Item) erro
 			}
 
 			r.G().Log.Debug("scores list empty, dismissing gregor notification")
-			// XXX DismissItem currently broken, uncomment when fixed:
-			// return r.parent.DismissItem(item.Metadata().MsgID())
-			return nil
+			return r.G().GregorDismisser.DismissItem(item.Metadata().MsgID())
 		}
 	}
 }
