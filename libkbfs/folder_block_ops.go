@@ -1083,7 +1083,7 @@ func (fbo *folderBlockOps) writeGetFileLocked(
 // createIndirectBlockLocked creates a new indirect block and
 // pick a new id for the existing block, and use the existing block's ID for
 // the new indirect block that becomes the parent.
-func (fbo *folderBlockOps) createInderectBlockLocked(md *RootMetadata,
+func (fbo *folderBlockOps) createIndirectBlockLocked(md *RootMetadata,
 	file path, uid keybase1.UID, dver DataVer) (*FileBlock, error) {
 
 	newID, err := fbo.config.Crypto().MakeTemporaryBlockID()
@@ -1155,6 +1155,7 @@ func (fbo *folderBlockOps) writeDataLocked(
 		}
 
 		oldLen := len(block.Contents)
+		// Take care not to write past the beginning of the next block by using max.
 		max := len(data)
 		if nextBlockOff > 0 {
 			if room := int(nextBlockOff - (off + nCopied - startOff)); room < max {
@@ -1172,7 +1173,7 @@ func (fbo *folderBlockOps) writeDataLocked(
 		if nCopied < n && nextBlockOff < 0 {
 			// If the block doesn't already have a parent block, make one.
 			if ptr == file.tailPointer() {
-				fblock, err = fbo.createInderectBlockLocked(md, file, uid,
+				fblock, err = fbo.createIndirectBlockLocked(md, file, uid,
 					DefaultNewBlockDataVersion(fbo.config, false))
 				if err != nil {
 					return WriteRange{}, nil, err
@@ -1328,7 +1329,7 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 	if !fblock.IsInd {
 		fbo.log.CDebugf(ctx, "truncateExtendLocked: extending fblock %#v", fblock)
 		old := fblock
-		fblock, err = fbo.createInderectBlockLocked(md, file, uid,
+		fblock, err = fbo.createIndirectBlockLocked(md, file, uid,
 			DefaultNewBlockDataVersion(fbo.config, true))
 		if err != nil {
 			return WriteRange{}, nil, err
