@@ -1,0 +1,278 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+	<Product Id="*" Name="Keybase Update" Language="1033" Version="$(env.KEYBASE_WINVER)" Manufacturer="Keybase, Inc." UpgradeCode="c118f7ec-9a1d-4ff1-91f5-15d208499d7b">
+		<Package InstallerVersion="500" Compressed="yes" InstallPrivileges="limited" InstallScope="perUser" />
+    <MediaTemplate EmbedCab="yes"/>
+    <Icon Id="ProductIcon" SourceFile="$(env.GOPATH)\src\github.com\keybase\client\packaging\windows\keybase.ico"/>
+    <Property Id="ARPPRODUCTICON" Value="ProductIcon"/>
+    <Property Id="ARPHELPLINK" Value="http://www.keybase.io"/>
+    <Property Id="ARPURLINFOABOUT" Value="http://www.keybase.io"/>
+    <Property Id="INNOCLIUNINSTALL">
+      <RegistrySearch Id="InnoCLIUninstall"
+                      Root="HKLM"
+                      Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\{70E747DE-4E09-44B0-ACAD-784AA9D79C02}_is1"
+                      Name="UninstallString"
+                      Type="raw" />
+    </Property>
+    <Property Id="AUTOUPDATE_REG_SEARCH">
+      <RegistrySearch Id="AutoUpdateRegSearch"
+                      Root="HKCU"
+                      Key="Software\Keybase\Keybase"
+                      Name="AutoUpdate"
+                      Type="raw" />
+    </Property>
+    <Property Id="DOKANUNINSTALL">
+      <RegistrySearch Id="DokanUninstall86"
+                      Root="HKLM"
+                      Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\{65A3A986-3DC3-0100-0000-160310102248}"
+                      Name="UninstallString"
+                      Type="raw" />
+      <RegistrySearch Id="DokanUninstall64"
+                      Root="HKLM"
+                      Key="Software\Microsoft\Windows\CurrentVersion\Uninstall\{65A3A964-3DC3-0100-0000-160310102248}"
+                      Name="UninstallString"
+                      Type="raw" />
+    </Property>
+    <Property Id="ISELEVATED" Value="0"/>
+    
+    <MajorUpgrade DowngradeErrorMessage="A newer version of Keybase is already installed." AllowSameVersionUpgrades="yes"  />		
+
+		<Feature Id="ProductFeature" Title="Keybase Application" Level="1">
+			<ComponentGroupRef Id="ProductComponents" />
+      <ComponentGroupRef Id="GuiComponents" />
+      <ComponentRef Id="ApplicationShortcut" />
+      <ComponentGroupRef Id="StartupShortcuts" />
+    </Feature>
+
+
+    <InstallExecuteSequence>
+      <InstallValidate Suppress="yes">FAKE_PROPERTY</InstallValidate>
+      <Custom Action="StopGUI" Before="InstallValidate">Installed</Custom>
+      <Custom Action="StopKBFS" Before="InstallValidate">Installed</Custom>
+      <Custom Action="StopMainApp" Before="InstallValidate">Installed</Custom>
+      <Custom Action="UninstallOldCLI" Before="InstallFinalize">(NOT Installed) AND INNOCLIUNINSTALL</Custom>
+      <Custom Action="RunMainApp" Before="InstallFinalize">NOT (REMOVE ~= "ALL")</Custom>
+      <Custom Action="RunKBFS" Before="InstallFinalize">NOT (REMOVE ~= "ALL")</Custom>
+      <Custom Action="RunGUI" Before="InstallFinalize">NOT (REMOVE ~= "ALL")</Custom>
+      <!--Custom Action="MountDrive" Before="InstallFinalize">ISELEVATED = "1"</Custom>-->
+      <!--<Custom Action="DoDokanInstall" Before="InstallFinalize">DOKANUNINSTALL = ""</Custom>-->
+    </InstallExecuteSequence>
+
+    <UI>
+      <Property Id="DefaultUIFont">DlgFont8</Property>
+      
+      <Dialog Id="MyCancelDlg" Width="260" Height="85" Title="[ProductName] [Setup]" NoMinimize="yes">
+        <Control Id="No" Type="PushButton" X="132" Y="57" Width="56" Height="17" Default="yes" Cancel="yes" Text="[ButtonText_No]">
+          <Publish Event="EndDialog" Value="Exit">1</Publish>
+        </Control>
+        <Control Id="Yes" Type="PushButton" X="72" Y="57" Width="56" Height="17" Text="[ButtonText_Yes]">
+          <Publish Event="EndDialog" Value="Return">1</Publish>
+        </Control>
+        <Control Id="Text" Type="Text" X="48" Y="15" Width="194" Height="30">
+          <Text>Previous [ProductName] components need to be uninstalled before proceeding. Continue?</Text>
+        </Control>
+        <Control Id="Icon" Type="Icon" X="15" Y="15" Width="24" Height="24" ToolTip="Information icon" FixedSize="yes" IconSize="32" Text="[InfoIcon]" />
+      </Dialog>
+
+      <Dialog Id="UpdateDlg" Width="260" Height="95" Title="[ProductName] [Setup]" NoMinimize="yes">
+        <Control Id="No" Type="PushButton" X="132" Y="67" Width="56" Height="17" Default="yes" Cancel="yes" Text="[ButtonText_No]">
+          <Publish Event="EndDialog" Value="Exit">1</Publish>
+        </Control>
+        <Control Id="Yes" Type="PushButton" X="72" Y="67" Width="56" Height="17" Text="[ButtonText_Yes]">
+          <Publish Event="EndDialog" Value="Return">1</Publish>
+        </Control>
+        <Control Id="Text" Type="Text" X="43" Y="15" Width="209" Height="30">
+          <Text>This [ProductName] update contains important bugfixes and cool new features. Would you like to install it now?</Text>
+        </Control>
+        <Control Id="u" Type="CheckBox" X="48" Y="50" Width="194" Height="17" Property="AUTOUPDATECHECKBOX" CheckBoxValue="1" Text="Do this automatically from now on." />
+        <Control Id="Icon" Type="Icon" X="10" Y="15" Width="24" Height="24" ToolTip="Information icon" FixedSize="yes" IconSize="32" Text="[InfoIcon]" />
+      </Dialog>
+
+      <TextStyle Id="DlgFont8" FaceName="Tahoma" Size="8" />
+      <TextStyle Id="DlgTitleFont" FaceName="Tahoma" Size="8" Bold="yes" />
+
+      <InstallUISequence>
+        <Show Dialog="MyCancelDlg" After="CostFinalize">(NOT Installed) AND INNOCLIUNINSTALL</Show>
+        <Show Dialog="UpdateDlg" After="CostFinalize">WIX_UPGRADE_DETECTED AND NOT (AUTOUPDATE_REG_SEARCH = "1")</Show>
+      </InstallUISequence>
+    </UI>
+
+    <Property Id="Setup">Setup</Property>
+    <Property Id="ButtonText_No">&amp;No</Property>
+    <Property Id="ButtonText_Yes">&amp;Yes</Property>
+    <Property Id="ButtonText_Install">&amp;Install</Property>
+    <Property Id="ButtonText_Cancel">Cancel</Property>
+    <Property Id="BannerBitmap">bannrbmp</Property>
+    <Property Id="Wizard">Setup Wizard</Property>
+    <Property Id="InfoIcon">info</Property>
+
+    <Binary Id="info" SourceFile="Binary\Info.ico" />
+    <Binary Id="bannrbmp" SourceFile="Binary\Banner.bmp" />
+  </Product>
+  <Fragment>
+		<Directory Id="TARGETDIR" Name="SourceDir">
+			<Directory Id="AppDataFolder">
+        <Directory Id="INSTALLFOLDER" Name="Keybase"/>
+      </Directory>
+      <Directory Id="ProgramMenuFolder">
+        <Directory Id="ApplicationProgramsFolder" Name="Keybase"/>
+      </Directory>
+      <Directory Id="StartupFolder" Name="Startup" />
+      <Directory Id="SystemFolder" Name="System" />
+    </Directory>
+	</Fragment>
+  
+	<Fragment>
+		<ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+			<Component Id="keybase.exe" Guid="88737432-0E15-413D-B23C-4B18D06EDC2C">				
+        <CreateFolder />
+        <RemoveFolder Id="RemoveMyApp" On="uninstall" />
+        <!-- The heat tool output won't work if there are directories with only subdirectories
+        and no removable components, so we have to special-case them here and in the xsl transform  -->
+        <RemoveFolder Id="GuiResourcesDirRemove" On="uninstall" Directory="GuiResourcesDir"/>
+        <RemoveFolder Id="GuiSharedDirRemove" On="uninstall" Directory="GuiSharedDir"/>
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="KeybaseExe" Value="1" KeyPath="yes" Type="integer" />
+        </RegistryKey>
+        <File Id="keybase.exe" Source="$(env.GOPATH)\src\github.com\keybase\client\go\keybase\keybase.exe" Checksum="yes"/>
+			</Component>
+      <Component Id="runquiet.exe" Guid="{1265F74B-0775-4522-A67D-25422D1984A3}">
+        <CreateFolder />
+        <RemoveFolder Id="RemoveMyAppRunner" On="uninstall" />
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="runquietexe" Value="1" KeyPath="yes" Type="integer" />
+        </RegistryKey>
+        <File Id="runquiet.exe" Source="$(env.GOPATH)\src\github.com\keybase\client\go\runquiet\runquiet.exe" Checksum="yes"/>
+      </Component>
+
+      <!--<Component Id="DokanInstallerFile" Guid="{D0E508C1-9010-4D68-A3D4-CDCEE8D07BEF}">
+        <CreateFolder />
+        <RemoveFolder Id="RemoveDokan" On="uninstall" />
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="DokanInstaller" Value="1" KeyPath="yes" Type="integer" />
+        </RegistryKey>
+        <File Id='DokanInstaller' DiskId='1' Source="$(env.GOPATH)\bin\dokan-dev\dokan-v0.8.0\DokanInstall_0.8.0_redist.exe" />
+      </Component>-->
+      <Component Id="KbfsDokanExe" Guid="{98A16FB9-D314-495A-806C-B75DCB74CF9D}">
+        <CreateFolder />
+        <RemoveFolder Id="RemoveDokan" On="uninstall" />
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="KbfsDokanExe" Value="1" KeyPath="yes" Type="integer" />
+        </RegistryKey>
+        <File Id='KbfsDokanExe' DiskId='1' Source="$(env.GOPATH)\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe" />
+      </Component>
+      
+      <Component Id="AutoUpdateRegistryEntry"
+                   Guid="{F0FB2519-FA16-4275-84A1-5EB05473D9F2}">
+        <Condition>AUTOUPDATECHECKBOX = "1"</Condition>
+        <RegistryKey Root="HKCU"
+                     Key="Software\Keybase\Keybase">
+          <RegistryValue Type="string"
+                         Name="AutoUpdate"
+                         Value="1"/>
+        </RegistryKey>
+      </Component>
+      
+    </ComponentGroup>
+  </Fragment>
+  <Fragment>
+    <ComponentGroup Id="StartupShortcuts" Directory="StartupFolder">
+      <Component Id="AppShortCutStartUpComponent" Guid="{2EE65854-7CA1-4010-B62B-780F1C39ED0A}">
+        <Shortcut Id="AppShortCutStartUp" Name="KeybaseStartup"
+                  Description="Start Keybase at boot"
+                  Target="[INSTALLFOLDER]runquiet.exe"
+                  Arguments="keybase.exe ctl watchdog"
+                  WorkingDirectory="INSTALLFOLDER"/>
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="ShortCutStartUp" Type="integer" Value="1" KeyPath="yes"  />
+        </RegistryKey>
+      </Component>
+      <Component Id="KBFSShortCutStartUpComponent" Guid="{B6769ACB-DEFA-4A07-831E-BE1CD315C676}">
+        <Shortcut Id="KBFSShortCutStartUp" Name="KFSStartup"
+                  Description="Start KBFS at boot"
+                  Target="[INSTALLFOLDER]runquiet.exe"
+                  Arguments="kbfsdokan.exe -debug -log-to-file -mount-type=force K:"
+                  WorkingDirectory="INSTALLFOLDER"/>
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="ShortCutStartUpKBFS" Type="integer" Value="1" KeyPath="yes"  />
+        </RegistryKey>
+      </Component>
+      <Component Id="GUIShortCutStartUpComponent" Guid="{4AC98412-7636-4727-AB39-44A98E25249A}">
+        <Shortcut Id="GUIShortCutStartUp" Name="GUIStartup"
+                  Description="Start GUI at boot"
+                  Target="[INSTALLFOLDER]runquiet.exe"
+                  Arguments="[GuiDir]Keybase.exe"
+                  WorkingDirectory="INSTALLFOLDER"/>
+        <RegistryKey Root="HKCU" Key="Software\Keybase\Keybase">
+          <RegistryValue Name="ShortCutStartUpGUI" Type="integer" Value="1" KeyPath="yes"  />
+        </RegistryKey>
+      </Component>
+    </ComponentGroup>
+    
+  </Fragment>
+  
+    <Fragment>
+    <DirectoryRef Id="ApplicationProgramsFolder">
+      <Component Id="ApplicationShortcut" Guid="E05F8D29-F530-4791-AE6B-B89DAE1F6D5C">
+        <Shortcut Id="ApplicationStartMenuShortcut"
+             Name="Keybase CMD"
+           Description="Open command console with keybase in the local path"
+            Target="[SystemFolder]cmd.exe"
+            Arguments="/K &quot;set PATH=%PATH%;[INSTALLFOLDER]&quot;"
+            WorkingDirectory="INSTALLFOLDER"      
+            Icon="ProductIcon"/>
+        <RemoveFolder Id="ApplicationProgramsFolder" On="uninstall"/>
+        <RegistryValue Root="HKCU" Key="Software\Keybase\Keybase" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+      </Component>
+    </DirectoryRef>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="RunMainApp"
+              Directory="INSTALLFOLDER"
+              ExeCommand="[INSTALLFOLDER]runquiet.exe [INSTALLFOLDER]keybase.exe ctl watchdog"
+              Execute="commit"
+              Return="ignore"/>    
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="StopMainApp"
+              Directory="INSTALLFOLDER"
+              ExeCommand="[INSTALLFOLDER]runquiet.exe -wait [INSTALLFOLDER]keybase.exe ctl stop"
+              Execute="immediate"
+              Return="check"/>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="StopKBFS"
+              Directory="INSTALLFOLDER"
+              ExeCommand="[INSTALLFOLDER]runquiet.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM kbfsdokan.exe"
+              Execute="immediate"
+              Return="check"/>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="UninstallOldCLI"
+              Directory="SystemFolder"
+              ExeCommand="cmd.exe /c [INNOCLIUNINSTALL]"
+              Execute="immediate"
+              Return="check"/>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="RunKBFS"
+              Directory="INSTALLFOLDER"
+              ExeCommand="[INSTALLFOLDER]runquiet.exe [INSTALLFOLDER]kbfsdokan.exe -debug -log-to-file -mount-type=force K:"
+              Execute="commit"
+              Return="ignore"/>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="RunGUI"
+              Directory="GuiDir"
+              ExeCommand="[INSTALLFOLDER]runquiet.exe [GuiDir]Keybase.exe"
+              Execute="commit"
+              Return="ignore"/>
+  </Fragment>
+  <Fragment>
+    <CustomAction Id="StopGUI"
+              Directory="INSTALLFOLDER"
+              ExeCommand="[INSTALLFOLDER]runquiet.exe -wait [WindowsFolder]\System32\taskkill.exe /F /IM Keybase.exe"
+              Execute="immediate"
+              Return="check"/>
+  </Fragment>
+  </Wix>

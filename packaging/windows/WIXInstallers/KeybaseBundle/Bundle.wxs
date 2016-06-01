@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:bal="http://schemas.microsoft.com/wix/BalExtension"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+  <Bundle Name="Keybase" Version="$(env.KEYBASE_WINVER)" Manufacturer="Keybase, Inc." UpgradeCode="418432ab-0366-40fd-a396-8cc0c4200252">
+		<BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.RtfLicense">
+      <bal:WixStandardBootstrapperApplication
+            LicenseUrl="https://keybase.io/docs/terms"
+            LogoFile="logo-64.bmp"
+            LicenseFile="license.rtf"
+            ShowVersion="yes"
+            SuppressOptionsUI="yes"
+            />
+    </BootstrapperApplicationRef>
+    <!-- These two are for the most recent KBFS -->
+    <util:RegistrySearch Id="InnoUninstall"
+                 Variable="InnoUninstallString"        
+                 Root="HKLM"
+                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{357F272E-BE0E-409F-8E39-0BB9827F5716}_is1"
+                 Value="QuietUninstallString"
+                 Format="raw"        
+                 />
+    <util:RegistrySearch Id="InnoUninstall64"
+                 After="InnoUninstall"
+                 Condition="NOT InnoUninstallString"
+                 Variable="InnoUninstallString"
+                 Root="HKLM"
+                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{357F272E-BE0E-409F-8E39-0BB9827F5716}_is1"
+                 Value="QuietUninstallString"
+                 Format="raw"
+                 Win64="yes"
+                 />
+    <util:RegistrySearch Id="DokanUninstall"
+                 Variable="DokanUninstallString"
+                 Root="HKLM"
+                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{65A3A964-3DC3-0100-0000-160511152538}"
+                 Value="UninstallString"
+                 Format="raw"
+                 />
+    <util:RegistrySearch Id="DokanUninstall64"
+                 After="DokanUninstall"        
+                 Condition="NOT DokanUninstallString"        
+                 Variable="DokanUninstallString"
+                 Root="HKLM"
+                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{65A3A964-3DC3-0100-0000-160511152538}"
+                 Value="UninstallString"
+                 Format="raw"
+                 Win64="yes"
+                 />
+    <!--
+    <bal:Condition Message="Please uninstall previous Keybase version and reboot before proceeding with this update: [WixBundleOriginalSource]">
+      NOT InnoUninstallString
+    </bal:Condition>
+    -->
+    
+    <util:FileSearch
+      Id='SearchForDokanSys'
+      Variable="DokanSysFilePresent"
+      Result="exists"
+      Path="[SystemFolder]drivers\dokan.sys"
+       />
+    <!--
+    <bal:Condition Message="Please remove [SystemFolder]drivers\dokan.sys before proceeding with this update.">
+      NOT DokanSysFilePresent
+    </bal:Condition>
+    -->
+
+    <util:FileSearch
+      Id='SearchForDokan1Sys'
+      Variable="Dokan1SysFilePresent"
+      Result="exists"
+      Path="[SystemFolder]drivers\dokan1.sys"
+       />
+    <bal:Condition Message="Please remove [SystemFolder]drivers\dokan1.sys before proceeding with this update.">
+      NOT Dokan1SysFilePresent
+    </bal:Condition>
+
+    <Chain>
+      <ExePackage
+        SourceFile="$(env.GOPATH)\src\github.com\keybase\client\go\runquiet\runquiet.exe"
+          InstallCommand="-wait [InnoUninstallString] /NORESTART"
+          DetectCondition="NOT InnoUninstallString"
+          InstallCondition="InnoUninstallString"
+          PerMachine="yes"
+          Permanent="yes">
+        <ExitCode Behavior="forceReboot"/>
+      </ExePackage>
+      <ExePackage
+        SourceFile="$(env.GOPATH)\bin\dokan-dev\dokan-v1.0.0-RC4\DokanSetup.exe"
+          InstallCommand="/quiet"
+          UninstallCommand="/quiet /uninstall"
+          DetectCondition="ExeDetectedVariable"
+          PerMachine="yes"
+          Permanent="no">
+      </ExePackage>
+      
+      <!--
+      <ExePackage
+        SourceFile="$(env.GOPATH)\bin\dokan-dev\dokan-v0.8.0\DokanInstall_0.8.0_redist.exe"
+          InstallCommand="/s"
+          DetectCondition="ExeDetectedVariable"
+          PerMachine="yes"
+          Permanent="yes">
+      </ExePackage>
+      -->
+
+      <MsiPackage Id="KeybasePrograms" 
+                  SourceFile="$(var.KeybaseApps.TargetPath)" 
+                  DisplayInternalUI='yes'
+                  Permanent="no">
+          <MsiProperty Name="ISELEVATED" Value="1" />
+      </MsiPackage>
+		</Chain>
+	</Bundle>
+</Wix>
