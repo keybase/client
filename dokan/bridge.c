@@ -277,7 +277,9 @@ struct kbfsLibdokanCtx* kbfsLibdokanAllocCtx(ULONG64 slot) {
   ctx->dokan_options.Timeout = 600 * 1000;
   ctx->dokan_options.GlobalContext = slot;
 
-  ctx->dokan_options.Options = DOKAN_OPTION_REMOVABLE;
+  ctx->dokan_options.Options = DOKAN_OPTION_REMOVABLE |
+                               DOKAN_OPTION_CURRENT_SESSION |
+                               DOKAN_OPTION_MOUNT_MANAGER;
   ctx->dokan_operations.ZwCreateFile = kbfsLibdokanC_CreateFile;
   ctx->dokan_operations.Cleanup = kbfsLibdokanC_Cleanup;
   ctx->dokan_operations.CloseFile = kbfsLibdokanC_CloseFile;

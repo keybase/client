@@ -47,9 +47,8 @@ build_script:
   - SET PATH=%PATH%;c:\MinGW\bin
   - git clone git@github.com:keybase/kbfs-binary-windows.git c:\work\src\github.com\keybase\kbfs-binary-windows
   - cd c:\work\src\github.com\keybase\kbfs-binary-windows
-# throwaway branch to check out locally at a specific tag  
-  - git checkout -b dokan-v0.8.0 dokan-v0.8.0
-  - copy dokan\dokan.lib ..\kbfs\dokan
+  - git checkout -b dokan-v1.0.0-RC2 dokan-v1.0.0-RC2
+  - copy dokan\dokan1.lib ..\kbfs\dokan
   - cd ..\kbfs\dokan
   - go test -i
   - go test -c
