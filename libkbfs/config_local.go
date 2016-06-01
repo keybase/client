@@ -45,6 +45,7 @@ type ConfigLocal struct {
 	rep         Reporter
 	kcache      KeyCache
 	bcache      BlockCache
+	dbcache     DirtyBlockCache
 	codec       Codec
 	mdops       MDOps
 	kops        KeyOps
@@ -296,6 +297,20 @@ func (c *ConfigLocal) SetBlockCache(b BlockCache) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.bcache = b
+}
+
+// DirtyBlockCache implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) DirtyBlockCache() DirtyBlockCache {
+	c.lock.RLock()
+	defer c.lock.RUnlock()
+	return c.dbcache
+}
+
+// SetDirtyBlockCache implements the Config interface for ConfigLocal.
+func (c *ConfigLocal) SetDirtyBlockCache(d DirtyBlockCache) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.dbcache = d
 }
 
 // Crypto implements the Config interface for ConfigLocal.
@@ -554,6 +569,7 @@ func (c *ConfigLocal) ResetCaches() {
 	c.kcache = NewKeyCacheStandard(5000)
 	// Limit the block cache to 10K entries or 512 MB of bytes
 	c.bcache = NewBlockCacheStandard(c, 10000, 512*1024*1024)
+	c.dbcache = NewDirtyBlockCacheStandard()
 }
 
 // MakeLogger implements the Config interface for ConfigLocal.

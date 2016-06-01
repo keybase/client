@@ -11,12 +11,6 @@ import (
 	lru "github.com/hashicorp/golang-lru"
 )
 
-type dirtyBlockID struct {
-	id       BlockID
-	refNonce BlockRefNonce
-	branch   BranchName
-}
-
 type idCacheKey struct {
 	tlf           TlfID
 	plaintextHash RawDefaultHash
@@ -25,10 +19,7 @@ type idCacheKey struct {
 // BlockCacheStandard implements the BlockCache interface by storing
 // blocks in an in-memory LRU cache.  Clean blocks are identified
 // internally by just their block ID (since blocks are immutable and
-// content-addressable).  Dirty blocks are identified by their block
-// ID, branch name, and reference nonce, since the same block may be
-// forked and modified on different branches and under different
-// references simultaneously.
+// content-addressable).
 type BlockCacheStandard struct {
 	config             Config
 	cleanBytesCapacity uint64
@@ -42,10 +33,6 @@ type BlockCacheStandard struct {
 
 	bytesLock       sync.Mutex
 	cleanTotalBytes uint64
-
-	dirtyLock          sync.Mutex
-	dirty              map[dirtyBlockID]Block
-	dirtyBytesEstimate uint64
 }
 
 // NewBlockCacheStandard constructs a new BlockCacheStandard instance
@@ -60,7 +47,6 @@ func NewBlockCacheStandard(config Config, transientCapacity int,
 		config:             config,
 		cleanBytesCapacity: cleanBytesCapacity,
 		cleanPermanent:     make(map[BlockID]Block),
-		dirty:              make(map[dirtyBlockID]Block),
 	}
 
 	if transientCapacity > 0 {
@@ -80,22 +66,7 @@ func NewBlockCacheStandard(config Config, transientCapacity int,
 }
 
 // Get implements the BlockCache interface for BlockCacheStandard.
-func (b *BlockCacheStandard) Get(ptr BlockPointer, branch BranchName) (
-	Block, error) {
-	block := func() Block {
-		dirtyID := dirtyBlockID{
-			id:       ptr.ID,
-			refNonce: ptr.RefNonce,
-			branch:   branch,
-		}
-		b.dirtyLock.Lock()
-		defer b.dirtyLock.Unlock()
-		return b.dirty[dirtyID]
-	}()
-	if block != nil {
-		return block, nil
-	}
-
+func (b *BlockCacheStandard) Get(ptr BlockPointer) (Block, error) {
 	if b.cleanTransient != nil {
 		if tmp, ok := b.cleanTransient.Get(ptr.ID); ok {
 			block, ok := tmp.(Block)
@@ -106,7 +77,7 @@ func (b *BlockCacheStandard) Get(ptr BlockPointer, branch BranchName) (
 		}
 	}
 
-	block = func() Block {
+	block := func() Block {
 		b.cleanLock.RLock()
 		defer b.cleanLock.RUnlock()
 		return b.cleanPermanent[ptr.ID]
@@ -241,22 +212,6 @@ func (b *BlockCacheStandard) Put(
 	return nil
 }
 
-// PutDirty implements the BlockCache interface for BlockCacheStandard.
-func (b *BlockCacheStandard) PutDirty(ptr BlockPointer,
-	branch BranchName, block Block) error {
-	dirtyID := dirtyBlockID{
-		id:       ptr.ID,
-		refNonce: ptr.RefNonce,
-		branch:   branch,
-	}
-
-	b.dirtyLock.Lock()
-	defer b.dirtyLock.Unlock()
-	b.dirty[dirtyID] = block
-	b.dirtyBytesEstimate = 0
-	return nil
-}
-
 // DeletePermanent implements the BlockCache interface for
 // BlockCacheStandard.
 func (b *BlockCacheStandard) DeletePermanent(id BlockID) error {
@@ -314,52 +269,4 @@ func (b *BlockCacheStandard) DeleteKnownPtr(tlf TlfID, block *FileBlock) error {
 	key := idCacheKey{tlf, hash}
 	b.ids.Remove(key)
 	return nil
-}
-
-// DeleteDirty implements the BlockCache interface for BlockCacheStandard.
-func (b *BlockCacheStandard) DeleteDirty(
-	ptr BlockPointer, branch BranchName) error {
-	dirtyID := dirtyBlockID{
-		id:       ptr.ID,
-		refNonce: ptr.RefNonce,
-		branch:   branch,
-	}
-
-	b.dirtyLock.Lock()
-	defer b.dirtyLock.Unlock()
-	delete(b.dirty, dirtyID)
-	b.dirtyBytesEstimate = 0
-	return nil
-}
-
-// IsDirty implements the BlockCache interface for BlockCacheStandard.
-func (b *BlockCacheStandard) IsDirty(
-	ptr BlockPointer, branch BranchName) (isDirty bool) {
-	dirtyID := dirtyBlockID{
-		id:       ptr.ID,
-		refNonce: ptr.RefNonce,
-		branch:   branch,
-	}
-
-	b.dirtyLock.Lock()
-	defer b.dirtyLock.Unlock()
-	_, isDirty = b.dirty[dirtyID]
-	return
-}
-
-// DirtyBytesEstimate implements the BlockCache interface for
-// BlockCacheStandard.
-func (b *BlockCacheStandard) DirtyBytesEstimate() uint64 {
-	b.dirtyLock.Lock()
-	defer b.dirtyLock.Unlock()
-	if b.dirtyBytesEstimate == 0 {
-		// Users of this cache can update dirty blocks at will, so
-		// it's not possible to return the exact sizes of the blocks.
-		// Just cache what we have until we know for sure that it's
-		// changed (because a new block is added, for example).
-		for _, block := range b.dirty {
-			b.dirtyBytesEstimate += uint64(getCachedBlockSize(block))
-		}
-	}
-	return b.dirtyBytesEstimate
 }

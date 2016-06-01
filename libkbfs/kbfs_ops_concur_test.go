@@ -293,7 +293,8 @@ func testKBFSOpsConcurWritesDuringSync(t *testing.T,
 	}
 
 	// Make sure there are no dirty blocks left at the end of the test.
-	numDirtyBlocks := len(bcs.dirty)
+	dbcs := config.DirtyBlockCache().(*DirtyBlockCacheStandard)
+	numDirtyBlocks := len(dbcs.dirty)
 	if numDirtyBlocks != 0 {
 		t.Errorf("%d dirty blocks left after final sync", numDirtyBlocks)
 	}
@@ -428,8 +429,8 @@ func TestKBFSOpsConcurDeferredDoubleWritesDuringSync(t *testing.T) {
 	}
 
 	// Make sure there are no dirty blocks left at the end of the test.
-	bcs := config.BlockCache().(*BlockCacheStandard)
-	numDirtyBlocks := len(bcs.dirty)
+	dbcs := config.DirtyBlockCache().(*DirtyBlockCacheStandard)
+	numDirtyBlocks := len(dbcs.dirty)
 	if numDirtyBlocks != 0 {
 		t.Errorf("%d dirty blocks left after final sync", numDirtyBlocks)
 	}
@@ -1192,7 +1193,7 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	// -- it's still in the permanent cache because the file might
 	// still be read or sync'd later.
 	config.BlockCache().DeletePermanent(errPtr.ID)
-	if _, err := config.BlockCache().Get(errPtr, MasterBranch); err == nil {
+	if _, err := config.BlockCache().Get(errPtr); err == nil {
 		t.Errorf("Failed block put for %v left block in cache", errPtr)
 	}
 
@@ -1319,8 +1320,8 @@ func TestKBFSOpsMultiBlockWriteDuringRetriedSync(t *testing.T) {
 	}
 
 	// Make sure there are no dirty blocks left at the end of the test.
-	bcs := config.BlockCache().(*BlockCacheStandard)
-	numDirtyBlocks := len(bcs.dirty)
+	dbcs := config.DirtyBlockCache().(*DirtyBlockCacheStandard)
+	numDirtyBlocks := len(dbcs.dirty)
 	if numDirtyBlocks != 0 {
 		t.Errorf("%d dirty blocks left after final sync", numDirtyBlocks)
 	}

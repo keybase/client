@@ -47,6 +47,7 @@ type ConfigMock struct {
 	mockMdcache    *MockMDCache
 	mockKcache     *MockKeyCache
 	mockBcache     *MockBlockCache
+	mockDBcache    *MockDirtyBlockCache
 	mockCrypto     *MockCrypto
 	mockCodec      *MockCodec
 	mockMdops      *MockMDOps
@@ -81,6 +82,8 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	config.SetKeyCache(config.mockKcache)
 	config.mockBcache = NewMockBlockCache(c)
 	config.SetBlockCache(config.mockBcache)
+	config.mockDBcache = NewMockDirtyBlockCache(c)
+	config.SetDirtyBlockCache(config.mockDBcache)
 	config.mockCrypto = NewMockCrypto(c)
 	config.SetCrypto(config.mockCrypto)
 	config.mockCodec = NewMockCodec(c)

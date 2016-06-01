@@ -17,7 +17,6 @@ func blockCacheTestInit(t *testing.T, capacity int,
 func testBcachePutWithBlock(t *testing.T, id BlockID, bcache BlockCache, lifetime BlockCacheLifetime, block Block) {
 	ptr := BlockPointer{ID: id}
 	tlf := FakeTlfID(1, false)
-	branch := MasterBranch
 
 	// put the block
 	if err := bcache.Put(ptr, tlf, block, lifetime); err != nil {
@@ -25,15 +24,10 @@ func testBcachePutWithBlock(t *testing.T, id BlockID, bcache BlockCache, lifetim
 	}
 
 	// make sure we can get it successfully
-	if block2, err := bcache.Get(ptr, branch); err != nil {
+	if block2, err := bcache.Get(ptr); err != nil {
 		t.Errorf("Got error on get for block %s: %v", id, err)
 	} else if block2 != block {
 		t.Errorf("Got %v, expected %v", block2, block)
-	}
-
-	// make sure its dirty status is right
-	if bcache.IsDirty(ptr, branch) {
-		t.Errorf("Block %s unexpectedly dirty", id)
 	}
 }
 
@@ -42,33 +36,10 @@ func testBcachePut(t *testing.T, id BlockID, bcache BlockCache, lifetime BlockCa
 	testBcachePutWithBlock(t, id, bcache, lifetime, block)
 }
 
-func testBcachePutDirty(t *testing.T, id BlockID, bcache BlockCache) {
-	block := NewFileBlock()
-	ptr := BlockPointer{ID: id}
-	branch := MasterBranch
-
-	// put the block
-	if err := bcache.PutDirty(ptr, branch, block); err != nil {
-		t.Errorf("Got error on PutDirty for block %s: %v", id, err)
-	}
-
-	// make sure we can get it successfully
-	if block2, err := bcache.Get(ptr, branch); err != nil {
-		t.Errorf("Got error on get for block %s: %v", id, err)
-	} else if block2 != block {
-		t.Errorf("Got back unexpected block: %v", block2)
-	}
-
-	// make sure its dirty status is right
-	if !bcache.IsDirty(ptr, branch) {
-		t.Errorf("Block %s unexpectedly not dirty", id)
-	}
-}
-
 func testExpectedMissing(t *testing.T, id BlockID, bcache BlockCache) {
 	expectedErr := NoSuchBlockError{id}
 	ptr := BlockPointer{ID: id}
-	if _, err := bcache.Get(ptr, MasterBranch); err == nil {
+	if _, err := bcache.Get(ptr); err == nil {
 		t.Errorf("No expected error on 1st get: %v", err)
 	} else if err != expectedErr {
 		t.Errorf("Got unexpected error on 1st get: %v", err)
@@ -80,12 +51,6 @@ func TestBcachePut(t *testing.T) {
 	defer CheckConfigAndShutdown(t, config)
 	testBcachePut(t, fakeBlockID(1), config.BlockCache(), TransientEntry)
 	testBcachePut(t, fakeBlockID(2), config.BlockCache(), PermanentEntry)
-}
-
-func TestBcachePutDirty(t *testing.T) {
-	config := blockCacheTestInit(t, 100, 1<<30)
-	defer CheckConfigAndShutdown(t, config)
-	testBcachePutDirty(t, fakeBlockID(1), config.BlockCache())
 }
 
 func TestBcachePutPastCapacity(t *testing.T) {
@@ -102,71 +67,12 @@ func TestBcachePutPastCapacity(t *testing.T) {
 	testExpectedMissing(t, id1, bcache)
 
 	// but 2 should still be there
-	if _, err := bcache.Get(BlockPointer{ID: id2}, MasterBranch); err != nil {
+	if _, err := bcache.Get(BlockPointer{ID: id2}); err != nil {
 		t.Errorf("Got unexpected error on 2nd get: %v", err)
 	}
 
 	// permanent blocks don't count
 	testBcachePut(t, fakeBlockID(4), config.BlockCache(), PermanentEntry)
-
-	// dirty blocks don't count
-	testBcachePutDirty(t, fakeBlockID(5), bcache)
-	testBcachePutDirty(t, fakeBlockID(6), bcache)
-	testBcachePutDirty(t, fakeBlockID(7), bcache)
-	testBcachePutDirty(t, fakeBlockID(8), bcache)
-
-	// 2 should still be there
-	if _, err := bcache.Get(BlockPointer{ID: id2}, MasterBranch); err != nil {
-		t.Errorf("Got unexpected error on 2nd get: %v", err)
-	}
-}
-
-func TestBcachePutDuplicateDirty(t *testing.T) {
-	config := blockCacheTestInit(t, 2, 1<<30)
-	defer CheckConfigAndShutdown(t, config)
-	bcache := config.BlockCache()
-	// put one under the default block pointer and branch name (clean)
-	id1 := fakeBlockID(1)
-	testBcachePut(t, id1, bcache, TransientEntry)
-	cleanBranch := MasterBranch
-
-	// Then dirty a different reference nonce, and make sure the
-	// original is still clean
-	newNonce := BlockRefNonce([8]byte{1, 0, 0, 0, 0, 0, 0, 0})
-	newNonceBlock := NewFileBlock()
-	err := bcache.PutDirty(BlockPointer{ID: id1, RefNonce: newNonce},
-		MasterBranch, newNonceBlock)
-	if err != nil {
-		t.Errorf("Unexpected error on PutDirty: %v", err)
-	}
-
-	// make sure the original dirty status is right
-	if bcache.IsDirty(BlockPointer{ID: id1}, cleanBranch) {
-		t.Errorf("Original block is now unexpectedly dirty")
-	}
-	if !bcache.IsDirty(BlockPointer{ID: id1, RefNonce: newNonce}, cleanBranch) {
-		t.Errorf("New refnonce block is now unexpectedly clean")
-	}
-
-	// Then dirty a different branch, and make sure the
-	// original is still clean
-	newBranch := BranchName("dirtyBranch")
-	newBranchBlock := NewFileBlock()
-	err = bcache.PutDirty(BlockPointer{ID: id1}, newBranch, newBranchBlock)
-	if err != nil {
-		t.Errorf("Unexpected error on PutDirty: %v", err)
-	}
-
-	// make sure the original dirty status is right
-	if bcache.IsDirty(BlockPointer{ID: id1}, cleanBranch) {
-		t.Errorf("Original block is now unexpectedly dirty")
-	}
-	if !bcache.IsDirty(BlockPointer{ID: id1, RefNonce: newNonce}, cleanBranch) {
-		t.Errorf("New refnonce block is now unexpectedly clean")
-	}
-	if !bcache.IsDirty(BlockPointer{ID: id1}, newBranch) {
-		t.Errorf("New branch block is now unexpectedly clean")
-	}
 }
 
 func TestBcacheCheckPtrSuccess(t *testing.T) {
@@ -290,26 +196,7 @@ func TestBcacheDeletePermanent(t *testing.T) {
 	testExpectedMissing(t, id1, bcache)
 
 	// 2 should still be there
-	if _, err := bcache.Get(BlockPointer{ID: id2}, MasterBranch); err != nil {
-		t.Errorf("Got unexpected error on 2nd get: %v", err)
-	}
-}
-
-func TestBcacheDeleteDirty(t *testing.T) {
-	config := blockCacheTestInit(t, 100, 1<<30)
-	defer CheckConfigAndShutdown(t, config)
-	bcache := config.BlockCache()
-
-	id1 := fakeBlockID(1)
-	testBcachePutDirty(t, id1, bcache)
-	id2 := fakeBlockID(2)
-	testBcachePut(t, id2, bcache, TransientEntry)
-
-	bcache.DeleteDirty(BlockPointer{ID: id1}, MasterBranch)
-	testExpectedMissing(t, id1, bcache)
-
-	// 2 should still be there
-	if _, err := bcache.Get(BlockPointer{ID: id2}, MasterBranch); err != nil {
+	if _, err := bcache.Get(BlockPointer{ID: id2}); err != nil {
 		t.Errorf("Got unexpected error on 2nd get: %v", err)
 	}
 }
@@ -324,7 +211,6 @@ func TestBcacheEmptyTransient(t *testing.T) {
 	id := fakeBlockID(1)
 	ptr := BlockPointer{ID: id}
 	tlf := FakeTlfID(1, false)
-	branch := MasterBranch
 
 	// Make sure all the operations work even if the cache has no
 	// transient capacity.
@@ -333,13 +219,9 @@ func TestBcacheEmptyTransient(t *testing.T) {
 		t.Errorf("Got error on Put for block %s: %v", id, err)
 	}
 
-	_, err := bcache.Get(ptr, branch)
+	_, err := bcache.Get(ptr)
 	if _, ok := err.(NoSuchBlockError); !ok {
 		t.Errorf("Got unexpected error %v", err)
-	}
-
-	if bcache.IsDirty(ptr, branch) {
-		t.Errorf("Block %s unexpectedly dirty", id)
 	}
 
 	err = bcache.DeletePermanent(id)
@@ -379,10 +261,9 @@ func TestBcacheEvictOnBytes(t *testing.T) {
 		testExpectedMissing(t, id, bcache)
 	}
 
-	branch := MasterBranch
 	for i := byte(3); i < 8; i++ {
 		id := fakeBlockID(i)
-		if _, err := bcache.Get(BlockPointer{ID: id}, branch); err != nil {
+		if _, err := bcache.Get(BlockPointer{ID: id}); err != nil {
 			t.Errorf("Got unexpected error on get: %v", err)
 		}
 	}
@@ -418,8 +299,7 @@ func TestBcacheEvictIncludesPermanentSize(t *testing.T) {
 	}
 
 	// The permanent block shouldn't be evicted
-	branch := MasterBranch
-	if _, err := bcache.Get(BlockPointer{ID: idPerm}, branch); err != nil {
+	if _, err := bcache.Get(BlockPointer{ID: idPerm}); err != nil {
 		t.Errorf("Got unexpected error on get: %v", err)
 	}
 
@@ -431,7 +311,7 @@ func TestBcacheEvictIncludesPermanentSize(t *testing.T) {
 
 	for i := byte(5); i < 8; i++ {
 		id := fakeBlockID(i)
-		if _, err := bcache.Get(BlockPointer{ID: id}, branch); err != nil {
+		if _, err := bcache.Get(BlockPointer{ID: id}); err != nil {
 			t.Errorf("Got unexpected error on get: %v", err)
 		}
 	}
@@ -448,7 +328,7 @@ func TestBcacheEvictIncludesPermanentSize(t *testing.T) {
 	}
 
 	// All transient blocks should be gone (including the new one)
-	if _, err := bcache.Get(BlockPointer{ID: idPerm}, branch); err != nil {
+	if _, err := bcache.Get(BlockPointer{ID: idPerm}); err != nil {
 		t.Errorf("Got unexpected error on get: %v", err)
 	}
 
@@ -469,10 +349,10 @@ func TestBcacheEvictIncludesPermanentSize(t *testing.T) {
 		t.Errorf("Got error on Put for block %s: %v", idPerm, err)
 	}
 
-	if _, err := bcache.Get(BlockPointer{ID: idPerm}, branch); err != nil {
+	if _, err := bcache.Get(BlockPointer{ID: idPerm}); err != nil {
 		t.Errorf("Got unexpected error on get: %v", err)
 	}
-	if _, err := bcache.Get(BlockPointer{ID: idPerm2}, branch); err != nil {
+	if _, err := bcache.Get(BlockPointer{ID: idPerm2}); err != nil {
 		t.Errorf("Got unexpected error on get: %v", err)
 	}
 }
