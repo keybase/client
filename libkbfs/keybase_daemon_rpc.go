@@ -230,7 +230,7 @@ func (k *KeybaseDaemonRPC) LoggedOut(ctx context.Context) error {
 	return nil
 }
 
-// UserChanged implements keybase1.NotifySessionInterface.
+// UserChanged implements keybase1.NotifyUsersInterface.
 func (k *KeybaseDaemonRPC) UserChanged(ctx context.Context, uid keybase1.UID) error {
 	k.log.CDebugf(ctx, "User %s changed", uid)
 	k.setCachedUserInfo(uid, UserInfo{})

@@ -23,6 +23,10 @@ before_install:
       echo "OSXFuse installed";
       cd $GOPATH/src/github.com/keybase/kbfs;
     fi
+  - if [ "$TRAVIS_OS_NAME" == 'linux' ] && [ "$TRAVIS_PULL_REQUEST" == 'false' ]; then
+      docker login -e $CI_EMAIL -u $CI_USER -p $CI_PASS $CI_HOST;
+      docker pull $CI_HOST/kbclient && docker tag $CI_HOST/kbclient kbclient;
+    fi
 script:
   - go get -u github.com/golang/lint/golint
   - go install github.com/golang/lint/golint
@@ -36,6 +40,12 @@ script:
   - cd ../test
   - go test -i -tags fuse && go test -race -c && ./test.test -test.timeout 4m
   - go test -c -tags fuse && ./test.test -test.timeout 4m
+after_success:
+  - if [ "$TRAVIS_OS_NAME" == 'linux' ] && [ "$TRAVIS_PULL_REQUEST" == 'false' ]; then
+      cp $GOPATH/bin/kbfsfuse $GOPATH/src/github.com/keybase/kbfs/kbfsfuse/kbfsfuse &&
+      docker build -t $CI_HOST/kbfsfuse --build-arg KEYBASE_TEST_ROOT_CERT_PEM="$KEYBASE_TEST_ROOT_CERT_PEM" $GOPATH/src/github.com/keybase/kbfs/kbfsfuse &&
+      docker push $CI_HOST/kbfsfuse
+    fi
 notifications:
   slack: keybase:WKlhs55Mb4am4obv1rNRg8P0
 branches:

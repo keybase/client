@@ -587,6 +587,7 @@ func (md *MDServerRemote) CheckForRekeys(ctx context.Context) <-chan error {
 	// value it is using.
 	c := make(chan error, 1)
 	time.AfterFunc(5*time.Second, func() {
+		md.log.CInfof(ctx, "CheckForRekeys: checking for rekeys")
 		select {
 		case <-ctx.Done():
 			c <- ctx.Err()
