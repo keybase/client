@@ -331,6 +331,8 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return GPGUnavailableError{}
 	case SCNotFound:
 		return NotFoundError{Msg: s.Desc}
+	case SCDecryptionError:
+		return DecryptionError{}
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -1126,6 +1128,14 @@ func (e NotFoundError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCNotFound,
 		Name: "SC_NOT_FOUND",
+		Desc: e.Error(),
+	}
+}
+
+func (e DecryptionError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCDecryptionError,
+		Name: "SC_DECRYPTION_ERROR",
 		Desc: e.Error(),
 	}
 }

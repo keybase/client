@@ -104,6 +104,7 @@ export const constants = {
     'scidentifyfailed': 277,
     'sctrackingbroke': 278,
     'scwrongcryptoformat': 279,
+    'scdecryptionerror': 280,
     'scbadsignupusernametaken': 701,
     'scbadinvitationcode': 707,
     'scmissingresult': 801,

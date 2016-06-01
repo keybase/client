@@ -1056,6 +1056,7 @@ export type StatusCode =
   | 277 // SCIdentifyFailed_277
   | 278 // SCTrackingBroke_278
   | 279 // SCWrongCryptoFormat_279
+  | 280 // SCDecryptionError_280
   | 701 // SCBadSignupUsernameTaken_701
   | 707 // SCBadInvitationCode_707
   | 801 // SCMissingResult_801
