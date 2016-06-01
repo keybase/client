@@ -962,7 +962,7 @@ func (fbo *folderBlockOps) Read(
 
 		if nextByte >= lastByteInBlock {
 			if nextBlockOff > 0 {
-				fill := nextBlockOff - startOff
+				fill := nextBlockOff - nextByte
 				if fill > toRead {
 					fill = toRead
 				}
@@ -1080,7 +1080,7 @@ func (fbo *folderBlockOps) writeGetFileLocked(
 	return fblock, uid, nil
 }
 
-// createInderectBlockLocked creates a new indirect block and
+// createIndirectBlockLocked creates a new indirect block and
 // pick a new id for the existing block, and use the existing block's ID for
 // the new indirect block that becomes the parent.
 func (fbo *folderBlockOps) createInderectBlockLocked(md *RootMetadata,
@@ -1389,6 +1389,10 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 	return latestWrite, dirtyPtrs, nil
 }
 
+// truncateExtendCutoffPoint is the amount of data in extending
+// truncate that will trigger the extending with a hole algorithm.
+const truncateExtendCutoffPoint = 128 * 1024
+
 // Returns the set of newly-ID'd blocks created during this truncate
 // that might need to be cleaned up if the truncate is deferred.
 func (fbo *folderBlockOps) truncateLocked(
@@ -1406,7 +1410,7 @@ func (fbo *folderBlockOps) truncateLocked(
 			ctx, lState, md, file, fblock, iSize, blockWrite)
 
 	currLen := int64(startOff) + int64(len(block.Contents))
-	if currLen+128*1024 < iSize {
+	if currLen+truncateExtendCutoffPoint < iSize {
 		latestWrite, dirtyPtrs, err := fbo.truncateExtendLocked(
 			ctx, lState, md, file, uint64(iSize))
 		if err != nil {
