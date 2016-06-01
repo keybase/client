@@ -28,8 +28,7 @@ const stylesName = {
   textDecoration: 'line-through',
   color: globalColors.red,
   fontStyle: 'italic',
-  marginTop: 4,
-  flow: 1
+  marginTop: 4
 }
 
 export default Render
