@@ -622,6 +622,17 @@ func (g *gregorHandler) auth(ctx context.Context, cli rpc.GenericClient) error {
 	return nil
 }
 
+func (g *gregorHandler) pingLoop() {
+	for {
+		_, err := gregor1.IncomingClient{Cli: g.cli}.Ping(context.Background())
+		if err != nil {
+			g.G().Log.Errorf("gregor handler: error in ping loop: %s", err)
+		}
+
+		g.G().Clock.Sleep(g.G().Env.GetGregorPingInterval())
+	}
+}
+
 func (g *gregorHandler) connectTLS(uri *rpc.FMPURI) error {
 
 	g.G().Log.Debug("connecting to gregord via TLS at %s", uri)
@@ -639,6 +650,10 @@ func (g *gregorHandler) connectTLS(uri *rpc.FMPURI) error {
 	// a paramater to OnConnect
 	g.cli = g.conn.GetClient()
 
+	// Start up ping loop to keep the connection to gregord alive, and to kick
+	// off the reconnect logic in the RPC library
+	go g.pingLoop()
+
 	return nil
 }
 
@@ -648,6 +663,10 @@ func (g *gregorHandler) connectNoTLS(uri *rpc.FMPURI) error {
 	t := newConnTransport(g.G(), uri.HostPort)
 	g.conn = rpc.NewConnectionWithTransport(g, t, keybase1.ErrorUnwrapper{}, true, keybase1.WrapError, g.G().Log, nil)
 	g.cli = g.conn.GetClient()
+
+	// Start up ping loop to keep the connection to gregord alive, and to kick
+	// off the reconnect logic in the RPC library
+	go g.pingLoop()
 
 	return nil
 }

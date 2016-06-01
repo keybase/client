@@ -122,6 +122,13 @@ func (p CommandLine) GetGregorDisabled() (bool, bool) {
 func (p CommandLine) GetGregorURI() string {
 	return p.GetGString("push-server-uri")
 }
+func (p CommandLine) GetGregorPingInterval() (time.Duration, bool) {
+	ret, err := p.GetGDuration("push-ping-interval")
+	if err != nil {
+		return 0, false
+	}
+	return ret, true
+}
 func (p CommandLine) GetRunMode() (libkb.RunMode, error) {
 	return libkb.StringToRunMode(p.GetGString("run-mode"))
 }

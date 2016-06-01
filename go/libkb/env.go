@@ -72,6 +72,7 @@ func (n NullConfiguration) GetLocalTrackMaxAge() (time.Duration, bool)    { retu
 func (n NullConfiguration) GetAppStartMode() AppStartMode                 { return AppStartModeDisabled }
 func (n NullConfiguration) GetGregorURI() string                          { return "" }
 func (n NullConfiguration) GetGregorSaveInterval() (time.Duration, bool)  { return 0, false }
+func (n NullConfiguration) GetGregorPingInterval() (time.Duration, bool)  { return 0, false }
 func (n NullConfiguration) IsAdmin() (bool, bool)                         { return false, false }
 func (n NullConfiguration) GetGregorDisabled() (bool, bool)               { return false, false }
 
@@ -514,6 +515,14 @@ func (e *Env) GetGregorDisabled() bool {
 		func() (bool, bool) { return e.cmd.GetGregorDisabled() },
 		func() (bool, bool) { return getEnvBool("KEYBASE_PUSH_DISABLED") },
 		func() (bool, bool) { return e.config.GetGregorDisabled() },
+	)
+}
+
+func (e *Env) GetGregorPingInterval() time.Duration {
+	return e.GetDuration(10*time.Second,
+		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_PUSH_PING_INTERVAL") },
+		func() (time.Duration, bool) { return e.config.GetGregorPingInterval() },
+		func() (time.Duration, bool) { return e.cmd.GetGregorPingInterval() },
 	)
 }
 

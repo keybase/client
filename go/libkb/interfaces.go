@@ -43,6 +43,7 @@ type CommandLine interface {
 	GetGregorURI() string
 	GetGregorSaveInterval() (time.Duration, bool)
 	GetGregorDisabled() (bool, bool)
+	GetGregorPingInterval() (time.Duration, bool)
 	GetUserCacheMaxAge() (time.Duration, bool)
 	GetProofCacheSize() (int, bool)
 	GetLinkCacheSize() (int, bool)
@@ -151,6 +152,7 @@ type ConfigReader interface {
 	GetGregorURI() string
 	GetGregorSaveInterval() (time.Duration, bool)
 	GetGregorDisabled() (bool, bool)
+	GetGregorPingInterval() (time.Duration, bool)
 
 	GetUpdatePreferenceAuto() (bool, bool)
 	GetUpdatePreferenceSkip() string
