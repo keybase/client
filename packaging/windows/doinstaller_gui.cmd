@@ -43,6 +43,10 @@ SignTool.exe sign /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\k
 IF %ERRORLEVEL% NEQ 0 (k
   EXIT /B 1
 )
+SignTool.exe sign /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\go-updater\service\updater.exe
+IF %ERRORLEVEL% NEQ 0 (k
+  EXIT /B 1
+)
 SignTool.exe sign /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
@@ -56,6 +60,12 @@ IF %ERRORLEVEL% NEQ 0 (
 
 :: Double check that kbfs is codesigned
 signtool verify /pa %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
+
+:: Double check that updater is codesigned
+signtool verify /pa %GOPATH%\src\github.com\keybase\go-updater\service\updater.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
