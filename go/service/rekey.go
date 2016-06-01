@@ -13,12 +13,14 @@ import (
 
 type RekeyHandler struct {
 	*BaseHandler
+	gregor *gregorHandler
 	libkb.Contextified
 }
 
-func NewRekeyHandler(xp rpc.Transporter, g *libkb.GlobalContext) *RekeyHandler {
+func NewRekeyHandler(xp rpc.Transporter, g *libkb.GlobalContext, gregor *gregorHandler) *RekeyHandler {
 	return &RekeyHandler{
 		BaseHandler:  NewBaseHandler(xp),
+		gregor:       gregor,
 		Contextified: libkb.NewContextified(g),
 	}
 }
