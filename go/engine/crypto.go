@@ -123,7 +123,7 @@ func UnboxBytes32(g *libkb.GlobalContext, secretUI libkb.SecretUI,
 // cached paper keys, local device key, user-entered paper key.
 // It returns the KID and bundle index along with the plaintext.
 func UnboxBytes32Any(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg keybase1.UnboxBytes32AnyArg) (res keybase1.UnboxAnyRes, err error) {
-	defer g.Trace("UnboxBytes32Any", func() error { return err })
+	defer g.Trace("UnboxBytes32Any", func() error { return err })()
 
 	// find a matching secret key for a bundle in arg.Bundles
 	key, index, err := getMatchingSecretKey(g, secretUI, arg)

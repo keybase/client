@@ -58,7 +58,7 @@ func (e *DeviceKeyfinder) SubConsumers() []libkb.UIConsumer {
 
 // Run starts the engine.
 func (e *DeviceKeyfinder) Run(ctx *Context) (err error) {
-	defer libkb.Trace(e.G().Log, "DeviceKeyfinder::Run", func() error { return err })
+	defer libkb.Trace(e.G().Log, "DeviceKeyfinder::Run", func() error { return err })()
 
 	err = e.identifyUsers(ctx)
 	if err != nil {
