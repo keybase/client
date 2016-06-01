@@ -7,17 +7,23 @@ import {globalColors} from '../../styles/style-guide'
 
 const Render = ({isPrivate, users, folderSize, onSubmit, onCancel}: Props) => {
   const theme = isPrivate ? 'private' : 'public'
-  return (
-    <Confirm theme={theme} danger submitLabel='Yes, delete it' onSubmit={onSubmit} onCancel={onCancel}>
-      <Icon type={iconThemed[theme]} style={{marginBottom: 16}} />
-      <Box style={{textAlign: 'center', marginBottom: 8}}>
+
+  const header = <Icon type={iconThemed[theme]} />
+
+  const body = (
+    <Box style={{textAlign: 'center'}}>
+      <Box style={{marginBottom: 8}}>
         <Text type='Header' style={textColorThemed[theme]}>Delete files and clear history for {isPrivate ? 'private/' : 'public/'}</Text>
         <Usernames type='Header' style={textColorThemed[theme]} inline users={users} />
         <Text type='Header' style={textColorThemed[theme]}>?</Text>
         <Text type='Header' style={{...textColorThemed[theme], whiteSpace: 'pre'}}> ({folderSize})</Text>
       </Box>
-      <Text type='Body' style={{...textColorThemed[theme], textAlign: 'center'}}>Deletes everything in this folder, including the backup versions.</Text>
-    </Confirm>
+      <Text type='Body' style={textColorThemed[theme]}>Deletes everything in this folder, including the backup versions.</Text>
+    </Box>
+  )
+
+  return (
+    <Confirm theme={theme} danger header={header} body={body} submitLabel='Yes, delete it' onSubmit={onSubmit} onCancel={onCancel} />
   )
 }
 

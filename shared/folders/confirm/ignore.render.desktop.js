@@ -7,19 +7,27 @@ import {globalColors} from '../../styles/style-guide'
 
 const Render = ({isPrivate, users, avatar, onSubmit, onCancel}: Props) => {
   const theme = isPrivate ? 'private' : 'public'
-  return (
-    <Confirm theme={theme} submitLabel='Yes, ignore this folder' onSubmit={onSubmit} onCancel={onCancel}>
-      <Box style={{width: 63, height: 63, position: 'relative', marginBottom: 16, opacity: 0.6}}>
-        <Icon type={iconThemed[theme]} style={{position: 'absolute', left: 0, top: 0}} />
-        <Avatar size={32} username={avatar} style={{...styleAvatar, borderColor: borderColorThemed[theme]}} />
-      </Box>
-      <Box style={{textAlign: 'center', marginBottom: 8}}>
+
+  const header = (
+    <Box style={{width: 63, height: 63, position: 'relative', opacity: 0.6}}>
+      <Icon type={iconThemed[theme]} style={{position: 'absolute', left: 0, top: 0}} />
+      <Avatar size={32} username={avatar} style={{...styleAvatar, borderColor: borderColorThemed[theme]}} />
+    </Box>
+  )
+
+  const body = (
+    <Box style={{textAlign: 'center'}}>
+      <Box style={{marginBottom: 8}}>
         <Text type='Header' style={textColorThemed[theme]}>Ignore {isPrivate ? 'private/' : 'public/'}</Text>
         <Usernames type='Header' style={textColorThemed[theme]} inline users={users} />
         <Text type='Header' style={textColorThemed[theme]}>?</Text>
       </Box>
-      <Text type='Body' style={{...textColorThemed[theme], textAlign: 'center'}}>This folder will no longer show up on your computer and you won't receive alerts about it.</Text>
-    </Confirm>
+      <Text type='Body' style={textColorThemed[theme]}>This folder will no longer show up on your computer and you won't receive alerts about it.</Text>
+    </Box>
+  )
+
+  return (
+    <Confirm theme={theme} header={header} body={body} submitLabel='Yes, ignore this folder' onSubmit={onSubmit} onCancel={onCancel} />
   )
 }
 

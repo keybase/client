@@ -2,8 +2,7 @@
 import React from 'react'
 import type {Props} from './index.render'
 import {Confirm, Box, Text, Icon} from '../../common-adapters'
-import {headerBoxStyle} from '../../common-adapters/confirm.native'
-import {globalColors} from '../../styles/style-guide'
+import {globalStyles, globalColors} from '../../styles/style-guide'
 import type {Props as IconProps} from '../../common-adapters/icon'
 
 const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel}: Props) => {
@@ -13,15 +12,21 @@ const Render = ({name, type, deviceID, currentDevice, onSubmit, onCancel}: Props
     'backup': 'paper-key-remove-m'
   }[type]
 
-  return (
-    <Confirm theme='public' danger submitLabel='Yes, delete it' onSubmit={() => onSubmit({deviceID, name, currentDevice})} onCancel={onCancel}>
-      <Box style={headerBoxStyle}>
-        <Icon type={icon} />
-        <Text type='Body' style={stylesName}>{name}</Text>
-      </Box>
-      <Text type='Header' style={{textAlign: 'center'}}>Are you sure you want to revoke {currentDevice ? 'your current device' : name}?</Text>
-    </Confirm>
+  const header = (
+    <Box style={styleIcon}>
+      <Icon type={icon} />
+      <Text type='Body' style={stylesName}>{name}</Text>
+    </Box>
   )
+
+  const body = <Text type='Header' style={{textAlign: 'center'}}>Are you sure you want to revoke {currentDevice ? 'your current device' : name}?</Text>
+
+  return <Confirm theme='public' danger header={header} body={body} submitLabel='Yes, delete it' onSubmit={() => onSubmit({deviceID, name, currentDevice})} onCancel={onCancel} />
+}
+
+const styleIcon = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center'
 }
 
 const stylesName = {

@@ -10,7 +10,10 @@ class Confirm extends Component<void, Props, void> {
     return (
       <Box style={{...styleContainer, ...backgroundColorThemed[this.props.theme]}}>
         <Icon style={{...styleClose, ...styleCloseThemed[this.props.theme]}} type='fa-close' onClick={this.props.onCancel} />
-        {this.props.children}
+        <Box style={styleIconContainer}>
+          {this.props.header}
+        </Box>
+        {this.props.body}
         <Box style={{...globalStyles.flexBoxRow, marginTop: 32}}>
           <Button type='Secondary' style={cancelButtonThemed[this.props.theme]} labelStyle={cancelButtonLabelThemed[this.props.theme]} onClick={this.props.onCancel} label='Cancel' />
           <Button type={this.props.danger ? 'Danger' : 'Primary'} onClick={this.props.onSubmit} label={this.props.submitLabel} />
@@ -26,6 +29,14 @@ const styleContainer = {
   alignItems: 'center',
   justifyContent: 'center',
   position: 'relative'
+}
+
+const styleIconContainer = {
+  ...globalStyles.flexBoxColumn,
+  height: 80,
+  marginBottom: 16,
+  alignItems: 'center',
+  justifyContent: 'center'
 }
 
 const backgroundColorThemed = {
