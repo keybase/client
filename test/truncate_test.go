@@ -14,6 +14,11 @@ func TestSimpleTruncate(t *testing.T) {
 	mzero := make([]byte, mb)
 	mdata := make([]byte, mb)
 	copy(mdata, []byte(`world`))
+	mdat2 := make([]byte, mb)
+	const wlen = 200 * 1024
+	for i := 0; i*100 < wlen; i++ {
+		mdat2[i*100] = byte(i)
+	}
 	test(t,
 		users("alice", "bob"),
 		as(alice,
@@ -32,9 +37,11 @@ func TestSimpleTruncate(t *testing.T) {
 			read("file", "world"),
 			truncate("file", mb),
 			read("file", string(mdata)),
+			write("file", string(mdat2[:wlen])),
+			read("file", string(mdat2)),
 		),
 		as(bob,
-			read("file", string(mdata)),
+			read("file", string(mdat2)),
 		),
 	)
 }

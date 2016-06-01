@@ -1182,11 +1182,22 @@ func (fbo *folderBlockOps) writeDataLocked(
 
 			// Make a new right block and update the parent's
 			// indirect block list
-			err := fbo.newRightBlockLocked(ctx, lState, file.tailPointer(),
+			err = fbo.newRightBlockLocked(ctx, lState, file.tailPointer(),
 				file.Branch, fblock, startOff+int64(len(block.Contents)), md)
 			if err != nil {
 				return WriteRange{}, nil, err
 			}
+		} else if nCopied < n && off+nCopied < nextBlockOff {
+			// We need a new block to be inserted here
+			err = fbo.newRightBlockLocked(ctx, lState, file.tailPointer(),
+				file.Branch, fblock, startOff+int64(len(block.Contents)), md)
+			if err != nil {
+				return WriteRange{}, nil, err
+			}
+			// And push the indirect pointers to right
+			newb := fblock.IPtrs[len(fblock.IPtrs)-1]
+			copy(fblock.IPtrs[indexInParent+2:], fblock.IPtrs[indexInParent+1:])
+			fblock.IPtrs[indexInParent+1] = newb
 		}
 
 		if oldLen != len(block.Contents) {
