@@ -97,7 +97,10 @@ export default class PinentryRender extends Component<DefaultProps, Props, State
   }
 }
 
-PinentryRender.defaultProps = {submitLabel: 'Continue'}
+PinentryRender.defaultProps = {
+  retryLabel: null,
+  submitLabel: 'Continue'
+}
 
 const styles = {
   container: {

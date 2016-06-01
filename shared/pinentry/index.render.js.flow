@@ -7,11 +7,12 @@ export type Props = {
   onCancel: () => void,
   features: {[key: string]: Feature},
   prompt: string,
-  retryLabel: string,
+  retryLabel?: string,
   submitLabel?: string
 }
 
 export type DefaultProps = {
+  retryLabel: ?string,
   submitLabel: string
 }
 

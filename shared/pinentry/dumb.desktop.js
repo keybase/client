@@ -21,23 +21,16 @@ const propsNormal: Props = {
       label: 'Show typing'
     }
   },
-  prompt: 'Enter your passphrase to unlock the secret key for home computer.',
-  retryLabel: 'That passphrase is incorrect.'
+  prompt: 'Enter your passphrase to unlock the secret key for home computer.'
 }
 
 const dumbComponentMap: DumbComponentMap<Pinentry> = {
   component: Pinentry,
   mocks: {
     'Normal': propsNormal,
-    'Show Typing': {
+    'With Error': {
       ...propsNormal,
-      features: {
-        ...propsNormal.features,
-        'showTyping': {
-          ...propsNormal.features.showTyping,
-          defaultValue: true
-        }
-      }
+      retryLabel: 'That passphrase is incorrect.'
     }
   }
 }
