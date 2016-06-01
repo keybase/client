@@ -222,7 +222,12 @@ func uninstallKeybaseServices(runMode libkb.RunMode) error {
 }
 
 func kbfsPlist(g *libkb.GlobalContext, kbfsBinPath string, label string) (plist launchd.Plist, err error) {
-	mountDir := g.Env.GetMountDir()
+	mountDir, err := g.Env.GetMountDir()
+	if err != nil {
+		return
+	}
+	// TODO: This log file path is the same as the default, so we can probably
+	// change the KBFS args to use -log-to-file param instead.
 	logFile := filepath.Join(launchd.LogDir(), libkb.KBFSLogFileName)
 	// TODO: Remove debug flag when doing real release
 	plistArgs := []string{
@@ -345,7 +350,10 @@ func installCommandLine(g *libkb.GlobalContext, binPath string, force bool) erro
 	if err != nil {
 		return err
 	}
-	linkPath := filepath.Join("/usr/local/bin", binName())
+	linkPath, err := defaultLinkPath()
+	if err != nil {
+		return err
+	}
 	if linkPath == bp {
 		return fmt.Errorf("We can't symlink to ourselves: %s", bp)
 	}
@@ -428,7 +436,7 @@ func installKBFS(g *libkb.GlobalContext, binPath string, force bool) error {
 	runMode := g.Env.GetRunMode()
 	label := DefaultKBFSLabel(runMode)
 	kbfsService := launchd.NewService(label)
-	kbfsBinPath, err := kbfsBinPath(runMode, binPath)
+	kbfsBinPath, err := KBFSBinPath(runMode, binPath)
 	if err != nil {
 		return err
 	}
@@ -477,7 +485,10 @@ func Uninstall(g *libkb.GlobalContext, components []string) keybase1.UninstallRe
 	}
 
 	if libkb.IsIn(string(ComponentNameKBFS), components, false) {
-		err = UninstallKBFS(g.Env.GetRunMode(), g.Env.GetMountDir(), g.Log)
+		mountDir, err := g.Env.GetMountDir()
+		if err == nil {
+			err = UninstallKBFS(g.Env.GetRunMode(), mountDir, g.Log)
+		}
 		componentResults = append(componentResults, componentResult(string(ComponentNameKBFS), err))
 	}
 
@@ -577,11 +588,11 @@ func autoInstall(g *libkb.GlobalContext, binPath string, force bool) (newProc bo
 }
 
 func CheckIfValidLocation() *keybase1.Error {
-	bp, err := binPath()
+	keybasePath, err := BinPath()
 	if err != nil {
 		return keybase1.FromError(err)
 	}
-	inDMG, _, err := isPathInDMG(bp)
+	inDMG, _, err := isPathInDMG(keybasePath)
 	if err != nil {
 		return keybase1.FromError(err)
 	}
@@ -676,10 +687,16 @@ func componentResult(name string, err error) keybase1.ComponentResult {
 	return keybase1.ComponentResult{Name: string(name), Status: keybase1.StatusOK("")}
 }
 
-func kbfsBinPath(runMode libkb.RunMode, binPath string) (string, error) {
+// KBFSBinPath returns the path to the KBFS executable.
+// If binPath (directory) is specifed, it will override the default (which is in
+// the same directory where the keybase executable is).
+func KBFSBinPath(runMode libkb.RunMode, binPath string) (string, error) {
 	// If it's brew lookup path by formula name
 	if libkb.IsBrewBuild {
-		kbfsBinName := kbfsBinName(runMode)
+		kbfsBinName, err := kbfsBinName(runMode)
+		if err != nil {
+			return "", err
+		}
 		prefix, err := brewPath(kbfsBinName)
 		if err != nil {
 			return "", err

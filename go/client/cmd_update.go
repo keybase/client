@@ -307,7 +307,11 @@ type checkInUseResult struct {
 }
 
 func (v *CmdUpdateCheckInUse) Run() error {
-	inUse := install.IsInUse(v.G().Env.GetMountDir(), G.Log)
+	mountDir, err := v.G().Env.GetMountDir()
+	if err != nil {
+		return err
+	}
+	inUse := install.IsInUse(mountDir, G.Log)
 	result := checkInUseResult{InUse: inUse}
 	out, err := json.MarshalIndent(result, "", "  ")
 	if err != nil {

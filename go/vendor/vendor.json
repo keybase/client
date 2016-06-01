@@ -199,6 +199,11 @@
 			"revisionTime": "2016-03-09T18:35:02Z"
 		},
 		{
+			"path": "github.com/keybase/go-ps",
+			"revision": "f5e5fd36a1028a67d0aa92f2700b284f881a656c",
+			"revisionTime": "2016-05-24T14:14:49-07:00"
+		},
+		{
 			"path": "github.com/keybase/go-triplesec",
 			"revision": "b360b8252869a5ac88df3ed7897bc3b6d1e55dd2",
 			"revisionTime": "2015-06-12T09:33:55-07:00"
@@ -214,9 +219,19 @@
 			"revisionTime": "2016-04-12T10:39:09-07:00"
 		},
 		{
+			"path": "github.com/keybase/go-updater/process",
+			"revision": "273e7205fda8883a0c7f05cf996fe5dba2096332",
+			"revisionTime": "2016-05-31T22:04:18-07:00"
+		},
+		{
 			"path": "github.com/keybase/go-updater/sources",
 			"revision": "44e1c9d05e297028aee0434006b7db6ad8ec089b",
 			"revisionTime": "2016-03-23T16:34:55-07:00"
+		},
+		{
+			"path": "github.com/keybase/go-updater/watchdog",
+			"revision": "273e7205fda8883a0c7f05cf996fe5dba2096332",
+			"revisionTime": "2016-05-31T22:04:18-07:00"
 		},
 		{
 			"checksumSHA1": "OvF/14pOw+eU6VJSn3m0/obYTwI=",
