@@ -150,6 +150,7 @@ export type Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  lastUsedTime: Time;
   encryptKey: KID;
   verifyKey: KID;
   status: int;
