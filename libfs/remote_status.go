@@ -18,8 +18,9 @@ import (
 
 // Special files in root directory.
 const (
-	HumanErrorFileName   = "kbfs.error.txt"
-	HumanNoLoginFileName = "kbfs.nologin.txt"
+	HumanErrorFileName      = "kbfs.error.txt"
+	HumanNoLoginFileName    = "kbfs.nologin.txt"
+	failureDisplayThreshold = 5 * time.Second
 )
 
 // RemoteStatus is for maintaining status of various remote connections like keybase
@@ -29,11 +30,14 @@ type RemoteStatus struct {
 	failingServices   map[string]error
 	extraFileName     string
 	extraFileContents []byte
+	failingSince      time.Time
 }
 
 // Init a RemoteStatus and register it with libkbfs.
 func (r *RemoteStatus) Init(ctx context.Context, log logger.Logger, config libkbfs.Config) {
 	r.failingServices = map[string]error{}
+	// A time in the far past that is not IsZero
+	r.failingSince.Add(time.Second)
 	go r.loop(ctx, log, config)
 }
 
@@ -76,6 +80,14 @@ func (r *RemoteStatus) update(st libkbfs.KBFSStatus) {
 			break
 		}
 	}
+	isZeroTime := r.failingSince.IsZero()
+	if len(r.failingServices) > 0 {
+		if isZeroTime {
+			r.failingSince = time.Now()
+		}
+	} else if !isZeroTime {
+		r.failingSince = time.Time{}
+	}
 	r.extraFileName = fname
 	r.extraFileContents = nil
 }
@@ -97,6 +109,10 @@ func (r *RemoteStatus) ExtraFileName() string {
 	r.Lock()
 	defer r.Unlock()
 
+	if r.extraFileName == "" || time.Since(r.failingSince) > failureDisplayThreshold {
+		return ""
+	}
+
 	return r.extraFileName
 }
 
@@ -105,11 +121,11 @@ func (r *RemoteStatus) ExtraFileNameAndSize() (string, int64) {
 	r.Lock()
 	defer r.Unlock()
 
-	var size int64
-	if r.extraFileName != "" {
-		size = int64(len(r.humanReadableBytesLocked()))
+	if r.extraFileName == "" || time.Since(r.failingSince) > failureDisplayThreshold {
+		return "", 0
 	}
-	return r.extraFileName, size
+
+	return r.extraFileName, int64(len(r.humanReadableBytesLocked()))
 }
 
 // humanReadableBytesNeedsLock should be called with lock already held.
