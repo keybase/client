@@ -28,7 +28,7 @@ const stylesName = {
   textDecoration: 'line-through',
   color: globalColors.red,
   fontStyle: 'italic',
-  marginTop: 2,
+  marginTop: 4,
   flow: 1
 }
 
