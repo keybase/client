@@ -405,6 +405,25 @@ func (md *RootMetadata) MakeSuccessor(config Config, isWriter bool) (*RootMetada
 	return newMd, nil
 }
 
+// MakeFinale returns a complete copy of this RootMetadata (but with cleared serialized
+// metadata), with the revision incremented and the final bit set.
+func (md *RootMetadata) MakeFinal(config Config) (*RootMetadata, error) {
+	if md.IsFinal() {
+		return nil, MetadataIsFinalError{}
+	}
+	newMd, err := md.deepCopy(config.Codec(), true)
+	if err != nil {
+		return nil, err
+	}
+	// clear the serialized data.
+	newMd.SerializedPrivateMetadata = nil
+	// set the final flag
+	newMd.Flags |= MetadataFlagFinal
+	// increment revision but keep the prev root
+	newMd.Revision = md.Revision + 1
+	return newMd, nil
+}
+
 func (md *RootMetadata) getTLFKeyBundles(keyGen KeyGen) (*TLFWriterKeyBundle, *TLFReaderKeyBundle, error) {
 	if md.ID.IsPublic() {
 		return nil, nil, InvalidPublicTLFOperation{md.ID, "getTLFKeyBundle"}
@@ -796,6 +815,33 @@ func (rmds *RootMetadataSigned) Version() MetadataVer {
 	// Let other types of MD objects use the older version since they
 	// are still compatible with older clients.
 	return PreExtraMetadataVer
+}
+
+// MakeFinalCopy returns a complete copy of this RootMetadataSigned (but with
+// cleared serialized metadata), with the revision incremented and the final bit set.
+func (rmds *RootMetadataSigned) MakeFinalCopy(config Config) (
+	*RootMetadataSigned, error) {
+	if rmds.MD.IsFinal() {
+		return nil, MetadataIsFinalError{}
+	}
+	var newRmds RootMetadataSigned
+	err := CodecUpdate(config.Codec(), &newRmds, rmds)
+	if err != nil {
+		return nil, err
+	}
+	md, err := rmds.MD.deepCopy(config.Codec(), false)
+	if err != nil {
+		return nil, err
+	}
+	// assign the copy
+	newRmds.MD = *md
+	// clear the serialized data.
+	newRmds.MD.SerializedPrivateMetadata = nil
+	// set the final flag
+	newRmds.MD.Flags |= MetadataFlagFinal
+	// increment revision but keep the prev root
+	newRmds.MD.Revision = rmds.MD.Revision + 1
+	return &newRmds, nil
 }
 
 func makeRekeyReadError(
