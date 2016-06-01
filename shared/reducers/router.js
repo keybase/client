@@ -7,11 +7,11 @@ type History = List<URI>
 
 export type RouterState = MapADT2<'uri', URI, 'history', History> // eslint-disable-line no-undef
 
+const RouterStateRecord = Record({})
 const initialState: RouterState = createRouterState(['nav'], [])
 
-const RouterStateRecord = Record({})
 export function createRouterState (uri: Array<string>, history: Array<Array<string>>): RouterState {
-  return RouterStateRecord({
+  return new RouterStateRecord({
     uri: parseUri(uri),
     history: List(history.map(parseUri))
   })
