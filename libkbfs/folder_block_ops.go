@@ -1200,7 +1200,8 @@ func (fbo *folderBlockOps) writeDataLocked(
 			fblock.IPtrs[indexInParent+1] = newb
 		}
 
-		if oldLen != len(block.Contents) {
+		// Only in the last block does the file size grow.
+		if oldLen != len(block.Contents) && nextBlockOff < 0 {
 			de.EncodedSize = 0
 			// update the file info
 			de.Size += uint64(len(block.Contents) - oldLen)
