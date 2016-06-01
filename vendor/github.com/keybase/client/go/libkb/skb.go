@@ -171,13 +171,7 @@ func (s *SKB) newLKSec(pps *PassphraseStream) *LKSec {
 }
 
 func (s *SKB) ToPacket() (ret *KeybasePacket, err error) {
-	ret = &KeybasePacket{
-		Version: KeybasePacketV1,
-		Tag:     TagP3skb,
-	}
-	ret.Body = s
-	err = ret.HashMe()
-	return
+	return NewKeybasePacket(s, TagP3skb, KeybasePacketV1)
 }
 
 func (s *SKB) ReadKey() (g GenericKey, err error) {

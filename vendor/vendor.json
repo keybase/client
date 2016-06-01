@@ -121,31 +121,34 @@
 			"revisionTime": "2016-05-17T06:10:00Z"
 		},
 		{
+			"checksumSHA1": "u4PBIpt/vmySsbJXa0Ss78CLB44=",
 			"path": "github.com/keybase/client/go/auth",
-			"revision": "3675a7ea1df667467a5d7a54b15e3ef7bf42bad8",
-			"revisionTime": "2016-05-12T14:59:50-07:00"
+			"revision": "fd3331d1db1c927878512e1fccceae97f2b3e2c9",
+			"revisionTime": "2016-06-01T21:03:13Z"
 		},
 		{
+			"checksumSHA1": "CzXn2I3yTTfbJrJmvWxyOnDdTxA=",
 			"path": "github.com/keybase/client/go/kex2",
-			"revision": "3675a7ea1df667467a5d7a54b15e3ef7bf42bad8",
-			"revisionTime": "2016-05-12T14:59:50-07:00"
+			"revision": "fd3331d1db1c927878512e1fccceae97f2b3e2c9",
+			"revisionTime": "2016-06-01T21:03:13Z"
 		},
 		{
-			"checksumSHA1": "Mg7EyhOO6jviJD47XQdiMk4QiXg=",
+			"checksumSHA1": "2ukTBnmH/tj9bviA60pn2QJeu98=",
 			"path": "github.com/keybase/client/go/libkb",
-			"revision": "5e47d029545c2acae7796f5dfa6086eb9948b42a",
-			"revisionTime": "2016-05-20T13:29:30-07:00"
+			"revision": "fd3331d1db1c927878512e1fccceae97f2b3e2c9",
+			"revisionTime": "2016-06-01T21:03:13Z"
 		},
 		{
+			"checksumSHA1": "IfYcIYhfP9mF4ZsbYLIKWvxf2jg=",
 			"path": "github.com/keybase/client/go/logger",
-			"revision": "3675a7ea1df667467a5d7a54b15e3ef7bf42bad8",
-			"revisionTime": "2016-05-12T14:59:50-07:00"
+			"revision": "fd3331d1db1c927878512e1fccceae97f2b3e2c9",
+			"revisionTime": "2016-06-01T21:03:13Z"
 		},
 		{
-			"checksumSHA1": "I7IjX8GPD/BDvIsuEvYA/1Qo1Ko=",
+			"checksumSHA1": "e056g+uxgQx2dQ6+cEjM/DIuYtA=",
 			"path": "github.com/keybase/client/go/protocol",
-			"revision": "5e47d029545c2acae7796f5dfa6086eb9948b42a",
-			"revisionTime": "2016-05-20T13:29:30-07:00"
+			"revision": "fd3331d1db1c927878512e1fccceae97f2b3e2c9",
+			"revisionTime": "2016-06-01T21:03:13Z"
 		},
 		{
 			"path": "github.com/keybase/go-codec/codec",
@@ -227,6 +230,12 @@
 			"path": "github.com/keybase/go-triplesec/sha3",
 			"revision": "64f61c25cc3595b1aeecdaf86a61bfec00b04c5f",
 			"revisionTime": "2016-03-16T16:25:20-04:00"
+		},
+		{
+			"checksumSHA1": "OvF/14pOw+eU6VJSn3m0/obYTwI=",
+			"path": "github.com/keybase/gregor",
+			"revision": "bac1936af3dd9418d7c5778ccee149cff9bac9c7",
+			"revisionTime": "2016-05-27T13:35:13Z"
 		},
 		{
 			"path": "github.com/keybase/npipe",

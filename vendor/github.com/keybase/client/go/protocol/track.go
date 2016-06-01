@@ -21,6 +21,11 @@ type TrackWithTokenArg struct {
 	Options    TrackOptions `codec:"options" json:"options"`
 }
 
+type DismissWithTokenArg struct {
+	SessionID  int        `codec:"sessionID" json:"sessionID"`
+	TrackToken TrackToken `codec:"trackToken" json:"trackToken"`
+}
+
 type UntrackArg struct {
 	SessionID int    `codec:"sessionID" json:"sessionID"`
 	Username  string `codec:"username" json:"username"`
@@ -42,6 +47,8 @@ type TrackInterface interface {
 	Track(context.Context, TrackArg) error
 	// Track with token returned from identify.
 	TrackWithToken(context.Context, TrackWithTokenArg) error
+	// Called by the UI when the user decides *not* to track, to e.g. dismiss gregor items.
+	DismissWithToken(context.Context, DismissWithTokenArg) error
 	Untrack(context.Context, UntrackArg) error
 	CheckTracking(context.Context, int) error
 	FakeTrackingChanged(context.Context, FakeTrackingChangedArg) error
@@ -79,6 +86,22 @@ func TrackProtocol(i TrackInterface) rpc.Protocol {
 						return
 					}
 					err = i.TrackWithToken(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
+			"dismissWithToken": {
+				MakeArg: func() interface{} {
+					ret := make([]DismissWithTokenArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]DismissWithTokenArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]DismissWithTokenArg)(nil), args)
+						return
+					}
+					err = i.DismissWithToken(ctx, (*typedArgs)[0])
 					return
 				},
 				MethodType: rpc.MethodCall,
@@ -150,6 +173,12 @@ func (c TrackClient) Track(ctx context.Context, __arg TrackArg) (err error) {
 // Track with token returned from identify.
 func (c TrackClient) TrackWithToken(ctx context.Context, __arg TrackWithTokenArg) (err error) {
 	err = c.Cli.Call(ctx, "keybase.1.track.trackWithToken", []interface{}{__arg}, nil)
+	return
+}
+
+// Called by the UI when the user decides *not* to track, to e.g. dismiss gregor items.
+func (c TrackClient) DismissWithToken(ctx context.Context, __arg DismissWithTokenArg) (err error) {
+	err = c.Cli.Call(ctx, "keybase.1.track.dismissWithToken", []interface{}{__arg}, nil)
 	return
 }
 

@@ -5,6 +5,7 @@ package libkb
 
 import (
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/gregor"
 )
 
 type IdentifyState struct {
@@ -18,6 +19,12 @@ func NewIdentifyState(res *IdentifyOutcome, u *User) IdentifyState {
 	if res == nil {
 		res = NewIdentifyOutcomeWithUsername(u.GetName())
 	}
+	return IdentifyState{res: res, u: u}
+}
+
+func NewIdentifyStateWithGregorItem(item gregor.Item, u *User) IdentifyState {
+	res := NewIdentifyOutcomeWithUsername(u.GetName())
+	res.ResponsibleGregorItem = item
 	return IdentifyState{res: res, u: u}
 }
 
