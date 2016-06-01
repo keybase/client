@@ -127,7 +127,7 @@ get_deps() {(
     echo "Using local kbfs binpath: $kbfs_binpath"
     cp "$kbfs_binpath" .
   else
-    kbfs_url="https://github.com/keybase/kbfs-beta/releases/download/v$kbfs_version/kbfs-$kbfs_version-darwin.tgz"
+    kbfs_url="https://github.com/keybase/kbfs/releases/download/v$kbfs_version/kbfs-$kbfs_version-darwin.tgz"
     echo "Getting $kbfs_url"
     ensure_url $kbfs_url "You need to build the binary for this Github release/version. See packaging/github to create/build a release."
     curl -J -L -Ss "$kbfs_url" | tar zx
