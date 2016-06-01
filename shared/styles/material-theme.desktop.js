@@ -16,9 +16,9 @@
 //   muiTheme: React.PropTypes.object
 // }
 
-import Spacing from 'material-ui/lib/styles/spacing'
+import Spacing from 'material-ui/styles/spacing'
 import {globalColors, globalStyles} from './style-guide'
-import ThemeManager from 'material-ui/lib/styles/theme-manager'
+import getMuiTheme from 'material-ui/styles/getMuiTheme'
 
 const base = {
   spacing: Spacing,
@@ -38,7 +38,7 @@ const base = {
   }
 }
 
-const mui = ThemeManager.getMuiTheme(base, mui)
+const mui = getMuiTheme(base, mui)
 
 // TODO endit sub properties here if you need to
 
