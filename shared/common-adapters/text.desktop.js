@@ -2,6 +2,7 @@
 /* eslint-disable react/prop-types */
 
 import React, {Component} from 'react'
+import {findDOMNode} from 'react-dom'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
 import type {Props, Background} from './text'
@@ -71,6 +72,16 @@ export default class Text extends Component {
     if (this.refs && this.refs.text) {
       this.refs.text.focus()
     }
+  }
+
+  highlightText () {
+    const el = findDOMNode(this.refs.text)
+    const range = document.createRange()
+    range.selectNodeContents(el)
+
+    const sel = window.getSelection()
+    sel.removeAllRanges()
+    sel.addRange(range)
   }
 
   _typeStyle () {
@@ -143,6 +154,7 @@ export default class Text extends Component {
 
     return (
       <span
+        ref='text'
         className={className}
         style={style}
         onClick={this.props.onClick}>{terminalPrefix}{this.props.children}</span>)

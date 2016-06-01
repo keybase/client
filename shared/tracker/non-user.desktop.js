@@ -10,6 +10,7 @@ const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
   const icon = inviteLink ? 'invite-link-m' : isPrivate ? 'folder-private-success-m' : 'folder-public-success-m'
   const iconStyle = inviteLink ? {marginTop: 33, marginBottom: 16} : {marginTop: 24, marginBottom: 22}
 
+  let textRef
   return (
     <Box style={stylesContainer}>
       <Icon style={stylesClose} type='fa-close' onClick={onClose} />
@@ -17,8 +18,8 @@ const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
       <Icon style={iconStyle} type={icon} />
       <Text type='BodySmallSemibold' style={stylesMessage}>{message}</Text>
       {inviteLink ? <Box style={stylesLinkBox}>
-        <Icon type='link-xs' />
-        <Text style={stylesLink} type='BodySemibold'>{inviteLink}</Text>
+        <Icon type='link-xs' onClick={() => textRef && textRef.highlightText()} />
+        <Text ref={r => { textRef = r }} style={stylesLink} type='BodySemibold'>{inviteLink}</Text>
       </Box> : <Box style={{height: 16}} />}
     </Box>
   )
@@ -55,7 +56,9 @@ const stylesMessage = {
 }
 
 const stylesContainer = {
+  ...globalStyles.windowDragging,
   ...globalStyles.flexBoxColumn,
+  cursor: 'default',
   alignItems: 'center',
   position: 'relative',
   backgroundColor: globalColors.blue,
