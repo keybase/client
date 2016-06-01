@@ -4,6 +4,7 @@ import React, {Component} from 'react'
 import {resolveImageAsURL} from '../../desktop/resolve-root'
 import {globalColors} from '../styles/style-guide'
 import type {Props} from './avatar'
+import * as shared from './avatar.shared'
 
 const noAvatar = resolveImageAsURL('icons', 'placeholder-avatar@2x.png')
 
@@ -19,22 +20,10 @@ export default class Avatar extends Component {
     this.state = {avatarLoaded: false}
   }
 
-  _createUrl (): ?string {
-    if (__SCREENSHOT__) {
-      return noAvatar
-    } else if (this.props.url) {
-      return this.props.url
-    } else if (this.props.username) {
-      return `https://keybase.io/${this.props.username}/picture`
-    }
-
-    return null
-  }
-
   render () {
     const width = this.props.size
     const height = this.props.size
-    const url = this._createUrl()
+    const url = __SCREENSHOT__ ? noAvatar : shared.createUrl(this.props)
 
     return (
       <div onClick={this.props.onClick} style={{position: 'relative', width, height, ...this.props.style}}>
