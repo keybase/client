@@ -102,7 +102,7 @@ class Render extends Component<void, Props, State> {
       ? (this.state.showingMenu ? globalColors.black : globalColors.black_40)
       : (this.state.showingMenu ? globalColors.white : globalColors.blue3_40)
 
-    const menuStyle = {...globalStyles.clickable, color: menuColor, hoverColor: menuColor, fontSize: 12}
+    const menuStyle = {...globalStyles.clickable, color: menuColor, hoverColor: menuColor, fontSize: 24}
 
     return (
       <Box style={styles.container}>
