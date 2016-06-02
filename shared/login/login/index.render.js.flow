@@ -2,16 +2,12 @@
 import type {Component} from 'react'
 
 export type Props = {
-  lastUser: ?string,
-  serverURI: string,
   users: Array<string>,
   onForgotPassphrase: () => void,
   onSignup: () => void,
-  onBack: () => void,
   onSomeoneElse: () => void,
   error: ?string,
   waitingForResponse: boolean,
-  passphrase: string,
   showTyping: boolean,
   saveInKeychain: boolean,
   selectedUser: ?string,
