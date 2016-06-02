@@ -146,7 +146,7 @@ func newGregorClient(g *libkb.GlobalContext) (*grclient.Client, error) {
 	g.Log.Debug("gregor handler: restoring state from leveldb")
 	if err = gcli.Restore(); err != nil {
 		// If this fails, we'll keep trying since the server can bail us out
-		g.Log.Info("gregor handler: restore local state failed: %s", err)
+		g.Log.Debug("gregor handler: restore local state failed: %s", err)
 	}
 
 	return gcli, nil
