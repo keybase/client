@@ -27,3 +27,7 @@ func kbfsBinName(runMode libkb.RunMode) (string, error) {
 		return "", fmt.Errorf("Invalid run mode: %s", runMode)
 	}
 }
+
+func updaterBinName() (string, error) {
+	return "updater", nil
+}

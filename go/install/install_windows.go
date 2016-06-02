@@ -32,6 +32,10 @@ func kbfsBinName(runMode libkb.RunMode) (string, error) {
 	return "kbfsdokan.exe", nil
 }
 
+func updaterBinName() (string, error) {
+	return "updater.exe", nil
+}
+
 // RunAfterStartup is not supported on Windows
 func RunAfterStartup(g *libkb.GlobalContext, isService bool) error {
 	return nil
