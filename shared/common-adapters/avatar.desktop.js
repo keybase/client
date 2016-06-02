@@ -35,34 +35,25 @@ export default class Avatar extends Component {
     const width = this.props.size
     const height = this.props.size
     const url = this._createUrl()
+    const avatarStyle = {width, height, borderRadius: this.props.size / 2, position: 'absolute'}
 
     return (
       <div onClick={this.props.onClick} style={{...globalStyles.noSelect, position: 'relative', width, height, ...this.props.style}}>
-        <div
-          style={{...avatarStyle(this.props.size - 2),
-            top: 1,
-            left: 1,
-            backgroundImage: `url('${noAvatar}')`,
-            backgroundSize: 'cover'
-          }} />
+        {!this.state.avatarLoaded &&
+          <div
+            style={{...avatarStyle,
+              backgroundImage: `url('${noAvatar}')`,
+              backgroundSize: 'cover'
+            }} />}
         <img
           src={url}
-          style={{...avatarStyle(this.props.size),
+          style={{...avatarStyle,
             display: this.state.avatarLoaded ? 'block' : 'none',
             backgroundColor: globalColors.white
           }}
           onLoad={() => this.setState({avatarLoaded: true})} />
       </div>
     )
-  }
-}
-
-function avatarStyle (size: number): Object {
-  return {
-    width: size,
-    height: size,
-    borderRadius: size / 2,
-    position: 'absolute'
   }
 }
 
