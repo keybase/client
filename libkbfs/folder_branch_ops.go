@@ -318,9 +318,9 @@ func newFolderBranchOps(config Config, fb FolderBranch,
 			blockLock: blockLock{
 				leveledRWMutex: blockLockMu,
 			},
-			fileBlockStates: make(map[BlockPointer]syncBlockState),
-			unrefCache:      make(map[blockRef]*syncInfo),
-			deCache:         make(map[blockRef]DirEntry),
+			dirtyFiles: make(map[BlockPointer]*dirtyFile),
+			unrefCache: make(map[blockRef]*syncInfo),
+			deCache:    make(map[blockRef]DirEntry),
 			deferredWrites: make(
 				[]func(context.Context, *lockState, *RootMetadata, path) error, 0),
 			nodeCache: nodeCache,
