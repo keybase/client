@@ -38,5 +38,5 @@ func (h *RekeyHandler) GetRekeyTLFs(ctx context.Context, sessionID int) ([]keyba
 }
 
 func (h *RekeyHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (keybase1.Outcome, error) {
-	return keybase1.Outcome_NONE, nil
+	return h.gregor.RekeyStatusFinish(ctx, sessionID)
 }

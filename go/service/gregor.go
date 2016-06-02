@@ -704,3 +704,16 @@ func (g *gregorHandler) DismissItem(id gregor.MsgID) error {
 	// TODO: Should the interface take a context from the caller?
 	return incomingClient.ConsumeMessage(context.TODO(), dismissal)
 }
+
+func (g *gregorHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (keybase1.Outcome, error) {
+	for _, handler := range g.ibmHandlers {
+		if !handler.IsAlive() {
+			continue
+		}
+		if handler, ok := handler.(*RekeyUIHandler); ok {
+			return handler.RekeyStatusFinish(ctx, sessionID)
+		}
+	}
+
+	return keybase1.Outcome_NONE, errors.New("no alive RekeyUIHandler found")
+}

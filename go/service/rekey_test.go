@@ -116,6 +116,7 @@ func TestRekeyNeededMessageWithScores(t *testing.T) {
 
 	rekeyHandler := NewRekeyUIHandler(tc.G, 0)
 	rekeyHandler.alwaysAlive = true
+	rekeyHandler.notifyComplete = make(chan int, 10)
 	h.PushHandler(rekeyHandler)
 
 	msgID := gregor1.MsgID("my_random_id")
@@ -143,6 +144,8 @@ func TestRekeyNeededMessageWithScores(t *testing.T) {
 	if err := h.BroadcastMessage(context.Background(), m); err != nil {
 		t.Fatal(err)
 	}
+
+	<-rekeyHandler.notifyComplete
 
 	if len(rkeyui.refreshArgs) != 2 {
 		t.Fatalf("rkeyui refresh calls: %d, expected 2", len(rkeyui.refreshArgs))
@@ -213,6 +216,7 @@ func TestRekeyNeededUserClose(t *testing.T) {
 
 	go func() {
 		clock.BlockUntil(1)
+		h.RekeyStatusFinish(context.Background(), rkeyui.sessionID)
 		clock.Advance(3 * time.Second)
 	}()
 
@@ -220,15 +224,20 @@ func TestRekeyNeededUserClose(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(rkeyui.refreshArgs) != 2 {
-		t.Fatalf("rkeyui refresh calls: %d, expected 2", len(rkeyui.refreshArgs))
+	select {
+	case <-rekeyHandler.notifyComplete:
+	case <-time.After(2 * time.Second):
+		t.Fatal("timeout waiting for rekeyHandler.notifyComplete")
+	}
+
+	// there should be one call to refresh to bring the window up, but then the RekeyStatusFinish call above
+	// should close the window and stop the loop.
+	if len(rkeyui.refreshArgs) != 1 {
+		t.Fatalf("rkeyui refresh calls: %d, expected 1", len(rkeyui.refreshArgs))
 	}
 
 	if len(rkeyui.refreshArgs[0].Tlfs) != 1 {
 		t.Errorf("first refresh call, tlf count = %d, expected 1", len(rkeyui.refreshArgs[0].Tlfs))
-	}
-	if len(rkeyui.refreshArgs[1].Tlfs) != 0 {
-		t.Errorf("second/final refresh call, tlf count = %d, expected 0", len(rkeyui.refreshArgs[1].Tlfs))
 	}
 }
 
