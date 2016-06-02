@@ -9,6 +9,7 @@ echo %GOPATH%
 
 echo %GOROOT%
 pushd %GOPATH%\src\github.com\keybase\client\go\keybase
+go version
 go generate
 
 for /f %%i in ('winresource.exe -cv') do set KEYBASE_VERSION=%%i
