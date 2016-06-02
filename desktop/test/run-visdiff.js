@@ -36,7 +36,7 @@ function checkout (commit) {
     execSync(`mv node_modules.${newPackageHash} node_modules`)
   } else {
     console.log(`Installing dependencies for package.json:${newPackageHash}...`)
-    execSync('../packaging/npm_mess.sh', {stdio: 'inherit'})
+    execSync('npm run vendored-install || ../packaging/npm_mess.sh', {stdio: 'inherit'})
   }
 }
 
