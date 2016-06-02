@@ -19,6 +19,10 @@ func TestSimpleTruncate(t *testing.T) {
 	for i := 0; i*100 < wlen; i++ {
 		mdat2[i*100] = byte(i)
 	}
+	mdat3 := make([]byte, mb)
+	for i := 0; i*100 < len(mdat3); i++ {
+		mdat3[i*100] = byte(i)
+	}
 	test(t,
 		users("alice", "bob"),
 		as(alice,
@@ -39,9 +43,15 @@ func TestSimpleTruncate(t *testing.T) {
 			read("file", string(mdata)),
 			write("file", string(mdat2[:wlen])),
 			read("file", string(mdat2)),
+			truncate("file", 0),
+			read("file", ""),
+			// Write past an unaligned hole
+			truncate("file", 777777),
+			write("file", string(mdat3)),
+			read("file", string(mdat3)),
 		),
 		as(bob,
-			read("file", string(mdat2)),
+			read("file", string(mdat3)),
 		),
 	)
 }

@@ -966,6 +966,7 @@ func (fbo *folderBlockOps) Read(
 				if fill > toRead {
 					fill = toRead
 				}
+				fbo.log.CDebugf(ctx, "Read from hole: nextByte=%d lastByteInBlock=%d fill=%d\n", nextByte, lastByteInBlock, fill)
 				if fill <= 0 {
 					fbo.log.CErrorf(ctx, "Read invalid file fill <= 0 while reading hole")
 					return nRead, BadSplitError{}
@@ -1158,7 +1159,7 @@ func (fbo *folderBlockOps) writeDataLocked(
 		// Take care not to write past the beginning of the next block by using max.
 		max := len(data)
 		if nextBlockOff > 0 {
-			if room := int(nextBlockOff - (off + nCopied - startOff)); room < max {
+			if room := int(nextBlockOff - off); room < max {
 				max = room
 			}
 		}
@@ -1326,8 +1327,9 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 
 	var dirtyPtrs []BlockPointer
 
+	fbo.log.CDebugf(ctx, "truncateExtendLocked: extending fblock %#v", fblock)
 	if !fblock.IsInd {
-		fbo.log.CDebugf(ctx, "truncateExtendLocked: extending fblock %#v", fblock)
+		fbo.log.CDebugf(ctx, "truncateExtendLocked: making block indirect %v", file.tailPointer())
 		old := fblock
 		fblock, err = fbo.createIndirectBlockLocked(md, file, uid,
 			DefaultNewBlockDataVersion(fbo.config, true))
@@ -1339,6 +1341,7 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 			return WriteRange{}, nil, err
 		}
 		dirtyPtrs = append(dirtyPtrs, fblock.IPtrs[0].BlockPointer)
+		fbo.log.CDebugf(ctx, "truncateExtendLocked: new zero data block %v", fblock.IPtrs[0].BlockPointer)
 	}
 
 	// TODO: support multiple levels of indirection.  Right now the
@@ -1350,6 +1353,8 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 	if err != nil {
 		return WriteRange{}, nil, err
 	}
+	dirtyPtrs = append(dirtyPtrs, fblock.IPtrs[len(fblock.IPtrs)-1].BlockPointer)
+	fbo.log.CDebugf(ctx, "truncateExtendLocked: new right data block %v", fblock.IPtrs[len(fblock.IPtrs)-1].BlockPointer)
 
 	de, err := fbo.getDirtyEntryLocked(ctx, lState, md, file)
 	if err != nil {
@@ -1375,7 +1380,7 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 		return WriteRange{}, nil, err
 	}
 	dirtyPtrs = append(dirtyPtrs, file.tailPointer())
-	latestWrite := si.op.addWrite(size, 0)
+	latestWrite := si.op.addTruncate(size)
 
 	bcache := fbo.config.BlockCache()
 	if d := bcache.DirtyBytesEstimate(); d > dirtyBytesThreshold {
@@ -1388,6 +1393,7 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 		}
 	}
 
+	fbo.log.CDebugf(ctx, "truncateExtendLocked: done")
 	return latestWrite, dirtyPtrs, nil
 }
 
@@ -1416,7 +1422,7 @@ func (fbo *folderBlockOps) truncateLocked(
 		latestWrite, dirtyPtrs, err := fbo.truncateExtendLocked(
 			ctx, lState, md, file, uint64(iSize))
 		if err != nil {
-			return nil, nil, err
+			return &latestWrite, dirtyPtrs, err
 		}
 		return &latestWrite, dirtyPtrs, err
 	} else if currLen < iSize {
@@ -1425,7 +1431,7 @@ func (fbo *folderBlockOps) truncateLocked(
 			ctx, lState, md, file,
 			make([]byte, moreNeeded, moreNeeded), currLen)
 		if err != nil {
-			return nil, nil, err
+			return &latestWrite, dirtyPtrs, err
 		}
 		return &latestWrite, dirtyPtrs, err
 	} else if currLen == iSize && nextBlockOff < 0 {

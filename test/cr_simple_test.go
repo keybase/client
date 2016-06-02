@@ -696,6 +696,35 @@ func TestCrBothCreateFileMergedWrite(t *testing.T) {
 	)
 }
 
+// alice and bob both create the same file, and alice truncated to it
+func TestCrBothCreateFileMergedTruncate(t *testing.T) {
+	const flen = 401001
+	fdata := string(make([]byte, flen))
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			mkfile("a/b", ""),
+			truncate("a/b", flen),
+		),
+		as(bob, noSync(),
+			mkfile("a/b", ""),
+			reenableUpdates(),
+			lsdir("a/", m{"b$": "FILE"}),
+			read("a/b", fdata),
+		),
+		as(alice,
+			lsdir("a/", m{"b$": "FILE"}),
+			read("a/b", fdata),
+		),
+	)
+}
+
 // alice and bob both create the same file, and bob wrote to it
 func TestCrBothCreateFileUnmergedWrite(t *testing.T) {
 	test(t,
@@ -718,6 +747,35 @@ func TestCrBothCreateFileUnmergedWrite(t *testing.T) {
 		as(alice,
 			lsdir("a/", m{"b$": "FILE"}),
 			read("a/b", "hello"),
+		),
+	)
+}
+
+// alice and bob both create the same file, and bob truncated to it
+func TestCrBothCreateFileUnmergedTruncate(t *testing.T) {
+	const flen = 401001
+	fdata := string(make([]byte, flen))
+	test(t,
+		users("alice", "bob"),
+		as(alice,
+			mkdir("a"),
+		),
+		as(bob,
+			disableUpdates(),
+		),
+		as(alice,
+			mkfile("a/b", ""),
+		),
+		as(bob, noSync(),
+			mkfile("a/b", ""),
+			truncate("a/b", flen),
+			reenableUpdates(),
+			lsdir("a/", m{"b$": "FILE"}),
+			read("a/b", fdata),
+		),
+		as(alice,
+			lsdir("a/", m{"b$": "FILE"}),
+			read("a/b", fdata),
 		),
 	)
 }
