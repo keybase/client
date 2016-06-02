@@ -22,6 +22,9 @@ import {bootstrap} from './actions/config'
 
 import {constants as styleConstants} from './styles/common'
 
+import {dumbFullscreen} from './local-debug'
+import DumbSheet from './more/dumb-sheet'
+
 import {devicesTab, moreTab, startupTab, folderTab, peopleTab, loginTab, profileTab} from './constants/tabs'
 import type {VisibleTab} from './constants/tabs' // eslint-disable-line
 import ListenLogUi from './native/listen-log-ui'
@@ -137,6 +140,10 @@ class Nav extends Component {
   }
 
   render () {
+    if (dumbFullscreen) {
+      return <DumbSheet />
+    }
+
     const activeTab = this._activeTab()
 
     if (activeTab === loginTab) {

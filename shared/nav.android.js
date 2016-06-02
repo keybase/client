@@ -12,6 +12,9 @@ import More from './more'
 import Login from './login'
 import {mapValues} from 'lodash'
 
+import {dumbFullscreen} from './local-debug'
+import DumbSheet from './more/dumb-sheet'
+
 import {devicesTab, moreTab, folderTab, peopleTab, loginTab, profileTab, prettify} from './constants/tabs'
 
 import {switchTab} from './actions/tabbed-router'
@@ -102,6 +105,10 @@ class Nav extends Component {
   }
 
   render () {
+    if (dumbFullscreen) {
+      return <DumbSheet />
+    }
+
     const activeTab = this.props.tabbedRouter.get('activeTab')
 
     if (activeTab === loginTab) {

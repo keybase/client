@@ -1,7 +1,7 @@
 /* @flow */
 
 import React, {Component} from 'react'
-import {globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles/style-guide'
 import {FontIcon} from 'material-ui'
 import type {Props} from './icon'
 import {resolveImage} from '../../desktop/resolve-root'
@@ -34,7 +34,7 @@ export default class Icon extends Component {
     if (isFontIcon) {
       return <FontIcon
         title={this.props.hint}
-        style={{...styles.icon, ...this.props.style}}
+        style={{...globalStyles.noSelect, ...styles.icon, ...this.props.style}}
         className={`fa ${iconType} ${this.props.className}`}
         color={color}
         hoverColor={this.props.onClick ? hoverColor : null}
@@ -45,7 +45,7 @@ export default class Icon extends Component {
       return <img
         className={this.props.className}
         title={this.props.hint}
-        style={{...this.props.style}}
+        style={{...globalStyles.noSelect, ...this.props.style}}
         onClick={this.props.onClick}
         srcSet={imgPath(this.props.type, ext)} />
     }

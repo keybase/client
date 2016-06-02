@@ -1,0 +1,16 @@
+// @flow
+
+import React, {Component} from 'react'
+
+export type Props = {
+  theme: 'public' | 'private',
+  danger?: boolean,
+  submitLabel: string,
+  onCancel: () => void,
+  onSubmit: () => void,
+  header: React$Element,
+  body: React$Element
+}
+
+declare export default class Confirm extends React.Component<void, Props, void> {
+}

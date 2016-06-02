@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import {resolveImageAsURL} from '../../desktop/resolve-root'
-import {globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props} from './avatar'
 
 const noAvatar = resolveImageAsURL('icons', 'placeholder-avatar@2x.png')
@@ -37,7 +37,7 @@ export default class Avatar extends Component {
     const url = this._createUrl()
 
     return (
-      <div onClick={this.props.onClick} style={{position: 'relative', width, height, ...this.props.style}}>
+      <div onClick={this.props.onClick} style={{...globalStyles.noSelect, position: 'relative', width, height, ...this.props.style}}>
         <div
           style={{...avatarStyle(this.props.size - 2),
             top: 1,
