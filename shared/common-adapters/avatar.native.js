@@ -1,7 +1,7 @@
 // @flow
 
 import React, {Component} from 'react'
-import {Image} from 'react-native'
+import {Image, PixelRatio, Platform} from 'react-native'
 import type {Props} from './avatar'
 import {Box, Icon} from '../common-adapters'
 import {images} from './icon.paths.native'
@@ -19,9 +19,14 @@ export default class Avatar extends Component {
     const height = this.props.size
     const uri = shared.createAvatarUrl(this.props)
 
+    // Hack AW: As of react-native 0.24.1, it appears that iOS takes in dp
+    //  for the borderRadius, while Android (incorrectly) takes in pixels. This
+    //  hack handles the conversion between pixels and dp on Android.
+    const borderRadius = width / 2 * (Platform.OS === 'android' ? PixelRatio.get() : 1);
+
     return (
       <Image
-        style={{resizeMode: 'contain', width, height, borderRadius: width / 2}}
+        style={{resizeMode: 'contain', width, height, borderRadius}}
         defaultSource={images['placeholder-avatar']}
         source={{uri}} />
     )
