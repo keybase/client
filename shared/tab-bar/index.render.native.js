@@ -4,7 +4,7 @@ import React, {Component} from 'react'
 import {TabBar, Avatar} from '../common-adapters'
 import {TabBarButton, TabBarItem} from '../common-adapters/tab-bar'
 
-import {profileTab, peopleTab, folderTab, devicesTab, moreTab} from '../constants/tabs'
+import {profileTab, peopleTab, folderTab, devicesTab, settingsTab} from '../constants/tabs'
 
 import type {VisibleTab} from '../constants/tabs'
 import type {Props as IconProps} from '../common-adapters/icon'
@@ -14,7 +14,7 @@ const icons: {[key: VisibleTab]: IconProps.type} = {
   [peopleTab]: 'fa-kb-iconfont-people',
   [folderTab]: 'fa-kb-iconfont-folder',
   [devicesTab]: 'fa-kb-iconfont-device',
-  [moreTab]: 'fa-kb-iconfont-settings'
+  [settingsTab]: 'fa-kb-iconfont-settings'
 }
 
 function tabToIcon (t: VisibleTab): IconProps.type {
@@ -24,7 +24,7 @@ function tabToIcon (t: VisibleTab): IconProps.type {
 export default class Render extends Component<void, Props, void> {
   render () {
     const badgeNumbers = this.props.badgeNumbers
-    const tabs = [profileTab, peopleTab, folderTab, devicesTab, moreTab]
+    const tabs = [profileTab, peopleTab, folderTab, devicesTab, settingsTab]
 
     return (
       <TabBar style={{flex: 1}}

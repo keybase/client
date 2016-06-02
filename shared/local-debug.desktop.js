@@ -40,7 +40,7 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.devStoreChangingFunctions = true
   config.printOutstandingRPCs = true
   config.reactPerf = false
-  config.overrideLoggedInTab = Tabs.moreTab
+  config.overrideLoggedInTab = Tabs.settingsTab
   config.focusOnShow = false
   config.dumbFilter = ''
   config.printRoutes = true
@@ -76,7 +76,7 @@ export function initTabbedRouterState (state) {
     tabs: {
       ...state.tabs,
       [Tabs.loginTab]: createRouterState([], []),
-      [Tabs.moreTab]: createRouterState(['devMenu', 'dumbSheet'], [])
+      [Tabs.settingsTab]: createRouterState(['devMenu', 'dumbSheet'], [])
     }
   }
 }

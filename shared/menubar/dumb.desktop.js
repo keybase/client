@@ -8,14 +8,16 @@ import {globalStyles} from '../styles/style-guide'
 const propsNormal = {
   folderProps: map.mocks.Normal,
   username: 'max',
+  showOpenApp: true,
+  openApp: () => console.log('open app'),
   showKBFS: () => console.log('show kbfs'),
   logIn: () => console.log('login'),
   showHelp: () => console.log('show help'),
   showUser: () => console.log('show user'),
   quit: () => console.log('quit'),
   refresh: () => console.log('refresh'),
-  showBug: () => console.log('showbug'),
   onRekey: () => console.log('rekey popup'),
+  showBug: () => console.log('show bug'),
   loggedIn: true,
   parentProps: {
     style: {

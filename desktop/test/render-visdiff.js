@@ -5,7 +5,7 @@ import fs from 'fs'
 import _ from 'lodash'
 import {app, BrowserWindow, ipcMain} from 'electron'
 import {resolveRoot, resolveRootAsURL} from '../resolve-root'
-import dumbComponentMap from '../shared/more/dumb-component-map.desktop'
+import dumbComponentMap from '../shared/dev/dumb-component-map.desktop'
 
 if (process.argv.length !== 3) {
   console.log(`Usage: electron ${path.basename(process.argv[1])} DESTINATION`)
