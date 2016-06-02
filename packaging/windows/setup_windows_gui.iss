@@ -83,7 +83,7 @@ Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v0.8.0\Win32\Release\dokanctl.exe
 Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v0.8.0\Win32\Release\mounter.exe"; DestDir: "{pf32}\Dokan\DokanLibrary"; Check:  IsDokanBeingInstalled
 Source: "..\..\..\..\..\..\bin\vc_redist.x86.exe"; DestDir: "{tmp}"
 Source: "..\..\..\kbfs\kbfsdokan\kbfsdokan.exe"; DestDir: "{app}"; Flags: replacesameversion
-Source: "..\..\..\go-updater\service\updater.exe"; DestDir: "{app}"; Flags: replacesameversion
+Source: "..\..\..\go-updater\service\upd.exe"; DestDir: "{app}"; Flags: replacesameversion
 
 [Icons]
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"

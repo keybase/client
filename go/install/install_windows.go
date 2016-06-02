@@ -33,7 +33,10 @@ func kbfsBinName(runMode libkb.RunMode) (string, error) {
 }
 
 func updaterBinName() (string, error) {
-	return "updater.exe", nil
+	// Can't name it updater.exe because of Windows "Install Detection Heuristic",
+	// which is complete and total BULLSHIT LOL:
+	// https://technet.microsoft.com/en-us/library/cc709628%28v=ws.10%29.aspx?f=255&MSPPError=-2147217396
+	return "upd.exe", nil
 }
 
 // RunAfterStartup is not supported on Windows
