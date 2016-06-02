@@ -8,6 +8,8 @@ import hello from '../shared/util/hello'
 import {setupContextMenu} from '../app/menu-helper'
 import loadPerf from '../shared/util/load-perf'
 import {remote} from 'electron'
+import MuiThemeProvider from 'material-ui/styles/MuiThemeProvider'
+import materialTheme from '../shared/styles/material-theme.desktop'
 
 ipcLogsRenderer()
 hello(process.pid, 'Menubar', process.argv, __VERSION__) // eslint-disable-line no-undef
@@ -25,9 +27,11 @@ class RemoteMenubar extends Component {
   }
   render () {
     return (
-      <Provider store={store}>
-        <Menubar />
-      </Provider>
+      <MuiThemeProvider muiTheme={materialTheme}>
+        <Provider store={store}>
+          <Menubar />
+        </Provider>
+      </MuiThemeProvider>
     )
   }
 }

@@ -200,7 +200,7 @@ const stylesPopup = {
   left: 'initial',
   right: 'initial',
   bottom: 'initial',
-  marginLeft: '-110'
+  marginLeft: -110
 }
 
 export default Render
