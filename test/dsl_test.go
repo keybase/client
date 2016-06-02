@@ -330,7 +330,7 @@ func read(name string, contents string) fileOp {
 			return err
 		}
 		if res != contents {
-			return fmt.Errorf("Read (name=%s) contents=%s differ from expected=%s", name, res, contents)
+			return fmt.Errorf("Read (name=%s) got=%d, expected=%d bytes: contents=%s differ from expected=%s", name, len(res), len(contents), res, contents)
 		}
 		return nil
 	}, Defaults}
