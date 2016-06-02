@@ -192,7 +192,11 @@ func UpdaterBinPath() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return filepath.Join(filepath.Dir(path), "updater"), nil
+	name, err := updaterBinName()
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(filepath.Dir(path), name), nil
 }
 
 // kbfsBinPathDefault returns the default path to the KBFS executable.
