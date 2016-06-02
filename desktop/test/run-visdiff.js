@@ -154,7 +154,7 @@ function processDiff (commitRange, results) {
     const commentBody = commentLines.join('\n')
     ghIssue.createComment({body: commentBody}, (err, res) => {
       if (err) {
-        console.log('Failed to post visual diff on GitHub:', err.toString())
+        console.log('Failed to post visual diff on GitHub:', err.toString(), err.body)
         process.exit(1)
       }
       console.log('Posted visual diff on GitHub:', res.html_url)
