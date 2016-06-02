@@ -41,7 +41,7 @@ var ServerLookup = map[RunMode]string{
 const (
 	DevelGregorServerURI      = "fmprpc://localhost:9911"
 	StagingGregorServerURI    = "fmprpc+tls://gregor.stage0.keybase.io:443"
-	ProductionGregorServerURI = "fmprpc+tls://gregor.api.keybase.io:443"
+	ProductionGregorServerURI = "fmprpc+tls://gregord.kbfs.keybase.io:443"
 )
 
 var GregorServerLookup = map[RunMode]string{
@@ -188,6 +188,7 @@ const (
 	SCKeyNoNaClEncryption    = int(keybase1.StatusCode_SCKeyNoNaClEncryption)
 	SCWrongCryptoFormat      = int(keybase1.StatusCode_SCWrongCryptoFormat)
 	SCGPGUnavailable         = int(keybase1.StatusCode_SCGPGUnavailable)
+	SCDecryptionError        = int(keybase1.StatusCode_SCDecryptionError)
 )
 
 const (

@@ -27,6 +27,7 @@ const (
 	StatusCode_SCIdentifyFailed         StatusCode = 277
 	StatusCode_SCTrackingBroke          StatusCode = 278
 	StatusCode_SCWrongCryptoFormat      StatusCode = 279
+	StatusCode_SCDecryptionError        StatusCode = 280
 	StatusCode_SCBadSignupUsernameTaken StatusCode = 701
 	StatusCode_SCBadInvitationCode      StatusCode = 707
 	StatusCode_SCMissingResult          StatusCode = 801

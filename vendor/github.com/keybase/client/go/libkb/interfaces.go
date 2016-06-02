@@ -23,6 +23,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
+	gregor "github.com/keybase/gregor"
 )
 
 type CommandLine interface {
@@ -39,6 +40,10 @@ type CommandLine interface {
 	GetLogFormat() string
 	GetGpgHome() string
 	GetAPIDump() (bool, bool)
+	GetGregorURI() string
+	GetGregorSaveInterval() (time.Duration, bool)
+	GetGregorDisabled() (bool, bool)
+	GetGregorPingInterval() (time.Duration, bool)
 	GetUserCacheMaxAge() (time.Duration, bool)
 	GetProofCacheSize() (int, bool)
 	GetLinkCacheSize() (int, bool)
@@ -145,6 +150,9 @@ type ConfigReader interface {
 	GetAPITimeout() (time.Duration, bool)
 	GetSecurityAccessGroupOverride() (bool, bool)
 	GetGregorURI() string
+	GetGregorSaveInterval() (time.Duration, bool)
+	GetGregorDisabled() (bool, bool)
+	GetGregorPingInterval() (time.Duration, bool)
 
 	GetUpdatePreferenceAuto() (bool, bool)
 	GetUpdatePreferenceSkip() string
@@ -416,4 +424,19 @@ type UIConsumer interface {
 
 type Clock interface {
 	Now() time.Time
+}
+
+type GregorDismisser interface {
+	DismissItem(id gregor.MsgID) error
+}
+
+type GregorInBandMessageHandler interface {
+	IsAlive() bool
+	Name() string
+	Create(ctx context.Context, category string, ibm gregor.Item) error
+	Dismiss(ctx context.Context, category string, ibm gregor.Item) error
+}
+
+type GregorListener interface {
+	PushHandler(handler GregorInBandMessageHandler)
 }

@@ -480,8 +480,19 @@ func (f JSONConfigFile) GetStandalone() (bool, bool) {
 }
 
 func (f JSONConfigFile) GetGregorURI() string {
-	s, _ := f.GetStringAtPath("gregor.uri")
+	s, _ := f.GetStringAtPath("push.server_uri")
 	return s
+}
+func (f JSONConfigFile) GetGregorDisabled() (bool, bool) {
+	return f.GetBoolAtPath("push.disabled")
+}
+
+func (f JSONConfigFile) GetGregorSaveInterval() (time.Duration, bool) {
+	return f.GetDurationAtPath("push.save_interval")
+}
+
+func (f JSONConfigFile) GetGregorPingInterval() (time.Duration, bool) {
+	return f.GetDurationAtPath("push.ping_interval")
 }
 
 func (f JSONConfigFile) getCacheSize(w string) (int, bool) {
