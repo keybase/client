@@ -3,7 +3,7 @@
 import * as Constants from '../constants/search'
 import * as CommonConstants from '../constants/common'
 
-import Immutable from 'immutable'
+import {Map, fromJS} from 'immutable'
 
 import type {URI} from './router'
 
@@ -14,9 +14,9 @@ type Base = URI
 type Error = string
 
 type SubSearchState = MapADT5<'base', Base, 'waitingForServer', boolean, 'error', ?Error, 'term', string | ''> // eslint-disable-line no-undef
-type SearchState = Immutable.Map<Base, SubSearchState>
+type SearchState = Map<Base, SubSearchState>
 
-const initialState: SearchState = Immutable.Map()
+const initialState: SearchState = Map()
 
 export default function (state: SearchState = initialState, action: any): SearchState {
   if (action.type === CommonConstants.resetStore) {
@@ -30,7 +30,7 @@ export default function (state: SearchState = initialState, action: any): Search
   return state.update(action.payload.base, oldValue => {
     switch (action.type) {
       case Constants.initSearch:
-        return Immutable.fromJS({
+        return fromJS({
           base: action.payload.base,
           waitingForServer: false,
           term: '',
