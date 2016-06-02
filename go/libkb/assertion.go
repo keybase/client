@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"encoding/hex"
 	"fmt"
 	"regexp"
 	"strings"
@@ -15,6 +16,7 @@ type AssertionExpression interface {
 	String() string
 	MatchSet(ps ProofSet) bool
 	HasOr() bool
+	NeedsParens() bool
 	CollectUrls([]AssertionURL) []AssertionURL
 }
 
@@ -33,6 +35,15 @@ func (a AssertionOr) MatchSet(ps ProofSet) bool {
 	return false
 }
 
+func (a AssertionOr) NeedsParens() bool {
+	for _, t := range a.terms {
+		if t.NeedsParens() {
+			return true
+		}
+	}
+	return false
+}
+
 func (a AssertionOr) CollectUrls(v []AssertionURL) []AssertionURL {
 	for _, t := range a.terms {
 		v = t.CollectUrls(v)
@@ -45,7 +56,7 @@ func (a AssertionOr) String() string {
 	for i, t := range a.terms {
 		v[i] = t.String()
 	}
-	return fmt.Sprintf("(%s)", strings.Join(v, " || "))
+	return strings.Join(v, ",")
 }
 
 type AssertionAnd struct {
@@ -57,6 +68,15 @@ func (a AssertionAnd) Len() int {
 }
 
 func (a AssertionAnd) HasOr() bool {
+	for _, f := range a.factors {
+		if f.HasOr() {
+			return true
+		}
+	}
+	return false
+}
+
+func (a AssertionAnd) NeedsParens() bool {
 	for _, f := range a.factors {
 		if f.HasOr() {
 			return true
@@ -95,14 +115,17 @@ func (a AssertionAnd) String() string {
 	v := make([]string, len(a.factors))
 	for i, f := range a.factors {
 		v[i] = f.String()
+		if _, ok := f.(AssertionOr); ok {
+			v[i] = "(" + v[i] + ")"
+		}
 	}
-	return fmt.Sprintf("(%s)", strings.Join(v, " && "))
+	return strings.Join(v, "+")
 }
 
 type AssertionURL interface {
 	AssertionExpression
 	Keys() []string
-	Check() error
+	CheckAndNormalize() (AssertionURL, error)
 	IsKeybase() bool
 	IsUID() bool
 	ToUID() keybase1.UID
@@ -113,6 +136,7 @@ type AssertionURL interface {
 	ToKeyValuePair() (string, string)
 	CacheKey() string
 	GetValue() string
+	GetKey() string
 	ToLookup() (string, string, error)
 }
 
@@ -123,6 +147,7 @@ type AssertionURLBase struct {
 func (b AssertionURLBase) ToKeyValuePair() (string, string) {
 	return b.Key, b.Value
 }
+func (b AssertionURLBase) GetKey() string { return b.Key }
 
 func (b AssertionURLBase) CacheKey() string {
 	return b.Key + ":" + b.Value
@@ -142,7 +167,8 @@ func (b AssertionURLBase) matchSet(v AssertionURL, ps ProofSet) bool {
 	return false
 }
 
-func (b AssertionURLBase) HasOr() bool { return false }
+func (b AssertionURLBase) NeedsParens() bool { return false }
+func (b AssertionURLBase) HasOr() bool       { return false }
 
 func (a AssertionUID) MatchSet(ps ProofSet) bool     { return a.matchSet(a, ps) }
 func (a AssertionKeybase) MatchSet(ps ProofSet) bool { return a.matchSet(a, ps) }
@@ -167,6 +193,10 @@ func (b AssertionURLBase) IsUID() bool               { return false }
 func (b AssertionURLBase) ToUID() (ret keybase1.UID) { return ret }
 func (b AssertionURLBase) MatchProof(proof Proof) bool {
 	return (strings.ToLower(proof.Value) == b.Value)
+}
+
+func (a AssertionSocial) GetValue() string {
+	return a.Value
 }
 
 // Fingerprint matching is on the suffixes.  If the assertion matches
@@ -202,31 +232,67 @@ type AssertionHTTPS struct{ AssertionURLBase }
 type AssertionDNS struct{ AssertionURLBase }
 type AssertionFingerprint struct{ AssertionURLBase }
 
-func (b AssertionURLBase) Check() error {
+func (a AssertionHTTP) CheckAndNormalize() (AssertionURL, error) {
+	if err := a.checkAndNormalizeHost(); err != nil {
+		return nil, err
+	}
+	return a, nil
+}
+func (a AssertionHTTPS) CheckAndNormalize() (AssertionURL, error) {
+	if err := a.checkAndNormalizeHost(); err != nil {
+		return nil, err
+	}
+	return a, nil
+}
+func (a AssertionDNS) CheckAndNormalize() (AssertionURL, error) {
+	if err := a.checkAndNormalizeHost(); err != nil {
+		return nil, err
+	}
+	return a, nil
+}
+func (a AssertionWeb) CheckAndNormalize() (AssertionURL, error) {
+	if err := a.checkAndNormalizeHost(); err != nil {
+		return nil, err
+	}
+	return a, nil
+}
+
+func (a AssertionKeybase) CheckAndNormalize() (AssertionURL, error) {
+	a.Value = strings.ToLower(a.Value)
+	if !CheckUsername.F(a.Value) {
+		return nil, fmt.Errorf("bad keybase username '%s': %s", a.Value, CheckUsername.Hint)
+	}
+	return a, nil
+}
+
+func (a AssertionFingerprint) CheckAndNormalize() (AssertionURL, error) {
+	a.Value = strings.ToLower(a.Value)
+	if _, err := hex.DecodeString(a.Value); err != nil {
+		return nil, fmt.Errorf("bad hex string: '%s'", a.Value)
+	}
+	return a, nil
+}
+
+func (b *AssertionURLBase) checkAndNormalizeHost() error {
+
 	if len(b.Value) == 0 {
 		return fmt.Errorf("Bad assertion, no value given (key=%s)", b.Key)
 	}
+
+	b.Value = strings.ToLower(b.Value)
+
+	if !IsValidHostname(b.Value) {
+		return fmt.Errorf("Invalid hostname: %s", b.Value)
+	}
+
 	return nil
 }
 
-func (a AssertionHTTP) Check() (err error)  { return a.CheckHost() }
-func (a AssertionHTTPS) Check() (err error) { return a.CheckHost() }
-func (a AssertionDNS) Check() (err error)   { return a.CheckHost() }
-func (a AssertionWeb) Check() (err error)   { return a.CheckHost() }
-
-func (b AssertionURLBase) CheckHost() (err error) {
-	s := b.Value
-	if err = b.Check(); err == nil {
-		// Found this here: http://stackoverflow.com/questions/106179/regular-expression-to-match-dns-hostname-or-ip-address
-		if !IsValidHostname(s) {
-			err = fmt.Errorf("Invalid hostname: %s", s)
-		}
-	}
-	return
-}
-
 func (b AssertionURLBase) String() string {
-	return fmt.Sprintf("%s://%s", b.Key, b.Value)
+	return fmt.Sprintf("%s@%s", b.Value, b.Key)
+}
+func (a AssertionKeybase) String() string {
+	return a.Value
 }
 
 func (a AssertionWeb) ToLookup() (key, value string, err error) {
@@ -279,7 +345,6 @@ func parseToKVPair(s string) (key string, value string, err error) {
 		value = s
 	}
 	key = strings.ToLower(key)
-	value = strings.ToLower(value)
 	return
 }
 
@@ -291,6 +356,7 @@ func (a AssertionFingerprint) IsFingerprint() bool { return true }
 func (a AssertionUID) IsUID() bool                 { return true }
 func (a AssertionHTTP) IsRemote() bool             { return true }
 func (a AssertionHTTPS) IsRemote() bool            { return true }
+func (a AssertionDNS) IsRemote() bool              { return true }
 
 func (a AssertionUID) ToUID() keybase1.UID {
 	if a.uid.IsNil() {
@@ -309,16 +375,21 @@ func (a AssertionUID) ToLookup() (key, value string, err error) {
 	return "uid", a.Value, nil
 }
 
-func (a AssertionUID) Check() (err error) {
+func (a AssertionUID) CheckAndNormalize() (AssertionURL, error) {
+	var err error
 	a.uid, err = UIDFromHex(a.Value)
-	return
+	a.Value = strings.ToLower(a.Value)
+	return a, err
 }
 
-func (a AssertionSocial) Check() (err error) {
-	if ok, found := _socialNetworks[strings.ToLower(a.Key)]; !ok || !found {
-		err = fmt.Errorf("Unknown social network: %s", a.Key)
+func (a AssertionSocial) CheckAndNormalize() (AssertionURL, error) {
+	st := GetServiceType(a.Key)
+	if ok, found := _socialNetworks[a.Key]; !ok || !found || st == nil {
+		return nil, fmt.Errorf("Unknown social network: %s", a.Key)
 	}
-	return
+	var err error
+	a.Value, err = st.NormalizeUsername(a.Value)
+	return a, err
 }
 
 func (a AssertionSocial) ToLookup() (key, value string, err error) {
@@ -334,16 +405,16 @@ func ParseAssertionURL(s string, strict bool) (ret AssertionURL, err error) {
 	return ParseAssertionURLKeyValue(key, val, strict)
 }
 
-func ParseAssertionURLKeyValue(key, val string,
-	strict bool) (ret AssertionURL, err error) {
+func ParseAssertionURLKeyValue(key, val string, strict bool) (ret AssertionURL, err error) {
 
 	if len(key) == 0 {
 		if strict {
 			err = fmt.Errorf("Bad assertion, no 'type' given: %s", val)
-			return
+			return nil, err
 		}
 		key = "keybase"
 	}
+
 	base := AssertionURLBase{key, val}
 	switch key {
 	case "keybase":
@@ -363,14 +434,7 @@ func ParseAssertionURLKeyValue(key, val string,
 	default:
 		ret = AssertionSocial{base}
 	}
-
-	if err == nil && ret != nil {
-		if err = ret.Check(); err != nil {
-			ret = nil
-		}
-	}
-
-	return
+	return ret.CheckAndNormalize()
 }
 
 type Proof struct {
