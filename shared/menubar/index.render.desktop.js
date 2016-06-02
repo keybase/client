@@ -32,7 +32,7 @@ class Render extends Component<void, Props, State> {
     const styles = stylesPublic
 
     const menuColor = this.state.showingMenu ? globalColors.black : globalColors.black_40
-    const menuStyle = {...globalStyles.clickable, color: menuColor, hoverColor: menuColor, fontSize: 12}
+    const menuStyle = {...globalStyles.clickable, color: menuColor, hoverColor: menuColor, fontSize: 24}
 
     return (
       <Box style={{...styles.container}}>
@@ -129,7 +129,8 @@ const stylesTopRow = {
   ...globalStyles.flexBoxRow,
   alignItems: 'flex-start',
   minHeight: 34,
-  padding: 10
+  paddingLeft: 10,
+  paddingTop: 4
 }
 
 const stylesPrivate = {
