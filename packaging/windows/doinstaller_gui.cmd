@@ -87,7 +87,7 @@ echo off
 
 go get github.com/keybase/release
 go install github.com/keybase/release
-set release_bin=%GOPATH%\bin\windows_386\release.exe
+set ReleaseBin=%GOPATH%\bin\windows_386\release.exe
 
 
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
@@ -103,7 +103,14 @@ IF %ERRORLEVEL% NEQ 0 (
 
 if NOT DEFINED JSON_UPDATE_FILENAME set JSON_UPDATE_FILENAME=update-windows-prod.json
 
-%GOPATH%\bin\windows_386\release update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows > %JSON_UPDATE_FILENAME%
+:: Run keybase sign to get signature for installer
+set SigFile=sig.txt
+%PathName% sign -d -i %KEYBASE_INSTALLER_NAME% -o %SigFile%
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
+
+%ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% > %JSON_UPDATE_FILENAME%
 ::"%ProgramFiles%\S3 Browser\s3browser-con.exe" upload keybase %KEYBASE_INSTALLER_NAME% prerelease.keybase.io/windows
 :: After sanity checking, do:
 ::"%ProgramFiles%\S3 Browser\s3browser-con.exe" upload keybase update-windows-prod.json prerelease.keybase.io
