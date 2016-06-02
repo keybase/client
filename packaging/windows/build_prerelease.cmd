@@ -34,7 +34,7 @@ go build -a -tags "prerelease production" -ldflags="-X github.com/keybase/kbfs/l
 popd
 
 :: Updater
-pushd %GOPATH%\src\github.com\keybase\go-updater/service
+pushd %GOPATH%\src\github.com\keybase\go-updater\service
 go build -a -o updater.exe
 popd
 
