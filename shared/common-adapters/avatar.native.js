@@ -17,13 +17,13 @@ export default class Avatar extends Component {
   render () {
     const width = this.props.size
     const height = this.props.size
-    const url = shared.createUrl(this.props)
+    const uri = shared.createAvatarUrl(this.props)
 
     return (
       <Image
         style={{resizeMode: 'contain', width, height, borderRadius: width / 2}}
         defaultSource={images['placeholder-avatar']}
-        source={{uri: url}} />
+        source={{uri}} />
     )
   }
 }

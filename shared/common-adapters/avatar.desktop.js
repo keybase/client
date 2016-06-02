@@ -23,7 +23,7 @@ export default class Avatar extends Component {
   render () {
     const width = this.props.size
     const height = this.props.size
-    const url = __SCREENSHOT__ ? noAvatar : shared.createUrl(this.props)
+    const url = __SCREENSHOT__ ? noAvatar : shared.createAvatarUrl(this.props)
 
     return (
       <div onClick={this.props.onClick} style={{position: 'relative', width, height, ...this.props.style}}>
