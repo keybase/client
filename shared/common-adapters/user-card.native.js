@@ -5,7 +5,7 @@ import {globalStyles, globalColors} from '../styles/style-guide'
 import type {Props} from './user-card'
 import Avatar from './avatar'
 import {Box} from '../common-adapters'
-const avatarSize = 110
+const avatarSize = 112
 
 export default class UserCard extends Component<void, Props, void> {
   render () {
