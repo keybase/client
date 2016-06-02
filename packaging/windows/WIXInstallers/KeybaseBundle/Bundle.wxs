@@ -3,9 +3,11 @@
      xmlns:bal="http://schemas.microsoft.com/wix/BalExtension"
      xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
   <Bundle Name="Keybase" Version="$(env.KEYBASE_WINVER)" Manufacturer="Keybase, Inc." UpgradeCode="418432ab-0366-40fd-a396-8cc0c4200252">
-		<BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.RtfLicense">
+		<BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLicense">
       <bal:WixStandardBootstrapperApplication
             LicenseUrl="https://keybase.io/docs/terms"
+            ThemeFile="HyperlinkTheme.xml"
+            LocalizationFile="HyperlinkTheme.wxl"
             LogoFile="logo-64.bmp"
             LicenseFile="license.rtf"
             ShowVersion="yes"
@@ -30,6 +32,48 @@
                  Format="raw"
                  Win64="yes"
                  />
+    <!-- From the old Inno installer for Dokan 0.8.0 -->
+    <util:RegistrySearch Id="InnoUninstall2"
+             Variable="InnoUninstallString"
+             After="InnoUninstall64"
+             Condition="NOT InnoUninstallString"
+             Root="HKLM"
+             Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{DEB2E54C-C39F-4DC8-93A7-ABE0AB91DDCA}_is1"
+             Value="QuietUninstallString"
+             Format="raw"
+                 />
+    <util:RegistrySearch Id="InnoUninstall264"
+                 After="InnoUninstall2"
+                 Condition="NOT InnoUninstallString"
+                 Variable="InnoUninstallString"
+                 Root="HKLM"
+                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{DEB2E54C-C39F-4DC8-93A7-ABE0AB91DDCA}_is1"
+                 Value="QuietUninstallString"
+                 Format="raw"
+                 Win64="yes"
+                 />
+    <!-- From the old Inno installer for Dokan 1.0.0RC2 -->
+    <util:RegistrySearch Id="InnoUninstall3"
+             Variable="InnoUninstallString"
+             After="InnoUninstall264"
+             Condition="NOT InnoUninstallString"
+             Root="HKLM"
+             Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{1B2672D9-2BAD-4C11-BA53-A75AF6FD7789}_is1"
+             Value="QuietUninstallString"
+             Format="raw"
+                 />
+    <util:RegistrySearch Id="InnoUninstall364"
+                 After="InnoUninstall3"
+                 Condition="NOT InnoUninstallString"
+                 Variable="InnoUninstallString"
+                 Root="HKLM"
+                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{1B2672D9-2BAD-4C11-BA53-A75AF6FD7789}_is1"
+                 Value="QuietUninstallString"
+                 Format="raw"
+                 Win64="yes"
+                 />
+
+
     <util:RegistrySearch Id="DokanUninstall"
                  Variable="DokanUninstallString"
                  Root="HKLM"
@@ -52,18 +96,17 @@
       NOT InnoUninstallString
     </bal:Condition>
     -->
-    
+
+    <!--
     <util:FileSearch
       Id='SearchForDokanSys'
       Variable="DokanSysFilePresent"
       Result="exists"
       Path="[SystemFolder]drivers\dokan.sys"
        />
-    <!--
     <bal:Condition Message="Please remove [SystemFolder]drivers\dokan.sys before proceeding with this update.">
       NOT DokanSysFilePresent
     </bal:Condition>
-    -->
 
     <util:FileSearch
       Id='SearchForDokan1Sys'
@@ -74,6 +117,7 @@
     <bal:Condition Message="Please remove [SystemFolder]drivers\dokan1.sys before proceeding with this update.">
       NOT Dokan1SysFilePresent
     </bal:Condition>
+    -->
 
     <Chain>
       <ExePackage

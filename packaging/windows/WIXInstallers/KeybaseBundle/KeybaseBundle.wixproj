@@ -44,6 +44,12 @@
       <RefTargetDir>INSTALLFOLDER</RefTargetDir>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="HyperlinkTheme.wxl" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="HyperlinkTheme.xml" />
+  </ItemGroup>
   <Import Project="$(WixTargetsPath)" />
   <PropertyGroup>
     <PostBuildEvent>if /I "$(ConfigurationName)" == "Release" (
