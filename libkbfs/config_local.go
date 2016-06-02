@@ -65,8 +65,6 @@ type ConfigLocal struct {
 	noBGFlush   bool // logic opposite so the default value is the common setting
 	rwpWaitTime time.Duration
 
-	sharingBeforeSignupEnabled bool
-
 	maxFileBytes uint64
 	maxNameBytes uint32
 	maxDirBytes  uint64
@@ -516,22 +514,6 @@ func (c *ConfigLocal) DoBackgroundFlushes() bool {
 // ConfigLocal.
 func (c *ConfigLocal) RekeyWithPromptWaitTime() time.Duration {
 	return c.rwpWaitTime
-}
-
-// SharingBeforeSignupEnabled returns whether or not this client will
-// handle sharing before signup.
-func (c *ConfigLocal) SharingBeforeSignupEnabled() bool {
-	c.lock.RLock()
-	defer c.lock.RUnlock()
-	return c.sharingBeforeSignupEnabled
-}
-
-// SetSharingBeforeSignupEnabled sets whether or not this client will
-// handle sharing before signup.
-func (c *ConfigLocal) SetSharingBeforeSignupEnabled(sharingBeforeSignupEnabled bool) {
-	c.lock.Lock()
-	defer c.lock.Unlock()
-	c.sharingBeforeSignupEnabled = sharingBeforeSignupEnabled
 }
 
 // QuotaReclamationPeriod implements the Config interface for ConfigLocal.

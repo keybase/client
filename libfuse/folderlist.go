@@ -77,8 +77,7 @@ func (fl *FolderList) Lookup(ctx context.Context, req *fuse.LookupRequest, resp 
 	}
 
 	h, err := libkbfs.ParseTlfHandle(
-		ctx, fl.fs.config.KBPKI(), req.Name, fl.public,
-		fl.fs.config.SharingBeforeSignupEnabled())
+		ctx, fl.fs.config.KBPKI(), req.Name, fl.public)
 	switch err := err.(type) {
 	case nil:
 		// No error.

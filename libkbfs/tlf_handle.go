@@ -553,7 +553,7 @@ func (h *TlfHandle) ResolveAgainForUser(ctx context.Context, resolver resolver,
 		writers = append(writers, resolvableNameUIDPair{w, uid})
 	}
 	for _, uw := range h.UnresolvedWriters {
-		writers = append(writers, resolvableAssertion{true, resolver,
+		writers = append(writers, resolvableAssertion{resolver,
 			uw.String(), uid})
 	}
 
@@ -564,7 +564,7 @@ func (h *TlfHandle) ResolveAgainForUser(ctx context.Context, resolver resolver,
 			readers = append(readers, resolvableNameUIDPair{r, uid})
 		}
 		for _, ur := range h.UnresolvedReaders {
-			readers = append(readers, resolvableAssertion{true, resolver,
+			readers = append(readers, resolvableAssertion{resolver,
 				ur.String(), uid})
 		}
 	}
@@ -712,10 +712,9 @@ func normalizeNamesInTLF(writerNames, readerNames []string,
 }
 
 type resolvableAssertion struct {
-	sharingBeforeSignupEnabled bool
-	resolver                   resolver
-	assertion                  string
-	mustBeUser                 keybase1.UID
+	resolver   resolver
+	assertion  string
+	mustBeUser keybase1.UID
 }
 
 func (ra resolvableAssertion) resolve(ctx context.Context) (
@@ -737,9 +736,6 @@ func (ra resolvableAssertion) resolve(ctx context.Context) (
 			uid:  uid,
 		}, keybase1.SocialAssertion{}, nil
 	case NoSuchUserError:
-		if !ra.sharingBeforeSignupEnabled {
-			return nameUIDPair{}, keybase1.SocialAssertion{}, err
-		}
 		socialAssertion, ok := libkb.NormalizeSocialAssertion(ra.assertion)
 		if !ok {
 			return nameUIDPair{}, keybase1.SocialAssertion{}, err
@@ -761,8 +757,8 @@ func (ra resolvableAssertion) resolve(ctx context.Context) (
 // NoSuchNameError: Returned when public is set and the given folder
 // has no public folder.
 func ParseTlfHandle(
-	ctx context.Context, kbpki KBPKI, name string, public bool,
-	sharingBeforeSignupEnabled bool) (*TlfHandle, error) {
+	ctx context.Context, kbpki KBPKI, name string, public bool) (
+	*TlfHandle, error) {
 	// Before parsing the tlf handle (which results in identify
 	// calls that cause tracker popups), first see if there's any
 	// quick normalization of usernames we can do.  For example,
@@ -793,13 +789,11 @@ func ParseTlfHandle(
 
 	writers := make([]resolvableUser, len(writerNames))
 	for i, w := range writerNames {
-		writers[i] = resolvableAssertion{sharingBeforeSignupEnabled, kbpki, w,
-			keybase1.UID("")}
+		writers[i] = resolvableAssertion{kbpki, w, keybase1.UID("")}
 	}
 	readers := make([]resolvableUser, len(readerNames))
 	for i, r := range readerNames {
-		readers[i] = resolvableAssertion{sharingBeforeSignupEnabled, kbpki, r,
-			keybase1.UID("")}
+		readers[i] = resolvableAssertion{kbpki, r, keybase1.UID("")}
 	}
 
 	var conflictInfo *ConflictInfo

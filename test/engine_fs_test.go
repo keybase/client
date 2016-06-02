@@ -242,13 +242,6 @@ func (*fsEngine) ForceQuotaReclamation(user User, tlfName string, isPublic bool)
 		[]byte("x"), 0644)
 }
 
-// EnableSharingBeforeSignup implements the Engine interface.
-func (*fsEngine) EnableSharingBeforeSignup(user User) error {
-	u := user.(*fsUser)
-	u.config.SetSharingBeforeSignupEnabled(true)
-	return nil
-}
-
 // AddNewAssertion implements the Engine interface.
 func (e *fsEngine) AddNewAssertion(user User, oldAssertion, newAssertion string) error {
 	u := user.(*fsUser)

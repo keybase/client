@@ -133,11 +133,11 @@ func TestParseTlfHandleEarlyFailure(t *testing.T) {
 	ctx := context.Background()
 
 	name := "w1,w2#r1"
-	_, err := ParseTlfHandle(ctx, nil, name, true, false)
+	_, err := ParseTlfHandle(ctx, nil, name, true)
 	assert.Equal(t, NoSuchNameError{Name: name}, err)
 
 	nonCanonicalName := "W1,w2#r1"
-	_, err = ParseTlfHandle(ctx, nil, nonCanonicalName, false, false)
+	_, err = ParseTlfHandle(ctx, nil, nonCanonicalName, false)
 	assert.Equal(t, TlfNameNotCanonical{nonCanonicalName, name}, err)
 }
 
@@ -155,7 +155,7 @@ func TestParseTlfHandleNoUserFailure(t *testing.T) {
 	}
 
 	name := "u2,u3#u4"
-	_, err := ParseTlfHandle(ctx, kbpki, name, false, false)
+	_, err := ParseTlfHandle(ctx, kbpki, name, false)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
 	assert.Equal(t, NoSuchUserError{"u4"}, err)
 }
@@ -174,7 +174,7 @@ func TestParseTlfHandleNotReaderFailure(t *testing.T) {
 	}
 
 	name := "u2,u3"
-	_, err := ParseTlfHandle(ctx, kbpki, name, false, false)
+	_, err := ParseTlfHandle(ctx, kbpki, name, false)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
 	assert.Equal(t, ReadAccessError{"u1", CanonicalTlfName(name), false}, err)
 }
@@ -195,7 +195,7 @@ func TestParseTlfHandleAssertionNotCanonicalFailure(t *testing.T) {
 
 	name := "u1,u3#u2"
 	nonCanonicalName := "u1,u3@twitter#u2"
-	_, err := ParseTlfHandle(ctx, kbpki, nonCanonicalName, false, false)
+	_, err := ParseTlfHandle(ctx, kbpki, nonCanonicalName, false)
 	// Names with assertions should be identified before the error
 	// is returned.
 	assert.Equal(t, 3, kbpki.getIdentifyCalls())
@@ -216,7 +216,7 @@ func TestParseTlfHandleAssertionPrivateSuccess(t *testing.T) {
 	}
 
 	name := "u1,u3"
-	h, err := ParseTlfHandle(ctx, kbpki, name, false, false)
+	h, err := ParseTlfHandle(ctx, kbpki, name, false)
 	require.NoError(t, err)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
 	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
@@ -242,7 +242,7 @@ func TestParseTlfHandleAssertionPublicSuccess(t *testing.T) {
 	}
 
 	name := "u1,u2,u3"
-	h, err := ParseTlfHandle(ctx, kbpki, name, true, false)
+	h, err := ParseTlfHandle(ctx, kbpki, name, true)
 	require.NoError(t, err)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
 	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
@@ -268,11 +268,7 @@ func TestParseTlfHandleSocialAssertion(t *testing.T) {
 	}
 
 	name := "u1,u2#u3@twitter"
-	_, err := ParseTlfHandle(ctx, kbpki, name, false, false)
-	assert.Equal(t, 0, kbpki.getIdentifyCalls())
-	assert.Equal(t, NoSuchUserError{"u3@twitter"}, err)
-
-	h, err := ParseTlfHandle(ctx, kbpki, name, false, true)
+	h, err := ParseTlfHandle(ctx, kbpki, name, false)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
 	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
@@ -298,7 +294,7 @@ func TestParseTlfHandleUIDAssertion(t *testing.T) {
 	}
 
 	a := currentUID.String() + "@uid"
-	_, err := ParseTlfHandle(ctx, kbpki, a, false, false)
+	_, err := ParseTlfHandle(ctx, kbpki, a, false)
 	assert.Equal(t, 1, kbpki.getIdentifyCalls())
 	assert.Equal(t, TlfNameNotCanonical{a, "u1"}, err)
 }
@@ -318,7 +314,7 @@ func TestParseTlfHandleAndAssertion(t *testing.T) {
 	}
 
 	a := currentUID.String() + "@uid+u1@twitter"
-	_, err := ParseTlfHandle(ctx, kbpki, a, false, false)
+	_, err := ParseTlfHandle(ctx, kbpki, a, false)
 	assert.Equal(t, 1, kbpki.getIdentifyCalls())
 	assert.Equal(t, TlfNameNotCanonical{a, "u1"}, err)
 }
@@ -338,7 +334,7 @@ func TestParseTlfHandleFailConflictingAssertion(t *testing.T) {
 	}
 
 	a := currentUID.String() + "@uid+u2@twitter"
-	_, err := ParseTlfHandle(ctx, kbpki, a, false, false)
+	_, err := ParseTlfHandle(ctx, kbpki, a, false)
 	assert.Equal(t, 0, kbpki.getIdentifyCalls())
 	require.Error(t, err)
 }
@@ -348,8 +344,7 @@ func TestParseTlfHandleFailConflictingAssertion(t *testing.T) {
 func parseTlfHandleOrBust(t logger.TestLogBackend, config Config,
 	name string, public bool) *TlfHandle {
 	ctx := context.Background()
-	h, err := ParseTlfHandle(ctx, config.KBPKI(), name, public,
-		config.SharingBeforeSignupEnabled())
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), name, public)
 	if err != nil {
 		t.Fatalf("Couldn't parse %s (public=%t) into a TLF handle: %v",
 			name, public, err)
@@ -369,7 +364,7 @@ func TestResolveAgainBasic(t *testing.T) {
 	}
 
 	name := "u1,u2#u3@twitter"
-	h, err := ParseTlfHandle(ctx, kbpki, name, false, true)
+	h, err := ParseTlfHandle(ctx, kbpki, name, false)
 	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
 
@@ -392,7 +387,7 @@ func TestResolveAgainDoubleAsserts(t *testing.T) {
 	}
 
 	name := "u1,u1@github,u1@twitter#u2,u2@github,u2@twitter"
-	h, err := ParseTlfHandle(ctx, kbpki, name, false, true)
+	h, err := ParseTlfHandle(ctx, kbpki, name, false)
 	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
 
@@ -417,7 +412,7 @@ func TestResolveAgainWriterReader(t *testing.T) {
 	}
 
 	name := "u1,u2@github#u2@twitter"
-	h, err := ParseTlfHandle(ctx, kbpki, name, false, true)
+	h, err := ParseTlfHandle(ctx, kbpki, name, false)
 	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
 
@@ -532,7 +527,7 @@ func TestResolveAgainConflict(t *testing.T) {
 	}
 
 	name := "u1,u2#u3@twitter"
-	h, err := ParseTlfHandle(ctx, kbpki, name, false, true)
+	h, err := ParseTlfHandle(ctx, kbpki, name, false)
 	require.Nil(t, err)
 	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
 

@@ -91,9 +91,6 @@ type Engine interface {
 	// ForceQuotaReclamation starts quota reclamation by the given
 	// user in the TLF corresponding to the given node.
 	ForceQuotaReclamation(u User, tlfName string, isPublic bool) (err error)
-	// EnableSharingBeforeSignup enables sharing before signup for
-	// the current user.
-	EnableSharingBeforeSignup(u User) (err error)
 	// AddNewAssertion makes newAssertion, which should be a
 	// single assertion that doesn't already resolve to anything,
 	// resolve to the same UID as oldAssertion, which should be an

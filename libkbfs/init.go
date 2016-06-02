@@ -53,10 +53,6 @@ type InitParams struct {
 
 	// LogFileConfig tells us where to log and rotation config.
 	LogFileConfig logger.LogFileConfig
-
-	// EnableSharingBeforeSignup if true, lets this client handle
-	// sharing before signup.
-	EnableSharingBeforeSignup bool
 }
 
 var libkbOnce sync.Once
@@ -127,10 +123,6 @@ func AddFlags(flags *flag.FlagSet) *InitParams {
 	flag.Var(SizeFlag{&params.LogFileConfig.MaxSize}, "log-file-max-size", "Maximum size of a log file before rotation")
 	// The default is to *DELETE* old log files for kbfs.
 	flag.IntVar(&params.LogFileConfig.MaxKeepFiles, "log-file-max-keep-files", 3, "Maximum number of log files for this service, older ones are deleted. 0 for infinite.")
-
-	if getRunMode() != libkb.ProductionRunMode {
-		flag.BoolVar(&params.EnableSharingBeforeSignup, "enable-sharing-before-signup", false, "enable sharing before signup")
-	}
 	return &params
 }
 
@@ -311,9 +303,6 @@ func Init(params InitParams, onInterruptFn func(), log logger.Logger) (Config, e
 	}()
 
 	config := NewConfigLocal()
-	if params.EnableSharingBeforeSignup {
-		config.SetSharingBeforeSignupEnabled(true)
-	}
 
 	// 512K blocks by default, block changes embedded max == 8K.
 	// Block size was chosen somewhat arbitrarily by trying to

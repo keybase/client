@@ -298,12 +298,10 @@ func TestKeyManagerRekeySuccessPrivate(t *testing.T) {
 func TestKeyManagerRekeyResolveAgainSuccessPublic(t *testing.T) {
 	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
-	config.SetSharingBeforeSignupEnabled(true)
 
 	id := FakeTlfID(1, true)
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), "alice,bob@twitter",
-		true, true)
+		ctx, config.KBPKI(), "alice,bob@twitter", true)
 	require.NoError(t, err)
 	rmd := newRootMetadataOrBust(t, id, h)
 
@@ -339,12 +337,10 @@ func TestKeyManagerRekeyResolveAgainSuccessPublic(t *testing.T) {
 func TestKeyManagerRekeyResolveAgainSuccessPublicSelf(t *testing.T) {
 	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
-	config.SetSharingBeforeSignupEnabled(true)
 
 	id := FakeTlfID(1, true)
 	h, err := ParseTlfHandle(
-		ctx, config.KBPKI(), "alice@twitter,bob,charlie@twitter",
-		true, true)
+		ctx, config.KBPKI(), "alice@twitter,bob,charlie@twitter", true)
 	require.NoError(t, err)
 	rmd := newRootMetadataOrBust(t, id, h)
 
@@ -375,12 +371,11 @@ func TestKeyManagerRekeyResolveAgainSuccessPublicSelf(t *testing.T) {
 func TestKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
-	config.SetSharingBeforeSignupEnabled(true)
 
 	id := FakeTlfID(1, false)
 	h, err := ParseTlfHandle(
 		ctx, config.KBPKI(), "alice,bob@twitter,dave@twitter#charlie@twitter",
-		false, true)
+		false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -447,11 +442,10 @@ func TestKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T) {
 func TestKeyManagerPromoteReaderSuccessPrivate(t *testing.T) {
 	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
-	config.SetSharingBeforeSignupEnabled(true)
 
 	id := FakeTlfID(1, false)
 	h, err := ParseTlfHandle(ctx, config.KBPKI(),
-		"alice,bob@twitter#bob", false, true)
+		"alice,bob@twitter#bob", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -482,11 +476,10 @@ func TestKeyManagerPromoteReaderSuccessPrivate(t *testing.T) {
 func TestKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
-	config.SetSharingBeforeSignupEnabled(true)
 
 	id := FakeTlfID(1, false)
 	h, err := ParseTlfHandle(ctx, config.KBPKI(),
-		"alice,dave@twitter#bob@twitter,charlie@twitter", false, true)
+		"alice,dave@twitter#bob@twitter,charlie@twitter", false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -554,11 +547,10 @@ func TestKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T) {
 func TestKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T) {
 	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
-	config.SetSharingBeforeSignupEnabled(true)
 
 	id := FakeTlfID(1, false)
 	h, err := ParseTlfHandle(ctx, config.KBPKI(), "alice,bob,bob@twitter",
-		false, true)
+		false)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -112,8 +112,7 @@ func parseTlfHandle(
 	// Limit to one non-canonical name for now.
 outer:
 	for i := 0; i < 2; i++ {
-		h, err = libkbfs.ParseTlfHandle(
-			ctx, kbpki, tlfName, isPublic, true)
+		h, err = libkbfs.ParseTlfHandle(ctx, kbpki, tlfName, isPublic)
 		switch err := err.(type) {
 		case nil:
 			break outer
@@ -383,13 +382,6 @@ func (k *LibKBFS) ForceQuotaReclamation(u User, tlfName string, isPublic bool) (
 
 	return libkbfs.ForceQuotaReclamationForTesting(
 		config, dir.GetFolderBranch())
-}
-
-// EnableSharingBeforeSignup implements the Engine interface.
-func (k *LibKBFS) EnableSharingBeforeSignup(u User) error {
-	config := u.(*libkbfs.ConfigLocal)
-	config.SetSharingBeforeSignupEnabled(true)
-	return nil
 }
 
 // AddNewAssertion implements the Engine interface.

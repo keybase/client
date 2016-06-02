@@ -522,7 +522,6 @@ func TestIsValidRekeyRequestBasic(t *testing.T) {
 
 func TestRootMetadataVersion(t *testing.T) {
 	config := MakeTestConfigOrBust(t, "alice", "bob", "charlie")
-	config.SetSharingBeforeSignupEnabled(true)
 	defer config.Shutdown()
 
 	// Sign the writer metadata
@@ -603,7 +602,7 @@ func TestMakeRekeyReadErrorResolvedHandle(t *testing.T) {
 	id := FakeTlfID(1, false)
 	ctx := context.Background()
 	h, err := ParseTlfHandle(ctx, config.KBPKI(), "alice,bob@twitter",
-		false, true)
+		false)
 	require.NoError(t, err)
 	rmd := newRootMetadataOrBust(t, id, h)
 	FakeInitialRekey(rmd, h.BareTlfHandle)

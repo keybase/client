@@ -228,12 +228,6 @@ func noSync() fileOp {
 	}, IsInit}
 }
 
-func enableSharingBeforeSignup() fileOp {
-	return fileOp{func(c *ctx) error {
-		return c.engine.EnableSharingBeforeSignup(c.user)
-	}, IsInit}
-}
-
 func (o *opt) fail(reason string) {
 	o.t.Fatal(reason)
 }

@@ -220,8 +220,6 @@ func ConfigAsUser(config *ConfigLocal, loggedInUser libkb.NormalizedUsername) *C
 	c.allKnownConfigsForTesting = config.allKnownConfigsForTesting
 	*c.allKnownConfigsForTesting = append(*c.allKnownConfigsForTesting, c)
 
-	c.SetSharingBeforeSignupEnabled(config.SharingBeforeSignupEnabled())
-
 	return c
 }
 
@@ -516,8 +514,7 @@ func CheckConfigAndShutdown(t logger.TestLogBackend, config Config) {
 // must be canonical, creating it if necessary.
 func GetRootNodeForTest(config Config, name string, public bool) (Node, error) {
 	ctx := context.Background()
-	h, err := ParseTlfHandle(ctx, config.KBPKI(), name, public,
-		config.SharingBeforeSignupEnabled())
+	h, err := ParseTlfHandle(ctx, config.KBPKI(), name, public)
 	if err != nil {
 		return nil, err
 	}

@@ -187,7 +187,7 @@ func TestMDOpsGetForUnresolvedHandlePublicSuccess(t *testing.T) {
 	rmds.MD.tlfHandle = nil
 
 	hUnresolved, err := ParseTlfHandle(ctx, config.KBPKI(),
-		"alice,bob@twitter", true, true)
+		"alice,bob@twitter", true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -216,7 +216,7 @@ func TestMDOpsGetForUnresolvedMdHandlePublicSuccess(t *testing.T) {
 	id := FakeTlfID(1, true)
 
 	h, err := ParseTlfHandle(ctx, config.KBPKI(),
-		"alice,bob@twitter", true, true)
+		"alice,bob@twitter", true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -237,7 +237,7 @@ func TestMDOpsGetForUnresolvedMdHandlePublicSuccess(t *testing.T) {
 	rmds.MD.tlfHandle = nil
 
 	hResolved, err := ParseTlfHandle(ctx, config.KBPKI(),
-		"alice,bob", true, true)
+		"alice,bob", true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -270,7 +270,7 @@ func TestMDOpsGetForUnresolvedHandlePublicFailure(t *testing.T) {
 	rmds.MD.tlfHandle = nil
 
 	hUnresolved, err := ParseTlfHandle(ctx, config.KBPKI(),
-		"alice,bob@github,bob@twitter", true, true)
+		"alice,bob@github,bob@twitter", true)
 	if err != nil {
 		t.Fatal(err)
 	}
