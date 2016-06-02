@@ -43,6 +43,7 @@ script:
     elif [ $TRAVIS_OS_NAME == 'osx' ]; then
       cd $BASE/go && export KEYBASE_SERVER_URI=http://ci1.keybase.io && travis_wait 40 ./test/run_tests.sh;
     fi
+after_success:
   - if [ $TRAVIS_OS_NAME == 'linux' ] && [ $TRAVIS_PULL_REQUEST == 'false' ]; then
       go install github.com/keybase/client/go/keybase &&
       cp $GOPATH/bin/keybase $GOPATH/src/github.com/keybase/client/go/keybase/keybase &&
