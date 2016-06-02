@@ -27,7 +27,9 @@ script:
   - export GO15VENDOREXPERIMENT=1
   - if [ $TRAVIS_OS_NAME == 'linux' ]; then
       if [ $TRAVIS_PULL_REQUEST != 'false' ]; then
-        cd desktop && ../packaging/npm_mess.sh && npm install octonode && npm run visdiff -- "`git rev-parse HEAD^1`...`git rev-parse HEAD`" && cd ../shared && npm i -g flow-bin@`tail -n1 .flowconfig` && flow &&;
+        cd desktop && ../packaging/npm_mess.sh && npm install octonode &&
+        npm run visdiff -- "`git rev-parse HEAD^1`...`git rev-parse HEAD`" &&
+        cd ../shared && npm i -g flow-bin@`tail -n1 .flowconfig` && flow;
       fi &&
       cd ../desktop && npm run setup-ci-tools && npm run setup-dev-tools &&
       cd .. && eslint . &&
