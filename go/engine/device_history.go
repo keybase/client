@@ -6,6 +6,7 @@ package engine
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -132,6 +133,27 @@ func (e *DeviceHistory) loadDevices() error {
 		e.devices = append(e.devices, exp)
 	}
 
+	// Load the last used times, but only if these are your own devices. The
+	// API won't give you those times for other people's devices.
+	if e.user.GetNormalizedName().Eq(e.G().Env.GetUsername()) {
+		lastUsedTimes, err := e.getLastUsedTimes()
+		if err != nil {
+			return err
+		}
+		for i := range e.devices {
+			detail := &e.devices[i]
+			lastUsedTime, ok := lastUsedTimes[detail.Device.DeviceID]
+			if !ok {
+				if detail.RevokedAt != nil {
+					// The server only provides last used times for active devices.
+					continue
+				}
+				return fmt.Errorf("Failed to load last used time for device %s", detail.Device.DeviceID)
+			}
+			detail.Device.LastUsedTime = keybase1.TimeFromSeconds(lastUsedTime.Unix())
+		}
+	}
+
 	return nil
 }
 
@@ -154,4 +176,28 @@ func (e *DeviceHistory) provisioner(d *libkb.Device, ckis *libkb.ComputedKeyInfo
 	}
 
 	return nil, nil
+}
+
+func (e *DeviceHistory) getLastUsedTimes() (map[keybase1.DeviceID]time.Time, error) {
+	uid := e.G().GetMyUID()
+	var err error
+	var devs libkb.DeviceKeyMap
+	aerr := e.G().LoginState().Account(func(a *libkb.Account) {
+		if err = libkb.RunSyncer(a.SecretSyncer(), uid, a.LoggedIn(), a.LocalSession()); err != nil {
+			return
+		}
+		devs, err = a.SecretSyncer().ActiveDevices(libkb.AllDeviceTypes)
+	}, "DeviceHistory - ")
+	if aerr != nil {
+		return nil, aerr
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	ret := map[keybase1.DeviceID]time.Time{}
+	for deviceID, dev := range devs {
+		ret[deviceID] = time.Unix(dev.LastUsedTime, 0)
+	}
+	return ret, nil
 }
