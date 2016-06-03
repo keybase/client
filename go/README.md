@@ -100,3 +100,4 @@ go test $(go list ./... | grep -v /vendor/)
 ### License
 
 Most code is released under the New BSD (3 Clause) License.
+
