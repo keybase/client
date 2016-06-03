@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi"
+     xmlns:bal="http://schemas.microsoft.com/wix/BalExtension"
+     xmlns:util="http://schemas.microsoft.com/wix/UtilExtension">
+  <Bundle Name="Keybase" Version="$(env.KEYBASE_WINVER)" Manufacturer="Keybase, Inc." UpgradeCode="418432ab-0366-40fd-a396-8cc0c4200252">
+		<BootstrapperApplicationRef Id="WixStandardBootstrapperApplication.HyperlinkLicense">
+      <bal:WixStandardBootstrapperApplication
+            LicenseUrl="https://keybase.io/docs/terms"
+            ThemeFile="HyperlinkTheme.xml"
+            LocalizationFile="HyperlinkTheme.wxl"
+            LogoFile="logo-64.bmp"
+            LicenseFile="license.rtf"
+            ShowVersion="yes"
+            SuppressOptionsUI="yes"
+            />
+    </BootstrapperApplicationRef>
+    <!-- These two are for the most recent KBFS -->
+    <util:RegistrySearch Id="InnoUninstall"
+                 Variable="InnoUninstallString"        
+                 Root="HKLM"
+                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{357F272E-BE0E-409F-8E39-0BB9827F5716}_is1"
+                 Value="QuietUninstallString"
+                 Format="raw"        
+                 />
+    <util:RegistrySearch Id="InnoUninstall64"
+                 After="InnoUninstall"
+                 Condition="NOT InnoUninstallString"
+                 Variable="InnoUninstallString"
+                 Root="HKLM"
+                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{357F272E-BE0E-409F-8E39-0BB9827F5716}_is1"
+                 Value="QuietUninstallString"
+                 Format="raw"
+                 Win64="yes"
+                 />
+    <!-- From the old Inno installer for Dokan 0.8.0 -->
+    <util:RegistrySearch Id="InnoUninstall2"
+             Variable="InnoUninstallString"
+             After="InnoUninstall64"
+             Condition="NOT InnoUninstallString"
+             Root="HKLM"
+             Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{DEB2E54C-C39F-4DC8-93A7-ABE0AB91DDCA}_is1"
+             Value="QuietUninstallString"
+             Format="raw"
+                 />
+    <util:RegistrySearch Id="InnoUninstall264"
+                 After="InnoUninstall2"
+                 Condition="NOT InnoUninstallString"
+                 Variable="InnoUninstallString"
+                 Root="HKLM"
+                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{DEB2E54C-C39F-4DC8-93A7-ABE0AB91DDCA}_is1"
+                 Value="QuietUninstallString"
+                 Format="raw"
+                 Win64="yes"
+                 />
+    <!-- From the old Inno installer for Dokan 1.0.0RC2 -->
+    <util:RegistrySearch Id="InnoUninstall3"
+             Variable="InnoUninstallString"
+             After="InnoUninstall264"
+             Condition="NOT InnoUninstallString"
+             Root="HKLM"
+             Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{1B2672D9-2BAD-4C11-BA53-A75AF6FD7789}_is1"
+             Value="QuietUninstallString"
+             Format="raw"
+                 />
+    <util:RegistrySearch Id="InnoUninstall364"
+                 After="InnoUninstall3"
+                 Condition="NOT InnoUninstallString"
+                 Variable="InnoUninstallString"
+                 Root="HKLM"
+                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{1B2672D9-2BAD-4C11-BA53-A75AF6FD7789}_is1"
+                 Value="QuietUninstallString"
+                 Format="raw"
+                 Win64="yes"
+                 />
+    <!-- For the Inno command line client -->
+    <util:RegistrySearch Id="InnoCLIUninstall"
+                 After="InnoUninstall364"                         
+                 Variable="InnoUninstallString"
+                 Condition="NOT InnoUninstallString"
+                 Root="HKLM"
+                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{70E747DE-4E09-44B0-ACAD-784AA9D79C02}_is1"
+                 Value="QuietUninstallString"
+                 Format="raw"
+                 />
+    <util:RegistrySearch Id="InnoCLIUninstall64"
+                 After="InnoCLIUninstall"
+                 Condition="NOT InnoUninstallString"
+                 Variable="InnoUninstallString"
+                 Root="HKLM"
+                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{70E747DE-4E09-44B0-ACAD-784AA9D79C02}_is1"
+                 Value="QuietUninstallString"
+                 Format="raw"
+                 Win64="yes"
+                 />
+
+    <util:RegistrySearch Id="DokanUninstall"
+                 Variable="DokanUninstallString"
+                 Root="HKLM"
+                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{65A3A964-3DC3-0100-0000-160511152538}"
+                 Value="UninstallString"
+                 Format="raw"
+                 />
+    <util:RegistrySearch Id="DokanUninstall64"
+                 After="DokanUninstall"        
+                 Condition="NOT DokanUninstallString"        
+                 Variable="DokanUninstallString"
+                 Root="HKLM"
+                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{65A3A964-3DC3-0100-0000-160511152538}"
+                 Value="UninstallString"
+                 Format="raw"
+                 Win64="yes"
+                 />
+
+    <Chain>
+      <!-- Run whatever quiet uninstaller we detected. With this hack, we can't distinguish
+           between CLI and KBFS, and must reboot regardless - another, custom MSI for cleanup
+           could get around this possibly. -->
+      <ExePackage
+        SourceFile="$(env.GOPATH)\src\github.com\keybase\client\go\runquiet\runquiet.exe"
+          InstallCommand="-wait [InnoUninstallString] /NORESTART"
+          DetectCondition="NOT InnoUninstallString"
+          InstallCondition="InnoUninstallString"
+          PerMachine="yes"
+          Permanent="yes">
+        <ExitCode Behavior="forceReboot"/>
+      </ExePackage>
+      
+      <ExePackage
+        SourceFile="$(env.GOPATH)\bin\dokan-dev\dokan-v1.0.0-RC4\DokanSetup.exe"
+          InstallCommand="/quiet"
+          UninstallCommand="/quiet /uninstall"
+          DetectCondition="ExeDetectedVariable"
+          PerMachine="yes"
+          Permanent="no">
+      </ExePackage>
+      
+      <MsiPackage Id="KeybasePrograms" 
+                  SourceFile="$(var.KeybaseApps.TargetPath)" 
+                  DisplayInternalUI='yes'
+                  Permanent="no">
+      </MsiPackage>
+		</Chain>
+	</Bundle>
+</Wix>

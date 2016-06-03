@@ -47,6 +47,10 @@ SignTool.exe sign /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\k
 IF %ERRORLEVEL% NEQ 0 (k
   EXIT /B 1
 )
+SignTool.exe sign /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\go\runquiet\runquiet.exe
+IF %ERRORLEVEL% NEQ 0 (k
+  EXIT /B 1
+)
 SignTool.exe sign /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
