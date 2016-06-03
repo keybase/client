@@ -55,7 +55,7 @@ class Button extends Component {
         underlayColor={style.backgroundColor}
         style={{...style, ...this.props.style}}>
         <View style={{alignItems: 'center', justifyContent: 'center'}}>
-          <Text type='BodySemibold' style={labelStyle}>{this.props.label}</Text>
+          <Text type='BodySemibold' style={{...labelStyle, ...this.props.labelStyle}}>{this.props.label}</Text>
           {this.props.waiting && <Progress />}
         </View>
       </TouchableHighlight>

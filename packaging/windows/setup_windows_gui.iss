@@ -83,6 +83,7 @@ Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v0.8.0\Win32\Release\dokanctl.exe
 Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v0.8.0\Win32\Release\mounter.exe"; DestDir: "{pf32}\Dokan\DokanLibrary"; Check:  IsDokanBeingInstalled
 Source: "..\..\..\..\..\..\bin\vc_redist.x86.exe"; DestDir: "{tmp}"
 Source: "..\..\..\kbfs\kbfsdokan\kbfsdokan.exe"; DestDir: "{app}"; Flags: replacesameversion
+Source: "..\..\..\go-updater\service\upd.exe"; DestDir: "{app}"; Flags: replacesameversion
 
 [Icons]
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
@@ -150,7 +151,7 @@ begin
     AppIdString := '{357F272E-BE0E-409F-8E39-0BB9827F5716}';
   sUnInstPath := 'Software\Microsoft\Windows\CurrentVersion\Uninstall\' + AppIdString + '_is1';
   sUnInstallString := '';
-  
+
   if not RegQueryStringValue(HKCU32, sUnInstPath, 'UninstallString', sUnInstallString) then
     if not RegQueryStringValue(HKLM32, sUnInstPath, 'UninstallString', sUnInstallString) then
       if IsX64() then
@@ -172,7 +173,7 @@ begin
   if Result = '' then begin
     // Ill fated Dokan 1.0.0 RC2
     AppIdString := '{1B2672D9-2BAD-4C11-BA53-A75AF6FD7789}';
-    Result := GetUninstallString(AppIdString);  
+    Result := GetUninstallString(AppIdString);
   end
   // Add more as we change the appId
 end;
@@ -191,7 +192,7 @@ function IsUpgradeFromPrevious(): Boolean;
 begin
   Result := (GetPreviousVerUninstallString() <> '');
 end;
-                  
+
 function PreviousCLIInstalled(): Boolean;
 var CLIAppId: String;
 begin
@@ -234,8 +235,8 @@ begin
   UninstallString := GetUninstallString(CLIAppId)
   UnInstallOldVersion(UninstallString);
 end;
-  
-  
+
+
 // Simply invoking "Keybase.exe service" at startup results in an unsightly
 // extra console window, so we'll emit this bit of script instead.
 // (yes, this is pascal code that generates vbscript.)
@@ -261,7 +262,7 @@ begin
   exit;
 end;
 
- 
+
 procedure CurStepChanged(CurStep: TSetupStep);
 
 begin
@@ -357,7 +358,7 @@ begin
   (*** Place any custom user selection you want to remember below. ***)
 
   //<your code here>
-  
+
   RegWriteStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\RunOnce', RunOnceName, RunOnceData);
 end;
 
@@ -402,12 +403,12 @@ begin
     GetVersionNumbersString(fileName, g_currentDokanVer);
 
     // The problem here is that no dokan components except the driver have
-    // version information, but the driver can't be deleted by normal 
+    // version information, but the driver can't be deleted by normal
     // uninstall. So we have to assume that we're installing if dokanctl.exe
     // is not already there - dokan.sys could be a leftover.
     if not FileExists(ExpandConstant('{pf32}\Dokan\DokanLibrary\dokanctl.exe')) then
        g_currentDokanVer :=  '';
-    
+
     // Overall product upgrade also equals driver install
     if IsUpgradeFromPrevious() then
        g_currentDokanVer := '';
@@ -448,7 +449,7 @@ begin
   GetWindowsVersionEx(Version);
   Result := Version.NTPlatform and (Version.Major = 5) and (Version.Minor = 1);
 end;
-     
+
 
 function IsWindows7: Boolean;
 var

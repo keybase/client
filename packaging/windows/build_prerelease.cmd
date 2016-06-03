@@ -5,11 +5,11 @@ set GO15VENDOREXPERIMENT=1
 :: for Jenkins
 if DEFINED WORKSPACE set GOPATH=%WORKSPACE%
 
-set GOARCH=386
 echo %GOPATH%
 
 echo %GOROOT%
 pushd %GOPATH%\src\github.com\keybase\client\go\keybase
+go version
 go generate
 
 for /f %%i in ('winresource.exe -cv') do set KEYBASE_VERSION=%%i
@@ -32,6 +32,11 @@ for /f %%i in ('git -C %GOPATH%\src\github.com\keybase\kbfs rev-parse --short HE
 for /f "tokens=1 delims=+" %%i in ("%KEYBASE_BUILD%") do set KBFS_BUILD=%%i+%KBFS_HASH%
 echo %KBFS_BUILD%
 go build -a -tags "prerelease production" -ldflags="-X github.com/keybase/kbfs/libkbfs.PrereleaseBuild=%KBFS_BUILD%"
+popd
+
+:: Updater
+pushd %GOPATH%\src\github.com\keybase\go-updater\service
+go build -a -o upd.exe
 popd
 
 :: Then the desktop:

@@ -8,6 +8,7 @@ go:
 services:
   - docker
 before_install:
+  - echo "Running on commit `git rev-parse HEAD`."
   - if [ $TRAVIS_OS_NAME == 'linux' ]; then
       export DEBIAN_FRONTEND=noninteractive;
       sudo apt-get update;
@@ -25,20 +26,22 @@ before_script:
   - if [ $TRAVIS_OS_NAME == 'linux' ]; then sh -e /etc/init.d/xvfb start && export DISPLAY=:99.0; fi
 script:
   - export GO15VENDOREXPERIMENT=1
+  - export BASE=$PWD
   - if [ $TRAVIS_OS_NAME == 'linux' ]; then
-      cd shared && npm i -g flow-bin@`tail -n1 .flowconfig` && flow &&
-      cd ../desktop && npm run setup-ci-tools && npm run setup-dev-tools &&
-      cd .. && eslint . &&
       if [ $TRAVIS_PULL_REQUEST != 'false' ]; then
-        cd desktop && ../packaging/npm_mess.sh && npm install octonode && npm run visdiff -- "`git rev-parse HEAD^1`...`git rev-parse HEAD`" && cd ..;
+        cd $BASE/desktop && ../packaging/npm_mess.sh && npm install octonode &&
+        npm run visdiff -- "`git rev-parse HEAD^1`...`git rev-parse HEAD`" &&
+        cd $BASE/shared && npm i -g flow-bin@`tail -n1 .flowconfig` && flow;
       fi &&
-      cd protocol && ./diff_test.sh &&
+      cd $BASE/desktop && npm run setup-ci-tools && npm run setup-dev-tools &&
+      cd $BASE && eslint . &&
+      cd $BASE/protocol && ./diff_test.sh &&
       docker login -e "$CI_EMAIL" -u "$CI_USER" -p "$CI_PASS" "$CI_HOST" &&
       docker pull $CI_HOST/kbweb &&
       travis_retry docker run --name kbweb3000 -d -p 3000:3000 -p 9911:9911 --entrypoint run/startup_for_container.sh $CI_HOST/kbweb &&
-      cd ../go && ./test/check_or_start_kbweb.sh && ./test/run_tests.sh;
+      cd $BASE/go && ./test/check_or_start_kbweb.sh && ./test/run_tests.sh;
     elif [ $TRAVIS_OS_NAME == 'osx' ]; then
-      cd go && export KEYBASE_SERVER_URI=http://ci1.keybase.io && travis_wait 40 ./test/run_tests.sh;
+      cd $BASE/go && export KEYBASE_SERVER_URI=http://ci1.keybase.io && travis_wait 40 ./test/run_tests.sh;
     fi
 after_failure:
   - if [ $TRAVIS_OS_NAME == 'linux' ]; then

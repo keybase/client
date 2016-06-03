@@ -150,9 +150,7 @@ function processDiff (commitRange, results) {
   })
 
   if (commentLines.length > 0) {
-    commentLines.unshift(':mag_right: :zap: These commits introduced some visual changes:')
-  } else {
-    commentLines.push(':mag_right: No visual changes found as a result of these commits.')
+    commentLines.unshift(':mag_right: These commits introduced some visual changes:')
   }
 
   const commentBody = commentLines.join('\n')
