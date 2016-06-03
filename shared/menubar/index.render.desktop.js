@@ -8,18 +8,23 @@ import type {Props} from './index.render'
 import UserAdd from './user-add'
 
 type State = {
-  showingPublic: boolean,
+  showingPrivate: boolean,
   showingMenu: boolean
 }
 
-class Render extends Component<void, Props, State> {
+type DefaultProps = {
+  openToPrivate: boolean
+}
+
+class Render extends Component<DefaultProps, Props, State> {
+  static defaultProps: DefaultProps;
   state: State;
 
-  constructor (props: Props) {
+  constructor (props: Props & DefaultProps) {
     super(props)
 
     this.state = {
-      showingPublic: false,
+      showingPrivate: props.openToPrivate,
       showingMenu: false
     }
   }
@@ -91,7 +96,7 @@ class Render extends Component<void, Props, State> {
         username={this.props.username} />]
     }
 
-    const styles = this.state.showingPublic ? stylesPublic : stylesPrivate
+    const styles = this.state.showingPrivate ? stylesPrivate : stylesPublic
 
     const mergedProps = {
       ...this.props.folderProps,
@@ -99,13 +104,13 @@ class Render extends Component<void, Props, State> {
       smallMode: true,
       private: newPrivate,
       public: newPublic,
-      onSwitchTab: showingPublic => this.setState({showingPublic}),
+      onSwitchTab: showingPublic => this.setState({showingPrivate: !showingPublic}),
       onRekey: this.props.onRekey
     }
 
-    const menuColor = this.state.showingPublic
-      ? (this.state.showingMenu ? globalColors.black : globalColors.black_40)
-      : (this.state.showingMenu ? globalColors.white : globalColors.blue3_40)
+    const menuColor = this.state.showingPrivate
+      ? (this.state.showingMenu ? globalColors.white : globalColors.blue3_40)
+      : (this.state.showingMenu ? globalColors.black : globalColors.black_40)
 
     const menuStyle = {...globalStyles.clickable, color: menuColor, hoverColor: menuColor, fontSize: 24}
 
@@ -122,6 +127,10 @@ class Render extends Component<void, Props, State> {
       </Box>
     )
   }
+}
+
+Render.defaultProps = {
+  openToPrivate: true
 }
 
 const stylesContainer = {

@@ -11,8 +11,9 @@ export type Props = {
   public: ListProps,
   onSwitchTab?: (showingPublic: boolean) => void,
   listStyle?: any,
-  smallMode: boolean,
+  smallMode?: boolean,
   onClick?: (path: string) => void,
+  openToPrivate?: boolean,
   onRekey: (path: string) => void
 }
 
