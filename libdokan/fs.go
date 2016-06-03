@@ -100,9 +100,20 @@ func (f *FS) GetVolumeInformation() (dokan.VolumeInformation, error) {
 	return vinfo, nil
 }
 
+const dummyFreeSpace = 10 * 1024 * 1024 * 1024
+
 // GetDiskFreeSpace returns information about free space on the volume for dokan.
 func (f *FS) GetDiskFreeSpace() (freeSpace dokan.FreeSpace, err error) {
 	// TODO should this be refused to other users?
+	// Refuse private directories while we are in a error state.
+	if f.remoteStatus.ExtraFileName() != "" {
+		f.log.CWarningf(ctx, "Dummy disk free space while errors are present!")
+		return dokan.FreeSpace{
+			TotalNumberOfBytes:     dummyFreeSpace,
+			TotalNumberOfFreeBytes: dummyFreeSpace,
+			FreeBytesAvailable:     dummyFreeSpace,
+		}, nil
+	}
 	ctx, cancel := NewContextWithOpID(f, "FS GetDiskFreeSpace")
 	defer func() { f.reportErr(ctx, libkbfs.ReadMode, err, cancel) }()
 	uqi, err := f.config.BlockServer().GetUserQuotaInfo(ctx)
