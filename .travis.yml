@@ -28,13 +28,12 @@ before_script:
 script:
   - export BASE=$PWD
   - if [ $TRAVIS_OS_NAME == 'linux' ]; then
-      if [ $TRAVIS_PULL_REQUEST != 'false' ]; then
-        cd $BASE/desktop && ../packaging/npm_mess.sh && npm install octonode &&
-        npm run visdiff -- "`git rev-parse HEAD^1`...`git rev-parse HEAD`" &&
-        cd $BASE/shared && npm i -g flow-bin@`tail -n1 .flowconfig` && flow;
-      fi &&
-      cd $BASE/desktop && npm run setup-ci-tools && npm run setup-dev-tools &&
+      cd $BASE/desktop && ../packaging/npm_mess.sh && npm run setup-dev-tools &&
+      cd $BASE/shared && npm i -g flow-bin@`tail -n1 .flowconfig` && flow &&
       cd $BASE && eslint . &&
+      if [ $TRAVIS_PULL_REQUEST != 'false' ]; then
+        cd $BASE/desktop && npm install octonode && npm run visdiff -- "`git rev-parse HEAD^1`...`git rev-parse HEAD`";
+      fi &&
       cd $BASE/protocol && ./diff_test.sh &&
       docker login -e "$CI_EMAIL" -u "$DOCKER_USER" -p "$DOCKER_PASS" &&
       docker pull $DOCKER_USER/kbweb &&
