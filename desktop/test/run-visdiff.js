@@ -151,16 +151,15 @@ function processDiff (commitRange, results) {
 
   if (commentLines.length > 0) {
     commentLines.unshift(':mag_right: These commits introduced some visual changes:')
+    const commentBody = commentLines.join('\n')
+    ghIssue.createComment({body: commentBody}, (err, res) => {
+      if (err) {
+        console.log('Failed to post visual diff on GitHub:', err.toString())
+        process.exit(1)
+      }
+      console.log('Posted visual diff on GitHub:', res.html_url)
+    })
   }
-
-  const commentBody = commentLines.join('\n')
-  ghIssue.createComment({body: commentBody}, (err, res) => {
-    if (err) {
-      console.log('Failed to post visual diff on GitHub:', err.toString())
-      process.exit(1)
-    }
-    console.log('Posted visual diff on GitHub:', res.html_url)
-  })
 }
 
 if (process.argv.length !== 3) {
