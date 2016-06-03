@@ -355,13 +355,19 @@ func (md *RootMetadata) clearLastRevision() {
 
 func (md *RootMetadata) deepCopy(codec Codec, copyHandle bool) (*RootMetadata, error) {
 	var newMd RootMetadata
-	err := CodecUpdate(codec, &newMd, md)
-	if err != nil {
+	if err := md.deepCopyInPlace(codec, copyHandle, &newMd); err != nil {
 		return nil, err
 	}
-	err = CodecUpdate(codec, &newMd.data, md.data)
-	if err != nil {
-		return nil, err
+	return &newMd, nil
+}
+
+func (md *RootMetadata) deepCopyInPlace(codec Codec, copyHandle bool,
+	newMd *RootMetadata) error {
+	if err := CodecUpdate(codec, newMd, md); err != nil {
+		return err
+	}
+	if err := CodecUpdate(codec, &newMd.data, md.data); err != nil {
+		return err
 	}
 
 	if copyHandle {
@@ -370,7 +376,7 @@ func (md *RootMetadata) deepCopy(codec Codec, copyHandle bool) (*RootMetadata, e
 
 	// No need to copy mdID.
 
-	return &newMd, nil
+	return nil
 }
 
 // DeepCopyForServerTest returns a complete copy of this RootMetadata
@@ -828,16 +834,13 @@ func (rmds *RootMetadataSigned) MakeFinalCopy(config Config) (
 		return nil, MetadataIsFinalError{}
 	}
 	var newRmds RootMetadataSigned
-	err := CodecUpdate(config.Codec(), &newRmds, rmds)
+	if err := CodecUpdate(config.Codec(), &newRmds, rmds); err != nil {
+		return nil, err
+	}
+	err := rmds.MD.deepCopyInPlace(config.Codec(), false, &newRmds.MD)
 	if err != nil {
 		return nil, err
 	}
-	md, err := rmds.MD.deepCopy(config.Codec(), false)
-	if err != nil {
-		return nil, err
-	}
-	// assign the copy
-	newRmds.MD = *md
 	// clear the serialized data.
 	newRmds.MD.SerializedPrivateMetadata = nil
 	// set the final flag
