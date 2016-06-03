@@ -1,12 +1,17 @@
-import {ipcMain} from 'electron'
+import {ipcMain, systemPreferences} from 'electron'
 import {resolveImage, resolveRootAsURL} from '../resolve-root'
 import hotPath from '../hot-path'
 import menubar from 'menubar'
 
-const isWhite = ['linux', 'win32'].indexOf(process.platform) !== -1 ? 'white' : 'black'
-const icon = resolveImage('menubarIcon', `icon-keybase-dog-regular-${isWhite}-22@2x.png`)
-const loadingIcon = resolveImage('menubarIcon', `icon-keybase-dog-update-${isWhite}-22@2x.png`)
-const badgedIcon = resolveImage('menubarIcon', `icon-keybase-dog-badged-${isWhite}-22@2x.png`)
+let color = 'white'
+
+if (process.platform === 'darwin') {
+  color = (systemPreferences && systemPreferences.isDarkMode()) ? 'white' : 'black'
+}
+
+const icon = resolveImage('menubarIcon', `icon-keybase-dog-regular-${color}-22@2x.png`)
+const loadingIcon = resolveImage('menubarIcon', `icon-keybase-dog-update-${color}-22@2x.png`)
+const badgedIcon = resolveImage('menubarIcon', `icon-keybase-dog-badged-${color}-22@2x.png`)
 
 export default function () {
   const mb = menubar({
