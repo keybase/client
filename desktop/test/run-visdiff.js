@@ -159,6 +159,8 @@ function processDiff (commitRange, results) {
       }
       console.log('Posted visual diff on GitHub:', res.html_url)
     })
+  } else {
+    console.log('No visual changes found as a result of these commits.')
   }
 }
 
