@@ -112,11 +112,12 @@ class MetaNavigator extends Component {
     }
 
     if (printRoutes) {
-      console.log('%cRoute', 'font-size: x-large')
+      console.groupCollapsed && console.groupCollapsed(`Routing: ${rootComponent.displayName}/${JSON.stringify(uri.toJS())}`)
       console.log('rootComp', rootComponent)
       console.log('uri', uri.toJS())
       console.log('componentAtTop', componentAtTop)
       console.log('routeStack', routeStack.toJS())
+      console.groupEnd && console.groupEnd()
     }
 
     return {componentAtTop, routeStack}

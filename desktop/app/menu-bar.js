@@ -3,9 +3,10 @@ import {resolveImage, resolveRootAsURL} from '../resolve-root'
 import hotPath from '../hot-path'
 import menubar from 'menubar'
 
-const isWhite = ['linux', 'win32'].indexOf(process.platform) !== -1 ? '_white' : ''
-const menubarIconPath = resolveImage('menubarIcon', `topbar_iconTemplate${isWhite}.png`)
-const menubarLoadingIconPath = resolveImage('menubarIcon', `topbar_icon_loadingTemplate${isWhite}.png`)
+const isWhite = ['linux', 'win32'].indexOf(process.platform) !== -1 ? 'white' : 'black'
+const icon = resolveImage('menubarIcon', `icon-keybase-dog-regular-${isWhite}-22@2x.png`)
+const loadingIcon = resolveImage('menubarIcon', `icon-keybase-dog-update-${isWhite}-22@2x.png`)
+const badgedIcon = resolveImage('menubarIcon', `icon-keybase-dog-badged-${isWhite}-22@2x.png`)
 
 export default function () {
   const mb = menubar({
@@ -15,16 +16,20 @@ export default function () {
     frame: false,
     resizable: false,
     preloadWindow: true,
-    icon: menubarIconPath,
+    icon: icon,
     showDockIcon: true // This causes menubar to not touch dock icon, yeah it's weird
   })
 
   ipcMain.on('showTrayLoading', () => {
-    mb.tray.setImage(menubarLoadingIconPath)
+    mb.tray.setImage(loadingIcon)
   })
 
-  ipcMain.on('showTrayNormal', () => {
-    mb.tray.setImage(menubarIconPath)
+  ipcMain.on('showTrayRegular', () => {
+    mb.tray.setImage(icon)
+  })
+
+  ipcMain.on('showTrayBadged', () => {
+    mb.tray.setImage(badgedIcon)
   })
 
   // We keep the listeners so we can cleanup on hot-reload

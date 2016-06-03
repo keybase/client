@@ -2,18 +2,85 @@
 
 import engine from '../engine'
 import * as Constants from '../constants/favorite'
-
+import {badgeApp} from './notifications'
+import {canonicalizeUsernames, parseFolderNameToUsers} from '../util/kbfs'
+import _ from 'lodash'
 import type {Folder, favorite_favoriteList_rpc} from '../constants/types/flow-types'
 import type {Dispatch} from '../constants/types/flux'
-
 import type {FavoriteList} from '../constants/favorite'
+import type {Props as FolderProps} from '../folders/render'
+
+const TEMP_INJECT_NEW = true // TODO feature flag when new feature flags are in
+
+const folderToProps = (folders: Array<Folder>, username: string = ''): FolderProps => { // eslint-disable-line space-infix-ops
+  let privateBadge = 0
+  let publicBadge = 0
+
+  const converted = folders.map(f => {
+    const users = canonicalizeUsernames(username, parseFolderNameToUsers(f.name))
+      .map(u => ({
+        username: u,
+        you: u === username,
+        broken: false
+      }))
+    const sortName = users.map(u => u.username).join(' ')
+
+    const groupAvatar = f.private ? (users.length > 2) : (users.length > 1)
+    const userAvatar = groupAvatar ? null : users[users.length - 1].username
+    const meta = (__DEV__ && TEMP_INJECT_NEW && Math.random() < 0.2) ? 'new' : null // TEMP
+
+    if (meta === 'new') {
+      if (f.private) {
+        privateBadge++
+      } else {
+        publicBadge++
+      }
+    }
+
+    return {
+      users,
+      sortName,
+      isPublic: !f.private,
+      groupAvatar,
+      userAvatar,
+      meta
+    }
+  }).sort((a, b) => {
+    // New first
+    if (a.meta !== b.meta) {
+      if (a.meta === 'new') return -1
+      if (b.meta === 'new') return 1
+    }
+
+    // You next
+    if (a.sortName === username) return -1
+    if (b.sortName === username) return 1
+
+    return a.sortName.localeCompare(b.sortName)
+  })
+
+  const [priv, pub] = _.partition(converted, {isPublic: false})
+
+  return {
+    privateBadge,
+    publicBadge,
+    private: {
+      tlfs: priv,
+      isPublic: false
+    },
+    public: {
+      tlfs: pub,
+      isPublic: true
+    }
+  }
+}
 
 export function favoriteList (): (dispatch: Dispatch) => void {
   return (dispatch, getState) => {
     const params : favorite_favoriteList_rpc = {
-      method: 'favorite.favoriteList',
       param: {},
       incomingCallMap: {},
+      method: 'favorite.favoriteList',
       callback: (error, folders: Array<Folder>) => {
         if (error) {
           console.warn('Err in favorite.favoriteList', error)
@@ -23,8 +90,6 @@ export function favoriteList (): (dispatch: Dispatch) => void {
         if (!folders) {
           folders = []
         }
-
-        folders = folders.sort((a, b) => a.name.localeCompare(b.name))
 
         const config = getState && getState().config
         const currentUser = config && config.username
@@ -45,8 +110,10 @@ export function favoriteList (): (dispatch: Dispatch) => void {
           })
         }
 
-        const action: FavoriteList = {type: Constants.favoriteList, payload: {folders, currentUser}}
+        const folderProps = folderToProps(folders, currentUser)
+        const action: FavoriteList = {type: Constants.favoriteList, payload: {folders: folderProps}}
         dispatch(action)
+        dispatch(badgeApp('newTLFs', !!(folderProps.publicBadge || folderProps.privateBadge)))
       }
     }
     engine.rpc(params)
