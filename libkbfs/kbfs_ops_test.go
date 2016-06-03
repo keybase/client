@@ -573,7 +573,7 @@ func makeBP(id BlockID, rmd *RootMetadata, config Config,
 	return BlockPointer{
 		ID:      id,
 		KeyGen:  rmd.LatestKeyGeneration(),
-		DataVer: config.DataVersion(),
+		DataVer: DefaultNewBlockDataVersion(config, false),
 		Creator: u,
 		// refnonces not needed for tests until dedup is implemented
 	}
@@ -595,6 +595,7 @@ func makeIFP(id BlockID, rmd *RootMetadata, config Config,
 			EncodedSize:  encodedSize,
 		},
 		off,
+		false,
 		codec.UnknownFieldSetHandler{},
 	}
 }

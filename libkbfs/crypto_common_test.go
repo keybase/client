@@ -893,6 +893,8 @@ func (tba testBlockArray) GetEncodedSize() uint32 {
 func (tba testBlockArray) SetEncodedSize(size uint32) {
 }
 
+func (testBlockArray) DataVersion() DataVer { return FirstValidDataVer }
+
 // Test that block encrypted data length is the same for data
 // length within same power of 2.
 func TestBlockEncryptedLen(t *testing.T) {

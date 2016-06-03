@@ -58,6 +58,10 @@ type TestBlock struct {
 	A int
 }
 
+func (TestBlock) DataVersion() DataVer {
+	return FirstValidDataVer
+}
+
 func (tb TestBlock) GetEncodedSize() uint32 {
 	return 0
 }
