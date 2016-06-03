@@ -10,7 +10,7 @@ import type {Dispatch} from '../constants/types/flux'
 import type {FavoriteList} from '../constants/favorite'
 import type {Props as FolderProps} from '../folders/render'
 
-const folderToProps = (folders: Array<Folder>, username: string = ''): FolderProps => { // eslint-disable-line space-infix-ops
+const folderToProps = (dispatch: Dispatch, folders: Array<Folder>, username: string = ''): FolderProps => { // eslint-disable-line space-infix-ops
   let privateBadge = 0
   let publicBadge = 0
 
@@ -21,7 +21,8 @@ const folderToProps = (folders: Array<Folder>, username: string = ''): FolderPro
         you: u === username,
         broken: false
       }))
-    const sortName = users.map(u => u.username).join(' ')
+    const sortName = users.map(u => u.username).join(',')
+    const path = `/keybase/${f.private ? 'private' : 'public'}/${sortName}`
 
     const groupAvatar = f.private ? (users.length > 2) : (users.length > 1)
     const userAvatar = groupAvatar ? null : users[users.length - 1].username
@@ -37,11 +38,13 @@ const folderToProps = (folders: Array<Folder>, username: string = ''): FolderPro
     }
 
     return {
+      path,
       users,
       sortName,
       isPublic: !f.private,
       groupAvatar,
       userAvatar,
+      onRekey: null,
       meta
     }
   }).sort((a, b) => {
@@ -61,6 +64,8 @@ const folderToProps = (folders: Array<Folder>, username: string = ''): FolderPro
   const [priv, pub] = _.partition(converted, {isPublic: false})
 
   return {
+    onRekey: () => {},
+    smallMode: false,
     privateBadge,
     publicBadge,
     private: {
@@ -109,7 +114,7 @@ export function favoriteList (): (dispatch: Dispatch) => void {
           })
         }
 
-        const folderProps = folderToProps(folders, currentUser)
+        const folderProps = folderToProps(dispatch, folders, currentUser)
         const action: FavoriteList = {type: Constants.favoriteList, payload: {folders: folderProps}}
         dispatch(action)
         dispatch(badgeApp('newTLFs', !!(folderProps.publicBadge || folderProps.privateBadge)))

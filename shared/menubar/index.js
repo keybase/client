@@ -109,6 +109,11 @@ class Menubar extends Component<void, Props, void> {
     ipcRenderer.send('closeMenubar')
   }
 
+  _onRekey (path: ?string) {
+    console.log(`TODO show rekey popup ${path}`)
+    this._closeMenubar()
+  }
+
   _openFolder (path: ?string) {
     this.props.openInKBFS(path)
     this._closeMenubar()
@@ -151,6 +156,7 @@ class Menubar extends Component<void, Props, void> {
       username={this.props.username}
       quit={() => this._quit()}
       refresh={() => this._checkForFolders(true)}
+      onRekey={(path: string) => this._onRekey(path)} // eslint-disable-line arrow-parens
       onClick={(path: string) => this._openFolder(path)} // eslint-disable-line arrow-parens
     />
   }

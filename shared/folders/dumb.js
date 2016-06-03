@@ -8,6 +8,7 @@ import type {DumbComponentMap} from '../constants/types/more'
 import {globalStyles} from '../styles/style-guide'
 
 const f1: Folder = {
+  path: '/keybase/private/cecileb,jeresig,throughnothing,cdixon,bob,aliceb,lmorchard,chris,chris1,chris2,chris3,chris4,chris5,chris6,chris7,chris8,chris9,chris10,chris11,chris12,chris13',
   users: [
     {username: 'cecileb', you: true},
     {username: 'jeresig', broken: true},
@@ -41,6 +42,7 @@ const f1: Folder = {
 }
 
 const f2: Folder = {
+  path: '/keybase/private/cecileb,jeresig,throughnothing',
   users: [
     {username: 'cecileb', you: true},
     {username: 'jeresig', broken: true},
@@ -59,6 +61,7 @@ const f2: Folder = {
 }
 
 const f3: Folder = {
+  path: '/keybase/private/cecileb,bob',
   users: [
     {username: 'cecileb', you: true},
     {username: 'bob'}
@@ -76,6 +79,7 @@ const f3: Folder = {
 }
 
 const f4: Folder = {
+  path: '/keybase/private/cecileb,jenbee',
   users: [
     {username: 'cecileb', you: true},
     {username: 'jenbee'}
@@ -89,6 +93,7 @@ const f4: Folder = {
 }
 
 const f5: Folder = {
+  path: '/keybase/private/cecileb',
   users: [
     {username: 'cecileb', you: true}
   ],
@@ -100,9 +105,25 @@ const f5: Folder = {
   userAvatar: 'cecileb'
 }
 
-const tlfs: Array<Folder> = [f1, f2, f3, f4, f5]
+const f6: Folder = {
+  path: '/keybase/private/cecileb,jenbeeb',
+  users: [
+    {username: 'cecileb', you: true},
+    {username: 'jenbeeb'}
+  ],
+  meta: 'rekey',
+  ignored: false,
+  isPublic: false,
+  isFirst: false,
+  hasData: false,
+  groupAvatar: false,
+  userAvatar: 'jenbee'
+}
+
+const tlfs: Array<Folder> = [f1, f2, f3, f4, f5, f6]
 
 const i1: Folder = {
+  path: '/keybase/private/cecileb,jeresig,cdixon',
   users: [
     {username: 'cecileb', you: true},
     {username: 'jeresig', broken: true},
@@ -117,6 +138,7 @@ const i1: Folder = {
 }
 
 const i2: Folder = {
+  path: '/keybase/private/cecileb,jeresig',
   users: [
     {username: 'cecileb', you: true},
     {username: 'jeresig', broken: true}
@@ -145,6 +167,8 @@ export const map: DumbComponentMap<Folders> = {
   component: Folders,
   mocks: {
     'Normal': {
+      smallMode: false,
+      onRekey: path => console.log(`open rekey page: ${path}`),
       private: {tlfs, ignored, isPublic: false, parentProps},
       public: {tlfs: [f2, f3, f4, f5], ignored, isPublic: true, privateBadge: 1, publicBadge: 222, parentProps}
     }

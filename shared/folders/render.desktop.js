@@ -60,6 +60,7 @@ class Render extends Component<void, Props, State> {
               {...this.props.private}
               style={this.props.listStyle}
               smallMode={this.props.smallMode}
+              onRekey={this.props.onRekey}
               onClick={this.props.onClick} />
           </TabBarItem>
           <TabBarItem
@@ -74,6 +75,7 @@ class Render extends Component<void, Props, State> {
               {...this.props.public}
               style={this.props.listStyle}
               smallMode={this.props.smallMode}
+              onRekey={this.props.onRekey}
               onClick={this.props.onClick} />
           </TabBarItem>
         </TabBar>

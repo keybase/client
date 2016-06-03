@@ -4,7 +4,8 @@ import type {UserList} from '../common-adapters/usernames'
 
 export type Folder = {
   users: UserList,
-  meta?: 'new' | null,
+  path: string,
+  meta?: 'new' | 'rekey' | null,
   modified?: {
     when: string,
     username: string
@@ -24,6 +25,7 @@ export type Props = {
   style?: any,
   smallMode?: boolean,
   onClick?: (path: string) => void,
+  onRekey?: (path: string) => void,
   extraRows?: Array<React$Element>
 }
 
