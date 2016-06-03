@@ -11,7 +11,7 @@ const Section = ({section, theme}) => (
   <Box style={{...globalStyles.flexBoxColumn, backgroundColor: backgroundColorThemed[theme]}}>
     <Box style={{...globalStyles.flexBoxRow, alignItems: 'center', height: 32}}>
       <Box key={section.name} style={{display: 'inline', marginLeft: 8}}>
-        {section.modifiedMarker && <Icon type='thunderbolt' style={{height: 12, alignSelf: 'center', marginRight: 6, ...styleSectionTextThemed[theme]}} />}
+        {section.modifiedMarker && <Icon type='fa-kb-iconfont-thunderbolt' style={{fontSize: 12, marginRight: 6, ...styleSectionTextThemed[theme]}} />}
         <Text type='BodySmallSemibold' style={{...styleSectionTextThemed[theme]}}>{section.name}</Text>
       </Box>
     </Box>
