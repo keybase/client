@@ -60,24 +60,30 @@ func (r *RekeyUIHandler) rekeyNeeded(ctx context.Context, item gregor.Item) erro
 	if item.Body() == nil {
 		return errors.New("gregor handler for kbfs_tlf_rekey_needed: nil message body")
 	}
+	r.G().Log.Debug("in rekeyNeeded: %+v", item)
+	r.G().Log.Debug("in rekeyNeeded: %s", item.Body().Bytes())
 
-	var scores []keybase1.RekeyTLF
-	if err := json.Unmarshal(item.Body().Bytes(), &scores); err != nil {
+	var problemSet keybase1.ProblemSet
+	if err := json.Unmarshal(item.Body().Bytes(), &problemSet); err != nil {
 		return err
 	}
+
+	r.G().Log.Debug("2")
 
 	if r.G().Clock.Now().Sub(item.Metadata().CTime()) > 10*time.Second {
 		// if the message isn't fresh, get:
 		var err error
-		scores, err = scoreProblemFolders(r.G(), scores)
+		problemSet, err = scoreProblemFolders(r.G(), problemSet)
 		if err != nil {
 			return err
 		}
 	}
 
-	// if the scores list is empty, dismiss the gregor notification
-	if len(scores) == 0 {
-		r.G().Log.Debug("scores list empty, dismissing gregor notification")
+	r.G().Log.Debug("3")
+
+	// if the tlf list is empty, dismiss the gregor notification
+	if len(problemSet.Tlfs) == 0 {
+		r.G().Log.Debug("problem set tlf list empty, dismissing gregor notification")
 		return r.G().GregorDismisser.DismissItem(item.Metadata().MsgID())
 	}
 
@@ -92,6 +98,8 @@ func (r *RekeyUIHandler) rekeyNeeded(ctx context.Context, item gregor.Item) erro
 		return errors.New("got nil RekeyUI")
 	}
 
+	r.G().Log.Debug("4")
+
 	// make a map of sessionID -> loops
 	r.updatersMu.RLock()
 	if _, ok := r.updaters[sessionID]; ok {
@@ -100,10 +108,10 @@ func (r *RekeyUIHandler) rekeyNeeded(ctx context.Context, item gregor.Item) erro
 	}
 	r.updatersMu.RUnlock()
 	args := rekeyStatusUpdaterArgs{
-		rekeyUI:   rekeyUI,
-		scores:    scores,
-		msgID:     item.Metadata().MsgID(),
-		sessionID: sessionID,
+		rekeyUI:    rekeyUI,
+		problemSet: problemSet,
+		msgID:      item.Metadata().MsgID(),
+		sessionID:  sessionID,
 	}
 	up := newRekeyStatusUpdater(r.G(), args)
 	go func() {
@@ -124,10 +132,10 @@ func (r *RekeyUIHandler) rekeyNeeded(ctx context.Context, item gregor.Item) erro
 	return nil
 }
 
-func scoreProblemFolders(g *libkb.GlobalContext, existing []keybase1.RekeyTLF) ([]keybase1.RekeyTLF, error) {
+func scoreProblemFolders(g *libkb.GlobalContext, existing keybase1.ProblemSet) (keybase1.ProblemSet, error) {
 	// XXX this is waiting on an API endpoint
 	g.Log.Debug("Fake scoreProblemFolders, returning empty folder list")
-	return []keybase1.RekeyTLF{}, nil
+	return keybase1.ProblemSet{}, nil
 }
 
 func (r *RekeyUIHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (keybase1.Outcome, error) {
@@ -143,24 +151,24 @@ func (r *RekeyUIHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (
 }
 
 type rekeyStatusUpdaterArgs struct {
-	rekeyUI   keybase1.RekeyUIInterface
-	scores    []keybase1.RekeyTLF
-	msgID     gregor.MsgID
-	sessionID int
+	rekeyUI    keybase1.RekeyUIInterface
+	problemSet keybase1.ProblemSet
+	msgID      gregor.MsgID
+	sessionID  int
 }
 
 type rekeyStatusUpdater struct {
-	rekeyUI keybase1.RekeyUIInterface
-	scores  []keybase1.RekeyTLF
-	msgID   gregor.MsgID
-	done    chan struct{}
+	rekeyUI    keybase1.RekeyUIInterface
+	problemSet keybase1.ProblemSet
+	msgID      gregor.MsgID
+	done       chan struct{}
 	libkb.Contextified
 }
 
 func newRekeyStatusUpdater(g *libkb.GlobalContext, args rekeyStatusUpdaterArgs) *rekeyStatusUpdater {
 	u := &rekeyStatusUpdater{
 		rekeyUI:      args.rekeyUI,
-		scores:       args.scores,
+		problemSet:   args.problemSet,
 		msgID:        args.msgID,
 		done:         make(chan struct{}),
 		Contextified: libkb.NewContextified(g),
@@ -183,7 +191,7 @@ func (u *rekeyStatusUpdater) update() {
 			return
 		default:
 			arg := keybase1.RefreshArg{
-				Tlfs: u.scores,
+				Tlfs: u.problemSet.Tlfs,
 			}
 			if err = u.rekeyUI.Refresh(context.TODO(), arg); err != nil {
 				u.G().Log.Errorf("rekey ui Refresh error: %s", err)
@@ -192,7 +200,7 @@ func (u *rekeyStatusUpdater) update() {
 		}
 
 		// if the scores list is empty, dismiss the gregor notification
-		if len(u.scores) == 0 {
+		if len(u.problemSet.Tlfs) == 0 {
 			u.G().Log.Debug("scores list empty, dismissing gregor notification")
 			if err := u.G().GregorDismisser.DismissItem(u.msgID); err != nil {
 				u.G().Log.Errorf("dismiss item error: %s", err)
@@ -209,7 +217,7 @@ func (u *rekeyStatusUpdater) update() {
 			u.G().Log.Debug("slept for 1s")
 		}
 
-		u.scores, err = scoreProblemFolders(u.G(), u.scores)
+		u.problemSet, err = scoreProblemFolders(u.G(), u.problemSet)
 		if err != nil {
 			u.G().Log.Errorf("scoreProblemFolders error: %s", err)
 			return

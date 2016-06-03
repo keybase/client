@@ -57,34 +57,49 @@ func TestRekeyNeededMessageNoScores(t *testing.T) {
 	}
 }
 
-const rekeyTLFs = `[
-{ 
-	"tlf": {
-		"tlfid": "folder", 
-		"name": "folder name", 
-		"writers": ["t_alice"], 
-		"readers": ["t_alice"], 
-		"isPrivate": true
+const problemSet = `{ 
+	"user": {
+		"uid": "295a7eea607af32040647123732bc819",
+		"username": "t_alice"
 	},
-	"problemUsers": [
+	"tlfs": [
 		{
-			"user": {
-				"uid": "295a7eea607af32040647123732bc819",
-				"username": "t_alice"
+			"tlf": {
+				"tlfid": "folder", 
+				"name": "folder name", 
+				"writers": ["t_alice"], 
+				"readers": ["t_alice"], 
+				"isPrivate": true
 			},
-			"problemDevices": [
-				{
-					"type": "mobile",
-					"name": "phone",
-					"deviceID": "1212121212"
-				}
-			]
+			"score": 300,
+			"solutions": []
 		}
-	],
-	"score": 300,
-	"solutions": ["13131313"]
-}
-]`
+	]
+}`
+
+// XXX I don't know why this won't unmarshal into
+// keybase1.ProblemSet:
+const problemSet2 = `
+{ 
+	"user": {
+		"uid": "295a7eea607af32040647123732bc819",
+		"username": "t_alice"
+	},
+	"kid": "1212121212",
+	"tlfs": [
+		{
+			"tlf": {
+				"tlfid": "folder", 
+				"name": "folder name", 
+				"writers": ["t_alice"], 
+				"readers": ["t_alice"], 
+				"isPrivate": true
+			},
+			"score": 300,
+			"solutions": ["13131313"]
+		}
+	]
+}`
 
 func TestRekeyNeededMessageWithScores(t *testing.T) {
 	tc := libkb.SetupTest(t, "gregor", 1)
@@ -130,7 +145,7 @@ func TestRekeyNeededMessageWithScores(t *testing.T) {
 				},
 				Creation_: &gregor1.Item{
 					Category_: gregor1.Category("kbfs_tlf_rekey_needed"),
-					Body_:     gregor1.Body(rekeyTLFs),
+					Body_:     gregor1.Body(problemSet),
 				},
 			},
 		},
@@ -209,7 +224,7 @@ func TestRekeyNeededUserClose(t *testing.T) {
 				},
 				Creation_: &gregor1.Item{
 					Category_: gregor1.Category("kbfs_tlf_rekey_needed"),
-					Body_:     gregor1.Body(rekeyTLFs),
+					Body_:     gregor1.Body(problemSet),
 				},
 			},
 		},

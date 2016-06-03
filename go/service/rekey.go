@@ -33,8 +33,8 @@ func (h *RekeyHandler) ShowRekeyStatus(ctx context.Context, arg keybase1.ShowRek
 	return nil
 }
 
-func (h *RekeyHandler) GetRekeyTLFs(ctx context.Context, sessionID int) ([]keybase1.RekeyTLF, error) {
-	return []keybase1.RekeyTLF{}, nil
+func (h *RekeyHandler) GetProblemSet(ctx context.Context, sessionID int) (keybase1.ProblemSet, error) {
+	return keybase1.ProblemSet{}, nil
 }
 
 func (h *RekeyHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (keybase1.Outcome, error) {
