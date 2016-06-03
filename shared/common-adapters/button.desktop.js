@@ -13,6 +13,9 @@ class Button extends Component {
     let backgroundStyle = {}
     let labelStyle = {}
     let progressColor = globalColors.white
+    let rippleStyle: {rippleColor?: string} = {}
+    // Set all button ripples to be more prominent
+    rippleStyle = {rippleColor: 'rgba(0, 0, 0, 0.3)'}
 
     const disabled = this.props.disabled || this.props.waiting
 
@@ -63,12 +66,12 @@ class Button extends Component {
         }
         progressColor = globalColors.black_75
     }
-    return {backgroundStyle, labelStyle, progressColor}
+    return {backgroundStyle, labelStyle, progressColor, rippleStyle}
   }
 
   render () {
     // First apply styles for the main button types.
-    let {backgroundStyle, labelStyle, progressColor} = this._styles(this.props.type)
+    let {backgroundStyle, labelStyle, progressColor, rippleStyle} = this._styles(this.props.type)
     let smallStyle = {}
 
     // Then some overrides that apply to all button types.
@@ -119,6 +122,7 @@ class Button extends Component {
           onClick={this.props.onClick}
           style={{...backgroundStyle, ...smallStyle, ...this.props.style}}
           labelStyle={{...stylesButtonLabel, ...labelStyle, ...this.props.labelStyle}}
+          {...rippleStyle}
           label={label}
           primary={this.props.type === 'Primary'}
           secondary={this.props.type === 'Secondary'}
