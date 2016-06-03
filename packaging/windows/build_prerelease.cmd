@@ -35,7 +35,7 @@ popd
 
 :: Updater
 pushd %GOPATH%\src\github.com\keybase\go-updater\service
-go build -a -o updater.exe
+go build -a -o upd.exe
 popd
 
 :: Then the desktop:
