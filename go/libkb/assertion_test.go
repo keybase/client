@@ -143,3 +143,27 @@ func TestAssertions3(t *testing.T) {
 		}
 	}
 }
+
+func TestNeedsParans(t *testing.T) {
+	tests := []struct {
+		expr        string
+		needsParens bool
+	}{
+		{"max+foo@twitter,chris+chris@keybase", false},
+		{"max+foo@twitter+(chris,bob)", true},
+		{"max+foo@twitter+(chris)", false},
+		{"max+foo@twitter+((chris))", false},
+		{"max+foo@twitter+(chris+sam)", false},
+		{"max", false},
+	}
+
+	for _, test := range tests {
+		expr, err := AssertionParse(test.expr)
+		if err != nil {
+			t.Errorf("Error parsing %s: %s", test.expr, err)
+		} else if expr.NeedsParens() != test.needsParens {
+			t.Errorf("On expresssion %s: didn't agree on needing parens", test.expr)
+		}
+	}
+
+}

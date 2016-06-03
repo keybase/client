@@ -55,8 +55,8 @@ func TestLexer2(t *testing.T) {
 }
 
 func TestParser1(t *testing.T) {
-	inp := "  a ||   b   && c ||\n d ||\n e && f || g && (h ||\ni)"
-	outp := "(keybase://a || ((keybase://b && keybase://c) || (keybase://d || ((keybase://e && keybase://f) || (keybase://g && (keybase://h || keybase://i))))))"
+	inp := "  aa ||   bb   && cc ||\n dd ||\n ee && ff || gg && (hh ||\nii)"
+	outp := "aa,bb+cc,dd,ee+ff,gg+(hh,ii)"
 	expr, err := AssertionParse(inp)
 	if err != nil {
 		t.Error(err)
@@ -66,8 +66,19 @@ func TestParser1(t *testing.T) {
 }
 
 func TestParser2(t *testing.T) {
-	inp := "  web://a.aa ||   http://b.bb   && dns://c.cc ||\n d ||\n pgp:e && reddit:f || twitter:g && (https:h.in ||\ndns:i.co)"
-	outp := "(web://a.aa || ((http://b.bb && dns://c.cc) || (keybase://d || ((pgp://e && reddit://f) || (twitter://g && (https://h.in || dns://i.co))))))"
+	inp := "  web://a.aa ||   http://b.bb   && dns://c.cc ||\n dd ||\n pgp:ee && reddit:foo || twitter:goo && (https:h.in ||\ndns:i.co)"
+	outp := "a.aa@web,b.bb@http+c.cc@dns,dd,ee@pgp+foo@reddit,goo@twitter+(h.in@https,i.co@dns)"
+	expr, err := AssertionParse(inp)
+	if err != nil {
+		t.Error(err)
+	} else if expr.String() != outp {
+		t.Errorf("Wrong parse result: %s v %s", expr.String(), outp)
+	}
+}
+
+func TestNormalization(t *testing.T) {
+	inp := "Web://A.AA || HttP://B.bb && dnS://C.cc || MaxFactor@reddit || zQueal@keyBASE || XanxA@hackernews || foO@TWITTER || 0123456789ABCDEF0123456789abcd19@uid"
+	outp := "a.aa@web,b.bb@http+c.cc@dns,maxfactor@reddit,zqueal,XanxA@hackernews,foo@twitter,0123456789abcdef0123456789abcd19@uid"
 	expr, err := AssertionParse(inp)
 	if err != nil {
 		t.Error(err)
@@ -82,16 +93,20 @@ type Pair struct {
 
 func TestParserFail1(t *testing.T) {
 	bads := []Pair{
-		{"a ||", "Unexpected EOF"},
-		{"a &&", "Unexpected EOF"},
-		{"(a", "Unbalanced parentheses"},
-		{"a && dns:", "Bad assertion, no value given (key=dns)"},
-		{"b && foo:a", "Unknown social network: foo"},
-		{"&& a", "Unexpected token: &&"},
-		{"|| a", "Unexpected token: ||"},
-		{"a)", "Found junk at end of input: )"},
+		{"aa ||", "Unexpected EOF"},
+		{"aa &&", "Unexpected EOF"},
+		{"(aa", "Unbalanced parentheses"},
+		{"aa && dns:", "Bad assertion, no value given (key=dns)"},
+		{"bb && foo:a", "Unknown social network: foo"},
+		{"&& aa", "Unexpected token: &&"},
+		{"|| aa", "Unexpected token: ||"},
+		{"aa)", "Found junk at end of input: )"},
 		{"()", "Illegal parenthetical expression"},
 		{"dns://a", "Invalid hostname: a"},
+		{"f@reddit", "Bad username: 'f'"},
+		{"a@pgp", "bad hex string: 'a'"},
+		{"aBCP@pgp", "bad hex string: 'abcp'"},
+		{"jj@pgp", "bad hex string: 'jj'"},
 	}
 
 	for _, bad := range bads {
