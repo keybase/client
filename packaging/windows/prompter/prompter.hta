@@ -1,0 +1,96 @@
+<!DOCTYPE html PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<meta http-equiv="X-UA-Compatible" content="IE=9">
+<HTML>
+   <HEAD>
+   <style type="text/css">
+
+    input.checkbox  {
+        width : 0.8em;
+        height :0.8em;
+        padding: 0px;
+        margin: 0px;
+        }
+    div.relative {
+        position: relative;
+        left: 30px;
+    }
+    body {
+        font-family: Lato,"Helvetica Neue",Helvetica,Arial,sans-serif;
+        color: #404040;
+        background-color: #f6f6f6;
+    }
+    IMG.centered_img {
+        display: block;
+        margin-top:20px;
+        margin-left: auto;
+        margin-right: auto }
+    </style>
+    <HTA:APPLICATION
+      APPLICATIONNAME="Keybase Update"
+      SYSMENU="yes"
+      icon="keybase.ico"
+      />
+      <SCRIPT>
+      function closeHTA(result){
+        try{
+            var autoUpdate = 'false';
+            if (AutoUpdate.checked) {
+                autoUpdate = 'true';
+            }
+            var result = {
+               action: result,
+               autoUpdate: autoUpdate
+            };
+            var fso = new ActiveXObject("Scripting.FileSystemObject");
+            var fileObject = fso.OpenTextFile("response.txt", 2, true,0);
+            fileObject.Write(JSON.stringify(result));
+            fileObject.close();
+            window.close();
+        }catch(ex){
+            alert(ex);
+        }
+      }
+
+      window.onload = function readInput() {
+
+        var fso = new ActiveXObject('Scripting.FileSystemObject');
+        var iStream = fso.OpenTextFile('updateprompt.json', 1, false);
+        if(!iStream.AtEndOfStream) {
+
+            var jsonraw = iStream.ReadAll();
+            var jsontext = jsonraw.replace(/\\n/g, "<br/>");
+            var inputVals = JSON.parse(jsontext);
+
+            document.getElementById('heading1').innerHTML = inputVals.title;
+            document.getElementById('message1').innerHTML = inputVals.message;
+            document.getElementById('paragraph1').innerHTML =  inputVals.description;
+            if(inputVals.autoUpdate){
+                document.getElementById("AutoUpdate").checked = true;
+            }
+        }
+        iStream.Close();
+        window.resizeTo(screen.availWidth/2,screen.availHeight/2);
+        window.moveTo(screen.availWidth/4,screen.availHeight/4);
+     }
+
+
+      </SCRIPT>
+      <TITLE>
+         Update Available
+      </TITLE>
+   </HEAD>
+<BODY>
+   <div class="relative">
+        <img class="centered_img" src="logo-with-text-dz2-sm.png" />
+
+        <H1 id=heading1>Keybase Update</H1>
+        <P id=message1>This is very minimal "hello world" HTML document.</P>
+        <P id=paragraph1></P>
+        <input type="checkbox"  name="checkbox"  class ="checkbox" id="AutoUpdate" >Do this automatically<br />
+        <div style="width: 60%; margin: 0px auto; margin-top:20px">
+                <button onclick="closeHTA('apply');">Apply</button>
+                <button onclick="closeHTA('snooze');">Snooze</button>
+        </div>
+   </div>
+</BODY>
+</HTML>
