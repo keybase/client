@@ -504,8 +504,7 @@ func (c *ConfigLocal) MetadataVersion() MetadataVer {
 
 // DataVersion implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) DataVersion() DataVer {
-	//	TODO: FilesWithHolesDataVer
-	return FirstValidDataVer
+	return FilesWithHolesDataVer
 }
 
 // DefaultNewBlockDataVersion returns the default data version for new blocks.

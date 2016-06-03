@@ -24,6 +24,8 @@ type IndirectFilePtr struct {
 	// be dirty.
 	BlockInfo
 	Off int64 `codec:"o"`
+	// Marker for files with holes
+	Holes bool
 
 	codec.UnknownFieldSetHandler
 }
@@ -49,6 +51,11 @@ func (cb CommonBlock) GetEncodedSize() uint32 {
 // SetEncodedSize implements the Block interface for CommonBlock
 func (cb *CommonBlock) SetEncodedSize(size uint32) {
 	cb.cachedEncodedSize = size
+}
+
+// DataVersion returns data version for this block.
+func (cb *CommonBlock) DataVersion() DataVer {
+	return FirstValidDataVer
 }
 
 // NewCommonBlock returns a generic block, unsuitable for caching.
@@ -99,6 +106,16 @@ func NewFileBlock() Block {
 	return &FileBlock{
 		Contents: make([]byte, 0, 0),
 	}
+}
+
+// DataVersion returns data version for this block.
+func (fb *FileBlock) DataVersion() DataVer {
+	for i := range fb.IPtrs {
+		if fb.IPtrs[i].Holes {
+			return FilesWithHolesDataVer
+		}
+	}
+	return FirstValidDataVer
 }
 
 // DeepCopy makes a complete copy of a FileBlock

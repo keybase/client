@@ -29,6 +29,8 @@ type Block interface {
 	// SetEncodedSize sets the encoded size of this block, locally
 	// caching it.  The encoded size is not serialized.
 	SetEncodedSize(size uint32)
+	// DataVersion returns the data version for this block
+	DataVersion() DataVer
 }
 
 // BlockContext is used by the server to help identify blocks

@@ -1336,6 +1336,7 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 		if err != nil {
 			return WriteRange{}, nil, err
 		}
+		fblock.IPtrs[0].Holes = true
 		err = fbo.cacheBlockIfNotYetDirtyLocked(lState, fblock.IPtrs[0].BlockPointer, file.Branch, old)
 		if err != nil {
 			return WriteRange{}, nil, err
@@ -1374,6 +1375,9 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 	// deferred, even if it's to a block that's not currently
 	// being sync'd, since this top-most block will always be in
 	// the fileBlockStates map.
+	for i := range fblock.IPtrs {
+		fblock.IPtrs[i].Holes = true
+	}
 	err = fbo.cacheBlockIfNotYetDirtyLocked(lState,
 		file.tailPointer(), file.Branch, fblock)
 	if err != nil {
@@ -1637,7 +1641,7 @@ func (fbo *folderBlockOps) ReadyBlock(ctx context.Context, md *RootMetadata,
 		ptr = BlockPointer{
 			ID:       id,
 			KeyGen:   md.LatestKeyGeneration(),
-			DataVer:  fbo.config.DataVersion(),
+			DataVer:  block.DataVersion(),
 			Creator:  uid,
 			RefNonce: zeroBlockRefNonce,
 		}
