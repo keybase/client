@@ -193,7 +193,7 @@ func (o ObjFactory) MakeState(items []gregor.Item) (gregor.State, error) {
 		ourItems = append(ourItems, ourItem)
 	}
 	sort.Sort(ourItems)
-	return State{items: ourItems}, nil
+	return State{Items_: ourItems}, nil
 }
 
 func (o ObjFactory) MakeMetadata(uid gregor.UID, msgid gregor.MsgID, devid gregor.DeviceID, ctime time.Time, i gregor.InBandMsgType) (gregor.Metadata, error) {
@@ -224,14 +224,14 @@ func (o ObjFactory) MakeMessageFromInBandMessage(i gregor.InBandMessage) (gregor
 }
 
 func (o ObjFactory) UnmarshalState(b []byte) (gregor.State, error) {
-	var items []ItemAndMetadata
+	var state State
 	err := codec.NewDecoderBytes(b, &codec.MsgpackHandle{WriteExt: true}).
-		Decode(&items)
+		Decode(&state)
 	if err != nil {
 		return nil, err
 	}
 
-	return State{items}, nil
+	return state, nil
 }
 
 func (o ObjFactory) MakeTimeOrOffsetFromTime(t time.Time) (gregor.TimeOrOffset, error) {

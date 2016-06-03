@@ -30,11 +30,19 @@ type ConsumePublishMessageArg struct {
 type PingArg struct {
 }
 
+type StateByCategoryPrefixArg struct {
+	Uid            UID      `codec:"uid" json:"uid"`
+	CategoryPrefix Category `codec:"categoryPrefix" json:"categoryPrefix"`
+}
+
 type IncomingInterface interface {
 	Sync(context.Context, SyncArg) (SyncResult, error)
 	ConsumeMessage(context.Context, Message) error
 	ConsumePublishMessage(context.Context, Message) error
 	Ping(context.Context) (string, error)
+	// StateByCategoryPrefix loads the messages of the user's state whose
+	// categories are prefixed by the given prefix
+	StateByCategoryPrefix(context.Context, StateByCategoryPrefixArg) (State, error)
 }
 
 func IncomingProtocol(i IncomingInterface) rpc.Protocol {
@@ -100,6 +108,22 @@ func IncomingProtocol(i IncomingInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
+			"stateByCategoryPrefix": {
+				MakeArg: func() interface{} {
+					ret := make([]StateByCategoryPrefixArg, 1)
+					return &ret
+				},
+				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
+					typedArgs, ok := args.(*[]StateByCategoryPrefixArg)
+					if !ok {
+						err = rpc.NewTypeError((*[]StateByCategoryPrefixArg)(nil), args)
+						return
+					}
+					ret, err = i.StateByCategoryPrefix(ctx, (*typedArgs)[0])
+					return
+				},
+				MethodType: rpc.MethodCall,
+			},
 		},
 	}
 }
@@ -127,5 +151,12 @@ func (c IncomingClient) ConsumePublishMessage(ctx context.Context, m Message) (e
 
 func (c IncomingClient) Ping(ctx context.Context) (res string, err error) {
 	err = c.Cli.Call(ctx, "gregor.1.incoming.ping", []interface{}{PingArg{}}, &res)
+	return
+}
+
+// StateByCategoryPrefix loads the messages of the user's state whose
+// categories are prefixed by the given prefix
+func (c IncomingClient) StateByCategoryPrefix(ctx context.Context, __arg StateByCategoryPrefixArg) (res State, err error) {
+	err = c.Cli.Call(ctx, "gregor.1.incoming.stateByCategoryPrefix", []interface{}{__arg}, &res)
 	return
 }
