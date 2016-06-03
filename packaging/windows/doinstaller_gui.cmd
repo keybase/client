@@ -83,8 +83,6 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-echo off
-
 go get github.com/keybase/release
 go install github.com/keybase/release
 set ReleaseBin=%GOPATH%\bin\windows_386\release.exe
@@ -112,8 +110,5 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 
 %ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% > %JSON_UPDATE_FILENAME%
-::"%ProgramFiles%\S3 Browser\s3browser-con.exe" upload keybase %KEYBASE_INSTALLER_NAME% prerelease.keybase.io/windows
-:: After sanity checking, do:
-::"%ProgramFiles%\S3 Browser\s3browser-con.exe" upload keybase update-windows-prod.json prerelease.keybase.io
-:: popd
-::%GOPATH%\bin\windows_386\release index-html --bucket-name=prerelease.keybase.io --prefixes="windows/" --upload="windows/index.html"
+
+echo off
