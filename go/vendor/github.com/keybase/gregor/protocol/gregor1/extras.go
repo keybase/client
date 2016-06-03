@@ -5,22 +5,24 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/keybase/go-codec/codec"
 	"github.com/keybase/gregor"
 )
 
-func (u UID) Bytes() []byte            { return []byte(u) }
-func (u UID) String() string           { return hex.EncodeToString(u) }
-func (d DeviceID) Bytes() []byte       { return []byte(d) }
-func (d DeviceID) String() string      { return hex.EncodeToString(d) }
-func (m MsgID) Bytes() []byte          { return []byte(m) }
-func (m MsgID) String() string         { return hex.EncodeToString(m) }
-func (s System) String() string        { return string(s) }
-func (c Category) String() string      { return string(c) }
-func (b Body) Bytes() []byte           { return []byte(b) }
-func (c Category) Eq(c2 Category) bool { return string(c) == string(c2) }
+func (u UID) Bytes() []byte                   { return []byte(u) }
+func (u UID) String() string                  { return hex.EncodeToString(u) }
+func (d DeviceID) Bytes() []byte              { return []byte(d) }
+func (d DeviceID) String() string             { return hex.EncodeToString(d) }
+func (m MsgID) Bytes() []byte                 { return []byte(m) }
+func (m MsgID) String() string                { return hex.EncodeToString(m) }
+func (s System) String() string               { return string(s) }
+func (c Category) String() string             { return string(c) }
+func (b Body) Bytes() []byte                  { return []byte(b) }
+func (c Category) Eq(c2 Category) bool        { return string(c) == string(c2) }
+func (c Category) HasPrefix(c2 Category) bool { return strings.HasPrefix(string(c), string(c2)) }
 
 func (t TimeOrOffset) Time() *time.Time {
 	if t.Time_.IsZero() {
@@ -240,13 +242,9 @@ func (m *Message) SetCTime(ctime time.Time) {
 func (r Reminder) Item() gregor.Item     { return r.Item_ }
 func (r Reminder) RemindTime() time.Time { return FromTime(r.RemindTime_) }
 
-type State struct {
-	items []ItemAndMetadata
-}
-
 func (s State) Items() ([]gregor.Item, error) {
 	var ret []gregor.Item
-	for _, i := range s.items {
+	for _, i := range s.Items_ {
 		ret = append(ret, i)
 	}
 	return ret, nil
@@ -254,8 +252,7 @@ func (s State) Items() ([]gregor.Item, error) {
 
 func (s State) Marshal() ([]byte, error) {
 	var b []byte
-	err := codec.NewEncoderBytes(&b, &codec.MsgpackHandle{WriteExt: true}).
-		Encode(s.items)
+	err := codec.NewEncoderBytes(&b, &codec.MsgpackHandle{WriteExt: true}).Encode(s)
 	return b, err
 }
 
@@ -273,11 +270,26 @@ func (i ItemAndMetadata) InCategory(c Category) bool {
 	return i.Item_.Category_.Eq(c)
 }
 
+func (i ItemAndMetadata) HasCategoryPrefix(c Category) bool {
+	return i.Item_.Category_.HasPrefix(c)
+}
+
 func (s State) ItemsInCategory(gc gregor.Category) ([]gregor.Item, error) {
 	var ret []gregor.Item
 	c := Category(gc.String())
-	for _, i := range s.items {
+	for _, i := range s.Items_ {
 		if i.InCategory(c) {
+			ret = append(ret, i)
+		}
+	}
+	return ret, nil
+}
+
+func (s State) ItemsWithCategoryPrefix(gc gregor.Category) ([]gregor.Item, error) {
+	var ret []gregor.Item
+	c := Category(gc.String())
+	for _, i := range s.Items_ {
+		if i.HasCategoryPrefix(c) {
 			ret = append(ret, i)
 		}
 	}
