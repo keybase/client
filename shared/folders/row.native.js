@@ -155,12 +155,12 @@ const stylesPublic = {
     ...rowContainer,
     backgroundColor: globalColors.white
   },
-  hasStuffIcon: 'folder-public-has-stuff-32',
+  hasStuffIcon: 'icon-folder-public-has-stuff-32',
   ignored: {
     color: globalColors.white_75,
     backgroundColor: globalColors.yellowGreen
   },
-  groupIcon: 'folder-public-group-32',
+  groupIcon: 'icon-folder-public-group-32',
   avatarContainer: {
     ...stylesAvatarContainer,
     backgroundColor: globalColors.yellowGreen

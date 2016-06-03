@@ -12,10 +12,10 @@ import type {Props as IconProps} from '../common-adapters/icon'
 import type {Props} from './index.render'
 
 const icons: {[key: VisibleTab]: IconProps.type} = {
-  [peopleTab]: 'fa-custom-main-nav-people',
-  [folderTab]: 'fa-custom-main-nav-folders',
-  [devicesTab]: 'fa-custom-main-nav-devices',
-  [moreTab]: 'fa-custom-main-nav-settings'
+  [peopleTab]: 'fa-kb-iconfont-people',
+  [folderTab]: 'fa-kb-iconfont-folder',
+  [devicesTab]: 'fa-kb-iconfont-device',
+  [moreTab]: 'fa-kb-iconfont-settings'
 }
 
 const labels: {[key: VisibleTab]: IconProps.type} = {
@@ -42,7 +42,7 @@ export default class Render extends Component<void, Props, void> {
     const button = (
       <Box style={{...globalStyles.flexBoxColumn, padding: 24}}>
         <Box style={{...stylesSearchButton, backgroundColor}}>
-          <Icon type='fa-custom-icon-search-button' style={{color: globalColors.white, fontSize: 32}} />
+          <Icon type='fa-kb-iconfont-search' style={{color: globalColors.white, fontSize: 32}} />
         </Box>
       </Box>
     )

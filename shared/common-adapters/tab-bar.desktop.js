@@ -148,9 +148,8 @@ const stylesTabBarButtonIcon = {
 }
 
 const stylesIcon = {
-  fontSize: 12,
+  fontSize: 24,
   height: 14,
-  width: 23,
   paddingRight: 9,
   lineHeight: '16px',
   marginBottom: 2,

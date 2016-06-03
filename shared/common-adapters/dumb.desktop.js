@@ -39,7 +39,7 @@ const checkboxMap: DumbComponentMap<Checkbox> = {
   }
 }
 
-const IconButton = ({selected, icon, badgeNumber}: any) => <TabBarButton source={{type: 'icon', icon}} selected={selected} badgeNumber={badgeNumber} style={{height: 40}} />
+const IconButton = ({selected, icon, badgeNumber, label}: any) => <TabBarButton label={label} source={{type: 'icon', icon}} selected={selected} badgeNumber={badgeNumber} style={{height: 40}} />
 const AvatarButton = ({selected, avatar, badgeNumber}: any) => <TabBarButton source={{type: 'avatar', avatar}} selected={selected} badgeNumber={badgeNumber} style={{height: 40}} />
 
 const tabBarCustomButtons = selectedIndex => ({
@@ -47,13 +47,13 @@ const tabBarCustomButtons = selectedIndex => ({
   tabBarStyle: {justifyContent: 'flex-start', width: 160, backgroundColor: globalColors.midnightBlue, ...globalStyles.flexBoxColumn},
   children: [
     {avatar: <Avatar size={32} onClick={null} username='max' />},
-    {icon: 'fa-users', badgeNumber: 3},
-    {icon: 'fa-folder'},
-    {icon: 'phone-bw-m', badgeNumber: 12},
-    {icon: 'fa-cog'}
+    {icon: 'fa-kb-iconfont-people', label: 'PEOPLE', badgeNumber: 3},
+    {icon: 'fa-kb-iconfont-folder', label: 'FOLDERS'},
+    {icon: 'fa-kb-iconfont-device', label: 'DEVICES', badgeNumber: 12},
+    {icon: 'fa-kb-iconfont-settings', label: 'SETTINGS'}
   ].map((buttonInfo: any, i) => {
     const button = buttonInfo.avatar ? <AvatarButton badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} avatar={buttonInfo.avatar} />
-      : <IconButton icon={buttonInfo.icon} badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} />
+      : <IconButton icon={buttonInfo.icon} label={buttonInfo.label} badgeNumber={buttonInfo.badgeNumber} selected={selectedIndex === i} />
 
     return (
       <TabBarItem tabBarButton={button} containerStyle={{flex: 0, display: 'flex'}} selected={selectedIndex === i} onClick={() => console.log('TabBaritem:onClick')}>

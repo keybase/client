@@ -127,16 +127,16 @@ const stylesPublic = {
     color: globalColors.yellowGreen2
   },
   hasStuffIcon: {
-    small: 'folder-public-has-stuff-24',
-    normal: 'folder-public-has-stuff-32'
+    small: 'icon-folder-public-has-stuff-24',
+    normal: 'icon-folder-public-has-stuff-32'
   },
   ignored: {
     color: globalColors.white_75,
     backgroundColor: globalColors.yellowGreen
   },
   groupIcon: {
-    small: 'folder-public-group-24',
-    normal: 'folder-public-group-32'
+    small: 'icon-folder-public-group-24',
+    normal: 'icon-folder-public-group-32'
   },
   avatarContainer: {
     backgroundColor: globalColors.yellowGreen
