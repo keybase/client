@@ -195,6 +195,7 @@ func TestRekeyNeededUserClose(t *testing.T) {
 
 	rekeyHandler := NewRekeyUIHandler(tc.G, 0)
 	rekeyHandler.alwaysAlive = true
+	rekeyHandler.notifyComplete = make(chan int, 10)
 	h.PushHandler(rekeyHandler)
 
 	msgID := gregor1.MsgID("my_random_id")
@@ -214,15 +215,13 @@ func TestRekeyNeededUserClose(t *testing.T) {
 		},
 	}
 
-	go func() {
-		clock.BlockUntil(1)
-		h.RekeyStatusFinish(context.Background(), rkeyui.sessionID)
-		clock.Advance(3 * time.Second)
-	}()
-
 	if err := h.BroadcastMessage(context.Background(), m); err != nil {
 		t.Fatal(err)
 	}
+
+	clock.BlockUntil(1)
+	h.RekeyStatusFinish(context.Background(), rkeyui.sessionID)
+	clock.Advance(3 * time.Second)
 
 	select {
 	case <-rekeyHandler.notifyComplete:
