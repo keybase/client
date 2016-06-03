@@ -32,7 +32,8 @@ type TlfHandle struct {
 	// sorted order.
 	unresolvedWriters []keybase1.SocialAssertion
 	unresolvedReaders []keybase1.SocialAssertion
-	conflictInfo      *ConflictInfo
+	conflictInfo      *TlfHandleExtension
+	finalizedInfo     *TlfHandleExtension
 	// name can be computed from the other fields, but is cached
 	// for speed.
 	name CanonicalTlfName
@@ -128,7 +129,7 @@ func (h TlfHandle) UnresolvedReaders() []keybase1.SocialAssertion {
 }
 
 // ConflictInfo returns the handle's conflict info, if any.
-func (h TlfHandle) ConflictInfo() *ConflictInfo {
+func (h TlfHandle) ConflictInfo() *TlfHandleExtension {
 	if h.conflictInfo == nil {
 		return nil
 	}
@@ -138,13 +139,44 @@ func (h TlfHandle) ConflictInfo() *ConflictInfo {
 
 // SetConflictInfo sets the handle's conflict info to the given one,
 // which may be nil.
-func (h *TlfHandle) SetConflictInfo(info *ConflictInfo) {
+func (h *TlfHandle) SetConflictInfo(info *TlfHandleExtension) {
 	if info == nil {
 		h.conflictInfo = nil
 		return
 	}
 	conflictInfoCopy := *info
 	h.conflictInfo = &conflictInfoCopy
+}
+
+// FinalizedInfo returns the handle's finalized info, if any.
+func (h TlfHandle) FinalizedInfo() *TlfHandleExtension {
+	if h.conflictInfo == nil {
+		return nil
+	}
+	conflictInfoCopy := *h.conflictInfo
+	return &conflictInfoCopy
+}
+
+// SetFinalizedInfo sets the handle's finalized info to the given one,
+// which may be nil.
+func (h *TlfHandle) SetFinalizedInfo(info *TlfHandleExtension) {
+	if info == nil {
+		h.conflictInfo = nil
+		return
+	}
+	conflictInfoCopy := *info
+	h.conflictInfo = &conflictInfoCopy
+}
+
+// Extensions returns a list of extensions for the given handle.
+func (h TlfHandle) Extensions() (extensions []TlfHandleExtension) {
+	if h.ConflictInfo != nil {
+		extensions = append(extensions, *h.ConflictInfo)
+	}
+	if h.FinalizedInfo != nil {
+		extensions = append(extensions, *h.FinalizedInfo)
+	}
+	return extensions
 }
 
 // ToBareHandle returns a BareTlfHandle corresponding to this handle.
@@ -158,7 +190,7 @@ func (h TlfHandle) ToBareHandle() (BareTlfHandle, error) {
 	return MakeBareTlfHandle(
 		h.unsortedResolvedWriters(), readers,
 		h.unresolvedWriters, h.unresolvedReaders,
-		h.conflictInfo)
+		h.Extensions())
 }
 
 // ToBareHandleOrBust returns a BareTlfHandle corresponding to this
@@ -214,7 +246,7 @@ func resolveOneUser(
 
 func makeTlfHandleHelper(
 	ctx context.Context, public bool, writers, readers []resolvableUser,
-	conflictInfo *ConflictInfo) (*TlfHandle, error) {
+	extensions []TlfHandleExtension) (*TlfHandle, error) {
 	if public && len(readers) > 0 {
 		return nil, errors.New("public folder cannot have readers")
 	}
@@ -279,22 +311,26 @@ func makeTlfHandleHelper(
 		readerNames := getSortedNames(usedRNames, unresolvedReaders)
 		canonicalName += ReaderSep + strings.Join(readerNames, ",")
 	}
-	if conflictInfo != nil {
-		canonicalName += ConflictSuffixSep + conflictInfo.String()
+
+	canonicalName += NewTlfHandleExtensionSuffix(extensions)
+
+	var conflictInfo, finalizedInfo *TlfHandleExtension
+	for _, extension := range extensions {
+		if extension.Type == TlfHandleExtensionConflict {
+			conflictInfo = &extension
+		} else if extension.Type == TlfHandleExtensionFinalized {
+			finalizedInfo = &extension
+		}
 	}
 
-	var conflictInfoCopy *ConflictInfo
-	if conflictInfo != nil {
-		c := *conflictInfo
-		conflictInfoCopy = &c
-	}
 	h := &TlfHandle{
 		public:            public,
 		resolvedWriters:   usedWNames,
 		resolvedReaders:   usedRNames,
 		unresolvedWriters: unresolvedWriters,
 		unresolvedReaders: unresolvedReaders,
-		conflictInfo:      conflictInfoCopy,
+		conflictInfo:      conflictInfo,
+		finalizedInfo:     finalizedInfo,
 		name:              CanonicalTlfName(canonicalName),
 	}
 
@@ -347,7 +383,7 @@ func MakeTlfHandle(
 		}
 	}
 
-	h, err := makeTlfHandleHelper(ctx, bareHandle.IsPublic(), writers, readers, bareHandle.ConflictInfo)
+	h, err := makeTlfHandleHelper(ctx, bareHandle.IsPublic(), writers, readers, bareHandle.Extensions())
 	if err != nil {
 		return nil, err
 	}
@@ -508,14 +544,14 @@ func getSortedUnresolved(unresolved map[keybase1.SocialAssertion]bool) []keybase
 
 func splitAndNormalizeTLFName(name string, public bool) (
 	writerNames, readerNames []string,
-	conflictSuffix string, err error) {
+	extensionSuffix string, err error) {
 
-	names := strings.SplitN(name, ConflictSuffixSep, 2)
+	names := strings.SplitN(name, TlfHandleExtensionSep, 2)
 	if len(names) > 2 {
 		return nil, nil, "", BadTLFNameError{name}
 	}
 	if len(names) > 1 {
-		conflictSuffix = names[1]
+		extensionSuffix = names[1]
 	}
 
 	splitNames := strings.SplitN(names[0], ReaderSep, 3)
@@ -534,7 +570,8 @@ func splitAndNormalizeTLFName(name string, public bool) (
 		return nil, nil, "", NoSuchNameError{Name: name}
 	}
 
-	normalizedName, err := normalizeNamesInTLF(writerNames, readerNames, conflictSuffix)
+	normalizedName, err := normalizeNamesInTLF(
+		writerNames, readerNames, extensionSuffix)
 	if err != nil {
 		return nil, nil, "", err
 	}
@@ -542,7 +579,7 @@ func splitAndNormalizeTLFName(name string, public bool) (
 		return nil, nil, "", TlfNameNotCanonical{name, normalizedName}
 	}
 
-	return writerNames, readerNames, strings.ToLower(conflictSuffix), nil
+	return writerNames, readerNames, strings.ToLower(extensionSuffix), nil
 }
 
 // TODO: this function can likely be replaced with a call to
@@ -583,7 +620,7 @@ func normalizeAssertionOrName(s string) (string, error) {
 // resolutions or identify calls, normalizes all elements of the
 // name. It then returns the normalized name.
 func normalizeNamesInTLF(writerNames, readerNames []string,
-	conflictSuffix string) (string, error) {
+	extensionSuffix string) (string, error) {
 	sortedWriterNames := make([]string, len(writerNames))
 	var err error
 	for i, w := range writerNames {
@@ -605,10 +642,10 @@ func normalizeNamesInTLF(writerNames, readerNames []string,
 		sort.Strings(sortedReaderNames)
 		normalizedName += ReaderSep + strings.Join(sortedReaderNames, ",")
 	}
-	if len(conflictSuffix) != 0 {
+	if len(extensionSuffix) != 0 {
 		// This *should* be normalized already but make sure.  I can see not
 		// doing so might surprise a caller.
-		normalizedName += ConflictSuffixSep + strings.ToLower(conflictSuffix)
+		normalizedName += TlfHandleExtensionSep + strings.ToLower(extensionSuffix)
 	}
 
 	return normalizedName, nil
@@ -670,7 +707,8 @@ func ParseTlfHandle(
 	// real user lookup for "head" (KBFS-531).  Note that the name
 	// might still contain assertions, which will result in
 	// another alias in a subsequent lookup.
-	writerNames, readerNames, conflictSuffix, err := splitAndNormalizeTLFName(name, public)
+	writerNames, readerNames, extensionSuffix, err :=
+		splitAndNormalizeTLFName(name, public)
 	if err != nil {
 		return nil, err
 	}
@@ -682,7 +720,8 @@ func ParseTlfHandle(
 		return nil, NoSuchNameError{Name: name}
 	}
 
-	normalizedName, err := normalizeNamesInTLF(writerNames, readerNames, conflictSuffix)
+	normalizedName, err := normalizeNamesInTLF(
+		writerNames, readerNames, extensionSuffix)
 	if err != nil {
 		return nil, err
 	}
@@ -699,15 +738,15 @@ func ParseTlfHandle(
 		readers[i] = resolvableAssertion{kbpki, r, keybase1.UID("")}
 	}
 
-	var conflictInfo *ConflictInfo
-	if len(conflictSuffix) != 0 {
-		conflictInfo, err = ParseConflictInfo(conflictSuffix)
+	var extensions []TlfHandleExtension
+	if len(extensionSuffix) != 0 {
+		extensions, err = ParseTlfHandleExtensionSuffix(extensionSuffix)
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	h, err := makeTlfHandleHelper(ctx, public, writers, readers, conflictInfo)
+	h, err := makeTlfHandleHelper(ctx, public, writers, readers, extensions)
 	if err != nil {
 		return nil, err
 	}

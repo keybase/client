@@ -453,7 +453,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 				handle.GetCanonicalPath())
 			if resolvedInfo != nil {
 				// ConflictInfo is inconsistent.
-				err := TlfHandleConflictInfoMismatchError{
+				err := TlfHandleExtensionMismatchError{
 					Expected: resolvedInfo,
 					Actual:   latestHandle.ConflictInfo,
 				}

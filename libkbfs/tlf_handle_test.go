@@ -509,13 +509,13 @@ func TestResolveAgainConflict(t *testing.T) {
 	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
 
 	daemon.addNewAssertionForTest("u3", "u3@twitter")
-	ci, err := NewConflictInfo(1)
+	ext, err := NewTlfHandleExtension(TlfHandleExtensionConflict, 1)
 	if err != nil {
 		t.Fatal(err)
 	}
-	h.conflictInfo = ci
+	h.conflictInfo = ext
 	newH, err := h.ResolveAgain(ctx, daemon)
 	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName("u1,u2#u3"+
-		ConflictSuffixSep+ci.String()), newH.GetCanonicalName())
+		TlfHandleExtensionSep+ext.String()), newH.GetCanonicalName())
 }

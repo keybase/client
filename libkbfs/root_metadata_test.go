@@ -435,6 +435,7 @@ func makeFakeRootMetadataFuture(t *testing.T) *rootMetadataFuture {
 				nil,
 				[]keybase1.SocialAssertion{sa},
 				nil,
+				nil,
 				codec.UnknownFieldSetHandler{},
 				PrivateMetadata{},
 				nil,

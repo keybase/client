@@ -153,7 +153,11 @@ type RootMetadata struct {
 
 	// ConflictInfo is set if there's a conflict for the given folder's
 	// handle after a social assertion resolution.
-	ConflictInfo *ConflictInfo `codec:"ci,omitempty"`
+	ConflictInfo *TlfHandleExtension `codec:"ci,omitempty"`
+
+	// FinalizedInfo is set if there are no more valid writer keys capable
+	// of writing to the given folder.
+	FinalizedInfo *TlfHandleExtension `codec:"fi,omitempty"`
 
 	codec.UnknownFieldSetHandler
 
@@ -405,25 +409,6 @@ func (md *RootMetadata) MakeSuccessor(config Config, isWriter bool) (*RootMetada
 	return newMd, nil
 }
 
-// MakeFinale returns a complete copy of this RootMetadata (but with cleared serialized
-// metadata), with the revision incremented and the final bit set.
-func (md *RootMetadata) MakeFinal(config Config) (*RootMetadata, error) {
-	if md.IsFinal() {
-		return nil, MetadataIsFinalError{}
-	}
-	newMd, err := md.deepCopy(config.Codec(), true)
-	if err != nil {
-		return nil, err
-	}
-	// clear the serialized data.
-	newMd.SerializedPrivateMetadata = nil
-	// set the final flag
-	newMd.Flags |= MetadataFlagFinal
-	// increment revision but keep the prev root
-	newMd.Revision = md.Revision + 1
-	return newMd, nil
-}
-
 func (md *RootMetadata) getTLFKeyBundles(keyGen KeyGen) (*TLFWriterKeyBundle, *TLFReaderKeyBundle, error) {
 	if md.ID.IsPublic() {
 		return nil, nil, InvalidPublicTLFOperation{md.ID, "getTLFKeyBundle"}
@@ -567,7 +552,9 @@ func (md *RootMetadata) makeBareTlfHandle() (BareTlfHandle, error) {
 	}
 
 	return MakeBareTlfHandle(
-		writers, readers, md.Extra.UnresolvedWriters, md.UnresolvedReaders, md.ConflictInfo)
+		writers, readers,
+		md.Extra.UnresolvedWriters, md.UnresolvedReaders,
+		md.TlfHandleExtensions())
 }
 
 // MakeBareTlfHandle makes a BareTlfHandle for this
@@ -728,6 +715,7 @@ func (md *RootMetadata) updateFromTlfHandle(newHandle *TlfHandle) error {
 
 	md.Extra.UnresolvedWriters = newHandle.UnresolvedWriters()
 	md.ConflictInfo = newHandle.ConflictInfo()
+	md.FinalizedInfo = newHandle.FinalizedInfo()
 
 	bareHandle, err := md.makeBareTlfHandle()
 	if err != nil {
@@ -758,6 +746,20 @@ func (md *RootMetadata) swapCachedBlockChanges() {
 		md.data.Changes.Ops[0].
 			AddRefBlock(md.data.cachedChanges.Info.BlockPointer)
 	}
+}
+
+// TlfHandleExtensions returns a list of handle extensions associated with the TLf.
+func (md *RootMetadata) TlfHandleExtensions() (extensions []TlfHandleExtension) {
+	if md.ConflictInfo != nil {
+		ext := *md.ConflictInfo
+		// Might not be set in older versions of metadata.
+		ext.Type = TlfHandleExtensionConflict
+		extensions = append(extensions, ext)
+	}
+	if md.FinalizedInfo != nil {
+		extensions = append(extensions, *md.FinalizedInfo)
+	}
+	return extensions
 }
 
 // RootMetadataSigned is the top-level MD object stored in MD server
@@ -809,7 +811,8 @@ func (rmds *RootMetadataSigned) Version() MetadataVer {
 	// new version.
 	if len(rmds.MD.Extra.UnresolvedWriters) > 0 ||
 		len(rmds.MD.UnresolvedReaders) > 0 ||
-		rmds.MD.ConflictInfo != nil {
+		rmds.MD.ConflictInfo != nil ||
+		rmds.MD.FinalizedInfo != nil {
 		return InitialExtraMetadataVer
 	}
 	// Let other types of MD objects use the older version since they
