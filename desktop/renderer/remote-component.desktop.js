@@ -5,7 +5,6 @@ import menuHelper from '../app/menu-helper'
 import hotPath from '../hot-path'
 import {screen as electronScreen} from 'electron'
 const {BrowserWindow} = remote
-
 const remoteIdsToComponents = {}
 
 // Remember if we close, it's an error to try to close an already closed window
@@ -18,7 +17,7 @@ ipcRenderer.on('remoteWindowClosed', (event, remoteWindowId) => {
   remoteIdsToComponents[remoteWindowId] = null
 })
 
-export default class RemoteComponent extends Component {
+class RemoteComponent extends Component {
   onClosed () {
     if (!this.closed) {
       this.closed = true
@@ -105,3 +104,5 @@ RemoteComponent.propTypes = {
   selectorParams: React.PropTypes.string, // To get a substore
   ignoreNewProps: React.PropTypes.bool // Do not send the remote window new props. Sometimes the remote component will have it's own store and can get it's own data. It doesn't need us to send it.
 }
+
+export default RemoteComponent

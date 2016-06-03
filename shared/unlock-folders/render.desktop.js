@@ -16,7 +16,7 @@ export default class Render extends Component<void, Props, void> {
     switch (this.props.phase) {
       case 'dead':
       case 'promptOtherDevice':
-        innerComponent = <DeviceList devices={this.props.devices} toPaperKeyInput={this.props.toPaperKeyInput} />
+        innerComponent = <DeviceList paperKeysHidden={this.props.paperKeysHidden} devices={this.props.devices} toPaperKeyInput={this.props.toPaperKeyInput} />
         break
       case 'paperKeyInput':
         innerComponent = (
