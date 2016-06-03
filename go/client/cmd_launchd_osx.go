@@ -60,7 +60,7 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 			envVars := install.DefaultLaunchdEnvVars(label)
 
 			plist := launchd.NewPlist(label, binPath, plistArgs, envVars, logFileName, "")
-			err := launchd.Install(plist, g.Log)
+			err := launchd.Install(plist, 5*time.Second, g.Log)
 			if err != nil {
 				g.Log.Fatalf("%v", err)
 			}
@@ -320,13 +320,13 @@ func (v *CmdLaunchdAction) ParseArgv(ctx *cli.Context) error {
 func (v *CmdLaunchdAction) Run() error {
 	switch v.action {
 	case "start":
-		return launchd.Start(v.label, v.G().Log)
+		return launchd.Start(v.label, 5*time.Second, v.G().Log)
 	case "restart":
-		return launchd.Restart(v.label, v.G().Log)
+		return launchd.Restart(v.label, 5*time.Second, v.G().Log)
 	case "stop":
-		return launchd.Stop(v.label, true, v.G().Log)
+		return launchd.Stop(v.label, 5*time.Second, v.G().Log)
 	case "uninstall":
-		return launchd.Uninstall(v.label, true, v.G().Log)
+		return launchd.Uninstall(v.label, 5*time.Second, v.G().Log)
 	}
 
 	return nil
@@ -335,7 +335,7 @@ func (v *CmdLaunchdAction) Run() error {
 func StartLaunchdService(g *libkb.GlobalContext, label string, wait bool) error {
 	launchService := launchd.NewService(label)
 	launchService.SetLogger(g.Log)
-	err := launchService.Start()
+	err := launchService.Start(5 * time.Second)
 	if err != nil {
 		return err
 	}
@@ -348,13 +348,13 @@ func StartLaunchdService(g *libkb.GlobalContext, label string, wait bool) error 
 func StopLaunchdService(g *libkb.GlobalContext, label string, wait bool) error {
 	launchService := launchd.NewService(label)
 	launchService.SetLogger(g.Log)
-	return launchService.Stop(wait)
+	return launchService.Stop(5 * time.Second)
 }
 
 func RestartLaunchdService(g *libkb.GlobalContext, label string) error {
 	launchService := launchd.NewService(label)
 	launchService.SetLogger(g.Log)
-	err := launchService.Restart()
+	err := launchService.Restart(5 * time.Second)
 	if err != nil {
 		return err
 	}
@@ -362,7 +362,7 @@ func RestartLaunchdService(g *libkb.GlobalContext, label string) error {
 }
 
 func WaitForService(g *libkb.GlobalContext, launchService launchd.Service) error {
-	launchdStatus, err := launchService.WaitForStatus(5 * time.Second)
+	launchdStatus, err := launchService.WaitForStatus(5*time.Second, 500*time.Millisecond)
 	if err != nil {
 		return err
 	}

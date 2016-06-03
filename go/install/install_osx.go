@@ -205,7 +205,7 @@ func keybasePlist(g *libkb.GlobalContext, binPath string, label string) launchd.
 }
 
 func installKeybaseService(g *libkb.GlobalContext, service launchd.Service, plist launchd.Plist) (*keybase1.ServiceStatus, error) {
-	err := launchd.Install(plist, g.Log)
+	err := launchd.Install(plist, 5*time.Second, g.Log)
 	if err != nil {
 		return nil, err
 	}
@@ -216,8 +216,8 @@ func installKeybaseService(g *libkb.GlobalContext, service launchd.Service, plis
 
 // Uninstall keybase all services for this run mode.
 func uninstallKeybaseServices(runMode libkb.RunMode) error {
-	err1 := launchd.Uninstall(AppServiceLabel.labelForRunMode(runMode), true, nil)
-	err2 := launchd.Uninstall(BrewServiceLabel.labelForRunMode(runMode), true, nil)
+	err1 := launchd.Uninstall(AppServiceLabel.labelForRunMode(runMode), 5*time.Second, nil)
+	err2 := launchd.Uninstall(BrewServiceLabel.labelForRunMode(runMode), 5*time.Second, nil)
 	return libkb.CombineErrors(err1, err2)
 }
 
@@ -250,7 +250,7 @@ func kbfsPlist(g *libkb.GlobalContext, kbfsBinPath string, label string) (plist 
 }
 
 func installKBFSService(g *libkb.GlobalContext, service launchd.Service, plist launchd.Plist) (*keybase1.ServiceStatus, error) {
-	err := launchd.Install(plist, g.Log)
+	err := launchd.Install(plist, 5*time.Second, g.Log)
 	if err != nil {
 		return nil, err
 	}
@@ -260,8 +260,8 @@ func installKBFSService(g *libkb.GlobalContext, service launchd.Service, plist l
 }
 
 func uninstallKBFSServices(runMode libkb.RunMode) error {
-	err1 := launchd.Uninstall(AppKBFSLabel.labelForRunMode(runMode), true, nil)
-	err2 := launchd.Uninstall(BrewKBFSLabel.labelForRunMode(runMode), true, nil)
+	err1 := launchd.Uninstall(AppKBFSLabel.labelForRunMode(runMode), 5*time.Second, nil)
+	err2 := launchd.Uninstall(BrewKBFSLabel.labelForRunMode(runMode), 5*time.Second, nil)
 	return libkb.CombineErrors(err1, err2)
 }
 
@@ -826,7 +826,7 @@ func keybaseUpdaterPlist(label string, serviceBinPath string, keybaseBinPath str
 }
 
 func installUpdaterService(service launchd.Service, plist launchd.Plist, log logger.Logger) (*keybase1.ServiceStatus, error) {
-	err := launchd.Install(plist, log)
+	err := launchd.Install(plist, 5*time.Second, log)
 	if err != nil {
 		return nil, err
 	}
@@ -836,5 +836,5 @@ func installUpdaterService(service launchd.Service, plist launchd.Plist, log log
 }
 
 func uninstallUpdater() error {
-	return launchd.Uninstall(string(AppUpdaterLabel), true, nil)
+	return launchd.Uninstall(string(AppUpdaterLabel), 5*time.Second, nil)
 }
