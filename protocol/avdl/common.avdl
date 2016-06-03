@@ -75,6 +75,7 @@ protocol Common {
     DeviceID deviceID;
     Time cTime;
     Time mTime;
+    Time lastUsedTime;
     KID encryptKey;
     KID verifyKey;
     int status;

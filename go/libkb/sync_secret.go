@@ -33,6 +33,7 @@ type DeviceKey struct {
 	Status        int                  `json:"status"`
 	LksServerHalf string               `json:"lks_server_half"`
 	PPGen         PassphraseGeneration `json:"passphrase_generation"`
+	LastUsedTime  int64                `json:"last_used_time"`
 }
 
 func (d DeviceKey) Display() string {
@@ -99,6 +100,10 @@ func (ss *SecretSyncer) loadFromStorage(uid keybase1.UID) (err error) {
 	}
 	if !found {
 		ss.G().Log.Debug("| Loaded empty record set")
+		return nil
+	}
+	if ss.cachedSyncedSecretsOutOfDate(&tmp) {
+		ss.G().Log.Debug("| Synced secrets out of date")
 		return nil
 	}
 
@@ -295,6 +300,19 @@ func (ss *SecretSyncer) DumpPrivateKeys() {
 		ss.G().Log.Info("Private key: %s", s)
 		ss.G().Log.Info("  -- kid: %s, keytype: %d, bits: %d, algo: %d", key.Kid, key.KeyType, key.KeyBits, key.KeyAlgo)
 	}
+}
+
+// As we add more fields to the data we're caching here, we need to detect the
+// cases where our cached data is missing the new fields. We can extend this
+// function with more cases as we add more fields.
+func (ss *SecretSyncer) cachedSyncedSecretsOutOfDate(cached *ServerPrivateKeys) bool {
+	for _, dev := range cached.Devices {
+		if dev.LastUsedTime == 0 {
+			ss.G().Log.Debug("cachedSyncedSecretsOutOfDate noticed a cached device with no last used time")
+			return true
+		}
+	}
+	return false
 }
 
 func (k ServerPrivateKey) ToSKB(gc *GlobalContext) (*SKB, error) {

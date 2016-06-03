@@ -34,7 +34,7 @@ export default class Render extends Component<void, Props, void> {
         <Icon
           underlayColor={'transparent'}
           style={{...styleMenu, color: menuColor, marginRight: 16}}
-          type='fa-custom-icon-hamburger'
+          type='fa-kb-iconfont-hamburger'
           onClick={this.props.onTogglePopupMenu} />
       </Box>
     )

@@ -65,14 +65,15 @@ type User struct {
 }
 
 type Device struct {
-	Type       string   `codec:"type" json:"type"`
-	Name       string   `codec:"name" json:"name"`
-	DeviceID   DeviceID `codec:"deviceID" json:"deviceID"`
-	CTime      Time     `codec:"cTime" json:"cTime"`
-	MTime      Time     `codec:"mTime" json:"mTime"`
-	EncryptKey KID      `codec:"encryptKey" json:"encryptKey"`
-	VerifyKey  KID      `codec:"verifyKey" json:"verifyKey"`
-	Status     int      `codec:"status" json:"status"`
+	Type         string   `codec:"type" json:"type"`
+	Name         string   `codec:"name" json:"name"`
+	DeviceID     DeviceID `codec:"deviceID" json:"deviceID"`
+	CTime        Time     `codec:"cTime" json:"cTime"`
+	MTime        Time     `codec:"mTime" json:"mTime"`
+	LastUsedTime Time     `codec:"lastUsedTime" json:"lastUsedTime"`
+	EncryptKey   KID      `codec:"encryptKey" json:"encryptKey"`
+	VerifyKey    KID      `codec:"verifyKey" json:"verifyKey"`
+	Status       int      `codec:"status" json:"status"`
 }
 
 type Stream struct {

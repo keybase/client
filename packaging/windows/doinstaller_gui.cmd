@@ -65,7 +65,7 @@ IF %ERRORLEVEL% NEQ 0 (
 )
 
 :: Double check that updater is codesigned
-signtool verify /pa %GOPATH%\src\github.com\keybase\go-updater\service\updater.exe
+signtool verify /pa %GOPATH%\src\github.com\keybase\go-updater\service\upd.exe
 IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
@@ -83,11 +83,9 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-echo off
-
 go get github.com/keybase/release
 go install github.com/keybase/release
-set release_bin=%GOPATH%\bin\windows_386\release.exe
+set ReleaseBin=%GOPATH%\bin\windows_386\release.exe
 
 
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
@@ -103,9 +101,14 @@ IF %ERRORLEVEL% NEQ 0 (
 
 if NOT DEFINED JSON_UPDATE_FILENAME set JSON_UPDATE_FILENAME=update-windows-prod.json
 
-%GOPATH%\bin\windows_386\release update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows > %JSON_UPDATE_FILENAME%
-::"%ProgramFiles%\S3 Browser\s3browser-con.exe" upload keybase %KEYBASE_INSTALLER_NAME% prerelease.keybase.io/windows
-:: After sanity checking, do:
-::"%ProgramFiles%\S3 Browser\s3browser-con.exe" upload keybase update-windows-prod.json prerelease.keybase.io
-:: popd
-::%GOPATH%\bin\windows_386\release index-html --bucket-name=prerelease.keybase.io --prefixes="windows/" --upload="windows/index.html"
+:: Run keybase sign to get signature
+set KeybaseBin="c:\Program Files (x86)\Keybase\keybase.exe"
+set SigFile=sig.txt
+%KeybaseBin% sign -d -i %KEYBASE_INSTALLER_NAME% -o %SigFile%
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
+
+%ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% > %JSON_UPDATE_FILENAME%
+
+echo off
