@@ -214,6 +214,9 @@ func (m mockGregord) ConsumePublishMessage(_ context.Context, _ gregor1.Message)
 func (m mockGregord) Ping(_ context.Context) (string, error) {
 	return "pong", nil
 }
+func (m mockGregord) StateByCategoryPrefix(_ context.Context, _ gregor1.StateByCategoryPrefixArg) (gregor1.State, error) {
+	return gregor1.State{}, errors.New("unimplemented")
+}
 
 func (m mockGregord) newIbm(uid gregor1.UID, msgid gregor1.MsgID) gregor1.Message {
 	m.fc.Advance(time.Minute)
