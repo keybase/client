@@ -30,7 +30,8 @@ export default function (state: State = initialState, action: NotificationAction
       keyState[action.payload.key] = action.payload.on
 
       // Badge if we have a new, other stuff later
-      const menuBadge = Math.random() < 0.5// TEMP keyState.newTLFs
+      const menuBadge = keyState.newTLFs
+      // TEMP if you want to see the menu badge change // const menuBadge = Math.random() < 0.5
 
       return {
         ...state,
