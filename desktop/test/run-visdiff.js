@@ -1,6 +1,7 @@
 import process from 'process'
 import fs from 'fs'
 import path from 'path'
+import crypto from 'crypto'
 import {execSync} from 'child_process'
 import _ from 'lodash'
 import gm from 'gm'
@@ -17,12 +18,34 @@ const DIFF_SAME = 'same'
 
 const DRY_RUN = !!process.env['VISDIFF_DRY_RUN']
 
+function packageHash () {
+  return crypto.createHash('sha1').update(fs.readFileSync('package.json')).digest('hex')
+}
+
+function checkout (commit) {
+  const origPackageHash = packageHash()
+  execSync(`rm -rf node_modules.${origPackageHash} && mv node_modules node_modules.${origPackageHash}`)
+  console.log(`Shelved node_modules to node_modules.${origPackageHash}.`)
+
+  execSync(`git checkout -f ${commit}`)
+  console.log(`Checked out ${commit}.`)
+
+  const newPackageHash = packageHash()
+  if (fs.existsSync(`node_modules.${newPackageHash}`)) {
+    console.log(`Reusing existing node_modules.${newPackageHash} directory.`)
+    execSync(`mv node_modules.${newPackageHash} node_modules`)
+  } else {
+    console.log(`Installing dependencies for package.json:${newPackageHash}...`)
+    execSync('../packaging/npm_mess.sh', {stdio: 'inherit'})
+  }
+}
+
 function renderScreenshots (commitRange) {
   for (const commit of commitRange) {
+    checkout(commit)
     console.log(`Rendering screenshots of ${commit}`)
-    execSync(`git checkout -f ${commit} && mkdir -p screenshots/${commit} && npm run render-screenshots -- screenshots/${commit}`)
+    execSync(`mkdir -p screenshots/${commit} && npm run render-screenshots -- screenshots/${commit}`, {stdio: 'inherit'})
   }
-  execSync(`git checkout -f ${commitRange[1]}`)
 }
 
 function compareScreenshots (commitRange, diffDir, callback) {
