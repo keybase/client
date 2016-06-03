@@ -30,22 +30,26 @@ const propsNormal = {
   }
 }
 
+const propsTruncated = {
+  ...propsNormal,
+  parentProps: {
+    style: {
+      ...globalStyles.flexBoxColumn,
+      width: 325,
+      height: 200,
+      padding: 2,
+      backgroundColor: 'red'
+    }
+  }
+}
+
 const dumbComponentMap: DumbComponentMap<Menubar> = {
   component: Menubar,
   mocks: {
-    'Truncated': {
-      ...propsNormal,
-      parentProps: {
-        style: {
-          ...globalStyles.flexBoxColumn,
-          width: 325,
-          height: 200,
-          padding: 2,
-          backgroundColor: 'red'
-        }
-      }
-    },
-    'Normal': propsNormal,
+    'Private: Normal': propsNormal,
+    'Private: Truncated': propsTruncated,
+    'Public: Normal': {...propsNormal, openToPrivate: false},
+    'Public: Truncated': {...propsTruncated, openToPrivate: false},
     'LoggedOut': {
       ...propsNormal,
       loggedIn: false
