@@ -2,7 +2,7 @@
 import Intro from './intro.render'
 import type {DumbComponentMap} from '../../constants/types/more'
 
-import type IntroProps from './intro';
+import type IntroProps from './intro'
 
 const props: IntroProps = {
   onSignup: () => {},

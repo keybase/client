@@ -2,12 +2,12 @@
 import Login from './index.render'
 import type {DumbComponentMap} from '../../constants/types/more'
 
-import type LoginProps from './';
+import type LoginProps from './'
 
-function createLogger(event) {
+function createLogger (event) {
   return function () {
-    console.log(`login/login => ${event}`, arguments);
-  };
+    console.log(`login/login => ${event}`, arguments)
+  }
 }
 
 const props: LoginProps = {
@@ -32,12 +32,14 @@ export const dumbMap: DumbComponentMap<Login> = {
   component: Login,
   mocks: {
     'Single previous user': props,
-    'Error': Object.assign({}, props, {
+    'Error': {
+      ...props,
       error: 'Oh, no! What a mess!'
-    }),
-    'Multiple previous users': Object.assign({}, props, {
+    },
+    'Multiple previous users': {
+      ...props,
       users: ['awendland', 'mgood', 'marcopolo']
-    })
+    }
   }
 }
 
