@@ -8,6 +8,8 @@ language: go
 go:
   - 1.6
 install: true
+services:
+  - docker
 before_install:
   - if [ "$TRAVIS_OS_NAME" == 'linux' ]; then
       export DEBIAN_FRONTEND=noninteractive;
@@ -24,9 +26,10 @@ before_install:
       cd $GOPATH/src/github.com/keybase/kbfs;
     fi
   - if [ "$TRAVIS_OS_NAME" == 'linux' ] && [ "$TRAVIS_PULL_REQUEST" == 'false' ]; then
-      sudo apt-get install -q -y --force-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" docker-engine;
-      docker login -e $CI_EMAIL -u $CI_USER -p $CI_PASS $CI_HOST;
-      docker pull $CI_HOST/kbclient && docker tag $CI_HOST/kbclient kbclient;
+      sudo apt-get install -q -y --force-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" docker-engine &&
+      docker login -e $CI_EMAIL -u $DOCKER_USER -p $DOCKER_PASS &&
+      docker pull $DOCKER_USER/kbclient &&
+      docker tag $DOCKER_USER/kbclient kbclient;
     fi
 script:
   - go get -u github.com/golang/lint/golint
@@ -44,8 +47,8 @@ script:
 after_success:
   - if [ "$TRAVIS_OS_NAME" == 'linux' ] && [ "$TRAVIS_PULL_REQUEST" == 'false' ]; then
       cp $GOPATH/bin/kbfsfuse $GOPATH/src/github.com/keybase/kbfs/kbfsfuse/kbfsfuse &&
-      docker build -t $CI_HOST/kbfsfuse --build-arg KEYBASE_TEST_ROOT_CERT_PEM="$KEYBASE_TEST_ROOT_CERT_PEM" $GOPATH/src/github.com/keybase/kbfs/kbfsfuse &&
-      docker push $CI_HOST/kbfsfuse;
+      docker build -t $DOCKER_USER/kbfsfuse --build-arg KEYBASE_TEST_ROOT_CERT_PEM="$KEYBASE_TEST_ROOT_CERT_PEM" $GOPATH/src/github.com/keybase/kbfs/kbfsfuse &&
+      docker push $DOCKER_USER/kbfsfuse;
     fi
 notifications:
   slack: keybase:WKlhs55Mb4am4obv1rNRg8P0
