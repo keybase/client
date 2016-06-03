@@ -10,7 +10,7 @@ trap _term SIGTERM
 
 keybase service &
 SERVICE=$!
-kbfsfuse -debug -mdserver $MDSERVER_ADDR -bserver $BSERVER_ADDR -enable-sharing-before-signup /keybase &
+kbfsfuse -debug -mdserver $MDSERVER_ADDR -bserver $BSERVER_ADDR /keybase &
 KBFS=$!
 
 wait "$SERVICE"
