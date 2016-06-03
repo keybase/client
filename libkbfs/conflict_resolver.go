@@ -2477,7 +2477,8 @@ func (cr *ConflictResolver) syncTree(ctx context.Context, lState *lockState,
 				// For an indirect file block, make sure a new
 				// reference is made for every child block.
 				for _, iptr := range fblock.IPtrs {
-					bps.addNewBlock(iptr.BlockPointer, nil, ReadyBlockData{})
+					bps.addNewBlock(iptr.BlockPointer, nil, ReadyBlockData{},
+						nil)
 					// TODO: add block updates to the op chain for these guys
 					// (need encoded size!)
 					newMD.AddRefBlock(iptr.BlockInfo)

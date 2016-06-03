@@ -1890,7 +1890,10 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 
 				fblock.IPtrs[i].BlockInfo = newInfo
 				md.AddRefBlock(newInfo)
-				si.bps.addNewBlock(newInfo.BlockPointer, block, readyBlockData)
+				si.bps.addNewBlock(newInfo.BlockPointer, block, readyBlockData,
+					func() error {
+						return df.syncedBlock(localPtr)
+					})
 				err = df.syncingBlock(localPtr)
 				if err != nil {
 					return nil, nil, syncState, err
@@ -2012,6 +2015,7 @@ func (fbo *folderBlockOps) CleanupSyncState(
 	defer fbo.blockLock.Unlock(lState)
 	// Old syncing blocks are now just dirty
 	if df := fbo.dirtyFiles[file.tailPointer()]; df != nil {
+		fbo.log.CDebugf(nil, "Calling error on sync")
 		df.errorOnSync()
 	}
 
@@ -2044,7 +2048,11 @@ func (fbo *folderBlockOps) FinishSync(
 		}
 	}
 
-	delete(fbo.dirtyFiles, oldPath.tailPointer())
+	df := fbo.dirtyFiles[oldPath.tailPointer()]
+	if df != nil {
+		df.syncFinished()
+		delete(fbo.dirtyFiles, oldPath.tailPointer())
+	}
 	// Redo any writes or truncates that happened to our file while
 	// the sync was happening.
 	deletes := fbo.deferredDirtyDeletes
