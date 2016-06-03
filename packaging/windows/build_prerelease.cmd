@@ -18,6 +18,7 @@ for /f %%i in ('winresource.exe -cb') do set KEYBASE_BUILD=%%i
 echo %KEYBASE_BUILD%
 go build -a -tags "prerelease production" -ldflags="-X github.com/keybase/client/go/libkb.PrereleaseBuild=%KEYBASE_BUILD%"
 
+
 :: Then build kbfsdokan.
 :: First, sanity-check the hashes
 if NOT EXIST %GOPATH%\src\github.com\keybase\kbfs\dokan\dokan.lib copy %GOPATH%\bin\dokan-dev\dokan-v0.8.0\Win32\Release\dokan.lib %GOPATH%\src\github.com\keybase\kbfs\dokan
@@ -36,7 +37,7 @@ popd
 
 :: Updater
 pushd %GOPATH%\src\github.com\keybase\go-updater\service
-go build -a -o upd.exe
+go build -a -o updater.exe
 popd
 
 :: Then the desktop:

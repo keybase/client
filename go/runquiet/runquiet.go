@@ -28,26 +28,15 @@ func main() {
 	// Do this awkward thing so we can pass along the rest of the command line as-is
 
 	doWait := false
-	doUAC := false
 	doHide := true
 	for i := 1; i < 3 && (i+1) < len(os.Args); i++ {
 		if strings.EqualFold(os.Args[argsIndex], "-wait") {
 			argsIndex++
 			doWait = true
-		} else if strings.EqualFold(os.Args[argsIndex], "-UAC") {
-			argsIndex++
-			doUAC = true
 		} else if strings.EqualFold(os.Args[argsIndex], "-show") {
 			argsIndex++
 			doHide = false
 		}
-	}
-
-	if doUAC {
-		if err := shellExecuteEx(os.Args[argsIndex], "runas"); err != nil {
-			fmt.Printf("Unsuccessful shellExecute: Error %v\n", err)
-		}
-		return
 	}
 
 	attr := &syscall.ProcAttr{

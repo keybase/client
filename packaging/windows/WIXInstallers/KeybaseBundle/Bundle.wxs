@@ -72,7 +72,26 @@
                  Format="raw"
                  Win64="yes"
                  />
-
+    <!-- For the Inno command line client -->
+    <util:RegistrySearch Id="InnoCLIUninstall"
+                 After="InnoUninstall364"                         
+                 Variable="InnoUninstallString"
+                 Condition="NOT InnoUninstallString"
+                 Root="HKLM"
+                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{70E747DE-4E09-44B0-ACAD-784AA9D79C02}_is1"
+                 Value="QuietUninstallString"
+                 Format="raw"
+                 />
+    <util:RegistrySearch Id="InnoCLIUninstall64"
+                 After="InnoCLIUninstall"
+                 Condition="NOT InnoUninstallString"
+                 Variable="InnoUninstallString"
+                 Root="HKLM"
+                 Key="SOFTWARE\Microsoft\Windows\CurrentVersion\Uninstall\{70E747DE-4E09-44B0-ACAD-784AA9D79C02}_is1"
+                 Value="QuietUninstallString"
+                 Format="raw"
+                 Win64="yes"
+                 />
 
     <util:RegistrySearch Id="DokanUninstall"
                  Variable="DokanUninstallString"
@@ -91,35 +110,11 @@
                  Format="raw"
                  Win64="yes"
                  />
-    <!--
-    <bal:Condition Message="Please uninstall previous Keybase version and reboot before proceeding with this update: [WixBundleOriginalSource]">
-      NOT InnoUninstallString
-    </bal:Condition>
-    -->
-
-    <!--
-    <util:FileSearch
-      Id='SearchForDokanSys'
-      Variable="DokanSysFilePresent"
-      Result="exists"
-      Path="[SystemFolder]drivers\dokan.sys"
-       />
-    <bal:Condition Message="Please remove [SystemFolder]drivers\dokan.sys before proceeding with this update.">
-      NOT DokanSysFilePresent
-    </bal:Condition>
-
-    <util:FileSearch
-      Id='SearchForDokan1Sys'
-      Variable="Dokan1SysFilePresent"
-      Result="exists"
-      Path="[SystemFolder]drivers\dokan1.sys"
-       />
-    <bal:Condition Message="Please remove [SystemFolder]drivers\dokan1.sys before proceeding with this update.">
-      NOT Dokan1SysFilePresent
-    </bal:Condition>
-    -->
 
     <Chain>
+      <!-- Run whatever quiet uninstaller we detected. With this hack, we can't distinguish
+           between CLI and KBFS, and must reboot regardless - another, custom MSI for cleanup
+           could get around this possibly. -->
       <ExePackage
         SourceFile="$(env.GOPATH)\src\github.com\keybase\client\go\runquiet\runquiet.exe"
           InstallCommand="-wait [InnoUninstallString] /NORESTART"
@@ -129,6 +124,7 @@
           Permanent="yes">
         <ExitCode Behavior="forceReboot"/>
       </ExePackage>
+      
       <ExePackage
         SourceFile="$(env.GOPATH)\bin\dokan-dev\dokan-v1.0.0-RC4\DokanSetup.exe"
           InstallCommand="/quiet"
@@ -138,21 +134,10 @@
           Permanent="no">
       </ExePackage>
       
-      <!--
-      <ExePackage
-        SourceFile="$(env.GOPATH)\bin\dokan-dev\dokan-v0.8.0\DokanInstall_0.8.0_redist.exe"
-          InstallCommand="/s"
-          DetectCondition="ExeDetectedVariable"
-          PerMachine="yes"
-          Permanent="yes">
-      </ExePackage>
-      -->
-
       <MsiPackage Id="KeybasePrograms" 
                   SourceFile="$(var.KeybaseApps.TargetPath)" 
                   DisplayInternalUI='yes'
                   Permanent="no">
-          <MsiProperty Name="ISELEVATED" Value="1" />
       </MsiPackage>
 		</Chain>
 	</Bundle>
