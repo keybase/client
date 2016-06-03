@@ -10,6 +10,7 @@ import type {Dispatch} from '../constants/types/flux'
 import type {FavoriteList} from '../constants/favorite'
 import type {Props as FolderProps} from '../folders/render'
 
+const TEMP_INJECT_NEW = true // TODO feature flag when new feature flags are in
 const folderToProps = (dispatch: Dispatch, folders: Array<Folder>, username: string = ''): FolderProps => { // eslint-disable-line space-infix-ops
   let privateBadge = 0
   let publicBadge = 0
@@ -26,8 +27,9 @@ const folderToProps = (dispatch: Dispatch, folders: Array<Folder>, username: str
 
     const groupAvatar = f.private ? (users.length > 2) : (users.length > 1)
     const userAvatar = groupAvatar ? null : users[users.length - 1].username
-    const meta = null
+    // const meta = null
     // const meta = (__DEV__ && Math.random() < 0.2) ? 'new' : null // uncomment to test seeing new before we integrate fully
+    const meta = (__DEV__ && TEMP_INJECT_NEW && Math.random() < 0.2) ? 'new' : null // TEMP
 
     if (meta === 'new') {
       if (f.private) {
