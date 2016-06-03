@@ -43,13 +43,17 @@ const propsTruncated = {
   }
 }
 
+const propsMenuShowing = {...propsNormal, openWithMenuShowing: true}
+
 const dumbComponentMap: DumbComponentMap<Menubar> = {
   component: Menubar,
   mocks: {
     'Private: Normal': propsNormal,
     'Private: Truncated': propsTruncated,
+    'Private: Menu Showing': propsMenuShowing,
     'Public: Normal': {...propsNormal, openToPrivate: false},
     'Public: Truncated': {...propsTruncated, openToPrivate: false},
+    'Public: Menu Showing': {...propsMenuShowing, openToPrivate: false},
     'LoggedOut': {
       ...propsNormal,
       loggedIn: false

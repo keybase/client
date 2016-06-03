@@ -13,7 +13,8 @@ type State = {
 }
 
 type DefaultProps = {
-  openToPrivate: boolean
+  openToPrivate: boolean,
+  openWithMenuShowing: boolean
 }
 
 class Render extends Component<DefaultProps, Props, State> {
@@ -25,7 +26,7 @@ class Render extends Component<DefaultProps, Props, State> {
 
     this.state = {
       showingPrivate: props.openToPrivate,
-      showingMenu: false
+      showingMenu: props.openWithMenuShowing
     }
   }
 
@@ -130,7 +131,8 @@ class Render extends Component<DefaultProps, Props, State> {
 }
 
 Render.defaultProps = {
-  openToPrivate: true
+  openToPrivate: true,
+  openWithMenuShowing: false
 }
 
 const stylesContainer = {

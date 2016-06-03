@@ -19,7 +19,8 @@ export type Props = {
   debug?: boolean,
   loggedIn: boolean,
   folderProps: ?FolderProps,
-  openToPrivate?: boolean
+  openToPrivate?: boolean,
+  openWithMenuShowing?: boolean
 }
 
 export default class Render extends Component<void, Props, void> {}
