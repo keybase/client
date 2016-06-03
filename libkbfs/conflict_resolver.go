@@ -908,12 +908,6 @@ func (cr *ConflictResolver) resolveMergedPaths(ctx context.Context,
 	// Now we can search for all the merged paths that need to be
 	// updated due to unmerged operations.  Start with a clean node
 	// cache for the merged branch.
-	mergedNodeCache := newNodeCacheStandard(cr.fbo.folderBranch)
-	// Initialize the root node.  There will always be at least one
-	// unmerged path.
-	mergedNodeCache.GetOrCreate(mergedChains.mostRecentMD.data.Dir.BlockPointer,
-		unmergedPaths[0].path[0].Name, nil)
-
 	newPtrs := make(map[BlockPointer]bool)
 	for ptr := range mergedChains.byMostRecent {
 		newPtrs[ptr] = true
@@ -927,6 +921,7 @@ func (cr *ConflictResolver) resolveMergedPaths(ctx context.Context,
 		return mergedPaths, recreateOps, newUnmergedPaths, nil
 	}
 
+	mergedNodeCache := newNodeCacheStandard(cr.fbo.folderBranch)
 	nodeMap, err := cr.fbo.blocks.SearchForNodes(
 		ctx, mergedNodeCache, ptrs, newPtrs, mergedChains.mostRecentMD)
 	if err != nil {
@@ -1436,8 +1431,6 @@ func (cr *ConflictResolver) fixRenameConflicts(ctx context.Context,
 	}
 
 	mergedNodeCache := newNodeCacheStandard(cr.fbo.folderBranch)
-	mergedNodeCache.GetOrCreate(mergedChains.mostRecentMD.data.Dir.BlockPointer,
-		string(mergedChains.mostRecentMD.GetTlfHandle().GetCanonicalName()), nil)
 	nodeMap, err := cr.fbo.blocks.SearchForNodes(
 		ctx, mergedNodeCache, ptrs, newPtrs, mergedChains.mostRecentMD)
 	if err != nil {
@@ -2971,9 +2964,6 @@ func (cr *ConflictResolver) getOpsForLocalNotification(ctx context.Context,
 	// We need to get the complete set of updated merged paths, so
 	// that we can correctly order the chains from the root outward.
 	mergedNodeCache := newNodeCacheStandard(cr.fbo.folderBranch)
-	// Initialize the root node.
-	mergedNodeCache.GetOrCreate(md.data.Dir.BlockPointer,
-		string(md.GetTlfHandle().GetCanonicalName()), nil)
 	nodeMap, err := cr.fbo.blocks.SearchForNodes(
 		ctx, mergedNodeCache, ptrs, newPtrs, md)
 	if err != nil {

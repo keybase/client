@@ -2030,7 +2030,19 @@ func (fbo *folderBlockOps) SearchForNodes(ctx context.Context,
 
 	// Start with the root node
 	rootPtr := md.data.Dir.BlockPointer
-	node := cache.Get(rootPtr.ref())
+	var node Node
+	if cache == fbo.nodeCache {
+		// Root node should already exist.
+		node = cache.Get(rootPtr.ref())
+	} else {
+		// Root node may or may not exist.
+		var err error
+		node, err = cache.GetOrCreate(rootPtr,
+			string(md.GetTlfHandle().GetCanonicalName()), nil)
+		if err != nil {
+			return nil, err
+		}
+	}
 	if node == nil {
 		return nil, fmt.Errorf("Cannot find root node corresponding to %v",
 			rootPtr)
