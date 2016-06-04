@@ -5,24 +5,26 @@
 // without showing a console.
 // Must be built with -ldflags "-H windowsgui"
 
+// +build windows
+
 package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 	"strings"
 	"syscall"
 	"time"
 )
 
-const CREATE_NEW_CONSOLE = 0x00000010
+const flagCreateNewConsole = 0x00000010
 
 func main() {
 	argsIndex := 1 // 0 is the name of this program, 1 is either the one to launch or the "wait" option
 
 	if len(os.Args) < 2 {
-		fmt.Printf("ERROR: no arguments. Use [-wait] programname [arg arg arg]\n")
-		os.Exit(1)
+		log.Fatal("ERROR: no arguments. Use [-wait] programname [arg arg arg]\n")
 	}
 
 	// Do this awkward thing so we can pass along the rest of the command line as-is
@@ -44,7 +46,7 @@ func main() {
 		Env:   syscall.Environ(),
 		Sys: &syscall.SysProcAttr{
 			HideWindow:    doHide,
-			CreationFlags: CREATE_NEW_CONSOLE,
+			CreationFlags: flagCreateNewConsole,
 		},
 	}
 	fmt.Printf("Launching %s with args %v\n", os.Args[argsIndex], os.Args[argsIndex:])
