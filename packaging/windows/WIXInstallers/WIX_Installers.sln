@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 14
+VisualStudioVersion = 14.0.24720.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "KeybaseApps", "KeybaseApps\KeybaseApps.wixproj", "{CB18799F-A8C7-4571-B80F-6C00A0CD88FD}"
+EndProject
+Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "KeybaseBundle", "KeybaseBundle\KeybaseBundle.wixproj", "{418432AB-0366-40FD-A396-8CC0C4200252}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x86 = Debug|x86
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{CB18799F-A8C7-4571-B80F-6C00A0CD88FD}.Debug|x86.ActiveCfg = Debug|x86
+		{CB18799F-A8C7-4571-B80F-6C00A0CD88FD}.Debug|x86.Build.0 = Debug|x86
+		{CB18799F-A8C7-4571-B80F-6C00A0CD88FD}.Release|x86.ActiveCfg = Release|x86
+		{CB18799F-A8C7-4571-B80F-6C00A0CD88FD}.Release|x86.Build.0 = Release|x86
+		{418432AB-0366-40FD-A396-8CC0C4200252}.Debug|x86.ActiveCfg = Debug|x86
+		{418432AB-0366-40FD-A396-8CC0C4200252}.Debug|x86.Build.0 = Debug|x86
+		{418432AB-0366-40FD-A396-8CC0C4200252}.Release|x86.ActiveCfg = Release|x86
+		{418432AB-0366-40FD-A396-8CC0C4200252}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
