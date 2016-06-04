@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg width="16px" height="16px" viewBox="0 0 16 16" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: sketchtool 3.8.2 (29753) - http://www.bohemiancoding.com/sketch -->
+    <title>29B61D07-B447-4B43-9038-0C965AF59F4F</title>
+    <desc>Created with sketchtool.</desc>
+    <defs></defs>
+    <g id="Icons" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <g id="Style-guide---Desktop---Icons-2" transform="translate(-340.000000, -1569.000000)">
+            <g id="kb-iconfont-identity-pgp" transform="translate(340.000000, 1569.000000)">
+                <rect id="icon-area" fill="#D8D8D8" opacity="0" x="0" y="0" width="16" height="16"></rect>
+                <path d="M8.00031728,3.31708579 L9.00026999,4.29264255 L7.80035191,5.46328611 L15,12.4872836 L13.8003074,13.6579167 L6.60044457,6.63391918 L5.4003332,7.80475131 L4.40037462,6.82918883 L6.80051145,4.48760838 L4.40054643,2.14619556 L6.60041235,0 L9.00044181,2.34126615 L8.00031728,3.31708579 Z M1.99989417,4.48771313 L1.00010738,3.51210876 L4.60004418,0 L5.60021753,0.975772013 L3.2002883,3.31701024 L5.60011015,5.65849289 L3.40002945,7.80468845 L1,5.46321277 L1.99989417,4.48771313 Z M10.2002632,14.8293669 L11.4001706,16 L13.8002,13.6585243 L12.6002927,12.4881008 L10.2002632,14.8293669 Z M10.1993183,12.4877655 L8.99919616,11.3171325 L10.1988887,10.1464994 L11.3990108,11.3169229 L10.1993183,12.4877655 Z" id="Icon-pgp-key" fill="#000000"></path>
+            </g>
+        </g>
+    </g>
+</svg>

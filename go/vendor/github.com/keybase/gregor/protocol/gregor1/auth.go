@@ -8,8 +8,6 @@ import (
 	context "golang.org/x/net/context"
 )
 
-type SessionID string
-type SessionToken string
 type AuthResult struct {
 	Uid UID       `codec:"uid" json:"uid"`
 	Sid SessionID `codec:"sid" json:"sid"`
@@ -19,13 +17,8 @@ type AuthenticateSessionTokenArg struct {
 	Session SessionToken `codec:"session" json:"session"`
 }
 
-type RevokeSessionIDsArg struct {
-	SessionIDs []SessionID `codec:"sessionIDs" json:"sessionIDs"`
-}
-
 type AuthInterface interface {
 	AuthenticateSessionToken(context.Context, SessionToken) (AuthResult, error)
-	RevokeSessionIDs(context.Context, []SessionID) error
 }
 
 func AuthProtocol(i AuthInterface) rpc.Protocol {
@@ -48,22 +41,6 @@ func AuthProtocol(i AuthInterface) rpc.Protocol {
 				},
 				MethodType: rpc.MethodCall,
 			},
-			"revokeSessionIDs": {
-				MakeArg: func() interface{} {
-					ret := make([]RevokeSessionIDsArg, 1)
-					return &ret
-				},
-				Handler: func(ctx context.Context, args interface{}) (ret interface{}, err error) {
-					typedArgs, ok := args.(*[]RevokeSessionIDsArg)
-					if !ok {
-						err = rpc.NewTypeError((*[]RevokeSessionIDsArg)(nil), args)
-						return
-					}
-					err = i.RevokeSessionIDs(ctx, (*typedArgs)[0].SessionIDs)
-					return
-				},
-				MethodType: rpc.MethodCall,
-			},
 		},
 	}
 }
@@ -75,11 +52,5 @@ type AuthClient struct {
 func (c AuthClient) AuthenticateSessionToken(ctx context.Context, session SessionToken) (res AuthResult, err error) {
 	__arg := AuthenticateSessionTokenArg{Session: session}
 	err = c.Cli.Call(ctx, "gregor.1.auth.authenticateSessionToken", []interface{}{__arg}, &res)
-	return
-}
-
-func (c AuthClient) RevokeSessionIDs(ctx context.Context, sessionIDs []SessionID) (err error) {
-	__arg := RevokeSessionIDsArg{SessionIDs: sessionIDs}
-	err = c.Cli.Call(ctx, "gregor.1.auth.revokeSessionIDs", []interface{}{__arg}, nil)
 	return
 }

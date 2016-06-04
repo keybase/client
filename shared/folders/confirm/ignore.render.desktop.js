@@ -56,8 +56,8 @@ const borderColorThemed = {
 }
 
 const iconThemed = {
-  'public': 'folder-public-48',
-  'private': 'folder-private-48'
+  'public': 'icon-folder-public-48',
+  'private': 'icon-folder-private-48'
 }
 
 export default Render

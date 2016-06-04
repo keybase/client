@@ -136,7 +136,7 @@ export default {
       }
     }
   },
-  'UsernameEmail': {
+  'UsernameEmail (Login)': {
     component: usernameEmail,
     mocks: {
       'Start': {

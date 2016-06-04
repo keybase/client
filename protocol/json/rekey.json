@@ -222,6 +222,10 @@
           "name": "mTime"
         },
         {
+          "type": "Time",
+          "name": "lastUsedTime"
+        },
+        {
           "type": "KID",
           "name": "encryptKey"
         },
@@ -417,35 +421,11 @@
     },
     {
       "type": "record",
-      "name": "ProblemUser",
-      "fields": [
-        {
-          "type": "User",
-          "name": "user"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "Device"
-          },
-          "name": "problemDevices"
-        }
-      ]
-    },
-    {
-      "type": "record",
-      "name": "RekeyTLF",
+      "name": "ProblemTLF",
       "fields": [
         {
           "type": "TLF",
           "name": "tlf"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "ProblemUser"
-          },
-          "name": "problemUsers"
         },
         {
           "type": "int",
@@ -454,11 +434,33 @@
         {
           "type": {
             "type": "array",
-            "items": "DeviceID"
+            "items": "KID"
           },
           "name": "solutions"
         }
       ]
+    },
+    {
+      "type": "record",
+      "name": "ProblemSet",
+      "fields": [
+        {
+          "type": "User",
+          "name": "user"
+        },
+        {
+          "type": "KID",
+          "name": "kid"
+        },
+        {
+          "type": {
+            "type": "array",
+            "items": "ProblemTLF"
+          },
+          "name": "tlfs"
+        }
+      ],
+      "doc": "ProblemSet is for a particular (user,kid) that initiated a rekey problem.\n   This problem consists of one or more problem TLFs, which are individually scored\n   and have attendant solutions --- devices that if they came online can rekey and\n   solve the ProblemTLF."
     },
     {
       "type": "enum",
@@ -479,7 +481,7 @@
         }
       ],
       "response": "null",
-      "doc": "ShowPendingRekeyStatus shows either pending gregor-initiated rekey harassments\n   * or nothing if none were pending."
+      "doc": "ShowPendingRekeyStatus shows either pending gregor-initiated rekey harassments\n   or nothing if none were pending."
     },
     "showRekeyStatus": {
       "request": [
@@ -510,20 +512,17 @@
         }
       ],
       "response": "null",
-      "doc": "ShowRekeyStatus is used by the CLI to kick off a \"ShowRekeyStatus\" window for the given user based on\n   * the passed-in parameters. These are the parameters that are typically delivered via direct\n   * gregor injection. Will be used primarily in debugging or in advanced command-line usage."
+      "doc": "ShowRekeyStatus is used by the CLI to kick off a \"ShowRekeyStatus\" window for the given user based on\n   the passed-in parameters. These are the parameters that are typically delivered via direct\n   gregor injection. Will be used primarily in debugging or in advanced command-line usage."
     },
-    "getRekeyTLFs": {
+    "getProblemSet": {
       "request": [
         {
           "name": "sessionID",
           "type": "int"
         }
       ],
-      "response": {
-        "type": "array",
-        "items": "RekeyTLF"
-      },
-      "doc": "getRekeyTLFs is called by the UI to render which TLFs need to be fixed.\n   * The UI will repeatedly poll this RPC when it gets a `rekeyChanged` notice\n   * below"
+      "response": "ProblemSet",
+      "doc": "getProblemSet is called by the UI to render which TLFs need to be fixed.\n   The UI will repeatedly poll this RPC when it gets a `rekeyChanged` notice\n   below"
     },
     "rekeyStatusFinish": {
       "request": [
@@ -533,7 +532,7 @@
         }
       ],
       "response": "Outcome",
-      "doc": "finish is called when work is completed on a given RekeyStatus window. The Outcome\n   * can be Fixed or Ignored."
+      "doc": "rekeyStatusFinish is called when work is completed on a given RekeyStatus window. The Outcome\n   can be Fixed or Ignored."
     }
   },
   "namespace": "keybase.1"

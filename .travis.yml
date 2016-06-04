@@ -1,10 +1,11 @@
 sudo: required
+dist: trusty
 os:
   - linux
   - osx
 language: go
 go:
-  - 1.5
+  - 1.6
 services:
   - docker
 before_install:
@@ -25,36 +26,35 @@ install: true
 before_script:
   - if [ $TRAVIS_OS_NAME == 'linux' ]; then sh -e /etc/init.d/xvfb start && export DISPLAY=:99.0; fi
 script:
-  - export GO15VENDOREXPERIMENT=1
   - export BASE=$PWD
   - if [ $TRAVIS_OS_NAME == 'linux' ]; then
-      if [ $TRAVIS_PULL_REQUEST != 'false' ]; then
-        cd $BASE/desktop && ../packaging/npm_mess.sh && npm install octonode &&
-        npm run visdiff -- "`git rev-parse HEAD^1`...`git rev-parse HEAD`" &&
-        cd $BASE/shared && npm i -g flow-bin@`tail -n1 .flowconfig` && flow;
-      fi &&
-      cd $BASE/desktop && npm run setup-ci-tools && npm run setup-dev-tools &&
+      cd $BASE/desktop && ../packaging/npm_mess.sh && npm run setup-dev-tools &&
+      cd $BASE/shared && npm i -g flow-bin@`tail -n1 .flowconfig` && flow &&
       cd $BASE && eslint . &&
+      if [ $TRAVIS_PULL_REQUEST != 'false' ]; then
+        cd $BASE/desktop && npm install octonode && npm run visdiff -- "`git rev-parse HEAD^1`...`git rev-parse HEAD`";
+      fi &&
       cd $BASE/protocol && ./diff_test.sh &&
-      docker login -e "$CI_EMAIL" -u "$CI_USER" -p "$CI_PASS" "$CI_HOST" &&
-      docker pull $CI_HOST/kbweb &&
-      travis_retry docker run --name kbweb3000 -d -p 3000:3000 -p 9911:9911 --entrypoint run/startup_for_container.sh $CI_HOST/kbweb &&
+      docker login -e "$CI_EMAIL" -u "$DOCKER_USER" -p "$DOCKER_PASS" &&
+      docker pull $DOCKER_USER/kbweb &&
+      travis_retry docker run --name kbweb3000 -d -p 3000:3000 -p 9911:9911 --entrypoint run/startup_for_container.sh $DOCKER_USER/kbweb &&
       cd $BASE/go && ./test/check_or_start_kbweb.sh && ./test/run_tests.sh;
     elif [ $TRAVIS_OS_NAME == 'osx' ]; then
-      cd $BASE/go && export KEYBASE_SERVER_URI=http://ci1.keybase.io && travis_wait 40 ./test/run_tests.sh;
+      cd $BASE/go && export KEYBASE_SERVER_URI=http://ci1.keybase.io && travis_wait 80 ./test/run_tests.sh;
+    fi
+after_success:
+  - if [ $TRAVIS_OS_NAME == 'linux' ] && [ $TRAVIS_PULL_REQUEST == 'false' ]; then
+      go install github.com/keybase/client/go/keybase &&
+      cp $GOPATH/bin/keybase $GOPATH/src/github.com/keybase/client/go/keybase/keybase &&
+      docker build -t kbclient . &&
+      docker tag kbclient $DOCKER_USER/kbclient &&
+      docker push $DOCKER_USER/kbclient;
+    else
+      echo "Not pushing to Docker, because this isn't a push to master.";
     fi
 after_failure:
   - if [ $TRAVIS_OS_NAME == 'linux' ]; then
       docker logs kbweb3000;
-    fi
-after_success:
-  - if [ $TRAVIS_OS_NAME == 'linux' ] && [ $TRAVIS_BRANCH == 'master' ] && [ $TRAVIS_PULL_REQUEST == 'false' ]; then
-      cp $GOPATH/bin/keybase $GOPATH/src/github.com/keybase/client/go/keybase/keybase &&
-      docker build -t kbclient . &&
-      docker tag kbclient $CI_HOST/kbclient &&
-      docker push $CI_HOST/kbclient;
-    else
-      echo "Not pushing to Docker, because this isn't a push to master.";
     fi
 notifications:
   slack:

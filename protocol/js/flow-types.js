@@ -150,6 +150,7 @@ export type Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  lastUsedTime: Time;
   encryptKey: KID;
   verifyKey: KID;
   status: int;
@@ -698,9 +699,16 @@ export type PlatformInfo = {
   goVersion: string;
 }
 
-export type ProblemUser = {
+export type ProblemSet = {
   user: User;
-  problemDevices: Array<Device>;
+  kid: KID;
+  tlfs: Array<ProblemTLF>;
+}
+
+export type ProblemTLF = {
+  tlf: TLF;
+  score: int;
+  solutions: Array<KID>;
 }
 
 export type Process = {
@@ -811,13 +819,6 @@ export type PublicKey = {
   deviceType: string;
   cTime: Time;
   eTime: Time;
-}
-
-export type RekeyTLF = {
-  tlf: TLF;
-  problemUsers: Array<ProblemUser>;
-  score: int;
-  solutions: Array<DeviceID>;
 }
 
 export type RemoteProof = {
@@ -2921,19 +2922,19 @@ export type rekeyUI_refresh_result = void
 export type rekeyUI_refresh_rpc = {
   method: 'rekeyUI.refresh',
   param: {
-    tlfs: Array<RekeyTLF>
+    tlfs: Array<ProblemTLF>
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type rekey_getRekeyTLFs_result = Array<RekeyTLF>
+export type rekey_getProblemSet_result = ProblemSet
 
-export type rekey_getRekeyTLFs_rpc = {
-  method: 'rekey.getRekeyTLFs',
+export type rekey_getProblemSet_rpc = {
+  method: 'rekey.getProblemSet',
   param: {},
   incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: rekey_getRekeyTLFs_result) => void)
+  callback: (null | (err: ?any, response: rekey_getProblemSet_result) => void)
 }
 
 export type rekey_rekeyStatusFinish_result = Outcome
@@ -3639,7 +3640,7 @@ export type rpc =
   | quota_verifySession_rpc
   | rekeyUI_delegateRekeyUI_rpc
   | rekeyUI_refresh_rpc
-  | rekey_getRekeyTLFs_rpc
+  | rekey_getProblemSet_rpc
   | rekey_rekeyStatusFinish_rpc
   | rekey_showPendingRekeyStatus_rpc
   | rekey_showRekeyStatus_rpc
@@ -5219,13 +5220,13 @@ export type incomingCallMapType = {
       result: () => void
     }
   ) => void,
-  'keybase.1.rekey.getRekeyTLFs'?: (
+  'keybase.1.rekey.getProblemSet'?: (
     params: {
       sessionID: int
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: rekey_getRekeyTLFs_result) => void
+      result: (result: rekey_getProblemSet_result) => void
     }
   ) => void,
   'keybase.1.rekey.rekeyStatusFinish'?: (
@@ -5247,7 +5248,7 @@ export type incomingCallMapType = {
   'keybase.1.rekeyUI.refresh'?: (
     params: {
       sessionID: int,
-      tlfs: Array<RekeyTLF>
+      tlfs: Array<ProblemTLF>
     },
     response: {
       error: (err: RPCError) => void,

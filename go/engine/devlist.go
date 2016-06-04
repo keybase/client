@@ -61,11 +61,12 @@ func (d *DevList) Run(ctx *Context) error {
 	var pdevs []keybase1.Device
 	for k, v := range devs {
 		pdevs = append(pdevs, keybase1.Device{
-			Type:     v.Type,
-			Name:     v.Display(),
-			DeviceID: k,
-			CTime:    keybase1.TimeFromSeconds(v.CTime),
-			MTime:    keybase1.TimeFromSeconds(v.MTime),
+			Type:         v.Type,
+			Name:         v.Display(),
+			DeviceID:     k,
+			CTime:        keybase1.TimeFromSeconds(v.CTime),
+			MTime:        keybase1.TimeFromSeconds(v.MTime),
+			LastUsedTime: keybase1.TimeFromSeconds(v.LastUsedTime),
 		})
 	}
 	sort.Sort(dname(pdevs))
