@@ -23,7 +23,7 @@ echo %SEMVER%
 
 :: dokan source binaries.
 :: There are 8 (4 windows versions times 32/64 bit) but they all seem to have the same version.
-for /f %%i in ('PowerShell "(Get-Item %GOPATH%\bin\dokan-dev\dokan-v1.0.0-RC2\Win32\Win10Release\dokan1.sys).VersionInfo.FileVersion"') do set DOKANVER=%%i
+for /f %%i in ('PowerShell "(Get-Item %GOPATH%\bin\dokan-dev\dokan-v0.8.0\Win32\Win10Release\dokan.sys).VersionInfo.FileVersion"') do set DOKANVER=%%i
 echo %DOKANVER%
 IF %DOKANVER%=="" (
   EXIT /B 1
@@ -40,6 +40,14 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 SignTool.exe sign /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\kbfs\kbfsdokan\kbfsdokan.exe
+IF %ERRORLEVEL% NEQ 0 (k
+  EXIT /B 1
+)
+SignTool.exe sign /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\go-updater\service\upd.exe
+IF %ERRORLEVEL% NEQ 0 (k
+  EXIT /B 1
+)
+SignTool.exe sign /a /tr http://timestamp.digicert.com %GOPATH%\src\github.com\keybase\client\go\runquiet\runquiet.exe
 IF %ERRORLEVEL% NEQ 0 (k
   EXIT /B 1
 )
@@ -60,6 +68,12 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
+:: Double check that updater is codesigned
+signtool verify /pa %GOPATH%\src\github.com\keybase\go-updater\service\upd.exe
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
+
 :: Double check that Keybase.exe gui is codesigned
 signtool verify /pa %GOPATH%\src\github.com\keybase\client\desktop\release\win32-ia32\Keybase-win32-ia32\Keybase.exe
 IF %ERRORLEVEL% NEQ 0 (
@@ -73,11 +87,9 @@ IF %ERRORLEVEL% NEQ 0 (
   EXIT /B 1
 )
 
-echo off
-
 go get github.com/keybase/release
 go install github.com/keybase/release
-set release_bin=%GOPATH%\bin\windows_386\release.exe
+set ReleaseBin=%GOPATH%\bin\windows_386\release.exe
 
 
 pushd %GOPATH%\src\github.com\keybase\client\packaging\windows\%BUILD_TAG%
@@ -93,9 +105,14 @@ IF %ERRORLEVEL% NEQ 0 (
 
 if NOT DEFINED JSON_UPDATE_FILENAME set JSON_UPDATE_FILENAME=update-windows-prod.json
 
-%GOPATH%\bin\windows_386\release update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows > %JSON_UPDATE_FILENAME%
-::"%ProgramFiles%\S3 Browser\s3browser-con.exe" upload keybase %KEYBASE_INSTALLER_NAME% prerelease.keybase.io/windows
-:: After sanity checking, do:
-::"%ProgramFiles%\S3 Browser\s3browser-con.exe" upload keybase update-windows-prod.json prerelease.keybase.io
-:: popd
-::%GOPATH%\bin\windows_386\release index-html --bucket-name=prerelease.keybase.io --prefixes="windows/" --upload="windows/index.html"
+:: Run keybase sign to get signature
+set KeybaseBin="c:\Program Files (x86)\Keybase\keybase.exe"
+set SigFile=sig.txt
+%KeybaseBin% sign -d -i %KEYBASE_INSTALLER_NAME% -o %SigFile%
+IF %ERRORLEVEL% NEQ 0 (
+  EXIT /B 1
+)
+
+%ReleaseBin% update-json --version=%SEMVER% --src=%KEYBASE_INSTALLER_NAME% --uri=https://prerelease.keybase.io/windows --signature=%SigFile% > %JSON_UPDATE_FILENAME%
+
+echo off

@@ -1,5 +1,10 @@
 # Maintainer: Jack O'Connor <oconnor663@gmail.com>
 
+###
+### NOTE: This file is out of date. Our prerelease PKGBUILD lives at
+###       git+ssh://aur@aur.archlinux.org:keybase-git
+###
+
 pkgname=keybase
 pkgdesc='LOCAL BUILD'
 license=('BSD')

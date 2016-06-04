@@ -73,6 +73,9 @@ func (ui BaseIdentifyUI) ReportTrackToken(_ keybase1.TrackToken) error {
 func (ui BaseIdentifyUI) Finish() {
 }
 
+func (ui BaseIdentifyUI) Dismiss(_ string, _ keybase1.DismissReason) {
+}
+
 func (ui BaseIdentifyUI) Confirm(o *keybase1.IdentifyOutcome) (keybase1.ConfirmResult, error) {
 	warnings := libkb.ImportWarnings(o.Warnings)
 	if !warnings.IsEmpty() {
@@ -103,6 +106,23 @@ func (ui BaseIdentifyUI) ReportRevoked(del []keybase1.TrackDiff) {
 	for _, d := range del {
 		ui.ReportHook(BADX + " " + trackDiffToColoredString(d))
 	}
+}
+
+func (ui BaseIdentifyUI) DisplayTLFCreateWithInvite(arg keybase1.DisplayTLFCreateWithInviteArg) error {
+	// this will only happen via `keybase favorite add` w/ no gui running:
+	if arg.IsPrivate {
+		ui.parent.Printf("Success! You created a private folder with %s\n", arg.Assertion)
+	} else {
+		ui.parent.Printf("Success! You created a public folder with %s\n", arg.Assertion)
+	}
+	if arg.Throttled {
+		ui.parent.Printf("Since you are out of invites, %s will need to request an invitation on keybase.io\n", arg.Assertion)
+	} else {
+		ui.parent.Printf("Here's an invitation link you can send to %s:\n", arg.Assertion)
+		ui.parent.Printf("\n   %s\n\nWith this link, they will be able to sign up immediately.\n", arg.InviteLink)
+	}
+
+	return nil
 }
 
 type IdentifyTrackUI struct {
@@ -231,7 +251,7 @@ func (ui BaseIdentifyUI) ReportHook(s string) {
 }
 
 func (ui BaseIdentifyUI) ShowWarnings(w libkb.Warnings) {
-	w.Warn()
+	w.Warn(ui.G())
 }
 
 func (ui BaseIdentifyUI) PromptForConfirmation(s string) error {
@@ -801,7 +821,7 @@ func (ui SecretUI) getSecret(pinentry keybase1.SecretEntryArg, term *keybase1.Se
 }
 
 func (ui *UI) Configure() error {
-	t, err := NewTerminal()
+	t, err := NewTerminal(ui.G())
 	if err != nil {
 		// XXX this is only temporary so that SecretEntry will still work
 		// when this is run without a terminal.

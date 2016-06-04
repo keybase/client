@@ -13,6 +13,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"runtime"
 	"sync"
 	"testing"
 
@@ -20,6 +21,7 @@ import (
 
 	"github.com/keybase/client/go/logger"
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/gregor"
 )
 
 // TestConfig tracks libkb config during a test
@@ -155,7 +157,7 @@ func (tc *TestContext) MakePGPKey(id string) (*PGPKeyBundle, error) {
 	}
 	arg.Init()
 	arg.CreatePGPIDs()
-	return GeneratePGPKeyBundle(arg, tc.G.UI.GetLogUI())
+	return GeneratePGPKeyBundle(tc.G, arg, tc.G.UI.GetLogUI())
 }
 
 // ResetLoginStateForTest simulates a shutdown and restart (for client
@@ -250,6 +252,8 @@ func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestC
 		return
 	}
 
+	g.GregorDismisser = &FakeGregorDismisser{}
+
 	tc.PrevGlobal = G
 	G = g
 	tc.G = g
@@ -262,11 +266,18 @@ func setupTestContext(tb testing.TB, name string, tcPrev *TestContext) (tc TestC
 	return
 }
 
-func SetupTest(tb testing.TB, name string) (tc TestContext) {
+func SetupTest(tb testing.TB, name string, depth int) (tc TestContext) {
 	var err error
 	tc, err = setupTestContext(tb, name, nil)
 	if err != nil {
 		tb.Fatal(err)
+	}
+	if os.Getenv("KEYBASE_LOG_SETUPTEST_FUNCS") != "" {
+		pc, file, line, ok := runtime.Caller(depth)
+		if ok {
+			fn := runtime.FuncForPC(pc)
+			fmt.Printf("SetupTest %s %v:%v\n", fn.Name(), file, line)
+		}
 	}
 	return tc
 }
@@ -399,4 +410,15 @@ type TestLoginCancelUI struct {
 
 func (t *TestLoginCancelUI) GetEmailOrUsername(_ context.Context, _ int) (string, error) {
 	return "", InputCanceledError{}
+}
+
+type FakeGregorDismisser struct {
+	dismissedIDs []gregor.MsgID
+}
+
+var _ GregorDismisser = (*FakeGregorDismisser)(nil)
+
+func (f *FakeGregorDismisser) DismissItem(id gregor.MsgID) error {
+	f.dismissedIDs = append(f.dismissedIDs, id)
+	return nil
 }

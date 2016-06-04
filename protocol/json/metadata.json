@@ -222,6 +222,10 @@
           "name": "mTime"
         },
         {
+          "type": "Time",
+          "name": "lastUsedTime"
+        },
+        {
           "type": "KID",
           "name": "encryptKey"
         },
@@ -689,6 +693,15 @@
     "ping": {
       "request": [],
       "response": "null"
+    },
+    "getLatestFolderHandle": {
+      "request": [
+        {
+          "name": "folderID",
+          "type": "string"
+        }
+      ],
+      "response": "bytes"
     },
     "getMerkleRoot": {
       "request": [

@@ -34,6 +34,13 @@ const getCurrentWindow = (function () {
   }
 })()
 
+const showOnLoad = currentWindow => {
+  currentWindow.show()
+  currentWindow.webContents.once('did-finish-load', () => {
+    currentWindow.show()
+  })
+}
+
 function getQueryVariable (variable) {
   var query = window.location.search.substring(1)
   var vars = query.split('&')
@@ -65,7 +72,7 @@ class RemoteComponentLoader extends Component {
       document.title = title
     }
 
-    hello(process.pid, 'Remote Component: ' + (title || ''), process.argv)
+    hello(process.pid, 'Remote Component: ' + (title || ''), process.argv, __VERSION__) // eslint-disable-line no-undef
 
     const component = {tracker, pinentry, update}
 
@@ -91,14 +98,14 @@ class RemoteComponentLoader extends Component {
           Object.keys(this.store.getState()).length === 0) {
         const unsub = this.store.subscribe(() => {
           unsub()
-          getCurrentWindow().show()
+          showOnLoad(getCurrentWindow())
           this.setState({props: props, loaded: true})
         })
       } else {
         // If we've received props, and the loaded state was false, that
         // means we should show the window
         if (this.state.loaded === false) {
-          currentWindow.show()
+          showOnLoad(getCurrentWindow())
         }
         setImmediate(() => this.setState({props: props, loaded: true}))
       }
@@ -145,12 +152,12 @@ class RemoteComponentLoader extends Component {
       return <div style={styles.loading}></div>
     }
     if (this.state.unmounted) {
-      return <div/>
+      return <div />
     }
     return (
       <div style={styles.container}>
         <Provider store={this.store}>
-          <Component {...this.state.props}/>
+          <Component {...this.state.props} />
         </Provider>
       </div>
     )
@@ -167,4 +174,4 @@ const styles = {
   }
 }
 
-ReactDOM.render(<RemoteComponentLoader/>, document.getElementById('remoteComponent'))
+ReactDOM.render(<RemoteComponentLoader />, document.getElementById('remoteComponent'))

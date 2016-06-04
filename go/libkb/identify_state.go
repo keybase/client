@@ -5,6 +5,7 @@ package libkb
 
 import (
 	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/gregor"
 )
 
 type IdentifyState struct {
@@ -18,6 +19,12 @@ func NewIdentifyState(res *IdentifyOutcome, u *User) IdentifyState {
 	if res == nil {
 		res = NewIdentifyOutcomeWithUsername(u.GetName())
 	}
+	return IdentifyState{res: res, u: u}
+}
+
+func NewIdentifyStateWithGregorItem(item gregor.Item, u *User) IdentifyState {
+	res := NewIdentifyOutcomeWithUsername(u.GetName())
+	res.ResponsibleGregorItem = item
 	return IdentifyState{res: res, u: u}
 }
 
@@ -163,6 +170,10 @@ func (s *IdentifyState) computeKeyDiffs(dhook func(keybase1.IdentifyKey)) {
 			fp := s.u.GetKeyFamily().kid2pgp[kid]
 			diff := TrackDiffRevoked{fp}
 			s.res.KeyDiffs = append(s.res.KeyDiffs, diff)
+			// the identify outcome should know that this
+			// key was revoked, as well as there being
+			// a KeyDiff:
+			s.res.Revoked = append(s.res.Revoked, diff)
 			display(kid, diff)
 		}
 	}

@@ -39,7 +39,7 @@ class UnlockFolders extends Component<void, Props, void> {
         onContinueFromPaperKey={this.props.onContinueFromPaperKey}
         paperkeyError={this.props.paperkeyError}
         waiting={this.props.waiting}
-        onFinish={this.props.onFinish}/>
+        onFinish={this.props.onFinish} />
     )
   }
 }

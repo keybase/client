@@ -1,0 +1,15 @@
+// @flow
+
+import React, {Component} from 'react'
+import type {UserList} from '../../common-adapters/usernames'
+
+export type Props = {
+  isPrivate: boolean,
+  users: UserList,
+  folderSize: string,
+  onCancel: () => void,
+  onSubmit: () => void,
+}
+
+declare export default class ConfirmClearHistory extends React.Component<void, Props, void> {
+}

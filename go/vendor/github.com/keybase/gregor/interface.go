@@ -4,7 +4,7 @@ import (
 	"net"
 	"time"
 
-	context "golang.org/x/net/context"
+	"github.com/jonboulle/clockwork"
 )
 
 type InBandMsgType int
@@ -17,14 +17,17 @@ const (
 
 type UID interface {
 	Bytes() []byte
+	String() string
 }
 
 type MsgID interface {
 	Bytes() []byte
+	String() string
 }
 
 type DeviceID interface {
 	Bytes() []byte
+	String() string
 }
 
 type System interface {
@@ -43,7 +46,6 @@ type Metadata interface {
 	UID() UID
 	MsgID() MsgID
 	CTime() time.Time
-	SetCTime(time.Time)
 	DeviceID() DeviceID
 	InBandMsgType() InBandMsgType
 }
@@ -83,9 +85,14 @@ type TimeOrOffset interface {
 type Item interface {
 	MessageWithMetadata
 	DTime() TimeOrOffset
-	NotifyTimes() []TimeOrOffset
+	RemindTimes() []TimeOrOffset
 	Body() Body
 	Category() Category
+}
+
+type Reminder interface {
+	Item() Item
+	RemindTime() time.Time
 }
 
 type MsgRange interface {
@@ -101,6 +108,8 @@ type Dismissal interface {
 type State interface {
 	Items() ([]Item, error)
 	ItemsInCategory(c Category) ([]Item, error)
+	Marshal() ([]byte, error)
+	Hash() ([]byte, error)
 }
 
 type Message interface {
@@ -116,7 +125,7 @@ type MessageConsumer interface {
 	// perform state mutations, or might be "out-of-band" that just use the
 	// Gregor broadcast mechanism to make sure that all clients get the
 	// notification.
-	ConsumeMessage(m Message) error
+	ConsumeMessage(m Message) (time.Time, error)
 }
 
 // StateMachine is the central interface of the Gregor system. Various parts of the
@@ -131,11 +140,37 @@ type StateMachine interface {
 	// at the given time.
 	State(u UID, d DeviceID, t TimeOrOffset) (State, error)
 
+	// IsEphemeral returns whether the backend storage needs to be saved/restored.
+	IsEphemeral() bool
+
+	// InitState iterates through the given State's Items, setting the
+	// StateMachine's storage. Note: This should only be called to
+	// initialize an ephemeral StateMachine.
+	InitState(s State) error
+
+	// LatestCTime returns the CTime of the newest item for the given user & device.
+	LatestCTime(u UID, d DeviceID) *time.Time
+
+	// Clear removes all existing state from the StateMachine.
+	Clear() error
+
 	// InBandMessagesSince returns all messages since the given time
 	// for the user u on device d.  If d is nil, then we'll return
 	// all messages across all devices.  If d is a device, then we'll
 	// return global messages and per-device messages for that device.
-	InBandMessagesSince(u UID, d DeviceID, t TimeOrOffset) ([]InBandMessage, error)
+	InBandMessagesSince(u UID, d DeviceID, t time.Time) ([]InBandMessage, error)
+
+	// Reminders returns a slice of non-dismissed items past their RemindTimes.
+	Reminders() ([]Reminder, error)
+
+	// DeleteReminder deletes a reminder.
+	DeleteReminder(r Reminder) error
+
+	// ObjFactory returns the ObjFactory used by this StateMachine.
+	ObjFactory() ObjFactory
+
+	// Clock returns the clockwork.Clock used by this StateMachine.
+	Clock() clockwork.Clock
 }
 
 type ObjFactory interface {
@@ -145,25 +180,16 @@ type ObjFactory interface {
 	MakeBody(b []byte) (Body, error)
 	MakeCategory(s string) (Category, error)
 	MakeItem(u UID, msgid MsgID, deviceid DeviceID, ctime time.Time, c Category, dtime *time.Time, body Body) (Item, error)
+	MakeReminder(i Item, t time.Time) (Reminder, error)
 	MakeDismissalByRange(uid UID, msgid MsgID, devid DeviceID, ctime time.Time, c Category, d time.Time) (InBandMessage, error)
-	MakeDismissalByID(uid UID, msgid MsgID, devid DeviceID, ctime time.Time, d MsgID) (InBandMessage, error)
+	MakeDismissalByIDs(uid UID, msgid MsgID, devid DeviceID, ctime time.Time, d []MsgID) (InBandMessage, error)
 	MakeStateSyncMessage(uid UID, msgid MsgID, devid DeviceID, ctime time.Time) (InBandMessage, error)
 	MakeState(i []Item) (State, error)
 	MakeMetadata(uid UID, msgid MsgID, devid DeviceID, ctime time.Time, i InBandMsgType) (Metadata, error)
 	MakeInBandMessageFromItem(i Item) (InBandMessage, error)
-}
-
-type NetworkInterfaceIncoming interface {
-	ConsumeMessage(c context.Context, m Message) error
-}
-
-type NetworkInterfaceOutgoing interface {
-	BroadcastMessage(c context.Context, m Message) error
-}
-
-type NetworkInterface interface {
-	NetworkInterfaceOutgoing
-	Serve(i NetworkInterfaceIncoming) error
+	MakeMessageFromInBandMessage(i InBandMessage) (Message, error)
+	MakeTimeOrOffsetFromTime(t time.Time) (TimeOrOffset, error)
+	UnmarshalState([]byte) (State, error)
 }
 
 type MainLoopServer interface {

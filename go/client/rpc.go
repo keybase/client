@@ -246,3 +246,12 @@ func introduceMyself(g *libkb.GlobalContext, xp rpc.Transporter) error {
 	ccli := keybase1.ConfigClient{Cli: cli}
 	return ccli.HelloIAm(context.TODO(), g.GetMyClientDetails())
 }
+
+func GetPaperProvisionClient(g *libkb.GlobalContext) (cli keybase1.PaperprovisionClient, err error) {
+	rcli, _, err := GetRPCClientWithContext(g)
+	if err != nil {
+		return cli, err
+	}
+	cli = keybase1.PaperprovisionClient{Cli: rcli}
+	return cli, nil
+}

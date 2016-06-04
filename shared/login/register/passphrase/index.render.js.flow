@@ -3,12 +3,18 @@ import React, {Component} from 'react'
 
 export type Props = {
   prompt: string,
-  onSubmit: (passphrase: string) => void,
+  onSubmit: () => void,
+  onChange: (passphrase: string) => void,
+  passphrase: ?string,
   onBack: () => void,
   onForgotPassphrase: () => void,
   waitingForResponse: boolean,
   error?: ?string,
-  username: ?string
+  username: ?string,
+  showTyping: boolean,
+  saveInKeychain: boolean,
+  toggleShowTyping: () => void,
+  toggleSaveInKeychain: () => void
 }
 
-export default class PaperKey extends React$Component<void, Props, void> { }
+export default class Passphrase extends React$Component<void, Props, void> { }

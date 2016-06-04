@@ -9,7 +9,7 @@ export default function (state = initialState, action) {
 
   switch (action.type) {
     case CommonConstants.resetStore:
-      return {...initialState}
+      return initialState.asMutable().asImmutable()
 
     case Constants.initProfile:
       update = {

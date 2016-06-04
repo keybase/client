@@ -10,20 +10,22 @@ import (
 
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
+	"github.com/keybase/gregor"
 )
 
 type IdentifyOutcome struct {
-	Username       string
-	Error          error
-	KeyDiffs       []TrackDiff
-	Revoked        []TrackDiffRevoked
-	RevokedDetails []keybase1.RevokedProof
-	ProofChecks    []*LinkCheckResult
-	Warnings       []Warning
-	TrackUsed      *TrackLookup
-	TrackEqual     bool // Whether the track statement was equal to what we saw
-	TrackOptions   keybase1.TrackOptions
-	Reason         keybase1.IdentifyReason
+	Username              string
+	Error                 error
+	KeyDiffs              []TrackDiff
+	Revoked               []TrackDiffRevoked
+	RevokedDetails        []keybase1.RevokedProof
+	ProofChecks           []*LinkCheckResult
+	Warnings              []Warning
+	TrackUsed             *TrackLookup
+	TrackEqual            bool // Whether the track statement was equal to what we saw
+	TrackOptions          keybase1.TrackOptions
+	Reason                keybase1.IdentifyReason
+	ResponsibleGregorItem gregor.Item
 }
 
 func NewIdentifyOutcome() *IdentifyOutcome {

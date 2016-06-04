@@ -22,6 +22,14 @@ echo "Using BUCKET_NAME $BUCKET_NAME"
 rm -rf "$build_dir"
 mkdir -p "$build_dir"
 
+echo "Checking CI for this commit"
+(
+  temp="$(mktemp -d)"
+  (cd "$temp" && npm i github-ci-status)
+  (cd "$client_dir" && "$temp/node_modules/.bin/ci" --required-tests 3)
+  rm -r "$temp"
+)
+
 # Build all the packages!
 "$here/build_binaries.sh" "$mode" "$build_dir"
 version="$(cat "$build_dir/VERSION")"
@@ -97,6 +105,13 @@ release_prerelease() {
     s3cmd cp "$blob" "s3://$BUCKET_NAME/linux_binaries/rpm/"
   done
 
+  # Make yet another copy of the .deb and .rpm packages we just made, in a
+  # constant location for the friend-of-keybase instructions.
+  s3cmd put --follow-symlinks "$build_dir/deb_repo/keybase-latest-amd64.deb" "s3://$BUCKET_NAME/keybase_amd64.deb"
+  s3cmd put --follow-symlinks "$build_dir/deb_repo/keybase-latest-i386.deb" "s3://$BUCKET_NAME/keybase_i386.deb"
+  s3cmd put --follow-symlinks "$build_dir/rpm_repo/keybase-latest-x86_64.rpm" "s3://$BUCKET_NAME/keybase_amd64.rpm"
+  s3cmd put --follow-symlinks "$build_dir/rpm_repo/keybase-latest-i386.rpm" "s3://$BUCKET_NAME/keybase_i386.rpm"
+
   json_tmp=`mktemp`
   echo "Writing version into JSON to $json_tmp"
 
@@ -109,11 +124,11 @@ release_prerelease() {
 
   s3cmd put --mime-type application/json "$json_tmp" "s3://$BUCKET_NAME/update-linux-prod.json"
 
-  # Generate and push the index.html file.
-  PLATFORM="linux" "$here/../prerelease/s3_index.sh"
-
-  echo Exporting to kbfs-beta...
-  "$client_dir/packaging/export/export_kbfs.sh"
+  # Generate and push the index.html file. S3 pushes in this script can be
+  # flakey, and on the Linux side of things all this does is update our
+  # internal pages, so we suppress errors here.
+  PLATFORM="linux" "$here/../prerelease/s3_index.sh" || \
+    echo "ERROR in s3_index.sh. Internal pages might not be updated. Build continuing..."
 
   bump_arch_linux_aur
 }
@@ -122,14 +137,18 @@ bump_arch_linux_aur() {
   # This relies on having the SSH key registered with the "keybase" account on
   # https://aur.archlinux.org.
   (
-    underscore_version="$(echo "$version" | sed 's/-/_/g')"
+    arch_version="$("$here/arch/version.sh")"
     temp_repo=`mktemp -d`
     git clone aur@aur.archlinux.org:keybase-git "$temp_repo"
     cd "$temp_repo"
-    sed -i "s/pkgver=.*/pkgver=$underscore_version/" PKGBUILD
-    sed -i "s/pkgver = .*/pkgver = $underscore_version/" .SRCINFO
-    git commit -am "version bump"
-    git push origin master
+    sed -i "s/pkgver=.*/pkgver=$arch_version/" PKGBUILD
+    sed -i "s/pkgver = .*/pkgver = $arch_version/" .SRCINFO
+    # The commit will fail if there are no changes. Don't push in that case.
+    if git commit -am "version bump" ; then
+      git push origin master
+    else
+      echo "No changes to the PKGBUILD. Skipping AUR push."
+    fi
   )
 }
 

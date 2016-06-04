@@ -222,6 +222,10 @@
           "name": "mTime"
         },
         {
+          "type": "Time",
+          "name": "lastUsedTime"
+        },
+        {
           "type": "KID",
           "name": "encryptKey"
         },

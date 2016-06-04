@@ -4,18 +4,19 @@ import * as Constants from '../constants/tracker'
 import * as CommonConstants from '../constants/common'
 
 import {normal, warning, error, checking} from '../constants/tracker'
-import {metaNew, metaUpgraded, metaUnreachable, metaDeleted} from '../constants/tracker'
+import {metaNew, metaUpgraded, metaUnreachable, metaDeleted, metaIgnored} from '../constants/tracker'
 
 import {identify} from '../constants/types/keybase-v1'
 
 import type {UserInfo} from '../tracker/bio.render'
 import type {Proof} from '../tracker/proofs.render'
-import type {SimpleProofState, SimpleProofMeta} from '../constants/tracker'
+import type {SimpleProofState, SimpleProofMeta, NonUserActions} from '../constants/tracker'
 
 import type {Identity, RemoteProof, RevokedProof, LinkCheckResult, ProofState, TrackDiff, TrackDiffType, ProofStatus, TrackSummary} from '../constants/types/flow-types'
 import type {Action} from '../constants/types/flux'
 
 export type TrackerState = {
+  type: 'tracker',
   eldestKidChanged: boolean,
   serverActive: boolean,
   trackerState: SimpleProofState,
@@ -29,12 +30,25 @@ export type TrackerState = {
   closed: boolean,
   hidden: boolean,
   trackToken: ?string,
-  lastTrack: ?TrackSummary
+  lastTrack: ?TrackSummary,
+  needTrackTokenDismiss: boolean
 }
+
+export type NonUserState = {
+  type: 'nonUser',
+  closed: boolean,
+  hidden: boolean,
+  name: string,
+  reason: string,
+  isPrivate: boolean,
+  inviteLink: ?string
+}
+
+type TrackerOrNonUserState = TrackerState | NonUserState
 
 export type State = {
   serverStarted: boolean,
-  trackers: {[key: string]: TrackerState},
+  trackers: {[key: string]: TrackerOrNonUserState},
   timerActive: number
 }
 
@@ -48,6 +62,7 @@ const initialState: State = {
 
 function initialTrackerState (username: string): TrackerState {
   return {
+    type: 'tracker',
     eldestKidChanged: false,
     serverActive: false,
     username,
@@ -62,6 +77,7 @@ function initialTrackerState (username: string): TrackerState {
     lastTrack: null,
     trackToken: null,
     lastAction: null,
+    needTrackTokenDismiss: false,
     userInfo: {
       fullname: '', // TODO get this info,
       followersCount: -1,
@@ -74,19 +90,47 @@ function initialTrackerState (username: string): TrackerState {
   }
 }
 
-function updateUserState (state: TrackerState, action: Action): TrackerState {
-  let shouldFollow: boolean
+function initialNonUserState (assertion: string): NonUserState {
+  return {
+    type: 'nonUser',
+    closed: true,
+    hidden: true,
+    name: assertion,
+    reason: '',
+    isPrivate: false,
+    inviteLink: null
+  }
+}
+
+function updateNonUserState (state: NonUserState, action: NonUserActions): NonUserState {
   switch (action.type) {
-    case Constants.onFollowChecked:
-      if (action.payload == null) {
+    case Constants.showNonUser:
+      if (action.error) {
         return state
       }
-      shouldFollow = action.payload.shouldFollow
 
       return {
         ...state,
-        shouldFollow
+        closed: false,
+        hidden: false,
+        name: action.payload.assertion,
+        reason: `You tried to access ${action.payload.folderName}`,
+        isPrivate: action.payload.isPrivate,
+        inviteLink: action.payload.throttled ? null : action.payload.inviteLink
       }
+    case Constants.onClose:
+      return {
+        ...state,
+        closed: true,
+        hidden: true
+      }
+    default:
+      return state
+  }
+}
+
+function updateUserState (state: TrackerState, action: Action): TrackerState {
+  switch (action.type) {
     case Constants.updateReason:
       // In case the reason is null, let's use our existing reason
       return {
@@ -108,19 +152,19 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
           hidden: false
         }
       }
-    case Constants.onMaybeTrack:
-      return {
-        ...state,
-        closed: true,
-        hidden: false
-      }
     case Constants.onClose:
       return {
         ...state,
         closed: true,
         hidden: false,
         lastAction: null,
-        shouldFollow: false // don't follow if they close x out the window
+        shouldFollow: false, // don't follow if they close x out the window
+        needTrackTokenDismiss: !state.trackToken // did we have a track token at this time?
+      }
+    case Constants.setNeedTrackTokenDismiss:
+      return {
+        ...state,
+        needTrackTokenDismiss: action.payload.needTrackTokenDismiss
       }
     case Constants.onWaiting:
       return {
@@ -227,17 +271,17 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
         lastTrack: action.payload && action.payload.track
       }
 
-    case Constants.onUserTrackingLoading:
-      return {
-        ...state,
-        hidden: true
-      }
-
     case Constants.showTracker:
       return {
         ...state,
         closed: false,
         hidden: false
+      }
+
+    case Constants.remoteDismiss:
+      return {
+        ...state,
+        closed: true
       }
 
     default:
@@ -246,8 +290,12 @@ function updateUserState (state: TrackerState, action: Action): TrackerState {
 }
 
 export default function (state: State = initialState, action: Action): State {
-  const username: string = (action.payload && action.payload.username) ? action.payload.username : ''
-  const trackerState = username ? state.trackers[username] : null
+  const username: ?string = action.payload && action.payload.username
+  const assertion: ?string = action.payload && action.payload.assertion
+  const userKey = username || assertion
+
+  const trackerOrNonUserState = userKey ? state.trackers[userKey] : null
+
   switch (action.type) {
     case CommonConstants.resetStore:
       return {
@@ -266,9 +314,9 @@ export default function (state: State = initialState, action: Action): State {
       }
   }
 
-  if (trackerState) {
-    const newTrackerState = updateUserState(trackerState, action)
-    if (newTrackerState === trackerState) {
+  if (userKey && trackerOrNonUserState && trackerOrNonUserState.type === 'tracker') {
+    const newTrackerState = updateUserState(trackerOrNonUserState, action)
+    if (newTrackerState === trackerOrNonUserState) {
       return state
     }
 
@@ -276,7 +324,20 @@ export default function (state: State = initialState, action: Action): State {
       ...state,
       trackers: {
         ...state.trackers,
-        [username]: newTrackerState
+        [userKey]: newTrackerState
+      }
+    }
+  } else if (userKey && trackerOrNonUserState && trackerOrNonUserState.type === 'nonUser') {
+    const newNonUserState = updateNonUserState(trackerOrNonUserState, action)
+    if (newNonUserState === trackerOrNonUserState) {
+      return state
+    }
+
+    return {
+      ...state,
+      trackers: {
+        ...state.trackers,
+        [userKey]: newNonUserState
       }
     }
   } else {
@@ -288,16 +349,25 @@ export default function (state: State = initialState, action: Action): State {
           serverStarted
         }
       case Constants.updateUsername:
-        if (!action.payload) {
+        if (!action.payload || !userKey) {
           return state
         }
-        const username2 = action.payload.username
 
         return {
           ...state,
           trackers: {
             ...state.trackers,
-            [username]: initialTrackerState(username2)
+            [userKey]: initialTrackerState(userKey)
+          }
+        }
+      case Constants.showNonUser:
+        if (!userKey) return state
+
+        return {
+          ...state,
+          trackers: {
+            ...state.trackers,
+            [userKey]: updateNonUserState(initialNonUserState(userKey), action)
           }
         }
       default:
@@ -346,64 +416,83 @@ function proofStateToSimpleProofState (proofState: ProofState, diff: ?TrackDiff,
   }
 }
 
-function trackDiffToSimpleProofMeta (diff: TrackDiffType): ?SimpleProofMeta {
-  /* eslint-disable key-spacing*/
-  return {
-    [identify.TrackDiffType.none]         : null,
-    [identify.TrackDiffType.error]        : null,
-    [identify.TrackDiffType.clash]        : null,
-    [identify.TrackDiffType.revoked]      : metaDeleted,
-    [identify.TrackDiffType.upgraded]     : metaUpgraded,
-    [identify.TrackDiffType.new]          : metaNew,
-    [identify.TrackDiffType.remotefail]   : null,
-    [identify.TrackDiffType.remoteworking]: null,
-    [identify.TrackDiffType.remotechanged]: null,
-    [identify.TrackDiffType.neweldest]    : null
-  }[diff]
-  /* eslint-enable key-spacing*/
-}
+function diffAndStatusMeta (diff: ?TrackDiffType, status: ?ProofStatus, isTracked: bool) : {diffMeta: ?SimpleProofMeta, statusMeta: ?SimpleProofMeta} {
+  if (status && status !== identify.ProofStatus.ok && isTracked) {
+    return {
+      diffMeta: metaIgnored,
+      statusMeta: null
+    }
+  }
 
-function proofStatusToSimpleProofMeta (status: ProofStatus): ?SimpleProofMeta {
-  // The full mapping between the proof status we get back from the server
-  // and a simplified representation that we show the users.
   return {
-    [identify.ProofStatus.none]: null,
-    [identify.ProofStatus.ok]: null,
-    [identify.ProofStatus.local]: null,
-    [identify.ProofStatus.found]: null,
-    [identify.ProofStatus.baseError]: null,
-    [identify.ProofStatus.hostUnreachable]: metaUnreachable,
-    [identify.ProofStatus.permissionDenied]: metaUnreachable,
-    [identify.ProofStatus.failedParse]: metaUnreachable,
-    [identify.ProofStatus.dnsError]: metaUnreachable,
-    [identify.ProofStatus.authFailed]: metaUnreachable,
-    [identify.ProofStatus.http500]: metaUnreachable,
-    [identify.ProofStatus.timeout]: metaUnreachable,
-    [identify.ProofStatus.internalError]: metaUnreachable,
-    [identify.ProofStatus.baseHardError]: metaUnreachable,
-    [identify.ProofStatus.notFound]: metaUnreachable,
-    [identify.ProofStatus.contentFailure]: metaUnreachable,
-    [identify.ProofStatus.badUsername]: metaUnreachable,
-    [identify.ProofStatus.badRemoteId]: metaUnreachable,
-    [identify.ProofStatus.textNotFound]: metaUnreachable,
-    [identify.ProofStatus.badArgs]: metaUnreachable,
-    [identify.ProofStatus.contentMissing]: metaUnreachable,
-    [identify.ProofStatus.titleNotFound]: metaUnreachable,
-    [identify.ProofStatus.serviceError]: metaUnreachable,
-    [identify.ProofStatus.torSkipped]: null,
-    [identify.ProofStatus.torIncompatible]: null,
-    [identify.ProofStatus.http300]: metaUnreachable,
-    [identify.ProofStatus.http400]: metaUnreachable,
-    [identify.ProofStatus.httpOther]: metaUnreachable,
-    [identify.ProofStatus.emptyJson]: metaUnreachable,
-    [identify.ProofStatus.deleted]: metaDeleted,
-    [identify.ProofStatus.serviceDead]: metaUnreachable,
-    [identify.ProofStatus.badSignature]: metaUnreachable,
-    [identify.ProofStatus.badApiUrl]: metaUnreachable,
-    [identify.ProofStatus.unknownType]: metaUnreachable,
-    [identify.ProofStatus.noHint]: metaUnreachable,
-    [identify.ProofStatus.badHintText]: metaUnreachable
-  }[status]
+    diffMeta: trackDiffToSimpleProofMeta(diff),
+    statusMeta: proofStatusToSimpleProofMeta(status)
+  }
+
+  function trackDiffToSimpleProofMeta (diff: TrackDiffType): ?SimpleProofMeta {
+    if (!diff) {
+      return null
+    }
+
+    return {
+      [identify.TrackDiffType.none]: null,
+      [identify.TrackDiffType.error]: null,
+      [identify.TrackDiffType.clash]: null,
+      [identify.TrackDiffType.revoked]: metaDeleted,
+      [identify.TrackDiffType.upgraded]: metaUpgraded,
+      [identify.TrackDiffType.new]: metaNew,
+      [identify.TrackDiffType.remotefail]: null,
+      [identify.TrackDiffType.remoteworking]: null,
+      [identify.TrackDiffType.remotechanged]: null,
+      [identify.TrackDiffType.neweldest]: null
+    }[diff]
+  }
+
+  function proofStatusToSimpleProofMeta (status: ProofStatus): ?SimpleProofMeta {
+    if (!status) {
+      return null
+    }
+    // The full mapping between the proof status we get back from the server
+    // and a simplified representation that we show the users.
+    return {
+      [identify.ProofStatus.none]: null,
+      [identify.ProofStatus.ok]: null,
+      [identify.ProofStatus.local]: null,
+      [identify.ProofStatus.found]: null,
+      [identify.ProofStatus.baseError]: null,
+      [identify.ProofStatus.hostUnreachable]: metaUnreachable,
+      [identify.ProofStatus.permissionDenied]: metaUnreachable,
+      [identify.ProofStatus.failedParse]: metaUnreachable,
+      [identify.ProofStatus.dnsError]: metaUnreachable,
+      [identify.ProofStatus.authFailed]: metaUnreachable,
+      [identify.ProofStatus.http500]: metaUnreachable,
+      [identify.ProofStatus.timeout]: metaUnreachable,
+      [identify.ProofStatus.internalError]: metaUnreachable,
+      [identify.ProofStatus.baseHardError]: metaUnreachable,
+      [identify.ProofStatus.notFound]: metaUnreachable,
+      [identify.ProofStatus.contentFailure]: metaUnreachable,
+      [identify.ProofStatus.badUsername]: metaUnreachable,
+      [identify.ProofStatus.badRemoteId]: metaUnreachable,
+      [identify.ProofStatus.textNotFound]: metaUnreachable,
+      [identify.ProofStatus.badArgs]: metaUnreachable,
+      [identify.ProofStatus.contentMissing]: metaUnreachable,
+      [identify.ProofStatus.titleNotFound]: metaUnreachable,
+      [identify.ProofStatus.serviceError]: metaUnreachable,
+      [identify.ProofStatus.torSkipped]: null,
+      [identify.ProofStatus.torIncompatible]: null,
+      [identify.ProofStatus.http300]: metaUnreachable,
+      [identify.ProofStatus.http400]: metaUnreachable,
+      [identify.ProofStatus.httpOther]: metaUnreachable,
+      [identify.ProofStatus.emptyJson]: metaUnreachable,
+      [identify.ProofStatus.deleted]: metaDeleted,
+      [identify.ProofStatus.serviceDead]: metaUnreachable,
+      [identify.ProofStatus.badSignature]: metaUnreachable,
+      [identify.ProofStatus.badApiUrl]: metaUnreachable,
+      [identify.ProofStatus.unknownType]: metaUnreachable,
+      [identify.ProofStatus.noHint]: metaUnreachable,
+      [identify.ProofStatus.badHintText]: metaUnreachable
+    }[status]
+  }
 }
 
 // TODO Have the service give this information.
@@ -426,7 +515,7 @@ function proofUrlToProfileUrl (proofType: number, name: string, key: ?string, hu
 function remoteProofToProofType (rp: RemoteProof): string {
   let proofType: string = ''
   if (rp.proofType === identify.ProofType.genericWebSite) {
-    proofType = 'web'
+    proofType = rp.key
   } else {
     proofType = mapTagToName(identify.ProofType, rp.proofType) || ''
   }
@@ -442,21 +531,15 @@ function revokedProofToProof (rv: RevokedProof): Proof {
     color: stateToColor(error),
     name: rv.proof.displayMarkup,
     humanUrl: '',
-    profileUrl: ''
+    profileUrl: '',
+    isTracked: false
   }
 }
 
 function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
   const proofState: SimpleProofState = lcr && proofStateToSimpleProofState(lcr.proofResult.state, lcr.diff, lcr.remoteDiff) || checking
-  let diffMeta: ?SimpleProofMeta
-  let statusMeta: ?SimpleProofMeta
-  if (lcr && lcr.diff && lcr.diff.type != null) {
-    diffMeta = trackDiffToSimpleProofMeta(lcr.diff.type)
-  }
-  if (lcr && lcr.proofResult && lcr.proofResult.status != null) {
-    statusMeta = proofStatusToSimpleProofMeta(lcr.proofResult.status)
-  }
-
+  const isTracked = !!(lcr && lcr.diff && lcr.diff.type === identify.TrackDiffType.none && !lcr.breaksTracking)
+  const {diffMeta, statusMeta} = diffAndStatusMeta(lcr && lcr.diff && lcr.diff.type, lcr && lcr.proofResult && lcr.proofResult.status, isTracked)
   const humanUrl = (lcr && lcr.hint && lcr.hint.humanUrl)
 
   return {
@@ -467,7 +550,8 @@ function remoteProofToProof (rp: RemoteProof, lcr: ?LinkCheckResult): Proof {
     color: stateToColor(proofState),
     name: rp.displayMarkup,
     humanUrl: humanUrl,
-    profileUrl: rp.displayMarkup && proofUrlToProfileUrl(rp.proofType, rp.displayMarkup, rp.key, humanUrl)
+    profileUrl: rp.displayMarkup && proofUrlToProfileUrl(rp.proofType, rp.displayMarkup, rp.key, humanUrl),
+    isTracked
   }
 }
 

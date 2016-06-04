@@ -57,7 +57,7 @@ func NewCmdLaunchdInstall(cl *libcmdline.CommandLine, g *libkb.GlobalContext) cl
 			binPath := args[1]
 			logFileName := args[2]
 			plistArgs := args[3:]
-			envVars := install.DefaultLaunchdEnvVars(g, label)
+			envVars := install.DefaultLaunchdEnvVars(label)
 
 			plist := launchd.NewPlist(label, binPath, plistArgs, envVars, logFileName, "")
 			err := launchd.Install(plist, g.Log)
@@ -213,6 +213,10 @@ func (v *CmdLaunchdList) ShowServices() error {
 	if err != nil {
 		return err
 	}
+	err = v.showServices([]string{"keybase.updater."}, "Updater")
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -365,6 +369,6 @@ func WaitForService(g *libkb.GlobalContext, launchService launchd.Service) error
 	if launchdStatus == nil {
 		return fmt.Errorf("%s was not found", launchService.Label())
 	}
-	_, err = libkb.WaitForServiceInfoFile(g, g.Env.GetServiceInfoPath(), launchService.Label(), launchdStatus.Pid(), 25, 400*time.Millisecond, "restart")
+	_, err = libkb.WaitForServiceInfoFile(g.Env.GetServiceInfoPath(), launchdStatus.Label(), launchdStatus.Pid(), 25, 400*time.Millisecond, "restart", g.Log)
 	return err
 }

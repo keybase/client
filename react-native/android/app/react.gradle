@@ -41,7 +41,7 @@ gradle.projectsEvaluated {
             def jsBundleDir = elvisFile(config."$jsBundleDirConfigName") ?:
                     file("$buildDir/intermediates/assets/${targetPath}")
 
-            def resourcesDirConfigName = "jsBundleDir${targetName}"
+            def resourcesDirConfigName = "resourcesDir${targetName}"
             def resourcesDir = elvisFile(config."${resourcesDirConfigName}") ?:
                     file("$buildDir/intermediates/res/merged/${targetPath}")
             def jsBundleFile = file("$jsBundleDir/$bundleAssetName")
@@ -72,16 +72,16 @@ gradle.projectsEvaluated {
                 // Set up dev mode
                 def devEnabled = !targetName.toLowerCase().contains("release")
                 if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-                    commandLine "cmd", "/c", "react-native", "bundle", "--platform", "android", "--dev", "${devEnabled}",
+                    commandLine "cmd", "/c", "node", "node_modules/react-native/local-cli/cli.js", "bundle", "--platform", "android", "--dev", "${devEnabled}",
                             "--entry-file", entryFile, "--bundle-output", jsBundleFile, "--assets-dest", resourcesDir
                 } else {
-                    commandLine "react-native", "bundle", "--platform", "android", "--dev", "${devEnabled}",
+                    commandLine "node", "node_modules/react-native/local-cli/cli.js", "bundle", "--platform", "android", "--dev", "${devEnabled}",
                             "--entry-file", entryFile, "--bundle-output", jsBundleFile, "--assets-dest", resourcesDir
                 }
 
                 enabled config."bundleIn${targetName}" ||
-                    config."bundleIn${buildTypeName.capitalize()}" ?:
-                            targetName.toLowerCase().contains("release")
+                        config."bundleIn${buildTypeName.capitalize()}" ?:
+                        targetName.toLowerCase().contains("release")
             }
 
             // Hook bundle${productFlavor}${buildType}JsAndAssets into the android build process

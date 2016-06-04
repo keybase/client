@@ -6,28 +6,39 @@ import {bindActionCreators} from 'redux'
 
 import Render from './username-email-form.render'
 import * as signupActions from '../../actions/signup'
+import type {Props} from './username-email-form.render'
+
+type State = {
+  username: string,
+  email: string
+}
 
 class UsernameEmailForm extends Component {
+  state: State;
+
+  constructor (props: Props) {
+    super(props)
+
+    this.state = {
+      username: this.props.username || '',
+      email: this.props.email || ''
+    }
+  }
+
   render () {
     return (
       <Render
-        username={this.props.username}
-        email={this.props.email}
-        submitUserEmail={this.props.checkUsernameEmail}
+        usernameChange={username => this.setState({username})}
+        username={this.state.username}
+        emailChange={email => this.setState({email})}
+        email={this.state.email}
+        onSubmit={() => this.props.checkUsernameEmail(this.state.username, this.state.email)}
         usernameErrorText={this.props.usernameErrorText}
         emailErrorText={this.props.emailErrorText}
         onBack={this.props.resetSignup}
-        waiting={this.props.waiting}/>
+        waiting={this.props.waiting} />
     )
   }
-}
-
-UsernameEmailForm.propTypes = {
-  checkUsernameEmail: React.PropTypes.func,
-  usernameErrorText: React.PropTypes.string,
-  emailErrorText: React.PropTypes.string,
-  username: React.PropTypes.string,
-  email: React.PropTypes.string
 }
 
 export default connect(

@@ -3,11 +3,11 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import {bindActionCreators} from 'redux'
-import {registerIdentifyUi, onClose as trackerOnClose, startTimer as trackerStartTimer, stopTimer as trackerStopTimer} from '../shared/actions/tracker'
+import {registerIdentifyUi, onClose as trackerOnClose, startTimer as trackerStartTimer, stopTimer as trackerStopTimer,
+  registerTrackerIncomingRpcs} from '../shared/actions/tracker'
 import {registerPinentryListener, onCancel as pinentryOnCancel, onSubmit as pinentryOnSubmit} from '../shared/actions/pinentry'
-import {registerTrackerChangeListener, registerUserChangeListener} from '../shared/actions/tracker'
-import {registerUpdateListener, onCancel as updateOnCancel, onSkip as updateOnSkip, onSnooze as updateOnSnooze, onUpdate as updateOnUpdate, setAlwaysUpdate} from '../shared/actions/update.desktop'
-import {onForce as updateOnForce, onPauseCancel as updateOnPauseCancel} from '../shared/actions/update.desktop'
+import {registerUpdateListener, onCancel as updateOnCancel, onSkip as updateOnSkip, onSnooze as updateOnSnooze,
+  onUpdate as updateOnUpdate, setAlwaysUpdate, onForce as updateOnForce, onPauseCancel as updateOnPauseCancel} from '../shared/actions/update.desktop'
 // $FlowIssue platform files
 import RemoteComponent from './remote-component'
 
@@ -25,8 +25,7 @@ export type RemoteManagerProps = {
   pinentryOnCancel: (sessionID: number) => void,
   pinentryOnSubmit: (sessionID: number, passphrase: string, features: GUIEntryFeatures) => void,
   registerIdentifyUi: () => void,
-  registerTrackerChangeListener: () => void,
-  registerUserChangeListener: () => void,
+  registerTrackerIncomingRpcs: () => void,
   trackerOnClose: () => void,
   trackerServerStarted: boolean,
   trackerStartTimer: (dispatch: Dispatch, getState: any) => void,
@@ -50,8 +49,7 @@ class RemoteManager extends Component {
   componentWillMount () {
     this.props.registerIdentifyUi()
     this.props.registerPinentryListener()
-    this.props.registerTrackerChangeListener()
-    this.props.registerUserChangeListener()
+    this.props.registerTrackerIncomingRpcs()
     this.props.registerUpdateListener()
   }
 
@@ -193,8 +191,7 @@ RemoteManager.propTypes = {
   registerPinentryListener: React.PropTypes.func,
   registerUpdateListener: React.PropTypes.func,
   registerIdentifyUi: React.PropTypes.func,
-  registerTrackerChangeListener: React.PropTypes.any,
-  registerUserChangeListener: React.PropTypes.any,
+  registerTrackerIncomingRpcs: React.PropTypes.any,
   trackerOnClose: React.PropTypes.func,
   trackerServerStarted: React.PropTypes.bool,
   trackerStartTimer: React.PropTypes.func,
@@ -228,8 +225,7 @@ export default connect(
     trackerStopTimer,
     trackerOnClose,
     registerPinentryListener,
-    registerTrackerChangeListener,
-    registerUserChangeListener,
+    registerTrackerIncomingRpcs,
     pinentryOnCancel,
     pinentryOnSubmit,
     registerUpdateListener,

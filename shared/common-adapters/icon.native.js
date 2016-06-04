@@ -15,32 +15,40 @@ export default class Icon extends Component {
     let iconType = shared.typeToIconMapper(this.props.type)
 
     if (!iconType) {
-      console.error('Null iconType passed')
+      console.warn('Null iconType passed')
       return null
     }
 
-    color = this.props.style && this.props.style.color || color || (this.props.opacity ? globalColors.lightGrey : globalColors.black40)
+    color = this.props.style && this.props.style.color || color || (this.props.opacity ? globalColors.lightGrey : globalColors.black_40)
 
     const width = this.props.style && this.props.style.width && {width: this.props.style.width}
     const height = this.props.style && this.props.style.height && {height: this.props.style.height}
-    const fontSize = this.props.style && this.props.style.width && {fontSize: this.props.style.width}
+
+    const fontSize = this.props.style && (this.props.style.fontSize || this.props.style.width)
+    const textAlign = this.props.style && this.props.style.textAlign
+    const fontWidth = this.props.style && this.props.style.fontWidth
 
     // Color is for our fontIcon and not the container
     let containerProps = {...this.props.style}
     delete containerProps.color
     delete containerProps.width
     delete containerProps.height
+    delete containerProps.textAlign
+    delete containerProps.fontWidth
+    delete containerProps.fontSize
+
+    const icon = fontIcons[iconType]
+      ? <Text style={{color, textAlign, fontFamily: 'kb', fontSize: fontSize, width: fontWidth}}>{fontIcons[iconType]}</Text>
+      : <Image source={images[this.props.type]} style={{resizeMode: 'contain', ...width, ...height}} />
 
     return (
       <TouchableHighlight
         activeOpacity={0.8}
-        underlayColor={globalColors.white}
-        onPress={this.props.onClick}
-        style={containerProps} >
-        {fontIcons[iconType]
-          ? <Text style={{color, fontFamily: 'kb', ...fontSize}}>{fontIcons[iconType]}</Text>
-          : <Image source={images[this.props.type]} style={{resizeMode: 'contain', ...width, ...height}}/>
-        }
+        underlayColor={this.props.underlayColor || globalColors.white}
+        onPress={this.props.onClick || (() => {})}
+        disabled={!(this.props.onClick)}
+        style={{...containerProps}}>
+        {icon}
       </TouchableHighlight>
     )
   }

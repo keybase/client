@@ -16,13 +16,14 @@ import (
 func getBuildSpecificCommands(cl *libcmdline.CommandLine, g *libkb.GlobalContext) []cli.Command {
 	return []cli.Command{
 		NewCmdCheckTracking(cl, g),
-		NewCmdFavorite(cl),
+		NewCmdFavorite(cl, g),
 		NewCmdFakeTrackingChanged(cl, g),
 		NewCmdSecretKey(cl, g),
 		NewCmdShowNotifications(cl, g),
 		NewCmdStress(cl),
 		NewCmdTestPassphrase(cl, g),
 		NewCmdTestFSNotify(cl, g),
+		NewCmdPaperProvision(cl, g),
 	}
 }
 
@@ -42,6 +43,13 @@ var restrictedSignupFlags = []cli.Flag{
 	cli.BoolFlag{
 		Name:  "devel",
 		Usage: "Run the client in development mode",
+	},
+}
+
+var restrictedProveFlags = []cli.Flag{
+	cli.BoolFlag{
+		Name:  "auto",
+		Usage: "[rooter only] Automatically make the rooter toot proof",
 	},
 }
 

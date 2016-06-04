@@ -29,7 +29,9 @@ func NewFavoriteHandler(xp rpc.Transporter, g *libkb.GlobalContext) *FavoriteHan
 // FavoriteAdd handles the favoriteAdd RPC.
 func (h *FavoriteHandler) FavoriteAdd(_ context.Context, arg keybase1.FavoriteAddArg) error {
 	eng := engine.NewFavoriteAdd(&arg, h.G())
-	ctx := &engine.Context{}
+	ctx := &engine.Context{
+		IdentifyUI: h.NewRemoteIdentifyUI(arg.SessionID, h.G()),
+	}
 	return engine.RunEngine(eng, ctx)
 }
 

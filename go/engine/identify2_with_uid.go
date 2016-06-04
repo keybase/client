@@ -10,6 +10,7 @@ import (
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
+	gregor "github.com/keybase/gregor"
 )
 
 var locktab libkb.LockTable
@@ -71,6 +72,8 @@ type Identify2WithUID struct {
 	remotesReceived  *libkb.ProofSet
 	remotesError     error
 	remotesCompleted bool
+
+	responsibleGregorItem gregor.Item
 }
 
 var _ (Engine) = (*Identify2WithUID)(nil)
@@ -384,7 +387,7 @@ func (e *Identify2WithUID) getTrackChainLink(tmp bool) (*libkb.TrackChainLink, e
 }
 
 func (e *Identify2WithUID) createIdentifyState() (err error) {
-	e.state = libkb.NewIdentifyState(nil, e.them)
+	e.state = libkb.NewIdentifyStateWithGregorItem(e.responsibleGregorItem, e.them)
 	tcl, err := e.getTrackChainLink(false)
 	if err != nil {
 		return err
@@ -524,4 +527,8 @@ func (e *Identify2WithUID) getTrackType() identify2TrackType {
 	default:
 		return identify2TrackBroke
 	}
+}
+
+func (e *Identify2WithUID) SetResponsibleGregorItem(item gregor.Item) {
+	e.responsibleGregorItem = item
 }

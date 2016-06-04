@@ -11,6 +11,18 @@ declare module 'immutable' {
   declare var exports: any;
 }
 
+declare module 'react-native-android-permissions' {
+  declare var exports: any;
+}
+
+declare module 'react-native-barcodescanner' {
+  declare var exports: any;
+}
+
+declare module 'react-native-camera' {
+  declare var exports: any;
+}
+
 declare module 'Interpolation' {
   declare var exports: any;
 }
@@ -27,6 +39,10 @@ declare module 'lodash/merge' {
   declare var exports: any;
 }
 
+declare module 'lodash/debounce' {
+  declare var exports: any;
+}
+
 declare module 'marked' {
   declare var exports: any;
 }
@@ -40,6 +56,14 @@ declare module 'material-ui/lib/popover/popover' {
 }
 
 declare module 'material-ui/lib/popover/popover-animation-from-top' {
+  declare var exports: any;
+}
+
+declare module 'material-ui/lib/styles/spacing' {
+  declare var exports: any;
+}
+
+declare module 'material-ui/lib/styles/theme-manager' {
   declare var exports: any;
 }
 
@@ -103,6 +127,7 @@ declare module 'resolveRoot' {
 
 declare var __VERSION__: string;
 declare var __DEV__: boolean;
+declare var __SCREENSHOT__: boolean;
 
 // Algebraic data types
 // This is a bit hacky, but it gives you strong guarantees.

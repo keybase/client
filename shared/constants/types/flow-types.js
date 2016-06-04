@@ -150,9 +150,19 @@ export type Device = {
   deviceID: DeviceID;
   cTime: Time;
   mTime: Time;
+  lastUsedTime: Time;
   encryptKey: KID;
   verifyKey: KID;
   status: int;
+}
+
+export type DeviceDetail = {
+  device: Device;
+  eldest: boolean;
+  provisioner?: ?Device;
+  provisionedAt?: ?Time;
+  revokedAt?: ?Time;
+  currentDevice: boolean;
 }
 
 export type DeviceID = string
@@ -160,6 +170,16 @@ export type DeviceID = string
 export type DeviceType =
     0 // DESKTOP_0
   | 1 // MOBILE_1
+
+export type DismissReason = {
+  type: DismissReasonType;
+  reason: string;
+  resource: string;
+}
+
+export type DismissReasonType =
+    0 // NONE_0
+  | 1 // HANDLED_ELSEWHERE_1
 
 export type DowngradeReferenceRes = {
   completed: Array<BlockReferenceCount>;
@@ -223,6 +243,7 @@ export type FSNotificationType =
   | 3 // VERIFYING_3
   | 4 // REKEYING_4
   | 5 // CONNECTION_5
+  | 6 // MD_READ_SUCCESS_6
 
 export type FSStatusCode =
     0 // START_0
@@ -254,6 +275,7 @@ export type Folder = {
   name: string;
   private: boolean;
   notificationsOn: boolean;
+  created: boolean;
 }
 
 export type ForkType =
@@ -337,7 +359,7 @@ export type IdentifyKey = {
   pgpFingerprint: bytes;
   KID: KID;
   trackDiff?: ?TrackDiff;
-  breaksTracking: bool;
+  breaksTracking: boolean;
 }
 
 export type IdentifyOutcome = {
@@ -392,7 +414,7 @@ export type Identity = {
   cryptocurrency: Array<Cryptocurrency>;
   revoked: Array<TrackDiff>;
   revokedDetails: Array<RevokedProof>;
-  breaksTracking: bool;
+  breaksTracking: boolean;
 }
 
 export type InstallAction =
@@ -478,7 +500,7 @@ export type LinkCheckResult = {
   diff?: ?TrackDiff;
   remoteDiff?: ?TrackDiff;
   hint?: ?SigHint;
-  breaksTracking: bool;
+  breaksTracking: boolean;
 }
 
 export type LogLevel =
@@ -525,6 +547,7 @@ export type NotificationChannels = {
   users: boolean;
   kbfs: boolean;
   tracking: boolean;
+  favorites: boolean;
 }
 
 export type NotifyFS_FSActivity_result = void
@@ -538,13 +561,25 @@ export type NotifyFS_FSActivity_rpc = {
   callback: (null | (err: ?any) => void)
 }
 
+export type NotifyFavorites_favoritesChanged_result = void
+
+export type NotifyFavorites_favoritesChanged_rpc = {
+  method: 'NotifyFavorites.favoritesChanged',
+  param: {
+    uid: UID
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
 export type NotifySession_clientOutOfDate_result = void
 
 export type NotifySession_clientOutOfDate_rpc = {
   method: 'NotifySession.clientOutOfDate',
   param: {
     upgradeTo: string,
-    upgradeURI: string
+    upgradeURI: string,
+    upgradeMsg: string
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any) => void)
@@ -592,6 +627,11 @@ export type NotifyUsers_userChanged_rpc = {
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
+
+export type Outcome =
+    0 // NONE_0
+  | 1 // FIXED_1
+  | 2 // IGNORED_2
 
 export type PGPCreateUids = {
   useDefault: boolean;
@@ -657,6 +697,18 @@ export type PlatformInfo = {
   os: string;
   arch: string;
   goVersion: string;
+}
+
+export type ProblemSet = {
+  user: User;
+  kid: KID;
+  tlfs: Array<ProblemTLF>;
+}
+
+export type ProblemTLF = {
+  tlf: TLF;
+  score: int;
+  solutions: Array<KID>;
 }
 
 export type Process = {
@@ -899,6 +951,7 @@ export type ServiceStatus = {
 export type ServicesStatus = {
   service: Array<ServiceStatus>;
   kbfs: Array<ServiceStatus>;
+  updater: Array<ServiceStatus>;
 }
 
 export type Session = {
@@ -993,6 +1046,7 @@ export type StatusCode =
   | 203 // SCBadLoginUserNotFound_203
   | 204 // SCBadLoginPassword_204
   | 205 // SCNotFound_205
+  | 210 // SCThrottleControl_210
   | 218 // SCGeneric_218
   | 235 // SCAlreadyLoggedIn_235
   | 237 // SCCanceled_237
@@ -1003,6 +1057,7 @@ export type StatusCode =
   | 277 // SCIdentifyFailed_277
   | 278 // SCTrackingBroke_278
   | 279 // SCWrongCryptoFormat_279
+  | 280 // SCDecryptionError_280
   | 701 // SCBadSignupUsernameTaken_701
   | 707 // SCBadInvitationCode_707
   | 801 // SCMissingResult_801
@@ -1056,6 +1111,16 @@ export type StringKVPair = {
   key: string;
   value: string;
 }
+
+export type TLF = {
+  tlfid: TLFID;
+  name: string;
+  writers: Array<string>;
+  readers: Array<string>;
+  isPrivate: boolean;
+}
+
+export type TLFID = string
 
 export type Test = {
   reply: string;
@@ -1666,6 +1731,15 @@ export type device_deviceAdd_rpc = {
   callback: (null | (err: ?any) => void)
 }
 
+export type device_deviceHistoryList_result = Array<DeviceDetail>
+
+export type device_deviceHistoryList_rpc = {
+  method: 'device.deviceHistoryList',
+  param: {},
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any, response: device_deviceHistoryList_result) => void)
+}
+
 export type device_deviceList_result = Array<Device>
 
 export type device_deviceList_rpc = {
@@ -1778,6 +1852,18 @@ export type identifyUi_delegateIdentifyUI_rpc = {
   callback: (null | (err: ?any, response: identifyUi_delegateIdentifyUI_result) => void)
 }
 
+export type identifyUi_dismiss_result = void
+
+export type identifyUi_dismiss_rpc = {
+  method: 'identifyUi.dismiss',
+  param: {
+    username: string,
+    reason: DismissReason
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
 export type identifyUi_displayCryptocurrency_result = void
 
 export type identifyUi_displayCryptocurrency_rpc = {
@@ -1795,6 +1881,21 @@ export type identifyUi_displayKey_rpc = {
   method: 'identifyUi.displayKey',
   param: {
     key: IdentifyKey
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type identifyUi_displayTLFCreateWithInvite_result = void
+
+export type identifyUi_displayTLFCreateWithInvite_rpc = {
+  method: 'identifyUi.displayTLFCreateWithInvite',
+  param: {
+    folderName: string,
+    isPrivate: boolean,
+    assertion: string,
+    inviteLink: string,
+    throttled: boolean
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any) => void)
@@ -2225,6 +2326,17 @@ export type metadata_getKey_rpc = {
   callback: (null | (err: ?any, response: metadata_getKey_result) => void)
 }
 
+export type metadata_getLatestFolderHandle_result = bytes
+
+export type metadata_getLatestFolderHandle_rpc = {
+  method: 'metadata.getLatestFolderHandle',
+  param: {
+    folderID: string
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any, response: metadata_getLatestFolderHandle_result) => void)
+}
+
 export type metadata_getMerkleNode_result = bytes
 
 export type metadata_getMerkleNode_rpc = {
@@ -2375,6 +2487,19 @@ export type notifyCtl_setNotifications_rpc = {
   method: 'notifyCtl.setNotifications',
   param: {
     channels: NotificationChannels
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type paperprovision_paperProvision_result = void
+
+export type paperprovision_paperProvision_rpc = {
+  method: 'paperprovision.paperProvision',
+  param: {
+    username: string,
+    deviceName: string,
+    paperKey: string
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any) => void)
@@ -2651,7 +2776,8 @@ export type prove_startProof_rpc = {
     service: string,
     username: string,
     force: boolean,
-    promptPosted: boolean
+    promptPosted: boolean,
+    auto: boolean
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any, response: prove_startProof_result) => void)
@@ -2780,6 +2906,66 @@ export type quota_verifySession_rpc = {
   },
   incomingCallMap: ?incomingCallMapType,
   callback: (null | (err: ?any, response: quota_verifySession_result) => void)
+}
+
+export type rekeyUI_delegateRekeyUI_result = int
+
+export type rekeyUI_delegateRekeyUI_rpc = {
+  method: 'rekeyUI.delegateRekeyUI',
+  param: {},
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any, response: rekeyUI_delegateRekeyUI_result) => void)
+}
+
+export type rekeyUI_refresh_result = void
+
+export type rekeyUI_refresh_rpc = {
+  method: 'rekeyUI.refresh',
+  param: {
+    tlfs: Array<ProblemTLF>
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type rekey_getProblemSet_result = ProblemSet
+
+export type rekey_getProblemSet_rpc = {
+  method: 'rekey.getProblemSet',
+  param: {},
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any, response: rekey_getProblemSet_result) => void)
+}
+
+export type rekey_rekeyStatusFinish_result = Outcome
+
+export type rekey_rekeyStatusFinish_rpc = {
+  method: 'rekey.rekeyStatusFinish',
+  param: {},
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any, response: rekey_rekeyStatusFinish_result) => void)
+}
+
+export type rekey_showPendingRekeyStatus_result = void
+
+export type rekey_showPendingRekeyStatus_rpc = {
+  method: 'rekey.showPendingRekeyStatus',
+  param: {},
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type rekey_showRekeyStatus_result = void
+
+export type rekey_showRekeyStatus_rpc = {
+  method: 'rekey.showRekeyStatus',
+  param: {
+    tlfs: Array<TLFID>,
+    user: (null | UID),
+    kid: (null | KID)
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any) => void)
 }
 
 export type revoke_revokeDevice_result = void
@@ -3063,6 +3249,17 @@ export type track_checkTracking_rpc = {
   callback: (null | (err: ?any) => void)
 }
 
+export type track_dismissWithToken_result = void
+
+export type track_dismissWithToken_rpc = {
+  method: 'track.dismissWithToken',
+  param: {
+    trackToken: TrackToken
+  },
+  incomingCallMap: ?incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
 export type track_fakeTrackingChanged_result = void
 
 export type track_fakeTrackingChanged_rpc = {
@@ -3295,6 +3492,7 @@ export type rpc =
   | Kex2Provisionee_hello_rpc
   | Kex2Provisioner_kexStart_rpc
   | NotifyFS_FSActivity_rpc
+  | NotifyFavorites_favoritesChanged_rpc
   | NotifySession_clientOutOfDate_rpc
   | NotifySession_loggedIn_rpc
   | NotifySession_loggedOut_rpc
@@ -3338,6 +3536,7 @@ export type rpc =
   | delegateUiCtl_registerUpdateUI_rpc
   | device_checkDeviceNameFormat_rpc
   | device_deviceAdd_rpc
+  | device_deviceHistoryList_rpc
   | device_deviceList_rpc
   | favorite_favoriteAdd_rpc
   | favorite_favoriteDelete_rpc
@@ -3349,8 +3548,10 @@ export type rpc =
   | gpgUi_wantToAddGPGKey_rpc
   | identifyUi_confirm_rpc
   | identifyUi_delegateIdentifyUI_rpc
+  | identifyUi_dismiss_rpc
   | identifyUi_displayCryptocurrency_rpc
   | identifyUi_displayKey_rpc
+  | identifyUi_displayTLFCreateWithInvite_rpc
   | identifyUi_displayTrackStatement_rpc
   | identifyUi_displayUserCard_rpc
   | identifyUi_finishSocialProofCheck_rpc
@@ -3388,6 +3589,7 @@ export type rpc =
   | metadata_getFolderHandle_rpc
   | metadata_getFoldersForRekey_rpc
   | metadata_getKey_rpc
+  | metadata_getLatestFolderHandle_rpc
   | metadata_getMerkleNode_rpc
   | metadata_getMerkleRootLatest_rpc
   | metadata_getMerkleRootSince_rpc
@@ -3401,6 +3603,7 @@ export type rpc =
   | metadata_truncateLock_rpc
   | metadata_truncateUnlock_rpc
   | notifyCtl_setNotifications_rpc
+  | paperprovision_paperProvision_rpc
   | pgpUi_outputSignatureSuccess_rpc
   | pgp_pgpDecrypt_rpc
   | pgp_pgpDeletePrimary_rpc
@@ -3435,6 +3638,12 @@ export type rpc =
   | provisionUi_chooseProvisioningMethod_rpc
   | provisionUi_switchToGPGSignOK_rpc
   | quota_verifySession_rpc
+  | rekeyUI_delegateRekeyUI_rpc
+  | rekeyUI_refresh_rpc
+  | rekey_getProblemSet_rpc
+  | rekey_rekeyStatusFinish_rpc
+  | rekey_showPendingRekeyStatus_rpc
+  | rekey_showRekeyStatus_rpc
   | revoke_revokeDevice_rpc
   | revoke_revokeKey_rpc
   | revoke_revokeSigs_rpc
@@ -3459,6 +3668,7 @@ export type rpc =
   | test_testCallback_rpc
   | test_test_rpc
   | track_checkTracking_rpc
+  | track_dismissWithToken_rpc
   | track_fakeTrackingChanged_rpc
   | track_trackWithToken_rpc
   | track_track_rpc
@@ -3839,6 +4049,15 @@ export type incomingCallMapType = {
       result: (result: device_deviceList_result) => void
     }
   ) => void,
+  'keybase.1.device.deviceHistoryList'?: (
+    params: {
+      sessionID: int
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: device_deviceHistoryList_result) => void
+    }
+  ) => void,
   'keybase.1.device.deviceAdd'?: (
     params: {
       sessionID: int
@@ -3986,6 +4205,20 @@ export type incomingCallMapType = {
       result: (result: identify_identify2_result) => void
     }
   ) => void,
+  'keybase.1.identifyUi.displayTLFCreateWithInvite'?: (
+    params: {
+      sessionID: int,
+      folderName: string,
+      isPrivate: boolean,
+      assertion: string,
+      inviteLink: string,
+      throttled: boolean
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
   'keybase.1.identifyUi.delegateIdentifyUI'?: (
     params: {},
     response: {
@@ -4110,6 +4343,17 @@ export type incomingCallMapType = {
   'keybase.1.identifyUi.finish'?: (
     params: {
       sessionID: int
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.identifyUi.dismiss'?: (
+    params: {
+      sessionID: int,
+      username: string,
+      reason: DismissReason
     },
     response: {
       error: (err: RPCError) => void,
@@ -4443,6 +4687,15 @@ export type incomingCallMapType = {
       result: () => void
     }
   ) => void,
+  'keybase.1.metadata.getLatestFolderHandle'?: (
+    params: {
+      folderID: string
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: metadata_getLatestFolderHandle_result) => void
+    }
+  ) => void,
   'keybase.1.metadata.getMerkleRoot'?: (
     params: {
       treeID: MerkleTreeID,
@@ -4510,6 +4763,13 @@ export type incomingCallMapType = {
       result: () => void
     }
   ) => void,
+  'keybase.1.NotifyFavorites.favoritesChanged'?: (
+    params: {
+      uid: UID
+    } /* ,
+    response: {} // Notify call
+    */
+  ) => void,
   'keybase.1.NotifyFS.FSActivity'?: (
     params: {
       notification: FSNotification
@@ -4534,7 +4794,8 @@ export type incomingCallMapType = {
   'keybase.1.NotifySession.clientOutOfDate'?: (
     params: {
       upgradeTo: string,
-      upgradeURI: string
+      upgradeURI: string,
+      upgradeMsg: string
     },
     response: {
       error: (err: RPCError) => void,
@@ -4555,6 +4816,18 @@ export type incomingCallMapType = {
     } /* ,
     response: {} // Notify call
     */
+  ) => void,
+  'keybase.1.paperprovision.paperProvision'?: (
+    params: {
+      sessionID: int,
+      username: string,
+      deviceName: string,
+      paperKey: string
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
   ) => void,
   'keybase.1.pgp.pgpSign'?: (
     params: {
@@ -4720,7 +4993,8 @@ export type incomingCallMapType = {
       service: string,
       username: string,
       force: boolean,
-      promptPosted: boolean
+      promptPosted: boolean,
+      auto: boolean
     },
     response: {
       error: (err: RPCError) => void,
@@ -4923,6 +5197,62 @@ export type incomingCallMapType = {
     response: {
       error: (err: RPCError) => void,
       result: (result: quota_verifySession_result) => void
+    }
+  ) => void,
+  'keybase.1.rekey.showPendingRekeyStatus'?: (
+    params: {
+      sessionID: int
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.rekey.showRekeyStatus'?: (
+    params: {
+      sessionID: int,
+      tlfs: Array<TLFID>,
+      user: (null | UID),
+      kid: (null | KID)
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.rekey.getProblemSet'?: (
+    params: {
+      sessionID: int
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: rekey_getProblemSet_result) => void
+    }
+  ) => void,
+  'keybase.1.rekey.rekeyStatusFinish'?: (
+    params: {
+      sessionID: int
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: rekey_rekeyStatusFinish_result) => void
+    }
+  ) => void,
+  'keybase.1.rekeyUI.delegateRekeyUI'?: (
+    params: {},
+    response: {
+      error: (err: RPCError) => void,
+      result: (result: rekeyUI_delegateRekeyUI_result) => void
+    }
+  ) => void,
+  'keybase.1.rekeyUI.refresh'?: (
+    params: {
+      sessionID: int,
+      tlfs: Array<ProblemTLF>
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
     }
   ) => void,
   'keybase.1.revoke.revokeKey'?: (
@@ -5200,6 +5530,16 @@ export type incomingCallMapType = {
       sessionID: int,
       trackToken: TrackToken,
       options: TrackOptions
+    },
+    response: {
+      error: (err: RPCError) => void,
+      result: () => void
+    }
+  ) => void,
+  'keybase.1.track.dismissWithToken'?: (
+    params: {
+      sessionID: int,
+      trackToken: TrackToken
     },
     response: {
       error: (err: RPCError) => void,

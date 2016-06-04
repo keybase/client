@@ -5,6 +5,7 @@ package client
 
 import (
 	"fmt"
+	"time"
 
 	"golang.org/x/net/context"
 
@@ -52,10 +53,13 @@ func (c *CmdDeviceList) Run() error {
 
 func (c *CmdDeviceList) output(devs []keybase1.Device) {
 	w := GlobUI.DefaultTabWriter()
-	fmt.Fprintf(w, "Name\tType\tID\n")
-	fmt.Fprintf(w, "==========\t==========\t==========\n")
+	fmt.Fprintf(w, "Name\tType\tID\tCreated\tLast Used\n")
+	fmt.Fprintf(w, "==========\t==========\t==========\t==========\t==========\n")
 	for _, v := range devs {
-		fmt.Fprintf(w, "%s\t%s\t%s\n", v.Name, v.Type, v.DeviceID)
+		cTime := time.Unix(int64(v.CTime/1000), 0)
+		lastUsedTime := time.Unix(int64(v.LastUsedTime/1000), 0)
+		timeFormat := "2006 Jan 2 15:04:05"
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\t%s\n", v.Name, v.Type, v.DeviceID, cTime.Format(timeFormat), lastUsedTime.Format(timeFormat))
 	}
 	w.Flush()
 }

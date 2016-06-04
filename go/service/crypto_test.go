@@ -10,6 +10,7 @@ import (
 
 type fakeUIRouter struct {
 	secretUI    libkb.SecretUI
+	identifyUI  libkb.IdentifyUI
 	secretUIErr error
 }
 
@@ -18,7 +19,7 @@ var _ libkb.UIRouter = fakeUIRouter{}
 func (f fakeUIRouter) SetUI(libkb.ConnectionID, libkb.UIKind) {}
 
 func (f fakeUIRouter) GetIdentifyUI() (libkb.IdentifyUI, error) {
-	return nil, errors.New("Unexpected GetIdentifyUI call")
+	return f.identifyUI, nil
 }
 
 func (f fakeUIRouter) GetSecretUI(int) (libkb.SecretUI, error) {
@@ -38,7 +39,7 @@ func (nullSecretUI) GetPassphrase(keybase1.GUIEntryArg, *keybase1.SecretEntryArg
 }
 
 func TestCryptoSecretUI(t *testing.T) {
-	tc := libkb.SetupTest(t, "crypto")
+	tc := libkb.SetupTest(t, "crypto", 2)
 	defer tc.Cleanup()
 
 	c := NewCryptoHandler(tc.G)

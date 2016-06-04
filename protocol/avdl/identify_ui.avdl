@@ -20,7 +20,7 @@ protocol identifyUi {
     bytes pgpFingerprint;
     KID KID;
     union { null, TrackDiff } trackDiff;
-    bool breaksTracking;
+    boolean breaksTracking;
   }
 
   record Cryptocurrency {
@@ -41,7 +41,7 @@ protocol identifyUi {
     array<Cryptocurrency> cryptocurrency;
     array<TrackDiff> revoked;
     array<RevokedProof> revokedDetails;
-    bool breaksTracking;
+    boolean breaksTracking;
   }
 
   record SigHint {
@@ -73,7 +73,7 @@ protocol identifyUi {
     union { null, TrackDiff } diff;
     union { null, TrackDiff } remoteDiff;
     union { null, SigHint } hint;
-    bool breaksTracking;
+    boolean breaksTracking;
   }
 
   record UserCard {
@@ -95,6 +95,19 @@ protocol identifyUi {
     boolean expiringLocal;   // true if the user answers yes to "Expire local tracking statement after X?"
   }
 
+  enum DismissReasonType {
+    NONE_0,
+    HANDLED_ELSEWHERE_1
+  }
+
+  record DismissReason {
+    DismissReasonType type;
+    string reason;
+    string resource;
+  }
+
+  void displayTLFCreateWithInvite(int sessionID, string folderName, boolean isPrivate, string assertion, string inviteLink, boolean throttled);
+
   // The IdentifyUI can be delegated to another process.  Call this function
   // to initialize the delegated UI; it returns the sessionID to use in the
   // following exchange. Return 0 on failure.
@@ -113,4 +126,6 @@ protocol identifyUi {
   void displayUserCard(int sessionID, UserCard card);
   ConfirmResult confirm(int sessionID, IdentifyOutcome outcome);
   void finish(int sessionID);
+
+  void dismiss(int sessionID, string username, DismissReason reason);
 }

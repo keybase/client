@@ -12,10 +12,10 @@ export default class ActionRender extends Component {
   props: ActionProps;
 
   render () {
-    const {username, loggedIn} = this.props
+    const {loggedIn} = this.props
 
     if (!loggedIn) {
-      return this.renderLoggedOut(styles, username)
+      return this.renderLoggedOut()
     }
 
     switch (this.props.lastAction) {
@@ -23,23 +23,23 @@ export default class ActionRender extends Component {
       case 'refollowed':
       case 'unfollowed':
       case 'error':
-        return this.renderClose(styles, username)
+        return this.renderClose()
     }
 
     if (this.props.state !== normal) {
       if (this.props.currentlyFollowing) {
-        return this.renderChanged(styles, username)
+        return this.renderChanged()
       }
     }
 
-    return this.renderNormal(styles, username)
+    return this.renderNormal()
   }
 
-  renderLoggedOut (styles: Object, username: string) {
+  renderLoggedOut () {
     return (
-      <div style={{...styles.loggedOutContainer}}>
+      <div style={{...styleLoggedOutContainer}}>
         <div style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'space-between', alignItems: 'center'}}>
-          <Icon type='terminal' style={{width: 29}}/>
+          <Icon type='terminal' style={{width: 29}} />
           <div style={{textAlign: 'center'}}>
             <Text type='Terminal' inline>keybase login</Text>
             <Text type='BodySmall' inline> or </Text>
@@ -47,34 +47,37 @@ export default class ActionRender extends Component {
             <Text type='BodySmall' inline> from the terminal for more options.</Text>
           </div>
         </div>
-        <div style={styles.closeContainer}>
-          <Button style={styles.actionButton} type='Secondary' label='Close' onClick={() => this.props.onClose(username)} />
+        <div style={styleCloseContainer}>
+          <Button style={styleActionButton} type='Secondary' label='Close' onClick={() => this.props.onClose()} />
         </div>
       </div>
     )
   }
 
-  renderClose (styles: Object, username: string) {
+  renderClose () {
     return (
-      <div style={{...styles.container}}>
-        <Button style={styles.actionButton} type='Secondary' label='Close' onClick={() => this.props.onClose(username)} />
+      <div style={{...styleContainer}}>
+        <Button style={styleActionButton} type='Secondary' label='Close' onClick={() => this.props.onClose()} />
       </div>
     )
   }
 
-  renderNormal (styles: Object, username: string) {
+  renderNormal () {
     return (
-      <div style={{...styles.container}}>
-        <Button waiting={this.props.waiting} style={styles.actionButton} type='Follow' label='Track' onClick={() => this.props.onFollow(username)} />
+      <div style={{...styleContainer}}>
+        {!this.props.currentlyFollowing &&
+          <Button waiting={this.props.waiting} style={styleActionButton} type='Follow' label='Track' onClick={() => this.props.onFollow()} />}
+        {this.props.currentlyFollowing &&
+          <Button style={styleActionButton} type='Secondary' label='Close' onClick={() => this.props.onClose()} />}
       </div>
     )
   }
 
-  renderChanged (styles: Object, username: string) {
+  renderChanged () {
     return (
-      <div style={{...styles.container}}>
-        <Button waiting={this.props.waiting} type='Unfollow' label='Ignore for 24 hrs' onClick={() => this.props.onClose(username)} />
-        <Button waiting={this.props.waiting} style={styles.actionButton} type='Follow' label='Accept' onClick={() => this.props.onRefollow(username)} />
+      <div style={{...styleContainer}}>
+        <Button waiting={this.props.waiting} type='Unfollow' label='Ignore for 24 hrs' onClick={() => this.props.onIgnore()} />
+        <Button waiting={this.props.waiting} style={styleActionButton} type='Follow' label='Accept' onClick={() => this.props.onRefollow()} />
       </div>
     )
   }
@@ -84,49 +87,47 @@ export function calcFooterHeight (loggedIn: boolean): number {
   return loggedIn ? 62 : 151
 }
 
-const styles = {
-  container: {
-    ...commonStyles.flexBoxRow,
-    ...commonStyles.noSelect,
-    backgroundColor: globalColors.white90,
-    width: '100%',
-    height: calcFooterHeight(true),
-    boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.15)',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    paddingTop: 15,
-    paddingBottom: 15,
-    paddingRight: 15,
-    position: 'relative',
-    zIndex: 1
-  },
+const styleContainer = {
+  ...commonStyles.flexBoxRow,
+  ...commonStyles.noSelect,
+  backgroundColor: globalColors.white_90,
+  width: '100%',
+  height: calcFooterHeight(true),
+  boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.15)',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  paddingTop: 15,
+  paddingBottom: 15,
+  paddingRight: 15,
+  position: 'relative',
+  zIndex: 1
+}
 
-  closeContainer: {
-    ...commonStyles.flexBoxRow,
-    ...commonStyles.noSelect,
-    backgroundColor: globalColors.white90,
-    width: '100%',
-    alignItems: 'center',
-    marginTop: 15,
-    justifyContent: 'flex-end'
-  },
+const styleCloseContainer = {
+  ...commonStyles.flexBoxRow,
+  ...commonStyles.noSelect,
+  backgroundColor: globalColors.white_90,
+  width: '100%',
+  alignItems: 'center',
+  marginTop: 15,
+  justifyContent: 'flex-end'
+}
 
-  actionButton: {
-    width: 102,
-    minWidth: 102,
-    marginRight: 0
-  },
+const styleActionButton = {
+  width: 102,
+  minWidth: 102,
+  marginRight: 0
+}
 
-  loggedOutContainer: {
-    ...commonStyles.flexBoxColumn,
-    backgroundColor: globalColors.white,
-    width: '100%',
-    height: calcFooterHeight(false),
-    boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.15)',
-    alignItems: 'center',
-    justifyContent: 'flex-end',
-    padding: 15,
-    position: 'relative',
-    zIndex: 1
-  }
+const styleLoggedOutContainer = {
+  ...commonStyles.flexBoxColumn,
+  backgroundColor: globalColors.white,
+  width: '100%',
+  height: calcFooterHeight(false),
+  boxShadow: '0px 0px 3px rgba(0, 0, 0, 0.15)',
+  alignItems: 'center',
+  justifyContent: 'flex-end',
+  padding: 15,
+  position: 'relative',
+  zIndex: 1
 }

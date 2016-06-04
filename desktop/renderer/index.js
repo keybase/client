@@ -82,7 +82,7 @@ class Keybase extends Component {
     ListenLogUi()
 
     // Introduce ourselves to the service
-    hello(process.pid, 'Main Renderer', process.argv)
+    hello(process.pid, 'Main Renderer', process.argv, __VERSION__) // eslint-disable-line no-undef
   }
 
   setupDispatchAction () {
@@ -124,4 +124,4 @@ class Keybase extends Component {
   }
 }
 
-ReactDOM.render(<Keybase/>, document.getElementById('app'))
+ReactDOM.render(<Keybase />, document.getElementById('app'))

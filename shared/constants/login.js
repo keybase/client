@@ -26,6 +26,7 @@ export const cameraBrokenMode = 'login:cameraBrokenMode'
 export const doneRegistering = 'login:doneRegistering'
 export const configuredAccounts = 'login:configuredAccounts'
 export const waitingForResponse = 'login:waitingForResponse'
+export const setRevokedSelf = 'login:setRevokedSelf'
 
 export const actionUpdateForgotPasswordEmailAddress = 'login:actionUpdateForgotPasswordEmailAddress'
 export const actionSetForgotPasswordSubmitting = 'login:actionSetForgotPasswordSubmitting'
@@ -36,3 +37,4 @@ export const actionRegisteredWithPaperKey = 'login:actionRegisteredWithPaperKey'
 export const actionRegisteredWithExistingDevice = 'login:actionRegisteredWithExistingDevice'
 
 export type DeviceRole = 'codePageDeviceRoleExistingPhone' | 'codePageDeviceRoleNewPhone' | 'codePageDeviceRoleExistingComputer' | 'codePageDeviceRoleNewComputer'
+export type Mode = 'codePageModeScanCode' | 'codePageModeShowCode' | 'codePageModeEnterText' | 'codePageModeShowText'

@@ -78,6 +78,9 @@ type fstatus struct {
 		Running bool
 		Log     string
 	}
+	Updater struct {
+		Log string
+	}
 	Start struct {
 		Log string
 	}
@@ -171,6 +174,7 @@ func (c *CmdStatus) load() (*fstatus, error) {
 
 	status.KBFS.Log = filepath.Join(extStatus.LogDir, libkb.KBFSLogFileName)
 	status.Desktop.Log = filepath.Join(extStatus.LogDir, libkb.DesktopLogFileName)
+	status.Updater.Log = filepath.Join(extStatus.LogDir, libkb.UpdaterLogFileName)
 
 	status.Start.Log = filepath.Join(extStatus.LogDir, libkb.StartLogFileName)
 
@@ -227,6 +231,8 @@ func (c *CmdStatus) outputTerminal(status *fstatus) error {
 	dui.Printf("    status:    %s\n", BoolString(status.Service.Running, "running", "not running"))
 	dui.Printf("    version:   %s\n", status.Service.Version)
 	dui.Printf("    log:       %s\n", status.Service.Log)
+	dui.Printf("\nUpdater:\n")
+	dui.Printf("    log:       %s\n", status.Updater.Log)
 	dui.Printf("\nPlatform Information:\n")
 	dui.Printf("    OS:        %s\n", status.PlatformInfo.Os)
 	dui.Printf("    Runtime:   %s\n", status.PlatformInfo.GoVersion)

@@ -29,16 +29,16 @@ export default class PaperKeyInput extends Component<void, Props, State> {
 
     return (
       <div style={{...globalStyles.flexBoxColumn, alignItems: 'center'}}>
-        <BackButton onClick={this.props.onBack} style={backStyle}/>
+        <BackButton onClick={this.props.onBack} style={backStyle} />
         <Text style={headerTextStyle} type='Body'>Type in your paper key:</Text>
-        <Icon style={paperKeyIconStyle} type='paper-key-m'/>
+        <Icon style={paperKeyIconStyle} type='paper-key-m' />
         <Input multiLine style={paperKeyInputStyle}
           onChange={e => this.setState({paperkey: e.target.textContent})}
           errorText={errorText}
-          hintText='elephont sturm cectus opp blezzard tofi pando agg whi pany yaga jocket daubt ruril globil cose'/>
+          hintText='elephont sturm cectus opp blezzard tofi pando agg whi pany yaga jocket daubt ruril globil cose' />
         <Button type='Primary' label='Continue' style={continueStyle}
           waiting={this.props.waiting}
-          onClick={this.props.onContinue}/>
+          onClick={this.props.onContinue} />
       </div>
     )
   }

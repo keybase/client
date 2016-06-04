@@ -52,7 +52,7 @@ const DEFAULT_OPTS = {
     '/test($|/)',
     '/tools($|/)',
     '/release($|/)',
-    'node_modules/\.bin'
+    'node_modules/.bin'
   ].concat(devDeps.map(name => `/node_modules/${name}($|/)`))
 }
 

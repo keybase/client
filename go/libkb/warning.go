@@ -9,7 +9,7 @@ import (
 
 type Warning interface {
 	Warning() string
-	Warn()
+	Warn(g *GlobalContext)
 }
 
 type StringWarning string
@@ -22,8 +22,8 @@ func Warningf(format string, a ...interface{}) Warning {
 	return StringWarning(fmt.Sprintf(format, a...))
 }
 
-func (s StringWarning) Warn() {
-	G.Log.Warning(string(s))
+func (s StringWarning) Warn(g *GlobalContext) {
+	g.Log.Warning(string(s))
 }
 
 func ErrorToWarning(e error) Warning {
@@ -49,8 +49,8 @@ func (w *Warnings) Push(e Warning) {
 	w.w = append(w.w, e)
 }
 
-func (w Warnings) Warn() {
+func (w Warnings) Warn(g *GlobalContext) {
 	for _, e := range w.w {
-		e.Warn()
+		e.Warn(g)
 	}
 }

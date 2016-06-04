@@ -10,7 +10,7 @@ import (
 )
 
 func TestExportUser(t *testing.T) {
-	tc := SetupTest(t, "export_user")
+	tc := SetupTest(t, "export_user", 1)
 	defer tc.Cleanup()
 	alice, err := LoadUser(NewLoadUserByNameArg(tc.G, "t_alice"))
 	if err != nil {

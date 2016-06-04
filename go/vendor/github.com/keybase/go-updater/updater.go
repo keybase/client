@@ -58,7 +58,7 @@ type Config interface {
 	SetUpdatePreferenceSnoozeUntil(t keybase1.Time) error
 	SetUpdateLastChecked(t keybase1.Time) error
 	GetRunModeAsString() string
-	GetMountDir() string
+	GetMountDir() (string, error)
 	GetUpdateDefaultInstructions() (string, error)
 }
 
@@ -650,7 +650,11 @@ func toKeybaseProcess(processes []lsof.Process) []keybase1.Process {
 }
 
 func (u *Updater) checkInUse(ctx Context, update keybase1.Update) error {
-	mountDir := u.config.GetMountDir()
+	mountDir, err := u.config.GetMountDir()
+	if err != nil {
+		u.log.Errorf("Error getting mount dir: %s", err)
+		return nil
+	}
 	u.log.Debug("Mount dir: %s", mountDir)
 	if mountDir == "" {
 		return nil
@@ -710,20 +714,23 @@ func (u *Updater) restart(ctx Context, updateQuitResponse keybase1.UpdateQuitRes
 	}
 
 	u.log.Debug("App reported its PID as %d", updateQuitResponse.Pid)
-	p, err := os.FindProcess(updateQuitResponse.Pid)
-	if err != nil {
+	p, perr := os.FindProcess(updateQuitResponse.Pid)
+	if perr != nil {
+		err = fmt.Errorf("Error finding process: %s", perr)
 		return
 	}
 	u.log.Debug("Killing app")
-	err = p.Kill()
-	if err != nil {
+	kerr := p.Kill()
+	if kerr != nil {
+		err = fmt.Errorf("Error killing app: %s", kerr)
 		return
 	}
 	didQuit = true
 
 	u.log.Debug("Opening app at %s", updateQuitResponse.ApplicationPath)
-	err = openApplication(updateQuitResponse.ApplicationPath)
-	if err != nil {
+	oerr := u.openApplication(updateQuitResponse.ApplicationPath)
+	if oerr != nil {
+		err = fmt.Errorf("Error opening app: %s", oerr)
 		return
 	}
 

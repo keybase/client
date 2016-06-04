@@ -16,6 +16,11 @@ protocol track {
     */
   void trackWithToken(int sessionID, TrackToken trackToken, TrackOptions options);
 
+  /**
+    Called by the UI when the user decides *not* to track, to e.g. dismiss gregor items.
+    */
+  void dismissWithToken(int sessionID, TrackToken trackToken);
+
   void untrack(int sessionID, string username);
 
   void checkTracking(int sessionID);

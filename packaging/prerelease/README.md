@@ -53,16 +53,6 @@ To test a local build (using test bucket):
 NOPULL=1 TEST=1 PLATFORM=darwin ./build_app.sh
 ```
 
-### Testing Updates
-
-To store current install, to re-apply as an update:
-
-```
-ditto -c -k --keepParent -rsrc /Applications/Keybase.app /tmp/Keybase.zip
-keybase sign -d -i /tmp/Keybase.zip -o /tmp/keybase.sig
-keybase -d update run --source=local --url=file:///tmp/Keybase.zip --signature=/tmp/keybase.sig --force
-```
-
 ### Updating from Test Builds
 
 ```

@@ -15,8 +15,11 @@ import type {State as RootTrackerState} from '../reducers/tracker'
 import type {ConfigState} from '../reducers/config'
 import type {Action, Dispatch} from '../constants/types/flux'
 
+import type {ShowNonUser} from '../constants/tracker'
+
 import type {RemoteProof, LinkCheckResult, TrackOptions, UserCard, delegateUiCtl_registerIdentifyUI_rpc,
-  track_checkTracking_rpc, track_untrack_rpc, track_trackWithToken_rpc, incomingCallMapType, identify_identify2_rpc} from '../constants/types/flow-types'
+  track_checkTracking_rpc, track_untrack_rpc, track_trackWithToken_rpc, incomingCallMapType,
+  identify_identify2_rpc, track_dismissWithToken_rpc} from '../constants/types/flow-types'
 
 type TrackerActionCreator = (dispatch: Dispatch, getState: () => {tracker: RootTrackerState, config: ConfigState}) => ?Promise
 
@@ -83,6 +86,13 @@ export function registerUserChangeListener (): TrackerActionCreator {
   }
 }
 
+export function registerTrackerIncomingRpcs (): TrackerActionCreator {
+  return dispatch => {
+    dispatch(registerTrackerChangeListener())
+    dispatch(registerUserChangeListener())
+  }
+}
+
 export function triggerIdentify (uid: string): TrackerActionCreator {
   return (dispatch, getState) => new Promise((resolve, reject) => {
     const params: identify_identify2_rpc = {
@@ -128,7 +138,7 @@ export function registerIdentifyUi (): TrackerActionCreator {
         incomingCallMap: {},
         callback: (error, response) => {
           if (error != null) {
-            console.error('error in registering identify ui: ', error)
+            console.warn('error in registering identify ui: ', error)
           } else {
             console.log('Registered identify ui')
           }
@@ -165,20 +175,10 @@ export function pushDebugTracker (username: string): (dispatch: Dispatch) => voi
   }
 }
 
-export function onFollowChecked (newFollowCheckedValue: boolean, username: string): Action {
-  console.log('follow checked:', newFollowCheckedValue)
-  return {
-    type: Constants.onFollowChecked,
-    payload: {
-      shouldFollow: newFollowCheckedValue,
-      username
-    }
-  }
-}
-
 export function onRefollow (username: string): TrackerActionCreator {
   return (dispatch, getState) => {
-    const {trackToken} = (getState().tracker.trackers[username] || {})
+    const trackToken = _getTrackToken(getState(), username)
+
     const dispatchRefollowAction = () => {
       dispatch({
         type: Constants.onRefollow,
@@ -192,10 +192,10 @@ export function onRefollow (username: string): TrackerActionCreator {
       })
     }
 
-    trackUser(trackToken)
+    trackUser(trackToken, false)
       .then(dispatchRefollowAction)
       .catch(err => {
-        console.error("Couldn't track user:", err)
+        console.warn("Couldn't track user:", err)
         dispatchErrorAction()
       })
   }
@@ -228,27 +228,12 @@ export function onUnfollow (username: string): TrackerActionCreator {
   }
 }
 
-function onUserTrackingLoading (username: string): Action {
-  return {
-    type: Constants.onUserTrackingLoading,
-    payload: {username}
-  }
-}
-
-export function onFollowHelp (username: string): Action {
-  window.open('https://keybase.io/docs/tracking') // TODO
-  return {
-    type: Constants.onFollowHelp,
-    payload: {username}
-  }
-}
-
-function trackUser (trackToken: ?string): Promise<boolean> {
+function trackUser (trackToken: ?string, localIgnore: bool): Promise<boolean> {
   const options: TrackOptions = {
-    localOnly: false,
+    localOnly: localIgnore,
+    expiringLocal: localIgnore,
     bypassConfirm: false,
-    forceRetrack: false,
-    expiringLocal: false
+    forceRetrack: false
   }
 
   return new Promise((resolve, reject) => {
@@ -281,10 +266,21 @@ function onWaiting (username: string, waiting: bool): (dispatch: Dispatch) => vo
   }
 }
 
-export function onFollow (username: string): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
+export function onIgnore (username: string): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
+  return dispatch => {
+    dispatch(onFollow(username, true))
+    dispatch(onClose(username))
+  }
+}
+
+function _getTrackToken (state, username) {
+  const trackerState = state.tracker.trackers[username]
+  return trackerState && trackerState.type === 'tracker' ? trackerState.trackToken : null
+}
+
+export function onFollow (username: string, localIgnore: bool): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
   return (dispatch, getState) => {
-    const trackerState = getState().tracker.trackers[username]
-    const {trackToken} = (trackerState || {})
+    const trackToken = _getTrackToken(getState(), username)
 
     const dispatchFollowedAction = () => {
       dispatch({type: Constants.onFollow, payload: {username}})
@@ -296,47 +292,47 @@ export function onFollow (username: string): (dispatch: Dispatch, getState: () =
     }
 
     dispatch(onWaiting(username, true))
-    trackUser(trackToken)
+    trackUser(trackToken, localIgnore)
       .then(dispatchFollowedAction)
       .catch(err => {
-        console.error("Couldn't track user: ", err)
+        console.warn("Couldn't track user: ", err)
         dispatchErrorAction()
       })
   }
 }
 
-export function onMaybeTrack (username: string): (dispatch: Dispatch, getState: () => {tracker: RootTrackerState}) => void {
-  return (dispatch, getState) => {
-    const trackerState = getState().tracker.trackers[username]
-    const {shouldFollow} = trackerState
-    const {trackToken} = (trackerState || {})
-
-    const dispatchCloseAction = () => dispatch({type: Constants.onMaybeTrack, payload: {username}})
-
-    if (shouldFollow) {
-      dispatch(onUserTrackingLoading(username))
-      trackUser(trackToken)
-        .then(dispatchCloseAction)
-        .catch(err => {
-          console.error("Couldn't track user: ", err)
-          dispatchCloseAction()
-        })
-    } else {
-      dispatchCloseAction()
+function _dismissWithToken (trackToken) {
+  const params : track_dismissWithToken_rpc = {
+    method: 'track.dismissWithToken',
+    param: {trackToken},
+    incomingCallMap: {},
+    callback: err => {
+      if (err) {
+        console.log('err dismissWithToken', err)
+      }
     }
   }
+  engine.rpc(params)
 }
 
-export function onClose (username: string): Action {
-  return {
-    type: Constants.onClose,
-    payload: {username}
+export function onClose (username: string): TrackerActionCreator {
+  return (dispatch, getState) => {
+    const trackToken = _getTrackToken(getState(), username)
+
+    if (trackToken) {
+      _dismissWithToken(trackToken)
+    } else {
+      console.log(`Missing trackToken for ${username}, waiting...`)
+    }
+
+    dispatch({
+      type: Constants.onClose,
+      payload: {username}
+    })
   }
 }
 
 function updateUserInfo (userCard: UserCard, username: string, getState: () => {tracker: RootTrackerState, config: ConfigState}): Action {
-  const config = getState().config.config
-  const serverURI = config && config.serverURI
   return {
     type: Constants.updateUserInfo,
     payload: {
@@ -346,7 +342,7 @@ function updateUserInfo (userCard: UserCard, username: string, getState: () => {
         followingCount: userCard.following,
         followsYou: userCard.theyFollowYou,
         bio: userCard.bio,
-        avatar: `${serverURI}/${username}/picture`,
+        avatar: `https://keybase.io/${username}/picture`,
         location: userCard.location
       },
       username
@@ -382,6 +378,9 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
         payload: {username}
       })
     },
+
+    displayTLFCreateWithInvite: (args, response) => dispatch(({payload: args, type: Constants.showNonUser}: ShowNonUser)),
+
     displayKey: ({sessionID, key}) => {
       const username = sessionIDToUsername[sessionID]
 
@@ -422,6 +421,13 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
     displayTrackStatement: params => {
     },
 
+    dismiss: ({username, reason}) => {
+      dispatch({
+        type: Constants.remoteDismiss,
+        payload: {username, reason}
+      })
+    },
+
     finishWebProofCheck: ({sessionID, rp, lcr}) => {
       const username = sessionIDToUsername[sessionID]
       dispatch(updateProof(rp, lcr, username))
@@ -449,6 +455,22 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
     reportTrackToken: ({sessionID, trackToken}) => {
       const username = sessionIDToUsername[sessionID]
       dispatch({type: Constants.updateTrackToken, payload: {username, trackToken}})
+
+      const userState = getState().tracker.trackers[username]
+      if (userState && userState.needTrackTokenDismiss) {
+        _dismissWithToken(trackToken)
+
+        dispatch({
+          type: Constants.setNeedTrackTokenDismiss,
+          payload: {
+            username,
+            needTrackTokenDismiss: false
+          }
+        })
+      }
+    },
+    confirm: () => {
+      // our UI doesn't use this at all, keep this to not get an unhandled incoming msg warning
     },
     finish: ({sessionID}) => {
       const username = sessionIDToUsername[sessionID]
@@ -456,6 +478,7 @@ function serverCallMap (dispatch: Dispatch, getState: Function): CallMap {
       dispatch({type: Constants.updateProofState, payload: {username}})
 
       if (showAllTrackers) {
+        console.log('showAllTrackers is on, so showing tracker')
         dispatch({type: Constants.showTracker, payload: {username}})
       }
 

@@ -222,6 +222,10 @@
           "name": "mTime"
         },
         {
+          "type": "Time",
+          "name": "lastUsedTime"
+        },
+        {
           "type": "KID",
           "name": "encryptKey"
         },
@@ -756,6 +760,10 @@
         },
         {
           "name": "promptPosted",
+          "type": "boolean"
+        },
+        {
+          "name": "auto",
           "type": "boolean"
         }
       ],

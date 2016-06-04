@@ -1,0 +1,31 @@
+/* @flow */
+
+import type {UserList} from '../common-adapters/usernames'
+
+export type Folder = {
+  users: UserList,
+  meta?: 'new' | null,
+  modified?: {
+    when: string,
+    username: string
+  },
+  isPublic: boolean,
+  ignored: boolean,
+  isFirst: boolean,
+  hasData: boolean,
+  groupAvatar: boolean,
+  userAvatar: ?string
+}
+
+export type Props = {
+  tlfs?: Array<Folder>,
+  ignored?: Array<Folder>,
+  isPublic: boolean,
+  style?: any,
+  smallMode?: boolean,
+  onClick?: (path: string) => void,
+  extraRows?: Array<React$Element>
+}
+
+export default class Render extends React$Component<void, Props, void> {
+}

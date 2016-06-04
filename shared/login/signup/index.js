@@ -24,7 +24,7 @@ export default function signupRouter (currentPath: Map<string, string>, uri: URI
 
   const {component: Component, props} = currentPath.get('parseRoute') || {}
   if (Component) {
-    element = <Component {...props}/>
+    element = <Component {...props} />
   } else {
     switch (path) {
       case 'signup':
@@ -59,7 +59,8 @@ export default function signupRouter (currentPath: Map<string, string>, uri: URI
   return {
     componentAtTop: {
       element,
-      hideBack: true
+      hideBack: true,
+      hideNavBar: true
     },
     parseNextRoute: signupRouter
   }

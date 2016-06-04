@@ -1,13 +1,18 @@
 // @flow
 import {Component} from 'react'
 
-export type Props = {
+export type Props = $Shape<{
   onBack?: () => void,
   onChange: (deviceName: string) => void,
   onSubmit: () => void,
   deviceName: ?string,
   deviceNameError?: ?string,
+  submitEnabled?: ?boolean,
   waiting?: ?boolean
+}>
+
+export type State = {
+  deviceName: ?string
 }
 
 declare export default class SetPublicName extends Component<void, Props, void> { }

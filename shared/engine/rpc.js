@@ -1,5 +1,6 @@
 import EngineError from './errors'
 import rpc from 'framed-msgpack-rpc'
+import windowsHack from './windows-hack'
 
 const {
   transport: {RobustTransport}
@@ -27,6 +28,11 @@ class BaseTransport extends RobustTransport {
     } else {
       return new Error(JSON.stringify(err))
     }
+  }
+
+  _connect_critical_section (cb) {
+    super._connect_critical_section(cb)
+    windowsHack()
   }
 }
 

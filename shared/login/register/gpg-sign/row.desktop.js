@@ -23,8 +23,8 @@ const Row = ({onClick, icon, title, subTitle, children, style}:Props) => {
   return (
     <div className='register-row' style={{...stylesRowContainer, ...style}} onClick={onClick}>
       <div style={stylesIconContainer}>
-        <div className='register-background' style={stylesIconBackground}/>
-        <Icon className='register-icon' type={icon} style={stylesIcon}/>
+        <div className='register-background' style={stylesIconBackground} />
+        <Icon className='register-icon' type={icon} style={stylesIcon} />
       </div>
       <div>
         <Text type='Header' inline={false} style={stylesHeader}>{title}</Text>
@@ -64,7 +64,7 @@ const stylesIcon = {
   textAlign: 'center',
   height: 'inherit',
   width: 'inherit',
-  color: globalColors.black75,
+  color: globalColors.black_75,
   zIndex: 1
 }
 const stylesIconBackground = {

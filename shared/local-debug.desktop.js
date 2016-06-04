@@ -21,7 +21,9 @@ let config = {
   printOutstandingRPCs: false,
   reactPerf: false,
   overrideLoggedInTab: null,
-  focusOnShow: true
+  focusOnShow: true,
+  dumbFilter: '',
+  printRoutes: false
 }
 
 if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
@@ -34,12 +36,14 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.reduxDevToolsSelect = state => state.tracker
   config.enableStoreLogging = true
   config.enableActionLogging = false
-  config.forwardLogs = true
+  config.forwardLogs = false
   config.devStoreChangingFunctions = true
   config.printOutstandingRPCs = true
   config.reactPerf = false
   config.overrideLoggedInTab = Tabs.moreTab
   config.focusOnShow = false
+  config.dumbFilter = ''
+  config.printRoutes = true
 }
 
 config = updateConfig(config)
@@ -57,7 +61,9 @@ export const {
   printOutstandingRPCs,
   reactPerf,
   overrideLoggedInTab,
-  focusOnShow
+  focusOnShow,
+  dumbFilter,
+  printRoutes
 } = config
 
 export function initTabbedRouterState (state) {
@@ -70,7 +76,7 @@ export function initTabbedRouterState (state) {
     tabs: {
       ...state.tabs,
       [Tabs.loginTab]: createRouterState([], []),
-      [Tabs.moreTab]: createRouterState(['devMenu', 'styleSheet'], [])
+      [Tabs.moreTab]: createRouterState(['devMenu', 'dumbSheet'], [])
     }
   }
 }

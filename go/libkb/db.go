@@ -66,6 +66,14 @@ func (j *JSONLocalDb) Put(id DbKey, aliases []DbKey, val *jsonw.Wrapper) error {
 	return err
 }
 
+func (j *JSONLocalDb) PutRaw(id DbKey, b []byte) error {
+	return j.engine.Put(id, nil, b)
+}
+
+func (j *JSONLocalDb) GetRaw(id DbKey) ([]byte, bool, error) {
+	return j.engine.Get(id)
+}
+
 func (j *JSONLocalDb) Get(id DbKey) (*jsonw.Wrapper, error) {
 	bytes, found, err := j.engine.Get(id)
 	var ret *jsonw.Wrapper
@@ -118,6 +126,7 @@ const (
 	DBSigChainTailEncrypted   = 0xe9
 	DBMerkleRoot              = 0xf0
 	DBTrackers                = 0xf1
+	DBGregor                  = 0xf2
 )
 
 const (

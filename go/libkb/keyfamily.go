@@ -48,7 +48,18 @@ type ComputedKeyInfo struct {
 	// Map of SigID -> KID
 	Delegations map[keybase1.SigID]keybase1.KID
 	DelegatedAt *KeybaseTime
-	RevokedAt   *KeybaseTime
+
+	RevokedAt *KeybaseTime
+	// TODO:  would like to add this to support desktop's request
+	// to know who revoked a device, but changing this changes
+	// the sigchain stored on disk.  Putting off this change
+	// for now, so this is just a placeholder.  (PC)
+	//
+	// More details: adding this would work fine but would
+	// require handling the case where unmarshaling existing
+	// cki could have non-nil RevokedAt and empty RevokedBy.
+	//
+	// RevokedBy keybase1.KID
 
 	// For PGP keys, the active version of the key. If unspecified, use the
 	// legacy behavior of combining every instance of this key that we got from
@@ -337,7 +348,7 @@ func ParseKeyFamily(g *GlobalContext, jw *jsonw.Wrapper) (ret *KeyFamily, err er
 	kf.PGPKeySets = make(map[keybase1.KID]*PGPKeySet)
 	kf.SingleKeys = make(map[keybase1.KID]GenericKey)
 	for i, bundle := range rkf.AllBundles {
-		newKey, err := ParseGenericKey(bundle)
+		newKey, w, err := ParseGenericKey(bundle)
 
 		// Some users have some historical bad keys, so no reason to crap
 		// out if we can't parse them, especially if there are others than
@@ -349,6 +360,7 @@ func ParseKeyFamily(g *GlobalContext, jw *jsonw.Wrapper) (ret *KeyFamily, err er
 			g.Log.Debug(bundle)
 			continue
 		}
+		w.Warn(g)
 
 		kid := newKey.GetKID()
 
@@ -400,6 +412,9 @@ func (ckf ComputedKeyFamily) getCkiIfActiveAtTime(kid keybase1.KID, t time.Time)
 	} else if ki.Status != KeyUncancelled {
 		err = KeyRevokedError{fmt.Sprintf("The key '%s' is no longer active", kid)}
 	} else if ki.ETime > 0 && unixTime > ki.ETime {
+		formatStr := "Mon Jan 2 15:04:05 -0700 MST 2006"
+		ckf.G().Log.Warning("Checking status of key %s\n    with respect to time [%s],\n    found it had expired at [%s].",
+			kid, t.Format(formatStr), time.Unix(ki.ETime, 0).Format(formatStr))
 		err = KeyExpiredError{fmt.Sprintf("The key '%s' expired at %s", kid, time.Unix(ki.ETime, 0))}
 	} else {
 		ret = ki
@@ -584,6 +599,8 @@ func (ckf *ComputedKeyFamily) RevokeSig(sig keybase1.SigID, tcl TypedChainLink) 
 	} else {
 		info.Status = KeyRevoked
 		info.RevokedAt = TclToKeybaseTime(tcl)
+		// see comment in ComputedKeyInfo about this field
+		// info.RevokedBy = tcl.GetKID()
 	}
 	return
 }
@@ -592,6 +609,8 @@ func (ckf *ComputedKeyFamily) RevokeKid(kid keybase1.KID, tcl TypedChainLink) (e
 	if info, found := ckf.cki.Infos[kid]; found {
 		info.Status = KeyRevoked
 		info.RevokedAt = TclToKeybaseTime(tcl)
+		// see comment in ComputedKeyInfo about this field
+		// info.RevokedBy = tcl.GetKID()
 	}
 	return
 }
@@ -792,15 +811,14 @@ func (ckf *ComputedKeyFamily) UpdateDevices(tcl TypedChainLink) (err error) {
 		ckf.cki.Devices[did] = dobj
 	}
 
-	// Clear out the old Key that this device used to refer to.
-	// We might wind up just clobbering it with the same thing, but
-	// that's fine for now.
-	if prevKid.IsValid() {
-		ckf.G().Log.Debug("| Clear out old key")
-		delete(ckf.cki.KIDToDeviceID, prevKid)
-	}
-
+	// If a KID is specified, we should clear out any previous KID from the
+	// KID->Device map. But if not, leave the map as it is. Later "device"
+	// blobs in the sigchain aren't required to repeat the KID every time.
 	if kid.IsValid() {
+		if prevKid.IsValid() {
+			ckf.G().Log.Debug("| Clear out old key")
+			delete(ckf.cki.KIDToDeviceID, prevKid)
+		}
 		ckf.cki.KIDToDeviceID[kid] = did
 	}
 

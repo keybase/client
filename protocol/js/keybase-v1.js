@@ -93,6 +93,7 @@ export const constants = {
     'scbadloginusernotfound': 203,
     'scbadloginpassword': 204,
     'scnotfound': 205,
+    'scthrottlecontrol': 210,
     'scgeneric': 218,
     'scalreadyloggedin': 235,
     'sccanceled': 237,
@@ -103,6 +104,7 @@ export const constants = {
     'scidentifyfailed': 277,
     'sctrackingbroke': 278,
     'scwrongcryptoformat': 279,
+    'scdecryptionerror': 280,
     'scbadsignupusernametaken': 701,
     'scbadinvitationcode': 707,
     'scmissingresult': 801,
@@ -537,6 +539,10 @@ export const identifyUi = {
     'fresh': 0,
     'aged': 1,
     'rancid': 2
+  },
+  'DismissReasonType': {
+    'none': 0,
+    'handledElsewhere': 1
   }
 }
 
@@ -589,7 +595,8 @@ export const kbfs = {
     'signing': 2,
     'verifying': 3,
     'rekeying': 4,
-    'connection': 5
+    'connection': 5,
+    'mdReadSuccess': 6
   },
   'FSErrorType': {
     'accessDenied': 0,
@@ -798,6 +805,30 @@ export const notifyCtl = {
   }
 }
 
+export const NotifyFavorites = {
+  'LogLevel': {
+    'none': 0,
+    'debug': 1,
+    'info': 2,
+    'notice': 3,
+    'warn': 4,
+    'error': 5,
+    'critical': 6,
+    'fatal': 7
+  },
+  'ClientType': {
+    'none': 0,
+    'cli': 1,
+    'gui': 2,
+    'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
+  }
+}
+
 export const NotifyFS = {
   'FSStatusCode': {
     'start': 0,
@@ -810,7 +841,8 @@ export const NotifyFS = {
     'signing': 2,
     'verifying': 3,
     'rekeying': 4,
-    'connection': 5
+    'connection': 5,
+    'mdReadSuccess': 6
   },
   'FSErrorType': {
     'accessDenied': 0,
@@ -852,6 +884,30 @@ export const NotifyTracking = {
 }
 
 export const NotifyUsers = {
+  'LogLevel': {
+    'none': 0,
+    'debug': 1,
+    'info': 2,
+    'notice': 3,
+    'warn': 4,
+    'error': 5,
+    'critical': 6,
+    'fatal': 7
+  },
+  'ClientType': {
+    'none': 0,
+    'cli': 1,
+    'gui': 2,
+    'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
+  }
+}
+
+export const paperprovision = {
   'LogLevel': {
     'none': 0,
     'debug': 1,
@@ -1233,6 +1289,37 @@ export const quota = {
     'kbfsPrivate': 2
   }
 }
+
+export const rekey = {
+  'LogLevel': {
+    'none': 0,
+    'debug': 1,
+    'info': 2,
+    'notice': 3,
+    'warn': 4,
+    'error': 5,
+    'critical': 6,
+    'fatal': 7
+  },
+  'ClientType': {
+    'none': 0,
+    'cli': 1,
+    'gui': 2,
+    'kbfs': 3
+  },
+  'MerkleTreeID': {
+    'master': 0,
+    'kbfsPublic': 1,
+    'kbfsPrivate': 2
+  },
+  'Outcome': {
+    'none': 0,
+    'fixed': 1,
+    'ignored': 2
+  }
+}
+
+export const rekeyUI = {}
 
 export const revoke = {
   'LogLevel': {
@@ -1809,16 +1896,20 @@ export default {
   metadata,
   metadataUpdate,
   notifyCtl,
+  NotifyFavorites,
   NotifyFS,
   NotifySession,
   NotifyTracking,
   NotifyUsers,
+  paperprovision,
   pgp,
   pgpUi,
   prove,
   proveUi,
   provisionUi,
   quota,
+  rekey,
+  rekeyUI,
   revoke,
   saltpack,
   saltpackUi,

@@ -2,17 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>UIAppFonts</key>
-	<array>
-		<string>kb.ttf</string>
-		<string>Lato-Bold.ttf</string>
-		<string>Lato-Italic.ttf</string>
-		<string>Lato-Regular.ttf</string>
-		<string>Lato-Semibold.ttf</string>
-		<string>Lato-SemiboldItalic.ttf</string>
-		<string>SourceCodePro-Regular.ttf</string>
-		<string>SourceCodePro-Semibold.ttf</string>
-	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleExecutable</key>
@@ -30,7 +19,7 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleVersion</key>
-	<string>2</string>
+	<string>4</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -40,6 +29,17 @@
 	</dict>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
+	<key>UIAppFonts</key>
+	<array>
+		<string>Lato_bold.ttf</string>
+		<string>Lato_italic.ttf</string>
+		<string>Lato-Semi_bold.ttf</string>
+		<string>Lato-Semibold_Italic.ttf</string>
+		<string>Lato.ttf</string>
+		<string>SourceCodePro.ttf</string>
+		<string>SourceCodePro-Semi_bold.ttf</string>
+		<string>kb.ttf</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIRequiredDeviceCapabilities</key>

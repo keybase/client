@@ -84,3 +84,12 @@ func (i *IdentifyUIServer) Finish(_ context.Context, sessionID int) error {
 	i.ui.Finish()
 	return nil
 }
+
+func (i *IdentifyUIServer) Dismiss(_ context.Context, arg keybase1.DismissArg) error {
+	i.ui.Dismiss(arg.Username, arg.Reason)
+	return nil
+}
+
+func (i *IdentifyUIServer) DisplayTLFCreateWithInvite(_ context.Context, arg keybase1.DisplayTLFCreateWithInviteArg) error {
+	return i.ui.DisplayTLFCreateWithInvite(arg)
+}

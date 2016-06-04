@@ -5,8 +5,7 @@ import * as ConfigConstants from '../constants/config'
 import * as CommonConstants from '../constants/common'
 import Immutable from 'immutable'
 
-export type DeviceRole = 'codePageDeviceRoleExistingPhone' | 'codePageDeviceRoleNewPhone' | 'codePageDeviceRoleExistingComputer' | 'codePageDeviceRoleNewComputer'
-export type Mode = 'codePageModeScanCode' | 'codePageModeShowCode' | 'codePageModeEnterText' | 'codePageModeShowText'
+import type {DeviceRole, Mode} from '../constants/login'
 
 // It's the b64 encoded value used to render the image
 type QRCode = string
@@ -32,7 +31,8 @@ type LoginState = {
   forgotPasswordError: ?Error,
   configuredAccounts: ?Array<{hasStoredSecret: bool, username: string}>,
   waitingForResponse: boolean,
-  loginError: ?string
+  loginError: ?string,
+  justRevokedSelf: ?string
 }
 
 const initialState: LoginState = {
@@ -59,7 +59,8 @@ const initialState: LoginState = {
   },
   configuredAccounts: null,
   waitingForResponse: false,
-  loginError: null
+  loginError: null,
+  justRevokedSelf: null
 }
 
 export default function (state: LoginState = initialState, action: any): LoginState {
@@ -143,6 +144,9 @@ export default function (state: LoginState = initialState, action: any): LoginSt
       } else {
         return state
       }
+      break
+    case Constants.setRevokedSelf:
+      toMerge = {justRevokedSelf: action.payload}
       break
     default:
       return state

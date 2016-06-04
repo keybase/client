@@ -33,7 +33,7 @@ const (
 )
 
 func TestProductionCA(t *testing.T) {
-	tc := SetupTest(t, "prod_ca")
+	tc := SetupTest(t, "prod_ca", 1)
 	defer tc.Cleanup()
 
 	t.Log("WARNING: setting run mode to production, be careful:")
@@ -68,7 +68,7 @@ func TestProductionCA(t *testing.T) {
 }
 
 func TestProductionBadCA(t *testing.T) {
-	tc := SetupTest(t, "prod_ca")
+	tc := SetupTest(t, "prod_ca", 1)
 	defer tc.Cleanup()
 
 	t.Log("WARNING: setting run mode to production, be careful:")

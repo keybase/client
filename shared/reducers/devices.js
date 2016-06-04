@@ -24,7 +24,16 @@ export default function (state = initialState, action) {
       return {
         ...state,
         error: action.error && action.payload,
-        devices: action.error ? [] : action.payload,
+        devices: action.error ? [] : action.payload.map(dev => ({
+          name: dev.device.name,
+          deviceID: dev.device.deviceID,
+          type: dev.device.type,
+          created: dev.device.cTime,
+          currentDevice: dev.currentDevice,
+          provisioner: dev.provisioner,
+          provisionedAt: dev.provisionedAt,
+          revokedAt: dev.revokedAt
+        })),
         waitingForServer: false
       }
     case Constants.deviceRemoved:

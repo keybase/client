@@ -1,15 +1,20 @@
+// @flow
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
+import _ from 'lodash'
 
 import CodePage from '../login/register/code-page'
 import GenPaperKey from './gen-paper-key'
 import ExistingDevice from './existing-device'
-import RemoveDevice from './remove-device'
 
 import {loadDevices} from '../actions/devices'
 import {routeAppend} from '../actions/router'
-import {addANewDevice} from '../actions/login'
-import Render from './index.render'
+import {addNewPhone, addNewComputer, addNewPaperKey} from '../actions/login'
+
+import ShowDevice from './device-page'
+import RemoveDevice from './device-revoke'
+
+import Render from './render'
 
 class Devices extends Component {
   componentWillMount () {
@@ -27,31 +32,28 @@ class Devices extends Component {
         codePage: CodePage,
         genPaperKey: GenPaperKey,
         regExistingDevice: ExistingDevice,
+        showDevice: ShowDevice,
         removeDevice: RemoveDevice
       }
     }
   }
 
   render () {
+    // Divide the devices array into not-revoked and revoked.
+    const [devices, revokedDevices] = _.partition(this.props.devices, dev => !dev.revokedAt)
+
     return (
       <Render
-        devices={this.props.devices}
+        devices={devices}
+        revokedDevices={revokedDevices}
+        addNewPhone={this.props.addNewPhone}
+        addNewComputer={this.props.addNewComputer}
+        addNewPaperKey={this.props.addNewPaperKey}
         waitingForServer={this.props.waitingForServer}
         showRemoveDevicePage={this.props.showRemoveDevicePage}
-        showExistingDevicePage={this.props.showExistingDevicePage}
-        showGenPaperKeyPage={this.props.showGenPaperKeyPage}/>
+        showExistingDevicePage={this.props.showExistingDevicePage} />
     )
   }
-}
-
-Devices.propTypes = {
-  devices: React.PropTypes.array,
-  error: React.PropTypes.any,
-  waitingForServer: React.PropTypes.bool,
-  loadDevices: React.PropTypes.func.isRequired,
-  showRemoveDevicePage: React.PropTypes.func.isRequired,
-  showExistingDevicePage: React.PropTypes.func.isRequired,
-  showGenPaperKeyPage: React.PropTypes.func.isRequired
 }
 
 export default connect(
@@ -62,8 +64,10 @@ export default connect(
   dispatch => {
     return {
       loadDevices: () => dispatch(loadDevices()),
+      showExistingDevicePage: device => dispatch(routeAppend({path: 'showDevice', device})),
       showRemoveDevicePage: device => dispatch(routeAppend({path: 'removeDevice', device})),
-      showExistingDevicePage: () => dispatch(addANewDevice()),
-      showGenPaperKeyPage: () => dispatch(routeAppend('genPaperKey'))
+      addNewPhone: () => dispatch(addNewPhone()),
+      addNewComputer: () => dispatch(addNewComputer()),
+      addNewPaperKey: () => dispatch(addNewPaperKey())
     }
   })(Devices)

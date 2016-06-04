@@ -1,10 +1,23 @@
+// @flow
+
 import React, {Component} from 'react'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {autoResize} from '../../desktop/renderer/remote-component-helper'
 import {Button, FormWithCheckbox, Header, Text} from '../common-adapters'
 
-export default class PinentryRender extends Component {
-  constructor (props) {
+import type {Props, DefaultProps} from './index.render'
+
+type State = {
+  features: {[key: string]: boolean},
+  passphrase: string,
+  showTyping: boolean
+}
+
+export default class PinentryRender extends Component<DefaultProps, Props, State> {
+  static defaultProps: DefaultProps;
+  state: State;
+
+  constructor (props: Props) {
     super(props)
 
     this.state = {
@@ -21,7 +34,7 @@ export default class PinentryRender extends Component {
     }
   }
 
-  onCheck (feature, checked) {
+  onCheck (feature: string, checked: boolean) {
     this.setState({
       features: {
         ...this.state.features,
@@ -46,7 +59,7 @@ export default class PinentryRender extends Component {
       style: {marginBottom: 0},
       onChange: event => this.setState({passphrase: event.target.value}),
       onEnterKeyDown: () => submitPassphrase(),
-      type: this.state.showTyping ? 'text' : 'password',
+      type: this.state.showTyping ? 'passwordVisible' : 'password',
       errorText: this.props.retryLabel,
       autoFocus: true
     }
@@ -77,22 +90,16 @@ export default class PinentryRender extends Component {
           />
         </div>
         <div style={{...styles.container, alignItems: 'flex-end', paddingLeft: 30, paddingRight: 30, paddingBottom: 30}}>
-          <Button type='Primary' label='Continue' onClick={submitPassphrase} disabled={!this.state.passphrase}/>
+          <Button type='Primary' label={this.props.submitLabel} onClick={submitPassphrase} disabled={!this.state.passphrase} />
         </div>
       </div>
     )
   }
 }
 
-PinentryRender.propTypes = {
-  onSubmit: React.PropTypes.func.isRequired,
-  onCancel: React.PropTypes.func.isRequired,
-  features: React.PropTypes.object.isRequired,
-  prompt: React.PropTypes.string.isRequired,
-  retryLabel: React.PropTypes.string.isRequired,
-  cancelLabel: React.PropTypes.string,
-  submitLabel: React.PropTypes.string,
-  windowTitle: React.PropTypes.string.isRequired
+PinentryRender.defaultProps = {
+  retryLabel: null,
+  submitLabel: 'Continue'
 }
 
 const styles = {
@@ -102,7 +109,7 @@ const styles = {
   },
   checkbox: {
     ...globalStyles.topMost,
-    color: globalColors.black100,
+    color: globalColors.black,
     marginLeft: 10
   }
 }

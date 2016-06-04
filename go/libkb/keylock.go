@@ -5,6 +5,8 @@ package libkb
 
 import "fmt"
 
+const WhichPassphraseKeybase = "your Keybase"
+
 type KeyUnlocker struct {
 	Tries          int
 	Reason         string
@@ -13,6 +15,7 @@ type KeyUnlocker struct {
 	UseSecretStore bool
 	UI             SecretUI
 	Unlocker       func(pw string, storeSecret bool) (ret GenericKey, err error)
+	Contextified
 }
 
 func (arg KeyUnlocker) Run() (ret GenericKey, err error) {
@@ -22,10 +25,10 @@ func (arg KeyUnlocker) Run() (ret GenericKey, err error) {
 	if len(which) == 0 {
 		which = "the"
 	}
-	desc := "Please enter " + which + " passphrase to unlock the secret key for:\n" +
+	prompt := "Please enter " + which + " passphrase to unlock the secret key for:\n" +
 		arg.KeyDesc + "\n"
 	if len(arg.Reason) > 0 {
-		desc = desc + "\nReason: " + arg.Reason
+		prompt = prompt + "\nReason: " + arg.Reason
 	}
 
 	if arg.UI == nil {
@@ -33,10 +36,10 @@ func (arg KeyUnlocker) Run() (ret GenericKey, err error) {
 		return
 	}
 
-	prompt := "Your key passphrase"
+	title := "Your Keybase Passphrase"
 
 	for i := 0; arg.Tries <= 0 || i < arg.Tries; i++ {
-		res, err := GetSecret(arg.UI, prompt, desc, emsg, arg.UseSecretStore)
+		res, err := GetSecret(arg.G(), arg.UI, title, prompt, emsg, arg.UseSecretStore)
 		if err != nil {
 			// probably canceled
 			return nil, err

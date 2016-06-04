@@ -1,6 +1,6 @@
 import showDockIcon from './dock-icon'
 import menuHelper from './menu-helper'
-import {app, ipcMain, BrowserWindow} from 'electron'
+import {ipcMain, BrowserWindow} from 'electron'
 import {focusOnShow} from '../shared/local-debug'
 
 export default class Window {
@@ -10,10 +10,7 @@ export default class Window {
     this.window = null
     this.initiallyVisible = this.opts.show || false
     this.releaseDockIcon = null
-
-    app.on('ready', () => {
-      this.createWindow()
-    })
+    this.createWindow()
 
     // Listen for remote windows to show a dock icon for, we'll bind the on close to
     // hide the dock icon too

@@ -9,7 +9,7 @@ import (
 )
 
 func TestPGPDecryptBasic(t *testing.T) {
-	tc := SetupTest(t, "pgp_encrypt")
+	tc := SetupTest(t, "pgp_encrypt", 1)
 	defer tc.Cleanup()
 	keyA, err := tc.MakePGPKey("keya@keybase.io")
 	if err != nil {

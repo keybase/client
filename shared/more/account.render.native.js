@@ -25,7 +25,7 @@ export default class AccountRender extends Component {
           </Text>
           <TextInput style={commonStyles.textInput}
             onChangeText={email => this.setState({email})}
-            defaultValue={email}/>
+            defaultValue={email} />
           {emailError && <Text style={[styles.errorInfo, {marginHorizontal: 10}]}>{emailError}</Text>}
         </View>
 
@@ -35,18 +35,18 @@ export default class AccountRender extends Component {
             returnKeyType='next'
             onSubmitEditing={() => this.refs['newPassphrase'].focus()}
             onChangeText={oldPassphrase => this.setState({oldPassphrase})}
-            placeholder='Current passphrase'/>
+            placeholder='Current passphrase' />
           <TextInput style={commonStyles.textInput}
             returnKeyType='next'
             ref='newPassphrase'
             onSubmitEditing={() => this.refs['newPassphraseRepeat'].focus()}
             onChangeText={newPassphrase => this.setState({newPassphrase})}
-            placeholder='New passphrase'/>
+            placeholder='New passphrase' />
           <TextInput style={commonStyles.textInput}
             returnKeyType='next'
             ref='newPassphraseRepeat'
             onChangeText={newPassphraseRepeat => this.setState({newPassphraseRepeat})}
-            placeholder='Confirm new passphrase'/>
+            placeholder='Confirm new passphrase' />
 
           <View style={styles.saveContainer}>
             {passphraseError && <Text style={styles.errorInfo}>{passphraseError}</Text>}
@@ -59,7 +59,7 @@ export default class AccountRender extends Component {
                 onPress={() => {
                   const {email, oldPassphrase, newPassphrase, newPassphraseRepeat} = this.state
                   onSave(email, oldPassphrase, newPassphrase, newPassphraseRepeat)
-                }}/>
+                }} />
             </View>
           </View>
         </View>

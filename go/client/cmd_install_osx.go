@@ -79,6 +79,8 @@ func (v *CmdInstall) ParseArgv(ctx *cli.Context) error {
 	v.binPath = ctx.String("bin-path")
 	v.installer = ctx.String("installer")
 	if ctx.String("components") == "" {
+		// To enable udpater install use:
+		// v.components = []string{"updater", "service", "kbfs"}
 		v.components = []string{"service", "kbfs"}
 	} else {
 		v.components = strings.Split(ctx.String("components"), ",")
@@ -167,6 +169,8 @@ func (v *CmdUninstall) ParseArgv(ctx *cli.Context) error {
 		if libkb.IsBrewBuild {
 			v.components = []string{"service"}
 		} else {
+			// To enable updater use:
+			//v.components = []string{"service", "kbfs", "updater"}
 			v.components = []string{"service", "kbfs"}
 		}
 	} else {

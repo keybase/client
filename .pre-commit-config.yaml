@@ -11,7 +11,7 @@
         entry: sh
         language: system
         files: ''
-        args: [-c, 'cd shared && flow']
+        args: [-c, 'cd shared && flow --ignore-version']
 
 -   repo: git@github.com:keybase/pre-commit-golang.git
     sha: '04b422b4c7fabfcf586e563e54334c659e6fd189'

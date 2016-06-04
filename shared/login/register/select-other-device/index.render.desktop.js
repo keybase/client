@@ -23,7 +23,7 @@ const Row = ({deviceID, name, type, onSelect}) => {
     <div style={stylesRow} onClick={onClick}>
       <div style={stylesIconName}>
         <div style={stylesIconContainer}>
-          <Icon style={stylesIcon} type={iconType}/>
+          <Icon style={stylesIcon} type={iconType} />
         </div>
         <Text type='BodySemiboldItalic' onClick={onClick}>{name}</Text>
       </div>
@@ -36,9 +36,9 @@ const Render = ({onBack, devices, onWont, onSelect}: Props) => (
     onBack={onBack}>
     <Text type='Header' style={stylesHeader}>Which device would you like to connect with?</Text>
     <div style={stylesDevicesContainer}>
-      {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID}/>)}
+      {devices.map(d => <Row onSelect={onSelect} {...d} key={d.deviceID} />)}
     </div>
-    <Text style={stylesWont} type='BodySecondaryLink' onClick={onWont}>Log in with your passphrase</Text>
+    <Text style={stylesWont} type='BodySmallSecondaryLink' onClick={onWont}>Log in with your passphrase</Text>
   </Container>
 )
 
@@ -61,7 +61,7 @@ const stylesRow = {
   justifyContent: 'center',
   minHeight: 80,
   padding: 10,
-  borderBottom: `solid ${globalColors.black10} 1px`
+  borderBottom: `solid ${globalColors.black_10} 1px`
 }
 const stylesIconName = {
   ...globalStyles.flexBoxRow,

@@ -5,6 +5,7 @@ package engine
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -12,15 +13,17 @@ import (
 
 // FavoriteAdd is an engine.
 type FavoriteAdd struct {
-	arg *keybase1.FavoriteAddArg
+	arg             *keybase1.FavoriteAddArg
+	checkInviteDone chan struct{}
 	libkb.Contextified
 }
 
 // NewFavoriteAdd creates a FavoriteAdd engine.
 func NewFavoriteAdd(arg *keybase1.FavoriteAddArg, g *libkb.GlobalContext) *FavoriteAdd {
 	return &FavoriteAdd{
-		arg:          arg,
-		Contextified: libkb.NewContextified(g),
+		arg:             arg,
+		checkInviteDone: make(chan struct{}),
+		Contextified:    libkb.NewContextified(g),
 	}
 }
 
@@ -38,12 +41,22 @@ func (e *FavoriteAdd) Prereqs() Prereqs {
 
 // RequiredUIs returns the required UIs.
 func (e *FavoriteAdd) RequiredUIs() []libkb.UIKind {
-	return []libkb.UIKind{}
+	return []libkb.UIKind{
+		libkb.IdentifyUIKind,
+	}
 }
 
 // SubConsumers returns the other UI consumers for this engine.
 func (e *FavoriteAdd) SubConsumers() []libkb.UIConsumer {
 	return nil
+}
+
+func (e *FavoriteAdd) WantDelegate(kind libkb.UIKind) bool {
+	if kind == libkb.IdentifyUIKind {
+		return true
+	}
+
+	return false
 }
 
 // Run starts the engine.
@@ -60,5 +73,59 @@ func (e *FavoriteAdd) Run(ctx *Context) error {
 			"status":   libkb.S{Val: "favorite"},
 		},
 	})
-	return err
+	if err != nil {
+		return err
+	}
+
+	// this should be in its own goroutine so that potential
+	// UI calls don't block FavoriteAdd calls
+	go e.checkInviteNeeded(ctx)
+
+	return nil
+}
+
+// Wait until the checkInviteNeeded goroutine is done.
+func (e *FavoriteAdd) Wait() {
+	<-e.checkInviteDone
+}
+
+func (e *FavoriteAdd) checkInviteNeeded(ctx *Context) error {
+	defer func() {
+		close(e.checkInviteDone)
+	}()
+
+	// If not folder creator, do nothing.
+	if !e.arg.Folder.Created {
+		return nil
+	}
+
+	for _, user := range strings.Split(e.arg.Folder.Name, ",") {
+		assertion, ok := libkb.NormalizeSocialAssertion(user)
+		if !ok {
+			e.G().Log.Debug("not a social assertion: %s", user)
+			continue
+		}
+
+		e.G().Log.Debug("social assertion found in FavoriteAdd folder name: %s", assertion)
+		e.G().Log.Debug("requesting an invitation for %s", assertion)
+
+		inv, err := libkb.GenerateInvitationCodeForAssertion(e.G(), assertion, libkb.InviteArg{})
+		if err != nil {
+			return err
+		}
+
+		e.G().Log.Debug("invitation requested, informing folder creator with result")
+		arg := keybase1.DisplayTLFCreateWithInviteArg{
+			FolderName: e.arg.Folder.Name,
+			Assertion:  assertion.String(),
+			IsPrivate:  e.arg.Folder.Private,
+			Throttled:  inv.Throttled,
+			InviteLink: inv.Link(),
+		}
+		if err := ctx.IdentifyUI.DisplayTLFCreateWithInvite(arg); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

@@ -47,17 +47,6 @@ class Dropdown extends Component {
     this.setState({value: this._stateValue(nextProps.value)})
   }
 
-  shouldComponentUpdate (nextProps: Props, nextState: State): boolean {
-    if (
-      this.state.value !== nextState.value ||
-      this.state.modalVisible !== nextState.modalVisible ||
-      this.props.value !== nextProps.value) {
-      return true
-    }
-
-    return false
-  }
-
   _selected () {
     // Didn't actually select anything
     if (this.state.value === pickItemValue) {
@@ -66,7 +55,7 @@ class Dropdown extends Component {
       if (this.props.onOther) {
         this.props.onOther()
       } else {
-        console.error('otherValue selected, yet no onOther handler')
+        console.warn('otherValue selected, yet no onOther handler')
       }
     } else if (this.props.onClick) {
       this.props.onClick(this.state.value, (this.props.options || []).indexOf(this.state.value))
@@ -107,7 +96,7 @@ class Dropdown extends Component {
   _renderLabelAndCaret (): Array<React$Element> {
     return [
       <Text key='text' type='Header' style={{...styleText, ...this._itemStyle()}}>{this._label(this.state.value)}</Text>,
-      <Icon key='icon' type='fa-caret-down' style={styleIcon}/>
+      <Icon key='icon' type='fa-caret-down' style={styleIcon} />
     ]
   }
 
@@ -130,7 +119,7 @@ class Dropdown extends Component {
 
     return (
       <Picker style={style} selectedValue={this.state.value} onValueChange={onValueChange}>
-        {items.map(i => <Picker.Item {...i}/>)}
+        {items.map(i => <Picker.Item {...i} />)}
       </Picker>
     )
   }
@@ -151,7 +140,7 @@ class Dropdown extends Component {
           <Modal animated transparent visible={this.state.modalVisible} onRequestClose={() => this._showModal(false)}>
             <Box style={stylePickerContainer}>
               <TouchableWithoutFeedback onPress={() => this._showModal(false)}>
-                <Box style={{flex: 1}}/>
+                <Box style={{flex: 1}} />
               </TouchableWithoutFeedback>
               {this._renderPicker(stylePickerIOS, false)}
             </Box>
@@ -176,7 +165,7 @@ const styleContainer = {
   paddingLeft: 17,
   paddingRight: 17,
   borderWidth: 1,
-  borderColor: globalColors.black10
+  borderColor: globalColors.black_10
 }
 
 const styleText = {
@@ -191,7 +180,7 @@ const styleIcon = {
 const stylePickerContainer = {
   flex: 1,
   justifyContent: 'flex-end',
-  backgroundColor: globalColors.black40
+  backgroundColor: globalColors.black_40
 }
 
 const stylePickerIOS = {

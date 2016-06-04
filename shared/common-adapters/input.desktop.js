@@ -37,6 +37,8 @@ export default class Input extends Component {
 
   onChange (event: {target: {value: ?string}}) {
     this.setState({value: event.target.value})
+    this.props.onChange && this.props.onChange(event)
+    this.props.onChangeText && this.props.onChangeText(event.target.value || '')
   }
 
   blur () {
@@ -49,10 +51,10 @@ export default class Input extends Component {
         <MultiLineInput
           autoFocus={this.props.autoFocus}
           errorText={this.props.errorText}
-          onChange={this.props.onChange}
+          onChange={event => this.onChange(event)}
           onEnterKeyDown={this.props.onEnterKeyDown}
           hintText={this.props.hintText}
-          style={this.props.style}/>
+          style={this.props.style} />
       )
     }
 
@@ -68,14 +70,19 @@ export default class Input extends Component {
     }
     const inputStyle = this.props.multiLine ? multiLineStyleFix : {height: 'auto'}
     const alignStyle = this.props.style && this.props.style.textAlign ? {textAlign: this.props.style.textAlign} : {textAlign: 'center'}
+
+    const passwordVisible = this.props.type === 'passwordVisible'
+    const password = this.props.type === 'password'
+
     return (
       <div style={{...style, ...this.props.style}} onClick={() => { this._textField && this._textField.focus() }}>
         <TextField
           ref={textField => (this._textField = textField)}
+          onKeyDown={this.props.onKeyDown}
           fullWidth
           textAlign='center'
-          inputStyle={{...inputStyle, ...alignStyle}}
-          underlineStyle={{borderColor: globalColors.black10, bottom: 'auto'}}
+          inputStyle={{...inputStyle, ...alignStyle, ...this.props.inputStyle}}
+          underlineStyle={{borderColor: globalColors.black_10, bottom: 'auto', ...this.props.underlineStyle}}
           errorStyle={{...styles.errorStyle, ...this.props.errorStyle}}
           style={{...textStyle, ...globalStyles.flexBoxColumn}}
           autoFocus={this.props.autoFocus}
@@ -87,15 +94,13 @@ export default class Input extends Component {
           hintText={this.props.hintText}
           hintStyle={{...styles.hintStyle, ...(this.props.multiLine ? {textAlign: 'center'} : {top: 3, bottom: 'auto'}), ...this.props.hintStyle}}
           multiLine={this.props.multiLine}
-          onChange={event => {
-            this.onChange(event)
-            this.props.onChange && this.props.onChange(event)
-          }}
+          onChange={event => this.onChange(event)}
           onEnterKeyDown={this.props.onEnterKeyDown}
-          underlineFocusStyle={styles.underlineFocusStyle}
+          underlineFocusStyle={{...styles.underlineFocusStyle, ...this.props.underlineStyle}}
           rows={this.props.rows}
           rowsMax={this.props.rowsMax}
-          type={this.props.type}
+          autoComplete={(passwordVisible || password) ? 'off' : undefined}
+          type={password ? 'password' : 'text'}
           value={this.state.value}
           />
       </div>
@@ -142,14 +147,14 @@ export const styles = {
   },
   hintStyle: {
     ...globalStyles.fontSemibold,
-    color: globalColors.black10,
+    color: globalColors.black_10,
     width: '100%',
     textAlign: 'center',
     marginTop: -3
   },
   floatingLabelStyle: {
     ...globalStyles.fontSemibold,
-    color: globalColors.black10,
+    color: globalColors.black_10,
     alignSelf: 'center',
     position: 'inherit',
     top: 34,

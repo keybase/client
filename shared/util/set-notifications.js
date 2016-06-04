@@ -7,7 +7,8 @@ type NotificationChannels = {
   session?: true,
   users?: true,
   kbfs?: true,
-  tracking?: true
+  tracking?: true,
+  favorites?: true
 }
 
 let channelsSet = {}
@@ -20,7 +21,8 @@ export default function (channels: NotificationChannels): Promise<void> {
       session: !!channelsSet.session,
       users: !!channelsSet.users,
       kbfs: !!channelsSet.kbfs,
-      tracking: !!channelsSet.tracking
+      tracking: !!channelsSet.tracking,
+      favorites: !!channelsSet.favorites
     }
 
     engine.listenOnConnect('setNotifications', () => {
@@ -30,7 +32,7 @@ export default function (channels: NotificationChannels): Promise<void> {
         incomingCallMap: {},
         callback: (error, response) => {
           if (error != null) {
-            console.error('error in toggling notifications: ', error)
+            console.warn('error in toggling notifications: ', error)
             reject(error)
           } else {
             resolve()

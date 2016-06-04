@@ -222,6 +222,10 @@
           "name": "mTime"
         },
         {
+          "type": "Time",
+          "name": "lastUsedTime"
+        },
+        {
           "type": "KID",
           "name": "encryptKey"
         },
@@ -392,6 +396,10 @@
         {
           "type": "boolean",
           "name": "notificationsOn"
+        },
+        {
+          "type": "boolean",
+          "name": "created"
         }
       ],
       "doc": "Folder represents a favorite top-level folder in kbfs.\n    This type is likely to change significantly as all the various parts are\n    connected and tested."

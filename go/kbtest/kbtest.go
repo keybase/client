@@ -64,5 +64,9 @@ func CreateAndSignupFakeUser(prefix string, g *libkb.GlobalContext) (*FakeUser, 
 	if err := engine.RunEngine(s, ctx); err != nil {
 		return nil, err
 	}
+	fu.User, err = libkb.LoadUser(libkb.NewLoadUserByNameArg(g, fu.Username))
+	if err != nil {
+		return nil, err
+	}
 	return fu, nil
 }

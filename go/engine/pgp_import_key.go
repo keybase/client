@@ -43,14 +43,16 @@ type PGPKeyImportEngineArg struct {
 
 func NewPGPKeyImportEngineFromBytes(key []byte, pushPrivate bool, gc *libkb.GlobalContext) (eng *PGPKeyImportEngine, err error) {
 	var bundle *libkb.PGPKeyBundle
+	var w *libkb.Warnings
 	if libkb.IsArmored(key) {
-		bundle, err = libkb.ReadPrivateKeyFromString(string(key))
+		bundle, w, err = libkb.ReadPrivateKeyFromString(string(key))
 	} else {
-		bundle, err = libkb.ReadOneKeyFromBytes(key)
+		bundle, w, err = libkb.ReadOneKeyFromBytes(key)
 	}
 	if err != nil {
 		return
 	}
+	w.Warn(gc)
 	arg := PGPKeyImportEngineArg{
 		Pregen:     bundle,
 		PushSecret: pushPrivate,
@@ -91,7 +93,7 @@ func (e *PGPKeyImportEngine) generateKey(ctx *Context) (err error) {
 	if err = gen.CreatePGPIDs(); err != nil {
 		return
 	}
-	e.bundle, err = libkb.GeneratePGPKeyBundle(*gen, ctx.LogUI)
+	e.bundle, err = libkb.GeneratePGPKeyBundle(e.G(), *gen, ctx.LogUI)
 	return
 }
 

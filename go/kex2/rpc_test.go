@@ -97,7 +97,7 @@ func (mp *mockProvisionee) GetLogFactory() rpc.LogFactory {
 
 var ErrHandleHello = errors.New("handle hello failure")
 var ErrHandleDidCounterSign = errors.New("handle didCounterSign failure")
-var testTimeout = time.Duration(20) * time.Millisecond
+var testTimeout = time.Duration(50) * time.Millisecond
 
 func (mp *mockProvisionee) HandleHello(arg keybase1.HelloArg) (res keybase1.HelloRes, err error) {
 	if (mp.behavior & BadProvisioneeSlowHello) != 0 {

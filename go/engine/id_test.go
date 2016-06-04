@@ -171,6 +171,8 @@ type FakeIdentifyUI struct {
 	StartCount      int
 	Token           keybase1.TrackToken
 	BrokenTracking  bool
+	DisplayTLFArg   keybase1.DisplayTLFCreateWithInviteArg
+	DisplayTLFCount int
 	sync.Mutex
 }
 
@@ -236,7 +238,8 @@ func (ui *FakeIdentifyUI) Start(username string, _ keybase1.IdentifyReason) {
 	defer ui.Unlock()
 	ui.StartCount++
 }
-func (ui *FakeIdentifyUI) Finish() {}
+func (ui *FakeIdentifyUI) Finish()                                    {}
+func (ui *FakeIdentifyUI) Dismiss(_ string, _ keybase1.DismissReason) {}
 func (ui *FakeIdentifyUI) LaunchNetworkChecks(id *keybase1.Identity, user *keybase1.User) {
 	ui.Lock()
 	defer ui.Unlock()
@@ -252,4 +255,9 @@ func (ui *FakeIdentifyUI) ReportTrackToken(tok keybase1.TrackToken) error {
 	return nil
 }
 func (ui *FakeIdentifyUI) SetStrict(b bool) {
+}
+func (ui *FakeIdentifyUI) DisplayTLFCreateWithInvite(arg keybase1.DisplayTLFCreateWithInviteArg) error {
+	ui.DisplayTLFCount++
+	ui.DisplayTLFArg = arg
+	return nil
 }

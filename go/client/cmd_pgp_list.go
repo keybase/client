@@ -91,5 +91,6 @@ func (s *CmdPGPList) GetUsage() libkb.Usage {
 	return libkb.Usage{
 		Config:    true,
 		KbKeyring: true,
+		API:       true,
 	}
 }

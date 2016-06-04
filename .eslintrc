@@ -12,7 +12,8 @@
         }
     },
     "globals": {
-        "__DEV__": false
+        "__DEV__": false,
+        "__SCREENSHOT__": false
     },
     "plugins": [
         "flow-vars", "mocha", "filenames"
@@ -27,6 +28,8 @@
         "arrow-parens": [2, "as-needed"],
         "react/jsx-no-bind": [2, {"allowArrowFunctions": true}],
         "react/prop-types": [0],
-        "filenames/filenames": [2, "^[0-9a-z-.]+(\\.desktop|\\.native|\\.ios|\\.android)?$"]
+        "filenames/filenames": [2, "^[0-9a-z-.]+(\\.desktop|\\.native|\\.ios|\\.android)?$"],
+        "camelcase": [0],
+        "no-duplicate-imports": [0]
     }
 }

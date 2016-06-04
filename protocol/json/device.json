@@ -222,6 +222,10 @@
           "name": "mTime"
         },
         {
+          "type": "Time",
+          "name": "lastUsedTime"
+        },
+        {
           "type": "KID",
           "name": "encryptKey"
         },
@@ -376,6 +380,45 @@
         }
       ],
       "doc": "UserResolution maps how an unresolved user assertion has been resolved."
+    },
+    {
+      "type": "record",
+      "name": "DeviceDetail",
+      "fields": [
+        {
+          "type": "Device",
+          "name": "device"
+        },
+        {
+          "type": "boolean",
+          "name": "eldest"
+        },
+        {
+          "type": [
+            "null",
+            "Device"
+          ],
+          "name": "provisioner"
+        },
+        {
+          "type": [
+            "null",
+            "Time"
+          ],
+          "name": "provisionedAt"
+        },
+        {
+          "type": [
+            "null",
+            "Time"
+          ],
+          "name": "revokedAt"
+        },
+        {
+          "type": "boolean",
+          "name": "currentDevice"
+        }
+      ]
     }
   ],
   "messages": {
@@ -392,6 +435,19 @@
       },
       "doc": "List devices for the user."
     },
+    "deviceHistoryList": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        }
+      ],
+      "response": {
+        "type": "array",
+        "items": "DeviceDetail"
+      },
+      "doc": "List all devices with detailed history and status information."
+    },
     "deviceAdd": {
       "request": [
         {
@@ -400,7 +456,7 @@
         }
       ],
       "response": "null",
-      "doc": "Starts the process of adding a new device using an existing\n    device.  It is called on the existing device. \n    This is for kex2."
+      "doc": "Starts the process of adding a new device using an existing\n    device.  It is called on the existing device.\n    This is for kex2."
     },
     "checkDeviceNameFormat": {
       "request": [

@@ -1,7 +1,7 @@
 /* @flow */
 
 import React, {Component} from 'react'
-import {globalColors} from '../styles/style-guide'
+import {globalStyles, globalColors} from '../styles/style-guide'
 import {FontIcon} from 'material-ui'
 import type {Props} from './icon'
 import {resolveImage} from '../../desktop/resolve-root'
@@ -16,7 +16,7 @@ export default class Icon extends Component {
     let iconType = shared.typeToIconMapper(this.props.type)
 
     if (!iconType) {
-      console.error('Null iconType passed')
+      console.warn('Null iconType passed')
       return null
     }
 
@@ -24,34 +24,36 @@ export default class Icon extends Component {
       color = 'inherit'
       hoverColor = 'inherit'
     } else {
-      color = this.props.style && this.props.style.color || color || (this.props.opacity ? globalColors.lightGrey : globalColors.black40)
-      hoverColor = this.props.style && this.props.style.hoverColor || hoverColor || (this.props.opacity ? globalColors.black : globalColors.black75)
+      color = this.props.style && this.props.style.color || color || (this.props.opacity ? globalColors.lightGrey : globalColors.black_40)
+      hoverColor = this.props.style && this.props.style.hoverColor || hoverColor || (this.props.opacity ? globalColors.black : globalColors.black_75)
     }
 
     const ext = shared.typeExtension(iconType)
-
     const isFontIcon = iconType.startsWith('fa-')
 
     if (isFontIcon) {
       return <FontIcon
         title={this.props.hint}
-        style={{...styles.icon, ...this.props.style}}
+        style={{...globalStyles.noSelect, ...styles.icon, ...this.props.style}}
         className={`fa ${iconType} ${this.props.className}`}
         color={color}
         hoverColor={this.props.onClick ? hoverColor : null}
         onMouseEnter={this.props.onMouseEnter}
         onMouseLeave={this.props.onMouseLeave}
-        onClick={this.props.onClick}/>
+        onClick={this.props.onClick} />
     } else {
       return <img
         className={this.props.className}
         title={this.props.hint}
-        style={{...this.props.style}}
+        style={{...globalStyles.noSelect, ...this.props.style}}
         onClick={this.props.onClick}
-        srcSet={`${[1, 2, 3].map(mult => `${resolveImage('icons', this.props.type)}${mult > 1 ? `@${mult}x` : ''}.${ext} ${mult}x`).join(', ')}`} />
+        srcSet={imgPath(this.props.type, ext)} />
     }
   }
 }
+
+const imgName = (type, ext, mult) => `${encodeURI(resolveImage('icons', type))}${mult > 1 ? `@${mult}x` : ''}.${ext} ${mult}x`
+const imgPath = (type, ext) => [1, 2, 3].map(mult => imgName(type, ext, mult)).join(', ')
 
 export const styles = {
   icon: {

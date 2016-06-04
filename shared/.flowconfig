@@ -10,6 +10,8 @@
 .*/node_modules/react-tap-event-plugin/node_modules/.*
 .*/react/node_modules/.*
 ../desktop/build/.*
+../desktop/shared/.*
+../react-native/shared/.*
 
 
 .*/node_modules/builtin-modules/.*
@@ -48,4 +50,4 @@ suppress_comment=\\(.\\|\n\\)*\\$FlowFixedInNextDeploy
 suppress_comment=\\(.\\|\n\\)*\\$FlowIssue
 
 [version]
-0.22.1
+0.24.1

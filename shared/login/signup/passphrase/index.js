@@ -7,13 +7,34 @@ import HiddenString from '../../../util/hidden-string'
 
 import Render from './index.render'
 import {checkPassphrase, resetSignup} from '../../../actions/signup'
+import type {Props} from './index.render'
+
+type State = {
+  pass1: string,
+  pass2: string
+}
 
 class PassphraseForm extends Component {
+  state: State;
+
+  constructor (props: Props) {
+    super(props)
+
+    this.state = {
+      pass1: '',
+      pass2: ''
+    }
+  }
+
   render () {
     return (
       <Render
         passphraseError={this.props.passphraseError}
-        checkPassphrase={this.props.checkPassphrase}
+        pass1={this.state.pass1}
+        pass1Update={pass1 => this.setState({pass1})}
+        pass2={this.state.pass2}
+        pass2Update={pass2 => this.setState({pass2})}
+        onSubmit={() => this.props.checkPassphrase(this.state.pass1, this.state.pass2)}
         onBack={this.props.resetSignup}
         />
     )

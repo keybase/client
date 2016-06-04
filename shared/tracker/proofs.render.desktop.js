@@ -3,9 +3,9 @@
 import React, {Component} from 'react'
 import commonStyles from '../styles/common'
 import {globalStyles, globalColors} from '../styles/style-guide'
-import {Icon, Text, ProgressIndicator} from '../common-adapters/index'
+import {Icon, Text, Meta} from '../common-adapters/index'
 import {normal as proofNormal, checking as proofChecking, revoked as proofRevoked, error as proofError, warning as proofWarning} from '../constants/tracker'
-import {metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone} from '../constants/tracker'
+import {metaNew, metaUpgraded, metaUnreachable, metaPending, metaDeleted, metaNone, metaIgnored} from '../constants/tracker'
 import electron from 'electron'
 
 import type {Props as IconProps} from '../common-adapters/icon'
@@ -17,28 +17,24 @@ import type {Proof, ProofsProps} from './proofs.render'
 class ProofsRender extends Component {
   props: ProofsProps;
 
-  openLink (url: string): void {
+  _openLink (url: string): void {
     shell.openExternal(url)
   }
 
-  onClickProof (proof: Proof): void {
+  _onClickProof (proof: Proof): void {
     if (proof.state !== proofChecking) {
-      proof.humanUrl && this.openLink(proof.humanUrl)
+      proof.humanUrl && this._openLink(proof.humanUrl)
     }
   }
 
-  onClickProfile (proof: Proof): void {
+  _onClickProfile (proof: Proof): void {
     console.log('Opening profile link:', proof)
     if (proof.state !== proofChecking) {
-      proof.profileUrl && this.openLink(proof.profileUrl)
+      proof.profileUrl && this._openLink(proof.profileUrl)
     }
   }
 
-  onClickUsername () {
-    shell.openExternal(`https://keybase.io/${this.props.username}`)
-  }
-
-  iconNameForProof (proof: Proof): IconProps.type {
+  _iconNameForProof (proof: Proof): IconProps.type {
     return {
       'twitter': 'fa-twitter',
       'github': 'fa-github',
@@ -47,36 +43,34 @@ class ProofsRender extends Component {
       'coinbase': 'fa-btc',
       'hackernews': 'fa-hacker-news',
       'rooter': 'fa-shopping-basket',
-      'web': 'fa-globe',
+      'http': 'fa-globe',
+      'https': 'fa-globe',
       'dns': 'fa-globe'
     }[proof.type]
   }
 
-  metaColor (proof: Proof): string {
+  _metaColor (proof: Proof): string {
     let color = globalColors.blue
     switch (proof.meta) {
       case metaNew: color = globalColors.blue; break
       case metaUpgraded: color = globalColors.blue; break
       case metaUnreachable: color = globalColors.red; break
-      case metaPending: color = globalColors.black40; break
+      case metaPending: color = globalColors.black_40; break
       case metaDeleted: color = globalColors.red; break
+      case metaIgnored: color = globalColors.green; break
     }
     return color
   }
 
-  _isTracked (proof: Proof): boolean {
-    return this.props.currentlyFollowing && (!proof.meta || proof.meta === metaNone)
-  }
-
-  proofColor (proof: Proof): string {
+  _proofColor (proof: Proof): string {
     let color = globalColors.blue
     switch (proof.state) {
       case proofNormal: {
-        color = this._isTracked(proof) ? globalColors.green2 : globalColors.blue
+        color = proof.isTracked ? globalColors.green2 : globalColors.blue
         break
       }
       case proofChecking:
-        color = globalColors.black20
+        color = globalColors.black_20
         break
       case proofRevoked:
       case proofWarning:
@@ -85,32 +79,33 @@ class ProofsRender extends Component {
         break
     }
 
-    if (proof.state === proofChecking) color = globalColors.black20
+    if (proof.state === proofChecking) color = globalColors.black_20
 
     return color
   }
 
-  proofStatusIcon (proof: Proof): ?IconProps.type {
+  _proofStatusIcon (proof: Proof): ?IconProps.type {
     switch (proof.state) {
+      case proofChecking:
+        return 'fa-kb-iconfont-proof-pending'
+
       case proofNormal:
-        return this._isTracked(proof) ? 'fa-custom-icon-proof-good-followed' : 'fa-custom-icon-proof-good-new'
+        return proof.isTracked ? 'fa-kb-iconfont-proof-followed' : 'fa-kb-iconfont-proof-new'
 
       case proofWarning:
       case proofError:
       case proofRevoked:
-        return 'fa-custom-icon-proof-broken'
+        return 'fa-kb-iconfont-proof-broken'
       default:
         return null
     }
   }
 
-  renderProofRow (proof: Proof) {
-    const metaColor = this.metaColor(proof)
-    const proofNameColor = this.proofColor(proof)
-    const proofStatusIcon = this.proofStatusIcon(proof)
-    const onClickProfile = () => { this.onClickProfile(proof) }
-    // TODO: State is deprecated, will refactor after nuking v1
-    let isChecking = (proof.state === proofChecking)
+  _renderProofRow (proof: Proof) {
+    const metaColor = this._metaColor(proof)
+    const proofNameColor = this._proofColor(proof)
+    const proofStatusIcon = this._proofStatusIcon(proof)
+    const onClickProfile = () => { this._onClickProfile(proof) }
 
     const proofStyle = {
       ...globalStyles.selectable,
@@ -127,19 +122,17 @@ class ProofsRender extends Component {
 
     const meta = proof.meta &&
       proof.meta !== metaNone &&
-      <Text type='Header' style={{...styleMeta, backgroundColor: metaColor}}>{proof.meta}</Text>
-    const proofIcon = isChecking
-      ? <ProgressIndicator style={styleLoader} />
-      : proofStatusIcon && <Icon type={proofStatusIcon} style={styleStatusIcon} onClick={() => this.onClickProof(proof)} />
+      <Meta title={proof.meta} style={{backgroundColor: metaColor}} />
+    const proofIcon = proofStatusIcon && <Icon type={proofStatusIcon} style={styleStatusIcon} onClick={() => this._onClickProof(proof)} />
 
     return (
-      <p style={styleRow} key={proof.id}>
-        <Icon style={styleService} type={this.iconNameForProof(proof)} title={proof.type} onClick={onClickProfile} />
+      <p style={styleRow} key={`${proof.id}${proof.type}`}>
+        <Icon style={styleService} type={this._iconNameForProof(proof)} title={proof.type} onClick={onClickProfile} />
         <span style={styleProofNameSection}>
           <span style={styleProofNameLabelContainer}>
             <Text inline className='hover-underline-container' type='Body' onClick={onClickProfile} style={proofStyle}>
               <Text inline type='Body' className='underline' style={proofNameStyle}>{proof.name}</Text>
-              <Text className='no-underline' inline type='Body' style={styleProofType}><wbr>@{proof.type}</wbr></Text>
+              <Text className='no-underline' inline type='Body' style={styleProofType}><wbr />@{proof.type}<wbr /></Text>
             </Text>
             {meta}
           </span>
@@ -152,7 +145,7 @@ class ProofsRender extends Component {
   render () {
     return (
       <div style={styleContainer}>
-        {this.props.proofs.map(p => this.renderProofRow(p))}
+        {this.props.proofs.map(p => this._renderProofRow(p))}
       </div>
     )
   }
@@ -174,18 +167,18 @@ const styleRow = {
 
 const styleService = {
   ...globalStyles.clickable,
-  height: 14,
-  width: 14,
-  color: globalColors.black75,
-  hoverColor: globalColors.black75,
+  fontSize: 15,
+  color: globalColors.black_75,
+  hoverColor: globalColors.black_75,
   marginRight: 9,
-  marginTop: 4
+  marginTop: 5
 }
 
 const styleStatusIcon = {
   ...globalStyles.clickable,
   fontSize: 20,
-  marginLeft: 10
+  marginLeft: 10,
+  marginTop: 1
 }
 
 const styleProofNameSection = {
@@ -205,24 +198,8 @@ const styleProofName = {
 }
 
 const styleProofType = {
-  color: globalColors.black10,
+  color: globalColors.black_10,
   wordBreak: 'normal'
-}
-
-const styleMeta = {
-  color: globalColors.white,
-  borderRadius: 1,
-  fontSize: 10,
-  height: 11,
-  lineHeight: '11px',
-  paddingLeft: 2,
-  paddingRight: 2,
-  alignSelf: 'flex-start',
-  textTransform: 'uppercase'
-}
-
-const styleLoader = {
-  width: 20
 }
 
 export default ProofsRender

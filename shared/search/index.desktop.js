@@ -69,7 +69,7 @@ export default class Search extends Component {
   }
 
   renderOption (option) {
-    return <span><strong>{option.row1}</strong><br/>{option.row2}</span>
+    return <span><strong>{option.row1}</strong><br />{option.row2}</span>
   }
 
   // This is a workaround for a bug in Select.

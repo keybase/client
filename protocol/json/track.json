@@ -222,6 +222,10 @@
           "name": "mTime"
         },
         {
+          "type": "Time",
+          "name": "lastUsedTime"
+        },
+        {
           "type": "KID",
           "name": "encryptKey"
         },
@@ -747,6 +751,20 @@
       ],
       "response": "null",
       "doc": "Track with token returned from identify."
+    },
+    "dismissWithToken": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "trackToken",
+          "type": "TrackToken"
+        }
+      ],
+      "response": "null",
+      "doc": "Called by the UI when the user decides *not* to track, to e.g. dismiss gregor items."
     },
     "untrack": {
       "request": [

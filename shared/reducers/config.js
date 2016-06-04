@@ -10,6 +10,8 @@ export type ConfigState = {
   status: ?GetCurrentStatusRes;
   config: ?Config;
   extendedConfig: ?ExtendedStatus;
+  username: ?string;
+  loggedIn: boolean,
   kbfsPath: string;
   error: ?any;
   devConfig: ?any;
@@ -20,6 +22,8 @@ const initialState: ConfigState = {
   status: null,
   config: null,
   extendedConfig: null,
+  username: null,
+  loggedIn: false,
   kbfsPath: Constants.defaultKBFSPath,
   error: null,
   devConfig: null,
@@ -30,14 +34,6 @@ export default function (state: ConfigState = initialState, action: Action): Con
   switch (action.type) {
     case CommonConstants.resetStore:
       return {...initialState}
-
-    case Constants.startupLoading:
-      return {
-        ...state,
-        config: null,
-        status: null,
-        error: null
-      }
 
     case Constants.configLoaded:
       if (action.payload && action.payload.config) {
@@ -68,9 +64,12 @@ export default function (state: ConfigState = initialState, action: Action): Con
 
     case Constants.statusLoaded:
       if (action.payload && action.payload.status) {
+        const status = action.payload.status
         return {
           ...state,
-          status: action.payload.status
+          status,
+          username: status.user && status.user.username,
+          loggedIn: status.loggedIn
         }
       }
       return state

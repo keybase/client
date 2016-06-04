@@ -23,21 +23,78 @@ export type TrackerProps = {
   shouldFollow: ?boolean,
   reason: string,
   waiting: boolean,
-  userInfo: UserInfo,
+  userInfo: ?UserInfo,
+  nonUser: ?boolean,
   proofs: Array<Proof>,
   onClose: () => void,
-  onMaybeTrack: () => void,
   onRefollow: () => void,
+  onIgnore: () => void,
   onUnfollow: () => void,
   onFollow: () => void,
-  onFollowHelp: () => void,
-  onFollowChecked: () => void,
   closed: boolean,
   lastTrack: ?TrackSummary,
   startTimer: () => void,
   stopTimer: () => void,
   currentlyFollowing: boolean,
-  lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error')
+  lastAction: ?('followed' | 'refollowed' | 'unfollowed' | 'error'),
+  name?: string,
+  inviteLink?: ?string,
+  isPrivate?: boolean
+}
+
+export function trackerPropsToRenderProps (props: TrackerProps): RenderProps {
+  const renderChangedTitle = props.trackerMessage
+  const failedProofsNotFollowingText = `Some of ${props.username}'s proofs couldn't be verified. Track the working proofs?`
+  const currentlyFollowing = !!props.lastTrack
+
+  const changed = !(props.proofs || []).every(function (proof, index, ar) {
+    return (!proof.meta || proof.meta === metaNone)
+  })
+
+  const reason = currentlyFollowing && renderChangedTitle ? renderChangedTitle : props.reason
+
+  return {
+    bioProps: {
+      username: props.username,
+      userInfo: props.userInfo,
+      currentlyFollowing
+    },
+    headerProps: {
+      reason: reason,
+      onClose: () => props.onClose(props.username),
+      trackerState: props.trackerState,
+      currentlyFollowing,
+      changed,
+      lastAction: props.lastAction,
+      loggedIn: props.loggedIn
+    },
+    actionProps: {
+      loggedIn: props.loggedIn,
+      state: props.trackerState,
+      username: props.username,
+      waiting: props.waiting,
+      renderChangedTitle,
+      failedProofsNotFollowingText,
+      shouldFollow: props.shouldFollow,
+      onClose: () => props.onClose(props.username),
+      onRefollow: () => props.onRefollow(props.username),
+      onIgnore: () => props.onIgnore(props.username),
+      onUnfollow: () => props.onUnfollow(props.username),
+      onFollow: () => props.onFollow(props.username),
+      currentlyFollowing,
+      lastAction: props.lastAction
+    },
+    proofsProps: {
+      username: props.username,
+      proofs: props.proofs,
+      currentlyFollowing
+    },
+    nonUser: props.nonUser,
+    name: props.name,
+    reason: props.reason,
+    inviteLink: props.inviteLink,
+    isPrivate: props.isPrivate
+  }
 }
 
 class Tracker extends Component {
@@ -56,57 +113,9 @@ class Tracker extends Component {
       return <div />
     }
 
-    const renderChangedTitle = this.props.trackerMessage
-    const failedProofsNotFollowingText = `Some of ${this.props.username}'s proofs couldn't be verified. Track the working proofs?`
-    const currentlyFollowing = !!this.props.lastTrack
+    const renderProps = trackerPropsToRenderProps(this.props)
 
-    const changed = !this.props.proofs.every(function (proof, index, ar) {
-      return (!proof.meta || proof.meta === metaNone)
-    })
-
-    const reason = currentlyFollowing && renderChangedTitle ? renderChangedTitle : this.props.reason
-
-    const renderProps: RenderProps = {
-      bioProps: {
-        username: this.props.username,
-        userInfo: this.props.userInfo,
-        currentlyFollowing
-      },
-      headerProps: {
-        reason: reason,
-        onClose: () => this.props.onClose(this.props.username),
-        trackerState: this.props.trackerState,
-        currentlyFollowing,
-        changed,
-        lastAction: this.props.lastAction,
-        loggedIn: this.props.loggedIn
-      },
-      actionProps: {
-        loggedIn: this.props.loggedIn,
-        state: this.props.trackerState,
-        username: this.props.username,
-        waiting: this.props.waiting,
-        renderChangedTitle,
-        failedProofsNotFollowingText,
-        shouldFollow: this.props.shouldFollow,
-        onClose: () => this.props.onClose(this.props.username),
-        onMaybeTrack: () => this.props.onMaybeTrack(this.props.username),
-        onRefollow: () => this.props.onRefollow(this.props.username),
-        onUnfollow: () => this.props.onUnfollow(this.props.username),
-        onFollow: () => this.props.onFollow(this.props.username),
-        onFollowHelp: () => this.props.onFollowHelp(this.props.username),
-        onFollowChecked: checked => this.props.onFollowChecked(checked, this.props.username),
-        currentlyFollowing,
-        lastAction: this.props.lastAction
-      },
-      proofsProps: {
-        username: this.props.username,
-        proofs: this.props.proofs,
-        currentlyFollowing
-      }
-    }
-
-    return <Render {...renderProps}/>
+    return <Render {...renderProps} />
   }
 
   static parseRoute (currentPath) {
@@ -124,6 +133,7 @@ class Tracker extends Component {
 export default connect(
   (state, ownProps) => ({
     ...state.tracker,
+    nonUser: state.tracker.trackers[ownProps.username] && state.tracker.trackers[ownProps.username].type === 'nonUser',
     loggedIn: state.config && state.config.status && state.config.status.loggedIn,
     ...state.tracker.trackers[ownProps.username],
     ...ownProps

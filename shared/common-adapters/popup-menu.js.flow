@@ -1,0 +1,21 @@
+/* @flow */
+
+import React, {Component} from 'react'
+
+export type MenuItem = {
+  title: string,
+  subTitle?: string,
+  danger?: boolean,
+  onClick: () => void,
+  style?: Object
+}
+
+export type Props = {
+  items: Array<MenuItem | 'Divider'>,
+  onHidden: () => void,
+  visible: boolean,
+  style?: Object
+}
+
+declare export default class PopupMenu extends React.Component<void, Props, void> {
+}

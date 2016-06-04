@@ -1,26 +1,40 @@
 import React, {Component} from 'react'
-import {Text, View, StyleSheet, BackAndroid, DrawerLayoutAndroid, Image, TouchableNativeFeedback, ViewPagerAndroid} from 'react-native'
+import {Text, View, StyleSheet, BackAndroid, DrawerLayoutAndroid, Image, TouchableNativeFeedback} from 'react-native'
 
 import {connect} from 'react-redux'
 import MetaNavigator from './router/meta-navigator'
 import globalRoutes from './router/global-routes'
+import TabBar from './tab-bar/index.render.native'
 
 import Devices from './devices'
 import NoTab from './no-tab'
 import More from './more'
 import Login from './login'
+import {mapValues} from 'lodash'
 
-import {devicesTab, moreTab, loginTab, prettify} from './constants/tabs'
+import {dumbFullscreen} from './local-debug'
+import DumbSheet from './more/dumb-sheet'
+
+import {devicesTab, moreTab, folderTab, peopleTab, loginTab, profileTab, prettify} from './constants/tabs'
 
 import {switchTab} from './actions/tabbed-router'
 import {navigateBack} from './actions/router'
 import {bootstrap} from './actions/config'
+import ListenLogUi from './native/listen-log-ui'
+import {listenForNotifications} from './actions/notifications'
+import hello from './util/hello'
 
-const tabs = {
-  [loginTab]: Login,
-  [devicesTab]: Devices,
-  [moreTab]: More
+import forwardLogs from './native/forward-logs'
+
+const tabs: {[key: VisibleTab]: {module: any}} = {
+  [profileTab]: {module: Login, name: 'Login'},
+  [devicesTab]: {module: Devices, name: 'Devices'},
+  [folderTab]: {module: More, name: 'More'},
+  [peopleTab]: {module: More, name: 'More'},
+  [moreTab]: {module: More, name: 'More'}
 }
+
+forwardLogs()
 
 class AndroidNavigator extends Component {
   push (componentAtTop) {
@@ -54,6 +68,13 @@ class Nav extends Component {
   constructor (props) {
     super(props)
     this.props.bootstrap()
+    this.props.listenForNotifications()
+
+    // Handle logUi.log
+    ListenLogUi()
+
+    // Introduce ourselves to the service
+    hello(0, 'Android app', [], '0.0.0') // TODO real version
   }
 
   _renderContent (activeTab, module) {
@@ -65,7 +86,7 @@ class Nav extends Component {
           globalRoutes={globalRoutes}
           navBarHeight={0}
           Navigator={AndroidNavigator}
-          NavBar={<View/>}
+          NavBar={<View />}
         />
       </View>
     )
@@ -84,58 +105,32 @@ class Nav extends Component {
   }
 
   render () {
+    if (dumbFullscreen) {
+      return <DumbSheet />
+    }
+
     const activeTab = this.props.tabbedRouter.get('activeTab')
 
     if (activeTab === loginTab) {
       return this._renderContent(loginTab, Login)
     }
 
-    const drawerContnet = (
+    const drawerContent = (
       <View style={{flex: 1, backgroundColor: '#fff'}}>
         <Text style={{margin: 10, fontSize: 15, textAlign: 'left'}}>I'm in the Drawer!</Text>
       </View>
     )
 
-    const tabKeys = Object.keys(tabs)
+    const tabContent = mapValues(tabs, ({module}, tab) => (activeTab === tab && this._renderContent(tab, module)))
 
-    let activeIndex = tabKeys.indexOf(activeTab)
-    activeIndex = activeIndex === -1 ? 0 : activeIndex
-
-    const tabViews = tabKeys.map(k => {
-      return (
-        <View key={k}>
-          {this._renderContent(k, tabs[k])}
-        </View>
-      )
-    })
-
-    const tabBarNames = tabKeys.map((k, i) => {
-      return (
-        <TouchableNativeFeedback
-          key={k}
-          onPress={() => {
-            if (this._viewPagerRef) {
-              this._viewPagerRef.setPage(i)
-              this.props.switchTab(k)
-            }
-          }}>
-          <View style={{flex: 0}}>
-            <Text>{prettify(k)}</Text>
-          </View>
-        </TouchableNativeFeedback>
-      )
-    })
-
-    const tabBar = (
-      <View style={{flex: 0, flexDirection: 'row', justifyContent: 'space-around'}}>{tabBarNames}</View>
-    )
+    const username = this.props.config.username
 
     return (
       <DrawerLayoutAndroid
         drawerWidth={300}
         ref='drawer'
         drawerPosition={DrawerLayoutAndroid.positions.Left}
-        renderNavigationView={() => drawerContnet}>
+        renderNavigationView={() => drawerContent}>
         <View collapsable={false} style={{flex: 1}}>
           <View
             title={''}
@@ -147,7 +142,7 @@ class Nav extends Component {
                   delayPressIn={0}
                   background={TouchableNativeFeedback.SelectableBackground()} >
                   <View>
-                    <Image style={[styles.toolbarImage, {marginTop: 4}]} resizeMode={'contain'} source={require('./images/nav/ic_menu_black_24dp.png')}/>
+                    <Image style={[styles.toolbarImage, {marginTop: 4}]} resizeMode={'contain'} source={require('./images/nav/ic_menu_black_24dp.png')} />
                   </View>
                 </TouchableNativeFeedback>
               </View>
@@ -162,21 +157,15 @@ class Nav extends Component {
                   delayPressIn={0}
                   background={TouchableNativeFeedback.SelectableBackground()}>
                   <View>
-                    <Image style={styles.toolbarImage} resizeMode={'contain'} source={require('./images/nav/ic_search_black_24dp.png')}/>
+                    <Image style={styles.toolbarImage} resizeMode={'contain'} source={require('./images/nav/ic_search_black_24dp.png')} />
                   </View>
                 </TouchableNativeFeedback>
               </View>
             </View>
           </View>
           <View collapsable={false} style={{flex: 2}}>
-            {tabBar}
-            <ViewPagerAndroid
-              ref={r => (this._viewPagerRef = r)}
-              style={{flex: 1}}
-              initialPage={activeIndex}
-              onPageSelected={e => this.props.switchTab(tabKeys[e.nativeEvent.position])}>
-              {tabViews}
-            </ViewPagerAndroid>
+            <TabBar onTabClick={this.props.switchTab} selectedTab={activeTab} username={username} badgeNumbers={{}} tabContent={tabContent} />
+
           </View>
         </View>
       </DrawerLayoutAndroid>
@@ -196,11 +185,7 @@ Nav.propTypes = {
 
 const styles = StyleSheet.create({
   tabContent: {
-    position: 'absolute',
-    top: 0,
-    bottom: 0,
-    left: 0,
-    right: 0
+    flex: 1
   },
   toolbar: {
     height: 50,
@@ -239,7 +224,8 @@ export default connect(
     return {
       switchTab: tab => dispatch(switchTab(tab)),
       navigateBack: () => dispatch(navigateBack()),
-      bootstrap: () => dispatch(bootstrap())
+      bootstrap: () => dispatch(bootstrap()),
+      listenForNotifications: () => dispatch(listenForNotifications())
     }
   }
 )(Nav)

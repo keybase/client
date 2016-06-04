@@ -8,7 +8,7 @@ export default class Container extends Component {
     return (
       <Box>
         <Text type='Header' style={{backgroundColor: globalColors.blue, padding: 10, textAlign: 'center'}}>{this.props.title}</Text>
-        <Box style={{margin: 10}}>
+        <Box style={{margin: 10, ...this.props.style}}>
           {this.props.children}
         </Box>
       </Box>

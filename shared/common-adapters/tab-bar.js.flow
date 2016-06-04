@@ -1,0 +1,42 @@
+/* @flow */
+
+import React, {Component} from 'react'
+import Avatar from './avatar'
+import type {Props as IconProps} from './icon'
+
+export type ItemProps = $Shape<{
+  tabBarButton?: React$Element,
+  label?: string,
+  style?: Object,
+  selected?: bool,
+  onClick?: () => void,
+  containerStyle?: Object,
+  children?: React$Element
+}>
+
+export class TabBarItem extends Component<void, ItemProps, void> {
+}
+
+export type Props = {
+  style?: Object,
+  tabBarStyle?: Object,
+  children?: Array<React$Element<ItemProps>>,
+  tabBarOnBottom?: boolean,
+  tabWidth?: number,
+  underlined?: bool
+}
+
+export type TabBarButtonProps = {
+  selected?: boolean,
+  source: {type: 'icon', icon: IconProps.type, label?: string} | {type: 'avatar', avatar: Avatar},
+  badgeNumber?: ?number,
+  style?: Object,
+  styleBadge?: Object,
+  styleIcon?: Object,
+  styleLabel?: Object,
+  styleBadgeNumber?: Object
+}
+
+export class TabBarButton extends Component<void, TabBarButtonProps, void> { }
+
+export default class TabBar extends Component<void, Props, void> { }

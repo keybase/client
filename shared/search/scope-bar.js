@@ -14,7 +14,7 @@ export default class ScopeBar extends Component {
           style={[styles.button, this.props.selectedService == null && styles.selectedButton]}
           onPress={() => this.props.onSelectService(null)}
         >
-          <Image style={[styles.icon, styles.keybaseIcon]} source={serviceIcons.keybase}/>
+          <Image style={[styles.icon, styles.keybaseIcon]} source={serviceIcons.keybase} />
         </TouchableHighlight>
         <View style={styles.divider}>
           <Text>✚</Text>
@@ -26,7 +26,7 @@ export default class ScopeBar extends Component {
             style={[styles.button, this.props.selectedService === service && styles.selectedButton]}
             onPress={() => this.props.onSelectService(this.props.selectedService === service ? null : service)}
           >
-            <Image style={styles.icon} source={serviceIcons[service]}/>
+            <Image style={styles.icon} source={serviceIcons[service]} />
           </TouchableHighlight>
         ))}
 

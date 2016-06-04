@@ -47,6 +47,7 @@ export default class MultiLineInput extends Component<void, Props, State> {
           onClick={() => this._focusTextBox()} type='HeaderBig'>{this.props.hintText}</Text>
         <Text style={inputStyle}
           contentEditable
+          autoComplete='off'
           ref='textBox'
           onKeyUp={e => this._handleKeyUp(e)}
           onKeyDown={e => this._handleKeyDown(e)}
@@ -67,7 +68,7 @@ const containerStyle = {
 const hintTextStyle = {
   ...transition('opacity'),
   cursor: 'text',
-  color: globalColors.black10,
+  color: globalColors.black_10,
   textAlign: 'center'
 }
 

@@ -106,13 +106,14 @@ func IsPGP(key GenericKey) bool {
 	return ok
 }
 
-func ParseGenericKey(bundle string) (GenericKey, error) {
+func ParseGenericKey(bundle string) (GenericKey, *Warnings, error) {
 	if isPGPBundle(bundle) {
 		// PGP key
 		return ReadOneKeyFromString(bundle)
 	}
 	// NaCl key
-	return ImportKeypairFromKID(keybase1.KIDFromString(bundle))
+	key, err := ImportKeypairFromKID(keybase1.KIDFromString(bundle))
+	return key, &Warnings{}, err
 }
 
 func isPGPBundle(armored string) bool {

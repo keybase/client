@@ -35,7 +35,7 @@ export function decodeKBFSError (user: string, notification: FSNotification): De
       title: `Keybase: ${_.capitalize(notification.params.mode)} timeout in ${tlf}`,
       body: `The ${notification.params.mode} operation took too long and failed. Please run 'keybase log send' so our admins can review.`
     },
-    [enums.kbfs.FSErrorType.rekeyNeeded]: notification.rekeyself ? {
+    [enums.kbfs.FSErrorType.rekeyNeeded]: notification.params.rekeyself ? {
       title: 'Keybase: Files need to be rekeyed',
       body: `Please open one of your other computers to unlock ${tlf}`
     } : {
@@ -90,6 +90,11 @@ export function kbfsNotification (notification: FSNotification, notify: any, get
     [enums.kbfs.FSNotificationType.rekeying]: 'Rekeying'
   }[notification.notificationType]
 
+  if (action === undefined) {
+    // Ignore notification types we don't care about.
+    return
+  }
+
   const state = {
     [enums.kbfs.FSStatusCode.start]: 'starting',
     [enums.kbfs.FSStatusCode.finish]: 'finished',
@@ -115,10 +120,7 @@ export function kbfsNotification (notification: FSNotification, notify: any, get
 
   let title = `KBFS: ${action}`
   let body = `Files in ${tlf} ${notification.status}`
-  let user = 'You'
-  try {
-    user = getState().config.status.user.username
-  } catch (e) {}
+  let user = 'You' || getState().config.username
   // Don't show starting or finished, but do show error.
   if (notification.statusCode === enums.kbfs.FSStatusCode.error) {
     ({title, body} = decodeKBFSError(user, notification))

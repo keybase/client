@@ -10,7 +10,7 @@ import (
 )
 
 func TestLoadUserPlusKeys(t *testing.T) {
-	tc := SetupTest(t, "user plus keys")
+	tc := SetupTest(t, "user plus keys", 1)
 	defer tc.Cleanup()
 
 	// this is kind of pointless as there is no cache anymore
@@ -36,7 +36,7 @@ func TestLoadUserPlusKeys(t *testing.T) {
 }
 
 func BenchmarkLoadSigChains(b *testing.B) {
-	tc := SetupTest(b, "benchmark load user")
+	tc := SetupTest(b, "benchmark load user", 1)
 	u, err := LoadUser(NewLoadUserByNameArg(tc.G, "kwejfkwef"))
 	if err != nil {
 		b.Fatal(err)

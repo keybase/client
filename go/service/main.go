@@ -4,7 +4,6 @@
 package service
 
 import (
-	"fmt"
 	"io"
 	"net"
 	"os"
@@ -31,7 +30,7 @@ type Service struct {
 	stopCh        chan keybase1.ExitCode
 	updateChecker *updater.UpdateChecker
 	logForwarder  *logFwd
-	gregorConn    *rpc.Connection
+	gregor        *gregorHandler
 }
 
 func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
@@ -76,6 +75,7 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.TrackProtocol(NewTrackHandler(xp, g)),
 		keybase1.UpdateProtocol(NewUpdateHandler(xp, g, d.updateChecker)),
 		keybase1.UserProtocol(NewUserHandler(xp, g)),
+		keybase1.PaperprovisionProtocol(NewPaperProvisionHandler(xp, g)),
 	}
 	for _, proto := range protocols {
 		if err := srv.Register(proto); err != nil {
@@ -90,8 +90,7 @@ func (d *Service) Handle(c net.Conn) {
 
 	server := rpc.NewServer(xp, libkb.WrapError)
 
-	cl := make(chan error)
-	server.AddCloseListener(cl)
+	cl := make(chan error, 1)
 	connID := d.G().NotifyRouter.AddConnection(xp, cl)
 
 	var logReg *logRegister
@@ -108,10 +107,13 @@ func (d *Service) Handle(c net.Conn) {
 		return
 	}
 
-	if err := server.Run(false /* bg */); err != nil {
-		if err != io.EOF {
-			d.G().Log.Warning("Run error: %s", err)
-		}
+	// Run the server and wait for it to finish.
+	<-server.Run()
+	// err is always non-nil.
+	err := server.Err()
+	cl <- err
+	if err != io.EOF {
+		d.G().Log.Warning("Run error: %s", err)
 	}
 
 	d.G().Log.Debug("Handle() complete for connection %d", connID)
@@ -166,24 +168,42 @@ func (d *Service) Run() (err error) {
 		return
 	}
 
-	if sources.IsPrerelease {
+	updateDisabled, _ := d.G().Env.GetUpdateDisabled()
+	if sources.IsPrerelease && !updateDisabled {
 		updr := engine.NewDefaultUpdater(d.G())
 		if updr != nil {
+			d.G().Log.Debug("Starting updater")
 			updateChecker := updater.NewUpdateChecker(updr, engine.NewUpdaterContext(d.G()), d.G().Log)
 			d.updateChecker = &updateChecker
 			d.updateChecker.Start()
 		}
+	} else {
+		d.G().Log.Warning("Updater disabled")
 	}
 
 	d.checkTrackingEveryHour()
 
-	if gcErr := d.gregordConnect(); gcErr != nil {
-		d.G().Log.Debug("error connecting to gregord: %s", gcErr)
-	}
+	d.startupGregor()
 
 	d.G().ExitCode, err = d.ListenLoopWithStopper(l)
 
 	return err
+}
+
+func (d *Service) startupGregor() {
+	g := d.G()
+	if g.Env.GetGregorDisabled() {
+		g.Log.Debug("Gregor explicitly disabled")
+	} else if !g.Env.GetTorMode().UseSession() {
+		g.Log.Debug("Gregor disabled in Tor mode")
+	} else {
+		g.Log.Debug("connecting to gregord for push notifications")
+		if gcErr := d.tryGregordConnect(); gcErr != nil {
+			g.Log.Debug("error connecting to gregord: %s", gcErr)
+		}
+		g.AddLoginHook(d)
+		g.AddLogoutHook(d)
+	}
 }
 
 func (d *Service) StartLoopbackServer() error {
@@ -233,33 +253,58 @@ func (d *Service) checkTrackingEveryHour() {
 	}()
 }
 
-func (d *Service) gregordConnect() error {
-	uri, err := parseFMPURI(d.G().Env.GetGregorURI())
+func (d *Service) tryGregordConnect() error {
+	loggedIn, err := d.G().LoginState().LoggedInLoad()
 	if err != nil {
 		return err
 	}
-	d.G().Log.Debug("gregor URI: %s", uri)
-	h := newGregorHandler(d.G())
-	if uri.UseTLS() {
-		return d.gregordConnectTLS(h, uri)
+	if !loggedIn {
+		d.G().Log.Debug("not logged in, so not connecting to gregord")
+		return nil
 	}
-	return d.gregordConnectNoTLS(h, uri)
+
+	return d.gregordConnect()
 }
 
-func (d *Service) gregordConnectTLS(h *gregorHandler, uri *fmpURI) error {
-	d.G().Log.Debug("connecting to gregor via TLS")
-	rawCA := d.G().Env.GetBundledCA(uri.Host)
-	if len(rawCA) == 0 {
-		return fmt.Errorf("No bundled CA for %s", uri.Host)
+func (d *Service) OnLogin() error {
+	return d.gregordConnect()
+}
+
+func (d *Service) OnLogout() error {
+	if d.gregor == nil {
+		return nil
 	}
-	d.gregorConn = rpc.NewTLSConnection(uri.HostPort, []byte(rawCA), nil, h, true, nil, nil, d.G().Log, nil)
+
+	d.gregor.Shutdown()
+	d.gregor = nil
+
 	return nil
 }
 
-func (d *Service) gregordConnectNoTLS(h *gregorHandler, uri *fmpURI) error {
-	d.G().Log.Debug("connecting to gregor without TLS")
-	t := newConnTransport(d.G(), uri.HostPort)
-	d.gregorConn = rpc.NewConnectionWithTransport(h, t, nil, true, nil, d.G().Log, nil)
+func (d *Service) gregordConnect() (err error) {
+	var uri *rpc.FMPURI
+	defer d.G().Trace("gregordConnect", func() error { return err })()
+
+	uri, err = rpc.ParseFMPURI(d.G().Env.GetGregorURI())
+	if err != nil {
+		return err
+	}
+	d.G().Log.Debug("| gregor URI: %s", uri)
+
+	if d.gregor != nil {
+		d.gregor.Shutdown()
+	}
+
+	if d.gregor, err = newGregorHandler(d.G()); err != nil {
+		return err
+	}
+	d.G().GregorDismisser = d.gregor
+	d.G().GregorListener = d.gregor
+
+	if err = d.gregor.Connect(uri); err != nil {
+		return err
+	}
+
 	return nil
 }
 

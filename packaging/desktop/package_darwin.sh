@@ -30,6 +30,9 @@ comment=""
 
 keybase_binpath=${KEYBASE_BINPATH:-}
 kbfs_binpath=${KBFS_BINPATH:-}
+updater_binpath=${UPDATER_BINPATH:-}
+
+updater_version=`$updater_binpath -version`
 
 icon_path="$client_dir/media/icons/Keybase.icns"
 
@@ -68,14 +71,18 @@ fi
 # comment="+$comment"
 
 out_dir="$build_dir/Keybase-darwin-x64"
+app_executable_path="$out_dir/Keybase.app/Contents/MacOS/Keybase"
 shared_support_dir="$out_dir/Keybase.app/Contents/SharedSupport"
 resources_dir="$out_dir/Keybase.app/Contents/Resources/"
 
-installer_url="https://github.com/keybase/client/releases/download/v1.0.15/KeybaseInstaller-1.1.28-darwin.tgz"
+installer_url="https://github.com/keybase/client/releases/download/v1.0.14-0/KeybaseInstaller-1.1.27-darwin.tgz"
+updater_url="https://github.com/keybase/client/releases/download/v1.0.15/KeybaseUpdater-1.0.0-darwin.tgz"
 
 keybase_bin="$tmp_dir/keybase"
 kbfs_bin="$tmp_dir/kbfs"
+updater_bin="$tmp_dir/updater"
 installer_app="$tmp_dir/KeybaseInstaller.app"
+updater_app="$tmp_dir/KeybaseUpdater.app"
 
 app_version="$keybase_version"
 dmg_name="${app_name}-${app_version}${comment}.dmg"
@@ -120,23 +127,38 @@ get_deps() {(
     echo "Using local kbfs binpath: $kbfs_binpath"
     cp "$kbfs_binpath" .
   else
-    kbfs_url="https://github.com/keybase/kbfs-beta/releases/download/v$kbfs_version/kbfs-$kbfs_version-darwin.tgz"
+    kbfs_url="https://github.com/keybase/kbfs/releases/download/v$kbfs_version/kbfs-$kbfs_version-darwin.tgz"
     echo "Getting $kbfs_url"
     ensure_url $kbfs_url "You need to build the binary for this Github release/version. See packaging/github to create/build a release."
     curl -J -L -Ss "$kbfs_url" | tar zx
   fi
+
+  echo "Using local updater binpath: $updater_binpath"
+  cp "$updater_binpath" .
+
   echo "Using installer from $installer_url"
   curl -J -L -Ss "$installer_url" | tar zx
+
+  echo "Using updater from $updater_url"
+  curl -J -L -Ss "$updater_url" | tar zx
 )}
 
 # Build Keybase.app
 package_electron() {(
   cd "$client_dir/desktop"
 
-  rm -rf node_modules
-  npm install
+  ../packaging/npm_mess.sh
   npm run package -- --appVersion="$app_version" --comment="$comment" --icon="$icon_path"
   rsync -av release/darwin-x64/Keybase-darwin-x64 "$build_dir"
+
+  # Create symlink for Electron to overcome Gatekeeper bug https://github.com/keybase/go-updater/pull/4
+  cd "$out_dir/$app_name.app/Contents/MacOS"
+  ln -s "Keybase" "Electron"
+
+  if [ ! -f "$app_executable_path" ]; then
+    echo "The app bundle executable name should be $app_executable_path"
+    exit 1
+  fi
 )}
 
 # Adds the keybase binaries and Installer.app bundle to Keybase.app
@@ -146,9 +168,12 @@ package_app() {(
   mkdir -p "$shared_support_dir/bin"
   cp "$keybase_bin" "$shared_support_dir/bin"
   cp "$kbfs_bin" "$shared_support_dir/bin"
-  echo "Copying installer"
+  cp "$updater_bin" "$shared_support_dir/bin"
   mkdir -p "$resources_dir"
+  echo "Copying installer"
   cp -R "$installer_app" "$resources_dir/KeybaseInstaller.app"
+  echo "Copying updater (app)"
+  cp -R "$updater_app" "$resources_dir/KeybaseUpdater.app"
 )}
 
 update_plist() {(
@@ -164,9 +189,17 @@ sign() {(
   codesign --verbose --force --deep --sign "$code_sign_identity" "$app_name.app"
 
   echo "Verify codesigning..."
-  codesign -v "$app_name.app"
-  codesign -v "$app_name.app/Contents/SharedSupport/bin/keybase"
-  codesign -v "$app_name.app/Contents/SharedSupport/bin/kbfs"
+  codesign --verify --verbose=4 "$app_name.app"
+  spctl --assess --verbose=4 "$app_name.app"
+  codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/keybase"
+  codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/kbfs"
+  codesign --verify --verbose=4 "$app_name.app/Contents/SharedSupport/bin/updater"
+  bundle_installer_app="$app_name.app/Contents/Resources/KeybaseInstaller.app"
+  codesign --verify --verbose=4 "$bundle_installer_app"
+  spctl --assess --verbose=4  "$bundle_installer_app"
+  bundle_updater_app="$app_name.app/Contents/Resources/KeybaseUpdater.app"
+  codesign --verify --verbose=4 "$bundle_updater_app"
+  spctl --assess --verbose=4 "$bundle_updater_app"
 )}
 
 # Create dmg from Keybase.app

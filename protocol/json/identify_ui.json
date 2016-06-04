@@ -222,6 +222,10 @@
           "name": "mTime"
         },
         {
+          "type": "Time",
+          "name": "lastUsedTime"
+        },
+        {
           "type": "KID",
           "name": "encryptKey"
         },
@@ -765,7 +769,7 @@
           "name": "trackDiff"
         },
         {
-          "type": "bool",
+          "type": "boolean",
           "name": "breaksTracking"
         }
       ]
@@ -846,7 +850,7 @@
           "name": "revokedDetails"
         },
         {
-          "type": "bool",
+          "type": "boolean",
           "name": "breaksTracking"
         }
       ]
@@ -953,7 +957,7 @@
           "name": "hint"
         },
         {
-          "type": "bool",
+          "type": "boolean",
           "name": "breaksTracking"
         }
       ]
@@ -1021,9 +1025,64 @@
           "name": "expiringLocal"
         }
       ]
+    },
+    {
+      "type": "enum",
+      "name": "DismissReasonType",
+      "symbols": [
+        "NONE_0",
+        "HANDLED_ELSEWHERE_1"
+      ]
+    },
+    {
+      "type": "record",
+      "name": "DismissReason",
+      "fields": [
+        {
+          "type": "DismissReasonType",
+          "name": "type"
+        },
+        {
+          "type": "string",
+          "name": "reason"
+        },
+        {
+          "type": "string",
+          "name": "resource"
+        }
+      ]
     }
   ],
   "messages": {
+    "displayTLFCreateWithInvite": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "folderName",
+          "type": "string"
+        },
+        {
+          "name": "isPrivate",
+          "type": "boolean"
+        },
+        {
+          "name": "assertion",
+          "type": "string"
+        },
+        {
+          "name": "inviteLink",
+          "type": "string"
+        },
+        {
+          "name": "throttled",
+          "type": "boolean"
+        }
+      ],
+      "response": "null"
+    },
     "delegateIdentifyUI": {
       "request": [],
       "response": "int"
@@ -1195,6 +1254,23 @@
         {
           "name": "sessionID",
           "type": "int"
+        }
+      ],
+      "response": "null"
+    },
+    "dismiss": {
+      "request": [
+        {
+          "name": "sessionID",
+          "type": "int"
+        },
+        {
+          "name": "username",
+          "type": "string"
+        },
+        {
+          "name": "reason",
+          "type": "DismissReason"
         }
       ],
       "response": "null"

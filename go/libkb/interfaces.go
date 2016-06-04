@@ -23,12 +23,14 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	keybase1 "github.com/keybase/client/go/protocol"
 	jsonw "github.com/keybase/go-jsonw"
+	gregor "github.com/keybase/gregor"
 )
 
 type CommandLine interface {
 	GetHome() string
 	GetServerURI() string
 	GetConfigFilename() string
+	GetUpdaterConfigFilename() string
 	GetSessionFilename() string
 	GetDbFilename() string
 	GetDebug() (bool, bool)
@@ -38,6 +40,10 @@ type CommandLine interface {
 	GetLogFormat() string
 	GetGpgHome() string
 	GetAPIDump() (bool, bool)
+	GetGregorURI() string
+	GetGregorSaveInterval() (time.Duration, bool)
+	GetGregorDisabled() (bool, bool)
+	GetGregorPingInterval() (time.Duration, bool)
 	GetUserCacheMaxAge() (time.Duration, bool)
 	GetProofCacheSize() (int, bool)
 	GetLinkCacheSize() (int, bool)
@@ -96,6 +102,7 @@ type ConfigReader interface {
 	GetHome() string
 	GetServerURI() string
 	GetConfigFilename() string
+	GetUpdaterConfigFilename() string
 	GetSessionFilename() string
 	GetDbFilename() string
 	GetDebug() (bool, bool)
@@ -143,12 +150,16 @@ type ConfigReader interface {
 	GetAPITimeout() (time.Duration, bool)
 	GetSecurityAccessGroupOverride() (bool, bool)
 	GetGregorURI() string
+	GetGregorSaveInterval() (time.Duration, bool)
+	GetGregorDisabled() (bool, bool)
+	GetGregorPingInterval() (time.Duration, bool)
 
 	GetUpdatePreferenceAuto() (bool, bool)
 	GetUpdatePreferenceSkip() string
 	GetUpdatePreferenceSnoozeUntil() keybase1.Time
 	GetUpdateLastChecked() keybase1.Time
 	GetUpdateURL() string
+	GetUpdateDisabled() (bool, bool)
 	GetLocalTrackMaxAge() (time.Duration, bool)
 	GetAppStartMode() AppStartMode
 	IsAdmin() (bool, bool)
@@ -156,6 +167,10 @@ type ConfigReader interface {
 	GetTorMode() (TorMode, error)
 	GetTorHiddenAddress() string
 	GetTorProxy() string
+}
+
+type UpdaterConfigReader interface {
+	GetInstallID() InstallID
 }
 
 type ConfigWriterTransacter interface {
@@ -277,6 +292,8 @@ type IdentifyUI interface {
 	DisplayUserCard(keybase1.UserCard)
 	ReportTrackToken(keybase1.TrackToken) error
 	Finish()
+	DisplayTLFCreateWithInvite(keybase1.DisplayTLFCreateWithInviteArg) error
+	Dismiss(string, keybase1.DismissReason)
 }
 
 type Checker struct {
@@ -407,4 +424,19 @@ type UIConsumer interface {
 
 type Clock interface {
 	Now() time.Time
+}
+
+type GregorDismisser interface {
+	DismissItem(id gregor.MsgID) error
+}
+
+type GregorInBandMessageHandler interface {
+	IsAlive() bool
+	Name() string
+	Create(ctx context.Context, category string, ibm gregor.Item) error
+	Dismiss(ctx context.Context, category string, ibm gregor.Item) error
+}
+
+type GregorListener interface {
+	PushHandler(handler GregorInBandMessageHandler)
 }

@@ -200,6 +200,27 @@ func (p ProvisionUI) DisplayAndPromptSecret(ctx context.Context, arg keybase1.Di
 	var resp keybase1.SecretResponse
 	if p.role == libkb.KexRoleProvisioner {
 		// This is the provisioner device (device X)
+
+		// In development mode, show the QR code.  This is just to
+		// make frontend development easier.
+		if (arg.OtherDeviceType == keybase1.DeviceType_MOBILE) &&
+			(p.parent.G().Env.GetRunMode() == libkb.DevelRunMode) {
+
+			encodings, err := qrcode.Encode([]byte(arg.Phrase))
+			// ignoring any of these errors...phrase above will suffice.
+			if err == nil {
+				p.parent.Output("[DEVEL ONLY] Scan this QR Code with the keybase app on your mobile phone:\n\n")
+				p.parent.Output(encodings.Terminal)
+				fname := filepath.Join(os.TempDir(), "keybase_qr.png")
+				f, ferr := os.Create(fname)
+				if ferr == nil {
+					f.Write(encodings.PNG)
+					f.Close()
+					p.parent.Printf("\nThere's also a PNG version in %s that might work better.\n\n", fname)
+				}
+			}
+		}
+
 		// For command line app, all secrets are entered on the provisioner only:
 		p.parent.Output("\nEnter the verification code from your other device here.  To get\n")
 		p.parent.Output("a verification code, run 'keybase login' on your other device.\n\n")

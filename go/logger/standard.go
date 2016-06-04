@@ -333,6 +333,14 @@ func PickFirstError(errors ...error) error {
 	return nil
 }
 
+func (log *Standard) CloneWithAddedDepth(depth int) Logger {
+	clone := *log
+	cloneInternal := *log.internal
+	cloneInternal.ExtraCalldepth = log.internal.ExtraCalldepth + depth
+	clone.internal = &cloneInternal
+	return &clone
+}
+
 func (log *Standard) SetExternalHandler(handler ExternalHandler) {
 	log.externalHandler = handler
 }

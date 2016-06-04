@@ -1,0 +1,21 @@
+// @flow
+import React, {Component} from 'react'
+import type {Feature} from '../constants/types/flow-types'
+
+export type Props = {
+  onSubmit: (passphrase: string, features: {[key: string]: boolean}) => void,
+  onCancel: () => void,
+  features: {[key: string]: Feature},
+  prompt: string,
+  retryLabel?: string,
+  submitLabel?: string
+}
+
+export type DefaultProps = {
+  retryLabel: ?string,
+  submitLabel: string
+}
+
+export default class Pinentry extends Component<DefaultProps, Props, void> {
+  static defaultProps: DefaultProps;
+}

@@ -2,7 +2,7 @@
 
 import React, {Component} from 'react'
 import {TouchableHighlight, View} from 'react-native'
-import {globalColors} from '../styles/style-guide'
+import {globalColors, globalStyles} from '../styles/style-guide'
 import Text from './text'
 import ProgressIndicator from './progress-indicator'
 
@@ -10,7 +10,7 @@ import type {Props} from './button'
 
 const Progress = () => (
   <View style={{...progress}}>
-    <ProgressIndicator/>
+    <ProgressIndicator />
   </View>
 )
 
@@ -49,13 +49,14 @@ class Button extends Component {
     // Need this nested view to get around this RN issue: https://github.com/facebook/react-native/issues/1040
     return (
       <TouchableHighlight
-        onPress={onPress}
+        disabled={!onPress}
+        onPress={onPress || (() => {})}
         activeOpacity={0.2}
         underlayColor={style.backgroundColor}
         style={{...style, ...this.props.style}}>
         <View style={{alignItems: 'center', justifyContent: 'center'}}>
-          <Text type='BodySemibold' style={labelStyle}>{this.props.label}</Text>
-          {this.props.waiting && <Progress/>}
+          <Text type='BodySemibold' style={{...labelStyle, ...this.props.labelStyle}}>{this.props.label}</Text>
+          {this.props.waiting && <Progress />}
         </View>
       </TouchableHighlight>
     )
@@ -66,9 +67,11 @@ const regularHeight = 40
 const fullWidthHeight = 48
 
 const common = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center',
+  justifyContent: 'center',
   height: regularHeight,
   borderRadius: 50,
-  paddingTop: 7,
   paddingLeft: 32,
   paddingRight: 32
 }
@@ -77,9 +80,7 @@ const commonLabel = {
   textAlign: 'center'
 }
 const fullWidth = {
-  flex: 1,
   height: fullWidthHeight,
-  paddingTop: 10,
   width: null
 }
 
@@ -106,7 +107,7 @@ const Secondary = {
 }
 const SecondaryLabel = {
   ...commonLabel,
-  color: globalColors.black75
+  color: globalColors.black_75
 }
 
 const Danger = {

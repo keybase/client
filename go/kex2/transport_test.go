@@ -307,7 +307,7 @@ func TestReadTimeout(t *testing.T) {
 
 func TestReadDelayedWrite(t *testing.T) {
 	c1, c2, _, _ := genConnPair(t, GoodRouter, time.Duration(0))
-	wait := time.Duration(20) * time.Millisecond
+	wait := time.Duration(50) * time.Millisecond
 	c2.SetReadDeadline(time.Now().Add(wait))
 	text := "hello friend"
 	go func() {

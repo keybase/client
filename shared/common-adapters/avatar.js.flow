@@ -2,15 +2,13 @@
 
 import React, {Component} from 'react'
 
-export type Props = {
-  size: 180 | 110 | 75 | 60 | 45,
-  url: ?string,
+type CommonProps = {
+  size: 176 | 112 | 80 | 64 | 48 | 32 | 24 | 16,
   style?: ?Object,
   onClick?: ?(() => void)
 }
 
-declare export default class Avatar extends Component {
-  props: Props;
-}
+export type Props = ({url: ?string} & CommonProps) | ({username: ?string} & CommonProps)
 
+export default class Avatar extends Component<void, Props, void> { }
 

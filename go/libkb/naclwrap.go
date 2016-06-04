@@ -390,12 +390,7 @@ func (k NaclDHKeyPair) VerifyString(sig string, msg []byte) (id keybase1.SigID, 
 }
 
 func (s *NaclSigInfo) ToPacket() (ret *KeybasePacket, err error) {
-	ret = &KeybasePacket{
-		Version: KeybasePacketV1,
-		Tag:     TagSignature,
-	}
-	ret.Body = s
-	return
+	return NewKeybasePacket(s, TagSignature, KeybasePacketV1)
 }
 
 func (p KeybasePacket) ToNaclSigInfo() (*NaclSigInfo, error) {
@@ -647,12 +642,7 @@ func (k NaclDHKeyPair) EncryptToString(plaintext []byte, sender GenericKey) (str
 
 // ToPacket implements the Packetable interface.
 func (k *NaclEncryptionInfo) ToPacket() (ret *KeybasePacket, err error) {
-	ret = &KeybasePacket{
-		Version: KeybasePacketV1,
-		Tag:     TagEncryption,
-	}
-	ret.Body = k
-	return
+	return NewKeybasePacket(k, TagEncryption, KeybasePacketV1)
 }
 
 // DecryptFromString decrypts the output of EncryptToString above,

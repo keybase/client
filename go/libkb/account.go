@@ -440,7 +440,9 @@ func (a *Account) saveUserConfig(username NormalizedUsername, uid keybase1.UID, 
 		return err
 	}
 
-	return cw.SetUserConfig(NewUserConfig(uid, username, salt, deviceID), false)
+	// Note that `true` here means that an existing user config entry will
+	// be overwritten.
+	return cw.SetUserConfig(NewUserConfig(uid, username, salt, deviceID), true /* overwrite */)
 }
 
 func (a *Account) Dump() {

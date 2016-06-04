@@ -107,8 +107,8 @@ func FixVersionClash(g *libkb.GlobalContext, cl libkb.CommandLine) (err error) {
 	if semverClient.EQ(semverService) {
 		g.Log.Debug("| versions check out")
 		return nil
-	} else if semverClient.LT(semverService) {
-		return fmt.Errorf("Unexpected version clash; client is at v%s, which *less than* server at v%s",
+	} else if semverClient.LT(semverService) && semverClient.Major < semverService.Major {
+		return fmt.Errorf("Unexpected version clash; client is at v%s, which is significantly *less than* server at v%s",
 			semverClient, semverService)
 	}
 

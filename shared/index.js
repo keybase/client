@@ -15,7 +15,7 @@ class Keybase extends Component {
     if (__DEV__) {
       AsyncStorage.getItem(stateKey, (err, stateJSON) => {
         if (err != null) {
-          console.error('Error in reading state:', err)
+          console.warn('Error in reading state:', err)
         }
         if (stateJSON != null) {
           store.dispatch({type: serializeRestore, payload: stateJSON})
@@ -38,7 +38,7 @@ class Keybase extends Component {
   render () {
     return (
       <Provider store={store}>
-        <Nav/>
+        <Nav />
       </Provider>
     )
   }

@@ -222,6 +222,10 @@
           "name": "mTime"
         },
         {
+          "type": "Time",
+          "name": "lastUsedTime"
+        },
+        {
           "type": "KID",
           "name": "encryptKey"
         },
@@ -396,6 +400,10 @@
         {
           "type": "boolean",
           "name": "tracking"
+        },
+        {
+          "type": "boolean",
+          "name": "favorites"
         }
       ]
     }

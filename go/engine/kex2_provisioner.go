@@ -115,7 +115,7 @@ func (e *Kex2Provisioner) Run(ctx *Context) error {
 		return err
 	}
 
-	// succesfully provisioned the other device
+	// successfully provisioned the other device
 	sarg := keybase1.ProvisionerSuccessArg{
 		DeviceName: e.provisioneeDeviceName,
 		DeviceType: e.provisioneeDeviceType,

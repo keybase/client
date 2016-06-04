@@ -4,6 +4,7 @@
 package libkb
 
 import (
+	"fmt"
 	"time"
 
 	keybase1 "github.com/keybase/client/go/protocol"
@@ -59,7 +60,8 @@ func (r *Resolver) Resolve(input string) ResolveResult {
 }
 
 func (r *Resolver) resolve(input string, withBody bool) (res ResolveResult) {
-	r.G().Log.Debug("+ Resolving username %s", input)
+	defer r.G().Trace(fmt.Sprintf("Resolving username %q", input), func() error { return res.err })()
+
 	var au AssertionURL
 	if au, res.err = ParseAssertionURL(input, false); res.err != nil {
 		return res
@@ -81,6 +83,8 @@ func (r *Resolver) ResolveFullExpressionWithBody(input string) (res ResolveResul
 }
 
 func (r *Resolver) resolveFullExpression(input string, withBody bool, needUsername bool) (res ResolveResult) {
+	defer r.G().Trace(fmt.Sprintf("Resolving full expression %q", input), func() error { return res.err })()
+
 	var expr AssertionExpression
 	expr, res.err = AssertionParseAndOnly(input)
 	if res.err != nil {
@@ -120,6 +124,7 @@ func (r *Resolver) resolveURL(au AssertionURL, input string, withBody bool, need
 }
 
 func (r *Resolver) resolveURLViaServerLookup(au AssertionURL, input string, withBody bool) (res ResolveResult) {
+	defer r.G().Trace(fmt.Sprintf("resolveURLViaServerLookup(input = %q)", input), func() error { return res.err })()
 
 	var key, val string
 	var ares *APIRes
@@ -145,12 +150,15 @@ func (r *Resolver) resolveURLViaServerLookup(au AssertionURL, input string, with
 		NeedSession:    false,
 		Args:           ha,
 		AppStatusCodes: []int{SCOk, SCNotFound},
+		Contextified:   NewContextified(r.G()),
 	})
 
 	if res.err != nil {
+		r.G().Log.Debug("API user/lookup %q error: %s", input, res.err)
 		return
 	}
 	if ares.AppStatus.Code == SCNotFound {
+		r.G().Log.Debug("API user/lookup %q not found", input)
 		res.err = NotFoundError{}
 		return
 	}

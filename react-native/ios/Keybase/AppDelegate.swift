@@ -10,6 +10,7 @@ class AppDelegate: UIResponder {
   
   var window: UIWindow?
   var engine: Engine!
+  var logSender: LogSend!
   
   private func setupReactWithOptions(launchOptions: [NSObject: AnyObject]?) -> RCTRootView {
     return RCTRootView(bundleURL: {
@@ -41,12 +42,17 @@ class AppDelegate: UIResponder {
       home = (root as NSString).stringByAppendingPathComponent(home)
     }
 
+    let logFile = (home as NSString).stringByAppendingPathComponent("ios.log");
+
     engine = Engine(settings: [
       "runmode": AppDefault.RunMode.stringValue!,
       "homedir": home,
+      "logFile": logFile,
       "serverURI": AppDefault.APIServer.stringValue ?? "",
       "SecurityAccessGroupOverride": SecurityAccessGroupOverride
     ])
+
+    logSender = LogSend(path: logFile);
   }
   
 }
@@ -89,7 +95,7 @@ extension AppDelegate: UIApplicationDelegate {
 
   func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject : AnyObject]?) -> Bool {
     #if DEBUG
-      AppDefault.RunMode.setDefaultValue("devel")
+      AppDefault.RunMode.setDefaultValue("staging")
     #else
       AppDefault.RunMode.setDefaultValue("prod")
     #endif

@@ -16,8 +16,8 @@ import (
 var con net.Conn
 var startOnce sync.Once
 
-// ServerURI should match run mode environment.
-func Init(homeDir string, runModeStr string, serverURI string, accessGroupOverride bool) {
+// Init ServerURI should match run mode environment.
+func Init(homeDir string, logFile string, runModeStr string, serverURI string, accessGroupOverride bool) {
 	startOnce.Do(func() {
 		g := libkb.G
 		g.Init()
@@ -30,17 +30,26 @@ func Init(homeDir string, runModeStr string, serverURI string, accessGroupOverri
 		if err != nil {
 			fmt.Println("Error decoding run mode", err, runModeStr)
 		}
-		config := libkb.AppConfig{HomeDir: homeDir, RunMode: runMode, Debug: true, LocalRPCDebug: "Acsvip", ServerURI: serverURI, SecurityAccessGroupOverride: accessGroupOverride}
+		config := libkb.AppConfig{HomeDir: homeDir, LogFile: logFile, RunMode: runMode, Debug: true, LocalRPCDebug: "Acsvip", ServerURI: serverURI, SecurityAccessGroupOverride: accessGroupOverride}
 		err = libkb.G.Configure(config, usage)
 		if err != nil {
 			panic(err)
 		}
-		(service.NewService(g, false)).StartLoopbackServer()
+
+		service := (service.NewService(g, false))
+		service.StartLoopbackServer()
+		service.G().SetService()
+
 		Reset()
 	})
 }
 
-// Takes base64 encoded msgpack rpc payload
+// LogSend sends a log to kb
+func LogSend(uiLogPath string) (string, error) {
+	return "TODO", nil
+}
+
+// WriteB64 Takes base64 encoded msgpack rpc payload
 func WriteB64(str string) bool {
 	data, err := base64.StdEncoding.DecodeString(str)
 	if err != nil {
@@ -65,6 +74,7 @@ func WriteB64(str string) bool {
 const targetBufferSize = 50 * 1024
 const bufferSize = targetBufferSize - (targetBufferSize % 3)
 
+// ReadB64 Read b64 msgpack off the wire
 func ReadB64() string {
 	data := make([]byte, bufferSize)
 
@@ -83,6 +93,7 @@ func ReadB64() string {
 	return ""
 }
 
+// Reset Resets the connection
 func Reset() {
 	if con != nil {
 		con.Close()

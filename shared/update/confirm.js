@@ -95,7 +95,7 @@ class UpdateConfirm extends Component {
             <Checkbox
               checked={this.props.alwaysUpdate}
               label='Update automatically'
-              onCheck={checked => this.props.setAlwaysUpdate(checked)}/>
+              onCheck={checked => this.props.setAlwaysUpdate(checked)} />
           </div>}
         <Snackbar
           message='Copied to clipboard!'
@@ -132,9 +132,9 @@ const styles = {
     ...globalStyles.fontTerminal,
     lineHeight: '21px',
     fontSize: 14,
-    color: globalColors.black75,
+    color: globalColors.black_75,
     backgroundColor: globalColors.lightGrey,
-    border: `solid ${globalColors.black10} 1px`,
+    border: `solid ${globalColors.black_10} 1px`,
     minHeight: 130,
     maxHeight: 130,
     overflowY: 'auto',

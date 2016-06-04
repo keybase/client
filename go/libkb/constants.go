@@ -40,8 +40,8 @@ var ServerLookup = map[RunMode]string{
 
 const (
 	DevelGregorServerURI      = "fmprpc://localhost:9911"
-	StagingGregorServerURI    = "fmprpc+tls://gregor.stage0.keybase.io:443"
-	ProductionGregorServerURI = "fmprpc+tls://gregor.api.keybase.io:443"
+	StagingGregorServerURI    = "fmprpc+tls://gregord.dev.keybase.io:443"
+	ProductionGregorServerURI = "fmprpc+tls://gregord.kbfs.keybase.io:443"
 )
 
 var GregorServerLookup = map[RunMode]string{
@@ -51,11 +51,12 @@ var GregorServerLookup = map[RunMode]string{
 }
 
 const (
-	ConfigFile  = "config.json"
-	SessionFile = "session.json"
-	DBFile      = "keybase.leveldb"
-	SocketFile  = "keybased.sock"
-	PIDFile     = "keybased.pid"
+	ConfigFile        = "config.json"
+	SessionFile       = "session.json"
+	UpdaterConfigFile = "updater.json"
+	DBFile            = "keybase.leveldb"
+	SocketFile        = "keybased.sock"
+	PIDFile           = "keybased.pid"
 
 	SecretKeyringTemplate = "secretkeys.%u.mpack"
 
@@ -137,6 +138,7 @@ const (
 	SCBadLoginUserNotFound   = int(keybase1.StatusCode_SCBadLoginUserNotFound)
 	SCBadLoginPassword       = int(keybase1.StatusCode_SCBadLoginPassword)
 	SCNotFound               = int(keybase1.StatusCode_SCNotFound)
+	SCThrottleControl        = int(keybase1.StatusCode_SCThrottleControl)
 	SCGeneric                = int(keybase1.StatusCode_SCGeneric)
 	SCAlreadyLoggedIn        = int(keybase1.StatusCode_SCAlreadyLoggedIn)
 	SCCanceled               = int(keybase1.StatusCode_SCCanceled)
@@ -186,6 +188,7 @@ const (
 	SCKeyNoNaClEncryption    = int(keybase1.StatusCode_SCKeyNoNaClEncryption)
 	SCWrongCryptoFormat      = int(keybase1.StatusCode_SCWrongCryptoFormat)
 	SCGPGUnavailable         = int(keybase1.StatusCode_SCGPGUnavailable)
+	SCDecryptionError        = int(keybase1.StatusCode_SCDecryptionError)
 )
 
 const (
@@ -407,6 +410,7 @@ const (
 const (
 	ServiceLogFileName = "keybase.service.log"
 	KBFSLogFileName    = "keybase.kbfs.log"
+	UpdaterLogFileName = "keybase.updater.log"
 	DesktopLogFileName = "Keybase.app.log"
 	// StartLogFileName is where services can log to (on startup) before they handle their own logging
 	StartLogFileName = "keybase.start.log"

@@ -126,15 +126,17 @@ func (c *PassphraseChange) findDeviceKeys(ctx *Context) (*keypair, error) {
 	return &keypair{encKey: encKey, sigKey: sigKey}, nil
 }
 
-// findBackupKeys checks if the user has backup keys.  If he/she
-// does, it prompts for a backup phrase.  This is used to
-// regenerate backup keys, which are then matched against the
-// backup keys found in the keyfamily.
+// findPaperKeys checks if the user has paper keys.  If he/she
+// does, it prompts for a paper key phrase.  This is used to
+// regenerate paper keys, which are then matched against the
+// paper keys found in the keyfamily.
 func (c *PassphraseChange) findPaperKeys(ctx *Context) (*keypair, error) {
 	kp, err := findPaperKeys(ctx, c.G(), c.me)
 	if err != nil {
+		c.G().Log.Debug("findPaperKeys error: %s", err)
 		return nil, err
 	}
+	c.G().Log.Debug("findPaperKeys success")
 	c.usingPaper = true
 	return kp, nil
 }
@@ -384,6 +386,7 @@ func (c *PassphraseChange) findAndDecryptPrivatePGPKeys(ctx *Context) ([]libkb.G
 
 	// Using a paper key makes TripleSec-synced keys unrecoverable
 	if c.usingPaper {
+		c.G().Log.Debug("using a paper key, thus TripleSec-synced keys are unrecoverable")
 		return keyList, nil
 	}
 
@@ -397,7 +400,7 @@ func (c *PassphraseChange) findAndDecryptPrivatePGPKeys(ctx *Context) ([]libkb.G
 
 	for _, block := range blocks {
 		parg := ctx.SecretKeyPromptArg(libkb.SecretKeyArg{}, "passphrase change")
-		key, err := block.PromptAndUnlock(parg, "your keybase passphrase", secretRetriever, c.me)
+		key, err := block.PromptAndUnlock(parg, secretRetriever, c.me)
 		if err != nil {
 			return nil, err
 		}

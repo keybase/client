@@ -10,7 +10,7 @@ import loadPerf from '../shared/util/load-perf'
 import {remote} from 'electron'
 
 ipcLogsRenderer()
-hello(process.pid, 'Menubar', process.argv)
+hello(process.pid, 'Menubar', process.argv, __VERSION__) // eslint-disable-line no-undef
 
 if (module.hot) {
   module.hot.accept()

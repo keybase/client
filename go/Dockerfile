@@ -1,17 +1,24 @@
-FROM ubuntu:14.04
+FROM alpine:3.3
 MAINTAINER Keybase <admin@keybase.io>
 
-RUN apt-get update && apt-get install -y fuse openssl jq
+# Remove openssl once KBFSDocker changes are in
+RUN apk add --update wget ca-certificates fuse jq bash openssl && \
+    cd /tmp && \
+    wget "https://github.com/andyshinn/alpine-pkg-glibc/releases/download/2.23-r1/glibc-2.23-r1.apk" \
+        "https://github.com/andyshinn/alpine-pkg-glibc/releases/download/2.23-r1/glibc-bin-2.23-r1.apk" && \
+    apk add --allow-untrusted glibc-2.23-r1.apk glibc-bin-2.23-r1.apk && \
+    echo 'hosts: files mdns4_minimal [NOTFOUND=return] dns mdns4' >> /etc/nsswitch.conf && \
+    adduser -D keybase && \
+    mkdir /keybase && \
+    chmod 777 /keybase && \
+    rm -rf /tmp/* /var/cache/apk/*
 
-RUN useradd -m keybase
-RUN mkdir /keybase
-RUN chown keybase:keybase /keybase
 USER keybase
 WORKDIR /home/keybase
-ADD keybase/keybase /home/keybase/keybase
 
-ENV KEYBASE_DEBUG=0
-ENV KEYBASE_RUN_MODE=devel
-ENV KEYBASE_SERVER_URI="http://kbweb.local:3000"
-ENV KBFS_DYNAMO_SERVER_ADDR="http://dynamodb.kbfs.local:8000"
-ENV PATH=/opt/scripts:/home/keybase:$PATH
+ENV KEYBASE_DEBUG=0 \
+    KEYBASE_RUN_MODE=devel \
+    KEYBASE_SERVER_URI="http://kbweb.local:3000" \
+    PATH=/home/keybase:$PATH
+
+ADD keybase/keybase /home/keybase/keybase

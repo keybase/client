@@ -18,12 +18,13 @@ const (
 type FSNotificationType int
 
 const (
-	FSNotificationType_ENCRYPTING FSNotificationType = 0
-	FSNotificationType_DECRYPTING FSNotificationType = 1
-	FSNotificationType_SIGNING    FSNotificationType = 2
-	FSNotificationType_VERIFYING  FSNotificationType = 3
-	FSNotificationType_REKEYING   FSNotificationType = 4
-	FSNotificationType_CONNECTION FSNotificationType = 5
+	FSNotificationType_ENCRYPTING      FSNotificationType = 0
+	FSNotificationType_DECRYPTING      FSNotificationType = 1
+	FSNotificationType_SIGNING         FSNotificationType = 2
+	FSNotificationType_VERIFYING       FSNotificationType = 3
+	FSNotificationType_REKEYING        FSNotificationType = 4
+	FSNotificationType_CONNECTION      FSNotificationType = 5
+	FSNotificationType_MD_READ_SUCCESS FSNotificationType = 6
 )
 
 type FSErrorType int

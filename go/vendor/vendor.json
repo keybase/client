@@ -129,8 +129,8 @@
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp",
-			"revision": "6af3ef04486846fc4b04673b6552bfea75c6af18",
-			"revisionTime": "2016-03-19T10:18:54-07:00"
+			"revision": "15e69f9c18a2e63cf7fc25a2d2ff643330616d2b",
+			"revisionTime": "2016-04-25T17:22:39-04:00"
 		},
 		{
 			"path": "github.com/keybase/go-crypto/openpgp/armor",
@@ -173,9 +173,10 @@
 			"revisionTime": "2016-03-19T10:18:54-07:00"
 		},
 		{
+			"checksumSHA1": "jpUqeZQ0mjQc5tN4Ecr+A12M2VA=",
 			"path": "github.com/keybase/go-framed-msgpack-rpc",
-			"revision": "f6fef575469bdad86d21f5c8e2c1aafde1cf0a2e",
-			"revisionTime": "2016-03-23T19:13:04-05:00"
+			"revision": "2a4cdfc4f2ce5894aef188818ec5f03ed3ea9614",
+			"revisionTime": "2016-05-16T17:05:43-05:00"
 		},
 		{
 			"path": "github.com/keybase/go-jsonw",
@@ -198,6 +199,11 @@
 			"revisionTime": "2016-03-09T18:35:02Z"
 		},
 		{
+			"path": "github.com/keybase/go-ps",
+			"revision": "f5e5fd36a1028a67d0aa92f2700b284f881a656c",
+			"revisionTime": "2016-05-24T14:14:49-07:00"
+		},
+		{
 			"path": "github.com/keybase/go-triplesec",
 			"revision": "b360b8252869a5ac88df3ed7897bc3b6d1e55dd2",
 			"revisionTime": "2015-06-12T09:33:55-07:00"
@@ -209,8 +215,13 @@
 		},
 		{
 			"path": "github.com/keybase/go-updater",
-			"revision": "d18ba27c71bd73ed367a6677a21df3693f3bbb60",
-			"revisionTime": "2016-03-25T12:34:14-07:00"
+			"revision": "6bcce925168dc76aac92953bf0a5dcefd3406fb8",
+			"revisionTime": "2016-04-12T10:39:09-07:00"
+		},
+		{
+			"path": "github.com/keybase/go-updater/process",
+			"revision": "273e7205fda8883a0c7f05cf996fe5dba2096332",
+			"revisionTime": "2016-05-31T22:04:18-07:00"
 		},
 		{
 			"path": "github.com/keybase/go-updater/sources",
@@ -218,27 +229,55 @@
 			"revisionTime": "2016-03-23T16:34:55-07:00"
 		},
 		{
-			"path": "github.com/keybase/gopass",
-			"revision": "8cb3611ab4d378cb4ff58ed723a4ea0557f81adb",
-			"revisionTime": "2016-01-05T18:46:37-05:00"
+			"path": "github.com/keybase/go-updater/watchdog",
+			"revision": "273e7205fda8883a0c7f05cf996fe5dba2096332",
+			"revisionTime": "2016-05-31T22:04:18-07:00"
 		},
 		{
-			"checksumSHA1": "I13eHztw5qFReA/em0yFfD19i48=",
+			"checksumSHA1": "OvF/14pOw+eU6VJSn3m0/obYTwI=",
 			"path": "github.com/keybase/gregor",
-			"revision": "4222e358248b9ecc65c5baa43b438ed0f6aadcc2",
-			"revisionTime": "2016-04-04T09:40:36-05:00"
+			"revision": "1ab24cca628ebcdb61bdc9ba8216db25bacf5ad0",
+			"revisionTime": "2016-05-20T18:20:22Z"
 		},
 		{
-			"checksumSHA1": "Q6WC6vjJHm1Yf8JwSxQ+RYIY8Ow=",
-			"origin": "github.com/keybase/client/go/vendor/github.com/keybase/gregor/protocol/go",
-			"path": "github.com/keybase/gregor/protocol/go",
-			"revision": "4222e358248b9ecc65c5baa43b438ed0f6aadcc2",
-			"revisionTime": "2016-04-04T09:40:36-05:00"
+			"checksumSHA1": "flvds/o/8QYR4cti75BhR0UCTRg=",
+			"path": "github.com/keybase/gregor/protocol/gregor1",
+			"revision": "1e1fab50dda331c4fbf240c67fdad9d8439b774e",
+			"revisionTime": "2016-06-02T23:03:16Z"
+		},
+		{
+			"checksumSHA1": "Q4pK+kqEWiQ0s5MzyjV60snUeeQ=",
+			"path": "github.com/keybase/gregor/rpc",
+			"revision": "0fb40a8277547cdd3102f59269866f51e99b9ca7",
+			"revisionTime": "2016-05-23T19:07:47Z"
+		},
+		{
+			"checksumSHA1": "cI160sYBZpV/m5VuuByQ4hJpFg8=",
+			"path": "github.com/keybase/gregor/rpc/client",
+			"revision": "287ac80a9576cfd716e6f9b8d40c07e625f2a87a",
+			"revisionTime": "2016-05-26T20:51:45Z"
+		},
+		{
+			"checksumSHA1": "VWEcKH3xzrRYdR+oOkSvUByjrJM=",
+			"path": "github.com/keybase/gregor/schema",
+			"revision": "2c526d0b7cf258316fdc47c984c4bd17d3713dcf",
+			"revisionTime": "2016-05-19T16:00:52Z"
+		},
+		{
+			"checksumSHA1": "I64NJ2MXu/ES+4S2zz0miefUuBQ=",
+			"path": "github.com/keybase/gregor/storage",
+			"revision": "0fb40a8277547cdd3102f59269866f51e99b9ca7",
+			"revisionTime": "2016-05-23T19:07:47Z"
 		},
 		{
 			"path": "github.com/keybase/keybase-test-vectors/go",
 			"revision": "a5147a659b4a69f77e027e301e726e05492474d6",
 			"revisionTime": "2015-10-20T11:39:53-04:00"
+		},
+		{
+			"path": "github.com/keybase/npipe",
+			"revision": "5cd75f41d020ac2963df3588416573ff575341c2",
+			"revisionTime": "2016-04-28T10:21:56-07:00"
 		},
 		{
 			"path": "github.com/keybase/saltpack",
@@ -264,11 +303,6 @@
 			"path": "github.com/mattn/go-isatty",
 			"revision": "56b76bdf51f7708750eac80fa38b952bb9f32639",
 			"revisionTime": "2015-12-11T09:06:21+09:00"
-		},
-		{
-			"path": "github.com/natefinch/npipe",
-			"revision": "0938d701e50e580f5925c773055eb6d6b32a0cbc",
-			"revisionTime": "2014-10-08T16:43:58+02:00"
 		},
 		{
 			"path": "github.com/rogpeppe/rog-go/reverse",
@@ -404,6 +438,11 @@
 			"path": "golang.org/x/net/html/atom",
 			"revision": "dfcbca9c45aeabb8971affa4f76b2d40f6f72328",
 			"revisionTime": "2015-06-09T11:52:15-07:00"
+		},
+		{
+			"path": "golang.org/x/sys/windows",
+			"revision": "f64b50fbea64174967a8882830d621a18ee1548e",
+			"revisionTime": "2016-04-14T16:31:22+03:00"
 		},
 		{
 			"path": "golang.org/x/sys/windows/registry",

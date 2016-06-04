@@ -56,19 +56,19 @@ class Checkbox extends Component {
     })
 
     const outerOverride = {
-      ...(!this.props.checked && this.props.disabled) ? {borderColor: globalColors.black10} : {},
+      ...(!this.props.checked && this.props.disabled) ? {borderColor: globalColors.black_10} : {},
       backgroundColor: animatedColor
     }
 
     const innerOverride = {
-      ...(!this.props.checked && this.props.disabled) ? {borderColor: globalColors.black10} : {}
+      ...(!this.props.checked && this.props.disabled) ? {borderColor: globalColors.black_10} : {}
     }
 
     return (
       <TouchableWithoutFeedback onPressIn={onClick} delayPressIn={0}>
         <View style={{...styleContainer, ...containerStyle, ...this.props.style}}>
           <Animated.View style={{...styleOuter, ...outerOverride}}>
-            <Animated.View style={{...styleInner, ...innerOverride, left: this.state.left}}/>
+            <Animated.View style={{...styleInner, ...innerOverride, left: this.state.left}} />
           </Animated.View>
           <Text type='BodySmall' small style={styleText}>{this.props.label}</Text>
         </View>
@@ -103,7 +103,7 @@ const styleInner = {
 const styleText = {
   marginLeft: 8,
   marginBottom: 3,
-  color: globalColors.black75
+  color: globalColors.black_75
 }
 
 export default Checkbox

@@ -31,7 +31,7 @@ export function registerUpdateListener (): (dispatch: Dispatch, getState: () => 
         incomingCallMap: {},
         callback: (error, response) => {
           if (error != null) {
-            console.error('Error in registering update ui: ', error)
+            console.warn('Error in registering update ui: ', error)
           } else {
             console.log('Registered update ui')
           }
@@ -154,7 +154,7 @@ function updateListenersCreator (dispatch: Dispatch, getState: () => {config: Co
 
 function sendUpdateConfirmResponse (payload: any /* UpdatePromptRes */): void {
   if (!updateConfirmResponse) {
-    console.error('Update confirm response with incorrect flow')
+    console.warn('Update confirm response with incorrect flow')
     return
   }
 
@@ -225,7 +225,7 @@ export function onPauseCancel (): (dispatch: Dispatch) => void {
 
 function sendUpdatePausedResponse (payload: any /* UpdatePromptRes */): void {
   if (!updatePausedResponse) {
-    console.error('Update paused response with incorrect flow')
+    console.warn('Update paused response with incorrect flow')
     return
   }
 

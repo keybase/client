@@ -70,6 +70,9 @@ func (p CommandLine) GetServerURI() string {
 func (p CommandLine) GetConfigFilename() string {
 	return p.GetGString("config-file")
 }
+func (p CommandLine) GetUpdaterConfigFilename() string {
+	return p.GetGString("updater-config-file")
+}
 func (p CommandLine) GetSessionFilename() string {
 	return p.GetGString("session-file")
 }
@@ -105,6 +108,26 @@ func (p CommandLine) GetGpgHome() string {
 }
 func (p CommandLine) GetAPIDump() (bool, bool) {
 	return p.GetBool("api-dump-unsafe", true)
+}
+func (p CommandLine) GetGregorSaveInterval() (time.Duration, bool) {
+	ret, err := p.GetGDuration("push-save-interval")
+	if err != nil {
+		return 0, false
+	}
+	return ret, true
+}
+func (p CommandLine) GetGregorDisabled() (bool, bool) {
+	return p.GetBool("push-disabled", true)
+}
+func (p CommandLine) GetGregorURI() string {
+	return p.GetGString("push-server-uri")
+}
+func (p CommandLine) GetGregorPingInterval() (time.Duration, bool) {
+	ret, err := p.GetGDuration("push-ping-interval")
+	if err != nil {
+		return 0, false
+	}
+	return ret, true
 }
 func (p CommandLine) GetRunMode() (libkb.RunMode, error) {
 	return libkb.StringToRunMode(p.GetGString("run-mode"))
@@ -300,6 +323,10 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 			Usage: "Specify an (alternate) master config file.",
 		},
 		cli.StringFlag{
+			Name:  "updater-config-file",
+			Usage: "specify a path to the updater config file",
+		},
+		cli.StringFlag{
 			Name:  "session-file",
 			Usage: "Specify an alternate session data file.",
 		},
@@ -310,6 +337,18 @@ func (p *CommandLine) PopulateApp(addHelp bool, extraFlags []cli.Flag) {
 		cli.StringFlag{
 			Name:  "api-uri-path-prefix",
 			Usage: "Specify an alternate API URI path prefix.",
+		},
+		cli.StringFlag{
+			Name:  "push-server-uri",
+			Usage: "specify a URI for contacting the Keybase push server",
+		},
+		cli.BoolFlag{
+			Name:  "push-disabled",
+			Usage: "disable push server connection (which is on by default)",
+		},
+		cli.IntFlag{
+			Name:  "push-save-interval",
+			Usage: "set the interval between saves of the push cache (in seconds)",
 		},
 		cli.StringFlag{
 			Name:  "pinentry",

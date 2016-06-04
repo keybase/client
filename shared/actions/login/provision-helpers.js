@@ -1,7 +1,7 @@
 // @flow
 import * as Constants from '../../constants/login'
 import QRCodeGen from 'qrcode-generator'
-import type {DeviceRole, Mode} from '../../reducers/login'
+import type {DeviceRole, Mode} from '../../constants/login'
 
 export function defaultModeForDeviceRoles (myDeviceRole: DeviceRole, otherDeviceRole: DeviceRole, brokenMode: boolean): ?Mode {
   switch (myDeviceRole + otherDeviceRole) {
@@ -34,6 +34,6 @@ export function qrGenerate (code: string): string {
   qr.make()
   let tag = qr.createImgTag(10)
   const src = tag.split(' ')[1]
-  const qrCode = src.split('\"')[1]
+  const qrCode = src.split('"')[1]
   return qrCode
 }

@@ -199,10 +199,6 @@ func (s *SignupEngine) registerDevice(a libkb.LoginContext, ctx *Context, device
 		}
 	}
 
-	// is there any reason *not* to do this?
-	ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceSigningKeyType}, s.signingKey)
-	ctx.LoginContext.SetCachedSecretKey(libkb.SecretKeyArg{KeyType: libkb.DeviceEncryptionKeyType}, eng.EncryptionKey())
-
 	s.G().Log.Debug("registered new device: %s", s.G().Env.GetDeviceID())
 	s.G().Log.Debug("eldest kid: %s", s.me.GetEldestKID())
 

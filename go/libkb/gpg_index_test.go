@@ -11,14 +11,13 @@ import (
 
 func parse(t *testing.T, kr string) *GpgKeyIndex {
 	buf := bytes.NewBufferString(kr)
-	i, w, e := ParseGpgIndexStream(buf)
+	i, w, e := ParseGpgIndexStream(G, buf)
 	if e != nil {
 		t.Fatalf("failure in parse: %s", e)
 	}
 
 	if !w.IsEmpty() {
 		t.Errorf("Warnings in parsing:")
-		w.Warn()
 		return nil
 	}
 	return i

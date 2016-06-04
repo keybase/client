@@ -21,14 +21,14 @@
 #define MyGoArch GetEnv('GOARCH')
 
 #ifndef NewDokanVersion
-#define NewDokanVersion ""
+#define NewDokanVersion "0.8.0"
 #endif
 
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application.
 ; Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{1B2672D9-2BAD-4C11-BA53-A75AF6FD7789}
+AppId={{357F272E-BE0E-409F-8E39-0BB9827F5716}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}
@@ -58,7 +58,7 @@ SignTool=SignCommand
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
 
-; Unpack the dokan components in $GOPATH\bin\dokan-dev\dokan-v1.0.0-RC2
+; Unpack the dokan components in $GOPATH\bin\dokan-dev\dokan-v0.8.0
 ; Download the Visuap Studio 2015 redistributable to $GOPATH\bin
 
 [Files]
@@ -66,26 +66,28 @@ Name: "english"; MessagesFile: "compiler:Default.isl"
 Source: "{#MyExePathName}"; DestDir: "{app}"; Flags: ignoreversion
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 Source: "..\..\desktop\release\win32-ia32\Keybase-win32-ia32\*"; DestDir: "{app}\gui"; Flags: createallsubdirs recursesubdirs replacesameversion
-Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v1.0.0-RC2\Win32\Win7Release\dokan1.sys"; DestDir: "{sys}\drivers"; Check: IsOtherArch and IsWindows7 and IsDokanBeingUpdated
-Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v1.0.0-RC2\Win32\Win8Release\dokan1.sys"; DestDir: "{sys}\drivers"; Check: IsOtherArch and IsWindows8 and IsDokanBeingUpdated
-Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v1.0.0-RC2\Win32\Win8.1Release\dokan1.sys"; DestDir: "{sys}\drivers"; Check: IsOtherArch and IsWindows8_1 and IsDokanBeingUpdated
-Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v1.0.0-RC2\Win32\Win10Release\dokan1.sys"; DestDir: "{sys}\drivers"; Check: IsOtherArch and IsWindows10 and IsDokanBeingUpdated
-Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v1.0.0-RC2\Win32\Release\dokan1.dll"; DestDir: "{sys}"; Flags: 32bit
-Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v1.0.0-RC2\Win32\Release\dokannp1.dll"; DestDir: "{sys}"; Flags: 32bit
-Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v1.0.0-RC2\x64\Win7Release\dokan1.sys"; DestDir: "{sys}\drivers"; Check: IsX64 and IsWindows7 and IsDokanBeingUpdated
-Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v1.0.0-RC2\x64\Win8Release\dokan1.sys"; DestDir: "{sys}\drivers"; Check: IsX64 and IsWindows8 and IsDokanBeingUpdated
-Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v1.0.0-RC2\x64\Win8.1Release\dokan1.sys"; DestDir: "{sys}\drivers"; Check: IsX64 and IsWindows8_1 and IsDokanBeingUpdated
-Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v1.0.0-RC2\x64\Win10Release\dokan1.sys"; DestDir: "{sys}\drivers"; Check: IsX64 and IsWindows10 and IsDokanBeingUpdated
-Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v1.0.0-RC2\x64\Release\dokan1.dll"; DestDir: "{sys}"; Flags: 64bit; Check: IsX64
-Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v1.0.0-RC2\x64\Release\dokannp1.dll"; DestDir: "{sys}"; Flags: 64bit; Check: IsX64
-Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v1.0.0-RC2\Win32\Release\dokanctl.exe"; DestDir: "{pf32}\Dokan\DokanLibrary"
+Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v0.8.0\Win32\Win7Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsOtherArch and IsWindows7 and IsDokanBeingInstalled
+Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v0.8.0\Win32\Win8Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsOtherArch and IsWindows8 and IsDokanBeingInstalled
+Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v0.8.0\Win32\Win8.1Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsOtherArch and IsWindows8_1 and IsDokanBeingInstalled
+Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v0.8.0\Win32\Win10Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsOtherArch and IsWindows10 and IsDokanBeingInstalled
+Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v0.8.0\Win32\Release\dokan.dll"; DestDir: "{sys}"; Flags: 32bit; Check: IsDokanBeingInstalled
+Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v0.8.0\Win32\Release\dokannp.dll"; DestDir: "{sys}"; Flags: 32bit; Check: IsDokanBeingInstalled
+Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v0.8.0\x64\Win7Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsX64 and IsWindows7 and IsDokanBeingInstalled
+Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v0.8.0\x64\Win8Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsX64 and IsWindows8 and IsDokanBeingInstalled
+Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v0.8.0\x64\Win8.1Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsX64 and IsWindows8_1 and IsDokanBeingInstalled
+Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v0.8.0\x64\Win10Release\dokan.sys"; DestDir: "{sys}\drivers"; Check: IsX64 and IsWindows10 and IsDokanBeingInstalled
+Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v0.8.0\x64\Release\dokan.dll"; DestDir: "{sys}"; Flags: 64bit; Check: IsX64 and IsDokanBeingInstalled
+Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v0.8.0\x64\Release\dokannp.dll"; DestDir: "{sys}"; Flags: 64bit; Check: IsX64 and IsDokanBeingInstalled
+; install only 32 bit versions of dokanctl and mounter, otherwise we need 64 bit redistributables too
+Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v0.8.0\Win32\Release\dokanctl.exe"; DestDir: "{pf32}\Dokan\DokanLibrary"; Check: IsDokanBeingInstalled
+Source: "..\..\..\..\..\..\bin\dokan-dev\dokan-v0.8.0\Win32\Release\mounter.exe"; DestDir: "{pf32}\Dokan\DokanLibrary"; Check:  IsDokanBeingInstalled
 Source: "..\..\..\..\..\..\bin\vc_redist.x86.exe"; DestDir: "{tmp}"
 Source: "..\..\..\kbfs\kbfsdokan\kbfsdokan.exe"; DestDir: "{app}"; Flags: replacesameversion
+Source: "..\..\..\go-updater\service\upd.exe"; DestDir: "{app}"; Flags: replacesameversion
 
 [Icons]
 Name: "{group}\{cm:UninstallProgram,{#MyAppName}}"; Filename: "{uninstallexe}"
 Name: "{group}\{#MyAppName} CMD"; Filename: "cmd.exe"; WorkingDir: "{app}"; IconFilename: "{app}\{#MyExeName}"; Parameters: "/K ""set PATH=%PATH%;{app}"""
-Name: "{userstartup}\Keybase UI"; Filename: "{app}\gui\Keybase.exe"
 Name: "{group}\Keybase UI"; Filename: "{app}\gui\Keybase.exe"
 
 [Registry]
@@ -97,7 +99,7 @@ WelcomeLabel2=This will install [name/ver] on your computer.
 [Run]
 Filename: "{tmp}\vc_redist.x86.exe"; Parameters: "/quiet /Q:a /c:""msiexec /qb /i vcredist.msi"""; StatusMsg: "Installing VisualStudio 2015 RunTime..."
 Filename: "{app}\{#MyExeName}"; Parameters: "ctl watchdog"; Flags: runasoriginaluser runhidden nowait
-Filename: "{pf32}\Dokan\DokanLibrary\dokanctl.exe"; Parameters: "/i d"; WorkingDir: "{pf32}\Dokan\DokanLibrary"; Flags: runhidden; Description: "Install Dokan Service"
+Filename: "{pf32}\Dokan\DokanLibrary\dokanctl.exe"; Parameters: "/i a"; WorkingDir: "{pf32}\Dokan\DokanLibrary"; Flags: runhidden; Description: "Install Dokan Service"; Check: IsDokanBeingInstalled
 Filename: "{app}\gui\Keybase.exe"; WorkingDir: "{app}\gui"; Flags: nowait runasoriginaluser
 Filename: "{app}\kbfsdokan.exe"; Parameters: "-log-to-file -debug k:"; Flags: runasoriginaluser runhidden nowait
 
@@ -112,7 +114,6 @@ Filename: "taskkill"; Parameters: "/f /im Keybase.exe"; Flags: runhidden
 Filename: "taskkill"; Parameters: "/f /im kbfsdokan.exe"; Flags: runhidden
 Filename: "{app}\{#MyExeName}"; Parameters: "ctl stop"; WorkingDir: "{app}"; Flags: skipifdoesntexist runhidden
 Filename: "{pf32}\Dokan\DokanLibrary\dokanctl.exe"; Parameters: "/u k /f"; Flags: runhidden
-; Legacy Dokan
 Filename: "{pf32}\Dokan\DokanLibrary\dokanctl.exe"; Parameters: "/r a"; Flags: runhidden
 Filename: "{pf32}\Dokan\DokanLibrary\dokanctl.exe"; Parameters: "/r d"; Flags: runhidden
 
@@ -147,10 +148,10 @@ var
 begin
   // Default is hardcoded to match AppId, above
   if AppIdString = '' then
-    AppIdString := '{1B2672D9-2BAD-4C11-BA53-A75AF6FD7789}';
+    AppIdString := '{357F272E-BE0E-409F-8E39-0BB9827F5716}';
   sUnInstPath := 'Software\Microsoft\Windows\CurrentVersion\Uninstall\' + AppIdString + '_is1';
   sUnInstallString := '';
-  
+
   if not RegQueryStringValue(HKCU32, sUnInstPath, 'UninstallString', sUnInstallString) then
     if not RegQueryStringValue(HKLM32, sUnInstPath, 'UninstallString', sUnInstallString) then
       if IsX64() then
@@ -165,9 +166,15 @@ var
   AppIdString: String;
 
 begin
+  // Hardcoded app IDs from previous installers:
+  // Old Dokan 0.8 based client
   AppIdString := '{DEB2E54C-C39F-4DC8-93A7-ABE0AB91DDCA}';
-  // Hardcoded app ID from previous installers
   Result := GetUninstallString(AppIdString);
+  if Result = '' then begin
+    // Ill fated Dokan 1.0.0 RC2
+    AppIdString := '{1B2672D9-2BAD-4C11-BA53-A75AF6FD7789}';
+    Result := GetUninstallString(AppIdString);
+  end
   // Add more as we change the appId
 end;
 
@@ -185,7 +192,7 @@ function IsUpgradeFromPrevious(): Boolean;
 begin
   Result := (GetPreviousVerUninstallString() <> '');
 end;
-                  
+
 function PreviousCLIInstalled(): Boolean;
 var CLIAppId: String;
 begin
@@ -228,8 +235,8 @@ begin
   UninstallString := GetUninstallString(CLIAppId)
   UnInstallOldVersion(UninstallString);
 end;
-  
-  
+
+
 // Simply invoking "Keybase.exe service" at startup results in an unsightly
 // extra console window, so we'll emit this bit of script instead.
 // (yes, this is pascal code that generates vbscript.)
@@ -241,22 +248,22 @@ var
 begin
   Result := true;
   fileName := ExpandConstant('{userstartup}\{#MyAppName}.vbs');
-  SetArrayLength(lines, 5);
+  Log('Created ' + fileName);
+  SetArrayLength(lines, 6);
 
   lines[0] := 'Dim WinScriptHost';
   lines[1] := 'Set WinScriptHost = CreateObject("WScript.Shell")';
   lines[2] := ExpandConstant('WinScriptHost.Run Chr(34) & "{app}\{#MyExeName}" & Chr(34) & " ctl watchdog", 0');
   lines[3] := ExpandConstant('WinScriptHost.Run Chr(34) & "{app}\kbfsdokan.exe" & Chr(34) & " -log-to-file -debug k:", 0');
-  lines[4] := 'Set WinScriptHost = Nothing';
+  lines[4] := ExpandConstant('WinScriptHost.Run Chr(34) & "{app}\gui\Keybase.exe" & Chr(34), 0');
+  lines[5] := 'Set WinScriptHost = Nothing';
 
   Result := SaveStringsToFile(filename,lines,true);
   exit;
 end;
 
- 
+
 procedure CurStepChanged(CurStep: TSetupStep);
-var
-  ResultCode: Integer;
 
 begin
   if  CurStep=ssPostInstall then
@@ -265,8 +272,19 @@ begin
     end
 end;
 
+procedure CurUninstallStepChanged(CurUninstallStep: TUninstallStep);
 
-function IsDokanBeingUpdated(): Boolean;
+begin
+  if  CurUninstallStep=usDone then
+    begin
+      if FileExists(ExpandConstant('{sys}\drivers\dokan.sys')) then
+        RestartReplace(ExpandConstant('{sys}\drivers\dokan.sys'), '');
+      if FileExists(ExpandConstant('{sys}\drivers\dokan1.sys')) then
+        RestartReplace(ExpandConstant('{sys}\drivers\dokan1.sys'), '');
+    end;
+end;
+
+function IsDokanBeingInstalled(): Boolean;
 var
   newVer: String;
 
@@ -277,10 +295,10 @@ begin
   Result := not (CompareStr(g_currentDokanVer, newVer) = 0)
 end;
 
-// Restart if the driver got changed
+// Assume if the driver is being updated, we've already rebooted
 function NeedRestart(): Boolean;
 begin
-  Result := (Length(g_currentDokanVer) > 0) and IsDokanBeingUpdated();
+  Result := false
 end;
 
 procedure StopKeybaseService();
@@ -289,6 +307,7 @@ var
   CommandName: string;
 
 begin
+  Log('StopKeybaseService()');
   // kill any electron UI instances
   Exec('taskkill.exe', '/f /im Keybase.exe', '', SW_HIDE,
     ewWaitUntilTerminated, ResultCode);
@@ -296,18 +315,8 @@ begin
   CommandName := ExpandConstant('{app}\{#MyExeName}');
   Exec(CommandName, 'ctl stop', '', SW_HIDE,
     ewWaitUntilTerminated, ResultCode);
-  Exec(ExpandConstant('{pf32}\Dokan\DokanLibrary\dokanctl.exe'), '/u K', '', SW_HIDE,
-    ewWaitUntilTerminated, ResultCode);
-  Sleep(500);
   Exec('taskkill.exe', '/f /im kbfsdokan.exe', '', SW_HIDE, ewWaitUntilTerminated, ResultCode);
   Sleep(100);
-  if IsDokanBeingUpdated() then
-  begin
-    Exec(ExpandConstant('{pf32}\Dokan\DokanLibrary\dokanctl.exe'), '/u k /f', '', SW_HIDE,
-      ewWaitUntilTerminated, ResultCode);
-    Exec(ExpandConstant('{pf32}\Dokan\DokanLibrary\dokanctl.exe'), '/r d', '', SW_HIDE,
-      ewWaitUntilTerminated, ResultCode);
-  end
 end;
 
 function UninstallNeedRestart(): Boolean;
@@ -349,7 +358,7 @@ begin
   (*** Place any custom user selection you want to remember below. ***)
 
   //<your code here>
-  
+
   RegWriteStringValue(HKCU, 'Software\Microsoft\Windows\CurrentVersion\RunOnce', RunOnceName, RunOnceData);
 end;
 
@@ -365,7 +374,9 @@ begin
           Log('Restarted, removing legacy stuff');
           DeleteFile(dokanCtlName);
           DeleteFile(ExpandConstant('{pf32}\Dokan\DokanLibrary\mounter.exe'));
+          DeleteFile(ExpandConstant('{pf32}\Dokan\DokanLibrary\dokanctl.exe'));
           DeleteFile(ExpandConstant('{sys}\drivers\dokan.sys'));
+          DeleteFile(ExpandConstant('{sys}\drivers\dokan1.sys'));
     end else begin
       CheckAndUninstallCLI
       if IsUpgradeFromPrevious then
@@ -388,9 +399,17 @@ var
     ResultCode: Integer;
 
 begin
-    fileName := ExpandConstant('{sys}\drivers\dokan1.sys');
+    fileName := ExpandConstant('{sys}\drivers\dokan.sys');
     GetVersionNumbersString(fileName, g_currentDokanVer);
-    // overwrite old dokan components
+
+    // The problem here is that no dokan components except the driver have
+    // version information, but the driver can't be deleted by normal
+    // uninstall. So we have to assume that we're installing if dokanctl.exe
+    // is not already there - dokan.sys could be a leftover.
+    if not FileExists(ExpandConstant('{pf32}\Dokan\DokanLibrary\dokanctl.exe')) then
+       g_currentDokanVer :=  '';
+
+    // Overall product upgrade also equals driver install
     if IsUpgradeFromPrevious() then
        g_currentDokanVer := '';
 
@@ -412,6 +431,7 @@ begin
     end else begin
       Result := true;
       DeleteFile(ExpandConstant('{sys}\drivers\dokan.sys'));
+      DeleteFile(ExpandConstant('{sys}\drivers\dokan1.sys'));
     end;
 end;
 
@@ -429,7 +449,7 @@ begin
   GetWindowsVersionEx(Version);
   Result := Version.NTPlatform and (Version.Major = 5) and (Version.Minor = 1);
 end;
-     
+
 
 function IsWindows7: Boolean;
 var

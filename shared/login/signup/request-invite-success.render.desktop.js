@@ -7,15 +7,13 @@ import Container from '../forms/container'
 
 import type {Props} from './request-invite-success.render'
 
-export default class Render extends Component {
-  props: Props;
-
+class Render extends Component<void, Props, void> {
   render () {
     return (
-      <Container onBack={this.props.onBack} style={styles.container}>
-        <Icon style={styles.icon} type='invite-code-m'/>
-        <Text style={styles.header} type='Header'>Invite request sent</Text>
-        <Text style={styles.body} type='Body'>
+      <Container onBack={this.props.onBack} style={stylesContainer}>
+        <Icon style={stylesIcon} type='invite-code-m' />
+        <Text style={stylesHeader} type='Header'>Invite request sent</Text>
+        <Text style={stylesBody} type='Body'>
           Thanks for requesting an invite to Keybase. When one becomes available,  we will send it to you via email.
         </Text>
       </Container>
@@ -23,22 +21,22 @@ export default class Render extends Component {
   }
 }
 
-const styles = {
-  container: {
-    ...globalStyles.flexBoxColumn,
-    alignItems: 'center'
-  },
-  icon: {
-    marginTop: 80
-  },
-  header: {
-    marginTop: 50,
-    marginBottom: 10
-  },
-  body: {
-    paddingLeft: 15,
-    paddingRight: 15,
-    marginBottom: 35,
-    textAlign: 'center'
-  }
+const stylesContainer = {
+  ...globalStyles.flexBoxColumn,
+  alignItems: 'center'
 }
+const stylesIcon = {
+  marginTop: 80
+}
+const stylesHeader = {
+  marginTop: 50,
+  marginBottom: 10
+}
+const stylesBody = {
+  paddingLeft: 15,
+  paddingRight: 15,
+  marginBottom: 35,
+  textAlign: 'center'
+}
+
+export default Render

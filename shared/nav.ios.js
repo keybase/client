@@ -1,5 +1,9 @@
 import React, {Component} from 'react'
-import {TabBarIOS, View, Navigator, Text, TouchableOpacity, StyleSheet} from 'react-native'
+import {View, Navigator, Text, TouchableOpacity, StyleSheet} from 'react-native'
+
+import {mapValues} from 'lodash'
+
+import TabBar from './tab-bar/index.render.native'
 
 import {connect} from 'react-redux'
 
@@ -18,11 +22,20 @@ import {bootstrap} from './actions/config'
 
 import {constants as styleConstants} from './styles/common'
 
-import {devicesTab, moreTab, startupTab, loginTab} from './constants/tabs'
+import {dumbFullscreen} from './local-debug'
+import DumbSheet from './more/dumb-sheet'
 
-const tabs = {
-  [loginTab]: {module: Login, name: 'Login'},
+import {devicesTab, moreTab, startupTab, folderTab, peopleTab, loginTab, profileTab} from './constants/tabs'
+import type {VisibleTab} from './constants/tabs' // eslint-disable-line
+import ListenLogUi from './native/listen-log-ui'
+import {listenForNotifications} from './actions/notifications'
+import hello from './util/hello'
+
+const tabs: {[key: VisibleTab]: {module: any}} = {
+  [profileTab]: {module: Login, name: 'Login'},
   [devicesTab]: {module: Devices, name: 'Devices'},
+  [folderTab]: {module: More, name: 'More'},
+  [peopleTab]: {module: More, name: 'More'},
   [moreTab]: {module: More, name: 'More'},
   [startupTab]: {module: Startup}
 }
@@ -81,19 +94,31 @@ class Nav extends Component {
     super(props)
 
     this.props.bootstrap()
+    this.props.listenForNotifications()
+
+    // Handle logUi.log
+    ListenLogUi()
+
+    // Introduce ourselves to the service
+    hello(0, 'iOS app', [], '0.0.0') // TODO real version
   }
 
   navBar () {
     return (
       <Navigator.NavigationBar
         style={styles.navBar}
-        routeMapper={NavigationBarRouteMapper(this.props.navigateTo, this.props.navigateUp)}/>
+        routeMapper={NavigationBarRouteMapper(this.props.navigateTo, this.props.navigateUp)} />
     )
   }
 
   _renderContent (tab, module) {
+    const tabStyle = {
+      flex: 1,
+      marginBottom: tab === loginTab ? 0 : styleConstants.tabBarHeight
+    }
+
     return (
-      <View style={styles.tabContent}>
+      <View style={tabStyle}>
         <MetaNavigator
           tab={tab}
           globalRoutes={globalRoutes}
@@ -106,39 +131,20 @@ class Nav extends Component {
     )
   }
 
+  _activeTab () {
+    return this.props.tabbedRouter.get('activeTab')
+  }
+
   shouldComponentUpdate (nextProps, nextState) {
-    const activeTab = this.props.tabbedRouter.get('activeTab')
-    const nextActiveTab = nextProps.tabbedRouter.get('activeTab')
-    if (activeTab !== nextActiveTab) {
-      return true
-    }
-
-    if (this.props.config.navState !== nextProps.config.navState) {
-      return true
-    }
-
-    return false
+    return (nextProps.tabbedRouter.get('activeTab') !== this._activeTab())
   }
 
   render () {
-    const activeTab = this.props.tabbedRouter.get('activeTab')
+    if (dumbFullscreen) {
+      return <DumbSheet />
+    }
 
-    // if (this.props.config.navState === Constants.navStartingUp) {
-      // return (
-        // <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-          // <Text>Loading...</Text>
-        // </View>
-      // )
-    // }
-
-    // if (this.props.config.navState === Constants.navErrorStartingUp) {
-      // return (
-        // <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
-          // <Text>Error Loading: {this.props.config.error.toString()}</Text>
-          // <Button type='Secondary' title='Retry' onPress={() => this.props.startup()} isAction />
-        // </View>
-      // )
-    // }
+    const activeTab = this._activeTab()
 
     if (activeTab === loginTab) {
       return this._renderContent(loginTab, Login)
@@ -149,33 +155,17 @@ class Nav extends Component {
       return this._renderContent(activeTab, module)
     }
 
+    const tabContent = mapValues(tabs, ({module}, tab) => (activeTab === tab && this._renderContent(tab, module)))
+
     return (
       <View style={{flex: 1}}>
-        <TabBarIOS tintColor='black' translucent={false}>
-        {Object.keys(tabs).map(tab => {
-          const {name} = tabs[tab]
-
-          return (name &&
-            <TabBarIOS.Item
-              key={tab}
-              title={name}
-              selected={activeTab === tab}
-              onPress={() => this.props.switchTab(tab)}>
-              {activeTab === tab && this._renderContent(tab, module)}
-            </TabBarIOS.Item>
-          ) })
-        }
-        </TabBarIOS>
+        <TabBar onTabClick={this.props.switchTab} selectedTab={activeTab} username={this.props.username} badgeNumbers={{}} tabContent={tabContent} />
       </View>
     )
   }
 }
 
 const styles = StyleSheet.create({
-  tabContent: {
-    flex: 1,
-    marginBottom: styleConstants.tabBarHeight // don't sit under the tab...
-  },
   navBar: {
     backgroundColor: 'white'
   },
@@ -200,13 +190,19 @@ const styles = StyleSheet.create({
 })
 
 export default connect(
-  store => store,
+  ({tabbedRouter, config: {bootstrapped, extendedConfig, username}}) => ({
+    tabbedRouter,
+    bootstrapped,
+    provisioned: extendedConfig && !!extendedConfig.device,
+    username
+  }),
   dispatch => {
     return {
       switchTab: tab => dispatch(switchTab(tab)),
       navigateUp: () => dispatch(navigateUp()),
       navigateTo: uri => dispatch(navigateTo(uri)),
-      bootstrap: () => dispatch(bootstrap())
+      bootstrap: () => dispatch(bootstrap()),
+      listenForNotifications: () => dispatch(listenForNotifications())
     }
   }
 )(Nav)

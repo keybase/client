@@ -1,3 +1,4 @@
-import React, {View} from 'react-native'
+import React from 'react-native'
+import {Text} from '../common-adapters'
 
-export default props => <View />
+export default props => <Text type='Body'>Error loading component {JSON.stringify(props.currentPath.toJS())}</Text>

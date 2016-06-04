@@ -4,16 +4,31 @@
 package engine
 
 import (
+	"sync"
+
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	"golang.org/x/crypto/nacl/box"
 )
+
+// getKeyMu synchronizes all accesses to the need to pull in pinentries/secret keys
+// for this user.
+var getKeyMu sync.Mutex
 
 func getMySecretKey(
 	g *libkb.GlobalContext, secretUI libkb.SecretUI,
 	secretKeyType libkb.SecretKeyType, reason string) (
 	libkb.GenericKey, error) {
 
+	g.Log.Debug("getMySecretKey: acquiring lock")
+	getKeyMu.Lock()
+	defer func() {
+		getKeyMu.Unlock()
+		g.Log.Debug("getMySecretKey: lock released")
+	}()
+	g.Log.Debug("getMySecretKey: lock acquired")
+
+	// check cache after acquiring lock
 	var key libkb.GenericKey
 	var err error
 	aerr := g.LoginState().Account(func(a *libkb.Account) {
@@ -108,7 +123,7 @@ func UnboxBytes32(g *libkb.GlobalContext, secretUI libkb.SecretUI,
 // cached paper keys, local device key, user-entered paper key.
 // It returns the KID and bundle index along with the plaintext.
 func UnboxBytes32Any(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg keybase1.UnboxBytes32AnyArg) (res keybase1.UnboxAnyRes, err error) {
-	defer g.Trace("UnboxBytes32Any", func() error { return err })
+	defer g.Trace("UnboxBytes32Any", func() error { return err })()
 
 	// find a matching secret key for a bundle in arg.Bundles
 	key, index, err := getMatchingSecretKey(g, secretUI, arg)
@@ -159,6 +174,23 @@ func unboxBytes32(encryptionKey libkb.GenericKey, ciphertext keybase1.EncryptedB
 
 func getMatchingSecretKey(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg keybase1.UnboxBytes32AnyArg) (key libkb.GenericKey, index int, err error) {
 	// first check cached keys
+	key, index, err = matchingCachedKey(g, arg)
+	if err != nil {
+		return nil, 0, err
+	}
+	if key != nil {
+		return key, index, nil
+	}
+
+	g.Log.Debug("getMatchingSecretKey: acquiring lock")
+	getKeyMu.Lock()
+	defer func() {
+		getKeyMu.Unlock()
+		g.Log.Debug("getMatchingSecretKey: lock released")
+	}()
+	g.Log.Debug("getMatchingSecretKey: lock acquired")
+
+	// check cache after acquiring lock
 	key, index, err = matchingCachedKey(g, arg)
 	if err != nil {
 		return nil, 0, err
@@ -278,7 +310,7 @@ func matchingPaperKey(g *libkb.GlobalContext, secretUI libkb.SecretUI, arg keyba
 		return nil, 0, nil
 	}
 
-	phrase, err := libkb.GetPaperKeyForCryptoPassphrase(secretUI, arg.Reason, matchingPaper)
+	phrase, err := libkb.GetPaperKeyForCryptoPassphrase(g, secretUI, arg.Reason, matchingPaper)
 	if err != nil {
 		return nil, 0, err
 	}

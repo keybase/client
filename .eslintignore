@@ -2,7 +2,9 @@
 /desktop/dist/**
 /desktop/release/**
 /desktop/node_modules
+/desktop/shared
 /react-native/node_modules
+/react-native/shared
 /shared/libs/immutable-interface.js
 /shared/libs/flow-interface.js
 /git-hooks

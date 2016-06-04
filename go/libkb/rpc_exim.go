@@ -14,6 +14,7 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 	"github.com/keybase/go-crypto/openpgp"
 	pgpErrors "github.com/keybase/go-crypto/openpgp/errors"
+	rpc "github.com/keybase/go-framed-msgpack-rpc"
 )
 
 func (sh SigHint) Export() *keybase1.SigHint {
@@ -179,6 +180,8 @@ func WrapError(e error) interface{} {
 	return ExportErrorAsStatus(e)
 }
 
+var _ rpc.WrapErrorFunc = WrapError
+
 type ErrorUnwrapper struct{}
 
 func (eu ErrorUnwrapper) MakeArg() interface{} {
@@ -194,6 +197,8 @@ func (eu ErrorUnwrapper) UnwrapError(arg interface{}) (appError error, dispatchE
 	appError = ImportStatusAsError(targ)
 	return
 }
+
+var _ rpc.ErrorUnwrapper = ErrorUnwrapper{}
 
 //=============================================================================
 
@@ -324,6 +329,10 @@ func ImportStatusAsError(s *keybase1.Status) error {
 		return ProvisionUnavailableError{}
 	case SCGPGUnavailable:
 		return GPGUnavailableError{}
+	case SCNotFound:
+		return NotFoundError{Msg: s.Desc}
+	case SCDecryptionError:
+		return DecryptionError{}
 	default:
 		ase := AppStatusError{
 			Code:   s.Code,
@@ -457,7 +466,7 @@ func ImportWarnings(v []string) Warnings {
 	for i, s := range v {
 		w[i] = StringWarning(s)
 	}
-	return Warnings{w}
+	return Warnings{w: w}
 }
 
 //=============================================================================
@@ -1111,6 +1120,22 @@ func (e GPGUnavailableError) ToStatus() keybase1.Status {
 	return keybase1.Status{
 		Code: SCGPGUnavailable,
 		Name: "SC_GPG_UNAVAILABLE",
+		Desc: e.Error(),
+	}
+}
+
+func (e NotFoundError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCNotFound,
+		Name: "SC_NOT_FOUND",
+		Desc: e.Error(),
+	}
+}
+
+func (e DecryptionError) ToStatus() keybase1.Status {
+	return keybase1.Status{
+		Code: SCDecryptionError,
+		Name: "SC_DECRYPTION_ERROR",
 		Desc: e.Error(),
 	}
 }

@@ -30,6 +30,19 @@ func (c *CmdWatchdog) ParseArgv(ctx *cli.Context) error {
 	return nil
 }
 
+func (c *CmdWatchdog) checkAlreadyRunning() bool {
+	s, err := libkb.NewSocket(c.G())
+	if err != nil {
+		return false
+	}
+	conn, err := s.DialSocket()
+	if conn != nil {
+		conn.Close()
+		return true
+	}
+	return false
+}
+
 func (c *CmdWatchdog) Run() (err error) {
 	// Start + watch over the running service
 	// until it goes away, which will mean one of:
@@ -75,6 +88,10 @@ func (c *CmdWatchdog) Run() (err error) {
 		if pstate.Success() {
 			// apparently legitimate shutdown
 			return nil
+		}
+
+		if c.checkAlreadyRunning() {
+			return fmt.Errorf("Watchdog Service already running before watchdog - quitting.")
 		}
 
 		status := pstate.Sys().(syscall.WaitStatus)

@@ -21,6 +21,7 @@ type NullConfiguration struct{}
 func (n NullConfiguration) GetHome() string                               { return "" }
 func (n NullConfiguration) GetServerURI() string                          { return "" }
 func (n NullConfiguration) GetConfigFilename() string                     { return "" }
+func (n NullConfiguration) GetUpdaterConfigFilename() string              { return "" }
 func (n NullConfiguration) GetSessionFilename() string                    { return "" }
 func (n NullConfiguration) GetDbFilename() string                         { return "" }
 func (n NullConfiguration) GetUsername() NormalizedUsername               { return NormalizedUsername("") }
@@ -65,11 +66,15 @@ func (n NullConfiguration) GetUpdatePreferenceSnoozeUntil() keybase1.Time { retu
 func (n NullConfiguration) GetUpdateLastChecked() keybase1.Time           { return keybase1.Time(0) }
 func (n NullConfiguration) GetUpdatePreferenceSkip() string               { return "" }
 func (n NullConfiguration) GetUpdateURL() string                          { return "" }
+func (n NullConfiguration) GetUpdateDisabled() (bool, bool)               { return false, false }
 func (n NullConfiguration) GetVDebugSetting() string                      { return "" }
 func (n NullConfiguration) GetLocalTrackMaxAge() (time.Duration, bool)    { return 0, false }
 func (n NullConfiguration) GetAppStartMode() AppStartMode                 { return AppStartModeDisabled }
 func (n NullConfiguration) GetGregorURI() string                          { return "" }
+func (n NullConfiguration) GetGregorSaveInterval() (time.Duration, bool)  { return 0, false }
+func (n NullConfiguration) GetGregorPingInterval() (time.Duration, bool)  { return 0, false }
 func (n NullConfiguration) IsAdmin() (bool, bool)                         { return false, false }
+func (n NullConfiguration) GetGregorDisabled() (bool, bool)               { return false, false }
 
 func (n NullConfiguration) GetUserConfig() (*UserConfig, error) { return nil, nil }
 func (n NullConfiguration) GetUserConfigForUsername(s NormalizedUsername) (*UserConfig, error) {
@@ -146,11 +151,12 @@ func (tp TestParameters) GetDebug() (bool, bool) {
 
 type Env struct {
 	sync.RWMutex
-	cmd        CommandLine
-	config     ConfigReader
-	homeFinder HomeFinder
-	writer     ConfigWriter
-	Test       TestParameters
+	cmd           CommandLine
+	config        ConfigReader
+	homeFinder    HomeFinder
+	writer        ConfigWriter
+	Test          TestParameters
+	updaterConfig UpdaterConfigReader
 }
 
 func (e *Env) GetConfig() ConfigReader {
@@ -182,6 +188,18 @@ func (e *Env) SetConfig(r ConfigReader, w ConfigWriter) {
 	defer e.Unlock()
 	e.config = r
 	e.writer = w
+}
+
+func (e *Env) SetUpdaterConfig(r UpdaterConfigReader) {
+	e.Lock()
+	defer e.Unlock()
+	e.updaterConfig = r
+}
+
+func (e *Env) GetUpdaterConfig() UpdaterConfigReader {
+	e.RLock()
+	defer e.RUnlock()
+	return e.updaterConfig
 }
 
 func NewEnv(cmd CommandLine, config ConfigReader) *Env {
@@ -358,6 +376,15 @@ func (e *Env) GetConfigFilename() string {
 	)
 }
 
+func (e *Env) GetUpdaterConfigFilename() string {
+	return e.GetString(
+		func() string { return e.cmd.GetUpdaterConfigFilename() },
+		func() string { return os.Getenv("KEYBASE_UPDATER_CONFIG_FILE") },
+		func() string { return e.config.GetUpdaterConfigFilename() },
+		func() string { return filepath.Join(e.GetConfigDir(), UpdaterConfigFile) },
+	)
+}
+
 func (e *Env) GetSessionFilename() string {
 	return e.GetString(
 		func() string { return e.cmd.GetSessionFilename() },
@@ -468,9 +495,34 @@ func (e *Env) GetSocketFile() (ret string, err error) {
 
 func (e *Env) GetGregorURI() string {
 	return e.GetString(
-		func() string { return os.Getenv("GREGOR_URI") },
+		func() string { return os.Getenv("KEYBASE_PUSH_SERVER_URI") },
 		func() string { return e.config.GetGregorURI() },
+		func() string { return e.cmd.GetGregorURI() },
 		func() string { return GregorServerLookup[e.GetRunMode()] },
+	)
+}
+
+func (e *Env) GetGregorSaveInterval() time.Duration {
+	return e.GetDuration(time.Minute,
+		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_PUSH_SAVE_INTERVAL") },
+		func() (time.Duration, bool) { return e.config.GetGregorSaveInterval() },
+		func() (time.Duration, bool) { return e.cmd.GetGregorSaveInterval() },
+	)
+}
+
+func (e *Env) GetGregorDisabled() bool {
+	return e.GetBool(false,
+		func() (bool, bool) { return e.cmd.GetGregorDisabled() },
+		func() (bool, bool) { return getEnvBool("KEYBASE_PUSH_DISABLED") },
+		func() (bool, bool) { return e.config.GetGregorDisabled() },
+	)
+}
+
+func (e *Env) GetGregorPingInterval() time.Duration {
+	return e.GetDuration(10*time.Second,
+		func() (time.Duration, bool) { return e.getEnvDuration("KEYBASE_PUSH_PING_INTERVAL") },
+		func() (time.Duration, bool) { return e.config.GetGregorPingInterval() },
+		func() (time.Duration, bool) { return e.cmd.GetGregorPingInterval() },
 	)
 }
 
@@ -777,6 +829,13 @@ func (e *Env) GetDeviceID() keybase1.DeviceID {
 	return e.config.GetDeviceID()
 }
 
+func (e *Env) GetInstallID() (ret InstallID) {
+	if rdr := e.GetUpdaterConfig(); rdr != nil {
+		ret = rdr.GetInstallID()
+	}
+	return ret
+}
+
 func (e *Env) GetLogFile() string {
 	return e.GetString(
 		func() string { return e.cmd.GetLogFile() },
@@ -857,11 +916,16 @@ func (e *Env) GetStoredSecretServiceName() string {
 type AppConfig struct {
 	NullConfiguration
 	HomeDir                     string
+	LogFile                     string
 	RunMode                     RunMode
 	Debug                       bool
 	LocalRPCDebug               string
 	ServerURI                   string
 	SecurityAccessGroupOverride bool
+}
+
+func (c AppConfig) GetLogFile() string {
+	return c.LogFile
 }
 
 func (c AppConfig) GetDebug() (bool, bool) {
@@ -924,6 +988,10 @@ func (e *Env) GetUpdateURL() string {
 	return e.config.GetUpdateURL()
 }
 
+func (e *Env) GetUpdateDisabled() (bool, bool) {
+	return e.config.GetUpdateDisabled()
+}
+
 func (e *Env) IsAdmin() bool {
 	b, _ := e.config.IsAdmin()
 	return b
@@ -942,19 +1010,27 @@ func (e *Env) GetRunModeAsString() string {
 	return string(e.GetRunMode())
 }
 
-func (e *Env) GetMountDir() string {
-	switch e.GetRunMode() {
+func (e *Env) GetMountDir() (string, error) {
+	runMode := e.GetRunMode()
+	if runtime.GOOS == "windows" {
+		if runMode != ProductionRunMode {
+			return "", fmt.Errorf("KBFS is currently only supported in production mode on Windows")
+		}
+		return "k:", nil
+	}
+
+	switch runMode {
 	case DevelRunMode:
-		return "/keybase.devel"
+		return "/keybase.devel", nil
 
 	case StagingRunMode:
-		return "/keybase.staging"
+		return "/keybase.staging", nil
 
 	case ProductionRunMode:
-		return "/keybase"
+		return "/keybase", nil
 
 	default:
-		panic("Invalid run mode")
+		return "", fmt.Errorf("Invalid run mode: %s", runMode)
 	}
 }
 

@@ -7,6 +7,8 @@ import HiddenString from '../util/hidden-string'
 
 import type {SignupActions} from '../constants/signup'
 
+import {isMobile} from '../constants/platform'
+
 export type SignupState = {
   inviteCode: ?string,
   username: ?string,
@@ -38,7 +40,7 @@ const initialState: SignupState = {
   deviceNameError: null,
   paperkey: null,
   signupError: null,
-  deviceName: 'Home Computer',
+  deviceName: isMobile ? 'Mobile Device' : 'Home Computer',
   waiting: false,
   phase: 'inviteCode'
 }
@@ -154,7 +156,7 @@ export default function (state: SignupState = initialState, action: SignupAction
 
     case Constants.showPaperKey:
       if (action.error) {
-        console.error('Should not get an error from showing paper key')
+        console.next('Should not get an error from showing paper key')
         return state
       } else {
         const {paperkey} = action.payload
@@ -167,7 +169,7 @@ export default function (state: SignupState = initialState, action: SignupAction
 
     case Constants.showSuccess:
       if (action.error) {
-        console.error('Should not get an error from showing success')
+        console.next('Should not get an error from showing success')
         return state
       } else {
         return {

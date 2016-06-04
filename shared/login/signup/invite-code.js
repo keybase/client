@@ -17,7 +17,7 @@ class InviteCode extends Component {
         onInviteCodeSubmit={this.props.checkInviteCode}
         inviteCodeErrorText={this.props.errorText}
         onBack={this.props.navigateUp}
-        waiting={this.props.waiting}/>
+        waiting={this.props.waiting} />
     )
   }
 }

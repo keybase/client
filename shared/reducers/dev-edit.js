@@ -13,7 +13,7 @@ function updateInKeypath (map: any, keyPath: Array<String | number>, v: any): an
       if (typeof frontKey === 'number') {
         copy[frontKey] = v
       } else {
-        console.error('Accessing an array without a number')
+        console.warn('Accessing an array without a number')
       }
       return copy
     } else if (Immutable.Iterable.isIterable(map)) {
@@ -28,7 +28,7 @@ function updateInKeypath (map: any, keyPath: Array<String | number>, v: any): an
     if (typeof frontKey === 'number') {
       copy[frontKey] = updateInKeypath(copy[frontKey], keyPath.slice(1), v)
     } else {
-      console.error('Accessing an array without a number')
+      console.warn('Accessing an array without a number')
     }
     return copy
   } else if (Immutable.Iterable.isIterable(map)) {

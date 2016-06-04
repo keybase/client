@@ -22,4 +22,16 @@ func TestDeviceList(t *testing.T) {
 		}
 		t.Errorf("devices: %d, expected 2", len(eng.List()))
 	}
+	// Check that the device times are all actually set.
+	for _, d := range eng.List() {
+		if d.CTime == 0 {
+			t.Fatal("CTime not set")
+		}
+		if d.MTime == 0 {
+			t.Fatal("MTime not set")
+		}
+		if d.LastUsedTime == 0 {
+			t.Fatal("LastUsedTime not set")
+		}
+	}
 }

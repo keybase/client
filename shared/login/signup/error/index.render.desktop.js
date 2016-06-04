@@ -7,15 +7,13 @@ import Container from '../../forms/container'
 
 import type {Props} from './index.render'
 
-export default class Render extends Component {
-  props: Props;
-
+class Render extends Component<void, Props, void> {
   render () {
     return (
       <Container onBack={this.props.resetSignup} style={container}>
         <Text type='Header' style={topMargin}>Ah Shoot! Something went wrong, wanna try again?</Text>
         <Text type='Error' style={topMargin}>{this.props.errorText.stringValue()}</Text>
-        <Button style={topMargin} type='Secondary' label='Try Again' onClick={() => this.props.resetSignup()}/>
+        <Button style={topMargin} type='Secondary' label='Try Again' onClick={() => this.props.resetSignup()} />
       </Container>
     )
   }
@@ -28,3 +26,5 @@ const container = {
 }
 
 const topMargin = {marginTop: 30}
+
+export default Render

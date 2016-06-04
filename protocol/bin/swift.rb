@@ -105,14 +105,20 @@ def validate_name(name, type, source)
     raise "Invalid name: #{name} in #{source}. In Swift the property name != type name (#{name} == #{type})."
   end
 
-  if ["internal", "private"].include?(name)
+  if ["internal", "private", "self"].include?(name)
     raise "Invalid name: #{name} in #{source}. In Swift you can't have a property named \"#{name}\"."
   end
 end
 
 def json_cast(type, optional=false)
   type = @aliases[type] if @aliases[type]
-  type = type["type"] if type.kind_of?(Hash) # Subtype (for array, map)
+  subtype = nil
+  if type.kind_of?(Hash) then
+    if type["type"] == "map" then
+      subtype = type["values"]
+    end
+    type = type["type"]
+  end
 
   return ".intValue" if @enums.include?(type)
 
@@ -124,7 +130,12 @@ def json_cast(type, optional=false)
   when "boolean" then ".boolValue"
   when "string" then ".stringValue"
   when "array" then ".arrayValue"
-  when "map" then ".dictionaryValue"
+  when "map" then
+    if subtype == "string" then
+      ".dictionaryStringValue"
+    else
+      ".dictionaryValue"
+    end
   when "bytes" then ".object as! NSData"
   else
     nil
@@ -302,7 +313,11 @@ paths.each do |path|
         raise "Enums must specify value: #{enum_name} #{symbol}" if sym.length == 0
         raise "Enums must specify an integer value: #{enum_name} #{symbol}" if not /\A\d+\z/.match(sym_val)
 
-        @records[name] << "\tcase #{sym.capitalize.camelize} = #{sym_val}"
+        case_name = sym.capitalize.camelize
+        # Self is not a valid enum name
+        case_name = "VSelf" if case_name == "Self"
+
+        @records[name] << "\tcase #{case_name} = #{sym_val}"
       end
       @records[name] << "}\n"
     elsif type["type"] == "fixed"
@@ -331,6 +346,12 @@ paths.each do |path|
           subtype = ftype
           if subtype["type"] == "array"
             @records[name] << var(fname, "[#{model_name(subtype["items"])}]", false)
+          elsif subtype["type"] == "map"
+            # Key type is always String according to AVDL spec
+            values_type = model_name(subtype["values"])
+            @records[name] << var(fname, "[String: #{values_type}]", false)
+          else
+            puts "Unhandled subtype: #{subtype}"
           end
         else
           @records[name] << var(fname, swift_for_type(ftype), false)
@@ -397,9 +418,10 @@ EOS
 end
 
 if !out_dir.nil? then
-  File.open("#{out_dir}/Requests.swift", "w") do |f|
-    f.write(header("Requests.swift"))
-    @requests.each do |name, lines|
+  @requests.each do |name, lines|
+    filename = "#{name}Request.swift"
+    File.open("#{out_dir}/#{filename}", "w") do |f|
+      f.write(header(filename))
       f.write("\n\n\n//\n")
       f.write("// #{name}\n")
       f.write("//\n\n")
@@ -407,9 +429,10 @@ if !out_dir.nil? then
     end
   end
 
-  File.open("#{out_dir}/Models.swift", "w") do |f|
-    f.write(header("Models.swift"))
-    @records.each do |name, lines|
+  @records.each do |name, lines|
+    filename = "#{name}.swift"
+    File.open("#{out_dir}/#{filename}", "w") do |f|
+      f.write(header(filename))
       f.write("\n\n\n//\n")
       f.write("// #{name}\n")
       f.write("//\n\n")

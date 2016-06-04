@@ -81,14 +81,14 @@ func makeTestLKSec(t *testing.T, gc *GlobalContext) *LKSec {
 	return lks
 }
 
-func makeTestSKB(t *testing.T, lks *LKSec) *SKB {
+func makeTestSKB(t *testing.T, lks *LKSec, g *GlobalContext) *SKB {
 	email := "test@keybase.io"
 	entity, err := openpgp.NewEntity("test name", "test comment", email, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	skb, err := (NewGeneratedPGPKeyBundle(entity)).ToLksSKB(lks)
+	skb, err := (NewGeneratedPGPKeyBundle(g, entity)).ToLksSKB(lks)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -98,7 +98,6 @@ func makeTestSKB(t *testing.T, lks *LKSec) *SKB {
 		return lks
 	}
 
-	g := G
 	salt, err := RandBytes(triplesec.SaltLen)
 	if err != nil {
 		t.Fatal(err)
@@ -120,7 +119,7 @@ func testPromptAndUnlock(t *testing.T, skb *SKB) {
 		Reason:   "test reason",
 		SecretUI: &TestSecretUI{Passphrase: "test passphrase", StoreSecret: true},
 	}
-	key, err := skb.PromptAndUnlock(parg, "test which", NewSecretStore(skb.G(), "testusername"), nil)
+	key, err := skb.PromptAndUnlock(parg, NewSecretStore(skb.G(), "testusername"), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -131,16 +130,16 @@ func testPromptAndUnlock(t *testing.T, skb *SKB) {
 }
 
 func TestBasicSecretStore(t *testing.T) {
-	tc := SetupTest(t, "skb_basic_secret_store")
+	tc := SetupTest(t, "skb_basic_secret_store", 1)
 	defer tc.Cleanup()
 
-	lks := makeTestLKSec(t, G)
+	lks := makeTestLKSec(t, tc.G)
 	expectedSecret, err := lks.GetSecret(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	skb := makeTestSKB(t, lks)
+	skb := makeTestSKB(t, lks, tc.G)
 	testPromptAndUnlock(t, skb)
 
 	secret, _ := tc.G.SecretStoreAll.RetrieveSecret("testusername")
@@ -151,7 +150,7 @@ func TestBasicSecretStore(t *testing.T) {
 	// Doing the prompt again should retrieve the secret from our
 	// store and not call skb.newLKSecForTest.
 
-	skb = makeTestSKB(t, lks)
+	skb = makeTestSKB(t, lks, tc.G)
 	skb.newLKSecForTest = func(_ []byte) *LKSec {
 		t.Errorf("newLKSecForTest unexpectedly called")
 		return lks
@@ -160,16 +159,16 @@ func TestBasicSecretStore(t *testing.T) {
 }
 
 func TestCorruptSecretStore(t *testing.T) {
-	tc := SetupTest(t, "skb_corrupt_secret_store")
+	tc := SetupTest(t, "skb_corrupt_secret_store", 1)
 	defer tc.Cleanup()
 
-	lks := makeTestLKSec(t, G)
+	lks := makeTestLKSec(t, tc.G)
 	expectedSecret, err := lks.GetSecret(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	skb := makeTestSKB(t, lks)
+	skb := makeTestSKB(t, lks, tc.G)
 	tc.G.SecretStoreAll.StoreSecret("testusername", []byte("corrupt"))
 	testPromptAndUnlock(t, skb)
 
@@ -182,12 +181,12 @@ func TestCorruptSecretStore(t *testing.T) {
 }
 
 func TestUnusedSecretStore(t *testing.T) {
-	tc := SetupTest(t, "skb_unused_secret_store")
+	tc := SetupTest(t, "skb_unused_secret_store", 1)
 	defer tc.Cleanup()
 
-	lks := makeTestLKSec(t, G)
+	lks := makeTestLKSec(t, tc.G)
 
-	skb := makeTestSKB(t, lks)
+	skb := makeTestSKB(t, lks, tc.G)
 	// It doesn't matter what passphraseStream contains, as long
 	// as it's the right size.
 	err := tc.G.LoginState().Account(func(a *Account) {
@@ -209,14 +208,14 @@ func TestUnusedSecretStore(t *testing.T) {
 }
 
 func TestPromptCancelCache(t *testing.T) {
-	tc := SetupTest(t, "prompt_cancel_cache")
+	tc := SetupTest(t, "prompt_cancel_cache", 1)
 	defer tc.Cleanup()
 
 	fakeClock := clockwork.NewFakeClock()
 	tc.G.Clock = fakeClock
 
 	lks := makeTestLKSec(t, tc.G)
-	skb := makeTestSKB(t, lks)
+	skb := makeTestSKB(t, lks, tc.G)
 
 	ui := &TestCancelSecretUI{}
 	err := testErrUnlock(t, skb, ui)
@@ -263,7 +262,7 @@ func TestPromptCancelCache(t *testing.T) {
 		Reason:   "test reason",
 		SecretUI: &TestSecretUI{Passphrase: "passphrase"},
 	}
-	key, err := skb.PromptAndUnlock(parg, "test which", NewSecretStore(tc.G, "testusername"), nil)
+	key, err := skb.PromptAndUnlock(parg, NewSecretStore(tc.G, "testusername"), nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -278,7 +277,7 @@ func testErrUnlock(t *testing.T, skb *SKB, ui *TestCancelSecretUI) error {
 		SecretUI:       ui,
 		UseCancelCache: true,
 	}
-	key, err := skb.PromptAndUnlock(parg, "test which", NewSecretStore(skb.G(), "testusername"), nil)
+	key, err := skb.PromptAndUnlock(parg, NewSecretStore(skb.G(), "testusername"), nil)
 	if err == nil {
 		t.Fatal("PromptAndUnlock returned nil error")
 	}

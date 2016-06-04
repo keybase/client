@@ -4,20 +4,22 @@
 package client
 
 import (
+	"io"
+	"sync"
+
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/minterm"
 	keybase1 "github.com/keybase/client/go/protocol"
-	"io"
-	"sync"
 )
 
 type Terminal struct {
+	libkb.Contextified
 	once   sync.Once // protects opening the minterm
 	engine *minterm.MinTerm
 }
 
-func NewTerminal() (*Terminal, error) {
-	return &Terminal{}, nil
+func NewTerminal(g *libkb.GlobalContext) (*Terminal, error) {
+	return &Terminal{Contextified: libkb.NewContextified(g)}, nil
 }
 
 func (t *Terminal) open() error {
@@ -127,7 +129,7 @@ func (t *Terminal) GetSecret(arg *keybase1.SecretEntryArg) (res *keybase1.Secret
 	canceled := false
 
 	if len(arg.Err) > 0 {
-		G.Log.Error(arg.Err)
+		t.G().Log.Error(arg.Err)
 	}
 
 	if len(desc) > 0 {
@@ -150,7 +152,7 @@ func (t *Terminal) GetSecret(arg *keybase1.SecretEntryArg) (res *keybase1.Secret
 	if arg.UseSecretStore && !canceled && err == nil {
 		// TODO: Default to 'No' and dismiss the question for
 		// about a day if 'No' is selected.
-		res.StoreSecret, err = t.PromptYesNo(libkb.GetTerminalPrompt(), libkb.PromptDefaultYes)
+		res.StoreSecret, err = t.PromptYesNo(t.G().SecretStoreAll.GetTerminalPrompt(), libkb.PromptDefaultYes)
 		if err != nil {
 			return
 		}

@@ -5,9 +5,10 @@ package libkb
 
 import (
 	"fmt"
-	keybase1 "github.com/keybase/client/go/protocol"
 	"io"
 	"time"
+
+	keybase1 "github.com/keybase/client/go/protocol"
 )
 
 type SigChain struct {
@@ -134,13 +135,14 @@ func (sc *SigChain) LoadFromServer(t *MerkleTriple, selfUID keybase1.UID) (dirty
 	sc.G().Log.Debug("+ Load SigChain from server (uid=%s, low=%d)", sc.uid, low)
 	defer func() { sc.G().Log.Debug("- Loaded SigChain -> %s", ErrToOk(err)) }()
 
-	res, err := G.API.Get(APIArg{
+	res, err := sc.G().API.Get(APIArg{
 		Endpoint:    "sig/get",
 		NeedSession: false,
 		Args: HTTPArgs{
 			"uid": UIDArg(sc.uid),
 			"low": I{int(low)},
 		},
+		Contextified: NewContextified(sc.G()),
 	})
 
 	if err != nil {
@@ -385,7 +387,7 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 		sc.G().Log.Debug("- verifySubchain -> %v, %s", cached, ErrToOk(err))
 	}()
 
-	if links == nil || len(links) == 0 {
+	if len(links) == 0 {
 		err = InternalError{"verifySubchain should never get an empty chain."}
 		return
 	}
@@ -412,7 +414,7 @@ func (sc *SigChain) verifySubchain(kf KeyFamily, links []*ChainLink) (cached boo
 
 		tcl, w := NewTypedChainLink(link)
 		if w != nil {
-			w.Warn()
+			w.Warn(sc.G())
 		}
 
 		sc.G().VDL.Log(VLog1, "| Verify link: %s", link.id)
@@ -510,7 +512,7 @@ func (sc *SigChain) VerifySigsAndComputeKeys(eldest keybase1.KID, ckf *ComputedK
 		return
 	}
 
-	if links == nil || len(links) == 0 {
+	if len(links) == 0 {
 		sc.G().Log.Debug("| Empty chain after we limited to eldest %s", eldest)
 		eldestKey, _ := ckf.FindKeyWithKIDUnsafe(eldest)
 		sc.localCki = NewComputedKeyInfos(sc.G())

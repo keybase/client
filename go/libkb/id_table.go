@@ -1073,7 +1073,7 @@ func (idt *IdentityTable) populate() (err error) {
 		tcl, w := NewTypedChainLink(link)
 		tcl.insertIntoTable(idt)
 		if w != nil {
-			w.Warn()
+			w.Warn(idt.G())
 		}
 		if link.isOwnNewLinkFromServer {
 			link.isOwnNewLinkFromServer = false
@@ -1225,7 +1225,7 @@ func (l LinkCheckResult) GetLink() RemoteProofChainLink { return l.link }
 
 // ComputeRemoteDiff takes as input three tracking results: the permanent track,
 // the local temporary track, and the one it observed remotely. It favors the
-// permenant track but will roll back to the temporary track if needs be.
+// permanent track but will roll back to the temporary track if needs be.
 func (idt *IdentityTable) ComputeRemoteDiff(tracked, trackedTmp, observed keybase1.ProofState) (ret TrackDiff) {
 	idt.G().Log.Debug("+ ComputeRemoteDiff(%v,%v,%v)", tracked, trackedTmp, observed)
 	if observed == tracked {

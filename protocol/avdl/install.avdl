@@ -36,6 +36,7 @@ protocol install {
   record ServicesStatus {
     array<ServiceStatus> service;
     array<ServiceStatus> kbfs;
+    array<ServiceStatus> updater;
   }
 
   record FuseMountInfo {

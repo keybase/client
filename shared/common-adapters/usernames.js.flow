@@ -1,0 +1,22 @@
+/* @flow */
+
+import React, {Component} from 'react'
+import type {TextType} from './text'
+
+export type UserList = Array<{
+  username: string,
+  broken?: boolean,
+  you?: boolean
+}>
+
+export type Props = {
+  type: TextType,
+  style?: Object,
+  inline?: bool,
+  users: UserList
+}
+
+declare export function usernameText(props: Props): void
+
+declare export default class Usernames extends React.Component<void, Props, void> {
+}

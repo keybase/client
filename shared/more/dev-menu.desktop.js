@@ -16,9 +16,9 @@ import login from '../login'
 import pinentry from '../pinentry'
 import tracker from '../tracker'
 import components from './component-sheet'
-import componentsTracker from './components-tracker'
 import componentsUpdate from './components-update'
 import styleSheet from './style-sheet'
+import dumbSheet from './dumb-sheet'
 
 class Foo extends Component {
   render () {
@@ -33,7 +33,7 @@ class Foo extends Component {
     return (
       <RemoteComponent
         component='pinentry'
-        {...payload}/>)
+        {...payload} />)
   }
 }
 
@@ -75,11 +75,11 @@ class DevMenu extends Component {
       {name: 'Components', hasChildren: true, onClick: () => {
         this.props.routeAppend('components')
       }},
-      {name: 'Components (Tracker)', hasChildren: true, onClick: () => {
-        this.props.routeAppend(['componentsTracker'])
-      }},
       {name: 'Components (Update)', hasChildren: true, onClick: () => {
         this.props.routeAppend(['componentsUpdate'])
+      }},
+      {name: 'Dumb components', hasChildren: true, onClick: () => {
+        this.props.routeAppend(['dumbSheet'])
       }},
       {name: 'Stylesheet', hasChildren: true, onClick: () => {
         this.props.routeAppend(['styleSheet'])
@@ -93,7 +93,7 @@ class DevMenu extends Component {
   static parseRoute () {
     return {
       componentAtTop: {title: 'Dev Menu'},
-      subRoutes: {developer, login, pinentry, tracker, components, componentsTracker, componentsUpdate, styleSheet}
+      subRoutes: {developer, login, pinentry, tracker, components, componentsUpdate, styleSheet, dumbSheet}
     }
   }
 }

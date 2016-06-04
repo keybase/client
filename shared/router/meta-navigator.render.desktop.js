@@ -21,8 +21,8 @@ class MetaNavigatorRender extends Component {
     return (
       <div style={{...globalStyles.flexBoxColumn, flex: 1}}>
         {element}
-        {!element && Module && <Module {...componentAtTop.props}/>}
-        {!hideBack && uri && uri.count() > 1 && <BackButton onClick={() => this.onBack()} style={styles.backButton}/>}
+        {!element && Module && <Module {...componentAtTop.props} />}
+        {!hideBack && uri && uri.count() > 1 && <BackButton title='Debug Back' onClick={() => this.onBack()} style={styles.backButton} />}
       </div>
     )
   }
