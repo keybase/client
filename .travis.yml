@@ -40,7 +40,7 @@ script:
       travis_retry docker run --name kbweb3000 -d -p 3000:3000 -p 9911:9911 --entrypoint run/startup_for_container.sh $DOCKER_USER/kbweb &&
       cd $BASE/go && ./test/check_or_start_kbweb.sh && ./test/run_tests.sh;
     elif [ $TRAVIS_OS_NAME == 'osx' ]; then
-      cd $BASE/go && export KEYBASE_SERVER_URI=http://ci1.keybase.io && travis_wait 40 ./test/run_tests.sh;
+      cd $BASE/go && export KEYBASE_SERVER_URI=http://ci1.keybase.io && travis_wait 80 ./test/run_tests.sh;
     fi
 after_success:
   - if [ $TRAVIS_OS_NAME == 'linux' ] && [ $TRAVIS_PULL_REQUEST == 'false' ]; then
