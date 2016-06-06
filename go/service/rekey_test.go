@@ -46,7 +46,7 @@ func TestRekeyNeededMessageNoScores(t *testing.T) {
 				},
 				Creation_: &gregor1.Item{
 					Category_: gregor1.Category("kbfs_tlf_rekey_needed"),
-					Body_:     gregor1.Body(`[]`),
+					Body_:     gregor1.Body(`{}`),
 				},
 			},
 		},
@@ -62,7 +62,7 @@ const problemSet = `{
 		"uid": "295a7eea607af32040647123732bc819",
 		"username": "t_alice"
 	},
-	"kid": "1212121212",
+	"kid": "011212121212121212121212121212121212121212121212121212121212121212120a",
 	"tlfs": [
 		{
 			"tlf": {
@@ -73,7 +73,7 @@ const problemSet = `{
 				"isPrivate": true
 			},
 			"score": 300,
-			"solutions": []
+			"solutions": ["011313131313131313131313131313131313131313131313131313131313131313130a"]
 		}
 	]
 }`
