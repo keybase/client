@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -23,6 +24,7 @@ type RekeyUIHandler struct {
 	updatersMu     sync.RWMutex
 	updaters       map[int]*rekeyStatusUpdater
 	notifyComplete chan int // for testing purposes
+	scorer         func(g *libkb.GlobalContext, existing keybase1.ProblemSet) (keybase1.ProblemSet, error)
 }
 
 var _ libkb.GregorInBandMessageHandler = (*RekeyUIHandler)(nil)
@@ -32,6 +34,7 @@ func NewRekeyUIHandler(g *libkb.GlobalContext, connID libkb.ConnectionID) *Rekey
 		Contextified: libkb.NewContextified(g),
 		connID:       connID,
 		updaters:     make(map[int]*rekeyStatusUpdater),
+		scorer:       scoreProblemFolders,
 	}
 }
 
@@ -60,8 +63,6 @@ func (r *RekeyUIHandler) rekeyNeeded(ctx context.Context, item gregor.Item) erro
 	if item.Body() == nil {
 		return errors.New("gregor handler for kbfs_tlf_rekey_needed: nil message body")
 	}
-	r.G().Log.Debug("in rekeyNeeded: %+v", item)
-	r.G().Log.Debug("in rekeyNeeded: %s", item.Body().Bytes())
 
 	var problemSet keybase1.ProblemSet
 	if err := json.Unmarshal(item.Body().Bytes(), &problemSet); err != nil {
@@ -69,18 +70,14 @@ func (r *RekeyUIHandler) rekeyNeeded(ctx context.Context, item gregor.Item) erro
 		return err
 	}
 
-	r.G().Log.Debug("2")
-
 	if r.G().Clock.Now().Sub(item.Metadata().CTime()) > 10*time.Second {
 		// if the message isn't fresh, get:
 		var err error
-		problemSet, err = scoreProblemFolders(r.G(), problemSet)
+		problemSet, err = r.scorer(r.G(), problemSet)
 		if err != nil {
 			return err
 		}
 	}
-
-	r.G().Log.Debug("3")
 
 	// if the tlf list is empty, dismiss the gregor notification
 	if len(problemSet.Tlfs) == 0 {
@@ -99,8 +96,6 @@ func (r *RekeyUIHandler) rekeyNeeded(ctx context.Context, item gregor.Item) erro
 		return errors.New("got nil RekeyUI")
 	}
 
-	r.G().Log.Debug("4")
-
 	// make a map of sessionID -> loops
 	r.updatersMu.RLock()
 	if _, ok := r.updaters[sessionID]; ok {
@@ -113,6 +108,7 @@ func (r *RekeyUIHandler) rekeyNeeded(ctx context.Context, item gregor.Item) erro
 		problemSet: problemSet,
 		msgID:      item.Metadata().MsgID(),
 		sessionID:  sessionID,
+		scorer:     r.scorer,
 	}
 	up := newRekeyStatusUpdater(r.G(), args)
 	go func() {
@@ -133,10 +129,33 @@ func (r *RekeyUIHandler) rekeyNeeded(ctx context.Context, item gregor.Item) erro
 	return nil
 }
 
+type scoreResult struct {
+	Status     libkb.AppStatus     `json:"status"`
+	ProblemSet keybase1.ProblemSet `json:"problem_set"`
+}
+
+func (s *scoreResult) GetAppStatus() *libkb.AppStatus {
+	return &s.Status
+}
+
 func scoreProblemFolders(g *libkb.GlobalContext, existing keybase1.ProblemSet) (keybase1.ProblemSet, error) {
-	// XXX this is waiting on an API endpoint
-	g.Log.Debug("Fake scoreProblemFolders, returning empty folder list")
-	return keybase1.ProblemSet{}, nil
+	tlfIDs := make([]string, len(existing.Tlfs))
+	for i, v := range existing.Tlfs {
+		tlfIDs[i] = v.Tlf.Tlfid.String()
+	}
+	args := libkb.HTTPArgs{
+		"tlfs":    libkb.S{Val: strings.Join(tlfIDs, ",")},
+		"new_kid": libkb.S{Val: existing.Kid.String()},
+		"helpee":  libkb.S{Val: existing.User.Uid.String()},
+	}
+	var updated scoreResult
+	err := g.API.GetDecode(libkb.APIArg{
+		Contextified: libkb.NewContextified(g),
+		Endpoint:     "kbfs/problem_sets",
+		NeedSession:  true,
+		Args:         args,
+	}, &updated)
+	return updated.ProblemSet, err
 }
 
 func (r *RekeyUIHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (keybase1.Outcome, error) {
@@ -156,12 +175,14 @@ type rekeyStatusUpdaterArgs struct {
 	problemSet keybase1.ProblemSet
 	msgID      gregor.MsgID
 	sessionID  int
+	scorer     func(g *libkb.GlobalContext, existing keybase1.ProblemSet) (keybase1.ProblemSet, error)
 }
 
 type rekeyStatusUpdater struct {
 	rekeyUI    keybase1.RekeyUIInterface
 	problemSet keybase1.ProblemSet
 	msgID      gregor.MsgID
+	scorer     func(g *libkb.GlobalContext, existing keybase1.ProblemSet) (keybase1.ProblemSet, error)
 	done       chan struct{}
 	libkb.Contextified
 }
@@ -171,6 +192,7 @@ func newRekeyStatusUpdater(g *libkb.GlobalContext, args rekeyStatusUpdaterArgs) 
 		rekeyUI:      args.rekeyUI,
 		problemSet:   args.problemSet,
 		msgID:        args.msgID,
+		scorer:       args.scorer,
 		done:         make(chan struct{}),
 		Contextified: libkb.NewContextified(g),
 	}
@@ -215,10 +237,9 @@ func (u *rekeyStatusUpdater) update() {
 			u.G().Log.Debug("rekeyStatusUpdater done chan closed, terminating update loop")
 			return
 		case <-u.G().Clock.After(1 * time.Second):
-			u.G().Log.Debug("slept for 1s")
 		}
 
-		u.problemSet, err = scoreProblemFolders(u.G(), u.problemSet)
+		u.problemSet, err = u.scorer(u.G(), u.problemSet)
 		if err != nil {
 			u.G().Log.Errorf("scoreProblemFolders error: %s", err)
 			return

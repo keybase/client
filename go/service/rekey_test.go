@@ -12,29 +12,32 @@ import (
 	"github.com/keybase/gregor/protocol/gregor1"
 )
 
-func TestRekeyNeededMessageNoScores(t *testing.T) {
-	tc := libkb.SetupTest(t, "gregor", 1)
-	defer tc.Cleanup()
-
+func rekeySetup(tc libkb.TestContext) (gregor1.UID, *gregorHandler, *RekeyUIHandler) {
 	tc.G.SetService()
 
 	kbUID := keybase1.MakeTestUID(1)
 	gUID := gregor1.UID(kbUID.ToBytes())
 	did, err := libkb.NewDeviceID()
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 	tc.G.Env.GetConfigWriter().SetUserConfig(libkb.NewUserConfig(kbUID, "", nil, did), true)
 
 	h, err := newGregorHandler(tc.G)
 	if err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
 
 	rekeyHandler := NewRekeyUIHandler(tc.G, 0)
 	rekeyHandler.alwaysAlive = true
+	rekeyHandler.notifyComplete = make(chan int, 10)
+	rekeyHandler.scorer = fakeScoreProblemFolders
 	h.PushHandler(rekeyHandler)
 
+	return gUID, h, rekeyHandler
+}
+
+func rekeyBroadcast(tc libkb.TestContext, gUID gregor1.UID, h *gregorHandler, body string) {
 	msgID := gregor1.MsgID("my_random_id")
 	m := gregor1.Message{
 		Ibm_: &gregor1.InBandMessage{
@@ -46,15 +49,25 @@ func TestRekeyNeededMessageNoScores(t *testing.T) {
 				},
 				Creation_: &gregor1.Item{
 					Category_: gregor1.Category("kbfs_tlf_rekey_needed"),
-					Body_:     gregor1.Body(`{}`),
+					Body_:     gregor1.Body(body),
 				},
 			},
 		},
 	}
 
 	if err := h.BroadcastMessage(context.Background(), m); err != nil {
-		t.Fatal(err)
+		tc.T.Fatal(err)
 	}
+
+}
+
+func TestRekeyNeededMessageNoScores(t *testing.T) {
+	tc := libkb.SetupTest(t, "gregor", 1)
+	defer tc.Cleanup()
+
+	gUID, h, _ := rekeySetup(tc)
+
+	rekeyBroadcast(tc, gUID, h, `{}`)
 }
 
 const problemSet = `{ 
@@ -78,35 +91,9 @@ const problemSet = `{
 	]
 }`
 
-// XXX I don't know why this won't unmarshal into
-// keybase1.ProblemSet:
-const problemSet2 = `
-{ 
-	"user": {
-		"uid": "295a7eea607af32040647123732bc819",
-		"username": "t_alice"
-	},
-	"kid": "1212121212",
-	"tlfs": [
-		{
-			"tlf": {
-				"tlfid": "folder", 
-				"name": "folder name", 
-				"writers": ["t_alice"], 
-				"readers": ["t_alice"], 
-				"isPrivate": true
-			},
-			"score": 300,
-			"solutions": ["13131313"]
-		}
-	]
-}`
-
 func TestRekeyNeededMessageWithScores(t *testing.T) {
 	tc := libkb.SetupTest(t, "gregor", 1)
 	defer tc.Cleanup()
-
-	tc.G.SetService()
 
 	rkeyui := &fakeRekeyUI{}
 	router := fakeUIRouter{
@@ -117,49 +104,14 @@ func TestRekeyNeededMessageWithScores(t *testing.T) {
 	clock := clockwork.NewFakeClock()
 	tc.G.Clock = clock
 
-	kbUID := keybase1.MakeTestUID(1)
-	gUID := gregor1.UID(kbUID.ToBytes())
-	did, err := libkb.NewDeviceID()
-	if err != nil {
-		t.Fatal(err)
-	}
-	tc.G.Env.GetConfigWriter().SetUserConfig(libkb.NewUserConfig(kbUID, "", nil, did), true)
-
-	h, err := newGregorHandler(tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rekeyHandler := NewRekeyUIHandler(tc.G, 0)
-	rekeyHandler.alwaysAlive = true
-	rekeyHandler.notifyComplete = make(chan int, 10)
-	h.PushHandler(rekeyHandler)
-
-	msgID := gregor1.MsgID("my_random_id")
-	m := gregor1.Message{
-		Ibm_: &gregor1.InBandMessage{
-			StateUpdate_: &gregor1.StateUpdateMessage{
-				Md_: gregor1.Metadata{
-					MsgID_: msgID,
-					Ctime_: gregor1.ToTime(tc.G.Clock.Now()),
-					Uid_:   gUID,
-				},
-				Creation_: &gregor1.Item{
-					Category_: gregor1.Category("kbfs_tlf_rekey_needed"),
-					Body_:     gregor1.Body(problemSet),
-				},
-			},
-		},
-	}
+	gUID, h, rekeyHandler := rekeySetup(tc)
 
 	go func() {
 		clock.BlockUntil(1)
 		clock.Advance(3 * time.Second)
 	}()
 
-	if err := h.BroadcastMessage(context.Background(), m); err != nil {
-		t.Fatal(err)
-	}
+	rekeyBroadcast(tc, gUID, h, problemSet)
 
 	<-rekeyHandler.notifyComplete
 
@@ -185,8 +137,6 @@ func TestRekeyNeededUserClose(t *testing.T) {
 	tc := libkb.SetupTest(t, "gregor", 1)
 	defer tc.Cleanup()
 
-	tc.G.SetService()
-
 	rkeyui := &fakeRekeyUI{}
 	router := fakeUIRouter{
 		rekeyUI: rkeyui,
@@ -196,44 +146,9 @@ func TestRekeyNeededUserClose(t *testing.T) {
 	clock := clockwork.NewFakeClock()
 	tc.G.Clock = clock
 
-	kbUID := keybase1.MakeTestUID(1)
-	gUID := gregor1.UID(kbUID.ToBytes())
-	did, err := libkb.NewDeviceID()
-	if err != nil {
-		t.Fatal(err)
-	}
-	tc.G.Env.GetConfigWriter().SetUserConfig(libkb.NewUserConfig(kbUID, "", nil, did), true)
+	gUID, h, rekeyHandler := rekeySetup(tc)
 
-	h, err := newGregorHandler(tc.G)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	rekeyHandler := NewRekeyUIHandler(tc.G, 0)
-	rekeyHandler.alwaysAlive = true
-	rekeyHandler.notifyComplete = make(chan int, 10)
-	h.PushHandler(rekeyHandler)
-
-	msgID := gregor1.MsgID("my_random_id")
-	m := gregor1.Message{
-		Ibm_: &gregor1.InBandMessage{
-			StateUpdate_: &gregor1.StateUpdateMessage{
-				Md_: gregor1.Metadata{
-					MsgID_: msgID,
-					Ctime_: gregor1.ToTime(tc.G.Clock.Now()),
-					Uid_:   gUID,
-				},
-				Creation_: &gregor1.Item{
-					Category_: gregor1.Category("kbfs_tlf_rekey_needed"),
-					Body_:     gregor1.Body(problemSet),
-				},
-			},
-		},
-	}
-
-	if err := h.BroadcastMessage(context.Background(), m); err != nil {
-		t.Fatal(err)
-	}
+	rekeyBroadcast(tc, gUID, h, problemSet)
 
 	clock.BlockUntil(1)
 	h.RekeyStatusFinish(context.Background(), rkeyui.sessionID)
@@ -264,4 +179,9 @@ func (f *fakeRekeyUI) DelegateRekeyUI(ctx context.Context) (int, error) {
 func (f *fakeRekeyUI) Refresh(ctx context.Context, arg keybase1.RefreshArg) error {
 	f.refreshArgs = append(f.refreshArgs, arg)
 	return nil
+}
+
+func fakeScoreProblemFolders(g *libkb.GlobalContext, existing keybase1.ProblemSet) (keybase1.ProblemSet, error) {
+	// always return empty ProblemSet
+	return keybase1.ProblemSet{}, nil
 }
