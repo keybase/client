@@ -11,7 +11,7 @@ import NonUser from './non-user'
 
 import type {RenderProps} from './render'
 
-export default class Render extends Component {
+export default class Render extends Component<void, RenderProps, void> {
   props: RenderProps;
 
   render () {
@@ -19,6 +19,7 @@ export default class Render extends Component {
       return <NonUser
         onClose={this.props.headerProps.onClose}
         name={this.props.name}
+        serviceName={this.props.serviceName}
         reason={this.props.reason}
         inviteLink={this.props.inviteLink}
         isPrivate={this.props.isPrivate} />

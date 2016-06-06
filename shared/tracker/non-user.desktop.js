@@ -25,12 +25,12 @@ const Top = ({onClose, reason, inviteLink, name, isPrivate}) => {
   )
 }
 
-const Bottom = ({onClose, name}) => (
+const Bottom = ({onClose, name, serviceName}) => (
   <Box style={stylesNext}>
     <Text style={{marginBottom: 16}} type='Header'>What's next?</Text>
     <Box style={stylesBullet}>
       <Text type='BodySmall' style={{marginRight: 8}}>•</Text>
-      <Text type='BodySmall'>When {name} connects Keybase and their Twitter account, your computer will verify them and rekey the folder.</Text>
+      <Text type='BodySmall'>When {name} connects Keybase and their {serviceName || 'other'} account, your computer will verify them and rekey the folder.</Text>
     </Box>
     <Box style={{...stylesBullet, marginTop: 5}}>
       <Text type='BodySmall' style={{marginRight: 8}}>•</Text>
@@ -41,10 +41,10 @@ const Bottom = ({onClose, name}) => (
   </Box>
 )
 
-const Render = ({name, reason, inviteLink, onClose, isPrivate}: Props) => (
+const Render = ({name, reason, inviteLink, onClose, isPrivate, serviceName}: Props) => (
   <Box style={{...globalStyles.flexBoxColumn, flex: 1}}>
     <Top reason={reason} isPrivate={isPrivate} inviteLink={inviteLink} name={name} />
-    <Bottom onClose={onClose} name={name} />
+    <Bottom onClose={onClose} name={name} serviceName={serviceName} />
   </Box>
 )
 
