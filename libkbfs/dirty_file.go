@@ -9,53 +9,57 @@ import (
 	"sync"
 )
 
-// syncBlockState represents that state of a block with respect to
-// whether it's dirty or currently being synced.  There can be six states:
-//  1) Not dirty or being synced
-//  2) Dirty and awaiting a sync
-//  3) Being synced and not yet re-dirtied: any write needs to
-//     make a copy of the block before dirtying it.  Also, all writes must be
-//     deferred.
-//  4) Being synced and already re-dirtied: no copies are needed, but all
-//     writes must still be deferred.
-//  5) Finished syncing, and not yet re-dirtied, but the rest of the
-//     sync hasn't finished yet.
-//  5) Finished syncing, and already re-dirtied, but the rest of the
-//     sync hasn't finished yet.
-type syncBlockState int
+// dirtyBlockSyncState represents that state of a block with respect to
+// whether it's currently being synced.  There can be three states:
+//  0) Not being synced
+//  1) Currently being synced to the server.
+//  2) Finished syncing, but the rest of thesync hasn't finished yet.
+type dirtyBlockSyncState int
 
 const (
-	blockNotDirty syncBlockState = iota
-	blockDirty
-	blockSyncingNotDirty
-	blockSyncingAndDirty
-	blockSyncedAndDirty
-	blockSyncedNotDirty
+	blockNotSyncing dirtyBlockSyncState = iota
+	blockSyncing
+	blockSynced
 )
+
+// dirtyBlockCopyState represents that state of a block with respect
+// to whether it needs to be copied if it is modified by the caller.
+type dirtyBlockCopyState int
+
+const (
+	blockNeedsCopy dirtyBlockCopyState = iota
+	blockAlreadyCopied
+)
+
+type dirtyBlockState struct {
+	sync dirtyBlockSyncState
+	copy dirtyBlockCopyState
+}
 
 // dirtyFile represents a particular file that's been written to, but
 // has not yet completed syncing its dirty blocks to the server.
 type dirtyFile struct {
 	lock sync.Mutex
-	// Which blocks are currently being synced, so that writes and
-	// truncates can do copy-on-write to avoid messing up the ongoing
-	// sync.  If it is blockSyncingNotDirty, then any write to the
-	// block should result in a deep copy and those writes should be
-	// deferred; if it is blockSyncingAndDirty, then just defer the
+	// Which blocks are currently being synced and still need copying,
+	// so that writes and truncates can do copy-on-write to avoid
+	// messing up the ongoing sync.  If it is blockSyncing and
+	// blockNeedsCopy, then any write to the block should result in a
+	// deep copy and those writes should be deferred; if it is
+	// blockSyncing and blockAlreadyCopied, then just defer the
 	// writes.
-	fileBlockStates map[BlockPointer]syncBlockState
+	fileBlockStates map[BlockPointer]dirtyBlockState
 }
 
 func newDirtyFile() *dirtyFile {
 	return &dirtyFile{
-		fileBlockStates: make(map[BlockPointer]syncBlockState),
+		fileBlockStates: make(map[BlockPointer]dirtyBlockState),
 	}
 }
 
 func (df *dirtyFile) blockNeedsCopy(ptr BlockPointer) bool {
 	df.lock.Lock()
 	defer df.lock.Unlock()
-	return df.fileBlockStates[ptr] == blockSyncingNotDirty
+	return df.fileBlockStates[ptr].copy == blockNeedsCopy
 }
 
 // dirtyBlock transitions a block to a dirty state, and returns
@@ -67,45 +71,31 @@ func (df *dirtyFile) dirtiedBlock(ptr BlockPointer) (
 	df.lock.Lock()
 	defer df.lock.Unlock()
 
-	switch df.fileBlockStates[ptr] {
-	case blockNotDirty:
-		// A clean block became dirty
-		df.fileBlockStates[ptr] = blockDirty
-		return true, false
-	case blockDirty:
-		// Nothing to do, already dirty.
-		return false, false
-	case blockSyncingNotDirty:
-		// Future writes can use this same block.
-		df.fileBlockStates[ptr] = blockSyncingAndDirty
-		return true, true
-	case blockSyncingAndDirty:
-		return false, true
-	case blockSyncedNotDirty:
-		// Future writes can use this same block.
-		df.fileBlockStates[ptr] = blockSyncedAndDirty
-		return true, true
-	case blockSyncedAndDirty:
-		return false, true
-	default:
-		panic(fmt.Sprintf("Unknown dirty block state: %v",
-			df.fileBlockStates[ptr]))
-	}
+	state := df.fileBlockStates[ptr]
+	needsCaching = state.copy == blockNeedsCopy
+	state.copy = blockAlreadyCopied
+	isSyncing = state.sync != blockNotSyncing
+	df.fileBlockStates[ptr] = state
+	return needsCaching, isSyncing
 }
 
 func (df *dirtyFile) blockSyncingAndDirty(ptr BlockPointer) bool {
 	df.lock.Lock()
 	defer df.lock.Unlock()
-	return df.fileBlockStates[ptr] == blockSyncingAndDirty
+	state := df.fileBlockStates[ptr]
+	return state.copy == blockAlreadyCopied && state.sync == blockSyncing
 }
 
 func (df *dirtyFile) syncingBlock(ptr BlockPointer) error {
 	df.lock.Lock()
 	defer df.lock.Unlock()
-	if df.fileBlockStates[ptr] == blockNotDirty {
+	state := df.fileBlockStates[ptr]
+	if state.copy == blockNeedsCopy {
 		return fmt.Errorf("Trying to sync a block that isn't dirty: %v", ptr)
 	}
-	df.fileBlockStates[ptr] = blockSyncingNotDirty
+	state.copy = blockNeedsCopy
+	state.sync = blockSyncing
+	df.fileBlockStates[ptr] = state
 	return nil
 }
 
@@ -114,24 +104,27 @@ func (df *dirtyFile) errorOnSync() {
 	defer df.lock.Unlock()
 	// Reset all syncing blocks to just be dirty again
 	for ptr, state := range df.fileBlockStates {
-		if state > blockDirty {
-			df.fileBlockStates[ptr] = blockDirty
+		if state.sync != blockNotSyncing {
+			state.copy = blockAlreadyCopied
+			state.sync = blockNotSyncing
+			df.fileBlockStates[ptr] = state
 		}
 	}
 }
 
 func (df *dirtyFile) syncedBlockLocked(ptr BlockPointer) error {
-	switch df.fileBlockStates[ptr] {
-	case blockDirty:
+	state := df.fileBlockStates[ptr]
+	if state.copy == blockAlreadyCopied && state.sync == blockNotSyncing {
 		// We've likely already had an errorOnSync call; ignore
-	case blockSyncingNotDirty:
-		df.fileBlockStates[ptr] = blockSyncedNotDirty
-	case blockSyncingAndDirty:
-		df.fileBlockStates[ptr] = blockSyncedAndDirty
-	default:
+		return nil
+	}
+
+	if state.sync != blockSyncing {
 		return fmt.Errorf("Trying to finish a block sync that wasn't in "+
 			"progress: %v (%d)", ptr, df.fileBlockStates[ptr])
 	}
+	state.sync = blockSynced
+	df.fileBlockStates[ptr] = state
 	// TODO: Eventually we'll need to free up space in the buffer
 	// taken up by these sync'd blocks, so new writes can proceed.
 	return nil
@@ -151,7 +144,7 @@ func (df *dirtyFile) syncFinished() {
 	defer df.lock.Unlock()
 	// Reset all syncing blocks to just be dirty again
 	for ptr, state := range df.fileBlockStates {
-		if state == blockSyncingNotDirty || state == blockSyncingAndDirty {
+		if state.sync == blockSyncing {
 			err := df.syncedBlockLocked(ptr)
 			if err != nil {
 				panic(fmt.Sprintf("Unexpected error: %v", err))

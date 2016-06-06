@@ -3886,7 +3886,7 @@ func getOrCreateSyncInfo(
 	return ops.blocks.getOrCreateSyncInfoLocked(lState, de)
 }
 
-func dirtyBlockState(config Config, rmd *RootMetadata, p path,
+func makeBlockStateDirty(config Config, rmd *RootMetadata, p path,
 	ptr BlockPointer) {
 	ops := getOps(config, rmd.ID)
 	lState := makeFBOLockState()
@@ -3929,7 +3929,7 @@ func testSyncDirtySuccess(t *testing.T, isUnmerged bool) {
 
 	// fsync a
 	config.DirtyBlockCache().Put(aNode.BlockPointer, p.Branch, aBlock)
-	dirtyBlockState(config, rmd, p, aNode.BlockPointer)
+	makeBlockStateDirty(config, rmd, p, aNode.BlockPointer)
 	testPutBlockInCache(config, node.BlockPointer, id, rootBlock)
 	// TODO: put a dirty DE entry in the cache, to test that the new
 	// root block has the correct file size.
@@ -4032,7 +4032,7 @@ func expectSyncDirtyBlock(config *ConfigMock, rmd *RootMetadata,
 		config.DirtyBlockCache().Put(ptr, branch, block)
 	}
 	if !opsLockHeld {
-		dirtyBlockState(config, rmd, p, ptr)
+		makeBlockStateDirty(config, rmd, p, ptr)
 	}
 	c1 := config.mockBsplit.EXPECT().CheckSplit(block).Return(splitAt)
 
@@ -4116,7 +4116,7 @@ func TestSyncDirtyMultiBlocksSuccess(t *testing.T) {
 
 	// fsync a, only block 2 is dirty
 	config.DirtyBlockCache().Put(fileNode.BlockPointer, p.Branch, fileBlock)
-	dirtyBlockState(config, rmd, p, fileNode.BlockPointer)
+	makeBlockStateDirty(config, rmd, p, fileNode.BlockPointer)
 	testPutBlockInCache(config, node.BlockPointer, id, rootBlock)
 
 	// the split is good
@@ -4222,7 +4222,7 @@ func TestSyncDirtyDupBlockSuccess(t *testing.T) {
 	si.op.addWrite(0, 10)
 
 	config.DirtyBlockCache().Put(bNode.BlockPointer, p.Branch, bBlock)
-	dirtyBlockState(config, rmd, p, bNode.BlockPointer)
+	makeBlockStateDirty(config, rmd, p, bNode.BlockPointer)
 	testPutBlockInCache(config, node.BlockPointer, id, rootBlock)
 	testPutBlockInCache(config, aNode.BlockPointer, id, aBlock)
 
@@ -4365,7 +4365,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	config.mockDirtyBcache.EXPECT().IsDirty(
 		ptrMatcher{fileBlock.IPtrs[0].BlockPointer},
 		p.Branch).AnyTimes().Return(false)
-	dirtyBlockState(config, rmd, p, fileNode.BlockPointer)
+	makeBlockStateDirty(config, rmd, p, fileNode.BlockPointer)
 	config.mockDirtyBcache.EXPECT().IsDirty(
 		ptrMatcher{fileBlock.IPtrs[2].BlockPointer},
 		p.Branch).Return(false)
@@ -4379,7 +4379,7 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 		p.Branch).AnyTimes().Return(false)
 	config.mockDirtyBcache.EXPECT().IsDirty(ptrMatcher{node.BlockPointer},
 		p.Branch).AnyTimes().Return(true)
-	dirtyBlockState(config, rmd, p, node.BlockPointer)
+	makeBlockStateDirty(config, rmd, p, node.BlockPointer)
 	config.mockDirtyBcache.EXPECT().Get(ptrMatcher{node.BlockPointer}, p.Branch).
 		AnyTimes().Return(rootBlock, nil)
 	config.mockDirtyBcache.EXPECT().IsDirty(ptrMatcher{fileNode.BlockPointer},
@@ -4559,12 +4559,12 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	// fsync a, only block 2 is dirty
 	config.mockDirtyBcache.EXPECT().IsDirty(ptrMatcher{fileNode.BlockPointer},
 		p.Branch).AnyTimes().Return(true)
-	dirtyBlockState(config, rmd, p, fileNode.BlockPointer)
+	makeBlockStateDirty(config, rmd, p, fileNode.BlockPointer)
 	config.mockDirtyBcache.EXPECT().Get(ptrMatcher{fileNode.BlockPointer},
 		p.Branch).AnyTimes().Return(fileBlock, nil)
 	config.mockDirtyBcache.EXPECT().IsDirty(ptrMatcher{node.BlockPointer},
 		p.Branch).AnyTimes().Return(true)
-	dirtyBlockState(config, rmd, p, node.BlockPointer)
+	makeBlockStateDirty(config, rmd, p, node.BlockPointer)
 	config.mockDirtyBcache.EXPECT().Get(ptrMatcher{node.BlockPointer}, p.Branch).
 		AnyTimes().Return(rootBlock, nil)
 	config.mockDirtyBcache.EXPECT().Get(ptrMatcher{fileBlock.IPtrs[1].BlockPointer},
@@ -4712,7 +4712,7 @@ func TestSyncDirtyWithBlockChangePointerSuccess(t *testing.T) {
 
 	// fsync a
 	config.DirtyBlockCache().Put(aNode.BlockPointer, p.Branch, aBlock)
-	dirtyBlockState(config, rmd, p, aNode.BlockPointer)
+	makeBlockStateDirty(config, rmd, p, aNode.BlockPointer)
 	testPutBlockInCache(config, node.BlockPointer, id, rootBlock)
 
 	// override the AnyTimes expect call done by default in expectSyncBlock()
