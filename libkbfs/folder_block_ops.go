@@ -160,7 +160,7 @@ func (fbo *folderBlockOps) GetState(lState *lockState) overallBlockState {
 	return dirtyState
 }
 
-func (fbo *folderBlockOps) getBlockFromCache(ptr BlockPointer,
+func (fbo *folderBlockOps) getBlockFromDirtyOrCleanCache(ptr BlockPointer,
 	branch BranchName) (Block, error) {
 	// Check the dirty cache first.
 	if block, err := fbo.config.DirtyBlockCache().Get(ptr, branch); err == nil {
@@ -186,7 +186,8 @@ func (fbo *folderBlockOps) getBlockHelperLocked(ctx context.Context,
 		return nil, InvalidBlockRefError{ptr.ref()}
 	}
 
-	if block, err := fbo.getBlockFromCache(ptr, branch); err == nil {
+	if block, err := fbo.getBlockFromDirtyOrCleanCache(
+		ptr, branch); err == nil {
 		return block, nil
 	}
 
@@ -828,7 +829,8 @@ func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableError(
 		return
 	}
 
-	topBlock, err := fbo.getBlockFromCache(file.tailPointer(), fbo.branch())
+	dbcache := fbo.config.DirtyBlockCache()
+	topBlock, err := dbcache.Get(file.tailPointer(), fbo.branch())
 	fblock, ok := topBlock.(*FileBlock)
 	if err != nil || !ok {
 		fbo.log.CWarningf(ctx, "Couldn't find dirtied "+
@@ -850,13 +852,12 @@ func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableError(
 		fbo.log.CDebugf(ctx, "Re-dirtying %v (and deleting dirty block %v)",
 			newPtr, oldPtr)
 		// These block would have been permanent, so they're
-		// definitely still in the cache
-		b, err := fbo.getBlockFromCache(newPtr, fbo.branch())
+		// definitely still in the cache.
+		b, err := fbo.config.BlockCache().Get(newPtr)
 		if err != nil {
 			fbo.log.CWarningf(ctx, "Couldn't re-dirty %v: %v", newPtr, err)
 			continue
 		}
-		dbcache := fbo.config.DirtyBlockCache()
 		err = dbcache.Put(newPtr, fbo.branch(), b)
 		if err != nil {
 			fbo.log.CWarningf(ctx, "Couldn't re-dirty %v: %v", newPtr, err)
@@ -1396,8 +1397,8 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 	dirtyPtrs = append(dirtyPtrs, file.tailPointer())
 	latestWrite := si.op.addTruncate(size)
 
-	bcache := fbo.config.BlockCache()
-	if d := bcache.DirtyBytesEstimate(); d > dirtyBytesThreshold {
+	dbcache := fbo.config.DirtyBlockCache()
+	if d := dbcache.DirtyBytesEstimate(); d > dirtyBytesThreshold {
 		fbo.log.CDebugf(ctx, "Forcing a sync due to %d dirty bytes", d)
 		select {
 		// If we can't send on the channel, that means a sync is
