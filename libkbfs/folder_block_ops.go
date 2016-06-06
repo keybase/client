@@ -694,7 +694,7 @@ func (fbo *folderBlockOps) cacheBlockIfNotYetDirtyLocked(
 	lState *lockState, ptr BlockPointer, file path, block Block) error {
 	fbo.blockLock.AssertLocked(lState)
 	df := fbo.getOrCreateDirtyFileLocked(lState, file.tailPointer())
-	needsCaching, isSyncing := df.dirtiedBlock(ptr)
+	needsCaching, isSyncing := df.setBlockDirty(ptr)
 
 	if needsCaching {
 		err := fbo.config.DirtyBlockCache().Put(ptr, file.Branch, block)
@@ -805,7 +805,8 @@ func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableError(
 	// redirty all the sync'd blocks under their new IDs, so that
 	// future syncs will know they failed.
 	df := fbo.dirtyFiles[file.tailPointer()]
-	if df == nil || !df.blockSyncingAndDirty(file.tailPointer()) {
+	if df == nil || !df.isBlockDirty(file.tailPointer()) ||
+		!df.isBlockSyncing(file.tailPointer()) {
 		return
 	}
 
@@ -1892,9 +1893,9 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 				md.AddRefBlock(newInfo)
 				si.bps.addNewBlock(newInfo.BlockPointer, block, readyBlockData,
 					func() error {
-						return df.syncedBlock(localPtr)
+						return df.setBlockSynced(localPtr)
 					})
-				err = df.syncingBlock(localPtr)
+				err = df.setBlockSyncing(localPtr)
 				if err != nil {
 					return nil, nil, syncState, err
 				}
@@ -1903,7 +1904,7 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 		}
 	}
 
-	err = df.syncingBlock(file.tailPointer())
+	err = df.setBlockSyncing(file.tailPointer())
 	if err != nil {
 		return nil, nil, syncState, err
 	}
@@ -2016,7 +2017,7 @@ func (fbo *folderBlockOps) CleanupSyncState(
 	// Old syncing blocks are now just dirty
 	if df := fbo.dirtyFiles[file.tailPointer()]; df != nil {
 		fbo.log.CDebugf(nil, "Calling error on sync")
-		df.errorOnSync()
+		df.resetSyncingBlocksToDirty()
 	}
 
 	// TODO: Clear deferredWrites and deferredDirtyDeletes?
@@ -2050,7 +2051,7 @@ func (fbo *folderBlockOps) FinishSync(
 
 	df := fbo.dirtyFiles[oldPath.tailPointer()]
 	if df != nil {
-		df.syncFinished()
+		df.finishSync()
 		delete(fbo.dirtyFiles, oldPath.tailPointer())
 	}
 	// Redo any writes or truncates that happened to our file while

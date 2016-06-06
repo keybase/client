@@ -62,11 +62,11 @@ func (df *dirtyFile) blockNeedsCopy(ptr BlockPointer) bool {
 	return df.fileBlockStates[ptr].copy == blockNeedsCopy
 }
 
-// dirtyBlock transitions a block to a dirty state, and returns
+// setBlockDirty transitions a block to a dirty state, and returns
 // whether or not the block needs to be put in the dirty cache
 // (because it isn't yet), and whether or not the block is currently
 // part of a sync in progress.
-func (df *dirtyFile) dirtiedBlock(ptr BlockPointer) (
+func (df *dirtyFile) setBlockDirty(ptr BlockPointer) (
 	needsCaching bool, isSyncing bool) {
 	df.lock.Lock()
 	defer df.lock.Unlock()
@@ -79,14 +79,19 @@ func (df *dirtyFile) dirtiedBlock(ptr BlockPointer) (
 	return needsCaching, isSyncing
 }
 
-func (df *dirtyFile) blockSyncingAndDirty(ptr BlockPointer) bool {
+func (df *dirtyFile) isBlockSyncing(ptr BlockPointer) bool {
 	df.lock.Lock()
 	defer df.lock.Unlock()
-	state := df.fileBlockStates[ptr]
-	return state.copy == blockAlreadyCopied && state.sync == blockSyncing
+	return df.fileBlockStates[ptr].sync == blockSyncing
 }
 
-func (df *dirtyFile) syncingBlock(ptr BlockPointer) error {
+func (df *dirtyFile) isBlockDirty(ptr BlockPointer) bool {
+	df.lock.Lock()
+	defer df.lock.Unlock()
+	return df.fileBlockStates[ptr].copy == blockAlreadyCopied
+}
+
+func (df *dirtyFile) setBlockSyncing(ptr BlockPointer) error {
 	df.lock.Lock()
 	defer df.lock.Unlock()
 	state := df.fileBlockStates[ptr]
@@ -99,7 +104,7 @@ func (df *dirtyFile) syncingBlock(ptr BlockPointer) error {
 	return nil
 }
 
-func (df *dirtyFile) errorOnSync() {
+func (df *dirtyFile) resetSyncingBlocksToDirty() {
 	df.lock.Lock()
 	defer df.lock.Unlock()
 	// Reset all syncing blocks to just be dirty again
@@ -112,10 +117,10 @@ func (df *dirtyFile) errorOnSync() {
 	}
 }
 
-func (df *dirtyFile) syncedBlockLocked(ptr BlockPointer) error {
+func (df *dirtyFile) setBlockSyncedLocked(ptr BlockPointer) error {
 	state := df.fileBlockStates[ptr]
 	if state.copy == blockAlreadyCopied && state.sync == blockNotSyncing {
-		// We've likely already had an errorOnSync call; ignore
+		// We've likely already had an resetSyncingBlocksToDirty call; ignore.
 		return nil
 	}
 
@@ -130,13 +135,13 @@ func (df *dirtyFile) syncedBlockLocked(ptr BlockPointer) error {
 	return nil
 }
 
-func (df *dirtyFile) syncedBlock(ptr BlockPointer) error {
+func (df *dirtyFile) setBlockSynced(ptr BlockPointer) error {
 	df.lock.Lock()
 	defer df.lock.Unlock()
-	return df.syncedBlockLocked(ptr)
+	return df.setBlockSyncedLocked(ptr)
 }
 
-func (df *dirtyFile) syncFinished() {
+func (df *dirtyFile) finishSync() {
 	// Mark any remaining blocks as finished syncing.  For example,
 	// top-level indirect blocks needs this because they are added to
 	// the blockPutState by folderBranchOps, not folderBlockOps.
@@ -145,7 +150,7 @@ func (df *dirtyFile) syncFinished() {
 	// Reset all syncing blocks to just be dirty again
 	for ptr, state := range df.fileBlockStates {
 		if state.sync == blockSyncing {
-			err := df.syncedBlockLocked(ptr)
+			err := df.setBlockSyncedLocked(ptr)
 			if err != nil {
 				panic(fmt.Sprintf("Unexpected error: %v", err))
 			}

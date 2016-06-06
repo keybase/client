@@ -3893,7 +3893,7 @@ func makeBlockStateDirty(config Config, rmd *RootMetadata, p path,
 	ops.blocks.blockLock.Lock(lState)
 	defer ops.blocks.blockLock.Unlock(lState)
 	df := ops.blocks.getOrCreateDirtyFileLocked(lState, p.tailPointer())
-	df.dirtiedBlock(ptr)
+	df.setBlockDirty(ptr)
 }
 
 // SetMtime failure cases are all the same as any other block sync
