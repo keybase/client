@@ -1894,6 +1894,7 @@ export type identifyUi_displayTLFCreateWithInvite_rpc = {
     folderName: string,
     isPrivate: boolean,
     assertion: string,
+    socialAssertion: SocialAssertion,
     inviteLink: string,
     throttled: boolean
   },
@@ -4211,6 +4212,7 @@ export type incomingCallMapType = {
       folderName: string,
       isPrivate: boolean,
       assertion: string,
+      socialAssertion: SocialAssertion,
       inviteLink: string,
       throttled: boolean
     },

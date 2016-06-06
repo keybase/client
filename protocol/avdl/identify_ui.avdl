@@ -106,7 +106,7 @@ protocol identifyUi {
     string resource;
   }
 
-  void displayTLFCreateWithInvite(int sessionID, string folderName, boolean isPrivate, string assertion, string inviteLink, boolean throttled);
+  void displayTLFCreateWithInvite(int sessionID, string folderName, boolean isPrivate, string assertion, SocialAssertion socialAssertion, string inviteLink, boolean throttled);
 
   // The IdentifyUI can be delegated to another process.  Call this function
   // to initialize the delegated UI; it returns the sessionID to use in the
