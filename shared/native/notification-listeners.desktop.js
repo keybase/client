@@ -5,9 +5,13 @@ import {logoutDone} from '../actions/login'
 import {kbfsNotification} from '../util/kbfs-notifications'
 import type {Dispatch} from '../constants/types/flux'
 import type {incomingCallMapType} from '../constants/types/flow-types'
+import moment from 'moment'
 
 // Keep track of the last time we notified and ignore if its the same
 let lastLoggedInNotifyUsername = null
+
+// Keep track of out of date and don't allow it to spam us
+const outOfDateThrottle = {}
 
 // TODO(mm) Move these to their own actions
 export default function (dispatch: Dispatch, getState: () => Object, notify: any): incomingCallMapType {
@@ -33,6 +37,13 @@ export default function (dispatch: Dispatch, getState: () => Object, notify: any
       response.result()
     },
     'keybase.1.NotifySession.clientOutOfDate': ({upgradeTo, upgradeURI, upgradeMsg}) => {
+      const now = moment()
+      if (outOfDateThrottle[upgradeTo] && now.isBefore(outOfDateThrottle[upgradeTo])) {
+        console.log('Skipping out of date msg due to throttle')
+        return
+      }
+
+      outOfDateThrottle[upgradeTo] = now.add(1, 'h')
       const body = upgradeMsg || `Please update to ${upgradeTo} by going to ${upgradeURI}`
       notify('Client out of date!', {body})
     },
