@@ -40,7 +40,7 @@ class ProofsRender extends Component {
       'github': 'fa-github',
       'reddit': 'fa-reddit',
       'pgp': 'fa-key',
-      'coinbase': 'fa-btc',
+      'coinbase': 'fa-kb-iconfont-coinbase',
       'hackernews': 'fa-hacker-news',
       'rooter': 'fa-shopping-basket',
       'http': 'fa-globe',
