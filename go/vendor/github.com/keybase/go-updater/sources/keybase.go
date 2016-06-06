@@ -31,14 +31,17 @@ type KeybaseUpdateSource struct {
 	api            libkb.API
 	runMode        libkb.RunMode
 	defaultChannel string
+	legacyID       string
 }
 
 func NewKeybaseUpdateSource(log logger.Logger, api libkb.API, runMode libkb.RunMode, defaultChannel string) KeybaseUpdateSource {
+	legacyID, _ := util.RandString("", 20)
 	return KeybaseUpdateSource{
 		log:            log,
 		api:            api,
 		runMode:        runMode,
 		defaultChannel: defaultChannel,
+		legacyID:       legacyID,
 	}
 }
 
@@ -52,13 +55,13 @@ func (k KeybaseUpdateSource) FindUpdate(options keybase1.UpdateOptions) (*keybas
 		channel = options.Channel
 	}
 
-	u, err := url.Parse("https://keybase.io/_/api/1.0/pkg/update.json")
+	u, err := url.Parse("https://keybase.io/_/api/1.0/pkg/update_legacy.json")
 	if err != nil {
 		return nil, err
 	}
 
 	urlValues := url.Values{}
-	//urlValues.Add("install_id", k.cfg.GetInstallID())
+	urlValues.Add("legacy_id", k.legacyID)
 	urlValues.Add("version", options.Version)
 	urlValues.Add("platform", options.Platform)
 	urlValues.Add("run_mode", string(k.runMode))
