@@ -8,6 +8,8 @@ import {toDeviceType} from '../constants/types/more'
 import type {UnlockFolderActions, Device} from '../constants/unlock-folders'
 
 export type State = {
+  started: boolean,
+  closed: boolean,
   phase: 'dead' | 'promptOtherDevice' | 'paperKeyInput' | 'success',
   devices: ?Array<Device>,
   waiting: boolean,
@@ -15,6 +17,8 @@ export type State = {
 }
 
 const initialState: State = {
+  started: false,
+  closed: true,
   phase: 'dead',
   waiting: false,
   devices: null,
@@ -25,6 +29,11 @@ export default function (state: State = initialState, action: UnlockFolderAction
   // TODO: Fill out the rest of this reducer
   switch (action.type) {
     case CommonConstants.resetStore:
+      return {
+        ...initialState,
+        started: state.started
+      }
+
     case Constants.close:
       return {...initialState}
     case Constants.loadDevices:
@@ -79,6 +88,25 @@ export default function (state: State = initialState, action: UnlockFolderAction
         ...state,
         phase: 'dead'
       }
+
+    case Constants.registerRekeyListener:
+      if (action.payload && action.payload.started) {
+        return {
+          ...state,
+          started: true
+        }
+      } else {
+        return state
+      }
+    case Constants.newRekeyPopup:
+      if (state.rekeyListenerStarted && action.payload) {
+        return {
+          ...state,
+          closed: false
+        }
+      }
+      return state
+
     default:
       return state
   }
@@ -88,12 +116,14 @@ export default function (state: State = initialState, action: UnlockFolderAction
 
 export const mocks: {[key: string]: State} = {
   promptOtherSingleDevice: {
+    closed: false, started: true,
     phase: 'promptOtherDevice',
     waiting: false,
     devices: [{type: 'desktop', name: 'Cray', deviceID: 'bada55'}],
     paperkeyError: null
   },
   promptOtherMultiDevice: {
+    closed: false, started: true,
     phase: 'promptOtherDevice',
     waiting: false,
     devices: [
@@ -104,6 +134,7 @@ export const mocks: {[key: string]: State} = {
     paperkeyError: null
   },
   promptOtherLotsaDevice: {
+    closed: false, started: true,
     phase: 'promptOtherDevice',
     waiting: false,
     devices: [
@@ -127,24 +158,28 @@ export const mocks: {[key: string]: State} = {
     paperkeyError: null
   },
   paperKeyInput: {
+    closed: false, started: true,
     phase: 'paperKeyInput',
     waiting: false,
     devices: [],
     paperkeyError: null
   },
   paperKeyInputWithError: {
+    closed: false, started: true,
     phase: 'paperKeyInput',
     waiting: false,
     devices: [],
     paperkeyError: new HiddenString('Invalid paper key')
   },
   paperKeyInputWithErrorWaiting: {
+    closed: false, started: true,
     phase: 'paperKeyInput',
     waiting: true,
     devices: [],
     paperkeyError: new HiddenString('Invalid paper key')
   },
   success: {
+    closed: false, started: true,
     phase: 'success',
     waiting: false,
     devices: [],

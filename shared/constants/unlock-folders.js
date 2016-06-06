@@ -34,4 +34,11 @@ export type Close = TypedAction<'unlockFolders:close', {}, {}>
 export const waiting = 'unlockFolders:waiting'
 export type Waiting = TypedAction<'unlockFolders:waiting', boolean, {}>
 
-export type UnlockFolderActions = LoadDevices | ToPaperKeyInput | OnBackFromPaperKey | CheckPaperKey | Finish | Close | Waiting
+export type RegisterRekeyListenerAction = TypedAction<'notifications:registerRekeyListener', any, any>
+export const registerRekeyListener = 'notifications:registerRekeyListener'
+
+export type NewRekeyPopupAction = TypedAction<'notifications:newRekeyPopup', any, void>
+export const newRekeyPopup = 'notifications:newRekeyPopup'
+
+export type UnlockFolderActions = LoadDevices | ToPaperKeyInput | OnBackFromPaperKey | CheckPaperKey | Finish
+| Close | Waiting | RegisterRekeyListenerAction |NewRekeyPopupAction

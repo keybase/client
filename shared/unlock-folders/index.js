@@ -62,4 +62,8 @@ const Connected: Class<ConnectedComponent<OwnProps>> = typedConnect(
   })
 )(UnlockFolders)
 
+export function selector (): (store: Object) => ?Object {
+  return store => store.notifications
+}
+
 export default Connected

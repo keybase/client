@@ -18,7 +18,9 @@ const initialState = {
 export default function (state: State = initialState, action: NotificationAction): State {
   switch (action.type) {
     case CommonConstants.resetStore:
-      return {...initialState}
+      return {
+        ...initialState
+      }
     case Constants.badgeApp:
       if (action.error) {
         return state
