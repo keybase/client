@@ -10,7 +10,8 @@ const dev1: Device = {
   currentDevice: false,
   provisioner: null,
   provisionedAt: 1444423192000,
-  revokedAt: null
+  revokedAt: null,
+  lastUsed: 1444423192001
 }
 
 const dev2: Device = {
@@ -21,7 +22,8 @@ const dev2: Device = {
   currentDevice: true,
   provisioner: null,
   provisionedAt: 1444423193000,
-  revokedAt: null
+  revokedAt: null,
+  lastUsed: 1444423193001
 }
 
 const dev3: Device = {
@@ -32,7 +34,8 @@ const dev3: Device = {
   currentDevice: false,
   provisioner: null,
   provisionedAt: 1450305567000,
-  revokedAt: null
+  revokedAt: null,
+  lastUsed: 1450305567000
 }
 
 const rev1: Device = {

@@ -11,6 +11,7 @@ const common = {
   revokedAt: null,
   provisioner: null,
   provisionedAt: null,
+  lastUsed: 1444423192001,
   showRemoveDevicePage: () => {}
 }
 

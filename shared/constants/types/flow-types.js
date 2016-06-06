@@ -162,6 +162,7 @@ export type DeviceDetail = {
   provisioner?: ?Device;
   provisionedAt?: ?Time;
   revokedAt?: ?Time;
+  lastUsed?: ?Time;
   currentDevice: boolean;
 }
 
@@ -5738,4 +5739,3 @@ export type incomingCallMapType = {
     }
   ) => void
 }
-
