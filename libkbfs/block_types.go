@@ -127,3 +127,11 @@ func (fb FileBlock) DeepCopy(codec Codec) (*FileBlock, error) {
 	}
 	return &fileBlockCopy, nil
 }
+
+// DefaultNewBlockDataVersion returns the default data version for new blocks.
+func DefaultNewBlockDataVersion(c Config, holes bool) DataVer {
+	if holes {
+		return FilesWithHolesDataVer
+	}
+	return FirstValidDataVer
+}

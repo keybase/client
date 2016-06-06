@@ -1369,15 +1369,17 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 	de.Size = size
 	fbo.deCache[file.tailPointer().ref()] = de
 
+	// Mark all for presense of holes, one would be enough,
+	// but this is more robust and easy.
+	for i := range fblock.IPtrs {
+		fblock.IPtrs[i].Holes = true
+	}
 	// Always make the top block dirty, so we will sync its
 	// indirect blocks.  This has the added benefit of ensuring
 	// that any write to a file while it's being sync'd will be
 	// deferred, even if it's to a block that's not currently
 	// being sync'd, since this top-most block will always be in
 	// the fileBlockStates map.
-	for i := range fblock.IPtrs {
-		fblock.IPtrs[i].Holes = true
-	}
 	err = fbo.cacheBlockIfNotYetDirtyLocked(lState,
 		file.tailPointer(), file.Branch, fblock)
 	if err != nil {

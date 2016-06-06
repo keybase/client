@@ -507,14 +507,6 @@ func (c *ConfigLocal) DataVersion() DataVer {
 	return FilesWithHolesDataVer
 }
 
-// DefaultNewBlockDataVersion returns the default data version for new blocks.
-func DefaultNewBlockDataVersion(c Config, holes bool) DataVer {
-	if holes {
-		return FilesWithHolesDataVer
-	}
-	return FirstValidDataVer
-}
-
 // DoBackgroundFlushes implements the Config interface for ConfigLocal.
 func (c *ConfigLocal) DoBackgroundFlushes() bool {
 	return !c.noBGFlush
