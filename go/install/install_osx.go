@@ -23,6 +23,9 @@ import (
 	keybase1 "github.com/keybase/client/go/protocol"
 )
 
+// defaultWait is how long we should wait after install, start, etc
+const defaultWait = 5 * time.Second
+
 // ServiceLabel is an identifier string for a service
 type ServiceLabel string
 
@@ -205,7 +208,7 @@ func keybasePlist(g *libkb.GlobalContext, binPath string, label string) launchd.
 }
 
 func installKeybaseService(g *libkb.GlobalContext, service launchd.Service, plist launchd.Plist) (*keybase1.ServiceStatus, error) {
-	err := launchd.Install(plist, 5*time.Second, g.Log)
+	err := launchd.Install(plist, defaultWait, g.Log)
 	if err != nil {
 		return nil, err
 	}
@@ -216,8 +219,8 @@ func installKeybaseService(g *libkb.GlobalContext, service launchd.Service, plis
 
 // Uninstall keybase all services for this run mode.
 func uninstallKeybaseServices(runMode libkb.RunMode) error {
-	err1 := launchd.Uninstall(AppServiceLabel.labelForRunMode(runMode), 5*time.Second, nil)
-	err2 := launchd.Uninstall(BrewServiceLabel.labelForRunMode(runMode), 5*time.Second, nil)
+	err1 := launchd.Uninstall(AppServiceLabel.labelForRunMode(runMode), defaultWait, nil)
+	err2 := launchd.Uninstall(BrewServiceLabel.labelForRunMode(runMode), defaultWait, nil)
 	return libkb.CombineErrors(err1, err2)
 }
 
@@ -250,7 +253,7 @@ func kbfsPlist(g *libkb.GlobalContext, kbfsBinPath string, label string) (plist 
 }
 
 func installKBFSService(g *libkb.GlobalContext, service launchd.Service, plist launchd.Plist) (*keybase1.ServiceStatus, error) {
-	err := launchd.Install(plist, 5*time.Second, g.Log)
+	err := launchd.Install(plist, defaultWait, g.Log)
 	if err != nil {
 		return nil, err
 	}
@@ -260,8 +263,8 @@ func installKBFSService(g *libkb.GlobalContext, service launchd.Service, plist l
 }
 
 func uninstallKBFSServices(runMode libkb.RunMode) error {
-	err1 := launchd.Uninstall(AppKBFSLabel.labelForRunMode(runMode), 5*time.Second, nil)
-	err2 := launchd.Uninstall(BrewKBFSLabel.labelForRunMode(runMode), 5*time.Second, nil)
+	err1 := launchd.Uninstall(AppKBFSLabel.labelForRunMode(runMode), defaultWait, nil)
+	err2 := launchd.Uninstall(BrewKBFSLabel.labelForRunMode(runMode), defaultWait, nil)
 	return libkb.CombineErrors(err1, err2)
 }
 
@@ -826,7 +829,7 @@ func keybaseUpdaterPlist(label string, serviceBinPath string, keybaseBinPath str
 }
 
 func installUpdaterService(service launchd.Service, plist launchd.Plist, log logger.Logger) (*keybase1.ServiceStatus, error) {
-	err := launchd.Install(plist, 5*time.Second, log)
+	err := launchd.Install(plist, defaultWait, log)
 	if err != nil {
 		return nil, err
 	}
@@ -836,5 +839,5 @@ func installUpdaterService(service launchd.Service, plist launchd.Plist, log log
 }
 
 func uninstallUpdater() error {
-	return launchd.Uninstall(string(AppUpdaterLabel), 5*time.Second, nil)
+	return launchd.Uninstall(string(AppUpdaterLabel), defaultWait, nil)
 }
