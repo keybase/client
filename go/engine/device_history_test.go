@@ -49,6 +49,13 @@ func TestDeviceHistoryBasic(t *testing.T) {
 		t.Logf("desktop: %+v", desktop)
 		t.Logf("paper:   %+v", paper)
 	}
+
+	// Check that LastUsedTime is set (since we're fetching our own device history)
+	for _, d := range devs {
+		if d.Device.LastUsedTime == 0 {
+			t.Fatal("last used time not set")
+		}
+	}
 }
 
 func TestDeviceHistoryRevoked(t *testing.T) {

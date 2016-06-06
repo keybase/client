@@ -35,6 +35,13 @@ class DevicePage extends Component {
         desc: 'Revoked ' + revoked.format('MMM D, YYYY'),
         subDesc: revoked.fromNow()
       })
+    } else if (device.lastUsed) {
+      const lastUsed = moment(device.lastUsed)
+      timeline.push({
+        type: 'LastUsed',
+        desc: 'Last used ' + lastUsed.format('MMM D, YYYY'),
+        subDesc: lastUsed.fromNow()
+      })
     }
     timeline.push({
       type: 'Added',

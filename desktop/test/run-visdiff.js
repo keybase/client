@@ -1,6 +1,7 @@
 import process from 'process'
 import fs from 'fs'
 import path from 'path'
+import crypto from 'crypto'
 import {execSync} from 'child_process'
 import _ from 'lodash'
 import gm from 'gm'
@@ -15,12 +16,36 @@ const DIFF_REMOVED = 'removed'
 const DIFF_CHANGED = 'changed'
 const DIFF_SAME = 'same'
 
+const DRY_RUN = !!process.env['VISDIFF_DRY_RUN']
+
+function packageHash () {
+  return crypto.createHash('sha1').update(fs.readFileSync('package.json')).digest('hex')
+}
+
+function checkout (commit) {
+  const origPackageHash = packageHash()
+  execSync(`rm -rf node_modules.${origPackageHash} && mv node_modules node_modules.${origPackageHash}`)
+  console.log(`Shelved node_modules to node_modules.${origPackageHash}.`)
+
+  execSync(`git checkout -f ${commit}`)
+  console.log(`Checked out ${commit}.`)
+
+  const newPackageHash = packageHash()
+  if (fs.existsSync(`node_modules.${newPackageHash}`)) {
+    console.log(`Reusing existing node_modules.${newPackageHash} directory.`)
+    execSync(`mv node_modules.${newPackageHash} node_modules`)
+  } else {
+    console.log(`Installing dependencies for package.json:${newPackageHash}...`)
+    execSync('../packaging/npm_mess.sh', {stdio: 'inherit'})
+  }
+}
+
 function renderScreenshots (commitRange) {
   for (const commit of commitRange) {
+    checkout(commit)
     console.log(`Rendering screenshots of ${commit}`)
-    execSync(`git checkout -f ${commit} && mkdir -p screenshots/${commit} && npm run render-screenshots -- screenshots/${commit}`)
+    execSync(`mkdir -p screenshots/${commit} && npm run render-screenshots -- screenshots/${commit}`, {stdio: 'inherit'})
   }
-  execSync(`git checkout -f ${commitRange[1]}`)
 }
 
 function compareScreenshots (commitRange, diffDir, callback) {
@@ -103,17 +128,16 @@ function processDiff (commitRange, results) {
     }
   })
 
-  const s3Env = {
-    ...process.env,
-    AWS_ACCESS_KEY_ID: process.env['VISDIFF_AWS_ACCESS_KEY_ID'],
-    AWS_SECRET_ACCESS_KEY: process.env['VISDIFF_AWS_SECRET_ACCESS_KEY']
+  if (!DRY_RUN) {
+    const s3Env = {
+      ...process.env,
+      AWS_ACCESS_KEY_ID: process.env['VISDIFF_AWS_ACCESS_KEY_ID'],
+      AWS_SECRET_ACCESS_KEY: process.env['VISDIFF_AWS_SECRET_ACCESS_KEY']
+    }
+    console.log(`Uploading ${diffDir} to ${BUCKET_S3}...`)
+    execSync(`s3cmd put --acl-public -r screenshots/${diffDir} ${BUCKET_S3}`, {env: s3Env})
+    console.log('Screenshots uploaded.')
   }
-  console.log(`Uploading ${diffDir} to ${BUCKET_S3}...`)
-  execSync(`s3cmd put --acl-public -r screenshots/${diffDir} ${BUCKET_S3}`, {env: s3Env})
-  console.log('Screenshots uploaded.')
-
-  var ghClient = github.client(process.env['VISDIFF_GH_TOKEN'])
-  var ghIssue = ghClient.issue('keybase/client', process.env['TRAVIS_PULL_REQUEST'])
 
   const commentLines = []
   let imageCount = 0
@@ -152,13 +176,20 @@ function processDiff (commitRange, results) {
   if (commentLines.length > 0) {
     commentLines.unshift(':mag_right: These commits introduced some visual changes:')
     const commentBody = commentLines.join('\n')
-    ghIssue.createComment({body: commentBody}, (err, res) => {
-      if (err) {
-        console.log('Failed to post visual diff on GitHub:', err.toString(), err.body)
-        process.exit(1)
-      }
-      console.log('Posted visual diff on GitHub:', res.html_url)
-    })
+
+    if (!DRY_RUN) {
+      var ghClient = github.client(process.env['VISDIFF_GH_TOKEN'])
+      var ghIssue = ghClient.issue('keybase/client', process.env['TRAVIS_PULL_REQUEST'])
+      ghIssue.createComment({body: commentBody}, (err, res) => {
+        if (err) {
+          console.log('Failed to post visual diff on GitHub:', err.toString(), err.body)
+          process.exit(1)
+        }
+        console.log('Posted visual diff on GitHub:', res.html_url)
+      })
+    } else {
+      console.log(commentBody)
+    }
   } else {
     console.log('No visual changes found as a result of these commits.')
   }

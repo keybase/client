@@ -14,6 +14,7 @@ export type Device = {
   provisioner: ?_Device;
   provisionedAt: ?Time;
   revokedAt: ?Time;
+  lastUsed: ?Time;
 }
 
 // Converts a string to the DeviceType enum, logging an error if it doesn't match

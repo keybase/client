@@ -3,7 +3,7 @@
 
 // This is a utility which binds to libkb to get the correct version
 // for printing out or generating compiled resources for the windows
-// executlable.
+// executable.
 
 // +build windows
 
@@ -17,12 +17,13 @@ import (
 	"os/exec"
 	"time"
 
+	"strconv"
+
 	"github.com/josephspurrier/goversioninfo"
 	"github.com/keybase/client/go/libkb"
-	"strconv"
 )
 
-func GetBuildName() string {
+func getBuildName() string {
 	// Todo: use regular build number when not doing prerelease
 
 	gitHash, err := exec.Command("cmd", "/C", "git", "log", "-1", "--pretty=format:%h").Output()
@@ -72,13 +73,13 @@ func main() {
 	}
 
 	if *printCustomVerPtr {
-		customVer := fmt.Sprintf("%d.%d.%d-%s", fv.Major, fv.Minor, fv.Patch, GetBuildName())
+		customVer := fmt.Sprintf("%d.%d.%d-%s", fv.Major, fv.Minor, fv.Patch, getBuildName())
 		fmt.Print(customVer)
 		return
 	}
 
 	if *printCustomBuildPtr {
-		fmt.Printf("%s", GetBuildName())
+		fmt.Printf("%s", getBuildName())
 		return
 	}
 
