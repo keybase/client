@@ -11,6 +11,7 @@ const common = {
   provisionedAt: null,
   revokedAt: null,
   currentDevice: false,
+  lastUsed: 1444423192001,
   onSubmit: () => { console.log('device revoke on submit') },
   onCancel: () => { console.log('device revoke on cancel') },
   parentProps: {
