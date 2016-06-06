@@ -464,16 +464,11 @@ func (s ServiceStatus) NeedsInstall() bool {
 }
 
 func (k *KID) UnmarshalJSON(b []byte) error {
-	fmt.Println("k1")
 	kid, err := KIDFromStringChecked(Unquote(b))
-	fmt.Println("k2")
 	if err != nil {
-		fmt.Println("k3")
 		return err
 	}
-	fmt.Println("k4")
 	*k = KID(kid)
-	fmt.Println("k5")
 	return nil
 }
 
