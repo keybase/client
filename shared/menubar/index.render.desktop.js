@@ -95,7 +95,8 @@ class Render extends Component<void, Props, State> {
       smallMode: true,
       private: newPrivate,
       public: newPublic,
-      onSwitchTab: showingPublic => this.setState({showingPublic})
+      onSwitchTab: showingPublic => this.setState({showingPublic}),
+      onRekey: this.props.onRekey
     }
 
     const menuColor = this.state.showingPublic

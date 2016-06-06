@@ -1,7 +1,7 @@
 // @flow
 import React from 'react'
 import type {Folder} from './list'
-import {Box, Text, Icon, Avatar, Meta, Usernames} from '../common-adapters'
+import {Box, Button, Text, Icon, Avatar, Meta, Usernames} from '../common-adapters'
 import type {Props as IconProps} from '../common-adapters/icon'
 import {globalStyles, globalColors} from '../styles/style-guide'
 import {resolveImageAsURL} from '../../desktop/resolve-root'
@@ -44,8 +44,8 @@ const RowMeta = ({ignored, meta, styles}) => {
   return <Meta {...metaProps} />
 }
 
-const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode, onClick, groupAvatar, userAvatar}:
-             {smallMode?: boolean, onClick: (path: string) => void} & Folder) => {
+const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode, onClick, groupAvatar, userAvatar, onRekey, path}:
+  {smallMode: boolean, onClick: (path: string) => void, onRekey: (path: string) => void} & Folder) => {
   const styles = isPublic ? stylesPublic : stylesPrivate
 
   const containerStyle = {
@@ -55,11 +55,7 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode, onCl
   const icon: IconProps.type = smallMode ? styles.hasStuffIcon.small : styles.hasStuffIcon.normal
 
   return (
-    <Box style={containerStyle} className='folder-row' onClick={() => {
-      if (onClick) {
-        const path = `/keybase/${isPublic ? 'public' : 'private'}/${users.map(u => u.username).join(',')}`
-        onClick(path)
-      } }}>
+    <Box style={containerStyle} className='folder-row' onClick={() => onClick && onClick(path)}>
       <Box style={stylesLine} />
       <Box style={{...globalStyles.flexBoxRow}}>
         <Avatars users={users} styles={styles} smallMode={smallMode} groupAvatar={groupAvatar} userAvatar={userAvatar} />
@@ -69,8 +65,12 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode, onCl
           {!(meta || ignored) && modified && <Modified modified={modified} styles={styles} />}
         </Box>
         <Box style={{...stylesActionContainer, width: smallMode ? undefined : 112}}>
-          {!smallMode && <Text type='BodySmall' className='folder-row-hover-action' style={stylesAction}>Open</Text>}
-          <Icon type={icon} style={{visibility: hasData ? 'visible' : 'hidden'}} />
+          {!smallMode && meta !== 'rekey' && <Text
+            type='BodySmall' className='folder-row-hover-action' style={stylesAction}>Open</Text>}
+          {meta === 'rekey' && <Button
+            backgroundMode={styles.modifiedMode} small={smallMode} type='Secondary'
+            onClick={() => onRekey && onRekey(path)} label='Rekey' style={stylesAction} />}
+          <Icon type={icon} style={{visibility: hasData ? 'visible' : 'hidden', ...(smallMode && !hasData ? {display: 'none'} : {})}} />
         </Box>
       </Box>
     </Box>
