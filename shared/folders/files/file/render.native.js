@@ -18,7 +18,8 @@ export default class Render extends Component<void, Props, void> {
           <Text type='BodySmall' style={pathStyleThemed[this.props.theme]}>{this.props.path}</Text>
           {!!this.props.lastModifiedBy && (<Box style={{...globalStyles.flexBoxRow}}>
             <Text type='BodySmall' style={{...pathStyleThemed[this.props.theme], marginLeft: 4, marginRight: 4}} inline>·</Text>
-            {this.props.modifiedMarker && <Icon type='thunderbolt' style={{height: 12, alignSelf: 'center', marginRight: 6, ...pathStyleThemed[this.props.theme]}} />}
+            {this.props.modifiedMarker &&
+              <Icon type='fa-kb-iconfont-thunderbolt' style={{fontSize: 13, marginRight: 4, color: pathStyleThemed[this.props.theme].color}} />}
             <Text type='BodySmall' style={modifiedByStyleThemed[this.props.theme]} inline>{this.props.lastModifiedMeta}</Text>
             <Text type='BodySmall' style={modifiedByStyleThemed[this.props.theme]} inline> by </Text>
             <Text type='BodySmallLink' style={{...modifyingUserStyleThemed[this.props.theme], ...(this.props.lastModifiedBySelf ? globalStyles.italic : {})}} inline>{this.props.lastModifiedBy}</Text>
