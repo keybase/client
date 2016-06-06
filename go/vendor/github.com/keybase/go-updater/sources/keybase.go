@@ -35,7 +35,7 @@ type KeybaseUpdateSource struct {
 }
 
 func NewKeybaseUpdateSource(log logger.Logger, api libkb.API, runMode libkb.RunMode, defaultChannel string) KeybaseUpdateSource {
-	legacyID, _ := util.RandString("", 20)
+	legacyID, _ := libkb.RandString("", 20)
 	return KeybaseUpdateSource{
 		log:            log,
 		api:            api,
@@ -83,6 +83,9 @@ func (k KeybaseUpdateSource) FindUpdate(options keybase1.UpdateOptions) (*keybas
 	}
 	defer libkb.DiscardAndCloseBody(resp)
 
+	if resp.StatusCode == http.StatusNotFound {
+		return nil, nil
+	}
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("Find update returned bad HTTP status %v", resp.Status)
 	}
