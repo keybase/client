@@ -829,8 +829,8 @@ func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableError(
 		return
 	}
 
-	dbcache := fbo.config.DirtyBlockCache()
-	topBlock, err := dbcache.Get(file.tailPointer(), fbo.branch())
+	dirtyBcache := fbo.config.DirtyBlockCache()
+	topBlock, err := dirtyBcache.Get(file.tailPointer(), fbo.branch())
 	fblock, ok := topBlock.(*FileBlock)
 	if err != nil || !ok {
 		fbo.log.CWarningf(ctx, "Couldn't find dirtied "+
@@ -858,11 +858,11 @@ func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableError(
 			fbo.log.CWarningf(ctx, "Couldn't re-dirty %v: %v", newPtr, err)
 			continue
 		}
-		err = dbcache.Put(newPtr, fbo.branch(), b)
+		err = dirtyBcache.Put(newPtr, fbo.branch(), b)
 		if err != nil {
 			fbo.log.CWarningf(ctx, "Couldn't re-dirty %v: %v", newPtr, err)
 		}
-		err = dbcache.Delete(oldPtr, fbo.branch())
+		err = dirtyBcache.Delete(oldPtr, fbo.branch())
 		if err != nil {
 			fbo.log.CDebugf(ctx, "Couldn't del-dirty %v: %v", oldPtr, err)
 		}
@@ -1005,13 +1005,13 @@ func (fbo *folderBlockOps) maybeWaitOnDeferredWrites(
 	// If there is too much unflushed data, we should wait until some
 	// of it gets flush so our memory usage doesn't grow without
 	// bound.
-	dbcache := fbo.config.DirtyBlockCache()
+	dirtyBcache := fbo.config.DirtyBlockCache()
 	var syncBlockingCh chan error
 	for {
 		overThreshold := func() bool {
 			fbo.blockLock.Lock(lState)
 			defer fbo.blockLock.Unlock(lState)
-			dirtyBytes := dbcache.DirtyBytesEstimate()
+			dirtyBytes := dirtyBcache.DirtyBytesEstimate()
 			if dirtyBytes < dirtyBytesThreshold {
 				return false
 			}
@@ -1120,8 +1120,8 @@ func (fbo *folderBlockOps) createIndirectBlockLocked(md *RootMetadata,
 			},
 		},
 	}
-	dbcache := fbo.config.DirtyBlockCache()
-	err = dbcache.Put(file.tailPointer(), file.Branch, fblock)
+	dirtyBcache := fbo.config.DirtyBlockCache()
+	err = dirtyBcache.Put(file.tailPointer(), file.Branch, fblock)
 
 	if err != nil {
 		return nil, err
@@ -1143,7 +1143,7 @@ func (fbo *folderBlockOps) writeDataLocked(
 		return WriteRange{}, nil, err
 	}
 
-	dbcache := fbo.config.DirtyBlockCache()
+	dirtyBcache := fbo.config.DirtyBlockCache()
 	bsplit := fbo.config.BlockSplitter()
 	n := int64(len(data))
 	nCopied := int64(0)
@@ -1248,7 +1248,7 @@ func (fbo *folderBlockOps) writeDataLocked(
 	}
 	latestWrite := si.op.addWrite(uint64(off), uint64(len(data)))
 
-	if d := dbcache.DirtyBytesEstimate(); d > dirtyBytesThreshold {
+	if d := dirtyBcache.DirtyBytesEstimate(); d > dirtyBytesThreshold {
 		fbo.log.CDebugf(ctx, "Forcing a sync due to %d dirty bytes", d)
 		select {
 		// If we can't send on the channel, that means a sync is
@@ -1397,8 +1397,8 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 	dirtyPtrs = append(dirtyPtrs, file.tailPointer())
 	latestWrite := si.op.addTruncate(size)
 
-	dbcache := fbo.config.DirtyBlockCache()
-	if d := dbcache.DirtyBytesEstimate(); d > dirtyBytesThreshold {
+	dirtyBcache := fbo.config.DirtyBlockCache()
+	if d := dirtyBcache.DirtyBytesEstimate(); d > dirtyBytesThreshold {
 		fbo.log.CDebugf(ctx, "Forcing a sync due to %d dirty bytes", d)
 		select {
 		// If we can't send on the channel, that means a sync is
@@ -1761,7 +1761,7 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 	}()
 
 	bcache := fbo.config.BlockCache()
-	dbcache := fbo.config.DirtyBlockCache()
+	dirtyBcache := fbo.config.DirtyBlockCache()
 
 	// Note: below we add possibly updated file blocks as "unref" and
 	// "ref" blocks.  This is fine, since conflict resolution or
@@ -1784,7 +1784,7 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 		// the blocks are be dirty.
 		for i := 0; i < len(fblock.IPtrs); i++ {
 			ptr := fblock.IPtrs[i]
-			isDirty := dbcache.IsDirty(ptr.BlockPointer, file.Branch)
+			isDirty := dirtyBcache.IsDirty(ptr.BlockPointer, file.Branch)
 			if (ptr.EncodedSize > 0) && isDirty {
 				return nil, nil, syncState, InconsistentEncodedSizeError{ptr.BlockInfo}
 			}
@@ -1875,7 +1875,7 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 
 		for i, ptr := range fblock.IPtrs {
 			localPtr := ptr.BlockPointer
-			isDirty := dbcache.IsDirty(localPtr, file.Branch)
+			isDirty := dirtyBcache.IsDirty(localPtr, file.Branch)
 			if (ptr.EncodedSize > 0) && isDirty {
 				return nil, nil, syncState, InconsistentEncodedSizeError{ptr.BlockInfo}
 			}
@@ -2035,9 +2035,9 @@ func (fbo *folderBlockOps) FinishSync(
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
 
-	dbcache := fbo.config.DirtyBlockCache()
+	dirtyBcache := fbo.config.DirtyBlockCache()
 	for _, ptr := range syncState.oldFileBlockPtrs {
-		if err := dbcache.Delete(ptr, fbo.branch()); err != nil {
+		if err := dirtyBcache.Delete(ptr, fbo.branch()); err != nil {
 			return true, err
 		}
 	}
@@ -2063,7 +2063,7 @@ func (fbo *folderBlockOps) FinishSync(
 	// Clear any dirty blocks that resulted from a write/truncate
 	// happening during the sync, since we're redoing them below.
 	for _, ptr := range deletes {
-		if err := dbcache.Delete(ptr, fbo.branch()); err != nil {
+		if err := dirtyBcache.Delete(ptr, fbo.branch()); err != nil {
 			return true, err
 		}
 	}

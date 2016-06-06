@@ -80,7 +80,7 @@ func kbfsOpsInit(t *testing.T, changeMd bool) (mockCtrl *gomock.Controller,
 	config.SetBlockCache(NewBlockCacheStandard(config, 100, 1<<30))
 	config.SetDirtyBlockCache(NewDirtyBlockCacheStandard())
 	config.mockBcache = nil
-	config.mockDBcache = nil
+	config.mockDirtyBcache = nil
 
 	if changeMd {
 		// Give different values for the MD Id so we can test that it
@@ -161,19 +161,19 @@ func checkBlockCache(t *testing.T, config *ConfigMock,
 
 	// make sure the dirty cache consists of exactly the right set of
 	// dirty blocks
-	dbcache := config.DirtyBlockCache().(*DirtyBlockCacheStandard)
+	dirtyBcache := config.DirtyBlockCache().(*DirtyBlockCacheStandard)
 	for ptr, branch := range expectedDirtyBlocks {
-		_, err := dbcache.Get(ptr, branch)
+		_, err := dirtyBcache.Get(ptr, branch)
 		if err != nil {
 			t.Errorf("BlockCache missing dirty block %v, branch %s at "+
 				"the end of the test: err %v", ptr, branch, err)
 		}
-		if !dbcache.IsDirty(ptr, branch) {
+		if !dirtyBcache.IsDirty(ptr, branch) {
 			t.Errorf("BlockCache has incorrectly clean block %v, branch %s at "+
 				"the end of the test: err %v", ptr, branch, err)
 		}
 	}
-	if len(dbcache.dirty) != len(expectedDirtyBlocks) {
+	if len(dirtyBcache.dirty) != len(expectedDirtyBlocks) {
 		t.Errorf("BlockCache has extra dirty blocks at end of test")
 	}
 }
@@ -4012,10 +4012,10 @@ func expectSyncDirtyBlock(config *ConfigMock, rmd *RootMetadata,
 	ptr BlockPointer, block *FileBlock, splitAt int64,
 	padSize int) *gomock.Call {
 	branch := MasterBranch
-	if config.mockDBcache != nil {
-		config.mockDBcache.EXPECT().IsDirty(ptrMatcher{ptr}, branch).
+	if config.mockDirtyBcache != nil {
+		config.mockDirtyBcache.EXPECT().IsDirty(ptrMatcher{ptr}, branch).
 			AnyTimes().Return(true)
-		config.mockDBcache.EXPECT().Get(ptrMatcher{ptr}, branch).
+		config.mockDirtyBcache.EXPECT().Get(ptrMatcher{ptr}, branch).
 			AnyTimes().Return(block, nil)
 	} else {
 		config.DirtyBlockCache().Put(ptr, branch, block)
@@ -4280,14 +4280,14 @@ func TestSyncDirtyDupBlockSuccess(t *testing.T) {
 func putAndCleanAnyBlock(config *ConfigMock, p path) {
 	config.mockBcache.EXPECT().Put(gomock.Any(), gomock.Any(), gomock.Any(), TransientEntry).
 		Do(func(ptr BlockPointer, tlf TlfID, block Block, lifetime BlockCacheLifetime) {
-			config.mockDBcache.EXPECT().
+			config.mockDirtyBcache.EXPECT().
 				Get(ptrMatcher{BlockPointer{ID: ptr.ID}}, p.Branch).
 				AnyTimes().Return(nil, NoSuchBlockError{ptr.ID})
 			config.mockBcache.EXPECT().
 				Get(ptrMatcher{BlockPointer{ID: ptr.ID}}).
 				AnyTimes().Return(block, nil)
 		}).AnyTimes().Return(nil)
-	config.mockDBcache.EXPECT().Delete(gomock.Any(), p.Branch).
+	config.mockDirtyBcache.EXPECT().Delete(gomock.Any(), p.Branch).
 		AnyTimes().Return(nil)
 }
 
@@ -4300,8 +4300,8 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	// the cache (in order to expect calls on them)
 	config.mockBcache = NewMockBlockCache(mockCtrl)
 	config.SetBlockCache(config.mockBcache)
-	config.mockDBcache = NewMockDirtyBlockCache(mockCtrl)
-	config.SetDirtyBlockCache(config.mockDBcache)
+	config.mockDirtyBcache = NewMockDirtyBlockCache(mockCtrl)
+	config.SetDirtyBlockCache(config.mockDirtyBcache)
 
 	uid, id, rmd := injectNewRMD(t, config)
 
@@ -4346,27 +4346,27 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	getOrCreateSyncInfo(ops, lState, rootBlock.Children["a"])
 
 	// fsync a, only block 2 is dirty
-	config.mockDBcache.EXPECT().IsDirty(
+	config.mockDirtyBcache.EXPECT().IsDirty(
 		ptrMatcher{fileBlock.IPtrs[0].BlockPointer},
 		p.Branch).AnyTimes().Return(false)
-	config.mockDBcache.EXPECT().IsDirty(
+	config.mockDirtyBcache.EXPECT().IsDirty(
 		ptrMatcher{fileBlock.IPtrs[2].BlockPointer},
 		p.Branch).Times(2).Return(false)
-	config.mockDBcache.EXPECT().Get(ptrMatcher{fileBlock.IPtrs[2].BlockPointer},
+	config.mockDirtyBcache.EXPECT().Get(ptrMatcher{fileBlock.IPtrs[2].BlockPointer},
 		p.Branch).Return(nil,
 		NoSuchBlockError{fileBlock.IPtrs[2].BlockPointer.ID})
 	config.mockBcache.EXPECT().Get(ptrMatcher{fileBlock.IPtrs[2].BlockPointer}).
 		Return(block3, nil)
-	config.mockDBcache.EXPECT().IsDirty(
+	config.mockDirtyBcache.EXPECT().IsDirty(
 		ptrMatcher{fileBlock.IPtrs[3].BlockPointer},
 		p.Branch).AnyTimes().Return(false)
-	config.mockDBcache.EXPECT().IsDirty(ptrMatcher{node.BlockPointer},
+	config.mockDirtyBcache.EXPECT().IsDirty(ptrMatcher{node.BlockPointer},
 		p.Branch).AnyTimes().Return(true)
-	config.mockDBcache.EXPECT().Get(ptrMatcher{node.BlockPointer}, p.Branch).
+	config.mockDirtyBcache.EXPECT().Get(ptrMatcher{node.BlockPointer}, p.Branch).
 		AnyTimes().Return(rootBlock, nil)
-	config.mockDBcache.EXPECT().IsDirty(ptrMatcher{fileNode.BlockPointer},
+	config.mockDirtyBcache.EXPECT().IsDirty(ptrMatcher{fileNode.BlockPointer},
 		p.Branch).AnyTimes().Return(true)
-	config.mockDBcache.EXPECT().Get(ptrMatcher{fileNode.BlockPointer},
+	config.mockDirtyBcache.EXPECT().Get(ptrMatcher{fileNode.BlockPointer},
 		p.Branch).AnyTimes().Return(fileBlock, nil)
 
 	// no matching pointers
@@ -4381,12 +4381,12 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 		int64(len(block2.Contents)-extraBytesFor3), pad2)
 	// this causes block 3 to be updated
 	var newBlock3 *FileBlock
-	config.mockDBcache.EXPECT().Put(fileBlock.IPtrs[2].BlockPointer,
+	config.mockDirtyBcache.EXPECT().Put(fileBlock.IPtrs[2].BlockPointer,
 		p.Branch, gomock.Any()).
 		Do(func(ptr BlockPointer, branch BranchName, block Block) {
 			newBlock3 = block.(*FileBlock)
 			// id3 syncs just fine
-			config.mockDBcache.EXPECT().IsDirty(ptrMatcher{ptr}, branch).
+			config.mockDirtyBcache.EXPECT().IsDirty(ptrMatcher{ptr}, branch).
 				AnyTimes().Return(true)
 			expectSyncDirtyBlock(config, rmd, ptr, newBlock3, int64(0), pad3)
 		}).Return(nil)
@@ -4400,19 +4400,19 @@ func TestSyncDirtyMultiBlocksSplitInBlockSuccess(t *testing.T) {
 	var newBlock5 *FileBlock
 	id5 := fakeBlockID(48)
 	config.mockCrypto.EXPECT().MakeTemporaryBlockID().Return(id5, nil)
-	config.mockDBcache.EXPECT().Put(ptrMatcher{BlockPointer{ID: id5}},
+	config.mockDirtyBcache.EXPECT().Put(ptrMatcher{BlockPointer{ID: id5}},
 		p.Branch, gomock.Any()).
 		Do(func(ptr BlockPointer, branch BranchName, block Block) {
 			newID5 = ptr.ID
 			newBlock5 = block.(*FileBlock)
 			// id5 syncs just fine
 			expectSyncDirtyBlock(config, rmd, ptr, newBlock5, int64(0), pad5)
-			config.mockDBcache.EXPECT().IsDirty(ptrMatcher{ptr}, branch).
+			config.mockDirtyBcache.EXPECT().IsDirty(ptrMatcher{ptr}, branch).
 				AnyTimes().Return(true)
 		}).Return(nil)
 
 	// The parent is dirtied too since the pointers changed
-	config.mockDBcache.EXPECT().Put(fileNode.BlockPointer, p.Branch,
+	config.mockDirtyBcache.EXPECT().Put(fileNode.BlockPointer, p.Branch,
 		gomock.Any()).AnyTimes().Return(nil)
 
 	// sync block contents and their padding sizes
@@ -4491,8 +4491,8 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	// the cache (in order to expect calls on them)
 	config.mockBcache = NewMockBlockCache(mockCtrl)
 	config.SetBlockCache(config.mockBcache)
-	config.mockDBcache = NewMockDirtyBlockCache(mockCtrl)
-	config.SetDirtyBlockCache(config.mockDBcache)
+	config.mockDirtyBcache = NewMockDirtyBlockCache(mockCtrl)
+	config.SetDirtyBlockCache(config.mockDirtyBcache)
 
 	uid, id, rmd := injectNewRMD(t, config)
 
@@ -4537,28 +4537,28 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 	getOrCreateSyncInfo(ops, lState, rootBlock.Children["a"])
 
 	// fsync a, only block 2 is dirty
-	config.mockDBcache.EXPECT().IsDirty(ptrMatcher{fileNode.BlockPointer},
+	config.mockDirtyBcache.EXPECT().IsDirty(ptrMatcher{fileNode.BlockPointer},
 		p.Branch).AnyTimes().Return(true)
-	config.mockDBcache.EXPECT().Get(ptrMatcher{fileNode.BlockPointer},
+	config.mockDirtyBcache.EXPECT().Get(ptrMatcher{fileNode.BlockPointer},
 		p.Branch).AnyTimes().Return(fileBlock, nil)
-	config.mockDBcache.EXPECT().IsDirty(ptrMatcher{node.BlockPointer},
+	config.mockDirtyBcache.EXPECT().IsDirty(ptrMatcher{node.BlockPointer},
 		p.Branch).AnyTimes().Return(true)
-	config.mockDBcache.EXPECT().Get(ptrMatcher{node.BlockPointer}, p.Branch).
+	config.mockDirtyBcache.EXPECT().Get(ptrMatcher{node.BlockPointer}, p.Branch).
 		AnyTimes().Return(rootBlock, nil)
-	config.mockDBcache.EXPECT().Get(ptrMatcher{fileBlock.IPtrs[1].BlockPointer},
+	config.mockDirtyBcache.EXPECT().Get(ptrMatcher{fileBlock.IPtrs[1].BlockPointer},
 		p.Branch).Return(nil,
 		NoSuchBlockError{fileBlock.IPtrs[1].BlockPointer.ID})
 	config.mockBcache.EXPECT().Get(ptrMatcher{fileBlock.IPtrs[1].BlockPointer}).
 		Return(block2, nil)
-	config.mockDBcache.EXPECT().IsDirty(
+	config.mockDirtyBcache.EXPECT().IsDirty(
 		ptrMatcher{fileBlock.IPtrs[1].BlockPointer},
 		p.Branch).AnyTimes().Return(false)
-	config.mockDBcache.EXPECT().Get(ptrMatcher{fileBlock.IPtrs[3].BlockPointer},
+	config.mockDirtyBcache.EXPECT().Get(ptrMatcher{fileBlock.IPtrs[3].BlockPointer},
 		p.Branch).Return(nil,
 		NoSuchBlockError{fileBlock.IPtrs[3].BlockPointer.ID})
 	config.mockBcache.EXPECT().Get(ptrMatcher{fileBlock.IPtrs[3].BlockPointer}).
 		Return(block4, nil)
-	config.mockDBcache.EXPECT().IsDirty(
+	config.mockDirtyBcache.EXPECT().IsDirty(
 		ptrMatcher{fileBlock.IPtrs[3].BlockPointer},
 		p.Branch).Times(2).Return(false)
 
@@ -4590,19 +4590,19 @@ func TestSyncDirtyMultiBlocksCopyNextBlockSuccess(t *testing.T) {
 			block.Contents = append(block.Contents, data[:3]...)
 		}).Return(split4At)
 	var newBlock4 *FileBlock
-	config.mockDBcache.EXPECT().Put(fileBlock.IPtrs[3].BlockPointer,
+	config.mockDirtyBcache.EXPECT().Put(fileBlock.IPtrs[3].BlockPointer,
 		p.Branch, gomock.Any()).
 		Do(func(ptr BlockPointer, branch BranchName, block Block) {
 			newBlock4 = block.(*FileBlock)
 			// now block 4 is dirty, but it's the end of the line,
 			// so nothing else to do
 			expectSyncDirtyBlock(config, rmd, ptr, newBlock4, int64(-1), pad4)
-			config.mockDBcache.EXPECT().IsDirty(ptrMatcher{ptr}, branch).
+			config.mockDirtyBcache.EXPECT().IsDirty(ptrMatcher{ptr}, branch).
 				AnyTimes().Return(false)
 		}).Return(nil)
 
 	// The parent is dirtied too since the pointers changed
-	config.mockDBcache.EXPECT().Put(fileNode.BlockPointer, p.Branch,
+	config.mockDirtyBcache.EXPECT().Put(fileNode.BlockPointer, p.Branch,
 		gomock.Any()).AnyTimes().Return(nil)
 
 	// sync block
