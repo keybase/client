@@ -81,6 +81,7 @@ func makeFakeIndirectFilePtrFuture(t *testing.T) indirectFilePtrFuture {
 		indirectFilePtrCurrent{
 			makeFakeBlockInfo(t),
 			25,
+			false,
 			codec.UnknownFieldSetHandler{},
 		},
 		makeExtraOrBust("IndirectFilePtr", t),

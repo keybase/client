@@ -186,6 +186,9 @@ const (
 	// valid data version. Note that the nil value is not
 	// considered valid.
 	FirstValidDataVer = 1
+	// FilesWithHolesDataVer is the data version for files
+	// with holes.
+	FilesWithHolesDataVer = 2
 )
 
 // BlockRefNonce is a 64-bit unique sequence of bytes for identifying

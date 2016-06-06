@@ -473,7 +473,8 @@ func (fbo *folderBranchOps) checkDataVersion(p path, ptr BlockPointer) error {
 	if ptr.DataVer < FirstValidDataVer {
 		return InvalidDataVersionError{ptr.DataVer}
 	}
-	if ptr.DataVer > fbo.config.DataVersion() {
+	// TODO: migrate back to fbo.config.DataVersion
+	if ptr.DataVer > FilesWithHolesDataVer {
 		return NewDataVersionError{p, ptr.DataVer}
 	}
 	return nil

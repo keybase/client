@@ -496,13 +496,13 @@ func (fbo *folderBlockOps) getFileBlockAtOffsetLocked(ctx context.Context,
 	lState *lockState, md *RootMetadata, file path, topBlock *FileBlock,
 	off int64, rtype blockReqType) (
 	ptr BlockPointer, parentBlock *FileBlock, indexInParent int,
-	block *FileBlock, more bool, startOff int64, err error) {
+	block *FileBlock, nextBlockStartOff, startOff int64, err error) {
 	fbo.blockLock.AssertAnyLocked(lState)
 
 	// find the block matching the offset, if it exists
 	ptr = file.tailPointer()
 	block = topBlock
-	more = false
+	nextBlockStartOff = -1
 	startOff = 0
 	// search until it's not an indirect block
 	for block.IsInd {
@@ -525,7 +525,9 @@ func (fbo *folderBlockOps) getFileBlockAtOffsetLocked(ctx context.Context,
 		startOff = nextPtr.Off
 		// there is more to read if we ever took a path through a
 		// ptr that wasn't the final ptr in its respective list
-		more = more || (nextIndex != len(block.IPtrs)-1)
+		if nextIndex != len(block.IPtrs)-1 {
+			nextBlockStartOff = block.IPtrs[nextIndex+1].Off
+		}
 		ptr = nextPtr.BlockPointer
 		if block, err = fbo.getFileBlockLocked(ctx, lState, md, ptr, file, rtype); err != nil {
 			return
@@ -734,7 +736,7 @@ func (fbo *folderBlockOps) newRightBlockLocked(
 	newPtr := BlockPointer{
 		ID:       newRID,
 		KeyGen:   md.LatestKeyGeneration(),
-		DataVer:  fbo.config.DataVersion(),
+		DataVer:  DefaultNewBlockDataVersion(fbo.config, false),
 		Creator:  uid,
 		RefNonce: zeroBlockRefNonce,
 	}
@@ -950,7 +952,7 @@ func (fbo *folderBlockOps) Read(
 	for nRead < n {
 		nextByte := nRead + off
 		toRead := n - nRead
-		_, _, _, block, _, startOff, err := fbo.getFileBlockAtOffsetLocked(
+		_, _, _, block, nextBlockOff, startOff, err := fbo.getFileBlockAtOffsetLocked(
 			ctx, lState, md, file, fblock, nextByte, blockRead)
 		if err != nil {
 			return 0, err
@@ -959,6 +961,22 @@ func (fbo *folderBlockOps) Read(
 		lastByteInBlock := startOff + blockLen
 
 		if nextByte >= lastByteInBlock {
+			if nextBlockOff > 0 {
+				fill := nextBlockOff - nextByte
+				if fill > toRead {
+					fill = toRead
+				}
+				fbo.log.CDebugf(ctx, "Read from hole: nextByte=%d lastByteInBlock=%d fill=%d\n", nextByte, lastByteInBlock, fill)
+				if fill <= 0 {
+					fbo.log.CErrorf(ctx, "Read invalid file fill <= 0 while reading hole")
+					return nRead, BadSplitError{}
+				}
+				for i := 0; i < int(fill); i++ {
+					dest[int(nRead)+i] = 0
+				}
+				nRead += fill
+				continue
+			}
 			return nRead, nil
 		} else if toRead > lastByteInBlock-nextByte {
 			toRead = lastByteInBlock - nextByte
@@ -1042,27 +1060,76 @@ func (fbo *folderBlockOps) pathFromNodeForBlockWriteLocked(
 	return p, nil
 }
 
+// writeGetFileLocked checks write permissions explicitly for
+// writeDataLocked, truncateLocked etc and returns
+func (fbo *folderBlockOps) writeGetFileLocked(
+	ctx context.Context, lState *lockState, md *RootMetadata,
+	file path) (*FileBlock, keybase1.UID, error) {
+	fbo.blockLock.AssertLocked(lState)
+
+	username, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
+	if err != nil {
+		return nil, "", err
+	}
+	if !md.GetTlfHandle().IsWriter(uid) {
+		return nil, "", NewWriteAccessError(md.GetTlfHandle(), username)
+	}
+	fblock, err := fbo.getFileLocked(ctx, lState, md, file, blockWrite)
+	if err != nil {
+		return nil, "", err
+	}
+	return fblock, uid, nil
+}
+
+// createIndirectBlockLocked creates a new indirect block and
+// pick a new id for the existing block, and use the existing block's ID for
+// the new indirect block that becomes the parent.
+func (fbo *folderBlockOps) createIndirectBlockLocked(md *RootMetadata,
+	file path, uid keybase1.UID, dver DataVer) (*FileBlock, error) {
+
+	newID, err := fbo.config.Crypto().MakeTemporaryBlockID()
+	if err != nil {
+		return nil, err
+	}
+	fblock := &FileBlock{
+		CommonBlock: CommonBlock{
+			IsInd: true,
+		},
+		IPtrs: []IndirectFilePtr{
+			{
+				BlockInfo: BlockInfo{
+					BlockPointer: BlockPointer{
+						ID:       newID,
+						KeyGen:   md.LatestKeyGeneration(),
+						DataVer:  dver,
+						Creator:  uid,
+						RefNonce: zeroBlockRefNonce,
+					},
+					EncodedSize: 0,
+				},
+				Off: 0,
+			},
+		},
+	}
+	bcache := fbo.config.BlockCache()
+	err = bcache.PutDirty(file.tailPointer(), file.Branch, fblock)
+
+	if err != nil {
+		return nil, err
+	}
+	return fblock, nil
+}
+
 // Returns the set of blocks dirtied during this write that might need
 // to be cleaned up if the write is deferred.
 func (fbo *folderBlockOps) writeDataLocked(
 	ctx context.Context, lState *lockState, md *RootMetadata, file path,
 	data []byte, off int64) (WriteRange, []BlockPointer, error) {
-	fbo.blockLock.AssertLocked(lState)
-
 	if sz := off + int64(len(data)); uint64(sz) > fbo.config.MaxFileBytes() {
 		return WriteRange{}, nil, FileTooBigError{file, sz, fbo.config.MaxFileBytes()}
 	}
 
-	// check writer status explicitly
-	username, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
-	if err != nil {
-		return WriteRange{}, nil, err
-	}
-	if !md.GetTlfHandle().IsWriter(uid) {
-		return WriteRange{}, nil, NewWriteAccessError(md.GetTlfHandle(), username)
-	}
-
-	fblock, err := fbo.getFileLocked(ctx, lState, md, file, blockWrite)
+	fblock, uid, err := fbo.writeGetFileLocked(ctx, lState, md, file)
 	if err != nil {
 		return WriteRange{}, nil, err
 	}
@@ -1080,7 +1147,7 @@ func (fbo *folderBlockOps) writeDataLocked(
 	si := fbo.getOrCreateSyncInfoLocked(lState, de)
 	var dirtyPtrs []BlockPointer
 	for nCopied < n {
-		ptr, parentBlock, indexInParent, block, more, startOff, err :=
+		ptr, parentBlock, indexInParent, block, nextBlockOff, startOff, err :=
 			fbo.getFileBlockAtOffsetLocked(
 				ctx, lState, md, file, fblock,
 				off+nCopied, blockWrite)
@@ -1089,52 +1156,27 @@ func (fbo *folderBlockOps) writeDataLocked(
 		}
 
 		oldLen := len(block.Contents)
-		nCopied += bsplit.CopyUntilSplit(block, !more, data[nCopied:],
-			off+nCopied-startOff)
-
-		// the block splitter could only have copied to the end of the
-		// existing block (or appended to the end of the final block), so
-		// we shouldn't ever hit this case:
-		if more && oldLen < len(block.Contents) {
-			return WriteRange{}, nil, BadSplitError{}
+		// Take care not to write past the beginning of the next block by using max.
+		max := len(data)
+		if nextBlockOff > 0 {
+			if room := int(nextBlockOff - off); room < max {
+				max = room
+			}
 		}
+		nCopied += bsplit.CopyUntilSplit(block, nextBlockOff < 0, data[nCopied:max],
+			off+nCopied-startOff)
 
 		// TODO: support multiple levels of indirection.  Right now the
 		// code only does one but it should be straightforward to
 		// generalize, just annoying
 
 		// if we need another block but there are no more, then make one
-		if nCopied < n && !more {
+		if nCopied < n && nextBlockOff < 0 {
 			// If the block doesn't already have a parent block, make one.
 			if ptr == file.tailPointer() {
-				// pick a new id for this block, and use this block's ID for
-				// the parent
-				newID, err := fbo.config.Crypto().MakeTemporaryBlockID()
+				fblock, err = fbo.createIndirectBlockLocked(md, file, uid,
+					DefaultNewBlockDataVersion(fbo.config, false))
 				if err != nil {
-					return WriteRange{}, nil, err
-				}
-				fblock = &FileBlock{
-					CommonBlock: CommonBlock{
-						IsInd: true,
-					},
-					IPtrs: []IndirectFilePtr{
-						{
-							BlockInfo: BlockInfo{
-								BlockPointer: BlockPointer{
-									ID:       newID,
-									KeyGen:   md.LatestKeyGeneration(),
-									DataVer:  fbo.config.DataVersion(),
-									Creator:  uid,
-									RefNonce: zeroBlockRefNonce,
-								},
-								EncodedSize: 0,
-							},
-							Off: 0,
-						},
-					},
-				}
-				if err := bcache.PutDirty(
-					file.tailPointer(), file.Branch, fblock); err != nil {
 					return WriteRange{}, nil, err
 				}
 				ptr = fblock.IPtrs[0].BlockPointer
@@ -1142,14 +1184,26 @@ func (fbo *folderBlockOps) writeDataLocked(
 
 			// Make a new right block and update the parent's
 			// indirect block list
-			err := fbo.newRightBlockLocked(ctx, lState, file.tailPointer(),
+			err = fbo.newRightBlockLocked(ctx, lState, file.tailPointer(),
 				file.Branch, fblock, startOff+int64(len(block.Contents)), md)
 			if err != nil {
 				return WriteRange{}, nil, err
 			}
+		} else if nCopied < n && off+nCopied < nextBlockOff {
+			// We need a new block to be inserted here
+			err = fbo.newRightBlockLocked(ctx, lState, file.tailPointer(),
+				file.Branch, fblock, startOff+int64(len(block.Contents)), md)
+			if err != nil {
+				return WriteRange{}, nil, err
+			}
+			// And push the indirect pointers to right
+			newb := fblock.IPtrs[len(fblock.IPtrs)-1]
+			copy(fblock.IPtrs[indexInParent+2:], fblock.IPtrs[indexInParent+1:])
+			fblock.IPtrs[indexInParent+1] = newb
 		}
 
-		if oldLen != len(block.Contents) {
+		// Only in the last block does the file size grow.
+		if oldLen != len(block.Contents) && nextBlockOff < 0 {
 			de.EncodedSize = 0
 			// update the file info
 			de.Size += uint64(len(block.Contents) - oldLen)
@@ -1256,45 +1310,137 @@ func (fbo *folderBlockOps) Write(
 	return nil
 }
 
+// truncateExtendLocked is called by truncateLocked to extend a file and
+// creates a hole.
+func (fbo *folderBlockOps) truncateExtendLocked(
+	ctx context.Context, lState *lockState, md *RootMetadata,
+	file path, size uint64) (WriteRange, []BlockPointer, error) {
+
+	if size > fbo.config.MaxFileBytes() {
+		return WriteRange{}, nil, FileTooBigError{file, int64(size), fbo.config.MaxFileBytes()}
+	}
+
+	fblock, uid, err := fbo.writeGetFileLocked(ctx, lState, md, file)
+	if err != nil {
+		return WriteRange{}, nil, err
+	}
+
+	var dirtyPtrs []BlockPointer
+
+	fbo.log.CDebugf(ctx, "truncateExtendLocked: extending fblock %#v", fblock)
+	if !fblock.IsInd {
+		fbo.log.CDebugf(ctx, "truncateExtendLocked: making block indirect %v", file.tailPointer())
+		old := fblock
+		fblock, err = fbo.createIndirectBlockLocked(md, file, uid,
+			DefaultNewBlockDataVersion(fbo.config, true))
+		if err != nil {
+			return WriteRange{}, nil, err
+		}
+		fblock.IPtrs[0].Holes = true
+		err = fbo.cacheBlockIfNotYetDirtyLocked(lState, fblock.IPtrs[0].BlockPointer, file.Branch, old)
+		if err != nil {
+			return WriteRange{}, nil, err
+		}
+		dirtyPtrs = append(dirtyPtrs, fblock.IPtrs[0].BlockPointer)
+		fbo.log.CDebugf(ctx, "truncateExtendLocked: new zero data block %v", fblock.IPtrs[0].BlockPointer)
+	}
+
+	// TODO: support multiple levels of indirection.  Right now the
+	// code only does one but it should be straightforward to
+	// generalize, just annoying
+
+	err = fbo.newRightBlockLocked(ctx, lState, file.tailPointer(),
+		file.Branch, fblock, int64(size), md)
+	if err != nil {
+		return WriteRange{}, nil, err
+	}
+	dirtyPtrs = append(dirtyPtrs, fblock.IPtrs[len(fblock.IPtrs)-1].BlockPointer)
+	fbo.log.CDebugf(ctx, "truncateExtendLocked: new right data block %v", fblock.IPtrs[len(fblock.IPtrs)-1].BlockPointer)
+
+	de, err := fbo.getDirtyEntryLocked(ctx, lState, md, file)
+	if err != nil {
+		return WriteRange{}, nil, err
+	}
+
+	si := fbo.getOrCreateSyncInfoLocked(lState, de)
+
+	de.EncodedSize = 0
+	// update the file info
+	de.Size = size
+	fbo.deCache[file.tailPointer().ref()] = de
+
+	// Mark all for presense of holes, one would be enough,
+	// but this is more robust and easy.
+	for i := range fblock.IPtrs {
+		fblock.IPtrs[i].Holes = true
+	}
+	// Always make the top block dirty, so we will sync its
+	// indirect blocks.  This has the added benefit of ensuring
+	// that any write to a file while it's being sync'd will be
+	// deferred, even if it's to a block that's not currently
+	// being sync'd, since this top-most block will always be in
+	// the fileBlockStates map.
+	err = fbo.cacheBlockIfNotYetDirtyLocked(lState,
+		file.tailPointer(), file.Branch, fblock)
+	if err != nil {
+		return WriteRange{}, nil, err
+	}
+	dirtyPtrs = append(dirtyPtrs, file.tailPointer())
+	latestWrite := si.op.addTruncate(size)
+
+	bcache := fbo.config.BlockCache()
+	if d := bcache.DirtyBytesEstimate(); d > dirtyBytesThreshold {
+		fbo.log.CDebugf(ctx, "Forcing a sync due to %d dirty bytes", d)
+		select {
+		// If we can't send on the channel, that means a sync is
+		// already in progress
+		case fbo.forceSyncChan <- struct{}{}:
+		default:
+		}
+	}
+
+	fbo.log.CDebugf(ctx, "truncateExtendLocked: done")
+	return latestWrite, dirtyPtrs, nil
+}
+
+// truncateExtendCutoffPoint is the amount of data in extending
+// truncate that will trigger the extending with a hole algorithm.
+const truncateExtendCutoffPoint = 128 * 1024
+
 // Returns the set of newly-ID'd blocks created during this truncate
 // that might need to be cleaned up if the truncate is deferred.
 func (fbo *folderBlockOps) truncateLocked(
 	ctx context.Context, lState *lockState, md *RootMetadata,
 	file path, size uint64) (*WriteRange, []BlockPointer, error) {
-	fbo.blockLock.AssertLocked(lState)
-
-	// check writer status explicitly
-	username, uid, err := fbo.config.KBPKI().GetCurrentUserInfo(ctx)
+	fblock, _, err := fbo.writeGetFileLocked(ctx, lState, md, file)
 	if err != nil {
-		return nil, nil, err
-	}
-	if !md.GetTlfHandle().IsWriter(uid) {
-		return nil, nil, NewWriteAccessError(md.GetTlfHandle(), username)
-	}
-
-	fblock, err := fbo.getFileLocked(ctx, lState, md, file, blockWrite)
-	if err != nil {
-		return nil, nil, err
+		return &WriteRange{}, nil, err
 	}
 
 	// find the block where the file should now end
 	iSize := int64(size) // TODO: deal with overflow
-	ptr, parentBlock, indexInParent, block, more, startOff, err :=
+	ptr, parentBlock, indexInParent, block, nextBlockOff, startOff, err :=
 		fbo.getFileBlockAtOffsetLocked(
 			ctx, lState, md, file, fblock, iSize, blockWrite)
 
 	currLen := int64(startOff) + int64(len(block.Contents))
-	if currLen < iSize {
-		// if we need to extend the file, let's just do a write
+	if currLen+truncateExtendCutoffPoint < iSize {
+		latestWrite, dirtyPtrs, err := fbo.truncateExtendLocked(
+			ctx, lState, md, file, uint64(iSize))
+		if err != nil {
+			return &latestWrite, dirtyPtrs, err
+		}
+		return &latestWrite, dirtyPtrs, err
+	} else if currLen < iSize {
 		moreNeeded := iSize - currLen
 		latestWrite, dirtyPtrs, err := fbo.writeDataLocked(
 			ctx, lState, md, file,
 			make([]byte, moreNeeded, moreNeeded), currLen)
 		if err != nil {
-			return nil, nil, err
+			return &latestWrite, dirtyPtrs, err
 		}
 		return &latestWrite, dirtyPtrs, err
-	} else if currLen == iSize {
+	} else if currLen == iSize && nextBlockOff < 0 {
 		// same size!
 		return nil, nil, nil
 	}
@@ -1309,7 +1455,7 @@ func (fbo *folderBlockOps) truncateLocked(
 	block.Contents = append([]byte(nil), block.Contents[:iSize-startOff]...)
 
 	si := fbo.getOrCreateSyncInfoLocked(lState, de)
-	if more {
+	if nextBlockOff > 0 {
 		// TODO: if indexInParent == 0, we can remove the level of indirection
 		for _, ptr := range parentBlock.IPtrs[indexInParent+1:] {
 			si.unrefs = append(si.unrefs, ptr.BlockInfo)
@@ -1497,7 +1643,7 @@ func (fbo *folderBlockOps) ReadyBlock(ctx context.Context, md *RootMetadata,
 		ptr = BlockPointer{
 			ID:       id,
 			KeyGen:   md.LatestKeyGeneration(),
-			DataVer:  fbo.config.DataVersion(),
+			DataVer:  block.DataVersion(),
 			Creator:  uid,
 			RefNonce: zeroBlockRefNonce,
 		}
@@ -1633,7 +1779,7 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 				return nil, nil, syncState, InconsistentEncodedSizeError{ptr.BlockInfo}
 			}
 			if isDirty {
-				_, _, _, block, more, _, err :=
+				_, _, _, block, nextBlockOff, _, err :=
 					fbo.getFileBlockAtOffsetLocked(
 						ctx, lState, md, file, fblock,
 						ptr.Off, blockWrite)
@@ -1650,7 +1796,7 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 					extraBytes := block.Contents[splitAt:]
 					block.Contents = block.Contents[:splitAt]
 					// put the extra bytes in front of the next block
-					if !more {
+					if nextBlockOff < 0 {
 						// need to make a new block
 						if err := fbo.newRightBlockLocked(
 							ctx, lState, file.tailPointer(), file.Branch, fblock,
@@ -1674,7 +1820,7 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 					md.AddUnrefBlock(fblock.IPtrs[i+1].BlockInfo)
 					fblock.IPtrs[i+1].EncodedSize = 0
 				case splitAt < 0:
-					if !more {
+					if nextBlockOff < 0 {
 						// end of the line
 						continue
 					}
