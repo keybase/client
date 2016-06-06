@@ -86,7 +86,7 @@ func WaitForServiceInfoFile(path string, label string, pid string, maxAttempts i
 	serviceInfo, lookErr := lookForServiceInfo()
 	for attempt < maxAttempts && serviceInfo == nil {
 		attempt++
-		log.Debug("Waiting for service info file...")
+		log.Debug("Waiting for service info file (%s)...", path)
 		time.Sleep(wait)
 		serviceInfo, lookErr = lookForServiceInfo()
 	}
