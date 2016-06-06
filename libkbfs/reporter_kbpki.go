@@ -43,6 +43,7 @@ var noErrorNames = map[string]bool{
 	"Gemfile":        true, // rvm
 	"devfs":          true, // lsof?  KBFS-823
 	"_mtn":           true, // emacs on Linux
+	"_MTN":           true, // emacs on Linux
 	"docker-machine": true, // docker shell stuff
 	"HEAD":           true, // git shell
 	"Keybase.app":    true, // some OSX mount thing
