@@ -14,6 +14,7 @@ export type RenderProps = $Shape<{
   proofsProps: ProofsProps,
   name?: string,
   nonUser?: ?boolean,
+  serviceName?: string,
   reason?: string,
   inviteLink?: ?string,
   isPrivate?: boolean

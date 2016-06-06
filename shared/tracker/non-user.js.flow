@@ -8,6 +8,7 @@ import {globalColors, globalStyles} from '../styles/style-guide'
 
 export type Props = $Shape<{
   name: string,
+  serviceName: string,
   reason: string,
   isPrivate: boolean,
   inviteLink: ?string,
