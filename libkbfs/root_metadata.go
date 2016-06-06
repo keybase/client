@@ -834,13 +834,12 @@ func (rmds *RootMetadataSigned) MakeFinalCopy(config Config) (
 		return nil, MetadataIsFinalError{}
 	}
 	var newRmds RootMetadataSigned
-	if err := CodecUpdate(config.Codec(), &newRmds, rmds); err != nil {
-		return nil, err
-	}
 	err := rmds.MD.deepCopyInPlace(config.Codec(), false, &newRmds.MD)
 	if err != nil {
 		return nil, err
 	}
+	// copy the signature
+	newRmds.SigInfo = rmds.SigInfo.deepCopy()
 	// clear the serialized data.
 	newRmds.MD.SerializedPrivateMetadata = nil
 	// set the final flag

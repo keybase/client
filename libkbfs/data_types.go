@@ -84,8 +84,8 @@ func (s SignatureInfo) IsNil() bool {
 	return s.Version.IsNil() && len(s.Signature) == 0 && s.VerifyingKey.IsNil()
 }
 
-// deepCopyForTest makes a complete copy of this SignatureInfo.
-func (s SignatureInfo) deepCopyForTest() SignatureInfo {
+// deepCopy makes a complete copy of this SignatureInfo.
+func (s SignatureInfo) deepCopy() SignatureInfo {
 	signature := make([]byte, len(s.Signature))
 	copy(signature[:], s.Signature[:])
 	return SignatureInfo{s.Version, signature, s.VerifyingKey}
