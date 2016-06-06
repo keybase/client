@@ -13,9 +13,7 @@ class Button extends Component {
     let backgroundStyle = {}
     let labelStyle = {}
     let progressColor = globalColors.white
-    let rippleStyle: {rippleColor?: string} = {}
-    // Set all button ripples to be more prominent
-    rippleStyle = {rippleColor: 'rgba(0, 0, 0, 0.3)'}
+    let rippleStyle: {rippleColor?: string} = {rippleColor: 'rgba(0, 0, 0, 0.3)'}
 
     const disabled = this.props.disabled || this.props.waiting
 
