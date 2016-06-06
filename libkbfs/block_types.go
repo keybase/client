@@ -25,7 +25,7 @@ type IndirectFilePtr struct {
 	BlockInfo
 	Off int64 `codec:"o"`
 	// Marker for files with holes
-	Holes bool
+	Holes bool `codec:"h,omitempty"`
 
 	codec.UnknownFieldSetHandler
 }
