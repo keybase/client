@@ -65,6 +65,7 @@ func (r *RekeyUIHandler) rekeyNeeded(ctx context.Context, item gregor.Item) erro
 
 	var problemSet keybase1.ProblemSet
 	if err := json.Unmarshal(item.Body().Bytes(), &problemSet); err != nil {
+		r.G().Log.Debug("error: %s", err)
 		return err
 	}
 

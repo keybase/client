@@ -62,6 +62,7 @@ const problemSet = `{
 		"uid": "295a7eea607af32040647123732bc819",
 		"username": "t_alice"
 	},
+	"kid": "1212121212",
 	"tlfs": [
 		{
 			"tlf": {

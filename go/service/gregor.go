@@ -176,7 +176,7 @@ func (g *gregorHandler) PushHandler(handler libkb.GregorInBandMessageHandler) {
 	g.ibmHandlers = append(g.ibmHandlers, handler)
 
 	if _, err := g.replayInBandMessages(context.TODO(), time.Time{}, handler); err != nil {
-		g.G().Log.Errorf("gregor handler: ConnectIdenfityUI() failed")
+		g.G().Log.Errorf("gregor handler: replayInBandMessages on PushHandler failed: %s", err)
 	}
 }
 
@@ -198,9 +198,12 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, t time.Time,
 		// If we have a handler, just run it on that, otherwise run it against
 		// all of the handlers we know about
 		if handler == nil {
-			g.handleInBandMessage(ctx, msg)
+			err = g.handleInBandMessage(ctx, msg)
 		} else {
-			g.handleInBandMessageWithHandler(ctx, msg, handler)
+			err = g.handleInBandMessageWithHandler(ctx, msg, handler)
+		}
+		if err != nil {
+			return nil, err
 		}
 	}
 
@@ -347,7 +350,7 @@ func (g *gregorHandler) handleInBandMessage(ctx context.Context, ibm gregor.InBa
 	for _, handler := range g.ibmHandlers {
 		if handler.IsAlive() {
 			if err := g.handleInBandMessageWithHandler(ctx, ibm, handler); err != nil {
-				g.G().Log.Debug("gregor handler: handleInBandMessage() failed to run %s handler", handler.Name())
+				g.G().Log.Debug("gregor handler: handleInBandMessage() failed to run %s handler: %s", handler.Name(), err)
 			}
 			freshHandlers = append(freshHandlers, handler)
 		}
@@ -388,7 +391,9 @@ func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context,
 				g.G().Log.Debug("gregor handler: item %s has category %s", id, category)
 			}
 
-			handler.Create(ctx, category, item)
+			if err := handler.Create(ctx, category, item); err != nil {
+				return err
+			}
 		}
 
 		dismissal := update.Dismissal()
