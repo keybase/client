@@ -92,7 +92,8 @@ func (r *RekeyUIHandler) rekeyNeeded(ctx context.Context, item gregor.Item) erro
 		return err
 	}
 	if rekeyUI == nil {
-		r.G().Log.Error("got nil RekeyUI")
+		r.G().Log.Error("There was no RekeyUI registered, but a rekey is necessary. Here is the ProblemSet:")
+		r.G().Log.Errorf("Rekey ProblemSet: %+v", problemSet)
 		return errors.New("got nil RekeyUI")
 	}
 
