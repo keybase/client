@@ -434,8 +434,8 @@ type GregorDismisser interface {
 type GregorInBandMessageHandler interface {
 	IsAlive() bool
 	Name() string
-	Create(ctx context.Context, category string, ibm gregor.Item) error
-	Dismiss(ctx context.Context, category string, ibm gregor.Item) error
+	Create(ctx context.Context, category string, ibm gregor.Item) (bool, error)
+	Dismiss(ctx context.Context, category string, ibm gregor.Item) (bool, error)
 }
 
 type GregorListener interface {

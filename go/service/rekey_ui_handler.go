@@ -35,17 +35,17 @@ func NewRekeyUIHandler(g *libkb.GlobalContext, connID libkb.ConnectionID) *Rekey
 	}
 }
 
-func (r *RekeyUIHandler) Create(ctx context.Context, category string, item gregor.Item) error {
+func (r *RekeyUIHandler) Create(ctx context.Context, category string, item gregor.Item) (bool, error) {
 	switch category {
 	case "kbfs_tlf_rekey_needed":
-		return r.rekeyNeeded(ctx, item)
+		return true, r.rekeyNeeded(ctx, item)
 	default:
-		return fmt.Errorf("unknown RekeyUIHandler category: %q", category)
+		return false, fmt.Errorf("unknown RekeyUIHandler category: %q", category)
 	}
 }
 
-func (r *RekeyUIHandler) Dismiss(ctx context.Context, category string, item gregor.Item) error {
-	return nil
+func (r *RekeyUIHandler) Dismiss(ctx context.Context, category string, item gregor.Item) (bool, error) {
+	return false, nil
 }
 
 func (r *RekeyUIHandler) IsAlive() bool {
