@@ -67,6 +67,7 @@ func TestRekeyNeededMessageNoScores(t *testing.T) {
 
 	gUID, h, _ := rekeySetup(tc)
 
+	// Test that a broadcast with an empty body works.
 	rekeyBroadcast(tc, gUID, h, `{}`)
 }
 
@@ -115,13 +116,16 @@ func TestRekeyNeededMessageWithScores(t *testing.T) {
 
 	<-rekeyHandler.notifyComplete
 
+	// Test that refresh was called twice.
 	if len(rkeyui.refreshArgs) != 2 {
 		t.Fatalf("rkeyui refresh calls: %d, expected 2", len(rkeyui.refreshArgs))
 	}
 
+	// the first call should contain a TLF
 	if len(rkeyui.refreshArgs[0].Tlfs) != 1 {
 		t.Errorf("first refresh call, tlf count = %d, expected 1", len(rkeyui.refreshArgs[0].Tlfs))
 	}
+	// the second call should have updated the scores, and have no more TLFs in it.
 	if len(rkeyui.refreshArgs[1].Tlfs) != 0 {
 		t.Errorf("second/final refresh call, tlf count = %d, expected 0", len(rkeyui.refreshArgs[1].Tlfs))
 	}
