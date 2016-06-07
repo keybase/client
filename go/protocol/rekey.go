@@ -23,6 +23,12 @@ type ProblemTLF struct {
 	Solutions []KID `codec:"solutions" json:"solutions"`
 }
 
+type ProblemTLFDevices struct {
+	Tlf       TLF      `codec:"tlf" json:"tlf"`
+	Score     int      `codec:"score" json:"score"`
+	Solutions []Device `codec:"solutions" json:"solutions"`
+}
+
 // ProblemSet is for a particular (user,kid) that initiated a rekey problem.
 // This problem consists of one or more problem TLFs, which are individually scored
 // and have attendant solutions --- devices that if they came online can rekey and
@@ -31,6 +37,12 @@ type ProblemSet struct {
 	User User         `codec:"user" json:"user"`
 	Kid  KID          `codec:"kid" json:"kid"`
 	Tlfs []ProblemTLF `codec:"tlfs" json:"tlfs"`
+}
+
+type ProblemSetDevices struct {
+	User User                `codec:"user" json:"user"`
+	Kid  KID                 `codec:"kid" json:"kid"`
+	Tlfs []ProblemTLFDevices `codec:"tlfs" json:"tlfs"`
 }
 
 type Outcome int
@@ -71,7 +83,7 @@ type RekeyInterface interface {
 	// getProblemSet is called by the UI to render which TLFs need to be fixed.
 	// The UI will repeatedly poll this RPC when it gets a `rekeyChanged` notice
 	// below
-	GetProblemSet(context.Context, int) (ProblemSet, error)
+	GetProblemSet(context.Context, int) (ProblemSetDevices, error)
 	// rekeyStatusFinish is called when work is completed on a given RekeyStatus window. The Outcome
 	// can be Fixed or Ignored.
 	RekeyStatusFinish(context.Context, int) (Outcome, error)
@@ -172,7 +184,7 @@ func (c RekeyClient) ShowRekeyStatus(ctx context.Context, __arg ShowRekeyStatusA
 // getProblemSet is called by the UI to render which TLFs need to be fixed.
 // The UI will repeatedly poll this RPC when it gets a `rekeyChanged` notice
 // below
-func (c RekeyClient) GetProblemSet(ctx context.Context, sessionID int) (res ProblemSet, err error) {
+func (c RekeyClient) GetProblemSet(ctx context.Context, sessionID int) (res ProblemSetDevices, err error) {
 	__arg := GetProblemSetArg{SessionID: sessionID}
 	err = c.Cli.Call(ctx, "keybase.1.rekey.getProblemSet", []interface{}{__arg}, &res)
 	return

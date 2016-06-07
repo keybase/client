@@ -191,6 +191,7 @@ type rekeyStatusUpdater struct {
 	problemSet keybase1.ProblemSet
 	msgID      gregor.MsgID
 	scorer     func(g *libkb.GlobalContext, existing keybase1.ProblemSet) (keybase1.ProblemSet, error)
+	me         *libkb.User
 	done       chan struct{}
 	libkb.Contextified
 }
@@ -221,8 +222,13 @@ func (u *rekeyStatusUpdater) update() {
 			u.G().Log.Debug("rekeyStatusUpdater done chan closed, terminating update loop")
 			return
 		default:
+			tlfs, err := u.lookupDevices()
+			if err != nil {
+				u.G().Log.Errorf("rekey ui lookup devices error: %s", err)
+				return
+			}
 			arg := keybase1.RefreshArg{
-				Tlfs: u.problemSet.Tlfs,
+				Tlfs: tlfs,
 			}
 			if err = u.rekeyUI.Refresh(context.TODO(), arg); err != nil {
 				u.G().Log.Errorf("rekey ui Refresh error: %s", err)
@@ -258,4 +264,36 @@ func (u *rekeyStatusUpdater) update() {
 func (u *rekeyStatusUpdater) Finish() {
 	u.G().Log.Debug("closing rekey status updater done ch")
 	close(u.done)
+}
+
+func (u *rekeyStatusUpdater) lookupDevices() ([]keybase1.ProblemTLFDevices, error) {
+	if len(u.problemSet.Tlfs) == 0 {
+		return []keybase1.ProblemTLFDevices{}, nil
+	}
+
+	if u.me == nil {
+		me, err := libkb.LoadMe(libkb.NewLoadUserArg(u.G()))
+		if err != nil {
+			return nil, err
+		}
+		u.me = me
+	}
+	ckf := u.me.GetComputedKeyFamily()
+
+	res := make([]keybase1.ProblemTLFDevices, len(u.problemSet.Tlfs))
+	for i, f := range u.problemSet.Tlfs {
+		res[i] = keybase1.ProblemTLFDevices{
+			Tlf:   f.Tlf,
+			Score: f.Score,
+		}
+		res[i].Solutions = make([]keybase1.Device, len(f.Solutions))
+		for j, kid := range f.Solutions {
+			dev, err := ckf.GetDeviceForKID(kid)
+			if err != nil {
+				return nil, err
+			}
+			res[i].Solutions[j] = *(dev.ProtExport())
+		}
+	}
+	return res, nil
 }

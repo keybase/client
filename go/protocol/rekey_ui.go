@@ -12,8 +12,8 @@ type DelegateRekeyUIArg struct {
 }
 
 type RefreshArg struct {
-	SessionID int          `codec:"sessionID" json:"sessionID"`
-	Tlfs      []ProblemTLF `codec:"tlfs" json:"tlfs"`
+	SessionID int                 `codec:"sessionID" json:"sessionID"`
+	Tlfs      []ProblemTLFDevices `codec:"tlfs" json:"tlfs"`
 }
 
 type RekeyUIInterface interface {

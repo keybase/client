@@ -20,6 +20,12 @@ protocol rekey {
     array<KID> solutions;
   }
 
+  record ProblemTLFDevices {
+    TLF tlf;
+    int score;
+    array<Device> solutions;
+  }
+
   /**
    ProblemSet is for a particular (user,kid) that initiated a rekey problem.
    This problem consists of one or more problem TLFs, which are individually scored
@@ -30,6 +36,12 @@ protocol rekey {
     User user;
     KID kid;
     array<ProblemTLF> tlfs;
+  }
+
+  record ProblemSetDevices {
+    User user;
+    KID kid;
+    array<ProblemTLFDevices> tlfs;
   }
 
   enum Outcome {
@@ -57,7 +69,7 @@ protocol rekey {
    The UI will repeatedly poll this RPC when it gets a `rekeyChanged` notice
    below
    */
-  ProblemSet getProblemSet(int sessionID);
+  ProblemSetDevices getProblemSet(int sessionID);
 
   /**
    rekeyStatusFinish is called when work is completed on a given RekeyStatus window. The Outcome

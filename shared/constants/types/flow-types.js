@@ -705,10 +705,22 @@ export type ProblemSet = {
   tlfs: Array<ProblemTLF>;
 }
 
+export type ProblemSetDevices = {
+  user: User;
+  kid: KID;
+  tlfs: Array<ProblemTLFDevices>;
+}
+
 export type ProblemTLF = {
   tlf: TLF;
   score: int;
   solutions: Array<KID>;
+}
+
+export type ProblemTLFDevices = {
+  tlf: TLF;
+  score: int;
+  solutions: Array<Device>;
 }
 
 export type Process = {
@@ -2888,7 +2900,7 @@ export type quotaVerifySessionRpc = {
   callback: (null | (err: ?any, response: quotaVerifySessionResult) => void)
 }
 
-export type rekeyGetProblemSetResult = ProblemSet
+export type rekeyGetProblemSetResult = ProblemSetDevices
 
 export type rekeyGetProblemSetRpc = {
   method: 'rekey.getProblemSet',
@@ -2938,7 +2950,7 @@ export type rekeyUIRefreshResult = void
 export type rekeyUIRefreshRpc = {
   method: 'rekeyUI.refresh',
   param: {
-    tlfs: Array<ProblemTLF>
+    tlfs: Array<ProblemTLFDevices>
   },
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
@@ -5230,7 +5242,7 @@ export type incomingCallMapType = {
   'keybase.1.rekeyUI.refresh'?: (
     params: {
       sessionID: int,
-      tlfs: Array<ProblemTLF>
+      tlfs: Array<ProblemTLFDevices>
     },
     response: {
       error: (err: RPCError) => void,

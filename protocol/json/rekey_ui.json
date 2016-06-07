@@ -16,7 +16,7 @@
           "name": "tlfs",
           "type": {
             "type": "array",
-            "items": "ProblemTLF"
+            "items": "ProblemTLFDevices"
           }
         }
       ],
