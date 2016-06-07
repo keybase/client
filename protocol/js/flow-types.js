@@ -19,15 +19,15 @@ export type Asset = {
   localPath: string;
 }
 
-export type BTC_registerBTC_result = void
+export type BTCRegisterBTCResult = void
 
-export type BTC_registerBTC_rpc = {
+export type BTCRegisterBTCRpc = {
   method: 'BTC.registerBTC',
   param: {
     address: string,
     force: boolean
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
@@ -440,20 +440,20 @@ export type InstallStatus =
 
 export type KID = string
 
-export type Kex2Provisionee_didCounterSign_result = void
+export type Kex2ProvisioneeDidCounterSignResult = void
 
-export type Kex2Provisionee_didCounterSign_rpc = {
+export type Kex2ProvisioneeDidCounterSignRpc = {
   method: 'Kex2Provisionee.didCounterSign',
   param: {
     sig: bytes
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type Kex2Provisionee_hello_result = HelloRes
+export type Kex2ProvisioneeHelloResult = HelloRes
 
-export type Kex2Provisionee_hello_rpc = {
+export type Kex2ProvisioneeHelloRpc = {
   method: 'Kex2Provisionee.hello',
   param: {
     uid: UID,
@@ -462,16 +462,15 @@ export type Kex2Provisionee_hello_rpc = {
     pps: PassphraseStream,
     sigBody: string
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: Kex2Provisionee_hello_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: Kex2ProvisioneeHelloResult) => void)
 }
 
-export type Kex2Provisioner_kexStart_result = void
+export type Kex2ProvisionerKexStartResult = void
 
-export type Kex2Provisioner_kexStart_rpc = {
+export type Kex2ProvisionerKexStartRpc = {
   method: 'Kex2Provisioner.kexStart',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
@@ -552,81 +551,80 @@ export type NotificationChannels = {
   favorites: boolean;
 }
 
-export type NotifyFS_FSActivity_result = void
+export type NotifyFSFSActivityResult = void
 
-export type NotifyFS_FSActivity_rpc = {
+export type NotifyFSFSActivityRpc = {
   method: 'NotifyFS.FSActivity',
   param: {
     notification: FSNotification
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type NotifyFavorites_favoritesChanged_result = void
+export type NotifyFavoritesFavoritesChangedResult = void
 
-export type NotifyFavorites_favoritesChanged_rpc = {
+export type NotifyFavoritesFavoritesChangedRpc = {
   method: 'NotifyFavorites.favoritesChanged',
   param: {
     uid: UID
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type NotifySession_clientOutOfDate_result = void
+export type NotifySessionClientOutOfDateResult = void
 
-export type NotifySession_clientOutOfDate_rpc = {
+export type NotifySessionClientOutOfDateRpc = {
   method: 'NotifySession.clientOutOfDate',
   param: {
     upgradeTo: string,
     upgradeURI: string,
     upgradeMsg: string
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type NotifySession_loggedIn_result = void
+export type NotifySessionLoggedInResult = void
 
-export type NotifySession_loggedIn_rpc = {
+export type NotifySessionLoggedInRpc = {
   method: 'NotifySession.loggedIn',
   param: {
     username: string
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type NotifySession_loggedOut_result = void
+export type NotifySessionLoggedOutResult = void
 
-export type NotifySession_loggedOut_rpc = {
+export type NotifySessionLoggedOutRpc = {
   method: 'NotifySession.loggedOut',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type NotifyTracking_trackingChanged_result = void
+export type NotifyTrackingTrackingChangedResult = void
 
-export type NotifyTracking_trackingChanged_rpc = {
+export type NotifyTrackingTrackingChangedRpc = {
   method: 'NotifyTracking.trackingChanged',
   param: {
     uid: UID,
     username: string
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type NotifyUsers_userChanged_result = void
+export type NotifyUsersUserChangedResult = void
 
-export type NotifyUsers_userChanged_rpc = {
+export type NotifyUsersUserChangedRpc = {
   method: 'NotifyUsers.userChanged',
   param: {
     uid: UID
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
@@ -920,13 +918,12 @@ export type SecretKeys = {
   encryption: NaclDHKeyPrivate;
 }
 
-export type SecretKeys_getSecretKeys_result = SecretKeys
+export type SecretKeysGetSecretKeysResult = SecretKeys
 
-export type SecretKeys_getSecretKeys_rpc = {
+export type SecretKeysGetSecretKeysRpc = {
   method: 'SecretKeys.getSecretKeys',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: SecretKeys_getSecretKeys_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: SecretKeysGetSecretKeysResult) => void)
 }
 
 export type SecretResponse = {
@@ -1329,134 +1326,132 @@ export type WebProof = {
   protocols: Array<string>;
 }
 
-export type account_passphraseChange_result = void
+export type accountPassphraseChangeResult = void
 
-export type account_passphraseChange_rpc = {
+export type accountPassphraseChangeRpc = {
   method: 'account.passphraseChange',
   param: {
     oldPassphrase: string,
     passphrase: string,
     force: boolean
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type account_passphrasePrompt_result = GetPassphraseRes
+export type accountPassphrasePromptResult = GetPassphraseRes
 
-export type account_passphrasePrompt_rpc = {
+export type accountPassphrasePromptRpc = {
   method: 'account.passphrasePrompt',
   param: {
     guiArg: GUIEntryArg
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: account_passphrasePrompt_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: accountPassphrasePromptResult) => void)
 }
 
-export type block_addReference_result = void
+export type blockAddReferenceResult = void
 
-export type block_addReference_rpc = {
+export type blockAddReferenceRpc = {
   method: 'block.addReference',
   param: {
     folder: string,
     ref: BlockReference
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type block_archiveReferenceWithCount_result = DowngradeReferenceRes
+export type blockArchiveReferenceResult = Array<BlockReference>
 
-export type block_archiveReferenceWithCount_rpc = {
-  method: 'block.archiveReferenceWithCount',
-  param: {
-    folder: string,
-    refs: Array<BlockReference>
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: block_archiveReferenceWithCount_result) => void)
-}
-
-export type block_archiveReference_result = Array<BlockReference>
-
-export type block_archiveReference_rpc = {
+export type blockArchiveReferenceRpc = {
   method: 'block.archiveReference',
   param: {
     folder: string,
     refs: Array<BlockReference>
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: block_archiveReference_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: blockArchiveReferenceResult) => void)
 }
 
-export type block_authenticateSession_result = void
+export type blockArchiveReferenceWithCountResult = DowngradeReferenceRes
 
-export type block_authenticateSession_rpc = {
-  method: 'block.authenticateSession',
-  param: {
-    signature: string
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type block_delReferenceWithCount_result = DowngradeReferenceRes
-
-export type block_delReferenceWithCount_rpc = {
-  method: 'block.delReferenceWithCount',
+export type blockArchiveReferenceWithCountRpc = {
+  method: 'block.archiveReferenceWithCount',
   param: {
     folder: string,
     refs: Array<BlockReference>
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: block_delReferenceWithCount_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: blockArchiveReferenceWithCountResult) => void)
 }
 
-export type block_delReference_result = void
+export type blockAuthenticateSessionResult = void
 
-export type block_delReference_rpc = {
+export type blockAuthenticateSessionRpc = {
+  method: 'block.authenticateSession',
+  param: {
+    signature: string
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type blockDelReferenceResult = void
+
+export type blockDelReferenceRpc = {
   method: 'block.delReference',
   param: {
     folder: string,
     ref: BlockReference
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type block_getBlock_result = GetBlockRes
+export type blockDelReferenceWithCountResult = DowngradeReferenceRes
 
-export type block_getBlock_rpc = {
+export type blockDelReferenceWithCountRpc = {
+  method: 'block.delReferenceWithCount',
+  param: {
+    folder: string,
+    refs: Array<BlockReference>
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: blockDelReferenceWithCountResult) => void)
+}
+
+export type blockGetBlockResult = GetBlockRes
+
+export type blockGetBlockRpc = {
   method: 'block.getBlock',
   param: {
     bid: BlockIdCombo,
     folder: string
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: block_getBlock_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: blockGetBlockResult) => void)
 }
 
-export type block_getSessionChallenge_result = ChallengeInfo
+export type blockGetSessionChallengeResult = ChallengeInfo
 
-export type block_getSessionChallenge_rpc = {
+export type blockGetSessionChallengeRpc = {
   method: 'block.getSessionChallenge',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: block_getSessionChallenge_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: blockGetSessionChallengeResult) => void)
 }
 
-export type block_getUserQuotaInfo_result = bytes
+export type blockGetUserQuotaInfoResult = bytes
 
-export type block_getUserQuotaInfo_rpc = {
+export type blockGetUserQuotaInfoRpc = {
   method: 'block.getUserQuotaInfo',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: block_getUserQuotaInfo_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: blockGetUserQuotaInfoResult) => void)
 }
 
-export type block_putBlock_result = void
+export type blockPutBlockResult = void
 
-export type block_putBlock_rpc = {
+export type blockPutBlockRpc = {
   method: 'block.putBlock',
   param: {
     bid: BlockIdCombo,
@@ -1464,146 +1459,143 @@ export type block_putBlock_rpc = {
     blockKey: string,
     buf: bytes
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type config_clearValue_result = void
+export type configClearValueResult = void
 
-export type config_clearValue_rpc = {
+export type configClearValueRpc = {
   method: 'config.clearValue',
   param: {
     path: string
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type config_getConfig_result = Config
+export type configGetConfigResult = Config
 
-export type config_getConfig_rpc = {
+export type configGetConfigRpc = {
   method: 'config.getConfig',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: config_getConfig_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: configGetConfigResult) => void)
 }
 
-export type config_getCurrentStatus_result = GetCurrentStatusRes
+export type configGetCurrentStatusResult = GetCurrentStatusRes
 
-export type config_getCurrentStatus_rpc = {
+export type configGetCurrentStatusRpc = {
   method: 'config.getCurrentStatus',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: config_getCurrentStatus_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: configGetCurrentStatusResult) => void)
 }
 
-export type config_getExtendedStatus_result = ExtendedStatus
+export type configGetExtendedStatusResult = ExtendedStatus
 
-export type config_getExtendedStatus_rpc = {
+export type configGetExtendedStatusRpc = {
   method: 'config.getExtendedStatus',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: config_getExtendedStatus_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: configGetExtendedStatusResult) => void)
 }
 
-export type config_getValue_result = ConfigValue
+export type configGetValueResult = ConfigValue
 
-export type config_getValue_rpc = {
+export type configGetValueRpc = {
   method: 'config.getValue',
   param: {
     path: string
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: config_getValue_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: configGetValueResult) => void)
 }
 
-export type config_helloIAm_result = void
+export type configHelloIAmResult = void
 
-export type config_helloIAm_rpc = {
+export type configHelloIAmRpc = {
   method: 'config.helloIAm',
   param: {
     details: ClientDetails
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type config_setPath_result = void
+export type configSetPathResult = void
 
-export type config_setPath_rpc = {
+export type configSetPathRpc = {
   method: 'config.setPath',
   param: {
     path: string
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type config_setUserConfig_result = void
+export type configSetUserConfigResult = void
 
-export type config_setUserConfig_rpc = {
+export type configSetUserConfigRpc = {
   method: 'config.setUserConfig',
   param: {
     username: string,
     key: string,
     value: string
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type config_setValue_result = void
+export type configSetValueResult = void
 
-export type config_setValue_rpc = {
+export type configSetValueRpc = {
   method: 'config.setValue',
   param: {
     path: string,
     value: ConfigValue
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type crypto_signED25519_result = ED25519SignatureInfo
+export type cryptoSignED25519Result = ED25519SignatureInfo
 
-export type crypto_signED25519_rpc = {
+export type cryptoSignED25519Rpc = {
   method: 'crypto.signED25519',
   param: {
     msg: bytes,
     reason: string
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: crypto_signED25519_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: cryptoSignED25519Result) => void)
 }
 
-export type crypto_signToString_result = string
+export type cryptoSignToStringResult = string
 
-export type crypto_signToString_rpc = {
+export type cryptoSignToStringRpc = {
   method: 'crypto.signToString',
   param: {
     msg: bytes,
     reason: string
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: crypto_signToString_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: cryptoSignToStringResult) => void)
 }
 
-export type crypto_unboxBytes32Any_result = UnboxAnyRes
+export type cryptoUnboxBytes32AnyResult = UnboxAnyRes
 
-export type crypto_unboxBytes32Any_rpc = {
+export type cryptoUnboxBytes32AnyRpc = {
   method: 'crypto.unboxBytes32Any',
   param: {
     bundles: Array<CiphertextBundle>,
     reason: string,
     promptPaper: boolean
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: crypto_unboxBytes32Any_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: cryptoUnboxBytes32AnyResult) => void)
 }
 
-export type crypto_unboxBytes32_result = Bytes32
+export type cryptoUnboxBytes32Result = Bytes32
 
-export type crypto_unboxBytes32_rpc = {
+export type cryptoUnboxBytes32Rpc = {
   method: 'crypto.unboxBytes32',
   param: {
     encryptedBytes32: EncryptedBytes32,
@@ -1611,433 +1603,228 @@ export type crypto_unboxBytes32_rpc = {
     peersPublicKey: BoxPublicKey,
     reason: string
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: crypto_unboxBytes32_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: cryptoUnboxBytes32Result) => void)
 }
 
-export type ctl_dbNuke_result = void
+export type ctlDbNukeResult = void
 
-export type ctl_dbNuke_rpc = {
+export type ctlDbNukeRpc = {
   method: 'ctl.dbNuke',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type ctl_logRotate_result = void
+export type ctlLogRotateResult = void
 
-export type ctl_logRotate_rpc = {
+export type ctlLogRotateRpc = {
   method: 'ctl.logRotate',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type ctl_reload_result = void
+export type ctlReloadResult = void
 
-export type ctl_reload_rpc = {
+export type ctlReloadRpc = {
   method: 'ctl.reload',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type ctl_stop_result = void
+export type ctlStopResult = void
 
-export type ctl_stop_rpc = {
+export type ctlStopRpc = {
   method: 'ctl.stop',
   param: {
     exitCode: ExitCode
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type debugging_firstStep_result = FirstStepResult
+export type debuggingFirstStepResult = FirstStepResult
 
-export type debugging_firstStep_rpc = {
+export type debuggingFirstStepRpc = {
   method: 'debugging.firstStep',
   param: {
     val: int
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: debugging_firstStep_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: debuggingFirstStepResult) => void)
 }
 
-export type debugging_increment_result = int
+export type debuggingIncrementResult = int
 
-export type debugging_increment_rpc = {
+export type debuggingIncrementRpc = {
   method: 'debugging.increment',
   param: {
     val: int
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: debugging_increment_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: debuggingIncrementResult) => void)
 }
 
-export type debugging_secondStep_result = int
+export type debuggingSecondStepResult = int
 
-export type debugging_secondStep_rpc = {
+export type debuggingSecondStepRpc = {
   method: 'debugging.secondStep',
   param: {
     val: int
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: debugging_secondStep_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: debuggingSecondStepResult) => void)
 }
 
-export type delegateUiCtl_registerIdentifyUI_result = void
+export type delegateUiCtlRegisterIdentifyUIResult = void
 
-export type delegateUiCtl_registerIdentifyUI_rpc = {
+export type delegateUiCtlRegisterIdentifyUIRpc = {
   method: 'delegateUiCtl.registerIdentifyUI',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type delegateUiCtl_registerRekeyUI_result = void
+export type delegateUiCtlRegisterRekeyUIResult = void
 
-export type delegateUiCtl_registerRekeyUI_rpc = {
+export type delegateUiCtlRegisterRekeyUIRpc = {
   method: 'delegateUiCtl.registerRekeyUI',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type delegateUiCtl_registerSecretUI_result = void
+export type delegateUiCtlRegisterSecretUIResult = void
 
-export type delegateUiCtl_registerSecretUI_rpc = {
+export type delegateUiCtlRegisterSecretUIRpc = {
   method: 'delegateUiCtl.registerSecretUI',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type delegateUiCtl_registerUpdateUI_result = void
+export type delegateUiCtlRegisterUpdateUIResult = void
 
-export type delegateUiCtl_registerUpdateUI_rpc = {
+export type delegateUiCtlRegisterUpdateUIRpc = {
   method: 'delegateUiCtl.registerUpdateUI',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type device_checkDeviceNameFormat_result = boolean
+export type deviceCheckDeviceNameFormatResult = boolean
 
-export type device_checkDeviceNameFormat_rpc = {
+export type deviceCheckDeviceNameFormatRpc = {
   method: 'device.checkDeviceNameFormat',
   param: {
     name: string
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: device_checkDeviceNameFormat_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: deviceCheckDeviceNameFormatResult) => void)
 }
 
-export type device_deviceAdd_result = void
+export type deviceDeviceAddResult = void
 
-export type device_deviceAdd_rpc = {
+export type deviceDeviceAddRpc = {
   method: 'device.deviceAdd',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type device_deviceHistoryList_result = Array<DeviceDetail>
+export type deviceDeviceHistoryListResult = Array<DeviceDetail>
 
-export type device_deviceHistoryList_rpc = {
+export type deviceDeviceHistoryListRpc = {
   method: 'device.deviceHistoryList',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: device_deviceHistoryList_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: deviceDeviceHistoryListResult) => void)
 }
 
-export type device_deviceList_result = Array<Device>
+export type deviceDeviceListResult = Array<Device>
 
-export type device_deviceList_rpc = {
+export type deviceDeviceListRpc = {
   method: 'device.deviceList',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: device_deviceList_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: deviceDeviceListResult) => void)
 }
 
-export type favorite_favoriteAdd_result = void
+export type favoriteFavoriteAddResult = void
 
-export type favorite_favoriteAdd_rpc = {
+export type favoriteFavoriteAddRpc = {
   method: 'favorite.favoriteAdd',
   param: {
     folder: Folder
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type favorite_favoriteDelete_result = void
+export type favoriteFavoriteDeleteResult = void
 
-export type favorite_favoriteDelete_rpc = {
+export type favoriteFavoriteDeleteRpc = {
   method: 'favorite.favoriteDelete',
   param: {
     folder: Folder
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type favorite_favoriteList_result = Array<Folder>
+export type favoriteFavoriteListResult = Array<Folder>
 
-export type favorite_favoriteList_rpc = {
+export type favoriteFavoriteListRpc = {
   method: 'favorite.favoriteList',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: favorite_favoriteList_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: favoriteFavoriteListResult) => void)
 }
 
-export type gpgUi_confirmDuplicateKeyChosen_result = boolean
+export type gpgUiConfirmDuplicateKeyChosenResult = boolean
 
-export type gpgUi_confirmDuplicateKeyChosen_rpc = {
+export type gpgUiConfirmDuplicateKeyChosenRpc = {
   method: 'gpgUi.confirmDuplicateKeyChosen',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: gpgUi_confirmDuplicateKeyChosen_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: gpgUiConfirmDuplicateKeyChosenResult) => void)
 }
 
-export type gpgUi_selectKeyAndPushOption_result = SelectKeyRes
+export type gpgUiSelectKeyAndPushOptionResult = SelectKeyRes
 
-export type gpgUi_selectKeyAndPushOption_rpc = {
+export type gpgUiSelectKeyAndPushOptionRpc = {
   method: 'gpgUi.selectKeyAndPushOption',
   param: {
     keys: Array<GPGKey>
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: gpgUi_selectKeyAndPushOption_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: gpgUiSelectKeyAndPushOptionResult) => void)
 }
 
-export type gpgUi_selectKey_result = string
+export type gpgUiSelectKeyResult = string
 
-export type gpgUi_selectKey_rpc = {
+export type gpgUiSelectKeyRpc = {
   method: 'gpgUi.selectKey',
   param: {
     keys: Array<GPGKey>
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: gpgUi_selectKey_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: gpgUiSelectKeyResult) => void)
 }
 
-export type gpgUi_sign_result = string
+export type gpgUiSignResult = string
 
-export type gpgUi_sign_rpc = {
+export type gpgUiSignRpc = {
   method: 'gpgUi.sign',
   param: {
     msg: bytes,
     fingerprint: bytes
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: gpgUi_sign_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: gpgUiSignResult) => void)
 }
 
-export type gpgUi_wantToAddGPGKey_result = boolean
+export type gpgUiWantToAddGPGKeyResult = boolean
 
-export type gpgUi_wantToAddGPGKey_rpc = {
+export type gpgUiWantToAddGPGKeyRpc = {
   method: 'gpgUi.wantToAddGPGKey',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: gpgUi_wantToAddGPGKey_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: gpgUiWantToAddGPGKeyResult) => void)
 }
 
-export type identifyUi_confirm_result = ConfirmResult
+export type identifyIdentify2Result = Identify2Res
 
-export type identifyUi_confirm_rpc = {
-  method: 'identifyUi.confirm',
-  param: {
-    outcome: IdentifyOutcome
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: identifyUi_confirm_result) => void)
-}
-
-export type identifyUi_delegateIdentifyUI_result = int
-
-export type identifyUi_delegateIdentifyUI_rpc = {
-  method: 'identifyUi.delegateIdentifyUI',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: identifyUi_delegateIdentifyUI_result) => void)
-}
-
-export type identifyUi_dismiss_result = void
-
-export type identifyUi_dismiss_rpc = {
-  method: 'identifyUi.dismiss',
-  param: {
-    username: string,
-    reason: DismissReason
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type identifyUi_displayCryptocurrency_result = void
-
-export type identifyUi_displayCryptocurrency_rpc = {
-  method: 'identifyUi.displayCryptocurrency',
-  param: {
-    c: Cryptocurrency
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type identifyUi_displayKey_result = void
-
-export type identifyUi_displayKey_rpc = {
-  method: 'identifyUi.displayKey',
-  param: {
-    key: IdentifyKey
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type identifyUi_displayTLFCreateWithInvite_result = void
-
-export type identifyUi_displayTLFCreateWithInvite_rpc = {
-  method: 'identifyUi.displayTLFCreateWithInvite',
-  param: {
-    folderName: string,
-    isPrivate: boolean,
-    assertion: string,
-    inviteLink: string,
-    throttled: boolean
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type identifyUi_displayTrackStatement_result = void
-
-export type identifyUi_displayTrackStatement_rpc = {
-  method: 'identifyUi.displayTrackStatement',
-  param: {
-    stmt: string
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type identifyUi_displayUserCard_result = void
-
-export type identifyUi_displayUserCard_rpc = {
-  method: 'identifyUi.displayUserCard',
-  param: {
-    card: UserCard
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type identifyUi_finishSocialProofCheck_result = void
-
-export type identifyUi_finishSocialProofCheck_rpc = {
-  method: 'identifyUi.finishSocialProofCheck',
-  param: {
-    rp: RemoteProof,
-    lcr: LinkCheckResult
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type identifyUi_finishWebProofCheck_result = void
-
-export type identifyUi_finishWebProofCheck_rpc = {
-  method: 'identifyUi.finishWebProofCheck',
-  param: {
-    rp: RemoteProof,
-    lcr: LinkCheckResult
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type identifyUi_finish_result = void
-
-export type identifyUi_finish_rpc = {
-  method: 'identifyUi.finish',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type identifyUi_launchNetworkChecks_result = void
-
-export type identifyUi_launchNetworkChecks_rpc = {
-  method: 'identifyUi.launchNetworkChecks',
-  param: {
-    identity: Identity,
-    user: User
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type identifyUi_reportLastTrack_result = void
-
-export type identifyUi_reportLastTrack_rpc = {
-  method: 'identifyUi.reportLastTrack',
-  param: {
-    track: (null | TrackSummary)
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type identifyUi_reportTrackToken_result = void
-
-export type identifyUi_reportTrackToken_rpc = {
-  method: 'identifyUi.reportTrackToken',
-  param: {
-    trackToken: TrackToken
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type identifyUi_start_result = void
-
-export type identifyUi_start_rpc = {
-  method: 'identifyUi.start',
-  param: {
-    username: string,
-    reason: IdentifyReason
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type identify_Resolve2_result = User
-
-export type identify_Resolve2_rpc = {
-  method: 'identify.Resolve2',
-  param: {
-    assertion: string
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: identify_Resolve2_result) => void)
-}
-
-export type identify_Resolve_result = UID
-
-export type identify_Resolve_rpc = {
-  method: 'identify.Resolve',
-  param: {
-    assertion: string
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: identify_Resolve_result) => void)
-}
-
-export type identify_identify2_result = Identify2Res
-
-export type identify_identify2_rpc = {
+export type identifyIdentify2Rpc = {
   method: 'identify.identify2',
   param: {
     uid: UID,
@@ -2051,13 +1838,13 @@ export type identify_identify2_rpc = {
     allowEmptySelfID?: boolean,
     noSkipSelf?: boolean
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: identify_identify2_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: identifyIdentify2Result) => void)
 }
 
-export type identify_identify_result = IdentifyRes
+export type identifyIdentifyResult = IdentifyRes
 
-export type identify_identify_rpc = {
+export type identifyIdentifyRpc = {
   method: 'identify.identify',
   param: {
     userAssertion: string,
@@ -2066,220 +1853,381 @@ export type identify_identify_rpc = {
     reason: IdentifyReason,
     source: ClientType
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: identify_identify_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: identifyIdentifyResult) => void)
 }
 
-export type kbfs_FSEvent_result = void
+export type identifyResolve2Result = User
 
-export type kbfs_FSEvent_rpc = {
+export type identifyResolve2Rpc = {
+  method: 'identify.Resolve2',
+  param: {
+    assertion: string
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: identifyResolve2Result) => void)
+}
+
+export type identifyResolveResult = UID
+
+export type identifyResolveRpc = {
+  method: 'identify.Resolve',
+  param: {
+    assertion: string
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: identifyResolveResult) => void)
+}
+
+export type identifyUiConfirmResult = ConfirmResult
+
+export type identifyUiConfirmRpc = {
+  method: 'identifyUi.confirm',
+  param: {
+    outcome: IdentifyOutcome
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: identifyUiConfirmResult) => void)
+}
+
+export type identifyUiDelegateIdentifyUIResult = int
+
+export type identifyUiDelegateIdentifyUIRpc = {
+  method: 'identifyUi.delegateIdentifyUI',
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: identifyUiDelegateIdentifyUIResult) => void)
+}
+
+export type identifyUiDismissResult = void
+
+export type identifyUiDismissRpc = {
+  method: 'identifyUi.dismiss',
+  param: {
+    username: string,
+    reason: DismissReason
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type identifyUiDisplayCryptocurrencyResult = void
+
+export type identifyUiDisplayCryptocurrencyRpc = {
+  method: 'identifyUi.displayCryptocurrency',
+  param: {
+    c: Cryptocurrency
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type identifyUiDisplayKeyResult = void
+
+export type identifyUiDisplayKeyRpc = {
+  method: 'identifyUi.displayKey',
+  param: {
+    key: IdentifyKey
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type identifyUiDisplayTLFCreateWithInviteResult = void
+
+export type identifyUiDisplayTLFCreateWithInviteRpc = {
+  method: 'identifyUi.displayTLFCreateWithInvite',
+  param: {
+    folderName: string,
+    isPrivate: boolean,
+    assertion: string,
+    inviteLink: string,
+    throttled: boolean
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type identifyUiDisplayTrackStatementResult = void
+
+export type identifyUiDisplayTrackStatementRpc = {
+  method: 'identifyUi.displayTrackStatement',
+  param: {
+    stmt: string
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type identifyUiDisplayUserCardResult = void
+
+export type identifyUiDisplayUserCardRpc = {
+  method: 'identifyUi.displayUserCard',
+  param: {
+    card: UserCard
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type identifyUiFinishResult = void
+
+export type identifyUiFinishRpc = {
+  method: 'identifyUi.finish',
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type identifyUiFinishSocialProofCheckResult = void
+
+export type identifyUiFinishSocialProofCheckRpc = {
+  method: 'identifyUi.finishSocialProofCheck',
+  param: {
+    rp: RemoteProof,
+    lcr: LinkCheckResult
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type identifyUiFinishWebProofCheckResult = void
+
+export type identifyUiFinishWebProofCheckRpc = {
+  method: 'identifyUi.finishWebProofCheck',
+  param: {
+    rp: RemoteProof,
+    lcr: LinkCheckResult
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type identifyUiLaunchNetworkChecksResult = void
+
+export type identifyUiLaunchNetworkChecksRpc = {
+  method: 'identifyUi.launchNetworkChecks',
+  param: {
+    identity: Identity,
+    user: User
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type identifyUiReportLastTrackResult = void
+
+export type identifyUiReportLastTrackRpc = {
+  method: 'identifyUi.reportLastTrack',
+  param: {
+    track: (null | TrackSummary)
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type identifyUiReportTrackTokenResult = void
+
+export type identifyUiReportTrackTokenRpc = {
+  method: 'identifyUi.reportTrackToken',
+  param: {
+    trackToken: TrackToken
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type identifyUiStartResult = void
+
+export type identifyUiStartRpc = {
+  method: 'identifyUi.start',
+  param: {
+    username: string,
+    reason: IdentifyReason
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type kbfsFSEventResult = void
+
+export type kbfsFSEventRpc = {
   method: 'kbfs.FSEvent',
   param: {
     event: FSNotification
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type logUi_log_result = void
+export type logRegisterLoggerResult = void
 
-export type logUi_log_rpc = {
-  method: 'logUi.log',
-  param: {
-    level: LogLevel,
-    text: Text
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type log_registerLogger_result = void
-
-export type log_registerLogger_rpc = {
+export type logRegisterLoggerRpc = {
   method: 'log.registerLogger',
   param: {
     name: string,
     level: LogLevel
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type loginUi_displayPaperKeyPhrase_result = void
+export type logUiLogResult = void
 
-export type loginUi_displayPaperKeyPhrase_rpc = {
-  method: 'loginUi.displayPaperKeyPhrase',
+export type logUiLogRpc = {
+  method: 'logUi.log',
   param: {
-    phrase: string
+    level: LogLevel,
+    text: Text
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type loginUi_displayPrimaryPaperKey_result = void
+export type loginClearStoredSecretResult = void
 
-export type loginUi_displayPrimaryPaperKey_rpc = {
-  method: 'loginUi.displayPrimaryPaperKey',
-  param: {
-    phrase: string
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type loginUi_getEmailOrUsername_result = string
-
-export type loginUi_getEmailOrUsername_rpc = {
-  method: 'loginUi.getEmailOrUsername',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: loginUi_getEmailOrUsername_result) => void)
-}
-
-export type loginUi_promptRevokePaperKeys_result = boolean
-
-export type loginUi_promptRevokePaperKeys_rpc = {
-  method: 'loginUi.promptRevokePaperKeys',
-  param: {
-    device: Device,
-    index: int
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: loginUi_promptRevokePaperKeys_result) => void)
-}
-
-export type login_clearStoredSecret_result = void
-
-export type login_clearStoredSecret_rpc = {
+export type loginClearStoredSecretRpc = {
   method: 'login.clearStoredSecret',
   param: {
     username: string
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type login_deprovision_result = void
+export type loginDeprovisionResult = void
 
-export type login_deprovision_rpc = {
+export type loginDeprovisionRpc = {
   method: 'login.deprovision',
   param: {
     username: string,
     doRevoke: boolean
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type login_getConfiguredAccounts_result = Array<ConfiguredAccount>
+export type loginGetConfiguredAccountsResult = Array<ConfiguredAccount>
 
-export type login_getConfiguredAccounts_rpc = {
+export type loginGetConfiguredAccountsRpc = {
   method: 'login.getConfiguredAccounts',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: login_getConfiguredAccounts_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: loginGetConfiguredAccountsResult) => void)
 }
 
-export type login_login_result = void
+export type loginLoginResult = void
 
-export type login_login_rpc = {
+export type loginLoginRpc = {
   method: 'login.login',
   param: {
     deviceType: string,
     usernameOrEmail: string,
     clientType: ClientType
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type login_logout_result = void
+export type loginLogoutResult = void
 
-export type login_logout_rpc = {
+export type loginLogoutRpc = {
   method: 'login.logout',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type login_paperKey_result = void
+export type loginPaperKeyResult = void
 
-export type login_paperKey_rpc = {
+export type loginPaperKeyRpc = {
   method: 'login.paperKey',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type login_recoverAccountFromEmailAddress_result = void
+export type loginRecoverAccountFromEmailAddressResult = void
 
-export type login_recoverAccountFromEmailAddress_rpc = {
+export type loginRecoverAccountFromEmailAddressRpc = {
   method: 'login.recoverAccountFromEmailAddress',
   param: {
     email: string
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type login_unlockWithPassphrase_result = void
+export type loginUiDisplayPaperKeyPhraseResult = void
 
-export type login_unlockWithPassphrase_rpc = {
+export type loginUiDisplayPaperKeyPhraseRpc = {
+  method: 'loginUi.displayPaperKeyPhrase',
+  param: {
+    phrase: string
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type loginUiDisplayPrimaryPaperKeyResult = void
+
+export type loginUiDisplayPrimaryPaperKeyRpc = {
+  method: 'loginUi.displayPrimaryPaperKey',
+  param: {
+    phrase: string
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type loginUiGetEmailOrUsernameResult = string
+
+export type loginUiGetEmailOrUsernameRpc = {
+  method: 'loginUi.getEmailOrUsername',
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: loginUiGetEmailOrUsernameResult) => void)
+}
+
+export type loginUiPromptRevokePaperKeysResult = boolean
+
+export type loginUiPromptRevokePaperKeysRpc = {
+  method: 'loginUi.promptRevokePaperKeys',
+  param: {
+    device: Device,
+    index: int
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: loginUiPromptRevokePaperKeysResult) => void)
+}
+
+export type loginUnlockResult = void
+
+export type loginUnlockRpc = {
+  method: 'login.unlock',
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type loginUnlockWithPassphraseResult = void
+
+export type loginUnlockWithPassphraseRpc = {
   method: 'login.unlockWithPassphrase',
   param: {
     passphrase: string
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type login_unlock_result = void
+export type metadataAuthenticateResult = int
 
-export type login_unlock_rpc = {
-  method: 'login.unlock',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type metadataUpdate_folderNeedsRekey_result = void
-
-export type metadataUpdate_folderNeedsRekey_rpc = {
-  method: 'metadataUpdate.folderNeedsRekey',
-  param: {
-    folderID: string,
-    revision: long
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type metadataUpdate_metadataUpdate_result = void
-
-export type metadataUpdate_metadataUpdate_rpc = {
-  method: 'metadataUpdate.metadataUpdate',
-  param: {
-    folderID: string,
-    revision: long
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type metadata_authenticate_result = int
-
-export type metadata_authenticate_rpc = {
+export type metadataAuthenticateRpc = {
   method: 'metadata.authenticate',
   param: {
     signature: string
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: metadata_authenticate_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: metadataAuthenticateResult) => void)
 }
 
-export type metadata_deleteKey_result = void
+export type metadataDeleteKeyResult = void
 
-export type metadata_deleteKey_rpc = {
+export type metadataDeleteKeyRpc = {
   method: 'metadata.deleteKey',
   param: {
     uid: UID,
@@ -2287,116 +2235,115 @@ export type metadata_deleteKey_rpc = {
     keyHalfID: bytes,
     logTags: {[key: string]: string}
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type metadata_getChallenge_result = ChallengeInfo
+export type metadataGetChallengeResult = ChallengeInfo
 
-export type metadata_getChallenge_rpc = {
+export type metadataGetChallengeRpc = {
   method: 'metadata.getChallenge',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: metadata_getChallenge_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: metadataGetChallengeResult) => void)
 }
 
-export type metadata_getFolderHandle_result = bytes
+export type metadataGetFolderHandleResult = bytes
 
-export type metadata_getFolderHandle_rpc = {
+export type metadataGetFolderHandleRpc = {
   method: 'metadata.getFolderHandle',
   param: {
     folderID: string,
     signature: string,
     challenge: string
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: metadata_getFolderHandle_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: metadataGetFolderHandleResult) => void)
 }
 
-export type metadata_getFoldersForRekey_result = void
+export type metadataGetFoldersForRekeyResult = void
 
-export type metadata_getFoldersForRekey_rpc = {
+export type metadataGetFoldersForRekeyRpc = {
   method: 'metadata.getFoldersForRekey',
   param: {
     deviceKID: KID
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type metadata_getKey_result = bytes
+export type metadataGetKeyResult = bytes
 
-export type metadata_getKey_rpc = {
+export type metadataGetKeyRpc = {
   method: 'metadata.getKey',
   param: {
     keyHalfID: bytes,
     deviceKID: string,
     logTags: {[key: string]: string}
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: metadata_getKey_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: metadataGetKeyResult) => void)
 }
 
-export type metadata_getLatestFolderHandle_result = bytes
+export type metadataGetLatestFolderHandleResult = bytes
 
-export type metadata_getLatestFolderHandle_rpc = {
+export type metadataGetLatestFolderHandleRpc = {
   method: 'metadata.getLatestFolderHandle',
   param: {
     folderID: string
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: metadata_getLatestFolderHandle_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: metadataGetLatestFolderHandleResult) => void)
 }
 
-export type metadata_getMerkleNode_result = bytes
+export type metadataGetMerkleNodeResult = bytes
 
-export type metadata_getMerkleNode_rpc = {
+export type metadataGetMerkleNodeRpc = {
   method: 'metadata.getMerkleNode',
   param: {
     hash: string
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: metadata_getMerkleNode_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: metadataGetMerkleNodeResult) => void)
 }
 
-export type metadata_getMerkleRootLatest_result = MerkleRoot
+export type metadataGetMerkleRootLatestResult = MerkleRoot
 
-export type metadata_getMerkleRootLatest_rpc = {
+export type metadataGetMerkleRootLatestRpc = {
   method: 'metadata.getMerkleRootLatest',
   param: {
     treeID: MerkleTreeID
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: metadata_getMerkleRootLatest_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: metadataGetMerkleRootLatestResult) => void)
 }
 
-export type metadata_getMerkleRootSince_result = MerkleRoot
+export type metadataGetMerkleRootResult = MerkleRoot
 
-export type metadata_getMerkleRootSince_rpc = {
-  method: 'metadata.getMerkleRootSince',
-  param: {
-    treeID: MerkleTreeID,
-    when: Time
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: metadata_getMerkleRootSince_result) => void)
-}
-
-export type metadata_getMerkleRoot_result = MerkleRoot
-
-export type metadata_getMerkleRoot_rpc = {
+export type metadataGetMerkleRootRpc = {
   method: 'metadata.getMerkleRoot',
   param: {
     treeID: MerkleTreeID,
     seqNo: long
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: metadata_getMerkleRoot_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: metadataGetMerkleRootResult) => void)
 }
 
-export type metadata_getMetadata_result = MetadataResponse
+export type metadataGetMerkleRootSinceResult = MerkleRoot
 
-export type metadata_getMetadata_rpc = {
+export type metadataGetMerkleRootSinceRpc = {
+  method: 'metadata.getMerkleRootSince',
+  param: {
+    treeID: MerkleTreeID,
+    when: Time
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: metadataGetMerkleRootSinceResult) => void)
+}
+
+export type metadataGetMetadataResult = MetadataResponse
+
+export type metadataGetMetadataRpc = {
   method: 'metadata.getMetadata',
   param: {
     folderID: string,
@@ -2407,211 +2354,220 @@ export type metadata_getMetadata_rpc = {
     stopRevision: long,
     logTags: {[key: string]: string}
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: metadata_getMetadata_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: metadataGetMetadataResult) => void)
 }
 
-export type metadata_ping_result = void
+export type metadataPingResult = void
 
-export type metadata_ping_rpc = {
+export type metadataPingRpc = {
   method: 'metadata.ping',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type metadata_pruneBranch_result = void
+export type metadataPruneBranchResult = void
 
-export type metadata_pruneBranch_rpc = {
+export type metadataPruneBranchRpc = {
   method: 'metadata.pruneBranch',
   param: {
     folderID: string,
     branchID: string,
     logTags: {[key: string]: string}
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type metadata_putKeys_result = void
+export type metadataPutKeysResult = void
 
-export type metadata_putKeys_rpc = {
+export type metadataPutKeysRpc = {
   method: 'metadata.putKeys',
   param: {
     keyHalves: Array<KeyHalf>,
     logTags: {[key: string]: string}
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type metadata_putMetadata_result = void
+export type metadataPutMetadataResult = void
 
-export type metadata_putMetadata_rpc = {
+export type metadataPutMetadataRpc = {
   method: 'metadata.putMetadata',
   param: {
     mdBlock: MDBlock,
     logTags: {[key: string]: string}
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type metadata_registerForUpdates_result = void
+export type metadataRegisterForUpdatesResult = void
 
-export type metadata_registerForUpdates_rpc = {
+export type metadataRegisterForUpdatesRpc = {
   method: 'metadata.registerForUpdates',
   param: {
     folderID: string,
     currRevision: long,
     logTags: {[key: string]: string}
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type metadata_truncateLock_result = boolean
+export type metadataTruncateLockResult = boolean
 
-export type metadata_truncateLock_rpc = {
+export type metadataTruncateLockRpc = {
   method: 'metadata.truncateLock',
   param: {
     folderID: string
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: metadata_truncateLock_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: metadataTruncateLockResult) => void)
 }
 
-export type metadata_truncateUnlock_result = boolean
+export type metadataTruncateUnlockResult = boolean
 
-export type metadata_truncateUnlock_rpc = {
+export type metadataTruncateUnlockRpc = {
   method: 'metadata.truncateUnlock',
   param: {
     folderID: string
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: metadata_truncateUnlock_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: metadataTruncateUnlockResult) => void)
 }
 
-export type notifyCtl_setNotifications_result = void
+export type metadataUpdateFolderNeedsRekeyResult = void
 
-export type notifyCtl_setNotifications_rpc = {
+export type metadataUpdateFolderNeedsRekeyRpc = {
+  method: 'metadataUpdate.folderNeedsRekey',
+  param: {
+    folderID: string,
+    revision: long
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type metadataUpdateMetadataUpdateResult = void
+
+export type metadataUpdateMetadataUpdateRpc = {
+  method: 'metadataUpdate.metadataUpdate',
+  param: {
+    folderID: string,
+    revision: long
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type notifyCtlSetNotificationsResult = void
+
+export type notifyCtlSetNotificationsRpc = {
   method: 'notifyCtl.setNotifications',
   param: {
     channels: NotificationChannels
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type paperprovision_paperProvision_result = void
+export type paperprovisionPaperProvisionResult = void
 
-export type paperprovision_paperProvision_rpc = {
+export type paperprovisionPaperProvisionRpc = {
   method: 'paperprovision.paperProvision',
   param: {
     username: string,
     deviceName: string,
     paperKey: string
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type pgpUi_outputSignatureSuccess_result = void
+export type pgpPgpDecryptResult = PGPSigVerification
 
-export type pgpUi_outputSignatureSuccess_rpc = {
-  method: 'pgpUi.outputSignatureSuccess',
-  param: {
-    fingerprint: string,
-    username: string,
-    signedAt: Time
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type pgp_pgpDecrypt_result = PGPSigVerification
-
-export type pgp_pgpDecrypt_rpc = {
+export type pgpPgpDecryptRpc = {
   method: 'pgp.pgpDecrypt',
   param: {
     source: Stream,
     sink: Stream,
     opts: PGPDecryptOptions
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: pgp_pgpDecrypt_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: pgpPgpDecryptResult) => void)
 }
 
-export type pgp_pgpDeletePrimary_result = void
+export type pgpPgpDeletePrimaryResult = void
 
-export type pgp_pgpDeletePrimary_rpc = {
+export type pgpPgpDeletePrimaryRpc = {
   method: 'pgp.pgpDeletePrimary',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type pgp_pgpEncrypt_result = void
+export type pgpPgpEncryptResult = void
 
-export type pgp_pgpEncrypt_rpc = {
+export type pgpPgpEncryptRpc = {
   method: 'pgp.pgpEncrypt',
   param: {
     source: Stream,
     sink: Stream,
     opts: PGPEncryptOptions
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type pgp_pgpExportByFingerprint_result = Array<KeyInfo>
+export type pgpPgpExportByFingerprintResult = Array<KeyInfo>
 
-export type pgp_pgpExportByFingerprint_rpc = {
+export type pgpPgpExportByFingerprintRpc = {
   method: 'pgp.pgpExportByFingerprint',
   param: {
     options: PGPQuery
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: pgp_pgpExportByFingerprint_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: pgpPgpExportByFingerprintResult) => void)
 }
 
-export type pgp_pgpExportByKID_result = Array<KeyInfo>
+export type pgpPgpExportByKIDResult = Array<KeyInfo>
 
-export type pgp_pgpExportByKID_rpc = {
+export type pgpPgpExportByKIDRpc = {
   method: 'pgp.pgpExportByKID',
   param: {
     options: PGPQuery
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: pgp_pgpExportByKID_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: pgpPgpExportByKIDResult) => void)
 }
 
-export type pgp_pgpExport_result = Array<KeyInfo>
+export type pgpPgpExportResult = Array<KeyInfo>
 
-export type pgp_pgpExport_rpc = {
+export type pgpPgpExportRpc = {
   method: 'pgp.pgpExport',
   param: {
     options: PGPQuery
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: pgp_pgpExport_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: pgpPgpExportResult) => void)
 }
 
-export type pgp_pgpImport_result = void
+export type pgpPgpImportResult = void
 
-export type pgp_pgpImport_rpc = {
+export type pgpPgpImportRpc = {
   method: 'pgp.pgpImport',
   param: {
     key: bytes,
     pushSecret: boolean
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type pgp_pgpKeyGen_result = void
+export type pgpPgpKeyGenResult = void
 
-export type pgp_pgpKeyGen_rpc = {
+export type pgpPgpKeyGenRpc = {
   method: 'pgp.pgpKeyGen',
   param: {
     primaryBits: int,
@@ -2621,24 +2577,24 @@ export type pgp_pgpKeyGen_rpc = {
     doExport: boolean,
     pushSecret: boolean
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type pgp_pgpPull_result = void
+export type pgpPgpPullResult = void
 
-export type pgp_pgpPull_rpc = {
+export type pgpPgpPullRpc = {
   method: 'pgp.pgpPull',
   param: {
     userAsserts: Array<string>
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type pgp_pgpSelect_result = void
+export type pgpPgpSelectResult = void
 
-export type pgp_pgpSelect_rpc = {
+export type pgpPgpSelectRpc = {
   method: 'pgp.pgpSelect',
   param: {
     fingerprintQuery: string,
@@ -2646,142 +2602,74 @@ export type pgp_pgpSelect_rpc = {
     skipImport: boolean,
     onlyImport: boolean
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type pgp_pgpSign_result = void
+export type pgpPgpSignResult = void
 
-export type pgp_pgpSign_rpc = {
+export type pgpPgpSignRpc = {
   method: 'pgp.pgpSign',
   param: {
     source: Stream,
     sink: Stream,
     opts: PGPSignOptions
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type pgp_pgpUpdate_result = void
+export type pgpPgpUpdateResult = void
 
-export type pgp_pgpUpdate_rpc = {
+export type pgpPgpUpdateRpc = {
   method: 'pgp.pgpUpdate',
   param: {
     all: boolean,
     fingerprints: Array<string>
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type pgp_pgpVerify_result = PGPSigVerification
+export type pgpPgpVerifyResult = PGPSigVerification
 
-export type pgp_pgpVerify_rpc = {
+export type pgpPgpVerifyRpc = {
   method: 'pgp.pgpVerify',
   param: {
     source: Stream,
     opts: PGPVerifyOptions
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: pgp_pgpVerify_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: pgpPgpVerifyResult) => void)
 }
 
-export type proveUi_displayRecheckWarning_result = void
+export type pgpUiOutputSignatureSuccessResult = void
 
-export type proveUi_displayRecheckWarning_rpc = {
-  method: 'proveUi.displayRecheckWarning',
+export type pgpUiOutputSignatureSuccessRpc = {
+  method: 'pgpUi.outputSignatureSuccess',
   param: {
-    text: Text
+    fingerprint: string,
+    username: string,
+    signedAt: Time
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type proveUi_okToCheck_result = boolean
+export type proveCheckProofResult = CheckProofStatus
 
-export type proveUi_okToCheck_rpc = {
-  method: 'proveUi.okToCheck',
-  param: {
-    name: string,
-    attempt: int
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: proveUi_okToCheck_result) => void)
-}
-
-export type proveUi_outputInstructions_result = void
-
-export type proveUi_outputInstructions_rpc = {
-  method: 'proveUi.outputInstructions',
-  param: {
-    instructions: Text,
-    proof: string
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type proveUi_outputPrechecks_result = void
-
-export type proveUi_outputPrechecks_rpc = {
-  method: 'proveUi.outputPrechecks',
-  param: {
-    text: Text
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type proveUi_preProofWarning_result = boolean
-
-export type proveUi_preProofWarning_rpc = {
-  method: 'proveUi.preProofWarning',
-  param: {
-    text: Text
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: proveUi_preProofWarning_result) => void)
-}
-
-export type proveUi_promptOverwrite_result = boolean
-
-export type proveUi_promptOverwrite_rpc = {
-  method: 'proveUi.promptOverwrite',
-  param: {
-    account: string,
-    typ: PromptOverwriteType
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: proveUi_promptOverwrite_result) => void)
-}
-
-export type proveUi_promptUsername_result = string
-
-export type proveUi_promptUsername_rpc = {
-  method: 'proveUi.promptUsername',
-  param: {
-    prompt: string,
-    prevError: (null | Status)
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: proveUi_promptUsername_result) => void)
-}
-
-export type prove_checkProof_result = CheckProofStatus
-
-export type prove_checkProof_rpc = {
+export type proveCheckProofRpc = {
   method: 'prove.checkProof',
   param: {
     sigID: SigID
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: prove_checkProof_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: proveCheckProofResult) => void)
 }
 
-export type prove_startProof_result = StartProofResult
+export type proveStartProofResult = StartProofResult
 
-export type prove_startProof_rpc = {
+export type proveStartProofRpc = {
   method: 'prove.startProof',
   param: {
     service: string,
@@ -2790,363 +2678,438 @@ export type prove_startProof_rpc = {
     promptPosted: boolean,
     auto: boolean
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: prove_startProof_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: proveStartProofResult) => void)
 }
 
-export type provisionUi_DisplayAndPromptSecret_result = SecretResponse
+export type proveUiDisplayRecheckWarningResult = void
 
-export type provisionUi_DisplayAndPromptSecret_rpc = {
+export type proveUiDisplayRecheckWarningRpc = {
+  method: 'proveUi.displayRecheckWarning',
+  param: {
+    text: Text
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type proveUiOkToCheckResult = boolean
+
+export type proveUiOkToCheckRpc = {
+  method: 'proveUi.okToCheck',
+  param: {
+    name: string,
+    attempt: int
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: proveUiOkToCheckResult) => void)
+}
+
+export type proveUiOutputInstructionsResult = void
+
+export type proveUiOutputInstructionsRpc = {
+  method: 'proveUi.outputInstructions',
+  param: {
+    instructions: Text,
+    proof: string
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type proveUiOutputPrechecksResult = void
+
+export type proveUiOutputPrechecksRpc = {
+  method: 'proveUi.outputPrechecks',
+  param: {
+    text: Text
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type proveUiPreProofWarningResult = boolean
+
+export type proveUiPreProofWarningRpc = {
+  method: 'proveUi.preProofWarning',
+  param: {
+    text: Text
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: proveUiPreProofWarningResult) => void)
+}
+
+export type proveUiPromptOverwriteResult = boolean
+
+export type proveUiPromptOverwriteRpc = {
+  method: 'proveUi.promptOverwrite',
+  param: {
+    account: string,
+    typ: PromptOverwriteType
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: proveUiPromptOverwriteResult) => void)
+}
+
+export type proveUiPromptUsernameResult = string
+
+export type proveUiPromptUsernameRpc = {
+  method: 'proveUi.promptUsername',
+  param: {
+    prompt: string,
+    prevError: (null | Status)
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: proveUiPromptUsernameResult) => void)
+}
+
+export type provisionUiChooseDeviceResult = DeviceID
+
+export type provisionUiChooseDeviceRpc = {
+  method: 'provisionUi.chooseDevice',
+  param: {
+    devices: Array<Device>
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: provisionUiChooseDeviceResult) => void)
+}
+
+export type provisionUiChooseDeviceTypeResult = DeviceType
+
+export type provisionUiChooseDeviceTypeRpc = {
+  method: 'provisionUi.chooseDeviceType',
+  param: {
+    kind: ChooseType
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: provisionUiChooseDeviceTypeResult) => void)
+}
+
+export type provisionUiChooseGPGMethodResult = GPGMethod
+
+export type provisionUiChooseGPGMethodRpc = {
+  method: 'provisionUi.chooseGPGMethod',
+  param: {
+    keys: Array<GPGKey>
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: provisionUiChooseGPGMethodResult) => void)
+}
+
+export type provisionUiChooseProvisioningMethodResult = ProvisionMethod
+
+export type provisionUiChooseProvisioningMethodRpc = {
+  method: 'provisionUi.chooseProvisioningMethod',
+  param: {
+    gpgOption: boolean
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: provisionUiChooseProvisioningMethodResult) => void)
+}
+
+export type provisionUiDisplayAndPromptSecretResult = SecretResponse
+
+export type provisionUiDisplayAndPromptSecretRpc = {
   method: 'provisionUi.DisplayAndPromptSecret',
   param: {
     secret: bytes,
     phrase: string,
     otherDeviceType: DeviceType
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: provisionUi_DisplayAndPromptSecret_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: provisionUiDisplayAndPromptSecretResult) => void)
 }
 
-export type provisionUi_DisplaySecretExchanged_result = void
+export type provisionUiDisplaySecretExchangedResult = void
 
-export type provisionUi_DisplaySecretExchanged_rpc = {
+export type provisionUiDisplaySecretExchangedRpc = {
   method: 'provisionUi.DisplaySecretExchanged',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type provisionUi_PromptNewDeviceName_result = string
+export type provisionUiPromptNewDeviceNameResult = string
 
-export type provisionUi_PromptNewDeviceName_rpc = {
+export type provisionUiPromptNewDeviceNameRpc = {
   method: 'provisionUi.PromptNewDeviceName',
   param: {
     existingDevices: Array<string>,
     errorMessage: string
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: provisionUi_PromptNewDeviceName_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: provisionUiPromptNewDeviceNameResult) => void)
 }
 
-export type provisionUi_ProvisioneeSuccess_result = void
+export type provisionUiProvisioneeSuccessResult = void
 
-export type provisionUi_ProvisioneeSuccess_rpc = {
+export type provisionUiProvisioneeSuccessRpc = {
   method: 'provisionUi.ProvisioneeSuccess',
   param: {
     username: string,
     deviceName: string
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type provisionUi_ProvisionerSuccess_result = void
+export type provisionUiProvisionerSuccessResult = void
 
-export type provisionUi_ProvisionerSuccess_rpc = {
+export type provisionUiProvisionerSuccessRpc = {
   method: 'provisionUi.ProvisionerSuccess',
   param: {
     deviceName: string,
     deviceType: string
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type provisionUi_chooseDeviceType_result = DeviceType
+export type provisionUiSwitchToGPGSignOKResult = boolean
 
-export type provisionUi_chooseDeviceType_rpc = {
-  method: 'provisionUi.chooseDeviceType',
-  param: {
-    kind: ChooseType
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: provisionUi_chooseDeviceType_result) => void)
-}
-
-export type provisionUi_chooseDevice_result = DeviceID
-
-export type provisionUi_chooseDevice_rpc = {
-  method: 'provisionUi.chooseDevice',
-  param: {
-    devices: Array<Device>
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: provisionUi_chooseDevice_result) => void)
-}
-
-export type provisionUi_chooseGPGMethod_result = GPGMethod
-
-export type provisionUi_chooseGPGMethod_rpc = {
-  method: 'provisionUi.chooseGPGMethod',
-  param: {
-    keys: Array<GPGKey>
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: provisionUi_chooseGPGMethod_result) => void)
-}
-
-export type provisionUi_chooseProvisioningMethod_result = ProvisionMethod
-
-export type provisionUi_chooseProvisioningMethod_rpc = {
-  method: 'provisionUi.chooseProvisioningMethod',
-  param: {
-    gpgOption: boolean
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: provisionUi_chooseProvisioningMethod_result) => void)
-}
-
-export type provisionUi_switchToGPGSignOK_result = boolean
-
-export type provisionUi_switchToGPGSignOK_rpc = {
+export type provisionUiSwitchToGPGSignOKRpc = {
   method: 'provisionUi.switchToGPGSignOK',
   param: {
     key: GPGKey,
     importError: string
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: provisionUi_switchToGPGSignOK_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: provisionUiSwitchToGPGSignOKResult) => void)
 }
 
-export type quota_verifySession_result = VerifySessionRes
+export type quotaVerifySessionResult = VerifySessionRes
 
-export type quota_verifySession_rpc = {
+export type quotaVerifySessionRpc = {
   method: 'quota.verifySession',
   param: {
     session: string
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: quota_verifySession_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: quotaVerifySessionResult) => void)
 }
 
-export type rekeyUI_delegateRekeyUI_result = int
+export type rekeyGetProblemSetResult = ProblemSet
 
-export type rekeyUI_delegateRekeyUI_rpc = {
-  method: 'rekeyUI.delegateRekeyUI',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: rekeyUI_delegateRekeyUI_result) => void)
-}
-
-export type rekeyUI_refresh_result = void
-
-export type rekeyUI_refresh_rpc = {
-  method: 'rekeyUI.refresh',
-  param: {
-    tlfs: Array<ProblemTLF>
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type rekey_getProblemSet_result = ProblemSet
-
-export type rekey_getProblemSet_rpc = {
+export type rekeyGetProblemSetRpc = {
   method: 'rekey.getProblemSet',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: rekey_getProblemSet_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: rekeyGetProblemSetResult) => void)
 }
 
-export type rekey_rekeyStatusFinish_result = Outcome
+export type rekeyRekeyStatusFinishResult = Outcome
 
-export type rekey_rekeyStatusFinish_rpc = {
+export type rekeyRekeyStatusFinishRpc = {
   method: 'rekey.rekeyStatusFinish',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: rekey_rekeyStatusFinish_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: rekeyRekeyStatusFinishResult) => void)
 }
 
-export type rekey_showPendingRekeyStatus_result = void
+export type rekeyShowPendingRekeyStatusResult = void
 
-export type rekey_showPendingRekeyStatus_rpc = {
+export type rekeyShowPendingRekeyStatusRpc = {
   method: 'rekey.showPendingRekeyStatus',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type rekey_showRekeyStatus_result = void
+export type rekeyShowRekeyStatusResult = void
 
-export type rekey_showRekeyStatus_rpc = {
+export type rekeyShowRekeyStatusRpc = {
   method: 'rekey.showRekeyStatus',
   param: {
     tlfs: Array<TLFID>,
     user: (null | UID),
     kid: (null | KID)
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type revoke_revokeDevice_result = void
+export type rekeyUIDelegateRekeyUIResult = int
 
-export type revoke_revokeDevice_rpc = {
+export type rekeyUIDelegateRekeyUIRpc = {
+  method: 'rekeyUI.delegateRekeyUI',
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: rekeyUIDelegateRekeyUIResult) => void)
+}
+
+export type rekeyUIRefreshResult = void
+
+export type rekeyUIRefreshRpc = {
+  method: 'rekeyUI.refresh',
+  param: {
+    tlfs: Array<ProblemTLF>
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type revokeRevokeDeviceResult = void
+
+export type revokeRevokeDeviceRpc = {
   method: 'revoke.revokeDevice',
   param: {
     deviceID: DeviceID,
     force: boolean
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type revoke_revokeKey_result = void
+export type revokeRevokeKeyResult = void
 
-export type revoke_revokeKey_rpc = {
+export type revokeRevokeKeyRpc = {
   method: 'revoke.revokeKey',
   param: {
     keyID: KID
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type revoke_revokeSigs_result = void
+export type revokeRevokeSigsResult = void
 
-export type revoke_revokeSigs_rpc = {
+export type revokeRevokeSigsRpc = {
   method: 'revoke.revokeSigs',
   param: {
     sigIDQueries: Array<string>
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type saltpackUi_saltpackPromptForDecrypt_result = void
+export type saltpackSaltpackDecryptResult = SaltpackEncryptedMessageInfo
 
-export type saltpackUi_saltpackPromptForDecrypt_rpc = {
-  method: 'saltpackUi.saltpackPromptForDecrypt',
-  param: {
-    sender: SaltpackSender
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type saltpackUi_saltpackVerifySuccess_result = void
-
-export type saltpackUi_saltpackVerifySuccess_rpc = {
-  method: 'saltpackUi.saltpackVerifySuccess',
-  param: {
-    signingKID: KID,
-    sender: SaltpackSender
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type saltpack_saltpackDecrypt_result = SaltpackEncryptedMessageInfo
-
-export type saltpack_saltpackDecrypt_rpc = {
+export type saltpackSaltpackDecryptRpc = {
   method: 'saltpack.saltpackDecrypt',
   param: {
     source: Stream,
     sink: Stream,
     opts: SaltpackDecryptOptions
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: saltpack_saltpackDecrypt_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: saltpackSaltpackDecryptResult) => void)
 }
 
-export type saltpack_saltpackEncrypt_result = void
+export type saltpackSaltpackEncryptResult = void
 
-export type saltpack_saltpackEncrypt_rpc = {
+export type saltpackSaltpackEncryptRpc = {
   method: 'saltpack.saltpackEncrypt',
   param: {
     source: Stream,
     sink: Stream,
     opts: SaltpackEncryptOptions
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type saltpack_saltpackSign_result = void
+export type saltpackSaltpackSignResult = void
 
-export type saltpack_saltpackSign_rpc = {
+export type saltpackSaltpackSignRpc = {
   method: 'saltpack.saltpackSign',
   param: {
     source: Stream,
     sink: Stream,
     opts: SaltpackSignOptions
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type saltpack_saltpackVerify_result = void
+export type saltpackSaltpackVerifyResult = void
 
-export type saltpack_saltpackVerify_rpc = {
+export type saltpackSaltpackVerifyRpc = {
   method: 'saltpack.saltpackVerify',
   param: {
     source: Stream,
     sink: Stream,
     opts: SaltpackVerifyOptions
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type secretUi_getPassphrase_result = GetPassphraseRes
+export type saltpackUiSaltpackPromptForDecryptResult = void
 
-export type secretUi_getPassphrase_rpc = {
+export type saltpackUiSaltpackPromptForDecryptRpc = {
+  method: 'saltpackUi.saltpackPromptForDecrypt',
+  param: {
+    sender: SaltpackSender
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type saltpackUiSaltpackVerifySuccessResult = void
+
+export type saltpackUiSaltpackVerifySuccessRpc = {
+  method: 'saltpackUi.saltpackVerifySuccess',
+  param: {
+    signingKID: KID,
+    sender: SaltpackSender
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type secretUiGetPassphraseResult = GetPassphraseRes
+
+export type secretUiGetPassphraseRpc = {
   method: 'secretUi.getPassphrase',
   param: {
     pinentry: GUIEntryArg,
     terminal: (null | SecretEntryArg)
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: secretUi_getPassphrase_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: secretUiGetPassphraseResult) => void)
 }
 
-export type session_currentSession_result = Session
+export type sessionCurrentSessionResult = Session
 
-export type session_currentSession_rpc = {
+export type sessionCurrentSessionRpc = {
   method: 'session.currentSession',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: session_currentSession_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: sessionCurrentSessionResult) => void)
 }
 
-export type signup_checkInvitationCode_result = void
+export type signupCheckInvitationCodeResult = void
 
-export type signup_checkInvitationCode_rpc = {
+export type signupCheckInvitationCodeRpc = {
   method: 'signup.checkInvitationCode',
   param: {
     invitationCode: string
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type signup_checkUsernameAvailable_result = void
+export type signupCheckUsernameAvailableResult = void
 
-export type signup_checkUsernameAvailable_rpc = {
+export type signupCheckUsernameAvailableRpc = {
   method: 'signup.checkUsernameAvailable',
   param: {
     username: string
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type signup_inviteRequest_result = void
+export type signupInviteRequestResult = void
 
-export type signup_inviteRequest_rpc = {
+export type signupInviteRequestRpc = {
   method: 'signup.inviteRequest',
   param: {
     email: string,
     fullname: string,
     notes: string
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type signup_signup_result = SignupRes
+export type signupSignupResult = SignupRes
 
-export type signup_signup_rpc = {
+export type signupSignupRpc = {
   method: 'signup.signup',
   param: {
     email: string,
@@ -3157,550 +3120,548 @@ export type signup_signup_rpc = {
     storeSecret: boolean,
     skipMail: boolean
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: signup_signup_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: signupSignupResult) => void)
 }
 
-export type sigs_sigListJSON_result = string
+export type sigsSigListJSONResult = string
 
-export type sigs_sigListJSON_rpc = {
+export type sigsSigListJSONRpc = {
   method: 'sigs.sigListJSON',
   param: {
     arg: SigListArgs
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: sigs_sigListJSON_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: sigsSigListJSONResult) => void)
 }
 
-export type sigs_sigList_result = Array<Sig>
+export type sigsSigListResult = Array<Sig>
 
-export type sigs_sigList_rpc = {
+export type sigsSigListRpc = {
   method: 'sigs.sigList',
   param: {
     arg: SigListArgs
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: sigs_sigList_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: sigsSigListResult) => void)
 }
 
-export type streamUi_close_result = void
+export type streamUiCloseResult = void
 
-export type streamUi_close_rpc = {
+export type streamUiCloseRpc = {
   method: 'streamUi.close',
   param: {
     s: Stream
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type streamUi_read_result = bytes
+export type streamUiReadResult = bytes
 
-export type streamUi_read_rpc = {
+export type streamUiReadRpc = {
   method: 'streamUi.read',
   param: {
     s: Stream,
     sz: int
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: streamUi_read_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: streamUiReadResult) => void)
 }
 
-export type streamUi_write_result = int
+export type streamUiWriteResult = int
 
-export type streamUi_write_rpc = {
+export type streamUiWriteRpc = {
   method: 'streamUi.write',
   param: {
     s: Stream,
     buf: bytes
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: streamUi_write_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: streamUiWriteResult) => void)
 }
 
-export type test_panic_result = void
+export type testPanicResult = void
 
-export type test_panic_rpc = {
+export type testPanicRpc = {
   method: 'test.panic',
   param: {
     message: string
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type test_testCallback_result = string
+export type testTestCallbackResult = string
 
-export type test_testCallback_rpc = {
+export type testTestCallbackRpc = {
   method: 'test.testCallback',
   param: {
     name: string
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: test_testCallback_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: testTestCallbackResult) => void)
 }
 
-export type test_test_result = Test
+export type testTestResult = Test
 
-export type test_test_rpc = {
+export type testTestRpc = {
   method: 'test.test',
   param: {
     name: string
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: test_test_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: testTestResult) => void)
 }
 
-export type track_checkTracking_result = void
+export type trackCheckTrackingResult = void
 
-export type track_checkTracking_rpc = {
+export type trackCheckTrackingRpc = {
   method: 'track.checkTracking',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type track_dismissWithToken_result = void
+export type trackDismissWithTokenResult = void
 
-export type track_dismissWithToken_rpc = {
+export type trackDismissWithTokenRpc = {
   method: 'track.dismissWithToken',
   param: {
     trackToken: TrackToken
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type track_fakeTrackingChanged_result = void
+export type trackFakeTrackingChangedResult = void
 
-export type track_fakeTrackingChanged_rpc = {
+export type trackFakeTrackingChangedRpc = {
   method: 'track.fakeTrackingChanged',
   param: {
     username: string
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type track_trackWithToken_result = void
+export type trackTrackResult = void
 
-export type track_trackWithToken_rpc = {
-  method: 'track.trackWithToken',
-  param: {
-    trackToken: TrackToken,
-    options: TrackOptions
-  },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any) => void)
-}
-
-export type track_track_result = void
-
-export type track_track_rpc = {
+export type trackTrackRpc = {
   method: 'track.track',
   param: {
     userAssertion: string,
     options: TrackOptions,
     forceRemoteCheck: boolean
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type track_untrack_result = void
+export type trackTrackWithTokenResult = void
 
-export type track_untrack_rpc = {
+export type trackTrackWithTokenRpc = {
+  method: 'track.trackWithToken',
+  param: {
+    trackToken: TrackToken,
+    options: TrackOptions
+  },
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any) => void)
+}
+
+export type trackUntrackResult = void
+
+export type trackUntrackRpc = {
   method: 'track.untrack',
   param: {
     username: string
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type ui_promptYesNo_result = boolean
+export type uiPromptYesNoResult = boolean
 
-export type ui_promptYesNo_rpc = {
+export type uiPromptYesNoRpc = {
   method: 'ui.promptYesNo',
   param: {
     text: Text,
     promptDefault: PromptDefault
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: ui_promptYesNo_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: uiPromptYesNoResult) => void)
 }
 
-export type updateUi_updateAppInUse_result = UpdateAppInUseRes
+export type updateUiUpdateAppInUseResult = UpdateAppInUseRes
 
-export type updateUi_updateAppInUse_rpc = {
+export type updateUiUpdateAppInUseRpc = {
   method: 'updateUi.updateAppInUse',
   param: {
     update: Update,
     processes: Array<Process>
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: updateUi_updateAppInUse_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: updateUiUpdateAppInUseResult) => void)
 }
 
-export type updateUi_updatePrompt_result = UpdatePromptRes
+export type updateUiUpdatePromptResult = UpdatePromptRes
 
-export type updateUi_updatePrompt_rpc = {
+export type updateUiUpdatePromptRpc = {
   method: 'updateUi.updatePrompt',
   param: {
     update: Update,
     options: UpdatePromptOptions
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: updateUi_updatePrompt_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: updateUiUpdatePromptResult) => void)
 }
 
-export type updateUi_updateQuit_result = UpdateQuitRes
+export type updateUiUpdateQuitResult = UpdateQuitRes
 
-export type updateUi_updateQuit_rpc = {
+export type updateUiUpdateQuitRpc = {
   method: 'updateUi.updateQuit',
   param: {
     update: Update,
     status: Status
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: updateUi_updateQuit_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: updateUiUpdateQuitResult) => void)
 }
 
-export type update_updateCheck_result = void
+export type updateUpdateCheckResult = void
 
-export type update_updateCheck_rpc = {
+export type updateUpdateCheckRpc = {
   method: 'update.updateCheck',
   param: {
     force: boolean
   },
-  incomingCallMap: ?incomingCallMapType,
+  incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
 }
 
-export type update_update_result = UpdateResult
+export type updateUpdateResult = UpdateResult
 
-export type update_update_rpc = {
+export type updateUpdateRpc = {
   method: 'update.update',
   param: {
     options: UpdateOptions
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: update_update_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: updateUpdateResult) => void)
 }
 
-export type user_listTrackersByName_result = Array<Tracker>
+export type userListTrackersByNameResult = Array<Tracker>
 
-export type user_listTrackersByName_rpc = {
+export type userListTrackersByNameRpc = {
   method: 'user.listTrackersByName',
   param: {
     username: string
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: user_listTrackersByName_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: userListTrackersByNameResult) => void)
 }
 
-export type user_listTrackersSelf_result = Array<Tracker>
+export type userListTrackersResult = Array<Tracker>
 
-export type user_listTrackersSelf_rpc = {
-  method: 'user.listTrackersSelf',
-  param: {},
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: user_listTrackersSelf_result) => void)
-}
-
-export type user_listTrackers_result = Array<Tracker>
-
-export type user_listTrackers_rpc = {
+export type userListTrackersRpc = {
   method: 'user.listTrackers',
   param: {
     uid: UID
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: user_listTrackers_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: userListTrackersResult) => void)
 }
 
-export type user_listTrackingJSON_result = string
+export type userListTrackersSelfResult = Array<Tracker>
 
-export type user_listTrackingJSON_rpc = {
+export type userListTrackersSelfRpc = {
+  method: 'user.listTrackersSelf',
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: userListTrackersSelfResult) => void)
+}
+
+export type userListTrackingJSONResult = string
+
+export type userListTrackingJSONRpc = {
   method: 'user.listTrackingJSON',
   param: {
     filter: string,
     verbose: boolean
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: user_listTrackingJSON_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: userListTrackingJSONResult) => void)
 }
 
-export type user_listTracking_result = Array<UserSummary>
+export type userListTrackingResult = Array<UserSummary>
 
-export type user_listTracking_rpc = {
+export type userListTrackingRpc = {
   method: 'user.listTracking',
   param: {
     filter: string
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: user_listTracking_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: userListTrackingResult) => void)
 }
 
-export type user_loadPublicKeys_result = Array<PublicKey>
+export type userLoadPublicKeysResult = Array<PublicKey>
 
-export type user_loadPublicKeys_rpc = {
+export type userLoadPublicKeysRpc = {
   method: 'user.loadPublicKeys',
   param: {
     uid: UID
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: user_loadPublicKeys_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: userLoadPublicKeysResult) => void)
 }
 
-export type user_loadUncheckedUserSummaries_result = Array<UserSummary>
+export type userLoadUncheckedUserSummariesResult = Array<UserSummary>
 
-export type user_loadUncheckedUserSummaries_rpc = {
+export type userLoadUncheckedUserSummariesRpc = {
   method: 'user.loadUncheckedUserSummaries',
   param: {
     uids: Array<UID>
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: user_loadUncheckedUserSummaries_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: userLoadUncheckedUserSummariesResult) => void)
 }
 
-export type user_loadUserPlusKeys_result = UserPlusKeys
+export type userLoadUserPlusKeysResult = UserPlusKeys
 
-export type user_loadUserPlusKeys_rpc = {
+export type userLoadUserPlusKeysRpc = {
   method: 'user.loadUserPlusKeys',
   param: {
     uid: UID
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: user_loadUserPlusKeys_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: userLoadUserPlusKeysResult) => void)
 }
 
-export type user_loadUser_result = User
+export type userLoadUserResult = User
 
-export type user_loadUser_rpc = {
+export type userLoadUserRpc = {
   method: 'user.loadUser',
   param: {
     uid: UID
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: user_loadUser_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: userLoadUserResult) => void)
 }
 
-export type user_search_result = Array<SearchResult>
+export type userSearchResult = Array<SearchResult>
 
-export type user_search_rpc = {
+export type userSearchRpc = {
   method: 'user.search',
   param: {
     query: string
   },
-  incomingCallMap: ?incomingCallMapType,
-  callback: (null | (err: ?any, response: user_search_result) => void)
+  incomingCallMap?: incomingCallMapType,
+  callback: (null | (err: ?any, response: userSearchResult) => void)
 }
 
 export type rpc =
-    BTC_registerBTC_rpc
-  | Kex2Provisionee_didCounterSign_rpc
-  | Kex2Provisionee_hello_rpc
-  | Kex2Provisioner_kexStart_rpc
-  | NotifyFS_FSActivity_rpc
-  | NotifyFavorites_favoritesChanged_rpc
-  | NotifySession_clientOutOfDate_rpc
-  | NotifySession_loggedIn_rpc
-  | NotifySession_loggedOut_rpc
-  | NotifyTracking_trackingChanged_rpc
-  | NotifyUsers_userChanged_rpc
-  | SecretKeys_getSecretKeys_rpc
-  | account_passphraseChange_rpc
-  | account_passphrasePrompt_rpc
-  | block_addReference_rpc
-  | block_archiveReferenceWithCount_rpc
-  | block_archiveReference_rpc
-  | block_authenticateSession_rpc
-  | block_delReferenceWithCount_rpc
-  | block_delReference_rpc
-  | block_getBlock_rpc
-  | block_getSessionChallenge_rpc
-  | block_getUserQuotaInfo_rpc
-  | block_putBlock_rpc
-  | config_clearValue_rpc
-  | config_getConfig_rpc
-  | config_getCurrentStatus_rpc
-  | config_getExtendedStatus_rpc
-  | config_getValue_rpc
-  | config_helloIAm_rpc
-  | config_setPath_rpc
-  | config_setUserConfig_rpc
-  | config_setValue_rpc
-  | crypto_signED25519_rpc
-  | crypto_signToString_rpc
-  | crypto_unboxBytes32Any_rpc
-  | crypto_unboxBytes32_rpc
-  | ctl_dbNuke_rpc
-  | ctl_logRotate_rpc
-  | ctl_reload_rpc
-  | ctl_stop_rpc
-  | debugging_firstStep_rpc
-  | debugging_increment_rpc
-  | debugging_secondStep_rpc
-  | delegateUiCtl_registerIdentifyUI_rpc
-  | delegateUiCtl_registerRekeyUI_rpc
-  | delegateUiCtl_registerSecretUI_rpc
-  | delegateUiCtl_registerUpdateUI_rpc
-  | device_checkDeviceNameFormat_rpc
-  | device_deviceAdd_rpc
-  | device_deviceHistoryList_rpc
-  | device_deviceList_rpc
-  | favorite_favoriteAdd_rpc
-  | favorite_favoriteDelete_rpc
-  | favorite_favoriteList_rpc
-  | gpgUi_confirmDuplicateKeyChosen_rpc
-  | gpgUi_selectKeyAndPushOption_rpc
-  | gpgUi_selectKey_rpc
-  | gpgUi_sign_rpc
-  | gpgUi_wantToAddGPGKey_rpc
-  | identifyUi_confirm_rpc
-  | identifyUi_delegateIdentifyUI_rpc
-  | identifyUi_dismiss_rpc
-  | identifyUi_displayCryptocurrency_rpc
-  | identifyUi_displayKey_rpc
-  | identifyUi_displayTLFCreateWithInvite_rpc
-  | identifyUi_displayTrackStatement_rpc
-  | identifyUi_displayUserCard_rpc
-  | identifyUi_finishSocialProofCheck_rpc
-  | identifyUi_finishWebProofCheck_rpc
-  | identifyUi_finish_rpc
-  | identifyUi_launchNetworkChecks_rpc
-  | identifyUi_reportLastTrack_rpc
-  | identifyUi_reportTrackToken_rpc
-  | identifyUi_start_rpc
-  | identify_Resolve2_rpc
-  | identify_Resolve_rpc
-  | identify_identify2_rpc
-  | identify_identify_rpc
-  | kbfs_FSEvent_rpc
-  | logUi_log_rpc
-  | log_registerLogger_rpc
-  | loginUi_displayPaperKeyPhrase_rpc
-  | loginUi_displayPrimaryPaperKey_rpc
-  | loginUi_getEmailOrUsername_rpc
-  | loginUi_promptRevokePaperKeys_rpc
-  | login_clearStoredSecret_rpc
-  | login_deprovision_rpc
-  | login_getConfiguredAccounts_rpc
-  | login_login_rpc
-  | login_logout_rpc
-  | login_paperKey_rpc
-  | login_recoverAccountFromEmailAddress_rpc
-  | login_unlockWithPassphrase_rpc
-  | login_unlock_rpc
-  | metadataUpdate_folderNeedsRekey_rpc
-  | metadataUpdate_metadataUpdate_rpc
-  | metadata_authenticate_rpc
-  | metadata_deleteKey_rpc
-  | metadata_getChallenge_rpc
-  | metadata_getFolderHandle_rpc
-  | metadata_getFoldersForRekey_rpc
-  | metadata_getKey_rpc
-  | metadata_getLatestFolderHandle_rpc
-  | metadata_getMerkleNode_rpc
-  | metadata_getMerkleRootLatest_rpc
-  | metadata_getMerkleRootSince_rpc
-  | metadata_getMerkleRoot_rpc
-  | metadata_getMetadata_rpc
-  | metadata_ping_rpc
-  | metadata_pruneBranch_rpc
-  | metadata_putKeys_rpc
-  | metadata_putMetadata_rpc
-  | metadata_registerForUpdates_rpc
-  | metadata_truncateLock_rpc
-  | metadata_truncateUnlock_rpc
-  | notifyCtl_setNotifications_rpc
-  | paperprovision_paperProvision_rpc
-  | pgpUi_outputSignatureSuccess_rpc
-  | pgp_pgpDecrypt_rpc
-  | pgp_pgpDeletePrimary_rpc
-  | pgp_pgpEncrypt_rpc
-  | pgp_pgpExportByFingerprint_rpc
-  | pgp_pgpExportByKID_rpc
-  | pgp_pgpExport_rpc
-  | pgp_pgpImport_rpc
-  | pgp_pgpKeyGen_rpc
-  | pgp_pgpPull_rpc
-  | pgp_pgpSelect_rpc
-  | pgp_pgpSign_rpc
-  | pgp_pgpUpdate_rpc
-  | pgp_pgpVerify_rpc
-  | proveUi_displayRecheckWarning_rpc
-  | proveUi_okToCheck_rpc
-  | proveUi_outputInstructions_rpc
-  | proveUi_outputPrechecks_rpc
-  | proveUi_preProofWarning_rpc
-  | proveUi_promptOverwrite_rpc
-  | proveUi_promptUsername_rpc
-  | prove_checkProof_rpc
-  | prove_startProof_rpc
-  | provisionUi_DisplayAndPromptSecret_rpc
-  | provisionUi_DisplaySecretExchanged_rpc
-  | provisionUi_PromptNewDeviceName_rpc
-  | provisionUi_ProvisioneeSuccess_rpc
-  | provisionUi_ProvisionerSuccess_rpc
-  | provisionUi_chooseDeviceType_rpc
-  | provisionUi_chooseDevice_rpc
-  | provisionUi_chooseGPGMethod_rpc
-  | provisionUi_chooseProvisioningMethod_rpc
-  | provisionUi_switchToGPGSignOK_rpc
-  | quota_verifySession_rpc
-  | rekeyUI_delegateRekeyUI_rpc
-  | rekeyUI_refresh_rpc
-  | rekey_getProblemSet_rpc
-  | rekey_rekeyStatusFinish_rpc
-  | rekey_showPendingRekeyStatus_rpc
-  | rekey_showRekeyStatus_rpc
-  | revoke_revokeDevice_rpc
-  | revoke_revokeKey_rpc
-  | revoke_revokeSigs_rpc
-  | saltpackUi_saltpackPromptForDecrypt_rpc
-  | saltpackUi_saltpackVerifySuccess_rpc
-  | saltpack_saltpackDecrypt_rpc
-  | saltpack_saltpackEncrypt_rpc
-  | saltpack_saltpackSign_rpc
-  | saltpack_saltpackVerify_rpc
-  | secretUi_getPassphrase_rpc
-  | session_currentSession_rpc
-  | signup_checkInvitationCode_rpc
-  | signup_checkUsernameAvailable_rpc
-  | signup_inviteRequest_rpc
-  | signup_signup_rpc
-  | sigs_sigListJSON_rpc
-  | sigs_sigList_rpc
-  | streamUi_close_rpc
-  | streamUi_read_rpc
-  | streamUi_write_rpc
-  | test_panic_rpc
-  | test_testCallback_rpc
-  | test_test_rpc
-  | track_checkTracking_rpc
-  | track_dismissWithToken_rpc
-  | track_fakeTrackingChanged_rpc
-  | track_trackWithToken_rpc
-  | track_track_rpc
-  | track_untrack_rpc
-  | ui_promptYesNo_rpc
-  | updateUi_updateAppInUse_rpc
-  | updateUi_updatePrompt_rpc
-  | updateUi_updateQuit_rpc
-  | update_updateCheck_rpc
-  | update_update_rpc
-  | user_listTrackersByName_rpc
-  | user_listTrackersSelf_rpc
-  | user_listTrackers_rpc
-  | user_listTrackingJSON_rpc
-  | user_listTracking_rpc
-  | user_loadPublicKeys_rpc
-  | user_loadUncheckedUserSummaries_rpc
-  | user_loadUserPlusKeys_rpc
-  | user_loadUser_rpc
-  | user_search_rpc
+    BTCRegisterBTCRpc
+  | Kex2ProvisioneeDidCounterSignRpc
+  | Kex2ProvisioneeHelloRpc
+  | Kex2ProvisionerKexStartRpc
+  | NotifyFSFSActivityRpc
+  | NotifyFavoritesFavoritesChangedRpc
+  | NotifySessionClientOutOfDateRpc
+  | NotifySessionLoggedInRpc
+  | NotifySessionLoggedOutRpc
+  | NotifyTrackingTrackingChangedRpc
+  | NotifyUsersUserChangedRpc
+  | SecretKeysGetSecretKeysRpc
+  | accountPassphraseChangeRpc
+  | accountPassphrasePromptRpc
+  | blockAddReferenceRpc
+  | blockArchiveReferenceRpc
+  | blockArchiveReferenceWithCountRpc
+  | blockAuthenticateSessionRpc
+  | blockDelReferenceRpc
+  | blockDelReferenceWithCountRpc
+  | blockGetBlockRpc
+  | blockGetSessionChallengeRpc
+  | blockGetUserQuotaInfoRpc
+  | blockPutBlockRpc
+  | configClearValueRpc
+  | configGetConfigRpc
+  | configGetCurrentStatusRpc
+  | configGetExtendedStatusRpc
+  | configGetValueRpc
+  | configHelloIAmRpc
+  | configSetPathRpc
+  | configSetUserConfigRpc
+  | configSetValueRpc
+  | cryptoSignED25519Rpc
+  | cryptoSignToStringRpc
+  | cryptoUnboxBytes32AnyRpc
+  | cryptoUnboxBytes32Rpc
+  | ctlDbNukeRpc
+  | ctlLogRotateRpc
+  | ctlReloadRpc
+  | ctlStopRpc
+  | debuggingFirstStepRpc
+  | debuggingIncrementRpc
+  | debuggingSecondStepRpc
+  | delegateUiCtlRegisterIdentifyUIRpc
+  | delegateUiCtlRegisterRekeyUIRpc
+  | delegateUiCtlRegisterSecretUIRpc
+  | delegateUiCtlRegisterUpdateUIRpc
+  | deviceCheckDeviceNameFormatRpc
+  | deviceDeviceAddRpc
+  | deviceDeviceHistoryListRpc
+  | deviceDeviceListRpc
+  | favoriteFavoriteAddRpc
+  | favoriteFavoriteDeleteRpc
+  | favoriteFavoriteListRpc
+  | gpgUiConfirmDuplicateKeyChosenRpc
+  | gpgUiSelectKeyAndPushOptionRpc
+  | gpgUiSelectKeyRpc
+  | gpgUiSignRpc
+  | gpgUiWantToAddGPGKeyRpc
+  | identifyIdentify2Rpc
+  | identifyIdentifyRpc
+  | identifyResolve2Rpc
+  | identifyResolveRpc
+  | identifyUiConfirmRpc
+  | identifyUiDelegateIdentifyUIRpc
+  | identifyUiDismissRpc
+  | identifyUiDisplayCryptocurrencyRpc
+  | identifyUiDisplayKeyRpc
+  | identifyUiDisplayTLFCreateWithInviteRpc
+  | identifyUiDisplayTrackStatementRpc
+  | identifyUiDisplayUserCardRpc
+  | identifyUiFinishRpc
+  | identifyUiFinishSocialProofCheckRpc
+  | identifyUiFinishWebProofCheckRpc
+  | identifyUiLaunchNetworkChecksRpc
+  | identifyUiReportLastTrackRpc
+  | identifyUiReportTrackTokenRpc
+  | identifyUiStartRpc
+  | kbfsFSEventRpc
+  | logRegisterLoggerRpc
+  | logUiLogRpc
+  | loginClearStoredSecretRpc
+  | loginDeprovisionRpc
+  | loginGetConfiguredAccountsRpc
+  | loginLoginRpc
+  | loginLogoutRpc
+  | loginPaperKeyRpc
+  | loginRecoverAccountFromEmailAddressRpc
+  | loginUiDisplayPaperKeyPhraseRpc
+  | loginUiDisplayPrimaryPaperKeyRpc
+  | loginUiGetEmailOrUsernameRpc
+  | loginUiPromptRevokePaperKeysRpc
+  | loginUnlockRpc
+  | loginUnlockWithPassphraseRpc
+  | metadataAuthenticateRpc
+  | metadataDeleteKeyRpc
+  | metadataGetChallengeRpc
+  | metadataGetFolderHandleRpc
+  | metadataGetFoldersForRekeyRpc
+  | metadataGetKeyRpc
+  | metadataGetLatestFolderHandleRpc
+  | metadataGetMerkleNodeRpc
+  | metadataGetMerkleRootLatestRpc
+  | metadataGetMerkleRootRpc
+  | metadataGetMerkleRootSinceRpc
+  | metadataGetMetadataRpc
+  | metadataPingRpc
+  | metadataPruneBranchRpc
+  | metadataPutKeysRpc
+  | metadataPutMetadataRpc
+  | metadataRegisterForUpdatesRpc
+  | metadataTruncateLockRpc
+  | metadataTruncateUnlockRpc
+  | metadataUpdateFolderNeedsRekeyRpc
+  | metadataUpdateMetadataUpdateRpc
+  | notifyCtlSetNotificationsRpc
+  | paperprovisionPaperProvisionRpc
+  | pgpPgpDecryptRpc
+  | pgpPgpDeletePrimaryRpc
+  | pgpPgpEncryptRpc
+  | pgpPgpExportByFingerprintRpc
+  | pgpPgpExportByKIDRpc
+  | pgpPgpExportRpc
+  | pgpPgpImportRpc
+  | pgpPgpKeyGenRpc
+  | pgpPgpPullRpc
+  | pgpPgpSelectRpc
+  | pgpPgpSignRpc
+  | pgpPgpUpdateRpc
+  | pgpPgpVerifyRpc
+  | pgpUiOutputSignatureSuccessRpc
+  | proveCheckProofRpc
+  | proveStartProofRpc
+  | proveUiDisplayRecheckWarningRpc
+  | proveUiOkToCheckRpc
+  | proveUiOutputInstructionsRpc
+  | proveUiOutputPrechecksRpc
+  | proveUiPreProofWarningRpc
+  | proveUiPromptOverwriteRpc
+  | proveUiPromptUsernameRpc
+  | provisionUiChooseDeviceRpc
+  | provisionUiChooseDeviceTypeRpc
+  | provisionUiChooseGPGMethodRpc
+  | provisionUiChooseProvisioningMethodRpc
+  | provisionUiDisplayAndPromptSecretRpc
+  | provisionUiDisplaySecretExchangedRpc
+  | provisionUiPromptNewDeviceNameRpc
+  | provisionUiProvisioneeSuccessRpc
+  | provisionUiProvisionerSuccessRpc
+  | provisionUiSwitchToGPGSignOKRpc
+  | quotaVerifySessionRpc
+  | rekeyGetProblemSetRpc
+  | rekeyRekeyStatusFinishRpc
+  | rekeyShowPendingRekeyStatusRpc
+  | rekeyShowRekeyStatusRpc
+  | rekeyUIDelegateRekeyUIRpc
+  | rekeyUIRefreshRpc
+  | revokeRevokeDeviceRpc
+  | revokeRevokeKeyRpc
+  | revokeRevokeSigsRpc
+  | saltpackSaltpackDecryptRpc
+  | saltpackSaltpackEncryptRpc
+  | saltpackSaltpackSignRpc
+  | saltpackSaltpackVerifyRpc
+  | saltpackUiSaltpackPromptForDecryptRpc
+  | saltpackUiSaltpackVerifySuccessRpc
+  | secretUiGetPassphraseRpc
+  | sessionCurrentSessionRpc
+  | signupCheckInvitationCodeRpc
+  | signupCheckUsernameAvailableRpc
+  | signupInviteRequestRpc
+  | signupSignupRpc
+  | sigsSigListJSONRpc
+  | sigsSigListRpc
+  | streamUiCloseRpc
+  | streamUiReadRpc
+  | streamUiWriteRpc
+  | testPanicRpc
+  | testTestCallbackRpc
+  | testTestRpc
+  | trackCheckTrackingRpc
+  | trackDismissWithTokenRpc
+  | trackFakeTrackingChangedRpc
+  | trackTrackRpc
+  | trackTrackWithTokenRpc
+  | trackUntrackRpc
+  | uiPromptYesNoRpc
+  | updateUiUpdateAppInUseRpc
+  | updateUiUpdatePromptRpc
+  | updateUiUpdateQuitRpc
+  | updateUpdateCheckRpc
+  | updateUpdateRpc
+  | userListTrackersByNameRpc
+  | userListTrackersRpc
+  | userListTrackersSelfRpc
+  | userListTrackingJSONRpc
+  | userListTrackingRpc
+  | userLoadPublicKeysRpc
+  | userLoadUncheckedUserSummariesRpc
+  | userLoadUserPlusKeysRpc
+  | userLoadUserRpc
+  | userSearchRpc
 
 export type incomingCallMapType = {
   'keybase.1.account.passphraseChange'?: (
@@ -3722,14 +3683,14 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: account_passphrasePrompt_result) => void
+      result: (result: accountPassphrasePromptResult) => void
     }
   ) => void,
   'keybase.1.block.getSessionChallenge'?: (
     params: {},
     response: {
       error: (err: RPCError) => void,
-      result: (result: block_getSessionChallenge_result) => void
+      result: (result: blockGetSessionChallengeResult) => void
     }
   ) => void,
   'keybase.1.block.authenticateSession'?: (
@@ -3760,7 +3721,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: block_getBlock_result) => void
+      result: (result: blockGetBlockResult) => void
     }
   ) => void,
   'keybase.1.block.addReference'?: (
@@ -3790,7 +3751,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: block_archiveReference_result) => void
+      result: (result: blockArchiveReferenceResult) => void
     }
   ) => void,
   'keybase.1.block.delReferenceWithCount'?: (
@@ -3800,7 +3761,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: block_delReferenceWithCount_result) => void
+      result: (result: blockDelReferenceWithCountResult) => void
     }
   ) => void,
   'keybase.1.block.archiveReferenceWithCount'?: (
@@ -3810,14 +3771,14 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: block_archiveReferenceWithCount_result) => void
+      result: (result: blockArchiveReferenceWithCountResult) => void
     }
   ) => void,
   'keybase.1.block.getUserQuotaInfo'?: (
     params: {},
     response: {
       error: (err: RPCError) => void,
-      result: (result: block_getUserQuotaInfo_result) => void
+      result: (result: blockGetUserQuotaInfoResult) => void
     }
   ) => void,
   'keybase.1.BTC.registerBTC'?: (
@@ -3837,7 +3798,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: config_getCurrentStatus_result) => void
+      result: (result: configGetCurrentStatusResult) => void
     }
   ) => void,
   'keybase.1.config.getExtendedStatus'?: (
@@ -3846,7 +3807,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: config_getExtendedStatus_result) => void
+      result: (result: configGetExtendedStatusResult) => void
     }
   ) => void,
   'keybase.1.config.getConfig'?: (
@@ -3855,7 +3816,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: config_getConfig_result) => void
+      result: (result: configGetConfigResult) => void
     }
   ) => void,
   'keybase.1.config.setUserConfig'?: (
@@ -3914,7 +3875,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: config_getValue_result) => void
+      result: (result: configGetValueResult) => void
     }
   ) => void,
   'keybase.1.crypto.signED25519'?: (
@@ -3925,7 +3886,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: crypto_signED25519_result) => void
+      result: (result: cryptoSignED25519Result) => void
     }
   ) => void,
   'keybase.1.crypto.signToString'?: (
@@ -3936,7 +3897,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: crypto_signToString_result) => void
+      result: (result: cryptoSignToStringResult) => void
     }
   ) => void,
   'keybase.1.crypto.unboxBytes32'?: (
@@ -3949,7 +3910,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: crypto_unboxBytes32_result) => void
+      result: (result: cryptoUnboxBytes32Result) => void
     }
   ) => void,
   'keybase.1.crypto.unboxBytes32Any'?: (
@@ -3961,7 +3922,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: crypto_unboxBytes32Any_result) => void
+      result: (result: cryptoUnboxBytes32AnyResult) => void
     }
   ) => void,
   'keybase.1.ctl.stop'?: (
@@ -4008,7 +3969,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: debugging_firstStep_result) => void
+      result: (result: debuggingFirstStepResult) => void
     }
   ) => void,
   'keybase.1.debugging.secondStep'?: (
@@ -4018,7 +3979,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: debugging_secondStep_result) => void
+      result: (result: debuggingSecondStepResult) => void
     }
   ) => void,
   'keybase.1.debugging.increment'?: (
@@ -4028,7 +3989,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: debugging_increment_result) => void
+      result: (result: debuggingIncrementResult) => void
     }
   ) => void,
   'keybase.1.delegateUiCtl.registerIdentifyUI'?: (
@@ -4065,7 +4026,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: device_deviceList_result) => void
+      result: (result: deviceDeviceListResult) => void
     }
   ) => void,
   'keybase.1.device.deviceHistoryList'?: (
@@ -4074,7 +4035,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: device_deviceHistoryList_result) => void
+      result: (result: deviceDeviceHistoryListResult) => void
     }
   ) => void,
   'keybase.1.device.deviceAdd'?: (
@@ -4093,7 +4054,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: device_checkDeviceNameFormat_result) => void
+      result: (result: deviceCheckDeviceNameFormatResult) => void
     }
   ) => void,
   'keybase.1.favorite.favoriteAdd'?: (
@@ -4122,7 +4083,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: favorite_favoriteList_result) => void
+      result: (result: favoriteFavoriteListResult) => void
     }
   ) => void,
   'keybase.1.gpgUi.wantToAddGPGKey'?: (
@@ -4131,7 +4092,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: gpgUi_wantToAddGPGKey_result) => void
+      result: (result: gpgUiWantToAddGPGKeyResult) => void
     }
   ) => void,
   'keybase.1.gpgUi.confirmDuplicateKeyChosen'?: (
@@ -4140,7 +4101,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: gpgUi_confirmDuplicateKeyChosen_result) => void
+      result: (result: gpgUiConfirmDuplicateKeyChosenResult) => void
     }
   ) => void,
   'keybase.1.gpgUi.selectKeyAndPushOption'?: (
@@ -4150,7 +4111,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: gpgUi_selectKeyAndPushOption_result) => void
+      result: (result: gpgUiSelectKeyAndPushOptionResult) => void
     }
   ) => void,
   'keybase.1.gpgUi.selectKey'?: (
@@ -4160,7 +4121,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: gpgUi_selectKey_result) => void
+      result: (result: gpgUiSelectKeyResult) => void
     }
   ) => void,
   'keybase.1.gpgUi.sign'?: (
@@ -4170,7 +4131,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: gpgUi_sign_result) => void
+      result: (result: gpgUiSignResult) => void
     }
   ) => void,
   'keybase.1.identify.Resolve'?: (
@@ -4179,7 +4140,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: identify_Resolve_result) => void
+      result: (result: identifyResolveResult) => void
     }
   ) => void,
   'keybase.1.identify.Resolve2'?: (
@@ -4188,7 +4149,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: identify_Resolve2_result) => void
+      result: (result: identifyResolve2Result) => void
     }
   ) => void,
   'keybase.1.identify.identify'?: (
@@ -4202,7 +4163,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: identify_identify_result) => void
+      result: (result: identifyIdentifyResult) => void
     }
   ) => void,
   'keybase.1.identify.identify2'?: (
@@ -4221,7 +4182,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: identify_identify2_result) => void
+      result: (result: identifyIdentify2Result) => void
     }
   ) => void,
   'keybase.1.identifyUi.displayTLFCreateWithInvite'?: (
@@ -4242,7 +4203,7 @@ export type incomingCallMapType = {
     params: {},
     response: {
       error: (err: RPCError) => void,
-      result: (result: identifyUi_delegateIdentifyUI_result) => void
+      result: (result: identifyUiDelegateIdentifyUIResult) => void
     }
   ) => void,
   'keybase.1.identifyUi.start'?: (
@@ -4356,7 +4317,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: identifyUi_confirm_result) => void
+      result: (result: identifyUiConfirmResult) => void
     }
   ) => void,
   'keybase.1.identifyUi.finish'?: (
@@ -4398,7 +4359,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: Kex2Provisionee_hello_result) => void
+      result: (result: Kex2ProvisioneeHelloResult) => void
     }
   ) => void,
   'keybase.1.Kex2Provisionee.didCounterSign'?: (
@@ -4443,7 +4404,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: login_getConfiguredAccounts_result) => void
+      result: (result: loginGetConfiguredAccountsResult) => void
     }
   ) => void,
   'keybase.1.login.login'?: (
@@ -4531,7 +4492,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: loginUi_getEmailOrUsername_result) => void
+      result: (result: loginUiGetEmailOrUsernameResult) => void
     }
   ) => void,
   'keybase.1.loginUi.promptRevokePaperKeys'?: (
@@ -4542,7 +4503,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: loginUi_promptRevokePaperKeys_result) => void
+      result: (result: loginUiPromptRevokePaperKeysResult) => void
     }
   ) => void,
   'keybase.1.loginUi.displayPaperKeyPhrase'?: (
@@ -4569,7 +4530,7 @@ export type incomingCallMapType = {
     params: {},
     response: {
       error: (err: RPCError) => void,
-      result: (result: metadata_getChallenge_result) => void
+      result: (result: metadataGetChallengeResult) => void
     }
   ) => void,
   'keybase.1.metadata.authenticate'?: (
@@ -4578,7 +4539,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: metadata_authenticate_result) => void
+      result: (result: metadataAuthenticateResult) => void
     }
   ) => void,
   'keybase.1.metadata.putMetadata'?: (
@@ -4603,7 +4564,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: metadata_getMetadata_result) => void
+      result: (result: metadataGetMetadataResult) => void
     }
   ) => void,
   'keybase.1.metadata.registerForUpdates'?: (
@@ -4646,7 +4607,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: metadata_getKey_result) => void
+      result: (result: metadataGetKeyResult) => void
     }
   ) => void,
   'keybase.1.metadata.deleteKey'?: (
@@ -4667,7 +4628,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: metadata_truncateLock_result) => void
+      result: (result: metadataTruncateLockResult) => void
     }
   ) => void,
   'keybase.1.metadata.truncateUnlock'?: (
@@ -4676,7 +4637,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: metadata_truncateUnlock_result) => void
+      result: (result: metadataTruncateUnlockResult) => void
     }
   ) => void,
   'keybase.1.metadata.getFolderHandle'?: (
@@ -4687,7 +4648,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: metadata_getFolderHandle_result) => void
+      result: (result: metadataGetFolderHandleResult) => void
     }
   ) => void,
   'keybase.1.metadata.getFoldersForRekey'?: (
@@ -4712,7 +4673,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: metadata_getLatestFolderHandle_result) => void
+      result: (result: metadataGetLatestFolderHandleResult) => void
     }
   ) => void,
   'keybase.1.metadata.getMerkleRoot'?: (
@@ -4722,7 +4683,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: metadata_getMerkleRoot_result) => void
+      result: (result: metadataGetMerkleRootResult) => void
     }
   ) => void,
   'keybase.1.metadata.getMerkleRootLatest'?: (
@@ -4731,7 +4692,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: metadata_getMerkleRootLatest_result) => void
+      result: (result: metadataGetMerkleRootLatestResult) => void
     }
   ) => void,
   'keybase.1.metadata.getMerkleRootSince'?: (
@@ -4741,7 +4702,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: metadata_getMerkleRootSince_result) => void
+      result: (result: metadataGetMerkleRootSinceResult) => void
     }
   ) => void,
   'keybase.1.metadata.getMerkleNode'?: (
@@ -4750,7 +4711,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: metadata_getMerkleNode_result) => void
+      result: (result: metadataGetMerkleNodeResult) => void
     }
   ) => void,
   'keybase.1.metadataUpdate.metadataUpdate'?: (
@@ -4891,7 +4852,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: pgp_pgpDecrypt_result) => void
+      result: (result: pgpPgpDecryptResult) => void
     }
   ) => void,
   'keybase.1.pgp.pgpVerify'?: (
@@ -4902,7 +4863,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: pgp_pgpVerify_result) => void
+      result: (result: pgpPgpVerifyResult) => void
     }
   ) => void,
   'keybase.1.pgp.pgpImport'?: (
@@ -4923,7 +4884,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: pgp_pgpExport_result) => void
+      result: (result: pgpPgpExportResult) => void
     }
   ) => void,
   'keybase.1.pgp.pgpExportByFingerprint'?: (
@@ -4933,7 +4894,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: pgp_pgpExportByFingerprint_result) => void
+      result: (result: pgpPgpExportByFingerprintResult) => void
     }
   ) => void,
   'keybase.1.pgp.pgpExportByKID'?: (
@@ -4943,7 +4904,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: pgp_pgpExportByKID_result) => void
+      result: (result: pgpPgpExportByKIDResult) => void
     }
   ) => void,
   'keybase.1.pgp.pgpKeyGen'?: (
@@ -5017,7 +4978,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: prove_startProof_result) => void
+      result: (result: proveStartProofResult) => void
     }
   ) => void,
   'keybase.1.prove.checkProof'?: (
@@ -5027,7 +4988,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: prove_checkProof_result) => void
+      result: (result: proveCheckProofResult) => void
     }
   ) => void,
   'keybase.1.proveUi.promptOverwrite'?: (
@@ -5038,7 +4999,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: proveUi_promptOverwrite_result) => void
+      result: (result: proveUiPromptOverwriteResult) => void
     }
   ) => void,
   'keybase.1.proveUi.promptUsername'?: (
@@ -5049,7 +5010,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: proveUi_promptUsername_result) => void
+      result: (result: proveUiPromptUsernameResult) => void
     }
   ) => void,
   'keybase.1.proveUi.outputPrechecks'?: (
@@ -5069,7 +5030,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: proveUi_preProofWarning_result) => void
+      result: (result: proveUiPreProofWarningResult) => void
     }
   ) => void,
   'keybase.1.proveUi.outputInstructions'?: (
@@ -5091,7 +5052,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: proveUi_okToCheck_result) => void
+      result: (result: proveUiOkToCheckResult) => void
     }
   ) => void,
   'keybase.1.proveUi.displayRecheckWarning'?: (
@@ -5111,7 +5072,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: provisionUi_chooseProvisioningMethod_result) => void
+      result: (result: provisionUiChooseProvisioningMethodResult) => void
     }
   ) => void,
   'keybase.1.provisionUi.chooseGPGMethod'?: (
@@ -5121,7 +5082,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: provisionUi_chooseGPGMethod_result) => void
+      result: (result: provisionUiChooseGPGMethodResult) => void
     }
   ) => void,
   'keybase.1.provisionUi.switchToGPGSignOK'?: (
@@ -5132,7 +5093,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: provisionUi_switchToGPGSignOK_result) => void
+      result: (result: provisionUiSwitchToGPGSignOKResult) => void
     }
   ) => void,
   'keybase.1.provisionUi.chooseDevice'?: (
@@ -5142,7 +5103,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: provisionUi_chooseDevice_result) => void
+      result: (result: provisionUiChooseDeviceResult) => void
     }
   ) => void,
   'keybase.1.provisionUi.chooseDeviceType'?: (
@@ -5152,7 +5113,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: provisionUi_chooseDeviceType_result) => void
+      result: (result: provisionUiChooseDeviceTypeResult) => void
     }
   ) => void,
   'keybase.1.provisionUi.DisplayAndPromptSecret'?: (
@@ -5164,7 +5125,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: provisionUi_DisplayAndPromptSecret_result) => void
+      result: (result: provisionUiDisplayAndPromptSecretResult) => void
     }
   ) => void,
   'keybase.1.provisionUi.DisplaySecretExchanged'?: (
@@ -5184,7 +5145,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: provisionUi_PromptNewDeviceName_result) => void
+      result: (result: provisionUiPromptNewDeviceNameResult) => void
     }
   ) => void,
   'keybase.1.provisionUi.ProvisioneeSuccess'?: (
@@ -5215,7 +5176,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: quota_verifySession_result) => void
+      result: (result: quotaVerifySessionResult) => void
     }
   ) => void,
   'keybase.1.rekey.showPendingRekeyStatus'?: (
@@ -5245,7 +5206,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: rekey_getProblemSet_result) => void
+      result: (result: rekeyGetProblemSetResult) => void
     }
   ) => void,
   'keybase.1.rekey.rekeyStatusFinish'?: (
@@ -5254,14 +5215,14 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: rekey_rekeyStatusFinish_result) => void
+      result: (result: rekeyRekeyStatusFinishResult) => void
     }
   ) => void,
   'keybase.1.rekeyUI.delegateRekeyUI'?: (
     params: {},
     response: {
       error: (err: RPCError) => void,
-      result: (result: rekeyUI_delegateRekeyUI_result) => void
+      result: (result: rekeyUIDelegateRekeyUIResult) => void
     }
   ) => void,
   'keybase.1.rekeyUI.refresh'?: (
@@ -5326,7 +5287,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: saltpack_saltpackDecrypt_result) => void
+      result: (result: saltpackSaltpackDecryptResult) => void
     }
   ) => void,
   'keybase.1.saltpack.saltpackSign'?: (
@@ -5382,7 +5343,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: secretUi_getPassphrase_result) => void
+      result: (result: secretUiGetPassphraseResult) => void
     }
   ) => void,
   'keybase.1.SecretKeys.getSecretKeys'?: (
@@ -5391,7 +5352,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: SecretKeys_getSecretKeys_result) => void
+      result: (result: SecretKeysGetSecretKeysResult) => void
     }
   ) => void,
   'keybase.1.session.currentSession'?: (
@@ -5400,7 +5361,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: session_currentSession_result) => void
+      result: (result: sessionCurrentSessionResult) => void
     }
   ) => void,
   'keybase.1.signup.checkUsernameAvailable'?: (
@@ -5426,7 +5387,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: signup_signup_result) => void
+      result: (result: signupSignupResult) => void
     }
   ) => void,
   'keybase.1.signup.inviteRequest'?: (
@@ -5458,7 +5419,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: sigs_sigList_result) => void
+      result: (result: sigsSigListResult) => void
     }
   ) => void,
   'keybase.1.sigs.sigListJSON'?: (
@@ -5468,7 +5429,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: sigs_sigListJSON_result) => void
+      result: (result: sigsSigListJSONResult) => void
     }
   ) => void,
   'keybase.1.streamUi.close'?: (
@@ -5489,7 +5450,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: streamUi_read_result) => void
+      result: (result: streamUiReadResult) => void
     }
   ) => void,
   'keybase.1.streamUi.write'?: (
@@ -5500,7 +5461,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: streamUi_write_result) => void
+      result: (result: streamUiWriteResult) => void
     }
   ) => void,
   'keybase.1.test.test'?: (
@@ -5510,7 +5471,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: test_test_result) => void
+      result: (result: testTestResult) => void
     }
   ) => void,
   'keybase.1.test.testCallback'?: (
@@ -5520,7 +5481,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: test_testCallback_result) => void
+      result: (result: testTestCallbackResult) => void
     }
   ) => void,
   'keybase.1.test.panic'?: (
@@ -5602,7 +5563,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: ui_promptYesNo_result) => void
+      result: (result: uiPromptYesNoResult) => void
     }
   ) => void,
   'keybase.1.update.update'?: (
@@ -5611,7 +5572,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: update_update_result) => void
+      result: (result: updateUpdateResult) => void
     }
   ) => void,
   'keybase.1.update.updateCheck'?: (
@@ -5631,7 +5592,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: updateUi_updatePrompt_result) => void
+      result: (result: updateUiUpdatePromptResult) => void
     }
   ) => void,
   'keybase.1.updateUi.updateAppInUse'?: (
@@ -5642,7 +5603,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: updateUi_updateAppInUse_result) => void
+      result: (result: updateUiUpdateAppInUseResult) => void
     }
   ) => void,
   'keybase.1.updateUi.updateQuit'?: (
@@ -5653,7 +5614,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: updateUi_updateQuit_result) => void
+      result: (result: updateUiUpdateQuitResult) => void
     }
   ) => void,
   'keybase.1.user.listTrackers'?: (
@@ -5663,7 +5624,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: user_listTrackers_result) => void
+      result: (result: userListTrackersResult) => void
     }
   ) => void,
   'keybase.1.user.listTrackersByName'?: (
@@ -5673,7 +5634,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: user_listTrackersByName_result) => void
+      result: (result: userListTrackersByNameResult) => void
     }
   ) => void,
   'keybase.1.user.listTrackersSelf'?: (
@@ -5682,7 +5643,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: user_listTrackersSelf_result) => void
+      result: (result: userListTrackersSelfResult) => void
     }
   ) => void,
   'keybase.1.user.loadUncheckedUserSummaries'?: (
@@ -5692,7 +5653,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: user_loadUncheckedUserSummaries_result) => void
+      result: (result: userLoadUncheckedUserSummariesResult) => void
     }
   ) => void,
   'keybase.1.user.loadUser'?: (
@@ -5702,7 +5663,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: user_loadUser_result) => void
+      result: (result: userLoadUserResult) => void
     }
   ) => void,
   'keybase.1.user.loadUserPlusKeys'?: (
@@ -5712,7 +5673,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: user_loadUserPlusKeys_result) => void
+      result: (result: userLoadUserPlusKeysResult) => void
     }
   ) => void,
   'keybase.1.user.loadPublicKeys'?: (
@@ -5722,7 +5683,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: user_loadPublicKeys_result) => void
+      result: (result: userLoadPublicKeysResult) => void
     }
   ) => void,
   'keybase.1.user.listTracking'?: (
@@ -5732,7 +5693,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: user_listTracking_result) => void
+      result: (result: userListTrackingResult) => void
     }
   ) => void,
   'keybase.1.user.listTrackingJSON'?: (
@@ -5743,7 +5704,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: user_listTrackingJSON_result) => void
+      result: (result: userListTrackingJSONResult) => void
     }
   ) => void,
   'keybase.1.user.search'?: (
@@ -5753,7 +5714,7 @@ export type incomingCallMapType = {
     },
     response: {
       error: (err: RPCError) => void,
-      result: (result: user_search_result) => void
+      result: (result: userSearchResult) => void
     }
   ) => void
 }

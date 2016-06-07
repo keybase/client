@@ -5,7 +5,7 @@ import * as Constants from '../constants/favorite'
 import {badgeApp} from './notifications'
 import {canonicalizeUsernames, parseFolderNameToUsers} from '../util/kbfs'
 import _ from 'lodash'
-import type {Folder, favorite_favoriteList_rpc} from '../constants/types/flow-types'
+import type {Folder, favoriteFavoriteListRpc} from '../constants/types/flow-types'
 import type {Dispatch} from '../constants/types/flux'
 import type {FavoriteList} from '../constants/favorite'
 import type {Props as FolderProps} from '../folders/render'
@@ -83,7 +83,7 @@ const folderToProps = (dispatch: Dispatch, folders: Array<Folder>, username: str
 
 export function favoriteList (): (dispatch: Dispatch) => void {
   return (dispatch, getState) => {
-    const params : favorite_favoriteList_rpc = {
+    const params : favoriteFavoriteListRpc = {
       param: {},
       incomingCallMap: {},
       method: 'favorite.favoriteList',
