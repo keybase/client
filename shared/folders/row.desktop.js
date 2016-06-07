@@ -111,8 +111,8 @@ const stylesPrivate = {
     backgroundColor: 'rgba(0, 26, 51, 0.4)'
   },
   groupIcon: {
-    small: 'folder-private-group-24',
-    normal: 'folder-private-group-32'
+    small: 'icon-folder-private-group-24',
+    normal: 'icon-folder-private-group-32'
   },
   avatarContainer: {
     backgroundColor: globalColors.darkBlue3,
