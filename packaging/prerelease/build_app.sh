@@ -90,6 +90,7 @@ if [ -n "$kbfs_commit" ]; then
   git checkout "$kbfs_commit"
 fi
 
+# NB: This is duplicated in packaging/linux/build_and_push_packages.sh.
 if [ ! "$nowait" = "1" ]; then
   echo "Checking client CI"
   "$release_bin" wait-ci --repo="client" --commit=`git -C $client_dir log -1 --pretty=format:%h` --context="client-windows-master-only/label=windows" --context="client-linux-master-only/label=master" --context="client-osx-master-only/label=osx" --context="ci/circleci"
