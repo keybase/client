@@ -129,7 +129,7 @@ func newGregorClient(g *libkb.GlobalContext) (*grclient.Client, error) {
 
 	did := g.Env.GetDeviceID()
 	if !did.Exists() {
-		return nil, errors.New("no UID; probably not logged in")
+		return nil, errors.New("no device ID; probably not logged in")
 	}
 	if b, err = hex.DecodeString(did.String()); err != nil {
 		return nil, err
@@ -176,7 +176,7 @@ func (g *gregorHandler) PushHandler(handler libkb.GregorInBandMessageHandler) {
 	g.ibmHandlers = append(g.ibmHandlers, handler)
 
 	if _, err := g.replayInBandMessages(context.TODO(), time.Time{}, handler); err != nil {
-		g.G().Log.Errorf("gregor handler: ConnectIdenfityUI() failed")
+		g.G().Log.Errorf("gregor handler: replayInBandMessages on PushHandler failed: %s", err)
 	}
 }
 
@@ -198,9 +198,12 @@ func (g *gregorHandler) replayInBandMessages(ctx context.Context, t time.Time,
 		// If we have a handler, just run it on that, otherwise run it against
 		// all of the handlers we know about
 		if handler == nil {
-			g.handleInBandMessage(ctx, msg)
+			err = g.handleInBandMessage(ctx, msg)
 		} else {
-			g.handleInBandMessageWithHandler(ctx, msg, handler)
+			_, err = g.handleInBandMessageWithHandler(ctx, msg, handler)
+		}
+		if err != nil {
+			return nil, err
 		}
 	}
 
@@ -346,8 +349,14 @@ func (g *gregorHandler) handleInBandMessage(ctx context.Context, ibm gregor.InBa
 	// If the handler is not alive, we prune it from our list
 	for _, handler := range g.ibmHandlers {
 		if handler.IsAlive() {
-			if err := g.handleInBandMessageWithHandler(ctx, ibm, handler); err != nil {
-				g.G().Log.Debug("gregor handler: handleInBandMessage() failed to run %s handler", handler.Name())
+			if handled, err := g.handleInBandMessageWithHandler(ctx, ibm, handler); err != nil {
+				if handled {
+					// only bail out of this loop if the handler was supposed to handle this message and failed
+					g.G().Log.Errorf("gregor handler: handleInBandMessage() failed to run %s handler: %s", handler.Name(), err)
+					return err
+				}
+
+				g.G().Log.Debug("gregor handler: handleInBandMessage() failed to run %s handler: %s", handler.Name(), err)
 			}
 			freshHandlers = append(freshHandlers, handler)
 		}
@@ -359,13 +368,13 @@ func (g *gregorHandler) handleInBandMessage(ctx context.Context, ibm gregor.InBa
 
 // handleInBandMessageWithHandler runs a message against the specified handler
 func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context,
-	ibm gregor.InBandMessage, handler libkb.GregorInBandMessageHandler) error {
+	ibm gregor.InBandMessage, handler libkb.GregorInBandMessageHandler) (bool, error) {
 	g.G().Log.Debug("gregor handler: handleInBand: %+v", ibm)
 
 	sync := ibm.ToStateSyncMessage()
 	if sync != nil {
 		g.G().Log.Debug("gregor handler: state sync message")
-		return nil
+		return false, nil
 	}
 
 	update := ibm.ToStateUpdateMessage()
@@ -388,7 +397,9 @@ func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context,
 				g.G().Log.Debug("gregor handler: item %s has category %s", id, category)
 			}
 
-			handler.Create(ctx, category, item)
+			if handled, err := handler.Create(ctx, category, item); err != nil {
+				return handled, err
+			}
 		}
 
 		dismissal := update.Dismissal()
@@ -408,7 +419,9 @@ func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context,
 					g.G().Log.Debug("gregor handler: dismissal %s has category %s", id, category)
 				}
 
-				handler.Dismiss(ctx, category, item)
+				if handled, err := handler.Dismiss(ctx, category, item); handled && err != nil {
+					return handled, err
+				}
 
 				// Clear the item out of items map.
 				delete(g.itemsByID, id.String())
@@ -416,28 +429,30 @@ func (g *gregorHandler) handleInBandMessageWithHandler(ctx context.Context,
 			if len(dismissal.RangesToDismiss()) > 0 {
 				g.G().Log.Error("gregor handler: message range dismissing not implemented")
 			}
-			return nil
 		}
+
+		return true, nil
 	}
-	return nil
+
+	return false, nil
 }
 
-func (h IdentifyUIHandler) Create(ctx context.Context, category string, item gregor.Item) error {
+func (h IdentifyUIHandler) Create(ctx context.Context, category string, item gregor.Item) (bool, error) {
 	switch category {
 	case "show_tracker_popup":
-		return h.handleShowTrackerPopupCreate(ctx, item)
+		return true, h.handleShowTrackerPopupCreate(ctx, item)
 	}
 
-	return nil
+	return false, nil
 }
 
-func (h IdentifyUIHandler) Dismiss(ctx context.Context, category string, item gregor.Item) error {
+func (h IdentifyUIHandler) Dismiss(ctx context.Context, category string, item gregor.Item) (bool, error) {
 	switch category {
 	case "show_tracker_popup":
-		return h.handleShowTrackerPopupDismiss(ctx, item)
+		return true, h.handleShowTrackerPopupDismiss(ctx, item)
 	}
 
-	return nil
+	return false, nil
 }
 
 func (h IdentifyUIHandler) handleShowTrackerPopupCreate(ctx context.Context, item gregor.Item) error {
@@ -703,4 +718,17 @@ func (g *gregorHandler) DismissItem(id gregor.MsgID) error {
 	incomingClient := gregor1.IncomingClient{Cli: g.cli}
 	// TODO: Should the interface take a context from the caller?
 	return incomingClient.ConsumeMessage(context.TODO(), dismissal)
+}
+
+func (g *gregorHandler) RekeyStatusFinish(ctx context.Context, sessionID int) (keybase1.Outcome, error) {
+	for _, handler := range g.ibmHandlers {
+		if !handler.IsAlive() {
+			continue
+		}
+		if handler, ok := handler.(*RekeyUIHandler); ok {
+			return handler.RekeyStatusFinish(ctx, sessionID)
+		}
+	}
+
+	return keybase1.Outcome_NONE, errors.New("no alive RekeyUIHandler found")
 }
