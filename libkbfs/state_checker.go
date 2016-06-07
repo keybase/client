@@ -317,7 +317,7 @@ func (sc *StateChecker) CheckMergedState(ctx context.Context, tlf TlfID) error {
 
 	// Check that the set of referenced blocks matches exactly what
 	// the block server knows about.
-	bserverLocal, ok := sc.config.BlockServer().(*BlockServerLocal)
+	bserverLocal, ok := sc.config.BlockServer().(blockServerLocal)
 	if !ok {
 		return errors.New("StateChecker only works against BlockServerLocal")
 	}

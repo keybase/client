@@ -1933,11 +1933,13 @@ func (t *testMountObserver) TlfHandleChange(ctx context.Context,
 func TestInvalidateAcrossMounts(t *testing.T) {
 	config1 := libkbfs.MakeTestConfigOrBust(t, "user1",
 		"user2")
+	defer libkbfs.CheckConfigAndShutdown(t, config1)
 	mnt1, _, cancelFn1 := makeFS(t, config1)
 	defer mnt1.Close()
 	defer cancelFn1()
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
+	defer libkbfs.CheckConfigAndShutdown(t, config2)
 	mnt2, fs2, cancelFn2 := makeFSE(t, config2, 'U')
 	defer mnt2.Close()
 	defer cancelFn2()
@@ -2014,11 +2016,13 @@ func TestInvalidateAcrossMounts(t *testing.T) {
 func TestInvalidateAppendAcrossMounts(t *testing.T) {
 	config1 := libkbfs.MakeTestConfigOrBust(t, "user1",
 		"user2")
+	defer libkbfs.CheckConfigAndShutdown(t, config1)
 	mnt1, _, cancelFn1 := makeFS(t, config1)
 	defer mnt1.Close()
 	defer cancelFn1()
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
+	defer libkbfs.CheckConfigAndShutdown(t, config2)
 	mnt2, fs2, cancelFn2 := makeFSE(t, config2, 'U')
 	defer mnt2.Close()
 	defer cancelFn2()
@@ -2074,11 +2078,13 @@ func TestInvalidateAppendAcrossMounts(t *testing.T) {
 func TestInvalidateRenameToUncachedDir(t *testing.T) {
 	config1 := libkbfs.MakeTestConfigOrBust(t, "user1",
 		"user2")
+	defer libkbfs.CheckConfigAndShutdown(t, config1)
 	mnt1, fs1, cancelFn1 := makeFS(t, config1)
 	defer mnt1.Close()
 	defer cancelFn1()
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
+	defer libkbfs.CheckConfigAndShutdown(t, config2)
 	mnt2, fs2, cancelFn2 := makeFSE(t, config2, 'U')
 	defer mnt2.Close()
 	defer cancelFn2()
@@ -2183,11 +2189,13 @@ func TestStatusFile(t *testing.T) {
 // TODO: remove once we have automatic conflict resolution tests
 func TestUnstageFile(t *testing.T) {
 	config1 := libkbfs.MakeTestConfigOrBust(t, "user1", "user2")
+	defer libkbfs.CheckConfigAndShutdown(t, config1)
 	mnt1, _, cancelFn1 := makeFS(t, config1)
 	defer mnt1.Close()
 	defer cancelFn1()
 
 	config2 := libkbfs.ConfigAsUser(config1, "user2")
+	defer libkbfs.CheckConfigAndShutdown(t, config2)
 	mnt2, fs2, cancelFn2 := makeFSE(t, config2, 'U')
 	defer mnt2.Close()
 	defer cancelFn2()

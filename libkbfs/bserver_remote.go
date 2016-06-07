@@ -29,6 +29,7 @@ type BlockServerRemote struct {
 	shutdownFn func()
 	client     keybase1.BlockInterface
 	log        logger.Logger
+	deferLog   logger.Logger
 	blkSrvAddr string
 	authToken  *AuthToken
 }
@@ -42,9 +43,12 @@ var _ AuthTokenRefreshHandler = (*BlockServerRemote)(nil)
 // NewBlockServerRemote constructs a new BlockServerRemote for the
 // given address.
 func NewBlockServerRemote(config Config, blkSrvAddr string) *BlockServerRemote {
+	log := config.MakeLogger("BSR")
+	deferLog := log.CloneWithAddedDepth(1)
 	bs := &BlockServerRemote{
 		config:     config,
-		log:        config.MakeLogger("BSR"),
+		log:        log,
+		deferLog:   deferLog,
 		blkSrvAddr: blkSrvAddr,
 	}
 	bs.log.Debug("new instance server addr %s", blkSrvAddr)
@@ -63,10 +67,13 @@ func NewBlockServerRemote(config Config, blkSrvAddr string) *BlockServerRemote {
 // For testing.
 func newBlockServerRemoteWithClient(config Config,
 	client keybase1.BlockInterface) *BlockServerRemote {
+	log := config.MakeLogger("BSR")
+	deferLog := log.CloneWithAddedDepth(1)
 	bs := &BlockServerRemote{
-		config: config,
-		client: client,
-		log:    config.MakeLogger(""),
+		config:   config,
+		client:   client,
+		log:      log,
+		deferLog: deferLog,
 	}
 	return bs
 }
@@ -182,10 +189,10 @@ func (b *BlockServerRemote) Get(ctx context.Context, id BlockID, tlfID TlfID,
 	size := -1
 	defer func() {
 		if err != nil {
-			b.log.CWarningf(ctx, "Get id=%s uid=%s sz=%d err=%v",
+			b.deferLog.CWarningf(ctx, "Get id=%s uid=%s sz=%d err=%v",
 				id, context.GetWriter(), size, err)
 		} else {
-			b.log.CDebugf(ctx, "Get id=%s uid=%s sz=%d",
+			b.deferLog.CDebugf(ctx, "Get id=%s uid=%s sz=%d",
 				id, context.GetWriter(), size)
 		}
 	}()
@@ -214,7 +221,6 @@ func (b *BlockServerRemote) Get(ctx context.Context, id BlockID, tlfID TlfID,
 }
 
 // Put implements the BlockServer interface for BlockServerRemote.
-// TODO: store the server-half of the block key
 func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	context BlockContext, buf []byte,
 	serverHalf BlockCryptKeyServerHalf) error {
@@ -222,10 +228,11 @@ func (b *BlockServerRemote) Put(ctx context.Context, id BlockID, tlfID TlfID,
 	size := len(buf)
 	defer func() {
 		if err != nil {
-			b.log.CWarningf(ctx, "Put id=%s uid=%s sz=%d err=%v",
+			b.deferLog.CWarningf(
+				ctx, "Put id=%s uid=%s sz=%d err=%v",
 				id, context.GetWriter(), size, err)
 		} else {
-			b.log.CDebugf(ctx, "Put id=%s uid=%s sz=%d",
+			b.deferLog.CDebugf(ctx, "Put id=%s uid=%s sz=%d",
 				id, context.GetWriter(), size)
 		}
 	}()
@@ -256,10 +263,12 @@ func (b *BlockServerRemote) AddBlockReference(ctx context.Context, id BlockID,
 	var err error
 	defer func() {
 		if err != nil {
-			b.log.CWarningf(ctx, "AddBlockReference id=%s uid=%s err=%v",
+			b.deferLog.CWarningf(
+				ctx, "AddBlockReference id=%s uid=%s err=%v",
 				id, context.GetWriter(), err)
 		} else {
-			b.log.CDebugf(ctx, "AddBlockReference id=%s uid=%s",
+			b.deferLog.CDebugf(
+				ctx, "AddBlockReference id=%s uid=%s",
 				id, context.GetWriter())
 		}
 	}()
@@ -292,9 +301,9 @@ func (b *BlockServerRemote) RemoveBlockReference(ctx context.Context,
 	tlfID TlfID, contexts map[BlockID][]BlockContext) (liveCounts map[BlockID]int, err error) {
 	defer func() {
 		if err != nil {
-			b.log.CWarningf(ctx, "RemoveBlockReference batch size=%d err=%v", len(contexts), err)
+			b.deferLog.CWarningf(ctx, "RemoveBlockReference batch size=%d err=%v", len(contexts), err)
 		} else {
-			b.log.CDebugf(ctx, "RemoveBlockReference batch size=%d", len(contexts))
+			b.deferLog.CDebugf(ctx, "RemoveBlockReference batch size=%d", len(contexts))
 		}
 	}()
 	doneRefs, err := b.batchDowngradeReferences(ctx, tlfID, contexts, false)
@@ -316,9 +325,9 @@ func (b *BlockServerRemote) ArchiveBlockReferences(ctx context.Context,
 	tlfID TlfID, contexts map[BlockID][]BlockContext) (err error) {
 	defer func() {
 		if err != nil {
-			b.log.CWarningf(ctx, "ArchiveBlockReferences batch size=%d err=%v", len(contexts), err)
+			b.deferLog.CWarningf(ctx, "ArchiveBlockReferences batch size=%d err=%v", len(contexts), err)
 		} else {
-			b.log.CDebugf(ctx, "ArchiveBlockReferences batch size=%d", len(contexts))
+			b.deferLog.CDebugf(ctx, "ArchiveBlockReferences batch size=%d", len(contexts))
 		}
 	}()
 	_, err = b.batchDowngradeReferences(ctx, tlfID, contexts, true)

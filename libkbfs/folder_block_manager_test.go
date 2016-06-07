@@ -48,7 +48,7 @@ func testQuotaReclamation(t *testing.T, ctx context.Context, config Config,
 	}
 
 	// Make sure no blocks are deleted before there's a new-enough update.
-	bserverLocal, ok := config.BlockServer().(*BlockServerLocal)
+	bserverLocal, ok := config.BlockServer().(blockServerLocal)
 	if !ok {
 		t.Fatalf("Bad block server")
 	}
@@ -174,7 +174,7 @@ func TestQuotaReclamationIncrementalReclamation(t *testing.T) {
 		t.Fatalf("Couldn't wait for QR: %v", err)
 	}
 
-	bserverLocal, ok := config.BlockServer().(*BlockServerLocal)
+	bserverLocal, ok := config.BlockServer().(blockServerLocal)
 	if !ok {
 		t.Fatalf("Bad block server")
 	}
@@ -303,7 +303,7 @@ func TestQuotaReclamationDeletedBlocks(t *testing.T) {
 	}
 
 	// Get the current set of blocks
-	bserverLocal, ok := config1.BlockServer().(*BlockServerLocal)
+	bserverLocal, ok := config1.BlockServer().(blockServerLocal)
 	if !ok {
 		t.Fatalf("Bad block server")
 	}

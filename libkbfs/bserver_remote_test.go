@@ -142,7 +142,7 @@ func TestBServerRemotePutAndGet(t *testing.T) {
 
 	bID := fakeBlockID(1)
 	tlfID := FakeTlfID(2, false)
-	bCtx := BlockPointer{bID, 1, 1, currentUID, "", zeroBlockRefNonce}
+	bCtx := BlockContext{currentUID, "", zeroBlockRefNonce}
 	data := []byte{1, 2, 3, 4}
 	crypto := MakeCryptoCommon(config)
 	serverHalf, err := crypto.MakeRandomBlockCryptKeyServerHalf()
@@ -189,7 +189,7 @@ func TestBServerRemotePutCanceled(t *testing.T) {
 	f := func(ctx context.Context) error {
 		bID := fakeBlockID(1)
 		tlfID := FakeTlfID(2, false)
-		bCtx := BlockPointer{bID, 1, 1, currentUID, "", zeroBlockRefNonce}
+		bCtx := BlockContext{currentUID, "", zeroBlockRefNonce}
 		data := []byte{1, 2, 3, 4}
 		crypto := MakeCryptoCommon(config)
 		serverHalf, err := crypto.MakeRandomBlockCryptKeyServerHalf()

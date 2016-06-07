@@ -53,16 +53,19 @@ func TestDirtyBcachePutDuplicate(t *testing.T) {
 	// original is still not found.
 	newNonce := BlockRefNonce([8]byte{1, 0, 0, 0, 0, 0, 0, 0})
 	newNonceBlock := NewFileBlock()
-	err := dirtyBcache.Put(BlockPointer{ID: id1, RefNonce: newNonce},
-		MasterBranch, newNonceBlock)
+	bp1 := BlockPointer{ID: id1}
+	bp2 := BlockPointer{
+		ID:           id1,
+		BlockContext: BlockContext{RefNonce: newNonce},
+	}
+	err := dirtyBcache.Put(bp2, MasterBranch, newNonceBlock)
 	if err != nil {
 		t.Errorf("Unexpected error on PutDirty: %v", err)
 	}
 
 	cleanBranch := MasterBranch
 	testExpectedMissingDirty(t, id1, dirtyBcache)
-	if !dirtyBcache.IsDirty(BlockPointer{ID: id1, RefNonce: newNonce},
-		cleanBranch) {
+	if !dirtyBcache.IsDirty(bp2, cleanBranch) {
 		t.Errorf("New refnonce block is now unexpectedly clean")
 	}
 
@@ -70,18 +73,17 @@ func TestDirtyBcachePutDuplicate(t *testing.T) {
 	// original is still clean
 	newBranch := BranchName("dirtyBranch")
 	newBranchBlock := NewFileBlock()
-	err = dirtyBcache.Put(BlockPointer{ID: id1}, newBranch, newBranchBlock)
+	err = dirtyBcache.Put(bp1, newBranch, newBranchBlock)
 	if err != nil {
 		t.Errorf("Unexpected error on PutDirty: %v", err)
 	}
 
 	// make sure the original dirty status is right
 	testExpectedMissingDirty(t, id1, dirtyBcache)
-	if !dirtyBcache.IsDirty(BlockPointer{ID: id1, RefNonce: newNonce},
-		cleanBranch) {
+	if !dirtyBcache.IsDirty(bp2, cleanBranch) {
 		t.Errorf("New refnonce block is now unexpectedly clean")
 	}
-	if !dirtyBcache.IsDirty(BlockPointer{ID: id1}, newBranch) {
+	if !dirtyBcache.IsDirty(bp1, newBranch) {
 		t.Errorf("New branch block is now unexpectedly clean")
 	}
 }

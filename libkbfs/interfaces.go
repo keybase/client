@@ -33,22 +33,6 @@ type Block interface {
 	DataVersion() DataVer
 }
 
-// BlockContext is used by the server to help identify blocks
-type BlockContext interface {
-	// GetCreator returns the UID of the writer who created this block
-	// and was first charged for it.  Note that this might differ from
-	// the user that actually first PUT the block if we implement
-	// per-group billing.
-	GetCreator() keybase1.UID
-	// GetWriter returns the UID of the writer for the corresponding
-	// block (and should be charged for it).  Note that this might
-	// differ from the user that actually PUTs the block if we
-	// implement per-group billing.
-	GetWriter() keybase1.UID
-	// GetRefNonce returns the unique reference nonce for this block
-	GetRefNonce() BlockRefNonce
-}
-
 // NodeID is a unique but transient ID for a Node. That is, two Node
 // objects in memory at the same time represent the same file or
 // directory if and only if their NodeIDs are equal (by pointer).
@@ -921,6 +905,10 @@ type BlockServer interface {
 	// key.  context should contain a BlockRefNonce of zero.  There
 	// will be an initial reference for this block for the given
 	// context.
+	//
+	// Put should be idempotent, although it should also return an
+	// error if, for a given ID, any of the other arguments differ
+	// from previous Put calls with the same ID.
 	Put(ctx context.Context, id BlockID, tlfID TlfID, context BlockContext,
 		buf []byte, serverHalf BlockCryptKeyServerHalf) error
 
@@ -929,8 +917,12 @@ type BlockServer interface {
 	// BlockRefNonce).  (Contexts with a BlockRefNonce of zero should
 	// be used when putting the block for the first time via Put().)
 	// Returns a BServerErrorBlockNonExistent if id is unknown within
-	// this folder.  Calling more than once with the same context is a
-	// no-op.
+	// this folder.
+	//
+	// AddBlockReference should be idempotent, although it should
+	// also return an error if, for a given ID and refnonce, any
+	// of the other fields of context differ from previous
+	// AddBlockReference calls with the same ID and refnonce.
 	AddBlockReference(ctx context.Context, id BlockID, tlfID TlfID,
 		context BlockContext) error
 	// RemoveBlockReference removes the reference to the given block
@@ -947,6 +939,11 @@ type BlockServer interface {
 	// "archived"; that is, they are not being used in the current
 	// view of the folder, and shouldn't be served to anyone other
 	// than folder writers.
+	//
+	// For a given ID/refnonce pair, ArchiveBlockReferences should
+	// be idempotent, although it should also return an error if
+	// any of the other fields of the context differ from previous
+	// calls with the same ID/refnonce pair.
 	ArchiveBlockReferences(ctx context.Context, tlfID TlfID,
 		contexts map[BlockID][]BlockContext) error
 
@@ -955,6 +952,22 @@ type BlockServer interface {
 
 	// GetUserQuotaInfo returns the quota for the user.
 	GetUserQuotaInfo(ctx context.Context) (info *UserQuotaInfo, err error)
+}
+
+type blockRefLocalStatus int
+
+const (
+	liveBlockRef     blockRefLocalStatus = 1
+	archivedBlockRef                     = 2
+)
+
+// blockServerLocal is the interface for BlockServer implementations
+// that store data locally.
+type blockServerLocal interface {
+	BlockServer
+	// getAll returns all the known block references, and should only be
+	// used during testing.
+	getAll(tlfID TlfID) (map[BlockID]map[BlockRefNonce]blockRefLocalStatus, error)
 }
 
 // BlockSplitter decides when a file or directory block needs to be split

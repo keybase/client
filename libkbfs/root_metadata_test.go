@@ -492,6 +492,8 @@ func TestIsValidRekeyRequestBasic(t *testing.T) {
 
 	// Writer metadata siginfo mismatch.
 	config2 := MakeTestConfigOrBust(t, "bob")
+	defer config2.Shutdown()
+
 	buf, err = config2.Codec().Encode(newRmd.WriterMetadata)
 	if err != nil {
 		t.Fatal(err)

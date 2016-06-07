@@ -22,7 +22,7 @@ var _ BlockOps = (*BlockOpsStandard)(nil)
 func (b *BlockOpsStandard) Get(ctx context.Context, md *RootMetadata,
 	blockPtr BlockPointer, block Block) error {
 	bserv := b.config.BlockServer()
-	buf, blockServerHalf, err := bserv.Get(ctx, blockPtr.ID, md.ID, blockPtr)
+	buf, blockServerHalf, err := bserv.Get(ctx, blockPtr.ID, md.ID, blockPtr.BlockContext)
 	if err != nil {
 		// Temporary code to track down bad block
 		// requests. Remove when not needed anymore.
@@ -139,12 +139,12 @@ func (b *BlockOpsStandard) Put(ctx context.Context, md *RootMetadata,
 	blockPtr BlockPointer, readyBlockData ReadyBlockData) error {
 	bserv := b.config.BlockServer()
 	if blockPtr.RefNonce == zeroBlockRefNonce {
-		return bserv.Put(ctx, blockPtr.ID, md.ID, blockPtr, readyBlockData.buf,
+		return bserv.Put(ctx, blockPtr.ID, md.ID, blockPtr.BlockContext, readyBlockData.buf,
 			readyBlockData.serverHalf)
 	}
 	// non-zero block refnonce means this is a new reference to an
 	// existing block.
-	return bserv.AddBlockReference(ctx, blockPtr.ID, md.ID, blockPtr)
+	return bserv.AddBlockReference(ctx, blockPtr.ID, md.ID, blockPtr.BlockContext)
 }
 
 // Delete implements the BlockOps interface for BlockOpsStandard.
@@ -152,7 +152,7 @@ func (b *BlockOpsStandard) Delete(ctx context.Context, md *RootMetadata,
 	ptrs []BlockPointer) (liveCounts map[BlockID]int, err error) {
 	contexts := make(map[BlockID][]BlockContext)
 	for _, ptr := range ptrs {
-		contexts[ptr.ID] = append(contexts[ptr.ID], ptr)
+		contexts[ptr.ID] = append(contexts[ptr.ID], ptr.BlockContext)
 	}
 	return b.config.BlockServer().RemoveBlockReference(ctx, md.ID, contexts)
 }
@@ -162,7 +162,7 @@ func (b *BlockOpsStandard) Archive(ctx context.Context, md *RootMetadata,
 	ptrs []BlockPointer) error {
 	contexts := make(map[BlockID][]BlockContext)
 	for _, ptr := range ptrs {
-		contexts[ptr.ID] = append(contexts[ptr.ID], ptr)
+		contexts[ptr.ID] = append(contexts[ptr.ID], ptr.BlockContext)
 	}
 
 	return b.config.BlockServer().ArchiveBlockReferences(ctx, md.ID, contexts)

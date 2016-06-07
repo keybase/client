@@ -39,11 +39,14 @@ script:
     [ -z "$lint" -o "$lint" = "Lint-free!" ]
   - go vet $(go list ./... 2>/dev/null | grep -v /vendor/)
   - go install github.com/keybase/kbfs/...
-  - cd libkbfs && go test -i && go test -race -c && ./libkbfs.test -test.timeout 4m
-  - cd ../libfuse && go test -i && go test -c && ./libfuse.test -test.timeout 2m
+  # Run libkbfs tests with an in-memory bserver, and run all other
+  # tests with the tempdir bserver.
+  - cd libkbfs && go test -i && go test -race -c && ./libkbfs.test -test.timeout 1m
+  - env KEYBASE_TEST_BSERVER_ADDR=tempdir ./libkbfs.test -test.timeout 1m
+  - cd ../libfuse && go test -i && go test -c && env KEYBASE_TEST_BSERVER_ADDR=tempdir ./libfuse.test -test.timeout 2m
   - cd ../test
-  - go test -i -tags fuse && go test -race -c && ./test.test -test.timeout 4m
-  - go test -c -tags fuse && ./test.test -test.timeout 4m
+  - go test -i -tags fuse && go test -race -c && env KEYBASE_TEST_BSERVER_ADDR=tempdir ./test.test -test.timeout 4m
+  - go test -c -tags fuse && env KEYBASE_TEST_BSERVER_ADDR=tempdir ./test.test -test.timeout 4m
 after_success:
   - if [ "$TRAVIS_OS_NAME" == 'linux' ] && [ "$TRAVIS_PULL_REQUEST" == 'false' ]; then
       cp $GOPATH/bin/kbfsfuse $GOPATH/src/github.com/keybase/kbfs/kbfsfuse/kbfsfuse &&

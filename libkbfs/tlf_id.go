@@ -24,7 +24,6 @@ const (
 
 // TlfID is a top-level folder ID
 type TlfID struct {
-	// Exported only for serialization purposes.
 	id [TlfIDByteLen]byte
 }
 

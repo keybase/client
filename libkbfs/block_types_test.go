@@ -18,9 +18,11 @@ func makeFakeBlockPointer(t *testing.T) BlockPointer {
 		BlockID{h},
 		5,
 		1,
-		"fake creator",
-		"fake writer",
-		BlockRefNonce{0xb},
+		BlockContext{
+			"fake creator",
+			"fake writer",
+			BlockRefNonce{0xb},
+		},
 	}
 }
 

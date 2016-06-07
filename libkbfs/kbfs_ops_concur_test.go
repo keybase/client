@@ -999,6 +999,7 @@ func TestKBFSOpsConcurWriteParallelBlocksCanceled(t *testing.T) {
 	// give it a remote block server with a fake client
 	fc := NewFakeBServerClient(nil, nil, nil)
 	b := newBlockServerRemoteWithClient(config, fc)
+	config.BlockServer().Shutdown()
 	config.SetBlockServer(b)
 
 	// make blocks small
@@ -1121,6 +1122,7 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 	defer mockCtrl.Finish()
 	defer ctr.CheckForFailures()
 	b := NewMockBlockServer(mockCtrl)
+	config.BlockServer().Shutdown()
 	config.SetBlockServer(b)
 
 	// from the folder creation, then 2 for file creation
@@ -1162,7 +1164,10 @@ func TestKBFSOpsConcurWriteParallelBlocksError(t *testing.T) {
 		Do(func(ctx context.Context, id BlockID, tlfID TlfID,
 			context BlockContext, buf []byte,
 			serverHalf BlockCryptKeyServerHalf) {
-			errPtrChan <- context.(BlockPointer)
+			errPtrChan <- BlockPointer{
+				ID:           id,
+				BlockContext: context,
+			}
 		}).After(c).Return(putErr)
 	// let the rest through
 	proceedChan := make(chan struct{})

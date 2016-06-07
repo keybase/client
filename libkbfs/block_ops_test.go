@@ -131,7 +131,7 @@ func TestBlockOpsGetSuccess(t *testing.T) {
 	id := fakeBlockID(1)
 	encData := []byte{1, 2, 3, 4}
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Get(ctx, id, rmd.ID, blockPtr).Return(
+	config.mockBserv.EXPECT().Get(ctx, id, rmd.ID, blockPtr.BlockContext).Return(
 		encData, BlockCryptKeyServerHalf{}, nil)
 	decData := TestBlock{42}
 
@@ -157,7 +157,7 @@ func TestBlockOpsGetFailGet(t *testing.T) {
 	id := fakeBlockID(1)
 	err := errors.New("Fake fail")
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Get(ctx, id, rmd.ID, blockPtr).Return(
+	config.mockBserv.EXPECT().Get(ctx, id, rmd.ID, blockPtr.BlockContext).Return(
 		nil, BlockCryptKeyServerHalf{}, err)
 
 	if err2 := config.BlockOps().Get(ctx, rmd, blockPtr, nil); err2 != err {
@@ -175,7 +175,7 @@ func TestBlockOpsGetFailVerify(t *testing.T) {
 	err := errors.New("Fake verification fail")
 	blockPtr := BlockPointer{ID: id}
 	encData := []byte{1, 2, 3}
-	config.mockBserv.EXPECT().Get(ctx, id, rmd.ID, blockPtr).Return(
+	config.mockBserv.EXPECT().Get(ctx, id, rmd.ID, blockPtr.BlockContext).Return(
 		encData, BlockCryptKeyServerHalf{}, nil)
 	config.mockCrypto.EXPECT().VerifyBlockID(encData, id).Return(err)
 
@@ -189,11 +189,11 @@ func TestBlockOpsGetFailDecryptBlockData(t *testing.T) {
 	defer blockOpsShutdown(mockCtrl, config)
 
 	rmd := makeRMD()
-	// expect one call to fetch a block, then fail to decrypt i
+	// expect one call to fetch a block, then fail to decrypt
 	id := fakeBlockID(1)
 	encData := []byte{1, 2, 3, 4}
 	blockPtr := BlockPointer{ID: id}
-	config.mockBserv.EXPECT().Get(ctx, id, rmd.ID, blockPtr).Return(
+	config.mockBserv.EXPECT().Get(ctx, id, rmd.ID, blockPtr.BlockContext).Return(
 		encData, BlockCryptKeyServerHalf{}, nil)
 	err := errors.New("Fake fail")
 
@@ -305,7 +305,7 @@ func TestBlockOpsPutNewBlockSuccess(t *testing.T) {
 		buf: encData,
 	}
 
-	config.mockBserv.EXPECT().Put(ctx, id, rmd.ID, blockPtr,
+	config.mockBserv.EXPECT().Put(ctx, id, rmd.ID, blockPtr.BlockContext,
 		readyBlockData.buf, readyBlockData.serverHalf).Return(nil)
 
 	if err := config.BlockOps().
@@ -322,7 +322,12 @@ func TestBlockOpsPutIncRefSuccess(t *testing.T) {
 	id := fakeBlockID(1)
 	encData := []byte{1, 2, 3, 4}
 	nonce := BlockRefNonce([8]byte{1, 2, 3, 4, 5, 6, 7, 8})
-	blockPtr := BlockPointer{ID: id, RefNonce: nonce}
+	blockPtr := BlockPointer{
+		ID: id,
+		BlockContext: BlockContext{
+			RefNonce: nonce,
+		},
+	}
 
 	rmd := makeRMD()
 
@@ -330,7 +335,7 @@ func TestBlockOpsPutIncRefSuccess(t *testing.T) {
 		buf: encData,
 	}
 
-	config.mockBserv.EXPECT().AddBlockReference(ctx, id, rmd.ID, blockPtr).
+	config.mockBserv.EXPECT().AddBlockReference(ctx, id, rmd.ID, blockPtr.BlockContext).
 		Return(nil)
 
 	if err := config.BlockOps().
@@ -356,7 +361,7 @@ func TestBlockOpsPutFail(t *testing.T) {
 		buf: encData,
 	}
 
-	config.mockBserv.EXPECT().Put(ctx, id, rmd.ID, blockPtr,
+	config.mockBserv.EXPECT().Put(ctx, id, rmd.ID, blockPtr.BlockContext,
 		readyBlockData.buf, readyBlockData.serverHalf).Return(err)
 
 	if err2 := config.BlockOps().
@@ -374,9 +379,9 @@ func TestBlockOpsDeleteSuccess(t *testing.T) {
 
 	contexts := make(map[BlockID][]BlockContext)
 	b1 := BlockPointer{ID: fakeBlockID(1)}
-	contexts[b1.ID] = []BlockContext{b1}
+	contexts[b1.ID] = []BlockContext{b1.BlockContext}
 	b2 := BlockPointer{ID: fakeBlockID(2)}
-	contexts[b2.ID] = []BlockContext{b2}
+	contexts[b2.ID] = []BlockContext{b2.BlockContext}
 	blockPtrs := []BlockPointer{b1, b2}
 	var liveCounts map[BlockID]int
 	config.mockBserv.EXPECT().RemoveBlockReference(ctx, rmd.ID, contexts).
@@ -396,9 +401,9 @@ func TestBlockOpsDeleteFail(t *testing.T) {
 
 	contexts := make(map[BlockID][]BlockContext)
 	b1 := BlockPointer{ID: fakeBlockID(1)}
-	contexts[b1.ID] = []BlockContext{b1}
+	contexts[b1.ID] = []BlockContext{b1.BlockContext}
 	b2 := BlockPointer{ID: fakeBlockID(2)}
-	contexts[b2.ID] = []BlockContext{b2}
+	contexts[b2.ID] = []BlockContext{b2.BlockContext}
 	blockPtrs := []BlockPointer{b1, b2}
 	err := errors.New("Fake fail")
 	var liveCounts map[BlockID]int

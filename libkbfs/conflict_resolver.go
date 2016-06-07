@@ -1780,11 +1780,13 @@ func (cr *ConflictResolver) makeFileBlockDeepCopy(ctx context.Context,
 			return BlockPointer{}, err
 		}
 		newPtr = BlockPointer{
-			ID:       newID,
-			KeyGen:   md.LatestKeyGeneration(),
-			DataVer:  cr.config.DataVersion(),
-			Creator:  uid,
-			RefNonce: zeroBlockRefNonce,
+			ID:      newID,
+			KeyGen:  md.LatestKeyGeneration(),
+			DataVer: cr.config.DataVersion(),
+			BlockContext: BlockContext{
+				Creator:  uid,
+				RefNonce: zeroBlockRefNonce,
+			},
 		}
 	} else {
 		newPtr.RefNonce, err = cr.config.Crypto().MakeBlockRefNonce()
