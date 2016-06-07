@@ -7,7 +7,7 @@ import type {ActionProps} from './action.render'
 import type {HeaderProps} from './header.render'
 import type {ProofsProps} from './proofs.render'
 
-export type RenderProps = $Shape<{
+export type RenderPropsUnshaped = {
   bioProps: BioProps,
   actionProps: ActionProps,
   headerProps: HeaderProps,
@@ -17,6 +17,8 @@ export type RenderProps = $Shape<{
   reason?: string,
   inviteLink?: ?string,
   isPrivate?: boolean
-}>
+}
+
+export type RenderProps = $Shape<RenderPropsUnshaped>
 
 export default class Render extends Component<void, RenderProps, void> { }
