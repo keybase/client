@@ -1,0 +1,15 @@
+// @flow
+import React, {Component} from 'react'
+
+export type Props = {
+  component: string,
+  windowsOpts?: Object,
+  title?: string,
+  onRemoteClose?: () => void,
+  hidden?: boolean,
+  selectorParams?: string,
+  ignoreNewProps?: boolean
+}
+
+export default class RemoteComponent extends Component<void, Props, void> { }
+
