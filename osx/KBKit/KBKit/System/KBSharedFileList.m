@@ -76,7 +76,9 @@
       if ([URL isEqual:itemURL]) {
         matched = YES;
       }
-      CFRelease(URLRef);
+      if (URLRef != nil) {
+        CFRelease(URLRef);
+      }
     }
 
     if (matched) {

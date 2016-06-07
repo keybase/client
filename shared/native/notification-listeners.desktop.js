@@ -2,6 +2,7 @@
 
 import {bootstrap} from '../actions/config'
 import {logoutDone} from '../actions/login'
+import {favoriteList} from '../actions/favorite'
 import {kbfsNotification} from '../util/kbfs-notifications'
 import type {Dispatch} from '../constants/types/flux'
 import type {incomingCallMapType} from '../constants/types/flow-types'
@@ -49,6 +50,11 @@ export default function (dispatch: Dispatch, getState: () => Object, notify: any
     },
     'keybase.1.NotifyFS.FSActivity': ({notification}) => {
       kbfsNotification(notification, notify, getState)
+    },
+    'keybase.1.GREGOR.TODO': ({model}) => { // TODO: This isn't the real message. Mocking this out until we get the real one
+      if (model.type === 'RefreshFavorites') {
+        dispatch(favoriteList())
+      }
     }
   }
 }

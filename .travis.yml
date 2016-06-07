@@ -2,7 +2,6 @@ sudo: required
 dist: trusty
 os:
   - linux
-  - osx
 language: go
 go:
   - 1.6
@@ -10,40 +9,29 @@ services:
   - docker
 before_install:
   - echo "Running on commit `git rev-parse HEAD`."
-  - if [ $TRAVIS_OS_NAME == 'linux' ]; then
-      export DEBIAN_FRONTEND=noninteractive;
-      sudo apt-get update;
-      sudo apt-get install -q -y --force-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" docker-engine graphicsmagick s3cmd;
-      echo -e '[default]\naccess_key = $AWS_ACCESS_KEY_ID\nsecret_key = $AWS_SECRET_ACCESS_KEY' > ~/.s3cfg;
-    elif [ $TRAVIS_OS_NAME == 'osx' ]; then
-      brew install gnupg2;
-      security create-keychain -p travis test.keychain;
-      security default-keychain -s test.keychain;
-      security unlock-keychain -p travis test.keychain;
-      security set-keychain-settings -t 3600 -u test.keychain;
-    fi
+  - export DEBIAN_FRONTEND=noninteractive
+  - sudo apt-get update;
+  - sudo apt-get install -q -y --force-yes -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold" docker-engine graphicsmagick s3cmd;
+  - echo -e '[default]\naccess_key = $AWS_ACCESS_KEY_ID\nsecret_key = $AWS_SECRET_ACCESS_KEY' > ~/.s3cfg;
 install: true
 before_script:
-  - if [ $TRAVIS_OS_NAME == 'linux' ]; then sh -e /etc/init.d/xvfb start && export DISPLAY=:99.0; fi
+  - sh -e /etc/init.d/xvfb start
+  - export DISPLAY=:99.0
 script:
   - export BASE=$PWD
-  - if [ $TRAVIS_OS_NAME == 'linux' ]; then
-      cd $BASE/desktop && ../packaging/npm_mess.sh && npm run setup-dev-tools &&
-      cd $BASE/shared && npm i -g flow-bin@`tail -n1 .flowconfig` && flow &&
-      cd $BASE && eslint . &&
-      if [ $TRAVIS_PULL_REQUEST != 'false' ]; then
-        cd $BASE/desktop && npm install octonode && npm run visdiff -- "`git rev-parse HEAD^1`...`git rev-parse HEAD`";
-      fi &&
-      cd $BASE/protocol && ./diff_test.sh &&
-      docker login -e "$CI_EMAIL" -u "$DOCKER_USER" -p "$DOCKER_PASS" &&
-      docker pull $DOCKER_USER/kbweb &&
-      travis_retry docker run --name kbweb3000 -d -p 3000:3000 -p 9911:9911 --entrypoint run/startup_for_container.sh $DOCKER_USER/kbweb &&
-      cd $BASE/go && ./test/check_or_start_kbweb.sh && ./test/run_tests.sh;
-    elif [ $TRAVIS_OS_NAME == 'osx' ]; then
-      cd $BASE/go && export KEYBASE_SERVER_URI=http://ci1.keybase.io && travis_wait 80 ./test/run_tests.sh;
-    fi
+  - cd $BASE/desktop && ../packaging/npm_mess.sh && npm run setup-dev-tools &&
+    cd $BASE/shared && npm i -g flow-bin@`tail -n1 .flowconfig` && flow &&
+    cd $BASE && eslint . &&
+    if [ $TRAVIS_PULL_REQUEST != 'false' ]; then
+      cd $BASE/desktop && npm install octonode && npm run visdiff -- "`git rev-parse HEAD^1`...`git rev-parse HEAD`";
+    fi &&
+    cd $BASE/protocol && ./diff_test.sh &&
+    docker login -e "$CI_EMAIL" -u "$DOCKER_USER" -p "$DOCKER_PASS" &&
+    docker pull $DOCKER_USER/kbweb &&
+    travis_retry docker run --name kbweb3000 -d -p 3000:3000 -p 9911:9911 --entrypoint run/startup_for_container.sh $DOCKER_USER/kbweb &&
+    cd $BASE/go && ./test/check_or_start_kbweb.sh && ./test/run_tests.sh;
 after_success:
-  - if [ $TRAVIS_OS_NAME == 'linux' ] && [ $TRAVIS_PULL_REQUEST == 'false' ]; then
+  - if [ $TRAVIS_PULL_REQUEST == 'false' ]; then
       go install github.com/keybase/client/go/keybase &&
       cp $GOPATH/bin/keybase $GOPATH/src/github.com/keybase/client/go/keybase/keybase &&
       docker build -t kbclient . &&
@@ -53,15 +41,11 @@ after_success:
       echo "Not pushing to Docker, because this isn't a push to master.";
     fi
 after_failure:
-  - if [ $TRAVIS_OS_NAME == 'linux' ]; then
-      docker logs kbweb3000;
-    fi
+  - docker logs kbweb3000;
 notifications:
   slack:
     rooms:
       secure: W5hUm0MPWJ3v2VGRAq9fxgroVvqFOkwnbrxllEX3Zadf3e909fwQzm7KEUvSEd9fhsKrdBxPrphCZd1UCq5cXjCkfokKFojnbgnYPKZYgL4M7GWqiURCfIUY7r0gQCDnFzIIANacIbhT8089IkQva8QWCdfX4zVycTKOvMC0msE=
-matrix:
-  - os: osx
 branches:
   only:
     - master

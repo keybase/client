@@ -654,3 +654,7 @@ var _ error = Status{}
 
 // Assert that our ErrorUnwrapper fits the RPC error unwrapper spec.
 var _ rpc.ErrorUnwrapper = ErrorUnwrapper{}
+
+func (t TLFID) String() string {
+	return string(t)
+}

@@ -152,3 +152,21 @@ func (u *UpdateUI) UpdateAppInUse(ctx context.Context, arg keybase1.UpdateAppInU
 func (u *UpdateUI) UpdateQuit(ctx context.Context, arg keybase1.UpdateQuitArg) (res keybase1.UpdateQuitRes, err error) {
 	return u.cli.UpdateQuit(ctx, arg)
 }
+
+type RekeyUI struct {
+	sessionID int
+	cli       *keybase1.RekeyUIClient
+	libkb.Contextified
+}
+
+// DelegateRekeyUI shouldn't be called on this object since it
+// should already have a sessionID.
+func (r *RekeyUI) DelegateRekeyUI(ctx context.Context) (int, error) {
+	r.G().Log.Warning("service RekeyUI.DelegateRekeyUI() called to get session id after RekeyUI object created")
+	return r.cli.DelegateRekeyUI(ctx)
+}
+
+func (r *RekeyUI) Refresh(ctx context.Context, arg keybase1.RefreshArg) error {
+	arg.SessionID = r.sessionID
+	return r.cli.Refresh(ctx, arg)
+}

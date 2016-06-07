@@ -117,6 +117,10 @@ class Nav extends Component {
   }
 
   shouldComponentUpdate (nextProps, nextState) {
+    if (this.props.menuBadge !== nextProps.menuBadge) {
+      ipcRenderer.send(this.props.menuBadge ? 'showTrayRegular' : 'showTrayBadged')
+    }
+
     if (this.state.searchActive !== nextState.searchActive) {
       return true
     }
@@ -183,11 +187,12 @@ const stylesTabsContainer = {
 }
 
 export default connect(
-  ({tabbedRouter, config: {bootstrapped, extendedConfig, username}}) => ({
+  ({tabbedRouter, config: {bootstrapped, extendedConfig, username}, notifications: {menuBadge}}) => ({
     tabbedRouter,
     bootstrapped,
     provisioned: extendedConfig && !!extendedConfig.device,
-    username
+    username,
+    menuBadge
   }),
   dispatch => {
     return {

@@ -1,28 +1,27 @@
 /* @flow */
 
 import {combineReducers} from 'redux'
-import login from './login'
-import devices from './devices'
-import search from './search'
-import profile from './profile'
-import config from './config'
-import tabbedRouter from './tabbed-router'
 import {List} from 'immutable'
 import type {State} from '../constants/reducer'
-import serialize from './serialize'
-import tracker from './tracker'
-import pinentry from './pinentry'
-import favorite from './favorite'
-import updateConfirm from './update-confirm'
-import updatePaused from './update-paused'
-import signup from './signup'
-import unlockFolders from './unlock-folders.js'
-
+import * as Constants from '../constants/dev'
 import {resetStore} from '../constants/common.js'
 
+import config from './config'
+import devices from './devices'
+import favorite from './favorite'
+import login from './login'
+import pinentry from './pinentry'
+import notifications from './notifications'
+import profile from './profile'
+import search from './search'
+import serialize from './serialize'
+import signup from './signup'
+import tabbedRouter from './tabbed-router'
+import tracker from './tracker'
+import unlockFolders from './unlock-folders.js'
+import updateConfirm from './update-confirm'
+import updatePaused from './update-paused'
 import devEdit from './dev-edit'
-
-import * as Constants from '../constants/dev'
 
 let history = List()
 let index = 0
@@ -55,7 +54,8 @@ const combinedReducer = combineReducers({
   updateConfirm,
   updatePaused,
   signup,
-  unlockFolders
+  unlockFolders,
+  notifications
 })
 
 let reducer

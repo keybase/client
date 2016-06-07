@@ -47,3 +47,14 @@ func (d *DelegateUICtlHandler) RegisterUpdateUI(_ context.Context) error {
 	d.G().UIRouter.SetUI(d.id, libkb.UpdateUIKind)
 	return nil
 }
+
+func (d *DelegateUICtlHandler) RegisterRekeyUI(_ context.Context) error {
+	d.G().UIRouter.SetUI(d.id, libkb.RekeyUIKind)
+
+	// Let Gregor related code know that a RekeyUI client
+	// (probably Electron) has connected, and to sync out state to it
+	if d.G().GregorListener != nil {
+		d.G().GregorListener.PushHandler(NewRekeyUIHandler(d.G(), d.id))
+	}
+	return nil
+}
