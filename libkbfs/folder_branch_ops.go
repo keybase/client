@@ -1169,6 +1169,11 @@ func newBlockPutState(length int) *blockPutState {
 	return bps
 }
 
+// addNewBlock tracks a new block that will be put.  If syncedCb is
+// non-nil, it will be called whenever the put for that block is
+// complete (whether or not the put resulted in an error).  Currently
+// it will not be called if the block is never put (due to an earlier
+// error).
 func (bps *blockPutState) addNewBlock(blockPtr BlockPointer, block Block,
 	readyBlockData ReadyBlockData, syncedCb func() error) {
 	bps.blockStates = append(bps.blockStates,

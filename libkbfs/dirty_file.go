@@ -13,7 +13,7 @@ import (
 // whether it's currently being synced.  There can be three states:
 //  0) Not being synced
 //  1) Currently being synced to the server.
-//  2) Finished syncing, but the rest of thesync hasn't finished yet.
+//  2) Finished syncing, but the rest of the sync hasn't finished yet.
 type dirtyBlockSyncState int
 
 const (
@@ -39,6 +39,12 @@ type dirtyBlockState struct {
 // dirtyFile represents a particular file that's been written to, but
 // has not yet completed syncing its dirty blocks to the server.
 type dirtyFile struct {
+	path path
+
+	// Protects access to fileBlockStates.  Most, but not all,
+	// accesses to dirtyFile is already protected by
+	// folderBlockOps.blockLock, so this lock should always be taken
+	// just in case.
 	lock sync.Mutex
 	// Which blocks are currently being synced and still need copying,
 	// so that writes and truncates can do copy-on-write to avoid
@@ -50,8 +56,9 @@ type dirtyFile struct {
 	fileBlockStates map[BlockPointer]dirtyBlockState
 }
 
-func newDirtyFile() *dirtyFile {
+func newDirtyFile(file path) *dirtyFile {
 	return &dirtyFile{
+		path:            file,
 		fileBlockStates: make(map[BlockPointer]dirtyBlockState),
 	}
 }
@@ -141,19 +148,31 @@ func (df *dirtyFile) setBlockSynced(ptr BlockPointer) error {
 	return df.setBlockSyncedLocked(ptr)
 }
 
-func (df *dirtyFile) finishSync() {
-	// Mark any remaining blocks as finished syncing.  For example,
-	// top-level indirect blocks needs this because they are added to
-	// the blockPutState by folderBranchOps, not folderBlockOps.
+func (df *dirtyFile) finishSync() error {
+	// Mark any remaining blocks as finished syncing.  For now, only
+	// the top-level indirect block needs this because they are added
+	// to the blockPutState by folderBranchOps, not folderBlockOps.
 	df.lock.Lock()
 	defer df.lock.Unlock()
-	// Reset all syncing blocks to just be dirty again
+
+	// Reset all syncing blocks to just be dirty again (there should
+	// only be one, equal to the original top block).
+	found := false
 	for ptr, state := range df.fileBlockStates {
 		if state.sync == blockSyncing {
+			if found {
+				return fmt.Errorf("Unexpected syncing block %v", ptr)
+			}
+			if ptr != df.path.tailPointer() {
+				return fmt.Errorf("Unexoected syncing block %v; expected %v",
+					ptr, df.path.tailPointer())
+			}
+			found = true
 			err := df.setBlockSyncedLocked(ptr)
 			if err != nil {
-				panic(fmt.Sprintf("Unexpected error: %v", err))
+				return err
 			}
 		}
 	}
+	return nil
 }

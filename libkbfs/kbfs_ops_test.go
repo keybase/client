@@ -3892,7 +3892,7 @@ func makeBlockStateDirty(config Config, rmd *RootMetadata, p path,
 	lState := makeFBOLockState()
 	ops.blocks.blockLock.Lock(lState)
 	defer ops.blocks.blockLock.Unlock(lState)
-	df := ops.blocks.getOrCreateDirtyFileLocked(lState, p.tailPointer())
+	df := ops.blocks.getOrCreateDirtyFileLocked(lState, p)
 	df.setBlockDirty(ptr)
 }
 

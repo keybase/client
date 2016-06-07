@@ -676,12 +676,13 @@ func (fbo *folderBlockOps) GetDirtyEntry(
 }
 
 func (fbo *folderBlockOps) getOrCreateDirtyFileLocked(lState *lockState,
-	file BlockPointer) *dirtyFile {
+	file path) *dirtyFile {
 	fbo.blockLock.AssertLocked(lState)
-	df := fbo.dirtyFiles[file]
+	ptr := file.tailPointer()
+	df := fbo.dirtyFiles[ptr]
 	if df == nil {
-		df = newDirtyFile()
-		fbo.dirtyFiles[file] = df
+		df = newDirtyFile(file)
+		fbo.dirtyFiles[ptr] = df
 	}
 	return df
 }
@@ -693,7 +694,7 @@ func (fbo *folderBlockOps) getOrCreateDirtyFileLocked(lState *lockState,
 func (fbo *folderBlockOps) cacheBlockIfNotYetDirtyLocked(
 	lState *lockState, ptr BlockPointer, file path, block Block) error {
 	fbo.blockLock.AssertLocked(lState)
-	df := fbo.getOrCreateDirtyFileLocked(lState, file.tailPointer())
+	df := fbo.getOrCreateDirtyFileLocked(lState, file)
 	needsCaching, isSyncing := df.setBlockDirty(ptr)
 
 	if needsCaching {
@@ -1746,7 +1747,7 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 
 	bcache := fbo.config.BlockCache()
 	dirtyBcache := fbo.config.DirtyBlockCache()
-	df := fbo.getOrCreateDirtyFileLocked(lState, file.tailPointer())
+	df := fbo.getOrCreateDirtyFileLocked(lState, file)
 
 	// Note: below we add possibly updated file blocks as "unref" and
 	// "ref" blocks.  This is fine, since conflict resolution or
@@ -2051,7 +2052,10 @@ func (fbo *folderBlockOps) FinishSync(
 
 	df := fbo.dirtyFiles[oldPath.tailPointer()]
 	if df != nil {
-		df.finishSync()
+		err = df.finishSync()
+		if err != nil {
+			return true, err
+		}
 		delete(fbo.dirtyFiles, oldPath.tailPointer())
 	}
 	// Redo any writes or truncates that happened to our file while
