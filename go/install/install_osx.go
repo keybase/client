@@ -92,6 +92,31 @@ func KBFSServiceStatus(g *libkb.GlobalContext, label string) (status keybase1.Se
 	return
 }
 
+func UpdaterServiceStatus(g *libkb.GlobalContext, label string) keybase1.ServiceStatus {
+	if label == "" {
+		return keybase1.ServiceStatus{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, "No service label")}
+	}
+	updaterService := launchd.NewService(label)
+	status, err := updaterService.WaitForStatus(5 * time.Second)
+	if err != nil {
+		return keybase1.ServiceStatus{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, err.Error())}
+	}
+	serviceStatus := keybase1.ServiceStatus{
+		Label:          label,
+		Pid:            status.Pid(),
+		LastExitStatus: status.LastExitStatus(),
+	}
+	if status.Pid() != "" {
+		serviceStatus.InstallStatus = keybase1.InstallStatus_INSTALLED
+		serviceStatus.InstallAction = keybase1.InstallAction_NONE
+	} else {
+		serviceStatus.InstallStatus = keybase1.InstallStatus_NOT_INSTALLED
+		serviceStatus.InstallAction = keybase1.InstallAction_INSTALL
+	}
+	serviceStatus.Status = keybase1.StatusOK("")
+	return serviceStatus
+}
+
 func serviceStatusFromLaunchd(ls launchd.Service, infoPath string, log logger.Logger) (status keybase1.ServiceStatus, err error) {
 	status = keybase1.ServiceStatus{
 		Label: ls.Label(),
@@ -277,6 +302,8 @@ func NewServiceLabel(s string) (ServiceLabel, error) {
 		return AppKBFSLabel, nil
 	case string(BrewKBFSLabel):
 		return BrewKBFSLabel, nil
+	case string(AppUpdaterLabel):
+		return AppUpdaterLabel, nil
 	}
 	return UnknownLabel, fmt.Errorf("Unknown service label: %s", s)
 }
@@ -291,6 +318,8 @@ func (l ServiceLabel) ComponentName() ComponentName {
 		return ComponentNameService
 	case AppKBFSLabel, BrewKBFSLabel:
 		return ComponentNameKBFS
+	case AppUpdaterLabel:
+		return ComponentNameUpdater
 	}
 	return ComponentNameUnknown
 }
@@ -302,6 +331,9 @@ func ServiceStatus(g *libkb.GlobalContext, label ServiceLabel) (*keybase1.Servic
 		return &st, nil
 	case ComponentNameKBFS:
 		st := KBFSServiceStatus(g, string(label))
+		return &st, nil
+	case ComponentNameUpdater:
+		st := UpdaterServiceStatus(g, string(label))
 		return &st, nil
 	default:
 		return nil, fmt.Errorf("Invalid label: %s", label)
@@ -817,7 +849,7 @@ func installUpdater(keybaseBinPath string, force bool, keybaseVersion string, lo
 func keybaseUpdaterPlist(label string, serviceBinPath string, keybaseBinPath string, keybaseVersion string) launchd.Plist {
 	plistArgs := []string{fmt.Sprintf("-path-to-keybase=%s", keybaseBinPath)}
 	envVars := DefaultLaunchdEnvVars(label)
-	comment := fmt.Sprintf("It's not advisable to edit this plist, it may be overwritten. This was installed by keybase version %s.", keybaseVersion)
+	comment := "It's not advisable to edit this plist, it may be overwritten"
 	return launchd.NewPlist(label, serviceBinPath, plistArgs, envVars, libkb.UpdaterLogFileName, comment)
 }
 

@@ -11,26 +11,22 @@ import (
 	"time"
 
 	"github.com/keybase/cli"
-	"github.com/keybase/client/go/engine"
 	"github.com/keybase/client/go/libcmdline"
 	"github.com/keybase/client/go/libkb"
 	keybase1 "github.com/keybase/client/go/protocol"
 	rpc "github.com/keybase/go-framed-msgpack-rpc"
-	updater "github.com/keybase/go-updater"
-	"github.com/keybase/go-updater/sources"
 )
 
 type Service struct {
 	libkb.Contextified
-	isDaemon      bool
-	chdirTo       string
-	lockPid       *libkb.LockPIDFile
-	ForkType      keybase1.ForkType
-	startCh       chan struct{}
-	stopCh        chan keybase1.ExitCode
-	updateChecker *updater.UpdateChecker
-	logForwarder  *logFwd
-	gregor        *gregorHandler
+	isDaemon     bool
+	chdirTo      string
+	lockPid      *libkb.LockPIDFile
+	ForkType     keybase1.ForkType
+	startCh      chan struct{}
+	stopCh       chan keybase1.ExitCode
+	logForwarder *logFwd
+	gregor       *gregorHandler
 }
 
 func NewService(g *libkb.GlobalContext, isDaemon bool) *Service {
@@ -73,7 +69,6 @@ func (d *Service) RegisterProtocols(srv *rpc.Server, xp rpc.Transporter, connID 
 		keybase1.SigsProtocol(NewSigsHandler(xp, g)),
 		keybase1.TestProtocol(NewTestHandler(xp, g)),
 		keybase1.TrackProtocol(NewTrackHandler(xp, g)),
-		keybase1.UpdateProtocol(NewUpdateHandler(xp, g, d.updateChecker)),
 		keybase1.UserProtocol(NewUserHandler(xp, g)),
 		keybase1.PaperprovisionProtocol(NewPaperProvisionHandler(xp, g)),
 		keybase1.RekeyProtocol(NewRekeyHandler(xp, g, d.gregor)),
@@ -167,19 +162,6 @@ func (d *Service) Run() (err error) {
 	var l net.Listener
 	if l, err = d.ConfigRPCServer(); err != nil {
 		return
-	}
-
-	updateDisabled, _ := d.G().Env.GetUpdateDisabled()
-	if sources.IsPrerelease && !updateDisabled {
-		updr := engine.NewDefaultUpdater(d.G())
-		if updr != nil {
-			d.G().Log.Debug("Starting updater")
-			updateChecker := updater.NewUpdateChecker(updr, engine.NewUpdaterContext(d.G()), d.G().Log)
-			d.updateChecker = &updateChecker
-			d.updateChecker.Start()
-		}
-	} else {
-		d.G().Log.Warning("Updater disabled")
 	}
 
 	d.checkTrackingEveryHour()

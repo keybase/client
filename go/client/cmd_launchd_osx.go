@@ -269,6 +269,8 @@ func (v *CmdLaunchdStatus) ParseArgv(ctx *cli.Context) error {
 		labelStr = install.DefaultServiceLabel()
 	case "kbfs":
 		labelStr = install.DefaultKBFSLabel()
+	case "updater":
+		labelStr = "keybase.updater"
 	}
 
 	label, err := install.NewServiceLabel(labelStr)

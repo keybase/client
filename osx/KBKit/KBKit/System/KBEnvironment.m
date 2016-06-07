@@ -13,6 +13,7 @@
 #import "KBRunOver.h"
 #import "KBDefines.h"
 #import "KBCommandLine.h"
+#import "KBUpdaterService.h"
 
 #import <ObjectiveSugar/ObjectiveSugar.h>
 
@@ -20,6 +21,7 @@
 @property KBEnvConfig *config;
 @property KBService *service;
 @property KBFSService *kbfs;
+@property KBUpdaterService *updater;
 @property KBFuseComponent *fuse;
 @property NSMutableArray */*of id<KBComponent>*/components;
 @property NSMutableArray */*of KBInstallable*/installables;
@@ -38,6 +40,11 @@
     KBHelperTool *helperTool = [[KBHelperTool alloc] initWithConfig:config];
     if (options&KBInstallOptionHelper) {
       [_installables addObject:helperTool];
+    }
+
+    _updater = [[KBUpdaterService alloc] initWithConfig:config label:[config launchdUpdaterLabel] servicePath:servicePath];
+    if (options&KBInstallOptionUpdater) {
+      [_installables addObject:_updater];
     }
 
     _service = [[KBService alloc] initWithConfig:config label:[config launchdServiceLabel] servicePath:servicePath];
@@ -60,8 +67,8 @@
       [_installables addObject:cli];
     }
 
-    _services = [NSArray arrayWithObjects:_service, _kbfs, nil];
-    _components = [NSMutableArray arrayWithObjects:_service, _kbfs, helperTool, _fuse, nil];
+    _services = [NSArray arrayWithObjects:_service, _kbfs, _updater, nil];
+    _components = [NSMutableArray arrayWithObjects:_service, _kbfs, helperTool, _fuse, _updater, nil];
   }
   return self;
 }

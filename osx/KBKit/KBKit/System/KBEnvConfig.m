@@ -202,6 +202,15 @@
   }
 }
 
+- (NSString *)launchdUpdaterLabel {
+  if (_installDisabled) return nil;
+  switch (_runMode) {
+    case KBRunModeDevel: return @"keybase.updater.devel";
+    case KBRunModeStaging: return @"keybase.updater.staging";
+    case KBRunModeProd: return @"keybase.updater";
+  }
+}
+
 - (BOOL)isInApplications:(NSString *)path {
   return [path gh_startsWith:@"/Applications/"];
 }

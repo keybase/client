@@ -19,6 +19,7 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
   KBInstallOptionHelper = 2 << 1,
   KBInstallOptionFuse = 3 << 1,
   KBInstallOptionKBFS = 4 << 1,
+  KBInstallOptionUpdater = 5 << 1,
   KBInstallOptionCLI = 10 << 1,
 
   KBInstallOptionAll = KBInstallOptionService | KBInstallOptionHelper | KBInstallOptionKBFS | KBInstallOptionFuse | KBInstallOptionCLI,
@@ -37,8 +38,6 @@ typedef NS_OPTIONS (NSUInteger, KBInstallOptions) {
 + (instancetype)environmentForRunModeString:(NSString *)runModeString servicePath:(NSString *)servicePath options:(KBInstallOptions)options;
 
 - (NSArray *)componentsForControlPanel;
-
-+ (instancetype)environmentForRunModeString:(NSString *)runModeString servicePath:(NSString *)servicePath;
 
 - (NSString *)debugInstallables;
 
