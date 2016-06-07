@@ -114,7 +114,11 @@ func TestRekeyNeededMessageWithScores(t *testing.T) {
 
 	rekeyBroadcast(tc, gUID, h, problemSet)
 
-	<-rekeyHandler.notifyComplete
+	select {
+	case <-rekeyHandler.notifyComplete:
+	case <-time.After(20 * time.Second):
+		t.Fatal("timeout waiting for rekeyHandler.notifyComplete")
+	}
 
 	// Test that refresh was called twice.
 	if len(rkeyui.refreshArgs) != 2 {
@@ -160,7 +164,7 @@ func TestRekeyNeededUserClose(t *testing.T) {
 
 	select {
 	case <-rekeyHandler.notifyComplete:
-	case <-time.After(2 * time.Second):
+	case <-time.After(20 * time.Second):
 		t.Fatal("timeout waiting for rekeyHandler.notifyComplete")
 	}
 
