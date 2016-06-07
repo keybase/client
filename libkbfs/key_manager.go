@@ -639,8 +639,9 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 	if !isWriter {
 		if len(newReaderUsers) > 0 || addNewWriterDevice || incKeyGen {
 			// If we're a reader but we haven't completed all the work, return
-			// RekeyIncompleteError
-			return false, nil, RekeyIncompleteError{}
+			// RekeyIncompleteError.
+			rekeyDone := len(newReaderUsers) > 0
+			return rekeyDone, nil, RekeyIncompleteError{}
 		}
 		// Otherwise, there's nothing left to do!
 		return true, nil, nil
