@@ -1,7 +1,7 @@
 // @flow
 import React, {Component} from 'react'
 import type {Props} from './render'
-import {Box, TabBar} from '../common-adapters'
+import {Box, TabBar, ComingSoon} from '../common-adapters'
 import {TabBarItem, TabBarButton} from '../common-adapters/tab-bar'
 import List from './list'
 import {globalStyles, globalColors} from '../styles/style-guide'
@@ -19,6 +19,10 @@ class Render extends Component<void, Props, State> {
     this.state = {
       showPrivate: true
     }
+  }
+
+  _renderComingSoon () {
+    return <ComingSoon />
   }
 
   _makeItem (isPublic: boolean, isSelected: boolean) {
@@ -45,6 +49,10 @@ class Render extends Component<void, Props, State> {
   }
 
   render () {
+    if (this.props.showComingSoon) {
+      return this._renderComingSoon()
+    }
+
     return (
       <Box style={{...stylesContainer, backgroundColor: this.state.showPrivate ? globalColors.darkBlue : globalColors.white}}>
         <TabBar tabBarStyle={tabBarStyle}>

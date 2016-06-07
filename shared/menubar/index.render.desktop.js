@@ -53,13 +53,16 @@ class Render extends Component<void, Props, State> {
   }
 
   _menuItems () {
-    return [
-      {title: 'Open folders', onClick: this.props.showKBFS},
-      {title: 'Keybase.io', onClick: this.props.showUser},
-      {title: 'Report a bug', onClick: this.props.showBug},
-      {title: 'Help/Doc', onClick: this.props.showHelp},
-      {title: 'Quit', onClick: this.props.quit}
-    ]
+    return [].concat(
+      this.props.loggedIn && this.props.showOpenApp ? [{title: 'Open Keybase', onClick: this.props.openApp}] : [],
+      [
+        {title: 'Open folders', onClick: this.props.showKBFS},
+        {title: 'Keybase.io', onClick: this.props.showUser},
+        {title: 'Report a bug', onClick: this.props.showBug},
+        {title: 'Help/Doc', onClick: this.props.showHelp},
+        {title: 'Quit', onClick: this.props.quit}
+      ]
+    )
   }
 
   _onAdd (path: string) {
@@ -92,6 +95,7 @@ class Render extends Component<void, Props, State> {
 
     const mergedProps = {
       ...this.props.folderProps,
+      showComingSoon: false,
       smallMode: true,
       private: newPrivate,
       public: newPublic,

@@ -3,6 +3,6 @@
 export default class ErrorRender extends React$Component<void, {currentPath: any}, void> {
 }
 
-import type {DumbComponentMap} from '../more/dumb'
+import type {DumbComponentMap} from '../dev/dumb'
 
 declare export var Mocks: DumbComponentMap

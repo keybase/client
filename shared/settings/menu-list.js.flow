@@ -1,0 +1,14 @@
+/* @flow */
+
+export type MenuListItem = $Shape<{
+  name: string,
+  hasChildren?: boolean,
+  onClick: () => void
+}>
+
+export type Props = {
+  items: ?Array<MenuListItem>
+}
+
+export default class Render extends React$Component<void, Props, void> {
+}

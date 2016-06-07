@@ -6,7 +6,7 @@
 
 import Immutable from 'immutable'
 import {subReducer as routerReducer, createRouterState} from './router'
-import {profileTab, startupTab, folderTab, chatTab, peopleTab, devicesTab, moreTab, loginTab} from '../constants/tabs'
+import {profileTab, startupTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from '../constants/tabs'
 import * as Constants from '../constants/tabbed-router'
 import * as CommonConstants from '../constants/common'
 import * as RouterConstants from '../constants/router'
@@ -28,7 +28,7 @@ function initialStateFn (): TabbedRouterState {
       [chatTab]: emptyRouterState,
       [peopleTab]: emptyRouterState,
       [devicesTab]: emptyRouterState,
-      [moreTab]: emptyRouterState,
+      [settingsTab]: emptyRouterState,
       [loginTab]: emptyRouterState
     },
     activeTab: loginTab

@@ -5,26 +5,25 @@ import getenv from 'getenv'
 // To enable a feature, include it in the environment variable KEYBASE_FEATURES.
 // For example, KEYBASE_FEATURES=tracker2,login,awesomefeature
 
-const adminKey = 'admin'
-const mainWindowKey = 'mainWindow'
-const mobileAppsExistKey = 'mobileAppsExist'
+export type FeatureKeys = 'admin' | 'mainWindow' | 'mobileAppsExist' | 'tabPeopleEnabled' | 'tabFoldersEnabled'
+| 'tabSettingsEnabled' | 'tabProfileEnabled' | 'searchEnabled'
 
-type FeatureFlags = {
-  'admin': boolean,
-  'mainWindow': boolean,
-  'mobileAppsExist': boolean
-}
-
+type FeatureFlags = {[key: FeatureKeys]: boolean}
 let features = getenv.array('KEYBASE_FEATURES', 'string', '')
 
-const admin = features.includes(adminKey)
-const mainWindow = features.includes(mainWindowKey)
-const mobileAppsExist = features.includes(mobileAppsExistKey)
+const featureOn = (key: FeatureKeys, includeAdmin: boolean = false) => ( // eslint-disable-line space-infix-ops
+  features.includes(key) || (includeAdmin && featureOn('admin'))
+)
 
 const ff: FeatureFlags = {
-  admin,
-  mainWindow,
-  mobileAppsExist
+  admin: featureOn('admin'),
+  mainWindow: featureOn('mainWindow', true),
+  mobileAppsExist: featureOn('mobileAppsExist'),
+  tabPeopleEnabled: featureOn('tabPeopleEnabled'),
+  tabFoldersEnabled: featureOn('tabFoldersEnabled'),
+  tabSettingsEnabled: featureOn('tabSettingsEnabled'),
+  tabProfileEnabled: featureOn('tabProfileEnabled'),
+  searchEnabled: featureOn('searchEnabled')
 }
 
 if (__DEV__) {
@@ -32,8 +31,3 @@ if (__DEV__) {
 }
 
 export default ff
-export {
-  admin,
-  mainWindow,
-  mobileAppsExist
-}

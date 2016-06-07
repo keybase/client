@@ -5,7 +5,7 @@ import {Box, TabBar, Avatar, Icon} from '../common-adapters'
 import {TabBarButton, TabBarItem} from '../common-adapters/tab-bar'
 import {globalStyles, globalColors} from '../styles/style-guide'
 
-import {profileTab, peopleTab, folderTab, devicesTab, moreTab} from '../constants/tabs'
+import {profileTab, peopleTab, folderTab, devicesTab, settingsTab} from '../constants/tabs'
 
 import type {VisibleTab} from '../constants/tabs'
 import type {Props as IconProps} from '../common-adapters/icon'
@@ -15,14 +15,14 @@ const icons: {[key: VisibleTab]: IconProps.type} = {
   [peopleTab]: 'fa-kb-iconfont-people',
   [folderTab]: 'fa-kb-iconfont-folder',
   [devicesTab]: 'fa-kb-iconfont-device',
-  [moreTab]: 'fa-kb-iconfont-settings'
+  [settingsTab]: 'fa-kb-iconfont-settings'
 }
 
 const labels: {[key: VisibleTab]: IconProps.type} = {
   [peopleTab]: 'PEOPLE',
   [folderTab]: 'FOLDERS',
   [devicesTab]: 'DEVICES',
-  [moreTab]: 'SETTINGS'
+  [settingsTab]: 'SETTINGS'
 }
 
 export type SearchButton = 'TabBar:searchButton'
@@ -86,7 +86,7 @@ export default class Render extends Component<void, Props, void> {
   }
 
   _renderVisibleTabItems () {
-    const tabs = [peopleTab, folderTab, devicesTab, moreTab, profileTab]
+    const tabs = [peopleTab, folderTab, devicesTab, settingsTab, profileTab]
 
     return tabs.map(t => {
       const onClick = () => this.props.onTabClick(t)

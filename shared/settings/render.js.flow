@@ -1,0 +1,16 @@
+/* @flow */
+
+export type Props = {
+  onAccount: () => void,
+  onBilling: () => void,
+  onPrefs: () => void,
+  onInvites: () => void,
+  onNotifications: () => void,
+  onDeleteMe: () => void,
+  onLogSend: () => void,
+  onAbout: () => void,
+  onDev: () => void
+}
+
+export default class Render extends React$Component<void, Props, void> {
+}

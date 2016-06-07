@@ -6,7 +6,7 @@ import {pushNewProfile} from '../actions/profile'
 import {pushNewSearch} from '../actions/search'
 import {logout} from '../actions/login'
 import {pushDebugTracker} from '../actions/tracker'
-import MenuList from './menu-list'
+import MenuList from '../settings/menu-list'
 import RemoteComponent from '../../desktop/renderer/remote-component'
 
 import {loginTab} from '../constants/tabs'
@@ -96,15 +96,6 @@ class DevMenu extends Component {
       subRoutes: {developer, login, pinentry, tracker, components, componentsUpdate, styleSheet, dumbSheet}
     }
   }
-}
-
-DevMenu.propTypes = {
-  routeAppend: React.PropTypes.func.isRequired,
-  logout: React.PropTypes.func.isRequired,
-  pushNewSearch: React.PropTypes.func.isRequired,
-  pushNewProfile: React.PropTypes.func.isRequired,
-  showTrackerListener: React.PropTypes.func.isRequired,
-  switchTab: React.PropTypes.func.isRequired
 }
 
 export default connect(
