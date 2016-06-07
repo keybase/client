@@ -10,7 +10,7 @@ const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar}) => (
   <Box style={{
     ...styles.avatarContainer,
     width: smallMode ? 32 : 48,
-    minHeight: 48, paddingTop: 12, paddingBottom: 12,
+    minHeight: 40, paddingTop: 8, paddingBottom: 8,
     paddingLeft: smallMode ? 4 : 8, paddingRight: smallMode ? 4 : 8}}>
     {groupAvatar
       ? <Icon type={smallMode ? styles.groupIcon.small : styles.groupIcon.normal} />
@@ -19,12 +19,12 @@ const Avatars = ({styles, users, smallMode, groupAvatar, userAvatar}) => (
 )
 
 const Modified = ({styles, modified}) => {
-  const iconColor = Text._colorStyleBackgroundMode(styles.modifiedMode, 'BodySmallLink')
+  const iconColor = Text._colorStyleBackgroundMode(styles.modifiedMode, 'BodyXSmall')
   return (
     <Box style={stylesModified}>
-      <Icon type='fa-kb-iconfont-thunderbolt' style={{fontSize: 12, alignSelf: 'center', marginLeft: -2, marginRight: 2, ...iconColor}} title='Modified' />
-      <Text type='BodySmall' backgroundMode={styles.modifiedMode}>Modified {modified.when} by&nbsp;</Text>
-      <Text type='BodySmallLink' backgroundMode={styles.modifiedMode}>{modified.username}</Text>
+      <Icon type='fa-kb-iconfont-thunderbolt' style={{fontSize: 10, alignSelf: 'center', marginTop: 2, ...iconColor}} title='Modified' />
+      <Text type='BodyXSmall' backgroundMode={styles.modifiedMode}>Modified {modified.when} by&nbsp;</Text>
+      <Text type='BodyXSmallLink' backgroundMode={styles.modifiedMode}>{modified.username}</Text>
     </Box>
   )
 }
@@ -63,7 +63,7 @@ const Row = ({users, isPublic, ignored, meta, modified, hasData, smallMode, onCl
       <Box style={{...globalStyles.flexBoxRow}}>
         <Avatars users={users} styles={styles} smallMode={smallMode} groupAvatar={groupAvatar} userAvatar={userAvatar} />
         <Box style={stylesBodyContainer}>
-          <Usernames users={users} type='BodySemibold' style={{color: styles.nameColor}} />
+          <Usernames users={users} type='BodySmallSemibold' style={{color: styles.nameColor}} />
           {(meta || ignored) && <RowMeta ignored={ignored} meta={meta} styles={styles} />}
           {!(meta || ignored) && modified && <Modified modified={modified} styles={styles} />}
         </Box>
@@ -92,7 +92,7 @@ const stylesLine = {
 const rowContainer = {
   ...globalStyles.flexBoxColumn,
   ...globalStyles.clickable,
-  minHeight: 48,
+  minHeight: 40,
   position: 'relative'
 }
 
