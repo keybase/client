@@ -74,6 +74,10 @@ func (v *CmdInstall) GetUsage() libkb.Usage {
 }
 
 func (v *CmdInstall) ParseArgv(ctx *cli.Context) error {
+	if v.G().Env.GetRunMode() != libkb.ProductionRunMode {
+		return fmt.Errorf("Only supported in production")
+	}
+
 	v.force = ctx.Bool("force")
 	v.format = ctx.String("format")
 	v.binPath = ctx.String("bin-path")

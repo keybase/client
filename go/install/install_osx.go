@@ -43,7 +43,8 @@ const (
 
 func KeybaseServiceStatus(g *libkb.GlobalContext, label string) (status keybase1.ServiceStatus) {
 	if label == "" {
-		label = DefaultServiceLabel(g.Env.GetRunMode())
+		status = keybase1.ServiceStatus{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, "No service label")}
+		return
 	}
 	kbService := launchd.NewService(label)
 
@@ -65,7 +66,8 @@ func KeybaseServiceStatus(g *libkb.GlobalContext, label string) (status keybase1
 
 func KBFSServiceStatus(g *libkb.GlobalContext, label string) (status keybase1.ServiceStatus) {
 	if label == "" {
-		label = DefaultKBFSLabel(g.Env.GetRunMode())
+		status = keybase1.ServiceStatus{Status: keybase1.StatusFromCode(keybase1.StatusCode_SCServiceStatusError, "No service label")}
+		return
 	}
 	kbfsService := launchd.NewService(label)
 
@@ -180,18 +182,18 @@ func DefaultLaunchdEnvVars(label string) []launchd.EnvVar {
 	}
 }
 
-func DefaultServiceLabel(runMode libkb.RunMode) string {
+func DefaultServiceLabel() string {
 	if libkb.IsBrewBuild {
-		return BrewServiceLabel.labelForRunMode(runMode)
+		return BrewServiceLabel.String()
 	}
-	return AppServiceLabel.labelForRunMode(runMode)
+	return AppServiceLabel.String()
 }
 
-func DefaultKBFSLabel(runMode libkb.RunMode) string {
+func DefaultKBFSLabel() string {
 	if libkb.IsBrewBuild {
-		return BrewKBFSLabel.labelForRunMode(runMode)
+		return BrewKBFSLabel.String()
 	}
-	return AppKBFSLabel.labelForRunMode(runMode)
+	return AppKBFSLabel.String()
 }
 
 func keybasePlist(g *libkb.GlobalContext, binPath string, label string) launchd.Plist {
@@ -216,8 +218,8 @@ func installKeybaseService(g *libkb.GlobalContext, service launchd.Service, plis
 
 // Uninstall keybase all services for this run mode.
 func uninstallKeybaseServices(runMode libkb.RunMode) error {
-	err1 := launchd.Uninstall(AppServiceLabel.labelForRunMode(runMode), true, nil)
-	err2 := launchd.Uninstall(BrewServiceLabel.labelForRunMode(runMode), true, nil)
+	err1 := launchd.Uninstall(AppServiceLabel.String(), true, nil)
+	err2 := launchd.Uninstall(BrewServiceLabel.String(), true, nil)
 	return libkb.CombineErrors(err1, err2)
 }
 
@@ -260,8 +262,8 @@ func installKBFSService(g *libkb.GlobalContext, service launchd.Service, plist l
 }
 
 func uninstallKBFSServices(runMode libkb.RunMode) error {
-	err1 := launchd.Uninstall(AppKBFSLabel.labelForRunMode(runMode), true, nil)
-	err2 := launchd.Uninstall(BrewKBFSLabel.labelForRunMode(runMode), true, nil)
+	err1 := launchd.Uninstall(AppKBFSLabel.String(), true, nil)
+	err2 := launchd.Uninstall(BrewKBFSLabel.String(), true, nil)
 	return libkb.CombineErrors(err1, err2)
 }
 
@@ -279,18 +281,8 @@ func NewServiceLabel(s string) (ServiceLabel, error) {
 	return UnknownLabel, fmt.Errorf("Unknown service label: %s", s)
 }
 
-// Lookup the default service label for this build.
-func (l ServiceLabel) labelForRunMode(runMode libkb.RunMode) string {
-	switch runMode {
-	case libkb.DevelRunMode:
-		return fmt.Sprintf("%s.devel", l)
-	case libkb.StagingRunMode:
-		return fmt.Sprintf("%s.staging", l)
-	case libkb.ProductionRunMode:
-		return string(l)
-	default:
-		panic("Invalid run mode")
-	}
+func (l ServiceLabel) String() string {
+	return string(l)
 }
 
 func (l ServiceLabel) ComponentName() ComponentName {
@@ -400,10 +392,10 @@ func installService(g *libkb.GlobalContext, binPath string, force bool) error {
 	}
 	g.Log.Debug("Using binPath: %s", resolvedBinPath)
 
-	label := DefaultServiceLabel(g.Env.GetRunMode())
+	label := DefaultServiceLabel()
 	service := launchd.NewService(label)
 	plist := keybasePlist(g, resolvedBinPath, label)
-	g.Log.Debug("Checking service")
+	g.Log.Debug("Checking service: %s", label)
 	keybaseStatus := KeybaseServiceStatus(g, label)
 	g.Log.Debug("Service: %s (Action: %s)", keybaseStatus.InstallStatus.String(), keybaseStatus.InstallAction.String())
 	needsInstall := keybaseStatus.NeedsInstall()
@@ -434,7 +426,7 @@ func installService(g *libkb.GlobalContext, binPath string, force bool) error {
 
 func installKBFS(g *libkb.GlobalContext, binPath string, force bool) error {
 	runMode := g.Env.GetRunMode()
-	label := DefaultKBFSLabel(runMode)
+	label := DefaultKBFSLabel()
 	kbfsService := launchd.NewService(label)
 	kbfsBinPath, err := KBFSBinPath(runMode, binPath)
 	if err != nil {
@@ -548,6 +540,10 @@ func AutoInstallWithStatus(g *libkb.GlobalContext, binPath string, force bool) k
 }
 
 func AutoInstall(g *libkb.GlobalContext, binPath string, force bool) (newProc bool, err error) {
+	if g.Env.GetRunMode() != libkb.ProductionRunMode {
+		return false, fmt.Errorf("Auto install is only supported in production")
+	}
+
 	newProc, _, err = autoInstall(g, binPath, force)
 	return
 }
@@ -557,7 +553,7 @@ func autoInstall(g *libkb.GlobalContext, binPath string, force bool) (newProc bo
 	defer func() {
 		g.Log.Debug("- AutoInstall -> %v, %v", newProc, err)
 	}()
-	label := DefaultServiceLabel(g.Env.GetRunMode())
+	label := DefaultServiceLabel()
 	if label == "" {
 		err = fmt.Errorf("No service label to install")
 		return
