@@ -34,22 +34,6 @@ const (
 	blockWrite
 )
 
-// syncBlockState represents that state of a block with respect to
-// whether it's currently being synced.  There can be three states:
-//  1) Not being synced
-//  2) Being synced and not yet re-dirtied: any write needs to
-//     make a copy of the block before dirtying it.  Also, all writes must be
-//     deferred.
-//  3) Being synced and already re-dirtied: no copies are needed, but all
-//     writes must still be deferred.
-type syncBlockState int
-
-const (
-	blockNotBeingSynced syncBlockState = iota
-	blockSyncingNotDirty
-	blockSyncingAndDirty
-)
-
 type syncInfo struct {
 	oldInfo    BlockInfo
 	op         *syncOp
@@ -97,13 +81,9 @@ type folderBlockOps struct {
 	// below.
 	blockLock blockLock
 
-	// Which blocks are currently being synced, so that writes and
-	// truncates can do copy-on-write to avoid messing up the ongoing
-	// sync.  If it is blockSyncingNotDirty, then any write to the
-	// block should result in a deep copy and those writes should be
-	// deferred; if it is blockSyncingAndDirty, then just defer the
-	// writes.
-	fileBlockStates map[BlockPointer]syncBlockState
+	// Which files are currently dirty and have dirty blocks that are either
+	// currently syncing, or waiting to be sync'd.
+	dirtyFiles map[BlockPointer]*dirtyFile
 
 	// For writes and truncates, track the unsynced to-be-unref'd
 	// block infos, per-path.
@@ -388,8 +368,9 @@ func (fbo *folderBlockOps) getFileBlockLocked(ctx context.Context,
 		// block is not yet dirty or the block is currently
 		// being sync'd and needs a copy even though it's
 		// already dirty.
+		df := fbo.dirtyFiles[file.tailPointer()]
 		if !fbo.config.DirtyBlockCache().IsDirty(ptr, file.Branch) ||
-			fbo.fileBlockStates[ptr] == blockSyncingNotDirty {
+			(df != nil && df.blockNeedsCopy(ptr)) {
 			fblock, err = fblock.DeepCopy(fbo.config.Codec())
 			if err != nil {
 				return nil, err
@@ -694,43 +675,44 @@ func (fbo *folderBlockOps) GetDirtyEntry(
 	return fbo.getDirtyEntryLocked(ctx, lState, md, file)
 }
 
+func (fbo *folderBlockOps) getOrCreateDirtyFileLocked(lState *lockState,
+	file path) *dirtyFile {
+	fbo.blockLock.AssertLocked(lState)
+	ptr := file.tailPointer()
+	df := fbo.dirtyFiles[ptr]
+	if df == nil {
+		df = newDirtyFile(file)
+		fbo.dirtyFiles[ptr] = df
+	}
+	return df
+}
+
 // cacheBlockIfNotYetDirtyLocked puts a block into the cache, but only
 // does so if the block isn't already marked as dirty in the cache.
 // This is useful when operating on a dirty copy of a block that may
 // already be in the cache.
 func (fbo *folderBlockOps) cacheBlockIfNotYetDirtyLocked(
-	lState *lockState, ptr BlockPointer, branch BranchName, block Block) error {
+	lState *lockState, ptr BlockPointer, file path, block Block) error {
 	fbo.blockLock.AssertLocked(lState)
+	df := fbo.getOrCreateDirtyFileLocked(lState, file)
+	needsCaching, isSyncing := df.setBlockDirty(ptr)
 
-	if !fbo.config.DirtyBlockCache().IsDirty(ptr, branch) {
-		return fbo.config.DirtyBlockCache().Put(ptr, branch, block)
-	}
-
-	switch fbo.fileBlockStates[ptr] {
-	case blockNotBeingSynced:
-		// Nothing to do
-	case blockSyncingNotDirty:
-		// Overwrite the dirty block if this is a copy-on-write during
-		// a sync.  Don't worry, the old dirty block is safe in the
-		// sync goroutine (and also probably saved to the cache under
-		// its new ID already).
-		err := fbo.config.DirtyBlockCache().Put(ptr, branch, block)
+	if needsCaching {
+		err := fbo.config.DirtyBlockCache().Put(ptr, file.Branch, block)
 		if err != nil {
 			return err
 		}
-		// Future writes can use this same block.
-		fbo.fileBlockStates[ptr] = blockSyncingAndDirty
-		fbo.doDeferWrite = true
-	case blockSyncingAndDirty:
-		fbo.doDeferWrite = true
 	}
 
+	if isSyncing {
+		fbo.doDeferWrite = true
+	}
 	return nil
 }
 
 func (fbo *folderBlockOps) newRightBlockLocked(
 	ctx context.Context, lState *lockState, ptr BlockPointer,
-	branch BranchName, pblock *FileBlock,
+	file path, pblock *FileBlock,
 	off int64, md *RootMetadata) error {
 	fbo.blockLock.AssertLocked(lState)
 
@@ -760,13 +742,12 @@ func (fbo *folderBlockOps) newRightBlockLocked(
 		Off: off,
 	})
 
-	if err := fbo.config.DirtyBlockCache().Put(
-		newPtr, branch, rblock); err != nil {
+	if err = fbo.cacheBlockIfNotYetDirtyLocked(
+		lState, newPtr, file, rblock); err != nil {
 		return err
 	}
-
 	if err = fbo.cacheBlockIfNotYetDirtyLocked(
-		lState, ptr, branch, pblock); err != nil {
+		lState, ptr, file, pblock); err != nil {
 		return err
 	}
 	return nil
@@ -824,8 +805,9 @@ func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableError(
 	// If a copy of the top indirect block was made, we need to
 	// redirty all the sync'd blocks under their new IDs, so that
 	// future syncs will know they failed.
-	state := fbo.fileBlockStates[file.tailPointer()]
-	if state != blockSyncingAndDirty {
+	df := fbo.dirtyFiles[file.tailPointer()]
+	if df == nil || !df.isBlockDirty(file.tailPointer()) ||
+		!df.isBlockSyncing(file.tailPointer()) {
 		return
 	}
 
@@ -837,6 +819,7 @@ func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableError(
 			"top-block for %v: %v", file.tailPointer(), err)
 		return
 	}
+
 	for newPtr, oldPtr := range redirtyOnRecoverableError {
 		found := false
 		for i, iptr := range fblock.IPtrs {
@@ -851,15 +834,15 @@ func (fbo *folderBlockOps) fixChildBlocksAfterRecoverableError(
 
 		fbo.log.CDebugf(ctx, "Re-dirtying %v (and deleting dirty block %v)",
 			newPtr, oldPtr)
-		// These block would have been permanent, so they're
+		// These blocks would have been permanent, so they're
 		// definitely still in the cache.
 		b, err := fbo.config.BlockCache().Get(newPtr)
 		if err != nil {
 			fbo.log.CWarningf(ctx, "Couldn't re-dirty %v: %v", newPtr, err)
 			continue
 		}
-		err = dirtyBcache.Put(newPtr, fbo.branch(), b)
-		if err != nil {
+		if err = fbo.cacheBlockIfNotYetDirtyLocked(
+			lState, newPtr, file, b); err != nil {
 			fbo.log.CWarningf(ctx, "Couldn't re-dirty %v: %v", newPtr, err)
 		}
 		err = dirtyBcache.Delete(oldPtr, fbo.branch())
@@ -1093,8 +1076,9 @@ func (fbo *folderBlockOps) writeGetFileLocked(
 // createIndirectBlockLocked creates a new indirect block and
 // pick a new id for the existing block, and use the existing block's ID for
 // the new indirect block that becomes the parent.
-func (fbo *folderBlockOps) createIndirectBlockLocked(md *RootMetadata,
-	file path, uid keybase1.UID, dver DataVer) (*FileBlock, error) {
+func (fbo *folderBlockOps) createIndirectBlockLocked(lState *lockState,
+	md *RootMetadata, file path, uid keybase1.UID, dver DataVer) (
+	*FileBlock, error) {
 
 	newID, err := fbo.config.Crypto().MakeTemporaryBlockID()
 	if err != nil {
@@ -1120,9 +1104,8 @@ func (fbo *folderBlockOps) createIndirectBlockLocked(md *RootMetadata,
 			},
 		},
 	}
-	dirtyBcache := fbo.config.DirtyBlockCache()
-	err = dirtyBcache.Put(file.tailPointer(), file.Branch, fblock)
-
+	err = fbo.cacheBlockIfNotYetDirtyLocked(lState, file.tailPointer(), file,
+		fblock)
 	if err != nil {
 		return nil, err
 	}
@@ -1183,8 +1166,8 @@ func (fbo *folderBlockOps) writeDataLocked(
 		if nCopied < n && nextBlockOff < 0 {
 			// If the block doesn't already have a parent block, make one.
 			if ptr == file.tailPointer() {
-				fblock, err = fbo.createIndirectBlockLocked(md, file, uid,
-					DefaultNewBlockDataVersion(fbo.config, false))
+				fblock, err = fbo.createIndirectBlockLocked(lState, md, file,
+					uid, DefaultNewBlockDataVersion(fbo.config, false))
 				if err != nil {
 					return WriteRange{}, nil, err
 				}
@@ -1194,14 +1177,14 @@ func (fbo *folderBlockOps) writeDataLocked(
 			// Make a new right block and update the parent's
 			// indirect block list
 			err = fbo.newRightBlockLocked(ctx, lState, file.tailPointer(),
-				file.Branch, fblock, startOff+int64(len(block.Contents)), md)
+				file, fblock, startOff+int64(len(block.Contents)), md)
 			if err != nil {
 				return WriteRange{}, nil, err
 			}
 		} else if nCopied < n && off+nCopied < nextBlockOff {
 			// We need a new block to be inserted here
 			err = fbo.newRightBlockLocked(ctx, lState, file.tailPointer(),
-				file.Branch, fblock, startOff+int64(len(block.Contents)), md)
+				file, fblock, startOff+int64(len(block.Contents)), md)
 			if err != nil {
 				return WriteRange{}, nil, err
 			}
@@ -1226,7 +1209,7 @@ func (fbo *folderBlockOps) writeDataLocked(
 			parentBlock.IPtrs[indexInParent].EncodedSize = 0
 		}
 		// keep the old block ID while it's dirty
-		if err = fbo.cacheBlockIfNotYetDirtyLocked(lState, ptr, file.Branch,
+		if err = fbo.cacheBlockIfNotYetDirtyLocked(lState, ptr, file,
 			block); err != nil {
 			return WriteRange{}, nil, err
 		}
@@ -1239,9 +1222,9 @@ func (fbo *folderBlockOps) writeDataLocked(
 		// that any write to a file while it's being sync'd will be
 		// deferred, even if it's to a block that's not currently
 		// being sync'd, since this top-most block will always be in
-		// the fileBlockStates map.
+		// the dirtyFiles map.
 		if err = fbo.cacheBlockIfNotYetDirtyLocked(lState,
-			file.tailPointer(), file.Branch, fblock); err != nil {
+			file.tailPointer(), file, fblock); err != nil {
 			return WriteRange{}, nil, err
 		}
 		dirtyPtrs = append(dirtyPtrs, file.tailPointer())
@@ -1340,13 +1323,14 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 	if !fblock.IsInd {
 		fbo.log.CDebugf(ctx, "truncateExtendLocked: making block indirect %v", file.tailPointer())
 		old := fblock
-		fblock, err = fbo.createIndirectBlockLocked(md, file, uid,
+		fblock, err = fbo.createIndirectBlockLocked(lState, md, file, uid,
 			DefaultNewBlockDataVersion(fbo.config, true))
 		if err != nil {
 			return WriteRange{}, nil, err
 		}
 		fblock.IPtrs[0].Holes = true
-		err = fbo.cacheBlockIfNotYetDirtyLocked(lState, fblock.IPtrs[0].BlockPointer, file.Branch, old)
+		err = fbo.cacheBlockIfNotYetDirtyLocked(lState,
+			fblock.IPtrs[0].BlockPointer, file, old)
 		if err != nil {
 			return WriteRange{}, nil, err
 		}
@@ -1359,12 +1343,13 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 	// generalize, just annoying
 
 	err = fbo.newRightBlockLocked(ctx, lState, file.tailPointer(),
-		file.Branch, fblock, int64(size), md)
+		file, fblock, int64(size), md)
 	if err != nil {
 		return WriteRange{}, nil, err
 	}
 	dirtyPtrs = append(dirtyPtrs, fblock.IPtrs[len(fblock.IPtrs)-1].BlockPointer)
-	fbo.log.CDebugf(ctx, "truncateExtendLocked: new right data block %v", fblock.IPtrs[len(fblock.IPtrs)-1].BlockPointer)
+	fbo.log.CDebugf(ctx, "truncateExtendLocked: new right data block %v",
+		fblock.IPtrs[len(fblock.IPtrs)-1].BlockPointer)
 
 	de, err := fbo.getDirtyEntryLocked(ctx, lState, md, file)
 	if err != nil {
@@ -1390,7 +1375,7 @@ func (fbo *folderBlockOps) truncateExtendLocked(
 	// being sync'd, since this top-most block will always be in
 	// the fileBlockStates map.
 	err = fbo.cacheBlockIfNotYetDirtyLocked(lState,
-		file.tailPointer(), file.Branch, fblock)
+		file.tailPointer(), file, fblock)
 	if err != nil {
 		return WriteRange{}, nil, err
 	}
@@ -1472,7 +1457,7 @@ func (fbo *folderBlockOps) truncateLocked(
 		parentBlock.IPtrs = parentBlock.IPtrs[:indexInParent+1]
 		// always make the parent block dirty, so we will sync it
 		if err = fbo.cacheBlockIfNotYetDirtyLocked(lState,
-			file.tailPointer(), file.Branch, parentBlock); err != nil {
+			file.tailPointer(), file, parentBlock); err != nil {
 			return nil, nil, err
 		}
 	}
@@ -1483,9 +1468,9 @@ func (fbo *folderBlockOps) truncateLocked(
 		// that any truncate to a file while it's being sync'd will be
 		// deferred, even if it's to a block that's not currently
 		// being sync'd, since this top-most block will always be in
-		// the fileBlockStates map.
+		// the dirtyFiles map.
 		if err = fbo.cacheBlockIfNotYetDirtyLocked(lState,
-			file.tailPointer(), file.Branch, fblock); err != nil {
+			file.tailPointer(), file, fblock); err != nil {
 			return nil, nil, err
 		}
 	}
@@ -1507,7 +1492,7 @@ func (fbo *folderBlockOps) truncateLocked(
 
 	// Keep the old block ID while it's dirty.
 	if err = fbo.cacheBlockIfNotYetDirtyLocked(lState,
-		ptr, file.Branch, block); err != nil {
+		ptr, file, block); err != nil {
 		return nil, nil, err
 	}
 
@@ -1762,6 +1747,7 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 
 	bcache := fbo.config.BlockCache()
 	dirtyBcache := fbo.config.DirtyBlockCache()
+	df := fbo.getOrCreateDirtyFileLocked(lState, file)
 
 	// Note: below we add possibly updated file blocks as "unref" and
 	// "ref" blocks.  This is fine, since conflict resolution or
@@ -1809,7 +1795,7 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 					if nextBlockOff < 0 {
 						// need to make a new block
 						if err := fbo.newRightBlockLocked(
-							ctx, lState, file.tailPointer(), file.Branch, fblock,
+							ctx, lState, file.tailPointer(), file, fblock,
 							endOfBlock, md); err != nil {
 							return nil, nil, syncState, err
 						}
@@ -1823,7 +1809,7 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 					}
 					rblock.Contents = append(extraBytes, rblock.Contents...)
 					if err = fbo.cacheBlockIfNotYetDirtyLocked(
-						lState, rPtr, file.Branch, rblock); err != nil {
+						lState, rPtr, file, rblock); err != nil {
 						return nil, nil, syncState, err
 					}
 					fblock.IPtrs[i+1].Off = ptr.Off + int64(len(block.Contents))
@@ -1849,7 +1835,7 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 					rblock.Contents = rblock.Contents[nCopied:]
 					if len(rblock.Contents) > 0 {
 						if err = fbo.cacheBlockIfNotYetDirtyLocked(
-							lState, rPtr, file.Branch, rblock); err != nil {
+							lState, rPtr, file, rblock); err != nil {
 							return nil, nil, syncState, err
 						}
 						fblock.IPtrs[i+1].Off =
@@ -1906,14 +1892,23 @@ func (fbo *folderBlockOps) startSyncWriteLocked(ctx context.Context,
 
 				fblock.IPtrs[i].BlockInfo = newInfo
 				md.AddRefBlock(newInfo)
-				si.bps.addNewBlock(newInfo.BlockPointer, block, readyBlockData)
-				fbo.fileBlockStates[localPtr] = blockSyncingNotDirty
+				si.bps.addNewBlock(newInfo.BlockPointer, block, readyBlockData,
+					func() error {
+						return df.setBlockSynced(localPtr)
+					})
+				err = df.setBlockSyncing(localPtr)
+				if err != nil {
+					return nil, nil, syncState, err
+				}
 				syncState.redirtyOnRecoverableError[newInfo.BlockPointer] = localPtr
 			}
 		}
 	}
 
-	fbo.fileBlockStates[file.tailPointer()] = blockSyncingNotDirty
+	err = df.setBlockSyncing(file.tailPointer())
+	if err != nil {
+		return nil, nil, syncState, err
+	}
 	syncState.oldFileBlockPtrs = append(syncState.oldFileBlockPtrs, file.tailPointer())
 	// TODO: Returning si.bps in this way is racy, since si is a
 	// member of unrefCache.
@@ -2020,7 +2015,11 @@ func (fbo *folderBlockOps) CleanupSyncState(
 	// don't defer any subsequent writes.
 	fbo.blockLock.Lock(lState)
 	defer fbo.blockLock.Unlock(lState)
-	fbo.fileBlockStates = make(map[BlockPointer]syncBlockState)
+	// Old syncing blocks are now just dirty
+	if df := fbo.dirtyFiles[file.tailPointer()]; df != nil {
+		fbo.log.CDebugf(nil, "Calling error on sync")
+		df.resetSyncingBlocksToDirty()
+	}
 
 	// TODO: Clear deferredWrites and deferredDirtyDeletes?
 }
@@ -2051,7 +2050,14 @@ func (fbo *folderBlockOps) FinishSync(
 		}
 	}
 
-	fbo.fileBlockStates = make(map[BlockPointer]syncBlockState)
+	df := fbo.dirtyFiles[oldPath.tailPointer()]
+	if df != nil {
+		err = df.finishSync()
+		if err != nil {
+			return true, err
+		}
+		delete(fbo.dirtyFiles, oldPath.tailPointer())
+	}
 	// Redo any writes or truncates that happened to our file while
 	// the sync was happening.
 	deletes := fbo.deferredDirtyDeletes
@@ -2068,11 +2074,11 @@ func (fbo *folderBlockOps) FinishSync(
 		}
 	}
 
-	// Clear cached info for the old path.  We are guaranteed that
-	// any concurrent write to this file was deferred, even if it
-	// was to a block that wasn't currently being sync'd, since
-	// the top-most block is always in fileBlockStates and is
-	// always dirtied during a write/truncate.
+	// Clear cached info for the old path.  We are guaranteed that any
+	// concurrent write to this file was deferred, even if it was to a
+	// block that wasn't currently being sync'd, since the top-most
+	// block is always in dirtyFiles and is always dirtied during a
+	// write/truncate.
 	//
 	// Also, we can get rid of all the sync state that might have
 	// happened during the sync, since we will replay the writes

@@ -318,9 +318,9 @@ func newFolderBranchOps(config Config, fb FolderBranch,
 			blockLock: blockLock{
 				leveledRWMutex: blockLockMu,
 			},
-			fileBlockStates: make(map[BlockPointer]syncBlockState),
-			unrefCache:      make(map[blockRef]*syncInfo),
-			deCache:         make(map[blockRef]DirEntry),
+			dirtyFiles: make(map[BlockPointer]*dirtyFile),
+			unrefCache: make(map[blockRef]*syncInfo),
+			deCache:    make(map[blockRef]DirEntry),
 			deferredWrites: make(
 				[]func(context.Context, *lockState, *RootMetadata, path) error, 0),
 			nodeCache: nodeCache,
@@ -1139,6 +1139,7 @@ type blockState struct {
 	blockPtr       BlockPointer
 	block          Block
 	readyBlockData ReadyBlockData
+	syncedCb       func() error
 }
 
 func (fbo *folderBranchOps) Stat(ctx context.Context, node Node) (
@@ -1168,10 +1169,15 @@ func newBlockPutState(length int) *blockPutState {
 	return bps
 }
 
+// addNewBlock tracks a new block that will be put.  If syncedCb is
+// non-nil, it will be called whenever the put for that block is
+// complete (whether or not the put resulted in an error).  Currently
+// it will not be called if the block is never put (due to an earlier
+// error).
 func (bps *blockPutState) addNewBlock(blockPtr BlockPointer, block Block,
-	readyBlockData ReadyBlockData) {
+	readyBlockData ReadyBlockData, syncedCb func() error) {
 	bps.blockStates = append(bps.blockStates,
-		blockState{blockPtr, block, readyBlockData})
+		blockState{blockPtr, block, readyBlockData, syncedCb})
 }
 
 func (bps *blockPutState) mergeOtherBps(other *blockPutState) {
@@ -1194,7 +1200,7 @@ func (fbo *folderBranchOps) readyBlockMultiple(ctx context.Context,
 		return
 	}
 
-	bps.addNewBlock(info.BlockPointer, currBlock, readyBlockData)
+	bps.addNewBlock(info.BlockPointer, currBlock, readyBlockData, nil)
 	return
 }
 
@@ -1468,6 +1474,9 @@ func (fbo *folderBranchOps) doOneBlockPut(ctx context.Context,
 	errChan chan error, blocksToRemoveChan chan *FileBlock) {
 	err := fbo.config.BlockOps().
 		Put(ctx, md, blockState.blockPtr, blockState.readyBlockData)
+	if err == nil && blockState.syncedCb != nil {
+		err = blockState.syncedCb()
+	}
 	if err != nil {
 		if isRecoverableBlockError(err) {
 			fblock, ok := blockState.block.(*FileBlock)
