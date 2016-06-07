@@ -195,7 +195,8 @@ const stylesButtonLabel = {
   paddingRight: 25
 }
 const stylesButtonSmallLabel = {
-  ...globalStyles.fontRegular,
+  ...globalStyles.fontSemibold,
+  fontSize: 14,
   paddingLeft: 20,
   paddingRight: 20
 }
