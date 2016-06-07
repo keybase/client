@@ -12,6 +12,7 @@
 @property NSString *appPath;
 @property NSString *runMode;
 @property UninstallOptions uninstallOptions;
+@property KBInstallOptions installOptions;
 @property GBSettings *settings;
 @end
 
@@ -32,6 +33,7 @@
     [parser registerOption:@"run-mode" shortcut:'r' requirement:GBValueRequired];
     [parser registerSwitch:@"uninstall-app"];
     [parser registerSwitch:@"uninstall-kext"];
+    [parser registerSwitch:@"install-fuse"];
     [parser registerSettings:self.settings];
     NSArray *subargs = [args subarrayWithRange:NSMakeRange(1, args.count-1)];
     [parser parseOptionsWithArguments:subargs commandLine:args[0]];
@@ -45,6 +47,12 @@
     if ([[self.settings objectForKey:@"uninstall-kext"] boolValue]) {
       self.uninstallOptions |= UninstallOptionKext;
     }
+    if ([[self.settings objectForKey:@"install-fuse"] boolValue]) {
+      self.installOptions |= KBInstallOptionFuse;
+    }
+    if (self.installOptions == 0) {
+      self.installOptions = KBInstallOptionAll;
+    }
   }
   return self;
 }
@@ -52,7 +60,7 @@
 - (KBEnvironment *)environment {
   NSAssert(self.runMode, @"No run mode");
   NSString *servicePath = [self.appPath stringByAppendingPathComponent:@"Contents/SharedSupport/bin"];
-  KBEnvironment *environment = [KBEnvironment environmentForRunModeString:self.runMode servicePath:servicePath];
+  KBEnvironment *environment = [KBEnvironment environmentForRunModeString:self.runMode servicePath:servicePath options:self.installOptions];
   return environment;
 }
 

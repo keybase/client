@@ -96,18 +96,18 @@
   NSString *runMode = NSBundle.mainBundle.infoDictionary[@"KBRunMode"];
   NSString *servicePath = [KBPath pathInDir:NSBundle.mainBundle.sharedSupportPath path:@"bin" options:0];
   if ([runMode isEqualToString:@"prod"]) {
-    [self openWithEnvironment:[[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeProd] servicePath:servicePath]];
+    [self openWithEnvironment:[[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeProd] servicePath:servicePath options:KBInstallOptionAll]];
   } else if ([runMode isEqualToString:@"staging"]) {
-    [self openWithEnvironment:[[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeStaging] servicePath:servicePath]];
+    [self openWithEnvironment:[[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeStaging] servicePath:servicePath options:KBInstallOptionAll]];
   } else if ([runMode isEqualToString:@"devel"]) {
-    [self openWithEnvironment:[[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeDevel] servicePath:servicePath]];
+    [self openWithEnvironment:[[KBEnvironment alloc] initWithConfig:[KBEnvConfig envConfigWithRunMode:KBRunModeDevel] servicePath:servicePath options:KBInstallOptionAll]];
   } else {
     KBEnvSelectView *envSelectView = [[KBEnvSelectView alloc] init];
     KBNavigationView *navigation = [[KBNavigationView alloc] initWithView:envSelectView title:@"Keybase"];
     KBWindow *window = [KBWindow windowWithContentView:navigation size:CGSizeMake(900, 600) retain:YES];
     envSelectView.onSelect = ^(KBEnvConfig *envConfig) {
       [window close];
-      KBEnvironment *environment = [[KBEnvironment alloc] initWithConfig:envConfig servicePath:servicePath];
+      KBEnvironment *environment = [[KBEnvironment alloc] initWithConfig:envConfig servicePath:servicePath options:KBInstallOptionAll];
       [self openWithEnvironment:environment];
     };
     window.styleMask = NSFullSizeContentViewWindowMask | NSTitledWindowMask | NSResizableWindowMask;
