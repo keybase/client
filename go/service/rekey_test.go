@@ -160,7 +160,7 @@ func TestRekeyNeededUserClose(t *testing.T) {
 
 	select {
 	case <-rekeyHandler.notifyComplete:
-	case <-time.After(2 * time.Second):
+	case <-time.After(20 * time.Second):
 		t.Fatal("timeout waiting for rekeyHandler.notifyComplete")
 	}
 
