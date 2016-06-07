@@ -174,6 +174,8 @@ export const map: DumbComponentMap<Folders> = {
       public: {tlfs: [f2, f3, f4, f5], ignored, isPublic: true, privateBadge: 1, publicBadge: 222, parentProps}
     },
     'ComingSoon': {
+      smallMode: false,
+      onRekey: path => console.log(`open rekey page: ${path}`),
       showComingSoon: true,
       private: {tlfs, ignored, isPublic: false, parentProps},
       public: {tlfs: [f2, f3, f4, f5], ignored, isPublic: true, privateBadge: 1, publicBadge: 222, parentProps}

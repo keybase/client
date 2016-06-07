@@ -39,6 +39,7 @@ type State = {
 }
 
 type Props = {
+  menuBadge: boolean,
   bootstrap: () => void,
   switchTab: (tab: Tabs) => void,
   tabbedRouter: Object,
