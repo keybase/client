@@ -131,7 +131,7 @@ func (m *stallingMDOps) GetForTLF(ctx context.Context, id TlfID) (
 }
 
 func (m *stallingMDOps) GetLatestHandleForTLF(ctx context.Context, id TlfID) (
-	*BareTlfHandle, error) {
+	BareTlfHandle, error) {
 	m.maybeStall(ctx, "GetLatestHandleForTLF")
 	return m.delegate.GetLatestHandleForTLF(ctx, id)
 }

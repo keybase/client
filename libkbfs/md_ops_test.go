@@ -39,8 +39,8 @@ func addFakeRMDSData(rmds *RootMetadataSigned, h *TlfHandle) {
 	rmds.MD.mdID = fakeMdID(fakeTlfIDByte(rmds.MD.ID))
 
 	rmds.MD.Revision = MetadataRevision(1)
-	rmds.MD.LastModifyingWriter = h.Writers[0]
-	rmds.MD.LastModifyingUser = h.Writers[0]
+	rmds.MD.LastModifyingWriter = h.FirstResolvedWriter()
+	rmds.MD.LastModifyingUser = h.FirstResolvedWriter()
 	rmds.SigInfo = SignatureInfo{
 		Version:      SigED25519,
 		Signature:    []byte{42},
@@ -48,7 +48,7 @@ func addFakeRMDSData(rmds *RootMetadataSigned, h *TlfHandle) {
 	}
 
 	if !h.IsPublic() {
-		FakeInitialRekey(&rmds.MD, h.BareTlfHandle)
+		FakeInitialRekey(&rmds.MD, h.ToBareHandleOrBust())
 	}
 }
 
@@ -57,7 +57,7 @@ func newRMDS(t *testing.T, config Config, public bool) *RootMetadataSigned {
 
 	h := parseTlfHandleOrBust(t, config, "alice,bob", public)
 	rmds := &RootMetadataSigned{}
-	err := updateNewRootMetadata(&rmds.MD, id, h.BareTlfHandle)
+	err := updateNewRootMetadata(&rmds.MD, id, h.ToBareHandleOrBust())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -136,7 +136,7 @@ func TestMDOpsGetForHandlePublicSuccess(t *testing.T) {
 	// 'deserialized' RMDS.
 	rmds.MD.tlfHandle = nil
 
-	config.mockMdserv.EXPECT().GetForHandle(ctx, h.BareTlfHandle, Merged).Return(NullTlfID, rmds, nil)
+	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(), Merged).Return(NullTlfID, rmds, nil)
 
 	if rmd2, err := config.MDOps().GetForHandle(ctx, h); err != nil {
 		t.Errorf("Got error on get: %v", err)
@@ -162,7 +162,7 @@ func TestMDOpsGetForHandlePrivateSuccess(t *testing.T) {
 	// 'deserialized' RMDS.
 	rmds.MD.tlfHandle = nil
 
-	config.mockMdserv.EXPECT().GetForHandle(ctx, h.BareTlfHandle, Merged).Return(NullTlfID, rmds, nil)
+	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(), Merged).Return(NullTlfID, rmds, nil)
 
 	if rmd2, err := config.MDOps().GetForHandle(ctx, h); err != nil {
 		t.Errorf("Got error on get: %v", err)
@@ -192,7 +192,7 @@ func TestMDOpsGetForUnresolvedHandlePublicSuccess(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	config.mockMdserv.EXPECT().GetForHandle(ctx, hUnresolved.BareTlfHandle, Merged).Return(NullTlfID, rmds, nil).Times(2)
+	config.mockMdserv.EXPECT().GetForHandle(ctx, hUnresolved.ToBareHandleOrBust(), Merged).Return(NullTlfID, rmds, nil).Times(2)
 
 	// First time should fail.
 	_, err = config.MDOps().GetForHandle(ctx, hUnresolved)
@@ -222,7 +222,7 @@ func TestMDOpsGetForUnresolvedMdHandlePublicSuccess(t *testing.T) {
 	}
 
 	rmds := &RootMetadataSigned{}
-	err = updateNewRootMetadata(&rmds.MD, id, h.BareTlfHandle)
+	err = updateNewRootMetadata(&rmds.MD, id, h.ToBareHandleOrBust())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -242,7 +242,7 @@ func TestMDOpsGetForUnresolvedMdHandlePublicSuccess(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	config.mockMdserv.EXPECT().GetForHandle(ctx, hResolved.BareTlfHandle, Merged).Return(NullTlfID, rmds, nil).Times(2)
+	config.mockMdserv.EXPECT().GetForHandle(ctx, hResolved.ToBareHandleOrBust(), Merged).Return(NullTlfID, rmds, nil).Times(2)
 
 	// First time should fail.
 	_, err = config.MDOps().GetForHandle(ctx, hResolved)
@@ -278,7 +278,7 @@ func TestMDOpsGetForUnresolvedHandlePublicFailure(t *testing.T) {
 	daemon := config.KeybaseDaemon().(*KeybaseDaemonLocal)
 	daemon.addNewAssertionForTestOrBust("bob", "bob@twitter")
 
-	config.mockMdserv.EXPECT().GetForHandle(ctx, hUnresolved.BareTlfHandle, Merged).Return(NullTlfID, rmds, nil)
+	config.mockMdserv.EXPECT().GetForHandle(ctx, hUnresolved.ToBareHandleOrBust(), Merged).Return(NullTlfID, rmds, nil)
 
 	// Should still fail.
 	_, err = config.MDOps().GetForHandle(ctx, hUnresolved)
@@ -302,7 +302,7 @@ func TestMDOpsGetForHandlePublicFailFindKey(t *testing.T) {
 	// 'deserialized' RMDS.
 	rmds.MD.tlfHandle = nil
 
-	config.mockMdserv.EXPECT().GetForHandle(ctx, h.BareTlfHandle, Merged).Return(NullTlfID, rmds, nil)
+	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(), Merged).Return(NullTlfID, rmds, nil)
 
 	_, err := config.MDOps().GetForHandle(ctx, h)
 	if _, ok := err.(UnverifiableTlfUpdateError); !ok {
@@ -326,7 +326,7 @@ func TestMDOpsGetForHandlePublicFailVerify(t *testing.T) {
 	// 'deserialized' RMDS.
 	rmds.MD.tlfHandle = nil
 
-	config.mockMdserv.EXPECT().GetForHandle(ctx, h.BareTlfHandle, Merged).Return(NullTlfID, rmds, nil)
+	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(), Merged).Return(NullTlfID, rmds, nil)
 
 	if _, err := config.MDOps().GetForHandle(ctx, h); err != expectedErr {
 		t.Errorf("Got unexpected error on get: %v", err)
@@ -342,7 +342,7 @@ func TestMDOpsGetForHandleFailGet(t *testing.T) {
 	err := errors.New("Fake fail")
 
 	// only the get happens, no verify needed with a blank sig
-	config.mockMdserv.EXPECT().GetForHandle(ctx, h.BareTlfHandle, Merged).Return(NullTlfID, nil, err)
+	config.mockMdserv.EXPECT().GetForHandle(ctx, h.ToBareHandleOrBust(), Merged).Return(NullTlfID, nil, err)
 
 	if _, err2 := config.MDOps().GetForHandle(ctx, h); err2 != err {
 		t.Errorf("Got bad error on get: %v", err2)
@@ -361,7 +361,7 @@ func TestMDOpsGetForHandleFailHandleCheck(t *testing.T) {
 
 	// Make a different handle.
 	otherH := parseTlfHandleOrBust(t, config, "alice", false)
-	config.mockMdserv.EXPECT().GetForHandle(ctx, otherH.BareTlfHandle, Merged).Return(NullTlfID, rmds, nil)
+	config.mockMdserv.EXPECT().GetForHandle(ctx, otherH.ToBareHandleOrBust(), Merged).Return(NullTlfID, rmds, nil)
 
 	_, err := config.MDOps().GetForHandle(ctx, otherH)
 	if _, ok := err.(MDMismatchError); !ok {
@@ -625,7 +625,7 @@ func TestMDOpsPutPublicSuccess(t *testing.T) {
 	h := parseTlfHandleOrBust(t, config, "alice,bob", true)
 
 	var rmd RootMetadata
-	err := updateNewRootMetadata(&rmd, id, h.BareTlfHandle)
+	err := updateNewRootMetadata(&rmd, id, h.ToBareHandleOrBust())
 	require.NoError(t, err)
 	rmd.data = makeFakePrivateMetadataFuture(t).toCurrent()
 	rmd.tlfHandle = h

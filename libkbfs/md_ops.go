@@ -182,7 +182,12 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
 	mStatus MergeStatus) (
 	*RootMetadata, error) {
 	mdserv := md.config.MDServer()
-	id, rmds, err := mdserv.GetForHandle(ctx, handle.BareTlfHandle, mStatus)
+	bh, err := handle.ToBareHandle()
+	if err != nil {
+		return nil, err
+	}
+
+	id, rmds, err := mdserv.GetForHandle(ctx, bh, mStatus)
 	if err != nil {
 		return nil, err
 	}
@@ -193,7 +198,7 @@ func (md *MDOpsStandard) getForHandle(ctx context.Context, handle *TlfHandle,
 			return nil, nil
 		}
 		var rmd RootMetadata
-		err := updateNewRootMetadata(&rmd, id, handle.BareTlfHandle)
+		err := updateNewRootMetadata(&rmd, id, bh)
 		if err != nil {
 			return nil, err
 		}
@@ -545,7 +550,7 @@ func (md *MDOpsStandard) PutUnmerged(ctx context.Context, rmd *RootMetadata, bid
 
 // GetLatestHandleForTLF implements the MDOps interface for MDOpsStandard.
 func (md *MDOpsStandard) GetLatestHandleForTLF(ctx context.Context, id TlfID) (
-	*BareTlfHandle, error) {
+	BareTlfHandle, error) {
 	// TODO: Verify this mapping using a Merkle tree.
 	return md.config.MDServer().GetLatestHandleForTLF(ctx, id)
 }

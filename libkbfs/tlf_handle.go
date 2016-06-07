@@ -16,246 +16,159 @@ import (
 	"golang.org/x/net/context"
 )
 
-// BareTlfHandle uniquely identifies top-level folders by readers and
-// writers.
-//
-// TODO: Have separate types for writers vs. readers.
-type BareTlfHandle struct {
-	Writers           []keybase1.UID             `codec:"w,omitempty"`
-	Readers           []keybase1.UID             `codec:"r,omitempty"`
-	UnresolvedWriters []keybase1.SocialAssertion `codec:"uw,omitempty"`
-	UnresolvedReaders []keybase1.SocialAssertion `codec:"ur,omitempty"`
-	ConflictInfo      *ConflictInfo              `codec:"ci,omitempty"`
-}
-
-// UIDList can be used to lexicographically sort UIDs.
-type UIDList []keybase1.UID
-
-func (u UIDList) Len() int {
-	return len(u)
-}
-
-func (u UIDList) Less(i, j int) bool {
-	return u[i].Less(u[j])
-}
-
-func (u UIDList) Swap(i, j int) {
-	u[i], u[j] = u[j], u[i]
-}
-
-// SocialAssertionList can be used to lexicographically sort SocialAssertions.
-type SocialAssertionList []keybase1.SocialAssertion
-
-func (u SocialAssertionList) Len() int {
-	return len(u)
-}
-
-func (u SocialAssertionList) Less(i, j int) bool {
-	si := u[i].String()
-	sj := u[j].String()
-	return si < sj
-}
-
-func (u SocialAssertionList) Swap(i, j int) {
-	u[i], u[j] = u[j], u[i]
-}
-
-// ErrNoWriters is the error returned by MakeBareTlfHandle if it is
-// passed an empty list of writers.
-var ErrNoWriters = errors.New("Cannot make TLF handle with no writers; need rekey?")
-
-// ErrInvalidWriter is the error returned by MakeBareTlfHandle if it
-// is passed an invalid writer.
-var ErrInvalidWriter = errors.New("Cannot make TLF handle with invalid writer")
-
-// ErrInvalidReader is the error returned by MakeBareTlfHandle if it
-// is passed an invalid reader.
-var ErrInvalidReader = errors.New("Cannot make TLF handle with invalid reader")
-
-// MakeBareTlfHandle creates a BareTlfHandle from the given list of
-// readers and writers.
-func MakeBareTlfHandle(
-	writers, readers []keybase1.UID,
-	unresolvedWriters, unresolvedReaders []keybase1.SocialAssertion,
-	conflictInfo *ConflictInfo) (BareTlfHandle, error) {
-	if len(writers) == 0 {
-		return BareTlfHandle{}, ErrNoWriters
-	}
-
-	for _, w := range writers {
-		if w == keybase1.PUBLIC_UID {
-			return BareTlfHandle{}, ErrInvalidWriter
-		}
-	}
-
-	if (len(readers) + len(unresolvedReaders)) > 1 {
-		// If we have more than one reader, none of them
-		// should be the public UID.
-		for _, r := range readers {
-			if r == keybase1.PUBLIC_UID {
-				return BareTlfHandle{}, ErrInvalidReader
-			}
-		}
-	}
-
-	// TODO: Check for overlap between readers and writers, and
-	// for duplicates.
-
-	writersCopy := make([]keybase1.UID, len(writers))
-	copy(writersCopy, writers)
-	sort.Sort(UIDList(writersCopy))
-
-	var readersCopy []keybase1.UID
-	if len(readers) > 0 {
-		readersCopy = make([]keybase1.UID, len(readers))
-		copy(readersCopy, readers)
-		sort.Sort(UIDList(readersCopy))
-	}
-
-	var unresolvedWritersCopy []keybase1.SocialAssertion
-	if len(unresolvedWriters) > 0 {
-		unresolvedWritersCopy = make([]keybase1.SocialAssertion, len(unresolvedWriters))
-		copy(unresolvedWritersCopy, unresolvedWriters)
-		sort.Sort(SocialAssertionList(unresolvedWritersCopy))
-	}
-
-	var unresolvedReadersCopy []keybase1.SocialAssertion
-	if len(unresolvedReaders) > 0 {
-		unresolvedReadersCopy = make([]keybase1.SocialAssertion, len(unresolvedReaders))
-		copy(unresolvedReadersCopy, unresolvedReaders)
-		sort.Sort(SocialAssertionList(unresolvedReadersCopy))
-	}
-
-	return BareTlfHandle{
-		Writers:           writersCopy,
-		Readers:           readersCopy,
-		UnresolvedWriters: unresolvedWritersCopy,
-		UnresolvedReaders: unresolvedReadersCopy,
-		ConflictInfo:      conflictInfo,
-	}, nil
-}
-
-func resolveAssertions(assertions map[keybase1.SocialAssertion]keybase1.UID,
-	unresolved []keybase1.SocialAssertion, resolved []keybase1.UID) (
-	map[keybase1.UID]bool, []keybase1.SocialAssertion) {
-	resolvedMap := uidSliceToSet(resolved)
-	unresolvedMap := assertionSliceToSet(unresolved)
-	for a, u := range assertions {
-		if unresolvedMap[a] {
-			resolvedMap[u] = true
-			delete(unresolvedMap, a)
-		}
-	}
-	return resolvedMap, assertionSetToSlice(unresolvedMap)
-}
-
-func uidSetToSlice(m map[keybase1.UID]bool) (s []keybase1.UID) {
-	for u := range m {
-		s = append(s, u)
-	}
-	return s
-}
-
-func assertionSetToSlice(m map[keybase1.SocialAssertion]bool) (s []keybase1.SocialAssertion) {
-	for u := range m {
-		s = append(s, u)
-	}
-	return s
-}
-
-func uidSliceToSet(s []keybase1.UID) map[keybase1.UID]bool {
-	m := make(map[keybase1.UID]bool, len(s))
-	for _, u := range s {
-		m[u] = true
-	}
-	return m
-}
-
-func assertionSliceToSet(s []keybase1.SocialAssertion) map[keybase1.SocialAssertion]bool {
-	m := make(map[keybase1.SocialAssertion]bool, len(s))
-	for _, u := range s {
-		m[u] = true
-	}
-	return m
-}
-
-// ResolveAssertions creates a new BareTlfHandle given an existing one with
-// while resolving the passed assertions.
-func (h BareTlfHandle) ResolveAssertions(
-	assertions map[keybase1.SocialAssertion]keybase1.UID) BareTlfHandle {
-	if len(assertions) == 0 || (len(h.UnresolvedWriters) == 0 && len(h.UnresolvedReaders) == 0) {
-		return h
-	}
-	var resolvedWriters, resolvedReaders map[keybase1.UID]bool
-	resolvedWriters, h.UnresolvedWriters = resolveAssertions(assertions, h.UnresolvedWriters, h.Writers)
-	resolvedReaders, h.UnresolvedReaders = resolveAssertions(assertions, h.UnresolvedReaders, h.Readers)
-	h.Writers = uidSetToSlice(resolvedWriters)
-	for _, u := range h.Writers {
-		delete(resolvedReaders, u)
-	}
-	h.Readers = uidSetToSlice(resolvedReaders)
-	sort.Sort(UIDList(h.Writers))
-	sort.Sort(UIDList(h.Readers))
-	sort.Sort(SocialAssertionList(h.UnresolvedWriters))
-	sort.Sort(SocialAssertionList(h.UnresolvedReaders))
-	return h
-}
-
-// IsPublic returns whether or not this BareTlfHandle represents a
-// public top-level folder.
-func (h BareTlfHandle) IsPublic() bool {
-	return len(h.Readers) == 1 && h.Readers[0].Equal(keybase1.PublicUID)
-}
-
-func (h BareTlfHandle) findUserInList(user keybase1.UID,
-	users []keybase1.UID) bool {
-	// TODO: this could be more efficient with a cached map/set
-	for _, u := range users {
-		if u == user {
-			return true
-		}
-	}
-	return false
-}
-
-// IsWriter returns whether or not the given user is a writer for the
-// top-level folder represented by this BareTlfHandle.
-func (h BareTlfHandle) IsWriter(user keybase1.UID) bool {
-	return h.findUserInList(user, h.Writers)
-}
-
-// IsReader returns whether or not the given user is a reader for the
-// top-level folder represented by this BareTlfHandle.
-func (h BareTlfHandle) IsReader(user keybase1.UID) bool {
-	return h.IsPublic() || h.findUserInList(user, h.Readers) || h.IsWriter(user)
-}
-
-// Users returns a list of all reader and writer UIDs for the tlf,
-// separated out into resolved and unresolved.
-func (h BareTlfHandle) Users() ([]keybase1.UID, []keybase1.SocialAssertion) {
-	var resolvedUsers []keybase1.UID
-	resolvedUsers = append(resolvedUsers, h.Writers...)
-	resolvedUsers = append(resolvedUsers, h.Readers...)
-	var unresolvedUsers []keybase1.SocialAssertion
-	unresolvedUsers = append(unresolvedUsers, h.UnresolvedWriters...)
-	unresolvedUsers = append(unresolvedUsers, h.UnresolvedReaders...)
-	return resolvedUsers, unresolvedUsers
-}
-
 // CanonicalTlfName is a string containing the canonical name of a TLF.
 type CanonicalTlfName string
 
-// TlfHandle is like BareTlfHandle but it also contains a canonical
-// TLF name.  It is go-routine-safe.
+// TlfHandle contains all the info in a BareTlfHandle as well as
+// additional info. This doesn't embed BareTlfHandle to avoid having
+// to keep track of data in multiple places.
 type TlfHandle struct {
-	// TODO: don't store a BareTlfHandle but generate it as
-	// necessary.
-	BareTlfHandle
+	// If this is true, resolvedReaders and unresolvedReaders
+	// should both be nil.
+	public          bool
 	resolvedWriters map[keybase1.UID]libkb.NormalizedUsername
 	resolvedReaders map[keybase1.UID]libkb.NormalizedUsername
-	// name can be computed from the other fields, but cached for
-	// speed.
+	// Both unresolvedWriters and unresolvedReaders are stored in
+	// sorted order.
+	unresolvedWriters []keybase1.SocialAssertion
+	unresolvedReaders []keybase1.SocialAssertion
+	conflictInfo      *ConflictInfo
+	// name can be computed from the other fields, but is cached
+	// for speed.
 	name CanonicalTlfName
+}
+
+// IsPublic returns whether or not this TlfHandle represents a public
+// top-level folder.
+func (h TlfHandle) IsPublic() bool {
+	return h.public
+}
+
+// IsWriter returns whether or not the given user is a writer for the
+// top-level folder represented by this TlfHandle.
+func (h TlfHandle) IsWriter(user keybase1.UID) bool {
+	_, ok := h.resolvedWriters[user]
+	return ok
+}
+
+// IsReader returns whether or not the given user is a reader for the
+// top-level folder represented by this TlfHandle.
+func (h TlfHandle) IsReader(user keybase1.UID) bool {
+	if h.public || h.IsWriter(user) {
+		return true
+	}
+	_, ok := h.resolvedReaders[user]
+	return ok
+}
+
+func (h TlfHandle) unsortedResolvedWriters() []keybase1.UID {
+	if len(h.resolvedWriters) == 0 {
+		return nil
+	}
+	writers := make([]keybase1.UID, 0, len(h.resolvedWriters))
+	for r := range h.resolvedWriters {
+		writers = append(writers, r)
+	}
+	return writers
+}
+
+// ResolvedWriters returns the handle's resolved writer UIDs in sorted
+// order.
+func (h TlfHandle) ResolvedWriters() []keybase1.UID {
+	writers := h.unsortedResolvedWriters()
+	sort.Sort(uidList(writers))
+	return writers
+}
+
+// FirstResolvedWriter returns the handle's first resolved writer UID
+// (when sorted). This is used mostly for tests.
+func (h TlfHandle) FirstResolvedWriter() keybase1.UID {
+	return h.ResolvedWriters()[0]
+}
+
+func (h TlfHandle) unsortedResolvedReaders() []keybase1.UID {
+	if len(h.resolvedReaders) == 0 {
+		return nil
+	}
+	readers := make([]keybase1.UID, 0, len(h.resolvedReaders))
+	for r := range h.resolvedReaders {
+		readers = append(readers, r)
+	}
+	return readers
+}
+
+// ResolvedReaders returns the handle's resolved reader UIDs in sorted
+// order. If the handle is public, nil will be returned.
+func (h TlfHandle) ResolvedReaders() []keybase1.UID {
+	readers := h.unsortedResolvedReaders()
+	sort.Sort(uidList(readers))
+	return readers
+}
+
+// UnresolvedWriters returns the handle's unresolved writers in sorted
+// order.
+func (h TlfHandle) UnresolvedWriters() []keybase1.SocialAssertion {
+	if len(h.unresolvedWriters) == 0 {
+		return nil
+	}
+	unresolvedWriters := make([]keybase1.SocialAssertion, len(h.unresolvedWriters))
+	copy(unresolvedWriters, h.unresolvedWriters)
+	return unresolvedWriters
+}
+
+// UnresolvedReaders returns the handle's unresolved readers in sorted
+// order. If the handle is public, nil will be returned.
+func (h TlfHandle) UnresolvedReaders() []keybase1.SocialAssertion {
+	if len(h.unresolvedReaders) == 0 {
+		return nil
+	}
+	unresolvedReaders := make([]keybase1.SocialAssertion, len(h.unresolvedReaders))
+	copy(unresolvedReaders, h.unresolvedReaders)
+	return unresolvedReaders
+}
+
+// ConflictInfo returns the handle's conflict info, if any.
+func (h TlfHandle) ConflictInfo() *ConflictInfo {
+	if h.conflictInfo == nil {
+		return nil
+	}
+	conflictInfoCopy := *h.conflictInfo
+	return &conflictInfoCopy
+}
+
+// SetConflictInfo sets the handle's conflict info to the given one,
+// which may be nil.
+func (h *TlfHandle) SetConflictInfo(info *ConflictInfo) {
+	if info == nil {
+		h.conflictInfo = nil
+		return
+	}
+	conflictInfoCopy := *info
+	h.conflictInfo = &conflictInfoCopy
+}
+
+// ToBareHandle returns a BareTlfHandle corresponding to this handle.
+func (h TlfHandle) ToBareHandle() (BareTlfHandle, error) {
+	var readers []keybase1.UID
+	if h.public {
+		readers = []keybase1.UID{keybase1.PUBLIC_UID}
+	} else {
+		readers = h.unsortedResolvedReaders()
+	}
+	return MakeBareTlfHandle(
+		h.unsortedResolvedWriters(), readers,
+		h.unresolvedWriters, h.unresolvedReaders,
+		h.conflictInfo)
+}
+
+// ToBareHandleOrBust returns a BareTlfHandle corresponding to this
+// handle, and panics if there's an error. Used by tests.
+func (h TlfHandle) ToBareHandleOrBust() BareTlfHandle {
+	bh, err := h.ToBareHandle()
+	if err != nil {
+		panic(err)
+	}
+	return bh
 }
 
 type nameUIDPair struct {
@@ -353,24 +266,11 @@ func makeTlfHandleHelper(
 		delete(usedUnresolvedReaders, sa)
 	}
 
-	writerUIDs, unresolvedWriters :=
-		getSortedHandleLists(usedWNames, usedUnresolvedWriters)
+	unresolvedWriters := getSortedUnresolved(usedUnresolvedWriters)
 
-	var readerUIDs []keybase1.UID
 	var unresolvedReaders []keybase1.SocialAssertion
-	if public {
-		readerUIDs = []keybase1.UID{keybase1.PublicUID}
-	} else {
-		readerUIDs, unresolvedReaders =
-			getSortedHandleLists(usedRNames, usedUnresolvedReaders)
-	}
-
-	bareHandle, err := MakeBareTlfHandle(
-		writerUIDs, readerUIDs,
-		unresolvedWriters, unresolvedReaders,
-		conflictInfo)
-	if err != nil {
-		return nil, err
+	if !public {
+		unresolvedReaders = getSortedUnresolved(usedUnresolvedReaders)
 	}
 
 	writerNames := getSortedNames(usedWNames, unresolvedWriters)
@@ -383,11 +283,19 @@ func makeTlfHandleHelper(
 		canonicalName += ConflictSuffixSep + conflictInfo.String()
 	}
 
+	var conflictInfoCopy *ConflictInfo
+	if conflictInfo != nil {
+		c := *conflictInfo
+		conflictInfo = &c
+	}
 	h := &TlfHandle{
-		BareTlfHandle:   bareHandle,
-		resolvedWriters: usedWNames,
-		resolvedReaders: usedRNames,
-		name:            CanonicalTlfName(canonicalName),
+		public:            public,
+		resolvedWriters:   usedWNames,
+		resolvedReaders:   usedRNames,
+		unresolvedWriters: unresolvedWriters,
+		unresolvedReaders: unresolvedReaders,
+		conflictInfo:      conflictInfoCopy,
+		name:              CanonicalTlfName(canonicalName),
 	}
 
 	return h, nil
@@ -444,34 +352,37 @@ func MakeTlfHandle(
 		return nil, err
 	}
 
-	if !reflect.DeepEqual(h.BareTlfHandle, bareHandle) {
-		panic(fmt.Errorf("h.BareTlfHandle=%+v unexpectedly not equal to bareHandle=%+v", h.BareTlfHandle, bareHandle))
+	newHandle, err := h.ToBareHandle()
+	if err != nil {
+		return nil, err
+	}
+	if !reflect.DeepEqual(newHandle, bareHandle) {
+		panic(fmt.Errorf("newHandle=%+v unexpectedly not equal to bareHandle=%+v", newHandle, bareHandle))
 	}
 
 	return h, nil
 }
 
-func (h *TlfHandle) deepCopy(codec Codec) (*TlfHandle, error) {
-	var hCopy TlfHandle
-
-	err := CodecUpdate(codec, &hCopy, h)
-	if err != nil {
-		return nil, err
+func (h *TlfHandle) deepCopy() *TlfHandle {
+	hCopy := TlfHandle{
+		public:            h.public,
+		name:              h.name,
+		unresolvedWriters: h.UnresolvedWriters(),
+		unresolvedReaders: h.UnresolvedReaders(),
+		conflictInfo:      h.ConflictInfo(),
 	}
 
-	err = CodecUpdate(codec, &hCopy.resolvedWriters, h.resolvedWriters)
-	if err != nil {
-		return nil, err
+	hCopy.resolvedWriters = make(map[keybase1.UID]libkb.NormalizedUsername, len(h.resolvedWriters))
+	for k, v := range h.resolvedWriters {
+		hCopy.resolvedWriters[k] = v
 	}
 
-	err = CodecUpdate(codec, &hCopy.resolvedReaders, h.resolvedReaders)
-	if err != nil {
-		return nil, err
+	hCopy.resolvedReaders = make(map[keybase1.UID]libkb.NormalizedUsername, len(h.resolvedReaders))
+	for k, v := range h.resolvedReaders {
+		hCopy.resolvedReaders[k] = v
 	}
 
-	hCopy.name = h.name
-
-	return &hCopy, nil
+	return &hCopy
 }
 
 func getSortedNames(
@@ -544,32 +455,32 @@ func (rp resolvableNameUIDPair) resolve(ctx context.Context) (nameUIDPair, keyba
 // assertions that resolve to uid.
 func (h *TlfHandle) ResolveAgainForUser(ctx context.Context, resolver resolver,
 	uid keybase1.UID) (*TlfHandle, error) {
-	if len(h.UnresolvedWriters)+len(h.UnresolvedReaders) == 0 {
+	if len(h.unresolvedWriters)+len(h.unresolvedReaders) == 0 {
 		return h, nil
 	}
 
-	writers := make([]resolvableUser, 0, len(h.Writers)+len(h.UnresolvedWriters))
+	writers := make([]resolvableUser, 0, len(h.resolvedWriters)+len(h.unresolvedWriters))
 	for uid, w := range h.resolvedWriters {
 		writers = append(writers, resolvableNameUIDPair{w, uid})
 	}
-	for _, uw := range h.UnresolvedWriters {
+	for _, uw := range h.unresolvedWriters {
 		writers = append(writers, resolvableAssertion{resolver,
 			uw.String(), uid})
 	}
 
 	var readers []resolvableUser
 	if !h.IsPublic() {
-		readers = make([]resolvableUser, 0, len(h.Readers)+len(h.UnresolvedReaders))
+		readers = make([]resolvableUser, 0, len(h.resolvedReaders)+len(h.unresolvedReaders))
 		for uid, r := range h.resolvedReaders {
 			readers = append(readers, resolvableNameUIDPair{r, uid})
 		}
-		for _, ur := range h.UnresolvedReaders {
+		for _, ur := range h.unresolvedReaders {
 			readers = append(readers, resolvableAssertion{resolver,
 				ur.String(), uid})
 		}
 	}
 
-	newH, err := makeTlfHandleHelper(ctx, h.IsPublic(), writers, readers, h.BareTlfHandle.ConflictInfo)
+	newH, err := makeTlfHandleHelper(ctx, h.IsPublic(), writers, readers, h.ConflictInfo())
 	if err != nil {
 		return nil, err
 	}
@@ -586,21 +497,13 @@ func (h *TlfHandle) ResolveAgain(ctx context.Context, resolver resolver) (
 	return h.ResolveAgainForUser(ctx, resolver, keybase1.UID(""))
 }
 
-func getSortedHandleLists(
-	uidToName map[keybase1.UID]libkb.NormalizedUsername,
-	unresolved map[keybase1.SocialAssertion]bool) (
-	[]keybase1.UID, []keybase1.SocialAssertion) {
-	var uids []keybase1.UID
+func getSortedUnresolved(unresolved map[keybase1.SocialAssertion]bool) []keybase1.SocialAssertion {
 	var assertions []keybase1.SocialAssertion
-	for uid := range uidToName {
-		uids = append(uids, uid)
-	}
 	for sa := range unresolved {
 		assertions = append(assertions, sa)
 	}
-	sort.Sort(UIDList(uids))
-	sort.Sort(SocialAssertionList(assertions))
-	return uids, assertions
+	sort.Sort(socialAssertionList(assertions))
+	return assertions
 }
 
 func splitAndNormalizeTLFName(name string, public bool) (
@@ -815,16 +718,7 @@ func ParseTlfHandle(
 			return nil, err
 		}
 
-		canRead := false
-
-		for _, uid := range append(h.Writers, h.Readers...) {
-			if uid == currentUID {
-				canRead = true
-				break
-			}
-		}
-
-		if !canRead {
+		if !h.IsReader(currentUID) {
 			return nil, ReadAccessError{currentUsername, h.GetCanonicalName(), public}
 		}
 	}

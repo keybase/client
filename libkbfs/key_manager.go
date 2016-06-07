@@ -447,16 +447,14 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 		if err != nil {
 			return false, nil, err
 		}
-		if latestHandle == nil {
-			return false, nil, NoSuchTlfHandleError{md.ID}
-		}
-		if latestHandle.ConflictInfo != resolvedHandle.ConflictInfo {
+		resolvedInfo := resolvedHandle.ConflictInfo()
+		if latestHandle.ConflictInfo != resolvedInfo {
 			km.log.CDebugf(ctx, "handle for %s is conflicted",
 				handle.GetCanonicalPath())
-			if resolvedHandle.ConflictInfo != nil {
+			if resolvedInfo != nil {
 				// ConflictInfo is inconsistent.
 				err := TlfHandleConflictInfoMismatchError{
-					Expected: resolvedHandle.ConflictInfo,
+					Expected: resolvedInfo,
 					Actual:   latestHandle.ConflictInfo,
 				}
 				return false, nil, err
@@ -464,7 +462,7 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 			// Set the conflict info in the resolved handle.
 			// This will get stored in the metadata block.
 			// TODO: We should do some verification of this.
-			resolvedHandle.ConflictInfo = latestHandle.ConflictInfo
+			resolvedHandle.SetConflictInfo(latestHandle.ConflictInfo)
 		}
 	}
 
@@ -491,12 +489,12 @@ func (km *KeyManagerStandard) Rekey(ctx context.Context, md *RootMetadata, promp
 	}
 
 	// All writer keys in the desired keyset
-	wKeys, err := km.generateKeyMapForUsers(ctx, resolvedHandle.Writers)
+	wKeys, err := km.generateKeyMapForUsers(ctx, resolvedHandle.ResolvedWriters())
 	if err != nil {
 		return false, nil, err
 	}
 	// All reader keys in the desired keyset
-	rKeys, err := km.generateKeyMapForUsers(ctx, resolvedHandle.Readers)
+	rKeys, err := km.generateKeyMapForUsers(ctx, resolvedHandle.ResolvedReaders())
 	if err != nil {
 		return false, nil, err
 	}

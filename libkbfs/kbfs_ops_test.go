@@ -263,14 +263,14 @@ func injectNewRMD(t *testing.T, config *ConfigMock) (
 	// Need to do this to avoid multiple calls to the mocked-out
 	// MakeMdID above, leading to confusion.
 	rmd.mdID = fakeMdID(fakeTlfIDByte(id))
-	FakeInitialRekey(rmd, h.BareTlfHandle)
+	FakeInitialRekey(rmd, h.ToBareHandleOrBust())
 
 	ops := getOps(config, id)
 	ops.head = rmd
 	rmd.SerializedPrivateMetadata = make([]byte, 1)
 	config.Notifier().RegisterForChanges(
 		[]FolderBranch{{id, MasterBranch}}, config.observer)
-	uid := h.Writers[0]
+	uid := h.FirstResolvedWriter()
 	rmd.data.Dir.Creator = uid
 	return uid, id, rmd
 }
@@ -424,7 +424,7 @@ func fillInNewMD(t *testing.T, config *ConfigMock, rmd *RootMetadata) (
 	if !rmd.ID.IsPublic() {
 		config.mockKeyman.EXPECT().Rekey(gomock.Any(), rmd, gomock.Any()).
 			Do(func(ctx context.Context, rmd *RootMetadata, promptPaper bool) {
-				FakeInitialRekey(rmd, rmd.GetTlfHandle().BareTlfHandle)
+				FakeInitialRekey(rmd, rmd.GetTlfHandle().ToBareHandleOrBust())
 			}).Return(true, nil, nil)
 	}
 	rootPtr = BlockPointer{
@@ -698,7 +698,7 @@ func TestKBFSOpsGetBaseDirChildrenUncachedFailNonReader(t *testing.T) {
 
 	h := parseTlfHandleOrBust(t, config, "bob#alice", false)
 	// Hack around access check in ParseTlfHandle.
-	h.Readers = nil
+	h.resolvedReaders = nil
 
 	rmd := newRootMetadataOrBust(t, id, h)
 
@@ -757,7 +757,7 @@ func TestKBFSOpsGetNestedDirChildrenCacheSuccess(t *testing.T) {
 	ops := getOps(config, id)
 	ops.head = rmd
 
-	u := h.Writers[0]
+	u := h.FirstResolvedWriter()
 
 	rootID := fakeBlockID(42)
 	aID := fakeBlockID(43)
@@ -797,7 +797,7 @@ func TestKBFSOpsLookupSuccess(t *testing.T) {
 	ops := getOps(config, id)
 	ops.head = rmd
 
-	u := h.Writers[0]
+	u := h.FirstResolvedWriter()
 
 	rootID := fakeBlockID(42)
 	aID := fakeBlockID(43)
@@ -840,7 +840,7 @@ func TestKBFSOpsLookupSymlinkSuccess(t *testing.T) {
 	ops := getOps(config, id)
 	ops.head = rmd
 
-	u := h.Writers[0]
+	u := h.FirstResolvedWriter()
 	rootID := fakeBlockID(42)
 	aID := fakeBlockID(43)
 	bID := fakeBlockID(44)
@@ -878,7 +878,7 @@ func TestKBFSOpsLookupNoSuchNameFail(t *testing.T) {
 	ops := getOps(config, id)
 	ops.head = rmd
 
-	u := h.Writers[0]
+	u := h.FirstResolvedWriter()
 	rootID := fakeBlockID(42)
 	aID := fakeBlockID(43)
 	bID := fakeBlockID(44)
@@ -913,7 +913,7 @@ func TestKBFSOpsLookupNewDataVersionFail(t *testing.T) {
 	ops := getOps(config, id)
 	ops.head = rmd
 
-	u := h.Writers[0]
+	u := h.FirstResolvedWriter()
 	rootID := fakeBlockID(42)
 	aID := fakeBlockID(43)
 	bID := fakeBlockID(44)
@@ -954,7 +954,7 @@ func TestKBFSOpsStatSuccess(t *testing.T) {
 	ops := getOps(config, id)
 	ops.head = rmd
 
-	u := h.Writers[0]
+	u := h.FirstResolvedWriter()
 	rootID := fakeBlockID(42)
 	aID := fakeBlockID(43)
 	bID := fakeBlockID(44)
@@ -2422,8 +2422,8 @@ func TestRenameFailAcrossTopLevelFolders(t *testing.T) {
 	h2 := parseTlfHandleOrBust(t, config, "alice,bob,charlie", false)
 	rmd2 := newRootMetadataOrBust(t, id1, h2)
 
-	uid1 := h2.Writers[0]
-	uid2 := h2.Writers[2]
+	uid1 := h2.ResolvedWriters()[0]
+	uid2 := h2.ResolvedWriters()[2]
 
 	rootID1 := fakeBlockID(41)
 	aID1 := fakeBlockID(42)
@@ -2458,7 +2458,7 @@ func TestRenameFailAcrossBranches(t *testing.T) {
 	h1 := parseTlfHandleOrBust(t, config, "alice,bob", false)
 	rmd1 := newRootMetadataOrBust(t, id1, h1)
 
-	uid1 := h1.Writers[0]
+	uid1 := h1.FirstResolvedWriter()
 	rootID1 := fakeBlockID(41)
 	aID1 := fakeBlockID(42)
 	node1 := pathNode{makeBP(rootID1, rmd1, config, uid1), "p"}
@@ -4774,7 +4774,7 @@ func TestKBFSOpsStatRootSuccess(t *testing.T) {
 	ops := getOps(config, id)
 	ops.head = rmd
 
-	u := h.Writers[0]
+	u := h.FirstResolvedWriter()
 	rootID := fakeBlockID(42)
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node}}
@@ -4794,7 +4794,7 @@ func TestKBFSOpsFailingRootOps(t *testing.T) {
 	ops := getOps(config, id)
 	ops.head = rmd
 
-	u := h.Writers[0]
+	u := h.FirstResolvedWriter()
 	rootID := fakeBlockID(42)
 	node := pathNode{makeBP(rootID, rmd, config, u), "p"}
 	p := path{FolderBranch{Tlf: id}, []pathNode{node}}

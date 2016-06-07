@@ -9,108 +9,12 @@ import (
 
 	"github.com/keybase/client/go/libkb"
 	"github.com/keybase/client/go/logger"
-	keybase1 "github.com/keybase/client/go/protocol"
+	"github.com/keybase/client/go/protocol"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"golang.org/x/net/context"
 )
-
-func TestMakeBareTlfHandle(t *testing.T) {
-	w := []keybase1.UID{
-		keybase1.MakeTestUID(4),
-		keybase1.MakeTestUID(3),
-	}
-
-	r := []keybase1.UID{
-		keybase1.MakeTestUID(5),
-		keybase1.MakeTestUID(1),
-	}
-
-	uw := []keybase1.SocialAssertion{
-		{
-			User:    "user2",
-			Service: "service3",
-		},
-		{
-			User:    "user1",
-			Service: "service1",
-		},
-	}
-
-	ur := []keybase1.SocialAssertion{
-		{
-			User:    "user5",
-			Service: "service3",
-		},
-		{
-			User:    "user1",
-			Service: "service2",
-		},
-	}
-
-	h, err := MakeBareTlfHandle(w, r, uw, ur, nil)
-	require.NoError(t, err)
-	require.Equal(t, []keybase1.UID{
-		keybase1.MakeTestUID(3),
-		keybase1.MakeTestUID(4),
-	}, h.Writers)
-	require.Equal(t, []keybase1.UID{
-		keybase1.MakeTestUID(1),
-		keybase1.MakeTestUID(5),
-	}, h.Readers)
-	require.Equal(t, []keybase1.SocialAssertion{
-		{
-			User:    "user1",
-			Service: "service1",
-		},
-		{
-			User:    "user2",
-			Service: "service3",
-		},
-	}, h.UnresolvedWriters)
-	require.Equal(t, []keybase1.SocialAssertion{
-		{
-			User:    "user1",
-			Service: "service2",
-		},
-		{
-			User:    "user5",
-			Service: "service3",
-		},
-	}, h.UnresolvedReaders)
-}
-
-func TestMakeBareTlfHandleFailures(t *testing.T) {
-	_, err := MakeBareTlfHandle(nil, nil, nil, nil, nil)
-	assert.Equal(t, ErrNoWriters, err)
-
-	w := []keybase1.UID{
-		keybase1.MakeTestUID(4),
-		keybase1.MakeTestUID(3),
-	}
-
-	r := []keybase1.UID{
-		keybase1.PUBLIC_UID,
-		keybase1.MakeTestUID(2),
-	}
-
-	_, err = MakeBareTlfHandle(r, nil, nil, nil, nil)
-	assert.Equal(t, ErrInvalidWriter, err)
-
-	_, err = MakeBareTlfHandle(w, r, nil, nil, nil)
-	assert.Equal(t, ErrInvalidReader, err)
-
-	ur := []keybase1.SocialAssertion{
-		{
-			User:    "user5",
-			Service: "service3",
-		},
-	}
-
-	_, err = MakeBareTlfHandle(w, r[:1], nil, ur, nil)
-	assert.Equal(t, ErrInvalidReader, err)
-}
 
 func TestNormalizeNamesInTLF(t *testing.T) {
 	writerNames := []string{"BB", "C@Twitter", "d@twitter", "aa"}
@@ -125,7 +29,7 @@ func TestNormalizeNamesInTLFWithConflict(t *testing.T) {
 	readerNames := []string{"EE", "ff", "AA@HackerNews", "aa", "BB", "bb", "ZZ@hackernews"}
 	conflictSuffix := "(cOnflictED coPy 2015-05-11 #4)"
 	s, err := normalizeNamesInTLF(writerNames, readerNames, conflictSuffix)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, "aa,bb,c@twitter,d@twitter#AA@hackernews,ZZ@hackernews,aa,bb,bb,ee,ff (conflicted copy 2015-05-11 #4)", s)
 }
 
@@ -223,7 +127,7 @@ func TestParseTlfHandleAssertionPrivateSuccess(t *testing.T) {
 
 	// Make sure that generating another handle doesn't change the
 	// name.
-	h2, err := MakeTlfHandle(context.Background(), h.BareTlfHandle, kbpki)
+	h2, err := MakeTlfHandle(context.Background(), h.ToBareHandleOrBust(), kbpki)
 	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName(name), h2.GetCanonicalName())
 }
@@ -249,9 +153,151 @@ func TestParseTlfHandleAssertionPublicSuccess(t *testing.T) {
 
 	// Make sure that generating another handle doesn't change the
 	// name.
-	h2, err := MakeTlfHandle(context.Background(), h.BareTlfHandle, kbpki)
+	h2, err := MakeTlfHandle(context.Background(), h.ToBareHandleOrBust(), kbpki)
 	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName(name), h2.GetCanonicalName())
+}
+
+func TestTlfHandleAccessorsPrivate(t *testing.T) {
+	ctx := context.Background()
+
+	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	currentUID := localUsers[0].UID
+	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, NewCodecMsgpack())
+
+	kbpki := &daemonKBPKI{
+		daemon: daemon,
+	}
+
+	name := "u1,u2@twitter,u3,u4@twitter#u2,u5@twitter,u6@twitter"
+	h, err := ParseTlfHandle(ctx, kbpki, name, false)
+	require.NoError(t, err)
+
+	require.False(t, h.IsPublic())
+
+	require.True(t, h.IsWriter(localUsers[0].UID))
+	require.True(t, h.IsReader(localUsers[0].UID))
+
+	require.False(t, h.IsWriter(localUsers[1].UID))
+	require.True(t, h.IsReader(localUsers[1].UID))
+
+	require.True(t, h.IsWriter(localUsers[2].UID))
+	require.True(t, h.IsReader(localUsers[2].UID))
+
+	for i := 6; i < 10; i++ {
+		u := keybase1.MakeTestUID(uint32(i))
+		require.False(t, h.IsWriter(u))
+		require.False(t, h.IsReader(u))
+	}
+
+	require.Equal(t, h.ResolvedWriters(),
+		[]keybase1.UID{
+			localUsers[0].UID,
+			localUsers[2].UID,
+		})
+	require.Equal(t, h.FirstResolvedWriter(), localUsers[0].UID)
+
+	require.Equal(t, h.ResolvedReaders(),
+		[]keybase1.UID{
+			localUsers[1].UID,
+		})
+
+	require.Equal(t, h.UnresolvedWriters(),
+		[]keybase1.SocialAssertion{
+			{
+				User:    "u2",
+				Service: "twitter",
+			},
+			{
+				User:    "u4",
+				Service: "twitter",
+			},
+		})
+	require.Equal(t, h.UnresolvedReaders(),
+		[]keybase1.SocialAssertion{
+			{
+				User:    "u5",
+				Service: "twitter",
+			},
+			{
+				User:    "u6",
+				Service: "twitter",
+			},
+		})
+}
+
+func TestTlfHandleAccessorsPublic(t *testing.T) {
+	ctx := context.Background()
+
+	localUsers := MakeLocalUsers([]libkb.NormalizedUsername{"u1", "u2", "u3"})
+	currentUID := localUsers[0].UID
+	daemon := NewKeybaseDaemonMemory(currentUID, localUsers, NewCodecMsgpack())
+
+	kbpki := &daemonKBPKI{
+		daemon: daemon,
+	}
+
+	name := "u1,u2@twitter,u3,u4@twitter"
+	h, err := ParseTlfHandle(ctx, kbpki, name, true)
+	require.NoError(t, err)
+
+	require.True(t, h.IsPublic())
+
+	require.True(t, h.IsWriter(localUsers[0].UID))
+	require.True(t, h.IsReader(localUsers[0].UID))
+
+	require.False(t, h.IsWriter(localUsers[1].UID))
+	require.True(t, h.IsReader(localUsers[1].UID))
+
+	require.True(t, h.IsWriter(localUsers[2].UID))
+	require.True(t, h.IsReader(localUsers[2].UID))
+
+	for i := 6; i < 10; i++ {
+		u := keybase1.MakeTestUID(uint32(i))
+		require.False(t, h.IsWriter(u))
+		require.True(t, h.IsReader(u))
+	}
+
+	require.Equal(t, h.ResolvedWriters(),
+		[]keybase1.UID{
+			localUsers[0].UID,
+			localUsers[2].UID,
+		})
+	require.Equal(t, h.FirstResolvedWriter(), localUsers[0].UID)
+
+	require.Nil(t, h.ResolvedReaders())
+
+	require.Equal(t, h.UnresolvedWriters(),
+		[]keybase1.SocialAssertion{
+			{
+				User:    "u2",
+				Service: "twitter",
+			},
+			{
+				User:    "u4",
+				Service: "twitter",
+			},
+		})
+	require.Nil(t, h.UnresolvedReaders())
+}
+
+func TestTlfHandleConflictInfo(t *testing.T) {
+	var h TlfHandle
+
+	require.Nil(t, h.ConflictInfo())
+	info := ConflictInfo{
+		Date:   100,
+		Number: 50,
+	}
+
+	h.SetConflictInfo(&info)
+	require.Equal(t, info, *h.ConflictInfo())
+
+	info.Date = 101
+	require.NotEqual(t, info, *h.ConflictInfo())
+
+	h.SetConflictInfo(nil)
+	require.Nil(t, h.ConflictInfo())
 }
 
 func TestParseTlfHandleSocialAssertion(t *testing.T) {
@@ -275,7 +321,7 @@ func TestParseTlfHandleSocialAssertion(t *testing.T) {
 
 	// Make sure that generating another handle doesn't change the
 	// name.
-	h2, err := MakeTlfHandle(context.Background(), h.BareTlfHandle, kbpki)
+	h2, err := MakeTlfHandle(context.Background(), h.ToBareHandleOrBust(), kbpki)
 	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName(name), h2.GetCanonicalName())
 }
@@ -423,98 +469,6 @@ func TestResolveAgainWriterReader(t *testing.T) {
 	assert.Equal(t, CanonicalTlfName("u1,u2"), newH.GetCanonicalName())
 }
 
-func TestBareTlfHandleResolveAssertions(t *testing.T) {
-	w := []keybase1.UID{
-		keybase1.MakeTestUID(4),
-		keybase1.MakeTestUID(3),
-	}
-
-	r := []keybase1.UID{
-		keybase1.MakeTestUID(5),
-		keybase1.MakeTestUID(1),
-	}
-
-	uw := []keybase1.SocialAssertion{
-		{
-			User:    "user2",
-			Service: "service3",
-		},
-		{
-			User:    "user7",
-			Service: "service2",
-		},
-		{
-			User:    "user1",
-			Service: "service1",
-		},
-	}
-
-	ur := []keybase1.SocialAssertion{
-		{
-			User:    "user6",
-			Service: "service3",
-		},
-		{
-			User:    "user8",
-			Service: "service1",
-		},
-		{
-			User:    "user5",
-			Service: "service1",
-		},
-		{
-			User:    "user1",
-			Service: "service2",
-		},
-		{
-			User:    "user9",
-			Service: "service1",
-		},
-		{
-			User:    "user9",
-			Service: "service3",
-		},
-	}
-
-	h, err := MakeBareTlfHandle(w, r, uw, ur, nil)
-	require.NoError(t, err)
-
-	assertions := make(map[keybase1.SocialAssertion]keybase1.UID)
-	assertions[uw[0]] = keybase1.MakeTestUID(2) // new writer
-	assertions[uw[2]] = keybase1.MakeTestUID(1) // reader promoted to writer
-	assertions[ur[0]] = keybase1.MakeTestUID(6) // new reader
-	assertions[ur[2]] = keybase1.MakeTestUID(5) // already a reader
-	assertions[ur[3]] = keybase1.MakeTestUID(1) // already a writer
-	assertions[ur[4]] = keybase1.MakeTestUID(9) // new reader
-	assertions[ur[5]] = keybase1.MakeTestUID(9) // already a reader
-
-	h = h.ResolveAssertions(assertions)
-
-	require.Equal(t, []keybase1.UID{
-		keybase1.MakeTestUID(1),
-		keybase1.MakeTestUID(2),
-		keybase1.MakeTestUID(3),
-		keybase1.MakeTestUID(4),
-	}, h.Writers)
-	require.Equal(t, []keybase1.UID{
-		keybase1.MakeTestUID(5),
-		keybase1.MakeTestUID(6),
-		keybase1.MakeTestUID(9),
-	}, h.Readers)
-	require.Equal(t, []keybase1.SocialAssertion{
-		{
-			User:    "user7",
-			Service: "service2",
-		},
-	}, h.UnresolvedWriters)
-	require.Equal(t, []keybase1.SocialAssertion{
-		{
-			User:    "user8",
-			Service: "service1",
-		},
-	}, h.UnresolvedReaders)
-}
-
 func TestResolveAgainConflict(t *testing.T) {
 	ctx := context.Background()
 
@@ -528,7 +482,7 @@ func TestResolveAgainConflict(t *testing.T) {
 
 	name := "u1,u2#u3@twitter"
 	h, err := ParseTlfHandle(ctx, kbpki, name, false)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName(name), h.GetCanonicalName())
 
 	daemon.addNewAssertionForTest("u3", "u3@twitter")
@@ -536,9 +490,9 @@ func TestResolveAgainConflict(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	h.ConflictInfo = ci
+	h.conflictInfo = ci
 	newH, err := h.ResolveAgain(ctx, daemon)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, CanonicalTlfName("u1,u2#u3"+
 		ConflictSuffixSep+ci.String()), newH.GetCanonicalName())
 }

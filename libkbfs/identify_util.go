@@ -62,11 +62,6 @@ func identifyUserList(ctx context.Context, nug normalizedUsernameGetter, identif
 
 // identifyHandle identifies the canonical names in the given handle.
 func identifyHandle(ctx context.Context, nug normalizedUsernameGetter, identifier identifier, h *TlfHandle) error {
-	var uids []keybase1.UID
-	uids = append(uids, h.Writers...)
-	if !h.IsPublic() {
-		uids = append(uids, h.Readers...)
-	}
-
+	uids := append(h.ResolvedWriters(), h.ResolvedReaders()...)
 	return identifyUserList(ctx, nug, identifier, uids, h.IsPublic())
 }

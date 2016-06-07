@@ -737,7 +737,7 @@ type MDOps interface {
 	// which may not yet be reflected in the MD if the TLF hasn't been rekeyed since it
 	// entered into a conflicting state.
 	GetLatestHandleForTLF(ctx context.Context, id TlfID) (
-		*BareTlfHandle, error)
+		BareTlfHandle, error)
 }
 
 // KeyOps fetches server-side key halves from the key server.
@@ -883,7 +883,7 @@ type MDServer interface {
 	// entered into a conflicting state.  For the highest level of confidence, the caller
 	// should verify the mapping with a Merkle tree lookup.
 	GetLatestHandleForTLF(ctx context.Context, id TlfID) (
-		*BareTlfHandle, error)
+		BareTlfHandle, error)
 }
 
 // BlockServer gets and puts opaque data blocks.  The instantiation

@@ -102,7 +102,7 @@ func TestFBStatusAllFields(t *testing.T) {
 	// make a new root metadata
 	id := FakeTlfID(1, false)
 	h := parseTlfHandleOrBust(t, config, "alice", false)
-	u := h.Writers[0]
+	u := h.FirstResolvedWriter()
 	md := newRootMetadataOrBust(t, id, h)
 	md.WFlags = MetadataFlagUnmerged
 	md.LastModifyingWriter = u

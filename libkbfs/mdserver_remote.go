@@ -564,16 +564,16 @@ func (md *MDServerRemote) TruncateUnlock(ctx context.Context, id TlfID) (
 
 // GetLatestHandleForTLF implements the MDServer interface for MDServerRemote.
 func (md *MDServerRemote) GetLatestHandleForTLF(ctx context.Context, id TlfID) (
-	*BareTlfHandle, error) {
+	BareTlfHandle, error) {
 	buf, err := md.client.GetLatestFolderHandle(ctx, id.String())
 	if err != nil {
-		return nil, err
+		return BareTlfHandle{}, err
 	}
 	var handle BareTlfHandle
 	if err := md.config.Codec().Decode(buf, &handle); err != nil {
-		return nil, err
+		return BareTlfHandle{}, err
 	}
-	return &handle, nil
+	return handle, nil
 }
 
 // CheckForRekeys implements the MDServer interface.

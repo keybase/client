@@ -85,7 +85,7 @@ func expectRekey(config *ConfigMock, rmd *RootMetadata, numDevices int, handleCh
 	if handleChange {
 		// if the handle changes the key manager checks for a conflict
 		config.mockMdops.EXPECT().GetLatestHandleForTLF(gomock.Any(), gomock.Any()).
-			Return(&rmd.tlfHandle.BareTlfHandle, nil)
+			Return(rmd.tlfHandle.ToBareHandleOrBust(), nil)
 	}
 
 	// generate new keys
@@ -154,7 +154,7 @@ func TestKeyManagerCachedSecretKeyForEncryptionSuccess(t *testing.T) {
 	id := FakeTlfID(1, false)
 	h := parseTlfHandleOrBust(t, config, "alice", false)
 	rmd := newRootMetadataOrBust(t, id, h)
-	FakeInitialRekey(rmd, h.BareTlfHandle)
+	FakeInitialRekey(rmd, h.ToBareHandleOrBust())
 
 	expectCachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration())
 
@@ -171,7 +171,7 @@ func TestKeyManagerCachedSecretKeyForMDDecryptionSuccess(t *testing.T) {
 	id := FakeTlfID(1, false)
 	h := parseTlfHandleOrBust(t, config, "alice", false)
 	rmd := newRootMetadataOrBust(t, id, h)
-	FakeInitialRekey(rmd, h.BareTlfHandle)
+	FakeInitialRekey(rmd, h.ToBareHandleOrBust())
 
 	expectCachedGetTLFCryptKey(config, rmd, rmd.LatestKeyGeneration())
 
@@ -188,7 +188,7 @@ func TestKeyManagerCachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
 	id := FakeTlfID(1, false)
 	h := parseTlfHandleOrBust(t, config, "alice", false)
 	rmd := newRootMetadataOrBust(t, id, h)
-	FakeInitialRekey(rmd, h.BareTlfHandle)
+	FakeInitialRekey(rmd, h.ToBareHandleOrBust())
 	// Add a second key generation.
 	AddNewKeysOrBust(t, rmd, NewEmptyTLFWriterKeyBundle(), NewEmptyTLFReaderKeyBundle())
 
@@ -221,7 +221,7 @@ func TestKeyManagerUncachedSecretKeyForEncryptionSuccess(t *testing.T) {
 
 	id := FakeTlfID(1, false)
 	h := parseTlfHandleOrBust(t, config, "alice", false)
-	uid := h.Writers[0]
+	uid := h.FirstResolvedWriter()
 	rmd := newRootMetadataOrBust(t, id, h)
 
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
@@ -241,7 +241,7 @@ func TestKeyManagerUncachedSecretKeyForMDDecryptionSuccess(t *testing.T) {
 
 	id := FakeTlfID(1, false)
 	h := parseTlfHandleOrBust(t, config, "alice", false)
-	uid := h.Writers[0]
+	uid := h.FirstResolvedWriter()
 	rmd := newRootMetadataOrBust(t, id, h)
 
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
@@ -261,7 +261,7 @@ func TestKeyManagerUncachedSecretKeyForBlockDecryptionSuccess(t *testing.T) {
 
 	id := FakeTlfID(1, false)
 	h := parseTlfHandleOrBust(t, config, "alice", false)
-	uid := h.Writers[0]
+	uid := h.FirstResolvedWriter()
 	rmd := newRootMetadataOrBust(t, id, h)
 
 	subkey := MakeFakeCryptPublicKeyOrBust("crypt public key")
@@ -298,6 +298,7 @@ func TestKeyManagerRekeySuccessPrivate(t *testing.T) {
 func TestKeyManagerRekeyResolveAgainSuccessPublic(t *testing.T) {
 	mockCtrl, config, ctx := keyManagerInit(t)
 	defer keyManagerShutdown(mockCtrl, config)
+	config.SetCodec(NewCodecMsgpack())
 
 	id := FakeTlfID(1, true)
 	h, err := ParseTlfHandle(
@@ -309,7 +310,7 @@ func TestKeyManagerRekeyResolveAgainSuccessPublic(t *testing.T) {
 	daemon.addNewAssertionForTestOrBust("bob", "bob@twitter")
 
 	config.mockMdops.EXPECT().GetLatestHandleForTLF(gomock.Any(), gomock.Any()).
-		Return(&rmd.tlfHandle.BareTlfHandle, nil)
+		Return(rmd.tlfHandle.ToBareHandleOrBust(), nil)
 
 	done, cryptKey, err := config.KeyManager().Rekey(ctx, rmd, false)
 	require.True(t, done)
@@ -324,7 +325,7 @@ func TestKeyManagerRekeyResolveAgainSuccessPublic(t *testing.T) {
 	rmd.tlfHandle = nil
 	newBareH, err := rmd.MakeBareTlfHandle()
 	require.NoError(t, err)
-	require.Equal(t, newH.BareTlfHandle, newBareH)
+	require.Equal(t, newH.ToBareHandleOrBust(), newBareH)
 	rmd.tlfHandle = oldHandle
 
 	// Rekey again, which shouldn't do anything.
@@ -349,7 +350,7 @@ func TestKeyManagerRekeyResolveAgainSuccessPublicSelf(t *testing.T) {
 	daemon.addNewAssertionForTestOrBust("charlie", "charlie@twitter")
 
 	config.mockMdops.EXPECT().GetLatestHandleForTLF(gomock.Any(), gomock.Any()).
-		Return(&rmd.tlfHandle.BareTlfHandle, nil)
+		Return(rmd.tlfHandle.ToBareHandleOrBust(), nil)
 
 	done, cryptKey, err := config.KeyManager().Rekey(ctx, rmd, false)
 	require.True(t, done)
@@ -364,7 +365,7 @@ func TestKeyManagerRekeyResolveAgainSuccessPublicSelf(t *testing.T) {
 	rmd.tlfHandle = nil
 	newBareH, err := rmd.MakeBareTlfHandle()
 	require.NoError(t, err)
-	require.Equal(t, newH.BareTlfHandle, newBareH)
+	require.Equal(t, newH.ToBareHandleOrBust(), newBareH)
 	rmd.tlfHandle = oldHandle
 }
 
@@ -406,7 +407,7 @@ func TestKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	rmd.tlfHandle = nil
 	newBareH, err := rmd.MakeBareTlfHandle()
 	require.NoError(t, err)
-	require.Equal(t, newH.BareTlfHandle, newBareH)
+	require.Equal(t, newH.ToBareHandleOrBust(), newBareH)
 	rmd.tlfHandle = oldHandle
 
 	// Now resolve using only a device addition, which won't bump the
@@ -436,7 +437,7 @@ func TestKeyManagerRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	rmd.tlfHandle = nil
 	newBareH, err = rmd.MakeBareTlfHandle()
 	require.NoError(t, err)
-	require.Equal(t, newH.BareTlfHandle, newBareH)
+	require.Equal(t, newH.ToBareHandleOrBust(), newBareH)
 }
 
 func TestKeyManagerPromoteReaderSuccessPrivate(t *testing.T) {
@@ -541,7 +542,7 @@ func TestKeyManagerReaderRekeyResolveAgainSuccessPrivate(t *testing.T) {
 	rmd.tlfHandle = nil
 	newBareH, err := rmd.MakeBareTlfHandle()
 	require.NoError(t, err)
-	require.Equal(t, newH.BareTlfHandle, newBareH)
+	require.Equal(t, newH.ToBareHandleOrBust(), newBareH)
 }
 
 func TestKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T) {
@@ -606,7 +607,7 @@ func TestKeyManagerRekeyResolveAgainNoChangeSuccessPrivate(t *testing.T) {
 	rmd.tlfHandle = nil
 	newBareH, err := rmd.MakeBareTlfHandle()
 	require.NoError(t, err)
-	require.Equal(t, newH.BareTlfHandle, newBareH)
+	require.Equal(t, newH.ToBareHandleOrBust(), newBareH)
 }
 
 func TestKeyManagerRekeyAddAndRevokeDevice(t *testing.T) {
