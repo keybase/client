@@ -1,11 +1,17 @@
-import {ipcMain} from 'electron'
+import {ipcMain, systemPreferences} from 'electron'
 import {resolveImage, resolveRootAsURL} from '../resolve-root'
 import hotPath from '../hot-path'
 import menubar from 'menubar'
 
-const isWhite = ['linux', 'win32'].indexOf(process.platform) !== -1 ? '_white' : ''
-const menubarIconPath = resolveImage('menubarIcon', `topbar_iconTemplate${isWhite}.png`)
-const menubarLoadingIconPath = resolveImage('menubarIcon', `topbar_icon_loadingTemplate${isWhite}.png`)
+let color = 'white'
+
+if (process.platform === 'darwin') {
+  color = (systemPreferences && systemPreferences.isDarkMode()) ? 'white' : 'black'
+}
+
+const icon = resolveImage('menubarIcon', `icon-keybase-dog-regular-${color}-22@2x.png`)
+const loadingIcon = resolveImage('menubarIcon', `icon-keybase-dog-update-${color}-22@2x.png`)
+const badgedIcon = resolveImage('menubarIcon', `icon-keybase-dog-badged-${color}-22@2x.png`)
 
 export default function () {
   const mb = menubar({
@@ -15,16 +21,20 @@ export default function () {
     frame: false,
     resizable: false,
     preloadWindow: true,
-    icon: menubarIconPath,
+    icon: icon,
     showDockIcon: true // This causes menubar to not touch dock icon, yeah it's weird
   })
 
   ipcMain.on('showTrayLoading', () => {
-    mb.tray.setImage(menubarLoadingIconPath)
+    mb.tray.setImage(loadingIcon)
   })
 
-  ipcMain.on('showTrayNormal', () => {
-    mb.tray.setImage(menubarIconPath)
+  ipcMain.on('showTrayRegular', () => {
+    mb.tray.setImage(icon)
+  })
+
+  ipcMain.on('showTrayBadged', () => {
+    mb.tray.setImage(badgedIcon)
   })
 
   // We keep the listeners so we can cleanup on hot-reload

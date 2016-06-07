@@ -1,9 +1,9 @@
 /* @flow */
 
 import type {TypedAction} from '../constants/types/flux'
-import type {Folder} from '../constants/types/flow-types'
+import type {Props as FolderProps} from '../folders/render'
 
 export const favoriteList = 'favorite:favoriteList'
-export type FavoriteList = TypedAction<'favorite:favoriteList', {folders: Array<Folder>, currentUser: ?string}, void>
+export type FavoriteList = TypedAction<'favorite:favoriteList', {folders: FolderProps}, void>
 
 export type FavoriteAction = FavoriteList

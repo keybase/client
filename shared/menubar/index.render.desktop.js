@@ -91,11 +91,12 @@ class Render extends Component<void, Props, State> {
     const styles = this.state.showingPublic ? stylesPublic : stylesPrivate
 
     const mergedProps = {
-      ...this.props,
+      ...this.props.folderProps,
       smallMode: true,
       private: newPrivate,
       public: newPublic,
-      onSwitchTab: showingPublic => this.setState({showingPublic})
+      onSwitchTab: showingPublic => this.setState({showingPublic}),
+      onRekey: this.props.onRekey
     }
 
     const menuColor = this.state.showingPublic
