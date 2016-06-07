@@ -8,7 +8,7 @@ import {log} from '../native/log/logui'
 
 import type {Dispatch} from '../constants/types/flux'
 import type {Text as KBText, LogLevel, incomingCallMapType} from '../constants/types/flow-types'
-import type {LogAction} from '../constants/notifications'
+import type {LogAction, NotificationKeys, NotificationAction} from '../constants/notifications'
 
 export function logUiLog ({text, level}: {text: KBText, level: LogLevel}, response: any): LogAction {
   log({text, level}, response)
@@ -31,5 +31,12 @@ export function listenForNotifications (): (dispatch: Dispatch) => void {
     const listeners: incomingCallMapType = ListenerCreator(dispatch, getState, NotifyPopup)
     engine.listenGeneralIncomingRpc(listeners)
     initialized = true
+  }
+}
+
+export function badgeApp (key: NotificationKeys, on: boolean): NotificationAction {
+  return {
+    type: Constants.badgeApp,
+    payload: {key, on}
   }
 }

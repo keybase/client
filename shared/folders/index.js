@@ -6,6 +6,8 @@ import Render from './render'
 class Folders extends Component {
   render () {
     return <Render
+      onRekey={() => {}}
+      smallMode={false}
       privateBadge={0}
       private={{isPublic: false}}
       publicBadge={0}

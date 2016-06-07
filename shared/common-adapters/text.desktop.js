@@ -29,7 +29,7 @@ export default class Text extends Component {
     }: {[key: string]: React$Element})[type]
   }
 
-  _inlineStyle (type: Props.type): Object {
+  static _inlineStyle (type: Props.type, context: Context): Object {
     switch (type) {
       case 'Terminal':
       case 'TerminalCommand':
@@ -38,13 +38,13 @@ export default class Text extends Component {
       case 'TerminalPublic':
       case 'TerminalPrivate':
       case 'TerminalSmall':
-        return this.context.inTerminal ? {} : styles.textTerminalInline
+        return context.inTerminal ? {} : styles.textTerminalInline
       default:
         return {}
     }
   }
 
-  _colorStyleBackgroundMode (backgroundMode: Background, type: Props.type): Object {
+  static _colorStyleBackgroundMode (backgroundMode: Background, type: Props.type): Object {
     if (backgroundMode === 'Information') {
       return {color: globalColors.brown_60}
     }
@@ -130,10 +130,10 @@ export default class Text extends Component {
     const style = {
       ...typeStyle,
       ...(LinkTypes[this.props.type] ? {cursor: 'pointer'} : {}),
-      ...this._colorStyleBackgroundMode(this.props.backgroundMode || 'Normal', this.props.type),
+      ...Text._colorStyleBackgroundMode(this.props.backgroundMode || 'Normal', this.props.type),
       ...(this.props.lineClamp ? lineClamp(this.props.lineClamp) : {}),
       ...(this.props.onClick ? globalStyles.clickable : {}),
-      ...(inline ? {...this._inlineStyle(this.props.type)} : {display: 'block'}),
+      ...(inline ? {...Text._inlineStyle(this.props.type, this.context)} : {display: 'block'}),
       ...this.props.style
     }
 

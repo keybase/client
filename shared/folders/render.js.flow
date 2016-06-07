@@ -9,8 +9,9 @@ export type Props = {
   public: ListProps,
   onSwitchTab?: (showingPublic: boolean) => void,
   listStyle?: any,
-  smallMode?: boolean,
-  onClick?: (path: string) => void
+  smallMode: boolean,
+  onClick?: (path: string) => void,
+  onRekey: (path: string) => void
 }
 
 export default class Render extends React$Component<void, Props, void> {

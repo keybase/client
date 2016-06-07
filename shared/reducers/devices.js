@@ -32,7 +32,8 @@ export default function (state = initialState, action) {
           currentDevice: dev.currentDevice,
           provisioner: dev.provisioner,
           provisionedAt: dev.provisionedAt,
-          revokedAt: dev.revokedAt
+          revokedAt: dev.revokedAt,
+          lastUsed: dev.device.lastUsedTime
         })),
         waitingForServer: false
       }

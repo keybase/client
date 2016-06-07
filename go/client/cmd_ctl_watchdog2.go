@@ -77,6 +77,7 @@ func (c *CmdWatchdog2) Run() error {
 	updaterProgram := watchdog.Program{
 		Path: updaterPath,
 		Args: []string{
+			"-log-to-file",
 			"-path-to-keybase=" + keybasePath,
 		},
 	}

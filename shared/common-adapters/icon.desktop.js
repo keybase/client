@@ -36,7 +36,7 @@ export default class Icon extends Component {
         title={this.props.hint}
         style={{...globalStyles.noSelect, ...styles.icon, ...this.props.style}}
         className={`fa ${iconType} ${this.props.className}`}
-        color={color}
+        color={color} // TODO (AW): this does nothing, color must be set in styles
         hoverColor={this.props.onClick ? hoverColor : null}
         onMouseEnter={this.props.onMouseEnter}
         onMouseLeave={this.props.onMouseLeave}

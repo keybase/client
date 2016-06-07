@@ -11,7 +11,7 @@ type State = {
 
 const rowKey = users => users && users.map(u => u.username).join('-')
 
-const Ignored = ({showIgnored, ignored, styles, onToggle, isPublic, onClick}) => {
+const Ignored = ({showIgnored, ignored, styles, onToggle, isPublic, onClick, onRekey}) => {
   return (
     <Box style={stylesIgnoreContainer}>
       <Box style={styles.topBox} onClick={onToggle}>
@@ -29,6 +29,7 @@ const Ignored = ({showIgnored, ignored, styles, onToggle, isPublic, onClick}) =>
           isPublic={isPublic}
           ignored
           onClick={onClick}
+          onRekey={onRekey}
           isFirst={!idx} />
         ))}
     </Box>
@@ -66,10 +67,12 @@ class Render extends Component<void, Props, State> {
               isPublic={this.props.isPublic}
               ignored={false}
               onClick={this.props.onClick}
+              onRekey={this.props.onRekey}
               smallMode={this.props.smallMode}
               isFirst={!idx} />
             ))}
-            {this.props.ignored && this.props.ignored.length > 0 && <Ignored ignored={this.props.ignored} showIgnored={this.state.showIgnored} styles={styles}
+            {this.props.ignored && this.props.ignored.length > 0 && <Ignored
+              ignored={this.props.ignored} showIgnored={this.state.showIgnored} styles={styles} onRekey={this.props.onRekey}
               isPublic={this.props.isPublic} onToggle={() => this.setState({showIgnored: !this.state.showIgnored})} />}
         </Box>
       </Box>
