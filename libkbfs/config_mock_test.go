@@ -39,28 +39,29 @@ type ConfigMock struct {
 	ConfigLocal
 
 	// local references to the proper mock type
-	mockKbfs       *MockKBFSOps
-	mockKbpki      *MockKBPKI
-	mockKbd        *MockKeybaseDaemon
-	mockKeyman     *MockKeyManager
-	mockRep        *MockReporter
-	mockMdcache    *MockMDCache
-	mockKcache     *MockKeyCache
-	mockBcache     *MockBlockCache
-	mockCrypto     *MockCrypto
-	mockCodec      *MockCodec
-	mockMdops      *MockMDOps
-	mockKops       *MockKeyOps
-	mockBops       *MockBlockOps
-	mockMdserv     *MockMDServer
-	mockKserv      *MockKeyServer
-	mockBserv      *MockBlockServer
-	mockBsplit     *MockBlockSplitter
-	mockNotifier   *MockNotifier
-	mockClock      *MockClock
-	mockRekeyQueue *MockRekeyQueue
-	observer       *FakeObserver
-	ctr            *SafeTestReporter
+	mockKbfs        *MockKBFSOps
+	mockKbpki       *MockKBPKI
+	mockKbd         *MockKeybaseDaemon
+	mockKeyman      *MockKeyManager
+	mockRep         *MockReporter
+	mockMdcache     *MockMDCache
+	mockKcache      *MockKeyCache
+	mockBcache      *MockBlockCache
+	mockDirtyBcache *MockDirtyBlockCache
+	mockCrypto      *MockCrypto
+	mockCodec       *MockCodec
+	mockMdops       *MockMDOps
+	mockKops        *MockKeyOps
+	mockBops        *MockBlockOps
+	mockMdserv      *MockMDServer
+	mockKserv       *MockKeyServer
+	mockBserv       *MockBlockServer
+	mockBsplit      *MockBlockSplitter
+	mockNotifier    *MockNotifier
+	mockClock       *MockClock
+	mockRekeyQueue  *MockRekeyQueue
+	observer        *FakeObserver
+	ctr             *SafeTestReporter
 }
 
 func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
@@ -81,6 +82,8 @@ func NewConfigMock(c *gomock.Controller, ctr *SafeTestReporter) *ConfigMock {
 	config.SetKeyCache(config.mockKcache)
 	config.mockBcache = NewMockBlockCache(c)
 	config.SetBlockCache(config.mockBcache)
+	config.mockDirtyBcache = NewMockDirtyBlockCache(c)
+	config.SetDirtyBlockCache(config.mockDirtyBcache)
 	config.mockCrypto = NewMockCrypto(c)
 	config.SetCrypto(config.mockCrypto)
 	config.mockCodec = NewMockCodec(c)

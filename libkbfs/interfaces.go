@@ -490,11 +490,11 @@ const (
 )
 
 // BlockCache gets and puts plaintext dir blocks and file blocks into
-// a cache.
+// a cache.  These blocks are immutable and identified by their
+// content hash.
 type BlockCache interface {
-	// Get gets the block associated with the given block ID.  Returns
-	// the dirty block for the given ID, if one exists.
-	Get(ptr BlockPointer, branch BranchName) (Block, error)
+	// Get gets the block associated with the given block ID.
+	Get(ptr BlockPointer) (Block, error)
 	// CheckForKnownPtr sees whether this cache has a transient
 	// entry for the given file block, which must be a direct file
 	// block containing data).  Returns the full BlockPointer
@@ -513,11 +513,8 @@ type BlockCache interface {
 	// be put into the cache both with TransientEntry and
 	// PermanentEntry -- these are two separate entries. This is
 	// fine, since the block should be the same.
-	Put(ptr BlockPointer, tlf TlfID, block Block, lifetime BlockCacheLifetime) error
-	// PutDirty stores a dirty block currently identified by the
-	// given block pointer and branch name. (The lifetime is
-	// implicitly permanent.)
-	PutDirty(ptr BlockPointer, branch BranchName, block Block) error
+	Put(ptr BlockPointer, tlf TlfID, block Block,
+		lifetime BlockCacheLifetime) error
 	// DeleteTransient removes the transient entry for the given
 	// pointer from the cache, as well as any cached IDs so the block
 	// won't be reused.
@@ -526,13 +523,29 @@ type BlockCache interface {
 	// associated with the given block ID from the cache.  No
 	// error is returned if no block exists for the given ID.
 	DeletePermanent(id BlockID) error
-	// DeleteDirty removes the dirty block associated with the given
-	// block pointer and branch from the cache.  No error is returned
-	// if no block exists for the given ID.
-	DeleteDirty(ptr BlockPointer, branch BranchName) error
 	// DeleteKnownPtr removes the cached ID for the given file
 	// block. It does not remove the block itself.
 	DeleteKnownPtr(tlf TlfID, block *FileBlock) error
+}
+
+// DirtyBlockCache gets and puts plaintext dir blocks and file blocks
+// into a cache, which have been modified by the application and not
+// yet committed on the KBFS servers.  They are identified by a
+// (potentially random) ID that may not have any relationship with
+// their context, along with a Branch in case the same TLF is being
+// modified via multiple branches.  Dirty blocks are never evicted,
+// they must be deleted explicitly.
+type DirtyBlockCache interface {
+	// Get gets the block associated with the given block ID.  Returns
+	// the dirty block for the given ID, if one exists.
+	Get(ptr BlockPointer, branch BranchName) (Block, error)
+	// Put stores a dirty block currently identified by the
+	// given block pointer and branch name.
+	Put(ptr BlockPointer, branch BranchName, block Block) error
+	// Delete removes the dirty block associated with the given block
+	// pointer and branch from the cache.  No error is returned if no
+	// block exists for the given ID.
+	Delete(ptr BlockPointer, branch BranchName) error
 	// IsDirty states whether or not the block associated with the
 	// given block pointer and branch name is dirty in this cache.
 	IsDirty(ptr BlockPointer, branch BranchName) bool
@@ -1063,6 +1076,8 @@ type Config interface {
 	SetKeyCache(KeyCache)
 	BlockCache() BlockCache
 	SetBlockCache(BlockCache)
+	DirtyBlockCache() DirtyBlockCache
+	SetDirtyBlockCache(DirtyBlockCache)
 	Crypto() Crypto
 	SetCrypto(Crypto)
 	Codec() Codec
