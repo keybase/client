@@ -144,7 +144,7 @@ const stylesPublic = {
   avatarContainer: {
     backgroundColor: globalColors.yellowGreen
   },
-  nameColor: globalColors.yellowGreen,
+  nameColor: globalColors.yellowGreen2,
   modifiedMode: 'Normal'
 }
 
