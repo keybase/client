@@ -1,8 +1,10 @@
 /* @flow */
 
+import {Component} from 'react'
 import type {Props as ListProps} from './list'
 
 export type Props = {
+  showComingSoon: boolean,
   privateBadge?: number,
   private: ListProps,
   publicBadge?: number,
@@ -14,5 +16,4 @@ export type Props = {
   onRekey: (path: string) => void
 }
 
-export default class Render extends React$Component<void, Props, void> {
-}
+export default class Render extends Component<void, Props, void> { }

@@ -6,14 +6,14 @@ import {Text} from '../common-adapters'
 import TabBar from './index.render'
 
 import type {DumbComponentMap} from '../constants/types/more'
-import {profileTab, peopleTab, folderTab, devicesTab, moreTab} from '../constants/tabs'
+import {profileTab, peopleTab, folderTab, devicesTab, settingsTab} from '../constants/tabs'
 
 const badgeNumbers = {
   [profileTab]: 2,
   [peopleTab]: 12,
   [folderTab]: 8,
   [devicesTab]: 0,
-  [moreTab]: 0
+  [settingsTab]: 0
 }
 
 const DummyContent = ({text}) => <Text type='Body'>Filler: {text}</Text>
@@ -23,7 +23,7 @@ const tabContent = {
   [peopleTab]: <DummyContent text='people' />,
   [folderTab]: <DummyContent text='folder' />,
   [devicesTab]: <DummyContent text='devicees' />,
-  [moreTab]: <DummyContent text='more' />
+  [settingsTab]: <DummyContent text='settings' />
 }
 
 const map: DumbComponentMap<TabBar> = {

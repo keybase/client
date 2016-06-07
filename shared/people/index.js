@@ -2,6 +2,7 @@ import React, {Component} from 'react'
 import {connect} from 'react-redux'
 
 import PeopleRender from './index.render'
+import flags from '../util/feature-flags'
 
 class People extends Component {
   constructor (props) {
@@ -15,6 +16,7 @@ class People extends Component {
 
   render () {
     return <PeopleRender
+      showComingSoon={!flags.tabPeopleEnabled}
       count={this.state.count}
       onCount={() => this.handleCountIncrease()}
     />

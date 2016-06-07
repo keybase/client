@@ -3,9 +3,9 @@
 import {ipcRenderer} from 'electron'
 import React, {Component} from 'react'
 import ReactDOM from 'react-dom'
-import {styleBox} from '../more/dumb-sheet.render.desktop'
+import {styleBox} from '../dev/dumb-sheet.render.desktop'
 import {Box, Text} from '../common-adapters'
-import dumbComponentMap from '../more/dumb-component-map.desktop'
+import dumbComponentMap from '../dev/dumb-component-map.desktop'
 
 const PADDING = 25
 

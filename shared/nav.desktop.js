@@ -1,3 +1,4 @@
+// @flow
 import {remote, ipcRenderer} from 'electron'
 
 import React, {Component} from 'react'
@@ -8,19 +9,16 @@ import Chat from './chat'
 import People from './people'
 import Devices from './devices'
 import NoTab from './no-tab'
-import More from './more'
+import Profile from './profile'
+import Search from './search'
+import Settings from './settings'
 import Login from './login'
 import commonStyles from './styles/common'
 import flags from './util/feature-flags'
 import {mapValues} from 'lodash'
+import type {Tabs} from './constants/tabs'
 
-import {Text} from './common-adapters'
-
-// TODO global routes
-// import globalRoutes from './router/global-routes'
-const globalRoutes = {}
-
-import {profileTab, folderTab, chatTab, peopleTab, devicesTab, moreTab, loginTab} from './constants/tabs'
+import {profileTab, folderTab, chatTab, peopleTab, devicesTab, settingsTab, loginTab} from './constants/tabs'
 import {switchTab} from './actions/tabbed-router'
 import TabBar from './tab-bar/index.render'
 
@@ -28,15 +26,34 @@ import {bootstrap} from './actions/config'
 import {globalResizing} from './styles/style-guide'
 
 const tabs = {
-  [moreTab]: {module: More, name: 'More'},
-  [profileTab]: {module: More, name: 'More'},
+  [settingsTab]: {module: Settings, name: 'Settings'},
+  [profileTab]: {module: Profile, name: 'Profile'},
   [folderTab]: {module: Folders, name: 'Folders'},
   [chatTab]: {module: Chat, name: 'Chat'},
   [peopleTab]: {module: People, name: 'People'},
   [devicesTab]: {module: Devices, name: 'Devices'}
 }
 
-class Nav extends Component {
+type State = {
+  searchActive: boolean
+}
+
+type Props = {
+  menuBadge: boolean,
+  bootstrap: () => void,
+  switchTab: (tab: Tabs) => void,
+  tabbedRouter: Object,
+  bootstrapped: boolean,
+  provisioned: boolean,
+  username: string
+}
+
+class Nav extends Component<void, Props, State> {
+  state: State;
+  _lastCheckedTab: ?Tabs;
+  _checkingTab: boolean;
+  _originalSize: $Shape<{width: number, height: number}>;
+
   constructor (props) {
     super(props)
     this.props.bootstrap()
@@ -140,7 +157,6 @@ class Nav extends Component {
     return (
       <MetaNavigator
         tab={tab}
-        globalRoutes={globalRoutes}
         rootComponent={module || NoTab} />
     )
   }
@@ -153,7 +169,6 @@ class Nav extends Component {
         <div style={stylesTabsContainer}>
           <MetaNavigator
             tab={loginTab}
-            globalRoutes={globalRoutes}
             rootComponent={Login} />
         </div>
       )
@@ -173,7 +188,7 @@ class Nav extends Component {
           onSearchClick={() => this.setState({searchActive: !this.state.searchActive})}
           searchActive={this.state.searchActive}
           username={this.props.username}
-          searchContent={<Text type='Body'>Todo: add search here</Text>}
+          searchContent={<Search />}
           badgeNumbers={{}}
           tabContent={tabContent} />
       </div>

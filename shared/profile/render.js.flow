@@ -1,0 +1,7 @@
+/* @flow */
+
+export type Props = {
+}
+
+export default class Render extends React$Component<void, Props, void> {
+}

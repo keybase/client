@@ -9,6 +9,7 @@ import type {Folder, favorite_favoriteList_rpc} from '../constants/types/flow-ty
 import type {Dispatch} from '../constants/types/flux'
 import type {FavoriteList} from '../constants/favorite'
 import type {Props as FolderProps} from '../folders/render'
+import flags from '../util/feature-flags'
 
 const folderToProps = (dispatch: Dispatch, folders: Array<Folder>, username: string = ''): FolderProps => { // eslint-disable-line space-infix-ops
   let privateBadge = 0
@@ -66,6 +67,7 @@ const folderToProps = (dispatch: Dispatch, folders: Array<Folder>, username: str
   return {
     onRekey: () => {},
     smallMode: false,
+    showComingSoon: !flags.tabFoldersEnabled,
     privateBadge,
     publicBadge,
     private: {

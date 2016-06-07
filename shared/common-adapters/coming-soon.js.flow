@@ -1,0 +1,7 @@
+/* @flow */
+
+import React, {Component} from 'react'
+
+export type Props = {}
+export default class ComingSoon extends Component<void, Props, void> { }
+

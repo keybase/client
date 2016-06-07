@@ -13,6 +13,7 @@ import {switchTab} from '../actions/tabbed-router'
 import {remote} from 'electron'
 import {ipcRenderer} from 'electron'
 import {loginTab} from '../constants/tabs'
+import flags from '../util/feature-flags'
 
 import type {Props as FolderProps} from '../folders/render'
 
@@ -120,7 +121,7 @@ class Menubar extends Component<void, Props, void> {
   }
 
   _logIn () {
-    ipcRenderer.send('showMain')
+    this._showMain()
     this.props.switchTab(loginTab)
     this._closeMenubar()
   }
@@ -128,6 +129,10 @@ class Menubar extends Component<void, Props, void> {
   _showHelp () {
     ipcRenderer.send('openURL', 'help')
     this._closeMenubar()
+  }
+
+  _showMain () {
+    ipcRenderer.send('showMain')
   }
 
   _showUser () {
@@ -152,6 +157,8 @@ class Menubar extends Component<void, Props, void> {
       showHelp={() => this._showHelp()}
       showUser={() => this._showUser()}
       showKBFS={() => this._openFolder()}
+      openApp={() => this._showMain()}
+      showOpenApp={flags.mainWindow}
       showBug={() => this._showBug()}
       username={this.props.username}
       quit={() => this._quit()}

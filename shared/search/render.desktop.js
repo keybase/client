@@ -1,7 +1,9 @@
+/* @flow */
 import React, {Component} from 'react'
 import {Box, ComingSoon} from '../common-adapters'
+import type {Props} from './render'
 
-export default class PeopleRender extends Component {
+class Render extends Component<void, Props, void> {
   _renderComingSoon () {
     return <ComingSoon />
   }
@@ -10,13 +12,8 @@ export default class PeopleRender extends Component {
     if (this.props.showComingSoon) {
       return this._renderComingSoon()
     }
-
-    return (
-      <Box>
-        <p> People goes here </p>
-        <p> Count: 0</p>
-        <p> I mean, it’s one banana, Michael. What could it cost? Ten dollars? </p>
-      </Box>
-    )
+    return <Box>Search : TODO</Box>
   }
 }
+
+export default Render
