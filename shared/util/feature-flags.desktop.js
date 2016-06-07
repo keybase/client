@@ -20,7 +20,8 @@ const ff: FeatureFlags = {
   tabFoldersEnabled: featureOn('tabFoldersEnabled'),
   tabSettingsEnabled: featureOn('tabSettingsEnabled'),
   tabProfileEnabled: featureOn('tabProfileEnabled'),
-  searchEnabled: featureOn('searchEnabled')
+  searchEnabled: featureOn('searchEnabled'),
+  recentFilesEnabled: featureOn('recentFilesEnabled')
 }
 
 if (__DEV__) {

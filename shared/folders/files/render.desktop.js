@@ -64,8 +64,18 @@ const YouCanUnlock = ({youCanUnlock, isPrivate, backgroundMode}) => {
 }
 
 export default class Render extends Component<void, Props, void> {
+
   _renderContents (isPrivate: boolean) {
     const backgroundMode = isPrivate ? 'Terminal' : 'Normal'
+
+    if (!this.props.recentFilesEnabled) {
+      return (
+        <Box style={{...styleRecentFilesNotEnabled}}>
+          <Button type='Secondary' onClick={this.props.ignoreCurrentFolder} label='Ignore folder' />
+          <Button type='Primary' onClick={this.props.openCurrentFolder} label='Open folder' />
+        </Box>
+      )
+    }
 
     if (this.props.youCanUnlock.length) {
       return <YouCanUnlock youCanUnlock={this.props.youCanUnlock} isPrivate={isPrivate} backgroundMode={backgroundMode} />
@@ -98,7 +108,7 @@ export default class Render extends Component<void, Props, void> {
     const tlfTextStyle = styleTLFTextThemed[this.props.theme]
 
     return (
-      <Box style={{...globalStyles.flexBoxColumn, position: 'relative', backgroundColor: backgroundColorThemed[this.props.theme]}}>
+      <Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative', backgroundColor: backgroundColorThemed[this.props.theme]}}>
         <Box style={{...globalStyles.flexBoxRow, ...styleHeaderThemed[this.props.theme], height: 48}}>
           <BackButton onClick={this.props.onBack} style={{marginLeft: 16}}
             iconStyle={{color: backButtonColor}} textStyle={{color: backButtonColor}} />
@@ -183,6 +193,14 @@ const styleMenu = {
 const backButtonColorThemed = {
   'private': globalColors.white,
   'public': globalColors.white
+}
+
+const styleRecentFilesNotEnabled = {
+  ...globalStyles.flexBoxRow,
+  flex: 1,
+  justifyContent: 'center',
+  alignItems: 'center',
+  padding: 64
 }
 
 const styleNoFiles = {

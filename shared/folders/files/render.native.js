@@ -42,12 +42,24 @@ export default class Render extends Component<void, Props, void> {
     return contents
   }
 
+  _renderContents (isPrivate: boolean) {
+    if (!this.props.recentFilesEnabled) {
+      return (
+        <Box style={{...globalStyles.flexBoxColumn, flex: 1, justifyContent: 'center', alignItems: 'center', padding: 8}}>
+          <Text type='BodySmall' backgroundMode={isPrivate ? 'Terminal' : 'Normal'}>File History has not been implemented yet.</Text>
+        </Box>
+      )
+    } else {
+      return <ScrollView>{this.props.recentFilesSection.map(s => this._renderSection(s))}</ScrollView>
+    }
+  }
+
   render () {
     const isPrivate = this.props.theme === 'private'
     const tlfTextStyle = styleTLFTextThemed[this.props.theme]
 
     return (
-      <Box style={{...globalStyles.flexBoxColumn, position: 'relative', backgroundColor: backgroundColorThemed[this.props.theme]}}>
+      <Box style={{...globalStyles.flexBoxColumn, flex: 1, position: 'relative', backgroundColor: backgroundColorThemed[this.props.theme]}}>
         {this._renderHeader()}
         <Box style={{...globalStyles.flexBoxColumn, ...styleTLFHeader, ...styleTLFHeaderThemed[this.props.theme]}}>
           <Box style={{...globalStyles.flexBoxRow, height: 0, justifyContent: 'center', position: 'relative', bottom: 16}}>
@@ -58,12 +70,8 @@ export default class Render extends Component<void, Props, void> {
             <Usernames users={this.props.users} type='BodySemibold' style={tlfTextStyle} />
           </Box>
         </Box>
-        <ScrollView>
-            {this.props.recentFilesSection.map(s => this._renderSection(s))}
-        </ScrollView>
-
+        {this._renderContents(isPrivate)}
       </Box>
-
     )
   }
 }

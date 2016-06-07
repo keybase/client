@@ -2,9 +2,15 @@
 import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import Render from './render'
-import flags from '../util/feature-flags'
+import {bindActionCreators} from 'redux'
+import {routeAppend} from '../actions/router'
+import Files from './files'
+import type {Props as RenderProps} from './render'
 
-type Props = {}
+export type Props = {
+  folderProps: ?RenderProps,
+  routeAppend: (path: any) => void
+}
 
 type State = {
   showingPrivate: boolean
@@ -21,22 +27,27 @@ class Folders extends Component<void, Props, State> {
   }
 
   render () {
-    return <Render
-      onRekey={() => {}}
-      smallMode={false}
-      showComingSoon={!flags.tabFoldersEnabled}
-      privateBadge={0}
-      private={{isPublic: false}}
-      publicBadge={0}
-      public={{isPublic: true}}
-      onSwitchTab={showingPrivate => this.setState({showingPrivate})}
-      showingPrivate={this.state.showingPrivate}
+    return (
+      <Render
+        {...this.props.folderProps}
+        onClick={path => this.props.routeAppend(path)}
+        onSwitchTab={showingPrivate => this.setState({showingPrivate})}
+        showingPrivate={this.state.showingPrivate}
       />
+    )
   }
 
   static parseRoute () {
-    return {componentAtTop: {title: 'Folders'}}
+    return {
+      componentAtTop: {title: 'Folders'},
+      parseNextRoute: Files.parseRoute
+    }
   }
 }
 
-export default connect()(Folders)
+export default connect(
+  state => ({
+    folderProps: state.favorite && state.favorite.folders
+  }),
+  dispatch => bindActionCreators({routeAppend}, dispatch)
+)(Folders)

@@ -76,7 +76,7 @@ const RowMeta = ({ignored, meta, styles}) => {
   return <Meta {...metaProps} />
 }
 
-const Row = ({users, isPublic, ignored, isFirst, meta, modified, hasData}: Folder) => {
+const Row = ({users, isPublic, ignored, isFirst, meta, modified, hasData, path}: Folder & {isFirst: boolean}) => {
   const styles = isPublic ? stylesPublic : stylesPrivate
 
   const containerStyle = {
