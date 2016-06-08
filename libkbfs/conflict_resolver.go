@@ -2673,7 +2673,7 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 	md *RootMetadata, unmergedChains *crChains, mergedChains *crChains,
 	resolvedPaths map[BlockPointer]path, lbc localBcache,
 	newFileBlocks fileBlockMap) (
-	map[BlockPointer]BlockPointer, *blockPutState, error) {
+	updates map[BlockPointer]BlockPointer, bps *blockPutState, err error) {
 	// Construct a tree out of the merged paths, and do a sync at each leaf.
 	var root *crPathTreeNode
 	for _, p := range resolvedPaths {
@@ -2747,7 +2747,7 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 		}
 	}
 
-	updates := make(map[BlockPointer]BlockPointer)
+	updates = make(map[BlockPointer]BlockPointer)
 	if root == nil {
 		return updates, newBlockPutState(0), nil
 	}
@@ -2759,7 +2759,7 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 
 	// Now do a depth-first walk, and syncBlock back up to the fork on
 	// every branch
-	bps, err := cr.syncTree(ctx, lState, md, uid, root, BlockPointer{},
+	bps, err = cr.syncTree(ctx, lState, md, uid, root, BlockPointer{},
 		lbc, newFileBlocks)
 	if err != nil {
 		return nil, nil, err
@@ -2888,6 +2888,12 @@ func (cr *ConflictResolver) syncBlocks(ctx context.Context, lState *lockState,
 			return nil, nil, err
 		}
 	}
+
+	defer func() {
+		if err != nil {
+			cr.fbo.fbm.cleanUpBlockState(md, bps)
+		}
+	}()
 
 	// Put all the blocks.  TODO: deal with recoverable block errors?
 	_, err = cr.fbo.doBlockPuts(ctx, md, *bps)
@@ -3039,7 +3045,7 @@ func (cr *ConflictResolver) finalizeResolution(ctx context.Context,
 func (cr *ConflictResolver) completeResolution(ctx context.Context,
 	lState *lockState, unmergedChains *crChains, mergedChains *crChains,
 	unmergedPaths []path, mergedPaths map[BlockPointer]path, lbc localBcache,
-	newFileBlocks fileBlockMap, unmergedMDs []*RootMetadata) error {
+	newFileBlocks fileBlockMap, unmergedMDs []*RootMetadata) (err error) {
 	md, err := cr.createResolvedMD(ctx, lState, unmergedPaths, unmergedChains,
 		mergedChains)
 	if err != nil {
@@ -3058,6 +3064,12 @@ func (cr *ConflictResolver) completeResolution(ctx context.Context,
 	if err != nil {
 		return err
 	}
+
+	defer func() {
+		if err != nil {
+			cr.fbo.fbm.cleanUpBlockState(md, bps)
+		}
+	}()
 
 	err = cr.finalizeResolution(ctx, lState, md, unmergedChains,
 		mergedChains, updates, bps)
