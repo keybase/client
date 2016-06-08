@@ -6,35 +6,50 @@
 package engine
 
 import (
+	"fmt"
+	"os/exec"
+
 	"github.com/keybase/client/go/install"
 	"github.com/keybase/client/go/libkb"
-	"github.com/keybase/client/go/logger"
-	"github.com/keybase/client/go/protocol"
 )
 
 // AfterUpdateApply runs after an update has been applied
 func AfterUpdateApply(g *libkb.GlobalContext, willRestart bool) error {
-	if willRestart {
-		mountDir, err := g.Env.GetMountDir()
+	if !willRestart {
+		return nil
+	}
+	reinstallKBFS, err := checkFuseUpgrade(g, "/Applications/Keybase.app")
+	if err != nil {
+		g.Log.Errorf("Error trying to upgrade Fuse: %s", err)
+	}
+	if reinstallKBFS {
+		g.Log.Info("Re-installing KBFS")
+		err := install.InstallKBFS(g, "", false)
 		if err != nil {
-			return err
+			g.Log.Errorf("Error re-installing KBFS: %s", err)
 		}
-		return UninstallForFuseUpgrade("/Applications/Keybase.app", g.Env.GetRunMode(), mountDir, g.Log)
 	}
 	return nil
 }
 
-// UninstallForFuseUpgrade will see if the Fuse version in the Keybase.app
-// bundle matches whats currently installed, and if not, will uninstall KBFS so
-// that on the next restart, Fuse can be upgraded.
-func UninstallForFuseUpgrade(appPath string, runMode libkb.RunMode, mountDir string, log logger.Logger) error {
-	log.Debug("Checking Fuse status")
+// checkFuseUpgrade will see if the Fuse version in the Keybase.app bundle
+// matches whats currently installed, and if not, will uninstall KBFS so that
+// it can re-install new version of Fuse.
+// Returns true if KBFS should be re-installed.
+func checkFuseUpgrade(g *libkb.GlobalContext, appPath string) (reinstallKBFS bool, err error) {
+	runMode := g.Env.GetRunMode()
+	log := g.Log
+	var mountDir string
+	mountDir, err = g.Env.GetMountDir()
+	if err != nil {
+		return
+	}
+	log.Info("Checking Fuse status")
 	fuseStatus, err := install.KeybaseFuseStatusForAppBundle(appPath, log)
 	if err != nil {
-		return err
+		return
 	}
-
-	log.Debug("Fuse status: %s", fuseStatus)
+	log.Info("Fuse status: %s", fuseStatus)
 
 	hasKBFuseMounts := false
 	for _, mountInfo := range fuseStatus.MountInfos {
@@ -44,10 +59,29 @@ func UninstallForFuseUpgrade(appPath string, runMode libkb.RunMode, mountDir str
 		}
 	}
 
-	if fuseStatus.InstallAction == keybase1.InstallAction_UPGRADE && hasKBFuseMounts {
-		log.Info("Fuse needs upgrade and we have mounts, let's uninstall KBFS so the installer can upgrade after app restart")
-		return install.UninstallKBFS(runMode, mountDir, log)
+	if true { //fuseStatus.InstallAction == keybase1.InstallAction_UPGRADE {
+		log.Info("Fuse needs upgrade")
+		if hasKBFuseMounts {
+			log.Info("We have mounts, let's uninstall KBFS so the installer can upgrade")
+			reinstallKBFS = true
+			err = install.UninstallKBFS(runMode, mountDir, log)
+			if err != nil {
+				return
+			}
+		}
+
+		// Do Fuse upgrade
+		log.Info("Installing Fuse")
+		var out []byte
+		out, err = exec.Command("/Applications/Keybase.app/Contents/Resources/KeybaseInstaller.app/Contents/MacOS/Keybase",
+			fmt.Sprintf("--app-path=%s", appPath),
+			"--run-mode=prod",
+			"--install-fuse").CombinedOutput()
+		log.Debug("Fuse install: %s", string(out))
+		if err != nil {
+			return
+		}
 	}
 
-	return nil
+	return
 }

@@ -330,7 +330,7 @@ func Install(g *libkb.GlobalContext, binPath string, components []string, force 
 	}
 
 	if libkb.IsIn(string(ComponentNameKBFS), components, false) {
-		err = installKBFS(g, binPath, force)
+		err = InstallKBFS(g, binPath, force)
 		componentResults = append(componentResults, componentResult(string(ComponentNameKBFS), err))
 	}
 
@@ -424,7 +424,7 @@ func installService(g *libkb.GlobalContext, binPath string, force bool) error {
 	return nil
 }
 
-func installKBFS(g *libkb.GlobalContext, binPath string, force bool) error {
+func InstallKBFS(g *libkb.GlobalContext, binPath string, force bool) error {
 	runMode := g.Env.GetRunMode()
 	label := DefaultKBFSLabel()
 	kbfsService := launchd.NewService(label)
