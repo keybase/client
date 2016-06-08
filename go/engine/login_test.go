@@ -11,6 +11,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"testing"
@@ -796,6 +797,9 @@ func TestProvisionGPGImportMultiple(t *testing.T) {
 // Provision device using a private GPG key (not synced to keybase
 // server), use gpg to sign (no private key import).
 func TestProvisionGPGSign(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("skipping test on windows")
+	}
 	tc := SetupEngineTest(t, "login")
 	defer tc.Cleanup()
 
