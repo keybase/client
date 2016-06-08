@@ -48,6 +48,7 @@ var noErrorNames = map[string]bool{
 	"HEAD":           true, // git shell
 	"Keybase.app":    true, // some OSX mount thing
 	"DCIM":           true, // looking for digital pic folder
+	"Thumbs.db":      true, // Windows mounts
 }
 
 // ReporterKBPKI implements the Notify function of the Reporter
