@@ -155,7 +155,7 @@ const commands = {
   },
   'render-screenshots': {
     nodePathDesktop: true,
-    shell: 'webpack --config webpack.config.visdiff.js && ./node_modules/.bin/electron ./dist/render-visdiff.bundle.js',
+    shell: 'webpack --config webpack.config.visdiff.js && KEYBASE_NO_ENGINE=1 ELECTRON_ENABLE_LOGGING=1 ./node_modules/.bin/electron ./dist/render-visdiff.bundle.js',
     help: 'Render images of dumb components'
   }
 }
