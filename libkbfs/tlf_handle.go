@@ -286,7 +286,7 @@ func makeTlfHandleHelper(
 	var conflictInfoCopy *ConflictInfo
 	if conflictInfo != nil {
 		c := *conflictInfo
-		conflictInfo = &c
+		conflictInfoCopy = &c
 	}
 	h := &TlfHandle{
 		public:            public,
