@@ -44,6 +44,15 @@ if (__DEV__ && process.env.KEYBASE_LOCAL_DEBUG) {
   config.focusOnShow = false
   config.dumbFilter = ''
   config.printRoutes = true
+
+  let envJson = null
+  try {
+    envJson = JSON.parse(process.env.KEYBASE_LOCAL_DEBUG_JSON)
+  } catch (e) {
+    console.warn('Invalid KEYBASE_LOCAL_DEBUG_JSON:', e)
+  }
+
+  config = {...config, ...envJson}
 }
 
 config = updateConfig(config)
