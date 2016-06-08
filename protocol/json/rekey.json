@@ -442,27 +442,6 @@
     },
     {
       "type": "record",
-      "name": "ProblemTLFDevices",
-      "fields": [
-        {
-          "type": "TLF",
-          "name": "tlf"
-        },
-        {
-          "type": "int",
-          "name": "score"
-        },
-        {
-          "type": {
-            "type": "array",
-            "items": "Device"
-          },
-          "name": "solutions"
-        }
-      ]
-    },
-    {
-      "type": "record",
       "name": "ProblemSet",
       "fields": [
         {
@@ -488,19 +467,15 @@
       "name": "ProblemSetDevices",
       "fields": [
         {
-          "type": "User",
-          "name": "user"
-        },
-        {
-          "type": "KID",
-          "name": "kid"
+          "type": "ProblemSet",
+          "name": "problemSet"
         },
         {
           "type": {
             "type": "array",
-            "items": "ProblemTLFDevices"
+            "items": "Device"
           },
-          "name": "tlfs"
+          "name": "devices"
         }
       ]
     },

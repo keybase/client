@@ -145,12 +145,24 @@ func TestRekeyNeededMessageWithScores(t *testing.T) {
 	}
 
 	// the first call should contain a TLF
-	if len(rkeyui.refreshArgs[0].Tlfs) != 1 {
-		t.Errorf("first refresh call, tlf count = %d, expected 1", len(rkeyui.refreshArgs[0].Tlfs))
+	if len(rkeyui.refreshArgs[0].ProblemSetDevices.ProblemSet.Tlfs) != 1 {
+		t.Errorf("first refresh call, tlf count = %d, expected 1", len(rkeyui.refreshArgs[0].ProblemSetDevices.ProblemSet.Tlfs))
 	}
 	// the second call should have updated the scores, and have no more TLFs in it.
-	if len(rkeyui.refreshArgs[1].Tlfs) != 0 {
-		t.Errorf("second/final refresh call, tlf count = %d, expected 0", len(rkeyui.refreshArgs[1].Tlfs))
+	if len(rkeyui.refreshArgs[1].ProblemSetDevices.ProblemSet.Tlfs) != 0 {
+		t.Errorf("second/final refresh call, tlf count = %d, expected 0", len(rkeyui.refreshArgs[1].ProblemSetDevices.ProblemSet.Tlfs))
+	}
+
+	// check the devices field
+	if len(rkeyui.refreshArgs[0].ProblemSetDevices.Devices) != 1 {
+		t.Fatalf("num devices: %d, expected 1", len(rkeyui.refreshArgs[0].ProblemSetDevices.Devices))
+	}
+	d := rkeyui.refreshArgs[0].ProblemSetDevices.Devices[0]
+	if d.DeviceID != "640ee4f517c2a0ff190456952df26e18" {
+		t.Errorf("device id: %v, expected 640ee4f517c2a0ff190456952df26e18", d.DeviceID)
+	}
+	if d.VerifyKey != "01206f31b54690a95a1a60a0d8861c8ec27c322b49a93b475a631ee6a676018bfd140a" {
+		t.Errorf("device verify key: %v, expected 01206f31b54690a95a1a60a0d8861c8ec27c322b49a93b475a631ee6a676018bfd140a", d.VerifyKey)
 	}
 }
 
@@ -216,8 +228,8 @@ func TestRekeyNeededUserClose(t *testing.T) {
 		t.Fatalf("rkeyui refresh calls: %d, expected 1", len(rkeyui.refreshArgs))
 	}
 
-	if len(rkeyui.refreshArgs[0].Tlfs) != 1 {
-		t.Errorf("first refresh call, tlf count = %d, expected 1", len(rkeyui.refreshArgs[0].Tlfs))
+	if len(rkeyui.refreshArgs[0].ProblemSetDevices.ProblemSet.Tlfs) != 1 {
+		t.Errorf("first refresh call, tlf count = %d, expected 1", len(rkeyui.refreshArgs[0].ProblemSetDevices.ProblemSet.Tlfs))
 	}
 }
 

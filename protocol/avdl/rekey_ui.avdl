@@ -7,5 +7,5 @@ protocol rekeyUI {
   /** refresh is called whenever Electron should refresh the UI, either
    * because a change came in, or because there was a timeout poll.
    */
-  void refresh(int sessionID, array<ProblemTLFDevices> tlfs);
+  void refresh(int sessionID, ProblemSetDevices problemSetDevices);
 }

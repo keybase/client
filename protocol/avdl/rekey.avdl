@@ -20,12 +20,6 @@ protocol rekey {
     array<KID> solutions;
   }
 
-  record ProblemTLFDevices {
-    TLF tlf;
-    int score;
-    array<Device> solutions;
-  }
-
   /**
    ProblemSet is for a particular (user,kid) that initiated a rekey problem.
    This problem consists of one or more problem TLFs, which are individually scored
@@ -39,9 +33,8 @@ protocol rekey {
   }
 
   record ProblemSetDevices {
-    User user;
-    KID kid;
-    array<ProblemTLFDevices> tlfs;
+    ProblemSet problemSet;
+    array<Device> devices;
   }
 
   enum Outcome {

@@ -706,21 +706,14 @@ export type ProblemSet = {
 }
 
 export type ProblemSetDevices = {
-  user: User;
-  kid: KID;
-  tlfs: Array<ProblemTLFDevices>;
+  problemSet: ProblemSet;
+  devices: Array<Device>;
 }
 
 export type ProblemTLF = {
   tlf: TLF;
   score: int;
   solutions: Array<KID>;
-}
-
-export type ProblemTLFDevices = {
-  tlf: TLF;
-  score: int;
-  solutions: Array<Device>;
 }
 
 export type Process = {
@@ -2950,7 +2943,7 @@ export type rekeyUIRefreshResult = void
 export type rekeyUIRefreshRpc = {
   method: 'rekeyUI.refresh',
   param: {
-    tlfs: Array<ProblemTLFDevices>
+    problemSetDevices: ProblemSetDevices
   },
   incomingCallMap?: incomingCallMapType,
   callback: (null | (err: ?any) => void)
@@ -5242,7 +5235,7 @@ export type incomingCallMapType = {
   'keybase.1.rekeyUI.refresh'?: (
     params: {
       sessionID: int,
-      tlfs: Array<ProblemTLFDevices>
+      problemSetDevices: ProblemSetDevices
     },
     response: {
       error: (err: RPCError) => void,
